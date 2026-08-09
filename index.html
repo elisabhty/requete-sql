@@ -247,10 +247,17 @@
   .exframe .xf-name{font-family:var(--mono);font-size:11px;color:#8A8A9C;font-weight:500}
   .exframe .ex-code{border-radius:0;padding:13px 15px;font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-word;overflow-x:visible}
   .exframe .xf-actions{padding:12px 14px;background:var(--surface);border-top:1px solid var(--line)}
-  .exframe .xf-run{width:100%;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:12px 14px;font-family:var(--ui);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 8px 18px -10px rgba(91,91,214,.75)}
+  .exframe .xf-run{width:100%;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:12px 14px;font-family:var(--ui);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 8px 18px -10px rgba(91,91,214,.75);transition:transform .15s ease,opacity .15s ease}
   .exframe .xf-run:active{transform:scale(.98)}
-  .exframe .ex-out{margin:0;padding:12px 15px;font-size:13px;color:var(--ink-2);background:var(--surface);border-top:1px solid var(--line)}
-  .exframe .ex-out b{color:var(--ink)}
+  .exframe .xf-run:disabled{opacity:.65;cursor:wait}
+  .exframe .xf-result{background:var(--surface);border-top:1px solid var(--line);overflow:hidden}
+  .exframe .xf-result[hidden]{display:none}
+  .exframe .xf-result.on{animation:riseIn .38s cubic-bezier(.32,.72,.28,1) both}
+  .exframe .xf-result .result-meta{padding:10px 15px 0;font-size:12px;color:var(--ink-3)}
+  .exframe .xf-result .table-wrap{margin:8px 14px 0;border-radius:12px;box-shadow:none;border:1px solid var(--line)}
+  .exframe .xf-result .feedback{margin:10px 14px 0;border-radius:12px}
+  .exframe .xf-result .ex-out{margin:0;padding:12px 15px 14px;font-size:13px;color:var(--ink-2);border-top:1px solid var(--line)}
+  .exframe .xf-result .ex-out b{color:var(--ink)}
   .ex-out{font-size:13px;color:var(--ink-2);margin-top:10px}
   .ex-out b{color:var(--ink)}
 
@@ -1002,7 +1009,8 @@
   @media (prefers-reduced-motion:reduce){
     .ring,.hc-ring,.logo-badge,.ob-progress i.on::after,.lz-num.now,.hc-go::after,
     .screen.active,.feedback,.feedback.ok,.feedback.err,.feedback.warn,.fchip.on,.tab.tap svg,
-    .ls-slide,.table-wrap,.toast.on,.gcard.unlocking,.ls-step.on,.next-btn.pulse,.btn-run.pulse{animation:none!important}
+    .ls-slide,.table-wrap,.toast.on,.gcard.unlocking,.ls-step.on,.next-btn.pulse,.btn-run.pulse,
+    .exframe .xf-result.on{animation:none!important}
     .module .row,.module,.home-card,.progress-card,.primer,.today-hero,.home-today,.revise{animation:none!important;opacity:1;transform:none}
     *{scroll-behavior:auto}
   }
@@ -3821,16 +3829,46 @@ function lessonRichBlocks(l){
 function lessonRichFooter(l){
   const n=(l.pipeline||[]).length+1;
   const sql=escAttr(l.exemple);
+  const note=escAttr(l.attendu);
   return `
     <div class="sect-label"><i>${n}</i><span>Exemple complet</span></div>
     <div class="exframe">
       <div class="xf-head"><span class="xf-name">exemple.sql</span></div>
       <div class="ex-code">${highlight(l.exemple)}</div>
       <div class="xf-actions">
-        <button type="button" class="xf-run" data-sql="${sql}" onclick="openVizSql(this.getAttribute('data-sql'))">▶ Exécuter</button>
+        <button type="button" class="xf-run" data-sql="${sql}" data-note="${note}" onclick="runExemple(this)">▶ Exécuter</button>
       </div>
-      <p class="ex-out">↳ ${l.attendu}</p></div>
+      <div class="xf-result" hidden aria-live="polite"></div></div>
     <div class="piege"><div class="pi">!</div><div><b>${l.piege.t}</b><p>${l.piege.p}</p></div></div>`;
+}
+function runExemple(btn){
+  const frame=btn.closest('.exframe');
+  const host=frame&&frame.querySelector('.xf-result');
+  const sql=btn.getAttribute('data-sql');
+  const note=btn.getAttribute('data-note');
+  if(!host||!sql)return;
+  btn.disabled=true;
+  btn.textContent='Exécution…';
+  try{
+    const {res,ms}=execQuery(sql);
+    const table=renderTable(res,ms);
+    host.innerHTML=table+(note?`<p class="ex-out">↳ ${note}</p>`:'');
+    host.hidden=false;
+    host.classList.remove('on');
+    void host.offsetWidth;
+    host.classList.add('on');
+    if(navigator.vibrate)navigator.vibrate(8);
+    setTimeout(()=>host.scrollIntoView({behavior:prefersReduceMotion()?'auto':'smooth',block:'nearest'}),prefersReduceMotion()?0:120);
+  }catch(e){
+    host.innerHTML=errBox(e.message);
+    host.hidden=false;
+    host.classList.remove('on');
+    void host.offsetWidth;
+    host.classList.add('on');
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML='▶ Exécuter';
+  }
 }
 function lessonRichSlide(l){
   return lessonRichBlocks(l)+lessonRichFooter(l);
