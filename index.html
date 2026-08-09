@@ -559,6 +559,38 @@
   .tab.active{color:var(--accent)}
   .tab .dot-n{position:absolute;top:-1px;right:calc(50% - 20px);background:var(--danger);color:#fff;font-size:9.5px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px}
 
+  /* Compte */
+  .acc-hero{margin:16px 16px 0;background:linear-gradient(145deg,#5B5BD6,#7A6FF0);color:#fff;border-radius:20px;padding:20px;display:flex;align-items:center;gap:14px;box-shadow:0 12px 30px rgba(91,91,214,.32);position:relative;overflow:hidden}
+  .acc-hero::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 90% -10%,rgba(255,255,255,.28),transparent 55%);pointer-events:none}
+  .acc-av{width:56px;height:56px;border-radius:18px;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:22px;font-weight:700;flex:none;position:relative;z-index:1}
+  .acc-hero .ah{position:relative;z-index:1;flex:1;min-width:0}
+  .acc-hero .ah b{display:block;font-size:20px;font-weight:800;letter-spacing:-.4px}
+  .acc-hero .ah small{display:block;opacity:.9;font-size:13px;margin-top:2px}
+  .acc-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 16px 0}
+  .acc-stat{background:var(--surface);border-radius:14px;padding:14px 15px;box-shadow:0 1px 0 var(--line)}
+  .acc-stat b{display:block;font-family:var(--mono);font-size:22px;font-weight:700;color:var(--accent);line-height:1}
+  .acc-stat small{display:block;font-size:12px;color:var(--ink-2);margin-top:5px}
+  .acc-card{margin:14px 16px 0;background:var(--surface);border-radius:16px;box-shadow:0 1px 0 var(--line);overflow:hidden}
+  .acc-card .ac-h{padding:13px 16px 4px;font-size:12px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.5px}
+  .acc-row{display:flex;align-items:center;gap:12px;padding:13px 16px;width:100%;background:none;border:none;text-align:left;font-family:var(--ui);cursor:pointer;color:var(--ink);position:relative}
+  .acc-row:not(:last-child)::after{content:'';position:absolute;left:52px;right:0;bottom:0;height:1px;background:var(--line)}
+  .acc-row:active{background:var(--surface-2)}
+  .acc-row .ai{width:28px;height:28px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:14px;flex:none}
+  .acc-row.danger .ai{background:var(--danger-soft);color:var(--danger)}
+  .acc-row .at{flex:1;min-width:0}
+  .acc-row .at b{display:block;font-size:14.5px;font-weight:600}
+  .acc-row .at small{display:block;font-size:12px;color:var(--ink-2);margin-top:1px}
+  .acc-row .chev{color:var(--ink-3);flex:none}
+  .acc-row.danger .at b{color:var(--danger)}
+  .acc-field{padding:4px 16px 16px}
+  .acc-field label{display:block;font-size:12px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+  .acc-field input{width:100%;background:var(--surface-2);border:1.5px solid var(--line-2);border-radius:12px;padding:12px 14px;font-family:var(--ui);font-size:15.5px;color:var(--ink);outline:none}
+  .acc-field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(91,91,214,.15);background:var(--surface)}
+  .acc-save{margin-top:10px;width:100%;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:12px;font-family:var(--ui);font-size:14.5px;font-weight:600;cursor:pointer}
+  .acc-save:active{transform:scale(.98)}
+  .acc-note{margin:14px 16px 0;font-size:12.5px;color:var(--ink-3);line-height:1.5;text-align:center;padding-bottom:8px}
+  #file-import{display:none}
+
   /* ---------- UX polish & micro-interactions ---------- */
   body{background:
     radial-gradient(1200px 600px at 10% -10%, rgba(91,91,214,.08), transparent 55%),
@@ -846,9 +878,23 @@
 
     <!-- SCHÉMA -->
     <section id="scr-schema" class="screen">
-      <div class="lgtitle"><div class="eyebrow">La base</div><h1>Schéma</h1>
+      <div class="navbar">
+        <button class="back" onclick="switchTab('compte')">
+          <svg width="12" height="20" viewBox="0 0 12 20" fill="none"><path d="M10 2L3 10l7 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Compte</span></button>
+        <div class="nav-title">Schéma</div>
+      </div>
+      <div class="lgtitle" style="padding-top:8px"><div class="eyebrow">La base</div><h1>Schéma</h1>
         <p class="sub">3 tables reliées entre elles.</p></div>
-      <div id="schema-body" style="margin-top:16px"></div>
+      <div id="schema-body" style="margin-top:8px"></div>
+    </section>
+
+    <!-- COMPTE -->
+    <section id="scr-compte" class="screen">
+      <div class="lgtitle"><div class="eyebrow">Profil &amp; réglages</div><h1>Compte</h1>
+        <p class="sub">Ta progression, ton prénom, tes exports.</p></div>
+      <div id="compte-body"></div>
+      <input id="file-import" type="file" accept="application/json,.json" onchange="importProgress(event)">
     </section>
   </div>
 
@@ -912,8 +958,8 @@
       <svg viewBox="0 0 24 24" fill="none"><path d="M6 3.5h11a1.5 1.5 0 0 1 1.5 1.5v14a1.5 1.5 0 0 1-1.5 1.5H6.5A1.5 1.5 0 0 1 5 19V5a1.5 1.5 0 0 1 1.5-1.5Z" stroke="currentColor" stroke-width="1.6"/><path d="M5 8.5h3M5 12h3M5 15.5h3M11 8.5h4.5M11 12h4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Carnet</button>
     <button class="tab" data-tab="console" onclick="switchTab('console')">
       <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4.5" width="18" height="15" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M7 9.5l3 2.5-3 2.5M12.5 14.5H16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Console</button>
-    <button class="tab" data-tab="schema" onclick="switchTab('schema')">
-      <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="4" width="17" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3.5 9.5h17M3.5 14.5h17M9.5 4v16" stroke="currentColor" stroke-width="1.7"/></svg>Schéma</button>
+    <button class="tab" data-tab="compte" onclick="switchTab('compte')">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8.5" r="3.2" stroke="currentColor" stroke-width="1.7"/><path d="M5.5 19c1.6-3.2 4-4.8 6.5-4.8S17 15.8 18.5 19" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Compte</button>
   </nav>
 </div>
 
@@ -2309,14 +2355,18 @@ function vizGo(d){ const i=vizI+d; if(i<0||i>=vizSteps.length)return; vizI=i; re
    8. ÉCRANS
    ============================================================ */
 function switchTab(name){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  const map={learn:'scr-learn',planning:'scr-planning',defis:'scr-defis',collection:'scr-collection',console:'scr-console',schema:'scr-schema',compte:'scr-compte'};
+  const highlight=name==='schema'?'compte':name;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===highlight));
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  const scr=document.getElementById({learn:'scr-learn',planning:'scr-planning',defis:'scr-defis',collection:'scr-collection',console:'scr-console',schema:'scr-schema'}[name]);
+  const scr=document.getElementById(map[name]);
+  if(!scr)return;
   scr.classList.add('active');
   scr.scrollTop=0;
   showKbar(false);
   if(name==='planning'){semaineOffset=0;jourSel=null;renderPlanning();setTimeout(scrollToToday,30);}
   if(name==='learn') renderStartCta();
+  if(name==='compte') renderCompte();
 }
 function renderProgress(){
   const n=Object.values(state.lessons).filter(l=>l.done).length,pct=Math.round(n/TOTAL*100);
@@ -2416,7 +2466,7 @@ function openChallenge(cid){
   document.getElementById('lesson-body').innerHTML=`
     <div class="l-kicker">Défi · ${NIV[c.niv].l}</div><h1>${c.titre}</h1>
     <div class="consigne"><span class="tag">La question</span><p>${esc(c.q)}</p></div>
-    <p style="font-size:13.5px;color:var(--ink-2);margin:0 4px 14px">Aucune indication de syntaxe cette fois. Consulte l'onglet <b>Schéma</b> si besoin.</p>
+    <p style="font-size:13.5px;color:var(--ink-2);margin:0 4px 14px">Aucune indication de syntaxe cette fois. Consulte le <b>Schéma</b> depuis Compte si besoin.</p>
     ${editorBlock(true)}`;
   setupEditor('ed-lesson','hl-lesson'); showScreen();
 }
@@ -3481,6 +3531,135 @@ function celebrate(){
   }
   if(navigator.vibrate)navigator.vibrate([12,40,12]);
   setTimeout(()=>{host.innerHTML='';},1000);
+}
+
+/* ============================================================
+   COMPTE
+   ============================================================ */
+function compteStats(){
+  const lessons=Object.values(state.lessons||{}).filter(l=>l.done).length;
+  const defis=Object.keys(state.defis||{}).length;
+  const cards=lessons;
+  const notes=(state.notes||[]).length;
+  const due=dueList().length;
+  return {lessons,defis,cards,notes,due};
+}
+function renderCompte(){
+  const host=document.getElementById('compte-body');
+  if(!host)return;
+  const name=(state.name||'').trim();
+  const initial=(name?name[0]:'?').toUpperCase();
+  const st=compteStats();
+  const pct=Math.round(st.lessons/TOTAL*100);
+  host.innerHTML=`
+    <div class="acc-hero">
+      <div class="acc-av">${esc(initial)}</div>
+      <div class="ah">
+        <b>${name?esc(name):'Apprenant·e'}</b>
+        <small>${pct}% du parcours · ${st.lessons}/${TOTAL} leçons</small>
+      </div>
+    </div>
+    <div class="acc-stats">
+      <div class="acc-stat"><b>${st.lessons}</b><small>Leçons terminées</small></div>
+      <div class="acc-stat"><b>${st.defis}</b><small>Défis réussis</small></div>
+      <div class="acc-stat"><b>${st.cards}</b><small>Cartes débloquées</small></div>
+      <div class="acc-stat"><b>${st.notes}</b><small>Notes dans le carnet</small></div>
+    </div>
+    <div class="acc-card">
+      <div class="ac-h">Profil</div>
+      <div class="acc-field">
+        <label for="acc-name">Prénom</label>
+        <input id="acc-name" type="text" maxlength="32" value="${esc(name).replace(/"/g,'&quot;')}" placeholder="Ton prénom" autocomplete="given-name">
+        <button class="acc-save" type="button" onclick="saveAccountName()">Enregistrer</button>
+      </div>
+    </div>
+    <div class="acc-card">
+      <div class="ac-h">Raccourcis</div>
+      <button class="acc-row" type="button" onclick="switchTab('schema')">
+        <div class="ai">▦</div><div class="at"><b>Schéma de la base</b><small>clients · produits · commandes</small></div>
+        <span class="chev">›</span></button>
+      <button class="acc-row" type="button" onclick="switchTab('planning')">
+        <div class="ai">📅</div><div class="at"><b>Mon planning</b><small>${state.plan?'Voir ou ajuster ton rythme':'Créer un parcours sur mesure'}</small></div>
+        <span class="chev">›</span></button>
+      <button class="acc-row" type="button" onclick="replayOnboarding()">
+        <div class="ai">↻</div><div class="at"><b>Revoir l’intro</b><small>L’onboarding en 4 écrans</small></div>
+        <span class="chev">›</span></button>
+    </div>
+    <div class="acc-card">
+      <div class="ac-h">Données</div>
+      <button class="acc-row" type="button" onclick="exportProgress()">
+        <div class="ai">↑</div><div class="at"><b>Exporter ma progression</b><small>Fichier JSON à sauvegarder</small></div>
+        <span class="chev">›</span></button>
+      <button class="acc-row" type="button" onclick="document.getElementById('file-import').click()">
+        <div class="ai">↓</div><div class="at"><b>Importer une sauvegarde</b><small>Restaurer depuis un JSON</small></div>
+        <span class="chev">›</span></button>
+      <button class="acc-row" type="button" onclick="resetDb();switchTab('console')">
+        <div class="ai">↺</div><div class="at"><b>Réinitialiser la base SQL</b><small>Remet clients, produits, commandes</small></div>
+        <span class="chev">›</span></button>
+      <button class="acc-row danger" type="button" onclick="resetAllProgress()">
+        <div class="ai">!</div><div class="at"><b>Effacer toute la progression</b><small>Leçons, défis, planning, notes</small></div>
+        <span class="chev">›</span></button>
+    </div>
+    ${st.due?`<p class="acc-note">${st.due} leçon${st.due>1?'s':''} à réviser aujourd’hui — onglet Apprendre.</p>`:
+      `<p class="acc-note">Progression stockée localement sur cet appareil.</p>`}`;
+}
+function saveAccountName(){
+  const inp=document.getElementById('acc-name');
+  state.name=((inp&&inp.value)||'').trim().slice(0,32);
+  save(); renderGreeting(); renderCompte();
+  if(navigator.vibrate)navigator.vibrate(10);
+}
+function replayOnboarding(){
+  state.onboarded=false; save();
+  obStep=0;
+  document.getElementById('onboarding').classList.add('on');
+  const nameInp=document.getElementById('ob-name');
+  if(nameInp)nameInp.value=state.name||'';
+  paintOb();
+  document.getElementById('ob-next').onclick=obNext;
+  document.getElementById('ob-skip').onclick=()=>finishOnboard('skip');
+}
+function exportProgress(){
+  const payload={v:1,exportedAt:new Date().toISOString(),state};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='requete-sql-progression.json';
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+async function importProgress(ev){
+  const file=ev.target&&ev.target.files&&ev.target.files[0];
+  ev.target.value='';
+  if(!file)return;
+  try{
+    const raw=JSON.parse(await file.text());
+    const incoming=raw.state||raw;
+    if(!incoming||typeof incoming!=='object'||!incoming.lessons){
+      alert('Fichier invalide : progression introuvable.'); return;
+    }
+    if(!confirm('Remplacer ta progression actuelle par cette sauvegarde ?'))return;
+    state={
+      lessons:incoming.lessons||{},
+      defis:incoming.defis||{},
+      notes:Array.isArray(incoming.notes)?incoming.notes:[],
+      plan:incoming.plan||null,
+      onboarded:incoming.onboarded!==false,
+      name:incoming.name||state.name||''
+    };
+    save();
+    renderModules(); renderDefis(); renderSchema(); renderProgress();
+    renderCollection(); renderNotes(); renderPlanning(); renderCompte(); renderGreeting();
+    celebrate();
+  }catch(e){ alert('Impossible de lire ce fichier.'); }
+}
+async function resetAllProgress(){
+  if(!confirm('Effacer toute ta progression ? Cette action est définitive (sauf si tu as exporté avant).'))return;
+  if(!confirm('Dernière confirmation : leçons, défis, notes et planning seront vidés.'))return;
+  state={lessons:{},defis:{},notes:[],plan:null,onboarded:true,name:state.name||''};
+  save(); buildDb(); baseBytes=db.export();
+  renderModules(); renderDefis(); renderSchema(); renderProgress();
+  renderCollection(); renderNotes(); renderPlanning(); renderCompte(); renderGreeting();
 }
 
 boot();
