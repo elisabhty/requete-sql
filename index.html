@@ -1022,9 +1022,16 @@
    1. BASE DE DONNÉES
    ============================================================ */
 const SCHEMA_SQL = `
+PRAGMA foreign_keys = ON;
 CREATE TABLE clients (id INTEGER PRIMARY KEY, nom TEXT, ville TEXT, age INTEGER, email TEXT, date_inscription TEXT);
 CREATE TABLE produits (id INTEGER PRIMARY KEY, nom TEXT, categorie TEXT, prix REAL, stock INTEGER);
-CREATE TABLE commandes (id INTEGER PRIMARY KEY, client_id INTEGER, produit_id INTEGER, quantite INTEGER, date_commande TEXT);
+CREATE TABLE commandes (
+  id INTEGER PRIMARY KEY,
+  client_id INTEGER NOT NULL REFERENCES clients(id),
+  produit_id INTEGER NOT NULL REFERENCES produits(id),
+  quantite INTEGER NOT NULL,
+  date_commande TEXT
+);
 INSERT INTO clients VALUES
  (1,'Sophie','Paris',34,'sophie@mail.fr','2023-01-15'),
  (2,'Lucas','Lyon',28,'lucas@mail.fr','2023-03-22'),
@@ -1069,7 +1076,7 @@ const MODULES = [
     {tok:";",punc:1,txt:"Fin de la requête."}],
   exemple:"SELECT ville FROM clients;",
   attendu:"<b>9 lignes</b>, une colonne : la ville. Paris peut apparaître plusieurs fois — les doublons restent.",
-  piege:{t:"Nom de colonne exact",p:"<code>villes</code> au pluriel provoque une erreur. La casse, elle, n’importe pas en SQLite."},
+  piege:{t:"Erreur fréquente",p:"<code>villes</code> au pluriel provoque une erreur. La casse, elle, n’importe pas en SQLite."},
   consigne:"Affiche le <code>nom</code> de tous les clients.",
   solution:"SELECT nom FROM clients;",
   indice:"Même structure que l’exemple : remplace <code>ville</code> par <code>nom</code>." },
@@ -1132,7 +1139,7 @@ const MODULES = [
     {tok:"50",plain:1,txt:"Seuil — sans guillemets."}],
   exemple:"SELECT nom, stock FROM produits WHERE stock < 50;",
   attendu:"<b>2 lignes</b> : Protéine Végétale (45) et Shaker Inox (30).",
-  piege:{t:"Pas de guillemets sur les nombres",p:"<code>prix > '25'</code> compare du texte et fausse l’ordre. Écris <code>prix > 25</code>."},
+  piege:{t:"Pas de guillemets sur les nombres",p:"SQLite peut convertir <code>'25'</code> selon l’affinité de la colonne, mais ce comportement est fragile et peu portable. Écris <code>prix > 25</code> pour exprimer clairement une comparaison numérique."},
   consigne:"Affiche les <code>produits</code> dont le <code>prix</code> est supérieur à 25.",
   solution:"SELECT * FROM produits WHERE prix > 25;",
   indice:"<code>WHERE prix > 25</code> — sans guillemets." },
@@ -1291,7 +1298,7 @@ const MODULES = [
     {tok:"ON",txt:"<b>Selon la correspondance</b> — règle d’appariement."},
     {tok:"commandes.client_id = clients.id",plain:1,txt:"Le pont entre les deux tables."}],
   exemple:"SELECT clients.nom, commandes.date_commande\nFROM commandes\nJOIN clients ON commandes.client_id = clients.id;",
-  attendu:"<b>15 lignes</b>, une par commande. Sophie apparaît 4 fois. Inès, sans commande, n’apparaît pas.",
+  attendu:"<b>15 lignes</b>, une par commande. Sophie apparaît 3 fois. Inès, sans commande, n’apparaît pas.",
   piege:{t:"Oublier le ON",p:"Sans <code>ON</code>, chaque commande est associée à chaque client : 15 × 9 = 135 lignes. Le <code>ON</code> est obligatoire."},
   consigne:"Pour chaque commande, affiche le <code>nom</code> du client et la <code>quantite</code>.",
   solution:"SELECT clients.nom, commandes.quantite FROM commandes JOIN clients ON commandes.client_id = clients.id;",
@@ -1348,7 +1355,7 @@ const MODULES = [
   situation:"Tu exportes la liste des clients. Les cases vides gênent — tu veux afficher « Non renseigné ».",
   concept:`<p><code>COALESCE</code> renvoie <b>la première valeur non NULL</b>. En pratique : la colonne, puis une valeur de secours.</p>
   <p>Rien n’est modifié en base — c’est un habillage à l’affichage. Utile aussi en calcul : toute opération avec <code>NULL</code> donne <code>NULL</code>.</p>`,
-  anatomie:[{tok:"COALESCE",txt:"<b>Première valeur non vide parmi…</b>"},
+  anatomie:[{tok:"COALESCE",txt:"<b>Première valeur non NULL parmi…</b>"},
     {tok:"(email,",punc:1,txt:"Colonne testée en priorité."},
     {tok:"'Non renseigné')",plain:1,txt:"Valeur de repli si la première est NULL."},
     {tok:"AS contact",txt:"Nomme la colonne résultat."}],
@@ -1369,7 +1376,7 @@ const MODULES = [
     {tok:"commandes",plain:1,txt:"Table de droite, celle qui peut manquer."},
     {tok:"ON clients.id = commandes.client_id",plain:1,txt:"Règle d’appariement."},
     {tok:"COUNT(commandes.id)",txt:"Compte une <b>colonne</b>, pas <code>*</code> : les NULL sont ignorés."}],
-  exemple:"SELECT clients.nom, COUNT(commandes.id) AS nb\nFROM clients\nLEFT JOIN commandes ON clients.id = commandes.client_id\nGROUP BY clients.nom;",
+  exemple:"SELECT clients.nom, COUNT(commandes.id) AS nb\nFROM clients\nLEFT JOIN commandes ON clients.id = commandes.client_id\nGROUP BY clients.id, clients.nom;",
   attendu:"<b>9 lignes</b> — tous les clients, Inès avec <b>0</b>. Avec un JOIN simple : 8 lignes.",
   piege:{t:"COUNT(*) au lieu de COUNT(colonne)",p:"Avec <code>COUNT(*)</code>, Inès afficherait 1 : sa ligne existe. <code>COUNT(commandes.id)</code> donne le bon 0."},
   consigne:"Trouve les clients sans <b>aucune commande</b> : affiche leur <code>nom</code>.",
@@ -1396,16 +1403,16 @@ const MODULES = [
 
 { id:22, titre:"Sous-requêtes", résumé:"Une requête dans la requête",
   situation:"« Quels produits sont plus chers que la moyenne ? » Tu ne peux pas écrire <code>WHERE prix > AVG(prix)</code> directement.",
-  concept:`<p>Une <b>sous-requête</b> est une requête entre parenthèses, exécutée en premier. Son résultat sert de valeur à la requête extérieure.</p>
+  concept:`<p>Une <b>sous-requête</b> est une requête entre parenthèses. On la comprend comme une étape logique qui fournit une valeur à la requête extérieure ; le moteur peut ensuite réorganiser l’exécution pour optimiser le plan.</p>
   <p>Une seule valeur → compare avec <code>=</code>, <code>&gt;</code>, <code>&lt;</code>. Une liste → utilise <code>IN</code>.</p>
   <p>Lis toujours de l’intérieur vers l’extérieur.</p>`,
   anatomie:[{tok:"WHERE prix >",plain:1,txt:"Compare le prix de chaque ligne à…"},
     {tok:"(",punc:1,txt:"<b>Ouvre la sous-requête.</b> Parenthèses obligatoires."},
-    {tok:"SELECT AVG(prix) FROM produits",txt:"Requête complète, exécutée <b>en premier</b> — un seul nombre."},
+    {tok:"SELECT AVG(prix) FROM produits",txt:"Requête complète, évaluée comme une étape logique — elle renvoie un seul nombre."},
     {tok:")",punc:1,txt:"Referme. Le résultat remplace le bloc."}],
   exemple:"SELECT nom, prix FROM produits\nWHERE prix > (SELECT AVG(prix) FROM produits);",
-  attendu:"<b>4 lignes</b> : produits au-dessus de ~24,10 €.",
-  piege:{t:"Comparaison = une seule valeur",p:"Si la sous-requête renvoie plusieurs lignes, <code>&gt;</code> échoue. Utilise <code>IN</code> pour une liste."},
+  attendu:"<b>4 lignes</b> : produits au-dessus de ~23,99 €.",
+  piege:{t:"Une sous-requête scalaire doit être maîtrisée",p:"La comparaison attend une seule colonne et, idéalement, une seule ligne. Dans SQLite, une sous-requête scalaire qui renvoie plusieurs lignes utilise la première ; d’autres moteurs peuvent refuser. Utilise un agrégat, <code>IN</code> ou <code>EXISTS</code> selon le besoin."},
   consigne:"Affiche les clients dont l’<code>age</code> est <b>supérieur à l’âge moyen</b>.",
   solution:"SELECT * FROM clients WHERE age > (SELECT AVG(age) FROM clients);",
   indice:"<code>WHERE age > (SELECT AVG(age) FROM clients)</code>" },
@@ -1432,7 +1439,7 @@ const MODULES = [
   situation:"Un nouveau client s’inscrit. Jusqu’ici tu lisais ; il faut maintenant écrire dans la base.",
   concept:`<p><code>INSERT INTO</code> ajoute des lignes. D’abord la table et les colonnes, puis les valeurs après <code>VALUES</code>.</p>
   <p>Le lien est <b>positionnel</b> : 1<sup>re</sup> valeur → 1<sup>re</sup> colonne. Nomme toujours les colonnes explicitement.</p>
-  <p>Les colonnes omises passent à <code>NULL</code>. Une clé <code>INTEGER PRIMARY KEY</code> se remplit seule si tu l’omets. Ici, tu travailles sur une <b>copie</b> de la base.</p>`,
+  <p>Les colonnes omises reçoivent leur <code>DEFAULT</code> si elle existe, sinon <code>NULL</code>. Une clé <code>INTEGER PRIMARY KEY</code> se remplit seule si tu l’omets. Ici, tu travailles sur une <b>copie</b> de la base.</p>`,
   anatomie:[{tok:"INSERT INTO",txt:"<b>Ajoute dans.</b> Écriture, pas lecture."},
     {tok:"clients",plain:1,txt:"Table de destination."},
     {tok:"(nom, ville, age)",plain:1,txt:"Colonnes remplies. Les autres restent vides."},
@@ -1468,7 +1475,7 @@ const MODULES = [
   situation:"Une commande a été saisie en double. Il faut retirer la ligne en trop.",
   concept:`<p><code>DELETE FROM</code> supprime des lignes entières. Pour vider une case, utilise <code>UPDATE … SET colonne = NULL</code>.</p>
   <p>Sans <code>WHERE</code>, la table est vidée — sans confirmation. Teste d’abord avec un <code>SELECT</code>.</p>
-  <p>Supprimer un client référencé laisse des commandes orphelines. En production, on désactive souvent plutôt qu’on efface.</p>`,
+  <p>Supprimer un client référencé peut être bloqué par une clé étrangère ou laisser des données orphelines si l’intégrité référentielle n’est pas activée. En production, on désactive souvent plutôt qu’on efface.</p>`,
   anatomie:[{tok:"DELETE",txt:"<b>Supprime.</b> Toujours des lignes complètes."},
     {tok:"FROM commandes",txt:"Table concernée."},
     {tok:"WHERE id = 15",plain:1,txt:"<b>Quelles lignes.</b> Sans cette clause, la table entière est vidée."}],
@@ -1532,10 +1539,10 @@ const MODULES = [
   indice:"<code>nom || ' (' || ville || ')' AS etiquette</code> — espace avant la parenthèse." },
 
 { id:30, titre:"ROUND", résumé:"Des chiffres présentables",
-  situation:"Ton prix moyen s’affiche <code>24.1125</code>. Tu veux deux décimales propres.",
+  situation:"Ton prix moyen s’affiche <code>23.9875</code>. Tu veux deux décimales propres.",
   concept:`<p><code>ROUND(valeur, n)</code> arrondit à <code>n</code> décimales. Sans second argument : à l’entier.</p>
   <p>S’emboîte avec les agrégats : <code>ROUND(AVG(prix), 2)</code> — de l’intérieur vers l’extérieur.</p>
-  <p>Arrondis à l’affichage, pas dans un calcul intermédiaire. Attention : <code>7 / 2</code> vaut <b>3</b> en SQL (division entière).</p>`,
+  <p>Arrondis à l’affichage, pas dans un calcul intermédiaire. Dans SQLite, <code>7 / 2</code> vaut <b>3</b> lorsque les deux opérandes sont des entiers ; selon le moteur et les types, la division peut produire <code>3,5</code>.</p>`,
   anatomie:[{tok:"ROUND",txt:"<b>Arrondir.</b>"},
     {tok:"(AVG(prix)",punc:1,txt:"Valeur à arrondir — ici un autre calcul."},
     {tok:", 2)",punc:1,txt:"Nombre de décimales."},
@@ -1598,18 +1605,18 @@ const MODULES = [
   indice:"Deux SELECT à deux colonnes reliés par <code>UNION ALL</code>." },
 
 { id:34, titre:"EXISTS", résumé:"Vérifier une présence",
-  situation:"« Quels clients ont au moins une commande ? » Un JOIN duplique Sophie quatre fois. Tu veux juste savoir si une ligne existe.",
+  situation:"« Quels clients ont au moins une commande ? » Un JOIN répète Sophie trois fois. Tu veux juste savoir si une ligne existe.",
   concept:`<p><code>EXISTS</code> répond oui ou non : la sous-requête renvoie-t-elle au moins une ligne ?</p>
-  <p>Sous-requête <b>corrélée</b> : l’intérieur référence la ligne extérieure (<code>c.id</code>). Convention : <code>SELECT 1</code> — seul le fait d’exister compte.</p>
+  <p>Sous-requête <b>corrélée</b> : l’intérieur référence la ligne extérieure (<code>c.id</code>). L’alias est recommandé pour rendre cette relation explicite. Convention : <code>SELECT 1</code> — seul le fait d’exister compte.</p>
   <p><code>NOT EXISTS</code> exprime clairement « qui n’a rien ».</p>`,
-  anatomie:[{tok:"FROM clients c",plain:1,txt:"Alias <b>indispensable</b> : la sous-requête s’y réfère."},
+  anatomie:[{tok:"FROM clients c",plain:1,txt:"Alias <b>conseillé</b> : la sous-requête s’y réfère clairement."},
     {tok:"WHERE EXISTS",txt:"<b>À condition qu’il existe au moins une ligne</b>…"},
     {tok:"(SELECT 1",plain:1,txt:"Le contenu n’importe pas — on teste la présence."},
     {tok:"FROM commandes cm",plain:1,txt:"Table où chercher."},
     {tok:"WHERE cm.client_id = c.id)",plain:1,txt:"<b>Corrélation</b> avec la ligne extérieure."}],
   exemple:"SELECT nom FROM clients c\nWHERE EXISTS (SELECT 1 FROM commandes cm WHERE cm.client_id = c.id);",
   attendu:"<b>8 lignes</b> : tous sauf Inès. Chaque nom une seule fois.",
-  piege:{t:"Sans alias, pas de corrélation",p:"Sans préfixe, SQL peut comparer deux colonnes de la table intérieure et renvoyer tout le monde."},
+  piege:{t:"Rendre la corrélation explicite",p:"SQLite accepte aussi le nom complet de la table extérieure, mais les alias évitent les ambiguïtés et rendent la corrélation lisible. Préfixe toujours les colonnes : <code>cm.client_id = c.id</code>."},
   consigne:"Trouve les clients sans commande avec <code>NOT EXISTS</code>.",
   solution:"SELECT nom FROM clients c WHERE NOT EXISTS (SELECT 1 FROM commandes cm WHERE cm.client_id = c.id);",
   indice:"Reprends l’exemple et remplace <code>EXISTS</code> par <code>NOT EXISTS</code>." },
@@ -1617,7 +1624,7 @@ const MODULES = [
 { id:35, titre:"IN avec sous-requête", résumé:"Une liste calculée",
   situation:"« Quels produits ont été commandés en grande quantité ? » La liste des identifiants dépend des données.",
   concept:`<p><code>IN</code> accepte une <b>sous-requête</b> qui produit la liste : <code>WHERE id IN (SELECT produit_id …)</code>.</p>
-  <p>L’intérieur s’exécute d’abord et doit renvoyer <b>une seule colonne</b>.</p>
+  <p>L’intérieur fournit la liste comparée et doit renvoyer <b>une seule colonne</b>. Lis la requête de l’intérieur vers l’extérieur pour vérifier sa logique.</p>
   <p>Piège : si <code>NOT IN</code> rencontre un <code>NULL</code> dans la liste, le résultat est vide. Préfère <code>NOT EXISTS</code>.</p>`,
   anatomie:[{tok:"WHERE id",plain:1,txt:"Colonne confrontée à la liste."},
     {tok:"IN",txt:"<b>Fait partie de</b> — liste produite par une requête."},
@@ -1659,7 +1666,7 @@ const MODULES = [
     {tok:"', ')",plain:1,txt:"Séparateur (virgule + espace)."},
     {tok:"GROUP BY ville",txt:"Sans lui, tous les noms fusionneraient."}],
   exemple:"SELECT ville, GROUP_CONCAT(nom, ', ') AS habitants\nFROM clients GROUP BY ville;",
-  attendu:"<b>6 lignes.</b> Paris : « Sophie, Nathan, Léa » ; Lyon : « Lucas, Hugo ».",
+  attendu:"<b>6 lignes.</b> Chaque ville contient la liste de ses habitants ; Paris regroupe Sophie, Nathan et Léa, Lyon regroupe Lucas et Hugo. L’ordre de concaténation n’est pas garanti sans étape de tri dédiée.",
   piege:{t:"Ordre non garanti",p:"SQLite ne promet aucun ordre dans la chaîne. Ne t’appuie pas dessus pour un traitement automatique."},
   consigne:"Pour chaque <code>categorie</code>, liste les noms séparés par <code>' | '</code> (colonne <code>liste</code>).",
   solution:"SELECT categorie, GROUP_CONCAT(nom, ' | ') AS liste FROM produits GROUP BY categorie;",
@@ -1806,8 +1813,8 @@ const MODULES = [
 { titre:"Analyse métier", sous:"Requêtes avancées pour décider", lessons:[
 { id:46, titre:"Sous-requête dans FROM", résumé:"Table dérivée",
   situation:"Tu as un <code>GROUP BY</code> par ville. Tu veux n’afficher que celles qui ont au moins 2 clients — après l’agrégat.",
-  concept:`<p>Une sous-requête dans le <code>FROM</code> produit une <b>table temporaire</b>. Tu l’interroges ensuite comme une vraie table.</p>
-  <p>Il lui faut un <b>alias</b> (<code>) t</code>), sinon SQLite refuse. Utile pour enchaîner : agréger, puis filtrer ou joindre.</p>
+  concept:`<p>Une sous-requête dans le <code>FROM</code> produit un <b>résultat intermédiaire</b> que tu interroges comme une table. Le moteur peut l’optimiser sans forcément le matérialiser physiquement.</p>
+  <p>Donne-lui toujours un <b>alias</b> (<code>) t</code>) : SQLite peut parfois s’en passer, mais d’autres moteurs l’exigent et l’alias rend la requête lisible. Utile pour enchaîner : agréger, puis filtrer ou joindre.</p>
   <p><code>HAVING</code> reste souvent plus court. La forme <code>FROM (…)</code> brille quand l’étape intermédiaire se complique.</p>`,
   anatomie:[{tok:"SELECT ville, nb",txt:"Colonnes de la table dérivée — y compris celles inventées avec AS."},
     {tok:"FROM (",txt:"<b>Ouvre la sous-requête.</b> Ce qui suit produit des lignes."},
@@ -1816,7 +1823,7 @@ const MODULES = [
     {tok:"WHERE nb >= 2",txt:"Tu filtres le résultat déjà agrégé."}],
   exemple:"SELECT ville, nb\nFROM (\n  SELECT ville, COUNT(*) AS nb\n  FROM clients\n  GROUP BY ville\n) t\nWHERE nb >= 2;",
   attendu:"<b>2 lignes</b> : Paris (3) et Lyon (2).",
-  piege:{t:"Oublier l’alias",p:"<code>FROM (SELECT …)</code> sans nom après la parenthèse provoque une erreur. Écris <code>) t</code>."},
+  piege:{t:"Donner un alias à la table dérivée",p:"SQLite accepte parfois <code>FROM (SELECT …)</code> sans alias, mais ce n’est pas portable. Écris <code>) t</code> pour respecter les moteurs qui l’exigent et documenter l’étape."},
   consigne:"Via une sous-requête dans le <code>FROM</code>, affiche <code>categorie</code> et <code>nb</code> pour les catégories à <b>au moins 2 produits</b>.",
   solution:"SELECT categorie, nb FROM (SELECT categorie, COUNT(*) AS nb FROM produits GROUP BY categorie) t WHERE nb >= 2;",
   indice:"Même moule que l’exemple : <code>FROM (SELECT categorie, COUNT(*) AS nb …) t WHERE nb >= 2</code>." },
@@ -1825,14 +1832,14 @@ const MODULES = [
   situation:"Pour chaque produit, tu veux son prix et la moyenne du catalogue sur la même ligne.",
   concept:`<p>Une sous-requête qui renvoie <b>une seule valeur</b> peut s’asseoir dans le <code>SELECT</code>, comme une colonne.</p>
   <p>Ici la moyenne est la même sur chaque ligne. Plus tard, des versions corrélées changeront selon la ligne.</p>
-  <p>Règle : exactement <b>une ligne et une colonne</b>. Sinon SQL refuse.</p>`,
+  <p>Le contrat attendu est <b>une colonne et au plus une ligne</b>. Si aucune ligne n’est renvoyée, le résultat est généralement <code>NULL</code>. Le comportement face à plusieurs lignes dépend du moteur : SQLite prend la première, tandis que d’autres moteurs lèvent une erreur.</p>`,
   anatomie:[{tok:"SELECT nom, prix,",txt:"Colonnes normales de la table."},
     {tok:"(SELECT AVG(prix) FROM produits)",plain:1,txt:"<b>Sous-requête scalaire.</b> Une seule valeur."},
     {tok:"AS moyenne",txt:"On la nomme pour l’affichage."},
     {tok:"FROM produits",txt:"Table principale — une ligne par produit."}],
   exemple:"SELECT nom, prix,\n  (SELECT AVG(prix) FROM produits) AS moyenne\nFROM produits;",
   attendu:"<b>8 lignes</b> : chaque produit avec son prix, et la même moyenne (~23,99) à droite.",
-  piege:{t:"Plusieurs lignes dans la sous-requête",p:"Sans agrégat (<code>SELECT prix FROM produits</code>), SQLite refuse : trop de valeurs pour une colonne."},
+  piege:{t:"Maîtriser la cardinalité",p:"Une sous-requête placée comme une colonne doit renvoyer une seule valeur. Avec <code>SELECT prix FROM produits</code>, SQLite prend la première ligne, ce qui peut masquer un bug ; utilise un agrégat ou vérifie explicitement la cardinalité."},
   consigne:"Affiche le <code>nom</code> de chaque client et <code>age_moyen</code> = âge moyen de <b>tous</b> les clients.",
   solution:"SELECT nom, (SELECT AVG(age) FROM clients) AS age_moyen FROM clients;",
   indice:"<code>SELECT nom, (SELECT AVG(age) FROM clients) AS age_moyen FROM clients</code>." },
@@ -1848,7 +1855,7 @@ const MODULES = [
     {tok:", SUM(CASE WHEN email IS NULL THEN 1 ELSE 0 END) AS sans_email",plain:1,txt:"Second indicateur, même idée inversée."}],
   exemple:"SELECT\n  SUM(CASE WHEN email IS NOT NULL THEN 1 ELSE 0 END) AS avec_email,\n  SUM(CASE WHEN email IS NULL THEN 1 ELSE 0 END) AS sans_email\nFROM clients;",
   attendu:"<b>1 ligne</b> : <code>avec_email = 7</code>, <code>sans_email = 2</code>.",
-  piege:{t:"Oublier le ELSE 0",p:"Sans <code>ELSE 0</code>, les lignes ratées valent NULL : <code>SUM</code> les ignore et le compteur sous-estime."},
+  piege:{t:"Prévoir le cas ELSE",p:"Sans <code>ELSE 0</code>, les lignes qui ne satisfont pas le <code>WHEN</code> valent <code>NULL</code>. Les lignes vraies restent comptées, mais un groupe sans aucun cas vrai peut produire <code>NULL</code> au lieu de <code>0</code>."},
   consigne:"En une requête, affiche <code>chers</code> (prix <b>strictement supérieur à 25</b>) et <code>autres</code> (le reste).",
   solution:"SELECT SUM(CASE WHEN prix > 25 THEN 1 ELSE 0 END) AS chers, SUM(CASE WHEN prix <= 25 THEN 1 ELSE 0 END) AS autres FROM produits;",
   indice:"Deux SUM(CASE…) : l’un avec <code>prix &gt; 25</code>, l’autre avec <code>prix &lt;= 25</code>." },
@@ -1889,7 +1896,8 @@ const MODULES = [
 { id:51, titre:"CA par mois", résumé:"Reporting mensuel", ordered:true,
   situation:"La direction veut le <b>chiffre d’affaires par mois</b> : quantité × prix, regroupé par période.",
   concept:`<p>Trois briques : <code>JOIN</code> pour le prix, <code>SUM(quantite * prix)</code> pour le CA, <code>strftime('%Y-%m', …)</code> + <code>GROUP BY</code> pour le mois.</p>
-  <p>C’est la requête type du reporting e-commerce. Trie par mois pour lire la chronologie.</p>`,
+  <p>C’est une requête type du reporting e-commerce. Trie par mois pour lire la chronologie.</p>
+  <p><b>Point production :</b> cette base pédagogique reprend le prix actuel de <code>produits</code>. Dans un vrai système, le prix facturé doit être enregistré sur la ligne de commande ; sinon une modification future du catalogue réécrit artificiellement l’historique du CA.</p>`,
   anatomie:[{tok:"strftime('%Y-%m', date_commande) AS mois",txt:"La période d’analyse."},
     {tok:"SUM(commandes.quantite * produits.prix) AS ca",txt:"Chiffre d’affaires du mois."},
     {tok:"FROM commandes JOIN produits ON …",txt:"Sans le prix, pas de CA."},
@@ -1908,15 +1916,15 @@ const MODULES = [
   <p>Trie par activité décroissante pour voir les plus engagés en premier.</p>`,
   anatomie:[{tok:"SELECT clients.nom, COUNT(*) AS nb",txt:"Le client et son activité."},
     {tok:"FROM commandes JOIN clients ON …",txt:"Chaque ligne de commande porte un client."},
-    {tok:"GROUP BY clients.nom",txt:"Un paquet par personne."},
+    {tok:"GROUP BY clients.id, clients.nom",txt:"Un paquet par personne, identifié de façon fiable."},
     {tok:"HAVING COUNT(*) >= 2",txt:"<b>Garde seulement les fidèles.</b>"},
     {tok:"ORDER BY nb DESC",txt:"Les plus actifs en tête."}],
-  exemple:"SELECT clients.nom, COUNT(*) AS nb\nFROM commandes\nJOIN clients ON commandes.client_id = clients.id\nGROUP BY clients.nom\nHAVING COUNT(*) >= 2\nORDER BY nb DESC;",
-  attendu:"Clients à 2 commandes ou plus (Sophie en tête avec 4), sans Inès ni les mono-commande.",
+  exemple:"SELECT clients.nom, COUNT(*) AS nb\nFROM commandes\nJOIN clients ON commandes.client_id = clients.id\nGROUP BY clients.id, clients.nom\nHAVING COUNT(*) >= 2\nORDER BY nb DESC;",
+  attendu:"Clients à 2 commandes ou plus (Sophie en tête avec 3), sans Inès ni les mono-commande.",
   piege:{t:"COUNT dans le WHERE",p:"<code>WHERE COUNT(*) &gt;= 2</code> échoue. Place le filtre d’agrégat dans <code>HAVING</code>."},
   consigne:"Nom des produits commandés au moins <b>2 fois</b>, avec <code>nb</code>, du plus au moins commandé.",
-  solution:"SELECT produits.nom, COUNT(*) AS nb FROM commandes JOIN produits ON commandes.produit_id = produits.id GROUP BY produits.nom HAVING COUNT(*) >= 2 ORDER BY nb DESC;",
-  indice:"JOIN + GROUP BY nom + <code>HAVING COUNT(*) &gt;= 2</code> + <code>ORDER BY nb DESC</code>." },
+  solution:"SELECT produits.nom, COUNT(*) AS nb FROM commandes JOIN produits ON commandes.produit_id = produits.id GROUP BY produits.id, produits.nom HAVING COUNT(*) >= 2 ORDER BY nb DESC;",
+  indice:"JOIN + GROUP BY sur l’identifiant et le nom + <code>HAVING COUNT(*) &gt;= 2</code> + <code>ORDER BY nb DESC</code>." },
 
 { id:53, titre:"ALTER TABLE", résumé:"Ajouter une colonne", write:true, verif:"SELECT name FROM pragma_table_info('produits') WHERE name = 'promo';",
   situation:"Le marketing veut une colonne <code>promo</code>. La table existe déjà : il faut l’étendre.",
@@ -2085,25 +2093,25 @@ const MODULES = [
     {tok:"DO UPDATE SET stock = excluded.stock",txt:"…alors mets à jour au lieu d’abandonner."}],
   exemple:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (3, 'Magnésium', 'Bien-être', 19.90, 50)\nON CONFLICT(id) DO UPDATE SET stock = excluded.stock;",
   attendu:"Le produit id 3 garde son identité ; son <code>stock</code> devient 50.",
-  piege:{t:"ON CONFLICT sans cible",p:"Précise la colonne de conflit (<code>id</code> ou un UNIQUE). Sinon SQLite ne sait pas quoi faire."},
+  piege:{t:"Rendre la cible explicite",p:"SQLite autorise parfois <code>ON CONFLICT DO UPDATE</code> sans cible lorsqu’il s’agit de la dernière clause. Préciser <code>ON CONFLICT(id)</code> reste plus lisible et plus sûr : on documente exactement la contrainte métier visée."},
   consigne:"Upsert le produit <code>id = 1</code> pour fixer son <code>stock</code> à <b>999</b> (Fibre Prébiotique, Bien-être, 29.90). <code>ON CONFLICT(id) DO UPDATE</code>.",
   solution:"INSERT INTO produits (id, nom, categorie, prix, stock) VALUES (1, 'Fibre Prébiotique', 'Bien-être', 29.90, 999) ON CONFLICT(id) DO UPDATE SET stock = excluded.stock;",
   indice:"INSERT avec id 1 et stock 999, puis <code>ON CONFLICT(id) DO UPDATE SET stock = excluded.stock</code>." },
 
 { id:64, titre:"Clé composite", résumé:"Plusieurs colonnes en PK", write:true, verif:"SELECT COUNT(*) FROM pragma_table_info('ligne_panier') WHERE pk > 0;",
   situation:"Une ligne de panier s’identifie par <b>commande + produit</b>. Deux colonnes forment la clé.",
-  concept:`<p>Une <b>clé primaire composite</b> : <code>PRIMARY KEY (col1, col2)</code>. La combinaison est unique.</p>
+  concept:`<p>Une <b>clé primaire composite</b> : <code>PRIMARY KEY (col1, col2)</code>. La combinaison doit être unique ; ajoute <code>NOT NULL</code> aux colonnes clés pour interdire les identifiants incomplets, notamment en SQLite.</p>
   <p>Cœur de la modélisation many-to-many. On stocke les id et on joint — on ne répète pas le nom du produit sur chaque ligne.</p>
   <p>L’exercice tourne sur une copie de la base.</p>`,
   anatomie:[{tok:"CREATE TABLE ligne_panier (",txt:"Nouvelle table de détail."},
     {tok:"commande_id INTEGER, produit_id INTEGER, quantite INTEGER,",plain:1,txt:"Les attributs."},
     {tok:"PRIMARY KEY (commande_id, produit_id)",plain:1,txt:"<b>La paire</b> est unique."},
     {tok:")",txt:"Fin de définition."}],
-  exemple:"CREATE TABLE note_tag (\n  note_id INTEGER,\n  tag TEXT,\n  PRIMARY KEY (note_id, tag)\n);",
+  exemple:"CREATE TABLE note_tag (\n  note_id INTEGER NOT NULL,\n  tag TEXT NOT NULL,\n  PRIMARY KEY (note_id, tag)\n);",
   attendu:"Table créée avec une PK sur deux colonnes — aucune ligne encore.",
   piege:{t:"Deux PRIMARY KEY séparées",p:"Une table n’a qu’une PK. Pour deux colonnes : une seule clause <code>PRIMARY KEY (a, b)</code>."},
   consigne:"Crée <code>ligne_panier</code> : <code>commande_id</code>, <code>produit_id</code>, <code>quantite</code> (INTEGER), PK composite <code>(commande_id, produit_id)</code>.",
-  solution:"CREATE TABLE ligne_panier (commande_id INTEGER, produit_id INTEGER, quantite INTEGER, PRIMARY KEY (commande_id, produit_id));",
+  solution:"CREATE TABLE ligne_panier (commande_id INTEGER NOT NULL, produit_id INTEGER NOT NULL, quantite INTEGER, PRIMARY KEY (commande_id, produit_id));",
   indice:"Une seule clause <code>PRIMARY KEY (commande_id, produit_id)</code> à la fin de la liste des colonnes." },
 
 { id:65, titre:"SQL ailleurs", résumé:"SQLite, Postgres, MySQL", ordered:true,
@@ -2127,8 +2135,8 @@ const MODULES = [
    ============================================================ */
 const CHALLENGES=[
  {id:'c1',titre:"Le meilleur client",niv:'m',q:"Quel client a commandé le plus d’unités au total ? Affiche son nom et le total, le plus gros en premier.",
-  sol:"SELECT clients.nom, SUM(commandes.quantite) AS total FROM commandes JOIN clients ON commandes.client_id=clients.id GROUP BY clients.nom ORDER BY total DESC;",ordered:true,
-  indice:"JOIN pour le nom, GROUP BY sur le nom, SUM sur la quantité, ORDER BY décroissant."},
+  sol:"SELECT clients.nom, SUM(commandes.quantite) AS total FROM commandes JOIN clients ON commandes.client_id=clients.id GROUP BY clients.id, clients.nom ORDER BY total DESC;",ordered:true,
+  indice:"JOIN pour le nom, GROUP BY sur l’identifiant et le nom, SUM sur la quantité, ORDER BY décroissant."},
  {id:'c2',titre:"Villes actives",niv:'f',q:"Quelles villes ont au moins 2 clients ? Affiche ville et effectif.",
   sol:"SELECT ville, COUNT(*) AS nb FROM clients GROUP BY ville HAVING COUNT(*) >= 2;",
   indice:"GROUP BY ville, puis HAVING COUNT(*) >= 2."},
@@ -2136,7 +2144,7 @@ const CHALLENGES=[
   sol:"SELECT AVG(quantite) FROM commandes;",
   indice:"Une seule agrégation sur la table commandes."},
  {id:'c4',titre:"CA par produit",niv:'d',q:"Pour chaque produit, calcule le CA (quantité × prix). Affiche le nom et le CA, du plus élevé au plus faible.",
-  sol:"SELECT produits.nom, SUM(commandes.quantite * produits.prix) AS ca FROM commandes JOIN produits ON commandes.produit_id=produits.id GROUP BY produits.nom ORDER BY ca DESC;",ordered:true,
+  sol:"SELECT produits.nom, SUM(commandes.quantite * produits.prix) AS ca FROM commandes JOIN produits ON commandes.produit_id=produits.id GROUP BY produits.id, produits.nom ORDER BY ca DESC;",ordered:true,
   indice:"Multiplie dans le SUM : <code>SUM(commandes.quantite * produits.prix)</code>."},
  {id:'c5',titre:"Les inactifs",niv:'m',q:"Quels clients n’ont jamais passé de commande ? Affiche leur nom.",
   sol:"SELECT clients.nom FROM clients LEFT JOIN commandes ON clients.id=commandes.client_id WHERE commandes.id IS NULL;",
@@ -2151,13 +2159,13 @@ const CHALLENGES=[
   sol:"SELECT COUNT(*) FROM commandes WHERE date_commande >= '2023-07-20';",
   indice:"Les dates se comparent comme du texte au format AAAA-MM-JJ."},
  {id:'c9',titre:"Produit vedette",niv:'m',q:"Quel produit a été commandé le plus de fois (nombre de commandes) ? Affiche le nom et le compte, le plus commandé en premier.",
-  sol:"SELECT produits.nom, COUNT(*) AS nb FROM commandes JOIN produits ON commandes.produit_id=produits.id GROUP BY produits.nom ORDER BY nb DESC;",ordered:true,
+  sol:"SELECT produits.nom, COUNT(*) AS nb FROM commandes JOIN produits ON commandes.produit_id=produits.id GROUP BY produits.id, produits.nom ORDER BY nb DESC;",ordered:true,
   indice:"JOIN, GROUP BY sur le nom, COUNT(*), tri décroissant."},
  {id:'c10',titre:"CA total",niv:'d',q:"Quel est le chiffre d’affaires total de toutes les commandes ?",
   sol:"SELECT SUM(commandes.quantite * produits.prix) FROM commandes JOIN produits ON commandes.produit_id=produits.id;",
   indice:"Un SUM sur le produit des deux colonnes, avec JOIN pour le prix."},
  {id:'c11',titre:"Segmentation",niv:'d',q:"Affiche chaque client et une colonne segment : 'Actif' s’il a au moins une commande, sinon 'Dormant'. LEFT JOIN et CASE.",
-  sol:"SELECT clients.nom, CASE WHEN COUNT(commandes.id) > 0 THEN 'Actif' ELSE 'Dormant' END AS segment FROM clients LEFT JOIN commandes ON clients.id=commandes.client_id GROUP BY clients.nom;",
+  sol:"SELECT clients.nom, CASE WHEN COUNT(commandes.id) > 0 THEN 'Actif' ELSE 'Dormant' END AS segment FROM clients LEFT JOIN commandes ON clients.id=commandes.client_id GROUP BY clients.id, clients.nom;",
   indice:"LEFT JOIN + GROUP BY, puis CASE sur <code>COUNT(commandes.id)</code>."},
  {id:'c12',titre:"Catégorie reine",niv:'d',q:"Quelle catégorie a généré le plus d’unités vendues ? Affiche la catégorie et le total, du plus grand au plus petit.",
   sol:"SELECT produits.categorie, SUM(commandes.quantite) AS total FROM commandes JOIN produits ON commandes.produit_id=produits.id GROUP BY produits.categorie ORDER BY total DESC;",ordered:true,
@@ -2178,7 +2186,7 @@ const CHALLENGES=[
   sol:"WITH ventes AS (SELECT produits.categorie, produits.nom, SUM(commandes.quantite) AS total FROM commandes JOIN produits ON commandes.produit_id=produits.id GROUP BY produits.categorie, produits.nom), ranked AS (SELECT *, ROW_NUMBER() OVER (PARTITION BY categorie ORDER BY total DESC) AS rn FROM ventes) SELECT categorie, nom, total FROM ranked WHERE rn = 1;",
   indice:"CTE des ventes, puis <code>ROW_NUMBER() OVER (PARTITION BY categorie ORDER BY total DESC)</code>, filtre rn = 1."},
  {id:'c18',titre:"Multi-catégories",niv:'d',q:"Quels clients ont commandé des produits d’au moins 2 catégories ? Affiche leur nom.",
-  sol:"SELECT clients.nom FROM clients JOIN commandes ON clients.id=commandes.client_id JOIN produits ON commandes.produit_id=produits.id GROUP BY clients.nom HAVING COUNT(DISTINCT produits.categorie) >= 2;",
+  sol:"SELECT clients.nom FROM clients JOIN commandes ON clients.id=commandes.client_id JOIN produits ON commandes.produit_id=produits.id GROUP BY clients.id, clients.nom HAVING COUNT(DISTINCT produits.categorie) >= 2;",
   indice:"JOIN jusqu’à produits, puis <code>HAVING COUNT(DISTINCT produits.categorie) &gt;= 2</code>."},
  {id:'c19',titre:"Intersection des villes",niv:'m',q:"Quelles villes ont à la fois un client de moins de 35 ans et un de 45 ans ou plus ? Affiche la ville (INTERSECT).",
   sol:"SELECT ville FROM clients WHERE age < 35 INTERSECT SELECT ville FROM clients WHERE age >= 45;",
@@ -2296,9 +2304,9 @@ const CARTES={
  45:{k:"CREATE TABLE",t:"Définir une structure",s:"CREATE TABLE avis (\n  id INTEGER PRIMARY KEY,\n  note INTEGER\n);",
     m:"Types SQLite : <code>INTEGER</code>, <code>REAL</code>, <code>TEXT</code>, <code>BLOB</code>. Contraintes : <code>NOT NULL</code>, <code>UNIQUE</code>, <code>DEFAULT</code>, <code>CHECK</code>. Mieux à la création qu’après."},
  46:{k:"FROM (…)",t:"Table dérivée",s:"SELECT … FROM (\n  SELECT … GROUP BY …\n) t WHERE …",
-    m:"Sous-requête dans le <code>FROM</code> = table temporaire. <b>Alias obligatoire</b> après la parenthèse. Pour enchaîner agréger puis filtrer."},
+    m:"Sous-requête dans le <code>FROM</code> = table temporaire. Donne-lui un <b>alias</b> après la parenthèse : SQLite peut parfois s’en passer, mais plusieurs moteurs l’exigent. Pour enchaîner agréger puis filtrer."},
  47:{k:"SELECT (…)",t:"Sous-requête en colonne",s:"SELECT nom,\n  (SELECT AVG(prix) FROM produits) AS moyenne\nFROM produits;",
-    m:"Une valeur scalaire peut devenir une colonne du SELECT. Elle doit renvoyer <b>une seule ligne et une colonne</b>."},
+    m:"Une valeur scalaire peut devenir une colonne du SELECT. Pour un SQL portable, elle doit renvoyer <b>une seule ligne et une colonne</b> ; SQLite prend la première ligne si plusieurs sont renvoyées."},
  48:{k:"SUM(CASE)",t:"Compter par case",s:"SUM(CASE WHEN … THEN 1 ELSE 0 END)",
     m:"Condition → 1 ou 0, puis <code>SUM</code>. Plusieurs <code>SUM(CASE…)</code> = mini tableau de bord. N’oublie pas le <code>ELSE 0</code>."},
  49:{k:"strftime %w",t:"Jour de la semaine",s:"strftime('%w', date_commande)",
@@ -2351,7 +2359,7 @@ const QCM={
  4:[{q:"<code>WHERE</code> filtre :",o:["Les colonnes affichées","Les lignes retenues","Les tables interrogées"],b:1,e:"<code>SELECT</code> = colonnes, <code>WHERE</code> = lignes."},
    {q:"Comment comparer une colonne à du texte ?",o:['ville = "Paris"',"ville = 'Paris'","ville = Paris"],b:1,e:"Guillemets simples pour le texte."}],
  5:[{q:"<code>WHERE prix >= 25</code> garde-t-il un produit à 25 € ?",o:["Oui, >= inclut la borne","Non, il faut écrire > 25","Seulement avec BETWEEN"],b:0,e:"Toute la différence avec <code>&gt;</code>."},
-   {q:"<code>WHERE prix > '25'</code> :",o:["Équivaut à > 25","Compare du texte — ordre lexicographique","Provoque une erreur"],b:1,e:"Un nombre ne prend jamais de guillemets."}],
+   {q:"<code>WHERE prix > '25'</code> :",o:["Peut être converti par SQLite, mais reste une mauvaise pratique peu portable","Compare toujours du texte par ordre lexicographique","Provoque nécessairement une erreur"],b:0,e:"Écris <code>prix &gt; 25</code> pour exprimer clairement une comparaison numérique, sans dépendre des conversions implicites du moteur."}],
  6:[{q:"<code>WHERE ville='Paris' AND ville='Lyon'</code> renvoie :",o:["Les Parisiens et les Lyonnais","Aucune ligne","Une erreur de syntaxe"],b:1,e:"<code>AND</code> exige les deux à la fois. Il fallait <code>OR</code>."},
    {q:"<code>WHERE ville = 'Lyon' OR 'Paris'</code> :",o:["Fonctionne comme attendu","Ne filtre pas correctement : il faut répéter la colonne","Provoque une erreur claire"],b:1,e:"Chaque condition doit être complète."}],
  7:[{q:"Sans <code>ORDER BY</code>, l’ordre des lignes est :",o:["Alphabétique","Celui des identifiants","Non garanti"],b:2,e:"Si l’ordre compte, demande-le."},
@@ -2371,7 +2379,7 @@ const QCM={
  14:[{q:"Le motif <code>'L%'</code> désigne :",o:["Contient un L","Commence par L","Finit par L"],b:1,e:"Le <code>%</code> remplace « n’importe quoi ». Sa position change le sens."},
    {q:"<code>LIKE 'Marin'</code> sans % équivaut à :",o:["Contient Marin","= 'Marin'","Commence par Marin"],b:1,e:"Sans joker, LIKE se comporte comme un signe égal."}],
  15:[{q:"À quoi sert la clause <code>ON</code> ?",o:["À trier le résultat","À dire quelle colonne correspond à quelle colonne","À filtrer les lignes"],b:1,e:"C’est la règle d’appariement. Sans elle, SQL associe tout avec tout."},
-   {q:"Sophie a 4 commandes. Dans un JOIN commandes/clients, son nom apparaît :",o:["1 fois","4 fois","9 fois"],b:1,e:"Le JOIN répète les infos du client autant de fois qu’il a de commandes."}],
+   {q:"Sophie a 3 commandes. Dans un JOIN commandes/clients, son nom apparaît :",o:["1 fois","3 fois","9 fois"],b:1,e:"Le JOIN répète les infos du client autant de fois qu’il a de commandes."}],
  16:[{q:"<code>AS</code> sert à :",o:["Créer une colonne dans la base","Renommer une colonne à l’affichage","Relier deux tables"],b:1,e:"Habillage uniquement : la base n’est pas modifiée."},
    {q:"Pour relier trois tables :",o:["Un JOIN avec trois conditions ON","Deux JOIN, chacun avec son propre ON","Obligatoirement une sous-requête"],b:1,e:"On empile : chaque table en plus ajoute un <code>JOIN … ON …</code>."}],
  17:[{q:"<code>WHERE COUNT(*) > 1</code> :",o:["Fonctionne correctement","Échoue : les agrégats ne sont pas disponibles au moment du WHERE","Renvoie un résultat vide"],b:1,e:"Quand WHERE s’exécute, les groupes n’existent pas encore. C’est le rôle de HAVING."},
@@ -2388,7 +2396,7 @@ const QCM={
    {q:"Dans quel ordre lire une requête à sous-requête ?",o:["De gauche à droite","De l’intérieur des parenthèses vers l’extérieur","De la fin vers le début"],b:1,e:"SQL exécute l’intérieur d’abord, puis utilise le résultat."}],
  23:[{q:"Pourquoi stocker les dates en AAAA-MM-JJ ?",o:["C’est le seul format accepté","L’ordre alphabétique coïncide avec l’ordre chronologique","Ça prend moins de place"],b:1,e:"On peut ainsi comparer et trier des dates comme du texte."},
    {q:"<code>strftime('%Y-%m', date)</code> renvoie :",o:["L’année seule","L’année et le mois","Le jour du mois"],b:1,e:"On tronque la date pour former des paquets mensuels."}],
- 24:[{q:"Les colonnes non citées dans un INSERT prennent :",o:["La valeur 0","NULL","La valeur de la ligne précédente"],b:1,e:"Sauf une clé primaire INTEGER, qui se remplit automatiquement."},
+ 24:[{q:"Les colonnes non citées dans un INSERT prennent :",o:["Leur DEFAULT si défini, sinon NULL","Toujours 0","La valeur de la ligne précédente"],b:0,e:"Une colonne omise reçoit son <code>DEFAULT</code> si la table en définit un ; sinon elle reçoit généralement <code>NULL</code>."},
    {q:"Le lien entre colonnes et valeurs est :",o:["Par nom","Par position","Alphabétique"],b:1,e:"D’où le risque de mettre une ville dans la colonne nom sans message d’erreur."}],
  25:[{q:"Un <code>UPDATE</code> sans <code>WHERE</code> :",o:["Échoue","Modifie toute la table, sans avertissement","Ne modifie que la première ligne"],b:1,e:"Accident classique — et coûteux."},
    {q:"Le bon réflexe avant un UPDATE sensible :",o:["Ajouter LIMIT 1","Tester le même WHERE avec un SELECT","Faire l’UPDATE deux fois"],b:1,e:"Tu vois les lignes concernées avant de les toucher."}],
@@ -2432,11 +2440,11 @@ const QCM={
    {q:"Une transaction garantit :",o:["La rapidité","Le tout ou rien","L’unicité des lignes"],b:1,e:"Atomicité — le A de ACID : le bloc est indivisible."}],
  45:[{q:"<code>INTEGER PRIMARY KEY</code> :",o:["Doit être rempli à la main","Se remplit automatiquement si on l’omet","Interdit seulement les NULL"],b:1,e:"SQLite attribue le numéro suivant tout seul."},
    {q:"<code>CHECK (note BETWEEN 1 AND 5)</code> sert à :",o:["Trier les notes","Refuser à l’écriture toute valeur hors plage","Calculer une moyenne"],b:1,e:"La base refuse la mauvaise donnée, quelle que soit l’appli."}],
- 46:[{q:"Une sous-requête dans le <code>FROM</code> doit :",o:["Renvoyer une seule valeur","Avoir un alias après la parenthèse","Être écrite sans SELECT"],b:1,e:"Sans alias, SQLite refuse la table dérivée."},
-   {q:"À quoi sert surtout cette forme ?",o:["Remplacer tous les JOIN","Enchaîner un calcul puis le retraiter","Créer une table permanente"],b:1,e:"On matérialise un résultat intermédiaire, puis on le filtre ou on le joint."}],
- 47:[{q:"Une sous-requête dans le <code>SELECT</code> doit renvoyer :",o:["Plusieurs lignes","Une seule valeur (une ligne, une colonne)","Une table entière"],b:1,e:"Sinon ce n’est plus une colonne scalaire et SQL échoue."},
+ 46:[{q:"En SQL portable, une sous-requête dans le <code>FROM</code> doit :",o:["Renvoyer une seule valeur","Avoir un alias après la parenthèse","Être écrite sans SELECT"],b:1,e:"SQLite l’accepte parfois sans alias, mais plusieurs moteurs l’exigent. L’alias rend aussi l’étape intermédiaire lisible."},
+    {q:"À quoi sert surtout cette forme ?",o:["Remplacer tous les JOIN","Enchaîner un calcul puis le retraiter","Créer une table permanente"],b:1,e:"On produit un résultat intermédiaire, puis on le filtre ou on le joint ; cela ne crée pas une table permanente."}],
+ 47:[{q:"Pour être portable, une sous-requête scalaire dans le <code>SELECT</code> doit renvoyer :",o:["Plusieurs lignes","Une seule valeur (une ligne, une colonne)","Une table entière"],b:1,e:"SQLite prend la première ligne si plusieurs sont renvoyées ; d’autres moteurs refusent. Conçois donc explicitement une sous-requête à cardinalité unique."},
    {q:"Avec <code>AVG(prix)</code> dans le SELECT :",o:["La moyenne change à chaque produit","La même moyenne apparaît sur chaque ligne","La table produits est modifiée"],b:1,e:"La sous-requête globale calcule une constante pour tout le résultat."}],
- 48:[{q:"Pourquoi écrire <code>ELSE 0</code> dans un <code>SUM(CASE…)</code> ?",o:["Pour trier","Sinon les lignes ratées valent NULL et SUM les ignore","C’est obligatoire pour la syntaxe CASE"],b:1,e:"Sans ELSE 0, le compteur sous-estime."},
+ 48:[{q:"Pourquoi écrire <code>ELSE 0</code> dans un <code>SUM(CASE…)</code> ?",o:["Pour trier","Pour obtenir 0 quand aucune ligne ne vérifie la condition, plutôt que NULL","C’est obligatoire pour la syntaxe CASE"],b:1,e:"Les lignes vraies sont comptées dans les deux cas ; <code>ELSE 0</code> rend le résultat total explicite, notamment lorsqu’il n’y a aucun cas vrai."},
    {q:"<code>SUM(CASE WHEN … THEN 1 ELSE 0 END)</code> sert à :",o:["Additionner des prix","Compter combien de lignes vérifient une condition","Créer une vue"],b:1,e:"Des 1 et des 0 additionnés = un effectif."}],
  49:[{q:"<code>strftime('%w', date)</code> renvoie :",o:["Le jour du mois (1–31)","Le jour de la semaine (0–6)","Le numéro de semaine dans l’année"],b:1,e:"0 = dimanche … 6 = samedi. %d est le jour du mois."},
    {q:"Pour un reporting fiable, les dates en base doivent être :",o:["Au format JJ/MM/AAAA","Au format AAAA-MM-JJ","Des entiers quelconques"],b:1,e:"C’est ce format que strftime et les comparaisons comprennent bien."}],
@@ -4413,7 +4421,7 @@ function renderConsoleChips(){
   const ex=[
     {l:"Tous les clients",q:"SELECT * FROM clients;"},
     {l:"Top produits",q:"SELECT nom, prix FROM produits ORDER BY prix DESC LIMIT 3;"},
-    {l:"Ventes par client",q:"SELECT clients.nom, SUM(commandes.quantite) AS total\nFROM commandes\nJOIN clients ON commandes.client_id = clients.id\nGROUP BY clients.nom\nORDER BY total DESC;"},
+    {l:"Ventes par client",q:"SELECT clients.nom, SUM(commandes.quantite) AS total\nFROM commandes\nJOIN clients ON commandes.client_id = clients.id\nGROUP BY clients.id, clients.nom\nORDER BY total DESC;"},
     {l:"Sans commande",q:"SELECT clients.nom\nFROM clients\nLEFT JOIN commandes ON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;"}];
   document.getElementById('console-chips').innerHTML=ex.map((e,i)=>`<button class="chip" onclick="fillConsole(${i})">${e.l}</button>`).join('');
   window.__chips=ex;
