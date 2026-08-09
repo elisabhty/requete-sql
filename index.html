@@ -481,9 +481,12 @@
   .wk-day .wd{font-size:9.5px;font-weight:700;color:var(--ink-3);letter-spacing:.4px}
   .wk-day .dn{font-family:var(--mono);font-size:15px;font-weight:700;line-height:1.1}
   .wk-day .ld{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--accent);min-height:13px;display:flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:var(--accent-soft)}
+  .wk-day .ld.pause{width:auto;min-width:0;height:auto;padding:2px 4px;border-radius:5px;font-family:var(--ui);font-size:7.5px;font-weight:700;letter-spacing:.2px;text-transform:uppercase;color:var(--ink-3);background:var(--line)}
+  .wk-day.pause{opacity:.72}
   .wk-day.sel{background:var(--accent);border-color:var(--accent);box-shadow:0 6px 16px rgba(91,91,214,.3)}
   .wk-day.sel .wd,.wk-day.sel .dn{color:#fff}
   .wk-day.sel .ld{background:rgba(255,255,255,.28);color:#fff}
+  .wk-day.sel .ld.pause{background:rgba(255,255,255,.22);color:#fff}
   .wk-day.auj{border-color:var(--accent)}
   .wk-day.auj .dn{color:var(--accent)}
   .wk-day.auj.sel .dn{color:#fff}
@@ -491,6 +494,9 @@
   .wk-day.ret .ld{background:var(--warn-soft);color:var(--warn)}
   .wk-day.sel.fait .ld,.wk-day.sel.ret .ld{background:rgba(255,255,255,.28);color:#fff}
   .wk-day.over{border-color:var(--accent);background:var(--accent-soft);transform:scale(1.07)}
+  .lz-num.defi{background:var(--warn-soft);color:var(--warn)}
+  .row.defi-row{background:linear-gradient(90deg,var(--warn-soft),var(--surface) 42%)}
+  .home-fbar{padding:4px 16px 10px}
 
   .day-panel{margin:14px 16px 0;background:var(--surface);border-radius:16px;box-shadow:0 1px 0 var(--line);border:1.5px solid transparent;overflow:hidden}
   .day-panel.over{border-color:var(--accent);background:var(--accent-soft)}
@@ -821,6 +827,7 @@
           <p>À retenir : un <em>SELECT</em> ne modifie jamais tes données. Tu peux te tromper autant que tu veux, rien ne casse.</p>
         </div>
       </div>
+      <div class="fbar home-fbar" id="home-filters"></div>
       <div id="modules"></div>
     </section>
 
@@ -840,13 +847,6 @@
       <div class="lgtitle"><div class="eyebrow">Ton rythme</div><h1>Planning</h1>
         <p class="sub" id="pl-sub">Un parcours étalé sur les jours qui t'arrangent.</p></div>
       <div id="planning-body"></div>
-    </section>
-
-    <!-- DÉFIS -->
-    <section id="scr-defis" class="screen">
-      <div class="lgtitle"><div class="eyebrow">Sans filet</div><h1>Défis</h1>
-        <p class="sub">Des questions métier. À toi d'écrire la requête entière.</p></div>
-      <div id="defis-list"></div>
     </section>
 
     <!-- CARTES -->
@@ -954,8 +954,6 @@
       <svg viewBox="0 0 24 24" fill="none"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 1 4 17.5v-12Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 0 1.5-1.5v-12Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>Apprendre</button>
     <button class="tab" data-tab="planning" onclick="switchTab('planning')">
       <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="15" rx="2.2" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="7" y="12.5" width="4" height="3" rx="1" fill="currentColor"/></svg>Planning<span class="dot-n" id="badge-planning" style="display:none">0</span></button>
-    <button class="tab" data-tab="defis" onclick="switchTab('defis')">
-      <svg viewBox="0 0 24 24" fill="none"><path d="M12 3l2.6 5.5 6 .8-4.4 4.2 1.1 6L12 16.7 6.7 19.5l1.1-6L3.4 9.3l6-.8L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Défis</button>
     <button class="tab" data-tab="collection" onclick="switchTab('collection')">
       <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="11" height="14" rx="2" stroke="currentColor" stroke-width="1.6"/><rect x="9" y="3.5" width="11" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="var(--bg)"/></svg>Cartes</button>
     <button class="tab" data-tab="console" onclick="switchTab('console')">
@@ -2040,7 +2038,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-09-k';
+const APP_VERSION='2026-08-09-l';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const memStore={};
@@ -2385,7 +2383,8 @@ function vizGo(d){ const i=vizI+d; if(i<0||i>=vizSteps.length)return; vizI=i; re
    8. ÉCRANS
    ============================================================ */
 function switchTab(name){
-  const map={learn:'scr-learn',planning:'scr-planning',defis:'scr-defis',collection:'scr-collection',console:'scr-console',schema:'scr-schema',compte:'scr-compte'};
+  if(name==='defis'){homeFilter='defis';name='learn';}
+  const map={learn:'scr-learn',planning:'scr-planning',collection:'scr-collection',console:'scr-console',schema:'scr-schema',compte:'scr-compte'};
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const scr=document.getElementById(map[name]);
@@ -2394,7 +2393,7 @@ function switchTab(name){
   scr.scrollTop=0;
   showKbar(false);
   if(name==='planning'){semaineOffset=0;jourSel=null;renderPlanning();setTimeout(scrollToToday,30);}
-  if(name==='learn') renderHomeHero();
+  if(name==='learn'){renderHomeHero();renderModules();}
   if(name==='compte') renderCompte();
   if(name==='collection') renderCollection();
 }
@@ -2444,7 +2443,7 @@ function renderHomeHero(){
 
   if(!info||!info.reste){
     mode='ok'; tag='Parcours'; title='Tout est terminé'; desc='Leçons et défis du planning sont bouclés.';
-    primary=`<button class="hc-go" type="button" onclick="switchTab('defis')">Voir les défis</button>`;
+    primary=`<button class="hc-go" type="button" onclick="setHomeFilter('defis');switchTab('learn')">Voir les défis</button>`;
   }else if(info.retard&&info.retard.length){
     mode='late'; tag='En retard';
     title=`${info.retard.length} séance${info.retard.length>1?'s':''} en retard`;
@@ -2498,35 +2497,78 @@ function renderHomeHero(){
     <div class="hc-actions">${primary}${secondary}</div>
   </div>`;
 }
+let homeFilter='tous'; // tous · lecons · defis
+function setHomeFilter(f){
+  homeFilter=f;
+  renderModules();
+  const host=document.getElementById('scr-learn');
+  if(host) host.scrollTop=0;
+}
+function lessonListRow(l){
+  const st=state.lessons[l.id],ok=st&&st.done,due=isDue(l.id);
+  return `<div class="row" onclick="openLesson(${l.id})">
+    <div class="lz-num ${due?'due':(ok?'done':'')}">${due?'↻':(ok?'✓':l.id)}</div>
+    <div class="lz-body"><b>${l.titre}</b><small>${ok?l.résumé:(nbFaites(l.id)?`${l.résumé} · ${nbFaites(l.id)}/${nbEtapes(l.id)} étapes`:l.résumé)}</small></div>
+    <svg class="chev" width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M1.5 1.5L7 7.5l-5.5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
+}
+function defiListRow(c){
+  const ok=!!(state.defis&&state.defis[c.id]);
+  return `<div class="row defi-row" onclick="openChallenge('${c.id}')">
+    <div class="lz-num ${ok?'done':'defi'}">${ok?'✓':'★'}</div>
+    <div class="lz-body"><b>${esc(c.titre)}</b><small>Défi · ${NIV[c.niv].l}</small></div>
+    <span class="niv ${NIV[c.niv].c}">${NIV[c.niv].l}</span></div>`;
+}
+function homeFilterBar(){
+  const tabs=[['tous','Tous'],['lecons','Leçons'],['defis','Défis']];
+  const host=document.getElementById('home-filters');
+  if(host) host.innerHTML=tabs.map(([k,l])=>
+    `<button type="button" class="fchip ${homeFilter===k?'on':''}" onclick="setHomeFilter('${k}')">${l}</button>`).join('');
+}
+function defisByModuleSlots(){
+  /* Répartit les défis entre les leçons (après ~chaque nᵉ leçon). */
+  const nL=allLessons.length,nD=CHALLENGES.length;
+  const after={}; // lessonId → [challenges]
+  if(!nD||!nL) return after;
+  CHALLENGES.forEach((c,i)=>{
+    const idx=Math.min(nL-1, Math.max(0, Math.round((i+0.5)*nL/nD)-1));
+    const lid=allLessons[idx].id;
+    (after[lid]||(after[lid]=[])).push(c);
+  });
+  return after;
+}
 function renderModules(){
-  document.getElementById('modules').innerHTML=MODULES.map(mod=>{
-    const done=mod.lessons.filter(l=>state.lessons[l.id]&&state.lessons[l.id].done).length;
-    const rows=mod.lessons.map(l=>{
-      const st=state.lessons[l.id],ok=st&&st.done,due=isDue(l.id);
-      return `<div class="row" onclick="openLesson(${l.id})">
-        <div class="lz-num ${due?'due':(ok?'done':'')}">${due?'↻':(ok?'✓':l.id)}</div>
-        <div class="lz-body"><b>${l.titre}</b><small>${ok?l.résumé:(nbFaites(l.id)?`${l.résumé} · ${nbFaites(l.id)}/${nbEtapes(l.id)} étapes`:l.résumé)}</small></div>
-        <svg class="chev" width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M1.5 1.5L7 7.5l-5.5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
+  homeFilterBar();
+  const host=document.getElementById('modules');
+  if(!host)return;
+  if(homeFilter==='defis'){
+    const byNiv={f:[],m:[],d:[]};
+    CHALLENGES.forEach(c=>byNiv[c.niv].push(c));
+    const blocks=[['f','Pour se lancer'],['m','Il faut réfléchir'],['d','Le grand bain']];
+    host.innerHTML=blocks.map(([k,t])=>{
+      const list=byNiv[k]; if(!list.length)return '';
+      const done=list.filter(c=>state.defis&&state.defis[c.id]).length;
+      return `<div class="module"><div class="module-head"><h2>${t}</h2><span>${done}/${list.length}</span></div>
+        <div class="list">${list.map(defiListRow).join('')}</div></div>`;
     }).join('');
-    return `<div class="module"><div class="module-head"><h2>${mod.titre}</h2><span>${done}/${mod.lessons.length}</span></div><div class="list">${rows}</div></div>`;
+    return;
+  }
+  const slots=homeFilter==='tous'?defisByModuleSlots():{};
+  host.innerHTML=MODULES.map(mod=>{
+    let rows='',done=0,tot=0;
+    mod.lessons.forEach(l=>{
+      if(homeFilter!=='defis'){
+        rows+=lessonListRow(l); tot++;
+        if(state.lessons[l.id]&&state.lessons[l.id].done) done++;
+      }
+      (slots[l.id]||[]).forEach(c=>{
+        rows+=defiListRow(c); tot++;
+        if(state.defis&&state.defis[c.id]) done++;
+      });
+    });
+    return `<div class="module"><div class="module-head"><h2>${mod.titre}</h2><span>${done}/${tot}</span></div><div class="list">${rows}</div></div>`;
   }).join('');
 }
-function renderDefis(){
-  const byNiv={f:[],m:[],d:[]};
-  CHALLENGES.forEach(c=>byNiv[c.niv].push(c));
-  const blocks=[['f','Pour se lancer'],['m','Il faut réfléchir'],['d','Le grand bain']];
-  document.getElementById('defis-list').innerHTML=blocks.map(([k,t])=>{
-    const list=byNiv[k]; if(!list.length)return '';
-    const done=list.filter(c=>state.defis[c.id]).length;
-    return `<div class="module"><div class="module-head"><h2>${t}</h2><span>${done}/${list.length}</span></div>
-      <div class="list">${list.map(c=>`
-        <div class="row" onclick="openChallenge('${c.id}')">
-          <div class="lz-num ${state.defis[c.id]?'done':''}">${state.defis[c.id]?'✓':'?'}</div>
-          <div class="lz-body"><b>${c.titre}</b><small>${esc(c.q)}</small></div>
-          <span class="niv ${NIV[c.niv].c}">${NIV[c.niv].l}</span>
-        </div>`).join('')}</div></div>`;
-  }).join('');
-}
+function renderDefis(){ renderModules(); }
 function showScreen(){
   const scr=document.getElementById('scr-lesson');
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -2539,8 +2581,9 @@ function goBack(){
     return;
   }
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(mode==='defi'?'scr-defis':'scr-learn').classList.add('active');
+  document.getElementById('scr-learn').classList.add('active');
   showKbar(false);
+  if(mode==='defi'){homeFilter='tous';renderModules();}
 }
 const editorBlock=(withViz)=>`
   <div class="editor-shell">
@@ -2644,7 +2687,7 @@ function renderLessonFlow(){
 function openChallenge(cid){
   const c=CHALLENGES.find(x=>x.id===cid); current=c; mode='defi';
   exoFails=0;
-  document.getElementById('back-label').textContent='Défis';
+  document.getElementById('back-label').textContent='Apprendre';
   document.getElementById('nav-title').textContent='Défi';
   document.getElementById('lesson-body').innerHTML=`
     <div class="l-kicker">Défi · ${NIV[c.niv].l}</div><h1>${c.titre}</h1>
@@ -3141,11 +3184,11 @@ function stripHTML(){
   const t=dstr(auj());
   return joursSemaine().map(d=>{
     const iso=dstr(d),sess=sessionDe(iso),n=sess?sess.lessons.length:0;
-    const fait=sessionFaite(sess),ret=sess&&iso<t&&!fait,estAuj=iso===t;
-    return `<button class="wk-day ${jourSel===iso?'sel':''} ${estAuj?'auj':''} ${fait?'fait':''} ${ret?'ret':''}"
+    const fait=sessionFaite(sess),ret=sess&&iso<t&&!fait,estAuj=iso===t,pause=!n;
+    return `<button class="wk-day ${jourSel===iso?'sel':''} ${estAuj?'auj':''} ${fait?'fait':''} ${ret?'ret':''} ${pause?'pause':''}"
       data-date="${iso}" onclick="jourSel='${iso}';renderPlanning()">
       <span class="wd">${JOURS[d.getDay()]}</span><span class="dn">${d.getDate()}</span>
-      <span class="ld">${n?(fait?'✓':(ret?'!':n)):'·'}</span></button>`;
+      <span class="ld ${pause?'pause':''}">${pause?'pause':(fait?'✓':(ret?'!':n))}</span></button>`;
   }).join('');
 }
 function navHTML(){
@@ -3186,12 +3229,12 @@ function renderSemaine(){
     <div class="day-panel ${ret?'late':''} ${fait?'done':''}" data-date="${jourSel}">
       <div class="dp-head">
         <div><b>${libelleJour(jourSel)}</b>
-        <small>${sess?`${nL} leçon${nL>1?'s':''} · ${nD} défi${nD>1?'s':''} · ~${sess.lessons.length*MIN_PAR_LECON} min${fait?' · terminée':(ret?' · en retard':'')}`:'Journée libre'}</small></div>
+        <small>${sess?`${nL} leçon${nL>1?'s':''} · ${nD} défi${nD>1?'s':''} · ~${sess.lessons.length*MIN_PAR_LECON} min${fait?' · terminée':(ret?' · en retard':'')}`:'Pause — rien de prévu'}</small></div>
         ${sess&&!fait?`<button class="dp-go" onclick="demarrerSeance('${jourSel}')">Démarrer</button>`:''}
       </div>
-      <div class="pl-chips">${chips||'<div class="pl-empty-day">Glisse une leçon ou un défi ici</div>'}</div>
+      <div class="pl-chips">${chips||'<div class="pl-empty-day">Pause — glisse une leçon ou un défi ici</div>'}</div>
     </div>
-    <p class="pl-hint">Glisse ⣿ sur un jour du bandeau — ★ = défi, chiffre = leçon.<br>Ou touche › pour choisir une date.</p>`;
+    <p class="pl-hint">Glisse ⣿ sur un jour du bandeau — ★ = défi, chiffre = leçon, « pause » = jour libre.<br>Ou touche › pour choisir une date.</p>`;
 }
 /* ---------- Rendu : vue parcours ---------- */
 function renderParcours(){
@@ -3340,7 +3383,7 @@ function openMoveSheet(id){
     const iso=dstr(d),sess=sessionDe(iso),n=sess?sess.lessons.length:0;
     return `<button class="mv-row ${iso===actuelle?'on':''}" onclick="moveTo('${iso}')">
       <span class="mv-d"><b>${libelleJour(iso)}</b>
-      <small>${n?`${n} item${n>1?'s':''} · ~${n*MIN_PAR_LECON} min`:'Journée libre'}</small></span>
+      <small>${n?`${n} item${n>1?'s':''} · ~${n*MIN_PAR_LECON} min`:'Pause'}</small></span>
       ${iso===actuelle?'<span class="mv-tag">Actuel</span>':''}</button>`;
   }).join('');
   document.getElementById('move-head').textContent=`Déplacer « ${m.titre} »`;
