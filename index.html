@@ -394,10 +394,14 @@
   .pl-chips{padding:0 12px 12px;display:flex;flex-direction:column;gap:7px;min-height:14px}
   .pl-chip{display:flex;align-items:center;gap:9px;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:9px 11px;cursor:pointer}
   .pl-chip.ok{background:var(--success-soft);border-color:transparent}
+  .pl-chip.defi{border-color:rgba(199,122,22,.35);background:var(--warn-soft)}
+  .pl-chip.defi.ok{background:var(--success-soft);border-color:transparent}
   .pl-chip .hdl{font-size:14px;color:var(--ink-3);cursor:grab;padding:2px 4px;margin:-2px -2px -2px -4px;touch-action:none;flex:none;letter-spacing:-2px}
   .pl-chip .cn{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);flex:none;min-width:20px}
+  .pl-chip.defi .cn{color:var(--warn)}
   .pl-chip.ok .cn{color:var(--success)}
   .pl-chip .ct{flex:1;font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pl-chip .ct small{display:block;font-size:11px;color:var(--ink-3);font-weight:500;margin-top:1px}
   .pl-chip .nx{background:none;border:none;color:var(--ink-3);font-size:15px;cursor:pointer;padding:2px 4px;flex:none}
   .pl-empty-day{font-size:12.5px;color:var(--ink-3);font-style:italic;padding:2px 4px 6px}
   .pl-ghost{position:fixed;z-index:200;pointer-events:none;background:var(--surface);border:1.5px solid var(--accent);border-radius:11px;padding:9px 11px;font-size:14px;font-weight:600;box-shadow:0 12px 28px rgba(20,20,40,.28);opacity:.96;display:flex;align-items:center;gap:9px;max-width:280px}
@@ -2001,7 +2005,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-09-c';
+const APP_VERSION='2026-08-09-d';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const memStore={};
@@ -2503,10 +2507,13 @@ function runLesson(){
   const table=renderTable(userRes,ms);
   if(ok){
     let head;
-    if(isDefi){ state.defis[current.id]=true; save(); renderDefis(); renderProgress();
+    if(isDefi){ state.defis[current.id]=true; save(); renderDefis(); renderProgress(); renderPlanning();
       head=`<div class="feedback ok"><div class="fi">✓</div><div><b>Défi résolu</b><p>Ta requête donne exactement le bon résultat.</p></div></div>`;
+      const nxtPlan=state.plan&&infoJour()&&infoJour().today&&infoJour().today.lessons.find(id=>!itemDone(id));
       const nxt=CHALLENGES.find(c=>!state.defis[c.id]);
-      out.innerHTML=head+table+(nxt?`<button class="next-btn" onclick="openChallenge('${nxt.id}')">Défi suivant →</button>`:'');
+      out.innerHTML=head+table+(nxtPlan!=null
+        ?`<button class="next-btn" onclick="openItem(${isDefiId(nxtPlan)?`'${nxtPlan}'`:nxtPlan})">Continuer la séance →</button>`
+        :(nxt?`<button class="next-btn" onclick="openChallenge('${nxt.id}')">Défi suivant →</button>`:''));
     }else if(mode==='review'){
       markDone(current.id,true); renderModules(); renderProgress(); renderPlanning();
       reviewQueue.shift();
@@ -2704,21 +2711,33 @@ function migrerPlan(){
   p.sessions.forEach((s,i)=>{s.d=dates[i]||dstr(addJ(auj(),i));});
   delete p.start; save();
 }
+function isDefiId(id){return typeof id==='string';}
+function parseItemId(v){if(v==null||v==='')return v;return /^\d+$/.test(String(v))?+v:String(v);}
+function itemDone(id){return isDefiId(id)?!!(state.defis&&state.defis[id]):!!(state.lessons[id]&&state.lessons[id].done);}
+function itemMeta(id){
+  if(isDefiId(id)){
+    const c=CHALLENGES.find(x=>x.id===id)||{titre:id,niv:'m'};
+    return {titre:c.titre,badge:itemDone(id)?'✓':'★',sous:'Défi · '+(NIV[c.niv]?NIV[c.niv].l:'?'),defi:true};
+  }
+  const l=allLessons.find(x=>x.id===id)||{titre:'Leçon '+id,résumé:''};
+  return {titre:l.titre,badge:itemDone(id)?'✓':String(id),sous:l.résumé||'Leçon',defi:false};
+}
+function openItem(id){if(isDefiId(id))openChallenge(id);else openLesson(id);}
 function trierSessions(){
   const p=state.plan;
-  p.sessions=p.sessions.filter(s=>s.lessons.length>0);
+  p.sessions=p.sessions.filter(s=>s.lessons&&s.lessons.length>0);
   p.sessions.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
-  p.sessions.forEach(s=>s.lessons.sort((a,b)=>a-b));
 }
 function sessionDe(iso){return (state.plan.sessions||[]).find(s=>s.d===iso);}
-function sessionFaite(s){return s&&s.lessons.length>0&&s.lessons.every(id=>state.lessons[id]&&state.lessons[id].done);}
-function resteDe(s){return s?s.lessons.filter(id=>!(state.lessons[id]&&state.lessons[id].done)).length:0;}
+function sessionFaite(s){return s&&s.lessons.length>0&&s.lessons.every(itemDone);}
+function resteDe(s){return s?s.lessons.filter(id=>!itemDone(id)).length:0;}
 function toutesLecons(){return (state.plan.sessions||[]).reduce((a,s)=>a.concat(s.lessons),[]);}
 function statsPlan(){
   const p=state.plan,all=toutesLecons();
-  const done=all.filter(id=>state.lessons[id]&&state.lessons[id].done).length;
+  const done=all.filter(itemDone).length;
+  const nL=all.filter(id=>!isDefiId(id)).length,nD=all.filter(isDefiId).length;
   const fin=p.sessions.length?p.sessions[p.sessions.length-1].d:null;
-  return {total:all.length,done,reste:all.length-done,seances:p.sessions.length,fin,
+  return {total:all.length,done,reste:all.length-done,seances:p.sessions.length,fin,nL,nD,
     moy:p.sessions.length?Math.round(all.length/p.sessions.length*MIN_PAR_LECON):0};
 }
 function infoJour(){
@@ -2734,13 +2753,32 @@ function lessonsRestantesAujourdhui(){const i=infoJour();return i&&i.today?reste
 
 /* ---------- Création ---------- */
 function pick(champ,val){draft[champ]=val;renderPlanning();}
-function apercuPlan(niveau,rythme,freq){
+const DEFIS_PAR_NIV={debutant:['f','m'],bases:['f','m','d'],inter:['m','d']};
+function buildMixPool(niveau){
   const from=(NIVEAUX.find(n=>n.k===niveau)||NIVEAUX[0]).from;
+  const lessons=allLessons.filter(l=>l.id>=from).map(l=>l.id);
+  const allow=DEFIS_PAR_NIV[niveau]||['f','m','d'];
+  const defis=CHALLENGES.filter(c=>allow.indexOf(c.niv)>=0).map(c=>c.id);
+  // 50/50 : autant de défis que de leçons (on recycle les défis si besoin)
+  const mix=[], n=Math.max(lessons.length, defis.length?lessons.length:0);
+  for(let i=0;i<lessons.length;i++){
+    mix.push(lessons[i]);
+    if(defis.length) mix.push(defis[i % defis.length]);
+  }
+  // Si plus de défis que de leçons (rare), ajouter le reste
+  if(defis.length>lessons.length){
+    for(let i=lessons.length;i<defis.length;i++) mix.push(defis[i]);
+  }
+  return mix;
+}
+function apercuPlan(niveau,rythme,freq){
   const per=(RYTHMES.find(r=>r.k===rythme)||RYTHMES[1]).per;
-  const pool=allLessons.filter(l=>l.id>=from).map(l=>l.id);
-  const n=Math.max(1,Math.ceil(pool.length/per));
+  // per = items / séance ; 50/50 ⇒ viser un nombre pair d'items par séance
+  const slot=per%2===0?per:per+1;
+  const pool=buildMixPool(niveau);
+  const n=Math.max(1,Math.ceil(pool.length/slot));
   const dates=datesMotif(auj(),freq,n);
-  return {niveau,rythme,freq,per,sessions:dates.map((d,i)=>({d,lessons:pool.slice(i*per,(i+1)*per)}))};
+  return {niveau,rythme,freq,per:slot,mix:true,sessions:dates.map((d,i)=>({d,lessons:pool.slice(i*slot,(i+1)*slot)}))};
 }
 function validerPlan(){
   if(!(draft.niveau&&draft.rythme&&draft.freq))return;
@@ -2756,16 +2794,15 @@ function refairePlan(){
 function reprogrammer(){
   const p=state.plan; if(!p)return;
   const restantes=[],faites=[];
-  p.sessions.forEach(s=>s.lessons.forEach(id=>((state.lessons[id]&&state.lessons[id].done)?faites:restantes).push(id)));
+  p.sessions.forEach(s=>s.lessons.forEach(id=>(itemDone(id)?faites:restantes).push(id)));
   if(!restantes.length){toast("Tout est déjà terminé");return;}
-  restantes.sort((a,b)=>a-b);
   p.archive=faites;
-  const per=p.per||3;
+  const per=p.per||4;
   const n=Math.max(1,Math.ceil(restantes.length/per));
   const dates=datesMotif(auj(),p.freq,n);
   p.sessions=dates.map((d,i)=>({d,lessons:restantes.slice(i*per,(i+1)*per)}));
   semaineOffset=0;jourSel=null;save();renderPlanning();
-  toast(`${restantes.length} leçons replanifiées à partir d'aujourd'hui`);
+  toast(`${restantes.length} items replanifiés à partir d'aujourd'hui`);
 }
 function etaler(delta){
   const p=state.plan; if(!p)return;
@@ -2782,7 +2819,8 @@ function etaler(delta){
 /* ---------- Déplacements ---------- */
 function deplacerVers(lid,iso){
   const p=state.plan; if(!p)return;
-  p.sessions.forEach(s=>{const i=s.lessons.indexOf(lid);if(i>=0)s.lessons.splice(i,1);});
+  lid=parseItemId(lid);
+  p.sessions.forEach(s=>{const i=s.lessons.findIndex(x=>x===lid);if(i>=0)s.lessons.splice(i,1);});
   let s=sessionDe(iso);
   if(!s){s={d:iso,lessons:[]};p.sessions.push(s);}
   s.lessons.push(lid);
@@ -2793,7 +2831,7 @@ function deplacerVers(lid,iso){
   save();renderPlanning();
 }
 function reporterSuivant(lid,isoActuel){
-  const p=state.blan||state.plan;
+  const p=state.plan;
   const pat=PATTERN[p.freq]||PATTERN[3];
   let d=addJ(parseD(isoActuel),1),g=0;
   while(pat.indexOf(d.getDay())<0&&g<30){d=addJ(d,1);g++;}
@@ -2801,18 +2839,18 @@ function reporterSuivant(lid,isoActuel){
 }
 function demarrerSeance(iso){
   const s=sessionDe(iso); if(!s||!s.lessons.length)return;
-  const next=s.lessons.find(id=>!(state.lessons[id]&&state.lessons[id].done));
-  openLesson(next||s.lessons[0]);
+  const next=s.lessons.find(id=>!itemDone(id));
+  openItem(next!=null?next:s.lessons[0]);
 }
 function rattraper(){
   const p=state.plan,info=infoJour(); if(!info||!info.retard.length)return;
   const cible=info.t,ids=[];
-  info.retard.forEach(s=>s.lessons.filter(id=>!(state.lessons[id]&&state.lessons[id].done)).forEach(id=>ids.push(id)));
-  ids.forEach(id=>{p.sessions.forEach(s=>{const i=s.lessons.indexOf(id);if(i>=0)s.lessons.splice(i,1);});});
+  info.retard.forEach(s=>s.lessons.filter(id=>!itemDone(id)).forEach(id=>ids.push(id)));
+  ids.forEach(id=>{p.sessions.forEach(s=>{const i=s.lessons.findIndex(x=>x===id);if(i>=0)s.lessons.splice(i,1);});});
   let s=sessionDe(cible); if(!s){s={d:cible,lessons:[]};p.sessions.push(s);}
   ids.forEach(id=>s.lessons.push(id));
   trierSessions();semaineOffset=0;jourSel=cible;save();renderPlanning();
-  toast(`${ids.length} leçons reportées sur aujourd'hui`);
+  toast(`${ids.length} items reportés sur aujourd'hui`);
 }
 function toast(msg){
   const t=document.getElementById('toast');
@@ -2837,12 +2875,14 @@ function renderSetup(){
     const p=apercuPlan(draft.niveau,draft.rythme,draft.freq);
     const n=p.sessions.length,tot=p.sessions.reduce((a,s)=>a+s.lessons.length,0);
     const mins=(RYTHMES.find(r=>r.k===p.rythme)||RYTHMES[1]).min;
-    ap=`<div class="pl-apercu"><b>${n} séances</b> pour ${tot} leçons · environ ${mins} min chacune<br>
+    const nL=p.sessions.reduce((a,s)=>a+s.lessons.filter(id=>!isDefiId(id)).length,0);
+    const nD=tot-nL;
+    ap=`<div class="pl-apercu"><b>${n} séances</b> · ${nL} leçons + ${nD} défis (50/50) · ~${mins} min<br>
       <span>Fin prévue le ${parseD(p.sessions[n-1].d).toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}</span></div>`;
   }
   return `<div class="pl-setup">
     <div class="pl-intro"><b>Ton planning personnalisé</b>
-      <p>Niveau, minutes par séance, jours par semaine — et tu obtiens un parcours daté. Tu pourras tout ajuster après.</p></div>
+      <p>Niveau, minutes, jours — leçons et défis mélangés moitié-moitié. Tu pourras tout ajuster après.</p></div>
     ${bloc("Où en es-tu ?","niveau",NIVEAUX,o=>o.k)}
     ${bloc("Combien de minutes par séance ?","rythme",RYTHMES,o=>o.k)}
     ${bloc("Combien de jours par semaine ?","freq",FREQS,o=>o.k)}
@@ -2853,34 +2893,36 @@ function renderSetup(){
 /* ---------- Rendu : bloc du jour ---------- */
 function heroRows(s){
   return s.lessons.map(id=>{
-    const l=allLessons.find(x=>x.id===id),ok=state.lessons[id]&&state.lessons[id].done;
-    return `<div class="hero-row ${ok?'ok':''}" onclick="openLesson(${id})">
-      <span class="hr-mark">${ok?'✓':''}</span><span class="hr-t">${esc(l.titre)}</span>
-      <span class="hr-n">${esc(l.résumé)}</span></div>`;
+    const m=itemMeta(id),ok=itemDone(id);
+    const arg=isDefiId(id)?`'${id}'`:id;
+    return `<div class="hero-row ${ok?'ok':''}" onclick="openItem(${arg})">
+      <span class="hr-mark">${ok?'✓':(m.defi?'★':'')}</span><span class="hr-t">${esc(m.titre)}</span>
+      <span class="hr-n">${esc(m.sous)}</span></div>`;
   }).join('');
 }
 function renderTodayHero(){
   const info=infoJour(); if(!info)return '';
   const retard=info.retard.length?`<div class="late-banner"><span class="lb-i">⚠</span>
     <div><b>${info.retard.length} séance${info.retard.length>1?'s':''} en retard</b>
-    <small>Reporte les leçons manquées sur aujourd'hui.</small></div>
+    <small>Reporte leçons et défis manqués sur aujourd'hui.</small></div>
     <button onclick="rattraper()">Rattraper</button></div>`:'';
   if(!info.reste)return `<div class="today-hero done"><div class="th-tag">Ton parcours</div>
-    <h3>Tout est terminé 🎉</h3><p>Les ${statsPlan().total} leçons du planning sont bouclées.</p></div>`;
+    <h3>Tout est terminé 🎉</h3><p>Les ${statsPlan().total} items du planning sont bouclés.</p></div>`;
   if(info.today){
     const s=info.today,tot=s.lessons.length,faites=tot-resteDe(s),pct=tot?Math.round(faites/tot*100):0;
+    const left=tot-faites;
     if(!resteDe(s))return retard+`<div class="today-hero done"><div class="th-tag">Aujourd'hui</div>
-      <h3>Séance terminée ✓</h3><p>Tes ${tot} leçon${tot>1?'s':''} du jour sont faites. Prochaine séance ${info.suivante?libelleJour(info.suivante.d).toLowerCase():'bientôt'}.</p>
+      <h3>Séance terminée ✓</h3><p>Tes ${tot} item${tot>1?'s':''} du jour sont faits. Prochaine séance ${info.suivante?libelleJour(info.suivante.d).toLowerCase():'bientôt'}.</p>
       ${info.suivante?`<button class="th-go ghost" onclick="demarrerSeance('${info.suivante.d}')">Prendre de l'avance</button>`:''}</div>`;
-    return retard+`<div class="today-hero"><div class="th-tag">Aujourd'hui</div>
-      <h3>${tot-faites} leçon${tot-faites>1?'s':''} à faire</h3>
-      <p>Environ ${(tot-faites)*MIN_PAR_LECON} minutes.${faites?` Déjà ${faites} sur ${tot}.`:''}</p>
+    return retard+`<div class="today-hero"><div class="th-tag">Aujourd'hui · 50/50</div>
+      <h3>${left} à faire</h3>
+      <p>Leçons + défis · ~${left*MIN_PAR_LECON} min.${faites?` Déjà ${faites}/${tot}.`:''}</p>
       <div class="th-bar"><i style="width:${pct}%"></i></div>
       <div class="hero-list">${heroRows(s)}</div>
       <button class="th-go" onclick="demarrerSeance('${s.d}')">${faites?'Continuer':'Commencer'} la séance</button></div>`;
   }
   return retard+`<div class="today-hero rest"><div class="th-tag">Aujourd'hui</div>
-    <h3>Journée libre</h3><p>Aucune séance prévue.${info.suivante?` La prochaine est ${libelleJour(info.suivante.d).toLowerCase()} — ${info.suivante.lessons.length} leçons.`:''}</p>
+    <h3>Journée libre</h3><p>Aucune séance prévue.${info.suivante?` La prochaine est ${libelleJour(info.suivante.d).toLowerCase()} — ${info.suivante.lessons.length} items.`:''}</p>
     ${info.suivante?`<button class="th-go ghost" onclick="demarrerSeance('${info.suivante.d}')">Prendre de l'avance</button>`:''}</div>`;
 }
 
@@ -2928,24 +2970,27 @@ function renderSemaine(){
   const sess=sessionDe(jourSel);
   const fait=sessionFaite(sess),ret=sess&&jourSel<t&&!fait;
   const chips=sess?sess.lessons.map(id=>{
-    const l=allLessons.find(x=>x.id===id),ok=state.lessons[id]&&state.lessons[id].done;
-    return `<div class="pl-chip ${ok?'ok':''}" data-lesson="${id}" onclick="chipTap(event,${id})">
-      <span class="hdl" data-drag="${id}">⣿</span><span class="cn">${ok?'✓':id}</span>
-      <span class="ct">${esc(l.titre)}</span>
-      <button class="nx" onclick="event.stopPropagation();openMoveSheet(${id})" title="Déplacer">›</button></div>`;
+    const m=itemMeta(id),ok=itemDone(id);
+    const arg=isDefiId(id)?`'${id}'`:id;
+    return `<div class="pl-chip ${ok?'ok':''} ${m.defi?'defi':''}" data-lesson="${id}" onclick="chipTap(event,${arg})">
+      <span class="hdl" data-drag="${id}">⣿</span><span class="cn">${m.badge}</span>
+      <span class="ct">${esc(m.titre)}<small>${esc(m.sous)}</small></span>
+      <button class="nx" onclick="event.stopPropagation();openMoveSheet(${arg})" title="Déplacer">›</button></div>`;
   }).join(''):'';
+  const nL=sess?sess.lessons.filter(id=>!isDefiId(id)).length:0;
+  const nD=sess?sess.lessons.length-nL:0;
   return `
     <div class="wk-nav">${navHTML()}</div>
     <div class="wk-strip">${stripHTML()}</div>
     <div class="day-panel ${ret?'late':''} ${fait?'done':''}" data-date="${jourSel}">
       <div class="dp-head">
         <div><b>${libelleJour(jourSel)}</b>
-        <small>${sess?`${sess.lessons.length} leçon${sess.lessons.length>1?'s':''} · ~${sess.lessons.length*MIN_PAR_LECON} min${fait?' · terminée':(ret?' · en retard':'')}`:'Journée libre'}</small></div>
+        <small>${sess?`${nL} leçon${nL>1?'s':''} · ${nD} défi${nD>1?'s':''} · ~${sess.lessons.length*MIN_PAR_LECON} min${fait?' · terminée':(ret?' · en retard':'')}`:'Journée libre'}</small></div>
         ${sess&&!fait?`<button class="dp-go" onclick="demarrerSeance('${jourSel}')">Démarrer</button>`:''}
       </div>
-      <div class="pl-chips">${chips||'<div class="pl-empty-day">Glisse une leçon ici pour la programmer</div>'}</div>
+      <div class="pl-chips">${chips||'<div class="pl-empty-day">Glisse une leçon ou un défi ici</div>'}</div>
     </div>
-    <p class="pl-hint">Glisse ⣿ sur un jour du bandeau — reste sur ‹ ou › pour changer de semaine en cours de glissement.<br>Ou touche › sur une leçon pour choisir sa date.</p>`;
+    <p class="pl-hint">Glisse ⣿ sur un jour du bandeau — ★ = défi, chiffre = leçon.<br>Ou touche › pour choisir une date.</p>`;
 }
 /* ---------- Rendu : vue parcours ---------- */
 function renderParcours(){
@@ -2956,7 +3001,7 @@ function renderParcours(){
     return `<div class="pc-row ${fait?'fait':''} ${ret?'ret':''} ${estAuj?'auj':''}" onclick="allerAuJour('${s.d}')">
       <div class="pc-n">${fait?'✓':(ret?'!':i+1)}</div>
       <div class="pc-t"><b>${courtJour(s.d)}${estAuj?" · aujourd'hui":""}</b>
-        <small>${s.lessons.map(id=>allLessons.find(x=>x.id===id).titre).join(' · ')}</small></div>
+        <small>${s.lessons.map(id=>itemMeta(id).titre).join(' · ')}</small></div>
       <div class="pc-r">${faites}/${s.lessons.length}</div></div>`;
   }).join('');
   return `
@@ -2971,7 +3016,7 @@ function renderParcours(){
       <button onclick="reprogrammer()">↻ Reprogrammer à partir d'aujourd'hui</button>
       <button onclick="refairePlan()">Recommencer</button>
     </div>
-    ${p.archive&&p.archive.length?`<p class="pl-hint" style="text-align:left;margin:12px 16px 0">${p.archive.length} leçons déjà terminées ont été retirées du calendrier.</p>`:''}
+    ${p.archive&&p.archive.length?`<p class="pl-hint" style="text-align:left;margin:12px 16px 0">${p.archive.length} items déjà terminés ont été retirés du calendrier.</p>`:''}
     <div class="pc-list">${lignes}</div>`;
 }
 function allerAuJour(iso){
@@ -2991,7 +3036,7 @@ function renderPlanning(){
   migrerPlan();
   const st=statsPlan();
   const sub=document.getElementById('pl-sub');
-  if(sub)sub.textContent=`${st.done} / ${st.total} leçons faites · ${st.seances} séances`;
+  if(sub)sub.textContent=`${st.done}/${st.total} · ${st.nL||0} leçons + ${st.nD||0} défis · ${st.seances} séances`;
   host.innerHTML=`
     ${renderTodayHero()}
     <div class="seg" style="margin:16px 16px 0">
@@ -3001,7 +3046,7 @@ function renderPlanning(){
     <div class="pl-week">${vuePlan==='semaine'?renderSemaine():renderParcours()}</div>`;
   brancherDrag();renderHomeToday();
 }
-function chipTap(e,id){if(dragging||Date.now()-blocTap<400)return;openLesson(id);}
+function chipTap(e,id){if(dragging||Date.now()-blocTap<400)return;openItem(parseItemId(id));}
 function scrollToToday(){const s=document.getElementById('scr-planning');if(s)s.scrollTop=0;}
 
 /* ---------- Carte d'accueil ---------- */
@@ -3018,13 +3063,13 @@ function renderHomeToday(){
     <div class="ht-i">⚠</div><div><b>${info.retard.length} séance${info.retard.length>1?'s':''} en retard</b><small>Touche pour les reporter sur aujourd'hui.</small></div>
     <div class="ht-go">›</div></div>`:'';
   if(!info.reste){host.innerHTML=`<div class="home-today ok" onclick="switchTab('planning')">
-    <div class="ht-i">🎉</div><div><b>Parcours terminé</b><small>Toutes les leçons du planning sont faites.</small></div>
+    <div class="ht-i">🎉</div><div><b>Parcours terminé</b><small>Leçons et défis du planning sont faits.</small></div>
     <div class="ht-go">›</div></div>`;return;}
   if(info.today&&resteDe(info.today)){
-    const r=info.today.lessons.filter(id=>!(state.lessons[id]&&state.lessons[id].done));
-    const noms=r.slice(0,3).map(id=>allLessons.find(x=>x.id===id).titre).join(' · ');
+    const r=info.today.lessons.filter(id=>!itemDone(id));
+    const noms=r.slice(0,3).map(id=>itemMeta(id).titre).join(' · ');
     host.innerHTML=`<div class="home-today" onclick="demarrerSeance('${info.today.d}')">
-      <div class="ht-i">▶︎</div><div><b>Aujourd'hui : ${r.length} leçon${r.length>1?'s':''}</b>
+      <div class="ht-i">▶︎</div><div><b>Aujourd'hui : ${r.length} à faire</b>
       <small>${esc(noms)}${r.length>3?'…':''} · ~${r.length*MIN_PAR_LECON} min</small></div>
       <div class="ht-go">›</div></div>`+mini;return;
   }
@@ -3032,7 +3077,7 @@ function renderHomeToday(){
     <div class="ht-i">✓</div><div><b>Séance du jour terminée</b><small>Prochaine séance ${info.suivante?libelleJour(info.suivante.d).toLowerCase():'bientôt'}.</small></div>
     <div class="ht-go">›</div></div>`+mini;return;}
   host.innerHTML=`<div class="home-today rest" onclick="switchTab('planning')">
-    <div class="ht-i">☾</div><div><b>Journée libre</b><small>${info.suivante?`Prochaine séance ${libelleJour(info.suivante.d).toLowerCase()} · ${info.suivante.lessons.length} leçons.`:'Rien de prévu.'}</small></div>
+    <div class="ht-i">☾</div><div><b>Journée libre</b><small>${info.suivante?`Prochaine séance ${libelleJour(info.suivante.d).toLowerCase()} · ${info.suivante.lessons.length} items.`:'Rien de prévu.'}</small></div>
     <div class="ht-go">›</div></div>`+mini;
 }
 function majBadgePlanning(){
@@ -3049,16 +3094,16 @@ function brancherDrag(){
 function startDrag(e){
   e.preventDefault();e.stopPropagation();
   const chip=e.target.closest('.pl-chip');
-  dragging=+chip.dataset.lesson;dragX=e.clientX;dragY=e.clientY;aBouge=false;
+  dragging=parseItemId(chip.dataset.lesson);dragX=e.clientX;dragY=e.clientY;aBouge=false;
   document.addEventListener('pointermove',onDrag);
   document.addEventListener('pointerup',endDrag);
   document.addEventListener('pointercancel',endDrag);
 }
 function vraiDepart(){
   const fab=document.getElementById('fab');if(fab)fab.classList.add('hide');
-  const l=allLessons.find(x=>x.id===dragging);
+  const m=itemMeta(dragging);
   ghost=document.createElement('div');ghost.className='pl-ghost';
-  ghost.innerHTML=`<span class="cn">${dragging}</span><span>${esc(l.titre)}</span>`;
+  ghost.innerHTML=`<span class="cn">${esc(m.badge)}</span><span>${esc(m.titre)}</span>`;
   document.body.appendChild(ghost);
   const chip=document.querySelector(`.pl-chip[data-lesson="${dragging}"]`);
   if(chip)chip.style.opacity='.3';
@@ -3116,17 +3161,17 @@ function endDrag(){
 /* ---------- Choisir une date sans glisser ---------- */
 let moveId=null;
 function openMoveSheet(id){
-  moveId=id;
-  const l=allLessons.find(x=>x.id===id),t=auj();
-  const actuelle=(state.plan.sessions.find(x=>x.lessons.indexOf(id)>=0)||{}).d;
+  moveId=parseItemId(id);
+  const m=itemMeta(moveId),t=auj();
+  const actuelle=(state.plan.sessions.find(x=>x.lessons.some(y=>y===moveId))||{}).d;
   const lignes=Array.from({length:28},(_,i)=>addJ(t,i)).map(d=>{
     const iso=dstr(d),sess=sessionDe(iso),n=sess?sess.lessons.length:0;
     return `<button class="mv-row ${iso===actuelle?'on':''}" onclick="moveTo('${iso}')">
       <span class="mv-d"><b>${libelleJour(iso)}</b>
-      <small>${n?`${n} leçon${n>1?'s':''} · ~${n*MIN_PAR_LECON} min`:'Journée libre'}</small></span>
+      <small>${n?`${n} item${n>1?'s':''} · ~${n*MIN_PAR_LECON} min`:'Journée libre'}</small></span>
       ${iso===actuelle?'<span class="mv-tag">Actuel</span>':''}</button>`;
   }).join('');
-  document.getElementById('move-head').textContent=`Déplacer « ${l.titre} »`;
+  document.getElementById('move-head').textContent=`Déplacer « ${m.titre} »`;
   document.getElementById('move-body').innerHTML=`<div class="mv-list">${lignes}</div>`;
   document.getElementById('move-back').classList.add('on');
   document.getElementById('move-sheet').classList.add('on');
@@ -3530,18 +3575,20 @@ function paintOb(){
     const freq=FREQS.find(f=>f.k===draft.freq)||FREQS[1];
     const n=p.sessions.length;
     const tot=p.sessions.reduce((a,s)=>a+s.lessons.length,0);
+    const nL=p.sessions.reduce((a,s)=>a+s.lessons.filter(id=>!isDefiId(id)).length,0);
+    const nD=tot-nL;
     const fin=parseD(p.sessions[n-1].d).toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
-    const first=p.sessions[0].lessons[0];
+    const first=p.sessions[0].lessons.find(id=>!isDefiId(id))||p.sessions[0].lessons[0];
     html=`<div class="ob-kicker">Ton planning</div>
       <h2>C’est calé.</h2>
-      <p>Voici le parcours généré. Tu pourras tout ajuster dans l’onglet Planning.</p>
+      <p>Leçons et défis en 50/50. Tu pourras tout ajuster dans l’onglet Planning.</p>
       <div class="ob-summary">
         <div class="pt">Parcours · ${esc(niv.t)}</div>
         <h3>${ryt.min} min · ${esc(freq.t)}</h3>
-        <p>${n} séances · ${tot} leçons · fin prévue le ${fin}</p>
+        <p>${n} séances · ${nL} leçons + ${nD} défis · fin le ${fin}</p>
         <div class="ob-metrics">
           <div><b>${ryt.min}</b><small>min / séance</small></div>
-          <div><b>${n}</b><small>séances</small></div>
+          <div><b>50/50</b><small>leçons / défis</small></div>
           <div><b>${first}</b><small>1ʳᵉ leçon</small></div>
         </div>
       </div>`;
@@ -3589,7 +3636,7 @@ function finishOnboard(action){
   if(action==='plan-lesson'){
     switchTab('learn');
     const first=state.plan&&state.plan.sessions[0]&&state.plan.sessions[0].lessons[0];
-    openLesson(first||1);
+    if(first!=null) openItem(first); else openLesson(1);
   }else if(action==='plan-ready'){
     switchTab('planning');
   }else if(action==='lesson'){
