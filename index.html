@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Requête — Apprends le SQL</title>
-<meta name="description" content="Apprends le SQL en pratiquant sur une vraie base SQLite. 45 leçons, défis, révision espacée et console interactive.">
+<meta name="description" content="Apprends le SQL en pratiquant sur une vraie base SQLite. 55 leçons, défis, révision espacée et console interactive.">
 <meta name="theme-color" content="#5B5BD6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -835,7 +835,7 @@
     <!-- APPRENDRE -->
     <section id="scr-learn" class="screen active">
       <div class="lgtitle"><div class="eyebrow">Requête · SQL</div><h1>Apprendre</h1>
-        <p class="sub" id="learn-sub">45 leçons, une vraie base de données.</p></div>
+        <p class="sub" id="learn-sub">55 leçons, une vraie base de données.</p></div>
       <p class="greeting" id="greeting" hidden></p>
       <div id="home-hero"></div>
       <div class="primer" id="primer" onclick="this.classList.toggle('open')">
@@ -880,7 +880,7 @@
       <div class="lgtitle"><div class="eyebrow">Collection</div><h1>Cartes</h1>
         <p class="sub">Tes cartes débloquées — l’essentiel à retenir.</p></div>
       <div class="coll-stat">
-        <div class="cs-n" id="coll-n">0<small>/45</small></div>
+        <div class="cs-n" id="coll-n">0<small>/55</small></div>
         <div class="cs-t" id="coll-t"></div>
       </div>
       <div class="fbar" id="coll-filters"></div>
@@ -1843,6 +1843,169 @@ const MODULES = [
   solution:"CREATE TABLE avis (id INTEGER PRIMARY KEY, produit_id INTEGER, note INTEGER, commentaire TEXT);",
   indice:"<code>CREATE TABLE avis (id INTEGER PRIMARY KEY, produit_id INTEGER, note INTEGER, commentaire TEXT);</code>" },
 ]},
+
+{ titre:"Analyse métier", sous:"Requêtes avancées pour décider", lessons:[
+{ id:46, titre:"Sous-requête dans FROM", résumé:"Une table dérivée",
+  situation:"Tu as déjà un <code>GROUP BY</code> qui compte les clients par ville. Tu veux n'afficher que les villes qui en ont au moins 2 — mais filtrer <i>après</i> l'agrégat, sans HAVING, pour t'entraîner à une autre forme.",
+  concept:`<p>Une sous-requête peut servir de <b>table temporaire</b> dans le <code>FROM</code> : on calcule d'abord un résultat, puis on l'interroge comme s'il s'agissait d'une vraie table.</p>
+  <p>On l'appelle aussi <b>table dérivée</b>. Il faut lui donner un <b>alias</b> (<code>AS t</code> ou juste <code>t</code>), sinon SQLite refuse.</p>
+  <p>Utile quand tu veux enchaîner : agréger → puis filtrer ou joindre ce résultat. <code>HAVING</code> reste souvent plus court ; la forme <code>FROM (…)</code> brille dès que l'étape intermédiaire se complique.</p>`,
+  anatomie:[{tok:"SELECT ville, nb",txt:"Tu lis les colonnes de la table dérivée — y compris celles inventées avec AS."},
+    {tok:"FROM (",txt:"<b>Ouvre la sous-requête.</b> Ce qui suit produit des lignes, pas une simple valeur."},
+    {tok:"SELECT ville, COUNT(*) AS nb … GROUP BY ville",plain:1,txt:"L'étape intermédiaire : un vrai SELECT complet."},
+    {tok:") t",plain:1,txt:"<b>Ferme et nomme.</b> L'alias <code>t</code> est obligatoire."},
+    {tok:"WHERE nb >= 2",txt:"Maintenant tu filtres le résultat déjà agrégé, comme sur une table normale."}],
+  exemple:"SELECT ville, nb\nFROM (\n  SELECT ville, COUNT(*) AS nb\n  FROM clients\n  GROUP BY ville\n) t\nWHERE nb >= 2;",
+  attendu:"<b>2 lignes</b> : Paris (3) et Lyon (2). Les villes à un seul client disparaissent.",
+  piege:{t:"Oublier l'alias",p:"<code>FROM (SELECT …)</code> sans nom après la parenthèse provoque une erreur. Écris toujours <code>) AS t</code> ou <code>) t</code>."},
+  consigne:"En passant par une sous-requête dans le <code>FROM</code>, affiche la <code>categorie</code> et le nombre de produits (<code>nb</code>) uniquement pour les catégories qui ont <b>au moins 2 produits</b>.",
+  solution:"SELECT categorie, nb FROM (SELECT categorie, COUNT(*) AS nb FROM produits GROUP BY categorie) t WHERE nb >= 2;",
+  indice:"Même moule que l'exemple : <code>FROM (SELECT categorie, COUNT(*) AS nb …) t WHERE nb >= 2</code>." },
+
+{ id:47, titre:"Sous-requête en colonne", résumé:"Une valeur calculée à côté",
+  situation:"Pour chaque produit, tu veux voir son prix <i>et</i> le prix moyen du catalogue sur la même ligne — sans perdre les autres produits.",
+  concept:`<p>Une sous-requête qui renvoie <b>une seule valeur</b> peut se placer dans la liste du <code>SELECT</code>, comme une colonne calculée.</p>
+  <p>Elle s'exécute (conceptuellement) pour le résultat : ici la moyenne est la même sur chaque ligne. Plus tard tu verras des versions <b>corrélées</b> qui changent selon la ligne courante.</p>
+  <p>Règle d'or : la sous-requête du SELECT doit produire <b>exactement une ligne et une colonne</b>. Sinon SQL refuse.</p>`,
+  anatomie:[{tok:"SELECT nom, prix,",txt:"Les colonnes « normales » de la table."},
+    {tok:"(SELECT AVG(prix) FROM produits)",plain:1,txt:"<b>Sous-requête scalaire.</b> Une seule valeur : la moyenne."},
+    {tok:"AS moyenne",txt:"On la nomme pour l'affichage."},
+    {tok:"FROM produits",txt:"La table principale — une ligne par produit."}],
+  exemple:"SELECT nom, prix,\n  (SELECT AVG(prix) FROM produits) AS moyenne\nFROM produits;",
+  attendu:"<b>8 lignes</b> : chaque produit avec son prix, et la même moyenne (~23,99) répétée à droite.",
+  piege:{t:"Plusieurs lignes dans la sous-requête",p:"Si tu oublies l'agrégat (<code>SELECT prix FROM produits</code>), SQLite renvoie une erreur : trop de valeurs pour une colonne."},
+  consigne:"Affiche le <code>nom</code> de chaque client et une colonne <code>age_moyen</code> égale à l'âge moyen de <b>tous</b> les clients (même valeur sur chaque ligne).",
+  solution:"SELECT nom, (SELECT AVG(age) FROM clients) AS age_moyen FROM clients;",
+  indice:"<code>SELECT nom, (SELECT AVG(age) FROM clients) AS age_moyen FROM clients</code>." },
+
+{ id:48, titre:"SUM(CASE WHEN…)", résumé:"Compter par case",
+  situation:"Tu veux, en <b>une seule ligne</b>, combien de clients ont un email et combien n'en ont pas — sans deux requêtes séparées.",
+  concept:`<p>Le duo <code>SUM</code> + <code>CASE</code> transforme des conditions en compteurs côte à côte. Pour chaque ligne : <code>THEN 1 ELSE 0</code>, puis on additionne.</p>
+  <p>C'est le réflexe des tableaux de bord : parts, taux, « combien dans chaque case » sans pivoter à la main.</p>
+  <p>Variante fréquente : <code>SUM(CASE WHEN … THEN montant ELSE 0 END)</code> pour additionner seulement certaines lignes.</p>`,
+  anatomie:[{tok:"SUM(",txt:"On additionne des 0 et des 1 → ça compte."},
+    {tok:"CASE WHEN email IS NOT NULL THEN 1 ELSE 0 END",plain:1,txt:"<b>1 si la condition est vraie, 0 sinon.</b>"},
+    {tok:") AS avec_email",txt:"Premier indicateur."},
+    {tok:", SUM(CASE WHEN email IS NULL THEN 1 ELSE 0 END) AS sans_email",plain:1,txt:"Second indicateur, même idée inversée."}],
+  exemple:"SELECT\n  SUM(CASE WHEN email IS NOT NULL THEN 1 ELSE 0 END) AS avec_email,\n  SUM(CASE WHEN email IS NULL THEN 1 ELSE 0 END) AS sans_email\nFROM clients;",
+  attendu:"<b>1 ligne</b> : <code>avec_email = 7</code>, <code>sans_email = 2</code>.",
+  piege:{t:"Oublier le ELSE 0",p:"Sans <code>ELSE 0</code>, les lignes qui échouent valent NULL : <code>SUM</code> les ignore et ton compteur sous-estime."},
+  consigne:"En une seule requête, affiche <code>chers</code> (nombre de produits à prix <b>strictement supérieur à 25</b>) et <code>autres</code> (le reste), avec <code>SUM(CASE WHEN…)</code>.",
+  solution:"SELECT SUM(CASE WHEN prix > 25 THEN 1 ELSE 0 END) AS chers, SUM(CASE WHEN prix <= 25 THEN 1 ELSE 0 END) AS autres FROM produits;",
+  indice:"Deux SUM(CASE…) : l'un avec <code>prix &gt; 25</code>, l'autre avec <code>prix &lt;= 25</code>." },
+
+{ id:49, titre:"strftime avancé", résumé:"Jour de la semaine", ordered:true,
+  situation:"Tu veux savoir quels <b>jours de la semaine</b> concentrent les commandes — pas seulement le mois.",
+  concept:`<p><code>strftime</code> sait extraire bien plus que <code>%Y-%m</code>. Utile ici : <code>%w</code> = jour de la semaine (<b>0 = dimanche</b> … <b>6 = samedi</b>).</p>
+  <p>Tu regroupes ensuite avec <code>GROUP BY</code> sur cette extraction. Même idée pour <code>%d</code> (jour du mois) ou <code>%H</code> (heure) si tes dates sont plus précises.</p>
+  <p>Garde le format <b>AAAA-MM-JJ</b> en base : c'est ce qui rend <code>strftime</code> fiable.</p>`,
+  anatomie:[{tok:"SELECT strftime('%w', date_commande) AS jour",txt:"Extrait un numéro de jour (0–6)."},
+    {tok:", COUNT(*) AS nb",txt:"Compte les commandes de ce jour."},
+    {tok:"FROM commandes",txt:"La table des faits."},
+    {tok:"GROUP BY jour",txt:"Un paquet par jour de semaine."},
+    {tok:"ORDER BY jour",txt:"Pour lire du dimanche au samedi."}],
+  exemple:"SELECT strftime('%w', date_commande) AS jour, COUNT(*) AS nb\nFROM commandes\nGROUP BY jour\nORDER BY jour;",
+  attendu:"Plusieurs lignes (une par jour présent dans les données), avec le numéro <code>jour</code> et le nombre de commandes.",
+  piege:{t:"Confondre %w et %d",p:"<code>%d</code> est le jour du <b>mois</b> (01–31). <code>%w</code> est le jour de la <b>semaine</b> (0–6)."},
+  consigne:"Affiche pour chaque commande son <code>id</code> et une colonne <code>jour</code> égale à <code>strftime('%w', date_commande)</code>, triée par <code>id</code>.",
+  solution:"SELECT id, strftime('%w', date_commande) AS jour FROM commandes ORDER BY id;",
+  indice:"<code>SELECT id, strftime('%w', date_commande) AS jour FROM commandes ORDER BY id</code>." },
+
+{ id:50, titre:"Top N par groupe", résumé:"Le n°1 de chaque catégorie", ordered:true,
+  situation:"Pour chaque catégorie, tu veux le produit <b>le plus cher</b> — pas le plus cher du catalogue entier.",
+  concept:`<p>Recette classique : numéroter dans chaque groupe avec une <b>fenêtre</b> (<code>ROW_NUMBER() OVER (PARTITION BY … ORDER BY …)</code>), puis ne garder que le rang 1.</p>
+  <p>Comme on ne peut pas filtrer une fenêtre dans le <code>WHERE</code> de la même requête, on passe par une <b>CTE</b> (ou une sous-requête dans le FROM).</p>
+  <p>C'est le pattern « meilleur vendeur par région », « dernier événement par client », etc.</p>`,
+  anatomie:[{tok:"WITH ranked AS (",txt:"On prépare le classement."},
+    {tok:"ROW_NUMBER() OVER (PARTITION BY categorie ORDER BY prix DESC)",plain:1,txt:"<b>1 = le plus cher de sa catégorie.</b>"},
+    {tok:")",txt:"Fin de la CTE."},
+    {tok:"SELECT … FROM ranked WHERE rn = 1",txt:"On ne garde que les champions."}],
+  exemple:"WITH ranked AS (\n  SELECT nom, categorie, prix,\n    ROW_NUMBER() OVER (PARTITION BY categorie ORDER BY prix DESC) AS rn\n  FROM produits\n)\nSELECT nom, categorie, prix FROM ranked WHERE rn = 1 ORDER BY categorie;",
+  attendu:"<b>Une ligne par catégorie</b> : le produit au prix max de chacune, trié par catégorie.",
+  piege:{t:"Filtrer rn dans le WHERE sans CTE",p:"<code>WHERE ROW_NUMBER()…</code> est interdit. Il faut d'abord matérialiser le rang, puis filtrer."},
+  consigne:"Pour chaque <code>categorie</code>, affiche le produit le plus cher : colonnes <code>nom</code>, <code>categorie</code>, <code>prix</code>, triées par <code>categorie</code>. Utilise <code>ROW_NUMBER</code> et une CTE.",
+  solution:"WITH ranked AS (SELECT nom, categorie, prix, ROW_NUMBER() OVER (PARTITION BY categorie ORDER BY prix DESC) AS rn FROM produits) SELECT nom, categorie, prix FROM ranked WHERE rn = 1 ORDER BY categorie;",
+  indice:"CTE avec <code>ROW_NUMBER() OVER (PARTITION BY categorie ORDER BY prix DESC)</code>, puis <code>WHERE rn = 1</code>." },
+
+{ id:51, titre:"CA par mois", résumé:"Le tableau de bord mensuel", ordered:true,
+  situation:"La direction veut le <b>chiffre d'affaires par mois</b> : quantité × prix, regroupé par période.",
+  concept:`<p>Tu combines trois briques déjà vues : <code>JOIN</code> pour atteindre le prix, <code>SUM(quantite * prix)</code> pour le CA, <code>strftime('%Y-%m', …)</code> + <code>GROUP BY</code> pour le mois.</p>
+  <p>C'est la requête type du reporting e-commerce. Trie ensuite par mois pour lire la chronologie.</p>`,
+  anatomie:[{tok:"strftime('%Y-%m', date_commande) AS mois",txt:"La période d'analyse."},
+    {tok:"SUM(commandes.quantite * produits.prix) AS ca",txt:"Le chiffre d'affaires du mois."},
+    {tok:"FROM commandes JOIN produits ON …",txt:"Sans le prix, pas de CA."},
+    {tok:"GROUP BY mois ORDER BY mois",txt:"Une ligne par mois, dans l'ordre."}],
+  exemple:"SELECT strftime('%Y-%m', date_commande) AS mois,\n  SUM(commandes.quantite * produits.prix) AS ca\nFROM commandes\nJOIN produits ON commandes.produit_id = produits.id\nGROUP BY mois\nORDER BY mois;",
+  attendu:"Des lignes du type <code>2023-07</code>, <code>2023-08</code> avec le CA correspondant.",
+  piege:{t:"GROUP BY la date brute",p:"Regrouper sur <code>date_commande</code> entière donne un jour par ligne, pas un mois. Tronque d'abord avec <code>strftime</code>."},
+  consigne:"Affiche pour chaque mois (<code>mois</code> au format AAAA-MM) le nombre de commandes (<code>nb</code>), trié par mois.",
+  solution:"SELECT strftime('%Y-%m', date_commande) AS mois, COUNT(*) AS nb FROM commandes GROUP BY mois ORDER BY mois;",
+  indice:"<code>strftime('%Y-%m', date_commande) AS mois</code>, puis <code>COUNT(*)</code> et <code>GROUP BY mois ORDER BY mois</code>." },
+
+{ id:52, titre:"Clients fidèles", résumé:"Ceux qui reviennent", ordered:true,
+  situation:"Tu veux la liste des clients qui ont passé <b>au moins 2 commandes</b> — les « fidèles » — avec le nombre de commandes.",
+  concept:`<p>Pattern métier : joindre, regrouper par client, puis <code>HAVING COUNT(*) &gt;= 2</code>.</p>
+  <p><code>WHERE</code> ne peut pas filtrer sur le compte : le nombre n'existe qu'après le <code>GROUP BY</code>. D'où <code>HAVING</code>.</p>
+  <p>Trie par activité décroissante pour voir les plus engagés en premier.</p>`,
+  anatomie:[{tok:"SELECT clients.nom, COUNT(*) AS nb",txt:"Le client et son activité."},
+    {tok:"FROM commandes JOIN clients ON …",txt:"Chaque ligne de commande porte un client."},
+    {tok:"GROUP BY clients.nom",txt:"Un paquet par personne."},
+    {tok:"HAVING COUNT(*) >= 2",txt:"<b>Garde seulement les fidèles.</b>"},
+    {tok:"ORDER BY nb DESC",txt:"Les plus actifs en tête."}],
+  exemple:"SELECT clients.nom, COUNT(*) AS nb\nFROM commandes\nJOIN clients ON commandes.client_id = clients.id\nGROUP BY clients.nom\nHAVING COUNT(*) >= 2\nORDER BY nb DESC;",
+  attendu:"Les clients à 2 commandes ou plus (Sophie en tête avec 4), sans Inès ni les mono-commande.",
+  piege:{t:"COUNT dans le WHERE",p:"<code>WHERE COUNT(*) &gt;= 2</code> échoue. Place le filtre d'agrégat dans <code>HAVING</code>."},
+  consigne:"Affiche le <code>nom</code> des produits commandés au moins <b>2 fois</b> (nombre de lignes de commandes) et le compte <code>nb</code>, du plus commandé au moins commandé.",
+  solution:"SELECT produits.nom, COUNT(*) AS nb FROM commandes JOIN produits ON commandes.produit_id = produits.id GROUP BY produits.nom HAVING COUNT(*) >= 2 ORDER BY nb DESC;",
+  indice:"JOIN + GROUP BY nom + <code>HAVING COUNT(*) &gt;= 2</code> + <code>ORDER BY nb DESC</code>." },
+
+{ id:53, titre:"ALTER TABLE", résumé:"Faire évoluer une table", write:true, verif:"SELECT name FROM pragma_table_info('produits') WHERE name = 'promo';",
+  situation:"Le marketing veut une colonne <code>promo</code> sur les produits. La table existe déjà : il faut l'<b>étendre</b>, pas la recréer.",
+  concept:`<p><code>ALTER TABLE … ADD COLUMN</code> ajoute une colonne à une table existante. Les lignes déjà là reçoivent <code>NULL</code> (ou une valeur <code>DEFAULT</code> si tu en mets une).</p>
+  <p>SQLite est limité sur les autres ALTER (renommer/supprimer une colonne est plus délicat selon la version). Pour débuter, <code>ADD COLUMN</code> couvre l'essentiel.</p>
+  <p>⚠️ Ta requête s'exécute dans une <b>copie</b> de la base.</p>`,
+  anatomie:[{tok:"ALTER TABLE",txt:"<b>Modifie la structure</b> d'une table existante."},
+    {tok:"produits",plain:1,txt:"La table à faire évoluer."},
+    {tok:"ADD COLUMN",txt:"On ajoute — on ne remplace pas tout."},
+    {tok:"promo TEXT",plain:1,txt:"Nom + type de la nouvelle colonne."}],
+  exemple:"ALTER TABLE clients ADD COLUMN telephone TEXT;",
+  attendu:"Aucune ligne renvoyée. La table <code>clients</code> a une colonne <code>telephone</code> supplémentaire (vide pour l'instant).",
+  piege:{t:"Recréer la table par erreur",p:"Un second <code>CREATE TABLE produits</code> échoue : elle existe déjà. Pour enrichir, c'est <code>ALTER TABLE</code>."},
+  consigne:"Ajoute une colonne <code>promo</code> de type <code>TEXT</code> à la table <code>produits</code>.",
+  solution:"ALTER TABLE produits ADD COLUMN promo TEXT;",
+  indice:"<code>ALTER TABLE produits ADD COLUMN promo TEXT;</code>" },
+
+{ id:54, titre:"CREATE INDEX", résumé:"Accélérer une recherche", write:true, verif:"SELECT name FROM sqlite_master WHERE type = 'index' AND name = 'idx_clients_ville';",
+  situation:"Tu filtres souvent <code>WHERE ville = …</code>. Sur une grosse table, un <b>index</b> évite de tout parcourir.",
+  concept:`<p>Un index est une structure annexe qui aide SQL à retrouver des lignes plus vite — comme l'index d'un livre.</p>
+  <p><code>CREATE INDEX nom ON table(colonne)</code> en crée un. Ça n'ajoute pas de colonne visible : ça accélère (surtout les WHERE / JOIN) au prix d'un peu d'espace et d'écritures un peu plus lentes.</p>
+  <p>Sur notre mini-base tu ne « sentiras » pas la vitesse ; le geste et le vocabulaire comptent déjà.</p>
+  <p>⚠️ Copie de la base pour l'exercice.</p>`,
+  anatomie:[{tok:"CREATE INDEX",txt:"<b>Crée l'index.</b>"},
+    {tok:"idx_clients_ville",plain:1,txt:"Un nom parlant : table + colonne."},
+    {tok:"ON clients(ville)",txt:"Sur quelle table et quelle colonne."}],
+  exemple:"CREATE INDEX idx_produits_categorie ON produits(categorie);",
+  attendu:"Aucune ligne. L'index <code>idx_produits_categorie</code> existe dans le catalogue interne.",
+  piege:{t:"Indexer trop tôt",p:"Sur de toutes petites tables, l'index coûte parfois plus qu'il ne rapporte. On indexe les colonnes vraiment filtrées / jointes."},
+  consigne:"Crée un index nommé <code>idx_clients_ville</code> sur la colonne <code>ville</code> de <code>clients</code>.",
+  solution:"CREATE INDEX idx_clients_ville ON clients(ville);",
+  indice:"<code>CREATE INDEX idx_clients_ville ON clients(ville);</code>" },
+
+{ id:55, titre:"EXCEPT", résumé:"Ce qui est dans A mais pas B",
+  situation:"Tu as tous les clients d'un côté, et ceux qui ont déjà commandé de l'autre. Tu veux les <code>id</code> de ceux qui n'<b>ont jamais</b> commandé.",
+  concept:`<p><code>EXCEPT</code> (différence d'ensembles) garde les lignes du premier <code>SELECT</code> qui n'apparaissent <b>pas</b> dans le second.</p>
+  <p>Comme <code>UNION</code> : même nombre de colonnes, types compatibles. SQLite dédoublonne le résultat.</p>
+  <p>Équivalent fréquent : <code>NOT IN (sous-requête)</code> ou <code>LEFT JOIN … WHERE … IS NULL</code>. <code>EXCEPT</code> se lit très clairement « A moins B ».</p>`,
+  anatomie:[{tok:"SELECT id FROM clients",txt:"L'ensemble de départ (tous les clients)."},
+    {tok:"EXCEPT",txt:"<b>Retire</b> ce qui suit."},
+    {tok:"SELECT client_id FROM commandes",txt:"L'ensemble à soustraire (clients déjà présents dans une commande)."}],
+  exemple:"SELECT id FROM clients\nEXCEPT\nSELECT client_id FROM commandes;",
+  attendu:"<b>1 ligne</b> : l'id <code>9</code> (Inès, sans aucune commande).",
+  piege:{t:"Colonnes incompatibles",p:"Les deux SELECT doivent renvoyer le même genre de chose (ici des identifiants client). Pas un nom d'un côté et un id de l'autre."},
+  consigne:"Avec <code>EXCEPT</code>, affiche les <code>id</code> des clients qui n'ont <b>aucune</b> commande.",
+  solution:"SELECT id FROM clients EXCEPT SELECT client_id FROM commandes;",
+  indice:"<code>SELECT id FROM clients EXCEPT SELECT client_id FROM commandes</code>." },
+]},
 ];
 
 /* ============================================================
@@ -1885,6 +2048,24 @@ const CHALLENGES=[
  {id:'c12',titre:"Catégorie la plus vendue",niv:'d',q:"Quelle catégorie de produits a généré le plus d'unités vendues ? Affiche la catégorie et le total d'unités, du plus grand au plus petit.",
   sol:"SELECT produits.categorie, SUM(commandes.quantite) AS total FROM commandes JOIN produits ON commandes.produit_id=produits.id GROUP BY produits.categorie ORDER BY total DESC;",ordered:true,
   indice:"JOIN, GROUP BY sur la catégorie, SUM des quantités, tri décroissant."},
+ {id:'c13',titre:"CA des Parisiens",niv:'m',q:"Quel est le chiffre d'affaires généré par les clients qui habitent à Paris ? (somme quantité × prix)",
+  sol:"SELECT SUM(commandes.quantite * produits.prix) FROM commandes JOIN clients ON commandes.client_id=clients.id JOIN produits ON commandes.produit_id=produits.id WHERE clients.ville='Paris';",
+  indice:"Deux JOIN (clients et produits), puis <code>WHERE clients.ville = 'Paris'</code> et <code>SUM(quantite * prix)</code>."},
+ {id:'c14',titre:"Catégories solo",niv:'m',q:"Quelles catégories ne contiennent qu'un seul produit au catalogue ? Affiche la catégorie.",
+  sol:"SELECT categorie FROM produits GROUP BY categorie HAVING COUNT(*) = 1;",
+  indice:"GROUP BY categorie, puis <code>HAVING COUNT(*) = 1</code>."},
+ {id:'c15',titre:"Mois le plus chargé",niv:'m',q:"Quel mois (AAAA-MM) compte le plus de commandes ? Affiche le mois et le nombre, du plus chargé au moins chargé.",
+  sol:"SELECT strftime('%Y-%m', date_commande) AS mois, COUNT(*) AS nb FROM commandes GROUP BY mois ORDER BY nb DESC;",ordered:true,
+  indice:"<code>strftime('%Y-%m', date_commande)</code>, GROUP BY, COUNT(*), ORDER BY nb DESC."},
+ {id:'c16',titre:"Panier moyen par ville",niv:'d',q:"Pour chaque ville, quelle est la quantité moyenne commandée ? Affiche la ville et la moyenne, de la plus haute à la plus basse.",
+  sol:"SELECT clients.ville, AVG(commandes.quantite) AS panier FROM commandes JOIN clients ON commandes.client_id=clients.id GROUP BY clients.ville ORDER BY panier DESC;",ordered:true,
+  indice:"JOIN clients, <code>AVG(quantite)</code>, GROUP BY ville, ORDER BY la moyenne décroissante."},
+ {id:'c17',titre:"Best-seller par catégorie",niv:'d',q:"Pour chaque catégorie, quel produit a vendu le plus d'unités au total ? Affiche categorie, nom et total (une ligne par catégorie).",
+  sol:"WITH ventes AS (SELECT produits.categorie, produits.nom, SUM(commandes.quantite) AS total FROM commandes JOIN produits ON commandes.produit_id=produits.id GROUP BY produits.categorie, produits.nom), ranked AS (SELECT *, ROW_NUMBER() OVER (PARTITION BY categorie ORDER BY total DESC) AS rn FROM ventes) SELECT categorie, nom, total FROM ranked WHERE rn = 1;",
+  indice:"CTE des ventes par produit, puis <code>ROW_NUMBER() OVER (PARTITION BY categorie ORDER BY total DESC)</code>, filtre <code>rn = 1</code>."},
+ {id:'c18',titre:"Clients multi-catégories",niv:'d',q:"Quels clients ont commandé des produits d'au moins 2 catégories différentes ? Affiche leur nom.",
+  sol:"SELECT clients.nom FROM clients JOIN commandes ON clients.id=commandes.client_id JOIN produits ON commandes.produit_id=produits.id GROUP BY clients.nom HAVING COUNT(DISTINCT produits.categorie) >= 2;",
+  indice:"JOIN jusqu'à produits, puis <code>HAVING COUNT(DISTINCT produits.categorie) &gt;= 2</code>."},
 ];
 const NIV={f:{l:'FACILE',c:'f'},m:{l:'MOYEN',c:'m'},d:{l:'DIFFICILE',c:'d'}};
 
@@ -1981,7 +2162,27 @@ const CARTES={
  44:{k:"BEGIN · ROLLBACK",t:"Le filet de sécurité",s:"BEGIN;\nUPDATE …;\nROLLBACK;",
     m:"Regroupe des instructions en bloc « tout ou rien ». <code>COMMIT</code> valide, <code>ROLLBACK</code> annule intégralement. Le réflexe avant toute opération risquée en production."},
  45:{k:"CREATE TABLE",t:"Concevoir une structure",s:"CREATE TABLE avis (\n  id INTEGER PRIMARY KEY,\n  note INTEGER\n);",
-    m:"Types SQLite : <code>INTEGER</code>, <code>REAL</code>, <code>TEXT</code>, <code>BLOB</code>. Contraintes utiles : <code>NOT NULL</code>, <code>UNIQUE</code>, <code>DEFAULT</code>, <code>CHECK</code>. Une contrainte à la création vaut mieux que dix vérifications après."}
+    m:"Types SQLite : <code>INTEGER</code>, <code>REAL</code>, <code>TEXT</code>, <code>BLOB</code>. Contraintes utiles : <code>NOT NULL</code>, <code>UNIQUE</code>, <code>DEFAULT</code>, <code>CHECK</code>. Une contrainte à la création vaut mieux que dix vérifications après."},
+ 46:{k:"FROM (…)",t:"Table dérivée",s:"SELECT … FROM (\n  SELECT … GROUP BY …\n) t WHERE …",
+    m:"Une sous-requête dans le <code>FROM</code> produit une table temporaire. <b>Alias obligatoire</b> après la parenthèse. Utile pour enchaîner agréger puis filtrer."},
+ 47:{k:"SELECT (…)",t:"Sous-requête en colonne",s:"SELECT nom,\n  (SELECT AVG(prix) FROM produits) AS moyenne\nFROM produits;",
+    m:"Une sous-requête scalaire (une valeur) peut devenir une colonne du SELECT. Elle doit renvoyer <b>une seule ligne et une colonne</b>."},
+ 48:{k:"SUM(CASE)",t:"Compter par case",s:"SUM(CASE WHEN … THEN 1 ELSE 0 END)",
+    m:"Transforme une condition en compteur. Plusieurs <code>SUM(CASE…)</code> côte à côte = mini tableau de bord en une ligne. N'oublie pas le <code>ELSE 0</code>."},
+ 49:{k:"strftime %w",t:"Jour de la semaine",s:"strftime('%w', date_commande)",
+    m:"<code>%w</code> : 0 = dimanche … 6 = samedi. À ne pas confondre avec <code>%d</code> (jour du mois). Idéal pour GROUP BY sur l'activité hebdo."},
+ 50:{k:"Top par groupe",t:"ROW_NUMBER + filtre",s:"ROW_NUMBER() OVER (\n  PARTITION BY cat ORDER BY prix DESC)",
+    m:"Numérote dans chaque groupe, puis garde <code>rn = 1</code> via une CTE. Pattern « meilleur de chaque catégorie »."},
+ 51:{k:"CA / mois",t:"Reporting mensuel",s:"strftime('%Y-%m', d) AS mois\n… SUM(qté * prix) … GROUP BY mois",
+    m:"JOIN pour le prix, SUM pour le CA, strftime + GROUP BY pour la période. Le trio du reporting e-commerce."},
+ 52:{k:"HAVING COUNT",t:"Clients fidèles",s:"GROUP BY client\nHAVING COUNT(*) >= 2",
+    m:"Filtrer sur un agrégat = <code>HAVING</code>, jamais WHERE. Recette des « qui ont fait X au moins N fois »."},
+ 53:{k:"ALTER TABLE",t:"Ajouter une colonne",s:"ALTER TABLE t ADD COLUMN c TEXT;",
+    m:"Fait évoluer une table existante. Les anciennes lignes reçoivent NULL (ou DEFAULT). Plus simple que tout recréer."},
+ 54:{k:"CREATE INDEX",t:"Accélérer un filtre",s:"CREATE INDEX idx_t_col ON t(col);",
+    m:"Structure annexe pour retrouver des lignes plus vite sur les colonnes filtrées / jointes. Invisible dans SELECT *, utile à l'échelle."},
+ 55:{k:"EXCEPT",t:"A moins B",s:"SELECT id FROM a\nEXCEPT\nSELECT id FROM b;",
+    m:"Différence d'ensembles : lignes du premier SELECT absentes du second. Même nombre de colonnes des deux côtés. Cousin de NOT IN / LEFT JOIN anti-join."}
 };
 const CARD_GRAD=[['#5B5BD6','#7A6FF0'],['#0E9BC4','#22B8D6'],['#1CA672','#3FBF8E'],['#C77A16','#E0A040'],['#9333EA','#B45CF0'],['#E5484D','#F0736F'],['#0F766E','#14A89A'],['#B45309','#D97F2B'],['#1E40AF','#3B6FE0'],['#86198F','#B32BAF']];
 function moduleOf(id){ for(let i=0;i<MODULES.length;i++) if(MODULES[i].lessons.some(l=>l.id===id)) return i; return 0; }
@@ -2078,14 +2279,34 @@ const QCM={
  44:[{q:"<code>ROLLBACK</code> :",o:["Valide définitivement les modifications","Annule tout le bloc ouvert par BEGIN","Ferme la connexion"],b:1,e:"La base revient exactement à son état d'avant le BEGIN."},
    {q:"Une transaction garantit :",o:["La rapidité","Le tout ou rien","L'unicité des lignes"],b:1,e:"C'est l'atomicité, le A de ACID : le bloc est indivisible."}],
  45:[{q:"<code>INTEGER PRIMARY KEY</code> :",o:["Doit être rempli à la main à chaque insertion","Se remplit automatiquement si on l'omet","Interdit seulement les NULL"],b:1,e:"SQLite attribue le numéro suivant tout seul."},
-   {q:"<code>CHECK (note BETWEEN 1 AND 5)</code> sert à :",o:["Trier les notes","Refuser à l'écriture toute valeur hors plage","Calculer une moyenne"],b:1,e:"La base refuse la mauvaise donnée, quelle que soit l'application qui écrit."}]
+   {q:"<code>CHECK (note BETWEEN 1 AND 5)</code> sert à :",o:["Trier les notes","Refuser à l'écriture toute valeur hors plage","Calculer une moyenne"],b:1,e:"La base refuse la mauvaise donnée, quelle que soit l'application qui écrit."}],
+ 46:[{q:"Une sous-requête dans le <code>FROM</code> doit :",o:["Renvoyer une seule valeur","Avoir un alias (un nom) après la parenthèse","Être écrite sans SELECT"],b:1,e:"Sans alias, SQLite refuse la table dérivée."},
+   {q:"À quoi sert surtout cette forme ?",o:["Remplacer tous les JOIN","Enchaîner un calcul (ex. GROUP BY) puis le retraiter","Créer une table permanente"],b:1,e:"On matérialise un résultat intermédiaire, puis on le filtre ou on le joint."}],
+ 47:[{q:"Une sous-requête dans le <code>SELECT</code> doit renvoyer :",o:["Plusieurs lignes","Une seule valeur (une ligne, une colonne)","Une table entière"],b:1,e:"Sinon ce n'est plus une colonne scalaire et SQL échoue."},
+   {q:"Dans l'exemple avec <code>AVG(prix)</code> dans le SELECT :",o:["La moyenne change à chaque produit","La même moyenne apparaît sur chaque ligne","La table produits est modifiée"],b:1,e:"La sous-requête globale calcule une constante pour tout le résultat."}],
+ 48:[{q:"Pourquoi écrire <code>ELSE 0</code> dans un <code>SUM(CASE…)</code> ?",o:["Pour trier","Sinon les lignes ratées valent NULL et SUM les ignore","C'est obligatoire pour la syntaxe CASE"],b:1,e:"Sans ELSE 0, ton compteur sous-estime."},
+   {q:"<code>SUM(CASE WHEN … THEN 1 ELSE 0 END)</code> sert à :",o:["Additionner des prix","Compter combien de lignes vérifient une condition","Créer une vue"],b:1,e:"Des 1 et des 0 additionnés = un effectif."}],
+ 49:[{q:"<code>strftime('%w', date)</code> renvoie :",o:["Le jour du mois (1–31)","Le jour de la semaine (0–6)","Le numéro de semaine dans l'année"],b:1,e:"0 = dimanche … 6 = samedi. %d est le jour du mois."},
+   {q:"Pour un reporting fiable, les dates en base doivent être :",o:["Au format français JJ/MM/AAAA","Au format AAAA-MM-JJ","Des entiers quelconques"],b:1,e:"C'est ce format que strftime et les comparaisons comprennent bien."}],
+ 50:[{q:"Pourquoi passer par une CTE pour <code>WHERE rn = 1</code> ?",o:["Les CTE sont plus rapides","On ne peut pas filtrer une fonction fenêtre dans le WHERE de la même requête","Apple l'exige"],b:1,e:"On calcule d'abord le rang, puis on filtre."},
+   {q:"<code>PARTITION BY categorie</code> fait :",o:["Réduire à une ligne par catégorie","Redémarrer le numéro dans chaque catégorie","Trier le résultat final"],b:1,e:"Chaque catégorie a son propre 1, 2, 3…"}],
+ 51:[{q:"Pour un CA mensuel il faut en général :",o:["Seulement COUNT(*)","JOIN vers le prix + SUM(qté×prix) + troncature du mois","UNION ALL"],b:1,e:"Sans le prix (JOIN), pas de chiffre d'affaires monétaire."},
+   {q:"Grouper sur <code>date_commande</code> sans strftime donne :",o:["Un total par mois","Un total par jour (chaque date distincte)","Une erreur"],b:1,e:"Il faut tronquer au mois pour agréger la période."}],
+ 52:[{q:"« Au moins 2 commandes » se filtre avec :",o:["WHERE COUNT(*) >= 2","HAVING COUNT(*) >= 2","LIMIT 2"],b:1,e:"Le compte n'existe qu'après GROUP BY → HAVING."},
+   {q:"Sans JOIN vers commandes, COUNT(*) sur clients seul :",o:["Compte les commandes","Compte les clients (une ligne chacun)","Échoue"],b:1,e:"Il faut d'abord les lignes de commandes pour mesurer l'activité."}],
+ 53:[{q:"<code>ALTER TABLE … ADD COLUMN</code> :",o:["Supprime la table","Ajoute une colonne aux lignes existantes (souvent NULL)","Duplique la table"],b:1,e:"Les anciennes lignes restent ; la nouvelle colonne est vide ou DEFAULT."},
+   {q:"Si la table existe déjà, <code>CREATE TABLE</code> du même nom :",o:["Ajoute des colonnes","Échoue","Remplace silencieusement"],b:1,e:"Pour enrichir, utilise ALTER TABLE."}],
+ 54:[{q:"Un index sert surtout à :",o:["Afficher une colonne de plus","Accélérer certains WHERE / JOIN","Remplacer PRIMARY KEY"],b:1,e:"C'est une structure de recherche, pas une colonne visible."},
+   {q:"<code>CREATE INDEX idx ON clients(ville)</code> :",o:["Modifie les données des clients","Crée une aide à la recherche sur ville","Empêche les INSERT"],b:1,e:"Les SELECT filtrés sur ville peuvent en profiter."}],
+ 55:[{q:"<code>EXCEPT</code> garde :",o:["L'intersection des deux SELECT","Les lignes du premier absentes du second","Toutes les lignes des deux côtés"],b:1,e:"C'est la différence d'ensembles A − B."},
+   {q:"Les deux SELECT d'un EXCEPT doivent :",o:["Avoir le même nombre de colonnes","Porter sur la même table uniquement","Utiliser ORDER BY"],b:0,e:"Comme UNION : colonnes alignées des deux côtés."}]
 };
 
 /* ============================================================
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-09-n';
+const APP_VERSION='2026-08-09-o';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const DBS_KEY='requete-sql-dbs-v1';
@@ -3794,7 +4015,7 @@ function renderValidation(){
     ? `<div class="feedback ok" style="margin-top:4px"><div class="fi">✓</div><div><b>Leçon validée</b>
         <p>Exercice et quiz au complet. La carte <b>${esc(CARTES[id].k)}</b> est dans ta collection.</p></div></div>
        ${suiv?`<button class="next-btn" onclick="openLesson(${suiv.id})">Leçon suivante →</button>`
-        :`<div class="feedback ok"><div class="fi">🎉</div><div><b>Programme terminé</b><p>Les 45 leçons sont bouclées.</p></div></div>`}`
+        :`<div class="feedback ok"><div class="fi">🎉</div><div><b>Programme terminé</b><p>Les ${TOTAL} leçons sont bouclées.</p></div></div>`}`
     : `<div class="valid-todo">Réponds aux <b>${resteQ} question${resteQ>1?'s':''}</b> pour valider la leçon.</div>`;
   host.innerHTML=`
     <div class="vsteps">${pastilles}</div>
@@ -4093,7 +4314,7 @@ function paintOb(){
     html=`<div class="ob-hero a"><div class="ob-mark">&gt;_</div></div>
       <div class="ob-kicker">Bienvenue</div>
       <h2>Apprends le SQL<br>à ton rythme.</h2>
-      <p>45 leçons sur une vraie base SQLite. On règle d’abord ton planning : niveau, minutes, jours.</p>
+      <p>55 leçons sur une vraie base SQLite. On règle d’abord ton planning : niveau, minutes, jours.</p>
       <div class="ob-name">
         <label for="ob-name">Comment tu t’appelles ? <span style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--ink-3)">(optionnel)</span></label>
         <input id="ob-name" type="text" maxlength="32" placeholder="Ton prénom" autocomplete="given-name" value="${esc(name).replace(/"/g,'&quot;')}">

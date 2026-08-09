@@ -4,7 +4,7 @@ Application web progressive pour apprendre le SQL en pratiquant sur une **vraie 
 
 ## Fonctionnalités
 
-- **45 leçons** guidées (situation → anatomie → exercice → QCM)
+- **55 leçons** guidées (situation → anatomie → exercice → QCM)
 - **Onboarding** pour démarrer en 30 secondes
 - **Planning** personnalisable + séance du jour
 - **Révisions espacées** (spaced repetition)
