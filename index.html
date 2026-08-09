@@ -834,10 +834,10 @@
     <!-- CARNET (Notes + Cartes) -->
     <section id="scr-collection" class="screen">
       <div class="lgtitle"><div class="eyebrow" id="carnet-eyebrow">Ton aide-mémoire</div><h1 id="carnet-title">Carnet</h1>
-        <p class="sub" id="carnet-sub">Tes notes, et les cartes que tu débloques.</p></div>
+        <p class="sub" id="carnet-sub">Tes notes, et les mémos débloqués.</p></div>
       <div class="seg">
         <button id="seg-notes" class="on" onclick="setPane('notes')">Notes</button>
-        <button id="seg-cards" onclick="setPane('cards')">Cartes</button>
+        <button id="seg-cards" onclick="setPane('cards')">Mémos</button>
       </div>
 
       <div id="pane-notes">
@@ -2038,7 +2038,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-09-e';
+const APP_VERSION='2026-08-09-f';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const memStore={};
@@ -2692,8 +2692,8 @@ function renderCollection(){
   const n=allLessons.filter(l=>isUnlocked(l.id)).length;
   document.getElementById('coll-n').innerHTML=`${n}<small>/${TOTAL}</small>`;
   document.getElementById('coll-t').innerHTML= n===0
-    ? `<b>Collection vide</b>Termine une leçon pour débloquer ta première carte.`
-    : `<b>${n} carte${n>1?'s':''} débloquée${n>1?'s':''}</b>Chaque carte résume une notion en trois lignes.`;
+    ? `<b>Collection vide</b>Termine une leçon pour débloquer ton premier mémo.`
+    : `<b>${n} mémo${n>1?'s':''}</b>Juste l’essentiel à retenir — sans rouvrir la leçon.`;
   document.getElementById('coll-filters').innerHTML=FILTERS.map(([k,l])=>
     `<button class="fchip ${collFilter===k?'on':''}" onclick="setFilter('${k}')">${l}</button>`).join('');
   const list=allLessons.filter(l=>{
@@ -2707,38 +2707,32 @@ function renderCollection(){
   grid.className='cards-grid';
   grid.innerHTML=list.map(l=>{
     const c=CARTES[l.id], u=isUnlocked(l.id);
-    if(!u) return `<div class="gcard lock" onclick="openLesson(${l.id})">
-      <div class="gidx">CARTE ${String(l.id).padStart(2,'0')}</div>
+    if(!u) return `<div class="gcard lock">
+      <div class="gidx">MÉMO ${String(l.id).padStart(2,'0')}</div>
       <div class="gk">🔒</div><div class="gt" style="opacity:1">${esc(c.t)}</div>
-      <div class="gfoot" style="opacity:1">LEÇON ${l.id} · À FAIRE</div></div>`;
+      <div class="gfoot" style="opacity:1">VERROUILLÉ</div></div>`;
     return `<div class="gcard" style="background:${gradOf(l.id)}" onclick="openCard(${l.id})">
-      <div class="gidx">CARTE ${String(l.id).padStart(2,'0')}</div>
+      <div class="gidx">MÉMO ${String(l.id).padStart(2,'0')}</div>
       <div class="gk">${esc(c.k)}</div><div class="gt">${esc(c.t)}</div>
-      <div class="gfoot">${esc(MODULES[moduleOf(l.id)].titre.toUpperCase())}</div></div>`;
+      <div class="gfoot">MÉMO</div></div>`;
   }).join('');
 }
 let openCardId=null;
 function openCard(id){
+  if(!isUnlocked(id))return;
   openCardId=id;
-  const c=CARTES[id], l=allLessons.find(x=>x.id===id);
+  const c=CARTES[id];
   document.getElementById('card-back').classList.add('on');
   document.getElementById('card-sheet').classList.add('on');
   document.getElementById('fab').classList.add('hide');
   document.getElementById('card-body').innerHTML=`
     <div class="cd-hero" style="background:${gradOf(id)}">
-      <div class="cd-idx">CARTE ${String(id).padStart(2,'0')} · ${esc(MODULES[moduleOf(id)].titre.toUpperCase())}</div>
+      <div class="cd-idx">MÉMO ${String(id).padStart(2,'0')}</div>
       <h2>${esc(c.k)}</h2><p>${esc(c.t)}</p></div>
-    <p class="cd-lab">La syntaxe</p>
-    <div class="ex-code" style="margin-bottom:18px">${highlight(c.s)}</div>
-    <p class="cd-lab">Le mémo</p>
+    <p class="cd-lab">À retenir</p>
     <div class="cd-memo">${c.m}</div>
-    <div style="display:flex;gap:9px;margin:20px 0 8px">
-      <button class="btn-ghost" style="flex:1;justify-content:center" onclick="cardToConsole(${id})">Tester dans la console</button>
-      <button class="btn-ghost" style="flex:1;justify-content:center" onclick="closeCard();openLesson(${id})">Revoir la leçon</button>
-    </div>
-    <div style="display:flex;margin-bottom:8px">
-      <button class="btn-ghost" style="flex:1;justify-content:center" onclick="noteFromCard(${id})">✎ Prendre une note là-dessus</button>
-    </div>`;
+    <p class="cd-lab" style="margin-top:18px">Syntaxe</p>
+    <div class="ex-code">${highlight(c.s)}</div>`;
   document.getElementById('card-body').scrollTop=0;
 }
 function closeCard(){
@@ -3389,7 +3383,7 @@ function setPane(p){
   document.getElementById('pane-notes').style.display=p==='notes'?'':'none';
   document.getElementById('pane-cards').style.display=p==='cards'?'':'none';
   document.getElementById('carnet-sub').textContent= p==='notes'
-    ? "Tout ce que tu notes, au même endroit." : "Une carte débloquée par notion apprise.";
+    ? "Tout ce que tu notes, au même endroit." : "Un mémo par notion — sans rouvrir la leçon.";
   if(p==='cards')renderCollection(); else renderNotes();
 }
 function onSearch(){ searchQ=document.getElementById('note-search').value.trim().toLowerCase();
@@ -3767,7 +3761,7 @@ function renderCompte(){
     <div class="acc-stats">
       <div class="acc-stat"><b>${st.lessons}</b><small>Leçons terminées</small></div>
       <div class="acc-stat"><b>${st.defis}</b><small>Défis réussis</small></div>
-      <div class="acc-stat"><b>${st.cards}</b><small>Cartes débloquées</small></div>
+      <div class="acc-stat"><b>${st.cards}</b><small>Mémos débloqués</small></div>
       <div class="acc-stat"><b>${st.notes}</b><small>Notes dans le carnet</small></div>
     </div>
     <div class="acc-card">
