@@ -2210,6 +2210,33 @@ const CHALLENGES=[
 function defisParProgression(){
   return CHALLENGES.slice().sort((a,b)=>(a.apres||Infinity)-(b.apres||Infinity)||a.id.localeCompare(b.id));
 }
+const CHALLENGE_GUIDES={
+ c1:{notion:"JOIN + GROUP BY + SUM",raisonnement:"Relie chaque commande à son client, regroupe par identifiant et nom du client, additionne les quantités, puis trie le total décroissant.",piege:"Ne compte pas les commandes si la question porte sur le nombre d’unités : COUNT(*) et SUM(quantite) ne répondent pas à la même question."},
+ c2:{notion:"GROUP BY + HAVING",raisonnement:"Forme un groupe par ville, compte les clients de chaque groupe, puis conserve uniquement les effectifs d’au moins 2.",piege:"Le filtre porte sur COUNT(*), donc il se place dans HAVING et non dans WHERE."},
+ c3:{notion:"Agrégation AVG",raisonnement:"La question demande un seul indicateur sur toutes les commandes : applique AVG directement à la colonne quantite.",piege:"Ne regroupe pas par client ou par produit : cela transformerait la moyenne globale en plusieurs moyennes."},
+ c4:{notion:"JOIN + calcul + agrégation",raisonnement:"Relie les commandes aux produits pour récupérer le prix, calcule quantité × prix ligne par ligne, puis additionne par produit.",piege:"Ce CA est pédagogique : il utilise le prix actuel du catalogue. En production, le prix facturé doit être conservé sur la ligne de commande."},
+ c5:{notion:"LEFT JOIN + IS NULL",raisonnement:"Pars des clients pour tous les conserver, rattache leurs commandes quand elles existent, puis sélectionne les lignes sans correspondance.",piege:"Un JOIN simple supprimerait précisément les clients que tu cherches."},
+ c6:{notion:"NULL + IS NULL",raisonnement:"Compte les lignes dont la valeur email est absente avec le prédicat IS NULL.",piege:"NULL n’est ni une chaîne vide ni une valeur comparable avec =."},
+ c7:{notion:"Sous-requête scalaire",raisonnement:"Calcule d’abord le prix moyen du catalogue, puis compare chaque produit à cette valeur dans la requête extérieure.",piege:"AVG(prix) ne peut pas être placé directement dans WHERE sans sous-requête ou agrégation adaptée."},
+ c8:{notion:"Dates ISO + comparaison",raisonnement:"Le format AAAA-MM-JJ permet de comparer les dates comme du texte ; utilise la borne de début demandée.",piege:"Vérifie si la borne est incluse : à partir du 20 juillet signifie >= '2023-07-20'."},
+ c9:{notion:"JOIN + COUNT + classement",raisonnement:"Relie les commandes aux produits, compte le nombre de commandes par produit, puis classe les comptes décroissants.",piege:"Le produit commandé le plus souvent n’est pas forcément celui qui totalise le plus d’unités."},
+ c10:{notion:"SUM après une jointure",raisonnement:"Relie chaque commande à son produit, calcule la valeur de chaque ligne, puis additionne toutes les lignes sans GROUP BY.",piege:"Un GROUP BY produirait un CA par produit au lieu du CA global."},
+ c11:{notion:"LEFT JOIN + COUNT + CASE",raisonnement:"Conserve chaque client, compte ses commandes avec COUNT(commandes.id), puis transforme le résultat en segment avec CASE.",piege:"COUNT(*) compterait aussi la ligne créée par le LEFT JOIN pour un client sans commande."},
+ c12:{notion:"Agrégation par catégorie",raisonnement:"Relie commandes et produits, regroupe par catégorie, additionne les quantités vendues et trie les totaux.",piege:"Le total porte sur quantite, pas sur le nombre de lignes de commandes."},
+ c13:{notion:"Deux JOIN + WHERE + SUM",raisonnement:"Relie les commandes aux clients et aux produits, filtre les clients de Paris, puis calcule la somme quantité × prix.",piege:"Applique le filtre sur clients.ville avant de conclure que le résultat représente tout le catalogue."},
+ c14:{notion:"GROUP BY + HAVING égal à 1",raisonnement:"Regroupe les produits par catégorie, compte chaque groupe, puis garde exactement les groupes dont le compte vaut 1.",piege:"WHERE ne peut pas filtrer le résultat de COUNT ; utilise HAVING."},
+ c15:{notion:"strftime + GROUP BY + ORDER BY",raisonnement:"Transforme chaque date en clé AAAA-MM, compte les commandes par mois, puis trie les comptes du plus grand au plus petit.",piege:"Grouper sur la date complète produirait une ligne par jour, pas une ligne par mois."},
+ c16:{notion:"AVG après une jointure",raisonnement:"Rattache chaque commande à la ville de son client, calcule la moyenne des quantités par ville et classe les moyennes.",piege:"La moyenne porte sur les commandes, pas sur les clients : un client avec plusieurs commandes pèse plusieurs fois."},
+ c17:{notion:"CTE + ROW_NUMBER par groupe",raisonnement:"Calcule les ventes par produit, numérote les produits dans chaque catégorie, puis conserve le rang 1.",piege:"Sans PARTITION BY, tu obtiendrais un seul meilleur produit pour tout le catalogue."},
+ c18:{notion:"COUNT(DISTINCT)",raisonnement:"Relie chaque client aux produits commandés, compte les catégories distinctes par client et garde ceux qui atteignent au moins 2.",piege:"COUNT(*) compte les commandes ; COUNT(DISTINCT categorie) compte les catégories réellement différentes."},
+ c19:{notion:"INTERSECT",raisonnement:"Construis deux ensembles de villes selon les deux critères d’âge, puis conserve uniquement leur intersection.",piege:"INTERSECT compare des résultats compatibles ; ce n’est pas une jointure qui ajoute des colonnes."},
+ c20:{notion:"WITH RECURSIVE",raisonnement:"Définis une valeur de départ, ajoute 1 à chaque étape et arrête la récursion lorsque la borne est atteinte.",piege:"Une condition d’arrêt incorrecte peut produire une suite trop longue ou une récursion sans fin."},
+ c21:{notion:"NTILE",raisonnement:"Ordonne les produits par stock et répartis les lignes dans 4 groupes aussi équilibrés que possible.",piege:"NTILE crée des tranches de lignes, pas quatre intervalles numériques de même largeur."},
+ c22:{notion:"Fonction fenêtre + cadre ROWS",raisonnement:"Ordonne les commandes par identifiant et calcule, pour chaque ligne, la moyenne de la ligne courante et de la précédente.",piege:"L’ORDER BY de OVER définit la fenêtre de calcul ; l’ORDER BY final sert à afficher le résultat."},
+ c23:{notion:"EXPLAIN QUERY PLAN",raisonnement:"Préfixe le SELECT par EXPLAIN QUERY PLAN pour observer le chemin d’accès choisi par SQLite.",piege:"Le résultat est un plan technique, pas la liste des clients concernés."},
+ c24:{notion:"FIRST_VALUE + PARTITION BY",raisonnement:"Crée une fenêtre par ville, l’ordonne par âge décroissant et reporte le nom de la première ligne sur chaque client.",piege:"PARTITION BY conserve les lignes ; GROUP BY les regrouperait en une seule ligne par ville."
+ }
+};
 const NIV={f:{l:'FACILE',c:'f'},m:{l:'MOYEN',c:'m'},d:{l:'DIFFICILE',c:'d'}};
 
 /* ============================================================
@@ -3422,14 +3449,17 @@ function renderLessonFlow(){
   if(lessonStep===2) renderValidation();
 }
 function openChallenge(cid){
-  const c=CHALLENGES.find(x=>x.id===cid); current=c; mode='defi';
+  const c=CHALLENGES.find(x=>x.id===cid); const g=CHALLENGE_GUIDES[cid]||{}; current=c; mode='defi';
   exoFails=0;
   document.getElementById('back-label').textContent='Apprendre';
   document.getElementById('nav-title').textContent='Défi';
   document.getElementById('lesson-body').innerHTML=`
     <div class="l-kicker">Défi · ${NIV[c.niv].l}</div><h1>${c.titre}</h1>
     <div class="consigne"><span class="tag">La question</span><p>${esc(c.q)}</p></div>
-    <p style="font-size:13.5px;color:var(--ink-2);margin:0 4px 14px">Aucune indication de syntaxe cette fois. Consulte l'onglet <b>Schéma</b> si besoin.</p>
+    <div class="card"><p><b>Notion mobilisée :</b> ${esc(g.notion||'Choisis les clauses adaptées à la question.')}</p>
+      <p><b>Raisonnement :</b> ${esc(g.raisonnement||'Décompose le problème en étapes avant d’écrire la requête.')}</p>
+      <p><b>Erreur fréquente :</b> ${esc(g.piege||'Vérifie le niveau de détail demandé et le nombre de lignes attendu.')}</p></div>
+    <p style="font-size:13.5px;color:var(--ink-2);margin:0 4px 14px">La syntaxe reste à construire par toi. Consulte l’onglet <b>Schéma</b> si besoin.</p>
     ${editorBlock(true)}`;
   setupEditor('ed-lesson','hl-lesson'); showScreen();
 }
