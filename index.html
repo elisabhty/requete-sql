@@ -254,11 +254,9 @@
   .exframe .xf-result{background:var(--surface);border-top:1px solid var(--line);overflow:hidden}
   .exframe .xf-result[hidden]{display:none}
   .exframe .xf-result.on{animation:riseIn .38s cubic-bezier(.32,.72,.28,1) both}
-  .exframe .xf-result .result-meta{padding:10px 15px 0;font-size:12px;color:var(--ink-3)}
-  .exframe .xf-result .table-wrap{margin:8px 14px 0;border-radius:12px;box-shadow:none;border:1px solid var(--line)}
-  .exframe .xf-result .feedback{margin:10px 14px 0;border-radius:12px}
-  .exframe .xf-result .ex-out{margin:0;padding:12px 15px 14px;font-size:13px;color:var(--ink-2);border-top:1px solid var(--line)}
-  .exframe .xf-result .ex-out b{color:var(--ink)}
+  .exframe .xf-result .result-meta{padding:10px 15px 6px;font-size:12px;color:var(--ink-3)}
+  .exframe .xf-result .table-wrap{margin:0 14px 12px;border-radius:12px;box-shadow:none;border:1px solid var(--line)}
+  .exframe .xf-result .feedback{margin:10px 14px 12px;border-radius:12px}
   .ex-out{font-size:13px;color:var(--ink-2);margin-top:10px}
   .ex-out b{color:var(--ink)}
 
@@ -3822,14 +3820,13 @@ function lessonRichBlocks(l){
 function lessonRichFooter(l){
   const n=(l.pipeline||[]).length+1;
   const sql=escAttr(l.exemple);
-  const note=escAttr(l.attendu);
   return `
     <div class="sect-label"><i>${n}</i><span>Exemple complet</span></div>
     <div class="exframe">
       <div class="xf-head"><span class="xf-name">exemple.sql</span></div>
       <div class="ex-code">${highlight(l.exemple)}</div>
       <div class="xf-actions">
-        <button type="button" class="xf-run" data-sql="${sql}" data-note="${note}" onclick="runExemple(this)">▶ Exécuter</button>
+        <button type="button" class="xf-run" data-sql="${sql}" onclick="runExemple(this)">▶ Exécuter</button>
       </div>
       <div class="xf-result" hidden aria-live="polite"></div></div>
     <div class="piege"><div class="pi">!</div><div><b>${l.piege.t}</b><p>${l.piege.p}</p></div></div>`;
@@ -3838,14 +3835,12 @@ function runExemple(btn){
   const frame=btn.closest('.exframe');
   const host=frame&&frame.querySelector('.xf-result');
   const sql=btn.getAttribute('data-sql');
-  const note=btn.getAttribute('data-note');
   if(!host||!sql)return;
   btn.disabled=true;
   btn.textContent='Exécution…';
   try{
     const {res,ms}=execQuery(sql);
-    const table=renderTable(res,ms);
-    host.innerHTML=table+(note?`<p class="ex-out">↳ ${note}</p>`:'');
+    host.innerHTML=renderTable(res,ms);
     host.hidden=false;
     host.classList.remove('on');
     void host.offsetWidth;
