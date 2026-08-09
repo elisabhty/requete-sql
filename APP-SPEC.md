@@ -10,7 +10,7 @@ Moment magique : j’écris une requête → je vois le résultat → je valide 
 ## Features v1 (dans le build)
 - Onboarding guidé (prénom, niveau, minutes / jours)
 - Parcours personnalisable + séance du jour (leçons + défis intercalés, jours « pause »)
-- 55 leçons en 3 slides : Cours → Exercice → Quiz
+- 65 leçons en 3 slides : Cours → Exercice → Quiz
 - Aide progressive sur l’exercice (indice → aide → solution selon les erreurs)
 - Défis métier (filtrables : Tous / Leçons / Défis)
 - Révisions espacées (spaced repetition)

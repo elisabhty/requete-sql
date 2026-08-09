@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Requête — Apprends le SQL</title>
-<meta name="description" content="Apprends le SQL en pratiquant sur une vraie base SQLite. 55 leçons, défis, révision espacée et console interactive.">
+<meta name="description" content="Apprends le SQL en pratiquant sur une vraie base SQLite. 65 leçons, défis, révision espacée et console interactive.">
 <meta name="theme-color" content="#5B5BD6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -835,7 +835,7 @@
     <!-- APPRENDRE -->
     <section id="scr-learn" class="screen active">
       <div class="lgtitle"><div class="eyebrow">Requête · SQL</div><h1>Apprendre</h1>
-        <p class="sub" id="learn-sub">55 leçons, une vraie base de données.</p></div>
+        <p class="sub" id="learn-sub">65 leçons, une vraie base de données.</p></div>
       <p class="greeting" id="greeting" hidden></p>
       <div id="home-hero"></div>
       <div class="primer" id="primer" onclick="this.classList.toggle('open')">
@@ -880,7 +880,7 @@
       <div class="lgtitle"><div class="eyebrow">Collection</div><h1>Cartes</h1>
         <p class="sub">Tes cartes débloquées — l’essentiel à retenir.</p></div>
       <div class="coll-stat">
-        <div class="cs-n" id="coll-n">0<small>/55</small></div>
+        <div class="cs-n" id="coll-n">0<small>/65</small></div>
         <div class="cs-t" id="coll-t"></div>
       </div>
       <div class="fbar" id="coll-filters"></div>
@@ -2006,6 +2006,165 @@ const MODULES = [
   solution:"SELECT id FROM clients EXCEPT SELECT client_id FROM commandes;",
   indice:"<code>SELECT id FROM clients EXCEPT SELECT client_id FROM commandes</code>." },
 ]},
+
+{ titre:"Niveau pro", sous:"Ce que font les équipes data au quotidien", lessons:[
+{ id:56, titre:"INTERSECT", résumé:"Ce qui est dans A et B",
+  situation:"Tu veux les catégories qui ont à la fois des produits « abordables » (&lt; 20 €) et des produits « chers » (&gt; 30 €).",
+  concept:`<p><code>INTERSECT</code> garde uniquement les lignes communes aux <b>deux</b> SELECT — l'intersection d'ensembles.</p>
+  <p>Même règles que <code>UNION</code> / <code>EXCEPT</code> : même nombre de colonnes, types compatibles. SQLite dédoublonne le résultat.</p>
+  <p>Famille complète : <code>UNION</code> (A ou B), <code>INTERSECT</code> (A et B), <code>EXCEPT</code> (A sans B).</p>`,
+  anatomie:[{tok:"SELECT categorie FROM produits WHERE prix < 20",txt:"Premier ensemble."},
+    {tok:"INTERSECT",txt:"<b>Ne garde que l'overlap.</b>"},
+    {tok:"SELECT categorie FROM produits WHERE prix > 30",txt:"Second ensemble."}],
+  exemple:"SELECT categorie FROM produits WHERE prix < 20\nINTERSECT\nSELECT categorie FROM produits WHERE prix > 30;",
+  attendu:"Les catégories présentes des deux côtés (ex. Bien-être si elle a des prix bas et hauts).",
+  piege:{t:"Croire qu'INTERSECT joint les lignes",p:"Ce n'est pas un JOIN : on compare des ensembles de valeurs, pas des lignes élargies."},
+  consigne:"Avec <code>INTERSECT</code>, affiche les <code>ville</code> qui ont à la fois un client de moins de 30 ans et un client de 40 ans ou plus.",
+  solution:"SELECT ville FROM clients WHERE age < 30 INTERSECT SELECT ville FROM clients WHERE age >= 40;",
+  indice:"Deux SELECT sur <code>ville</code> avec des filtres d'âge différents, reliés par <code>INTERSECT</code>." },
+
+{ id:57, titre:"WITH RECURSIVE", résumé:"Générer une série", ordered:true,
+  situation:"Tu as besoin d'une liste de nombres 1, 2, 3… pour construire un calendrier ou tester une idée — sans table préremplie.",
+  concept:`<p><code>WITH RECURSIVE</code> définit une CTE qui peut <b>se rappeler elle-même</b> : une ancre (point de départ), puis une récurrence (<code>UNION ALL SELECT … FROM cte</code>) jusqu'à une condition d'arrêt.</p>
+  <p>Usage classique : hiérarchies (employé → manager), chemins, calendriers, suites. Ici on génère une suite d'entiers — le squelette de toute récursion.</p>
+  <p>Sans condition d'arrêt, la requête boucle : SQLite impose une limite, mais tu dois toujours écrire le <code>WHERE</code> qui coupe.</p>`,
+  anatomie:[{tok:"WITH RECURSIVE n(x) AS (",txt:"CTE récursive nommée <code>n</code>, colonne <code>x</code>."},
+    {tok:"SELECT 1",plain:1,txt:"<b>Ancre</b> : la première valeur."},
+    {tok:"UNION ALL",txt:"On enchaîne les étapes suivantes."},
+    {tok:"SELECT x+1 FROM n WHERE x < 5",plain:1,txt:"<b>Récurrence</b> + frein (<code>x &lt; 5</code>)."},
+    {tok:") SELECT x FROM n",txt:"On lit le résultat comme une table."}],
+  exemple:"WITH RECURSIVE n(x) AS (\n  SELECT 1\n  UNION ALL\n  SELECT x+1 FROM n WHERE x < 5\n)\nSELECT x FROM n;",
+  attendu:"<b>5 lignes</b> : 1, 2, 3, 4, 5.",
+  piege:{t:"Oublier le frein",p:"Sans <code>WHERE x &lt; …</code>, la récursion continue jusqu'à la limite du moteur. Toujours une condition d'arrêt claire."},
+  consigne:"Avec <code>WITH RECURSIVE</code>, génère les entiers de <b>1 à 7</b> inclus (colonne <code>x</code>), dans l'ordre.",
+  solution:"WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x < 7) SELECT x FROM n;",
+  indice:"Ancre <code>SELECT 1</code>, puis <code>x+1</code> tant que <code>x &lt; 7</code>." },
+
+{ id:58, titre:"NTILE", résumé:"Découper en tranches", ordered:true,
+  situation:"Tu veux classer les produits en <b>4 tranches</b> de prix (quartiles) pour un reporting marketing.",
+  concept:`<p><code>NTILE(k) OVER (ORDER BY …)</code> répartit les lignes en <b>k seaux</b> aussi équilibrés que possible. Rang 1 = premier seau, etc.</p>
+  <p>Contrairement à <code>ROW_NUMBER</code>, tu ne contrôles pas la taille exacte de chaque seau quand le total n'est pas divisible par k — SQL équilibre au mieux.</p>
+  <p>Très utilisé pour ABC analysis, scoring, cohortes de taille comparable.</p>`,
+  anatomie:[{tok:"NTILE(4) OVER (ORDER BY prix)",txt:"<b>4 tranches</b> du moins cher au plus cher."},
+    {tok:"AS quartile",txt:"Le numéro de tranche (1–4)."},
+    {tok:"ORDER BY prix",txt:"(de la requête) pour lire le résultat clairement."}],
+  exemple:"SELECT nom, prix, NTILE(4) OVER (ORDER BY prix) AS quartile\nFROM produits\nORDER BY prix;",
+  attendu:"<b>8 produits</b> répartis dans les quartiles 1 à 4 selon le prix.",
+  piege:{t:"NTILE sans ORDER BY dans OVER",p:"Sans ordre, la répartition n'a pas de sens métier. Toujours ORDER BY dans la fenêtre."},
+  consigne:"Affiche <code>nom</code>, <code>age</code> et une colonne <code>tiers</code> = <code>NTILE(3) OVER (ORDER BY age)</code> pour chaque client, trié par âge.",
+  solution:"SELECT nom, age, NTILE(3) OVER (ORDER BY age) AS tiers FROM clients ORDER BY age;",
+  indice:"<code>NTILE(3) OVER (ORDER BY age) AS tiers</code>, puis <code>ORDER BY age</code>." },
+
+{ id:59, titre:"FIRST_VALUE", résumé:"La référence du groupe", ordered:true,
+  situation:"Pour chaque produit, tu veux rappeler le nom du produit <b>le plus cher de sa catégorie</b>, sur la même ligne.",
+  concept:`<p><code>FIRST_VALUE(expr) OVER (PARTITION BY … ORDER BY …)</code> lit la valeur de la <b>première ligne</b> de la fenêtre (selon l'ORDER BY).</p>
+  <p>Complémentaire de <code>LAG</code>/<code>LEAD</code> : tu ne te déplaces pas d'une ligne, tu ancre une référence (max, min, premier événement).</p>
+  <p><code>LAST_VALUE</code> existe aussi — attention aux frames par défaut ; pour un « dernier du groupe », on préfère souvent <code>FIRST_VALUE … ORDER BY … DESC</code>.</p>`,
+  anatomie:[{tok:"FIRST_VALUE(nom) OVER (",txt:"Valeur prise sur la 1ʳᵉ ligne de la fenêtre."},
+    {tok:"PARTITION BY categorie",txt:"Une fenêtre par catégorie."},
+    {tok:"ORDER BY prix DESC",txt:"La première = la plus chère."},
+    {tok:") AS plus_cher",txt:"Colonne de référence répétée sur chaque ligne du groupe."}],
+  exemple:"SELECT nom, categorie, prix,\n  FIRST_VALUE(nom) OVER (PARTITION BY categorie ORDER BY prix DESC) AS plus_cher\nFROM produits\nORDER BY categorie, prix DESC;",
+  attendu:"Chaque ligne montre le champion prix de sa catégorie dans <code>plus_cher</code>.",
+  piege:{t:"ORDER BY manquant",p:"Sans ORDER BY dans OVER, « premier » n'est pas défini de façon fiable."},
+  consigne:"Pour chaque client, affiche <code>nom</code>, <code>ville</code>, <code>age</code> et <code>doyen</code> = le nom du client le plus âgé de la même ville (<code>FIRST_VALUE</code>), trié par ville puis âge décroissant.",
+  solution:"SELECT nom, ville, age, FIRST_VALUE(nom) OVER (PARTITION BY ville ORDER BY age DESC) AS doyen FROM clients ORDER BY ville, age DESC;",
+  indice:"<code>FIRST_VALUE(nom) OVER (PARTITION BY ville ORDER BY age DESC) AS doyen</code>." },
+
+{ id:60, titre:"Frame ROWS BETWEEN", résumé:"Fenêtre glissante", ordered:true,
+  situation:"Tu veux, pour chaque commande, la somme des quantités sur <b>la commande précédente et la courante</b> (fenêtre de 2).",
+  concept:`<p>Par défaut, beaucoup de fenêtres vont du début de la partition jusqu'à la ligne courante. Tu peux préciser le <b>cadre</b> avec <code>ROWS BETWEEN … AND …</code>.</p>
+  <p>Exemples : <code>1 PRECEDING AND CURRENT ROW</code> (glissant), <code>UNBOUNDED PRECEDING AND CURRENT ROW</code> (cumul classique), <code>CURRENT ROW AND 1 FOLLOWING</code>.</p>
+  <p>C'est la base des moyennes mobiles et des totaux sur N dernières observations.</p>`,
+  anatomie:[{tok:"SUM(quantite) OVER (",txt:"Agrégat fenêtre."},
+    {tok:"ORDER BY id",txt:"L'ordre du glissement."},
+    {tok:"ROWS BETWEEN 1 PRECEDING AND CURRENT ROW",plain:1,txt:"<b>La ligne d'avant + la ligne actuelle.</b>"},
+    {tok:") AS somme_2",txt:"Résultat nommé."}],
+  exemple:"SELECT id, quantite,\n  SUM(quantite) OVER (\n    ORDER BY id\n    ROWS BETWEEN 1 PRECEDING AND CURRENT ROW\n  ) AS somme_2\nFROM commandes\nORDER BY id;",
+  attendu:"Pour chaque <code>id</code>, <code>somme_2</code> vaut quantite (+ celle d'avant si elle existe).",
+  piege:{t:"RANGE vs ROWS",p:"<code>RANGE</code> regroupe les ex æquo de tri ; <code>ROWS</code> compte les lignes physiques. Pour une moyenne mobile simple, préfère <code>ROWS</code>."},
+  consigne:"Affiche <code>id</code>, <code>quantite</code> et <code>moy_3</code> = moyenne des quantités sur la fenêtre <b>2 précédentes + courante</b> (<code>AVG</code> + <code>ROWS BETWEEN 2 PRECEDING AND CURRENT ROW</code>), trié par <code>id</code>.",
+  solution:"SELECT id, quantite, AVG(quantite) OVER (ORDER BY id ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS moy_3 FROM commandes ORDER BY id;",
+  indice:"<code>AVG(quantite) OVER (ORDER BY id ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS moy_3</code>." },
+
+{ id:61, titre:"EXPLAIN QUERY PLAN", résumé:"Voir le plan d'exécution",
+  situation:"Une requête est lente en production. Avant d'optimiser au hasard, tu regardes <b>comment</b> SQLite compte la résoudre.",
+  concept:`<p><code>EXPLAIN QUERY PLAN</code> devant un SELECT affiche le plan : scan de table, utilisation d'index, etc. Ce n'est pas le résultat métier — c'est le « mode d'emploi » interne.</p>
+  <p>Tu cherches des indices : <code>SCAN</code> sur une grosse table filtrée = candidat pour un index ; <code>USING INDEX</code> = l'index est pris en compte.</p>
+  <p>Sur notre mini-base tout est instantané ; le réflexe compte plus que le chronomètre.</p>`,
+  anatomie:[{tok:"EXPLAIN QUERY PLAN",txt:"<b>Ne renvoie pas les données</b> — le plan."},
+    {tok:"SELECT * FROM clients WHERE ville = 'Paris'",plain:1,txt:"La requête analysée."}],
+  exemple:"EXPLAIN QUERY PLAN\nSELECT * FROM clients WHERE ville = 'Paris';",
+  attendu:"Quelques lignes de plan (détail du parcours), pas la liste des clients parisiens.",
+  piege:{t:"Lire EXPLAIN comme un SELECT métier",p:"Tu n'obtiens pas Sophie/Nathan/Léa : tu obtiens le chemin d'accès. Pour les données, enlève EXPLAIN QUERY PLAN."},
+  consigne:"Affiche le plan d'exécution de : toutes les colonnes des produits dont le <code>prix</code> est supérieur à 20.",
+  solution:"EXPLAIN QUERY PLAN SELECT * FROM produits WHERE prix > 20;",
+  indice:"Préfixe la requête par <code>EXPLAIN QUERY PLAN</code>." },
+
+{ id:62, titre:"CREATE TRIGGER", résumé:"Réagir à un événement", write:true, verif:"SELECT name FROM sqlite_master WHERE type='trigger' AND name='trg_qte_positive';",
+  situation:"Tu veux empêcher qu'on insère une commande avec une quantité &lt; 1 — la base doit refuser, pas seulement l'appli.",
+  concept:`<p>Un <b>trigger</b> est du code SQL qui s'exécute automatiquement <code>BEFORE</code> ou <code>AFTER</code> un <code>INSERT</code>, <code>UPDATE</code> ou <code>DELETE</code>.</p>
+  <p>Ici : avant insertion, si <code>NEW.quantite &lt; 1</code>, on <code>RAISE(ABORT, …)</code> pour annuler.</p>
+  <p>Puissant mais à manier avec soin : trop de triggers rendent le comportement opaque. Préfère parfois <code>CHECK</code> pour une règle simple.</p>
+  <p>⚠️ Copie de la base pour l'exercice.</p>`,
+  anatomie:[{tok:"CREATE TRIGGER trg_qte_positive",txt:"Nomme le trigger."},
+    {tok:"BEFORE INSERT ON commandes",txt:"Quand il se déclenche."},
+    {tok:"BEGIN … END",txt:"Le corps : une ou plusieurs instructions."},
+    {tok:"RAISE(ABORT, '…') WHERE NEW.quantite < 1",plain:1,txt:"<b>Refuse</b> la ligne invalide. <code>NEW</code> = la ligne en cours d'insertion."}],
+  exemple:"CREATE TRIGGER trg_demo\nBEFORE INSERT ON produits\nBEGIN\n  SELECT RAISE(ABORT, 'prix invalide') WHERE NEW.prix < 0;\nEND;",
+  attendu:"Aucune ligne métier. Le trigger existe ; un INSERT avec prix négatif serait rejeté.",
+  piege:{t:"Oublier BEGIN/END",p:"Le corps du trigger doit être entre <code>BEGIN</code> et <code>END</code>, même pour une seule instruction."},
+  consigne:"Crée un trigger <code>trg_qte_positive</code> qui, <code>BEFORE INSERT ON commandes</code>, abort si <code>NEW.quantite &lt; 1</code> avec le message <code>quantite invalide</code>.",
+  solution:"CREATE TRIGGER trg_qte_positive BEFORE INSERT ON commandes BEGIN SELECT RAISE(ABORT, 'quantite invalide') WHERE NEW.quantite < 1; END;",
+  indice:"<code>BEFORE INSERT ON commandes</code> + <code>RAISE(ABORT, 'quantite invalide') WHERE NEW.quantite &lt; 1</code>." },
+
+{ id:63, titre:"UPSERT", résumé:"INSERT ou UPDATE", write:true, verif:"SELECT stock FROM produits WHERE id = 1;",
+  situation:"Tu importes un stock : si le produit existe déjà, tu mets à jour le stock ; sinon tu l'insères. Une seule instruction.",
+  concept:`<p>L'<b>UPSERT</b> SQLite s'écrit <code>INSERT … ON CONFLICT(…) DO UPDATE SET …</code>. En cas de conflit sur la clé (ou un UNIQUE), on met à jour au lieu d'échouer.</p>
+  <p><code>excluded.colonne</code> désigne la valeur qu'on <i>voulait</i> insérer — pratique pour <code>SET stock = excluded.stock</code>.</p>
+  <p>Équivalent mental : « crée ou rafraîchis ». Postgres a aussi <code>ON CONFLICT</code> ; MySQL parle souvent de <code>ON DUPLICATE KEY UPDATE</code>.</p>
+  <p>⚠️ Copie de la base.</p>`,
+  anatomie:[{tok:"INSERT INTO produits (id, nom, categorie, prix, stock) VALUES (…)",txt:"Tentative d'insertion."},
+    {tok:"ON CONFLICT(id)",txt:"Si cet id existe déjà…"},
+    {tok:"DO UPDATE SET stock = excluded.stock",txt:"…alors mets à jour au lieu d'abandonner."}],
+  exemple:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (3, 'Magnésium', 'Bien-être', 19.90, 50)\nON CONFLICT(id) DO UPDATE SET stock = excluded.stock;",
+  attendu:"Le produit id 3 garde son identité ; son <code>stock</code> devient 50.",
+  piege:{t:"ON CONFLICT sans cible",p:"Précise la colonne de conflit (<code>id</code> ou un UNIQUE). Sinon SQLite ne sait pas quoi faire."},
+  consigne:"Upsert le produit <code>id = 1</code> pour fixer son <code>stock</code> à <b>999</b> (garde nom Fibre Prébiotique, catégorie Bien-être, prix 29.90). Utilise <code>ON CONFLICT(id) DO UPDATE</code>.",
+  solution:"INSERT INTO produits (id, nom, categorie, prix, stock) VALUES (1, 'Fibre Prébiotique', 'Bien-être', 29.90, 999) ON CONFLICT(id) DO UPDATE SET stock = excluded.stock;",
+  indice:"INSERT avec id 1 et stock 999, puis <code>ON CONFLICT(id) DO UPDATE SET stock = excluded.stock</code>." },
+
+{ id:64, titre:"Clé composite", résumé:"Plusieurs colonnes en PK", write:true, verif:"SELECT COUNT(*) FROM pragma_table_info('ligne_panier') WHERE pk > 0;",
+  situation:"Une ligne de panier est identifiée par <b>commande + produit</b>, pas par un seul numéro. Deux colonnes forment la clé.",
+  concept:`<p>Une <b>clé primaire composite</b> déclare <code>PRIMARY KEY (col1, col2)</code> : la combinaison est unique. Tu ne peux pas avoir deux fois le même produit dans la même commande.</p>
+  <p>C'est le cœur de la modélisation many-to-many (ici panier / détail de commande). En 3ᵉ forme normale, on évite de répéter le nom du produit sur chaque ligne : on stocke l'id et on joint.</p>
+  <p>⚠️ Copie de la base.</p>`,
+  anatomie:[{tok:"CREATE TABLE ligne_panier (",txt:"Nouvelle table de détail."},
+    {tok:"commande_id INTEGER, produit_id INTEGER, quantite INTEGER,",plain:1,txt:"Les attributs."},
+    {tok:"PRIMARY KEY (commande_id, produit_id)",plain:1,txt:"<b>La paire</b> est unique."},
+    {tok:")",txt:"Fin de définition."}],
+  exemple:"CREATE TABLE note_tag (\n  note_id INTEGER,\n  tag TEXT,\n  PRIMARY KEY (note_id, tag)\n);",
+  attendu:"Table créée avec une PK sur deux colonnes — aucune ligne encore.",
+  piege:{t:"Deux PRIMARY KEY séparées",p:"Une table n'a qu'une PK. Pour deux colonnes, une seule clause <code>PRIMARY KEY (a, b)</code>."},
+  consigne:"Crée la table <code>ligne_panier</code> avec <code>commande_id</code> INTEGER, <code>produit_id</code> INTEGER, <code>quantite</code> INTEGER, et la clé primaire composite <code>(commande_id, produit_id)</code>.",
+  solution:"CREATE TABLE ligne_panier (commande_id INTEGER, produit_id INTEGER, quantite INTEGER, PRIMARY KEY (commande_id, produit_id));",
+  indice:"Une seule clause <code>PRIMARY KEY (commande_id, produit_id)</code> à la fin de la liste des colonnes." },
+
+{ id:65, titre:"SQL ailleurs", résumé:"SQLite, Postgres, MySQL", ordered:true,
+  situation:"Demain tu ouvres un projet Postgres ou MySQL. 90 % du SQL reste identique — mais quelques réflexes changent.",
+  concept:`<p><b>Commun</b> : SELECT, JOIN, GROUP BY, CTE, fenêtres (sur les versions récentes).</p>
+  <p><b>Différences fréquentes</b> : types (<code>SERIAL</code> / <code>AUTO_INCREMENT</code> vs <code>INTEGER PRIMARY KEY</code>), booléens, <code>LIMIT</code> (MySQL/SQLite) vs <code>FETCH FIRST n ROWS ONLY</code> (SQL standard / Postgres), fonctions date (<code>strftime</code> vs <code>DATE_TRUNC</code>), JSON natif plus riche ailleurs.</p>
+  <p><b>Droits</b> (<code>GRANT</code>/<code>REVOKE</code>) : essentiels en entreprise, absents du modèle SQLite fichier local. Tu gères plutôt les permissions au niveau fichier / appli ici.</p>
+  <p>Exercice : on reste en SQLite — le dialecte de ce cours — pour ancrer le top N portable.</p>`,
+  anatomie:[{tok:"ORDER BY prix DESC",txt:"Trie d'abord (portable partout)."},
+    {tok:"LIMIT 3",txt:"Coupe ensuite — idiome SQLite/MySQL. En Postgres on voit aussi FETCH FIRST 3 ROWS ONLY."}],
+  exemple:"SELECT nom, prix FROM produits\nORDER BY prix DESC\nLIMIT 3;",
+  attendu:"Les <b>3</b> produits les plus chers.",
+  piege:{t:"Apprendre un seul dialecte par cœur",p:"Maîtrise le standard (SELECT/JOIN/fenêtres), puis consulte la doc pour dates, UPSERT et types quand tu changes d'outil."},
+  consigne:"Affiche le <code>nom</code> et la <code>ville</code> des <b>3 clients les plus âgés</b>, du plus âgé au plus jeune.",
+  solution:"SELECT nom, ville FROM clients ORDER BY age DESC LIMIT 3;",
+  indice:"<code>ORDER BY age DESC LIMIT 3</code>." },
+]},
 ];
 
 /* ============================================================
@@ -2066,6 +2225,24 @@ const CHALLENGES=[
  {id:'c18',titre:"Clients multi-catégories",niv:'d',q:"Quels clients ont commandé des produits d'au moins 2 catégories différentes ? Affiche leur nom.",
   sol:"SELECT clients.nom FROM clients JOIN commandes ON clients.id=commandes.client_id JOIN produits ON commandes.produit_id=produits.id GROUP BY clients.nom HAVING COUNT(DISTINCT produits.categorie) >= 2;",
   indice:"JOIN jusqu'à produits, puis <code>HAVING COUNT(DISTINCT produits.categorie) &gt;= 2</code>."},
+ {id:'c19',titre:"Intersection des villes",niv:'m',q:"Quelles villes ont à la fois un client de moins de 35 ans et un client de 45 ans ou plus ? Affiche la ville (INTERSECT).",
+  sol:"SELECT ville FROM clients WHERE age < 35 INTERSECT SELECT ville FROM clients WHERE age >= 45;",
+  indice:"Deux SELECT sur ville avec des filtres d'âge, reliés par INTERSECT."},
+ {id:'c20',titre:"Compte jusqu'à 10",niv:'f',q:"Avec WITH RECURSIVE, génère les entiers de 1 à 10 (colonne x), dans l'ordre.",
+  sol:"WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x < 10) SELECT x FROM n;",ordered:true,
+  indice:"Ancre à 1, puis x+1 tant que x < 10."},
+ {id:'c21',titre:"Quartiles de stock",niv:'m',q:"Affiche nom, stock et quartile = NTILE(4) OVER (ORDER BY stock) pour chaque produit, trié par stock.",
+  sol:"SELECT nom, stock, NTILE(4) OVER (ORDER BY stock) AS quartile FROM produits ORDER BY stock;",ordered:true,
+  indice:"NTILE(4) OVER (ORDER BY stock) AS quartile."},
+ {id:'c22',titre:"Moyenne mobile qty",niv:'d',q:"Pour chaque commande, affiche id, quantite et moy_2 = moyenne de la quantité sur la ligne précédente et la courante (ROWS BETWEEN 1 PRECEDING AND CURRENT ROW), trié par id.",
+  sol:"SELECT id, quantite, AVG(quantite) OVER (ORDER BY id ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) AS moy_2 FROM commandes ORDER BY id;",ordered:true,
+  indice:"AVG(quantite) OVER (ORDER BY id ROWS BETWEEN 1 PRECEDING AND CURRENT ROW)."},
+ {id:'c23',titre:"Plan sur les emails",niv:'m',q:"Affiche le plan d'exécution (EXPLAIN QUERY PLAN) de : les clients dont l'email IS NULL.",
+  sol:"EXPLAIN QUERY PLAN SELECT * FROM clients WHERE email IS NULL;",
+  indice:"Préfixe par EXPLAIN QUERY PLAN."},
+ {id:'c24',titre:"Champions par ville",niv:'d',q:"Pour chaque client, affiche nom, ville, age et doyen = le plus âgé de sa ville (FIRST_VALUE), trié par ville puis age DESC.",
+  sol:"SELECT nom, ville, age, FIRST_VALUE(nom) OVER (PARTITION BY ville ORDER BY age DESC) AS doyen FROM clients ORDER BY ville, age DESC;",ordered:true,
+  indice:"FIRST_VALUE(nom) OVER (PARTITION BY ville ORDER BY age DESC)."},
 ];
 const NIV={f:{l:'FACILE',c:'f'},m:{l:'MOYEN',c:'m'},d:{l:'DIFFICILE',c:'d'}};
 
@@ -2182,7 +2359,27 @@ const CARTES={
  54:{k:"CREATE INDEX",t:"Accélérer un filtre",s:"CREATE INDEX idx_t_col ON t(col);",
     m:"Structure annexe pour retrouver des lignes plus vite sur les colonnes filtrées / jointes. Invisible dans SELECT *, utile à l'échelle."},
  55:{k:"EXCEPT",t:"A moins B",s:"SELECT id FROM a\nEXCEPT\nSELECT id FROM b;",
-    m:"Différence d'ensembles : lignes du premier SELECT absentes du second. Même nombre de colonnes des deux côtés. Cousin de NOT IN / LEFT JOIN anti-join."}
+    m:"Différence d'ensembles : lignes du premier SELECT absentes du second. Même nombre de colonnes des deux côtés. Cousin de NOT IN / LEFT JOIN anti-join."},
+ 56:{k:"INTERSECT",t:"A et B",s:"SELECT … INTERSECT SELECT …;",
+    m:"Intersection : uniquement les lignes communes aux deux SELECT. Complète UNION (ou) et EXCEPT (sans)."},
+ 57:{k:"WITH RECURSIVE",t:"Se rappeler soi-même",s:"WITH RECURSIVE n(x) AS (\n  SELECT 1 UNION ALL\n  SELECT x+1 FROM n WHERE x < n\n)",
+    m:"Ancre + récurrence + frein. Sert aux hiérarchies, calendriers, suites. Sans WHERE d'arrêt, ça part en boucle."},
+ 58:{k:"NTILE",t:"Tranches égales",s:"NTILE(4) OVER (ORDER BY prix)",
+    m:"Découpe le résultat en k seaux équilibrés. Idéal pour quartiles / scoring. ORDER BY obligatoire dans OVER."},
+ 59:{k:"FIRST_VALUE",t:"Référence du groupe",s:"FIRST_VALUE(nom) OVER (\n  PARTITION BY cat ORDER BY prix DESC)",
+    m:"Lit la première ligne de la fenêtre. Pour un « max du groupe » sur chaque ligne sans réduire avec GROUP BY."},
+ 60:{k:"ROWS BETWEEN",t:"Fenêtre glissante",s:"ROWS BETWEEN 1 PRECEDING\n  AND CURRENT ROW",
+    m:"Cadre la fenêtre : cumul partiel, moyenne mobile. ROWS compte des lignes ; RANGE regroupe les ex æquo."},
+ 61:{k:"EXPLAIN",t:"Plan d'exécution",s:"EXPLAIN QUERY PLAN\nSELECT …;",
+    m:"Montre comment SQLite compte résoudre la requête (SCAN, INDEX…). Pas le résultat métier — le chemin d'accès."},
+ 62:{k:"TRIGGER",t:"Réagir à l'écriture",s:"CREATE TRIGGER …\nBEFORE INSERT ON t\nBEGIN … END;",
+    m:"Code auto avant/après INSERT/UPDATE/DELETE. NEW/OLD pour la ligne touchée. RAISE(ABORT) pour refuser."},
+ 63:{k:"UPSERT",t:"Insert ou update",s:"INSERT … ON CONFLICT(id)\nDO UPDATE SET … = excluded.…",
+    m:"Une instruction pour créer ou rafraîchir. excluded = valeurs qu'on tentait d'insérer. Équivalent MySQL : ON DUPLICATE KEY."},
+ 64:{k:"PK composite",t:"Clé à plusieurs colonnes",s:"PRIMARY KEY (a, b)",
+    m:"La combinaison est unique. Base des tables de lien / lignes de commande. Une seule clause PRIMARY KEY par table."},
+ 65:{k:"Dialectes",t:"SQLite / Postgres / MySQL",s:"ORDER BY … LIMIT n",
+    m:"Le cœur SQL est portable. Varient : types, dates, UPSERT, FETCH vs LIMIT, GRANT. Apprends le standard, adapte ensuite."}
 };
 const CARD_GRAD=[['#5B5BD6','#7A6FF0'],['#0E9BC4','#22B8D6'],['#1CA672','#3FBF8E'],['#C77A16','#E0A040'],['#9333EA','#B45CF0'],['#E5484D','#F0736F'],['#0F766E','#14A89A'],['#B45309','#D97F2B'],['#1E40AF','#3B6FE0'],['#86198F','#B32BAF']];
 function moduleOf(id){ for(let i=0;i<MODULES.length;i++) if(MODULES[i].lessons.some(l=>l.id===id)) return i; return 0; }
@@ -2299,14 +2496,34 @@ const QCM={
  54:[{q:"Un index sert surtout à :",o:["Afficher une colonne de plus","Accélérer certains WHERE / JOIN","Remplacer PRIMARY KEY"],b:1,e:"C'est une structure de recherche, pas une colonne visible."},
    {q:"<code>CREATE INDEX idx ON clients(ville)</code> :",o:["Modifie les données des clients","Crée une aide à la recherche sur ville","Empêche les INSERT"],b:1,e:"Les SELECT filtrés sur ville peuvent en profiter."}],
  55:[{q:"<code>EXCEPT</code> garde :",o:["L'intersection des deux SELECT","Les lignes du premier absentes du second","Toutes les lignes des deux côtés"],b:1,e:"C'est la différence d'ensembles A − B."},
-   {q:"Les deux SELECT d'un EXCEPT doivent :",o:["Avoir le même nombre de colonnes","Porter sur la même table uniquement","Utiliser ORDER BY"],b:0,e:"Comme UNION : colonnes alignées des deux côtés."}]
+   {q:"Les deux SELECT d'un EXCEPT doivent :",o:["Avoir le même nombre de colonnes","Porter sur la même table uniquement","Utiliser ORDER BY"],b:0,e:"Comme UNION : colonnes alignées des deux côtés."}],
+ 56:[{q:"<code>INTERSECT</code> garde :",o:["Toutes les lignes des deux SELECT","Seulement les lignes communes","Les lignes du premier uniquement"],b:1,e:"C'est l'intersection d'ensembles."},
+   {q:"UNION / INTERSECT / EXCEPT portent sur :",o:["Des jointures de colonnes","Des ensembles de lignes","Des index"],b:1,e:"On empile ou on croise des résultats, on n'élargit pas comme un JOIN."}],
+ 57:[{q:"Dans WITH RECURSIVE, l'ancre est :",o:["La condition d'arrêt","Le SELECT de départ","Le ORDER BY final"],b:1,e:"Puis la récurrence s'ajoute avec UNION ALL."},
+   {q:"Sans condition d'arrêt dans la récurrence :",o:["SQLite s'arrête à 1 ligne","Risque de boucle jusqu'à la limite du moteur","Une erreur de syntaxe immédiate"],b:1,e:"Toujours un WHERE qui finit par devenir faux."}],
+ 58:[{q:"NTILE(4) découpe en :",o:["4 lignes","4 tranches (seaux)","4 colonnes"],b:1,e:"Chaque ligne reçoit un numéro de seau de 1 à 4."},
+   {q:"NTILE sans ORDER BY dans OVER :",o:["Trie par id","N'a pas de sens métier fiable","Est interdit par SQL"],b:1,e:"L'ordre définit qui tombe dans quel seau."}],
+ 59:[{q:"FIRST_VALUE lit :",o:["La ligne précédente","La première ligne de la fenêtre selon ORDER BY","La moyenne du groupe"],b:1,e:"Référence répétée sur chaque ligne du PARTITION."},
+   {q:"Pour le plus cher du groupe avec FIRST_VALUE, on ordonne :",o:["ORDER BY prix ASC","ORDER BY prix DESC","Sans ORDER BY"],b:1,e:"DESC place le max en première position de fenêtre."}],
+ 60:[{q:"ROWS BETWEEN 1 PRECEDING AND CURRENT ROW couvre :",o:["Toute la table","La ligne d'avant et la courante","Uniquement les ex æquo"],b:1,e:"C'est une fenêtre glissante de 2 lignes."},
+   {q:"Différence ROWS / RANGE :",o:["Aucune","RANGE regroupe les ex æquo de tri ; ROWS compte les lignes","RANGE est plus rapide seulement"],b:1,e:"Pour une moyenne mobile ligne à ligne, préfère ROWS."}],
+ 61:[{q:"EXPLAIN QUERY PLAN renvoie :",o:["Les lignes métier","Le plan d'accès (SCAN, INDEX…)","Le temps en millisecondes uniquement"],b:1,e:"C'est un outil de diagnostic, pas le résultat de la requête."},
+   {q:"On l'utilise surtout pour :",o:["Remplacer WHERE","Comprendre si un index est utilisé","Créer une vue"],b:1,e:"SCAN répétés sur grosses tables = piste d'index."}],
+ 62:[{q:"NEW dans un trigger BEFORE INSERT désigne :",o:["L'ancienne ligne","La ligne en cours d'insertion","La table entière"],b:1,e:"OLD existe surtout sur UPDATE/DELETE."},
+   {q:"RAISE(ABORT, …) sert à :",o:["Valider la transaction","Annuler l'écriture en cours","Créer un index"],b:1,e:"La base refuse la ligne invalide."}],
+ 63:[{q:"ON CONFLICT(id) DO UPDATE :",o:["Ignore toujours la ligne","Met à jour si l'id existe déjà","Supprime le conflit"],b:1,e:"C'est l'UPSERT SQLite."},
+   {q:"excluded.stock désigne :",o:["L'ancien stock en base","La valeur qu'on tentait d'insérer","NULL"],b:1,e:"Pratique pour SET stock = excluded.stock."}],
+ 64:[{q:"PRIMARY KEY (a, b) signifie :",o:["a et b sont chacun uniques seuls","La combinaison (a,b) est unique","Il y a deux clés primaires"],b:1,e:"Une seule PK, composée de deux colonnes."},
+   {q:"Une table de lien commande↔produit utilise souvent :",o:["Aucune clé","Une clé composite","Seulement un email"],b:1,e:"Évite les doublons du même produit dans la même commande."}],
+ 65:[{q:"LIMIT est typique de :",o:["Uniquement Oracle","SQLite et MySQL (Postgres préfère parfois FETCH)","Aucun SGBD moderne"],b:1,e:"Le top N change un peu de syntaxe selon le moteur."},
+   {q:"GRANT / REVOKE en entreprise servent à :",o:["Gérer les droits SQL des utilisateurs","Remplacer les INDEX","Faire des UPSERT"],b:0,e:"Absents du modèle fichier SQLite local — gérés autrement ici."}]
 };
 
 /* ============================================================
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-09-o';
+const APP_VERSION='2026-08-09-p';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const DBS_KEY='requete-sql-dbs-v1';
@@ -4314,7 +4531,7 @@ function paintOb(){
     html=`<div class="ob-hero a"><div class="ob-mark">&gt;_</div></div>
       <div class="ob-kicker">Bienvenue</div>
       <h2>Apprends le SQL<br>à ton rythme.</h2>
-      <p>55 leçons sur une vraie base SQLite. On règle d’abord ton planning : niveau, minutes, jours.</p>
+      <p>65 leçons sur une vraie base SQLite. On règle d’abord ton planning : niveau, minutes, jours.</p>
       <div class="ob-name">
         <label for="ob-name">Comment tu t’appelles ? <span style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--ink-3)">(optionnel)</span></label>
         <input id="ob-name" type="text" maxlength="32" placeholder="Ton prénom" autocomplete="given-name" value="${esc(name).replace(/"/g,'&quot;')}">
