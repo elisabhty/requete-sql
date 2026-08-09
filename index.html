@@ -2134,79 +2134,82 @@ const MODULES = [
    3. DÉFIS
    ============================================================ */
 const CHALLENGES=[
- {id:'c1',titre:"Le meilleur client",niv:'m',q:"Quel client a commandé le plus d’unités au total ? Affiche son nom et le total, le plus gros en premier.",
+ {id:'c1',apres:16,titre:"Le meilleur client",niv:'m',q:"Quel client a commandé le plus d’unités au total ? Affiche son nom et le total, le plus gros en premier.",
   sol:"SELECT clients.nom, SUM(commandes.quantite) AS total FROM commandes JOIN clients ON commandes.client_id=clients.id GROUP BY clients.id, clients.nom ORDER BY total DESC;",ordered:true,
   indice:"JOIN pour le nom, GROUP BY sur l’identifiant et le nom, SUM sur la quantité, ORDER BY décroissant."},
- {id:'c2',titre:"Villes actives",niv:'f',q:"Quelles villes ont au moins 2 clients ? Affiche ville et effectif.",
+ {id:'c2',apres:17,titre:"Villes actives",niv:'f',q:"Quelles villes ont au moins 2 clients ? Affiche ville et effectif.",
   sol:"SELECT ville, COUNT(*) AS nb FROM clients GROUP BY ville HAVING COUNT(*) >= 2;",
   indice:"GROUP BY ville, puis HAVING COUNT(*) >= 2."},
- {id:'c3',titre:"Panier moyen",niv:'f',q:"Quelle est la quantité moyenne commandée, toutes commandes confondues ?",
+ {id:'c3',apres:11,titre:"Panier moyen",niv:'f',q:"Quelle est la quantité moyenne commandée, toutes commandes confondues ?",
   sol:"SELECT AVG(quantite) FROM commandes;",
   indice:"Une seule agrégation sur la table commandes."},
- {id:'c4',titre:"CA par produit",niv:'d',q:"Pour chaque produit, calcule le CA (quantité × prix). Affiche le nom et le CA, du plus élevé au plus faible.",
+ {id:'c4',apres:51,titre:"CA par produit",niv:'d',q:"Pour chaque produit, calcule le CA (quantité × prix). Affiche le nom et le CA, du plus élevé au plus faible.",
   sol:"SELECT produits.nom, SUM(commandes.quantite * produits.prix) AS ca FROM commandes JOIN produits ON commandes.produit_id=produits.id GROUP BY produits.id, produits.nom ORDER BY ca DESC;",ordered:true,
   indice:"Multiplie dans le SUM : <code>SUM(commandes.quantite * produits.prix)</code>."},
- {id:'c5',titre:"Les inactifs",niv:'m',q:"Quels clients n’ont jamais passé de commande ? Affiche leur nom.",
+ {id:'c5',apres:20,titre:"Les inactifs",niv:'m',q:"Quels clients n’ont jamais passé de commande ? Affiche leur nom.",
   sol:"SELECT clients.nom FROM clients LEFT JOIN commandes ON clients.id=commandes.client_id WHERE commandes.id IS NULL;",
   indice:"LEFT JOIN depuis clients, puis lignes où la colonne de droite est NULL."},
- {id:'c6',titre:"Fiches incomplètes",niv:'f',q:"Combien de clients n’ont pas d’email renseigné ?",
+ {id:'c6',apres:18,titre:"Fiches incomplètes",niv:'f',q:"Combien de clients n’ont pas d’email renseigné ?",
   sol:"SELECT COUNT(*) FROM clients WHERE email IS NULL;",
   indice:"COUNT(*) avec un filtre IS NULL."},
- {id:'c7',titre:"Au-dessus de la moyenne",niv:'m',q:"Quels produits coûtent plus cher que le prix moyen ? Affiche le nom et le prix.",
+ {id:'c7',apres:22,titre:"Au-dessus de la moyenne",niv:'m',q:"Quels produits coûtent plus cher que le prix moyen ? Affiche le nom et le prix.",
   sol:"SELECT nom, prix FROM produits WHERE prix > (SELECT AVG(prix) FROM produits);",
   indice:"Sous-requête entre parenthèses pour la moyenne, puis comparaison."},
- {id:'c8',titre:"Fin de mois",niv:'m',q:"Combien de commandes à partir du 20 juillet 2023 ?",
+ {id:'c8',apres:23,titre:"Fin de mois",niv:'m',q:"Combien de commandes à partir du 20 juillet 2023 ?",
   sol:"SELECT COUNT(*) FROM commandes WHERE date_commande >= '2023-07-20';",
   indice:"Les dates se comparent comme du texte au format AAAA-MM-JJ."},
- {id:'c9',titre:"Produit vedette",niv:'m',q:"Quel produit a été commandé le plus de fois (nombre de commandes) ? Affiche le nom et le compte, le plus commandé en premier.",
+ {id:'c9',apres:16,titre:"Produit vedette",niv:'m',q:"Quel produit a été commandé le plus de fois (nombre de commandes) ? Affiche le nom et le compte, le plus commandé en premier.",
   sol:"SELECT produits.nom, COUNT(*) AS nb FROM commandes JOIN produits ON commandes.produit_id=produits.id GROUP BY produits.id, produits.nom ORDER BY nb DESC;",ordered:true,
   indice:"JOIN, GROUP BY sur le nom, COUNT(*), tri décroissant."},
- {id:'c10',titre:"CA total",niv:'d',q:"Quel est le chiffre d’affaires total de toutes les commandes ?",
+ {id:'c10',apres:51,titre:"CA total",niv:'d',q:"Quel est le chiffre d’affaires total de toutes les commandes ?",
   sol:"SELECT SUM(commandes.quantite * produits.prix) FROM commandes JOIN produits ON commandes.produit_id=produits.id;",
   indice:"Un SUM sur le produit des deux colonnes, avec JOIN pour le prix."},
- {id:'c11',titre:"Segmentation",niv:'d',q:"Affiche chaque client et une colonne segment : 'Actif' s’il a au moins une commande, sinon 'Dormant'. LEFT JOIN et CASE.",
+ {id:'c11',apres:21,titre:"Segmentation",niv:'d',q:"Affiche chaque client et une colonne segment : 'Actif' s’il a au moins une commande, sinon 'Dormant'. LEFT JOIN et CASE.",
   sol:"SELECT clients.nom, CASE WHEN COUNT(commandes.id) > 0 THEN 'Actif' ELSE 'Dormant' END AS segment FROM clients LEFT JOIN commandes ON clients.id=commandes.client_id GROUP BY clients.id, clients.nom;",
   indice:"LEFT JOIN + GROUP BY, puis CASE sur <code>COUNT(commandes.id)</code>."},
- {id:'c12',titre:"Catégorie reine",niv:'d',q:"Quelle catégorie a généré le plus d’unités vendues ? Affiche la catégorie et le total, du plus grand au plus petit.",
+ {id:'c12',apres:16,titre:"Catégorie reine",niv:'d',q:"Quelle catégorie a généré le plus d’unités vendues ? Affiche la catégorie et le total, du plus grand au plus petit.",
   sol:"SELECT produits.categorie, SUM(commandes.quantite) AS total FROM commandes JOIN produits ON commandes.produit_id=produits.id GROUP BY produits.categorie ORDER BY total DESC;",ordered:true,
   indice:"JOIN, GROUP BY catégorie, SUM des quantités, tri décroissant."},
- {id:'c13',titre:"CA des Parisiens",niv:'m',q:"Quel CA ont généré les clients de Paris ? (somme quantité × prix)",
+ {id:'c13',apres:51,titre:"CA des Parisiens",niv:'m',q:"Quel CA ont généré les clients de Paris ? (somme quantité × prix)",
   sol:"SELECT SUM(commandes.quantite * produits.prix) FROM commandes JOIN clients ON commandes.client_id=clients.id JOIN produits ON commandes.produit_id=produits.id WHERE clients.ville='Paris';",
   indice:"Deux JOIN (clients et produits), <code>WHERE clients.ville = 'Paris'</code>, puis SUM."},
- {id:'c14',titre:"Catégories solo",niv:'m',q:"Quelles catégories ne contiennent qu’un seul produit ? Affiche la catégorie.",
+ {id:'c14',apres:17,titre:"Catégories solo",niv:'m',q:"Quelles catégories ne contiennent qu’un seul produit ? Affiche la catégorie.",
   sol:"SELECT categorie FROM produits GROUP BY categorie HAVING COUNT(*) = 1;",
   indice:"GROUP BY categorie, puis <code>HAVING COUNT(*) = 1</code>."},
- {id:'c15',titre:"Mois le plus chargé",niv:'m',q:"Quel mois (AAAA-MM) a le plus de commandes ? Affiche mois et nombre, du plus chargé au moins chargé.",
+ {id:'c15',apres:38,titre:"Mois le plus chargé",niv:'m',q:"Quel mois (AAAA-MM) a le plus de commandes ? Affiche mois et nombre, du plus chargé au moins chargé.",
   sol:"SELECT strftime('%Y-%m', date_commande) AS mois, COUNT(*) AS nb FROM commandes GROUP BY mois ORDER BY nb DESC;",ordered:true,
   indice:"strftime('%Y-%m', …), GROUP BY, COUNT(*), ORDER BY nb DESC."},
- {id:'c16',titre:"Panier moyen par ville",niv:'d',q:"Pour chaque ville, quantité moyenne commandée. Affiche ville et moyenne, de la plus haute à la plus basse.",
+ {id:'c16',apres:20,titre:"Panier moyen par ville",niv:'d',q:"Pour chaque ville, quantité moyenne commandée. Affiche ville et moyenne, de la plus haute à la plus basse.",
   sol:"SELECT clients.ville, AVG(commandes.quantite) AS panier FROM commandes JOIN clients ON commandes.client_id=clients.id GROUP BY clients.ville ORDER BY panier DESC;",ordered:true,
   indice:"JOIN clients, AVG(quantite), GROUP BY ville, ORDER BY la moyenne décroissante."},
- {id:'c17',titre:"Best-seller par catégorie",niv:'d',q:"Pour chaque catégorie, le produit qui a vendu le plus d’unités. Affiche categorie, nom et total (une ligne par catégorie).",
+ {id:'c17',apres:50,titre:"Best-seller par catégorie",niv:'d',q:"Pour chaque catégorie, le produit qui a vendu le plus d’unités. Affiche categorie, nom et total (une ligne par catégorie).",
   sol:"WITH ventes AS (SELECT produits.categorie, produits.nom, SUM(commandes.quantite) AS total FROM commandes JOIN produits ON commandes.produit_id=produits.id GROUP BY produits.categorie, produits.nom), ranked AS (SELECT *, ROW_NUMBER() OVER (PARTITION BY categorie ORDER BY total DESC) AS rn FROM ventes) SELECT categorie, nom, total FROM ranked WHERE rn = 1;",
   indice:"CTE des ventes, puis <code>ROW_NUMBER() OVER (PARTITION BY categorie ORDER BY total DESC)</code>, filtre rn = 1."},
- {id:'c18',titre:"Multi-catégories",niv:'d',q:"Quels clients ont commandé des produits d’au moins 2 catégories ? Affiche leur nom.",
+ {id:'c18',apres:52,titre:"Multi-catégories",niv:'d',q:"Quels clients ont commandé des produits d’au moins 2 catégories ? Affiche leur nom.",
   sol:"SELECT clients.nom FROM clients JOIN commandes ON clients.id=commandes.client_id JOIN produits ON commandes.produit_id=produits.id GROUP BY clients.id, clients.nom HAVING COUNT(DISTINCT produits.categorie) >= 2;",
   indice:"JOIN jusqu’à produits, puis <code>HAVING COUNT(DISTINCT produits.categorie) &gt;= 2</code>."},
- {id:'c19',titre:"Intersection des villes",niv:'m',q:"Quelles villes ont à la fois un client de moins de 35 ans et un de 45 ans ou plus ? Affiche la ville (INTERSECT).",
+ {id:'c19',apres:56,titre:"Intersection des villes",niv:'m',q:"Quelles villes ont à la fois un client de moins de 35 ans et un de 45 ans ou plus ? Affiche la ville (INTERSECT).",
   sol:"SELECT ville FROM clients WHERE age < 35 INTERSECT SELECT ville FROM clients WHERE age >= 45;",
   indice:"Deux SELECT sur ville avec filtres d’âge, reliés par INTERSECT."},
- {id:'c20',titre:"Compte jusqu’à 10",niv:'f',q:"Avec WITH RECURSIVE, génère les entiers de 1 à 10 (colonne x), dans l’ordre.",
+ {id:'c20',apres:57,titre:"Compte jusqu’à 10",niv:'f',q:"Avec WITH RECURSIVE, génère les entiers de 1 à 10 (colonne x), dans l’ordre.",
   sol:"WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x < 10) SELECT x FROM n;",ordered:true,
   indice:"Ancre à 1, puis x+1 tant que x < 10."},
- {id:'c21',titre:"Quartiles de stock",niv:'m',q:"Affiche nom, stock et quartile = NTILE(4) OVER (ORDER BY stock), trié par stock.",
+ {id:'c21',apres:58,titre:"Quartiles de stock",niv:'m',q:"Affiche nom, stock et quartile = NTILE(4) OVER (ORDER BY stock), trié par stock.",
   sol:"SELECT nom, stock, NTILE(4) OVER (ORDER BY stock) AS quartile FROM produits ORDER BY stock;",ordered:true,
   indice:"NTILE(4) OVER (ORDER BY stock) AS quartile."},
- {id:'c22',titre:"Moyenne mobile",niv:'d',q:"Pour chaque commande : id, quantite et moy_2 = moyenne sur précédente + courante (ROWS BETWEEN 1 PRECEDING AND CURRENT ROW), trié par id.",
+ {id:'c22',apres:60,titre:"Moyenne mobile",niv:'d',q:"Pour chaque commande : id, quantite et moy_2 = moyenne sur précédente + courante (ROWS BETWEEN 1 PRECEDING AND CURRENT ROW), trié par id.",
   sol:"SELECT id, quantite, AVG(quantite) OVER (ORDER BY id ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) AS moy_2 FROM commandes ORDER BY id;",ordered:true,
   indice:"AVG(quantite) OVER (ORDER BY id ROWS BETWEEN 1 PRECEDING AND CURRENT ROW)."},
- {id:'c23',titre:"Plan sur les emails",niv:'m',q:"Affiche le plan d’exécution (EXPLAIN QUERY PLAN) des clients dont l’email IS NULL.",
+ {id:'c23',apres:61,titre:"Plan sur les emails",niv:'m',q:"Affiche le plan d’exécution (EXPLAIN QUERY PLAN) des clients dont l’email IS NULL.",
   sol:"EXPLAIN QUERY PLAN SELECT * FROM clients WHERE email IS NULL;",
   indice:"Préfixe par EXPLAIN QUERY PLAN."},
- {id:'c24',titre:"Champions par ville",niv:'d',q:"Pour chaque client : nom, ville, age et doyen = le plus âgé de sa ville (FIRST_VALUE), trié par ville puis age DESC.",
+ {id:'c24',apres:59,titre:"Champions par ville",niv:'d',q:"Pour chaque client : nom, ville, age et doyen = le plus âgé de sa ville (FIRST_VALUE), trié par ville puis age DESC.",
   sol:"SELECT nom, ville, age, FIRST_VALUE(nom) OVER (PARTITION BY ville ORDER BY age DESC) AS doyen FROM clients ORDER BY ville, age DESC;",ordered:true,
   indice:"FIRST_VALUE(nom) OVER (PARTITION BY ville ORDER BY age DESC)."},
 ];
+function defisParProgression(){
+  return CHALLENGES.slice().sort((a,b)=>(a.apres||Infinity)-(b.apres||Infinity)||a.id.localeCompare(b.id));
+}
 const NIV={f:{l:'FACILE',c:'f'},m:{l:'MOYEN',c:'m'},d:{l:'DIFFICILE',c:'d'}};
 
 /* ============================================================
@@ -3259,13 +3262,10 @@ function homeFilterBar(){
     `<button type="button" class="fchip ${homeFilter===k?'on':''}" onclick="setHomeFilter('${k}')">${l}</button>`).join('');
 }
 function defisByModuleSlots(){
-  /* Répartit les défis entre les leçons (après ~chaque nᵉ leçon). */
-  const nL=allLessons.length,nD=CHALLENGES.length;
+  /* Place chaque défi après la leçon qui fournit ses prérequis. */
   const after={}; // lessonId → [challenges]
-  if(!nD||!nL) return after;
-  CHALLENGES.forEach((c,i)=>{
-    const idx=Math.min(nL-1, Math.max(0, Math.round((i+0.5)*nL/nD)-1));
-    const lid=allLessons[idx].id;
+  defisParProgression().forEach(c=>{
+    const lid=allLessons.some(l=>l.id===c.apres)?c.apres:allLessons[allLessons.length-1].id;
     (after[lid]||(after[lid]=[])).push(c);
   });
   return after;
@@ -3274,9 +3274,10 @@ function renderModules(){
   homeFilterBar();
   const host=document.getElementById('modules');
   if(!host)return;
+  const challenges=defisParProgression();
   if(homeFilter==='defis'){
     const byNiv={f:[],m:[],d:[]};
-    CHALLENGES.forEach(c=>byNiv[c.niv].push(c));
+    challenges.forEach(c=>byNiv[c.niv].push(c));
     const blocks=[['f','Pour se lancer'],['m','Il faut réfléchir'],['d','Le grand bain']];
     host.innerHTML=blocks.map(([k,t])=>{
       const list=byNiv[k]; if(!list.length)return '';
@@ -3501,7 +3502,7 @@ function runLesson(){
     if(isDefi){ state.defis[current.id]=true; save(); renderDefis(); renderProgress(); renderPlanning();
       head=`<div class="feedback ok"><div class="fi">✓</div><div><b>Défi résolu</b><p>Ta requête donne exactement le bon résultat.</p></div></div>`;
       const nxtPlan=state.plan&&infoJour()&&infoJour().today&&infoJour().today.lessons.find(id=>!itemDone(id));
-      const nxt=CHALLENGES.find(c=>!state.defis[c.id]);
+      const nxt=defisParProgression().find(c=>!state.defis[c.id]);
       out.innerHTML=head+table+(nxtPlan!=null
         ?`<button class="next-btn" onclick="openItem(${isDefiId(nxtPlan)?`'${nxtPlan}'`:nxtPlan})">Continuer la séance →</button>`
         :(nxt?`<button class="next-btn" onclick="openChallenge('${nxt.id}')">Défi suivant →</button>`:''));
@@ -3739,7 +3740,7 @@ function buildMixPool(niveau){
   const from=(NIVEAUX.find(n=>n.k===niveau)||NIVEAUX[0]).from;
   const lessons=allLessons.filter(l=>l.id>=from).map(l=>l.id);
   const allow=DEFIS_PAR_NIV[niveau]||['f','m','d'];
-  const defis=CHALLENGES.filter(c=>allow.indexOf(c.niv)>=0).map(c=>c.id);
+  const defis=defisParProgression().filter(c=>allow.indexOf(c.niv)>=0).map(c=>c.id);
   // 50/50 : autant de défis que de leçons (on recycle les défis si besoin)
   const mix=[], n=Math.max(lessons.length, defis.length?lessons.length:0);
   for(let i=0;i<lessons.length;i++){
