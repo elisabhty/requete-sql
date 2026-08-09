@@ -215,6 +215,32 @@
   .chips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
   .chip{font-family:var(--mono);font-size:12.5px;font-weight:600;background:var(--surface);border:1px solid var(--line-2);border-radius:9px;padding:7px 12px;color:var(--accent);cursor:pointer}
   .console-note{font-size:12.5px;color:var(--ink-3);margin:0 4px 14px}
+  .db-workspace{margin:0 0 14px;background:var(--surface);border-radius:16px;box-shadow:0 1px 0 var(--line);overflow:hidden}
+  .db-bar{display:flex;gap:6px;padding:10px 10px 0;overflow-x:auto;scrollbar-width:none;align-items:center}
+  .db-bar::-webkit-scrollbar{display:none}
+  .db-pill{flex:none;border:1px solid var(--line-2);background:var(--bg);border-radius:999px;padding:7px 12px;font-family:var(--ui);font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer}
+  .db-pill.on{background:var(--accent);border-color:transparent;color:#fff}
+  .db-pill.add{color:var(--accent);border-style:dashed}
+  .db-actions{display:flex;gap:6px;padding:8px 10px 10px;flex-wrap:wrap}
+  .db-actions button{flex:1;min-width:120px;background:var(--bg);border:1px solid var(--line-2);border-radius:10px;padding:9px 10px;font-family:var(--ui);font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer}
+  .db-tables{padding:0 10px 10px;display:flex;flex-direction:column;gap:6px}
+  .db-trow{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:11px;padding:9px 10px}
+  .db-trow .tn{font-family:var(--mono);font-size:13px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .db-trow .tc{font-size:11.5px;color:var(--ink-3);flex:none}
+  .db-trow .tb{border:none;background:var(--surface);border-radius:8px;padding:6px 8px;font-size:12px;font-weight:600;color:var(--ink-2);cursor:pointer;flex:none}
+  .db-trow .tb.danger{color:var(--danger)}
+  .db-empty{font-size:13px;color:var(--ink-3);padding:4px 6px 8px}
+  .imp-sheet{position:fixed;left:0;right:0;bottom:0;z-index:120;background:var(--surface);border-radius:20px 20px 0 0;padding:14px 16px calc(18px + var(--safe-bottom));box-shadow:0 -12px 40px rgba(0,0,0,.18);transform:translateY(110%);transition:transform .28s cubic-bezier(.32,.72,.28,1);max-width:520px;margin:0 auto}
+  .imp-sheet.on{transform:none}
+  .imp-back{position:fixed;inset:0;z-index:115;background:rgba(20,20,30,.35);opacity:0;pointer-events:none;transition:opacity .2s}
+  .imp-back.on{opacity:1;pointer-events:auto}
+  .imp-sheet h3{margin:4px 0 4px;font-size:18px}
+  .imp-sheet .imp-sub{margin:0 0 12px;font-size:13px;color:var(--ink-2)}
+  .imp-field{margin:0 0 10px}
+  .imp-field label{display:block;font-size:12px;font-weight:700;color:var(--ink-3);margin-bottom:5px}
+  .imp-field input,.imp-field select{width:100%;border:1px solid var(--line-2);border-radius:11px;padding:11px 12px;font-family:var(--ui);font-size:14px;background:var(--bg);color:var(--ink)}
+  .imp-prev{background:var(--bg);border-radius:11px;padding:10px 12px;font-size:12.5px;color:var(--ink-2);max-height:120px;overflow:auto;margin-bottom:12px;font-family:var(--mono)}
+  .imp-go{width:100%;background:linear-gradient(180deg,#6363DE,#5151CB);color:#fff;border:none;border-radius:13px;padding:14px;font-family:var(--ui);font-size:15px;font-weight:700;cursor:pointer}
 
   /* Visualiseur */
   .viz-back{position:absolute;inset:0;background:rgba(10,10,20,.45);z-index:80;display:none;backdrop-filter:blur(3px)}
@@ -864,8 +890,18 @@
     <!-- CONSOLE -->
     <section id="scr-console" class="screen">
       <div class="lgtitle"><div class="eyebrow">Bac à sable</div><h1>Console</h1>
-        <p class="sub">Écris n'importe quelle requête, exécute-la en direct.</p></div>
+        <p class="sub">Interroge la base du cours ou importe tes propres données.</p></div>
       <div style="padding:16px 16px 0">
+        <div class="db-workspace">
+          <div class="db-bar" id="db-bar"></div>
+          <div class="db-actions">
+            <button type="button" onclick="promptNewDb()">＋ Nouvelle base</button>
+            <button type="button" onclick="document.getElementById('data-import').click()">↑ Importer</button>
+            <button type="button" onclick="resetActiveDb()">↺ Réinitialiser</button>
+          </div>
+          <div class="db-tables" id="db-tables"></div>
+        </div>
+        <input id="data-import" type="file" accept=".csv,.json,.sql,.txt,text/csv,application/json,text/plain" hidden onchange="onDataImport(event)">
         <div class="chips" id="console-chips"></div>
         <div class="editor-shell">
           <div class="editor-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">console.sql</span></div>
@@ -878,16 +914,16 @@
         </div>
         <div class="run-row">
           <button class="btn-ghost" style="flex:1;justify-content:center" onclick="saveConsoleQuery()">✎ Garder cette requête</button>
-          <button class="btn-ghost" style="flex:1;justify-content:center" onclick="resetDb()">↺ Réinitialiser</button></div>
+        </div>
         <div id="console-out"></div>
-        <p class="console-note">Les modifications (<b>INSERT</b>, <b>UPDATE</b>, <b>DELETE</b>) sont réelles. « Réinitialiser » remet la base d'origine.</p>
+        <p class="console-note">Importe un <b>CSV</b>, <b>JSON</b> ou script <b>SQL</b>. Les leçons restent sur la base du cours, intacte.</p>
       </div>
     </section>
 
     <!-- SCHÉMA -->
     <section id="scr-schema" class="screen">
       <div class="lgtitle"><div class="eyebrow">La base</div><h1>Schéma</h1>
-        <p class="sub">3 tables reliées entre elles.</p></div>
+        <p class="sub">Base du cours · 3 tables reliées. Tes imports vivent dans la Console.</p></div>
       <div id="schema-body" style="margin-top:16px"></div>
     </section>
 
@@ -934,6 +970,17 @@
   <div class="viz" id="note-sheet" style="top:52px">
     <div class="viz-head"><div class="grab"></div><b id="note-head">Nouvelle note</b><button onclick="closeNote()">✕</button></div>
     <div class="viz-body" id="note-body"></div>
+  </div>
+
+  <!-- Import de données -->
+  <div class="imp-back" id="imp-back" onclick="closeImportSheet()"></div>
+  <div class="imp-sheet" id="imp-sheet">
+    <h3>Importer des données</h3>
+    <p class="imp-sub" id="imp-sub">CSV, JSON ou SQL</p>
+    <div class="imp-field"><label>Nom de la table</label><input id="imp-table" autocomplete="off" spellcheck="false"></div>
+    <div class="imp-field"><label>Base cible</label><select id="imp-db"></select></div>
+    <div class="imp-prev" id="imp-prev"></div>
+    <button class="imp-go" type="button" onclick="confirmImport()">Importer dans la base</button>
   </div>
 
   <!-- Bouton flottant : prendre une note -->
@@ -2038,9 +2085,10 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-09-m';
+const APP_VERSION='2026-08-09-n';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
+const DBS_KEY='requete-sql-dbs-v1';
 const memStore={};
 const Store={
   async get(k){
@@ -2070,6 +2118,7 @@ async function wipeStorageIfUpdated(){
   try{ if(window.storage&&window.storage.get){const r=await window.storage.get(VER_KEY); if(r&&r.value!=null)prev=String(r.value).replace(/^"|"$/g,'');} }catch(e){}
   if(!force && prev===APP_VERSION) return false;
   await Store.del(KEY);
+  try{ localStorage.removeItem(DBS_KEY); }catch(e){}
   state={lessons:{},defis:{},notes:[],plan:null,onboarded:false,name:''};
   try{ localStorage.setItem(VER_KEY,APP_VERSION); }catch(e){}
   try{ if(window.storage&&window.storage.set) await window.storage.set(VER_KEY,APP_VERSION); }catch(e){}
@@ -2110,10 +2159,11 @@ async function boot(){
       state.notes=Object.keys(old).filter(k=>old[k]&&String(old[k]).trim()).map(k=>({
         id:'n'+k+Date.now(),txt:String(old[k]),sql:'',ctx:CARTES[k]?`Carte ${k} · ${CARTES[k].k}`:'',ts:Date.now(),pin:false}));
     }
+    await loadCustomDbs();
     renderModules(); renderDefis(); renderSchema(); renderProgress(); renderCollection(); renderNotes(); renderPlanning(); buildKbar();
     setupEditor('ed-console','hl-console');
     document.getElementById('ed-console').value="SELECT ville, COUNT(*) AS nb\nFROM clients\nGROUP BY ville\nORDER BY nb DESC;";
-    syncHL('ed-console','hl-console'); renderConsoleChips();
+    syncHL('ed-console','hl-console'); renderConsoleChips(); renderDbWorkspace();
     const loader=document.getElementById('loader');
     loader.classList.add('fade-out');
     setTimeout(()=>{loader.style.display='none'; maybeOnboard();}, 380);
@@ -2123,10 +2173,284 @@ async function boot(){
       <p><b>Impossible de charger le moteur SQL.</b><br>Vérifie ta connexion, puis recharge la page.</p>`;
   }
 }
+let activeDbId='cours';
+let customDbs={}; // id → SQL.Database
+let dbCatalog=[{id:'cours',name:'Base du cours'}];
+let pendingImport=null;
 function buildDb(){ if(db)db.close(); db=new SQL.Database(); db.run(SCHEMA_SQL); }
-function resetDb(){ buildDb(); document.getElementById('console-out').innerHTML=
-  `<div class="feedback ok"><div class="fi">↺</div><div><b>Base réinitialisée</b><p>Les 9 clients, 8 produits et 15 commandes sont revenus.</p></div></div>`; }
 function sandbox(){ return new SQL.Database(baseBytes); }
+function activeDb(){ return activeDbId==='cours'?db:customDbs[activeDbId]; }
+function quoteIdent(name){ return '"'+String(name).replace(/"/g,'""')+'"'; }
+function safeIdent(s){
+  let t=String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9_]/g,'_').replace(/^(\d)/,'_$1');
+  return (t.slice(0,48)||'donnees');
+}
+function u8ToB64(u8){
+  let s=''; const chunk=0x8000;
+  for(let i=0;i<u8.length;i+=chunk) s+=String.fromCharCode.apply(null,u8.subarray(i,i+chunk));
+  return btoa(s);
+}
+function b64ToU8(b64){
+  const s=atob(b64),u=new Uint8Array(s.length);
+  for(let i=0;i<s.length;i++) u[i]=s.charCodeAt(i);
+  return u;
+}
+async function persistCustomDbs(){
+  const payload=dbCatalog.filter(d=>d.id!=='cours').map(d=>{
+    const database=customDbs[d.id]; if(!database)return null;
+    return {id:d.id,name:d.name,b64:u8ToB64(database.export())};
+  }).filter(Boolean);
+  try{ localStorage.setItem(DBS_KEY,JSON.stringify(payload)); }catch(e){ toast('Bases trop volumineuses pour la sauvegarde locale'); }
+}
+async function loadCustomDbs(){
+  let raw=null;
+  try{ raw=localStorage.getItem(DBS_KEY); }catch(e){}
+  if(!raw)return;
+  try{
+    const list=JSON.parse(raw)||[];
+    list.forEach(item=>{
+      if(!item||!item.id||!item.b64)return;
+      customDbs[item.id]=new SQL.Database(b64ToU8(item.b64));
+      if(!dbCatalog.some(d=>d.id===item.id)) dbCatalog.push({id:item.id,name:item.name||'Ma base'});
+    });
+  }catch(e){}
+}
+function resetDb(){ resetActiveDb(); }
+function resetActiveDb(){
+  const out=document.getElementById('console-out');
+  if(activeDbId==='cours'){
+    buildDb();
+    if(out) out.innerHTML=`<div class="feedback ok"><div class="fi">↺</div><div><b>Base du cours réinitialisée</b><p>Les 9 clients, 8 produits et 15 commandes sont revenus.</p></div></div>`;
+  }else{
+    const meta=dbCatalog.find(d=>d.id===activeDbId);
+    if(customDbs[activeDbId]) customDbs[activeDbId].close();
+    customDbs[activeDbId]=new SQL.Database();
+    persistCustomDbs();
+    if(out) out.innerHTML=`<div class="feedback ok"><div class="fi">↺</div><div><b>Base vidée</b><p>${esc(meta?meta.name:'Cette base')} ne contient plus de tables.</p></div></div>`;
+  }
+  renderDbWorkspace();
+}
+function switchDb(id){
+  if(id!=='cours'&&!customDbs[id])return;
+  activeDbId=id;
+  renderDbWorkspace();
+  const name=(dbCatalog.find(d=>d.id===id)||{}).name||id;
+  toast('Base active · '+name);
+}
+function promptNewDb(){
+  const name=prompt('Nom de la nouvelle base ?','Ma base');
+  if(!name||!name.trim())return;
+  const id='db_'+Date.now().toString(36);
+  customDbs[id]=new SQL.Database();
+  dbCatalog.push({id,name:name.trim().slice(0,40)});
+  activeDbId=id;
+  persistCustomDbs();
+  renderDbWorkspace();
+  toast('Base créée');
+}
+function deleteActiveDb(){
+  if(activeDbId==='cours'){toast('La base du cours ne peut pas être supprimée');return;}
+  const meta=dbCatalog.find(d=>d.id===activeDbId);
+  if(!confirm(`Supprimer la base « ${meta?meta.name:activeDbId} » ?`))return;
+  if(customDbs[activeDbId]){customDbs[activeDbId].close();delete customDbs[activeDbId];}
+  dbCatalog=dbCatalog.filter(d=>d.id!==activeDbId);
+  activeDbId='cours';
+  persistCustomDbs();
+  renderDbWorkspace();
+}
+function listTables(database){
+  try{
+    const r=database.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
+    return r[0]?r[0].values.map(v=>v[0]):[];
+  }catch(e){return [];}
+}
+function tableRowCount(database,name){
+  try{const r=database.exec('SELECT COUNT(*) FROM '+quoteIdent(name));return r[0]?r[0].values[0][0]:0;}catch(e){return '?';}
+}
+function renderDbWorkspace(){
+  const bar=document.getElementById('db-bar');
+  const host=document.getElementById('db-tables');
+  if(!bar||!host)return;
+  bar.innerHTML=dbCatalog.map(d=>
+    `<button type="button" class="db-pill ${activeDbId===d.id?'on':''}" onclick="switchDb('${d.id}')">${esc(d.name)}</button>`
+  ).join('')+`<button type="button" class="db-pill add" onclick="promptNewDb()">＋</button>`
+    +(activeDbId!=='cours'?`<button type="button" class="db-pill" onclick="deleteActiveDb()" title="Supprimer cette base">✕</button>`:'');
+  const database=activeDb();
+  if(!database){host.innerHTML='<div class="db-empty">Aucune base active.</div>';return;}
+  const tables=listTables(database);
+  if(!tables.length){
+    host.innerHTML=`<div class="db-empty">${activeDbId==='cours'?'Aucune table — réinitialise la base du cours.':'Base vide — importe un CSV, JSON ou SQL.'}</div>`;
+    return;
+  }
+  host.innerHTML=tables.map(t=>{
+    const n=tableRowCount(database,t);
+    const enc=encodeURIComponent(t);
+    return `<div class="db-trow">
+      <span class="tn">${esc(t)}</span>
+      <span class="tc">${n} lig.</span>
+      <button type="button" class="tb" onclick="queryTable(decodeURIComponent('${enc}'))">SELECT</button>
+      <button type="button" class="tb danger" onclick="dropTable(decodeURIComponent('${enc}'))">Suppr.</button>
+    </div>`;
+  }).join('');
+}
+function queryTable(name){
+  const ta=document.getElementById('ed-console');
+  ta.value=`SELECT * FROM ${quoteIdent(name)}\nLIMIT 50;`;
+  syncHL('ed-console','hl-console');
+  ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px';
+  runConsole();
+}
+function dropTable(name){
+  if(!confirm(`Supprimer la table « ${name} » ?`))return;
+  try{
+    activeDb().run('DROP TABLE IF EXISTS '+quoteIdent(name));
+    if(activeDbId!=='cours') persistCustomDbs();
+    renderDbWorkspace();
+    toast('Table supprimée');
+  }catch(e){ alert(e.message); }
+}
+/* ---------- Import CSV / JSON / SQL ---------- */
+function parseCsv(text){
+  const rows=[]; let row=[], cell='', i=0, q=false;
+  const s=String(text).replace(/^\uFEFF/,'');
+  while(i<s.length){
+    const ch=s[i];
+    if(q){
+      if(ch==='"'&&s[i+1]==='"'){cell+='"';i+=2;continue;}
+      if(ch==='"'){q=false;i++;continue;}
+      cell+=ch;i++;continue;
+    }
+    if(ch==='"'){q=true;i++;continue;}
+    if(ch===','||ch===';'){row.push(cell);cell='';i++;
+      if(ch===';'){rows.push(row);row=[];if(s[i]==='\n')i++;}
+      continue;
+    }
+    if(ch==='\n'){row.push(cell);cell='';rows.push(row);row=[];i++;continue;}
+    if(ch==='\r'){i++;continue;}
+    cell+=ch;i++;
+  }
+  if(cell.length||row.length){row.push(cell);rows.push(row);}
+  return rows.filter(r=>r.some(c=>String(c).trim()!==''));
+}
+function inferSqlType(vals){
+  let allNum=true,allInt=true;
+  for(const v of vals){
+    if(v==null||String(v).trim()==='')continue;
+    if(!/^-?\d+(\.\d+)?$/.test(String(v).trim())){allNum=false;break;}
+    if(!/^-?\d+$/.test(String(v).trim())) allInt=false;
+  }
+  if(allNum) return allInt?'INTEGER':'REAL';
+  return 'TEXT';
+}
+function tableFromMatrix(headers,dataRows){
+  const cols=headers.map((h,i)=>safeIdent(h||('col_'+(i+1))));
+  const seen={};
+  cols.forEach((c,i)=>{let n=c,k=0;while(seen[n]){k++;n=c+'_'+k;}seen[n]=1;cols[i]=n;});
+  const types=cols.map((_,i)=>inferSqlType(dataRows.map(r=>r[i])));
+  return {cols,types,rows:dataRows};
+}
+function parseImportFile(name,text){
+  const lower=(name||'').toLowerCase();
+  if(lower.endsWith('.sql')||/^\s*(CREATE|INSERT|DROP|ALTER|WITH|BEGIN)\b/i.test(text)){
+    return {kind:'sql',sql:text,hint:text.slice(0,280)+(text.length>280?'…':'')};
+  }
+  if(lower.endsWith('.json')||/^\s*[\[{]/.test(text)){
+    const data=JSON.parse(text);
+    const arr=Array.isArray(data)?data:(data&&typeof data==='object'?[data]:null);
+    if(!arr||!arr.length||typeof arr[0]!=='object') throw new Error('JSON : attendu un tableau d’objets.');
+    const headers=[...arr.reduce((s,o)=>{Object.keys(o||{}).forEach(k=>s.add(k));return s;},new Set())];
+    const matrix=arr.map(o=>headers.map(h=>o[h]==null?'':o[h]));
+    const t=tableFromMatrix(headers,matrix);
+    return {kind:'table',...t,hint:`${t.rows.length} lignes · ${t.cols.join(', ')}`};
+  }
+  const matrix=parseCsv(text);
+  if(matrix.length<2) throw new Error('CSV : il faut une ligne d’en-têtes et au moins une ligne de données.');
+  const t=tableFromMatrix(matrix[0],matrix.slice(1));
+  return {kind:'table',...t,hint:`${t.rows.length} lignes · ${t.cols.join(', ')}`};
+}
+function onDataImport(ev){
+  const file=ev.target.files&&ev.target.files[0];
+  ev.target.value='';
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const parsed=parseImportFile(file.name,String(reader.result||''));
+      pendingImport={file:file.name,parsed,defaultTable:safeIdent(file.name.replace(/\.[^.]+$/,''))};
+      openImportSheet();
+    }catch(e){ alert('Import impossible : '+(e.message||e)); }
+  };
+  reader.readAsText(file);
+}
+function openImportSheet(){
+  if(!pendingImport)return;
+  document.getElementById('imp-sub').textContent=pendingImport.file+' · '+pendingImport.parsed.hint;
+  document.getElementById('imp-table').value=pendingImport.defaultTable;
+  document.getElementById('imp-table').disabled=pendingImport.parsed.kind==='sql';
+  const sel=document.getElementById('imp-db');
+  sel.innerHTML=dbCatalog.map(d=>`<option value="${d.id}" ${d.id===activeDbId?'selected':''}>${esc(d.name)}</option>`).join('')
+    +`<option value="__new__">＋ Nouvelle base…</option>`;
+  document.getElementById('imp-prev').textContent=pendingImport.parsed.kind==='sql'
+    ? pendingImport.parsed.hint
+    : pendingImport.parsed.cols.map((c,i)=>c+' '+pendingImport.parsed.types[i]).join(' · ');
+  document.getElementById('imp-back').classList.add('on');
+  document.getElementById('imp-sheet').classList.add('on');
+  const fab=document.getElementById('fab');if(fab)fab.classList.add('hide');
+}
+function closeImportSheet(){
+  document.getElementById('imp-back').classList.remove('on');
+  document.getElementById('imp-sheet').classList.remove('on');
+  const fab=document.getElementById('fab');if(fab)fab.classList.remove('hide');
+  pendingImport=null;
+}
+function confirmImport(){
+  if(!pendingImport)return;
+  let target=document.getElementById('imp-db').value;
+  if(target==='__new__'){
+    const name=prompt('Nom de la nouvelle base ?', pendingImport.defaultTable||'Import');
+    if(!name||!name.trim())return;
+    const id='db_'+Date.now().toString(36);
+    customDbs[id]=new SQL.Database();
+    dbCatalog.push({id,name:name.trim().slice(0,40)});
+    target=id;
+  }
+  if(target!=='cours'&&!customDbs[target]){alert('Base introuvable');return;}
+  activeDbId=target;
+  const database=activeDb();
+  try{
+    if(pendingImport.parsed.kind==='sql'){
+      database.run(pendingImport.parsed.sql);
+    }else{
+      const tname=safeIdent(document.getElementById('imp-table').value||pendingImport.defaultTable);
+      const {cols,types,rows}=pendingImport.parsed;
+      database.run('DROP TABLE IF EXISTS '+quoteIdent(tname));
+      database.run('CREATE TABLE '+quoteIdent(tname)+' ('+cols.map((c,i)=>quoteIdent(c)+' '+types[i]).join(', ')+')');
+      const insertSql='INSERT INTO '+quoteIdent(tname)+' VALUES ('+cols.map(()=>'?').join(',')+')';
+      rows.forEach(r=>{
+        const vals=cols.map((_,i)=>{
+          const v=r[i];
+          if(v==null||String(v).trim()==='') return null;
+          if(types[i]==='INTEGER'){const n=parseInt(String(v).trim(),10);return Number.isFinite(n)?n:null;}
+          if(types[i]==='REAL'){const n=parseFloat(String(v).trim());return Number.isFinite(n)?n:null;}
+          return String(v);
+        });
+        database.run(insertSql, vals);
+      });
+      pendingImport.importedTable=tname;
+    }
+    if(activeDbId!=='cours') persistCustomDbs();
+    const tname=pendingImport.importedTable;
+    closeImportSheet();
+    renderDbWorkspace();
+    if(tname) queryTable(tname);
+    else {
+      document.getElementById('console-out').innerHTML=`<div class="feedback ok"><div class="fi">✓</div><div><b>Script SQL importé</b><p>Les tables sont disponibles dans la base active.</p></div></div>`;
+    }
+    toast('Import réussi');
+  }catch(e){
+    alert('Erreur à l’import : '+(e.message||e));
+  }
+}
 
 const KW=new Set(['SELECT','FROM','WHERE','AND','OR','NOT','ORDER','BY','ASC','DESC','LIMIT','OFFSET','DISTINCT','GROUP','HAVING','JOIN','INNER','LEFT','RIGHT','OUTER','FULL','ON','AS','IN','IS','NULL','LIKE','BETWEEN','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','UNION','ALL','EXISTS','CASE','WHEN','THEN','ELSE','END']);
 const FN=new Set(['COUNT','SUM','AVG','MIN','MAX','ROUND','ABS','LENGTH','UPPER','LOWER','COALESCE','STRFTIME','IFNULL']);
@@ -2155,7 +2479,7 @@ function setupEditor(taId,hlId){
   grow();
 }
 function syncHL(a,b){document.getElementById(b).innerHTML=highlight(document.getElementById(a).value);}
-function execQuery(sql,d){const t0=performance.now();const res=(d||db).exec(sql);return{res,ms:performance.now()-t0};}
+function execQuery(sql,d){const t0=performance.now();const res=(d||activeDb()||db).exec(sql);return{res,ms:performance.now()-t0};}
 function fmtCell(v){
   if(v===null)return '<td class="null">NULL</td>';
   if(typeof v==='number')return `<td class="num">${Math.round(v*100)/100}</td>`;
@@ -2172,7 +2496,10 @@ function renderTable(result,ms){
 function errBox(msg){
   const m=msg.toLowerCase(); let aide='';
   if(m.includes('no such column')) aide="Vérifie l'orthographe exacte de la colonne — ou si tu voulais du texte, entoure-le de guillemets simples : <code>'Paris'</code>.";
-  else if(m.includes('no such table')) aide="Les trois tables disponibles sont <code>clients</code>, <code>produits</code> et <code>commandes</code>.";
+  else if(m.includes('no such table')){
+    const tabs=listTables(activeDb()||db);
+    aide=tabs.length?`Tables disponibles : ${tabs.map(t=>'<code>'+esc(t)+'</code>').join(', ')}.`:"Aucune table dans la base active — importe un fichier ou réinitialise la base du cours.";
+  }
   else if(m.includes('syntax error')) aide="Il manque probablement un mot-clé, une virgule en trop, ou le point-virgule final.";
   else if(m.includes('misuse of aggregate')) aide="Une fonction comme COUNT ne peut pas être utilisée dans un WHERE. Utilise HAVING (leçon 17).";
   else if(m.includes('ambiguous')) aide="Deux tables ont une colonne du même nom. Préfixe-la : <code>clients.nom</code>.";
@@ -2183,8 +2510,12 @@ function runConsole(){
   const sql=document.getElementById('ed-console').value.trim();
   const out=document.getElementById('console-out');
   if(!sql){out.innerHTML='';return;}
-  try{const{res,ms}=execQuery(sql);out.innerHTML=renderTable(res,ms);}
-  catch(e){out.innerHTML=errBox(e.message);}
+  try{
+    const{res,ms}=execQuery(sql,activeDb());
+    out.innerHTML=renderTable(res,ms);
+    if(activeDbId!=='cours'&&!/^\s*select\b/i.test(sql)) persistCustomDbs();
+    renderDbWorkspace();
+  }catch(e){out.innerHTML=errBox(e.message);}
 }
 function normalize(result,ordered){
   if(!result||result.length===0)return "∅";
@@ -2268,10 +2599,10 @@ const GC=['#5B5BD6','#1CA672','#C77A16','#E5484D','#0E9BC4','#9333EA','#DB2777',
 function multiset(rows){const m=new Map();rows.forEach(r=>{const k=JSON.stringify(r);m.set(k,(m.get(k)||0)+1)});return m;}
 function take(m,r){const k=JSON.stringify(r);const c=m.get(k);if(c>0){m.set(k,c-1);return true}return false;}
 
-function buildSteps(sql){
+function buildSteps(sql,database){
   const c=splitClauses(sql);
   if(!c||!c.from)return null;
-  const steps=[];const S=s=>db.exec(s);
+  const steps=[];const D=database||activeDb()||db;const S=s=>D.exec(s);
   let base;
   try{base=S(`SELECT * FROM ${c.from}`)[0];}catch(e){return null;}
   if(!base)return null;
@@ -2346,7 +2677,12 @@ function openViz(taId){
       <p>Le pas à pas ne fonctionne que sur les requêtes <code>SELECT</code>. Un INSERT, UPDATE ou DELETE n'a pas d'étapes intermédiaires à montrer.</p></div></div>`;
     document.getElementById('viz-dots').innerHTML='';updateVizNav();return;
   }
-  try{ vizSteps=buildSteps(sql)||[]; }catch(e){ vizSteps=[]; }
+  let tmp=null;
+  try{
+    tmp=taId==='ed-console'?null:sandbox();
+    vizSteps=buildSteps(sql,tmp||activeDb())||[];
+  }catch(e){ vizSteps=[]; }
+  finally{ if(tmp) try{tmp.close();}catch(e){} }
   if(!vizSteps.length){
     body.innerHTML=`<div class="feedback warn"><div class="fi">i</div><div><b>Requête trop complexe à décomposer</b>
       <p>Le visualiseur gère les requêtes SELECT classiques (FROM, WHERE, GROUP BY, HAVING, ORDER BY, LIMIT). Essaie une version plus simple.</p></div></div>`;
@@ -2396,6 +2732,7 @@ function switchTab(name){
   if(name==='learn'){renderHomeHero();renderModules();}
   if(name==='compte') renderCompte();
   if(name==='collection') renderCollection();
+  if(name==='console') renderDbWorkspace();
 }
 function renderProgress(){
   renderGreeting();
@@ -2753,8 +3090,9 @@ function runLesson(){
       const d1=sandbox(); d1.run(sql); userRes=d1.exec(current.verif); d1.close();
       const d2=sandbox(); d2.run(sol); solRes=d2.exec(current.verif); d2.close();
     }else{
-      const r=execQuery(sql); userRes=r.res; ms=r.ms;
-      solRes=execQuery(sol).res;
+      const dU=sandbox(); const t0=performance.now();
+      userRes=dU.exec(sql); ms=performance.now()-t0; dU.close();
+      const dS=sandbox(); solRes=dS.exec(sol); dS.close();
     }
   }catch(e){ out.innerHTML=errBox(e.message); registerExoFail(); return; }
   const ok=normalize(userRes,ordered)===normalize(solRes,ordered);
