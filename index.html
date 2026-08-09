@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Requête — Apprends le SQL</title>
 <meta name="description" content="Apprends le SQL en pratiquant sur une vraie base SQLite. 65 leçons, défis, révision espacée et console interactive.">
 <meta name="theme-color" content="#5B5BD6">
@@ -18,12 +18,12 @@
 <style>
   :root{
     --bg:#F6F6F9; --surface:#FFFFFF; --surface-2:#FAFAFF;
-    --ink:#14141B; --ink-2:#6E6E7A; --ink-3:#9A9AA6;
+    --ink:#14141B; --ink-2:#5F606B; --ink-3:#70707B;
     --line:#F0F0F4; --line-2:#ECECF1;
     --accent:#5B5BD6; --accent-2:#7A6FF0; --accent-soft:#E7E7F6;
-    --success:#1CA672; --success-soft:#E6F5EE;
-    --danger:#E5484D; --danger-soft:#FCECEC;
-    --warn:#C77A16; --warn-soft:#FBF0DF;
+    --success:#0B6B4A; --success-soft:#E6F5EE;
+    --danger:#B42318; --danger-soft:#FCECEC;
+    --warn:#7A4A00; --warn-soft:#FBF0DF;
     --code-bg:#1A1A28; --code-bg-2:#22222F; --code-ink:#E9E9F2;
     --t-kw:#B79CFF; --t-fn:#7CC7FF; --t-str:#84E0A8; --t-num:#FFB877; --t-com:#6B6B85;
     --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
@@ -94,9 +94,10 @@
   .module-head h2{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-3);margin:0}
   .module-head span{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);font-weight:600}
   .list{background:var(--surface);border-radius:18px;overflow:hidden;box-shadow:0 10px 26px -18px rgba(20,20,40,.35)}
-  .row{display:flex;align-items:center;gap:12px;padding:14px 15px;cursor:pointer;position:relative}
+  .row{display:flex;align-items:center;gap:12px;width:100%;padding:14px 15px;border:0;background:var(--surface);font-family:var(--ui);font-size:inherit;text-align:left;cursor:pointer;position:relative}
   .row:not(:last-child)::after{content:'';position:absolute;left:53px;right:0;bottom:0;height:1px;background:var(--line)}
   .row:active{background:var(--surface-2)}
+  .row:focus-visible,.primer:focus-visible,.tab:focus-visible,.fab:focus-visible{outline:3px solid rgba(91,91,214,.35);outline-offset:-3px}
   .row.current{background:#FAFAFF}
   .row.current .lz-body b{font-weight:700;color:var(--ink)}
   .row.done-row .lz-body b{font-weight:500;color:var(--ink-2)}
@@ -264,6 +265,7 @@
   .db-trow .tb.danger{color:var(--danger)}
   .db-empty{font-size:13px;color:var(--ink-3);padding:4px 6px 8px}
   .imp-sheet{position:fixed;left:0;right:0;bottom:0;z-index:120;background:var(--surface);border-radius:20px 20px 0 0;padding:14px 16px calc(18px + var(--safe-bottom));box-shadow:0 -12px 40px rgba(0,0,0,.18);transform:translateY(110%);transition:transform .28s cubic-bezier(.32,.72,.28,1);max-width:520px;margin:0 auto}
+  .imp-sheet[hidden],.imp-back[hidden]{display:none}
   .imp-sheet.on{transform:none}
   .imp-back{position:fixed;inset:0;z-index:115;background:rgba(20,20,30,.35);opacity:0;pointer-events:none;transition:opacity .2s}
   .imp-back.on{opacity:1;pointer-events:auto}
@@ -607,10 +609,10 @@
   .ls-step.lock{opacity:.45;cursor:default}
   .ls-slide{animation:lsIn .28s cubic-bezier(.32,.72,.28,1)}
   @keyframes lsIn{from{opacity:.35;transform:translateX(16px)}to{opacity:1;transform:none}}
-  .ls-nav{position:fixed;left:50%;transform:translateX(-50%);width:100%;max-width:520px;bottom:calc(var(--safe-bottom) + 58px);z-index:25;display:flex;gap:8px;padding:10px 16px 12px;background:linear-gradient(180deg,rgba(242,242,247,0),var(--bg) 36%);pointer-events:none;box-sizing:border-box}
+  .ls-nav{position:sticky;bottom:0;z-index:25;display:flex;gap:8px;width:calc(100% + 32px);margin:0 -16px;padding:10px 16px calc(12px + var(--safe-bottom));background:rgba(246,246,249,.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line-2);pointer-events:none;box-sizing:border-box}
   .ls-nav .ls-prev,.ls-nav .ls-next{pointer-events:auto}
   .ls-nav .ls-prev{flex:none;background:var(--surface);border:1px solid var(--line-2);border-radius:13px;padding:14px 16px;font-family:var(--ui);font-size:14px;font-weight:600;color:var(--ink-2);cursor:pointer;box-shadow:0 4px 14px rgba(20,20,40,.08)}
-  .ls-nav .ls-next{flex:1;background:linear-gradient(180deg,#6363DE,#5151CB);color:#fff;border:none;border-radius:13px;padding:14px;font-family:var(--ui);font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(91,91,214,.28)}
+  .ls-nav .ls-next{flex:1;min-width:0;background:linear-gradient(180deg,#6363DE,#5151CB);color:#fff;border:none;border-radius:13px;padding:14px;font-family:var(--ui);font-size:15px;font-weight:700;line-height:1.2;white-space:normal;cursor:pointer;box-shadow:0 6px 16px rgba(91,91,214,.28)}
   .ls-nav .ls-next:disabled{opacity:.4;box-shadow:none}
   .ls-nav button:active{transform:scale(.98)}
 
@@ -829,6 +831,7 @@
   #ob-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px}
 
   @media (max-width:380px){.memory-rule{grid-template-columns:1fr}.memory-rule div + div{border-left:0;border-top:1px solid var(--line);padding-left:0}}
+  @media (max-width:360px){.ls-nav{flex-direction:column}.ls-nav .ls-prev,.ls-nav .ls-next{width:100%}.ls-nav .ls-prev{padding:11px 14px}.ls-nav .ls-next{padding:12px 14px}}
   @media (prefers-reduced-motion:reduce){
     .ring,.logo-badge,.ob-progress i.on::after{animation:none!important}
   }
@@ -867,7 +870,7 @@
       </div>
       <p class="greeting" id="greeting" hidden></p>
       <div id="home-hero"></div>
-      <div class="primer" id="primer" onclick="this.classList.toggle('open')">
+      <div class="primer" id="primer" role="button" tabindex="0" aria-expanded="false" onclick="this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}">
         <div class="pt"><div><b>Avant de commencer</b><small>C'est quoi une base de données ? 2 min</small></div>
           <svg class="arrow" width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M1.5 1.5L7 7.5l-5.5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="primer-body">
@@ -1002,8 +1005,8 @@
   </div>
 
   <!-- Import de données -->
-  <div class="imp-back" id="imp-back" onclick="closeImportSheet()"></div>
-  <div class="imp-sheet" id="imp-sheet">
+  <div class="imp-back" id="imp-back" hidden aria-hidden="true" onclick="closeImportSheet()"></div>
+  <div class="imp-sheet" id="imp-sheet" hidden aria-hidden="true" inert>
     <h3>Importer des données</h3>
     <p class="imp-sub" id="imp-sub">CSV, JSON ou SQL</p>
     <div class="imp-field"><label>Nom de la table</label><input id="imp-table" autocomplete="off" spellcheck="false"></div>
@@ -1013,7 +1016,7 @@
   </div>
 
   <!-- Bouton flottant : prendre une note -->
-  <button class="fab" id="fab" onclick="quickNote()" title="Notes">✎</button>
+  <button class="fab" id="fab" onclick="quickNote()" title="Notes" aria-label="Ouvrir les notes">✎</button>
 
   <!-- Toast de déblocage -->
   <div class="toast" id="toast" onclick="toastGo()">
@@ -1235,7 +1238,7 @@ const MODULES = [
 { id:10, titre:"COUNT", résumé:"Compter les lignes",
   situation:"Tu ne veux pas la liste des clients — tu veux <b>combien</b> il y en a.",
   concept:`<p>Jusqu’ici, une requête renvoyait des lignes. Une agrégation renvoie un <b>résumé</b>.</p>
-  <p><code>COUNT(*)</code> compte toutes les lignes. <code>COUNT(email)</code> ignore les vides — utile pour un taux de complétude.</p>`,
+  <p><code>COUNT(*)</code> compte toutes les lignes. <code>COUNT(email)</code> ignore les <b>NULL</b>, mais compte une chaîne vide (<code>''</code>).</p>`,
   anatomie:[{tok:"SELECT",txt:"Affiche…"},
     {tok:"COUNT",txt:"<b>Compte.</b> Fonction : toujours suivie de parenthèses."},
     {tok:"(*)",punc:1,txt:"Toutes les lignes, sans regarder le contenu."},
@@ -1323,7 +1326,7 @@ const MODULES = [
     {tok:"commandes.client_id = clients.id",plain:1,txt:"Le pont entre les deux tables."}],
   exemple:"SELECT clients.nom, commandes.date_commande\nFROM commandes\nJOIN clients ON commandes.client_id = clients.id;",
   attendu:"<b>15 lignes</b>, une par commande. Sophie apparaît 3 fois. Inès, sans commande, n’apparaît pas.",
-  piege:{t:"Oublier le ON",p:"Sans <code>ON</code>, chaque commande est associée à chaque client : 15 × 9 = 135 lignes. Le <code>ON</code> est obligatoire."},
+  piege:{t:"Oublier le ON",p:"Sans <code>ON</code>, chaque commande est associée à chaque client : 15 × 9 = 135 lignes. Pour une jointure relationnelle, écris toujours <code>ON</code> ou <code>USING</code>."},
   consigne:"Pour chaque commande, affiche le <code>nom</code> du client et la <code>quantite</code>.",
   solution:"SELECT clients.nom, commandes.quantite FROM commandes JOIN clients ON commandes.client_id = clients.id;",
   indice:"Même structure que l’exemple : remplace <code>commandes.date_commande</code> par <code>commandes.quantite</code>." },
@@ -1398,7 +1401,7 @@ const MODULES = [
   situation:"Deux clients n’ont pas d’email. <code>WHERE email = ''</code> ne les trouve pas.",
   concept:`<p><code>NULL</code> n’est ni zéro, ni une chaîne vide. C’est <b>l’absence d’information</b>.</p>
   <p><code>NULL</code> n’est égal à rien, pas même à lui-même. Il faut <code>IS NULL</code> et <code>IS NOT NULL</code>.</p>
-  <p>Les agrégats <b>ignorent les NULL</b> : sur 9 clients dont 2 sans email, <code>COUNT(email)</code> renvoie 7.</p>`,
+  <p>Les agrégats <b>ignorent les NULL</b> : sur 9 clients dont 2 sans email, <code>COUNT(email)</code> renvoie 7. Une chaîne vide n’est pas un NULL.</p>`,
   anatomie:[{tok:"WHERE",txt:"À condition que…"},{tok:"email",plain:1,txt:"Colonne examinée."},
     {tok:"IS NULL",txt:"<b>…soit vide.</b> On dit « IS », jamais « = »."}],
   exemple:"SELECT nom, email FROM clients WHERE email IS NULL;",
@@ -1408,20 +1411,21 @@ const MODULES = [
   solution:"SELECT nom FROM clients WHERE email IS NOT NULL;",
   indice:"L’inverse de <code>IS NULL</code> s’écrit <code>IS NOT NULL</code>." },
 
-{ id:19, titre:"COALESCE", résumé:"Remplacer les vides",
-  situation:"Tu exportes la liste des clients. Les cases vides gênent — tu veux afficher « Non renseigné ».",
+{ id:19, titre:"COALESCE", résumé:"Remplacer les valeurs absentes",
+  situation:"Tu exportes la liste des clients. Les valeurs absentes gênent — tu veux afficher « Non renseigné ».",
   concept:`<p><code>COALESCE</code> renvoie <b>la première valeur non NULL</b>. En pratique : la colonne, puis une valeur de secours.</p>
+  <p>Pour traiter aussi une chaîne vide, combine <code>NULLIF(TRIM(email), '')</code> avec <code>COALESCE</code>.</p>
   <p>Rien n’est modifié en base — c’est un habillage à l’affichage. Utile aussi en calcul : toute opération avec <code>NULL</code> donne <code>NULL</code>.</p>`,
   anatomie:[{tok:"COALESCE",txt:"<b>Première valeur non NULL parmi…</b>"},
     {tok:"(email,",punc:1,txt:"Colonne testée en priorité."},
     {tok:"'Non renseigné')",plain:1,txt:"Valeur de repli si la première est NULL."},
     {tok:"AS contact",txt:"Nomme la colonne résultat."}],
-  exemple:"SELECT nom, COALESCE(email, 'Non renseigné') AS contact FROM clients;",
+  exemple:"SELECT nom, COALESCE(NULLIF(TRIM(email), ''), 'Non renseigné') AS contact FROM clients;",
   attendu:"<b>9 lignes</b>. Hugo et Inès affichent « Non renseigné » ; les autres gardent leur email.",
   piege:{t:"COALESCE ne modifie pas la base",p:"Après la requête, l’email de Hugo est toujours NULL. Pour le changer, il faut un <code>UPDATE</code>."},
-  consigne:"Affiche le <code>nom</code> et l’email, en remplaçant les vides par <code>'À compléter'</code> (colonne <code>contact</code>).",
-  solution:"SELECT nom, COALESCE(email, 'À compléter') AS contact FROM clients;",
-  indice:"<code>COALESCE(email, 'À compléter') AS contact</code>" },
+  consigne:"Affiche le <code>nom</code> et l’email, en remplaçant les valeurs <code>NULL</code> ou vides par <code>'À compléter'</code> (colonne <code>contact</code>).",
+  solution:"SELECT nom, COALESCE(NULLIF(TRIM(email), ''), 'À compléter') AS contact FROM clients;",
+  indice:"<code>COALESCE(NULLIF(TRIM(email), ''), 'À compléter') AS contact</code>" },
 
 { id:20, titre:"LEFT JOIN", résumé:"Garder les lignes sans match",
   situation:"Tu veux tous les clients avec leur nombre de commandes. Un JOIN classique fait disparaître Inès — or c’est elle qui t’intéresse.",
@@ -1856,15 +1860,15 @@ const MODULES = [
   anatomie:[{tok:"CREATE TABLE",txt:"<b>Crée la structure.</b> La table est vide au départ."},
     {tok:"avis",plain:1,txt:"Nom de la table, au pluriel par convention."},
     {tok:"(id INTEGER PRIMARY KEY,",plain:1,txt:"<b>Clé primaire</b> — remplie automatiquement si tu l’omets."},
-    {tok:"produit_id INTEGER,",plain:1,txt:"Lien vers la table produits."},
-    {tok:"note INTEGER,",plain:1,txt:"Nom, puis type. Une paire par colonne."},
+    {tok:"produit_id INTEGER NOT NULL REFERENCES produits(id),",plain:1,txt:"Référence vers un produit existant."},
+    {tok:"note INTEGER NOT NULL CHECK (note BETWEEN 1 AND 5),",plain:1,txt:"Note obligatoire, bornée de 1 à 5."},
     {tok:"commentaire TEXT)",plain:1,txt:"Dernière colonne — pas de virgule avant la parenthèse."}],
-  exemple:"CREATE TABLE avis (\n  id INTEGER PRIMARY KEY,\n  produit_id INTEGER,\n  note INTEGER,\n  commentaire TEXT\n);",
+  exemple:"CREATE TABLE avis (\n  id INTEGER PRIMARY KEY,\n  produit_id INTEGER NOT NULL REFERENCES produits(id),\n  note INTEGER NOT NULL CHECK (note BETWEEN 1 AND 5),\n  commentaire TEXT\n);",
   attendu:"Aucune ligne. La table <code>avis</code> existe, vide, avec ses <b>4 colonnes</b>.",
   piege:{t:"Virgule finale de trop",p:"<code>commentaire TEXT,)</code> provoque une erreur. Pas de virgule avant la fermeture."},
   consigne:"Crée la table <code>avis</code> : <code>id</code> INTEGER PRIMARY KEY, <code>produit_id</code>, <code>note</code> (INTEGER) et <code>commentaire</code> (TEXT).",
-  solution:"CREATE TABLE avis (id INTEGER PRIMARY KEY, produit_id INTEGER, note INTEGER, commentaire TEXT);",
-  indice:"<code>CREATE TABLE avis (id INTEGER PRIMARY KEY, produit_id INTEGER, note INTEGER, commentaire TEXT);</code>" },
+  solution:"CREATE TABLE avis (id INTEGER PRIMARY KEY, produit_id INTEGER NOT NULL REFERENCES produits(id), note INTEGER NOT NULL CHECK (note BETWEEN 1 AND 5), commentaire TEXT);",
+  indice:"<code>CREATE TABLE avis (id INTEGER PRIMARY KEY, produit_id INTEGER NOT NULL REFERENCES produits(id), note INTEGER NOT NULL CHECK (note BETWEEN 1 AND 5), commentaire TEXT);</code>" },
 ]},
 
 { titre:"Analyse métier", sous:"Requêtes avancées pour décider", lessons:[
@@ -2014,11 +2018,11 @@ const MODULES = [
   solution:"CREATE INDEX idx_clients_ville ON clients(ville);",
   indice:"<code>CREATE INDEX idx_clients_ville ON clients(ville);</code>" },
 
-{ id:55, titre:"EXCEPT", résumé:"A moins B",
+{ id:55, titre:"EXCEPT", résumé:"À moins B",
   situation:"D’un côté tous les clients, de l’autre ceux qui ont commandé. Tu veux les <code>id</code> qui n’ont <b>jamais</b> commandé.",
   concept:`<p><code>EXCEPT</code> garde les lignes du premier <code>SELECT</code> absentes du second.</p>
   <p>Comme <code>UNION</code> : même nombre de colonnes, types compatibles. SQLite dédoublonne.</p>
-  <p>Équivalents fréquents : <code>NOT IN</code> ou <code>LEFT JOIN … WHERE … IS NULL</code>. <code>EXCEPT</code> se lit « A moins B ».</p>`,
+  <p>Équivalents fréquents : <code>NOT IN</code> ou <code>LEFT JOIN … WHERE … IS NULL</code>. <code>EXCEPT</code> se lit « À moins B ».</p>`,
   anatomie:[{tok:"SELECT id FROM clients",txt:"Ensemble de départ (tous les clients)."},
     {tok:"EXCEPT",txt:"<b>Retire</b> ce qui suit."},
     {tok:"SELECT client_id FROM commandes",txt:"Ensemble à soustraire."}],
@@ -2032,15 +2036,15 @@ const MODULES = [
 
 { titre:"Niveau pro", sous:"Ce que font les équipes data au quotidien", lessons:[
 { id:56, titre:"INTERSECT", résumé:"A et B",
-  situation:"Tu veux les catégories qui ont à la fois des produits abordables (&lt; 20 €) et des produits chers (&gt; 30 €).",
+  situation:"Tu veux les catégories qui ont à la fois des produits abordables (&lt; 20 €) et d’autres produits plus chers (&gt; 20 €).",
   concept:`<p><code>INTERSECT</code> garde uniquement les lignes communes aux <b>deux</b> SELECT.</p>
   <p>Mêmes règles que <code>UNION</code> / <code>EXCEPT</code> : colonnes alignées, types compatibles.</p>
   <p>Famille complète : <code>UNION</code> (ou), <code>INTERSECT</code> (et), <code>EXCEPT</code> (sans).</p>`,
   anatomie:[{tok:"SELECT categorie FROM produits WHERE prix < 20",txt:"Premier ensemble."},
     {tok:"INTERSECT",txt:"<b>Ne garde que l’overlap.</b>"},
-    {tok:"SELECT categorie FROM produits WHERE prix > 30",txt:"Second ensemble."}],
-  exemple:"SELECT categorie FROM produits WHERE prix < 20\nINTERSECT\nSELECT categorie FROM produits WHERE prix > 30;",
-  attendu:"Les catégories présentes des deux côtés (ex. Bien-être si elle a des prix bas et hauts).",
+    {tok:"SELECT categorie FROM produits WHERE prix > 20",txt:"Second ensemble."}],
+  exemple:"SELECT categorie FROM produits WHERE prix < 20\nINTERSECT\nSELECT categorie FROM produits WHERE prix > 20;",
+  attendu:"<b>1 ligne</b> : Bien-être, présente dans les deux ensembles.",
   piege:{t:"INTERSECT n’est pas un JOIN",p:"On compare des ensembles de valeurs, pas des lignes élargies."},
   consigne:"Avec <code>INTERSECT</code>, les <code>ville</code> qui ont à la fois un client de moins de 30 ans et un de 40 ans ou plus.",
   solution:"SELECT ville FROM clients WHERE age < 30 INTERSECT SELECT ville FROM clients WHERE age >= 40;",
@@ -2127,8 +2131,8 @@ const MODULES = [
 { id:62, titre:"CREATE TRIGGER", résumé:"Réagir à l’écriture", write:true, verif:"SELECT name FROM sqlite_master WHERE type='trigger' AND name='trg_qte_positive';",
   situation:"Tu veux empêcher une commande avec quantité &lt; 1. La base doit refuser, pas seulement l’appli.",
   concept:`<p>Un <b>trigger</b> s’exécute automatiquement <code>BEFORE</code> ou <code>AFTER</code> un <code>INSERT</code>, <code>UPDATE</code> ou <code>DELETE</code>.</p>
-  <p>Ici : avant insertion, si <code>NEW.quantite &lt; 1</code>, on <code>RAISE(ABORT, …)</code> pour annuler.</p>
-  <p>Puissant, à manier avec soin. Pour une règle simple, <code>CHECK</code> suffit parfois. L’exercice tourne sur une copie.</p>`,
+  <p>Ici : avant insertion, si <code>NEW.quantite &lt; 1</code>, on <code>RAISE(ABORT, …)</code> pour annuler. Si la quantité peut aussi être modifiée, il faut couvrir l’<code>UPDATE</code> avec un second trigger ou, plus simplement, une contrainte <code>CHECK</code>.</p>
+  <p>Puissant, à manier avec soin : privilégie une contrainte déclarative quand elle suffit. L’exercice tourne sur une copie.</p>`,
   anatomie:[{tok:"CREATE TRIGGER trg_qte_positive",txt:"Nomme le trigger."},
     {tok:"BEFORE INSERT ON commandes",txt:"Quand il se déclenche."},
     {tok:"BEGIN … END",txt:"Le corps : une ou plusieurs instructions."},
@@ -2329,14 +2333,14 @@ const CARTES={
  14:{k:"LIKE",t:"Chercher un motif",s:"WHERE nom LIKE 'L%'",
     m:"<code>%</code> = n’importe quoi. <code>'L%'</code> commence par L · <code>'%ine'</code> finit par ine · <code>'%mot%'</code> contient. Sans <code>%</code>, LIKE vaut <code>=</code>."},
  15:{k:"JOIN",t:"Relier deux tables",s:"FROM commandes\nJOIN clients ON commandes.client_id = clients.id",
-    m:"Recolle les tables via une colonne commune. Le <code>ON</code> est obligatoire. Préfixe (<code>clients.nom</code>) dès qu’il y a ambiguïté."},
+    m:"Recolle les tables via une colonne commune. Pour une jointure relationnelle, écris <code>ON</code> ou <code>USING</code>. Sans condition, tu obtiens un produit cartésien. Préfixe (<code>clients.nom</code>) dès qu’il y a ambiguïté."},
  16:{k:"AS",t:"Renommer et empiler",s:"SELECT clients.nom AS client",
     m:"Chaque table en plus = un <code>JOIN … ON …</code>. <code>AS</code> renomme à l’affichage — utile quand deux tables ont le même nom de colonne."},
  17:{k:"HAVING",t:"Filtrer les groupes",s:"GROUP BY ville HAVING COUNT(*) > 1",
     m:"Ordre réel : FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY. <b>WHERE filtre des lignes, HAVING filtre des groupes.</b>"},
  18:{k:"NULL",t:"La valeur absente",s:"WHERE email IS NULL",
     m:"Ni zéro ni chaîne vide : « on ne sait pas ». <b>NULL n’est égal à rien</b> — d’où <code>IS NULL</code> / <code>IS NOT NULL</code>. Les agrégats ignorent les NULL."},
- 19:{k:"COALESCE",t:"Remplacer les vides",s:"COALESCE(email, 'Non renseigné')",
+ 19:{k:"COALESCE",t:"Remplacer les valeurs absentes",s:"COALESCE(NULLIF(TRIM(email), ''), 'Non renseigné')",
     m:"Renvoie la première valeur non nulle. Habillage d’affichage uniquement. Utile en calcul : toute opération avec NULL donne NULL."},
  20:{k:"LEFT JOIN",t:"Garder les orphelins",s:"FROM clients\nLEFT JOIN commandes ON …\nWHERE commandes.id IS NULL",
     m:"Conserve <b>toutes</b> les lignes de la table de gauche ; NULL à droite si pas de match. Pour compter les absents : <code>COUNT(colonne)</code>, pas <code>*</code>."},
@@ -2408,11 +2412,11 @@ const CARTES={
     m:"Fait évoluer une table existante. Anciennes lignes → NULL (ou DEFAULT). Plus simple que tout recréer."},
  54:{k:"CREATE INDEX",t:"Accélérer un filtre",s:"CREATE INDEX idx_t_col ON t(col);",
     m:"Structure annexe pour retrouver des lignes plus vite. Invisible dans SELECT *. Utile à l’échelle."},
- 55:{k:"EXCEPT",t:"A moins B",s:"SELECT id FROM a\nEXCEPT\nSELECT id FROM b;",
+ 55:{k:"EXCEPT",t:"À moins B",s:"SELECT id FROM a\nEXCEPT\nSELECT id FROM b;",
     m:"Lignes du premier SELECT absentes du second. Même nombre de colonnes. Cousin de NOT IN / anti-JOIN."},
  56:{k:"INTERSECT",t:"A et B",s:"SELECT … INTERSECT SELECT …;",
     m:"Intersection : uniquement les lignes communes. Complète UNION (ou) et EXCEPT (sans)."},
- 57:{k:"WITH RECURSIVE",t:"Se rappeler soi-même",s:"WITH RECURSIVE n(x) AS (\n  SELECT 1 UNION ALL\n  SELECT x+1 FROM n WHERE x < n\n)",
+ 57:{k:"WITH RECURSIVE",t:"Se rappeler soi-même",s:"WITH RECURSIVE n(x) AS (\n  SELECT 1 UNION ALL\n  SELECT x+1 FROM n WHERE x < 5\n)",
     m:"Ancre + récurrence + frein. Hiérarchies, calendriers, suites. Sans WHERE d’arrêt, ça boucle."},
  58:{k:"NTILE",t:"Tranches égales",s:"NTILE(4) OVER (ORDER BY prix)",
     m:"Découpe en k seaux équilibrés. Quartiles, scoring. ORDER BY obligatoire dans OVER."},
@@ -2572,7 +2576,7 @@ const QCM={
 /* ============================================================
    4. PERSISTANCE
    ============================================================ */
-/* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
+/* Version de structure : une mise en production ne doit pas effacer les données locales. */
 const APP_VERSION='2026-08-09-s';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
@@ -2605,9 +2609,12 @@ async function wipeStorageIfUpdated(){
   try{ prev=localStorage.getItem(VER_KEY); }catch(e){}
   try{ if(window.storage&&window.storage.get){const r=await window.storage.get(VER_KEY); if(r&&r.value!=null)prev=String(r.value).replace(/^"|"$/g,'');} }catch(e){}
   if(!force && prev===APP_VERSION) return false;
-  await Store.del(KEY);
-  try{ localStorage.removeItem(DBS_KEY); }catch(e){}
-  state={lessons:{},defis:{},notes:[],plan:null,onboarded:false,name:''};
+  /* #fresh / fresh=1 reste un reset volontaire pour le développement. */
+  if(force){
+    await Store.del(KEY);
+    try{ localStorage.removeItem(DBS_KEY); }catch(e){}
+    state={lessons:{},defis:{},notes:[],plan:null,onboarded:false,name:''};
+  }
   try{ localStorage.setItem(VER_KEY,APP_VERSION); }catch(e){}
   try{ if(window.storage&&window.storage.set) await window.storage.set(VER_KEY,APP_VERSION); }catch(e){}
   if(force){
@@ -2633,9 +2640,32 @@ const allLessons=MODULES.flatMap(m=>m.lessons);
 const TOTAL=allLessons.length;
 let current=null,mode='lesson',reviewQueue=[];
 
+function loadScript(src){
+  return new Promise((resolve,reject)=>{
+    const s=document.createElement('script');
+    s.src=src; s.async=true;
+    s.onload=resolve; s.onerror=()=>reject(new Error('Le moteur SQL n’a pas pu être chargé.'));
+    document.head.appendChild(s);
+  });
+}
+async function loadSqlEngine(){
+  const sources=[
+    {js:null,wasm:'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.wasm'},
+    {js:'https://unpkg.com/sql.js@1.10.3/dist/sql-wasm.js',wasm:'https://unpkg.com/sql.js@1.10.3/dist/sql-wasm.wasm'}
+  ];
+  let lastError=null;
+  for(const source of sources){
+    try{
+      if(!window.initSqlJs&&source.js) await loadScript(source.js);
+      if(!window.initSqlJs) throw new Error('initSqlJs indisponible');
+      return await window.initSqlJs({locateFile:()=>source.wasm});
+    }catch(e){ lastError=e; }
+  }
+  throw lastError||new Error('Moteur SQL indisponible');
+}
 async function boot(){
   try{
-    SQL=await initSqlJs({locateFile:f=>`https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${f}`});
+    SQL=await loadSqlEngine();
     buildDb(); baseBytes=db.export();
     await wipeStorageIfUpdated();
     const saved=await Store.get(KEY); if(saved&&saved.lessons) state=saved;
@@ -2876,24 +2906,28 @@ function openImportSheet(){
   document.getElementById('imp-table').value=pendingImport.defaultTable;
   document.getElementById('imp-table').disabled=pendingImport.parsed.kind==='sql';
   const sel=document.getElementById('imp-db');
-  sel.innerHTML=dbCatalog.map(d=>`<option value="${d.id}" ${d.id===activeDbId?'selected':''}>${esc(d.name)}</option>`).join('')
-    +`<option value="__new__">＋ Nouvelle base…</option>`;
+  sel.innerHTML=dbCatalog.filter(d=>d.id!=='cours').map(d=>`<option value="${d.id}" ${d.id===activeDbId?'selected':''}>${esc(d.name)}</option>`).join('')
+    +`<option value="__new__" selected>＋ Nouvelle base personnelle…</option>`;
   document.getElementById('imp-prev').textContent=pendingImport.parsed.kind==='sql'
     ? pendingImport.parsed.hint
     : pendingImport.parsed.cols.map((c,i)=>c+' '+pendingImport.parsed.types[i]).join(' · ');
-  document.getElementById('imp-back').classList.add('on');
-  document.getElementById('imp-sheet').classList.add('on');
+  const back=document.getElementById('imp-back'),sheet=document.getElementById('imp-sheet');
+  back.hidden=false; sheet.hidden=false; back.setAttribute('aria-hidden','false'); sheet.setAttribute('aria-hidden','false'); sheet.inert=false;
+  back.classList.add('on'); sheet.classList.add('on');
+  document.getElementById('imp-table').focus();
   const fab=document.getElementById('fab');if(fab)fab.classList.add('hide');
 }
 function closeImportSheet(){
-  document.getElementById('imp-back').classList.remove('on');
-  document.getElementById('imp-sheet').classList.remove('on');
+  const back=document.getElementById('imp-back'),sheet=document.getElementById('imp-sheet');
+  back.classList.remove('on'); sheet.classList.remove('on'); back.setAttribute('aria-hidden','true'); sheet.setAttribute('aria-hidden','true'); sheet.inert=true;
+  setTimeout(()=>{if(!sheet.classList.contains('on')){back.hidden=true;sheet.hidden=true;}},300);
   const fab=document.getElementById('fab');if(fab)fab.classList.remove('hide');
   pendingImport=null;
 }
 function confirmImport(){
   if(!pendingImport)return;
   let target=document.getElementById('imp-db').value;
+  if(target==='cours'){toast('La base du cours est protégée');return;}
   if(target==='__new__'){
     const name=prompt('Nom de la nouvelle base ?', pendingImport.defaultTable||'Import');
     if(!name||!name.trim())return;
@@ -3265,7 +3299,7 @@ function renderHomeHero(){
     </div>`;
 
   if(!state.plan){
-    host.innerHTML=card('empty','Pour démarrer',`${TOTAL} leçons`,'Crée ton planning','Niveau, minutes et jours — leçons + défis en 50/50.',
+    host.innerHTML=card('empty','Pour démarrer',`${TOTAL} leçons`,'Crée ton planning','Niveau, minutes et jours — un parcours progressif, avec les défis au bon moment.',
       `<button class="hc-go" type="button" onclick="switchTab('planning')">Configurer mon rythme</button>`,
       `<button class="hc-sec" type="button" onclick="openLesson(1)">Leçon 1</button>`);
     return;
@@ -3327,17 +3361,17 @@ function lessonListRow(l){
   const st=state.lessons[l.id],ok=st&&st.done,due=isDue(l.id);
   const cur=!ok&&!due&&nextOpenLessonId()===l.id;
   const numCls=due?'due':(ok?'done':(cur?'now':''));
-  return `<div class="row ${ok?'done-row':''} ${cur?'current':''}" onclick="openLesson(${l.id})">
+  return `<button type="button" class="row ${ok?'done-row':''} ${cur?'current':''}" onclick="openLesson(${l.id})" aria-current="${cur?'step':'false'}">
     <div class="lz-num ${numCls}">${due?'↻':(ok?'✓':l.id)}</div>
-    <div class="lz-body"><b>${l.titre}</b><small>${ok?l.résumé:(nbFaites(l.id)?`${l.résumé} · ${nbFaites(l.id)}/${nbEtapes(l.id)} étapes`:l.résumé)}</small></div>
-    ${cur?'<span class="chev" style="color:var(--accent);font-size:15px">›</span>':`<svg class="chev" width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M1.5 1.5L7 7.5l-5.5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`}</div>`;
+    <span class="lz-body"><b>${l.titre}</b><small>${ok?l.résumé:(nbFaites(l.id)?`${l.résumé} · ${nbFaites(l.id)}/${nbEtapes(l.id)} étapes`:l.résumé)}</small></span>
+    ${cur?'<span class="chev" style="color:var(--accent);font-size:15px">›</span>':`<svg class="chev" aria-hidden="true" width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M1.5 1.5L7 7.5l-5.5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`}</button>`;
 }
 function defiListRow(c){
   const ok=!!(state.defis&&state.defis[c.id]);
-  return `<div class="row defi-row" onclick="openChallenge('${c.id}')">
+  return `<button type="button" class="row defi-row" onclick="openChallenge('${c.id}')">
     <div class="lz-num ${ok?'done':'defi'}">${ok?'✓':'★'}</div>
-    <div class="lz-body"><b>${esc(c.titre)}</b><small>Défi · ${NIV[c.niv].l}</small></div>
-    <span class="niv ${NIV[c.niv].c}">${NIV[c.niv].l}</span></div>`;
+    <span class="lz-body"><b>${esc(c.titre)}</b><small>Défi · ${NIV[c.niv].l}</small></span>
+    <span class="niv ${NIV[c.niv].c}">${NIV[c.niv].l}</span></button>`;
 }
 function homeFilterBar(){
   const tabs=[['tous','Tous'],['lecons','Leçons'],['defis','Défis']];
@@ -3414,7 +3448,7 @@ const editorBlock=(withViz)=>`
   </div>
   <div class="run-row"><button class="btn-run" onclick="runLesson()">▶︎ Exécuter &amp; vérifier</button>
   ${withViz?`<button class="btn-ghost" onclick="openViz('ed-lesson')">◨ Visualiser</button>`:''}</div>
-  <div id="lesson-out"></div>
+  <div id="lesson-out" role="status" aria-live="polite" aria-atomic="true"></div>
   <div id="hint-slot"></div>`;
 
 let lessonStep=0; // 0 leçon · 1 exercice · 2 quiz
@@ -3435,7 +3469,7 @@ function lessonStepMeta(){
   const exoOk=!!e.exo;
   const quizOk=lecCompletee(current.id);
   return [
-    {i:0,l:'Leçon',s:'Cours',done:exoOk||quizOk||lessonStep>0,lock:false},
+    {i:0,l:'Leçon',s:'Cours',done:exoOk||quizOk,lock:false},
     {i:1,l:'Exercice',s:'Pratique',done:exoOk,lock:false},
     {i:2,l:'Quiz',s:'Valider',done:quizOk,lock:!exoOk}
   ];
@@ -3725,13 +3759,13 @@ function toastGo(){
    ============================================================ */
 const NIVEAUX=[
   {k:'debutant',i:'○',t:"Je pars de zéro",d:"Jamais écrit une requête · départ leçon 1",from:1},
-  {k:'bases',i:'◐',t:"J'ai quelques bases",d:"SELECT et WHERE me parlent · départ à l'agrégation",from:10},
-  {k:'inter',i:'●',t:"Je vise le niveau analyste",d:"Jointures acquises · direct aux CTE et fenêtres",from:27}
+  {k:'bases',i:'◐',t:"J'ai quelques bases",d:"SELECT, filtres et tris me parlent · départ leçon 10",from:10},
+  {k:'inter',i:'●',t:"Je vise le niveau analyste",d:"Agrégations et jointures acquises · départ leçon 27",from:27}
 ];
 const RYTHMES=[
-  {k:'calme',i:'10',t:"10 minutes",d:"~2 leçons · rythme tranquille",per:2,min:12},
-  {k:'regulier',i:'20',t:"20 minutes",d:"~3 leçons · rythme régulier",per:3,min:18},
-  {k:'intensif',i:'30',t:"30 minutes",d:"~5 leçons · rythme intensif",per:5,min:30}
+  {k:'calme',i:'10',t:"10 minutes",d:"~2 activités · rythme tranquille",per:2,min:12},
+  {k:'regulier',i:'20',t:"20 minutes",d:"~3 activités · rythme régulier",per:3,min:18},
+  {k:'intensif',i:'30',t:"30 minutes",d:"~5 activités · rythme intensif",per:5,min:30}
 ];
 const FREQS=[
   {k:2,i:'2',t:"2 jours / semaine",d:"Lundi et jeudi"},
@@ -3827,23 +3861,19 @@ function buildMixPool(niveau){
   const from=(NIVEAUX.find(n=>n.k===niveau)||NIVEAUX[0]).from;
   const lessons=allLessons.filter(l=>l.id>=from).map(l=>l.id);
   const allow=DEFIS_PAR_NIV[niveau]||['f','m','d'];
-  const defis=defisParProgression().filter(c=>allow.indexOf(c.niv)>=0).map(c=>c.id);
-  // 50/50 : autant de défis que de leçons (on recycle les défis si besoin)
-  const mix=[], n=Math.max(lessons.length, defis.length?lessons.length:0);
-  for(let i=0;i<lessons.length;i++){
-    mix.push(lessons[i]);
-    if(defis.length) mix.push(defis[i % defis.length]);
-  }
-  // Si plus de défis que de leçons (rare), ajouter le reste
-  if(defis.length>lessons.length){
-    for(let i=lessons.length;i<defis.length;i++) mix.push(defis[i]);
-  }
+  const defis=defisParProgression().filter(c=>allow.indexOf(c.niv)>=0);
+  /* Un défi n’entre dans le planning qu’après la leçon qui fournit son prérequis. */
+  const mix=[];
+  lessons.forEach(id=>{
+    mix.push(id);
+    defis.filter(c=>c.apres===id).forEach(c=>mix.push(c.id));
+  });
   return mix;
 }
 function apercuPlan(niveau,rythme,freq){
   const per=(RYTHMES.find(r=>r.k===rythme)||RYTHMES[1]).per;
-  // per = items / séance ; 50/50 ⇒ viser un nombre pair d'items par séance
-  const slot=per%2===0?per:per+1;
+  // per = activités / séance. Le respect des prérequis prime sur un ratio artificiel 50/50.
+  const slot=per;
   const pool=buildMixPool(niveau);
   const n=Math.max(1,Math.ceil(pool.length/slot));
   const dates=datesMotif(auj(),freq,n);
@@ -3946,12 +3976,12 @@ function renderSetup(){
     const mins=(RYTHMES.find(r=>r.k===p.rythme)||RYTHMES[1]).min;
     const nL=p.sessions.reduce((a,s)=>a+s.lessons.filter(id=>!isDefiId(id)).length,0);
     const nD=tot-nL;
-    ap=`<div class="pl-apercu"><b>${n} séances</b> · ${nL} leçons + ${nD} défis (50/50) · ~${mins} min<br>
+    ap=`<div class="pl-apercu"><b>${n} séances</b> · ${nL} leçons + ${nD} défis selon les prérequis · ~${mins} min<br>
       <span>Fin prévue le ${parseD(p.sessions[n-1].d).toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}</span></div>`;
   }
   return `<div class="pl-setup">
     <div class="pl-intro"><b>Ton planning personnalisé</b>
-      <p>Niveau, minutes, jours — leçons et défis mélangés moitié-moitié. Tu pourras tout ajuster après.</p></div>
+      <p>Niveau, minutes, jours — les défis apparaissent après les notions nécessaires. Tu pourras tout ajuster après.</p></div>
     ${bloc("Où en es-tu ?","niveau",NIVEAUX,o=>o.k)}
     ${bloc("Combien de minutes par séance ?","rythme",RYTHMES,o=>o.k)}
     ${bloc("Combien de jours par semaine ?","freq",FREQS,o=>o.k)}
@@ -3983,7 +4013,7 @@ function renderTodayHero(){
     if(!resteDe(s))return retard+`<div class="today-hero done"><div class="th-tag">Aujourd'hui</div>
       <h3>Séance terminée ✓</h3><p>Tes ${tot} item${tot>1?'s':''} du jour sont faits. Prochaine séance ${info.suivante?libelleJour(info.suivante.d).toLowerCase():'bientôt'}.</p>
       ${info.suivante?`<button class="th-go ghost" onclick="demarrerSeance('${info.suivante.d}')">Prendre de l'avance</button>`:''}</div>`;
-    return retard+`<div class="today-hero"><div class="th-tag">Aujourd'hui · 50/50</div>
+    return retard+`<div class="today-hero"><div class="th-tag">Aujourd'hui · Parcours progressif</div>
       <h3>${left} à faire</h3>
       <p>Leçons + défis · ~${left*MIN_PAR_LECON} min.${faites?` Déjà ${faites}/${tot}.`:''}</p>
       <div class="th-bar"><i style="width:${pct}%"></i></div>
@@ -4302,7 +4332,7 @@ function repondreQcm(i,choix){
   }else{
     const mauvais=zone.querySelector('.qopt[data-k="'+choix+'"]');
     if(mauvais){mauvais.classList.add('faux');mauvais.disabled=true;}
-    expl.style.display='';expl.innerHTML='<b>Pas tout à fait.</b> Relis le passage concerné et retente — les autres réponses restent ouvertes.';
+    expl.style.display='';expl.innerHTML='<b>Pas tout à fait.</b> '+q.e+' Les autres réponses restent ouvertes.';
     if(navigator.vibrate)navigator.vibrate(30);
   }
 }
@@ -4613,14 +4643,14 @@ function paintOb(){
     const first=p.sessions[0].lessons.find(id=>!isDefiId(id))||p.sessions[0].lessons[0];
     html=`<div class="ob-kicker">Ton planning</div>
       <h2>C’est calé.</h2>
-      <p>Leçons et défis en 50/50. Tu pourras tout ajuster dans l’onglet Parcours.</p>
+      <p>Les défis apparaissent après les notions nécessaires. Tu pourras tout ajuster dans l’onglet Parcours.</p>
       <div class="ob-summary">
         <div class="pt">Parcours · ${esc(niv.t)}</div>
         <h3>${ryt.min} min · ${esc(freq.t)}</h3>
         <p>${n} séances · ${nL} leçons + ${nD} défis · fin le ${fin}</p>
         <div class="ob-metrics">
           <div><b>${ryt.min}</b><small>min / séance</small></div>
-          <div><b>50/50</b><small>leçons / défis</small></div>
+          <div><b>Progressif</b><small>ordre des notions</small></div>
           <div><b>${first}</b><small>1ʳᵉ leçon</small></div>
         </div>
       </div>`;
