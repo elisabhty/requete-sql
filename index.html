@@ -1486,25 +1486,46 @@ const MODULES = [
 
 { id:17, titre:"HAVING", résumé:"Filtrer après regroupement",
   situation:"Tu veux les <b>catégories de produits qui comptent au moins 2 références</b>. Un <code>WHERE</code> sur <code>COUNT(*)</code> lève une erreur : les groupes n’existent pas encore.",
-  concept:`<p><code>WHERE</code> s’exécute <b>avant</b> le regroupement : il teste des lignes une à une. <code>HAVING</code> arrive <b>après</b> <code>GROUP BY</code> : il juge un paquet entier.</p>
-  <p>Règle : <b>WHERE filtre des lignes, HAVING filtre des groupes</b>. Une condition avec <code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>MIN</code> ou <code>MAX</code> va dans <code>HAVING</code>.</p>`,
+  concept:`<h3>WHERE ou HAVING ? Comprendre la différence</h3>
+  <h4>Le problème</h4>
+  <p>Imagine que tu disposes d’une table contenant tous tes clients. Tu souhaites connaître les villes qui comptent plus d’un client. Tu écris alors une condition avec <code>COUNT()</code>, mais en la plaçant dans <code>WHERE</code>… et SQL renvoie une erreur. Pourquoi ?</p>
+  <h4>Ce qu’il se passe réellement</h4>
+  <p>SQL n’exécute pas une requête dans l’ordre où tu l’écris. Il suit un ordre précis :</p>
+  <div class="concept-order" aria-label="Ordre logique d’exécution SQL">
+    <code>FROM</code><i>→</i><code>WHERE</code><i>→</i><code>GROUP BY</code><i>→</i><code>HAVING</code><i>→</i><code>SELECT</code><i>→</i><code>ORDER BY</code>
+  </div>
+  <p>À l’étape <code>WHERE</code>, SQL examine chaque ligne individuellement. À ce moment-là, les groupes n’ont pas encore été créés. Il est donc impossible de connaître le résultat d’un <code>COUNT()</code> ou d’un <code>SUM()</code>, puisqu’ils n’existent pas encore.</p>
+  <p>Ensuite, SQL exécute <code>GROUP BY</code>, qui rassemble les lignes par ville. Ce n’est qu’après cette étape que <code>COUNT()</code>, <code>SUM()</code>, <code>AVG()</code>, <code>MIN()</code> ou <code>MAX()</code> peuvent être calculés.</p>
+  <p>Enfin, <code>HAVING</code> intervient pour filtrer ces groupes déjà créés.</p>
+  <h4>Une façon simple de s’en souvenir</h4>
+  <div class="memory-box" role="note" aria-label="Aide mémoire : WHERE ou HAVING">
+    <div class="memory-rule">
+      <div class="memory-where"><b>WHERE</b><span>Filtre des lignes</span></div>
+      <div class="memory-having"><b>HAVING</b><span>Filtre des groupes</span></div>
+    </div>
+  </div>
+  <h4>Exemple</h4>
+  <p>Supposons la table suivante :</p>
+  <div class="table-wrap"><table class="concept-table"><thead><tr><th>Ville</th><th>Client</th></tr></thead><tbody>
+    <tr><td>Paris</td><td>Alice</td></tr><tr><td>Paris</td><td>Bob</td></tr><tr><td>Lyon</td><td>Chloé</td></tr><tr><td>Lille</td><td>David</td></tr><tr><td>Lille</td><td>Emma</td></tr>
+  </tbody></table></div>
+  <p>Après <code>GROUP BY ville</code>, SQL obtient :</p>
+  <div class="concept-result">
+    <div class="result-label">Résultat regroupé</div>
+    <div class="result-values"><span><b>Paris</b> 2 clients</span><span><b>Lyon</b> 1 client</span><span><b>Lille</b> 2 clients</span></div>
+  </div>
+  <p>Si tu veux uniquement les villes ayant plus d’un client, c’est ce résultat regroupé qu’il faut filtrer. C’est donc le rôle de <code>HAVING</code>.</p>
+  <h4>À retenir</h4>
+  <p>✅ Utilise <code>WHERE</code> pour filtrer les lignes avant le regroupement.<br>✅ Utilise <code>HAVING</code> pour filtrer les groupes après le regroupement.</p>
+  <div class="memory-box" role="note" aria-label="Astuce mémoire sur les fonctions d’agrégation">
+    <div class="memory-kicker">Astuce mémoire</div>
+    <p class="memory-note">Si ta condition utilise une fonction d’agrégation comme <code>COUNT()</code>, <code>SUM()</code>, <code>AVG()</code>, <code>MIN()</code> ou <code>MAX()</code>, elle a presque toujours sa place dans <code>HAVING</code>.</p>
+  </div>`,
   anatomie:[{tok:"SELECT categorie, COUNT(*)",txt:"Catégorie et total."},
     {tok:"FROM produits",txt:"Table."},{tok:"GROUP BY categorie",txt:"Un paquet par catégorie."},
     {tok:"HAVING",txt:"<b>À condition que le groupe…</b> Toujours après <code>GROUP BY</code>."},
     {tok:"COUNT(*) >= 2",plain:1,txt:"…ait au moins 2 lignes."}],
-  pipeline:[
-    {t:'compare',n:1,label:'WHERE ou HAVING ?',rows:[
-      ['WHERE',"SELECT categorie, COUNT(*)\nFROM produits\nWHERE COUNT(*) >= 2\nGROUP BY categorie;",false,'les groupes n’existent pas encore'],
-      ['HAVING',"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",true,'filtre un paquet déjà formé'],
-    ],rule:"WHERE filtre des lignes · HAVING filtre des groupes"},
-    {t:'xsec',n:2,label:"Ordre réel d'exécution",items:['FROM','WHERE','GROUP BY','HAVING','SELECT','ORDER BY'],
-      caps:['table brute','lignes','paquets','groupes gardés','colonnes','tri final'],here:'HAVING'},
-    {t:'exec',n:3,label:'On exécute vraiment',cols:['categorie','nom','prix'],
-      tabs:[{label:'produits',note:'9 lignes'}],
-      sqls:[{keep:'SELECT DISTINCT categorie FROM produits',
-        gc:{'Bien-être':'#5B5BD6','Maison':'#1CA672','Beauté':'#C77A16'}}],
-      note:'<b>GROUP BY</b> rassemble les lignes par couleur de catégorie. <b>HAVING</b> ne garde que les paquets dont le <code>COUNT(*)</code> atteint 2 : ici, seul <b>Bien-être</b> (4 produits) survit.'},
-  ],
+  pipeline:[],
   exemple:"SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 2;",
   attendu:"<b>1 ligne</b> : Bien-être, 4 produits. Les autres catégories n’ont qu’un produit.",
   piege:{t:"WHERE au lieu de HAVING",p:"<code>WHERE COUNT(*) > 1</code> provoque « misuse of aggregate function ». Les agrégats ne sont disponibles qu’à partir de <code>HAVING</code>."},
@@ -2694,7 +2715,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-09-u';
+const APP_VERSION='2026-08-09-v';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const DBS_KEY='requete-sql-dbs-v1';
@@ -3305,9 +3326,10 @@ function buildSteps(sql,database){
   return steps;
 }
 let vizSteps=[],vizI=0;
-function openViz(taId){
+function openViz(taId, rawSql){
   document.getElementById('fab').classList.add('hide');
-  const sql=document.getElementById(taId).value.trim();
+  const src=rawSql!==undefined?rawSql:(document.getElementById(taId)?document.getElementById(taId).value:'');
+  const sql=src.trim();
   const body=document.getElementById('viz-body');
   document.getElementById('viz-back').classList.add('on');
   document.getElementById('viz').classList.add('on');
@@ -3707,9 +3729,7 @@ function lessonRichSlide(l){
     <div class="piege"><div class="pi">⚠️</div><div><b>${l.piege.t}</b><p>${l.piege.p}</p></div></div>`;
 }
 function openVizSql(sql){
-  const d=document.getElementById('ed-lesson');
-  if(d){d.value=sql; syncHL('ed-lesson','hl-lesson'); d.dispatchEvent(new Event('input'));}
-  openViz('ed-lesson');
+  openViz(null, sql);
 }
 function renderLessonFlow(){
   if(!current||mode!=='lesson')return;
@@ -3722,7 +3742,7 @@ function renderLessonFlow(){
     if(l.pipeline){
       slide=`
       <div class="l-kicker">Leçon ${l.id} · Cours</div><h1>${l.titre}</h1>
-      <div class="card"><p class="ask">${l.situation}</p>${l.concept}</div>
+      <div class="card lesson-concept-card"><p class="ask">${l.situation}</p>${l.concept}</div>
       ${lessonRichSlide(l)}
       <div class="ls-nav">
         <button class="ls-next" type="button" onclick="setLessonStep(1)">Passer à l’exercice</button>
