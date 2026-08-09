@@ -1321,9 +1321,26 @@ const MODULES = [
 
 { id:17, titre:"HAVING", résumé:"Filtrer après regroupement",
   situation:"Tu as le nombre de clients par ville. Tu ne veux que les villes avec <b>plus d’un client</b>. Un <code>WHERE</code> sur <code>COUNT</code> échoue.",
-  concept:`<p>Ordre réel d’exécution : <code>FROM</code> → <code>WHERE</code> → <code>GROUP BY</code> → <code>HAVING</code> → <code>SELECT</code> → <code>ORDER BY</code>.</p>
-  <p>Quand <code>WHERE</code> s’exécute, les groupes n’existent pas encore. <code>HAVING</code> filtre <b>après</b> le regroupement.</p>
-  <p>Règle : <b>WHERE filtre des lignes, HAVING filtre des groupes</b>. Une condition avec <code>COUNT</code>, <code>SUM</code> ou <code>AVG</code> va dans <code>HAVING</code>.</p>`,
+  concept:`<h3>WHERE ou HAVING ? Comprendre la différence</h3>
+  <h4>Le problème</h4>
+  <p>Imagine une table qui contient tous tes clients. Tu souhaites connaître <b>les villes qui comptent plus d’un client</b>.</p>
+  <p>Tu écris alors une condition avec <code>COUNT()</code>, mais en la plaçant dans <code>WHERE</code> : SQL renvoie une erreur. Pourquoi ?</p>
+  <h4>Ce qui se passe réellement</h4>
+  <p>SQL ne traite pas une requête dans l’ordre visuel où tu l’écris. Il suit un <b>ordre logique</b> :</p>
+  <p><code>FROM</code> → <code>WHERE</code> → <code>GROUP BY</code> → <code>HAVING</code> → <code>SELECT</code> → <code>ORDER BY</code></p>
+  <p>À l’étape <code>WHERE</code>, SQL examine chaque ligne individuellement. Les groupes n’ont pas encore été créés : il est donc impossible de filtrer un résultat de <code>COUNT()</code> ou de <code>SUM()</code>.</p>
+  <p><code>GROUP BY</code> rassemble ensuite les lignes par ville. Les agrégats comme <code>COUNT()</code>, <code>SUM()</code>, <code>AVG()</code>, <code>MIN()</code> et <code>MAX()</code> peuvent alors être calculés.</p>
+  <p><code>HAVING</code> intervient enfin pour filtrer ces groupes déjà constitués.</p>
+  <h4>Une façon simple de s’en souvenir</h4>
+  <p>🔹 <code>WHERE</code> filtre des <b>lignes</b>.<br>🔹 <code>HAVING</code> filtre des <b>groupes</b>.</p>
+  <h4>Exemple conceptuel</h4>
+  <div class="table-wrap"><table><thead><tr><th>Ville</th><th>Client</th></tr></thead><tbody>
+    <tr><td>Paris</td><td>Alice</td></tr><tr><td>Paris</td><td>Bob</td></tr><tr><td>Lyon</td><td>Chloé</td></tr><tr><td>Lille</td><td>David</td></tr><tr><td>Lille</td><td>Emma</td></tr>
+  </tbody></table></div>
+  <p>Après <code>GROUP BY ville</code>, SQL obtient Paris = 2, Lyon = 1 et Lille = 2. Si tu veux uniquement les villes ayant plus d’un client, c’est ce résultat regroupé que <code>HAVING</code> doit filtrer.</p>
+  <h4>À retenir</h4>
+  <p>✅ Utilise <code>WHERE</code> pour filtrer les lignes <b>avant</b> le regroupement.<br>✅ Utilise <code>HAVING</code> pour filtrer les groupes <b>après</b> le regroupement.</p>
+  <p><b>Astuce mémoire :</b> si ta condition utilise une fonction d’agrégation comme <code>COUNT()</code>, <code>SUM()</code>, <code>AVG()</code>, <code>MIN()</code> ou <code>MAX()</code>, elle a généralement sa place dans <code>HAVING</code>.</p>`,
   anatomie:[{tok:"SELECT categorie, COUNT(*)",txt:"Catégorie et total."},
     {tok:"FROM produits",txt:"Table."},{tok:"GROUP BY categorie",txt:"Un paquet par catégorie."},
     {tok:"HAVING",txt:"<b>À condition que le groupe…</b> Toujours après <code>GROUP BY</code>."},
