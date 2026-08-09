@@ -241,12 +241,13 @@
   .exec .table-wrap td{padding:7px 13px}
   .exec .table-wrap.out tr td{opacity:.32;text-decoration:line-through}
   .exframe{border-radius:16px;overflow:hidden;box-shadow:0 8px 20px -16px rgba(20,20,40,.5);background:var(--surface);margin-bottom:14px}
-  .exframe .xf-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;background:var(--code-bg);border-bottom:1px solid rgba(255,255,255,.07)}
+  .exframe .xf-head{padding:10px 14px;background:var(--code-bg);border-bottom:1px solid rgba(255,255,255,.07)}
   .exframe .xf-name{font-family:var(--mono);font-size:11px;color:#8A8A9C;font-weight:500}
-  .exframe .xf-run{border:none;background:rgba(91,91,214,.16);color:#B79CFF;font-family:var(--ui);font-size:12px;font-weight:700;padding:6px 11px;border-radius:8px;cursor:pointer;flex:none}
-  .exframe .xf-run:active{transform:scale(.96)}
-  .exframe .ex-code{border-radius:0;padding:13px 15px}
-  .exframe .ex-out{margin:0;padding:12px 15px;font-size:13px;color:var(--ink-2);background:var(--surface)}
+  .exframe .ex-code{border-radius:0;padding:13px 15px;font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-word;overflow-x:visible}
+  .exframe .xf-actions{padding:12px 14px;background:var(--surface);border-top:1px solid var(--line)}
+  .exframe .xf-run{width:100%;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:12px 14px;font-family:var(--ui);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 8px 18px -10px rgba(91,91,214,.75)}
+  .exframe .xf-run:active{transform:scale(.98)}
+  .exframe .ex-out{margin:0;padding:12px 15px;font-size:13px;color:var(--ink-2);background:var(--surface);border-top:1px solid var(--line)}
   .exframe .ex-out b{color:var(--ink)}
   .ex-out{font-size:13px;color:var(--ink-2);margin-top:10px}
   .ex-out b{color:var(--ink)}
@@ -3199,6 +3200,7 @@ function confirmImport(){
 const KW=new Set(['SELECT','FROM','WHERE','AND','OR','NOT','ORDER','BY','ASC','DESC','LIMIT','OFFSET','DISTINCT','GROUP','HAVING','JOIN','INNER','LEFT','RIGHT','OUTER','FULL','ON','AS','IN','IS','NULL','LIKE','BETWEEN','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','UNION','ALL','EXISTS','CASE','WHEN','THEN','ELSE','END']);
 const FN=new Set(['COUNT','SUM','AVG','MIN','MAX','ROUND','ABS','LENGTH','UPPER','LOWER','COALESCE','STRFTIME','IFNULL']);
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escAttr(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function highlight(code){
   const re=/(--[^\n]*)|('(?:[^'\\]|\\.)*')|(\b\d+(?:\.\d+)?\b)|([A-Za-zÀ-ÿ_][A-Za-zÀ-ÿ0-9_]*)|(\s+)|([^\sA-Za-zÀ-ÿ0-9_])/g;
   let out='',m;
@@ -3816,12 +3818,15 @@ function lessonRichBlocks(l){
 }
 function lessonRichFooter(l){
   const n=(l.pipeline||[]).length+1;
+  const sql=escAttr(l.exemple);
   return `
     <div class="sect-label"><i>${n}</i><span>Exemple complet</span></div>
     <div class="exframe">
-      <div class="xf-head"><span class="xf-name">exemple.sql</span>
-        <button type="button" class="xf-run" onclick='openVizSql(${JSON.stringify(l.exemple)})'>◨ Voir l’exécution</button></div>
+      <div class="xf-head"><span class="xf-name">exemple.sql</span></div>
       <div class="ex-code">${highlight(l.exemple)}</div>
+      <div class="xf-actions">
+        <button type="button" class="xf-run" data-sql="${sql}" onclick="openVizSql(this.getAttribute('data-sql'))">▶ Exécuter</button>
+      </div>
       <p class="ex-out">↳ ${l.attendu}</p></div>
     <div class="piege"><div class="pi">!</div><div><b>${l.piege.t}</b><p>${l.piege.p}</p></div></div>`;
 }
