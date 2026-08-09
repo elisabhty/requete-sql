@@ -2763,6 +2763,7 @@ const QCM={
 const APP_VERSION='2026-08-09-w';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
+const NAV_KEY='requete-nav-v1';
 const DBS_KEY='requete-sql-dbs-v1';
 const memStore={};
 const Store={
@@ -2821,7 +2822,41 @@ function markDone(id,review){
 let db=null,SQL=null,baseBytes=null;
 const allLessons=MODULES.flatMap(m=>m.lessons);
 const TOTAL=allLessons.length;
-let current=null,mode='lesson',reviewQueue=[];
+let current=null,mode='lesson',reviewQueue=[],activeTab='learn',restoringNav=false;
+function saveNav(override){
+  if(restoringNav)return;
+  let nav=override;
+  if(!nav){
+    const onLesson=document.getElementById('scr-lesson').classList.contains('active');
+    if(onLesson&&current){
+      if(mode==='lesson') nav={view:'lesson',lessonId:current.id,lessonStep};
+      else if(mode==='defi') nav={view:'defi',defiId:current.id};
+      else if(mode==='review') nav={view:'review',reviewId:current.id};
+    }
+    if(!nav) nav={view:'tab',tab:activeTab};
+  }
+  try{ sessionStorage.setItem(NAV_KEY,JSON.stringify(nav)); }catch(e){}
+}
+function restoreNav(){
+  if(!state.onboarded)return;
+  let nav=null;
+  try{ nav=JSON.parse(sessionStorage.getItem(NAV_KEY)); }catch(e){}
+  if(!nav)return;
+  restoringNav=true;
+  try{
+    if(nav.view==='lesson'&&nav.lessonId&&allLessons.some(l=>l.id===nav.lessonId)){
+      openLesson(nav.lessonId,nav.lessonStep);
+    }else if(nav.view==='defi'&&nav.defiId&&CHALLENGES.some(c=>c.id===nav.defiId)){
+      openChallenge(nav.defiId);
+    }else if(nav.view==='review'&&nav.reviewId&&allLessons.some(l=>l.id===nav.reviewId)){
+      openReview(nav.reviewId);
+    }else if(nav.tab){
+      switchTab(nav.tab);
+    }
+  }finally{
+    restoringNav=false;
+  }
+}
 
 function loadScript(src){
   return new Promise((resolve,reject)=>{
@@ -2867,7 +2902,7 @@ async function boot(){
     syncHL('ed-console','hl-console'); renderConsoleChips(); renderDbWorkspace();
     const loader=document.getElementById('loader');
     loader.classList.add('fade-out');
-    setTimeout(()=>{loader.style.display='none'; maybeOnboard();}, 380);
+    setTimeout(()=>{loader.style.display='none'; maybeOnboard(); restoreNav();}, 380);
   }catch(e){
     document.getElementById('loader').innerHTML=
      `<div class="logo-badge" style="background:var(--danger);box-shadow:none">!</div>
@@ -3427,6 +3462,7 @@ function vizGo(d){ const i=vizI+d; if(i<0||i>=vizSteps.length)return; vizI=i; re
    ============================================================ */
 function switchTab(name){
   if(name==='defis'){homeFilter='defis';name='learn';}
+  activeTab=name;
   const map={learn:'scr-learn',planning:'scr-planning',collection:'scr-collection',console:'scr-console',schema:'scr-schema',compte:'scr-compte'};
   document.querySelectorAll('.tab').forEach(t=>{
     const on=t.dataset.tab===name;
@@ -3447,6 +3483,7 @@ function switchTab(name){
   if(name==='compte') renderCompte();
   if(name==='collection') renderCollection();
   if(name==='console') renderDbWorkspace();
+  saveNav({view:'tab',tab:name});
 }
 function prefersReduceMotion(){
   return window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -3657,7 +3694,9 @@ function goBack(){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('scr-learn').classList.add('active');
   showKbar(false);
+  activeTab='learn';
   if(mode==='defi'){homeFilter='tous';renderModules();}
+  saveNav({view:'tab',tab:'learn'});
 }
 const editorBlock=(withViz,fname='exercice.sql')=>`
   <div class="editor-shell">
@@ -3673,16 +3712,22 @@ const editorBlock=(withViz,fname='exercice.sql')=>`
 
 let lessonStep=0; // 0 leçon · 1 exercice · 2 quiz
 let exoFails=0; // 1→indice · 2→aide · 3→solution
-function openLesson(id){
-  const l=allLessons.find(x=>x.id===id); current=l; mode='lesson';
+function openLesson(id, restoreStep){
+  const l=allLessons.find(x=>x.id===id); if(!l)return;
+  current=l; mode='lesson';
   exoFails=0;
   document.getElementById('back-label').textContent='Leçons';
   document.getElementById('nav-title').textContent=`Leçon ${l.id}`;
   const e=etapesDe(id);
-  if(lecCompletee(id)) lessonStep=2;
+  if(restoreStep!=null){
+    const locks=[false,false,!e.exo];
+    lessonStep=(restoreStep>=0&&restoreStep<=2&&!locks[restoreStep])?restoreStep:
+      lecCompletee(id)?2:(e.exo?2:0);
+  }else if(lecCompletee(id)) lessonStep=2;
   else if(e.exo) lessonStep=2;
   else lessonStep=0;
   renderLessonFlow(); showScreen();
+  saveNav();
 }
 function lessonStepMeta(){
   const e=etapesDe(current.id);
@@ -3702,6 +3747,7 @@ function setLessonStep(n){
   renderLessonFlow();
   const wrap=document.getElementById('scr-lesson');
   if(wrap)wrap.scrollTop=0;
+  saveNav();
 }
 /* ---------- Blocs de cours enrichis (réutilisables) ---------- */
 function lessonRichBlocks(l){
@@ -3862,6 +3908,7 @@ function openChallenge(cid){
     <p style="font-size:13.5px;color:var(--ink-2);margin:0 4px 14px">La syntaxe reste à construire par toi. Consulte l’onglet <b>Schéma</b> si besoin.</p>
     ${editorBlock(true,'defi.sql')}`;
   setupEditor('ed-lesson','hl-lesson'); showScreen();
+  saveNav();
 }
 function startReview(){
   reviewQueue=dueList().map(l=>l.id);
@@ -3879,6 +3926,7 @@ function openReview(id){
     <p style="font-size:13.5px;color:var(--ink-2);margin:0 4px 14px">Le cours est masqué volontairement. Il reste ${reviewQueue.length} leçon${reviewQueue.length>1?'s':''} à revoir.</p>
     ${editorBlock(false,'revision.sql')}`;
   setupEditor('ed-lesson','hl-lesson'); showScreen();
+  saveNav();
 }
 function registerExoFail(){
   exoFails++;
