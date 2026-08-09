@@ -533,6 +533,21 @@
   .mv-tag{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;background:var(--accent);color:#fff;padding:3px 7px;border-radius:6px;flex:none}
   .wk-nav>button[data-nav].over{background:var(--accent);color:#fff;border-color:transparent;transform:scale(1.12)}
 
+  /* ---------- Slides de leçon ---------- */
+  .ls-steps{display:flex;gap:6px;margin:4px 0 14px;padding:3px;background:var(--line);border-radius:12px}
+  .ls-step{flex:1;border:none;background:none;border-radius:10px;padding:9px 6px;font-family:var(--ui);font-size:12px;font-weight:700;color:var(--ink-3);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .ls-step small{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.4px;opacity:.8}
+  .ls-step.on{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .ls-step.done{color:var(--success)}
+  .ls-step.lock{opacity:.45;cursor:default}
+  .ls-slide{animation:lsIn .28s cubic-bezier(.32,.72,.28,1)}
+  @keyframes lsIn{from{opacity:.35;transform:translateX(16px)}to{opacity:1;transform:none}}
+  .ls-nav{position:sticky;bottom:calc(var(--safe-bottom) + 64px);z-index:15;display:flex;gap:8px;padding:10px 0 6px;background:linear-gradient(180deg,transparent,var(--bg) 28%);margin-top:8px}
+  .ls-nav .ls-prev{flex:none;background:var(--surface);border:1px solid var(--line-2);border-radius:13px;padding:14px 16px;font-family:var(--ui);font-size:14px;font-weight:600;color:var(--ink-2);cursor:pointer}
+  .ls-nav .ls-next{flex:1;background:linear-gradient(180deg,#6363DE,#5151CB);color:#fff;border:none;border-radius:13px;padding:14px;font-family:var(--ui);font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(91,91,214,.28)}
+  .ls-nav .ls-next:disabled{opacity:.4;box-shadow:none}
+  .ls-nav button:active{transform:scale(.98)}
+
   /* ---------- Validation de leçon ---------- */
   .vsteps{display:flex;gap:7px;margin:0 0 16px;flex-wrap:wrap}
   .vstep{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line-2);border-radius:10px;padding:7px 11px;font-size:12.5px;font-weight:600;color:var(--ink-3)}
@@ -2025,7 +2040,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-09-g';
+const APP_VERSION='2026-08-09-i';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const memStore={};
@@ -2519,6 +2534,10 @@ function showScreen(){
   setTimeout(()=>scr.classList.remove('push'),340);
 }
 function goBack(){
+  if(mode==='lesson'&&lessonStep>0&&document.getElementById('scr-lesson').classList.contains('active')){
+    setLessonStep(lessonStep-1);
+    return;
+  }
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(mode==='defi'?'scr-defis':'scr-learn').classList.add('active');
   showKbar(false);
@@ -2535,27 +2554,94 @@ const editorBlock=(withViz)=>`
   <div class="helpers"><button onclick="toggleHint()">💡 Indice</button><button onclick="showSolution()">👁 Solution</button></div>
   <div id="hint-slot"></div>`;
 
+let lessonStep=0; // 0 leçon · 1 exercice · 2 quiz
 function openLesson(id){
   const l=allLessons.find(x=>x.id===id); current=l; mode='lesson';
   document.getElementById('back-label').textContent='Leçons';
   document.getElementById('nav-title').textContent=`Leçon ${l.id}`;
-  const anat=l.anatomie.map(a=>`<div class="anat-line"><div class="anat-tok ${a.plain?'plain':''}${a.punc?' punc':''}">${esc(a.tok)}</div><div class="anat-txt">${a.txt}</div></div>`).join('');
+  const e=etapesDe(id);
+  if(lecCompletee(id)) lessonStep=2;
+  else if(e.exo) lessonStep=2;
+  else lessonStep=0;
+  renderLessonFlow(); showScreen();
+}
+function lessonStepMeta(){
+  const e=etapesDe(current.id);
+  const exoOk=!!e.exo;
+  const quizOk=lecCompletee(current.id);
+  return [
+    {i:0,l:'Leçon',s:'Cours',done:exoOk||quizOk||lessonStep>0,lock:false},
+    {i:1,l:'Exercice',s:'Pratique',done:exoOk,lock:false},
+    {i:2,l:'Quiz',s:'Valider',done:quizOk,lock:!exoOk}
+  ];
+}
+function setLessonStep(n){
+  if(mode!=='lesson'||!current)return;
+  const meta=lessonStepMeta();
+  if(!meta[n]||meta[n].lock)return;
+  lessonStep=n;
+  renderLessonFlow();
+  const wrap=document.getElementById('scr-lesson');
+  if(wrap)wrap.scrollTop=0;
+}
+function renderLessonFlow(){
+  if(!current||mode!=='lesson')return;
+  const l=current, meta=lessonStepMeta();
+  const steps=meta.map(s=>`
+    <button type="button" class="ls-step ${lessonStep===s.i?'on':''} ${s.done?'done':''} ${s.lock?'lock':''}"
+      ${s.lock?'':'onclick="setLessonStep('+s.i+')"'}>
+      <small>${s.done&&lessonStep!==s.i?'✓':(s.i+1)}</small>${s.l}
+    </button>`).join('');
+  let slide='';
+  if(lessonStep===0){
+    const anat=l.anatomie.map(a=>`<div class="anat-line"><div class="anat-tok ${a.plain?'plain':''}${a.punc?' punc':''}">${esc(a.tok)}</div><div class="anat-txt">${a.txt}</div></div>`).join('');
+    slide=`
+      <div class="l-kicker">Leçon ${l.id} · ${l.résumé}</div><h1>${l.titre}</h1>
+      <div class="sect-label"><i>1</i><span>La situation</span></div>
+      <div class="card"><p class="ask">${l.situation}</p>${l.concept}</div>
+      <div class="sect-label"><i>2</i><span>La requête, mot par mot</span></div>
+      <div class="anat">${anat}</div>
+      <div class="sect-label"><i>3</i><span>Exemple</span></div>
+      <div class="card">
+        <div class="ex-code">${highlight(l.exemple)}</div>
+        <p class="ex-out">↳ ${l.attendu}</p></div>
+      <div class="piege"><div class="pi">⚠️</div><div><b>${l.piege.t}</b><p>${l.piege.p}</p></div></div>
+      <div class="ls-nav">
+        <button class="ls-next" type="button" onclick="setLessonStep(1)">Suivant : Exercice →</button>
+      </div>`;
+  }else if(lessonStep===1){
+    const exoOk=!!etapesDe(l.id).exo;
+    slide=`
+      <div class="l-kicker">Étape 2 / 3 · Exercice</div><h1>À toi de jouer</h1>
+      <div class="consigne"><span class="tag">Consigne</span><p>${l.consigne}</p></div>
+      <div class="card" style="padding:12px 14px">
+        <div class="ex-label"><span>Exemple (aide)</span><button class="ex-load" onclick="loadExample()">Charger ↓</button></div>
+        <div class="ex-code" style="font-size:12px">${highlight(l.exemple)}</div>
+      </div>
+      ${editorBlock(!l.write)}
+      ${exoOk?`<div class="ls-nav">
+        <button class="ls-prev" type="button" onclick="setLessonStep(0)">‹ Cours</button>
+        <button class="ls-next" type="button" onclick="setLessonStep(2)">Suivant : Quiz →</button>
+      </div>`:`<div class="ls-nav">
+        <button class="ls-prev" type="button" onclick="setLessonStep(0)">‹ Cours</button>
+        <button class="ls-next" type="button" disabled>Valide l’exercice pour continuer</button>
+      </div>`}`;
+  }else{
+    slide=`
+      <div class="l-kicker">Étape 3 / 3 · Quiz</div><h1>Valider la leçon</h1>
+      <p style="font-size:14px;color:var(--ink-2);margin:0 2px 14px">Deux questions pour verrouiller le concept. Pas de retour en arrière sur les bonnes réponses.</p>
+      <div id="valid-block"></div>
+      <div class="ls-nav">
+        <button class="ls-prev" type="button" onclick="setLessonStep(1)">‹ Exercice</button>
+      </div>`;
+  }
   document.getElementById('lesson-body').innerHTML=`
-    <div class="l-kicker">Leçon ${l.id} · ${l.résumé}</div><h1>${l.titre}</h1>
-    <div class="sect-label"><i>1</i><span>La situation</span></div>
-    <div class="card"><p class="ask">${l.situation}</p>${l.concept}</div>
-    <div class="sect-label"><i>2</i><span>La requête, mot par mot</span></div>
-    <div class="anat">${anat}</div>
-    <div class="sect-label"><i>3</i><span>Essaie par toi-même</span></div>
-    <div class="card">
-      <div class="ex-label"><span>Exemple complet</span><button class="ex-load" onclick="loadExample()">Charger ↓</button></div>
-      <div class="ex-code">${highlight(l.exemple)}</div>
-      <p class="ex-out">↳ ${l.attendu}</p></div>
-    <div class="piege"><div class="pi">⚠️</div><div><b>${l.piege.t}</b><p>${l.piege.p}</p></div></div>
-    <div class="consigne"><span class="tag">À toi de jouer</span><p>${l.consigne}</p></div>
-    ${editorBlock(!l.write)}
-    <div id="valid-block"></div>`;
-  setupEditor('ed-lesson','hl-lesson'); renderValidation(); showScreen();
+    <div class="ls-steps">${steps}</div>
+    <div class="ls-slide">${slide}</div>`;
+  if(lessonStep===1){
+    setupEditor('ed-lesson','hl-lesson');
+  }
+  if(lessonStep===2) renderValidation();
 }
 function openChallenge(cid){
   const c=CHALLENGES.find(x=>x.id===cid); current=c; mode='defi';
@@ -2630,10 +2716,17 @@ function runLesson(){
       const reste=nbEtapes(current.id)-nbFaites(current.id);
       head=`<div class="feedback ok"><div class="fi">✓</div><div><b>Exercice réussi${dejaExo?'':' · étape validée'}</b>
         <p>${write?'La copie de la base a bien été modifiée comme attendu.':'Ton résultat correspond exactement à ce qui était attendu.'}
-        ${reste?` Il reste ${reste} question${reste>1?'s':''} pour valider la leçon.`:''}</p></div></div>`;
-      out.innerHTML=head+table;
-      if(lecCompletee(current.id))finaliserLecon(); else {renderValidation();
-        const vb=document.getElementById('valid-block');if(vb)setTimeout(()=>vb.scrollIntoView({behavior:'smooth',block:'start'}),120);}
+        ${reste?` Passe au quiz pour valider la leçon.`:' Quiz déjà terminé.'}</p></div></div>`;
+      out.innerHTML=head+table+`<button class="next-btn" type="button" onclick="setLessonStep(2)">Suivant : Quiz →</button>`;
+      document.querySelectorAll('#lesson-body .ls-step').forEach((el,i)=>{
+        if(i===1)el.classList.add('done');
+        if(i===2){el.classList.remove('lock');el.onclick=()=>setLessonStep(2);}
+      });
+      const sticky=document.querySelector('#lesson-body .ls-nav');
+      if(sticky) sticky.innerHTML=`
+        <button class="ls-prev" type="button" onclick="setLessonStep(0)">‹ Cours</button>
+        <button class="ls-next" type="button" onclick="setLessonStep(2)">Suivant : Quiz →</button>`;
+      if(lecCompletee(current.id)) finaliserLecon();
     }
   }else{
     const nU=userRes&&userRes[0]?userRes[0].values.length:0;
@@ -3304,7 +3397,7 @@ function renderValidation(){
   if(!host||!current||mode!=='lesson')return;
   const id=current.id,e=etapesDe(id),qs=qcmDe(id);
   const fini=lecCompletee(id);
-  const pastilles=[{k:'exo',l:'Exercice'}].concat(qs.map((_,i)=>({k:'q'+i,l:'Question '+(i+1)})))
+  const pastilles=qs.map((_,i)=>({k:'q'+i,l:'Question '+(i+1)}))
     .map(p=>`<div class="vstep ${e[p.k]?'ok':''}"><span class="vs-dot">${e[p.k]?'✓':''}</span>${p.l}</div>`).join('');
   const cartes=qs.map((q,i)=>{
     const repondu=!!e['q'+i];
@@ -3321,14 +3414,14 @@ function renderValidation(){
     </div>`;
   }).join('');
   const suiv=allLessons.find(x=>!(state.lessons[x.id]&&state.lessons[x.id].done));
+  const resteQ=qs.filter((_,i)=>!e['q'+i]).length;
   const final=fini
     ? `<div class="feedback ok" style="margin-top:4px"><div class="fi">✓</div><div><b>Leçon validée</b>
-        <p>Exercice et questions au complet. La carte <b>${esc(CARTES[id].k)}</b> est dans ta collection.</p></div></div>
+        <p>Exercice et quiz au complet. La carte <b>${esc(CARTES[id].k)}</b> est dans ta collection.</p></div></div>
        ${suiv?`<button class="next-btn" onclick="openLesson(${suiv.id})">Leçon suivante →</button>`
         :`<div class="feedback ok"><div class="fi">🎉</div><div><b>Programme terminé</b><p>Les 45 leçons sont bouclées.</p></div></div>`}`
-    : `<div class="valid-todo">Il reste <b>${nbEtapes(id)-nbFaites(id)} étape${nbEtapes(id)-nbFaites(id)>1?'s':''}</b> pour valider cette leçon et débloquer la suivante.</div>`;
+    : `<div class="valid-todo">Réponds aux <b>${resteQ} question${resteQ>1?'s':''}</b> pour valider la leçon.</div>`;
   host.innerHTML=`
-    <div class="sect-label"><i>4</i><span>Valider la leçon</span></div>
     <div class="vsteps">${pastilles}</div>
     ${cartes}
     ${final}`;
@@ -3356,7 +3449,8 @@ function finaliserLecon(){
   const premier=!(state.lessons[id]&&state.lessons[id].done);
   markDone(id,false); celebrate();
   renderModules();renderProgress();renderCollection();renderPlanning();
-  renderValidation();
+  lessonStep=2;
+  renderLessonFlow();
   if(premier)showUnlock(id);
   const h=document.getElementById('valid-block');
   if(h)h.scrollIntoView({behavior:'smooth',block:'center'});
