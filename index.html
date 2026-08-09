@@ -2040,7 +2040,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-09-j';
+const APP_VERSION='2026-08-09-k';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const memStore={};
@@ -2551,12 +2551,13 @@ const editorBlock=(withViz)=>`
   <div class="run-row"><button class="btn-run" onclick="runLesson()">▶︎ Exécuter &amp; vérifier</button>
   ${withViz?`<button class="btn-ghost" onclick="openViz('ed-lesson')">◨ Visualiser</button>`:''}</div>
   <div id="lesson-out"></div>
-  <div class="helpers"><button onclick="toggleHint()">💡 Indice</button><button onclick="showSolution()">👁 Solution</button></div>
   <div id="hint-slot"></div>`;
 
 let lessonStep=0; // 0 leçon · 1 exercice · 2 quiz
+let exoFails=0; // 1→indice · 2→aide · 3→solution
 function openLesson(id){
   const l=allLessons.find(x=>x.id===id); current=l; mode='lesson';
+  exoFails=0;
   document.getElementById('back-label').textContent='Leçons';
   document.getElementById('nav-title').textContent=`Leçon ${l.id}`;
   const e=etapesDe(id);
@@ -2636,11 +2637,13 @@ function renderLessonFlow(){
     <div class="ls-slide">${slide}</div>`;
   if(lessonStep===1){
     setupEditor('ed-lesson','hl-lesson');
+    renderExoHelp();
   }
   if(lessonStep===2) renderValidation();
 }
 function openChallenge(cid){
   const c=CHALLENGES.find(x=>x.id===cid); current=c; mode='defi';
+  exoFails=0;
   document.getElementById('back-label').textContent='Défis';
   document.getElementById('nav-title').textContent='Défi';
   document.getElementById('lesson-body').innerHTML=`
@@ -2657,6 +2660,7 @@ function startReview(){
 }
 function openReview(id){
   const l=allLessons.find(x=>x.id===id); current=l; mode='review';
+  exoFails=0;
   document.getElementById('back-label').textContent='Leçons';
   document.getElementById('nav-title').textContent='Révision';
   document.getElementById('lesson-body').innerHTML=`
@@ -2665,6 +2669,27 @@ function openReview(id){
     <p style="font-size:13.5px;color:var(--ink-2);margin:0 4px 14px">Le cours est masqué volontairement. Il reste ${reviewQueue.length} leçon${reviewQueue.length>1?'s':''} à revoir.</p>
     ${editorBlock(false)}`;
   setupEditor('ed-lesson','hl-lesson'); showScreen();
+}
+function registerExoFail(){
+  exoFails++;
+  renderExoHelp();
+}
+function renderExoHelp(){
+  const s=document.getElementById('hint-slot');
+  if(!s||!current||exoFails<1){if(s&&exoFails<1)s.innerHTML='';return;}
+  const sol=mode==='defi'?current.sol:current.solution;
+  let html='';
+  if(exoFails>=1) html+=`<div class="hint-box"><b>Indice</b>${current.indice||''}</div>`;
+  if(exoFails>=2){
+    if(current.exemple)
+      html+=`<div class="hint-box"><b>Aide</b>Exemple du cours à adapter :
+        <div class="ex-code" style="margin-top:8px">${highlight(current.exemple)}</div></div>`;
+    else
+      html+=`<div class="hint-box"><b>Aide</b>Repère les <b>tables</b> et <b>colonnes</b> de l’énoncé, puis assemble dans l’ordre : FROM → JOIN (si besoin) → WHERE / GROUP BY → SELECT. Consulte l’onglet <b>Schéma</b> si un nom te manque.</div>`;
+  }
+  if(exoFails>=3) html+=`<div class="hint-box sol"><b>Solution</b>Une requête qui fonctionne :
+    <div class="ex-code" style="margin-top:8px">${highlight(sol)}</div></div>`;
+  s.innerHTML=html;
 }
 function loadExample(){
   const ta=document.getElementById('ed-lesson');
@@ -2688,7 +2713,7 @@ function runLesson(){
       const r=execQuery(sql); userRes=r.res; ms=r.ms;
       solRes=execQuery(sol).res;
     }
-  }catch(e){ out.innerHTML=errBox(e.message); return; }
+  }catch(e){ out.innerHTML=errBox(e.message); registerExoFail(); return; }
   const ok=normalize(userRes,ordered)===normalize(solRes,ordered);
   const table=renderTable(userRes,ms);
   if(ok){
@@ -2727,25 +2752,14 @@ function runLesson(){
   }else{
     const nU=userRes&&userRes[0]?userRes[0].values.length:0;
     const nS=solRes&&solRes[0]?solRes[0].values.length:0;
-    let diag="Compare ton résultat avec la question, ou prends un indice.";
+    let diag="Compare ton résultat avec la question, puis réessaie.";
     if(nU>nS) diag=`Tu obtiens <b>${nU} lignes</b> alors qu'on en attend <b>${nS}</b> — il manque sans doute un filtre.`;
     else if(nU<nS&&nU>0) diag=`Tu obtiens <b>${nU} lignes</b> alors qu'on en attend <b>${nS}</b> — ton filtre est peut-être trop strict.`;
     else if(nU===nS&&nU>0) diag="Le nombre de lignes est bon, mais pas les colonnes, les valeurs ou leur ordre.";
     if(mode==='review'){ const st=state.lessons[current.id]; if(st){st.level=0;st.due=Date.now()+DAY;save();} }
     out.innerHTML=`<div class="feedback warn"><div class="fi">≈</div><div><b>La requête tourne, mais…</b><p>${diag}</p></div></div>${table}`;
+    registerExoFail();
   }
-}
-function toggleHint(){
-  const s=document.getElementById('hint-slot');
-  if(s.dataset.open==='hint'){s.innerHTML='';s.dataset.open='';return;}
-  s.dataset.open='hint';
-  s.innerHTML=`<div class="hint-box"><b>Indice</b>${mode==='defi'?current.indice:current.indice}</div>`;
-}
-function showSolution(){
-  const s=document.getElementById('hint-slot'); s.dataset.open='sol';
-  const sol=mode==='defi'?current.sol:current.solution;
-  s.innerHTML=`<div class="hint-box sol"><b>Solution</b>Une requête qui fonctionne :
-    <div class="ex-code" style="margin-top:8px">${highlight(sol)}</div></div>`;
 }
 function renderSchema(){
   document.getElementById('schema-body').innerHTML=SCHEMA_META.map(t=>{
