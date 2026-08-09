@@ -844,7 +844,7 @@
 
     <!-- PLANNING -->
     <section id="scr-planning" class="screen">
-      <div class="lgtitle"><div class="eyebrow">Ton rythme</div><h1>Planning</h1>
+      <div class="lgtitle"><div class="eyebrow">Ton rythme</div><h1>Parcours</h1>
         <p class="sub" id="pl-sub">Un parcours étalé sur les jours qui t'arrangent.</p></div>
       <div id="planning-body"></div>
     </section>
@@ -953,7 +953,7 @@
     <button class="tab active" data-tab="learn" onclick="switchTab('learn')">
       <svg viewBox="0 0 24 24" fill="none"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 1 4 17.5v-12Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 0 1.5-1.5v-12Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>Apprendre</button>
     <button class="tab" data-tab="planning" onclick="switchTab('planning')">
-      <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="15" rx="2.2" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="7" y="12.5" width="4" height="3" rx="1" fill="currentColor"/></svg>Planning<span class="dot-n" id="badge-planning" style="display:none">0</span></button>
+      <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="15" rx="2.2" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="7" y="12.5" width="4" height="3" rx="1" fill="currentColor"/></svg>Parcours<span class="dot-n" id="badge-planning" style="display:none">0</span></button>
     <button class="tab" data-tab="collection" onclick="switchTab('collection')">
       <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="11" height="14" rx="2" stroke="currentColor" stroke-width="1.6"/><rect x="9" y="3.5" width="11" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="var(--bg)"/></svg>Cartes</button>
     <button class="tab" data-tab="console" onclick="switchTab('console')">
@@ -2038,7 +2038,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-09-l';
+const APP_VERSION='2026-08-09-m';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const memStore={};
@@ -2449,7 +2449,7 @@ function renderHomeHero(){
     title=`${info.retard.length} séance${info.retard.length>1?'s':''} en retard`;
     desc='Reporte-les sur aujourd’hui, ou ouvre le planning.';
     primary=`<button class="hc-go" type="button" onclick="rattraper();switchTab('planning')">Rattraper</button>`;
-    secondary=`<button class="hc-sec" type="button" onclick="switchTab('planning')">Planning</button>`;
+    secondary=`<button class="hc-sec" type="button" onclick="switchTab('planning')">Parcours</button>`;
   }else if(info.today&&resteDe(info.today)){
     const left=info.today.lessons.filter(id=>!itemDone(id));
     const nLeft=left.length;
@@ -2467,7 +2467,7 @@ function renderHomeHero(){
     desc=info.suivante?`Prochaine : ${libelleJour(info.suivante.d).toLowerCase()}.`:'Belle journée — rien d’autre de prévu.';
     primary=info.suivante
       ?`<button class="hc-go" type="button" onclick="demarrerSeance('${info.suivante.d}')">Prendre de l'avance</button>`
-      :`<button class="hc-go" type="button" onclick="switchTab('planning')">Voir le planning</button>`;
+      :`<button class="hc-go" type="button" onclick="switchTab('planning')">Voir le parcours</button>`;
     if(due.length) secondary=`<button class="hc-sec" type="button" onclick="startReview()">↻ ${due.length}</button>`;
   }else{
     mode='rest'; tag='Journée libre';
@@ -2475,7 +2475,7 @@ function renderHomeHero(){
     desc=info.suivante?`Prochaine séance ${libelleJour(info.suivante.d).toLowerCase()} · ${info.suivante.lessons.length} items.`:'Ouvre le planning pour ajuster.';
     primary=info.suivante
       ?`<button class="hc-go" type="button" onclick="demarrerSeance('${info.suivante.d}')">Prendre de l'avance</button>`
-      :`<button class="hc-go" type="button" onclick="switchTab('planning')">Ouvrir le planning</button>`;
+      :`<button class="hc-go" type="button" onclick="switchTab('planning')">Ouvrir le parcours</button>`;
     if(due.length) secondary=`<button class="hc-sec" type="button" onclick="startReview()">↻ ${due.length}</button>`;
   }
 
@@ -2918,7 +2918,7 @@ const PATTERN={2:[1,4],3:[1,3,5],5:[1,2,3,4,5],7:[0,1,2,3,4,5,6]};
 const JOURS=['D','L','M','M','J','V','S'];
 const MIN_PAR_LECON=6;
 let draft={niveau:null,rythme:null,freq:null};
-let vuePlan='semaine',semaineOffset=0,jourSel=null;
+let semaineOffset=0,jourSel=null;
 
 /* ---------- Dates ---------- */
 function jour0(d){const x=new Date(d);x.setHours(0,0,0,0);return x;}
@@ -3196,7 +3196,7 @@ function navHTML(){
   const titre=a.getMonth()===b.getMonth()
     ? `${a.getDate()} – ${b.getDate()} ${b.toLocaleDateString('fr-FR',{month:'long'})}`
     : `${a.getDate()} ${a.toLocaleDateString('fr-FR',{month:'short'})} – ${b.getDate()} ${b.toLocaleDateString('fr-FR',{month:'short'})}`;
-  const sous=semaineOffset===0?'Les 7 prochains jours':(semaineOffset===1?'Semaine suivante':(semaineOffset===-1?'Semaine précédente':(semaineOffset<0?`Il y a ${-semaineOffset} semaines`:`Dans ${semaineOffset} semaines`)));
+  const sous=semaineOffset===0?'Ton parcours · 7 prochains jours':(semaineOffset===1?'Parcours · suite':(semaineOffset===-1?'Parcours · avant':(semaineOffset<0?`Parcours · il y a ${-semaineOffset} sem.`:`Parcours · dans ${semaineOffset} sem.`)));
   return `<button data-nav="-1" onclick="changerSemaine(-1)">‹</button>
     <div class="wk-t"><b>${titre}</b><small>${sous}</small></div>
     <button data-nav="1" onclick="changerSemaine(1)">›</button>
@@ -3211,6 +3211,7 @@ function majStrip(){
 function renderSemaine(){
   const t=dstr(auj());
   assureJourSel();
+  const p=state.plan,st=statsPlan();
   const sess=sessionDe(jourSel);
   const fait=sessionFaite(sess),ret=sess&&jourSel<t&&!fait;
   const chips=sess?sess.lessons.map(id=>{
@@ -3234,21 +3235,6 @@ function renderSemaine(){
       </div>
       <div class="pl-chips">${chips||'<div class="pl-empty-day">Pause — glisse une leçon ou un défi ici</div>'}</div>
     </div>
-    <p class="pl-hint">Glisse ⣿ sur un jour du bandeau — ★ = défi, chiffre = leçon, « pause » = jour libre.<br>Ou touche › pour choisir une date.</p>`;
-}
-/* ---------- Rendu : vue parcours ---------- */
-function renderParcours(){
-  const p=state.plan,t=dstr(auj()),st=statsPlan();
-  const lignes=p.sessions.map((s,i)=>{
-    const fait=sessionFaite(s),ret=s.d<t&&!fait,estAuj=s.d===t;
-    const faites=s.lessons.length-resteDe(s);
-    return `<div class="pc-row ${fait?'fait':''} ${ret?'ret':''} ${estAuj?'auj':''}" onclick="allerAuJour('${s.d}')">
-      <div class="pc-n">${fait?'✓':(ret?'!':i+1)}</div>
-      <div class="pc-t"><b>${courtJour(s.d)}${estAuj?" · aujourd'hui":""}</b>
-        <small>${s.lessons.map(id=>itemMeta(id).titre).join(' · ')}</small></div>
-      <div class="pc-r">${faites}/${s.lessons.length}</div></div>`;
-  }).join('');
-  return `
     <div class="pl-tools">
       <div class="tl"><b>Étaler le parcours</b>Plus de séances = des journées plus courtes</div>
       <div class="stepper">
@@ -3261,10 +3247,10 @@ function renderParcours(){
       <button onclick="refairePlan()">Recommencer</button>
     </div>
     ${p.archive&&p.archive.length?`<p class="pl-hint" style="text-align:left;margin:12px 16px 0">${p.archive.length} items déjà terminés ont été retirés du calendrier.</p>`:''}
-    <div class="pc-list">${lignes}</div>`;
+    <p class="pl-hint">Glisse ⣿ sur un jour du bandeau — ★ = défi, chiffre = leçon, « pause » = jour libre.<br>Ou touche › pour choisir une date.</p>`;
 }
 function allerAuJour(iso){
-  vuePlan='semaine';jourSel=iso;
+  jourSel=iso;
   semaineOffset=Math.floor((parseD(iso)-auj())/86400000/7);
   renderPlanning();
 }
@@ -3281,13 +3267,11 @@ function renderPlanning(){
   const st=statsPlan();
   const sub=document.getElementById('pl-sub');
   if(sub)sub.textContent=`${st.done}/${st.total} · ${st.nL||0} leçons + ${st.nD||0} défis · ${st.seances} séances`;
+  const h1=document.querySelector('#scr-planning .lgtitle h1');
+  if(h1) h1.textContent='Parcours';
   host.innerHTML=`
     ${renderTodayHero()}
-    <div class="seg" style="margin:16px 16px 0">
-      <button class="${vuePlan==='semaine'?'on':''}" onclick="vuePlan='semaine';renderPlanning()">Semaine</button>
-      <button class="${vuePlan==='parcours'?'on':''}" onclick="vuePlan='parcours';renderPlanning()">Parcours</button>
-    </div>
-    <div class="pl-week">${vuePlan==='semaine'?renderSemaine():renderParcours()}</div>`;
+    <div class="pl-week">${renderSemaine()}</div>`;
   brancherDrag();renderHomeToday();
 }
 function chipTap(e,id){if(dragging||Date.now()-blocTap<400)return;openItem(parseItemId(id));}
@@ -3804,7 +3788,7 @@ function paintOb(){
     const first=p.sessions[0].lessons.find(id=>!isDefiId(id))||p.sessions[0].lessons[0];
     html=`<div class="ob-kicker">Ton planning</div>
       <h2>C’est calé.</h2>
-      <p>Leçons et défis en 50/50. Tu pourras tout ajuster dans l’onglet Planning.</p>
+      <p>Leçons et défis en 50/50. Tu pourras tout ajuster dans l’onglet Parcours.</p>
       <div class="ob-summary">
         <div class="pt">Parcours · ${esc(niv.t)}</div>
         <h3>${ryt.min} min · ${esc(freq.t)}</h3>
@@ -3924,7 +3908,7 @@ function renderCompte(){
         <div class="ai">▦</div><div class="at"><b>Schéma de la base</b><small>clients · produits · commandes</small></div>
         <span class="chev">›</span></button>
       <button class="acc-row" type="button" onclick="switchTab('planning')">
-        <div class="ai">📅</div><div class="at"><b>Mon planning</b><small>${state.plan?'Voir ou ajuster ton rythme':'Créer un parcours sur mesure'}</small></div>
+        <div class="ai">📅</div><div class="at"><b>Mon parcours</b><small>${state.plan?'Voir ou ajuster ton rythme':'Créer un parcours sur mesure'}</small></div>
         <span class="chev">›</span></button>
       <button class="acc-row" type="button" onclick="replayOnboarding()">
         <div class="ai">↻</div><div class="at"><b>Revoir l’intro</b><small>L’onboarding en 4 écrans</small></div>
