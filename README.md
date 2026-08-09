@@ -10,7 +10,8 @@ Application web progressive pour apprendre le SQL en pratiquant sur une **vraie 
 - **Révisions espacées** (spaced repetition)
 - **Défis** métier sans filet
 - **Console** SQL libre + visualiseur pas à pas
-- **Carnet** : notes + cartes débloquées
+- **Cartes** : collection de cartes débloquées
+- **Notes** : stylo ✎ disponible partout
 - **Compte** : profil, stats, export/import, schéma, reset
 - Persistance locale (`localStorage`)
 
