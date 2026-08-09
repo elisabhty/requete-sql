@@ -3677,19 +3677,19 @@ function paintOb(){
   const btn=document.getElementById('ob-next');
   const skip=document.getElementById('ob-skip');
   btn.disabled=!obCanNext();
-  if(obStep===0){btn.textContent='Configurer mon planning';skip.textContent='Passer, je commence direct';skip.style.display='';}
+  if(obStep===0){btn.textContent='Configurer mon planning';skip.textContent='Passer l’intro';skip.style.display='';}
   else if(obStep<4){btn.textContent='Continuer';skip.textContent='Passer le planning';skip.style.display='';}
-  else{btn.textContent='Créer et lancer la leçon 1';skip.textContent='Créer sans lancer';skip.style.display='';}
+  else{btn.textContent='Créer mon planning';skip.textContent='Voir le planning';skip.style.display='';}
   skip.onclick=()=>{
     if(obStep===4) finishOnboard('plan-ready');
-    else finishOnboard(obStep===0?'lesson':'skip');
+    else finishOnboard('skip');
   };
 }
 function obNext(){
   if(!obCanNext())return;
   const nameInp=document.getElementById('ob-name');
   if(obStep===0&&nameInp){state.name=(nameInp.value||'').trim().slice(0,32);}
-  if(obStep>=4){finishOnboard('plan-lesson');return;}
+  if(obStep>=4){finishOnboard('home');return;}
   const body=document.getElementById('ob-body');
   body.classList.add('out');
   setTimeout(()=>{
@@ -3700,7 +3700,7 @@ function obNext(){
 function finishOnboard(action){
   const nameInp=document.getElementById('ob-name');
   if(nameInp){const n=(nameInp.value||'').trim().slice(0,32); if(n)state.name=n;}
-  if(action==='plan-lesson'||action==='plan-ready'){
+  if(action==='home'||action==='plan-ready'){
     if(draft.niveau&&draft.rythme&&draft.freq){
       state.plan=apercuPlan(draft.niveau,draft.rythme,draft.freq);
       semaineOffset=0;jourSel=null;
@@ -3709,17 +3709,8 @@ function finishOnboard(action){
   state.onboarded=true; save();
   document.getElementById('onboarding').classList.remove('on');
   renderGreeting(); renderHomeHero(); renderProgress(); renderPlanning();
-  if(action==='plan-lesson'){
-    switchTab('learn');
-    const first=state.plan&&state.plan.sessions[0]&&state.plan.sessions[0].lessons[0];
-    if(first!=null) openItem(first); else openLesson(1);
-  }else if(action==='plan-ready'){
-    switchTab('planning');
-  }else if(action==='lesson'){
-    switchTab('learn'); openLesson(1);
-  }else{
-    switchTab('learn');
-  }
+  if(action==='plan-ready') switchTab('planning');
+  else switchTab('learn');
 }
 function celebrate(){
   const host=document.getElementById('burst');
