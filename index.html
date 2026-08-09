@@ -300,6 +300,11 @@
   .cmp-card.having .cmp-verdict{border-top-color:rgba(28,166,114,.15)}
   .cmp-verdict.ko{color:var(--danger)}
   .cmp-verdict.ok{color:var(--success)}
+  .cmp-verdict-body{display:flex;flex-direction:column;gap:4px;min-width:0}
+  .cmp-verdict-body b{display:block;font-size:12.5px;line-height:1.35}
+  .cmp-verdict-body p{margin:0;font-size:12.5px;font-weight:500;line-height:1.5;color:var(--ink-2)}
+  .cmp-verdict.ko .cmp-verdict-body b{color:var(--danger)}
+  .cmp-verdict.ok .cmp-verdict-body b{color:var(--success)}
   .xsec{display:flex;gap:0;align-items:flex-start;overflow-x:auto;padding:8px 4px 4px;margin-top:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .xsec::-webkit-scrollbar{display:none}
   .xstep{flex:none;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:68px}
@@ -1664,7 +1669,7 @@ HAVING COUNT(*) >= 2;</div>
 FROM produits
 WHERE COUNT(*) >= 2
 GROUP BY categorie;</div>
-        <div class="cmp-verdict ko">✕ Erreur : les groupes n’existent pas encore.</div>
+        <div class="cmp-verdict ko"><span aria-hidden="true">✕</span><div class="cmp-verdict-body"><b>Erreur : WHERE s’exécute avant GROUP BY.</b><p>À ce moment-là, SQL voit uniquement les lignes de la table. Les groupes n’ont pas encore été créés, donc <code>COUNT(*)</code> n’existe pas encore.</p></div></div>
       </div>
       <div class="cmp-card having">
         <span class="cmp-tag">✅ HAVING</span>
@@ -1672,7 +1677,7 @@ GROUP BY categorie;</div>
 FROM produits
 GROUP BY categorie
 HAVING COUNT(*) >= 2;</div>
-        <div class="cmp-verdict ok">✓ Correct : les groupes existent déjà.</div>
+        <div class="cmp-verdict ok"><span aria-hidden="true">✓</span><div class="cmp-verdict-body"><b>Correct : GROUP BY a déjà créé les groupes.</b><p><code>HAVING</code> peut donc utiliser <code>COUNT(*)</code> pour filtrer les groupes.</p></div></div>
       </div>
     </div>
   </div>
@@ -2944,7 +2949,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-09-x';
+const APP_VERSION='2026-08-09-y';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
