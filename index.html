@@ -183,6 +183,35 @@
   .takeaway-list li{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;background:var(--success-soft);border:1px solid rgba(11,107,74,.12);border-radius:11px;font-size:14px;line-height:1.45;color:var(--ink)}
   .takeaway-list li::before{content:'✓';flex:none;width:20px;height:20px;border-radius:50%;background:var(--success);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
   .concept-coda{font-size:14px!important;color:var(--ink-2)!important;margin-top:16px!important;padding-top:16px;border-top:1px solid var(--line)}
+  .concept-block .ex-code{margin:12px 0 0}
+  .why-box{background:var(--danger-soft);border:1px solid rgba(180,35,24,.15);border-left:3px solid var(--danger);border-radius:12px;padding:14px 15px;margin:14px 0 12px}
+  .why-box h5{margin:0 0 8px;font-size:14px;font-weight:800;color:var(--danger)}
+  .why-box p{margin:0 0 8px;font-size:14px;line-height:1.55;color:var(--ink)}
+  .why-box p:last-child{margin-bottom:0}
+  .concept-point{display:flex;gap:8px;align-items:flex-start;margin:10px 0 0;font-size:14.5px;line-height:1.5;color:var(--ink-2)}
+  .concept-point .em{flex:none;font-size:16px;line-height:1.35}
+  .group-tree{display:flex;flex-direction:column;gap:12px;margin:14px 0}
+  .gt-node{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-family:var(--mono);font-size:12.5px;line-height:1.55}
+  .gt-head{font-weight:800;color:var(--accent);margin-bottom:4px;font-family:var(--ui);font-size:13px}
+  .gt-item{color:var(--ink-2);padding-left:2px}
+  .gt-count{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);font-weight:700;color:var(--ink);font-size:12px}
+  .gt-count.ok{color:var(--success)}
+  .gt-count.out{opacity:.45;text-decoration:line-through;color:var(--ink-3)}
+  .order-v{display:flex;flex-direction:column;gap:0;margin:14px 0}
+  .ov-step{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:3px}
+  .ov-step b{font-family:var(--mono);font-size:13px;color:var(--accent)}
+  .ov-step.here{background:var(--accent);border-color:var(--accent)}
+  .ov-step.here b,.ov-step.here span{color:#fff}
+  .ov-step span{font-size:13px;color:var(--ink-2);line-height:1.4}
+  .ov-arr{text-align:center;color:var(--accent);font-size:18px;font-weight:700;padding:5px 0}
+  .flow-chain{display:flex;flex-direction:column;gap:0;margin:14px 0}
+  .flow-chain .concept-flow-arrow{transform:none;padding:10px 0;margin:0}
+  .having-picks{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .having-picks span{padding:8px 12px;border-radius:10px;font-family:var(--mono);font-size:12.5px;font-weight:700;background:var(--success-soft);color:var(--success);border:1px solid rgba(28,166,114,.2)}
+  .having-picks span.out{opacity:.4;text-decoration:line-through;background:var(--surface-2);color:var(--ink-3);border-color:var(--line)}
+  .memory-analogy{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+  .memory-analogy p{margin:0!important;font-size:14px!important;line-height:1.55!important}
+  .concept-block .cmp{margin:12px 0 0}
 
   .anat{background:var(--code-bg);border-radius:14px;padding:6px 0;margin-bottom:16px}
   .anat-line{display:flex;gap:12px;align-items:flex-start;padding:10px 15px}
@@ -1524,44 +1553,149 @@ const MODULES = [
   indice:"Deux JOIN, chacun avec son ON. Le second relie <code>commandes.produit_id</code> à <code>produits.id</code>." },
 
 { id:17, titre:"HAVING", résumé:"Filtrer après regroupement",
-  situation:"Tu veux les <b>catégories de produits qui comptent au moins 2 références</b>. Un <code>WHERE</code> sur <code>COUNT(*)</code> lève une erreur : les groupes n’existent pas encore.",
+  situation:"Tu veux afficher les <b>catégories qui possèdent au moins 2 produits</b>.",
   concept:`<div class="concept-page">
-  <h3>Approfondir</h3>
   <div class="concept-block">
-    <h4>Exemple</h4>
-    <div class="concept-flow">
-      <div class="concept-flow-step">
-        <div class="cfs-label">Données brutes</div>
-        <div class="table-wrap"><table class="concept-table"><thead><tr><th>Ville</th><th>Client</th></tr></thead><tbody>
-          <tr><td>Paris</td><td>Alice</td></tr><tr><td>Paris</td><td>Bob</td></tr><tr><td>Lyon</td><td>Chloé</td></tr><tr><td>Lille</td><td>David</td></tr><tr><td>Lille</td><td>Emma</td></tr>
-        </tbody></table></div>
+    <p>Beaucoup de débutants écrivent :</p>
+    <div class="ex-code">SELECT categorie, COUNT(*)
+FROM produits
+WHERE COUNT(*) >= 2
+GROUP BY categorie;</div>
+    <div class="why-box" role="note">
+      <h5>❌ Pourquoi ça ne fonctionne pas ?</h5>
+      <p>Parce que <code>WHERE</code> est exécuté <b>avant</b> <code>GROUP BY</code>.</p>
+      <p>À ce moment-là, SQL voit uniquement les lignes de la table.</p>
+    </div>
+    <div class="table-wrap"><table class="concept-table"><thead><tr><th>Produit</th><th>Catégorie</th></tr></thead><tbody>
+      <tr><td>Pomme</td><td>Fruit</td></tr><tr><td>Banane</td><td>Fruit</td></tr><tr><td>Carotte</td><td>Légume</td></tr><tr><td>Tomate</td><td>Légume</td></tr><tr><td>Salade</td><td>Légume</td></tr>
+    </tbody></table></div>
+    <p>Les groupes n’existent pas encore.</p>
+    <p class="concept-point"><span class="em">👉</span><span>SQL ne peut donc pas calculer <code>COUNT(*)</code>, car il n’a encore rien regroupé.</span></p>
+  </div>
+  <div class="concept-block">
+    <h4>Après GROUP BY</h4>
+    <p>SQL rassemble maintenant les lignes ayant la même catégorie.</p>
+    <div class="group-tree">
+      <div class="gt-node">
+        <div class="gt-head">Fruit</div>
+        <div class="gt-item">├── Pomme</div>
+        <div class="gt-item">└── Banane</div>
+        <div class="gt-count ok">COUNT = 2</div>
       </div>
-      <div class="concept-flow-arrow" aria-hidden="true">→</div>
-      <div class="concept-flow-step">
-        <div class="cfs-label">Après GROUP BY ville</div>
-        <div class="concept-result">
-          <div class="result-label">Résultat regroupé</div>
-          <div class="result-values">
-            <span><b>Paris</b>2 clients</span>
-            <span class="dim"><b>Lyon</b>1 client</span>
-            <span><b>Lille</b>2 clients</span>
-          </div>
-        </div>
+      <div class="gt-node">
+        <div class="gt-head">Légume</div>
+        <div class="gt-item">├── Carotte</div>
+        <div class="gt-item">├── Tomate</div>
+        <div class="gt-item">└── Salade</div>
+        <div class="gt-count ok">COUNT = 3</div>
       </div>
     </div>
-    <p class="concept-coda">Si tu veux uniquement les villes ayant <b>plus d’un client</b>, c’est ce résultat regroupé que <code>HAVING</code> doit filtrer — pas les lignes brutes.</p>
+    <p>Cette fois, les groupes existent. Le résultat de <code>COUNT(*)</code> est enfin disponible.</p>
+  </div>
+  <div class="concept-block">
+    <h4>C’est ici qu’intervient HAVING</h4>
+    <div class="ex-code">SELECT categorie, COUNT(*)
+FROM produits
+GROUP BY categorie
+HAVING COUNT(*) >= 2;</div>
+    <p><code>HAVING</code> filtre les groupes déjà créés.</p>
+    <div class="having-picks">
+      <span>Fruit → COUNT = 2 ✅</span>
+      <span>Légume → COUNT = 3 ✅</span>
+    </div>
+    <p class="concept-coda" style="margin-top:14px;padding-top:0;border:0">Si une catégorie contenait seulement 1 produit, elle serait supprimée.</p>
+  </div>
+  <div class="concept-block">
+    <h4>WHERE ou HAVING ?</h4>
+    <div class="cmp">
+      <div class="cmp-card where">
+        <span class="cmp-tag">❌ WHERE</span>
+        <div class="ex-code">SELECT categorie, COUNT(*)
+FROM produits
+WHERE COUNT(*) >= 2
+GROUP BY categorie;</div>
+        <div class="cmp-verdict ko">✕ Erreur : les groupes n’existent pas encore.</div>
+      </div>
+      <div class="cmp-card having">
+        <span class="cmp-tag">✅ HAVING</span>
+        <div class="ex-code">SELECT categorie, COUNT(*)
+FROM produits
+GROUP BY categorie
+HAVING COUNT(*) >= 2;</div>
+        <div class="cmp-verdict ok">✓ Correct : les groupes existent déjà.</div>
+      </div>
+    </div>
+  </div>
+  <div class="concept-block">
+    <h4>Ordre réel d’exécution</h4>
+    <div class="order-v" aria-label="Ordre logique d'exécution SQL">
+      <div class="ov-step"><b>FROM</b><span>On récupère les lignes</span></div>
+      <div class="ov-arr">↓</div>
+      <div class="ov-step"><b>WHERE</b><span>On filtre les lignes</span></div>
+      <div class="ov-arr">↓</div>
+      <div class="ov-step"><b>GROUP BY</b><span>On crée les groupes</span></div>
+      <div class="ov-arr">↓</div>
+      <div class="ov-step here"><b>HAVING</b><span>On filtre les groupes</span></div>
+      <div class="ov-arr">↓</div>
+      <div class="ov-step"><b>SELECT</b><span>On choisit les colonnes à afficher</span></div>
+      <div class="ov-arr">↓</div>
+      <div class="ov-step"><b>ORDER BY</b><span>On trie le résultat final</span></div>
+    </div>
+  </div>
+  <div class="concept-block">
+    <h4>Exemple visuel</h4>
+    <div class="cfs-label">Données de départ</div>
+    <div class="table-wrap"><table class="concept-table"><thead><tr><th>Ville</th><th>Client</th></tr></thead><tbody>
+      <tr><td>Paris</td><td>Alice</td></tr><tr><td>Paris</td><td>Bob</td></tr><tr><td>Lyon</td><td>Chloé</td></tr><tr><td>Lille</td><td>David</td></tr><tr><td>Lille</td><td>Emma</td></tr>
+    </tbody></table></div>
+    <div class="flow-chain">
+      <div class="concept-flow-arrow" aria-hidden="true">↓</div>
+      <div class="cfs-label">Après GROUP BY ville</div>
+      <div class="group-tree">
+        <div class="gt-node">
+          <div class="gt-head">Paris</div>
+          <div class="gt-item">├── Alice</div>
+          <div class="gt-item">└── Bob</div>
+          <div class="gt-count ok">COUNT = 2</div>
+        </div>
+        <div class="gt-node">
+          <div class="gt-head">Lyon</div>
+          <div class="gt-item">└── Chloé</div>
+          <div class="gt-count out">COUNT = 1</div>
+        </div>
+        <div class="gt-node">
+          <div class="gt-head">Lille</div>
+          <div class="gt-item">├── David</div>
+          <div class="gt-item">└── Emma</div>
+          <div class="gt-count ok">COUNT = 2</div>
+        </div>
+      </div>
+      <div class="concept-flow-arrow" aria-hidden="true">↓</div>
+      <div class="cfs-label">Après HAVING COUNT(*) &gt; 1</div>
+      <div class="having-picks">
+        <span>Paris ✅</span>
+        <span>Lille ✅</span>
+        <span class="out">Lyon ✕</span>
+      </div>
+    </div>
+    <p class="concept-coda">Lyon est supprimée, car son groupe ne contient qu’un seul client.</p>
   </div>
   <div class="concept-block">
     <h4>À retenir</h4>
     <ul class="takeaway-list">
-      <li>Utilise <code>WHERE</code> pour filtrer les lignes <b>avant</b> le regroupement</li>
-      <li>Utilise <code>HAVING</code> pour filtrer les groupes <b>après</b> le regroupement</li>
+      <li><code>WHERE</code> filtre les lignes avant le regroupement</li>
+      <li><code>HAVING</code> filtre les groupes après le regroupement</li>
     </ul>
   </div>
   <div class="concept-block">
     <h4>Astuce mémoire</h4>
-    <div class="memory-box memory-tip" role="note" aria-label="Astuce mémoire sur les fonctions d’agrégation">
-      <p class="memory-note">Si ta condition utilise <code>COUNT()</code>, <code>SUM()</code>, <code>AVG()</code>, <code>MIN()</code> ou <code>MAX()</code>, elle a presque toujours sa place dans <code>HAVING</code>.</p>
+    <div class="memory-box memory-tip" role="note">
+      <p class="memory-note">Imagine que <code>GROUP BY</code> fabrique des paquets :</p>
+      <div class="memory-analogy">
+        <p>📄 <code>WHERE</code> décide quelles lignes entrent dans les paquets.</p>
+        <p>📦 <code>HAVING</code> décide quels paquets sont conservés.</p>
+      </div>
+      <p class="memory-note" style="margin-top:12px!important">Si ta condition utilise une fonction d’agrégation (<code>COUNT()</code>, <code>SUM()</code>, <code>AVG()</code>, <code>MIN()</code> ou <code>MAX()</code>), elle a presque toujours sa place dans <code>HAVING</code>.</p>
     </div>
   </div>
   </div>`,
@@ -1569,14 +1703,7 @@ const MODULES = [
     {tok:"FROM produits",txt:"Table."},{tok:"GROUP BY categorie",txt:"Un paquet par catégorie."},
     {tok:"HAVING",txt:"<b>À condition que le groupe…</b> Toujours après <code>GROUP BY</code>."},
     {tok:"COUNT(*) >= 2",plain:1,txt:"…ait au moins 2 lignes."}],
-  pipeline:[
-    {t:'compare',n:1,label:'WHERE ou HAVING ?',rows:[
-      ['WHERE',"SELECT categorie, COUNT(*)\nFROM produits\nWHERE COUNT(*) >= 2\nGROUP BY categorie;",false,'Les groupes n’existent pas encore'],
-      ['HAVING',"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",true,'Filtre un paquet déjà formé'],
-    ]},
-    {t:'xsec',n:2,label:"Ordre réel d'exécution",items:['FROM','WHERE','GROUP BY','HAVING','SELECT','ORDER BY'],
-      caps:['table brute','lignes','paquets','groupes gardés','colonnes','tri final'],here:'HAVING'},
-  ],
+  pipeline:[],
   exemple:"SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 2;",
   attendu:"<b>1 ligne</b> : Bien-être, 4 produits. Les autres catégories n’ont qu’un produit.",
   piege:{t:"WHERE au lieu de HAVING",p:"<code>WHERE COUNT(*) > 1</code> provoque « misuse of aggregate function ». Les agrégats ne sont disponibles qu’à partir de <code>HAVING</code>."},
