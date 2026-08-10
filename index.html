@@ -69,6 +69,13 @@
   .title-pill{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:6px 11px;border-radius:999px;border:none;cursor:pointer;flex:none;white-space:nowrap}
   button.title-pill{font-family:var(--mono)}
   .learn-avatar{width:36px;height:36px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+  .learn-side{display:flex;align-items:center;gap:9px;flex:none}
+  .streak-pill{display:inline-flex;align-items:center;gap:4px;height:34px;padding:0 11px;border:0;border-radius:999px;background:#FDF1E4;color:#C25E10;font-family:var(--ui);font-size:14.5px;font-weight:800;letter-spacing:-.2px;cursor:pointer;box-shadow:0 1px 0 var(--line)}
+  .streak-pill svg{width:15px;height:15px;color:#EA7A1E;flex:none}
+  .streak-pill:active{transform:scale(.94)}
+  .streak-pill.zero{background:var(--surface-2);color:var(--ink-3)}
+  .streak-pill.zero svg{color:var(--ink-3);opacity:.6}
+  .streak-pill.hot svg{animation:flameWob 1.8s ease-in-out infinite;transform-origin:50% 88%}
 
   .progress-card{margin:16px 16px 8px;background:var(--surface);border-radius:18px;padding:16px 18px;display:flex;align-items:center;gap:16px;box-shadow:0 1px 0 var(--line)}
   .ring{--p:0;width:52px;height:52px;flex:none;border-radius:50%;background:conic-gradient(var(--accent) calc(var(--p)*1%),var(--accent-soft) 0);display:flex;align-items:center;justify-content:center;position:relative}
@@ -1252,7 +1259,7 @@
     .ls-slide,.table-wrap,.toast.on,.gcard.unlocking,.ls-step.on,.next-btn.pulse,.btn-run.pulse,
     .lesson-rich .concept-page > .concept-block,.lesson-rich .lesson-lead,.lesson-rich .exframe,.lesson-rich .piege,.lesson-rich .sect-label,
     .lesson-rich .vs-col,.lesson-rich .pipe-step,.lesson-rich .pipe-table tbody tr,.lesson-rich .takeaway-list li,.lesson-rich .order-hint svg,
-    .pl-stat.streak.hot svg,.acc-stat.streak.hot .streak-n svg,
+    .pl-stat.streak.hot svg,.acc-stat.streak.hot .streak-n svg,.streak-pill.hot svg,
     .exframe .xf-result.on .table-wrap tbody tr,
     .result-live .result-meta,.result-live .table-wrap,.result-live .table-wrap thead,.result-live .table-wrap tbody tr,
     .query-loading,.query-loading.out{animation:none!important;opacity:1;transform:none}
@@ -1289,7 +1296,10 @@
           <h1>Apprendre</h1>
           <p class="sub" id="learn-sub">65 leçons, une vraie base de données.</p>
         </div>
-        <div class="learn-avatar" id="learn-avatar" aria-hidden="true">R</div>
+        <div class="learn-side">
+          <button class="streak-pill" id="home-streak" type="button" onclick="switchTab('compte')" aria-label="Jours d'affilée — voir mes stats" hidden></button>
+          <div class="learn-avatar" id="learn-avatar" aria-hidden="true">R</div>
+        </div>
       </div>
       <p class="greeting" id="greeting" hidden></p>
       <div id="home-hero"></div>
@@ -3039,7 +3049,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-10-t';
+const APP_VERSION='2026-08-10-s';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -4156,10 +4166,21 @@ function renderLearnAvatar(){
   const name=(state.name||'').trim();
   el.textContent=name?name.charAt(0).toUpperCase():'R';
 }
+function renderHomeStreak(){
+  const el=document.getElementById('home-streak'); if(!el)return;
+  if(!state.plan){ el.hidden=true; return; }
+  const n=streakJours();
+  el.hidden=false;
+  el.classList.toggle('zero',n===0);
+  el.classList.toggle('hot',n>0);
+  el.innerHTML=FLAME_SVG+`<span>${n}</span>`;
+  el.setAttribute('aria-label',`${n} jour${n>1?'s':''} d’affilée — voir mes stats`);
+}
 function renderHomeHero(){
   const host=document.getElementById('home-hero'); if(!host)return;
   majBadgePlanning();
   renderLearnAvatar();
+  renderHomeStreak();
   const nL=Object.values(state.lessons||{}).filter(l=>l.done).length;
   const nD=Object.keys(state.defis||{}).length;
   const pct=Math.round(nL/TOTAL*100);
