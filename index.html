@@ -556,6 +556,18 @@
   .db-trow .tc{font-size:11.5px;color:var(--ink-3);flex:none}
   .db-trow .tb{border:none;background:var(--surface);border-radius:8px;padding:6px 8px;font-size:12px;font-weight:600;color:var(--ink-2);cursor:pointer;flex:none}
   .db-trow .tb.danger{color:var(--danger)}
+  .db-trow .tb.on{background:var(--accent-soft);color:var(--accent)}
+  .db-tblock{display:flex;flex-direction:column;gap:0}
+  .db-cols{display:none;flex-direction:column;gap:0;margin:0 0 4px;padding:2px 8px 8px 10px;border-left:2px solid var(--accent-soft)}
+  .db-cols.on{display:flex}
+  .db-col{display:flex;align-items:center;gap:8px;padding:7px 8px;font-family:var(--mono);font-size:12.5px;border-radius:8px}
+  .db-col:nth-child(odd){background:rgba(20,20,40,.03)}
+  .db-col .cn{font-weight:600;color:var(--ink)}
+  .db-col .ct{margin-left:auto;font-size:11px;color:var(--ink-3)}
+  .db-col .cref{font-size:11px;color:var(--ink-3);font-weight:500}
+  .db-col .badge{font-size:9.5px;font-weight:800;padding:2px 6px;border-radius:5px;letter-spacing:.3px}
+  .badge.pk{background:var(--accent-soft);color:var(--accent)}
+  .badge.fk{background:var(--warn-soft);color:var(--warn)}
   .db-empty{font-size:13px;color:var(--ink-3);padding:4px 6px 8px}
   .chips-wrap{margin:0 0 14px}
   .chips-wrap .db-lab{margin-bottom:8px}
@@ -1354,13 +1366,6 @@
       </div>
     </section>
 
-    <!-- SCHÉMA -->
-    <section id="scr-schema" class="screen">
-      <div class="lgtitle"><div class="eyebrow">La base</div><h1>Schéma</h1>
-        <p class="sub" id="schema-sub">Base du cours · tables reliées. Tes imports vivent dans la Console.</p></div>
-      <div id="schema-body" style="margin-top:16px"></div>
-    </section>
-
     <!-- COMPTE -->
     <section id="scr-compte" class="screen">
       <div class="lgtitle"><div class="eyebrow">Profil &amp; réglages</div><h1>Compte</h1>
@@ -1441,8 +1446,6 @@
       <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="11" height="14" rx="2" stroke="currentColor" stroke-width="1.6"/><rect x="9" y="3.5" width="11" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="var(--bg)"/></svg>Cartes</button>
     <button class="tab" data-tab="console" onclick="switchTab('console')">
       <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4.5" width="18" height="15" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M7 9.5l3 2.5-3 2.5M12.5 14.5H16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Console</button>
-    <button class="tab" data-tab="schema" onclick="switchTab('schema')">
-      <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="4" width="17" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3.5 9.5h17M3.5 14.5h17M9.5 4v16" stroke="currentColor" stroke-width="1.7"/></svg>Schéma</button>
     <button class="tab" data-tab="compte" onclick="switchTab('compte')">
       <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8.5" r="3.2" stroke="currentColor" stroke-width="1.7"/><path d="M5.5 19c1.6-3.2 4-4.8 6.5-4.8S17 15.8 18.5 19" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Compte</button>
   </nav>
@@ -3092,10 +3095,11 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-10-s';
+const APP_VERSION='2026-08-10-t';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
+let openTableSchema=null;
 const DBS_KEY='requete-sql-dbs-v1';
 const memStore={};
 const Store={
@@ -3228,7 +3232,7 @@ async function boot(){
         id:'n'+k+Date.now(),txt:String(old[k]),sql:'',ctx:CARTES[k]?`Carte ${k} · ${CARTES[k].k}`:'',ts:Date.now(),pin:false}));
     }
     await loadCustomDbs();
-    renderModules(); renderDefis(); renderSchema(); renderProgress(); renderCollection(); renderNotes(); renderPlanning(); buildKbar();
+    renderModules(); renderDefis(); renderProgress(); renderCollection(); renderNotes(); renderPlanning(); buildKbar();
     setupEditor('ed-console','hl-console');
     document.getElementById('ed-console').value="SELECT ville, COUNT(*) AS nb\nFROM clients\nGROUP BY ville\nORDER BY nb DESC;";
     syncHL('ed-console','hl-console'); renderConsoleChips(); renderDbWorkspace();
@@ -3315,7 +3319,6 @@ function flashResetBtn(){
 function resetActiveDb(){
   if(activeDbId==='cours'){
     buildDb();
-    renderSchema();
   }else{
     if(customDbs[activeDbId]) customDbs[activeDbId].close();
     customDbs[activeDbId]=new SQL.Database();
@@ -3329,6 +3332,7 @@ function resetActiveDb(){
 function switchDb(id){
   if(id!=='cours'&&!customDbs[id])return;
   activeDbId=id;
+  openTableSchema=null;
   clearConsolePane();
   renderDbWorkspace();
   renderConsoleChips();
@@ -3398,6 +3402,7 @@ function renderDbWorkspace(){
     return;
   }
   const tables=listTables(database);
+  if(openTableSchema && !tables.includes(openTableSchema)) openTableSchema=null;
   if(lab) lab.textContent=`Dans « ${activeName} » · ${tables.length} table${tables.length>1?'s':''}`;
   if(!tables.length){
     host.innerHTML=`<div class="db-empty">${activeDbId==='cours'?'Aucune table — réinitialise la base du cours.':'Cette base est vide — importe un CSV, JSON ou SQL.'}</div>`;
@@ -3406,14 +3411,33 @@ function renderDbWorkspace(){
   host.innerHTML=tables.map(t=>{
     const n=tableRowCount(database,t);
     const enc=encodeURIComponent(t);
-    return `<div class="db-trow">
-      <span class="tk">table</span>
-      <span class="tn">${esc(t)}</span>
-      <span class="tc">${n} lig.</span>
-      <button type="button" class="tb" onclick="queryTable(decodeURIComponent('${enc}'))">SELECT</button>
-      <button type="button" class="tb danger" onclick="dropTable(decodeURIComponent('${enc}'))">Suppr.</button>
+    const open=openTableSchema===t;
+    const cols=open?introspectTable(database,t,tables):[];
+    const colsHtml=open?`<div class="db-cols on" id="db-cols-${enc}">${cols.map(c=>`
+      <div class="db-col">
+        <span class="cn">${esc(c.c)}</span>
+        ${c.b==='pk'?'<span class="badge pk">PK</span>':''}
+        ${c.b==='fk'?'<span class="badge fk">FK</span>':''}
+        ${c.ref?`<span class="cref">→ ${esc(c.ref)}</span>`:''}
+        <span class="ct">${esc(c.t)}</span>
+      </div>`).join('')||'<div class="db-empty">Aucune colonne.</div>'}</div>`:'';
+    return `<div class="db-tblock">
+      <div class="db-trow">
+        <span class="tk">table</span>
+        <span class="tn">${esc(t)}</span>
+        <span class="tc">${n} lig.</span>
+        <button type="button" class="tb ${open?'on':''}" onclick="toggleTableSchema(decodeURIComponent('${enc}'))">${open?'Colonnes ▴':'Colonnes'}</button>
+        <button type="button" class="tb" onclick="queryTable(decodeURIComponent('${enc}'))">SELECT</button>
+        <button type="button" class="tb danger" onclick="dropTable(decodeURIComponent('${enc}'))">Suppr.</button>
+      </div>
+      ${colsHtml}
     </div>`;
   }).join('');
+}
+let openTableSchema=null;
+function toggleTableSchema(name){
+  openTableSchema=openTableSchema===name?null:name;
+  renderDbWorkspace();
 }
 function queryTable(name){
   const ta=document.getElementById('ed-console');
@@ -4112,8 +4136,9 @@ function vizGo(d){ const i=vizI+d; if(i<0||i>=vizSteps.length)return; vizI=i; re
    ============================================================ */
 function switchTab(name){
   if(name==='defis'){homeFilter='defis';name='learn';}
+  const map={learn:'scr-learn',planning:'scr-planning',collection:'scr-collection',console:'scr-console',compte:'scr-compte'};
+  if(name==='schema') name='console';
   activeTab=name;
-  const map={learn:'scr-learn',planning:'scr-planning',collection:'scr-collection',console:'scr-console',schema:'scr-schema',compte:'scr-compte'};
   document.querySelectorAll('.tab').forEach(t=>{
     const on=t.dataset.tab===name;
     if(on&&!t.classList.contains('active')){
@@ -4133,7 +4158,6 @@ function switchTab(name){
   if(name==='compte') renderCompte();
   if(name==='collection') renderCollection();
   if(name==='console'){ renderDbWorkspace(); renderConsoleChips(); }
-  if(name==='schema') renderSchema();
   saveNav({view:'tab',tab:name});
 }
 function prefersReduceMotion(){
@@ -4607,7 +4631,7 @@ function openChallenge(cid){
     ${g&&g.notion?`<div class="card"><p><b>Notion mobilisée :</b> ${esc(g.notion||'Choisis les clauses adaptées à la question.')}</p>
       <p><b>Raisonnement :</b> ${esc(g.raisonnement||'Décompose le problème en étapes avant d’écrire la requête.')}</p>
       <p><b>Erreur fréquente :</b> ${esc(g.piege||'Vérifie le niveau de détail demandé et le nombre de lignes attendu.')}</p></div>`:''}
-    <p style="font-size:13.5px;color:var(--ink-2);margin:0 4px 14px">La syntaxe reste à construire par toi. Consulte l’onglet <b>Schéma</b> si besoin.</p>
+    <p style="font-size:13.5px;color:var(--ink-2);margin:0 4px 14px">La syntaxe reste à construire par toi. Dans la Console, ouvre <b>Colonnes</b> sur une table si besoin.</p>
     ${editorBlock(true,'defi.sql')}`;
   setupEditor('ed-lesson','hl-lesson'); showScreen();
   saveNav();
@@ -4651,7 +4675,7 @@ function renderExoHelp(){
       html+=`<div class="hint-box"><b>Aide</b>Exemple du cours à adapter :
         <div class="ex-code" style="margin-top:8px">${highlight(current.exemple)}</div></div>`;
     else
-      html+=`<div class="hint-box"><b>Aide</b>Repère les <b>tables</b> et <b>colonnes</b> de l’énoncé, puis assemble dans l’ordre : FROM → JOIN (si besoin) → WHERE / GROUP BY → SELECT. Consulte l’onglet <b>Schéma</b> si un nom te manque.</div>`;
+      html+=`<div class="hint-box"><b>Aide</b>Repère les <b>tables</b> et <b>colonnes</b> de l’énoncé, puis assemble dans l’ordre : FROM → JOIN (si besoin) → WHERE / GROUP BY → SELECT. Dans la Console, touche <b>Colonnes</b> sur une table si un nom te manque.</div>`;
   }
   if(exoFails>=3) html+=`<div class="hint-box sol"><b>Solution</b>Une requête qui fonctionne :
     <div class="ex-code" style="margin-top:8px">${highlight(sol)}</div></div>`;
@@ -4735,6 +4759,68 @@ function runLesson(){
     registerExoFail();
   }
 }
+function guessFkTarget(col,tables){
+  if(!col||!/_id$/i.test(col)) return null;
+  const base=String(col).replace(/_id$/i,'');
+  if(!base) return null;
+  const candidates=[
+    base,
+    base+'s',
+    base.replace(/y$/i,'ies'),
+    base.replace(/eau$/i,'eaux'),
+    base.replace(/al$/i,'aux')
+  ];
+  const lower=tables.map(t=>String(t).toLowerCase());
+  for(const c of candidates){
+    const i=lower.indexOf(c.toLowerCase());
+    if(i>=0) return tables[i];
+  }
+  return null;
+}
+function annotateColumnKeys(tableName,cols,allTables){
+  const tLow=String(tableName||'').toLowerCase();
+  const singular=tLow.replace(/s$/,'');
+  return cols.map(col=>{
+    const name=col.c;
+    const low=String(name).toLowerCase();
+    let b=col.b;
+    let ref=col.ref||null;
+    if(!b){
+      if(low==='id'||low===tLow+'_id'||low===singular+'_id') b='pk';
+      else if(/_id$/.test(low)) b='fk';
+    }
+    if(b==='fk' && !ref) ref=guessFkTarget(name, allTables||[]);
+    return {c:name,t:col.t||'TEXT',b,ref};
+  });
+}
+function introspectTable(database,name,allTables){
+  const tables=allTables||(database?listTables(database):[]);
+  const meta=SCHEMA_META.find(t=>t.table===name);
+  let cols=[];
+  if(meta&&meta.cols&&meta.cols.length && activeDbId==='cours'){
+    cols=meta.cols.map(c=>({c:c.c,t:c.t,b:c.b}));
+  }else{
+    try{
+      const info=database.exec('PRAGMA table_info('+quoteIdent(name)+')');
+      const fkRows=database.exec('PRAGMA foreign_key_list('+quoteIdent(name)+')');
+      const fkMap=new Map();
+      (fkRows[0]?fkRows[0].values:[]).forEach(v=>{
+        // v: id, seq, table, from, to, ...
+        if(v[3]) fkMap.set(String(v[3]), v[2]||null);
+      });
+      (info[0]?info[0].values:[]).forEach(v=>{
+        const c=String(v[1]);
+        cols.push({
+          c,
+          t:(v[2]||'TEXT'),
+          b:v[5]?'pk':(fkMap.has(c)?'fk':undefined),
+          ref:fkMap.get(c)||null
+        });
+      });
+    }catch(e){}
+  }
+  return annotateColumnKeys(name, cols, tables);
+}
 function courseTableNames(){
   if(db) return listTables(db);
   return SCHEMA_META.map(t=>t.table);
@@ -4744,57 +4830,6 @@ function courseTableSummaries(){
     const n=db?tableRowCount(db,name):((SCHEMA_META.find(t=>t.table===name)||{}).n);
     return `${n} ${name}`;
   });
-}
-function introspectTable(database,name){
-  const meta=SCHEMA_META.find(t=>t.table===name);
-  if(meta&&meta.cols&&meta.cols.length) return meta.cols.map(c=>({c:c.c,t:c.t,b:c.b}));
-  const cols=[];
-  try{
-    const info=database.exec('PRAGMA table_info('+quoteIdent(name)+')');
-    const fkRows=database.exec('PRAGMA foreign_key_list('+quoteIdent(name)+')');
-    const fkCols=new Set((fkRows[0]?fkRows[0].values:[]).map(v=>v[3]));
-    (info[0]?info[0].values:[]).forEach(v=>{
-      cols.push({c:v[1],t:(v[2]||'TEXT'),b:v[5]?'pk':(fkCols.has(v[1])?'fk':undefined)});
-    });
-  }catch(e){}
-  return cols;
-}
-function openSchemaTable(name){
-  switchDb('cours');
-  switchTab('console');
-  queryTable(name);
-}
-function renderSchema(){
-  const names=courseTableNames();
-  const sub=document.getElementById('schema-sub');
-  if(sub){
-    const n=names.length;
-    sub.textContent=`Base du cours · ${n} table${n>1?'s':''} reliée${n>1?'s':''}. Tes imports vivent dans la Console.`;
-  }
-  const body=document.getElementById('schema-body');
-  if(!body)return;
-  if(!names.length){
-    body.innerHTML=`<div class="rel-note">Aucune table dans la base du cours.</div>`;
-    return;
-  }
-  const cards=names.map(name=>{
-    const cols=introspectTable(db,name).map(c=>`<div class="sch-col"><span class="cn">${esc(c.c)}</span>
-      ${c.b==='pk'?'<span class="badge pk">PK</span>':''}${c.b==='fk'?'<span class="badge fk">FK</span>':''}
-      <span class="ct">${esc(c.t)}</span></div>`).join('');
-    const n=db?tableRowCount(db,name):((SCHEMA_META.find(t=>t.table===name)||{}).n||'?');
-    const enc=encodeURIComponent(name);
-    return `<div class="sch-table"><div class="sch-head">
-      <svg class="ti" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="4" width="17" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3.5 9.5h17M9.5 4v16" stroke="currentColor" stroke-width="1.7"/></svg>
-      <b>${esc(name)}</b><small>${n} lignes</small>
-      <button type="button" class="sch-open" onclick="openSchemaTable(decodeURIComponent('${enc}'))">Voir →</button>
-    </div>${cols}</div>`;
-  }).join('');
-  body.innerHTML=cards+
-  `<div class="rel-note"><b>PK et FK, c'est quoi ?</b><br>
-   <code>PK</code> (clé primaire) : le numéro unique qui identifie chaque ligne. Deux clients ne peuvent pas avoir le même id.<br><br>
-   <code>FK</code> (clé étrangère) : un numéro qui <i>renvoie</i> vers une autre table. Chaque commande pointe vers un client (<code>client_id → clients.id</code>) et un produit (<code>produit_id → produits.id</code>). C'est ce lien qu'exploitent les JOIN.<br><br>
-   <b>À noter :</b> deux clients n'ont pas d'email (valeur <code>NULL</code>) et Inès n'a jamais commandé — c'est volontaire, pour les leçons 18 à 20.<br><br>
-   Touche <b>Voir →</b> pour ouvrir la table dans la Console.</div>`;
 }
 /* ---------- Collection ---------- */
 let collFilter='all';
@@ -5554,7 +5589,6 @@ function currentContext(){
   }
   const act=document.querySelector('.screen.active');
   if(act&&act.id==='scr-console')return 'Console';
-  if(act&&act.id==='scr-schema')return 'Schéma';
   return '';
 }
 function quickNote(){ openNotesHub(); }
@@ -5977,8 +6011,8 @@ function renderCompte(){
       <button class="acc-row" type="button" onclick="toggleRappel()">
         <div class="at"><b>Rappel quotidien</b></div>
         <span class="acc-toggle ${remind?'on':''}" aria-hidden="true"><i></i></span></button>
-      <button class="acc-row" type="button" onclick="switchTab('schema')">
-        <div class="at"><b>Schéma de la base</b></div>
+      <button class="acc-row" type="button" onclick="switchTab('console')">
+        <div class="at"><b>Console &amp; tables</b><small>Colonnes, PK / FK, requêtes</small></div>
         <span style="font-family:var(--mono);font-size:11.5px;color:var(--ink-3)">${courseTableNames().length} tables</span>
         <span class="chev">›</span></button>
       <button class="acc-row" type="button" onclick="exportProgress()">
@@ -6057,7 +6091,7 @@ async function importProgress(ev){
       name:incoming.name||state.name||''
     };
     save();
-    renderModules(); renderDefis(); renderSchema(); renderProgress();
+    renderModules(); renderDefis(); renderProgress();
     renderCollection(); renderNotes(); renderPlanning(); renderCompte(); renderGreeting();
     celebrate();
   }catch(e){ alert('Impossible de lire ce fichier.'); }
@@ -6067,7 +6101,7 @@ async function resetAllProgress(){
   if(!confirm('Dernière confirmation : leçons, défis, notes et planning seront vidés.'))return;
   state={lessons:{},defis:{},notes:[],plan:null,onboarded:true,name:state.name||''};
   save(); buildDb(); baseBytes=db.export();
-  renderModules(); renderDefis(); renderSchema(); renderProgress();
+  renderModules(); renderDefis(); renderProgress();
   renderCollection(); renderNotes(); renderPlanning(); renderCompte(); renderGreeting();
 }
 
