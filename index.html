@@ -447,8 +447,15 @@
   .editor-area .t-num{color:var(--t-num)}.editor-area .t-com{color:var(--t-com);font-style:italic}
 
   .run-row{display:flex;gap:9px;margin-bottom:12px}
-  .btn-run{flex:1;background:var(--accent);color:#fff;border:none;border-radius:15px;padding:14px 10px;font-family:var(--ui);font-size:15.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 10px 22px -12px rgba(91,91,214,.8)}
+  .btn-run{flex:1;background:var(--accent);color:#fff;border:none;border-radius:15px;padding:14px 10px;font-family:var(--ui);font-size:15.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 10px 22px -12px rgba(91,91,214,.8);transition:opacity .15s ease,transform .15s ease}
   .btn-run:active{transform:scale(.98)}
+  .btn-run:disabled{cursor:wait;opacity:.88}
+  .btn-run.running{transform:scale(.985)}
+  .btn-run .spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex:none}
+  .query-loading{display:flex;align-items:center;gap:12px;padding:18px 16px;background:var(--surface);border-radius:16px;box-shadow:0 1px 0 var(--line);margin-bottom:16px;animation:riseIn .28s cubic-bezier(.32,.72,.28,1) both}
+  .query-loading .ql-spin{width:18px;height:18px;border:2.5px solid var(--line-2);border-top-color:var(--accent);border-radius:50%;animation:spin .75s linear infinite;flex:none}
+  .query-loading span{font-size:14px;font-weight:600;color:var(--ink-2)}
+  .console-out-ready{animation:riseIn .32s cubic-bezier(.32,.72,.28,1) both}
   .btn-ghost{background:var(--surface);color:var(--ink-2);border:none;border-radius:15px;padding:0 16px;font-family:var(--ui);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 1px 0 var(--line)}
   .btn-ghost:active{background:var(--surface-2)}
   .btn-viz{flex:none;white-space:nowrap;padding:0 14px;font-size:13.5px}
@@ -1289,7 +1296,7 @@
           <textarea id="ed-console" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea></div>
         </div>
         <div class="run-row">
-          <button class="btn-run" onclick="runConsole()">▶︎ Exécuter</button>
+          <button class="btn-run" id="btn-run-console" type="button" onclick="runConsole()"><span class="run-label">▶︎ Exécuter</span></button>
           <button class="btn-ghost btn-viz" onclick="openViz('ed-console')">Visualiser pas à pas</button>
         </div>
         <button type="button" class="btn-note" onclick="saveConsoleQuery()">
@@ -3041,7 +3048,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-10-g';
+const APP_VERSION='2026-08-10-i';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -3554,16 +3561,40 @@ function errBox(msg){
   else if(m.includes('values do not match')) aide="Le nombre de valeurs après VALUES doit être identique au nombre de colonnes citées.";
   return `<div class="feedback err"><div class="fi">!</div><div><b>Erreur SQL</b><p><code>${esc(msg)}</code></p>${aide?`<p style="margin-top:7px">${aide}</p>`:''}</div></div>`;
 }
+function setRunLoading(btn,on){
+  if(!btn)return;
+  if(on){
+    btn.disabled=true;
+    btn.classList.add('running');
+    btn.innerHTML='<span class="spin" aria-hidden="true"></span><span class="run-label">Exécution…</span>';
+  }else{
+    btn.disabled=false;
+    btn.classList.remove('running');
+    btn.innerHTML='<span class="run-label">▶︎ Exécuter</span>';
+  }
+}
 function runConsole(){
   const sql=document.getElementById('ed-console').value.trim();
   const out=document.getElementById('console-out');
+  const btn=document.getElementById('btn-run-console')||document.querySelector('#scr-console .btn-run');
   if(!sql){out.innerHTML='';return;}
-  try{
-    const{res,ms}=execQuery(sql,activeDb());
-    out.innerHTML=renderTable(res,ms);
-    if(activeDbId!=='cours'&&!/^\s*select\b/i.test(sql)) persistCustomDbs();
-    renderDbWorkspace();
-  }catch(e){out.innerHTML=errBox(e.message);}
+  if(btn&&btn.disabled)return;
+  setRunLoading(btn,true);
+  out.innerHTML=`<div class="query-loading" aria-live="polite"><span class="ql-spin" aria-hidden="true"></span><span>Exécution de la requête…</span></div>`;
+  const finish=()=>{
+    try{
+      const{res,ms}=execQuery(sql,activeDb());
+      out.innerHTML=`<div class="console-out-ready">${renderTable(res,ms)}</div>`;
+      if(activeDbId!=='cours'&&!/^\s*select\b/i.test(sql)) persistCustomDbs();
+      renderDbWorkspace();
+    }catch(e){
+      out.innerHTML=`<div class="console-out-ready">${errBox(e.message)}</div>`;
+    }finally{
+      setRunLoading(btn,false);
+    }
+  };
+  if(prefersReduceMotion())finish();
+  else setTimeout(finish,420);
 }
 function normalize(result,ordered){
   if(!result||result.length===0)return "∅";
