@@ -512,9 +512,11 @@
   .db-workspace{margin:0 0 14px;background:transparent;border-radius:0;box-shadow:none;overflow:visible}
   .db-bar{display:flex;gap:7px;padding:0;overflow-x:auto;scrollbar-width:none;align-items:center}
   .db-bar::-webkit-scrollbar{display:none}
-  .db-pill{flex:none;border:none;background:var(--surface);border-radius:999px;padding:8px 13px;font-family:var(--ui);font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer;box-shadow:0 1px 0 var(--line)}
+  .db-pill{flex:none;border:none;background:var(--surface);border-radius:999px;padding:8px 13px;font-family:var(--ui);font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer;box-shadow:0 1px 0 var(--line);transition:background .2s ease,color .2s ease,box-shadow .2s ease,transform .15s ease}
   .db-pill.on{background:#14141B;color:#fff;box-shadow:none}
   .db-pill.add{color:var(--ink-2)}
+  .db-pill.reset{min-width:36px;justify-content:center}
+  .db-pill.reset.ok{background:var(--success);color:#fff;box-shadow:0 0 0 4px rgba(11,107,74,.16);animation:checkPop .4s cubic-bezier(.3,1.4,.5,1)}
   .db-actions{display:none}
   .db-tables{margin-top:10px;padding:10px;background:var(--surface);border-radius:16px;display:flex;flex-direction:column;gap:6px;box-shadow:0 1px 0 var(--line)}
   .db-trow{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:11px;padding:9px 10px}
@@ -1030,8 +1032,6 @@
   .feedback{animation:pop .3s cubic-bezier(.3,1.4,.5,1)}
   .feedback.ok{animation:pop .3s cubic-bezier(.3,1.4,.5,1), okFlash .7s ease}
   .feedback.ok .fi{animation:checkPop .4s cubic-bezier(.3,1.4,.5,1)}
-  .console-okflash{display:flex;align-items:center;justify-content:center;padding:28px 16px;animation:riseIn .28s cubic-bezier(.32,.72,.28,1) both}
-  .console-okflash .fi{width:44px;height:44px;border-radius:50%;background:var(--success);color:#fff;font-size:20px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px -10px rgba(11,107,74,.55);animation:checkPop .45s cubic-bezier(.3,1.4,.5,1)}
   @keyframes okFlash{0%{box-shadow:0 0 0 0 rgba(28,166,114,.0)}40%{box-shadow:0 0 0 6px rgba(28,166,114,.18)}100%{box-shadow:0 0 0 0 rgba(28,166,114,0)}}
   .feedback.err,.feedback.warn{animation:shake .38s ease}
   @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
@@ -3241,14 +3241,20 @@ function clearConsoleEditor(){
   ta.style.height='auto';
   ta.style.height=Math.max(ta.scrollHeight,104)+'px';
 }
-function flashConsoleOk(){
-  const out=document.getElementById('console-out');
-  if(!out)return;
-  out.innerHTML=`<div class="console-okflash" aria-live="polite"><span class="fi" aria-hidden="true">✓</span></div>`;
-  clearTimeout(flashConsoleOk._t);
-  flashConsoleOk._t=setTimeout(()=>{
-    if(out.querySelector('.console-okflash')) out.innerHTML='';
-  },prefersReduceMotion()?400:900);
+function flashResetBtn(){
+  const btn=document.getElementById('db-reset-btn');
+  if(!btn)return;
+  btn.classList.add('ok');
+  btn.textContent='✓';
+  btn.setAttribute('aria-label','Réinitialisé');
+  clearTimeout(flashResetBtn._t);
+  flashResetBtn._t=setTimeout(()=>{
+    const b=document.getElementById('db-reset-btn');
+    if(!b)return;
+    b.classList.remove('ok');
+    b.textContent='↺';
+    b.setAttribute('aria-label','Réinitialiser');
+  },prefersReduceMotion()?450:1000);
 }
 function resetActiveDb(){
   if(activeDbId==='cours'){
@@ -3260,9 +3266,11 @@ function resetActiveDb(){
     persistCustomDbs();
   }
   clearConsoleEditor();
-  flashConsoleOk();
+  const out=document.getElementById('console-out');
+  if(out) out.innerHTML='';
   renderDbWorkspace();
   renderConsoleChips();
+  flashResetBtn();
 }
 function switchDb(id){
   if(id!=='cours'&&!customDbs[id])return;
@@ -3309,7 +3317,7 @@ function renderDbWorkspace(){
     `<button type="button" class="db-pill ${activeDbId===d.id?'on':''}" onclick="switchDb('${d.id}')">${esc(d.name)}</button>`
   ).join('')+`<button type="button" class="db-pill add" onclick="document.getElementById('data-import').click()">↑ Importer</button>`
     +(activeDbId!=='cours'?`<button type="button" class="db-pill" onclick="deleteActiveDb()" title="Supprimer cette base">✕</button>`:'')
-    +`<button type="button" class="db-pill" onclick="resetActiveDb()" title="Réinitialiser">↺</button>`;
+    +`<button type="button" class="db-pill reset" id="db-reset-btn" onclick="resetActiveDb()" title="Réinitialiser" aria-label="Réinitialiser">↺</button>`;
   const database=activeDb();
   if(!database){host.innerHTML='<div class="db-empty">Aucune base active.</div>';return;}
   const tables=listTables(database);
