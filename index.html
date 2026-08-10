@@ -550,16 +550,25 @@
   .db-pill:not(.on) .db-pill-main:hover,.db-pill:not(.on) .db-pill-main:focus-visible{background:rgba(20,20,30,.05)}
   .db-actions{display:none}
   .db-tables{padding:10px;background:var(--surface);border-radius:16px;display:flex;flex-direction:column;gap:6px;box-shadow:0 1px 0 var(--line)}
-  .db-trow{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:11px;padding:9px 10px}
+  .db-trow{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:11px;padding:6px 8px 6px 6px}
+  .db-trow.open{background:rgba(91,91,214,.06)}
   .db-trow .tk{font-size:9.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:3px 6px;border-radius:6px;flex:none}
-  .db-trow .tn{font-family:var(--mono);font-size:13px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .db-trow .tn{font-family:var(--mono);font-size:13px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .db-trow .tc{font-size:11.5px;color:var(--ink-3);flex:none}
   .db-trow .tb{border:none;background:var(--surface);border-radius:8px;padding:6px 8px;font-size:12px;font-weight:600;color:var(--ink-2);cursor:pointer;flex:none}
   .db-trow .tb.danger{color:var(--danger)}
-  .db-trow .tb.on{background:var(--accent-soft);color:var(--accent)}
+  .db-tmain{flex:1;min-width:0;display:flex;align-items:center;gap:8px;border:none;background:transparent;padding:4px 6px;border-radius:9px;cursor:pointer;text-align:left;color:inherit;font:inherit}
+  .db-tmain:hover,.db-tmain:focus-visible{background:rgba(20,20,40,.04)}
+  .db-trow.open .db-tmain:hover,.db-trow.open .db-tmain:focus-visible{background:rgba(91,91,214,.08)}
+  .db-chev{flex:none;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px;background:var(--surface);color:var(--ink-3);transition:transform .2s ease,background .15s ease,color .15s ease}
+  .db-chev svg{width:14px;height:14px;display:block}
+  .db-trow.open .db-chev{transform:rotate(90deg);background:var(--accent-soft);color:var(--accent)}
+  .db-thint{flex:none;font-size:11px;font-weight:600;color:var(--ink-3);letter-spacing:0;white-space:nowrap}
+  .db-trow.open .db-thint{color:var(--accent)}
   .db-tblock{display:flex;flex-direction:column;gap:0}
-  .db-cols{display:none;flex-direction:column;gap:0;margin:0 0 4px;padding:2px 8px 8px 10px;border-left:2px solid var(--accent-soft)}
+  .db-cols{display:none;flex-direction:column;gap:0;margin:0 0 4px;padding:4px 8px 10px 36px}
   .db-cols.on{display:flex}
+  .db-cols-lab{font-size:11px;font-weight:700;color:var(--ink-3);padding:2px 8px 6px;letter-spacing:.2px}
   .db-col{display:flex;align-items:center;gap:8px;padding:7px 8px;font-family:var(--mono);font-size:12.5px;border-radius:8px}
   .db-col:nth-child(odd){background:rgba(20,20,40,.03)}
   .db-col .cn{font-weight:600;color:var(--ink)}
@@ -3095,7 +3104,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-10-t';
+const APP_VERSION='2026-08-10-u';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -3413,20 +3422,26 @@ function renderDbWorkspace(){
     const enc=encodeURIComponent(t);
     const open=openTableSchema===t;
     const cols=open?introspectTable(database,t,tables):[];
-    const colsHtml=open?`<div class="db-cols on" id="db-cols-${enc}">${cols.map(c=>`
+    const colsHtml=open?`<div class="db-cols on">
+      <div class="db-cols-lab">Colonnes · clés PK / FK</div>
+      ${cols.map(c=>`
       <div class="db-col">
         <span class="cn">${esc(c.c)}</span>
         ${c.b==='pk'?'<span class="badge pk">PK</span>':''}
         ${c.b==='fk'?'<span class="badge fk">FK</span>':''}
         ${c.ref?`<span class="cref">→ ${esc(c.ref)}</span>`:''}
         <span class="ct">${esc(c.t)}</span>
-      </div>`).join('')||'<div class="db-empty">Aucune colonne.</div>'}</div>`:'';
+      </div>`).join('')||'<div class="db-empty">Aucune colonne.</div>'}
+    </div>`:'';
     return `<div class="db-tblock">
-      <div class="db-trow">
-        <span class="tk">table</span>
-        <span class="tn">${esc(t)}</span>
-        <span class="tc">${n} lig.</span>
-        <button type="button" class="tb ${open?'on':''}" onclick="toggleTableSchema(decodeURIComponent('${enc}'))">${open?'Colonnes ▴':'Colonnes'}</button>
+      <div class="db-trow ${open?'open':''}">
+        <button type="button" class="db-tmain" onclick="toggleTableSchema(decodeURIComponent('${enc}'))" aria-expanded="${open?'true':'false'}" title="${open?'Masquer les colonnes':'Voir les colonnes, PK et FK'}">
+          <span class="db-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span class="tk">table</span>
+          <span class="tn">${esc(t)}</span>
+          <span class="tc">${n} lig.</span>
+          <span class="db-thint">${open?'Masquer':'Colonnes ›'}</span>
+        </button>
         <button type="button" class="tb" onclick="queryTable(decodeURIComponent('${enc}'))">SELECT</button>
         <button type="button" class="tb danger" onclick="dropTable(decodeURIComponent('${enc}'))">Suppr.</button>
       </div>
