@@ -1025,6 +1025,8 @@
   .feedback{animation:pop .3s cubic-bezier(.3,1.4,.5,1)}
   .feedback.ok{animation:pop .3s cubic-bezier(.3,1.4,.5,1), okFlash .7s ease}
   .feedback.ok .fi{animation:checkPop .4s cubic-bezier(.3,1.4,.5,1)}
+  .console-okflash{display:flex;align-items:center;justify-content:center;padding:28px 16px;animation:riseIn .28s cubic-bezier(.32,.72,.28,1) both}
+  .console-okflash .fi{width:44px;height:44px;border-radius:50%;background:var(--success);color:#fff;font-size:20px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px -10px rgba(11,107,74,.55);animation:checkPop .45s cubic-bezier(.3,1.4,.5,1)}
   @keyframes okFlash{0%{box-shadow:0 0 0 0 rgba(28,166,114,.0)}40%{box-shadow:0 0 0 6px rgba(28,166,114,.18)}100%{box-shadow:0 0 0 0 rgba(28,166,114,0)}}
   .feedback.err,.feedback.warn{animation:shake .38s ease}
   @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
@@ -3033,7 +3035,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-10-d';
+const APP_VERSION='2026-08-10-e';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -3225,21 +3227,36 @@ async function loadCustomDbs(){
   }catch(e){}
 }
 function resetDb(){ resetActiveDb(); }
-function resetActiveDb(){
+function clearConsoleEditor(){
+  const ta=document.getElementById('ed-console');
+  if(!ta)return;
+  ta.value='';
+  syncHL('ed-console','hl-console');
+  ta.style.height='auto';
+  ta.style.height=Math.max(ta.scrollHeight,104)+'px';
+}
+function flashConsoleOk(){
   const out=document.getElementById('console-out');
+  if(!out)return;
+  out.innerHTML=`<div class="console-okflash" aria-live="polite"><span class="fi" aria-hidden="true">✓</span></div>`;
+  clearTimeout(flashConsoleOk._t);
+  flashConsoleOk._t=setTimeout(()=>{
+    if(out.querySelector('.console-okflash')) out.innerHTML='';
+  },prefersReduceMotion()?400:900);
+}
+function resetActiveDb(){
   if(activeDbId==='cours'){
     buildDb();
-    const summary=courseTableSummaries().join(', ')||'les tables du cours';
-    if(out) out.innerHTML=`<div class="feedback ok"><div class="fi">↺</div><div><b>Base du cours réinitialisée</b><p>${esc(summary)} sont revenus.</p></div></div>`;
     renderSchema();
   }else{
-    const meta=dbCatalog.find(d=>d.id===activeDbId);
     if(customDbs[activeDbId]) customDbs[activeDbId].close();
     customDbs[activeDbId]=new SQL.Database();
     persistCustomDbs();
-    if(out) out.innerHTML=`<div class="feedback ok"><div class="fi">↺</div><div><b>Base vidée</b><p>${esc(meta?meta.name:'Cette base')} ne contient plus de tables.</p></div></div>`;
   }
+  clearConsoleEditor();
+  flashConsoleOk();
   renderDbWorkspace();
+  renderConsoleChips();
 }
 function switchDb(id){
   if(id!=='cours'&&!customDbs[id])return;
@@ -5625,7 +5642,7 @@ function renderCompte(){
         <div class="at"><b>Importer une sauvegarde</b><small>Restaurer depuis un JSON</small></div>
         <span class="chev">›</span></button>
       <button class="acc-row" type="button" onclick="resetDb();switchTab('console')">
-        <div class="at"><b>Réinitialiser la base SQL</b><small>Remet clients, produits, commandes</small></div>
+        <div class="at"><b>Réinitialiser la base SQL</b><small>Remet ${courseTableNames().join(', ')||'les tables du cours'}</small></div>
         <span class="chev">›</span></button>
       <button class="acc-row" type="button" onclick="replayOnboarding()">
         <div class="at"><b>Revoir l’intro</b><small>L’onboarding en 4 écrans</small></div>
