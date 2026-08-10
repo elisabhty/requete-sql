@@ -267,6 +267,14 @@
   .ma-ico.pack{background:#EEF4FF}
   .ma-ico.pack::before{content:'';width:13px;height:11px;border:1.7px solid #5B5BD6;border-radius:2px;display:block;box-shadow:0 -3px 0 -1px rgba(91,91,214,.25)}
   .concept-block .cmp{margin:2px 0 0;gap:12px}
+  .hav-rule{display:flex;flex-direction:column;gap:8px;margin:16px 0 0}
+  .hav-rule-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;border:1px solid rgba(20,20,40,.06)}
+  .hav-rule-row b{font-family:var(--mono);font-size:12.5px;min-width:64px}
+  .hav-rule-row span{font-size:13.5px;color:var(--ink-2);line-height:1.4}
+  .hav-rule-row.ko{background:linear-gradient(180deg,#FFF8F7,#FFF3F2);border-color:rgba(180,35,24,.12)}
+  .hav-rule-row.ko b{color:var(--danger)}
+  .hav-rule-row.ok{background:linear-gradient(180deg,#F5FBF7,#ECF7F1);border-color:rgba(11,107,74,.12)}
+  .hav-rule-row.ok b{color:var(--success)}
   .lesson-rich .sect-label{margin:26px 2px 12px}
   .lesson-rich .exframe{margin-bottom:16px;border:1px solid rgba(20,20,40,.06);border-radius:20px;box-shadow:0 14px 34px -22px rgba(20,20,40,.55)}
   .lesson-rich .piege{margin-bottom:6px;padding:14px 15px;border-radius:16px;box-shadow:0 8px 20px -18px rgba(122,74,0,.25)}
@@ -394,6 +402,9 @@
   .exframe .xf-actions{padding:16px 16px;background:var(--surface);border-top:1px solid var(--line)}
   .exframe .xf-run{width:100%;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:14px 16px;font-family:var(--ui);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 18px -10px rgba(91,91,214,.75);transition:transform .15s ease,opacity .15s ease}
   .xf-run-ico{width:0;height:0;border-style:solid;border-width:6px 0 6px 9px;border-color:transparent transparent transparent #fff;margin-left:1px;flex:none}
+  .exframe .xf-expect{margin:0;padding:0 16px 14px;font-size:13px;color:var(--ink-2);line-height:1.5}
+  .exframe .xf-expect b{color:var(--ink)}
+  .exframe .xf-expect:has(+ .xf-result:not([hidden])){display:none}
   .exframe .xf-run:active{transform:scale(.98)}
   .exframe .xf-run:disabled{opacity:.65;cursor:wait}
   .exframe .xf-result{background:var(--surface);overflow:hidden;padding:0;border-top:1px solid var(--line)}
@@ -1671,7 +1682,7 @@ const MODULES = [
   indice:"Deux JOIN, chacun avec son ON. Le second relie <code>commandes.produit_id</code> à <code>produits.id</code>." },
 
 { id:17, titre:"HAVING", résumé:"Filtrer après regroupement",
-  situation:"Tu veux afficher les <b>catégories qui possèdent au moins 2 produits</b>.",
+  situation:"Tu veux afficher les <b>catégories qui possèdent au moins 2 produits</b> — dans la table <code>produits</code>.",
   concept:`<div class="concept-page">
   <div class="concept-block tone-warn">
     <h4><span class="cb-ico warn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 8v5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="16.2" r="1.2" fill="currentColor"/><path d="M10.2 4.8 3.4 17.2a2 2 0 0 0 1.8 2.9h13.6a2 2 0 0 0 1.8-2.9L13.8 4.8a2 2 0 0 0-3.6 0Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>Ce qui bloque</h4>
@@ -1685,31 +1696,42 @@ GROUP BY categorie;</div>
       <p>Parce que <code>WHERE</code> est exécuté <b>avant</b> <code>GROUP BY</code>.</p>
       <p>À ce moment-là, SQL voit uniquement les lignes de la table.</p>
     </div>
+    <div class="cfs-label">Table produits</div>
     <div class="table-wrap"><table class="concept-table"><thead><tr><th>Produit</th><th>Catégorie</th></tr></thead><tbody>
-      <tr><td>Pomme</td><td>Fruit</td></tr><tr><td>Banane</td><td>Fruit</td></tr><tr><td>Carotte</td><td>Légume</td></tr><tr><td>Tomate</td><td>Légume</td></tr><tr><td>Salade</td><td>Légume</td></tr>
+      <tr><td>Fibre Prébiotique</td><td>Bien-être</td></tr>
+      <tr><td>Magnésium</td><td>Bien-être</td></tr>
+      <tr><td>Vitamine D</td><td>Bien-être</td></tr>
+      <tr><td>Oméga 3</td><td>Bien-être</td></tr>
+      <tr><td>Collagène Marin</td><td>Beauté</td></tr>
+      <tr><td>Tisane Détox</td><td>Boisson</td></tr>
     </tbody></table></div>
-    <p>Les groupes n’existent pas encore.</p>
-    <p class="concept-point"><span class="em tip" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h12M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>SQL ne peut donc pas calculer <code>COUNT(*)</code> : il n’a encore rien regroupé.</span></p>
+    <p class="concept-coda soft">Les autres catégories de la base ont aussi 1 seul produit.</p>
+    <p class="concept-point"><span class="em tip" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h12M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Les groupes n’existent pas encore : <code>COUNT(*)</code> ne peut pas être calculé dans <code>WHERE</code>.</span></p>
   </div>
   <div class="concept-block">
     <h4><span class="cb-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>Les groupes se forment</h4>
-    <p>SQL rassemble les lignes ayant la même catégorie.</p>
+    <p>Après <code>GROUP BY categorie</code>, SQL crée un paquet par catégorie.</p>
     <div class="group-tree">
-      <div class="gt-node">
-        <div class="gt-head"><span class="gt-badge">Groupe</span>Fruit</div>
-        <div class="gt-item">├── Pomme</div>
-        <div class="gt-item">└── Banane</div>
-        <div class="gt-count ok">COUNT = 2</div>
+      <div class="gt-node keep">
+        <div class="gt-head"><span class="gt-badge">Groupe</span>Bien-être</div>
+        <div class="gt-item">├── Fibre Prébiotique</div>
+        <div class="gt-item">├── Magnésium</div>
+        <div class="gt-item">├── Vitamine D</div>
+        <div class="gt-item">└── Oméga 3</div>
+        <div class="gt-count ok">COUNT = 4</div>
       </div>
-      <div class="gt-node">
-        <div class="gt-head"><span class="gt-badge">Groupe</span>Légume</div>
-        <div class="gt-item">├── Carotte</div>
-        <div class="gt-item">├── Tomate</div>
-        <div class="gt-item">└── Salade</div>
-        <div class="gt-count ok">COUNT = 3</div>
+      <div class="gt-node drop">
+        <div class="gt-head"><span class="gt-badge">Groupe</span>Beauté</div>
+        <div class="gt-item">└── Collagène Marin</div>
+        <div class="gt-count out">COUNT = 1</div>
+      </div>
+      <div class="gt-node drop">
+        <div class="gt-head"><span class="gt-badge">Groupe</span>Boisson</div>
+        <div class="gt-item">└── Tisane Détox</div>
+        <div class="gt-count out">COUNT = 1</div>
       </div>
     </div>
-    <p>Les groupes existent. <code>COUNT(*)</code> devient enfin disponible.</p>
+    <p>Les groupes existent. <code>COUNT(*)</code> est enfin disponible.</p>
   </div>
   <div class="concept-block tone-ok">
     <h4><span class="cb-ico ok" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5 9.5 17 19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>HAVING filtre les groupes</h4>
@@ -1719,10 +1741,11 @@ GROUP BY categorie
 HAVING COUNT(*) >= 2;</div>
     <p><code>HAVING</code> s’applique <b>après</b> le regroupement.</p>
     <div class="having-picks">
-      <span><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5 9.5 17 19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></i>Fruit → COUNT = 2</span>
-      <span><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5 9.5 17 19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></i>Légume → COUNT = 3</span>
+      <span><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5 9.5 17 19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></i>Bien-être → 4</span>
+      <span class="out"><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 7l10 10M17 7 7 17" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></i>Beauté → 1</span>
+      <span class="out"><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 7l10 10M17 7 7 17" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></i>Boisson → 1</span>
     </div>
-    <p class="concept-coda soft">Un groupe avec 1 seul produit serait écarté ici.</p>
+    <p class="concept-coda soft">Seules les catégories avec au moins 2 produits restent.</p>
   </div>
   <div class="concept-block">
     <h4><span class="cb-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 4v12M8 12l4 4 4-4" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Ordre d’exécution</h4>
@@ -1739,33 +1762,22 @@ HAVING COUNT(*) >= 2;</div>
       <div class="ov-arr" aria-hidden="true"></div>
       <div class="ov-step"><span class="ov-n">6</span><div class="ov-body"><b>ORDER BY</b><span>On trie le résultat</span></div></div>
     </div>
-  </div>
-  <div class="concept-block">
-    <h4><span class="cb-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 8h10M7 12h7M7 16h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M16 10.5 19 12l-3 1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>WHERE ou HAVING</h4>
-    <div class="cmp">
-      <div class="cmp-card where">
-        <span class="cmp-tag"><span class="cmp-ico ko" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 7l10 10M17 7 7 17" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>WHERE</span>
-        <div class="ex-code">SELECT categorie, COUNT(*)
-FROM produits
-WHERE COUNT(*) >= 2
-GROUP BY categorie;</div>
-        <div class="cmp-verdict ko"><span class="cmp-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 7l10 10M17 7 7 17" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span><div class="cmp-verdict-body"><b>Erreur : WHERE s’exécute avant GROUP BY.</b><p>SQL voit encore les lignes. Les groupes n’existent pas, donc <code>COUNT(*)</code> non plus.</p></div></div>
-      </div>
-      <div class="cmp-card having">
-        <span class="cmp-tag"><span class="cmp-ico ok" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5 9.5 17 19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>HAVING</span>
-        <div class="ex-code">SELECT categorie, COUNT(*)
-FROM produits
-GROUP BY categorie
-HAVING COUNT(*) >= 2;</div>
-        <div class="cmp-verdict ok"><span class="cmp-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5 9.5 17 19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div class="cmp-verdict-body"><b>Correct : GROUP BY a déjà créé les groupes.</b><p><code>HAVING</code> peut utiliser <code>COUNT(*)</code> pour filtrer ces groupes.</p></div></div>
-      </div>
+    <div class="hav-rule" role="note">
+      <div class="hav-rule-row ko"><b>WHERE</b><span>filtre les lignes · avant GROUP BY</span></div>
+      <div class="hav-rule-row ok"><b>HAVING</b><span>filtre les groupes · après GROUP BY</span></div>
     </div>
   </div>
   <div class="concept-block">
-    <h4><span class="cb-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7h10l2 3h4v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 14.5 11 16.5 15.5 12" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Qui passe le filtre</h4>
-    <div class="cfs-label">Données</div>
+    <h4><span class="cb-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7h10l2 3h4v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 14.5 11 16.5 15.5 12" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Même logique sur clients</h4>
+    <p>Pour préparer l’exercice : villes avec <b>au moins 2 clients</b>.</p>
+    <div class="cfs-label">Table clients</div>
     <div class="table-wrap"><table class="concept-table"><thead><tr><th>Ville</th><th>Client</th></tr></thead><tbody>
-      <tr><td>Paris</td><td>Alice</td></tr><tr><td>Paris</td><td>Bob</td></tr><tr><td>Lyon</td><td>Chloé</td></tr><tr><td>Lille</td><td>David</td></tr><tr><td>Lille</td><td>Emma</td></tr>
+      <tr><td>Paris</td><td>Sophie</td></tr>
+      <tr><td>Paris</td><td>Nathan</td></tr>
+      <tr><td>Paris</td><td>Léa</td></tr>
+      <tr><td>Lyon</td><td>Lucas</td></tr>
+      <tr><td>Lyon</td><td>Hugo</td></tr>
+      <tr><td>Marseille</td><td>Emma</td></tr>
     </tbody></table></div>
     <div class="flow-chain">
       <div class="flow-arrow" aria-hidden="true"><span></span></div>
@@ -1773,38 +1785,32 @@ HAVING COUNT(*) >= 2;</div>
       <div class="group-tree">
         <div class="gt-node keep">
           <div class="gt-head"><span class="gt-badge">Gardé</span>Paris</div>
-          <div class="gt-item">├── Alice</div>
-          <div class="gt-item">└── Bob</div>
+          <div class="gt-item">├── Sophie</div>
+          <div class="gt-item">├── Nathan</div>
+          <div class="gt-item">└── Léa</div>
+          <div class="gt-count ok">COUNT = 3</div>
+        </div>
+        <div class="gt-node keep">
+          <div class="gt-head"><span class="gt-badge">Gardé</span>Lyon</div>
+          <div class="gt-item">├── Lucas</div>
+          <div class="gt-item">└── Hugo</div>
           <div class="gt-count ok">COUNT = 2</div>
         </div>
         <div class="gt-node drop">
-          <div class="gt-head"><span class="gt-badge">Écarté</span>Lyon</div>
-          <div class="gt-item">└── Chloé</div>
-          <div class="gt-count out">COUNT = 1</div>
-        </div>
-        <div class="gt-node keep">
-          <div class="gt-head"><span class="gt-badge">Gardé</span>Lille</div>
-          <div class="gt-item">├── David</div>
+          <div class="gt-head"><span class="gt-badge">Écarté</span>Marseille</div>
           <div class="gt-item">└── Emma</div>
-          <div class="gt-count ok">COUNT = 2</div>
+          <div class="gt-count out">COUNT = 1</div>
         </div>
       </div>
       <div class="flow-arrow" aria-hidden="true"><span></span></div>
-      <div class="cfs-label">HAVING COUNT(*) &gt; 1</div>
+      <div class="cfs-label">HAVING COUNT(*) &gt;= 2</div>
       <div class="having-picks">
         <span><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5 9.5 17 19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></i>Paris</span>
-        <span><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5 9.5 17 19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></i>Lille</span>
-        <span class="out"><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 7l10 10M17 7 7 17" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></i>Lyon</span>
+        <span><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5 9.5 17 19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></i>Lyon</span>
+        <span class="out"><i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 7l10 10M17 7 7 17" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></i>Marseille</span>
       </div>
     </div>
-    <p class="concept-coda">Lyon disparaît : son groupe n’a qu’un client.</p>
-  </div>
-  <div class="concept-block tone-ok">
-    <h4><span class="cb-ico ok" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3.5 14.2 8.7l5.6.5-4.2 3.6 1.3 5.4L12 15.6 7.1 18.2l1.3-5.4-4.2-3.6 5.6-.5L12 3.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span>À retenir</h4>
-    <ul class="takeaway-list">
-      <li><code>WHERE</code> filtre les lignes avant le regroupement</li>
-      <li><code>HAVING</code> filtre les groupes après le regroupement</li>
-    </ul>
+    <p class="concept-coda">Bordeaux, Toulouse et Nantes sont aussi écartées (1 client chacune).</p>
   </div>
   <div class="concept-block tone-accent">
     <h4><span class="cb-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M9 18h6M10 21h4M8 14.5a5.5 5.5 0 1 1 8 0c-.9.9-1.5 1.6-1.5 2.8h-5c0-1.2-.6-1.9-1.5-2.8Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Astuce</h4>
@@ -1817,6 +1823,13 @@ HAVING COUNT(*) >= 2;</div>
       <p class="memory-note">Si ta condition utilise <code>COUNT()</code>, <code>SUM()</code>, <code>AVG()</code>, <code>MIN()</code> ou <code>MAX()</code>, elle va presque toujours dans <code>HAVING</code>.</p>
     </div>
   </div>
+  <div class="concept-block tone-ok">
+    <h4><span class="cb-ico ok" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3.5 14.2 8.7l5.6.5-4.2 3.6 1.3 5.4L12 15.6 7.1 18.2l1.3-5.4-4.2-3.6 5.6-.5L12 3.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span>À retenir</h4>
+    <ul class="takeaway-list">
+      <li><code>WHERE</code> filtre les lignes avant le regroupement</li>
+      <li><code>HAVING</code> filtre les groupes après le regroupement</li>
+    </ul>
+  </div>
   </div>`,
   anatomie:[{tok:"SELECT categorie, COUNT(*)",txt:"Catégorie et total."},
     {tok:"FROM produits",txt:"Table."},{tok:"GROUP BY categorie",txt:"Un paquet par catégorie."},
@@ -1826,10 +1839,10 @@ HAVING COUNT(*) >= 2;</div>
   richLesson:true,
   exemple:"SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 2;",
   attendu:"<b>1 ligne</b> : Bien-être, 4 produits. Les autres catégories n’ont qu’un produit.",
-  piege:{t:"WHERE au lieu de HAVING",p:"<code>WHERE COUNT(*) > 1</code> provoque « misuse of aggregate function ». Les agrégats ne sont disponibles qu’à partir de <code>HAVING</code>."},
-  consigne:"Trouve les <b>villes qui comptent plus d’un client</b> (ville et nombre).",
-  solution:"SELECT ville, COUNT(*) FROM clients GROUP BY ville HAVING COUNT(*) > 1;",
-  indice:"<code>… GROUP BY ville HAVING COUNT(*) > 1</code>" },
+  piege:{t:"WHERE au lieu de HAVING",p:"<code>WHERE COUNT(*) >= 2</code> provoque « misuse of aggregate function ». Les agrégats ne sont disponibles qu’à partir de <code>HAVING</code>."},
+  consigne:"Trouve les <b>villes qui comptent au moins 2 clients</b> (ville et nombre).",
+  solution:"SELECT ville, COUNT(*) FROM clients GROUP BY ville HAVING COUNT(*) >= 2;",
+  indice:"<code>… GROUP BY ville HAVING COUNT(*) >= 2</code>" },
 ]},
 
 { titre:"Les cas qui piègent", sous:"Ce qui casse les rapports en entreprise", lessons:[
@@ -3013,7 +3026,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-10-a';
+const APP_VERSION='2026-08-10-b';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -4068,6 +4081,7 @@ function lessonRichBlocks(l){
 function lessonRichFooter(l){
   const sql=escAttr(l.exemple);
   const file=l.id===17?'having.sql':'requete.sql';
+  const expect=l.attendu?`<p class="xf-expect">${l.attendu}</p>`:'';
   return `
     <div class="sect-label"><i>✓</i><span>Teste</span></div>
     <div class="exframe">
@@ -4076,6 +4090,7 @@ function lessonRichFooter(l){
       <div class="xf-actions">
         <button type="button" class="xf-run" data-sql="${sql}" onclick="runExemple(this)"><span class="xf-run-ico" aria-hidden="true"></span>Exécuter</button>
       </div>
+      ${expect}
       <div class="xf-result" hidden aria-live="polite"></div></div>
     <div class="piege"><div class="pi">!</div><div><b>${l.piege.t}</b><p>${l.piege.p}</p></div></div>`;
 }
