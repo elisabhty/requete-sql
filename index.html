@@ -525,10 +525,11 @@
   .rel-note{margin:0 16px 16px;font-size:13.5px;color:var(--ink-2);background:var(--surface);border-radius:14px;padding:14px 16px;box-shadow:0 1px 0 var(--line)}
   .rel-note b{color:var(--ink)}
 
-  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
-  .chip{font-family:var(--mono);font-size:12.5px;font-weight:600;background:var(--surface);border:1px solid var(--line-2);border-radius:9px;padding:7px 12px;color:var(--accent);cursor:pointer}
-  .console-note{font-size:12.5px;color:var(--ink-3);margin:0 4px 14px}
-  .db-workspace{margin:0 0 14px;background:transparent;border-radius:0;box-shadow:none;overflow:visible}
+  .db-workspace{margin:0 0 14px;background:transparent;border-radius:0;box-shadow:none;overflow:visible;display:flex;flex-direction:column;gap:12px}
+  .db-sec{display:flex;flex-direction:column;gap:8px}
+  .db-lab{display:flex;align-items:baseline;gap:8px;padding:0 2px}
+  .db-lab > span{font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--ink-3)}
+  .db-lab small{font-size:12px;color:var(--ink-3);font-weight:500;letter-spacing:0;text-transform:none}
   .db-bar{display:flex;gap:7px;padding:0;overflow-x:auto;scrollbar-width:none;align-items:center}
   .db-bar::-webkit-scrollbar{display:none}
   .db-pill{flex:none;border:none;background:var(--surface);border-radius:999px;padding:8px 13px;font-family:var(--ui);font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer;box-shadow:0 1px 0 var(--line);transition:background .2s ease,color .2s ease,box-shadow .2s ease,transform .15s ease}
@@ -537,13 +538,19 @@
   .db-pill.reset{min-width:36px;justify-content:center}
   .db-pill.reset.ok{background:var(--success);color:#fff;box-shadow:0 0 0 4px rgba(11,107,74,.16);animation:checkPop .4s cubic-bezier(.3,1.4,.5,1)}
   .db-actions{display:none}
-  .db-tables{margin-top:10px;padding:10px;background:var(--surface);border-radius:16px;display:flex;flex-direction:column;gap:6px;box-shadow:0 1px 0 var(--line)}
+  .db-tables{padding:10px;background:var(--surface);border-radius:16px;display:flex;flex-direction:column;gap:6px;box-shadow:0 1px 0 var(--line)}
   .db-trow{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:11px;padding:9px 10px}
+  .db-trow .tk{font-size:9.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:3px 6px;border-radius:6px;flex:none}
   .db-trow .tn{font-family:var(--mono);font-size:13px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .db-trow .tc{font-size:11.5px;color:var(--ink-3);flex:none}
   .db-trow .tb{border:none;background:var(--surface);border-radius:8px;padding:6px 8px;font-size:12px;font-weight:600;color:var(--ink-2);cursor:pointer;flex:none}
   .db-trow .tb.danger{color:var(--danger)}
   .db-empty{font-size:13px;color:var(--ink-3);padding:4px 6px 8px}
+  .chips-wrap{margin:0 0 14px}
+  .chips-wrap .db-lab{margin-bottom:8px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:0}
+  .chip{font-family:var(--mono);font-size:12.5px;font-weight:600;background:var(--surface);border:1px solid var(--line-2);border-radius:9px;padding:7px 12px;color:var(--accent);cursor:pointer}
+  .console-note{font-size:12.5px;color:var(--ink-3);margin:0 4px 14px}
   .imp-sheet{position:fixed;left:0;right:0;bottom:0;z-index:120;background:var(--surface);border-radius:20px 20px 0 0;padding:14px 16px calc(18px + var(--safe-bottom));box-shadow:0 -12px 40px rgba(0,0,0,.18);transform:translateY(110%);transition:transform .28s cubic-bezier(.32,.72,.28,1);max-width:520px;margin:0 auto}
   .imp-sheet[hidden],.imp-back[hidden]{display:none}
   .imp-sheet.on{transform:none}
@@ -1200,7 +1207,9 @@
     .ls-slide,.table-wrap,.toast.on,.gcard.unlocking,.ls-step.on,.next-btn.pulse,.btn-run.pulse,
     .lesson-rich .concept-page > .concept-block,.lesson-rich .lesson-lead,.lesson-rich .exframe,.lesson-rich .piege,.lesson-rich .sect-label,
     .lesson-rich .gt-node,.lesson-rich .ov-arr,.lesson-rich .flow-arrow span,.lesson-rich .having-picks span,.lesson-rich .takeaway-list li,
-    .lesson-rich .why-box,.lesson-rich .ov-step.here,.exframe .xf-result.on .table-wrap tbody tr{animation:none!important;opacity:1;transform:none}
+    .lesson-rich .why-box,.lesson-rich .ov-step.here,.exframe .xf-result.on .table-wrap tbody tr,
+    .result-live .result-meta,.result-live .table-wrap,.result-live .table-wrap thead,.result-live .table-wrap tbody tr,
+    .query-loading,.query-loading.out{animation:none!important;opacity:1;transform:none}
     .lesson-rich .concept-block:hover{transform:none;box-shadow:0 1px 0 rgba(255,255,255,.8) inset,0 12px 32px -24px rgba(20,20,40,.55)}
     .module .row,.module,.home-card,.progress-card,.primer,.today-hero,.home-today,.revise{animation:none!important;opacity:1;transform:none}
     *{scroll-behavior:auto}
@@ -1288,20 +1297,29 @@
     <!-- CONSOLE -->
     <section id="scr-console" class="screen">
       <div class="lgtitle title-row"><div class="eyebrow">Bac à sable</div><h1>Console</h1>
-        <p class="sub">Interroge la base du cours ou importe tes propres données.</p>
+        <p class="sub">Une <b>base</b> contient des <b>tables</b> (clients, produits…). Choisis une base, puis interroge une table.</p>
         <button type="button" class="title-pill" onclick="promptNewDb()">＋ Base</button></div>
       <div style="padding:16px 18px 0">
         <div class="db-workspace">
-          <div class="db-bar" id="db-bar"></div>
+          <div class="db-sec">
+            <div class="db-lab"><span>Base</span><small>Conteneur de tes données</small></div>
+            <div class="db-bar" id="db-bar"></div>
+          </div>
           <div class="db-actions">
             <button type="button" onclick="promptNewDb()">＋ Nouvelle base</button>
             <button type="button" onclick="document.getElementById('data-import').click()">↑ Importer</button>
             <button type="button" onclick="resetActiveDb()">↺ Réinitialiser</button>
           </div>
-          <div class="db-tables" id="db-tables"></div>
+          <div class="db-sec">
+            <div class="db-lab"><span>Tables</span><small id="db-tables-lab">Dans la base active</small></div>
+            <div class="db-tables" id="db-tables"></div>
+          </div>
         </div>
         <input id="data-import" type="file" accept=".csv,.json,.sql,.txt,text/csv,application/json,text/plain" hidden onchange="onDataImport(event)">
-        <div class="chips" id="console-chips"></div>
+        <div class="chips-wrap">
+          <div class="db-lab"><span>Exemples</span><small>Requêtes prêtes à lancer</small></div>
+          <div class="chips" id="console-chips"></div>
+        </div>
         <div class="editor-shell">
           <div class="editor-bar"><span class="dot v"></span><span class="fname">console.sql</span><span class="fname ml">✎</span></div>
           <div class="editor-area"><pre><code id="hl-console"></code></pre>
@@ -3060,7 +3078,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-10-i';
+const APP_VERSION='2026-08-10-k';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -3331,23 +3349,31 @@ function tableRowCount(database,name){
 function renderDbWorkspace(){
   const bar=document.getElementById('db-bar');
   const host=document.getElementById('db-tables');
+  const lab=document.getElementById('db-tables-lab');
   if(!bar||!host)return;
+  const activeName=(dbCatalog.find(d=>d.id===activeDbId)||{}).name||'base active';
   bar.innerHTML=dbCatalog.map(d=>
     `<button type="button" class="db-pill ${activeDbId===d.id?'on':''}" onclick="switchDb('${d.id}')">${esc(d.name)}</button>`
   ).join('')+`<button type="button" class="db-pill add" onclick="document.getElementById('data-import').click()">↑ Importer</button>`
     +(activeDbId!=='cours'?`<button type="button" class="db-pill" onclick="deleteActiveDb()" title="Supprimer cette base">✕</button>`:'')
     +`<button type="button" class="db-pill reset" id="db-reset-btn" onclick="resetActiveDb()" title="Réinitialiser" aria-label="Réinitialiser">↺</button>`;
   const database=activeDb();
-  if(!database){host.innerHTML='<div class="db-empty">Aucune base active.</div>';return;}
+  if(!database){
+    if(lab) lab.textContent='Aucune base active';
+    host.innerHTML='<div class="db-empty">Aucune base active.</div>';
+    return;
+  }
   const tables=listTables(database);
+  if(lab) lab.textContent=`Dans « ${activeName} » · ${tables.length} table${tables.length>1?'s':''}`;
   if(!tables.length){
-    host.innerHTML=`<div class="db-empty">${activeDbId==='cours'?'Aucune table — réinitialise la base du cours.':'Base vide — importe un CSV, JSON ou SQL.'}</div>`;
+    host.innerHTML=`<div class="db-empty">${activeDbId==='cours'?'Aucune table — réinitialise la base du cours.':'Cette base est vide — importe un CSV, JSON ou SQL.'}</div>`;
     return;
   }
   host.innerHTML=tables.map(t=>{
     const n=tableRowCount(database,t);
     const enc=encodeURIComponent(t);
     return `<div class="db-trow">
+      <span class="tk">table</span>
       <span class="tn">${esc(t)}</span>
       <span class="tc">${n} lig.</span>
       <button type="button" class="tb" onclick="queryTable(decodeURIComponent('${enc}'))">SELECT</button>
@@ -5425,17 +5451,18 @@ function noteToConsole(){
   ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px';
 }
 function renderConsoleChips(){
-  const tables=courseTableNames();
-  const ex=tables.map(t=>({l:`Table ${t}`,q:`SELECT * FROM ${t}\nLIMIT 50;`}));
-  if(!ex.length){
-    ex.push(
-      {l:"Tous les clients",q:"SELECT * FROM clients;"},
-      {l:"Top produits",q:"SELECT nom, prix FROM produits ORDER BY prix DESC LIMIT 3;"}
-    );
-  }else{
+  const database=activeDb();
+  const tables=database?listTables(database):courseTableNames();
+  const ex=tables.map(t=>({l:t,q:`SELECT * FROM ${t}\nLIMIT 50;`}));
+  if(tables.includes('clients')&&tables.includes('commandes')){
     ex.push(
       {l:"Ventes par client",q:"SELECT clients.nom, SUM(commandes.quantite) AS total\nFROM commandes\nJOIN clients ON commandes.client_id = clients.id\nGROUP BY clients.id, clients.nom\nORDER BY total DESC;"},
-      {l:"Sans commande",q:"SELECT clients.nom\nFROM clients\nLEFT JOIN commandes ON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;"}
+      {l:"Clients sans commande",q:"SELECT clients.nom\nFROM clients\nLEFT JOIN commandes ON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;"}
+    );
+  }else if(!ex.length){
+    ex.push(
+      {l:"clients",q:"SELECT * FROM clients;"},
+      {l:"produits",q:"SELECT nom, prix FROM produits ORDER BY prix DESC LIMIT 3;"}
     );
   }
   const host=document.getElementById('console-chips');
