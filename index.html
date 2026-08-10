@@ -557,10 +557,15 @@
   .imp-back{position:fixed;inset:0;z-index:115;background:rgba(20,20,30,.35);opacity:0;pointer-events:none;transition:opacity .2s}
   .imp-back.on{opacity:1;pointer-events:auto}
   .imp-sheet h3{margin:4px 0 4px;font-size:18px}
-  .imp-sheet .imp-sub{margin:0 0 12px;font-size:13px;color:var(--ink-2)}
+  .imp-sheet .imp-sub{margin:0 0 10px;font-size:13px;color:var(--ink-2)}
+  .imp-kind{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.2px;padding:5px 10px;border-radius:999px;margin:0 0 12px;border:1px solid var(--line-2);background:var(--bg);color:var(--ink-2)}
+  .imp-kind.table{color:#2F6B4F;background:rgba(47,107,79,.08);border-color:rgba(47,107,79,.22)}
+  .imp-kind.database{color:#3D4F9C;background:rgba(61,79,156,.08);border-color:rgba(61,79,156,.22)}
   .imp-field{margin:0 0 10px}
+  .imp-field[hidden]{display:none}
   .imp-field label{display:block;font-size:12px;font-weight:700;color:var(--ink-3);margin-bottom:5px}
   .imp-field input,.imp-field select{width:100%;border:1px solid var(--line-2);border-radius:11px;padding:11px 12px;font-family:var(--ui);font-size:14px;background:var(--bg);color:var(--ink)}
+  .imp-field .hint{display:block;margin-top:5px;font-size:12px;color:var(--ink-3);font-weight:500}
   .imp-prev{background:var(--bg);border-radius:11px;padding:10px 12px;font-size:12.5px;color:var(--ink-2);max-height:120px;overflow:auto;margin-bottom:12px;font-family:var(--mono)}
   .imp-go{width:100%;background:linear-gradient(180deg,#6363DE,#5151CB);color:#fff;border:none;border-radius:13px;padding:14px;font-family:var(--ui);font-size:15px;font-weight:700;cursor:pointer}
 
@@ -1302,7 +1307,7 @@
       <div style="padding:16px 18px 0">
         <div class="db-workspace">
           <div class="db-sec">
-            <div class="db-lab"><span>Base</span><small>Conteneur de tes données</small></div>
+            <div class="db-lab"><span>Base</span><small>Tes tables au même endroit</small></div>
             <div class="db-bar" id="db-bar"></div>
           </div>
           <div class="db-actions">
@@ -1334,7 +1339,7 @@
           Garder la requête dans notes
         </button>
         <div id="console-out"></div>
-        <p class="console-note">Importe un <b>CSV</b>, <b>JSON</b> ou script <b>SQL</b>. Les leçons restent sur la base du cours, intacte.</p>
+        <p class="console-note">Importe un <b>CSV</b>/<b>JSON</b> (une table) ou un script <b>SQL</b> (table ou base). Tu choisis la base cible — le cours reste intact.</p>
       </div>
     </section>
 
@@ -1393,12 +1398,14 @@
   <!-- Import de données -->
   <div class="imp-back" id="imp-back" hidden aria-hidden="true" onclick="closeImportSheet()"></div>
   <div class="imp-sheet" id="imp-sheet" hidden aria-hidden="true" inert>
-    <h3>Importer des données</h3>
+    <h3 id="imp-title">Importer</h3>
     <p class="imp-sub" id="imp-sub">CSV, JSON ou SQL</p>
-    <div class="imp-field"><label>Nom de la table</label><input id="imp-table" autocomplete="off" spellcheck="false"></div>
-    <div class="imp-field"><label>Base cible</label><select id="imp-db"></select></div>
+    <div class="imp-kind" id="imp-kind">Table</div>
+    <div class="imp-field" id="imp-table-field"><label>Nom de la table</label><input id="imp-table" autocomplete="off" spellcheck="false"><span class="hint" id="imp-table-hint"></span></div>
+    <div class="imp-field" id="imp-db-field"><label id="imp-db-label">Base cible</label><select id="imp-db" onchange="onImportDbChange()"></select><span class="hint" id="imp-db-hint"></span></div>
+    <div class="imp-field" id="imp-newname-field" hidden><label>Nom de la nouvelle base</label><input id="imp-newname" autocomplete="off" spellcheck="false" placeholder="Ma base"></div>
     <div class="imp-prev" id="imp-prev"></div>
-    <button class="imp-go" type="button" onclick="confirmImport()">Importer dans la base</button>
+    <button class="imp-go" id="imp-go" type="button" onclick="confirmImport()">Importer</button>
   </div>
 
   <!-- Bouton flottant : prendre une note -->
@@ -3078,7 +3085,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-10-k';
+const APP_VERSION='2026-08-10-o';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -3278,6 +3285,11 @@ function clearConsoleEditor(){
   ta.style.height='auto';
   ta.style.height=Math.max(ta.scrollHeight,104)+'px';
 }
+function clearConsolePane(){
+  clearConsoleEditor();
+  const out=document.getElementById('console-out');
+  if(out) out.innerHTML='';
+}
 function flashResetBtn(){
   const btn=document.getElementById('db-reset-btn');
   if(!btn)return;
@@ -3302,9 +3314,7 @@ function resetActiveDb(){
     customDbs[activeDbId]=new SQL.Database();
     persistCustomDbs();
   }
-  clearConsoleEditor();
-  const out=document.getElementById('console-out');
-  if(out) out.innerHTML='';
+  clearConsolePane();
   renderDbWorkspace();
   renderConsoleChips();
   flashResetBtn();
@@ -3312,7 +3322,9 @@ function resetActiveDb(){
 function switchDb(id){
   if(id!=='cours'&&!customDbs[id])return;
   activeDbId=id;
+  clearConsolePane();
   renderDbWorkspace();
+  renderConsoleChips();
   const name=(dbCatalog.find(d=>d.id===id)||{}).name||id;
   toast('Base active · '+name);
 }
@@ -3324,8 +3336,11 @@ function promptNewDb(){
   dbCatalog.push({id,name:name.trim().slice(0,40)});
   activeDbId=id;
   persistCustomDbs();
+  clearConsolePane();
   renderDbWorkspace();
-  toast('Base créée');
+  renderConsoleChips();
+  switchTab('console');
+  toast('Base créée · repartir de zéro');
 }
 function deleteActiveDb(){
   if(activeDbId==='cours'){toast('La base du cours ne peut pas être supprimée');return;}
@@ -3437,24 +3452,161 @@ function tableFromMatrix(headers,dataRows){
   const types=cols.map((_,i)=>inferSqlType(dataRows.map(r=>r[i])));
   return {cols,types,rows:dataRows};
 }
+function extractSqlIdent(m, schemaIdx){
+  // SQL_IDENT groups: schema, "quoted", `tick`, [bracket], bare
+  return m[schemaIdx+1]||m[schemaIdx+2]||m[schemaIdx+3]||m[schemaIdx+4]||null;
+}
+const SQL_IDENT='(?:([A-Za-z_][\\w$]*)\\.)?(?:"([^"]+)"|`([^`]+)`|\\[([^\\]]+)\\]|([A-Za-z_][\\w$]*))';
+function normalizeSqlForSqlite(sql){
+  // Postgres / SQL Server schemas → SQLite (pas de schéma public/dbo)
+  return String(sql||'').replace(
+    /\b(INSERT\s+INTO|UPDATE|DELETE\s+FROM|ALTER\s+TABLE|CREATE\s+TABLE(?:\s+IF\s+NOT\s+EXISTS)?|DROP\s+TABLE(?:\s+IF\s+EXISTS)?|TRUNCATE\s+TABLE|FROM|JOIN|INTO|REFERENCES|TABLE)\s+(?:public|dbo)\s*\.\s*/gi,
+    '$1 '
+  );
+}
+function extractSqlTableNames(text){
+  const names=[];
+  const re=new RegExp('CREATE\\s+TABLE\\s+(?:IF\\s+NOT\\s+EXISTS\\s+)?'+SQL_IDENT,'gi');
+  let m;
+  while((m=re.exec(text))){
+    const n=extractSqlIdent(m,1);
+    if(n) names.push(n);
+  }
+  return names;
+}
+function extractInsertSpecs(text){
+  const specs=[];
+  const re=new RegExp('INSERT\\s+INTO\\s+'+SQL_IDENT+'\\s*(?:\\(([^)]+)\\))?','gi');
+  let m;
+  while((m=re.exec(text))){
+    const name=extractSqlIdent(m,1);
+    if(!name) continue;
+    const colsRaw=m[6];
+    const cols=colsRaw
+      ? colsRaw.split(',').map(c=>safeIdent(c.trim().replace(/^["`\[]|["`\]]$/g,''))).filter(Boolean)
+      : null;
+    specs.push({name:safeIdent(name), cols});
+  }
+  return specs;
+}
+function classifySqlImport(text){
+  const creates=extractSqlTableNames(text);
+  const inserts=extractInsertSpecs(text);
+  const createUnique=[...new Set(creates.map(n=>n.toLowerCase()))];
+  const insertNames=inserts.map(s=>s.name);
+  const insertUnique=[...new Set(insertNames.map(n=>n.toLowerCase()))];
+  if(/ATTACH\s+DATABASE/i.test(text) || createUnique.length>=2 || insertUnique.length>=2){
+    return {scope:'database', tableNames:creates.length?creates:insertNames, primaryTable:null};
+  }
+  if(createUnique.length===1){
+    return {scope:'table', tableNames:creates, primaryTable:creates[0]};
+  }
+  if(insertUnique.length===1){
+    return {scope:'table', tableNames:insertNames, primaryTable:insertNames[0]};
+  }
+  return {scope:'database', tableNames:[], primaryTable:null};
+}
+function ensureTablesForSqlImport(database, sql){
+  const existing=new Set(listTables(database).map(t=>t.toLowerCase()));
+  extractSqlTableNames(sql).forEach(n=>existing.add(String(n).toLowerCase()));
+  const seen=new Set();
+  extractInsertSpecs(sql).forEach(spec=>{
+    const key=spec.name.toLowerCase();
+    if(seen.has(key)||existing.has(key)) return;
+    seen.add(key);
+    if(!spec.cols||!spec.cols.length){
+      throw new Error('Table « '+spec.name+' » absente : le script INSERT ne liste pas les colonnes, impossible de la créer automatiquement.');
+    }
+    database.run(
+      'CREATE TABLE IF NOT EXISTS '+quoteIdent(spec.name)+' ('+
+      spec.cols.map(c=>quoteIdent(c)+' TEXT').join(', ')+')'
+    );
+    existing.add(key);
+  });
+}
+function runSqlImport(database, sql){
+  const normalized=normalizeSqlForSqlite(sql);
+  ensureTablesForSqlImport(database, normalized);
+  database.exec(normalized);
+}
+function parseJsonImport(data){
+  // Base JSON : { clients: [...], produits: [...] }
+  if(data && typeof data==='object' && !Array.isArray(data)){
+    const entries=Object.entries(data).filter(([,v])=>Array.isArray(v));
+    if(entries.length>=2 && entries.every(([,arr])=>!arr.length||(typeof arr[0]==='object'&&arr[0]&&!Array.isArray(arr[0])))){
+      const tables=entries.map(([name,arr])=>{
+        const headers=[...arr.reduce((s,o)=>{Object.keys(o||{}).forEach(k=>s.add(k));return s;},new Set())];
+        if(!headers.length) headers.push('id');
+        const matrix=arr.map(o=>headers.map(h=>o&&o[h]==null?'':o[h]));
+        return {name:safeIdent(name),...tableFromMatrix(headers,matrix)};
+      });
+      const total=tables.reduce((n,t)=>n+t.rows.length,0);
+      return {
+        kind:'database', format:'json-db', tables,
+        hint:`${tables.length} tables · ${total} lignes`,
+        preview:tables.map(t=>`${t.name} (${t.rows.length})`).join(' · ')
+      };
+    }
+    if(entries.length===1){
+      const [name,arr]=entries[0];
+      if(!arr.length||(typeof arr[0]==='object'&&arr[0]&&!Array.isArray(arr[0]))){
+        const headers=[...arr.reduce((s,o)=>{Object.keys(o||{}).forEach(k=>s.add(k));return s;},new Set())];
+        if(!headers.length) throw new Error('JSON : table vide sans colonnes.');
+        const matrix=arr.map(o=>headers.map(h=>o&&o[h]==null?'':o[h]));
+        const t=tableFromMatrix(headers,matrix);
+        return {kind:'table',...t,defaultTable:safeIdent(name),hint:`${t.rows.length} lignes · ${t.cols.join(', ')}`};
+      }
+    }
+  }
+  const arr=Array.isArray(data)?data:(data&&typeof data==='object'?[data]:null);
+  if(!arr||!arr.length||typeof arr[0]!=='object'||Array.isArray(arr[0])) throw new Error('JSON : attendu un tableau d’objets, ou un objet { table: [...] }.');
+  const headers=[...arr.reduce((s,o)=>{Object.keys(o||{}).forEach(k=>s.add(k));return s;},new Set())];
+  const matrix=arr.map(o=>headers.map(h=>o[h]==null?'':o[h]));
+  const t=tableFromMatrix(headers,matrix);
+  return {kind:'table',...t,hint:`${t.rows.length} lignes · ${t.cols.join(', ')}`};
+}
 function parseImportFile(name,text){
   const lower=(name||'').toLowerCase();
-  if(lower.endsWith('.sql')||/^\s*(CREATE|INSERT|DROP|ALTER|WITH|BEGIN)\b/i.test(text)){
-    return {kind:'sql',sql:text,hint:text.slice(0,280)+(text.length>280?'…':'')};
+  const baseName=safeIdent((name||'import').replace(/\.[^.]+$/,''))||'import';
+  if(lower.endsWith('.sql')||/^\s*(CREATE|INSERT|DROP|ALTER|WITH|BEGIN|PRAGMA)\b/i.test(text)){
+    const sql=normalizeSqlForSqlite(text);
+    const cls=classifySqlImport(sql);
+    const named=cls.tableNames.length?cls.tableNames:[];
+    const nNamed=[...new Set(named.map(n=>String(n).toLowerCase()))].length;
+    const insertOnly=!extractSqlTableNames(sql).length && extractInsertSpecs(sql).length;
+    const hint=cls.scope==='database'
+      ? (nNamed?`${nNamed} table${nNamed>1?'s':''} détectée${nNamed>1?'s':''} · script SQL`:'Script SQL · base')
+      : (cls.primaryTable
+        ? (insertOnly?`Table « ${cls.primaryTable} » · INSERT (création auto)`:`Table « ${cls.primaryTable} » · script SQL`)
+        :'Script SQL · une table');
+    return {
+      kind:cls.scope==='database'?'database':'sql-table',
+      format:'sql',
+      sql,
+      insertOnly:!!insertOnly,
+      tableNames:cls.tableNames,
+      primaryTable:cls.primaryTable,
+      defaultTable:cls.primaryTable?safeIdent(cls.primaryTable):baseName,
+      hint,
+      preview:sql.slice(0,280)+(sql.length>280?'…':'')
+    };
   }
   if(lower.endsWith('.json')||/^\s*[\[{]/.test(text)){
     const data=JSON.parse(text);
-    const arr=Array.isArray(data)?data:(data&&typeof data==='object'?[data]:null);
-    if(!arr||!arr.length||typeof arr[0]!=='object') throw new Error('JSON : attendu un tableau d’objets.');
-    const headers=[...arr.reduce((s,o)=>{Object.keys(o||{}).forEach(k=>s.add(k));return s;},new Set())];
-    const matrix=arr.map(o=>headers.map(h=>o[h]==null?'':o[h]));
-    const t=tableFromMatrix(headers,matrix);
-    return {kind:'table',...t,hint:`${t.rows.length} lignes · ${t.cols.join(', ')}`};
+    const parsed=parseJsonImport(data);
+    if(!parsed.defaultTable) parsed.defaultTable=baseName;
+    return parsed;
   }
   const matrix=parseCsv(text);
   if(matrix.length<2) throw new Error('CSV : il faut une ligne d’en-têtes et au moins une ligne de données.');
   const t=tableFromMatrix(matrix[0],matrix.slice(1));
-  return {kind:'table',...t,hint:`${t.rows.length} lignes · ${t.cols.join(', ')}`};
+  return {kind:'table',...t,defaultTable:baseName,hint:`${t.rows.length} lignes · ${t.cols.join(', ')}`};
+}
+function isDatabaseImport(parsed){
+  return parsed && (parsed.kind==='database');
+}
+function isTableImport(parsed){
+  return parsed && (parsed.kind==='table' || parsed.kind==='sql-table');
 }
 function onDataImport(ev){
   const file=ev.target.files&&ev.target.files[0];
@@ -3464,27 +3616,82 @@ function onDataImport(ev){
   reader.onload=()=>{
     try{
       const parsed=parseImportFile(file.name,String(reader.result||''));
-      pendingImport={file:file.name,parsed,defaultTable:safeIdent(file.name.replace(/\.[^.]+$/,''))};
+      pendingImport={
+        file:file.name,
+        parsed,
+        defaultTable:parsed.defaultTable||safeIdent(file.name.replace(/\.[^.]+$/,''))||'import',
+        defaultDbName:(file.name.replace(/\.[^.]+$/,'')||'Import').slice(0,40)
+      };
       openImportSheet();
     }catch(e){ alert('Import impossible : '+(e.message||e)); }
   };
   reader.readAsText(file);
 }
+function onImportDbChange(){
+  const sel=document.getElementById('imp-db');
+  const nameField=document.getElementById('imp-newname-field');
+  if(!sel||!nameField)return;
+  nameField.hidden=sel.value!=='__new__';
+}
 function openImportSheet(){
   if(!pendingImport)return;
-  document.getElementById('imp-sub').textContent=pendingImport.file+' · '+pendingImport.parsed.hint;
-  document.getElementById('imp-table').value=pendingImport.defaultTable;
-  document.getElementById('imp-table').disabled=pendingImport.parsed.kind==='sql';
+  const p=pendingImport.parsed;
+  const asDb=isDatabaseImport(p);
+  const title=document.getElementById('imp-title');
+  const kind=document.getElementById('imp-kind');
+  const tableField=document.getElementById('imp-table-field');
+  const tableInput=document.getElementById('imp-table');
+  const tableHint=document.getElementById('imp-table-hint');
+  const dbLabel=document.getElementById('imp-db-label');
+  const dbHint=document.getElementById('imp-db-hint');
+  const newName=document.getElementById('imp-newname');
+  const go=document.getElementById('imp-go');
+
+  title.textContent=asDb?'Importer une base':'Importer une table';
+  kind.textContent=asDb?'Base détectée':'Table détectée';
+  kind.className='imp-kind '+(asDb?'database':'table');
+  document.getElementById('imp-sub').textContent=pendingImport.file+' · '+p.hint;
+
+  tableField.hidden=asDb;
+  if(!asDb){
+    tableInput.value=pendingImport.defaultTable;
+    tableInput.disabled=p.kind==='sql-table' && !!p.primaryTable;
+    tableHint.textContent=p.kind==='sql-table'
+      ? (p.insertOnly
+        ? 'INSERT sans CREATE : la table sera créée automatiquement dans SQLite.'
+        : (p.primaryTable?'Le script crée déjà cette table.':'Le script sera exécuté dans la base choisie.'))
+      : 'CSV / JSON → une table dans la base choisie.';
+  }
+
+  const customs=dbCatalog.filter(d=>d.id!=='cours');
+  const preferred=(!asDb && activeDbId!=='cours' && customDbs[activeDbId])
+    ? activeDbId
+    : '__new__';
   const sel=document.getElementById('imp-db');
-  sel.innerHTML=dbCatalog.filter(d=>d.id!=='cours').map(d=>`<option value="${d.id}" ${d.id===activeDbId?'selected':''}>${esc(d.name)}</option>`).join('')
-    +`<option value="__new__" selected>＋ Nouvelle base personnelle…</option>`;
-  document.getElementById('imp-prev').textContent=pendingImport.parsed.kind==='sql'
-    ? pendingImport.parsed.hint
-    : pendingImport.parsed.cols.map((c,i)=>c+' '+pendingImport.parsed.types[i]).join(' · ');
+  sel.innerHTML=customs.map(d=>{
+    const n=customDbs[d.id]?listTables(customDbs[d.id]).length:0;
+    const mark=asDb&&n?` · ${n} table${n>1?'s':''}`:(!asDb&&n?` · ${n} table${n>1?'s':''}`:'');
+    return `<option value="${d.id}" ${d.id===preferred?'selected':''}>${esc(d.name)}${esc(mark)}</option>`;
+  }).join('')+`<option value="__new__" ${preferred==='__new__'?'selected':''}>＋ Nouvelle base</option>`;
+
+  dbLabel.textContent=asDb?'Où créer / charger cette base ?':'Base cible';
+  dbHint.textContent=asDb
+    ? 'Une base = plusieurs tables. Choisis une base existante (remplacée si non vide) ou crée-en une.'
+    : 'Ajoute la table dans une base existante, ou crée une base pour l’accueillir.';
+  newName.value=pendingImport.defaultDbName||pendingImport.defaultTable||'Ma base';
+  onImportDbChange();
+
+  document.getElementById('imp-prev').textContent=p.preview
+    || (p.kind==='table'?p.cols.map((c,i)=>c+' '+p.types[i]).join(' · '):p.hint);
+
+  go.textContent=asDb?'Importer la base':'Importer la table';
+
   const back=document.getElementById('imp-back'),sheet=document.getElementById('imp-sheet');
   back.hidden=false; sheet.hidden=false; back.setAttribute('aria-hidden','false'); sheet.setAttribute('aria-hidden','false'); sheet.inert=false;
   back.classList.add('on'); sheet.classList.add('on');
-  document.getElementById('imp-table').focus();
+  if(!asDb && !tableInput.disabled) tableInput.focus();
+  else if(document.getElementById('imp-newname-field').hidden===false) newName.focus();
+  else sel.focus();
   const fab=document.getElementById('fab');if(fab)fab.classList.add('hide');
 }
 function closeImportSheet(){
@@ -3494,51 +3701,93 @@ function closeImportSheet(){
   const fab=document.getElementById('fab');if(fab)fab.classList.remove('hide');
   pendingImport=null;
 }
-function confirmImport(){
-  if(!pendingImport)return;
+function createImportedTables(database,tables){
+  tables.forEach(t=>{
+    const tname=safeIdent(t.name);
+    database.run('DROP TABLE IF EXISTS '+quoteIdent(tname));
+    database.run('CREATE TABLE '+quoteIdent(tname)+' ('+t.cols.map((c,i)=>quoteIdent(c)+' '+t.types[i]).join(', ')+')');
+    if(!t.rows.length) return;
+    const insertSql='INSERT INTO '+quoteIdent(tname)+' VALUES ('+t.cols.map(()=>'?').join(',')+')';
+    t.rows.forEach(r=>{
+      const vals=t.cols.map((_,i)=>{
+        const v=r[i];
+        if(v==null||String(v).trim()==='') return null;
+        if(t.types[i]==='INTEGER'){const n=parseInt(String(v).trim(),10);return Number.isFinite(n)?n:null;}
+        if(t.types[i]==='REAL'){const n=parseFloat(String(v).trim());return Number.isFinite(n)?n:null;}
+        return String(v);
+      });
+      database.run(insertSql, vals);
+    });
+  });
+}
+function resolveImportTarget(){
   let target=document.getElementById('imp-db').value;
-  if(target==='cours'){toast('La base du cours est protégée');return;}
+  if(target==='cours'){toast('La base du cours est protégée');return null;}
   if(target==='__new__'){
-    const name=prompt('Nom de la nouvelle base ?', pendingImport.defaultTable||'Import');
-    if(!name||!name.trim())return;
+    const raw=document.getElementById('imp-newname').value.trim()
+      || pendingImport.defaultDbName
+      || pendingImport.defaultTable
+      || 'Import';
     const id='db_'+Date.now().toString(36);
     customDbs[id]=new SQL.Database();
-    dbCatalog.push({id,name:name.trim().slice(0,40)});
+    dbCatalog.push({id,name:raw.slice(0,40)});
     target=id;
+  }else if(!customDbs[target]){
+    alert('Base introuvable');
+    return null;
   }
-  if(target!=='cours'&&!customDbs[target]){alert('Base introuvable');return;}
+  return target;
+}
+function confirmImport(){
+  if(!pendingImport)return;
+  const p=pendingImport.parsed;
+  const asDb=isDatabaseImport(p);
+  const target=resolveImportTarget();
+  if(!target)return;
+
+  if(asDb && target!=='__new__' && customDbs[target]){
+    const existing=listTables(customDbs[target]);
+    if(existing.length && !confirm(`La base « ${(dbCatalog.find(d=>d.id===target)||{}).name||target} » contient déjà ${existing.length} table${existing.length>1?'s':''}. Remplacer son contenu ?`)){
+      return;
+    }
+  }
+
   activeDbId=target;
+  if(asDb && listTables(customDbs[target]||activeDb()).length){
+    // Replace content for database imports into an existing base
+    try{ customDbs[target].close(); }catch(e){}
+    customDbs[target]=new SQL.Database();
+  }
   const database=activeDb();
   try{
-    if(pendingImport.parsed.kind==='sql'){
-      database.run(pendingImport.parsed.sql);
+    if(p.kind==='database' && p.format==='json-db'){
+      createImportedTables(database, p.tables);
+    }else if(p.kind==='database' || p.kind==='sql-table'){
+      runSqlImport(database, p.sql);
+      if(p.primaryTable) pendingImport.importedTable=safeIdent(p.primaryTable);
     }else{
       const tname=safeIdent(document.getElementById('imp-table').value||pendingImport.defaultTable);
-      const {cols,types,rows}=pendingImport.parsed;
-      database.run('DROP TABLE IF EXISTS '+quoteIdent(tname));
-      database.run('CREATE TABLE '+quoteIdent(tname)+' ('+cols.map((c,i)=>quoteIdent(c)+' '+types[i]).join(', ')+')');
-      const insertSql='INSERT INTO '+quoteIdent(tname)+' VALUES ('+cols.map(()=>'?').join(',')+')';
-      rows.forEach(r=>{
-        const vals=cols.map((_,i)=>{
-          const v=r[i];
-          if(v==null||String(v).trim()==='') return null;
-          if(types[i]==='INTEGER'){const n=parseInt(String(v).trim(),10);return Number.isFinite(n)?n:null;}
-          if(types[i]==='REAL'){const n=parseFloat(String(v).trim());return Number.isFinite(n)?n:null;}
-          return String(v);
-        });
-        database.run(insertSql, vals);
-      });
+      createImportedTables(database, [{name:tname, cols:p.cols, types:p.types, rows:p.rows}]);
       pendingImport.importedTable=tname;
     }
     if(activeDbId!=='cours') persistCustomDbs();
-    const tname=pendingImport.importedTable;
+    const tname=pendingImport.importedTable || (isTableImport(p)?(p.primaryTable||null):null);
+    const tabs=listTables(database);
     closeImportSheet();
+    clearConsolePane();
     renderDbWorkspace();
-    if(tname) queryTable(tname);
-    else {
-      document.getElementById('console-out').innerHTML=`<div class="feedback ok"><div class="fi">✓</div><div><b>Script SQL importé</b><p>Les tables sont disponibles dans la base active.</p></div></div>`;
+    renderConsoleChips();
+    if(tname && tabs.map(t=>t.toLowerCase()).includes(String(tname).toLowerCase())){
+      queryTable(tabs.find(t=>t.toLowerCase()===String(tname).toLowerCase())||tname);
+    }else{
+      const out=document.getElementById('console-out');
+      if(out){
+        out.innerHTML=asDb
+          ? `<div class="feedback ok"><div class="fi">✓</div><div><b>Base importée</b><p>${tabs.length} table${tabs.length>1?'s':''} disponible${tabs.length>1?'s':''}${tabs.length?` : ${tabs.map(t=>'<code>'+esc(t)+'</code>').join(', ')}`:''}.</p></div></div>`
+          : `<div class="feedback ok"><div class="fi">✓</div><div><b>Import réussi</b><p>${tabs.length?`Tables : ${tabs.map(t=>'<code>'+esc(t)+'</code>').join(', ')}.`:'Script exécuté.'}</p></div></div>`;
+      }
     }
-    toast('Import réussi');
+    toast(asDb?'Base importée':'Table importée');
   }catch(e){
     alert('Erreur à l’import : '+(e.message||e));
   }
@@ -4760,7 +5009,7 @@ function reprogrammer(){
   const dates=datesMotif(auj(),p.freq,n);
   p.sessions=dates.map((d,i)=>({d,lessons:restantes.slice(i*per,(i+1)*per)}));
   semaineOffset=0;jourSel=null;save();renderPlanning();
-  toast(`${restantes.length} items replanifiés à partir d'aujourd'hui`);
+  toast(`${restantes.length} items replanifiés à partir d'aujourd'hui`,'Planning mis à jour');
 }
 function etaler(delta){
   const p=state.plan; if(!p)return;
@@ -4808,14 +5057,14 @@ function rattraper(){
   let s=sessionDe(cible); if(!s){s={d:cible,lessons:[]};p.sessions.push(s);}
   ids.forEach(id=>s.lessons.push(id));
   trierSessions();semaineOffset=0;jourSel=cible;save();renderPlanning();
-  toast(`${ids.length} items reportés sur aujourd'hui`);
+  toast(`${ids.length} items reportés sur aujourd'hui`,'Planning mis à jour');
 }
-function toast(msg){
+function toast(msg,sub){
   const t=document.getElementById('toast');
   document.getElementById('toast-mini').style.background='linear-gradient(145deg,#4F46E5,#7C6CF5)';
-  document.getElementById('toast-mini').textContent='🗓';
+  document.getElementById('toast-mini').textContent='✓';
   document.getElementById('toast-t').textContent=msg;
-  document.getElementById('toast-s').textContent='Planning mis à jour';
+  document.getElementById('toast-s').textContent=sub||'';
   toastId=null;t.classList.add('on');
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('on'),3200);
 }
@@ -5452,21 +5701,30 @@ function noteToConsole(){
 }
 function renderConsoleChips(){
   const database=activeDb();
-  const tables=database?listTables(database):courseTableNames();
+  const tables=database?listTables(database):[];
+  const host=document.getElementById('console-chips');
+  const wrap=host&&host.closest('.chips-wrap');
+  if(!host)return;
+  if(!tables.length){
+    host.innerHTML='';
+    window.__chips=[];
+    if(wrap){
+      const lab=wrap.querySelector('.db-lab small');
+      if(lab) lab.textContent=activeDbId==='cours'?'Aucune table pour l’instant':'Importe un fichier pour créer des tables';
+    }
+    return;
+  }
+  if(wrap){
+    const lab=wrap.querySelector('.db-lab small');
+    if(lab) lab.textContent='Requêtes prêtes à lancer';
+  }
   const ex=tables.map(t=>({l:t,q:`SELECT * FROM ${t}\nLIMIT 50;`}));
   if(tables.includes('clients')&&tables.includes('commandes')){
     ex.push(
       {l:"Ventes par client",q:"SELECT clients.nom, SUM(commandes.quantite) AS total\nFROM commandes\nJOIN clients ON commandes.client_id = clients.id\nGROUP BY clients.id, clients.nom\nORDER BY total DESC;"},
       {l:"Clients sans commande",q:"SELECT clients.nom\nFROM clients\nLEFT JOIN commandes ON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;"}
     );
-  }else if(!ex.length){
-    ex.push(
-      {l:"clients",q:"SELECT * FROM clients;"},
-      {l:"produits",q:"SELECT nom, prix FROM produits ORDER BY prix DESC LIMIT 3;"}
-    );
   }
-  const host=document.getElementById('console-chips');
-  if(!host)return;
   host.innerHTML=ex.map((e,i)=>`<button class="chip" onclick="fillConsole(${i})">${esc(e.l)}</button>`).join('');
   window.__chips=ex;
 }
