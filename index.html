@@ -3104,7 +3104,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-10-u';
+const APP_VERSION='2026-08-10-v';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -4085,10 +4085,19 @@ function buildSteps(sql,database){
   if(c.order||c.limit){
     try{
       const f=S(sql.replace(/;\s*$/,''))[0];
-      steps.push({n:c.limit?'ORDER BY + LIMIT':'ORDER BY',t:c.limit?'On trie, puis on coupe':'On trie le résultat',
-        e:c.limit?`Le tri sur <code>${esc(c.order||'—')}</code> s'applique d'abord, <b>puis</b> <code>LIMIT ${esc(c.limit)}</code> ne garde que le début de la liste.`
-          :`Les lignes sont réordonnées selon <code>${esc(c.order)}</code>. C'est la toute dernière étape.`,
-        cols:f?f.columns:[],rows:f?f.values.map(v=>({v})):[]});
+      if(c.order&&c.limit){
+        steps.push({n:'ORDER BY + LIMIT',t:'On trie, puis on coupe',
+          e:`Le tri sur <code>${esc(c.order)}</code> s'applique d'abord, <b>puis</b> <code>LIMIT ${esc(c.limit)}</code> ne garde que le début de la liste.`,
+          cols:f?f.columns:[],rows:f?f.values.map(v=>({v})):[]});
+      }else if(c.order){
+        steps.push({n:'ORDER BY',t:'On trie le résultat',
+          e:`Les lignes sont réordonnées selon <code>${esc(c.order)}</code>. C'est la toute dernière étape.`,
+          cols:f?f.columns:[],rows:f?f.values.map(v=>({v})):[]});
+      }else{
+        steps.push({n:'LIMIT',t:'On coupe le résultat',
+          e:`Sans <code>ORDER BY</code>, <code>LIMIT ${esc(c.limit)}</code> garde seulement les ${esc(c.limit)} premières lignes — <b>sans classement garanti</b>. Pour un top N, trie d'abord.`,
+          cols:f?f.columns:[],rows:f?f.values.map(v=>({v})):[]});
+      }
     }catch(e){}
   }
   return steps;
