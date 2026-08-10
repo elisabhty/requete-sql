@@ -535,11 +535,19 @@
   .db-lab small{font-size:12px;color:var(--ink-3);font-weight:500;letter-spacing:0;text-transform:none}
   .db-bar{display:flex;gap:7px;padding:0;overflow-x:auto;scrollbar-width:none;align-items:center}
   .db-bar::-webkit-scrollbar{display:none}
-  .db-pill{flex:none;border:none;background:var(--surface);border-radius:999px;padding:8px 13px;font-family:var(--ui);font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer;box-shadow:0 1px 0 var(--line);transition:background .2s ease,color .2s ease,box-shadow .2s ease,transform .15s ease}
+  .db-pill{flex:none;display:inline-flex;align-items:center;gap:2px;border:none;background:var(--surface);border-radius:999px;padding:2px;font-family:var(--ui);font-size:12.5px;font-weight:600;color:var(--ink-2);box-shadow:0 1px 0 var(--line);transition:background .2s ease,color .2s ease,box-shadow .2s ease,transform .15s ease}
   .db-pill.on{background:#14141B;color:#fff;box-shadow:none}
+  .db-pill.add,.db-pill.reset{cursor:pointer;padding:8px 13px}
   .db-pill.add{color:var(--ink-2)}
-  .db-pill.reset{min-width:36px;justify-content:center}
+  .db-pill.reset{min-width:36px;justify-content:center;padding:8px 11px}
   .db-pill.reset.ok{background:var(--success);color:#fff;box-shadow:0 0 0 4px rgba(11,107,74,.16);animation:checkPop .4s cubic-bezier(.3,1.4,.5,1)}
+  .db-pill-main{border:none;background:transparent;color:inherit;font:inherit;cursor:pointer;padding:6px 11px;border-radius:999px}
+  .db-pill .db-x{flex:none;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;margin-right:2px;border:none;border-radius:50%;background:transparent;color:inherit;opacity:.55;font-size:13px;line-height:1;cursor:pointer;padding:0}
+  .db-pill.on .db-x{opacity:.8}
+  .db-pill .db-x:hover,.db-pill .db-x:focus-visible{opacity:1;background:rgba(255,255,255,.16)}
+  .db-pill:not(.on) .db-x:hover,.db-pill:not(.on) .db-x:focus-visible{background:rgba(20,20,30,.08)}
+  .db-pill-main:hover,.db-pill-main:focus-visible{background:rgba(255,255,255,.08)}
+  .db-pill:not(.on) .db-pill-main:hover,.db-pill:not(.on) .db-pill-main:focus-visible{background:rgba(20,20,30,.05)}
   .db-actions{display:none}
   .db-tables{padding:10px;background:var(--surface);border-radius:16px;display:flex;flex-direction:column;gap:6px;box-shadow:0 1px 0 var(--line)}
   .db-trow{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:11px;padding:9px 10px}
@@ -3084,7 +3092,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-10-q';
+const APP_VERSION='2026-08-10-r';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -3341,15 +3349,20 @@ function promptNewDb(){
   switchTab('console');
   toast('Base créée · repartir de zéro');
 }
-function deleteActiveDb(){
-  if(activeDbId==='cours'){toast('La base du cours ne peut pas être supprimée');return;}
-  const meta=dbCatalog.find(d=>d.id===activeDbId);
-  if(!confirm(`Supprimer la base « ${meta?meta.name:activeDbId} » ?`))return;
-  if(customDbs[activeDbId]){customDbs[activeDbId].close();delete customDbs[activeDbId];}
-  dbCatalog=dbCatalog.filter(d=>d.id!==activeDbId);
-  activeDbId='cours';
+function deleteActiveDb(){ deleteDb(activeDbId); }
+function deleteDb(id){
+  if(id==='cours'){toast('La base du cours ne peut pas être supprimée');return;}
+  const meta=dbCatalog.find(d=>d.id===id);
+  if(!meta||!customDbs[id]){toast('Base introuvable');return;}
+  if(!confirm(`Supprimer la base « ${meta.name} » ?`))return;
+  try{ customDbs[id].close(); }catch(e){}
+  delete customDbs[id];
+  dbCatalog=dbCatalog.filter(d=>d.id!==id);
+  if(activeDbId===id) activeDbId='cours';
   persistCustomDbs();
+  clearConsolePane();
   renderDbWorkspace();
+  renderConsoleChips();
 }
 function listTables(database){
   try{
@@ -3366,10 +3379,17 @@ function renderDbWorkspace(){
   const lab=document.getElementById('db-tables-lab');
   if(!bar||!host)return;
   const activeName=(dbCatalog.find(d=>d.id===activeDbId)||{}).name||'base active';
-  bar.innerHTML=dbCatalog.map(d=>
-    `<button type="button" class="db-pill ${activeDbId===d.id?'on':''}" onclick="switchDb('${d.id}')">${esc(d.name)}</button>`
-  ).join('')+`<button type="button" class="db-pill add" onclick="document.getElementById('data-import').click()">↑ Importer</button>`
-    +(activeDbId!=='cours'?`<button type="button" class="db-pill" onclick="deleteActiveDb()" title="Supprimer cette base">✕</button>`:'')
+  bar.innerHTML=dbCatalog.map(d=>{
+    const on=activeDbId===d.id?'on':'';
+    if(d.id==='cours'){
+      return `<button type="button" class="db-pill ${on}" onclick="switchDb('cours')">Base du cours</button>`;
+    }
+    return `<div class="db-pill ${on}" role="group" aria-label="${escAttr(d.name)}">
+      <button type="button" class="db-pill-main" onclick="switchDb('${d.id}')">${esc(d.name)}</button>
+      <button type="button" class="db-x" onclick="deleteDb('${d.id}')" title="Supprimer" aria-label="Supprimer ${escAttr(d.name)}">✕</button>
+    </div>`;
+  }).join('')
+    +`<button type="button" class="db-pill add" onclick="document.getElementById('data-import').click()">↑ Importer</button>`
     +`<button type="button" class="db-pill reset" id="db-reset-btn" onclick="resetActiveDb()" title="Réinitialiser" aria-label="Réinitialiser">↺</button>`;
   const database=activeDb();
   if(!database){
