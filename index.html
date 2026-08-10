@@ -266,8 +266,8 @@
   .lesson-rich .piege{margin-bottom:6px;padding:14px 15px;border-radius:16px;box-shadow:0 8px 20px -18px rgba(122,74,0,.25)}
 
   /* ---------- Cours riche : animations & micro-interactions ---------- */
-  .lesson-rich .lesson-lead{animation:riseIn .45s cubic-bezier(.32,.72,.28,1) both}
-  .lesson-rich .concept-page > .concept-block{animation:cardIn .5s cubic-bezier(.32,.72,.28,1) both}
+  .lesson-rich .lesson-lead{opacity:1;animation:lessonRise .45s cubic-bezier(.32,.72,.28,1) forwards}
+  .lesson-rich .concept-page > .concept-block{opacity:1;animation:lessonCard .5s cubic-bezier(.32,.72,.28,1) forwards}
   .lesson-rich .concept-page > .concept-block:nth-child(1){animation-delay:.05s}
   .lesson-rich .concept-page > .concept-block:nth-child(2){animation-delay:.1s}
   .lesson-rich .concept-page > .concept-block:nth-child(3){animation-delay:.15s}
@@ -277,10 +277,12 @@
   .lesson-rich .concept-page > .concept-block:nth-child(7){animation-delay:.35s}
   .lesson-rich .concept-page > .concept-block:nth-child(8){animation-delay:.4s}
   @keyframes cardIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
-  .lesson-rich .exframe,.lesson-rich .piege,.lesson-rich .sect-label{animation:riseIn .45s cubic-bezier(.32,.72,.28,1) .32s both}
-  .lesson-rich .vs-col{animation:riseIn .45s cubic-bezier(.32,.72,.28,1) both}
+  @keyframes lessonCard{from{transform:translateY(14px) scale(.985)}to{transform:none}}
+  @keyframes lessonRise{from{transform:translateY(10px)}to{transform:none}}
+  .lesson-rich .exframe,.lesson-rich .piege,.lesson-rich .sect-label{opacity:1;animation:lessonRise .45s cubic-bezier(.32,.72,.28,1) .32s forwards}
+  .lesson-rich .vs-col{opacity:1;animation:lessonRise .45s cubic-bezier(.32,.72,.28,1) forwards}
   .lesson-rich .vs-col:nth-child(2){animation-delay:.14s}
-  .lesson-rich .pipe-step{animation:riseIn .45s cubic-bezier(.32,.72,.28,1) both}
+  .lesson-rich .pipe-step{opacity:1;animation:lessonRise .45s cubic-bezier(.32,.72,.28,1) forwards}
   .lesson-rich .pipe-step:nth-child(1){animation-delay:.08s}
   .lesson-rich .pipe-step:nth-child(2){animation-delay:.2s}
   .lesson-rich .pipe-step:nth-child(3){animation-delay:.32s}
@@ -1009,8 +1011,8 @@
   .ls-step.on{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.08)}
   .ls-step.done{color:var(--success)}
   .ls-step.lock{opacity:.45;cursor:default}
-  .ls-slide{animation:lsIn .28s cubic-bezier(.32,.72,.28,1)}
-  @keyframes lsIn{from{opacity:.35;transform:translateX(16px)}to{opacity:1;transform:none}}
+  .ls-slide{opacity:1;animation:lsIn .28s cubic-bezier(.32,.72,.28,1) forwards}
+  @keyframes lsIn{from{transform:translateX(16px)}to{transform:none}}
   .ls-nav{position:fixed;left:0;right:0;width:100%;max-width:520px;margin:0 auto;bottom:0;z-index:25;display:flex;gap:8px;padding:10px 16px calc(var(--safe-bottom) + var(--tabbar-h));background:rgba(242,242,247,.94);border-top:1px solid var(--line-2);pointer-events:none;box-sizing:border-box;backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
   .ls-nav::before{content:'';position:absolute;left:0;right:0;bottom:100%;height:18px;background:linear-gradient(to bottom,rgba(246,246,249,0),var(--bg));pointer-events:none}
   .ls-nav .ls-prev,.ls-nav .ls-next{pointer-events:auto}
@@ -1188,7 +1190,7 @@
   .primer:active{transform:scale(.99)}
   .ls-step{transition:background .18s, color .18s, transform .18s, box-shadow .18s}
   .ls-step.on{animation:chipPop .3s cubic-bezier(.3,1.4,.5,1)}
-  .ls-slide{animation:lsIn .3s cubic-bezier(.32,.72,.28,1)}
+  .ls-slide{opacity:1;animation:lsIn .3s cubic-bezier(.32,.72,.28,1) forwards}
   .table-wrap{animation:riseIn .35s cubic-bezier(.32,.72,.28,1) both}
   /* Carte séance — direction Studio (carte blanche, accent violet) */
   .home-card{margin:15px 18px 0;border-radius:22px;padding:18px;color:var(--ink);position:relative;overflow:hidden;
@@ -3157,7 +3159,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-10-s';
+const APP_VERSION='2026-08-10-t';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -4688,6 +4690,12 @@ function lessonRichSlide(l){
 function openVizSql(sql){
   openViz(null, sql);
 }
+function revealLessonContent(){
+  document.querySelectorAll('#lesson-body .ls-slide,#lesson-body .lesson-lead,#lesson-body .concept-block,#lesson-body .concept-demo,#lesson-body .sect-label,#lesson-body .exframe,#lesson-body .piege,#lesson-body .vs-col,#lesson-body .pipe-step').forEach(el=>{
+    el.style.opacity='1';
+    el.style.transform='none';
+  });
+}
 function renderLessonFlow(){
   if(!current||mode!=='lesson')return;
   const l=current, meta=lessonStepMeta();
@@ -4767,6 +4775,8 @@ function renderLessonFlow(){
   if(lessonStep===0&&current.id===17){
     requestAnimationFrame(()=>requestAnimationFrame(initHavingGrpViz));
   }
+  requestAnimationFrame(()=>revealLessonContent());
+  setTimeout(revealLessonContent,700);
 }
 function openChallenge(cid){
   const c=CHALLENGES.find(x=>x.id===cid); const g=CHALLENGE_GUIDES[cid]||{}; current=c; mode='defi';
