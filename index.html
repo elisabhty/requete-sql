@@ -233,6 +233,10 @@
   .concept-block > .ex-code:first-of-type{margin-top:0}
   .concept-block > p + .ex-code{margin-top:2px}
   .concept-point{display:flex;gap:12px;align-items:flex-start;margin:14px 0 0;padding:13px 14px;background:var(--bg);border:1px solid rgba(20,20,40,.05);border-radius:14px;font-size:14.5px;line-height:1.5;color:var(--ink-2)}
+  .concept-point-body{display:block;flex:1;min-width:0}
+  .concept-point .agg-list{margin:8px 0 10px;padding:0 0 0 18px;display:flex;flex-direction:column;gap:3px;list-style:disc}
+  .concept-point .agg-list li{font-family:var(--mono);font-size:13.5px;color:var(--ink);padding-left:2px}
+  .concept-point .agg-cta{display:block;font-weight:600;color:var(--ink)}
   .concept-point .em{flex:none;width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;display:inline-flex;align-items:center;justify-content:center;line-height:1;box-shadow:none}
   .concept-point .em svg{width:13px;height:13px;display:block}
   .memory-analogy{display:flex;flex-direction:column;gap:10px;margin:0}
@@ -296,7 +300,8 @@
   .exframe .xf-result.flash{animation:okFlash .55s ease}
 
   /* ---------- HAVING : comparatif WHERE/HAVING & pipeline de données ---------- */
-  .vs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:6px 0 2px}
+  .vs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:6px 0 8px}
+  .vs + .concept-point{margin-top:24px}
   .vs-col{display:flex;flex-direction:column;border:1px solid rgba(20,20,40,.08);border-radius:16px;overflow:hidden;background:var(--surface);min-width:0}
   .vs-tag{display:flex;align-items:center;gap:7px;padding:11px 14px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase}
   .vs-tag.bad{color:var(--danger);background:rgba(180,35,24,.06)}
@@ -1785,7 +1790,7 @@ const MODULES = [
   situation:"Tu veux afficher les <b>catégories qui possèdent au moins 2 produits</b> — dans la table <code>produits</code>.",
   concept:`<div class="concept-page">
   <div class="concept-block">
-    <h2><span class="h2-eye">Le problème</span><span class="h2-txt">Deux façons de l’écrire. Une seule fonctionne.</span></h2>
+    <h2><span class="h2-eye">Le problème</span><span class="h2-txt">Deux requêtes semblent presque identiques. Une seule fonctionne.</span></h2>
     <p>Tu sais compter par catégorie avec <code>GROUP BY</code>. Il reste à <b>filtrer sur ce compte</b>&nbsp;:</p>
     <div class="vs">
       <div class="vs-col bad">
@@ -1850,19 +1855,18 @@ GROUP BY categorie<span class="good-line">HAVING COUNT(*) &gt;= 2;</span></div>
       <div class="memory-where"><b>WHERE</b><span>filtre les <b>lignes</b><br>avant le regroupement</span></div>
       <div class="memory-having"><b>HAVING</b><span>filtre les <b>groupes</b><br>après le regroupement</span></div>
     </div>
-    <p class="concept-point"><span class="em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M9 18h6M10 21h4M8 14.5a5.5 5.5 0 1 1 8 0c-.9.9-1.5 1.6-1.5 2.8h-5c0-1.2-.6-1.9-1.5-2.8Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Réflexe : si ta condition contient <code>COUNT()</code>, <code>SUM()</code>, <code>AVG()</code>, <code>MIN()</code> ou <code>MAX()</code>, elle va dans <code>HAVING</code>.</span></p>
+    <p class="concept-point"><span class="em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M9 18h6M10 21h4M8 14.5a5.5 5.5 0 1 1 8 0c-.9.9-1.5 1.6-1.5 2.8h-5c0-1.2-.6-1.9-1.5-2.8Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="concept-point-body">Si ta condition contient une fonction d’agrégation comme&nbsp;:<ul class="agg-list"><li><code>COUNT()</code></li><li><code>SUM()</code></li><li><code>AVG()</code></li><li><code>MIN()</code></li><li><code>MAX()</code></li></ul><span class="agg-cta">👉 utilise <code>HAVING</code>.</span></span></p>
     <p class="concept-coda">À toi de jouer : dans l’exercice plus bas, garde les <b>villes</b> qui comptent au moins 2 clients — même logique, autre table.</p>
   </div>
   </div>`,
-  anatomie:[{tok:"SELECT categorie, COUNT(*)",txt:"Catégorie et total."},
-    {tok:"FROM produits",txt:"Table."},{tok:"GROUP BY categorie",txt:"Un paquet par catégorie."},
-    {tok:"HAVING",txt:"<b>À condition que le groupe…</b> Toujours après <code>GROUP BY</code>."},
-    {tok:"COUNT(*) >= 2",plain:1,txt:"…ait au moins 2 lignes."}],
+  anatomie:[{tok:"SELECT categorie, COUNT(*)",txt:"Affiche la catégorie et le nombre de produits."},
+    {tok:"FROM produits",txt:"Lit la table produits."},
+    {tok:"GROUP BY categorie",txt:"Regroupe les lignes par catégorie."},
+    {tok:"HAVING COUNT(*) >= 2",txt:"<b>Ne garde que</b> les catégories ayant au moins deux produits."}],
   pipeline:[],
   richLesson:true,
   exemple:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",
-  attendu:"<b>1 ligne</b> : Bien-être, 4 produits. Les autres catégories n’ont qu’un produit.",
-  piege:{t:"WHERE au lieu de HAVING",p:"<code>WHERE COUNT(*) >= 2</code> provoque « misuse of aggregate: COUNT() ». Les agrégats ne sont disponibles qu’à partir de <code>HAVING</code>."},
+  piege:{t:"⚠️ Erreur fréquente",p:"<code>WHERE COUNT(*) >= 2</code> provoque « misuse of aggregate: COUNT() ». Les agrégats ne sont disponibles qu’à partir de <code>HAVING</code>."},
   consigne:"Trouve les <b>villes qui comptent au moins 2 clients</b> (ville et nombre).",
   solution:"SELECT ville, COUNT(*) FROM clients GROUP BY ville HAVING COUNT(*) >= 2;",
   indice:"<code>… GROUP BY ville HAVING COUNT(*) >= 2</code>" },
@@ -4544,7 +4548,7 @@ function renderLessonFlow(){
         <p class="lesson-lead">${l.situation}</p>
         ${lessonRichBlocks(l)}
         <div class="lesson-concept-card">${l.concept}</div>
-        ${anat?`<div class="sect-label"><i>◆</i><span>La requête, mot par mot</span></div>
+        ${anat?`<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>
         ${anat}`:''}
         ${lessonRichFooter(l)}
       </div>
@@ -4557,7 +4561,7 @@ function renderLessonFlow(){
       <div class="l-kicker">Leçon ${l.id} · Cours</div><h1>${l.titre}</h1>
       <div class="sect-label"><i>1</i><span>La situation</span></div>
       <div class="card lesson-concept-card"><p class="ask">${l.situation}</p>${l.concept}</div>
-      <div class="sect-label"><i>2</i><span>La requête, mot par mot</span></div>
+      <div class="sect-label"><i>2</i><span>La requête expliquée</span></div>
       ${anat}
       <div class="sect-label"><i>3</i><span>Exemple</span></div>
       <div class="card">
