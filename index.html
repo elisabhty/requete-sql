@@ -6371,12 +6371,17 @@ function renderPlanning(){
   if(sub)sub.textContent=`${st.done}/${st.total} · ${st.nL||0} leçons + ${st.nD||0} défis · ${st.seances} séances`;
   const h1=document.querySelector('#scr-planning .lgtitle h1');
   if(h1) h1.textContent='Parcours';
-  const pct=st.total?Math.round(st.done/st.total*100):0;
+  const info=infoJour();
+  const sess=info&&info.today;
+  const totJour=sess?sess.lessons.length:0;
+  const faitJour=sess?sess.lessons.filter(itemDone).length:0;
+  const resteJour=totJour-faitJour;
+  const pctJour=totJour?Math.round(faitJour/totJour*100):0;
   host.innerHTML=`
     <div class="pl-stats">
       <div class="pl-stat streak ${streakJours()>0?'hot':''}">${streakChipHTML()}</div>
-      <div class="pl-stat"><b>${pct} %</b><small>du parcours</small></div>
-      <div class="pl-stat"><b>${st.reste}</b><small>item${st.reste>1?'s':''} restant${st.reste>1?'s':''}</small></div>
+      <div class="pl-stat"><b>${pctJour} %</b><small>${totJour?'du jour':'jour libre'}</small></div>
+      <div class="pl-stat"><b>${resteJour}</b><small>item${resteJour>1?'s':''} du jour</small></div>
     </div>
     ${parcoursInsightHTML(st)}
     ${studioTodayList()}
