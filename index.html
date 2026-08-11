@@ -1210,6 +1210,27 @@
   .ls-nav .ls-next:disabled{opacity:.35;box-shadow:none;animation:none!important}
   .ls-nav button:active{transform:scale(.985)}
 
+  /* ---------- Bravo / leçon validée ---------- */
+  .bravo-wrap{padding-bottom:8px}
+  .bravo-card{background:linear-gradient(165deg,#E8F8F1 0%,#fff 42%);border:1px solid rgba(11,107,74,.14);border-radius:22px;padding:28px 22px 22px;text-align:center;box-shadow:0 16px 36px -28px rgba(11,107,74,.45);margin-bottom:16px;position:relative;overflow:hidden}
+  .bravo-card::before{content:'';position:absolute;inset:-40% -20% auto;height:70%;background:radial-gradient(circle at 50% 0%,rgba(28,166,114,.18),transparent 62%);pointer-events:none}
+  .bravo-ico{position:relative;z-index:1;width:64px;height:64px;margin:0 auto 14px;border-radius:50%;background:var(--success);color:#fff;font-size:28px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 28px -10px rgba(11,107,74,.55)}
+  .bravo-kicker{position:relative;z-index:1;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--success);margin-bottom:8px}
+  .bravo-card h1{position:relative;z-index:1;margin:0 0 8px;font-size:32px;font-weight:800;letter-spacing:-1px;color:var(--ink)}
+  .bravo-sub{position:relative;z-index:1;margin:0 auto;max-width:28ch;font-size:15px;line-height:1.5;color:var(--ink-2)}
+  .bravo-sub b{color:var(--ink);font-weight:700}
+  .bravo-card .valid-card-chip{margin-top:18px;text-align:left}
+  .bravo-actions{display:flex;flex-direction:column;gap:10px}
+  .bravo-actions .next-btn{margin:0}
+  .bravo-primary{width:100%;background:linear-gradient(180deg,#22222C,#14141B);color:#fff;border:none;border-radius:16px;padding:16px;min-height:52px;font-family:var(--ui);font-size:16px;font-weight:700;cursor:pointer;touch-action:manipulation;box-shadow:0 8px 18px -10px rgba(20,20,40,.35)}
+  .bravo-primary:active{transform:scale(.985)}
+  .bravo-sec{width:100%;background:var(--surface);color:var(--ink);border:1.5px solid var(--line-2);border-radius:14px;padding:14px;min-height:48px;font-family:var(--ui);font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation}
+  .bravo-sec:active{transform:scale(.985);background:var(--surface-2)}
+  .bravo-ghost{width:100%;background:none;color:var(--ink-2);border:none;border-radius:12px;padding:12px;min-height:44px;font-family:var(--ui);font-size:14.5px;font-weight:600;cursor:pointer;touch-action:manipulation}
+  .bravo-ghost:active{color:var(--ink);background:rgba(20,20,40,.04)}
+  .bravo-next-hint{margin:-2px 4px 4px;font-size:12.5px;color:var(--ink-3);text-align:center;line-height:1.35}
+  .ls-bars.bravo-hide{display:none}
+
   /* ---------- Validation de leçon ---------- */
   .vsteps{display:flex;gap:7px;margin:0 0 16px;flex-wrap:wrap}
   .vstep{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line-2);border-radius:10px;padding:7px 11px;font-size:12.5px;font-weight:600;color:var(--ink-3)}
@@ -3370,7 +3391,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-11-parcours-ios';
+const APP_VERSION='2026-08-11-bravo';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -4759,6 +4780,10 @@ function leaveLessonScreen(){
 }
 function goBack(){
   closeSchemaSheet();
+  if(mode==='lesson'&&lessonStep===3&&document.getElementById('scr-lesson').classList.contains('active')){
+    leaveLessonScreen();
+    return;
+  }
   if(mode==='lesson'&&lessonStep>0&&document.getElementById('scr-lesson').classList.contains('active')){
     setLessonStep(lessonStep-1);
     return;
@@ -4788,11 +4813,12 @@ function openLesson(id, restoreStep){
   document.getElementById('back-label').textContent='Leçons';
   document.getElementById('nav-title').textContent='';
   const e=etapesDe(id);
+  const done=lecCompletee(id);
   if(restoreStep!=null){
-    const locks=[false,false,!e.exo];
-    lessonStep=(restoreStep>=0&&restoreStep<=2&&!locks[restoreStep])?restoreStep:
-      lecCompletee(id)?2:(e.exo?2:0);
-  }else if(lecCompletee(id)) lessonStep=2;
+    if(restoreStep===3&&done) lessonStep=3;
+    else if(restoreStep>=0&&restoreStep<=2&&!(restoreStep===2&&!e.exo)) lessonStep=restoreStep;
+    else lessonStep=done?3:(e.exo?2:0);
+  }else if(done) lessonStep=3;
   else if(e.exo) lessonStep=2;
   else lessonStep=0;
   renderLessonFlow(); showScreen();
@@ -4810,6 +4836,17 @@ function lessonStepMeta(){
 }
 function setLessonStep(n){
   if(mode!=='lesson'||!current)return;
+  if(n===3){
+    if(!lecCompletee(current.id))return;
+    lessonStepDir=n<lessonStep?-1:1;
+    lessonStep=3;
+    renderLessonFlow();
+    const wrap=document.getElementById('scr-lesson');
+    if(wrap)wrap.scrollTop=0;
+    if(navigator.vibrate)navigator.vibrate(8);
+    saveNav();
+    return;
+  }
   const meta=lessonStepMeta();
   if(!meta[n]||meta[n].lock)return;
   lessonStepDir=n<lessonStep?-1:1;
@@ -4819,6 +4856,61 @@ function setLessonStep(n){
   if(wrap)wrap.scrollTop=0;
   if(navigator.vibrate)navigator.vibrate(8);
   saveNav();
+}
+function recommencerLecon(){
+  if(!current||mode!=='lesson')return;
+  const id=current.id;
+  if(!confirm('Recommencer cette leçon ? L’exercice et le quiz seront à refaire.'))return;
+  const s=state.lessons[id]||{level:0};
+  s.etapes={};
+  s.done=false;
+  s.level=0;
+  delete s.due;
+  state.lessons[id]=s;
+  exoFails=0;
+  lessonStepDir=1;
+  lessonStep=0;
+  save();
+  renderModules();renderProgress();renderCollection();renderPlanning();
+  renderLessonFlow();
+  const wrap=document.getElementById('scr-lesson');
+  if(wrap)wrap.scrollTop=0;
+  if(navigator.vibrate)navigator.vibrate(12);
+  saveNav();
+}
+function bravoContinuerHtml(){
+  const etape=typeof prochaineEtapeParcours==='function'?prochaineEtapeParcours():null;
+  if(etape){
+    const meta=itemMeta(etape.id);
+    const arg=isDefiId(etape.id)?`'${etape.id}'`:etape.id;
+    return `<button class="next-btn" type="button" onclick="openItem(${arg})">Continuer le parcours →</button>
+      <p class="bravo-next-hint">Prochaine étape · ${esc(meta.titre)}</p>`;
+  }
+  const suiv=allLessons.find(x=>!(state.lessons[x.id]&&state.lessons[x.id].done));
+  if(suiv) return `<button class="next-btn" type="button" onclick="openLesson(${suiv.id})">Leçon suivante →</button>`;
+  return `<div class="feedback ok" style="margin:0"><div class="fi">🎉</div><div><b>Programme terminé</b><p>Les ${TOTAL} leçons sont bouclées.</p></div></div>`;
+}
+function renderBravoSlide(l){
+  const carte=CARTES[l.id];
+  return `
+    <div class="ls-main bravo-wrap">
+      <div class="bravo-card">
+        <div class="bravo-ico" aria-hidden="true">✓</div>
+        <div class="bravo-kicker">Leçon ${l.id} validée</div>
+        <h1>Bravo !</h1>
+        <p class="bravo-sub">Tu as validé <b>${esc(l.titre)}</b>. Exercice et quiz sont au complet.</p>
+        ${carte?`<div class="valid-card-chip" style="background:${gradOf(l.id)}">
+          <div><small>Carte dans ta collection</small><strong>${esc(carte.k)}</strong></div>
+          <button type="button" class="valid-card-go" onclick="switchTab('collection');openCard(${l.id})">Voir</button>
+        </div>`:''}
+      </div>
+      <div class="bravo-actions">
+        ${bravoContinuerHtml()}
+        <button type="button" class="bravo-primary" onclick="leaveLessonScreen()">Page d’accueil</button>
+        <button type="button" class="bravo-sec" onclick="setLessonStep(0)">Relire le cours</button>
+        <button type="button" class="bravo-ghost" onclick="recommencerLecon()">Recommencer la leçon</button>
+      </div>
+    </div>`;
 }
 /* ---------- Blocs de cours enrichis (réutilisables) ---------- */
 function anatBlock(l){
@@ -5008,11 +5100,15 @@ function revealLessonContent(){
 function renderLessonFlow(){
   if(!current||mode!=='lesson')return;
   const l=current, meta=lessonStepMeta();
-  const bars=meta.map(s=>`
+  const bars=lessonStep===3?'':meta.map(s=>`
     <button type="button" class="ls-bar ${lessonStep===s.i?'on':''} ${s.done||lessonStep>s.i?'done':''}"
       ${s.lock?'disabled':'onclick="setLessonStep('+s.i+')"'} aria-label="${s.l}"></button>`).join('');
   let slide='';
-  if(lessonStep===0){
+  if(lessonStep===3){
+    slide=renderBravoSlide(l);
+    document.getElementById('back-label').textContent='Accueil';
+  }else if(lessonStep===0){
+    document.getElementById('back-label').textContent='Leçons';
     const rich=l.richLesson||(Array.isArray(l.pipeline)&&l.pipeline.length);
     if(rich){
       const demo=lessonDemoBlocks(l);
@@ -5056,11 +5152,13 @@ function renderLessonFlow(){
       </div>`;
     }
   }else if(lessonStep===1){
+    document.getElementById('back-label').textContent='Leçons';
     const exoOk=!!etapesDe(l.id).exo;
+    const quizDone=lecCompletee(l.id);
     slide=`
       ${exoOk?`<div class="ls-nav">
         <button class="ls-prev" type="button" onclick="setLessonStep(0)">‹ Cours</button>
-        <button class="ls-next" type="button" onclick="setLessonStep(2)">Passer au quiz</button>
+        <button class="ls-next" type="button" onclick="setLessonStep(${quizDone?3:2})">${quizDone?'Voir le bilan':'Passer au quiz'}</button>
       </div>`:`<div class="ls-nav">
         <button class="ls-prev" type="button" onclick="setLessonStep(0)">‹ Cours</button>
         <button class="ls-next" type="button" disabled>Valide l’exercice pour continuer</button>
@@ -5073,9 +5171,12 @@ function renderLessonFlow(){
         ${editorBlock(!l.write,'exercice.sql')}
       </div>`;
   }else{
+    document.getElementById('back-label').textContent='Leçons';
+    const quizDone=lecCompletee(l.id);
     slide=`
       <div class="ls-nav">
         <button class="ls-prev" type="button" onclick="setLessonStep(1)">‹ Exercice</button>
+        ${quizDone?`<button class="ls-next" type="button" onclick="setLessonStep(3)">Voir le bilan</button>`:''}
       </div>
       <div class="ls-main">
         <div class="l-kicker">Quiz</div><h1>Valider la leçon</h1>
@@ -5084,7 +5185,7 @@ function renderLessonFlow(){
       </div>`;
   }
   document.getElementById('lesson-body').innerHTML=`
-    <div class="ls-bars">${bars}</div>
+    <div class="ls-bars${lessonStep===3?' bravo-hide':''}">${bars}</div>
     <div class="ls-slide${lessonStepDir<0?' back':''}">${slide}</div>`;
   if(lessonStep===1){
     setupEditor('ed-lesson','hl-lesson');
@@ -6185,7 +6286,6 @@ function renderValidation(){
       <div class="qexpl${repondu?' on':''}" id="qexpl-${i}">${repondu?'<b>✓ Bonne réponse.</b> '+q.e:''}</div>
     </div>`;
   }).join('');
-  const suiv=allLessons.find(x=>!(state.lessons[x.id]&&state.lessons[x.id].done));
   const resteQ=qs.filter((_,i)=>!e['q'+i]).length;
   const carte=CARTES[id];
   const final=fini
@@ -6194,13 +6294,12 @@ function renderValidation(){
           <span class="valid-done-ico" aria-hidden="true">✓</span>
           <div><b>Leçon validée</b><p>Exercice et quiz au complet.</p></div>
         </div>
-        <div class="valid-card-chip" style="background:${gradOf(id)}">
+        ${carte?`<div class="valid-card-chip" style="background:${gradOf(id)}">
           <div><small>Carte dans ta collection</small><strong>${esc(carte.k)}</strong></div>
           <button type="button" class="valid-card-go" onclick="switchTab('collection');openCard(${id})">Voir</button>
-        </div>
+        </div>`:''}
       </div>
-       ${suiv?`<button class="next-btn" onclick="openLesson(${suiv.id})">Leçon suivante →</button>`
-        :`<div class="feedback ok"><div class="fi">🎉</div><div><b>Programme terminé</b><p>Les ${TOTAL} leçons sont bouclées.</p></div></div>`}`
+       <button class="next-btn" type="button" onclick="setLessonStep(3)">Voir le bilan →</button>`
     : `<div class="valid-todo">Réponds aux <b>${resteQ} question${resteQ>1?'s':''}</b> pour valider la leçon.</div>`;
   host.innerHTML=`
     <div class="vsteps">${pastilles}</div>
@@ -6235,11 +6334,13 @@ function finaliserLecon(){
   const premier=!(state.lessons[id]&&state.lessons[id].done);
   markDone(id,false); celebrate();
   renderModules();renderProgress();renderCollection();renderPlanning();
-  lessonStep=2;
+  lessonStepDir=1;
+  lessonStep=3;
   renderLessonFlow();
   if(premier)showUnlock(id);
-  const h=document.getElementById('valid-block');
-  if(h)h.scrollIntoView({behavior:'smooth',block:'center'});
+  saveNav();
+  const wrap=document.getElementById('scr-lesson');
+  if(wrap)wrap.scrollTop=0;
 }
 
 /* ---------- Notes globales (stylo ✎ partout) ---------- */
