@@ -620,6 +620,8 @@
   .consigne{background:var(--surface);color:var(--ink);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 8px 20px -16px rgba(20,20,40,.5)}
   .consigne .tag{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:var(--ink-3);display:block;margin-bottom:6px}
   .consigne p{margin:0;font-size:16px;font-weight:600;line-height:1.45}
+  .consigne .tip{margin:10px 0 0;font-size:13px;font-weight:500;line-height:1.45;color:var(--ink-2)}
+  .consigne .tip b{font-weight:700;color:var(--ink)}
   .consigne code{background:var(--accent-soft);color:var(--accent);padding:1px 6px;border-radius:6px;font-family:var(--mono);font-size:.88em}
 
   .editor-shell{background:var(--code-bg);border-radius:18px;overflow:hidden;box-shadow:0 8px 24px rgba(20,20,35,.18);margin-bottom:12px}
@@ -4643,7 +4645,7 @@ const editorBlock=(withViz,fname='exercice.sql')=>`
   </div>
   <div class="run-row"><button class="btn-run" onclick="runLesson()">▶︎ Exécuter</button>
   <button class="btn-ghost" type="button" onclick="openSchemaSheet()">Schéma</button>
-  ${withViz?`<button class="btn-ghost" onclick="openViz('ed-lesson')">◨</button>`:''}</div>
+  ${withViz?`<button class="btn-ghost" type="button" onclick="openViz('ed-lesson')">Pas à pas</button>`:''}</div>
   <div id="lesson-out" role="status" aria-live="polite" aria-atomic="true"></div>
   <div id="hint-slot"></div>`;
 
@@ -4931,7 +4933,9 @@ function renderLessonFlow(){
       </div>`}
       <div class="ls-main">
         <div class="l-kicker">Leçon ${l.id} · Exercice</div>
-        <div class="consigne"><span class="tag">Consigne</span><p>${l.consigne}</p></div>
+        <div class="consigne"><span class="tag">Consigne</span><p>${l.consigne}</p>
+          <p class="tip">Tu peux cliquer sur <b>Schéma</b> pour voir les noms des tables et colonnes.${l.write?'':` Une fois exécutée, tu peux voir l’exécution pas à pas de ta requête avec le bouton <b>Pas à pas</b>.`}</p>
+        </div>
         ${editorBlock(!l.write,'exercice.sql')}
       </div>`;
   }else{
