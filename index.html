@@ -909,14 +909,18 @@
   .note-meta button{background:none;border:none;color:var(--danger);font-family:var(--ui);font-size:11.5px;font-weight:600;cursor:pointer;padding:0}
 
   /* Toast déblocage */
-  .toast{position:absolute;left:14px;right:14px;bottom:calc(var(--safe-bottom) + 76px);z-index:95;background:rgba(26,26,40,.96);color:#fff;border-radius:15px;padding:13px 15px;display:none;align-items:center;gap:13px;box-shadow:0 12px 32px rgba(0,0,0,.3);cursor:pointer}
-  .toast.on{display:flex;animation:toastIn .38s cubic-bezier(.3,1.3,.5,1)}
-  @keyframes toastIn{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
-  .toast .tmini{width:40px;height:52px;border-radius:10px;flex:none;display:flex;align-items:flex-end;padding:6px;font-family:var(--mono);font-size:9px;font-weight:700;color:#fff;overflow:hidden}
-  .toast .tmini.ok{align-items:center;justify-content:center;font-size:16px;padding:0}
-  .toast b{font-size:14px;display:block}
-  .toast small{font-size:12px;color:#9A9AB0}
-  .toast .tgo{margin-left:auto;color:#9A9AB0;font-size:19px}
+  .toast{position:absolute;left:14px;right:14px;bottom:calc(var(--safe-bottom) + 76px);z-index:95;background:linear-gradient(180deg,rgba(38,38,56,.97),rgba(24,24,38,.97));color:#fff;border-radius:18px;padding:13px 13px 13px 14px;display:none;align-items:center;gap:13px;box-shadow:0 18px 42px rgba(0,0,0,.36),0 0 0 1px rgba(255,255,255,.07) inset;cursor:pointer;border:1px solid rgba(255,255,255,.09)}
+  .toast.on{display:flex;animation:toastIn .42s cubic-bezier(.3,1.3,.5,1)}
+  @keyframes toastIn{from{transform:translateY(22px) scale(.96);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+  .toast .tmini{width:46px;height:60px;border-radius:12px;flex:none;display:flex;flex-direction:column;justify-content:space-between;padding:7px 6px;font-family:var(--mono);font-size:8.5px;font-weight:700;color:#fff;overflow:hidden;box-shadow:0 6px 18px -8px rgba(0,0,0,.55)}
+  .toast .tmini.ok{align-items:center;justify-content:center;font-size:18px;padding:0}
+  .toast .t-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+  .toast .t-kicker{display:none;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#FFD66E;margin-bottom:1px}
+  .toast .t-kicker.on{display:inline-block}
+  .toast b{font-size:14.5px;display:block;font-weight:700;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .toast small{font-size:12px;color:#A0A0B4;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .toast .tgo{margin-left:auto;flex:none;background:rgba(255,255,255,.13);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:700;font-family:var(--ui);letter-spacing:-.1px}
+  .toast:active .tgo{background:rgba(255,255,255,.22)}
 
   /* Carnet de notes */
   .seg{display:flex;background:var(--line);border-radius:11px;padding:3px;margin:14px 16px 0}
@@ -1887,8 +1891,12 @@
   <!-- Toast de déblocage -->
   <div class="toast" id="toast" onclick="toastGo()">
     <div class="tmini" id="toast-mini"></div>
-    <div><b id="toast-t">Nouvelle carte</b><small id="toast-s"></small></div>
-    <div class="tgo">›</div>
+    <div class="t-body">
+      <span class="t-kicker" id="toast-kicker"></span>
+      <b id="toast-t">Nouvelle carte</b>
+      <small id="toast-s"></small>
+    </div>
+    <div class="tgo" id="toast-go">Voir</div>
   </div>
 
   <!-- Barre de touches SQL -->
@@ -5837,6 +5845,9 @@ function showShareCopied(ok=true){
   mini.style.background='#14141B';
   mini.classList.add('ok');
   mini.textContent=ok?'✓':'!';
+  const k=document.getElementById('toast-kicker');
+  if(k)k.classList.remove('on');
+  document.getElementById('toast-go').textContent=ok?'✓':'!';
   document.getElementById('toast-t').textContent=ok?'Carte copiée':'Partage indisponible';
   document.getElementById('toast-s').textContent=ok?'Colle-la où tu veux — Messages, Notes…':'Réessaie dans un instant.';
   t.classList.add('on');
@@ -5857,7 +5868,10 @@ function showUnlock(id){
   mini.classList.remove('ok');
   mini.style.background=gradOf(id);
   mini.textContent=String(id).padStart(2,'0');
-  document.getElementById('toast-t').textContent='Nouvelle carte : '+c.k;
+  const k=document.getElementById('toast-kicker');
+  if(k){k.textContent='Carte débloquée';k.classList.add('on');}
+  document.getElementById('toast-go').textContent='Voir';
+  document.getElementById('toast-t').textContent=c.k;
   document.getElementById('toast-s').textContent=c.t+' · ajoutée à ta collection';
   const t=document.getElementById('toast'); t.classList.add('on');
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('on'),5000);
@@ -6157,6 +6171,9 @@ function toast(msg,sub){
   const t=document.getElementById('toast');
   document.getElementById('toast-mini').style.background='linear-gradient(145deg,#4F46E5,#7C6CF5)';
   document.getElementById('toast-mini').textContent='✓';
+  const k=document.getElementById('toast-kicker');
+  if(k)k.classList.remove('on');
+  document.getElementById('toast-go').textContent='✓';
   document.getElementById('toast-t').textContent=msg;
   document.getElementById('toast-s').textContent=sub||'';
   toastId=null;t.classList.add('on');
