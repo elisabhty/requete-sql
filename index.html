@@ -1125,6 +1125,17 @@
   .pl-stat.streak.hot svg{color:#E2551B}
   .lesson-rich .pl-stat.streak.hot svg,.pl-stat.streak.hot svg{animation:flameWob 1.8s ease-in-out infinite;transform-origin:50% 88%}
   @keyframes flameWob{0%,100%{transform:scale(1) rotate(0)}30%{transform:scale(1.08) rotate(-3.5deg)}60%{transform:scale(.96) rotate(3deg)}}
+  .pl-insight{display:flex;align-items:flex-start;gap:11px;margin:12px 16px 0;padding:13px 15px;border-radius:16px;background:var(--surface);box-shadow:0 1px 0 var(--line);animation:bravoFadeUp .4s cubic-bezier(.32,.72,.28,1) both}
+  .pl-insight .pi-i{font-size:18px;flex:none;line-height:1.4}
+  .pl-insight p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.45}
+  .pl-insight .pi-fin{display:block;margin-top:4px;font-size:12px;color:var(--ink-3);font-weight:600}
+  .pl-insight.warn{background:var(--warn-soft)}
+  .pl-insight.warn p{color:#8A6212}
+  .pl-insight.warn .pi-fin{color:#A9791F}
+  .pl-insight.ok{background:var(--success-soft)}
+  .pl-insight.ok p{color:var(--success)}
+  .pl-insight.go{background:var(--accent-soft)}
+  .pl-insight.go p{color:var(--accent)}
   .studio-today{padding:0 16px;margin:14px 0 22px;display:flex;flex-direction:column;gap:9px}
   .studio-today .st-lab{font-family:var(--mono);font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-3);padding:0 2px}
   .st-row{display:flex;align-items:center;gap:12px;padding:14px 15px;min-height:56px;border-radius:16px;background:var(--surface);box-shadow:0 8px 20px -18px rgba(20,20,40,.6);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -1152,6 +1163,14 @@
   .dp-head>div:first-child{flex:1;min-width:0}
   .dp-go{background:var(--accent);color:#fff;border:none;border-radius:12px;padding:11px 16px;min-height:44px;font-family:var(--ui);font-size:14px;font-weight:600;cursor:pointer;flex:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   .dp-go:active{transform:scale(.97);filter:brightness(.97)}
+  .dp-prog{height:5px;background:var(--line);position:relative}
+  .dp-prog i{display:block;height:100%;background:var(--success);transition:width .35s cubic-bezier(.32,.72,.28,1)}
+  .day-panel.late .dp-prog i{background:var(--warn)}
+  .day-panel.done .dp-prog i{background:var(--success)}
+  .dp-pause{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 14px 20px;text-align:center}
+  .dp-pause .dp-pi{width:40px;height:40px;border-radius:50%;background:var(--surface-2);color:var(--ink-3);display:flex;align-items:center;justify-content:center;font-size:18px}
+  .dp-pause b{font-size:14px;color:var(--ink-2);font-weight:600}
+  .dp-pause small{font-size:12px;color:var(--ink-3);line-height:1.4;max-width:240px}
 
   /* ---------- Vue parcours ---------- */
   .pc-list{padding:14px 16px 0;display:flex;flex-direction:column;gap:8px}
@@ -1666,7 +1685,7 @@
     .grp-viz[data-phase="1"] .grp-bucket,.grp-viz[data-phase="2"] .grp-bucket{opacity:1;transform:none}
     .concept-block:hover,.vs-col:hover,.memory-rule div:hover{transform:none;box-shadow:none}
     .lesson-rich .concept-block:hover{transform:none;box-shadow:none}
-    .module .row,.module,.home-card,.progress-card,.today-hero,.home-today,.revise{animation:none!important;opacity:1;transform:none}
+    .module .row,.module,.home-card,.progress-card,.today-hero,.home-today,.revise,.pl-insight{animation:none!important;opacity:1;transform:none}
     *{scroll-behavior:auto}
   }
 </style>
@@ -3466,7 +3485,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-11-bravo';
+const APP_VERSION='2026-08-11-parcours';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -5945,6 +5964,33 @@ function infoJour(){
   return {t,today,retard,suivante,reste};
 }
 function lessonsRestantesAujourdhui(){const i=infoJour();return i&&i.today?resteDe(i.today):0;}
+function parcoursInsightHTML(st){
+  const info=infoJour(); if(!info) return '';
+  const sk=streakJours();
+  let icon='✨',tone='',body='';
+  if(st.reste===0){
+    icon='🎉';tone='ok';
+    body=`Parcours terminé — tu as bouclé les ${st.total} items du planning.`;
+  }else if(info.retard.length){
+    icon='⚠';tone='warn';
+    body=`${info.retard.length} séance${info.retard.length>1?'s':''} en retard. Rattrape-les pour remettre ton calendrier à jour.`;
+  }else if(info.today&&resteDe(info.today)){
+    const left=resteDe(info.today);
+    icon='🎯';tone='go';
+    body=`Aujourd'hui : ${left} item${left>1?'s':''} · ~${left*MIN_PAR_LECON} min. ${sk>0?`Garde ta série de ${sk} jour${sk>1?'s':''} !`:'Lance ta première séance !'}`;
+  }else if(info.today){
+    icon='✓';tone='ok';
+    body=info.suivante?`Séance du jour terminée. Prochaine étape ${libelleJour(info.suivante.d).toLowerCase()}.`:'Séance du jour terminée.';
+  }else{
+    icon='☕';
+    body=info.suivante?`Journée libre. Prochaine séance ${libelleJour(info.suivante.d).toLowerCase()} — ${info.suivante.lessons.length} item${info.suivante.lessons.length>1?'s':''}.`:'Journée libre — aucune séance planifiée.';
+  }
+  if(st.fin&&st.reste>0&&tone!=='warn'){
+    const fin=parseD(st.fin).toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
+    body+=` <span class="pi-fin">Fin prévue ~${fin}.</span>`;
+  }
+  return `<div class="pl-insight ${tone}"><span class="pi-i">${icon}</span><p>${body}</p></div>`;
+}
 
 /* ---------- Création ---------- */
 function pick(champ,val){draft[champ]=val;renderPlanning();}
@@ -6263,6 +6309,8 @@ function renderSemaine(){
   const p=state.plan,st=statsPlan();
   const sess=sessionDe(jourSel);
   const fait=sessionFaite(sess),ret=sess&&jourSel<t&&!fait;
+  const faitN=sess?sess.lessons.filter(itemDone).length:0;
+  const pctSess=sess&&sess.lessons.length?Math.round(faitN/sess.lessons.length*100):0;
   const chips=sess?sess.lessons.map((id,i)=>{
     const m=itemMeta(id),ok=itemDone(id);
     const arg=isDefiId(id)?`'${id}'`:id;
@@ -6281,10 +6329,11 @@ function renderSemaine(){
     <div class="day-panel ${ret?'late':''} ${fait?'done':''}" data-date="${jourSel}">
       <div class="dp-head">
         <div><b>${libelleJour(jourSel)}</b>
-        <small>${sess?`${nL} leçon${nL>1?'s':''} · ${nD} défi${nD>1?'s':''} · ~${sess.lessons.length*MIN_PAR_LECON} min${fait?' · terminée':(ret?' · en retard':'')}`:'Pause — rien de prévu'}</small></div>
-        ${sess&&!fait?`<button type="button" class="dp-go" onclick="demarrerSeance('${jourSel}')">Démarrer</button>`:''}
+        <small>${sess?`${nL} leçon${nL>1?'s':''} · ${nD} défi${nD>1?'s':''} · ~${sess.lessons.length*MIN_PAR_LECON} min${fait?' · terminée':(ret?' · en retard':(faitN?` · ${faitN}/${sess.lessons.length}`:''))}`:'Pause — rien de prévu'}</small></div>
+        ${sess&&!fait?`<button type="button" class="dp-go" onclick="demarrerSeance('${jourSel}')">${faitN?'Continuer':'Démarrer'}</button>`:''}
       </div>
-      <div class="pl-chips">${chips||'<div class="pl-empty-day">Pause — glisse une leçon ou un défi ici</div>'}</div>
+      ${sess?`<div class="dp-prog" aria-hidden="true"><i style="width:${pctSess}%"></i></div>`:''}
+      <div class="pl-chips">${chips||`<div class="dp-pause"><div class="dp-pi">☕</div><b>Journée libre</b><small>Pas de séance prévue. Glisse une leçon ou un défi ici si tu veux avancer.</small></div>`}</div>
     </div>
     <div class="pl-tools">
       <div class="tl"><b>Étaler le parcours</b>Par défaut ~${DUREE_PARCOURS_JOURS} jours · plus de séances = journées plus courtes</div>
@@ -6325,7 +6374,9 @@ function renderPlanning(){
     <div class="pl-stats">
       <div class="pl-stat streak ${streakJours()>0?'hot':''}">${streakChipHTML()}</div>
       <div class="pl-stat"><b>${pct} %</b><small>du parcours</small></div>
+      <div class="pl-stat"><b>${st.reste}</b><small>item${st.reste>1?'s':''} restant${st.reste>1?'s':''}</small></div>
     </div>
+    ${parcoursInsightHTML(st)}
     ${studioTodayList()}
     <div class="pl-week">${renderSemaine()}</div>`;
   brancherDrag();renderHomeToday();
