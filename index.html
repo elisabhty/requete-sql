@@ -874,7 +874,15 @@
   .cd-idx{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.2px;opacity:.78}
   .cd-share h2{font-family:var(--mono);font-size:32px;font-weight:800;margin:0 0 8px;letter-spacing:-1px;line-height:1.1;position:relative;z-index:1}
   .cd-share .cd-sub{margin:0 0 16px;font-size:15px;font-weight:600;opacity:.94;line-height:1.35;position:relative;z-index:1}
-  .cd-share .cd-sql{position:relative;z-index:1;margin:0;padding:12px 13px;border-radius:14px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.14);font-family:var(--mono);font-size:12.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+  .cd-share .cd-sql,.cd-share .cd-pattern{position:relative;z-index:1;margin:0;padding:14px 15px;border-radius:14px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.14);font-family:var(--mono);font-size:13.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+  .cd-pattern{display:flex;flex-direction:column;gap:8px}
+  .cd-pattern-line{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .cd-pattern .cd-kw{font-weight:800;letter-spacing:.2px}
+  .cd-pattern .cd-dots{opacity:.55;letter-spacing:3px;font-weight:700}
+  .cd-syntax.pattern{background:var(--code-bg);color:var(--code-ink);border-radius:14px;padding:16px 17px;margin-bottom:4px}
+  .cd-syntax.pattern .cd-pattern-line{color:var(--code-ink)}
+  .cd-syntax.pattern .cd-kw{color:var(--t-kw)}
+  .cd-syntax.pattern .cd-dots{color:#8A8A9C;opacity:1}
   .cd-lab{font-size:11.5px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.6px;margin:0 4px 8px}
   .cd-memo{background:var(--surface);border-radius:16px;padding:15px 16px;font-size:14.5px;box-shadow:0 1px 0 var(--line);margin-bottom:14px;line-height:1.55}
   .cd-memo code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);color:var(--accent);padding:1px 6px;border-radius:6px;font-weight:600}
@@ -3087,7 +3095,8 @@ const CARTES={
     m:"Recolle les tables via une colonne commune. Pour une jointure relationnelle, écris <code>ON</code> ou <code>USING</code>. Sans condition, tu obtiens un produit cartésien. Préfixe (<code>clients.nom</code>) dès qu’il y a ambiguïté."},
  16:{k:"AS",t:"Renommer et empiler",s:"SELECT clients.nom AS client",
     m:"Chaque table en plus = un <code>JOIN … ON …</code>. <code>AS</code> renomme à l’affichage — utile quand deux tables ont le même nom de colonne."},
- 17:{k:"HAVING",t:"Filtrer les groupes",s:"GROUP BY categorie HAVING COUNT(*) >= 2",
+ 17:{k:"HAVING",t:"Filtrer les groupes",s:"GROUP BY …\nHAVING …",
+    run:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",
     m:"Ordre d’exécution : FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY. <b>WHERE filtre des lignes, HAVING filtre des groupes.</b>"},
  18:{k:"NULL",t:"La valeur absente",s:"WHERE email IS NULL",
     m:"Ni zéro ni chaîne vide : « on ne sait pas ». <b>NULL n’est égal à rien</b> — d’où <code>IS NULL</code> / <code>IS NOT NULL</code>. Les agrégats ignorent les NULL."},
@@ -5359,12 +5368,25 @@ function renderCollection(){
 }
 let openCardId=null;
 let lastUnlockedId=null;
-/** Snippet affiché sur le poster : met en avant la notion, sans le GROUP BY d’accompagnement. */
+/** Affiche une syntaxe-modèle (GROUP BY … / HAVING …) plutôt qu’un exemple figé. */
+function cardIsPattern(c){
+  return /…|\.\.\./.test((c&&c.s)||'');
+}
 function cardPosterSql(c){
-  const s=(c&&c.s||'').trim();
-  if(!s) return '';
-  const stripped=s.replace(/^GROUP\s+BY[\s\S]*?(?=HAVING\b)/i,'').trim();
-  return stripped||s;
+  return ((c&&c.s)||'').trim();
+}
+function cardPatternHtml(c, cls){
+  const lines=((c&&c.s)||'').trim().split(/\n+/).filter(Boolean);
+  const body=lines.map(line=>{
+    const m=line.match(/^([A-Za-z][A-Za-z\s]*?)\s*(…|\.\.\.)\s*$/);
+    if(m) return `<div class="cd-pattern-line"><span class="cd-kw">${esc(m[1].trim())}</span><span class="cd-dots">…</span></div>`;
+    return `<div class="cd-pattern-line">${esc(line)}</div>`;
+  }).join('');
+  return `<div class="cd-pattern ${cls||''}">${body}</div>`;
+}
+function cardRunnableSql(c){
+  if(c&&c.run) return c.run;
+  return (c&&c.s)||'';
 }
 function openCard(id){
   if(!isUnlocked(id))return;
@@ -5375,17 +5397,19 @@ function openCard(id){
   document.getElementById('fab').classList.add('hide');
   const shareIco=`<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M8.5 6.5 12 3l3.5 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 12v6.5A2.5 2.5 0 0 0 7.5 21h9a2.5 2.5 0 0 0 2.5-2.5V12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
   const tryIco=`<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9.05 5.36c-.7-.42-1.55.1-1.55.9v11.48c0 .8.85 1.32 1.55.9l9.52-5.74c.66-.4.66-1.4 0-1.8L9.05 5.36z" fill="currentColor"/></svg>`;
+  const posterSql=cardIsPattern(c)?cardPatternHtml(c):`<pre class="cd-sql">${esc(cardPosterSql(c))}</pre>`;
+  const syntaxBlock=cardIsPattern(c)?cardPatternHtml(c,'cd-syntax pattern'):`<div class="ex-code">${highlight(c.s)}</div>`;
   document.getElementById('card-body').innerHTML=`
     <div class="cd-share" style="background:${gradOf(id)}">
       <div class="cd-top"><span class="cd-brand">Requête</span><span class="cd-idx">CARTE ${String(id).padStart(2,'0')}</span></div>
       <h2>${esc(c.k)}</h2>
       <p class="cd-sub">${esc(c.t)}</p>
-      <pre class="cd-sql">${esc(cardPosterSql(c))}</pre>
+      ${posterSql}
     </div>
     <p class="cd-lab">À retenir</p>
     <div class="cd-memo">${c.m}</div>
     <p class="cd-lab">Syntaxe</p>
-    <div class="ex-code">${highlight(c.s)}</div>
+    ${syntaxBlock}
     <div class="cd-actions">
       <button type="button" class="cd-share-btn" onclick="shareCard(${id})">${shareIco}Partager</button>
       <button type="button" class="cd-try-btn" onclick="cardToConsole(${id})">${tryIco}Essayer</button>
@@ -5442,7 +5466,7 @@ function showShareCopied(ok=true){
 function cardToConsole(id){
   closeCard(); switchTab('console');
   const ta=document.getElementById('ed-console');
-  ta.value=CARTES[id].s; syncHL('ed-console','hl-console');
+  ta.value=cardRunnableSql(CARTES[id]); syncHL('ed-console','hl-console');
   ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px';
 }
 let toastId=null,toastTimer=null;
