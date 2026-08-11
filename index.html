@@ -4823,25 +4823,30 @@ function showScreen(){
   scr.classList.add('active','push'); scr.scrollTop=0;
   setTimeout(()=>scr.classList.remove('push'),340);
 }
-function leaveLessonScreen(){
+function leaveLessonScreen(toTab){
+  const tab=toTab||activeTab||'learn';
+  activeTab=tab;
   const scr=document.getElementById('scr-lesson');
-  const learn=document.getElementById('scr-learn');
+  const target=screenForTab(tab);
   const finish=()=>{
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active','push','push-back'));
-    learn.classList.add('active');
+    if(target) target.classList.add('active');
     document.body.classList.remove('in-lesson');
     showKbar(false);
-    activeTab='learn';
-    if(mode==='defi'){homeFilter='tous';renderModules();}
-    saveNav({view:'tab',tab:'learn'});
+    syncTabUI(tab);
+    if(tab==='learn'&&mode==='defi') homeFilter='tous';
+    refreshTabScreen(tab);
+    saveNav({view:'tab',tab});
   };
-  if(!scr||prefersReduceMotion()||restoringNav){ finish(); return; }
-  /* Affiche Apprendre derrière avant le fade, sinon l’écran devient une ombre vide */
+  if(!scr||!target||prefersReduceMotion()||restoringNav){ finish(); return; }
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active','push','push-back'));
-  learn.classList.add('active');
+  target.classList.add('active');
   scr.classList.add('active','push-back');
   document.body.classList.remove('in-lesson');
   setTimeout(finish,260);
+}
+function exitLessonToTab(tab){
+  leaveLessonScreen(tab);
 }
 function goBack(){
   closeSchemaSheet();
@@ -5008,10 +5013,10 @@ function bravoActionsHtml(l){
     ?(etape
       ?`<button type="button" class="bravo-go" onclick="openItem(${isDefiId(etape.id)?`'${etape.id}'`:etape.id})">Continuer le parcours</button>`
       :`<button type="button" class="bravo-go alt" onclick="openLesson(${suiv.id})">Leçon suivante</button>`)
-    :`<button type="button" class="bravo-go" onclick="leaveLessonScreen()">Retour à l’accueil</button>`;
+    :`<button type="button" class="bravo-go" onclick="exitLessonToTab('learn')">Retour à l’accueil</button>`;
   const secBtn=CARTES[l.id]
     ?`<button type="button" class="bravo-sec" onclick="switchTab('collection');openCard(${l.id})">Voir la carte</button>`
-    :(state.plan?`<button type="button" class="bravo-sec" onclick="leaveLessonScreen();switchTab('planning')">Mon parcours</button>`:`<button type="button" class="bravo-sec" onclick="setLessonStep(1)">Refaire l’exercice</button>`);
+    :(state.plan?`<button type="button" class="bravo-sec" onclick="exitLessonToTab('planning')">Mon parcours</button>`:`<button type="button" class="bravo-sec" onclick="setLessonStep(1)">Refaire l’exercice</button>`);
   return `<div class="bravo-actions">
     ${goBtn}
     <div class="bravo-row">
