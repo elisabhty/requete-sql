@@ -1272,6 +1272,30 @@
   .bravo-done-note .fi{width:28px;height:28px;flex:none;border-radius:50%;background:var(--success);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800}
   .bravo-done-note b{display:block;font-size:15px;color:var(--success);margin-bottom:2px}
   .bravo-done-note p{margin:0;font-size:13px;color:var(--ink-2);line-height:1.4}
+
+  /* Confettis subtils dans le hero */
+  .bravo-sparks{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .bravo-spark{position:absolute;width:6px;height:6px;border-radius:2px;opacity:0;animation:bravoSpark 1.5s ease-out infinite}
+  .bravo-spark:nth-child(1){left:18%;top:-8px;background:#1CBF88;animation-delay:.15s}
+  .bravo-spark:nth-child(2){left:38%;top:-8px;background:#6363DE;animation-delay:.32s;transform:rotate(35deg)}
+  .bravo-spark:nth-child(3){left:58%;top:-8px;background:#EA7A1E;animation-delay:.5s}
+  .bravo-spark:nth-child(4){left:74%;top:-8px;background:#1CBF88;animation-delay:.66s;transform:rotate(20deg)}
+  .bravo-spark:nth-child(5){left:86%;top:-8px;background:#6363DE;animation-delay:.82s}
+  @keyframes bravoSpark{0%{opacity:0;transform:translateY(0) rotate(0)}12%{opacity:1}70%{opacity:1}100%{opacity:0;transform:translateY(220px) rotate(180deg)}}
+
+  /* Bloc "Ce que tu retiens" */
+  .bravo-recap{background:var(--surface);border:1px solid var(--line-2);border-radius:20px;padding:16px 16px 18px;box-shadow:0 12px 28px -24px rgba(20,20,40,.35);animation:bravoFadeUp .42s cubic-bezier(.32,.72,.28,1) .26s both}
+  .bravo-recap-head{display:flex;align-items:center;gap:9px;margin-bottom:13px}
+  .bravo-recap-head .fi{width:26px;height:26px;flex:none;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:14px}
+  .bravo-recap-head b{font-size:14px;font-weight:700;color:var(--ink);letter-spacing:-.2px}
+  .bravo-recap-head small{display:block;font-size:11.5px;font-weight:500;color:var(--ink-3);margin-top:1px}
+  .bravo-recap .memory-rule{margin:0}
+  .bravo-recap .memory-rule div{padding:13px 12px;border-radius:14px}
+  .bravo-recap .memory-rule div>b{font-size:12px;margin-bottom:6px;padding:5px 10px}
+  .bravo-recap .memory-rule span{font-size:12px}
+  .bravo-recap-sql{margin:0;padding:13px 14px;border-radius:13px;font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word;background:var(--code-bg);color:var(--code-ink);border:1px solid var(--line)}
+  .bravo-recap-take{margin:11px 0 0;font-size:13px;color:var(--ink-2);line-height:1.5}
+  .bravo-recap-take code{font-family:var(--mono);font-size:12px;color:var(--accent);background:var(--accent-soft);padding:1px 5px;border-radius:5px}
   .ls-bars.bravo-hide{display:none}
   @keyframes bravoRingIn{from{transform:scale(.82);opacity:0}to{transform:scale(1);opacity:1}}
   @keyframes bravoPop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
@@ -1635,7 +1659,8 @@
     .agg-reflex .agg-list li,.agg-reflex .agg-cta,.sec-flash,.sommaire-list .som-item,
     .order-rappel .concept-order code,.order-rappel .concept-order i,.order-rappel .concept-coda,
     .order-rappel.play .concept-order code,.order-rappel.play .concept-order i,.order-rappel.play .concept-order code.on,.order-rappel.play .concept-coda,.ls-slide.back,.screen.push-back,.qexpl.on,.grp-viz[data-phase="2"] .grp-bucket[data-keep="1"]{animation:none!important;opacity:1;transform:none}
-    .bravo-ring,.bravo-ring i,.bravo-hero h1,.bravo-lesson,.bravo-step,.bravo-stat,.bravo-gcard,.bravo-next-btn,.bravo-done-note{animation:none!important;opacity:1;transform:none}
+    .bravo-ring,.bravo-ring i,.bravo-hero h1,.bravo-lesson,.bravo-step,.bravo-stat,.bravo-gcard,.bravo-next-btn,.bravo-done-note,.bravo-recap,.bravo-spark{animation:none!important;opacity:1;transform:none}
+    .bravo-sparks{display:none}
     .grp-chip,.grp-bucket,.grp-count,.concept-block,.vs-col,.memory-rule div,.grp-replay,.ls-nav .ls-next,.ls-nav .ls-prev{transition:none!important}
     .grp-viz[data-phase="0"] .grp-bucket{opacity:0}
     .grp-viz[data-phase="1"] .grp-bucket,.grp-viz[data-phase="2"] .grp-bucket{opacity:1;transform:none}
@@ -3441,7 +3466,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-11-tabs';
+const APP_VERSION='2026-08-11-bravo';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -4976,6 +5001,29 @@ function bravoCardHtml(l){
       <div class="gsql">${snip}</div>
     </button>`;
 }
+function bravoRecapHtml(l){
+  const take = l.résumé ? `Tu maîtrises maintenant&nbsp;: ${esc(l.résumé)}.` : '';
+  let body = '';
+  if(l.id === 17){
+    body = `<div class="memory-rule">
+      <div class="memory-where"><b>WHERE</b><span>filtre les <b>lignes</b><br>avant le regroupement</span></div>
+      <div class="memory-having"><b>HAVING</b><span>filtre les <b>groupes</b><br>après le regroupement</span></div>
+    </div>`;
+  } else if(l.solution){
+    body = `<pre class="bravo-recap-sql">${highlight(l.solution)}</pre>`;
+  } else if(l.exemple){
+    body = `<pre class="bravo-recap-sql">${highlight(l.exemple)}</pre>`;
+  }
+  if(!body) return '';
+  return `<div class="bravo-recap">
+    <div class="bravo-recap-head">
+      <span class="fi">★</span>
+      <div><b>Ce que tu retiens</b><small>Le réflexe de cette leçon</small></div>
+    </div>
+    ${body}
+    ${take ? `<p class="bravo-recap-take">${take}</p>` : ''}
+  </div>`;
+}
 function bravoNextHtml(){
   const etape=typeof prochaineEtapeParcours==='function'?prochaineEtapeParcours():null;
   if(etape){
@@ -5020,7 +5068,7 @@ function bravoActionsHtml(l){
   return `<div class="bravo-actions">
     ${goBtn}
     <div class="bravo-row">
-      <button type="button" class="bravo-sec" onclick="leaveLessonScreen()">Accueil</button>
+      <button type="button" class="bravo-sec" onclick="exitLessonToTab('learn')">Accueil</button>
       ${secBtn}
     </div>
     <div class="bravo-more">
@@ -5033,6 +5081,7 @@ function renderBravoSlide(l){
   return `
     <div class="ls-main bravo-wrap">
       <div class="bravo-hero">
+        <div class="bravo-sparks" aria-hidden="true"><span class="bravo-spark"></span><span class="bravo-spark"></span><span class="bravo-spark"></span><span class="bravo-spark"></span><span class="bravo-spark"></span></div>
         <div class="bravo-ring" style="--p:100" aria-hidden="true"><i>✓</i></div>
         <div class="bravo-kicker">Leçon ${l.id} · validée</div>
         <h1>Bravo !</h1>
@@ -5040,6 +5089,7 @@ function renderBravoSlide(l){
         ${bravoStepsHtml()}
         ${bravoStatsHtml()}
       </div>
+      ${bravoRecapHtml(l)}
       ${bravoNextHtml()}
       ${bravoCardHtml(l)}
       ${bravoActionsHtml(l)}
