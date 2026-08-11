@@ -1889,6 +1889,27 @@ const MODULES = [
 { id:17, titre:"HAVING", résumé:"Filtrer après regroupement",
   situation:"Tu veux afficher les <b>catégories qui possèdent au moins 2 produits</b> — dans la table <code>produits</code>.",
   concept:`<div class="concept-page">
+  <div class="concept-block">
+    <h2><span class="h2-eye">Le problème</span><span class="h2-txt">Deux requêtes semblent presque identiques. Une seule fonctionne.</span></h2>
+    <p>Tu sais déjà compter le nombre de produits par catégorie avec <code>GROUP BY</code>. Il ne reste plus qu’à <b>filtrer les catégories selon ce total</b>.</p>
+    <div class="vs">
+      <div class="vs-col bad">
+        <div class="vs-tag bad">✕ Avec WHERE</div>
+        <div class="ex-code">SELECT categorie, COUNT(*)
+FROM produits
+<span class="bad-line">WHERE COUNT(*) &gt;= 2</span>GROUP BY categorie;</div>
+        <div class="vs-out err"><span class="vs-err-box">Erreur : misuse of aggregate: COUNT()</span></div>
+      </div>
+      <div class="vs-col good">
+        <div class="vs-tag good">✓ Avec HAVING</div>
+        <div class="ex-code">SELECT categorie, COUNT(*)
+FROM produits
+GROUP BY categorie<span class="good-line">HAVING COUNT(*) &gt;= 2;</span></div>
+        <div class="vs-out ok"><div class="pipe-table"><table><thead><tr><th scope="col">categorie</th><th scope="col">COUNT(*)</th></tr></thead><tbody><tr class="keep"><td>Bien-être</td><td class="num">4</td></tr></tbody></table></div><span class="vs-res-note">✓ Seule catégorie gardée</span></div>
+      </div>
+    </div>
+    <p class="concept-point"><span class="em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h12M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Une fois les catégories regroupées avec <code>GROUP BY</code>, utilise <code>HAVING</code> pour ne garder que celles dont <code>COUNT(*)</code> respecte la condition <code>&gt;= 2</code>.</span></p>
+  </div>
   <!-- early-demo -->
   <div class="concept-block">
     <h2><span class="h2-eye">Pourquoi</span><span class="h2-txt">Suis ce qui arrive à tes données.</span></h2>
@@ -1916,27 +1937,6 @@ const MODULES = [
       </div>
       <button type="button" class="grp-replay" id="having-grp-btn" onclick="replayHavingGrpViz()">▶ Voir l’animation</button>
     </div>
-  </div>
-  <div class="concept-block">
-    <h2><span class="h2-eye">Le problème</span><span class="h2-txt">Deux requêtes semblent presque identiques. Une seule fonctionne.</span></h2>
-    <p>Tu sais déjà compter le nombre de produits par catégorie avec <code>GROUP BY</code>. Il ne reste plus qu’à <b>filtrer les catégories selon ce total</b>.</p>
-    <div class="vs">
-      <div class="vs-col bad">
-        <div class="vs-tag bad">✕ Avec WHERE</div>
-        <div class="ex-code">SELECT categorie, COUNT(*)
-FROM produits
-<span class="bad-line">WHERE COUNT(*) &gt;= 2</span>GROUP BY categorie;</div>
-        <div class="vs-out err"><span class="vs-err-box">Erreur : misuse of aggregate: COUNT()</span></div>
-      </div>
-      <div class="vs-col good">
-        <div class="vs-tag good">✓ Avec HAVING</div>
-        <div class="ex-code">SELECT categorie, COUNT(*)
-FROM produits
-GROUP BY categorie<span class="good-line">HAVING COUNT(*) &gt;= 2;</span></div>
-        <div class="vs-out ok"><div class="pipe-table"><table><thead><tr><th scope="col">categorie</th><th scope="col">COUNT(*)</th></tr></thead><tbody><tr class="keep"><td>Bien-être</td><td class="num">4</td></tr></tbody></table></div><span class="vs-res-note">✓ Seule catégorie gardée</span></div>
-      </div>
-    </div>
-    <p class="concept-point"><span class="em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h12M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Une fois les catégories regroupées avec <code>GROUP BY</code>, utilise <code>HAVING</code> pour ne garder que celles dont <code>COUNT(*)</code> respecte la condition <code>&gt;= 2</code>.</span></p>
   </div>
   <div class="concept-block">
     <h2><span class="h2-txt">Le réflexe</span></h2>
