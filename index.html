@@ -62,7 +62,8 @@
   .stage{flex:1 1 0;min-height:0;position:relative;overflow:hidden}
   .screen{position:absolute;inset:0;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(120px + var(--safe-bottom));display:none}
   .screen.active{display:block}
-  .screen.push{animation:pushIn .34s cubic-bezier(.32,.72,.28,1)}
+  .screen.leaving{display:block;animation:screenOut .26s cubic-bezier(.32,.72,.28,1) both;z-index:1;pointer-events:none}
+  .screen.push{animation:pushIn .34s cubic-bezier(.32,.72,.28,1);z-index:2;background:var(--bg)}
   .screen.push-back{animation:pushOut .26s cubic-bezier(.32,.72,.28,1) both;display:block;z-index:2;background:var(--bg)}
   @keyframes pushIn{from{transform:translateX(22px);opacity:.85}to{transform:translateX(0);opacity:1}}
   @keyframes pushOut{from{transform:translateX(0);opacity:1}to{transform:translateX(28px);opacity:0}}
@@ -1478,7 +1479,8 @@
   #app{box-shadow:0 0 0 1px var(--line)}
   .screen.active{animation:screenIn .32s cubic-bezier(.32,.72,.28,1)}
   body.nav-restoring .screen.active{animation:none!important;opacity:1;transform:none}
-  @keyframes screenIn{from{transform:translateY(10px)}to{transform:none}}
+  @keyframes screenIn{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+  @keyframes screenOut{from{transform:none;opacity:1}to{transform:translateY(-6px);opacity:0}}
   .row,.chip,.btn-run,.btn-ghost,.btn-note,.next-btn,.pl-opt,.qopt,.tab,.revise,.home-today,.gcard,.fab,.helpers button,.ex-load,.pl-go,.th-go,.fchip,.hc-go,.hc-sec,.ls-nav button,.bravo-row,.bravo-go,.bravo-sec,.bravo-next-btn,.bravo-link,.bravo-gcard{
     transition:transform .18s cubic-bezier(.32,.72,.28,1), background .18s, box-shadow .22s, border-color .16s, color .16s, opacity .16s, filter .16s}
   .row,.chip,.btn-run,.btn-ghost,.btn-note,.next-btn,.pl-opt,.qopt,.tab,.revise,.home-today,.gcard,.fab,.helpers button,.ex-load,.pl-go,.th-go,.fchip,.hc-go,.hc-sec,.ls-nav button,.bravo-row,.bravo-go,.bravo-sec,.bravo-next-btn,.bravo-link,.bravo-gcard{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -1728,7 +1730,7 @@
   @media (max-width:360px){.ls-nav{flex-direction:column}.ls-nav .ls-prev,.ls-nav .ls-next{width:100%}.ls-nav .ls-prev{padding:11px 14px}.ls-nav .ls-next{padding:12px 14px}}
   @media (prefers-reduced-motion:reduce){
     .ring,.hc-ring,.logo-badge,.ob-progress i.on::after,.lz-num.now,.hc-go::after,
-    .screen.active,.feedback,.feedback.ok,.feedback.err,.feedback.warn,.fchip.on,.tab.tap svg,
+    .screen.active,.screen.leaving,.feedback,.feedback.ok,.feedback.err,.feedback.warn,.fchip.on,.tab.tap svg,
     .ls-slide,.table-wrap,.toast.on,.gcard.unlocking,.ls-step.on,.next-btn.pulse,.btn-run.pulse,
     .lesson-rich .concept-page > .concept-block,.lesson-rich .lesson-lead,.lesson-rich .exframe,.lesson-rich .piege,.lesson-rich .sect-label,
     .lesson-rich .vs-col,.lesson-rich .pipe-step,.lesson-rich .pipe-table tbody tr,.lesson-rich .takeaway-list li,.lesson-rich .order-hint-chip,.lesson-rich .order-hint-chip svg,.lesson-rich .concept-order::after,
@@ -1740,7 +1742,7 @@
     .memory-rule .memory-having>b,.ls-nav,.ls-nav .ls-next,.ls-bar.on,
     .agg-reflex .agg-list li,.agg-reflex .agg-cta,.sec-flash,.sommaire-list .som-item,
     .order-rappel .concept-order code,.order-rappel .concept-order i,.order-rappel .concept-coda,
-    .order-rappel.play .concept-order code,.order-rappel.play .concept-order i,.order-rappel.play .concept-order code.on,.order-rappel.play .concept-coda,.ls-slide.back,.screen.push-back,.qexpl.on,.grp-viz[data-phase="2"] .grp-bucket[data-keep="1"]{animation:none!important;opacity:1;transform:none}
+    .order-rappel.play .concept-order code,.order-rappel.play .concept-order i,.order-rappel.play .concept-order code.on,.order-rappel.play .concept-coda,.ls-slide.back,.screen.push,.screen.push-back,.qexpl.on,.grp-viz[data-phase="2"] .grp-bucket[data-keep="1"]{animation:none!important;opacity:1;transform:none}
     .bravo-ring,.bravo-ring i,.bravo-hero h1,.bravo-lesson,.bravo-step,.bravo-stat,.bravo-gcard,.bravo-next-btn,.bravo-done-note,.bravo-recap,.bravo-spark{animation:none!important;opacity:1;transform:none}
     .bn-arrow{animation:none!important;transform:translateY(-50%)}
     .bravo-ring{--p:100}
@@ -4699,12 +4701,32 @@ function switchTab(name){
     }
   });
   syncTabUI(name);
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const cur=document.querySelector('.screen.active');
   const scr=document.getElementById(map[name]);
   if(!scr)return;
+  const reduce=prefersReduceMotion();
+  if(restoringNav||reduce){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active','leaving'));
+    scr.classList.add('active');
+    document.body.classList.remove('in-lesson');
+    if(!restoringNav) scr.scrollTop=0;
+    showKbar(false);
+    if(name==='planning') setTimeout(scrollToToday,30);
+    refreshTabScreen(name);
+    saveNav({view:'tab',tab:name});
+    return;
+  }
+  if(cur&&cur!==scr){
+    document.querySelectorAll('.screen.leaving').forEach(s=>s.classList.remove('leaving'));
+    cur.classList.add('leaving');
+    cur.classList.remove('active');
+    const c=cur; setTimeout(()=>c.classList.remove('leaving'),280);
+  }else{
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active','leaving'));
+  }
   scr.classList.add('active');
   document.body.classList.remove('in-lesson');
-  if(!restoringNav) scr.scrollTop=0;
+  scr.scrollTop=0;
   showKbar(false);
   if(name==='planning') setTimeout(scrollToToday,30);
   refreshTabScreen(name);
@@ -4957,12 +4979,20 @@ function renderModules(){
 function renderDefis(){ renderModules(); }
 function showScreen(){
   const scr=document.getElementById('scr-lesson');
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const cur=document.querySelector('.screen.active');
   document.body.classList.add('in-lesson');
   if(restoringNav){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active','leaving'));
     scr.classList.add('active');
     scr.scrollTop=0;
     return;
+  }
+  if(cur&&cur!==scr){
+    cur.classList.add('leaving');
+    cur.classList.remove('active');
+    const c=cur; setTimeout(()=>c.classList.remove('leaving'),300);
+  }else{
+    document.querySelectorAll('.screen').forEach(s=>{ if(s!==scr) s.classList.remove('active','leaving'); });
   }
   scr.classList.add('active','push'); scr.scrollTop=0;
   setTimeout(()=>scr.classList.remove('push'),340);
@@ -4973,7 +5003,7 @@ function leaveLessonScreen(toTab){
   const scr=document.getElementById('scr-lesson');
   const target=screenForTab(tab);
   const finish=()=>{
-    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active','push','push-back'));
+    document.querySelectorAll('.screen').forEach(s=>{ if(s!==target) s.classList.remove('active','push','push-back'); });
     if(target) target.classList.add('active');
     document.body.classList.remove('in-lesson');
     showKbar(false);
