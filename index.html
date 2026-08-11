@@ -1402,21 +1402,6 @@
       </div>
       <p class="greeting" id="greeting" hidden></p>
       <div id="home-hero"></div>
-      <div class="primer" id="primer" role="button" tabindex="0" aria-expanded="false" onclick="this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}">
-        <div class="pt"><div><b>Avant de commencer</b><small>C'est quoi une base de données ? 2 min</small></div>
-          <svg class="arrow" width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M1.5 1.5L7 7.5l-5.5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <div class="primer-body">
-          <p>Imagine un classeur Excel. Chaque <em>feuille</em> s'appelle ici une <em>table</em> : une pour les clients, une pour les produits, une pour les commandes.</p>
-          <div class="mini-grid">
-            <div class="h"><span>id</span><span>nom</span><span>ville</span></div>
-            <div><span>1</span><span>Sophie</span><span>Paris</span></div>
-            <div><span>2</span><span>Lucas</span><span>Lyon</span></div></div>
-          <div class="mini-lab"><i><b>↑</b> les colonnes = les types d'info</i><i><b>←</b> les lignes = les enregistrements</i></div>
-          <p style="margin-top:12px">Une <em>colonne</em> décrit une information (le nom, la ville). Une <em>ligne</em> est un enregistrement complet : un client, avec toutes ses infos.</p>
-          <p>Le <em>SQL</em> est la langue qu'on utilise pour poser des questions à ce classeur. Tu écris une phrase, la base te renvoie un tableau de réponses.</p>
-          <p>À retenir : un <em>SELECT</em> ne modifie jamais tes données. Tu peux te tromper autant que tu veux, rien ne casse.</p>
-        </div>
-      </div>
       <div class="fbar home-fbar" id="home-filters"></div>
       <div id="modules"></div>
     </section>
@@ -4455,6 +4440,7 @@ function renderModules(){
   const slots=homeFilter==='tous'?defisByModuleSlots():{};
   host.innerHTML=MODULES.map((mod,mi)=>{
     let rows='',done=0,tot=0;
+    if(mi===0&&homeFilter!=='defis') rows+=primerRow();
     mod.lessons.forEach(l=>{
       if(homeFilter!=='defis'){
         rows+=lessonListRow(l); tot++;
@@ -4469,6 +4455,23 @@ function renderModules(){
     const label=`Module ${String(mi+1).padStart(2,'0')} · ${mod.titre}`;
     return `<div class="module"><div class="module-head"><h2>${label}</h2><span>${done}/${tot}</span></div><div class="list">${rows}</div></div>`;
   }).join('');
+}
+function primerRow(){
+  return `<div class="primer" role="button" tabindex="0" aria-expanded="false" onclick="this.classList.toggle('open');this.setAttribute('aria-expanded',this.classList.contains('open'))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}">
+    <div class="pt"><div><b>Avant de commencer</b><small>C'est quoi une base de données ? 2 min</small></div>
+      <svg class="arrow" width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M1.5 1.5L7 7.5l-5.5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="primer-body">
+      <p>Imagine un classeur Excel. Chaque <em>feuille</em> s'appelle ici une <em>table</em> : une pour les clients, une pour les produits, une pour les commandes.</p>
+      <div class="mini-grid">
+        <div class="h"><span>id</span><span>nom</span><span>ville</span></div>
+        <div><span>1</span><span>Sophie</span><span>Paris</span></div>
+        <div><span>2</span><span>Lucas</span><span>Lyon</span></div></div>
+      <div class="mini-lab"><i><b>↑</b> les colonnes = les types d'info</i><i><b>←</b> les lignes = les enregistrements</i></div>
+      <p style="margin-top:12px">Une <em>colonne</em> décrit une information (le nom, la ville). Une <em>ligne</em> est un enregistrement complet : un client, avec toutes ses infos.</p>
+      <p>Le <em>SQL</em> est la langue qu'on utilise pour poser des questions à ce classeur. Tu écris une phrase, la base te renvoie un tableau de réponses.</p>
+      <p>À retenir : un <em>SELECT</em> ne modifie jamais tes données. Tu peux te tromper autant que tu veux, rien ne casse.</p>
+    </div>
+  </div>`;
 }
 function renderDefis(){ renderModules(); }
 function showScreen(){
