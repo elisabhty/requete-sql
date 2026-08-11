@@ -3339,7 +3339,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-11-overlay';
+const APP_VERSION='2026-08-11-30j';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -5499,14 +5499,15 @@ const RYTHMES=[
   {k:'intensif',i:'30',t:"30 minutes",d:"~5 activités · rythme intensif",per:5,min:30}
 ];
 const FREQS=[
-  {k:2,i:'2',t:"2 jours / semaine",d:"Lundi et jeudi"},
-  {k:3,i:'3',t:"3 jours / semaine",d:"Lundi, mercredi, vendredi"},
+  {k:7,i:'7',t:"Tous les jours",d:"Sept jours sur sept · ~30 jours"},
   {k:5,i:'5',t:"En semaine",d:"Du lundi au vendredi"},
-  {k:7,i:'7',t:"Tous les jours",d:"Sept jours sur sept"}
+  {k:3,i:'3',t:"3 jours / semaine",d:"Lundi, mercredi, vendredi"},
+  {k:2,i:'2',t:"2 jours / semaine",d:"Lundi et jeudi"}
 ];
 const PATTERN={2:[1,4],3:[1,3,5],5:[1,2,3,4,5],7:[0,1,2,3,4,5,6]};
 const JOURS=['D','L','M','M','J','V','S'];
 const MIN_PAR_LECON=6;
+const DUREE_PARCOURS_JOURS=30;
 let draft={niveau:null,rythme:null,freq:null};
 let semaineOffset=0,jourSel=null;
 
@@ -5518,11 +5519,29 @@ function parseD(s){return jour0(new Date(s+'T00:00:00'));}
 function addJ(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return jour0(x);}
 function lundiDe(d){const x=jour0(d);const j=(x.getDay()+6)%7;return addJ(x,-j);}
 function datesMotif(depart,freq,n){
-  const pat=PATTERN[freq]||PATTERN[3];
+  const pat=PATTERN[freq]||PATTERN[7];
   let d=jour0(depart),out=[dstr(d)],g=0;   // le jour de départ compte toujours
   d=addJ(d,1);
   while(out.length<n&&g<4000){if(pat.indexOf(d.getDay())>=0)out.push(dstr(d));d=addJ(d,1);g++;}
   return out.slice(0,Math.max(0,n));
+}
+/* Jours de séance dans une fenêtre calendaire (départ inclus). */
+function datesFenetre(depart,freq,jours){
+  const pat=PATTERN[freq]||PATTERN[7];
+  const fin=addJ(jour0(depart),Math.max(0,jours-1));
+  let d=jour0(depart),out=[dstr(d)],g=0;
+  d=addJ(d,1);
+  while(d<=fin&&g<4000){if(pat.indexOf(d.getDay())>=0)out.push(dstr(d));d=addJ(d,1);g++;}
+  return out;
+}
+function repartirPool(pool,dates){
+  const n=Math.max(1,Math.min(dates.length,pool.length||1));
+  const ds=dates.slice(0,n);
+  if(!pool.length)return ds.map(d=>({d,lessons:[]}));
+  const base=Math.floor(pool.length/n),r=pool.length%n;
+  const sessions=[];let i=0;
+  for(let k=0;k<n;k++){const c=base+(k<r?1:0);sessions.push({d:ds[k],lessons:pool.slice(i,i+c)});i+=c;}
+  return sessions;
 }
 function libelleJour(iso){
   const d=parseD(iso),t=auj(),diff=Math.round((d-t)/86400000);
@@ -5602,13 +5621,17 @@ function buildMixPool(niveau){
   return mix;
 }
 function apercuPlan(niveau,rythme,freq){
-  const per=(RYTHMES.find(r=>r.k===rythme)||RYTHMES[1]).per;
-  // per = activités / séance. Le respect des prérequis prime sur un ratio artificiel 50/50.
-  const slot=per;
+  const perPref=(RYTHMES.find(r=>r.k===rythme)||RYTHMES[1]).per;
   const pool=buildMixPool(niveau);
-  const n=Math.max(1,Math.ceil(pool.length/slot));
-  const dates=datesMotif(auj(),freq,n);
-  return {niveau,rythme,freq,per:slot,mix:true,sessions:dates.map((d,i)=>({d,lessons:pool.slice(i*slot,(i+1)*slot)}))};
+  // Densité choisie (rythme) — puis on étale au moins sur ~30 jours si la fenêtre le permet.
+  const nRythme=Math.max(1,Math.ceil(pool.length/Math.max(1,perPref)));
+  const fenetre=datesFenetre(auj(),freq,DUREE_PARCOURS_JOURS);
+  const nCible=Math.min(fenetre.length,pool.length||1);
+  const n=Math.max(nRythme,nCible);
+  const dates=n<=fenetre.length?fenetre.slice(0,n):datesMotif(auj(),freq,n);
+  const sessions=repartirPool(pool,dates);
+  const per=Math.max(1,Math.ceil((pool.length||1)/sessions.length));
+  return {niveau,rythme,freq,per,mix:true,sessions};
 }
 function validerPlan(){
   if(!(draft.niveau&&draft.rythme&&draft.freq))return;
@@ -5662,7 +5685,7 @@ function deplacerVers(lid,iso){
 }
 function reporterSuivant(lid,isoActuel){
   const p=state.plan;
-  const pat=PATTERN[p.freq]||PATTERN[3];
+  const pat=PATTERN[p.freq]||PATTERN[7];
   let d=addJ(parseD(isoActuel),1),g=0;
   while(pat.indexOf(d.getDay())<0&&g<30){d=addJ(d,1);g++;}
   deplacerVers(lid,dstr(d));
@@ -5712,7 +5735,7 @@ function renderSetup(){
   }
   return `<div class="pl-setup">
     <div class="pl-intro"><b>Ton planning personnalisé</b>
-      <p>Niveau, minutes, jours — les défis apparaissent après les notions nécessaires. Tu pourras tout ajuster après.</p></div>
+      <p>Niveau, minutes, jours — parcours étalé sur ~${DUREE_PARCOURS_JOURS} jours par défaut. Les défis suivent les prérequis. Tu pourras tout ajuster après.</p></div>
     ${bloc("Où en es-tu ?","niveau",NIVEAUX,o=>o.k)}
     ${bloc("Combien de minutes par séance ?","rythme",RYTHMES,o=>o.k)}
     ${bloc("Combien de jours par semaine ?","freq",FREQS,o=>o.k)}
@@ -5878,7 +5901,7 @@ function renderSemaine(){
       <div class="pl-chips">${chips||'<div class="pl-empty-day">Pause — glisse une leçon ou un défi ici</div>'}</div>
     </div>
     <div class="pl-tools">
-      <div class="tl"><b>Étaler le parcours</b>Plus de séances = des journées plus courtes</div>
+      <div class="tl"><b>Étaler le parcours</b>Par défaut ~${DUREE_PARCOURS_JOURS} jours · plus de séances = journées plus courtes</div>
       <div class="stepper">
         <button onclick="etaler(-1)" ${p.sessions.length<=1?'disabled':''}>−</button>
         <span>${p.sessions.length}</span>
@@ -6399,7 +6422,7 @@ function maybeOnboard(){
 }
 function startOnboarding(){
   obStep=0;
-  draft={niveau:draft.niveau||'debutant',rythme:draft.rythme||'regulier',freq:draft.freq||3};
+  draft={niveau:draft.niveau||'debutant',rythme:draft.rythme||'regulier',freq:draft.freq||7};
   document.getElementById('onboarding').classList.add('on');
   document.getElementById('ob-next').onclick=obNext;
   document.getElementById('ob-skip').onclick=()=>finishOnboard('skip');
@@ -6454,13 +6477,13 @@ function paintOb(){
   }else if(obStep===3){
     html=`<div class="ob-kicker">Étape 3 / 3</div>
       <h2>Combien de jours<br>par semaine ?</h2>
-      <p>La régularité bat l’intensité. Tu pourras déplacer chaque leçon ensuite.</p>
+      <p>Par défaut : tous les jours, sur ~${DUREE_PARCOURS_JOURS} jours. Tu pourras déplacer chaque leçon ensuite.</p>
       ${obOptsHtml('freq',FREQS,o=>o.k)}`;
   }else{
     const p=apercuPlan(draft.niveau,draft.rythme,draft.freq);
     const ryt=RYTHMES.find(r=>r.k===draft.rythme)||RYTHMES[1];
     const niv=NIVEAUX.find(n=>n.k===draft.niveau)||NIVEAUX[0];
-    const freq=FREQS.find(f=>f.k===draft.freq)||FREQS[1];
+    const freq=FREQS.find(f=>f.k===draft.freq)||FREQS[0];
     const n=p.sessions.length;
     const tot=p.sessions.reduce((a,s)=>a+s.lessons.length,0);
     const nL=p.sessions.reduce((a,s)=>a+s.lessons.filter(id=>!isDefiId(id)).length,0);
