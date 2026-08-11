@@ -460,11 +460,12 @@
   .pipe-table tr.out .num{text-decoration:line-through}
 
   .grp-viz{margin:4px 0 0;padding:16px 14px 12px;background:#FAFAFC;border:1px solid rgba(60,60,67,.08);border-radius:18px;overflow:hidden}
-  .grp-viz-bar{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .grp-viz-bar{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:12px}
   .grp-k{font-family:var(--mono);font-size:11px;font-weight:700;background:var(--ink);color:#fff;padding:5px 10px;border-radius:8px;letter-spacing:.2px;transition:background .3s;max-width:100%;word-break:break-word}
   .grp-viz[data-phase="1"] .grp-k{background:var(--accent)}
   .grp-viz[data-phase="2"] .grp-k{background:#248A3D}
-  .grp-stage{position:relative;width:100%;min-height:320px;margin:0 0 12px}
+  .grp-desc{font-size:14px;color:var(--ink);line-height:1.45;font-weight:600}
+  .grp-stage{position:relative;width:100%;min-height:0;margin:0 0 10px}
   .grp-bucket{position:absolute;box-sizing:border-box;border:2px dashed rgba(91,91,214,.32);border-radius:14px;background:rgba(91,91,214,.05);opacity:0;transform:scale(.94);transition:opacity .5s cubic-bezier(.32,.72,.28,1),transform .5s cubic-bezier(.32,.72,.28,1),border-color .4s,background .4s,filter .4s}
   .grp-viz[data-phase="1"] .grp-bucket,.grp-viz[data-phase="2"] .grp-bucket{opacity:1;transform:scale(1)}
   .grp-viz[data-phase="2"] .grp-bucket[data-n="1"]{opacity:1;filter:none;border-color:rgba(60,60,67,.2);background:rgba(60,60,67,.04)}
@@ -481,7 +482,7 @@
   .grp-viz[data-phase="2"] .grp-chip[data-keep="1"]{box-shadow:0 4px 14px rgba(52,199,89,.2);border-color:rgba(52,199,89,.35)}
   .grp-replay{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin:0;padding:10px;font-family:var(--ui);font-size:13px;font-weight:700;color:var(--accent);background:var(--surface);border:1px solid rgba(91,91,214,.18);border-radius:12px;cursor:pointer;touch-action:manipulation;min-height:44px}
   .grp-replay:active{background:var(--accent-soft)}
-  @media (max-width:380px){.grp-chip{font-size:10px;padding:6px 8px}.grp-stage{min-height:310px}.grp-k{font-size:10.5px}}
+  @media (max-width:380px){.grp-chip{font-size:10px;padding:6px 8px}.grp-k{font-size:10.5px}}
 
   .anat{background:var(--code-bg);border-radius:14px;padding:6px 0;margin-bottom:16px}
   .anat-line{display:flex;gap:12px;align-items:flex-start;padding:10px 15px}
@@ -512,6 +513,27 @@
   .order-rappel{margin:0;padding:16px 14px;background:var(--surface);border:1px solid rgba(60,60,67,.1);border-radius:18px}
   .order-rappel .cfs-label{margin:0 0 10px}
   .order-rappel .concept-coda{margin-top:14px!important;padding-top:14px}
+  /* Micro-animation : cascade des étapes puis pulse sur HAVING */
+  .order-rappel .concept-order code,
+  .order-rappel .concept-order i{opacity:0;transform:translateY(6px) scale(.92)}
+  .order-rappel.play .concept-order code,
+  .order-rappel.play .concept-order i{animation:orderStepIn .38s cubic-bezier(.32,.72,.28,1) forwards}
+  .order-rappel.play .concept-order code:nth-of-type(1){animation-delay:.04s}
+  .order-rappel.play .concept-order i:nth-of-type(1){animation-delay:.1s}
+  .order-rappel.play .concept-order code:nth-of-type(2){animation-delay:.16s}
+  .order-rappel.play .concept-order i:nth-of-type(2){animation-delay:.22s}
+  .order-rappel.play .concept-order code:nth-of-type(3){animation-delay:.28s}
+  .order-rappel.play .concept-order i:nth-of-type(3){animation-delay:.34s}
+  .order-rappel.play .concept-order code:nth-of-type(4){animation-delay:.4s}
+  .order-rappel.play .concept-order i:nth-of-type(4){animation-delay:.46s}
+  .order-rappel.play .concept-order code:nth-of-type(5){animation-delay:.52s}
+  .order-rappel.play .concept-order i:nth-of-type(5){animation-delay:.58s}
+  .order-rappel.play .concept-order code:nth-of-type(6){animation-delay:.64s}
+  @keyframes orderStepIn{from{opacity:0;transform:translateY(6px) scale(.92)}to{opacity:1;transform:none}}
+  .order-rappel.play .concept-order code.on{animation:orderStepIn .38s cubic-bezier(.32,.72,.28,1) .4s forwards, orderHavingPulse 1.5s ease-in-out .95s 2}
+  @keyframes orderHavingPulse{0%,100%{box-shadow:0 0 0 0 rgba(91,91,214,0);filter:brightness(1)}45%{box-shadow:0 0 0 7px rgba(91,91,214,.18);filter:brightness(1.12)}}
+  .order-rappel .concept-coda{opacity:0;transform:translateY(6px)}
+  .order-rappel.play .concept-coda{animation:orderStepIn .4s cubic-bezier(.32,.72,.28,1) .85s forwards}
   .rule-bar{display:flex;align-items:center;gap:12px;background:#F1F1FD;border:1.5px solid var(--accent);border-radius:14px;padding:13px 15px;margin-bottom:12px}
   .rule-bar b{font-size:14.5px;letter-spacing:-.1px}
   .rule-bar .rb-i{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
@@ -562,8 +584,17 @@
   .exec .table-wrap td{padding:7px 13px}
   .exec .table-wrap.out tr td{opacity:.32;text-decoration:line-through}
   .exframe{border-radius:16px;overflow:hidden;box-shadow:0 8px 20px -16px rgba(20,20,40,.5);background:var(--surface);margin-bottom:18px}
-  .exframe .xf-head{padding:12px 16px;background:var(--code-bg);border-bottom:1px solid rgba(255,255,255,.07)}
+  .exframe .xf-head{padding:12px 16px;background:var(--code-bg);border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;gap:10px}
   .exframe .xf-name{font-family:var(--mono);font-size:11px;color:#8A8A9C;font-weight:500}
+  .xf-switch{display:flex;gap:4px;padding:3px;background:rgba(255,255,255,.06);border-radius:10px;flex:none}
+  .xf-sw{border:none;background:transparent;color:#9A9AB0;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.3px;padding:7px 10px;border-radius:8px;cursor:pointer;touch-action:manipulation;min-height:34px;transition:background .18s,color .18s,transform .12s}
+  .xf-sw:active{transform:scale(.96)}
+  .xf-sw.on.bad{background:rgba(180,35,24,.22);color:#FF8E85}
+  .xf-sw.on.good{background:rgba(52,199,89,.22);color:#7DDEA2}
+  .exframe.tone-bad .xf-head{box-shadow:inset 0 -2px 0 rgba(180,35,24,.45)}
+  .exframe.tone-good .xf-head{box-shadow:inset 0 -2px 0 rgba(52,199,89,.45)}
+  .exframe .xf-expect.bad{color:var(--danger)}
+  .exframe .xf-expect.good{color:#248A3D}
   .exframe .ex-code{border-radius:0;padding:16px 16px;font-size:12px;line-height:1.6;white-space:pre-wrap;word-break:break-word;overflow-x:visible}
   .exframe .xf-actions{padding:16px 16px;background:var(--surface);border-top:1px solid var(--line)}
   .exframe .xf-run{width:100%;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:14px 16px;font-family:var(--ui);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 18px -10px rgba(91,91,214,.75);transition:transform .15s ease,opacity .15s ease}
@@ -1446,7 +1477,9 @@
     .query-loading,.query-loading.out,
     .bad-line,.good-line,.vs-err-box,.vs-out.ok .pipe-table,.concept-point .em svg,
     .memory-rule .memory-having>b,.ls-nav,.ls-nav .ls-next,.ls-bar.on,
-    .agg-reflex .agg-list li,.agg-reflex .agg-cta,.sec-flash,.sommaire-list .som-item{animation:none!important;opacity:1;transform:none}
+    .agg-reflex .agg-list li,.agg-reflex .agg-cta,.sec-flash,.sommaire-list .som-item,
+    .order-rappel .concept-order code,.order-rappel .concept-order i,.order-rappel .concept-coda,
+    .order-rappel.play .concept-order code,.order-rappel.play .concept-order i,.order-rappel.play .concept-order code.on,.order-rappel.play .concept-coda{animation:none!important;opacity:1;transform:none}
     .grp-chip,.grp-bucket,.grp-count,.concept-block,.vs-col,.memory-rule div,.grp-replay,.ls-nav .ls-next,.ls-nav .ls-prev{transition:none!important}
     .grp-viz[data-phase="0"] .grp-bucket{opacity:0}
     .grp-viz[data-phase="1"] .grp-bucket,.grp-viz[data-phase="2"] .grp-bucket{opacity:1;transform:none}
@@ -2017,6 +2050,7 @@ GROUP BY categorie
     <div class="grp-viz" id="having-grp-viz" data-phase="0" aria-label="Animation : regroupement puis filtrage HAVING">
       <div class="grp-viz-bar">
         <span class="grp-k">SELECT … FROM produits</span>
+        <span class="grp-desc">SQL lit simplement les lignes</span>
       </div>
       <div class="grp-stage">
         <div class="grp-bucket" data-cat="Bien-être" data-n="4" data-keep="1"><span class="grp-bucket-lbl">Bien-être</span><span class="grp-count">4</span></div>
@@ -2054,8 +2088,14 @@ GROUP BY categorie
   earlyDemo:true,
   orderRappel:true,
   exemple:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",
-  teste:"SELECT categorie, COUNT(*)\nFROM produits\nWHERE COUNT(*) >= 2\nGROUP BY categorie;",
-  testeAttendu:"Exécute : tu dois voir une <b>erreur</b> (<code>misuse of aggregate: COUNT()</code>). <code>WHERE</code> ne peut pas filtrer avec <code>COUNT()</code> — il faut <code>HAVING</code>.",
+  testeVariants:[
+    {k:'where',label:'WHERE + COUNT',tone:'bad',
+     sql:"SELECT categorie, COUNT(*)\nFROM produits\nWHERE COUNT(*) >= 2\nGROUP BY categorie;",
+     expect:"Exécute : tu dois voir une <b>erreur</b> (<code>misuse of aggregate: COUNT()</code>). <code>WHERE</code> ne peut pas utiliser <code>COUNT()</code>."},
+    {k:'having',label:'HAVING + COUNT',tone:'good',
+     sql:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",
+     expect:"Exécute : seule la catégorie <b>Bien-être</b> (4) est gardée. Les groupes à 1 produit sont écartés."}
+  ],
   piege:null,
   consigne:"Trouve les <b>catégories qui comptent au moins 2 produits</b> (catégorie et nombre).",
   solution:"SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 2;",
@@ -4730,16 +4770,23 @@ function lessonDemoBlocks(l){
   return `${lessonRichFooter(l)}${anat?`<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`:''}${order}`;
 }
 function lessonRichFooter(l){
-  const demoSql=l.teste||l.exemple;
+  const variants=Array.isArray(l.testeVariants)&&l.testeVariants.length?l.testeVariants:null;
+  const active=variants?variants[0]:null;
+  const demoSql=active?active.sql:(l.teste||l.exemple);
   const sql=escAttr(demoSql);
   const slug=String(l.titre||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'');
   const file=slug?slug+'.sql':'requete.sql';
-  const expectTxt=l.testeAttendu||l.attendu;
-  const expect=expectTxt?`<p class="xf-expect">${expectTxt}</p>`:'';
+  const expectTxt=active?active.expect:(l.testeAttendu||l.attendu);
+  const tone=active?active.tone:'';
+  const expect=expectTxt?`<p class="xf-expect ${tone||''}">${expectTxt}</p>`:'';
+  const switcher=variants?`<div class="xf-switch" role="tablist" aria-label="Comparer WHERE et HAVING">
+      ${variants.map((v,i)=>`<button type="button" class="xf-sw ${v.tone||''} ${i===0?'on':''}" role="tab" aria-selected="${i===0?'true':'false'}" data-i="${i}" onclick="switchTesteVariant(this)">${esc(v.label)}</button>`).join('')}
+    </div>`:'';
+  const variantsJson=variants?escAttr(JSON.stringify(variants)):'';
   return `
     <div class="sect-label"><i>✓</i><span>Teste</span></div>
-    <div class="exframe">
-      <div class="xf-head"><span class="xf-name">${file}</span></div>
+    <div class="exframe ${tone?`tone-${tone}`:''}" ${variants?`data-variants="${variantsJson}" data-vi="0"`:''}>
+      <div class="xf-head"><span class="xf-name">${file}</span>${switcher}</div>
       <div class="ex-code">${highlight(demoSql)}</div>
       <div class="xf-actions">
         <button type="button" class="xf-run" data-sql="${sql}" onclick="runExemple(this)"><span class="xf-run-ico" aria-hidden="true"></span>Exécuter</button>
@@ -4747,6 +4794,39 @@ function lessonRichFooter(l){
       ${expect}
       <div class="xf-result" hidden aria-live="polite"></div></div>
     ${l.piege?`<div class="piege"><div class="pi" aria-hidden="true">!</div><div><b>${l.piege.t}</b><p>${l.piege.p}</p></div></div>`:''}`;
+}
+function switchTesteVariant(btn){
+  const frame=btn.closest('.exframe');
+  if(!frame||!frame.dataset.variants)return;
+  let variants; try{variants=JSON.parse(frame.dataset.variants);}catch(e){return;}
+  const i=+btn.dataset.i;
+  const v=variants[i]; if(!v)return;
+  frame.dataset.vi=String(i);
+  frame.classList.remove('tone-bad','tone-good');
+  if(v.tone) frame.classList.add('tone-'+v.tone);
+  frame.querySelectorAll('.xf-sw').forEach(b=>{
+    const on=+b.dataset.i===i;
+    b.classList.toggle('on',on);
+    b.setAttribute('aria-selected',on?'true':'false');
+  });
+  const code=frame.querySelector('.ex-code');
+  if(code) code.innerHTML=highlight(v.sql);
+  const run=frame.querySelector('.xf-run');
+  if(run) run.setAttribute('data-sql',v.sql);
+  let expect=frame.querySelector('.xf-expect');
+  if(v.expect){
+    if(!expect){
+      expect=document.createElement('p');
+      expect.className='xf-expect';
+      const actions=frame.querySelector('.xf-actions');
+      if(actions) actions.insertAdjacentElement('afterend',expect);
+    }
+    expect.className='xf-expect '+(v.tone||'');
+    expect.innerHTML=v.expect;
+  }
+  const host=frame.querySelector('.xf-result');
+  if(host){ host.hidden=true; host.innerHTML=''; host.classList.remove('on','flash'); }
+  if(navigator.vibrate)navigator.vibrate(5);
 }
 function runExemple(btn){
   const frame=btn.closest('.exframe');
@@ -4880,9 +4960,25 @@ function renderLessonFlow(){
   if(lessonStep===0&&current.id===17){
     requestAnimationFrame(()=>requestAnimationFrame(initHavingGrpViz));
   }
-  if(lessonStep===0) buildSommaire();
+  if(lessonStep===0){ buildSommaire(); initOrderRappelAnim(); }
   requestAnimationFrame(()=>revealLessonContent());
   setTimeout(revealLessonContent,700);
+}
+function initOrderRappelAnim(){
+  const el=document.querySelector('#lesson-body .order-rappel');
+  if(!el)return;
+  el.classList.remove('play');
+  if(prefersReduceMotion()){ el.classList.add('play'); return; }
+  const scr=document.getElementById('scr-lesson');
+  const kick=()=>{ el.classList.add('play'); };
+  if(!scr||typeof IntersectionObserver==='undefined'){
+    requestAnimationFrame(()=>setTimeout(kick,120));
+    return;
+  }
+  const io=new IntersectionObserver(entries=>{
+    if(entries.some(e=>e.isIntersecting)){ kick(); io.disconnect(); }
+  },{root:scr,threshold:.35});
+  io.observe(el);
 }
 /* ---------- Sommaire interactif du cours ---------- */
 function buildSommaire(){
@@ -6425,20 +6521,22 @@ async function resetAllProgress(){
 }
 
 const HAVING_GRP_PHASES=[
-  {k:'SELECT … FROM produits'},
-  {k:'GROUP BY categorie'},
-  {k:'HAVING COUNT(*) ≥ 2'}
+  {k:'SELECT … FROM produits',d:'SQL lit simplement les lignes'},
+  {k:'GROUP BY categorie',d:'SQL rassemble maintenant les lignes ayant la même catégorie.'},
+  {k:'HAVING COUNT(*) ≥ 2',d:'SQL peut enfin filtrer les groupes.'}
 ];
 let havingGrpTimer=null,havingGrpObs=null;
 
 function havingGrpBucketLayout(sw){
-  const pad=8,gap=8,half=(sw-pad*2-gap)/2, topH=112;
+  const pad=6,gap=8,half=(sw-pad*2-gap)/2, topH=108, smallH=62;
+  const y1=pad+topH+gap, y2=y1+smallH+gap;
   return{
     'Bien-être':{x:pad,y:pad,w:sw-pad*2,h:topH,cols:2},
-    'Beauté':{x:pad,y:pad+topH+gap,w:half,h:68,cols:1},
-    'Boisson':{x:pad+half+gap,y:pad+topH+gap,w:half,h:68,cols:1},
-    'Nutrition':{x:pad,y:pad+topH+gap+68+gap,w:half,h:68,cols:1},
-    'Accessoire':{x:pad+half+gap,y:pad+topH+gap+68+gap,w:half,h:68,cols:1}
+    'Beauté':{x:pad,y:y1,w:half,h:smallH,cols:1},
+    'Boisson':{x:pad+half+gap,y:y1,w:half,h:smallH,cols:1},
+    'Nutrition':{x:pad,y:y2,w:half,h:smallH,cols:1},
+    'Accessoire':{x:pad+half+gap,y:y2,w:half,h:smallH,cols:1},
+    _h:y2+smallH+pad
   };
 }
 
@@ -6462,17 +6560,18 @@ function layoutHavingGrpViz(root,phase){
       c.style.width=w+'px';
       c.style.transform=`translate(${x}px,${8+i*rowH}px)`;
     });
-    stage.style.minHeight=(8+chips.length*rowH+10)+'px';
+    stage.style.height=(8+chips.length*rowH+10)+'px';
     return;
   }
-  stage.style.minHeight='320px';
+  stage.style.height=layout._h+'px';
   Object.keys(layout).forEach(cat=>{
+    if(cat==='_h')return;
     const r=layout[cat],list=byCat[cat]||[];
     const cols=r.cols||1;
-    const padX=8, padTop=28, gapX=6, gapY=6;
+    const padX=8, padTop=26, gapX=6, gapY=5;
     const cellW=Math.max(54,(r.w-padX*2-(cols-1)*gapX)/cols);
     const rows=Math.ceil(list.length/cols)||1;
-    const cellH=Math.max(28,(r.h-padTop-padX-(rows-1)*gapY)/rows);
+    const cellH=Math.max(26,(r.h-padTop-padX-(rows-1)*gapY)/rows);
     list.forEach((c,i)=>{
       const col=i%cols, row=Math.floor(i/cols);
       c.style.width=cellW+'px';
@@ -6485,8 +6584,9 @@ function layoutHavingGrpViz(root,phase){
 function havingGrpSetPhase(root,phase){
   const p=HAVING_GRP_PHASES[phase]||HAVING_GRP_PHASES[0];
   root.dataset.phase=String(phase);
-  const k=root.querySelector('.grp-k');
+  const k=root.querySelector('.grp-k'),d=root.querySelector('.grp-desc');
   if(k)k.textContent=p.k;
+  if(d)d.textContent=p.d;
   layoutHavingGrpViz(root,phase);
 }
 
