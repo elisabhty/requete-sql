@@ -3441,7 +3441,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-11-pl-spacing';
+const APP_VERSION='2026-08-11-chip-order';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -5945,18 +5945,57 @@ function etaler(delta){
   if(navigator.vibrate)navigator.vibrate(8);
 }
 /* ---------- Déplacements ---------- */
-function deplacerVers(lid,iso){
+function deplacerVers(lid,iso,atIndex){
   const p=state.plan; if(!p)return;
   lid=parseItemId(lid);
   p.sessions.forEach(s=>{const i=s.lessons.findIndex(x=>x===lid);if(i>=0)s.lessons.splice(i,1);});
   let s=sessionDe(iso);
   if(!s){s={d:iso,lessons:[]};p.sessions.push(s);}
-  s.lessons.push(lid);
+  if(atIndex==null||atIndex<0||atIndex>s.lessons.length) s.lessons.push(lid);
+  else s.lessons.splice(atIndex,0,lid);
   trierSessions();
   if(!sessionDe(iso))p.sessions.push({d:iso,lessons:[lid]});
   jourSel=iso;
   semaineOffset=Math.floor((parseD(iso)-auj())/86400000/7);
   save();renderPlanning();
+}
+function chipElById(id){
+  id=parseItemId(id);
+  return [...document.querySelectorAll('.pl-chip')].find(c=>parseItemId(c.dataset.lesson)===id)||null;
+}
+function refreshChipOrder(chipsEl){
+  if(!chipsEl)return;
+  chipsEl.querySelectorAll('.pl-chip').forEach((chip,i)=>{
+    chip.dataset.pos=i;
+    const cn=chip.querySelector('.cn');
+    if(cn) cn.textContent=String(i+1);
+  });
+}
+function reorderChipInList(chipsEl,dragChip,overChip,clientY){
+  if(!chipsEl||!dragChip||!overChip||dragChip===overChip)return;
+  const rect=overChip.getBoundingClientRect();
+  const before=clientY<rect.top+rect.height/2;
+  if(before){
+    if(dragChip.nextElementSibling!==overChip) chipsEl.insertBefore(dragChip,overChip);
+  }else{
+    const next=overChip.nextElementSibling;
+    if(dragChip!==next) chipsEl.insertBefore(dragChip,next);
+  }
+  refreshChipOrder(chipsEl);
+}
+function chipOrderFromDom(iso){
+  const panel=document.querySelector(`.day-panel[data-date="${iso}"]`);
+  if(!panel)return null;
+  const chips=panel.querySelectorAll('.pl-chip');
+  if(!chips.length)return null;
+  return [...chips].map(c=>parseItemId(c.dataset.lesson));
+}
+function appliquerOrdreSeance(iso,ordre){
+  const p=state.plan; if(!p||!ordre||!ordre.length)return;
+  let s=sessionDe(iso);
+  if(!s){s={d:iso,lessons:[]};p.sessions.push(s);}
+  s.lessons=ordre.slice();
+  trierSessions();save();
 }
 function reporterSuivant(lid,isoActuel){
   const p=state.plan;
@@ -6156,11 +6195,11 @@ function renderSemaine(){
   const p=state.plan,st=statsPlan();
   const sess=sessionDe(jourSel);
   const fait=sessionFaite(sess),ret=sess&&jourSel<t&&!fait;
-  const chips=sess?sess.lessons.map(id=>{
+  const chips=sess?sess.lessons.map((id,i)=>{
     const m=itemMeta(id),ok=itemDone(id);
     const arg=isDefiId(id)?`'${id}'`:id;
-    return `<div class="pl-chip ${ok?'ok':''} ${m.defi?'defi':''}" data-lesson="${id}" onclick="chipTap(event,${arg})">
-      <span class="hdl" data-drag="${id}" aria-hidden="true">⣿</span><span class="cn">${m.badge}</span>
+    return `<div class="pl-chip ${ok?'ok':''} ${m.defi?'defi':''}" data-lesson="${id}" data-pos="${i}" onclick="chipTap(event,${arg})">
+      <span class="hdl" data-drag="${id}" aria-hidden="true">⣿</span><span class="cn">${i+1}</span>
       <span class="ct"><span>${esc(m.titre)}</span><small>${esc(m.sous)}</small></span>
       <button type="button" class="nx" onclick="event.stopPropagation();openMoveSheet(${arg})" aria-label="Déplacer ${esc(m.titre)}">›</button></div>`;
   }).join(''):'';
@@ -6191,7 +6230,7 @@ function renderSemaine(){
       <button type="button" onclick="refairePlan()">Recommencer</button>
     </div>
     ${p.archive&&p.archive.length?`<p class="pl-hint" style="text-align:left">${p.archive.length} items déjà terminés ont été retirés du calendrier.</p>`:''}
-    <p class="pl-hint">Glisse ⣿ sur un jour du bandeau — ★ = défi, chiffre = leçon, « pause » = jour libre.<br>Ou touche › pour choisir une date.</p>`;
+    <p class="pl-hint">Glisse ⣿ pour réordonner ou déplacer — chiffre = ordre du jour · ★ = défi dans le titre.<br>Ou touche › pour choisir une date.</p>`;
 }
 function allerAuJour(iso){
   jourSel=iso;
@@ -6235,7 +6274,7 @@ function majBadgePlanning(){
 }
 
 /* ---------- Glisser-déposer ---------- */
-let dragging=null,ghost=null,lastOver=null,navHover=null,navTimer=null,dragX=0,dragY=0,aBouge=false,blocTap=0;
+let dragging=null,ghost=null,lastOver=null,navHover=null,navTimer=null,dragX=0,dragY=0,aBouge=false,blocTap=0,dragFromIso=null;
 function brancherDrag(){
   document.querySelectorAll('.pl-chip .hdl').forEach(h=>h.addEventListener('pointerdown',startDrag));
 }
@@ -6243,17 +6282,19 @@ function startDrag(e){
   e.preventDefault();e.stopPropagation();
   const chip=e.target.closest('.pl-chip');
   dragging=parseItemId(chip.dataset.lesson);dragX=e.clientX;dragY=e.clientY;aBouge=false;
+  dragFromIso=chip.closest('.day-panel')?.dataset.date||null;
   document.addEventListener('pointermove',onDrag);
   document.addEventListener('pointerup',endDrag);
   document.addEventListener('pointercancel',endDrag);
 }
 function vraiDepart(){
   const fab=document.getElementById('fab');if(fab)fab.classList.add('hide');
+  const chip=chipElById(dragging);
+  const pos=chip?.querySelector('.cn')?.textContent||'?';
   const m=itemMeta(dragging);
   ghost=document.createElement('div');ghost.className='pl-ghost';
-  ghost.innerHTML=`<span class="cn">${esc(m.badge)}</span><span>${esc(m.titre)}</span>`;
+  ghost.innerHTML=`<span class="cn">${esc(pos)}</span><span>${esc(m.titre)}</span>`;
   document.body.appendChild(ghost);
-  const chip=document.querySelector(`.pl-chip[data-lesson="${dragging}"]`);
   if(chip)chip.style.opacity='.3';
   document.body.classList.add('dragging');
 }
@@ -6285,6 +6326,25 @@ function onDrag(e){
   }
   if(navHover){navHover.classList.remove('over');navHover=null;clearTimeout(navTimer);}
   document.querySelectorAll('[data-nav].over').forEach(n=>n.classList.remove('over'));
+  const dragChip=chipElById(dragging);
+  const chipOver=el&&el.closest?el.closest('.pl-chip'):null;
+  const panel=el&&el.closest?el.closest('.day-panel'):null;
+  if(panel&&dragChip&&aBouge){
+    const chipsEl=panel.querySelector('.pl-chips');
+    if(chipsEl){
+      chipsEl.querySelector('.pl-empty-day')?.remove();
+      if(chipOver&&chipsEl.contains(chipOver)) reorderChipInList(chipsEl,dragChip,chipOver,e.clientY);
+      else if(!chipsEl.contains(dragChip)) chipsEl.appendChild(dragChip);
+      refreshChipOrder(chipsEl);
+      if(dragFromIso&&dragFromIso!==panel.dataset.date){
+        const oldPanel=document.querySelector(`.day-panel[data-date="${dragFromIso}"]`);
+        if(oldPanel) refreshChipOrder(oldPanel.querySelector('.pl-chips'));
+      }
+    }
+    if(lastOver&&lastOver!==panel) lastOver.classList.remove('over');
+    panel.classList.add('over');lastOver=panel;
+    return;
+  }
   const cible=el&&el.closest?(el.closest('.wk-day')||el.closest('.day-panel')):null;
   if(lastOver&&lastOver!==cible)lastOver.classList.remove('over');
   if(cible){cible.classList.add('over');lastOver=cible;}else lastOver=null;
@@ -6295,15 +6355,34 @@ function endDrag(){
   document.removeEventListener('pointercancel',endDrag);
   clearTimeout(navTimer);
   if(navHover){navHover.classList.remove('over');navHover=null;}
-  const id=dragging,bouge=aBouge;dragging=null;aBouge=false;
+  const id=dragging,bouge=aBouge,fromIso=dragFromIso;
+  dragging=null;aBouge=false;dragFromIso=null;
   const fab=document.getElementById('fab');if(fab)fab.classList.remove('hide');
   document.body.classList.remove('dragging');
   if(ghost){ghost.remove();ghost=null;}
+  const dragChip=chipElById(id);
+  if(dragChip) dragChip.style.opacity='';
   let iso=null;
-  if(lastOver){iso=lastOver.dataset.date;lastOver.classList.remove('over');lastOver=null;}
+  if(lastOver){
+    iso=lastOver.dataset.date;
+    lastOver.classList.remove('over');
+    lastOver=null;
+  }
   blocTap=Date.now();
   if(!bouge&&id!=null){openMoveSheet(id);return;}
-  if(id!=null&&iso)deplacerVers(id,iso); else renderPlanning();
+  if(id!=null&&iso){
+    const ordre=chipOrderFromDom(iso);
+    if(ordre&&ordre.includes(id)){
+      appliquerOrdreSeance(iso,ordre);
+      jourSel=iso;
+      semaineOffset=Math.floor((parseD(iso)-auj())/86400000/7);
+      renderPlanning();
+      if(fromIso&&fromIso!==iso) toast('Item déplacé','Planning mis à jour');
+      else if(fromIso===iso&&bouge) toast('Ordre mis à jour','Planning mis à jour');
+    }else deplacerVers(id,iso);
+    return;
+  }
+  renderPlanning();
 }
 
 /* ---------- Choisir une date sans glisser ---------- */
