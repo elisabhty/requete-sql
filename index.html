@@ -1586,6 +1586,7 @@
   .home-card.rest .hc-go{background:#14141B;box-shadow:0 10px 22px -12px rgba(20,20,40,.4)}
   .hc-sec{flex:none;border:none;border-radius:14px;padding:13px 14px;font-family:var(--ui);font-size:13px;font-weight:700;cursor:pointer;background:#F1F1F5;color:var(--ink-2)}
   .hc-sec:active{transform:scale(.97)}
+  .hc-sec.hc-par{background:var(--accent-soft);color:var(--accent)}
 
   /* Confetti burst */
   .burst{position:absolute;inset:0;pointer-events:none;z-index:120;overflow:hidden}
@@ -4820,11 +4821,12 @@ function renderHomeHero(){
     const nDtot=tot-nLtot;
     const first=left[0];
     const meta=itemMeta(first);
-    const metaR=`${nLtot?nLtot+' leçon'+(nLtot>1?'s':''):''}${nLtot&&nDtot?' · ':''}${nDtot?nDtot+' défi'+(nDtot>1?'s':''):''} · ~${Math.max(mins, tot*MIN_PAR_LECON)} min`;
+    const metaR=`${libelleJour(info.today.d)} · ${nLtot?nLtot+' leçon'+(nLtot>1?'s':''):''}${nLtot&&nDtot?' · ':''}${nDtot?nDtot+' défi'+(nDtot>1?'s':''):''} · ~${Math.max(mins, tot*MIN_PAR_LECON)} min`;
     const cta=isDefiId(first)?`Continuer · ${esc(meta.titre)}`:`Reprendre la leçon ${first}`;
+    const parBtn=`<button class="hc-sec hc-par" type="button" onclick="switchTab('planning');allerAuJour('${info.today.d}')" aria-label="Voir dans le parcours">Parcours ›</button>`;
     paint(card('', 'Séance du jour', metaR, esc(meta.titre), isDefiId(first)?'Défi du jour':'Prochaine étape de ta séance',
       `<button class="hc-go" type="button" onclick="demarrerSeance('${info.today.d}')">${cta}</button>`,pct,
-      due.length?`<button class="hc-sec" type="button" onclick="startReview()">↻ ${due.length}</button>`:''),pct);
+      `${parBtn}${due.length?`<button class="hc-sec" type="button" onclick="startReview()">↻ ${due.length}</button>`:''}`),pct);
     return;
   }
   if(info.today){
