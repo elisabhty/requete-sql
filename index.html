@@ -5341,7 +5341,7 @@ function renderCollection(){
       <div class="gbody"><div class="gk">◌</div><div class="gt">Leçon ${l.id}</div></div>
     </div>`;
     const unlock=lastUnlockedId===l.id?' unlocking':'';
-    const snip=esc((c.s||'').split('\n')[0]);
+    const snip=esc((cardPosterSql(c)||'').split('\n')[0]);
     return `<div class="gcard${unlock}" style="background:${gradOf(l.id)}" onclick="openCard(${l.id})" role="button" tabindex="0">
       <div class="gbrand"><span class="gbrand-n">Requête</span><span class="gidx">CARTE ${n}</span></div>
       <div class="gbody"><div class="gk">${esc(c.k)}</div><div class="gt">${esc(c.t)}</div></div>
@@ -5359,6 +5359,13 @@ function renderCollection(){
 }
 let openCardId=null;
 let lastUnlockedId=null;
+/** Snippet affiché sur le poster : met en avant la notion, sans le GROUP BY d’accompagnement. */
+function cardPosterSql(c){
+  const s=(c&&c.s||'').trim();
+  if(!s) return '';
+  const stripped=s.replace(/^GROUP\s+BY[\s\S]*?(?=HAVING\b)/i,'').trim();
+  return stripped||s;
+}
 function openCard(id){
   if(!isUnlocked(id))return;
   openCardId=id;
@@ -5373,7 +5380,7 @@ function openCard(id){
       <div class="cd-top"><span class="cd-brand">Requête</span><span class="cd-idx">CARTE ${String(id).padStart(2,'0')}</span></div>
       <h2>${esc(c.k)}</h2>
       <p class="cd-sub">${esc(c.t)}</p>
-      <pre class="cd-sql">${esc(c.s)}</pre>
+      <pre class="cd-sql">${esc(cardPosterSql(c))}</pre>
     </div>
     <p class="cd-lab">À retenir</p>
     <div class="cd-memo">${c.m}</div>
