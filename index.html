@@ -47,7 +47,10 @@
     #app{min-height:-webkit-fill-available;height:-webkit-fill-available}
   }
 
-  #loader{position:absolute;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:32px;text-align:center}
+  #loader{position:absolute;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:32px;text-align:center}
+  .mascot{width:min(60vw,260px);max-width:280px;aspect-ratio:1/1;object-fit:cover;border-radius:26px;box-shadow:0 18px 42px -18px rgba(91,91,214,.5);background:#F2F2F7}
+  video.mascot{display:block}
+  .loader-mascot{width:min(48vw,200px);border-radius:22px}
   .logo-badge{width:76px;height:76px;border-radius:20px;background:linear-gradient(150deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;box-shadow:0 12px 30px rgba(91,91,214,.35);font-family:var(--mono);color:#fff;font-weight:700;font-size:30px}
   .spinner{width:26px;height:26px;border:3px solid var(--line-2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
@@ -321,11 +324,12 @@
   .vs-tag{display:flex;align-items:center;gap:7px;padding:11px 14px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;flex:none}
   .vs-tag.bad{color:var(--danger);background:rgba(180,35,24,.06)}
   .vs-tag.good{color:var(--success);background:rgba(11,107,74,.07)}
-  .concept-block .vs-col .ex-code{margin:0;border-radius:0;box-shadow:none;flex:0 0 auto;font-size:12px;padding:13px 14px;min-height:132px}
-  .vs-out{padding:12px 14px;font-family:var(--mono);font-size:11.5px;font-weight:600;line-height:1.5;border-top:1px solid var(--line-2);background:var(--surface);flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0}
-  .vs-out.err{color:var(--danger);background:rgba(255,59,48,.06)}
-  .vs-out.ok{justify-content:flex-start;gap:8px;font-family:inherit;font-weight:400;color:var(--ink);background:var(--surface)}
-  .vs-out.ok .pipe-table{margin:0;border-color:rgba(60,60,67,.1);background:var(--surface);box-shadow:0 1px 0 rgba(255,255,255,.8) inset}
+  .concept-block .vs-col .ex-code{margin:0;border-radius:0;box-shadow:none;flex:1 1 auto;font-size:12px;padding:13px 14px;min-height:0}
+  .vs-out{padding:12px;font-family:var(--mono);font-size:11.5px;font-weight:600;line-height:1.5;border-top:1px solid var(--line-2);background:#F2F2F7;flex:none;display:flex;flex-direction:column;gap:8px;min-height:0}
+  .vs-out.err{color:var(--danger)}
+  .vs-err-box{display:block;background:#fff;border:1px solid rgba(180,35,24,.22);border-radius:12px;padding:10px 12px;color:var(--danger);font-family:var(--mono);font-size:11.5px;font-weight:600;line-height:1.45;box-shadow:0 1px 0 rgba(255,255,255,.9) inset;word-break:break-word}
+  .vs-out.ok{font-family:inherit;font-weight:400;color:var(--ink)}
+  .vs-out.ok .pipe-table{margin:0;border-radius:12px;overflow:hidden;border-color:rgba(60,60,67,.1);background:var(--surface);box-shadow:0 1px 0 rgba(255,255,255,.8) inset}
   .vs-out.ok .pipe-table th{background:#F2F2F7;color:#8E8E93;border-bottom-color:rgba(60,60,67,.08)}
   .vs-out.ok .pipe-table td{color:var(--ink);border-bottom-color:rgba(60,60,67,.06)}
   .vs-out.ok .pipe-table tr.keep td{background:rgba(52,199,89,.11)}
@@ -1271,6 +1275,7 @@
   .ob-hero.c{background:linear-gradient(150deg,#0F9D6E,#1CBF88)}
   .ob-hero.d{background:linear-gradient(150deg,#4F46E5,#7C6CF5)}
   .ob-hero::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 80% 0%,rgba(255,255,255,.28),transparent 55%)}
+  .ob-mascot{position:relative;z-index:1;width:min(72%,250px);aspect-ratio:1/1;object-fit:cover;border-radius:20px;box-shadow:0 14px 34px rgba(0,0,0,.28);background:#F2F2F7}
   .ob-mark{position:relative;z-index:1;font-family:var(--mono);color:#fff;font-weight:700;font-size:42px;letter-spacing:-1px}
   .ob-cards{position:relative;z-index:1;display:flex;flex-direction:column;gap:8px;width:78%}
   .ob-mini{background:rgba(255,255,255,.14);backdrop-filter:blur(8px);border-radius:12px;padding:10px 14px;color:#fff;font-size:13px;font-weight:600;transform:translateX(0);animation:riseIn .5s both}
@@ -1363,7 +1368,7 @@
 </head>
 <body>
 <div id="app">
-  <div id="loader"><div class="logo-badge">&gt;_</div><div class="spinner"></div>
+  <div id="loader"><video class="mascot loader-mascot" autoplay loop muted playsinline poster="assets/mascotte-requete.png"><source src="assets/mascotte-requete.mp4" type="video/mp4"></video><div class="spinner"></div>
     <p>Préparation de ta base de données SQLite…</p></div>
 
   <div id="onboarding" aria-live="polite">
@@ -1892,7 +1897,7 @@ const MODULES = [
         <div class="ex-code">SELECT categorie, COUNT(*)
 FROM produits
 <span class="bad-line">WHERE COUNT(*) &gt;= 2</span>GROUP BY categorie;</div>
-        <div class="vs-out err">Erreur : misuse of aggregate: COUNT()</div>
+        <div class="vs-out err"><span class="vs-err-box">Erreur : misuse of aggregate: COUNT()</span></div>
       </div>
       <div class="vs-col good">
         <div class="vs-tag good">✓ Avec HAVING</div>
@@ -5993,8 +5998,8 @@ function paintOb(){
   const name=(state.name||'').trim();
   let html='';
   if(obStep===0){
-    html=`<div class="ob-hero a"><div class="ob-mark">&gt;_</div></div>
-      <div class="ob-kicker">Bienvenue</div>
+    html=`<div class="ob-hero a"><video class="mascot ob-mascot" autoplay loop muted playsinline poster="assets/mascotte-requete.png"><source src="assets/mascotte-requete.mp4" type="video/mp4"></video></div>
+      <div class="ob-kicker">Bienvenue · Requête te guide</div>
       <h2>Apprends le SQL<br>à ton rythme.</h2>
       <p>65 leçons sur une vraie base SQLite. On règle d’abord ton planning : niveau, minutes, jours.</p>
       <div class="ob-name">
@@ -6334,7 +6339,7 @@ function havingGrpBtnLabel(root,seen){
 function playHavingGrpViz(root){
   stopHavingGrpViz();
   const btn=root.querySelector('.grp-replay');
-  if(btn){btn.disabled=true;btn.textContent='…';}
+  if(btn){btn.disabled=true;btn.textContent='Lecture en cours';}
   if(prefersReduceMotion()){
     root.dataset.playing='0';
     root.dataset.seen='1';
@@ -6354,8 +6359,8 @@ function playHavingGrpViz(root){
       root.dataset.seen='1';
       havingGrpBtnLabel(root,true);
       if(btn)btn.disabled=false;
-    },3600);
-  },2800);
+    },4800);
+  },4200);
 }
 
 function replayHavingGrpViz(){
