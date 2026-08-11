@@ -1010,6 +1010,14 @@
   .pl-actions{display:flex;flex-direction:column;gap:8px;margin:12px 16px 0}
   .pl-actions button{width:100%;background:var(--surface);border:1px solid var(--line-2);border-radius:13px;padding:13px 14px;min-height:44px;font-family:var(--ui);font-size:14px;font-weight:600;color:var(--ink-2);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;text-align:center}
   .pl-actions button:active{background:var(--surface-2);transform:scale(.99)}
+  .pl-topbar{display:flex;align-items:center;gap:10px;margin:14px 16px 0;padding:9px 12px;background:var(--surface);border-radius:14px;box-shadow:0 1px 0 var(--line)}
+  .pl-topbar .tb-spread{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
+  .pl-topbar .tb-lab{font-size:13px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+  .pl-topbar .stepper{display:flex;align-items:center;gap:4px}
+  .pl-topbar .stepper button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line-2);background:var(--surface);font-size:18px}
+  .pl-topbar .stepper span{min-width:22px}
+  .pl-topbar .tb-repro{flex:none;display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-2);border-radius:10px;padding:9px 12px;font-size:13px;font-weight:600;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  .pl-topbar .tb-repro:active{background:var(--surface-2);transform:scale(.98)}
 
   .pl-days{padding:16px 16px 0;display:flex;flex-direction:column;gap:12px}
   .pl-day{background:var(--surface);border-radius:16px;box-shadow:0 1px 0 var(--line);overflow:hidden;border:1.5px solid transparent;transition:border-color .12s,background .12s}
@@ -6376,17 +6384,6 @@ function renderSemaine(){
       ${sess?`<div class="dp-prog" aria-hidden="true"><i style="width:${pctSess}%"></i></div>`:''}
       <div class="pl-chips">${chips||`<div class="dp-pause"><div class="dp-pi">☕</div><b>Journée libre</b><small>Pas de séance prévue. Glisse une leçon ou un défi ici si tu veux avancer.</small></div>`}</div>
     </div>
-    <div class="pl-tools">
-      <div class="tl"><b>Étaler le parcours</b>Par défaut ~${DUREE_PARCOURS_JOURS} jours · plus de séances = journées plus courtes</div>
-      <div class="stepper" role="group" aria-label="Nombre de séances">
-        <button type="button" aria-label="Moins de séances" onclick="etaler(-1)" ${p.sessions.length<=1?'disabled':''}>−</button>
-        <span aria-live="polite">${p.sessions.length}</span>
-        <button type="button" aria-label="Plus de séances" onclick="etaler(1)" ${p.sessions.length>=st.total?'disabled':''}>+</button></div>
-    </div>
-    <div class="pl-actions">
-      <button type="button" onclick="reprogrammer()">↻ Reprogrammer à partir d'aujourd'hui</button>
-      <button type="button" onclick="refairePlan()">Recommencer</button>
-    </div>
     ${p.archive&&p.archive.length?`<p class="pl-hint" style="text-align:left">${p.archive.length} items déjà terminés ont été retirés du calendrier.</p>`:''}
     <p class="pl-hint">Glisse ⣿ pour réordonner ou déplacer — chiffre = ordre du jour · ⚑ = défi dans le titre.<br>Ou touche › pour choisir une date.</p>`;
 }
@@ -6416,7 +6413,19 @@ function renderPlanning(){
   const faitJour=sess?sess.lessons.filter(itemDone).length:0;
   const resteJour=totJour-faitJour;
   const pctJour=totJour?Math.round(faitJour/totJour*100):0;
+  const p=state.plan;
   host.innerHTML=`
+    <div class="pl-topbar">
+      <div class="tb-spread">
+        <span class="tb-lab">Étaler</span>
+        <div class="stepper" role="group" aria-label="Nombre de séances">
+          <button type="button" aria-label="Moins de séances" onclick="etaler(-1)" ${p.sessions.length<=1?'disabled':''}>−</button>
+          <span aria-live="polite">${p.sessions.length}</span>
+          <button type="button" aria-label="Plus de séances" onclick="etaler(1)" ${p.sessions.length>=st.total?'disabled':''}>+</button>
+        </div>
+      </div>
+      <button type="button" class="tb-repro" onclick="reprogrammer()">↻ Reprogrammer</button>
+    </div>
     <div class="pl-stats">
       <div class="pl-stat streak ${streakJours()>0?'hot':''}">${streakChipHTML()}</div>
       <div class="pl-stat"><b>${pctJour} %</b><small>${totJour?'du jour':'jour libre'}</small></div>
