@@ -6093,15 +6093,17 @@ function reprogrammer(){
 }
 function etaler(delta){
   const p=state.plan; if(!p)return;
-  const all=toutesLecons();
-  const n=p.sessions.length+delta;
-  if(n<1||n>all.length)return;
-  const base=Math.floor(all.length/n),r=all.length%n;
-  const depart=p.sessions.length?parseD(p.sessions[0].d):auj();
-  const dates=datesMotif(depart<auj()?auj():depart,p.freq,n);
-  const sessions=[];let i=0;
-  for(let k=0;k<n;k++){const c=base+(k<r?1:0);sessions.push({d:dates[k],lessons:all.slice(i,i+c)});i+=c;}
-  p.sessions=sessions;semaineOffset=0;assureJourSel();save();renderPlanning();
+  const restantes=[],faites=[];
+  p.sessions.forEach(s=>s.lessons.forEach(id=>(itemDone(id)?faites:restantes).push(id)));
+  restantes.push(...(p.archive||[]).filter(id=>!itemDone(id)));
+  if(!restantes.length){toast("Tout est déjà terminé");return;}
+  const n=Math.max(1,Math.min(p.sessions.length+delta,restantes.length));
+  if(n===p.sessions.length)return;
+  p.archive=(p.archive||[]).concat(faites);
+  const per=Math.ceil(restantes.length/n);
+  const dates=datesMotif(auj(),p.freq,n);
+  p.sessions=dates.map((d,i)=>({d,lessons:restantes.slice(i*per,(i+1)*per)}));
+  semaineOffset=0;jourSel=null;save();renderPlanning();
   if(navigator.vibrate)navigator.vibrate(8);
 }
 /* ---------- Déplacements ---------- */
@@ -6400,7 +6402,7 @@ function renderPlanning(){
         <div class="stepper" role="group" aria-label="Nombre de séances">
           <button type="button" aria-label="Moins de séances" onclick="etaler(-1)" ${p.sessions.length<=1?'disabled':''}>−</button>
           <span aria-live="polite">${p.sessions.length}</span>
-          <button type="button" aria-label="Plus de séances" onclick="etaler(1)" ${p.sessions.length>=st.total?'disabled':''}>+</button>
+          <button type="button" aria-label="Plus de séances" onclick="etaler(1)" ${p.sessions.length>=st.reste?'disabled':''}>+</button>
         </div>
       </div>
       <button type="button" class="tb-repro" onclick="reprogrammer()">↻ Reprogrammer</button>
