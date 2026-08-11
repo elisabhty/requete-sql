@@ -1288,8 +1288,6 @@
   .acc-save{margin-top:10px;width:100%;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:12px;font-family:var(--ui);font-size:14.5px;font-weight:600;cursor:pointer}
   .acc-save:active{transform:scale(.98)}
   .acc-note{margin:14px 16px 0;font-size:12.5px;color:var(--ink-3);line-height:1.5;text-align:center;padding-bottom:8px}
-  #file-import{display:none}
-
   /* ---------- UX polish & micro-interactions ---------- */
   body{background:
     radial-gradient(1200px 600px at 10% -10%, rgba(91,91,214,.08), transparent 55%),
@@ -1658,7 +1656,6 @@
       <div class="lgtitle"><div class="eyebrow">Profil &amp; réglages</div><h1>Compte</h1>
         <p class="sub">Ta progression, ton prénom, tes exports.</p></div>
       <div id="compte-body"></div>
-      <input id="file-import" type="file" accept="application/json,.json" onchange="importProgress(event)">
     </section>
   </div>
 
@@ -3339,7 +3336,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-11-pct-jour';
+const APP_VERSION='2026-08-11-no-import';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -6679,9 +6676,6 @@ function renderCompte(){
       <button class="acc-row" type="button" onclick="switchTab('planning')">
         <div class="at"><b>Mon parcours</b><small>${state.plan?'Voir ou ajuster ton rythme':'Créer un parcours sur mesure'}</small></div>
         <span class="chev">›</span></button>
-      <button class="acc-row" type="button" onclick="document.getElementById('file-import').click()">
-        <div class="at"><b>Importer une sauvegarde</b><small>Restaurer depuis un JSON</small></div>
-        <span class="chev">›</span></button>
       <button class="acc-row" type="button" onclick="resetDb();switchTab('console')">
         <div class="at"><b>Réinitialiser la base SQL</b><small>Remet ${courseTableNames().join(', ')||'les tables du cours'}</small></div>
         <span class="chev">›</span></button>
@@ -6710,31 +6704,6 @@ function exportProgress(){
   a.download='requete-sql-progression.json';
   a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-}
-async function importProgress(ev){
-  const file=ev.target&&ev.target.files&&ev.target.files[0];
-  ev.target.value='';
-  if(!file)return;
-  try{
-    const raw=JSON.parse(await file.text());
-    const incoming=raw.state||raw;
-    if(!incoming||typeof incoming!=='object'||!incoming.lessons){
-      alert('Fichier invalide : progression introuvable.'); return;
-    }
-    if(!confirm('Remplacer ta progression actuelle par cette sauvegarde ?'))return;
-    state={
-      lessons:incoming.lessons||{},
-      defis:incoming.defis||{},
-      notes:Array.isArray(incoming.notes)?incoming.notes:[],
-      plan:incoming.plan||null,
-      onboarded:incoming.onboarded!==false,
-      name:incoming.name||state.name||''
-    };
-    save();
-    renderModules(); renderDefis(); renderProgress();
-    renderCollection(); renderNotes(); renderPlanning(); renderCompte(); renderGreeting();
-    celebrate();
-  }catch(e){ alert('Impossible de lire ce fichier.'); }
 }
 async function resetAllProgress(){
   if(!confirm('Effacer toute ta progression ? Cette action est définitive (sauf si tu as exporté avant).'))return;
