@@ -5111,7 +5111,7 @@ const editorBlock=(withViz,fname='exercice.sql')=>`
 
 let lessonStep=0; // 0 leçon · 1 exercice · 2 quiz
 let lessonStepDir=1; // 1 forward · -1 back
-let exoFails=0; // 1→aide · 2→solution
+let exoFails=0; // défis : 1→aide · 2→solution
 function openLesson(id, restoreStep){
   const l=allLessons.find(x=>x.id===id); if(!l)return;
   current=l; mode='lesson';
@@ -5638,7 +5638,6 @@ function renderLessonFlow(){
     setupEditor('ed-lesson','hl-lesson');
     const d=state.lessons[l.id]&&state.lessons[l.id].draft;
     if(d!=null){const ta=document.getElementById('ed-lesson');if(ta){ta.value=d;syncHL('ed-lesson','hl-lesson');ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';}}
-    renderExoHelp();
   }
   if(lessonStep===2) renderValidation();
   if(lessonStep===3) requestAnimationFrame(revealBravoCard);
@@ -5760,10 +5759,12 @@ function openReview(id){
   saveNav();
 }
 function registerExoFail(){
+  if(mode==='lesson')return;
   exoFails++;
   renderExoHelp();
 }
 function renderExoHelp(){
+  if(mode==='lesson')return;
   const s=document.getElementById('hint-slot');
   if(!s||!current||exoFails<1){if(s&&exoFails<1)s.innerHTML='';return;}
   const sol=mode==='defi'?current.sol:current.solution;
