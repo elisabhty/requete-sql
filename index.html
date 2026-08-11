@@ -1558,8 +1558,8 @@
 
   /* Confetti burst */
   .burst{position:absolute;inset:0;pointer-events:none;z-index:120;overflow:hidden}
-  .burst i{position:absolute;width:8px;height:8px;border-radius:2px;top:45%;left:50%;opacity:0;animation:burstFly .9s cubic-bezier(.2,.7,.2,1) forwards}
-  @keyframes burstFly{0%{opacity:1;transform:translate(0,0) rotate(0) scale(1)}100%{opacity:0;transform:translate(var(--x),var(--y)) rotate(220deg) scale(.4)}}
+  .burst i{position:absolute;width:7px;height:7px;border-radius:50%;opacity:0;will-change:transform,opacity;animation:fwBurst 1.05s cubic-bezier(.15,.7,.25,1) forwards}
+  @keyframes fwBurst{0%{opacity:1;transform:translate(0,0) scale(1.25)}55%{opacity:1}100%{opacity:0;transform:translate(var(--x),calc(var(--y) + 60px)) scale(.25)}}
 
   /* Onboarding */
   #onboarding{position:absolute;inset:0;z-index:180;background:var(--bg);display:none;flex-direction:column;overflow:hidden}
@@ -5603,7 +5603,7 @@ function runLesson(){
       const dejaExo=etapesDe(current.id).exo;
       setEtape(current.id,'exo');
       const leconFinie=lecCompletee(current.id);
-      if(!dejaExo && !leconFinie) celebrate();
+      celebrate();
       const nU=userRes&&userRes[0]?userRes[0].values.length:0;
       const bare=table.replace(/^<div class="result-meta">[\s\S]*?<\/div>/,'');
       out.innerHTML=`<div class="ok-panel"><div class="ok-banner">✓ Correct — ${nU} ligne${nU!==1?'s':''} retournée${nU!==1?'s':''}</div>${bare}</div>`;
@@ -7070,19 +7070,29 @@ function celebrate(){
   if(prefersReduceMotion())return;
   const host=document.getElementById('burst');
   if(!host)return;
-  const colors=['#5B5BD6','#7A6FF0','#1CA672','#FFB877','#7CC7FF','#E5484D'];
+  const colors=['#5B5BD6','#7A6FF0','#1CA672','#FFB877','#7CC7FF','#E5484D','#FFD66E'];
   host.innerHTML='';
-  for(let i=0;i<18;i++){
-    const el=document.createElement('i');
-    const ang=(Math.PI*2*i)/18 + (Math.random()*.4);
-    const dist=60+Math.random()*90;
-    el.style.setProperty('--x', Math.cos(ang)*dist+'px');
-    el.style.setProperty('--y', Math.sin(ang)*dist+'px');
-    el.style.background=colors[i%colors.length];
-    el.style.animationDelay=(Math.random()*80)+'ms';
-    host.appendChild(el);
+  const bursts=3;
+  for(let b=0;b<bursts;b++){
+    const ox=18+Math.random()*64;
+    const oy=26+Math.random()*30;
+    const n=16;
+    for(let i=0;i<n;i++){
+      const el=document.createElement('i');
+      const ang=(Math.PI*2*i)/n + (Math.random()*.5);
+      const dist=52+Math.random()*72;
+      el.style.left=ox+'%';
+      el.style.top=oy+'%';
+      el.style.setProperty('--x',Math.cos(ang)*dist+'px');
+      el.style.setProperty('--y',Math.sin(ang)*dist+'px');
+      el.style.background=colors[(i+b)%colors.length];
+      el.style.animationDelay=(b*130 + Math.random()*70)+'ms';
+      const s=5+Math.random()*4;
+      el.style.width=s+'px'; el.style.height=s+'px';
+      host.appendChild(el);
+    }
   }
-  setTimeout(()=>{host.innerHTML='';},1000);
+  setTimeout(()=>{host.innerHTML='';},1500);
 }
 function buzz(ms){if(navigator.vibrate)navigator.vibrate(ms);}
 document.addEventListener('pointerdown',e=>{const b=e.target&&e.target.closest&&e.target.closest('.bravo-go,.bravo-sec,.bravo-next-btn,.bravo-link');if(b)buzz(10);},true);
