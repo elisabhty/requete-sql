@@ -466,17 +466,17 @@
   .grp-viz[data-phase="2"] .grp-k{background:#248A3D}
   .grp-desc{font-size:14px;color:var(--ink);line-height:1.45;font-weight:600}
   .grp-stage{position:relative;width:100%;min-height:0;margin:0 0 10px}
-  .grp-bucket{position:absolute;box-sizing:border-box;border:2px dashed rgba(91,91,214,.32);border-radius:14px;background:rgba(91,91,214,.05);opacity:0;transform:scale(.94);transition:opacity .5s cubic-bezier(.32,.72,.28,1),transform .5s cubic-bezier(.32,.72,.28,1),border-color .4s,background .4s,filter .4s}
+  .grp-bucket{position:absolute;box-sizing:border-box;border:2px dashed rgba(91,91,214,.32);border-radius:14px;background:rgba(91,91,214,.05);opacity:0;transform:scale(.94);transition:opacity .5s cubic-bezier(.32,.72,.28,1),transform .5s cubic-bezier(.32,.72,.28,1),border-color .4s,background .4s,filter .4s;z-index:1;overflow:visible}
   .grp-viz[data-phase="1"] .grp-bucket,.grp-viz[data-phase="2"] .grp-bucket{opacity:1;transform:scale(1)}
   .grp-viz[data-phase="2"] .grp-bucket[data-n="1"]{opacity:1;filter:none;border-color:rgba(60,60,67,.2);background:rgba(60,60,67,.04)}
   .grp-viz[data-phase="2"] .grp-bucket[data-keep="1"]{opacity:1;filter:none;border:2px solid #248A3D;background:rgba(52,199,89,.1);box-shadow:0 0 0 4px rgba(52,199,89,.12)}
-  .grp-bucket-lbl{display:block;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--accent);padding:8px 10px 0;line-height:1.2}
+  .grp-bucket-lbl{display:block;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--accent);padding:8px 42px 0 10px;line-height:1.2}
   .grp-viz[data-phase="2"] .grp-bucket[data-n="1"] .grp-bucket-lbl{color:var(--ink-3);text-decoration:line-through;opacity:.7}
   .grp-viz[data-phase="2"] .grp-bucket[data-keep="1"] .grp-bucket-lbl{color:#248A3D;text-decoration:none}
-  .grp-count{position:absolute;top:4px;right:6px;font-family:var(--mono);font-size:20px;font-weight:800;color:#fff;background:var(--accent);border:2px solid var(--accent);border-radius:10px;padding:4px 11px;line-height:1.1;min-width:36px;text-align:center;box-shadow:0 3px 10px rgba(91,91,214,.35);opacity:0;transform:scale(.8);transition:opacity .35s .25s,transform .35s .25s,color .3s,border-color .3s,background .3s,box-shadow .3s;z-index:3}
+  .grp-count{position:absolute;top:5px;right:6px;font-family:var(--mono);font-size:15px;font-weight:800;color:#fff;background:var(--accent);border:2px solid var(--accent);border-radius:9px;padding:3px 9px;line-height:1.15;min-width:30px;text-align:center;box-shadow:0 3px 10px rgba(91,91,214,.35);opacity:0;transform:scale(.8);transition:opacity .35s .25s,transform .35s .25s,color .3s,border-color .3s,background .3s,box-shadow .3s;z-index:5;pointer-events:none}
   .grp-viz[data-phase="1"] .grp-count,.grp-viz[data-phase="2"] .grp-count{opacity:1;transform:scale(1)}
-  .grp-viz[data-phase="2"] .grp-bucket[data-keep="1"] .grp-count{color:#fff;background:#248A3D;border-color:#248A3D;font-size:22px;box-shadow:0 4px 14px rgba(52,199,89,.4)}
-  .grp-viz[data-phase="2"] .grp-bucket[data-n="1"] .grp-count{opacity:1;color:var(--ink-2);background:#fff;border-color:rgba(60,60,67,.28);box-shadow:none;font-size:16px}
+  .grp-viz[data-phase="2"] .grp-bucket[data-keep="1"] .grp-count{color:#fff;background:#248A3D;border-color:#248A3D;font-size:16px;box-shadow:0 3px 12px rgba(52,199,89,.4)}
+  .grp-viz[data-phase="2"] .grp-bucket[data-n="1"] .grp-count{opacity:1;color:var(--ink);background:#fff;border-color:rgba(60,60,67,.3);box-shadow:0 1px 4px rgba(20,20,40,.08);font-size:14px}
   .grp-chip{position:absolute;left:0;top:0;font-size:11px;font-weight:600;color:var(--ink);padding:7px 10px;background:var(--surface);border:1px solid var(--line-2);border-radius:9px;box-shadow:0 2px 8px rgba(20,20,40,.07);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:2;will-change:transform;transition:transform .65s cubic-bezier(.32,.72,.28,1),opacity .4s;box-sizing:border-box}
   .grp-viz[data-phase="2"] .grp-chip[data-keep="0"]{opacity:.35}
   .grp-viz[data-phase="2"] .grp-chip[data-keep="1"]{box-shadow:0 4px 14px rgba(52,199,89,.2);border-color:rgba(52,199,89,.35)}
@@ -6527,7 +6527,7 @@ const HAVING_GRP_PHASES=[
 let havingGrpTimer=null,havingGrpObs=null;
 
 function havingGrpBucketLayout(sw){
-  const pad=6,gap=8,half=(sw-pad*2-gap)/2, topH=108, smallH=62;
+  const pad=6,gap=8,half=(sw-pad*2-gap)/2, topH=122, smallH=78;
   const y1=pad+topH+gap, y2=y1+smallH+gap;
   return{
     'Bien-être':{x:pad,y:pad,w:sw-pad*2,h:topH,cols:2},
@@ -6567,8 +6567,8 @@ function layoutHavingGrpViz(root,phase){
     if(cat==='_h')return;
     const r=layout[cat],list=byCat[cat]||[];
     const cols=r.cols||1;
-    const padX=8, padTop=26, gapX=6, gapY=5;
-    const cellW=Math.max(54,(r.w-padX*2-(cols-1)*gapX)/cols);
+    const padX=8, padTop=36, gapX=6, gapY=5, countReserve=40;
+    const cellW=Math.max(48,(r.w-padX*2-countReserve-(cols-1)*gapX)/cols);
     const rows=Math.ceil(list.length/cols)||1;
     const cellH=Math.max(26,(r.h-padTop-padX-(rows-1)*gapY)/rows);
     list.forEach((c,i)=>{
