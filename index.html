@@ -4642,14 +4642,13 @@ const editorBlock=(withViz,fname='exercice.sql')=>`
     <textarea id="ed-lesson" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="Écris ta requête ici…"></textarea></div>
   </div>
   <div class="run-row"><button class="btn-run" onclick="runLesson()">▶︎ Exécuter</button>
-  <button class="btn-ghost" type="button" onclick="showIndice()">Indice</button>
   <button class="btn-ghost" type="button" onclick="openSchemaSheet()">Schéma</button>
   ${withViz?`<button class="btn-ghost" onclick="openViz('ed-lesson')">◨</button>`:''}</div>
   <div id="lesson-out" role="status" aria-live="polite" aria-atomic="true"></div>
   <div id="hint-slot"></div>`;
 
 let lessonStep=0; // 0 leçon · 1 exercice · 2 quiz
-let exoFails=0; // 1→indice · 2→aide · 3→solution
+let exoFails=0; // 1→aide · 2→solution
 function openLesson(id, restoreStep){
   const l=allLessons.find(x=>x.id===id); if(!l)return;
   current=l; mode='lesson';
@@ -5064,26 +5063,19 @@ function registerExoFail(){
   exoFails++;
   renderExoHelp();
 }
-function showIndice(){
-  exoFails=Math.max(exoFails,1);
-  renderExoHelp();
-  const s=document.getElementById('hint-slot');
-  if(s) s.scrollIntoView({behavior:'smooth',block:'nearest'});
-}
 function renderExoHelp(){
   const s=document.getElementById('hint-slot');
   if(!s||!current||exoFails<1){if(s&&exoFails<1)s.innerHTML='';return;}
   const sol=mode==='defi'?current.sol:current.solution;
   let html='';
-  if(exoFails>=1) html+=`<div class="hint-box"><b>Indice</b>${current.indice||''}</div>`;
-  if(exoFails>=2){
+  if(exoFails>=1){
     if(current.exemple)
       html+=`<div class="hint-box"><b>Aide</b>Exemple du cours à adapter :
         <div class="ex-code" style="margin-top:8px">${highlight(current.exemple)}</div></div>`;
     else
       html+=`<div class="hint-box"><b>Aide</b>Repère les <b>tables</b> et <b>colonnes</b> de l’énoncé, puis assemble dans l’ordre : FROM → JOIN (si besoin) → WHERE / GROUP BY → SELECT. Touche <b>Schéma</b> sous l’éditeur si un nom te manque.</div>`;
   }
-  if(exoFails>=3) html+=`<div class="hint-box sol"><b>Solution</b>Une requête qui fonctionne :
+  if(exoFails>=2) html+=`<div class="hint-box sol"><b>Solution</b>Une requête qui fonctionne :
     <div class="ex-code" style="margin-top:8px">${highlight(sol)}</div></div>`;
   s.innerHTML=html;
 }
