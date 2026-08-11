@@ -6306,34 +6306,13 @@ function studioTodayList(){
       <div><b>${info.retard.length} séance${info.retard.length>1?'s':''} en retard</b>
       <small>Reporte leçons et défis manqués sur aujourd'hui.</small></div>
       <button onclick="rattraper()">Rattraper</button></div>`:'';
-  const rows=[];
-  if(info.today){
-    info.today.lessons.forEach(id=>{
-      const m=itemMeta(id), ok=itemDone(id);
-      if(ok) return;
-      const arg=isDefiId(id)?`'${id}'`:id;
-      rows.push(`<div class="st-row" onclick="openItem(${arg})">
-        <span class="st-n ${m.defi?'defi':''}">${m.defi?'⚑':esc(String(m.badge))}</span>
-        <div class="st-body"><b>${esc(m.titre)}</b><small>${m.defi?'Sans filet · ~8 min':'Leçon · ~'+MIN_PAR_LECON+' min'}</small></div>
-        <span class="chev">›</span></div>`);
-    });
-  }
   const due=dueList();
-  if(due.length){
-    rows.push(`<div class="st-row" onclick="startReview()">
+  const rev=due.length?`<div class="studio-today"><div class="st-lab">Révisions</div>
+    <div class="st-row" onclick="startReview()">
       <span class="st-n rev">↺</span>
       <div class="st-body"><b>Révision — ${due.length} carte${due.length>1?'s':''}</b><small>Mémorisation · ~${Math.max(3,due.length)} min</small></div>
-      <span class="chev">›</span></div>`);
-  }
-  if(!rows.length){
-    if(info.today&&!resteDe(info.today)){
-      return late+`<div class="studio-today"><div class="st-lab">Aujourd'hui</div>
-        <div class="st-row" style="cursor:default"><span class="st-n ok">✓</span>
-        <div class="st-body"><b>Séance terminée</b><small>${info.suivante?'Prochaine · '+libelleJour(info.suivante.d):'Rien d’autre de prévu'}</small></div></div></div>`;
-    }
-    return late;
-  }
-  return late+`<div class="studio-today"><div class="st-lab">Aujourd'hui</div>${rows.join('')}</div>`;
+      <span class="chev">›</span></div></div>`:'';
+  return late+rev;
 }
 function navHTML(){
   const j=joursSemaine(),a=j[0],b=j[6];
