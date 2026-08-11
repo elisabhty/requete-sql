@@ -1217,6 +1217,17 @@
   .qexpl code{font-family:var(--mono);font-size:.88em;background:var(--accent-soft);color:var(--accent);padding:1px 5px;border-radius:5px}
   .valid-todo{background:var(--warn-soft);border-radius:13px;padding:13px 15px;font-size:13.5px;color:#8A6212;margin-bottom:16px}
   .valid-todo b{color:var(--warn)}
+  .valid-done{background:var(--surface);border:1px solid rgba(11,107,74,.14);border-radius:18px;padding:16px;margin:4px 0 16px;box-shadow:0 10px 24px -20px rgba(11,107,74,.35)}
+  .valid-done-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+  .valid-done-ico{width:28px;height:28px;flex:none;border-radius:50%;background:var(--success);color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center}
+  .valid-done-top b{display:block;font-size:16px;font-weight:800;letter-spacing:-.3px;color:var(--success);margin:0 0 3px}
+  .valid-done-top p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.4}
+  .valid-card-chip{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:14px;color:#fff;position:relative;overflow:hidden;min-height:52px;box-shadow:0 10px 22px -14px rgba(20,20,40,.45)}
+  .valid-card-chip::after{content:'';position:absolute;inset:0;background:radial-gradient(120% 80% at 12% 0%,rgba(255,255,255,.28),transparent 55%);pointer-events:none}
+  .valid-card-chip > *{position:relative;z-index:1}
+  .valid-card-chip small{display:block;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;opacity:.8;margin-bottom:2px}
+  .valid-card-chip strong{display:block;font-family:var(--mono);font-size:18px;font-weight:800;letter-spacing:-.5px;line-height:1.15}
+  .valid-card-chip .valid-card-go{flex:none;font-size:12.5px;font-weight:700;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.2);border:none;color:#fff;cursor:pointer;touch-action:manipulation;min-height:34px}
 
   .tabbar{position:absolute;left:0;right:0;bottom:0;z-index:30;background:rgba(242,242,247,.78);backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px);border-top:1px solid rgba(60,60,67,.1);box-shadow:0 -10px 28px -20px rgba(20,20,40,.18);display:flex;padding:4px max(4px,env(safe-area-inset-left)) calc(var(--safe-bottom) + 4px) max(4px,env(safe-area-inset-right))}
   .tab{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#8E8E93;cursor:pointer;font-family:var(--ui);font-size:9px;font-weight:650;letter-spacing:-.1px;padding:6px 2px;position:relative;min-width:0;min-height:48px;touch-action:manipulation;border-radius:14px}
@@ -6057,9 +6068,18 @@ function renderValidation(){
   }).join('');
   const suiv=allLessons.find(x=>!(state.lessons[x.id]&&state.lessons[x.id].done));
   const resteQ=qs.filter((_,i)=>!e['q'+i]).length;
+  const carte=CARTES[id];
   const final=fini
-    ? `<div class="feedback ok" style="margin-top:4px"><div class="fi">✓</div><div><b>Leçon validée</b>
-        <p>Exercice et quiz au complet. La carte <b>${esc(CARTES[id].k)}</b> est dans ta collection.</p></div></div>
+    ? `<div class="valid-done">
+        <div class="valid-done-top">
+          <span class="valid-done-ico" aria-hidden="true">✓</span>
+          <div><b>Leçon validée</b><p>Exercice et quiz au complet.</p></div>
+        </div>
+        <div class="valid-card-chip" style="background:${gradOf(id)}">
+          <div><small>Carte dans ta collection</small><strong>${esc(carte.k)}</strong></div>
+          <button type="button" class="valid-card-go" onclick="switchTab('collection');openCard(${id})">Voir</button>
+        </div>
+      </div>
        ${suiv?`<button class="next-btn" onclick="openLesson(${suiv.id})">Leçon suivante →</button>`
         :`<div class="feedback ok"><div class="fi">🎉</div><div><b>Programme terminé</b><p>Les ${TOTAL} leçons sont bouclées.</p></div></div>`}`
     : `<div class="valid-todo">Réponds aux <b>${resteQ} question${resteQ>1?'s':''}</b> pour valider la leçon.</div>`;
