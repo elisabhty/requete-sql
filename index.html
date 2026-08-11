@@ -3339,7 +3339,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-11-30j';
+const APP_VERSION='2026-08-11-pct-jour';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -4509,6 +4509,33 @@ function renderHomeStreak(){
   el.innerHTML=FLAME_SVG+`<span>${n}</span>`;
   el.setAttribute('aria-label',`${n} jour${n>1?'s':''} d’affilée — voir mes stats`);
 }
+function pctSeanceJour(info){
+  /* % de la séance du jour ; 100% si pause, séance finie ou parcours bouclé. */
+  if(!info||!info.reste) return 100;
+  if(!info.today||!info.today.lessons.length) return 100;
+  const tot=info.today.lessons.length;
+  const done=tot-resteDe(info.today);
+  return Math.round(done/tot*100);
+}
+function prochaineEtapeParcours(){
+  /* Prochain item non fait du parcours planifié (aujourd’hui, sinon prochaine séance). */
+  const info=infoJour(); if(!info||!info.reste) return null;
+  if(info.today){
+    const next=info.today.lessons.find(id=>!itemDone(id));
+    if(next!=null) return {iso:info.today.d,id:next};
+  }
+  if(info.suivante){
+    const next=info.suivante.lessons.find(id=>!itemDone(id));
+    if(next!=null) return {iso:info.suivante.d,id:next};
+  }
+  const t=dstr(auj());
+  for(const s of (state.plan.sessions||[])){
+    if(s.d<t) continue;
+    const next=s.lessons.find(id=>!itemDone(id));
+    if(next!=null) return {iso:s.d,id:next};
+  }
+  return null;
+}
 function renderHomeHero(){
   const host=document.getElementById('home-hero'); if(!host)return;
   majBadgePlanning();
@@ -4516,12 +4543,11 @@ function renderHomeHero(){
   renderHomeStreak();
   const nL=Object.values(state.lessons||{}).filter(l=>l.done).length;
   const nD=Object.keys(state.defis||{}).length;
-  const pct=Math.round(nL/TOTAL*100);
   const due=dueList();
   const sub=document.getElementById('learn-sub');
   if(sub) sub.textContent=nL===0?'Une carte, ta séance, ta progression.':`${nL}/${TOTAL} leçons · ${nD} défis`;
 
-  const card=(mode,tag,metaR,title,desc,primary,secondary='')=>`
+  const card=(mode,tag,metaR,title,desc,primary,pct,secondary='')=>`
     <div class="home-card ${mode}">
       <div class="hc-meta">
         <span class="hc-tag">${tag}</span>
@@ -4536,59 +4562,62 @@ function renderHomeHero(){
       </div>
       <div class="hc-actions">${primary}${secondary}</div>
     </div>`;
-  const paint=html=>{ host.innerHTML=html; animateHomeRing(pct); };
+  const paint=(html,pct)=>{ host.innerHTML=html; animateHomeRing(pct); };
 
   if(!state.plan){
     paint(card('empty','Pour démarrer',`${TOTAL} leçons`,'Crée ton planning','Niveau, minutes et jours — un parcours progressif, avec les défis au bon moment.',
-      `<button class="hc-go" type="button" onclick="switchTab('planning')">Configurer mon rythme</button>`,
-      `<button class="hc-sec" type="button" onclick="openLesson(1)">Leçon 1</button>`));
+      `<button class="hc-go" type="button" onclick="switchTab('planning')">Configurer mon rythme</button>`,0,
+      `<button class="hc-sec" type="button" onclick="openLesson(1)">Leçon 1</button>`),0);
     return;
   }
 
   const info=infoJour();
+  const pct=pctSeanceJour(info);
   const mins=(RYTHMES.find(r=>r.k===state.plan.rythme)||RYTHMES[1]).min;
+  const etape=prochaineEtapeParcours();
+  const ctaParcours=etape
+    ?`<button class="hc-go" type="button" onclick="demarrerSeance('${etape.iso}')">Reprendre le parcours</button>`
+    :`<button class="hc-go" type="button" onclick="switchTab('planning')">Voir le parcours</button>`;
 
   if(!info||!info.reste){
     paint(card('ok','Parcours','terminé','Tout est terminé','Leçons et défis du planning sont bouclés.',
-      `<button class="hc-go" type="button" onclick="setHomeFilter('defis');switchTab('learn')">Voir les défis</button>`));
+      `<button class="hc-go" type="button" onclick="setHomeFilter('defis');switchTab('learn')">Voir les défis</button>`,100),100);
     return;
   }
   if(info.retard&&info.retard.length){
     paint(card('late','En retard',`${info.retard.length} séance${info.retard.length>1?'s':''}`,
       `${info.retard.length} séance${info.retard.length>1?'s':''} en retard`,'Reporte-les sur aujourd’hui, ou ouvre le planning.',
-      `<button class="hc-go" type="button" onclick="rattraper();switchTab('planning')">Rattraper</button>`,
-      `<button class="hc-sec" type="button" onclick="switchTab('planning')">Parcours</button>`));
+      `<button class="hc-go" type="button" onclick="rattraper();switchTab('planning')">Rattraper</button>`,0,
+      `<button class="hc-sec" type="button" onclick="switchTab('planning')">Parcours</button>`),0);
     return;
   }
   if(info.today&&resteDe(info.today)){
+    const tot=info.today.lessons.length;
     const left=info.today.lessons.filter(id=>!itemDone(id));
-    const nLeftL=left.filter(id=>!isDefiId(id)).length;
-    const nLeftD=left.length-nLeftL;
+    const nLtot=info.today.lessons.filter(id=>!isDefiId(id)).length;
+    const nDtot=tot-nLtot;
     const first=left[0];
     const meta=itemMeta(first);
-    const metaR=`${nLeftL?nLeftL+' leçon'+(nLeftL>1?'s':''):''}${nLeftL&&nLeftD?' · ':''}${nLeftD?nLeftD+' défi'+(nLeftD>1?'s':''):''} · ~${Math.max(mins, left.length*MIN_PAR_LECON)} min`;
+    const metaR=`${nLtot?nLtot+' leçon'+(nLtot>1?'s':''):''}${nLtot&&nDtot?' · ':''}${nDtot?nDtot+' défi'+(nDtot>1?'s':''):''} · ~${Math.max(mins, tot*MIN_PAR_LECON)} min`;
     const cta=isDefiId(first)?`Continuer · ${esc(meta.titre)}`:`Reprendre la leçon ${first}`;
     paint(card('', 'Séance du jour', metaR, esc(meta.titre), isDefiId(first)?'Défi du jour':'Prochaine étape de ta séance',
-      `<button class="hc-go" type="button" onclick="demarrerSeance('${info.today.d}')">${cta}</button>`,
-      due.length?`<button class="hc-sec" type="button" onclick="startReview()">↻ ${due.length}</button>`:''));
+      `<button class="hc-go" type="button" onclick="demarrerSeance('${info.today.d}')">${cta}</button>`,pct,
+      due.length?`<button class="hc-sec" type="button" onclick="startReview()">↻ ${due.length}</button>`:''),pct);
     return;
   }
   if(info.today){
     paint(card('ok','Aujourd\'hui','fait','Séance terminée',
       info.suivante?`Prochaine : ${libelleJour(info.suivante.d).toLowerCase()}.`:'Belle journée — rien d’autre de prévu.',
-      info.suivante
-        ?`<button class="hc-go" type="button" onclick="demarrerSeance('${info.suivante.d}')">Prendre de l'avance</button>`
-        :`<button class="hc-go" type="button" onclick="switchTab('planning')">Voir le parcours</button>`,
-      due.length?`<button class="hc-sec" type="button" onclick="startReview()">↻ ${due.length}</button>`:''));
+      info.suivante?ctaParcours
+        :`<button class="hc-go" type="button" onclick="switchTab('planning')">Voir le parcours</button>`,100,
+      due.length?`<button class="hc-sec" type="button" onclick="startReview()">↻ ${due.length}</button>`:''),100);
     return;
   }
   paint(card('rest','Journée libre', info.suivante?libelleJour(info.suivante.d):'—',
     'Rien aujourd’hui',
     info.suivante?`Prochaine séance · ${info.suivante.lessons.length} items.`:'Ouvre le planning pour ajuster.',
-    info.suivante
-      ?`<button class="hc-go" type="button" onclick="demarrerSeance('${info.suivante.d}')">Prendre de l'avance</button>`
-      :`<button class="hc-go" type="button" onclick="switchTab('planning')">Ouvrir le parcours</button>`,
-    due.length?`<button class="hc-sec" type="button" onclick="startReview()">↻ ${due.length}</button>`:''));
+    ctaParcours,100,
+    due.length?`<button class="hc-sec" type="button" onclick="startReview()">↻ ${due.length}</button>`:''),100);
 }
 let homeFilter='tous'; // tous · lecons · defis
 function setHomeFilter(f){
