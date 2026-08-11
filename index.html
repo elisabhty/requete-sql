@@ -2038,7 +2038,7 @@ INSERT INTO clients VALUES
  (9,'Inès','Nantes',41,NULL,'2023-07-26');
 INSERT INTO produits VALUES
  (1,'Fibre Prébiotique','Bien-être',29.90,120),(2,'Collagène Marin','Beauté',39.90,80),
- (3,'Magnésium','Bien-être',19.90,200),(4,'Vitamine D','Bien-être',14.90,150),
+ (3,'Magnésium','Bien-être',19.90,200),(4,'Vitamine D','Nutrition',14.90,150),
  (5,'Tisane Détox','Boisson',12.50,60),(6,'Protéine Végétale','Nutrition',34.90,45),
  (7,'Oméga 3','Bien-être',24.90,90),(8,'Shaker Inox','Accessoire',15.00,30);
 INSERT INTO commandes VALUES
@@ -2357,7 +2357,7 @@ GROUP BY categorie;</div>
 FROM produits
 GROUP BY categorie
 <span class="good-line">HAVING COUNT(*) &gt;= 2;</span></div>
-        <div class="vs-out ok"><div class="pipe-table"><table><thead><tr><th scope="col">categorie</th><th scope="col">COUNT(*)</th></tr></thead><tbody><tr class="keep"><td>Bien-être</td><td class="num">4</td></tr></tbody></table></div><span class="vs-res-note">✓ Seule catégorie gardée</span></div>
+        <div class="vs-out ok"><div class="pipe-table"><table><thead><tr><th scope="col">categorie</th><th scope="col">COUNT(*)</th></tr></thead><tbody><tr class="keep"><td>Bien-être</td><td class="num">3</td></tr><tr class="keep"><td>Nutrition</td><td class="num">2</td></tr></tbody></table></div><span class="vs-res-note">✓ 2 catégories gardées</span></div>
       </div>
     </div>
     <p class="concept-point"><span class="em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h12M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Une fois les catégories regroupées avec <code>GROUP BY</code>, utilise <code>HAVING</code> pour ne garder que celles dont <code>COUNT(*)</code> respecte la condition <code>&gt;= 2</code>.</span></p>
@@ -2372,17 +2372,17 @@ GROUP BY categorie
         <span class="grp-desc">SQL lit simplement les lignes</span>
       </div>
       <div class="grp-stage">
-        <div class="grp-bucket" data-cat="Bien-être" data-n="4" data-keep="1"><span class="grp-bucket-lbl">Bien-être</span><span class="grp-count">4</span></div>
+        <div class="grp-bucket" data-cat="Bien-être" data-n="3" data-keep="1"><span class="grp-bucket-lbl">Bien-être</span><span class="grp-count">3</span></div>
         <div class="grp-bucket" data-cat="Beauté" data-n="1" data-keep="0"><span class="grp-bucket-lbl">Beauté</span><span class="grp-count">1</span></div>
         <div class="grp-bucket" data-cat="Boisson" data-n="1" data-keep="0"><span class="grp-bucket-lbl">Boisson</span><span class="grp-count">1</span></div>
-        <div class="grp-bucket" data-cat="Nutrition" data-n="1" data-keep="0"><span class="grp-bucket-lbl">Nutrition</span><span class="grp-count">1</span></div>
+        <div class="grp-bucket" data-cat="Nutrition" data-n="2" data-keep="1"><span class="grp-bucket-lbl">Nutrition</span><span class="grp-count">2</span></div>
         <div class="grp-bucket" data-cat="Accessoire" data-n="1" data-keep="0"><span class="grp-bucket-lbl">Accessoire</span><span class="grp-count">1</span></div>
         <div class="grp-chip" data-cat="Bien-être" data-keep="1">Fibre Préb.</div>
         <div class="grp-chip" data-cat="Beauté" data-keep="0">Collagène</div>
         <div class="grp-chip" data-cat="Bien-être" data-keep="1">Magnésium</div>
-        <div class="grp-chip" data-cat="Bien-être" data-keep="1">Vit. D</div>
+        <div class="grp-chip" data-cat="Nutrition" data-keep="1">Vit. D</div>
         <div class="grp-chip" data-cat="Boisson" data-keep="0">Tisane</div>
-        <div class="grp-chip" data-cat="Nutrition" data-keep="0">Protéine</div>
+        <div class="grp-chip" data-cat="Nutrition" data-keep="1">Protéine</div>
         <div class="grp-chip" data-cat="Bien-être" data-keep="1">Oméga 3</div>
         <div class="grp-chip" data-cat="Accessoire" data-keep="0">Shaker</div>
       </div>
@@ -2632,7 +2632,7 @@ GROUP BY categorie
     {tok:", 2)",punc:1,txt:"Nombre de décimales."},
     {tok:"AS moyenne",txt:"Nomme la colonne."}],
   exemple:"SELECT categorie, ROUND(AVG(prix), 2) AS moyenne\nFROM produits GROUP BY categorie;",
-  attendu:"<b>5 lignes</b> : Bien-être 22,4 · Beauté 39,9 · Boisson 12,5 · Nutrition 34,9 · Accessoire 15,0.",
+  attendu:"<b>5 lignes</b> : Bien-être 24,9 · Beauté 39,9 · Boisson 12,5 · Nutrition 24,9 · Accessoire 15,0.",
   piege:{t:"Division entière",p:"<code>SELECT 7/2</code> renvoie <b>3</b>. Multiplie par <code>1.0</code> pour obtenir 3,5."},
   consigne:"Calcule l’âge moyen des clients, arrondi à <b>1 décimale</b>.",
   solution:"SELECT ROUND(AVG(age), 1) FROM clients;",
@@ -3067,7 +3067,7 @@ GROUP BY categorie
     {tok:"INTERSECT",txt:"<b>Ne garde que l’overlap.</b>"},
     {tok:"SELECT categorie FROM produits WHERE prix > 20",txt:"Second ensemble."}],
   exemple:"SELECT categorie FROM produits WHERE prix < 20\nINTERSECT\nSELECT categorie FROM produits WHERE prix > 20;",
-  attendu:"<b>1 ligne</b> : Bien-être, présente dans les deux ensembles.",
+  attendu:"<b>2 lignes</b> : Bien-être et Nutrition, présentes dans les deux ensembles.",
   piege:{t:"INTERSECT n’est pas un JOIN",p:"On compare des ensembles de valeurs, pas des lignes élargies."},
   consigne:"Avec <code>INTERSECT</code>, les <code>ville</code> qui ont à la fois un client de moins de 30 ans et un de 40 ans ou plus.",
   solution:"SELECT ville FROM clients WHERE age < 30 INTERSECT SELECT ville FROM clients WHERE age >= 40;",
