@@ -166,19 +166,14 @@
   .som-item:hover{background:var(--surface-2)}
   .som-item:hover .som-arrow{opacity:1;transform:none}
   .som-item:hover .som-n{transform:scale(1.06)}
-  /* Appui tactile : petit rebond + teinte */
-  .som-item:active{background:var(--accent-soft);transform:scale(.985)}
+  /* Appui tactile : petit rebond + teinte légère */
+  .som-item:active{background:var(--surface-2);transform:scale(.985)}
   .som-item:active .som-n{transform:scale(.92)}
   .som-item:active .som-arrow{opacity:1;transform:translateX(2px);color:var(--accent)}
   /* Flash après le saut vers la section */
-  .som-item.flash{animation:somFlash .6s cubic-bezier(.3,1.3,.4,1)}
-  @keyframes somFlash{0%{background:var(--accent-soft)}40%{background:rgba(91,91,214,.18)}100%{background:var(--surface-2)}}
-  /* État actif : la section visible se surligne */
-  .som-item.current{background:var(--accent-soft)}
-  .som-item.current .som-n{background:var(--accent);color:#fff;transform:scale(1.05)}
-  .som-item.current .som-t{color:var(--accent)}
-  .som-item.current .som-arrow{opacity:1;transform:none;color:var(--accent)}
-  .som-item.current::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);border-radius:0 3px 3px 0}
+  .som-item.flash{animation:somFlash .55s cubic-bezier(.3,1.3,.4,1)}
+  @keyframes somFlash{0%{background:rgba(91,91,214,.1)}100%{background:transparent}}
+  /* Pas de surlignage persistant de la section active */
   /* Apparition en cascade des items */
   .sommaire-list .som-item{opacity:0;animation:somItemIn .34s cubic-bezier(.32,.72,.28,1) forwards}
   .sommaire-list .som-item:nth-child(1){animation-delay:.02s}
@@ -4853,28 +4848,10 @@ function buildSommaire(){
       b.classList.remove('flash'); void b.offsetWidth; b.classList.add('flash');
       setTimeout(()=>b.classList.remove('flash'),650);
       if(navigator.vibrate)navigator.vibrate(6);
-      btns.forEach(x=>x.classList.remove('current'));
-      b.classList.add('current');
       const top=target.getBoundingClientRect().top-scr.getBoundingClientRect().top+scr.scrollTop-70;
       scr.scrollTo({top,behavior:prefersReduceMotion()?'auto':'smooth'});
     });
   });
-  // Scroll-spy : surligne la section visible pendant le défilement
-  const spy=()=>{
-    const pos=scr.scrollTop+90;
-    let active=0;
-    marks.forEach((m,i)=>{ if(m.el.offsetTop<=pos) active=i; });
-    btns.forEach((x,i)=>x.classList.toggle('current',i===active));
-  };
-  let spyTick=false;
-  const onScroll=()=>{
-    if(spyTick)return; spyTick=true;
-    requestAnimationFrame(()=>{spy();spyTick=false;});
-  };
-  scr.removeEventListener('scroll',scr._somSpy||(()=>{}));
-  scr._somSpy=onScroll;
-  scr.addEventListener('scroll',onScroll,{passive:true});
-  requestAnimationFrame(spy);
 }
 function openChallenge(cid){
   const c=CHALLENGES.find(x=>x.id===cid); const g=CHALLENGE_GUIDES[cid]||{}; current=c; mode='defi';
