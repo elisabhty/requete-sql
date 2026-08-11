@@ -1345,9 +1345,11 @@
   .bravo-stat.streak svg{width:18px;height:18px;color:#B45309;flex:none}
   .bravo-stat.streak.hot svg{color:#E2551B}
   .bravo-gcard-stage{perspective:1100px;max-width:210px;margin:0 auto}
-  .bravo-gcard{aspect-ratio:3/4;display:flex;flex-direction:column;color:#fff;position:relative;overflow:hidden;text-align:left;border:none;width:100%;border-radius:20px;padding:13px 12px 11px;cursor:pointer;touch-action:manipulation;box-shadow:0 16px 34px -20px rgba(20,20,40,.5);transform-style:preserve-3d;animation:bravoCardIn .75s cubic-bezier(.2,.85,.3,1.15) .3s both}
+  .bravo-gcard{aspect-ratio:3/4;display:flex;flex-direction:column;color:#fff;position:relative;overflow:hidden;text-align:left;border:none;width:100%;border-radius:20px;padding:13px 12px 11px;cursor:pointer;touch-action:manipulation;box-shadow:0 16px 34px -20px rgba(20,20,40,.5);transform-style:preserve-3d;opacity:0}
+  .bravo-gcard.in{animation:bravoCardIn .75s cubic-bezier(.2,.85,.3,1.15) both}
   .bravo-gcard::before{content:'';position:absolute;inset:0;background:radial-gradient(120% 80% at 12% 0%,rgba(255,255,255,.28),transparent 55%);pointer-events:none;z-index:0}
-  .bravo-gcard::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.42) 50%,transparent 62%);transform:translateX(-130%);pointer-events:none;z-index:2;animation:bravoShine .9s ease .85s both}
+  .bravo-gcard::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.42) 50%,transparent 62%);transform:translateX(-130%);pointer-events:none;z-index:2}
+  .bravo-gcard.in::after{animation:bravoShine .9s ease .85s both}
   .bravo-gcard .gbrand,.bravo-gcard .gbody{position:relative;z-index:1}
   .bravo-gcard .gbrand{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
   .bravo-gcard .gbrand-n{font-size:10px;font-weight:800;opacity:.92}
@@ -5220,6 +5222,19 @@ function bravoRevealCard(id){
   if(navigator.vibrate)navigator.vibrate(12);
   setTimeout(()=>{ card.classList.remove('flip'); card.dataset.flipping='0'; openCard(id); }, 460);
 }
+let bravoCardObs=null;
+function revealBravoCard(){
+  if(bravoCardObs){bravoCardObs.disconnect();bravoCardObs=null;}
+  const card=document.querySelector('#lesson-body .bravo-gcard');
+  if(!card)return;
+  if(prefersReduceMotion()){ card.classList.add('in'); return; }
+  const scr=document.getElementById('scr-lesson');
+  if(!scr||typeof IntersectionObserver==='undefined'){ card.classList.add('in'); return; }
+  bravoCardObs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); bravoCardObs.unobserve(e.target); } });
+  },{root:scr,threshold:.4});
+  bravoCardObs.observe(card);
+}
 function bravoRecapHtml(l){
   let body = '';
   if(l.id === 17){
@@ -5592,6 +5607,7 @@ function renderLessonFlow(){
     renderExoHelp();
   }
   if(lessonStep===2) renderValidation();
+  if(lessonStep===3) requestAnimationFrame(revealBravoCard);
   if(lessonStep===0&&current.id===17){
     requestAnimationFrame(()=>requestAnimationFrame(initHavingGrpViz));
   }
