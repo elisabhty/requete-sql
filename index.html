@@ -3644,7 +3644,8 @@ async function boot(){
     await loadCustomDbs();
     renderModules(); renderDefis(); renderProgress(); renderCollection(); renderNotes(); renderPlanning(); buildKbar();
     setupEditor('ed-console','hl-console');
-    document.getElementById('ed-console').value="SELECT ville, COUNT(*) AS nb\nFROM clients\nGROUP BY ville\nORDER BY nb DESC;";
+    { let saved=null; try{saved=localStorage.getItem('requete-console');}catch(e){}
+      document.getElementById('ed-console').value=saved||"SELECT ville, COUNT(*) AS nb\nFROM clients\nGROUP BY ville\nORDER BY nb DESC;"; }
     syncHL('ed-console','hl-console'); renderConsoleChips(); renderDbWorkspace();
     maybeOnboard();
     restoreNav();
@@ -4274,10 +4275,18 @@ function highlight(code){
 function setupEditor(taId,hlId){
   const ta=document.getElementById(taId);
   const grow=()=>{ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';};
-  ta.addEventListener('input',()=>{syncHL(taId,hlId);grow();});
+  ta.addEventListener('input',()=>{syncHL(taId,hlId);grow();persistEditor(taId);});
   ta.addEventListener('focus',()=>{activeTA=ta;showKbar(true);});
   ta.addEventListener('blur',()=>{setTimeout(()=>{if(document.activeElement!==ta)showKbar(false);},150);});
   grow();
+}
+function persistEditor(taId){
+  const ta=document.getElementById(taId); if(!ta)return;
+  if(taId==='ed-console'){ try{localStorage.setItem('requete-console',ta.value);}catch(e){} }
+  else if(taId==='ed-lesson'&&current&&mode==='lesson'){
+    const s=state.lessons[current.id]||(state.lessons[current.id]={level:0});
+    s.draft=ta.value; save();
+  }
 }
 function syncHL(a,b){document.getElementById(b).innerHTML=highlight(document.getElementById(a).value);}
 function execQuery(sql,d){const t0=performance.now();const res=(d||activeDb()||db).exec(sql);return{res,ms:performance.now()-t0};}
@@ -4997,6 +5006,7 @@ function recommencerLecon(){
   s.done=false;
   s.level=0;
   delete s.due;
+  delete s.draft;
   state.lessons[id]=s;
   exoFails=0;
   lessonStepDir=1;
@@ -5397,6 +5407,8 @@ function renderLessonFlow(){
     <div class="ls-slide${lessonStepDir<0?' back':''}">${slide}</div>`;
   if(lessonStep===1){
     setupEditor('ed-lesson','hl-lesson');
+    const d=state.lessons[l.id]&&state.lessons[l.id].draft;
+    if(d!=null){const ta=document.getElementById('ed-lesson');if(ta){ta.value=d;syncHL('ed-lesson','hl-lesson');ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';}}
     renderExoHelp();
   }
   if(lessonStep===2) renderValidation();
@@ -5836,6 +5848,7 @@ function cardToConsole(id){
   const ta=document.getElementById('ed-console');
   ta.value=cardRunnableSql(CARTES[id]); syncHL('ed-console','hl-console');
   ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px';
+  persistEditor('ed-console');
 }
 let toastId=null,toastTimer=null;
 function showUnlock(id){
@@ -6865,6 +6878,7 @@ function noteToConsole(){
   const ta=document.getElementById('ed-console');
   ta.value=sql; syncHL('ed-console','hl-console');
   ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px';
+  persistEditor('ed-console');
 }
 function renderConsoleChips(){
   const database=activeDb();
@@ -6899,6 +6913,7 @@ function fillConsole(i){
   const ta=document.getElementById('ed-console');
   ta.value=window.__chips[i].q; syncHL('ed-console','hl-console');
   ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px';
+  persistEditor('ed-console');
 }
 
 /* ============================================================
