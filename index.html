@@ -1344,17 +1344,22 @@
   .bravo-stat.streak b{display:flex;align-items:center;gap:5px}
   .bravo-stat.streak svg{width:18px;height:18px;color:#B45309;flex:none}
   .bravo-stat.streak.hot svg{color:#E2551B}
-  .bravo-gcard{aspect-ratio:3/4;max-width:210px;margin:0 auto;display:flex;flex-direction:column;color:#fff;position:relative;overflow:hidden;text-align:left;border:none;width:100%;border-radius:20px;padding:13px 12px 11px;cursor:pointer;touch-action:manipulation;box-shadow:0 16px 34px -20px rgba(20,20,40,.5);animation:bravoFadeUp .45s cubic-bezier(.32,.72,.28,1) .32s both}
+  .bravo-gcard-stage{perspective:1100px;max-width:210px;margin:0 auto}
+  .bravo-gcard{aspect-ratio:3/4;display:flex;flex-direction:column;color:#fff;position:relative;overflow:hidden;text-align:left;border:none;width:100%;border-radius:20px;padding:13px 12px 11px;cursor:pointer;touch-action:manipulation;box-shadow:0 16px 34px -20px rgba(20,20,40,.5);transform-style:preserve-3d;animation:bravoCardIn .75s cubic-bezier(.2,.85,.3,1.15) .3s both}
   .bravo-gcard::before{content:'';position:absolute;inset:0;background:radial-gradient(120% 80% at 12% 0%,rgba(255,255,255,.28),transparent 55%);pointer-events:none;z-index:0}
-  .bravo-gcard .gbrand,.bravo-gcard .gbody,.bravo-gcard .gsql{position:relative;z-index:1}
+  .bravo-gcard::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.42) 50%,transparent 62%);transform:translateX(-130%);pointer-events:none;z-index:2;animation:bravoShine .9s ease .85s both}
+  .bravo-gcard .gbrand,.bravo-gcard .gbody{position:relative;z-index:1}
   .bravo-gcard .gbrand{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
   .bravo-gcard .gbrand-n{font-size:10px;font-weight:800;opacity:.92}
   .bravo-gcard .gidx{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.8px;opacity:.72}
   .bravo-gcard .gbody{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0}
   .bravo-gcard .gk{font-family:var(--mono);font-size:clamp(16px,4.5vw,20px);font-weight:800;letter-spacing:-.6px;line-height:1.15;margin:0 0 5px}
   .bravo-gcard .gt{font-size:11px;opacity:.88;font-weight:600;line-height:1.3;margin:0}
-  .bravo-gcard .gsql{margin-top:auto;padding:7px 8px;border-radius:9px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.14);font-family:var(--mono);font-size:9px;font-weight:600;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bravo-gcard.flip{animation:bravoCardFlip .5s cubic-bezier(.4,.05,.3,1) forwards}
   .bravo-gcard:active{transform:scale(.985)}
+  @keyframes bravoCardIn{0%{opacity:0;transform:rotateY(95deg) rotateZ(-7deg) scale(.72)}55%{opacity:1}100%{opacity:1;transform:rotateY(0) rotateZ(0) scale(1)}}
+  @keyframes bravoCardFlip{0%{transform:rotateY(0) scale(1);opacity:1}100%{transform:rotateY(160deg) scale(.9);opacity:0}}
+  @keyframes bravoShine{0%{transform:translateX(-130%)}100%{transform:translateX(130%)}}
   .bravo-gcard-lab{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-3);margin:0 2px 6px}
   .bravo-next-btn{position:relative;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line-2);border-radius:18px;padding:14px 15px;cursor:pointer;touch-action:manipulation;box-shadow:0 10px 24px -22px rgba(20,20,40,.35);animation:bravoFadeUp .42s cubic-bezier(.32,.72,.28,1) .34s both}
   .bravo-next-btn:active{transform:scale(.985);background:var(--surface-2)}
@@ -1783,7 +1788,7 @@
     .agg-reflex .agg-list li,.agg-reflex .agg-cta,.sec-flash,.sommaire-list .som-item,
     .order-rappel .concept-order code,.order-rappel .concept-order i,.order-rappel .concept-coda,
     .order-rappel.play .concept-order code,.order-rappel.play .concept-order i,.order-rappel.play .concept-order code.on,.order-rappel.play .concept-coda,.ls-slide.back,.screen.push,.screen.push-back,.qexpl.on,.grp-viz[data-phase="2"] .grp-bucket[data-keep="1"]{animation:none!important;opacity:1;transform:none}
-    .bravo-ring,.bravo-ring i,.bravo-hero h1,.bravo-lesson,.bravo-step,.bravo-stat,.bravo-gcard,.bravo-next-btn,.bravo-done-note,.bravo-recap,.bravo-spark{animation:none!important;opacity:1;transform:none}
+    .bravo-ring,.bravo-ring i,.bravo-hero h1,.bravo-lesson,.bravo-step,.bravo-stat,.bravo-gcard,.bravo-gcard::after,.bravo-gcard::before,.bravo-next-btn,.bravo-done-note,.bravo-recap,.bravo-spark{animation:none!important;opacity:1;transform:none}
     .bn-arrow{animation:none!important;transform:translateY(-50%)}
     .bravo-ring{--p:100}
     .bravo-sparks{display:none}
@@ -5133,6 +5138,7 @@ function lessonStepMeta(){
   ];
 }
 function setLessonStep(n){
+  clearTimeout(bilanAutoTimer); bilanAutoTimer=null;
   if(mode!=='lesson'||!current)return;
   if(n===3){
     if(!lecCompletee(current.id))return;
@@ -5197,13 +5203,22 @@ function bravoStepsHtml(){
 function bravoCardHtml(l){
   const c=CARTES[l.id]; if(!c)return '';
   const n=String(l.id).padStart(2,'0');
-  const snip=esc((cardPosterSql(c)||'').split('\n')[0]);
-  return `<p class="bravo-gcard-lab">Carte débloquée</p>
-    <button type="button" class="bravo-gcard" style="background:${gradOf(l.id)}" onclick="openCard(${l.id})">
-      <div class="gbrand"><span class="gbrand-n">Requête</span><span class="gidx">CARTE ${n}</span></div>
-      <div class="gbody"><div class="gk">${esc(c.k)}</div><div class="gt">${esc(c.t)}</div></div>
-      <div class="gsql">${snip}</div>
-    </button>`;
+  return `<p class="bravo-gcard-lab">Carte débloquée · tape pour la dévoiler</p>
+    <div class="bravo-gcard-stage">
+      <button type="button" class="bravo-gcard" style="background:${gradOf(l.id)}" onclick="bravoRevealCard(${l.id})" aria-label="Dévoiler la carte ${esc(c.k)}">
+        <div class="gbrand"><span class="gbrand-n">Requête</span><span class="gidx">CARTE ${n}</span></div>
+        <div class="gbody"><div class="gk">${esc(c.k)}</div><div class="gt">${esc(c.t)}</div></div>
+      </button>
+    </div>`;
+}
+function bravoRevealCard(id){
+  const card=document.querySelector('#lesson-body .bravo-gcard');
+  if(!card||prefersReduceMotion()){ openCard(id); return; }
+  if(card.dataset.flipping==='1')return;
+  card.dataset.flipping='1';
+  card.classList.add('flip');
+  if(navigator.vibrate)navigator.vibrate(12);
+  setTimeout(()=>{ card.classList.remove('flip'); card.dataset.flipping='0'; openCard(id); }, 460);
 }
 function bravoRecapHtml(l){
   let body = '';
@@ -5261,7 +5276,7 @@ function bravoActionsHtml(l){
   const hasNext=!!(etape||suiv);
   const goBtn=hasNext?'':`<button type="button" class="bravo-go" onclick="exitLessonToTab('learn')">Retour à l’accueil</button>`;
   const secBtn=CARTES[l.id]
-    ?`<button type="button" class="bravo-sec" onclick="openCard(${l.id})">Voir la carte</button>`
+    ?''
     :(state.plan?`<button type="button" class="bravo-sec" onclick="exitLessonToTab('planning')">Mon parcours</button>`:'');
   return `<div class="bravo-actions">
     ${goBtn}
@@ -6823,6 +6838,7 @@ function repondreQcm(i,choix){
     if(navigator.vibrate)navigator.vibrate(30);
   }
 }
+let bilanAutoTimer=null;
 function validerLecon(){
   const id=current.id;
   const premier=!(state.lessons[id]&&state.lessons[id].done);
@@ -6831,8 +6847,11 @@ function validerLecon(){
   renderValidation();
   if(premier)showUnlock(id);
   save(); saveNav();
+  clearTimeout(bilanAutoTimer);
+  bilanAutoTimer=setTimeout(()=>{ bilanAutoTimer=null; finaliserLecon(); }, prefersReduceMotion()?500:1300);
 }
 function finaliserLecon(){
+  clearTimeout(bilanAutoTimer); bilanAutoTimer=null;
   const id=current.id;
   const premier=!(state.lessons[id]&&state.lessons[id].done);
   markDone(id,false); celebrate();
