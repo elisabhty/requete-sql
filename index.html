@@ -650,7 +650,7 @@
   .editor-area{position:relative;font-family:var(--mono);font-size:14px;line-height:1.55}
   .editor-area pre,.editor-area textarea{margin:0;padding:14px 15px;font-family:inherit;font-size:inherit;line-height:inherit;white-space:pre-wrap;word-break:break-word;overflow-wrap:break-word;border:0;outline:0;tab-size:2}
   .editor-area pre code,.editor-area code{font-family:inherit;font-size:inherit;font-weight:inherit;font-style:inherit;line-height:inherit;letter-spacing:inherit;margin:0;padding:0;background:none;border-radius:0;white-space:inherit;tab-size:2;font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
-  .editor-area pre{position:absolute;inset:0;pointer-events:none;color:var(--code-ink);z-index:0}
+  .editor-area pre{position:absolute;inset:0;pointer-events:none;color:var(--code-ink);z-index:0;overflow:hidden}
   .editor-area textarea{position:relative;display:block;width:100%;min-height:104px;resize:none;background:transparent;color:transparent;caret-color:#7A6FF0;z-index:1}
   .editor-area .t-kw{color:var(--t-kw);font-weight:600}
   .editor-area .t-fn{color:var(--t-fn)}.editor-area .t-str{color:var(--t-str)}
@@ -3683,7 +3683,9 @@ async function boot(){
     renderModules(); renderDefis(); renderProgress(); renderCollection(); renderNotes(); renderPlanning(); buildKbar();
     setupEditor('ed-console','hl-console');
     { let saved=null; try{saved=localStorage.getItem('requete-console');}catch(e){}
-      document.getElementById('ed-console').value=saved||"SELECT ville, COUNT(*) AS nb\nFROM clients\nGROUP BY ville\nORDER BY nb DESC;"; }
+      const ta=document.getElementById('ed-console');
+      ta.value=saved||"SELECT ville, COUNT(*) AS nb\nFROM clients\nGROUP BY ville\nORDER BY nb DESC;";
+      ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; }
     syncHL('ed-console','hl-console'); renderConsoleChips(); renderDbWorkspace();
     maybeOnboard();
     restoreNav();
@@ -4312,11 +4314,14 @@ function highlight(code){
 }
 function setupEditor(taId,hlId){
   const ta=document.getElementById(taId);
+  const pre=ta?ta.parentElement.querySelector('pre'):null;
   const grow=()=>{ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';};
+  const syncScroll=()=>{ if(pre) pre.scrollTop=ta.scrollTop; };
   ta.addEventListener('input',()=>{syncHL(taId,hlId);grow();persistEditor(taId);});
-  ta.addEventListener('focus',()=>{activeTA=ta;showKbar(true);});
+  ta.addEventListener('scroll',syncScroll);
+  ta.addEventListener('focus',()=>{activeTA=ta;showKbar(true);syncScroll();});
   ta.addEventListener('blur',()=>{setTimeout(()=>{if(document.activeElement!==ta)showKbar(false);},150);});
-  grow();
+  grow();syncScroll();
 }
 function persistEditor(taId){
   const ta=document.getElementById(taId); if(!ta)return;
@@ -4326,7 +4331,7 @@ function persistEditor(taId){
     s.draft=ta.value; save();
   }
 }
-function syncHL(a,b){document.getElementById(b).innerHTML=highlight(document.getElementById(a).value);}
+function syncHL(a,b){const ta=document.getElementById(a);document.getElementById(b).innerHTML=highlight(ta.value);const pre=ta&&ta.parentElement?ta.parentElement.querySelector('pre'):null;if(pre)pre.scrollTop=ta.scrollTop;}
 function execQuery(sql,d){const t0=performance.now();const res=(d||activeDb()||db).exec(sql);return{res,ms:performance.now()-t0};}
 function fmtCell(v){
   if(v===null)return '<td class="null">NULL</td>';
