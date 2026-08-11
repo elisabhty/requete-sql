@@ -2431,6 +2431,7 @@ GROUP BY categorie
      sql:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;"}
   ],
   piege:null,
+  attendu:"<b>2 lignes</b> : Bien-être (3 produits) et Nutrition (2 produits).",
   consigne:"Trouve les catégories qui contiennent <b>au moins 2 produits</b> et affiche, pour chacune, son nom et le nombre de produits.",
   solution:"SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 2;",
   indice:"<code>… GROUP BY categorie HAVING COUNT(*) >= 2</code>" },
@@ -3622,7 +3623,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-11-bravo-flow';
+const APP_VERSION='2026-08-11-having-feedback';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -4489,6 +4490,18 @@ function normalize(result,ordered){
   if(!result||result.length===0)return "∅";
   const rows=result[0].values.map(r=>JSON.stringify(r.map(v=>typeof v==='number'?Math.round(v*1000)/1000:v)));
   return JSON.stringify(ordered?rows:rows.slice().sort());
+}
+function fmtLignes(n){ return n===1?'1 ligne':`${n} lignes`; }
+function exoFailDiag(sql,sol,nU,nS){
+  const havingRe=/HAVING\s+COUNT\s*\(\s*\*\s*\)\s*>=\s*(\d+)/i;
+  const mU=String(sql||'').match(havingRe);
+  const mS=String(sol||'').match(havingRe);
+  if(mU&&mS&&+mU[1]>+mS[1]&&nU>0&&nU<nS)
+    return `Tu filtres avec <code>HAVING COUNT(*) &gt;= ${mU[1]}</code>, mais la consigne demande <b>au moins ${mS[1]} produits</b> — essaie <code>&gt;= ${mS[1]}</code> (Bien-être et Nutrition).`;
+  if(nU>nS) return `Tu obtiens <b>${fmtLignes(nU)}</b> alors qu'on en attend <b>${fmtLignes(nS)}</b> — il manque sans doute un filtre.`;
+  if(nU<nS&&nU>0) return `Tu obtiens <b>${fmtLignes(nU)}</b> alors qu'on en attend <b>${fmtLignes(nS)}</b> — ton filtre est peut-être trop strict.`;
+  if(nU===nS&&nU>0) return 'Le nombre de lignes est bon, mais pas les colonnes, les valeurs ou leur ordre.';
+  return 'Compare ton résultat avec la question, puis réessaie.';
 }
 
 /* ============================================================
@@ -5849,10 +5862,7 @@ function runLesson(){
   }else{
     const nU=userRes&&userRes[0]?userRes[0].values.length:0;
     const nS=solRes&&solRes[0]?solRes[0].values.length:0;
-    let diag="Compare ton résultat avec la question, puis réessaie.";
-    if(nU>nS) diag=`Tu obtiens <b>${nU} lignes</b> alors qu'on en attend <b>${nS}</b> — il manque sans doute un filtre.`;
-    else if(nU<nS&&nU>0) diag=`Tu obtiens <b>${nU} lignes</b> alors qu'on en attend <b>${nS}</b> — ton filtre est peut-être trop strict.`;
-    else if(nU===nS&&nU>0) diag="Le nombre de lignes est bon, mais pas les colonnes, les valeurs ou leur ordre.";
+    const diag=exoFailDiag(sql,sol,nU,nS);
     if(mode==='review'){ const st=state.lessons[current.id]; if(st){st.level=0;st.due=Date.now()+DAY;save();} }
     out.innerHTML=`<div class="feedback warn"><div class="fi">≈</div><div><b>La requête tourne, mais…</b><p>${diag}</p></div></div>${table}`;
     registerExoFail();
