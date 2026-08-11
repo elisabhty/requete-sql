@@ -1582,6 +1582,7 @@
   .home-card.late .hc-ring{background:conic-gradient(var(--warn) calc(var(--p)*1%),#ECECF3 0)}
   .hc-ring::after{content:'';position:absolute;width:42px;height:42px;border-radius:50%;background:var(--surface)}
   .hc-ring span{position:relative;z-index:1;font-family:var(--mono);font-weight:700;font-size:12px;color:var(--accent)}
+  .hc-ring span svg{width:20px;height:20px;display:block}
   .home-card.ok .hc-ring span{color:var(--success)}
   .home-card.late .hc-ring span{color:var(--warn)}
   .hc-copy{flex:1;min-width:0}
@@ -4793,14 +4794,15 @@ function renderHomeHero(){
     hp.innerHTML=`<span class="hp-track"><span class="hp-fill" style="width:${pct}%"></span></span><span class="hp-pct">${pct}%</span>`;
   }
 
-  const card=(mode,tag,metaR,title,desc,primary,pct,secondary='')=>`
+  const CHECK_RING='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>';
+  const card=(mode,tag,metaR,title,desc,primary,pct,secondary='',ringLabel=null)=>`
     <div class="home-card ${mode}">
       <div class="hc-meta">
         <span class="hc-tag">${tag}</span>
         <span class="hc-meta-r">${metaR}</span>
       </div>
       <div class="hc-top">
-        <div class="hc-ring" style="--p:0"><span>${pct}%</span></div>
+        <div class="hc-ring" style="--p:0"><span>${ringLabel||pct+'%'}</span></div>
         <div class="hc-copy">
           <h3>${title}</h3>
           ${desc?`<p>${desc}</p>`:''}
@@ -4826,8 +4828,8 @@ function renderHomeHero(){
     :`<button class="hc-go" type="button" onclick="switchTab('planning')">Voir le parcours</button>`;
 
   if(!info||!info.reste){
-    paint(card('ok','Parcours','terminé','Tout est terminé','Leçons et défis du planning sont bouclés.',
-      `<button class="hc-go" type="button" onclick="setHomeFilter('defis');switchTab('learn')">Voir les défis</button>`,100),100);
+    paint(card('ok','Parcours','terminé','Tout est terminé','Leçons et défis du planning sont bouclés — beau travail.',
+      `<button class="hc-go" type="button" onclick="setHomeFilter('defis');switchTab('learn')">Voir les défis</button>`,100,'',CHECK_RING),100);
     return;
   }
   if(info.retard&&info.retard.length){
@@ -4853,11 +4855,15 @@ function renderHomeHero(){
     return;
   }
   if(info.today){
-    paint(card('ok','Aujourd\'hui','fait','Séance terminée',
-      info.suivante?`Prochaine : ${libelleJour(info.suivante.d).toLowerCase()}.`:'Belle journée — rien d’autre de prévu.',
+    const prochain=info.suivante?libelleJour(info.suivante.d).toLowerCase():null;
+    const desc=prochain
+      ? `Tu n’as plus de cours aujourd’hui — continue le parcours ${prochain}.`
+      : 'Belle journée — tu n’as plus rien de prévu.';
+    paint(card('ok','Aujourd\'hui','fait','Séance bouclée',
+      desc,
       info.suivante?ctaParcours
         :`<button class="hc-go" type="button" onclick="switchTab('planning')">Voir le parcours</button>`,100,
-      due.length?`<button class="hc-sec" type="button" onclick="startReview()">↻ ${due.length}</button>`:''),100);
+      due.length?`<button class="hc-sec" type="button" onclick="startReview()">↻ ${due.length}</button>`:'',CHECK_RING),100);
     return;
   }
   paint(card('rest','Journée libre', info.suivante?libelleJour(info.suivante.d):'—',
