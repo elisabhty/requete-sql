@@ -605,7 +605,9 @@
   .exframe .ex-code{border-radius:0;padding:16px 16px;font-size:12px;line-height:1.6;white-space:pre-wrap;word-break:break-word;overflow-x:visible}
   .exframe .xf-actions{padding:16px 16px;background:var(--surface);border-top:1px solid var(--line)}
   .exframe .xf-run{width:100%;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:14px 16px;font-family:var(--ui);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 18px -10px rgba(91,91,214,.75);transition:transform .15s ease,opacity .15s ease}
-  .xf-run-ico{width:0;height:0;border-style:solid;border-width:6px 0 6px 9px;border-color:transparent transparent transparent #fff;margin-left:1px;flex:none}
+  .run-ico,.xf-run-ico{width:14px;height:14px;flex:none;display:block;margin:0 1px 0 0}
+  .run-ico path,.xf-run-ico path{fill:currentColor}
+  .btn-run .run-label,.run-label{display:inline-flex;align-items:center;gap:8px}
   .exframe .xf-expect{margin:0;padding:0 16px 14px;font-size:13px;color:var(--ink-2);line-height:1.5}
   .exframe .xf-expect b{color:var(--ink)}
   .exframe .xf-expect:has(+ .xf-result:not([hidden])){display:none}
@@ -1604,7 +1606,7 @@
           <textarea id="ed-console" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea></div>
         </div>
         <div class="run-row">
-          <button class="btn-run" id="btn-run-console" type="button" onclick="runConsole()"><span class="run-label">▶︎ Exécuter</span></button>
+          <button class="btn-run" id="btn-run-console" type="button" onclick="runConsole()"><span class="run-label"><svg class="run-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.05 5.36c-.7-.42-1.55.1-1.55.9v11.48c0 .8.85 1.32 1.55.9l9.52-5.74c.66-.4.66-1.4 0-1.8L9.05 5.36z"/></svg> Exécuter</span></button>
           <button class="btn-ghost btn-viz" onclick="openViz('ed-console')">Visualiser pas à pas</button>
         </div>
         <button type="button" class="btn-note" onclick="saveConsoleQuery()">
@@ -4106,6 +4108,8 @@ function errBox(msg){
   else if(m.includes('values do not match')) aide="Le nombre de valeurs après VALUES doit être identique au nombre de colonnes citées.";
   return `<div class="feedback err"><div class="fi">!</div><div><b>Erreur SQL</b><p><code>${esc(msg)}</code></p>${aide?`<p style="margin-top:7px">${aide}</p>`:''}</div></div>`;
 }
+const RUN_ICO=`<svg class="run-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.05 5.36c-.7-.42-1.55.1-1.55.9v11.48c0 .8.85 1.32 1.55.9l9.52-5.74c.66-.4.66-1.4 0-1.8L9.05 5.36z"/></svg>`;
+const XF_RUN_ICO=`<svg class="xf-run-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.05 5.36c-.7-.42-1.55.1-1.55.9v11.48c0 .8.85 1.32 1.55.9l9.52-5.74c.66-.4.66-1.4 0-1.8L9.05 5.36z"/></svg>`;
 function setRunLoading(btn,on){
   if(!btn)return;
   if(on){
@@ -4115,7 +4119,7 @@ function setRunLoading(btn,on){
   }else{
     btn.disabled=false;
     btn.classList.remove('running');
-    btn.innerHTML='<span class="run-label">▶︎ Exécuter</span>';
+    btn.innerHTML=`<span class="run-label">${RUN_ICO} Exécuter</span>`;
   }
 }
 function runConsole(){
@@ -4669,7 +4673,7 @@ const editorBlock=(withViz,fname='exercice.sql')=>`
     <div class="editor-area"><pre><code id="hl-lesson"></code></pre>
     <textarea id="ed-lesson" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="Écris ta requête ici…"></textarea></div>
   </div>
-  <div class="run-row"><button class="btn-run" onclick="runLesson()">▶︎ Exécuter</button>
+  <div class="run-row"><button class="btn-run" onclick="runLesson()">${RUN_ICO} Exécuter</button>
   <button class="btn-ghost" type="button" onclick="openSchemaSheet()">Schéma</button>
   ${withViz?`<button class="btn-ghost" type="button" onclick="openViz('ed-lesson')">Pas à pas</button>`:''}</div>
   <div id="lesson-out" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -4818,7 +4822,7 @@ function lessonRichFooter(l){
       <div class="xf-head"><span class="xf-name">${file}</span>${switcher}</div>
       <div class="ex-code">${highlight(demoSql)}</div>
       <div class="xf-actions">
-        <button type="button" class="xf-run" data-sql="${sql}" onclick="runExemple(this)"><span class="xf-run-ico" aria-hidden="true"></span>Exécuter</button>
+        <button type="button" class="xf-run" data-sql="${sql}" onclick="runExemple(this)">${XF_RUN_ICO}Exécuter</button>
       </div>
       ${expect}
       <div class="xf-result" hidden aria-live="polite"></div></div>
@@ -4884,7 +4888,7 @@ function runExemple(btn){
     }finally{
       btn.classList.remove('running');
       btn.disabled=false;
-      btn.innerHTML='<span class="xf-run-ico" aria-hidden="true"></span>Exécuter';
+      btn.innerHTML=XF_RUN_ICO+'Exécuter';
     }
   };
   if(prefersReduceMotion())finish();
