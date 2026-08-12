@@ -236,6 +236,20 @@ const SOL_VILLES =
   assertNotIncludes(msg, 'ligne', 'pas de compte de lignes');
 }
 
+console.log('\n=== exoFailDiag — pas de formulation « manque » ===');
+{
+  const cases = [
+    ['SELECT categorie, COUNT(*) FROM produits;', SOL_HAVING, mock(['categorie','COUNT(*)'],[['Bien-être',8]]), mock(['categorie','COUNT(*)'],[['Bien-être',3],['Nutrition',2]])],
+    ['SELECT categorie, COUNT(*) FROM produits GROUP BY categorie;', SOL_HAVING, mock(['categorie','COUNT(*)'],[['Bien-être',3],['Beauté',1]]), mock(['categorie','COUNT(*)'],[['Bien-être',3],['Nutrition',2]])],
+    ['SELECT nom FROM clients', 'SELECT nom FROM clients WHERE ville="Paris"', mock(['nom'],[['a'],['b'],['c']]), mock(['nom'],[['a'],['b']])],
+    ['SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 1;', SOL_HAVING, mock(['categorie','COUNT(*)'],[['Bien-être',3],['Beauté',1],['Nutrition',2]]), mock(['categorie','COUNT(*)'],[['Bien-être',3],['Nutrition',2]])],
+  ];
+  for (const [sql, sol, u, s] of cases) {
+    const msg = exoFailDiag(sql, sol, u, s, false);
+    assert(!/manque/i.test(msg), `pas de « manque » pour: ${sql.slice(0,40)}…`, msg);
+  }
+}
+
 console.log('\n=== Intégration SQL (sqlite3) — leçon HAVING ===');
 const schema = html.match(/const SCHEMA_SQL = `([\s\S]*?)`;/)[1];
 const pyPath = path.join(ROOT, 'tests', '_sql_having_check.py');

@@ -4534,9 +4534,9 @@ function diffResults(userRes,solRes,ordered){
   uMap.forEach((n,k)=>{ const sn=sMap.get(k)||0; if(n>sn) extra.push(k); });
   const decode=k=>{ try{const arr=JSON.parse(k);return fmtRow(arr,colsS);}catch(e){return k;} };
   if(missing.length&&extra.length)
-    return `Résultat incomplet : il manque <code>${esc(missing.slice(0,2).map(decode).join('</code>, <code>'))}</code>, et <code>${esc(extra.slice(0,2).map(decode).join('</code>, <code>'))}</code> en trop.`;
+    return `Résultat incomplet : <code>${esc(missing.slice(0,2).map(decode).join('</code>, <code>'))}</code> n’apparaît pas, et <code>${esc(extra.slice(0,2).map(decode).join('</code>, <code>'))}</code> en trop.`;
   if(missing.length)
-    return `Résultat incomplet : il manque <code>${esc(missing.slice(0,3).map(decode).join('</code>, <code>'))}</code>.`;
+    return `Résultat incomplet : <code>${esc(missing.slice(0,3).map(decode).join('</code>, <code>'))}</code> n’apparaît pas.`;
   if(extra.length)
     return `Résultat trop large : <code>${esc(extra.slice(0,3).map(decode).join('</code>, <code>'))}</code> en trop.`;
   return null;
@@ -4555,10 +4555,10 @@ function exoFailDiag(sql,sol,userRes,solRes,ordered){
     return '<code>COUNT</code> ne s’utilise pas dans <code>WHERE</code> — passe-le en <code>HAVING</code>.';
 
   if(hasGroupBy(R)&&!hasGroupBy(S))
-    return 'Il manque un <code>GROUP BY</code>.';
+    return 'Ajoute un <code>GROUP BY</code>.';
 
   if(hasHaving(R)&&!hasHaving(S)&&nU>nS)
-    return 'Il manque un <code>HAVING</code> pour filtrer les groupes.';
+    return 'Ajoute un <code>HAVING</code> pour filtrer les groupes.';
 
   const hU=parseHavingCount(S), hS=parseHavingCount(R);
   if(hU&&hS&&nU>0&&nU<nS){
@@ -4573,7 +4573,7 @@ function exoFailDiag(sql,sol,userRes,solRes,ordered){
   }
 
   if(hasWhere(R)&&!hasWhere(S)&&nU>nS)
-    return 'Il manque un <code>WHERE</code> pour filtrer les lignes.';
+    return 'Ajoute un <code>WHERE</code> pour filtrer les lignes.';
 
   if(colsU.length&&colsS.length&&colsU.length!==colsS.length)
     return `Colonnes affichées : ${colsU.map(c=>'<code>'+esc(c)+'</code>').join(', ')} — on attend ${colsS.map(c=>'<code>'+esc(c)+'</code>').join(', ')}.`;
