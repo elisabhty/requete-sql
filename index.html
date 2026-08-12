@@ -2465,8 +2465,7 @@ GROUP BY categorie
   exemple:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",
   testeVariants:[
     {k:'where',label:'WHERE + COUNT',tone:'bad',
-     sql:"SELECT categorie, COUNT(*)\nFROM produits\nWHERE COUNT(*) >= 2\nGROUP BY categorie;",
-     expect:"Cette requête <b>échoue</b> : <code>COUNT(*)</code> n’existe pas encore au moment du WHERE."},
+     sql:"SELECT categorie, COUNT(*)\nFROM produits\nWHERE COUNT(*) >= 2\nGROUP BY categorie;"},
     {k:'having',label:'HAVING + COUNT',tone:'good',
      sql:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",
      expect:"<b>2 lignes</b> : Bien-être (3 produits) et Nutrition (2 produits)."}
@@ -3664,7 +3663,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-12-having-sql-pass';
+const APP_VERSION='2026-08-12-no-where-caption';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -5611,7 +5610,7 @@ function lessonRichFooter(l){
   const sql=escAttr(demoSql);
   const slug=String(l.titre||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'');
   const file=slug?slug+'.sql':'requete.sql';
-  const expectTxt=(active&&active.expect)||l.testeAttendu||l.attendu;
+  const expectTxt=active?(active.expect||''):(l.testeAttendu||l.attendu);
   const tone=active?active.tone:'';
   const expect=expectTxt?`<p class="xf-expect ${tone||''}">${expectTxt}</p>`:'';
   const switcher=variants?`<div class="xf-switch" role="tablist" aria-label="Comparer WHERE et HAVING">
