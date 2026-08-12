@@ -714,12 +714,13 @@
   .editor-area pre,.editor-area textarea{margin:0;padding:14px 15px;font-family:inherit;font-size:inherit;line-height:inherit;white-space:pre-wrap;word-break:break-word;overflow-wrap:break-word;border:0;outline:0;tab-size:2}
   .editor-area pre code,.editor-area code{font-family:inherit;font-size:inherit;font-weight:inherit;font-style:inherit;line-height:inherit;letter-spacing:inherit;margin:0;padding:0;background:none;border-radius:0;white-space:inherit;tab-size:2;font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
   .editor-area pre{position:absolute;inset:0;pointer-events:none;color:var(--code-ink);z-index:0;overflow:hidden}
-  .editor-area textarea{position:relative;display:block;width:100%;min-height:104px;max-height:min(38vh,280px);resize:none;background:transparent;color:transparent;caret-color:#7A6FF0;z-index:1;touch-action:auto;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  .editor-area textarea{position:relative;display:block;width:100%;min-height:104px;max-height:min(28vh,200px);resize:none;background:transparent;color:transparent;caret-color:#7A6FF0;z-index:1;touch-action:auto;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
   .editor-area .t-kw{color:var(--t-kw);font-weight:600}
   .editor-area .t-fn{color:var(--t-fn)}.editor-area .t-str{color:var(--t-str)}
   .editor-area .t-num{color:var(--t-num)}.editor-area .t-com{color:var(--t-com);font-style:italic}
 
   .run-row{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:12px}
+  #scr-lesson .run-row{position:sticky;bottom:calc(var(--ls-nav-h) + 12px + var(--safe-bottom) + var(--kbar-offset));z-index:36;background:var(--bg);padding:8px 0 6px;margin-bottom:0;box-shadow:0 -14px 18px -10px var(--bg)}
   .btn-run{flex:1 1 140px;min-height:44px;background:var(--accent);color:#fff;border:none;border-radius:15px;padding:14px 10px;font-family:var(--ui);font-size:15.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 10px 22px -12px rgba(91,91,214,.8);transition:opacity .15s ease,transform .15s ease;touch-action:manipulation}
   .btn-run:active{transform:scale(.98)}
   .btn-run:disabled{cursor:wait;opacity:.88}
@@ -1051,7 +1052,7 @@
 
   /* Bouton flottant */
   .fab{position:absolute;right:16px;bottom:calc(var(--safe-bottom) + var(--tabbar-h) + 12px);z-index:40;width:52px;height:52px;border-radius:17px;border:none;background:linear-gradient(150deg,var(--accent),var(--accent-2));color:#fff;font-size:21px;cursor:pointer;box-shadow:0 8px 22px rgba(91,91,214,.42);display:flex;align-items:center;justify-content:center}
-  body.in-lesson .fab{bottom:calc(var(--safe-bottom) + 86px)}
+  body.in-lesson .fab{top:calc(var(--safe-top) + 58px);bottom:auto;right:14px;width:44px;height:44px;border-radius:14px}
   .fab:active{transform:scale(.94)}
   .fab.hide{display:none}
 
@@ -3684,7 +3685,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-12-having-lead';
+const APP_VERSION='2026-08-12-exo-stack';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -4469,15 +4470,15 @@ function sqlEditorCap(ta){
   const nh=nav?nav.offsetHeight+14:0;
   const top=ta.getBoundingClientRect().top-visTop;
   const room=visH-Math.max(8,top)-rh-nh-kh-8;
-  return Math.max(120,Math.min(room,280));
+  return Math.max(120,Math.min(room,200));
 }
 function fitSqlEditor(ta){
   if(typeof ta==='string') ta=document.getElementById(ta);
   if(!ta) return;
   const cap=sqlEditorCap(ta);
   ta.style.maxHeight=cap+'px';
-  ta.style.height='auto';
-  ta.style.height=Math.max(104,ta.scrollHeight)+'px';
+  ta.style.height='0px';
+  ta.style.height=Math.min(cap,Math.max(104,ta.scrollHeight))+'px';
 }
 function revealSqlEditor(ta){
   const shell=ta.closest('.editor-shell')||ta;
