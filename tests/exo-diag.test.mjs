@@ -80,8 +80,9 @@ const SOL_HAVING =
   assertIncludes(msg, 'HAVING COUNT(*)', 'seuil HAVING mentionné');
   assertIncludes(msg, '>= 3', 'seuil élève affiché');
   assertIncludes(msg, '>= 2', 'seuil attendu affiché');
-  assertIncludes(msg, 'trop strict', 'diagnostic strict');
+  assertIncludes(msg, 'exclut', 'diagnostic orienté requête');
   assertNotIncludes(msg, 'produits', 'pas de mention « produits » hardcodée');
+  assertNotIncludes(msg, 'ligne', 'pas de compte de lignes');
 }
 
 {
@@ -159,11 +160,56 @@ console.log('\n=== exoFailDiag — cas génériques ===');
     mock(['ville'], [['Paris'], ['Lyon']]),
     mock(['ville', 'COUNT(*)'], [['Paris', 3], ['Lyon', 2]])
   );
-  assert(
-    msg.includes('colonne') || msg.includes('valeurs'),
-    'même nb lignes, cols différentes',
-    msg
+  assertIncludes(msg, 'colonne', 'cols différentes détectées');
+}
+
+console.log('\n=== exoFailDiag — diff de résultat (lignes en trop / manquantes) ===');
+{
+  const sql =
+    'SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 1;';
+  const userRes = mock(['categorie', 'COUNT(*)'], [
+    ['Bien-être', 3],
+    ['Beauté', 1],
+    ['Boisson', 1],
+    ['Nutrition', 2],
+    ['Accessoire', 1],
+  ]);
+  const solRes = mock(
+    ['categorie', 'COUNT(*)'],
+    [
+      ['Bien-être', 3],
+      ['Nutrition', 2],
+    ]
   );
+  const msg = exoFailDiag(sql, SOL_HAVING, userRes, solRes, false);
+  assertIncludes(msg, 'en trop', 'signale les lignes en trop');
+  assertNotIncludes(msg, 'ligne', 'pas de compte de lignes');
+}
+{
+  const sql =
+    'SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 4;';
+  const userRes = mock(['categorie', 'COUNT(*)'], []);
+  const solRes = mock(
+    ['categorie', 'COUNT(*)'],
+    [
+      ['Bien-être', 3],
+      ['Nutrition', 2],
+    ]
+  );
+  const msg = exoFailDiag(sql, SOL_HAVING, userRes, solRes, false);
+  assertIncludes(msg, 'Aucune ligne', '0 ligne → message dédié');
+}
+{
+  const solRes = mock(['nom'], [['Sophie'], ['Lucas'], ['Emma']]);
+  const userRes = mock(['nom'], [['Sophie'], ['Emma'], ['Léa']]);
+  const msg = exoFailDiag(
+    'SELECT nom FROM clients ORDER BY nom;',
+    'SELECT nom FROM clients ORDER BY nom;',
+    userRes,
+    solRes,
+    true
+  );
+  assertIncludes(msg, 'ordre', 'ordered: signale l’ordre');
 }
 
 console.log('\n=== exoFailDiag — leçon villes (pas « produits ») ===');
@@ -184,8 +230,9 @@ const SOL_VILLES =
       ]
     )
   );
-  assertIncludes(msg, 'trop strict', 'seuil strict villes');
+  assertIncludes(msg, 'exclut', 'seuil strict villes');
   assertNotIncludes(msg, 'produits', 'pas de « produits » sur leçon villes');
+  assertNotIncludes(msg, 'ligne', 'pas de compte de lignes');
 }
 
 console.log('\n=== Intégration SQL (sqlite3) — leçon HAVING ===');
@@ -237,7 +284,7 @@ const diagReal = exoFailDiag(
   [results[1]],
   [results[0]]
 );
-assertIncludes(diagReal, 'trop strict', 'diag cohérent avec résultats SQL réels');
+assertIncludes(diagReal, 'exclut', 'diag cohérent avec résultats SQL réels');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);

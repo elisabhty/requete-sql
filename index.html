@@ -4496,25 +4496,67 @@ function parseHavingCount(sql){
   const m=String(sql||'').match(/HAVING\s+COUNT\s*\(\s*(?:DISTINCT\s+)?(?:\*|\w+(?:\.\w+)?)\s*\)\s*(>=|>|=|<=|<)\s*(\d+)/i);
   return m?{op:m[1],n:+m[2]}:null;
 }
-function exoFailDiag(sql,sol,userRes,solRes){
+function fmtRow(r,cols){
+  const cells=r.map(v=>{
+    if(v==null)return 'NULL';
+    if(typeof v==='number')return Math.round(v*1000)/1000;
+    return String(v);
+  });
+  if(cols&&cols.length===1)return cells[0];
+  return cells.join(' · ');
+}
+function rowKey(r){ return JSON.stringify(r.map(v=>typeof v==='number'?Math.round(v*1000)/1000:v)); }
+function diffResults(userRes,solRes,ordered){
+  const u=(userRes&&userRes[0]?userRes[0].values:[])||[];
+  const s=(solRes&&solRes[0]?solRes[0].values:[])||[];
+  const colsU=(userRes&&userRes[0]?userRes[0].columns:[])||[];
+  const colsS=(solRes&&solRes[0]?solRes[0].columns:[])||[];
+  const sameCols=colsU.length===colsS.length&&colsU.every((c,i)=>String(c).toLowerCase()===String(colsS[i]).toLowerCase());
+  if(!sameCols) return null;
+  if(ordered){
+    const wrong=[];
+    const n=Math.max(u.length,s.length);
+    for(let i=0;i<n;i++){
+      if(rowKey(u[i])!==rowKey(s[i])) wrong.push({i,exp:s[i],got:u[i]});
+    }
+    if(!wrong.length) return null;
+    const sample=wrong.slice(0,2).map(w=>{
+      const e=fmtRow(w.exp,colsS), g=w.got?fmtRow(w.got,colsS):'(absente)';
+      return `ligne ${w.i+1} : attendu <code>${esc(e)}</code>, tu as <code>${esc(g)}</code>`;
+    }).join(' — ');
+    return `Les lignes ne sont pas dans le bon ordre ou diffèrent. ${sample}.`;
+  }
+  const uMap=new Map(), sMap=new Map();
+  u.forEach(r=>uMap.set(rowKey(r),(uMap.get(rowKey(r))||0)+1));
+  s.forEach(r=>sMap.set(rowKey(r),(sMap.get(rowKey(r))||0)+1));
+  const missing=[], extra=[];
+  sMap.forEach((n,k)=>{ const un=uMap.get(k)||0; if(un<n) missing.push(k); });
+  uMap.forEach((n,k)=>{ const sn=sMap.get(k)||0; if(n>sn) extra.push(k); });
+  const decode=k=>{ try{const arr=JSON.parse(k);return fmtRow(arr,colsS);}catch(e){return k;} };
+  const parts=[];
+  if(missing.length) parts.push(`il manque <code>${esc(missing.slice(0,3).map(decode).join('</code>, <code>'))}</code>`);
+  if(extra.length) parts.push(`tu as <code>${esc(extra.slice(0,3).map(decode).join('</code>, <code>'))}</code> en trop`);
+  if(!parts.length) return null;
+  return `Tu n'obtiens pas le bon résultat — ${parts.join(' et ')}.`;
+}
+function exoFailDiag(sql,sol,userRes,solRes,ordered){
   const S=String(sql||''), R=String(sol||'');
   const nU=userRes&&userRes[0]?userRes[0].values.length:0;
   const nS=solRes&&solRes[0]?solRes[0].values.length:0;
   const colsU=(userRes&&userRes[0]?userRes[0].columns:[])||[];
   const colsS=(solRes&&solRes[0]?solRes[0].columns:[])||[];
-  const normCols=a=>a.map(c=>String(c).toLowerCase());
   const hasGroupBy=q=>/\bGROUP\s+BY\b/i.test(q);
   const hasHaving=q=>/\bHAVING\b/i.test(q);
   const hasWhere=q=>/\bWHERE\b/i.test(q);
 
   if(/\bWHERE\b[^;]*\bCOUNT\s*\(/i.test(S)&&!hasHaving(S))
-    return 'Tu utilises <code>COUNT</code> dans un <code>WHERE</code> — filtre les groupes avec <code>HAVING</code>, après <code>GROUP BY</code>.';
+    return 'Ta requête utilise <code>COUNT</code> dans un <code>WHERE</code> — SQL ne peut pas filtrer sur un agrégat avant le regroupement. Utilise <code>HAVING</code> après <code>GROUP BY</code>.';
 
-  if(hasGroupBy(R)&&!hasGroupBy(S)&&nU!==nS)
-    return 'Il manque un <code>GROUP BY</code> pour regrouper les lignes avant de compter ou filtrer.';
+  if(hasGroupBy(R)&&!hasGroupBy(S))
+    return 'Ta requête ne regroupe pas les lignes — ajoute <code>GROUP BY</code> pour pouvoir compter ou filtrer par groupe.';
 
   if(hasHaving(R)&&!hasHaving(S)&&nU>nS)
-    return 'Il manque un <code>HAVING</code> pour filtrer les groupes après le regroupement — <code>WHERE</code> ne peut pas utiliser <code>COUNT</code>.';
+    return 'Ta requête regroupe mais ne filtre pas les groupes — ajoute <code>HAVING</code> (un <code>WHERE</code> ne peut pas utiliser <code>COUNT</code>).';
 
   const hU=parseHavingCount(S), hS=parseHavingCount(R);
   if(hU&&hS&&nU>0&&nU<nS){
@@ -4522,29 +4564,26 @@ function exoFailDiag(sql,sol,userRes,solRes){
       || hU.op==='='&&hS.op==='>='&&hU.n>hS.n
       || hU.op==='='&&hS.op==='='&&hU.n!==hS.n;
     if(strict)
-      return `Tu filtres avec <code>HAVING COUNT(*) ${esc(hU.op)} ${hU.n}</code>, mais il faut <code>${esc(hS.op)} ${hS.n}</code> — ton seuil est trop strict.`;
+      return `Ton <code>HAVING COUNT(*) ${esc(hU.op)} ${hU.n}</code> exclut des groupes que la consigne veut garder — essaie <code>${esc(hS.op)} ${hS.n}</code>.`;
     const loose=(hU.op==='>='||hU.op==='>')&&hU.n<hS.n;
     if(loose)
-      return `Tu filtres avec <code>HAVING COUNT(*) ${esc(hU.op)} ${hU.n}</code>, mais il faut <code>${esc(hS.op)} ${hS.n}</code> — ton seuil est trop large.`;
+      return `Ton <code>HAVING COUNT(*) ${esc(hU.op)} ${hU.n}</code> garde des groupes en trop — essaie <code>${esc(hS.op)} ${hS.n}</code>.`;
   }
 
   if(hasWhere(R)&&!hasWhere(S)&&nU>nS)
-    return `Tu obtiens <b>${fmtLignes(nU)}</b> au lieu de <b>${fmtLignes(nS)}</b> — ajoute un <code>WHERE</code> pour filtrer les lignes.`;
+    return 'Ta requête ne filtre pas les lignes — ajoute un <code>WHERE</code> pour ne garder que celles qui correspondent à la consigne.';
 
   if(colsU.length&&colsS.length&&colsU.length!==colsS.length)
-    return `Tu affiches <b>${colsU.length} colonne${colsU.length>1?'s':''}</b> (${colsU.map(c=>'<code>'+esc(c)+'</code>').join(', ')}) — on attend <b>${colsS.length}</b> (${colsS.map(c=>'<code>'+esc(c)+'</code>').join(', ')}).`;
+    return `Les colonnes ne correspondent pas : tu affiches ${colsU.map(c=>'<code>'+esc(c)+'</code>').join(', ')} — on attend ${colsS.map(c=>'<code>'+esc(c)+'</code>').join(', ')}.`;
 
   if(nU===0&&nS>0)
-    return `Aucune ligne retournée — vérifie tes conditions <code>WHERE</code> ou <code>HAVING</code>, ou le seuil numérique.`;
+    return 'Aucune ligne ne ressort — ta condition (<code>WHERE</code> ou <code>HAVING</code>) est trop restrictive, ou la table filtrée est vide.';
 
-  if(nU>nS) return `Tu obtiens <b>${fmtLignes(nU)}</b> au lieu de <b>${fmtLignes(nS)}</b> — il manque probablement un filtre (<code>WHERE</code> ou <code>HAVING</code>).`;
-  if(nU<nS&&nU>0) return `Tu obtiens <b>${fmtLignes(nU)}</b> au lieu de <b>${fmtLignes(nS)}</b> — un filtre est peut-être trop strict, ou une jointure manque.`;
-  if(nU===nS&&nU>0){
-    const cu=normCols(colsU).join(','), cs=normCols(colsS).join(',');
-    if(cu!==cs) return 'Le nombre de lignes est bon, mais les <b>colonnes</b> ne correspondent pas à la consigne.';
-    return 'Le nombre de lignes est bon, mais les <b>valeurs</b> ou leur <b>ordre</b> ne correspondent pas.';
-  }
-  return 'Compare ton résultat avec la consigne, puis réessaie.';
+  const diff=diffResults(userRes,solRes,ordered);
+  if(diff) return diff;
+
+  if(nU===nS&&nU>0) return 'Le résultat ne correspond pas à la consigne — vérifie les valeurs et l’ordre de tes colonnes.';
+  return 'Le résultat ne correspond pas à la consigne — compare ta requête avec l’énoncé, puis réessaie.';
 }
 
 /* ============================================================
@@ -5847,7 +5886,7 @@ function runLesson(){
   if(!sql){out.innerHTML='';return;}
   const isDefi=mode==='defi';
   const sol=isDefi?current.sol:current.solution;
-  const ordered=isDefi?current.ordered:current.ordered;
+  const ordered=isDefi?!!current.ordered:false;
   const write=!isDefi&&current.write;
   let userRes,solRes,ms=null;
   try{
@@ -5903,7 +5942,7 @@ function runLesson(){
       if(leconFinie) finaliserLecon();
     }
   }else{
-    const diag=exoFailDiag(sql,sol,userRes,solRes);
+    const diag=exoFailDiag(sql,sol,userRes,solRes,ordered);
     if(mode==='review'){ const st=state.lessons[current.id]; if(st){st.level=0;st.due=Date.now()+DAY;save();} }
     out.innerHTML=`<div class="feedback warn"><div class="fi">≈</div><div><b>La requête tourne, mais…</b><p>${diag}</p></div></div>${table}`;
     registerExoFail();
