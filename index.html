@@ -288,17 +288,25 @@
   .takeaway-list li::before{content:'✓';flex:none;width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px;box-shadow:none}
   .concept-coda{font-size:14px!important;color:var(--ink-2)!important;margin:16px 0 0!important;padding-top:16px;border-top:1px solid rgba(20,20,40,.06)}
   .concept-coda.soft{margin-top:12px!important;padding-top:0;border:0}
-  .coda-k{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:800;color:var(--ink);margin:0 0 10px}
-  .coda-k span{font-size:15px;line-height:1}
-  .coda-lines{display:flex;flex-direction:column;gap:8px}
-  .coda-line{margin:0;padding:11px 12px;border-radius:12px;font-size:13.5px!important;line-height:1.5!important;color:var(--ink)!important;font-weight:550}
+  .coda-k{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:800;color:var(--ink);margin:0 0 12px;letter-spacing:-.2px}
+  .coda-k span{font-size:16px;line-height:1}
+  .coda-lines{display:flex;flex-direction:column;gap:10px}
+  .coda-line{margin:0;padding:13px 14px;border-radius:14px;display:flex;align-items:flex-start;gap:12px;font-size:13.5px!important;line-height:1.5!important;color:var(--ink)!important;font-weight:550}
+  .coda-ico{flex:none;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff}
+  .coda-ico svg{width:18px;height:18px;display:block}
+  .coda-line.ko .coda-ico{color:var(--danger);box-shadow:0 0 0 1px rgba(200,54,79,.12)}
+  .coda-line.ok .coda-ico{color:var(--success);box-shadow:0 0 0 1px rgba(15,118,110,.14)}
+  .coda-body{flex:1;min-width:0}
+  .coda-body p{margin:0;font-size:13.5px;line-height:1.5;color:var(--ink);font-weight:550}
+  .coda-body p + p{margin-top:6px}
   .coda-line code{font-size:.92em}
   .coda-line.ko{background:var(--danger-soft);border:1px solid rgba(200,54,79,.12)}
   .coda-line.ok{background:var(--success-soft);border:1px solid rgba(15,118,110,.14)}
   .coda-line .hl{display:inline;padding:.08em .38em;border-radius:6px;font-weight:800;box-decoration-break:clone;-webkit-box-decoration-break:clone}
   .coda-line.ko .hl{background:#fff;color:var(--danger);box-shadow:0 0 0 1px rgba(200,54,79,.12)}
   .coda-line.ok .hl{background:#fff;color:var(--success);box-shadow:0 0 0 1px rgba(15,118,110,.14)}
-  .coda-sub{margin:8px 2px 0!important;font-size:12.5px!important;line-height:1.45!important;color:var(--ink-3)!important}
+  .coda-sub{margin:12px 2px 0!important;font-size:13px!important;line-height:1.5!important;color:var(--ink-2)!important}
+  .coda-sub code,.coda-sub b{color:var(--accent)!important;font-weight:800}
   .concept-block .ex-code{margin:0 0 14px;padding:14px 15px;border-radius:14px;font-size:12.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word;box-shadow:none}
   .concept-block > .ex-code:first-of-type,.concept-block > .sql-copy-wrap:first-of-type .ex-code{margin-top:0}
   .concept-block > p + .ex-code,.concept-block > p + .sql-copy-wrap .ex-code{margin-top:2px}
@@ -3686,7 +3694,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-12-result-clear';
+const APP_VERSION='2026-08-12-retenir';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -5712,10 +5720,21 @@ function lessonDemoBlocks(l){
     <div class="concept-coda">
       <div class="coda-k"><span aria-hidden="true">💡</span>À retenir</div>
       <div class="coda-lines">
-        <p class="coda-line ko"><code>WHERE</code> s’exécute <span class="hl">avant GROUP BY</span> — pas de <code>COUNT(*)</code>.</p>
-        <p class="coda-line ok"><code>HAVING</code> filtre les groupes <span class="hl">après le regroupement</span>.</p>
+        <div class="coda-line ko">
+          <span class="coda-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-6.5 7.5v4.5L10 19v-6.5L4 5z"/></svg></span>
+          <div class="coda-body">
+            <p><code>WHERE</code> s’applique <span class="hl">avant le GROUP BY</span> : il filtre les lignes individuelles, pas les résultats agrégés.</p>
+            <p>Donc pas de <code>COUNT(*)</code>, <code>SUM()</code>, <code>AVG()</code>, etc. dans <code>WHERE</code>.</p>
+          </div>
+        </div>
+        <div class="coda-line ok">
+          <span class="coda-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 19c.4-3.2 2.8-5 6-5s5.6 1.8 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M16.2 19c.3-2.2 1.8-3.6 3.8-4"/></svg></span>
+          <div class="coda-body">
+            <p><code>HAVING</code> s’applique <span class="hl">après le GROUP BY</span> : il filtre les groupes formés et peut utiliser des agrégats (<code>COUNT(*)</code>, <code>SUM()</code>, <code>AVG()</code>, etc.).</p>
+          </div>
+        </div>
       </div>
-      <p class="coda-sub"><code>SELECT</code> s’écrit en premier, s’exécute presque en dernier.</p>
+      <p class="coda-sub">En résumé : <code>SELECT</code> s’écrit en premier, mais s’exécute <b>presque en dernier</b>.</p>
     </div>
     </div>`:'';
   return `${lessonRichFooter(l)}${anat?`<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`:''}${order}`;
