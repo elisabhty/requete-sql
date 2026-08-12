@@ -284,6 +284,17 @@
   .takeaway-list li::before{content:'✓';flex:none;width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px;box-shadow:none}
   .concept-coda{font-size:14px!important;color:var(--ink-2)!important;margin:16px 0 0!important;padding-top:16px;border-top:1px solid rgba(20,20,40,.06)}
   .concept-coda.soft{margin-top:12px!important;padding-top:0;border:0}
+  .coda-k{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:800;color:var(--ink);margin:0 0 10px}
+  .coda-k span{font-size:15px;line-height:1}
+  .coda-lines{display:flex;flex-direction:column;gap:8px}
+  .coda-line{margin:0;padding:11px 12px;border-radius:12px;font-size:13.5px!important;line-height:1.5!important;color:var(--ink)!important;font-weight:550}
+  .coda-line code{font-size:.92em}
+  .coda-line.ko{background:var(--danger-soft);border:1px solid rgba(200,54,79,.12)}
+  .coda-line.ok{background:var(--success-soft);border:1px solid rgba(15,118,110,.14)}
+  .coda-line .hl{display:inline;padding:.08em .38em;border-radius:6px;font-weight:800;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+  .coda-line.ko .hl{background:#fff;color:var(--danger);box-shadow:0 0 0 1px rgba(200,54,79,.12)}
+  .coda-line.ok .hl{background:#fff;color:var(--success);box-shadow:0 0 0 1px rgba(15,118,110,.14)}
+  .coda-sub{margin:8px 2px 0!important;font-size:12.5px!important;line-height:1.45!important;color:var(--ink-3)!important}
   .concept-block .ex-code{margin:0 0 14px;padding:14px 15px;border-radius:14px;font-size:12.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word;box-shadow:none}
   .concept-block > .ex-code:first-of-type,.concept-block > .sql-copy-wrap:first-of-type .ex-code{margin-top:0}
   .concept-block > p + .ex-code,.concept-block > p + .sql-copy-wrap .ex-code{margin-top:2px}
@@ -3663,7 +3674,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-12-no-where-caption';
+const APP_VERSION='2026-08-12-coda-hl';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -5598,7 +5609,14 @@ function lessonDemoBlocks(l){
     <div class="cfs-label">Rappel · ordre d’exécution</div>
     <div class="concept-order"><code style="margin-left:8px">FROM</code><i>›</i><code>WHERE</code><i>›</i><code>GROUP BY</code><i>›</i><code class="on">HAVING</code><i>›</i><code>SELECT</code><i>›</i><code>ORDER BY</code><i style="width:10px;flex:none"></i></div>
     <div class="order-hint"><span class="order-hint-chip">Glisse<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h13M13 7l5 5-5 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
-    <div class="concept-coda"><b>💡 À retenir</b><br><code>WHERE</code> s’exécute <b>avant</b> <code>GROUP BY</code> : <code>COUNT()</code> n’existe pas encore. <code>HAVING</code> filtre les groupes <b>après</b> le regroupement. <code>SELECT</code>, même écrit en premier, arrive presque à la fin.</div>
+    <div class="concept-coda">
+      <div class="coda-k"><span aria-hidden="true">💡</span>À retenir</div>
+      <div class="coda-lines">
+        <p class="coda-line ko"><code>WHERE</code> s’exécute <span class="hl">avant GROUP BY</span> — pas de <code>COUNT(*)</code>.</p>
+        <p class="coda-line ok"><code>HAVING</code> filtre les groupes <span class="hl">après le regroupement</span>.</p>
+      </div>
+      <p class="coda-sub"><code>SELECT</code> s’écrit en premier, s’exécute presque en dernier.</p>
+    </div>
     <button type="button" class="order-replay" onclick="replayOrderRappelAnim()">↺ Revoir</button>
   </div>`:'';
   return `${lessonRichFooter(l)}${anat?`<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`:''}${order}`;
