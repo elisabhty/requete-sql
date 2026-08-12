@@ -3643,7 +3643,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-12-exo-diag';
+const APP_VERSION='2026-08-12-having-anim';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -5690,14 +5690,13 @@ function renderLessonFlow(){
   }
   if(lessonStep===2) renderValidation();
   if(lessonStep===3) requestAnimationFrame(revealBravoCard);
-  if(lessonStep===0&&current.id===17){
-    requestAnimationFrame(()=>requestAnimationFrame(initHavingGrpViz));
-  }
   if(lessonStep===0){ buildSommaire(); initOrderRappelAnim(); }
   const instantReveal=lessonStepDir<0;
+  const needHaving=lessonStep===0&&current.id===17;
   requestAnimationFrame(()=>{
     revealLessonContent(instantReveal);
     scrollLessonTop();
+    if(needHaving) setTimeout(initHavingGrpViz, instantReveal?40:120);
   });
 }
 function kickOrderRappel(el){
@@ -7621,13 +7620,17 @@ function havingGrpBucketLayout(sw){
   };
 }
 
-function layoutHavingGrpViz(root,phase){
+function layoutHavingGrpViz(root,phase,{animate=true}={}){
   const stage=root.querySelector('.grp-stage');
   if(!stage)return;
   const sw=stage.clientWidth||320;
   const chips=[...root.querySelectorAll('.grp-chip')];
   const buckets=[...root.querySelectorAll('.grp-bucket')];
   const layout=havingGrpBucketLayout(sw);
+  if(!animate){
+    chips.forEach(c=>{c.style.transition='none';});
+    buckets.forEach(b=>{b.style.transition='none';});
+  }
   buckets.forEach(b=>{
     const r=layout[b.dataset.cat];
     if(!r)return;
@@ -7643,36 +7646,41 @@ function layoutHavingGrpViz(root,phase){
       c.style.transform=`translate(${x}px,${8+i*rowH}px)`;
     });
     stage.style.height=(8+chips.length*rowH+10)+'px';
-    return;
-  }
-  stage.style.height=layout._h+'px';
-  let chipI=0;
-  Object.keys(layout).forEach(cat=>{
-    if(cat==='_h')return;
-    const r=layout[cat],list=byCat[cat]||[];
-    const cols=r.cols||1;
-    const padX=8, padTop=36, gapX=6, gapY=5, countReserve=40;
-    const cellW=Math.max(48,(r.w-padX*2-countReserve-(cols-1)*gapX)/cols);
-    const rows=Math.ceil(list.length/cols)||1;
-    const cellH=Math.max(26,(r.h-padTop-padX-(rows-1)*gapY)/rows);
-    list.forEach((c,i)=>{
-      const col=i%cols, row=Math.floor(i/cols);
-      c.style.transitionDelay=(chipI*40)+'ms';
-      chipI++;
-      c.style.width=cellW+'px';
-      c.style.maxWidth=cellW+'px';
-      c.style.transform=`translate(${r.x+padX+col*(cellW+gapX)}px,${r.y+padTop+row*(cellH+gapY)}px)`;
+  }else{
+    stage.style.height=layout._h+'px';
+    let chipI=0;
+    Object.keys(layout).forEach(cat=>{
+      if(cat==='_h')return;
+      const r=layout[cat],list=byCat[cat]||[];
+      const cols=r.cols||1;
+      const padX=8, padTop=36, gapX=6, gapY=5, countReserve=40;
+      const cellW=Math.max(48,(r.w-padX*2-countReserve-(cols-1)*gapX)/cols);
+      const rows=Math.ceil(list.length/cols)||1;
+      const cellH=Math.max(26,(r.h-padTop-padX-(rows-1)*gapY)/rows);
+      list.forEach((c,i)=>{
+        const col=i%cols, row=Math.floor(i/cols);
+        c.style.transitionDelay=(chipI*40)+'ms';
+        chipI++;
+        c.style.width=cellW+'px';
+        c.style.maxWidth=cellW+'px';
+        c.style.transform=`translate(${r.x+padX+col*(cellW+gapX)}px,${r.y+padTop+row*(cellH+gapY)}px)`;
+      });
     });
-  });
+  }
+  if(!animate){
+    void stage.offsetWidth;
+    chips.forEach(c=>{c.style.transition='';});
+    buckets.forEach(b=>{b.style.transition='';});
+  }
 }
 
-function havingGrpSetPhase(root,phase){
+function havingGrpSetPhase(root,phase,opts){
   const p=HAVING_GRP_PHASES[phase]||HAVING_GRP_PHASES[0];
   root.dataset.phase=String(phase);
   const k=root.querySelector('.grp-k'),d=root.querySelector('.grp-desc');
   if(k)k.textContent=p.k;
   if(d)d.textContent=p.d;
-  layoutHavingGrpViz(root,phase);
+  layoutHavingGrpViz(root,phase,opts);
 }
 
 function stopHavingGrpViz(){
@@ -7692,13 +7700,13 @@ function playHavingGrpViz(root){
   if(prefersReduceMotion()){
     root.dataset.playing='0';
     root.dataset.seen='1';
-    havingGrpSetPhase(root,2);
+    havingGrpSetPhase(root,2,{animate:false});
     havingGrpBtnLabel(root,true);
     if(btn)btn.disabled=false;
     return;
   }
   root.dataset.playing='1';
-  havingGrpSetPhase(root,0);
+  havingGrpSetPhase(root,0,{animate:false});
   havingGrpTimer=setTimeout(()=>{
     havingGrpSetPhase(root,1);
     havingGrpTimer=setTimeout(()=>{
@@ -7725,26 +7733,33 @@ function initHavingGrpViz(){
   if(havingGrpObs){havingGrpObs.disconnect();havingGrpObs=null;}
   stopHavingGrpViz();
   root.dataset.playing='0';
-  root.dataset.seen=root.dataset.seen||'0';
-  havingGrpSetPhase(root,0);
-  havingGrpBtnLabel(root,root.dataset.seen==='1');
-  const onResize=()=>layoutHavingGrpViz(root,parseInt(root.dataset.phase||'0',10));
-  if(root._grpResize)window.removeEventListener('resize',root._grpResize);
-  root._grpResize=onResize;
-  window.addEventListener('resize',onResize);
-  if(root.dataset.seen==='1'||prefersReduceMotion())return;
-  const scr=document.getElementById('scr-lesson');
-  if(!scr||typeof IntersectionObserver==='undefined'){
-    requestAnimationFrame(()=>setTimeout(()=>playHavingGrpViz(root),180));
-    return;
-  }
-  havingGrpObs=new IntersectionObserver(entries=>{
-    if(entries.some(e=>e.isIntersecting)){
-      havingGrpObs.disconnect();havingGrpObs=null;
-      playHavingGrpViz(root);
+  root.dataset.seen='0';
+  // Attendre que le bloc parent soit visible / layouté (évite largeur 0 + saut)
+  const kick=()=>{
+    if(!document.getElementById('having-grp-viz'))return;
+    havingGrpSetPhase(root,0,{animate:false});
+    havingGrpBtnLabel(root,false);
+    const onResize=()=>layoutHavingGrpViz(root,parseInt(root.dataset.phase||'0',10),{animate:false});
+    if(root._grpResize)window.removeEventListener('resize',root._grpResize);
+    root._grpResize=onResize;
+    window.addEventListener('resize',onResize);
+    if(prefersReduceMotion())return;
+    const scr=document.getElementById('scr-lesson');
+    if(!scr||typeof IntersectionObserver==='undefined'){
+      setTimeout(()=>playHavingGrpViz(root),220);
+      return;
     }
-  },{root:scr,threshold:.3});
-  havingGrpObs.observe(root);
+    havingGrpObs=new IntersectionObserver(entries=>{
+      if(entries.some(e=>e.isIntersecting&&e.intersectionRatio>=.25)){
+        havingGrpObs.disconnect();havingGrpObs=null;
+        // Relayout juste avant play (après scroll stabilisé)
+        havingGrpSetPhase(root,0,{animate:false});
+        playHavingGrpViz(root);
+      }
+    },{root:scr,threshold:[.25,.4]});
+    havingGrpObs.observe(root);
+  };
+  requestAnimationFrame(()=>requestAnimationFrame(kick));
 }
 
 boot();
