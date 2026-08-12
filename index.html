@@ -2420,7 +2420,7 @@ GROUP BY categorie
     <p style="margin-bottom:4px">SQL exécute la requête étape par étape. À chaque étape, les données se transforment. <code>COUNT(*)</code> ne peut être calculé qu’une fois les lignes regroupées avec <code>GROUP BY</code>.</p>
     <div class="grp-viz" id="having-grp-viz" data-phase="0" aria-label="Animation : regroupement puis filtrage HAVING">
       <div class="grp-viz-bar">
-        <span class="grp-k">SELECT * FROM produits</span>
+        <span class="grp-k">FROM produits</span>
         <span class="grp-desc">SQL lit simplement les lignes</span>
         <span class="grp-paused-badge" aria-live="polite">En pause</span>
       </div>
@@ -2465,9 +2465,11 @@ GROUP BY categorie
   exemple:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",
   testeVariants:[
     {k:'where',label:'WHERE + COUNT',tone:'bad',
-     sql:"SELECT categorie, COUNT(*)\nFROM produits\nWHERE COUNT(*) >= 2\nGROUP BY categorie;"},
+     sql:"SELECT categorie, COUNT(*)\nFROM produits\nWHERE COUNT(*) >= 2\nGROUP BY categorie;",
+     expect:"Cette requête <b>échoue</b> : <code>COUNT(*)</code> n’existe pas encore au moment du WHERE."},
     {k:'having',label:'HAVING + COUNT',tone:'good',
-     sql:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;"}
+     sql:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",
+     expect:"<b>2 lignes</b> : Bien-être (3 produits) et Nutrition (2 produits)."}
   ],
   piege:null,
   attendu:"<b>2 lignes</b> : Bien-être (3 produits) et Nutrition (2 produits).",
@@ -3558,7 +3560,7 @@ const QCM={
    {q:"Sophie a 3 commandes. Dans un JOIN commandes/clients, son nom apparaît :",o:["1 fois","3 fois","9 fois"],b:1,e:"Le JOIN répète les infos du client autant de fois qu’il a de commandes."}],
  16:[{q:"<code>AS</code> sert à :",o:["Créer une colonne dans la base","Renommer une colonne à l’affichage","Relier deux tables"],b:1,e:"Habillage uniquement : la base n’est pas modifiée."},
    {q:"Pour relier trois tables :",o:["Un JOIN avec trois conditions ON","Deux JOIN, chacun avec son propre ON","Obligatoirement une sous-requête"],b:1,e:"On empile : chaque table en plus ajoute un <code>JOIN … ON …</code>."}],
- 17:[{q:"<code>WHERE COUNT(*) > 1</code> :",o:["Fonctionne correctement","Échoue : les agrégats ne sont pas disponibles au moment du WHERE","Renvoie un résultat vide"],b:1,e:"Quand WHERE s’exécute, les groupes n’existent pas encore. C’est le rôle de HAVING."},
+  17:[{q:"<code>WHERE COUNT(*) >= 2</code> :",o:["Fonctionne correctement","Échoue : les agrégats ne sont pas disponibles au moment du WHERE","Renvoie un résultat vide"],b:1,e:"Quand WHERE s’exécute, les groupes n’existent pas encore. C’est le rôle de HAVING."},
    {q:"Dans l’ordre d’exécution, HAVING vient :",o:["Avant GROUP BY","Après GROUP BY","Avant WHERE"],b:1,e:"FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY."}],
  18:[{q:"<code>WHERE email = NULL</code> renvoie :",o:["Les clients sans email","Aucune ligne, quelles que soient les données","Tous les clients"],b:1,e:"NULL n’est égal à rien, pas même à lui-même. Il faut <code>IS NULL</code>."},
    {q:"<code>NULL</code> signifie :",o:["Zéro","Chaîne vide","Valeur inconnue"],b:2,e:"C’est l’absence d’information."}],
@@ -3662,7 +3664,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-12-order-no-fade';
+const APP_VERSION='2026-08-12-having-check';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -4544,7 +4546,7 @@ function exoFailDiag(sql,sol,userRes,solRes,ordered){
    ============================================================ */
 let activeTA=null;
 const KEYS=[['SELECT',1],['FROM',1],['WHERE',1],['*',0],["'",0],[',',0],['=',0],['>',0],['<',0],['>=',0],['%',0],['()',0],
-  ['GROUP BY',1],['ORDER BY',1],['JOIN',1],['ON',1],['AS',1],['COUNT(*)',1],['SUM()',1],['AVG()',1],['DESC',1],['LIMIT',1],['IS NULL',1],[';',0]];
+  ['GROUP BY',1],['HAVING',1],['ORDER BY',1],['JOIN',1],['ON',1],['AS',1],['COUNT(*)',1],['SUM()',1],['AVG()',1],['DESC',1],['LIMIT',1],['IS NULL',1],[';',0]];
 function buildKbar(){
   document.getElementById('kbar-in').innerHTML=KEYS.map(([k,isKw],i)=>
     `<button class="${isKw?'kw':''}" data-i="${i}">${esc(k)}</button>`).join('');
@@ -5579,7 +5581,7 @@ function lessonRichFooter(l){
   const sql=escAttr(demoSql);
   const slug=String(l.titre||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'');
   const file=slug?slug+'.sql':'requete.sql';
-  const expectTxt=active?active.expect:(l.testeAttendu||l.attendu);
+  const expectTxt=(active&&active.expect)||l.testeAttendu||l.attendu;
   const tone=active?active.tone:'';
   const expect=expectTxt?`<p class="xf-expect ${tone||''}">${expectTxt}</p>`:'';
   const switcher=variants?`<div class="xf-switch" role="tablist" aria-label="Comparer WHERE et HAVING">
@@ -5620,12 +5622,13 @@ function switchTesteVariant(btn){
   if(v.expect){
     if(!expect){
       expect=document.createElement('p');
-      expect.className='xf-expect';
       const actions=frame.querySelector('.xf-actions');
       if(actions) actions.insertAdjacentElement('afterend',expect);
     }
     expect.className='xf-expect '+(v.tone||'');
     expect.innerHTML=v.expect;
+  }else if(expect){
+    expect.remove();
   }
   const host=frame.querySelector('.xf-result');
   if(host){ host.hidden=true; host.innerHTML=''; host.classList.remove('on','flash'); }
@@ -7712,7 +7715,7 @@ async function resetAllProgress(){
 }
 
 const HAVING_GRP_PHASES=[
-  {k:'SELECT * FROM produits',d:'SQL lit simplement les lignes'},
+  {k:'FROM produits',d:'SQL lit simplement les lignes'},
   {k:'GROUP BY categorie',d:'SQL rassemble maintenant les lignes ayant la même catégorie.'},
   {k:'HAVING COUNT(*) ≥ 2',d:'SQL peut enfin filtrer les groupes.'}
 ];
