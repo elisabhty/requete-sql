@@ -400,12 +400,12 @@
   @keyframes emNudge{0%,100%{transform:translateX(0)}45%{transform:translateX(3px)}70%{transform:translateX(1px)}}
   .memory-rule .memory-having>b{animation:havBadge 2.4s ease-in-out infinite}
   @keyframes havBadge{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
-  .grp-replay{transition:transform .15s ease,background .18s,border-color .18s,box-shadow .18s}
+  .grp-pause,.grp-replay{transition:transform .15s ease,background .18s,border-color .18s,box-shadow .18s}
   @media (hover:hover) and (pointer:fine){
-    .grp-replay:hover{border-color:rgba(91,91,214,.35);box-shadow:0 6px 16px -10px rgba(91,91,214,.45)}
+    .grp-pause:hover:not(:disabled),.grp-replay:hover:not(:disabled){border-color:rgba(91,91,214,.35);box-shadow:0 6px 16px -10px rgba(91,91,214,.45)}
   }
-  .grp-replay:active{transform:scale(.97);background:var(--accent-soft)}
-  .grp-replay:disabled{opacity:.7;transform:none}
+  .grp-pause:active:not(:disabled),.grp-replay:active:not(:disabled){transform:scale(.97);background:var(--accent-soft)}
+  .grp-pause:disabled,.grp-replay:disabled{opacity:.55;transform:none}
   .ls-nav{animation:lsNavIn .4s cubic-bezier(.32,.72,.28,1) .15s both}
   @keyframes lsNavIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
   .ls-nav .ls-next{transition:transform .12s ease,box-shadow .12s ease,opacity .12s}
@@ -518,8 +518,10 @@
   .grp-viz[data-phase="2"] .grp-chip[data-keep="1"]{box-shadow:0 4px 14px rgba(20,184,166,.2);border-color:rgba(20,184,166,.35)}
   .grp-viz[data-phase="2"] .grp-bucket[data-keep="1"]{animation:grpKeepPulse .7s cubic-bezier(.3,1.3,.4,1) both}
   @keyframes grpKeepPulse{0%{transform:scale(1)}45%{transform:scale(1.025)}100%{transform:scale(1)}}
-  .grp-replay{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin:0;padding:10px;font-family:var(--ui);font-size:13px;font-weight:700;color:var(--accent);background:var(--surface);border:1px solid rgba(91,91,214,.18);border-radius:12px;cursor:pointer;touch-action:manipulation;min-height:44px}
-  .grp-replay:active{background:var(--accent-soft)}
+  .grp-controls{display:flex;gap:8px;width:100%;margin:0}
+  .grp-pause,.grp-replay{display:flex;align-items:center;justify-content:center;gap:6px;flex:1;margin:0;padding:10px;font-family:var(--ui);font-size:13px;font-weight:700;color:var(--accent);background:var(--surface);border:1px solid rgba(91,91,214,.18);border-radius:12px;cursor:pointer;touch-action:manipulation;min-height:44px}
+  .grp-pause:active,.grp-replay:active{background:var(--accent-soft)}
+  .grp-pause:disabled,.grp-replay:disabled{opacity:.55;cursor:default;transform:none}
   @media (max-width:380px){.grp-chip{font-size:10px;padding:6px 8px}.grp-k{font-size:10.5px}}
 
   .anat{background:var(--code-bg);border-radius:14px;padding:6px 0;margin-bottom:16px}
@@ -1816,7 +1818,7 @@
     .bn-arrow{animation:none!important;transform:translateY(-50%)}
     .bravo-ring{--p:100}
     .bravo-sparks{display:none}
-    .grp-chip,.grp-bucket,.grp-count,.concept-block,.vs-col,.memory-rule div,.grp-replay,.ls-nav .ls-next,.ls-nav .ls-prev{transition:none!important}
+    .grp-chip,.grp-bucket,.grp-count,.concept-block,.vs-col,.memory-rule div,.grp-pause,.grp-replay,.ls-nav .ls-next,.ls-nav .ls-prev{transition:none!important}
     .grp-viz[data-phase="0"] .grp-bucket{opacity:0}
     .grp-viz[data-phase="1"] .grp-bucket,.grp-viz[data-phase="2"] .grp-bucket{opacity:1;transform:none}
     .concept-block:hover,.vs-col:hover,.memory-rule div:hover{transform:none;box-shadow:none}
@@ -2423,7 +2425,10 @@ GROUP BY categorie
         <div class="grp-chip" data-cat="Bien-être" data-keep="1">Oméga 3</div>
         <div class="grp-chip" data-cat="Accessoire" data-keep="0">Shaker</div>
       </div>
-      <button type="button" class="grp-replay" id="having-grp-btn" onclick="replayHavingGrpViz()">▶ Voir l’animation</button>
+      <div class="grp-controls">
+        <button type="button" class="grp-pause" id="having-grp-pause" onclick="togglePauseHavingGrpViz()" disabled aria-label="Pause">⏸ Pause</button>
+        <button type="button" class="grp-replay" id="having-grp-btn" onclick="replayHavingGrpViz()">▶ Voir l’animation</button>
+      </div>
     </div>
   </div>
   <div class="concept-block">
@@ -3643,7 +3648,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-12-having-layout';
+const APP_VERSION='2026-08-12-having-pause';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -7607,6 +7612,30 @@ const HAVING_GRP_PHASES=[
 ];
 let havingGrpTimer=null,havingGrpObs=null;
 
+function havingGrpBtn(root){
+  return root.querySelector('.grp-replay')||document.getElementById('having-grp-btn');
+}
+function havingGrpPauseBtn(root){
+  return root.querySelector('.grp-pause')||document.getElementById('having-grp-pause');
+}
+
+function havingGrpSyncControls(root){
+  const playBtn=havingGrpBtn(root);
+  const pauseBtn=havingGrpPauseBtn(root);
+  const playing=root.dataset.playing==='1';
+  const paused=root.dataset.paused==='1';
+  const seen=root.dataset.seen==='1';
+  if(playBtn){
+    playBtn.disabled=false;
+    playBtn.textContent=seen||playing||paused?'↺ Revoir l’animation':'▶ Voir l’animation';
+  }
+  if(pauseBtn){
+    pauseBtn.disabled=!playing&&!paused;
+    pauseBtn.textContent=paused?'▶ Reprendre':'⏸ Pause';
+    pauseBtn.setAttribute('aria-label',paused?'Reprendre l’animation':'Mettre en pause');
+  }
+}
+
 function havingGrpBucketLayout(sw){
   const pad=6,gap=8,inner=sw-pad*2;
   const topH=118, midH=88, smallH=74;
@@ -7696,43 +7725,71 @@ function stopHavingGrpViz(){
   if(havingGrpTimer){clearTimeout(havingGrpTimer);havingGrpTimer=null;}
 }
 
-function havingGrpBtnLabel(root,seen){
-  const btn=root.querySelector('.grp-replay')||document.getElementById('having-grp-btn');
-  if(!btn)return;
-  btn.textContent=seen?'↺ Revoir l’animation':'▶ Voir l’animation';
+function havingGrpFinish(root){
+  havingGrpTimer=null;
+  root.dataset.playing='0';
+  root.dataset.paused='0';
+  root.dataset.seen='1';
+  havingGrpSyncControls(root);
+  if(navigator.vibrate)navigator.vibrate(10);
+}
+
+function havingGrpContinue(root,fromPhase){
+  stopHavingGrpViz();
+  root.dataset.playing='1';
+  root.dataset.paused='0';
+  havingGrpSyncControls(root);
+  if(fromPhase>=2){
+    havingGrpFinish(root);
+    return;
+  }
+  const next=fromPhase+1;
+  const delay=fromPhase===0?1600:2000;
+  havingGrpTimer=setTimeout(()=>{
+    havingGrpSetPhase(root,next);
+    if(next>=2)havingGrpFinish(root);
+    else havingGrpContinue(root,next);
+  },delay);
 }
 
 function playHavingGrpViz(root){
   stopHavingGrpViz();
-  const btn=root.querySelector('.grp-replay');
-  if(btn){btn.disabled=true;btn.textContent='Lecture en cours';}
+  root.dataset.paused='0';
   if(prefersReduceMotion()){
     root.dataset.playing='0';
     root.dataset.seen='1';
     havingGrpSetPhase(root,2,{animate:false});
-    havingGrpBtnLabel(root,true);
-    if(btn)btn.disabled=false;
+    havingGrpSyncControls(root);
     return;
   }
-  root.dataset.playing='1';
   havingGrpSetPhase(root,0,{animate:false});
-  havingGrpTimer=setTimeout(()=>{
-    havingGrpSetPhase(root,1);
-    havingGrpTimer=setTimeout(()=>{
-      havingGrpSetPhase(root,2);
-      havingGrpTimer=null;
-      root.dataset.playing='0';
-      root.dataset.seen='1';
-      havingGrpBtnLabel(root,true);
-      if(btn)btn.disabled=false;
-      if(navigator.vibrate)navigator.vibrate(10);
-    },2000);
-  },1600);
+  havingGrpContinue(root,0);
+}
+
+function pauseHavingGrpViz(root){
+  if(!root||root.dataset.playing!=='1')return;
+  stopHavingGrpViz();
+  root.dataset.playing='0';
+  root.dataset.paused='1';
+  havingGrpSyncControls(root);
+}
+
+function resumeHavingGrpViz(root){
+  if(!root||root.dataset.paused!=='1')return;
+  const phase=parseInt(root.dataset.phase||'0',10);
+  havingGrpContinue(root,phase);
+}
+
+function togglePauseHavingGrpViz(){
+  const root=document.getElementById('having-grp-viz');
+  if(!root)return;
+  if(root.dataset.playing==='1')pauseHavingGrpViz(root);
+  else if(root.dataset.paused==='1')resumeHavingGrpViz(root);
 }
 
 function replayHavingGrpViz(){
   const root=document.getElementById('having-grp-viz');
-  if(!root||root.dataset.playing==='1')return;
+  if(!root)return;
   playHavingGrpViz(root);
 }
 
@@ -7742,12 +7799,13 @@ function initHavingGrpViz(){
   if(havingGrpObs){havingGrpObs.disconnect();havingGrpObs=null;}
   stopHavingGrpViz();
   root.dataset.playing='0';
+  root.dataset.paused='0';
   root.dataset.seen='0';
   // Attendre que le bloc parent soit visible / layouté (évite largeur 0 + saut)
   const kick=()=>{
     if(!document.getElementById('having-grp-viz'))return;
     havingGrpSetPhase(root,0,{animate:false});
-    havingGrpBtnLabel(root,false);
+    havingGrpSyncControls(root);
     const onResize=()=>layoutHavingGrpViz(root,parseInt(root.dataset.phase||'0',10),{animate:false});
     if(root._grpResize)window.removeEventListener('resize',root._grpResize);
     root._grpResize=onResize;
