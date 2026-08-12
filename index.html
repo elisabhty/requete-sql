@@ -4520,11 +4520,11 @@ function diffResults(userRes,solRes,ordered){
       if(rowKey(u[i])!==rowKey(s[i])) wrong.push({i,exp:s[i],got:u[i]});
     }
     if(!wrong.length) return null;
-    const sample=wrong.slice(0,2).map(w=>{
+    const sample=wrong.slice(0,1).map(w=>{
       const e=fmtRow(w.exp,colsS), g=w.got?fmtRow(w.got,colsS):'(absente)';
       return `ligne ${w.i+1} : attendu <code>${esc(e)}</code>, tu as <code>${esc(g)}</code>`;
-    }).join(' — ');
-    return `Les lignes ne sont pas dans le bon ordre ou diffèrent. ${sample}.`;
+    }).join('');
+    return `Mauvais ordre — ${sample}.`;
   }
   const uMap=new Map(), sMap=new Map();
   u.forEach(r=>uMap.set(rowKey(r),(uMap.get(rowKey(r))||0)+1));
@@ -4533,11 +4533,13 @@ function diffResults(userRes,solRes,ordered){
   sMap.forEach((n,k)=>{ const un=uMap.get(k)||0; if(un<n) missing.push(k); });
   uMap.forEach((n,k)=>{ const sn=sMap.get(k)||0; if(n>sn) extra.push(k); });
   const decode=k=>{ try{const arr=JSON.parse(k);return fmtRow(arr,colsS);}catch(e){return k;} };
-  const parts=[];
-  if(missing.length) parts.push(`il manque <code>${esc(missing.slice(0,3).map(decode).join('</code>, <code>'))}</code>`);
-  if(extra.length) parts.push(`tu as <code>${esc(extra.slice(0,3).map(decode).join('</code>, <code>'))}</code> en trop`);
-  if(!parts.length) return null;
-  return `Tu n'obtiens pas le bon résultat — ${parts.join(' et ')}.`;
+  if(missing.length&&extra.length)
+    return `Résultat incomplet : il manque <code>${esc(missing.slice(0,2).map(decode).join('</code>, <code>'))}</code>, et <code>${esc(extra.slice(0,2).map(decode).join('</code>, <code>'))}</code> en trop.`;
+  if(missing.length)
+    return `Résultat incomplet : il manque <code>${esc(missing.slice(0,3).map(decode).join('</code>, <code>'))}</code>.`;
+  if(extra.length)
+    return `Résultat trop large : <code>${esc(extra.slice(0,3).map(decode).join('</code>, <code>'))}</code> en trop.`;
+  return null;
 }
 function exoFailDiag(sql,sol,userRes,solRes,ordered){
   const S=String(sql||''), R=String(sol||'');
@@ -4550,13 +4552,13 @@ function exoFailDiag(sql,sol,userRes,solRes,ordered){
   const hasWhere=q=>/\bWHERE\b/i.test(q);
 
   if(/\bWHERE\b[^;]*\bCOUNT\s*\(/i.test(S)&&!hasHaving(S))
-    return 'Ta requête utilise <code>COUNT</code> dans un <code>WHERE</code> — SQL ne peut pas filtrer sur un agrégat avant le regroupement. Utilise <code>HAVING</code> après <code>GROUP BY</code>.';
+    return '<code>COUNT</code> ne s’utilise pas dans <code>WHERE</code> — passe-le en <code>HAVING</code>.';
 
   if(hasGroupBy(R)&&!hasGroupBy(S))
-    return 'Ta requête ne regroupe pas les lignes — ajoute <code>GROUP BY</code> pour pouvoir compter ou filtrer par groupe.';
+    return 'Il manque un <code>GROUP BY</code>.';
 
   if(hasHaving(R)&&!hasHaving(S)&&nU>nS)
-    return 'Ta requête regroupe mais ne filtre pas les groupes — ajoute <code>HAVING</code> (un <code>WHERE</code> ne peut pas utiliser <code>COUNT</code>).';
+    return 'Il manque un <code>HAVING</code> pour filtrer les groupes.';
 
   const hU=parseHavingCount(S), hS=parseHavingCount(R);
   if(hU&&hS&&nU>0&&nU<nS){
@@ -4571,19 +4573,18 @@ function exoFailDiag(sql,sol,userRes,solRes,ordered){
   }
 
   if(hasWhere(R)&&!hasWhere(S)&&nU>nS)
-    return 'Ta requête ne filtre pas les lignes — ajoute un <code>WHERE</code> pour ne garder que celles qui correspondent à la consigne.';
+    return 'Il manque un <code>WHERE</code> pour filtrer les lignes.';
 
   if(colsU.length&&colsS.length&&colsU.length!==colsS.length)
-    return `Les colonnes ne correspondent pas : tu affiches ${colsU.map(c=>'<code>'+esc(c)+'</code>').join(', ')} — on attend ${colsS.map(c=>'<code>'+esc(c)+'</code>').join(', ')}.`;
+    return `Colonnes affichées : ${colsU.map(c=>'<code>'+esc(c)+'</code>').join(', ')} — on attend ${colsS.map(c=>'<code>'+esc(c)+'</code>').join(', ')}.`;
 
   if(nU===0&&nS>0)
-    return 'Aucune ligne ne ressort — ta condition (<code>WHERE</code> ou <code>HAVING</code>) est trop restrictive, ou la table filtrée est vide.';
+    return 'Aucune ligne — ta condition est trop restrictive.';
 
   const diff=diffResults(userRes,solRes,ordered);
   if(diff) return diff;
 
-  if(nU===nS&&nU>0) return 'Le résultat ne correspond pas à la consigne — vérifie les valeurs et l’ordre de tes colonnes.';
-  return 'Le résultat ne correspond pas à la consigne — compare ta requête avec l’énoncé, puis réessaie.';
+  return 'Le résultat ne correspond pas à la consigne.';
 }
 
 /* ============================================================

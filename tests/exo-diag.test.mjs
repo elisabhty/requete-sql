@@ -151,7 +151,7 @@ console.log('\n=== exoFailDiag — cas génériques ===');
     mock(['nom', 'age'], [['a', 1]]),
     mock(['nom'], [['a']])
   );
-  assertIncludes(msg, 'colonnes', 'nombre de colonnes');
+  assertIncludes(msg.toLowerCase(), 'colonne', 'nombre de colonnes');
 }
 
 {
@@ -161,7 +161,7 @@ console.log('\n=== exoFailDiag — cas génériques ===');
     mock(['ville'], [['Paris'], ['Lyon']]),
     mock(['ville', 'COUNT(*)'], [['Paris', 3], ['Lyon', 2]])
   );
-  assertIncludes(msg, 'colonne', 'cols différentes détectées');
+  assertIncludes(msg.toLowerCase(), 'colonne', 'cols différentes détectées');
 }
 
 console.log('\n=== exoFailDiag — diff de résultat (lignes en trop / manquantes) ===');
