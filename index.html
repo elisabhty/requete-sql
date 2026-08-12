@@ -521,7 +521,7 @@
   .grp-viz[data-phase="1"] .grp-count,.grp-viz[data-phase="2"] .grp-count{opacity:1;transform:scale(1)}
   .grp-viz[data-phase="2"] .grp-bucket[data-keep="1"] .grp-count{color:#fff;background:#0F766E;border-color:#0F766E;box-shadow:0 3px 12px rgba(20,184,166,.4)}
   .grp-viz[data-phase="2"] .grp-bucket[data-n="1"] .grp-count{opacity:1;color:var(--ink);background:#fff;border-color:rgba(60,60,67,.3);box-shadow:0 1px 4px rgba(20,20,40,.08);font-size:12px}
-  .grp-chip{position:absolute;left:0;top:0;font-size:11px;font-weight:600;color:var(--ink);padding:7px 10px;background:var(--surface);border:1px solid var(--line-2);border-radius:9px;box-shadow:0 2px 8px rgba(20,20,40,.07);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:2;will-change:transform;transition:transform .48s cubic-bezier(.32,.72,.28,1),opacity .35s;box-sizing:border-box;line-height:1}
+  .grp-chip{position:absolute;left:0;top:0;font-size:11px;font-weight:600;color:var(--ink);padding:7px 10px;background:var(--surface);border:1px solid var(--line-2);border-radius:9px;box-shadow:0 2px 8px rgba(20,20,40,.07);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:2;will-change:transform;transition:transform .78s cubic-bezier(.32,.72,.28,1),opacity .45s;box-sizing:border-box;line-height:1}
   .grp-viz[data-phase="2"] .grp-chip[data-keep="0"]{opacity:.35}
   .grp-viz[data-phase="2"] .grp-chip[data-keep="1"]{box-shadow:0 4px 14px rgba(20,184,166,.2);border-color:rgba(20,184,166,.35)}
   .grp-viz[data-phase="2"] .grp-bucket[data-keep="1"]{animation:grpKeepPulse .7s cubic-bezier(.3,1.3,.4,1) both}
@@ -3659,7 +3659,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-12-no-exec-jump';
+const APP_VERSION='2026-08-12-debug-jumps';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -5189,6 +5189,10 @@ function lessonStepMeta(){
 function scrollLessonTop(){
   const wrap=document.getElementById('scr-lesson');
   if(!wrap)return;
+  // #region agent log
+  fetch('http://127.0.0.1:7562/ingest/5a864311-1b28-48a4-93ac-d49500d7490f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b42d0a'},body:JSON.stringify({sessionId:'b42d0a',runId:'pre',hypothesisId:'B',location:'index.html:scrollLessonTop',message:'scrollLessonTop called',data:{scrollBefore:wrap.scrollTop,stack:(new Error()).stack.split('\n').slice(1,4).map(s=>s.trim())},timestamp:Date.now()})}).catch(()=>{});
+  window.__dbgScrollWhy='scrollLessonTop';
+  // #endregion
   wrap.scrollTop=0;
   requestAnimationFrame(()=>{
     wrap.scrollTop=0;
@@ -5858,12 +5862,19 @@ function setLessonOut(html){
   const scr=document.getElementById('scr-lesson');
   const y=scr?scr.scrollTop:0;
   const live=out.getAttribute('aria-live');
+  // #region agent log
+  window.__dbgScrollWhy='setLessonOut';
+  fetch('http://127.0.0.1:7562/ingest/5a864311-1b28-48a4-93ac-d49500d7490f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b42d0a'},body:JSON.stringify({sessionId:'b42d0a',runId:'pre',hypothesisId:'C',location:'index.html:setLessonOut',message:'setLessonOut paint',data:{y,htmlLen:(html||'').length},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   // Couper aria-live le temps du paint : sinon iOS/Safari saute vers la zone annoncée.
   out.setAttribute('aria-live','off');
   out.innerHTML=html;
   if(scr){
     scr.scrollTop=y;
     requestAnimationFrame(()=>{
+      // #region agent log
+      fetch('http://127.0.0.1:7562/ingest/5a864311-1b28-48a4-93ac-d49500d7490f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b42d0a'},body:JSON.stringify({sessionId:'b42d0a',runId:'pre',hypothesisId:'C',location:'index.html:setLessonOut:raf',message:'scroll after setLessonOut raf',data:{wanted:y,actual:scr.scrollTop,delta:scr.scrollTop-y},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       scr.scrollTop=y;
       out.setAttribute('aria-live',live||'polite');
     });
@@ -7692,6 +7703,9 @@ function layoutHavingGrpViz(root,phase,{animate=true}={}){
   const chips=[...root.querySelectorAll('.grp-chip')];
   const buckets=[...root.querySelectorAll('.grp-bucket')];
   const layout=havingGrpBucketLayout(sw);
+  const hBefore=stage.style.height||stage.offsetHeight;
+  const scr=document.getElementById('scr-lesson');
+  const scrollBefore=scr?scr.scrollTop:null;
   if(!animate){
     chips.forEach(c=>{c.style.transition='none';});
     buckets.forEach(b=>{b.style.transition='none';});
@@ -7727,7 +7741,7 @@ function layoutHavingGrpViz(root,phase,{animate=true}={}){
       const cellH=Math.max(26,Math.min(32,(availH-(rows-1)*gapY)/rows));
       list.forEach((c,i)=>{
         const col=i%cols, row=Math.floor(i/cols);
-        c.style.transitionDelay=(chipI*40)+'ms';
+        c.style.transitionDelay=(chipI*70)+'ms';
         chipI++;
         c.style.width=cellW+'px';
         c.style.maxWidth=cellW+'px';
@@ -7743,6 +7757,12 @@ function layoutHavingGrpViz(root,phase,{animate=true}={}){
       });
     });
   }
+  // #region agent log
+  window.__dbgScrollWhy='layoutHaving phase='+phase;
+  const hAfter=stage.style.height;
+  const scrollAfter=scr?scr.scrollTop:null;
+  fetch('http://127.0.0.1:7562/ingest/5a864311-1b28-48a4-93ac-d49500d7490f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b42d0a'},body:JSON.stringify({sessionId:'b42d0a',runId:'pre',hypothesisId:'A',location:'index.html:layoutHavingGrpViz',message:'HAVING stage height change',data:{phase,animate,sw,hBefore:String(hBefore),hAfter,layoutH:layout._h,scrollBefore,scrollAfter,scrollDelta:scrollAfter==null||scrollBefore==null?null:scrollAfter-scrollBefore},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   if(!animate){
     void stage.offsetWidth;
     chips.forEach(c=>{c.style.transition='';});
@@ -7782,10 +7802,13 @@ function havingGrpContinue(root,fromPhase){
     return;
   }
   const next=fromPhase+1;
-  const delay=fromPhase===0?1600:2000;
+  const delay=fromPhase===0?2800:3400;
   havingGrpTimer=setTimeout(()=>{
     havingGrpSetPhase(root,next);
-    if(next>=2)havingGrpFinish(root);
+    if(next>=2){
+      // Laisse le temps de lire HAVING avant de débloquer les boutons
+      havingGrpTimer=setTimeout(()=>havingGrpFinish(root),2200);
+    }
     else havingGrpContinue(root,next);
   },delay);
 }
@@ -7843,17 +7866,40 @@ function initHavingGrpViz(){
   root.dataset.playing='0';
   root.dataset.paused='0';
   root.dataset.seen='0';
+  // #region agent log
+  fetch('http://127.0.0.1:7562/ingest/5a864311-1b28-48a4-93ac-d49500d7490f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b42d0a'},body:JSON.stringify({sessionId:'b42d0a',runId:'pre',hypothesisId:'D',location:'index.html:initHavingGrpViz',message:'init HAVING viz',data:{scrollTop:(document.getElementById('scr-lesson')||{}).scrollTop||0},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   // Attendre que le bloc parent soit visible / layouté (évite largeur 0 + saut)
   const kick=()=>{
     if(!document.getElementById('having-grp-viz'))return;
     havingGrpSetPhase(root,0,{animate:false});
     havingGrpSyncControls(root);
-    const onResize=()=>layoutHavingGrpViz(root,parseInt(root.dataset.phase||'0',10),{animate:false});
+    const onResize=()=>{
+      // #region agent log
+      window.__dbgScrollWhy='havingResize';
+      fetch('http://127.0.0.1:7562/ingest/5a864311-1b28-48a4-93ac-d49500d7490f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b42d0a'},body:JSON.stringify({sessionId:'b42d0a',runId:'pre',hypothesisId:'E',location:'index.html:havingResize',message:'HAVING resize relayout',data:{phase:root.dataset.phase,scrollTop:(document.getElementById('scr-lesson')||{}).scrollTop||0},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      layoutHavingGrpViz(root,parseInt(root.dataset.phase||'0',10),{animate:false});
+    };
     if(root._grpResize)window.removeEventListener('resize',root._grpResize);
     root._grpResize=onResize;
     window.addEventListener('resize',onResize);
     if(prefersReduceMotion())return;
     const scr=document.getElementById('scr-lesson');
+    // #region agent log
+    if(scr&&!scr.__dbgScrollHooked){
+      scr.__dbgScrollHooked=true;
+      let last=scr.scrollTop;
+      scr.addEventListener('scroll',()=>{
+        const now=scr.scrollTop;
+        const delta=now-last;
+        if(Math.abs(delta)>=8){
+          fetch('http://127.0.0.1:7562/ingest/5a864311-1b28-48a4-93ac-d49500d7490f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b42d0a'},body:JSON.stringify({sessionId:'b42d0a',runId:'pre',hypothesisId:'A',location:'index.html:scr-lesson:scroll',message:'lesson scroll jump',data:{from:last,to:now,delta,why:window.__dbgScrollWhy||'user-or-browser'},timestamp:Date.now()})}).catch(()=>{});
+        }
+        last=now;
+      },{passive:true});
+    }
+    // #endregion
     if(!scr||typeof IntersectionObserver==='undefined'){
       setTimeout(()=>playHavingGrpViz(root),220);
       return;
@@ -7861,6 +7907,10 @@ function initHavingGrpViz(){
     havingGrpObs=new IntersectionObserver(entries=>{
       if(entries.some(e=>e.isIntersecting&&e.intersectionRatio>=.25)){
         havingGrpObs.disconnect();havingGrpObs=null;
+        // #region agent log
+        window.__dbgScrollWhy='havingIO-play';
+        fetch('http://127.0.0.1:7562/ingest/5a864311-1b28-48a4-93ac-d49500d7490f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b42d0a'},body:JSON.stringify({sessionId:'b42d0a',runId:'pre',hypothesisId:'D',location:'index.html:havingIO',message:'IO start play',data:{scrollTop:scr.scrollTop,ratio:entries.map(e=>e.intersectionRatio)},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         // Relayout juste avant play (après scroll stabilisé)
         havingGrpSetPhase(root,0,{animate:false});
         playHavingGrpViz(root);
