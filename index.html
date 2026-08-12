@@ -39,9 +39,13 @@
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   *:focus{outline:none}
   ::selection{background:transparent;color:inherit}
-  html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-  input,textarea,select,.editor-area,.editor-area pre,.editor-area textarea,[contenteditable],[contenteditable=""]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
   ::-moz-selection{background:transparent;color:inherit}
+  html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  input,textarea,select,.editor-area,.editor-area textarea,[contenteditable],[contenteditable=""]{-webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:default}
+  input::selection,textarea::selection{background:rgba(122,111,240,.38);color:inherit}
+  input::-moz-selection,textarea::-moz-selection{background:rgba(122,111,240,.38);color:inherit}
+  .editor-area textarea::selection{background:rgba(122,111,240,.4);color:transparent}
+  .editor-area textarea::-moz-selection{background:rgba(122,111,240,.4);color:transparent}
   html{height:100%;overflow-x:hidden}
   body{margin:0;min-height:100%;min-height:100dvh;overflow-x:hidden}
   body{font-family:var(--ui);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;overscroll-behavior:none;line-height:1.5}
@@ -683,6 +687,10 @@
   .sql-copy.copied{color:#86EFB0}
   @media (hover:hover) and (pointer:fine){.sql-copy:hover{background:rgba(255,255,255,.08);color:#fff}}
   .editor-bar .sql-copy{color:#B8B8C8}
+  .sql-clear{flex:none;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:none;background:transparent;color:#B8B8C8;border-radius:12px;cursor:pointer;padding:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  .sql-clear svg{width:16px;height:16px;display:block}
+  .sql-clear:active{transform:scale(.92);background:rgba(255,255,255,.1);color:#fff}
+  .sql-clear[hidden]{display:none}
   .xf-tools{display:flex;align-items:center;gap:4px;flex:none;margin-left:auto;min-width:0}
   .exframe .xf-head .sql-copy{color:#B8B8C8;margin:-4px -6px -4px 0}
   .sql-copy-wrap{position:relative;min-width:0}
@@ -706,7 +714,7 @@
   .editor-area pre,.editor-area textarea{margin:0;padding:14px 15px;font-family:inherit;font-size:inherit;line-height:inherit;white-space:pre-wrap;word-break:break-word;overflow-wrap:break-word;border:0;outline:0;tab-size:2}
   .editor-area pre code,.editor-area code{font-family:inherit;font-size:inherit;font-weight:inherit;font-style:inherit;line-height:inherit;letter-spacing:inherit;margin:0;padding:0;background:none;border-radius:0;white-space:inherit;tab-size:2;font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
   .editor-area pre{position:absolute;inset:0;pointer-events:none;color:var(--code-ink);z-index:0;overflow:hidden}
-  .editor-area textarea{position:relative;display:block;width:100%;min-height:104px;resize:none;background:transparent;color:transparent;caret-color:#7A6FF0;z-index:1}
+  .editor-area textarea{position:relative;display:block;width:100%;min-height:104px;resize:none;background:transparent;color:transparent;caret-color:#7A6FF0;z-index:1;touch-action:auto}
   .editor-area .t-kw{color:var(--t-kw);font-weight:600}
   .editor-area .t-fn{color:var(--t-fn)}.editor-area .t-str{color:var(--t-str)}
   .editor-area .t-num{color:var(--t-num)}.editor-area .t-com{color:var(--t-com);font-style:italic}
@@ -1951,7 +1959,8 @@
         </div>
         <div class="editor-shell">
           <div class="editor-bar"><span class="dot v"></span><span class="fname">console.sql</span>
-            <button type="button" class="sql-copy" data-ed="ed-console" onclick="copySqlFrom(this)" aria-label="Copier la requête"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div>
+            <button type="button" class="sql-copy" data-ed="ed-console" onclick="copySqlFrom(this)" aria-label="Copier la requête"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>
+            <button type="button" class="sql-clear" data-ed="ed-console" hidden onclick="clearEditorSql('ed-console')" aria-label="Effacer la requête"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
           <div class="editor-area"><pre><code id="hl-console"></code></pre>
           <textarea id="ed-console" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea></div>
         </div>
@@ -3675,7 +3684,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-12-no-revoir';
+const APP_VERSION='2026-08-12-editor-select';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -4453,11 +4462,11 @@ function setupEditor(taId,hlId){
   const pre=ta?ta.parentElement.querySelector('pre'):null;
   const grow=()=>{ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';};
   const syncScroll=()=>{ if(pre) pre.scrollTop=ta.scrollTop; };
-  ta.addEventListener('input',()=>{syncHL(taId,hlId);grow();persistEditor(taId);});
+  ta.addEventListener('input',()=>{syncHL(taId,hlId);grow();persistEditor(taId);syncEditorClear(taId);});
   ta.addEventListener('scroll',syncScroll);
   ta.addEventListener('focus',()=>{activeTA=ta;showKbar(true);syncScroll();});
   ta.addEventListener('blur',()=>{setTimeout(()=>{if(document.activeElement!==ta)showKbar(false);},150);});
-  grow();syncScroll();
+  grow();syncScroll();syncEditorClear(taId);
 }
 function persistEditor(taId){
   const ta=document.getElementById(taId); if(!ta)return;
@@ -4467,7 +4476,7 @@ function persistEditor(taId){
     s.draft=ta.value; save();
   }
 }
-function syncHL(a,b){const ta=document.getElementById(a);document.getElementById(b).innerHTML=highlight(ta.value);const pre=ta&&ta.parentElement?ta.parentElement.querySelector('pre'):null;if(pre)pre.scrollTop=ta.scrollTop;}
+function syncHL(a,b){const ta=document.getElementById(a);document.getElementById(b).innerHTML=highlight(ta.value);const pre=ta&&ta.parentElement?ta.parentElement.querySelector('pre'):null;if(pre)pre.scrollTop=ta.scrollTop;syncEditorClear(a);}
 function execQuery(sql,d){const t0=performance.now();const res=(d||activeDb()||db).exec(sql);return{res,ms:performance.now()-t0};}
 function fmtCell(v){
   if(v===null)return '<td class="null">NULL</td>';
@@ -5190,8 +5199,25 @@ function goBack(){
 }
 const SQL_COPY_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
 const SQL_COPIED_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>';
+const SQL_CLEAR_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 function sqlCopyBtn(extra=''){
   return `<button type="button" class="sql-copy"${extra?' '+extra:''} onclick="copySqlFrom(this)" aria-label="Copier la requête">${SQL_COPY_SVG}</button>`;
+}
+function sqlClearBtn(id){
+  return `<button type="button" class="sql-clear" data-ed="${id}" hidden onclick="clearEditorSql('${id}')" aria-label="Effacer la requête">${SQL_CLEAR_SVG}</button>`;
+}
+function syncEditorClear(id){
+  const ta=document.getElementById(id);
+  const btn=document.querySelector(`.sql-clear[data-ed="${id}"]`);
+  if(btn) btn.hidden=!ta||!String(ta.value||'').length;
+}
+function clearEditorSql(id){
+  const ta=document.getElementById(id);
+  if(!ta)return;
+  ta.value='';
+  ta.dispatchEvent(new Event('input'));
+  ta.focus();
+  if(navigator.vibrate)navigator.vibrate(8);
 }
 async function copySqlText(sql){
   sql=String(sql||'').replace(/\u00a0/g,' ').replace(/\s+$/,'');
@@ -5268,7 +5294,7 @@ function mountSqlCopyButtons(root){
 }
 const editorBlock=(withViz,fname='exercice.sql')=>`
   <div class="editor-shell">
-    <div class="editor-bar"><span class="dot v"></span><span class="fname">${fname}</span>${sqlCopyBtn('data-ed="ed-lesson"')}</div>
+    <div class="editor-bar"><span class="dot v"></span><span class="fname">${fname}</span>${sqlCopyBtn('data-ed="ed-lesson"')}${sqlClearBtn('ed-lesson')}</div>
     <div class="editor-area"><pre><code id="hl-lesson"></code></pre>
     <textarea id="ed-lesson" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="Écris ta requête ici…"></textarea></div>
   </div>
