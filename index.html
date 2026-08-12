@@ -4432,14 +4432,14 @@ function renderTable(result,ms){
 }
 function errBox(msg){
   const m=msg.toLowerCase(); let aide='';
-  if(m.includes('no such column')) aide="Vérifie l'orthographe exacte de la colonne — ou si tu voulais du texte, entoure-le de guillemets simples : <code>'Paris'</code>.";
+  if(m.includes('no such column')) aide="Vérifie l'orthographe exacte de la colonne — ou si tu voulais du texte, entoure-le de guillemets simples : <code>'texte'</code>.";
   else if(m.includes('no such table')){
     const tabs=listTables(activeDb()||db);
     aide=tabs.length?`Tables disponibles : ${tabs.map(t=>'<code>'+esc(t)+'</code>').join(', ')}.`:"Aucune table dans la base active — importe un fichier ou réinitialise la base du cours.";
   }
-  else if(m.includes('syntax error')) aide="Il manque probablement un mot-clé, une virgule en trop, ou le point-virgule final.";
-  else if(m.includes('misuse of aggregate')) aide="Une fonction comme COUNT ne peut pas être utilisée dans un WHERE. Utilise HAVING.";
-  else if(m.includes('ambiguous')) aide="Deux tables ont une colonne du même nom. Préfixe-la : <code>clients.nom</code>.";
+  else if(m.includes('syntax error')) aide="Requête mal formée — vérifie les mots-clés, les virgules et le point-virgule final.";
+  else if(m.includes('misuse of aggregate')) aide="Une fonction d'agrégation (COUNT, SUM…) ne peut pas être utilisée dans un WHERE.";
+  else if(m.includes('ambiguous')) aide="Deux tables ont une colonne du même nom. Préfixe-la avec le nom de la table.";
   else if(m.includes('values do not match')) aide="Le nombre de valeurs après VALUES doit être identique au nombre de colonnes citées.";
   return `<div class="feedback err"><div class="fi">!</div><div><b>Erreur SQL</b><p><code>${esc(msg)}</code></p>${aide?`<p style="margin-top:7px">${aide}</p>`:''}</div></div>`;
 }
@@ -4492,45 +4492,11 @@ function normalize(result,ordered){
   return JSON.stringify(ordered?rows:rows.slice().sort());
 }
 function fmtLignes(n){ return n===1?'1 ligne':`${n} lignes`; }
-function parseHavingCount(sql){
-  const m=String(sql||'').match(/HAVING\s+COUNT\s*\(\s*(?:DISTINCT\s+)?(?:\*|\w+(?:\.\w+)?)\s*\)\s*(>=|>|=|<=|<)\s*(\d+)/i);
-  return m?{op:m[1],n:+m[2]}:null;
-}
 function exoFailDiag(sql,sol,userRes,solRes,ordered){
-  const S=String(sql||''), R=String(sol||'');
   const nU=userRes&&userRes[0]?userRes[0].values.length:0;
   const nS=solRes&&solRes[0]?solRes[0].values.length:0;
-  const hasGroupBy=q=>/\bGROUP\s+BY\b/i.test(q);
-  const hasHaving=q=>/\bHAVING\b/i.test(q);
-  const hasWhere=q=>/\bWHERE\b/i.test(q);
-
-  if(/\bWHERE\b[^;]*\bCOUNT\s*\(/i.test(S)&&!hasHaving(S))
-    return '<code>COUNT</code> ne s’utilise pas dans <code>WHERE</code> — passe-le en <code>HAVING</code>.';
-
-  if(hasGroupBy(R)&&!hasGroupBy(S))
-    return 'Ajoute un <code>GROUP BY</code>.';
-
-  if(hasHaving(R)&&!hasHaving(S)&&nU>nS)
-    return 'Ajoute un <code>HAVING</code> pour filtrer les groupes.';
-
-  const hU=parseHavingCount(S), hS=parseHavingCount(R);
-  if(hU&&hS&&nU>0&&nU<nS){
-    const strict=(hU.op==='>='||hU.op==='>')&&hU.n>hS.n
-      || hU.op==='='&&hS.op==='>='&&hU.n>hS.n
-      || hU.op==='='&&hS.op==='='&&hU.n!==hS.n;
-    if(strict)
-      return `Ton <code>HAVING COUNT(*) ${esc(hU.op)} ${hU.n}</code> exclut des groupes que la consigne veut garder.`;
-    const loose=(hU.op==='>='||hU.op==='>')&&hU.n<hS.n;
-    if(loose)
-      return `Ton <code>HAVING COUNT(*) ${esc(hU.op)} ${hU.n}</code> garde des groupes que la consigne ne veut pas.`;
-  }
-
-  if(hasWhere(R)&&!hasWhere(S)&&nU>nS)
-    return 'Ajoute un <code>WHERE</code> pour filtrer les lignes.';
-
   if(nU===0&&nS>0)
     return 'Aucune ligne retournée — vérifie ta requête.';
-
   return 'Le résultat ne correspond pas à la consigne.';
 }
 

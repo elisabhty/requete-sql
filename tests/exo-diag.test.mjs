@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 /**
- * Tests diagnostics exercices (exoFailDiag) + validation SQL leçon HAVING.
+ * Tests diagnostics exercices (exoFailDiag, errBox) + validation SQL leçon HAVING.
  * Usage: node tests/exo-diag.test.mjs
+ *
+ * Règle clé : le feedback ne doit JAMAIS révéler la solution ni orienter vers elle
+ * (pas de seuil attendu, pas de nom de ligne/colonne attendu, pas de clause à ajouter).
  */
 import fs from 'fs';
 import path from 'path';
@@ -18,15 +21,27 @@ if (blockStart < 0 || blockEnd < 0) {
   process.exit(1);
 }
 
-const ctx = { esc: (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') };
+const errStart = html.indexOf('function errBox');
+const errEnd = html.indexOf('const RUN_ICO');
+if (errStart < 0 || errEnd < 0) {
+  console.error('Impossible de localiser errBox dans index.html');
+  process.exit(1);
+}
+
+const ctx = {};
 vm.createContext(ctx);
 vm.runInContext(
   `function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}\n` +
   html.slice(blockStart, blockEnd),
   ctx
 );
+vm.runInContext(
+  `let db=null; const listTables=()=>[]; const activeDb=()=>null;\n` +
+  html.slice(errStart, errEnd),
+  ctx
+);
 
-const { exoFailDiag, parseHavingCount, normalize, fmtLignes } = ctx;
+const { exoFailDiag, errBox, normalize, fmtLignes } = ctx;
 const mock = (cols, rows) => [{ columns: cols, values: rows }];
 
 let passed = 0;
@@ -51,211 +66,96 @@ function assertNotIncludes(msg, needle, name) {
   assert(!msg.includes(needle), name, `ne devait pas contenir "${needle}"`);
 }
 
-console.log('\n=== parseHavingCount ===');
-assert(parseHavingCount('HAVING COUNT(*) >= 3')?.n === 3, '>= 3 parsé');
-assert(parseHavingCount('HAVING COUNT(*) = 1')?.op === '=', '= 1 parsé');
-assert(parseHavingCount('HAVING COUNT(DISTINCT produits.categorie) >= 2')?.n === 2, 'COUNT DISTINCT parsé');
-assert(parseHavingCount('WHERE prix > 10') === null, 'pas de faux positif WHERE');
-
 console.log('\n=== fmtLignes ===');
 assert(fmtLignes(1) === '1 ligne', 'singulier');
 assert(fmtLignes(2) === '2 lignes', 'pluriel');
 
-console.log('\n=== exoFailDiag — HAVING leçon 17 ===');
+console.log('\n=== exoFailDiag — neutre, sans indice ===');
 const SOL_HAVING =
   'SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 2;';
-
-{
-  const sql =
-    'SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 3;';
-  const userRes = mock(['categorie', 'COUNT(*)'], [['Bien-être', 3]]);
-  const solRes = mock(
-    ['categorie', 'COUNT(*)'],
-    [
-      ['Bien-être', 3],
-      ['Nutrition', 2],
-    ]
-  );
-  const msg = exoFailDiag(sql, SOL_HAVING, userRes, solRes);
-  assertIncludes(msg, 'HAVING COUNT(*)', 'seuil HAVING mentionné');
-  assertIncludes(msg, '>= 3', 'seuil élève affiché');
-  assertIncludes(msg, 'exclut', 'diagnostic orienté requête');
-  assertNotIncludes(msg, 'produits', 'pas de mention « produits » hardcodée');
-  assertNotIncludes(msg, 'ligne', 'pas de compte de lignes');
-  assertNotIncludes(msg, 'essaie', 'ne donne pas la réponse');
-  assert(!msg.includes('>= 2'), 'ne révèle pas le seuil attendu');
-}
-
-{
-  const sql =
-    'SELECT categorie, COUNT(*) FROM produits WHERE COUNT(*) >= 2 GROUP BY categorie;';
-  const msg = exoFailDiag(sql, SOL_HAVING, mock(['categorie', 'COUNT(*)'], []), mock(['categorie', 'COUNT(*)'], [['a', 1]]));
-  assertIncludes(msg, 'WHERE', 'COUNT dans WHERE détecté');
-  assertIncludes(msg, 'HAVING', 'orienté vers HAVING');
-}
-
-{
-  const sql = 'SELECT categorie, COUNT(*) FROM produits;';
-  const userRes = mock(['categorie', 'COUNT(*)'], [['Bien-être', 8]]);
-  const solRes = mock(
-    ['categorie', 'COUNT(*)'],
-    [
-      ['Bien-être', 3],
-      ['Nutrition', 2],
-    ]
-  );
-  const msg = exoFailDiag(sql, SOL_HAVING, userRes, solRes);
-  assertIncludes(msg, 'GROUP BY', 'GROUP BY manquant (agrégat sans regroupement)');
-}
-
-{
-  const sql = 'SELECT categorie, COUNT(*) FROM produits GROUP BY categorie;';
-  const userRes = mock(['categorie', 'COUNT(*)'], [
+const solRes2 = mock(
+  ['categorie', 'COUNT(*)'],
+  [
     ['Bien-être', 3],
-    ['Beauté', 1],
-    ['Boisson', 1],
     ['Nutrition', 2],
-    ['Accessoire', 1],
-  ]);
-  const solRes = mock(
-    ['categorie', 'COUNT(*)'],
-    [
-      ['Bien-être', 3],
-      ['Nutrition', 2],
-    ]
-  );
-  const msg = exoFailDiag(sql, SOL_HAVING, userRes, solRes);
-  assertIncludes(msg, 'HAVING', 'HAVING manquant (trop de lignes)');
-}
+  ]
+);
 
-console.log('\n=== exoFailDiag — cas génériques ===');
-{
-  const msg = exoFailDiag('SELECT 1', 'SELECT 1 WHERE id=99', mock(['x'], []), mock(['x'], [[1]]));
-  assertIncludes(msg, 'Aucune ligne', '0 ligne');
-}
-
-{
-  const msg = exoFailDiag(
+const diagCases = [
+  ['seuil trop strict',
+    'SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 3;',
+    SOL_HAVING, mock(['categorie','COUNT(*)'],[['Bien-être',3]]), solRes2],
+  ['seuil trop large',
+    'SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 1;',
+    SOL_HAVING, mock(['categorie','COUNT(*)'],[['Bien-être',3],['Beauté',1],['Nutrition',2]]), solRes2],
+  ['GROUP BY absent',
+    'SELECT categorie, COUNT(*) FROM produits;',
+    SOL_HAVING, mock(['categorie','COUNT(*)'],[['Bien-être',8]]), solRes2],
+  ['HAVING absent',
+    'SELECT categorie, COUNT(*) FROM produits GROUP BY categorie;',
+    SOL_HAVING, mock(['categorie','COUNT(*)'],[['Bien-être',3],['Beauté',1],['Boisson',1],['Nutrition',2],['Accessoire',1]]), solRes2],
+  ['WHERE absent',
     'SELECT nom FROM clients',
-    'SELECT nom FROM clients WHERE ville = "Paris"',
-    mock(['nom'], [['a'], ['b'], ['c']]),
-    mock(['nom'], [['a'], ['b']])
-  );
-  assertIncludes(msg, 'WHERE', 'WHERE manquant');
-}
-
-{
-  const msg = exoFailDiag(
+    'SELECT nom FROM clients WHERE ville = "Paris";',
+    mock(['nom'],[['a'],['b'],['c']]), mock(['nom'],[['a'],['b']])],
+  ['colonnes différentes',
     'SELECT nom, age FROM clients',
-    'SELECT nom FROM clients',
-    mock(['nom', 'age'], [['a', 1]]),
-    mock(['nom'], [['a']])
-  );
-  assertIncludes(msg, 'correspond pas', 'cols différentes → message générique');
-  assertNotIncludes(msg, 'on attend', 'ne révèle pas les colonnes attendues');
+    'SELECT nom FROM clients;',
+    mock(['nom','age'],[['a',1]]), mock(['nom'],[['a']])],
+  ['mauvais ordre (ordered)',
+    'SELECT nom FROM clients ORDER BY nom;',
+    'SELECT nom FROM clients ORDER BY nom;',
+    mock(['nom'],[['Sophie'],['Emma'],['Léa']]), mock(['nom'],[['Sophie'],['Lucas'],['Emma']])],
+];
+
+for (const [name, sql, sol, u, s] of diagCases) {
+  const msg = exoFailDiag(sql, sol, u, s);
+  assertIncludes(msg, 'correspond pas', `${name} → message générique`);
+  assertNotIncludes(msg, 'GROUP BY', `${name} → ne nomme pas la clause`);
+  assertNotIncludes(msg, 'HAVING', `${name} → ne nomme pas la clause`);
+  assertNotIncludes(msg, 'WHERE', `${name} → ne nomme pas la clause`);
+  assertNotIncludes(msg, 'essaie', `${name} → pas d'instruction`);
+  assertNotIncludes(msg, 'Bien-être', `${name} → pas de valeur`);
+  assertNotIncludes(msg, 'Nutrition', `${name} → pas de valeur`);
+  assertNotIncludes(msg, 'Lucas', `${name} → pas de valeur`);
+  assert(!/manque/i.test(msg), `${name} → pas de « manque »`);
 }
 
+console.log('\n=== exoFailDiag — 0 ligne ===');
 {
   const msg = exoFailDiag(
-    'SELECT ville FROM clients GROUP BY ville',
-    'SELECT ville, COUNT(*) FROM clients GROUP BY ville',
-    mock(['ville'], [['Paris'], ['Lyon']]),
-    mock(['ville', 'COUNT(*)'], [['Paris', 3], ['Lyon', 2]])
+    'SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 4;',
+    SOL_HAVING,
+    mock(['categorie', 'COUNT(*)'], []),
+    solRes2
   );
-  assertIncludes(msg, 'correspond pas', 'cols différentes → message générique');
-  assertNotIncludes(msg, 'COUNT', 'ne révèle pas la colonne attendue');
-}
-
-console.log('\n=== exoFailDiag — diff de résultat (sans révéler les valeurs) ===');
-{
-  const sql =
-    'SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 1;';
-  const userRes = mock(['categorie', 'COUNT(*)'], [
-    ['Bien-être', 3],
-    ['Beauté', 1],
-    ['Boisson', 1],
-    ['Nutrition', 2],
-    ['Accessoire', 1],
-  ]);
-  const solRes = mock(
-    ['categorie', 'COUNT(*)'],
-    [
-      ['Bien-être', 3],
-      ['Nutrition', 2],
-    ]
-  );
-  const msg = exoFailDiag(sql, SOL_HAVING, userRes, solRes, false);
-  assertIncludes(msg, 'correspond pas', 'message générique');
-  assertNotIncludes(msg, 'Beauté', 'ne révèle pas une ligne en trop');
-  assertNotIncludes(msg, 'Nutrition', 'ne révèle pas une ligne manquante');
-  assertNotIncludes(msg, 'en trop', 'pas d’indice sur les lignes');
-  assertNotIncludes(msg, 'ligne', 'pas de compte de lignes');
-}
-{
-  const sql =
-    'SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 4;';
-  const userRes = mock(['categorie', 'COUNT(*)'], []);
-  const solRes = mock(
-    ['categorie', 'COUNT(*)'],
-    [
-      ['Bien-être', 3],
-      ['Nutrition', 2],
-    ]
-  );
-  const msg = exoFailDiag(sql, SOL_HAVING, userRes, solRes, false);
   assertIncludes(msg, 'Aucune ligne', '0 ligne → message dédié');
   assertNotIncludes(msg, 'restrictive', 'ne présume pas d’une condition trop restrictive');
-}
-{
-  const solRes = mock(['nom'], [['Sophie'], ['Lucas'], ['Emma']]);
-  const userRes = mock(['nom'], [['Sophie'], ['Emma'], ['Léa']]);
-  const msg = exoFailDiag(
-    'SELECT nom FROM clients ORDER BY nom;',
-    'SELECT nom FROM clients ORDER BY nom;',
-    userRes,
-    solRes,
-    true
-  );
-  assertIncludes(msg, 'correspond pas', 'ordered: message générique sans révéler');
-  assertNotIncludes(msg, 'Lucas', 'ne révèle pas la valeur attendue');
-  assertNotIncludes(msg, 'Léa', 'ne révèle pas la valeur en trop');
+  assertNotIncludes(msg, 'HAVING', 'ne nomme pas la clause');
 }
 
-console.log('\n=== exoFailDiag — leçon villes (pas « produits ») ===');
-const SOL_VILLES =
-  'SELECT ville, COUNT(*) AS nb FROM clients GROUP BY ville HAVING COUNT(*) >= 2;';
+console.log('\n=== errBox — aides sans indice ===');
 {
-  const sql =
-    'SELECT ville, COUNT(*) AS nb FROM clients GROUP BY ville HAVING COUNT(*) >= 3;';
-  const msg = exoFailDiag(
-    sql,
-    SOL_VILLES,
-    mock(['ville', 'nb'], [['Paris', 3]]),
-    mock(
-      ['ville', 'nb'],
-      [
-        ['Paris', 3],
-        ['Lyon', 2],
-      ]
-    )
-  );
-  assertIncludes(msg, 'exclut', 'seuil strict villes');
-  assertNotIncludes(msg, 'produits', 'pas de « produits » sur leçon villes');
-  assertNotIncludes(msg, 'ligne', 'pas de compte de lignes');
+  const msg = errBox('no such column: villee');
+  assertIncludes(msg, 'Erreur SQL', 'colonne inconnue → Erreur SQL');
+  assertIncludes(msg, "'texte'", 'exemple de texte neutre');
+  assertNotIncludes(msg, 'Paris', 'pas de valeur des données');
 }
-
-console.log('\n=== exoFailDiag — pas de formulation « manque » ===');
 {
-  const cases = [
-    ['SELECT categorie, COUNT(*) FROM produits;', SOL_HAVING, mock(['categorie','COUNT(*)'],[['Bien-être',8]]), mock(['categorie','COUNT(*)'],[['Bien-être',3],['Nutrition',2]])],
-    ['SELECT categorie, COUNT(*) FROM produits GROUP BY categorie;', SOL_HAVING, mock(['categorie','COUNT(*)'],[['Bien-être',3],['Beauté',1]]), mock(['categorie','COUNT(*)'],[['Bien-être',3],['Nutrition',2]])],
-    ['SELECT nom FROM clients', 'SELECT nom FROM clients WHERE ville="Paris"', mock(['nom'],[['a'],['b'],['c']]), mock(['nom'],[['a'],['b']])],
-    ['SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 1;', SOL_HAVING, mock(['categorie','COUNT(*)'],[['Bien-être',3],['Beauté',1],['Nutrition',2]]), mock(['categorie','COUNT(*)'],[['Bien-être',3],['Nutrition',2]])],
-  ];
-  for (const [sql, sol, u, s] of cases) {
-    const msg = exoFailDiag(sql, sol, u, s, false);
-    assert(!/manque/i.test(msg), `pas de « manque » pour: ${sql.slice(0,40)}…`, msg);
-  }
+  const msg = errBox('syntax error near "SELCT"');
+  assertIncludes(msg, 'Erreur SQL', 'syntax error → Erreur SQL');
+  assert(!/manque/i.test(msg), 'pas de « il manque »');
+}
+{
+  const msg = errBox('misuse of aggregate: COUNT()');
+  assertIncludes(msg, 'Erreur SQL', 'misuse aggregate → Erreur SQL');
+  assertIncludes(msg, 'agrégation', 'explique la règle');
+  assertNotIncludes(msg, 'HAVING', 'ne nomme pas HAVING');
+}
+{
+  const msg = errBox('ambiguous column name: nom');
+  assertIncludes(msg, 'Erreur SQL', 'ambiguous → Erreur SQL');
+  assertNotIncludes(msg, 'clients.nom', 'pas de préfixe précis');
 }
 
 console.log('\n=== Intégration SQL (sqlite3) — leçon HAVING ===');
@@ -293,13 +193,19 @@ assert(counts[0] === 2, 'SQL >= 2 → 2 lignes');
 assert(counts[1] === 1, 'SQL >= 3 → 1 ligne');
 assert(counts[2] === 5, 'SQL sans HAVING → 5 groupes');
 
-const okCorrect =
-  normalize([results[0]], false) === normalize([results[0]], false);
-assert(okCorrect, 'normalize identique pour même résultat');
-
 const okFail =
   normalize([results[1]], false) !== normalize([results[0]], false);
 assert(okFail, 'normalize différencie >= 3 vs >= 2');
+
+const okOrdered =
+  normalize([{ columns: ['a'], values: [[1], [2]] }], true) !==
+  normalize([{ columns: ['a'], values: [[2], [1]] }], true);
+assert(okOrdered, 'normalize ordered est sensible à l’ordre');
+
+const okUnordered =
+  normalize([{ columns: ['a'], values: [[1], [2]] }], false) ===
+  normalize([{ columns: ['a'], values: [[2], [1]] }], false);
+assert(okUnordered, 'normalize unordered ignore l’ordre');
 
 const diagReal = exoFailDiag(
   'SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 3;',
@@ -307,7 +213,8 @@ const diagReal = exoFailDiag(
   [results[1]],
   [results[0]]
 );
-assertIncludes(diagReal, 'exclut', 'diag cohérent avec résultats SQL réels');
+assertIncludes(diagReal, 'correspond pas', 'diag générique avec résultats SQL réels');
+assertNotIncludes(diagReal, 'Nutrition', 'ne révèle pas la valeur réelle');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
