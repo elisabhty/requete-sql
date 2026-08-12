@@ -4500,8 +4500,6 @@ function exoFailDiag(sql,sol,userRes,solRes,ordered){
   const S=String(sql||''), R=String(sol||'');
   const nU=userRes&&userRes[0]?userRes[0].values.length:0;
   const nS=solRes&&solRes[0]?solRes[0].values.length:0;
-  const colsU=(userRes&&userRes[0]?userRes[0].columns:[])||[];
-  const colsS=(solRes&&solRes[0]?solRes[0].columns:[])||[];
   const hasGroupBy=q=>/\bGROUP\s+BY\b/i.test(q);
   const hasHaving=q=>/\bHAVING\b/i.test(q);
   const hasWhere=q=>/\bWHERE\b/i.test(q);
@@ -4529,9 +4527,6 @@ function exoFailDiag(sql,sol,userRes,solRes,ordered){
 
   if(hasWhere(R)&&!hasWhere(S)&&nU>nS)
     return 'Ajoute un <code>WHERE</code> pour filtrer les lignes.';
-
-  if(colsU.length&&colsS.length&&colsU.length!==colsS.length)
-    return `Colonnes affichées : ${colsU.map(c=>'<code>'+esc(c)+'</code>').join(', ')} — on attend ${colsS.map(c=>'<code>'+esc(c)+'</code>').join(', ')}.`;
 
   if(nU===0&&nS>0)
     return 'Aucune ligne — ta condition est trop restrictive.';
