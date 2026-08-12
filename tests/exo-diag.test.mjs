@@ -204,6 +204,7 @@ console.log('\n=== exoFailDiag — diff de résultat (sans révéler les valeurs
   );
   const msg = exoFailDiag(sql, SOL_HAVING, userRes, solRes, false);
   assertIncludes(msg, 'Aucune ligne', '0 ligne → message dédié');
+  assertNotIncludes(msg, 'restrictive', 'ne présume pas d’une condition trop restrictive');
 }
 {
   const solRes = mock(['nom'], [['Sophie'], ['Lucas'], ['Emma']]);
