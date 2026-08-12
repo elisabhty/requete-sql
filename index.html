@@ -1344,10 +1344,10 @@
   .bravo-stat.streak b{display:flex;align-items:center;gap:5px}
   .bravo-stat.streak svg{width:18px;height:18px;color:#B45309;flex:none}
   .bravo-stat.streak.hot svg{color:#E2551B}
-  .bravo-gcard-stage{perspective:1100px;max-width:210px;margin:0 auto;transform-style:preserve-3d}
+  .bravo-gcard-stage{perspective:1100px;width:100%;max-width:148px;margin:0;transform-style:preserve-3d}
   .bravo-gcard-stage.flip{animation:bravoCardFlip .52s cubic-bezier(.4,.05,.3,1) forwards}
   .bravo-gcard-stage.revealed{opacity:0;transform:rotateY(160deg) scale(.9);pointer-events:none}
-  .bravo-gcard{aspect-ratio:3/4;display:flex;flex-direction:column;color:#fff;position:relative;overflow:hidden;text-align:left;border:none;width:100%;border-radius:20px;padding:13px 12px 11px;cursor:pointer;touch-action:manipulation;box-shadow:0 16px 34px -20px rgba(20,20,40,.5);opacity:0;pointer-events:none}
+  .bravo-gcard{aspect-ratio:3/4;display:flex;flex-direction:column;color:#fff;position:relative;overflow:hidden;text-align:left;border:none;width:100%;border-radius:18px;padding:12px 11px 10px;cursor:pointer;touch-action:manipulation;box-shadow:0 16px 34px -20px rgba(20,20,40,.5);opacity:0;pointer-events:none}
   .bravo-gcard.in{animation:bravoCardIn .75s cubic-bezier(.2,.85,.3,1.15) both}
   .bravo-gcard.shown{opacity:1;transform:none;animation:none;pointer-events:auto}
   .bravo-gcard::before{content:'';position:absolute;inset:0;background:radial-gradient(120% 80% at 12% 0%,rgba(255,255,255,.28),transparent 55%);pointer-events:none;z-index:0}
@@ -1358,13 +1358,17 @@
   .bravo-gcard .gbrand-n{font-size:10px;font-weight:800;opacity:.92}
   .bravo-gcard .gidx{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.8px;opacity:.72}
   .bravo-gcard .gbody{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0}
-  .bravo-gcard .gk{font-family:var(--mono);font-size:clamp(16px,4.5vw,20px);font-weight:800;letter-spacing:-.6px;line-height:1.15;margin:0 0 5px}
+  .bravo-gcard .gk{font-family:var(--mono);font-size:clamp(15px,4.2vw,18px);font-weight:800;letter-spacing:-.6px;line-height:1.15;margin:0 0 5px}
   .bravo-gcard .gt{font-size:11px;opacity:.88;font-weight:600;line-height:1.3;margin:0}
   .bravo-gcard.shown:active{transform:scale(.985)}
   @keyframes bravoCardIn{0%{opacity:0;transform:rotateY(95deg) rotateZ(-7deg) scale(.72)}55%{opacity:1}100%{opacity:1;transform:rotateY(0) rotateZ(0) scale(1)}}
   @keyframes bravoCardFlip{0%{transform:rotateY(0) scale(1);opacity:1}100%{transform:rotateY(160deg) scale(.9);opacity:0}}
   @keyframes bravoShine{0%{transform:translateX(-130%)}100%{transform:translateX(130%)}}
-  .bravo-gcard-lab{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-3);margin:0 2px 6px}
+  .bravo-gcard-lab{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-3);margin:0 2px 8px}
+  .bravo-unlock-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:stretch}
+  .bravo-actions-stack{display:flex;flex-direction:column;justify-content:center;gap:8px;min-width:0}
+  .bravo-actions-stack .bravo-sec{flex:1;min-height:56px;font-size:14.5px}
+  .bravo-card-col{display:flex;flex-direction:column;align-items:flex-end;justify-content:center}
   .bravo-next-btn{position:relative;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line-2);border-radius:18px;padding:14px 15px;cursor:pointer;touch-action:manipulation;box-shadow:0 10px 24px -22px rgba(20,20,40,.35);animation:bravoFadeUp .42s cubic-bezier(.32,.72,.28,1) .34s both}
   .bravo-next-btn:active{transform:scale(.985);background:var(--surface-2)}
   .bravo-next-lab{display:block;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
@@ -1763,7 +1767,7 @@
     .dp-go{width:100%}
     .bravo-hero h1{font-size:30px}
     .bravo-row{grid-template-columns:1fr}
-    .bravo-gcard{max-width:220px;margin:0 auto}
+    .bravo-gcard-stage{max-width:132px}
   }
   @media (max-width:380px){
     .memory-rule div + div{border-left:0;border-top:1px solid var(--line-2);padding-top:14px;margin-top:0}
@@ -5216,12 +5220,13 @@ function bravoStepsHtml(){
 function bravoCardHtml(l){
   const c=CARTES[l.id]; if(!c)return '';
   const n=String(l.id).padStart(2,'0');
-  return `<p class="bravo-gcard-lab">Carte débloquée · tape pour la dévoiler</p>
-    <div class="bravo-gcard-stage">
-      <button type="button" class="bravo-gcard" style="background:${gradOf(l.id)}" onclick="bravoRevealCard(${l.id},event)" aria-label="Dévoiler la carte ${esc(c.k)}">
-        <div class="gbrand"><span class="gbrand-n">Requête</span><span class="gidx">CARTE ${n}</span></div>
-        <div class="gbody"><div class="gk">${esc(c.k)}</div><div class="gt">${esc(c.t)}</div></div>
-      </button>
+  return `<div class="bravo-card-col">
+      <div class="bravo-gcard-stage">
+        <button type="button" class="bravo-gcard" style="background:${gradOf(l.id)}" onclick="bravoRevealCard(${l.id},event)" aria-label="Dévoiler la carte ${esc(c.k)}">
+          <div class="gbrand"><span class="gbrand-n">Requête</span><span class="gidx">CARTE ${n}</span></div>
+          <div class="gbody"><div class="gk">${esc(c.k)}</div><div class="gt">${esc(c.t)}</div></div>
+        </button>
+      </div>
     </div>`;
 }
 function bravoRevealCard(id,ev){
@@ -5333,16 +5338,25 @@ function bravoActionsHtml(l){
   const suiv=!etape?allLessons.find(x=>!(state.lessons[x.id]&&state.lessons[x.id].done)):null;
   const hasNext=!!(etape||suiv);
   const goBtn=hasNext?'':`<button type="button" class="bravo-go" onclick="exitLessonToTab('learn')">Retour à l’accueil</button>`;
-  const secBtn=CARTES[l.id]
-    ?''
-    :(state.plan?`<button type="button" class="bravo-sec" onclick="exitLessonToTab('planning')">Mon parcours</button>`:'');
+  const hasCard=!!CARTES[l.id];
+  const secBtn=!hasCard&&state.plan
+    ?`<button type="button" class="bravo-sec" onclick="exitLessonToTab('planning')">Mon parcours</button>`
+    :'';
+  const stack=`<div class="bravo-actions-stack">
+      <button type="button" class="bravo-sec" onclick="setLessonStep(0)">Relire le cours</button>
+      <button type="button" class="bravo-sec" onclick="recommencerLecon()">Recommencer</button>
+    </div>`;
+  const unlock=hasCard
+    ?`<p class="bravo-gcard-lab">Carte débloquée · tape pour la dévoiler</p>
+      <div class="bravo-unlock-row">${stack}${bravoCardHtml(l)}</div>`
+    :`<div class="bravo-row">
+        <button type="button" class="bravo-sec" onclick="setLessonStep(0)">Relire le cours</button>
+        <button type="button" class="bravo-sec" onclick="recommencerLecon()">Recommencer</button>
+      </div>`;
   return `<div class="bravo-actions">
     ${goBtn}
     ${secBtn}
-    <div class="bravo-row">
-      <button type="button" class="bravo-sec" onclick="setLessonStep(0)">Relire le cours</button>
-      <button type="button" class="bravo-sec" onclick="recommencerLecon()">Recommencer</button>
-    </div>
+    ${unlock}
   </div>`;
 }
 function renderBravoSlide(l){
@@ -5358,7 +5372,6 @@ function renderBravoSlide(l){
       </div>
       ${bravoRecapHtml(l)}
       ${bravoNextHtml()}
-      ${bravoCardHtml(l)}
       ${bravoActionsHtml(l)}
     </div>`;
 }
