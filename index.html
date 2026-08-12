@@ -1378,7 +1378,6 @@
   .bravo-gcard-lab{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-3);margin:0 2px 8px}
   .bravo-unlock-row{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:stretch}
   .bravo-actions-stack{display:flex;flex-direction:column;justify-content:center;gap:8px;min-width:0}
-  .bravo-actions-stack .bravo-sec{flex:1;min-height:56px;font-size:14.5px}
   .bravo-card-col{display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
   .bravo-next-btn{position:relative;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line-2);border-radius:18px;padding:14px 15px;cursor:pointer;touch-action:manipulation;box-shadow:0 10px 24px -22px rgba(20,20,40,.35);animation:bravoFadeUp .42s cubic-bezier(.32,.72,.28,1) .34s both}
   .bravo-next-btn:active{transform:scale(.985);background:var(--surface-2)}
@@ -1396,8 +1395,14 @@
   .bravo-go:active{transform:scale(.985);filter:brightness(.98)}
   .bravo-go.alt{background:linear-gradient(180deg,#6363DE,#5151CB);box-shadow:0 10px 22px -12px rgba(91,91,214,.45)}
   .bravo-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .bravo-sec{width:100%;background:var(--surface);color:var(--ink);border:1.5px solid var(--line-2);border-radius:14px;padding:13px 12px;min-height:48px;font-family:var(--ui);font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation}
+  .bravo-sec{width:100%;display:flex;align-items:center;justify-content:flex-start;gap:10px;background:var(--surface);color:var(--ink);border:1.5px solid var(--line-2);border-radius:14px;padding:12px 14px;min-height:48px;font-family:var(--ui);font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation;text-align:left}
   .bravo-sec:active{transform:scale(.985);background:var(--surface-2)}
+  .bravo-sec .bi{width:32px;height:32px;flex:none;border-radius:10px;display:flex;align-items:center;justify-content:center}
+  .bravo-sec .bi svg{width:17px;height:17px;display:block}
+  .bravo-sec.relire .bi{background:var(--accent-soft);color:var(--accent)}
+  .bravo-sec.restart .bi{background:#FBF1E4;color:#B45309}
+  .bravo-sec .bt{flex:1;min-width:0;line-height:1.25}
+  .bravo-actions-stack .bravo-sec{flex:1;min-height:56px;font-size:14.5px;padding:12px 14px}
   .bravo-more{display:flex;justify-content:center;gap:16px;padding:4px 0 2px}
   .bravo-link{background:none;border:none;color:var(--ink-3);font-family:var(--ui);font-size:13.5px;font-weight:600;cursor:pointer;padding:8px 4px;touch-action:manipulation;text-decoration:underline;text-decoration-color:rgba(60,60,67,.25);text-underline-offset:3px}
   .bravo-link:active{color:var(--ink-2)}
@@ -5359,17 +5364,15 @@ function bravoActionsHtml(l){
   const secBtn=!hasCard&&state.plan
     ?`<button type="button" class="bravo-sec" onclick="exitLessonToTab('planning')">Mon parcours</button>`
     :'';
-  const stack=`<div class="bravo-actions-stack">
-      <button type="button" class="bravo-sec" onclick="setLessonStep(0)">Relire le cours</button>
-      <button type="button" class="bravo-sec" onclick="recommencerLecon()">Recommencer</button>
-    </div>`;
+  const ICO_BOOK=`<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5v-13Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5v-13Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>`;
+  const ICO_RESTART=`<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.8 12a8.2 8.2 0 1 0 2.1-5.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M3.5 4.8v4.2H7.7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const btnRelire=`<button type="button" class="bravo-sec relire" onclick="setLessonStep(0)"><span class="bi">${ICO_BOOK}</span><span class="bt">Relire le cours</span></button>`;
+  const btnRestart=`<button type="button" class="bravo-sec restart" onclick="recommencerLecon()"><span class="bi">${ICO_RESTART}</span><span class="bt">Recommencer</span></button>`;
+  const stack=`<div class="bravo-actions-stack">${btnRelire}${btnRestart}</div>`;
   const unlock=hasCard
     ?`<p class="bravo-gcard-lab">Carte débloquée · tape pour la dévoiler</p>
       <div class="bravo-unlock-row">${bravoCardHtml(l)}${stack}</div>`
-    :`<div class="bravo-row">
-        <button type="button" class="bravo-sec" onclick="setLessonStep(0)">Relire le cours</button>
-        <button type="button" class="bravo-sec" onclick="recommencerLecon()">Recommencer</button>
-      </div>`;
+    :`<div class="bravo-row">${btnRelire}${btnRestart}</div>`;
   return `<div class="bravo-actions">
     ${goBtn}
     ${secBtn}
