@@ -2414,7 +2414,6 @@ GROUP BY categorie
     </div>
     <p class="concept-point"><span class="em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h12M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Une fois les catégories regroupées avec <code>GROUP BY</code>, utilise <code>HAVING</code> pour ne garder que celles dont <code>COUNT(*)</code> respecte la condition <code>&gt;= 2</code>.</span></p>
   </div>
-  <!-- early-demo -->
   <div class="concept-block">
     <h2><span class="h2-eye">Pourquoi</span><span class="h2-txt">Suis ce qui arrive à tes données.</span></h2>
     <p style="margin-bottom:4px">SQL exécute la requête étape par étape. À chaque étape, les données se transforment. <code>COUNT(*)</code> ne peut être calculé qu’une fois les lignes regroupées avec <code>GROUP BY</code>.</p>
@@ -2453,6 +2452,7 @@ GROUP BY categorie
     </div>
     <div class="agg-reflex">Si ta condition contient une fonction d’agrégation comme&nbsp;:<ul class="agg-list"><li><code>COUNT()</code></li><li><code>SUM()</code></li><li><code>AVG()</code></li><li><code>MIN()</code></li><li><code>MAX()</code></li></ul><p class="agg-cta">👉 utilise <code>HAVING</code>.</p></div>
   </div>
+  <!-- early-demo -->
   </div>`,
   anatomie:[{tok:"SELECT categorie, COUNT(*)",txt:"Affiche la catégorie et le nombre de produits."},
     {tok:"FROM produits",txt:"Lit la table produits."},
@@ -3664,7 +3664,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-12-having-check';
+const APP_VERSION='2026-08-12-having-sql-pass';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -4621,6 +4621,7 @@ function buildSteps(sql,database){
   const c=splitClauses(sql);
   if(!c||!c.from)return null;
   const steps=[];const D=database||activeDb()||db;const S=s=>D.exec(s);
+  const fail=(n,t,e,err)=>{steps.push({n,t,e,err:String(err&&err.message||err),cols:[],rows:[]});};
   let base;
   try{base=S(`SELECT * FROM ${c.from}`)[0];}catch(e){return null;}
   if(!base)return null;
@@ -4628,6 +4629,7 @@ function buildSteps(sql,database){
     e:`SQL commence par lire <b>toutes</b> les lignes de <code>${esc(c.from)}</code>. Rien n'est encore filtré ni trié.`,
     cols:base.columns,rows:base.values.map(v=>({v}))});
   let kept=base.values;
+  const whereSql=c.where?' WHERE '+c.where:'';
   if(c.where){
     try{
       const f=S(`SELECT * FROM ${c.from} WHERE ${c.where}`)[0];
@@ -4637,39 +4639,56 @@ function buildSteps(sql,database){
         e:`Chaque ligne est testée : <code>${esc(c.where)}</code>. Celles qui échouent sont barrées — elles ne participeront à rien de la suite.`,
         cols:base.columns,rows,note:`${fv.length} lignes conservées sur ${base.values.length}`});
       kept=fv;
-    }catch(e){}
+    }catch(e){
+      fail('WHERE','On filtre les lignes',
+        `<code>WHERE</code> s’exécute <b>avant</b> <code>GROUP BY</code> : les agrégats comme <code>COUNT(*)</code> n’existent pas encore.`,e);
+      return steps;
+    }
   }
+  let groupRows=null,groupUniq=[];
   if(c.group){
     try{
-      const g=S(`SELECT ${c.group} FROM ${c.from}${c.where?' WHERE '+c.where:''}`)[0];
+      const g=S(`SELECT ${c.group} FROM ${c.from}${whereSql}`)[0];
       const keys=g?g.values.map(r=>r.join(' · ')):[];
       const uniq=[...new Set(keys)];
       const rows=kept.map((v,i)=>({v,g:keys[i]}))
         .sort((a,b)=>uniq.indexOf(a.g)-uniq.indexOf(b.g))
         .map(r=>({...r,gc:GC[uniq.indexOf(r.g)%GC.length]}));
+      groupRows=rows; groupUniq=uniq;
       steps.push({n:'GROUP BY',t:'On forme les paquets',
         e:`Les lignes qui partagent la même valeur de <code>${esc(c.group)}</code> sont rassemblées. Ici <b>${uniq.length} paquets</b> — chaque couleur en est un.`,
         cols:base.columns,rows,note:`${uniq.length} groupes : ${uniq.slice(0,6).join(', ')}${uniq.length>6?'…':''}`});
-    }catch(e){}
+    }catch(e){
+      fail('GROUP BY','On forme les paquets',`SQL n’a pas pu regrouper selon <code>${esc(c.group)}</code>.`,e);
+      return steps;
+    }
   }
-  let proj=null;
-  try{
-    const q=`SELECT ${c.select} FROM ${c.from}${c.where?' WHERE '+c.where:''}${c.group?' GROUP BY '+c.group:''}`;
-    proj=S(q)[0];
-    steps.push({n:'SELECT',t:c.group?'On calcule sur chaque paquet':'On garde les colonnes demandées',
-      e:c.group?`La fonction d'agrégation s'applique <b>paquet par paquet</b> : chaque groupe se réduit à une seule ligne.`
-        :`Seules les colonnes demandées sont conservées : <code>${esc(c.select)}</code>.`,
-      cols:proj?proj.columns:[],rows:proj?proj.values.map(v=>({v})):[]});
-  }catch(e){}
-  if(c.having&&proj){
+  if(c.having&&c.group&&groupRows){
     try{
-      const q=`SELECT ${c.select} FROM ${c.from}${c.where?' WHERE '+c.where:''} GROUP BY ${c.group} HAVING ${c.having}`;
-      const h=S(q)[0];const ms=multiset(h?h.values:[]);
-      const rows=proj.values.map(v=>({v,out:!take(ms,v)}));
+      const h=S(`SELECT ${c.group} FROM ${c.from}${whereSql} GROUP BY ${c.group} HAVING ${c.having}`)[0];
+      const keepSet=new Set((h?h.values:[]).map(r=>r.join(' · ')));
+      const rows=groupRows.map(r=>({...r,out:!keepSet.has(r.g)}));
       steps.push({n:'HAVING',t:'On filtre les paquets',
         e:`Contrairement au WHERE qui filtrait des lignes, <code>HAVING</code> élimine des <b>groupes entiers</b> selon <code>${esc(c.having)}</code>.`,
-        cols:proj.columns,rows,note:`${h?h.values.length:0} groupes conservés sur ${proj.values.length}`});
-    }catch(e){}
+        cols:base.columns,rows,note:`${keepSet.size} groupes conservés sur ${groupUniq.length}`});
+    }catch(e){
+      fail('HAVING','On filtre les paquets',`SQL n’a pas pu appliquer <code>HAVING ${esc(c.having)}</code>.`,e);
+      return steps;
+    }
+  }
+  try{
+    let q=`SELECT ${c.select} FROM ${c.from}${whereSql}`;
+    if(c.group) q+=` GROUP BY ${c.group}`;
+    if(c.having) q+=` HAVING ${c.having}`;
+    const proj=S(q)[0];
+    steps.push({n:'SELECT',t:c.group?'On calcule sur chaque paquet':'On garde les colonnes demandées',
+      e:c.group?`La fonction d'agrégation s'applique <b>paquet par paquet</b> : chaque groupe conservé se réduit à une seule ligne.`
+        :`Seules les colonnes demandées sont conservées : <code>${esc(c.select)}</code>.`,
+      cols:proj?proj.columns:[],rows:proj?proj.values.map(v=>({v})):[]});
+  }catch(e){
+    fail('SELECT',c.group?'On calcule sur chaque paquet':'On garde les colonnes demandées',
+      `SQL n’a pas pu projeter <code>${esc(c.select)}</code>.`,e);
+    return steps;
   }
   if(c.order||c.limit){
     try{
@@ -4757,7 +4776,18 @@ function closeSchemaSheet(){
 }
 function renderViz(){
   const s=vizSteps[vizI];
-  const rows=s.rows.map(r=>{
+  if(s.err){
+    document.getElementById('viz-body').innerHTML=`
+      <div class="viz-stepnum">Étape ${vizI+1} sur ${vizSteps.length} · ${esc(s.n)}</div>
+      <h3>${esc(s.t)}</h3>
+      <p class="viz-e">${s.e}</p>
+      ${errBox(s.err)}`;
+    document.getElementById('viz-dots').innerHTML=vizSteps.map((_,i)=>`<i class="${i===vizI?'on':''}"></i>`).join('');
+    document.getElementById('viz-body').scrollTop=0;
+    updateVizNav();
+    return;
+  }
+  const rows=(s.rows||[]).map(r=>{
     const cls=(r.out?'r-out ':'')+(r.gc?'r-grp':'');
     const st=r.gc?` style="--gc:${r.gc}"`:'';
     return `<tr class="${cls}"${st}>${r.v.map(fmtCell).join('')}</tr>`;
@@ -5569,7 +5599,7 @@ function lessonDemoBlocks(l){
     <div class="cfs-label">Rappel · ordre d’exécution</div>
     <div class="concept-order"><code style="margin-left:8px">FROM</code><i>›</i><code>WHERE</code><i>›</i><code>GROUP BY</code><i>›</i><code class="on">HAVING</code><i>›</i><code>SELECT</code><i>›</i><code>ORDER BY</code><i style="width:10px;flex:none"></i></div>
     <div class="order-hint"><span class="order-hint-chip">Glisse<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h13M13 7l5 5-5 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
-    <div class="concept-coda"><b>💡 À retenir</b><br>Même si <code>SELECT</code> est écrit en premier, il est exécuté presque à la fin. C’est ce qui explique pourquoi <code>WHERE</code> ne peut pas utiliser <code>COUNT()</code>.</div>
+    <div class="concept-coda"><b>💡 À retenir</b><br><code>WHERE</code> s’exécute <b>avant</b> <code>GROUP BY</code> : <code>COUNT()</code> n’existe pas encore. <code>HAVING</code> filtre les groupes <b>après</b> le regroupement. <code>SELECT</code>, même écrit en premier, arrive presque à la fin.</div>
     <button type="button" class="order-replay" onclick="replayOrderRappelAnim()">↺ Revoir</button>
   </div>`:'';
   return `${lessonRichFooter(l)}${anat?`<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`:''}${order}`;
