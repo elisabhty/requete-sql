@@ -79,10 +79,11 @@ const SOL_HAVING =
   const msg = exoFailDiag(sql, SOL_HAVING, userRes, solRes);
   assertIncludes(msg, 'HAVING COUNT(*)', 'seuil HAVING mentionné');
   assertIncludes(msg, '>= 3', 'seuil élève affiché');
-  assertIncludes(msg, '>= 2', 'seuil attendu affiché');
   assertIncludes(msg, 'exclut', 'diagnostic orienté requête');
   assertNotIncludes(msg, 'produits', 'pas de mention « produits » hardcodée');
   assertNotIncludes(msg, 'ligne', 'pas de compte de lignes');
+  assertNotIncludes(msg, 'essaie', 'ne donne pas la réponse');
+  assert(!msg.includes('>= 2'), 'ne révèle pas le seuil attendu');
 }
 
 {
