@@ -3648,7 +3648,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-12-having-pause';
+const APP_VERSION='2026-08-12-no-double-fb';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -5862,8 +5862,8 @@ function runLesson(){
     }
   }catch(e){ out.innerHTML=errBox(e.message); registerExoFail(); return; }
   const ok=normalize(userRes,ordered)===normalize(solRes,ordered);
-  const table=renderTable(userRes,ms);
   if(ok){
+    const table=renderTable(userRes,ms);
     let head;
     if(isDefi){
       const premier=!state.defis[current.id];
@@ -5906,6 +5906,8 @@ function runLesson(){
   }else{
     const diag=exoFailDiag(sql,sol,userRes,solRes,ordered);
     if(mode==='review'){ const st=state.lessons[current.id]; if(st){st.level=0;st.due=Date.now()+DAY;save();} }
+    // Évite le double message : pas de bandeau vert « Requête exécutée / Aucune ligne » sous le warn.
+    const table=(!userRes||!userRes.length)?'':renderTable(userRes,ms);
     out.innerHTML=`<div class="feedback warn"><div class="fi">≈</div><div><b>La requête tourne, mais…</b><p>${diag}</p></div></div>${table}`;
     registerExoFail();
   }
