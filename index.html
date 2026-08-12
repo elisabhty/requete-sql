@@ -2418,8 +2418,8 @@ GROUP BY categorie
     <div class="grp-viz" id="having-grp-viz" data-phase="0" aria-label="Animation : regroupement puis filtrage HAVING">
       <div class="grp-viz-bar">
         <span class="grp-k">SELECT … FROM produits</span>
-        <span class="grp-paused-badge" aria-live="polite">En pause</span>
         <span class="grp-desc">SQL lit simplement les lignes</span>
+        <span class="grp-paused-badge" aria-live="polite">En pause</span>
       </div>
       <div class="grp-stage">
         <div class="grp-bucket" data-cat="Bien-être" data-n="3" data-keep="1"><span class="grp-bucket-lbl">Bien-être</span><span class="grp-count">3</span></div>
@@ -3659,7 +3659,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-12-having-pause-badge';
+const APP_VERSION='2026-08-12-no-exec-jump';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -5151,7 +5151,7 @@ const editorBlock=(withViz,fname='exercice.sql')=>`
   <div class="run-row"><button class="btn-run" onclick="runLesson()">${RUN_ICO} Exécuter</button>
   <button class="btn-ghost" type="button" onclick="openSchemaSheet()">Schéma</button>
   ${withViz?`<button class="btn-ghost" type="button" onclick="openViz('ed-lesson')">Pas à pas</button>`:''}</div>
-  <div id="lesson-out" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div id="lesson-out" role="status" aria-live="polite" aria-atomic="true" style="overflow-anchor:none"></div>
   <div id="hint-slot"></div>`;
 
 let lessonStep=0; // 0 leçon · 1 exercice · 2 quiz
@@ -5567,7 +5567,6 @@ function runExemple(btn){
       void host.offsetWidth;
       host.classList.add('on','flash');
       if(navigator.vibrate)navigator.vibrate(8);
-      setTimeout(()=>host.scrollIntoView({behavior:prefersReduceMotion()?'auto':'smooth',block:'nearest'}),prefersReduceMotion()?0:120);
     }catch(e){
       host.innerHTML=errBox(e.message);
       host.hidden=false;
@@ -5853,10 +5852,29 @@ function loadExample(){
   ta.value=current.exemple; syncHL('ed-lesson','hl-lesson');
   ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; ta.focus();
 }
+function setLessonOut(html){
+  const out=document.getElementById('lesson-out');
+  if(!out)return;
+  const scr=document.getElementById('scr-lesson');
+  const y=scr?scr.scrollTop:0;
+  const live=out.getAttribute('aria-live');
+  // Couper aria-live le temps du paint : sinon iOS/Safari saute vers la zone annoncée.
+  out.setAttribute('aria-live','off');
+  out.innerHTML=html;
+  if(scr){
+    scr.scrollTop=y;
+    requestAnimationFrame(()=>{
+      scr.scrollTop=y;
+      out.setAttribute('aria-live',live||'polite');
+    });
+  }else{
+    requestAnimationFrame(()=>out.setAttribute('aria-live',live||'polite'));
+  }
+}
 function runLesson(){
   const sql=document.getElementById('ed-lesson').value.trim();
   const out=document.getElementById('lesson-out');
-  if(!sql){out.innerHTML='';return;}
+  if(!sql){if(out)out.innerHTML='';return;}
   const isDefi=mode==='defi';
   const sol=isDefi?current.sol:current.solution;
   const ordered=isDefi?!!current.ordered:false;
@@ -5871,7 +5889,7 @@ function runLesson(){
       userRes=dU.exec(sql); ms=performance.now()-t0; dU.close();
       const dS=sandbox(); solRes=dS.exec(sol); dS.close();
     }
-  }catch(e){ out.innerHTML=errBox(e.message); registerExoFail(); return; }
+  }catch(e){ setLessonOut(errBox(e.message)); registerExoFail(); return; }
   const ok=normalize(userRes,ordered)===normalize(solRes,ordered);
   if(ok){
     const table=renderTable(userRes,ms);
@@ -5883,16 +5901,16 @@ function runLesson(){
       head=`<div class="feedback ok"><div class="fi">✓</div><div><b>Défi résolu</b><p>Ta requête donne exactement le bon résultat.</p></div></div>`;
       const nxtPlan=state.plan&&infoJour()&&infoJour().today&&infoJour().today.lessons.find(id=>!itemDone(id));
       const nxt=defisParProgression().find(c=>!state.defis[c.id]);
-      out.innerHTML=head+table+(nxtPlan!=null
+      setLessonOut(head+table+(nxtPlan!=null
         ?`<button class="next-btn" onclick="openItem(${isDefiId(nxtPlan)?`'${nxtPlan}'`:nxtPlan})">Continuer la séance →</button>`
-        :(nxt?`<button class="next-btn" onclick="openChallenge('${nxt.id}')">Défi suivant →</button>`:''));
+        :(nxt?`<button class="next-btn" onclick="openChallenge('${nxt.id}')">Défi suivant →</button>`:'')));
       pulseCta('#lesson-out .next-btn');
     }else if(mode==='review'){
       markDone(current.id,true); renderModules(); renderProgress(); renderPlanning();
       reviewQueue.shift();
       head=`<div class="feedback ok"><div class="fi">✓</div><div><b>Bien retenu</b><p>Cette leçon reviendra plus tard, à un intervalle plus long.</p></div></div>`;
-      out.innerHTML=head+table+(reviewQueue.length?`<button class="next-btn" onclick="openReview(${reviewQueue[0]})">Réviser la suivante →</button>`
-        :`<button class="next-btn" onclick="goBack()">Révisions terminées ✓</button>`);
+      setLessonOut(head+table+(reviewQueue.length?`<button class="next-btn" onclick="openReview(${reviewQueue[0]})">Réviser la suivante →</button>`
+        :`<button class="next-btn" onclick="goBack()">Révisions terminées ✓</button>`));
       pulseCta('#lesson-out .next-btn');
       if(navigator.vibrate)navigator.vibrate(12);
     }else{
@@ -5902,7 +5920,7 @@ function runLesson(){
       celebrate();
       const nU=userRes&&userRes[0]?userRes[0].values.length:0;
       const bare=table.replace(/^<div class="result-meta">[\s\S]*?<\/div>/,'');
-      out.innerHTML=`<div class="ok-panel"><div class="ok-banner">✓ Correct — ${fmtLignes(nU)} retournée${nU!==1?'s':''}</div>${bare}</div>`;
+      setLessonOut(`<div class="ok-panel"><div class="ok-banner">✓ Correct — ${fmtLignes(nU)} retournée${nU!==1?'s':''}</div>${bare}</div>`);
       document.querySelectorAll('#lesson-body .ls-bar').forEach((el,i)=>{
         if(i<=1) el.classList.add('done');
         if(i===2){el.disabled=false;el.setAttribute('onclick','setLessonStep(2)');}
@@ -5919,7 +5937,7 @@ function runLesson(){
     if(mode==='review'){ const st=state.lessons[current.id]; if(st){st.level=0;st.due=Date.now()+DAY;save();} }
     // Évite le double message : pas de bandeau vert « Requête exécutée / Aucune ligne » sous le warn.
     const table=(!userRes||!userRes.length)?'':renderTable(userRes,ms);
-    out.innerHTML=`<div class="feedback warn"><div class="fi">≈</div><div><b>La requête tourne, mais…</b><p>${diag}</p></div></div>${table}`;
+    setLessonOut(`<div class="feedback warn"><div class="fi">≈</div><div><b>La requête tourne, mais…</b><p>${diag}</p></div></div>${table}`);
     registerExoFail();
   }
 }
