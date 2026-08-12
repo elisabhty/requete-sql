@@ -4496,51 +4496,6 @@ function parseHavingCount(sql){
   const m=String(sql||'').match(/HAVING\s+COUNT\s*\(\s*(?:DISTINCT\s+)?(?:\*|\w+(?:\.\w+)?)\s*\)\s*(>=|>|=|<=|<)\s*(\d+)/i);
   return m?{op:m[1],n:+m[2]}:null;
 }
-function fmtRow(r,cols){
-  const cells=r.map(v=>{
-    if(v==null)return 'NULL';
-    if(typeof v==='number')return Math.round(v*1000)/1000;
-    return String(v);
-  });
-  if(cols&&cols.length===1)return cells[0];
-  return cells.join(' · ');
-}
-function rowKey(r){ return JSON.stringify(r.map(v=>typeof v==='number'?Math.round(v*1000)/1000:v)); }
-function diffResults(userRes,solRes,ordered){
-  const u=(userRes&&userRes[0]?userRes[0].values:[])||[];
-  const s=(solRes&&solRes[0]?solRes[0].values:[])||[];
-  const colsU=(userRes&&userRes[0]?userRes[0].columns:[])||[];
-  const colsS=(solRes&&solRes[0]?solRes[0].columns:[])||[];
-  const sameCols=colsU.length===colsS.length&&colsU.every((c,i)=>String(c).toLowerCase()===String(colsS[i]).toLowerCase());
-  if(!sameCols) return null;
-  if(ordered){
-    const wrong=[];
-    const n=Math.max(u.length,s.length);
-    for(let i=0;i<n;i++){
-      if(rowKey(u[i])!==rowKey(s[i])) wrong.push({i,exp:s[i],got:u[i]});
-    }
-    if(!wrong.length) return null;
-    const sample=wrong.slice(0,1).map(w=>{
-      const e=fmtRow(w.exp,colsS), g=w.got?fmtRow(w.got,colsS):'(absente)';
-      return `ligne ${w.i+1} : attendu <code>${esc(e)}</code>, tu as <code>${esc(g)}</code>`;
-    }).join('');
-    return `Mauvais ordre — ${sample}.`;
-  }
-  const uMap=new Map(), sMap=new Map();
-  u.forEach(r=>uMap.set(rowKey(r),(uMap.get(rowKey(r))||0)+1));
-  s.forEach(r=>sMap.set(rowKey(r),(sMap.get(rowKey(r))||0)+1));
-  const missing=[], extra=[];
-  sMap.forEach((n,k)=>{ const un=uMap.get(k)||0; if(un<n) missing.push(k); });
-  uMap.forEach((n,k)=>{ const sn=sMap.get(k)||0; if(n>sn) extra.push(k); });
-  const decode=k=>{ try{const arr=JSON.parse(k);return fmtRow(arr,colsS);}catch(e){return k;} };
-  if(missing.length&&extra.length)
-    return `<code>${esc(missing.slice(0,2).map(decode).join('</code>, <code>'))}</code> n’apparaît pas, et <code>${esc(extra.slice(0,2).map(decode).join('</code>, <code>'))}</code> en trop.`;
-  if(missing.length)
-    return `<code>${esc(missing.slice(0,3).map(decode).join('</code>, <code>'))}</code> n’apparaît pas.`;
-  if(extra.length)
-    return `<code>${esc(extra.slice(0,3).map(decode).join('</code>, <code>'))}</code> en trop.`;
-  return null;
-}
 function exoFailDiag(sql,sol,userRes,solRes,ordered){
   const S=String(sql||''), R=String(sol||'');
   const nU=userRes&&userRes[0]?userRes[0].values.length:0;
@@ -4580,9 +4535,6 @@ function exoFailDiag(sql,sol,userRes,solRes,ordered){
 
   if(nU===0&&nS>0)
     return 'Aucune ligne — ta condition est trop restrictive.';
-
-  const diff=diffResults(userRes,solRes,ordered);
-  if(diff) return diff;
 
   return 'Le résultat ne correspond pas à la consigne.';
 }

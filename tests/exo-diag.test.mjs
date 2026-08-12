@@ -164,7 +164,7 @@ console.log('\n=== exoFailDiag — cas génériques ===');
   assertIncludes(msg.toLowerCase(), 'colonne', 'cols différentes détectées');
 }
 
-console.log('\n=== exoFailDiag — diff de résultat (lignes en trop / manquantes) ===');
+console.log('\n=== exoFailDiag — diff de résultat (sans révéler les valeurs) ===');
 {
   const sql =
     'SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 1;';
@@ -183,7 +183,10 @@ console.log('\n=== exoFailDiag — diff de résultat (lignes en trop / manquante
     ]
   );
   const msg = exoFailDiag(sql, SOL_HAVING, userRes, solRes, false);
-  assertIncludes(msg, 'en trop', 'signale les lignes en trop');
+  assertIncludes(msg, 'correspond pas', 'message générique');
+  assertNotIncludes(msg, 'Beauté', 'ne révèle pas une ligne en trop');
+  assertNotIncludes(msg, 'Nutrition', 'ne révèle pas une ligne manquante');
+  assertNotIncludes(msg, 'en trop', 'pas d’indice sur les lignes');
   assertNotIncludes(msg, 'ligne', 'pas de compte de lignes');
 }
 {
@@ -210,7 +213,9 @@ console.log('\n=== exoFailDiag — diff de résultat (lignes en trop / manquante
     solRes,
     true
   );
-  assertIncludes(msg, 'ordre', 'ordered: signale l’ordre');
+  assertIncludes(msg, 'correspond pas', 'ordered: message générique sans révéler');
+  assertNotIncludes(msg, 'Lucas', 'ne révèle pas la valeur attendue');
+  assertNotIncludes(msg, 'Léa', 'ne révèle pas la valeur en trop');
 }
 
 console.log('\n=== exoFailDiag — leçon villes (pas « produits ») ===');
