@@ -159,7 +159,7 @@
   .back:active{background:rgba(91,91,214,.08)}
   .navbar .nav-title{position:absolute;left:0;right:0;text-align:center;font-size:15px;font-weight:650;color:var(--ink);letter-spacing:-.2px;pointer-events:none}
   .lesson-wrap{padding:8px 16px 0}
-  #scr-lesson.screen{padding-bottom:calc(var(--safe-bottom) + 28px)}
+  #scr-lesson.screen{padding-bottom:calc(var(--safe-bottom) + 28px);overflow-anchor:none}
   #scr-planning.screen{padding-bottom:calc(170px + var(--safe-bottom))}
   .l-kicker{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:1px;color:var(--accent);text-transform:uppercase;margin:12px 2px 3px}
   .lesson-wrap h1{font-size:26px;font-weight:800;letter-spacing:-.5px;margin:0 2px 14px}
@@ -355,6 +355,17 @@
   .lesson-rich .takeaway-list li.in{animation:riseIn .4s cubic-bezier(.32,.72,.28,1) both}
   .lesson-rich .takeaway-list li.in:nth-child(1){animation-delay:.1s}
   .lesson-rich .takeaway-list li.in:nth-child(2){animation-delay:.18s}
+  .lesson-rich.instant-in .concept-page > .concept-block,
+  .lesson-rich.instant-in .exframe,
+  .lesson-rich.instant-in .piege,
+  .lesson-rich.instant-in .sect-label,
+  .lesson-rich.instant-in .vs-col,
+  .lesson-rich.instant-in .pipe-step,
+  .lesson-rich.instant-in .pipe-table tbody tr,
+  .lesson-rich.instant-in .takeaway-list li,
+  .lesson-rich.instant-in .lesson-lead{
+    opacity:1!important;transform:none!important;animation:none!important
+  }
   .lesson-rich .cmp-card{transition:transform .22s ease,box-shadow .22s ease}
   .lesson-rich .cmp-card:active{background:var(--surface-2)}
   .exframe .xf-run{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:0 10px 22px -10px rgba(91,91,214,.75)}
@@ -1304,11 +1315,11 @@
   .ls-step.on{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.08)}
   .ls-step.done{color:var(--success)}
   .ls-step.lock{opacity:.45;cursor:default}
-  .ls-slide{opacity:1;transform:none;animation:lsIn .28s cubic-bezier(.32,.72,.28,1) both;display:flex;flex-direction:column-reverse;min-width:0;width:100%;box-sizing:border-box}
-  .ls-slide.back{animation:lsBack .28s cubic-bezier(.32,.72,.28,1) both}
+  .ls-slide{opacity:1;transform:none;animation:lsIn .22s cubic-bezier(.32,.72,.28,1) both;display:flex;flex-direction:column-reverse;min-width:0;width:100%;box-sizing:border-box}
+  .ls-slide.back{animation:lsBack .22s cubic-bezier(.32,.72,.28,1) both}
   .ls-main{min-width:0;width:100%;box-sizing:border-box}
-  @keyframes lsIn{from{transform:translateX(12px);opacity:.92}to{transform:translateX(0);opacity:1}}
-  @keyframes lsBack{from{transform:translateX(-12px);opacity:.92}to{transform:translateX(0);opacity:1}}
+  @keyframes lsIn{from{opacity:.88}to{opacity:1}}
+  @keyframes lsBack{from{opacity:.88}to{opacity:1}}
   .ls-nav{position:sticky;bottom:calc(12px + var(--safe-bottom));z-index:35;display:flex;gap:8px;margin:14px 0 2px;padding:0;background:none;border:none;border-radius:0;pointer-events:none;box-sizing:border-box;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;isolation:auto}
   .ls-nav::before,.ls-nav::after{content:none;display:none}
   body.in-lesson .tabbar{display:none}
@@ -1615,8 +1626,8 @@
   .learn-avatar:active{transform:scale(.92)}
   .ls-step{transition:background .18s, color .18s, transform .18s, box-shadow .18s}
   .ls-step.on{animation:chipPop .3s cubic-bezier(.3,1.4,.5,1)}
-  .ls-slide{opacity:1;transform:none;animation:lsIn .28s cubic-bezier(.32,.72,.28,1) both}
-  .ls-slide.back{animation:lsBack .28s cubic-bezier(.32,.72,.28,1) both}
+  .ls-slide{opacity:1;transform:none;animation:lsIn .22s cubic-bezier(.32,.72,.28,1) both}
+  .ls-slide.back{animation:lsBack .22s cubic-bezier(.32,.72,.28,1) both}
   .table-wrap{animation:riseIn .35s cubic-bezier(.32,.72,.28,1) both}
   /* Carte séance — direction Studio (carte blanche, accent violet) */
   .home-card{margin:15px 18px 0;border-radius:22px;padding:18px;color:var(--ink);position:relative;overflow:hidden;
@@ -5154,6 +5165,15 @@ function lessonStepMeta(){
     {i:2,l:'Quiz',s:'Valider',done:quizOk,lock:!exoOk}
   ];
 }
+function scrollLessonTop(){
+  const wrap=document.getElementById('scr-lesson');
+  if(!wrap)return;
+  wrap.scrollTop=0;
+  requestAnimationFrame(()=>{
+    wrap.scrollTop=0;
+    requestAnimationFrame(()=>{ wrap.scrollTop=0; });
+  });
+}
 function setLessonStep(n){
   clearTimeout(bilanAutoTimer); bilanAutoTimer=null;
   if(mode!=='lesson'||!current)return;
@@ -5162,8 +5182,7 @@ function setLessonStep(n){
     lessonStepDir=n<lessonStep?-1:1;
     lessonStep=3;
     renderLessonFlow();
-    const wrap=document.getElementById('scr-lesson');
-    if(wrap)wrap.scrollTop=0;
+    scrollLessonTop();
     if(navigator.vibrate)navigator.vibrate(8);
     saveNav();
     return;
@@ -5173,8 +5192,7 @@ function setLessonStep(n){
   lessonStepDir=n<lessonStep?-1:1;
   lessonStep=n;
   renderLessonFlow();
-  const wrap=document.getElementById('scr-lesson');
-  if(wrap)wrap.scrollTop=0;
+  scrollLessonTop();
   if(navigator.vibrate)navigator.vibrate(8);
   saveNav();
 }
@@ -5195,8 +5213,7 @@ function recommencerLecon(){
   save();
   renderModules();renderProgress();renderCollection();renderPlanning();
   renderLessonFlow();
-  const wrap=document.getElementById('scr-lesson');
-  if(wrap)wrap.scrollTop=0;
+  scrollLessonTop();
   if(navigator.vibrate)navigator.vibrate(12);
   saveNav();
 }
@@ -5554,20 +5571,27 @@ function openVizSql(sql){
   openViz(null, sql);
 }
 let lessonRevealObs=null;
-function revealLessonContent(){
+function revealLessonContent(instant){
   if(lessonRevealObs){lessonRevealObs.disconnect();lessonRevealObs=null;}
   const scr=document.getElementById('scr-lesson');
   const sel='#lesson-body .lesson-rich .concept-page > .concept-block,#lesson-body .lesson-rich .exframe,#lesson-body .lesson-rich .piege,#lesson-body .lesson-rich .sect-label,#lesson-body .lesson-rich .vs-col,#lesson-body .lesson-rich .pipe-step,#lesson-body .lesson-rich .pipe-table tbody tr,#lesson-body .lesson-rich .takeaway-list li';
   const els=document.querySelectorAll(sel);
   if(!els.length)return;
-  if(prefersReduceMotion()||!scr||typeof IntersectionObserver==='undefined'){ els.forEach(el=>el.classList.add('in')); return; }
+  if(instant||prefersReduceMotion()||!scr||typeof IntersectionObserver==='undefined'){
+    const rich=document.querySelector('#lesson-body .lesson-rich');
+    if(rich) rich.classList.add('instant-in');
+    els.forEach(el=>el.classList.add('in'));
+    return;
+  }
   lessonRevealObs=new IntersectionObserver(entries=>{
     entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); lessonRevealObs.unobserve(e.target); } });
-  },{root:scr,threshold:.18,rootMargin:'0px 0px -6% 0%'});
+  },{root:scr,threshold:.12,rootMargin:'0px 0px -4% 0%'});
   els.forEach(el=>lessonRevealObs.observe(el));
 }
 function renderLessonFlow(){
   if(!current||mode!=='lesson')return;
+  const ae=document.activeElement;
+  if(ae&&typeof ae.blur==='function'&&document.getElementById('scr-lesson')&&document.getElementById('scr-lesson').contains(ae)) ae.blur();
   const l=current, meta=lessonStepMeta();
   const bars=lessonStep===3?'':meta.map(s=>`
     <button type="button" class="ls-bar ${lessonStep===s.i?'on':''} ${s.done||lessonStep>s.i?'done':''}"
@@ -5667,7 +5691,11 @@ function renderLessonFlow(){
     requestAnimationFrame(()=>requestAnimationFrame(initHavingGrpViz));
   }
   if(lessonStep===0){ buildSommaire(); initOrderRappelAnim(); }
-  requestAnimationFrame(revealLessonContent);
+  const instantReveal=lessonStepDir<0;
+  requestAnimationFrame(()=>{
+    revealLessonContent(instantReveal);
+    scrollLessonTop();
+  });
 }
 function kickOrderRappel(el){
   if(!el)return;
@@ -6930,8 +6958,7 @@ function finaliserLecon(){
   renderLessonFlow();
   if(premier)showUnlock(id);
   saveNav();
-  const wrap=document.getElementById('scr-lesson');
-  if(wrap)wrap.scrollTop=0;
+  scrollLessonTop();
 }
 
 /* ---------- Notes globales (stylo ✎ partout) ---------- */
