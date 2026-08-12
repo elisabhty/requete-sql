@@ -3640,7 +3640,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-12-count-visible';
+const APP_VERSION='2026-08-12-grp-gap';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -7687,17 +7687,22 @@ function layoutHavingGrpViz(root,phase,{animate=true}={}){
   const byCat={};
   chips.forEach(c=>{(byCat[c.dataset.cat]||(byCat[c.dataset.cat]=[])).push(c);});
   const rowH=34;
-  const listH=8+chips.length*rowH+10;
+  const minListH=8+chips.length*rowH+10;
   // Hauteur stable = max(liste, groupes) pour éviter le saut de page entre phases
-  const stableH=Math.max(listH,layout._h);
+  const stableH=Math.max(minListH,layout._h);
   if(phase===0){
-    const x=10,w=Math.max(120,sw-20);
+    const x=10,w=Math.min(220,Math.max(140,sw-24));
+    const step=chips.length?Math.max(rowH,(stableH-16)/chips.length):rowH;
     chips.forEach((c,i)=>{
       c.style.transitionDelay='0ms';
       c.style.width=w+'px';
       c.style.maxWidth=w+'px';
-      c.style.height='';
-      c.style.transform=`translate(${x}px,${8+i*rowH}px)`;
+      c.style.height='32px';
+      c.style.paddingLeft='10px';
+      c.style.paddingRight='10px';
+      c.style.display='flex';
+      c.style.alignItems='center';
+      c.style.transform=`translate(${x}px,${8+i*step}px)`;
     });
   }else{
     let chipI=0;
@@ -7794,7 +7799,9 @@ function playHavingGrpViz(root){
     havingGrpSyncControls(root);
     return;
   }
-  havingGrpSetPhase(root,0,{animate:false});
+  const fromPhase=parseInt(root.dataset.phase||'0',10);
+  // Revoir : les chips reviennent en liste, puis l’anim reprend (pas un saut figé).
+  havingGrpSetPhase(root,0,{animate:fromPhase>0});
   havingGrpContinue(root,0);
 }
 
