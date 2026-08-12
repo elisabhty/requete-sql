@@ -3623,7 +3623,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-11-having-feedback';
+const APP_VERSION='2026-08-12-exo-diag';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -4492,16 +4492,59 @@ function normalize(result,ordered){
   return JSON.stringify(ordered?rows:rows.slice().sort());
 }
 function fmtLignes(n){ return n===1?'1 ligne':`${n} lignes`; }
-function exoFailDiag(sql,sol,nU,nS){
-  const havingRe=/HAVING\s+COUNT\s*\(\s*\*\s*\)\s*>=\s*(\d+)/i;
-  const mU=String(sql||'').match(havingRe);
-  const mS=String(sol||'').match(havingRe);
-  if(mU&&mS&&+mU[1]>+mS[1]&&nU>0&&nU<nS)
-    return `Tu filtres avec <code>HAVING COUNT(*) &gt;= ${mU[1]}</code>, mais la consigne demande <b>au moins ${mS[1]} produits</b> — essaie <code>&gt;= ${mS[1]}</code>.`;
-  if(nU>nS) return `Tu obtiens <b>${fmtLignes(nU)}</b> alors qu'on en attend <b>${fmtLignes(nS)}</b> — il manque sans doute un filtre.`;
-  if(nU<nS&&nU>0) return `Tu obtiens <b>${fmtLignes(nU)}</b> alors qu'on en attend <b>${fmtLignes(nS)}</b> — ton filtre est peut-être trop strict.`;
-  if(nU===nS&&nU>0) return 'Le nombre de lignes est bon, mais pas les colonnes, les valeurs ou leur ordre.';
-  return 'Compare ton résultat avec la question, puis réessaie.';
+function parseHavingCount(sql){
+  const m=String(sql||'').match(/HAVING\s+COUNT\s*\(\s*(?:DISTINCT\s+)?(?:\*|\w+(?:\.\w+)?)\s*\)\s*(>=|>|=|<=|<)\s*(\d+)/i);
+  return m?{op:m[1],n:+m[2]}:null;
+}
+function exoFailDiag(sql,sol,userRes,solRes){
+  const S=String(sql||''), R=String(sol||'');
+  const nU=userRes&&userRes[0]?userRes[0].values.length:0;
+  const nS=solRes&&solRes[0]?solRes[0].values.length:0;
+  const colsU=(userRes&&userRes[0]?userRes[0].columns:[])||[];
+  const colsS=(solRes&&solRes[0]?solRes[0].columns:[])||[];
+  const normCols=a=>a.map(c=>String(c).toLowerCase());
+  const hasGroupBy=q=>/\bGROUP\s+BY\b/i.test(q);
+  const hasHaving=q=>/\bHAVING\b/i.test(q);
+  const hasWhere=q=>/\bWHERE\b/i.test(q);
+
+  if(/\bWHERE\b[^;]*\bCOUNT\s*\(/i.test(S)&&!hasHaving(S))
+    return 'Tu utilises <code>COUNT</code> dans un <code>WHERE</code> — filtre les groupes avec <code>HAVING</code>, après <code>GROUP BY</code>.';
+
+  if(hasGroupBy(R)&&!hasGroupBy(S)&&nU!==nS)
+    return 'Il manque un <code>GROUP BY</code> pour regrouper les lignes avant de compter ou filtrer.';
+
+  if(hasHaving(R)&&!hasHaving(S)&&nU>nS)
+    return 'Il manque un <code>HAVING</code> pour filtrer les groupes après le regroupement — <code>WHERE</code> ne peut pas utiliser <code>COUNT</code>.';
+
+  const hU=parseHavingCount(S), hS=parseHavingCount(R);
+  if(hU&&hS&&nU>0&&nU<nS){
+    const strict=(hU.op==='>='||hU.op==='>')&&hU.n>hS.n
+      || hU.op==='='&&hS.op==='>='&&hU.n>hS.n
+      || hU.op==='='&&hS.op==='='&&hU.n!==hS.n;
+    if(strict)
+      return `Tu filtres avec <code>HAVING COUNT(*) ${esc(hU.op)} ${hU.n}</code>, mais il faut <code>${esc(hS.op)} ${hS.n}</code> — ton seuil est trop strict.`;
+    const loose=(hU.op==='>='||hU.op==='>')&&hU.n<hS.n;
+    if(loose)
+      return `Tu filtres avec <code>HAVING COUNT(*) ${esc(hU.op)} ${hU.n}</code>, mais il faut <code>${esc(hS.op)} ${hS.n}</code> — ton seuil est trop large.`;
+  }
+
+  if(hasWhere(R)&&!hasWhere(S)&&nU>nS)
+    return `Tu obtiens <b>${fmtLignes(nU)}</b> au lieu de <b>${fmtLignes(nS)}</b> — ajoute un <code>WHERE</code> pour filtrer les lignes.`;
+
+  if(colsU.length&&colsS.length&&colsU.length!==colsS.length)
+    return `Tu affiches <b>${colsU.length} colonne${colsU.length>1?'s':''}</b> (${colsU.map(c=>'<code>'+esc(c)+'</code>').join(', ')}) — on attend <b>${colsS.length}</b> (${colsS.map(c=>'<code>'+esc(c)+'</code>').join(', ')}).`;
+
+  if(nU===0&&nS>0)
+    return `Aucune ligne retournée — vérifie tes conditions <code>WHERE</code> ou <code>HAVING</code>, ou le seuil numérique.`;
+
+  if(nU>nS) return `Tu obtiens <b>${fmtLignes(nU)}</b> au lieu de <b>${fmtLignes(nS)}</b> — il manque probablement un filtre (<code>WHERE</code> ou <code>HAVING</code>).`;
+  if(nU<nS&&nU>0) return `Tu obtiens <b>${fmtLignes(nU)}</b> au lieu de <b>${fmtLignes(nS)}</b> — un filtre est peut-être trop strict, ou une jointure manque.`;
+  if(nU===nS&&nU>0){
+    const cu=normCols(colsU).join(','), cs=normCols(colsS).join(',');
+    if(cu!==cs) return 'Le nombre de lignes est bon, mais les <b>colonnes</b> ne correspondent pas à la consigne.';
+    return 'Le nombre de lignes est bon, mais les <b>valeurs</b> ou leur <b>ordre</b> ne correspondent pas.';
+  }
+  return 'Compare ton résultat avec la consigne, puis réessaie.';
 }
 
 /* ============================================================
@@ -5847,7 +5890,7 @@ function runLesson(){
       celebrate();
       const nU=userRes&&userRes[0]?userRes[0].values.length:0;
       const bare=table.replace(/^<div class="result-meta">[\s\S]*?<\/div>/,'');
-      out.innerHTML=`<div class="ok-panel"><div class="ok-banner">✓ Correct — ${nU} ligne${nU!==1?'s':''} retournée${nU!==1?'s':''}</div>${bare}</div>`;
+      out.innerHTML=`<div class="ok-panel"><div class="ok-banner">✓ Correct — ${fmtLignes(nU)} retournée${nU!==1?'s':''}</div>${bare}</div>`;
       document.querySelectorAll('#lesson-body .ls-bar').forEach((el,i)=>{
         if(i<=1) el.classList.add('done');
         if(i===2){el.disabled=false;el.setAttribute('onclick','setLessonStep(2)');}
@@ -5860,9 +5903,7 @@ function runLesson(){
       if(leconFinie) finaliserLecon();
     }
   }else{
-    const nU=userRes&&userRes[0]?userRes[0].values.length:0;
-    const nS=solRes&&solRes[0]?solRes[0].values.length:0;
-    const diag=exoFailDiag(sql,sol,nU,nS);
+    const diag=exoFailDiag(sql,sol,userRes,solRes);
     if(mode==='review'){ const st=state.lessons[current.id]; if(st){st.level=0;st.due=Date.now()+DAY;save();} }
     out.innerHTML=`<div class="feedback warn"><div class="fi">≈</div><div><b>La requête tourne, mais…</b><p>${diag}</p></div></div>${table}`;
     registerExoFail();
