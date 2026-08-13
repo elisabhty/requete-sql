@@ -480,7 +480,7 @@
   .vs-out.ok .pipe-table td{color:var(--ink);border-bottom-color:rgba(60,60,67,.06)}
   .vs-out.ok .pipe-table tr.keep td{background:rgba(20,184,166,.11)}
   .vs-out.ok .pipe-table tr.keep .num{color:#0F766E}
-  .vs-res-note{font-size:12px;font-weight:600;color:#0F766E;line-height:1.4}
+  .vs-out[hidden]{display:none!important}
   .bad-line{display:block;position:relative;background:rgba(180,35,24,.15);border-radius:6px;margin:1px -6px;padding:0 6px;box-shadow:inset 2px 0 0 var(--danger)}
   .bad-line::after{content:'';position:absolute;left:6px;right:6px;top:50%;height:1.5px;background:rgba(255,120,110,.55);transform:translateY(-.5px)}
   .good-line{display:block;background:rgba(80,220,150,.13);border-radius:6px;margin:1px -6px;padding:0 6px;box-shadow:inset 2px 0 0 var(--success)}
@@ -2553,8 +2553,8 @@ GROUP BY categorie;</div>
 FROM produits
 GROUP BY categorie
 <span class="good-line">HAVING COUNT(*) &gt;= 2;</span></div>
-        <button type="button" class="vs-run" data-sql="SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 2;" data-note="✓ 2 catégories gardées" onclick="runVsSql(this)"><svg class="xf-run-ico" viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="9"/><path class="tri" d="M10.4 8.2v7.6l6.4-3.8z"/></svg>Exécuter</button>
-        <div class="vs-out ok" aria-live="polite"><div class="pipe-table"><table><thead><tr><th scope="col">categorie</th><th scope="col">COUNT(*)</th></tr></thead><tbody><tr class="keep"><td>Bien-être</td><td class="num">3</td></tr><tr class="keep"><td>Nutrition</td><td class="num">2</td></tr></tbody></table></div><span class="vs-res-note">✓ 2 catégories gardées</span></div>
+        <button type="button" class="vs-run" data-sql="SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 2;" onclick="runVsSql(this)"><svg class="xf-run-ico" viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="9"/><path class="tri" d="M10.4 8.2v7.6l6.4-3.8z"/></svg>Exécuter</button>
+        <div class="vs-out ok" aria-live="polite"><div class="pipe-table"><table><thead><tr><th scope="col">categorie</th><th scope="col">COUNT(*)</th></tr></thead><tbody><tr class="keep"><td>Bien-être</td><td class="num">3</td></tr><tr class="keep"><td>Nutrition</td><td class="num">2</td></tr></tbody></table></div></div>
       </div>
     </div>
     <p class="concept-point"><span class="em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h12M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Une fois les catégories regroupées avec <code>GROUP BY</code>, utilise <code>HAVING</code> pour ne garder que celles dont <code>COUNT(*)</code> respecte la condition <code>&gt;= 2</code>.</span></p>
@@ -5117,11 +5117,11 @@ function renderVs(vs){
     const sql=side.sql||'';
     const out=side.err
       ?`<div class="vs-out err" aria-live="polite"><span class="vs-err-box">${side.err}</span></div>`
-      :`<div class="vs-out ok" aria-live="polite"><span class="vs-res-note">${side.out||''}</span></div>`;
+      :`<div class="vs-out" hidden aria-live="polite"></div>`;
     return `<div class="vs-col ${tone}">
       <div class="vs-tag ${tone}">${tag}</div>
       <div class="ex-code">${highlight(sql)}</div>
-      <button type="button" class="vs-run" data-sql="${escAttr(sql)}" data-note="${escAttr(side.out||'')}" data-err="${escAttr(side.err||'')}" onclick="runVsSql(this)">${XF_RUN_ICO}Exécuter</button>
+      <button type="button" class="vs-run" data-sql="${escAttr(sql)}" onclick="runVsSql(this)">${XF_RUN_ICO}Exécuter</button>
       ${out}
     </div>`;
   };
@@ -5316,10 +5316,6 @@ function runVsSql(btn){
   const host=col&&col.querySelector('.vs-out');
   const sql=btn.getAttribute('data-sql');
   if(!host||!sql)return;
-  const keepNote=host.querySelector('.vs-res-note');
-  const keepHtml=keepNote?keepNote.innerHTML:'';
-  const dataNote=btn.getAttribute('data-note')||'';
-  const dataErr=btn.getAttribute('data-err')||'';
   btn.classList.add('running');
   btn.disabled=true;
   btn.textContent='Exécution…';
@@ -5335,11 +5331,12 @@ function runVsSql(btn){
           try{ res=d.exec('SELECT * FROM '+quoteIdent(t)+' LIMIT 12'); }catch(_){}
         }
       }
-      const note=keepHtml||dataNote;
+      host.hidden=false;
       host.className='vs-out ok live';
-      host.innerHTML=renderTable(res,ms)+(note?`<span class="vs-res-note">${note}</span>`:(dataErr?`<span class="vs-res-note">${esc(dataErr)}</span>`:''));
+      host.innerHTML=renderTable(res,ms);
       if(navigator.vibrate)navigator.vibrate(8);
     }catch(e){
+      host.hidden=false;
       host.className='vs-out err live';
       host.innerHTML=`<span class="vs-err-box">${esc(e.message)}</span>`;
     }finally{
