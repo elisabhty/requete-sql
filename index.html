@@ -1700,7 +1700,7 @@
   @keyframes shineSweep{0%,70%,100%{transform:translateX(-120%)}85%{transform:translateX(120%)}}
   .home-card.ok{background:linear-gradient(160deg,#E6F4F1,#fff 55%)}
   .home-card.rest{background:linear-gradient(160deg,#F1F1F5,#fff 55%)}
-  .home-card.late{background:linear-gradient(160deg,#FDF3E8,#fff 58%);border:1px solid rgba(180,83,9,.16);box-shadow:0 12px 26px -20px rgba(180,83,9,.38)}
+  .home-card.late{background:#fff;border:1px solid rgba(180,83,9,.14);box-shadow:0 10px 24px -18px rgba(180,83,9,.28)}
   .home-card.empty{border:1.5px dashed var(--line-2);box-shadow:none}
   .hc-meta{display:flex;justify-content:space-between;align-items:center;gap:10px}
   .hc-tag{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--accent);margin:0}
@@ -1708,13 +1708,23 @@
   .hc-top{display:flex;align-items:center;gap:15px;position:relative;z-index:1}
   .hc-ring{--p:0;width:56px;height:56px;flex:none;border-radius:50%;background:conic-gradient(var(--accent) calc(var(--p)*1%),#ECECF3 0);display:flex;align-items:center;justify-content:center;position:relative}
   .home-card.ok .hc-ring{background:conic-gradient(var(--success) calc(var(--p)*1%),#ECECF3 0)}
-  .home-card.late .hc-ring{background:conic-gradient(var(--warn) calc(var(--p)*1%),#ECECF3 0)}
   .hc-ring::after{content:'';position:absolute;width:42px;height:42px;border-radius:50%;background:var(--surface)}
   .hc-ring span{position:relative;z-index:1;font-family:var(--mono);font-weight:700;font-size:12px;color:var(--accent)}
   .hc-ring span svg{width:20px;height:20px;display:block}
   .home-card.ok .hc-ring span{color:var(--success)}
+  .home-card.late .hc-tag{color:var(--warn);background:var(--warn-soft);padding:5px 9px;border-radius:999px;letter-spacing:1.1px}
+  .home-card.late .hc-meta-r{color:#8A6212;font-weight:650;background:transparent;padding:0}
+  .home-card.late .hc-top{align-items:flex-start;gap:12px}
+  .home-card.late .hc-ring{width:36px;height:36px;margin-top:1px;background:var(--warn-soft);box-shadow:none;animation:none}
+  .home-card.late .hc-ring::after{display:none}
   .home-card.late .hc-ring span{color:var(--warn)}
-  .home-card.late .hc-meta-r{color:var(--warn);font-weight:700;background:rgba(180,83,9,.12);padding:4px 9px;border-radius:999px}
+  .home-card.late .hc-ring span svg{width:18px;height:18px}
+  .home-card.late .hc-copy h3{font-size:16.5px}
+  .home-card.late .hc-copy p{margin-top:4px;font-size:13.5px;line-height:1.45;color:#8A6212}
+  .home-card.late .hc-actions{flex-direction:column;gap:8px}
+  .home-card.late .hc-go{width:100%;min-height:46px;background:var(--warn);box-shadow:none}
+  .home-card.late .hc-go::after{display:none}
+  .home-card.late .hc-sec{width:100%;background:transparent;color:var(--ink-2);border:0;padding:8px 4px;font-weight:650}
   .hc-copy{flex:1;min-width:0}
   .hc-copy h3{margin:0;font-size:17px;font-weight:700;letter-spacing:-.3px;line-height:1.25}
   .hc-copy p{margin:5px 0 0;font-size:13px;color:var(--ink-2);line-height:1.4}
@@ -1723,9 +1733,6 @@
   .hc-actions{display:flex;gap:8px;position:relative;z-index:1}
   .hc-go{flex:1;border:none;border-radius:14px;padding:13px 16px;font-family:var(--ui);font-size:15px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 10px 22px -12px rgba(91,91,214,.8)}
   .home-card.ok .hc-go{background:var(--success);box-shadow:0 10px 22px -12px rgba(15,118,110,.55)}
-  .home-card.late .hc-go{background:var(--warn);box-shadow:0 10px 22px -12px rgba(199,122,22,.45)}
-  .home-card.late .hc-go{min-height:48px}
-  .home-card.late .hc-sec{background:#fff;color:#8A6212;border:1px solid rgba(180,83,9,.2)}
   .home-card.rest .hc-go{background:#14141B;box-shadow:0 10px 22px -12px rgba(20,20,40,.4)}
   .hc-sec{flex:none;border:none;border-radius:14px;padding:13px 14px;font-family:var(--ui);font-size:13px;font-weight:700;cursor:pointer;background:#F1F1F5;color:var(--ink-2)}
   .hc-sec:active{transform:scale(.97)}
@@ -4360,7 +4367,7 @@ function pulseCta(sel){
 }
 function animateHomeRing(pct){
   const ring=document.querySelector('#home-hero .hc-ring');
-  if(!ring)return;
+  if(!ring||ring.closest('.home-card.late'))return;
   if(prefersReduceMotion()){ ring.style.setProperty('--p',String(pct)); return; }
   ring.classList.remove('spin-in'); void ring.offsetWidth;
   ring.style.setProperty('--p','0');
@@ -4481,10 +4488,12 @@ function renderHomeHero(){
     return;
   }
   if(info.retard&&info.retard.length){
-    paint(card('late','En retard',`${info.retard.length} séance${info.retard.length>1?'s':''}`,
-      `${info.retard.length} séance${info.retard.length>1?'s':''} en retard`,'Replanifie-les sur aujourd’hui en un tap, ou ajuste ton planning.',
-      `<button class="hc-go" type="button" onclick="rattraper();switchTab('planning')">Rattraper aujourd’hui</button>`,100,
-      `<button class="hc-sec" type="button" onclick="switchTab('planning')">Voir le parcours</button>`,ALERT_RING),100);
+    const nLate=info.retard.length;
+    paint(card('late','À rattraper',nLate>1?`${nLate} séances`:'1 séance',
+      nLate>1?`${nLate} séances en retard`:'Une séance n’a pas été faite',
+      'Place-la aujourd’hui en un tap, ou ouvre le planning pour ajuster.',
+      `<button class="hc-go" type="button" onclick="rattraper();switchTab('planning')">Rattraper aujourd’hui</button>`,0,
+      `<button class="hc-sec" type="button" onclick="switchTab('planning')">Voir le parcours</button>`,ALERT_RING),0);
     return;
   }
   if(info.today&&resteDe(info.today)){
