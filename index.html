@@ -501,6 +501,9 @@
   .bad-line{display:block;position:relative;background:rgba(180,35,24,.15);border-radius:6px;margin:1px -6px;padding:0 6px;box-shadow:inset 2px 0 0 var(--danger)}
   .bad-line::after{content:'';position:absolute;left:6px;right:6px;top:50%;height:1.5px;background:rgba(255,120,110,.55);transform:translateY(-.5px)}
   .good-line{display:block;background:rgba(80,220,150,.13);border-radius:6px;margin:1px -6px;padding:0 6px;box-shadow:inset 2px 0 0 var(--success)}
+  .vs-line{display:block;border-radius:6px;margin:1px -6px;padding:0 6px}
+  .vs-line.bad{background:rgba(180,35,24,.12);box-shadow:inset 2px 0 0 var(--danger)}
+  .vs-line.good{background:rgba(80,220,150,.13);box-shadow:inset 2px 0 0 var(--success)}
   @media (max-width:700px){
     .vs{grid-template-columns:1fr;gap:16px}
     .memory-rule{grid-template-columns:1fr;gap:12px}
@@ -2219,8 +2222,10 @@ const MODULES = [
   situation:"Dans la table <code>clients</code>, chaque ligne est une personne, décrite par plusieurs colonnes : nom, ville, âge, email. Tu prépares un listing d’appel : tu as besoin du nom de chaque client.",
     studio:{problem:{title:"Le mot SELECT ne choisit pas les personnes. Il choisit les colonnes.",
       body:"Tu sais déjà ouvrir <code>clients</code> avec <code>SELECT *</code> : neuf fiches, toutes les colonnes. Il reste à répondre à une question plus étroite. En français, « sélectionner » sonne comme écarter des gens. En SQL, <code>SELECT</code> dresse la liste des <b>colonnes à copier</b> dans le résultat. Les neuf personnes restent."},
-    vs:{bad:{tag:"✕ Toute la fiche",sql:"SELECT * FROM clients;",out:"Les 9 clients, toutes les colonnes"},
-        good:{tag:"✓ Le listing de noms",sql:"SELECT nom FROM clients;",out:"Les 9 mêmes personnes, une seule colonne : nom"}},
+    vs:{bad:{tag:"✕ SELECT *",sql:"SELECT *\nFROM clients;",
+            code:"SELECT\n<span class=\"vs-line bad\">*</span>\nFROM clients;"},
+        good:{tag:"✓ SELECT nom",sql:"SELECT nom\nFROM clients;",
+            code:"SELECT\n<span class=\"vs-line good\">nom</span>\nFROM clients;"}},
     point:"Les deux requêtes sont correctes. <code>SELECT nom</code> répond à la question. Tu n’as écarté personne : tu as seulement réduit la largeur.",
     why:{title:"Suis ce qui arrive à tes données.",
       body:"SQL exécute la requête étape par étape. À chaque étape, les données se transforment. <code>FROM clients</code> ouvre d’abord la table : 9 lignes, toutes les colonnes. <code>SELECT nom</code> copie ensuite uniquement cette colonne dans un tableau neuf. Sophie, Lucas, Nathan… sont toujours là. La table <code>clients</code>, elle, n’a pas bougé."},
@@ -3960,11 +3965,14 @@ function fmtCell(v){
   if(typeof v==='number')return `<td class="num">${Math.round(v*100)/100}</td>`;
   return `<td>${esc(v)}</td>`;
 }
-function renderTable(result,ms){
+function renderTable(result,ms,opts){
   if(!result||result.length===0)
     return `<div class="feedback ok"><div class="fi">✓</div><div><b>Requête exécutée</b><p>Aucune ligne à afficher${ms!=null?` (${ms.toFixed(1)} ms)`:''}.</p></div></div>`;
   const {columns,values}=result[0];
-  return `<div class="result-meta"><span>${values.length} ligne${values.length>1?'s':''}</span>${ms!=null?`<span>·</span><span>${Math.round(ms)} ms</span>`:''}</div>
+  const bits=[`<span>${values.length} ligne${values.length>1?'s':''}</span>`];
+  if(opts&&opts.cols) bits.push(`<span>${columns.length} colonne${columns.length>1?'s':''}</span>`);
+  if(ms!=null) bits.push(`<span>${Math.round(ms)} ms</span>`);
+  return `<div class="result-meta">${bits.join('<span>·</span>')}</div>
   <div class="table-wrap"><table><thead><tr>${columns.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead>
   <tbody>${values.map((r,i)=>`<tr style="--i:${Math.min(i,28)}">`+r.map(fmtCell).join('')+'</tr>').join('')}</tbody></table></div>`;
 }
@@ -5131,9 +5139,10 @@ function renderVs(vs){
   const col=(side,tone)=>{
     const tag=side.tag||(tone==='bad'?'✕ Incorrect':'✓ Correct');
     const sql=side.sql||'';
+    const code=side.code!=null?side.code:highlight(sql);
     return `<div class="vs-col ${tone}">
       <div class="vs-tag ${tone}">${tag}</div>
-      <div class="ex-code">${highlight(sql)}</div>
+      <div class="ex-code">${code}</div>
       <button type="button" class="vs-run" data-sql="${escAttr(sql)}" onclick="runVsSql(this)">${XF_RUN_ICO}Exécuter</button>
       <div class="vs-out" hidden aria-live="polite"></div>
     </div>`;
@@ -5322,9 +5331,7 @@ function runVsSql(btn){
   const finish=()=>{
     const d=sandbox();
     try{
-      const t0=performance.now();
       let res=d.exec(sql);
-      const ms=performance.now()-t0;
       if(!res.length){
         const t=vsWriteTable(sql);
         if(t){
@@ -5333,7 +5340,7 @@ function runVsSql(btn){
       }
       host.hidden=false;
       host.className='vs-out ok live';
-      host.innerHTML=renderTable(res,ms);
+      host.innerHTML=renderTable(res,null,{cols:true});
       void host.offsetWidth;
       host.classList.add('flash');
       if(navigator.vibrate)navigator.vibrate(8);
