@@ -1700,7 +1700,7 @@
   @keyframes shineSweep{0%,70%,100%{transform:translateX(-120%)}85%{transform:translateX(120%)}}
   .home-card.ok{background:linear-gradient(160deg,#E6F4F1,#fff 55%)}
   .home-card.rest{background:linear-gradient(160deg,#F1F1F5,#fff 55%)}
-  .home-card.late{background:linear-gradient(160deg,#FBF1E4,#fff 55%)}
+  .home-card.late{background:linear-gradient(160deg,#FDF3E8,#fff 58%);border:1px solid rgba(180,83,9,.16);box-shadow:0 12px 26px -20px rgba(180,83,9,.38)}
   .home-card.empty{border:1.5px dashed var(--line-2);box-shadow:none}
   .hc-meta{display:flex;justify-content:space-between;align-items:center;gap:10px}
   .hc-tag{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--accent);margin:0}
@@ -1714,6 +1714,7 @@
   .hc-ring span svg{width:20px;height:20px;display:block}
   .home-card.ok .hc-ring span{color:var(--success)}
   .home-card.late .hc-ring span{color:var(--warn)}
+  .home-card.late .hc-meta-r{color:var(--warn);font-weight:700;background:rgba(180,83,9,.12);padding:4px 9px;border-radius:999px}
   .hc-copy{flex:1;min-width:0}
   .hc-copy h3{margin:0;font-size:17px;font-weight:700;letter-spacing:-.3px;line-height:1.25}
   .hc-copy p{margin:5px 0 0;font-size:13px;color:var(--ink-2);line-height:1.4}
@@ -1723,6 +1724,8 @@
   .hc-go{flex:1;border:none;border-radius:14px;padding:13px 16px;font-family:var(--ui);font-size:15px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 10px 22px -12px rgba(91,91,214,.8)}
   .home-card.ok .hc-go{background:var(--success);box-shadow:0 10px 22px -12px rgba(15,118,110,.55)}
   .home-card.late .hc-go{background:var(--warn);box-shadow:0 10px 22px -12px rgba(199,122,22,.45)}
+  .home-card.late .hc-go{min-height:48px}
+  .home-card.late .hc-sec{background:#fff;color:#8A6212;border:1px solid rgba(180,83,9,.2)}
   .home-card.rest .hc-go{background:#14141B;box-shadow:0 10px 22px -12px rgba(20,20,40,.4)}
   .hc-sec{flex:none;border:none;border-radius:14px;padding:13px 14px;font-family:var(--ui);font-size:13px;font-weight:700;cursor:pointer;background:#F1F1F5;color:var(--ink-2)}
   .hc-sec:active{transform:scale(.97)}
@@ -4439,6 +4442,7 @@ function renderHomeHero(){
   }
 
   const CHECK_RING='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>';
+  const ALERT_RING='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8.2v5.1"/><circle cx="12" cy="16.8" r="1"/></svg>';
   const card=(mode,tag,metaR,title,desc,primary,pct,secondary='',ringLabel=null)=>`
     <div class="home-card ${mode}">
       <div class="hc-meta">
@@ -4478,9 +4482,9 @@ function renderHomeHero(){
   }
   if(info.retard&&info.retard.length){
     paint(card('late','En retard',`${info.retard.length} séance${info.retard.length>1?'s':''}`,
-      `${info.retard.length} séance${info.retard.length>1?'s':''} en retard`,'Reporte-les sur aujourd’hui, ou ouvre le planning.',
-      `<button class="hc-go" type="button" onclick="rattraper();switchTab('planning')">Rattraper</button>`,0,
-      `<button class="hc-sec" type="button" onclick="switchTab('planning')">Parcours</button>`),0);
+      `${info.retard.length} séance${info.retard.length>1?'s':''} en retard`,'Replanifie-les sur aujourd’hui en un tap, ou ajuste ton planning.',
+      `<button class="hc-go" type="button" onclick="rattraper();switchTab('planning')">Rattraper aujourd’hui</button>`,100,
+      `<button class="hc-sec" type="button" onclick="switchTab('planning')">Voir le parcours</button>`,ALERT_RING),100);
     return;
   }
   if(info.today&&resteDe(info.today)){
