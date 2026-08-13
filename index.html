@@ -233,6 +233,7 @@
   .h2-txt{display:block;font-size:clamp(17px,4.8vw,20.5px);font-weight:750;letter-spacing:-.5px;line-height:1.22}
   .concept-block > *:not(h2){position:relative;z-index:1}
   .concept-block p{font-size:15px;line-height:1.65;color:var(--ink);margin:0 0 13px}
+  .concept-block p.why-lead{margin:0 0 4px}
   .concept-block p:last-child{margin-bottom:0}
   .concept-block code,.lesson-lead code{font-family:var(--mono);font-size:.85em;background:var(--accent-soft);color:var(--accent);padding:1px 6px;border-radius:6px;font-weight:600}
   .concept-block .table-wrap table.concept-table{width:100%;border-collapse:collapse;font-size:13.5px}
@@ -542,9 +543,10 @@
   .pipe-table tr.out td:first-child{text-decoration:line-through}
   .pipe-table tr.out .num{text-decoration:line-through}
 
-  .grp-viz{margin:8px 0 0;padding:18px 16px 14px;background:#FAFAFC;border:1px solid rgba(60,60,67,.08);border-radius:18px;overflow:visible}
-  .grp-viz-bar{display:flex;flex-direction:column;align-items:flex-start;gap:4px;margin-bottom:12px;position:relative;width:100%;padding-left:0;padding-right:88px}
-  .grp-k{font-family:var(--mono);font-size:11px;font-weight:700;background:var(--ink);color:#fff;padding:5px 10px;border-radius:8px;letter-spacing:.2px;transition:background .3s;max-width:100%;word-break:break-word}
+  .grp-viz{margin:14px 0 0;padding:16px 14px 14px;background:#FAFAFC;border:1px solid rgba(60,60,67,.08);border-radius:18px;overflow:visible}
+  .grp-viz-bar{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin-bottom:14px;position:relative;width:100%;padding:0;box-sizing:border-box}
+  .grp-viz[data-paused="1"] .grp-viz-bar{padding-right:92px}
+  .grp-k{font-family:var(--mono);font-size:11px;font-weight:700;background:var(--ink);color:#fff;padding:6px 10px;border-radius:8px;letter-spacing:.2px;transition:background .3s;max-width:100%;width:fit-content;box-sizing:border-box;word-break:break-word;line-height:1.35}
   .grp-viz[data-phase="1"] .grp-k{background:var(--accent)}
   .grp-viz[data-phase="2"] .grp-k{background:#0F766E}
   .sql-viz[data-kind="filter"][data-phase="1"] .grp-chip[data-keep="0"],
@@ -556,7 +558,7 @@
   .sql-viz[data-kind="filter"][data-phase="1"] .grp-chip[data-keep="0"]{text-decoration:line-through}
   .grp-extra{color:#8E8E93;font-weight:500;margin-left:6px;font-size:10.5px;transition:opacity .45s,max-width .45s}
   .sql-viz[data-kind="cols"][data-phase="1"] .grp-extra{opacity:0;max-width:0;margin:0;overflow:hidden}
-  .grp-desc{font-size:14px;color:var(--ink);line-height:1.3;font-weight:600}
+  .grp-desc{font-size:14px;color:var(--ink-2);line-height:1.45;font-weight:600;max-width:100%}
   .grp-paused-badge{display:none;position:absolute;top:0;right:0;font-family:var(--ui);font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border:1px solid rgba(91,91,214,.28);border-radius:999px;padding:4px 10px;line-height:1.2;white-space:nowrap;pointer-events:none}
   .grp-viz[data-paused="1"] .grp-paused-badge{display:inline-flex;align-items:center}
   .grp-stage{position:relative;width:100%;min-height:0;margin:0 0 10px;transition:opacity .25s ease}
@@ -578,6 +580,8 @@
   .grp-viz[data-phase="2"] .grp-bucket[data-keep="1"] .grp-count{color:#fff;background:#0F766E;border-color:#0F766E;box-shadow:0 3px 12px rgba(20,184,166,.4)}
   .grp-viz[data-phase="2"] .grp-bucket[data-n="1"] .grp-count{opacity:1;color:#1C1C1E;background:#fff;border-color:rgba(60,60,67,.45);box-shadow:0 1px 4px rgba(20,20,40,.12);font-size:13px;font-weight:800}
   .grp-chip{position:absolute;left:0;top:0;font-size:11px;font-weight:600;color:var(--ink);padding:7px 10px;background:var(--surface);border:1px solid var(--line-2);border-radius:9px;box-shadow:0 2px 8px rgba(20,20,40,.07);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:2;will-change:transform;transition:transform .78s cubic-bezier(.32,.72,.28,1),opacity .45s;box-sizing:border-box;line-height:1}
+  .sql-viz[data-kind="cols"] .grp-chip{justify-content:space-between}
+  .sql-viz[data-kind="cols"] .grp-extra{margin-left:auto;flex:none}
   .grp-viz[data-phase="2"] .grp-chip[data-keep="0"]{opacity:.35}
   .grp-viz[data-phase="2"] .grp-chip[data-keep="1"]{box-shadow:0 4px 14px rgba(20,184,166,.2);border-color:rgba(20,184,166,.35)}
   .grp-viz[data-phase="2"] .grp-bucket[data-keep="1"]{animation:grpKeepPulse .7s cubic-bezier(.3,1.3,.4,1) both}
@@ -2582,7 +2586,7 @@ GROUP BY categorie
   </div>
   <div class="concept-block">
     <h2><span class="h2-eye">Pourquoi</span><span class="h2-txt">Suis ce qui arrive à tes données.</span></h2>
-    <p style="margin-bottom:4px">SQL exécute la requête étape par étape. À chaque étape, les données se transforment. <code>COUNT(*)</code> ne peut être calculé qu’une fois les lignes regroupées avec <code>GROUP BY</code>.</p>
+    <p class="why-lead">SQL exécute la requête étape par étape. À chaque étape, les données se transforment. <code>COUNT(*)</code> ne peut être calculé qu’une fois les lignes regroupées avec <code>GROUP BY</code>.</p>
     <div class="grp-viz sql-viz" id="having-grp-viz" data-viz="having" data-kind="group" data-phase="0" aria-label="Animation : regroupement puis filtrage HAVING">
       <div class="grp-viz-bar">
         <span class="grp-k">SELECT categorie FROM produits</span>
@@ -4674,6 +4678,8 @@ function leaveLessonScreen(toTab){
     document.querySelectorAll('.screen').forEach(s=>{ if(s!==target) s.classList.remove('active','push','push-back'); });
     if(target) target.classList.add('active');
     document.body.classList.remove('in-lesson');
+    const fab=document.getElementById('fab');
+    if(fab) fab.classList.remove('hide');
     showKbar(false);
     syncTabUI(tab);
     if(tab==='learn'&&mode==='defi') homeFilter='tous';
@@ -5198,7 +5204,7 @@ function renderStudio(l){
     </div>
     <div class="concept-block">
       <h2><span class="h2-eye">Pourquoi</span><span class="h2-txt">${s.why.title}</span></h2>
-      <p${viz?' style="margin-bottom:4px"':''}>${s.why.body}</p>
+      <p${viz?' class="why-lead"':''}>${s.why.body}</p>
       ${viz}
     </div>
     <div class="concept-block">
@@ -5484,6 +5490,8 @@ function renderLessonFlow(){
   if(lessonStep===2) renderValidation();
   if(lessonStep===3) requestAnimationFrame(revealBravoCard);
   if(lessonStep===0){ buildSommaire(); initOrderRappelAnim(); }
+  const fab=document.getElementById('fab');
+  if(fab) fab.classList.toggle('hide', lessonStep===0||lessonStep===3);
   mountSqlCopyButtons(document.getElementById('lesson-body'));
   const instantReveal=lessonStepDir<0;
   const needViz=lessonStep===0&&(current.studio&&current.studio.viz||current.id===16||document.getElementById('having-grp-viz'));
@@ -7650,21 +7658,27 @@ function layoutSqlList(root,phase,{animate=true}={}){
   const scr=document.getElementById('scr-lesson');
   const scrollLock=scr?scr.scrollTop:0;
   if(!animate) chips.forEach(c=>{c.style.transition='none';});
-  const rowH=34;
-  const h=8+chips.length*rowH+10;
-  const x=10,w=Math.min(240,Math.max(140,sw-24));
+  const pad=8, gapX=8, gapY=6;
+  const cols=(kind==='cols' && sw>=280)?2:1;
+  const inner=Math.max(120, sw-pad*2);
+  const colW=cols===1?inner:(inner-gapX*(cols-1))/cols;
+  const rowH=kind==='cols'?38:34;
   chips.forEach((c,i)=>{
+    const col=i%cols, row=Math.floor(i/cols);
+    const x=pad+col*(colW+gapX);
+    const y=pad+row*(rowH+gapY);
     c.style.transitionDelay=animate?(i*45)+'ms':'0ms';
-    c.style.width=w+'px';
-    c.style.maxWidth=w+'px';
-    c.style.height='32px';
+    c.style.width=colW+'px';
+    c.style.maxWidth=colW+'px';
+    c.style.height=rowH+'px';
     c.style.paddingLeft='10px';
     c.style.paddingRight='10px';
     c.style.display='flex';
     c.style.alignItems='center';
-    c.style.transform=`translate(${x}px,${8+i*rowH}px)`;
+    c.style.transform=`translate(${x}px,${y}px)`;
   });
-  stage.style.height=h+'px';
+  const rows=Math.ceil(chips.length/cols)||1;
+  stage.style.height=(pad+rows*(rowH+gapY)-gapY+pad)+'px';
   if(scr){
     scr.scrollTop=scrollLock;
     requestAnimationFrame(()=>{ scr.scrollTop=scrollLock; });
