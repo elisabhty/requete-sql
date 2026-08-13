@@ -446,17 +446,32 @@
   .concept-block .agg-reflex{margin-top:14px}
   .vs-col{display:flex;flex-direction:column;border:1px solid rgba(60,60,67,.1);border-radius:16px;overflow:hidden;background:var(--surface);min-width:0;height:100%}
   @supports (grid-template-rows:subgrid){
-    .vs-col{display:grid;grid-template-rows:subgrid;grid-row:span 3;height:auto}
+    .vs-col{display:grid;grid-template-rows:subgrid;grid-row:span 4;height:auto}
   }
   .vs-tag{display:flex;align-items:center;gap:7px;padding:11px 14px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;flex:none}
   .vs-tag.bad{color:var(--danger);background:rgba(180,35,24,.06)}
   .vs-tag.good{color:var(--success);background:rgba(11,107,74,.07)}
   .concept-block .vs-col .ex-code{margin:0;border-radius:0;box-shadow:none;flex:0 0 auto;font-size:12px;padding:13px 14px;min-height:0;white-space:pre-wrap;box-sizing:border-box}
+  .vs-run{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin:0;border:0;border-top:1px solid rgba(255,255,255,.08);background:var(--code-bg-2);color:#E8E8F2;padding:11px 12px;font-family:var(--ui);font-size:12.5px;font-weight:700;cursor:pointer;flex:none;-webkit-tap-highlight-color:transparent}
+  .vs-run .xf-run-ico{width:16px;height:16px;margin:0}
+  .vs-run:active{background:#2A2A3A}
+  .vs-run:disabled{opacity:.65;cursor:wait}
+  .vs-run.running{opacity:.88}
+  @media (hover:hover) and (pointer:fine){.vs-run:hover{background:#2A2A3A;color:#fff}}
   .vs-out{padding:12px;font-family:var(--mono);font-size:11.5px;font-weight:600;line-height:1.5;border-top:1px solid var(--line-2);background:#FAFAFC;flex:1 1 auto;display:flex;flex-direction:column;gap:8px;min-height:0;justify-content:center;box-sizing:border-box}
   @supports (grid-template-rows:subgrid){
     .concept-block .vs-col .ex-code{flex:unset;height:100%}
     .vs-out{flex:unset;height:100%}
   }
+  .vs-out.live{justify-content:flex-start}
+  .vs-out.live .result-meta{margin:0;font-size:10.5px}
+  .vs-out.live .table-wrap{margin:0;border-radius:12px;box-shadow:none;border:1px solid rgba(60,60,67,.1);overflow-x:auto;background:var(--surface)}
+  .vs-out.live .table-wrap table{font-size:11.5px}
+  .vs-out.live .table-wrap th{background:#fff;color:#8E8E93;font-size:10px;padding:7px 8px;border-bottom-color:rgba(60,60,67,.08)}
+  .vs-out.live .table-wrap td{padding:6px 8px;border-bottom-color:rgba(60,60,67,.06)}
+  .vs-out.live .feedback{margin:0;padding:10px 12px;border-radius:12px;font-size:12px;box-shadow:none}
+  .vs-out.live .feedback p{margin:4px 0 0;font-size:11.5px}
+  .vs-out.live .table-wrap tbody tr{animation:rowIn .32s cubic-bezier(.32,.72,.28,1) both}
   .vs-out.err{color:var(--danger)}
   .vs-err-box{display:block;background:#fff;border:1px solid rgba(180,35,24,.22);border-radius:12px;padding:10px 12px;color:var(--danger);font-family:var(--mono);font-size:11.5px;font-weight:600;line-height:1.45;box-shadow:0 1px 0 rgba(255,255,255,.9) inset;word-break:break-word}
   .vs-out.ok{font-family:inherit;font-weight:400;color:var(--ink)}
@@ -1870,7 +1885,7 @@
     .lesson-rich .concept-page > .concept-block,.lesson-rich .lesson-lead,.lesson-rich .exframe,.lesson-rich .piege,.lesson-rich .sect-label,
     .lesson-rich .vs-col,.lesson-rich .pipe-step,.lesson-rich .pipe-table tbody tr,.lesson-rich .takeaway-list li,.lesson-rich .order-hint-chip,.lesson-rich .order-hint-chip svg,
     .pl-stat.streak.hot svg,.acc-stat.streak.hot .streak-n svg,.streak-pill.hot svg,
-    .exframe .xf-result.on .table-wrap tbody tr,
+    .exframe .xf-result.on .table-wrap tbody tr,.vs-out.live .table-wrap tbody tr,
     .result-live .result-meta,.result-live .table-wrap,.result-live .table-wrap thead,.result-live .table-wrap tbody tr,
     .query-loading,.query-loading.out,
     .bad-line,.good-line,.vs-err-box,.vs-out.ok .pipe-table,.concept-point .em svg,
@@ -2529,7 +2544,8 @@ const MODULES = [
 FROM produits
 <span class="bad-line">WHERE COUNT(*) &gt;= 2</span>
 GROUP BY categorie;</div>
-        <div class="vs-out err"><span class="vs-err-box">Erreur : misuse of aggregate: COUNT()</span></div>
+        <button type="button" class="vs-run" data-sql="SELECT categorie, COUNT(*) FROM produits WHERE COUNT(*) >= 2 GROUP BY categorie;" data-err="Erreur : misuse of aggregate: COUNT()" onclick="runVsSql(this)"><svg class="xf-run-ico" viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="9"/><path class="tri" d="M10.4 8.2v7.6l6.4-3.8z"/></svg>Exécuter</button>
+        <div class="vs-out err" aria-live="polite"><span class="vs-err-box">Erreur : misuse of aggregate: COUNT()</span></div>
       </div>
       <div class="vs-col good">
         <div class="vs-tag good">✓ Avec HAVING</div>
@@ -2537,7 +2553,8 @@ GROUP BY categorie;</div>
 FROM produits
 GROUP BY categorie
 <span class="good-line">HAVING COUNT(*) &gt;= 2;</span></div>
-        <div class="vs-out ok"><div class="pipe-table"><table><thead><tr><th scope="col">categorie</th><th scope="col">COUNT(*)</th></tr></thead><tbody><tr class="keep"><td>Bien-être</td><td class="num">3</td></tr><tr class="keep"><td>Nutrition</td><td class="num">2</td></tr></tbody></table></div><span class="vs-res-note">✓ 2 catégories gardées</span></div>
+        <button type="button" class="vs-run" data-sql="SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 2;" data-note="✓ 2 catégories gardées" onclick="runVsSql(this)"><svg class="xf-run-ico" viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="9"/><path class="tri" d="M10.4 8.2v7.6l6.4-3.8z"/></svg>Exécuter</button>
+        <div class="vs-out ok" aria-live="polite"><div class="pipe-table"><table><thead><tr><th scope="col">categorie</th><th scope="col">COUNT(*)</th></tr></thead><tbody><tr class="keep"><td>Bien-être</td><td class="num">3</td></tr><tr class="keep"><td>Nutrition</td><td class="num">2</td></tr></tbody></table></div><span class="vs-res-note">✓ 2 catégories gardées</span></div>
       </div>
     </div>
     <p class="concept-point"><span class="em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h12M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Une fois les catégories regroupées avec <code>GROUP BY</code>, utilise <code>HAVING</code> pour ne garder que celles dont <code>COUNT(*)</code> respecte la condition <code>&gt;= 2</code>.</span></p>
@@ -5097,12 +5114,14 @@ function renderVs(vs){
   if(!vs)return '';
   const col=(side,tone)=>{
     const tag=side.tag||(tone==='bad'?'✕ Incorrect':'✓ Correct');
+    const sql=side.sql||'';
     const out=side.err
-      ?`<div class="vs-out err"><span class="vs-err-box">${side.err}</span></div>`
-      :`<div class="vs-out ok"><span class="vs-res-note">${side.out||''}</span></div>`;
+      ?`<div class="vs-out err" aria-live="polite"><span class="vs-err-box">${side.err}</span></div>`
+      :`<div class="vs-out ok" aria-live="polite"><span class="vs-res-note">${side.out||''}</span></div>`;
     return `<div class="vs-col ${tone}">
       <div class="vs-tag ${tone}">${tag}</div>
-      <div class="ex-code">${highlight(side.sql)}</div>
+      <div class="ex-code">${highlight(sql)}</div>
+      <button type="button" class="vs-run" data-sql="${escAttr(sql)}" data-note="${escAttr(side.out||'')}" data-err="${escAttr(side.err||'')}" onclick="runVsSql(this)">${XF_RUN_ICO}Exécuter</button>
       ${out}
     </div>`;
   };
@@ -5287,6 +5306,51 @@ function runExemple(btn){
   };
   if(prefersReduceMotion())finish();
   else setTimeout(finish,320);
+}
+function vsWriteTable(sql){
+  const m=String(sql||'').match(/\b(?:insert\s+into|update|delete\s+from)\s+([A-Za-z_][\w]*)/i);
+  return m?m[1]:'';
+}
+function runVsSql(btn){
+  const col=btn.closest('.vs-col');
+  const host=col&&col.querySelector('.vs-out');
+  const sql=btn.getAttribute('data-sql');
+  if(!host||!sql)return;
+  const keepNote=host.querySelector('.vs-res-note');
+  const keepHtml=keepNote?keepNote.innerHTML:'';
+  const dataNote=btn.getAttribute('data-note')||'';
+  const dataErr=btn.getAttribute('data-err')||'';
+  btn.classList.add('running');
+  btn.disabled=true;
+  btn.textContent='Exécution…';
+  const finish=()=>{
+    const d=sandbox();
+    try{
+      const t0=performance.now();
+      let res=d.exec(sql);
+      const ms=performance.now()-t0;
+      if(!res.length){
+        const t=vsWriteTable(sql);
+        if(t){
+          try{ res=d.exec('SELECT * FROM '+quoteIdent(t)+' LIMIT 12'); }catch(_){}
+        }
+      }
+      const note=keepHtml||dataNote;
+      host.className='vs-out ok live';
+      host.innerHTML=renderTable(res,ms)+(note?`<span class="vs-res-note">${note}</span>`:(dataErr?`<span class="vs-res-note">${esc(dataErr)}</span>`:''));
+      if(navigator.vibrate)navigator.vibrate(8);
+    }catch(e){
+      host.className='vs-out err live';
+      host.innerHTML=`<span class="vs-err-box">${esc(e.message)}</span>`;
+    }finally{
+      d.close();
+      btn.classList.remove('running');
+      btn.disabled=false;
+      btn.innerHTML=XF_RUN_ICO+'Exécuter';
+    }
+  };
+  if(prefersReduceMotion())finish();
+  else setTimeout(finish,280);
 }
 function lessonRichSlide(l){
   return lessonRichBlocks(l)+lessonRichFooter(l);
