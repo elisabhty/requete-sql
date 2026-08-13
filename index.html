@@ -2561,8 +2561,8 @@ const MODULES = [
 FROM produits
 <span class="bad-line">WHERE COUNT(*) &gt;= 2</span>
 GROUP BY categorie;</div>
-        <button type="button" class="vs-run" data-sql="SELECT categorie, COUNT(*) FROM produits WHERE COUNT(*) >= 2 GROUP BY categorie;" data-err="Erreur : misuse of aggregate: COUNT()" onclick="runVsSql(this)"><svg class="xf-run-ico" viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="9"/><path class="tri" d="M10.4 8.2v7.6l6.4-3.8z"/></svg>Exécuter</button>
-        <div class="vs-out err" aria-live="polite"><span class="vs-err-box">Erreur : misuse of aggregate: COUNT()</span></div>
+        <button type="button" class="vs-run" data-sql="SELECT categorie, COUNT(*) FROM produits WHERE COUNT(*) >= 2 GROUP BY categorie;" onclick="runVsSql(this)"><svg class="xf-run-ico" viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="9"/><path class="tri" d="M10.4 8.2v7.6l6.4-3.8z"/></svg>Exécuter</button>
+        <div class="vs-out" hidden aria-live="polite"></div>
       </div>
       <div class="vs-col good">
         <div class="vs-tag good">✓ Avec HAVING</div>
@@ -2571,7 +2571,7 @@ FROM produits
 GROUP BY categorie
 <span class="good-line">HAVING COUNT(*) &gt;= 2;</span></div>
         <button type="button" class="vs-run" data-sql="SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 2;" onclick="runVsSql(this)"><svg class="xf-run-ico" viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="9"/><path class="tri" d="M10.4 8.2v7.6l6.4-3.8z"/></svg>Exécuter</button>
-        <div class="vs-out ok" aria-live="polite"><div class="pipe-table"><table><thead><tr><th scope="col">categorie</th><th scope="col">COUNT(*)</th></tr></thead><tbody><tr class="keep"><td>Bien-être</td><td class="num">3</td></tr><tr class="keep"><td>Nutrition</td><td class="num">2</td></tr></tbody></table></div></div>
+        <div class="vs-out" hidden aria-live="polite"></div>
       </div>
     </div>
     <p class="concept-point"><span class="em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h12M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Une fois les catégories regroupées avec <code>GROUP BY</code>, utilise <code>HAVING</code> pour ne garder que celles dont <code>COUNT(*)</code> respecte la condition <code>&gt;= 2</code>.</span></p>
@@ -5132,14 +5132,11 @@ function renderVs(vs){
   const col=(side,tone)=>{
     const tag=side.tag||(tone==='bad'?'✕ Incorrect':'✓ Correct');
     const sql=side.sql||'';
-    const out=side.err
-      ?`<div class="vs-out err" aria-live="polite"><span class="vs-err-box">${side.err}</span></div>`
-      :`<div class="vs-out" hidden aria-live="polite"></div>`;
     return `<div class="vs-col ${tone}">
       <div class="vs-tag ${tone}">${tag}</div>
       <div class="ex-code">${highlight(sql)}</div>
       <button type="button" class="vs-run" data-sql="${escAttr(sql)}" onclick="runVsSql(this)">${XF_RUN_ICO}Exécuter</button>
-      ${out}
+      <div class="vs-out" hidden aria-live="polite"></div>
     </div>`;
   };
   return `<div class="vs">${col(vs.bad,'bad')}${col(vs.good,'good')}</div>`;
@@ -5239,9 +5236,7 @@ function lessonRichFooter(l){
   const sql=escAttr(demoSql);
   const slug=String(l.titre||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'');
   const file=slug?slug+'.sql':'requete.sql';
-  const expectTxt=active?(active.expect||''):(l.testeAttendu||l.attendu);
   const tone=active?active.tone:'';
-  const expect=expectTxt?`<p class="xf-expect ${tone||''}">${expectTxt}</p>`:'';
   const switcher=variants?`<div class="xf-switch" role="tablist" aria-label="Comparer WHERE et HAVING">
       ${variants.map((v,i)=>`<button type="button" class="xf-sw ${v.tone||''} ${i===0?'on':''}" role="tab" aria-selected="${i===0?'true':'false'}" data-i="${i}" onclick="switchTesteVariant(this)">${esc(v.label)}</button>`).join('')}
     </div>`:'';
@@ -5254,7 +5249,6 @@ function lessonRichFooter(l){
       <div class="xf-actions">
         <button type="button" class="xf-run" data-sql="${sql}" onclick="runExemple(this)">${XF_RUN_ICO}Exécuter</button>
       </div>
-      ${expect}
       <div class="xf-result" hidden aria-live="polite"></div></div>
     ${l.piege?`<div class="piege"><div class="pi" aria-hidden="true">!</div><div><b>${l.piege.t}</b><p>${l.piege.p}</p></div></div>`:''}`;
 }
@@ -5276,18 +5270,8 @@ function switchTesteVariant(btn){
   if(code) code.innerHTML=highlight(v.sql);
   const run=frame.querySelector('.xf-run');
   if(run) run.setAttribute('data-sql',v.sql);
-  let expect=frame.querySelector('.xf-expect');
-  if(v.expect){
-    if(!expect){
-      expect=document.createElement('p');
-      const actions=frame.querySelector('.xf-actions');
-      if(actions) actions.insertAdjacentElement('afterend',expect);
-    }
-    expect.className='xf-expect '+(v.tone||'');
-    expect.innerHTML=v.expect;
-  }else if(expect){
-    expect.remove();
-  }
+  const expect=frame.querySelector('.xf-expect');
+  if(expect) expect.remove();
   const host=frame.querySelector('.xf-result');
   if(host){ host.hidden=true; host.innerHTML=''; host.classList.remove('on','flash'); }
   if(navigator.vibrate)navigator.vibrate(5);
