@@ -384,10 +384,11 @@
   .exframe .xf-run::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.24) 50%,transparent 60%);transform:translateX(-120%);pointer-events:none}
   .exframe .xf-run:not(:disabled):active::after{animation:shineSweep .65s ease}
   .exframe .xf-run.running{transform:scale(.98);opacity:.88}
-  .exframe .xf-result.on .table-wrap tbody tr{animation:rowIn .32s cubic-bezier(.32,.72,.28,1) both}
-  .exframe .xf-result.on .table-wrap tbody tr:nth-child(1){animation-delay:.06s}
-  .exframe .xf-result.on .table-wrap tbody tr:nth-child(2){animation-delay:.12s}
-  .exframe .xf-result.on .table-wrap tbody tr:nth-child(3){animation-delay:.18s}
+  .exframe .xf-result.on .table-wrap tbody tr{
+    opacity:0;
+    animation:rowReveal .38s cubic-bezier(.32,.72,.28,1) both;
+    animation-delay:calc(.1s + var(--i,0) * .055s);
+  }
   .exframe .xf-result.flash{animation:okFlash .55s ease}
 
   /* ---------- Micro-interactions page cours ---------- */
@@ -452,26 +453,42 @@
   .vs-tag.bad{color:var(--danger);background:rgba(180,35,24,.06)}
   .vs-tag.good{color:var(--success);background:rgba(11,107,74,.07)}
   .concept-block .vs-col .ex-code{margin:0;border-radius:0;box-shadow:none;flex:0 0 auto;font-size:12px;padding:13px 14px;min-height:0;white-space:pre-wrap;box-sizing:border-box}
-  .vs-run{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin:0;border:0;border-top:1px solid rgba(255,255,255,.08);background:var(--code-bg-2);color:#E8E8F2;padding:11px 12px;font-family:var(--ui);font-size:12.5px;font-weight:700;cursor:pointer;flex:none;-webkit-tap-highlight-color:transparent}
-  .vs-run .xf-run-ico{width:16px;height:16px;margin:0}
-  .vs-run:active{background:#2A2A3A}
+  .vs-run{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin:0;border:0;border-top:1px solid rgba(255,255,255,.08);background:var(--code-bg-2);color:#E8E8F2;padding:11px 12px;font-family:var(--ui);font-size:12.5px;font-weight:700;cursor:pointer;flex:none;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;transition:background .18s ease,color .18s ease,transform .15s ease,opacity .15s ease}
+  .vs-run .xf-run-ico{width:16px;height:16px;margin:0;transition:transform .18s cubic-bezier(.32,.72,.28,1)}
+  .vs-run::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.2) 50%,transparent 60%);transform:translateX(-120%);pointer-events:none}
+  .vs-run:not(:disabled):active{transform:scale(.98);background:#2A2A3A}
+  .vs-run:not(:disabled):active::after{animation:shineSweep .65s ease}
+  .vs-run:not(:disabled):active .xf-run-ico{transform:scale(.82)}
   .vs-run:disabled{opacity:.65;cursor:wait}
-  .vs-run.running{opacity:.88}
-  @media (hover:hover) and (pointer:fine){.vs-run:hover{background:#2A2A3A;color:#fff}}
+  .vs-run.running{opacity:.88;transform:scale(.98)}
+  .vs-run.running .xf-run-ico{animation:vsRunPulse .7s ease-in-out infinite}
+  @keyframes vsRunPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+  @media (hover:hover) and (pointer:fine){
+    .vs-run:hover{background:#2A2A3A;color:#fff}
+    .vs-run:hover .xf-run-ico{transform:translateX(1px)}
+  }
   .vs-out{padding:12px;font-family:var(--mono);font-size:11.5px;font-weight:600;line-height:1.5;border-top:1px solid var(--line-2);background:#FAFAFC;flex:1 1 auto;display:flex;flex-direction:column;gap:8px;min-height:0;justify-content:center;box-sizing:border-box}
   @supports (grid-template-rows:subgrid){
     .concept-block .vs-col .ex-code{flex:unset;height:100%}
     .vs-out{flex:unset;height:100%}
   }
   .vs-out.live{justify-content:flex-start}
-  .vs-out.live .result-meta{margin:0;font-size:10.5px}
-  .vs-out.live .table-wrap{margin:0;border-radius:12px;box-shadow:none;border:1px solid rgba(60,60,67,.1);overflow-x:auto;background:var(--surface)}
+  .vs-out.live.flash{animation:vsOutIn .38s cubic-bezier(.32,.72,.28,1) both}
+  @keyframes vsOutIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .vs-out.live .result-meta{margin:0;font-size:10.5px;animation:riseIn .32s cubic-bezier(.32,.72,.28,1) both}
+  .vs-out.live .table-wrap{margin:0;border-radius:12px;box-shadow:none;border:1px solid rgba(60,60,67,.1);overflow-x:auto;background:var(--surface);animation:tableRise .4s cubic-bezier(.32,.72,.28,1) .05s both}
   .vs-out.live .table-wrap table{font-size:11.5px}
+  .vs-out.live .table-wrap thead{animation:riseIn .32s cubic-bezier(.32,.72,.28,1) .08s both}
   .vs-out.live .table-wrap th{background:#fff;color:#8E8E93;font-size:10px;padding:7px 8px;border-bottom-color:rgba(60,60,67,.08)}
   .vs-out.live .table-wrap td{padding:6px 8px;border-bottom-color:rgba(60,60,67,.06)}
   .vs-out.live .feedback{margin:0;padding:10px 12px;border-radius:12px;font-size:12px;box-shadow:none}
   .vs-out.live .feedback p{margin:4px 0 0;font-size:11.5px}
-  .vs-out.live .table-wrap tbody tr{animation:rowIn .32s cubic-bezier(.32,.72,.28,1) both}
+  .vs-out.live .table-wrap tbody tr{
+    opacity:0;
+    animation:rowReveal .38s cubic-bezier(.32,.72,.28,1) both;
+    animation-delay:calc(.12s + var(--i,0) * .055s);
+  }
+  .vs-out.err.live .vs-err-box{animation:pop .3s cubic-bezier(.3,1.4,.5,1),shake .38s ease}
   .vs-out.err{color:var(--danger)}
   .vs-err-box{display:block;background:#fff;border:1px solid rgba(180,35,24,.22);border-radius:12px;padding:10px 12px;color:var(--danger);font-family:var(--mono);font-size:11.5px;font-weight:600;line-height:1.45;box-shadow:0 1px 0 rgba(255,255,255,.9) inset;word-break:break-word}
   .vs-out.ok{font-family:inherit;font-weight:400;color:var(--ink)}
@@ -1885,7 +1902,7 @@
     .lesson-rich .concept-page > .concept-block,.lesson-rich .lesson-lead,.lesson-rich .exframe,.lesson-rich .piege,.lesson-rich .sect-label,
     .lesson-rich .vs-col,.lesson-rich .pipe-step,.lesson-rich .pipe-table tbody tr,.lesson-rich .takeaway-list li,.lesson-rich .order-hint-chip,.lesson-rich .order-hint-chip svg,
     .pl-stat.streak.hot svg,.acc-stat.streak.hot .streak-n svg,.streak-pill.hot svg,
-    .exframe .xf-result.on .table-wrap tbody tr,.vs-out.live .table-wrap tbody tr,
+    .exframe .xf-result.on .table-wrap tbody tr,.vs-out.live .table-wrap tbody tr,.vs-out.live.flash,.vs-out.live .result-meta,.vs-out.live .table-wrap,.vs-out.live .table-wrap thead,.vs-run.running .xf-run-ico,.vs-out.err.live .vs-err-box,
     .result-live .result-meta,.result-live .table-wrap,.result-live .table-wrap thead,.result-live .table-wrap tbody tr,
     .query-loading,.query-loading.out,
     .bad-line,.good-line,.vs-err-box,.vs-out.ok .pipe-table,.concept-point .em svg,
@@ -5334,11 +5351,15 @@ function runVsSql(btn){
       host.hidden=false;
       host.className='vs-out ok live';
       host.innerHTML=renderTable(res,ms);
+      void host.offsetWidth;
+      host.classList.add('flash');
       if(navigator.vibrate)navigator.vibrate(8);
     }catch(e){
       host.hidden=false;
       host.className='vs-out err live';
       host.innerHTML=`<span class="vs-err-box">${esc(e.message)}</span>`;
+      void host.offsetWidth;
+      host.classList.add('flash');
     }finally{
       d.close();
       btn.classList.remove('running');
