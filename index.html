@@ -2267,8 +2267,8 @@ const MODULES = [
   situation:"Tu organises un événement à Paris. Tu dois isoler uniquement les clients parisiens dans la table <code>clients</code>, sans toucher aux autres villes.",
   studio:{problem:{title:"SELECT seul affiche tout le monde.",
       body:"Tu sais choisir les colonnes, mais pas encore les lignes. Pour garder seulement certains enregistrements, ajoute une condition avec <code>WHERE</code>."},
-    vs:{bad:{tag:"✕ Sans condition",sql:"SELECT nom FROM clients;",out:"9 lignes : toutes les villes mélangées"},
-        good:{tag:"✓ Avec filtre",sql:"SELECT nom FROM clients\nWHERE ville = 'Paris';",out:"3 lignes : Sophie, Nathan, Léa"}},
+    vs:{bad:{tag:"✕ Sans condition",sql:"SELECT nom, ville FROM clients;",out:"9 lignes : Paris, Lyon, Marseille…"},
+        good:{tag:"✓ Avec filtre",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris';",out:"3 lignes : Sophie, Nathan, Léa — toutes à Paris"}},
     point:"Les valeurs texte se comparent avec des guillemets simples : <code>'Paris'</code>.",
     why:{title:"Imagine un tamis.",
       body:"SQL lit d’abord la table, puis teste chaque ligne avec la condition. Les lignes qui ne passent pas sont exclues du résultat, mais elles restent dans la base. Tu réutiliseras exactement ce mécanisme avec des conditions plus riches dans <b>AND/OR</b> (id 6), <b>LIKE</b> (id 8) et <b>IN/BETWEEN</b> (id 9)."},
@@ -2276,8 +2276,8 @@ const MODULES = [
     reflex:{a:{k:"SELECT",t:"définit les <b>colonnes</b> à afficher"},
       b:{k:"WHERE",t:"définit les <b>lignes</b> à garder"},
       note:"Un WHERE filtre l’affichage, il ne supprime jamais de données."}},
-  anatomie:[{tok:"SELECT nom",txt:"Colonne affichée."},{tok:"FROM clients",txt:"Table lue."},{tok:"WHERE",txt:"Introduit la condition."},{tok:"ville = 'Paris'",plain:1,txt:"Test appliqué à chaque ligne."}],
-  exemple:"SELECT nom FROM clients WHERE ville = 'Paris';",
+  anatomie:[{tok:"SELECT nom, ville",txt:"Colonnes affichées."},{tok:"FROM clients",txt:"Table lue."},{tok:"WHERE",txt:"Introduit la condition."},{tok:"ville = 'Paris'",plain:1,txt:"Test appliqué à chaque ligne."}],
+  exemple:"SELECT nom, ville FROM clients WHERE ville = 'Paris';",
   attendu:"<b>3 lignes</b> : les clients dont la ville est Paris.",
   piege:{t:"Mauvais guillemets",p:"Écris <code>'Paris'</code> et non <code>\"Paris\"</code> pour rester cohérent en SQL débutant."},
   consigne:"Affiche toutes les colonnes des clients qui habitent à <code>Paris</code>.",
@@ -7420,11 +7420,11 @@ const SQL_VIZ={
     {t:'Léa',extra:'Paris'},{t:'Gabriel',extra:'Toulouse'},{t:'Inès',extra:'Nantes'}
   ]},
   where:{kind:'filter',phases:[
-    {k:'SELECT nom FROM clients',d:'SQL lit simplement les lignes'},
+    {k:'SELECT nom, ville FROM clients',d:'SQL lit simplement les lignes'},
     {k:"WHERE ville = 'Paris'",d:'SQL ne garde que les lignes de Paris. Les autres ne sont pas effacées.'}
   ],chips:[
-    {t:'Sophie',keep:1},{t:'Lucas',keep:0},{t:'Emma',keep:0},{t:'Nathan',keep:1},
-    {t:'Chloé',keep:0},{t:'Hugo',keep:0},{t:'Léa',keep:1},{t:'Gabriel',keep:0},{t:'Inès',keep:0}
+    {t:'Sophie',extra:'Paris',keep:1},{t:'Lucas',extra:'Lyon',keep:0},{t:'Emma',extra:'Marseille',keep:0},{t:'Nathan',extra:'Paris',keep:1},
+    {t:'Chloé',extra:'Bordeaux',keep:0},{t:'Hugo',extra:'Lyon',keep:0},{t:'Léa',extra:'Paris',keep:1},{t:'Gabriel',extra:'Toulouse',keep:0},{t:'Inès',extra:'Nantes',keep:0}
   ]},
   compare:{kind:'filter',phases:[
     {k:'SELECT nom, age FROM clients',d:'SQL lit tous les clients'},
