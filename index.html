@@ -978,17 +978,22 @@
   .ent-progress .ep-track{flex:1;height:6px;border-radius:999px;background:var(--line);overflow:hidden}
   .ent-progress .ep-fill{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .5s cubic-bezier(.32,.72,.28,1)}
   .ent-progress .ep-pct{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);flex:none;min-width:34px;text-align:right}
-  .ent-list{padding:18px 18px 32px;display:flex;flex-direction:column;gap:13px}
-  .ecard{background:var(--surface);border-radius:16px;box-shadow:0 1px 0 var(--line),0 10px 24px -22px rgba(20,20,40,.4);overflow:hidden;transition:box-shadow .2s ease}
-  .ecard.open{box-shadow:0 1px 0 var(--line),0 14px 30px -20px rgba(20,20,40,.42)}
-  .ecard .eh{display:flex;align-items:center;gap:12px;padding:16px 15px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  .ent-list{padding:16px 18px calc(28px + var(--tabbar-h) + var(--safe-bottom));display:flex;flex-direction:column;gap:20px}
+  .ent-head{display:flex;align-items:center;justify-content:space-between;padding:0 6px 10px}
+  .ent-head h2{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-3);margin:0;display:flex;align-items:center;gap:7px}
+  .ent-head h2::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--accent);flex:none}
+  .ent-head span{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);font-weight:600}
+  .ent-group-list{background:var(--surface);border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(20,20,40,.05),0 1px 0 var(--line)}
+  .ecard{background:var(--surface);box-shadow:none;overflow:hidden}
+  .ecard + .ecard{border-top:1px solid var(--line)}
+  .ecard.open{background:var(--surface)}
+  .ecard .eh{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   .ecard .eh:active{background:var(--surface-2)}
-  .ecard .etag{flex:none;font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;background:var(--accent-soft);color:var(--accent);padding:5px 9px;border-radius:8px;max-width:96px;text-align:center}
-  .ecard .eq{flex:1;font-size:14.5px;font-weight:600;color:var(--ink);letter-spacing:-.2px;line-height:1.35}
+  .ecard .eq{flex:1;min-width:0;font-size:14.5px;font-weight:600;color:var(--ink);letter-spacing:-.2px;line-height:1.35}
   .ecard .echev{flex:none;width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:var(--ink-3);transition:transform .24s cubic-bezier(.32,.72,.28,1),color .18s}
   .ecard.open .echev{transform:rotate(90deg);color:var(--accent)}
   .ecard .echev svg{width:16px;height:16px;display:block}
-  .ecard .ebody{display:none;padding:0 15px 16px 15px}
+  .ecard .ebody{display:none;padding:0 16px 16px 16px}
   .ecard.open .ebody{display:block;animation:entIn .28s cubic-bezier(.32,.72,.28,1)}
   @keyframes entIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
   .ecard .eans{font-size:14px;line-height:1.55;color:var(--ink-2);margin:0 0 4px}
@@ -1861,6 +1866,8 @@
     .concept-block h2{margin-bottom:14px}
     .concept-page{gap:12px}
     .module{margin-left:14px;margin-right:14px}
+    .ent-list{padding-left:14px;padding-right:14px}
+    .ent-progress{margin-left:14px;margin-right:14px}
     .progress-card,.revise,.home-fbar{margin-left:14px;margin-right:14px}
     .fbar,.home-fbar{padding-left:14px;padding-right:14px}
     .run-row .btn-ghost{flex:1 1 calc(50% - 5px);justify-content:center;padding:0 12px;font-size:13px}
@@ -2054,7 +2061,7 @@
         <p class="sub">Les questions SQL les plus posées en entretien — avec réponse et exemple.</p></div>
       <div class="ent-progress" id="ent-progress"></div>
       <div class="fbar" id="ent-filters"></div>
-      <div id="ent-list"></div>
+      <div id="ent-list" class="ent-list"></div>
     </section>
 
     <!-- COMPTE -->
@@ -6897,12 +6904,19 @@ function renderEntretien(){
   if(!list)return;
   const items=ENTRETIEN.map((q,i)=>({...q,id:entId(q,i)})).filter(q=>entFilter==='all'||q.cat===entFilter);
   if(!items.length){ list.innerHTML=`<div class="ent-empty">Aucune question dans cette catégorie.</div>`; return; }
-  list.innerHTML=items.map(q=>{
-    const open=entOpen===q.id;
-    const seen=entSeen(q.id);
-    return `<div class="ecard ${open?'open':''}" data-id="${q.id}">
+  const groups=[];
+  items.forEach(q=>{
+    const last=groups[groups.length-1];
+    if(!last||last.cat!==q.cat) groups.push({cat:q.cat,items:[q]});
+    else last.items.push(q);
+  });
+  list.innerHTML=groups.map(g=>`<div class="ent-group">
+    <div class="ent-head"><h2>${g.cat}</h2><span>${g.items.length}</span></div>
+    <div class="ent-group-list">${g.items.map(q=>{
+      const open=entOpen===q.id;
+      const seen=entSeen(q.id);
+      return `<div class="ecard ${open?'open':''}" data-id="${q.id}">
       <div class="eh" onclick="toggleEntretien('${q.id}')" role="button" aria-expanded="${open?'true':'false'}">
-        <span class="etag">${q.cat}</span>
         <span class="eq">${q.q}</span>
         <span class="echev" aria-hidden="true">${ENT_CHEV_SVG}</span>
       </div>
@@ -6914,7 +6928,8 @@ function renderEntretien(){
         </div>
       </div>
     </div>`;
-  }).join('');
+    }).join('')}</div>
+  </div>`).join('');
 }
 function setEntFilter(f){ entFilter=f; renderEntretien(); }
 function toggleEntretien(id){
