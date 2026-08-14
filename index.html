@@ -523,7 +523,7 @@
   .bad-line{display:block;position:relative;background:rgba(180,35,24,.15);border-radius:6px;margin:1px -6px;padding:0 6px;box-shadow:inset 2px 0 0 var(--danger)}
   .bad-line::after{content:'';position:absolute;left:6px;right:6px;top:50%;height:1.5px;background:rgba(255,120,110,.55);transform:translateY(-.5px)}
   .good-line{display:block;background:rgba(80,220,150,.13);border-radius:6px;margin:1px -6px;padding:0 6px;box-shadow:inset 2px 0 0 var(--success)}
-  .vs-line{display:block;border-radius:6px;margin:1px -6px;padding:0 6px}
+  .vs-line{display:inline;border-radius:6px;padding:.08em .38em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
   .vs-line.bad{background:rgba(180,35,24,.12);box-shadow:inset 2px 0 0 var(--danger)}
   .vs-line.good{background:rgba(80,220,150,.13);box-shadow:inset 2px 0 0 var(--success)}
   @media (max-width:700px){
@@ -2316,29 +2316,6 @@ const MODULES = [
   solution:"SELECT * FROM clients;",
   indice:"<code>SELECT * FROM clients;</code> — l’étoile signifie « toutes les colonnes ».",
   richLesson:true, earlyDemo:true },
-{ id:1, titre:"SELECT", résumé:"Choisir les colonnes du résultat",
-  situation:"La table <code>clients</code> contient 9 personnes. Pour chacune, plusieurs informations sont enregistrées : <code>id</code>, <code>nom</code>, <code>ville</code>, <code>age</code>, <code>email</code>, <code>telephone</code> et <code>date_inscription</code>. Tu dois préparer un listing d’appel. Pour appeler un client, deux informations te sont utiles : son nom et son numéro de téléphone. Tu n’as pas besoin d’afficher sa ville, son âge, son email ou sa date d’inscription. Avec <code>SELECT</code>, tu vas demander à SQL d’afficher précisément les colonnes dont tu as besoin.",
-    studio:{problem:{title:"SELECT choisit les colonnes que tu veux afficher.",
-      body:"Une table peut contenir beaucoup d’informations, mais une requête n’a pas besoin de toutes les afficher. Ici, <code>clients</code> contient 7 colonnes. Pour ton listing d’appel, seules <code>nom</code> et <code>telephone</code> sont utiles. <code>SELECT</code> répond donc à la question : « Quelles colonnes veux-tu voir dans ton résultat ? » Pour en demander plusieurs, écris simplement leurs noms après <code>SELECT</code>, séparés par une virgule : <code>SELECT nom, telephone</code>. Important : tu ne choisis pas certaines personnes. Les 9 clients restent présents. Tu choisis seulement quelles informations afficher pour chacun."},
-    vs:{bad:{tag:"✕ Tout afficher",sql:"SELECT *\nFROM clients;",
-            code:"SELECT\n<span class=\"vs-line bad\">*</span>\nFROM clients;"},
-        good:{tag:"✓ Afficher l’utile",sql:"SELECT nom, telephone\nFROM clients;",
-            code:"SELECT\n<span class=\"vs-line good\">nom, telephone</span>\nFROM clients;"}},
-    point:"<code>SELECT *</code> fonctionne, mais <code>*</code> signifie <b>« toutes les colonnes »</b>. Tu obtiendrais donc aussi l’identifiant, la ville, l’âge, l’email et la date d’inscription.<br><br>Avec <code>SELECT nom, telephone</code>, tu demandes exactement ce dont tu as besoin : <b>2 colonnes</b>.<br><br>Dans les deux cas, les <b>9 clients</b> restent présents. Ce n’est pas le nombre de lignes qui change, mais la <b>largeur du résultat</b>.",
-    why:{title:"Imagine que SQL découpe les colonnes dont tu as besoin.",
-      body:"Visualise <code>clients</code> comme un grand tableau.<br><br>Les <b>lignes</b> représentent les personnes : Sophie, Lucas, Emma, Nathan, Chloé, Hugo, Léa, Gabriel et Inès.<br><br>Les <b>colonnes</b> représentent les informations disponibles sur ces personnes : nom, ville, âge, email, téléphone…<br><br><b>1. <code>FROM clients</code></b><br>SQL commence par lire la table <code>clients</code>. Il a accès aux 9 lignes et à toutes leurs colonnes.<br><br><b>2. <code>SELECT nom, telephone</code></b><br>Tu lui indiques ensuite les deux colonnes qui doivent apparaître dans le résultat.<br><br><b>3. SQL construit le résultat</b><br>Il produit un nouveau tableau de <b>9 lignes × 2 colonnes</b> : une colonne <code>nom</code> et une colonne <code>telephone</code>.<br><br>La table originale n’est pas modifiée. Les autres colonnes sont toujours là : elles ne sont simplement pas affichées dans ce résultat."},
-    viz:"select",
-    reflex:{a:{k:"SELECT",t:"choisit les <b>colonnes à afficher</b> dans le résultat"},
-      b:{k:",",t:"sépare les <b>colonnes demandées</b> quand tu en veux plusieurs"},
-      note:"Lis <code>SELECT nom, telephone FROM clients</code> comme : <i>« Dans la table clients, affiche-moi les colonnes nom et telephone. »</i><br><br>Le réflexe à retenir : <b>SELECT agit sur la largeur du résultat.</b> Choisir certaines personnes sera le rôle de <code>WHERE</code> dans le cours suivant."}},
-  anatomie:[{tok:"SELECT",txt:"Commence la requête et annonce quelles colonnes tu veux retrouver dans le résultat."},{tok:"nom",plain:1,txt:"Première colonne demandée. Elle permet d’identifier la personne à appeler."},{tok:",",punc:1,txt:"La virgule sépare les colonnes. Elle indique que tu veux afficher une autre colonne en plus de nom."},{tok:"telephone",plain:1,txt:"Deuxième colonne demandée. Elle apparaîtra à côté de nom dans le résultat."},{tok:"FROM",txt:"Indique à SQL où chercher les colonnes demandées."},{tok:"clients",plain:1,txt:"C’est la table source. Elle contient les 9 clients et leurs informations."}],
-  exemple:"SELECT nom, telephone FROM clients;",
-  attendu:"<b>9 lignes</b> et <b>2 colonnes</b> : <code>nom</code> et <code>telephone</code>. Chaque ligne correspond toujours à un client, mais seules les deux informations utiles au listing d’appel sont affichées.",
-  piege:{t:"Oublier la virgule entre deux colonnes",p:"Quand tu demandes plusieurs colonnes, tu dois les séparer par une virgule. Écris <code>SELECT nom, telephone FROM clients;</code> et non <code>SELECT nom telephone FROM clients;</code>. Après <code>SELECT</code>, pense à une liste : une colonne → <code>nom</code>. Deux colonnes → <code>nom, telephone</code>."},
-  consigne:"Prépare le listing d’appel : affiche uniquement le <code>nom</code> et le <code>telephone</code> de chaque client.",
-  solution:"SELECT nom, telephone FROM clients;",
-  indice:"Tu as besoin de deux colonnes. Écris leurs noms après <code>SELECT</code> en les séparant par une virgule : <code>nom, telephone</code>.",
-  richLesson:true, earlyDemo:true },
 { id:3, titre:"SELECT *", résumé:"Voir toute la table",
   situation:"Tu découvres la table <code>produits</code> et tu veux voir d’un coup tout ce qu’elle contient : <code>id</code>, <code>nom</code>, <code>categorie</code>, <code>prix</code>, <code>stock</code>.",
     studio:{problem:{title:"L’étoile affiche toutes les colonnes. Inutile d’en rajouter.",
@@ -2357,6 +2334,29 @@ const MODULES = [
   consigne:"Affiche toutes les colonnes de la table <code>produits</code> pour l’explorer.",
   solution:"SELECT * FROM produits;",
   indice:"<code>*</code> remplace toute la liste des colonnes.",
+  richLesson:true, earlyDemo:true },
+{ id:1, titre:"SELECT", résumé:"Choisir les colonnes du résultat",
+  situation:"La table <code>clients</code> contient 9 personnes. Pour chacune, plusieurs informations sont enregistrées : <code>id</code>, <code>nom</code>, <code>ville</code>, <code>age</code>, <code>email</code>, <code>telephone</code> et <code>date_inscription</code>. Tu dois préparer un listing d’appel. Pour appeler un client, deux informations te sont utiles : son nom et son numéro de téléphone. Tu n’as pas besoin d’afficher sa ville, son âge, son email ou sa date d’inscription. Avec <code>SELECT</code>, tu vas demander à SQL d’afficher précisément les colonnes dont tu as besoin.",
+    studio:{problem:{title:"SELECT choisit les colonnes que tu veux afficher.",
+      body:"Une table peut contenir beaucoup d’informations, mais une requête n’a pas besoin de toutes les afficher. Ici, <code>clients</code> contient 7 colonnes. Pour ton listing d’appel, seules <code>nom</code> et <code>telephone</code> sont utiles. <code>SELECT</code> répond donc à la question : « Quelles colonnes veux-tu voir dans ton résultat ? » Pour en demander plusieurs, écris simplement leurs noms après <code>SELECT</code>, séparés par une virgule : <code>SELECT nom, telephone</code>. Important : tu ne choisis pas certaines personnes. Les 9 clients restent présents. Tu choisis seulement quelles informations afficher pour chacun."},
+    vs:{bad:{tag:"✕ Tout afficher",sql:"SELECT *\nFROM clients;",
+            code:"SELECT <span class=\"vs-line bad\">*</span>\nFROM clients;"},
+        good:{tag:"✓ Afficher l’utile",sql:"SELECT nom, telephone\nFROM clients;",
+            code:"SELECT <span class=\"vs-line good\">nom, telephone</span>\nFROM clients;"}},
+    point:"<code>SELECT *</code> fonctionne, mais <code>*</code> signifie <b>« toutes les colonnes »</b>. Tu obtiendrais donc aussi l’identifiant, la ville, l’âge, l’email et la date d’inscription.<br><br>Avec <code>SELECT nom, telephone</code>, tu demandes exactement ce dont tu as besoin : <b>2 colonnes</b>.<br><br>Dans les deux cas, les <b>9 clients</b> restent présents. Ce n’est pas le nombre de lignes qui change, mais la <b>largeur du résultat</b>.",
+    why:{title:"Imagine que SQL découpe les colonnes dont tu as besoin.",
+      body:"Visualise <code>clients</code> comme un grand tableau.<br><br>Les <b>lignes</b> représentent les personnes : Sophie, Lucas, Emma, Nathan, Chloé, Hugo, Léa, Gabriel et Inès.<br><br>Les <b>colonnes</b> représentent les informations disponibles sur ces personnes : nom, ville, âge, email, téléphone…<br><br><b>1. <code>FROM clients</code></b><br>SQL commence par lire la table <code>clients</code>. Il a accès aux 9 lignes et à toutes leurs colonnes.<br><br><b>2. <code>SELECT nom, telephone</code></b><br>Tu lui indiques ensuite les deux colonnes qui doivent apparaître dans le résultat.<br><br><b>3. SQL construit le résultat</b><br>Il produit un nouveau tableau de <b>9 lignes × 2 colonnes</b> : une colonne <code>nom</code> et une colonne <code>telephone</code>.<br><br>La table originale n’est pas modifiée. Les autres colonnes sont toujours là : elles ne sont simplement pas affichées dans ce résultat."},
+    viz:"select",
+    reflex:{a:{k:"SELECT",t:"choisit les <b>colonnes à afficher</b> dans le résultat"},
+      b:{k:",",t:"sépare les <b>colonnes demandées</b> quand tu en veux plusieurs"},
+      note:"Lis <code>SELECT nom, telephone FROM clients</code> comme : <i>« Dans la table clients, affiche-moi les colonnes nom et telephone. »</i><br><br>Le réflexe à retenir : <b>SELECT agit sur la largeur du résultat.</b> Choisir certaines personnes sera le rôle de <code>WHERE</code> dans le cours suivant."}},
+  anatomie:[{tok:"SELECT",txt:"Commence la requête et annonce quelles colonnes tu veux retrouver dans le résultat."},{tok:"nom",plain:1,txt:"Première colonne demandée. Elle permet d’identifier la personne à appeler."},{tok:",",punc:1,txt:"La virgule sépare les colonnes. Elle indique que tu veux afficher une autre colonne en plus de nom."},{tok:"telephone",plain:1,txt:"Deuxième colonne demandée. Elle apparaîtra à côté de nom dans le résultat."},{tok:"FROM",txt:"Indique à SQL où chercher les colonnes demandées."},{tok:"clients",plain:1,txt:"C’est la table source. Elle contient les 9 clients et leurs informations."}],
+  exemple:"SELECT nom, telephone FROM clients;",
+  attendu:"<b>9 lignes</b> et <b>2 colonnes</b> : <code>nom</code> et <code>telephone</code>. Chaque ligne correspond toujours à un client, mais seules les deux informations utiles au listing d’appel sont affichées.",
+  piege:{t:"Oublier la virgule entre deux colonnes",p:"Quand tu demandes plusieurs colonnes, tu dois les séparer par une virgule. Écris <code>SELECT nom, telephone FROM clients;</code> et non <code>SELECT nom telephone FROM clients;</code>. Après <code>SELECT</code>, pense à une liste : une colonne → <code>nom</code>. Deux colonnes → <code>nom, telephone</code>."},
+  consigne:"Prépare le listing d’appel : affiche uniquement le <code>nom</code> et le <code>telephone</code> de chaque client.",
+  solution:"SELECT nom, telephone FROM clients;",
+  indice:"Tu as besoin de deux colonnes. Écris leurs noms après <code>SELECT</code> en les séparant par une virgule : <code>nom, telephone</code>.",
   richLesson:true, earlyDemo:true }
 ]},
 
