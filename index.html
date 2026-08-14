@@ -1000,10 +1000,10 @@
   .ecard.open{background:var(--surface)}
   .ecard .eh{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   .ecard .eh:active{background:var(--surface-2)}
-  .ecard .emark{width:26px;height:26px;flex:none;border-radius:9px;border:none;padding:0;background:#F1F1F5;color:var(--ink-3);display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;-webkit-appearance:none;appearance:none}
-  .ecard .emark svg{width:14px;height:14px;display:block}
-  .ecard .emark.ok{background:var(--success-soft);color:var(--success)}
-  .ecard .emark.review{background:var(--warn-soft);color:var(--warn)}
+  .ecard .emark{width:28px;height:28px;flex:none;border-radius:9px;border:1px solid var(--line-2);padding:0;background:var(--surface-2);color:var(--ink-3);display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;-webkit-appearance:none;appearance:none;transition:background .16s,color .16s,border-color .16s}
+  .ecard .emark svg{width:15px;height:15px;display:block}
+  .ecard .emark.ok{background:var(--success-soft);border-color:transparent;color:var(--success)}
+  .ecard .emark.review{background:var(--accent-soft);border-color:transparent;color:var(--accent)}
   .ecard.ok .eq{font-weight:500;color:var(--ink-2)}
   .ecard .eq{flex:1;min-width:0;font-size:14.5px;font-weight:600;color:var(--ink);letter-spacing:-.2px;line-height:1.35}
   .ecard .echev{flex:none;width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:var(--ink-3);transition:transform .24s cubic-bezier(.32,.72,.28,1),color .18s}
@@ -1019,10 +1019,13 @@
   .ecard .ecopy{position:absolute;top:8px;right:8px;display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.08);color:#C9C9D6;border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:6px 9px;font-family:var(--ui);font-size:11.5px;font-weight:600;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   .ecard .ecopy:active{transform:scale(.94);background:rgba(255,255,255,.16)}
   .ecard .ecopy svg{width:13px;height:13px}
-  .ecard .efoot{display:flex;align-items:center;gap:8px;margin-top:13px}
-  .ecard .estat{flex:1;border:none;border-radius:12px;padding:10px 12px;font-family:var(--ui);font-size:13px;font-weight:700;cursor:pointer;background:var(--surface-2);color:var(--ink-3);touch-action:manipulation;-webkit-appearance:none;appearance:none}
-  .ecard .estat.on.ok{background:var(--success-soft);color:var(--success)}
-  .ecard .estat.on.review{background:var(--warn-soft);color:var(--warn)}
+  .ecard .efoot{margin-top:13px}
+  .efoot-seg{display:flex;background:var(--line);border-radius:12px;padding:3px;gap:0}
+  .ecard .estat{flex:1;border:none;border-radius:10px;padding:10px 12px;font-family:var(--ui);font-size:13px;font-weight:700;cursor:pointer;background:transparent;color:var(--ink-3);touch-action:manipulation;-webkit-appearance:none;appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:background .16s,color .16s,box-shadow .16s}
+  .ecard .estat svg{width:15px;height:15px;flex:none;display:block}
+  .ecard .estat.on{background:var(--surface);box-shadow:0 1px 2px rgba(20,20,40,.06)}
+  .ecard .estat.on.ok{color:var(--success)}
+  .ecard .estat.on.review{color:var(--accent)}
   .ent-empty{text-align:center;padding:40px 30px;color:var(--ink-3);font-size:14px}
   .cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 18px 28px}
   .gcard{aspect-ratio:3/4;border-radius:22px;padding:14px 13px 12px;display:flex;flex-direction:column;color:#fff;position:relative;overflow:hidden;cursor:pointer;box-shadow:0 18px 36px -18px rgba(20,20,40,.55),0 1px 0 rgba(255,255,255,.18) inset;touch-action:manipulation}
@@ -7015,7 +7018,9 @@ const ENTRETIEN_CATS=[['all','Toutes'],['Bases','Bases'],['JOINs','JOINs'],['Agr
 let entFilter='all';
 let entOpen=null;
 const ENT_CHEV_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
-const ENT_OK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>';
+const ENT_OK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>';
+const ENT_REVIEW_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v5h5"/><path d="M20 20v-5h-5"/><path d="M5.5 18.5A8 8 0 0 0 18.5 5.5"/><path d="M18.5 5.5A8 8 0 0 0 5.5 18.5"/></svg>';
+function entMarkIcon(ok){ return ok?ENT_OK_SVG:ENT_REVIEW_SVG; }
 function entMark(id){
   const v=state.entretien&&state.entretien[id];
   return v==='ok'?'ok':'review';
@@ -7026,8 +7031,10 @@ function entId(q,i){ return 'e'+i; }
 function entFoot(id){
   const ok=entOk(id);
   return `<div class="efoot">
-    <button type="button" class="estat ok${ok?' on':''}" onclick="event.stopPropagation();setEntretienMark('${id}','ok')">Validé</button>
-    <button type="button" class="estat review${!ok?' on':''}" onclick="event.stopPropagation();setEntretienMark('${id}','review')">À revoir</button>
+    <div class="efoot-seg">
+      <button type="button" class="estat ok${ok?' on':''}" onclick="event.stopPropagation();setEntretienMark('${id}','ok')">${ENT_OK_SVG}<span>Validé</span></button>
+      <button type="button" class="estat review${!ok?' on':''}" onclick="event.stopPropagation();setEntretienMark('${id}','review')">${ENT_REVIEW_SVG}<span>À revoir</span></button>
+    </div>
   </div>`;
 }
 function paintEntProgress(){
@@ -7062,7 +7069,7 @@ function renderEntretien(){
       const ok=entOk(q.id);
       return `<div class="ecard${open?' open':''}${ok?' ok':''}" data-id="${q.id}">
       <div class="eh" onclick="toggleEntretien('${q.id}')" role="button" aria-expanded="${open?'true':'false'}">
-        <button type="button" class="emark ${ok?'ok':'review'}" onclick="event.stopPropagation();toggleEntretienMark('${q.id}')" aria-label="${ok?'Validé — marquer à revoir':'À revoir — marquer validé'}">${ok?ENT_OK_SVG:''}</button>
+        <button type="button" class="emark ${ok?'ok':'review'}" onclick="event.stopPropagation();toggleEntretienMark('${q.id}')" aria-label="${ok?'Validé — marquer à revoir':'À revoir — marquer validé'}">${entMarkIcon(ok)}</button>
         <span class="eq">${q.q}</span>
         <span class="echev" aria-hidden="true">${ENT_CHEV_SVG}</span>
       </div>
@@ -7089,7 +7096,7 @@ function setEntretienMark(id,mark){
     if(btn){
       btn.className='emark '+(ok?'ok':'review');
       btn.setAttribute('aria-label',ok?'Validé — marquer à revoir':'À revoir — marquer validé');
-      btn.innerHTML=ok?ENT_OK_SVG:'';
+      btn.innerHTML=entMarkIcon(ok);
     }
     const foot=card.querySelector('.efoot');
     if(foot) foot.outerHTML=entFoot(id);
