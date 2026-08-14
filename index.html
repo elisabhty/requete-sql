@@ -313,6 +313,9 @@
   .coda-line.ok .hl{background:#fff;color:var(--success);box-shadow:0 0 0 1px rgba(15,118,110,.14)}
   .coda-sub{margin:12px 2px 0!important;font-size:13px!important;line-height:1.5!important;color:var(--ink-2)!important}
   .coda-sub code,.coda-sub b{color:var(--accent)!important;font-weight:800}
+  .coda-note{display:inline-flex;align-items:center;gap:8px;margin:14px 0 0;border:none;background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:10px 14px;font-family:var(--ui);font-size:13.5px;font-weight:700;cursor:pointer;touch-action:manipulation;-webkit-appearance:none;appearance:none}
+  .coda-note:active{transform:scale(.98)}
+  .coda-note svg{width:14px;height:14px;display:block;flex:none}
   .concept-block .ex-code{margin:0 0 14px;padding:14px 15px;border-radius:14px;font-size:12.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word;box-shadow:none}
   .concept-block > .ex-code:first-of-type,.concept-block > .sql-copy-wrap:first-of-type .ex-code{margin-top:0}
   .concept-block > p + .ex-code,.concept-block > p + .sql-copy-wrap .ex-code{margin-top:2px}
@@ -2672,6 +2675,7 @@ GROUP BY categorie
       <div class="memory-having"><b>HAVING</b><span>filtre les <b>groupes</b><br>après le regroupement</span></div>
     </div>
     <div class="agg-reflex">Si ta condition contient une fonction d’agrégation comme&nbsp;:<ul class="agg-list"><li><code>COUNT()</code></li><li><code>SUM()</code></li><li><code>AVG()</code></li><li><code>MIN()</code></li><li><code>MAX()</code></li></ul><p class="agg-cta">👉 utilise <code>HAVING</code>.</p></div>
+    <button type="button" class="coda-note" onclick="noteFromRetenir()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ajouter dans notes</button>
   </div>
   <!-- early-demo -->
   </div>`,
@@ -5224,7 +5228,49 @@ function renderReflex(r){
   const card=(cls,k,t)=>`<div class="${cls}"><b>${k}</b><span>${t}</span></div>`;
   const note=r.note?`<p class="agg-reflex" style="margin-top:14px">${r.note}</p>`:'';
   const extra=r.extra||'';
-  return `<div class="memory-rule">${card('memory-a',r.a.k,r.a.t)}${card('memory-b',r.b.k,r.b.t)}</div>${note}${extra}`;
+  return `<div class="memory-rule">${card('memory-a',r.a.k,r.a.t)}${card('memory-b',r.b.k,r.b.t)}</div>${note}${extra}${retenirNoteBtn()}`;
+}
+function retenirNoteBtn(){
+  return `<button type="button" class="coda-note" onclick="noteFromRetenir()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ajouter dans notes</button>`;
+}
+function stripNoteHtml(s){
+  return String(s||'')
+    .replace(/<br\s*\/?>/gi,'\n')
+    .replace(/<\/(p|div|li|h[1-6])>/gi,'\n')
+    .replace(/<[^>]+>/g,'')
+    .replace(/&nbsp;/g,' ')
+    .replace(/&lt;/g,'<')
+    .replace(/&gt;/g,'>')
+    .replace(/&amp;/g,'&')
+    .replace(/[ \t]+\n/g,'\n')
+    .replace(/\n{3,}/g,'\n\n')
+    .trim();
+}
+function lessonRetenirText(l){
+  if(!l) return '';
+  const parts=[];
+  const r=l.studio&&l.studio.reflex;
+  if(r&&r.a) parts.push(`${stripNoteHtml(r.a.k)} — ${stripNoteHtml(r.a.t)}`);
+  if(r&&r.b) parts.push(`${stripNoteHtml(r.b.k)} — ${stripNoteHtml(r.b.t)}`);
+  if(r&&r.note) parts.push(stripNoteHtml(r.note));
+  if(l.id===17){
+    parts.push('WHERE filtre les lignes avant le regroupement.');
+    parts.push('HAVING filtre les groupes après le regroupement.');
+    parts.push('Si la condition contient COUNT, SUM, AVG, MIN ou MAX → HAVING.');
+    parts.push('WHERE s’applique avant le GROUP BY : pas d’agrégat dans WHERE.');
+    parts.push('HAVING s’applique après le GROUP BY : peut utiliser COUNT(*), SUM(), AVG()…');
+  }
+  if(l.piege) parts.push(`Piège · ${stripNoteHtml(l.piege.t)} : ${stripNoteHtml(l.piege.p)}`);
+  return parts.join('\n');
+}
+function noteFromRetenir(){
+  const l=current;
+  if(!l){ startNewNote(); return; }
+  openNote(null,{
+    ctx:currentContext()+' · À retenir',
+    sql:(l.exemple||l.solution||'').trim(),
+    txt:lessonRetenirText(l)
+  });
 }
 function renderVizShell(key){
   const cfg=SQL_VIZ[key];
@@ -5303,6 +5349,7 @@ function lessonDemoBlocks(l){
         </div>
       </div>
       <p class="coda-sub">En résumé : <code>SELECT</code> s’écrit en premier, mais s’exécute <b>presque en dernier</b>.</p>
+      ${retenirNoteBtn()}
     </div>
     </div>`:'';
   return `${lessonRichFooter(l)}${anat?`<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`:''}${order}`;
@@ -5961,6 +6008,7 @@ function openCard(id){
     </div>
     <p class="cd-lab memo"><span class="cd-lab-i">💡</span>À retenir</p>
     <div class="cd-memo">${c.m}</div>
+    <button type="button" class="coda-note" onclick="noteFromCard(${id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ajouter dans notes</button>
     <p class="cd-lab">Syntaxe</p>
     ${syntaxBlock}
     <div class="cd-actions">
@@ -7092,8 +7140,7 @@ function startNewNote(){
 }
 function noteFromCard(id){
   const c=CARTES[id]; closeCard();
-  openNotesHub();
-  openNote(null,{ctx:`Carte ${id} · ${c.k}`,sql:c.s});
+  openNote(null,{ctx:`Carte ${id} · ${c.k}`,sql:c.s,txt:stripNoteHtml(c.m)});
 }
 function saveConsoleQuery(){
   const sql=document.getElementById('ed-console').value.trim();
@@ -7104,7 +7151,7 @@ function saveConsoleQuery(){
 function openNote(id,pre){
   const n=id?(state.notes||[]).find(x=>x.id===id):null;
   noteView='edit';
-  editingNote=n?{...n,isNew:false}:{id:'n'+Date.now()+Math.random().toString(36).slice(2,6),txt:'',sql:(pre&&pre.sql)||'',ctx:(pre&&pre.ctx)||'',ts:Date.now(),pin:false,isNew:true};
+  editingNote=n?{...n,isNew:false}:{id:'n'+Date.now()+Math.random().toString(36).slice(2,6),txt:(pre&&pre.txt)||'',sql:(pre&&pre.sql)||'',ctx:(pre&&pre.ctx)||'',ts:Date.now(),pin:false,isNew:true};
   document.getElementById('note-head').textContent=n?'Note':'Nouvelle note';
   document.getElementById('note-back').classList.add('on');
   document.getElementById('note-sheet').classList.add('on');
