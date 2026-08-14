@@ -1848,10 +1848,13 @@
   .ob-cta:disabled{opacity:.45;box-shadow:none;cursor:default}
   .ob-cta:active:not(:disabled){transform:scale(.98)}
   .ob-skip{background:none;border:none;color:var(--ink-3);font-family:var(--ui);font-size:14px;font-weight:600;cursor:pointer;padding:8px}
-  .ob-skip:hover{color:var(--ink-2)}
+  .ob-back{align-self:flex-start;background:none;border:none;color:var(--accent);font-family:var(--ui);font-size:14px;font-weight:600;padding:0 0 14px;margin:0 0 4px;cursor:pointer;touch-action:manipulation}
+  .ob-back:active{opacity:.55}
+  .ob-foot.ob-foot-hidden{display:none}
   .greeting{margin:12px 18px 0;font-size:14px;color:var(--ink-2);font-weight:500;letter-spacing:-.1px}
   .greeting b{color:var(--ink);font-weight:700}
   #ob-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px}
+  #onboarding:has(.ob-foot-hidden) #ob-body{padding-bottom:calc(var(--safe-bottom) + 28px)}
 
   @media (max-width:480px){
     .concept-flow{grid-template-columns:1fr;gap:6px}
@@ -7143,7 +7146,8 @@ function fillConsole(i){
    ONBOARDING · MICRO-INTERACTIONS
    ============================================================ */
 let obStep=0;
-const OB_STEPS=5; // 0 welcome · 1 niveau · 2 minutes · 3 freq · 4 récap
+let obLock=false;
+const OB_STEPS=4; // 0 welcome · 1 niveau · 2 rythme · 3 parcours prêt
 function renderGreeting(){
   const el=document.getElementById('greeting');
   if(!el)return;
@@ -7163,7 +7167,8 @@ function maybeOnboard(){
 }
 function startOnboarding(){
   obStep=0;
-  draft={niveau:draft.niveau||'debutant',rythme:draft.rythme||'regulier',freq:draft.freq||7};
+  obLock=false;
+  draft={niveau:null,rythme:null,freq:7};
   document.getElementById('onboarding').classList.add('on');
   document.getElementById('ob-next').onclick=obNext;
   document.getElementById('ob-skip').onclick=()=>finishOnboard('skip');
@@ -7179,15 +7184,26 @@ function obOptsHtml(champ,opts,keyf){
   }).join('')}</div>`;
 }
 function obPick(champ,val){
+  if(obLock)return;
   draft[champ]=val;
   paintOb();
   if(navigator.vibrate)navigator.vibrate(8);
+  if(obStep===1||obStep===2){
+    obLock=true;
+    setTimeout(()=>{ obLock=false; obNext(); },320);
+  }
 }
 function obCanNext(){
   if(obStep===1)return !!draft.niveau;
   if(obStep===2)return !!draft.rythme;
-  if(obStep===3)return !!draft.freq;
   return true;
+}
+function obBack(){
+  if(obStep<=0||obLock)return;
+  obLock=true;
+  const body=document.getElementById('ob-body');
+  body.classList.add('out');
+  setTimeout(()=>{ obLock=false; obStep--; paintOb(); },180);
 }
 function paintOb(){
   const prog=document.getElementById('ob-progress');
@@ -7195,53 +7211,50 @@ function paintOb(){
     `<i class="${i===obStep?'on':''}${i<obStep?' done':''}"></i>`).join('');
   const body=document.getElementById('ob-body');
   const name=(state.name||'').trim();
+  const back=obStep>0?`<button type="button" class="ob-back" onclick="obBack()">Retour</button>`:'';
   let html='';
   if(obStep===0){
     html=`<img class="mascot" src="assets/mascotte-requete.png" alt="Requête, la mascotte">
-      <div class="ob-kicker">Bienvenue · Requête te guide</div>
+      <div class="ob-kicker">Bienvenue</div>
       <h2>Apprends le SQL<br>à ton rythme.</h2>
-      <p>29 leçons sur une vraie base SQLite. On règle d’abord ton planning : niveau, minutes, jours.</p>
+      <p>29 leçons, une vraie base SQLite. Une question, puis on place ton départ.</p>
       <div class="ob-name">
         <label for="ob-name">Comment tu t’appelles ? <span style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--ink-3)">(optionnel)</span></label>
         <input id="ob-name" type="text" maxlength="32" placeholder="Ton prénom" autocomplete="given-name" value="${esc(name).replace(/"/g,'&quot;')}">
       </div>`;
   }else if(obStep===1){
-    html=`<div class="ob-kicker">Étape 1 / 3</div>
+    html=`${back}<div class="ob-kicker">Question 1 / 2</div>
       <h2>Où en es-tu ?</h2>
-      <p>On place le départ au bon endroit — tu pourras toujours revenir en arrière.</p>
+      <p>On place le départ au bon endroit. Tu pourras toujours revenir en arrière.</p>
       ${obOptsHtml('niveau',NIVEAUX,o=>o.k)}`;
   }else if(obStep===2){
-    html=`<div class="ob-kicker">Étape 2 / 3</div>
+    html=`${back}<div class="ob-kicker">Question 2 / 2</div>
       <h2>Combien de minutes<br>par séance ?</h2>
-      <p>Choisis un créneau réaliste. Une leçon prend environ ${MIN_PAR_LECON} minutes.</p>
+      <p>Une leçon prend environ ${MIN_PAR_LECON} minutes. Les jours se règlent ensuite dans Parcours.</p>
       ${obOptsHtml('rythme',RYTHMES,o=>o.k)}`;
-  }else if(obStep===3){
-    html=`<div class="ob-kicker">Étape 3 / 3</div>
-      <h2>Combien de jours<br>par semaine ?</h2>
-      <p>Par défaut : tous les jours, sur ~${DUREE_PARCOURS_JOURS} jours. Tu pourras déplacer chaque leçon ensuite.</p>
-      ${obOptsHtml('freq',FREQS,o=>o.k)}`;
   }else{
+    if(!draft.freq) draft.freq=7;
     const p=apercuPlan(draft.niveau,draft.rythme,draft.freq);
     const ryt=RYTHMES.find(r=>r.k===draft.rythme)||RYTHMES[1];
     const niv=NIVEAUX.find(n=>n.k===draft.niveau)||NIVEAUX[0];
-    const freq=FREQS.find(f=>f.k===draft.freq)||FREQS[0];
     const n=p.sessions.length;
     const tot=p.sessions.reduce((a,s)=>a+s.lessons.length,0);
     const nL=p.sessions.reduce((a,s)=>a+s.lessons.filter(id=>!isDefiId(id)).length,0);
     const nD=tot-nL;
     const fin=parseD(p.sessions[n-1].d).toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
-    const first=p.sessions[0].lessons.find(id=>!isDefiId(id))||p.sessions[0].lessons[0];
-    html=`<div class="ob-kicker">Ton planning</div>
-      <h2>C’est calé.</h2>
-      <p>Les défis apparaissent après les notions nécessaires. Tu pourras tout ajuster dans l’onglet Parcours.</p>
+    const firstId=p.sessions[0].lessons.find(id=>!isDefiId(id))||p.sessions[0].lessons[0];
+    const firstL=allLessons.find(l=>l.id===firstId);
+    html=`${back}<div class="ob-kicker">Parcours</div>
+      <h2>Ton parcours est prêt.</h2>
+      <p>Départ « ${esc(niv.t)} », ${ryt.min} min par séance, tous les jours. Tu pourras tout ajuster dans Parcours.</p>
       <div class="ob-summary">
         <div class="pt">Parcours · ${esc(niv.t)}</div>
-        <h3>${ryt.min} min · ${esc(freq.t)}</h3>
-        <p>${n} séances · ${nL} leçons + ${nD} défis · fin le ${fin}</p>
+        <h3>${ryt.min} min · tous les jours</h3>
+        <p>${n} séances · ${nL} leçons${nD?` + ${nD} défis`:''} · fin le ${fin}</p>
         <div class="ob-metrics">
           <div><b>${ryt.min}</b><small>min / séance</small></div>
-          <div><b>Progressif</b><small>ordre des notions</small></div>
-          <div><b>${first}</b><small>1ʳᵉ leçon</small></div>
+          <div><b>${nL}</b><small>leçons</small></div>
+          <div><b>${esc(firstL?firstL.titre:'SELECT')}</b><small>1ʳᵉ leçon</small></div>
         </div>
       </div>`;
   }
@@ -7252,23 +7265,30 @@ function paintOb(){
 
   const btn=document.getElementById('ob-next');
   const skip=document.getElementById('ob-skip');
+  const foot=btn&&btn.closest('.ob-foot');
   btn.disabled=!obCanNext();
-  if(obStep===0){btn.textContent='Configurer mon planning';skip.textContent='Passer l’intro';skip.style.display='';}
-  else if(obStep<4){btn.textContent='Continuer';skip.textContent='Passer le planning';skip.style.display='';}
-  else{btn.textContent='Créer mon planning';skip.textContent='Voir le planning';skip.style.display='';}
-  skip.onclick=()=>{
-    if(obStep===4) finishOnboard('plan-ready');
-    else finishOnboard('skip');
-  };
+  const ask=obStep===1||obStep===2;
+  if(foot) foot.classList.toggle('ob-foot-hidden',ask);
+  if(obStep===0){
+    btn.textContent='C’est parti';
+    skip.textContent='Passer';
+    skip.style.display='';
+    skip.onclick=()=>finishOnboard('skip');
+  }else{
+    btn.textContent='Commencer';
+    skip.style.display='none';
+  }
 }
 function obNext(){
-  if(!obCanNext())return;
+  if(obLock||!obCanNext())return;
   const nameInp=document.getElementById('ob-name');
   if(obStep===0&&nameInp){state.name=(nameInp.value||'').trim().slice(0,32);}
-  if(obStep>=4){finishOnboard('home');return;}
+  if(obStep>=3){finishOnboard('home');return;}
+  obLock=true;
   const body=document.getElementById('ob-body');
   body.classList.add('out');
   setTimeout(()=>{
+    obLock=false;
     obStep++;
     paintOb();
   },220);
@@ -7277,7 +7297,8 @@ function finishOnboard(action){
   const nameInp=document.getElementById('ob-name');
   if(nameInp){const n=(nameInp.value||'').trim().slice(0,32); if(n)state.name=n;}
   if(action==='home'||action==='plan-ready'){
-    if(draft.niveau&&draft.rythme&&draft.freq){
+    if(!draft.freq) draft.freq=7;
+    if(draft.niveau&&draft.rythme){
       state.plan=apercuPlan(draft.niveau,draft.rythme,draft.freq);
       semaineOffset=0;jourSel=null;
     }
@@ -7407,7 +7428,7 @@ function renderCompte(){
         <div class="at"><b>Réinitialiser la base SQL</b><small>Remet ${courseTableNames().join(', ')||'les tables du cours'}</small></div>
         <span class="chev">›</span></button>
       <button class="acc-row" type="button" onclick="replayOnboarding()">
-        <div class="at"><b>Revoir l’intro</b><small>L’onboarding en 4 écrans</small></div>
+        <div class="at"><b>Revoir l’intro</b><small>Niveau, rythme, parcours prêt</small></div>
         <span class="chev">›</span></button>
     </div>
     ${st.due?`<p class="acc-note">${st.due} leçon${st.due>1?'s':''} à réviser aujourd’hui — onglet Apprendre.</p>`:
