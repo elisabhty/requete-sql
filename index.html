@@ -498,7 +498,9 @@
   .vs-out.live.flash{animation:vsOutIn .38s cubic-bezier(.32,.72,.28,1) both}
   @keyframes vsOutIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   .vs-out.live .result-meta{margin:0;font-size:10.5px;animation:riseIn .32s cubic-bezier(.32,.72,.28,1) both}
-  .vs-out.live .table-wrap{margin:0;border-radius:12px;box-shadow:none;border:1px solid rgba(60,60,67,.1);overflow-x:auto;background:var(--surface);animation:tableRise .4s cubic-bezier(.32,.72,.28,1) .05s both}
+  .vs-out.live .table-scroll{margin:0;animation:tableRise .4s cubic-bezier(.32,.72,.28,1) .05s both}
+  .vs-out.live .table-wrap{margin:0;border-radius:12px;box-shadow:none;border:1px solid rgba(60,60,67,.1);overflow-x:auto;background:var(--surface)}
+  .vs-out.live .table-swipe::after{border-radius:0 12px 12px 0}
   .vs-out.live .table-wrap table{font-size:11.5px}
   .vs-out.live .table-wrap thead{animation:riseIn .32s cubic-bezier(.32,.72,.28,1) .08s both}
   .vs-out.live .table-wrap th{background:#fff;color:#8E8E93;font-size:10px;padding:7px 8px;border-bottom-color:rgba(60,60,67,.08)}
@@ -732,7 +734,9 @@
   .exframe .xf-result[hidden]{display:none}
   .exframe .xf-result.on{animation:riseIn .38s cubic-bezier(.32,.72,.28,1) both}
   .exframe .xf-result .result-meta{padding:14px 16px 10px;margin:0;font-size:11.5px;color:var(--ink-3);gap:8px}
-  .exframe .xf-result .table-wrap{margin:0 16px 16px;border-radius:12px;box-shadow:none;border:1px solid var(--line);overflow-x:auto}
+  .exframe .xf-result .table-scroll{margin:0 16px 16px}
+  .exframe .xf-result .table-wrap{margin:0;border-radius:12px;box-shadow:none;border:1px solid var(--line);overflow-x:auto}
+  .exframe .xf-result .table-swipe::after{border-radius:0 12px 12px 0}
   .exframe .xf-result .feedback{margin:12px 16px 16px;border-radius:12px}
   .ex-out{font-size:13px;color:var(--ink-2);margin-top:10px}
   .ex-out b{color:var(--ink)}
@@ -806,7 +810,8 @@
   .btn-run .spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex:none}
   .console-out-ready{animation:none}
   .result-live .result-meta{animation:riseIn .36s cubic-bezier(.32,.72,.28,1) both}
-  .result-live .table-wrap{animation:tableRise .42s cubic-bezier(.32,.72,.28,1) .06s both;overflow-x:auto;overflow-y:hidden}
+  .result-live .table-scroll{animation:tableRise .42s cubic-bezier(.32,.72,.28,1) .06s both}
+  .result-live .table-wrap{overflow-x:auto;overflow-y:hidden}
   .result-live .table-wrap thead{animation:riseIn .34s cubic-bezier(.32,.72,.28,1) .1s both}
   .result-live .table-wrap tbody tr{
     opacity:0;
@@ -832,9 +837,19 @@
   .result-meta .pill{background:none;border:none;padding:0;font-weight:500;color:var(--ink-3)}
   .table-wrap{background:var(--surface);border-radius:16px;box-shadow:0 8px 20px -16px rgba(20,20,40,.5);margin-bottom:16px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;overscroll-behavior-x:contain}
   .table-wrap table{width:max-content;min-width:100%}
+  .table-scroll{position:relative;margin-bottom:16px}
+  .table-scroll .table-wrap{margin-bottom:0;animation:none}
+  .table-swipe{position:absolute;inset:0;pointer-events:none;z-index:2;opacity:0;transition:opacity .2s ease}
+  .table-scroll.can-swipe:not(.at-end) .table-swipe{opacity:1}
+  .table-swipe::after{content:'';position:absolute;top:0;right:0;bottom:0;width:64px;background:linear-gradient(90deg,transparent,var(--surface) 72%);border-radius:0 16px 16px 0}
+  .table-swipe-pos{position:absolute;top:50%;right:10px;transform:translateY(-50%)}
+  .table-swipe .order-hint-chip{animation:hintPulse 2.2s ease-in-out infinite;box-shadow:0 6px 16px -8px rgba(20,20,40,.35),0 1px 0 rgba(255,255,255,.7) inset}
+  .table-swipe .order-hint-chip svg{animation:hintNudge 1.35s ease-in-out infinite}
   .ok-banner{display:flex;align-items:center;gap:8px;padding:12px 15px;font-size:13.5px;font-weight:700;color:var(--success);background:var(--success-soft);border-radius:16px 16px 0 0}
   .ok-panel{background:var(--surface);border-radius:16px;overflow:hidden;box-shadow:0 8px 20px -16px rgba(20,20,40,.5);margin-bottom:16px}
+  .ok-panel .table-scroll{margin:0}
   .ok-panel .table-wrap{margin:0;border-radius:0;box-shadow:none;overflow-x:auto}
+  .ok-panel .table-swipe::after{border-radius:0}
   table{border-collapse:collapse;width:100%;font-size:13.5px}
   thead th{font-family:var(--mono);text-align:left;padding:10px 13px;background:var(--surface-2);color:var(--ink-2);font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--line-2);white-space:nowrap}
   tbody td{padding:9px 13px;font-family:var(--mono);border-bottom:1px solid var(--line);white-space:nowrap}
@@ -1989,7 +2004,8 @@
     .lesson-rich .vs-col,.lesson-rich .pipe-step,.lesson-rich .pipe-table tbody tr,.lesson-rich .takeaway-list li,.lesson-rich .order-hint-chip,.lesson-rich .order-hint-chip svg,
     .pl-stat.streak.hot svg,.acc-stat.streak.hot .streak-n svg,.streak-pill.hot svg,
     .exframe .xf-result.on .table-wrap tbody tr,.vs-out.live .table-wrap tbody tr,.vs-out.live.flash,.vs-out.live .result-meta,.vs-out.live .table-wrap,.vs-out.live .table-wrap thead,.vs-run.running .xf-run-ico,.vs-out.err.live .vs-err-box,
-    .result-live .result-meta,.result-live .table-wrap,.result-live .table-wrap thead,.result-live .table-wrap tbody tr,
+    .result-live .result-meta,.result-live .table-scroll,.result-live .table-wrap,.result-live .table-wrap thead,.result-live .table-wrap tbody tr,
+    .table-swipe .order-hint-chip,.table-swipe .order-hint-chip svg,.vs-out.live .table-scroll,
     .query-loading,.query-loading.out,
     .bad-line,.good-line,.vs-err-box,.vs-out.ok .pipe-table,.concept-point .em svg,
     .memory-rule .memory-having>b,.ls-nav,.ls-nav .ls-next,.ls-bar.on,
@@ -2336,21 +2352,21 @@ const MODULES = [
   indice:"<code>*</code> remplace toute la liste des colonnes.",
   richLesson:true, earlyDemo:true },
 { id:1, titre:"SELECT", résumé:"Choisir les colonnes du résultat",
-  situation:"La table <code>clients</code> contient 9 personnes avec plusieurs informations : nom, ville, âge, email, téléphone… Tu prépares un listing d’appel. Pour chaque client, seules deux informations sont utiles : son nom et son numéro de téléphone.",
+  situation:"La table clients contient 9 personnes avec plusieurs informations : nom, ville, âge, email, téléphone… Tu prépares un listing d’appel. Pour chaque client, seules deux informations sont utiles : son nom et son numéro de téléphone.",
     studio:{problem:{title:"SELECT choisit les colonnes du résultat.",
       body:"Une table peut contenir beaucoup d’informations sans qu’elles soient toutes utiles à chaque requête. Ici, le listing d’appel a besoin de deux colonnes : <code>nom</code> et <code>telephone</code>. Elles s’écrivent après <code>SELECT</code>, séparées par une virgule : <code>SELECT nom, telephone</code>. Les 9 clients restent présents. Seules les informations affichées changent."},
     vs:{bad:{tag:"✕ Toutes les colonnes",sql:"SELECT *\nFROM clients;",
             code:"SELECT <span class=\"vs-line bad\">*</span>\nFROM clients;"},
         good:{tag:"✓ Les colonnes utiles",sql:"SELECT nom, telephone\nFROM clients;",
             code:"SELECT <span class=\"vs-line good\">nom, telephone</span>\nFROM clients;"}},
-    point:"Avec <code>SELECT *</code>, le résultat contient toutes les colonnes de <code>clients</code> : nom, ville, âge, email, téléphone…<br><br>Avec <code>SELECT nom, telephone</code>, il ne contient que les <b>2 colonnes utiles</b>. Les 9 lignes sont toujours là : <code>SELECT</code> agit sur la <b>largeur du résultat</b>, pas sur le nombre de personnes.",
+    point:"Avec <code>SELECT *</code>, le résultat contient toutes les colonnes de la table clients : nom, ville, âge, email, téléphone…<br><br>Avec <code>SELECT nom, telephone</code>, il ne contient que les <b>2 colonnes utiles</b>. Les 9 lignes sont toujours là : <code>SELECT</code> agit sur la <b>largeur du résultat</b>, pas sur le nombre de personnes.",
     why:{title:"Suis ce qui arrive aux données.",
-      body:"<code>FROM clients</code> part de la table <code>clients</code> : <b>9 lignes</b> avec toutes leurs informations.<br><br><code>SELECT nom, telephone</code> ne conserve ensuite que ces deux colonnes dans le résultat.<br><br>On obtient donc un tableau de <b>9 lignes × 2 colonnes</b>. Les autres colonnes ne sont pas supprimées de la table : elles n’apparaissent simplement pas dans ce résultat."},
+      body:"<code>FROM clients</code> part de la table clients : <b>9 lignes</b> avec toutes leurs informations.<br><br><code>SELECT nom, telephone</code> ne conserve ensuite que ces deux colonnes dans le résultat.<br><br>On obtient donc un tableau de <b>9 lignes × 2 colonnes</b>. Les autres colonnes ne sont pas supprimées de la table : elles n’apparaissent simplement pas dans ce résultat."},
     viz:"select",
     reflex:{a:{k:"SELECT",t:"choisit les <b>colonnes</b> du résultat — sa largeur"},
-      b:{k:"FROM",t:"précise la <b>table</b> utilisée — ici <code>clients</code>"},
+      b:{k:"FROM",t:"précise la <b>table</b> utilisée — ici la table clients"},
       note:"Plusieurs colonnes après <code>SELECT</code> sont séparées par des virgules : <code>nom, telephone</code>.<br><br>À retenir : <b>SELECT choisit les informations affichées</b>. Le filtrage des personnes viendra avec <code>WHERE</code>."}},
-  anatomie:[{tok:"SELECT",txt:"Définit les colonnes qui apparaîtront dans le résultat."},{tok:"nom, telephone",plain:1,txt:"Les deux colonnes retenues. La virgule les sépare."},{tok:"FROM",txt:"Introduit la table utilisée par la requête."},{tok:"clients",plain:1,txt:"La table qui contient les données des 9 clients."}],
+  anatomie:[{tok:"SELECT",txt:"Définit les colonnes qui apparaîtront dans le résultat."},{tok:"nom, telephone",plain:1,txt:"Les deux colonnes retenues. La virgule les sépare."},{tok:"FROM",txt:"Introduit la table utilisée par la requête."},{tok:"clients",plain:1,txt:"La table clients : les données des 9 personnes."}],
   exemple:"SELECT nom, telephone FROM clients;",
   attendu:"Un résultat de <b>9 lignes</b> et <b>2 colonnes</b> : <code>nom</code> et <code>telephone</code>. Chaque client apparaît avec uniquement les informations utiles au listing d’appel.",
   piege:{t:"Oublier la virgule entre les colonnes",p:"Les colonnes placées après <code>SELECT</code> forment une liste. Pour en afficher plusieurs, sépare-les par une virgule : <code>SELECT nom, telephone FROM clients;</code>."},
@@ -4036,8 +4052,37 @@ function renderTable(result,ms,opts){
   if(opts&&opts.cols) bits.push(`<span>${columns.length} colonne${columns.length>1?'s':''}</span>`);
   if(ms!=null) bits.push(`<span>${Math.round(ms)} ms</span>`);
   return `<div class="result-meta">${bits.join('<span>·</span>')}</div>
-  <div class="table-wrap"><table><thead><tr>${columns.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead>
-  <tbody>${values.map((r,i)=>`<tr style="--i:${Math.min(i,28)}">`+r.map(fmtCell).join('')+'</tr>').join('')}</tbody></table></div>`;
+  <div class="table-scroll"><div class="table-wrap"><table><thead><tr>${columns.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead>
+  <tbody>${values.map((r,i)=>`<tr style="--i:${Math.min(i,28)}">`+r.map(fmtCell).join('')+'</tr>').join('')}</tbody></table></div>
+  <div class="table-swipe" aria-hidden="true"><span class="table-swipe-pos"><span class="order-hint-chip">Glisse<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h13M13 7l5 5-5 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span></div></div>`;
+}
+function syncTableSwipe(shell){
+  const wrap=shell&&shell.querySelector('.table-wrap');
+  if(!wrap)return;
+  const overflow=wrap.scrollWidth>wrap.clientWidth+2;
+  shell.classList.toggle('can-swipe',overflow);
+  shell.classList.toggle('at-end',!overflow||wrap.scrollLeft+wrap.clientWidth>=wrap.scrollWidth-4);
+}
+function bindTableSwipe(root){
+  const scope=root&&root.querySelectorAll?root:document;
+  const shells=root&&root.classList&&root.classList.contains('table-scroll')?[root]:[...scope.querySelectorAll('.table-scroll')];
+  shells.forEach(shell=>{
+    const wrap=shell.querySelector('.table-wrap');
+    if(!wrap)return;
+    if(!shell.dataset.swipeBound){
+      shell.dataset.swipeBound='1';
+      wrap.addEventListener('scroll',()=>syncTableSwipe(shell),{passive:true});
+      if(typeof ResizeObserver!=='undefined'){
+        const ro=new ResizeObserver(()=>syncTableSwipe(shell));
+        ro.observe(wrap);
+        if(wrap.firstElementChild) ro.observe(wrap.firstElementChild);
+      }
+    }
+    requestAnimationFrame(()=>{
+      syncTableSwipe(shell);
+      requestAnimationFrame(()=>syncTableSwipe(shell));
+    });
+  });
 }
 function errBox(msg){
   const m=msg.toLowerCase(); let aide='';
@@ -4076,7 +4121,7 @@ function runConsole(){
   out.innerHTML=`<div class="query-loading" aria-live="polite"><span class="ql-spin" aria-hidden="true"></span><span>Exécution de la requête…</span></div>`;
   const paint=(html)=>{
     const loading=out.querySelector('.query-loading');
-    const show=()=>{ out.innerHTML=html; setRunLoading(btn,false); };
+    const show=()=>{ out.innerHTML=html; setRunLoading(btn,false); bindTableSwipe(out); };
     if(loading&&!prefersReduceMotion()){
       loading.classList.add('out');
       setTimeout(show,180);
@@ -5417,6 +5462,7 @@ function runExemple(btn){
       host.classList.remove('on','flash');
       void host.offsetWidth;
       host.classList.add('on','flash');
+      bindTableSwipe(host);
       if(navigator.vibrate)navigator.vibrate(8);
     }catch(e){
       host.innerHTML=errBox(e.message);
@@ -5460,6 +5506,7 @@ function runVsSql(btn){
       host.innerHTML=renderTable(res,null,{cols:true});
       void host.offsetWidth;
       host.classList.add('flash');
+      bindTableSwipe(host);
       if(navigator.vibrate)navigator.vibrate(8);
     }catch(e){
       host.hidden=false;
@@ -5760,6 +5807,7 @@ function setLessonOut(html){
   // Couper aria-live le temps du paint : sinon iOS/Safari saute vers la zone annoncée.
   out.setAttribute('aria-live','off');
   out.innerHTML=html;
+  bindTableSwipe(out);
   if(scr){
     scr.scrollTop=y;
     requestAnimationFrame(()=>{
