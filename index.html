@@ -988,6 +988,11 @@
   .ecard.open{background:var(--surface)}
   .ecard .eh{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   .ecard .eh:active{background:var(--surface-2)}
+  .ecard .emark{width:26px;height:26px;flex:none;border-radius:9px;border:none;padding:0;background:#F1F1F5;color:var(--ink-3);display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;-webkit-appearance:none;appearance:none}
+  .ecard .emark svg{width:14px;height:14px;display:block}
+  .ecard .emark.ok{background:var(--success-soft);color:var(--success)}
+  .ecard .emark.review{background:var(--warn-soft);color:var(--warn)}
+  .ecard.ok .eq{font-weight:500;color:var(--ink-2)}
   .ecard .eq{flex:1;min-width:0;font-size:14.5px;font-weight:600;color:var(--ink);letter-spacing:-.2px;line-height:1.35}
   .ecard .echev{flex:none;width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:var(--ink-3);transition:transform .24s cubic-bezier(.32,.72,.28,1),color .18s}
   .ecard.open .echev{transform:rotate(90deg);color:var(--accent)}
@@ -1002,9 +1007,10 @@
   .ecard .ecopy{position:absolute;top:8px;right:8px;display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.08);color:#C9C9D6;border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:6px 9px;font-family:var(--ui);font-size:11.5px;font-weight:600;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   .ecard .ecopy:active{transform:scale(.94);background:rgba(255,255,255,.16)}
   .ecard .ecopy svg{width:13px;height:13px}
-  .ecard .efoot{display:flex;align-items:center;gap:8px;margin-top:13px;font-size:11.5px;color:var(--ink-3)}
-  .ecard .eseen{display:inline-flex;align-items:center;gap:5px;color:var(--success);font-weight:600}
-  .ecard .eseen svg{width:14px;height:14px}
+  .ecard .efoot{display:flex;align-items:center;gap:8px;margin-top:13px}
+  .ecard .estat{flex:1;border:none;border-radius:12px;padding:10px 12px;font-family:var(--ui);font-size:13px;font-weight:700;cursor:pointer;background:var(--surface-2);color:var(--ink-3);touch-action:manipulation;-webkit-appearance:none;appearance:none}
+  .ecard .estat.on.ok{background:var(--success-soft);color:var(--success)}
+  .ecard .estat.on.review{background:var(--warn-soft);color:var(--warn)}
   .ent-empty{text-align:center;padding:40px 30px;color:var(--ink-3);font-size:14px}
   .cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 18px 28px}
   .gcard{aspect-ratio:3/4;border-radius:22px;padding:14px 13px 12px;display:flex;flex-direction:column;color:#fff;position:relative;overflow:hidden;cursor:pointer;box-shadow:0 18px 36px -18px rgba(20,20,40,.55),0 1px 0 rgba(255,255,255,.18) inset;touch-action:manipulation}
@@ -6948,18 +6954,30 @@ const ENTRETIEN_CATS=[['all','Toutes'],['Bases','Bases'],['JOINs','JOINs'],['Agr
 let entFilter='all';
 let entOpen=null;
 const ENT_CHEV_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
-const ENT_SEEN_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>';
-function entSeen(id){ return !!(state.entretien&&state.entretien[id]); }
-function entTotalSeen(){ return ENTRETIEN.filter(q=>entSeen(q.id)).length; }
+const ENT_OK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>';
+function entMark(id){
+  const v=state.entretien&&state.entretien[id];
+  return v==='ok'?'ok':'review';
+}
+function entOk(id){ return entMark(id)==='ok'; }
+function entTotalOk(){ return ENTRETIEN.filter((q,i)=>entOk(entId(q,i))).length; }
 function entId(q,i){ return 'e'+i; }
-function renderEntretien(){
-  const seen=entTotalSeen();
-  const total=ENTRETIEN.length;
+function entFoot(id){
+  const ok=entOk(id);
+  return `<div class="efoot">
+    <button type="button" class="estat ok${ok?' on':''}" onclick="event.stopPropagation();setEntretienMark('${id}','ok')">Validé</button>
+    <button type="button" class="estat review${!ok?' on':''}" onclick="event.stopPropagation();setEntretienMark('${id}','review')">À revoir</button>
+  </div>`;
+}
+function paintEntProgress(){
   const prog=document.getElementById('ent-progress');
-  if(prog){
-    const pct=Math.round(seen/total*100);
-    prog.innerHTML=`<span class="ep-track"><span class="ep-fill" style="width:${pct}%"></span></span><span class="ep-pct">${seen}/${total}</span>`;
-  }
+  if(!prog)return;
+  const ok=entTotalOk(), total=ENTRETIEN.length;
+  const pct=total?Math.round(ok/total*100):0;
+  prog.innerHTML=`<span class="ep-track"><span class="ep-fill" style="width:${pct}%"></span></span><span class="ep-pct">${ok}/${total}</span>`;
+}
+function renderEntretien(){
+  paintEntProgress();
   const fbar=document.getElementById('ent-filters');
   if(fbar){
     fbar.innerHTML=ENTRETIEN_CATS.map(([k,l])=>`<button type="button" class="fchip ${entFilter===k?'on':''}" onclick="setEntFilter('${k}')">${l}</button>`).join('');
@@ -6974,44 +6992,65 @@ function renderEntretien(){
     if(!last||last.cat!==q.cat) groups.push({cat:q.cat,items:[q]});
     else last.items.push(q);
   });
-  list.innerHTML=groups.map(g=>`<div class="ent-group">
-    <div class="ent-head"><h2>${g.cat}</h2><span>${g.items.length}</span></div>
+  list.innerHTML=groups.map(g=>{
+    const nOk=g.items.filter(q=>entOk(q.id)).length;
+    return `<div class="ent-group">
+    <div class="ent-head"><h2>${g.cat}</h2><span>${nOk}/${g.items.length}</span></div>
     <div class="ent-group-list">${g.items.map(q=>{
       const open=entOpen===q.id;
-      const seen=entSeen(q.id);
-      return `<div class="ecard ${open?'open':''}" data-id="${q.id}">
+      const ok=entOk(q.id);
+      return `<div class="ecard${open?' open':''}${ok?' ok':''}" data-id="${q.id}">
       <div class="eh" onclick="toggleEntretien('${q.id}')" role="button" aria-expanded="${open?'true':'false'}">
+        <button type="button" class="emark ${ok?'ok':'review'}" onclick="event.stopPropagation();toggleEntretienMark('${q.id}')" aria-label="${ok?'Validé — marquer à revoir':'À revoir — marquer validé'}">${ok?ENT_OK_SVG:''}</button>
         <span class="eq">${q.q}</span>
         <span class="echev" aria-hidden="true">${ENT_CHEV_SVG}</span>
       </div>
       <div class="ebody">
         <p class="eans">${q.a}</p>
         ${q.sql?`<div class="esql sql-copy-wrap">${sqlCopyBtn()}<pre>${highlight(q.sql)}</pre></div>`:''}
-        <div class="efoot">
-          ${seen?`<span class="eseen">${ENT_SEEN_SVG}Vue</span>`:`<span>Marquée vue à l'ouverture</span>`}
-        </div>
+        ${entFoot(q.id)}
       </div>
     </div>`;
     }).join('')}</div>
-  </div>`).join('');
+  </div>`;
+  }).join('');
 }
 function setEntFilter(f){ entFilter=f; renderEntretien(); }
-function toggleEntretien(id){
-  const wasSeen=entSeen(id);
-  entOpen=(entOpen===id)?null:id;
-  if(entOpen===id&&!wasSeen){
-    state.entretien=state.entretien||{};
-    state.entretien[id]=true; save();
-    const seen=entTotalSeen(), total=ENTRETIEN.length, pct=Math.round(seen/total*100);
-    const prog=document.getElementById('ent-progress');
-    if(prog) prog.innerHTML=`<span class="ep-track"><span class="ep-fill" style="width:${pct}%"></span></span><span class="ep-pct">${seen}/${total}</span>`;
+function setEntretienMark(id,mark){
+  state.entretien=state.entretien||{};
+  state.entretien[id]=mark==='ok'?'ok':'review';
+  save();
+  const card=document.querySelector(`.ecard[data-id="${id}"]`);
+  if(card){
+    const ok=entOk(id);
+    card.classList.toggle('ok',ok);
+    const btn=card.querySelector('.emark');
+    if(btn){
+      btn.className='emark '+(ok?'ok':'review');
+      btn.setAttribute('aria-label',ok?'Validé — marquer à revoir':'À revoir — marquer validé');
+      btn.innerHTML=ok?ENT_OK_SVG:'';
+    }
+    const foot=card.querySelector('.efoot');
+    if(foot) foot.outerHTML=entFoot(id);
   }
+  const group=card&&card.closest('.ent-group');
+  if(group){
+    const n=group.querySelectorAll('.ecard').length;
+    const nOk=group.querySelectorAll('.ecard.ok').length;
+    const span=group.querySelector('.ent-head span');
+    if(span) span.textContent=nOk+'/'+n;
+  }
+  paintEntProgress();
+  if(navigator.vibrate)navigator.vibrate(8);
+}
+function toggleEntretienMark(id){ setEntretienMark(id, entOk(id)?'review':'ok'); }
+function toggleEntretien(id){
+  entOpen=(entOpen===id)?null:id;
   const card=document.querySelector(`.ecard[data-id="${id}"]`);
   if(card){
     const open=entOpen===id;
     card.classList.toggle('open',open);
     const eh=card.querySelector('.eh'); if(eh)eh.setAttribute('aria-expanded',open?'true':'false');
-    if(open){ const foot=card.querySelector('.efoot'); if(foot) foot.innerHTML=`<span class="eseen">${ENT_SEEN_SVG}Vue</span>`; }
   }
   if(navigator.vibrate)navigator.vibrate(6);
 }
