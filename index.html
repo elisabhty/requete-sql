@@ -206,6 +206,7 @@
   .sommaire-list .som-item:nth-child(6){animation-delay:.27s}
   .sommaire-list .som-item:nth-child(n+7){animation-delay:.32s}
   @keyframes somItemIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+  .som-target{scroll-margin-top:72px}
 
   .sect-label{display:flex;align-items:center;gap:8px;margin:0 2px 8px}
   .sect-label i{width:20px;height:20px;border-radius:6px;background:var(--accent-soft);color:var(--accent);font-family:var(--mono);font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;font-style:normal;flex:none}
@@ -5034,6 +5035,7 @@ const editorBlock=(withViz,fname='exercice.sql')=>`
 let lessonStep=0; // 0 leçon · 1 exercice · 2 quiz
 let lessonStepDir=1; // 1 forward · -1 back
 let exoFails=0; // défis : 1→aide · 2→solution
+let somScrollUntil=0; // fenêtre où les layouts SQL ne doivent pas écraser le scroll du sommaire
 function openLesson(id, restoreStep){
   const l=allLessons.find(x=>x.id===id); if(!l)return;
   current=l; mode='lesson';
@@ -5885,6 +5887,34 @@ function initOrderRappelAnim(){
   io.observe(el);
 }
 /* ---------- Sommaire interactif du cours ---------- */
+function somAnchorFor(el){
+  if(!el)return null;
+  if(el.closest('.piege-lab')) return el.closest('.piege');
+  if(el.closest('.sect-label')) return el.closest('.sect-label');
+  return el.closest('.concept-block')||el.closest('.exframe')||el.closest('.reflex-end')||el;
+}
+function somRevealTo(el){
+  if(!el)return;
+  let node=el;
+  while(node){
+    node.classList.add('in');
+    if(node.classList&&node.classList.contains('lesson-rich')) break;
+    node=node.parentElement;
+  }
+}
+function scrollSommaireTo(target,scr){
+  if(!target||!scr)return;
+  stopHavingGrpViz();
+  somRevealTo(target);
+  const dur=prefersReduceMotion()?0:650;
+  somScrollUntil=Date.now()+dur+400;
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      const top=Math.max(0,target.getBoundingClientRect().top-scr.getBoundingClientRect().top+scr.scrollTop-12);
+      scr.scrollTo({top,behavior:prefersReduceMotion()?'auto':'smooth'});
+    });
+  });
+}
 function buildSommaire(){
   const body=document.getElementById('lesson-body');
   const slide=body&&body.querySelector('.ls-slide');
@@ -5896,7 +5926,9 @@ function buildSommaire(){
     if(!t)return;
     // Pour les h2, on préfère le texte principal (h2-txt)
     const ht=el.querySelector('.h2-txt'); if(ht) t=ht.textContent.trim().replace(/\s+/g,' ');
-    marks.push({el,t});
+    const anchor=somAnchorFor(el);
+    if(!anchor)return;
+    marks.push({el,anchor,t});
   });
   if(marks.length<2)return;
   // Insère le sommaire après le titre/lead
@@ -5904,7 +5936,8 @@ function buildSommaire(){
   const anchor=wrap.querySelector('.lesson-lead')||wrap.querySelector('h1');
   const items=marks.map((m,i)=>{
     const id='som-sec-'+i;
-    m.el.setAttribute('id',id);
+    m.anchor.setAttribute('id',id);
+    m.anchor.classList.add('som-target');
     return `<button type="button" class="som-item" data-t="${id}"><span class="som-n">${i+1}</span><span class="som-t">${esc(m.t)}</span><svg class="som-arrow" width="8" height="13" viewBox="0 0 8 13" fill="none"><path d="M1.5 1.5L6 6.5 1.5 11.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
   }).join('');
   const html=`<div class="sommaire" role="navigation" aria-label="Sommaire du cours">
@@ -5913,24 +5946,25 @@ function buildSommaire(){
   if(anchor) anchor.insertAdjacentHTML('afterend',html);
   else wrap.insertAdjacentHTML('afterbegin',html);
   const scr=document.getElementById('scr-lesson');
-  const btns=Array.from(wrap.querySelectorAll('.som-item'));
-  btns.forEach(b=>{
-    b.addEventListener('click',()=>{
-      const target=document.getElementById(b.dataset.t);
-      if(!target)return;
-      // Micro-interaction : flash item + section cible
-      b.classList.remove('flash'); void b.offsetWidth; b.classList.add('flash');
-      setTimeout(()=>b.classList.remove('flash'),650);
-      if(navigator.vibrate)navigator.vibrate(6);
-      const top=target.getBoundingClientRect().top-scr.getBoundingClientRect().top+scr.scrollTop-70;
-      scr.scrollTo({top,behavior:prefersReduceMotion()?'auto':'smooth'});
-      const flashEl=target.closest('.concept-block')||target.closest('.sect-label')||target.closest('.piege')||target.closest('.reflex-end')||target;
-      const delay=prefersReduceMotion()?0:320;
-      setTimeout(()=>{
-        flashEl.classList.remove('sec-flash'); void flashEl.offsetWidth; flashEl.classList.add('sec-flash');
-        setTimeout(()=>flashEl.classList.remove('sec-flash'),750);
-      },delay);
-    });
+  const list=wrap.querySelector('.sommaire-list');
+  if(!list||!scr)return;
+  list.addEventListener('click',e=>{
+    const b=e.target.closest('.som-item');
+    if(!b)return;
+    const target=document.getElementById(b.dataset.t);
+    if(!target)return;
+    e.preventDefault();
+    // Micro-interaction : flash item + section cible
+    b.classList.remove('flash'); void b.offsetWidth; b.classList.add('flash');
+    setTimeout(()=>b.classList.remove('flash'),650);
+    if(navigator.vibrate)navigator.vibrate(6);
+    scrollSommaireTo(target,scr);
+    const flashEl=target.closest('.concept-block')||target.closest('.piege')||target.closest('.exframe')||target.closest('.reflex-end')||target.closest('.sect-label')||target;
+    const delay=prefersReduceMotion()?0:320;
+    setTimeout(()=>{
+      flashEl.classList.remove('sec-flash'); void flashEl.offsetWidth; flashEl.classList.add('sec-flash');
+      setTimeout(()=>flashEl.classList.remove('sec-flash'),750);
+    },delay);
   });
 }
 function openChallenge(cid){
@@ -8204,9 +8238,9 @@ function layoutHavingGrpViz(root,phase,{animate=true}={}){
     });
   }
   stage.style.height=stableH+'px';
-  if(scr){
+  if(scr&&Date.now()>somScrollUntil){
     scr.scrollTop=scrollLock;
-    requestAnimationFrame(()=>{ scr.scrollTop=scrollLock; });
+    requestAnimationFrame(()=>{ if(Date.now()>somScrollUntil) scr.scrollTop=scrollLock; });
   }
   if(!animate){
     void stage.offsetWidth;
@@ -8254,9 +8288,9 @@ function layoutSqlList(root,phase,{animate=true}={}){
   });
   const rows=Math.ceil(chips.length/cols)||1;
   stage.style.height=(pad+rows*(rowH+gapY)-gapY+pad)+'px';
-  if(scr){
+  if(scr&&Date.now()>somScrollUntil){
     scr.scrollTop=scrollLock;
-    requestAnimationFrame(()=>{ scr.scrollTop=scrollLock; });
+    requestAnimationFrame(()=>{ if(Date.now()>somScrollUntil) scr.scrollTop=scrollLock; });
   }
   if(!animate){
     void stage.offsetWidth;
