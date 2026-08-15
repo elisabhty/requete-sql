@@ -776,6 +776,11 @@
   .piege-body p:last-child{margin-bottom:0}
   .piege-body b{color:var(--ink);font-weight:700}
   .piege-body code{font-family:var(--mono);font-size:.86em;background:rgba(180,122,22,.1);color:#8A6212;padding:1px 6px;border-radius:6px;font-weight:600}
+  .piege .piege-sql{margin:12px 0 0;border-radius:14px;overflow:hidden;box-shadow:0 6px 16px -14px rgba(20,20,40,.35)}
+  .piege .piege-sql .ex-code{font-size:12px;line-height:1.65;padding:14px}
+  .piege-tail{margin:12px 0 0;font-size:14px;line-height:1.6;color:var(--ink-2)}
+  .piege-tail p{margin:0}
+  .piege-tail code{font-family:var(--mono);font-size:.86em;background:rgba(180,122,22,.1);color:#8A6212;padding:1px 6px;border-radius:6px;font-weight:600}
 
   .consigne{background:var(--surface);color:var(--ink);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 8px 20px -16px rgba(20,20,40,.5)}
   .consigne .tag{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:var(--ink-3);display:block;margin-bottom:6px}
@@ -2488,7 +2493,9 @@ const MODULES = [
   exemple:"SELECT nom, ville, age FROM clients WHERE ville = 'Paris' AND age > 35;",
   attendu:"<b>1 ligne</b> : Léa, 38 ans, car elle habite à Paris et a plus de 35 ans.",
   retenir:"<code>AND</code> garde une ligne si toutes les conditions sont vraies.<br><br>Avec <code>ville = 'Paris' AND age &gt; 35</code>, seule Léa respecte les deux conditions.",
-  piege:{t:"Oublier une condition",p:"Chaque critère doit former une condition complète de part et d’autre de <code>AND</code> : <code>ville = 'Paris' AND age &gt; 35</code>, pas seulement <code>ville = 'Paris'</code> si tu veux aussi filtrer sur l’âge."},
+  piege:{t:"Croire qu’on est limité à deux conditions",p:"Tu peux combiner <b>3 conditions ou plus</b> avec <code>AND</code> :",
+    sql:"SELECT nom, ville, age\nFROM clients\nWHERE ville = 'Paris'\n  AND age > 35\n  AND nom = 'Léa';",
+    tail:"Avec <code>AND</code>, une ligne doit respecter toutes les conditions pour apparaître dans le résultat."},
   consigne:"Affiche toutes les colonnes des clients qui habitent à Paris et ont plus de 35 ans.",
   solution:"SELECT * FROM clients WHERE ville = 'Paris' AND age > 35;",
   indice:"Écris les deux conditions de part et d’autre de <code>AND</code> : <code>ville = 'Paris' AND age &gt; 35</code>.",
@@ -5402,13 +5409,18 @@ function reflexBlock(l){
 function piegeBlock(l){
   const piege=l&&l.piege;
   if(!piege) return '';
+  const sql=piege.sql?`<div class="piege-sql exframe">
+    <div class="xf-head"><span class="xf-name">SQL</span><div class="xf-tools">${sqlCopyBtn()}</div></div>
+    <div class="ex-code">${highlight(piege.sql)}</div>
+  </div>`:'';
+  const tail=piege.tail?`<div class="piege-tail">${flowProseHtml(piege.tail)}</div>`:'';
   return `<div class="piege">
     <div class="piege-head">
       <span class="piege-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></span>
       <span class="piege-lab">Erreur fréquente</span>
     </div>
     <p class="piege-title">${piege.t}</p>
-    <div class="piege-body">${flowProseHtml(piege.p)}</div>
+    <div class="piege-body">${flowProseHtml(piege.p)}</div>${sql}${tail}
   </div>`;
 }
 function stripNoteHtml(s){
