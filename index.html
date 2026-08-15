@@ -1195,10 +1195,12 @@
   /* Éditeur de note */
   .ne-ctx{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
   .ne-ctx .cchip{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;background:var(--accent-soft);color:var(--accent);padding:4px 9px;border-radius:7px}
-  .ne-ta{width:100%;min-height:160px;background:var(--surface-2);border:1.5px solid var(--line-2);border-radius:16px;padding:16px 17px;font-family:var(--ui);font-size:15.5px;line-height:1.6;color:var(--ink);resize:none;outline:none;overflow:hidden}
+  .ne-ta{width:100%;min-height:160px;background:var(--surface-2);border:1.5px solid var(--line-2);border-radius:16px;padding:16px 17px;font-family:var(--ui);font-size:15.5px;line-height:1.6;color:var(--ink);resize:none;outline:none;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:manipulation}
   .ne-ta::placeholder{color:var(--ink-3)}
-  .ne-sql{width:100%;min-height:76px;background:var(--code-bg);border:1px solid var(--line);border-radius:14px;padding:13px 14px;font-family:var(--mono);font-size:13px;line-height:1.55;color:var(--code-ink);resize:none;outline:none;margin-top:6px;overflow:hidden;white-space:pre-wrap;word-break:break-word;touch-action:pan-y}
-  .ne-sql::placeholder{color:#5B5B72}
+  .ne-sql-shell{background:var(--code-bg);border:1px solid var(--line);border-radius:14px;margin-top:6px;overflow:hidden}
+  .ne-sql-shell .editor-area{font-size:13px;line-height:1.55}
+  .ne-sql-shell .editor-area pre,.ne-sql-shell .editor-area textarea{padding:13px 14px}
+  .ne-sql-shell .editor-area textarea{min-height:104px;max-height:min(220px,40vh);overflow-y:auto!important;-webkit-overflow-scrolling:touch;touch-action:manipulation}
   .ne-row{display:flex;gap:9px;margin-top:18px}
   .ne-row button{flex:1;border-radius:13px;padding:13px;font-family:var(--ui);font-size:15px;font-weight:600;cursor:pointer;border:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   .ne-row .prim{background:var(--accent);color:#fff;box-shadow:0 6px 16px -10px rgba(91,91,214,.6)}
@@ -1209,8 +1211,7 @@
   .ne-row .del{background:var(--danger-soft);color:var(--danger);flex:none;padding:13px 16px}
   .ne-row .del:active{transform:scale(.985)}
   .ne-row button svg{width:16px;height:16px}
-  .ne-lab{font-size:11.5px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.6px;margin:18px 4px 6px;display:flex;justify-content:space-between;align-items:center}
-  .ne-lab button{background:none;border:none;color:var(--accent);font-family:var(--ui);font-size:12px;font-weight:600;cursor:pointer;text-transform:none;letter-spacing:0}
+  .ne-lab{font-size:11.5px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.6px;margin:18px 4px 6px}
   .notes-hub-new{width:100%;margin:0;background:var(--surface);color:var(--accent);border:none;border-radius:16px;padding:14px 16px;font-family:var(--ui);font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 1px 2px rgba(20,20,40,.05),0 1px 0 var(--line);display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   .notes-hub-new:active{background:var(--surface-2)}
   .notes-hub-new svg{width:17px;height:17px}
@@ -4066,6 +4067,17 @@ function highlight(code){
 function fitSqlEditor(ta){
   if(typeof ta==='string') ta=document.getElementById(ta);
   if(!ta) return;
+  if(ta.closest('.ne-sql-shell')){
+    const maxH=Math.min(220, Math.round(window.innerHeight*0.4));
+    ta.style.maxHeight=maxH+'px';
+    ta.style.height='auto';
+    const h=Math.min(maxH, Math.max(104, ta.scrollHeight));
+    ta.style.height=h+'px';
+    ta.style.overflowY='auto';
+    const pre=ta.parentElement&&ta.parentElement.querySelector('pre');
+    if(pre) pre.style.height=h+'px';
+    return;
+  }
   ta.style.maxHeight='none';
   ta.style.overflow='hidden';
   ta.style.height='auto';
@@ -7354,10 +7366,12 @@ function openNote(id,pre){
       ${e.ctx?`<span class="cchip">${esc(e.ctx)}</span>`:''}
       <span style="font-size:12px;color:var(--ink-3)">${n?fmtDate(e.ts):'Maintenant'}</span>
     </div>
-    <textarea class="ne-ta" id="ne-ta" placeholder="Écris ce que tu veux retenir…">${esc(e.txt||'')}</textarea>
-    <div class="ne-lab"><span>Requête associée</span>
-      <button type="button" onclick="pasteConsole()">Coller la console</button></div>
-    <textarea class="ne-sql" id="ne-sql" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="-- optionnel : une requête à garder sous la main">${esc(e.sql||'')}</textarea>
+    <textarea class="ne-ta" id="ne-ta" placeholder="Écris ce que tu veux retenir…"></textarea>
+    <div class="ne-lab"><span>Requête associée</span></div>
+    <div class="editor-shell ne-sql-shell">
+      <div class="editor-area"><pre><code id="hl-ne-sql"></code></pre>
+      <textarea id="ne-sql" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="-- optionnel : une requête à garder sous la main"></textarea></div>
+    </div>
     <div class="ne-row">
       <button class="prim" type="button" onclick="saveNote()">Enregistrer</button>
       <button class="sec ${e.pin?'pin-on':''}" type="button" aria-pressed="${e.pin?'true':'false'}" onclick="togglePin()">${PIN_SVG}<span>${e.pin?'Épinglée':'Épingler'}</span></button>
@@ -7365,13 +7379,12 @@ function openNote(id,pre){
     </div>
     ${e.sql?`<div class="ne-row" style="margin-top:9px"><button class="sec" style="flex:1" type="button" onclick="noteToConsole()">Ouvrir dans la console</button></div>`:''}`;
   const ta=document.getElementById('ne-ta');
-  const grow=()=>{ta.style.height='auto';ta.style.height=Math.max(160,ta.scrollHeight)+'px'};grow();
+  ta.value=e.txt||'';
+  const grow=()=>{ta.style.height='auto';ta.style.height=Math.max(160,Math.min(ta.scrollHeight,320))+'px'};grow();
   ta.addEventListener('input',grow);
   const sq=document.getElementById('ne-sql');
-  const grow2=()=>{sq.style.height='auto';sq.style.height=Math.max(76,sq.scrollHeight)+'px'};grow2();
-  sq.addEventListener('input',grow2);
-  sq.addEventListener('focus',()=>{activeTA=sq;showKbar(true);});
-  sq.addEventListener('blur',()=>{setTimeout(()=>{if(document.activeElement!==sq)showKbar(false);},150);});
+  sq.value=e.sql||'';
+  setupEditor('ne-sql','hl-ne-sql');
   if(!n)setTimeout(()=>ta.focus(),260);
   document.getElementById('note-body').scrollTop=0;
 }
@@ -7430,11 +7443,6 @@ function closeNote(){
   document.getElementById('note-sheet').classList.remove('on');
   document.getElementById('fab').classList.remove('hide');
   showKbar(false);
-}
-function pasteConsole(){
-  const sq=document.getElementById('ne-sql');
-  sq.value=document.getElementById('ed-console').value.trim();
-  sq.dispatchEvent(new Event('input'));
 }
 function noteToConsole(){
   const e=collectNote(); const sql=e?e.sql:'';
