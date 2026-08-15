@@ -332,6 +332,8 @@
   .retenir-ico svg{width:14px;height:14px;display:block}
   .retenir-end .retenir-title{margin:0 0 8px;font-size:15px;font-weight:800;color:var(--ink);letter-spacing:-.2px}
   .retenir-end .retenir-p{margin:0;font-size:14.5px;line-height:1.55;color:var(--ink-2)}
+  .retenir-end .retenir-p p{margin:0 0 10px}
+  .retenir-end .retenir-p p:last-child{margin-bottom:0}
   .retenir-end .retenir-p b{color:var(--ink);font-weight:700}
   .retenir-end .retenir-p code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);color:var(--accent);padding:1px 6px;border-radius:6px;font-weight:600}
   .concept-block .ex-code{margin:0 0 14px;padding:14px 15px;border-radius:14px;font-size:12.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word;box-shadow:none}
@@ -781,6 +783,8 @@
   .piege-lab{font-size:12px;font-weight:700;letter-spacing:-.1px;color:var(--warn)}
   .piege-title{margin:0 0 6px;font-size:15px;font-weight:800;letter-spacing:-.2px;line-height:1.35;color:var(--ink)}
   .piege-body{margin:0;font-size:14px;line-height:1.6;color:var(--ink-2)}
+  .piege-body p{margin:0 0 10px}
+  .piege-body p:last-child{margin-bottom:0}
   .piege-body b{color:var(--ink);font-weight:700}
   .piege-body code{font-family:var(--mono);font-size:.86em;background:rgba(180,122,22,.1);color:#8A6212;padding:1px 6px;border-radius:6px;font-weight:600}
 
@@ -2464,14 +2468,15 @@ const MODULES = [
       extra:`<div class="agg-reflex"><ul class="agg-list"><li><code>&gt;</code> → strictement supérieur à</li><li><code>&lt;</code> → strictement inférieur à</li><li><code>&gt;=</code> → supérieur ou égal à</li><li><code>&lt;=</code> → inférieur ou égal à</li></ul></div><p><code>prix &gt; 25</code> signifie : le prix doit être strictement supérieur à 25.</p>`,
       demo:"SELECT nom, prix\nFROM produits\nWHERE prix > 25;"},
     why:{eye:"",title:"Comprendre la limite",
-      body:"Avec <code>prix &gt; 25</code>, la valeur 25 elle-même n’est pas incluse.<br><br>Oméga 3 — 24,90 € → écarté<br>Un produit à 25,00 € → écarté<br>Fibre Prébiotique — 29,90 € → gardé<br><br>Pour inclure un produit à exactement 25 €, utilise <code>prix &gt;= 25</code>."},
+      body:"Avec <code>prix &gt; 25</code>, la valeur 25 elle-même n’est pas incluse.",
+      extra:`<div class="agg-reflex"><ul class="agg-list"><li>Oméga 3 — 24,90 € → écarté</li><li>Un produit à 25,00 € → écarté</li><li>Fibre Prébiotique — 29,90 € → gardé</li></ul></div><p>Pour inclure un produit à exactement 25 €, utilise <code>prix &gt;= 25</code>.</p>`},
     viz:"compare",
     reflex:{extra:`<p style="margin:0;font-size:14.5px;line-height:1.55;color:var(--ink-2)">Les opérateurs <code>&gt;</code> et <code>&lt;</code> excluent la limite.<br>Les opérateurs <code>&gt;=</code> et <code>&lt;=</code> l’incluent.</p>`}},
   anatomie:[{tok:"SELECT nom, prix",txt:"affiche le nom et le prix"},{tok:"FROM produits",txt:"utilise la table produits"},{tok:"WHERE",txt:"filtre les lignes"},{tok:"prix",plain:1,txt:"la colonne comparée"},{tok:">",plain:1,txt:"signifie « strictement supérieur à »"},{tok:"25",plain:1,txt:"le seuil de comparaison"}],
   exemple:"SELECT nom, prix FROM produits WHERE prix > 25;",
   attendu:"<b>3 lignes sur 8</b> : Fibre Prébiotique à 29,90 €, Collagène Marin à 39,90 € et Protéine Végétale à 34,90 €.",
   retenir:"Pour comparer un nombre, écris-le sans guillemets.<br><br><code>&gt;</code> → strictement supérieur à<br><code>&lt;</code> → strictement inférieur à<br><code>&gt;=</code> → supérieur ou égal à<br><code>&lt;=</code> → inférieur ou égal à<br><br>Dans <code>SELECT * FROM produits WHERE prix > 25</code>, seules les 3 lignes dont le prix dépasse 25 € apparaissent.<br><br><code>&gt; 25</code> exclut exactement 25 €, tandis que <code>&gt;= 25</code> l’inclut.",
-  piege:{t:"Écrire un nombre comme du texte",p:"Écris <code>prix &gt; 25</code>, et non <code>prix &gt; '25'</code>.<br><br>25 est un nombre : il s’écrit sans guillemets."},
+  piege:{t:"Écrire un nombre comme du texte",p:"Écris <code>prix &gt; 25</code>, et non <code>prix &gt; '25'</code>. 25 est un nombre : il s’écrit sans guillemets."},
   consigne:"Affiche toutes les colonnes des produits dont le prix est strictement supérieur à 25.",
   solution:"SELECT * FROM produits WHERE prix > 25;",
   indice:"Filtre sur la colonne <code>prix</code>. Comme la consigne dit strictement supérieur à 25, choisis l'opérateur qui exclut 25 et écris le nombre sans guillemets.",
@@ -5385,7 +5390,7 @@ function piegeBlock(l){
       <span class="piege-lab">Erreur fréquente</span>
     </div>
     <p class="piege-title">${piege.t}</p>
-    <p class="piege-body">${piege.p}</p>
+    <div class="piege-body">${flowProseHtml(piege.p)}</div>
   </div>`;
 }
 function retenirBlock(l){
@@ -5394,7 +5399,7 @@ function retenirBlock(l){
   const body=lessonRetenirHtml(l);
   const card=body?`<div class="concept-coda retenir-end">
     ${retenirHead()}
-    <p class="retenir-p">${body}</p>
+    <div class="retenir-p">${flowProseHtml(body)}</div>
     ${retenirNoteBtn()}
   </div>`:'';
   return piegeBlock(l)+card;
@@ -5480,12 +5485,19 @@ function renderVizShell(key){
     </div>
   </div>`;
 }
-function situationBodyHtml(s){
+function flowProseHtml(s,{lead=false}={}){
   if(!s)return '';
   const parts=String(s).split(/<br\s*\/?>\s*<br\s*\/?>/i);
-  if(parts.length<2) return `<p>${s}</p>`;
-  return parts.map(p=>`<p>${p.trim()}</p>`).join('');
+  if(parts.length<2){
+    const cls=lead?' class="why-lead"':'';
+    return `<p${cls}>${s}</p>`;
+  }
+  return parts.map((p,i)=>{
+    const cls=(lead&&i===0)?' class="why-lead"':'';
+    return `<p${cls}>${p.trim()}</p>`;
+  }).join('');
 }
+function situationBodyHtml(s){ return flowProseHtml(s); }
 function renderStudio(l){
   const s=l.studio;
   if(!s)return l.concept||'';
@@ -5496,6 +5508,7 @@ function renderStudio(l){
   const demo=s.problem.demo?`<pre class="ex-code">${highlight(s.problem.demo)}</pre>`:'';
   const tail=s.problem.tail?`<p>${s.problem.tail}</p>`:'';
   const point=s.point?`<p class="concept-point"><span class="em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h12M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>${s.point}</span></p>`:'';
+  const whyExtra=s.why.extra||'';
   const viz=s.viz?renderVizShell(s.viz):(s.extra||'');
   const reflex=renderReflex(s.reflex);
   const whyEye=s.why.eye!==undefined?s.why.eye:'Pourquoi';
@@ -5503,12 +5516,12 @@ function renderStudio(l){
   return `<div class="concept-page">
     <div class="concept-block">
       <h2>${probH2}<span class="h2-txt">${s.problem.title}</span></h2>
-      <p>${s.problem.body}</p>
+      ${flowProseHtml(s.problem.body)}
       ${probExtra}${demo}${tail}${vs}${point}
     </div>
     <div class="concept-block">
       <h2>${whyH2}<span class="h2-txt">${s.why.title}</span></h2>
-      <p${viz?' class="why-lead"':''}>${s.why.body}</p>
+      ${flowProseHtml(s.why.body,{lead:!!viz})}${whyExtra}
       ${viz}
     </div>
     <div class="concept-block">
