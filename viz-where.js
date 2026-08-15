@@ -118,10 +118,7 @@
     lbl.className = "wc-lbl";
     lbl.textContent = "lignes gardées";
 
-    wc.appendChild(box);
-    wc.appendChild(tot);
-    wc.appendChild(lbl);
-    steps.appendChild(wc);
+    /* Le compteur de lignes gardées est retiré de l'animation. */
   }
 
   /* --- 4. montage ------------------------------------------------------ */
@@ -129,9 +126,7 @@
     if (!eligible(root)) return;
     var chips = root.querySelectorAll(".grp-chip");
     if (!chips.length) return;
-    var keeps = stampDelays(root);
-    keyframesFor(root, keeps);
-    buildCounter(root, chips.length, keeps);
+    stampDelays(root);
     root.classList.add("vw");        // c'est ce marqueur qui active viz-where.css
   }
 
