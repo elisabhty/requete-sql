@@ -4660,14 +4660,15 @@ function insertKey(k,schemaKind){
   const pos=start+caret; ta.setSelectionRange(pos,pos);
   ta.dispatchEvent(new Event('input')); ta.focus();
 }
+let kbarOpenH=51;
 function syncKbarOffset(){
   const kbar=document.getElementById('kbar');
   if(!kbar) return;
   const on=kbar.classList.contains('on');
   const kb=keyboardInset();
-  const focused=activeTA&&document.activeElement===activeTA;
-  const kbLift=on&&kb>40&&!kbarKbDismissed&&focused;
-  const kh=on?kbar.offsetHeight:0;
+  const kbLift=on&&kb>40;
+  if(on&&!kbar.classList.contains('kb-down')){ const oh=kbar.offsetHeight; if(oh>=44) kbarOpenH=oh; }
+  const kh=on?kbarOpenH:0;
   document.documentElement.style.setProperty('--kbar-offset',((kbLift?kb:0)+kh)+'px');
   kbar.style.bottom=kbLift?kb+'px':'0px';
   updateKbarDock();
