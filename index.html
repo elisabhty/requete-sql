@@ -1055,11 +1055,15 @@
   /* Barre de touches SQL */
   .kbar{position:fixed;left:0;right:0;bottom:0;z-index:90;background:rgba(240,240,245,.97);border-top:1px solid var(--line-2);display:none;padding:7px 0;backdrop-filter:blur(20px)}
   .kbar.on{display:block}
-  .kbar-in{max-width:520px;margin:0 auto;display:flex;gap:6px;overflow-x:auto;padding:0 10px;scrollbar-width:none}
+  .kbar-wrap{max-width:520px;margin:0 auto;display:flex;align-items:center;gap:6px;padding:0 10px}
+  .kbar-in{flex:1;min-width:0;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
   .kbar-in::-webkit-scrollbar{display:none}
+  .kbar-dock{flex:none;width:36px;height:36px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink-2);padding:0;touch-action:manipulation}
+  .kbar-dock svg{width:18px;height:18px;transition:transform .2s ease}
+  .kbar.kb-down .kbar-dock svg{transform:rotate(180deg)}
   .kbar button{flex:none;font-family:var(--mono);font-size:13.5px;font-weight:600;background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;color:var(--ink);cursor:pointer;white-space:nowrap}
   .kbar button.kw{color:var(--accent);background:var(--accent-soft);border-color:transparent}
-  .kbar button:active{background:var(--line)}
+  .kbar button:active,.kbar-dock:active{background:var(--line)}
 
   /* Collection */
   .coll-stat{display:none}
@@ -2317,7 +2321,10 @@
   </div>
 
   <!-- Barre de touches SQL -->
-  <div class="kbar" id="kbar"><div class="kbar-in" id="kbar-in"></div></div>
+  <div class="kbar" id="kbar"><div class="kbar-wrap">
+    <button type="button" class="kbar-dock" id="kbar-dock" aria-label="Masquer le clavier" title="Masquer le clavier"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="kbar-in" id="kbar-in"></div>
+  </div></div>
 
   <nav class="tabbar">
     <button class="tab active" data-tab="learn" onclick="switchTab('learn')">
@@ -3343,7 +3350,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-15-anat-full';
+const APP_VERSION='2026-08-15-kbar-dock';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -4194,8 +4201,12 @@ function setupEditor(taId,hlId){
   const syncScroll=()=>{ if(pre) pre.scrollTop=ta.scrollTop; };
   ta.addEventListener('input',()=>{syncHL(taId,hlId);fitSqlEditor(ta);persistEditor(taId);syncEditorClear(taId);});
   ta.addEventListener('scroll',syncScroll);
-  ta.addEventListener('focus',()=>{activeTA=ta;showKbar(true);syncScroll();});
-  ta.addEventListener('blur',()=>{setTimeout(()=>{if(document.activeElement!==ta)showKbar(false);},150);});
+  ta.addEventListener('focus',()=>{activeTA=ta;kbarKbDismissed=false;showKbar(true);syncScroll();});
+  ta.addEventListener('blur',()=>{setTimeout(()=>{
+    if(document.activeElement===ta) return;
+    if(kbarKbDismissed){ syncKbarOffset(); return; }
+    showKbar(false);
+  },150);});
   fitSqlEditor(ta);syncScroll();syncEditorClear(taId);
 }
 function persistEditor(taId){
@@ -4331,15 +4342,39 @@ function exoFailDiag(sql,sol,userRes,solRes,ordered){
    6. BARRE DE TOUCHES SQL
    ============================================================ */
 let activeTA=null;
+let kbarKbDismissed=false;
 const KEYS=[['SELECT',1],['FROM',1],['WHERE',1],['*',0],["'",0],[',',0],['=',0],['>',0],['<',0],['>=',0],['%',0],['()',0],
   ['GROUP BY',1],['HAVING',1],['ORDER BY',1],['JOIN',1],['ON',1],['AS',1],['COUNT(*)',1],['SUM()',1],['AVG()',1],['DESC',1],['LIMIT',1],['IS NULL',1],[';',0]];
+function updateKbarDock(){
+  const kbar=document.getElementById('kbar');
+  const dock=document.getElementById('kbar-dock');
+  if(!kbar||!dock||!kbar.classList.contains('on')) return;
+  const open=keyboardInset()>40||document.activeElement===activeTA;
+  kbar.classList.toggle('kb-open',open);
+  kbar.classList.toggle('kb-down',!open&&kbarKbDismissed);
+  const label=open?'Masquer le clavier':'Afficher le clavier';
+  dock.setAttribute('aria-label',label);
+  dock.title=label;
+}
+function kbarDockToggle(){
+  if(!activeTA) return;
+  if(keyboardInset()>40||document.activeElement===activeTA){
+    kbarKbDismissed=true;
+    activeTA.blur();
+    syncKbarOffset();
+  } else {
+    kbarKbDismissed=false;
+    activeTA.focus();
+  }
+}
 function buildKbar(){
   document.getElementById('kbar-in').innerHTML=KEYS.map(([k,isKw],i)=>
     `<button class="${isKw?'kw':''}" data-i="${i}">${esc(k)}</button>`).join('');
   const bar=document.getElementById('kbar');
-  bar.addEventListener('mousedown',e=>e.preventDefault());
-  bar.addEventListener('touchstart',e=>{if(e.target.tagName==='BUTTON')e.preventDefault();},{passive:false});
+  bar.addEventListener('mousedown',e=>{ if(!e.target.closest('.kbar-dock')) e.preventDefault(); });
+  bar.addEventListener('touchstart',e=>{ if(e.target.closest('button')&&!e.target.closest('.kbar-dock')) e.preventDefault(); },{passive:false});
   bar.addEventListener('click',e=>{
+    if(e.target.closest('.kbar-dock')){ kbarDockToggle(); return; }
     const b=e.target.closest('button'); if(!b)return;
     insertKey(KEYS[+b.dataset.i][0]);
   });
@@ -4360,13 +4395,16 @@ function syncKbarOffset(){
   if(!kbar) return;
   const on=kbar.classList.contains('on');
   const kb=keyboardInset();
-  const kh=(on&&kb>40)?kbar.offsetHeight:0;
-  document.documentElement.style.setProperty('--kbar-offset',(kb+kh)+'px');
-  kbar.style.bottom=on&&kb>0?kb+'px':'0px';
+  const kbLift=on&&kb>40&&!kbarKbDismissed;
+  const kh=on?kbar.offsetHeight:0;
+  document.documentElement.style.setProperty('--kbar-offset',((kbLift?kb:0)+kh)+'px');
+  kbar.style.bottom=kbLift?kb+'px':'0px';
+  updateKbarDock();
 }
 function showKbar(on){
   document.getElementById('kbar').classList.toggle('on',on);
   document.body.classList.toggle('kbar-on',on);
+  if(!on) kbarKbDismissed=false;
   const f=document.getElementById('fab');
   if(on) f.classList.add('hide');
   else if(!document.getElementById('note-sheet').classList.contains('on')&&!document.getElementById('card-sheet').classList.contains('on')&&!document.getElementById('viz').classList.contains('on')) f.classList.remove('hide');
