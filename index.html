@@ -2599,12 +2599,14 @@ const MODULES = [
             code:"SELECT nom\nFROM clients\n<span class=\"vs-line bad\">WHERE nom LIKE 'L'</span>;"},
         good:{tag:"✓ Avec %",sql:"SELECT nom FROM clients\nWHERE nom LIKE 'L%';",out:"2 lignes : Lucas et Léa",
             code:"SELECT nom\nFROM clients\n<span class=\"vs-line good\">WHERE nom LIKE 'L%'</span>;"}},
-    why:{title:"La position de % change le motif.",
-      body:"<code>LIKE 'L%'</code> signifie <b>commence par L</b>.<br><br><code>LIKE '%L'</code> signifie <b>finit par L</b>.<br><br><code>LIKE '%mot%'</code> signifie <b>contient mot</b> quelque part dans le texte.<br><br>Sans <code>%</code>, <code>LIKE 'L'</code> recherche presque une correspondance exacte avec <code>'L'</code>."},
+    why:{title:"Voir le filtre en action",
+      body:"SQL teste chaque nom un par un. D’abord sans <code>%</code>, puis avec le joker."},
     viz:"like",
-    reflex:{a:{k:"'L%'",t:"le texte <b>commence par L</b>"},
-      b:{k:"'%mot%'",t:"le texte <b>contient mot</b>"},
-      note:"Le <code>%</code> représente une suite de caractères. Sa position détermine quelle partie du texte peut varier."}},
+    reflex:{extra:`<div class="agg-reflex"><ul class="agg-list">
+<li><code>LIKE 'L%'</code> → <b>commence par L</b></li>
+<li><code>LIKE '%L'</code> → <b>finit par L</b></li>
+<li><code>LIKE '%mot%'</code> → <b>contient mot</b></li>
+</ul><p style="margin:10px 0 0;font-size:14.5px;line-height:1.55;color:var(--ink-2)">Sans <code>%</code>, <code>LIKE 'L'</code> recherche presque une correspondance exacte avec <code>'L'</code>.</p></div>`},
   anatomie:[{tok:"SELECT nom",txt:"La colonne affichée dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE nom LIKE 'L%'",txt:"Le nom doit commencer par L. Le % accepte n’importe quelle suite après."}],
   exemple:"SELECT nom FROM clients WHERE nom LIKE 'L%';",
   attendu:"<b>2 lignes</b> : Lucas et Léa.",
@@ -3361,7 +3363,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-15-like-point';
+const APP_VERSION='2026-08-15-like-viz';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
