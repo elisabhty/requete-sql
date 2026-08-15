@@ -192,6 +192,7 @@
   /* Appui tactile : teinte légère, sans scale (évite l’ombre sur toute la page) */
   .som-item:active{background:var(--surface-2)}
   .som-item:active .som-arrow{opacity:1;color:var(--accent)}
+  .som-target{scroll-margin-top:calc(var(--safe-top) + 58px)}
   /* Flash après le saut vers la section */
   .som-item.flash{animation:somFlash .4s ease}
   @keyframes somFlash{0%{background:rgba(91,91,214,.08)}100%{background:transparent}}
@@ -3338,7 +3339,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-15-or-reflex';
+const APP_VERSION='2026-08-15-sommaire-scroll';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -5966,7 +5967,13 @@ function somAnchorFor(el){
   if(!el)return null;
   if(el.closest('.piege-lab')) return el.closest('.piege');
   if(el.closest('.sect-label')) return el.closest('.sect-label');
+  const h2=el.closest('h2');
+  if(h2) return h2;
   return el.closest('.concept-block')||el.closest('.exframe')||el.closest('.reflex-end')||el;
+}
+function somScrollPad(scr){
+  const nav=scr&&scr.querySelector('.navbar');
+  return (nav?nav.offsetHeight:56)+10;
 }
 function somRevealTo(el){
   if(!el)return;
@@ -5982,13 +5989,14 @@ function scrollSommaireTo(target,scr){
   stopHavingGrpViz();
   somRevealTo(target);
   const dur=prefersReduceMotion()?0:650;
-  somScrollUntil=Date.now()+dur+400;
-  requestAnimationFrame(()=>{
-    requestAnimationFrame(()=>{
-      const top=Math.max(0,target.getBoundingClientRect().top-scr.getBoundingClientRect().top+scr.scrollTop-12);
-      scr.scrollTo({top,behavior:prefersReduceMotion()?'auto':'smooth'});
-    });
-  });
+  somScrollUntil=Date.now()+dur+500;
+  const go=()=>{
+    const pad=somScrollPad(scr);
+    const top=Math.max(0,target.getBoundingClientRect().top-scr.getBoundingClientRect().top+scr.scrollTop-pad);
+    scr.scrollTo({top,behavior:prefersReduceMotion()?'auto':'smooth'});
+  };
+  requestAnimationFrame(()=>requestAnimationFrame(go));
+  if(!prefersReduceMotion()) setTimeout(go,dur+80);
 }
 function buildSommaire(){
   const body=document.getElementById('lesson-body');
