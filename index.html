@@ -2456,25 +2456,20 @@ const MODULES = [
   indice:"Ajoute un filtre après <code>FROM clients</code> pour garder uniquement les lignes où <code>ville</code> vaut <code>'Paris'</code>.",
   richLesson:true, earlyDemo:true },
 { id:5, titre:"Comparer des nombres", résumé:"Filtrer avec un seuil numérique",
-  situation:"Dans la table <code>produits</code>, 8 produits sont enregistrés avec leur prix. Tu prépares une offre premium réservée aux produits dont le prix dépasse 25 €. Pour les retrouver, tu vas comparer la colonne <code>prix</code> au nombre 25.",
-    studio:{problem:{title:"Comparer un nombre permet de fixer un seuil.",
-      body:"Tu sais déjà filtrer des lignes avec <code>WHERE</code>. Ici, la condition porte sur un nombre : <code>prix &gt; 25</code> signifie prix strictement supérieur à 25.<br><br>La table produits contient 8 produits. Fibre Prébiotique à 29,90 €, Collagène Marin à 39,90 € et Protéine Végétale à 34,90 € dépassent 25 € : leurs 3 lignes sont gardées. Les 5 autres produits sont écartés du résultat."},
-    vs:{bad:{tag:"✕ Nombre écrit comme du texte",sql:"SELECT nom, prix FROM produits\nWHERE prix > '25';",out:"SQLite peut convertir '25', mais le nombre est écrit comme du texte",
-            code:"SELECT nom, prix\nFROM produits\n<span class=\"vs-line bad\">WHERE prix &gt; '25'</span>;"},
-        good:{tag:"✓ Comparaison numérique",sql:"SELECT nom, prix FROM produits\nWHERE prix > 25;",out:"3 lignes : Fibre Prébiotique, Collagène Marin, Protéine Végétale",
-            code:"SELECT nom, prix\nFROM produits\n<span class=\"vs-line good\">WHERE prix &gt; 25</span>;"}},
-    point:"<code>&gt; 25</code> signifie strictement supérieur à 25.<br><br>Fibre Prébiotique — 29,90 € → gardé<br>Collagène Marin — 39,90 € → gardé<br>Magnésium — 19,90 € → écarté<br>Vitamine D — 14,90 € → écartée<br>Tisane Détox — 12,50 € → écartée<br>Protéine Végétale — 34,90 € → gardée<br>Oméga 3 — 24,90 € → écarté<br>Shaker Inox — 15,00 € → écarté<br><br>Un produit à exactement 25,00 € serait lui aussi écarté : pour l'inclure, il faudrait écrire <code>prix &gt;= 25</code>.",
-    why:{title:"Suis ce qui arrive aux prix.",
-      body:"La table produits contient 8 lignes. Avec <code>WHERE prix &gt; 25</code>, le prix de chaque produit est comparé au seuil de 25 €. 29,90 €, 39,90 € et 34,90 € dépassent ce seuil : ces 3 lignes restent dans le résultat. En revanche, 24,90 €, 19,90 €, 15,00 €, 14,90 € et 12,50 € ne dépassent pas 25 € : ces 5 lignes sont écartées du résultat."},
+  situation:"Dans la table <code>produits</code>, 8 produits sont enregistrés avec leur prix. Tu prépares une offre premium et tu veux garder uniquement les produits dont le prix dépasse 25 €.<br><br>Pour cela, tu compares la colonne <code>prix</code> au nombre 25.",
+    studio:{problem:{eye:"",title:"Comparer un nombre à un seuil",
+      body:"Tu sais déjà filtrer des lignes avec <code>WHERE</code>. Pour filtrer selon un nombre, tu peux utiliser des opérateurs de comparaison.<br><br><code>prix &gt; 25</code> signifie : le prix doit être strictement supérieur à 25.",
+      demo:"SELECT nom, prix\nFROM produits\nWHERE prix > 25;",
+      tail:"Le résultat contient 3 produits sur 8 : Fibre Prébiotique à 29,90 €, Collagène Marin à 39,90 € et Protéine Végétale à 34,90 €."},
+    why:{eye:"",title:"Comprendre la limite",
+      body:"Avec <code>prix &gt; 25</code>, la valeur 25 elle-même n’est pas incluse.<br><br>Oméga 3 — 24,90 € → écarté<br>Un produit à 25,00 € → écarté<br>Fibre Prébiotique — 29,90 € → gardé<br><br>Pour inclure un produit à exactement 25 €, utilise <code>prix &gt;= 25</code>."},
     viz:"compare",
-    reflex:{a:{k:"> / <",t:"compare sans inclure la <b>valeur limite</b>"},
-      b:{k:">= / <=",t:"compare en incluant la <b>valeur limite</b>"},
-      note:"<code>prix &gt; 25</code> exclut un produit à exactement 25 €. <code>prix &gt;= 25</code> l'inclut. Les nombres s'écrivent sans guillemets."}},
-  anatomie:[{tok:"SELECT nom, prix",txt:"Affiche le nom et le prix des produits."},{tok:"FROM produits",txt:"Les données viennent de la table produits."},{tok:"WHERE",txt:"Introduit la condition qui filtre les lignes."},{tok:"prix",plain:1,txt:"La colonne numérique comparée."},{tok:">",plain:1,txt:"Signifie strictement supérieur à."},{tok:"25",plain:1,txt:"Le seuil utilisé pour la comparaison. C'est un nombre, donc sans guillemets."}],
+    reflex:{extra:`<ul class="agg-list"><li><code>&gt;</code> → strictement supérieur à</li><li><code>&lt;</code> → strictement inférieur à</li><li><code>&gt;=</code> → supérieur ou égal à</li><li><code>&lt;=</code> → inférieur ou égal à</li></ul><p style="margin:10px 0 0;font-size:14.5px;line-height:1.55;color:var(--ink-2)">Les opérateurs <code>&gt;</code> et <code>&lt;</code> excluent la limite.<br>Les opérateurs <code>&gt;=</code> et <code>&lt;=</code> l’incluent.</p>`}},
+  anatomie:[{tok:"SELECT nom, prix",txt:"affiche le nom et le prix"},{tok:"FROM produits",txt:"utilise la table produits"},{tok:"WHERE",txt:"filtre les lignes"},{tok:"prix",plain:1,txt:"la colonne comparée"},{tok:">",plain:1,txt:"signifie « strictement supérieur à »"},{tok:"25",plain:1,txt:"le seuil de comparaison"}],
   exemple:"SELECT nom, prix FROM produits WHERE prix > 25;",
-  attendu:"<b>3 lignes sur 8</b> : Fibre Prébiotique à 29,90 €, Collagène Marin à 39,90 € et Protéine Végétale à 34,90 €. Ce sont les seuls produits dont le prix dépasse 25 €.",
-  retenir:"Pour comparer une colonne numérique à un seuil, le nombre s'écrit sans guillemets. Dans <code>SELECT * FROM produits WHERE prix > 25</code>, la table produits contient 8 produits, mais seules les 3 lignes dont le prix dépasse 25 € apparaissent : Fibre Prébiotique, Collagène Marin et Protéine Végétale. <code>&gt;</code> exclut la valeur limite : un produit à exactement 25 € ne serait pas gardé. Avec <code>&gt;= 25</code>, il le serait.",
-  piege:{t:"Écrire un nombre comme du texte",p:"Écris <code>prix &gt; 25</code>, pas <code>prix &gt; '25'</code>. Les guillemets servent aux valeurs texte. SQLite peut parfois convertir automatiquement <code>'25'</code>, mais écrire directement le nombre évite toute ambiguïté."},
+  attendu:"<b>3 lignes sur 8</b> : Fibre Prébiotique à 29,90 €, Collagène Marin à 39,90 € et Protéine Végétale à 34,90 €.",
+  retenir:"Pour comparer un nombre, écris-le sans guillemets. Dans <code>SELECT * FROM produits WHERE prix > 25</code>, seules les 3 lignes dont le prix dépasse 25 € apparaissent.<br><br><code>&gt; 25</code> exclut exactement 25 €, tandis que <code>&gt;= 25</code> l’inclut.",
+  piege:{t:"Écrire un nombre comme du texte",p:"Écris <code>prix &gt; 25</code>, et non <code>prix &gt; '25'</code>.<br><br>25 est un nombre : il s’écrit sans guillemets."},
   consigne:"Affiche toutes les colonnes des produits dont le prix est strictement supérieur à 25.",
   solution:"SELECT * FROM produits WHERE prix > 25;",
   indice:"Filtre sur la colonne <code>prix</code>. Comme la consigne dit strictement supérieur à 25, choisis l'opérateur qui exclut 25 et écris le nombre sans guillemets.",
@@ -5358,7 +5353,8 @@ function renderReflex(r){
   const card=(cls,k,t)=>`<div class="${cls}"><b>${k}</b><span>${t}</span></div>`;
   const note=r.note?`<p class="agg-reflex" style="margin-top:14px">${r.note}</p>`:'';
   const extra=r.extra||'';
-  return `<div class="memory-rule">${card('memory-a',r.a.k,r.a.t)}${card('memory-b',r.b.k,r.b.t)}</div>${note}${extra}`;
+  const cards=(r.a&&r.b)?`<div class="memory-rule">${card('memory-a',r.a.k,r.a.t)}${card('memory-b',r.b.k,r.b.t)}</div>`:'';
+  return `${cards}${note}${extra}`;
 }
 const BOOKMARK_SVG='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 3.2h12A1.8 1.8 0 0 1 19.8 5v16.2l-7.8-4.2-7.8 4.2V5A1.8 1.8 0 0 1 6 3.2z"/></svg>';
 function retenirHead(){
@@ -5486,17 +5482,23 @@ function renderStudio(l){
   const s=l.studio;
   if(!s)return l.concept||'';
   const vs=renderVs(s.vs);
+  const probEye=s.problem.eye!==undefined?s.problem.eye:'Le problème';
+  const probH2=probEye?`<span class="h2-eye">${probEye}</span>`:'';
+  const demo=s.problem.demo?`<pre class="ex-code">${highlight(s.problem.demo)}</pre>`:'';
+  const tail=s.problem.tail?`<p>${s.problem.tail}</p>`:'';
   const point=s.point?`<p class="concept-point"><span class="em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h12M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>${s.point}</span></p>`:'';
   const viz=s.viz?renderVizShell(s.viz):(s.extra||'');
   const reflex=renderReflex(s.reflex);
+  const whyEye=s.why.eye!==undefined?s.why.eye:'Pourquoi';
+  const whyH2=whyEye?`<span class="h2-eye">${whyEye}</span>`:'';
   return `<div class="concept-page">
     <div class="concept-block">
-      <h2><span class="h2-eye">Le problème</span><span class="h2-txt">${s.problem.title}</span></h2>
+      <h2>${probH2}<span class="h2-txt">${s.problem.title}</span></h2>
       <p>${s.problem.body}</p>
-      ${vs}${point}
+      ${demo}${tail}${vs}${point}
     </div>
     <div class="concept-block">
-      <h2><span class="h2-eye">Pourquoi</span><span class="h2-txt">${s.why.title}</span></h2>
+      <h2>${whyH2}<span class="h2-txt">${s.why.title}</span></h2>
       <p${viz?' class="why-lead"':''}>${s.why.body}</p>
       ${viz}
     </div>
