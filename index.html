@@ -768,6 +768,7 @@
 
   .piege{background:var(--surface);border:1px solid #EBDDBF;border-left:2px solid var(--warn);border-radius:10px;padding:12px 14px;margin-bottom:16px;display:flex;gap:10px;box-shadow:none}
   .piege .pi{width:20px;height:20px;flex:none;border:1px solid var(--warn);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--warn);font-family:var(--mono);font-size:11px;font-weight:700}
+  .piege .piege-lab{font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--warn);margin:0 0 4px}
   .piege b{display:block;font-size:13.5px;color:var(--warn);margin-bottom:3px}
   .piege p{margin:0;font-size:13.5px;color:#8A6212}
   .piege code{background:rgba(199,122,22,.15);color:#8A6212}
@@ -2353,6 +2354,7 @@ const MODULES = [
   anatomie:[{tok:"base",plain:1,txt:"Contient plusieurs tables."},{tok:"table",plain:1,txt:"Un ensemble de lignes."},{tok:"ligne",plain:1,txt:"Un enregistrement complet."},{tok:"colonne",plain:1,txt:"Un type d’information : nom, ville, âge…"}],
   exemple:"SELECT * FROM clients;",
   attendu:"<b>9 lignes</b> : une ligne par client, avec toutes ses colonnes.",
+  retenir:"Une base contient des tables. Une table a des <b>lignes</b> (enregistrements) et des <b>colonnes</b> (types d’information). Un <code>SELECT</code> lit les données : il ne les modifie pas.",
   piege:{t:"Peur de casser la base",p:"Un <code>SELECT</code> ne supprime ni ne modifie rien. Tu peux tester sans risque."},
   consigne:"Lis la table <code>clients</code> en affichant <b>toutes</b> ses colonnes pour te familiariser avec sa structure.",
   solution:"SELECT * FROM clients;",
@@ -2375,6 +2377,7 @@ const MODULES = [
   anatomie:[{tok:"SELECT",txt:"Commence la lecture des données."},{tok:"*",punc:1,txt:"Représente toutes les colonnes de la table."},{tok:"FROM produits",txt:"Précise que les données viennent de la table produits."}],
   exemple:"SELECT * FROM produits;",
   attendu:"<b>8 lignes</b> et <b>5 colonnes</b> : <code>id</code>, <code>nom</code>, <code>categorie</code>, <code>prix</code> et <code>stock</code>.",
+  retenir:"L’étoile <code>*</code> signifie « toutes les colonnes ». <code>SELECT *</code> affiche toute la table pour la découvrir. Les lignes restent.",
   piege:{t:"Ajouter une colonne déjà comprise dans *",p:"L’étoile représente déjà toutes les colonnes. Écrire <code>SELECT *, nom FROM produits;</code> demande donc <code>nom</code> une deuxième fois. Pour afficher toute la table, <code>SELECT * FROM produits;</code> suffit."},
   consigne:"Affiche toutes les colonnes de la table produits pour voir son contenu.",
   solution:"SELECT * FROM produits;",
@@ -2398,6 +2401,7 @@ const MODULES = [
   anatomie:[{tok:"SELECT",txt:"Définit les colonnes qui apparaîtront dans le résultat."},{tok:"nom, telephone",plain:1,txt:"Les deux colonnes retenues. La virgule les sépare."},{tok:"FROM",txt:"Introduit la table utilisée par la requête."},{tok:"clients",plain:1,txt:"La table clients : les données des 9 personnes."}],
   exemple:"SELECT nom, telephone FROM clients;",
   attendu:"Un résultat de <b>9 lignes</b> et <b>2 colonnes</b> : <code>nom</code> et <code>telephone</code>. Chaque client apparaît avec uniquement les informations utiles au listing d’appel.",
+  retenir:"<code>SELECT</code> choisit les <b>colonnes</b> du résultat. Une colonne : <code>SELECT nom</code>. Plusieurs : <code>SELECT nom, telephone</code>, séparées par une virgule. Les lignes restent.",
   piege:{t:"Oublier la virgule entre les colonnes",p:"Les colonnes placées après <code>SELECT</code> forment une liste. Pour en afficher plusieurs, sépare-les par une virgule : <code>SELECT nom, telephone FROM clients;</code>."},
   consigne:"Prépare le listing d’appel : affiche le <code>nom</code> et le <code>telephone</code> de chaque client.",
   solution:"SELECT nom, telephone FROM clients;",
@@ -2420,10 +2424,11 @@ const MODULES = [
     viz:"where",
     reflex:{a:{k:"WHERE",t:"filtre les <b>lignes</b> selon une condition"},
       b:{k:"=",t:"vérifie ici que la valeur est exactement <code>'Paris'</code>"},
-      note:"Pour une valeur texte, utilise des guillemets simples : <code>'Paris'</code>.<br><br>À retenir : <b>WHERE choisit quelles lignes restent dans le résultat.</b>"}},
+      note:"Pour une valeur texte, utilise des guillemets simples : <code>'Paris'</code>."}},
   anatomie:[{tok:"SELECT nom, ville",txt:"Les colonnes déjà choisies pour l’affichage."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"ville",plain:1,txt:"La colonne dont la valeur est vérifiée."},{tok:"=",plain:1,txt:"Vérifie que les deux valeurs sont égales."},{tok:"'Paris'",plain:1,txt:"La valeur recherchée dans la colonne ville."}],
   exemple:"SELECT nom, ville FROM clients WHERE ville = 'Paris';",
   attendu:"<b>3 lignes</b> : Sophie, Nathan et Léa, car ce sont les trois clients dont <code>ville</code> vaut <code>'Paris'</code>.",
+  retenir:"<code>WHERE</code> choisit quelles <b>lignes</b> restent dans le résultat. La table d’origine ne change pas.",
   piege:{t:"Oublier les guillemets autour du texte",p:"Paris est une valeur texte. Écris donc <code>WHERE ville = 'Paris'</code>. Sans guillemets, SQL peut interpréter Paris comme un nom de colonne au lieu d’une valeur."},
   consigne:"Affiche toutes les colonnes des clients qui habitent à Paris.",
   solution:"SELECT * FROM clients WHERE ville = 'Paris';",
@@ -2444,6 +2449,7 @@ const MODULES = [
   anatomie:[{tok:"SELECT nom, prix",txt:"Colonnes affichées."},{tok:"WHERE",txt:"Introduit le filtre."},{tok:"prix",plain:1,txt:"Colonne numérique testée."},{tok:"> 25",plain:1,txt:"Conserve les lignes au-dessus de 25."}],
   exemple:"SELECT nom, prix FROM produits WHERE prix > 25;",
   attendu:"Les produits dont le prix dépasse 25 euros.",
+  retenir:"Les nombres s’écrivent sans guillemets : <code>prix &gt; 25</code>. <code>&gt;</code> exclut la borne, <code>&gt;=</code> l’inclut.",
   piege:{t:"Comparer un nombre comme du texte",p:"Préfère <code>prix &gt; 25</code> à <code>prix &gt; '25'</code> pour rester clair et portable."},
   consigne:"Affiche les <code>produits</code> dont le <code>prix</code> est supérieur à 25.",
   solution:"SELECT * FROM produits WHERE prix > 25;",
@@ -2467,6 +2473,7 @@ const MODULES = [
   anatomie:[{tok:"WHERE ville = 'Paris'",txt:"Première condition : la ligne doit correspondre à Paris."},{tok:"AND",txt:"Relie les deux conditions et exige qu’elles soient toutes les deux vraies."},{tok:"age > 35",plain:1,txt:"Deuxième condition : l’âge doit être strictement supérieur à 35."}],
   exemple:"SELECT nom, ville, age FROM clients WHERE ville = 'Paris' AND age > 35;",
   attendu:"<b>1 ligne</b> : Léa, 38 ans, car elle habite à Paris et a plus de 35 ans.",
+  retenir:"<code>AND</code> : toutes les conditions doivent être vraies. <code>OR</code> : une seule suffit. Chaque côté est une condition complète.",
   piege:{t:"Écrire une condition incomplète",p:"Après <code>AND</code> ou <code>OR</code>, écris une nouvelle condition complète.<br>Correct : <code>ville = 'Paris' OR ville = 'Lyon'</code><br>Incorrect : <code>ville = 'Paris' OR 'Lyon'</code><br>La colonne <code>ville</code> doit être répétée."},
   consigne:"Affiche toutes les colonnes des clients qui habitent à Paris et ont plus de 35 ans.",
   solution:"SELECT * FROM clients WHERE ville = 'Paris' AND age > 35;",
@@ -2490,6 +2497,7 @@ const MODULES = [
   anatomie:[{tok:"WHERE",txt:"Introduit le filtre sur les lignes."},{tok:"email",plain:1,txt:"La colonne dans laquelle on vérifie la présence ou l’absence d’une valeur."},{tok:"IS NULL",txt:"Teste si la valeur de email est absente."}],
   exemple:"SELECT nom, email FROM clients WHERE email IS NULL;",
   attendu:"<b>2 lignes</b> : Hugo et Inès, les deux clients dont l’email est absent.",
+  retenir:"<code>NULL</code> = valeur absente, ni 0 ni <code>''</code>. On teste avec <code>IS NULL</code> / <code>IS NOT NULL</code>, jamais avec <code>=</code>.",
   piege:{t:"Confondre NULL et une valeur vide",p:"<code>NULL</code> signifie aucune valeur. Ce n’est ni 0, ni <code>''</code>.<br><code>email = ''</code> recherche un texte vide.<br><code>email IS NULL</code> recherche une valeur absente."},
   consigne:"Affiche le nom des clients qui ont un email renseigné.",
   solution:"SELECT nom FROM clients WHERE email IS NOT NULL;",
@@ -2513,6 +2521,7 @@ const MODULES = [
   anatomie:[{tok:"WHERE nom",txt:"Le filtre porte sur la colonne nom."},{tok:"LIKE",txt:"Recherche un motif dans une valeur texte."},{tok:"'L%'",plain:1,txt:"Le nom doit commencer par L. Le % accepte n’importe quelle suite après."}],
   exemple:"SELECT nom FROM clients WHERE nom LIKE 'L%';",
   attendu:"<b>2 lignes</b> : Lucas et Léa.",
+  retenir:"<code>LIKE</code> cherche un motif. <code>%</code> remplace une suite de caractères : <code>'L%'</code> commence par L, <code>'%mot%'</code> contient mot.",
   piege:{t:"Oublier le %",p:"<code>LIKE 'L'</code> recherche une valeur correspondant à <code>'L'</code>. Pour chercher tous les noms qui commencent par L, ajoute le joker après la lettre : <code>LIKE 'L%'</code>."},
   consigne:"Affiche toutes les colonnes des clients dont le nom commence par L.",
   solution:"SELECT * FROM clients WHERE nom LIKE 'L%';",
@@ -2536,6 +2545,7 @@ const MODULES = [
   anatomie:[{tok:"WHERE ville",txt:"La condition porte sur la colonne ville."},{tok:"IN",txt:"Vérifie si la valeur de ville se trouve dans la liste."},{tok:"('Paris', 'Lyon')",plain:1,txt:"La liste des valeurs acceptées, placées entre parenthèses et séparées par une virgule."}],
   exemple:"SELECT nom, ville FROM clients WHERE ville IN ('Paris', 'Lyon');",
   attendu:"<b>5 lignes</b> : Sophie, Lucas, Nathan, Hugo et Léa. Leur ville est soit <code>'Paris'</code>, soit <code>'Lyon'</code>.",
+  retenir:"<code>IN</code> compare <b>une même colonne</b> à une liste : <code>ville IN ('Paris', 'Lyon')</code>. Plus lisible que plusieurs <code>OR</code>.",
   piege:{t:"Utiliser IN pour des conditions différentes",p:"<code>IN</code> sert à comparer une même colonne à une liste de valeurs. Par exemple : <code>ville IN ('Paris', 'Lyon')</code>. Si les conditions portent sur des colonnes différentes, comme la ville et l’âge, <code>IN</code> ne remplace pas <code>AND</code> ou <code>OR</code>."},
   consigne:"Affiche toutes les colonnes des clients qui habitent à Paris ou à Lyon en utilisant <code>IN</code>.",
   solution:"SELECT * FROM clients WHERE ville IN ('Paris', 'Lyon');",
@@ -2558,6 +2568,7 @@ const MODULES = [
   anatomie:[{tok:"WHERE prix",txt:"Le filtre porte sur la colonne numérique prix."},{tok:"BETWEEN",txt:"Introduit l’intervalle dans lequel le prix doit se trouver."},{tok:"15",plain:1,txt:"La borne minimale, incluse."},{tok:"AND",txt:"Sépare ici la borne minimale de la borne maximale."},{tok:"30",plain:1,txt:"La borne maximale, incluse."}],
   exemple:"SELECT nom, prix FROM produits WHERE prix BETWEEN 15 AND 30;",
   attendu:"<b>4 lignes</b> : Shaker Inox à 15,00 €, Magnésium à 19,90 €, Oméga 3 à 24,90 € et Fibre Prébiotique à 29,90 €.",
+  retenir:"<code>BETWEEN</code> encadre un intervalle, <b>bornes incluses</b>. <code>prix BETWEEN 15 AND 30</code> = <code>prix &gt;= 15 AND prix &lt;= 30</code>.",
   piege:{t:"Croire que les bornes sont exclues",p:"Avec <code>BETWEEN 15 AND 30</code>, 15 et 30 sont inclus. Un produit à exactement 15,00 € est donc conservé, tout comme un produit à exactement 30,00 €."},
   consigne:"Affiche toutes les colonnes des produits dont le prix est compris entre 15 et 30 euros, bornes incluses.",
   solution:"SELECT * FROM produits WHERE prix BETWEEN 15 AND 30;",
@@ -2580,10 +2591,11 @@ const MODULES = [
     viz:"orderby",
     reflex:{a:{k:"ASC",t:"ordre <b>croissant</b> — du plus petit au plus grand"},
       b:{k:"DESC",t:"ordre <b>décroissant</b> — du plus grand au plus petit"},
-      note:"<code>ASC</code> est facultatif car c’est l’ordre par défaut.<br><br>À retenir : <b>ORDER BY range le résultat, il ne filtre aucune ligne.</b>"}},
+      note:"<code>ASC</code> est facultatif car c’est l’ordre par défaut."}},
   anatomie:[{tok:"ORDER BY",txt:"Commence le tri du résultat."},{tok:"age",plain:1,txt:"La colonne utilisée pour ranger les lignes."},{tok:"DESC",txt:"Choisit l’ordre décroissant : ici, du plus âgé au plus jeune."}],
   exemple:"SELECT nom, age FROM clients ORDER BY age DESC;",
   attendu:"<b>9 lignes</b>, du plus âgé au plus jeune : Hugo 52, Emma 45, Inès 41, Léa 38, Sophie 34, Nathan 31, Gabriel 29, Lucas 28, Chloé 26.",
+  retenir:"<code>ORDER BY</code> range le résultat, il ne filtre aucune ligne. <code>ASC</code> croissant, <code>DESC</code> décroissant.",
   piege:{t:"Se fier à l’ordre affiché sans ORDER BY",p:"Une requête sans <code>ORDER BY</code> ne garantit aucun ordre, même si les lignes semblent suivre les id. Si l’ordre est important, écris-le explicitement avec <code>ORDER BY</code>."},
   consigne:"Affiche toutes les colonnes de la table produits en triant les produits du moins cher au plus cher.",
   solution:"SELECT * FROM produits ORDER BY prix ASC;",
@@ -2605,6 +2617,7 @@ const MODULES = [
   anatomie:[{tok:"ORDER BY prix DESC",txt:"Les plus chers d’abord."},{tok:"LIMIT 3",txt:"<b>Garde seulement 3 lignes.</b>"}],
   exemple:"SELECT nom, prix FROM produits ORDER BY prix DESC LIMIT 3;",
   attendu:"Les 3 produits les plus chers.",
+  retenir:"<code>LIMIT n</code> garde les n premières lignes. Recette du top N : <code>ORDER BY … DESC</code> puis <code>LIMIT n</code>.",
   piege:{t:"LIMIT sans tri",p:"Sans ORDER BY, la coupe est arbitraire."},
   consigne:"Affiche les <b>3 produits les plus chers</b>.",
   solution:"SELECT * FROM produits ORDER BY prix DESC LIMIT 3;",
@@ -2626,6 +2639,7 @@ const MODULES = [
   anatomie:[{tok:"SELECT",txt:"Affiche…"},{tok:"DISTINCT",txt:"<b>sans doublon.</b>"},{tok:"ville",plain:1,txt:"La colonne."}],
   exemple:"SELECT DISTINCT ville FROM clients;",
   attendu:"<b>6 villes</b>.",
+  retenir:"<code>DISTINCT</code> retire les doublons du résultat. Sur plusieurs colonnes, l’unicité porte sur la <b>combinaison</b>.",
   piege:{t:"DISTINCT sur une colonne parmi d’autres",p:"<code>SELECT DISTINCT ville, age</code> dédoublonne le couple, pas la ville seule."},
   consigne:"Liste les <b>villes différentes</b> où habitent les clients.",
   solution:"SELECT DISTINCT ville FROM clients;",
@@ -2649,6 +2663,7 @@ const MODULES = [
   anatomie:[{tok:"SELECT",txt:"Affiche…"},{tok:"COUNT(*)",txt:"<b>le nombre de lignes.</b>"},{tok:"FROM clients",txt:"Sur cette table."}],
   exemple:"SELECT COUNT(*) FROM clients;",
   attendu:"<b>1 ligne</b> : 9.",
+  retenir:"<code>COUNT(*)</code> compte toutes les lignes. <code>COUNT(colonne)</code> ignore les <code>NULL</code>.",
   piege:{t:"COUNT et les NULL",p:"<code>COUNT(colonne)</code> saute les NULL. <code>COUNT(*)</code> les inclut."},
   consigne:"Compte le <b>nombre total de clients</b>.",
   solution:"SELECT COUNT(*) FROM clients;",
@@ -2669,6 +2684,7 @@ const MODULES = [
   anatomie:[{tok:"SELECT",txt:"Affiche…"},{tok:"AVG(prix)",txt:"<b>La moyenne</b> de la colonne."},{tok:"FROM produits",txt:"Sur toute la table."}],
   exemple:"SELECT AVG(prix) FROM produits;",
   attendu:"Le prix moyen.",
+  retenir:"<code>AVG</code>, <code>SUM</code>, <code>MIN</code>, <code>MAX</code> calculent un chiffre sur toute la table. Un nom à côté de <code>MAX(prix)</code> n’est pas le bon nom.",
   piege:{t:"Agrégat ≠ ligne complète",p:"<code>SELECT nom, MAX(prix)</code> ne garantit pas le bon nom."},
   consigne:"Calcule le <b>prix moyen</b> des produits.",
   solution:"SELECT AVG(prix) FROM produits;",
@@ -2688,6 +2704,7 @@ const MODULES = [
   anatomie:[{tok:"SELECT ville, COUNT(*)",txt:"Identité du groupe + calcul."},{tok:"FROM clients",txt:"Table."},{tok:"GROUP BY ville",txt:"<b>Regroupe par</b> cette colonne."}],
   exemple:"SELECT ville, COUNT(*) FROM clients GROUP BY ville;",
   attendu:"Une ligne par ville.",
+  retenir:"<code>GROUP BY</code> forme des paquets, puis calcule sur chacun. Toute colonne affichée hors agrégat doit figurer dans le <code>GROUP BY</code>.",
   piege:{t:"Colonne orpheline",p:"Afficher <code>nom</code> en groupant par <code>ville</code> choisit un nom arbitraire dans le groupe."},
   consigne:"Compte le <b>nombre de clients par ville</b> (ville et compte).",
   solution:"SELECT ville, COUNT(*) FROM clients GROUP BY ville;",
@@ -2776,7 +2793,8 @@ GROUP BY categorie
     {k:'having',label:'HAVING + COUNT',tone:'good',
      sql:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;"}
   ],
-  piege:null,
+  retenir:"<code>WHERE</code> filtre les lignes avant le regroupement. <code>HAVING</code> filtre les groupes après, et peut utiliser <code>COUNT</code>, <code>SUM</code>, <code>AVG</code>…",
+  piege:{t:"Mettre un agrégat dans WHERE",p:"<code>WHERE</code> s’applique avant le <code>GROUP BY</code> : <code>COUNT(*)</code>, <code>SUM()</code> ou <code>AVG()</code> n’existent pas encore. Place la condition sur l’agrégat dans <code>HAVING</code>."},
   attendu:"<b>2 lignes</b> : Bien-être (3 produits) et Nutrition (2 produits).",
   consigne:"Trouve les catégories qui contiennent <b>au moins 2 produits</b> et affiche, pour chacune, son nom et le nombre de produits.",
   solution:"SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 2;",
@@ -2799,6 +2817,7 @@ GROUP BY categorie
   anatomie:[{tok:"SELECT commandes.id, clients.nom, commandes.quantite",txt:"Colonnes des deux tables."},{tok:"FROM commandes",txt:"Table de départ."},{tok:"JOIN clients",txt:"<b>Relie</b> clients."},{tok:"ON commandes.client_id = clients.id",txt:"La clé commune."}],
   exemple:"SELECT clients.nom, commandes.quantite FROM commandes JOIN clients ON commandes.client_id = clients.id;",
   attendu:"15 lignes : une par commande, avec le nom du client.",
+  retenir:"<code>JOIN</code> recolle deux tables avec <code>ON</code>. Sans règle d’appariement, chaque ligne est collée à toutes les autres.",
   piege:{t:"Oublier ON",p:"Sans condition, tu obtiens un produit cartésien."},
   consigne:"Pour chaque commande, affiche le <code>nom</code> du client et la <code>quantite</code>.",
   solution:"SELECT clients.nom, commandes.quantite FROM commandes JOIN clients ON commandes.client_id = clients.id;",
@@ -2818,6 +2837,7 @@ GROUP BY categorie
   anatomie:[{tok:"JOIN clients ON …",txt:"Premier pont."},{tok:"JOIN produits ON …",txt:"Second pont."}],
   exemple:"SELECT clients.nom AS client, produits.nom AS produit FROM commandes JOIN clients ON commandes.client_id = clients.id JOIN produits ON commandes.produit_id = produits.id;",
   attendu:"15 lignes : client et produit de chaque commande.",
+  retenir:"Trois tables = <b>deux</b> <code>JOIN</code>, chacun avec son <code>ON</code>.",
   piege:{t:"Deux noms identiques",p:"Préfixe ou renomme : <code>clients.nom AS client</code>."},
   consigne:"Affiche le <b>nom du client</b> et le <b>nom du produit</b> pour chaque commande.",
   solution:"SELECT clients.nom AS client, produits.nom AS produit FROM commandes JOIN clients ON commandes.client_id = clients.id JOIN produits ON commandes.produit_id = produits.id;",
@@ -2837,6 +2857,7 @@ GROUP BY categorie
   anatomie:[{tok:"FROM clients",txt:"Table de gauche — on la garde entière."},{tok:"LEFT JOIN commandes ON …",txt:"Rattache les commandes si elles existent."},{tok:"WHERE commandes.id IS NULL",txt:"Garde ceux sans correspondance."}],
   exemple:"SELECT clients.nom FROM clients LEFT JOIN commandes ON clients.id = commandes.client_id WHERE commandes.id IS NULL;",
   attendu:"Les clients sans commande.",
+  retenir:"<code>LEFT JOIN</code> garde toute la table de gauche. Un <code>JOIN</code> simple fait disparaître les lignes sans correspondance.",
   piege:{t:"JOIN au lieu de LEFT JOIN",p:"Un JOIN simple supprime exactement les clients que tu cherches."},
   consigne:"Trouve les clients sans <b>aucune commande</b> : affiche leur <code>nom</code>.",
   solution:"SELECT clients.nom FROM clients LEFT JOIN commandes ON clients.id = commandes.client_id WHERE commandes.id IS NULL;",
@@ -2859,6 +2880,7 @@ GROUP BY categorie
   anatomie:[{tok:"CASE WHEN age >= 40 THEN 'Senior'",txt:"Si l’âge atteint 40…"},{tok:"ELSE 'Junior'",txt:"Sinon…"},{tok:"END AS tranche",txt:"Ferme et nomme la colonne."}],
   exemple:"SELECT nom, age, CASE WHEN age >= 40 THEN 'Senior' ELSE 'Junior' END AS tranche FROM clients;",
   attendu:"9 lignes, avec une colonne tranche.",
+  retenir:"<code>CASE WHEN … THEN … ELSE … END</code>. SQL s’arrête au premier <code>WHEN</code> vrai. <code>END</code> est obligatoire.",
   piege:{t:"Oublier END",p:"C’est l’erreur la plus fréquente sur cette syntaxe."},
   consigne:"Affiche le <code>nom</code> et une colonne <code>tranche</code> : <code>'Senior'</code> si âge ≥ 40, sinon <code>'Junior'</code>.",
   solution:"SELECT nom, CASE WHEN age >= 40 THEN 'Senior' ELSE 'Junior' END AS tranche FROM clients;",
@@ -2878,6 +2900,7 @@ GROUP BY categorie
   anatomie:[{tok:"SELECT nom, prix, stock,",txt:"Colonnes réelles."},{tok:"prix * stock",plain:1,txt:"Calcul."},{tok:"AS valeur_stock",txt:"Nom du résultat."}],
   exemple:"SELECT nom, prix, stock, prix * stock AS valeur_stock FROM produits;",
   attendu:"8 lignes, avec la valeur du stock.",
+  retenir:"On peut calculer dans le <code>SELECT</code> : <code>prix * stock AS valeur_stock</code>. C’est un affichage : rien n’est enregistré dans la table.",
   piege:{t:"Croire que ça s’enregistre",p:"Après la requête, la table produits n’a pas de colonne valeur_stock."},
   consigne:"Affiche le <code>nom</code> et <code>prix</code> × <code>stock</code> dans une colonne <code>valeur_stock</code>.",
   solution:"SELECT nom, prix * stock AS valeur_stock FROM produits;",
@@ -2897,6 +2920,7 @@ GROUP BY categorie
   anatomie:[{tok:"COALESCE",txt:"<b>Première valeur non NULL</b>…"},{tok:"(email, 'À compléter')",plain:1,txt:"Colonne, puis repli."}],
   exemple:"SELECT nom, COALESCE(email, 'À compléter') AS contact FROM clients;",
   attendu:"9 lignes. Hugo et Inès affichent « À compléter ».",
+  retenir:"<code>COALESCE(a, b)</code> affiche a s’il existe, sinon b. La base ne change pas.",
   piege:{t:"COALESCE ne modifie pas la base",p:"Pour changer l’email, il faut un UPDATE."},
   consigne:"Affiche le <code>nom</code> et l’email, en remplaçant les valeurs <code>NULL</code> par <code>'À compléter'</code> (colonne <code>contact</code>).",
   solution:"SELECT nom, COALESCE(email, 'À compléter') AS contact FROM clients;",
@@ -2916,6 +2940,7 @@ GROUP BY categorie
   anatomie:[{tok:"WHERE prix >",txt:"Compare chaque prix à…"},{tok:"(SELECT AVG(prix) FROM produits)",plain:1,txt:"<b>la moyenne</b>, calculée d’abord."}],
   exemple:"SELECT nom, prix FROM produits WHERE prix > (SELECT AVG(prix) FROM produits);",
   attendu:"Les produits plus chers que la moyenne.",
+  retenir:"Une sous-requête <code>(SELECT …)</code> s’exécute en premier. Un agrégat comme <code>AVG</code> ne peut pas vivre seul dans <code>WHERE</code>.",
   piege:{t:"Agrégat nu dans WHERE",p:"AVG ne peut pas vivre dans WHERE sans sous-requête (ou HAVING)."},
   consigne:"Affiche les clients dont l’<code>age</code> est <b>supérieur à l’âge moyen</b>.",
   solution:"SELECT nom, age FROM clients WHERE age > (SELECT AVG(age) FROM clients);",
@@ -2935,6 +2960,7 @@ GROUP BY categorie
   anatomie:[{tok:"SELECT id, date_commande",txt:"Colonnes affichées."},{tok:"WHERE date_commande >=",txt:"À partir de…"},{tok:"'2023-07-15'",plain:1,txt:"Borne incluse, format ISO."}],
   exemple:"SELECT COUNT(*) FROM commandes WHERE date_commande >= '2023-07-15';",
   attendu:"Le nombre de commandes depuis cette date.",
+  retenir:"Écris les dates en <code>AAAA-MM-JJ</code>. Ce format se compare et se trie tout seul.",
   piege:{t:"Format local",p:"JJ-MM-AAAA ne se trie pas. Reste sur AAAA-MM-JJ."},
   consigne:"Compte les commandes passées <b>avant</b> le <code>'2023-07-15'</code>.",
   solution:"SELECT COUNT(*) FROM commandes WHERE date_commande < '2023-07-15';",
@@ -2957,6 +2983,7 @@ GROUP BY categorie
   anatomie:[{tok:"INSERT INTO clients",txt:"Ajoute dans cette table."},{tok:"(nom, ville)",plain:1,txt:"Colonnes visées."},{tok:"VALUES ('Théo', 'Lille')",txt:"Les valeurs."}],
   exemple:"INSERT INTO clients (nom, ville) VALUES ('Théo', 'Lille');",
   attendu:"1 ligne ajoutée.",
+  retenir:"<code>INSERT</code> nomme les colonnes, puis donne les valeurs dans le <b>même ordre</b>.",
   piege:{t:"Se fier à l’ordre des colonnes de la table",p:"Si la table change, ton INSERT casse. Nomme les colonnes."},
   consigne:"Ajoute un produit <code>'Zinc'</code>, catégorie <code>'Bien-être'</code>, prix <code>17.90</code>, stock <code>70</code>.",
   solution:"INSERT INTO produits (nom, categorie, prix, stock) VALUES ('Zinc', 'Bien-être', 17.90, 70);",
@@ -2978,6 +3005,7 @@ GROUP BY categorie
   anatomie:[{tok:"UPDATE produits",txt:"Table à modifier."},{tok:"SET stock = 100",txt:"Nouvelle valeur."},{tok:"WHERE id = 5",txt:"<b>Cette</b> ligne seulement."}],
   exemple:"UPDATE produits SET stock = 100 WHERE id = 5;",
   attendu:"1 ligne modifiée.",
+  retenir:"<code>UPDATE … SET</code> change des valeurs. Sans <code>WHERE</code>, toute la table est modifiée.",
   piege:{t:"UPDATE sans WHERE",p:"Accident classique : toute la table est écrasée."},
   consigne:"Passe le <code>stock</code> du produit d’<code>id</code> 5 à <code>100</code>.",
   solution:"UPDATE produits SET stock = 100 WHERE id = 5;",
@@ -2999,6 +3027,7 @@ GROUP BY categorie
   anatomie:[{tok:"DELETE FROM commandes",txt:"Table visée."},{tok:"WHERE quantite = 1",txt:"Quelles lignes enlever."}],
   exemple:"DELETE FROM commandes WHERE quantite = 1;",
   attendu:"Les commandes d’une unité sont retirées.",
+  retenir:"<code>DELETE</code> supprime des <b>lignes</b> entières. Sans <code>WHERE</code>, la table se vide.",
   piege:{t:"DELETE une colonne",p:"On ne vide pas une case avec DELETE. Utilise UPDATE … SET colonne = NULL."},
   consigne:"Supprime les commandes dont la <code>quantite</code> est égale à 1.",
   solution:"DELETE FROM commandes WHERE quantite = 1;",
@@ -5307,23 +5336,39 @@ function retenirHead(){
 function retenirNoteBtn(){
   return `<button type="button" class="coda-note" onclick="noteFromRetenir()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ajouter dans notes</button>`;
 }
-function retenirBlock(l){
-  if(!l||l.orderRappel) return '';
-  const piege=l.piege;
+function lessonRetenirHtml(l){
+  if(!l) return '';
+  if(l.retenir) return l.retenir;
   const r=l.studio&&l.studio.reflex;
-  if(!piege&&!r) return '';
-  const title=piege?piege.t:(r.a&&r.a.k)||'';
-  const body=piege?piege.p:[
+  if(!r) return '';
+  return [
     r.a?`<b>${r.a.k}</b> — ${r.a.t}`:'',
     r.b?`<b>${r.b.k}</b> — ${r.b.t}`:'',
     r.note||''
   ].filter(Boolean).join('<br>');
-  return `<div class="concept-coda retenir-end">
+}
+function piegeBlock(l){
+  const piege=l&&l.piege;
+  if(!piege) return '';
+  return `<div class="piege">
+    <span class="pi" aria-hidden="true">!</span>
+    <div>
+      <div class="piege-lab">Erreur fréquente</div>
+      <b>${piege.t}</b>
+      <p>${piege.p}</p>
+    </div>
+  </div>`;
+}
+function retenirBlock(l){
+  if(!l) return '';
+  if(l.orderRappel) return piegeBlock(l);
+  const body=lessonRetenirHtml(l);
+  const card=body?`<div class="concept-coda retenir-end">
     ${retenirHead()}
-    ${title?`<p class="retenir-title">${title}</p>`:''}
     <p class="retenir-p">${body}</p>
     ${retenirNoteBtn()}
-  </div>`;
+  </div>`:'';
+  return card+piegeBlock(l);
 }
 function stripNoteHtml(s){
   return String(s||'')
@@ -5348,14 +5393,7 @@ function lessonRetenirText(l){
       'En résumé : SELECT s’écrit en premier, mais s’exécute presque en dernier.'
     ].join('\n\n');
   }
-  const piege=l.piege;
-  if(piege) return [stripNoteHtml(piege.t), stripNoteHtml(piege.p)].filter(Boolean).join('\n\n');
-  const r=l.studio&&l.studio.reflex;
-  const parts=[];
-  if(r&&r.a) parts.push(`${stripNoteHtml(r.a.k)} — ${stripNoteHtml(r.a.t)}`);
-  if(r&&r.b) parts.push(`${stripNoteHtml(r.b.k)} — ${stripNoteHtml(r.b.t)}`);
-  if(r&&r.note) parts.push(stripNoteHtml(r.note));
-  return parts.join('\n');
+  return stripNoteHtml(lessonRetenirHtml(l));
 }
 function noteFromRetenir(){
   const l=current;
