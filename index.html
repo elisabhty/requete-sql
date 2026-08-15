@@ -234,6 +234,9 @@
   .lesson-lead .situation-body{font-size:15.5px;line-height:1.65;color:var(--ink);margin:0}
   .lesson-lead .situation-body p{margin:0 0 12px}
   .lesson-lead .situation-body p:last-child{margin-bottom:0}
+  .lesson-lead .situation-body .situation-sql{margin:12px 0}
+  .lesson-lead .situation-body p + .situation-sql{margin-top:2px}
+  .lesson-lead .situation-body .situation-sql + p{margin-top:12px}
   .lesson-lead .situation-body code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);color:var(--accent);padding:1px 6px;border-radius:6px;font-weight:600}
   .concept-page{display:flex;flex-direction:column;gap:16px;margin:0}
   .concept-page>h3{font-size:22px;font-weight:800;letter-spacing:-.4px;line-height:1.2;margin:0 2px 18px;color:var(--ink)}
@@ -2622,7 +2625,9 @@ const MODULES = [
   indice:"Pour signifier « commence par L », place L au début du motif et <code>%</code> après : <code>'L%'</code>.",
   richLesson:true, earlyDemo:true },
 { id:9, titre:"IN", résumé:"Filtrer avec une liste",
-  situation:"Tu prépares un envoi pour les clients de Paris et de Lyon. Dans la table clients, tu veux afficher les personnes qui habitent à Paris ou Lyon. Nous avons appris qu’on peut comparer une colonne à une liste de valeurs en une seule condition.",
+  situation:"Tu prépares un envoi pour les clients de Paris et de Lyon. Dans la table clients, tu veux afficher les personnes qui habitent à Paris ou Lyon.<br><br>Avec ce que tu connais déjà, tu pourrais utiliser <code>OR</code> :",
+  situationSql:"WHERE ville = 'Paris'\n   OR ville = 'Lyon'",
+  situationTail:"Ça fonctionne. Mais quand plusieurs valeurs sont possibles pour une même colonne, SQL propose une écriture plus simple : <code>IN</code>.",
     studio:{problem:{title:"IN vérifie si une valeur appartient à une liste.",
       body:"Tu connais déjà <code>OR</code> : <code>ville = 'Paris' OR ville = 'Lyon'</code> fonctionne parfaitement. Mais la colonne <code>ville</code> est répétée. Avec <code>IN</code>, les valeurs recherchées sont regroupées dans une liste : <code>ville IN ('Paris', 'Lyon')</code>. Les deux écritures produisent ici exactement le même résultat."},
     vs:{bad:{tag:"✕ OR répétés",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",out:"5 lignes : correct, mais la colonne ville est répétée",
@@ -3368,7 +3373,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-16-like-title';
+const APP_VERSION='2026-08-16-in-situation';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -5890,6 +5895,19 @@ function flowProseHtml(s,{lead=false}={}){
   }).join('');
 }
 function situationBodyHtml(s){ return flowProseHtml(s); }
+function situationSqlBlock(sql){
+  if(!sql)return '';
+  return `<div class="situation-sql exframe">
+    <div class="xf-head"><span class="xf-name">SQL</span><div class="xf-tools">${sqlCopyBtn()}</div></div>
+    <div class="ex-code">${highlight(sql)}</div>
+  </div>`;
+}
+function renderSituationBody(l){
+  let html=situationBodyHtml(l.situation);
+  if(l.situationSql) html+=situationSqlBlock(l.situationSql);
+  if(l.situationTail) html+=flowProseHtml(l.situationTail);
+  return html;
+}
 const WHY_VIZ_TITLE="Suis ce qu'il se passe avec tes données.";
 function renderStudio(l){
   const s=l.studio;
@@ -6169,7 +6187,7 @@ function renderLessonFlow(){
           <div class="l-kicker">Cours</div><h1>${l.titre}</h1>
           <div class="concept-block lesson-lead">
             <h2><span class="h2-eye">Situation</span></h2>
-            <div class="situation-body">${situationBodyHtml(l.situation)}</div>
+            <div class="situation-body">${renderSituationBody(l)}</div>
           </div>
           ${lessonRichBlocks(l)}
           <div class="lesson-concept-card">${conceptHtml}</div>
