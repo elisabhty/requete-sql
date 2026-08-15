@@ -3355,7 +3355,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-15-kbar-schema';
+const APP_VERSION='2026-08-15-kbar-fix';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -4197,8 +4197,9 @@ function ensureRunRowVisible(ta){
 function layoutSqlEditor(){
   const ta=activeTA;
   if(!ta||!ta.closest('.editor-area')) return;
+  if(kbarKbDismissed||document.activeElement!==ta||keyboardInset()<40) return;
   fitSqlEditor(ta);
-  if(keyboardInset()<40) return;
+  if(ta.closest('.xf-editor')) return;
   revealSqlEditor(ta);
   ensureRunRowVisible(ta);
 }
@@ -4210,12 +4211,18 @@ function setupEditor(taId,hlId){
   ta.addEventListener('scroll',syncScroll);
   ta.addEventListener('keyup',()=>refreshKbar(ta));
   ta.addEventListener('click',()=>refreshKbar(ta));
-  ta.addEventListener('focus',()=>{activeTA=ta;kbarKbDismissed=false;showKbar(true);syncScroll();refreshKbar(ta);});
-  ta.addEventListener('blur',()=>{setTimeout(()=>{
-    if(document.activeElement===ta) return;
-    if(kbarKbDismissed){ syncKbarOffset(); return; }
-    showKbar(false);
-  },150);});
+  ta.addEventListener('focus',()=>{activeTA=ta;kbarKbDismissed=false;showKbar(true);syncScroll();refreshKbar(ta,true);});
+  ta.addEventListener('blur',(ev)=>{
+    const related=ev.relatedTarget;
+    if(related&&related.closest&&related.closest('#kbar')) return;
+    setTimeout(()=>{
+      if(document.activeElement===ta) return;
+      const ae=document.activeElement;
+      if(ae&&ae.closest&&ae.closest('#kbar')) return;
+      if(kbarKbDismissed){ syncKbarOffset(); updateKbarDock(); return; }
+      showKbar(false);
+    },120);
+  });
   fitSqlEditor(ta);syncScroll();syncEditorClear(taId);
 }
 function persistEditor(taId){
@@ -4358,7 +4365,6 @@ let kbarSchemaCacheDb='';
 const KEYS=[['SELECT',1],['FROM',1],['WHERE',1],['*',0],["'",0],[',',0],['=',0],['>',0],['<',0],['>=',0],['%',0],['()',0],
   ['AND',1],['OR',1],['NOT',1],['LIKE',1],['IN',1],['BETWEEN',1],['DISTINCT',1],
   ['GROUP BY',1],['HAVING',1],['ORDER BY',1],['JOIN',1],['ON',1],['AS',1],['COUNT(*)',1],['SUM()',1],['AVG()',1],['DESC',1],['LIMIT',1],['IS NULL',1],[';',0]];
-const KEY_SET=new Set(KEYS.map(x=>x[0]));
 function kbarSchemaCatalog(){
   const id=activeDbId||'cours';
   if(kbarSchemaCache&&kbarSchemaCacheDb===id) return kbarSchemaCache;
@@ -4536,7 +4542,8 @@ function kbarRankedKeys(ta){
   }
   return merged;
 }
-function refreshKbar(ta){
+let kbarRefreshT=0;
+function refreshKbarNow(ta){
   ta=ta||activeTA;
   const box=document.getElementById('kbar-in');
   const bar=document.getElementById('kbar');
@@ -4552,37 +4559,54 @@ function refreshKbar(ta){
     const ds=schema?` data-schema="${schema}"`:'';
     return `<button type="button" class="${cls}" data-k="${escAttr(k)}"${ds}>${esc(k)}</button>`;
   }).join('');
+  if(bar.classList.contains('on')) syncKbarOffset();
+}
+function refreshKbar(ta,immediate){
+  if(immediate){ clearTimeout(kbarRefreshT); refreshKbarNow(ta); return; }
+  clearTimeout(kbarRefreshT);
+  kbarRefreshT=setTimeout(()=>refreshKbarNow(ta),50);
 }
 function updateKbarDock(){
   const kbar=document.getElementById('kbar');
   const dock=document.getElementById('kbar-dock');
   if(!kbar||!dock||!kbar.classList.contains('on')) return;
-  const open=keyboardInset()>40||document.activeElement===activeTA;
-  kbar.classList.toggle('kb-open',open);
-  kbar.classList.toggle('kb-down',!open&&kbarKbDismissed);
-  const label=open?'Masquer le clavier':'Afficher le clavier';
+  const kbUp=!kbarKbDismissed&&(keyboardInset()>40||document.activeElement===activeTA);
+  kbar.classList.toggle('kb-open',kbUp);
+  kbar.classList.toggle('kb-down',!kbUp&&kbarKbDismissed);
+  const label=kbUp?'Masquer le clavier':'Afficher le clavier';
   dock.setAttribute('aria-label',label);
   dock.title=label;
 }
 function kbarDockToggle(){
   if(!activeTA) return;
-  if(keyboardInset()>40||document.activeElement===activeTA){
+  const kbUp=!kbarKbDismissed&&(keyboardInset()>40||document.activeElement===activeTA);
+  if(kbUp){
     kbarKbDismissed=true;
-    activeTA.blur();
     syncKbarOffset();
+    activeTA.blur();
+    setTimeout(syncKbarOffset,120);
+    setTimeout(syncKbarOffset,320);
   } else {
     kbarKbDismissed=false;
-    activeTA.focus();
+    activeTA.focus({preventScroll:true});
   }
 }
 function buildKbar(){
-  refreshKbar(null);
+  refreshKbar(null,true);
   const bar=document.getElementById('kbar');
+  const dock=document.getElementById('kbar-dock');
+  if(dock){
+    dock.addEventListener('pointerdown',e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      kbarDockToggle();
+    });
+  }
   bar.addEventListener('mousedown',e=>{ if(!e.target.closest('.kbar-dock')) e.preventDefault(); });
   bar.addEventListener('touchstart',e=>{ if(e.target.closest('button')&&!e.target.closest('.kbar-dock')) e.preventDefault(); },{passive:false});
   bar.addEventListener('click',e=>{
-    if(e.target.closest('.kbar-dock')){ kbarDockToggle(); return; }
-    const b=e.target.closest('button'); if(!b||!b.dataset.k)return;
+    const b=e.target.closest('button');
+    if(!b||b.classList.contains('kbar-dock')||!b.dataset.k)return;
     insertKey(b.dataset.k,b.dataset.schema||'');
   });
 }
@@ -4617,7 +4641,8 @@ function syncKbarOffset(){
   if(!kbar) return;
   const on=kbar.classList.contains('on');
   const kb=keyboardInset();
-  const kbLift=on&&kb>40&&!kbarKbDismissed;
+  const focused=activeTA&&document.activeElement===activeTA;
+  const kbLift=on&&kb>40&&!kbarKbDismissed&&focused;
   const kh=on?kbar.offsetHeight:0;
   document.documentElement.style.setProperty('--kbar-offset',((kbLift?kb:0)+kh)+'px');
   kbar.style.bottom=kbLift?kb+'px':'0px';
@@ -4626,8 +4651,8 @@ function syncKbarOffset(){
 function showKbar(on){
   document.getElementById('kbar').classList.toggle('on',on);
   document.body.classList.toggle('kbar-on',on);
-  if(!on){ kbarKbDismissed=false; kbarLastOrder=''; }
-  else refreshKbar(activeTA);
+  if(!on){ kbarKbDismissed=false; kbarLastOrder=''; clearTimeout(kbarRefreshT); }
+  else refreshKbar(activeTA,true);
   const f=document.getElementById('fab');
   if(on) f.classList.add('hide');
   else if(!document.getElementById('note-sheet').classList.contains('on')&&!document.getElementById('card-sheet').classList.contains('on')&&!document.getElementById('viz').classList.contains('on')) f.classList.remove('hide');
@@ -4635,14 +4660,22 @@ function showKbar(on){
 }
 if(window.visualViewport){
   const vv=window.visualViewport;
-  const adj=()=>{
+  let kbarVvLayoutT=0;
+  const adjOffset=()=>syncKbarOffset();
+  const adjLayout=()=>{
     syncKbarOffset();
-    if(document.body.classList.contains('kbar-on')&&activeTA&&activeTA.closest('.editor-area')){
-      fitSqlEditor(activeTA);
-      if(keyboardInset()>40) layoutSqlEditor();
+    if(kbarKbDismissed||document.activeElement!==activeTA||!document.body.classList.contains('kbar-on')) return;
+    if(!activeTA||!activeTA.closest('.editor-area')) return;
+    fitSqlEditor(activeTA);
+    if(keyboardInset()>40){
+      clearTimeout(kbarVvLayoutT);
+      kbarVvLayoutT=setTimeout(()=>{
+        if(!kbarKbDismissed&&document.activeElement===activeTA) layoutSqlEditor();
+      },90);
     }
   };
-  vv.addEventListener('resize',adj); vv.addEventListener('scroll',adj);
+  vv.addEventListener('resize',adjLayout);
+  vv.addEventListener('scroll',adjOffset);
 }
 
 /* ============================================================
