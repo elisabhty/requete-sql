@@ -106,7 +106,42 @@
 @keyframes vbFill{ from{ transform:scaleX(0); } to{ transform:scaleX(1); } }
 .grp-viz[data-paused="1"] .vb-dot.run i{ animation-play-state:paused; }
 
-/* --- 4. Mouvement réduit ---
+/* --- 5. Micro-interactions replay & paliers --- */
+.grp-viz.grp-rewind .grp-chip,
+.grp-viz.grp-rewind .sel-c,
+.grp-viz.grp-rewind .wc-strip{
+  transition:none!important;
+}
+.grp-viz.grp-replay-flash .grp-stage{
+  animation:grpReplayFlash .48s cubic-bezier(.32,.72,.28,1);
+}
+.grp-k.grp-k-pop{
+  animation:grpKPop .42s cubic-bezier(.32,1.35,.5,1);
+}
+.grp-desc.grp-desc-in{
+  animation:grpDescIn .36s ease;
+}
+.grp-replay.is-replaying{
+  pointer-events:none;
+  opacity:.72;
+  transform:scale(.97);
+}
+@keyframes grpReplayFlash{
+  0%{ opacity:.5; transform:scale(.985); }
+  55%{ opacity:1; transform:scale(1.008); }
+  100%{ opacity:1; transform:none; }
+}
+@keyframes grpKPop{
+  0%{ transform:scale(.94); }
+  45%{ transform:scale(1.04); }
+  100%{ transform:none; }
+}
+@keyframes grpDescIn{
+  from{ opacity:0; transform:translateY(5px); }
+  to{ opacity:1; transform:none; }
+}
+
+/* --- 6. Mouvement réduit ---
    L'autoplay respectait déjà prefers-reduced-motion, mais les transitions
    des vizzes se rejouaient quand même via « Revoir l'animation ». */
 @media (prefers-reduced-motion:reduce){
@@ -117,7 +152,10 @@
   .sql-viz .grp-chip,
   .sql-viz .grp-bucket,
   .vb-dot,
-  .vb-dot i{
+  .vb-dot i,
+  .grp-k.grp-k-pop,
+  .grp-desc.grp-desc-in,
+  .grp-viz.grp-replay-flash .grp-stage{
     transition:none!important;
     animation:none!important;
   }
