@@ -1,0 +1,170 @@
+/* ==========================================================================
+   ios-polish.css — Réglages UI/UX pour la mise en prod iOS
+   --------------------------------------------------------------------------
+   Chargé APRÈS le bloc <style> inline de index.html : c'est une couche
+   d'override volontairement isolée, pour que la revue reste lisible sans
+   avoir à differ 500 Ko de monolithe. À terme ces règles peuvent être
+   repliées dans le <style> principal.
+
+   Diagnostic établi en viewport iPhone (402 px de large, DPR 2).
+   ========================================================================== */
+
+
+/* --------------------------------------------------------------------------
+   1. BUG — Le tableau de résultats est amputé, sans moyen d'y accéder
+   --------------------------------------------------------------------------
+   Sur SELECT * FROM clients, .table-wrap mesure 560 px de scrollWidth pour
+   356 px de clientWidth, mais son overflow-x calculé vaut "hidden" : 204 px
+   de colonnes (fin des emails, toute la colonne date_inscription) étaient
+   physiquement inatteignables au doigt. Le scroll programmatique
+   fonctionnait, donc seule la règle CSS était en cause.
+   -------------------------------------------------------------------------- */
+/* .result-live .table-wrap porte un overflow: hidden plus spécifique dans le
+   <style> inline : il faut le viser explicitement, sinon le tableau de la
+   Console reste bloqué. */
+.table-wrap,
+.result-live .table-wrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  /* le scroll latéral ne déclenche pas le swipe-back iOS */
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.table-wrap::-webkit-scrollbar { display: none; }
+
+
+/* --------------------------------------------------------------------------
+   2. BUG — Le nom de la table disparaît dans la Console sur mobile
+   --------------------------------------------------------------------------
+   .db-tmain fait 189 px sur iPhone. Ses frères (.db-chev, .tk, .tc,
+   .db-thint) sont en flex: 0 0 auto et consomment 148 px + 32 px de gap :
+   .tn (flex: 0 1 auto; min-width: 0) se fait écraser à 0 px de large.
+   Résultat : les trois lignes affichaient « TABLE · 9 lig. · Colonnes › »
+   sans jamais nommer clients / commandes / produits. Bug invisible au-delà
+   de ~480 px, donc jamais vu en test desktop.
+   -------------------------------------------------------------------------- */
+.db-tmain .tn {
+  flex: 1 1 auto;
+  min-width: 6ch;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 520px) {
+  /* La ligne passe sur deux niveaux : le nom occupe toute la largeur,
+     les actions SELECT / Suppr. descendent en dessous. */
+  .db-trow { flex-wrap: wrap; row-gap: 6px; }
+  .db-trow .db-tmain { flex: 1 1 100%; min-height: 44px; }
+}
+
+
+/* --------------------------------------------------------------------------
+   3. Zoom automatique du clavier iOS sur l'éditeur SQL
+   --------------------------------------------------------------------------
+   Safari iOS zoome à la mise au point de tout champ dont la police est sous
+   16 px, et ne dézoome jamais : la textarea d'exercice (14 px) piégeait
+   l'utilisatrice dans une vue agrandie et décalée en plein exercice.
+   Ciblé via @supports pour ne rien changer sur desktop.
+   -------------------------------------------------------------------------- */
+@supports (-webkit-touch-callout: none) {
+  input,
+  select,
+  textarea { font-size: 16px !important; }
+}
+
+
+/* --------------------------------------------------------------------------
+   4. Cibles tactiles — stepper Leçon / Exercice / Quiz
+   --------------------------------------------------------------------------
+   Les trois onglets .ls-bar mesuraient 154 × 4 px : quatre pixels de
+   hauteur, contre 44 pt recommandés par Apple. Une navigation entière que
+   personne ne pouvait découvrir au doigt. Le trait visible reste identique
+   (dessiné en ::after), seule la zone tactile grandit.
+   -------------------------------------------------------------------------- */
+.ls-bars { margin: 0 0 8px; }
+
+.ls-bars .ls-bar {
+  position: relative;
+  height: 40px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* neutralise le fond plein hérité de .ls-bar.done / .ls-bar.on */
+.ls-bars .ls-bar.on,
+.ls-bars .ls-bar.done { background: transparent; }
+
+.ls-bars .ls-bar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 4px;
+  border-radius: 2px;
+  transform: translateY(-50%);
+  background: #e2e2ea;
+  transition: background .25s;
+}
+
+.ls-bars .ls-bar.on::after,
+.ls-bars .ls-bar.done::after { background: var(--accent); }
+
+
+/* --------------------------------------------------------------------------
+   5. Cibles tactiles — pastilles de la Console
+   --------------------------------------------------------------------------
+   Recensement sur l'écran Console : 19 contrôles sous 44 px, dont .tb
+   « Suppr. » à 26 px de haut — une action destructive plus petite que la
+   cible minimale. On étend la zone tactile via un pseudo-élément
+   transparent centré : aucun changement visuel, aucun décalage de mise en
+   page, et l'extension reste verticale pour ne pas voler les taps des
+   boutons voisins.
+   -------------------------------------------------------------------------- */
+@media (pointer: coarse) {
+  .tb,
+  .db-pill,
+  .chip,
+  .title-pill { position: relative; }
+
+  .tb::before,
+  .db-pill::before,
+  .chip::before,
+  .title-pill::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    min-width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+
+  /* .home-back plafonnait à 34 px */
+  .home-back { padding-bottom: 12px; }
+}
+
+
+/* --------------------------------------------------------------------------
+   6. Contraste — --ink-3 sous le seuil WCAG AA
+   --------------------------------------------------------------------------
+   #8E8E93 sur blanc ne donne que 3,26:1, là où AA exige 4,5:1. Cette
+   variable porte pourtant beaucoup de texte utile : sous-titres de leçons,
+   libellés de la tab bar, en-têtes de colonnes. #6E6E73 monte à 5,07:1 sur
+   blanc et 4,86:1 sur --bg, sans changer l'ambiance visuelle. Les autres
+   tokens (--ink-2, --accent, --success) sont déjà tous au-dessus de 5:1.
+   -------------------------------------------------------------------------- */
+:root { --ink-3: #6e6e73; }
+
+
+/* --------------------------------------------------------------------------
+   7. Divers iOS
+   --------------------------------------------------------------------------
+   Empêche Safari iOS de regrossir le texte à la rotation en paysage.
+   -------------------------------------------------------------------------- */
+html { -webkit-text-size-adjust: 100%; }
