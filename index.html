@@ -230,6 +230,8 @@
   .lesson-lead::before{display:none}
   .lesson-lead .h2-eye{margin-bottom:12px}
   .lesson-lead .situation-body{font-size:15.5px;line-height:1.65;color:var(--ink);margin:0}
+  .lesson-lead .situation-body p{margin:0 0 12px}
+  .lesson-lead .situation-body p:last-child{margin-bottom:0}
   .lesson-lead .situation-body code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);color:var(--accent);padding:1px 6px;border-radius:6px;font-weight:600}
   .concept-page{display:flex;flex-direction:column;gap:16px;margin:0}
   .concept-page>h3{font-size:22px;font-weight:800;letter-spacing:-.4px;line-height:1.2;margin:0 2px 18px;color:var(--ink)}
@@ -2456,7 +2458,7 @@ const MODULES = [
   indice:"Ajoute un filtre après <code>FROM clients</code> pour garder uniquement les lignes où <code>ville</code> vaut <code>'Paris'</code>.",
   richLesson:true, earlyDemo:true },
 { id:5, titre:"Comparer des nombres", résumé:"Filtrer avec un seuil numérique",
-  situation:"Dans la table <code>produits</code>, 8 produits sont enregistrés avec leur prix. Tu prépares une offre premium et tu veux garder uniquement les produits dont le prix dépasse 25 €.<br><br>Pour cela, tu compares la colonne <code>prix</code> au nombre 25.",
+  situation:"Dans la table <code>produits</code>, 8 produits sont enregistrés avec leur prix. Tu prépares une offre premium et tu veux garder uniquement les produits dont le prix dépasse 25 €, en comparant la colonne <code>prix</code> au nombre 25.",
     studio:{problem:{eye:"",title:"Comparer un nombre à un seuil",
       body:"Tu sais déjà filtrer des lignes avec <code>WHERE</code>. Pour filtrer selon un nombre, tu peux utiliser des opérateurs de comparaison.<br><br><code>prix &gt; 25</code> signifie : le prix doit être strictement supérieur à 25.",
       demo:"SELECT nom, prix\nFROM produits\nWHERE prix > 25;"},
@@ -5477,6 +5479,12 @@ function renderVizShell(key){
     </div>
   </div>`;
 }
+function situationBodyHtml(s){
+  if(!s)return '';
+  const parts=String(s).split(/<br\s*\/?>\s*<br\s*\/?>/i);
+  if(parts.length<2) return `<p>${s}</p>`;
+  return parts.map(p=>`<p>${p.trim()}</p>`).join('');
+}
 function renderStudio(l){
   const s=l.studio;
   if(!s)return l.concept||'';
@@ -5719,7 +5727,7 @@ function renderLessonFlow(){
           <div class="l-kicker">Cours</div><h1>${l.titre}</h1>
           <div class="concept-block lesson-lead">
             <h2><span class="h2-eye">Situation</span></h2>
-            <div class="situation-body">${l.situation}</div>
+            <div class="situation-body">${situationBodyHtml(l.situation)}</div>
           </div>
           ${lessonRichBlocks(l)}
           <div class="lesson-concept-card">${conceptHtml}</div>
