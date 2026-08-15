@@ -3338,7 +3338,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-15-or-msg';
+const APP_VERSION='2026-08-15-editor-jump';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -4116,26 +4116,43 @@ function highlight(code){
 function fitSqlEditor(ta){
   if(typeof ta==='string') ta=document.getElementById(ta);
   if(!ta) return;
+  const pre=ta.parentElement&&ta.parentElement.querySelector('pre');
+  const setH=(h,max,overflow)=>{
+    ta.style.maxHeight=max?max+'px':'none';
+    ta.style.height=h+'px';
+    ta.style.overflowY=overflow;
+    if(pre) pre.style.height=h+'px';
+  };
   if(ta.closest('.ne-sql-shell')){
     const maxH=Math.min(220, Math.round(window.innerHeight*0.4));
-    ta.style.maxHeight=maxH+'px';
     ta.style.height='auto';
     const h=Math.min(maxH, Math.max(104, ta.scrollHeight));
-    ta.style.height=h+'px';
-    ta.style.overflowY='auto';
-    const pre=ta.parentElement&&ta.parentElement.querySelector('pre');
-    if(pre) pre.style.height=h+'px';
+    setH(h,maxH,'auto');
+    return;
+  }
+  if(ta.closest('.xf-editor')){
+    const maxH=Math.min(240, Math.round(window.innerHeight*0.42));
+    ta.style.height='auto';
+    const h=Math.min(maxH, Math.max(96, ta.scrollHeight));
+    setH(h,maxH,h>=maxH?'auto':'hidden');
     return;
   }
   ta.style.maxHeight='none';
   ta.style.overflow='hidden';
   ta.style.height='auto';
-  ta.style.height=Math.max(104,ta.scrollHeight)+'px';
+  const h=Math.max(104,ta.scrollHeight);
+  setH(h,null,'hidden');
+}
+function keyboardInset(){
+  const vv=window.visualViewport;
+  return vv?Math.max(0,window.innerHeight-vv.height-vv.offsetTop):0;
 }
 function revealSqlEditor(ta){
-  const shell=ta.closest('.editor-shell')||ta;
+  if(ta.closest('.xf-editor')) return;
+  const shell=ta.closest('.editor-shell')||ta.closest('.editor-area');
+  if(!shell) return;
   const scroller=ta.closest('.screen');
-  if(!scroller) return;
+  if(!scroller||keyboardInset()<40) return;
   const vv=window.visualViewport;
   const visTop=vv?vv.offsetTop:0;
   const nav=scroller.querySelector('.navbar');
@@ -4147,7 +4164,7 @@ function ensureRunRowVisible(ta){
   const host=ta.closest('.ls-main')||ta.closest('#scr-console');
   const run=host&&host.querySelector('.run-row');
   const scroller=ta.closest('.screen');
-  if(!run||!scroller) return;
+  if(!run||!scroller||keyboardInset()<40) return;
   const vv=window.visualViewport;
   const visBottom=vv?vv.offsetTop+vv.height:scroller.getBoundingClientRect().bottom;
   const kbar=document.getElementById('kbar');
@@ -4161,8 +4178,9 @@ function ensureRunRowVisible(ta){
 function layoutSqlEditor(){
   const ta=activeTA;
   if(!ta||!ta.closest('.editor-area')) return;
-  revealSqlEditor(ta);
   fitSqlEditor(ta);
+  if(keyboardInset()<40) return;
+  revealSqlEditor(ta);
   ensureRunRowVisible(ta);
 }
 function setupEditor(taId,hlId){
@@ -4336,11 +4354,10 @@ function syncKbarOffset(){
   const kbar=document.getElementById('kbar');
   if(!kbar) return;
   const on=kbar.classList.contains('on');
-  const vv=window.visualViewport;
-  const kb=vv?Math.max(0,window.innerHeight-vv.height-vv.offsetTop):0;
-  const kh=on?kbar.offsetHeight:0;
-  document.documentElement.style.setProperty('--kbar-offset',(on?kb+kh:0)+'px');
-  kbar.style.bottom=on?kb+'px':'0px';
+  const kb=keyboardInset();
+  const kh=(on&&kb>40)?kbar.offsetHeight:0;
+  document.documentElement.style.setProperty('--kbar-offset',(kb+kh)+'px');
+  kbar.style.bottom=on&&kb>0?kb+'px':'0px';
 }
 function showKbar(on){
   document.getElementById('kbar').classList.toggle('on',on);
@@ -4349,12 +4366,16 @@ function showKbar(on){
   if(on) f.classList.add('hide');
   else if(!document.getElementById('note-sheet').classList.contains('on')&&!document.getElementById('card-sheet').classList.contains('on')&&!document.getElementById('viz').classList.contains('on')) f.classList.remove('hide');
   syncKbarOffset();
-  if(on) requestAnimationFrame(layoutSqlEditor);
-  else if(activeTA&&activeTA.closest('.editor-area')) fitSqlEditor(activeTA);
 }
 if(window.visualViewport){
   const vv=window.visualViewport;
-  const adj=()=>{syncKbarOffset(); if(document.body.classList.contains('kbar-on')&&activeTA&&activeTA.closest('.editor-area')) fitSqlEditor(activeTA);};
+  const adj=()=>{
+    syncKbarOffset();
+    if(document.body.classList.contains('kbar-on')&&activeTA&&activeTA.closest('.editor-area')){
+      fitSqlEditor(activeTA);
+      if(keyboardInset()>40) layoutSqlEditor();
+    }
+  };
   vv.addEventListener('resize',adj); vv.addEventListener('scroll',adj);
 }
 
