@@ -223,22 +223,43 @@
   /* L’observer est porté par le root : plus de disconnect() croisé. */
   function armViz(root) {
     if (root._grpObs) { root._grpObs.disconnect(); root._grpObs = null; }
+    if (root._grpDwell) { clearTimeout(root._grpDwell); root._grpDwell = 0; }
     if (prefersReduceMotion()) return;
 
     var scr = document.getElementById("scr-lesson");
+    /* L’animation ne demarre qu’apres 2 s d’immobilite sur le cadre. */
+    var DWELL = 2000;
+    var start = function () {
+      if (root._grpDwell) { clearTimeout(root._grpDwell); root._grpDwell = 0; }
+      if (scr && root._grpRearm) { scr.removeEventListener("scroll", root._grpRearm); root._grpRearm = null; }
+      root._grpArmed = false;
+      if (root._grpObs) { root._grpObs.disconnect(); root._grpObs = null; }
+      if (!root.isConnected) return;
+      havingGrpSetPhase(root, 0, { animate: false });
+      playViz(root);
+    };
     if (!scr || typeof IntersectionObserver === "undefined") {
-      root._grpTimer = setTimeout(function () { playViz(root); }, 220);
+      root._grpTimer = setTimeout(function () { playViz(root); }, DWELL);
       return;
     }
+    var rearm = function () {
+      if (!root._grpArmed) return;
+      if (root._grpDwell) clearTimeout(root._grpDwell);
+      root._grpDwell = setTimeout(start, DWELL);
+    };
+    root._grpRearm = rearm;
     root._grpObs = new IntersectionObserver(function (entries) {
       var visible = entries.some(function (e) {
         return e.isIntersecting && e.intersectionRatio >= 0.25;
       });
-      if (!visible) return;
-      root._grpObs.disconnect();
-      root._grpObs = null;
-      havingGrpSetPhase(root, 0, { animate: false });
-      playViz(root);
+      if (visible) {
+        if (!root._grpArmed) { root._grpArmed = true; scr.addEventListener("scroll", rearm, { passive: true }); }
+        rearm();
+      } else {
+        root._grpArmed = false;
+        if (root._grpDwell) { clearTimeout(root._grpDwell); root._grpDwell = 0; }
+        scr.removeEventListener("scroll", rearm);
+      }
     }, { root: scr, threshold: [0.25, 0.4] });
     root._grpObs.observe(root);
   }
