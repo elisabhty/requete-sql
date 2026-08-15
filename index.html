@@ -5341,11 +5341,9 @@ function lessonRetenirText(l){
     return [
       'WHERE s’applique avant le GROUP BY : il filtre les lignes individuelles, pas les résultats agrégés.',
       'Donc pas de COUNT(*), SUM(), AVG(), etc. dans WHERE.',
-      '',
       'HAVING s’applique après le GROUP BY : il filtre les groupes formés et peut utiliser des agrégats (COUNT(*), SUM(), AVG(), etc.).',
-      '',
       'En résumé : SELECT s’écrit en premier, mais s’exécute presque en dernier.'
-    ].join('\n');
+    ].join('\n\n');
   }
   const piege=l.piege;
   if(piege) return [stripNoteHtml(piege.t), stripNoteHtml(piege.p)].filter(Boolean).join('\n\n');
@@ -5359,10 +5357,18 @@ function lessonRetenirText(l){
 function noteFromRetenir(){
   const l=current;
   if(!l){ startNewNote(); return; }
+  const card=document.querySelector('#scr-lesson .retenir-end');
+  let txt='';
+  if(card){
+    const clone=card.cloneNode(true);
+    clone.querySelectorAll('.coda-note,.retenir-head,.coda-ico').forEach(el=>el.remove());
+    txt=stripNoteHtml(clone.innerHTML);
+  }
+  if(!txt) txt=lessonRetenirText(l);
   openNote(null,{
     ctx:currentContext()+' · À retenir',
     sql:'',
-    txt:lessonRetenirText(l)
+    txt
   });
 }
 function renderVizShell(key){
