@@ -755,6 +755,9 @@
   .exframe .xf-expect.bad{color:var(--danger)}
   .exframe .xf-expect.good{color:#0F766E}
   .exframe .ex-code{border-radius:0;padding:16px 14px;font-size:12px;line-height:1.6;white-space:pre-wrap;word-break:break-word;overflow:visible;max-width:100%;box-sizing:border-box}
+  .exframe .editor-area{font-size:12px;line-height:1.6;background:var(--code-bg)}
+  .exframe .editor-area pre,.exframe .editor-area textarea{padding:16px 14px;font-size:inherit;line-height:inherit}
+  .exframe .editor-area textarea{min-height:72px}
   .exframe .xf-actions{padding:16px 16px;background:var(--surface);border-top:1px solid var(--line)}
   .exframe .xf-run{width:100%;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:14px 16px;font-family:var(--ui);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 18px -10px rgba(91,91,214,.75);transition:transform .15s ease,opacity .15s ease}
   .run-ico,.xf-run-ico{width:20px;height:20px;flex:none;display:block;margin:0 2px 0 0;transition:transform .15s ease}
@@ -3334,7 +3337,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-13-split-in-between';
+const APP_VERSION='2026-08-15-teste-editable';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -5001,6 +5004,8 @@ function sqlFromCopyBtn(btn){
   if(ed){ const ta=document.getElementById(ed); return ta?ta.value:''; }
   const frame=btn.closest('.exframe');
   if(frame){
+    const ta=frame.querySelector('#ed-teste');
+    if(ta) return ta.value;
     const run=frame.querySelector('.xf-run');
     const attr=run&&run.getAttribute('data-sql');
     if(attr) return attr;
@@ -5615,8 +5620,9 @@ function lessonRichFooter(l){
   return `
     <div class="sect-label"><i>✓</i><span>Teste</span></div>
     <div class="exframe ${tone?`tone-${tone}`:''}" ${variants?`data-variants="${variantsJson}" data-vi="0"`:''}>
-      <div class="xf-head"><span class="xf-name">${file}</span><div class="xf-tools">${switcher}${sqlCopyBtn()}</div></div>
-      <div class="ex-code">${highlight(demoSql)}</div>
+      <div class="xf-head"><span class="xf-name">${file}</span><div class="xf-tools">${switcher}${sqlCopyBtn('data-ed="ed-teste"')}</div></div>
+      <div class="editor-area xf-editor"><pre><code id="hl-teste"></code></pre>
+      <textarea id="ed-teste" spellcheck="false" autocapitalize="off" autocorrect="off">${esc(demoSql)}</textarea></div>
       <div class="xf-actions">
         <button type="button" class="xf-run" data-sql="${sql}" onclick="runExemple(this)">${XF_RUN_ICO}Exécuter</button>
       </div>
@@ -5636,8 +5642,15 @@ function switchTesteVariant(btn){
     b.classList.toggle('on',on);
     b.setAttribute('aria-selected',on?'true':'false');
   });
-  const code=frame.querySelector('.ex-code');
-  if(code) code.innerHTML=highlight(v.sql);
+  const ta=frame.querySelector('#ed-teste');
+  if(ta){
+    ta.value=v.sql;
+    syncHL('ed-teste','hl-teste');
+    fitSqlEditor(ta);
+  }else{
+    const code=frame.querySelector('.ex-code');
+    if(code) code.innerHTML=highlight(v.sql);
+  }
   const run=frame.querySelector('.xf-run');
   if(run) run.setAttribute('data-sql',v.sql);
   const expect=frame.querySelector('.xf-expect');
@@ -5649,7 +5662,8 @@ function switchTesteVariant(btn){
 function runExemple(btn){
   const frame=btn.closest('.exframe');
   const host=frame&&frame.querySelector('.xf-result');
-  const sql=btn.getAttribute('data-sql');
+  const ta=frame&&frame.querySelector('#ed-teste');
+  const sql=(ta?ta.value:btn.getAttribute('data-sql')||'').trim();
   if(!host||!sql)return;
   btn.classList.add('running');
   btn.disabled=true;
@@ -5862,7 +5876,15 @@ function renderLessonFlow(){
   }
   if(lessonStep===2) renderValidation();
   if(lessonStep===3) requestAnimationFrame(revealBravoCard);
-  if(lessonStep===0){ buildSommaire(); initOrderRappelAnim(); }
+  if(lessonStep===0){
+    buildSommaire();
+    initOrderRappelAnim();
+    const taTeste=document.getElementById('ed-teste');
+    if(taTeste){
+      setupEditor('ed-teste','hl-teste');
+      syncHL('ed-teste','hl-teste');
+    }
+  }
   const fab=document.getElementById('fab');
   if(fab) fab.classList.toggle('hide', lessonStep===0||lessonStep===3);
   mountSqlCopyButtons(document.getElementById('lesson-body'));
