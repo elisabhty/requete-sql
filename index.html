@@ -755,9 +755,9 @@
   .exframe .xf-expect.bad{color:var(--danger)}
   .exframe .xf-expect.good{color:#0F766E}
   .exframe .ex-code{border-radius:0;padding:16px 14px;font-size:12px;line-height:1.6;white-space:pre-wrap;word-break:break-word;overflow:visible;max-width:100%;box-sizing:border-box}
-  .exframe .editor-area{font-size:12px;line-height:1.6;background:var(--code-bg)}
-  .exframe .editor-area pre,.exframe .editor-area textarea{padding:16px 14px;font-size:inherit;line-height:inherit}
-  .exframe .editor-area textarea{min-height:72px}
+  .exframe .xf-editor{background:var(--code-bg);font-size:12px;line-height:1.6}
+  .exframe .xf-editor pre,.exframe .xf-editor textarea{padding:16px 14px;font-size:12px;line-height:1.6}
+  .exframe .xf-editor textarea{min-height:96px;max-height:min(240px,42vh);overflow-y:auto!important;-webkit-overflow-scrolling:touch;touch-action:manipulation}
   .exframe .xf-actions{padding:16px 16px;background:var(--surface);border-top:1px solid var(--line)}
   .exframe .xf-run{width:100%;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:14px 16px;font-family:var(--ui);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 18px -10px rgba(91,91,214,.75);transition:transform .15s ease,opacity .15s ease}
   .run-ico,.xf-run-ico{width:20px;height:20px;flex:none;display:block;margin:0 2px 0 0;transition:transform .15s ease}
@@ -3337,7 +3337,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-15-teste-editable';
+const APP_VERSION='2026-08-15-teste-editor';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -4181,6 +4181,10 @@ function persistEditor(taId){
     const s=state.lessons[current.id]||(state.lessons[current.id]={level:0});
     s.draft=ta.value; save();
   }
+  else if(taId==='ed-teste'&&current&&mode==='lesson'){
+    const s=state.lessons[current.id]||(state.lessons[current.id]={level:0});
+    s.testeDraft=ta.value; save();
+  }
 }
 function syncHL(a,b){const ta=document.getElementById(a);document.getElementById(b).innerHTML=highlight(ta.value);const pre=ta&&ta.parentElement?ta.parentElement.querySelector('pre'):null;if(pre)pre.scrollTop=ta.scrollTop;syncEditorClear(a);}
 function execQuery(sql,d){const t0=performance.now();const res=(d||activeDb()||db).exec(sql);return{res,ms:performance.now()-t0};}
@@ -5004,7 +5008,7 @@ function sqlFromCopyBtn(btn){
   if(ed){ const ta=document.getElementById(ed); return ta?ta.value:''; }
   const frame=btn.closest('.exframe');
   if(frame){
-    const ta=frame.querySelector('#ed-teste');
+    const ta=frame.querySelector('.xf-sql');
     if(ta) return ta.value;
     const run=frame.querySelector('.xf-run');
     const attr=run&&run.getAttribute('data-sql');
@@ -5605,6 +5609,20 @@ function lessonDemoBlocks(l){
     </div>`:'';
   return `${lessonRichFooter(l)}${anat?`<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`:''}${order}${piegeBlock(l)}${reflexBlock(l)}`;
 }
+function testeEditorHtml(){
+  return `<div class="editor-area xf-editor"><pre><code id="hl-teste"></code></pre>
+    <textarea id="ed-teste" class="xf-sql" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="Modifie et exécute la requête…"></textarea></div>`;
+}
+function initTesteEditor(){
+  const ta=document.getElementById('ed-teste');
+  if(!ta)return;
+  const frame=ta.closest('.exframe');
+  const s=current&&state.lessons[current.id];
+  const draft=s&&s.testeDraft;
+  const initial=draft!=null?draft:(frame&&frame.dataset.testeSql)||'';
+  ta.value=initial;
+  setupEditor('ed-teste','hl-teste');
+}
 function lessonRichFooter(l){
   const variants=Array.isArray(l.testeVariants)&&l.testeVariants.length?l.testeVariants:null;
   const active=variants?variants[0]:null;
@@ -5619,12 +5637,11 @@ function lessonRichFooter(l){
   const variantsJson=variants?escAttr(JSON.stringify(variants)):'';
   return `
     <div class="sect-label"><i>✓</i><span>Teste</span></div>
-    <div class="exframe ${tone?`tone-${tone}`:''}" ${variants?`data-variants="${variantsJson}" data-vi="0"`:''}>
+    <div class="exframe ${tone?`tone-${tone}`:''}" data-teste-sql="${sql}" ${variants?`data-variants="${variantsJson}" data-vi="0"`:''}>
       <div class="xf-head"><span class="xf-name">${file}</span><div class="xf-tools">${switcher}${sqlCopyBtn('data-ed="ed-teste"')}</div></div>
-      <div class="editor-area xf-editor"><pre><code id="hl-teste"></code></pre>
-      <textarea id="ed-teste" spellcheck="false" autocapitalize="off" autocorrect="off">${esc(demoSql)}</textarea></div>
+      ${testeEditorHtml()}
       <div class="xf-actions">
-        <button type="button" class="xf-run" data-sql="${sql}" onclick="runExemple(this)">${XF_RUN_ICO}Exécuter</button>
+        <button type="button" class="xf-run" onclick="runExemple(this)">${XF_RUN_ICO}Exécuter</button>
       </div>
       <div class="xf-result" hidden aria-live="polite"></div></div>`;
 }
@@ -5635,6 +5652,7 @@ function switchTesteVariant(btn){
   const i=+btn.dataset.i;
   const v=variants[i]; if(!v)return;
   frame.dataset.vi=String(i);
+  frame.dataset.testeSql=v.sql;
   frame.classList.remove('tone-bad','tone-good');
   if(v.tone) frame.classList.add('tone-'+v.tone);
   frame.querySelectorAll('.xf-sw').forEach(b=>{
@@ -5642,17 +5660,16 @@ function switchTesteVariant(btn){
     b.classList.toggle('on',on);
     b.setAttribute('aria-selected',on?'true':'false');
   });
-  const ta=frame.querySelector('#ed-teste');
+  const ta=frame.querySelector('.xf-sql');
   if(ta){
     ta.value=v.sql;
     syncHL('ed-teste','hl-teste');
     fitSqlEditor(ta);
-  }else{
-    const code=frame.querySelector('.ex-code');
-    if(code) code.innerHTML=highlight(v.sql);
+    if(current&&mode==='lesson'){
+      const st=state.lessons[current.id]||(state.lessons[current.id]={level:0});
+      st.testeDraft=v.sql; save();
+    }
   }
-  const run=frame.querySelector('.xf-run');
-  if(run) run.setAttribute('data-sql',v.sql);
   const expect=frame.querySelector('.xf-expect');
   if(expect) expect.remove();
   const host=frame.querySelector('.xf-result');
@@ -5662,8 +5679,8 @@ function switchTesteVariant(btn){
 function runExemple(btn){
   const frame=btn.closest('.exframe');
   const host=frame&&frame.querySelector('.xf-result');
-  const ta=frame&&frame.querySelector('#ed-teste');
-  const sql=(ta?ta.value:btn.getAttribute('data-sql')||'').trim();
+  const ta=frame&&frame.querySelector('.xf-sql');
+  const sql=(ta&&ta.value.trim())||btn.getAttribute('data-sql')||'';
   if(!host||!sql)return;
   btn.classList.add('running');
   btn.disabled=true;
@@ -5876,15 +5893,7 @@ function renderLessonFlow(){
   }
   if(lessonStep===2) renderValidation();
   if(lessonStep===3) requestAnimationFrame(revealBravoCard);
-  if(lessonStep===0){
-    buildSommaire();
-    initOrderRappelAnim();
-    const taTeste=document.getElementById('ed-teste');
-    if(taTeste){
-      setupEditor('ed-teste','hl-teste');
-      syncHL('ed-teste','hl-teste');
-    }
-  }
+  if(lessonStep===0){ buildSommaire(); initOrderRappelAnim(); initTesteEditor(); }
   const fab=document.getElementById('fab');
   if(fab) fab.classList.toggle('hide', lessonStep===0||lessonStep===3);
   mountSqlCopyButtons(document.getElementById('lesson-body'));
