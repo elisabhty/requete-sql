@@ -81,12 +81,16 @@
     wrap.addEventListener("click", function (e) {
       var d = e.target.closest(".vb-dot");
       if (!d) return;
-      stopHavingGrpViz(root);
+      stopViz(root);
       root.dataset.playing = "0";
       root.dataset.paused = "0";
       root.dataset.seen = "1";
-      havingGrpSetPhase(root, parseInt(d.dataset.i, 10));
+      var phase = parseInt(d.dataset.i, 10);
+      rewindViz(root);
+      havingGrpSetPhase(root, phase, { animate: false });
+      paintSteps(root, phase, 0, false, true);
       havingGrpSyncControls(root);
+      if (navigator.vibrate) navigator.vibrate(6);
     });
     bar.appendChild(wrap);
 
@@ -95,6 +99,45 @@
       r.style.setProperty("--d", (i * STAGGER) + "ms");
       r.style.setProperty("--d2", Math.round(i * STAGGER * 0.4) + "ms");
     });
+  }
+
+  function rewindViz(root) {
+    root.classList.add("grp-rewind");
+    [].forEach.call(root.querySelectorAll(".grp-chip, .sel-c, .wc-strip"), function (el) {
+      el.style.animation = "none";
+    });
+    void root.offsetWidth;
+    [].forEach.call(root.querySelectorAll(".grp-chip, .sel-c, .wc-strip"), function (el) {
+      el.style.animation = "";
+    });
+    root.classList.remove("grp-rewind");
+  }
+
+  function flashReplay(root) {
+    if (prefersReduceMotion()) return;
+    root.classList.add("grp-replay-flash");
+    var btn = root.querySelector(".grp-replay");
+    if (btn) btn.classList.add("is-replaying");
+    setTimeout(function () {
+      root.classList.remove("grp-replay-flash");
+      if (btn) btn.classList.remove("is-replaying");
+    }, 520);
+  }
+
+  function pulseVizBar(root) {
+    if (prefersReduceMotion()) return;
+    var k = root.querySelector(".grp-k");
+    var d = root.querySelector(".grp-desc");
+    if (k) {
+      k.classList.remove("grp-k-pop");
+      void k.offsetWidth;
+      k.classList.add("grp-k-pop");
+    }
+    if (d) {
+      d.classList.remove("grp-desc-in");
+      void d.offsetWidth;
+      d.classList.add("grp-desc-in");
+    }
   }
 
   function paintSteps(root, phase, dur, running, fill) {
@@ -176,6 +219,7 @@
   function playViz(root) {
     stopViz(root);
     root.dataset.paused = "0";
+    root.dataset.seen = "0";
     var last = sqlVizPhases(root).length - 1;
     if (prefersReduceMotion()) {
       root.dataset.playing = "0";
@@ -184,8 +228,11 @@
       havingGrpSyncControls(root);
       return;
     }
-    var from = parseInt(root.dataset.phase || "0", 10);
-    havingGrpSetPhase(root, 0, { animate: from > 0 });
+    flashReplay(root);
+    rewindViz(root);
+    havingGrpSetPhase(root, 0, { animate: false });
+    paintSteps(root, 0, 0, false, false);
+    havingGrpSyncControls(root);
     continueViz(root, 0);
   }
 
@@ -265,6 +312,12 @@
   }
 
   /* ---------- branchements ---------- */
+  var _setPhase = havingGrpSetPhase;
+  havingGrpSetPhase = function (root, phase, opts) {
+    _setPhase(root, phase, opts);
+    if (!root.classList.contains("grp-rewind")) pulseVizBar(root);
+  };
+
   var _layout = layoutSqlViz;
   layoutSqlViz = function (root, phase, opts) {
     _layout.apply(this, arguments);
