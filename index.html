@@ -2481,25 +2481,29 @@ const MODULES = [
   indice:"Filtre sur la colonne <code>prix</code>. Comme la consigne dit strictement supérieur à 25, choisis l'opérateur qui exclut 25 et écris le nombre sans guillemets.",
   richLesson:true, earlyDemo:true },
 { id:6, titre:"AND / OR", résumé:"Combiner des conditions",
-  situation:"Dans la table clients, tu veux cibler les personnes qui habitent à Paris et qui ont plus de 35 ans. Une seule condition ne suffit plus : il faut en combiner plusieurs avec <code>AND</code> ou <code>OR</code>.",
-    studio:{problem:{eye:"",title:"AND ajoute une deuxième condition.",
-      body:"Tu sais déjà filtrer avec <code>WHERE</code>. Avec <code>AND</code>, tu peux ajouter une deuxième condition. Une ligne reste dans le résultat seulement si les deux conditions sont vraies. Dans la table clients, 3 personnes habitent à Paris : Sophie, Nathan et Léa. Si tu ajoutes <code>AND age &gt; 35</code>, seule Léa respecte encore les deux conditions."},
-    vs:{bad:{tag:"✕ Une seule condition",sql:"SELECT nom, ville, age FROM clients\nWHERE ville = 'Paris';",out:"3 lignes : Sophie 34 ans, Nathan 31 ans, Léa 38 ans",
+  situation:"Dans la table clients, tu veux cibler des personnes selon plusieurs critères. Avec <code>AND</code> et <code>OR</code>, tu peux combiner plusieurs conditions dans un même <code>WHERE</code>.",
+    studio:{problem:{eye:"",title:"Combiner deux conditions",
+      body:"<code>AND</code> signifie que les deux conditions doivent être vraies.",
+      demo:"SELECT nom, ville, age\nFROM clients\nWHERE ville = 'Paris' AND age > 35;",
+      tail:"3 clients habitent à Paris : Sophie, Nathan et Léa. Mais seule Léa, 38 ans, habite à Paris et a plus de 35 ans."},
+    vs:{bad:{tag:"✕ Avec une seule condition",sql:"SELECT nom, ville, age FROM clients\nWHERE ville = 'Paris';",out:"3 lignes : Sophie, Nathan et Léa",
             code:"SELECT nom, ville, age\nFROM clients\n<span class=\"vs-line bad\">WHERE ville = 'Paris'</span>;"},
-        good:{tag:"✓ Avec AND",sql:"SELECT nom, ville, age FROM clients\nWHERE ville = 'Paris' AND age > 35;",out:"1 ligne : Léa, Paris, 38 ans",
+        good:{tag:"✓ Avec AND",sql:"SELECT nom, ville, age FROM clients\nWHERE ville = 'Paris' AND age > 35;",out:"1 ligne : Léa, 38 ans",
             code:"SELECT nom, ville, age\nFROM clients\n<span class=\"vs-line good\">WHERE ville = 'Paris' AND age &gt; 35</span>;"}},
-    point:"Avec <code>WHERE ville = 'Paris'</code>, 3 lignes restent : Sophie, Nathan et Léa. En ajoutant <code>AND age &gt; 35</code>, chaque ligne doit maintenant respecter deux conditions : habiter à Paris et avoir plus de 35 ans.<br>Sophie — Paris ✓ — 34 ans ✕<br>Nathan — Paris ✓ — 31 ans ✕<br>Léa — Paris ✓ — 38 ans ✓<br>Seule Léa respecte les deux conditions.",
-    why:{eye:"",title:"AND resserre le résultat.",
-      body:"Avec <code>AND</code>, ajouter une condition rend le filtre plus précis. Une ligne doit passer le premier test et le second pour rester dans le résultat. Ici, on passe donc de 3 clients parisiens à une seule cliente qui habite à Paris et a plus de 35 ans : Léa."},
+    why:{eye:"",title:"Pourquoi une seule ligne ?",
+      body:"Avec <code>AND</code>, chaque ligne doit respecter les deux conditions :",
+      extra:`<div class="agg-reflex"><ul class="agg-list"><li>Sophie → Paris ✓ — plus de 35 ans ✕</li><li>Nathan → Paris ✓ — plus de 35 ans ✕</li><li>Léa → Paris ✓ — plus de 35 ans ✓</li></ul></div><p>Seule Léa passe les deux tests.</p>`},
+    or:{title:"Et avec OR ?",
+      body:"<code>OR</code> fonctionne différemment : une seule des conditions peut suffire.<br><br><code>WHERE ville = 'Paris' OR ville = 'Lyon'</code><br><br>La ligne est gardée si le client habite à Paris ou à Lyon.<br><br><code>AND</code> demande donc les deux conditions. <code>OR</code> en demande au moins une."},
     viz:"andor",
-    reflex:{a:{k:"AND",t:"les deux conditions doivent être vraies"},
-      b:{k:"OR",t:"au moins une des deux conditions doit être vraie"},
-      note:"<code>AND</code> resserre le résultat. <code>OR</code> l’élargit : par exemple, <code>ville = 'Paris' OR ville = 'Lyon'</code> garde les clients qui habitent dans l’une de ces deux villes."}},
-  anatomie:[{tok:"WHERE ville = 'Paris'",txt:"Première condition : la ligne doit correspondre à Paris."},{tok:"AND",txt:"Relie les deux conditions et exige qu’elles soient toutes les deux vraies."},{tok:"age > 35",plain:1,txt:"Deuxième condition : l’âge doit être strictement supérieur à 35."}],
+    reflex:{a:{k:"AND",t:"condition 1 <b>et</b> condition 2 doivent être vraies"},
+      b:{k:"OR",t:"condition 1 <b>ou</b> condition 2 doit être vraie"},
+      note:"En général, <code>AND</code> resserre le résultat, tandis que <code>OR</code> l’élargit."}},
+  anatomie:[{tok:"WHERE ville = 'Paris'",txt:"première condition"},{tok:"AND",txt:"exige que les deux conditions soient vraies"},{tok:"age > 35",plain:1,txt:"deuxième condition"}],
   exemple:"SELECT nom, ville, age FROM clients WHERE ville = 'Paris' AND age > 35;",
   attendu:"<b>1 ligne</b> : Léa, 38 ans, car elle habite à Paris et a plus de 35 ans.",
-  retenir:"<code>AND</code> : les deux conditions doivent être vraies. <code>OR</code> : au moins une des deux doit être vraie. <code>AND</code> resserre le résultat, <code>OR</code> l’élargit.",
-  piege:{t:"Écrire une condition incomplète",p:"Après <code>AND</code> ou <code>OR</code>, écris une nouvelle condition complète.<br>Correct : <code>ville = 'Paris' OR ville = 'Lyon'</code><br>Incorrect : <code>ville = 'Paris' OR 'Lyon'</code><br>La colonne <code>ville</code> doit être répétée."},
+  retenir:"<code>AND</code> garde une ligne si toutes les conditions sont vraies. <code>OR</code> garde une ligne si au moins une condition est vraie.<br><br>Avec <code>ville = 'Paris' AND age &gt; 35</code>, seule Léa respecte les deux conditions.",
+  piege:{t:"Écrire une condition incomplète",p:"Après <code>AND</code> ou <code>OR</code>, écris une condition complète.<br>Correct : <code>ville = 'Paris' OR ville = 'Lyon'</code><br>Incorrect : <code>ville = 'Paris' OR 'Lyon'</code><br>Il faut répéter <code>ville</code>, car SQL doit savoir ce qu’il doit comparer à <code>'Lyon'</code>."},
   consigne:"Affiche toutes les colonnes des clients qui habitent à Paris et ont plus de 35 ans.",
   solution:"SELECT * FROM clients WHERE ville = 'Paris' AND age > 35;",
   indice:"Écris les deux conditions de part et d’autre de <code>AND</code> : <code>ville = 'Paris' AND age &gt; 35</code>.",
@@ -5512,6 +5516,10 @@ function renderStudio(l){
   const reflex=renderReflex(s.reflex);
   const whyEye=s.why.eye!==undefined?s.why.eye:'Pourquoi';
   const whyH2=whyEye?`<span class="h2-eye">${whyEye}</span>`:'';
+  const orBlk=s.or?`<div class="concept-block">
+      <h2><span class="h2-txt">${s.or.title}</span></h2>
+      ${flowProseHtml(s.or.body)}
+    </div>`:'';
   return `<div class="concept-page">
     <div class="concept-block">
       <h2>${probH2}<span class="h2-txt">${s.problem.title}</span></h2>
@@ -5523,6 +5531,7 @@ function renderStudio(l){
       ${flowProseHtml(s.why.body,{lead:!!viz})}${whyExtra}
       ${viz}
     </div>
+    ${orBlk}
     <div class="concept-block">
       <h2><span class="h2-txt">Le réflexe</span></h2>
       ${reflex}
