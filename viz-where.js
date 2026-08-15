@@ -3,7 +3,7 @@
 
    Sept leçons partagent data-kind="filter" (where, compare, andor, like,
    inbetween, distinct, count). La cascade est activée leçon par leçon via
-   VIZ_OK (where, compare) : pour étendre, ajouter la clé et revérifier le
+   VIZ_OK (where, compare, andor) : pour étendre, ajouter la clé et revérifier le
    rendu, notamment pour count où aucune ligne n'est écartée.
 
    Ce fichier ne fait que poser des variables CSS et construire le
