@@ -5337,19 +5337,23 @@ function stripNoteHtml(s){
 }
 function lessonRetenirText(l){
   if(!l) return '';
-  const parts=[];
+  if(l.orderRappel){
+    return [
+      'WHERE s’applique avant le GROUP BY : il filtre les lignes individuelles, pas les résultats agrégés.',
+      'Donc pas de COUNT(*), SUM(), AVG(), etc. dans WHERE.',
+      '',
+      'HAVING s’applique après le GROUP BY : il filtre les groupes formés et peut utiliser des agrégats (COUNT(*), SUM(), AVG(), etc.).',
+      '',
+      'En résumé : SELECT s’écrit en premier, mais s’exécute presque en dernier.'
+    ].join('\n');
+  }
+  const piege=l.piege;
+  if(piege) return [stripNoteHtml(piege.t), stripNoteHtml(piege.p)].filter(Boolean).join('\n\n');
   const r=l.studio&&l.studio.reflex;
+  const parts=[];
   if(r&&r.a) parts.push(`${stripNoteHtml(r.a.k)} — ${stripNoteHtml(r.a.t)}`);
   if(r&&r.b) parts.push(`${stripNoteHtml(r.b.k)} — ${stripNoteHtml(r.b.t)}`);
   if(r&&r.note) parts.push(stripNoteHtml(r.note));
-  if(l.id===17){
-    parts.push('WHERE filtre les lignes avant le regroupement.');
-    parts.push('HAVING filtre les groupes après le regroupement.');
-    parts.push('Si la condition contient COUNT, SUM, AVG, MIN ou MAX → HAVING.');
-    parts.push('WHERE s’applique avant le GROUP BY : pas d’agrégat dans WHERE.');
-    parts.push('HAVING s’applique après le GROUP BY : peut utiliser COUNT(*), SUM(), AVG()…');
-  }
-  if(l.piege) parts.push(`Piège · ${stripNoteHtml(l.piege.t)} : ${stripNoteHtml(l.piege.p)}`);
   return parts.join('\n');
 }
 function noteFromRetenir(){
@@ -5357,7 +5361,7 @@ function noteFromRetenir(){
   if(!l){ startNewNote(); return; }
   openNote(null,{
     ctx:currentContext()+' · À retenir',
-    sql:(l.exemple||l.solution||'').trim(),
+    sql:'',
     txt:lessonRetenirText(l)
   });
 }
