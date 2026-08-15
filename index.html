@@ -1065,6 +1065,9 @@
   .kbar button.kw{color:var(--accent);background:var(--accent-soft);border-color:transparent}
   .kbar button.kbar-top.kw{background:var(--accent-soft);border-color:var(--accent);box-shadow:0 0 0 1px rgba(79,70,229,.22)}
   .kbar button.kbar-top:not(.kw){border-color:var(--accent-2);box-shadow:0 0 0 1px rgba(79,70,229,.12)}
+  .kbar button.kbar-tbl{color:#0a6b52;border-style:dashed;font-weight:600}
+  .kbar button.kbar-col{color:#5b4a8a;border-style:dashed;font-weight:600}
+  .kbar button.kbar-tbl.kbar-top,.kbar button.kbar-col.kbar-top{box-shadow:0 0 0 1px rgba(79,70,229,.18)}
   .kbar button:active,.kbar-dock:active{background:var(--line)}
 
   /* Collection */
@@ -3352,7 +3355,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-15-kbar-smart';
+const APP_VERSION='2026-08-15-kbar-schema';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -3592,6 +3595,7 @@ function resetActiveDb(){
     customDbs[activeDbId]=new SQL.Database();
     persistCustomDbs();
   }
+  kbarSchemaCache=null;
   clearConsolePane();
   renderDbWorkspace();
   renderConsoleChips();
@@ -3601,6 +3605,7 @@ function switchDb(id){
   if(id!=='cours'&&!customDbs[id])return;
   activeDbId=id;
   openTableSchema=null;
+  kbarSchemaCache=null;
   clearConsolePane();
   renderDbWorkspace();
   renderConsoleChips();
@@ -4348,9 +4353,99 @@ function exoFailDiag(sql,sol,userRes,solRes,ordered){
 let activeTA=null;
 let kbarKbDismissed=false;
 let kbarLastOrder='';
+let kbarSchemaCache=null;
+let kbarSchemaCacheDb='';
 const KEYS=[['SELECT',1],['FROM',1],['WHERE',1],['*',0],["'",0],[',',0],['=',0],['>',0],['<',0],['>=',0],['%',0],['()',0],
   ['AND',1],['OR',1],['NOT',1],['LIKE',1],['IN',1],['BETWEEN',1],['DISTINCT',1],
   ['GROUP BY',1],['HAVING',1],['ORDER BY',1],['JOIN',1],['ON',1],['AS',1],['COUNT(*)',1],['SUM()',1],['AVG()',1],['DESC',1],['LIMIT',1],['IS NULL',1],[';',0]];
+const KEY_SET=new Set(KEYS.map(x=>x[0]));
+function kbarSchemaCatalog(){
+  const id=activeDbId||'cours';
+  if(kbarSchemaCache&&kbarSchemaCacheDb===id) return kbarSchemaCache;
+  const database=activeDb()||db;
+  const tables=database?listTables(database):courseTableNames();
+  const items=[];
+  for(const t of tables){
+    items.push({key:t,kind:'table'});
+    const cols=database?introspectTable(database,t,tables):(SCHEMA_META.find(m=>m.table===t)||{}).cols||[];
+    for(const c of cols) items.push({key:c.c,kind:'column',table:t});
+  }
+  kbarSchemaCache=items;
+  kbarSchemaCacheDb=id;
+  return items;
+}
+function kbarLessonHints(){
+  const out={tables:[],columns:[]};
+  if(!current) return out;
+  const parts=[current.exemple,current.solution,current.teste,current.consigne,current.indice];
+  if(current.anatomie) parts.push(...current.anatomie.map(a=>a.tok||''));
+  const blob=parts.filter(Boolean).join('\n').replace(/<[^>]+>/g,' ');
+  const catalog=kbarSchemaCatalog();
+  const seenT=new Set(), seenC=new Set();
+  for(const item of catalog){
+    const low=item.key.toLowerCase();
+    if(item.kind==='table'){
+      if(!seenT.has(low)&&new RegExp('\\b'+low.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i').test(blob)){
+        seenT.add(low); out.tables.push(item.key);
+      }
+    } else if(!seenC.has(low)&&new RegExp('\\b'+low.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i').test(blob)){
+      seenC.add(low); out.columns.push(item.key);
+    }
+  }
+  return out;
+}
+function kbarClauseContext(ta){
+  const before=ta.value.slice(0,ta.selectionStart).replace(/\s+$/,'');
+  const up=before.toUpperCase();
+  const fromTables=[];
+  let m;
+  const ft=/\bFROM\s+(\w+)/gi;
+  while(m=ft.exec(before)) fromTables.push(m[1].toLowerCase());
+  const jt=/\bJOIN\s+(\w+)/gi;
+  while(m=jt.exec(before)) fromTables.push(m[1].toLowerCase());
+  if(/\bFROM\s+\w*$/i.test(before)||/\b(?:INNER|LEFT|RIGHT|CROSS)?\s*JOIN\s+\w*$/i.test(before))
+    return {kind:'table',tables:fromTables};
+  const fromPos=up.lastIndexOf(' FROM ');
+  const selectPos=up.lastIndexOf(' SELECT ');
+  const inSelect=selectPos>=0&&(fromPos<0||before.length<=fromPos+6);
+  if(inSelect&&/\bSELECT\s+[\w.,*\s]*$/i.test(before))
+    return {kind:'column',tables:fromTables.length?fromTables:null};
+  if(/\bWHERE\s+[\w.,'"(=>\s]*$/i.test(before)||/\b(AND|OR)\s+[\w.,'"(=>\s]*$/i.test(before))
+    return {kind:'column',tables:fromTables.length?fromTables:null};
+  if(/\b(GROUP BY|ORDER BY)\s+[\w.,\s]*$/i.test(before)||/\bHAVING\s+[\w.,'"(=>\s]*$/i.test(before))
+    return {kind:'column',tables:fromTables.length?fromTables:null};
+  if(/\bON\s+[\w.,=\s]*$/i.test(before))
+    return {kind:'column',tables:fromTables.length?fromTables:null,join:true};
+  return {kind:null,tables:fromTables};
+}
+function kbarSchemaSuggestions(ta,partial,ctx,lesson){
+  const catalog=kbarSchemaCatalog();
+  const p=partial.toLowerCase();
+  let pool=[];
+  if(ctx.kind==='table') pool=catalog.filter(x=>x.kind==='table');
+  else if(ctx.kind==='column'){
+    const ts=ctx.tables&&ctx.tables.length?new Set(ctx.tables):null;
+    pool=catalog.filter(x=>x.kind==='column'&&(!ts||ts.has(x.table.toLowerCase())));
+  } else if(p) pool=catalog;
+  else return [];
+  const out=[];
+  for(const item of pool){
+    const low=item.key.toLowerCase();
+    let score=0;
+    if(p){
+      if(low.startsWith(p)) score=2600-(low.length-p.length);
+      else if(low.includes(p)) score=950;
+      else continue;
+    } else if(ctx.kind==='table'&&item.kind==='table') score=1850;
+    else if(ctx.kind==='column'&&item.kind==='column') score=1750;
+    else continue;
+    if(item.kind==='table'&&lesson.tables.some(t=>t.toLowerCase()===low)) score+=450;
+    if(item.kind==='column'&&lesson.columns.some(c=>c.toLowerCase()===low)) score+=400;
+    if(mode==='lesson'&&ctx.kind==='column'&&lesson.tables.includes(item.table)) score+=120;
+    out.push({key:item.key,isKw:false,schema:item.kind,score});
+  }
+  return out.sort((a,b)=>b.score-a.score).slice(0,7);
+}
 function kbarKeyNorm(k){ return k.replace(/\(\*\)/g,'').replace(/[()';%]/g,'').replace(/\s+/g,' ').trim().toUpperCase(); }
 function kbarTokenAt(ta){
   const s=ta.selectionStart;
@@ -4414,8 +4509,10 @@ function kbarContextScore(key,hints){
 function kbarRankedKeys(ta){
   const partial=(kbarTokenAt(ta)||{}).text||'';
   const hints=kbarInString(ta)?["'",'%']:kbarSqlHints(ta);
+  const ctx=kbarClauseContext(ta);
+  const lesson=kbarLessonHints();
   const symSet=new Set([',','=','>','<','>=','%','()',"'",';','*']);
-  return KEYS.map((entry,i)=>{
+  const keyItems=KEYS.map((entry,i)=>{
     const [key,isKw]=entry;
     let score=KEYS.length-i;
     if(kbarInString(ta)){
@@ -4427,22 +4524,33 @@ function kbarRankedKeys(ta){
       if(!isKw&&hints.length) score+=120;
     }
     if(partial&&score<400) score-=600;
-    return {key,isKw,score};
-  }).sort((a,b)=>b.score-a.score).map(x=>[x.key,x.isKw]);
+    return {key,isKw,schema:null,score};
+  });
+  const schemaItems=kbarSchemaSuggestions(ta,partial,ctx,lesson);
+  const seen=new Set();
+  const merged=[];
+  for(const item of [...schemaItems,...keyItems].sort((a,b)=>b.score-a.score)){
+    if(seen.has(item.key)) continue;
+    seen.add(item.key);
+    merged.push([item.key,item.isKw,item.schema]);
+  }
+  return merged;
 }
 function refreshKbar(ta){
   ta=ta||activeTA;
   const box=document.getElementById('kbar-in');
   const bar=document.getElementById('kbar');
   if(!box||!bar) return;
-  const ranked=ta?kbarRankedKeys(ta):KEYS.map(([key,isKw])=>[key,isKw]);
-  const sig=(ta?ta.id:'')+'\0'+ranked.map(x=>x[0]).join('\0');
+  const ranked=ta?kbarRankedKeys(ta):KEYS.map(([key,isKw])=>[key,isKw,null]);
+  const lessonId=current&&mode==='lesson'?current.id:'';
+  const sig=(ta?ta.id:'')+'\0'+lessonId+'\0'+ranked.map(x=>x[0]).join('\0');
   if(sig===kbarLastOrder) return;
   kbarLastOrder=sig;
   const top=ranked[0]&&ranked[0][0];
-  box.innerHTML=ranked.map(([k,isKw])=>{
-    const cls=[isKw?'kw':'',k===top&&ta?'kbar-top':''].filter(Boolean).join(' ');
-    return `<button type="button" class="${cls}" data-k="${escAttr(k)}">${esc(k)}</button>`;
+  box.innerHTML=ranked.map(([k,isKw,schema])=>{
+    const cls=[isKw?'kw':'',schema==='table'?'kbar-tbl':schema==='column'?'kbar-col':'',k===top&&ta?'kbar-top':''].filter(Boolean).join(' ');
+    const ds=schema?` data-schema="${schema}"`:'';
+    return `<button type="button" class="${cls}" data-k="${escAttr(k)}"${ds}>${esc(k)}</button>`;
   }).join('');
 }
 function updateKbarDock(){
@@ -4475,20 +4583,29 @@ function buildKbar(){
   bar.addEventListener('click',e=>{
     if(e.target.closest('.kbar-dock')){ kbarDockToggle(); return; }
     const b=e.target.closest('button'); if(!b||!b.dataset.k)return;
-    insertKey(b.dataset.k);
+    insertKey(b.dataset.k,b.dataset.schema||'');
   });
 }
-function insertKey(k){
+function insertKey(k,schemaKind){
   if(!activeTA)return;
   const ta=activeTA, s=ta.selectionStart, e=ta.selectionEnd, v=ta.value;
   let start=s, end=e;
   const tok=kbarTokenAt(ta);
+  const isSchema=schemaKind==='table'||schemaKind==='column';
   const kn=kbarKeyNorm(k);
-  if(tok&&s===e&&kn&&kn.startsWith(tok.text)&&/^[A-Z]/.test(kn)){
-    start=tok.start;
+  if(tok&&s===e){
+    if(isSchema&&k.toLowerCase().startsWith(tok.text.toLowerCase())) start=tok.start;
+    else if(!isSchema&&kn&&kn.startsWith(tok.text)&&/^[A-Z]/.test(kn)) start=tok.start;
   }
   let txt=k, caret=k.length;
-  if(k==='()'||k.endsWith('()')){caret=k.length-1;}
+  if(isSchema){
+    const ctx=kbarClauseContext(ta);
+    const trail=v.slice(0,start);
+    const leadSp=start>0&&!/\s$/.test(trail)&&!/,(\s*)$/.test(trail)?' ':'';
+    txt=leadSp+k;
+    if(ctx.kind==='table'||ctx.kind==='column'||schemaKind==='table') txt+=' ';
+    caret=txt.length;
+  } else if(k==='()'||k.endsWith('()')){caret=k.length-1;}
   else if(k==="'"){txt="''";caret=1;}
   else if(/^[A-Z]/.test(k)&&k!==';'){txt=(start>0&&!/\s$/.test(v.slice(0,start))?' ':'')+k+' ';caret=txt.length;}
   ta.value=v.slice(0,start)+txt+v.slice(end);
