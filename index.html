@@ -6265,6 +6265,27 @@ function replayOrderRappelAnim(){
   kickOrderRappel(el);
   if(navigator.vibrate)navigator.vibrate(8);
 }
+/* ---------- Demarrage des animations apres 2 s d'immobilite ---------- */
+const VIZ_DWELL=2000;
+function whenSettled(el,scr,opts,cb){
+  const ratio=(opts&&opts.ratio)||0;
+  if(!el||!scr||typeof IntersectionObserver==='undefined'){
+    const t0=setTimeout(cb,VIZ_DWELL);
+    return {disconnect(){clearTimeout(t0);}};
+  }
+  let t=0,armed=false,done=false;
+  const clear=()=>{ if(t){clearTimeout(t);t=0;} };
+  const detach=()=>{ clear();armed=false;scr.removeEventListener('scroll',rearm);io.disconnect(); };
+  const fire=()=>{ if(done)return; done=true; detach(); if(el.isConnected) cb(); };
+  const rearm=()=>{ if(!armed)return; clear(); t=setTimeout(fire,VIZ_DWELL); };
+  const io=new IntersectionObserver(entries=>{
+    const vis=entries.some(e=>e.isIntersecting&&e.intersectionRatio>=ratio);
+    if(vis){ if(!armed){armed=true;scr.addEventListener('scroll',rearm,{passive:true});} rearm(); }
+    else { clear(); armed=false; scr.removeEventListener('scroll',rearm); }
+  },{root:scr,threshold:(opts&&opts.threshold)||[ratio||0.01]});
+  io.observe(el);
+  return {disconnect(){ if(!done){done=true;detach();} }};
+}
 function initOrderRappelAnim(){
   const el=document.querySelector('#lesson-body .order-rappel');
   if(!el)return;
@@ -6276,10 +6297,7 @@ function initOrderRappelAnim(){
     requestAnimationFrame(()=>setTimeout(kick,120));
     return;
   }
-  const io=new IntersectionObserver(entries=>{
-    if(entries.some(e=>e.isIntersecting)){ kick(); io.disconnect(); }
-  },{root:scr,threshold:.35});
-  io.observe(el);
+  whenSettled(el,scr,{ratio:.35,threshold:[.35]},kick);
 }
 /* ---------- Sommaire interactif du cours ---------- */
 function somAnchorFor(el){
@@ -8842,14 +8860,11 @@ function initSqlViz(){
         setTimeout(()=>playHavingGrpViz(root),220);
         return;
       }
-      havingGrpObs=new IntersectionObserver(entries=>{
-        if(entries.some(e=>e.isIntersecting&&e.intersectionRatio>=.25)){
-          havingGrpObs.disconnect();havingGrpObs=null;
-          havingGrpSetPhase(root,0,{animate:false});
-          playHavingGrpViz(root);
-        }
-      },{root:scr,threshold:[.25,.4]});
-      havingGrpObs.observe(root);
+      havingGrpObs=whenSettled(root,scr,{ratio:.25,threshold:[.25,.4]},()=>{
+        havingGrpObs=null;
+        havingGrpSetPhase(root,0,{animate:false});
+        playHavingGrpViz(root);
+      });
     };
     requestAnimationFrame(()=>requestAnimationFrame(kick));
   });
