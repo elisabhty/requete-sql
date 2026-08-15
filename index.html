@@ -2504,10 +2504,10 @@ const MODULES = [
   situation:"Deux agences — Paris et Lyon — utilisent la même base clients. Tu dois extraire les contacts des deux villes, sans exiger qu’une personne remplisse les deux conditions à la fois. Dans la table clients, tu cherches les personnes qui habitent à Paris ou à Lyon.",
     studio:{problem:{eye:"",title:"Combiner deux conditions",
       body:"<code>OR</code> signifie qu’au moins une des conditions doit être vraie pour garder une ligne.<br><br>Tu cherches les clients qui habitent à Paris ou à Lyon :<br><br><code>ville = 'Paris' OR ville = 'Lyon'</code><br><br>Pour chaque client, SQL vérifie les deux possibilités. Une seule suffit."},
-    vs:{bad:{tag:"✕ Condition incomplète",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris' OR 'Lyon';",out:"Ne filtre pas correctement : il faut répéter la colonne",
-            code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line bad\">WHERE ville = 'Paris' OR 'Lyon'</span>;"},
-        good:{tag:"✓ Avec OR",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris' OR ville = 'Lyon';",out:"5 lignes : Sophie, Lucas, Nathan, Hugo et Léa",
-            code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line good\">WHERE ville = 'Paris' OR ville = 'Lyon'</span>;"}},
+    vs:{bad:{tag:"✕ Incorrect",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR 'Lyon';",out:"SQL ne comprend pas 'Lyon' comme « ville = Lyon ». Après OR, écris une condition complète : ville = 'Paris' OR ville = 'Lyon', et non ville = 'Paris' OR 'Lyon'.",pedagogic:true,
+            code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line bad\">WHERE ville = 'Paris'\n   OR 'Lyon'</span>;"},
+        good:{tag:"✓ Correct",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",out:"5 lignes : Sophie, Lucas, Nathan, Hugo et Léa",
+            code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line good\">WHERE ville = 'Paris'\n   OR ville = 'Lyon'</span>;"}},
     why:{eye:"",title:"Pourquoi cinq lignes ?",
       body:"Avec <code>OR</code>, une seule condition vraie peut suffire."},
     viz:"or",
@@ -5365,7 +5365,7 @@ function renderVs(vs){
     return `<div class="vs-col ${tone}">
       <div class="vs-tag ${tone}">${tag}</div>
       <div class="ex-code">${code}</div>
-      <button type="button" class="vs-run" data-sql="${escAttr(sql)}" data-hint="${escAttr(side.out||'')}" onclick="runVsSql(this)">${XF_RUN_ICO}Exécuter</button>
+      <button type="button" class="vs-run" data-sql="${escAttr(sql)}" data-hint="${escAttr(side.out||'')}"${side.pedagogic?' data-pedagogic="1"':''} onclick="runVsSql(this)">${XF_RUN_ICO}Exécuter</button>
       <div class="vs-out" hidden aria-live="polite"></div>
     </div>`;
   };
@@ -5684,13 +5684,16 @@ function runVsSql(btn){
         }
       }
       const isBad=col.classList.contains('bad');
+      const pedagogic=btn.getAttribute('data-pedagogic')==='1';
       const empty=!res.length||!res[0].values.length;
       const hint=btn.getAttribute('data-hint')||'';
       host.hidden=false;
-      if(isBad&&empty){
+      if(isBad&&pedagogic){
         host.className='vs-out warn live';
-        const msg=hint||'La requête s’exécute sans erreur, mais le résultat n’est pas celui attendu.';
-        host.innerHTML=`<div class="feedback warn"><div class="fi">!</div><div><b>Aucune ligne</b><p>${esc(msg)}</p></div></div>`;
+        host.innerHTML=`<div class="feedback warn"><div class="fi">!</div><div><b>Condition incorrecte</b><p>${esc(hint||'SQL ne comprend pas cette condition.')}</p></div></div>`;
+      }else if(isBad&&empty&&hint){
+        host.className='vs-out warn live';
+        host.innerHTML=`<div class="feedback warn"><div class="fi">!</div><div><b>Aucune ligne</b><p>${esc(hint)}</p></div></div>`;
       }else{
         host.className='vs-out ok live';
         host.innerHTML=renderTable(res,null,{cols:true});
