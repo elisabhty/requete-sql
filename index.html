@@ -6485,19 +6485,23 @@ function refairePlan(){
   draft={niveau:p?p.niveau:null,rythme:p?p.rythme:null,freq:p?p.freq:null};
   state.plan=null;save();renderPlanning();
 }
-/* Reprogrammer : ne replanifie QUE ce qui reste, à partir d'aujourd'hui */
+/* Reprogrammer : ne replanifie QUE ce qui reste, étalé sur ~30 jours à partir d'aujourd'hui */
 function reprogrammer(){
   const p=state.plan; if(!p)return;
   const restantes=[],faites=[];
   p.sessions.forEach(s=>s.lessons.forEach(id=>(itemDone(id)?faites:restantes).push(id)));
   if(!restantes.length){toast("Tout est déjà terminé");return;}
   p.archive=faites;
-  const per=p.per||4;
-  const n=Math.max(1,Math.ceil(restantes.length/per));
-  const dates=datesMotif(auj(),p.freq,n);
-  p.sessions=dates.map((d,i)=>({d,lessons:restantes.slice(i*per,(i+1)*per)}));
+  const perPref=p.per||4;
+  const nRythme=Math.max(1,Math.ceil(restantes.length/Math.max(1,perPref)));
+  const fenetre=datesFenetre(auj(),p.freq,DUREE_PARCOURS_JOURS);
+  const nCible=Math.min(fenetre.length,restantes.length||1);
+  const n=Math.max(nRythme,nCible);
+  const dates=n<=fenetre.length?fenetre.slice(0,n):datesMotif(auj(),p.freq,n);
+  p.sessions=repartirPool(restantes,dates);
+  p.per=Math.max(1,Math.ceil(restantes.length/p.sessions.length));
   semaineOffset=0;jourSel=null;save();renderPlanning();
-  toast(`${restantes.length} items replanifiés à partir d'aujourd'hui`,'Planning mis à jour');
+  toast(`${restantes.length} items replanifiés sur les 30 prochains jours`,'Planning mis à jour');
 }
 function etaler(delta){
   const p=state.plan; if(!p)return;
