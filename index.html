@@ -2428,7 +2428,7 @@ const MODULES = [
             code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line good\">WHERE ville = 'Paris'</span>;"}},
     point:"<code>WHERE</code> agit sur les <b>lignes du résultat</b>.<br><br>La condition <code>ville = 'Paris'</code> signifie : garder uniquement les lignes pour lesquelles la colonne <code>ville</code> contient <code>'Paris'</code>.",
     why:{title:"Suis ce qui arrive aux lignes.",
-      body:"<code>WHERE ville = 'Paris'</code> teste la valeur de <code>ville</code> pour chacune.<br><br>À la fin, seules les lignes qui respectent la condition apparaissent dans le résultat."},
+      body:"<code>WHERE ville = 'Paris'</code> teste la valeur de <code>ville</code> pour chacune. À la fin, seules les lignes qui respectent la condition apparaissent dans le résultat."},
     viz:"where",
     reflex:{a:{k:"WHERE",t:"filtre les <b>lignes</b> selon une condition"},
       b:{k:"=",t:"vérifie ici que la valeur est exactement <code>'Paris'</code>"},
@@ -5811,7 +5811,7 @@ function buildSommaire(){
   if(!slide)return;
   // Repères : titres de blocs (h2) et étiquettes de section
   const marks=[];
-  slide.querySelectorAll('.concept-block h2, .sect-label span').forEach(el=>{
+  slide.querySelectorAll('.concept-block h2, .sect-label span, .piege-lab, .retenir-head > span:not(.retenir-ico)').forEach(el=>{
     let t=(el.textContent||'').trim().replace(/\s+/g,' ');
     if(!t)return;
     // Pour les h2, on préfère le texte principal (h2-txt)
@@ -5844,7 +5844,7 @@ function buildSommaire(){
       if(navigator.vibrate)navigator.vibrate(6);
       const top=target.getBoundingClientRect().top-scr.getBoundingClientRect().top+scr.scrollTop-70;
       scr.scrollTo({top,behavior:prefersReduceMotion()?'auto':'smooth'});
-      const flashEl=target.closest('.concept-block')||target.closest('.sect-label')||target;
+      const flashEl=target.closest('.concept-block')||target.closest('.sect-label')||target.closest('.piege')||target.closest('.retenir-end')||target;
       const delay=prefersReduceMotion()?0:320;
       setTimeout(()=>{
         flashEl.classList.remove('sec-flash'); void flashEl.offsetWidth; flashEl.classList.add('sec-flash');
@@ -7912,7 +7912,7 @@ const SQL_VIZ={
     {nom:'Inès',ville:'Nantes',age:41,email:null,telephone:'06 39 98 97 50'}
   ]},
   where:{kind:'filter',phases:[
-    {k:'SELECT nom, ville FROM clients',d:'La table clients : 9 lignes. Toutes s’affichent.'},
+    {k:'SELECT nom, ville FROM clients',d:'La table clients compte 9 lignes, qui s’affichent toutes.'},
     {k:"WHERE ville = 'Paris'",d:"SQL teste chaque ligne. Il n’en reste que 3 : celles qui respectent la condition ville = 'Paris'. Rien n’est effacé de la table."}
   ],chips:[
     {t:'Sophie',extra:'Paris',keep:1},{t:'Lucas',extra:'Lyon',keep:0},{t:'Emma',extra:'Marseille',keep:0},{t:'Nathan',extra:'Paris',keep:1},
