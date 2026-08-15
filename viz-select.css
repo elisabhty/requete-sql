@@ -1,0 +1,124 @@
+/* ============================================================
+   viz-select.css — animation SELECT (leçon « SELECT »)
+   Chargé après le <style> inline, comme ios-polish.css.
+   Cible : PWA iOS (viewport 402 px, DPR 2).
+   ============================================================ */
+
+/* --- 1. Cascade : les lignes réagissent l'une après l'autre ---
+   --d / --d2 sont posés par viz-select.js sur chaque .sel-row.
+   --d2 évite calc() sur une var() de type <time> (bugs WebKit). */
+.sql-viz[data-kind="cols"][data-phase="1"] .sel-c{
+  transition-delay:var(--d,0ms);
+}
+.sql-viz[data-kind="cols"][data-phase="1"] .sel-row:not(.sel-head) .sel-c[data-keep="1"]{
+  animation-delay:var(--d,0ms);
+}
+.sql-viz[data-kind="cols"][data-phase="2"] .sel-c{
+  transition-delay:var(--d2,0ms);
+}
+
+/* --- 2. Phase 1 : les 2 colonnes gardées restent dans le cadre ---
+   Sans ça, `telephone` sortait entièrement de .sel-table (overflow:hidden)
+   sur iPhone : on annonçait « ces 2 colonnes » en n'en montrant qu'une.
+   Les largeurs sont calculées par viz-select.js ; ici on libère la ligne
+   et on éteint le dégradé de droite qui ne masque plus rien. */
+.sql-viz[data-kind="cols"][data-phase="1"] .sel-row{
+  width:100%;
+  box-sizing:border-box;
+  padding-right:6px;
+}
+.sql-viz[data-kind="cols"][data-phase="1"] .sel-c[data-keep="0"]{
+  opacity:.34;
+}
+.sql-viz[data-kind="cols"] .sel-table::after{
+  transition:opacity .45s ease;
+}
+.sql-viz[data-kind="cols"][data-phase="1"] .sel-table::after{
+  opacity:0;
+}
+
+/* --- 3. Fil d'étapes : progression + navigation ---
+   Le trait visible fait 4 px ; la cible tactile est portée à 48 × 44 px
+   par un ::after transparent, extension verticale uniquement pour ne pas
+   voler les taps des puces voisines. */
+.vb-steps{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:12px 0 10px;
+  margin-top:-6px;
+}
+.vb-dot{
+  position:relative;
+  appearance:none;
+  -webkit-appearance:none;
+  border:0;
+  margin:0;
+  padding:0;
+  height:4px;
+  width:16px;
+  border-radius:99px;
+  background:rgba(60,60,67,.16);
+  overflow:visible;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+  transition:width .35s cubic-bezier(.32,.72,.28,1),background .3s ease,transform .18s ease;
+}
+.vb-dot::after{
+  content:"";
+  position:absolute;
+  left:-4px;
+  right:-4px;
+  top:-20px;
+  bottom:-20px;
+}
+.vb-dot:active{ transform:scale(1.25); }
+.vb-dot:focus-visible{ outline:2px solid var(--accent); outline-offset:6px; }
+/* @media (hover:hover) : sinon l'état reste collé après un tap sur iOS */
+@media (hover:hover){
+  .vb-dot:hover{ background:rgba(60,60,67,.28); }
+}
+.vb-dot.done{ background:rgba(91,91,214,.42); }
+.vb-dot.on{ width:40px; background:rgba(91,91,214,.20); }
+
+/* La jauge est animée en transform (composée par le GPU) et non en width,
+   qui déclencherait un layout à chaque frame. */
+.vb-dot i{
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:100%;
+  display:block;
+  background:var(--accent);
+  border-radius:99px;
+  transform:scaleX(0);
+  transform-origin:left center;
+  will-change:transform;
+  -webkit-backface-visibility:hidden;
+}
+.vb-dot.on.full i{ transform:scaleX(1); }
+.vb-dot.on.run i{
+  animation:vbFill linear forwards;
+  animation-duration:var(--dur,2400ms);
+}
+@keyframes vbFill{ from{ transform:scaleX(0); } to{ transform:scaleX(1); } }
+.grp-viz[data-paused="1"] .vb-dot.run i{ animation-play-state:paused; }
+
+/* --- 4. Mouvement réduit ---
+   L'autoplay respectait déjà prefers-reduced-motion, mais les transitions
+   des vizzes se rejouaient quand même via « Revoir l'animation ». */
+@media (prefers-reduced-motion:reduce){
+  .sql-viz .sel-c,
+  .sql-viz .sel-row,
+  .sql-viz .sel-meta,
+  .sql-viz .sel-table::after,
+  .sql-viz .grp-chip,
+  .sql-viz .grp-bucket,
+  .vb-dot,
+  .vb-dot i{
+    transition:none!important;
+    animation:none!important;
+  }
+}
