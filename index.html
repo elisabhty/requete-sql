@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>Requête — Apprends le SQL</title>
-<meta name="description" content="Apprends le SQL en pratiquant sur une vraie base SQLite. 28 leçons, défis, révision espacée et console interactive.">
+<meta name="description" content="Apprends le SQL en pratiquant sur une vraie base SQLite. 29 leçons, défis, révision espacée et console interactive.">
 <meta name="theme-color" content="#5B5BD6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -2105,7 +2105,7 @@
         <div>
           <div class="eyebrow">Requête · SQL</div>
           <h1>Apprendre</h1>
-          <p class="sub" id="learn-sub">28 leçons, une vraie base de données.</p>
+          <p class="sub" id="learn-sub">29 leçons, une vraie base de données.</p>
         </div>
         <div class="learn-side">
           <button class="streak-pill" id="home-streak" type="button" onclick="switchTab('compte')" aria-label="Jours d'affilée — voir mes stats" hidden></button>
@@ -2480,8 +2480,8 @@ const MODULES = [
   solution:"SELECT * FROM produits WHERE prix > 25;",
   indice:"Filtre sur la colonne <code>prix</code>. Comme la consigne dit strictement supérieur à 25, choisis l'opérateur qui exclut 25 et écris le nombre sans guillemets.",
   richLesson:true, earlyDemo:true },
-{ id:6, titre:"AND / OR", résumé:"Combiner des conditions",
-  situation:"Dans la table clients, tu veux cibler des personnes selon plusieurs critères. Avec <code>AND</code> et <code>OR</code>, tu peux combiner plusieurs conditions dans un même <code>WHERE</code>.",
+{ id:6, titre:"AND", résumé:"Combiner avec AND",
+  situation:"Dans la table clients, tu veux cibler les personnes qui habitent à Paris et qui ont plus de 35 ans. Avec <code>AND</code>, les deux conditions doivent être vraies pour garder une ligne.",
     studio:{problem:{eye:"",title:"Combiner deux conditions",
       body:"<code>AND</code> signifie que les deux conditions doivent être vraies.",
       demo:"SELECT nom, ville, age\nFROM clients\nWHERE ville = 'Paris' AND age > 35;",
@@ -2493,20 +2493,43 @@ const MODULES = [
     why:{eye:"",title:"Pourquoi une seule ligne ?",
       body:"Avec <code>AND</code>, chaque ligne doit respecter les deux conditions :",
       extra:`<div class="agg-reflex"><ul class="agg-list"><li>Sophie → Paris ✓ — plus de 35 ans ✕</li><li>Nathan → Paris ✓ — plus de 35 ans ✕</li><li>Léa → Paris ✓ — plus de 35 ans ✓</li></ul></div><p>Seule Léa passe les deux tests.</p>`},
-    or:{title:"Et avec OR ?",
-      body:"<code>OR</code> fonctionne différemment : une seule des conditions peut suffire.<br><br><code>WHERE ville = 'Paris' OR ville = 'Lyon'</code><br><br>La ligne est gardée si le client habite à Paris ou à Lyon.<br><br><code>AND</code> demande donc les deux conditions. <code>OR</code> en demande au moins une."},
     viz:"andor",
     reflex:{a:{k:"AND",t:"condition 1 <b>et</b> condition 2 doivent être vraies"},
-      b:{k:"OR",t:"condition 1 <b>ou</b> condition 2 doit être vraie"},
-      note:"En général, <code>AND</code> resserre le résultat, tandis que <code>OR</code> l’élargit."}},
+      b:{k:"Effet",t:"<code>AND</code> <b>resserre</b> le résultat"},
+      note:"Avec <code>ville = 'Paris' AND age &gt; 35</code>, être parisien ne suffit pas : il faut aussi plus de 35 ans."}},
   anatomie:[{tok:"WHERE ville = 'Paris'",txt:"première condition"},{tok:"AND",txt:"exige que les deux conditions soient vraies"},{tok:"age > 35",plain:1,txt:"deuxième condition"}],
   exemple:"SELECT nom, ville, age FROM clients WHERE ville = 'Paris' AND age > 35;",
   attendu:"<b>1 ligne</b> : Léa, 38 ans, car elle habite à Paris et a plus de 35 ans.",
-  retenir:"<code>AND</code> garde une ligne si toutes les conditions sont vraies. <code>OR</code> garde une ligne si au moins une condition est vraie.<br><br>Avec <code>ville = 'Paris' AND age &gt; 35</code>, seule Léa respecte les deux conditions.",
-  piege:{t:"Écrire une condition incomplète",p:"Après <code>AND</code> ou <code>OR</code>, écris une condition complète.<br>Correct : <code>ville = 'Paris' OR ville = 'Lyon'</code><br>Incorrect : <code>ville = 'Paris' OR 'Lyon'</code><br>Il faut répéter <code>ville</code>, car SQL doit savoir ce qu’il doit comparer à <code>'Lyon'</code>."},
+  retenir:"<code>AND</code> garde une ligne si toutes les conditions sont vraies.<br><br>Avec <code>ville = 'Paris' AND age &gt; 35</code>, seule Léa respecte les deux conditions.",
+  piege:{t:"Oublier une condition",p:"Chaque critère doit former une condition complète de part et d’autre de <code>AND</code> : <code>ville = 'Paris' AND age &gt; 35</code>, pas seulement <code>ville = 'Paris'</code> si tu veux aussi filtrer sur l’âge."},
   consigne:"Affiche toutes les colonnes des clients qui habitent à Paris et ont plus de 35 ans.",
   solution:"SELECT * FROM clients WHERE ville = 'Paris' AND age > 35;",
   indice:"Écris les deux conditions de part et d’autre de <code>AND</code> : <code>ville = 'Paris' AND age &gt; 35</code>.",
+  richLesson:true, earlyDemo:true },
+{ id:29, titre:"OR", résumé:"Combiner avec OR",
+  situation:"Dans la table clients, tu veux afficher les personnes qui habitent à Paris ou à Lyon. Avec <code>OR</code>, une seule des conditions peut suffire pour garder une ligne.",
+    studio:{problem:{eye:"",title:"OR élargit le résultat",
+      body:"<code>OR</code> fonctionne différemment de <code>AND</code> : une seule des conditions peut suffire.",
+      demo:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris' OR ville = 'Lyon';",
+      tail:"La ligne est gardée si le client habite à Paris ou à Lyon."},
+    vs:{bad:{tag:"✕ Condition incomplète",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris' OR 'Lyon';",out:"Ne filtre pas correctement : il faut répéter la colonne",
+            code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line bad\">WHERE ville = 'Paris' OR 'Lyon'</span>;"},
+        good:{tag:"✓ Avec OR",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris' OR ville = 'Lyon';",out:"5 lignes : Sophie, Lucas, Nathan, Hugo et Léa",
+            code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line good\">WHERE ville = 'Paris' OR ville = 'Lyon'</span>;"}},
+    why:{eye:"",title:"Pourquoi cinq lignes ?",
+      body:"La condition <code>WHERE ville = 'Paris' OR ville = 'Lyon'</code> signifie : garder les clients qui habitent à Paris ou à Lyon. SQL vérifie cette condition pour chaque ligne de la table."},
+    viz:"or",
+    reflex:{a:{k:"OR",t:"condition 1 <b>ou</b> condition 2 doit être vraie"},
+      b:{k:"Effet",t:"<code>OR</code> <b>élargit</b> le résultat"},
+      note:"Contrairement à <code>AND</code>, une seule condition vraie suffit. Chaque côté doit rester une condition complète : <code>ville = 'Paris' OR ville = 'Lyon'</code>."}},
+  anatomie:[{tok:"WHERE ville = 'Paris'",txt:"première condition"},{tok:"OR",txt:"exige qu’au moins une des conditions soit vraie"},{tok:"ville = 'Lyon'",plain:1,txt:"deuxième condition"}],
+  exemple:"SELECT nom, ville FROM clients WHERE ville = 'Paris' OR ville = 'Lyon';",
+  attendu:"<b>5 lignes</b> : Sophie, Lucas, Nathan, Hugo et Léa. Leur ville est Paris ou Lyon.",
+  retenir:"<code>OR</code> garde une ligne si au moins une condition est vraie.<br><br>Avec <code>ville = 'Paris' OR ville = 'Lyon'</code>, 5 clients sont gardés.",
+  piege:{t:"Écrire une condition incomplète",p:"Après <code>OR</code>, écris une condition complète.<br>Correct : <code>ville = 'Paris' OR ville = 'Lyon'</code><br>Incorrect : <code>ville = 'Paris' OR 'Lyon'</code><br>Il faut répéter <code>ville</code>, car SQL doit savoir ce qu’il doit comparer à <code>'Lyon'</code>."},
+  consigne:"Affiche toutes les colonnes des clients qui habitent à Paris ou à Lyon.",
+  solution:"SELECT * FROM clients WHERE ville = 'Paris' OR ville = 'Lyon';",
+  indice:"Écris les deux conditions de part et d’autre de <code>OR</code> : <code>ville = 'Paris' OR ville = 'Lyon'</code>.",
   richLesson:true, earlyDemo:true },
 { id:7, titre:"NULL", résumé:"La valeur absente",
   situation:"Dans la table clients, certains clients n’ont pas d’email renseigné. C’est le cas de Hugo et Inès. Tu veux retrouver ces personnes, mais un filtre avec <code>email = NULL</code> ne renvoie aucune ligne. Avec <code>NULL</code>, l’égalité classique ne fonctionne pas.",
@@ -3191,9 +3214,11 @@ const CARTES={
     m:"<code>WHERE</code> choisit les <b>lignes</b> qui restent dans le résultat. Texte entre guillemets simples : <code>'Paris'</code>. Rien n’est effacé de la table."},
  5:{k:"> < >= <=",t:"Seuils numériques",s:"WHERE prix > 25",
     m:"Pas de guillemets sur les nombres. <code>&gt;</code> exclut la borne ; <code>&gt;=</code> l’inclut."},
- 6:{k:"AND / OR",t:"Combiner des conditions",s:"WHERE ville = 'Paris' AND age > 35",
-    m:"<code>AND</code> : toutes les conditions vraies. <code>OR</code> : au moins une. Chaque côté est une condition complète : on répète la colonne."},
- 7:{k:"NULL",t:"La valeur absente",s:"WHERE email IS NULL",
+ 6:{k:"AND",t:"Combiner avec AND",s:"WHERE ville = 'Paris' AND age > 35",
+    m:"<code>AND</code> : toutes les conditions doivent être vraies. Chaque critère est une condition complète."},
+ 29:{k:"OR",t:"Combiner avec OR",s:"WHERE ville = 'Paris' OR ville = 'Lyon'",
+    m:"<code>OR</code> : au moins une condition vraie suffit. Répète la colonne : <code>ville = 'Paris' OR ville = 'Lyon'</code>."},
+  7:{k:"NULL",t:"La valeur absente",s:"WHERE email IS NULL",
     m:"<code>NULL</code> = valeur absente, pas 0 ni <code>''</code>. Jamais <code>=</code> : <code>IS NULL</code> / <code>IS NOT NULL</code>."},
  8:{k:"LIKE",t:"Chercher un motif",s:"WHERE nom LIKE 'L%'",
     m:"<code>%</code> = n’importe quelle suite. <code>'L%'</code> commence par L · <code>'%mot%'</code> contient. Sans <code>%</code>, <code>LIKE</code> vaut presque <code>=</code>."},
@@ -3255,9 +3280,11 @@ const QCM={
    {q:"Comment comparer une colonne à du texte ?",o:['ville = "Paris"',"ville = 'Paris'","ville = Paris"],b:1,e:"Guillemets simples : <code>ville = 'Paris'</code>. Sans eux, SQL peut croire que Paris est une colonne."}],
  5:[{q:"Avec <code>WHERE prix &gt;= 25</code>, un produit à exactement 25 € est-il gardé ?",o:["Oui, car &gt;= inclut 25","Non, car il faut dépasser 25","Non, car 25 doit être entre guillemets"],b:0,e:"<code>&gt;=</code> signifie supérieur ou égal à. Un prix de 25 € est donc inclus."},
    {q:"Quelle écriture est correcte pour garder les prix strictement supérieurs à 25 € ?",o:["WHERE prix > 25","WHERE prix > '25'","WHERE prix = 25"],b:0,e:"25 est un nombre : il s'écrit sans guillemets. <code>&gt;</code> signifie strictement supérieur à."}],
- 6:[{q:"<code>WHERE ville='Paris' AND ville='Lyon'</code> renvoie :",o:["Les Parisiens et les Lyonnais","Aucune ligne","Une erreur de syntaxe"],b:1,e:"<code>AND</code> exige les deux à la fois. Une ville ne peut pas être Paris et Lyon. Il fallait <code>OR</code>."},
-   {q:"<code>WHERE ville = 'Lyon' OR 'Paris'</code> :",o:["Fonctionne comme attendu","Ne filtre pas correctement : il faut répéter la colonne","Provoque une erreur claire"],b:1,e:"Chaque côté doit être une condition complète : <code>ville = 'Lyon' OR ville = 'Paris'</code>."}],
- 7:[{q:"<code>WHERE email = NULL</code> renvoie :",o:["Les clients sans email","Aucune ligne, quelles que soient les données","Tous les clients"],b:1,e:"<code>NULL</code> n’est égal à rien, pas même à lui-même. Il faut <code>IS NULL</code>."},
+ 6:[{q:"<code>WHERE ville='Paris' AND ville='Lyon'</code> renvoie :",o:["Les Parisiens et les Lyonnais","Aucune ligne","Une erreur de syntaxe"],b:1,e:"<code>AND</code> exige les deux à la fois. Une ville ne peut pas être Paris et Lyon."},
+   {q:"Avec <code>WHERE ville = 'Paris' AND age &gt; 35</code>, combien de lignes ?",o:["3","1","0"],b:1,e:"Seule Léa habite à Paris et a plus de 35 ans."}],
+ 29:[{q:"<code>WHERE ville = 'Lyon' OR 'Paris'</code> :",o:["Fonctionne comme attendu","Ne filtre pas correctement : il faut répéter la colonne","Provoque une erreur claire"],b:1,e:"Chaque côté doit être une condition complète : <code>ville = 'Lyon' OR ville = 'Paris'</code>."},
+   {q:"<code>WHERE ville = 'Paris' OR ville = 'Lyon'</code> garde :",o:["Seulement les Parisiens","Les clients de Paris ou de Lyon","Tous les clients"],b:1,e:"Une seule condition vraie suffit avec <code>OR</code>."}],
+  7:[{q:"<code>WHERE email = NULL</code> renvoie :",o:["Les clients sans email","Aucune ligne, quelles que soient les données","Tous les clients"],b:1,e:"<code>NULL</code> n’est égal à rien, pas même à lui-même. Il faut <code>IS NULL</code>."},
    {q:"<code>NULL</code> signifie :",o:["Zéro","Chaîne vide","Valeur inconnue"],b:2,e:"Ce n’est ni 0 ni <code>''</code> : c’est l’absence d’information."}],
  8:[{q:"Le motif <code>'L%'</code> désigne :",o:["Contient un L","Commence par L","Finit par L"],b:1,e:"<code>%</code> = n’importe quelle suite. À droite : commence par L. Lucas et Léa."},
    {q:"<code>LIKE 'Marin'</code> sans % équivaut à :",o:["Contient Marin","= 'Marin'","Commence par Marin"],b:1,e:"Sans joker, <code>LIKE</code> recherche presque une correspondance exacte."}],
@@ -7621,7 +7648,7 @@ function paintOb(){
     html=`<img class="mascot" src="assets/mascotte-requete.png" alt="Requête, la mascotte">
       <div class="ob-kicker">Bienvenue</div>
       <h2>Apprends le SQL<br>à ton rythme.</h2>
-      <p>28 leçons, une vraie base SQLite. Une question, puis on place ton départ.</p>
+      <p>29 leçons, une vraie base SQLite. Une question, puis on place ton départ.</p>
       <div class="ob-name">
         <label for="ob-name">Comment tu t’appelles ? <span style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--ink-3)">(optionnel)</span></label>
         <input id="ob-name" type="text" maxlength="32" placeholder="Ton prénom" autocomplete="given-name" value="${esc(name).replace(/"/g,'&quot;')}">
@@ -7875,7 +7902,7 @@ function renderCompte(){
       </div>
     </section>
     <div class="acc-premium">
-      <div><div class="pt">PREMIUM</div><b>Les 28 leçons, les défis et tes imports</b></div>
+      <div><div class="pt">PREMIUM</div><b>Les 29 leçons, les défis et tes imports</b></div>
       <button type="button" class="price" onclick="toast('Bientôt — déjà tout inclus dans cette version.')">4,99 €</button>
     </div>
     <section class="acc-sec">
@@ -8001,6 +8028,14 @@ const SQL_VIZ={
     {t:'Sophie',extra:'Paris · 34',keep:0},{t:'Nathan',extra:'Paris · 31',keep:0},
     {t:'Léa',extra:'Paris · 38',keep:1},{t:'Emma',extra:'Marseille · 45',keep:0},
     {t:'Hugo',extra:'Lyon · 52',keep:0}
+  ]},
+  or:{kind:'filter',phases:[
+    {k:'SELECT nom, ville FROM clients',d:'La table clients compte 9 lignes. Chaque ville va être comparée à Paris ou Lyon.'},
+    {k:"WHERE ville = 'Paris' OR ville = 'Lyon'",d:'Paris ou Lyon : 5 lignes restent — Sophie, Lucas, Nathan, Hugo et Léa.'}
+  ],chips:[
+    {t:'Sophie',extra:'Paris',keep:1},{t:'Lucas',extra:'Lyon',keep:1},{t:'Emma',extra:'Marseille',keep:0},
+    {t:'Nathan',extra:'Paris',keep:1},{t:'Chloé',extra:'Bordeaux',keep:0},{t:'Hugo',extra:'Lyon',keep:1},
+    {t:'Léa',extra:'Paris',keep:1},{t:'Gabriel',extra:'Toulouse',keep:0},{t:'Inès',extra:'Nantes',keep:0}
   ]},
   nulls:{kind:'nulls',phases:[
     {k:"WHERE email = NULL",d:'NULL n’est égal à rien, pas même à lui-même. 0 ligne.'},
