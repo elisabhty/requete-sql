@@ -5429,12 +5429,12 @@ function lessonReflexText(l){
   }
   const r=l.studio&&l.studio.reflex;
   if(r){
-    return stripNoteHtml([
-      r.a?`${r.a.k} — ${r.a.t}`:'',
-      r.b?`${r.b.k} — ${r.b.t}`:'',
-      r.note||'',
-      r.extra||''
-    ].filter(Boolean).join('\n\n'));
+    return [
+      r.a?`${r.a.k} — ${stripNoteHtml(r.a.t)}`:'',
+      r.b?`${r.b.k} — ${stripNoteHtml(r.b.t)}`:'',
+      r.note?stripNoteHtml(r.note):'',
+      r.extra?stripNoteHtml(r.extra):''
+    ].filter(Boolean).join('\n\n');
   }
   if(l.id===17){
     return 'WHERE filtre les lignes avant le regroupement. HAVING filtre les groupes après, et peut utiliser COUNT, SUM, AVG…';
@@ -5444,18 +5444,10 @@ function lessonReflexText(l){
 function noteFromRetenir(){
   const l=current;
   if(!l){ startNewNote(); return; }
-  const card=document.querySelector('#scr-lesson .reflex-end');
-  let txt='';
-  if(card){
-    const clone=card.cloneNode(true);
-    clone.querySelectorAll('.coda-note,.coda-ico').forEach(el=>el.remove());
-    txt=stripNoteHtml(clone.innerHTML);
-  }
-  if(!txt) txt=lessonReflexText(l);
   openNote(null,{
     ctx:currentContext()+' · Le réflexe',
     sql:'',
-    txt
+    txt:lessonReflexText(l)
   });
 }
 function lessonRetenirText(l){ return lessonReflexText(l); }
