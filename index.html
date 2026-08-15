@@ -563,6 +563,9 @@
   .grp-k{font-family:var(--mono);font-size:11px;font-weight:700;background:var(--ink);color:#fff;padding:6px 10px;border-radius:8px;letter-spacing:.2px;transition:background .3s;max-width:100%;width:fit-content;box-sizing:border-box;word-break:break-word;line-height:1.35}
   .grp-viz[data-phase="1"] .grp-k{background:var(--accent)}
   .grp-viz[data-phase="2"] .grp-k{background:#0F766E}
+  .sql-viz[data-viz="andor"][data-phase="0"] .grp-chip[data-keep0="0"]{opacity:.32;filter:grayscale(.35);text-decoration:none}
+  .sql-viz[data-viz="andor"][data-phase="0"] .grp-chip[data-keep0="1"]{opacity:1;filter:none;border-color:rgba(91,91,214,.42);box-shadow:0 4px 14px rgba(91,91,214,.16);background:var(--accent-soft)}
+  .sql-viz[data-viz="andor"][data-phase="0"] .grp-chip[data-keep0="1"] .grp-extra{color:var(--accent);font-weight:600}
   .sql-viz[data-kind="filter"][data-phase="1"] .grp-chip[data-keep="0"],
   .sql-viz[data-kind="limit"][data-phase="1"] .grp-chip[data-keep="0"],
   .sql-viz[data-kind="nulls"][data-phase="1"] .grp-chip[data-keep="0"]{opacity:.3;filter:grayscale(.4)}
@@ -5467,10 +5470,11 @@ function renderVizShell(key){
   }else{
     const chips=(cfg.chips||[]).map(c=>{
       const keep=c.keep==null?'':` data-keep="${c.keep}"`;
+      const keep0=c.keep0==null?'':` data-keep0="${c.keep0}"`;
       const rank=c.rank==null?'':` data-rank="${c.rank}"`;
       const extra=c.extra?`<span class="grp-extra">${c.extra}</span>`:'';
       const cat=c.cat?` data-cat="${c.cat}"`:'';
-      return `<div class="grp-chip"${keep}${rank}${cat}>${c.t}${extra}</div>`;
+      return `<div class="grp-chip"${keep}${keep0}${rank}${cat}>${c.t}${extra}</div>`;
     }).join('');
     const buckets=(cfg.buckets||[]).map(b=>
       `<div class="grp-bucket" data-cat="${b.cat}" data-n="${b.n}" data-keep="${b.keep}"><span class="grp-bucket-lbl">${b.cat}</span><span class="grp-count">${b.n}</span></div>`
@@ -7997,12 +8001,12 @@ const SQL_VIZ={
     {t:'Oméga 3',extra:'24,90',keep:0},{t:'Shaker',extra:'15,00',keep:0}
   ]},
   andor:{kind:'filter',phases:[
-    {k:"WHERE ville = 'Paris'",d:'3 Parisiens. AND va encore resserrer.'},
+    {k:"WHERE ville = 'Paris'",d:'3 Parisiens mis en avant. AND va encore resserrer.'},
     {k:"AND age > 35",d:'Paris ET plus de 35 ans : il ne reste que Léa.'}
   ],chips:[
-    {t:'Sophie',extra:'Paris · 34',keep:0},{t:'Nathan',extra:'Paris · 31',keep:0},
-    {t:'Léa',extra:'Paris · 38',keep:1},{t:'Emma',extra:'Marseille · 45',keep:0},
-    {t:'Hugo',extra:'Lyon · 52',keep:0}
+    {t:'Sophie',extra:'Paris · 34',keep0:1,keep:0},{t:'Nathan',extra:'Paris · 31',keep0:1,keep:0},
+    {t:'Léa',extra:'Paris · 38',keep0:1,keep:1},{t:'Emma',extra:'Marseille · 45',keep0:0,keep:0},
+    {t:'Hugo',extra:'Lyon · 52',keep0:0,keep:0}
   ]},
   or:{kind:'filter',phases:[
     {k:'SELECT nom, ville FROM clients',d:'La table clients compte 9 lignes. Chaque ville va être comparée à Paris ou Lyon.'},
