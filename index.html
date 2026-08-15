@@ -1061,8 +1061,10 @@
   .kbar-dock{flex:none;width:36px;height:36px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink-2);padding:0;touch-action:manipulation}
   .kbar-dock svg{width:18px;height:18px;transition:transform .2s ease}
   .kbar.kb-down .kbar-dock svg{transform:rotate(180deg)}
-  .kbar button{flex:none;font-family:var(--mono);font-size:13.5px;font-weight:600;background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;color:var(--ink);cursor:pointer;white-space:nowrap}
+  .kbar button{flex:none;font-family:var(--mono);font-size:13.5px;font-weight:600;background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;color:var(--ink);cursor:pointer;white-space:nowrap;transition:border-color .15s,box-shadow .15s}
   .kbar button.kw{color:var(--accent);background:var(--accent-soft);border-color:transparent}
+  .kbar button.kbar-top.kw{background:var(--accent-soft);border-color:var(--accent);box-shadow:0 0 0 1px rgba(79,70,229,.22)}
+  .kbar button.kbar-top:not(.kw){border-color:var(--accent-2);box-shadow:0 0 0 1px rgba(79,70,229,.12)}
   .kbar button:active,.kbar-dock:active{background:var(--line)}
 
   /* Collection */
@@ -3350,7 +3352,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-15-kbar-dock';
+const APP_VERSION='2026-08-15-kbar-smart';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -4199,9 +4201,11 @@ function setupEditor(taId,hlId){
   const ta=document.getElementById(taId);
   const pre=ta?ta.parentElement.querySelector('pre'):null;
   const syncScroll=()=>{ if(pre) pre.scrollTop=ta.scrollTop; };
-  ta.addEventListener('input',()=>{syncHL(taId,hlId);fitSqlEditor(ta);persistEditor(taId);syncEditorClear(taId);});
+  ta.addEventListener('input',()=>{syncHL(taId,hlId);fitSqlEditor(ta);persistEditor(taId);syncEditorClear(taId);refreshKbar(ta);});
   ta.addEventListener('scroll',syncScroll);
-  ta.addEventListener('focus',()=>{activeTA=ta;kbarKbDismissed=false;showKbar(true);syncScroll();});
+  ta.addEventListener('keyup',()=>refreshKbar(ta));
+  ta.addEventListener('click',()=>refreshKbar(ta));
+  ta.addEventListener('focus',()=>{activeTA=ta;kbarKbDismissed=false;showKbar(true);syncScroll();refreshKbar(ta);});
   ta.addEventListener('blur',()=>{setTimeout(()=>{
     if(document.activeElement===ta) return;
     if(kbarKbDismissed){ syncKbarOffset(); return; }
@@ -4343,8 +4347,104 @@ function exoFailDiag(sql,sol,userRes,solRes,ordered){
    ============================================================ */
 let activeTA=null;
 let kbarKbDismissed=false;
+let kbarLastOrder='';
 const KEYS=[['SELECT',1],['FROM',1],['WHERE',1],['*',0],["'",0],[',',0],['=',0],['>',0],['<',0],['>=',0],['%',0],['()',0],
+  ['AND',1],['OR',1],['NOT',1],['LIKE',1],['IN',1],['BETWEEN',1],['DISTINCT',1],
   ['GROUP BY',1],['HAVING',1],['ORDER BY',1],['JOIN',1],['ON',1],['AS',1],['COUNT(*)',1],['SUM()',1],['AVG()',1],['DESC',1],['LIMIT',1],['IS NULL',1],[';',0]];
+function kbarKeyNorm(k){ return k.replace(/\(\*\)/g,'').replace(/[()';%]/g,'').replace(/\s+/g,' ').trim().toUpperCase(); }
+function kbarTokenAt(ta){
+  const s=ta.selectionStart;
+  if(s!==ta.selectionEnd) return null;
+  const m=ta.value.slice(0,s).match(/([A-Za-z_][A-Za-z0-9_]*)$/);
+  if(!m) return null;
+  return {text:m[1].toUpperCase(),start:s-m[1].length};
+}
+function kbarInString(ta){
+  const b=ta.value.slice(0,ta.selectionStart);
+  let q=0; for(let i=0;i<b.length;i++) if(b[i]==="'") q++;
+  return q%2===1;
+}
+function kbarSqlHints(ta){
+  const raw=ta.value.slice(0,ta.selectionStart);
+  const t=raw.replace(/\s+$/,'');
+  const up=t.toUpperCase();
+  if(!t.trim()||/;\s*$/.test(raw)) return ['SELECT'];
+  if(/\bSELECT\s*$/.test(up)) return ['*','DISTINCT','COUNT(*)','SUM()','AVG()','FROM'];
+  if(/\bSELECT\b/i.test(up)&&!/\bFROM\b/i.test(up)) return ['FROM','COUNT(*)','SUM()','AVG()','*',','];
+  if(/\bFROM\s+[\w.]+\s*$/.test(up)) return ['WHERE','JOIN',',','GROUP BY','ORDER BY','LIMIT','AS'];
+  if(/\b(JOIN|INNER JOIN|LEFT JOIN)\s+[\w.]+\s*$/.test(up)) return ['ON','WHERE','GROUP BY','ORDER BY'];
+  if(/\bJOIN\s*$/.test(up)) return ['ON'];
+  if(/\bON\s+[\w.]+\s*=\s*[\w.]+\s*$/.test(up)) return ['AND','OR','WHERE','GROUP BY','ORDER BY'];
+  if(/\bON\s*$/.test(up)) return ['=','AND','OR'];
+  if(/\bWHERE\s*$/.test(up)||/\b(AND|OR)\s*$/.test(up)) return ['*',"'",'=', 'IS NULL','LIKE','IN','BETWEEN','NOT','(','AND','OR','GROUP BY','ORDER BY'];
+  if(/\bGROUP BY\s*$/.test(up)) return ['HAVING','ORDER BY',',','COUNT(*)','SUM()','AVG()'];
+  if(/\bHAVING\s*$/.test(up)||/\bHAVING\s+.+/.test(up)&&/\b(AND|OR)\s*$/.test(up)) return ['AND','ORDER BY','COUNT(*)','SUM()','AVG()'];
+  if(/\bORDER BY\s+[\w.]+\s*$/.test(up)) return ['DESC',',','LIMIT'];
+  if(/\bORDER BY\s*$/.test(up)) return ['DESC',',','LIMIT'];
+  if(/\bLIMIT\s+\d+\s*$/.test(up)) return [';'];
+  if(/\bLIMIT\s*$/.test(up)) return [';'];
+  if(/\bAS\s*$/.test(up)) return ["'"];
+  if(/\bIS\s*$/.test(up)) return ['NULL'];
+  if(/\bNOT\s*$/.test(up)) return ['IN','LIKE','BETWEEN','NULL'];
+  if(/\b(LIKE|IN|BETWEEN)\s*$/.test(up)) return ["'",'(','NOT'];
+  if(/[\w.)'"]\s*$/.test(t)) return [',','=','>','<','>=','WHERE','FROM','JOIN','GROUP BY','ORDER BY',';'];
+  return [];
+}
+function kbarPrefixScore(key,partial){
+  if(!partial) return 0;
+  const norm=kbarKeyNorm(key);
+  if(!norm) return 0;
+  if(norm.startsWith(partial)) return 2400-(norm.length-partial.length);
+  const w=norm.split(' ');
+  if(w.some(x=>x.startsWith(partial))) return 1900;
+  if(norm.includes(partial)) return 900;
+  let j=0; for(let i=0;i<norm.length&&j<partial.length;i++) if(norm[i]===partial[j]) j++;
+  return j===partial.length?450:0;
+}
+function kbarContextScore(key,hints){
+  const i=hints.indexOf(key);
+  if(i>=0) return 1200-i*60;
+  const norm=kbarKeyNorm(key);
+  for(let j=0;j<hints.length;j++){
+    const h=hints[j];
+    if(key===h||norm===h||norm.startsWith(h+' ')||h.startsWith(norm)||norm.includes(h)) return 900-j*40;
+  }
+  return 0;
+}
+function kbarRankedKeys(ta){
+  const partial=(kbarTokenAt(ta)||{}).text||'';
+  const hints=kbarInString(ta)?["'",'%']:kbarSqlHints(ta);
+  const symSet=new Set([',','=','>','<','>=','%','()',"'",';','*']);
+  return KEYS.map((entry,i)=>{
+    const [key,isKw]=entry;
+    let score=KEYS.length-i;
+    if(kbarInString(ta)){
+      score=symSet.has(key)?1600: isKw?80:400;
+      if(key==="'"||key==='%') score+=300;
+    } else {
+      score+=kbarPrefixScore(key,partial);
+      score+=kbarContextScore(key,hints);
+      if(!isKw&&hints.length) score+=120;
+    }
+    if(partial&&score<400) score-=600;
+    return {key,isKw,score};
+  }).sort((a,b)=>b.score-a.score).map(x=>[x.key,x.isKw]);
+}
+function refreshKbar(ta){
+  ta=ta||activeTA;
+  const box=document.getElementById('kbar-in');
+  const bar=document.getElementById('kbar');
+  if(!box||!bar) return;
+  const ranked=ta?kbarRankedKeys(ta):KEYS.map(([key,isKw])=>[key,isKw]);
+  const sig=(ta?ta.id:'')+'\0'+ranked.map(x=>x[0]).join('\0');
+  if(sig===kbarLastOrder) return;
+  kbarLastOrder=sig;
+  const top=ranked[0]&&ranked[0][0];
+  box.innerHTML=ranked.map(([k,isKw])=>{
+    const cls=[isKw?'kw':'',k===top&&ta?'kbar-top':''].filter(Boolean).join(' ');
+    return `<button type="button" class="${cls}" data-k="${escAttr(k)}">${esc(k)}</button>`;
+  }).join('');
+}
 function updateKbarDock(){
   const kbar=document.getElementById('kbar');
   const dock=document.getElementById('kbar-dock');
@@ -4368,26 +4468,31 @@ function kbarDockToggle(){
   }
 }
 function buildKbar(){
-  document.getElementById('kbar-in').innerHTML=KEYS.map(([k,isKw],i)=>
-    `<button class="${isKw?'kw':''}" data-i="${i}">${esc(k)}</button>`).join('');
+  refreshKbar(null);
   const bar=document.getElementById('kbar');
   bar.addEventListener('mousedown',e=>{ if(!e.target.closest('.kbar-dock')) e.preventDefault(); });
   bar.addEventListener('touchstart',e=>{ if(e.target.closest('button')&&!e.target.closest('.kbar-dock')) e.preventDefault(); },{passive:false});
   bar.addEventListener('click',e=>{
     if(e.target.closest('.kbar-dock')){ kbarDockToggle(); return; }
-    const b=e.target.closest('button'); if(!b)return;
-    insertKey(KEYS[+b.dataset.i][0]);
+    const b=e.target.closest('button'); if(!b||!b.dataset.k)return;
+    insertKey(b.dataset.k);
   });
 }
 function insertKey(k){
   if(!activeTA)return;
   const ta=activeTA, s=ta.selectionStart, e=ta.selectionEnd, v=ta.value;
+  let start=s, end=e;
+  const tok=kbarTokenAt(ta);
+  const kn=kbarKeyNorm(k);
+  if(tok&&s===e&&kn&&kn.startsWith(tok.text)&&/^[A-Z]/.test(kn)){
+    start=tok.start;
+  }
   let txt=k, caret=k.length;
   if(k==='()'||k.endsWith('()')){caret=k.length-1;}
   else if(k==="'"){txt="''";caret=1;}
-  else if(/^[A-Z]/.test(k)&&k!==';'){txt=(s>0&&!/\s$/.test(v.slice(0,s))?' ':'')+k+' ';caret=txt.length;}
-  ta.value=v.slice(0,s)+txt+v.slice(e);
-  const pos=s+caret; ta.setSelectionRange(pos,pos);
+  else if(/^[A-Z]/.test(k)&&k!==';'){txt=(start>0&&!/\s$/.test(v.slice(0,start))?' ':'')+k+' ';caret=txt.length;}
+  ta.value=v.slice(0,start)+txt+v.slice(end);
+  const pos=start+caret; ta.setSelectionRange(pos,pos);
   ta.dispatchEvent(new Event('input')); ta.focus();
 }
 function syncKbarOffset(){
@@ -4404,7 +4509,8 @@ function syncKbarOffset(){
 function showKbar(on){
   document.getElementById('kbar').classList.toggle('on',on);
   document.body.classList.toggle('kbar-on',on);
-  if(!on) kbarKbDismissed=false;
+  if(!on){ kbarKbDismissed=false; kbarLastOrder=''; }
+  else refreshKbar(activeTA);
   const f=document.getElementById('fab');
   if(on) f.classList.add('hide');
   else if(!document.getElementById('note-sheet').classList.contains('on')&&!document.getElementById('card-sheet').classList.contains('on')&&!document.getElementById('viz').classList.contains('on')) f.classList.remove('hide');
