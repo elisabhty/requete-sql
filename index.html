@@ -514,6 +514,12 @@
   .vs-out.ok .pipe-table tr.keep td{background:rgba(20,184,166,.11)}
   .vs-out.ok .pipe-table tr.keep .num{color:#0F766E}
   .vs-out[hidden]{display:none!important}
+  .vs-out.static{padding:12px 14px;justify-content:flex-start}
+  .vs-out.static .result-meta{margin:0 0 8px}
+  .vs-out.static .vs-rows{list-style:none;margin:0;padding:0;font-family:var(--mono);font-size:11.5px;line-height:1.65;color:var(--ink)}
+  .vs-out.static .vs-rows li{padding:3px 0;border-bottom:1px solid rgba(60,60,67,.06)}
+  .vs-out.static .vs-rows li:last-child{border-bottom:0}
+  .vs-out.static .feedback{margin:0}
   .bad-line{display:block;position:relative;background:rgba(180,35,24,.15);border-radius:6px;margin:1px -6px;padding:0 6px;box-shadow:inset 2px 0 0 var(--danger)}
   .bad-line::after{content:'';position:absolute;left:6px;right:6px;top:50%;height:1.5px;background:rgba(255,120,110,.55);transform:translateY(-.5px)}
   .good-line{display:block;background:rgba(80,220,150,.13);border-radius:6px;margin:1px -6px;padding:0 6px;box-shadow:inset 2px 0 0 var(--success)}
@@ -2504,10 +2510,12 @@ const MODULES = [
   situation:"Deux agences — Paris et Lyon — utilisent la même base clients. Tu dois extraire les contacts des deux villes, sans exiger qu’une personne remplisse les deux conditions à la fois. Dans la table clients, tu cherches les personnes qui habitent à Paris ou à Lyon.",
     studio:{problem:{eye:"",title:"Combiner deux conditions",
       body:"<code>OR</code> signifie qu’au moins une des conditions doit être vraie pour garder une ligne.<br><br>Tu cherches les clients qui habitent à Paris ou à Lyon :<br><br><code>ville = 'Paris' OR ville = 'Lyon'</code><br><br>Pour chaque client, SQL vérifie les deux possibilités. Une seule suffit."},
-    vs:{bad:{tag:"✕ Incorrect",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR 'Lyon';",out:"SQL ne comprend pas 'Lyon' comme « ville = Lyon ». Après OR, écris une condition complète : ville = 'Paris' OR ville = 'Lyon', et non ville = 'Paris' OR 'Lyon'.",pedagogic:true,
-            code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line bad\">WHERE ville = 'Paris'\n   OR 'Lyon'</span>;"},
-        good:{tag:"✓ Correct",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",out:"5 lignes : Sophie, Lucas, Nathan, Hugo et Léa",
-            code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line good\">WHERE ville = 'Paris'\n   OR ville = 'Lyon'</span>;"}},
+    vs:{bad:{tag:"✕ Condition incomplète",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR 'Lyon';",
+            code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line bad\">WHERE ville = 'Paris'\n   OR 'Lyon'</span>;",
+            static:`<div class="feedback warn"><div class="fi">!</div><div><b>Requête incorrecte</b><p>'Lyon' n'est pas une condition complète.<br>Après OR, SQL doit savoir quelle colonne comparer.</p></div></div>`},
+        good:{tag:"✓ Avec OR",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",
+            code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line good\">WHERE ville = 'Paris'\n   OR ville = 'Lyon'</span>;",
+            static:`<div class="result-meta"><span>5 lignes</span><span>·</span><span>2 colonnes</span></div><ul class="vs-rows"><li>Sophie — Paris</li><li>Lucas — Lyon</li><li>Nathan — Paris</li><li>Hugo — Lyon</li><li>Léa — Paris</li></ul>`}},
     why:{eye:"",title:"Pourquoi cinq lignes ?",
       body:"Avec <code>OR</code>, une seule condition vraie peut suffire."},
     viz:"or",
@@ -5362,11 +5370,14 @@ function renderVs(vs){
     const tag=side.tag||(tone==='bad'?'✕ Incorrect':'✓ Correct');
     const sql=side.sql||'';
     const code=side.code!=null?side.code:highlight(sql);
+    const run=side.static?'':`<button type="button" class="vs-run" data-sql="${escAttr(sql)}" data-hint="${escAttr(side.out||'')}"${side.pedagogic?' data-pedagogic="1"':''} onclick="runVsSql(this)">${XF_RUN_ICO}Exécuter</button>`;
+    const out=side.static
+      ?`<div class="vs-out static ${tone} live">${side.static}</div>`
+      :`<div class="vs-out" hidden aria-live="polite"></div>`;
     return `<div class="vs-col ${tone}">
       <div class="vs-tag ${tone}">${tag}</div>
       <div class="ex-code">${code}</div>
-      <button type="button" class="vs-run" data-sql="${escAttr(sql)}" data-hint="${escAttr(side.out||'')}"${side.pedagogic?' data-pedagogic="1"':''} onclick="runVsSql(this)">${XF_RUN_ICO}Exécuter</button>
-      <div class="vs-out" hidden aria-live="polite"></div>
+      ${run}${out}
     </div>`;
   };
   return `<div class="vs">${col(vs.bad,'bad')}${col(vs.good,'good')}</div>`;
