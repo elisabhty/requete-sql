@@ -570,20 +570,27 @@
   .grp-k{font-family:var(--mono);font-size:11px;font-weight:700;background:var(--ink);color:#fff;padding:6px 10px;border-radius:8px;letter-spacing:.2px;transition:background .3s;max-width:100%;width:fit-content;box-sizing:border-box;word-break:break-word;line-height:1.35}
   .grp-viz[data-phase="1"] .grp-k{background:var(--accent)}
   .grp-viz[data-phase="2"] .grp-k{background:#0F766E}
-  .sql-viz[data-viz="andor"][data-phase="0"] .grp-chip{opacity:1;filter:none;text-decoration:none;background:var(--surface);border-color:var(--line-2);box-shadow:0 2px 8px rgba(20,20,40,.07)}
-  .sql-viz[data-viz="andor"][data-phase="1"] .grp-chip[data-keep0="0"]{opacity:.32;filter:grayscale(.35);text-decoration:none}
-  .sql-viz[data-viz="andor"][data-phase="1"] .grp-chip[data-keep0="1"]{opacity:1;filter:none;border-color:rgba(91,91,214,.42);box-shadow:0 4px 14px rgba(91,91,214,.16);background:var(--accent-soft)}
-  .sql-viz[data-viz="andor"][data-phase="1"] .grp-chip[data-keep0="1"] .grp-extra{color:var(--accent);font-weight:600}
-  .sql-viz[data-kind="filter"]:not([data-viz="andor"])[data-phase="1"] .grp-chip[data-keep="0"],
+  .sql-viz[data-viz="andor"][data-phase="0"] .grp-chip,
+  .sql-viz[data-viz="or"][data-phase="0"] .grp-chip{opacity:1;filter:none;text-decoration:none;background:var(--surface);border-color:var(--line-2);box-shadow:0 2px 8px rgba(20,20,40,.07)}
+  .sql-viz[data-viz="andor"][data-phase="1"] .grp-chip[data-keep0="0"],
+  .sql-viz[data-viz="or"][data-phase="1"] .grp-chip[data-keep0="0"]{opacity:.32;filter:grayscale(.35);text-decoration:none}
+  .sql-viz[data-viz="andor"][data-phase="1"] .grp-chip[data-keep0="1"],
+  .sql-viz[data-viz="or"][data-phase="1"] .grp-chip[data-keep0="1"]{opacity:1;filter:none;border-color:rgba(91,91,214,.42);box-shadow:0 4px 14px rgba(91,91,214,.16);background:var(--accent-soft)}
+  .sql-viz[data-viz="andor"][data-phase="1"] .grp-chip[data-keep0="1"] .grp-extra,
+  .sql-viz[data-viz="or"][data-phase="1"] .grp-chip[data-keep0="1"] .grp-extra{color:var(--accent);font-weight:600}
+  .sql-viz[data-kind="filter"]:not([data-viz="andor"]):not([data-viz="or"])[data-phase="1"] .grp-chip[data-keep="0"],
   .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep="0"],
+  .sql-viz[data-viz="or"][data-phase="2"] .grp-chip[data-keep="0"],
   .sql-viz[data-kind="limit"][data-phase="1"] .grp-chip[data-keep="0"],
   .sql-viz[data-kind="nulls"][data-phase="1"] .grp-chip[data-keep="0"]{opacity:.3;filter:grayscale(.4)}
-  .sql-viz[data-kind="filter"]:not([data-viz="andor"])[data-phase="1"] .grp-chip[data-keep="1"],
+  .sql-viz[data-kind="filter"]:not([data-viz="andor"]):not([data-viz="or"])[data-phase="1"] .grp-chip[data-keep="1"],
   .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep="1"],
+  .sql-viz[data-viz="or"][data-phase="2"] .grp-chip[data-keep="1"],
   .sql-viz[data-kind="limit"][data-phase="1"] .grp-chip[data-keep="1"],
   .sql-viz[data-kind="nulls"][data-phase="1"] .grp-chip[data-keep="1"]{border-color:rgba(20,184,166,.4);box-shadow:0 4px 14px rgba(20,184,166,.16)}
-  .sql-viz[data-kind="filter"]:not([data-viz="andor"])[data-phase="1"] .grp-chip[data-keep="0"],
-  .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep="0"]{text-decoration:line-through}
+  .sql-viz[data-kind="filter"]:not([data-viz="andor"]):not([data-viz="or"])[data-phase="1"] .grp-chip[data-keep="0"],
+  .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep="0"],
+  .sql-viz[data-viz="or"][data-phase="2"] .grp-chip[data-keep="0"]{text-decoration:line-through}
   .grp-extra{color:#8E8E93;font-weight:500;margin-left:6px;font-size:10.5px;transition:opacity .45s,max-width .45s}
   .grp-desc{font-size:14px;color:var(--ink-2);line-height:1.45;font-weight:600;max-width:100%}
   .grp-paused-badge{display:none;position:absolute;top:0;right:0;font-family:var(--ui);font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border:1px solid rgba(91,91,214,.28);border-radius:999px;padding:4px 10px;line-height:1.2;white-space:nowrap;pointer-events:none}
@@ -8073,11 +8080,12 @@ const SQL_VIZ={
   ]},
   or:{kind:'filter',phases:[
     {k:'SELECT nom, ville FROM clients',d:'Les 9 clients sont affichés avec leur nom et leur ville.'},
-    {k:"WHERE ville = 'Paris' OR ville = 'Lyon'",d:'SQL garde les clients qui habitent à Paris ou à Lyon : 5 lignes restent.'}
+    {k:"WHERE ville = 'Paris'",d:'SQL garde uniquement les clients qui habitent à Paris : 3 lignes restent.'},
+    {k:"OR ville = 'Lyon'",d:'OR élargit le résultat : 5 lignes restent au total.'}
   ],chips:[
-    {t:'Sophie',extra:'Paris',keep:1},{t:'Lucas',extra:'Lyon',keep:1},{t:'Emma',extra:'Marseille',keep:0},
-    {t:'Nathan',extra:'Paris',keep:1},{t:'Chloé',extra:'Bordeaux',keep:0},{t:'Hugo',extra:'Lyon',keep:1},
-    {t:'Léa',extra:'Paris',keep:1},{t:'Gabriel',extra:'Toulouse',keep:0},{t:'Inès',extra:'Nantes',keep:0}
+    {t:'Sophie',extra:'Paris',keep0:1,keep:1},{t:'Lucas',extra:'Lyon',keep0:0,keep:1},{t:'Emma',extra:'Marseille',keep0:0,keep:0},
+    {t:'Nathan',extra:'Paris',keep0:1,keep:1},{t:'Chloé',extra:'Bordeaux',keep0:0,keep:0},{t:'Hugo',extra:'Lyon',keep0:0,keep:1},
+    {t:'Léa',extra:'Paris',keep0:1,keep:1},{t:'Gabriel',extra:'Toulouse',keep0:0,keep:0},{t:'Inès',extra:'Nantes',keep0:0,keep:0}
   ]},
   nulls:{kind:'nulls',phases:[
     {k:"WHERE email = NULL",d:'NULL n’est égal à rien, pas même à lui-même. 0 ligne.'},
