@@ -15,6 +15,40 @@
   var WSTAGGER = 105;   // ms entre deux lignes testées
   var WMARK    = 230;   // ms entre le test d'une ligne et son verdict
   var WTAIL    = 220;   // marge de lecture après le dernier verdict
+  var hapticTimers = [];
+
+  function buzzLine() {
+    if (typeof buzz === "function") buzz("selection");
+    else if (navigator.vibrate) navigator.vibrate(4);
+  }
+
+  function clearHaptics() {
+    hapticTimers.forEach(clearTimeout);
+    hapticTimers = [];
+  }
+
+  function scheduleFilterHaptics(root) {
+    clearHaptics();
+    if (typeof prefersReduceMotion === "function" && prefersReduceMotion()) return;
+    if (root.dataset.playing !== "1") return;
+
+    var phase = parseInt(root.dataset.phase || "0", 10);
+    var filterPhase = (root.dataset.viz === "andor" || root.dataset.viz === "or" ||
+      root.dataset.viz === "nulls" || root.dataset.viz === "like") ? 2 : 1;
+    if (phase !== filterPhase) return;
+
+    [].forEach.call(root.querySelectorAll(".grp-chip"), function (c, i) {
+      var delay = i * WSTAGGER + WMARK;
+      hapticTimers.push(setTimeout(function () {
+        if (!root.isConnected || root.dataset.paused === "1") return;
+        buzzLine();
+        c.classList.remove("vw-tick");
+        void c.offsetWidth;
+        c.classList.add("vw-tick");
+        hapticTimers.push(setTimeout(function () { c.classList.remove("vw-tick"); }, 280));
+      }, delay));
+    });
+  }
 
   function eligible(root) {
     return !!root && !!root.dataset &&
@@ -129,6 +163,12 @@
     root.classList.add("vw");        // c'est ce marqueur qui active viz-where.css
   }
 
+  function onPhase(root, phase) {
+    if (!eligible(root)) return;
+    if (phase >= 1 && root.dataset.playing === "1") scheduleFilterHaptics(root);
+    else clearHaptics();
+  }
+
   function armAll() {
     [].forEach.call(
       document.querySelectorAll('.sql-viz[data-kind="filter"]'),
@@ -144,6 +184,22 @@
       var r = _init.apply(this, arguments);
       armAll();
       return r;
+    };
+  }
+
+  var _setPhase = window.havingGrpSetPhase;
+  if (typeof _setPhase === "function") {
+    window.havingGrpSetPhase = function (root, phase, opts) {
+      _setPhase.apply(this, arguments);
+      onPhase(root, phase);
+    };
+  }
+
+  var _stop = window.stopHavingGrpViz;
+  if (typeof _stop === "function") {
+    window.stopHavingGrpViz = function (root) {
+      clearHaptics();
+      _stop.apply(this, arguments);
     };
   }
 
