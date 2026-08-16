@@ -26,10 +26,12 @@
   function stampDelays(root) {
     var keeps = [];
     [].forEach.call(root.querySelectorAll(".grp-chip"), function (c, i) {
-      c.style.setProperty("--dw", (i * WSTAGGER) + "ms");
-      c.style.setProperty("--dwm", (i * WSTAGGER + WMARK) + "ms");
-      if (c.dataset.keep === "1") keeps.push(i);
+      var step = c.dataset.rank != null ? +c.dataset.rank : i;
+      c.style.setProperty("--dw", (step * WSTAGGER) + "ms");
+      c.style.setProperty("--dwm", (step * WSTAGGER + WMARK) + "ms");
+      if (c.dataset.keep === "1") keeps.push(step);
     });
+    keeps.sort(function (a, b) { return a - b; });
     return keeps;
   }
 

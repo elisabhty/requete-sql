@@ -2770,7 +2770,7 @@ const MODULES = [
 { id:12, titre:"LIMIT", résumé:"Limiter le nombre de lignes",
   situation:"Dans la table produits, tu veux afficher uniquement les 3 produits les plus chers.<br><br>Tu sais déjà les trier du plus cher au moins cher avec <code>ORDER BY prix DESC</code>. Mais les 8 produits apparaissent encore.",
   situationSql:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC;",
-  situationTail:"Pour ne garder que les 3 premiers du classement, ajoute <code>LIMIT 3</code>.",
+  situationTail:"Pour ne garder que les 3 premiers du classement, il faut la clause <code>LIMIT</code>.",
     studio:{problem:{title:"LIMIT fixe le nombre de lignes affichées.",
       body:"<code>LIMIT 3</code> signifie : garde seulement les 3 premières lignes du résultat. Mais pour obtenir les 3 produits les plus chers, il faut d’abord savoir lesquels arrivent en tête. <code>ORDER BY prix DESC</code> classe les 8 produits du plus cher au moins cher, puis <code>LIMIT 3</code> garde les 3 premiers."},
     vs:{bad:{tag:"✕ LIMIT seul",sql:"SELECT nom, prix FROM produits\nLIMIT 3;",out:"3 lignes, mais pas forcément les 3 produits les plus chers",
@@ -8680,12 +8680,14 @@ const SQL_VIZ={
     {t:'Léa',extra:'38',rank:3},{t:'Gabriel',extra:'29',rank:6},{t:'Inès',extra:'41',rank:2}
   ]},
   limit:{kind:'limit',phases:[
-    {k:'ORDER BY prix DESC',d:'Les 8 produits sont d’abord classés du plus cher au moins cher.'},
+    {k:'SELECT nom, prix FROM produits',d:'Les 8 produits s’affichent. Sans ORDER BY, aucun ordre n’est garanti.'},
+    {k:'ORDER BY prix DESC',d:'Les 8 produits sont classés du plus cher au moins cher. Toutes les lignes sont encore là.'},
     {k:'LIMIT 3',d:'LIMIT 3 garde les 3 premiers du classement : Collagène Marin, Protéine Végétale et Fibre Prébiotique.'}
   ],chips:[
-    {t:'Collagène',extra:'39,90',keep:1},{t:'Protéine',extra:'34,90',keep:1},{t:'Fibre Préb.',extra:'29,90',keep:1},
-    {t:'Oméga 3',extra:'24,90',keep:0},{t:'Magnésium',extra:'19,90',keep:0},{t:'Shaker',extra:'15,00',keep:0},
-    {t:'Vit. D',extra:'14,90',keep:0},{t:'Tisane',extra:'12,50',keep:0}
+    {t:'Fibre Préb.',extra:'29,90',rank:2,keep:1},{t:'Collagène',extra:'39,90',rank:0,keep:1},
+    {t:'Magnésium',extra:'19,90',rank:4,keep:0},{t:'Vit. D',extra:'14,90',rank:6,keep:0},
+    {t:'Tisane',extra:'12,50',rank:7,keep:0},{t:'Protéine',extra:'34,90',rank:1,keep:1},
+    {t:'Oméga 3',extra:'24,90',rank:3,keep:0},{t:'Shaker',extra:'15,00',rank:5,keep:0}
   ]},
   distinct:{kind:'filter',phases:[
     {k:'SELECT ville FROM clients',d:'Paris et Lyon apparaissent plusieurs fois.'},
@@ -8838,8 +8840,8 @@ function layoutSqlList(root,phase,{animate=true}={}){
   const sw=stage.clientWidth||320;
   let chips=[...root.querySelectorAll('.grp-chip')];
   const kind=root.dataset.kind||sqlVizCfg(root).kind;
-  const sortAt=kind==='sort'?Math.max(1,sqlVizPhases(root).length-1):-1;
-  if(kind==='sort'&&phase>=sortAt){
+  const sortAt=kind==='sort'?Math.max(1,sqlVizPhases(root).length-1):(kind==='limit'?1:-1);
+  if(sortAt>=0&&phase>=sortAt){
     chips=chips.slice().sort((a,b)=>(+a.dataset.rank||0)-(+b.dataset.rank||0));
   }
   if(!animate) chips.forEach(c=>{c.style.transition='none';});
@@ -8853,7 +8855,7 @@ function layoutSqlList(root,phase,{animate=true}={}){
     const x=pad+col*(colW+gapX);
     const y=pad+row*(rowH+gapY);
     const delay=animate
-      ?(kind==='sort'&&phase>=sortAt?(+c.dataset.rank||0)*70:i*45)
+      ?(sortAt>=0&&phase>=sortAt?(+c.dataset.rank||0)*70:i*45)
       :0;
     c.style.transitionDelay=delay+'ms';
     c.style.width=colW+'px';
