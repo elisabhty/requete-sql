@@ -128,33 +128,34 @@
     if (prefersReduceMotion()) return;
     var k = root.querySelector(".grp-k");
     var d = root.querySelector(".grp-desc");
-    if (k) {
-      k.classList.remove("grp-k-pop");
-      void k.offsetWidth;
-      k.classList.add("grp-k-pop");
-    }
-    if (d) {
-      d.classList.remove("grp-desc-in");
-      void d.offsetWidth;
-      d.classList.add("grp-desc-in");
-    }
+    if (k) k.classList.remove("grp-k-pop");
+    if (d) d.classList.remove("grp-desc-in");
+    void root.offsetWidth;
+    if (k) k.classList.add("grp-k-pop");
+    if (d) d.classList.add("grp-desc-in");
   }
 
   function paintSteps(root, phase, dur, running, fill) {
-    [].forEach.call(root.querySelectorAll(".vb-dot"), function (d, i) {
+    var dots = root.querySelectorAll(".vb-dot");
+    var activeDot = null;
+    for (var i = 0; i < dots.length; i++) {
+      var d = dots[i];
       d.classList.remove("run", "full");
       d.classList.toggle("done", i < phase);
       d.classList.toggle("on", i === phase);
-      d.querySelector("i").style.cssText = "";
-      if (i !== phase) return;
-      void d.offsetWidth;                      // reflow : relance la jauge
-      if (running && dur) {
-        d.style.setProperty("--dur", dur + "ms");
-        d.classList.add("run");
-      } else if (fill) {
-        d.classList.add("full");
-      }
-    });
+      d.setAttribute("aria-current", i === phase ? "step" : "false");
+      var icon = d.querySelector("i");
+      if (icon) icon.style.cssText = "";
+      if (i === phase) activeDot = d;
+    }
+    if (!activeDot) return;
+    void activeDot.offsetWidth;
+    if (running && dur) {
+      activeDot.style.setProperty("--dur", dur + "ms");
+      activeDot.classList.add("run");
+    } else if (fill) {
+      activeDot.classList.add("full");
+    }
   }
 
   /* Appelé à chaque layout : ne doit pas écraser une jauge en cours,
@@ -192,7 +193,7 @@
     if (navigator.vibrate) navigator.vibrate(10);   // sans effet sur iOS
   }
 
-  function continueViz(root, fromPhase) {
+  function continueViz(root, fromPhase, customDelay) {
     stopViz(root);
     root.dataset.playing = "1";
     root.dataset.paused = "0";
@@ -202,7 +203,12 @@
     if (fromPhase >= last) return finishViz(root);
 
     var next = fromPhase + 1;
-    var delay = fromPhase === 0 ? DUR[0] : DUR[1];
+    var totalDelay = fromPhase === 0 ? DUR[0] : DUR[1];
+    var delay = customDelay != null ? customDelay : totalDelay;
+
+    root._phaseStart = Date.now();
+    root._phaseDuration = delay;
+
     paintSteps(root, fromPhase, delay, true, true);
 
     root._grpTimer = setTimeout(function () {
@@ -239,6 +245,10 @@
   // La jauge se fige sur pause au lieu de sauter à 100 %.
   function pauseViz(root) {
     if (!root || root.dataset.playing !== "1") return;
+    var elapsed = Date.now() - (root._phaseStart || Date.now());
+    root._phaseElapsed = elapsed;
+    root._phaseRemaining = Math.max(150, (root._phaseDuration || DUR[0]) - elapsed);
+
     var dot = root.querySelector(".vb-dot.on");
     var run = dot && dot.classList.contains("run");
     var tf = run ? getComputedStyle(dot.querySelector("i")).transform : null;
@@ -265,7 +275,8 @@
     var b = root.querySelector(".vb-dot.on i");
     if (b) { b.style.animation = ""; b.style.transform = ""; }
     root.dataset.paused = "0";
-    continueViz(root, parseInt(root.dataset.phase || "0", 10));
+    var remaining = root._phaseRemaining || (root.dataset.phase === "0" ? DUR[0] : DUR[1]);
+    continueViz(root, parseInt(root.dataset.phase || "0", 10), remaining);
   }
   /* L’observer est porté par le root : plus de disconnect() croisé. */
   function armViz(root) {

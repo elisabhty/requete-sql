@@ -11,7 +11,7 @@
 (function () {
   "use strict";
 
-  var VIZ_OK   = ["where", "compare", "andor", "or", "nulls", "like", "inbetween"];
+  var VIZ_OK   = ["where", "compare", "andor", "or", "nulls", "like", "inbetween", "between"];
   var WSTAGGER = 105;   // ms entre deux lignes testées
   var WMARK    = 230;   // ms entre le test d'une ligne et son verdict
   var WTAIL    = 220;   // marge de lecture après le dernier verdict
