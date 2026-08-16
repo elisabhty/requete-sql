@@ -1,0 +1,118 @@
+{
+  "id": 12,
+  "titre": "LIMIT",
+  "résumé": "Limiter le nombre de lignes",
+  "module": {
+    "titre": "Trier & limiter",
+    "sous": "Mettre de l’ordre dans le résultat"
+  },
+  "situation": "Dans la table produits, tu veux afficher uniquement les 3 produits les plus chers.<br><br>Tu sais déjà les trier du plus cher au moins cher avec <code>ORDER BY prix DESC</code>. Mais les 8 produits apparaissent encore.",
+  "situationSql": "SELECT nom, prix\nFROM produits\nORDER BY prix DESC;",
+  "situationTail": "Pour ne garder que les 3 premiers du classement, ajoute <code>LIMIT 3</code>.",
+  "studio": {
+    "problem": {
+      "title": "LIMIT fixe le nombre de lignes affichées.",
+      "body": "<code>LIMIT 3</code> signifie : garde seulement les 3 premières lignes du résultat. Mais pour obtenir les 3 produits les plus chers, il faut d’abord savoir lesquels arrivent en tête. <code>ORDER BY prix DESC</code> classe les 8 produits du plus cher au moins cher, puis <code>LIMIT 3</code> garde les 3 premiers."
+    },
+    "vs": {
+      "bad": {
+        "tag": "✕ LIMIT seul",
+        "sql": "SELECT nom, prix FROM produits\nLIMIT 3;",
+        "out": "3 lignes, mais pas forcément les 3 produits les plus chers",
+        "code": "SELECT nom, prix\nFROM produits\n<span class=\"vs-line bad\">LIMIT 3</span>;"
+      },
+      "good": {
+        "tag": "✓ Top 3",
+        "sql": "SELECT nom, prix FROM produits\nORDER BY prix DESC\nLIMIT 3;",
+        "out": "3 lignes : Collagène Marin, Protéine Végétale, Fibre Prébiotique",
+        "code": "SELECT nom, prix\nFROM produits\n<span class=\"vs-line good\">ORDER BY prix DESC\nLIMIT 3</span>;"
+      }
+    },
+    "why": {
+      "title": "D’abord classer, ensuite limiter."
+    },
+    "viz": "limit",
+    "reflex": {
+      "a": {
+        "k": "ORDER BY",
+        "t": "détermine <b>l’ordre</b> des lignes"
+      },
+      "b": {
+        "k": "LIMIT",
+        "t": "détermine <b>combien</b> de lignes garder"
+      },
+      "note": "Pour obtenir un top 3 : trie d’abord avec <code>ORDER BY … DESC</code>, puis garde les 3 premières lignes avec <code>LIMIT 3</code>."
+    }
+  },
+  "anatomie": [
+    { "tok": "SELECT nom, prix", "txt": "Affiche le nom et le prix." },
+    { "tok": "FROM produits", "txt": "Les données viennent de la table produits." },
+    { "tok": "ORDER BY prix DESC", "txt": "Classe les produits du plus cher au moins cher." },
+    { "tok": "LIMIT 3", "txt": "Garde uniquement les 3 premières lignes après le tri." }
+  ],
+  "exemple": "SELECT nom, prix FROM produits ORDER BY prix DESC LIMIT 3;",
+  "attendu": "<b>3 lignes</b> : Collagène Marin à 39,90 €, Protéine Végétale à 34,90 € et Fibre Prébiotique à 29,90 €.",
+  "retenir": "<code>LIMIT n</code> garde seulement les n premières lignes du résultat. Dans <code>ORDER BY prix DESC LIMIT 3</code>, les produits sont d’abord classés du plus cher au moins cher, puis seuls les 3 premiers sont affichés.",
+  "piege": {
+    "t": "Utiliser LIMIT sans définir l’ordre",
+    "p": "<code>LIMIT 3</code> seul renvoie bien 3 lignes, mais ne garantit pas qu’il s’agit des 3 produits les plus chers. Pour créer un classement, utilise d’abord <code>ORDER BY</code>, puis <code>LIMIT</code>."
+  },
+  "consigne": "Affiche toutes les colonnes des 3 produits les plus chers.",
+  "solution": "SELECT * FROM produits ORDER BY prix DESC LIMIT 3;",
+  "indice": "Commence par classer les prix du plus élevé au plus faible. Ensuite, indique combien de lignes tu veux conserver.",
+  "richLesson": true,
+  "earlyDemo": true,
+  "ordered": true,
+  "memo": {
+    "k": "LIMIT",
+    "t": "Limiter le résultat",
+    "s": "ORDER BY prix DESC LIMIT 3",
+    "m": "<code>ORDER BY</code> classe les lignes ; <code>LIMIT</code> garde seulement les premières."
+  },
+  "quiz": [
+    {
+      "q": "Que fait <code>LIMIT 3</code> ?",
+      "o": [
+        "Il garde les 3 premières lignes du résultat",
+        "Il garde toujours les 3 valeurs les plus élevées",
+        "Il trie automatiquement les lignes"
+      ],
+      "b": 0,
+      "e": "<code>LIMIT</code> limite le nombre de lignes. Il ne réalise aucun tri."
+    },
+    {
+      "q": "Comment obtenir les 3 produits les plus chers ?",
+      "o": [
+        "LIMIT 3",
+        "ORDER BY prix DESC LIMIT 3",
+        "ORDER BY prix ASC LIMIT 3"
+      ],
+      "b": 1,
+      "e": "<code>DESC</code> place les prix les plus élevés en premier, puis <code>LIMIT 3</code> garde les trois premières lignes."
+    }
+  ],
+  "animation": {
+    "key": "limit",
+    "kind": "limit",
+    "phases": [
+      {
+        "k": "ORDER BY prix DESC",
+        "d": "Les 8 produits sont d’abord classés du plus cher au moins cher."
+      },
+      {
+        "k": "LIMIT 3",
+        "d": "LIMIT 3 garde les 3 premiers du classement : Collagène Marin, Protéine Végétale et Fibre Prébiotique."
+      }
+    ],
+    "chips": [
+      { "t": "Collagène", "extra": "39,90", "keep": 1 },
+      { "t": "Protéine", "extra": "34,90", "keep": 1 },
+      { "t": "Fibre Préb.", "extra": "29,90", "keep": 1 },
+      { "t": "Oméga 3", "extra": "24,90", "keep": 0 },
+      { "t": "Magnésium", "extra": "19,90", "keep": 0 },
+      { "t": "Shaker", "extra": "15,00", "keep": 0 },
+      { "t": "Vit. D", "extra": "14,90", "keep": 0 },
+      { "t": "Tisane", "extra": "12,50", "keep": 0 }
+    ]
+  }
+}
