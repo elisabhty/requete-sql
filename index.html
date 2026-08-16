@@ -607,13 +607,13 @@
   .sql-viz[data-viz="or"][data-phase="2"] .grp-chip[data-keep="0"],
   .sql-viz[data-viz="nulls"][data-phase="2"] .grp-chip[data-keep="0"],
   .sql-viz[data-viz="like"][data-phase="2"] .grp-chip[data-keep="0"],
-  .sql-viz[data-kind="limit"][data-phase="1"] .grp-chip[data-keep="0"]{opacity:.3;filter:grayscale(.4)}
+  .sql-viz[data-kind="limit"]:not(.vw)[data-phase="1"] .grp-chip[data-keep="0"]{opacity:.3;filter:grayscale(.4)}
   .sql-viz[data-kind="filter"]:not([data-viz="andor"]):not([data-viz="or"]):not([data-viz="nulls"]):not([data-viz="like"])[data-phase="1"] .grp-chip[data-keep="1"],
   .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep="1"],
   .sql-viz[data-viz="or"][data-phase="2"] .grp-chip[data-keep="1"],
   .sql-viz[data-viz="nulls"][data-phase="2"] .grp-chip[data-keep="1"],
   .sql-viz[data-viz="like"][data-phase="2"] .grp-chip[data-keep="1"],
-  .sql-viz[data-kind="limit"][data-phase="1"] .grp-chip[data-keep="1"]{border-color:rgba(20,184,166,.4);box-shadow:0 4px 14px rgba(20,184,166,.16)}
+  .sql-viz[data-kind="limit"]:not(.vw)[data-phase="1"] .grp-chip[data-keep="1"]{border-color:rgba(20,184,166,.4);box-shadow:0 4px 14px rgba(20,184,166,.16)}
   .sql-viz[data-kind="filter"]:not([data-viz="andor"]):not([data-viz="or"]):not([data-viz="nulls"]):not([data-viz="like"])[data-phase="1"] .grp-chip[data-keep="0"],
   .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep="0"],
   .sql-viz[data-viz="or"][data-phase="2"] .grp-chip[data-keep="0"],
@@ -2167,8 +2167,10 @@
 </style>
 <link rel="stylesheet" href="viz-select.css">
 <link rel="stylesheet" href="viz-where.css">
+<link rel="stylesheet" href="viz-orderby.css">
 <script src="viz-select.js" defer></script>
 <script src="viz-where.js" defer></script>
+<script src="viz-orderby.js" defer></script>
 </head>
 <body>
 <div id="app">
@@ -2749,7 +2751,6 @@ const MODULES = [
             code:"SELECT nom, age\nFROM clients;"},
         good:{tag:"✓ Du plus âgé au plus jeune",sql:"SELECT nom, age FROM clients\nORDER BY age DESC;",out:"Hugo 52, Emma 45, Inès 41, Léa 38, Sophie 34…",
             code:"SELECT nom, age\nFROM clients\n<span class=\"vs-line good\">ORDER BY age DESC</span>;"}},
-    point:"Avec <code>ORDER BY age DESC</code>, les mêmes 9 clients sont présents, mais leurs lignes sont rangées selon leur âge :<br><br>Hugo — 52 ans<br>Emma — 45 ans<br>Inès — 41 ans<br>Léa — 38 ans<br>Sophie — 34 ans<br>Nathan — 31 ans<br>Gabriel — 29 ans<br>Lucas — 28 ans<br>Chloé — 26 ans<br><br><code>ORDER BY</code> change donc <b>l’ordre des lignes</b>, pas leur contenu.",
     why:{title:"ASC ou DESC : dans quel sens trier ?",
       body:"<code>ASC</code> signifie <b>ordre croissant</b> : du plus petit au plus grand. Pour un âge, 26 vient avant 52.<br><br><code>DESC</code> signifie <b>ordre décroissant</b> : du plus grand au plus petit. Pour un âge, 52 vient avant 26.<br><br><code>ASC</code> est le choix par défaut : <code>ORDER BY age</code> et <code>ORDER BY age ASC</code> produisent le même tri."},
     viz:"orderby",
@@ -2767,25 +2768,28 @@ const MODULES = [
   richLesson:true, earlyDemo:true,
   ordered:true },
 { id:12, titre:"LIMIT", résumé:"Garder le sommet",
-  situation:"Dans la table <code>produits</code>, tu veux les 3 plus chers. Il faut trier, puis couper.",
-    studio:{problem:{title:"LIMIT sans tri coupe au hasard.",
-      body:"<code>LIMIT n</code> garde les n premières lignes du résultat. Sans tri, « premières » ne veut rien dire."},
-    vs:{bad:{tag:"✕ LIMIT seul",sql:"SELECT nom, prix FROM produits\nLIMIT 3;",out:"3 produits, sans garantie sur lesquels"},
-        good:{tag:"✓ Top 3",sql:"SELECT nom, prix FROM produits\nORDER BY prix DESC\nLIMIT 3;",out:"Les 3 plus chers"}},
-    point:"Recette du top N : <code>ORDER BY … DESC</code> puis <code>LIMIT n</code>.",
-    why:{title:"Suis ce qui arrive à tes données.",
-      body:"SQL range d’abord toute la liste par prix. Ensuite <code>LIMIT</code> jette ce qui dépasse le podium."},
+  situation:"Dans la table produits, tu veux afficher uniquement les 3 plus chers.<br><br>Avec ce que tu connais déjà, tu peux trier tout le catalogue :",
+  situationSql:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC;",
+  situationTail:"Tu obtiens bien les produits du plus cher au moins cher. Mais les 8 lignes sont encore là. Pour ne garder que le sommet, il faut <code>LIMIT</code>.",
+    studio:{problem:{title:"LIMIT garde les n premières lignes du résultat.",
+      body:"<code>LIMIT 3</code> coupe après 3 lignes. Sans <code>ORDER BY</code>, « les 3 premières » ne veut rien dire : l’ordre n’est pas garanti. Avec <code>ORDER BY prix DESC</code> puis <code>LIMIT 3</code>, tu obtiens les 3 plus chers : Collagène Marin, Protéine Végétale et Fibre Prébiotique."},
+    vs:{bad:{tag:"✕ LIMIT seul",sql:"SELECT nom, prix FROM produits\nLIMIT 3;",out:"3 produits, sans garantie sur lesquels",
+            code:"SELECT nom, prix\nFROM produits\n<span class=\"vs-line bad\">LIMIT 3</span>;"},
+        good:{tag:"✓ Top 3",sql:"SELECT nom, prix FROM produits\nORDER BY prix DESC\nLIMIT 3;",out:"3 lignes : Collagène Marin, Protéine Végétale, Fibre Prébiotique",
+            code:"SELECT nom, prix\nFROM produits\n<span class=\"vs-line good\">ORDER BY prix DESC\nLIMIT 3</span>;"}},
+    why:{title:"Pourquoi trier avant de limiter ?"},
     viz:"limit",
     reflex:{a:{k:"ORDER BY",t:"décide <b>qui</b> est en tête"},
-      b:{k:"LIMIT",t:"décide <b>combien</b> on garde"}}},
-  anatomie:[{tok:"SELECT nom, prix",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM produits",txt:"La table produits est utilisée comme source."},{tok:"ORDER BY prix DESC",txt:"Les plus chers d’abord."},{tok:"LIMIT 3",txt:"Garde seulement 3 lignes."}],
+      b:{k:"LIMIT",t:"décide <b>combien</b> on garde"},
+      note:"Recette du top N : <code>ORDER BY … DESC</code> puis <code>LIMIT n</code>."}},
+  anatomie:[{tok:"SELECT nom, prix",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM produits",txt:"La table produits est utilisée comme source."},{tok:"ORDER BY prix DESC",txt:"Range les produits du plus cher au moins cher."},{tok:"LIMIT 3",txt:"Garde seulement les 3 premières lignes du résultat trié."}],
   exemple:"SELECT nom, prix FROM produits ORDER BY prix DESC LIMIT 3;",
-  attendu:"Les 3 produits les plus chers.",
+  attendu:"<b>3 lignes</b> : Collagène Marin à 39,90 €, Protéine Végétale à 34,90 € et Fibre Prébiotique à 29,90 €.",
   retenir:"<code>LIMIT n</code> garde les n premières lignes. Recette du top N : <code>ORDER BY … DESC</code> puis <code>LIMIT n</code>.",
-  piege:{t:"LIMIT sans tri",p:"Sans ORDER BY, la coupe est arbitraire."},
-  consigne:"Affiche les <b>3 produits les plus chers</b>.",
+  piege:{t:"LIMIT sans ORDER BY",p:"Sans <code>ORDER BY</code>, <code>LIMIT 3</code> coupe au hasard : tu n’as aucune garantie d’obtenir les 3 plus chers. Trie d’abord, limite ensuite."},
+  consigne:"Affiche toutes les colonnes des 3 produits les plus chers.",
   solution:"SELECT * FROM produits ORDER BY prix DESC LIMIT 3;",
-  indice:"<code>ORDER BY prix DESC LIMIT 3</code>.",
+  indice:"Trie d’abord avec <code>ORDER BY prix DESC</code>, puis coupe avec <code>LIMIT 3</code>.",
   richLesson:true, earlyDemo:true,
   ordered:true },
 { id:13, titre:"DISTINCT", résumé:"Valeurs uniques",
@@ -8667,16 +8671,17 @@ const SQL_VIZ={
     {t:'Oméga 3',extra:'24,90',keep:1},{t:'Shaker',extra:'15,00',keep:1}
   ]},
   orderby:{kind:'sort',phases:[
-    {k:'SELECT nom, age FROM clients',d:'9 lignes. Sans ORDER BY, aucun ordre n’est garanti.'},
-    {k:'ORDER BY age DESC',d:'Mêmes 9 personnes, rangées du plus âgé au plus jeune.'}
+    {k:'SELECT nom, age FROM clients',d:'Les 9 clients s’affichent. Sans ORDER BY, aucun ordre n’est garanti.'},
+    {k:'ORDER BY age DESC',d:'SQL lit l’âge de chaque ligne : c’est la clé du tri. Personne n’est écarté.'},
+    {k:'ORDER BY age DESC',d:'Les mêmes 9 personnes se rangent du plus âgé au plus jeune. Seul l’ordre change.'}
   ],chips:[
     {t:'Sophie',extra:'34',rank:4},{t:'Lucas',extra:'28',rank:7},{t:'Emma',extra:'45',rank:1},
     {t:'Nathan',extra:'31',rank:5},{t:'Chloé',extra:'26',rank:8},{t:'Hugo',extra:'52',rank:0},
     {t:'Léa',extra:'38',rank:3},{t:'Gabriel',extra:'29',rank:6},{t:'Inès',extra:'41',rank:2}
   ]},
   limit:{kind:'limit',phases:[
-    {k:'ORDER BY prix DESC',d:'SQL a trié. Toutes les lignes sont encore là.'},
-    {k:'LIMIT 3',d:'SQL coupe après 3 lignes : le podium, pas toute la table.'}
+    {k:'ORDER BY prix DESC',d:'SQL a trié les produits du plus cher au moins cher. Les 6 lignes sont encore là.'},
+    {k:'LIMIT 3',d:'LIMIT coupe après 3 lignes. Collagène, Protéine et Fibre restent. Les autres sont hors du résultat, pas de la table.'}
   ],chips:[
     {t:'Collagène',extra:'39,90',keep:1},{t:'Protéine',extra:'34,90',keep:1},{t:'Fibre Préb.',extra:'29,90',keep:1},
     {t:'Oméga 3',extra:'24,90',keep:0},{t:'Magnésium',extra:'19,90',keep:0},{t:'Shaker',extra:'15,00',keep:0}
@@ -8838,7 +8843,8 @@ function layoutSqlList(root,phase,{animate=true}={}){
   const sw=stage.clientWidth||320;
   let chips=[...root.querySelectorAll('.grp-chip')];
   const kind=root.dataset.kind||sqlVizCfg(root).kind;
-  if(kind==='sort'&&phase>0){
+  const sortAt=kind==='sort'?Math.max(1,sqlVizPhases(root).length-1):-1;
+  if(kind==='sort'&&phase>=sortAt){
     chips=chips.slice().sort((a,b)=>(+a.dataset.rank||0)-(+b.dataset.rank||0));
   }
   const scr=document.getElementById('scr-lesson');
@@ -8853,7 +8859,10 @@ function layoutSqlList(root,phase,{animate=true}={}){
     const col=i%cols, row=Math.floor(i/cols);
     const x=pad+col*(colW+gapX);
     const y=pad+row*(rowH+gapY);
-    c.style.transitionDelay=animate?(i*45)+'ms':'0ms';
+    const delay=animate
+      ?(kind==='sort'&&phase>=sortAt?(+c.dataset.rank||0)*70:i*45)
+      :0;
+    c.style.transitionDelay=delay+'ms';
     c.style.width=colW+'px';
     c.style.maxWidth=colW+'px';
     c.style.height=rowH+'px';

@@ -1,0 +1,87 @@
+/* viz-orderby.css — animation du cours ORDER BY
+   Complète viz-select.css. Ne s'applique qu'aux visualisations
+   marquées .vo par viz-orderby.js. Sans le JS, ce fichier est inerte.
+
+   Trois paliers, comme IN / WHERE :
+     0  les 9 lignes, dans un ordre non garanti
+     1  SQL lit l'âge de chaque ligne (la clé du tri)
+     2  les mêmes lignes glissent du plus âgé au plus jeune */
+
+.sql-viz.vo .grp-chip{
+  overflow:visible;
+  transition:
+    transform .92s var(--spring-ios),
+    box-shadow .4s ease,
+    border-color .4s ease,
+    background-color .4s ease;
+}
+.sql-viz.vo .grp-chip .grp-extra{
+  font-variant-numeric:tabular-nums;
+  transition:color .3s ease,font-weight .3s ease;
+}
+
+/* --- 1. lecture de la clé -------------------------------------------- */
+.sql-viz.vo .grp-chip::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  border:1.5px solid transparent;
+  opacity:0;
+  pointer-events:none;
+}
+.sql-viz.vo[data-phase="1"] .grp-chip::before{
+  animation:voScan .55s ease var(--dw,0ms) both;
+}
+.sql-viz.vo[data-phase="1"] .grp-chip .grp-extra{
+  animation:voAgeRead .4s ease var(--dw,0ms) both;
+}
+@keyframes voScan{
+  0%{   opacity:0; border-color:rgba(91,91,214,.55); transform:scale(.985); }
+  35%{  opacity:1; border-color:rgba(91,91,214,.55); transform:scale(1); }
+  100%{ opacity:1; border-color:rgba(91,91,214,.28); transform:scale(1); }
+}
+@keyframes voAgeRead{
+  0%{   color:#8E8E93; font-weight:500; }
+  40%{  color:var(--accent); font-weight:700; }
+  100%{ color:var(--accent); font-weight:700; }
+}
+
+/* --- 2. les lignes se rangent ---------------------------------------- */
+.sql-viz.vo[data-phase="2"] .grp-chip{
+  z-index:calc(12 - var(--rank,0));
+  border-color:rgba(20,184,166,.32);
+  box-shadow:0 3px 12px rgba(20,184,166,.12);
+}
+.sql-viz.vo[data-phase="2"] .grp-chip .grp-extra{
+  color:var(--accent);
+  font-weight:700;
+}
+.sql-viz.vo[data-phase="2"] .grp-chip::before{
+  opacity:1;
+  border-color:rgba(20,184,166,.45);
+}
+
+.grp-viz.grp-rewind.vo .grp-chip,
+.grp-viz.grp-rewind.vo .grp-chip::before,
+.grp-viz.grp-rewind.vo .grp-chip .grp-extra{
+  transition:none!important;
+  animation:none!important;
+}
+
+/* --- 3. pause et mouvement réduit ------------------------------------ */
+.sql-viz.vo[data-paused="1"] .grp-chip,
+.sql-viz.vo[data-paused="1"] .grp-chip::before,
+.sql-viz.vo[data-paused="1"] .grp-chip .grp-extra{
+  animation-play-state:paused!important;
+}
+
+@media (prefers-reduced-motion:reduce){
+  .sql-viz.vo .grp-chip,
+  .sql-viz.vo .grp-chip::before,
+  .sql-viz.vo .grp-chip .grp-extra{
+    animation-duration:1ms!important;
+    animation-delay:0ms!important;
+    transition:none!important;
+  }
+}

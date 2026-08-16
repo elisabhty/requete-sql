@@ -11,14 +11,14 @@
 (function () {
   "use strict";
 
-  var VIZ_OK   = ["where", "compare", "andor", "or", "nulls", "like", "inbetween", "between"];
+  var VIZ_OK   = ["where", "compare", "andor", "or", "nulls", "like", "inbetween", "between", "limit"];
   var WSTAGGER = 105;   // ms entre deux lignes testées
   var WMARK    = 230;   // ms entre le test d'une ligne et son verdict
   var WTAIL    = 220;   // marge de lecture après le dernier verdict
 
   function eligible(root) {
     return !!root && !!root.dataset &&
-      root.dataset.kind === "filter" &&
+      (root.dataset.kind === "filter" || root.dataset.kind === "limit") &&
       VIZ_OK.indexOf(root.dataset.viz) !== -1;
   }
 
@@ -131,7 +131,7 @@
 
   function armAll() {
     [].forEach.call(
-      document.querySelectorAll('.sql-viz[data-kind="filter"]'),
+      document.querySelectorAll('.sql-viz[data-kind="filter"], .sql-viz[data-kind="limit"]'),
       armWhere
     );
   }
