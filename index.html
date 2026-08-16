@@ -602,19 +602,19 @@
   .sql-viz[data-viz="or"][data-phase="1"] .grp-chip[data-keep0="1"] .grp-extra,
   .sql-viz[data-viz="nulls"][data-phase="1"] .grp-chip[data-keep0="1"] .grp-extra,
   .sql-viz[data-viz="like"][data-phase="1"] .grp-chip[data-keep0="1"] .grp-extra{color:var(--accent);font-weight:600}
-  .sql-viz[data-kind="filter"]:not([data-viz="andor"]):not([data-viz="or"]):not([data-viz="nulls"]):not([data-viz="like"])[data-phase="1"] .grp-chip[data-keep="0"],
+  .sql-viz[data-kind="filter"]:not(.vw):not([data-viz="andor"]):not([data-viz="or"]):not([data-viz="nulls"]):not([data-viz="like"])[data-phase="1"] .grp-chip[data-keep="0"],
   .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep="0"],
   .sql-viz[data-viz="or"][data-phase="2"] .grp-chip[data-keep="0"],
   .sql-viz[data-viz="nulls"][data-phase="2"] .grp-chip[data-keep="0"],
   .sql-viz[data-viz="like"][data-phase="2"] .grp-chip[data-keep="0"],
   .sql-viz[data-kind="limit"][data-phase="1"] .grp-chip[data-keep="0"]{opacity:.3;filter:grayscale(.4)}
-  .sql-viz[data-kind="filter"]:not([data-viz="andor"]):not([data-viz="or"]):not([data-viz="nulls"]):not([data-viz="like"])[data-phase="1"] .grp-chip[data-keep="1"],
+  .sql-viz[data-kind="filter"]:not(.vw):not([data-viz="andor"]):not([data-viz="or"]):not([data-viz="nulls"]):not([data-viz="like"])[data-phase="1"] .grp-chip[data-keep="1"],
   .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep="1"],
   .sql-viz[data-viz="or"][data-phase="2"] .grp-chip[data-keep="1"],
   .sql-viz[data-viz="nulls"][data-phase="2"] .grp-chip[data-keep="1"],
   .sql-viz[data-viz="like"][data-phase="2"] .grp-chip[data-keep="1"],
   .sql-viz[data-kind="limit"][data-phase="1"] .grp-chip[data-keep="1"]{border-color:rgba(20,184,166,.4);box-shadow:0 4px 14px rgba(20,184,166,.16)}
-  .sql-viz[data-kind="filter"]:not([data-viz="andor"]):not([data-viz="or"]):not([data-viz="nulls"]):not([data-viz="like"])[data-phase="1"] .grp-chip[data-keep="0"],
+  .sql-viz[data-kind="filter"]:not(.vw):not([data-viz="andor"]):not([data-viz="or"]):not([data-viz="nulls"]):not([data-viz="like"])[data-phase="1"] .grp-chip[data-keep="0"],
   .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep="0"],
   .sql-viz[data-viz="or"][data-phase="2"] .grp-chip[data-keep="0"],
   .sql-viz[data-viz="nulls"][data-phase="2"] .grp-chip[data-keep="0"],
@@ -2167,8 +2167,10 @@
 </style>
 <link rel="stylesheet" href="viz-select.css">
 <link rel="stylesheet" href="viz-where.css">
+<link rel="stylesheet" href="viz-sort.css">
 <script src="viz-select.js" defer></script>
 <script src="viz-where.js" defer></script>
+<script src="viz-sort.js" defer></script>
 </head>
 <body>
 <div id="app">
@@ -2749,7 +2751,6 @@ const MODULES = [
             code:"SELECT nom, age\nFROM clients;"},
         good:{tag:"✓ Du plus âgé au plus jeune",sql:"SELECT nom, age FROM clients\nORDER BY age DESC;",out:"Hugo 52, Emma 45, Inès 41, Léa 38, Sophie 34…",
             code:"SELECT nom, age\nFROM clients\n<span class=\"vs-line good\">ORDER BY age DESC</span>;"}},
-    point:"Avec <code>ORDER BY age DESC</code>, les mêmes 9 clients sont présents, mais leurs lignes sont rangées selon leur âge :<br><br>Hugo — 52 ans<br>Emma — 45 ans<br>Inès — 41 ans<br>Léa — 38 ans<br>Sophie — 34 ans<br>Nathan — 31 ans<br>Gabriel — 29 ans<br>Lucas — 28 ans<br>Chloé — 26 ans<br><br><code>ORDER BY</code> change donc <b>l’ordre des lignes</b>, pas leur contenu.",
     why:{title:"ASC ou DESC : dans quel sens trier ?",
       body:"<code>ASC</code> signifie <b>ordre croissant</b> : du plus petit au plus grand. Pour un âge, 26 vient avant 52.<br><br><code>DESC</code> signifie <b>ordre décroissant</b> : du plus grand au plus petit. Pour un âge, 52 vient avant 26.<br><br><code>ASC</code> est le choix par défaut : <code>ORDER BY age</code> et <code>ORDER BY age ASC</code> produisent le même tri."},
     viz:"orderby",
@@ -5941,7 +5942,8 @@ function renderVizShell(key){
       const rank=c.rank==null?'':` data-rank="${c.rank}"`;
       const extra=c.extra?`<span class="grp-extra">${c.extra}</span>`:'';
       const cat=c.cat?` data-cat="${c.cat}"`:'';
-      return `<div class="grp-chip"${keep}${keep0}${rank}${cat}>${c.t}${extra}</div>`;
+      const edge=c.edge?` data-edge="${c.edge}"`:'';
+      return `<div class="grp-chip"${keep}${keep0}${rank}${cat}${edge}>${c.t}${extra}</div>`;
     }).join('');
     const buckets=(cfg.buckets||[]).map(b=>
       `<div class="grp-bucket" data-cat="${b.cat}" data-n="${b.n}" data-keep="${b.keep}"><span class="grp-bucket-lbl">${b.cat}</span><span class="grp-count">${b.n}</span></div>`
@@ -8662,9 +8664,9 @@ const SQL_VIZ={
     {k:'SELECT nom, prix FROM produits',d:'Les 8 produits s’affichent avec leur nom et leur prix. SQL va vérifier si chaque prix est compris entre 15 et 30 €.'},
     {k:'WHERE prix BETWEEN 15 AND 30',d:'BETWEEN garde les produits de 15 à 30 €, bornes incluses : 4 lignes restent. Le Shaker à 15,00 € est bien conservé.'}
   ],chips:[
-    {t:'Fibre Préb.',extra:'29,90',keep:1},{t:'Collagène',extra:'39,90',keep:0},{t:'Magnésium',extra:'19,90',keep:1},
+    {t:'Fibre Préb.',extra:'29,90',keep:1,edge:'hi'},{t:'Collagène',extra:'39,90',keep:0},{t:'Magnésium',extra:'19,90',keep:1},
     {t:'Vit. D',extra:'14,90',keep:0},{t:'Tisane',extra:'12,50',keep:0},{t:'Protéine',extra:'34,90',keep:0},
-    {t:'Oméga 3',extra:'24,90',keep:1},{t:'Shaker',extra:'15,00',keep:1}
+    {t:'Oméga 3',extra:'24,90',keep:1},{t:'Shaker',extra:'15,00',keep:1,edge:'lo'}
   ]},
   orderby:{kind:'sort',phases:[
     {k:'SELECT nom, age FROM clients',d:'9 lignes. Sans ORDER BY, aucun ordre n’est garanti.'},
