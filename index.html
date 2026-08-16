@@ -8758,8 +8758,6 @@ function layoutHavingGrpViz(root,phase,{animate=true}={}){
   const chips=[...root.querySelectorAll('.grp-chip')];
   const buckets=[...root.querySelectorAll('.grp-bucket')];
   const layout=havingGrpBucketLayout(sw);
-  const scr=document.getElementById('scr-lesson');
-  const scrollLock=scr?scr.scrollTop:0;
   if(!animate){
     chips.forEach(c=>{c.style.transition='none';});
     buckets.forEach(b=>{b.style.transition='none';});
@@ -8820,10 +8818,6 @@ function layoutHavingGrpViz(root,phase,{animate=true}={}){
     });
   }
   stage.style.height=stableH+'px';
-  if(scr&&Date.now()>somScrollUntil){
-    scr.scrollTop=scrollLock;
-    requestAnimationFrame(()=>{ if(Date.now()>somScrollUntil) scr.scrollTop=scrollLock; });
-  }
   if(!animate){
     void stage.offsetWidth;
     chips.forEach(c=>{c.style.transition='';});
@@ -8847,8 +8841,6 @@ function layoutSqlList(root,phase,{animate=true}={}){
   if(kind==='sort'&&phase>=sortAt){
     chips=chips.slice().sort((a,b)=>(+a.dataset.rank||0)-(+b.dataset.rank||0));
   }
-  const scr=document.getElementById('scr-lesson');
-  const scrollLock=scr?scr.scrollTop:0;
   if(!animate) chips.forEach(c=>{c.style.transition='none';});
   const pad=8, gapX=8, gapY=6;
   const cols=(kind==='cols' && sw>=280)?2:1;
@@ -8874,10 +8866,6 @@ function layoutSqlList(root,phase,{animate=true}={}){
   });
   const rows=Math.ceil(chips.length/cols)||1;
   stage.style.height=(pad+rows*(rowH+gapY)-gapY+pad)+'px';
-  if(scr&&Date.now()>somScrollUntil){
-    scr.scrollTop=scrollLock;
-    requestAnimationFrame(()=>{ if(Date.now()>somScrollUntil) scr.scrollTop=scrollLock; });
-  }
   if(!animate){
     void stage.offsetWidth;
     chips.forEach(c=>{c.style.transition='';});
@@ -9011,7 +8999,15 @@ function initSqlViz(){
       if(!root.isConnected)return;
       havingGrpSetPhase(root,0,{animate:false});
       havingGrpSyncControls(root);
-      const onResize=()=>layoutSqlViz(root,parseInt(root.dataset.phase||'0',10),{animate:false});
+      const grpStage=root.querySelector('.grp-stage');
+      let lastVizW=grpStage?grpStage.clientWidth:0, resizeT=0;
+      const onResize=()=>{
+        const w=grpStage?grpStage.clientWidth:0;
+        if(w===lastVizW)return; // largeur inchangée : resize dû à la barre d'adresse mobile, pas de relayout
+        lastVizW=w;
+        clearTimeout(resizeT);
+        resizeT=setTimeout(()=>layoutSqlViz(root,parseInt(root.dataset.phase||'0',10),{animate:false}),150);
+      };
       if(root._grpResize)window.removeEventListener('resize',root._grpResize);
       root._grpResize=onResize;
       window.addEventListener('resize',onResize);
@@ -9027,7 +9023,9 @@ function initSqlViz(){
         playHavingGrpViz(root);
       });
     };
-    requestAnimationFrame(()=>requestAnimationFrame(kick));
+    const stage0=root.querySelector('.grp-stage');
+    if(stage0&&stage0.clientWidth>0)kick(); // 1er layout synchrone : la scène a sa hauteur dès le 1er rendu (pas de saut)
+    else requestAnimationFrame(()=>requestAnimationFrame(kick));
   });
 }
 
