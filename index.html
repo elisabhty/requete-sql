@@ -796,10 +796,12 @@
   .exframe .xf-head{padding:10px 12px 10px 16px;background:var(--code-bg);border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;min-width:0}
   .exframe .xf-name{font-family:var(--mono);font-size:11px;color:#8A8A9C;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1 1 auto}
   .xf-switch{display:flex;gap:4px;padding:3px;background:rgba(255,255,255,.08);border-radius:10px;flex:none;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .xf-sw{border:none;background:transparent;color:#9A9AB0;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.3px;padding:7px 10px;border-radius:8px;cursor:pointer;touch-action:manipulation;min-height:34px;transition:background .18s,color .18s,transform .18s var(--spring-ios)}
+  .xf-sw{border:none;background:transparent;color:#9A9AB0;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.3px;padding:7px 10px;border-radius:8px;cursor:pointer;touch-action:manipulation;min-height:34px;white-space:nowrap;transition:background .18s,color .18s,transform .18s var(--spring-ios)}
   .xf-sw:active{transform:scale(.95)}
+  .xf-sw.on{background:rgba(255,255,255,.16);color:#F2F2F7}
   .xf-sw.on.bad{background:rgba(180,35,24,.25);color:#FF8E85}
   .xf-sw.on.good{background:rgba(20,184,166,.25);color:#5EEAD4}
+  .exframe .xf-head .xf-switch{flex:1 1 100%;order:3}
   .exframe.tone-bad .xf-head{box-shadow:inset 0 -2px 0 rgba(180,35,24,.45)}
   .exframe.tone-good .xf-head{box-shadow:inset 0 -2px 0 rgba(20,184,166,.45)}
   .exframe .xf-expect.bad{color:var(--danger)}
@@ -2929,7 +2931,14 @@ const MODULES = [
   consigne:"Calcule le prix moyen de tous les produits.",
   solution:"SELECT AVG(prix) FROM produits;",
   indice:"La fonction qui calcule une moyenne est <code>AVG</code>. Place la colonne <code>prix</code> entre ses parenthèses.",
-  richLesson:true, earlyDemo:true },
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;"},
+    {k:'avg',label:'AVG',sql:"SELECT AVG(prix)\nFROM produits;"},
+    {k:'sum',label:'SUM',sql:"SELECT SUM(prix)\nFROM produits;"},
+    {k:'min',label:'MIN',sql:"SELECT MIN(prix)\nFROM produits;"},
+    {k:'max',label:'MAX',sql:"SELECT MAX(prix)\nFROM produits;"}
+  ] },
 { id:16, titre:"GROUP BY", résumé:"Un calcul par groupe",
   situation:"Dans la table <code>clients</code>, tu sais compter les 9 clients avec <code>COUNT(*)</code>. Maintenant, tu veux savoir combien de clients habitent dans chaque ville.",
     studio:{problem:{title:"<code>GROUP BY</code> sépare les lignes en groupes avant de calculer.",
@@ -6187,14 +6196,24 @@ function initTesteEditor(){
   fitSqlEditor(ta);
 }
 function lessonRichFooter(l){
-  const demoSql=testeDefaultSql(l);
+  const variants=l.testeVariants;
+  const demoSql=(variants&&variants[0]&&variants[0].sql)||testeDefaultSql(l);
   const sql=escAttr(demoSql);
   const slug=String(l.titre||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'');
   const file=slug?slug+'.sql':'requete.sql';
+  const tone0=variants&&variants[0]&&variants[0].tone;
+  const switcher=variants&&variants.length
+    ?`<div class="xf-switch" role="tablist">${variants.map((v,i)=>{
+        const on=i===0;
+        const tone=v.tone?` ${v.tone}`:'';
+        return `<button type="button" class="xf-sw${on?' on':''}${tone}" data-i="${i}" role="tab" aria-selected="${on?'true':'false'}" onclick="switchTesteVariant(this)">${esc(v.label)}</button>`;
+      }).join('')}</div>`
+    :'';
+  const variantsAttr=variants?` data-variants="${escAttr(JSON.stringify(variants))}" data-vi="0"`:'';
   return `
     <div class="sect-label"><i>✓</i><span>Teste</span></div>
-    <div class="exframe" data-teste-sql="${sql}">
-      <div class="xf-head"><span class="xf-name">${file}</span><div class="xf-tools">${sqlCopyBtn('data-ed="ed-teste"')}</div></div>
+    <div class="exframe${tone0?' tone-'+tone0:''}" data-teste-sql="${sql}"${variantsAttr}>
+      <div class="xf-head"><span class="xf-name">${file}</span><div class="xf-tools">${sqlCopyBtn('data-ed="ed-teste"')}</div>${switcher}</div>
       ${testeEditorHtml()}
       <div class="xf-actions">
         <button type="button" class="xf-run" onclick="runExemple(this)">${XF_RUN_ICO}Exécuter</button>
