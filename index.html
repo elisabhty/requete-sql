@@ -2760,9 +2760,9 @@ const MODULES = [
 
 { titre:"Trier & limiter", sous:"Mettre de l’ordre dans le résultat", lessons:[
 { id:11, titre:"ORDER BY", résumé:"Ordonner le résultat",
-  situation:"Dans la table clients, les 9 personnes ont des âges différents. Tu veux afficher la liste du plus âgé au plus jeune.<br><br>Avec ce que tu connais déjà, tu peux filtrer puis afficher le résultat :",
-  situationSql:"SELECT nom, age\nFROM clients\nWHERE ville = 'Paris';",
-  situationTail:"Tu obtiens bien les Parisiens. Mais l’ordre des lignes n’est pas garanti : pour ranger le résultat, il faut <code>ORDER BY</code>.",
+  situation:"Tu prépares une campagne marketing : les clients les plus âgés sont contactés en premier. Tu veux donc la liste du plus âgé au plus jeune.<br><br>Avec ce que tu connais déjà, tu peux afficher le nom et l’âge :",
+  situationSql:"SELECT nom, age\nFROM clients;",
+  situationTail:"Tu obtiens bien les 9 clients avec leur âge. Mais l’ordre des lignes n’est pas garanti : pour ranger le résultat, il faut <code>ORDER BY</code>.",
     studio:{problem:{title:"ORDER BY range les lignes du résultat.",
       body:"Sans <code>ORDER BY</code>, aucun ordre des lignes n’est garanti. Elles peuvent sembler suivre l’ordre des identifiants aujourd’hui et apparaître autrement plus tard. <code>ORDER BY age DESC</code> range les lignes selon la colonne <code>age</code>, du plus grand âge au plus petit. Le nombre de lignes ne change pas : <code>ORDER BY</code> les réorganise simplement."},
     vs:{bad:{tag:"✕ Sans ORDER BY",sql:"SELECT nom, age FROM clients;",out:"9 lignes, mais aucun ordre n’est garanti",
@@ -2811,90 +2811,97 @@ const MODULES = [
   richLesson:true, earlyDemo:true,
   ordered:true },
 { id:13, titre:"DISTINCT", résumé:"Valeurs uniques",
-  situation:"Dans la table <code>clients</code>, tu veux les villes d’habitation — chaque ville une seule fois. Paris apparaît trois fois.",
-    studio:{problem:{title:"Paris apparaît trois fois. DISTINCT n’en garde qu’une.",
-      body:"<code>DISTINCT</code>, juste après <code>SELECT</code>, retire les doublons du résultat."},
-    vs:{bad:{tag:"✕ Avec doublons",sql:"SELECT ville FROM clients;",out:"9 lignes — Paris trois fois"},
-        good:{tag:"✓ Uniques",sql:"SELECT DISTINCT ville FROM clients;",out:"6 villes différentes"}},
-    point:"Sur plusieurs colonnes, l’unicité porte sur la <b>combinaison</b> entière.",
-    why:{title:"Suis ce qui arrive à tes données.",
-      body:"SQL compare les lignes du résultat. Deux lignes identiques n’en font plus qu’une. Ce n’est pas un filtre sur la table : c’est un nettoyage du résultat."},
+  situation:"Dans la table clients, plusieurs personnes habitent dans la même ville. Tu veux obtenir la liste des villes différentes, sans afficher plusieurs fois la même ville.",
+    studio:{problem:{title:"DISTINCT retire les doublons du résultat.",
+      body:"Avec <code>SELECT ville FROM clients</code>, SQL affiche la ville de chaque client : tu obtiens donc 9 lignes. Paris apparaît 3 fois et Lyon 2 fois. En ajoutant <code>DISTINCT</code> après <code>SELECT</code>, chaque ville n’apparaît plus qu’une seule fois. Le résultat passe de 9 lignes à 6 villes différentes."},
+    vs:{bad:{tag:"✕ Avec doublons",sql:"SELECT ville FROM clients;",out:"9 lignes : Paris apparaît 3 fois, Lyon 2 fois",
+            code:"SELECT <span class=\"vs-line bad\">ville</span>\nFROM clients;"},
+        good:{tag:"✓ Sans doublons",sql:"SELECT DISTINCT ville FROM clients;",out:"6 villes : Paris, Lyon, Marseille, Bordeaux, Toulouse, Nantes",
+            code:"SELECT <span class=\"vs-line good\">DISTINCT ville</span>\nFROM clients;"}},
+    point:"<code>DISTINCT</code> ne modifie pas la table clients. Les 9 clients restent enregistrés : seuls les doublons sont retirés du résultat affiché.",
+    why:{title:"Comment DISTINCT passe de 9 à 6 lignes ?"},
     viz:"distinct",
-    reflex:{a:{k:"SELECT ville",t:"toutes les occurrences"},
-      b:{k:"SELECT DISTINCT ville",t:"chaque valeur <b>une fois</b>"}}},
-  anatomie:[{tok:"SELECT DISTINCT ville",txt:"Affiche chaque ville une seule fois, sans doublon."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."}],
+    reflex:{a:{k:"SELECT",t:"affiche <b>toutes</b> les occurrences"},
+      b:{k:"DISTINCT",t:"affiche chaque valeur <b>une seule fois</b>"},
+      note:"Avec plusieurs colonnes, <code>DISTINCT</code> compare leur combinaison. Deux lignes sont considérées comme identiques seulement si toutes les valeurs sélectionnées sont identiques."}},
+  anatomie:[{tok:"SELECT",txt:"Définit ce qui apparaît dans le résultat."},{tok:"DISTINCT",txt:"Retire les doublons du résultat."},{tok:"ville",plain:1,txt:"La colonne dont tu veux obtenir les valeurs différentes."},{tok:"FROM clients",txt:"Les données viennent de la table clients."}],
   exemple:"SELECT DISTINCT ville FROM clients;",
-  attendu:"<b>6 villes</b>.",
-  retenir:"<code>DISTINCT</code> retire les doublons du résultat. Sur plusieurs colonnes, l’unicité porte sur la <b>combinaison</b>.",
-  piege:{t:"DISTINCT sur une colonne parmi d’autres",p:"<code>SELECT DISTINCT ville, age</code> dédoublonne le couple, pas la ville seule."},
-  consigne:"Liste les <b>villes différentes</b> où habitent les clients.",
+  attendu:"<b>6 lignes</b> : Paris, Lyon, Marseille, Bordeaux, Toulouse et Nantes. Chaque ville apparaît une seule fois.",
+  retenir:"<code>DISTINCT</code> sert à afficher des valeurs uniques. Dans <code>SELECT DISTINCT ville FROM clients</code>, les 9 clients donnent seulement 6 villes différentes, car Paris et Lyon apparaissent plusieurs fois dans la table. Les doublons sont retirés du résultat, pas de la table.",
+  piege:{t:"DISTINCT avec plusieurs colonnes",p:"Dans <code>SELECT DISTINCT ville, age FROM clients</code>, SQL ne cherche pas seulement les villes différentes. Il cherche les combinaisons ville + âge différentes."},
+  consigne:"Affiche chaque ville différente où habite au moins un client.",
   solution:"SELECT DISTINCT ville FROM clients;",
-  indice:"<code>SELECT DISTINCT ville FROM clients;</code>",
+  indice:"Tu veux afficher la colonne <code>ville</code> sans répétition. Ajoute le mot-clé qui retire les doublons juste après <code>SELECT</code>.",
   richLesson:true, earlyDemo:true }
 ]},
 
 { titre:"Agréger", sous:"Compter, calculer, regrouper", lessons:[
 { id:14, titre:"COUNT", résumé:"Compter les lignes",
-  situation:"Dans la table <code>clients</code>, tu ne veux plus une liste de noms. Tu veux un chiffre : combien de personnes ?",
-    studio:{problem:{title:"Une liste de noms, ce n’est pas un total.",
-      body:"<code>COUNT(*)</code> réduit toutes les lignes à <b>un seul nombre</b>. C’est un agrégat."},
-    vs:{bad:{tag:"✕ La liste",sql:"SELECT nom FROM clients;",out:"9 lignes à compter à la main"},
-        good:{tag:"✓ Le total",sql:"SELECT COUNT(*) FROM clients;",out:"Une valeur : 9"}},
-    point:"<code>COUNT(*)</code> compte tout. <code>COUNT(email)</code> ignore les NULL — ici 7, pas 9.",
-    why:{title:"Suis ce qui arrive à tes données.",
-      body:"SQL plie les lignes en un chiffre. Plus de détail : un résultat, une ligne, une valeur. <code>COUNT(email)</code> ignore les NULL — ici 7, pas 9."},
+  situation:"Dans la table clients, tu as 9 clients. Cette fois, tu ne veux pas afficher leurs noms : tu veux connaître leur nombre total.",
+    studio:{problem:{title:"COUNT transforme plusieurs lignes en un nombre.",
+      body:"Avec <code>SELECT nom FROM clients</code>, tu obtiens les 9 lignes et tu devrais les compter toi-même. <code>COUNT(*)</code> fait ce comptage directement : SQL compte chaque ligne de la table clients et renvoie une seule valeur : 9."},
+    vs:{bad:{tag:"✕ Afficher pour compter",sql:"SELECT nom FROM clients;",out:"9 lignes : il faut encore les compter",
+            code:"SELECT <span class=\"vs-line bad\">nom</span>\nFROM clients;"},
+        good:{tag:"✓ Compter avec COUNT",sql:"SELECT COUNT(*) FROM clients;",out:"1 ligne · une valeur : 9",
+            code:"SELECT <span class=\"vs-line good\">COUNT(*)</span>\nFROM clients;"}},
+    point:"<code>COUNT(*)</code> compte toutes les lignes. L’étoile signifie ici que le comptage porte sur les lignes, même si certaines colonnes contiennent <code>NULL</code>.",
+    why:{title:"Comment COUNT arrive à 9 ?"},
     viz:"count",
     reflex:{a:{k:"COUNT(*)",t:"compte <b>toutes</b> les lignes"},
-      b:{k:"COUNT(email)",t:"ignore les <b>NULL</b>"}}},
-  anatomie:[{tok:"SELECT",txt:"Affiche…"},{tok:"COUNT(*)",txt:"<b>le nombre de lignes.</b>"},{tok:"FROM clients",txt:"Sur cette table."}],
+      b:{k:"COUNT(colonne)",t:"compte les valeurs <b>renseignées</b>"},
+      note:"Par exemple, <code>COUNT(email)</code> renvoie 7 car 2 clients ont un email <code>NULL</code>."}},
+  anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"COUNT(*)",txt:"Compte toutes les lignes."},{tok:"FROM clients",txt:"Le comptage porte sur la table clients."}],
   exemple:"SELECT COUNT(*) FROM clients;",
-  attendu:"<b>1 ligne</b> : 9.",
-  retenir:"<code>COUNT(*)</code> compte toutes les lignes. <code>COUNT(colonne)</code> ignore les <code>NULL</code>.",
-  piege:{t:"COUNT et les NULL",p:"<code>COUNT(colonne)</code> saute les NULL. <code>COUNT(*)</code> les inclut."},
-  consigne:"Compte le <b>nombre total de clients</b>.",
+  attendu:"<b>1 ligne</b>, 1 valeur : 9. C’est le nombre total de clients.",
+  retenir:"<code>COUNT(*)</code> sert à connaître le nombre de lignes. Dans <code>SELECT COUNT(*) FROM clients</code>, les 9 clients sont comptés et le résultat affiche une seule valeur : 9. <code>COUNT(colonne)</code>, lui, ne compte que les valeurs renseignées et ignore les <code>NULL</code>.",
+  piege:{t:"COUNT(*) et COUNT(colonne) ne comptent pas toujours pareil",p:"Dans la table clients, <code>COUNT(*)</code> renvoie 9. Mais <code>COUNT(email)</code> renvoie 7, car 2 emails sont <code>NULL</code>."},
+  consigne:"Compte le nombre total de clients dans la table clients.",
   solution:"SELECT COUNT(*) FROM clients;",
-  indice:"<code>SELECT COUNT(*) FROM clients;</code>",
+  indice:"Tu veux compter toutes les lignes : utilise la fonction <code>COUNT</code> avec <code>*</code>.",
   richLesson:true, earlyDemo:true },
 { id:15, titre:"AVG · SUM · MIN · MAX", résumé:"Calculer sur une colonne",
-  situation:"Dans la table <code>produits</code>, tu veux le prix moyen du catalogue. Un chiffre, toute la table.",
-    studio:{problem:{title:"Un nom à côté de MAX n’est pas le bon nom.",
-      body:"<code>AVG</code>, <code>SUM</code>, <code>MIN</code>, <code>MAX</code> s’écrivent comme COUNT : la colonne entre parenthèses."},
-    vs:{bad:{tag:"✕ Nom + maximum",sql:"SELECT nom, MAX(prix) FROM produits;",out:"Un nom au hasard à côté du max — pas fiable"},
-        good:{tag:"✓ L’agrégat seul",sql:"SELECT AVG(prix) FROM produits;",out:"Le prix moyen du catalogue"}},
-    point:"Pour l’identité du maximum : <code>ORDER BY prix DESC LIMIT 1</code>, pas <code>SELECT nom, MAX(prix)</code>.",
-    why:{title:"Suis ce qui arrive à tes données.",
-      body:"Sans GROUP BY, l’agrégat porte sur <b>toute</b> la table : un calcul, une ligne. Un nom à côté de <code>MAX(prix)</code> n’est pas fiable."},
-    reflex:{a:{k:"AVG SUM MIN MAX",t:"un chiffre sur <b>toute</b> la table"},
-      b:{k:"+ GROUP BY",t:"le même calcul, <b>par groupe</b>"},
-      note:"Emboîte au besoin : <code>ROUND(AVG(prix), 2)</code>."}},
-  anatomie:[{tok:"SELECT",txt:"Affiche…"},{tok:"AVG(prix)",txt:"<b>La moyenne</b> de la colonne."},{tok:"FROM produits",txt:"Sur toute la table."}],
+  situation:"Dans la table produits, tu connais le prix de chaque produit. Maintenant, tu veux répondre à des questions sur l’ensemble du catalogue : quel est le prix moyen ? Le prix le plus bas ? Le plus élevé ?",
+    studio:{problem:{title:"AVG, SUM, MIN et MAX calculent à partir d’une colonne.",
+      body:"Ces fonctions prennent les valeurs d’une colonne et les résument en un seul résultat. Sur la colonne <code>prix</code>, <code>AVG(prix)</code> calcule la moyenne, <code>SUM(prix)</code> additionne les prix, <code>MIN(prix)</code> cherche le plus petit et <code>MAX(prix)</code> le plus grand."},
+    vs:{bad:{tag:"✕ Mélanger détail et calcul",sql:"SELECT nom, MAX(prix) FROM produits;",out:"Tu mélanges le nom d’un produit avec un calcul sur plusieurs lignes",
+            code:"SELECT <span class=\"vs-line bad\">nom, MAX(prix)</span>\nFROM produits;"},
+        good:{tag:"✓ Calculer la moyenne",sql:"SELECT AVG(prix) FROM produits;",out:"1 valeur : 23,9875",
+            code:"SELECT <span class=\"vs-line good\">AVG(prix)</span>\nFROM produits;"}},
+    point:"Une fonction d’agrégation répond à une question sur plusieurs lignes à la fois. Ici, <code>AVG(prix)</code> utilise les prix des 8 produits pour calculer une seule moyenne : 23,9875 €.",
+    why:{title:"Comment AVG calcule la moyenne ?",
+      body:"SQL prend les 8 valeurs de la colonne <code>prix</code>, les additionne puis divise le total par leur nombre. Les prix totalisent 191,90 € ; divisés par 8, ils donnent une moyenne de 23,9875 €. Le résultat ne contient donc plus 8 produits, mais une seule valeur."},
+    reflex:{a:{k:"AVG · SUM",t:"moyenne et total"},
+      b:{k:"MIN · MAX",t:"valeur la plus petite et la plus grande"},
+      note:"<code>AVG(prix)</code> = moyenne · <code>SUM(prix)</code> = somme · <code>MIN(prix)</code> = minimum · <code>MAX(prix)</code> = maximum."}},
+  anatomie:[{tok:"SELECT",txt:"Indique le résultat à afficher."},{tok:"AVG(prix)",txt:"Calcule la moyenne des valeurs de la colonne prix."},{tok:"FROM produits",txt:"Le calcul utilise les lignes de la table produits."}],
   exemple:"SELECT AVG(prix) FROM produits;",
-  attendu:"Le prix moyen.",
-  retenir:"<code>AVG</code>, <code>SUM</code>, <code>MIN</code>, <code>MAX</code> calculent un chiffre sur toute la table. Un nom à côté de <code>MAX(prix)</code> n’est pas le bon nom.",
-  piege:{t:"Agrégat ≠ ligne complète",p:"<code>SELECT nom, MAX(prix)</code> ne garantit pas le bon nom."},
-  consigne:"Calcule le <b>prix moyen</b> des produits.",
+  attendu:"<b>1 ligne</b>, 1 valeur : 23,9875. C’est le prix moyen des 8 produits.",
+  retenir:"<code>AVG</code>, <code>SUM</code>, <code>MIN</code> et <code>MAX</code> résument plusieurs valeurs en un résultat. <code>AVG(prix)</code> calcule la moyenne, <code>SUM(prix)</code> la somme, <code>MIN(prix)</code> le prix le plus bas et <code>MAX(prix)</code> le prix le plus élevé.",
+  piege:{t:"Confondre une valeur avec la ligne qui la contient",p:"<code>MAX(prix)</code> donne le prix maximum, pas toutes les informations du produit correspondant. Pour afficher le produit le plus cher, utilise plutôt <code>ORDER BY prix DESC LIMIT 1</code>."},
+  consigne:"Calcule le prix moyen de tous les produits.",
   solution:"SELECT AVG(prix) FROM produits;",
-  indice:"<code>SELECT AVG(prix) FROM produits;</code>",
+  indice:"La fonction qui calcule une moyenne est <code>AVG</code>. Place la colonne <code>prix</code> entre ses parenthèses.",
   richLesson:true, earlyDemo:true },
 { id:16, titre:"GROUP BY", résumé:"Un calcul par groupe",
-  situation:"Dans la table <code>clients</code>, tu veux un chiffre <i>par</i> ville, pas un total global.",
-    studio:{problem:{title:"Un total pour toute la table, ou un total par ville.",
-      body:"Tu sais déjà compter toute la table. <code>GROUP BY</code> forme des paquets de lignes qui partagent la même valeur, puis calcule sur chaque paquet."},
-    vs:{bad:{tag:"✕ Total unique",sql:"SELECT COUNT(*) FROM clients;",out:"9 — tu ne sais pas où ils habitent"},
-        good:{tag:"✓ Par ville",sql:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville;",out:"Une ligne par ville, avec son effectif"}},
-    point:"Toute colonne affichée hors agrégat doit figurer dans le <code>GROUP BY</code>.",
-    why:{title:"Suis ce qui arrive à tes données.",
-      body:"SQL découpe d’abord les groupes (Paris, Lyon…). Ensuite il compte dans chacun. Une ligne de résultat par groupe. Toute colonne affichée hors agrégat doit figurer dans le <code>GROUP BY</code>."},
-    reflex:{a:{k:"Sans GROUP BY",t:"un seul total pour la table"},
-      b:{k:"GROUP BY ville",t:"un total <b>par ville</b>"}}},
-  anatomie:[{tok:"SELECT ville, COUNT(*)",txt:"Identité du groupe + calcul."},{tok:"FROM clients",txt:"Table."},{tok:"GROUP BY ville",txt:"<b>Regroupe par</b> cette colonne."}],
+  situation:"Dans la table <code>clients</code>, tu sais compter les 9 clients avec <code>COUNT(*)</code>. Maintenant, tu veux savoir combien de clients habitent dans chaque ville.",
+    studio:{problem:{title:"<code>GROUP BY</code> sépare les lignes en groupes avant de calculer.",
+      body:"Sans <code>GROUP BY</code>, <code>COUNT(*)</code> compte toute la table et renvoie 9. Avec <code>GROUP BY ville</code>, SQL rassemble d’abord les clients qui ont la même ville. Il forme un groupe Paris, un groupe Lyon, un groupe Marseille… puis <code>COUNT(*)</code> compte les lignes dans chaque groupe."},
+    vs:{bad:{tag:"✕ Un seul total",sql:"SELECT COUNT(*)\nFROM clients;",out:"1 résultat : 9 clients au total",code:[{t:"SELECT ",c:"kw"},{t:"COUNT(*)\n",c:"fn"},{t:"FROM ",c:"kw"},{t:"clients;",c:""}]},
+        good:{tag:"✓ Un total par ville",sql:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville;",out:"Paris 3, Lyon 2, puis 1 pour chaque autre ville",code:[{t:"SELECT ",c:"kw"},{t:"ville, ",c:""},{t:"COUNT(*)\n",c:"fn"},{t:"FROM ",c:"kw"},{t:"clients\n",c:""},{t:"GROUP BY ",c:"kw"},{t:"ville;",c:""}]}},
+    point:"Dans la table <code>clients</code>, Paris apparaît 3 fois : Sophie, Nathan et Léa forment donc un groupe de 3. Lyon apparaît 2 fois : Lucas et Hugo forment un groupe de 2. Marseille, Bordeaux, Toulouse et Nantes apparaissent une fois chacune. <code>COUNT(*)</code> est ensuite calculé séparément pour chaque groupe.",
+    why:{title:"Comment <code>GROUP BY</code> transforme les données ?",
+      body:"SQL part des 9 lignes de la table <code>clients</code> et les rassemble selon leur valeur dans <code>ville</code>. Comme il existe 6 villes différentes, il forme 6 groupes. <code>COUNT(*)</code> compte ensuite les clients de chaque groupe : le résultat contient donc 6 lignes, une par ville."},
+    reflex:{a:{k:"COUNT(*)",t:"un total pour toute la table"},
+      b:{k:"GROUP BY",t:"un calcul pour chaque groupe"},
+      note:"<code>GROUP BY ville</code> signifie : rassemble les lignes qui ont la même ville, puis effectue le calcul sur chaque groupe."}},
+  anatomie:[{tok:"SELECT ville, COUNT(*)",txt:"Affiche la ville et le nombre de clients dans son groupe."},{tok:"FROM clients",txt:"Les données viennent de la table <code>clients</code>."},{tok:"GROUP BY ville",txt:"Rassemble les lignes qui ont la même ville."}],
   exemple:"SELECT ville, COUNT(*) FROM clients GROUP BY ville;",
-  attendu:"Une ligne par ville.",
-  retenir:"<code>GROUP BY</code> forme des paquets, puis calcule sur chacun. Toute colonne affichée hors agrégat doit figurer dans le <code>GROUP BY</code>.",
-  piege:{t:"Colonne orpheline",p:"Afficher <code>nom</code> en groupant par <code>ville</code> choisit un nom arbitraire dans le groupe."},
-  consigne:"Compte le <b>nombre de clients par ville</b> (ville et compte).",
+  attendu:"6 lignes : Paris — 3, Lyon — 2, Marseille — 1, Bordeaux — 1, Toulouse — 1, Nantes — 1.",
+  retenir:"<code>GROUP BY</code> sert à effectuer un calcul par groupe. Dans <code>SELECT ville, COUNT(*) FROM clients GROUP BY ville</code>, SQL rassemble les clients qui habitent dans la même ville, puis les compte. Résultat : une ligne par ville, avec le nombre de clients correspondant.",
+  piege:{t:"Afficher une colonne qui ne représente pas le groupe",p:"Si tu regroupes par <code>ville</code>, affiche la ville et ton calcul : <code>ville, COUNT(*)</code>. Évite par exemple <code>SELECT nom, ville, COUNT(*) … GROUP BY ville</code> : plusieurs clients peuvent appartenir au même groupe, donc <code>nom</code> ne représente pas le groupe entier."},
+  consigne:"Compte le nombre de clients par ville. Affiche la ville et le nombre de clients correspondant.",
   solution:"SELECT ville, COUNT(*) FROM clients GROUP BY ville;",
-  indice:"<code>SELECT ville, COUNT(*) FROM clients GROUP BY ville;</code>",
+  indice:"Tu connais déjà <code>COUNT(*)</code>. Cette fois, demande à SQL de former un groupe pour chaque valeur de la colonne <code>ville</code>.",
   richLesson:true, earlyDemo:true },
 { id:17, titre:"HAVING", résumé:"Filtrer après regroupement",
   situation:"Dans la table <code>produits</code>, chaque produit est associé à une catégorie. Tu veux compter le nombre de produits par catégorie, puis ne garder que les catégories qui comptent au moins 2 produits.",
@@ -3357,13 +3364,13 @@ const CARTES={
  12:{k:"LIMIT",t:"Limiter le résultat",s:"ORDER BY prix DESC LIMIT 3",
     m:"<code>ORDER BY</code> classe les lignes ; <code>LIMIT</code> garde seulement les premières."},
  13:{k:"DISTINCT",t:"Valeurs uniques",s:"SELECT DISTINCT ville FROM clients;",
-    m:"Retire les doublons. Sur plusieurs colonnes, l’unicité porte sur la combinaison entière."},
+    m:"<code>DISTINCT</code> retire les doublons du résultat. Avec plusieurs colonnes, il compare leur combinaison."},
  14:{k:"COUNT",t:"Compter les lignes",s:"SELECT COUNT(*) FROM table;",
-    m:"Agrégation : un chiffre. <code>COUNT(*)</code> compte tout ; <code>COUNT(colonne)</code> ignore les NULL."},
+    m:"<code>COUNT(*)</code> compte toutes les lignes. <code>COUNT(colonne)</code> ignore les valeurs <code>NULL</code>."},
  15:{k:"AVG SUM MIN MAX",t:"Calculer sur une colonne",s:"SELECT AVG(prix) FROM produits;",
-    m:"Nomme la colonne entre parenthèses. Emboîte au besoin : <code>ROUND(AVG(prix), 2)</code>."},
- 16:{k:"GROUP BY",t:"Un calcul par groupe",s:"SELECT ville, COUNT(*)\nFROM clients GROUP BY ville;",
-    m:"Forme des groupes, calcule sur chacun. Une ligne par valeur distincte. Colonnes hors agrégat → dans le <code>GROUP BY</code>."},
+    m:"<code>AVG</code> calcule une moyenne, <code>SUM</code> une somme, <code>MIN</code> le minimum et <code>MAX</code> le maximum."},
+ 16:{k:"GROUP BY",t:"Un calcul par groupe",s:"SELECT ville, COUNT(*) FROM clients GROUP BY ville;",
+    m:"<code>GROUP BY</code> rassemble les lignes qui partagent la même valeur, puis permet de calculer sur chaque groupe."},
  17:{k:"HAVING",t:"Filtrer les groupes",s:"GROUP BY …\nHAVING …",
     run:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",
     m:"Ordre d’exécution : FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY. <b>WHERE filtre des lignes, HAVING filtre des groupes.</b>"},
@@ -3422,14 +3429,14 @@ const QCM={
    {q:"<code>ORDER BY age DESC</code> range :",o:["Du plus jeune au plus âgé","Du plus âgé au plus jeune","Seulement les plus de 35 ans"],b:1,e:"<code>DESC</code> = décroissant. Les 9 personnes restent : seul l’ordre change."}],
  12:[{q:"Que fait <code>LIMIT 3</code> ?",o:["Il garde les 3 premières lignes du résultat","Il garde toujours les 3 valeurs les plus élevées","Il trie automatiquement les lignes"],b:0,e:"<code>LIMIT</code> limite le nombre de lignes. Il ne réalise aucun tri."},
    {q:"Comment obtenir les 3 produits les plus chers ?",o:["LIMIT 3","ORDER BY prix DESC LIMIT 3","ORDER BY prix ASC LIMIT 3"],b:1,e:"<code>DESC</code> place les prix les plus élevés en premier, puis <code>LIMIT 3</code> garde les trois premières lignes."}],
- 13:[{q:"<code>DISTINCT</code> sert à :",o:["Compter les valeurs","Supprimer les doublons du résultat","Trier les lignes"],b:1,e:"Liste les valeurs distinctes."},
-   {q:"Dans <code>SELECT DISTINCT ville, age</code>, l’unicité porte sur :",o:["La ville seule","La combinaison ville + âge","L’âge seul"],b:1,e:"Sur la ligne entière, pas colonne par colonne."}],
- 14:[{q:"<code>COUNT(*)</code> renvoie :",o:["Une ligne par groupe","Une seule valeur : le nombre de lignes","La liste des lignes comptées"],b:1,e:"Une agrégation : un chiffre."},
-   {q:"Deux clients sur neuf sans email. <code>COUNT(email)</code> renvoie :",o:["9","7","2"],b:1,e:"<code>COUNT(colonne)</code> ignore les NULL."}],
- 15:[{q:"<code>SELECT nom, MAX(prix) FROM produits</code> :",o:["Donne le nom du produit le plus cher, de façon fiable","Affiche un nom qui n’est pas forcément celui du maximum","Provoque une erreur"],b:1,e:"Pour l’identité : <code>ORDER BY prix DESC LIMIT 1</code>."},
-   {q:"Pour arrondir une moyenne à deux décimales :",o:["AVG(ROUND(prix))","ROUND(AVG(prix), 2)","AVG(prix, 2)"],b:1,e:"On calcule d’abord, on arrondit ensuite."}],
- 16:[{q:"Avec <code>GROUP BY ville</code>, le nombre de lignes vaut :",o:["Le nombre de clients","Le nombre de villes différentes","Toujours 1"],b:1,e:"Une ligne par groupe."},
-   {q:"Une colonne affichée hors agrégat doit :",o:["Être triée","Figurer dans le GROUP BY","Être unique dans la table"],b:1,e:"Sinon SQL ne sait pas quelle valeur choisir dans le groupe."}],
+ 13:[{q:"La table contient 9 clients mais seulement 6 villes différentes. Que renvoie <code>SELECT DISTINCT ville FROM clients;</code> ?",o:["9 lignes","6 lignes","3 lignes"],b:1,e:"<code>DISTINCT</code> n’affiche chaque ville qu’une seule fois."},
+   {q:"Dans <code>SELECT DISTINCT ville, age FROM clients</code>, <code>DISTINCT</code> compare :",o:["Uniquement les villes","Uniquement les âges","Les combinaisons ville + âge"],b:2,e:"Avec plusieurs colonnes, l’unicité porte sur la combinaison complète des valeurs sélectionnées."}],
+ 14:[{q:"Que renvoie <code>SELECT COUNT(*) FROM clients;</code> ?",o:["Les 9 clients","Une seule valeur : 9","9 colonnes"],b:1,e:"<code>COUNT(*)</code> compte les lignes et renvoie leur nombre."},
+   {q:"La table contient 9 clients, dont 2 avec un email <code>NULL</code>. Que renvoie <code>COUNT(email)</code> ?",o:["9","7","2"],b:1,e:"<code>COUNT(email)</code> ignore les <code>NULL</code> : 9 - 2 = 7."}],
+ 15:[{q:"Quelle fonction donne le prix le plus élevé ?",o:["MAX(prix)","AVG(prix)","SUM(prix)"],b:0,e:"<code>MAX(prix)</code> renvoie la plus grande valeur de la colonne <code>prix</code>."},
+   {q:"Que renvoie <code>SELECT AVG(prix) FROM produits;</code> ?",o:["Le prix de chaque produit","Le prix moyen des produits","Le produit le plus cher"],b:1,e:"<code>AVG</code> calcule la moyenne des valeurs de la colonne."}],
+ 16:[{q:"Que fait <code>GROUP BY ville</code> ?",o:["Il trie les clients par ville","Il rassemble les lignes qui ont la même ville","Il garde une seule ville"],b:1,e:"<code>GROUP BY ville</code> forme un groupe pour chaque ville différente."},
+   {q:"Il y a 9 clients répartis dans 6 villes. Combien de lignes renvoie <code>SELECT ville, COUNT(*) FROM clients GROUP BY ville;</code> ?",o:["9 lignes","1 ligne","6 lignes"],b:2,e:"Le résultat contient une ligne par groupe. Avec 6 villes différentes, il y a donc 6 lignes."}],
  17:[{q:"<code>WHERE COUNT(*) >= 2</code> :",o:["Fonctionne correctement","Échoue : les agrégats ne sont pas disponibles au moment du WHERE","Renvoie un résultat vide"],b:1,e:"Quand WHERE s’exécute, les groupes n’existent pas encore. C’est le rôle de HAVING."},
    {q:"Dans l’ordre d’exécution, HAVING vient :",o:["Avant GROUP BY","Après GROUP BY","Avant WHERE"],b:1,e:"FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY."}],
  18:[{q:"À quoi sert la clause <code>ON</code> ?",o:["À trier le résultat","À dire quelle colonne correspond à quelle colonne","À filtrer les lignes"],b:1,e:"C’est la règle d’appariement. Sans elle, SQL associe tout avec tout."},
@@ -3585,16 +3592,32 @@ async function loadSqlEngine(){
   }
   throw lastError||new Error('Moteur SQL indisponible');
 }
+function bootFatal(){
+  document.getElementById('loader').innerHTML=
+   `<div class="logo-badge" style="background:var(--danger);box-shadow:none">!</div>
+    <p><b>Impossible de charger le moteur SQL.</b><br>Vérifie ta connexion, puis recharge la page.</p>`;
+}
+function hideLoader(){
+  const loader=document.getElementById('loader');
+  if(!loader)return;
+  loader.classList.add('fade-out');
+  setTimeout(()=>{loader.style.display='none';}, 380);
+}
 async function boot(){
+  /* Seul l'échec du moteur SQL est fatal. Une erreur de rendu ne doit pas
+     bloquer l'app sur le loader avec un message de connexion trompeur. */
   try{
     SQL=await loadSqlEngine();
     buildDb(); baseBytes=db.export();
+  }catch(e){ bootFatal(); return; }
+  try{
     await wipeStorageIfUpdated();
     const saved=await Store.get(KEY); if(saved&&saved.lessons) state=saved;
     if(state.onboarded==null) state.onboarded=false;
     if(state.name==null) state.name='';
     if(!state.entretien||typeof state.entretien!=='object') state.entretien={};
     migrerEtapes();
+    normaliserPlan();
     if(!Array.isArray(state.notes)){
       const old=state.notes&&typeof state.notes==='object'?state.notes:{};
       state.notes=Object.keys(old).filter(k=>old[k]&&String(old[k]).trim()).map(k=>({
@@ -3613,14 +3636,10 @@ async function boot(){
     tickRappel();
     setInterval(tickRappel,30000);
     document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') tickRappel(); });
-    const loader=document.getElementById('loader');
-    loader.classList.add('fade-out');
-    setTimeout(()=>{loader.style.display='none';}, 380);
   }catch(e){
-    document.getElementById('loader').innerHTML=
-     `<div class="logo-badge" style="background:var(--danger);box-shadow:none">!</div>
-      <p><b>Impossible de charger le moteur SQL.</b><br>Vérifie ta connexion, puis recharge la page.</p>`;
+    console.error('Erreur pendant l’initialisation :',e);
   }
+  hideLoader();
 }
 let activeDbId='cours';
 let customDbs={}; // id → SQL.Database
@@ -5054,6 +5073,7 @@ function refreshTabScreen(tab){
   majBadgePlanning();
 }
 function switchTab(name){
+  annulerBilanAuto();
   closeSchemaSheet();
   const map={learn:'scr-learn',defis:'scr-defis',planning:'scr-planning',collection:'scr-collection',console:'scr-console',entretien:'scr-entretien',compte:'scr-compte'};
   if(name==='schema') name='console';
@@ -5354,6 +5374,7 @@ function showScreen(){
   setTimeout(()=>scr.classList.remove('push'),340);
 }
 function leaveLessonScreen(toTab){
+  annulerBilanAuto();
   const tab=toTab||activeTab||'learn';
   activeTab=tab;
   const scr=document.getElementById('scr-lesson');
@@ -5506,6 +5527,7 @@ let exoFails=0; // défis : 1→aide · 2→solution
 let somScrollUntil=0; // fenêtre où les layouts SQL ne doivent pas écraser le scroll du sommaire
 function openLesson(id, restoreStep){
   const l=allLessons.find(x=>x.id===id); if(!l)return;
+  annulerBilanAuto();
   current=l; mode='lesson';
   lessonStepDir=1;
   exoFails=0;
@@ -5543,7 +5565,7 @@ function scrollLessonTop(){
   });
 }
 function setLessonStep(n){
-  clearTimeout(bilanAutoTimer); bilanAutoTimer=null;
+  annulerBilanAuto();
   if(mode!=='lesson'||!current)return;
   if(n===3){
     if(!lecCompletee(current.id))return;
@@ -6523,7 +6545,9 @@ function buildSommaire(){
   });
 }
 function openChallenge(cid){
-  const c=CHALLENGES.find(x=>x.id===cid); const g=CHALLENGE_GUIDES[cid]||{}; current=c; mode='defi';
+  const c=CHALLENGES.find(x=>x.id===cid); const g=CHALLENGE_GUIDES[cid]||{};
+  annulerBilanAuto();
+  current=c; mode='defi';
   exoFails=0;
   document.getElementById('back-label').textContent=({defis:'Défis',planning:'Parcours',learn:'Apprendre'}[activeTab]||'Défis');
   document.getElementById('nav-title').textContent='Défi';
@@ -6915,7 +6939,8 @@ function cardToConsole(id){
 }
 let toastId=null,toastTimer=null;
 function showUnlock(id){
-  const c=CARTES[id]; toastId=id; lastUnlockedId=id;
+  const c=CARTES[id]; if(!c)return;
+  toastId=id; lastUnlockedId=id;
   const t=document.getElementById('toast');
   const mini=document.getElementById('toast-mini');
   mini.className='tmini card';
@@ -7077,6 +7102,15 @@ function itemMeta(id){
   return {titre:l.titre,badge:itemDone(id)?'✓':String(id),sous:l.résumé||'Leçon',defi:false};
 }
 function openItem(id){if(isDefiId(id))openChallenge(id);else openLesson(id);}
+/* Un plan sauvegardé par une version antérieure (ou une écriture interrompue)
+   peut arriver sans `sessions`. Sans ce garde-fou, chaque rendu du parcours
+   lève une exception et l'app reste bloquée sur l'écran de chargement. */
+function normaliserPlan(){
+  const p=state.plan;
+  if(!p||typeof p!=='object'){ if(p!=null&&typeof p!=='object') state.plan=null; return; }
+  if(!Array.isArray(p.sessions)) p.sessions=[];
+  p.sessions=p.sessions.filter(s=>s&&typeof s==='object'&&Array.isArray(s.lessons)&&s.d);
+}
 function trierSessions(){
   const p=state.plan;
   p.sessions=p.sessions.filter(s=>s.lessons&&s.lessons.length>0);
@@ -7087,6 +7121,7 @@ function sessionFaite(s){return s&&s.lessons.length>0&&s.lessons.every(itemDone)
 function resteDe(s){return s?s.lessons.filter(id=>!itemDone(id)).length:0;}
 function toutesLecons(){return (state.plan.sessions||[]).reduce((a,s)=>a.concat(s.lessons),[]);}
 function statsPlan(){
+  normaliserPlan();
   const p=state.plan,all=toutesLecons();
   const done=all.filter(itemDone).length;
   const nL=all.filter(id=>!isDefiId(id)).length,nD=all.filter(isDefiId).length;
@@ -7095,6 +7130,7 @@ function statsPlan(){
     moy:p.sessions.length?Math.round(all.length/p.sessions.length*MIN_PAR_LECON):0};
 }
 function infoJour(){
+  normaliserPlan();
   const p=state.plan; if(!p)return null;
   const t=dstr(auj());
   const today=sessionDe(t);
@@ -7837,7 +7873,10 @@ function repondreQcm(i,choix){
     if(expl){expl.classList.add('on');expl.innerHTML='<b>✓ Bonne réponse.</b> '+q.e;}
     document.getElementById('qcm-'+i).classList.add('ok');
     if(navigator.vibrate)navigator.vibrate(10);
-    const next=()=>{ if(lecCompletee(id))validerLecon(); else renderValidation(); };
+    const next=()=>{
+      if(mode!=='lesson'||!current||current.id!==id)return;
+      if(lecCompletee(id))validerLecon(id); else renderValidation();
+    };
     if(prefersReduceMotion()) next();
     else setTimeout(next,280);
   }else{
@@ -7848,20 +7887,26 @@ function repondreQcm(i,choix){
   }
 }
 let bilanAutoTimer=null;
-function validerLecon(){
-  const id=current.id;
+/* Le bilan s'affiche après un court délai. Si l'utilisateur quitte la leçon
+   entre-temps, le minuteur doit être annulé : sinon il finalise `current`,
+   devenu une autre leçon ou un défi. */
+function annulerBilanAuto(){ clearTimeout(bilanAutoTimer); bilanAutoTimer=null; }
+function validerLecon(lid){
+  const id=lid!=null?lid:current.id;
   const premier=!(state.lessons[id]&&state.lessons[id].done);
   markDone(id,false); celebrate();
   renderModules();renderProgress();renderCollection();renderPlanning();
   renderValidation();
   if(premier)showUnlock(id);
   save(); saveNav();
-  clearTimeout(bilanAutoTimer);
-  bilanAutoTimer=setTimeout(()=>{ bilanAutoTimer=null; finaliserLecon(); }, prefersReduceMotion()?500:1300);
+  annulerBilanAuto();
+  bilanAutoTimer=setTimeout(()=>{ bilanAutoTimer=null; finaliserLecon(id); }, prefersReduceMotion()?500:1300);
 }
-function finaliserLecon(){
-  clearTimeout(bilanAutoTimer); bilanAutoTimer=null;
+function finaliserLecon(lid){
+  annulerBilanAuto();
+  if(mode!=='lesson'||!current)return;
   const id=current.id;
+  if(lid!=null&&lid!==id)return;
   const premier=!(state.lessons[id]&&state.lessons[id].done);
   markDone(id,false); celebrate();
   renderModules();renderProgress();renderCollection();renderPlanning();
@@ -8811,15 +8856,15 @@ const SQL_VIZ={
     {t:'Oméga 3',extra:'24,90',rank:3,keep:0},{t:'Shaker',extra:'15,00',rank:5,keep:0}
   ]},
   distinct:{kind:'filter',phases:[
-    {k:'SELECT ville FROM clients',d:'Paris et Lyon apparaissent plusieurs fois.'},
-    {k:'SELECT DISTINCT ville',d:'DISTINCT retire les doublons du résultat.'}
+    {k:'SELECT ville FROM clients',d:'Les 9 villes sont affichées. Paris apparaît 3 fois et Lyon 2 fois.'},
+    {k:'SELECT DISTINCT ville',d:'DISTINCT retire les répétitions : il reste 6 villes différentes.'}
   ],chips:[
     {t:'Paris',keep:1},{t:'Lyon',keep:1},{t:'Marseille',keep:1},{t:'Paris',keep:0},
     {t:'Bordeaux',keep:1},{t:'Lyon',keep:0},{t:'Paris',keep:0},{t:'Toulouse',keep:1},{t:'Nantes',keep:1}
   ]},
   count:{kind:'filter',phases:[
-    {k:'SELECT nom FROM clients',d:'9 lignes. Pour un total, il faut un agrégat.'},
-    {k:'SELECT COUNT(*) FROM clients',d:'COUNT(*) réduit tout à un seul chiffre : 9.'}
+    {k:'SELECT nom FROM clients',d:'La table clients contient 9 lignes. Afficher les noms ne donne pas directement leur nombre.'},
+    {k:'SELECT COUNT(*) FROM clients',d:'COUNT(*) compte les 9 lignes et les transforme en un seul résultat : 9.'}
   ],chips:[
     {t:'Sophie',keep:1},{t:'Lucas',keep:1},{t:'Emma',keep:1},{t:'Nathan',keep:1},
     {t:'Chloé',keep:1},{t:'Hugo',keep:1},{t:'Léa',keep:1},{t:'Gabriel',keep:1},{t:'Inès',keep:1}

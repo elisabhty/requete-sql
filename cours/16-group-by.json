@@ -1,0 +1,98 @@
+{
+  "id": 16,
+  "titre": "GROUP BY",
+  "résumé": "Un calcul par groupe",
+  "module": {
+    "titre": "Agréger",
+    "sous": "Compter, calculer, regrouper"
+  },
+  "situation": "Dans la table clients, tu sais compter les 9 clients avec COUNT(*). Maintenant, tu veux savoir combien de clients habitent dans chaque ville.",
+  "studio": {
+    "problem": {
+      "title": "GROUP BY sépare les lignes en groupes avant de calculer.",
+      "body": "Sans GROUP BY, COUNT(*) compte toute la table et renvoie 9. Avec GROUP BY ville, SQL rassemble d’abord les clients qui ont la même ville. Il forme un groupe Paris, un groupe Lyon, un groupe Marseille… puis COUNT(*) compte les lignes dans chaque groupe."
+    },
+    "vs": {
+      "bad": {
+        "tag": "✕ Un seul total",
+        "sql": "SELECT COUNT(*)\nFROM clients;",
+        "out": "1 résultat : 9 clients au total"
+      },
+      "good": {
+        "tag": "✓ Un total par ville",
+        "sql": "SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville;",
+        "out": "Paris 3, Lyon 2, puis 1 pour chaque autre ville"
+      }
+    },
+    "point": "Dans la table clients, Paris apparaît 3 fois : Sophie, Nathan et Léa forment donc un groupe de 3. Lyon apparaît 2 fois : Lucas et Hugo forment un groupe de 2. Marseille, Bordeaux, Toulouse et Nantes apparaissent une fois chacune. COUNT(*) est ensuite calculé séparément pour chaque groupe.",
+    "why": {
+      "title": "Comment GROUP BY transforme les données ?",
+      "body": "SQL part des 9 lignes de la table clients et les rassemble selon leur valeur dans ville. Comme il existe 6 villes différentes, il forme 6 groupes. COUNT(*) compte ensuite les clients de chaque groupe : le résultat contient donc 6 lignes, une par ville."
+    },
+    "reflex": {
+      "a": {
+        "k": "COUNT(*)",
+        "t": "un total pour toute la table"
+      },
+      "b": {
+        "k": "GROUP BY",
+        "t": "un calcul pour chaque groupe"
+      },
+      "note": "GROUP BY ville signifie : rassemble les lignes qui ont la même ville, puis effectue le calcul sur chaque groupe."
+    }
+  },
+  "anatomie": [
+    {
+      "tok": "SELECT ville, COUNT(*)",
+      "txt": "Affiche la ville et le nombre de clients dans son groupe."
+    },
+    {
+      "tok": "FROM clients",
+      "txt": "Les données viennent de la table clients."
+    },
+    {
+      "tok": "GROUP BY ville",
+      "txt": "Rassemble les lignes qui ont la même ville."
+    }
+  ],
+  "exemple": "SELECT ville, COUNT(*) FROM clients GROUP BY ville;",
+  "attendu": "6 lignes : Paris — 3, Lyon — 2, Marseille — 1, Bordeaux — 1, Toulouse — 1, Nantes — 1.",
+  "retenir": "GROUP BY sert à effectuer un calcul par groupe. Dans SELECT ville, COUNT(*) FROM clients GROUP BY ville, SQL rassemble les clients qui habitent dans la même ville, puis les compte. Résultat : une ligne par ville, avec le nombre de clients correspondant.",
+  "piege": {
+    "t": "Afficher une colonne qui ne représente pas le groupe",
+    "p": "Si tu regroupes par ville, affiche la ville et ton calcul : ville, COUNT(*). Évite par exemple SELECT nom, ville, COUNT(*) … GROUP BY ville : plusieurs clients peuvent appartenir au même groupe, donc nom ne représente pas le groupe entier."
+  },
+  "consigne": "Compte le nombre de clients par ville. Affiche la ville et le nombre de clients correspondant.",
+  "solution": "SELECT ville, COUNT(*) FROM clients GROUP BY ville;",
+  "indice": "Tu connais déjà COUNT(*). Cette fois, demande à SQL de former un groupe pour chaque valeur de la colonne ville.",
+  "richLesson": true,
+  "earlyDemo": true,
+  "memo": {
+    "k": "GROUP BY",
+    "t": "Un calcul par groupe",
+    "s": "SELECT ville, COUNT(*) FROM clients GROUP BY ville;",
+    "m": "GROUP BY rassemble les lignes qui partagent la même valeur, puis permet de calculer sur chaque groupe."
+  },
+  "quiz": [
+    {
+      "q": "Que fait GROUP BY ville ?",
+      "o": [
+        "Il trie les clients par ville",
+        "Il rassemble les lignes qui ont la même ville",
+        "Il garde une seule ville"
+      ],
+      "b": 1,
+      "e": "GROUP BY ville forme un groupe pour chaque ville différente."
+    },
+    {
+      "q": "Il y a 9 clients répartis dans 6 villes. Combien de lignes renvoie SELECT ville, COUNT(*) FROM clients GROUP BY ville; ?",
+      "o": [
+        "9 lignes",
+        "1 ligne",
+        "6 lignes"
+      ],
+      "b": 2,
+      "e": "Le résultat contient une ligne par groupe. Avec 6 villes différentes, il y a donc 6 lignes."
+    }
+  ]
+}
