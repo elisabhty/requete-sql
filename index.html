@@ -681,6 +681,26 @@
   .grp-pause:disabled,.grp-replay:disabled{opacity:.55;cursor:default;transform:none}
   @media (max-width:380px){.grp-chip{font-size:10px;padding:6px 8px}.grp-k{font-size:10.5px}.grp-pause,.grp-replay{font-size:12px;padding:9px 8px}}
 
+  /* COUNT : numéroter chaque ligne, puis tout ramener à un seul chiffre */
+  .sql-viz[data-kind="count"] .grp-chip{padding-right:36px}
+  .sql-viz[data-kind="count"] .grp-chip::after{content:attr(data-n);position:absolute;right:8px;top:50%;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--mono);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(-50%) scale(.7);pointer-events:none;box-shadow:0 2px 8px rgba(91,91,214,.28)}
+  .sql-viz[data-kind="count"][data-phase="1"] .grp-chip{animation:cntVisit .5s ease var(--dw,0ms) both}
+  .sql-viz[data-kind="count"][data-phase="1"] .grp-chip::after{animation:cntTick .34s cubic-bezier(.32,.72,.28,1) var(--dw,0ms) both}
+  @keyframes cntVisit{0%{border-color:var(--line-2);background:var(--surface)}40%{border-color:rgba(91,91,214,.42);background:var(--accent-soft)}100%{border-color:rgba(91,91,214,.28);background:var(--accent-soft)}}
+  @keyframes cntTick{from{opacity:0;transform:translateY(-50%) scale(.7)}to{opacity:1;transform:translateY(-50%) scale(1)}}
+  .sql-viz[data-kind="count"] .cnt-result{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;opacity:0;transform:scale(.92);pointer-events:none;z-index:4;transition:opacity .45s ease,transform .45s cubic-bezier(.32,.72,.28,1)}
+  .sql-viz[data-kind="count"][data-phase="2"] .cnt-result{opacity:1;transform:scale(1)}
+  .sql-viz[data-kind="count"] .cnt-num{font-family:var(--mono);font-size:56px;font-weight:800;letter-spacing:-2px;line-height:1;color:var(--accent)}
+  .sql-viz[data-kind="count"] .cnt-lbl{font-size:13px;font-weight:700;color:var(--ink-2)}
+  .sql-viz[data-kind="count"][data-phase="2"] .grp-chip{opacity:0;pointer-events:none;transition:opacity .4s ease .05s}
+  .sql-viz[data-kind="count"][data-paused="1"] .grp-chip,
+  .sql-viz[data-kind="count"][data-paused="1"] .grp-chip::after{animation-play-state:paused!important}
+  @media (prefers-reduced-motion:reduce){
+    .sql-viz[data-kind="count"] .grp-chip,
+    .sql-viz[data-kind="count"] .grp-chip::after,
+    .sql-viz[data-kind="count"] .cnt-result{animation-duration:1ms!important;animation-delay:0ms!important;transition:none!important}
+  }
+
   .anat{background:var(--code-bg);border-radius:14px;padding:6px 0;margin-bottom:16px}
   .anat-line{display:flex;gap:12px;align-items:flex-start;padding:10px 15px}
   .anat-line:not(:last-child){border-bottom:1px solid rgba(255,255,255,.06)}
@@ -5981,18 +6001,21 @@ function renderVizShell(key){
     }).join('')}</div>`).join('');
     stage=`<div class="sel-table"><div class="sel-row sel-head">${head}</div>${body}</div><div class="sel-meta">9 lignes · 2 colonnes</div>`;
   }else{
-    const chips=(cfg.chips||[]).map(c=>{
+    const chips=(cfg.chips||[]).map((c,i)=>{
       const keep=c.keep==null?'':` data-keep="${c.keep}"`;
       const keep0=c.keep0==null?'':` data-keep0="${c.keep0}"`;
       const rank=c.rank==null?'':` data-rank="${c.rank}"`;
+      const n=c.n==null&&cfg.kind!=='count'?'':` data-n="${c.n!=null?c.n:i+1}"`;
       const extra=c.extra?`<span class="grp-extra">${c.extra}</span>`:'';
       const cat=c.cat?` data-cat="${c.cat}"`:'';
-      return `<div class="grp-chip"${keep}${keep0}${rank}${cat}>${c.t}${extra}</div>`;
+      return `<div class="grp-chip"${keep}${keep0}${rank}${n}${cat}>${c.t}${extra}</div>`;
     }).join('');
     const buckets=(cfg.buckets||[]).map(b=>
       `<div class="grp-bucket" data-cat="${b.cat}" data-n="${b.n}" data-keep="${b.keep}"><span class="grp-bucket-lbl">${b.cat}</span><span class="grp-count">${b.n}</span></div>`
     ).join('');
-    stage=buckets+chips;
+    const total=cfg.total!=null?cfg.total:(cfg.chips||[]).length;
+    const result=cfg.kind==='count'?`<div class="cnt-result" aria-hidden="true"><span class="cnt-num">${total}</span><span class="cnt-lbl">1 ligne · 1 valeur</span></div>`:'';
+    stage=buckets+chips+result;
   }
   return `<div class="grp-viz sql-viz" id="sql-viz-${key}" data-viz="${key}" data-kind="${cfg.kind}" data-phase="0" aria-label="Animation">
     <div class="grp-viz-bar">
@@ -8864,12 +8887,13 @@ const SQL_VIZ={
     {t:'Paris',keep:1},{t:'Lyon',keep:1},{t:'Marseille',keep:1},{t:'Paris',keep:0},
     {t:'Bordeaux',keep:1},{t:'Lyon',keep:0},{t:'Paris',keep:0},{t:'Toulouse',keep:1},{t:'Nantes',keep:1}
   ]},
-  count:{kind:'filter',phases:[
-    {k:'SELECT nom FROM clients',d:'La table clients contient 9 lignes. Afficher les noms ne donne pas directement leur nombre.'},
-    {k:'SELECT COUNT(*) FROM clients',d:'COUNT(*) compte les 9 lignes et les transforme en un seul résultat : 9.'}
-  ],chips:[
-    {t:'Sophie',keep:1},{t:'Lucas',keep:1},{t:'Emma',keep:1},{t:'Nathan',keep:1},
-    {t:'Chloé',keep:1},{t:'Hugo',keep:1},{t:'Léa',keep:1},{t:'Gabriel',keep:1},{t:'Inès',keep:1}
+  count:{kind:'count',phases:[
+    {k:'SELECT nom FROM clients',d:'Les 9 noms s’affichent. Pour connaître le total, il faut encore les compter.'},
+    {k:'COUNT(*)',d:'SQL parcourt chaque ligne et ajoute 1 : Sophie, Lucas, Emma… jusqu’à 9.'},
+    {k:'COUNT(*) = 9',d:'Les 9 lignes deviennent un seul résultat : 9. Ce n’est plus une liste.'}
+  ],total:9,chips:[
+    {t:'Sophie',n:1},{t:'Lucas',n:2},{t:'Emma',n:3},{t:'Nathan',n:4},
+    {t:'Chloé',n:5},{t:'Hugo',n:6},{t:'Léa',n:7},{t:'Gabriel',n:8},{t:'Inès',n:9}
   ]},
   having:{kind:'group',phases:[
     {k:'SELECT categorie FROM produits',d:'SQL lit simplement les lignes'},
@@ -9026,11 +9050,12 @@ function layoutSqlList(root,phase,{animate=true}={}){
       ?(sortAt>=0&&phase>=sortAt?(+c.dataset.rank||0)*70:i*45)
       :0;
     c.style.transitionDelay=delay+'ms';
+    if(kind==='count') c.style.setProperty('--dw',animate?(i*110)+'ms':'0ms');
     c.style.width=colW+'px';
     c.style.maxWidth=colW+'px';
     c.style.height=rowH+'px';
     c.style.paddingLeft='10px';
-    c.style.paddingRight='10px';
+    c.style.paddingRight=kind==='count'?'36px':'10px';
     c.style.display='flex';
     c.style.alignItems='center';
     c.style.transform=`translate(${x}px,${y}px)`;
