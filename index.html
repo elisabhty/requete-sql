@@ -3,9 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <title>Requête — Apprends le SQL</title>
 <meta name="description" content="Apprends le SQL en pratiquant sur une vraie base SQLite. 29 leçons, défis, révision espacée et console interactive.">
 <meta name="theme-color" content="#5B5BD6">
@@ -16,8 +13,13 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%235B5BD6'/%3E%3Ctext x='50%25' y='54%25' text-anchor='middle' font-family='monospace' font-size='28' font-weight='700' fill='white'%3E%3E_%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+<!-- Polices d'appoint : chargées sans bloquer le rendu. Sur iOS et macOS la pile
+     système (SF Pro / SF Mono) passe de toute façon en premier, et hors réseau
+     l'app doit s'afficher sans attendre l'échec de la requête. -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+<!-- Moteur SQL servi depuis le dépôt (voir loadSqlEngine pour les replis CDN). -->
+<script src="vendor/sqljs/sql-wasm.js"></script>
 <style>
   :root{
     --bg:#F2F2F7; --surface:#FFFFFF; --surface-2:#EEEEF4; --surface-elevated:#FFFFFF;
@@ -2865,7 +2867,7 @@ const MODULES = [
   situation:"Tu viens d’importer la table clients. Avant de continuer, tu veux vérifier combien de personnes y sont vraiment enregistrées.<br><br>Avec ce que tu connais déjà, tu peux afficher leurs noms :",
   situationSql:"SELECT nom\nFROM clients;",
   situationTail:"Tu obtiens bien les 9 noms. Mais tu dois encore les compter à la main : pour obtenir le total directement, il faut <code>COUNT(*)</code>.",
-    studio:{problem:{title:"COUNT transforme plusieurs lignes en un nombre.",
+    studio:{problem:{title:"<code>COUNT(*)</code> compte toutes les lignes.",
       body:"L’étoile de <code>COUNT(*)</code> signifie que SQL compte <b>toutes les lignes</b>, même si une colonne est <code>NULL</code>. Sur la table clients, le résultat est une seule valeur : 9."},
     vs:{bad:{tag:"✕ Afficher pour compter",sql:"SELECT nom FROM clients;",out:"9 lignes : il faut encore les compter",
             code:"SELECT <span class=\"vs-line bad\">nom</span>\nFROM clients;"},
@@ -3604,8 +3606,11 @@ function loadScript(src){
   });
 }
 async function loadSqlEngine(){
+  /* La copie locale passe en premier : l'app doit démarrer sans réseau.
+     Les CDN ne servent plus que de filet si le fichier local manque. */
   const sources=[
-    {js:null,wasm:'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.wasm'},
+    {js:'vendor/sqljs/sql-wasm.js',wasm:'vendor/sqljs/sql-wasm.wasm'},
+    {js:'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js',wasm:'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.wasm'},
     {js:'https://unpkg.com/sql.js@1.10.3/dist/sql-wasm.js',wasm:'https://unpkg.com/sql.js@1.10.3/dist/sql-wasm.wasm'}
   ];
   let lastError=null;
