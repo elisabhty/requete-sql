@@ -1,0 +1,109 @@
+{
+  "id": 13,
+  "titre": "DISTINCT",
+  "résumé": "Valeurs uniques",
+  "module": {
+    "titre": "Trier & limiter",
+    "sous": "Mettre de l’ordre dans le résultat"
+  },
+  "situation": "Dans la table clients, plusieurs personnes habitent dans la même ville. Tu veux obtenir la liste des villes différentes, sans afficher plusieurs fois la même ville.",
+  "studio": {
+    "problem": {
+      "title": "DISTINCT retire les doublons du résultat.",
+      "body": "Avec <code>SELECT ville FROM clients</code>, SQL affiche la ville de chaque client : tu obtiens donc 9 lignes. Paris apparaît 3 fois et Lyon 2 fois. En ajoutant <code>DISTINCT</code> après <code>SELECT</code>, chaque ville n’apparaît plus qu’une seule fois. Le résultat passe de 9 lignes à 6 villes différentes."
+    },
+    "vs": {
+      "bad": {
+        "tag": "✕ Avec doublons",
+        "sql": "SELECT ville FROM clients;",
+        "out": "9 lignes : Paris apparaît 3 fois, Lyon 2 fois",
+        "code": "SELECT <span class=\"vs-line bad\">ville</span>\nFROM clients;"
+      },
+      "good": {
+        "tag": "✓ Sans doublons",
+        "sql": "SELECT DISTINCT ville FROM clients;",
+        "out": "6 villes : Paris, Lyon, Marseille, Bordeaux, Toulouse, Nantes",
+        "code": "SELECT <span class=\"vs-line good\">DISTINCT ville</span>\nFROM clients;"
+      }
+    },
+    "point": "<code>DISTINCT</code> ne modifie pas la table clients. Les 9 clients restent enregistrés : seuls les doublons sont retirés du résultat affiché.",
+    "why": {
+      "title": "Comment DISTINCT passe de 9 à 6 lignes ?"
+    },
+    "viz": "distinct",
+    "reflex": {
+      "a": {
+        "k": "SELECT",
+        "t": "affiche <b>toutes</b> les occurrences"
+      },
+      "b": {
+        "k": "DISTINCT",
+        "t": "affiche chaque valeur <b>une seule fois</b>"
+      },
+      "note": "Avec plusieurs colonnes, <code>DISTINCT</code> compare leur combinaison. Deux lignes sont considérées comme identiques seulement si toutes les valeurs sélectionnées sont identiques."
+    }
+  },
+  "anatomie": [
+    { "tok": "SELECT", "txt": "Définit ce qui apparaît dans le résultat." },
+    { "tok": "DISTINCT", "txt": "Retire les doublons du résultat." },
+    { "tok": "ville", "plain": 1, "txt": "La colonne dont tu veux obtenir les valeurs différentes." },
+    { "tok": "FROM clients", "txt": "Les données viennent de la table clients." }
+  ],
+  "exemple": "SELECT DISTINCT ville FROM clients;",
+  "attendu": "<b>6 lignes</b> : Paris, Lyon, Marseille, Bordeaux, Toulouse et Nantes. Chaque ville apparaît une seule fois.",
+  "retenir": "<code>DISTINCT</code> sert à afficher des valeurs uniques. Dans <code>SELECT DISTINCT ville FROM clients</code>, les 9 clients donnent seulement 6 villes différentes, car Paris et Lyon apparaissent plusieurs fois dans la table. Les doublons sont retirés du résultat, pas de la table.",
+  "piege": {
+    "t": "DISTINCT avec plusieurs colonnes",
+    "p": "Dans <code>SELECT DISTINCT ville, age FROM clients</code>, SQL ne cherche pas seulement les villes différentes. Il cherche les combinaisons ville + âge différentes."
+  },
+  "consigne": "Affiche chaque ville différente où habite au moins un client.",
+  "solution": "SELECT DISTINCT ville FROM clients;",
+  "indice": "Tu veux afficher la colonne <code>ville</code> sans répétition. Ajoute le mot-clé qui retire les doublons juste après <code>SELECT</code>.",
+  "richLesson": true,
+  "earlyDemo": true,
+  "memo": {
+    "k": "DISTINCT",
+    "t": "Valeurs uniques",
+    "s": "SELECT DISTINCT ville FROM clients;",
+    "m": "<code>DISTINCT</code> retire les doublons du résultat. Avec plusieurs colonnes, il compare leur combinaison."
+  },
+  "quiz": [
+    {
+      "q": "La table contient 9 clients mais seulement 6 villes différentes. Que renvoie <code>SELECT DISTINCT ville FROM clients;</code> ?",
+      "o": ["9 lignes", "6 lignes", "3 lignes"],
+      "b": 1,
+      "e": "<code>DISTINCT</code> n’affiche chaque ville qu’une seule fois."
+    },
+    {
+      "q": "Dans <code>SELECT DISTINCT ville, age FROM clients</code>, <code>DISTINCT</code> compare :",
+      "o": ["Uniquement les villes", "Uniquement les âges", "Les combinaisons ville + âge"],
+      "b": 2,
+      "e": "Avec plusieurs colonnes, l’unicité porte sur la combinaison complète des valeurs sélectionnées."
+    }
+  ],
+  "animation": {
+    "key": "distinct",
+    "kind": "filter",
+    "phases": [
+      {
+        "k": "SELECT ville FROM clients",
+        "d": "Les 9 villes sont affichées. Paris apparaît 3 fois et Lyon 2 fois."
+      },
+      {
+        "k": "SELECT DISTINCT ville",
+        "d": "DISTINCT retire les répétitions : il reste 6 villes différentes."
+      }
+    ],
+    "chips": [
+      { "t": "Paris", "keep": 1 },
+      { "t": "Lyon", "keep": 1 },
+      { "t": "Marseille", "keep": 1 },
+      { "t": "Paris", "keep": 0 },
+      { "t": "Bordeaux", "keep": 1 },
+      { "t": "Lyon", "keep": 0 },
+      { "t": "Paris", "keep": 0 },
+      { "t": "Toulouse", "keep": 1 },
+      { "t": "Nantes", "keep": 1 }
+    ]
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "id": 18,
+  "titre": "JOIN",
+  "résumé": "Relier deux tables",
+  "module": {
+    "titre": "Relier",
+    "sous": "Plusieurs tables, une question"
+  },
+  "situation": "Pour chaque commande, tu veux le nom du client. Le nom n’est pas dans <code>commandes</code> : il est dans <code>clients</code>.",
+  "studio": {
+    "problem": {
+      "title": "Sans ON, chaque commande est collée à chaque client.",
+      "body": "Les données sont découpées exprès. Le <code>JOIN</code> recolle les tables via une colonne commune. Sans règle d’appariement, SQL associe tout avec tout."
+    },
+    "vs": {
+      "bad": {
+        "tag": "✕ Sans ON",
+        "sql": "SELECT commandes.id, clients.nom, commandes.quantite\nFROM commandes, clients;",
+        "out": "Produit cartésien : chaque commande × chaque client"
+      },
+      "good": {
+        "tag": "✓ JOIN … ON",
+        "sql": "SELECT commandes.id, clients.nom, commandes.quantite\nFROM commandes\nJOIN clients ON commandes.client_id = clients.id;",
+        "out": "Chaque commande, avec le bon client"
+      }
+    },
+    "point": "Sans <code>ON</code>, SQL associe tout avec tout. Préfixe les colonnes (<code>clients.nom</code>) dès qu’il y a ambiguïté.",
+    "why": {
+      "title": "Suis ce qui arrive à tes données.",
+      "body": "<code>commandes.client_id</code> pointe vers <code>clients.id</code>. Sophie a 3 commandes : son nom apparaît 3 fois. Sans <code>ON</code>, chaque commande est collée à chaque client."
+    },
+    "reflex": {
+      "a": {
+        "k": "JOIN",
+        "t": "recolle deux tables"
+      },
+      "b": {
+        "k": "ON a = b",
+        "t": "la <b>règle d’appariement</b>"
+      }
+    }
+  },
+  "anatomie": [
+    {
+      "tok": "SELECT commandes.id, clients.nom, commandes.quantite",
+      "txt": "Colonnes des deux tables."
+    },
+    {
+      "tok": "FROM commandes",
+      "txt": "Table de départ."
+    },
+    {
+      "tok": "JOIN clients",
+      "txt": "<b>Relie</b> clients."
+    },
+    {
+      "tok": "ON commandes.client_id = clients.id",
+      "txt": "La clé commune."
+    }
+  ],
+  "exemple": "SELECT clients.nom, commandes.quantite FROM commandes JOIN clients ON commandes.client_id = clients.id;",
+  "attendu": "15 lignes : une par commande, avec le nom du client.",
+  "retenir": "<code>JOIN</code> recolle deux tables avec <code>ON</code>. Sans règle d’appariement, chaque ligne est collée à toutes les autres.",
+  "piege": {
+    "t": "Oublier ON",
+    "p": "Sans condition, tu obtiens un produit cartésien."
+  },
+  "consigne": "Pour chaque commande, affiche le <code>nom</code> du client et la <code>quantite</code>.",
+  "solution": "SELECT clients.nom, commandes.quantite FROM commandes JOIN clients ON commandes.client_id = clients.id;",
+  "indice": "JOIN … ON <code>commandes.client_id = clients.id</code>.",
+  "richLesson": true,
+  "earlyDemo": true,
+  "memo": {
+    "k": "JOIN",
+    "t": "Relier deux tables",
+    "s": "FROM commandes\nJOIN clients ON commandes.client_id = clients.id",
+    "m": "Recolle les tables via une colonne commune. Pour une jointure relationnelle, écris <code>ON</code> ou <code>USING</code>. Sans condition, tu obtiens un produit cartésien. Préfixe (<code>clients.nom</code>) dès qu’il y a ambiguïté."
+  },
+  "quiz": [
+    {
+      "q": "À quoi sert la clause <code>ON</code> ?",
+      "o": [
+        "À trier le résultat",
+        "À dire quelle colonne correspond à quelle colonne",
+        "À filtrer les lignes"
+      ],
+      "b": 1,
+      "e": "C’est la règle d’appariement. Sans elle, SQL associe tout avec tout."
+    },
+    {
+      "q": "Sophie a 3 commandes. Dans un JOIN commandes/clients, son nom apparaît :",
+      "o": ["1 fois", "3 fois", "9 fois"],
+      "b": 1,
+      "e": "Le JOIN répète les infos du client autant de fois qu’il a de commandes."
+    }
+  ]
+}

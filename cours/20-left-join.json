@@ -1,0 +1,101 @@
+{
+  "id": 20,
+  "titre": "LEFT JOIN",
+  "résumé": "Garder les lignes sans match",
+  "module": {
+    "titre": "Relier",
+    "sous": "Plusieurs tables, une question"
+  },
+  "situation": "Dans la table <code>clients</code>, tu veux ceux qui n’ont jamais commandé. Un JOIN simple les ferait disparaître.",
+  "studio": {
+    "problem": {
+      "title": "JOIN fait disparaître ceux qui n’ont jamais commandé.",
+      "body": "<code>JOIN</code> ne garde que les matches. <code>LEFT JOIN</code> conserve <b>toutes</b> les lignes de la table de gauche. S’il n’y a pas de correspondance, les colonnes de droite sont NULL."
+    },
+    "vs": {
+      "bad": {
+        "tag": "✕ JOIN",
+        "sql": "SELECT clients.nom, commandes.id\nFROM clients\nJOIN commandes ON clients.id = commandes.client_id;",
+        "out": "Seulement ceux qui ont commandé"
+      },
+      "good": {
+        "tag": "✓ LEFT JOIN + IS NULL",
+        "sql": "SELECT clients.nom, commandes.id\nFROM clients\nLEFT JOIN commandes ON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;",
+        "out": "Les clients sans aucune commande"
+      }
+    },
+    "point": "Pour compter 0 commande : <code>COUNT(commandes.id)</code>, pas <code>COUNT(*)</code> — sinon la ligne vide compterait 1.",
+    "why": {
+      "title": "Suis ce qui arrive à tes données.",
+      "body": "On part des clients, on rattache une commande si elle existe. Sans commande, <code>commandes.id</code> est NULL. C’est précisément ce que tu cherches."
+    },
+    "reflex": {
+      "a": {
+        "k": "JOIN",
+        "t": "seulement les lignes qui <b>matchent</b>"
+      },
+      "b": {
+        "k": "LEFT JOIN",
+        "t": "<b>toute</b> la table de gauche"
+      }
+    }
+  },
+  "anatomie": [
+    {
+      "tok": "SELECT clients.nom",
+      "txt": "Le nom du client affiché."
+    },
+    {
+      "tok": "FROM clients",
+      "txt": "Table de gauche — on la garde entière."
+    },
+    {
+      "tok": "LEFT JOIN commandes ON clients.id = commandes.client_id",
+      "txt": "Rattache les commandes si elles existent."
+    },
+    {
+      "tok": "WHERE commandes.id IS NULL",
+      "txt": "Garde ceux sans correspondance."
+    }
+  ],
+  "exemple": "SELECT clients.nom FROM clients LEFT JOIN commandes ON clients.id = commandes.client_id WHERE commandes.id IS NULL;",
+  "attendu": "Les clients sans commande.",
+  "retenir": "<code>LEFT JOIN</code> garde toute la table de gauche. Un <code>JOIN</code> simple fait disparaître les lignes sans correspondance.",
+  "piege": {
+    "t": "JOIN au lieu de LEFT JOIN",
+    "p": "Un JOIN simple supprime exactement les clients que tu cherches."
+  },
+  "consigne": "Trouve les clients sans <b>aucune commande</b> : affiche leur <code>nom</code>.",
+  "solution": "SELECT clients.nom FROM clients LEFT JOIN commandes ON clients.id = commandes.client_id WHERE commandes.id IS NULL;",
+  "indice": "LEFT JOIN puis <code>WHERE commandes.id IS NULL</code>.",
+  "richLesson": true,
+  "earlyDemo": true,
+  "memo": {
+    "k": "LEFT JOIN",
+    "t": "Garder les orphelins",
+    "s": "FROM clients\nLEFT JOIN commandes ON …\nWHERE commandes.id IS NULL",
+    "m": "Conserve <b>toutes</b> les lignes de la table de gauche ; NULL à droite si pas de match. Pour compter les absents : <code>COUNT(colonne)</code>, pas <code>*</code>."
+  },
+  "quiz": [
+    {
+      "q": "<code>LEFT JOIN</code> conserve :",
+      "o": [
+        "Seulement les lignes qui correspondent des deux côtés",
+        "Toutes les lignes de la table de gauche",
+        "Toutes les lignes des deux tables"
+      ],
+      "b": 1,
+      "e": "Sans correspondance à droite, les colonnes sont remplies de NULL."
+    },
+    {
+      "q": "Pour qu’un client sans commande affiche 0, il faut compter :",
+      "o": [
+        "COUNT(*)",
+        "COUNT(commandes.id)",
+        "COUNT(1)"
+      ],
+      "b": 1,
+      "e": "COUNT(*) compterait sa ligne remplie de NULL et afficherait 1."
+    }
+  ]
+}
