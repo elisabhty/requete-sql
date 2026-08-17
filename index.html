@@ -1416,8 +1416,8 @@
   .pl-chip .ct{flex:1;min-width:0;font-size:14px;font-weight:550;overflow:hidden}
   .pl-chip .ct>span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pl-chip .ct small{display:block;font-size:11px;color:var(--ink-3);font-weight:500;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .pl-chip .nx{background:none;border:none;color:var(--ink-3);font-size:18px;cursor:pointer;width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;flex:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;border-radius:11px;transition:background .15s,color .15s}
-  .pl-chip .nx:active{background:rgba(20,20,40,.06);color:var(--ink)}
+  .pl-chip .nx{background:var(--surface);border:1px solid var(--card-border);color:var(--accent);font-size:18px;cursor:pointer;width:38px;height:38px;min-height:38px;display:flex;align-items:center;justify-content:center;flex:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;border-radius:12px;box-shadow:var(--card-shadow-sm);transition:background .15s,color .15s,transform .16s var(--spring-ios)}
+  .pl-chip .nx:active{background:var(--accent-soft);color:var(--accent);transform:scale(.9)}
   .pl-chip .cgo{flex:none;display:flex;align-items:center;color:var(--accent);margin-right:2px}
   .pl-chip .cgo svg{width:16px;height:16px;display:block}
   .pl-chip.ok .cgo{color:var(--success)}
@@ -1568,14 +1568,18 @@
   .day-panel.over{border-color:var(--accent);background:var(--accent-soft)}
   .day-panel.late{border-color:var(--warn)}
   .day-panel.done{opacity:.72}
+  .day-panel{animation:panelIn .28s cubic-bezier(.32,.72,.28,1) both}
+  @keyframes panelIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  body.dragging .day-panel{animation:none}
+  @media (prefers-reduced-motion:reduce){.day-panel{animation:none}}
   .dp-head{display:flex;align-items:center;gap:12px;padding:15px 18px 12px}
   .dp-head b{display:block;font-size:17px;font-weight:750;letter-spacing:-.2px}
   .dp-head small{display:block;font-size:12.5px;color:var(--ink-2);margin-top:2px;line-height:1.35}
   .dp-head>div:first-child{flex:1;min-width:0}
   .dp-go{background:var(--accent);color:#fff;border:none;border-radius:13px;padding:12px 18px;min-height:44px;font-family:var(--ui);font-size:14px;font-weight:700;cursor:pointer;flex:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;box-shadow:0 6px 18px -8px rgba(91,91,214,.7);transition:transform .16s var(--spring-ios)}
   .dp-go:active{transform:scale(.96);filter:brightness(.97)}
-  .dp-prog{height:5px;background:var(--line);position:relative}
-  .dp-prog i{display:block;height:100%;background:var(--success);transition:width .35s cubic-bezier(.32,.72,.28,1)}
+  .dp-prog{height:6px;background:rgba(60,60,67,.07);position:relative;margin:2px 18px 0;border-radius:99px;overflow:hidden}
+  .dp-prog i{display:block;height:100%;border-radius:99px;background:var(--success);transition:width .35s cubic-bezier(.32,.72,.28,1)}
   .day-panel.late .dp-prog i{background:var(--warn)}
   .day-panel.done .dp-prog i{background:var(--success)}
   .dp-pause{display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px 16px 22px;text-align:center}
@@ -7538,6 +7542,7 @@ function renderSemaine(){
     <p class="pl-hint">Glisse ⣿ — ou appuie longuement sur une carte — pour réordonner, ou dépose-la sur un jour de la semaine.<br>Chiffre = ordre du jour · ⚑ = défi. Ou touche › pour choisir une date.</p>`;
 }
 function allerAuJour(iso){
+  if(iso!==jourSel)buzz('selection');
   jourSel=iso;
   semaineOffset=Math.floor((parseD(iso)-auj())/86400000/7);
   renderPlanning();
