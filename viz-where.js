@@ -3,15 +3,15 @@
 
    Sept leçons partagent data-kind="filter" (where, compare, andor, like,
    inbetween, distinct, count). La cascade est activée leçon par leçon via
-   VIZ_OK (where, compare, andor) : pour étendre, ajouter la clé et revérifier le
-   rendu, notamment pour count où aucune ligne n'est écartée.
+   VIZ_OK (where, compare, andor, distinct) : pour étendre, ajouter la clé et
+   revérifier le rendu, notamment pour count où aucune ligne n'est écartée.
 
    Ce fichier ne fait que poser des variables CSS et construire le
    compteur ; toute l'animation vit dans viz-where.css. */
 (function () {
   "use strict";
 
-  var VIZ_OK   = ["where", "compare", "andor", "or", "nulls", "like", "inbetween", "between", "limit"];
+  var VIZ_OK   = ["where", "compare", "andor", "or", "nulls", "like", "inbetween", "between", "limit", "distinct"];
   var WSTAGGER = 105;   // ms entre deux lignes testées
   var WMARK    = 230;   // ms entre le test d'une ligne et son verdict
   var WTAIL    = 220;   // marge de lecture après le dernier verdict
