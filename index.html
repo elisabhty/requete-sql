@@ -1529,6 +1529,21 @@
   .wk-day.over{background:var(--accent-soft);transform:scale(1.08);border-color:var(--accent);box-shadow:0 10px 24px -12px rgba(91,91,214,.7)}
   body.dragging .wk-day:not(.over){outline:1.5px dashed rgba(91,91,214,.34);outline-offset:-3px}
   body.dragging .wk-day.over{outline:2px solid var(--accent);outline-offset:-2px}
+  body.dragging,body.dragging .pl-chip,body.dragging .pl-chip *{cursor:grabbing}
+  .pl-chip .hdl:active{cursor:grabbing}
+  .pl-chip.just-moved,.pl-chips .pl-chip.just-moved{animation:chipMoved .74s cubic-bezier(.32,.72,.28,1) both}
+  @keyframes chipMoved{0%{background:var(--accent-soft);border-color:rgba(91,91,214,.42);transform:scale(1.025);box-shadow:0 10px 22px -14px rgba(91,91,214,.75)}55%{background:var(--accent-soft);border-color:rgba(91,91,214,.26);transform:none}100%{background:#F8F8FC;border-color:rgba(60,60,67,.07);transform:none;box-shadow:none}}
+  .pl-chip.nodrop,.pl-chips .pl-chip.nodrop{animation:chipNodrop .44s ease both}
+  @keyframes chipNodrop{0%,100%{transform:none}18%{transform:translateX(-6px)}38%{transform:translateX(5px)}58%{transform:translateX(-3px)}78%{transform:translateX(2px)}}
+  .wk-day.drop-in{animation:dayDrop .64s cubic-bezier(.34,1.4,.64,1) both;z-index:2}
+  @keyframes dayDrop{0%{transform:scale(1.14);box-shadow:0 0 0 0 rgba(91,91,214,.5),var(--card-shadow-sm)}55%{transform:scale(.975)}100%{transform:none;box-shadow:0 0 0 16px rgba(91,91,214,0),var(--card-shadow-sm)}}
+  @media (hover:hover) and (pointer:fine){
+    .pl-chip:hover{border-color:rgba(91,91,214,.2);box-shadow:0 6px 16px -12px rgba(20,20,40,.4)}
+    .pl-chip:hover .hdl{color:var(--accent)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .pl-chip.just-moved,.pl-chips .pl-chip.just-moved,.pl-chip.nodrop,.pl-chips .pl-chip.nodrop,.wk-day.drop-in{animation:none}
+  }
   .pl-stats{display:flex;gap:10px;padding:16px 18px 0}
   .pl-stat{flex:1;min-width:0;padding:15px 16px;border-radius:20px;background:var(--surface);border:1px solid var(--card-border);display:flex;flex-direction:column;gap:4px;box-shadow:var(--card-shadow)}
   .pl-stat b{font-size:25px;font-weight:850;letter-spacing:-1px;line-height:1;color:var(--ink)}
@@ -7545,7 +7560,7 @@ function renderSemaine(){
       <div class="pl-chips">${chips||`<div class="dp-pause"><div class="dp-pi">☕</div><b>Journée libre</b><small>Pas de séance prévue. Glisse une leçon ou un défi ici si tu veux avancer.</small></div>`}</div>
     </div>
     ${p.archive&&p.archive.length?`<p class="pl-hint" style="text-align:left">${p.archive.length} items déjà terminés ont été retirés du calendrier.</p>`:''}
-    <p class="pl-hint">Glisse ⣿ — ou appuie longuement sur une carte — pour réordonner, ou dépose-la sur un jour de la semaine.<br>Chiffre = ordre du jour · ⚑ = défi. Ou touche l’icône calendrier pour choisir une date.</p>`;
+    <p class="pl-hint">Glisse une carte — n’importe où sur la carte — pour la réordonner ou la déposer sur un autre jour.<br>Chiffre = ordre du jour · ⚑ = défi. Ou touche l’icône calendrier pour choisir une date.</p>`;
 }
 function allerAuJour(iso){
   if(iso!==jourSel)buzz('selection');
@@ -7615,36 +7630,39 @@ function brancherDrag(){
   document.querySelectorAll('.pl-chip').forEach(c=>c.addEventListener('pointerdown',armerAppuiLong));
 }
 /* Appui long sur une carte : permet de la glisser sans viser la poignée. */
-let lpTimer=null,lpChip=null,asRaf=0,asDelta=0;
+let lpTimer=null,lpChip=null,asRaf=0,asDelta=0,dragHdl=false;
 function armerAppuiLong(e){
   if(dragging!==null)return;
-  if(e.pointerType==='mouse')return;
+  if(e.button!=null&&e.button>0)return;
   if(!e.target||!e.target.closest)return;
   if(e.target.closest('.hdl')||e.target.closest('.nx'))return;
   const chip=e.target.closest('.pl-chip'); if(!chip)return;
-  const x=e.clientX,y=e.clientY;
+  const x=e.clientX,y=e.clientY,souris=e.pointerType==='mouse';
   annulerAppuiLong();
-  lpChip=chip;chip.classList.add('lp');
-  const fin=(ev)=>{
-    if(ev.type==='pointermove'&&Math.abs(ev.clientX-x)+Math.abs(ev.clientY-y)<10)return;
-    annulerAppuiLong();
-    document.removeEventListener('pointermove',fin);
-    document.removeEventListener('pointerup',fin);
-    document.removeEventListener('pointercancel',fin);
+  lpChip=chip; if(!souris)chip.classList.add('lp');
+  const nettoyer=()=>{
+    document.removeEventListener('pointermove',bouger);
+    document.removeEventListener('pointerup',fini);
+    document.removeEventListener('pointercancel',fini);
+    if(lpTimer){clearTimeout(lpTimer);lpTimer=null;}
   };
-  document.addEventListener('pointermove',fin);
-  document.addEventListener('pointerup',fin);
-  document.addEventListener('pointercancel',fin);
-  lpTimer=setTimeout(()=>{
-    lpTimer=null;
-    if(lpChip){lpChip.classList.remove('lp');lpChip=null;}
-    document.removeEventListener('pointermove',fin);
-    document.removeEventListener('pointerup',fin);
-    document.removeEventListener('pointercancel',fin);
+  const demarrer=(cx,cy,vib)=>{
+    nettoyer();annulerAppuiLong();
     if(dragging!==null)return;
-    startDrag({clientX:x,clientY:y,target:chip,preventDefault(){},stopPropagation(){}});
-    if(dragging!==null){aBouge=true;vraiDepart();moveGhost(x,y);buzz('medium');}
-  },240);
+    startDrag({clientX:cx,clientY:cy,target:chip,pointerType:e.pointerType,preventDefault(){},stopPropagation(){}});
+    if(dragging!==null){aBouge=true;vraiDepart();moveGhost(cx,cy);buzz(vib);}
+  };
+  const bouger=(ev)=>{
+    const dx=ev.clientX-x,dy=ev.clientY-y;
+    if(souris){ if(Math.abs(dx)+Math.abs(dy)>=5)demarrer(ev.clientX,ev.clientY,'light'); return; }
+    if(Math.abs(dx)>9&&Math.abs(dx)>Math.abs(dy)*1.3){demarrer(ev.clientX,ev.clientY,'medium');return;}
+    if(Math.abs(dx)+Math.abs(dy)>12){nettoyer();annulerAppuiLong();}
+  };
+  const fini=()=>{nettoyer();annulerAppuiLong();};
+  document.addEventListener('pointermove',bouger);
+  document.addEventListener('pointerup',fini);
+  document.addEventListener('pointercancel',fini);
+  if(!souris)lpTimer=setTimeout(()=>{lpTimer=null;demarrer(x,y,'medium');},240);
 }
 function annulerAppuiLong(){
   if(lpTimer){clearTimeout(lpTimer);lpTimer=null;}
@@ -7674,6 +7692,7 @@ function startDrag(e){
   e.preventDefault();e.stopPropagation();
   const chip=e.target.closest('.pl-chip'); if(!chip)return;
   annulerAppuiLong();
+  dragHdl=!!(e.target.closest&&e.target.closest('.hdl'));
   dragging=parseItemId(chip.dataset.lesson);dragX=e.clientX;dragY=e.clientY;aBouge=false;
   dragFromIso=chip.closest('.day-panel')?.dataset.date||null;
   document.addEventListener('pointermove',onDrag);
@@ -7751,7 +7770,8 @@ function endDrag(){
   stopAutoScroll();annulerAppuiLong();
   clearTimeout(navTimer);
   if(navHover){navHover.classList.remove('over');navHover=null;}
-  const id=dragging,bouge=aBouge,fromIso=dragFromIso;
+  const id=dragging,bouge=aBouge,fromIso=dragFromIso,fromHdl=dragHdl;
+  dragHdl=false;
   dragging=null;aBouge=false;dragFromIso=null;
   const fab=document.getElementById('fab');if(fab)fab.classList.remove('hide');
   document.body.classList.remove('dragging');
@@ -7764,8 +7784,11 @@ function endDrag(){
     lastOver.classList.remove('over');
     lastOver=null;
   }
-  blocTap=Date.now();
-  if(!bouge&&id!=null){openMoveSheet(id);return;}
+  if(bouge||fromHdl)blocTap=Date.now();
+  if(!bouge&&id!=null){
+    if(fromHdl)openMoveSheet(id);
+    return;
+  }
   if(id!=null&&iso){
     const ordre=chipOrderFromDom(iso);
     if(ordre&&ordre.includes(id)){
@@ -7773,11 +7796,40 @@ function endDrag(){
       jourSel=iso;
       semaineOffset=Math.floor((parseD(iso)-auj())/86400000/7);
       renderPlanning();
+      flashChip(id);
       if(navigator.vibrate)navigator.vibrate(8);
-    }else{deplacerVers(id,iso);buzz('success');}
+    }else{
+      deplacerVers(id,iso);buzz('success');
+      pulseJour(iso);flashChip(id);
+    }
     return;
   }
   renderPlanning();
+  if(id!=null)secouerChip(id);
+}
+
+/* Micro-interactions du glisser-deposer */
+function pulseJour(iso){
+  requestAnimationFrame(()=>{
+    const c=document.querySelector('.wk-day[data-date="'+iso+'"]');
+    if(!c)return;
+    c.classList.remove('drop-in');void c.offsetWidth;c.classList.add('drop-in');
+    setTimeout(()=>{c.classList.remove('drop-in');},640);
+  });
+}
+function flashChip(id){
+  requestAnimationFrame(()=>{
+    const c=chipElById(id);
+    if(!c)return;
+    c.classList.remove('just-moved');void c.offsetWidth;c.classList.add('just-moved');
+    setTimeout(()=>{c.classList.remove('just-moved');},760);
+  });
+}
+function secouerChip(id){
+  const c=chipElById(id);
+  if(!c)return;
+  c.classList.remove('nodrop');void c.offsetWidth;c.classList.add('nodrop');
+  setTimeout(()=>{c.classList.remove('nodrop');},460);
 }
 
 /* ---------- Choisir une date sans glisser ---------- */
