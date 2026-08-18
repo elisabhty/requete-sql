@@ -1,0 +1,40 @@
+{
+  "id": 37,
+  "titre": "Sans correspondance",
+  "résumé": "LEFT JOIN + IS NULL",
+  "module": {
+    "titre": "Relier",
+    "sous": "Plusieurs tables, une question"
+  },
+  "situation": "Quels clients n'ont jamais passé de commande ?",
+  "situationSql": "SELECT clients.nom, commandes.id\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",
+  "situationTail": "Les clients sans commande ont commandes.id = NULL. On filtre dessus.",
+  "studio": {
+    "problem": {
+      "title": "Filtrer sur NULL après LEFT JOIN.",
+      "body": "WHERE commandes.id IS NULL ne garde que les clients sans correspondance."
+    },
+    "vs": {
+      "bad": {
+        "tag": "✕ INNER JOIN + IS NULL",
+        "sql": "SELECT clients.nom\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;",
+        "out": "0 ligne — Inès éliminée avant le WHERE",
+        "pedagogic": true
+      },
+      "good": {
+        "tag": "✓ LEFT JOIN + IS NULL",
+        "sql": "SELECT clients.nom\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;",
+        "out": "1 ligne : Inès"
+      }
+    },
+    "reflex": {
+      "a": { "k": "LEFT JOIN", "t": "garde aussi ceux sans correspondance" },
+      "b": { "k": "IS NULL", "t": "sélectionne uniquement ceux sans correspondance" }
+    }
+  },
+  "consigne": "Trouve les clients qui n'ont jamais passé de commande. Affiche leur nom.",
+  "solution": "SELECT clients.nom FROM clients LEFT JOIN commandes ON clients.id = commandes.client_id WHERE commandes.id IS NULL;",
+  "attendu": "1 ligne : Inès.",
+  "richLesson": true,
+  "earlyDemo": true
+}
