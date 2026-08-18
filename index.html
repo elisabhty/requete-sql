@@ -1060,6 +1060,31 @@
   .chip{font-family:var(--mono);font-size:12.5px;font-weight:600;background:var(--surface);border:1px solid var(--card-border);border-radius:11px;padding:8px 13px;color:var(--accent);cursor:pointer;box-shadow:var(--card-shadow-sm);transition:transform .18s var(--spring-ios),border-color .18s,background .18s}
   .chip:active{transform:scale(.95)}
   .console-note{font-size:12.5px;color:var(--ink-3);padding:0 18px;margin:6px 0 14px;line-height:1.5}
+  .proj-list{padding:4px 18px 28px}
+  .proj-list .list{margin:0}
+  .proj-row{cursor:default;padding:0}
+  .proj-row:active{background:var(--surface);transform:none}
+  .proj-open{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:15px 4px 15px 16px;border:0;background:transparent;font:inherit;text-align:left;cursor:pointer;color:inherit}
+  .proj-open:active{background:var(--surface-2)}
+  .proj-row .lz-num{background:var(--accent-soft);color:var(--accent)}
+  .proj-row .lz-body small{display:block;margin-top:2px;font-size:12px;color:var(--ink-2);font-weight:500}
+  .proj-row .chev{padding-right:14px}
+  .proj-x{flex:none;width:36px;height:36px;margin-right:6px;border:none;border-radius:12px;background:transparent;color:var(--ink-3);font-size:16px;cursor:pointer}
+  .proj-x:active{background:var(--surface-2);color:var(--danger)}
+  .proj-add{margin-top:12px;width:100%;border:1.5px dashed var(--line-2);background:transparent;border-radius:16px;padding:14px 16px;font-family:var(--ui);font-size:14px;font-weight:650;color:var(--accent);cursor:pointer}
+  .proj-add:active{background:var(--accent-soft)}
+  .console-side{margin:16px 0 8px;display:flex;flex-direction:column;gap:14px}
+  .proj-pins,.proj-hist{background:var(--surface);border:1px solid var(--card-border);border-radius:18px;box-shadow:var(--card-shadow);overflow:hidden}
+  .proj-item{display:flex;align-items:flex-start;gap:10px;width:100%;padding:12px 14px;border:0;border-bottom:1px solid var(--line);background:transparent;text-align:left;font-family:var(--ui);cursor:pointer;color:var(--ink)}
+  .proj-item:last-child{border-bottom:0}
+  .proj-item:active{background:var(--surface-2)}
+  .proj-item .ok,.proj-item .ko{flex:none;font-size:12px;font-weight:800;margin-top:1px}
+  .proj-item .ok{color:var(--success)}
+  .proj-item .ko{color:var(--danger)}
+  .proj-item pre{margin:0;flex:1;min-width:0;font-family:var(--mono);font-size:11.5px;line-height:1.45;white-space:pre-wrap;word-break:break-word;color:var(--ink)}
+  .proj-item small{display:block;margin-top:4px;font-family:var(--ui);font-size:11px;color:var(--ink-3);font-weight:500}
+  .proj-empty{margin:0;padding:14px 16px;font-size:13px;color:var(--ink-3);line-height:1.45}
+  .console-work-pad{padding:0 18px 28px}
   .imp-sheet{position:fixed;left:0;right:0;bottom:0;z-index:120;background:var(--surface);border-radius:26px 26px 0 0;padding:16px 18px calc(20px + var(--safe-bottom));box-shadow:0 -16px 48px rgba(0,0,0,.22);border-top:1px solid rgba(255,255,255,.8);transform:translateY(110%);transition:transform .32s var(--spring-ios);max-width:520px;margin:0 auto}
   .imp-sheet[hidden],.imp-back[hidden]{display:none}
   .imp-sheet.on{transform:none}
@@ -2381,34 +2406,32 @@
 
     <!-- CONSOLE -->
     <section id="scr-console" class="screen">
-      <button type="button" class="home-back" onclick="switchTab('learn')" aria-label="Retour à l'accueil"><svg viewBox="0 0 12 20" fill="none" aria-hidden="true"><path d="M10 2L3 10l7 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> Accueil</button>
-      <div class="lgtitle title-row"><div class="eyebrow">Bac à sable</div><h1>Console</h1>
-        <p class="sub">Une <b>base</b> contient des <b>tables</b> (clients, produits…). Choisis une base, puis interroge une table.</p>
-        <button type="button" class="title-pill" onclick="promptNewDb()">＋ Base</button></div>
-      <p class="console-note">Importe un <b>CSV</b>/<b>JSON</b> (une table) ou un script <b>SQL</b> (table ou base). Tu choisis la base cible — le cours reste intact.</p>
-      <div style="padding:16px 18px 0">
+      <button type="button" class="home-back" id="console-back" onclick="switchTab('learn')" aria-label="Retour"><svg viewBox="0 0 12 20" fill="none" aria-hidden="true"><path d="M10 2L3 10l7 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> <span id="console-back-lab">Accueil</span></button>
+      <div class="lgtitle title-row">
+        <div>
+          <div class="eyebrow" id="console-eye">Projets</div>
+          <h1 id="console-title">Console</h1>
+          <p class="sub" id="console-sub">Tes bases, tes requêtes. Le cours reste intact.</p>
+        </div>
+        <button type="button" class="title-pill" id="console-pill" onclick="promptNewDb()">＋ Projet</button>
+      </div>
+      <p class="console-note" id="console-note">Un projet, c’est une base + l’historique de tes requêtes. Importe un CSV, JSON ou SQL.</p>
+      <div id="console-home" class="proj-list"></div>
+      <input id="data-import" type="file" accept=".csv,.json,.sql,.txt,text/csv,application/json,text/plain" hidden onchange="onDataImport(event)">
+      <div id="console-work" class="console-work-pad" hidden>
         <div class="db-workspace">
+          <div class="db-bar" id="db-bar"></div>
           <div class="db-sec">
-            <div class="db-lab"><span>Base</span><small>Tes tables au même endroit</small></div>
-            <div class="db-bar" id="db-bar"></div>
-          </div>
-          <div class="db-actions">
-            <button type="button" onclick="promptNewDb()">＋ Nouvelle base</button>
-            <button type="button" onclick="document.getElementById('data-import').click()">↑ Importer</button>
-            <button type="button" onclick="resetActiveDb()">↺ Réinitialiser</button>
-          </div>
-          <div class="db-sec">
-            <div class="db-lab"><span>Tables</span><small id="db-tables-lab">Dans la base active</small></div>
+            <div class="db-lab"><span>Tables</span><small id="db-tables-lab">Dans le projet</small></div>
             <div class="db-tables" id="db-tables"></div>
           </div>
         </div>
-        <input id="data-import" type="file" accept=".csv,.json,.sql,.txt,text/csv,application/json,text/plain" hidden onchange="onDataImport(event)">
         <div class="chips-wrap">
           <div class="db-lab"><span>Exemples</span><small>Requêtes prêtes à lancer</small></div>
           <div class="chips" id="console-chips"></div>
         </div>
         <div class="editor-shell">
-          <div class="editor-bar"><span class="dot v"></span><span class="fname">console.sql</span>
+          <div class="editor-bar"><span class="dot v"></span><span class="fname" id="console-fname">projet.sql</span>
             <button type="button" class="sql-copy" data-ed="ed-console" onclick="copySqlFrom(this)" aria-label="Copier la requête"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>
             <button type="button" class="sql-clear" data-ed="ed-console" hidden onclick="clearEditorSql('ed-console')" aria-label="Effacer la requête"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
           <div class="editor-area"><pre><code id="hl-console"></code></pre>
@@ -2418,11 +2441,21 @@
           <button class="btn-run" id="btn-run-console" type="button" onclick="runConsole()"><span class="run-label"><svg class="run-ico" viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="9"/><path class="tri" d="M10.4 8.2v7.6l6.4-3.8z"/></svg> Exécuter</span></button>
           <button class="btn-ghost btn-viz" onclick="openViz('ed-console')">Visualiser pas à pas</button>
         </div>
-        <button type="button" class="btn-note" onclick="saveConsoleQuery()">
+        <button type="button" class="btn-note" onclick="pinConsoleQuery()">
           <span class="ni" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 4.5h7.2L17.5 8v11.5a1.5 1.5 0 0 1-1.5 1.5H7A1.5 1.5 0 0 1 5.5 19.5v-13A1.5 1.5 0 0 1 7 4.5Z" stroke="currentColor" stroke-width="1.7"/><path d="M14 4.5V8h3.5M8.5 12.5h7M8.5 16h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
-          Garder la requête dans notes
+          Garder dans le projet
         </button>
         <div id="console-out"></div>
+        <div class="console-side">
+          <div class="proj-pins">
+            <div class="db-lab" style="padding:12px 14px 0"><span>Requêtes du projet</span><small>Épinglées</small></div>
+            <div id="console-pins"></div>
+          </div>
+          <div class="proj-hist">
+            <div class="db-lab" style="padding:12px 14px 0"><span>Historique</span><small>Dernières exécutions</small></div>
+            <div id="console-hist"></div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -2495,8 +2528,8 @@
     <p class="imp-sub" id="imp-sub">CSV, JSON ou SQL</p>
     <div class="imp-kind" id="imp-kind">Table</div>
     <div class="imp-field" id="imp-table-field"><label>Nom de la table</label><input id="imp-table" autocomplete="off" spellcheck="false"><span class="hint" id="imp-table-hint"></span></div>
-    <div class="imp-field" id="imp-db-field"><label id="imp-db-label">Base cible</label><select id="imp-db" onchange="onImportDbChange()"></select><span class="hint" id="imp-db-hint"></span></div>
-    <div class="imp-field" id="imp-newname-field" hidden><label>Nom de la nouvelle base</label><input id="imp-newname" autocomplete="off" spellcheck="false" placeholder="Ma base"></div>
+    <div class="imp-field" id="imp-db-field"><label id="imp-db-label">Projet cible</label><select id="imp-db" onchange="onImportDbChange()"></select><span class="hint" id="imp-db-hint"></span></div>
+    <div class="imp-field" id="imp-newname-field" hidden><label>Nom du nouveau projet</label><input id="imp-newname" autocomplete="off" spellcheck="false" placeholder="Mon projet"></div>
     <div class="imp-prev" id="imp-prev"></div>
     <button class="imp-go" id="imp-go" type="button" onclick="confirmImport()">Importer</button>
   </div>
@@ -2968,36 +3001,120 @@ const MODULES = [
   solution:"SELECT COUNT(*) FROM clients;",
   indice:"Tu veux compter toutes les lignes : utilise la fonction <code>COUNT</code> avec <code>*</code>.",
   richLesson:true, earlyDemo:true },
-{ id:15, titre:"AVG · SUM · MIN · MAX", résumé:"Calculer sur une colonne",
-  situation:"Dans la table produits, tu veux répondre à des questions sur tout le catalogue : quel est le prix moyen ? Le plus bas ? Le plus élevé ?<br><br>Avec ce que tu connais déjà, tu peux afficher le prix de chaque produit :",
+{ id:15, titre:"AVG", résumé:"La moyenne d’une colonne",
+  situation:"Tu prépares une offre. Avant de fixer un prix promo, tu veux savoir autour de quel montant se situent les produits du catalogue.<br><br>Avec ce que tu connais déjà, tu peux afficher le prix de chaque produit :",
   situationSql:"SELECT prix\nFROM produits;",
-  situationTail:"Tu obtiens bien les 8 prix. Mais tu dois encore calculer à la main : pour obtenir ces résultats directement, il faut <code>AVG</code>, <code>SUM</code>, <code>MIN</code> et <code>MAX</code>.",
-    studio:{problem:{title:"AVG, SUM, MIN et MAX calculent à partir d’une colonne.",
-      body:"Ces fonctions prennent les valeurs d’une colonne et les résument en un seul résultat. Sur la colonne <code>prix</code>, <code>AVG(prix)</code> calcule la moyenne, <code>SUM(prix)</code> additionne les prix, <code>MIN(prix)</code> cherche le plus petit et <code>MAX(prix)</code> le plus grand."},
-    vs:{bad:{tag:"✕ Mélanger détail et calcul",sql:"SELECT nom, MAX(prix) FROM produits;",out:"Tu mélanges le nom d’un produit avec un calcul sur plusieurs lignes",
-            code:"SELECT <span class=\"vs-line bad\">nom, MAX(prix)</span>\nFROM produits;"},
-        good:{tag:"✓ Calculer la moyenne",sql:"SELECT AVG(prix) FROM produits;",out:"1 valeur : 23,9875",
+  situationTail:"Tu obtiens bien les 8 prix. Mais tu dois encore faire la moyenne à la main : pour l’obtenir directement, il faut <code>AVG</code>.",
+    studio:{problem:{title:"<code>AVG</code> calcule la moyenne d’une colonne.",
+      body:"<code>AVG(prix)</code> prend toutes les valeurs de la colonne <code>prix</code>, les additionne, puis divise par leur nombre. Les 8 lignes deviennent un seul résultat : la moyenne."},
+    vs:{bad:{tag:"✕ Afficher pour moyenner",sql:"SELECT prix FROM produits;",out:"8 prix : il faut encore calculer la moyenne",
+            code:"SELECT <span class=\"vs-line bad\">prix</span>\nFROM produits;"},
+        good:{tag:"✓ Moyenne avec AVG",sql:"SELECT AVG(prix) FROM produits;",out:"1 ligne · une valeur : 23,9875",
             code:"SELECT <span class=\"vs-line good\">AVG(prix)</span>\nFROM produits;"}},
-    point:"Une fonction d’agrégation répond à une question sur plusieurs lignes à la fois. Ici, <code>AVG(prix)</code> utilise les prix des 8 produits pour calculer une seule moyenne : 23,9875 €.",
-    why:{title:"Comment AVG calcule la moyenne ?",
-      body:"SQL prend les 8 valeurs de la colonne <code>prix</code>, les additionne puis divise le total par leur nombre. Les prix totalisent 191,90 € ; divisés par 8, ils donnent une moyenne de 23,9875 €. Le résultat ne contient donc plus 8 produits, mais une seule valeur."},
-    reflex:{a:{k:"AVG · SUM",t:"moyenne et total"},
-      b:{k:"MIN · MAX",t:"valeur la plus petite et la plus grande"},
-      note:"<code>AVG(prix)</code> = moyenne · <code>SUM(prix)</code> = somme · <code>MIN(prix)</code> = minimum · <code>MAX(prix)</code> = maximum."}},
-  anatomie:[{tok:"SELECT",txt:"Indique le résultat à afficher."},{tok:"AVG(prix)",txt:"Calcule la moyenne des valeurs de la colonne prix."},{tok:"FROM produits",txt:"Le calcul utilise les lignes de la table produits."}],
+    point:"Les 8 prix totalisent 191,90 €. Divisés par 8, ils donnent <b>23,9875 €</b>. Ce n’est plus une liste : c’est un indicateur.",
+    why:{title:"Comment AVG calcule la moyenne ?"},
+    viz:"avg",
+    reflex:{a:{k:"COUNT(*)",t:"compte les <b>lignes</b>"},
+      b:{k:"AVG(prix)",t:"moyenne des <b>valeurs</b>"},
+      note:"<code>COUNT</code> répond « combien ». <code>AVG</code> répond « autour de combien », à partir d’une colonne numérique."}},
+  anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"AVG(prix)",txt:"Calcule la moyenne des prix."},{tok:"FROM produits",txt:"Le calcul porte sur la table produits."}],
   exemple:"SELECT AVG(prix) FROM produits;",
   attendu:"<b>1 ligne</b>, 1 valeur : 23,9875. C’est le prix moyen des 8 produits.",
-  retenir:"<code>AVG</code>, <code>SUM</code>, <code>MIN</code> et <code>MAX</code> résument plusieurs valeurs en un résultat. <code>AVG(prix)</code> calcule la moyenne, <code>SUM(prix)</code> la somme, <code>MIN(prix)</code> le prix le plus bas et <code>MAX(prix)</code> le prix le plus élevé.",
-  piege:{t:"Confondre une valeur avec la ligne qui la contient",p:"<code>MAX(prix)</code> donne le prix maximum, pas toutes les informations du produit correspondant. Pour afficher le produit le plus cher, utilise plutôt <code>ORDER BY prix DESC LIMIT 1</code>."},
+  retenir:"<code>AVG</code> calcule la moyenne des valeurs d’une colonne. Dans <code>SELECT AVG(prix) FROM produits</code>, les 8 prix deviennent une seule valeur : 23,9875.",
+  piege:{t:"Confondre AVG et COUNT",p:"<code>COUNT(*)</code> compte les lignes (ici 8). <code>AVG(prix)</code> calcule la moyenne des prix (23,9875). Ce n’est pas le même chiffre, ni la même question."},
   consigne:"Calcule le prix moyen de tous les produits.",
   solution:"SELECT AVG(prix) FROM produits;",
   indice:"La fonction qui calcule une moyenne est <code>AVG</code>. Place la colonne <code>prix</code> entre ses parenthèses.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
     {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;"},
-    {k:'avg',label:'AVG',sql:"SELECT AVG(prix)\nFROM produits;"},
-    {k:'sum',label:'SUM',sql:"SELECT SUM(prix)\nFROM produits;"},
-    {k:'min',label:'MIN',sql:"SELECT MIN(prix)\nFROM produits;"},
+    {k:'avg',label:'AVG',sql:"SELECT AVG(prix)\nFROM produits;"}
+  ] },
+{ id:30, titre:"SUM", résumé:"La somme d’une colonne",
+  situation:"Tu veux commander un exemplaire de chaque produit du catalogue. Avant de valider, tu as besoin du total à payer.<br><br>Avec ce que tu connais déjà, tu peux afficher le prix de chaque produit :",
+  situationSql:"SELECT prix\nFROM produits;",
+  situationTail:"Tu obtiens bien les 8 prix. Mais tu dois encore les additionner à la main : pour obtenir le total directement, il faut <code>SUM</code>.",
+    studio:{problem:{title:"<code>SUM</code> additionne toutes les valeurs d’une colonne.",
+      body:"<code>SUM(prix)</code> parcourt la colonne <code>prix</code> et ajoute chaque valeur. Les 8 lignes deviennent un seul résultat : le total."},
+    vs:{bad:{tag:"✕ Afficher pour additionner",sql:"SELECT prix FROM produits;",out:"8 prix : il faut encore faire l’addition",
+            code:"SELECT <span class=\"vs-line bad\">prix</span>\nFROM produits;"},
+        good:{tag:"✓ Total avec SUM",sql:"SELECT SUM(prix) FROM produits;",out:"1 ligne · une valeur : 191,9",
+            code:"SELECT <span class=\"vs-line good\">SUM(prix)</span>\nFROM produits;"}},
+    point:"29,90 + 39,90 + 19,90 + 14,90 + 12,50 + 34,90 + 24,90 + 15,00 = <b>191,90 €</b>. Un seul chiffre, plus une liste.",
+    why:{title:"Comment SUM additionne les prix ?"},
+    viz:"sum",
+    reflex:{a:{k:"AVG(prix)",t:"la <b>moyenne</b> des prix"},
+      b:{k:"SUM(prix)",t:"le <b>total</b> des prix"},
+      note:"Même colonne, deux questions. La moyenne divise le total par le nombre de valeurs ; la somme s’arrête au total."}},
+  anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"SUM(prix)",txt:"Additionne tous les prix."},{tok:"FROM produits",txt:"Le calcul porte sur la table produits."}],
+  exemple:"SELECT SUM(prix) FROM produits;",
+  attendu:"<b>1 ligne</b>, 1 valeur : 191,9. C’est la somme des 8 prix.",
+  retenir:"<code>SUM</code> additionne les valeurs d’une colonne. Dans <code>SELECT SUM(prix) FROM produits</code>, les 8 prix deviennent une seule valeur : 191,90.",
+  piege:{t:"Prendre SUM pour un chiffre d’affaires",p:"<code>SUM(prix)</code> additionne les prix du catalogue, pas les ventes. Un vrai CA multiplie chaque commande par sa quantité, puis additionne."},
+  consigne:"Calcule la somme des prix de tous les produits.",
+  solution:"SELECT SUM(prix) FROM produits;",
+  indice:"La fonction qui additionne est <code>SUM</code>. Place la colonne <code>prix</code> entre ses parenthèses.",
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;"},
+    {k:'sum',label:'SUM',sql:"SELECT SUM(prix)\nFROM produits;"}
+  ] },
+{ id:31, titre:"MIN", résumé:"La plus petite valeur",
+  situation:"Tu lances une offre d’entrée de gamme. Tu veux le prix le plus bas du catalogue, pour t’en servir de référence.<br><br>Avec ce que tu connais déjà, tu peux afficher le prix de chaque produit :",
+  situationSql:"SELECT prix\nFROM produits;",
+  situationTail:"Tu obtiens bien les 8 prix. Mais tu dois encore chercher le plus petit à l’œil : pour l’obtenir directement, il faut <code>MIN</code>.",
+    studio:{problem:{title:"<code>MIN</code> renvoie la plus petite valeur d’une colonne.",
+      body:"<code>MIN(prix)</code> compare les valeurs de la colonne <code>prix</code> et ne garde que la plus petite. Les 8 lignes deviennent un seul résultat."},
+    vs:{bad:{tag:"✕ Afficher pour chercher",sql:"SELECT prix FROM produits;",out:"8 prix : il faut encore repérer le plus bas",
+            code:"SELECT <span class=\"vs-line bad\">prix</span>\nFROM produits;"},
+        good:{tag:"✓ Minimum avec MIN",sql:"SELECT MIN(prix) FROM produits;",out:"1 ligne · une valeur : 12,5",
+            code:"SELECT <span class=\"vs-line good\">MIN(prix)</span>\nFROM produits;"}},
+    point:"Parmi les 8 prix, le plus bas est <b>12,50 €</b> (Tisane Détox). <code>MIN</code> renvoie ce prix, pas le nom du produit.",
+    why:{title:"Comment MIN trouve le plus petit prix ?"},
+    viz:"min",
+    reflex:{a:{k:"AVG(prix)",t:"la <b>moyenne</b> de tous les prix"},
+      b:{k:"MIN(prix)",t:"le prix <b>le plus bas</b>"},
+      note:"<code>MIN</code> ne calcule pas une moyenne : il compare, puis garde une seule valeur."}},
+  anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"MIN(prix)",txt:"Garde le plus petit prix."},{tok:"FROM produits",txt:"Le calcul porte sur la table produits."}],
+  exemple:"SELECT MIN(prix) FROM produits;",
+  attendu:"<b>1 ligne</b>, 1 valeur : 12,5. C’est le prix le plus bas du catalogue.",
+  retenir:"<code>MIN</code> renvoie la plus petite valeur d’une colonne. Dans <code>SELECT MIN(prix) FROM produits</code>, les 8 prix deviennent une seule valeur : 12,50.",
+  piege:{t:"Croire que MIN donne aussi le produit",p:"<code>MIN(prix)</code> donne le prix minimum, pas le nom du produit. Pour afficher le produit le moins cher : <code>ORDER BY prix ASC LIMIT 1</code>."},
+  consigne:"Affiche le prix le plus bas de la table produits.",
+  solution:"SELECT MIN(prix) FROM produits;",
+  indice:"La fonction qui cherche la plus petite valeur est <code>MIN</code>. Place la colonne <code>prix</code> entre ses parenthèses.",
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;"},
+    {k:'min',label:'MIN',sql:"SELECT MIN(prix)\nFROM produits;"}
+  ] },
+{ id:32, titre:"MAX", résumé:"La plus grande valeur",
+  situation:"Tu prépares une gamme premium. Tu veux connaître le prix le plus élevé du catalogue, pour caler le haut de l’offre.<br><br>Avec ce que tu connais déjà, tu peux afficher le prix de chaque produit :",
+  situationSql:"SELECT prix\nFROM produits;",
+  situationTail:"Tu obtiens bien les 8 prix. Mais tu dois encore chercher le plus grand à l’œil : pour l’obtenir directement, il faut <code>MAX</code>.",
+    studio:{problem:{title:"<code>MAX</code> renvoie la plus grande valeur d’une colonne.",
+      body:"<code>MAX(prix)</code> compare les valeurs de la colonne <code>prix</code> et ne garde que la plus grande. Les 8 lignes deviennent un seul résultat."},
+    vs:{bad:{tag:"✕ Mélanger nom et maximum",sql:"SELECT nom, MAX(prix) FROM produits;",out:"Tu mélanges le nom d’un produit avec un calcul sur plusieurs lignes",
+            code:"SELECT <span class=\"vs-line bad\">nom, MAX(prix)</span>\nFROM produits;"},
+        good:{tag:"✓ Maximum avec MAX",sql:"SELECT MAX(prix) FROM produits;",out:"1 ligne · une valeur : 39,9",
+            code:"SELECT <span class=\"vs-line good\">MAX(prix)</span>\nFROM produits;"}},
+    point:"Parmi les 8 prix, le plus élevé est <b>39,90 €</b> (Collagène Marin). <code>MAX</code> renvoie ce prix, pas le nom du produit.",
+    why:{title:"Comment MAX trouve le plus grand prix ?"},
+    viz:"max",
+    reflex:{a:{k:"MIN(prix)",t:"le prix <b>le plus bas</b>"},
+      b:{k:"MAX(prix)",t:"le prix <b>le plus élevé</b>"},
+      note:"<code>MIN</code> et <code>MAX</code> extraient une valeur extrême. Ils ne trient pas le catalogue et n’affichent pas le produit associé."}},
+  anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"MAX(prix)",txt:"Garde le plus grand prix."},{tok:"FROM produits",txt:"Le calcul porte sur la table produits."}],
+  exemple:"SELECT MAX(prix) FROM produits;",
+  attendu:"<b>1 ligne</b>, 1 valeur : 39,9. C’est le prix le plus élevé du catalogue.",
+  retenir:"<code>MAX</code> renvoie la plus grande valeur d’une colonne. Dans <code>SELECT MAX(prix) FROM produits</code>, les 8 prix deviennent une seule valeur : 39,90.",
+  piege:{t:"Confondre une valeur avec la ligne qui la contient",p:"<code>MAX(prix)</code> donne le prix maximum, pas le produit correspondant. Pour afficher le produit le plus cher : <code>ORDER BY prix DESC LIMIT 1</code>."},
+  consigne:"Affiche le prix le plus élevé de la table produits.",
+  solution:"SELECT MAX(prix) FROM produits;",
+  indice:"La fonction qui cherche la plus grande valeur est <code>MAX</code>. Place la colonne <code>prix</code> entre ses parenthèses.",
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;"},
     {k:'max',label:'MAX',sql:"SELECT MAX(prix)\nFROM produits;"}
   ] },
 { id:16, titre:"GROUP BY", résumé:"Un calcul par groupe",
@@ -3744,13 +3861,10 @@ async function boot(){
         id:'n'+k+Date.now(),txt:String(old[k]),sql:'',ctx:CARTES[k]?`Carte ${k} · ${CARTES[k].k}`:'',ts:Date.now(),pin:false}));
     }
     await loadCustomDbs();
+    loadProjState();
     renderModules(); renderDefis(); renderProgress(); renderCollection(); renderNotes(); renderPlanning(); buildKbar();
     setupEditor('ed-console','hl-console');
-    { let saved=null; try{saved=localStorage.getItem('requete-console');}catch(e){}
-      const ta=document.getElementById('ed-console');
-      ta.value=saved||"SELECT ville, COUNT(*) AS nb\nFROM clients\nGROUP BY ville\nORDER BY nb DESC;";
-      fitSqlEditor(ta); }
-    syncHL('ed-console','hl-console'); renderConsoleChips(); renderDbWorkspace();
+    renderConsoleScreen();
     maybeOnboard();
     restoreNav();
     tickRappel();
@@ -3763,8 +3877,14 @@ async function boot(){
 }
 let activeDbId='cours';
 let customDbs={}; // id → SQL.Database
-let dbCatalog=[{id:'cours',name:'Base du cours'}];
+let dbCatalog=[{id:'cours',name:'Cours'}];
 let pendingImport=null;
+let consoleView='list';
+const PROJ_KEY='requete-sql-proj-v1';
+const HIST_MAX=24;
+const PIN_MAX=12;
+const COURS_DEFAULT_SQL="SELECT ville, COUNT(*) AS nb\nFROM clients\nGROUP BY ville\nORDER BY nb DESC;";
+let projState={};
 function buildDb(){ if(db)db.close(); db=new SQL.Database(); db.run(SCHEMA_SQL); }
 function sandbox(){ return new SQL.Database(baseBytes); }
 function activeDb(){ return activeDbId==='cours'?db:customDbs[activeDbId]; }
@@ -3799,9 +3919,195 @@ async function loadCustomDbs(){
     list.forEach(item=>{
       if(!item||!item.id||!item.b64)return;
       customDbs[item.id]=new SQL.Database(b64ToU8(item.b64));
-      if(!dbCatalog.some(d=>d.id===item.id)) dbCatalog.push({id:item.id,name:item.name||'Ma base'});
+      if(!dbCatalog.some(d=>d.id===item.id)) dbCatalog.push({id:item.id,name:item.name||'Mon projet'});
     });
   }catch(e){}
+}
+function loadProjState(){
+  let raw=null;
+  try{ raw=localStorage.getItem(PROJ_KEY); }catch(e){}
+  try{ projState=raw?JSON.parse(raw)||{}:{}; }catch(e){ projState={}; }
+  if(!projState.cours||projState.cours.draft==null){
+    let old=null; try{ old=localStorage.getItem('requete-console'); }catch(e){}
+    projOf('cours').draft=old||COURS_DEFAULT_SQL;
+    saveProjState();
+  }
+}
+function saveProjState(){
+  try{ localStorage.setItem(PROJ_KEY,JSON.stringify(projState)); }catch(e){}
+}
+function projOf(id){
+  const k=id||'cours';
+  if(!projState[k]||typeof projState[k]!=='object') projState[k]={draft:'',hist:[],pins:[]};
+  if(!Array.isArray(projState[k].hist)) projState[k].hist=[];
+  if(!Array.isArray(projState[k].pins)) projState[k].pins=[];
+  if(projState[k].draft==null) projState[k].draft='';
+  return projState[k];
+}
+function projectName(id){
+  if(id==='cours') return 'Cours';
+  return (dbCatalog.find(d=>d.id===id)||{}).name||id;
+}
+function projectStats(id){
+  const database=id==='cours'?db:customDbs[id];
+  const tables=database?listTables(database):[];
+  const p=projOf(id);
+  return {tables:tables.length,hist:p.hist.length,pins:p.pins.length};
+}
+function fmtHistWhen(ts){
+  const d=new Date(ts);
+  if(isNaN(d)) return '';
+  const now=new Date();
+  const same=d.toDateString()===now.toDateString();
+  return same?d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+}
+function sqlPreview(sql){
+  return String(sql||'').trim().replace(/\s+/g,' ').slice(0,96);
+}
+function applyConsoleDraft(){
+  const ta=document.getElementById('ed-console');
+  if(!ta)return;
+  const p=projOf(activeDbId);
+  ta.value=p.draft||(activeDbId==='cours'?COURS_DEFAULT_SQL:'');
+  syncHL('ed-console','hl-console');
+  fitSqlEditor(ta);
+}
+function renderConsoleScreen(){
+  const inWork=consoleView==='work';
+  const home=document.getElementById('console-home');
+  const work=document.getElementById('console-work');
+  const lab=document.getElementById('console-back-lab');
+  const back=document.getElementById('console-back');
+  const eye=document.getElementById('console-eye');
+  const title=document.getElementById('console-title');
+  const sub=document.getElementById('console-sub');
+  const note=document.getElementById('console-note');
+  const pill=document.getElementById('console-pill');
+  const fname=document.getElementById('console-fname');
+  if(home) home.hidden=inWork;
+  if(work) work.hidden=!inWork;
+  if(lab) lab.textContent=inWork?'Projets':'Accueil';
+  if(back){
+    back.onclick=inWork?closeConsoleProject:()=>switchTab('learn');
+    back.setAttribute('aria-label',inWork?'Retour aux projets':'Retour à l’accueil');
+  }
+  if(eye) eye.textContent=inWork?'Projet':'Projets';
+  if(title) title.textContent=inWork?projectName(activeDbId):'Console';
+  if(sub){
+    sub.innerHTML=inWork
+      ? (activeDbId==='cours'?'La base du cours — tu peux tout tester, rien n’est perdu.':'Tes tables et tes requêtes, dans ce projet.')
+      : 'Tes bases, tes requêtes. Le cours reste intact.';
+  }
+  if(note) note.hidden=inWork;
+  if(pill){
+    pill.hidden=inWork;
+    pill.textContent='＋ Projet';
+    pill.onclick=promptNewDb;
+  }
+  if(fname) fname.textContent=(activeDbId==='cours'?'cours':'projet')+'.sql';
+  if(inWork){
+    applyConsoleDraft();
+    renderDbWorkspace();
+    renderConsoleChips();
+    renderConsoleSide();
+  }else{
+    renderConsoleHome();
+  }
+}
+function renderConsoleHome(){
+  const host=document.getElementById('console-home');
+  if(!host)return;
+  const items=dbCatalog.map(d=>{
+    const st=projectStats(d.id);
+    const demo=d.id==='cours';
+    const bits=[st.tables?`${st.tables} table${st.tables>1?'s':''}`:'Aucune table'];
+    if(st.pins) bits.push(`${st.pins} épinglée${st.pins>1?'s':''}`);
+    if(st.hist) bits.push(`${st.hist} dans l’historique`);
+    const del=demo?'':`<button type="button" class="proj-x" onclick="deleteDb('${d.id}')" aria-label="Supprimer ${escAttr(d.name)}">✕</button>`;
+    return `<div class="row proj-row">
+      <button type="button" class="proj-open" onclick="openConsoleProject('${d.id}')">
+        <span class="lz-num">${demo?'C':'P'}</span>
+        <span class="lz-body"><b>${esc(demo?'Cours':d.name)}</b><small>${esc(demo?'Base de démo · '+bits[0]:bits.join(' · '))}</small></span>
+        <span class="chev">›</span>
+      </button>
+      ${del}
+    </div>`;
+  }).join('');
+  host.innerHTML=`<div class="module"><div class="list">${items}</div>
+    <button type="button" class="proj-add" onclick="promptNewDb()">＋ Nouveau projet</button>
+    <button type="button" class="proj-add" onclick="document.getElementById('data-import').click()">↑ Importer CSV, JSON ou SQL</button></div>`;
+}
+function openConsoleProject(id){
+  if(id!=='cours'&&!customDbs[id])return;
+  activeDbId=id;
+  openTableSchema=null;
+  kbarSchemaCache=null;
+  consoleView='work';
+  const out=document.getElementById('console-out');
+  if(out) out.innerHTML='';
+  if(activeTab!=='console') switchTab('console');
+  else renderConsoleScreen();
+}
+function closeConsoleProject(){
+  persistEditor('ed-console');
+  consoleView='list';
+  renderConsoleScreen();
+}
+function renderConsoleSide(){
+  const p=projOf(activeDbId);
+  const pins=document.getElementById('console-pins');
+  const hist=document.getElementById('console-hist');
+  if(pins){
+    pins.innerHTML=p.pins.length
+      ? p.pins.map((it,i)=>`<button type="button" class="proj-item" onclick="loadPinnedSql(${i})">
+          <span class="ok">★</span>
+          <pre>${esc(it.sql)}<small>${fmtHistWhen(it.ts)}</small></pre>
+        </button>`).join('')
+      : `<p class="proj-empty">Aucune requête épinglée. Écris-en une, puis « Garder dans le projet ».</p>`;
+  }
+  if(hist){
+    hist.innerHTML=p.hist.length
+      ? p.hist.map((it,i)=>`<button type="button" class="proj-item" onclick="loadHistSql(${i})">
+          <span class="${it.ok?'ok':'ko'}">${it.ok?'✓':'✕'}</span>
+          <pre>${esc(it.sql)}<small>${it.ok?(it.n!=null?it.n+' · ':'')+(it.ms!=null?Math.round(it.ms)+' ms':'ok'):(it.err||'Erreur')} · ${fmtHistWhen(it.ts)}</small></pre>
+        </button>`).join('')
+      : `<p class="proj-empty">L’historique se remplit à chaque exécution.</p>`;
+  }
+}
+function recordConsoleRun(sql,ok,extra){
+  const p=projOf(activeDbId);
+  const row={sql:String(sql||'').trim(),ok:!!ok,ts:Date.now(),n:extra&&extra.n,ms:extra&&extra.ms,err:extra&&extra.err};
+  p.hist.unshift(row);
+  if(p.hist.length>HIST_MAX) p.hist.length=HIST_MAX;
+  saveProjState();
+  renderConsoleSide();
+}
+function pinConsoleQuery(){
+  const sql=(document.getElementById('ed-console')||{}).value;
+  const t=String(sql||'').trim();
+  if(!t)return;
+  const p=projOf(activeDbId);
+  p.pins=p.pins.filter(it=>it.sql!==t);
+  p.pins.unshift({sql:t,ts:Date.now()});
+  if(p.pins.length>PIN_MAX) p.pins.length=PIN_MAX;
+  saveProjState();
+  renderConsoleSide();
+}
+function loadHistSql(i){
+  const it=projOf(activeDbId).hist[i]; if(!it)return;
+  fillConsoleSql(it.sql);
+}
+function loadPinnedSql(i){
+  const it=projOf(activeDbId).pins[i]; if(!it)return;
+  fillConsoleSql(it.sql);
+}
+function fillConsoleSql(sql){
+  const ta=document.getElementById('ed-console');
+  if(!ta)return;
+  ta.value=sql||'';
+  syncHL('ed-console','hl-console');
+  fitSqlEditor(ta);
+  persistEditor('ed-console');
 }
 function resetDb(){ resetActiveDb(); }
 function clearConsoleEditor(){
@@ -3841,8 +4147,11 @@ function resetActiveDb(){
   }
   kbarSchemaCache=null;
   clearConsolePane();
+  projOf(activeDbId).draft='';
+  saveProjState();
   renderDbWorkspace();
   renderConsoleChips();
+  renderConsoleSide();
   flashResetBtn();
 }
 function switchDb(id){
@@ -3857,33 +4166,33 @@ function switchDb(id){
   toast('Base active · '+name);
 }
 function promptNewDb(){
-  const name=prompt('Nom de la nouvelle base ?','Ma base');
+  const name=prompt('Nom du projet ?','Mon projet');
   if(!name||!name.trim())return;
   const id='db_'+Date.now().toString(36);
   customDbs[id]=new SQL.Database();
   dbCatalog.push({id,name:name.trim().slice(0,40)});
-  activeDbId=id;
   persistCustomDbs();
-  clearConsolePane();
-  renderDbWorkspace();
-  renderConsoleChips();
-  switchTab('console');
-  toast('Base créée · repartir de zéro');
+  projOf(id);
+  saveProjState();
+  openConsoleProject(id);
 }
 function deleteActiveDb(){ deleteDb(activeDbId); }
 function deleteDb(id){
-  if(id==='cours'){toast('La base du cours ne peut pas être supprimée');return;}
+  if(id==='cours') return;
   const meta=dbCatalog.find(d=>d.id===id);
-  if(!meta||!customDbs[id]){toast('Base introuvable');return;}
-  if(!confirm(`Supprimer la base « ${meta.name} » ?`))return;
+  if(!meta||!customDbs[id]) return;
+  if(!confirm(`Supprimer le projet « ${meta.name} » ?`))return;
   try{ customDbs[id].close(); }catch(e){}
   delete customDbs[id];
   dbCatalog=dbCatalog.filter(d=>d.id!==id);
-  if(activeDbId===id) activeDbId='cours';
+  delete projState[id];
+  saveProjState();
   persistCustomDbs();
-  clearConsolePane();
-  renderDbWorkspace();
-  renderConsoleChips();
+  if(activeDbId===id){
+    activeDbId='cours';
+    consoleView='list';
+  }
+  renderConsoleScreen();
 }
 function listTables(database){
   try{
@@ -3899,18 +4208,8 @@ function renderDbWorkspace(){
   const host=document.getElementById('db-tables');
   const lab=document.getElementById('db-tables-lab');
   if(!bar||!host)return;
-  const activeName=(dbCatalog.find(d=>d.id===activeDbId)||{}).name||'base active';
-  bar.innerHTML=dbCatalog.map(d=>{
-    const on=activeDbId===d.id?'on':'';
-    if(d.id==='cours'){
-      return `<button type="button" class="db-pill ${on}" onclick="switchDb('cours')">Base du cours</button>`;
-    }
-    return `<div class="db-pill group ${on}" role="group" aria-label="${escAttr(d.name)}">
-      <button type="button" class="db-pill-main" onclick="switchDb('${d.id}')">${esc(d.name)}</button>
-      <button type="button" class="db-x" onclick="deleteDb('${d.id}')" title="Supprimer" aria-label="Supprimer ${escAttr(d.name)}">✕</button>
-    </div>`;
-  }).join('')
-    +`<button type="button" class="db-pill add" onclick="document.getElementById('data-import').click()">↑ Importer</button>`
+  const activeName=projectName(activeDbId);
+  bar.innerHTML=`<button type="button" class="db-pill add" onclick="document.getElementById('data-import').click()">↑ Importer</button>`
     +`<button type="button" class="db-pill reset" id="db-reset-btn" onclick="resetActiveDb()" title="Réinitialiser" aria-label="Réinitialiser">↺</button>`;
   const database=activeDb();
   if(!database){
@@ -3961,10 +4260,7 @@ function toggleTableSchema(name){
   renderDbWorkspace();
 }
 function queryTable(name){
-  const ta=document.getElementById('ed-console');
-  ta.value=`SELECT * FROM ${quoteIdent(name)}\nLIMIT 50;`;
-  syncHL('ed-console','hl-console');
-  fitSqlEditor(ta);
+  fillConsoleSql(`SELECT * FROM ${quoteIdent(name)}\nLIMIT 50;`);
   runConsole();
 }
 function dropTable(name){
@@ -4228,27 +4524,27 @@ function openImportSheet(){
   }
 
   const customs=dbCatalog.filter(d=>d.id!=='cours');
-  const preferred=(!asDb && activeDbId!=='cours' && customDbs[activeDbId])
+  const preferred=(!asDb && consoleView==='work' && activeDbId!=='cours' && customDbs[activeDbId])
     ? activeDbId
     : '__new__';
   const sel=document.getElementById('imp-db');
   sel.innerHTML=customs.map(d=>{
     const n=customDbs[d.id]?listTables(customDbs[d.id]).length:0;
-    const mark=asDb&&n?` · ${n} table${n>1?'s':''}`:(!asDb&&n?` · ${n} table${n>1?'s':''}`:'');
+    const mark=n?` · ${n} table${n>1?'s':''}`:'';
     return `<option value="${d.id}" ${d.id===preferred?'selected':''}>${esc(d.name)}${esc(mark)}</option>`;
-  }).join('')+`<option value="__new__" ${preferred==='__new__'?'selected':''}>＋ Nouvelle base</option>`;
+  }).join('')+`<option value="__new__" ${preferred==='__new__'?'selected':''}>＋ Nouveau projet</option>`;
 
-  dbLabel.textContent=asDb?'Où créer / charger cette base ?':'Base cible';
+  dbLabel.textContent=asDb?'Où créer / charger ce projet ?':'Projet cible';
   dbHint.textContent=asDb
-    ? 'Une base = plusieurs tables. Choisis une base existante (remplacée si non vide) ou crée-en une.'
-    : 'Ajoute la table dans une base existante, ou crée une base pour l’accueillir.';
-  newName.value=pendingImport.defaultDbName||pendingImport.defaultTable||'Ma base';
+    ? 'Un projet = une base. Choisis un projet existant (remplacé s’il n’est pas vide) ou crée-en un.'
+    : 'Ajoute la table dans un projet existant, ou crée un projet pour l’accueillir.';
+  newName.value=pendingImport.defaultDbName||pendingImport.defaultTable||'Mon projet';
   onImportDbChange();
 
   document.getElementById('imp-prev').textContent=p.preview
     || (p.kind==='table'?p.cols.map((c,i)=>c+' '+p.types[i]).join(' · '):p.hint);
 
-  go.textContent=asDb?'Importer la base':'Importer la table';
+  go.textContent=asDb?'Importer le projet':'Importer la table';
 
   const back=document.getElementById('imp-back'),sheet=document.getElementById('imp-sheet');
   back.hidden=false; sheet.hidden=false; back.setAttribute('aria-hidden','false'); sheet.setAttribute('aria-hidden','false'); sheet.inert=false;
@@ -4295,6 +4591,7 @@ function resolveImportTarget(){
     const id='db_'+Date.now().toString(36);
     customDbs[id]=new SQL.Database();
     dbCatalog.push({id,name:raw.slice(0,40)});
+    projOf(id);
     target=id;
   }else if(!customDbs[target]){
     alert('Base introuvable');
@@ -4311,7 +4608,7 @@ function confirmImport(){
 
   if(asDb && target!=='__new__' && customDbs[target]){
     const existing=listTables(customDbs[target]);
-    if(existing.length && !confirm(`La base « ${(dbCatalog.find(d=>d.id===target)||{}).name||target} » contient déjà ${existing.length} table${existing.length>1?'s':''}. Remplacer son contenu ?`)){
+    if(existing.length && !confirm(`Le projet « ${(dbCatalog.find(d=>d.id===target)||{}).name||target} » contient déjà ${existing.length} table${existing.length>1?'s':''}. Remplacer son contenu ?`)){
       return;
     }
   }
@@ -4338,20 +4635,18 @@ function confirmImport(){
     const tname=pendingImport.importedTable || (isTableImport(p)?(p.primaryTable||null):null);
     const tabs=listTables(database);
     closeImportSheet();
-    clearConsolePane();
-    renderDbWorkspace();
-    renderConsoleChips();
+    openConsoleProject(target);
     if(tname && tabs.map(t=>t.toLowerCase()).includes(String(tname).toLowerCase())){
       queryTable(tabs.find(t=>t.toLowerCase()===String(tname).toLowerCase())||tname);
     }else{
       const out=document.getElementById('console-out');
       if(out){
         out.innerHTML=asDb
-          ? `<div class="feedback ok"><div class="fi">✓</div><div><b>Base importée</b><p>${tabs.length} table${tabs.length>1?'s':''} disponible${tabs.length>1?'s':''}${tabs.length?` : ${tabs.map(t=>'<code>'+esc(t)+'</code>').join(', ')}`:''}.</p></div></div>`
+          ? `<div class="feedback ok"><div class="fi">✓</div><div><b>Projet importé</b><p>${tabs.length} table${tabs.length>1?'s':''} disponible${tabs.length>1?'s':''}${tabs.length?` : ${tabs.map(t=>'<code>'+esc(t)+'</code>').join(', ')}`:''}.</p></div></div>`
           : `<div class="feedback ok"><div class="fi">✓</div><div><b>Import réussi</b><p>${tabs.length?`Tables : ${tabs.map(t=>'<code>'+esc(t)+'</code>').join(', ')}.`:'Script exécuté.'}</p></div></div>`;
       }
     }
-    toast(asDb?'Base importée':'Table importée');
+    toast(asDb?'Projet importé':'Table importée');
   }catch(e){
     alert('Erreur à l’import : '+(e.message||e));
   }
@@ -4471,7 +4766,10 @@ function setupEditor(taId,hlId){
 }
 function persistEditor(taId){
   const ta=document.getElementById(taId); if(!ta)return;
-  if(taId==='ed-console'){ try{localStorage.setItem('requete-console',ta.value);}catch(e){} }
+  if(taId==='ed-console'){
+    projOf(activeDbId).draft=ta.value;
+    saveProjState();
+  }
   else if(taId==='ed-lesson'&&current&&mode==='lesson'){
     const s=state.lessons[current.id]||(state.lessons[current.id]={level:0});
     s.draft=ta.value; save();
@@ -4567,6 +4865,7 @@ function runConsole(){
   const out=document.getElementById('console-out');
   const btn=document.getElementById('btn-run-console')||document.querySelector('#scr-console .btn-run');
   if(!sql){out.innerHTML='';return;}
+  persistEditor('ed-console');
   if(btn&&btn.disabled)return;
   setRunLoading(btn,true);
   out.innerHTML=`<div class="query-loading" aria-live="polite"><span class="ql-spin" aria-hidden="true"></span><span>Exécution de la requête…</span></div>`;
@@ -4581,11 +4880,14 @@ function runConsole(){
   const finish=()=>{
     try{
       const{res,ms}=execQuery(sql,activeDb());
+      const n=(res&&res[0])?res[0].values.length:null;
       paint(`<div class="console-out-ready result-live">${renderTable(res,ms)}</div>`);
+      recordConsoleRun(sql,true,{n:n==null?null:fmtLignes(n),ms});
       if(activeDbId!=='cours'&&!/^\s*select\b/i.test(sql)) persistCustomDbs();
       renderDbWorkspace();
     }catch(e){
       paint(`<div class="console-out-ready result-live">${errBox(e.message)}</div>`);
+      recordConsoleRun(sql,false,{err:String(e.message||'Erreur').slice(0,80)});
     }
   };
   if(prefersReduceMotion())finish();
@@ -5188,13 +5490,18 @@ function refreshTabScreen(tab){
   else if(tab==='planning'){semaineOffset=0;jourSel=null;renderPlanning();}
   else if(tab==='compte') renderCompte();
   else if(tab==='collection') renderCollection();
-  else if(tab==='console'){renderDbWorkspace();renderConsoleChips();}
+  else if(tab==='console') renderConsoleScreen();
   else if(tab==='entretien') renderEntretien();
   majBadgePlanning();
 }
 function switchTab(name){
   annulerBilanAuto();
   closeSchemaSheet();
+  if(activeTab==='console'&&name!=='console') persistEditor('ed-console');
+  if(name==='console'&&activeTab==='console'&&consoleView==='work'){
+    closeConsoleProject();
+    return;
+  }
   const map={learn:'scr-learn',defis:'scr-defis',planning:'scr-planning',collection:'scr-collection',console:'scr-console',entretien:'scr-entretien',compte:'scr-compte'};
   if(name==='schema') name='console';
   const prevCur=document.querySelector('.screen.active');
@@ -7064,11 +7371,9 @@ function showShareCopied(ok=true){
   if(ok&&navigator.vibrate)navigator.vibrate(10);
 }
 function cardToConsole(id){
-  closeCard(); switchTab('console');
-  const ta=document.getElementById('ed-console');
-  ta.value=cardRunnableSql(CARTES[id]); syncHL('ed-console','hl-console');
-  fitSqlEditor(ta);
-  persistEditor('ed-console');
+  closeCard();
+  openConsoleProject('cours');
+  fillConsoleSql(cardRunnableSql(CARTES[id]));
 }
 let toastId=null,toastTimer=null;
 function showUnlock(id){
@@ -8438,11 +8743,10 @@ function closeNote(){
 }
 function noteToConsole(){
   const e=collectNote(); const sql=e?e.sql:'';
-  closeNote(); switchTab('console');
-  const ta=document.getElementById('ed-console');
-  ta.value=sql; syncHL('ed-console','hl-console');
-  fitSqlEditor(ta);
-  persistEditor('ed-console');
+  closeNote();
+  const id=(activeDbId!=='cours'&&customDbs[activeDbId])?activeDbId:'cours';
+  openConsoleProject(id);
+  fillConsoleSql(sql);
 }
 function renderConsoleChips(){
   const database=activeDb();
@@ -8963,7 +9267,7 @@ function renderCompte(){
         <button class="acc-row" type="button" onclick="exportProgress()">
           <div class="at"><b>Exporter ma progression</b><small>Fichier JSON, à garder de ton côté</small></div>
           ${CHEV}</button>
-        <button class="acc-row" type="button" onclick="resetDb();switchTab('console')">
+        <button class="acc-row" type="button" onclick="activeDbId='cours';resetDb();openConsoleProject('cours')">
           <div class="at"><b>Réinitialiser la base SQL</b><small>Remet ${courseTableNames().join(', ')||'les tables du cours'}</small></div>
           ${CHEV}</button>
         <button class="acc-row danger" type="button" onclick="resetAllProgress()">
