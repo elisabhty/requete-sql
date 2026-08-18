@@ -684,23 +684,34 @@
   @media (max-width:380px){.grp-chip{font-size:10px;padding:6px 8px}.grp-k{font-size:10.5px}.grp-pause,.grp-replay{font-size:12px;padding:9px 8px}}
 
   /* COUNT : numéroter chaque ligne, puis tout ramener à un seul chiffre */
-  .sql-viz[data-kind="count"] .grp-chip{padding-right:36px}
-  .sql-viz[data-kind="count"] .grp-chip::after{content:attr(data-n);position:absolute;right:8px;top:50%;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--mono);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(-50%) scale(.7);pointer-events:none;box-shadow:0 2px 8px rgba(91,91,214,.28)}
-  .sql-viz[data-kind="count"][data-phase="1"] .grp-chip{animation:cntVisit .5s ease var(--dw,0ms) both}
-  .sql-viz[data-kind="count"][data-phase="1"] .grp-chip::after{animation:cntTick .34s cubic-bezier(.32,.72,.28,1) var(--dw,0ms) both}
+  .sql-viz[data-kind="count"] .grp-chip,.sql-viz[data-kind="agg"] .grp-chip{padding-right:36px}
+  .sql-viz[data-kind="agg"] .grp-chip{padding-right:52px}
+  .sql-viz[data-kind="count"] .grp-chip::after,.sql-viz[data-kind="agg"] .grp-chip::after{content:attr(data-n);position:absolute;right:8px;top:50%;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--mono);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(-50%) scale(.7);pointer-events:none;box-shadow:0 2px 8px rgba(91,91,214,.28)}
+  .sql-viz[data-kind="agg"] .grp-chip::after{width:auto;min-width:36px;height:22px;padding:0 7px;border-radius:8px;font-size:10px}
+  .sql-viz[data-kind="count"][data-phase="1"] .grp-chip,.sql-viz[data-kind="agg"][data-phase="1"] .grp-chip{animation:cntVisit .5s ease var(--dw,0ms) both}
+  .sql-viz[data-kind="count"][data-phase="1"] .grp-chip::after,.sql-viz[data-kind="agg"][data-phase="1"] .grp-chip::after{animation:cntTick .34s cubic-bezier(.32,.72,.28,1) var(--dw,0ms) both}
+  .sql-viz[data-kind="agg"][data-phase="1"] .grp-chip[data-mark="1"]{animation:aggMark .5s ease var(--dw,0ms) both}
+  .sql-viz[data-kind="agg"][data-phase="1"] .grp-chip[data-mark="1"]::after{background:#0F766E;box-shadow:0 2px 8px rgba(15,118,110,.28)}
   @keyframes cntVisit{0%{border-color:var(--line-2);background:var(--surface)}40%{border-color:rgba(91,91,214,.42);background:var(--accent-soft)}100%{border-color:rgba(91,91,214,.28);background:var(--accent-soft)}}
+  @keyframes aggMark{0%{border-color:var(--line-2);background:var(--surface)}40%{border-color:rgba(15,118,110,.5);background:var(--success-soft)}100%{border-color:rgba(15,118,110,.38);background:var(--success-soft)}}
   @keyframes cntTick{from{opacity:0;transform:translateY(-50%) scale(.7)}to{opacity:1;transform:translateY(-50%) scale(1)}}
-  .sql-viz[data-kind="count"] .cnt-result{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;opacity:0;transform:scale(.92);pointer-events:none;z-index:4;transition:opacity .45s ease,transform .45s cubic-bezier(.32,.72,.28,1)}
-  .sql-viz[data-kind="count"][data-phase="2"] .cnt-result{opacity:1;transform:scale(1)}
-  .sql-viz[data-kind="count"] .cnt-num{font-family:var(--mono);font-size:56px;font-weight:800;letter-spacing:-2px;line-height:1;color:var(--accent)}
-  .sql-viz[data-kind="count"] .cnt-lbl{font-size:13px;font-weight:700;color:var(--ink-2)}
-  .sql-viz[data-kind="count"][data-phase="2"] .grp-chip{opacity:0;pointer-events:none;transition:opacity .4s ease .05s}
+  .sql-viz[data-kind="count"] .cnt-result,.sql-viz[data-kind="agg"] .cnt-result{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;opacity:0;transform:scale(.92);pointer-events:none;z-index:4;transition:opacity .45s ease,transform .45s cubic-bezier(.32,.72,.28,1)}
+  .sql-viz[data-kind="count"][data-phase="2"] .cnt-result,.sql-viz[data-kind="agg"][data-phase="2"] .cnt-result{opacity:1;transform:scale(1)}
+  .sql-viz[data-kind="count"] .cnt-num,.sql-viz[data-kind="agg"] .cnt-num{font-family:var(--mono);font-size:56px;font-weight:800;letter-spacing:-2px;line-height:1;color:var(--accent)}
+  .sql-viz[data-kind="agg"] .cnt-num{font-size:42px;letter-spacing:-1.4px}
+  .sql-viz[data-kind="count"] .cnt-lbl,.sql-viz[data-kind="agg"] .cnt-lbl{font-size:13px;font-weight:700;color:var(--ink-2)}
+  .sql-viz[data-kind="count"][data-phase="2"] .grp-chip,.sql-viz[data-kind="agg"][data-phase="2"] .grp-chip{opacity:0;pointer-events:none;transition:opacity .4s ease .05s}
   .sql-viz[data-kind="count"][data-paused="1"] .grp-chip,
-  .sql-viz[data-kind="count"][data-paused="1"] .grp-chip::after{animation-play-state:paused!important}
+  .sql-viz[data-kind="count"][data-paused="1"] .grp-chip::after,
+  .sql-viz[data-kind="agg"][data-paused="1"] .grp-chip,
+  .sql-viz[data-kind="agg"][data-paused="1"] .grp-chip::after{animation-play-state:paused!important}
   @media (prefers-reduced-motion:reduce){
     .sql-viz[data-kind="count"] .grp-chip,
     .sql-viz[data-kind="count"] .grp-chip::after,
-    .sql-viz[data-kind="count"] .cnt-result{animation-duration:1ms!important;animation-delay:0ms!important;transition:none!important}
+    .sql-viz[data-kind="count"] .cnt-result,
+    .sql-viz[data-kind="agg"] .grp-chip,
+    .sql-viz[data-kind="agg"] .grp-chip::after,
+    .sql-viz[data-kind="agg"] .cnt-result{animation-duration:1ms!important;animation-delay:0ms!important;transition:none!important}
   }
 
   .anat{background:var(--code-bg);border-radius:14px;padding:6px 0;margin-bottom:16px}
@@ -6410,16 +6421,17 @@ function renderVizShell(key){
       const keep=c.keep==null?'':` data-keep="${c.keep}"`;
       const keep0=c.keep0==null?'':` data-keep0="${c.keep0}"`;
       const rank=c.rank==null?'':` data-rank="${c.rank}"`;
-      const n=c.n==null&&cfg.kind!=='count'?'':` data-n="${c.n!=null?c.n:i+1}"`;
+      const n=c.n==null&&cfg.kind!=='count'&&cfg.kind!=='agg'?'':` data-n="${c.n!=null?c.n:i+1}"`;
+      const mark=c.mark?` data-mark="${c.mark}"`:'';
       const extra=c.extra?`<span class="grp-extra">${c.extra}</span>`:'';
       const cat=c.cat?` data-cat="${c.cat}"`:'';
-      return `<div class="grp-chip"${keep}${keep0}${rank}${n}${cat}>${c.t}${extra}</div>`;
+      return `<div class="grp-chip"${keep}${keep0}${rank}${n}${mark}${cat}>${c.t}${extra}</div>`;
     }).join('');
     const buckets=(cfg.buckets||[]).map(b=>
       `<div class="grp-bucket" data-cat="${b.cat}" data-n="${b.n}" data-keep="${b.keep}"><span class="grp-bucket-lbl">${b.cat}</span><span class="grp-count">${b.n}</span></div>`
     ).join('');
-    const total=cfg.total!=null?cfg.total:(cfg.chips||[]).length;
-    const result=cfg.kind==='count'?`<div class="cnt-result" aria-hidden="true"><span class="cnt-num">${total}</span><span class="cnt-lbl">1 ligne · 1 valeur</span></div>`:'';
+    const total=cfg.display!=null?cfg.display:(cfg.total!=null?cfg.total:(cfg.chips||[]).length);
+    const result=(cfg.kind==='count'||cfg.kind==='agg')?`<div class="cnt-result" aria-hidden="true"><span class="cnt-num">${total}</span><span class="cnt-lbl">${cfg.lbl||'1 ligne · 1 valeur'}</span></div>`:'';
     stage=buckets+chips+result;
   }
   return `<div class="grp-viz sql-viz" id="sql-viz-${key}" data-viz="${key}" data-kind="${cfg.kind}" data-phase="0" aria-label="Animation">
@@ -9464,6 +9476,46 @@ const SQL_VIZ={
     {t:'Sophie',n:1},{t:'Lucas',n:2},{t:'Emma',n:3},{t:'Nathan',n:4},
     {t:'Chloé',n:5},{t:'Hugo',n:6},{t:'Léa',n:7},{t:'Gabriel',n:8},{t:'Inès',n:9}
   ]},
+  avg:{kind:'agg',phases:[
+    {k:'SELECT prix FROM produits',d:'Les 8 prix s’affichent. Pour la moyenne, il faut encore les additionner, puis diviser.'},
+    {k:'AVG(prix)',d:'SQL additionne au fur et à mesure, puis divise par le nombre de prix déjà vus.'},
+    {k:'AVG(prix) = 23,9875',d:'Les 8 prix deviennent un seul résultat : 23,9875. Ce n’est plus une liste.'}
+  ],display:'23,9875',lbl:'moyenne · 1 ligne',chips:[
+    {t:'Fibre Préb.',extra:'29,90',n:'29,90'},{t:'Collagène',extra:'39,90',n:'34,90'},
+    {t:'Magnésium',extra:'19,90',n:'29,90'},{t:'Vit. D',extra:'14,90',n:'26,15'},
+    {t:'Tisane',extra:'12,50',n:'23,42'},{t:'Protéine',extra:'34,90',n:'25,33'},
+    {t:'Oméga 3',extra:'24,90',n:'25,27'},{t:'Shaker',extra:'15,00',n:'23,9875'}
+  ]},
+  sum:{kind:'agg',phases:[
+    {k:'SELECT prix FROM produits',d:'Les 8 prix s’affichent. Pour le total, il faut encore les additionner.'},
+    {k:'SUM(prix)',d:'SQL parcourt chaque prix et l’ajoute au total : 29,90, puis 69,80… jusqu’à 191,90.'},
+    {k:'SUM(prix) = 191,90',d:'Les 8 prix deviennent un seul résultat : 191,90. Ce n’est plus une liste.'}
+  ],display:'191,90',lbl:'somme · 1 ligne',chips:[
+    {t:'Fibre Préb.',extra:'29,90',n:'29,90'},{t:'Collagène',extra:'39,90',n:'69,80'},
+    {t:'Magnésium',extra:'19,90',n:'89,70'},{t:'Vit. D',extra:'14,90',n:'104,60'},
+    {t:'Tisane',extra:'12,50',n:'117,10'},{t:'Protéine',extra:'34,90',n:'152,00'},
+    {t:'Oméga 3',extra:'24,90',n:'176,90'},{t:'Shaker',extra:'15,00',n:'191,90'}
+  ]},
+  min:{kind:'agg',phases:[
+    {k:'SELECT prix FROM produits',d:'Les 8 prix s’affichent. Pour le plus bas, il faut encore les comparer.'},
+    {k:'MIN(prix)',d:'SQL compare chaque prix au plus petit déjà vu. Un nouveau minimum s’affiche en vert.'},
+    {k:'MIN(prix) = 12,50',d:'Le plus petit prix est 12,50. SQL renvoie cette valeur, pas le nom du produit.'}
+  ],display:'12,50',lbl:'minimum · 1 ligne',chips:[
+    {t:'Fibre Préb.',extra:'29,90',n:'29,90',mark:1},{t:'Collagène',extra:'39,90',n:'29,90'},
+    {t:'Magnésium',extra:'19,90',n:'19,90',mark:1},{t:'Vit. D',extra:'14,90',n:'14,90',mark:1},
+    {t:'Tisane',extra:'12,50',n:'12,50',mark:1},{t:'Protéine',extra:'34,90',n:'12,50'},
+    {t:'Oméga 3',extra:'24,90',n:'12,50'},{t:'Shaker',extra:'15,00',n:'12,50'}
+  ]},
+  max:{kind:'agg',phases:[
+    {k:'SELECT prix FROM produits',d:'Les 8 prix s’affichent. Pour le plus élevé, il faut encore les comparer.'},
+    {k:'MAX(prix)',d:'SQL compare chaque prix au plus grand déjà vu. Un nouveau maximum s’affiche en vert.'},
+    {k:'MAX(prix) = 39,90',d:'Le plus grand prix est 39,90. SQL renvoie cette valeur, pas le nom du produit.'}
+  ],display:'39,90',lbl:'maximum · 1 ligne',chips:[
+    {t:'Fibre Préb.',extra:'29,90',n:'29,90',mark:1},{t:'Collagène',extra:'39,90',n:'39,90',mark:1},
+    {t:'Magnésium',extra:'19,90',n:'39,90'},{t:'Vit. D',extra:'14,90',n:'39,90'},
+    {t:'Tisane',extra:'12,50',n:'39,90'},{t:'Protéine',extra:'34,90',n:'39,90'},
+    {t:'Oméga 3',extra:'24,90',n:'39,90'},{t:'Shaker',extra:'15,00',n:'39,90'}
+  ]},
   having:{kind:'group',phases:[
     {k:'SELECT categorie FROM produits',d:'SQL lit simplement les lignes'},
     {k:'GROUP BY categorie',d:'SQL rassemble maintenant les lignes ayant la même catégorie.'},
@@ -9619,12 +9671,12 @@ function layoutSqlList(root,phase,{animate=true}={}){
       ?(sortAt>=0&&phase>=sortAt?(+c.dataset.rank||0)*70:i*45)
       :0;
     c.style.transitionDelay=delay+'ms';
-    if(kind==='count') c.style.setProperty('--dw',animate?(i*110)+'ms':'0ms');
+    if(kind==='count'||kind==='agg') c.style.setProperty('--dw',animate?(i*120)+'ms':'0ms');
     c.style.width=colW+'px';
     c.style.maxWidth=colW+'px';
     c.style.height=rowH+'px';
     c.style.paddingLeft='10px';
-    c.style.paddingRight=kind==='count'?'36px':'10px';
+    c.style.paddingRight=kind==='agg'?'52px':(kind==='count'?'36px':'10px');
     c.style.display='flex';
     c.style.alignItems='center';
     c.style.transform=`translate(${x}px,${y}px)`;
