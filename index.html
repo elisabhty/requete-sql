@@ -977,11 +977,8 @@
   .piege-body code{font-family:var(--mono);font-size:.86em;background:rgba(180,122,22,.1);color:#8A6212;padding:1px 6px;border-radius:6px;font-weight:600}
   .piege .piege-sql{margin:12px 0 0;border-radius:14px;overflow:hidden;box-shadow:0 6px 16px -14px rgba(20,20,40,.35)}
   .piege .piege-sql .ex-code{font-size:12px;line-height:1.65;padding:14px}
-  .piege-verdict{display:flex;align-items:center;gap:6px;padding:10px 14px;font-size:12.5px;font-weight:700;border-top:1px solid var(--line)}
-  .piege-verdict.bad{color:var(--danger);background:var(--danger-soft)}
+  .piege .piege-sql .xf-result{margin:0 12px 12px}
   .piege-fix{margin:14px 0 0}
-  .piege-fix-lab{display:block;margin:0 0 8px;font-size:12px;font-weight:750;color:var(--success);letter-spacing:-.1px}
-  .piege .piege-good{border:1px solid rgba(15,118,110,.18);box-shadow:0 6px 16px -14px rgba(15,118,110,.22)}
   .piege-tail{margin:12px 0 0;font-size:14px;line-height:1.6;color:var(--ink-2)}
   .piege-tail p{margin:0}
   .piege-tail code{font-family:var(--mono);font-size:.86em;background:rgba(180,122,22,.1);color:#8A6212;padding:1px 6px;border-radius:6px;font-weight:600}
@@ -3311,7 +3308,8 @@ const MODULES = [
   exemple:"SELECT MAX(prix) FROM produits;",
   attendu:"<b>1 ligne</b>, 1 valeur : 39,90. C’est le prix le plus élevé du catalogue.",
   retenir:"<code>MAX</code> renvoie la plus grande valeur d’une colonne. Dans <code>SELECT MAX(prix) FROM produits</code>, les 8 prix deviennent une seule valeur : 39,90.",
-  piege:{t:"Mettre MAX dans WHERE",p:"Pour chercher le produit le plus cher, on pourrait être tenté d’écrire :<br><br><code>WHERE prix = MAX(prix)</code><br><br>Mais cela ne fonctionne pas : <code>WHERE</code> filtre les lignes avant que <code>MAX</code> ait calculé le prix maximum.<br><br>👉 WHERE = filtre les lignes<br>👉 MAX() = calcule une valeur sur plusieurs lignes",
+  piege:{t:"Mettre MAX dans WHERE",p:"Pour chercher le produit le plus cher, on pourrait être tenté d’écrire :<br><br><code>WHERE prix = MAX(prix)</code><br><br>Mais cela ne fonctionne pas : <code>WHERE</code> filtre les lignes avant que <code>MAX</code> ait calculé le prix maximum.<br><br>👉 WHERE = filtre les lignes<br>👉 MAX() = calcule une valeur sur plusieurs lignes<br><br>Exécute les deux requêtes pour comparer :",
+    exec:true,
     sql:"SELECT nom\nFROM produits\nWHERE prix = MAX(prix);",
     fixSql:"SELECT nom\nFROM produits\nWHERE prix = (SELECT MAX(prix) FROM produits);"},
   consigne:"Affiche le prix le plus élevé de la table produits.",
@@ -6610,21 +6608,37 @@ function reflexBlock(l){
     ${retenirNoteBtn()}
   </div>`;
 }
+function piegeSqlRunBlock(sql){
+  if(!sql)return '';
+  return `<div class="piege-sql exframe">
+    <div class="xf-head"><span class="xf-name">SQL</span><div class="xf-tools">${sqlCopyBtn()}</div></div>
+    <div class="ex-code">${highlight(sql)}</div>
+    <div class="xf-actions">
+      <button type="button" class="xf-run" data-sql="${escAttr(sql)}" onclick="runExemple(this)">${XF_RUN_ICO}Exécuter</button>
+    </div>
+    <div class="xf-result" hidden aria-live="polite"></div>
+  </div>`;
+}
 function piegeBlock(l){
   const piege=l&&l.piege;
   if(!piege) return '';
-  const badSql=piege.sql?`<div class="piege-sql piege-bad exframe">
+  const runMode=!!piege.exec;
+  const badSql=piege.sql
+    ? runMode
+      ? piegeSqlRunBlock(piege.sql)
+      : `<div class="piege-sql exframe">
     <div class="xf-head"><span class="xf-name">SQL</span><div class="xf-tools">${sqlCopyBtn()}</div></div>
     <div class="ex-code">${highlight(piege.sql)}</div>
-    ${piege.err!==false?`<div class="piege-verdict bad">→ ${esc(piege.err||'Erreur')}</div>`:''}
-  </div>`:'';
-  const fixSql=piege.fixSql?`<div class="piege-fix">
-    <span class="piege-fix-lab">${esc(piege.fixLabel||'Bonne solution — avec une sous-requête')}</span>
-    <div class="piege-sql piege-good exframe">
-      <div class="xf-head"><span class="xf-name">SQL</span><div class="xf-tools">${sqlCopyBtn()}</div></div>
-      <div class="ex-code">${highlight(piege.fixSql)}</div>
-    </div>
-  </div>`:'';
+  </div>`
+    : '';
+  const fixSql=piege.fixSql
+    ? runMode
+      ? `<div class="piege-fix">${piegeSqlRunBlock(piege.fixSql)}</div>`
+      : `<div class="piege-fix"><div class="piege-sql exframe">
+    <div class="xf-head"><span class="xf-name">SQL</span><div class="xf-tools">${sqlCopyBtn()}</div></div>
+    <div class="ex-code">${highlight(piege.fixSql)}</div>
+  </div></div>`
+    : '';
   const tail=piege.tail?`<div class="piege-tail">${flowProseHtml(piege.tail)}</div>`:'';
   return `<div class="piege">
     <div class="piege-head">
