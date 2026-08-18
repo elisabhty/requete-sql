@@ -3160,7 +3160,6 @@ const MODULES = [
             code:"SELECT <span class=\"vs-line bad\">COUNT(*)</span>\nFROM clients;"},
         good:{tag:"✓ Un total par ville",sql:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville;",out:"Paris 3, Lyon 2, puis 1 pour chaque autre ville",
             code:"SELECT ville, COUNT(*)\nFROM clients\n<span class=\"vs-line good\">GROUP BY ville</span>;"}},
-    point:"Dans la table <code>clients</code>, Paris apparaît 3 fois : Sophie, Nathan et Léa forment donc un groupe de 3. Lyon apparaît 2 fois : Lucas et Hugo forment un groupe de 2. Marseille, Bordeaux, Toulouse et Nantes apparaissent une fois chacune. <code>COUNT(*)</code> est ensuite calculé séparément pour chaque groupe.",
     why:{title:"Comment <code>GROUP BY</code> transforme les données ?",
       body:"SQL part des 9 lignes de la table <code>clients</code> et les rassemble selon leur valeur dans <code>ville</code>. Comme il existe 6 villes différentes, il forme 6 groupes. <code>COUNT(*)</code> compte ensuite les clients de chaque groupe : le résultat contient donc 6 lignes, une par ville."},
     reflex:{a:{k:"COUNT(*)",t:"un total pour toute la table"},
@@ -6331,7 +6330,7 @@ function renderVs(vs){
   const col=(side,tone)=>{
     const tag=side.tag||(tone==='bad'?'✕ Incorrect':'✓ Correct');
     const sql=side.sql||'';
-    const code=side.code!=null?side.code:highlight(sql);
+    const code=typeof side.code==='string'?side.code:highlight(sql);
     const run=side.static?'':`<button type="button" class="vs-run" data-sql="${escAttr(sql)}" data-hint="${escAttr(side.out||'')}"${side.pedagogic?' data-pedagogic="1"':''} onclick="runVsSql(this)">${XF_RUN_ICO}Exécuter</button>`;
     const out=side.static
       ?`<div class="vs-out static ${tone} live">${side.static}</div>`
