@@ -6910,7 +6910,10 @@ function renderLessonFlow(){
   requestAnimationFrame(()=>{
     revealLessonContent(instantReveal);
     scrollLessonTop();
-    if(needViz) setTimeout(initSqlViz, instantReveal?40:120);
+    if(needViz){
+      clearTimeout(initSqlViz.t);
+      initSqlViz.t=setTimeout(initSqlViz, instantReveal?40:120);
+    }
   });
 }
 function kickOrderRappel(el){
@@ -9796,6 +9799,8 @@ function havingGrpContinue(root,fromPhase){
 }
 
 function playHavingGrpViz(root){
+  if(!root)return;
+  if(havingGrpObs){havingGrpObs.disconnect();havingGrpObs=null;}
   stopHavingGrpViz();
   root.dataset.paused='0';
   const last=sqlVizPhases(root).length-1;
@@ -9858,6 +9863,12 @@ function initSqlViz(){
   const having=document.getElementById('having-grp-viz');
   if(having&&!roots.includes(having)) roots.push(having);
   roots.forEach(root=>{
+    if(root.dataset.vizInit==='1'){
+      layoutSqlViz(root,parseInt(root.dataset.phase||'0',10),{animate:false});
+      havingGrpSyncControls(root);
+      return;
+    }
+    root.dataset.vizInit='1';
     if(havingGrpObs){havingGrpObs.disconnect();havingGrpObs=null;}
     stopHavingGrpViz();
     root.dataset.playing='0';
@@ -9887,6 +9898,8 @@ function initSqlViz(){
       }
       havingGrpObs=whenSettled(root,scr,{ratio:.25,threshold:[.25,.4]},()=>{
         havingGrpObs=null;
+        if(!root.isConnected)return;
+        if(root.dataset.playing==='1'||root.dataset.paused==='1'||root.dataset.seen==='1') return;
         havingGrpSetPhase(root,0,{animate:false});
         playHavingGrpViz(root);
       });
