@@ -1836,7 +1836,7 @@
   .ls-step.lock{opacity:.45;cursor:default}
   .ls-slide{opacity:1;transform:none;animation:lsIn .22s cubic-bezier(.32,.72,.28,1) both;display:flex;flex-direction:column-reverse;min-width:0;width:100%;box-sizing:border-box}
   .ls-slide.back{animation:lsBack .22s cubic-bezier(.32,.72,.28,1) both}
-  .ls-main{min-width:0;width:100%;box-sizing:border-box}
+  .ls-main{min-width:0;width:100%;box-sizing:border-box;padding-bottom:calc(var(--ls-nav-h) + 8px)}
   @keyframes lsIn{from{opacity:.88}to{opacity:1}}
   @keyframes lsBack{from{opacity:.88}to{opacity:1}}
   .ls-nav{position:sticky;bottom:calc(12px + var(--safe-bottom));z-index:35;display:flex;gap:8px;width:100%;align-self:stretch;margin:14px 0 12px;padding:0;background:none;border:none;border-radius:0;pointer-events:none;box-sizing:border-box;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;isolation:auto}
@@ -3303,64 +3303,15 @@ const MODULES = [
   situation:"Dans la table produits, chaque produit appartient à une catégorie. Tu veux ne garder que les catégories qui comptent au moins 2 produits.<br><br>Avec ce que tu connais déjà, tu peux compter les produits par catégorie :",
   situationSql:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie;",
   situationTail:"Tu obtiens bien les 5 catégories avec leur total. Mais Beauté, Boisson et Accessoire n’ont qu’un seul produit : pour ne garder que les groupes d’au moins 2 produits, il faut la clause <code>HAVING</code>.",
-  concept:`<div class="concept-page">
-  <div class="concept-block">
-    <h2><span class="h2-eye">Le problème</span><span class="h2-txt">Deux requêtes semblent presque identiques. Une seule fonctionne.</span></h2>
-    <p>Tu sais déjà compter le nombre de produits par catégorie avec <code>GROUP BY</code>. Il ne reste plus qu’à <b>filtrer les catégories selon ce total</b>.</p>
-    <div class="vs stack">
-      <div class="vs-col bad">
-        <div class="vs-tag bad">✕ Avec WHERE</div>
-        <div class="ex-code">SELECT categorie, COUNT(*)
-FROM produits
-<span class="vs-line bad">WHERE COUNT(*) &gt;= 2</span>
-GROUP BY categorie;</div>
-        <button type="button" class="vs-run" data-sql="SELECT categorie, COUNT(*) FROM produits WHERE COUNT(*) >= 2 GROUP BY categorie;" onclick="runVsSql(this)"><svg class="xf-run-ico" viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="9"/><path class="tri" d="M10.4 8.2v7.6l6.4-3.8z"/></svg>Exécuter</button>
-        <div class="vs-out" hidden aria-live="polite"></div>
-      </div>
-      <div class="vs-col good">
-        <div class="vs-tag good">✓ Avec HAVING</div>
-        <div class="ex-code">SELECT categorie, COUNT(*)
-FROM produits
-GROUP BY categorie
-<span class="vs-line good">HAVING COUNT(*) &gt;= 2;</span></div>
-        <button type="button" class="vs-run" data-sql="SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 2;" onclick="runVsSql(this)"><svg class="xf-run-ico" viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="9"/><path class="tri" d="M10.4 8.2v7.6l6.4-3.8z"/></svg>Exécuter</button>
-        <div class="vs-out" hidden aria-live="polite"></div>
-      </div>
-    </div>
-    <p>Une fois les catégories regroupées avec <code>GROUP BY</code>, utilise <code>HAVING</code> pour ne garder que celles dont <code>COUNT(*)</code> respecte la condition <code>&gt;= 2</code>.</p>
-  </div>
-  <div class="concept-block">
-    <h2><span class="h2-eye">Pourquoi</span><span class="h2-txt">Suis ce qu'il se passe avec tes données.</span></h2>
-    <p class="why-lead">SQL exécute la requête étape par étape. À chaque étape, les données se transforment. <code>COUNT(*)</code> ne peut être calculé qu’une fois les lignes regroupées avec <code>GROUP BY</code>.</p>
-    <div class="grp-viz sql-viz" id="having-grp-viz" data-viz="having" data-kind="group" data-phase="0" aria-label="Animation : regroupement puis filtrage HAVING">
-      <div class="grp-viz-bar">
-        <span class="grp-k">SELECT categorie FROM produits</span>
-        <span class="grp-desc">SQL lit simplement les lignes</span>
-        <span class="grp-paused-badge" aria-live="polite">En pause</span>
-      </div>
-      <div class="grp-stage">
-        <div class="grp-bucket" data-cat="Bien-être" data-n="3" data-keep="1"><span class="grp-bucket-lbl">Bien-être</span><span class="grp-count">3</span></div>
-        <div class="grp-bucket" data-cat="Beauté" data-n="1" data-keep="0"><span class="grp-bucket-lbl">Beauté</span><span class="grp-count">1</span></div>
-        <div class="grp-bucket" data-cat="Boisson" data-n="1" data-keep="0"><span class="grp-bucket-lbl">Boisson</span><span class="grp-count">1</span></div>
-        <div class="grp-bucket" data-cat="Nutrition" data-n="2" data-keep="1"><span class="grp-bucket-lbl">Nutrition</span><span class="grp-count">2</span></div>
-        <div class="grp-bucket" data-cat="Accessoire" data-n="1" data-keep="0"><span class="grp-bucket-lbl">Accessoire</span><span class="grp-count">1</span></div>
-        <div class="grp-chip" data-cat="Bien-être" data-keep="1">Fibre Préb.</div>
-        <div class="grp-chip" data-cat="Beauté" data-keep="0">Collagène</div>
-        <div class="grp-chip" data-cat="Bien-être" data-keep="1">Magnésium</div>
-        <div class="grp-chip" data-cat="Nutrition" data-keep="1">Vit. D</div>
-        <div class="grp-chip" data-cat="Boisson" data-keep="0">Tisane</div>
-        <div class="grp-chip" data-cat="Nutrition" data-keep="1">Protéine</div>
-        <div class="grp-chip" data-cat="Bien-être" data-keep="1">Oméga 3</div>
-        <div class="grp-chip" data-cat="Accessoire" data-keep="0">Shaker</div>
-      </div>
-      <div class="grp-controls">
-        <button type="button" class="grp-pause" id="having-grp-pause" onclick="togglePauseHavingGrpViz()" disabled aria-label="Pause">⏸ Pause</button>
-        <button type="button" class="grp-replay" id="having-grp-btn" onclick="replayHavingGrpViz()">▶ Voir l’animation</button>
-      </div>
-    </div>
-  </div>
-  <!-- early-demo -->
-  </div>`,
+    studio:{problem:{title:"<code>WHERE</code> filtre les lignes. <code>HAVING</code> filtre les groupes.",
+      body:""},
+    vs:{stack:true,
+        bad:{tag:"✕ Avec WHERE",sql:"SELECT categorie, COUNT(*)\nFROM produits\nWHERE COUNT(*) >= 2\nGROUP BY categorie;",out:"Échoue : COUNT n’existe pas encore au moment du WHERE",pedagogic:true,
+            code:"SELECT categorie, COUNT(*)\nFROM produits\n<span class=\"vs-line bad\">WHERE COUNT(*) >= 2</span>\nGROUP BY categorie;"},
+        good:{tag:"✓ Avec HAVING",sql:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",out:"2 lignes : Bien-être (3) et Nutrition (2)",
+            code:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\n<span class=\"vs-line good\">HAVING COUNT(*) >= 2</span>;"}},
+    why:{title:"Comment HAVING filtre les groupes ?"},
+    viz:"having"},
   anatomie:[{tok:"SELECT categorie, COUNT(*)",txt:"Affiche la catégorie et le nombre de produits."},
     {tok:"FROM produits",txt:"Lit la table produits."},
     {tok:"GROUP BY categorie",txt:"Regroupe les lignes par catégorie."},
@@ -7036,8 +6987,15 @@ function runVsSql(btn){
       if(navigator.vibrate)navigator.vibrate(8);
     }catch(e){
       host.hidden=false;
-      host.className='vs-out err live';
-      host.innerHTML=`<span class="vs-err-box">${esc(e.message)}</span>`;
+      const pedagogic=btn.getAttribute('data-pedagogic')==='1';
+      const hint=btn.getAttribute('data-hint')||'';
+      if(pedagogic||hint){
+        host.className='vs-out warn live';
+        host.innerHTML=`<div class="feedback warn"><div class="fi">!</div><div><b>Échoue</b><p>${esc(hint||'SQL ne peut pas exécuter cette requête.')}</p></div></div>`;
+      }else{
+        host.className='vs-out err live';
+        host.innerHTML=`<span class="vs-err-box">${esc(e.message)}</span>`;
+      }
       void host.offsetWidth;
       host.classList.add('flash');
     }finally{
@@ -9893,9 +9851,17 @@ const SQL_VIZ={
     {t:'29,90'},{t:'39,90'},{t:'19,90'},{t:'14,90'},{t:'12,50'},{t:'34,90'},{t:'24,90'},{t:'15,00'}
   ]},
   having:{kind:'group',phases:[
-    {k:'SELECT categorie FROM produits',d:'SQL lit simplement les lignes'},
-    {k:'GROUP BY categorie',d:'SQL rassemble maintenant les lignes ayant la même catégorie.'},
-    {k:'HAVING COUNT(*) ≥ 2',d:'SQL peut enfin filtrer les groupes.'}
+    {k:'SELECT categorie FROM produits',d:'Les 8 produits s’affichent, chacun avec sa catégorie.'},
+    {k:'GROUP BY categorie',d:'SQL rassemble les produits de même catégorie. Il forme 5 groupes.'},
+    {k:'HAVING COUNT(*) ≥ 2',d:'Il ne garde que Bien-être (3) et Nutrition (2). Les groupes d’un seul produit disparaissent.'}
+  ],buckets:[
+    {cat:'Bien-être',n:3,keep:1},{cat:'Beauté',n:1,keep:0},{cat:'Boisson',n:1,keep:0},
+    {cat:'Nutrition',n:2,keep:1},{cat:'Accessoire',n:1,keep:0}
+  ],chips:[
+    {t:'Fibre Préb.',cat:'Bien-être',keep:1},{t:'Collagène',cat:'Beauté',keep:0},
+    {t:'Magnésium',cat:'Bien-être',keep:1},{t:'Vit. D',cat:'Nutrition',keep:1},
+    {t:'Tisane',cat:'Boisson',keep:0},{t:'Protéine',cat:'Nutrition',keep:1},
+    {t:'Oméga 3',cat:'Bien-être',keep:1},{t:'Shaker',cat:'Accessoire',keep:0}
   ]},
   groupby:{kind:'group',phases:[
     {k:'SELECT nom, ville FROM clients',d:'Les 9 clients s’affichent, chacun avec sa ville. Paris revient 3 fois, Lyon 2 fois.'},
