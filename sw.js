@@ -14,7 +14,7 @@
    CACHE doit changer à chaque déploiement pour purger l'ancien contenu :
    garde-le aligné sur APP_VERSION dans index.html. */
 
-const CACHE = 'requete-2026-08-18-cours-visuel';
+const CACHE = 'requete-2026-08-16-ios-polish';
 
 const PRECACHE = [
   './',
@@ -26,8 +26,6 @@ const PRECACHE = [
   './viz-where.css',
   './viz-orderby.js',
   './viz-orderby.css',
-  './cours-visuel.js',
-  './cours-visuel.css',
   './vendor/sqljs/sql-wasm.js',
   './vendor/sqljs/sql-wasm.wasm',
   './assets/mascotte-requete.png',
