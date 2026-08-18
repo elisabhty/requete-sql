@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>Requête — Apprends le SQL</title>
-<meta name="description" content="Apprends le SQL en pratiquant sur une vraie base SQLite. 29 leçons, défis, révision espacée et console interactive.">
+<meta name="description" content="Apprends le SQL en pratiquant sur une vraie base SQLite. Leçons, défis, révision espacée et console interactive.">
 <meta name="theme-color" content="#5B5BD6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -744,6 +744,90 @@
   .sql-viz[data-kind="minmax"] .cnt-num{font-family:var(--mono);font-size:42px;font-weight:800;letter-spacing:-1.4px;line-height:1;color:var(--accent)}
   .sql-viz[data-kind="minmax"] .cnt-lbl{font-size:13px;font-weight:700;color:var(--ink-2)}
   .sql-viz[data-kind="minmax"][data-phase="2"] .grp-chip{opacity:0;pointer-events:none;transition:opacity .4s ease .05s}
+
+  /* Modélisation : schéma dessiné, phases CSS, tap pour relier */
+  .sql-viz[data-kind="er"] .grp-stage{height:auto!important;overflow:visible}
+  .er-stage{position:relative;font-family:var(--mono)}
+  .er-card-h{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent-2));padding:8px 10px;border-radius:10px 10px 0 0}
+  .er-pk,.er-fk{font-size:9px;font-weight:800;letter-spacing:.4px;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,.22)}
+  .er-fk{background:rgba(255,210,160,.35)}
+  .er-note,.er-hint{margin:10px 2px 0;font-family:var(--ui);font-size:12.5px;font-weight:600;color:var(--ink-3);line-height:1.4}
+  .er-hint{color:var(--accent)}
+  .er-grid{display:grid;border:1px solid rgba(60,60,67,.1);border-top:0;border-radius:0 0 12px 12px;overflow:hidden;background:var(--surface)}
+  .er-th,.er-td{padding:7px 8px;font-size:11px;font-weight:600;border-right:1px solid var(--line);border-bottom:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .er-th{background:#FAFAFC;color:#8E8E93;font-size:9.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+  .er-grid > :nth-child(4n){border-right:0}
+  .er-fat-grid{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr) minmax(0,1.3fr) 36px}
+  .er-td{color:var(--ink);transition:background .45s ease,color .35s,box-shadow .35s}
+  .sql-viz[data-viz="split"][data-phase="1"] .er-td[data-ent="cli"],
+  .sql-viz[data-viz="split"][data-phase="2"] .er-td[data-ent="cli"]{background:var(--accent-soft);color:var(--accent)}
+  .sql-viz[data-viz="split"][data-phase="1"] .er-td[data-ent="prd"],
+  .sql-viz[data-viz="split"][data-phase="2"] .er-td[data-ent="prd"]{background:var(--success-soft);color:var(--success)}
+  .sql-viz[data-viz="split"][data-phase="1"] .er-td[data-ent="cmd"],
+  .sql-viz[data-viz="split"][data-phase="2"] .er-td[data-ent="cmd"]{background:var(--warn-soft);color:var(--warn)}
+  .er-split{display:flex;flex-direction:column}
+  .er-fat,.er-three{transition:opacity .5s ease,transform .5s var(--spring-ios),max-height .55s ease,margin .4s ease}
+  .er-fat{max-height:260px;overflow:hidden}
+  .er-three{display:flex;flex-direction:column;gap:8px;max-height:0;opacity:0;overflow:hidden;transform:translateY(10px);pointer-events:none}
+  .sql-viz[data-viz="split"][data-phase="2"] .er-fat{max-height:0;opacity:0;transform:scale(.98);pointer-events:none;margin:0}
+  .sql-viz[data-viz="split"][data-phase="2"] .er-three{max-height:520px;opacity:1;transform:none;pointer-events:auto}
+  .er-mini{border:1px solid var(--card-border);border-radius:12px;overflow:hidden;background:var(--surface);box-shadow:var(--card-shadow-sm);transform:translateY(8px);opacity:0;transition:transform .5s var(--spring-ios),opacity .45s ease}
+  .sql-viz[data-viz="split"][data-phase="2"] .er-mini{transform:none;opacity:1}
+  .sql-viz[data-viz="split"][data-phase="2"] .er-mini:nth-child(1){transition-delay:.05s}
+  .sql-viz[data-viz="split"][data-phase="2"] .er-mini:nth-child(2){transition-delay:.16s}
+  .sql-viz[data-viz="split"][data-phase="2"] .er-mini:nth-child(3){transition-delay:.28s}
+  .er-mini .er-card-h{border-radius:0}
+  .er-mini[data-t="prd"] .er-card-h{background:linear-gradient(135deg,#0F766E,#14B8A6)}
+  .er-mini[data-t="cmd"] .er-card-h{background:linear-gradient(135deg,#B45309,#E0A040)}
+  .er-mini-row{display:flex;align-items:center;gap:8px;padding:7px 10px;font-size:11.5px;font-weight:600;border-top:1px solid var(--line);color:var(--ink)}
+  .er-mini-row .er-key{flex:none;width:22px;height:22px;border-radius:7px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}
+  .er-pk-table{border:1px solid var(--card-border);border-radius:12px;overflow:hidden;background:var(--surface)}
+  .er-pk-head,.er-pk-row{display:grid;grid-template-columns:44px minmax(0,1.1fr) minmax(0,1fr);align-items:center;width:100%}
+  .er-pk-head{background:#FAFAFC;padding:7px 8px;font-size:9.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:#8E8E93}
+  .er-pk-row{border:0;border-top:1px solid var(--line);background:transparent;padding:0;font:inherit;text-align:left;cursor:pointer;touch-action:manipulation;transition:background .2s ease}
+  .er-pk-row:active{background:var(--surface-2)}
+  .er-pk-row span{padding:8px 8px;font-size:11.5px;font-weight:600;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .er-pk-row span[data-col="id"]{font-weight:800}
+  .sql-viz[data-viz="pk"][data-phase="1"] .er-pk-row span[data-col="id"],
+  .sql-viz[data-viz="pk"][data-phase="2"] .er-pk-row span[data-col="id"]{color:var(--accent)}
+  .sql-viz[data-viz="pk"] .er-badge{display:inline-block;margin-left:6px;opacity:0;transform:scale(.7);transition:opacity .35s ease,transform .35s var(--bounce-ios);font-size:9px;font-weight:800;letter-spacing:.3px;color:#fff;background:rgba(255,255,255,.22);padding:2px 6px;border-radius:6px;vertical-align:middle}
+  .sql-viz[data-viz="pk"][data-phase="1"] .er-badge,
+  .sql-viz[data-viz="pk"][data-phase="2"] .er-badge{opacity:1;transform:none}
+  .sql-viz[data-viz="pk"][data-phase="2"] .er-pk-row span[data-dup="1"]{color:var(--warn)}
+  .sql-viz[data-viz="pk"][data-phase="2"] .er-pk-row span[data-dup="1"]::after{content:' ×3';font-size:9px;font-weight:800;letter-spacing:.2px;opacity:.75}
+  .er-pk-row[data-er-on="1"]{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+  .er-match{position:relative}
+  .er-pair{display:grid;grid-template-columns:1fr 1fr;gap:18px;position:relative;z-index:1}
+  .er-col{border:1px solid var(--card-border);border-radius:12px;overflow:hidden;background:var(--surface);box-shadow:var(--card-shadow-sm)}
+  .er-col[data-side="fk"] .er-card-h{background:linear-gradient(135deg,#B45309,#E0A040)}
+  .er-btn{display:flex;align-items:center;gap:8px;width:100%;border:0;border-top:1px solid var(--line);background:transparent;padding:8px 10px;font:inherit;font-size:11.5px;font-weight:600;color:var(--ink);text-align:left;cursor:pointer;touch-action:manipulation;white-space:nowrap;overflow:hidden;transition:background .2s ease,transform .16s var(--spring-ios),box-shadow .2s}
+  .er-btn:active{transform:scale(.98)}
+  .er-btn .er-key{flex:none;min-width:22px;height:22px;padding:0 5px;border-radius:7px;background:var(--surface-2);color:var(--ink-2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}
+  .er-btn[data-er-on="1"]{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+  .er-btn[data-er-on="1"] .er-key{background:var(--accent);color:#fff}
+  .er-links{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;overflow:visible}
+  .er-line{fill:none;stroke:rgba(91,91,214,.28);stroke-width:2;stroke-linecap:round;opacity:0}
+  .sql-viz[data-viz="fk"][data-phase="2"] .er-line{opacity:1;stroke-dasharray:120;stroke-dashoffset:120;animation:erDraw .9s ease forwards}
+  .sql-viz[data-viz="fk"][data-phase="2"] .er-line:nth-child(1){animation-delay:.05s}
+  .sql-viz[data-viz="fk"][data-phase="2"] .er-line:nth-child(2){animation-delay:.14s}
+  .sql-viz[data-viz="fk"][data-phase="2"] .er-line:nth-child(3){animation-delay:.23s}
+  .sql-viz[data-viz="fk"][data-phase="2"] .er-line:nth-child(4){animation-delay:.32s}
+  .er-line[data-er-on="1"]{stroke:var(--accent);stroke-width:2.6;filter:drop-shadow(0 0 4px rgba(91,91,214,.35))}
+  @keyframes erDraw{to{stroke-dashoffset:0}}
+  .sql-viz[data-kind="er"][data-paused="1"] .er-line,
+  .sql-viz[data-kind="er"][data-paused="1"] .er-mini,
+  .sql-viz[data-kind="er"][data-paused="1"] .er-fat,
+  .sql-viz[data-kind="er"][data-paused="1"] .er-three,
+  .sql-viz[data-kind="er"][data-paused="1"] .er-td,
+  .sql-viz[data-kind="er"][data-paused="1"] .er-badge{animation-play-state:paused!important}
+  @media (prefers-reduced-motion:reduce){
+    .sql-viz[data-kind="er"] .er-line,
+    .sql-viz[data-kind="er"] .er-mini,
+    .sql-viz[data-kind="er"] .er-fat,
+    .sql-viz[data-kind="er"] .er-three,
+    .sql-viz[data-kind="er"] .er-td,
+    .sql-viz[data-kind="er"] .er-badge{animation-duration:1ms!important;animation-delay:0ms!important;transition:none!important}
+  }
 
   .anat{background:var(--code-bg);border-radius:14px;padding:6px 0;margin-bottom:16px}
   .anat-line{display:flex;gap:12px;align-items:flex-start;padding:10px 15px}
@@ -3303,9 +3387,94 @@ GROUP BY categorie
 
 ]},
 
+{ titre:"Modélisation", sous:"Tables, clés, relations", lessons:[
+{ id:33, titre:"Plusieurs tables", résumé:"Un sujet par table",
+  situation:"Tu veux savoir qui a commandé quoi. Dans <code>commandes</code>, tu cherches le nom du client. Il n’y est pas : seulement un numéro, <code>client_id</code>.<br><br>Avec ce que tu connais déjà, tu peux ouvrir la table :",
+  situationSql:"SELECT *\nFROM commandes;",
+  situationTail:"Tu vois des identifiants, pas « Sophie » ni « Fibre Prébiotique ». C’est voulu : chaque sujet a sa propre table.",
+    studio:{problem:{title:"Une table = un sujet. On ne recopie pas tout partout.",
+      body:""},
+    vs:{bad:{tag:"✕ Une seule feuille",sql:"Sophie | Paris | Fibre | 2\nSophie | Paris | Magnésium | 1",static:"Sophie et Paris sont copiés à chaque commande",
+            code:"Sophie  Paris  Fibre       2\nSophie  Paris  Magnésium   1"},
+        good:{tag:"✓ Une table par sujet",sql:"clients · produits · commandes",static:"Le nom reste dans clients. La commande garde client_id.",
+            code:"clients     → id, nom, ville\nproduits    → id, nom, prix\ncommandes   → client_id, produit_id"}},
+    why:{title:"Pourquoi découper les données ?"},
+    viz:"split",
+    reflex:{a:{k:"1 table",t:"<b>1 sujet</b> : clients, ou produits, ou commandes"},
+      b:{k:"Un id",t:"le <b>pont</b> vers une autre table"}}},
+  anatomie:[{tok:"clients",plain:1,txt:"Les personnes. Une ligne = un client."},{tok:"produits",plain:1,txt:"Le catalogue. Une ligne = un produit."},{tok:"commandes",plain:1,txt:"Les achats. Elle pointe vers les deux autres par des id."}],
+  exemple:"SELECT client_id, quantite FROM commandes;",
+  attendu:"<b>15 lignes</b> : chaque commande montre le numéro du client, pas son nom.",
+  retenir:"On ne met pas tout dans une seule table. <code>clients</code>, <code>produits</code> et <code>commandes</code> se partagent le travail. Une commande stocke <code>client_id</code>, pas le nom : le nom reste dans <code>clients</code>.",
+  piege:{t:"Recopier le nom dans commandes",p:"Si Sophie déménage, tu devrais corriger chaque commande. Avec un <code>client_id</code>, tu changes <code>ville</code> une seule fois, dans <code>clients</code>."},
+  consigne:"Affiche le <code>client_id</code> et la <code>quantite</code> de chaque commande.",
+  solution:"SELECT client_id, quantite FROM commandes;",
+  indice:"Les colonnes utiles sont dans <code>commandes</code> : <code>client_id</code> et <code>quantite</code>.",
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'star',label:'SELECT *',sql:"SELECT *\nFROM commandes;",out:"Des id, pas le nom du client"},
+    {k:'pont',label:'client_id',sql:"SELECT client_id, quantite\nFROM commandes;",out:"Le pont vers la table clients"}
+  ] },
+{ id:34, titre:"Clé primaire", résumé:"Identifier une ligne",
+  situation:"Trois clientes habitent Paris. Si tu cherches « la Parisienne », SQL ne peut pas choisir.<br><br>Avec ce que tu connais déjà, tu peux lister les noms et les villes :",
+  situationSql:"SELECT nom, ville\nFROM clients;",
+  situationTail:"Paris apparaît 3 fois. Pour désigner <b>exactement une ligne</b>, il faut une colonne unique : la clé primaire <code>id</code>.",
+    studio:{problem:{title:"La clé primaire identifie chaque ligne, sans doublon.",
+      body:""},
+    vs:{bad:{tag:"✕ Repérer par la ville",sql:"SELECT nom FROM clients\nWHERE ville = 'Paris';",out:"3 lignes : Sophie, Nathan, Léa — laquelle ?",
+            code:"SELECT nom\nFROM clients\nWHERE ville = <span class=\"vs-line bad\">'Paris'</span>;"},
+        good:{tag:"✓ Repérer par l’id",sql:"SELECT nom FROM clients\nWHERE id = 1;",out:"1 ligne : Sophie",
+            code:"SELECT nom\nFROM clients\nWHERE <span class=\"vs-line good\">id = 1</span>;"}},
+    why:{title:"Comment l’id distingue les lignes ?"},
+    viz:"pk",
+    reflex:{a:{k:"PRIMARY KEY",t:"unique, obligatoire, <b>une par ligne</b>"},
+      b:{k:"nom, ville",t:"peuvent se <b>répéter</b> — ce ne sont pas des clés"}}},
+  anatomie:[{tok:"id",plain:1,txt:"Clé primaire : un numéro unique par client."},{tok:"nom",plain:1,txt:"Peut se répéter. Ne sert pas d’identifiant."},{tok:"ville",plain:1,txt:"Paris apparaît 3 fois : ce n’est pas une clé."}],
+  exemple:"SELECT id, nom FROM clients;",
+  attendu:"<b>9 lignes</b> : chaque client avec son <code>id</code> unique.",
+  retenir:"La <b>clé primaire</b> identifie une ligne et une seule. Dans <code>clients</code>, c’est <code>id</code>. Le nom ou la ville peuvent se répéter ; l’<code>id</code> non.",
+  piege:{t:"Utiliser le nom comme identifiant",p:"Deux personnes peuvent s’appeler pareil. <code>WHERE nom = 'Sophie'</code> n’est sûr que s’il n’y a qu’une Sophie. <code>WHERE id = 1</code> désigne toujours la même ligne."},
+  consigne:"Affiche l’<code>id</code> et le <code>nom</code> de chaque client.",
+  solution:"SELECT id, nom FROM clients;",
+  indice:"Les deux colonnes s’écrivent après <code>SELECT</code>, séparées par une virgule.",
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'nom',label:'SELECT nom',sql:"SELECT nom, ville\nFROM clients;",out:"Paris n’identifie personne à coup sûr"},
+    {k:'id',label:'SELECT id, nom',sql:"SELECT id, nom\nFROM clients;",out:"id est unique : une ligne, un numéro"}
+  ] },
+{ id:35, titre:"Clé étrangère", résumé:"Pointer vers une autre table",
+  situation:"Dans <code>commandes</code>, <code>client_id</code> vaut 1, 1, 2… Ce n’est pas une quantité : c’est le numéro d’un client.<br><br>Avec ce que tu connais déjà, tu peux lire ces numéros :",
+  situationSql:"SELECT client_id, quantite\nFROM commandes;",
+  situationTail:"Le 1 revient plusieurs fois : Sophie a plusieurs commandes. <code>client_id</code> copie la clé primaire de <code>clients</code>. C’est une <b>clé étrangère</b>.",
+    studio:{problem:{title:"La clé étrangère recopie l’id d’une autre table.",
+      body:""},
+    vs:{bad:{tag:"✕ Stocker le nom",sql:"SELECT nom FROM commandes;",err:"La colonne nom n’existe pas dans commandes",
+            code:"SELECT <span class=\"vs-line bad\">nom</span>\nFROM commandes;"},
+        good:{tag:"✓ Stocker l’id",sql:"SELECT client_id FROM commandes;",out:"Des numéros : 1, 1, 2… le pont vers clients.id",
+            code:"SELECT <span class=\"vs-line good\">client_id</span>\nFROM commandes;"}},
+    why:{title:"Comment client_id retrouve Sophie ?"},
+    viz:"fk",
+    reflex:{a:{k:"PRIMARY KEY",t:"<code>clients.id</code> — unique"},
+      b:{k:"FOREIGN KEY",t:"<code>commandes.client_id</code> — <b>peut se répéter</b>"}}},
+  anatomie:[{tok:"clients.id",plain:1,txt:"Clé primaire : Sophie = 1, une seule fois."},{tok:"commandes.client_id",plain:1,txt:"Clé étrangère : autant de 1 que Sophie a de commandes."},{tok:"produit_id",plain:1,txt:"Autre clé étrangère, vers <code>produits.id</code>."}],
+  exemple:"SELECT client_id, produit_id FROM commandes;",
+  attendu:"<b>15 lignes</b> : chaque commande pointe vers un client et un produit.",
+  retenir:"Une <b>clé étrangère</b> recopie la clé primaire d’une autre table. <code>commandes.client_id</code> vaut <code>clients.id</code>. Un client (1) peut avoir plusieurs commandes : la clé étrangère se répète.",
+  piege:{t:"Croire que la clé étrangère est unique",p:"La primaire est unique. L’étrangère non : c’est le principe d’une relation 1-N. Sophie (<code>id = 1</code>) a 3 commandes, donc <code>client_id = 1</code> apparaît 3 fois.",
+    sql:"SELECT client_id FROM commandes;"},
+  consigne:"Affiche le <code>client_id</code> et le <code>produit_id</code> de chaque commande.",
+  solution:"SELECT client_id, produit_id FROM commandes;",
+  indice:"Les deux ponts sont dans <code>commandes</code> : <code>client_id</code> et <code>produit_id</code>.",
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;",out:"id est unique : une personne, un numéro"},
+    {k:'cmd',label:'commandes',sql:"SELECT id, client_id\nFROM commandes;",out:"client_id se répète : un client, plusieurs commandes"}
+  ] }
+]},
+
 { titre:"Relier", sous:"Plusieurs tables, une question", lessons:[
 { id:18, titre:"JOIN", résumé:"Relier deux tables",
-  situation:"Pour chaque commande, tu veux le nom du client. Le nom n’est pas dans <code>commandes</code> : il est dans <code>clients</code>.",
+  situation:"Tu sais que <code>commandes.client_id</code> pointe vers <code>clients.id</code>. Pour chaque commande, tu veux maintenant le <b>nom</b> du client. Le nom n’est pas dans <code>commandes</code> : il est dans <code>clients</code>.",
     studio:{problem:{title:"Sans ON, chaque commande est collée à chaque client.",
       body:"Les données sont découpées exprès. Le <code>JOIN</code> recolle les tables via une colonne commune. Sans règle d’appariement, SQL associe tout avec tout."},
     vs:{bad:{tag:"✕ Sans ON",sql:"SELECT commandes.id, clients.nom, commandes.quantite\nFROM commandes, clients;",out:"Produit cartésien : chaque commande × chaque client"},
@@ -3696,6 +3865,12 @@ const CARTES={
  17:{k:"HAVING",t:"Filtrer les groupes",s:"GROUP BY …\nHAVING …",
     run:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",
     m:"Ordre d’exécution : FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY. <b>WHERE filtre des lignes, HAVING filtre des groupes.</b>"},
+ 33:{k:"Plusieurs tables",t:"Un sujet par table",s:"SELECT client_id, quantite FROM commandes;",
+    m:"Une table = un sujet. <code>commandes</code> ne recopie pas le nom du client : elle garde <code>client_id</code>, le pont vers <code>clients</code>."},
+ 34:{k:"PRIMARY KEY",t:"Identifier une ligne",s:"SELECT id, nom FROM clients;",
+    m:"La <b>clé primaire</b> identifie une ligne et une seule. Dans <code>clients</code>, c’est <code>id</code>. Le nom ou la ville peuvent se répéter."},
+ 35:{k:"FOREIGN KEY",t:"Pointer vers une autre table",s:"SELECT client_id, produit_id FROM commandes;",
+    m:"Une <b>clé étrangère</b> recopie la clé primaire d’une autre table. <code>client_id</code> peut se répéter : un client, plusieurs commandes."},
  18:{k:"JOIN",t:"Relier deux tables",s:"FROM commandes\nJOIN clients ON commandes.client_id = clients.id",
     m:"Recolle les tables via une colonne commune. Pour une jointure relationnelle, écris <code>ON</code> ou <code>USING</code>. Sans condition, tu obtiens un produit cartésien. Préfixe (<code>clients.nom</code>) dès qu’il y a ambiguïté."},
  19:{k:"AS",t:"Renommer et empiler",s:"SELECT clients.nom AS client",
@@ -3767,6 +3942,12 @@ const QCM={
    {q:"Il y a 9 clients répartis dans 6 villes. Combien de lignes renvoie <code>SELECT ville, COUNT(*) FROM clients GROUP BY ville;</code> ?",o:["9 lignes","1 ligne","6 lignes"],b:2,e:"Le résultat contient une ligne par groupe. Avec 6 villes différentes, il y a donc 6 lignes."}],
  17:[{q:"<code>WHERE COUNT(*) >= 2</code> :",o:["Fonctionne correctement","Échoue : les agrégats ne sont pas disponibles au moment du WHERE","Renvoie un résultat vide"],b:1,e:"Quand WHERE s’exécute, les groupes n’existent pas encore. C’est le rôle de HAVING."},
    {q:"Dans l’ordre d’exécution, HAVING vient :",o:["Avant GROUP BY","Après GROUP BY","Avant WHERE"],b:1,e:"FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY."}],
+ 33:[{q:"Une table devrait contenir :",o:["Toutes les informations possibles","Un seul sujet : clients, ou produits, ou commandes","Uniquement des nombres"],b:1,e:"On découpe par sujet. Une commande ne stocke pas le nom du client : elle pointe vers clients via un id."},
+   {q:"Pourquoi <code>commandes</code> a un <code>client_id</code> plutôt que le nom ?",o:["Parce que SQL refuse les noms","Pour ne pas recopier les infos du client à chaque achat","Pour trier plus vite"],b:1,e:"Si Sophie déménage, tu corriges une seule ligne dans clients. Toutes ses commandes restent justes."}],
+ 34:[{q:"Une clé primaire sert à :",o:["Trier la table","Identifier chaque ligne, sans doublon","Filtrer avec WHERE"],b:1,e:"Dans clients, id est unique. Le nom ou la ville peuvent se répéter."},
+   {q:"Trois clientes habitent Paris. <code>WHERE ville = 'Paris'</code> renvoie :",o:["Une seule personne","Les 3 Parisiennes — ce n’est pas un identifiant","Une erreur"],b:1,e:"La ville n’est pas unique. Pour une personne précise, on utilise id."}],
+ 35:[{q:"Une clé étrangère :",o:["Est toujours unique","Recopie la clé primaire d’une autre table","Remplace le JOIN"],b:1,e:"commandes.client_id recopie clients.id. Ce n’est pas unique : un client peut avoir plusieurs commandes."},
+   {q:"Sophie a 3 commandes. <code>client_id = 1</code> apparaît :",o:["1 fois","3 fois","9 fois"],b:1,e:"Relation 1-N : une personne, plusieurs achats. La clé étrangère se répète."}],
  18:[{q:"À quoi sert la clause <code>ON</code> ?",o:["À trier le résultat","À dire quelle colonne correspond à quelle colonne","À filtrer les lignes"],b:1,e:"C’est la règle d’appariement. Sans elle, SQL associe tout avec tout."},
    {q:"Sophie a 3 commandes. Dans un JOIN commandes/clients, son nom apparaît :",o:["1 fois","3 fois","9 fois"],b:1,e:"Le JOIN répète les infos du client autant de fois qu’il a de commandes."}],
  19:[{q:"<code>AS</code> sert à :",o:["Créer une colonne dans la base","Renommer une colonne à l’affichage","Relier deux tables"],b:1,e:"Habillage uniquement : la base n’est pas modifiée."},
@@ -6499,10 +6680,12 @@ function minmaxChipState(chips, mode){
 }
 function renderVizShell(key){
   const cfg=SQL_VIZ[key];
-  if(!cfg)return '';
+    if(!cfg)return '';
   const p0=cfg.phases[0];
   let stage='';
-  if(cfg.kind==='cols'&&cfg.cols&&cfg.rows){
+  if(cfg.kind==='er'){
+    stage=cfg.html||'';
+  }else if(cfg.kind==='cols'&&cfg.cols&&cfg.rows){
     const head=cfg.cols.map(c=>`<span class="sel-c" data-col="${c.k}" data-keep="${c.keep}">${esc(c.h)}</span>`).join('');
     const body=cfg.rows.map(r=>`<div class="sel-row">${cfg.cols.map(c=>{
       const v=r[c.k];
@@ -9139,7 +9322,7 @@ function paintOb(){
       <img class="mascot" src="assets/mascotte-requete.png" alt="Requête, la mascotte">
       <div class="ob-kicker">Bienvenue</div>
       <h2>Apprends le SQL<br>à ton rythme.</h2>
-      <p>29 leçons courtes, une vraie base SQLite, zéro installation.</p>
+      <p>${TOTAL} leçons courtes, une vraie base SQLite, zéro installation.</p>
       <ul class="ob-trust"><li>Sans compte</li><li>Hors-ligne</li><li>Gratuit</li></ul>
     </div>`;
   }else if(slide==='pratique'){
@@ -9473,7 +9656,7 @@ function renderCompte(){
       </div>
     </section>
     <div class="acc-premium">
-      <div><div class="pt">PREMIUM</div><b>Les 29 leçons, les défis et tes imports</b></div>
+      <div><div class="pt">PREMIUM</div><b>Les ${TOTAL} leçons, les défis et tes imports</b></div>
       <button type="button" class="price" onclick="toast('Bientôt — déjà tout inclus dans cette version.')">4,99 €</button>
     </div>
     <section class="acc-sec">
@@ -9727,7 +9910,73 @@ const SQL_VIZ={
     {t:'Chloé',extra:'Bordeaux',cat:'Bordeaux',keep:1},{t:'Hugo',extra:'Lyon',cat:'Lyon',keep:1},
     {t:'Léa',extra:'Paris',cat:'Paris',keep:1},{t:'Gabriel',extra:'Toulouse',cat:'Toulouse',keep:1},
     {t:'Inès',extra:'Nantes',cat:'Nantes',keep:1}
-  ]}
+  ]},
+  split:{kind:'er',phases:[
+    {k:'Une seule feuille',d:'Tout est mélangé : le client, la ville, le produit, la quantité. Sophie et Paris sont copiés à chaque ligne.'},
+    {k:'3 sujets',d:'Les couleurs séparent les sujets : personne, catalogue, achat. Ils n’ont rien à faire dans la même table.'},
+    {k:'3 tables',d:'Chaque sujet a sa table. La commande ne garde que des id : le pont vers les autres.'}
+  ],html:`<div class="er-stage er-split">
+    <div class="er-fat">
+      <div class="er-card-h">une seule feuille</div>
+      <div class="er-grid er-fat-grid">
+        <div class="er-th">client</div><div class="er-th">ville</div><div class="er-th">produit</div><div class="er-th">qté</div>
+        <div class="er-td" data-ent="cli">Sophie</div><div class="er-td" data-ent="cli">Paris</div><div class="er-td" data-ent="prd">Fibre</div><div class="er-td" data-ent="cmd">2</div>
+        <div class="er-td" data-ent="cli">Sophie</div><div class="er-td" data-ent="cli">Paris</div><div class="er-td" data-ent="prd">Magnésium</div><div class="er-td" data-ent="cmd">1</div>
+        <div class="er-td" data-ent="cli">Lucas</div><div class="er-td" data-ent="cli">Lyon</div><div class="er-td" data-ent="prd">Protéine</div><div class="er-td" data-ent="cmd">1</div>
+      </div>
+      <p class="er-note">Sophie et Paris sont recopiés à chaque commande.</p>
+    </div>
+    <div class="er-three">
+      <div class="er-mini" data-t="cli"><div class="er-card-h">clients</div>
+        <div class="er-mini-row"><span class="er-key">1</span>Sophie · Paris</div>
+        <div class="er-mini-row"><span class="er-key">2</span>Lucas · Lyon</div></div>
+      <div class="er-mini" data-t="prd"><div class="er-card-h">produits</div>
+        <div class="er-mini-row"><span class="er-key">1</span>Fibre</div>
+        <div class="er-mini-row"><span class="er-key">3</span>Magnésium</div>
+        <div class="er-mini-row"><span class="er-key">6</span>Protéine</div></div>
+      <div class="er-mini" data-t="cmd"><div class="er-card-h">commandes</div>
+        <div class="er-mini-row"><span class="er-key">1</span>client 1 · produit 1</div>
+        <div class="er-mini-row"><span class="er-key">2</span>client 1 · produit 3</div>
+        <div class="er-mini-row"><span class="er-key">3</span>client 2 · produit 6</div></div>
+    </div>
+  </div>`},
+  pk:{kind:'er',phases:[
+    {k:'SELECT nom, ville',d:'Trois clientes habitent Paris. La ville ne dit pas qui est qui.'},
+    {k:'PRIMARY KEY',d:'Le badge PK apparaît sur id. Chaque ligne a un numéro, et un seul.'},
+    {k:'id unique',d:'Paris revient 3 fois : ce n’est pas une clé. id = 1, 4, 7 : trois personnes distinctes.'}
+  ],html:`<div class="er-stage">
+    <div class="er-pk-table">
+      <div class="er-card-h">clients<span class="er-badge">PK</span></div>
+      <div class="er-pk-head"><span>id</span><span>nom</span><span>ville</span></div>
+      <button type="button" class="er-pk-row" data-er-id="1"><span data-col="id">1</span><span>Sophie</span><span data-dup="1">Paris</span></button>
+      <button type="button" class="er-pk-row" data-er-id="4"><span data-col="id">4</span><span>Nathan</span><span data-dup="1">Paris</span></button>
+      <button type="button" class="er-pk-row" data-er-id="7"><span data-col="id">7</span><span>Léa</span><span data-dup="1">Paris</span></button>
+    </div>
+    <p class="er-hint">Touche une ligne : l’id suffit à la retrouver.</p>
+  </div>`},
+  fk:{kind:'er',phases:[
+    {k:'Deux tables',d:'À gauche, l’id unique d’un client. À droite, client_id dans les commandes.'},
+    {k:'FOREIGN KEY',d:'client_id recopie clients.id. Touche Sophie : ses commandes s’allument.'},
+    {k:'Relation 1-N',d:'Un client, plusieurs commandes. Les traits relient chaque achat à la bonne personne.'}
+  ],html:`<div class="er-stage er-match">
+    <svg class="er-links" aria-hidden="true"></svg>
+    <div class="er-pair">
+      <div class="er-col" data-side="pk">
+        <div class="er-card-h">clients<span class="er-pk">PK</span></div>
+        <button type="button" class="er-btn" data-er-id="1"><span class="er-key">1</span>Sophie</button>
+        <button type="button" class="er-btn" data-er-id="2"><span class="er-key">2</span>Lucas</button>
+        <button type="button" class="er-btn" data-er-id="3"><span class="er-key">3</span>Emma</button>
+      </div>
+      <div class="er-col" data-side="fk">
+        <div class="er-card-h">commandes<span class="er-fk">FK</span></div>
+        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">1</span>#1 · qté 2</button>
+        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">1</span>#2 · qté 1</button>
+        <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">2</span>#3 · qté 1</button>
+        <button type="button" class="er-btn" data-er-fk="3"><span class="er-key">3</span>#4 · qté 3</button>
+      </div>
+    </div>
+    <p class="er-hint">Touche un client ou une commande.</p>
+  </div>`}
 };
 const HAVING_GRP_PHASES=SQL_VIZ.having.phases;
 let havingGrpTimer=null,havingGrpObs=null;
@@ -9940,10 +10189,59 @@ function layoutSqlCols(root){
   const stage=root.querySelector('.grp-stage');
   if(stage) stage.style.height='auto';
 }
+function bindErViz(root){
+  if(!root||root.dataset.erBound==='1')return;
+  root.dataset.erBound='1';
+  root.addEventListener('click',e=>{
+    const row=e.target.closest('[data-er-id],[data-er-fk]');
+    if(!row||!root.contains(row))return;
+    const id=row.dataset.erId||row.dataset.erFk;
+    const was=row.getAttribute('data-er-on')==='1';
+    root.querySelectorAll('[data-er-on]').forEach(n=>n.removeAttribute('data-er-on'));
+    if(was)return;
+    root.querySelectorAll('[data-er-id="'+id+'"],[data-er-fk="'+id+'"]').forEach(n=>n.setAttribute('data-er-on','1'));
+    root.querySelectorAll('.er-line[data-er-link="'+id+'"]').forEach(n=>n.setAttribute('data-er-on','1'));
+    if(navigator.vibrate)navigator.vibrate(8);
+  });
+}
+function drawErLinks(root){
+  const svg=root.querySelector('.er-links');
+  const wrap=svg&&svg.parentElement;
+  if(!svg||!wrap)return;
+  const wr=wrap.getBoundingClientRect();
+  const w=Math.max(1,wr.width),h=Math.max(1,wr.height);
+  svg.setAttribute('viewBox','0 0 '+w+' '+h);
+  svg.setAttribute('width',String(w));
+  svg.setAttribute('height',String(h));
+  const on=new Set([...root.querySelectorAll('[data-er-on="1"]')].map(n=>n.dataset.erId||n.dataset.erFk).filter(Boolean));
+  svg.replaceChildren();
+  root.querySelectorAll('[data-er-fk]').forEach(fkEl=>{
+    const id=fkEl.dataset.erFk;
+    const pkEl=root.querySelector('[data-er-id="'+id+'"]');
+    if(!pkEl)return;
+    const a=pkEl.getBoundingClientRect(),b=fkEl.getBoundingClientRect();
+    const x1=a.right-wr.left,y1=a.top+a.height/2-wr.top;
+    const x2=b.left-wr.left,y2=b.top+b.height/2-wr.top;
+    const mid=(x1+x2)/2;
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d','M'+x1+','+y1+' C'+mid+','+y1+' '+mid+','+y2+' '+x2+','+y2);
+    path.setAttribute('data-er-link',id);
+    path.setAttribute('class','er-line');
+    if(on.has(id)) path.setAttribute('data-er-on','1');
+    svg.appendChild(path);
+  });
+}
+function layoutErViz(root){
+  const stage=root.querySelector('.grp-stage');
+  if(stage) stage.style.height='auto';
+  bindErViz(root);
+  requestAnimationFrame(()=>drawErLinks(root));
+}
 function layoutSqlViz(root,phase,opts){
   const kind=root.dataset.kind||sqlVizCfg(root).kind;
   if(kind==='group') layoutHavingGrpViz(root,phase,opts);
   else if(kind==='cols') layoutSqlCols(root,phase,opts);
+  else if(kind==='er') layoutErViz(root,phase,opts);
   else layoutSqlList(root,phase,opts);
 }
 
@@ -9982,7 +10280,7 @@ function havingGrpContinue(root,fromPhase){
   }
   const next=fromPhase+1;
   const kind=sqlVizCfg(root).kind;
-  const delay=fromPhase===0?2400:(kind==='minmax'?3400:3000);
+  const delay=fromPhase===0?2400:(kind==='er'?2800:(kind==='minmax'?3400:3000));
   havingGrpTimer=setTimeout(()=>{
     havingGrpSetPhase(root,next);
     if(next>=last){
