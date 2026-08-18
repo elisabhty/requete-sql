@@ -816,8 +816,8 @@
   .exframe .xf-head .xf-switch{flex:1 1 100%;order:3}
   .exframe.tone-bad .xf-head{box-shadow:inset 0 -2px 0 rgba(180,35,24,.45)}
   .exframe.tone-good .xf-head{box-shadow:inset 0 -2px 0 rgba(20,184,166,.45)}
-  .exframe .xf-expect.bad{color:var(--danger)}
-  .exframe .xf-expect.good{color:#0F766E}
+  .exframe .xf-expect.bad{color:#FF8E85}
+  .exframe .xf-expect.good{color:#5EEAD4}
   .exframe .ex-code{border-radius:0;margin:0;padding:16px 16px;font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word;overflow:visible;max-width:100%;box-sizing:border-box}
   .exframe .xf-editor{background:var(--code-bg);font-size:12.5px;line-height:1.6}
   .exframe .xf-editor pre,.exframe .xf-editor textarea{padding:16px 16px;font-size:12.5px;line-height:1.6}
@@ -829,9 +829,8 @@
   .run-ico .ring,.xf-run-ico .ring{fill:rgba(255,255,255,.22)}
   .run-ico .tri,.xf-run-ico .tri{fill:#fff}
   .btn-run .run-label,.run-label{display:inline-flex;align-items:center;gap:9px}
-  .exframe .xf-expect{margin:0;padding:0 16px 14px;font-size:13px;color:var(--ink-2);line-height:1.5}
-  .exframe .xf-expect b{color:var(--ink)}
-  .exframe .xf-expect:has(+ .xf-result:not([hidden])){display:none}
+  .exframe .xf-expect{margin:0;padding:12px 16px 0;font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:.2px;color:#C8C8D6;line-height:1.45;background:var(--code-bg)}
+  .exframe .xf-expect b{color:#F2F2F7}
   .exframe .xf-run:active{transform:scale(.98)}
   .exframe .xf-run:disabled{opacity:.65;cursor:wait}
   .exframe .xf-result{background:var(--surface);overflow:hidden;padding:0;border-top:1px solid var(--line)}
@@ -3013,12 +3012,16 @@ const MODULES = [
   consigne:"Compte le nombre total de clients dans la table clients.",
   solution:"SELECT COUNT(*) FROM clients;",
   indice:"Tu veux compter toutes les lignes : utilise la fonction <code>COUNT</code> avec <code>*</code>.",
-  richLesson:true, earlyDemo:true },
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'select',label:'SELECT',sql:"SELECT nom\nFROM clients;",out:"SELECT affiche chaque nom"},
+    {k:'count',label:'COUNT(*)',sql:"SELECT COUNT(*)\nFROM clients;",out:"COUNT(*) compte toutes les lignes"}
+  ] },
 { id:15, titre:"AVG", résumé:"La moyenne d’une colonne",
   situation:"Tu regardes le catalogue. Avant de lancer une promo, tu veux un seul chiffre : autour de quel prix se situent les produits.<br><br>Avec ce que tu connais déjà, tu peux afficher chaque prix :",
   situationSql:"SELECT prix\nFROM produits;",
   situationTail:"Tu obtiens bien les 8 prix. Mais tu dois encore faire la moyenne à la main : pour l’obtenir directement, il faut la fonction <code>AVG</code>.",
-    studio:{problem:{title:"<code>AVG</code> calcule la moyenne d’une colonne.",
+    studio:{problem:{title:"<code>AVG(colonne)</code> calcule la moyenne.",
       body:""},
     vs:{bad:{tag:"✕ Afficher pour moyenner",sql:"SELECT prix FROM produits;",out:"8 prix : il faut encore calculer la moyenne",
             code:"SELECT <span class=\"vs-line bad\">prix</span>\nFROM produits;"},
@@ -3028,7 +3031,7 @@ const MODULES = [
     why:{title:"Comment AVG calcule la moyenne ?"},
     viz:"avg",
     reflex:{a:{k:"COUNT(*)",t:"compte les <b>lignes</b>"},
-      b:{k:"AVG(prix)",t:"moyenne des <b>valeurs</b>"}}},
+      b:{k:"AVG(colonne)",t:"moyenne des <b>valeurs</b>"}}},
   anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"AVG(prix)",txt:"Additionne les prix, puis divise par 8."},{tok:"FROM produits",txt:"Le calcul porte sur la table produits."}],
   exemple:"SELECT AVG(prix) FROM produits;",
   attendu:"<b>1 ligne</b>, 1 valeur : 23,9875. C’est 191,90 ÷ 8, le prix moyen des 8 produits.",
@@ -3039,14 +3042,14 @@ const MODULES = [
   indice:"La fonction qui calcule une moyenne est <code>AVG</code>. Place la colonne <code>prix</code> entre ses parenthèses.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;",out:"8 prix : il faut encore calculer la moyenne"},
-    {k:'avg',label:'AVG',sql:"SELECT AVG(prix)\nFROM produits;",out:"1 ligne · une valeur : 23,9875"}
+    {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;",out:"SELECT affiche chaque prix"},
+    {k:'avg',label:'AVG(colonne)',sql:"SELECT AVG(prix)\nFROM produits;",out:"AVG(colonne) calcule la moyenne"}
   ] },
 { id:30, titre:"SUM", résumé:"La somme d’une colonne",
   situation:"Tu veux un exemplaire de chaque produit. Avant de valider le panier, tu as besoin du total à payer.<br><br>Avec ce que tu connais déjà, tu peux afficher chaque prix :",
   situationSql:"SELECT prix\nFROM produits;",
   situationTail:"Tu obtiens bien les 8 prix. Mais tu dois encore les additionner à la main : pour obtenir le total directement, il faut la fonction <code>SUM</code>.",
-    studio:{problem:{title:"<code>SUM</code> additionne toutes les valeurs d’une colonne.",
+    studio:{problem:{title:"<code>SUM(colonne)</code> additionne les valeurs.",
       body:""},
     vs:{bad:{tag:"✕ Afficher pour additionner",sql:"SELECT prix FROM produits;",out:"8 prix : il faut encore faire l’addition",
             code:"SELECT <span class=\"vs-line bad\">prix</span>\nFROM produits;"},
@@ -3055,8 +3058,8 @@ const MODULES = [
     point:"À gauche, les 8 prix s’affichent encore : il reste à les additionner à la main. À droite, la fonction <code>SUM(prix)</code> les additionne et renvoie un seul chiffre : 191,90.",
     why:{title:"Comment SUM additionne les prix ?"},
     viz:"sum",
-    reflex:{a:{k:"AVG(prix)",t:"la <b>moyenne</b> des prix"},
-      b:{k:"SUM(prix)",t:"le <b>total</b> des prix"}}},
+    reflex:{a:{k:"AVG(colonne)",t:"la <b>moyenne</b> des prix"},
+      b:{k:"SUM(colonne)",t:"le <b>total</b> des prix"}}},
   anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"SUM(prix)",txt:"Additionne tous les prix."},{tok:"FROM produits",txt:"Le calcul porte sur la table produits."}],
   exemple:"SELECT SUM(prix) FROM produits;",
   attendu:"<b>1 ligne</b>, 1 valeur : 191,90. C’est la somme des 8 prix.",
@@ -3067,14 +3070,14 @@ const MODULES = [
   indice:"La fonction qui additionne est <code>SUM</code>. Place la colonne <code>prix</code> entre ses parenthèses.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;",out:"8 prix : il faut encore faire l’addition"},
-    {k:'sum',label:'SUM',sql:"SELECT SUM(prix)\nFROM produits;",out:"1 ligne · une valeur : 191,90"}
+    {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;",out:"SELECT affiche chaque prix"},
+    {k:'sum',label:'SUM(colonne)',sql:"SELECT SUM(prix)\nFROM produits;",out:"SUM(colonne) additionne les valeurs"}
   ] },
 { id:31, titre:"MIN", résumé:"La plus petite valeur",
   situation:"Tu lances une offre d’entrée de gamme. Tu veux le prix le plus bas du catalogue, comme référence.<br><br>Avec ce que tu connais déjà, tu peux afficher chaque prix :",
   situationSql:"SELECT prix\nFROM produits;",
   situationTail:"Tu obtiens bien les 8 prix. Mais tu dois encore chercher le plus petit à l’œil : pour l’obtenir directement, il faut la fonction <code>MIN</code>.",
-    studio:{problem:{title:"<code>MIN</code> renvoie la plus petite valeur d’une colonne.",
+    studio:{problem:{title:"<code>MIN(colonne)</code> renvoie la plus petite valeur.",
       body:""},
     vs:{bad:{tag:"✕ Afficher pour chercher",sql:"SELECT prix FROM produits;",out:"8 prix : il faut encore repérer le plus bas",
             code:"SELECT <span class=\"vs-line bad\">prix</span>\nFROM produits;"},
@@ -3083,8 +3086,8 @@ const MODULES = [
     point:"À gauche, les 8 prix s’affichent encore : il reste à chercher le plus bas à l’œil. À droite, la fonction <code>MIN(prix)</code> compare et renvoie un seul chiffre : 12,50.",
     why:{title:"Comment MIN trouve le plus petit prix ?"},
     viz:"min",
-    reflex:{a:{k:"AVG(prix)",t:"la <b>moyenne</b> de tous les prix"},
-      b:{k:"MIN(prix)",t:"le prix <b>le plus bas</b>"}}},
+    reflex:{a:{k:"AVG(colonne)",t:"la <b>moyenne</b> de tous les prix"},
+      b:{k:"MIN(colonne)",t:"le prix <b>le plus bas</b>"}}},
   anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"MIN(prix)",txt:"Garde le plus petit prix."},{tok:"FROM produits",txt:"Le calcul porte sur la table produits."}],
   exemple:"SELECT MIN(prix) FROM produits;",
   attendu:"<b>1 ligne</b>, 1 valeur : 12,50. C’est le prix le plus bas du catalogue.",
@@ -3095,14 +3098,14 @@ const MODULES = [
   indice:"La fonction qui cherche la plus petite valeur est <code>MIN</code>. Place la colonne <code>prix</code> entre ses parenthèses.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;",out:"8 prix : il faut encore chercher le plus bas"},
-    {k:'min',label:'MIN',sql:"SELECT MIN(prix)\nFROM produits;",out:"1 ligne · une valeur : 12,50"}
+    {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;",out:"SELECT affiche chaque prix"},
+    {k:'min',label:'MIN(colonne)',sql:"SELECT MIN(prix)\nFROM produits;",out:"MIN(colonne) garde la plus petite valeur"}
   ] },
 { id:32, titre:"MAX", résumé:"La plus grande valeur",
   situation:"Tu prépares une gamme premium. Tu veux le prix le plus élevé du catalogue, pour caler le haut de l’offre.<br><br>Avec ce que tu connais déjà, tu peux afficher chaque prix :",
   situationSql:"SELECT prix\nFROM produits;",
   situationTail:"Tu obtiens bien les 8 prix. Mais tu dois encore chercher le plus grand à l’œil : pour l’obtenir directement, il faut la fonction <code>MAX</code>.",
-    studio:{problem:{title:"<code>MAX</code> renvoie la plus grande valeur d’une colonne.",
+    studio:{problem:{title:"<code>MAX(colonne)</code> renvoie la plus grande valeur.",
       body:""},
     vs:{bad:{tag:"✕ Afficher pour chercher",sql:"SELECT prix FROM produits;",out:"8 prix : il faut encore repérer le plus élevé",
             code:"SELECT <span class=\"vs-line bad\">prix</span>\nFROM produits;"},
@@ -3111,8 +3114,8 @@ const MODULES = [
     point:"À gauche, les 8 prix s’affichent encore : il reste à chercher le plus élevé à l’œil. À droite, la fonction <code>MAX(prix)</code> compare et renvoie un seul chiffre : 39,90.",
     why:{title:"Comment MAX trouve le plus grand prix ?"},
     viz:"max",
-    reflex:{a:{k:"MIN(prix)",t:"le prix <b>le plus bas</b>"},
-      b:{k:"MAX(prix)",t:"le prix <b>le plus élevé</b>"}}},
+    reflex:{a:{k:"MIN(colonne)",t:"le prix <b>le plus bas</b>"},
+      b:{k:"MAX(colonne)",t:"le prix <b>le plus élevé</b>"}}},
   anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"MAX(prix)",txt:"Garde le plus grand prix."},{tok:"FROM produits",txt:"Le calcul porte sur la table produits."}],
   exemple:"SELECT MAX(prix) FROM produits;",
   attendu:"<b>1 ligne</b>, 1 valeur : 39,90. C’est le prix le plus élevé du catalogue.",
@@ -3123,8 +3126,8 @@ const MODULES = [
   indice:"La fonction qui cherche la plus grande valeur est <code>MAX</code>. Place la colonne <code>prix</code> entre ses parenthèses.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;",out:"8 prix : il faut encore chercher le plus élevé"},
-    {k:'max',label:'MAX',sql:"SELECT MAX(prix)\nFROM produits;",out:"1 ligne · une valeur : 39,90"}
+    {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;",out:"SELECT affiche chaque prix"},
+    {k:'max',label:'MAX(colonne)',sql:"SELECT MAX(prix)\nFROM produits;",out:"MAX(colonne) garde la plus grande valeur"}
   ] },
 { id:16, titre:"GROUP BY", résumé:"Un calcul par groupe",
   situation:"Dans la table <code>clients</code>, tu sais compter les 9 clients avec <code>COUNT(*)</code>. Maintenant, tu veux savoir combien de clients habitent dans chaque ville.",
@@ -6576,6 +6579,12 @@ function testeKeyFrom(text){
   const u=String(text||'').toUpperCase().replace(/\s+/g,' ');
   return TESTE_KEYS.find(k=>u.includes(k))||'SELECT';
 }
+function testeFnLabel(name){
+  const k=String(name||'').toUpperCase();
+  if(k==='COUNT') return 'COUNT(*)';
+  if(k==='AVG'||k==='SUM'||k==='MIN'||k==='MAX') return k+'(colonne)';
+  return name;
+}
 function testeVariantsOf(l){
   if(!l)return null;
   if(l.testeVariants&&l.testeVariants.length) return l.testeVariants;
@@ -6586,8 +6595,8 @@ function testeVariantsOf(l){
   const norm=s=>String(s).replace(/\s+/g,' ').trim();
   if(norm(before)===norm(after)) return null;
   return [
-    {k:'avant',label:testeKeyFrom(before),sql:before,out:vs&&vs.bad&&vs.bad.out,tone:vs&&vs.bad&&vs.bad.pedagogic?'bad':''},
-    {k:'avec',label:testeKeyFrom(l.titre+' '+(after||'')),sql:after,out:(vs&&vs.good&&vs.good.out)||stripNoteHtml(l.attendu||''),tone:'good'}
+    {k:'avant',label:testeFnLabel(testeKeyFrom(before)),sql:before,out:vs&&vs.bad&&vs.bad.out,tone:vs&&vs.bad&&vs.bad.pedagogic?'bad':''},
+    {k:'avec',label:testeFnLabel(testeKeyFrom(l.titre+' '+(after||''))),sql:after,out:(vs&&vs.good&&vs.good.out)||stripNoteHtml(l.attendu||''),tone:'good'}
   ];
 }
 function testeExpectHtml(v,l,fallback){
@@ -6633,11 +6642,11 @@ function lessonRichFooter(l){
     <div class="sect-label"><i>✓</i><span>Teste</span></div>
     <div class="exframe${tone0?' tone-'+tone0:''}" data-teste-sql="${sql}"${variantsAttr}>
       <div class="xf-head"><span class="xf-name">${file}</span><div class="xf-tools">${sqlCopyBtn('data-ed="ed-teste"')}</div>${switcher}</div>
+      ${expect}
       ${testeEditorHtml()}
       <div class="xf-actions">
         <button type="button" class="xf-run" onclick="runExemple(this)">${XF_RUN_ICO}Exécuter</button>
       </div>
-      ${expect}
       <div class="xf-result" hidden aria-live="polite"></div></div>`;
 }
 function switchTesteVariant(btn){
@@ -6667,12 +6676,13 @@ function switchTesteVariant(btn){
   }
   const host=frame.querySelector('.xf-result');
   if(host){ host.hidden=true; host.innerHTML=''; host.classList.remove('on','flash'); }
+  const editor=frame.querySelector('.xf-editor');
   let expect=frame.querySelector('.xf-expect');
   const cap=v.out||'';
   if(cap){
     if(!expect){
       expect=document.createElement('p');
-      if(host) host.before(expect);
+      if(editor) editor.before(expect);
       else frame.appendChild(expect);
     }
     expect.className='xf-expect'+(v.tone?' '+v.tone:'');
