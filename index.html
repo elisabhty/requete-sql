@@ -964,6 +964,17 @@
   .ex-out b{color:var(--ink)}
 
   .piege{margin:6px 0 0;padding:16px;background:var(--surface);border:1px solid rgba(180,122,22,.12);border-radius:16px;box-shadow:0 8px 20px -18px rgba(122,74,0,.2)}
+  .pdefi-wrap{display:flex;flex-direction:column;gap:14px;padding:16px 18px}
+  .pdefi-card{padding:14px 0;border-bottom:1px solid var(--line)}
+  .pdefi-card:last-child{border-bottom:0;padding-bottom:0}
+  .pdefi-card:first-child{padding-top:0}
+  .pdefi-q{margin:0 0 10px;font-size:14.5px;line-height:1.5;color:var(--ink)}
+  .pdefi-row{display:flex;gap:8px;margin-top:10px}
+  .pdefi-in{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;font-family:var(--mono);font-size:13.5px;font-weight:600;background:var(--surface)}
+  .pdefi-check{flex:none;border:none;border-radius:12px;padding:0 16px;background:var(--accent);color:#fff;font-family:var(--ui);font-size:13.5px;font-weight:700;cursor:pointer;min-height:44px;touch-action:manipulation}
+  .pdefi-fb{margin-top:10px;padding:11px 13px;border-radius:12px;font-size:13.5px;line-height:1.45}
+  .pdefi-fb.ok{background:var(--success-soft);color:var(--success)}
+  .pdefi-fb.ko{background:rgba(180,83,9,.08);color:#9A3412}
   .anat:has(+ .piege),.anat:has(+ .reflex-end),.order-rappel:has(+ .piege),.order-rappel:has(+ .reflex-end),.card:has(+ .piege),.card:has(+ .reflex-end),.exframe:has(+ .piege),.exframe:has(+ .reflex-end){margin-bottom:0}
   .piege-head{display:flex;align-items:center;gap:8px;margin:0 0 10px}
   .piege-ico{width:28px;height:28px;flex:none;border-radius:9px;background:var(--warn-soft);color:var(--warn);display:flex;align-items:center;justify-content:center}
@@ -3607,6 +3618,40 @@ const MODULES = [
   consigne:"Affiche le <code>nom</code> du client, le <code>nom</code> du produit et la <code>date_commande</code> de chaque commande.",
   solution:"SELECT clients.nom AS client, produits.nom AS produit, commandes.date_commande FROM clients JOIN commandes ON clients.id = commandes.client_id JOIN produits ON commandes.produit_id = produits.id;",
   indice:"Deux JOIN via <code>commandes</code> : <code>client_id</code> puis <code>produit_id</code>. Pense à <code>AS</code> pour les deux <code>nom</code>.",
+  richLesson:true, earlyDemo:true },
+{ id:38, titre:"RIGHT JOIN et FULL OUTER JOIN", résumé:"Garder la droite, ou les deux",
+  situation:"Tu sais déjà que <code>LEFT JOIN</code> permet de conserver toutes les lignes de la table de gauche, même lorsqu’aucune correspondance n’est trouvée.",
+  situationSql:"SELECT c.nom, co.id\nFROM clients AS c\nLEFT JOIN commandes AS co\nON c.id = co.client_id;",
+  situationTail:"Tous les clients sont conservés. Inès n’a aucune commande, mais elle apparaît quand même : <code>Inès | NULL</code>.<br><br>Mais que faire si la table que tu veux conserver se trouve à <b>droite</b> ? Et si tu veux conserver <b>les deux tables entièrement</b> ? C’est là qu’interviennent <code>RIGHT JOIN</code> et <code>FULL OUTER JOIN</code>.",
+    studio:{problem:{title:"RIGHT JOIN conserve toutes les lignes de la table de droite.",
+      body:"Le nom indique quel côté doit être conservé : <code>LEFT JOIN</code> ← garde la gauche · <code>RIGHT JOIN</code> garde la droite →",
+      demo:"SELECT c.nom, co.id\nFROM commandes AS co\nRIGHT JOIN clients AS c\nON co.client_id = c.id;"},
+    vs:{bad:{tag:"✕ LEFT JOIN (clients à gauche)",sql:"SELECT c.nom, co.id\nFROM clients AS c\nLEFT JOIN commandes AS co\nON c.id = co.client_id;",out:"16 lignes — tous les clients conservés"},
+        good:{tag:"✓ RIGHT JOIN (clients à droite)",sql:"SELECT c.nom, co.id\nFROM commandes AS co\nRIGHT JOIN clients AS c\nON co.client_id = c.id;",out:"16 lignes — même résultat : Sophie × 3, Inès | NULL"}},
+    point:"<b>1. RIGHT JOIN</b> — <code>FROM commandes AS co RIGHT JOIN clients AS c</code> : <code>clients</code> est à droite → SQL conserve tous les clients.<br><br><b>Avec correspondance</b> — Sophie (<code>id = 1</code>) : commandes 1, 2 et 13 → 3 lignes.<br><br><b>Sans correspondance</b> — Inès (<code>id = 9</code>) : aucune commande → une ligne <code>Inès | NULL</code>.<br><br><b>LEFT ou RIGHT ?</b> — <code>FROM clients LEFT JOIN commandes</code> et <code>FROM commandes RIGHT JOIN clients</code> produisent ici le même résultat. Un <code>RIGHT JOIN</code> peut souvent être remplacé par un <code>LEFT JOIN</code> en inversant les tables — c’est pourquoi <code>LEFT JOIN</code> est plus fréquent. Mais connaître <code>RIGHT JOIN</code> reste utile pour lire des requêtes existantes.<br><br><b>2. FULL OUTER JOIN</b> — conserve <b>toutes</b> les lignes des deux tables : correspondances, lignes seulement à gauche (NULL à droite), lignes seulement à droite (NULL à gauche). Dans notre base, toutes les commandes ont un client existant : le troisième cas ne se produit pas ici.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>JOIN</th><th>Correspondances</th><th>Sans match à gauche</th><th>Sans match à droite</th></tr></thead><tbody><tr><td>INNER JOIN</td><td>✓</td><td>✕</td><td>✕</td></tr><tr><td>LEFT JOIN</td><td>✓</td><td>✓</td><td>✕</td></tr><tr><td>RIGHT JOIN</td><td>✓</td><td>✕</td><td>✓</td></tr><tr><td>FULL OUTER JOIN</td><td>✓</td><td>✓</td><td>✓</td></tr></tbody></table></div><br><pre style=\"margin:0;font-family:var(--mono);font-size:11.5px;line-height:1.55;color:var(--ink-2);white-space:pre-wrap\">GAUCHE          DROITE\nA ───────────── A   INNER → A↔A, B↔B\nB ───────────── B   LEFT  → + C↔NULL\nC               D   RIGHT → + NULL↔D\n                FULL  → tout</pre><br><b>Point SQLite</b> — cette app utilise SQLite 3.45+. <code>RIGHT JOIN</code> et <code>FULL OUTER JOIN</code> sont pris en charge. Vérifie avec <code>SELECT sqlite_version();</code>.",
+    why:{title:"Visualise les 4 jointures.",
+      body:"<b>INNER</b> → seulement les correspondances.<br><b>LEFT</b> → tout à gauche + NULL si rien à droite.<br><b>RIGHT</b> → tout à droite + NULL si rien à gauche.<br><b>FULL OUTER</b> → tout des deux côtés.<br><br>Avant de choisir, pose-toi : <b>que dois-je conserver s’il n’y a pas de correspondance ?</b>"},
+    reflex:{a:{k:"RIGHT JOIN",t:"conserve toute la table de <b>droite</b>"},
+      b:{k:"FULL OUTER",t:"conserve <b>les deux</b> tables entièrement"},
+      note:"Le nom de la jointure indique quel côté garder quand il n’y a pas de match."}},
+  anatomie:[{tok:"FROM commandes AS co",txt:"Table de départ — c’est la gauche ici."},{tok:"RIGHT JOIN clients AS c",txt:"Relie clients en conservant toutes ses lignes (droite)."},{tok:"ON co.client_id = c.id",txt:"La condition de correspondance (inchangée)."},{tok:'SELECT c.nom, co.id',txt:"Nom du client + id de commande (NULL si aucune)."}],
+  exemple:"SELECT c.nom, co.id FROM commandes AS co RIGHT JOIN clients AS c ON co.client_id = c.id;",
+  attendu:"<b>16 lignes</b> — 15 correspondances + Inès avec <code>NULL</code>. Même résultat qu’un LEFT JOIN depuis <code>clients</code>.",
+  retenir:"Avant de choisir une jointure : que dois-je conserver s’il n’y a pas de correspondance ?<br><br>Correspondances seulement → <code>INNER JOIN</code><br>Toute la gauche → <code>LEFT JOIN</code><br>Toute la droite → <code>RIGHT JOIN</code><br>Les deux tables → <code>FULL OUTER JOIN</code><br><br><code>RIGHT JOIN</code> n’est pas « plus puissant » que <code>LEFT JOIN</code> : c’est la même logique, dans l’autre sens.",
+  piege:{t:"Penser que RIGHT JOIN est plus puissant que LEFT JOIN",p:"Ce n’est pas le cas. <code>LEFT JOIN</code> et <code>RIGHT JOIN</code> font la même chose dans des directions opposées. La différence est simplement le côté que tu veux conserver.",
+    exec:true,
+    sql:"SELECT c.nom, co.id\nFROM clients AS c\nRIGHT JOIN commandes AS co\nON c.id = co.client_id;",
+    fixSql:"SELECT c.nom, co.id\nFROM commandes AS co\nRIGHT JOIN clients AS c\nON co.client_id = c.id;"},
+  consigne:"Affiche tous les clients et l’identifiant de leurs commandes, y compris ceux qui n’ont jamais commandé. Place <code>clients</code> à <b>droite</b> de la jointure.",
+  solution:"SELECT c.nom, co.id FROM commandes AS co RIGHT JOIN clients AS c ON co.client_id = c.id;",
+  indice:"Part de <code>commandes</code>, <code>RIGHT JOIN clients</code>, même <code>ON</code> qu’avant (<code>co.client_id = c.id</code>).",
+  testeVariants:[
+    {k:'left',label:'LEFT JOIN',sql:"SELECT c.nom, co.id\nFROM clients AS c\nLEFT JOIN commandes AS co\nON c.id = co.client_id;",out:'16 lignes — tous les clients (gauche conservée)',tone:'good'},
+    {k:'right',label:'RIGHT JOIN',sql:"SELECT c.nom, co.id\nFROM commandes AS co\nRIGHT JOIN clients AS c\nON co.client_id = c.id;",out:'16 lignes — même résultat, clients à droite',tone:'good'},
+    {k:'full',label:'FULL OUTER JOIN',sql:"SELECT c.nom, co.id\nFROM clients AS c\nFULL OUTER JOIN commandes AS co\nON c.id = co.client_id;",out:'16 lignes ici — les deux côtés conservés',tone:'good'}],
+  petitDefi:[
+    {p:"Complète la requête pour conserver tous les clients, alors que <code>clients</code> se trouve à droite :",sql:"SELECT c.nom, co.id\nFROM commandes AS co\n_____ JOIN clients AS c\nON co.client_id = c.id;",a:"RIGHT"},
+    {p:"Quel mot faut-il ajouter pour conserver toutes les lignes des deux tables ?",sql:"SELECT c.nom, co.id\nFROM clients AS c\n_____ JOIN commandes AS co\nON c.id = co.client_id;",a:"FULL OUTER",answers:["FULL OUTER","FULL OUTER JOIN"]}],
   richLesson:true, earlyDemo:true }
 ]},
 
@@ -3956,6 +4001,8 @@ const CARTES={
     m:"Conserve <b>toutes</b> les lignes de la table de gauche. Sans match à droite → <code>NULL</code>. L’ordre après <code>FROM</code> compte : gauche = conservée entièrement."},
  37:{k:"IS NULL",t:"Sans correspondance",s:"LEFT JOIN …\nWHERE commandes.id IS NULL",
     m:"<code>LEFT JOIN</code> garde les orphelins avec NULL. <code>WHERE table_droite.id IS NULL</code> ne sélectionne que ceux-là. Jamais <code>= NULL</code>."},
+ 38:{k:"RIGHT · FULL",t:"Garder droite ou les deux",s:"FROM commandes AS co\nRIGHT JOIN clients AS c ON …",
+    m:"<code>RIGHT JOIN</code> → toute la table de droite + NULL. <code>FULL OUTER JOIN</code> → les deux côtés. Souvent remplaçable par un LEFT JOIN inversé."},
  21:{k:"CASE",t:"Fabriquer une catégorie",s:"CASE WHEN prix >= 30 THEN 'Premium'\n     ELSE 'Standard' END",
     m:"Le si/alors/sinon du SQL. <b>SQL s’arrête au premier WHEN vrai</b> : du plus restrictif au plus large. Ne pas oublier <code>END</code>."},
  22:{k:"Colonnes calculées",t:"Calculer dans le SELECT",s:"SELECT nom, prix * stock AS valeur\nFROM produits;",
@@ -4037,6 +4084,11 @@ const QCM={
    {q:"Tous les clients + leurs commandes (y compris Inès sans commande) :",o:["15 lignes avec INNER JOIN","16 lignes avec LEFT JOIN","9 lignes (un par client)"],b:1,e:"15 correspondances + 1 ligne Inès avec NULL = 16 lignes."}],
  37:[{q:"Pour trouver les clients sans commande, il faut :",o:["INNER JOIN + WHERE id IS NULL","LEFT JOIN + WHERE commandes.id IS NULL","LEFT JOIN seul, sans WHERE"],b:1,e:"LEFT JOIN garde Inès avec NULL ; le WHERE filtre sur cette absence."},
    {q:"Tester l’absence de valeur après une jointure :",o:["WHERE commandes.id = NULL","WHERE commandes.id IS NULL","WHERE commandes.id = 0"],b:1,e:"En SQL, NULL ne se compare pas avec =. On utilise IS NULL."}],
+ 38:[{q:"Que conserve <code>RIGHT JOIN</code> ?",o:["Uniquement les correspondances","Toutes les lignes de gauche","Toutes les lignes de droite","Seulement les lignes contenant NULL"],b:2,e:"Le nom indique le côté conservé quand il n’y a pas de match."},
+   {q:"Dans <code>FROM commandes AS co RIGHT JOIN clients AS c</code>, quelle table est conservée entièrement ?",o:["commandes","clients","Les deux","Aucune"],b:1,e:"<code>clients</code> est à droite du RIGHT JOIN."},
+   {q:"Quel JOIN conserve toutes les lignes des deux tables ?",o:["INNER JOIN","LEFT JOIN","RIGHT JOIN","FULL OUTER JOIN"],b:3,e:"FULL OUTER JOIN garde correspondances + orphelins des deux côtés."},
+   {q:"Un <code>RIGHT JOIN</code> peut souvent être remplacé par…",o:["WHERE","Un LEFT JOIN en inversant les tables","GROUP BY","ORDER BY"],b:1,e:"<code>FROM commandes RIGHT JOIN clients</code> ≈ <code>FROM clients LEFT JOIN commandes</code>."},
+   {q:"Avec <code>FULL OUTER JOIN</code>, une ligne sans correspondance :",o:["Est supprimée","Provoque une erreur","Est conservée — colonnes manquantes à NULL","Crée une correspondance automatique"],b:2,e:"Comme LEFT ou RIGHT, mais des deux côtés à la fois."}],
  21:[{q:"SQL évalue les <code>WHEN</code> :",o:["Tous, et garde le dernier vrai","Dans l’ordre, et s’arrête au premier vrai","Dans un ordre imprévisible"],b:1,e:"D’où l’intérêt d’aller du plus restrictif au plus large."},
    {q:"Un CASE se referme par :",o:["ELSE","END","STOP"],b:1,e:"Oublier le END est l’erreur la plus fréquente sur cette syntaxe."}],
  22:[{q:"<code>SELECT prix * 0.8</code> modifie-t-il la table ?",o:["Oui, définitivement","Non, c’est un calcul d’affichage","Seulement après un COMMIT"],b:1,e:"Rien n’est stocké : l’expression est recalculée à chaque requête."},
@@ -6697,6 +6749,42 @@ function piegeSqlRunBlock(sql){
     <div class="xf-result" hidden aria-live="polite"></div>
   </div>`;
 }
+function petitDefiBlock(l){
+  if(!l||!l.petitDefi||!l.petitDefi.length)return '';
+  const items=l.petitDefi.map((d,i)=>{
+    const sql=d.sql?`<div class="ex-code">${highlight(d.sql)}</div>`:'';
+    return `<div class="pdefi-card">
+      <p class="pdefi-q">${d.p}</p>${sql}
+      <div class="pdefi-row">
+        <input class="pdefi-in" id="pdefi-${i}" type="text" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="Ta réponse…" onkeydown="if(event.key==='Enter')checkPetitDefi(${i})">
+        <button type="button" class="pdefi-check" onclick="checkPetitDefi(${i})">Vérifier</button>
+      </div>
+      <div class="pdefi-fb" id="pdefi-fb-${i}" hidden aria-live="polite"></div>
+    </div>`;
+  }).join('');
+  return `<div class="pdefi-sect" style="margin-top:22px">
+    <div class="l-kicker">Petit défi</div>
+    <p style="font-size:14px;color:var(--ink-2);margin:0 2px 12px">Complète les requêtes — un mot ou deux suffisent.</p>
+    <div class="card pdefi-wrap">${items}</div>
+  </div>`;
+}
+function normDefiAns(s){
+  return String(s||'').trim().toUpperCase().replace(/\s+/g,' ');
+}
+function checkPetitDefi(i){
+  const l=current;
+  if(!l||!l.petitDefi||!l.petitDefi[i])return;
+  const d=l.petitDefi[i];
+  const inp=document.getElementById('pdefi-'+i);
+  const fb=document.getElementById('pdefi-fb-'+i);
+  if(!inp||!fb)return;
+  const val=normDefiAns(inp.value);
+  const ok=(d.answers||[d.a]).some(a=>normDefiAns(a)===val);
+  fb.hidden=false;
+  fb.className='pdefi-fb '+(ok?'ok':'ko');
+  fb.innerHTML=ok?`<b>✓</b> ${esc(d.a)}`: `<b>Pas tout à fait.</b> Réponse attendue : <code>${esc(d.a)}</code>`;
+  if(navigator.vibrate)navigator.vibrate(ok?8:25);
+}
 function piegeBlock(l){
   const piege=l&&l.piege;
   if(!piege) return '';
@@ -6958,7 +7046,7 @@ function lessonMainTable(l){
 function testeDefaultSql(l){
   return `SELECT * FROM ${lessonMainTable(l)};`;
 }
-const TESTE_KEYS=['LEFT JOIN','GROUP BY','ORDER BY','SELECT *','INSERT','UPDATE','DELETE','DISTINCT','BETWEEN','HAVING','WHERE','COUNT','AVG','SUM','MIN','MAX','JOIN','CASE','COALESCE','LIKE','AND','OR','IN','LIMIT','SELECT'];
+const TESTE_KEYS=['FULL OUTER JOIN','RIGHT JOIN','LEFT JOIN','GROUP BY','ORDER BY','SELECT *','INSERT','UPDATE','DELETE','DISTINCT','BETWEEN','HAVING','WHERE','COUNT','AVG','SUM','MIN','MAX','JOIN','CASE','COALESCE','LIKE','AND','OR','IN','LIMIT','SELECT'];
 function testeKeyFrom(text){
   const u=String(text||'').toUpperCase().replace(/\s+/g,' ');
   return TESTE_KEYS.find(k=>u.includes(k))||'SELECT';
@@ -7283,7 +7371,7 @@ function renderLessonFlow(){
       </div>
       <div class="ls-main">
         <div class="l-kicker">Quiz</div><h1>Valider la leçon</h1>
-        <p style="font-size:14px;color:var(--ink-2);margin:0 2px 14px">Réponds aux 2 questions pour valider la leçon — puis passe à la suite de ton parcours.</p>
+        <p style="font-size:14px;color:var(--ink-2);margin:0 2px 14px">Réponds aux ${qcmDe(current.id).length} questions pour valider la leçon — puis passe à la suite de ton parcours.</p>
         <div id="valid-block"></div>
       </div>`;
   }
@@ -8799,7 +8887,8 @@ function renderValidation(){
   host.innerHTML=`
     <div class="vsteps">${pastilles}</div>
     ${cartes}
-    ${final}`;
+    ${final}
+    ${petitDefiBlock(current)}`;
   if(fini){
     const btn=host.querySelector('.next-btn');
     if(btn) pulseCta(btn);
