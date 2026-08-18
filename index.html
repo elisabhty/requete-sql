@@ -3039,8 +3039,8 @@ const MODULES = [
   indice:"La fonction qui calcule une moyenne est <code>AVG</code>. Place la colonne <code>prix</code> entre ses parenthèses.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;"},
-    {k:'avg',label:'AVG',sql:"SELECT AVG(prix)\nFROM produits;"}
+    {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;",out:"8 prix : il faut encore calculer la moyenne"},
+    {k:'avg',label:'AVG',sql:"SELECT AVG(prix)\nFROM produits;",out:"1 ligne · une valeur : 23,9875"}
   ] },
 { id:30, titre:"SUM", résumé:"La somme d’une colonne",
   situation:"Tu veux un exemplaire de chaque produit. Avant de valider le panier, tu as besoin du total à payer.<br><br>Avec ce que tu connais déjà, tu peux afficher chaque prix :",
@@ -3067,8 +3067,8 @@ const MODULES = [
   indice:"La fonction qui additionne est <code>SUM</code>. Place la colonne <code>prix</code> entre ses parenthèses.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;"},
-    {k:'sum',label:'SUM',sql:"SELECT SUM(prix)\nFROM produits;"}
+    {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;",out:"8 prix : il faut encore faire l’addition"},
+    {k:'sum',label:'SUM',sql:"SELECT SUM(prix)\nFROM produits;",out:"1 ligne · une valeur : 191,90"}
   ] },
 { id:31, titre:"MIN", résumé:"La plus petite valeur",
   situation:"Tu lances une offre d’entrée de gamme. Tu veux le prix le plus bas du catalogue, comme référence.<br><br>Avec ce que tu connais déjà, tu peux afficher chaque prix :",
@@ -3095,8 +3095,8 @@ const MODULES = [
   indice:"La fonction qui cherche la plus petite valeur est <code>MIN</code>. Place la colonne <code>prix</code> entre ses parenthèses.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;"},
-    {k:'min',label:'MIN',sql:"SELECT MIN(prix)\nFROM produits;"}
+    {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;",out:"8 prix : il faut encore chercher le plus bas"},
+    {k:'min',label:'MIN',sql:"SELECT MIN(prix)\nFROM produits;",out:"1 ligne · une valeur : 12,50"}
   ] },
 { id:32, titre:"MAX", résumé:"La plus grande valeur",
   situation:"Tu prépares une gamme premium. Tu veux le prix le plus élevé du catalogue, pour caler le haut de l’offre.<br><br>Avec ce que tu connais déjà, tu peux afficher chaque prix :",
@@ -3123,8 +3123,8 @@ const MODULES = [
   indice:"La fonction qui cherche la plus grande valeur est <code>MAX</code>. Place la colonne <code>prix</code> entre ses parenthèses.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;"},
-    {k:'max',label:'MAX',sql:"SELECT MAX(prix)\nFROM produits;"}
+    {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;",out:"8 prix : il faut encore chercher le plus élevé"},
+    {k:'max',label:'MAX',sql:"SELECT MAX(prix)\nFROM produits;",out:"1 ligne · une valeur : 39,90"}
   ] },
 { id:16, titre:"GROUP BY", résumé:"Un calcul par groupe",
   situation:"Dans la table <code>clients</code>, tu sais compter les 9 clients avec <code>COUNT(*)</code>. Maintenant, tu veux savoir combien de clients habitent dans chaque ville.",
@@ -3220,9 +3220,11 @@ GROUP BY categorie
   exemple:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",
   testeVariants:[
     {k:'where',label:'WHERE + COUNT',tone:'bad',
-     sql:"SELECT categorie, COUNT(*)\nFROM produits\nWHERE COUNT(*) >= 2\nGROUP BY categorie;"},
+     sql:"SELECT categorie, COUNT(*)\nFROM produits\nWHERE COUNT(*) >= 2\nGROUP BY categorie;",
+     out:"Échoue : COUNT n’existe pas encore au moment du WHERE"},
     {k:'having',label:'HAVING + COUNT',tone:'good',
-     sql:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;"}
+     sql:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",
+     out:"2 lignes : Bien-être (3) et Nutrition (2)"}
   ],
   retenir:"<code>WHERE</code> filtre les lignes avant le regroupement. <code>HAVING</code> filtre les groupes après, et peut utiliser <code>COUNT</code>, <code>SUM</code>, <code>AVG</code>…",
   piege:{t:"Mettre un agrégat dans WHERE",p:"<code>WHERE</code> s’applique avant le <code>GROUP BY</code> : <code>COUNT(*)</code>, <code>SUM()</code> ou <code>AVG()</code> n’existent pas encore. Place la condition sur l’agrégat dans <code>HAVING</code>."},
@@ -6569,6 +6571,31 @@ function lessonMainTable(l){
 function testeDefaultSql(l){
   return `SELECT * FROM ${lessonMainTable(l)};`;
 }
+const TESTE_KEYS=['LEFT JOIN','GROUP BY','ORDER BY','SELECT *','INSERT','UPDATE','DELETE','DISTINCT','BETWEEN','HAVING','WHERE','COUNT','AVG','SUM','MIN','MAX','JOIN','CASE','COALESCE','LIKE','AND','OR','IN','LIMIT','SELECT'];
+function testeKeyFrom(text){
+  const u=String(text||'').toUpperCase().replace(/\s+/g,' ');
+  return TESTE_KEYS.find(k=>u.includes(k))||'SELECT';
+}
+function testeVariantsOf(l){
+  if(!l)return null;
+  if(l.testeVariants&&l.testeVariants.length) return l.testeVariants;
+  const vs=l.studio&&l.studio.vs;
+  const before=(vs&&vs.bad&&vs.bad.sql)||l.situationSql;
+  const after=(vs&&vs.good&&vs.good.sql)||l.solution||l.exemple;
+  if(!before||!after) return null;
+  const norm=s=>String(s).replace(/\s+/g,' ').trim();
+  if(norm(before)===norm(after)) return null;
+  return [
+    {k:'avant',label:testeKeyFrom(before),sql:before,out:vs&&vs.bad&&vs.bad.out,tone:vs&&vs.bad&&vs.bad.pedagogic?'bad':''},
+    {k:'avec',label:testeKeyFrom(l.titre+' '+(after||'')),sql:after,out:(vs&&vs.good&&vs.good.out)||stripNoteHtml(l.attendu||''),tone:'good'}
+  ];
+}
+function testeExpectHtml(v,l,fallback){
+  const raw=(v&&v.out)||(fallback&&l&&stripNoteHtml(l.attendu||''))||'';
+  if(!raw) return '';
+  const tone=v&&v.tone?` ${v.tone}`:'';
+  return `<p class="xf-expect${tone}">${esc(raw)}</p>`;
+}
 function testeEditorHtml(){
   return `<div class="editor-area xf-editor"><pre><code id="hl-teste"></code></pre>
     <textarea id="ed-teste" class="xf-sql" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="Modifie et exécute la requête…"></textarea></div>`;
@@ -6587,7 +6614,7 @@ function initTesteEditor(){
   fitSqlEditor(ta);
 }
 function lessonRichFooter(l){
-  const variants=l.testeVariants;
+  const variants=testeVariantsOf(l);
   const demoSql=(variants&&variants[0]&&variants[0].sql)||testeDefaultSql(l);
   const sql=escAttr(demoSql);
   const slug=String(l.titre||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'');
@@ -6601,6 +6628,7 @@ function lessonRichFooter(l){
       }).join('')}</div>`
     :'';
   const variantsAttr=variants?` data-variants="${escAttr(JSON.stringify(variants))}" data-vi="0"`:'';
+  const expect=testeExpectHtml(variants&&variants[0], l, !variants);
   return `
     <div class="sect-label"><i>✓</i><span>Teste</span></div>
     <div class="exframe${tone0?' tone-'+tone0:''}" data-teste-sql="${sql}"${variantsAttr}>
@@ -6609,6 +6637,7 @@ function lessonRichFooter(l){
       <div class="xf-actions">
         <button type="button" class="xf-run" onclick="runExemple(this)">${XF_RUN_ICO}Exécuter</button>
       </div>
+      ${expect}
       <div class="xf-result" hidden aria-live="polite"></div></div>`;
 }
 function switchTesteVariant(btn){
@@ -6636,10 +6665,19 @@ function switchTesteVariant(btn){
       st.testeDraft=v.sql; save();
     }
   }
-  const expect=frame.querySelector('.xf-expect');
-  if(expect) expect.remove();
   const host=frame.querySelector('.xf-result');
   if(host){ host.hidden=true; host.innerHTML=''; host.classList.remove('on','flash'); }
+  let expect=frame.querySelector('.xf-expect');
+  const cap=v.out||'';
+  if(cap){
+    if(!expect){
+      expect=document.createElement('p');
+      if(host) host.before(expect);
+      else frame.appendChild(expect);
+    }
+    expect.className='xf-expect'+(v.tone?' '+v.tone:'');
+    expect.textContent=cap;
+  }else if(expect) expect.remove();
   if(navigator.vibrate)navigator.vibrate(5);
 }
 function runExemple(btn){
