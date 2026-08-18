@@ -699,6 +699,7 @@
   .sql-viz[data-kind="count"][data-phase="2"] .cnt-result,.sql-viz[data-kind="agg"][data-phase="2"] .cnt-result{opacity:1;transform:scale(1)}
   .sql-viz[data-kind="count"] .cnt-num,.sql-viz[data-kind="agg"] .cnt-num{font-family:var(--mono);font-size:56px;font-weight:800;letter-spacing:-2px;line-height:1;color:var(--accent)}
   .sql-viz[data-kind="agg"] .cnt-num{font-size:42px;letter-spacing:-1.4px}
+  .sql-viz[data-kind="agg"] .cnt-formula{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--ink-2);letter-spacing:-.2px}
   .sql-viz[data-kind="count"] .cnt-lbl,.sql-viz[data-kind="agg"] .cnt-lbl{font-size:13px;font-weight:700;color:var(--ink-2)}
   .sql-viz[data-kind="count"][data-phase="2"] .grp-chip,.sql-viz[data-kind="agg"][data-phase="2"] .grp-chip{opacity:0;pointer-events:none;transition:opacity .4s ease .05s}
   .sql-viz[data-kind="count"][data-paused="1"] .grp-chip,
@@ -3026,10 +3027,10 @@ const MODULES = [
     viz:"avg",
     reflex:{a:{k:"COUNT(*)",t:"compte les <b>lignes</b>"},
       b:{k:"AVG(prix)",t:"moyenne des <b>valeurs</b>"}}},
-  anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"AVG(prix)",txt:"Calcule la moyenne des prix."},{tok:"FROM produits",txt:"Le calcul porte sur la table produits."}],
+  anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"AVG(prix)",txt:"Additionne les prix, puis divise par 8."},{tok:"FROM produits",txt:"Le calcul porte sur la table produits."}],
   exemple:"SELECT AVG(prix) FROM produits;",
-  attendu:"<b>1 ligne</b>, 1 valeur : 23,9875. C’est le prix moyen des 8 produits.",
-  retenir:"<code>AVG</code> calcule la moyenne des valeurs d’une colonne. Dans <code>SELECT AVG(prix) FROM produits</code>, les 8 prix deviennent une seule valeur : 23,9875.",
+  attendu:"<b>1 ligne</b>, 1 valeur : 23,9875. C’est 191,90 ÷ 8, le prix moyen des 8 produits.",
+  retenir:"<code>AVG</code> calcule la moyenne : SQL additionne les valeurs, puis divise par leur nombre. Dans <code>SELECT AVG(prix) FROM produits</code>, 191,90 ÷ 8 donne 23,9875.",
   piege:{t:"Confondre AVG et COUNT",p:"<code>COUNT(*)</code> compte les lignes (ici 8). <code>AVG(prix)</code> calcule la moyenne des prix (23,9875). Ce n’est pas le même chiffre, ni la même question."},
   consigne:"Calcule le prix moyen de tous les produits.",
   solution:"SELECT AVG(prix) FROM produits;",
@@ -3608,7 +3609,7 @@ const CARTES={
  14:{k:"COUNT",t:"Compter les lignes",s:"SELECT COUNT(*) FROM table;",
     m:"<code>COUNT(*)</code> compte toutes les lignes. <code>COUNT(colonne)</code> ignore les valeurs <code>NULL</code>."},
  15:{k:"AVG",t:"La moyenne d’une colonne",s:"SELECT AVG(prix) FROM produits;",
-    m:"<code>AVG</code> calcule la moyenne des valeurs d’une colonne. Les 8 prix deviennent une seule valeur : 23,9875."},
+    m:"<code>AVG</code> additionne les valeurs, puis divise par leur nombre. Ici 191,90 ÷ 8 = 23,9875."},
  30:{k:"SUM",t:"La somme d’une colonne",s:"SELECT SUM(prix) FROM produits;",
     m:"<code>SUM</code> additionne les valeurs d’une colonne. Les 8 prix deviennent une seule valeur : 191,90."},
  31:{k:"MIN",t:"La plus petite valeur",s:"SELECT MIN(prix) FROM produits;",
@@ -3679,8 +3680,8 @@ const QCM={
    {q:"Dans <code>SELECT DISTINCT ville, age FROM clients</code>, <code>DISTINCT</code> compare :",o:["Uniquement les villes","Uniquement les âges","Les combinaisons ville + âge"],b:2,e:"Avec plusieurs colonnes, l’unicité porte sur la combinaison complète des valeurs sélectionnées."}],
  14:[{q:"Que renvoie <code>SELECT COUNT(*) FROM clients;</code> ?",o:["Les 9 clients","Une seule valeur : 9","9 colonnes"],b:1,e:"<code>COUNT(*)</code> compte les lignes et renvoie leur nombre."},
    {q:"La table contient 9 clients, dont 2 avec un email <code>NULL</code>. Que renvoie <code>COUNT(email)</code> ?",o:["9","7","2"],b:1,e:"<code>COUNT(email)</code> ignore les <code>NULL</code> : 9 - 2 = 7."}],
- 15:[{q:"Que renvoie <code>SELECT AVG(prix) FROM produits;</code> ?",o:["Le prix de chaque produit","Le prix moyen des produits","Le produit le plus cher"],b:1,e:"<code>AVG</code> calcule la moyenne des valeurs de la colonne."},
-   {q:"<code>COUNT(*)</code> et <code>AVG(prix)</code> sur 8 produits :",o:["Renvoient le même chiffre","L’un compte les lignes, l’autre moyenne les prix","AVG compte aussi les lignes"],b:1,e:"<code>COUNT(*)</code> donne 8. <code>AVG(prix)</code> donne 23,9875. Deux questions différentes."}],
+ 15:[{q:"Que renvoie <code>SELECT AVG(prix) FROM produits;</code> ?",o:["Le prix de chaque produit","Le prix moyen des produits","Le produit le plus cher"],b:1,e:"<code>AVG</code> additionne les prix, puis divise par 8."},
+   {q:"Comment <code>AVG</code> obtient 23,9875 ?",o:["Il compte les produits","Il additionne les 8 prix, puis divise par 8","Il garde le prix du milieu"],b:1,e:"191,90 ÷ 8 = 23,9875. C’est la moyenne, pas un comptage."}],
  30:[{q:"Que fait <code>SUM(prix)</code> ?",o:["Il compte les produits","Il additionne les prix","Il garde le prix le plus élevé"],b:1,e:"<code>SUM</code> additionne les valeurs de la colonne."},
    {q:"<code>SUM(prix)</code> sur le catalogue, c’est :",o:["Le chiffre d’affaires","La somme des prix affichés","Le panier moyen"],b:1,e:"Les prix du catalogue, pas les ventes. Un CA multiplie chaque commande par sa quantité."}],
  31:[{q:"Que renvoie <code>SELECT MIN(prix) FROM produits;</code> ?",o:["Le produit le moins cher, avec son nom","Le plus petit prix","Les 8 prix triés"],b:1,e:"<code>MIN</code> renvoie une valeur, pas la ligne du produit."},
@@ -6435,7 +6436,8 @@ function renderVizShell(key){
       `<div class="grp-bucket" data-cat="${b.cat}" data-n="${b.n}" data-keep="${b.keep}"><span class="grp-bucket-lbl">${b.cat}</span><span class="grp-count">${b.n}</span></div>`
     ).join('');
     const total=cfg.display!=null?cfg.display:(cfg.total!=null?cfg.total:(cfg.chips||[]).length);
-    const result=(cfg.kind==='count'||cfg.kind==='agg')?`<div class="cnt-result" aria-hidden="true"><span class="cnt-num">${total}</span><span class="cnt-lbl">${cfg.lbl||'1 ligne · 1 valeur'}</span></div>`:'';
+    const formula=cfg.formula?`<span class="cnt-formula">${cfg.formula}</span>`:'';
+    const result=(cfg.kind==='count'||cfg.kind==='agg')?`<div class="cnt-result" aria-hidden="true">${formula}<span class="cnt-num">${total}</span><span class="cnt-lbl">${cfg.lbl||'1 ligne · 1 valeur'}</span></div>`:'';
     stage=buckets+chips+result;
   }
   return `<div class="grp-viz sql-viz" id="sql-viz-${key}" data-viz="${key}" data-kind="${cfg.kind}" data-phase="0" aria-label="Animation">
@@ -9486,12 +9488,12 @@ const SQL_VIZ={
     {t:'Chloé',n:5},{t:'Hugo',n:6},{t:'Léa',n:7},{t:'Gabriel',n:8},{t:'Inès',n:9}
   ]},
   avg:{kind:'agg',phases:[
-    {k:'SELECT prix FROM produits',d:'Les 8 prix s’affichent. Pour la moyenne, il faut encore les additionner, puis diviser.'},
-    {k:'AVG(prix)',d:'SQL additionne au fur et à mesure, puis divise par le nombre de prix déjà vus.'},
-    {k:'AVG(prix) = 23,9875',d:'Les 8 prix deviennent un seul résultat : 23,9875. Ce n’est plus une liste.'}
-  ],display:'23,9875',lbl:'moyenne · 1 ligne',chips:[
-    {t:'29,90',n:'29,90'},{t:'39,90',n:'34,90'},{t:'19,90',n:'29,90'},{t:'14,90',n:'26,15'},
-    {t:'12,50',n:'23,42'},{t:'34,90',n:'25,33'},{t:'24,90',n:'25,27'},{t:'15,00',n:'23,9875'}
+    {k:'SELECT prix FROM produits',d:'Les 8 prix s’affichent. Pour la moyenne, SQL va d’abord les additionner, puis diviser par 8.'},
+    {k:'AVG(prix)',d:'SQL additionne chaque prix : 29,90, puis 69,80, puis 89,70… jusqu’à 191,90.'},
+    {k:'191,90 ÷ 8',d:'Il divise ensuite le total par le nombre de prix. 191,90 ÷ 8 = 23,9875.'}
+  ],display:'23,9875',formula:'191,90 ÷ 8',lbl:'moyenne · 1 ligne',chips:[
+    {t:'29,90',n:'29,90'},{t:'39,90',n:'69,80'},{t:'19,90',n:'89,70'},{t:'14,90',n:'104,60'},
+    {t:'12,50',n:'117,10'},{t:'34,90',n:'152,00'},{t:'24,90',n:'176,90'},{t:'15,00',n:'191,90'}
   ]},
   sum:{kind:'agg',phases:[
     {k:'SELECT prix FROM produits',d:'Les 8 prix s’affichent. Pour le total, il faut encore les additionner.'},
