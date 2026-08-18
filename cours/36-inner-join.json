@@ -1,0 +1,40 @@
+{
+  "id": 36,
+  "titre": "INNER JOIN",
+  "résumé": "Garder les correspondances",
+  "module": {
+    "titre": "Relier",
+    "sous": "Plusieurs tables, une question"
+  },
+  "situation": "Tu veux afficher les clients qui ont passé une commande, avec l'identifiant de chaque commande.<br><br>Tu sais déjà relier les deux tables :",
+  "situationSql": "SELECT clients.nom, commandes.id\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;",
+  "situationTail": "Mais que se passe-t-il lorsqu'un client n'a aucune commande ? C'est là qu'il faut comprendre le comportement de <code>INNER JOIN</code>.",
+  "studio": {
+    "problem": {
+      "title": "INNER JOIN ne garde que les lignes qui ont une correspondance des deux côtés.",
+      "body": "SQL compare <code>clients.id</code> ↔ <code>commandes.client_id</code>. À chaque correspondance trouvée, une ligne est créée."
+    },
+    "vs": {
+      "bad": {
+        "tag": "✕ « Tous les clients »",
+        "static": "On pourrait croire voir les 9 clients — y compris Inès, qui n'a jamais commandé.",
+        "sql": "SELECT clients.nom, commandes.id\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",
+        "out": "15 lignes : uniquement les clients qui ont au moins une commande — Inès n'y est pas"
+      },
+      "good": {
+        "tag": "✓ INNER JOIN explicite",
+        "sql": "SELECT clients.nom, commandes.id\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",
+        "out": "Même résultat : JOIN = INNER JOIN"
+      }
+    },
+    "reflex": {
+      "a": { "k": "INNER JOIN", "t": "garde uniquement les <b>correspondances</b>" },
+      "b": { "k": "JOIN", "t": "= INNER JOIN par défaut" }
+    }
+  },
+  "consigne": "Affiche le nom des clients et la date_commande de chacune de leurs commandes.",
+  "solution": "SELECT clients.nom, commandes.date_commande FROM clients INNER JOIN commandes ON clients.id = commandes.client_id;",
+  "attendu": "15 lignes. Inès n'apparaît pas (client_id = 9 absent).",
+  "richLesson": true,
+  "earlyDemo": true
+}
