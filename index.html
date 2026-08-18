@@ -595,6 +595,7 @@
   .grp-k{font-family:var(--mono);font-size:11px;font-weight:700;background:var(--ink);color:#fff;padding:6px 11px;border-radius:10px;letter-spacing:.2px;transition:background .3s;max-width:100%;width:fit-content;box-sizing:border-box;word-break:break-word;line-height:1.35;box-shadow:0 2px 6px rgba(0,0,0,.08)}
   .grp-viz[data-phase="1"] .grp-k{background:var(--accent)}
   .grp-viz[data-phase="2"] .grp-k{background:#0F766E}
+  .grp-viz[data-phase="3"] .grp-k{background:#7C3AED}
   .sql-viz[data-viz="andor"][data-phase="0"] .grp-chip,
   .sql-viz[data-viz="or"][data-phase="0"] .grp-chip,
   .sql-viz[data-viz="nulls"][data-phase="0"] .grp-chip,
@@ -806,6 +807,7 @@
   .er-col{border:1px solid var(--card-border);border-radius:12px;overflow:hidden;background:var(--surface);box-shadow:var(--card-shadow-sm)}
   .er-col[data-side="fk"] .er-card-h{background:linear-gradient(135deg,#B45309,#E0A040)}
   .er-btn{display:flex;align-items:center;gap:8px;width:100%;border:0;border-top:1px solid var(--line);background:transparent;padding:8px 10px;font:inherit;font-size:11.5px;font-weight:600;color:var(--ink);text-align:left;cursor:pointer;touch-action:manipulation;white-space:nowrap;overflow:hidden;transition:background .2s ease,transform .16s var(--spring-ios),box-shadow .2s}
+  .er-btn:hover{background:rgba(91,91,214,.06)}
   .er-btn:active{transform:scale(.98)}
   .er-btn .er-key{flex:none;min-width:22px;height:22px;padding:0 5px;border-radius:7px;background:var(--surface-2);color:var(--ink-2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}
   .er-btn[data-er-on="1"]{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
@@ -831,7 +833,89 @@
     .sql-viz[data-kind="er"] .er-fat,
     .sql-viz[data-kind="er"] .er-three,
     .sql-viz[data-kind="er"] .er-td,
-    .sql-viz[data-kind="er"] .er-badge{animation-duration:1ms!important;animation-delay:0ms!important;transition:none!important}
+    .sql-viz[data-kind="er"] .er-badge,
+    .sql-viz[data-kind="er"] .join-pill,
+    .sql-viz[data-kind="er"] .join-out,
+    .sql-viz[data-kind="er"] .join-ghost,
+    .sql-viz[data-kind="er"] .jchip{animation-duration:1ms!important;animation-delay:0ms!important;transition:none!important}
+  }
+
+  /* JOIN : relier des lignes, pas un schéma ASCII */
+  .join-trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;position:relative;z-index:1}
+  .join-trio .er-col[data-side="prd"] .er-card-h{background:linear-gradient(135deg,#0F766E,#14B8A6)}
+  .join-out{display:flex;flex-direction:column;gap:6px;max-height:0;opacity:0;overflow:hidden;margin:0;transition:max-height .5s ease,opacity .4s ease,margin .35s ease}
+  .sql-viz[data-phase="2"] .join-out,
+  .sql-viz[data-phase="3"] .join-out,
+  .sql-viz[data-viz="outer"][data-phase="1"] .join-out{max-height:240px;opacity:1;margin-top:12px}
+  .join-pill{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:12px;background:var(--accent-soft);border:1px solid rgba(91,91,214,.16);font-size:12.5px;font-weight:700;color:var(--ink);opacity:0;transform:translateY(8px)}
+  .sql-viz[data-phase="2"] .join-pill,
+  .sql-viz[data-phase="3"] .join-pill,
+  .sql-viz[data-viz="outer"][data-phase="1"] .join-pill{animation:joinIn .4s cubic-bezier(.32,.72,.28,1) forwards}
+  .sql-viz[data-phase="2"] .join-pill:nth-child(1),
+  .sql-viz[data-phase="3"] .join-pill:nth-child(1){animation-delay:.04s}
+  .sql-viz[data-phase="2"] .join-pill:nth-child(2),
+  .sql-viz[data-phase="3"] .join-pill:nth-child(2){animation-delay:.12s}
+  .sql-viz[data-phase="2"] .join-pill:nth-child(3),
+  .sql-viz[data-phase="3"] .join-pill:nth-child(3){animation-delay:.2s}
+  .sql-viz[data-phase="2"] .join-pill:nth-child(4){animation-delay:.28s}
+  @keyframes joinIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .join-pill .jn{margin-left:auto;font-family:var(--mono);font-size:10px;font-weight:800;color:var(--ink-3);letter-spacing:.3px}
+  .join-pill .jn.null{color:var(--warn);font-style:italic;font-weight:700}
+  .join-ghost{opacity:0;max-height:0;padding-top:0!important;padding-bottom:0!important;border:0!important;overflow:hidden;pointer-events:none;color:var(--ink-3);font-style:italic}
+  .sql-viz[data-phase="1"] .join-ghost,
+  .sql-viz[data-phase="2"] .join-ghost,
+  .sql-viz[data-phase="3"] .join-ghost,
+  .sql-viz[data-viz="orphan"] .join-ghost{opacity:1;max-height:48px;padding:8px 10px!important;border-top:1px solid var(--line)!important;pointer-events:auto}
+  .er-line[data-er-ghost="1"]{stroke:rgba(180,83,9,.55);stroke-dasharray:5 6}
+  .sql-viz[data-viz="joinon"][data-phase="1"] .er-line,
+  .sql-viz[data-viz="joinon"][data-phase="2"] .er-line,
+  .sql-viz[data-viz="inner"][data-phase="1"] .er-line,
+  .sql-viz[data-viz="inner"][data-phase="2"] .er-line,
+  .sql-viz[data-viz="leftj"][data-phase="1"] .er-line,
+  .sql-viz[data-viz="leftj"][data-phase="2"] .er-line,
+  .sql-viz[data-viz="orphan"][data-phase="0"] .er-line,
+  .sql-viz[data-viz="orphan"][data-phase="1"] .er-line,
+  .sql-viz[data-viz="orphan"][data-phase="2"] .er-line,
+  .sql-viz[data-viz="triple"][data-phase="1"] .er-line,
+  .sql-viz[data-viz="triple"][data-phase="2"] .er-line{
+    opacity:1;stroke-dasharray:140;stroke-dashoffset:140;animation:erDraw .9s ease forwards
+  }
+  .sql-viz[data-viz="triple"][data-phase="1"] .er-line[data-er-hop="2"]{opacity:0;animation:none}
+  .sql-viz[data-viz="triple"][data-phase="2"] .er-line[data-er-hop="2"]{animation-delay:.18s}
+  .sql-viz[data-viz="inner"][data-phase="2"] .er-btn[data-join="drop"]{opacity:.28;filter:grayscale(.55);text-decoration:line-through}
+  .sql-viz[data-viz="inner"][data-phase="2"] .er-btn[data-join="drop"] .er-key{background:#E5E5EA;color:#8E8E93}
+  .join-drop-lab{display:none;margin-left:auto;font-size:9px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--warn)}
+  .sql-viz[data-viz="inner"][data-phase="2"] .join-drop-lab{display:inline}
+  .sql-viz[data-viz="leftj"][data-phase="2"] .er-btn[data-join="keep"],
+  .sql-viz[data-viz="orphan"][data-phase="2"] .er-btn[data-join="keep"]{background:var(--success-soft);box-shadow:inset 3px 0 0 var(--success)}
+  .sql-viz[data-viz="orphan"][data-phase="1"] .er-btn:not([data-join="keep"]):not(.join-ghost){opacity:.32}
+  .sql-viz[data-viz="orphan"][data-phase="2"] .er-btn:not([data-join="keep"]):not(.join-ghost){opacity:.12;filter:grayscale(.7)}
+  .sql-viz[data-viz="orphan"][data-phase="2"] .join-ghost{background:var(--success-soft)}
+  .join-sets{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .join-side{border:1px solid var(--card-border);border-radius:14px;overflow:hidden;background:var(--surface);box-shadow:var(--card-shadow-sm)}
+  .join-side-h{font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#fff;padding:8px 10px;background:linear-gradient(135deg,var(--accent),var(--accent-2))}
+  .join-side[data-side="r"] .join-side-h{background:linear-gradient(135deg,#B45309,#E0A040)}
+  .jchips{display:flex;flex-direction:column;gap:0}
+  .jchip{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid var(--line);font-size:13px;font-weight:700;color:var(--ink);transition:opacity .4s ease,background .35s ease,filter .35s ease}
+  .jchip .er-key{flex:none;width:22px;height:22px;border-radius:7px;background:var(--surface-2);color:var(--ink-2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+  .sql-viz[data-viz="outer"][data-phase="1"] .jchip[data-k="C"],
+  .sql-viz[data-viz="outer"][data-phase="1"] .jchip[data-k="D"]{opacity:.22;filter:grayscale(.6)}
+  .sql-viz[data-viz="outer"][data-phase="2"] .jchip[data-k="D"]{opacity:.22;filter:grayscale(.6)}
+  .sql-viz[data-viz="outer"][data-phase="2"] .jchip[data-k="C"]{background:var(--success-soft)}
+  .sql-viz[data-viz="outer"][data-phase="3"] .jchip[data-k="C"],
+  .sql-viz[data-viz="outer"][data-phase="3"] .jchip[data-k="D"]{background:var(--success-soft)}
+  .sql-viz[data-viz="outer"] .join-out .join-pill[data-when]{display:none}
+  .sql-viz[data-viz="outer"][data-phase="1"] .join-pill[data-when="in"],
+  .sql-viz[data-viz="outer"][data-phase="2"] .join-pill[data-when="in"],
+  .sql-viz[data-viz="outer"][data-phase="2"] .join-pill[data-when="l"],
+  .sql-viz[data-viz="outer"][data-phase="3"] .join-pill{display:flex}
+  .sql-viz[data-kind="er"][data-paused="1"] .join-pill,
+  .sql-viz[data-kind="er"][data-paused="1"] .join-out,
+  .sql-viz[data-kind="er"][data-paused="1"] .jchip{animation-play-state:paused!important}
+  @media (max-width:380px){
+    .join-trio{gap:6px}
+    .join-trio .er-btn{padding:7px 6px;font-size:10.5px}
+    .join-trio .er-key{min-width:18px;height:18px;font-size:9px}
   }
 
   .anat{background:var(--code-bg);border-radius:14px;padding:6px 0;margin-bottom:16px}
@@ -3503,7 +3587,8 @@ const MODULES = [
       body:"Avant la jointure, les informations sont séparées : dans la table <code>clients</code>, 1 → Sophie ; dans la table <code>commandes</code>, <code>client_id</code> 1 → <code>produit_id</code> 1.<br><br>Grâce à <code>ON clients.id = commandes.client_id</code>, SQL comprend : client 1 → Sophie → produit 1.<br><br>Le JOIN permet de retrouver des informations réparties dans plusieurs tables."},
     reflex:{a:{k:"JOIN",t:"relie deux tables"},
       b:{k:"ON",t:"indique <b>quelles lignes</b> correspondent"},
-      note:"Avant d’écrire <code>ON</code>, demande-toi : « Quelle colonne de la deuxième table fait référence à la première ? » Ici, <code>client_id</code> → <code>clients.id</code>."}},
+      note:"Avant d’écrire <code>ON</code>, demande-toi : « Quelle colonne de la deuxième table fait référence à la première ? » Ici, <code>client_id</code> → <code>clients.id</code>."},
+    viz:"joinon"},
   anatomie:[{tok:"FROM clients",txt:"La première table utilisée."},{tok:"JOIN commandes",txt:"La deuxième table à relier."},{tok:"ON clients.id = commandes.client_id",txt:"La condition de correspondance : id ↔ client_id."},{tok:"SELECT clients.nom, commandes.quantite",txt:"Les colonnes à afficher, une fois les lignes reliées."}],
   exemple:"SELECT clients.nom, commandes.produit_id FROM clients JOIN commandes ON clients.id = commandes.client_id;",
   attendu:"15 lignes : une par commande, avec le nom du client (Sophie apparaît 3 fois).",
@@ -3529,7 +3614,8 @@ const MODULES = [
       body:"<pre style=\"margin:0;font-family:var(--mono);font-size:11.5px;line-height:1.55;color:var(--ink-2);white-space:pre-wrap\">CLIENTS                  COMMANDES\nSophie (1) ────────────→ commande 1\n          ├────────────→ commande 2\n          └────────────→ commande 13\nLucas (2) ─────────────→ commande 3\n          └────────────→ commande 10\n…\nInès (9) ──────────────→ aucune\n                          ↓ écartée</pre><br>INNER JOIN ne conserve que les branches qui trouvent une correspondance."},
     reflex:{a:{k:"INNER JOIN",t:"garde uniquement les <b>correspondances</b>"},
       b:{k:"JOIN",t:"= INNER JOIN par défaut"},
-      note:"Un client avec 0 commande → 0 ligne. Un client avec 3 commandes → 3 lignes."}},
+      note:"Un client avec 0 commande → 0 ligne. Un client avec 3 commandes → 3 lignes."},
+    viz:"inner"},
   anatomie:[{tok:"FROM clients",txt:"On part de la table clients."},{tok:"INNER JOIN commandes",txt:"Relie commandes — seules les correspondances sont gardées."},{tok:"ON clients.id = commandes.client_id",txt:"La condition déjà vue au cours JOIN."},{tok:"SELECT clients.nom, commandes.date_commande",txt:"Nom du client + date de sa commande."}],
   exemple:"SELECT clients.nom, commandes.date_commande FROM clients INNER JOIN commandes ON clients.id = commandes.client_id;",
   attendu:"<b>15 lignes</b> — une par commande. Inès n’apparaît pas : aucune commande avec <code>client_id = 9</code>.",
@@ -3554,7 +3640,8 @@ const MODULES = [
       body:"INNER JOIN : Inès → aucune correspondance → écartée.<br><br>LEFT JOIN : Inès → aucune correspondance → <b>gardée</b>, colonnes de la table <code>commandes</code> à NULL.<br><br><code>LEFT JOIN</code> ne remplace pas <code>ON</code> — il change seulement ce qu’il faut faire quand aucune correspondance n’est trouvée."},
     reflex:{a:{k:"INNER JOIN",t:"seulement les <b>correspondances</b>"},
       b:{k:"LEFT JOIN",t:"toute la table de <b>gauche</b> + NULL"},
-      note:"Quelle table dois-tu conserver entièrement ? Place-la à gauche, après <code>FROM</code>."}},
+      note:"Quelle table dois-tu conserver entièrement ? Place-la à gauche, après <code>FROM</code>."},
+    viz:"leftj"},
   anatomie:[{tok:"FROM clients",txt:"Table de départ — c’est la gauche."},{tok:"LEFT JOIN commandes",txt:"Relie commandes en conservant tous les clients."},{tok:"ON clients.id = commandes.client_id",txt:"La condition de correspondance (inchangée)."},{"tok":"SELECT clients.nom, commandes.date_commande",txt:"Nom du client + date de sa commande (NULL si aucune)."}],
   exemple:"SELECT clients.nom, commandes.id FROM clients LEFT JOIN commandes ON clients.id = commandes.client_id;",
   attendu:"<b>16 lignes</b> : 15 correspondances + Inès avec <code>NULL</code> pour <code>commandes.id</code>.",
@@ -3580,7 +3667,8 @@ const MODULES = [
       body:"Sophie a 3 commandes → 3 lignes avec un <code>commandes.id</code> renseigné → écartées par <code>IS NULL</code>.<br><br>Inès n’a aucune commande → LEFT JOIN la garde avec <code>commandes.id = NULL</code> → conservée par le filtre."},
     reflex:{a:{k:"LEFT JOIN",t:"garde aussi ceux <b>sans</b> correspondance"},
       b:{k:"IS NULL",t:"sélectionne uniquement ceux <b>sans</b> correspondance"},
-      note:"LEFT JOIN + IS NULL = le duo pour trouver les orphelins."}},
+      note:"LEFT JOIN + IS NULL = le duo pour trouver les orphelins."},
+    viz:"orphan"},
   anatomie:[{tok:"FROM clients",txt:"On part de tous les clients."},{tok:"LEFT JOIN commandes",txt:"Jointure qui conserve Inès avec NULL."},{tok:"ON clients.id = commandes.client_id",txt:"La condition de correspondance."},{tok:"WHERE commandes.id IS NULL",txt:"Ne garde que les clients sans aucune commande."}],
   exemple:"SELECT clients.nom FROM clients LEFT JOIN commandes ON clients.id = commandes.client_id WHERE commandes.id IS NULL;",
   attendu:"<b>1 ligne</b> : Inès — seule cliente sans commande.",
@@ -3606,7 +3694,8 @@ const MODULES = [
       body:"Pour la commande <code>id = 1</code> (<code>client_id = 1, produit_id = 1, quantite = 2</code>) :<br><br>1. <code>ON clients.id = commandes.client_id</code> → <code>clients.id = 1</code> → Sophie.<br>2. <code>ON commandes.produit_id = produits.id</code> → <code>produits.id = 1</code> → Fibre Prébiotique.<br><br>Résultat : Sophie → Fibre Prébiotique → 2.<br><br><pre style=\"margin:12px 0 0;font-family:var(--mono);font-size:11.5px;line-height:1.55;color:var(--ink-2);white-space:pre-wrap\">clients\n   │ clients.id = commandes.client_id\n   ↓\ncommandes\n   │ commandes.produit_id = produits.id\n   ↓\nproduits</pre>"},
     reflex:{a:{k:"2 JOIN",t:"pour <b>3 tables</b>"},
       b:{k:"commandes",t:"table <b>pont</b> au centre"},
-      note:"Cherche les relations clé primaire ↔ clé étrangère, pas des valeurs identiques au hasard."}},
+      note:"Cherche les relations clé primaire ↔ clé étrangère, pas des valeurs identiques au hasard."},
+    viz:"triple"},
   anatomie:[{tok:"FROM clients",txt:"Point de départ."},{tok:"JOIN commandes ON clients.id = commandes.client_id",txt:"Premier lien : client ↔ commande."},{tok:"JOIN produits ON commandes.produit_id = produits.id",txt:"Second lien : commande ↔ produit."},{tok:"SELECT clients.nom AS client, produits.nom AS produit, commandes.date_commande",txt:"Colonnes des 3 tables, renommées si besoin."}],
   exemple:"SELECT clients.nom AS client, produits.nom AS produit, commandes.quantite FROM clients JOIN commandes ON clients.id = commandes.client_id JOIN produits ON commandes.produit_id = produits.id;",
   attendu:"<b>15 lignes</b> — une par commande : Sophie, Fibre Prébiotique, 2…",
@@ -3633,7 +3722,8 @@ const MODULES = [
       body:"<b>INNER</b> → seulement les correspondances.<br><b>LEFT</b> → tout à gauche + NULL si rien à droite.<br><b>RIGHT</b> → tout à droite + NULL si rien à gauche.<br><b>FULL OUTER</b> → tout des deux côtés.<br><br>Avant de choisir, pose-toi : <b>que dois-je conserver s’il n’y a pas de correspondance ?</b>"},
     reflex:{a:{k:"RIGHT JOIN",t:"conserve toute la table de <b>droite</b>"},
       b:{k:"FULL OUTER",t:"conserve <b>les deux</b> tables entièrement"},
-      note:"Le nom de la jointure indique quel côté garder quand il n’y a pas de match."}},
+      note:"Le nom de la jointure indique quel côté garder quand il n’y a pas de match."},
+    viz:"outer"},
   anatomie:[{tok:"FROM commandes AS co",txt:"Table de départ — c’est la gauche ici."},{tok:"RIGHT JOIN clients AS c",txt:"Relie clients en conservant toutes ses lignes (droite)."},{tok:"ON co.client_id = c.id",txt:"La condition de correspondance (inchangée)."},{tok:'SELECT c.nom, co.id',txt:"Nom du client + id de commande (NULL si aucune)."}],
   exemple:"SELECT c.nom, co.id FROM commandes AS co RIGHT JOIN clients AS c ON co.client_id = c.id;",
   attendu:"<b>16 lignes</b> — 15 correspondances + Inès avec <code>NULL</code>. Même résultat qu’un LEFT JOIN depuis <code>clients</code>.",
@@ -10194,6 +10284,172 @@ const SQL_VIZ={
       </div>
     </div>
     <p class="er-hint">Touche un client ou une commande.</p>
+  </div>`},
+  joinon:{kind:'er',phases:[
+    {k:'Deux tables',d:'À gauche le nom. À droite l’id du client. Rien n’est encore relié.'},
+    {k:'ON id = client_id',d:'SQL relie chaque commande au client dont l’id correspond. Touche Sophie.'},
+    {k:'Une ligne par match',d:'Sophie a 2 commandes → 2 lignes. Ce n’est pas une fusion : chaque correspondance produit une ligne.'}
+  ],html:`<div class="er-stage er-match join-viz">
+    <svg class="er-links" aria-hidden="true"></svg>
+    <div class="er-pair">
+      <div class="er-col" data-side="pk">
+        <div class="er-card-h">table clients<span class="er-pk">id</span></div>
+        <button type="button" class="er-btn" data-er-id="1"><span class="er-key">1</span>Sophie</button>
+        <button type="button" class="er-btn" data-er-id="2"><span class="er-key">2</span>Lucas</button>
+      </div>
+      <div class="er-col" data-side="fk">
+        <div class="er-card-h">table commandes<span class="er-fk">client_id</span></div>
+        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">1</span>#1 · qté 2</button>
+        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">1</span>#2 · qté 1</button>
+        <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">2</span>#3 · qté 1</button>
+      </div>
+    </div>
+    <div class="join-out" aria-hidden="true">
+      <div class="join-pill">Sophie<span class="jn">commande 1</span></div>
+      <div class="join-pill">Sophie<span class="jn">commande 2</span></div>
+      <div class="join-pill">Lucas<span class="jn">commande 3</span></div>
+    </div>
+    <p class="er-hint">Touche Sophie : ses deux commandes s’allument.</p>
+  </div>`},
+  inner:{kind:'er',phases:[
+    {k:'Cherche un match',d:'Sophie a des commandes. Inès n’en a aucune. SQL compare id ↔ client_id.'},
+    {k:'Correspondances',d:'Chaque match devient une ligne. Sophie × 2. Lucas × 1.'},
+    {k:'Inès écartée',d:'Aucune commande avec client_id = 9. INNER JOIN ne la garde pas. Ce n’est pas une erreur.'}
+  ],html:`<div class="er-stage er-match join-viz">
+    <svg class="er-links" aria-hidden="true"></svg>
+    <div class="er-pair">
+      <div class="er-col" data-side="pk">
+        <div class="er-card-h">table clients<span class="er-pk">id</span></div>
+        <button type="button" class="er-btn" data-er-id="1"><span class="er-key">1</span>Sophie</button>
+        <button type="button" class="er-btn" data-er-id="2"><span class="er-key">2</span>Lucas</button>
+        <button type="button" class="er-btn" data-er-id="9" data-join="drop"><span class="er-key">9</span>Inès<span class="join-drop-lab">écartée</span></button>
+      </div>
+      <div class="er-col" data-side="fk">
+        <div class="er-card-h">table commandes<span class="er-fk">client_id</span></div>
+        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">1</span>#1</button>
+        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">1</span>#2</button>
+        <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">2</span>#3</button>
+      </div>
+    </div>
+    <div class="join-out" aria-hidden="true">
+      <div class="join-pill">Sophie<span class="jn">#1</span></div>
+      <div class="join-pill">Sophie<span class="jn">#2</span></div>
+      <div class="join-pill">Lucas<span class="jn">#3</span></div>
+    </div>
+    <p class="er-hint">Pas de trait vers Inès : pas de correspondance.</p>
+  </div>`},
+  leftj:{kind:'er',phases:[
+    {k:'Gauche = clients',d:'FROM clients LEFT JOIN commandes. Tous les clients doivent rester.'},
+    {k:'Match + orpheline',d:'Sophie se relie. Inès n’a pas de commande : un trait pointillé vers NULL.'},
+    {k:'Inès conservée',d:'LEFT JOIN garde la gauche. Les colonnes de commandes valent NULL.'}
+  ],html:`<div class="er-stage er-match join-viz">
+    <svg class="er-links" aria-hidden="true"></svg>
+    <div class="er-pair">
+      <div class="er-col" data-side="pk">
+        <div class="er-card-h">gauche · clients</div>
+        <button type="button" class="er-btn" data-er-id="1"><span class="er-key">1</span>Sophie</button>
+        <button type="button" class="er-btn" data-er-id="2"><span class="er-key">2</span>Lucas</button>
+        <button type="button" class="er-btn" data-er-id="9" data-join="keep"><span class="er-key">9</span>Inès</button>
+      </div>
+      <div class="er-col" data-side="fk">
+        <div class="er-card-h">droite · commandes</div>
+        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">1</span>#1</button>
+        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">1</span>#2</button>
+        <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">2</span>#3</button>
+        <button type="button" class="er-btn join-ghost" data-er-fk="9" data-ghost="1"><span class="er-key">∅</span>NULL</button>
+      </div>
+    </div>
+    <div class="join-out" aria-hidden="true">
+      <div class="join-pill">Sophie<span class="jn">#1</span></div>
+      <div class="join-pill">Sophie<span class="jn">#2</span></div>
+      <div class="join-pill">Lucas<span class="jn">#3</span></div>
+      <div class="join-pill">Inès<span class="jn null">NULL</span></div>
+    </div>
+    <p class="er-hint">Touche Inès : la case NULL s’allume.</p>
+  </div>`},
+  orphan:{kind:'er',phases:[
+    {k:'LEFT JOIN d’abord',d:'Tous les clients sont là. Inès a NULL à droite.'},
+    {k:'WHERE … IS NULL',d:'On écarte ceux qui ont une commande. Sophie et Lucas s’estompent.'},
+    {k:'Il reste Inès',d:'Seule ligne sans correspondance. C’est le client qui n’a jamais commandé.'}
+  ],html:`<div class="er-stage er-match join-viz">
+    <svg class="er-links" aria-hidden="true"></svg>
+    <div class="er-pair">
+      <div class="er-col" data-side="pk">
+        <div class="er-card-h">table clients</div>
+        <button type="button" class="er-btn" data-er-id="1"><span class="er-key">1</span>Sophie</button>
+        <button type="button" class="er-btn" data-er-id="2"><span class="er-key">2</span>Lucas</button>
+        <button type="button" class="er-btn" data-er-id="9" data-join="keep"><span class="er-key">9</span>Inès</button>
+      </div>
+      <div class="er-col" data-side="fk">
+        <div class="er-card-h">table commandes</div>
+        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">1</span>#1</button>
+        <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">2</span>#3</button>
+        <button type="button" class="er-btn join-ghost" data-er-fk="9" data-ghost="1" data-join="keep"><span class="er-key">∅</span>NULL</button>
+      </div>
+    </div>
+    <div class="join-out" aria-hidden="true">
+      <div class="join-pill">Inès<span class="jn null">jamais commandé</span></div>
+    </div>
+    <p class="er-hint">IS NULL ne garde que le trait vers le vide.</p>
+  </div>`},
+  triple:{kind:'er',phases:[
+    {k:'3 tables',d:'Le nom est dans clients. Le produit est dans produits. commandes est au centre.'},
+    {k:'1er JOIN',d:'clients.id ↔ commandes.client_id. On sait qui a commandé.'},
+    {k:'2e JOIN',d:'commandes.produit_id ↔ produits.id. Sophie → Fibre → 2.'}
+  ],html:`<div class="er-stage er-match join-viz">
+    <svg class="er-links" aria-hidden="true"></svg>
+    <div class="join-trio">
+      <div class="er-col" data-side="pk">
+        <div class="er-card-h">clients</div>
+        <button type="button" class="er-btn" data-er-id="c1"><span class="er-key">1</span>Sophie</button>
+        <button type="button" class="er-btn" data-er-id="c2"><span class="er-key">2</span>Lucas</button>
+      </div>
+      <div class="er-col" data-side="fk">
+        <div class="er-card-h">commandes</div>
+        <button type="button" class="er-btn" data-er-fk="c1" data-er-src="p1"><span class="er-key">1</span>#1 · qté 2</button>
+        <button type="button" class="er-btn" data-er-fk="c2" data-er-src="p6"><span class="er-key">2</span>#3 · qté 1</button>
+      </div>
+      <div class="er-col" data-side="prd">
+        <div class="er-card-h">produits</div>
+        <button type="button" class="er-btn" data-er-to="p1"><span class="er-key">1</span>Fibre</button>
+        <button type="button" class="er-btn" data-er-to="p6"><span class="er-key">6</span>Protéine</button>
+      </div>
+    </div>
+    <div class="join-out" aria-hidden="true">
+      <div class="join-pill">Sophie → Fibre<span class="jn">2</span></div>
+      <div class="join-pill">Lucas → Protéine<span class="jn">1</span></div>
+    </div>
+    <p class="er-hint">Touche Sophie : la commande, puis le produit.</p>
+  </div>`},
+  outer:{kind:'er',phases:[
+    {k:'Deux côtés',d:'A et B correspondent. C n’existe qu’à gauche. D n’existe qu’à droite.'},
+    {k:'INNER JOIN',d:'Seulement A et B. C et D disparaissent.'},
+    {k:'LEFT JOIN',d:'Tout à gauche : A, B, et C avec NULL. D reste dehors.'},
+    {k:'FULL OUTER',d:'Tout : A, B, C↔NULL, NULL↔D.'}
+  ],html:`<div class="er-stage join-viz">
+    <div class="join-sets">
+      <div class="join-side"><div class="join-side-h">gauche</div>
+        <div class="jchips">
+          <div class="jchip" data-k="A"><span class="er-key">A</span>match</div>
+          <div class="jchip" data-k="B"><span class="er-key">B</span>match</div>
+          <div class="jchip" data-k="C"><span class="er-key">C</span>seulement ici</div>
+        </div>
+      </div>
+      <div class="join-side" data-side="r"><div class="join-side-h">droite</div>
+        <div class="jchips">
+          <div class="jchip" data-k="A"><span class="er-key">A</span>match</div>
+          <div class="jchip" data-k="B"><span class="er-key">B</span>match</div>
+          <div class="jchip" data-k="D"><span class="er-key">D</span>seulement ici</div>
+        </div>
+      </div>
+    </div>
+    <div class="join-out" aria-hidden="true">
+      <div class="join-pill" data-when="in">A ↔ A</div>
+      <div class="join-pill" data-when="in">B ↔ B</div>
+      <div class="join-pill" data-when="l">C ↔ NULL</div>
+      <div class="join-pill" data-when="r">NULL ↔ D</div>
+    </div>
+    <p class="er-hint">RIGHT JOIN serait l’inverse du LEFT : D gardé, C dehors.</p>
   </div>`}
 };
 const HAVING_GRP_PHASES=SQL_VIZ.having.phases;
@@ -10411,14 +10667,35 @@ function bindErViz(root){
   if(!root||root.dataset.erBound==='1')return;
   root.dataset.erBound='1';
   root.addEventListener('click',e=>{
-    const row=e.target.closest('[data-er-id],[data-er-fk]');
+    const row=e.target.closest('[data-er-id],[data-er-fk],[data-er-to],[data-er-src]');
     if(!row||!root.contains(row))return;
-    const id=row.dataset.erId||row.dataset.erFk;
+    const id=row.dataset.erId||row.dataset.erFk||row.dataset.erTo||row.dataset.erSrc;
     const was=row.getAttribute('data-er-on')==='1';
     root.querySelectorAll('[data-er-on]').forEach(n=>n.removeAttribute('data-er-on'));
     if(was)return;
-    root.querySelectorAll('[data-er-id="'+id+'"],[data-er-fk="'+id+'"]').forEach(n=>n.setAttribute('data-er-on','1'));
+    const mark=sel=>{
+      root.querySelectorAll(sel).forEach(n=>n.setAttribute('data-er-on','1'));
+    };
+    mark('[data-er-id="'+id+'"],[data-er-fk="'+id+'"],[data-er-to="'+id+'"],[data-er-src="'+id+'"]');
+    if(row.dataset.erId){
+      root.querySelectorAll('[data-er-fk="'+id+'"]').forEach(fk=>{
+        const src=fk.dataset.erSrc;
+        if(src) mark('[data-er-to="'+src+'"],[data-er-src="'+src+'"]');
+      });
+    }
+    if(row.dataset.erTo){
+      root.querySelectorAll('[data-er-src="'+id+'"]').forEach(srcEl=>{
+        const fk=srcEl.dataset.erFk;
+        if(fk) mark('[data-er-id="'+fk+'"],[data-er-fk="'+fk+'"]');
+      });
+    }
     root.querySelectorAll('.er-line[data-er-link="'+id+'"]').forEach(n=>n.setAttribute('data-er-on','1'));
+    root.querySelectorAll('.er-line').forEach(n=>{
+      const a=n.getAttribute('data-er-link');
+      const b=n.getAttribute('data-er-link2');
+      if(a&&root.querySelector('[data-er-on="1"][data-er-id="'+a+'"],[data-er-on="1"][data-er-fk="'+a+'"]')) n.setAttribute('data-er-on','1');
+      if(b&&root.querySelector('[data-er-on="1"][data-er-to="'+b+'"],[data-er-on="1"][data-er-src="'+b+'"]')) n.setAttribute('data-er-on','1');
+    });
     if(navigator.vibrate)navigator.vibrate(8);
   });
 }
@@ -10431,30 +10708,49 @@ function drawErLinks(root){
   svg.setAttribute('viewBox','0 0 '+w+' '+h);
   svg.setAttribute('width',String(w));
   svg.setAttribute('height',String(h));
-  const fks=[...root.querySelectorAll('[data-er-fk]')];
-  const on=new Set([...root.querySelectorAll('[data-er-on="1"]')].map(n=>n.dataset.erId||n.dataset.erFk).filter(Boolean));
+  const phase=parseInt(root.dataset.phase||'0',10);
+  const fks=[...root.querySelectorAll('[data-er-fk]')].filter(el=>{
+    if(el.classList.contains('join-ghost')) return phase>=1||root.dataset.viz==='orphan';
+    return true;
+  });
+  const hops=[...root.querySelectorAll('[data-er-src]')].filter(el=>el.dataset.erSrc);
+  const pairs=[];
+  fks.forEach(fkEl=>{
+    const id=fkEl.dataset.erFk;
+    const pkEl=root.querySelector('[data-er-id="'+id+'"]');
+    if(pkEl) pairs.push({from:pkEl,to:fkEl,link:id,ghost:fkEl.getAttribute('data-ghost')==='1',hop:'1'});
+  });
+  hops.forEach(srcEl=>{
+    const pid=srcEl.dataset.erSrc;
+    const toEl=root.querySelector('[data-er-to="'+pid+'"]');
+    if(toEl) pairs.push({from:srcEl,to:toEl,link:srcEl.dataset.erFk||pid,link2:pid,hop:'2'});
+  });
+  const on=new Set([...root.querySelectorAll('[data-er-on="1"]')].map(n=>n.dataset.erId||n.dataset.erFk||n.dataset.erTo||n.dataset.erSrc).filter(Boolean));
   let paths=[...svg.querySelectorAll('.er-line')];
-  if(paths.length!==fks.length){
+  if(paths.length!==pairs.length){
     svg.replaceChildren();
-    paths=fks.map(()=>{
+    paths=pairs.map(()=>{
       const path=document.createElementNS('http://www.w3.org/2000/svg','path');
       path.setAttribute('class','er-line');
       svg.appendChild(path);
       return path;
     });
   }
-  fks.forEach((fkEl,i)=>{
-    const id=fkEl.dataset.erFk;
-    const pkEl=root.querySelector('[data-er-id="'+id+'"]');
+  pairs.forEach((pair,i)=>{
     const path=paths[i];
-    if(!pkEl||!path)return;
-    const a=pkEl.getBoundingClientRect(),b=fkEl.getBoundingClientRect();
+    if(!path)return;
+    const a=pair.from.getBoundingClientRect(),b=pair.to.getBoundingClientRect();
     const x1=a.right-wr.left,y1=a.top+a.height/2-wr.top;
     const x2=b.left-wr.left,y2=b.top+b.height/2-wr.top;
     const mid=(x1+x2)/2;
     path.setAttribute('d','M'+x1+','+y1+' C'+mid+','+y1+' '+mid+','+y2+' '+x2+','+y2);
-    path.setAttribute('data-er-link',id);
-    if(on.has(id)) path.setAttribute('data-er-on','1');
+    path.setAttribute('data-er-link',pair.link);
+    path.setAttribute('data-er-hop',pair.hop);
+    if(pair.link2) path.setAttribute('data-er-link2',pair.link2);
+    else path.removeAttribute('data-er-link2');
+    if(pair.ghost) path.setAttribute('data-er-ghost','1');
+    else path.removeAttribute('data-er-ghost');
+    if(on.has(pair.link)||(pair.link2&&on.has(pair.link2))) path.setAttribute('data-er-on','1');
     else path.removeAttribute('data-er-on');
   });
 }
@@ -10462,7 +10758,10 @@ function layoutErViz(root){
   const stage=root.querySelector('.grp-stage');
   if(stage) stage.style.height='auto';
   bindErViz(root);
-  requestAnimationFrame(()=>drawErLinks(root));
+  requestAnimationFrame(()=>{
+    drawErLinks(root);
+    requestAnimationFrame(()=>drawErLinks(root));
+  });
 }
 function layoutSqlViz(root,phase,opts){
   const kind=root.dataset.kind||sqlVizCfg(root).kind;
