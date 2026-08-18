@@ -154,6 +154,10 @@
   .module-head h2,.ent-head h2{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink-3);margin:0;display:flex;align-items:center;gap:7px}
   .module-head h2::before,.ent-head h2::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none;box-shadow:0 0 0 3px var(--accent-soft)}
   .module-head span,.ent-head span{font-family:var(--mono);font-size:11px;color:var(--ink-3);font-weight:600}
+  .module-head-side{display:flex;align-items:center;gap:8px;flex:none}
+  .module-progress{width:48px;height:4px;border-radius:999px;background:var(--accent-soft);overflow:hidden}
+  .module-progress i{display:block;height:100%;border-radius:inherit;background:var(--accent);transition:width .45s var(--spring-ios)}
+  .module-progress[aria-valuenow="100"] i{background:var(--success)}
   .module .list,.ent-group-list,.list{background:var(--surface);border-radius:20px;overflow:hidden;border:1px solid var(--card-border);box-shadow:var(--card-shadow)}
   .row{display:flex;align-items:center;gap:12px;width:100%;padding:15px 16px;border:0;background:var(--surface);font-family:var(--ui);font-size:inherit;text-align:left;cursor:pointer;position:relative;transition:background .18s var(--spring-ios), transform .2s var(--spring-ios)}
   .row:not(:last-child)::after{content:'';position:absolute;left:56px;right:0;bottom:0;height:0.5px;background:var(--line)}
@@ -6258,7 +6262,8 @@ function renderModules(){
       if(state.lessons[l.id]&&state.lessons[l.id].done) done++;
     });
     if(!tot) return '';
-    return `<div class="module"><div class="module-head"><div class="module-head-copy"><h2>${esc(mod.titre)}</h2>${mod.sous?`<p class="module-sous">${esc(mod.sous)}</p>`:''}</div><span>${done}/${tot}</span></div><div class="list">${rows}</div></div>`;
+    const pct=Math.round(done/tot*100);
+    return `<div class="module"><div class="module-head"><div class="module-head-copy"><h2>${esc(mod.titre)}</h2>${mod.sous?`<p class="module-sous">${esc(mod.sous)}</p>`:''}</div><div class="module-head-side"><div class="module-progress" role="progressbar" aria-label="Progression du module ${esc(mod.titre)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div><span>${done}/${tot}</span></div></div><div class="list">${rows}</div></div>`;
   }).join('');
 }
 function renderDefis(){
@@ -6278,7 +6283,8 @@ function renderDefis(){
   host.innerHTML=blocks.map(([k,t])=>{
     const list=byNiv[k]; if(!list.length)return '';
     const done=list.filter(c=>state.defis&&state.defis[c.id]).length;
-    return `<div class="module"><div class="module-head"><h2>${esc(t)}</h2><span>${done}/${list.length}</span></div>
+    const pct=Math.round(done/list.length*100);
+    return `<div class="module"><div class="module-head"><h2>${esc(t)}</h2><div class="module-head-side"><div class="module-progress" role="progressbar" aria-label="Progression des défis ${esc(t)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div><span>${done}/${list.length}</span></div></div>
       <div class="list">${list.map(defiListRow).join('')}</div></div>`;
   }).join('');
 }
