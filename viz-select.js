@@ -173,6 +173,16 @@
     return r;
   }
 
+  function disarmViz(root) {
+    if (!root) return;
+    if (root._grpObs) { root._grpObs.disconnect(); root._grpObs = null; }
+    if (root._grpDwell) { clearTimeout(root._grpDwell); root._grpDwell = 0; }
+    var scr = document.getElementById("scr-lesson");
+    if (scr && root._grpRearm) scr.removeEventListener("scroll", root._grpRearm);
+    root._grpRearm = null;
+    root._grpArmed = false;
+  }
+
   // stopViz(root) cible une viz ; stopViz() sans argument stoppe tout,
   // pour rester compatible avec les appels existants.
   function stopViz(root) {
@@ -223,6 +233,7 @@
   }
 
   function playViz(root) {
+    disarmViz(root);
     stopViz(root);
     root.dataset.paused = "0";
     root.dataset.seen = "0";
@@ -245,6 +256,7 @@
   // La jauge se fige sur pause au lieu de sauter à 100 %.
   function pauseViz(root) {
     if (!root || root.dataset.playing !== "1") return;
+    disarmViz(root);
     var elapsed = Date.now() - (root._phaseStart || Date.now());
     root._phaseElapsed = elapsed;
     root._phaseRemaining = Math.max(150, (root._phaseDuration || DUR[0]) - elapsed);
@@ -288,11 +300,9 @@
     /* L’animation ne demarre qu’apres 2 s d’immobilite sur le cadre. */
     var DWELL = 2000;
     var start = function () {
-      if (root._grpDwell) { clearTimeout(root._grpDwell); root._grpDwell = 0; }
-      if (scr && root._grpRearm) { scr.removeEventListener("scroll", root._grpRearm); root._grpRearm = null; }
-      root._grpArmed = false;
-      if (root._grpObs) { root._grpObs.disconnect(); root._grpObs = null; }
+      disarmViz(root);
       if (!root.isConnected) return;
+      if (root.dataset.playing === "1" || root.dataset.paused === "1" || root.dataset.seen === "1") return;
       havingGrpSetPhase(root, 0, { animate: false });
       playViz(root);
     };
