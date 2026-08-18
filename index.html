@@ -144,6 +144,8 @@
   .group-stack,.ent-list{padding:16px 18px 28px;display:flex;flex-direction:column;gap:20px}
   .module{margin:0}
   .module-head,.ent-head{display:flex;align-items:center;justify-content:space-between;padding:0 8px 10px}
+  .module-head-copy{min-width:0}
+  .module-sous{margin:4px 0 0 13px;font-size:12.5px;font-weight:550;color:var(--ink-3);letter-spacing:-.1px;line-height:1.3}
   .module-head h2,.ent-head h2{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink-3);margin:0;display:flex;align-items:center;gap:7px}
   .module-head h2::before,.ent-head h2::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none;box-shadow:0 0 0 3px var(--accent-soft)}
   .module-head span,.ent-head span{font-family:var(--mono);font-size:11px;color:var(--ink-3);font-weight:600}
@@ -3047,7 +3049,7 @@ const MODULES = [
   richLesson:true, earlyDemo:true }
 ]},
 
-{ titre:"Agréger", sous:"Compter, calculer, regrouper", lessons:[
+{ titre:"Fonctions d’agrégation", sous:"COUNT, AVG, SUM, MIN, MAX", lessons:[
 { id:14, titre:"COUNT", résumé:"Compter les lignes",
   situation:"Tu viens d’importer la table clients. Avant de continuer, tu veux vérifier combien de personnes y sont vraiment enregistrées.<br><br>Avec ce que tu connais déjà, tu peux afficher leurs noms :",
   situationSql:"SELECT nom\nFROM clients;",
@@ -3184,7 +3186,10 @@ const MODULES = [
   testeVariants:[
     {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;",out:"SELECT affiche chaque prix"},
     {k:'max',label:'MAX(colonne)',sql:"SELECT MAX(prix)\nFROM produits;",out:"MAX(colonne) garde la plus grande valeur"}
-  ] },
+  ] }
+]},
+
+{ titre:"Regrouper", sous:"GROUP BY et HAVING", lessons:[
 { id:16, titre:"GROUP BY", résumé:"Un calcul par groupe",
   situation:"Dans la table <code>clients</code>, tu sais déjà compter tout le monde avec <code>COUNT(*)</code>. Cette fois, tu veux le détail : combien de clients habitent dans chaque ville.<br><br>Avec ce que tu connais déjà, tu peux compter toute la table :",
   situationSql:"SELECT COUNT(*)\nFROM clients;",
@@ -5842,7 +5847,7 @@ function renderModules(){
       if(state.lessons[l.id]&&state.lessons[l.id].done) done++;
     });
     if(!tot) return '';
-    return `<div class="module"><div class="module-head"><h2>${esc(mod.titre)}</h2><span>${done}/${tot}</span></div><div class="list">${rows}</div></div>`;
+    return `<div class="module"><div class="module-head"><div class="module-head-copy"><h2>${esc(mod.titre)}</h2>${mod.sous?`<p class="module-sous">${esc(mod.sous)}</p>`:''}</div><span>${done}/${tot}</span></div><div class="list">${rows}</div></div>`;
   }).join('');
 }
 function renderDefis(){
