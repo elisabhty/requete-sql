@@ -6,92 +6,77 @@
     "titre": "Relier",
     "sous": "Plusieurs tables, une question"
   },
-  "situation": "Pour chaque commande, tu veux le nom du client. Le nom n’est pas dans <code>commandes</code> : il est dans <code>clients</code>.",
+  "situation": "Tu veux afficher le nom de chaque client avec les produits qu'il a commandés.<br><br>Mais il y a un problème : aucune table ne contient toutes ces informations.",
+  "situationTail": "Dans la table <code>clients</code>, tu trouves le nom … Dans <code>commandes</code>, tu trouves les commandes avec <code>client_id</code>, mais pas le nom. Pour récupérer le nom, il faut relier les deux tables.",
   "studio": {
     "problem": {
-      "title": "Sans ON, chaque commande est collée à chaque client.",
-      "body": "Les données sont découpées exprès. Le <code>JOIN</code> recolle les tables via une colonne commune. Sans règle d’appariement, SQL associe tout avec tout."
+      "title": "JOIN permet de rassembler les lignes de deux tables qui correspondent.",
+      "body": "<code>JOIN</code> recolle les informations réparties dans plusieurs tables — sans dupliquer le nom du client sur chaque commande.",
+      "demo": "SELECT clients.nom, commandes.produit_id\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;"
     },
     "vs": {
       "bad": {
-        "tag": "✕ Sans ON",
-        "sql": "SELECT commandes.id, clients.nom, commandes.quantite\nFROM commandes, clients;",
-        "out": "Produit cartésien : chaque commande × chaque client"
+        "tag": "✕ Mauvaises colonnes",
+        "sql": "SELECT clients.nom, commandes.produit_id\nFROM clients\nJOIN commandes\nON clients.id = commandes.produit_id;",
+        "out": "Incohérent : produit_id identifie un produit, pas un client",
+        "pedagogic": true
       },
       "good": {
-        "tag": "✓ JOIN … ON",
-        "sql": "SELECT commandes.id, clients.nom, commandes.quantite\nFROM commandes\nJOIN clients ON commandes.client_id = clients.id;",
-        "out": "Chaque commande, avec le bon client"
+        "tag": "✓ Bon ON",
+        "sql": "SELECT clients.nom, commandes.produit_id\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;",
+        "out": "Sophie, Lucas, Emma… chaque commande avec le bon client"
       }
     },
-    "point": "Sans <code>ON</code>, SQL associe tout avec tout. Préfixe les colonnes (<code>clients.nom</code>) dès qu’il y a ambiguïté.",
+    "point": "ON clients.id = commandes.client_id — Sophie apparaît 3 fois. Préfixer avec table.colonne évite l'ambiguïté sur id.",
     "why": {
       "title": "Suis ce qui arrive à tes données.",
-      "body": "<code>commandes.client_id</code> pointe vers <code>clients.id</code>. Sophie a 3 commandes : son nom apparaît 3 fois. Sans <code>ON</code>, chaque commande est collée à chaque client."
+      "body": "Grâce à ON, SQL comprend : client 1 → Sophie → produit 1."
     },
     "reflex": {
-      "a": {
-        "k": "JOIN",
-        "t": "recolle deux tables"
-      },
-      "b": {
-        "k": "ON a = b",
-        "t": "la <b>règle d’appariement</b>"
-      }
+      "a": { "k": "JOIN", "t": "relie deux tables" },
+      "b": { "k": "ON", "t": "indique <b>quelles lignes</b> correspondent" },
+      "note": "Quelle colonne de la deuxième table fait référence à la première ? client_id → clients.id."
     }
   },
   "anatomie": [
-    {
-      "tok": "SELECT commandes.id, clients.nom, commandes.quantite",
-      "txt": "Colonnes des deux tables."
-    },
-    {
-      "tok": "FROM commandes",
-      "txt": "Table de départ."
-    },
-    {
-      "tok": "JOIN clients",
-      "txt": "<b>Relie</b> clients."
-    },
-    {
-      "tok": "ON commandes.client_id = clients.id",
-      "txt": "La clé commune."
-    }
+    { "tok": "FROM clients", "txt": "La première table utilisée." },
+    { "tok": "JOIN commandes", "txt": "La deuxième table à relier." },
+    { "tok": "ON clients.id = commandes.client_id", "txt": "La condition de correspondance." },
+    { "tok": "SELECT clients.nom, commandes.quantite", "txt": "Les colonnes à afficher." }
   ],
-  "exemple": "SELECT clients.nom, commandes.quantite FROM commandes JOIN clients ON commandes.client_id = clients.id;",
-  "attendu": "15 lignes : une par commande, avec le nom du client.",
-  "retenir": "<code>JOIN</code> recolle deux tables avec <code>ON</code>. Sans règle d’appariement, chaque ligne est collée à toutes les autres.",
+  "exemple": "SELECT clients.nom, commandes.produit_id FROM clients JOIN commandes ON clients.id = commandes.client_id;",
+  "attendu": "15 lignes : une par commande, avec le nom du client (Sophie apparaît 3 fois).",
+  "retenir": "JOIN relie deux tables. ON indique quelles lignes correspondent. clients.id = commandes.client_id.",
   "piege": {
-    "t": "Oublier ON",
-    "p": "Sans condition, tu obtiens un produit cartésien."
+    "t": "Relier les mauvaises colonnes",
+    "p": "ON clients.id = commandes.produit_id exécute mais le résultat est faux.",
+    "exec": true,
+    "sql": "SELECT clients.nom, commandes.produit_id\nFROM clients\nJOIN commandes\nON clients.id = commandes.produit_id;",
+    "fixSql": "SELECT clients.nom, commandes.produit_id\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;"
   },
-  "consigne": "Pour chaque commande, affiche le <code>nom</code> du client et la <code>quantite</code>.",
-  "solution": "SELECT clients.nom, commandes.quantite FROM commandes JOIN clients ON commandes.client_id = clients.id;",
-  "indice": "JOIN … ON <code>commandes.client_id = clients.id</code>.",
+  "consigne": "Affiche le nom de chaque client et la quantite de chaque produit qu'il a commandé.",
+  "solution": "SELECT clients.nom, commandes.quantite FROM clients JOIN commandes ON clients.id = commandes.client_id;",
+  "indice": "Part de clients, JOIN commandes, puis ON clients.id = commandes.client_id.",
   "richLesson": true,
   "earlyDemo": true,
   "memo": {
     "k": "JOIN",
     "t": "Relier deux tables",
-    "s": "FROM commandes\nJOIN clients ON commandes.client_id = clients.id",
-    "m": "Recolle les tables via une colonne commune. Pour une jointure relationnelle, écris <code>ON</code> ou <code>USING</code>. Sans condition, tu obtiens un produit cartésien. Préfixe (<code>clients.nom</code>) dès qu’il y a ambiguïté."
+    "s": "FROM clients\nJOIN commandes ON clients.id = commandes.client_id",
+    "m": "JOIN relie deux tables. ON indique quelles lignes correspondent."
   },
   "quiz": [
     {
-      "q": "À quoi sert la clause <code>ON</code> ?",
-      "o": [
-        "À trier le résultat",
-        "À dire quelle colonne correspond à quelle colonne",
-        "À filtrer les lignes"
-      ],
+      "q": "À quoi sert la clause ON ?",
+      "o": ["À trier le résultat", "À dire quelles lignes de deux tables correspondent", "À filtrer les lignes"],
       "b": 1,
-      "e": "C’est la règle d’appariement. Sans elle, SQL associe tout avec tout."
+      "e": "C'est la condition de correspondance entre les deux tables."
     },
     {
-      "q": "Sophie a 3 commandes. Dans un JOIN commandes/clients, son nom apparaît :",
+      "q": "Sophie a 3 commandes. Dans un JOIN clients/commandes, son nom apparaît :",
       "o": ["1 fois", "3 fois", "9 fois"],
       "b": 1,
-      "e": "Le JOIN répète les infos du client autant de fois qu’il a de commandes."
+      "e": "Une ligne est produite pour chaque correspondance trouvée."
     }
   ]
 }
