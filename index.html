@@ -3,9 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <title>Requête — Apprends le SQL</title>
 <meta name="description" content="Apprends le SQL en pratiquant sur une vraie base SQLite. Leçons, défis, révision espacée et console interactive.">
 <meta name="theme-color" content="#5B5BD6">
@@ -16,8 +13,14 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%235B5BD6'/%3E%3Ctext x='50%25' y='54%25' text-anchor='middle' font-family='monospace' font-size='28' font-weight='700' fill='white'%3E%3E_%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+<!-- Polices d'appoint : chargées sans bloquer le rendu. Sur iOS et macOS la pile
+     système (SF Pro / SF Mono) passe de toute façon en premier, et hors réseau
+     l'app doit s'afficher sans attendre l'échec de la requête. -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+<!-- Moteur SQL servi depuis le dépôt : l'app doit démarrer sans réseau.
+     Voir loadSqlEngine pour les replis CDN. -->
+<script src="vendor/sqljs/sql-wasm.js"></script>
 <style>
   :root{
     --bg:#F2F2F7; --surface:#FFFFFF; --surface-2:#F1F1F7; --surface-elevated:#FFFFFF;
@@ -250,6 +253,8 @@
   .lesson-lead .situation-body .situation-sql.exframe{margin-bottom:0}
   .lesson-lead .situation-body p + .situation-sql{margin-top:2px}
   .lesson-lead .situation-body .situation-sql + p{margin-top:12px}
+  .lesson-lead .situation-body .situation-sql .xf-actions{margin:0;padding:0 12px 12px}
+  .lesson-lead .situation-body .situation-sql .xf-result{margin:0 12px 12px}
   .lesson-lead .situation-body code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);color:var(--accent);padding:1px 6px;border-radius:6px;font-weight:600}
   .concept-page{display:flex;flex-direction:column;gap:16px;margin:0}
   .concept-page>h3{font-size:22px;font-weight:800;letter-spacing:-.4px;line-height:1.2;margin:0 2px 18px;color:var(--ink)}
@@ -3275,13 +3280,13 @@ const MODULES = [
 
 { titre:"Regrouper", sous:"GROUP BY et HAVING", lessons:[
 { id:16, titre:"GROUP BY", résumé:"Un calcul par groupe",
-  situation:"Dans la table <code>clients</code>, tu sais déjà compter tout le monde avec <code>COUNT(*)</code>. Cette fois, tu veux le détail : combien de clients habitent dans chaque ville.<br><br>Avec ce que tu connais déjà, tu peux compter toute la table :",
-  situationSql:"SELECT COUNT(*)\nFROM clients;",
-  situationTail:"Tu obtiens bien 9. Mais c’est un seul total pour tout le monde : pour un chiffre par ville, il faut la clause <code>GROUP BY</code>.",
+  situation:"Tu prépares un point équipe : combien de clients dans chaque ville ? Paris, Lyon, Marseille…<br><br>Avec ce que tu connais déjà, tu peux afficher chaque client et sa ville :",
+  situationSql:"SELECT nom, ville\nFROM clients;",
+  situationTail:"Tu obtiens bien les 9 clients. Paris revient 3 fois, Lyon 2 fois — tu vois les répétitions, mais pas le total par ville. Pour compter séparément dans chaque groupe, il faut la clause <code>GROUP BY</code>.",
     studio:{problem:{title:"<code>GROUP BY</code> sépare les lignes en groupes avant de calculer.",
-      body:"Sans <code>GROUP BY</code>, <code>COUNT(*)</code> compte toute la table et renvoie 9. Avec <code>GROUP BY ville</code>, SQL rassemble d’abord les clients qui ont la même ville. Il forme un groupe Paris, un groupe Lyon, un groupe Marseille… puis <code>COUNT(*)</code> compte les lignes dans chaque groupe."},
-    vs:{bad:{tag:"✕ Un seul total",sql:"SELECT COUNT(*)\nFROM clients;",out:"1 résultat : 9 clients au total",
-            code:"SELECT <span class=\"vs-line bad\">COUNT(*)</span>\nFROM clients;"},
+      body:""},
+    vs:{bad:{tag:"✕ Lister pour compter",sql:"SELECT nom, ville\nFROM clients;",out:"9 lignes : Paris 3 fois, Lyon 2 fois — il faut encore compter",
+            code:"SELECT <span class=\"vs-line bad\">nom, ville</span>\nFROM clients;"},
         good:{tag:"✓ Un total par ville",sql:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville;",out:"Paris 3, Lyon 2, puis 1 pour chaque autre ville",
             code:"SELECT ville, COUNT(*)\nFROM clients\n<span class=\"vs-line good\">GROUP BY ville</span>;"}},
     point:"Dans la table <code>clients</code>, Paris apparaît 3 fois : Sophie, Nathan et Léa forment donc un groupe de 3. Lyon apparaît 2 fois : Lucas et Hugo forment un groupe de 2. Marseille, Bordeaux, Toulouse et Nantes apparaissent une fois chacune. <code>COUNT(*)</code> est ensuite calculé séparément pour chaque groupe.",
@@ -3299,7 +3304,11 @@ const MODULES = [
   consigne:"Compte le nombre de clients par ville. Affiche la ville et le nombre de clients correspondant.",
   solution:"SELECT ville, COUNT(*) FROM clients GROUP BY ville;",
   indice:"Tu connais déjà <code>COUNT(*)</code>. Cette fois, demande à SQL de former un groupe pour chaque valeur de la colonne <code>ville</code>.",
-  richLesson:true, earlyDemo:true },
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'liste',label:'SELECT nom, ville',sql:"SELECT nom, ville\nFROM clients;",out:"9 lignes : il faut compter ville par ville"},
+    {k:'group',label:'GROUP BY',sql:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville;",out:"6 lignes : un total par ville"}
+  ] },
 { id:17, titre:"HAVING", résumé:"Filtrer après regroupement",
   situation:"Dans la table produits, chaque produit appartient à une catégorie. Tu veux ne garder que les catégories qui comptent au moins 2 produits.<br><br>Avec ce que tu connais déjà, tu peux compter les produits par catégorie :",
   situationSql:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie;",
@@ -4039,8 +4048,11 @@ function loadScript(src){
   });
 }
 async function loadSqlEngine(){
+  /* La copie locale passe en premier : l'app doit démarrer sans réseau.
+     Les CDN ne servent plus que de filet si le fichier local manque. */
   const sources=[
-    {js:null,wasm:'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.wasm'},
+    {js:'vendor/sqljs/sql-wasm.js',wasm:'vendor/sqljs/sql-wasm.wasm'},
+    {js:'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js',wasm:'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.wasm'},
     {js:'https://unpkg.com/sql.js@1.10.3/dist/sql-wasm.js',wasm:'https://unpkg.com/sql.js@1.10.3/dist/sql-wasm.wasm'}
   ];
   let lastError=null;
@@ -6703,6 +6715,10 @@ function situationSqlBlock(sql){
   return `<div class="situation-sql exframe">
     <div class="xf-head"><span class="xf-name">SQL</span><div class="xf-tools">${sqlCopyBtn()}</div></div>
     <div class="ex-code">${highlight(sql)}</div>
+    <div class="xf-actions">
+      <button type="button" class="xf-run" data-sql="${escAttr(sql)}" onclick="runExemple(this)">${XF_RUN_ICO}Exécuter</button>
+    </div>
+    <div class="xf-result" hidden aria-live="polite"></div>
   </div>`;
 }
 function renderSituationBody(l){
