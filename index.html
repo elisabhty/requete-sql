@@ -705,15 +705,39 @@
   .sql-viz[data-kind="count"][data-paused="1"] .grp-chip,
   .sql-viz[data-kind="count"][data-paused="1"] .grp-chip::after,
   .sql-viz[data-kind="agg"][data-paused="1"] .grp-chip,
-  .sql-viz[data-kind="agg"][data-paused="1"] .grp-chip::after{animation-play-state:paused!important}
+  .sql-viz[data-kind="agg"][data-paused="1"] .grp-chip::after,
+  .sql-viz[data-kind="minmax"][data-paused="1"] .grp-chip,
+  .sql-viz[data-kind="minmax"][data-paused="1"] .grp-chip::after{animation-play-state:paused!important}
   @media (prefers-reduced-motion:reduce){
     .sql-viz[data-kind="count"] .grp-chip,
     .sql-viz[data-kind="count"] .grp-chip::after,
     .sql-viz[data-kind="count"] .cnt-result,
     .sql-viz[data-kind="agg"] .grp-chip,
     .sql-viz[data-kind="agg"] .grp-chip::after,
-    .sql-viz[data-kind="agg"] .cnt-result{animation-duration:1ms!important;animation-delay:0ms!important;transition:none!important}
+    .sql-viz[data-kind="agg"] .cnt-result,
+    .sql-viz[data-kind="minmax"] .grp-chip,
+    .sql-viz[data-kind="minmax"] .grp-chip::after,
+    .sql-viz[data-kind="minmax"] .cnt-result{animation-duration:1ms!important;animation-delay:0ms!important;transition:none!important}
   }
+
+  /* MIN / MAX : garder le champion, écarter les autres — pas un total qui s’accumule */
+  .sql-viz[data-kind="minmax"] .grp-chip{padding-right:54px}
+  .sql-viz[data-kind="minmax"] .grp-chip::after{content:attr(data-tag);position:absolute;right:8px;top:50%;width:auto;min-width:36px;height:22px;padding:0 7px;border-radius:8px;background:#0F766E;color:#fff;font-family:var(--mono);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(-50%) scale(.7);pointer-events:none;box-shadow:0 2px 8px rgba(15,118,110,.28)}
+  .sql-viz[data-kind="minmax"][data-phase="1"] .grp-chip:not([data-mark]):not([data-win="1"]){animation:mmVisit .45s ease var(--dw,0ms) both,mmOut .4s ease var(--out,0ms) forwards}
+  .sql-viz[data-kind="minmax"][data-phase="1"] .grp-chip[data-mark="1"]:not([data-win="1"]){animation:mmChamp .5s ease var(--dw,0ms) both,mmOut .4s ease var(--out,0ms) forwards}
+  .sql-viz[data-kind="minmax"][data-phase="1"] .grp-chip[data-win="1"]{animation:mmChamp .5s ease var(--dw,0ms) both}
+  .sql-viz[data-kind="minmax"][data-phase="1"] .grp-chip[data-tag]::after{animation:mmBadgeIn .34s cubic-bezier(.32,.72,.28,1) var(--dw,0ms) both}
+  .sql-viz[data-kind="minmax"][data-phase="1"] .grp-chip[data-tag]:not([data-win="1"])::after{animation:mmBadgeIn .34s cubic-bezier(.32,.72,.28,1) var(--dw,0ms) both,mmBadgeOut .25s ease var(--out,0ms) forwards}
+  @keyframes mmVisit{0%{border-color:var(--line-2);background:var(--surface)}40%{border-color:rgba(91,91,214,.42);background:var(--accent-soft)}100%{border-color:rgba(91,91,214,.22);background:var(--accent-soft)}}
+  @keyframes mmChamp{0%{border-color:var(--line-2);background:var(--surface)}40%{border-color:rgba(15,118,110,.5);background:var(--success-soft)}100%{border-color:rgba(15,118,110,.4);background:var(--success-soft)}}
+  @keyframes mmOut{to{opacity:.3;filter:grayscale(.5)}}
+  @keyframes mmBadgeIn{from{opacity:0;transform:translateY(-50%) scale(.7)}to{opacity:1;transform:translateY(-50%) scale(1)}}
+  @keyframes mmBadgeOut{from{opacity:1;transform:translateY(-50%) scale(1)}to{opacity:0;transform:translateY(-50%) scale(.7)}}
+  .sql-viz[data-kind="minmax"] .cnt-result{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;opacity:0;transform:scale(.92);pointer-events:none;z-index:4;transition:opacity .45s ease,transform .45s cubic-bezier(.32,.72,.28,1)}
+  .sql-viz[data-kind="minmax"][data-phase="2"] .cnt-result{opacity:1;transform:scale(1)}
+  .sql-viz[data-kind="minmax"] .cnt-num{font-family:var(--mono);font-size:42px;font-weight:800;letter-spacing:-1.4px;line-height:1;color:var(--accent)}
+  .sql-viz[data-kind="minmax"] .cnt-lbl{font-size:13px;font-weight:700;color:var(--ink-2)}
+  .sql-viz[data-kind="minmax"][data-phase="2"] .grp-chip{opacity:0;pointer-events:none;transition:opacity .4s ease .05s}
 
   .anat{background:var(--code-bg);border-radius:14px;padding:6px 0;margin-bottom:16px}
   .anat-line{display:flex;gap:12px;align-items:flex-start;padding:10px 15px}
@@ -6415,6 +6439,20 @@ function noteFromRetenir(){
   });
 }
 function lessonRetenirText(l){ return lessonReflexText(l); }
+function minmaxChipState(chips, mode){
+  const nums=(chips||[]).map(c=>parseFloat(String(c.t).replace(',','.')));
+  let best=mode==='min'?Infinity:-Infinity, champ=-1;
+  const st=nums.map(()=>({mark:0,win:0,out:''}));
+  nums.forEach((v,i)=>{
+    const better=mode==='min'?v<best:v>best;
+    if(better){
+      if(champ>=0) st[champ].out=String(i);
+      best=v; champ=i; st[i].mark=1;
+    }else st[i].out=String(i);
+  });
+  if(champ>=0) st[champ].win=1;
+  return st;
+}
 function renderVizShell(key){
   const cfg=SQL_VIZ[key];
   if(!cfg)return '';
@@ -6429,22 +6467,30 @@ function renderVizShell(key){
     }).join('')}</div>`).join('');
     stage=`<div class="sel-table"><div class="sel-row sel-head">${head}</div>${body}</div><div class="sel-meta">9 lignes · 2 colonnes</div>`;
   }else{
-    const chips=(cfg.chips||[]).map((c,i)=>{
+    let list=cfg.chips||[];
+    if(cfg.kind==='minmax'){
+      const st=minmaxChipState(list, cfg.mode||key);
+      list=list.map((c,i)=>Object.assign({},c,st[i],{tag:cfg.tag}));
+    }
+    const chips=list.map((c,i)=>{
       const keep=c.keep==null?'':` data-keep="${c.keep}"`;
       const keep0=c.keep0==null?'':` data-keep0="${c.keep0}"`;
       const rank=c.rank==null?'':` data-rank="${c.rank}"`;
       const n=c.n==null&&cfg.kind!=='count'&&cfg.kind!=='agg'?'':` data-n="${c.n!=null?c.n:i+1}"`;
       const mark=c.mark?` data-mark="${c.mark}"`:'';
+      const win=c.win?` data-win="1"`:'';
+      const out=c.out==null||c.out===''?'':` data-out="${c.out}"`;
+      const tag=c.tag&&c.mark?` data-tag="${c.tag}"`:'';
       const extra=c.extra?`<span class="grp-extra">${c.extra}</span>`:'';
       const cat=c.cat?` data-cat="${c.cat}"`:'';
-      return `<div class="grp-chip"${keep}${keep0}${rank}${n}${mark}${cat}>${c.t}${extra}</div>`;
+      return `<div class="grp-chip"${keep}${keep0}${rank}${n}${mark}${win}${out}${tag}${cat}>${c.t}${extra}</div>`;
     }).join('');
     const buckets=(cfg.buckets||[]).map(b=>
       `<div class="grp-bucket" data-cat="${b.cat}" data-n="${b.n}" data-keep="${b.keep}"><span class="grp-bucket-lbl">${b.cat}</span><span class="grp-count">${b.n}</span></div>`
     ).join('');
     const total=cfg.display!=null?cfg.display:(cfg.total!=null?cfg.total:(cfg.chips||[]).length);
     const formula=cfg.formula?`<span class="cnt-formula">${cfg.formula}</span>`:'';
-    const result=(cfg.kind==='count'||cfg.kind==='agg')?`<div class="cnt-result" aria-hidden="true">${formula}<span class="cnt-num">${total}</span><span class="cnt-lbl">${cfg.lbl||'1 ligne · 1 valeur'}</span></div>`:'';
+    const result=(cfg.kind==='count'||cfg.kind==='agg'||cfg.kind==='minmax')?`<div class="cnt-result" aria-hidden="true">${formula}<span class="cnt-num">${total}</span><span class="cnt-lbl">${cfg.lbl||'1 ligne · 1 valeur'}</span></div>`:'';
     stage=buckets+chips+result;
   }
   return `<div class="grp-viz sql-viz" id="sql-viz-${key}" data-viz="${key}" data-kind="${cfg.kind}" data-phase="0" aria-label="Animation">
@@ -9556,21 +9602,19 @@ const SQL_VIZ={
     {t:'29,90',n:'29,90'},{t:'39,90',n:'69,80'},{t:'19,90',n:'89,70'},{t:'14,90',n:'104,60'},
     {t:'12,50',n:'117,10'},{t:'34,90',n:'152,00'},{t:'24,90',n:'176,90'},{t:'15,00',n:'191,90'}
   ]},
-  min:{kind:'agg',phases:[
-    {k:'SELECT prix FROM produits',d:'Les 8 prix s’affichent. Pour le plus bas, il faut encore les comparer.'},
-    {k:'MIN(prix)',d:'SQL compare chaque prix au plus petit déjà vu. Un nouveau minimum s’affiche en vert.'},
-    {k:'MIN(prix) = 12,50',d:'Le plus petit prix est 12,50. SQL renvoie cette valeur, pas le nom du produit.'}
+  min:{kind:'minmax',mode:'min',tag:'MIN',phases:[
+    {k:'SELECT prix FROM produits',d:'Les 8 prix s’affichent. Pour le plus bas, SQL va les comparer un par un.'},
+    {k:'MIN(prix)',d:'Il garde le plus petit déjà vu. Dès qu’un prix est plus grand, il s’efface. 12,50 reste.'},
+    {k:'MIN(prix) = 12,50',d:'Il ne reste qu’une valeur : 12,50. Ce n’est plus une liste.'}
   ],display:'12,50',lbl:'minimum · 1 ligne',chips:[
-    {t:'29,90',n:'29,90',mark:1},{t:'39,90',n:'29,90'},{t:'19,90',n:'19,90',mark:1},{t:'14,90',n:'14,90',mark:1},
-    {t:'12,50',n:'12,50',mark:1},{t:'34,90',n:'12,50'},{t:'24,90',n:'12,50'},{t:'15,00',n:'12,50'}
+    {t:'29,90'},{t:'39,90'},{t:'19,90'},{t:'14,90'},{t:'12,50'},{t:'34,90'},{t:'24,90'},{t:'15,00'}
   ]},
-  max:{kind:'agg',phases:[
-    {k:'SELECT prix FROM produits',d:'Les 8 prix s’affichent. Pour le plus élevé, il faut encore les comparer.'},
-    {k:'MAX(prix)',d:'SQL compare chaque prix au plus grand déjà vu. Un nouveau maximum s’affiche en vert.'},
-    {k:'MAX(prix) = 39,90',d:'Le plus grand prix est 39,90. SQL renvoie cette valeur, pas le nom du produit.'}
+  max:{kind:'minmax',mode:'max',tag:'MAX',phases:[
+    {k:'SELECT prix FROM produits',d:'Les 8 prix s’affichent. Pour le plus élevé, SQL va les comparer un par un.'},
+    {k:'MAX(prix)',d:'Il garde le plus grand déjà vu. 29,90 d’abord, puis 39,90 prend la tête. Les plus petits s’effacent.'},
+    {k:'MAX(prix) = 39,90',d:'Il ne reste qu’une valeur : 39,90. Ce n’est plus une liste.'}
   ],display:'39,90',lbl:'maximum · 1 ligne',chips:[
-    {t:'29,90',n:'29,90',mark:1},{t:'39,90',n:'39,90',mark:1},{t:'19,90',n:'39,90'},{t:'14,90',n:'39,90'},
-    {t:'12,50',n:'39,90'},{t:'34,90',n:'39,90'},{t:'24,90',n:'39,90'},{t:'15,00',n:'39,90'}
+    {t:'29,90'},{t:'39,90'},{t:'19,90'},{t:'14,90'},{t:'12,50'},{t:'34,90'},{t:'24,90'},{t:'15,00'}
   ]},
   having:{kind:'group',phases:[
     {k:'SELECT categorie FROM produits',d:'SQL lit simplement les lignes'},
@@ -9727,12 +9771,21 @@ function layoutSqlList(root,phase,{animate=true}={}){
       ?(sortAt>=0&&phase>=sortAt?(+c.dataset.rank||0)*70:i*45)
       :0;
     c.style.transitionDelay=delay+'ms';
-    if(kind==='count'||kind==='agg') c.style.setProperty('--dw',animate?(i*120)+'ms':'0ms');
+    const step=kind==='minmax'?200:120;
+    if(kind==='count'||kind==='agg'||kind==='minmax') c.style.setProperty('--dw',animate?(i*step)+'ms':'0ms');
+    if(kind==='minmax'){
+      const out=c.dataset.out;
+      if(!animate||out==null||out==='') c.style.setProperty('--out','0ms');
+      else{
+        const extra=c.dataset.mark==='1'?0:320;
+        c.style.setProperty('--out',((+out)*step+extra)+'ms');
+      }
+    }
     c.style.width=colW+'px';
     c.style.maxWidth=colW+'px';
     c.style.height=rowH+'px';
     c.style.paddingLeft='10px';
-    c.style.paddingRight=kind==='agg'?'68px':(kind==='count'?'36px':'10px');
+    c.style.paddingRight=kind==='minmax'?'54px':(kind==='agg'?'68px':(kind==='count'?'36px':'10px'));
     c.style.display='flex';
     c.style.alignItems='center';
     c.style.transform=`translate(${x}px,${y}px)`;
@@ -9790,7 +9843,8 @@ function havingGrpContinue(root,fromPhase){
     return;
   }
   const next=fromPhase+1;
-  const delay=fromPhase===0?2400:3000;
+  const kind=sqlVizCfg(root).kind;
+  const delay=fromPhase===0?2400:(kind==='minmax'?3400:3000);
   havingGrpTimer=setTimeout(()=>{
     havingGrpSetPhase(root,next);
     if(next>=last){
