@@ -685,9 +685,9 @@
 
   /* COUNT : numéroter chaque ligne, puis tout ramener à un seul chiffre */
   .sql-viz[data-kind="count"] .grp-chip,.sql-viz[data-kind="agg"] .grp-chip{padding-right:36px}
-  .sql-viz[data-kind="agg"] .grp-chip{padding-right:52px}
+  .sql-viz[data-kind="agg"] .grp-chip{padding-right:68px}
   .sql-viz[data-kind="count"] .grp-chip::after,.sql-viz[data-kind="agg"] .grp-chip::after{content:attr(data-n);position:absolute;right:8px;top:50%;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--mono);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(-50%) scale(.7);pointer-events:none;box-shadow:0 2px 8px rgba(91,91,214,.28)}
-  .sql-viz[data-kind="agg"] .grp-chip::after{width:auto;min-width:36px;height:22px;padding:0 7px;border-radius:8px;font-size:10px}
+  .sql-viz[data-kind="agg"] .grp-chip::after{width:auto;min-width:48px;height:22px;padding:0 7px;border-radius:8px;font-size:10px}
   .sql-viz[data-kind="count"][data-phase="1"] .grp-chip,.sql-viz[data-kind="agg"][data-phase="1"] .grp-chip{animation:cntVisit .5s ease var(--dw,0ms) both}
   .sql-viz[data-kind="count"][data-phase="1"] .grp-chip::after,.sql-viz[data-kind="agg"][data-phase="1"] .grp-chip::after{animation:cntTick .34s cubic-bezier(.32,.72,.28,1) var(--dw,0ms) both}
   .sql-viz[data-kind="agg"][data-phase="1"] .grp-chip[data-mark="1"]{animation:aggMark .5s ease var(--dw,0ms) both}
@@ -3013,21 +3013,19 @@ const MODULES = [
   indice:"Tu veux compter toutes les lignes : utilise la fonction <code>COUNT</code> avec <code>*</code>.",
   richLesson:true, earlyDemo:true },
 { id:15, titre:"AVG", résumé:"La moyenne d’une colonne",
-  situation:"Tu prépares une offre. Avant de fixer un prix promo, tu veux savoir autour de quel montant se situent les produits du catalogue.<br><br>Avec ce que tu connais déjà, tu peux afficher le prix de chaque produit :",
+  situation:"Tu regardes le catalogue. Avant de lancer une promo, tu veux un seul chiffre : autour de quel prix se situent les produits.<br><br>Avec ce que tu connais déjà, tu peux afficher chaque prix :",
   situationSql:"SELECT prix\nFROM produits;",
   situationTail:"Tu obtiens bien les 8 prix. Mais tu dois encore faire la moyenne à la main : pour l’obtenir directement, il faut <code>AVG</code>.",
     studio:{problem:{title:"<code>AVG</code> calcule la moyenne d’une colonne.",
-      body:"<code>AVG(prix)</code> prend toutes les valeurs de la colonne <code>prix</code>, les additionne, puis divise par leur nombre. Les 8 lignes deviennent un seul résultat : la moyenne."},
+      body:""},
     vs:{bad:{tag:"✕ Afficher pour moyenner",sql:"SELECT prix FROM produits;",out:"8 prix : il faut encore calculer la moyenne",
             code:"SELECT <span class=\"vs-line bad\">prix</span>\nFROM produits;"},
         good:{tag:"✓ Moyenne avec AVG",sql:"SELECT AVG(prix) FROM produits;",out:"1 ligne · une valeur : 23,9875",
             code:"SELECT <span class=\"vs-line good\">AVG(prix)</span>\nFROM produits;"}},
-    point:"Les 8 prix totalisent 191,90 €. Divisés par 8, ils donnent <b>23,9875 €</b>. Ce n’est plus une liste : c’est un indicateur.",
     why:{title:"Comment AVG calcule la moyenne ?"},
     viz:"avg",
     reflex:{a:{k:"COUNT(*)",t:"compte les <b>lignes</b>"},
-      b:{k:"AVG(prix)",t:"moyenne des <b>valeurs</b>"},
-      note:"<code>COUNT</code> répond « combien ». <code>AVG</code> répond « autour de combien », à partir d’une colonne numérique."}},
+      b:{k:"AVG(prix)",t:"moyenne des <b>valeurs</b>"}}},
   anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"AVG(prix)",txt:"Calcule la moyenne des prix."},{tok:"FROM produits",txt:"Le calcul porte sur la table produits."}],
   exemple:"SELECT AVG(prix) FROM produits;",
   attendu:"<b>1 ligne</b>, 1 valeur : 23,9875. C’est le prix moyen des 8 produits.",
@@ -3042,24 +3040,22 @@ const MODULES = [
     {k:'avg',label:'AVG',sql:"SELECT AVG(prix)\nFROM produits;"}
   ] },
 { id:30, titre:"SUM", résumé:"La somme d’une colonne",
-  situation:"Tu veux commander un exemplaire de chaque produit du catalogue. Avant de valider, tu as besoin du total à payer.<br><br>Avec ce que tu connais déjà, tu peux afficher le prix de chaque produit :",
+  situation:"Tu veux un exemplaire de chaque produit. Avant de valider le panier, tu as besoin du total à payer.<br><br>Avec ce que tu connais déjà, tu peux afficher chaque prix :",
   situationSql:"SELECT prix\nFROM produits;",
   situationTail:"Tu obtiens bien les 8 prix. Mais tu dois encore les additionner à la main : pour obtenir le total directement, il faut <code>SUM</code>.",
     studio:{problem:{title:"<code>SUM</code> additionne toutes les valeurs d’une colonne.",
-      body:"<code>SUM(prix)</code> parcourt la colonne <code>prix</code> et ajoute chaque valeur. Les 8 lignes deviennent un seul résultat : le total."},
+      body:""},
     vs:{bad:{tag:"✕ Afficher pour additionner",sql:"SELECT prix FROM produits;",out:"8 prix : il faut encore faire l’addition",
             code:"SELECT <span class=\"vs-line bad\">prix</span>\nFROM produits;"},
-        good:{tag:"✓ Total avec SUM",sql:"SELECT SUM(prix) FROM produits;",out:"1 ligne · une valeur : 191,9",
+        good:{tag:"✓ Total avec SUM",sql:"SELECT SUM(prix) FROM produits;",out:"1 ligne · une valeur : 191,90",
             code:"SELECT <span class=\"vs-line good\">SUM(prix)</span>\nFROM produits;"}},
-    point:"29,90 + 39,90 + 19,90 + 14,90 + 12,50 + 34,90 + 24,90 + 15,00 = <b>191,90 €</b>. Un seul chiffre, plus une liste.",
     why:{title:"Comment SUM additionne les prix ?"},
     viz:"sum",
     reflex:{a:{k:"AVG(prix)",t:"la <b>moyenne</b> des prix"},
-      b:{k:"SUM(prix)",t:"le <b>total</b> des prix"},
-      note:"Même colonne, deux questions. La moyenne divise le total par le nombre de valeurs ; la somme s’arrête au total."}},
+      b:{k:"SUM(prix)",t:"le <b>total</b> des prix"}}},
   anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"SUM(prix)",txt:"Additionne tous les prix."},{tok:"FROM produits",txt:"Le calcul porte sur la table produits."}],
   exemple:"SELECT SUM(prix) FROM produits;",
-  attendu:"<b>1 ligne</b>, 1 valeur : 191,9. C’est la somme des 8 prix.",
+  attendu:"<b>1 ligne</b>, 1 valeur : 191,90. C’est la somme des 8 prix.",
   retenir:"<code>SUM</code> additionne les valeurs d’une colonne. Dans <code>SELECT SUM(prix) FROM produits</code>, les 8 prix deviennent une seule valeur : 191,90.",
   piege:{t:"Prendre SUM pour un chiffre d’affaires",p:"<code>SUM(prix)</code> additionne les prix du catalogue, pas les ventes. Un vrai CA multiplie chaque commande par sa quantité, puis additionne."},
   consigne:"Calcule la somme des prix de tous les produits.",
@@ -3071,24 +3067,22 @@ const MODULES = [
     {k:'sum',label:'SUM',sql:"SELECT SUM(prix)\nFROM produits;"}
   ] },
 { id:31, titre:"MIN", résumé:"La plus petite valeur",
-  situation:"Tu lances une offre d’entrée de gamme. Tu veux le prix le plus bas du catalogue, pour t’en servir de référence.<br><br>Avec ce que tu connais déjà, tu peux afficher le prix de chaque produit :",
+  situation:"Tu lances une offre d’entrée de gamme. Tu veux le prix le plus bas du catalogue, comme référence.<br><br>Avec ce que tu connais déjà, tu peux afficher chaque prix :",
   situationSql:"SELECT prix\nFROM produits;",
   situationTail:"Tu obtiens bien les 8 prix. Mais tu dois encore chercher le plus petit à l’œil : pour l’obtenir directement, il faut <code>MIN</code>.",
     studio:{problem:{title:"<code>MIN</code> renvoie la plus petite valeur d’une colonne.",
-      body:"<code>MIN(prix)</code> compare les valeurs de la colonne <code>prix</code> et ne garde que la plus petite. Les 8 lignes deviennent un seul résultat."},
+      body:""},
     vs:{bad:{tag:"✕ Afficher pour chercher",sql:"SELECT prix FROM produits;",out:"8 prix : il faut encore repérer le plus bas",
             code:"SELECT <span class=\"vs-line bad\">prix</span>\nFROM produits;"},
-        good:{tag:"✓ Minimum avec MIN",sql:"SELECT MIN(prix) FROM produits;",out:"1 ligne · une valeur : 12,5",
+        good:{tag:"✓ Minimum avec MIN",sql:"SELECT MIN(prix) FROM produits;",out:"1 ligne · une valeur : 12,50",
             code:"SELECT <span class=\"vs-line good\">MIN(prix)</span>\nFROM produits;"}},
-    point:"Parmi les 8 prix, le plus bas est <b>12,50 €</b> (Tisane Détox). <code>MIN</code> renvoie ce prix, pas le nom du produit.",
     why:{title:"Comment MIN trouve le plus petit prix ?"},
     viz:"min",
     reflex:{a:{k:"AVG(prix)",t:"la <b>moyenne</b> de tous les prix"},
-      b:{k:"MIN(prix)",t:"le prix <b>le plus bas</b>"},
-      note:"<code>MIN</code> ne calcule pas une moyenne : il compare, puis garde une seule valeur."}},
+      b:{k:"MIN(prix)",t:"le prix <b>le plus bas</b>"}}},
   anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"MIN(prix)",txt:"Garde le plus petit prix."},{tok:"FROM produits",txt:"Le calcul porte sur la table produits."}],
   exemple:"SELECT MIN(prix) FROM produits;",
-  attendu:"<b>1 ligne</b>, 1 valeur : 12,5. C’est le prix le plus bas du catalogue.",
+  attendu:"<b>1 ligne</b>, 1 valeur : 12,50. C’est le prix le plus bas du catalogue.",
   retenir:"<code>MIN</code> renvoie la plus petite valeur d’une colonne. Dans <code>SELECT MIN(prix) FROM produits</code>, les 8 prix deviennent une seule valeur : 12,50.",
   piege:{t:"Croire que MIN donne aussi le produit",p:"<code>MIN(prix)</code> donne le prix minimum, pas le nom du produit. Pour afficher le produit le moins cher : <code>ORDER BY prix ASC LIMIT 1</code>."},
   consigne:"Affiche le prix le plus bas de la table produits.",
@@ -3100,24 +3094,22 @@ const MODULES = [
     {k:'min',label:'MIN',sql:"SELECT MIN(prix)\nFROM produits;"}
   ] },
 { id:32, titre:"MAX", résumé:"La plus grande valeur",
-  situation:"Tu prépares une gamme premium. Tu veux connaître le prix le plus élevé du catalogue, pour caler le haut de l’offre.<br><br>Avec ce que tu connais déjà, tu peux afficher le prix de chaque produit :",
+  situation:"Tu prépares une gamme premium. Tu veux le prix le plus élevé du catalogue, pour caler le haut de l’offre.<br><br>Avec ce que tu connais déjà, tu peux afficher chaque prix :",
   situationSql:"SELECT prix\nFROM produits;",
   situationTail:"Tu obtiens bien les 8 prix. Mais tu dois encore chercher le plus grand à l’œil : pour l’obtenir directement, il faut <code>MAX</code>.",
     studio:{problem:{title:"<code>MAX</code> renvoie la plus grande valeur d’une colonne.",
-      body:"<code>MAX(prix)</code> compare les valeurs de la colonne <code>prix</code> et ne garde que la plus grande. Les 8 lignes deviennent un seul résultat."},
-    vs:{bad:{tag:"✕ Mélanger nom et maximum",sql:"SELECT nom, MAX(prix) FROM produits;",out:"Tu mélanges le nom d’un produit avec un calcul sur plusieurs lignes",
-            code:"SELECT <span class=\"vs-line bad\">nom, MAX(prix)</span>\nFROM produits;"},
-        good:{tag:"✓ Maximum avec MAX",sql:"SELECT MAX(prix) FROM produits;",out:"1 ligne · une valeur : 39,9",
+      body:""},
+    vs:{bad:{tag:"✕ Afficher pour chercher",sql:"SELECT prix FROM produits;",out:"8 prix : il faut encore repérer le plus élevé",
+            code:"SELECT <span class=\"vs-line bad\">prix</span>\nFROM produits;"},
+        good:{tag:"✓ Maximum avec MAX",sql:"SELECT MAX(prix) FROM produits;",out:"1 ligne · une valeur : 39,90",
             code:"SELECT <span class=\"vs-line good\">MAX(prix)</span>\nFROM produits;"}},
-    point:"Parmi les 8 prix, le plus élevé est <b>39,90 €</b> (Collagène Marin). <code>MAX</code> renvoie ce prix, pas le nom du produit.",
     why:{title:"Comment MAX trouve le plus grand prix ?"},
     viz:"max",
     reflex:{a:{k:"MIN(prix)",t:"le prix <b>le plus bas</b>"},
-      b:{k:"MAX(prix)",t:"le prix <b>le plus élevé</b>"},
-      note:"<code>MIN</code> et <code>MAX</code> extraient une valeur extrême. Ils ne trient pas le catalogue et n’affichent pas le produit associé."}},
+      b:{k:"MAX(prix)",t:"le prix <b>le plus élevé</b>"}}},
   anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"MAX(prix)",txt:"Garde le plus grand prix."},{tok:"FROM produits",txt:"Le calcul porte sur la table produits."}],
   exemple:"SELECT MAX(prix) FROM produits;",
-  attendu:"<b>1 ligne</b>, 1 valeur : 39,9. C’est le prix le plus élevé du catalogue.",
+  attendu:"<b>1 ligne</b>, 1 valeur : 39,90. C’est le prix le plus élevé du catalogue.",
   retenir:"<code>MAX</code> renvoie la plus grande valeur d’une colonne. Dans <code>SELECT MAX(prix) FROM produits</code>, les 8 prix deviennent une seule valeur : 39,90.",
   piege:{t:"Confondre une valeur avec la ligne qui la contient",p:"<code>MAX(prix)</code> donne le prix maximum, pas le produit correspondant. Pour afficher le produit le plus cher : <code>ORDER BY prix DESC LIMIT 1</code>."},
   consigne:"Affiche le prix le plus élevé de la table produits.",
@@ -3482,7 +3474,7 @@ const CHALLENGES=[
  {id:'c2',apres:16,titre:"Villes actives",niv:'f',q:"Quelles villes ont au moins 2 clients ? Affiche ville et effectif.",
   sol:"SELECT ville, COUNT(*) AS nb FROM clients GROUP BY ville HAVING COUNT(*) >= 2;",
   indice:"GROUP BY ville, puis HAVING COUNT(*) >= 2."},
- {id:'c3',apres:14,titre:"Panier moyen",niv:'f',q:"Quelle est la quantité moyenne commandée, toutes commandes confondues ?",
+ {id:'c3',apres:15,titre:"Panier moyen",niv:'f',q:"Quelle est la quantité moyenne commandée, toutes commandes confondues ?",
   sol:"SELECT AVG(quantite) FROM commandes;",
   indice:"Une seule agrégation sur la table commandes."},
  {id:'c4',apres:19,titre:"CA par produit",niv:'d',q:"Pour chaque produit, calcule le CA (quantité × prix). Affiche le nom et le CA, du plus élevé au plus faible.",
@@ -3615,8 +3607,14 @@ const CARTES={
     m:"<code>DISTINCT</code> retire les doublons du résultat. Avec plusieurs colonnes, il compare leur combinaison."},
  14:{k:"COUNT",t:"Compter les lignes",s:"SELECT COUNT(*) FROM table;",
     m:"<code>COUNT(*)</code> compte toutes les lignes. <code>COUNT(colonne)</code> ignore les valeurs <code>NULL</code>."},
- 15:{k:"AVG SUM MIN MAX",t:"Calculer sur une colonne",s:"SELECT AVG(prix) FROM produits;",
-    m:"<code>AVG</code> calcule une moyenne, <code>SUM</code> une somme, <code>MIN</code> le minimum et <code>MAX</code> le maximum."},
+ 15:{k:"AVG",t:"La moyenne d’une colonne",s:"SELECT AVG(prix) FROM produits;",
+    m:"<code>AVG</code> calcule la moyenne des valeurs d’une colonne. Les 8 prix deviennent une seule valeur : 23,9875."},
+ 30:{k:"SUM",t:"La somme d’une colonne",s:"SELECT SUM(prix) FROM produits;",
+    m:"<code>SUM</code> additionne les valeurs d’une colonne. Les 8 prix deviennent une seule valeur : 191,90."},
+ 31:{k:"MIN",t:"La plus petite valeur",s:"SELECT MIN(prix) FROM produits;",
+    m:"<code>MIN</code> renvoie la plus petite valeur. Pas le nom du produit : seulement le prix, ici 12,50."},
+ 32:{k:"MAX",t:"La plus grande valeur",s:"SELECT MAX(prix) FROM produits;",
+    m:"<code>MAX</code> renvoie la plus grande valeur. <code>SELECT nom, MAX(prix)</code> mélange une ligne et un calcul : à éviter."},
  16:{k:"GROUP BY",t:"Un calcul par groupe",s:"SELECT ville, COUNT(*) FROM clients GROUP BY ville;",
     m:"<code>GROUP BY</code> rassemble les lignes qui partagent la même valeur, puis permet de calculer sur chaque groupe."},
  17:{k:"HAVING",t:"Filtrer les groupes",s:"GROUP BY …\nHAVING …",
@@ -3681,8 +3679,14 @@ const QCM={
    {q:"Dans <code>SELECT DISTINCT ville, age FROM clients</code>, <code>DISTINCT</code> compare :",o:["Uniquement les villes","Uniquement les âges","Les combinaisons ville + âge"],b:2,e:"Avec plusieurs colonnes, l’unicité porte sur la combinaison complète des valeurs sélectionnées."}],
  14:[{q:"Que renvoie <code>SELECT COUNT(*) FROM clients;</code> ?",o:["Les 9 clients","Une seule valeur : 9","9 colonnes"],b:1,e:"<code>COUNT(*)</code> compte les lignes et renvoie leur nombre."},
    {q:"La table contient 9 clients, dont 2 avec un email <code>NULL</code>. Que renvoie <code>COUNT(email)</code> ?",o:["9","7","2"],b:1,e:"<code>COUNT(email)</code> ignore les <code>NULL</code> : 9 - 2 = 7."}],
- 15:[{q:"Quelle fonction donne le prix le plus élevé ?",o:["MAX(prix)","AVG(prix)","SUM(prix)"],b:0,e:"<code>MAX(prix)</code> renvoie la plus grande valeur de la colonne <code>prix</code>."},
-   {q:"Que renvoie <code>SELECT AVG(prix) FROM produits;</code> ?",o:["Le prix de chaque produit","Le prix moyen des produits","Le produit le plus cher"],b:1,e:"<code>AVG</code> calcule la moyenne des valeurs de la colonne."}],
+ 15:[{q:"Que renvoie <code>SELECT AVG(prix) FROM produits;</code> ?",o:["Le prix de chaque produit","Le prix moyen des produits","Le produit le plus cher"],b:1,e:"<code>AVG</code> calcule la moyenne des valeurs de la colonne."},
+   {q:"<code>COUNT(*)</code> et <code>AVG(prix)</code> sur 8 produits :",o:["Renvoient le même chiffre","L’un compte les lignes, l’autre moyenne les prix","AVG compte aussi les lignes"],b:1,e:"<code>COUNT(*)</code> donne 8. <code>AVG(prix)</code> donne 23,9875. Deux questions différentes."}],
+ 30:[{q:"Que fait <code>SUM(prix)</code> ?",o:["Il compte les produits","Il additionne les prix","Il garde le prix le plus élevé"],b:1,e:"<code>SUM</code> additionne les valeurs de la colonne."},
+   {q:"<code>SUM(prix)</code> sur le catalogue, c’est :",o:["Le chiffre d’affaires","La somme des prix affichés","Le panier moyen"],b:1,e:"Les prix du catalogue, pas les ventes. Un CA multiplie chaque commande par sa quantité."}],
+ 31:[{q:"Que renvoie <code>SELECT MIN(prix) FROM produits;</code> ?",o:["Le produit le moins cher, avec son nom","Le plus petit prix","Les 8 prix triés"],b:1,e:"<code>MIN</code> renvoie une valeur, pas la ligne du produit."},
+   {q:"Pour afficher aussi le nom du produit le moins cher :",o:["MIN(nom), MIN(prix)","ORDER BY prix ASC LIMIT 1","WHERE prix = MIN(prix)"],b:1,e:"<code>MIN(prix)</code> ne donne pas le nom. Un tri puis <code>LIMIT 1</code> garde la ligne entière."}],
+ 32:[{q:"Quelle fonction donne le prix le plus élevé ?",o:["MAX(prix)","AVG(prix)","SUM(prix)"],b:0,e:"<code>MAX(prix)</code> renvoie la plus grande valeur de la colonne <code>prix</code>."},
+   {q:"<code>SELECT nom, MAX(prix) FROM produits;</code> :",o:["Affiche le produit le plus cher","Mélange une ligne et un calcul sur plusieurs lignes","Trie le catalogue"],b:1,e:"SQL refuse en général ce mélange. Pour le produit le plus cher : <code>ORDER BY prix DESC LIMIT 1</code>."}],
  16:[{q:"Que fait <code>GROUP BY ville</code> ?",o:["Il trie les clients par ville","Il rassemble les lignes qui ont la même ville","Il garde une seule ville"],b:1,e:"<code>GROUP BY ville</code> forme un groupe pour chaque ville différente."},
    {q:"Il y a 9 clients répartis dans 6 villes. Combien de lignes renvoie <code>SELECT ville, COUNT(*) FROM clients GROUP BY ville;</code> ?",o:["9 lignes","1 ligne","6 lignes"],b:2,e:"Le résultat contient une ligne par groupe. Avec 6 villes différentes, il y a donc 6 lignes."}],
  17:[{q:"<code>WHERE COUNT(*) >= 2</code> :",o:["Fonctionne correctement","Échoue : les agrégats ne sont pas disponibles au moment du WHERE","Renvoie un résultat vide"],b:1,e:"Quand WHERE s’exécute, les groupes n’existent pas encore. C’est le rôle de HAVING."},
@@ -7516,7 +7520,8 @@ function nettoyerPlan(){
   }
   const arch=new Set(p.archive||[]);
   const from=(NIVEAUX.find(n=>n.k===p.niveau)||NIVEAUX[0]).from;
-  const manquantes=allLessons.map(l=>l.id).filter(id=>id>=from&&!vus.has(id)&&!arch.has(id)&&!itemDone(id));
+  const depuis=new Set(leconsDepuis(from));
+  const manquantes=allLessons.map(l=>l.id).filter(id=>depuis.has(id)&&!vus.has(id)&&!arch.has(id)&&!itemDone(id));
   if(manquantes.length){
     const per=Math.max(1,p.per||3),tJour=dstr(auj());
     let dernier=p.sessions.length?p.sessions[p.sessions.length-1].d:tJour;
@@ -7638,10 +7643,14 @@ function parcoursInsightHTML(st){
 
 /* ---------- Création ---------- */
 function pick(champ,val){draft[champ]=val;renderPlanning();}
+function leconsDepuis(fromId){
+  const i=allLessons.findIndex(l=>l.id===fromId);
+  return allLessons.slice(i<0?0:i).map(l=>l.id);
+}
 const DEFIS_PAR_NIV={debutant:['f','m'],bases:['f','m','d'],inter:['m','d']};
 function buildMixPool(niveau){
   const from=(NIVEAUX.find(n=>n.k===niveau)||NIVEAUX[0]).from;
-  const lessons=allLessons.filter(l=>l.id>=from).map(l=>l.id);
+  const lessons=leconsDepuis(from);
   const allow=DEFIS_PAR_NIV[niveau]||['f','m','d'];
   const defis=defisParProgression().filter(c=>allow.indexOf(c.niv)>=0);
   /* Un défi n’entre dans le planning qu’après la leçon qui fournit son prérequis. */
@@ -9481,40 +9490,32 @@ const SQL_VIZ={
     {k:'AVG(prix)',d:'SQL additionne au fur et à mesure, puis divise par le nombre de prix déjà vus.'},
     {k:'AVG(prix) = 23,9875',d:'Les 8 prix deviennent un seul résultat : 23,9875. Ce n’est plus une liste.'}
   ],display:'23,9875',lbl:'moyenne · 1 ligne',chips:[
-    {t:'Fibre Préb.',extra:'29,90',n:'29,90'},{t:'Collagène',extra:'39,90',n:'34,90'},
-    {t:'Magnésium',extra:'19,90',n:'29,90'},{t:'Vit. D',extra:'14,90',n:'26,15'},
-    {t:'Tisane',extra:'12,50',n:'23,42'},{t:'Protéine',extra:'34,90',n:'25,33'},
-    {t:'Oméga 3',extra:'24,90',n:'25,27'},{t:'Shaker',extra:'15,00',n:'23,9875'}
+    {t:'29,90',n:'29,90'},{t:'39,90',n:'34,90'},{t:'19,90',n:'29,90'},{t:'14,90',n:'26,15'},
+    {t:'12,50',n:'23,42'},{t:'34,90',n:'25,33'},{t:'24,90',n:'25,27'},{t:'15,00',n:'23,9875'}
   ]},
   sum:{kind:'agg',phases:[
     {k:'SELECT prix FROM produits',d:'Les 8 prix s’affichent. Pour le total, il faut encore les additionner.'},
     {k:'SUM(prix)',d:'SQL parcourt chaque prix et l’ajoute au total : 29,90, puis 69,80… jusqu’à 191,90.'},
     {k:'SUM(prix) = 191,90',d:'Les 8 prix deviennent un seul résultat : 191,90. Ce n’est plus une liste.'}
   ],display:'191,90',lbl:'somme · 1 ligne',chips:[
-    {t:'Fibre Préb.',extra:'29,90',n:'29,90'},{t:'Collagène',extra:'39,90',n:'69,80'},
-    {t:'Magnésium',extra:'19,90',n:'89,70'},{t:'Vit. D',extra:'14,90',n:'104,60'},
-    {t:'Tisane',extra:'12,50',n:'117,10'},{t:'Protéine',extra:'34,90',n:'152,00'},
-    {t:'Oméga 3',extra:'24,90',n:'176,90'},{t:'Shaker',extra:'15,00',n:'191,90'}
+    {t:'29,90',n:'29,90'},{t:'39,90',n:'69,80'},{t:'19,90',n:'89,70'},{t:'14,90',n:'104,60'},
+    {t:'12,50',n:'117,10'},{t:'34,90',n:'152,00'},{t:'24,90',n:'176,90'},{t:'15,00',n:'191,90'}
   ]},
   min:{kind:'agg',phases:[
     {k:'SELECT prix FROM produits',d:'Les 8 prix s’affichent. Pour le plus bas, il faut encore les comparer.'},
     {k:'MIN(prix)',d:'SQL compare chaque prix au plus petit déjà vu. Un nouveau minimum s’affiche en vert.'},
     {k:'MIN(prix) = 12,50',d:'Le plus petit prix est 12,50. SQL renvoie cette valeur, pas le nom du produit.'}
   ],display:'12,50',lbl:'minimum · 1 ligne',chips:[
-    {t:'Fibre Préb.',extra:'29,90',n:'29,90',mark:1},{t:'Collagène',extra:'39,90',n:'29,90'},
-    {t:'Magnésium',extra:'19,90',n:'19,90',mark:1},{t:'Vit. D',extra:'14,90',n:'14,90',mark:1},
-    {t:'Tisane',extra:'12,50',n:'12,50',mark:1},{t:'Protéine',extra:'34,90',n:'12,50'},
-    {t:'Oméga 3',extra:'24,90',n:'12,50'},{t:'Shaker',extra:'15,00',n:'12,50'}
+    {t:'29,90',n:'29,90',mark:1},{t:'39,90',n:'29,90'},{t:'19,90',n:'19,90',mark:1},{t:'14,90',n:'14,90',mark:1},
+    {t:'12,50',n:'12,50',mark:1},{t:'34,90',n:'12,50'},{t:'24,90',n:'12,50'},{t:'15,00',n:'12,50'}
   ]},
   max:{kind:'agg',phases:[
     {k:'SELECT prix FROM produits',d:'Les 8 prix s’affichent. Pour le plus élevé, il faut encore les comparer.'},
     {k:'MAX(prix)',d:'SQL compare chaque prix au plus grand déjà vu. Un nouveau maximum s’affiche en vert.'},
     {k:'MAX(prix) = 39,90',d:'Le plus grand prix est 39,90. SQL renvoie cette valeur, pas le nom du produit.'}
   ],display:'39,90',lbl:'maximum · 1 ligne',chips:[
-    {t:'Fibre Préb.',extra:'29,90',n:'29,90',mark:1},{t:'Collagène',extra:'39,90',n:'39,90',mark:1},
-    {t:'Magnésium',extra:'19,90',n:'39,90'},{t:'Vit. D',extra:'14,90',n:'39,90'},
-    {t:'Tisane',extra:'12,50',n:'39,90'},{t:'Protéine',extra:'34,90',n:'39,90'},
-    {t:'Oméga 3',extra:'24,90',n:'39,90'},{t:'Shaker',extra:'15,00',n:'39,90'}
+    {t:'29,90',n:'29,90',mark:1},{t:'39,90',n:'39,90',mark:1},{t:'19,90',n:'39,90'},{t:'14,90',n:'39,90'},
+    {t:'12,50',n:'39,90'},{t:'34,90',n:'39,90'},{t:'24,90',n:'39,90'},{t:'15,00',n:'39,90'}
   ]},
   having:{kind:'group',phases:[
     {k:'SELECT categorie FROM produits',d:'SQL lit simplement les lignes'},
@@ -9676,7 +9677,7 @@ function layoutSqlList(root,phase,{animate=true}={}){
     c.style.maxWidth=colW+'px';
     c.style.height=rowH+'px';
     c.style.paddingLeft='10px';
-    c.style.paddingRight=kind==='agg'?'52px':(kind==='count'?'36px':'10px');
+    c.style.paddingRight=kind==='agg'?'68px':(kind==='count'?'36px':'10px');
     c.style.display='flex';
     c.style.alignItems='center';
     c.style.transform=`translate(${x}px,${y}px)`;
