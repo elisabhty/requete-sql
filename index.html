@@ -949,6 +949,19 @@
   .join-progress{height:3px;margin:-5px 2px 12px;overflow:hidden;border-radius:99px;background:#E5E5EA}
   .join-progress-bar{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),#0F766E,#B45309);transition:width .45s ease}
   .sql-viz[data-kind="er"] .grp-desc{min-height:2.75em}
+  .join-mission{margin:0!important;font-size:16px!important;line-height:1.6!important;color:var(--ink)!important}
+  .join-question{display:flex;flex-direction:column;gap:4px;margin:16px 0 0;padding:13px 14px;border-radius:14px;background:var(--accent-soft);border:1px solid rgba(91,91,214,.14)}
+  .join-question span{font-size:10px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--accent)}
+  .join-question strong{font-size:14px;line-height:1.42;color:var(--ink)}
+  .join-core-lead{font-size:16px!important;line-height:1.55!important;font-weight:650;letter-spacing:-.1px}
+  .join-rule-line{display:flex;align-items:center;gap:9px;margin:16px 0 0;padding:12px 13px;border-radius:13px;background:#171721;color:#F3F3FA;font-family:var(--mono);font-size:12px;font-weight:700;line-height:1.45;overflow-x:auto}
+  .join-rule-line span{display:flex;align-items:center;justify-content:center;flex:none;width:22px;height:22px;border-radius:7px;background:rgba(255,255,255,.13);color:#BDA9FF;font-family:var(--ui);font-size:11px}
+  .join-rule-line code{white-space:nowrap;background:transparent!important;color:#F3F3FA!important;padding:0!important}
+  .join-watch-note{margin-bottom:14px!important;color:var(--ink-2)!important}
+  .join-memory-list{display:flex;flex-direction:column;gap:0;margin:0;padding:0;list-style:none}
+  .join-memory-list li{display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px;line-height:1.5;color:var(--ink)}
+  .join-memory-list li:first-child{padding-top:0}.join-memory-list li:last-child{padding-bottom:0;border-bottom:0}
+  .join-memory-list i{display:flex;align-items:center;justify-content:center;flex:none;width:21px;height:21px;border-radius:50%;background:var(--success-soft);color:#0F766E;font-style:normal;font-size:12px;font-weight:900}
   @media (max-width:380px){
     .join-guide{padding:13px;margin-bottom:15px}
     .join-guide-lead{font-size:14px}
@@ -7017,6 +7030,14 @@ function minmaxChipState(chips, mode){
   if(champ>=0) st[champ].win=1;
   return st;
 }
+const JOIN_COURSES={
+  18:{viz:'joinon',situation:'Les informations sont séparées : <code>clients</code> connaît le nom, <code>commandes</code> connaît le numéro du client.',mission:'Afficher le nom de la personne derrière chaque commande.',title:'La jointure suit un numéro commun.',explain:'La colonne <code>client_id</code> dans <code>commandes</code> pointe vers <code>id</code> dans <code>clients</code>. <code>ON</code> indique à SQL de suivre ce lien.',rule:'clients.id = commandes.client_id',watch:'Regarde SQL faire correspondre chaque commande à son client.',memory:['<code>ON</code> relie une clé à la colonne qui la référence.','Une commande correspond à un client.','Deux commandes pour Sophie donnent deux lignes avec Sophie.']},
+  36:{viz:'inner',situation:'Tu veux la liste des clients qui ont réellement passé une commande.',mission:'Garder une ligne seulement quand les deux tables ont un match.',title:'INNER JOIN garde les paires qui existent des deux côtés.',explain:'SQL cherche une commande pour chaque client. S’il ne trouve rien, il n’ajoute aucune ligne au résultat.',rule:'clients.id = commandes.client_id',watch:'Regarde Inès disparaître : aucune commande ne porte son id.',memory:['<code>JOIN</code> et <code>INNER JOIN</code> veulent dire la même chose ici.','Pas de match = pas de ligne.','Plusieurs matchs = plusieurs lignes.']},
+  20:{viz:'leftj',situation:'Tu veux tous les clients, y compris ceux qui n’ont encore rien commandé.',mission:'Conserver chaque ligne de <code>clients</code>.',title:'LEFT JOIN garde toute la table placée à gauche.',explain:'On part de <code>clients</code>, puis on cherche des commandes. Sans commande, le client reste affiché et les colonnes de droite valent <code>NULL</code>.',rule:'FROM clients LEFT JOIN commandes',watch:'Regarde Inès rester dans le résultat, avec NULL côté commande.',memory:['La table après <code>FROM</code> est à gauche.','Un match est affiché normalement.','Pas de match : la gauche reste, la droite devient <code>NULL</code>.']},
+  37:{viz:'orphan',situation:'Tu veux trouver les clients qui n’ont jamais commandé.',mission:'Faire apparaître les clients sans correspondance.',title:'On crée le NULL, puis on le filtre.',explain:'<code>LEFT JOIN</code> garde tous les clients. Seuls ceux sans commande reçoivent <code>NULL</code> dans les colonnes de <code>commandes</code>.',rule:'WHERE commandes.id IS NULL',watch:'Regarde les lignes avec commande s’effacer : il reste Inès.',memory:['Commence toujours par <code>LEFT JOIN</code>.','Teste une clé de la table de droite : <code>commandes.id</code>.','Écris <code>IS NULL</code>, jamais <code>= NULL</code>.']},
+  19:{viz:'triple',situation:'Tu veux obtenir une phrase complète : « Sophie a acheté Fibre, quantité 2 ».',mission:'Suivre le chemin client → commande → produit.',title:'La table commandes sert de pont.',explain:'Elle porte deux liens : <code>client_id</code> vers <code>clients</code>, puis <code>produit_id</code> vers <code>produits</code>. On suit ces liens un à un.',rule:'clients → commandes → produits',watch:'Regarde le premier trait retrouver Sophie, puis le second retrouver le produit.',memory:['Trois tables demandent souvent deux <code>JOIN</code>.','Chaque <code>ON</code> suit une relation connue.','Préfixe les colonnes identiques : <code>clients.nom</code>, <code>produits.nom</code>.']},
+  38:{viz:'outer',situation:'Tu dois choisir ce qui reste quand une ligne ne trouve pas sa correspondance.',mission:'Savoir quel côté conserver.',title:'Le nom de la jointure indique ce qui survit.',explain:'<code>INNER</code> garde seulement les matchs. <code>LEFT</code> garde la gauche. <code>RIGHT</code> garde la droite. <code>FULL OUTER</code> garde les deux.',rule:'gauche / droite / les deux',watch:'Regarde les lignes C et D réapparaître selon la jointure choisie.',memory:['Choisis d’abord les lignes qui ne doivent pas disparaître.','<code>RIGHT JOIN</code> est un <code>LEFT JOIN</code> vu dans l’autre sens.','<code>FULL OUTER JOIN</code> conserve tous les deux côtés.']}
+};
 const JOIN_GUIDES={
   joinon:{kicker:'Le réflexe JOIN',lead:'Une table garde le nom. L’autre garde le lien vers ce nom.',steps:[['Repérer','clients.id ↔ commandes.client_id'],['Relier','ON compare les deux identifiants'],['Lire','1 correspondance = 1 ligne']],takeaway:'<b>JOIN</b> ne mélange pas au hasard : il suit une relation clé ↔ clé étrangère.'},
   inner:{kicker:'Le réflexe INNER JOIN',lead:'Tu veux seulement les personnes qui ont vraiment un match.',steps:[['Comparer','id ↔ client_id'],['Garder','les lignes présentes des deux côtés'],['Écarter','sans match → aucune ligne']],takeaway:'<b>INNER JOIN</b> répond à : « qui a une correspondance ? »'},
@@ -7117,13 +7138,38 @@ function situationSqlBlock(sql){
   </div>`;
 }
 function renderSituationBody(l){
+  const course=JOIN_COURSES[l.id];
+  if(course)return `<p class="join-mission">${course.situation}</p><div class="join-question"><span>La question à résoudre</span><strong>${course.mission}</strong></div>`;
   let html=situationBodyHtml(l.situation);
   if(l.situationSql) html+=situationSqlBlock(l.situationSql);
   if(l.situationTail) html+=flowProseHtml(l.situationTail);
   return html;
 }
 const WHY_VIZ_TITLE="Suis ce qu'il se passe avec tes données.";
+function renderJoinCourse(l){
+  const c=JOIN_COURSES[l.id];
+  if(!c)return '';
+  return `<div class="concept-page join-course">
+    ${renderJoinGuide(c.viz)}
+    <div class="concept-block">
+      <h2><span class="h2-eye">L’idée</span><span class="h2-txt">${c.title}</span></h2>
+      <p class="join-core-lead">${c.explain}</p>
+      <div class="join-rule-line"><span aria-hidden="true">↔</span><code>${c.rule}</code></div>
+    </div>
+    <div class="concept-block">
+      <h2><span class="h2-eye">Le dessin</span><span class="h2-txt">Regarde le résultat se construire.</span></h2>
+      <p class="join-watch-note">${c.watch}</p>
+      ${renderVizShell(c.viz)}
+    </div>
+    <div class="concept-block">
+      <h2><span class="h2-eye">À retenir</span><span class="h2-txt">Trois règles, pas plus.</span></h2>
+      <ul class="join-memory-list">${c.memory.map(item=>`<li><i aria-hidden="true">✓</i><span>${item}</span></li>`).join('')}</ul>
+    </div>
+    <!-- early-demo -->
+  </div>`;
+}
 function renderStudio(l){
+  if(JOIN_COURSES[l.id])return renderJoinCourse(l);
   const s=l.studio;
   if(!s)return l.concept||'';
   const vs=renderVs(s.vs);
@@ -7162,6 +7208,9 @@ function renderStudio(l){
 function lessonDemoBlocks(l){
   const anat=anatBlock(l);
   if(!anat&&!l.exemple)return '';
+  if(JOIN_COURSES[l.id]){
+    return `${lessonRichFooter(l)}${anat?`<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`:''}`;
+  }
   const order=l.orderRappel?`<div class="order-rappel">
     <div class="cfs-label">Rappel · ordre d’exécution</div>
     <div class="concept-order"><code style="margin-left:8px">FROM</code><i>›</i><code>WHERE</code><i>›</i><code>GROUP BY</code><i>›</i><code class="on">HAVING</code><i>›</i><code>SELECT</code><i>›</i><code>ORDER BY</code><i style="width:10px;flex:none"></i></div>
