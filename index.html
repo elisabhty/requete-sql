@@ -4292,7 +4292,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-19-join-v11';
+const APP_VERSION='2026-08-19-join-v12';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -7062,16 +7062,16 @@ function minmaxChipState(chips, mode){
 const JOIN_COURSES={
   18:{
     viz:'joinon',
-    situation:'Tu dois préparer un export pour l’équipe commerciale : pour chaque commande, elle veut lire le nom du client et la quantité commandée. Or le nom est dans la table <code>clients</code>, tandis que la quantité et <code>client_id</code> sont dans la table <code>commandes</code>.',
-    mission:'Reconstituer une vue exploitable sans dénormaliser les tables : partir de la table <code>commandes</code> et récupérer l’identité client dans la table <code>clients</code>.',
-    title:'JOIN reconstruit une vue à partir de relations normalisées.',
+    situation:'Un export commercial doit afficher, pour chaque commande, le nom du client et la quantité commandée. Le nom se trouve dans la table <code>clients</code>. La quantité et <code>client_id</code> se trouvent dans la table <code>commandes</code>.',
+    mission:'Produire une vue exploitable sans dénormaliser le modèle : partir de la table <code>commandes</code> et rattacher chaque ligne au client correspondant dans la table <code>clients</code>.',
+    title:'Produire une vue métier à partir de tables normalisées.',
     explain:'La clause <code>ON</code> définit le prédicat de jointure. Ici, SQL associe chaque ligne de la table <code>commandes</code> à la ligne de la table <code>clients</code> dont <code>id</code> correspond à <code>client_id</code>.',
     rule:'ON clients.id = commandes.client_id',
-    watch:'Le schéma montre le passage du modèle normalisé vers le jeu de résultats : tables séparées, prédicat ON, lignes projetées.',
+    watch:'La visualisation suit le traitement logique : tables sources, prédicat <code>ON</code>, puis lignes projetées dans le résultat.',
     memory:[
-      '<code>JOIN</code> combine deux relations pour produire un jeu de résultats.',
-      '<code>ON</code> exprime le prédicat : clé primaire = clé étrangère.',
-      'Une ligne de résultat est produite pour chaque correspondance qui satisfait le prédicat.'
+      '<code>JOIN</code> combine deux tables pour produire une vue de résultat.',
+      '<code>ON</code> porte la condition de correspondance entre les deux tables.',
+      'Chaque correspondance validée par <code>ON</code> produit une ligne projetée.'
     ]
   },
   36:{
@@ -7146,7 +7146,7 @@ const JOIN_COURSES={
   }
 };
 const JOIN_GUIDES={
-  joinon:{kicker:'Analyse de jointure',lead:'Raisonne table par table : où se trouve l’information, et quelle colonne permet de la relier.',steps:[['Table clients','dans la table clients, id identifie le client'],['Table commandes','dans la table commandes, client_id référence ce client'],['Résultat','chaque correspondance alimente la projection']],takeaway:'<b>JOIN</b> combine les relations. <b>ON</b> définit le prédicat de correspondance.'},
+  joinon:{kicker:'Analyse de jointure',lead:'Identifie d’abord la table qui porte l’information, puis la colonne qui permet de la relier.',steps:[['Table clients','dans la table clients, id identifie le client'],['Table commandes','dans la table commandes, client_id référence ce client'],['Résultat','chaque correspondance alimente la projection']],takeaway:'<b>JOIN</b> combine les tables. <b>ON</b> définit la condition de correspondance.'},
   inner:{kicker:'Le réflexe INNER JOIN',lead:'Tu veux seulement les données qui ont une correspondance des deux côtés.',steps:[['Comparer','id du client ↔ client_id de la commande'],['Valider','les paires qui trouvent leur moitié'],['Écarter','les lignes isolées sans correspondance']],takeaway:'<b>INNER JOIN</b> répond à : « Donne-moi uniquement ce qui est relié. »'},
   leftj:{kicker:'Le réflexe LEFT JOIN',lead:'Tu veux qu’aucun élément de ta table de départ ne disparaisse.',steps:[['Identifier','la table de gauche (placée juste après FROM)'],['Relier','les lignes qui ont un match à droite'],['Compléter','les absents de droite avec des NULL']],takeaway:'<b>LEFT JOIN</b> répond à : « Garde tout à gauche, même sans correspondance. »'},
   orphan:{kicker:'Le réflexe des orphelins',lead:'Pour trouver ce qui manque, on fait apparaître les NULL avant de les filtrer.',steps:[['Préserver','LEFT JOIN garde tous les clients avec ou sans achat'],['Révéler','Les clients sans achat reçoivent NULL à droite'],['Isoler','WHERE commandes.id IS NULL ne garde que les NULL']],takeaway:'<b>LEFT JOIN + IS NULL</b> est la méthode universelle pour trouver les lignes orphelines.'},
@@ -7154,10 +7154,10 @@ const JOIN_GUIDES={
   outer:{kicker:'Le réflexe des 4 jointures',lead:'Le nom du JOIN indique quelle table garde toutes ses lignes.',steps:[['INNER','Seulement ce qui correspond des 2 côtés'],['LEFT / RIGHT','Tout un côté + les correspondances de l’autre'],['FULL OUTER','TOUT garder des 2 côtés sans aucune perte']],takeaway:'<b>INNER</b> = paires · <b>LEFT/RIGHT</b> = un côté complet · <b>FULL</b> = exhaustif.'}
 };
 const JOIN_VIZ_STEP_LABELS={
-  joinon:['1. Sources','2. Condition ON','3. Projection'],inner:['1. Comparer','2. Paires','3. Écarter'],leftj:['1. Gauche','2. Relier & NULL','3. Résultat'],orphan:['1. LEFT JOIN','2. Filtre IS NULL','3. Orphelins'],triple:['1. 3 Tables','2. 1er JOIN','3. 2e JOIN'],outer:['1. Ensembles','2. INNER','3. LEFT','4. FULL OUTER']
+  joinon:['Tables sources','Condition ON','Résultat projeté'],inner:['1. Comparer','2. Paires','3. Écarter'],leftj:['1. Gauche','2. Relier & NULL','3. Résultat'],orphan:['1. LEFT JOIN','2. Filtre IS NULL','3. Orphelins'],triple:['1. 3 Tables','2. 1er JOIN','3. 2e JOIN'],outer:['1. Ensembles','2. INNER','3. LEFT','4. FULL OUTER']
 };
 const JOIN_OUTPUT_LABELS={
-  joinon:'Projection · une ligne par commande correspondante',inner:'Résultat · uniquement les paires correspondantes',leftj:'Résultat · 100% des clients conservés',orphan:'Résultat · clients n’ayant jamais commandé',triple:'Résultat · client + produit + quantité',outer:'Résultat de la jointure choisie'
+  joinon:'Résultat projeté · une ligne par commande correspondante',inner:'Résultat · uniquement les paires correspondantes',leftj:'Résultat · 100% des clients conservés',orphan:'Résultat · clients n’ayant jamais commandé',triple:'Résultat · client + produit + quantité',outer:'Résultat de la jointure choisie'
 };
 function renderJoinGuide(key){
   const g=JOIN_GUIDES[key];
@@ -7255,7 +7255,7 @@ function situationSqlBlock(sql){
 }
 function renderSituationBody(l){
   const course=JOIN_COURSES[l.id];
-  if(course)return `<p class="join-mission">${course.situation}</p><div class="join-question"><span>La question à résoudre</span><strong>${course.mission}</strong></div>`;
+  if(course)return `<p class="join-mission">${course.situation}</p><div class="join-question"><span>Problème à résoudre</span><strong>${course.mission}</strong></div>`;
   let html=situationBodyHtml(l.situation);
   if(l.situationSql) html+=situationSqlBlock(l.situationSql);
   if(l.situationTail) html+=flowProseHtml(l.situationTail);
@@ -7273,12 +7273,12 @@ function renderJoinCourse(l){
       <div class="join-rule-line"><span aria-hidden="true">↔</span><code>${c.rule}</code></div>
     </div>
     <div class="concept-block">
-      <h2><span class="h2-eye">Le dessin</span><span class="h2-txt">Regarde le résultat se construire.</span></h2>
+      <h2><span class="h2-eye">Visualisation</span><span class="h2-txt">Lire la jointure dans le résultat.</span></h2>
       <p class="join-watch-note">${c.watch}</p>
       ${renderVizShell(c.viz)}
     </div>
     <div class="concept-block">
-      <h2><span class="h2-eye">À retenir</span><span class="h2-txt">Trois règles, pas plus.</span></h2>
+      <h2><span class="h2-eye">À retenir</span><span class="h2-txt">Points de contrôle.</span></h2>
       <ul class="join-memory-list">${c.memory.map(item=>`<li><i aria-hidden="true">✓</i><span>${item}</span></li>`).join('')}</ul>
     </div>
     <!-- early-demo -->
@@ -10524,9 +10524,9 @@ const SQL_VIZ={
     <p class="er-hint">Touche un client ou une commande.</p>
   </div>`},
   joinon:{kind:'er',phases:[
-    {k:'1. Sources relationnelles',d:'Dans la table clients : les attributs client. Dans la table commandes : les faits de transaction et la référence client_id.'},
-    {k:'2. Condition de correspondance',d:'ON clients.id = commandes.client_id : SQL compare id dans la table clients avec client_id dans la table commandes.'},
-    {k:'3. Projection du résultat',d:'Chaque correspondance produit une ligne avec les colonnes demandées.'}
+    {k:'Tables sources',d:'Dans la table clients : les attributs client. Dans la table commandes : les faits de transaction et la référence client_id.'},
+    {k:'Condition ON',d:'SQL compare id dans la table clients avec client_id dans la table commandes.'},
+    {k:'Résultat projeté',d:'Chaque correspondance produit une ligne avec les colonnes demandées.'}
   ],html:`<div class="er-stage er-match join-viz join-story">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
