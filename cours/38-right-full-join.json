@@ -1,16 +1,17 @@
 {
   "id": 38,
   "titre": "RIGHT JOIN et FULL OUTER JOIN",
-  "résumé": "Garder la droite, ou les deux",
+  "résumé": "Garder la droite, ou tout conserver",
   "module": {
     "titre": "Relier",
     "sous": "Plusieurs tables, une question"
   },
-  "situation": "Tu sais déjà que LEFT JOIN conserve toutes les lignes de la table de gauche. Que faire si la table à conserver est à droite, ou si tu veux garder les deux tables entièrement ?",
+  "situation": "Tu sais que LEFT JOIN protège la table de gauche. Que faire si la table essentielle est à droite, ou si tu veux conserver absolument toutes les données des deux côtés ?",
   "situationSql": "SELECT c.nom, co.id\nFROM clients AS c\nLEFT JOIN commandes AS co\nON c.id = co.client_id;",
   "studio": {
     "problem": {
-      "title": "RIGHT JOIN conserve toutes les lignes de la table de droite.",
+      "title": "Chaque type de JOIN détermine la table qui ne perdra aucune ligne.",
+      "body": "<code>RIGHT JOIN</code> conserve toute la table de droite. <code>FULL OUTER JOIN</code> conserve l'intégralité des deux tables, en complétant les trous avec <code>NULL</code>.",
       "demo": "SELECT c.nom, co.id\nFROM commandes AS co\nRIGHT JOIN clients AS c\nON co.client_id = c.id;"
     },
     "vs": {
@@ -26,13 +27,28 @@
       }
     },
     "reflex": {
-      "a": { "k": "RIGHT JOIN", "t": "conserve toute la table de droite" },
-      "b": { "k": "FULL OUTER", "t": "conserve les deux tables entièrement" }
+      "a": { "k": "RIGHT JOIN", "t": "garde toute la table de droite" },
+      "b": { "k": "FULL OUTER JOIN", "t": "garde l'intégralité des deux tables" }
     }
   },
   "consigne": "Affiche tous les clients et l'identifiant de leurs commandes, y compris ceux qui n'ont jamais commandé. Place clients à droite de la jointure.",
   "solution": "SELECT c.nom, co.id FROM commandes AS co RIGHT JOIN clients AS c ON co.client_id = c.id;",
   "attendu": "16 lignes — Sophie × 3, Inès | NULL.",
+  "retenir": "INNER = correspondances. LEFT = garde la gauche. RIGHT = garde la droite. FULL OUTER = garde les deux.",
+  "quiz": [
+    {
+      "q": "À quoi équivaut 'commandes RIGHT JOIN clients' ?",
+      "o": ["'clients LEFT JOIN commandes'", "'clients INNER JOIN commandes'", "'commandes FULL JOIN clients'"],
+      "b": 0,
+      "e": "RIGHT JOIN sur une table placée à droite produit exactement le même résultat qu'un LEFT JOIN en plaçant cette table à gauche."
+    },
+    {
+      "q": "Que contient le résultat d'un FULL OUTER JOIN ?",
+      "o": ["Uniquement les paires correspondantes", "Toutes les lignes des deux tables avec des NULL pour les manques", "Uniquement les lignes avec des erreurs"],
+      "b": 1,
+      "e": "FULL OUTER JOIN rassemble l'ensemble des données des deux tables sans aucune perte."
+    }
+  ],
   "petitDefi": [
     { "q": "_____ JOIN clients AS c", "a": "RIGHT" },
     { "q": "_____ JOIN commandes AS co (deux côtés)", "a": "FULL OUTER" }

@@ -4276,7 +4276,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-16-ios-polish';
+const APP_VERSION='2026-08-19-join-overhaul';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -7044,26 +7044,104 @@ function minmaxChipState(chips, mode){
   return st;
 }
 const JOIN_COURSES={
-  18:{viz:'joinon',situation:'Les informations sont séparées : <code>clients</code> connaît le nom, <code>commandes</code> connaît le numéro du client.',mission:'Afficher le nom de la personne derrière chaque commande.',title:'La jointure suit un numéro commun.',explain:'La colonne <code>client_id</code> dans <code>commandes</code> pointe vers <code>id</code> dans <code>clients</code>. <code>ON</code> indique à SQL de suivre ce lien.',rule:'clients.id = commandes.client_id',watch:'Regarde SQL faire correspondre chaque commande à son client.',memory:['<code>ON</code> relie une clé à la colonne qui la référence.','Une commande correspond à un client.','Deux commandes pour Sophie donnent deux lignes avec Sophie.']},
-  36:{viz:'inner',situation:'Tu veux la liste des clients qui ont réellement passé une commande.',mission:'Garder une ligne seulement quand les deux tables ont un match.',title:'INNER JOIN garde les paires qui existent des deux côtés.',explain:'SQL cherche une commande pour chaque client. S’il ne trouve rien, il n’ajoute aucune ligne au résultat.',rule:'clients.id = commandes.client_id',watch:'Regarde Inès disparaître : aucune commande ne porte son id.',memory:['<code>JOIN</code> et <code>INNER JOIN</code> veulent dire la même chose ici.','Pas de match = pas de ligne.','Plusieurs matchs = plusieurs lignes.']},
-  20:{viz:'leftj',situation:'Tu veux tous les clients, y compris ceux qui n’ont encore rien commandé.',mission:'Conserver chaque ligne de <code>clients</code>.',title:'LEFT JOIN garde toute la table placée à gauche.',explain:'On part de <code>clients</code>, puis on cherche des commandes. Sans commande, le client reste affiché et les colonnes de droite valent <code>NULL</code>.',rule:'FROM clients LEFT JOIN commandes',watch:'Regarde Inès rester dans le résultat, avec NULL côté commande.',memory:['La table après <code>FROM</code> est à gauche.','Un match est affiché normalement.','Pas de match : la gauche reste, la droite devient <code>NULL</code>.']},
-  37:{viz:'orphan',situation:'Tu veux trouver les clients qui n’ont jamais commandé.',mission:'Faire apparaître les clients sans correspondance.',title:'On crée le NULL, puis on le filtre.',explain:'<code>LEFT JOIN</code> garde tous les clients. Seuls ceux sans commande reçoivent <code>NULL</code> dans les colonnes de <code>commandes</code>.',rule:'WHERE commandes.id IS NULL',watch:'Regarde les lignes avec commande s’effacer : il reste Inès.',memory:['Commence toujours par <code>LEFT JOIN</code>.','Teste une clé de la table de droite : <code>commandes.id</code>.','Écris <code>IS NULL</code>, jamais <code>= NULL</code>.']},
-  19:{viz:'triple',situation:'Tu veux obtenir une phrase complète : « Sophie a acheté Fibre, quantité 2 ».',mission:'Suivre le chemin client → commande → produit.',title:'La table commandes sert de pont.',explain:'Elle porte deux liens : <code>client_id</code> vers <code>clients</code>, puis <code>produit_id</code> vers <code>produits</code>. On suit ces liens un à un.',rule:'clients → commandes → produits',watch:'Regarde le premier trait retrouver Sophie, puis le second retrouver le produit.',memory:['Trois tables demandent souvent deux <code>JOIN</code>.','Chaque <code>ON</code> suit une relation connue.','Préfixe les colonnes identiques : <code>clients.nom</code>, <code>produits.nom</code>.']},
-  38:{viz:'outer',situation:'Tu dois choisir ce qui reste quand une ligne ne trouve pas sa correspondance.',mission:'Savoir quel côté conserver.',title:'Le nom de la jointure indique ce qui survit.',explain:'<code>INNER</code> garde seulement les matchs. <code>LEFT</code> garde la gauche. <code>RIGHT</code> garde la droite. <code>FULL OUTER</code> garde les deux.',rule:'gauche / droite / les deux',watch:'Regarde les lignes C et D réapparaître selon la jointure choisie.',memory:['Choisis d’abord les lignes qui ne doivent pas disparaître.','<code>RIGHT JOIN</code> est un <code>LEFT JOIN</code> vu dans l’autre sens.','<code>FULL OUTER JOIN</code> conserve tous les deux côtés.']}
+  18:{
+    viz:'joinon',
+    situation:'Les informations sont séparées : <code>clients</code> contient les noms, <code>commandes</code> contient les achats.',
+    mission:'Associer chaque commande au nom de la personne qui l’a passée.',
+    title:'La jointure suit le fil conducteur : la clé commune.',
+    explain:'La colonne <code>client_id</code> dans <code>commandes</code> pointe vers <code>id</code> dans <code>clients</code>. <code>ON clients.id = commandes.client_id</code> indique à SQL de suivre ce fil conducteur.',
+    rule:'clients.id = commandes.client_id',
+    watch:'Observe les traits lumineux relier l’id du client à chaque commande correspondante.',
+    memory:[
+      '<code>ON</code> associe une clé primaire à la colonne qui la référence.',
+      'Chaque correspondance trouvée produit une nouvelle ligne dans le résultat.',
+      'Un client avec 2 commandes donnera 2 lignes distinctes dans le résultat.'
+    ]
+  },
+  36:{
+    viz:'inner',
+    situation:'Tu veux uniquement la liste des clients qui ont réellement effectué au moins une commande.',
+    mission:'Obtenir la liste stricte des achats enregistrés avec le nom de leur acheteur.',
+    title:'INNER JOIN ne garde que les paires complètes des deux côtés.',
+    explain:'SQL parcourt chaque client. S’il trouve une ou plusieurs commandes, il crée les lignes. S’il n’en trouve aucune (comme pour Inès, client 9), il ignore cette personne.',
+    rule:'INNER JOIN = correspondance obligatoire des 2 côtés',
+    watch:'Remarque comment Inès s’efface car aucune commande ne porte client_id = 9.',
+    memory:[
+      '<code>JOIN</code> et <code>INNER JOIN</code> sont exactement identiques.',
+      'Correspondance trouvée = ligne créée dans le résultat.',
+      'Sans correspondance = la ligne n’apparaît pas du tout.'
+    ]
+  },
+  20:{
+    viz:'leftj',
+    situation:'Tu veux la liste complète de tous tes clients, qu’ils aient commandé ou non.',
+    mission:'Conserver 100% de la table clients dans le résultat final.',
+    title:'LEFT JOIN protège toujours la table de gauche.',
+    explain:'La table située juste après <code>FROM</code> est la table de gauche. <code>LEFT JOIN</code> garantit qu’aucune de ses lignes ne sera supprimée. S’il n’y a pas de commande à droite, SQL met <code>NULL</code>.',
+    rule:'FROM clients (gauche) LEFT JOIN commandes (droite)',
+    watch:'Observe Inès (gauche) recevoir un lien vers NULL pour compléter sa ligne.',
+    memory:[
+      'La table principale après <code>FROM</code> est la table de GAUCHE.',
+      'Une correspondance produit une ligne normale.',
+      'Pas de correspondance : la gauche reste, la droite vaut <code>NULL</code>.'
+    ]
+  },
+  37:{
+    viz:'orphan',
+    situation:'Tu cherches à cibler les comptes inactifs (les clients qui n’ont jamais rien acheté).',
+    mission:'Isoler uniquement les personnes sans aucune correspondance.',
+    title:'Révéler les NULL avec LEFT JOIN, puis les capturer avec WHERE.',
+    explain:'C’est une stratégie en deux temps : <code>LEFT JOIN</code> génère un <code>NULL</code> pour les orphelins. Puis <code>WHERE commandes.id IS NULL</code> élimine ceux qui ont des commandes pour ne garder que les inactifs.',
+    rule:'LEFT JOIN ... WHERE table_droite.id IS NULL',
+    watch:'Regarde les clients actifs s’estomper sous l’effet du filtre IS NULL, ne laissant que Inès.',
+    memory:[
+      'Toujours commencer par un <code>LEFT JOIN</code> pour générer les <code>NULL</code>.',
+      'Tester la clé de la table de droite : <code>commandes.id IS NULL</code>.',
+      'Rappel : utilise <code>IS NULL</code>, jamais <code>= NULL</code>.'
+    ]
+  },
+  19:{
+    viz:'triple',
+    situation:'Tu veux une vue complète : « Sophie a acheté Fibre Prébiotique, quantité 2 ».',
+    mission:'Suivre la chaîne des clés : client → commande → produit.',
+    title:'La table centrale sert de pont entre les deux autres.',
+    explain:'On effectue un premier <code>JOIN</code> entre <code>clients</code> et <code>commandes</code> via <code>client_id</code>, puis un second <code>JOIN</code> entre <code>commandes</code> et <code>produits</code> via <code>produit_id</code>.',
+    rule:'clients ↔ commandes ↔ produits',
+    watch:'Suis le premier trait de Sophie vers sa commande, puis le second trait vers le produit.',
+    memory:[
+      'Relier 3 tables nécessite 2 clauses <code>JOIN</code> successives.',
+      'Chaque <code>ON</code> définit la correspondance d’une étape du chemin.',
+      'Pense à nommer tes colonnes avec leur table (<code>clients.nom</code>, <code>produits.nom</code>).'
+    ]
+  },
+  38:{
+    viz:'outer',
+    situation:'Selon les besoins d’analyse, il faut parfois garder la gauche, la droite, ou tout le monde.',
+    mission:'Savoir choisir entre INNER, LEFT, RIGHT et FULL OUTER JOIN.',
+    title:'Le mot-clé du JOIN choisit la table qui conserve toutes ses lignes.',
+    explain:'<code>INNER</code> garde les correspondances strictes. <code>LEFT</code> garde toute la gauche. <code>RIGHT</code> garde toute la droite. <code>FULL OUTER</code> rassemble tout le monde avec des <code>NULL</code>.',
+    rule:'INNER (paires) · LEFT (gauche) · RIGHT (droite) · FULL (tout)',
+    watch:'Vois les lignes A, B, C, D apparaître ou s’estomper selon la jointure choisie.',
+    memory:[
+      'Détermine d’abord quelle table ne doit perdre aucune ligne.',
+      '<code>RIGHT JOIN</code> est un <code>LEFT JOIN</code> écrit dans l’autre sens.',
+      '<code>FULL OUTER JOIN</code> rassemble toutes les données sans perte.'
+    ]
+  }
 };
 const JOIN_GUIDES={
-  joinon:{kicker:'Le réflexe JOIN',lead:'Une table garde le nom. L’autre garde le lien vers ce nom.',steps:[['Repérer','clients.id ↔ commandes.client_id'],['Relier','ON compare les deux identifiants'],['Lire','1 correspondance = 1 ligne']],takeaway:'<b>JOIN</b> ne mélange pas au hasard : il suit une relation clé ↔ clé étrangère.'},
-  inner:{kicker:'Le réflexe INNER JOIN',lead:'Tu veux seulement les personnes qui ont vraiment un match.',steps:[['Comparer','id ↔ client_id'],['Garder','les lignes présentes des deux côtés'],['Écarter','sans match → aucune ligne']],takeaway:'<b>INNER JOIN</b> répond à : « qui a une correspondance ? »'},
-  leftj:{kicker:'Le réflexe LEFT JOIN',lead:'Tu veux que personne à gauche ne disparaisse.',steps:[['Choisir','la table à conserver après FROM'],['Relier','les matchs comme avec JOIN'],['Compléter','pas de match → NULL à droite']],takeaway:'<b>LEFT JOIN</b> répond à : « garde tout ce qui est à gauche, même sans match. »'},
-  orphan:{kicker:'Le réflexe des orphelins',lead:'Pour trouver ceux qui n’ont aucun match, on fabrique d’abord le NULL.',steps:[['Conserver','LEFT JOIN garde toute la gauche'],['Repérer','la droite vaut NULL'],['Filtrer','WHERE droite.id IS NULL']],takeaway:'<b>LEFT JOIN + IS NULL</b> = trouver les lignes sans correspondance.'},
-  triple:{kicker:'Le réflexe des 3 tables',lead:'La table du milieu sert de pont entre les deux autres.',steps:[['Partir','clients : qui ?'],['Passer','commandes : qui a pris quoi ?'],['Arriver','produits : quel nom ?']],takeaway:'<b>3 tables</b> demandent généralement <b>2 JOIN</b> : suis le chemin des clés.'},
-  outer:{kicker:'Le réflexe des côtés',lead:'Le mot LEFT ou RIGHT dit quelle table doit rester entière.',steps:[['Décider','que faut-il conserver ?'],['Comparer','les lignes qui correspondent'],['Compléter','les absents avec NULL']],takeaway:'<b>INNER</b> = matchs · <b>LEFT</b> = gauche · <b>RIGHT</b> = droite · <b>FULL</b> = tout.'}
+  joinon:{kicker:'Le réflexe JOIN',lead:'Une table garde l’identité (`clients.id`). L’autre garde la référence (`commandes.client_id`).',steps:[['Repérer','clients.id ↔ commandes.client_id'],['Relier','ON fait la comparaison id par id'],['Générer','1 correspondance = 1 ligne produite']],takeaway:'<b>JOIN + ON</b> associe uniquement les lignes dont les identifiants correspondent.'},
+  inner:{kicker:'Le réflexe INNER JOIN',lead:'Tu veux seulement les données qui ont une correspondance des deux côtés.',steps:[['Comparer','id du client ↔ client_id de la commande'],['Valider','les paires qui trouvent leur moitié'],['Écarter','les lignes isolées sans correspondance']],takeaway:'<b>INNER JOIN</b> répond à : « Donne-moi uniquement ce qui est relié. »'},
+  leftj:{kicker:'Le réflexe LEFT JOIN',lead:'Tu veux qu’aucun élément de ta table de départ ne disparaisse.',steps:[['Identifier','la table de gauche (placée juste après FROM)'],['Relier','les lignes qui ont un match à droite'],['Compléter','les absents de droite avec des NULL']],takeaway:'<b>LEFT JOIN</b> répond à : « Garde tout à gauche, même sans correspondance. »'},
+  orphan:{kicker:'Le réflexe des orphelins',lead:'Pour trouver ce qui manque, on fait apparaître les NULL avant de les filtrer.',steps:[['Préserver','LEFT JOIN garde tous les clients avec ou sans achat'],['Révéler','Les clients sans achat reçoivent NULL à droite'],['Isoler','WHERE commandes.id IS NULL ne garde que les NULL']],takeaway:'<b>LEFT JOIN + IS NULL</b> est la méthode universelle pour trouver les lignes orphelines.'},
+  triple:{kicker:'Le réflexe des 3 tables',lead:'Suivre la chaîne des clés d’une table à l’autre.',steps:[['Départ','clients : qui a acheté ?'],['Passage','commandes : quel achat ? (pont client_id ↔ produit_id)'],['Arrivée','produits : quel est l’article ?']],takeaway:'<b>3 tables = 2 JOIN</b>. Suis simplement le chemin des clés d’une table à l’autre.'},
+  outer:{kicker:'Le réflexe des 4 jointures',lead:'Le nom du JOIN indique quelle table garde toutes ses lignes.',steps:[['INNER','Seulement ce qui correspond des 2 côtés'],['LEFT / RIGHT','Tout un côté + les correspondances de l’autre'],['FULL OUTER','TOUT garder des 2 côtés sans aucune perte']],takeaway:'<b>INNER</b> = paires · <b>LEFT/RIGHT</b> = un côté complet · <b>FULL</b> = exhaustif.'}
 };
 const JOIN_VIZ_STEP_LABELS={
-  joinon:['Voir','Relier','Résultat'],inner:['Voir','Associer','Écarter'],leftj:['Gauche','Relier','Garder'],orphan:['Garder','Filtrer','Résultat'],triple:['3 tables','1er lien','2e lien'],outer:['Voir','INNER','LEFT','FULL']
+  joinon:['1. Tables','2. Relier (ON)','3. Résultat'],inner:['1. Comparer','2. Paires','3. Écarter'],leftj:['1. Gauche','2. Relier & NULL','3. Résultat'],orphan:['1. LEFT JOIN','2. Filtre IS NULL','3. Orphelins'],triple:['1. 3 Tables','2. 1er JOIN','3. 2e JOIN'],outer:['1. Ensembles','2. INNER','3. LEFT','4. FULL OUTER']
 };
 const JOIN_OUTPUT_LABELS={
-  joinon:'Résultat · une ligne par commande',inner:'Résultat · seulement les correspondances',leftj:'Résultat · tous les clients restent',orphan:'Résultat · clients sans commande',triple:'Résultat · client, produit, quantité',outer:'Résultat de la jointure'
+  joinon:'Résultat · une ligne par commande trouvée',inner:'Résultat · uniquement les paires correspondantes',leftj:'Résultat · 100% des clients conservés',orphan:'Résultat · clients n’ayant jamais commandé',triple:'Résultat · client + produit + quantité',outer:'Résultat de la jointure choisie'
 };
 function renderJoinGuide(key){
   const g=JOIN_GUIDES[key];
@@ -10430,9 +10508,9 @@ const SQL_VIZ={
     <p class="er-hint">Touche un client ou une commande.</p>
   </div>`},
   joinon:{kind:'er',phases:[
-    {k:'Deux tables',d:'À gauche le nom. À droite l’id du client. Rien n’est encore relié.'},
-    {k:'ON id = client_id',d:'SQL relie chaque commande au client dont l’id correspond. Touche Sophie.'},
-    {k:'Une ligne par match',d:'Sophie a 2 commandes → 2 lignes. Ce n’est pas une fusion : chaque correspondance produit une ligne.'}
+    {k:'1. Tables séparées',d:'À gauche table clients (nom). À droite table commandes (client_id). Aucun lien pour le moment.'},
+    {k:'2. Liaison ON id = client_id',d:'SQL vérifie id = client_id. Sophie (id=1) trouve 2 commandes. Lucas (id=2) trouve 1 commande.'},
+    {k:'3. Lignes générées',d:'Une ligne est produite pour chaque correspondance : Sophie apparaît 2 fois, Lucas 1 fois.'}
   ],html:`<div class="er-stage er-match join-viz">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
@@ -10449,16 +10527,16 @@ const SQL_VIZ={
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
-      <div class="join-pill">Sophie<span class="jn">commande 1</span></div>
-      <div class="join-pill">Sophie<span class="jn">commande 2</span></div>
-      <div class="join-pill">Lucas<span class="jn">commande 3</span></div>
+      <div class="join-pill">Sophie<span class="jn">commande #1</span></div>
+      <div class="join-pill">Sophie<span class="jn">commande #2</span></div>
+      <div class="join-pill">Lucas<span class="jn">commande #3</span></div>
     </div>
-    <p class="er-hint">Touche Sophie : ses deux commandes s’allument.</p>
+    <p class="er-hint">Touche un client : ses commandes s’allument en surbrillance.</p>
   </div>`},
   inner:{kind:'er',phases:[
-    {k:'Cherche un match',d:'Sophie a des commandes. Inès n’en a aucune. SQL compare id ↔ client_id.'},
-    {k:'Correspondances',d:'Chaque match devient une ligne. Sophie × 2. Lucas × 1.'},
-    {k:'Inès écartée',d:'Aucune commande avec client_id = 9. INNER JOIN ne la garde pas. Ce n’est pas une erreur.'}
+    {k:'1. Recherche de match',d:'Sophie (1) et Lucas (2) ont des commandes. Inès (9) n’a aucun enregistrement.'},
+    {k:'2. Valider paires',d:'Chaque paire complète produit une ligne : Sophie × 2, Lucas × 1.'},
+    {k:'3. Écarter inactifs',d:'Inès n’a aucun match (client_id = 9 absent de commandes) : INNER JOIN l’écarte.'}
   ],html:`<div class="er-stage er-match join-viz">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
@@ -10476,16 +10554,16 @@ const SQL_VIZ={
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
-      <div class="join-pill">Sophie<span class="jn">#1</span></div>
-      <div class="join-pill">Sophie<span class="jn">#2</span></div>
-      <div class="join-pill">Lucas<span class="jn">#3</span></div>
+      <div class="join-pill">Sophie<span class="jn">commande #1</span></div>
+      <div class="join-pill">Sophie<span class="jn">commande #2</span></div>
+      <div class="join-pill">Lucas<span class="jn">commande #3</span></div>
     </div>
-    <p class="er-hint">Pas de trait vers Inès : pas de correspondance.</p>
+    <p class="er-hint">Inès n’a pas de trait : pas de correspondance = exclue du résultat.</p>
   </div>`},
   leftj:{kind:'er',phases:[
-    {k:'Gauche = clients',d:'FROM clients LEFT JOIN commandes. Tous les clients doivent rester.'},
-    {k:'Match + orpheline',d:'Sophie se relie. Inès n’a pas de commande : un trait pointillé vers NULL.'},
-    {k:'Inès conservée',d:'LEFT JOIN garde la gauche. Les colonnes de commandes valent NULL.'}
+    {k:'1. Table gauche (clients)',d:'FROM clients LEFT JOIN commandes : 100% des clients de la table gauche restent.'},
+    {k:'2. Liaisons & NULL',d:'Sophie et Lucas se lient. Inès n’a pas de commande : un trait pointe vers NULL.'},
+    {k:'3. Résultat exhaustif',d:'Le résultat inclut Sophie (#1, #2), Lucas (#3) et Inès avec la valeur NULL.'}
   ],html:`<div class="er-stage er-match join-viz">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
@@ -10504,17 +10582,17 @@ const SQL_VIZ={
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
-      <div class="join-pill">Sophie<span class="jn">#1</span></div>
-      <div class="join-pill">Sophie<span class="jn">#2</span></div>
-      <div class="join-pill">Lucas<span class="jn">#3</span></div>
+      <div class="join-pill">Sophie<span class="jn">commande #1</span></div>
+      <div class="join-pill">Sophie<span class="jn">commande #2</span></div>
+      <div class="join-pill">Lucas<span class="jn">commande #3</span></div>
       <div class="join-pill">Inès<span class="jn null">NULL</span></div>
     </div>
-    <p class="er-hint">Touche Inès : la case NULL s’allume.</p>
+    <p class="er-hint">Touche Inès : la case fantôme NULL s’allume.</p>
   </div>`},
   orphan:{kind:'er',phases:[
-    {k:'LEFT JOIN d’abord',d:'Tous les clients sont là. Inès a NULL à droite.'},
-    {k:'WHERE … IS NULL',d:'On écarte ceux qui ont une commande. Sophie et Lucas s’estompent.'},
-    {k:'Il reste Inès',d:'Seule ligne sans correspondance. C’est le client qui n’a jamais commandé.'}
+    {k:'1. Étape 1 : LEFT JOIN',d:'LEFT JOIN liste tous les clients. Inès a NULL dans la colonne commande.'},
+    {k:'2. Étape 2 : Filtre IS NULL',d:'WHERE commandes.id IS NULL écarte Sophie et Lucas car ils ont une commande.'},
+    {k:'3. Seul l’orphelin reste',d:'Seule Inès (sans aucune commande) passe le filtre : c’est le client inactif.'}
   ],html:`<div class="er-stage er-match join-viz">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
@@ -10534,12 +10612,12 @@ const SQL_VIZ={
     <div class="join-out" aria-hidden="true">
       <div class="join-pill">Inès<span class="jn null">jamais commandé</span></div>
     </div>
-    <p class="er-hint">IS NULL ne garde que le trait vers le vide.</p>
+    <p class="er-hint">WHERE ... IS NULL supprime les correspondances pour isoler l’orphelin.</p>
   </div>`},
   triple:{kind:'er',phases:[
-    {k:'3 tables',d:'Le nom est dans clients. Le produit est dans produits. commandes est au centre.'},
-    {k:'1er JOIN',d:'clients.id ↔ commandes.client_id. On sait qui a commandé.'},
-    {k:'2e JOIN',d:'commandes.produit_id ↔ produits.id. Sophie → Fibre → 2.'}
+    {k:'1. 3 tables en ligne',d:'clients (gauche) ↔ commandes (centre-pont) ↔ produits (droite).'},
+    {k:'2. 1er JOIN (Client ↔ Commande)',d:'ON clients.id = commandes.client_id : Sophie rejoint sa commande #1.'},
+    {k:'3. 2e JOIN (Commande ↔ Produit)',d:'ON commandes.produit_id = produits.id : la commande #1 rejoint Fibre Prébiotique.'}
   ],html:`<div class="er-stage er-match join-viz">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="join-trio">
@@ -10560,30 +10638,30 @@ const SQL_VIZ={
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
-      <div class="join-pill">Sophie → Fibre<span class="jn">2</span></div>
-      <div class="join-pill">Lucas → Protéine<span class="jn">1</span></div>
+      <div class="join-pill">Sophie → Fibre<span class="jn">qté 2</span></div>
+      <div class="join-pill">Lucas → Protéine<span class="jn">qté 1</span></div>
     </div>
-    <p class="er-hint">Touche Sophie : la commande, puis le produit.</p>
+    <p class="er-hint">Touche Sophie : la commande puis le produit s’allument.</p>
   </div>`},
   outer:{kind:'er',phases:[
-    {k:'Deux côtés',d:'A et B correspondent. C n’existe qu’à gauche. D n’existe qu’à droite.'},
-    {k:'INNER JOIN',d:'Seulement A et B. C et D disparaissent.'},
-    {k:'LEFT JOIN',d:'Tout à gauche : A, B, et C avec NULL. D reste dehors.'},
-    {k:'FULL OUTER',d:'Tout : A, B, C↔NULL, NULL↔D.'}
+    {k:'1. Ensembles',d:'A et B correspondent. C existe seulement à gauche. D existe seulement à droite.'},
+    {k:'2. INNER JOIN',d:'Seulement les correspondances pures : A et B conservés.'},
+    {k:'3. LEFT JOIN',d:'Toute la gauche conservée : A, B et C (complété avec NULL).' },
+    {k:'4. FULL OUTER JOIN',d:'TOUT conservé sans exception : A, B, C (NULL) et D (NULL).' }
   ],html:`<div class="er-stage join-viz">
     <div class="join-sets">
       <div class="join-side"><div class="join-side-h">gauche</div>
         <div class="jchips">
           <div class="jchip" data-k="A"><span class="er-key">A</span>match</div>
           <div class="jchip" data-k="B"><span class="er-key">B</span>match</div>
-          <div class="jchip" data-k="C"><span class="er-key">C</span>seulement ici</div>
+          <div class="jchip" data-k="C"><span class="er-key">C</span>seul à gauche</div>
         </div>
       </div>
       <div class="join-side" data-side="r"><div class="join-side-h">droite</div>
         <div class="jchips">
           <div class="jchip" data-k="A"><span class="er-key">A</span>match</div>
           <div class="jchip" data-k="B"><span class="er-key">B</span>match</div>
-          <div class="jchip" data-k="D"><span class="er-key">D</span>seulement ici</div>
+          <div class="jchip" data-k="D"><span class="er-key">D</span>seul à droite</div>
         </div>
       </div>
     </div>
@@ -10593,7 +10671,7 @@ const SQL_VIZ={
       <div class="join-pill" data-when="l">C ↔ NULL</div>
       <div class="join-pill" data-when="r">NULL ↔ D</div>
     </div>
-    <p class="er-hint">RIGHT JOIN serait l’inverse du LEFT : D gardé, C dehors.</p>
+    <p class="er-hint">RIGHT JOIN serait l’inverse exact de LEFT : D gardé, C exclu.</p>
   </div>`}
 };
 const HAVING_GRP_PHASES=SQL_VIZ.having.phases;
