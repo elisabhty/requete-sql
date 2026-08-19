@@ -860,8 +860,9 @@
   .join-mini-table .head{background:var(--accent-soft);color:var(--accent);font-family:var(--ui);font-size:9px;text-transform:uppercase;letter-spacing:.45px;font-weight:850}
   .sql-viz[data-viz="joinon"][data-phase="0"] .join-bridge{opacity:.5;filter:grayscale(.25)}
   .sql-viz[data-viz="joinon"][data-phase="1"] .join-bridge,.sql-viz[data-viz="joinon"][data-phase="2"] .join-bridge{border-style:solid;animation:joinBridgePulse 1.2s ease-in-out infinite alternate}
+  .sql-viz[data-viz="joinon"][data-phase="2"] .er-links{opacity:0;transition:opacity .22s ease}
   @keyframes joinBridgePulse{from{box-shadow:inset 0 0 0 1px rgba(255,255,255,.72),0 0 0 rgba(91,91,214,0)}to{box-shadow:inset 0 0 0 1px rgba(255,255,255,.72),0 0 0 5px rgba(91,91,214,.08)}}
-  @media (max-width:430px){.join-story .er-pair{grid-template-columns:minmax(0,1fr) 74px minmax(0,1fr);gap:7px}.join-bridge{min-height:118px}.join-bridge-badge{width:32px;height:32px;border-radius:11px;font-size:11px}.join-bridge small{font-size:8.5px;max-width:62px}}
+  @media (max-width:640px){.join-story .er-pair{grid-template-columns:1fr;gap:8px}.join-story .er-links{display:none}.join-bridge{min-height:54px;flex-direction:row;border-radius:13px}.join-bridge::before,.join-bridge::after{left:18px;right:18px}.join-bridge::before{top:12px}.join-bridge::after{bottom:12px}.join-bridge-badge{width:34px;height:34px;border-radius:11px;font-size:11px}.join-bridge small{max-width:none;font-size:9px}.join-mini-table{font-size:10px}}
   .join-trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;position:relative;z-index:1}
   .join-trio .er-col[data-side="prd"] .er-card-h{background:linear-gradient(135deg,#0F766E,#14B8A6)}
   .join-out{display:flex;flex-direction:column;gap:6px;max-height:0;opacity:0;overflow:hidden;margin:0;transition:max-height .5s ease,opacity .4s ease,margin .35s ease}
@@ -4290,7 +4291,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-19-join-v5';
+const APP_VERSION='2026-08-19-join-v6';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -7060,16 +7061,16 @@ function minmaxChipState(chips, mode){
 const JOIN_COURSES={
   18:{
     viz:'joinon',
-    situation:'Tu as deux fiches séparées. <code>clients</code> répond à la question « qui ? ». <code>commandes</code> répond à la question « quoi ? », mais elle ne garde que le numéro du client.',
-    mission:'Construire une phrase lisible : « Sophie a commandé 2 articles » à partir de deux tables qui ne parlent pas la même langue.',
-    title:'JOIN sert de pont entre une clé et sa référence.',
-    explain:'La table <code>clients</code> possède la clé officielle <code>id</code>. La table <code>commandes</code> possède une étiquette <code>client_id</code> qui pointe vers cette clé. La clause <code>ON</code> explique à SQL comment traverser le pont.',
+    situation:'Dans un modèle relationnel, les informations sont volontairement réparties : <code>clients</code> porte l’identité client, <code>commandes</code> porte les transactions et référence le client via <code>client_id</code>.',
+    mission:'Reconstituer une vue exploitable sans dénormaliser les tables : afficher chaque commande avec l’identité du client associé.',
+    title:'JOIN matérialise une relation entre clé primaire et clé étrangère.',
+    explain:'La clause <code>ON</code> définit le prédicat de jointure. Ici, SQL associe chaque ligne de <code>commandes</code> à la ligne de <code>clients</code> dont la clé primaire <code>id</code> correspond à la clé étrangère <code>client_id</code>.',
     rule:'ON clients.id = commandes.client_id',
-    watch:'Lis le dessin en trois temps : les tables sont séparées, le pont ON relie les numéros identiques, puis SQL écrit les lignes finales.',
+    watch:'Le schéma montre le passage du modèle normalisé vers le jeu de résultats : tables séparées, prédicat ON, lignes projetées.',
     memory:[
-      '<code>JOIN</code> ajoute la table dont tu as besoin pour répondre à la question.',
-      '<code>ON</code> indique le pont exact : clé de gauche = référence de droite.',
-      'Le résultat ne fusionne pas les clients : il crée une ligne par commande trouvée.'
+      '<code>JOIN</code> combine deux relations pour produire un jeu de résultats.',
+      '<code>ON</code> exprime le prédicat : clé primaire = clé étrangère.',
+      'Une ligne de résultat est produite pour chaque correspondance qui satisfait le prédicat.'
     ]
   },
   36:{
@@ -7144,7 +7145,7 @@ const JOIN_COURSES={
   }
 };
 const JOIN_GUIDES={
-  joinon:{kicker:'Le réflexe JOIN',lead:'Pense en pont : une clé officielle d’un côté, une référence de l’autre.',steps:[['Nommer','clients.id = clé du client'],['Pointer','commandes.client_id = étiquette sur la commande'],['Assembler','chaque match écrit une ligne résultat']],takeaway:'<b>JOIN</b> choisit la table à ajouter. <b>ON</b> donne le pont à traverser.'},
+  joinon:{kicker:'Le réflexe JOIN',lead:'Raisonne en relation : une clé primaire identifie, une clé étrangère référence.',steps:[['Identifier','clients.id = clé primaire'],['Référencer','commandes.client_id = clé étrangère'],['Projeter','chaque correspondance alimente le résultat']],takeaway:'<b>JOIN</b> combine les relations. <b>ON</b> définit le prédicat de correspondance.'},
   inner:{kicker:'Le réflexe INNER JOIN',lead:'Tu veux seulement les données qui ont une correspondance des deux côtés.',steps:[['Comparer','id du client ↔ client_id de la commande'],['Valider','les paires qui trouvent leur moitié'],['Écarter','les lignes isolées sans correspondance']],takeaway:'<b>INNER JOIN</b> répond à : « Donne-moi uniquement ce qui est relié. »'},
   leftj:{kicker:'Le réflexe LEFT JOIN',lead:'Tu veux qu’aucun élément de ta table de départ ne disparaisse.',steps:[['Identifier','la table de gauche (placée juste après FROM)'],['Relier','les lignes qui ont un match à droite'],['Compléter','les absents de droite avec des NULL']],takeaway:'<b>LEFT JOIN</b> répond à : « Garde tout à gauche, même sans correspondance. »'},
   orphan:{kicker:'Le réflexe des orphelins',lead:'Pour trouver ce qui manque, on fait apparaître les NULL avant de les filtrer.',steps:[['Préserver','LEFT JOIN garde tous les clients avec ou sans achat'],['Révéler','Les clients sans achat reçoivent NULL à droite'],['Isoler','WHERE commandes.id IS NULL ne garde que les NULL']],takeaway:'<b>LEFT JOIN + IS NULL</b> est la méthode universelle pour trouver les lignes orphelines.'},
@@ -10522,9 +10523,9 @@ const SQL_VIZ={
     <p class="er-hint">Touche un client ou une commande.</p>
   </div>`},
   joinon:{kind:'er',phases:[
-    {k:'1. Deux fiches séparées',d:'clients sait qui est la personne. commandes sait ce qui a été acheté, mais seulement avec l’étiquette client_id.'},
-    {k:'2. Le pont ON',d:'ON clients.id = commandes.client_id : SQL compare les numéros identiques et trace les correspondances.'},
-    {k:'3. La table réponse',d:'Chaque commande reliée devient une ligne lisible : nom du client + quantité commandée.'}
+    {k:'1. Tables normalisées',d:'clients porte la clé primaire et les attributs client. commandes porte les faits de transaction et la clé étrangère client_id.'},
+    {k:'2. Prédicat de jointure',d:'ON clients.id = commandes.client_id : SQL conserve les paires dont les identifiants correspondent.'},
+    {k:'3. Jeu de résultats',d:'Chaque correspondance produit une ligne projetée avec les colonnes demandées.'}
   ],html:`<div class="er-stage er-match join-viz join-story">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
@@ -10549,7 +10550,7 @@ const SQL_VIZ={
         <span>Lucas</span><span>1</span>
       </div>
     </div>
-    <p class="er-hint">Touche Sophie : ses deux commandes se colorent. C’est exactement le rôle du ON.</p>
+    <p class="er-hint">Sélectionne une ligne client : les commandes qui satisfont le prédicat de jointure sont mises en évidence.</p>
   </div>`},
   inner:{kind:'er',phases:[
     {k:'1. Recherche de match',d:'Sophie (1) et Lucas (2) ont des commandes. Inès (9) n’a aucun enregistrement.'},
