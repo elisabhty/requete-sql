@@ -4276,7 +4276,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-19-join-v2';
+const APP_VERSION='2026-08-19-join-v3';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -7046,86 +7046,86 @@ function minmaxChipState(chips, mode){
 const JOIN_COURSES={
   18:{
     viz:'joinon',
-    situation:'Les informations sont séparées : <code>clients</code> contient les noms, <code>commandes</code> contient les achats.',
-    mission:'Associer chaque commande au nom de la personne qui l’a passée.',
-    title:'La jointure suit le fil conducteur : la clé commune.',
-    explain:'La colonne <code>client_id</code> dans <code>commandes</code> pointe vers <code>id</code> dans <code>clients</code>. <code>ON clients.id = commandes.client_id</code> indique à SQL de suivre ce fil conducteur.',
-    rule:'clients.id = commandes.client_id',
-    watch:'Observe les traits lumineux relier l’id du client à chaque commande correspondante.',
+    situation:'Imagine deux carnets ouverts côte à côte. Dans <code>clients</code>, tu lis les prénoms. Dans <code>commandes</code>, tu lis les achats, mais seulement avec un numéro <code>client_id</code>.',
+    mission:'Retrouver le prénom derrière chaque achat sans recopier toute la fiche client.',
+    title:'JOIN est le geste qui recolle deux carnets avec un numéro commun.',
+    explain:'SQL ne devine rien : il compare une colonne de gauche avec une colonne de droite. Ici, <code>clients.id</code> est le numéro officiel du client, et <code>commandes.client_id</code> est le numéro écrit sur la commande.',
+    rule:'ON clients.id = commandes.client_id',
+    watch:'Le dessin montre le moment exact où SQL trace un fil entre le client et ses commandes.',
     memory:[
-      '<code>ON</code> associe une clé primaire à la colonne qui la référence.',
-      'Chaque correspondance trouvée produit une nouvelle ligne dans le résultat.',
-      'Un client avec 2 commandes donnera 2 lignes distinctes dans le résultat.'
+      '<code>JOIN</code> ajoute une table à la requête.',
+      '<code>ON</code> donne la règle de collage : un id d’un côté, une référence de l’autre.',
+      'Si Sophie a 2 commandes, le résultat contient 2 lignes avec Sophie.'
     ]
   },
   36:{
     viz:'inner',
-    situation:'Tu veux uniquement la liste des clients qui ont réellement effectué au moins une commande.',
-    mission:'Obtenir la liste stricte des achats enregistrés avec le nom de leur acheteur.',
-    title:'INNER JOIN ne garde que les paires complètes des deux côtés.',
-    explain:'SQL parcourt chaque client. S’il trouve une ou plusieurs commandes, il crée les lignes. S’il n’en trouve aucune (comme pour Inès, client 9), il ignore cette personne.',
-    rule:'INNER JOIN = correspondance obligatoire des 2 côtés',
-    watch:'Remarque comment Inès s’efface car aucune commande ne porte client_id = 9.',
+    situation:'Tu ne veux plus une liste de clients : tu veux uniquement les achats qui existent vraiment, avec leur acheteur.',
+    mission:'Faire sortir seulement les lignes qui trouvent leur moitié dans l’autre table.',
+    title:'INNER JOIN est une porte stricte : pas de badge, pas d’entrée.',
+    explain:'Chaque client cherche une commande portant son numéro. Sophie et Lucas trouvent des commandes. Inès ne trouve rien : elle reste dehors, même si elle existe dans <code>clients</code>.',
+    rule:'JOIN = INNER JOIN = match obligatoire',
+    watch:'Observe Inès : aucune ligne ne la rejoint, donc elle disparaît du résultat.',
     memory:[
-      '<code>JOIN</code> et <code>INNER JOIN</code> sont exactement identiques.',
-      'Correspondance trouvée = ligne créée dans le résultat.',
-      'Sans correspondance = la ligne n’apparaît pas du tout.'
+      '<code>JOIN</code> tout court veut dire <code>INNER JOIN</code>.',
+      'Un match trouvé devient une ligne.',
+      'Sans match, la ligne est ignorée : ce n’est pas une erreur.'
     ]
   },
   20:{
     viz:'leftj',
-    situation:'Tu veux la liste complète de tous tes clients, qu’ils aient commandé ou non.',
-    mission:'Conserver 100% de la table clients dans le résultat final.',
-    title:'LEFT JOIN protège toujours la table de gauche.',
-    explain:'La table située juste après <code>FROM</code> est la table de gauche. <code>LEFT JOIN</code> garantit qu’aucune de ses lignes ne sera supprimée. S’il n’y a pas de commande à droite, SQL met <code>NULL</code>.',
-    rule:'FROM clients (gauche) LEFT JOIN commandes (droite)',
-    watch:'Observe Inès (gauche) recevoir un lien vers NULL pour compléter sa ligne.',
+    situation:'Cette fois, tu prépares un suivi commercial. Même les clients sans commande doivent apparaître, sinon tu rates les personnes à relancer.',
+    mission:'Garder toute la table <code>clients</code>, puis compléter ce qu’on peut avec <code>commandes</code>.',
+    title:'LEFT JOIN met un filet de sécurité sous la table de gauche.',
+    explain:'La table placée après <code>FROM</code> est la gauche. Avec <code>LEFT JOIN</code>, SQL n’a pas le droit de la faire disparaître. Quand il ne trouve rien à droite, il écrit <code>NULL</code>.',
+    rule:'FROM clients LEFT JOIN commandes',
+    watch:'Inès reste visible : sa ligne est conservée, mais la partie commande vaut NULL.',
     memory:[
-      'La table principale après <code>FROM</code> est la table de GAUCHE.',
-      'Une correspondance produit une ligne normale.',
-      'Pas de correspondance : la gauche reste, la droite vaut <code>NULL</code>.'
+      'La table après <code>FROM</code> est celle que tu protèges.',
+      'S’il y a un match, les données se complètent.',
+      'S’il n’y a pas de match, la gauche reste et la droite devient <code>NULL</code>.'
     ]
   },
   37:{
     viz:'orphan',
-    situation:'Tu cherches à cibler les comptes inactifs (les clients qui n’ont jamais rien acheté).',
-    mission:'Isoler uniquement les personnes sans aucune correspondance.',
-    title:'Révéler les NULL avec LEFT JOIN, puis les capturer avec WHERE.',
-    explain:'C’est une stratégie en deux temps : <code>LEFT JOIN</code> génère un <code>NULL</code> pour les orphelins. Puis <code>WHERE commandes.id IS NULL</code> élimine ceux qui ont des commandes pour ne garder que les inactifs.',
-    rule:'LEFT JOIN ... WHERE table_droite.id IS NULL',
-    watch:'Regarde les clients actifs s’estomper sous l’effet du filtre IS NULL, ne laissant que Inès.',
+    situation:'Tu veux lancer une campagne de relance : il faut trouver les clients inscrits, mais jamais passés à l’achat.',
+    mission:'Transformer l’absence de commande en indice visible, puis filtrer dessus.',
+    title:'Pour trouver le manque, il faut d’abord le faire apparaître.',
+    explain:'Un <code>INNER JOIN</code> cacherait les absents. On commence donc par <code>LEFT JOIN</code> pour fabriquer des <code>NULL</code>, puis on garde seulement les lignes où la commande manque.',
+    rule:'LEFT JOIN puis WHERE commandes.id IS NULL',
+    watch:'Le filtre IS NULL éteint les clients actifs : il ne reste que la ligne sans commande.',
     memory:[
-      'Toujours commencer par un <code>LEFT JOIN</code> pour générer les <code>NULL</code>.',
-      'Tester la clé de la table de droite : <code>commandes.id IS NULL</code>.',
-      'Rappel : utilise <code>IS NULL</code>, jamais <code>= NULL</code>.'
+      '<code>LEFT JOIN</code> révèle les absences avec <code>NULL</code>.',
+      '<code>WHERE commandes.id IS NULL</code> garde uniquement les absents.',
+      '<code>= NULL</code> ne marche pas : il faut écrire <code>IS NULL</code>.'
     ]
   },
   19:{
     viz:'triple',
-    situation:'Tu veux une vue complète : « Sophie a acheté Fibre Prébiotique, quantité 2 ».',
-    mission:'Suivre la chaîne des clés : client → commande → produit.',
-    title:'La table centrale sert de pont entre les deux autres.',
-    explain:'On effectue un premier <code>JOIN</code> entre <code>clients</code> et <code>commandes</code> via <code>client_id</code>, puis un second <code>JOIN</code> entre <code>commandes</code> et <code>produits</code> via <code>produit_id</code>.',
-    rule:'clients ↔ commandes ↔ produits',
-    watch:'Suis le premier trait de Sophie vers sa commande, puis le second trait vers le produit.',
+    situation:'Tu veux lire une phrase complète : « Sophie a acheté Fibre Prébiotique ». Mais le client, l’achat et le produit vivent dans trois tables différentes.',
+    mission:'Traverser la table du milieu, comme un pont, pour aller du client au produit.',
+    title:'Avec 3 tables, on ne saute pas : on suit le chemin.',
+    explain:'La table <code>commandes</code> porte deux panneaux indicateurs : <code>client_id</code> indique qui achète, <code>produit_id</code> indique quoi. On fait donc deux liaisons successives.',
+    rule:'clients -> commandes -> produits',
+    watch:'Premier fil : qui a commandé ? Deuxième fil : quel produit est derrière la commande ?',
     memory:[
-      'Relier 3 tables nécessite 2 clauses <code>JOIN</code> successives.',
-      'Chaque <code>ON</code> définit la correspondance d’une étape du chemin.',
-      'Pense à nommer tes colonnes avec leur table (<code>clients.nom</code>, <code>produits.nom</code>).'
+      'Pour 3 tables, écris 2 <code>JOIN</code>.',
+      'Chaque <code>ON</code> explique une seule étape du trajet.',
+      'Préfixe les noms ambigus : <code>clients.nom</code>, <code>produits.nom</code>.'
     ]
   },
   38:{
     viz:'outer',
-    situation:'Selon les besoins d’analyse, il faut parfois garder la gauche, la droite, ou tout le monde.',
-    mission:'Savoir choisir entre INNER, LEFT, RIGHT et FULL OUTER JOIN.',
-    title:'Le mot-clé du JOIN choisit la table qui conserve toutes ses lignes.',
-    explain:'<code>INNER</code> garde les correspondances strictes. <code>LEFT</code> garde toute la gauche. <code>RIGHT</code> garde toute la droite. <code>FULL OUTER</code> rassemble tout le monde avec des <code>NULL</code>.',
-    rule:'INNER (paires) · LEFT (gauche) · RIGHT (droite) · FULL (tout)',
-    watch:'Vois les lignes A, B, C, D apparaître ou s’estomper selon la jointure choisie.',
+    situation:'Parfois tu veux seulement les matchs. Parfois tu refuses de perdre la gauche. Parfois la droite est prioritaire. Et parfois tu veux tout garder.',
+    mission:'Choisir la jointure en fonction des lignes qui ne doivent jamais disparaître.',
+    title:'Le type de JOIN répond à une question simple : qui doit survivre ?',
+    explain:'<code>INNER</code> garde uniquement les paires. <code>LEFT</code> protège la gauche. <code>RIGHT</code> protège la droite. <code>FULL OUTER</code> conserve les deux côtés et complète les trous avec <code>NULL</code>.',
+    rule:'INNER = paires · LEFT = gauche · RIGHT = droite · FULL = tout',
+    watch:'Les cartes A, B, C et D montrent concrètement quelles lignes restent selon le choix.',
     memory:[
-      'Détermine d’abord quelle table ne doit perdre aucune ligne.',
-      '<code>RIGHT JOIN</code> est un <code>LEFT JOIN</code> écrit dans l’autre sens.',
-      '<code>FULL OUTER JOIN</code> rassemble toutes les données sans perte.'
+      'Avant d’écrire le SQL, décide ce qui ne doit pas disparaître.',
+      '<code>RIGHT JOIN</code> peut souvent se réécrire en <code>LEFT JOIN</code> en inversant les tables.',
+      '<code>FULL OUTER JOIN</code> sert quand aucun côté ne doit perdre de ligne.'
     ]
   }
 };
