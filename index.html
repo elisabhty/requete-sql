@@ -4292,7 +4292,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-19-join-v10';
+const APP_VERSION='2026-08-19-join-v11';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -7062,10 +7062,10 @@ function minmaxChipState(chips, mode){
 const JOIN_COURSES={
   18:{
     viz:'joinon',
-    situation:'Tu dois préparer un export pour l’équipe commerciale : pour chaque commande, elle veut lire le nom du client et la quantité commandée. Or le nom est dans <code>clients</code>, tandis que les commandes ne contiennent que <code>client_id</code>.',
-    mission:'Reconstituer une vue exploitable sans dénormaliser les tables : afficher chaque commande avec l’identité du client associé.',
+    situation:'Tu dois préparer un export pour l’équipe commerciale : pour chaque commande, elle veut lire le nom du client et la quantité commandée. Or le nom est dans la table <code>clients</code>, tandis que la quantité et <code>client_id</code> sont dans la table <code>commandes</code>.',
+    mission:'Reconstituer une vue exploitable sans dénormaliser les tables : partir de la table <code>commandes</code> et récupérer l’identité client dans la table <code>clients</code>.',
     title:'JOIN reconstruit une vue à partir de relations normalisées.',
-    explain:'La clause <code>ON</code> définit le prédicat de jointure. Ici, SQL associe chaque ligne de <code>commandes</code> à la ligne de <code>clients</code> dont la clé primaire <code>id</code> correspond à la clé étrangère <code>client_id</code>.',
+    explain:'La clause <code>ON</code> définit le prédicat de jointure. Ici, SQL associe chaque ligne de la table <code>commandes</code> à la ligne de la table <code>clients</code> dont <code>id</code> correspond à <code>client_id</code>.',
     rule:'ON clients.id = commandes.client_id',
     watch:'Le schéma montre le passage du modèle normalisé vers le jeu de résultats : tables séparées, prédicat ON, lignes projetées.',
     memory:[
@@ -7146,7 +7146,7 @@ const JOIN_COURSES={
   }
 };
 const JOIN_GUIDES={
-  joinon:{kicker:'Analyse de jointure',lead:'Raisonne en relation : une clé primaire identifie, une clé étrangère référence.',steps:[['Source','clients.id identifie le client'],['Relation','commandes.client_id référence ce client'],['Résultat','chaque correspondance alimente la projection']],takeaway:'<b>JOIN</b> combine les relations. <b>ON</b> définit le prédicat de correspondance.'},
+  joinon:{kicker:'Analyse de jointure',lead:'Raisonne table par table : où se trouve l’information, et quelle colonne permet de la relier.',steps:[['Table clients','dans la table clients, id identifie le client'],['Table commandes','dans la table commandes, client_id référence ce client'],['Résultat','chaque correspondance alimente la projection']],takeaway:'<b>JOIN</b> combine les relations. <b>ON</b> définit le prédicat de correspondance.'},
   inner:{kicker:'Le réflexe INNER JOIN',lead:'Tu veux seulement les données qui ont une correspondance des deux côtés.',steps:[['Comparer','id du client ↔ client_id de la commande'],['Valider','les paires qui trouvent leur moitié'],['Écarter','les lignes isolées sans correspondance']],takeaway:'<b>INNER JOIN</b> répond à : « Donne-moi uniquement ce qui est relié. »'},
   leftj:{kicker:'Le réflexe LEFT JOIN',lead:'Tu veux qu’aucun élément de ta table de départ ne disparaisse.',steps:[['Identifier','la table de gauche (placée juste après FROM)'],['Relier','les lignes qui ont un match à droite'],['Compléter','les absents de droite avec des NULL']],takeaway:'<b>LEFT JOIN</b> répond à : « Garde tout à gauche, même sans correspondance. »'},
   orphan:{kicker:'Le réflexe des orphelins',lead:'Pour trouver ce qui manque, on fait apparaître les NULL avant de les filtrer.',steps:[['Préserver','LEFT JOIN garde tous les clients avec ou sans achat'],['Révéler','Les clients sans achat reçoivent NULL à droite'],['Isoler','WHERE commandes.id IS NULL ne garde que les NULL']],takeaway:'<b>LEFT JOIN + IS NULL</b> est la méthode universelle pour trouver les lignes orphelines.'},
@@ -10524,8 +10524,8 @@ const SQL_VIZ={
     <p class="er-hint">Touche un client ou une commande.</p>
   </div>`},
   joinon:{kind:'er',phases:[
-    {k:'1. Sources relationnelles',d:'clients porte les attributs client. commandes porte les faits de transaction et la référence client_id.'},
-    {k:'2. Condition de correspondance',d:'ON clients.id = commandes.client_id : SQL conserve les paires dont les identifiants correspondent.'},
+    {k:'1. Sources relationnelles',d:'Dans la table clients : les attributs client. Dans la table commandes : les faits de transaction et la référence client_id.'},
+    {k:'2. Condition de correspondance',d:'ON clients.id = commandes.client_id : SQL compare id dans la table clients avec client_id dans la table commandes.'},
     {k:'3. Projection du résultat',d:'Chaque correspondance produit une ligne avec les colonnes demandées.'}
   ],html:`<div class="er-stage er-match join-viz join-story">
     <svg class="er-links" aria-hidden="true"></svg>
