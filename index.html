@@ -848,6 +848,7 @@
   }
 
   /* JOIN : relier des lignes, pas un schéma ASCII */
+  .join-course{padding-bottom:calc(var(--ls-nav-h) + 28px)}
   .join-story .er-pair{grid-template-columns:minmax(0,1fr) 92px minmax(0,1fr);gap:10px;align-items:stretch}
   .join-bridge{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:132px;border:1px dashed rgba(91,91,214,.34);border-radius:16px;background:linear-gradient(180deg,rgba(91,91,214,.08),rgba(20,184,166,.07));box-shadow:inset 0 0 0 1px rgba(255,255,255,.72)}
   .join-bridge::before,.join-bridge::after{content:'';position:absolute;left:10px;right:10px;height:2px;border-radius:99px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:.35}
@@ -862,7 +863,7 @@
   .sql-viz[data-viz="joinon"][data-phase="1"] .join-bridge,.sql-viz[data-viz="joinon"][data-phase="2"] .join-bridge{border-style:solid;animation:joinBridgePulse 1.2s ease-in-out infinite alternate}
   .sql-viz[data-viz="joinon"][data-phase="2"] .er-links{opacity:0;transition:opacity .22s ease}
   @keyframes joinBridgePulse{from{box-shadow:inset 0 0 0 1px rgba(255,255,255,.72),0 0 0 rgba(91,91,214,0)}to{box-shadow:inset 0 0 0 1px rgba(255,255,255,.72),0 0 0 5px rgba(91,91,214,.08)}}
-  @media (max-width:640px){.join-story .er-pair{grid-template-columns:1fr;gap:8px}.join-story .er-links{display:none}.join-bridge{min-height:54px;flex-direction:row;border-radius:13px}.join-bridge::before,.join-bridge::after{left:18px;right:18px}.join-bridge::before{top:12px}.join-bridge::after{bottom:12px}.join-bridge-badge{width:34px;height:34px;border-radius:11px;font-size:11px}.join-bridge small{max-width:none;font-size:9px}.join-mini-table{font-size:10px}}
+  @media (max-width:760px){.join-story .er-pair{grid-template-columns:1fr;gap:8px}.join-story .er-links{display:none}.join-bridge{min-height:54px;flex-direction:row;border-radius:13px}.join-bridge::before,.join-bridge::after{left:18px;right:18px}.join-bridge::before{top:12px}.join-bridge::after{bottom:12px}.join-bridge-badge{width:34px;height:34px;border-radius:11px;font-size:11px}.join-bridge small{max-width:none;font-size:9px}.join-mini-table{font-size:10px}}
   .join-trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;position:relative;z-index:1}
   .join-trio .er-col[data-side="prd"] .er-card-h{background:linear-gradient(135deg,#0F766E,#14B8A6)}
   .join-out{display:flex;flex-direction:column;gap:6px;max-height:0;opacity:0;overflow:hidden;margin:0;transition:max-height .5s ease,opacity .4s ease,margin .35s ease}
@@ -4291,7 +4292,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-19-join-v6';
+const APP_VERSION='2026-08-19-join-v7';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -7153,10 +7154,10 @@ const JOIN_GUIDES={
   outer:{kicker:'Le réflexe des 4 jointures',lead:'Le nom du JOIN indique quelle table garde toutes ses lignes.',steps:[['INNER','Seulement ce qui correspond des 2 côtés'],['LEFT / RIGHT','Tout un côté + les correspondances de l’autre'],['FULL OUTER','TOUT garder des 2 côtés sans aucune perte']],takeaway:'<b>INNER</b> = paires · <b>LEFT/RIGHT</b> = un côté complet · <b>FULL</b> = exhaustif.'}
 };
 const JOIN_VIZ_STEP_LABELS={
-  joinon:['1. Tables','2. Relier (ON)','3. Résultat'],inner:['1. Comparer','2. Paires','3. Écarter'],leftj:['1. Gauche','2. Relier & NULL','3. Résultat'],orphan:['1. LEFT JOIN','2. Filtre IS NULL','3. Orphelins'],triple:['1. 3 Tables','2. 1er JOIN','3. 2e JOIN'],outer:['1. Ensembles','2. INNER','3. LEFT','4. FULL OUTER']
+  joinon:['1. Relations','2. Prédicat ON','3. Projection'],inner:['1. Comparer','2. Paires','3. Écarter'],leftj:['1. Gauche','2. Relier & NULL','3. Résultat'],orphan:['1. LEFT JOIN','2. Filtre IS NULL','3. Orphelins'],triple:['1. 3 Tables','2. 1er JOIN','3. 2e JOIN'],outer:['1. Ensembles','2. INNER','3. LEFT','4. FULL OUTER']
 };
 const JOIN_OUTPUT_LABELS={
-  joinon:'Résultat · une ligne par commande trouvée',inner:'Résultat · uniquement les paires correspondantes',leftj:'Résultat · 100% des clients conservés',orphan:'Résultat · clients n’ayant jamais commandé',triple:'Résultat · client + produit + quantité',outer:'Résultat de la jointure choisie'
+  joinon:'Projection · une ligne par commande correspondante',inner:'Résultat · uniquement les paires correspondantes',leftj:'Résultat · 100% des clients conservés',orphan:'Résultat · clients n’ayant jamais commandé',triple:'Résultat · client + produit + quantité',outer:'Résultat de la jointure choisie'
 };
 function renderJoinGuide(key){
   const g=JOIN_GUIDES[key];
@@ -10530,16 +10531,16 @@ const SQL_VIZ={
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
       <div class="er-col" data-side="pk">
-        <div class="er-card-h">clients<span class="er-pk">clé id</span></div>
-        <button type="button" class="er-btn" data-er-id="1"><span class="er-key">id 1</span>Sophie<span class="join-card-note">nom</span></button>
-        <button type="button" class="er-btn" data-er-id="2"><span class="er-key">id 2</span>Lucas<span class="join-card-note">nom</span></button>
+        <div class="er-card-h">clients<span class="er-pk">PK id</span></div>
+        <button type="button" class="er-btn" data-er-id="1"><span class="er-key">id=1</span>Sophie<span class="join-card-note">nom</span></button>
+        <button type="button" class="er-btn" data-er-id="2"><span class="er-key">id=2</span>Lucas<span class="join-card-note">nom</span></button>
       </div>
       <div class="join-bridge" aria-hidden="true"><span class="join-bridge-badge">ON</span><small>même identifiant</small></div>
       <div class="er-col" data-side="fk">
-        <div class="er-card-h">commandes<span class="er-fk">référence</span></div>
-        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">client 1</span>#101 · qté 2</button>
-        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">client 1</span>#102 · qté 1</button>
-        <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">client 2</span>#103 · qté 1</button>
+        <div class="er-card-h">commandes<span class="er-fk">FK client_id</span></div>
+        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">client_id=1</span>#101 · qté 2</button>
+        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">client_id=1</span>#102 · qté 1</button>
+        <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">client_id=2</span>#103 · qté 1</button>
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
