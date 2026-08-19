@@ -1,52 +1,52 @@
 {
   "id": 38,
   "titre": "RIGHT JOIN et FULL OUTER JOIN",
-  "résumé": "Garder la droite, ou tout conserver",
+  "résumé": "Choisir le comportement des jointures externes",
   "module": {
     "titre": "Relier",
     "sous": "Plusieurs tables, une question"
   },
-  "situation": "Tu sais que LEFT JOIN protège la table de gauche. Que faire si la table essentielle est à droite, ou si tu veux conserver absolument toutes les données des deux côtés ?",
+  "situation": "Tu sais que <code>LEFT JOIN</code> protège la table de gauche. Que faire si la table essentielle est placée à droite, ou si tu veux conserver l'intégralité des deux tables ?",
   "situationSql": "SELECT c.nom, co.id\nFROM clients AS c\nLEFT JOIN commandes AS co\nON c.id = co.client_id;",
   "studio": {
     "problem": {
-      "title": "Chaque type de JOIN détermine la table qui ne perdra aucune ligne.",
-      "body": "<code>RIGHT JOIN</code> conserve toute la table de droite. <code>FULL OUTER JOIN</code> conserve l'intégralité des deux tables, en complétant les trous avec <code>NULL</code>.",
+      "title": "Chaque type de jointure définit quelle table conserve 100% de ses lignes.",
+      "body": "• <code>RIGHT JOIN</code> conserve toute la table de droite.<br>• <code>FULL OUTER JOIN</code> conserve les deux tables entièrement en complétant les manques avec <code>NULL</code>.",
       "demo": "SELECT c.nom, co.id\nFROM commandes AS co\nRIGHT JOIN clients AS c\nON co.client_id = c.id;"
     },
     "vs": {
       "bad": {
-        "tag": "LEFT JOIN (clients à gauche)",
+        "tag": "LEFT JOIN (clients placé à gauche)",
         "sql": "SELECT c.nom, co.id\nFROM clients AS c\nLEFT JOIN commandes AS co\nON c.id = co.client_id;",
-        "out": "16 lignes — tous les clients conservés"
+        "out": "16 lignes — tous les clients sont conservés."
       },
       "good": {
-        "tag": "RIGHT JOIN (clients à droite)",
+        "tag": "RIGHT JOIN (clients placé à droite)",
         "sql": "SELECT c.nom, co.id\nFROM commandes AS co\nRIGHT JOIN clients AS c\nON co.client_id = c.id;",
-        "out": "16 lignes — même résultat, clients à droite"
+        "out": "16 lignes — résultat identique car clients est à droite."
       }
     },
     "reflex": {
-      "a": { "k": "RIGHT JOIN", "t": "garde toute la table de droite" },
-      "b": { "k": "FULL OUTER JOIN", "t": "garde l'intégralité des deux tables" }
+      "a": { "k": "RIGHT JOIN", "t": "Protège toute la table située à droite" },
+      "b": { "k": "FULL OUTER JOIN", "t": "Garde l'ensemble des données des deux côtés sans aucune perte" }
     }
   },
   "consigne": "Affiche tous les clients et l'identifiant de leurs commandes, y compris ceux qui n'ont jamais commandé. Place clients à droite de la jointure.",
   "solution": "SELECT c.nom, co.id FROM commandes AS co RIGHT JOIN clients AS c ON co.client_id = c.id;",
   "attendu": "16 lignes — Sophie × 3, Inès | NULL.",
-  "retenir": "INNER = correspondances. LEFT = garde la gauche. RIGHT = garde la droite. FULL OUTER = garde les deux.",
+  "retenir": "INNER = paires strictes. LEFT = garde la gauche. RIGHT = garde la droite. FULL OUTER = conserve tout.",
   "quiz": [
     {
-      "q": "À quoi équivaut 'commandes RIGHT JOIN clients' ?",
+      "q": "À quoi équivaut la requête 'commandes RIGHT JOIN clients' ?",
       "o": ["'clients LEFT JOIN commandes'", "'clients INNER JOIN commandes'", "'commandes FULL JOIN clients'"],
       "b": 0,
-      "e": "RIGHT JOIN sur une table placée à droite produit exactement le même résultat qu'un LEFT JOIN en plaçant cette table à gauche."
+      "e": "Un RIGHT JOIN sur la table de droite donne le même résultat qu'un LEFT JOIN en plaçant cette table à gauche."
     },
     {
-      "q": "Que contient le résultat d'un FULL OUTER JOIN ?",
-      "o": ["Uniquement les paires correspondantes", "Toutes les lignes des deux tables avec des NULL pour les manques", "Uniquement les lignes avec des erreurs"],
+      "q": "Que produit un FULL OUTER JOIN ?",
+      "o": ["Uniquement les lignes avec correspondance", "L'intégralité des données des deux tables avec des NULL pour les manques", "Une erreur SQL"],
       "b": 1,
-      "e": "FULL OUTER JOIN rassemble l'ensemble des données des deux tables sans aucune perte."
+      "e": "FULL OUTER JOIN rassemble 100% des deux tables sans éliminer aucune ligne."
     }
   ],
   "petitDefi": [
