@@ -1,40 +1,56 @@
 {
   "id": 36,
   "titre": "INNER JOIN",
-  "résumé": "Garder les correspondances",
+  "résumé": "La jointure exclusive des correspondances",
   "module": {
     "titre": "Relier",
     "sous": "Plusieurs tables, une question"
   },
-  "situation": "Tu veux afficher les clients qui ont passé une commande, avec l'identifiant de chaque commande.<br><br>Tu sais déjà relier les deux tables :",
-  "situationSql": "SELECT clients.nom, commandes.id\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;",
-  "situationTail": "Mais que se passe-t-il lorsqu'un client n'a aucune commande ? C'est là qu'il faut comprendre le comportement de <code>INNER JOIN</code>.",
+  "situation": "Tu veux la liste des clients qui ont passé une commande, avec la date de chaque commande.<br><br>Lorsque tu écris simplement <code>JOIN</code>, SQL effectue par défaut un <code>INNER JOIN</code>.",
+  "situationSql": "SELECT clients.nom, commandes.id\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",
+  "situationTail": "Que se passe-t-il pour Inès (client_id = 9) qui est inscrite en base mais n'a jamais rien commandé ? <code>INNER JOIN</code> l'écarte du résultat.",
   "studio": {
     "problem": {
-      "title": "INNER JOIN ne garde que les lignes qui ont une correspondance des deux côtés.",
-      "body": "SQL compare <code>clients.id</code> ↔ <code>commandes.client_id</code>. À chaque correspondance trouvée, une ligne est créée."
+      "title": "INNER JOIN ne garde que les paires complètes des deux côtés.",
+      "body": "SQL vérifie l'égalité <code>clients.id</code> ↔ <code>commandes.client_id</code>. Chaque fois qu'il trouve une correspondance, il génère une ligne. S'il n'y en a aucune (comme pour Inès), il n'affiche rien.",
+      "demo": "SELECT clients.nom, commandes.date_commande\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;"
     },
     "vs": {
       "bad": {
-        "tag": "✕ « Tous les clients »",
-        "static": "On pourrait croire voir les 9 clients — y compris Inès, qui n'a jamais commandé.",
+        "tag": "✕ Penser voir tous les clients",
+        "static": "Inès est inscrite dans clients, mais absente de commandes.",
         "sql": "SELECT clients.nom, commandes.id\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",
-        "out": "15 lignes : uniquement les clients qui ont au moins une commande — Inès n'y est pas"
+        "out": "15 lignes — Inès est absente car elle a 0 commande."
       },
       "good": {
-        "tag": "✓ INNER JOIN explicite",
-        "sql": "SELECT clients.nom, commandes.id\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",
-        "out": "Même résultat : JOIN = INNER JOIN"
+        "tag": "✓ INNER JOIN ou JOIN",
+        "sql": "SELECT clients.nom, commandes.id\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;",
+        "out": "Même résultat : JOIN est le mot court pour INNER JOIN."
       }
     },
     "reflex": {
-      "a": { "k": "INNER JOIN", "t": "garde uniquement les <b>correspondances</b>" },
-      "b": { "k": "JOIN", "t": "= INNER JOIN par défaut" }
+      "a": { "k": "INNER JOIN", "t": "garder uniquement les <b>paires valides</b>" },
+      "b": { "k": "JOIN par défaut", "t": "= INNER JOIN" }
     }
   },
   "consigne": "Affiche le nom des clients et la date_commande de chacune de leurs commandes.",
   "solution": "SELECT clients.nom, commandes.date_commande FROM clients INNER JOIN commandes ON clients.id = commandes.client_id;",
-  "attendu": "15 lignes. Inès n'apparaît pas (client_id = 9 absent).",
+  "attendu": "15 lignes. Inès n'apparaît pas (client_id = 9 absent de commandes).",
+  "retenir": "INNER JOIN ne conserve que les lignes associées des deux côtés. Pas de correspondance = ligne ignorée.",
+  "quiz": [
+    {
+      "q": "Quelle est la différence entre JOIN et INNER JOIN ?",
+      "o": ["Aucune, JOIN est le raccourci direct pour INNER JOIN", "JOIN conserve les NULL, pas INNER JOIN", "INNER JOIN requiert 3 tables"],
+      "b": 0,
+      "e": "En SQL, écrire JOIN équivaut exactement à écrire INNER JOIN."
+    },
+    {
+      "q": "Inès n'a jamais commandé. Que fait INNER JOIN lors de la jointure ?",
+      "o": ["Elle apparaît avec NULL", "Elle est exclue du résultat", "Elle crée une erreur SQL"],
+      "b": 1,
+      "e": "Sans aucune correspondance trouvée dans commandes, la ligne d'Inès est écartée."
+    }
+  ],
   "richLesson": true,
   "earlyDemo": true
 }

@@ -1,15 +1,55 @@
 {
   "id": 19,
   "titre": "Relier plusieurs tables",
-  "résumé": "Trois tables, deux JOIN",
+  "résumé": "Chainer 3 tables avec 2 JOIN",
   "module": {
     "titre": "Relier",
     "sous": "Plusieurs tables, une question"
   },
-  "situation": "Afficher client, produit commandé et quantité — réparti sur 3 tables.",
+  "situation": "Tu veux composer la phrase : « Sophie a acheté Fibre Prébiotique le 10/08 ».<br><br>Problème : le nom du client est dans <code>clients</code>, le nom du produit est dans <code>produits</code>, et l'achat est enregistré dans <code>commandes</code>.",
+  "situationTail": "La table <code>commandes</code> est au centre : elle contient la clé <code>client_id</code> et la clé <code>produit_id</code>.",
+  "studio": {
+    "problem": {
+      "title": "Chaîner les tables d'étape en étape.",
+      "body": "Pour relier 3 tables, on enchaîne deux clauses <code>JOIN</code> en suivant le chemin des clés : <code>clients</code> ↔ <code>commandes</code> ↔ <code>produits</code>.",
+      "demo": "SELECT clients.nom AS client, produits.nom AS produit, commandes.date_commande\nFROM clients\nJOIN commandes ON clients.id = commandes.client_id\nJOIN produits ON commandes.produit_id = produits.id;"
+    },
+    "vs": {
+      "bad": {
+        "tag": "✕ Oublier une étape de liaison",
+        "sql": "SELECT clients.nom, produits.nom\nFROM clients\nJOIN produits ON clients.id = produits.id;",
+        "out": "Résultat incohérent : clients.id et produits.id n'ont aucun rapport !",
+        "pedagogic": true
+      },
+      "good": {
+        "tag": "✓ Passer par la table pont",
+        "sql": "SELECT clients.nom AS client, produits.nom AS produit\nFROM clients\nJOIN commandes ON clients.id = commandes.client_id\nJOIN produits ON commandes.produit_id = produits.id;",
+        "out": "15 lignes — chaque client avec le bon produit acheté"
+      }
+    },
+    "reflex": {
+      "a": { "k": "1er JOIN", "t": "relie clients ↔ commandes" },
+      "b": { "k": "2e JOIN", "t": "relie commandes ↔ produits" }
+    }
+  },
   "consigne": "Affiche le nom du client, le nom du produit et la date_commande de chaque commande.",
   "solution": "SELECT clients.nom AS client, produits.nom AS produit, commandes.date_commande FROM clients JOIN commandes ON clients.id = commandes.client_id JOIN produits ON commandes.produit_id = produits.id;",
-  "attendu": "15 lignes — une par commande.",
+  "attendu": "15 lignes — une par commande avec nom client et nom produit.",
+  "retenir": "Pour lier N tables, il faut N-1 clauses JOIN. La table centrale sert de pont.",
+  "quiz": [
+    {
+      "q": "Combien de JOIN faut-il pour relier 3 tables ensemble ?",
+      "o": ["1 seul JOIN", "2 JOIN", "3 JOIN"],
+      "b": 1,
+      "e": "Chaque JOIN ajoute une table à la chaîne (N tables nécessitent N-1 JOIN)."
+    },
+    {
+      "q": "Quel est le rôle de la table commandes dans cette requête ?",
+      "o": ["Elle contient la liste des prix", "Elle sert de pont en reliant client_id et produit_id", "Elle remplace le SELECT"],
+      "b": 1,
+      "e": "Commandes fait le lien entre l'acheteur (clients) et l'article acheté (produits)."
+    }
+  ],
   "richLesson": true,
   "earlyDemo": true
 }
