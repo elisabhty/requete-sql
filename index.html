@@ -4292,7 +4292,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-19-join-v12';
+const APP_VERSION='2026-08-19-join-v14';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -7062,16 +7062,16 @@ function minmaxChipState(chips, mode){
 const JOIN_COURSES={
   18:{
     viz:'joinon',
-    situation:'Un export commercial doit afficher, pour chaque commande, le nom du client et la quantité commandée. Le nom se trouve dans la table <code>clients</code>. La quantité et <code>client_id</code> se trouvent dans la table <code>commandes</code>.',
-    mission:'Produire une vue exploitable sans dénormaliser le modèle : partir de la table <code>commandes</code> et rattacher chaque ligne au client correspondant dans la table <code>clients</code>.',
+    situation:'Un export commercial doit afficher, pour chaque commande, le nom du client et la quantité commandée. Le nom d’un client se trouve dans la table <code>clients</code>, colonne <code>nom</code>. La quantité commandée se trouve dans la table <code>commandes</code>, colonne <code>quantite</code>. Dans cette même table <code>commandes</code>, la colonne <code>client_id</code> indique à quel client appartient la commande.',
+    mission:'Produire une vue exploitable sans dénormaliser le modèle : partir de chaque ligne de la table <code>commandes</code>, lire son <code>client_id</code>, puis récupérer dans la table <code>clients</code> la ligne dont <code>id</code> porte le même identifiant.',
     title:'Produire une vue métier à partir de tables normalisées.',
-    explain:'La clause <code>ON</code> définit le prédicat de jointure. Ici, SQL associe chaque ligne de la table <code>commandes</code> à la ligne de la table <code>clients</code> dont <code>id</code> correspond à <code>client_id</code>.',
+    explain:'La clause <code>ON</code> définit le prédicat de jointure. Ici, SQL associe chaque ligne de la table <code>commandes</code> à la ligne de la table <code>clients</code> dont <code>clients.id</code> correspond à <code>commandes.client_id</code>. Ensuite, le <code>SELECT</code> peut afficher ensemble <code>clients.nom</code> et <code>commandes.quantite</code>.',
     rule:'ON clients.id = commandes.client_id',
     watch:'La visualisation suit le traitement logique : tables sources, prédicat <code>ON</code>, puis lignes projetées dans le résultat.',
     memory:[
-      '<code>JOIN</code> combine deux tables pour produire une vue de résultat.',
-      '<code>ON</code> porte la condition de correspondance entre les deux tables.',
-      'Chaque correspondance validée par <code>ON</code> produit une ligne projetée.'
+      '<code>clients.nom</code> vient de la table <code>clients</code> ; <code>commandes.quantite</code> vient de la table <code>commandes</code>.',
+      '<code>ON clients.id = commandes.client_id</code> indique comment retrouver le client de chaque commande.',
+      'Chaque commande correspondante produit une ligne projetée dans le résultat.'
     ]
   },
   36:{
@@ -7146,7 +7146,7 @@ const JOIN_COURSES={
   }
 };
 const JOIN_GUIDES={
-  joinon:{kicker:'Analyse de jointure',lead:'Identifie d’abord la table qui porte l’information, puis la colonne qui permet de la relier.',steps:[['Table clients','dans la table clients, id identifie le client'],['Table commandes','dans la table commandes, client_id référence ce client'],['Résultat','chaque correspondance alimente la projection']],takeaway:'<b>JOIN</b> combine les tables. <b>ON</b> définit la condition de correspondance.'},
+  joinon:{kicker:'Analyse de jointure',lead:'Identifie d’abord où se trouve chaque donnée, puis la colonne qui permet de relier les tables.',steps:[['Table clients','dans la table clients : id identifie le client, nom fournit le libellé à afficher'],['Table commandes','dans la table commandes : quantite décrit l’achat, client_id référence le client'],['Résultat','la jointure aligne clients.nom avec commandes.quantite']],takeaway:'<b>JOIN</b> combine les tables. <b>ON</b> définit la condition de correspondance.'},
   inner:{kicker:'Le réflexe INNER JOIN',lead:'Tu veux seulement les données qui ont une correspondance des deux côtés.',steps:[['Comparer','id du client ↔ client_id de la commande'],['Valider','les paires qui trouvent leur moitié'],['Écarter','les lignes isolées sans correspondance']],takeaway:'<b>INNER JOIN</b> répond à : « Donne-moi uniquement ce qui est relié. »'},
   leftj:{kicker:'Le réflexe LEFT JOIN',lead:'Tu veux qu’aucun élément de ta table de départ ne disparaisse.',steps:[['Identifier','la table de gauche (placée juste après FROM)'],['Relier','les lignes qui ont un match à droite'],['Compléter','les absents de droite avec des NULL']],takeaway:'<b>LEFT JOIN</b> répond à : « Garde tout à gauche, même sans correspondance. »'},
   orphan:{kicker:'Le réflexe des orphelins',lead:'Pour trouver ce qui manque, on fait apparaître les NULL avant de les filtrer.',steps:[['Préserver','LEFT JOIN garde tous les clients avec ou sans achat'],['Révéler','Les clients sans achat reçoivent NULL à droite'],['Isoler','WHERE commandes.id IS NULL ne garde que les NULL']],takeaway:'<b>LEFT JOIN + IS NULL</b> est la méthode universelle pour trouver les lignes orphelines.'},
@@ -10524,9 +10524,9 @@ const SQL_VIZ={
     <p class="er-hint">Touche un client ou une commande.</p>
   </div>`},
   joinon:{kind:'er',phases:[
-    {k:'Tables sources',d:'Dans la table clients : les attributs client. Dans la table commandes : les faits de transaction et la référence client_id.'},
-    {k:'Condition ON',d:'SQL compare id dans la table clients avec client_id dans la table commandes.'},
-    {k:'Résultat projeté',d:'Chaque correspondance produit une ligne avec les colonnes demandées.'}
+    {k:'Tables sources',d:'Dans la table clients : id et nom. Dans la table commandes : client_id et quantite.'},
+    {k:'Condition ON',d:'SQL compare clients.id avec commandes.client_id pour retrouver le client de chaque commande.'},
+    {k:'Résultat projeté',d:'Le résultat peut afficher clients.nom à côté de commandes.quantite.'}
   ],html:`<div class="er-stage er-match join-viz join-story">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
@@ -10538,9 +10538,9 @@ const SQL_VIZ={
       <div class="join-bridge" aria-hidden="true"><span class="join-bridge-badge">ON</span><small>même identifiant</small></div>
       <div class="er-col" data-side="fk">
         <div class="er-card-h">commandes</div>
-        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">client_id=1</span>#101 · qté 2</button>
-        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">client_id=1</span>#102 · qté 1</button>
-        <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">client_id=2</span>#103 · qté 1</button>
+        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">client_id=1</span>#101 qté 2</button>
+        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">client_id=1</span>#102 qté 1</button>
+        <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">client_id=2</span>#103 qté 1</button>
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
