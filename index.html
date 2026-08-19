@@ -848,6 +848,20 @@
   }
 
   /* JOIN : relier des lignes, pas un schéma ASCII */
+  .join-story .er-pair{grid-template-columns:minmax(0,1fr) 92px minmax(0,1fr);gap:10px;align-items:stretch}
+  .join-bridge{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:132px;border:1px dashed rgba(91,91,214,.34);border-radius:16px;background:linear-gradient(180deg,rgba(91,91,214,.08),rgba(20,184,166,.07));box-shadow:inset 0 0 0 1px rgba(255,255,255,.72)}
+  .join-bridge::before,.join-bridge::after{content:'';position:absolute;left:10px;right:10px;height:2px;border-radius:99px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:.35}
+  .join-bridge::before{top:32px}.join-bridge::after{bottom:32px}
+  .join-bridge-badge{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:14px;background:var(--accent);color:#fff;font-family:var(--mono);font-size:13px;font-weight:900;box-shadow:0 8px 18px rgba(91,91,214,.22)}
+  .join-bridge small{display:block;max-width:74px;text-align:center;font-family:var(--ui);font-size:9.5px;line-height:1.25;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.35px}
+  .join-card-note{display:block;margin-left:auto;font-family:var(--ui);font-size:9.5px;font-weight:800;color:var(--ink-3);letter-spacing:.2px}
+  .join-mini-table{display:grid;grid-template-columns:1.2fr .9fr;gap:1px;overflow:hidden;border:1px solid rgba(91,91,214,.16);border-radius:12px;background:rgba(91,91,214,.16);font-family:var(--mono);font-size:10.5px;font-weight:750;color:var(--ink)}
+  .join-mini-table span{padding:7px 8px;background:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .join-mini-table .head{background:var(--accent-soft);color:var(--accent);font-family:var(--ui);font-size:9px;text-transform:uppercase;letter-spacing:.45px;font-weight:850}
+  .sql-viz[data-viz="joinon"][data-phase="0"] .join-bridge{opacity:.5;filter:grayscale(.25)}
+  .sql-viz[data-viz="joinon"][data-phase="1"] .join-bridge,.sql-viz[data-viz="joinon"][data-phase="2"] .join-bridge{border-style:solid;animation:joinBridgePulse 1.2s ease-in-out infinite alternate}
+  @keyframes joinBridgePulse{from{box-shadow:inset 0 0 0 1px rgba(255,255,255,.72),0 0 0 rgba(91,91,214,0)}to{box-shadow:inset 0 0 0 1px rgba(255,255,255,.72),0 0 0 5px rgba(91,91,214,.08)}}
+  @media (max-width:430px){.join-story .er-pair{grid-template-columns:minmax(0,1fr) 74px minmax(0,1fr);gap:7px}.join-bridge{min-height:118px}.join-bridge-badge{width:32px;height:32px;border-radius:11px;font-size:11px}.join-bridge small{font-size:8.5px;max-width:62px}}
   .join-trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;position:relative;z-index:1}
   .join-trio .er-col[data-side="prd"] .er-card-h{background:linear-gradient(135deg,#0F766E,#14B8A6)}
   .join-out{display:flex;flex-direction:column;gap:6px;max-height:0;opacity:0;overflow:hidden;margin:0;transition:max-height .5s ease,opacity .4s ease,margin .35s ease}
@@ -4276,7 +4290,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-19-join-v3';
+const APP_VERSION='2026-08-19-join-v4';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -7046,16 +7060,16 @@ function minmaxChipState(chips, mode){
 const JOIN_COURSES={
   18:{
     viz:'joinon',
-    situation:'Imagine deux carnets ouverts côte à côte. Dans <code>clients</code>, tu lis les prénoms. Dans <code>commandes</code>, tu lis les achats, mais seulement avec un numéro <code>client_id</code>.',
-    mission:'Retrouver le prénom derrière chaque achat sans recopier toute la fiche client.',
-    title:'JOIN est le geste qui recolle deux carnets avec un numéro commun.',
-    explain:'SQL ne devine rien : il compare une colonne de gauche avec une colonne de droite. Ici, <code>clients.id</code> est le numéro officiel du client, et <code>commandes.client_id</code> est le numéro écrit sur la commande.',
+    situation:'Tu as deux fiches séparées. <code>clients</code> répond à la question « qui ? ». <code>commandes</code> répond à la question « quoi ? », mais elle ne garde que le numéro du client.',
+    mission:'Construire une phrase lisible : « Sophie a commandé 2 articles » à partir de deux tables qui ne parlent pas la même langue.',
+    title:'JOIN sert de pont entre une clé et sa référence.',
+    explain:'La table <code>clients</code> possède la clé officielle <code>id</code>. La table <code>commandes</code> possède une étiquette <code>client_id</code> qui pointe vers cette clé. La clause <code>ON</code> explique à SQL comment traverser le pont.',
     rule:'ON clients.id = commandes.client_id',
-    watch:'Le dessin montre le moment exact où SQL trace un fil entre le client et ses commandes.',
+    watch:'Lis le dessin en trois temps : les tables sont séparées, le pont ON relie les numéros identiques, puis SQL écrit les lignes finales.',
     memory:[
-      '<code>JOIN</code> ajoute une table à la requête.',
-      '<code>ON</code> donne la règle de collage : un id d’un côté, une référence de l’autre.',
-      'Si Sophie a 2 commandes, le résultat contient 2 lignes avec Sophie.'
+      '<code>JOIN</code> ajoute la table dont tu as besoin pour répondre à la question.',
+      '<code>ON</code> indique le pont exact : clé de gauche = référence de droite.',
+      'Le résultat ne fusionne pas les clients : il crée une ligne par commande trouvée.'
     ]
   },
   36:{
@@ -7130,7 +7144,7 @@ const JOIN_COURSES={
   }
 };
 const JOIN_GUIDES={
-  joinon:{kicker:'Le réflexe JOIN',lead:'Une table garde l’identité (`clients.id`). L’autre garde la référence (`commandes.client_id`).',steps:[['Repérer','clients.id ↔ commandes.client_id'],['Relier','ON fait la comparaison id par id'],['Générer','1 correspondance = 1 ligne produite']],takeaway:'<b>JOIN + ON</b> associe uniquement les lignes dont les identifiants correspondent.'},
+  joinon:{kicker:'Le réflexe JOIN',lead:'Pense en pont : une clé officielle d’un côté, une référence de l’autre.',steps:[['Nommer','clients.id = clé du client'],['Pointer','commandes.client_id = étiquette sur la commande'],['Assembler','chaque match écrit une ligne résultat']],takeaway:'<b>JOIN</b> choisit la table à ajouter. <b>ON</b> donne le pont à traverser.'},
   inner:{kicker:'Le réflexe INNER JOIN',lead:'Tu veux seulement les données qui ont une correspondance des deux côtés.',steps:[['Comparer','id du client ↔ client_id de la commande'],['Valider','les paires qui trouvent leur moitié'],['Écarter','les lignes isolées sans correspondance']],takeaway:'<b>INNER JOIN</b> répond à : « Donne-moi uniquement ce qui est relié. »'},
   leftj:{kicker:'Le réflexe LEFT JOIN',lead:'Tu veux qu’aucun élément de ta table de départ ne disparaisse.',steps:[['Identifier','la table de gauche (placée juste après FROM)'],['Relier','les lignes qui ont un match à droite'],['Compléter','les absents de droite avec des NULL']],takeaway:'<b>LEFT JOIN</b> répond à : « Garde tout à gauche, même sans correspondance. »'},
   orphan:{kicker:'Le réflexe des orphelins',lead:'Pour trouver ce qui manque, on fait apparaître les NULL avant de les filtrer.',steps:[['Préserver','LEFT JOIN garde tous les clients avec ou sans achat'],['Révéler','Les clients sans achat reçoivent NULL à droite'],['Isoler','WHERE commandes.id IS NULL ne garde que les NULL']],takeaway:'<b>LEFT JOIN + IS NULL</b> est la méthode universelle pour trouver les lignes orphelines.'},
@@ -10508,30 +10522,34 @@ const SQL_VIZ={
     <p class="er-hint">Touche un client ou une commande.</p>
   </div>`},
   joinon:{kind:'er',phases:[
-    {k:'1. Tables séparées',d:'À gauche table clients (nom). À droite table commandes (client_id). Aucun lien pour le moment.'},
-    {k:'2. Liaison ON id = client_id',d:'SQL vérifie id = client_id. Sophie (id=1) trouve 2 commandes. Lucas (id=2) trouve 1 commande.'},
-    {k:'3. Lignes générées',d:'Une ligne est produite pour chaque correspondance : Sophie apparaît 2 fois, Lucas 1 fois.'}
-  ],html:`<div class="er-stage er-match join-viz">
+    {k:'1. Deux fiches séparées',d:'clients sait qui est la personne. commandes sait ce qui a été acheté, mais seulement avec l’étiquette client_id.'},
+    {k:'2. Le pont ON',d:'ON clients.id = commandes.client_id : SQL compare les numéros identiques et trace les correspondances.'},
+    {k:'3. La table réponse',d:'Chaque commande reliée devient une ligne lisible : nom du client + quantité commandée.'}
+  ],html:`<div class="er-stage er-match join-viz join-story">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
       <div class="er-col" data-side="pk">
-        <div class="er-card-h">table clients<span class="er-pk">id</span></div>
-        <button type="button" class="er-btn" data-er-id="1"><span class="er-key">1</span>Sophie</button>
-        <button type="button" class="er-btn" data-er-id="2"><span class="er-key">2</span>Lucas</button>
+        <div class="er-card-h">clients<span class="er-pk">clé id</span></div>
+        <button type="button" class="er-btn" data-er-id="1"><span class="er-key">id 1</span>Sophie<span class="join-card-note">nom</span></button>
+        <button type="button" class="er-btn" data-er-id="2"><span class="er-key">id 2</span>Lucas<span class="join-card-note">nom</span></button>
       </div>
+      <div class="join-bridge" aria-hidden="true"><span class="join-bridge-badge">ON</span><small>même numéro</small></div>
       <div class="er-col" data-side="fk">
-        <div class="er-card-h">table commandes<span class="er-fk">client_id</span></div>
-        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">1</span>#1 · qté 2</button>
-        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">1</span>#2 · qté 1</button>
-        <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">2</span>#3 · qté 1</button>
+        <div class="er-card-h">commandes<span class="er-fk">référence</span></div>
+        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">client 1</span>#101 · qté 2</button>
+        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">client 1</span>#102 · qté 1</button>
+        <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">client 2</span>#103 · qté 1</button>
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
-      <div class="join-pill">Sophie<span class="jn">commande #1</span></div>
-      <div class="join-pill">Sophie<span class="jn">commande #2</span></div>
-      <div class="join-pill">Lucas<span class="jn">commande #3</span></div>
+      <div class="join-mini-table">
+        <span class="head">client</span><span class="head">quantité</span>
+        <span>Sophie</span><span>2</span>
+        <span>Sophie</span><span>1</span>
+        <span>Lucas</span><span>1</span>
+      </div>
     </div>
-    <p class="er-hint">Touche un client : ses commandes s’allument en surbrillance.</p>
+    <p class="er-hint">Touche Sophie : ses deux commandes se colorent. C’est exactement le rôle du ON.</p>
   </div>`},
   inner:{kind:'er',phases:[
     {k:'1. Recherche de match',d:'Sophie (1) et Lucas (2) ont des commandes. Inès (9) n’a aucun enregistrement.'},
