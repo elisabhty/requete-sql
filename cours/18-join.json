@@ -1,52 +1,52 @@
 {
   "id": 18,
   "titre": "JOIN",
-  "résumé": "Relier deux tables grâce à une clé",
+  "résumé": "Relier deux tables grâce aux identifiants communs",
   "module": {
     "titre": "Relier",
     "sous": "Plusieurs tables, une question"
   },
-  "situation": "Tu veux afficher le nom de chaque client avec la quantité qu'il a commandée.<br><br>Problème : la table <code>clients</code> contient les noms, mais pas les commandes. La table <code>commandes</code> contient les achats, mais seulement un numéro <code>client_id</code>.",
-  "situationTail": "Pour réunir ces deux univers sans dupliquer inutilement les noms dans la base de données, SQL utilise la clause <code>JOIN</code> associée à <code>ON</code>.",
+  "situation": "<b>Problème :</b> Tu veux afficher le nom de chaque client avec la quantité qu'il a commandée.<br><br>Mais les informations sont séparées :<br>• La table <code>clients</code> contient les noms (`Sophie`, `Lucas`), mais pas leurs achats.<br>• La table <code>commandes</code> contient les quantités, mais seulement un numéro d'identifiant <code>client_id</code>.",
+  "situationTail": "<b>Solution :</b> Pour réunir ces deux univers sans recopier le nom du client sur chaque ligne de commande, SQL utilise la clause <code>JOIN</code> avec la condition de correspondance <code>ON</code>.",
   "studio": {
     "problem": {
-      "title": "JOIN recolle les morceaux dispersés entre deux tables.",
-      "body": "<code>JOIN</code> fait correspondre les lignes d'une deuxième table avec la première, en suivant une condition d'égalité avec <code>ON</code>.",
+      "title": "Comment SQL recolle les morceaux entre deux tables ?",
+      "body": "<code>JOIN</code> associe les lignes de la deuxième table à celles de la première. La clause <code>ON</code> indique à SQL quelle colonne sert de pont d'égalité (ex: <code>clients.id = commandes.client_id</code>).",
       "demo": "SELECT clients.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;"
     },
     "vs": {
       "bad": {
-        "tag": "✕ Mauvaise clé dans le ON",
+        "tag": "✕ Mauvaise colonne dans le ON",
         "sql": "SELECT clients.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.produit_id;",
-        "out": "Résultat faux : produit_id ne désigne pas le client !",
+        "out": "Résultat incohérent : produit_id est l'identifiant de l'article, pas du client !",
         "pedagogic": true
       },
       "good": {
-        "tag": "✓ Bon ON (clé primaire ↔ clé étrangère)",
+        "tag": "✓ Bon ON (id du client ↔ client_id)",
         "sql": "SELECT clients.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;",
         "out": "Résultat exact : chaque commande est attribuée au bon client."
       }
     },
-    "point": "ON clients.id = commandes.client_id — Préfixer avec table.colonne élimine toute ambiguïté si deux tables ont une colonne 'id'.",
+    "point": "<b>Préfixer avec nom_table.colonne :</b> Écrire <code>clients.id = commandes.client_id</code> permet d'éviter toute ambiguïté si deux tables possèdent une colonne nommée <code>id</code>.",
     "why": {
       "title": "Suis ce qui arrive à tes données.",
-      "body": "Grâce à ON, SQL suit la clé : client 1 (Sophie) → commandes avec client_id = 1."
+      "body": "Pour chaque ligne de <code>commandes</code>, SQL regarde le <code>client_id</code>, retrouve le client correspondant dans <code>clients</code>, et fusionne leurs informations sur une même ligne."
     },
     "reflex": {
-      "a": { "k": "JOIN", "t": "recolle deux tables" },
-      "b": { "k": "ON", "t": "indique <b>quelles colonnes</b> font le lien" },
-      "note": "Quelle colonne fait référence à la première table ? client_id → clients.id."
+      "a": { "k": "JOIN", "t": "Associe la deuxième table à la première" },
+      "b": { "k": "ON", "t": "Définit l'égalité des identifiants (<b>table1.id = table2.fk_id</b>)" },
+      "note": "Règle d'or : une correspondance trouvée = une nouvelle ligne générée dans le résultat."
     }
   },
   "anatomie": [
-    { "tok": "FROM clients", "txt": "La première table (table de gauche)." },
-    { "tok": "JOIN commandes", "txt": "La deuxième table à associer." },
-    { "tok": "ON clients.id = commandes.client_id", "txt": "La condition de correspondance des clés." },
+    { "tok": "FROM clients", "txt": "La première table (dite 'table de gauche')." },
+    { "tok": "JOIN commandes", "txt": "La deuxième table à associer ('table de droite')." },
+    { "tok": "ON clients.id = commandes.client_id", "txt": "La règle d'égalité qui lie les deux tables." },
     { "tok": "SELECT clients.nom, commandes.quantite", "txt": "Les colonnes finales à afficher." }
   ],
   "exemple": "SELECT clients.nom, commandes.quantite FROM clients JOIN commandes ON clients.id = commandes.client_id;",
-  "attendu": "15 lignes : une par commande, avec le nom du client.",
-  "retenir": "JOIN relie deux tables. ON définit l'égalité entre la clé primaire et la clé étrangère : clients.id = commandes.client_id.",
+  "attendu": "15 lignes : une ligne par commande avec le nom du client.",
+  "retenir": "JOIN réunit deux tables. ON spécifie la condition d'égalité des clés : clients.id = commandes.client_id.",
   "piege": {
     "t": "Relier les mauvaises colonnes",
     "p": "ON clients.id = commandes.produit_id s'exécute sans erreur SQL mais associe des données sans rapport.",
@@ -56,27 +56,27 @@
   },
   "consigne": "Affiche le nom de chaque client et la quantite de chaque produit qu'il a commandé.",
   "solution": "SELECT clients.nom, commandes.quantite FROM clients JOIN commandes ON clients.id = commandes.client_id;",
-  "indice": "Part de clients, ajoute JOIN commandes, puis définis la liaison avec ON clients.id = commandes.client_id.",
+  "indice": "Démarre avec FROM clients, ajoute JOIN commandes, puis établis la liaison avec ON clients.id = commandes.client_id.",
   "richLesson": true,
   "earlyDemo": true,
   "memo": {
     "k": "JOIN",
     "t": "Relier deux tables",
     "s": "FROM clients\nJOIN commandes ON clients.id = commandes.client_id",
-    "m": "JOIN relie deux tables. ON indique quelle clé fait le lien."
+    "m": "JOIN réunit deux tables. ON indique les colonnes qui font le lien."
   },
   "quiz": [
     {
       "q": "À quoi sert la clause ON dans un JOIN ?",
-      "o": ["À filtrer les lignes selon un critère", "À indiquer les colonnes qui lient les deux tables", "À trier les résultats par identifiant"],
+      "o": ["À filtrer les résultats selon une condition numérique", "À indiquer quelles colonnes lient les deux tables", "À trier les données par ordre alphabétique"],
       "b": 1,
-      "e": "ON établit la correspondance d'égalité entre les identifiants de deux tables."
+      "e": "ON définit l'égalité des identifiants (clé primaire = clé étrangère) entre les deux tables."
     },
     {
-      "q": "Sophie a passé 2 commandes. Dans un JOIN clients/commandes, son nom apparaît :",
-      "o": ["1 seule fois", "2 fois", "0 fois"],
+      "q": "Sophie a effectué 2 commandes. Combien de fois apparaîtra-t-elle dans le résultat du JOIN ?",
+      "o": ["1 fois", "2 fois", "Elle sera ignorée"],
       "b": 1,
-      "e": "SQL génère une ligne pour chaque correspondance trouvée (1 client avec 2 commandes = 2 lignes)."
+      "e": "SQL génère une ligne pour chaque correspondance trouvée : 1 client avec 2 commandes donnera 2 lignes."
     }
   ]
 }

@@ -1,53 +1,53 @@
 {
   "id": 20,
   "titre": "LEFT JOIN",
-  "résumé": "Conserver toute la table de gauche",
+  "résumé": "Protéger la table de gauche pour ne perdre aucun client",
   "module": {
     "titre": "Relier",
     "sous": "Plusieurs tables, une question"
   },
-  "situation": "Tu veux afficher la liste complète de tes clients avec leurs commandes, y compris ceux qui n'ont encore jamais rien acheté.",
-  "situationSql": "SELECT clients.nom, commandes.id\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",
-  "situationTail": "Inès disparaît avec INNER JOIN. Avec <code>LEFT JOIN</code>, Inès reste présente et les colonnes de commande prennent la valeur <code>NULL</code>.",
+  "situation": "Tu veux la liste complète de TOUS tes clients avec leurs commandes, sans oublier ceux qui n'ont encore jamais rien acheté.",
+  "situationSql": "SELECT clients.nom, commandes.date_commande\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",
+  "situationTail": "Inès disparaît avec INNER JOIN. Avec <code>LEFT JOIN</code>, Inès reste dans la liste et les colonnes de commande prennent la valeur <code>NULL</code>.",
   "studio": {
     "problem": {
-      "title": "LEFT JOIN protège toutes les lignes de la table de gauche.",
-      "body": "La table déclarée juste après <code>FROM</code> est à gauche. Si une ligne n'a pas de correspondance à droite, elle est quand même affichée avec des <code>NULL</code> à droite.",
+      "title": "LEFT JOIN garantit qu'aucune ligne de gauche ne sera supprimée.",
+      "body": "La table déclarée juste après <code>FROM</code> est la <b>table de gauche</b>. Si l'un de ses éléments n'a aucune correspondance à droite, SQL le conserve et remplit les colonnes manquantes avec <code>NULL</code>.",
       "demo": "SELECT clients.nom, commandes.date_commande\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;"
     },
     "vs": {
       "bad": {
-        "tag": "✕ INNER JOIN (perd les inactifs)",
+        "tag": "✕ INNER JOIN (perd les clients inactifs)",
         "sql": "SELECT clients.nom, commandes.id\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",
-        "out": "15 lignes — Inès est effacée du résultat"
+        "out": "15 lignes — Inès est supprimée du rapport."
       },
       "good": {
-        "tag": "✓ LEFT JOIN (garde tout le monde)",
+        "tag": "✓ LEFT JOIN (conserve 100% des clients)",
         "sql": "SELECT clients.nom, commandes.id\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",
-        "out": "16 lignes — Inès conservée avec NULL côté commande"
+        "out": "16 lignes — Inès est présente, associée à NULL côté commande."
       }
     },
     "reflex": {
-      "a": { "k": "INNER JOIN", "t": "uniquement les paires reliées" },
-      "b": { "k": "LEFT JOIN", "t": "toute la table gauche + NULL si absente à droite" }
+      "a": { "k": "Table de GAUCHE", "t": "Celle spécifiée immédiatement après <code>FROM</code>" },
+      "b": { "k": "Comportement", "t": "Match = ligne normale · Pas de match = ligne conservée avec <code>NULL</code>" }
     }
   },
   "consigne": "Affiche le nom de tous les clients et la date_commande de leurs commandes, même s'ils n'ont jamais commandé.",
   "solution": "SELECT clients.nom, commandes.date_commande FROM clients LEFT JOIN commandes ON clients.id = commandes.client_id;",
   "attendu": "16 lignes : 15 commandes + Inès associée à NULL.",
-  "retenir": "LEFT JOIN conserve 100% de la table de gauche (FROM). Les données manquantes à droite sont remplacées par NULL.",
+  "retenir": "LEFT JOIN conserve l'intégralité de la table de gauche (FROM). Les colonnes manquantes de la table de droite reçoivent la valeur NULL.",
   "quiz": [
     {
-      "q": "Dans 'FROM clients LEFT JOIN commandes', quelle est la table de gauche ?",
-      "o": ["commandes", "clients", "Les deux"],
-      "b": 1,
-      "e": "La table spécifiée juste après FROM est la table de gauche."
+      "q": "Dans la requête 'FROM clients LEFT JOIN commandes', quelle est la table de gauche ?",
+      "o": ["clients (placée après FROM)", "commandes (placée après LEFT JOIN)", "Les deux tables sont équivalentes"],
+      "b": 0,
+      "e": "La table de gauche est toujours celle écrite juste après le FROM."
     },
     {
-      "q": "Que contient la colonne date_commande pour Inès avec un LEFT JOIN ?",
-      "o": ["0", "Une chaîne vide", "NULL"],
-      "b": 2,
-      "e": "En l'absence de correspondance à droite, SQL attribue la valeur NULL à la colonne."
+      "q": "Quelle valeur prend la colonne date_commande pour le client Inès qui n'a rien acheté ?",
+      "o": ["NULL", "0000-00-00", "Une chaîne vide ''"],
+      "b": 0,
+      "e": "En l'absence de correspondance dans la table de droite, SQL complète la ligne avec la valeur NULL."
     }
   ],
   "richLesson": true,
