@@ -263,6 +263,10 @@
   .lesson-lead .situation-body .situation-sql .xf-actions{margin:0;padding:0 12px 12px}
   .lesson-lead .situation-body .situation-sql .xf-result{margin:0 12px 12px}
   .lesson-lead .situation-body code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);color:var(--accent);padding:1px 6px;border-radius:6px;font-weight:600}
+  .lesson-lead .situation-body .mini-grid,
+  .lesson-lead .situation-body .table-wrap{margin:4px 0 14px}
+  .lesson-lead .situation-body .mini-grid + p,
+  .lesson-lead .situation-body .table-wrap + p{margin-top:2px}
   .concept-page{display:flex;flex-direction:column;gap:16px;margin:0}
   .concept-page>h3{font-size:22px;font-weight:800;letter-spacing:-.4px;line-height:1.2;margin:0 2px 18px;color:var(--ink)}
   .concept-block{position:relative;background:var(--surface);border:1px solid var(--card-border);border-radius:24px;padding:28px 24px;margin:0;box-shadow:var(--card-shadow);transition:transform .22s var(--spring-ios),box-shadow .22s ease,border-color .22s ease}
@@ -284,6 +288,29 @@
   .concept-block .table-wrap table.concept-table td{padding:11px 14px;border-bottom:1px solid var(--line);color:var(--ink);line-height:1.4}
   .concept-block .table-wrap table.concept-table tr:last-child td{border-bottom:0}
   .concept-block .table-wrap table.concept-table tbody tr{transition:background .18s ease}
+  /* ============================================================
+     Récapitulatif des jointures — présent dans les 6 cours du module
+     « Relier », avec la ou les lignes du cours en cours mises en avant.
+     Tableau réel (et non une grille) pour rester lisible au lecteur d'écran ;
+     la colonne « type » est bornée pour que la description garde la place
+     de se replier sur les petits écrans.
+     ============================================================ */
+  .join-recap{width:100%;border-collapse:collapse;font-size:13.5px;table-layout:fixed}
+  .join-recap th{background:var(--bg);color:var(--ink-3);font-size:10.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;text-align:left;padding:11px 12px;border-bottom:1px solid var(--line)}
+  .join-recap td{padding:12px;border-bottom:1px solid var(--line);color:var(--ink);line-height:1.4;vertical-align:top;overflow-wrap:break-word}
+  .join-recap tr:last-child td{border-bottom:0}
+  .join-recap .jr-type{width:38%;font-family:var(--mono);font-weight:700;font-size:12.5px;color:var(--ink)}
+  .join-recap .jr-quoi{color:var(--ink-2)}
+  /* La ligne du cours : barre latérale, fond teinté, et une pastille qui dit
+     pourquoi elle ressort — la couleur seule ne suffirait pas. */
+  .join-recap tr.on td{background:var(--accent-soft)}
+  .join-recap tr.on .jr-type{box-shadow:inset 3px 0 0 var(--accent);color:var(--accent)}
+  .jr-ici{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:999px;background:var(--accent);color:#fff;font-family:var(--ui);font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;vertical-align:1px;white-space:nowrap}
+  @media (max-width:400px){
+    .join-recap{font-size:12.5px}
+    .join-recap .jr-type{width:44%;font-size:11.5px}
+    .join-recap td{padding:10px 9px}
+  }
   .memory-box{background:var(--bg);border:1px solid var(--card-border);border-radius:18px;padding:16px 18px;margin:0;box-shadow:var(--card-shadow-sm)}
   .memory-kicker{color:var(--ink-3);font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px}
   .memory-rule{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:6px 0 0}
@@ -4692,8 +4719,8 @@ const MODULES = [
 
 { titre:"Relier", sous:"Plusieurs tables, une question", lessons:[
 { id:18, titre:"JOIN", résumé:"Relier deux tables",
-  situation:"Tu veux afficher le nom de chaque client avec les produits qu’il a commandés.<br><br>Mais il y a un problème : aucune table ne contient toutes ces informations.",
-  situationTail:"Dans la table <code>clients</code>, tu trouves le nom :<br><br><div class=\"mini-grid\"><div class=\"h\"><span>id</span><span>nom</span><span></span></div><div><span>1</span><span>Sophie</span><span></span></div><div><span>2</span><span>Lucas</span><span></span></div><div><span>3</span><span>Emma</span><span></span></div></div><br>Dans la table <code>commandes</code>, tu trouves les commandes :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br>La table <code>commandes</code> connaît le client grâce à <code>client_id</code>, mais elle ne contient pas son nom.<br><br>Pour récupérer le nom, il faut relier les deux tables.",
+  situation:"Tu veux afficher le nom de chaque client avec les produits qu’il a commandés.<br><br>Mais il y a un problème : aucune table ne contient toutes ces informations.<br><br>Dans la table <code>clients</code>, tu trouves le nom et l’identifiant :<br><br><div class=\"mini-grid\"><div class=\"h\"><span>id</span><span>nom</span><span></span></div><div><span>1</span><span>Sophie</span><span></span></div><div><span>2</span><span>Lucas</span><span></span></div><div><span>3</span><span>Emma</span><span></span></div></div><br><br>Dans la table <code>commandes</code>, tu trouves les commandes avec <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br><br>La table <code>commandes</code> connaît le client grâce à <code>client_id</code>, mais elle ne contient pas son nom.<br><br>Pour récupérer le nom, il faut relier les deux tables.",
+  situationTail:"Le nom du client est dans la table <code>clients</code>. La quantité et le produit sont dans la table <code>commandes</code>. La colonne <code>client_id</code> fait le lien entre les deux tables.<br><br>En reliant <code>clients.id</code> avec <code>commandes.client_id</code>, tu peux afficher pour chaque commande le nom du client correspondant.",
     studio:{problem:{title:"JOIN permet de rassembler les lignes de deux tables qui correspondent.",
       body:"<code>JOIN</code> recolle les informations réparties dans plusieurs tables — sans dupliquer le nom du client sur chaque commande.",
       demo:"SELECT clients.nom, commandes.produit_id\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;"},
@@ -4707,7 +4734,7 @@ const MODULES = [
       note:"Avant d’écrire <code>ON</code>, demande-toi : « Quelle colonne de la deuxième table fait référence à la première ? » Ici, <code>client_id</code> → <code>clients.id</code>."},
     viz:"joinon"},
   anatomie:[{tok:"FROM clients",txt:"La première table utilisée."},{tok:"JOIN commandes",txt:"La deuxième table à relier."},{tok:"ON clients.id = commandes.client_id",txt:"La condition de correspondance : id ↔ client_id."},{tok:"SELECT clients.nom, commandes.quantite",txt:"Les colonnes à afficher, une fois les lignes reliées."}],
-  exemple:"SELECT clients.nom, commandes.produit_id FROM clients JOIN commandes ON clients.id = commandes.client_id;",
+  exemple:"SELECT clients.nom, commandes.produit_id, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;",
   attendu:"15 lignes : une par commande, avec le nom du client (Sophie apparaît 3 fois).",
   retenir:"<code>JOIN</code> sert à relier deux tables. <code>ON</code> indique quelles lignes correspondent.<br><br>Dans notre base : <code>clients.id = commandes.client_id</code> retrouve le client de chaque commande.<br><br>Structure de base : <code>SELECT table1.colonne, table2.colonne FROM table1 JOIN table2 ON table1.id = table2.cle_etrangere;</code>",
   piege:{t:"Relier les mauvaises colonnes",p:"<code>ON clients.id = commandes.produit_id</code> peut s’exécuter, mais le résultat est faux : <code>produit_id</code> identifie un produit, pas un client. La bonne relation est <code>clients.id = commandes.client_id</code>.",
@@ -4715,8 +4742,9 @@ const MODULES = [
     sql:"SELECT clients.nom, commandes.produit_id\nFROM clients\nJOIN commandes\nON clients.id = commandes.produit_id;",
     fixSql:"SELECT clients.nom, commandes.produit_id\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;"},
   consigne:"Affiche le nom de chaque client et la <code>quantite</code> de chaque produit qu’il a commandé.",
-  solution:"SELECT clients.nom, commandes.quantite FROM clients JOIN commandes ON clients.id = commandes.client_id;",
+  solution:"SELECT clients.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;",
   indice:"Part de <code>clients</code>, JOIN <code>commandes</code>, puis <code>ON clients.id = commandes.client_id</code>.",
+  joinRecap:'inner',
   richLesson:true, earlyDemo:true },
 { id:36, titre:"INNER JOIN", résumé:"Garder les correspondances",
   situation:"Tu veux afficher les clients qui ont passé une commande, avec l’identifiant de chaque commande.<br><br>Tu sais déjà relier les deux tables :",
@@ -4743,6 +4771,7 @@ const MODULES = [
   consigne:"Affiche le <code>nom</code> des clients et la <code>date_commande</code> de chacune de leurs commandes.",
   solution:"SELECT clients.nom, commandes.date_commande FROM clients INNER JOIN commandes ON clients.id = commandes.client_id;",
   indice:"<code>INNER JOIN</code> (ou <code>JOIN</code>) avec <code>ON clients.id = commandes.client_id</code>.",
+  joinRecap:'inner',
   richLesson:true, earlyDemo:true },
 { id:20, titre:"LEFT JOIN", résumé:"Garder toutes les lignes de gauche",
   situation:"Tu veux afficher tous les clients avec leurs commandes, y compris les clients qui n’ont encore jamais commandé.<br><br>Avec <code>INNER JOIN</code>, seuls les clients qui ont une commande apparaissent :",
@@ -4770,6 +4799,7 @@ const MODULES = [
   consigne:"Affiche le <code>nom</code> de <b>tous</b> les clients et la <code>date_commande</code> de leurs commandes, même s’ils n’ont jamais commandé.",
   solution:"SELECT clients.nom, commandes.date_commande FROM clients LEFT JOIN commandes ON clients.id = commandes.client_id;",
   indice:"Part de <code>clients</code> (gauche), <code>LEFT JOIN commandes</code>, même <code>ON</code> qu’avant.",
+  joinRecap:'left',
   richLesson:true, earlyDemo:true },
 { id:37, titre:"Sans correspondance", résumé:"LEFT JOIN + IS NULL",
   situation:"Tu veux répondre à une question très courante : <b>quels clients n’ont jamais passé de commande ?</b><br><br>Tu sais déjà que <code>LEFT JOIN</code> permet de garder tous les clients :",
@@ -4797,6 +4827,7 @@ const MODULES = [
   consigne:"Trouve les clients qui n’ont <b>jamais</b> passé de commande. Affiche leur <code>nom</code>.",
   solution:"SELECT clients.nom FROM clients LEFT JOIN commandes ON clients.id = commandes.client_id WHERE commandes.id IS NULL;",
   indice:"<code>LEFT JOIN</code> puis <code>WHERE commandes.id IS NULL</code>.",
+  joinRecap:'left',
   richLesson:true, earlyDemo:true },
 { id:19, titre:"Relier plusieurs tables", résumé:"Trois tables, deux JOIN",
   situation:"Tu veux afficher le nom du client, le produit qu’il a commandé et la quantité achetée.<br><br>Le problème : ces informations sont réparties dans <b>3 tables</b>.",
@@ -4824,6 +4855,7 @@ const MODULES = [
   consigne:"Affiche le <code>nom</code> du client, le <code>nom</code> du produit et la <code>date_commande</code> de chaque commande.",
   solution:"SELECT clients.nom AS client, produits.nom AS produit, commandes.date_commande FROM clients JOIN commandes ON clients.id = commandes.client_id JOIN produits ON commandes.produit_id = produits.id;",
   indice:"Deux JOIN via <code>commandes</code> : <code>client_id</code> puis <code>produit_id</code>. Pense à <code>AS</code> pour les deux <code>nom</code>.",
+  joinRecap:'inner',
   richLesson:true, earlyDemo:true },
 { id:38, titre:"RIGHT JOIN et FULL OUTER JOIN", résumé:"Garder la droite, ou les deux",
   situation:"Tu sais déjà que <code>LEFT JOIN</code> permet de conserver toutes les lignes de la table de gauche, même lorsqu’aucune correspondance n’est trouvée.",
@@ -4859,6 +4891,7 @@ const MODULES = [
   petitDefi:[
     {p:"Complète la requête pour conserver tous les clients, alors que la table <code>clients</code> se trouve à droite :",sql:"SELECT c.nom, co.id\nFROM commandes AS co\n_____ JOIN clients AS c\nON co.client_id = c.id;",a:"RIGHT"},
     {p:"Quel mot faut-il ajouter pour conserver toutes les lignes des deux tables ?",sql:"SELECT c.nom, co.id\nFROM clients AS c\n_____ JOIN commandes AS co\nON c.id = co.client_id;",a:"FULL OUTER",answers:["FULL OUTER","FULL OUTER JOIN"]}],
+  joinRecap:['right','full'],
   richLesson:true, earlyDemo:true }
 ]},
 
@@ -8188,6 +8221,34 @@ function lessonReflexHtml(l){
   if(l.retenir) return flowProseHtml(l.retenir);
   return '';
 }
+/* Récapitulatif des types de jointure, commun aux cours du module « Relier ».
+   `l.joinRecap` nomme la ou les lignes à mettre en avant (chaîne ou tableau) ;
+   le tableau n'est écrit qu'ici pour rester cohérent d'un cours à l'autre. */
+const JOIN_RECAP=[
+  {k:'inner',t:'INNER JOIN',d:'Correspondances dans les deux tables'},
+  {k:'left', t:'LEFT JOIN', d:'Toutes les lignes de gauche + correspondances de droite'},
+  {k:'right',t:'RIGHT JOIN',d:'Toutes les lignes de droite + correspondances de gauche'},
+  {k:'full', t:'FULL JOIN', d:'Toutes les lignes des deux tables'},
+  {k:'cross',t:'CROSS JOIN',d:'Toutes les combinaisons'}
+];
+function joinRecapBlock(l){
+  if(!l||!l.joinRecap) return '';
+  const vus=[].concat(l.joinRecap);
+  const lignes=JOIN_RECAP.map(r=>{
+    const ici=vus.indexOf(r.k)>=0;
+    return `<tr class="${ici?'on':''}">
+      <td class="jr-type">${r.t}${ici?'<span class="jr-ici">ce cours</span>':''}</td>
+      <td class="jr-quoi">${r.d}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="concept-block">
+    <h2><span class="h2-txt">Résumé visuel</span></h2>
+    <div class="table-wrap"><table class="join-recap">
+      <thead><tr><th scope="col">Type</th><th scope="col">Lignes retournées</th></tr></thead>
+      <tbody>${lignes}</tbody>
+    </table></div>
+  </div>`;
+}
 function reflexBlock(l){
   const body=lessonReflexHtml(l);
   if(!body) return '';
@@ -8508,14 +8569,14 @@ function renderVizShell(key){
 function flowProseHtml(s,{lead=false}={}){
   if(!s)return '';
   const parts=String(s).split(/<br\s*\/?>\s*<br\s*\/?>/i);
-  if(parts.length<2){
-    const cls=lead?' class="why-lead"':'';
-    return `<p${cls}>${s}</p>`;
-  }
-  return parts.map((p,i)=>{
+  const wrap=(t,i)=>{
+    if(!t)return '';
+    if(/^<(div|table|ul|ol)\b/i.test(t)) return t;
     const cls=(lead&&i===0)?' class="why-lead"':'';
-    return `<p${cls}>${p.trim()}</p>`;
-  }).join('');
+    return `<p${cls}>${t}</p>`;
+  };
+  if(parts.length<2) return wrap(s,0);
+  return parts.map((p,i)=>wrap(p.trim(),i)).join('');
 }
 function situationBodyHtml(s){ return flowProseHtml(s); }
 function situationSqlBlock(sql){
@@ -8530,8 +8591,6 @@ function situationSqlBlock(sql){
   </div>`;
 }
 function renderSituationBody(l){
-  const course=JOIN_COURSES[l.id];
-  if(course)return `<p class="join-mission">${course.situation}</p><div class="join-question"><span>Problème à résoudre</span><strong>${course.mission}</strong></div>`;
   let html=situationBodyHtml(l.situation);
   if(l.situationSql) html+=situationSqlBlock(l.situationSql);
   if(l.situationTail) html+=flowProseHtml(l.situationTail);
@@ -8624,7 +8683,7 @@ function lessonDemoBlocks(l){
       </div>
       <p class="coda-sub">En résumé : <code>SELECT</code> s’écrit en premier, mais s’exécute <b>presque en dernier</b>.</p>
     </div>`:'';
-  return `${lessonRichFooter(l)}${anat?`<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`:''}${order}${piegeBlock(l)}${reflexBlock(l)}`;
+  return `${lessonRichFooter(l)}${anat?`<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`:''}${order}${piegeBlock(l)}${reflexBlock(l)}${joinRecapBlock(l)}`;
 }
 function lessonMainTable(l){
   if(!l)return 'clients';
@@ -8946,7 +9005,7 @@ function renderLessonFlow(){
         <div class="card">
           <div class="ex-code">${highlight(l.exemple)}</div>
           <p class="ex-out">↳ ${l.attendu}</p></div>
-        ${piegeBlock(l)}${reflexBlock(l)}
+        ${piegeBlock(l)}${reflexBlock(l)}${joinRecapBlock(l)}
       </div>`;
     }
   }else if(lessonStep===1){
