@@ -4972,34 +4972,43 @@ const MODULES = [
     {k:'cmd',label:'commandes',sql:"SELECT id, client_id, produit_id, quantite\nFROM commandes;"},
     {k:'join',label:'JOIN',sql:"SELECT clients.nom, commandes.produit_id, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;",tone:'good'}
   ] },
-{ id:20, titre:"LEFT JOIN", résumé:"Garder toutes les lignes de gauche",
-  situation:"Tu veux afficher tous les clients avec leurs commandes, y compris les clients qui n’ont encore jamais commandé.<br><br>Avec <code>INNER JOIN</code>, seuls les clients qui ont une commande apparaissent :",
-  situationSql:"SELECT clients.nom, commandes.id\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",
-  situationTail:"Problème : Inès n’apparaît pas, car aucune commande n’est associée à son <code>id</code>. Cette fois, on veut quand même la conserver.",
-    studio:{problem:{title:"LEFT JOIN garde toutes les lignes de la table de gauche.",
-      body:"Même sans correspondance dans la table de droite, chaque client est conservé. Les colonnes de la table <code>commandes</code> valent alors <code>NULL</code>."},
-    vs:{bad:{tag:"✕ INNER JOIN",sql:"SELECT clients.nom, commandes.id\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",out:"15 lignes — Inès écartée"},
-        good:{tag:"✓ LEFT JOIN",sql:"SELECT clients.nom, commandes.id\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",out:"16 lignes — Inès conservée avec NULL"}},
-    point:"<b>Gauche et droite</b> — <code>FROM clients LEFT JOIN commandes</code> : gauche = la table <code>clients</code>, droite = la table <code>commandes</code>. L’ordre compte.<br><br><b>Avec correspondance</b> — Sophie (<code>id = 1</code>) a 3 commandes → 3 lignes, comme en INNER JOIN.<br><br><b>Sans correspondance</b> — Inès (<code>id = 9</code>) : aucune commande → une ligne <code>Inès | NULL</code>.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>Jointure</th><th>Avec correspondance</th><th>Sans correspondance</th></tr></thead><tbody><tr><td>INNER JOIN</td><td>Gardée</td><td>Écartée</td></tr><tr><td>LEFT JOIN</td><td>Gardée</td><td>Gardée avec NULL</td></tr></tbody></table></div><br><b>Plusieurs NULL</b> — <code>commandes.produit_id</code> et <code>commandes.quantite</code> pour Inès valent tous deux NULL : ces colonnes viennent de la table de droite.<br><br><b>Plusieurs correspondances</b> — LEFT JOIN ne force pas « une ligne par client ». Sophie reste × 3, Léa × 2, Inès × 1 avec NULL.<br><br><b>Quand l’utiliser</b> — dès que la question dit « <b>tous</b> les clients, même ceux qui… ».",
-    why:{title:"INNER JOIN vs LEFT JOIN.",
-      body:"INNER JOIN : Inès → aucune correspondance → écartée.<br><br>LEFT JOIN : Inès → aucune correspondance → <b>gardée</b>, colonnes de la table <code>commandes</code> à NULL.<br><br><code>LEFT JOIN</code> ne remplace pas <code>ON</code> — il change seulement ce qu’il faut faire quand aucune correspondance n’est trouvée."},
-    reflex:{a:{k:"INNER JOIN",t:"seulement les <b>correspondances</b>"},
-      b:{k:"LEFT JOIN",t:"toute la table de <b>gauche</b> + NULL"},
-      note:"Quelle table dois-tu conserver entièrement ? Place-la à gauche, après <code>FROM</code>."},
+{ id:20, titre:"LEFT JOIN", résumé:"Garder tous les clients, même sans commande",
+  situation:"Tu veux afficher le nom de chaque client avec les produits qu’il a commandés.<br><br>Mais cette fois, tu dois aussi afficher les clients qui n’ont encore rien commandé.<br><br>Dans la table <code>clients</code>, tu trouves le nom et l’identifiant du client :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>7</td><td>Léa</td></tr><tr><td>9</td><td>Inès</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, tu trouves les commandes avec <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>8</td><td>7</td><td>1</td><td>4</td></tr><tr><td>9</td><td>7</td><td>5</td><td>2</td></tr></tbody></table></div><br><br>Inès n’apparaît dans aucune ligne de la table <code>commandes</code>. Pourtant, tu veux la garder dans le résultat.",
+  situationTail:"Un <code>JOIN</code> simple écarterait Inès car elle n’a aucune commande. Pour garder tous les clients, on utilise <code>LEFT JOIN</code>.",
+    studio:{pointCards:{
+      eye:"LEFT JOIN",title:"Garder aussi ceux sans commande.",
+      lead:"<code>LEFT JOIN</code> garde toutes les lignes de la table de gauche, même quand aucune ligne ne correspond à droite.",
+      cards:[
+        {t:"La condition ON",draw:"oncond",
+         b:"<code>ON clients.id = commandes.client_id</code> associe une ligne de <b>clients</b> à une ligne de <b>commandes</b> lorsque leurs identifiants correspondent."},
+        {t:"Une ligne par correspondance",draw:"repeat",
+         b:"Sophie a passé 3 commandes, elle apparaît donc <b>3 fois</b>. Inès n’en a aucune, elle apparaît <b>1 fois</b> avec des <code>NULL</code>."},
+        {t:"Pourquoi écrire clients.id",draw:"prefix",
+         b:"Les deux tables ont une colonne <code>id</code>. Préfixer par le nom de la table lève l’ambiguïté : SQL sait de quel <code>id</code> tu parles."},
+        {t:"Clé primaire, clé étrangère",draw:"pkfk",
+         b:"<code>clients.id</code> identifie chaque client. <code>commandes.client_id</code> recopie cet identifiant. C’est cette relation que la clause <code>ON</code> utilise."}
+      ]},
+    reflex:{a:{k:"LEFT JOIN",t:"garde toutes les lignes de la table de gauche"},
+      b:{k:"ON",t:"indique quelles lignes correspondent"},
+      note:"Avec <code>LEFT JOIN</code>, tous les clients sont conservés, même ceux sans commande.<br><br>Pour un client sans commande, les colonnes de la table <code>commandes</code> affichent <code>NULL</code>."},
     viz:"leftj"},
-  anatomie:[{tok:"FROM clients",txt:"Table de départ — c’est la gauche."},{tok:"LEFT JOIN commandes",txt:"Relie commandes en conservant tous les clients."},{tok:"ON clients.id = commandes.client_id",txt:"La condition de correspondance (inchangée)."},{"tok":"SELECT clients.nom, commandes.date_commande",txt:"Nom du client + date de sa commande (NULL si aucune)."}],
-  exemple:"SELECT clients.nom, commandes.id FROM clients LEFT JOIN commandes ON clients.id = commandes.client_id;",
-  attendu:"<b>16 lignes</b> : 15 correspondances + Inès avec <code>NULL</code> pour <code>commandes.id</code>.",
-  retenir:"<code>LEFT JOIN</code> garde toutes les lignes de la table de gauche.<br><br>Client avec commande → correspondance affichée. Plusieurs commandes → plusieurs lignes. Aucune commande → client conservé + <code>NULL</code>.<br><br>INNER JOIN → seulement les correspondances. LEFT JOIN → toute la gauche + les correspondances.",
-  piege:{t:"Inverser les tables",p:"<code>FROM clients LEFT JOIN commandes</code> garde tous les <b>clients</b>.<br><br><code>FROM commandes LEFT JOIN clients</code> garde toutes les <b>commandes</b> — ce n’est pas la même demande.",
+  anatomie:[{tok:"SELECT clients.nom, commandes.quantite",txt:"Les colonnes à afficher."},{tok:"FROM clients",txt:"La table de gauche : tous ses enregistrements seront conservés."},{tok:"LEFT JOIN commandes",txt:"La table de droite : on ajoute les correspondances si elles existent."},{tok:"ON clients.id = commandes.client_id",txt:"La condition de correspondance. Si aucune correspondance, les colonnes de droite sont NULL."}],
+  exemple:"SELECT clients.nom, commandes.produit_id, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",
+  attendu:"16 lignes : 15 commandes avec le client correspondant, plus Inès qui apparaît une fois avec des NULL (aucune commande).",
+  piege:{t:"Utiliser JOIN au lieu de LEFT JOIN",p:"Un <code>JOIN</code> simple (INNER JOIN) écarterait Inès car elle n’a aucune commande. Pour garder tous les clients, il faut <code>LEFT JOIN</code>.",
     exec:true,
-    sql:"SELECT clients.nom, commandes.id\nFROM commandes\nLEFT JOIN clients\nON clients.id = commandes.client_id;",
-    fixSql:"SELECT clients.nom, commandes.id\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;"},
-  consigne:"Affiche le <code>nom</code> de <b>tous</b> les clients et la <code>date_commande</code> de leurs commandes, même s’ils n’ont jamais commandé.",
-  solution:"SELECT clients.nom, commandes.date_commande FROM clients LEFT JOIN commandes ON clients.id = commandes.client_id;",
-  indice:"Part de <code>clients</code> (gauche), <code>LEFT JOIN commandes</code>, même <code>ON</code> qu’avant.",
+    sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;",
+    fixSql:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;"},
+  consigne:"Affiche le nom de tous les clients et la <code>quantite</code> de leurs commandes, en gardant ceux qui n’ont aucune commande.",
+  solution:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",
+  indice:"Utilise <code>LEFT JOIN</code> pour garder tous les clients, même ceux qui n’ont aucune ligne dans la table <code>commandes</code>.",
   joinRecap:'left',
-  richLesson:true, earlyDemo:true },
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
+    {k:'cmd',label:'commandes',sql:"SELECT id, client_id, produit_id, quantite\nFROM commandes;"},
+    {k:'leftjoin',label:'LEFT JOIN',sql:"SELECT clients.nom, commandes.produit_id, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",tone:'good'}
+  ] },
 { id:37, titre:"Sans correspondance", résumé:"LEFT JOIN + IS NULL",
   situation:"Tu veux répondre à une question très courante : <b>quels clients n’ont jamais passé de commande ?</b><br><br>Tu sais déjà que <code>LEFT JOIN</code> permet de garder tous les clients :",
   situationSql:"SELECT clients.nom, commandes.id\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",
@@ -8858,8 +8867,11 @@ function pointDraw(kind){
     </div>`;
   return '';
 }
+function hasJoinPointCards(l){
+  return !!(l&&l.studio&&l.studio.pointCards);
+}
 function initJoinMicro(){
-  if(!current||current.id!==18) return;
+  if(!hasJoinPointCards(current)) return;
   const root=document.querySelector('#lesson-body .join-micro');
   if(!root) return;
   const tables=root.querySelectorAll('.situation-body table.concept-table');
@@ -8878,7 +8890,7 @@ function initJoinMicro(){
     mark(tr,tr.cells[1]&&tr.cells[1].textContent.trim());
   });
   const rows=[...root.querySelectorAll('.situation-body tr[data-kid]')];
-  let cur='1';
+  let cur=current.id===20?'9':'1';
   const paint=()=>{
     rows.forEach(tr=>tr.classList.toggle('on',tr.dataset.kid===cur));
   };
@@ -8908,9 +8920,12 @@ function initJoinMicro(){
 const WHY_VIZ_TITLE="Suis ce qu'il se passe avec tes données.";
 function renderJoinIntroStudio(l){
   const s=l.studio||{};
+  const pc=s.pointCards||{};
+  const eye=pc.eye||'La clause ON';
+  const title=pc.title||'Quelles lignes correspondent.';
   return `<div class="concept-page join-intro">
     <div class="concept-block">
-      <h2><span class="h2-eye">La clause ON</span><span class="h2-txt">Quelles lignes correspondent.</span></h2>
+      <h2><span class="h2-eye">${eye}</span><span class="h2-txt">${title}</span></h2>
       ${s.pointCards?renderPointCards(s.pointCards):flowProseHtml(s.point)}
     </div>
     <div class="concept-block">
@@ -8944,7 +8959,7 @@ function renderJoinCourse(l){
   </div>`;
 }
 function renderStudio(l){
-  if(l.id===18) return renderJoinIntroStudio(l);
+  if(hasJoinPointCards(l)) return renderJoinIntroStudio(l);
   if(JOIN_COURSES[l.id])return renderJoinCourse(l);
   const s=l.studio;
   if(!s)return l.concept||'';
@@ -8984,7 +8999,7 @@ function renderStudio(l){
 function lessonDemoBlocks(l){
   const anat=anatBlock(l);
   if(!anat&&!l.exemple)return '';
-  if(JOIN_COURSES[l.id]&&l.id!==18){
+  if(JOIN_COURSES[l.id]&&!hasJoinPointCards(l)){
     return `${lessonRichFooter(l)}${anat?`<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`:''}`;
   }
   const order=l.orderRappel?`<div class="order-rappel">
@@ -9319,7 +9334,7 @@ function renderLessonFlow(){
         <button class="ls-next" type="button" onclick="setLessonStep(1)">Passer à l’exercice</button>
       </div>
       <div class="ls-main">
-        <div class="lesson-rich${l.id===18?' join-micro':''}">
+        <div class="lesson-rich${hasJoinPointCards(l)?' join-micro':''}">
           <div class="l-kicker">Cours</div><h1>${l.titre}</h1>
           <div class="concept-block lesson-lead">
             <h2><span class="h2-eye">Situation</span></h2>
