@@ -1023,7 +1023,12 @@
   .join-mini-table .head{background:var(--accent-soft);color:var(--accent);font-family:var(--ui);font-size:9px;text-transform:uppercase;letter-spacing:.45px;font-weight:850}
   .sql-viz[data-viz="joinon"][data-phase="0"] .join-bridge{opacity:.5;filter:grayscale(.25)}
   .sql-viz[data-viz="joinon"][data-phase="1"] .join-bridge,.sql-viz[data-viz="joinon"][data-phase="2"] .join-bridge{border-style:solid;animation:joinBridgePulse 1.2s ease-in-out infinite alternate}
-  .sql-viz[data-viz="joinon"][data-phase="2"] .er-links{opacity:0;transition:opacity .22s ease}
+  .sql-viz[data-viz="joinon"][data-phase="2"] .er-links,
+  .sql-viz[data-viz="inner"][data-phase="2"] .er-links,
+  .sql-viz[data-viz="leftj"][data-phase="2"] .er-links,
+  .sql-viz[data-viz="orphan"][data-phase="2"] .er-links,
+  .sql-viz[data-viz="triple"][data-phase="2"] .er-links,
+  .sql-viz[data-er-last="1"] .join-viz .er-links{display:none}
   @keyframes joinBridgePulse{from{box-shadow:inset 0 0 0 1px rgba(255,255,255,.72),0 0 0 rgba(91,91,214,0)}to{box-shadow:inset 0 0 0 1px rgba(255,255,255,.72),0 0 0 5px rgba(91,91,214,.08)}}
   @media (max-width:920px){.join-story .er-pair{grid-template-columns:1fr;gap:8px}.join-story .er-links{display:none}.join-bridge{min-height:54px;flex-direction:row;border-radius:13px}.join-bridge::before,.join-bridge::after{left:18px;right:18px}.join-bridge::before{top:12px}.join-bridge::after{bottom:12px}.join-bridge-badge{width:34px;height:34px;border-radius:11px;font-size:11px}.join-bridge small{max-width:none;font-size:9px}.join-mini-table{font-size:10px}}
   /* minmax(0,1fr) et non 1fr : sinon un mot insécable impose sa largeur
@@ -1062,16 +1067,11 @@
   .sql-viz[data-viz="orphan"] .join-ghost{opacity:1;max-height:48px;padding:8px 10px!important;border-top:1px solid var(--line)!important;pointer-events:auto}
   .er-line[data-er-ghost="1"]{stroke:rgba(180,83,9,.55);stroke-dasharray:5 6}
   .sql-viz[data-viz="joinon"][data-phase="1"] .er-line,
-  .sql-viz[data-viz="joinon"][data-phase="2"] .er-line,
   .sql-viz[data-viz="inner"][data-phase="1"] .er-line,
-  .sql-viz[data-viz="inner"][data-phase="2"] .er-line,
   .sql-viz[data-viz="leftj"][data-phase="1"] .er-line,
-  .sql-viz[data-viz="leftj"][data-phase="2"] .er-line,
   .sql-viz[data-viz="orphan"][data-phase="0"] .er-line,
   .sql-viz[data-viz="orphan"][data-phase="1"] .er-line,
-  .sql-viz[data-viz="orphan"][data-phase="2"] .er-line,
-  .sql-viz[data-viz="triple"][data-phase="1"] .er-line,
-  .sql-viz[data-viz="triple"][data-phase="2"] .er-line{
+  .sql-viz[data-viz="triple"][data-phase="1"] .er-line{
     opacity:1;stroke-dasharray:140;stroke-dashoffset:140;animation:erDraw .9s ease forwards
   }
   .sql-viz[data-viz="triple"][data-phase="1"] .er-line[data-er-hop="2"]{opacity:0;animation:none}
@@ -1082,6 +1082,10 @@
   .sql-viz[data-viz="inner"][data-phase="2"] .join-drop-lab{display:inline}
   .sql-viz[data-viz="leftj"][data-phase="2"] .er-btn[data-join="keep"],
   .sql-viz[data-viz="orphan"][data-phase="2"] .er-btn[data-join="keep"]{background:var(--success-soft);box-shadow:inset 3px 0 0 var(--success)}
+  .sql-viz[data-er-last="1"] .er-btn[data-er-on="1"],
+  .sql-viz[data-er-last="1"] .er-btn[data-join="keep"][data-er-on="1"]{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+  .sql-viz[data-er-last="1"] .er-btn[data-er-on="1"] .er-key{background:var(--accent);color:#fff}
+  .join-pill[data-er-on="1"]{border-color:rgba(91,91,214,.28);background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
   .sql-viz[data-viz="orphan"][data-phase="1"] .er-btn:not([data-join="keep"]):not(.join-ghost){opacity:.32}
   .sql-viz[data-viz="orphan"][data-phase="2"] .er-btn:not([data-join="keep"]):not(.join-ghost){opacity:.12;filter:grayscale(.7)}
   .sql-viz[data-viz="orphan"][data-phase="2"] .join-ghost{background:var(--success-soft)}
@@ -12498,7 +12502,7 @@ const SQL_VIZ={
     </div>
     <p class="er-hint">Touche un client ou une commande.</p>
   </div>`},
-  joinon:{kind:'er',stepMs:20000,lastMs:20000,phases:[
+  joinon:{kind:'er',stepMs:20000,lastMs:20000,lastSel:'1',phases:[
     {k:'Tables sources',d:'Avant la jointure, les informations sont séparées : dans la table <code>clients</code>, <code>id = 1</code> → Sophie ; dans la table <code>commandes</code>, <code>client_id = 1</code> → <code>produit_id = 1</code>.'},
     {k:'Condition ON',d:'Grâce à la clause <code>ON clients.id = commandes.client_id</code>, SQL comprend : <code>id = 1</code> → Sophie → <code>produit_id = 1</code>.'},
     {k:'Résultat projeté',d:'SQL relie une ligne de la table <code>clients</code> et une ligne de la table <code>commandes</code> dès qu’elles ont le même id.'}
@@ -12528,7 +12532,7 @@ const SQL_VIZ={
     </div>
     <p class="er-hint">👆 Touche un client : ses commandes se surlignent.</p>
   </div>`},
-  inner:{kind:'er',phases:[
+  inner:{kind:'er',lastSel:'9',phases:[
     {k:'Tables sources',d:'La table clients fournit les clients. La table commandes fournit les lignes de vente et la référence client_id.'},
     {k:'Condition ON',d:'SQL conserve uniquement les lignes où clients.id correspond à commandes.client_id.'},
     {k:'Lignes conservées',d:'Le résultat contient Sophie et Lucas, car leurs identifiants sont référencés dans la table commandes.'}
@@ -12549,13 +12553,13 @@ const SQL_VIZ={
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
-      <div class="join-pill">Sophie<span class="jn">commande #1</span></div>
-      <div class="join-pill">Sophie<span class="jn">commande #2</span></div>
-      <div class="join-pill">Lucas<span class="jn">commande #3</span></div>
+      <div class="join-pill" data-er-id="1">Sophie<span class="jn">commande #1</span></div>
+      <div class="join-pill" data-er-id="1">Sophie<span class="jn">commande #2</span></div>
+      <div class="join-pill" data-er-id="2">Lucas<span class="jn">commande #3</span></div>
     </div>
     <p class="er-hint">Inès n’a aucune ligne correspondante dans commandes : elle est exclue du résultat INNER JOIN.</p>
   </div>`},
-  leftj:{kind:'er',phases:[
+  leftj:{kind:'er',lastSel:'9',phases:[
     {k:'Table conservée',d:'Dans FROM clients LEFT JOIN commandes, la table clients est conservée intégralement.'},
     {k:'Correspondances',d:'Les lignes de commandes complètent les clients quand commandes.client_id correspond à clients.id.'},
     {k:'Résultat avec NULL',d:'Inès reste dans le résultat ; les colonnes issues de commandes valent NULL.'}
@@ -12573,18 +12577,18 @@ const SQL_VIZ={
         <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">1</span>#1</button>
         <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">1</span>#2</button>
         <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">2</span>#3</button>
-        <button type="button" class="er-btn join-ghost" data-er-fk="9" data-ghost="1"><span class="er-key">∅</span>NULL</button>
+        <button type="button" class="er-btn join-ghost" data-er-fk="9" data-ghost="1" data-join="keep"><span class="er-key">∅</span>NULL</button>
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
-      <div class="join-pill">Sophie<span class="jn">commande #1</span></div>
-      <div class="join-pill">Sophie<span class="jn">commande #2</span></div>
-      <div class="join-pill">Lucas<span class="jn">commande #3</span></div>
-      <div class="join-pill">Inès<span class="jn null">NULL</span></div>
+      <div class="join-pill" data-er-id="1">Sophie<span class="jn">commande #1</span></div>
+      <div class="join-pill" data-er-id="1">Sophie<span class="jn">commande #2</span></div>
+      <div class="join-pill" data-er-id="2">Lucas<span class="jn">commande #3</span></div>
+      <div class="join-pill" data-er-id="9">Inès<span class="jn null">NULL</span></div>
     </div>
     <p class="er-hint">Sélectionne Inès : la ligne reste visible, avec NULL côté commandes.</p>
   </div>`},
-  orphan:{kind:'er',phases:[
+  orphan:{kind:'er',lastSel:'9',phases:[
     {k:'Produire les NULL',d:'LEFT JOIN conserve tous les clients et met NULL côté commandes quand aucune commande n’existe.'},
     {k:'Filtrer IS NULL',d:'WHERE commandes.id IS NULL retire les clients qui possèdent une commande.'},
     {k:'Lignes sans commande',d:'Le résultat final contient uniquement les clients sans correspondance dans commandes.'}
@@ -12605,11 +12609,11 @@ const SQL_VIZ={
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
-      <div class="join-pill">Inès<span class="jn null">jamais commandé</span></div>
+      <div class="join-pill" data-er-id="9">Inès<span class="jn null">jamais commandé</span></div>
     </div>
     <p class="er-hint">Le filtre IS NULL conserve les lignes où la table commandes n’a rien fourni.</p>
   </div>`},
-  triple:{kind:'er',phases:[
+  triple:{kind:'er',lastSel:'c1',phases:[
     {k:'Tables sources',d:'clients fournit le client, commandes contient les références, produits fournit le libellé produit.'},
     {k:'Relation client',d:'ON clients.id = commandes.client_id rattache chaque commande à son client.'},
     {k:'Relation produit',d:'ON commandes.produit_id = produits.id rattache chaque commande à son produit.'}
@@ -12633,8 +12637,8 @@ const SQL_VIZ={
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
-      <div class="join-pill">Sophie → Fibre<span class="jn">qté 2</span></div>
-      <div class="join-pill">Lucas → Protéine<span class="jn">qté 1</span></div>
+      <div class="join-pill" data-er-id="c1">Sophie → Fibre<span class="jn">qté 2</span></div>
+      <div class="join-pill" data-er-id="c2">Lucas → Protéine<span class="jn">qté 1</span></div>
     </div>
     <p class="er-hint">Sélectionne Sophie : la commande associée puis le produit référencé sont mis en évidence.</p>
   </div>`},
@@ -12881,6 +12885,55 @@ function layoutSqlCols(root){
   const stage=root.querySelector('.grp-stage');
   if(stage) stage.style.height='auto';
 }
+function erIsLastPhase(root){
+  const phases=sqlVizPhases(root);
+  return phases.length>0&&parseInt(root.dataset.phase||'0',10)>=phases.length-1;
+}
+function erHideLastLinks(root){
+  return !!root.querySelector('.join-viz');
+}
+function erLastFocusId(root){
+  const cfg=sqlVizCfg(root);
+  if(cfg.lastSel!=null) return String(cfg.lastSel);
+  const keep=root.querySelector('[data-join="keep"]');
+  if(keep) return keep.dataset.erId||keep.dataset.erFk||null;
+  const drop=root.querySelector('[data-join="drop"]');
+  if(drop) return drop.dataset.erId||drop.dataset.erFk||null;
+  return null;
+}
+function clearErOn(root){
+  root.querySelectorAll('[data-er-on]').forEach(n=>n.removeAttribute('data-er-on'));
+}
+function selectErMatch(root,id){
+  if(!root||id==null||id==='') return;
+  clearErOn(root);
+  const mark=sel=>{
+    root.querySelectorAll(sel).forEach(n=>n.setAttribute('data-er-on','1'));
+  };
+  mark('[data-er-id="'+id+'"],[data-er-fk="'+id+'"],[data-er-to="'+id+'"],[data-er-src="'+id+'"]');
+  root.querySelectorAll('[data-er-fk="'+id+'"]').forEach(fk=>{
+    const src=fk.dataset.erSrc;
+    if(src) mark('[data-er-to="'+src+'"],[data-er-src="'+src+'"]');
+  });
+  root.querySelectorAll('[data-er-src="'+id+'"]').forEach(srcEl=>{
+    const fk=srcEl.dataset.erFk;
+    if(fk) mark('[data-er-id="'+fk+'"],[data-er-fk="'+fk+'"]');
+  });
+  root.querySelectorAll('.er-line[data-er-link="'+id+'"]').forEach(n=>n.setAttribute('data-er-on','1'));
+  root.querySelectorAll('.er-line').forEach(n=>{
+    const a=n.getAttribute('data-er-link');
+    const b=n.getAttribute('data-er-link2');
+    if(a&&root.querySelector('[data-er-on="1"][data-er-id="'+a+'"],[data-er-on="1"][data-er-fk="'+a+'"]')) n.setAttribute('data-er-on','1');
+    if(b&&root.querySelector('[data-er-on="1"][data-er-to="'+b+'"],[data-er-on="1"][data-er-src="'+b+'"]')) n.setAttribute('data-er-on','1');
+  });
+}
+function applyErLastSlide(root){
+  const last=erIsLastPhase(root);
+  root.dataset.erLast=last?'1':'0';
+  if(!last||!erHideLastLinks(root)) return;
+  const id=erLastFocusId(root);
+  if(id) selectErMatch(root,id);
+}
 function bindErViz(root){
   if(!root||root.dataset.erBound==='1')return;
   root.dataset.erBound='1';
@@ -12889,31 +12942,8 @@ function bindErViz(root){
     if(!row||!root.contains(row))return;
     const id=row.dataset.erId||row.dataset.erFk||row.dataset.erTo||row.dataset.erSrc;
     const was=row.getAttribute('data-er-on')==='1';
-    root.querySelectorAll('[data-er-on]').forEach(n=>n.removeAttribute('data-er-on'));
-    if(was)return;
-    const mark=sel=>{
-      root.querySelectorAll(sel).forEach(n=>n.setAttribute('data-er-on','1'));
-    };
-    mark('[data-er-id="'+id+'"],[data-er-fk="'+id+'"],[data-er-to="'+id+'"],[data-er-src="'+id+'"]');
-    if(row.dataset.erId){
-      root.querySelectorAll('[data-er-fk="'+id+'"]').forEach(fk=>{
-        const src=fk.dataset.erSrc;
-        if(src) mark('[data-er-to="'+src+'"],[data-er-src="'+src+'"]');
-      });
-    }
-    if(row.dataset.erTo){
-      root.querySelectorAll('[data-er-src="'+id+'"]').forEach(srcEl=>{
-        const fk=srcEl.dataset.erFk;
-        if(fk) mark('[data-er-id="'+fk+'"],[data-er-fk="'+fk+'"]');
-      });
-    }
-    root.querySelectorAll('.er-line[data-er-link="'+id+'"]').forEach(n=>n.setAttribute('data-er-on','1'));
-    root.querySelectorAll('.er-line').forEach(n=>{
-      const a=n.getAttribute('data-er-link');
-      const b=n.getAttribute('data-er-link2');
-      if(a&&root.querySelector('[data-er-on="1"][data-er-id="'+a+'"],[data-er-on="1"][data-er-fk="'+a+'"]')) n.setAttribute('data-er-on','1');
-      if(b&&root.querySelector('[data-er-on="1"][data-er-to="'+b+'"],[data-er-on="1"][data-er-src="'+b+'"]')) n.setAttribute('data-er-on','1');
-    });
+    if(was){ clearErOn(root); return; }
+    selectErMatch(root,id);
     if(navigator.vibrate)navigator.vibrate(8);
   });
 }
@@ -12921,6 +12951,12 @@ function drawErLinks(root){
   const svg=root.querySelector('.er-links');
   const wrap=svg&&svg.parentElement;
   if(!svg||!wrap)return;
+  if(erIsLastPhase(root)&&erHideLastLinks(root)){
+    svg.replaceChildren();
+    svg.setAttribute('hidden','');
+    return;
+  }
+  svg.removeAttribute('hidden');
   const wr=wrap.getBoundingClientRect();
   const w=Math.max(1,wr.width),h=Math.max(1,wr.height);
   svg.setAttribute('viewBox','0 0 '+w+' '+h);
@@ -13014,6 +13050,7 @@ function havingGrpSetPhase(root,phase,opts){
     step.setAttribute('aria-current',i===phase?'step':'false');
   });
   layoutSqlViz(root,phase,opts);
+  if((root.dataset.kind||sqlVizCfg(root).kind)==='er') applyErLastSlide(root);
 }
 
 function vizHoldMs(root){
