@@ -9036,6 +9036,39 @@ function testeEditorHtml(){
   return `<div class="editor-area xf-editor"><pre><code id="hl-teste"></code></pre>
     <textarea id="ed-teste" class="xf-sql" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="Modifie et exécute la requête…"></textarea></div>`;
 }
+function testeNormSql(s){return String(s||'').replace(/\s+/g,' ').trim();}
+function testeFrameVariants(frame){
+  if(!frame||!frame.dataset.variants)return null;
+  try{return JSON.parse(frame.dataset.variants);}catch(e){return null;}
+}
+function paintTesteVariant(frame, variants, i){
+  const v=variants&&variants[i];
+  if(!frame||!v)return v;
+  frame.dataset.vi=String(i);
+  frame.dataset.testeSql=v.sql;
+  frame.classList.remove('tone-bad','tone-good');
+  if(v.tone) frame.classList.add('tone-'+v.tone);
+  frame.querySelectorAll('.xf-sw').forEach(b=>{
+    const on=+b.dataset.i===i;
+    b.classList.toggle('on',on);
+    b.setAttribute('aria-selected',on?'true':'false');
+  });
+  const host=frame.querySelector('.xf-result');
+  if(host){ host.hidden=true; host.innerHTML=''; host.classList.remove('on','flash'); }
+  const editor=frame.querySelector('.xf-editor');
+  let expect=frame.querySelector('.xf-expect');
+  const cap=v.out||'';
+  if(cap){
+    if(!expect){
+      expect=document.createElement('p');
+      if(editor) editor.before(expect);
+      else frame.appendChild(expect);
+    }
+    expect.className='xf-expect'+(v.tone?' '+v.tone:'');
+    expect.textContent=cap;
+  }else if(expect) expect.remove();
+  return v;
+}
 function initTesteEditor(){
   const ta=document.getElementById('ed-teste');
   if(!ta)return;
@@ -9043,7 +9076,12 @@ function initTesteEditor(){
   const s=current&&state.lessons[current.id];
   const draft=s&&s.testeDraft;
   const defaultSql=(frame&&frame.dataset.testeSql)||'';
-  const initial=(draft!=null&&draft!=='')?draft:defaultSql;
+  const variants=testeFrameVariants(frame);
+  let initial=defaultSql;
+  if(variants&&variants.length){
+    const v=paintTesteVariant(frame, variants, 0);
+    initial=v?v.sql:variants[0].sql;
+  }else if(draft!=null&&draft!=='') initial=draft;
   ta.value=initial;
   setupEditor('ed-teste','hl-teste');
   syncHL('ed-teste','hl-teste');
@@ -9078,19 +9116,10 @@ function lessonRichFooter(l){
 }
 function switchTesteVariant(btn){
   const frame=btn.closest('.exframe');
-  if(!frame||!frame.dataset.variants)return;
-  let variants; try{variants=JSON.parse(frame.dataset.variants);}catch(e){return;}
+  const variants=testeFrameVariants(frame);
+  if(!variants)return;
   const i=+btn.dataset.i;
-  const v=variants[i]; if(!v)return;
-  frame.dataset.vi=String(i);
-  frame.dataset.testeSql=v.sql;
-  frame.classList.remove('tone-bad','tone-good');
-  if(v.tone) frame.classList.add('tone-'+v.tone);
-  frame.querySelectorAll('.xf-sw').forEach(b=>{
-    const on=+b.dataset.i===i;
-    b.classList.toggle('on',on);
-    b.setAttribute('aria-selected',on?'true':'false');
-  });
+  const v=paintTesteVariant(frame, variants, i); if(!v)return;
   const ta=frame.querySelector('.xf-sql');
   if(ta){
     ta.value=v.sql;
@@ -9098,23 +9127,11 @@ function switchTesteVariant(btn){
     fitSqlEditor(ta);
     if(current&&mode==='lesson'){
       const st=state.lessons[current.id]||(state.lessons[current.id]={level:0});
-      st.testeDraft=v.sql; save();
+      st.testeDraft=v.sql;
+      st.testeVi=i;
+      save();
     }
   }
-  const host=frame.querySelector('.xf-result');
-  if(host){ host.hidden=true; host.innerHTML=''; host.classList.remove('on','flash'); }
-  const editor=frame.querySelector('.xf-editor');
-  let expect=frame.querySelector('.xf-expect');
-  const cap=v.out||'';
-  if(cap){
-    if(!expect){
-      expect=document.createElement('p');
-      if(editor) editor.before(expect);
-      else frame.appendChild(expect);
-    }
-    expect.className='xf-expect'+(v.tone?' '+v.tone:'');
-    expect.textContent=cap;
-  }else if(expect) expect.remove();
   if(navigator.vibrate)navigator.vibrate(5);
 }
 function runExemple(btn){
