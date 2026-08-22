@@ -348,6 +348,10 @@
   .pt-card-b{margin:0;font-size:13.5px;line-height:1.5;color:var(--ink-2)}
   .pt-draw{margin:0 0 11px}
 
+  .pd-oncond{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .pd-oncond b{background:var(--accent);color:#fff;border-radius:11px;padding:8px 12px;font-family:var(--mono);font-size:12px;font-weight:700;overflow-wrap:anywhere}
+  .pd-oncond span{flex:none;color:var(--accent);font-family:var(--mono);font-size:16px;font-weight:800}
+
   /* Une ligne par correspondance : une source, trois sorties. */
   .pd-repeat{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .pd-src{flex:none;background:var(--accent);color:#fff;border-radius:11px;padding:8px 12px;font-family:var(--mono);font-size:12.5px;font-weight:700}
@@ -4905,9 +4909,9 @@ const MODULES = [
         good:{tag:"✓ Bon ON",sql:"SELECT clients.nom, commandes.produit_id\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;",out:"Sophie, Lucas, Emma… chaque commande avec le bon client"}},
     pointCards:{
       lead:"Sans la clause <code>ON</code>, SQL ne sait pas quelles lignes associer : il faut lui dire ce qui correspond à quoi.",
-      rule:{sql:"ON clients.id = commandes.client_id",
-        say:"associe une ligne de <b>clients</b> à une ligne de <b>commandes</b> lorsque leurs identifiants correspondent"},
       cards:[
+        {t:"La condition ON",draw:"oncond",
+         b:"<code>ON clients.id = commandes.client_id</code> associe une ligne de <b>clients</b> à une ligne de <b>commandes</b> lorsque leurs identifiants correspondent."},
         {t:"Une ligne par correspondance",draw:"repeat",
          b:"Sophie a passé 3 commandes, elle apparaît donc <b>3 fois</b> dans le résultat. Chaque correspondance produit sa propre ligne : ce n’est pas une fusion en une seule."},
         {t:"Pourquoi écrire clients.id",draw:"prefix",
@@ -8846,6 +8850,9 @@ function renderPointCards(pc){
 /* Schémas minimaux : du HTML mis en forme, pour rester lisible et se replier
    comme le reste — pas d'image à charger. */
 function pointDraw(kind){
+  if(kind==='oncond') return `<div class="pd-oncond" aria-hidden="true">
+      <b>clients.id</b><span>=</span><b>commandes.client_id</b>
+    </div>`;
   if(kind==='repeat') return `<div class="pd-repeat" aria-hidden="true">
       <span class="pd-src">Sophie</span>
       <span class="pd-fan"><i></i><i></i><i></i></span>
