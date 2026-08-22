@@ -12425,10 +12425,10 @@ const SQL_VIZ={
     </div>
     <p class="er-hint">Touche un client ou une commande.</p>
   </div>`},
-  joinon:{kind:'er',phases:[
-    {k:'Tables sources',d:'Avant la jointure, les informations sont séparées : dans la table <code>clients</code>, 1 → Sophie ; dans la table <code>commandes</code>, <code>client_id</code> 1 → <code>produit_id</code> 1.'},
-    {k:'Condition ON',d:'Grâce à la clause <code>ON clients.id = commandes.client_id</code>, SQL comprend : client 1 → Sophie → produit 1.'},
-    {k:'Résultat projeté',d:'Le JOIN permet de retrouver des informations réparties dans plusieurs tables.'}
+  joinon:{kind:'er',stepMs:4500,lastMs:3500,phases:[
+    {k:'Tables sources',d:'Avant la jointure, les informations sont séparées : dans la table <code>clients</code>, <code>id = 1</code> → Sophie ; dans la table <code>commandes</code>, <code>client_id = 1</code> → <code>produit_id = 1</code>.'},
+    {k:'Condition ON',d:'Grâce à la clause <code>ON clients.id = commandes.client_id</code>, SQL comprend : <code>id = 1</code> → Sophie → <code>produit_id = 1</code>.'},
+    {k:'Résultat projeté',d:'Le JOIN retrouve des infos réparties dans plusieurs tables : <code>id = 1</code> donne Sophie à côté de <code>produit_id = 1</code>.'}
   ],html:`<div class="er-stage er-match join-viz join-story">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
@@ -12969,12 +12969,13 @@ function havingGrpContinue(root,fromPhase){
     return;
   }
   const next=fromPhase+1;
-  const kind=sqlVizCfg(root).kind;
-  const delay=fromPhase===0?2400:(kind==='er'?2800:(kind==='minmax'?3400:3000));
+  const cfg=sqlVizCfg(root);
+  const kind=cfg.kind;
+  const delay=cfg.stepMs||(fromPhase===0?2400:(kind==='er'?2800:(kind==='minmax'?3400:3000)));
   havingGrpTimer=setTimeout(()=>{
     havingGrpSetPhase(root,next);
     if(next>=last){
-      havingGrpTimer=setTimeout(()=>havingGrpFinish(root),2000);
+      havingGrpTimer=setTimeout(()=>havingGrpFinish(root),cfg.lastMs||2000);
     }
     else havingGrpContinue(root,next);
   },delay);
