@@ -14,7 +14,7 @@
    CACHE doit changer à chaque déploiement pour purger l'ancien contenu :
    garde-le aligné sur APP_VERSION dans index.html. */
 
-const CACHE = 'requete-2026-08-22-join-v16';
+const CACHE = 'requete-2026-08-22-join-v17';
 
 const PRECACHE = [
   './',
