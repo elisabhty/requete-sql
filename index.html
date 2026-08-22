@@ -297,7 +297,8 @@
      ============================================================ */
   .join-recap{width:100%;border-collapse:collapse;font-size:13.5px;table-layout:fixed}
   .join-recap th{background:var(--bg);color:var(--ink-3);font-size:10.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;text-align:left;padding:11px 12px;border-bottom:1px solid var(--line)}
-  .join-recap td{padding:12px;border-bottom:1px solid var(--line);color:var(--ink);line-height:1.4;vertical-align:top;overflow-wrap:break-word}
+  .join-recap th,.join-recap td{white-space:normal}
+  .join-recap td{padding:12px;border-bottom:1px solid var(--line);color:var(--ink);line-height:1.4;vertical-align:top;overflow-wrap:break-word;font-family:var(--ui)}
   .join-recap tr:last-child td{border-bottom:0}
   .join-recap .jr-type{width:38%;font-family:var(--mono);font-weight:700;font-size:12.5px;color:var(--ink)}
   .join-recap .jr-quoi{color:var(--ink-2)}
@@ -876,7 +877,8 @@
   }
 
   /* JOIN : relier des lignes, pas un schéma ASCII */
-  .join-course{padding-bottom:calc(var(--ls-nav-h) + 28px)}
+  .join-course,.join-intro{padding-bottom:calc(var(--ls-nav-h) + 28px)}
+  .join-intro .sql-viz{margin-top:14px}
   .join-story .er-pair{grid-template-columns:minmax(0,1fr) 92px minmax(0,1fr);gap:10px;align-items:stretch}
   .join-bridge{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:132px;border:1px dashed rgba(91,91,214,.34);border-radius:16px;background:linear-gradient(180deg,rgba(91,91,214,.08),rgba(20,184,166,.07));box-shadow:inset 0 0 0 1px rgba(255,255,255,.72)}
   .join-bridge::before,.join-bridge::after{content:'';position:absolute;left:10px;right:10px;height:2px;border-radius:99px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:.35}
@@ -8243,10 +8245,10 @@ function joinRecapBlock(l){
   }).join('');
   return `<div class="concept-block">
     <h2><span class="h2-txt">Résumé visuel</span></h2>
-    <div class="table-wrap"><table class="join-recap">
+    <table class="join-recap">
       <thead><tr><th scope="col">Type</th><th scope="col">Lignes retournées</th></tr></thead>
       <tbody>${lignes}</tbody>
-    </table></div>
+    </table>
   </div>`;
 }
 function reflexBlock(l){
@@ -8597,6 +8599,28 @@ function renderSituationBody(l){
   return html;
 }
 const WHY_VIZ_TITLE="Suis ce qu'il se passe avec tes données.";
+function renderJoinIntroStudio(l){
+  const s=l.studio||{};
+  const demo=s.problem&&s.problem.demo?`<pre class="ex-code">${highlight(s.problem.demo)}</pre>`:'';
+  return `<div class="concept-page join-intro">
+    <div class="concept-block">
+      <h2><span class="h2-eye">L’idée</span><span class="h2-txt">${s.problem.title}</span></h2>
+      ${flowProseHtml(s.problem.body)}
+      ${demo}
+    </div>
+    <div class="concept-block">
+      <h2><span class="h2-eye">Visualisation</span><span class="h2-txt">${WHY_VIZ_TITLE}</span></h2>
+      ${flowProseHtml(s.why&&s.why.body)}
+      ${renderVizShell(s.viz)}
+    </div>
+    <div class="concept-block">
+      <h2><span class="h2-eye">Le rôle de ON</span><span class="h2-txt">Quelles lignes correspondent.</span></h2>
+      ${flowProseHtml(s.point)}
+      ${renderVs(s.vs)}
+    </div>
+    <!-- early-demo -->
+  </div>`;
+}
 function renderJoinCourse(l){
   const c=JOIN_COURSES[l.id];
   if(!c)return '';
@@ -8616,10 +8640,12 @@ function renderJoinCourse(l){
       <h2><span class="h2-eye">À retenir</span><span class="h2-txt">Points de contrôle.</span></h2>
       <ul class="join-memory-list">${c.memory.map(item=>`<li><i aria-hidden="true">✓</i><span>${item}</span></li>`).join('')}</ul>
     </div>
+    ${joinRecapBlock(l)}
     <!-- early-demo -->
   </div>`;
 }
 function renderStudio(l){
+  if(l.id===18) return renderJoinIntroStudio(l);
   if(JOIN_COURSES[l.id])return renderJoinCourse(l);
   const s=l.studio;
   if(!s)return l.concept||'';
@@ -8659,7 +8685,7 @@ function renderStudio(l){
 function lessonDemoBlocks(l){
   const anat=anatBlock(l);
   if(!anat&&!l.exemple)return '';
-  if(JOIN_COURSES[l.id]){
+  if(JOIN_COURSES[l.id]&&l.id!==18){
     return `${lessonRichFooter(l)}${anat?`<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`:''}`;
   }
   const order=l.orderRappel?`<div class="order-rappel">
@@ -9005,7 +9031,7 @@ function renderLessonFlow(){
         <div class="card">
           <div class="ex-code">${highlight(l.exemple)}</div>
           <p class="ex-out">↳ ${l.attendu}</p></div>
-        ${piegeBlock(l)}${reflexBlock(l)}${joinRecapBlock(l)}
+        ${piegeBlock(l)}${reflexBlock(l)}
       </div>`;
     }
   }else if(lessonStep===1){
@@ -12162,7 +12188,7 @@ const SQL_VIZ={
         <span>Lucas</span><span>1</span>
       </div>
     </div>
-    <p class="er-hint">Sélectionne une ligne client : les commandes qui satisfont le prédicat de jointure sont mises en évidence.</p>
+    <p class="er-hint">Touche un client : ses commandes s’allument — une ligne de résultat par correspondance.</p>
   </div>`},
   inner:{kind:'er',phases:[
     {k:'Tables sources',d:'La table clients fournit les clients. La table commandes fournit les lignes de vente et la référence client_id.'},
