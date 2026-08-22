@@ -563,6 +563,15 @@
   .ls-nav{animation:lsNavIn .4s cubic-bezier(.32,.72,.28,1) .15s both}
   @keyframes lsNavIn{from{opacity:0}to{opacity:1}}
   .ls-nav .ls-next{transition:transform .12s ease,box-shadow .12s ease,opacity .12s}
+  /* Le CTA collé en bas recouvrait ~90 px de l'écran en permanence, coupant
+     tableaux et paragraphes en pleine lecture. Il s'efface donc pendant qu'on
+     descend, et revient dès qu'on s'arrête ou qu'on remonte. */
+  .ls-nav{transition:transform .26s var(--spring-ios),opacity .2s ease}
+  .ls-nav.cta-away{transform:translateY(calc(100% + 18px));opacity:0;pointer-events:none}
+  @media (prefers-reduced-motion:reduce){
+    .ls-nav{transition:none}
+    .ls-nav.cta-away{transform:none;opacity:1;pointer-events:auto}
+  }
   .ls-nav .ls-next:active{transform:scale(.98);box-shadow:0 4px 12px -8px rgba(20,20,40,.35);opacity:.92}
   .ls-nav .ls-prev{transition:transform .12s ease,background .12s,box-shadow .12s}
   .ls-bar{transition:background .25s ease,transform .2s cubic-bezier(.3,1.4,.5,1)}
@@ -1075,7 +1084,8 @@
   .join-stepper{display:flex;gap:6px;align-items:stretch;margin:0 0 12px;padding:0 2px}
   .join-step{display:flex;align-items:center;gap:6px;min-width:0;flex:1;padding:7px 8px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--ink-3);transition:background .25s ease,border-color .25s ease,color .25s ease,transform .25s var(--spring-ios)}
   .join-step-num{display:flex;align-items:center;justify-content:center;flex:none;width:19px;height:19px;border-radius:6px;background:#E5E5EA;color:#8E8E93;font-size:10px;font-weight:850;transition:background .25s ease,color .25s ease}
-  .join-step-label{min-width:0;overflow-wrap:break-word;white-space:normal;line-height:1.25;font-size:11px;font-weight:750}
+  .join-step{flex-direction:column;align-items:flex-start;gap:5px}
+  .join-step-label{min-width:0;overflow-wrap:normal;word-break:normal;white-space:normal;line-height:1.25;font-size:11px;font-weight:750}
   .join-step.is-active{border-color:rgba(91,91,214,.28);background:var(--accent-soft);color:var(--accent);transform:translateY(-1px);box-shadow:0 4px 10px rgba(91,91,214,.1)}
   .join-step.is-active .join-step-num{background:var(--accent);color:#fff}
   .join-step.is-done{color:#0F766E;border-color:rgba(15,118,110,.18);background:rgba(20,184,166,.07)}
@@ -4887,7 +4897,7 @@ const MODULES = [
 
 { titre:"Relier", sous:"Plusieurs tables, une question", lessons:[
 { id:18, titre:"JOIN", résumé:"Relier deux tables",
-  situation:"Tu veux afficher le nom de chaque client avec les produits qu’il a commandés.<br><br>Mais il y a un problème : aucune table ne contient toutes ces informations.<br><br>Dans la table <code>clients</code>, tu trouves le nom et l’identifiant :<br><br><div class=\"mini-grid\"><div class=\"h\"><span>id</span><span>nom</span><span></span></div><div><span>1</span><span>Sophie</span><span></span></div><div><span>2</span><span>Lucas</span><span></span></div><div><span>3</span><span>Emma</span><span></span></div></div><br><br>Dans la table <code>commandes</code>, tu trouves les commandes avec <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br><br>La table <code>commandes</code> connaît le client grâce à <code>client_id</code>, mais elle ne contient pas son nom.<br><br>Pour récupérer le nom, il faut relier les deux tables.",
+  situation:"Tu veux afficher le nom de chaque client avec les produits qu’il a commandés.<br><br>Mais il y a un problème : aucune table ne contient toutes ces informations.<br><br>Dans la table <code>clients</code>, tu trouves le nom et l’identifiant :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, tu trouves les commandes avec <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br><br>La table <code>commandes</code> connaît le client grâce à <code>client_id</code>, mais elle ne contient pas son nom.<br><br>Pour récupérer le nom, il faut relier les deux tables.",
   situationTail:"Le nom du client est dans la table <code>clients</code>. La quantité et le produit sont dans la table <code>commandes</code>. La colonne <code>client_id</code> fait le lien entre les deux tables.<br><br>En reliant <code>clients.id</code> avec <code>commandes.client_id</code>, tu peux afficher pour chaque commande le nom du client correspondant.",
     studio:{problem:{title:"JOIN permet de rassembler les lignes de deux tables qui correspondent.",
       body:"<code>JOIN</code> recolle les informations réparties dans plusieurs tables — sans dupliquer le nom du client sur chaque commande.",
@@ -5016,7 +5026,7 @@ const MODULES = [
   richLesson:true, earlyDemo:true },
 { id:19, titre:"Relier plusieurs tables", résumé:"Trois tables, deux JOIN",
   situation:"Tu veux afficher le nom du client, le produit qu’il a commandé et la quantité achetée.<br><br>Le problème : ces informations sont réparties dans <b>3 tables</b>.",
-  situationTail:"Dans la table <code>clients</code>, tu as le nom du client :<br><div class=\"mini-grid\"><div class=\"h\"><span>id</span><span>nom</span><span></span></div><div><span>1</span><span>Sophie</span><span></span></div><div><span>2</span><span>Lucas</span><span></span></div><div><span>3</span><span>Emma</span><span></span></div></div><br>Dans la table <code>commandes</code>, tu sais qui a commandé quoi :<br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br>Dans la table <code>produits</code>, tu as le nom du produit :<br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Fibre Prébiotique</td></tr><tr><td>2</td><td>Collagène Marin</td></tr><tr><td>3</td><td>Magnésium</td></tr><tr><td>6</td><td>Protéine Végétale</td></tr></tbody></table></div><br>Aucune table ne contient à elle seule « Sophie → Fibre Prébiotique → 2 ». Il faut relier les 3 tables.",
+  situationTail:"Dans la table <code>clients</code>, tu as le nom du client :<br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr></tbody></table></div><br>Dans la table <code>commandes</code>, tu sais qui a commandé quoi :<br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br>Dans la table <code>produits</code>, tu as le nom du produit :<br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Fibre Prébiotique</td></tr><tr><td>2</td><td>Collagène Marin</td></tr><tr><td>3</td><td>Magnésium</td></tr><tr><td>6</td><td>Protéine Végétale</td></tr></tbody></table></div><br>Aucune table ne contient à elle seule « Sophie → Fibre Prébiotique → 2 ». Il faut relier les 3 tables.",
     studio:{problem:{title:"Deux relations à suivre — commandes est au centre.",
       body:"<code>clients.id ↔ commandes.client_id</code> et <code>commandes.produit_id ↔ produits.id</code>. Pour récupérer des informations dans les trois tables, il faut effectuer <b>deux JOIN</b>.",
       demo:"SELECT clients.nom,\n       produits.nom,\n       commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id\nJOIN produits\nON commandes.produit_id = produits.id;"},
@@ -8056,7 +8066,7 @@ function openLesson(id, restoreStep){
   }else if(done) lessonStep=3;
   else if(e.exo) lessonStep=2;
   else lessonStep=0;
-  renderLessonFlow(); showScreen();
+  renderLessonFlow(); showScreen(); brancherCtaScroll();
   saveNav();
 }
 function lessonStepMeta(){
@@ -8068,6 +8078,32 @@ function lessonStepMeta(){
     {i:1,l:'Exercice',s:'Pratique',done:exoOk,lock:false},
     {i:2,l:'Quiz',s:'Valider',done:quizOk,lock:!exoOk}
   ];
+}
+/* Efface le bouton d'action pendant qu'on descend, le rétablit à l'arrêt ou
+   en remontant. Écouteur passif + rAF : rien de synchrone pendant le scroll. */
+function brancherCtaScroll(){
+  const scr=document.getElementById('scr-lesson');
+  if(!scr||scr.dataset.ctaBound==='1')return;
+  scr.dataset.ctaBound='1';
+  let dernier=scr.scrollTop, tempo=null, enAttente=false;
+  scr.addEventListener('scroll',()=>{
+    if(enAttente)return;
+    enAttente=true;
+    requestAnimationFrame(()=>{
+      enAttente=false;
+      const nav=scr.querySelector('.ls-nav');
+      if(!nav)return;
+      const y=scr.scrollTop, d=y-dernier;
+      dernier=y;
+      if(prefersReduceMotion())return;
+      /* On ne masque qu'en descente franche, et jamais tout en bas de page. */
+      const versLeBas=d>4;
+      const finDePage=y+scr.clientHeight>=scr.scrollHeight-140;
+      nav.classList.toggle('cta-away',versLeBas&&!finDePage);
+      clearTimeout(tempo);
+      tempo=setTimeout(()=>nav.classList.remove('cta-away'),420);
+    });
+  },{passive:true});
 }
 function scrollLessonTop(){
   const wrap=document.getElementById('scr-lesson');
