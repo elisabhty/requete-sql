@@ -373,8 +373,23 @@
           havingGrpSetPhase(root, 0, { animate: false });
           havingGrpSyncControls(root);
 
+          /* Sur iOS, scroller fait apparaître/disparaître la barre d'adresse
+             Safari, ce qui émet une rafale de `resize` où seule la HAUTEUR
+             change. Relayouter à chaque fois recalcule tous les tracés SVG
+             (getBoundingClientRect + réécriture des path) en plein scroll, ce
+             qui le fait saccader. On ne réagit qu'à un vrai changement de
+             largeur, et on temporise — même garde que dans index.html. */
+          var grpStage = root.querySelector(".grp-stage");
+          var lastVizW = grpStage ? grpStage.clientWidth : 0;
+          var resizeT = 0;
           var onResize = function () {
-            layoutSqlViz(root, parseInt(root.dataset.phase || "0", 10), { animate: false });
+            var w = grpStage ? grpStage.clientWidth : 0;
+            if (w === lastVizW) return;
+            lastVizW = w;
+            clearTimeout(resizeT);
+            resizeT = setTimeout(function () {
+              layoutSqlViz(root, parseInt(root.dataset.phase || "0", 10), { animate: false });
+            }, 150);
           };
           if (root._grpResize) window.removeEventListener("resize", root._grpResize);
           root._grpResize = onResize;

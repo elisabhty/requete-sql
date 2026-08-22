@@ -63,7 +63,12 @@
   body{margin:0;min-height:100%;min-height:100dvh;overflow-x:hidden}
   body{font-family:var(--ui);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;overscroll-behavior:none;line-height:1.5}
   #app{max-width:520px;margin:0 auto;min-height:100dvh;height:100dvh;display:flex;flex-direction:column;position:relative;background:var(--bg);overflow:hidden;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
-  @supports (-webkit-touch-callout:none){
+  /* Repli pour les Safari iOS antérieurs à `dvh` (< 15.4). Sur les versions
+     récentes ce hack ÉCRASAIT 100dvh : -webkit-fill-available fige la hauteur
+     mesurée barre d'adresse déployée et ne se réévalue pas quand elle se
+     rétracte. #app se retrouvait mal dimensionné, et .screen avec lui
+     (position:absolute inset:0) — le scroll accrochait. */
+  @supports (-webkit-touch-callout:none) and (not (height:100dvh)){
     html{height:-webkit-fill-available}
     body{min-height:-webkit-fill-available}
     #app{min-height:-webkit-fill-available;height:-webkit-fill-available}
@@ -790,7 +795,12 @@
   /* Modélisation : schéma dessiné, phases CSS, tap pour relier */
   .sql-viz[data-kind="er"] .grp-stage{height:auto!important;overflow:visible}
   .er-stage{position:relative;font-family:var(--mono)}
-  .er-card-h{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:#fff;background:var(--accent);padding:8px 10px;border-radius:10px 10px 0 0}
+  /* flex-wrap : le badge de clé passe à la ligne plutôt que d'être rogné. */
+  .er-card-h{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:#fff;background:var(--accent);padding:8px 10px;border-radius:10px 10px 0 0;word-break:break-word}
+  .er-card-h>span{flex:none;min-width:0;overflow-wrap:anywhere}
+  .er-col{min-width:0}
+  .join-side-h{white-space:normal;letter-spacing:.2px;overflow-wrap:anywhere}
+  .join-trio .er-card-h{text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
   .er-pk,.er-fk{font-size:9px;font-weight:800;letter-spacing:.4px;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,.22)}
   .er-fk{background:rgba(255,210,160,.35)}
   .er-note,.er-hint{margin:10px 2px 0;font-family:var(--ui);font-size:12.5px;font-weight:600;color:var(--ink-3);line-height:1.4}
@@ -839,17 +849,20 @@
   .sql-viz[data-viz="pk"][data-phase="2"] .er-pk-row span[data-dup="1"]::after{content:' ×3';font-size:9px;font-weight:800;letter-spacing:.2px;opacity:.75}
   .er-pk-row[data-er-on="1"]{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
   .er-match{position:relative}
-  .er-pair{display:grid;grid-template-columns:1fr 1fr;gap:18px;position:relative;z-index:1}
+  .er-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;position:relative;z-index:1}
   .er-col{border:1px solid var(--card-border);border-radius:12px;overflow:hidden;background:var(--surface);box-shadow:var(--card-shadow-sm)}
   .er-col[data-side="fk"] .er-card-h{background:var(--accent)}
-  .er-btn{display:flex;align-items:center;gap:8px;width:100%;border:0;border-top:1px solid var(--line);background:transparent;padding:8px 10px;font:inherit;font-size:11.5px;font-weight:600;color:var(--ink);text-align:left;cursor:pointer;touch-action:manipulation;white-space:nowrap;overflow:hidden;transition:background .2s ease,transform .16s var(--spring-ios),box-shadow .2s}
+  /* Une ligne de table ne doit jamais perdre de texte : sous ~390 px,
+     « #1 · qté 2 » ou « Protéine » se faisaient couper net par le nowrap. */
+  .er-btn{display:flex;align-items:flex-start;gap:8px;width:100%;border:0;border-top:1px solid var(--line);background:transparent;padding:8px 10px;font:inherit;font-size:11.5px;font-weight:600;color:var(--ink);text-align:left;cursor:pointer;touch-action:manipulation;white-space:normal;overflow-wrap:break-word;line-height:1.3;overflow:visible;transition:background .2s ease,transform .16s var(--spring-ios),box-shadow .2s}
   .er-btn:hover{background:rgba(91,91,214,.06)}
   .er-btn:active{transform:scale(.98)}
   .er-btn .er-key{flex:none;min-width:22px;height:22px;padding:0 5px;border-radius:7px;background:var(--surface-2);color:var(--ink-2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}
   .er-btn[data-er-on="1"]{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
   .er-btn[data-er-on="1"] .er-key{background:var(--accent);color:#fff}
   .er-links{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;overflow:visible}
-  .er-line{fill:none;stroke:rgba(91,91,214,.28);stroke-width:2;stroke-linecap:round;opacity:0}
+  /* Le trait au repos était trop pâle pour se lire sur la gouttière. */
+  .er-line{fill:none;stroke:rgba(91,91,214,.45);stroke-width:2.4;stroke-linecap:round;opacity:0}
   .sql-viz[data-viz="fk"][data-phase="2"] .er-line{opacity:1;stroke-dasharray:120;stroke-dashoffset:120;animation:erDraw .9s ease forwards}
   .sql-viz[data-viz="fk"][data-phase="2"] .er-line:nth-child(1){animation-delay:.05s}
   .sql-viz[data-viz="fk"][data-phase="2"] .er-line:nth-child(2){animation-delay:.14s}
@@ -885,16 +898,19 @@
   .join-bridge::before{top:32px}.join-bridge::after{bottom:32px}
   .join-bridge-badge{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:14px;background:var(--accent);color:#fff;font-family:var(--mono);font-size:13px;font-weight:900;box-shadow:0 8px 18px rgba(91,91,214,.22)}
   .join-bridge small{display:block;max-width:74px;text-align:center;font-family:var(--ui);font-size:9.5px;line-height:1.25;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.35px}
-  .join-card-note{display:block;margin-left:auto;font-family:var(--ui);font-size:9.5px;font-weight:800;color:var(--ink-3);letter-spacing:.2px}
+  .join-card-note{display:block;margin-left:auto;font-family:var(--ui);font-size:9.5px;font-weight:800;color:var(--ink-3);letter-spacing:.2px;white-space:normal;overflow-wrap:anywhere;min-width:0}
   .join-mini-table{display:grid;grid-template-columns:1.2fr .9fr;gap:1px;overflow:hidden;border:1px solid rgba(91,91,214,.16);border-radius:12px;background:rgba(91,91,214,.16);font-family:var(--mono);font-size:10.5px;font-weight:750;color:var(--ink)}
-  .join-mini-table span{padding:7px 8px;background:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .join-mini-table span{padding:7px 8px;background:#fff;white-space:normal;overflow-wrap:break-word;line-height:1.25}
   .join-mini-table .head{background:var(--accent-soft);color:var(--accent);font-family:var(--ui);font-size:9px;text-transform:uppercase;letter-spacing:.45px;font-weight:850}
   .sql-viz[data-viz="joinon"][data-phase="0"] .join-bridge{opacity:.5;filter:grayscale(.25)}
   .sql-viz[data-viz="joinon"][data-phase="1"] .join-bridge,.sql-viz[data-viz="joinon"][data-phase="2"] .join-bridge{border-style:solid;animation:joinBridgePulse 1.2s ease-in-out infinite alternate}
   .sql-viz[data-viz="joinon"][data-phase="2"] .er-links{opacity:0;transition:opacity .22s ease}
   @keyframes joinBridgePulse{from{box-shadow:inset 0 0 0 1px rgba(255,255,255,.72),0 0 0 rgba(91,91,214,0)}to{box-shadow:inset 0 0 0 1px rgba(255,255,255,.72),0 0 0 5px rgba(91,91,214,.08)}}
   @media (max-width:920px){.join-story .er-pair{grid-template-columns:1fr;gap:8px}.join-story .er-links{display:none}.join-bridge{min-height:54px;flex-direction:row;border-radius:13px}.join-bridge::before,.join-bridge::after{left:18px;right:18px}.join-bridge::before{top:12px}.join-bridge::after{bottom:12px}.join-bridge-badge{width:34px;height:34px;border-radius:11px;font-size:11px}.join-bridge small{max-width:none;font-size:9px}.join-mini-table{font-size:10px}}
-  .join-trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;position:relative;z-index:1}
+  /* minmax(0,1fr) et non 1fr : sinon un mot insécable impose sa largeur
+     minimale à la colonne, qui déborde de la grille et chevauche sa
+     voisine (visible dès 320 px). */
+  .join-trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;position:relative;z-index:1}
   .join-trio .er-col[data-side="prd"] .er-card-h{background:var(--accent)}
   .join-out{display:flex;flex-direction:column;gap:6px;max-height:0;opacity:0;overflow:hidden;margin:0;transition:max-height .5s ease,opacity .4s ease,margin .35s ease}
   .sql-viz[data-phase="2"] .join-out,
@@ -950,7 +966,7 @@
   .sql-viz[data-viz="orphan"][data-phase="1"] .er-btn:not([data-join="keep"]):not(.join-ghost){opacity:.32}
   .sql-viz[data-viz="orphan"][data-phase="2"] .er-btn:not([data-join="keep"]):not(.join-ghost){opacity:.12;filter:grayscale(.7)}
   .sql-viz[data-viz="orphan"][data-phase="2"] .join-ghost{background:var(--success-soft)}
-  .join-sets{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .join-sets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
   .join-side{border:1px solid var(--card-border);border-radius:14px;overflow:hidden;background:var(--surface);box-shadow:var(--card-shadow-sm)}
   .join-side-h{font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#fff;padding:8px 10px;background:var(--accent)}
   .join-side[data-side="r"] .join-side-h{background:var(--accent)}
@@ -994,7 +1010,7 @@
   .join-stepper{display:flex;gap:6px;align-items:stretch;margin:0 0 12px;padding:0 2px}
   .join-step{display:flex;align-items:center;gap:6px;min-width:0;flex:1;padding:7px 8px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--ink-3);transition:background .25s ease,border-color .25s ease,color .25s ease,transform .25s var(--spring-ios)}
   .join-step-num{display:flex;align-items:center;justify-content:center;flex:none;width:19px;height:19px;border-radius:6px;background:#E5E5EA;color:#8E8E93;font-size:10px;font-weight:850;transition:background .25s ease,color .25s ease}
-  .join-step-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;font-weight:750}
+  .join-step-label{min-width:0;overflow-wrap:break-word;white-space:normal;line-height:1.25;font-size:11px;font-weight:750}
   .join-step.is-active{border-color:rgba(91,91,214,.28);background:var(--accent-soft);color:var(--accent);transform:translateY(-1px);box-shadow:0 4px 10px rgba(91,91,214,.1)}
   .join-step.is-active .join-step-num{background:var(--accent);color:#fff}
   .join-step.is-done{color:#0F766E;border-color:rgba(15,118,110,.18);background:rgba(20,184,166,.07)}
@@ -1033,10 +1049,95 @@
     .join-step-label{font-size:9px}
     .join-step-num{width:17px;height:17px;font-size:9px}
   }
+  /* Le trio a besoin d'une échelle à part, mais la contrainte vient du
+     CONTENEUR (la viz fait 246→438 px quel que soit le téléphone), pas de la
+     fenêtre : ces media queries ne se déclenchaient donc jamais. */
   @media (max-width:380px){
     .join-trio{gap:6px}
-    .join-trio .er-btn{padding:7px 6px;font-size:10.5px}
-    .join-trio .er-key{min-width:18px;height:18px;font-size:9px}
+  }
+
+  /* ============================================================
+     Lisibilité des animations « Relier » : tailles fluides.
+
+     La viz occupe de 246 px (iPhone SE) à 438 px (l'app est bornée à 520 px) :
+     presque le double. Les tailles étaient figées, donc le texte restait à
+     8,5–11 px même quand la place le permettait. On indexe sur la largeur du
+     conteneur (cqi). Chaque clamp part d'un plancher lisible (11 px) et monte
+     jusqu'à une taille confortable. Le @supports garde les valeurs fixes si
+     les container queries manquent (Safari < 16).
+     ============================================================ */
+  @supports (container-type:inline-size){
+    .grp-viz{
+      container-type:inline-size;
+      --vz-row:clamp(12px, 8.8px + 1.3cqi, 14.5px);       /* texte d'une ligne  */
+      --vz-key:clamp(11px, 8.45px + 1.04cqi, 12.5px);     /* chiffre de la clé  */
+      --vz-keybox:clamp(23px, 17.9px + 2.08cqi, 27px);    /* pastille de la clé */
+      --vz-head:clamp(11.5px, 8.95px + 1.04cqi, 13.5px);  /* en-tête de table   */
+      --vz-tag:clamp(11px, 8.45px + 1.04cqi, 12.5px);     /* badge PK / FK      */
+      --vz-hint:clamp(12.5px, 10.6px + .78cqi, 14px);     /* légende sous la viz*/
+    }
+    .er-card-h{font-size:var(--vz-head)}
+    .er-pk,.er-fk{font-size:var(--vz-tag)}
+    .er-note,.er-hint{font-size:var(--vz-hint)}
+    .er-btn{font-size:var(--vz-row)}
+    .er-btn .er-key{min-width:var(--vz-keybox);height:var(--vz-keybox);font-size:var(--vz-key)}
+    .er-mini-row{font-size:var(--vz-row)}
+    .er-mini-row .er-key{width:var(--vz-keybox);height:var(--vz-keybox);font-size:var(--vz-key)}
+    .er-pk-row span{font-size:var(--vz-row)}
+    .er-th{font-size:var(--vz-tag)}
+    .er-td{font-size:var(--vz-head)}
+    .grp-k{font-size:var(--vz-head)}
+    .join-side-h{font-size:var(--vz-tag)}
+    .join-step-label{font-size:var(--vz-tag)}
+    /* Les éléments ajoutés par la refonte des cours JOIN suivent la même
+       échelle : rien sous 11 px, tout grandit avec le conteneur. */
+    .join-output-label{font-size:var(--vz-tag)}
+    .join-guide-kicker,.join-guide-legend{font-size:var(--vz-tag)}
+    .join-guide-step strong{font-size:var(--vz-head)}
+    .join-guide-step span:last-child{font-size:var(--vz-tag)}
+    .join-card-note{font-size:var(--vz-tag)}
+    .join-mini-table{font-size:var(--vz-row)}
+    .join-mini-table .head{font-size:var(--vz-tag)}
+    .join-bridge small{font-size:var(--vz-tag)}
+    .join-step-num{width:var(--vz-keybox);height:var(--vz-keybox);font-size:var(--vz-key)}
+    .join-drop-lab{font-size:var(--vz-tag)}
+    .join-pill{font-size:var(--vz-hint)}
+    .join-pill .jn{font-size:var(--vz-key)}
+    .jchip{font-size:clamp(13px, 10.45px + 1.04cqi, 15px)}
+    .jchip .er-key{width:var(--vz-keybox);height:var(--vz-keybox);font-size:var(--vz-head)}
+
+    /* Trois colonnes : ~1/3 de la place, donc une échelle plus serrée — qui
+       grandit elle aussi avec le conteneur. */
+    .join-trio{
+      --vz-row:clamp(11px, 7.8px + 1.3cqi, 13px);
+      --vz-key:clamp(11px, 8.45px + 1.04cqi, 12px);
+      --vz-keybox:clamp(18px, 12.9px + 2.08cqi, 22px);
+      --vz-head:clamp(11px, 8.45px + 1.04cqi, 12.5px);
+    }
+    .join-trio .er-btn{font-size:var(--vz-row);padding:7px 5px;gap:4px}
+    .join-trio .er-btn .er-key{min-width:var(--vz-keybox);height:var(--vz-keybox);font-size:var(--vz-key);margin-top:1px}
+    .join-trio .er-card-h{font-size:var(--vz-head);padding:7px 6px}
+
+    /* La gouttière est l'espace où se dessinent les traits de jointure :
+       10 px fixes les réduisaient à des tirets dès qu'il y avait de la place. */
+    .join-trio{gap:clamp(10px, 4cqi, 24px)}
+    .er-pair{gap:clamp(18px, 7cqi, 40px)}
+
+    /* Sous ces largeurs, découper en 3 (ou 2) colonnes ne laisse plus assez de
+       place au texte : on empile. Chaque table reprend toute la largeur et
+       redevient lisible ; drawErLinks bascule sur un tracé vertical. */
+    @container (max-width:300px){
+      .join-trio{grid-template-columns:minmax(0,1fr);gap:8px}
+      /* Empilées, deux lignes à relier ne sont pas voisines : la courbe
+         traverserait les cartes intermédiaires. La surbrillance des lignes
+         liées porte déjà l'information, sans salir le dessin. */
+      .er-match:has(.join-trio) .er-links{display:none}
+      .join-trio{--vz-row:clamp(12px, 8.8px + 1.3cqi, 14.5px);--vz-key:clamp(11px, 8.45px + 1.04cqi, 12.5px);--vz-keybox:clamp(23px, 17.9px + 2.08cqi, 27px);--vz-head:clamp(11.5px, 8.95px + 1.04cqi, 13.5px)}
+      .join-trio .er-btn{padding:8px 10px;gap:8px}
+    }
+    @container (max-width:270px){
+      .join-sets{grid-template-columns:minmax(0,1fr)}
+    }
   }
 
   .anat{background:var(--code-bg);border-radius:14px;padding:6px 0;margin-bottom:16px}
@@ -12620,10 +12721,21 @@ function drawErLinks(root){
     const path=paths[i];
     if(!path)return;
     const a=pair.from.getBoundingClientRect(),b=pair.to.getBoundingClientRect();
-    const x1=a.right-wr.left,y1=a.top+a.height/2-wr.top;
-    const x2=b.left-wr.left,y2=b.top+b.height/2-wr.top;
-    const mid=(x1+x2)/2;
-    path.setAttribute('d','M'+x1+','+y1+' C'+mid+','+y1+' '+mid+','+y2+' '+x2+','+y2);
+    /* Sur les écrans étroits les tables sont empilées au lieu d'être côte à
+       côte : la cible n'est plus à droite de la source mais en dessous. Un
+       tracé horizontal partirait alors à droite pour revenir à gauche. */
+    const empile=b.left<a.right-1;
+    if(empile){
+      const x1=a.left+a.width/2-wr.left,y1=a.bottom-wr.top;
+      const x2=b.left+b.width/2-wr.left,y2=b.top-wr.top;
+      const mid=(y1+y2)/2;
+      path.setAttribute('d','M'+x1+','+y1+' C'+x1+','+mid+' '+x2+','+mid+' '+x2+','+y2);
+    }else{
+      const x1=a.right-wr.left,y1=a.top+a.height/2-wr.top;
+      const x2=b.left-wr.left,y2=b.top+b.height/2-wr.top;
+      const mid=(x1+x2)/2;
+      path.setAttribute('d','M'+x1+','+y1+' C'+mid+','+y1+' '+mid+','+y2+' '+x2+','+y2);
+    }
     path.setAttribute('data-er-link',pair.link);
     path.setAttribute('data-er-hop',pair.hop);
     if(pair.link2) path.setAttribute('data-er-link2',pair.link2);
