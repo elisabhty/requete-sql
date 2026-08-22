@@ -12419,7 +12419,7 @@ const SQL_VIZ={
     </div>
     <p class="er-hint">Touche un client ou une commande.</p>
   </div>`},
-  joinon:{kind:'er',stepMs:4500,lastMs:3500,phases:[
+  joinon:{kind:'er',stepMs:10000,lastMs:10000,phases:[
     {k:'Tables sources',d:'Avant la jointure, les informations sont séparées : dans la table <code>clients</code>, <code>id = 1</code> → Sophie ; dans la table <code>commandes</code>, <code>client_id = 1</code> → <code>produit_id = 1</code>.'},
     {k:'Condition ON',d:'Grâce à la clause <code>ON clients.id = commandes.client_id</code>, SQL comprend : <code>id = 1</code> → Sophie → <code>produit_id = 1</code>.'},
     {k:'Résultat projeté',d:'SQL a relié les deux lignes qui portent <code>id = 1</code>. Une ligne de résultat est née : Sophie vient de la table <code>clients</code>, <code>produit_id = 1</code> vient de la table <code>commandes</code>.'}
@@ -12965,11 +12965,11 @@ function havingGrpContinue(root,fromPhase){
   const next=fromPhase+1;
   const cfg=sqlVizCfg(root);
   const kind=cfg.kind;
-  const delay=cfg.stepMs||(fromPhase===0?2400:(kind==='er'?2800:(kind==='minmax'?3400:3000)));
+  const delay=cfg.stepMs||(kind==='er'?10000:(fromPhase===0?2400:(kind==='minmax'?3400:3000)));
   havingGrpTimer=setTimeout(()=>{
     havingGrpSetPhase(root,next);
     if(next>=last){
-      havingGrpTimer=setTimeout(()=>havingGrpFinish(root),cfg.lastMs||2000);
+      havingGrpTimer=setTimeout(()=>havingGrpFinish(root),cfg.lastMs||(kind==='er'?10000:2000));
     }
     else havingGrpContinue(root,next);
   },delay);
