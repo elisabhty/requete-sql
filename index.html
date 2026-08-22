@@ -1089,7 +1089,7 @@
   .join-step.is-done .join-step-num{background:var(--accent);color:#fff}
   .join-progress{height:3px;margin:-5px 2px 8px;overflow:hidden;border-radius:99px;background:#E5E5EA}
   .join-progress-bar{display:block;width:0;height:100%;border-radius:inherit;background:var(--accent);transition:width .45s ease}
-  .join-caption{margin:0 4px 14px;text-align:center;font-size:12px;line-height:1.4;font-weight:600;color:var(--ink-3)}
+  .join-caption{margin:0 8px 12px;text-align:center;font-size:10px;line-height:1.35;font-weight:500;color:#8E8E93}
   .sql-viz[data-kind="er"] .grp-desc{min-height:3.6em}
   .sql-viz[data-kind="er"] .grp-desc code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);color:var(--accent);padding:1px 6px;border-radius:6px;font-weight:600}
   @media (max-width:460px){
@@ -4896,41 +4896,36 @@ const MODULES = [
 
 { titre:"Relier", sous:"Plusieurs tables, une question", lessons:[
 { id:18, titre:"JOIN", résumé:"Relier deux tables",
-  situation:"Tu veux afficher le nom de chaque client avec les produits qu’il a commandés.<br><br>Mais il y a un problème : aucune table ne contient toutes ces informations.<br><br>Dans la table <code>clients</code>, tu trouves le nom et l’identifiant :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, tu trouves les commandes avec <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br><br>La table <code>commandes</code> connaît le client grâce à <code>client_id</code>, mais elle ne contient pas son nom.<br><br>Pour récupérer le nom, il faut relier les deux tables.",
-  situationTail:"Pour relier les deux tables, on utilise <code>ON</code> : on compare la <b>clé primaire</b> <code>clients.id</code> à la <b>clé étrangère</b> <code>commandes.client_id</code>.",
+  situation:"Tu veux afficher le nom de chaque client avec les produits qu’il a commandés.<br><br>Mais il y a un problème : aucune table ne contient toutes ces informations.<br><br>Dans la table <code>clients</code>, tu trouves le nom et l’identifiant du client :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, tu trouves les commandes avec <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br><br>La table <code>commandes</code> connaît le client grâce à <code>client_id</code>, mais elle ne contient pas son nom.<br><br>Pour récupérer le nom, il faut relier les deux tables.",
+  situationTail:"Pour relier les deux tables, on utilise la clause <code>ON</code> : on compare la <b>clé primaire</b> <code>clients.id</code> à la <b>clé étrangère</b> <code>commandes.client_id</code>.",
     studio:{problem:{title:"JOIN permet de rassembler les lignes de deux tables qui correspondent.",
-      body:"<code>JOIN</code> recolle les informations réparties dans plusieurs tables — sans dupliquer le nom du client sur chaque commande.",
+      body:"<code>JOIN</code> et <code>ON</code> sont des <b>clauses</b>, pas des fonctions. <code>JOIN</code> annonce la deuxième table ; <code>ON</code> dit quelles lignes correspondent — sans dupliquer le nom du client sur chaque commande.",
       demo:"SELECT clients.nom, commandes.produit_id\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;"},
     vs:{bad:{tag:"✕ Mauvaises colonnes",sql:"SELECT clients.nom, commandes.produit_id\nFROM clients\nJOIN commandes\nON clients.id = commandes.produit_id;",out:"Incohérent : produit_id identifie un produit, pas un client",pedagogic:true},
         good:{tag:"✓ Bon ON",sql:"SELECT clients.nom, commandes.produit_id\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;",out:"Sophie, Lucas, Emma… chaque commande avec le bon client"}},
     pointCards:{
-      lead:"Sans <code>ON</code>, SQL ne sait pas quelles lignes associer : il faut lui dire ce qui correspond à quoi.",
+      lead:"Sans la clause <code>ON</code>, SQL ne sait pas quelles lignes associer : il faut lui dire ce qui correspond à quoi.",
       rule:{sql:"ON clients.id = commandes.client_id",
         say:"associe une ligne de <b>clients</b> à une ligne de <b>commandes</b> lorsque leurs identifiants correspondent"},
-      chain:[
-        {k:"la commande",v:"id = 1"},
-        {k:"porte",v:"client_id = 1"},
-        {k:"donc le client",v:"Sophie"}
-      ],
       cards:[
         {t:"Une ligne par correspondance",draw:"repeat",
          b:"Sophie a passé 3 commandes, elle apparaît donc <b>3 fois</b> dans le résultat. Chaque correspondance produit sa propre ligne : ce n’est pas une fusion en une seule."},
         {t:"Pourquoi écrire clients.nom",draw:"prefix",
          b:"Les deux tables ont une colonne <code>id</code>. Préfixer par le nom de la table lève l’ambiguïté : SQL sait de quel <code>id</code> tu parles."},
         {t:"Clé primaire, clé étrangère",draw:"pkfk",
-         b:"<code>clients.id</code> identifie chaque client. <code>commandes.client_id</code> recopie cet identifiant. C’est cette relation que <code>ON</code> utilise."}
+         b:"<code>clients.id</code> identifie chaque client. <code>commandes.client_id</code> recopie cet identifiant. C’est cette relation que la clause <code>ON</code> utilise."}
       ]},
     point:"Sans <code>ON</code>, SQL ne sait pas quelles lignes associer.<br><br><b>Le rôle de ON</b> — <code>ON clients.id = commandes.client_id</code> signifie : « associe une ligne de clients à une ligne de commandes lorsque leurs identifiants correspondent. »<br><br>Pour la commande <code>id = 1</code>, <code>client_id</code> vaut 1 → SQL cherche le client dont <code>id = 1</code> → Sophie.<br><br><b>Sophie apparaît 3 fois</b> (commandes 1, 2 et 13) : une ligne est produite pour chaque correspondance. Ce n’est pas une fusion en une seule ligne.<br><br><b>Pourquoi <code>clients.nom</code> ?</b> Les deux tables ont une colonne <code>id</code>. Préfixer avec le nom de la table (<code>table.colonne</code>) évite l’ambiguïté.<br><br><b>Clé primaire et clé étrangère</b> — <code>clients.id</code> est la clé primaire ; <code>commandes.client_id</code> la recopie. C’est cette relation que l’on utilise dans <code>ON</code>.",
     why:{title:"Suis ce qui arrive à tes données.",
       body:""},
     reflex:{a:{k:"JOIN",t:"relie deux tables"},
       b:{k:"ON",t:"clé primaire = clé étrangère"},
-      note:"Avant d’écrire <code>ON</code>, demande-toi : « Quelle <b>clé étrangère</b> de la deuxième table pointe vers la <b>clé primaire</b> de la première ? » Ici, <code>commandes.client_id</code> → <code>clients.id</code>."},
+      note:"Avant d’écrire la clause <code>ON</code>, demande-toi : « Quelle <b>clé étrangère</b> de la deuxième table pointe vers la <b>clé primaire</b> de la première ? » Ici, <code>commandes.client_id</code> → <code>clients.id</code>."},
     viz:"joinon"},
-  anatomie:[{tok:"FROM clients",txt:"La première table utilisée."},{tok:"JOIN commandes",txt:"La deuxième table à relier."},{tok:"ON clients.id = commandes.client_id",txt:"La condition de correspondance : id ↔ client_id."},{tok:"SELECT clients.nom, commandes.quantite",txt:"Les colonnes à afficher, une fois les lignes reliées."}],
+  anatomie:[{tok:"FROM clients",txt:"La première table utilisée."},{tok:"JOIN commandes",txt:"La deuxième table à relier."},{tok:"ON clients.id = commandes.client_id",txt:"La clause de correspondance : clé primaire ↔ clé étrangère."},{tok:"SELECT clients.nom, commandes.quantite",txt:"Les colonnes à afficher, une fois les lignes reliées."}],
   exemple:"SELECT clients.nom, commandes.produit_id, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;",
   attendu:"15 lignes : une par commande, avec le nom du client (Sophie apparaît 3 fois).",
-  retenir:"<code>JOIN</code> sert à relier deux tables. <code>ON</code> indique quelles lignes correspondent.<br><br>Dans notre base : <code>clients.id = commandes.client_id</code> retrouve le client de chaque commande.<br><br>Structure de base : <code>SELECT table1.colonne, table2.colonne FROM table1 JOIN table2 ON table1.id = table2.cle_etrangere;</code>",
+  retenir:"<code>JOIN</code> et <code>ON</code> sont des clauses. <code>JOIN</code> relie deux tables ; la clause <code>ON</code> indique quelles lignes correspondent.<br><br>Dans notre base : <code>clients.id = commandes.client_id</code> retrouve le client de chaque commande.<br><br>Structure de base : <code>SELECT table1.colonne, table2.colonne FROM table1 JOIN table2 ON table1.id = table2.cle_etrangere;</code>",
   piege:{t:"Relier les mauvaises colonnes",p:"<code>ON clients.id = commandes.produit_id</code> peut s’exécuter, mais le résultat est faux : <code>produit_id</code> identifie un produit, pas un client. La bonne relation est <code>clients.id = commandes.client_id</code>."},
   consigne:"Affiche le nom de chaque client et la <code>quantite</code> de chaque produit qu’il a commandé.",
   solution:"SELECT clients.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;",
@@ -5428,7 +5423,7 @@ const CARTES={
  35:{k:"FOREIGN KEY",t:"Pointer vers une autre table",s:"SELECT client_id, produit_id FROM commandes;",
     m:"Une <b>clé étrangère</b> recopie la clé primaire d’une autre table. <code>client_id</code> peut se répéter : un client, plusieurs commandes."},
  18:{k:"JOIN",t:"Relier deux tables",s:"FROM clients\nJOIN commandes ON clients.id = commandes.client_id",
-    m:"<code>JOIN</code> relie deux tables. <code>ON</code> indique quelles lignes correspondent — ici <code>clients.id = commandes.client_id</code>. Préfixe (<code>clients.nom</code>) dès qu’il y a ambiguïté."},
+    m:"<code>JOIN</code> relie deux tables. La clause <code>ON</code> indique quelles lignes correspondent — ici <code>clients.id = commandes.client_id</code>. Préfixe (<code>clients.nom</code>) dès qu’il y a ambiguïté."},
  36:{k:"INNER JOIN",t:"Garder les correspondances",s:"FROM clients\nINNER JOIN commandes ON clients.id = commandes.client_id",
     m:"Garde uniquement les lignes qui matchent des <b>deux côtés</b>. 0 commande → client écarté. 3 commandes → 3 lignes. <code>JOIN</code> = <code>INNER JOIN</code>."},
  19:{k:"3 tables",t:"Relier plusieurs tables",s:"FROM clients\nJOIN commandes ON …\nJOIN produits ON …",
@@ -5510,7 +5505,7 @@ const QCM={
    {q:"Trois clientes habitent Paris. <code>WHERE ville = 'Paris'</code> renvoie :",o:["Une seule personne","Les 3 Parisiennes — ce n’est pas un identifiant","Une erreur"],b:1,e:"La ville n’est pas unique. Pour une personne précise, on utilise id."}],
  35:[{q:"Une clé étrangère :",o:["Est toujours unique","Recopie la clé primaire d’une autre table","Remplace le JOIN"],b:1,e:"commandes.client_id recopie clients.id. Ce n’est pas unique : un client peut avoir plusieurs commandes."},
    {q:"Sophie a 3 commandes. <code>client_id = 1</code> apparaît :",o:["1 fois","3 fois","9 fois"],b:1,e:"Relation 1-N : une personne, plusieurs achats. La clé étrangère se répète."}],
- 18:[{q:"À quoi sert la clause <code>ON</code> ?",o:["À trier le résultat","À dire quelles lignes de deux tables correspondent","À filtrer les lignes"],b:1,e:"C’est la condition de correspondance entre les deux tables."},
+ 18:[{q:"À quoi sert la clause <code>ON</code> ?",o:["À trier le résultat","À dire quelles lignes de deux tables correspondent","À filtrer les lignes"],b:1,e:"Ce n’est pas une fonction : c’est la clause qui donne la condition de correspondance entre les deux tables."},
    {q:"Sophie a 3 commandes. Dans un JOIN clients/commandes, son nom apparaît :",o:["1 fois","3 fois","9 fois"],b:1,e:"Une ligne est produite pour chaque correspondance trouvée."}],
  36:[{q:"<code>INNER JOIN</code> conserve :",o:["Toutes les lignes des deux tables","Uniquement les lignes qui ont une correspondance des deux côtés","Toutes les lignes de la table de gauche"],b:1,e:"Sans match, la ligne est écartée — comme Inès, qui n’a jamais commandé."},
    {q:"Écrire <code>JOIN</code> sans préciser INNER ou LEFT, c’est en général :",o:["Un LEFT JOIN","Un INNER JOIN","Un produit cartésien"],b:1,e:"En SQL standard, JOIN seul signifie INNER JOIN."}],
@@ -8885,7 +8880,7 @@ function renderJoinIntroStudio(l){
       ${renderVizShell(s.viz)}
     </div>
     <div class="concept-block">
-      <h2><span class="h2-eye">Le rôle de ON</span><span class="h2-txt">Quelles lignes correspondent.</span></h2>
+      <h2><span class="h2-eye">La clause ON</span><span class="h2-txt">Quelles lignes correspondent.</span></h2>
       ${s.pointCards?renderPointCards(s.pointCards):flowProseHtml(s.point)}
     </div>
     <!-- early-demo -->
@@ -12432,7 +12427,7 @@ const SQL_VIZ={
   </div>`},
   joinon:{kind:'er',phases:[
     {k:'Tables sources',d:'Avant la jointure, les informations sont séparées : dans la table <code>clients</code>, 1 → Sophie ; dans la table <code>commandes</code>, <code>client_id</code> 1 → <code>produit_id</code> 1.'},
-    {k:'Condition ON',d:'Grâce à <code>ON clients.id = commandes.client_id</code>, SQL comprend : client 1 → Sophie → produit 1.'},
+    {k:'Condition ON',d:'Grâce à la clause <code>ON clients.id = commandes.client_id</code>, SQL comprend : client 1 → Sophie → produit 1.'},
     {k:'Résultat projeté',d:'Le JOIN permet de retrouver des informations réparties dans plusieurs tables.'}
   ],html:`<div class="er-stage er-match join-viz join-story">
     <svg class="er-links" aria-hidden="true"></svg>
