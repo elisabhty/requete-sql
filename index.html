@@ -1092,7 +1092,7 @@
   .join-step.is-done{color:var(--accent);border-color:rgba(91,91,214,.18);background:var(--accent-soft)}
   .join-step.is-done .join-step-num{background:var(--accent);color:#fff}
   .join-progress{height:3px;margin:-5px 2px 8px;overflow:hidden;border-radius:99px;background:#E5E5EA}
-  .join-progress-bar{display:block;width:0;height:100%;border-radius:inherit;background:var(--accent);transition:width .45s ease}
+  .join-progress-bar{display:block;width:0;height:100%;border-radius:inherit;background:var(--accent);transition:none}
   .join-caption{margin:0 8px 10px;text-align:center;font-size:9px;line-height:1.3;font-weight:500;color:#8E8E93}
   .sql-viz[data-kind="er"] .grp-desc{min-height:3.6em}
   .sql-viz[data-kind="er"] .grp-desc code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);color:var(--accent);padding:1px 6px;border-radius:6px;font-weight:600}
@@ -8779,7 +8779,7 @@ function renderVizShell(key){
     const result=(cfg.kind==='count'||cfg.kind==='agg'||cfg.kind==='minmax')?`<div class="cnt-result" aria-hidden="true">${formula}<span class="cnt-num">${total}</span><span class="cnt-lbl">${cfg.lbl||'1 ligne · 1 valeur'}</span></div>`:'';
     stage=buckets+chips+result;
   }
-  return `<div class="grp-viz sql-viz" id="sql-viz-${key}" data-viz="${key}" data-kind="${cfg.kind}" data-phase="0" aria-label="Animation pédagogique">
+  return `<div class="grp-viz sql-viz" id="sql-viz-${key}" data-viz="${key}" data-kind="${cfg.kind}" data-phase="0" data-step-ms="${cfg.stepMs||(cfg.kind==='er'?20000:3000)}" aria-label="Animation pédagogique">
     <div class="grp-viz-bar">
       <span class="grp-k">${p0.k}</span>
       <span class="grp-desc" aria-live="polite">${p0.d}</span>
@@ -12941,16 +12941,40 @@ function havingGrpSetPhase(root,phase,opts){
     step.classList.toggle('is-done',i<phase);
     step.setAttribute('aria-current',i===phase?'step':'false');
   });
-  const progress=root.querySelector('.join-progress-bar');
-  if(progress)progress.style.width=(phases.length>1?(phase/(phases.length-1))*100:100)+'%';
   layoutSqlViz(root,phase,opts);
 }
 
-function stopHavingGrpViz(){
+function vizHoldMs(root){
+  const n=parseInt(root&&root.dataset.stepMs||'',10);
+  if(n>0) return n;
+  const cfg=sqlVizCfg(root);
+  if(cfg.stepMs) return cfg.stepMs;
+  if(cfg.kind==='er') return 20000;
+  if(cfg.kind==='minmax') return 3400;
+  return 3000;
+}
+function startJoinProgress(root,ms){
+  const bar=root.querySelector('.join-progress-bar');
+  if(!bar) return;
+  bar.style.transition='none';
+  bar.style.width='0%';
+  void bar.offsetWidth;
+  bar.style.transition='width '+ms+'ms linear';
+  bar.style.width='100%';
+}
+function stopHavingGrpViz(root){
+  if(root){
+    if(root._vizTimer){clearTimeout(root._vizTimer);root._vizTimer=null;}
+    return;
+  }
   if(havingGrpTimer){clearTimeout(havingGrpTimer);havingGrpTimer=null;}
+  document.querySelectorAll('.sql-viz').forEach(r=>{
+    if(r._vizTimer){clearTimeout(r._vizTimer);r._vizTimer=null;}
+  });
 }
 
 function havingGrpFinish(root){
+  stopHavingGrpViz(root);
   havingGrpTimer=null;
   root.dataset.playing='0';
   root.dataset.paused='0';
@@ -12960,32 +12984,29 @@ function havingGrpFinish(root){
 }
 
 function havingGrpContinue(root,fromPhase){
-  stopHavingGrpViz();
+  stopHavingGrpViz(root);
   root.dataset.playing='1';
   root.dataset.paused='0';
   havingGrpSyncControls(root);
   const last=sqlVizPhases(root).length-1;
-  if(fromPhase>=last){
-    havingGrpFinish(root);
-    return;
-  }
-  const next=fromPhase+1;
-  const cfg=sqlVizCfg(root);
-  const kind=cfg.kind;
-  const delay=cfg.stepMs||(kind==='er'?20000:(fromPhase===0?2400:(kind==='minmax'?3400:3000)));
-  havingGrpTimer=setTimeout(()=>{
-    havingGrpSetPhase(root,next);
-    if(next>=last){
-      havingGrpTimer=setTimeout(()=>havingGrpFinish(root),cfg.lastMs||(kind==='er'?20000:2000));
+  const ms=vizHoldMs(root);
+  startJoinProgress(root,ms);
+  const go=()=>{
+    if(fromPhase>=last){
+      havingGrpFinish(root);
+      return;
     }
-    else havingGrpContinue(root,next);
-  },delay);
+    const next=fromPhase+1;
+    havingGrpSetPhase(root,next);
+    havingGrpContinue(root,next);
+  };
+  root._vizTimer=havingGrpTimer=setTimeout(go,ms);
 }
 
 function playHavingGrpViz(root){
   if(!root)return;
   if(havingGrpObs){havingGrpObs.disconnect();havingGrpObs=null;}
-  stopHavingGrpViz();
+  stopHavingGrpViz(root);
   root.dataset.paused='0';
   const last=sqlVizPhases(root).length-1;
   if(prefersReduceMotion()){
@@ -13002,7 +13023,7 @@ function playHavingGrpViz(root){
 
 function pauseHavingGrpViz(root){
   if(!root||root.dataset.playing!=='1')return;
-  stopHavingGrpViz();
+  stopHavingGrpViz(root);
   root.dataset.playing='0';
   root.dataset.paused='1';
   const phase=parseInt(root.dataset.phase||'0',10);
