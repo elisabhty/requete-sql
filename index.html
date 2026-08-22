@@ -346,9 +346,13 @@
   .pt-card-b{margin:0;font-size:13.5px;line-height:1.5;color:var(--ink-2)}
   .pt-draw{margin:0 0 11px}
 
-  .pd-oncond{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .pd-oncond b{background:var(--accent);color:#fff;border-radius:11px;padding:8px 12px;font-family:var(--mono);font-size:12px;font-weight:700;overflow-wrap:anywhere}
-  .pd-oncond span{flex:none;color:var(--accent);font-family:var(--mono);font-size:16px;font-weight:800}
+  .pd-oncond{display:flex;flex-direction:column;align-items:stretch;gap:6px}
+  .pd-on-k{align-self:flex-start;font-family:var(--mono);font-size:10.5px;font-weight:800;font-style:normal;letter-spacing:.55px;color:var(--accent);background:var(--accent-soft);border-radius:7px;padding:3px 7px;line-height:1.2}
+  .pd-on-row{display:flex;align-items:center;gap:8px;min-width:0}
+  .pd-on-row small{flex:1 1 auto;min-width:0;font-size:12px;font-weight:800;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis}
+  .pd-oncond b{flex:none;background:var(--accent);color:#fff;border-radius:11px;padding:7px 11px;font-family:var(--mono);font-size:12px;font-weight:700;white-space:nowrap}
+  .pd-oncond b.r{background:var(--accent-soft);color:var(--accent)}
+  .pd-oncond span{align-self:center;flex:none;color:var(--accent);font-family:var(--mono);font-size:15px;font-weight:800;line-height:1}
 
   /* Une ligne par correspondance : une source, trois sorties. */
   .pd-repeat{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -393,8 +397,8 @@
   .join-micro .concept-block.in .pt-card:nth-child(3){animation-delay:.16s}
   .join-micro .concept-block.in .pt-card:nth-child(4){animation-delay:.22s}
   @keyframes joinSoftIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
-  .join-micro .concept-block.in .pd-oncond b{animation:joinPillIn .42s ease both}
-  .join-micro .concept-block.in .pd-oncond b:last-of-type{animation-delay:.1s}
+  .join-micro .concept-block.in .pd-on-row{animation:joinSoftIn .42s ease both}
+  .join-micro .concept-block.in .pd-on-row:last-of-type{animation-delay:.1s}
   .join-micro .concept-block.in .pd-oncond span{animation:joinEqPulse .55s ease .18s both}
   @keyframes joinPillIn{from{opacity:.35;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
   @keyframes joinEqPulse{0%{transform:scale(1)}40%{transform:scale(1.22)}100%{transform:scale(1)}}
@@ -2893,7 +2897,7 @@
     .table-swipe .order-hint-chip,.table-swipe .order-hint-chip svg,.vs-out.live .table-scroll,
     .query-loading,.query-loading.out,
     .bad-line,.good-line,.vs-err-box,.vs-out.ok .pipe-table,
-    .memory-rule .memory-having>b,.join-micro .memory-rule .memory-b>b,.join-micro .pt-card,.join-micro .pd-oncond b,.join-micro .pd-oncond span,.join-micro .pd-outs b,.join-micro .pd-split b,.join-micro .pd-link,.join-micro .pd-key.fk,.join-micro .anat-line,.join-micro .join-recap tr.on,.ls-nav,.ls-nav .ls-next,.ls-bar.on,.ls-bar.on .ls-node,
+    .memory-rule .memory-having>b,.join-micro .memory-rule .memory-b>b,.join-micro .pt-card,.join-micro .pd-on-row,.join-micro .pd-oncond span,.join-micro .pd-outs b,.join-micro .pd-split b,.join-micro .pd-link,.join-micro .pd-key.fk,.join-micro .anat-line,.join-micro .join-recap tr.on,.ls-nav,.ls-nav .ls-next,.ls-bar.on,.ls-bar.on .ls-node,
     .agg-reflex .agg-list li,.agg-reflex .agg-cta,.sec-flash,.sommaire-list .som-item,
     .order-rappel .concept-order code,.order-rappel .concept-order i,.order-rappel .concept-coda,
     .order-rappel.play .concept-order code,.order-rappel.play .concept-order i,.order-rappel.play .concept-order code.on,.order-rappel.play .concept-coda,.ls-slide.back,.screen.push,.screen.push-back,.qexpl.on,.grp-viz[data-phase="2"] .grp-bucket[data-keep="1"]{animation:none!important;opacity:1;transform:none}
@@ -4942,7 +4946,7 @@ const MODULES = [
       lead:"Sans la clause <code>ON</code>, SQL ne sait pas quelles lignes associer : il faut lui dire ce qui correspond à quoi.",
       cards:[
         {t:"La condition ON",draw:"oncond",
-         b:"<code>ON clients.id = commandes.client_id</code> associe une ligne de <b>clients</b> à une ligne de <b>commandes</b> lorsque leurs identifiants correspondent."},
+         b:"Associe une ligne de <b>clients</b> à une ligne de <b>commandes</b> lorsque leurs identifiants correspondent."},
         {t:"Une ligne par correspondance",draw:"repeat",
          b:"Sophie a passé 3 commandes, elle apparaît donc <b>3 fois</b> dans le résultat. Chaque correspondance produit sa propre ligne : ce n’est pas une fusion en une seule."},
         {t:"Pourquoi écrire clients.id",draw:"prefix",
@@ -4980,7 +4984,7 @@ const MODULES = [
       lead:"<code>LEFT JOIN</code> garde toutes les lignes de la table de gauche, même quand aucune ligne ne correspond à droite.",
       cards:[
         {t:"La condition ON",draw:"oncond",
-         b:"<code>ON clients.id = commandes.client_id</code> associe une ligne de <b>clients</b> à une ligne de <b>commandes</b> lorsque leurs identifiants correspondent."},
+         b:"Associe une ligne de <b>clients</b> à une ligne de <b>commandes</b> lorsque leurs identifiants correspondent."},
         {t:"Une ligne par correspondance",draw:"repeat",
          b:"Sophie a passé 3 commandes, elle apparaît donc <b>3 fois</b>. Inès n’en a aucune, elle apparaît <b>1 fois</b> avec des <code>NULL</code>."},
         {t:"Pourquoi écrire clients.id",draw:"prefix",
@@ -8847,7 +8851,10 @@ function renderPointCards(pc){
    comme le reste — pas d'image à charger. */
 function pointDraw(kind){
   if(kind==='oncond') return `<div class="pd-oncond" aria-hidden="true">
-      <b>clients.id</b><span>=</span><b>commandes.client_id</b>
+      <i class="pd-on-k">ON</i>
+      <div class="pd-on-row"><small>clients</small><b>id</b></div>
+      <span>=</span>
+      <div class="pd-on-row"><small>commandes</small><b class="r">client_id</b></div>
     </div>`;
   if(kind==='repeat') return `<div class="pd-repeat" aria-hidden="true">
       <span class="pd-src">Sophie</span>
