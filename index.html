@@ -341,18 +341,26 @@
   .pt-hop:last-child .pt-hop-v{color:var(--accent)}
 
   .pt-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
-  .pt-card{background:var(--surface);border:1px solid var(--card-border);border-radius:18px;padding:15px 16px;box-shadow:var(--card-shadow-sm)}
+  .pt-card{background:var(--surface);border:1px solid var(--card-border);border-radius:18px;padding:15px 16px;box-shadow:var(--card-shadow-sm);container-type:inline-size;container-name:ptcard}
+  .pt-card:has(.pd-oncond){grid-column:1/-1}
   .pt-card-t{margin:0 0 9px;font-size:14px;font-weight:800;color:var(--ink);line-height:1.3}
   .pt-card-b{margin:0;font-size:13.5px;line-height:1.5;color:var(--ink-2)}
   .pt-draw{margin:0 0 11px}
 
-  .pd-oncond{display:flex;flex-direction:column;align-items:stretch;gap:6px}
-  .pd-on-k{align-self:flex-start;font-family:var(--mono);font-size:10.5px;font-weight:800;font-style:normal;letter-spacing:.55px;color:var(--accent);background:var(--accent-soft);border-radius:7px;padding:3px 7px;line-height:1.2}
-  .pd-on-row{display:flex;align-items:center;gap:8px;min-width:0}
-  .pd-on-row small{flex:1 1 auto;min-width:0;font-size:12px;font-weight:800;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis}
-  .pd-oncond b{flex:none;background:var(--accent);color:#fff;border-radius:11px;padding:7px 11px;font-family:var(--mono);font-size:12px;font-weight:700;white-space:nowrap}
-  .pd-oncond b.r{background:var(--accent-soft);color:var(--accent)}
-  .pd-oncond span{align-self:center;flex:none;color:var(--accent);font-family:var(--mono);font-size:15px;font-weight:800;line-height:1}
+  .pd-oncond{display:flex;flex-direction:column;align-items:center;gap:8px}
+  .pd-on-k{font-family:var(--mono);font-size:10.5px;font-weight:800;font-style:normal;letter-spacing:.55px;color:var(--accent);background:var(--accent-soft);border-radius:7px;padding:3px 8px;line-height:1.2}
+  .pd-on-eq{display:flex;align-items:flex-start;justify-content:center;gap:8px;width:100%;min-width:0}
+  .pd-on-side{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:5px}
+  .pd-on-box{width:100%;min-width:0;border:1px solid var(--card-border);border-radius:10px;overflow:hidden;background:var(--surface)}
+  .pd-on-box b{display:block;padding:6px 8px;background:var(--accent-soft);color:var(--accent);font-family:var(--mono);font-size:11px;font-weight:800;text-align:center;overflow-wrap:anywhere;border-bottom:1px solid var(--card-border)}
+  .pd-on-box span{display:block;padding:8px 8px 9px;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink);text-align:center;overflow-wrap:anywhere}
+  .pd-oncond em{flex:none;align-self:center;margin-top:18px;font-style:normal;font-family:var(--mono);font-size:18px;font-weight:800;line-height:1;color:var(--accent)}
+  .pd-on-side small{display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--mono);font-size:10px;font-weight:700;color:var(--ink);text-align:center;overflow-wrap:anywhere;line-height:1.25}
+  .pd-on-arr{display:block;width:22px;height:11px;color:var(--accent)}
+  @container ptcard (max-width: 250px){
+    .pd-on-eq{flex-direction:column;align-items:stretch;gap:6px}
+    .pd-oncond em{margin-top:0}
+  }
 
   /* Une ligne par correspondance : une source, trois sorties. */
   .pd-repeat{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -397,9 +405,9 @@
   .join-micro .concept-block.in .pt-card:nth-child(3){animation-delay:.16s}
   .join-micro .concept-block.in .pt-card:nth-child(4){animation-delay:.22s}
   @keyframes joinSoftIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
-  .join-micro .concept-block.in .pd-on-row{animation:joinSoftIn .42s ease both}
-  .join-micro .concept-block.in .pd-on-row:last-of-type{animation-delay:.1s}
-  .join-micro .concept-block.in .pd-oncond span{animation:joinEqPulse .55s ease .18s both}
+  .join-micro .concept-block.in .pd-on-side{animation:joinSoftIn .42s ease both}
+  .join-micro .concept-block.in .pd-on-side:last-child{animation-delay:.1s}
+  .join-micro .concept-block.in .pd-oncond em{animation:joinEqPulse .55s ease .18s both}
   @keyframes joinPillIn{from{opacity:.35;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
   @keyframes joinEqPulse{0%{transform:scale(1)}40%{transform:scale(1.22)}100%{transform:scale(1)}}
   .join-micro .concept-block.in .pd-outs b{animation:joinSoftIn .38s ease both}
@@ -2901,7 +2909,7 @@
     .table-swipe .order-hint-chip,.table-swipe .order-hint-chip svg,.vs-out.live .table-scroll,
     .query-loading,.query-loading.out,
     .bad-line,.good-line,.vs-err-box,.vs-out.ok .pipe-table,
-    .memory-rule .memory-having>b,.join-micro .memory-rule .memory-b>b,.join-micro .pt-card,.join-micro .pd-on-row,.join-micro .pd-oncond span,.join-micro .pd-outs b,.join-micro .pd-split b,.join-micro .pd-link,.join-micro .pd-key.fk,.join-micro .anat-line,.join-micro .join-recap tr.on,.ls-nav,.ls-nav .ls-next,.ls-bar.on,.ls-bar.on .ls-node,
+    .memory-rule .memory-having>b,.join-micro .memory-rule .memory-b>b,.join-micro .pt-card,.join-micro .pd-on-side,.join-micro .pd-oncond em,.join-micro .pd-outs b,.join-micro .pd-split b,.join-micro .pd-link,.join-micro .pd-key.fk,.join-micro .anat-line,.join-micro .join-recap tr.on,.ls-nav,.ls-nav .ls-next,.ls-bar.on,.ls-bar.on .ls-node,
     .agg-reflex .agg-list li,.agg-reflex .agg-cta,.sec-flash,.sommaire-list .som-item,
     .order-rappel .concept-order code,.order-rappel .concept-order i,.order-rappel .concept-coda,
     .order-rappel.play .concept-order code,.order-rappel.play .concept-order i,.order-rappel.play .concept-order code.on,.order-rappel.play .concept-coda,.ls-slide.back,.screen.push,.screen.push-back,.qexpl.on,.grp-viz[data-phase="2"] .grp-bucket[data-keep="1"]{animation:none!important;opacity:1;transform:none}
@@ -8857,9 +8865,17 @@ function renderPointCards(pc){
 function pointDraw(kind){
   if(kind==='oncond') return `<div class="pd-oncond" aria-hidden="true">
       <i class="pd-on-k">ON</i>
-      <div class="pd-on-row"><small>clients</small><b>id</b></div>
-      <span>=</span>
-      <div class="pd-on-row"><small>commandes</small><b class="r">client_id</b></div>
+      <div class="pd-on-eq">
+        <div class="pd-on-side">
+          <div class="pd-on-box"><b>clients</b><span>id</span></div>
+          <small><svg class="pd-on-arr" viewBox="0 0 24 12" fill="none"><path d="M12 11V3M8.5 6.5 12 3l3.5 3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>clients.id</small>
+        </div>
+        <em>=</em>
+        <div class="pd-on-side">
+          <div class="pd-on-box"><b>commandes</b><span>client_id</span></div>
+          <small><svg class="pd-on-arr" viewBox="0 0 24 12" fill="none"><path d="M12 11V3M8.5 6.5 12 3l3.5 3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>commandes.client_id</small>
+        </div>
+      </div>
     </div>`;
   if(kind==='repeat') return `<div class="pd-repeat" aria-hidden="true">
       <span class="pd-src">Sophie</span>
