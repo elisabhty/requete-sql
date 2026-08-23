@@ -8788,7 +8788,7 @@ const JOIN_GUIDES={
   joinon:{kicker:'Analyse de jointure',lead:'Identifie d’abord où se trouve chaque donnée, puis la colonne qui permet de relier les tables.',steps:[['Table clients','dans la table clients : id identifie le client, nom fournit le libellé à afficher'],['Table commandes','dans la table commandes : quantite décrit l’achat, client_id référence le client'],['Résultat','la jointure aligne clients.nom avec commandes.quantite']],takeaway:'<b>JOIN</b> combine les tables. <b>ON</b> définit la condition de correspondance.'},
   inner:{kicker:'Analyse INNER JOIN',lead:'Vérifie que la ligne existe des deux côtés avant de la projeter.',steps:[['Table clients','clients.id identifie le client'],['Table commandes','commandes.client_id doit référencer ce client'],['Résultat','seules les lignes appariées sont projetées']],takeaway:'<b>INNER JOIN</b> exclut toute ligne qui ne satisfait pas la condition <code>ON</code>.'},
   leftj:{kicker:'Analyse LEFT JOIN',lead:'Choisis la table qui doit rester complète, puis ajoute les données disponibles à droite.',steps:[['Gauche','clients est la table conservée'],['Droite','commandes complète la ligne quand une commande existe'],['NULL','absence de commande = colonnes commandes à NULL']],takeaway:'<b>LEFT JOIN</b> conserve toutes les lignes de la table placée avant le JOIN.'},
-  rightj:{kicker:'Analyse RIGHT JOIN',lead:'Choisis la table qui doit rester complète, puis ajoute les données disponibles à gauche.',steps:[['Droite','commandes est la table conservée'],['Gauche','clients complète la ligne quand un client existe'],['NULL','absence de client = colonnes clients à NULL']],takeaway:'<b>RIGHT JOIN</b> conserve toutes les lignes de la table placée après le JOIN.'},
+  rightj:{kicker:'Analyse RIGHT JOIN',lead:'Tu connais LEFT JOIN : il garde la gauche. RIGHT JOIN garde la droite.',steps:[['Droite','commandes — toutes les lignes restent'],['Gauche','clients complète quand un client existe'],['NULL','sans client → NULL côté clients']],takeaway:'<b>LEFT JOIN</b> → clients · <b>RIGHT JOIN</b> → commandes.'},
   orphan:{kicker:'Analyse des absences',lead:'Pour filtrer une absence, il faut d’abord la rendre visible dans le résultat.',steps:[['Produire','LEFT JOIN conserve tous les clients'],['Révéler','les clients sans commande obtiennent NULL côté commandes'],['Filtrer','WHERE commandes.id IS NULL conserve uniquement ces lignes']],takeaway:'<b>LEFT JOIN + IS NULL</b> sert à identifier les lignes sans correspondance.'},
   triple:{kicker:'Analyse multi-tables',lead:'Une jointure à trois tables se lit comme une chaîne de relations binaires.',steps:[['Clients -> commandes','clients.id = commandes.client_id'],['Commandes -> produits','commandes.produit_id = produits.id'],['Projection','client, produit et quantité viennent de tables différentes']],takeaway:'<b>3 tables = 2 conditions ON</b>, chacune sur une relation précise.'},
   outer:{kicker:'Analyse du périmètre',lead:'Le type de JOIN décrit quelles lignes doivent rester même sans correspondance.',steps:[['INNER','uniquement les correspondances'],['LEFT / RIGHT','toute une source + les correspondances — Inès à gauche, l’invité à droite'],['FULL OUTER','Inès et l’invité, plus les correspondances']],takeaway:'Le choix du JOIN est un choix de périmètre de résultat.'}
@@ -12689,9 +12689,9 @@ const SQL_VIZ={
     <p class="er-hint">Sélectionne Inès : la ligne reste visible, avec NULL côté commandes.</p>
   </div>`},
   rightj:{kind:'er',lastSel:'g',phases:[
-    {k:'Table conservée',d:'Dans FROM clients RIGHT JOIN commandes, la table commandes est conservée intégralement.'},
-    {k:'Correspondances',d:'Les lignes de clients complètent les commandes quand clients.id correspond à commandes.client_id.'},
-    {k:'Résultat avec NULL',d:'La commande invitée reste dans le résultat ; les colonnes issues de clients valent NULL. Inès disparaît.'}
+    {k:'Table conservée',d:'Comme LEFT JOIN garde clients, RIGHT JOIN garde commandes — la table de droite.'},
+    {k:'Correspondances',d:'Quand un client existe, son nom complète la commande — même ON que d’habitude.'},
+    {k:'Résultat avec NULL',d:'Sans client, la commande reste : NULL côté clients. Inès disparaît.'}
   ],html:`<div class="er-stage er-match join-viz">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
