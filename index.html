@@ -5106,8 +5106,9 @@ const MODULES = [
         {t:"La condition ON",draw:"oncond",
          pairs:[{l:"1",n:"Sophie",r:"1"},{l:"7",n:"Léa",r:"7"},{gapL:1,r:"NULL"}],
          b:"Associe une ligne de <b>clients</b> à une ligne de <b>commandes</b> lorsque leurs identifiants correspondent."},
-        {t:"Une ligne par correspondance",draw:"repeat",
-         b:"Sophie a passé 3 commandes, elle apparaît donc <b>3 fois</b>. La commande invitée n’a pas de client, elle apparaît <b>1 fois</b> avec des <code>NULL</code>."},
+        {t:"Une ligne par commande",draw:"repeat",
+         src:"#16 invité",outs:["NULL"],
+         b:"On part des commandes : une commande, une ligne. Sans client, la ligne reste. L’invité apparaît <b>1 fois</b>, avec des <code>NULL</code> côté clients."},
         {t:"Clé primaire, clé étrangère",draw:"pkfk",
          b:"<code>clients.id</code> identifie chaque client. <code>commandes.client_id</code> recopie cet identifiant. C’est cette relation que la clause <code>ON</code> utilise."}
       ]},
@@ -8939,11 +8940,15 @@ function renderPointCards(pc){
 function pointDraw(card){
   const kind=typeof card==='string'?card:card.draw;
   if(kind==='oncond') return renderOnIds(typeof card==='string'?{}:card);
-  if(kind==='repeat') return `<div class="pd-repeat" aria-hidden="true">
-      <span class="pd-src">Sophie</span>
-      <span class="pd-fan"><i></i><i></i><i></i></span>
-      <span class="pd-outs"><b>ligne 1</b><b>ligne 2</b><b>ligne 3</b></span>
+  if(kind==='repeat'){
+    const src=(typeof card==='object'&&card.src)||'Sophie';
+    const outs=(typeof card==='object'&&card.outs)||['ligne 1','ligne 2','ligne 3'];
+    return `<div class="pd-repeat" aria-hidden="true">
+      <span class="pd-src">${esc(src)}</span>
+      <span class="pd-fan">${outs.map(()=>'<i></i>').join('')}</span>
+      <span class="pd-outs">${outs.map(o=>`<b>${esc(o)}</b>`).join('')}</span>
     </div>`;
+  }
   if(kind==='pkfk') return `<div class="pd-pkfk" aria-hidden="true">
       <span class="pd-key pk"><small>clé primaire</small><b>clients.id</b></span>
       <span class="pd-link"></span>
