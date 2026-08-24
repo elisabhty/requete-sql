@@ -5328,16 +5328,23 @@ const MODULES = [
   situation:"Tu veux afficher toutes les combinaisons possibles entre clients et produits, par exemple pour préparer une campagne marketing où chaque client pourrait recevoir une offre sur chaque produit.<br><br>Dans la table <code>clients</code>, tu as 9 clients :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr></tbody></table></div><br><br>Dans la table <code>produits</code>, tu as 8 produits :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Fibre Prébiotique</td></tr><tr><td>2</td><td>Collagène Marin</td></tr><tr><td>3</td><td>Magnésium</td></tr></tbody></table></div><br><br>Un <code>JOIN</code> classique relie les tables sur une clé. Mais ici, aucune colonne ne relie directement un client à un produit. Tu veux simplement toutes les paires possibles.",
   situationTail:"<code>CROSS JOIN</code> génère le produit cartésien : chaque ligne de la première table est associée à chaque ligne de la deuxième table.",
     studio:{pointCards:{
+      eye:"CROSS JOIN",title:"Toutes les paires possibles.",
+      venn:"cross",vennG:"clients",vennD:"produits",
       lead:"<code>CROSS JOIN</code> associe chaque ligne d’une table à chaque ligne de l’autre table, sans condition.",
+      rule:{lines:[
+          {tok:"FROM",val:"clients",tag:"à gauche · toutes ses lignes sont reprises",keep:1},
+          {tok:"CROSS JOIN",val:"produits",tag:"à droite · toutes ses lignes sont reprises",keep:1},
+          {tok:"—",val:"pas de ON",tag:"aucune condition : rien à faire correspondre"}
+        ]},
       cards:[
-        {t:"Aucune clause ON",draw:"oncond",
-         b:"Contrairement aux autres jointures, <code>CROSS JOIN</code> ne prend pas de <code>ON</code>. Il ne cherche pas de correspondance, il crée toutes les combinaisons."},
-        {t:"Le nombre de lignes explose",draw:"repeat",
-         b:"Avec 9 clients et 8 produits, tu obtiens 9 × 8 = 72 lignes. Plus les tables sont grandes, plus le résultat est énorme."},
-        {t:"Utile pour des listes",draw:"prefix",
-         b:"<code>CROSS JOIN</code> est pratique pour générer des grilles, des calendriers, ou toutes les combinaisons possibles. Mais rarement utilisé en production."},
-        {t:"Attention aux performances",draw:"pkfk",
-         b:"Un <code>CROSS JOIN</code> sur de grandes tables peut créer des millions de lignes et ralentir la base. À utiliser avec précaution."}
+        {t:"Aucune clause ON",
+         b:"<p>Contrairement aux autres jointures, <code>CROSS JOIN</code> ne prend pas de <code>ON</code>.</p><p>Il ne cherche pas de correspondance : il forme tous les couples possibles.</p><p>C’est la seule jointure où aucune ligne ne peut être écartée, et où aucune ne vaut <code>NULL</code>.</p>"},
+        {t:"Le nombre de lignes explose",draw:"repeat",src:"Sophie",outs:["Fibre Prébiotique","Collagène Marin","Magnésium"],
+         b:"<p>Chaque client ressort une fois par produit.</p><p>Avec 9 clients et 8 produits, le résultat compte <b>9 × 8 = 72 lignes</b> — pas 9, ni 17.</p><p>Le nombre de lignes se multiplie, il ne s’additionne jamais.</p>"},
+        {t:"Quand s’en servir",
+         b:"<p>Utilise <code>CROSS JOIN</code> quand tu veux une grille complète, cases vides comprises.</p><ul><li>chaque client × chaque produit, pour préparer une campagne ;</li><li>chaque jour × chaque salle, pour un planning à remplir.</li></ul><p>👉 <b>L’idée à retenir :</b> il sert à <b>créer</b> des couples, pas à retrouver ceux qui existent déjà.</p>"},
+        {t:"Attention aux performances",
+         b:"<p>1 000 clients × 500 produits font 500 000 lignes.</p><p>Sur de grandes tables, <code>CROSS JOIN</code> remplit la mémoire très vite et la requête peut ne jamais rendre la main.</p><p>Vérifie la taille des deux tables avant de le lancer.</p>"}
       ]},
     reflex:{a:{k:"CROSS JOIN",t:"produit toutes les combinaisons"},
       b:{k:"sans ON",t:"aucune condition de correspondance"},
@@ -5351,6 +5358,7 @@ const MODULES = [
   ],
   exemple:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;",
   attendu:"72 lignes : chaque client est associé à chaque produit (9 clients × 8 produits).",
+  retenir:"<code>CROSS JOIN</code> associe chaque ligne de la table de gauche à chaque ligne de la table de droite, sans <code>ON</code>.<br><br>Le résultat compte toujours <b>lignes de gauche × lignes de droite</b> : 9 × 8 = 72 dans notre base.<br><br>Structure : <code>SELECT … FROM table1 CROSS JOIN table2;</code>",
   piege:{t:"Utiliser CROSS JOIN pour relier des clients à leurs commandes",
     p:"<code>CROSS JOIN</code> ne fait pas de correspondance sur une clé. Il associe chaque client à chaque commande, même celles qui ne lui appartiennent pas. Pour relier correctement, il faut utiliser <code>JOIN</code> avec <code>ON</code>.",
     exec:true,
@@ -9194,10 +9202,23 @@ function renderSituationBody(l){
    CROSS JOIN n'y figure pas : il ne conserve pas une zone du recouvrement,
    il croise chaque ligne avec chaque ligne. */
 /* Chaîne vide = schéma sans légende ; clé absente = pas de schéma du tout. */
-const VENN_LEGEND={inner:'',left:'',right:'',full:'',leftonly:''};
+const VENN_LEGEND={inner:'',left:'',right:'',full:'',leftonly:'',cross:''};
 function pointVenn(kind,gauche,droite){
   const leg=VENN_LEGEND[kind];
   if(leg===undefined)return '';
+  if(kind==='cross'){
+    /* Un produit cartésien ne se lit pas sur deux disques : c'est une grille,
+       une case par couple. Les lignes sont la table de gauche, les colonnes
+       celle de droite. */
+    const cases=[34,64,94].map(y=>[70,100,130].map(x=>`<rect x="${x}" y="${y}" width="24" height="22" rx="6"/>`).join('')).join('');
+    return `<figure class="pt-venn">
+      <svg viewBox="0 0 200 124" role="img" aria-label="Chaque ligne de gauche croisée avec chaque ligne de droite">
+        <text x="118" y="20">${esc(droite||'droite')}</text>
+        <text x="32" y="79">${esc(gauche||'gauche')}</text>
+        <g class="vn-garde">${cases}</g>
+      </svg>
+    </figure>`;
+  }
   const A='cx="68" cy="62" r="52"';
   const B='cx="132" cy="62" r="52"';
   /* Les zones conservées sont peintes sous les contours, dans un groupe dont
