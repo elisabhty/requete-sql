@@ -5418,7 +5418,11 @@ const MODULES = [
         {t:"3. Filtrer avec IS NULL",
          b:"<p><code>WHERE commandes.id IS NULL</code> garde uniquement les clients pour lesquels aucune commande n’a été trouvée.</p>"},
         {t:"Pourquoi commandes.id ?",draw:"pkfk",
-         b:"<p><code>commandes.id</code> est une clé primaire : une vraie commande possède toujours un identifiant.</p><p>Si cette colonne vaut <code>NULL</code> après le <code>LEFT JOIN</code>, cela signifie qu’aucune commande ne correspond.</p>"}
+         b:"<p><code>commandes.id</code> est une clé primaire : une vraie commande possède toujours un identifiant.</p><p>Si cette colonne vaut <code>NULL</code> après le <code>LEFT JOIN</code>, cela signifie qu’aucune commande ne correspond.</p>"},
+        {t:"INNER JOIN + IS NULL ne renvoie rien",
+         b:"<p>Avec <code>INNER JOIN</code>, Inès est écartée <b>avant</b> le <code>WHERE</code> : il ne reste plus aucune ligne à filtrer, donc 0 résultat.</p><p>Le filtre a besoin des <code>NULL</code> que seul <code>LEFT JOIN</code> produit.</p>"},
+        {t:"Quand s’en servir",
+         b:"<p>Utilise ce duo chaque fois que la question porte sur une <b>absence</b>.</p><ul><li>les clients qui n’ont jamais commandé, à relancer ;</li><li>les produits qui ne se sont jamais vendus, à retirer du catalogue.</li></ul><p>👉 <b>L’idée à retenir :</b> une absence ne se cherche pas directement : il faut d’abord la rendre visible avec un <code>LEFT JOIN</code>.</p>"}
       ]},
     reflex:{a:{k:"LEFT JOIN",t:"garde tous les clients"},
       b:{k:"IS NULL",t:"repère ceux sans correspondance"},
@@ -5448,6 +5452,7 @@ const MODULES = [
   testeVariants:[
     {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
     {k:'cmd',label:'commandes',sql:"SELECT id, client_id, produit_id, quantite\nFROM commandes;"},
+    {k:'innernull',label:'INNER JOIN + IS NULL',sql:"SELECT clients.nom\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;",out:"0 ligne — INNER JOIN écarte Inès avant le WHERE",tone:'bad'},
     {k:'leftisnull',label:'LEFT JOIN + IS NULL',sql:"SELECT clients.nom\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;",tone:'good'}
   ] },
 { id:19, titre:"Jointure 3 tables", résumé:"Relier clients, commandes et produits",
