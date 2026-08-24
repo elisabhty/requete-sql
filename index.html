@@ -433,6 +433,8 @@
   .pd-fan i{display:block;width:20px;height:2px;background:rgba(91,91,214,.45);border-radius:2px}
   .pd-outs{flex:1 1 120px;min-width:0;display:flex;flex-direction:column;gap:4px}
   .pd-outs b{background:var(--accent-soft);color:var(--accent);border-radius:9px;padding:6px 10px;font-family:var(--mono);font-size:11.5px;font-weight:700}
+  .pd-outs b.pd-more{display:flex;align-items:center;gap:7px;border:1px dashed rgba(91,91,214,.24);background:var(--surface-2);color:var(--ink-3);font-family:var(--ui);font-size:10.5px}
+  .pd-outs b.pd-more span{color:var(--accent);font-family:var(--mono);font-size:16px;line-height:.7;letter-spacing:2px}
 
   /* La relation clé primaire → clé étrangère, celle qu'utilise ON. */
   .pd-pkfk{display:flex;flex-direction:column;align-items:stretch;gap:0}
@@ -1092,6 +1094,7 @@
     .sql-viz[data-kind="er"] .grp-desc,
     .sql-viz[data-kind="er"] .join-phase-card,
     .sql-viz[data-kind="er"] .join-phase-read,
+    .sql-viz[data-kind="er"] .join-out>.join-more,
     .sql-viz[data-kind="er"] .join-output-label,
     .sql-viz[data-kind="er"] .join-bridge,
     .sql-viz[data-kind="er"] .join-bridge-badge{animation-duration:1ms!important;animation-delay:0ms!important;transition:none!important}
@@ -1222,6 +1225,13 @@
   .jchips{display:flex;flex-direction:column;gap:0}
   .jchip{position:relative;display:flex;align-items:center;gap:8px;padding:11px 13px;font-size:13px;font-weight:700;color:var(--ink);transition:opacity .38s var(--spring-ios),background .32s var(--spring-ios),transform .38s var(--spring-ios),box-shadow .32s ease}
   .jchip:nth-child(2){transition-delay:.055s}.jchip:nth-child(3){transition-delay:.11s}.jchip:nth-child(4){transition-delay:.165s}.jchip:nth-child(5){transition-delay:.22s}
+  .join-more{display:flex;align-items:center;justify-content:center;gap:6px;min-height:31px;padding:6px 8px;border-top:1px solid var(--line-2);background:var(--surface-2);color:var(--ink-3);font-family:var(--ui);font-size:9px;font-weight:750;line-height:1.2;text-align:center;box-sizing:border-box}
+  .join-more b{flex:none;color:var(--accent);font-family:var(--mono);font-size:16px;font-weight:850;line-height:.65;letter-spacing:2px}
+  .join-more span{min-width:0;overflow-wrap:anywhere}
+  .join-out>.join-more{min-height:38px;border:1px dashed rgba(91,91,214,.24);border-radius:12px;background:rgba(91,91,214,.045);opacity:0;transform:translateY(8px) scale(.985)}
+  .sql-viz[data-phase="2"] .join-out>.join-more,
+  .sql-viz[data-phase="3"] .join-out>.join-more{animation:joinIn .46s var(--spring-ios) .72s forwards}
+  .sql-viz[data-viz="crossjoin"][data-phase="1"] .join-out>.join-more{display:none}
   /* Séparateurs en retrait, à la iOS : le trait démarre après le bord
      intérieur au lieu de barrer la carte. En ::before, il n'entre pas
      dans le calcul des hauteurs comme le faisait border-top. */
@@ -5626,7 +5636,7 @@ const MODULES = [
       cards:[
         {t:"Aucune clause ON",
          b:"<p>Avec <code>CROSS JOIN</code>, il n’y a pas de <code>ON</code>.</p><p>SQL ne cherche pas de correspondance : il associe chaque ligne de la première table à toutes les lignes de la deuxième.</p><p>Aucune ligne ne peut donc être écartée, et aucune ne vaut <code>NULL</code>.</p>"},
-        {t:"Le nombre de lignes se multiplie",draw:"repeat",src:"Sophie",outs:["Fibre Prébiotique","Collagène Marin","Magnésium"],
+        {t:"Le nombre de lignes se multiplie",draw:"repeat",src:"Sophie",outs:["Fibre Prébiotique","Collagène Marin","Magnésium"],more:"5 autres produits",
          b:"<p>Le nombre de lignes obtenu est : nombre de lignes de la première table × nombre de lignes de la deuxième.</p><p>Ici : <b>9 × 8 = 72 lignes</b>.</p><p>Il se multiplie, il ne s’additionne jamais.</p>"},
         {t:"Créer toutes les possibilités",
          b:"<p><code>CROSS JOIN</code> est utile quand tu veux générer toutes les associations possibles.</p><ul><li>clients × produits, pour une campagne ;</li><li>dates × créneaux, pour un planning ;</li><li>tailles × couleurs, pour un catalogue.</li></ul><p>👉 <b>L’idée à retenir :</b> il sert à <b>créer</b> des couples, pas à retrouver ceux qui existent déjà.</p>"},
@@ -9582,10 +9592,11 @@ function pointDraw(card){
   if(kind==='repeat'){
     const src=(typeof card==='object'&&card.src)||'Sophie';
     const outs=(typeof card==='object'&&card.outs)||['ligne 1','ligne 2','ligne 3'];
+    const more=typeof card==='object'&&card.more;
     return `<div class="pd-repeat" aria-hidden="true">
       <span class="pd-src">${esc(src)}</span>
       <span class="pd-fan">${outs.map(()=>'<i></i>').join('')}</span>
-      <span class="pd-outs">${outs.map(o=>`<b>${esc(o)}</b>`).join('')}</span>
+      <span class="pd-outs">${outs.map(o=>`<b>${esc(o)}</b>`).join('')}${more?`<b class="pd-more"><span>…</span>${esc(more)}</b>`:''}</span>
     </div>`;
   }
   if(kind==='pkfk') return `<div class="pd-pkfk" aria-hidden="true">
@@ -13095,6 +13106,13 @@ async function resetAllProgress(){
   renderCollection(); renderNotes(); renderPlanning(); renderCompte(); renderGreeting();
 }
 
+/* Les animations montrent volontairement un petit extrait. Cette ligne évite
+   qu'un échantillon soit pris pour la table ou le résultat complet. */
+function joinMore(n,label){
+  const txt=`${n} autre${n>1?'s':''} ${label}`;
+  return `<div class="join-more" role="note" aria-label="Extrait : ${esc(txt)} ne sont pas affichés"><b aria-hidden="true">…</b><span>${esc(txt)}</span></div>`;
+}
+
 const SQL_VIZ={
   select:{kind:'cols',phases:[
     {k:'FROM',d:'La table clients : 9 lignes, avec toutes leurs colonnes.'},
@@ -13349,6 +13367,7 @@ const SQL_VIZ={
         <div class="er-card-h">clients</div>
         <button type="button" class="er-btn" data-er-id="1"><span class="er-key">id=1</span>Sophie</button>
         <button type="button" class="er-btn" data-er-id="2"><span class="er-key">id=2</span>Lucas</button>
+        ${joinMore(7,'clients')}
       </div>
       <div class="join-bridge" aria-hidden="true"><span class="join-bridge-badge">ON</span><small>même identifiant</small></div>
       <div class="er-col" data-side="fk">
@@ -13356,6 +13375,7 @@ const SQL_VIZ={
         <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">client_id=1</span>#1 · qté 2</button>
         <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">client_id=1</span>#2 · qté 1</button>
         <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">client_id=2</span>#3 · qté 1</button>
+        ${joinMore(13,'commandes')}
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
@@ -13365,6 +13385,7 @@ const SQL_VIZ={
         <span>Sophie</span><span>1</span>
         <span>Lucas</span><span>1</span>
       </div>
+      ${joinMore(12,'lignes')}
     </div>
     <p class="er-hint">👆 Touche un client : ses commandes se surlignent.</p>
   </div>`},
@@ -13407,12 +13428,14 @@ const SQL_VIZ={
         <button type="button" class="er-btn" data-er-id="1"><span class="er-key">1</span>Sophie</button>
         <button type="button" class="er-btn" data-er-id="2"><span class="er-key">2</span>Lucas</button>
         <button type="button" class="er-btn" data-er-id="9" data-join="keep"><span class="er-key">9</span>Inès</button>
+        ${joinMore(6,'clients')}
       </div>
       <div class="er-col" data-side="fk">
         <div class="er-card-h">commandes</div>
         <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">1</span>#1</button>
         <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">1</span>#2</button>
         <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">2</span>#3</button>
+        ${joinMore(13,'commandes')}
         <button type="button" class="er-btn join-ghost" data-er-fk="9" data-ghost="1" data-join="keep"><span class="er-key">∅</span>NULL</button>
       </div>
     </div>
@@ -13421,6 +13444,7 @@ const SQL_VIZ={
       <div class="join-pill" data-er-id="1">Sophie<span class="jn">commande #2</span></div>
       <div class="join-pill" data-er-id="2">Lucas<span class="jn">commande #3</span></div>
       <div class="join-pill" data-er-id="9">Inès<span class="jn null">NULL</span></div>
+      ${joinMore(12,'lignes')}
     </div>
     <p class="er-hint">Sélectionne Inès : la ligne reste visible, avec NULL côté commandes.</p>
   </div>`},
@@ -13436,6 +13460,7 @@ const SQL_VIZ={
         <button type="button" class="er-btn" data-er-id="1"><span class="er-key">1</span>Sophie</button>
         <button type="button" class="er-btn" data-er-id="2"><span class="er-key">2</span>Lucas</button>
         <button type="button" class="er-btn" data-er-id="9" data-join="drop"><span class="er-key">9</span>Inès<span class="join-drop-lab">écartée</span></button>
+        ${joinMore(6,'clients')}
         <button type="button" class="er-btn join-ghost" data-er-id="g" data-ghost="1" data-join="keep"><span class="er-key">∅</span>NULL</button>
       </div>
       <div class="er-col" data-side="fk">
@@ -13443,12 +13468,14 @@ const SQL_VIZ={
         <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">1</span>#1</button>
         <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">2</span>#3</button>
         <button type="button" class="er-btn" data-er-fk="g" data-join="keep"><span class="er-key">∅</span>#16 invité</button>
+        ${joinMore(13,'commandes')}
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
       <div class="join-pill" data-er-id="1">Sophie<span class="jn">commande #1</span></div>
       <div class="join-pill" data-er-id="2">Lucas<span class="jn">commande #3</span></div>
       <div class="join-pill" data-er-id="g">NULL<span class="jn null">commande #16</span></div>
+      ${joinMore(13,'lignes')}
     </div>
     <p class="er-hint">👆 Sélectionne l'invité.</p>
   </div>`},
@@ -13464,11 +13491,13 @@ const SQL_VIZ={
         <button type="button" class="er-btn" data-er-id="1"><span class="er-key">1</span>Sophie</button>
         <button type="button" class="er-btn" data-er-id="2"><span class="er-key">2</span>Lucas</button>
         <button type="button" class="er-btn" data-er-id="9" data-join="keep"><span class="er-key">9</span>Inès</button>
+        ${joinMore(6,'clients')}
       </div>
       <div class="er-col" data-side="fk">
         <div class="er-card-h">table commandes</div>
         <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">1</span>#1</button>
         <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">2</span>#3</button>
+        ${joinMore(14,'commandes')}
         <button type="button" class="er-btn join-ghost" data-er-fk="9" data-ghost="1" data-join="keep"><span class="er-key">∅</span>NULL</button>
       </div>
     </div>
@@ -13488,21 +13517,25 @@ const SQL_VIZ={
         <div class="er-card-h">clients</div>
         <button type="button" class="er-btn" data-er-id="c1"><span class="er-key">1</span>Sophie</button>
         <button type="button" class="er-btn" data-er-id="c2"><span class="er-key">2</span>Lucas</button>
+        ${joinMore(7,'clients')}
       </div>
       <div class="er-col" data-side="fk">
         <div class="er-card-h">commandes</div>
         <button type="button" class="er-btn" data-er-fk="c1" data-er-src="p1"><span class="er-key">1</span>#1 qté 2</button>
         <button type="button" class="er-btn" data-er-fk="c2" data-er-src="p6"><span class="er-key">2</span>#3 qté 1</button>
+        ${joinMore(14,'commandes')}
       </div>
       <div class="er-col" data-side="prd">
         <div class="er-card-h">produits</div>
         <button type="button" class="er-btn" data-er-to="p1"><span class="er-key">1</span>Fibre</button>
         <button type="button" class="er-btn" data-er-to="p6"><span class="er-key">6</span>Protéine</button>
+        ${joinMore(6,'produits')}
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
       <div class="join-pill" data-er-id="c1">Sophie → Fibre<span class="jn">qté 2</span></div>
       <div class="join-pill" data-er-id="c2">Lucas → Protéine<span class="jn">qté 1</span></div>
+      ${joinMore(13,'lignes')}
     </div>
     <p class="er-hint">Sélectionne Sophie : la commande associée puis le produit référencé sont mis en évidence.</p>
   </div>`},
@@ -13517,6 +13550,7 @@ const SQL_VIZ={
           <div class="jchip" data-k="A"><span class="er-key">1</span>Sophie</div>
           <div class="jchip" data-k="B"><span class="er-key">2</span>Lucas</div>
           <div class="jchip" data-k="C"><span class="er-key">9</span>Inès</div>
+          ${joinMore(6,'clients')}
         </div>
       </div>
       <div class="join-side" data-side="r"><div class="join-side-h">commandes</div>
@@ -13526,6 +13560,7 @@ const SQL_VIZ={
           <div class="jchip" data-k="A"><span class="er-key">1</span>#13</div>
           <div class="jchip" data-k="B"><span class="er-key">2</span>#3</div>
           <div class="jchip" data-k="B"><span class="er-key">2</span>#10</div>
+          ${joinMore(11,'commandes')}
         </div>
       </div>
     </div>
@@ -13533,6 +13568,7 @@ const SQL_VIZ={
       <div class="join-pill" data-when="n">Sophie<span class="jn">3 commandes</span></div>
       <div class="join-pill" data-when="n">Lucas<span class="jn">2 commandes</span></div>
       <div class="join-pill" data-when="n">Inès<span class="jn null">0 commande</span></div>
+      ${joinMore(6,'clients')}
     </div>
     <p class="er-hint">Inès reste dans le résultat avec 0 : <code>COUNT</code> ignore les <code>NULL</code>.</p>
   </div>`},
@@ -13547,6 +13583,7 @@ const SQL_VIZ={
           <div class="jchip" data-k="A"><span class="er-key">1</span>Sophie</div>
           <div class="jchip" data-k="B"><span class="er-key">2</span>Lucas</div>
           <div class="jchip" data-k="C"><span class="er-key">3</span>Emma</div>
+          ${joinMore(6,'clients')}
         </div>
       </div>
       <div class="join-side" data-side="r"><div class="join-side-h">produits</div>
@@ -13554,6 +13591,7 @@ const SQL_VIZ={
           <div class="jchip" data-k="X"><span class="er-key">1</span>Fibre</div>
           <div class="jchip" data-k="Y"><span class="er-key">2</span>Collag\u00e8ne</div>
           <div class="jchip" data-k="Z"><span class="er-key">3</span>Magn\u00e9sium</div>
+          ${joinMore(5,'produits')}
         </div>
       </div>
     </div>
@@ -13567,6 +13605,7 @@ const SQL_VIZ={
       <div class="join-pill" data-when="b">Emma \u2194 Fibre</div>
       <div class="join-pill" data-when="b">Emma \u2194 Collag\u00e8ne</div>
       <div class="join-pill" data-when="b">Emma \u2194 Magn\u00e9sium</div>
+      ${joinMore(63,'combinaisons')}
     </div>
     <p class="er-hint">Chaque client ressort une fois par produit : aucune ligne n\u2019est \u00e9cart\u00e9e, aucune ne vaut NULL.</p>
   </div>`},
@@ -13581,6 +13620,7 @@ const SQL_VIZ={
           <div class="jchip" data-k="A"><span class="er-key">1</span>Sophie</div>
           <div class="jchip" data-k="B"><span class="er-key">2</span>Lucas</div>
           <div class="jchip" data-k="C"><span class="er-key">9</span>Inès</div>
+          ${joinMore(6,'clients')}
         </div>
       </div>
       <div class="join-side" data-side="r"><div class="join-side-h">commandes</div>
@@ -13588,6 +13628,7 @@ const SQL_VIZ={
           <div class="jchip" data-k="A"><span class="er-key">1</span>#1</div>
           <div class="jchip" data-k="B"><span class="er-key">2</span>#3</div>
           <div class="jchip" data-k="D"><span class="er-key">∅</span>#16 invité</div>
+          ${joinMore(13,'commandes')}
         </div>
       </div>
     </div>
@@ -13596,6 +13637,7 @@ const SQL_VIZ={
       <div class="join-pill" data-when="in">Lucas ↔ #3</div>
       <div class="join-pill" data-when="l">Inès ↔ NULL</div>
       <div class="join-pill" data-when="r">NULL ↔ #16</div>
+      ${joinMore(13,'lignes')}
     </div>
     <p class="er-hint">Inès n’a aucune commande, la commande #16 n’a aucun client : <code>FULL OUTER JOIN</code> garde les deux.</p>
   </div>`}
