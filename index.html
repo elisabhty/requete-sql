@@ -329,9 +329,9 @@
   .pt-venn .vn-off{fill:none;stroke:var(--accent);stroke-opacity:.34;stroke-width:2}
   .pt-venn .vn-on{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2}
   .pt-venn .vn-cut{fill:var(--surface);stroke:none}
-  .pt-venn text{font-family:var(--mono);font-size:11px;font-weight:800;fill:var(--ink-2);text-anchor:middle}
+  .pt-venn text{font-family:var(--mono);font-size:9.5px;font-weight:800;fill:var(--ink-2);text-anchor:middle}
   .pt-venn figcaption{font-size:12px;line-height:1.4;font-weight:650;color:var(--ink-3);text-align:center}
-  @media (max-width:400px){.pt-venn text{font-size:10px}.pt-venn figcaption{font-size:11.5px}}
+  @media (max-width:400px){.pt-venn text{font-size:9px}.pt-venn figcaption{font-size:11.5px}}
   .pt-rule{background:transparent;border:0;border-radius:0;padding:0;margin:0}
   .pt-sql{margin:0 0 12px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface-2)}
   /* L'annotation passe toujours sous sa ligne de SQL : alignée à droite, elle
@@ -9112,12 +9112,12 @@ const VENN_LEGEND={
   inner:'Seules les lignes présentes des deux côtés.',
   left:'Toute la table de gauche, plus les correspondances.',
   right:'Toute la table de droite, plus les correspondances.',
-  full:'Les deux tables entières.',
+  full:'',
   leftonly:'La table de gauche, privée de ses correspondances.'
 };
 function pointVenn(kind,gauche,droite){
   const leg=VENN_LEGEND[kind];
-  if(!leg)return '';
+  if(leg===undefined)return '';
   const A='cx="68" cy="62" r="52"';
   const B='cx="132" cy="62" r="52"';
   const lens=cls=>`<g clip-path="url(#venn-lens)"><circle ${A} class="${cls}"/></g>`;
@@ -9128,14 +9128,14 @@ function pointVenn(kind,gauche,droite){
   else if(kind==='full')peint=`<circle ${A} class="vn-on"/><circle ${B} class="vn-on"/>`;
   else if(kind==='leftonly')peint=`<circle ${A} class="vn-on"/>`+lens('vn-cut');
   return `<figure class="pt-venn">
-      <svg viewBox="0 0 200 124" role="img" aria-label="${esc(leg)}">
+      <svg viewBox="0 0 200 124" role="img" aria-label="${esc(leg||'Périmètre conservé par la jointure')}">
         <defs><clipPath id="venn-lens"><circle ${B}/></clipPath></defs>
         ${peint}
         <circle ${A} class="vn-off"/><circle ${B} class="vn-off"/>
         <text x="46" y="66">${esc(gauche||'gauche')}</text>
         <text x="154" y="66">${esc(droite||'droite')}</text>
       </svg>
-      <figcaption>${leg}</figcaption>
+      ${leg?`<figcaption>${leg}</figcaption>`:''}
     </figure>`;
 }
 function renderPtRule(rule){
