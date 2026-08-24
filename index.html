@@ -1223,6 +1223,10 @@
   .join-pill[data-er-on="1"]{border-color:rgba(91,91,214,.28);background:var(--surface);box-shadow:inset 3px 0 0 var(--accent)}
   .sql-viz[data-kind="er"] .er-btn[data-er-on="1"],.sql-viz[data-kind="er"] .join-pill[data-er-on="1"]{animation:joinRowSelect .36s var(--bounce-ios) both}
   .sql-viz[data-kind="er"]:not([data-paused="1"]) .er-line[data-er-on="1"]{opacity:1;stroke-dasharray:8 6;stroke-dashoffset:0;animation:joinLinkFlow 1.05s linear infinite}
+  /* .join-pill naît en opacity:0 et ne devient visible que par l'animation
+     joinIn. joinRowSelect la remplace au moment de la sélection : sans cette
+     ligne, toucher une ligne du résultat la faisait disparaître. */
+  .sql-viz[data-kind="er"] .join-pill[data-er-on="1"]{opacity:1}
   @keyframes joinRowSelect{0%{transform:scale(.985)}58%{transform:scale(1.025)}100%{transform:none}}
   @keyframes joinLinkFlow{to{stroke-dashoffset:-28}}
   .sql-viz[data-viz="orphan"][data-phase="1"] .er-btn:not([data-join="keep"]):not(.join-ghost){opacity:.32}
@@ -13425,9 +13429,9 @@ const SQL_VIZ={
     <p class="er-hint">Touche un client ou une commande.</p>
   </div>`},
   joinon:{kind:'er',sample:'2 clients · 3 commandes',stepMs:6500,lastSel:'1',phases:[
-    {k:'1 · Repérer les données',d:'Le nom est dans <code>clients</code> ; la quantité est dans <code>commandes</code>. Il faut donc lire deux tables.',sql:'FROM clients INNER JOIN commandes',read:'Aucune table ne contient seule les deux colonnes demandées : la jointure va construire cette vue.'},
-    {k:'2 · Tester la correspondance',d:'SQL compare la clé primaire du client à la clé étrangère portée par chaque commande.',sql:'ON clients.id = commandes.client_id',read:'Dans cet extrait, <code>id = 1</code> correspond à deux commandes de Sophie : <code>#1</code> et <code>#2</code>.'},
-    {k:'3 · Construire les lignes',d:'Chaque commande appariée produit sa propre ligne avec le nom du client et la quantité.',sql:'SELECT clients.nom, commandes.quantite',read:'Dans l’extrait, Sophie apparaît deux fois : une jointure crée une ligne par achat, elle ne les fusionne pas.'}
+    {k:'Repérer les données',d:'Le nom est dans <code>clients</code> ; la quantité est dans <code>commandes</code>. Il faut donc lire deux tables.',sql:'FROM clients INNER JOIN commandes',read:'Aucune table ne contient seule les deux colonnes demandées : la jointure va construire cette vue.'},
+    {k:'Tester la correspondance',d:'SQL compare la clé primaire du client à la clé étrangère portée par chaque commande.',sql:'ON clients.id = commandes.client_id',read:'Dans cet extrait, <code>id = 1</code> correspond à deux commandes de Sophie : <code>#1</code> et <code>#2</code>.'},
+    {k:'Construire les lignes',d:'Chaque commande appariée produit sa propre ligne avec le nom du client et la quantité.',sql:'SELECT clients.nom, commandes.quantite',read:'Dans l’extrait, Sophie apparaît deux fois : une jointure crée une ligne par achat, elle ne les fusionne pas.'}
   ],html:`<div class="er-stage er-match join-viz join-story">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
@@ -13485,9 +13489,9 @@ const SQL_VIZ={
     <p class="er-hint">Inès n’a aucune ligne correspondante dans commandes : elle est exclue du résultat INNER JOIN.</p>
   </div>`},
   leftj:{kind:'er',sample:'3 clients · 3 commandes',lastSel:'9',phases:[
-    {k:'1 · Choisir le côté gardé',d:'Avec <code>FROM clients LEFT JOIN commandes</code>, tous les clients doivent survivre à la jointure.',sql:'FROM clients LEFT JOIN commandes',read:'La table <code>clients</code> est à gauche : Sophie, Lucas et Inès restent, avec ou sans commande.'},
-    {k:'2 · Chercher les commandes',d:'La clause <code>ON</code> complète chaque client avec les commandes de l’extrait qui portent son identifiant.',sql:'ON clients.id = commandes.client_id',read:'Sophie reçoit <code>#1</code> et <code>#2</code>, Lucas reçoit <code>#3</code>, Inès ne reçoit aucune commande.'},
-    {k:'3 · Matérialiser l’absence',d:'Une ligne sans correspondance reste présente ; les colonnes de la table de droite valent <code>NULL</code>.',sql:'SELECT clients.nom, commandes.id',read:'Le résultat contient <code>Inès | NULL</code> : <code>NULL</code> décrit l’absence de commande, pas l’absence du client.'}
+    {k:'Choisir le côté gardé',d:'Avec <code>FROM clients LEFT JOIN commandes</code>, tous les clients doivent survivre à la jointure.',sql:'FROM clients LEFT JOIN commandes',read:'La table <code>clients</code> est à gauche : Sophie, Lucas et Inès restent, avec ou sans commande.'},
+    {k:'Chercher les commandes',d:'La clause <code>ON</code> complète chaque client avec les commandes de l’extrait qui portent son identifiant.',sql:'ON clients.id = commandes.client_id',read:'Sophie reçoit <code>#1</code> et <code>#2</code>, Lucas reçoit <code>#3</code>, Inès ne reçoit aucune commande.'},
+    {k:'Matérialiser l’absence',d:'Une ligne sans correspondance reste présente ; les colonnes de la table de droite valent <code>NULL</code>.',sql:'SELECT clients.nom, commandes.id',read:'Le résultat contient <code>Inès | NULL</code> : <code>NULL</code> décrit l’absence de commande, pas l’absence du client.'}
   ],html:`<div class="er-stage er-match join-viz">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
@@ -13517,9 +13521,9 @@ const SQL_VIZ={
     <p class="er-hint">Sélectionne Inès : la ligne reste visible, avec NULL côté commandes.</p>
   </div>`},
   rightj:{kind:'er',sample:'3 clients · 3 commandes',lastSel:'g',phases:[
-    {k:'1 · Garder la droite',d:'<code>RIGHT JOIN</code> conserve toutes les commandes, car elles se trouvent à droite de la jointure.',sql:'FROM clients RIGHT JOIN commandes',read:'Les commandes <code>#1</code>, <code>#3</code> et <code>#16</code> restent, même si leur client est absent.'},
-    {k:'2 · Rechercher le client',d:'SQL utilise la même condition <code>ON</code> pour ajouter le nom du client lorsqu’il existe.',sql:'ON clients.id = commandes.client_id',read:'La commande <code>#16</code> possède un <code>client_id NULL</code> : aucun nom ne peut lui être associé.'},
-    {k:'3 · Lire le côté manquant',d:'La commande invitée reste avec <code>NULL</code> côté clients. Inès, qui n’a aucune commande, disparaît.',sql:'SELECT clients.nom, commandes.id',read:'Le résultat contient <code>NULL | #16</code> : la ligne de droite est conservée, son côté gauche est vide.'}
+    {k:'Garder la droite',d:'<code>RIGHT JOIN</code> conserve toutes les commandes, car elles se trouvent à droite de la jointure.',sql:'FROM clients RIGHT JOIN commandes',read:'Les commandes <code>#1</code>, <code>#3</code> et <code>#16</code> restent, même si leur client est absent.'},
+    {k:'Rechercher le client',d:'SQL utilise la même condition <code>ON</code> pour ajouter le nom du client lorsqu’il existe.',sql:'ON clients.id = commandes.client_id',read:'La commande <code>#16</code> possède un <code>client_id NULL</code> : aucun nom ne peut lui être associé.'},
+    {k:'Lire le côté manquant',d:'La commande invitée reste avec <code>NULL</code> côté clients. Inès, qui n’a aucune commande, disparaît.',sql:'SELECT clients.nom, commandes.id',read:'Le résultat contient <code>NULL | #16</code> : la ligne de droite est conservée, son côté gauche est vide.'}
   ],html:`<div class="er-stage er-match join-viz">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
@@ -13548,9 +13552,9 @@ const SQL_VIZ={
     <p class="er-hint">👆 Sélectionne l'invité.</p>
   </div>`},
   orphan:{kind:'er',sample:'3 clients · 2 commandes',lastSel:'9',phases:[
-    {k:'1 · Rendre l’absence visible',d:'Le <code>LEFT JOIN</code> garde les clients sans commande et produit <code>NULL</code> côté commandes.',sql:'LEFT JOIN commandes ON clients.id = commandes.client_id',read:'Dans cet extrait, Sophie et Lucas trouvent une commande ; Inès obtient une ligne avec <code>commandes.id = NULL</code>.'},
-    {k:'2 · Filtrer les absences',d:'Le filtre retire toutes les lignes possédant un identifiant de commande réel.',sql:'WHERE commandes.id IS NULL',read:'Les lignes de Sophie et Lucas sont écartées ; seule la ligne d’Inès satisfait <code>IS NULL</code>.'},
-    {k:'3 · Obtenir les orphelins',d:'Le résultat ne contient plus que les clients sans aucune correspondance dans <code>commandes</code>.',sql:'SELECT clients.nom',read:'Sur cet extrait comme dans la base complète, le client sans commande est <code>Inès</code>.'}
+    {k:'Rendre l’absence visible',d:'Le <code>LEFT JOIN</code> garde les clients sans commande et produit <code>NULL</code> côté commandes.',sql:'LEFT JOIN commandes ON clients.id = commandes.client_id',read:'Dans cet extrait, Sophie et Lucas trouvent une commande ; Inès obtient une ligne avec <code>commandes.id = NULL</code>.'},
+    {k:'Filtrer les absences',d:'Le filtre retire toutes les lignes possédant un identifiant de commande réel.',sql:'WHERE commandes.id IS NULL',read:'Les lignes de Sophie et Lucas sont écartées ; seule la ligne d’Inès satisfait <code>IS NULL</code>.'},
+    {k:'Obtenir les orphelins',d:'Le résultat ne contient plus que les clients sans aucune correspondance dans <code>commandes</code>.',sql:'SELECT clients.nom',read:'Sur cet extrait comme dans la base complète, le client sans commande est <code>Inès</code>.'}
   ],html:`<div class="er-stage er-match join-viz">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
@@ -13575,9 +13579,9 @@ const SQL_VIZ={
     <p class="er-hint">Le filtre IS NULL conserve les lignes où la table commandes n’a rien fourni.</p>
   </div>`},
   triple:{kind:'er',sample:'2 clients · 2 commandes · 2 produits',lastSel:'c1',phases:[
-    {k:'1 · Identifier le pont',d:'La table <code>commandes</code> relie les deux autres grâce à <code>client_id</code> et <code>produit_id</code>.',sql:'clients → commandes → produits',read:'Le nom du client vient de <code>clients</code>, la quantité de <code>commandes</code>, le nom du produit de <code>produits</code>.'},
-    {k:'2 · Relier le client',d:'La première jointure rattache chaque commande à la personne qui l’a passée.',sql:'JOIN commandes ON clients.id = commandes.client_id',read:'<code>Sophie → commande #1</code> et <code>Lucas → commande #3</code>. À ce stade, le produit reste un identifiant.'},
-    {k:'3 · Relier le produit',d:'La seconde jointure transforme la référence produit en libellé lisible.',sql:'JOIN produits ON commandes.produit_id = produits.id',read:'Le chemin complet devient <code>Sophie → #1 → Fibre Prébiotique</code>, avec la quantité 2 portée par la commande.'}
+    {k:'Identifier le pont',d:'La table <code>commandes</code> relie les deux autres grâce à <code>client_id</code> et <code>produit_id</code>.',sql:'clients → commandes → produits',read:'Le nom du client vient de <code>clients</code>, la quantité de <code>commandes</code>, le nom du produit de <code>produits</code>.'},
+    {k:'Relier le client',d:'La première jointure rattache chaque commande à la personne qui l’a passée.',sql:'JOIN commandes ON clients.id = commandes.client_id',read:'<code>Sophie → commande #1</code> et <code>Lucas → commande #3</code>. À ce stade, le produit reste un identifiant.'},
+    {k:'Relier le produit',d:'La seconde jointure transforme la référence produit en libellé lisible.',sql:'JOIN produits ON commandes.produit_id = produits.id',read:'Le chemin complet devient <code>Sophie → #1 → Fibre Prébiotique</code>, avec la quantité 2 portée par la commande.'}
   ],html:`<div class="er-stage er-match join-viz">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="join-trio">
@@ -13608,9 +13612,9 @@ const SQL_VIZ={
     <p class="er-hint">Sélectionne Sophie : la commande associée puis le produit référencé sont mis en évidence.</p>
   </div>`},
   joingroupby:{kind:'er',sample:'3 clients · 5 commandes',phases:[
-    {k:'1 · Relier sans perdre',d:'Le <code>LEFT JOIN</code> produit une ligne par commande et conserve Inès malgré l’absence de commande.',sql:'LEFT JOIN commandes ON clients.id = commandes.client_id',read:'Sophie produit 3 lignes, Lucas 2, Inès 1 ligne avec <code>commandes.id = NULL</code>.'},
-    {k:'2 · Former un groupe',d:'<code>GROUP BY</code> rassemble toutes les lignes appartenant au même client.',sql:'GROUP BY clients.id, clients.nom',read:'Les 3 lignes de Sophie deviennent un groupe ; les 2 lignes de Lucas un autre ; Inès garde son propre groupe.'},
-    {k:'3 · Compter les vraies commandes',d:'<code>COUNT(commandes.id)</code> compte uniquement les identifiants non <code>NULL</code>.',sql:'COUNT(commandes.id) AS nb_commandes',read:'Résultat réel : <code>Sophie = 3</code>, <code>Lucas = 2</code>, <code>Inès = 0</code>. <code>COUNT(*)</code> donnerait 1 à Inès.' }
+    {k:'Relier sans perdre',d:'Le <code>LEFT JOIN</code> produit une ligne par commande et conserve Inès malgré l’absence de commande.',sql:'LEFT JOIN commandes ON clients.id = commandes.client_id',read:'Sophie produit 3 lignes, Lucas 2, Inès 1 ligne avec <code>commandes.id = NULL</code>.'},
+    {k:'Former un groupe',d:'<code>GROUP BY</code> rassemble toutes les lignes appartenant au même client.',sql:'GROUP BY clients.id, clients.nom',read:'Les 3 lignes de Sophie deviennent un groupe ; les 2 lignes de Lucas un autre ; Inès garde son propre groupe.'},
+    {k:'Compter les vraies commandes',d:'<code>COUNT(commandes.id)</code> compte uniquement les identifiants non <code>NULL</code>.',sql:'COUNT(commandes.id) AS nb_commandes',read:'Résultat réel : <code>Sophie = 3</code>, <code>Lucas = 2</code>, <code>Inès = 0</code>. <code>COUNT(*)</code> donnerait 1 à Inès.' }
   ],html:`<div class="er-stage join-viz">
     <div class="join-sets">
       <div class="join-side"><div class="join-side-h">clients</div>
@@ -13641,9 +13645,9 @@ const SQL_VIZ={
     <p class="er-hint">👆 Touche un client : ses commandes se rassemblent et son compte apparaît.</p>
   </div>`},
   crossjoin:{kind:'er',sample:'3 clients · 3 produits',phases:[
-    {k:'1 · Prendre les deux ensembles',d:'<code>CROSS JOIN</code> part de deux tables mais ne cherche aucune clé de correspondance.',sql:'FROM clients CROSS JOIN produits',read:'L’extrait contient 3 clients et 3 produits. Toutes ces lignes vont participer au résultat.'},
-    {k:'2 · Dérouler les paires',d:'SQL associe le premier client à chaque produit, puis recommence pour le client suivant.',sql:'Aucune clause ON',read:'Sophie produit 3 lignes, Lucas 3 lignes et Emma 3 lignes : aucune paire n’est testée ni écartée.'},
-    {k:'3 · Multiplier les volumes',d:'Le nombre de lignes est le produit des deux tailles, jamais leur somme.',sql:'SELECT clients.nom, produits.nom',read:'Extrait : <code>3 × 3 = 9</code> lignes. Base complète : <code>9 × 8 = 72</code> lignes.' }
+    {k:'Prendre les deux ensembles',d:'<code>CROSS JOIN</code> part de deux tables mais ne cherche aucune clé de correspondance.',sql:'FROM clients CROSS JOIN produits',read:'L’extrait contient 3 clients et 3 produits. Toutes ces lignes vont participer au résultat.'},
+    {k:'Dérouler les paires',d:'SQL associe le premier client à chaque produit, puis recommence pour le client suivant.',sql:'Aucune clause ON',read:'Sophie produit 3 lignes, Lucas 3 lignes et Emma 3 lignes : aucune paire n’est testée ni écartée.'},
+    {k:'Multiplier les volumes',d:'Le nombre de lignes est le produit des deux tailles, jamais leur somme.',sql:'SELECT clients.nom, produits.nom',read:'Extrait : <code>3 × 3 = 9</code> lignes. Base complète : <code>9 × 8 = 72</code> lignes.' }
   ],html:`<div class="er-stage join-viz">
     <div class="join-sets">
       <div class="join-side"><div class="join-side-h">clients</div>
@@ -13678,9 +13682,9 @@ const SQL_VIZ={
     <p class="er-hint">👆 Touche un client : ses trois combinaisons s’allument d’un coup.</p>
   </div>`},
   outer:{kind:'er',sample:'3 clients · 3 commandes',phases:[
-    {k:'1 · Garder les deux côtés',d:'<code>FULL OUTER JOIN</code> promet de conserver chaque client et chaque commande.',sql:'FROM clients FULL OUTER JOIN commandes',read:'Contrairement à <code>LEFT</code> ou <code>RIGHT</code>, aucune des deux sources n’est sacrifiée.'},
-    {k:'2 · Apparier ce qui correspond',d:'La condition <code>ON</code> réunit les lignes portant le même identifiant.',sql:'ON clients.id = commandes.client_id',read:'Dans cet extrait, Sophie ↔ #1 et Lucas ↔ #3. Inès et la commande #16 restent sans partenaire.'},
-    {k:'3 · Compléter les deux absences',d:'Chaque ligne non appariée reste présente avec <code>NULL</code> du côté manquant.',sql:'SELECT clients.nom, commandes.id',read:'L’extrait produit 4 lignes : 2 paires, <code>Inès | NULL</code> et <code>NULL | #16</code>.' }
+    {k:'Garder les deux côtés',d:'<code>FULL OUTER JOIN</code> promet de conserver chaque client et chaque commande.',sql:'FROM clients FULL OUTER JOIN commandes',read:'Contrairement à <code>LEFT</code> ou <code>RIGHT</code>, aucune des deux sources n’est sacrifiée.'},
+    {k:'Apparier ce qui correspond',d:'La condition <code>ON</code> réunit les lignes portant le même identifiant.',sql:'ON clients.id = commandes.client_id',read:'Dans cet extrait, Sophie ↔ #1 et Lucas ↔ #3. Inès et la commande #16 restent sans partenaire.'},
+    {k:'Compléter les deux absences',d:'Chaque ligne non appariée reste présente avec <code>NULL</code> du côté manquant.',sql:'SELECT clients.nom, commandes.id',read:'L’extrait produit 4 lignes : 2 paires, <code>Inès | NULL</code> et <code>NULL | #16</code>.' }
   ],html:`<div class="er-stage join-viz">
     <div class="join-sets">
       <div class="join-side"><div class="join-side-h">clients</div>
