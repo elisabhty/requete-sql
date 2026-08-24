@@ -4129,7 +4129,7 @@
   .pl-adjust-group.compact{margin-top:16px}
   .pl-adjust-label{display:block;width:100%;margin:0 1px 8px;padding:0;color:#34353C;font-size:11.8px;font-weight:730;line-height:1.3}
   .pl-load-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
-  .pl-load-option{position:relative;min-height:82px;padding:9px 5px;border:1px solid rgba(39,42,54,.11);border-radius:15px;background:#fff;color:#292A31;font-family:var(--ui);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .16s var(--spring-ios),border-color .16s,background .16s,box-shadow .16s}
+  .pl-load-option{position:relative;min-height:82px;padding:9px 5px;border:1px solid rgba(39,42,54,.11);border-radius:15px;background:#fff;color:#292A31;font-family:var(--ui);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .16s var(--spring-ios),border-color .16s,background .16s,box-shadow .16s}
   .pl-load-option:active{transform:scale(.96)}
   .pl-load-option b{font-family:var(--mono);font-size:17px;font-weight:800;line-height:1}
   .pl-load-option span{margin-top:5px;font-size:11.5px;font-weight:700;line-height:1.1}
@@ -4138,7 +4138,7 @@
   .pl-load-option.on::after{content:'✓';position:absolute;top:7px;right:7px;width:17px;height:17px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;font-weight:820;display:flex;align-items:center;justify-content:center}
   .pl-load-option.on small{color:#6966B8}
   .pl-freq-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
-  .pl-freq-option{min-height:46px;border:1px solid rgba(39,42,54,.09);border-radius:13px;background:#fff;color:#34353C;font-family:var(--mono);font-size:12.5px;font-weight:780;cursor:pointer;transition:transform .16s var(--spring-ios),background .16s,color .16s,border-color .16s}
+  .pl-freq-option{min-height:46px;border:1px solid rgba(39,42,54,.09);border-radius:13px;background:#fff;color:#34353C;font-family:var(--mono);font-size:12.5px;font-weight:780;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .16s var(--spring-ios),background .16s,color .16s,border-color .16s}
   .pl-freq-option:active{transform:scale(.94)}
   .pl-freq-option.on{border-color:var(--accent);background:var(--accent);color:#fff;box-shadow:0 8px 16px -12px rgba(45,42,130,.85)}
   .pl-adjust-impact{margin-top:16px;padding:12px;border:1px solid rgba(88,86,214,.15);border-radius:15px;background:#F4F3FF;color:#3430A7;display:flex;align-items:flex-start;gap:10px}
@@ -4252,7 +4252,7 @@
   #scr-planning.active #planning-body>:nth-child(2){animation-delay:.12s}
   #scr-planning.active #planning-body>:nth-child(3){animation-delay:.16s}
   #scr-planning.active #planning-body>:nth-child(n+4){animation-delay:.2s}
-  #scr-planning .wk-day.sel,.pl-load-option.on,.pl-freq-option.on{animation:iosSelectedPop .34s var(--bounce-ios)}
+  #scr-planning .wk-day.sel{animation:iosSelectedPop .34s var(--bounce-ios)}
   #scr-planning .pl-chip .cn,#scr-planning .pl-chip .cgo svg,#scr-planning .lr-option-icon{transition:transform .2s var(--spring-ios)}
   #scr-planning .pl-chip:active .cn{transform:scale(.9)}
   #scr-planning .pl-chip:active .cgo svg,#scr-planning .lr-option:active .lr-option-chev{transform:translateX(3px)}
@@ -4342,7 +4342,7 @@
   @media (prefers-reduced-motion:reduce){
     .screen.active>.home-back,#scr-lesson.active>.navbar,.screen.active>.lgtitle,.screen.active>.lgtitle h1,.screen.active>.lgtitle .sub,.tab.tap,
     #scr-learn.active .learn-avatar,#scr-learn.active>#greeting:not([hidden]),#scr-learn.active>#home-progress:not([hidden]),#scr-learn.active>#home-hero>*,#scr-learn.active #modules>.module,
-    #scr-planning.active #planning-body>*,#scr-planning .wk-day.sel,.pl-load-option.on,.pl-freq-option.on,.pl-load-option.on::after,
+    #scr-planning.active #planning-body>*,#scr-planning .wk-day.sel,.pl-load-option.on::after,
     #scr-collection.active>.fbar,#scr-collection.active #cards-grid>.module,#scr-collection.active #cards-grid>.gcard,#scr-collection.active .title-pill,
     #scr-console.active #console-home>*,#scr-console.active .console-project-row,#scr-console.active #console-work:not([hidden])>*,.console-project-tab.on,
     #scr-entretien.active>.ent-hero,#scr-entretien.active>.ent-status,#scr-entretien.active>.fbar,#scr-entretien.active .ent-list-title,.ent-status-btn.on,.ent-assessment .estat.on,
@@ -11134,7 +11134,20 @@ function parcoursInsightHTML(st){
 }
 
 /* ---------- Création ---------- */
-function pick(champ,val){draft[champ]=val;renderPlanning();}
+function pick(champ,val){
+  draft[champ]=val;
+  const setup=document.querySelector('#planning-body .pl-setup');
+  if(!setup){renderPlanning();return;}
+  setup.querySelectorAll(`[data-plan-field="${champ}"]`).forEach(button=>{
+    const on=button.dataset.planValue===String(val);
+    button.classList.toggle('on',on);
+    button.setAttribute('aria-pressed',on?'true':'false');
+  });
+  const preview=document.getElementById('pl-setup-preview');
+  if(preview)preview.innerHTML=planSetupPreviewHTML();
+  const go=setup.querySelector('.pl-go');
+  if(go)go.disabled=!(draft.niveau&&draft.rythme&&draft.freq);
+}
 function leconsDepuis(fromId){
   const i=allLessons.findIndex(l=>l.id===fromId);
   return allLessons.slice(i<0?0:i).map(l=>l.id);
@@ -11207,8 +11220,7 @@ function setPlanAdjust(field,value){
   const p=state.plan;if(!p)return;
   if(!planAdjustDraft)planAdjustDraft=initialPlanAdjustDraft(p);
   planAdjustDraft[field]=+value;
-  renderPlanAdjustSheet();
-  requestAnimationFrame(()=>document.querySelector(`#plan-adjust-sheet [data-plan-field="${field}"][data-plan-value="${+value}"]`)?.focus({preventScroll:true}));
+  if(!updatePlanAdjustSheet(field,+value))renderPlanAdjustSheet();
   if(navigator.vibrate)navigator.vibrate(4);
 }
 let planAdjustTrigger=null;
@@ -11384,30 +11396,31 @@ function toast(msg,sub,tone){
 }
 
 /* ---------- Rendu : assistant ---------- */
+function planSetupPreviewHTML(){
+  const pret=draft.niveau&&draft.rythme&&draft.freq;
+  if(!pret)return '';
+  const p=apercuPlan(draft.niveau,draft.rythme,draft.freq);
+  const n=p.sessions.length,tot=p.sessions.reduce((a,s)=>a+s.lessons.length,0);
+  const mins=(RYTHMES.find(r=>r.k===p.rythme)||RYTHMES[1]).min;
+  const nL=p.sessions.reduce((a,s)=>a+s.lessons.filter(id=>!isDefiId(id)).length,0);
+  const nD=tot-nL;
+  return `<div class="pl-apercu"><b>${plur(n,'séance')}</b> · ${plur(nL,'leçon')} + ${plur(nD,'défi')} selon les prérequis · ~${mins} min<br>
+    <span>Fin prévue le ${parseD(p.sessions[n-1].d).toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}</span></div>`;
+}
 function renderSetup(){
   const bloc=(lab,champ,opts,keyf)=>`
     <div class="pl-q"><span class="qlab">${lab}</span><div class="pl-opts">
-    ${opts.map(o=>`<button class="pl-opt ${draft[champ]===keyf(o)?'on':''}" onclick="pick('${champ}',${typeof keyf(o)==='number'?keyf(o):`'${keyf(o)}'`})">
+    ${opts.map(o=>`<button type="button" class="pl-opt ${draft[champ]===keyf(o)?'on':''}" aria-pressed="${draft[champ]===keyf(o)?'true':'false'}" data-plan-field="${champ}" data-plan-value="${esc(String(keyf(o)))}" onclick="pick('${champ}',${typeof keyf(o)==='number'?keyf(o):`'${keyf(o)}'`})">
       <span class="oi">${o.i}</span><span><b>${o.t}</b><small>${o.d}</small></span></button>`).join('')}
     </div></div>`;
   const pret=draft.niveau&&draft.rythme&&draft.freq;
-  let ap='';
-  if(pret){
-    const p=apercuPlan(draft.niveau,draft.rythme,draft.freq);
-    const n=p.sessions.length,tot=p.sessions.reduce((a,s)=>a+s.lessons.length,0);
-    const mins=(RYTHMES.find(r=>r.k===p.rythme)||RYTHMES[1]).min;
-    const nL=p.sessions.reduce((a,s)=>a+s.lessons.filter(id=>!isDefiId(id)).length,0);
-    const nD=tot-nL;
-    ap=`<div class="pl-apercu"><b>${plur(n,'séance')}</b> · ${plur(nL,'leçon')} + ${plur(nD,'défi')} selon les prérequis · ~${mins} min<br>
-      <span>Fin prévue le ${parseD(p.sessions[n-1].d).toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}</span></div>`;
-  }
   return `<div class="pl-setup">
     <div class="pl-intro"><b>Ton planning personnalisé</b>
       <p>Niveau, minutes, jours — parcours étalé sur ~${DUREE_PARCOURS_JOURS} jours par défaut. Les défis suivent les prérequis. Tu pourras tout ajuster après.</p></div>
     ${bloc("Où en es-tu ?","niveau",NIVEAUX,o=>o.k)}
     ${bloc("Combien de minutes par séance ?","rythme",RYTHMES,o=>o.k)}
     ${bloc("Combien de jours par semaine ?","freq",FREQS,o=>o.k)}
-    ${ap}
+    <div id="pl-setup-preview" aria-live="polite">${planSetupPreviewHTML()}</div>
     <button class="pl-go" ${pret?'':'disabled'} onclick="validerPlan()">Créer mon planning</button></div>`;
 }
 
@@ -11582,6 +11595,13 @@ function planManageHTML(p){
     </button>
   </section>`;
 }
+function planAdjustCopy(v){
+  const end=v.end?parseD(v.end).toLocaleDateString('fr-FR',{day:'numeric',month:'long'}):'—';
+  const impact=v.lateCount
+    ? `${v.lateCount===1?'L’activité':`Les ${v.lateCount} activités`} en retard ${v.lateCount===1?'sera répartie':'seront réparties'} automatiquement.`
+    : `${plur(v.count,'activité')} restante${v.count>1?'s':''} ${v.count===1?'sera répartie':'seront réparties'} à partir d’aujourd’hui.`;
+  return {summary:`${plur(v.n,'séance')} · fin estimée le ${end}`,impact};
+}
 function planAdjustSheetHTML(p){
   const v=planAdjustPreview(p),choice=v.choice;
   const loads=[
@@ -11589,10 +11609,7 @@ function planAdjustSheetHTML(p){
     {n:3,name:'Régulier',min:18},
     {n:5,name:'Intensif',min:30}
   ];
-  const end=v.end?parseD(v.end).toLocaleDateString('fr-FR',{day:'numeric',month:'long'}):'—';
-  const impact=v.lateCount
-    ? `${v.lateCount===1?'L’activité':`Les ${v.lateCount} activités`} en retard ${v.lateCount===1?'sera répartie':'seront réparties'} automatiquement.`
-    : `${plur(v.count,'activité')} restante${v.count>1?'s':''} ${v.count===1?'sera répartie':'seront réparties'} à partir d’aujourd’hui.`;
+  const copy=planAdjustCopy(v);
   return `<p class="pl-adjust-lead">Choisis un rythme confortable. Tu vois l’impact avant de valider.</p>
     <fieldset class="pl-adjust-group">
       <legend class="pl-adjust-label">Activités par séance</legend>
@@ -11608,9 +11625,28 @@ function planAdjustSheetHTML(p){
     </fieldset>
     <div class="pl-adjust-impact" aria-live="polite">
       <span class="pl-impact-icon" aria-hidden="true">${IMPACT_CHART_ICO}</span>
-      <div><b>Ton nouveau parcours</b><strong>${plur(v.n,'séance')} · fin estimée le ${end}</strong><p>${impact}</p></div>
+      <div><b>Ton nouveau parcours</b><strong>${copy.summary}</strong><p>${copy.impact}</p></div>
     </div>
     <p class="pl-adjust-safe">Aucun changement avant ta validation.</p>`;
+}
+function updatePlanAdjustSheet(field,value){
+  const p=state.plan,body=document.getElementById('plan-adjust-body'),footer=document.getElementById('plan-adjust-footer');
+  if(!p||!body||!footer)return false;
+  const options=body.querySelectorAll(`[data-plan-field="${field}"]`);
+  if(!options.length)return false;
+  options.forEach(button=>{
+    const on=+button.dataset.planValue===+value;
+    button.classList.toggle('on',on);
+    button.setAttribute('aria-checked',on?'true':'false');
+  });
+  const v=planAdjustPreview(p),copy=planAdjustCopy(v);
+  const summary=body.querySelector('.pl-adjust-impact strong');
+  const impact=body.querySelector('.pl-adjust-impact p');
+  const apply=footer.querySelector('.pl-adjust-apply');
+  if(summary)summary.textContent=copy.summary;
+  if(impact)impact.textContent=copy.impact;
+  if(apply)apply.disabled=!v.count;
+  return true;
 }
 function renderPlanAdjustSheet(){
   const p=state.plan,body=document.getElementById('plan-adjust-body'),footer=document.getElementById('plan-adjust-footer');
