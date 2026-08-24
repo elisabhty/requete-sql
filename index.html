@@ -1150,6 +1150,14 @@
   .sql-viz[data-viz="crossjoin"][data-phase="1"] .jchip[data-k="B"],
   .sql-viz[data-viz="crossjoin"][data-phase="1"] .jchip[data-k="C"]{opacity:.3;transform:scale(.97)}
   .sql-viz[data-viz="crossjoin"][data-phase="2"] .jchip{background:var(--accent-soft)}
+  /* Jointure + GROUP BY : temps 2, les lignes d'un même client se
+     rassemblent et Inès reste sans rien à droite ; temps 3, le compte. */
+  .sql-viz[data-viz="joingroupby"][data-phase="1"] .jchip[data-k="A"],
+  .sql-viz[data-viz="joingroupby"][data-phase="1"] .jchip[data-k="B"]{background:var(--accent-soft);transform:scale(1.02)}
+  .sql-viz[data-viz="joingroupby"][data-phase="1"] .jchip[data-k="C"]{opacity:.3;transform:scale(.97)}
+  .sql-viz[data-viz="joingroupby"][data-phase="2"] .jchip[data-k="C"]{background:var(--accent-soft)}
+  .sql-viz[data-viz="joingroupby"] .join-out .join-pill[data-when]{display:none}
+  .sql-viz[data-viz="joingroupby"][data-phase="2"] .join-pill[data-when]{display:flex}
   .sql-viz[data-viz="crossjoin"] .join-out .join-pill[data-when]{display:none}
   .sql-viz[data-viz="crossjoin"][data-phase="1"] .join-pill[data-when="a"],
   .sql-viz[data-viz="crossjoin"][data-phase="2"] .join-pill[data-when]{display:flex}
@@ -5293,6 +5301,54 @@ const MODULES = [
     {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
     {k:'prod',label:'produits',sql:"SELECT id, nom\nFROM produits;"},
     {k:'cross',label:'CROSS JOIN',sql:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;",tone:'good'}
+  ] },
+{ id:41, titre:"Jointure + GROUP BY", résumé:"Compter les commandes par client",
+  situation:"Tu veux afficher chaque client avec le nombre de commandes qu\u2019il a passées. Le nom est dans la table <code>clients</code>, les commandes dans la table <code>commandes</code> : il faut donc les relier, puis compter.<br><br>Dans la table <code>clients</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>9</td><td>Inès</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, chaque ligne porte le <code>client_id</code> de son client :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br><br>Sophie doit ressortir avec 3 commandes, Lucas avec 2, et Inès avec 0 — pas disparaître.",
+  situationTail:"La jointure relie les deux tables, <code>GROUP BY</code> rassemble les lignes d\u2019un même client, et <code>COUNT</code> les compte.",
+    studio:{pointCards:{
+      eye:"Jointure + GROUP BY",title:"Un compte par client.",
+      lead:"Trois temps : <code>LEFT JOIN</code> relie les tables, <code>GROUP BY</code> rassemble les lignes d\u2019un même client, <code>COUNT</code> compte ce qui reste dans chaque groupe.",
+      rule:{lines:[
+          {tok:"FROM",val:"clients",tag:"à gauche · tous les clients restent",keep:1},
+          {tok:"LEFT JOIN",val:"commandes",tag:"à droite · complète quand une commande existe"},
+          {tok:"ON",val:"clients.id = commandes.client_id",tag:"le lien : le même identifiant des deux côtés"},
+          {tok:"GROUP BY",val:"clients.id, clients.nom",tag:"rassemble les lignes d\u2019un même client"}
+        ],
+        say:"<p>Après la jointure, Sophie occupe 3 lignes, une par commande. <code>GROUP BY</code> les rassemble en un seul groupe.</p><p><code>COUNT(commandes.id)</code> compte alors les lignes de chaque groupe : 3 pour Sophie, 2 pour Lucas.</p><p>Inès n\u2019a aucune commande : le <code>LEFT JOIN</code> lui laisse une ligne où <code>commandes.id</code> vaut <code>NULL</code>, et <code>COUNT</code> ignore les <code>NULL</code>. Elle ressort avec 0.</p>"},
+      cards:[
+        {t:"COUNT(commandes.id), jamais COUNT(*)",bare:1,
+         b:"<code>COUNT(*)</code> compte les <b>lignes</b> du groupe : Inès en a une, celle que le <code>LEFT JOIN</code> a remplie de <code>NULL</code>, donc elle afficherait 1 commande. <code>COUNT(commandes.id)</code> compte les <b>valeurs non nulles</b> d\u2019une colonne de la table de droite, et affiche bien 0."},
+        {t:"Pourquoi LEFT JOIN et pas JOIN",
+         b:"Avec un <code>JOIN</code> simple, Inès n\u2019aurait aucune ligne et disparaîtrait du résultat. On ne verrait jamais les clients à relancer — souvent ceux qui intéressent le plus."},
+        {t:"Regrouper sur l\u2019identifiant",
+         b:"<code>GROUP BY clients.id, clients.nom</code> plutôt que sur le seul nom : deux clients peuvent porter le même nom, l\u2019<code>id</code> les sépare. Le nom accompagne l\u2019id parce qu\u2019il est affiché."},
+        {t:"Une ligne par groupe",
+         b:"Avant le <code>GROUP BY</code>, la jointure produit 16 lignes. Après, il en reste 9 : une par client. C\u2019est le regroupement qui fixe le nombre de lignes du résultat, pas la jointure."}
+      ]},
+    reflex:{a:{k:"LEFT JOIN",t:"relie les clients à leurs commandes, sans en perdre"},
+      b:{k:"GROUP BY + COUNT",t:"un compte par client"},
+      note:"<code>COUNT(commandes.id)</code> ignore les <code>NULL</code> : c\u2019est ce qui donne 0 aux clients sans commande, là où <code>COUNT(*)</code> leur donnerait 1."},
+    viz:"joingroupby"},
+  anatomie:[{tok:"SELECT clients.nom, COUNT(commandes.id) AS nb_commandes",txt:"Le nom du client et le nombre de ses commandes."},{tok:"FROM clients",txt:"La table de gauche : tous les clients seront conservés."},{tok:"LEFT JOIN commandes",txt:"La table de droite : elle complète, sans écarter les clients sans commande."},{tok:"ON clients.id = commandes.client_id",txt:"La condition de correspondance."},{tok:"GROUP BY clients.id, clients.nom",txt:"Rassemble les lignes d\u2019un même client pour n\u2019en produire qu\u2019une."}],
+  exemple:"SELECT clients.nom, COUNT(commandes.id) AS nb_commandes\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nGROUP BY clients.id, clients.nom;",
+  attendu:"9 lignes, une par client : Sophie 3, Lucas 2, Inès 0.",
+  retenir:"Pour compter des lignes liées sans perdre personne :<br><br><code>FROM t1 LEFT JOIN t2 ON … GROUP BY t1.id</code> puis <code>COUNT(t2.id)</code>.<br><br><b>LEFT JOIN</b> garde ceux qui n\u2019ont rien. <b>COUNT(colonne)</b> ignore les <code>NULL</code> et leur donne 0, là où <code>COUNT(*)</code> leur donnerait 1.",
+  piege:{t:"Compter avec COUNT(*) après un LEFT JOIN",
+    p:"<code>COUNT(*)</code> compte les lignes du groupe sans regarder leur contenu. Inès a bien une ligne — celle que le <code>LEFT JOIN</code> a remplie de <code>NULL</code> — donc elle affiche <b>1 commande au lieu de 0</b>. Compte une colonne de la table de droite pour ne compter que les vraies commandes.",
+    exec:true,
+    sql:"SELECT clients.nom, COUNT(*) AS nb_commandes\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nGROUP BY clients.id, clients.nom;",
+    out:"Inès affiche 1 commande alors qu\u2019elle n\u2019en a aucune",
+    fixSql:"SELECT clients.nom, COUNT(commandes.id) AS nb_commandes\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nGROUP BY clients.id, clients.nom;"},
+  consigne:"Affiche chaque client avec son nombre de commandes, sans oublier ceux qui n\u2019en ont aucune.",
+  solution:"SELECT clients.nom, COUNT(commandes.id) AS nb_commandes\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nGROUP BY clients.id, clients.nom;",
+  indice:"<code>LEFT JOIN</code> pour garder tout le monde, <code>GROUP BY clients.id, clients.nom</code> pour regrouper, <code>COUNT(commandes.id)</code> pour compter.",
+  joinRecap:'left',
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
+    {k:'cmd',label:'commandes',sql:"SELECT id, client_id, produit_id, quantite\nFROM commandes;"},
+    {k:'countetoile',label:'COUNT(*)',sql:"SELECT clients.nom, COUNT(*) AS nb_commandes\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nGROUP BY clients.id, clients.nom;",out:"Inès affiche 1 au lieu de 0",tone:'bad'},
+    {k:'countcol',label:'COUNT(commandes.id)',sql:"SELECT clients.nom, COUNT(commandes.id) AS nb_commandes\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nGROUP BY clients.id, clients.nom;",tone:'good'}
   ] }
 ]},
 
@@ -5726,6 +5782,9 @@ const QCM={
    {q:"Tester l’absence de valeur après une jointure :",o:["WHERE commandes.id = NULL","WHERE commandes.id IS NULL","WHERE commandes.id = 0"],b:1,e:"En SQL, NULL ne se compare pas avec =. On utilise IS NULL."}],
  38:[{q:"<code>RIGHT JOIN</code> conserve :",o:["Seulement les lignes qui correspondent des deux côtés","Toutes les lignes de la table de droite","Toutes les lignes des deux tables"],b:1,e:"Sans correspondance à gauche, les colonnes de clients valent NULL."},
    {q:"Toutes les commandes + leurs clients (y compris l’invité sans client) :",o:["15 lignes avec INNER JOIN","16 lignes avec RIGHT JOIN","9 lignes (un par client)"],b:1,e:"15 correspondances + 1 ligne invitée avec NULL = 16 lignes."}],
+ 41:[{q:"Après un <code>LEFT JOIN</code>, pourquoi écrire <code>COUNT(commandes.id)</code> plutôt que <code>COUNT(*)</code> ?",o:["C’est plus rapide","Parce que COUNT(*) compterait la ligne vide d’un client sans commande","Les deux donnent le même résultat"],b:1,e:"COUNT(*) compte les lignes ; COUNT(colonne) ignore les NULL, ce qui donne 0 aux clients sans commande."},
+  {q:"À quoi sert <code>GROUP BY clients.id, clients.nom</code> ici ?",o:["À trier les clients par nom","À rassembler les lignes d’un même client en une seule","À filtrer les clients sans commande"],b:1,e:"Sophie occupe 3 lignes après la jointure ; GROUP BY les rassemble pour n’en produire qu’une."},
+  {q:"Avec un <code>JOIN</code> simple à la place du <code>LEFT JOIN</code> :",o:["Inès ressortirait avec 0","Inès disparaîtrait du résultat","Rien ne changerait"],b:1,e:"Sans correspondance, INNER JOIN écarte la ligne : les clients sans commande n’apparaissent pas."}],
  40:[{q:"<code>CROSS JOIN</code> retourne :",o:["Les lignes qui correspondent des deux côtés","Toutes les combinaisons possibles des deux tables","Toutes les lignes de la table de gauche"],b:1,e:"Chaque ligne de gauche est associée à chaque ligne de droite, sans condition."},
   {q:"Avec 9 clients et 8 produits, <code>CROSS JOIN</code> donne :",o:["17 lignes","72 lignes","9 lignes"],b:1,e:"9 × 8 = 72 : le nombre de lignes se multiplie, il ne s’additionne pas."},
   {q:"Que se passe-t-il si tu ajoutes <code>ON</code> à un <code>CROSS JOIN</code> ?",o:["C’est obligatoire","Ça n’a pas de sens : CROSS JOIN ne compare rien","Ça trie le résultat"],b:1,e:"CROSS JOIN ne cherche aucune correspondance ; pour filtrer sur une clé, c’est JOIN … ON."}],
@@ -8920,7 +8979,7 @@ const JOIN_GUIDES={
   outer:{kicker:'Analyse du périmètre',lead:'Le type de JOIN décrit quelles lignes doivent rester même sans correspondance.',steps:[['INNER','uniquement les correspondances'],['LEFT / RIGHT','toute une source + les correspondances — Inès à gauche, l’invité à droite'],['FULL OUTER','Inès et l’invité, plus les correspondances']],takeaway:'Le choix du JOIN est un choix de périmètre de résultat.'}
 };
 const JOIN_OUTPUT_LABELS={
-  joinon:'Résultat projeté · une ligne par commande correspondante',inner:'Résultat projeté · correspondances uniquement',leftj:'Résultat projeté · table clients conservée',rightj:'Résultat projeté · table commandes conservée',orphan:'Résultat projeté · clients sans commande',triple:'Résultat projeté · client, produit, quantité',outer:'Résultat projeté · les deux tables conservées',crossjoin:'Résultat projeté · toutes les paires'
+  joinon:'Résultat projeté · une ligne par commande correspondante',inner:'Résultat projeté · correspondances uniquement',leftj:'Résultat projeté · table clients conservée',rightj:'Résultat projeté · table commandes conservée',orphan:'Résultat projeté · clients sans commande',triple:'Résultat projeté · client, produit, quantité',outer:'Résultat projeté · les deux tables conservées',crossjoin:'Résultat projeté · toutes les paires',joingroupby:'Résultat projeté · une ligne par client'
 };
 function renderJoinGuide(key){
   const g=JOIN_GUIDES[key];
@@ -12901,6 +12960,34 @@ const SQL_VIZ={
       <div class="join-pill" data-er-id="c2">Lucas → Protéine<span class="jn">qté 1</span></div>
     </div>
     <p class="er-hint">Sélectionne Sophie : la commande associée puis le produit référencé sont mis en évidence.</p>
+  </div>`},
+  joingroupby:{kind:'er',phases:[
+    {k:'Tables sources',d:'Sophie a deux commandes, Lucas une, Inès aucune.'},
+    {k:'Regroupement',d:'Les lignes d\u2019un même client se rassemblent en un groupe. Inès garde une ligne, mais vide à droite.'},
+    {k:'Le compte',d:'<code>COUNT(commandes.id)</code> compte les commandes de chaque groupe. Inès n\u2019en a aucune : elle ressort avec 0, pas avec 1.' }
+  ],html:`<div class="er-stage join-viz">
+    <div class="join-sets">
+      <div class="join-side"><div class="join-side-h">clients</div>
+        <div class="jchips">
+          <div class="jchip" data-k="A"><span class="er-key">1</span>Sophie</div>
+          <div class="jchip" data-k="B"><span class="er-key">2</span>Lucas</div>
+          <div class="jchip" data-k="C"><span class="er-key">9</span>Inès</div>
+        </div>
+      </div>
+      <div class="join-side" data-side="r"><div class="join-side-h">commandes</div>
+        <div class="jchips">
+          <div class="jchip" data-k="A"><span class="er-key">1</span>#1</div>
+          <div class="jchip" data-k="A"><span class="er-key">1</span>#2</div>
+          <div class="jchip" data-k="B"><span class="er-key">2</span>#3</div>
+        </div>
+      </div>
+    </div>
+    <div class="join-out" aria-hidden="true">
+      <div class="join-pill" data-when="n">Sophie<span class="jn">2 commandes</span></div>
+      <div class="join-pill" data-when="n">Lucas<span class="jn">1 commande</span></div>
+      <div class="join-pill" data-when="n">Inès<span class="jn null">0 commande</span></div>
+    </div>
+    <p class="er-hint">Inès reste dans le résultat avec 0 : <code>COUNT</code> ignore les <code>NULL</code>.</p>
   </div>`},
   crossjoin:{kind:'er',phases:[
     {k:'Tables sources',d:'Trois clients d\u2019un côté, trois produits de l\u2019autre. Aucune colonne ne les relie.'},
