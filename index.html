@@ -294,6 +294,11 @@
   .concept-block .table-wrap table.concept-table td{padding:11px 14px;border-bottom:1px solid var(--line);color:var(--ink);line-height:1.4;text-align:center}
   .concept-block .table-wrap table.concept-table tr:last-child td{border-bottom:0}
   .concept-block .table-wrap table.concept-table tbody tr{transition:background .18s ease}
+  .concept-block .table-wrap table.concept-table .sample-more td{padding:9px 12px;background:linear-gradient(180deg,rgba(91,91,214,.035),rgba(91,91,214,.075));color:var(--ink-3);font-family:var(--ui);font-size:11.5px;font-weight:700;letter-spacing:.05px}
+  .sample-more-dots{display:inline-flex;align-items:center;justify-content:center;width:24px;height:18px;margin-right:7px;border-radius:7px;background:rgba(91,91,214,.1);color:var(--accent);font-family:var(--mono);font-size:14px;font-weight:850;line-height:1;vertical-align:-1px}
+  .concept-block.in .sample-more td{animation:sampleMoreIn .42s var(--spring-ios) .22s both}
+  @keyframes sampleMoreIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.concept-block.in .sample-more td{animation:none!important}}
   /* ============================================================
      Récapitulatif des jointures — présent dans les 6 cours du module
      « Relier », avec la ou les lignes du cours en cours mises en avant.
@@ -9617,6 +9622,40 @@ function renderOnIds(card){
 function hasJoinPointCards(l){
   return !!(l&&l.studio&&l.studio.pointCards);
 }
+const JOIN_SAMPLE_TABLES={
+  18:[['clients',9],['commandes',16]],
+  20:[['clients',9],['commandes',16]],
+  37:[['clients',9],['commandes',16]],
+  19:[['clients',9],['commandes',16],['produits',8]],
+  38:[['clients',9],['commandes',16]],
+  39:[['clients',9],['commandes',16]],
+  40:[['clients',9],['produits',8]],
+  41:[['clients',9],['commandes',16]]
+};
+function addJoinSampleRows(root,lessonId){
+  const meta=JOIN_SAMPLE_TABLES[lessonId];
+  if(!root||!meta)return;
+  const tables=[...root.querySelectorAll('.situation-body table.concept-table')];
+  tables.forEach((table,i)=>{
+    const info=meta[i],body=table.tBodies[0];
+    if(!info||!body||body.querySelector('.sample-more'))return;
+    const shown=[...body.rows].filter(row=>!row.classList.contains('sample-more')).length;
+    const remaining=Math.max(0,info[1]-shown);
+    if(!remaining)return;
+    const row=document.createElement('tr');
+    row.className='sample-more';
+    row.setAttribute('aria-label','Extrait de la table '+info[0]+' : '+remaining+' autres lignes ne sont pas affichées');
+    const cell=document.createElement('td');
+    cell.colSpan=Math.max(1,table.tHead&&table.tHead.rows[0]?table.tHead.rows[0].cells.length:1);
+    const dots=document.createElement('span');
+    dots.className='sample-more-dots';
+    dots.setAttribute('aria-hidden','true');
+    dots.textContent='…';
+    cell.append(dots,document.createTextNode(remaining+' autres '+info[0]));
+    row.appendChild(cell);
+    body.appendChild(row);
+  });
+}
 function initJoinMicro(){
   if(!hasJoinPointCards(current)) return;
   const root=document.querySelector('#lesson-body .join-micro');
@@ -9631,9 +9670,11 @@ function initJoinMicro(){
     tr.setAttribute('role','button');
   };
   [...(cli.tBodies[0]?cli.tBodies[0].rows:[])].forEach(tr=>{
+    if(tr.classList.contains('sample-more'))return;
     mark(tr,tr.cells[0]&&tr.cells[0].textContent.trim());
   });
   [...(cmd.tBodies[0]?cmd.tBodies[0].rows:[])].forEach(tr=>{
+    if(tr.classList.contains('sample-more'))return;
     mark(tr,tr.cells[1]&&tr.cells[1].textContent.trim());
   });
   const rows=[...root.querySelectorAll('.situation-body tr[data-kid]')];
@@ -10154,7 +10195,13 @@ function renderLessonFlow(){
   }
   if(lessonStep===2) renderValidation();
   if(lessonStep===3) requestAnimationFrame(revealBravoCard);
-  if(lessonStep===0){ buildSommaire(); initOrderRappelAnim(); initTesteEditor(); initJoinMicro(); }
+  if(lessonStep===0){
+    buildSommaire();
+    initOrderRappelAnim();
+    initTesteEditor();
+    addJoinSampleRows(document.getElementById('lesson-body'),current.id);
+    initJoinMicro();
+  }
   const fab=document.getElementById('fab');
   if(fab) fab.classList.toggle('hide', lessonStep===0||lessonStep===3);
   mountSqlCopyButtons(document.getElementById('lesson-body'));
