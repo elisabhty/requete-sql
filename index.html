@@ -1812,8 +1812,6 @@
   .db-pill.on{background:#14141B;color:#fff;border-color:#14141B;box-shadow:0 4px 14px -6px rgba(20,20,40,.5)}
   .db-pill.group{padding:2px;cursor:default}
   .db-pill.add{color:var(--accent);border-style:dashed}
-  .db-pill.reset{min-width:38px;justify-content:center;padding:8px 12px}
-  .db-pill.reset.ok{background:var(--success);color:#fff;border-color:var(--success);box-shadow:0 0 0 4px rgba(11,107,74,.16);animation:checkPop .4s cubic-bezier(.3,1.4,.5,1)}
   .db-pill-main{border:none;background:transparent;color:inherit;font:inherit;cursor:pointer;padding:6px 12px;border-radius:999px;line-height:1.2;white-space:nowrap;transition:background .15s}
   .db-pill .db-x{flex:none;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;margin-right:2px;border:none;border-radius:50%;background:transparent;color:inherit;opacity:.55;font-size:13px;line-height:1;cursor:pointer;padding:0;transition:opacity .15s,background .15s}
   .db-pill.on .db-x{opacity:.8}
@@ -1832,6 +1830,12 @@
   .db-trow .tc{font-size:11.5px;color:var(--ink-3);flex:none}
   .db-trow .tb{border:none;background:var(--surface);border-radius:9px;padding:6px 10px;font-size:12px;font-weight:650;color:var(--ink-2);cursor:pointer;flex:none;box-shadow:var(--card-shadow-sm);transition:transform .15s var(--spring-ios)}
   .db-trow .tb:active{transform:scale(.95)}
+  .db-trow .tb.reset-table{min-width:36px;height:36px;padding:0 9px;color:var(--accent);display:inline-flex;align-items:center;justify-content:center;gap:5px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .15s var(--spring-ios),background .18s,color .18s,box-shadow .18s}
+  .db-trow .tb.reset-table svg{width:18px;height:18px}
+  .db-trow .tb.reset-table span{font-size:11px;font-weight:720}
+  .db-trow .tb.reset-table.ok{background:var(--success-soft);color:var(--success);box-shadow:inset 0 0 0 1px rgba(15,118,110,.12)}
+  .db-trow .tb:disabled{opacity:.36;cursor:default;box-shadow:none}
+  .db-trow .tb:disabled:active{transform:none}
   .db-trow .tb.danger{color:var(--danger)}
   .db-tmain{flex:1;min-width:0;display:flex;align-items:center;gap:8px;border:none;background:transparent;padding:5px 7px;border-radius:10px;cursor:pointer;text-align:left;color:inherit;font:inherit;transition:background .15s}
   .db-tmain:focus-visible{background:rgba(20,20,40,.04)}
@@ -3968,6 +3972,8 @@
   #scr-console .console-schema-panel .db-pill svg{width:17px;height:17px;flex:none}
   #scr-console .console-schema-panel .db-tables{padding:7px;border:0;border-radius:14px;background:#F7F7FA;box-shadow:none}
   #scr-console .console-schema-panel .db-trow{background:#fff;border-color:rgba(39,42,54,.065)}
+  #scr-console .console-schema-panel .tk{display:none}
+  #scr-console .console-schema-panel .db-thint{display:none}
   #scr-console .chips-wrap{margin:0 0 13px}
   #scr-console .chips-wrap .db-lab{margin:0 2px 8px}
   #scr-console .chips-wrap .db-lab small{display:none}
@@ -6450,6 +6456,7 @@ async function boot(){
 }
 let activeDbId='cours';
 let customDbs={}; // id → SQL.Database
+let tableBaselines={}; // id projet → état initial de chaque table importée
 let dbCatalog=[{id:'cours',name:'Cours'}];
 let pendingImport=null;
 let consoleView='list';
@@ -6478,6 +6485,7 @@ function buildDb(){ if(db)db.close(); db=new SQL.Database(); db.run(SCHEMA_SQL);
 function sandbox(){ return new SQL.Database(baseBytes); }
 function activeDb(){ return activeDbId==='cours'?db:customDbs[activeDbId]; }
 function quoteIdent(name){ return '"'+String(name).replace(/"/g,'""')+'"'; }
+function quoteSqlText(value){return "'"+String(value).replace(/'/g,"''")+"'";}
 function safeIdent(s){
   let t=String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9_]/g,'_').replace(/^(\d)/,'_$1');
   return (t.slice(0,48)||'donnees');
@@ -6492,10 +6500,79 @@ function b64ToU8(b64){
   for(let i=0;i<s.length;i++) u[i]=s.charCodeAt(i);
   return u;
 }
+function tableBaselineKey(name){return String(name||'').toLocaleLowerCase('fr-FR');}
+function baselineSlot(id){
+  const key=id||activeDbId;
+  if(!tableBaselines[key]||typeof tableBaselines[key]!=='object')tableBaselines[key]={};
+  return tableBaselines[key];
+}
+function tableDefinitionSql(database,name){
+  const stmt=database.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name=?");
+  try{
+    stmt.bind([name]);
+    return stmt.step()?stmt.get()[0]:null;
+  }finally{stmt.free();}
+}
+function captureTableBaseline(database,name){
+  const createSql=tableDefinitionSql(database,name);
+  if(!createSql)return null;
+  const copy=new SQL.Database();
+  try{
+    copy.run(createSql);
+    const data=database.exec('SELECT * FROM '+quoteIdent(name));
+    if(data[0]&&data[0].values.length){
+      const insert='INSERT INTO '+quoteIdent(name)+' VALUES ('+data[0].columns.map(()=>'?').join(',')+')';
+      data[0].values.forEach(row=>copy.run(insert,row));
+    }
+    const extras=database.exec("SELECT sql FROM sqlite_master WHERE tbl_name="+quoteSqlText(name)+" AND type IN ('index','trigger') AND sql IS NOT NULL ORDER BY type");
+    (extras[0]?extras[0].values:[]).forEach(row=>{if(row[0])copy.run(row[0]);});
+    return {name,b64:u8ToB64(copy.export())};
+  }finally{copy.close();}
+}
+function rememberTableBaseline(database,id,name){
+  const snapshot=captureTableBaseline(database,name);
+  if(snapshot)baselineSlot(id)[tableBaselineKey(name)]=snapshot;
+  return snapshot;
+}
+function hasTableBaseline(id,name){
+  if(id==='cours')return SCHEMA_META.some(t=>tableBaselineKey(t.table)===tableBaselineKey(name));
+  return !!(tableBaselines[id]&&tableBaselines[id][tableBaselineKey(name)]);
+}
+function getTableBaseline(id,name){
+  if(id!=='cours')return tableBaselines[id]&&tableBaselines[id][tableBaselineKey(name)];
+  if(!baseBytes||!hasTableBaseline(id,name))return null;
+  const fresh=new SQL.Database(baseBytes);
+  try{return captureTableBaseline(fresh,name);}finally{fresh.close();}
+}
+function restoreTableBaseline(database,name,snapshot){
+  if(!snapshot||!snapshot.b64)throw new Error('Aucun état initial enregistré pour cette table.');
+  const source=new SQL.Database(b64ToU8(snapshot.b64));
+  const createSql=tableDefinitionSql(source,snapshot.name||name);
+  if(!createSql){source.close();throw new Error('État initial illisible.');}
+  const data=source.exec('SELECT * FROM '+quoteIdent(snapshot.name||name));
+  const extras=source.exec("SELECT sql FROM sqlite_master WHERE tbl_name="+quoteSqlText(snapshot.name||name)+" AND type IN ('index','trigger') AND sql IS NOT NULL ORDER BY type");
+  const fk=(database.exec('PRAGMA foreign_keys')[0]?.values[0]?.[0])?1:0;
+  try{
+    database.run('PRAGMA foreign_keys=OFF');
+    database.run('BEGIN');
+    database.run('DROP TABLE IF EXISTS '+quoteIdent(name));
+    database.run(createSql);
+    if(data[0]&&data[0].values.length){
+      const insert='INSERT INTO '+quoteIdent(snapshot.name||name)+' VALUES ('+data[0].columns.map(()=>'?').join(',')+')';
+      data[0].values.forEach(row=>database.run(insert,row));
+    }
+    (extras[0]?extras[0].values:[]).forEach(row=>{if(row[0])database.run(row[0]);});
+    database.run('COMMIT');
+  }catch(e){try{database.run('ROLLBACK');}catch(_){}throw e;}
+  finally{
+    try{database.run('PRAGMA foreign_keys='+(fk?'ON':'OFF'));}catch(_){}
+    source.close();
+  }
+}
 async function persistCustomDbs(){
   const payload=dbCatalog.filter(d=>d.id!=='cours').map(d=>{
     const database=customDbs[d.id]; if(!database)return null;
-    return {id:d.id,name:d.name,b64:u8ToB64(database.export())};
+    return {id:d.id,name:d.name,b64:u8ToB64(database.export()),baselines:tableBaselines[d.id]||{}};
   }).filter(Boolean);
   try{ localStorage.setItem(DBS_KEY,JSON.stringify(payload)); }catch(e){ toast('Bases trop volumineuses pour la sauvegarde locale'); }
 }
@@ -6505,11 +6582,18 @@ async function loadCustomDbs(){
   if(!raw)return;
   try{
     const list=JSON.parse(raw)||[];
+    let seeded=false;
     list.forEach(item=>{
       if(!item||!item.id||!item.b64)return;
       customDbs[item.id]=new SQL.Database(b64ToU8(item.b64));
+      tableBaselines[item.id]=item.baselines&&typeof item.baselines==='object'?item.baselines:{};
+      if(!Object.keys(tableBaselines[item.id]).length){
+        listTables(customDbs[item.id]).forEach(name=>rememberTableBaseline(customDbs[item.id],item.id,name));
+        seeded=true;
+      }
       if(!dbCatalog.some(d=>d.id===item.id)) dbCatalog.push({id:item.id,name:item.name||'Mon projet'});
     });
+    if(seeded)await persistCustomDbs();
   }catch(e){}
 }
 function loadProjState(){
@@ -6902,7 +6986,6 @@ function fillConsoleSql(sql){
   requestAnimationFrame(()=>document.querySelector('#scr-console .console-editor-shell')?.scrollIntoView({behavior:prefersReduceMotion()?'auto':'smooth',block:'nearest'}));
   toast('Requête ouverte dans l’éditeur');
 }
-function resetDb(){ resetActiveDb(); }
 function clearConsoleEditor(){
   const ta=document.getElementById('ed-console');
   if(!ta)return;
@@ -6917,38 +7000,35 @@ function clearConsolePane(){
   const out=document.getElementById('console-out');
   if(out) out.innerHTML='';
 }
-function flashResetBtn(){
-  const btn=document.getElementById('db-reset-btn');
+function flashTableReset(name){
+  const btn=[...document.querySelectorAll('.reset-table')].find(b=>b.dataset.table===name);
   if(!btn)return;
   btn.classList.add('ok');
-  btn.innerHTML=CONSOLE_OK_SVG+'<span>Réinitialisé</span>';
-  btn.setAttribute('aria-label','Réinitialisé');
-  clearTimeout(flashResetBtn._t);
-  flashResetBtn._t=setTimeout(()=>{
-    const b=document.getElementById('db-reset-btn');
-    if(!b)return;
-    b.classList.remove('ok');
-    b.innerHTML=CONSOLE_RESET_SVG+'<span>Réinitialiser</span>';
-    b.setAttribute('aria-label','Réinitialiser');
+  btn.innerHTML=CONSOLE_OK_SVG+'<span>Restaurée</span>';
+  btn.setAttribute('aria-label',`Table ${name} réinitialisée`);
+  setTimeout(()=>{
+    if(!btn.isConnected)return;
+    btn.classList.remove('ok');
+    btn.innerHTML=CONSOLE_RESET_SVG+'<span>Restaurer</span>';
+    btn.setAttribute('aria-label',`Réinitialiser la table ${name}`);
   },prefersReduceMotion()?450:1000);
 }
-function resetActiveDb(){
-  if(activeDbId==='cours'){
-    buildDb();
-  }else{
-    if(customDbs[activeDbId]) customDbs[activeDbId].close();
-    customDbs[activeDbId]=new SQL.Database();
-    persistCustomDbs();
-  }
+function resetTable(name){
+  const database=activeDb(),snapshot=getTableBaseline(activeDbId,name);
+  if(!database||!snapshot){toast('Aucun état initial pour cette table');return;}
+  const origin=activeDbId==='cours'?'les données d’origine du cours':'les données du fichier importé';
+  if(!confirm(`Réinitialiser la table « ${name} » avec ${origin} ?\n\nLes effets des INSERT, UPDATE et DELETE seront effacés.`))return;
+  try{
+    restoreTableBaseline(database,name,snapshot);
+    if(activeDbId!=='cours')persistCustomDbs();
+  }catch(e){alert('Réinitialisation impossible : '+(e.message||e));return;}
   kbarSchemaCache=null;
-  clearConsolePane();
-  projOf(activeDbId).draft='';
-  saveProjState();
+  const out=document.getElementById('console-out');if(out)out.innerHTML='';
   renderDbWorkspace();
   renderConsoleChips();
-  renderConsoleSide();
   renderConsoleSchemaSummary();
-  flashResetBtn();
+  requestAnimationFrame(()=>flashTableReset(name));
+  toast(`Table « ${name} » restaurée`,activeDbId==='cours'?'Données du cours rétablies':'État initial du fichier rétabli');
 }
 function switchDb(id){
   if(id!=='cours'&&!customDbs[id])return;
@@ -6973,6 +7053,7 @@ function deleteDb(id){
   if(!confirm(`Supprimer le projet « ${meta.name} » ?`))return;
   try{ customDbs[id].close(); }catch(e){}
   delete customDbs[id];
+  delete tableBaselines[id];
   dbCatalog=dbCatalog.filter(d=>d.id!==id);
   delete projState[id];
   saveProjState();
@@ -6998,8 +7079,7 @@ function renderDbWorkspace(){
   const lab=document.getElementById('db-tables-lab');
   if(!bar||!host)return;
   const activeName=projectName(activeDbId);
-  bar.innerHTML=`<button type="button" class="db-pill add" onclick="document.getElementById('data-import').click()">${CONSOLE_UPLOAD_SVG}<span>Importer</span></button>`
-    +`<button type="button" class="db-pill reset" id="db-reset-btn" onclick="resetActiveDb()" title="Réinitialiser" aria-label="Réinitialiser">${CONSOLE_RESET_SVG}<span>Réinitialiser</span></button>`;
+  bar.innerHTML=`<button type="button" class="db-pill add" onclick="document.getElementById('data-import').click()">${CONSOLE_UPLOAD_SVG}<span>Importer</span></button>`;
   const database=activeDb();
   renderConsoleSchemaSummary();
   if(!database){
@@ -7011,13 +7091,14 @@ function renderDbWorkspace(){
   if(openTableSchema && !tables.includes(openTableSchema)) openTableSchema=null;
   if(lab) lab.textContent=`Dans « ${activeName} » · ${tables.length} table${tables.length>1?'s':''}`;
   if(!tables.length){
-    host.innerHTML=`<div class="db-empty">${activeDbId==='cours'?'Aucune table — réinitialise la base du cours.':'Cette base est vide — importe un CSV, JSON ou SQL.'}</div>`;
+    host.innerHTML=`<div class="db-empty">${activeDbId==='cours'?'Aucune table disponible.':'Cette base est vide — importe un CSV, JSON ou SQL.'}</div>`;
     return;
   }
   host.innerHTML=tables.map(t=>{
     const n=tableRowCount(database,t);
     const enc=encodeURIComponent(t);
     const open=openTableSchema===t;
+    const resettable=hasTableBaseline(activeDbId,t);
     const cols=open?introspectTable(database,t,tables):[];
     const colsHtml=open?`<div class="db-cols on">
       ${cols.map(c=>`
@@ -7039,6 +7120,7 @@ function renderDbWorkspace(){
           <span class="db-thint">${open?'Masquer':'Colonnes ›'}</span>
         </button>
         <button type="button" class="tb" onclick="queryTable(decodeURIComponent('${enc}'))">SELECT</button>
+        <button type="button" class="tb reset-table" data-table="${escAttr(t)}" onclick="resetTable(decodeURIComponent('${enc}'))" aria-label="${resettable?`Réinitialiser la table ${escAttr(t)}`:`Aucun état initial pour la table ${escAttr(t)}`}" title="${resettable?'Restaurer les données initiales':'Aucun état initial enregistré'}" ${resettable?'':'disabled'}>${CONSOLE_RESET_SVG}<span>Restaurer</span></button>
         <button type="button" class="tb danger" onclick="dropTable(decodeURIComponent('${enc}'))">Suppr.</button>
       </div>
       ${colsHtml}
@@ -7411,6 +7493,7 @@ function confirmImport(){
     customDbs[target]=new SQL.Database();
   }
   const database=activeDb();
+  const beforeTables=listTables(database);
   try{
     if(p.kind==='database' && p.format==='json-db'){
       createImportedTables(database, p.tables);
@@ -7422,9 +7505,17 @@ function confirmImport(){
       createImportedTables(database, [{name:tname, cols:p.cols, types:p.types, rows:p.rows}]);
       pendingImport.importedTable=tname;
     }
-    if(activeDbId!=='cours') persistCustomDbs();
     const tname=pendingImport.importedTable || (isTableImport(p)?(p.primaryTable||null):null);
     const tabs=listTables(database);
+    if(asDb)tableBaselines[target]={};
+    const declared=asDb
+      ? tabs
+      : [pendingImport.importedTable,p.primaryTable,...(p.tableNames||[])].filter(Boolean);
+    const newTables=tabs.filter(name=>!beforeTables.some(old=>old.toLowerCase()===name.toLowerCase()));
+    const wanted=declared.length?declared:newTables;
+    const affected=[...new Set(wanted.map(name=>tabs.find(t=>t.toLowerCase()===String(name).toLowerCase())).filter(Boolean))];
+    affected.forEach(name=>rememberTableBaseline(database,target,name));
+    if(activeDbId!=='cours')persistCustomDbs();
     closeImportSheet();
     openConsoleProject(target);
     if(tname && tabs.map(t=>t.toLowerCase()).includes(String(tname).toLowerCase())){
@@ -7632,7 +7723,7 @@ function errBox(msg){
   if(m.includes('no such column')) aide="Vérifie l'orthographe exacte de la colonne — ou si tu voulais du texte, entoure-le de guillemets simples : <code>'texte'</code>.";
   else if(m.includes('no such table')){
     const tabs=listTables(activeDb()||db);
-    aide=tabs.length?`Tables disponibles : ${tabs.map(t=>'<code>'+esc(t)+'</code>').join(', ')}.`:"Aucune table dans la base active — importe un fichier ou réinitialise la base du cours.";
+    aide=tabs.length?`Tables disponibles : ${tabs.map(t=>'<code>'+esc(t)+'</code>').join(', ')}.`:"Aucune table dans la base active — importe un fichier pour commencer.";
   }
   else if(m.includes('syntax error')) aide="Requête mal formée — vérifie les mots-clés, les virgules et le point-virgule final.";
   else if(m.includes('misuse of aggregate')) aide="Une fonction d'agrégation (COUNT, SUM…) ne peut pas être utilisée dans un WHERE.";
@@ -13182,9 +13273,6 @@ function renderCompte(){
       <div class="acc-card">
         <button class="acc-row" type="button" onclick="exportProgress()">
           <div class="at"><b>Exporter ma progression</b><small>Fichier JSON, à garder de ton côté</small></div>
-          ${CHEV}</button>
-        <button class="acc-row" type="button" onclick="activeDbId='cours';resetDb();openConsoleProject('cours')">
-          <div class="at"><b>Réinitialiser la base SQL</b><small>Remet ${courseTableNames().join(', ')||'les tables du cours'}</small></div>
           ${CHEV}</button>
         <button class="acc-row danger" type="button" onclick="resetAllProgress()">
           <div class="at"><b>Effacer la progression</b><small>Leçons, défis, notes et planning</small></div>
