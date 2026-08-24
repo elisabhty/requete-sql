@@ -5087,13 +5087,26 @@ const MODULES = [
   situation:"Tu veux répondre à une question très courante : <b>quels clients n’ont jamais passé de commande ?</b><br><br>Tu sais déjà que <code>LEFT JOIN</code> permet de garder tous les clients :",
   situationSql:"SELECT clients.nom, commandes.id\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",
   situationTail:"Pour un client qui a commandé, SQL trouve un <code>commandes.id</code>. Pour un client sans commande, les colonnes de la table <code>commandes</code> valent <code>NULL</code>. C’est cette différence que nous allons utiliser.",
-    studio:{problem:{title:"Filtrer sur NULL après LEFT JOIN pour trouver l’absence de correspondance.",
-      body:"Inès est la seule pour laquelle <code>commandes.id IS NULL</code>. On ajoute ce filtre pour ne garder que les clients sans commande."},
-    vs:{bad:{tag:"✕ INNER JOIN + IS NULL",sql:"SELECT clients.nom\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;",out:"0 ligne — INNER JOIN élimine Inès avant le WHERE",pedagogic:true},
-        good:{tag:"✓ LEFT JOIN + IS NULL",sql:"SELECT clients.nom\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;",out:"1 ligne : Inès"}},
-    point:"<b>Deux étapes</b><br>1. <code>LEFT JOIN</code> — tous les clients, y compris Inès → NULL.<br>2. <code>WHERE commandes.id IS NULL</code> — on élimine Sophie, Lucas… Il reste Inès.<br><br><b>Pourquoi <code>commandes.id</code> ?</b> C’est la clé primaire : si une commande existe, <code>id</code> ne peut pas être NULL. <code>WHERE commandes.id IS NULL</code> signifie clairement « aucune commande trouvée ».<br><br><b>IS NULL, pas = NULL</b> — on teste l’absence de valeur avec <code>IS NULL</code>, jamais <code>= NULL</code>.<br><br><b>Modèle réutilisable</b> — <code>FROM table1 LEFT JOIN table2 ON … WHERE table2.id IS NULL</code> cherche les lignes de <code>table1</code> sans correspondance dans <code>table2</code>.<br><br><b>Autre exemple</b> — produits jamais commandés : <code>FROM produits LEFT JOIN commandes ON produits.id = commandes.produit_id WHERE commandes.id IS NULL</code>. Dans notre base, le résultat est vide : tous les produits ont été commandés au moins une fois.",
-    why:{title:"Pourquoi ça fonctionne ?",
-      body:"Sophie a 3 commandes → 3 lignes avec un <code>commandes.id</code> renseigné → écartées par <code>IS NULL</code>.<br><br>Inès n’a aucune commande → LEFT JOIN la garde avec <code>commandes.id = NULL</code> → conservée par le filtre."},
+    studio:{pointCards:{
+      eye:"LEFT JOIN + IS NULL",title:"Ne garder que les orphelins.",
+      lead:"Deux temps : <code>LEFT JOIN</code> garde tous les clients, puis <code>WHERE … IS NULL</code> ne conserve que ceux pour qui la jointure n\u2019a rien trouvé.",
+      rule:{lines:[
+          {tok:"FROM",val:"clients",tag:"à gauche · toutes ses lignes restent",keep:1},
+          {tok:"LEFT JOIN",val:"commandes",tag:"à droite · sert seulement à compléter"},
+          {tok:"ON",val:"clients.id = commandes.client_id",tag:"le lien : le même identifiant des deux côtés"},
+          {tok:"WHERE",val:"commandes.id IS NULL",tag:"ne garde que les lignes restées vides à droite"}
+        ],
+        say:"<p>Le <code>LEFT JOIN</code> garde les 9 clients : ceux qui ont commandé reçoivent un <code>commandes.id</code>, Inès n\u2019en reçoit aucun.</p><p><code>commandes.id</code> est la clé primaire de la table <code>commandes</code> : une vraie commande en a toujours un. S\u2019il vaut <code>NULL</code>, c\u2019est que la jointure n\u2019a rien trouvé.</p><p>Le <code>WHERE</code> ne conserve que ces lignes-là. Il reste Inès.</p>"},
+      cards:[
+        {t:"Pourquoi tester commandes.id",bare:1,
+         b:"On teste la <b>clé primaire</b> de la table de droite, pas <code>commandes.client_id</code>. Une vraie commande a toujours un <code>id</code> : s\u2019il est <code>NULL</code>, c\u2019est forcément que la jointure n\u2019a rien trouvé, jamais parce que la donnée manquait."},
+        {t:"INNER JOIN + IS NULL ne renvoie rien",
+         b:"Avec <code>INNER JOIN</code>, Inès est écartée <b>avant</b> le <code>WHERE</code> : il ne reste plus aucune ligne à filtrer, donc 0 résultat. Le filtre a besoin des <code>NULL</code> que seul <code>LEFT JOIN</code> produit."},
+        {t:"IS NULL, jamais = NULL",
+         b:"<code>NULL</code> n\u2019est pas une valeur mais une absence de valeur : rien ne lui est égal, pas même <code>NULL</code>. <code>WHERE commandes.id = NULL</code> s\u2019exécute sans erreur et ne retourne aucune ligne."},
+        {t:"Un modèle réutilisable",
+         b:"<code>FROM t1 LEFT JOIN t2 ON … WHERE t2.id IS NULL</code> trouve les lignes de <code>t1</code> sans correspondance dans <code>t2</code>. Pour les produits jamais commandés, le résultat est vide dans notre base : tous ont été commandés au moins une fois."}
+      ]},
     reflex:{a:{k:"LEFT JOIN",t:"garde aussi ceux <b>sans</b> correspondance"},
       b:{k:"IS NULL",t:"sélectionne uniquement ceux <b>sans</b> correspondance"},
       note:"LEFT JOIN + IS NULL = le duo pour trouver les orphelins."},
@@ -5110,7 +5123,13 @@ const MODULES = [
   solution:"SELECT clients.nom FROM clients LEFT JOIN commandes ON clients.id = commandes.client_id WHERE commandes.id IS NULL;",
   indice:"<code>LEFT JOIN</code> puis <code>WHERE commandes.id IS NULL</code>.",
   joinRecap:'left',
-  richLesson:true, earlyDemo:true },
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
+    {k:'cmd',label:'commandes',sql:"SELECT id, client_id, produit_id, quantite\nFROM commandes;"},
+    {k:'innernull',label:'INNER JOIN + IS NULL',sql:"SELECT clients.nom\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;",out:"0 ligne — INNER JOIN écarte Inès avant le WHERE",tone:'bad'},
+    {k:'leftnull',label:'LEFT JOIN + IS NULL',sql:"SELECT clients.nom\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;",tone:'good'}
+  ] },
 { id:19, titre:"Relier plusieurs tables", résumé:"Trois tables, deux JOIN",
   situation:"Tu veux afficher le nom du client, le produit qu’il a commandé et la quantité achetée.<br><br>Le problème : ces informations sont réparties dans <b>3 tables</b>.",
   situationTail:"Dans la table <code>clients</code>, tu as le nom du client :<br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr></tbody></table></div><br>Dans la table <code>commandes</code>, tu sais qui a commandé quoi :<br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br>Dans la table <code>produits</code>, tu as le nom du produit :<br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Fibre Prébiotique</td></tr><tr><td>2</td><td>Collagène Marin</td></tr><tr><td>3</td><td>Magnésium</td></tr><tr><td>6</td><td>Protéine Végétale</td></tr></tbody></table></div><br>Aucune table ne contient à elle seule « Sophie → Fibre Prébiotique → 2 ». Il faut relier les 3 tables.",
