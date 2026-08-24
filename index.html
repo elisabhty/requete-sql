@@ -324,6 +324,14 @@
   .pt-lead{margin:0 0 14px;font-size:15px;line-height:1.55;color:var(--ink)}
   .pt-intro{margin:0 0 16px;background:var(--surface);border:1px solid var(--card-border);border-radius:18px;padding:16px;box-shadow:var(--card-shadow-sm);min-width:0}
   .pt-intro .pt-lead{margin:0 0 12px}
+  .pt-venn{margin:0 0 14px;padding:0;display:flex;flex-direction:column;align-items:center;gap:7px}
+  .pt-venn svg{width:100%;max-width:232px;height:auto;display:block;overflow:visible}
+  .pt-venn .vn-off{fill:none;stroke:var(--accent);stroke-opacity:.34;stroke-width:2}
+  .pt-venn .vn-on{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2}
+  .pt-venn .vn-cut{fill:var(--surface);stroke:none}
+  .pt-venn text{font-family:var(--mono);font-size:11px;font-weight:800;fill:var(--ink-2);text-anchor:middle}
+  .pt-venn figcaption{font-size:12px;line-height:1.4;font-weight:650;color:var(--ink-3);text-align:center}
+  @media (max-width:400px){.pt-venn text{font-size:10px}.pt-venn figcaption{font-size:11.5px}}
   .pt-rule{background:transparent;border:0;border-radius:0;padding:0;margin:0}
   .pt-sql{margin:0 0 12px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface-2)}
   /* L'annotation passe toujours sous sa ligne de SQL : alignée à droite, elle
@@ -5011,6 +5019,7 @@ const MODULES = [
     vs:{bad:{tag:"✕ Mauvaises colonnes",sql:"SELECT clients.nom, commandes.produit_id\nFROM clients\nJOIN commandes\nON clients.id = commandes.produit_id;",out:"Incohérent : produit_id identifie un produit, pas un client",pedagogic:true},
         good:{tag:"✓ Bon ON",sql:"SELECT clients.nom, commandes.produit_id\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;",out:"Sophie, Lucas, Emma… chaque commande avec le bon client"}},
     pointCards:{
+      venn:"inner",vennG:"clients",vennD:"commandes",
       lead:"Avec <code>JOIN</code>, une ligne n’apparaît que si elle existe des deux côtés. C’est la clause <code>ON</code> qui dit ce qui correspond à quoi.",
       rule:{lines:[
           {tok:"FROM",val:"clients",tag:"à gauche · gardée seulement si elle correspond"},
@@ -5056,6 +5065,7 @@ const MODULES = [
   situationTail:"Un <code>JOIN</code> simple écarterait Inès car elle n’a aucune commande. Pour garder tous les clients, on utilise <code>LEFT JOIN</code>.",
     studio:{pointCards:{
       eye:"LEFT JOIN",title:"Garder aussi ceux sans commande.",
+      venn:"left",vennG:"clients",vennD:"commandes",
       lead:"La table conservée est celle écrite avant <code>LEFT JOIN</code> : ici <code>clients</code>. Toutes ses lignes seront dans le résultat, même celles sans commande.",
       rule:{lines:[
           {tok:"FROM",val:"clients",tag:"à gauche · toutes ses lignes restent",keep:1},
@@ -5101,6 +5111,7 @@ const MODULES = [
   situationTail:"Pour un client qui a commandé, SQL trouve un <code>commandes.id</code>. Pour un client sans commande, les colonnes de la table <code>commandes</code> valent <code>NULL</code>. C’est cette différence que nous allons utiliser.",
     studio:{pointCards:{
       eye:"LEFT JOIN + IS NULL",title:"Ne garder que les orphelins.",
+      venn:"leftonly",vennG:"clients",vennD:"commandes",
       lead:"Deux temps : <code>LEFT JOIN</code> garde tous les clients, puis <code>WHERE … IS NULL</code> ne conserve que ceux pour qui la jointure n\u2019a rien trouvé.",
       rule:{lines:[
           {tok:"FROM",val:"clients",tag:"à gauche · toutes ses lignes restent",keep:1},
@@ -5175,6 +5186,7 @@ const MODULES = [
   situationTail:"Un <code>JOIN</code> simple écarterait cette commande car elle n’a pas de client. Pour garder toutes les commandes, on utilise <code>RIGHT JOIN</code>.",
     studio:{pointCards:{
       eye:"RIGHT JOIN",title:"Garder aussi celles sans client.",
+      venn:"right",vennG:"clients",vennD:"commandes",
       lead:"La table conservée est celle écrite après <code>RIGHT JOIN</code> : ici <code>commandes</code>. Toutes ses lignes seront dans le résultat, même celles sans client.",
       rule:{lines:[
           {tok:"FROM",val:"clients",tag:"à gauche · sert seulement à compléter"},
@@ -5219,6 +5231,7 @@ const MODULES = [
   situationTail:"<code>FULL OUTER JOIN</code> combine <code>LEFT JOIN</code> et <code>RIGHT JOIN</code> : il garde toutes les lignes des deux tables, avec des <code>NULL</code> là où il n’y a pas de correspondance.",
     studio:{pointCards:{
       eye:"FULL OUTER JOIN",title:"Garder les deux tables entières.",
+      venn:"full",vennG:"clients",vennD:"commandes",
       lead:"<code>FULL OUTER JOIN</code> garde toutes les lignes des deux tables, même sans correspondance.",
       rule:{lines:[
           {tok:"FROM",val:"clients",tag:"à gauche · toutes ses lignes restent",keep:1},
@@ -5312,6 +5325,7 @@ const MODULES = [
   situationTail:"La jointure relie les deux tables, <code>GROUP BY</code> rassemble les lignes d\u2019un même client, et <code>COUNT</code> les compte.",
     studio:{pointCards:{
       eye:"Jointure + GROUP BY",title:"Un compte par client.",
+      venn:"left",vennG:"clients",vennD:"commandes",
       lead:"Trois temps : <code>LEFT JOIN</code> relie les tables, <code>GROUP BY</code> rassemble les lignes d\u2019un même client, <code>COUNT</code> compte ce qui reste dans chaque groupe.",
       rule:{lines:[
           {tok:"FROM",val:"clients",tag:"à gauche · tous les clients restent",keep:1},
@@ -9095,6 +9109,40 @@ function renderSituationBody(l){
 /* Le « rôle de ON » tenait dans un seul paragraphe de six idées enchaînées :
    un mur de texte sur téléphone. On le rend en cartes distinctes, chacune avec
    un schéma quand il porte l'idée mieux qu'une phrase. */
+/* Schéma de périmètre : deux disques qui se chevauchent, la zone conservée
+   teintée. Un seul visuel pour situer une jointure par rapport aux autres.
+   CROSS JOIN n'y figure pas : il ne conserve pas une zone du recouvrement,
+   il croise chaque ligne avec chaque ligne. */
+const VENN_LEGEND={
+  inner:'Seules les lignes présentes des deux côtés.',
+  left:'Toute la table de gauche, plus les correspondances.',
+  right:'Toute la table de droite, plus les correspondances.',
+  full:'Les deux tables entières.',
+  leftonly:'La table de gauche, privée de ses correspondances.'
+};
+function pointVenn(kind,gauche,droite){
+  const leg=VENN_LEGEND[kind];
+  if(!leg)return '';
+  const A='cx="68" cy="62" r="52"';
+  const B='cx="132" cy="62" r="52"';
+  const lens=cls=>`<g clip-path="url(#venn-lens)"><circle ${A} class="${cls}"/></g>`;
+  let peint='';
+  if(kind==='inner')peint=lens('vn-on');
+  else if(kind==='left')peint=`<circle ${A} class="vn-on"/>`;
+  else if(kind==='right')peint=`<circle ${B} class="vn-on"/>`;
+  else if(kind==='full')peint=`<circle ${A} class="vn-on"/><circle ${B} class="vn-on"/>`;
+  else if(kind==='leftonly')peint=`<circle ${A} class="vn-on"/>`+lens('vn-cut');
+  return `<figure class="pt-venn">
+      <svg viewBox="0 0 200 124" role="img" aria-label="${esc(leg)}">
+        <defs><clipPath id="venn-lens"><circle ${B}/></clipPath></defs>
+        ${peint}
+        <circle ${A} class="vn-off"/><circle ${B} class="vn-off"/>
+        <text x="46" y="66">${esc(gauche||'gauche')}</text>
+        <text x="154" y="66">${esc(droite||'droite')}</text>
+      </svg>
+      <figcaption>${leg}</figcaption>
+    </figure>`;
+}
 function renderPtRule(rule){
   if(!rule) return '';
   const lines=rule.lines||[];
@@ -9111,7 +9159,8 @@ function renderPointCards(pc){
   if(!pc) return '';
   const lead=pc.lead?`<p class="pt-lead">${pc.lead}</p>`:'';
   const regle=pc.rule?renderPtRule(pc.rule):'';
-  const intro=(pc.lead||pc.rule)?`<div class="pt-intro">${lead}${regle}</div>`:'';
+  const venn=pc.venn?pointVenn(pc.venn,pc.vennG,pc.vennD):'';
+  const intro=(pc.lead||pc.rule||pc.venn)?`<div class="pt-intro">${lead}${venn}${regle}</div>`:'';
   const chaine=pc.chain?`<ol class="pt-chain">
       ${pc.chain.map((c,i)=>`<li class="pt-hop">
         <span class="pt-hop-n" aria-hidden="true">${i+1}</span>
