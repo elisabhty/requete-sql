@@ -7984,9 +7984,9 @@ function moduleDeLecon(id){
   if(id==null||isDefiId(id)) return null;
   return MODULES.find(m=>m.lessons.some(l=>l.id===id))||null;
 }
-function prochaineLeconParcours(){
+function prochaineActiviteParcours(){
   if(state.plan&&state.plan.sessions&&state.plan.sessions.length){
-    const nxt=toutesLecons().find(id=>!itemDone(id));
+    const nxt=toutesActivites().find(id=>!itemDone(id));
     return nxt!=null?nxt:null;
   }
   return nextOpenLessonId();
@@ -7994,10 +7994,16 @@ function prochaineLeconParcours(){
 function progressContinuer(){
   if(state.plan&&state.plan.sessions&&state.plan.sessions.length){
     const st=statsPlan();
-    return {done:st.done,total:st.total,remaining:st.reste,percent:st.total?Math.round(st.done/st.total*100):0};
+    return {
+      done:st.done,total:st.total,remaining:st.reste,percent:st.total?Math.round(st.done/st.total*100):0,
+      lessonTotal:st.nL,challengeTotal:st.nD,remainingLessons:st.resteL,remainingChallenges:st.resteD
+    };
   }
   const done=allLessons.filter(l=>itemDone(l.id)).length;
-  return {done,total:TOTAL,remaining:Math.max(0,TOTAL-done),percent:TOTAL?Math.round(done/TOTAL*100):0};
+  return {
+    done,total:TOTAL,remaining:Math.max(0,TOTAL-done),percent:TOTAL?Math.round(done/TOTAL*100):0,
+    lessonTotal:TOTAL,challengeTotal:0,remainingLessons:Math.max(0,TOTAL-done),remainingChallenges:0
+  };
 }
 function renderLearnAvatar(){
   const el=document.getElementById('learn-avatar'); if(!el)return;
@@ -8054,13 +8060,15 @@ function renderHomeHero(){
   if(hp){ hp.hidden=true; hp.innerHTML=''; }
 
   const CHEV='<span class="cp-chev" aria-hidden="true"><svg viewBox="0 0 9 15" fill="none"><path d="M1.5 1.5L7 7.5l-5.5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
-  const nxt=prochaineLeconParcours();
+  const nxt=prochaineActiviteParcours();
   const prog=progressContinuer();
-  const remainTxt=prog.remaining>1
-    ? `${prog.remaining} leçons restantes · ${prog.percent} %`
-    : prog.remaining===1
-      ? `Dernière leçon · ${prog.percent} %`
-      : `Parcours terminé — revois tes leçons quand tu veux.`;
+  const remainingParts=[
+    prog.remainingLessons?plur(prog.remainingLessons,'leçon'):'',
+    prog.remainingChallenges?plur(prog.remainingChallenges,'défi'):''
+  ].filter(Boolean);
+  const remainTxt=prog.remaining
+    ? `${remainingParts.join(' · ')} à faire · ${prog.percent} %`
+    : `Parcours terminé — revois tes leçons ou relève un défi.`;
 
   let lateHtml='';
   const info=state.plan?infoJour():null;
@@ -8082,7 +8090,7 @@ function renderHomeHero(){
           <span class="cp-ico" aria-hidden="true">✓</span>
           <span class="cp-copy">
             <h3>Tout le parcours est validé</h3>
-            <span class="cp-meta">${prog.total} leçon${prog.total>1?'s':''} · 100 %</span>
+            <span class="cp-meta">${plur(prog.lessonTotal,'leçon')}${prog.challengeTotal?` · ${plur(prog.challengeTotal,'défi')}`:''} · 100 %</span>
           </span>
           ${CHEV}
         </button>
@@ -8116,7 +8124,7 @@ function renderHomeHero(){
         <button type="button" class="cp-all" onclick="event.stopPropagation();switchTab('planning')" aria-label="Voir tout le parcours">Tout voir</button>
       </div>
       <div class="cp-bar" role="progressbar" aria-label="Progression du parcours" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${prog.percent}"><i style="width:${prog.percent}%"></i></div>
-      <button type="button" class="cp-card" onclick="openItem(${arg})" aria-label="Prochaine leçon : ${esc(meta.titre)}">
+      <button type="button" class="cp-card" onclick="openItem(${arg})" aria-label="${defi?'Prochain défi':'Prochaine leçon'} : ${esc(meta.titre)}">
         <span class="cp-ico" aria-hidden="true">${ico}</span>
         <span class="cp-copy">
           <span class="cp-badge-row">
@@ -8622,7 +8630,7 @@ function bravoNextHtml(){
       </span>
     </button>`;
   }
-  return `<div class="bravo-done-note"><span class="fi">🎉</span><div><b>Programme terminé</b><p>Les ${TOTAL} leçons sont bouclées — bravo pour ce parcours complet.</p></div></div>`;
+  return `<div class="bravo-done-note"><span class="fi">🎉</span><div><b>Programme terminé</b><p>Les ${TOTAL} leçons sont bouclées${state.plan?' et les défis du parcours sont résolus':''} — bravo !</p></div></div>`;
 }
 function bravoActionsHtml(l){
   const etape=typeof prochaineEtapeParcours==='function'?prochaineEtapeParcours():null;
@@ -10034,7 +10042,7 @@ function renderExoHelp(){
   let html='';
   if(exoFails>=1){
     if(current.exemple)
-      html+=`<div class="hint-box"><b>Aide</b>Exemple du cours à adapter :
+      html+=`<div class="hint-box"><b>Aide</b>${mode==='defi'?'Exemple lié au défi':'Exemple du cours'} à adapter :
         <div class="ex-code" style="margin-top:8px">${highlight(current.exemple)}</div></div>`;
     else
       html+=`<div class="hint-box"><b>Aide</b>Repère les <b>tables</b> et <b>colonnes</b> de l’énoncé, puis assemble dans l’ordre : FROM → JOIN (si besoin) → WHERE / GROUP BY → SELECT. Touche <b>Schéma</b> sous l’éditeur si un nom te manque.</div>`;
@@ -10423,7 +10431,7 @@ const FREQS=[
 ];
 const PATTERN={2:[1,4],3:[1,3,5],5:[1,2,3,4,5],7:[0,1,2,3,4,5,6]};
 const JOURS=['D','L','M','M','J','V','S'];
-const MIN_PAR_LECON=6;
+const MIN_PAR_ACTIVITE=6;
 const DUREE_PARCOURS_JOURS=30;
 let draft={niveau:null,rythme:null,freq:null};
 let semaineOffset=0,jourSel=null;
@@ -10565,19 +10573,23 @@ function trierSessions(){
 function sessionDe(iso){return (state.plan.sessions||[]).find(s=>s.d===iso);}
 function sessionFaite(s){return s&&s.lessons.length>0&&s.lessons.every(itemDone);}
 function resteDe(s){return s?s.lessons.filter(id=>!itemDone(id)).length:0;}
-function toutesLecons(){return (state.plan.sessions||[]).reduce((a,s)=>a.concat(s.lessons),[]);}
+/* `sessions[].lessons` est un ancien nom de stockage. Ce tableau contient des
+   activités : identifiants numériques de leçons et identifiants texte de défis. */
+function toutesActivites(){return (state.plan.sessions||[]).reduce((a,s)=>a.concat(s.lessons),[]);}
 function statsPlan(){
   normaliserPlan();
   const p=state.plan,all=[],vus=new Set();
-  [...toutesLecons(),...(p.archive||[])].forEach(id=>{
+  [...toutesActivites(),...(p.archive||[])].forEach(id=>{
     const key=typeof id+':'+String(id);
     if(!vus.has(key)){vus.add(key);all.push(id);}
   });
-  const done=all.filter(itemDone).length;
+  const remaining=all.filter(id=>!itemDone(id));
+  const done=all.length-remaining.length;
   const nL=all.filter(id=>!isDefiId(id)).length,nD=all.filter(isDefiId).length;
+  const resteL=remaining.filter(id=>!isDefiId(id)).length,resteD=remaining.filter(isDefiId).length;
   const fin=p.sessions.length?p.sessions[p.sessions.length-1].d:null;
-  return {total:all.length,done,reste:all.length-done,seances:p.sessions.length,fin,nL,nD,
-    moy:p.sessions.length?Math.round(toutesLecons().length/p.sessions.length*MIN_PAR_LECON):0};
+  return {total:all.length,done,reste:remaining.length,seances:p.sessions.length,fin,nL,nD,resteL,resteD,
+    moy:p.sessions.length?Math.round(toutesActivites().length/p.sessions.length*MIN_PAR_ACTIVITE):0};
 }
 function infoJour(){
   normaliserPlan();
@@ -10663,7 +10675,7 @@ function lateRecoveryHTML(){
     ? 'Sans alourdir aujourd’hui'
     : d.count===spreadN?'1 activité par prochaine séance':`${plur(d.count,'activité')} réparties automatiquement`;
   const beforeLabel=plur(d.todayCount,'activité');
-  const afterLabel=`${plur(d.todayAfter,'activité')} · ~${d.todayAfter*MIN_PAR_LECON} min`;
+  const afterLabel=`${plur(d.todayAfter,'activité')} · ~${d.todayAfter*MIN_PAR_ACTIVITE} min`;
   return `<section class="late-recovery" id="late-recovery" aria-labelledby="late-recovery-title">
     <div class="lr-head">
       <span class="lr-icon" aria-hidden="true">${LATE_BANNER_ICO}</span>
@@ -10690,27 +10702,27 @@ function lateRecoveryHTML(){
     </div>
   </section>`;
 }
-function lessonsRestantesAujourdhui(){const i=infoJour();return i&&i.today?resteDe(i.today):0;}
+function activitesRestantesAujourdhui(){const i=infoJour();return i&&i.today?resteDe(i.today):0;}
 function parcoursInsightHTML(st){
   const info=infoJour(); if(!info) return '';
   const sk=streakJours();
   let icon='✨',tone='',body='';
   if(st.reste===0){
     icon='🎉';tone='ok';
-    body=`Parcours terminé — tu as bouclé les ${st.total} items du planning.`;
+    body=`Parcours terminé — tu as bouclé les ${plur(st.total,'activité')} du planning.`;
   }else if(info.retard.length){
     icon='⚠';tone='warn';
     body=`${info.retard.length} séance${info.retard.length>1?'s':''} en retard. Rattrape-les pour remettre ton calendrier à jour.`;
   }else if(info.today&&resteDe(info.today)){
     const left=resteDe(info.today);
     icon='🎯';tone='go';
-    body=`Aujourd'hui : ${left} item${left>1?'s':''} · ~${left*MIN_PAR_LECON} min. ${sk>0?`Garde ta série de ${sk} jour${sk>1?'s':''} !`:'Lance ta première séance !'}`;
+    body=`Aujourd'hui : ${plur(left,'activité')} · ~${left*MIN_PAR_ACTIVITE} min. ${sk>0?`Garde ta série de ${sk} jour${sk>1?'s':''} !`:'Lance ta première séance !'}`;
   }else if(info.today){
     icon='✓';tone='ok';
     body=info.suivante?`Séance du jour terminée. Prochaine étape ${libelleJour(info.suivante.d).toLowerCase()}.`:'Séance du jour terminée.';
   }else{
     icon='☕';
-    body=info.suivante?`Journée libre. Prochaine séance ${libelleJour(info.suivante.d).toLowerCase()} — ${info.suivante.lessons.length} item${info.suivante.lessons.length>1?'s':''}.`:'Journée libre — aucune séance planifiée.';
+    body=info.suivante?`Journée libre. Prochaine séance ${libelleJour(info.suivante.d).toLowerCase()} — ${plur(info.suivante.lessons.length,'activité')}.`:'Journée libre — aucune séance planifiée.';
   }
   if(st.fin&&st.reste>0&&tone!=='warn'){
     const fin=parseD(st.fin).toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
@@ -11009,22 +11021,22 @@ function renderTodayHero(){
   const info=infoJour(); if(!info)return '';
   const retard=lateRecoveryHTML();
   if(!info.reste)return `<div class="today-hero done"><div class="th-tag">Ton parcours</div>
-    <h3>Tout est terminé 🎉</h3><p>Les ${statsPlan().total} items du planning sont bouclés.</p></div>`;
+    <h3>Tout est terminé 🎉</h3><p>Les ${plur(statsPlan().total,'activité')} du planning sont bouclées.</p></div>`;
   if(info.today){
     const s=info.today,tot=s.lessons.length,faites=tot-resteDe(s),pct=tot?Math.round(faites/tot*100):0;
     const left=tot-faites;
     if(!resteDe(s))return retard+`<div class="today-hero done"><div class="th-tag">Aujourd'hui</div>
-      <h3>Séance terminée ✓</h3><p>Tes ${tot} item${tot>1?'s':''} du jour sont faits. Prochaine séance ${info.suivante?libelleJour(info.suivante.d).toLowerCase():'bientôt'}.</p>
+      <h3>Séance terminée ✓</h3><p>Tes ${plur(tot,'activité')} du jour sont terminées. Prochaine séance ${info.suivante?libelleJour(info.suivante.d).toLowerCase():'bientôt'}.</p>
       ${info.suivante?`<button class="th-go ghost" onclick="demarrerSeance('${info.suivante.d}')">Prendre de l'avance</button>`:''}</div>`;
     return retard+`<div class="today-hero"><div class="th-tag">Aujourd'hui · Parcours progressif</div>
       <h3>${left} à faire</h3>
-      <p>Leçons + défis · ~${left*MIN_PAR_LECON} min.${faites?` Déjà ${faites}/${tot}.`:''}</p>
+      <p>Leçons + défis · ~${left*MIN_PAR_ACTIVITE} min.${faites?` Déjà ${faites}/${tot}.`:''}</p>
       <div class="th-bar"><i style="width:${pct}%"></i></div>
       <div class="hero-list">${heroRows(s)}</div>
       <button class="th-go" onclick="demarrerSeance('${s.d}')">${faites?'Continuer':'Commencer'} la séance</button></div>`;
   }
   return retard+`<div class="today-hero rest"><div class="th-tag">Aujourd'hui</div>
-    <h3>Journée libre</h3><p>Aucune séance prévue.${info.suivante?` La prochaine est ${libelleJour(info.suivante.d).toLowerCase()} — ${info.suivante.lessons.length} items.`:''}</p>
+    <h3>Journée libre</h3><p>Aucune séance prévue.${info.suivante?` La prochaine est ${libelleJour(info.suivante.d).toLowerCase()} — ${plur(info.suivante.lessons.length,'activité')}.`:''}</p>
     ${info.suivante?`<button class="th-go ghost" onclick="demarrerSeance('${info.suivante.d}')">Prendre de l'avance</button>`:''}</div>`;
 }
 
@@ -11043,7 +11055,7 @@ function stripHTML(){
   return joursSemaine().map(d=>{
     const iso=dstr(d),sess=sessionDe(iso),n=sess?sess.lessons.length:0;
     const fait=sessionFaite(sess),ret=sess&&iso<t&&!fait,estAuj=iso===t,pause=!n;
-    const lab=libelleJour(iso)+(pause?' · pause':(fait?' · terminée':(ret?' · en retard':` · ${n} item${n>1?'s':''}`)));
+    const lab=libelleJour(iso)+(pause?' · pause':(fait?' · terminée':(ret?' · en retard':` · ${plur(n,'activité')}`)));
     return `<button type="button" class="wk-day ${jourSel===iso?'sel':''} ${estAuj?'auj':''} ${fait?'fait':''} ${ret?'ret':''} ${pause?'pause':''}"
       data-date="${iso}" aria-label="${esc(lab)}" aria-pressed="${jourSel===iso?'true':'false'}"
       onclick="jourSel='${iso}';renderPlanning()">
@@ -11127,13 +11139,13 @@ function renderSemaine(){
     <div class="day-panel ${ret?'late':''} ${fait?'done':''}" data-date="${jourSel}">
       <div class="dp-head">
         <div><b>${libelleJour(jourSel)}</b>
-        <small>${sess?`${nL} leçon${nL>1?'s':''}${nD?` · ${nD} défi${nD>1?'s':''}`:''} · ~${sess.lessons.length*MIN_PAR_LECON} min${fait?' · terminée':(ret?' · en retard':(faitN?` · ${faitN}/${sess.lessons.length}`:''))}`:'Pause — rien de prévu'}</small></div>
+        <small>${sess?`${nL} leçon${nL>1?'s':''}${nD?` · ${nD} défi${nD>1?'s':''}`:''} · ~${sess.lessons.length*MIN_PAR_ACTIVITE} min${fait?' · terminée':(ret?' · en retard':(faitN?` · ${faitN}/${sess.lessons.length}`:''))}`:'Pause — rien de prévu'}</small></div>
       </div>
       ${sess&&!fait?`<button type="button" class="dp-go" onclick="demarrerSeance('${jourSel}')">${faitN?'Continuer la séance':'Démarrer la séance'}</button>`:''}
       ${sess?`<div class="dp-prog" aria-hidden="true"><i style="width:${pctSess}%"></i></div>`:''}
       <div class="pl-chips">${chips||`<div class="dp-pause"><div class="dp-pi">☕</div><b>Journée libre</b><small>Pas de séance prévue. Glisse une leçon ou un défi ici si tu veux avancer.</small></div>`}</div>
     </div>
-    ${p.archive&&p.archive.length?`<p class="pl-hint" style="text-align:left">${p.archive.length} items déjà terminés ont été retirés du calendrier.</p>`:''}
+    ${p.archive&&p.archive.length?`<p class="pl-hint" style="text-align:left">${plur(p.archive.length,'activité')} déjà terminée${p.archive.length>1?'s':''} ${p.archive.length>1?'ont':'a'} été retirée${p.archive.length>1?'s':''} du calendrier.</p>`:''}
     <p class="pl-hint">Appuie longuement sur une activité pour la réordonner, ou utilise son calendrier pour la déplacer.</p>`;
 }
 function allerAuJour(iso){
@@ -11264,7 +11276,7 @@ function renderHomeToday(){ renderHomeHero(); }
 function majBadgePlanning(){
   const b=document.getElementById('badge-planning'); if(!b)return;
   const late=state.plan?latePlanDetails():null;
-  const n=late?late.count:(state.plan?lessonsRestantesAujourdhui():0);
+  const n=late?late.count:(state.plan?activitesRestantesAujourdhui():0);
   b.textContent=n>99?'99+':n;b.style.display=n?'flex':'none';
   b.classList.toggle('late',!!late);
   const tab=b.closest('.tab');if(tab)tab.classList.toggle('has-late',!!late);
@@ -11490,7 +11502,7 @@ function openMoveSheet(id){
     const iso=dstr(d),sess=sessionDe(iso),n=sess?sess.lessons.length:0;
     return `<button class="mv-row ${iso===actuelle?'on':''}" onclick="moveTo('${iso}')">
       <span class="mv-d"><b>${libelleJour(iso)}</b>
-      <small>${n?`${n} item${n>1?'s':''} · ~${n*MIN_PAR_LECON} min`:'Pause'}</small></span>
+      <small>${n?`${plur(n,'activité')} · ~${n*MIN_PAR_ACTIVITE} min`:'Pause'}</small></span>
       ${iso===actuelle?'<span class="mv-tag">Actuel</span>':''}</button>`;
   }).join('');
   document.getElementById('move-head').textContent=`Déplacer « ${m.titre} »`;
@@ -12355,7 +12367,7 @@ function paintOb(){
   }else if(slide==='rythme'){
     html=`${back}<div class="ob-kicker">Question 2 / 2</div>
       <h2>Combien de minutes<br>par séance ?</h2>
-      <p>Une leçon prend environ ${MIN_PAR_LECON} minutes. Les jours se règlent ensuite dans Parcours.</p>
+      <p>Une activité — leçon ou défi — prend environ ${MIN_PAR_ACTIVITE} minutes. Les jours se règlent ensuite dans Parcours.</p>
       ${obOptsHtml('rythme',RYTHMES,o=>o.k)}`;
   }else if(slide==='build'){
     html=`<div class="ob-kicker">Personnalisation</div>
