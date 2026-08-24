@@ -324,13 +324,17 @@
   .pt-intro .pt-lead{margin:0 0 12px}
   .pt-rule{background:transparent;border:0;border-radius:0;padding:0;margin:0}
   .pt-sql{margin:0 0 12px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface-2)}
-  .pt-sql-row{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 10px;padding:10px 12px;border-top:1px solid var(--line);min-width:0}
+  /* L'annotation passe toujours sous sa ligne de SQL : alignée à droite, elle
+     sautait à la ligne dès qu'elle était longue et une seule des lignes se
+     retrouvait décalée. Sous le code, les trois se lisent pareil. */
+  .pt-sql-row{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px 12px;border-top:1px solid var(--line);min-width:0}
   .pt-sql-row:first-child{border-top:0}
-  .pt-sql-row.is-keep{box-shadow:inset 3px 0 0 var(--accent)}
-  .pt-sql-code{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;min-width:0;flex:1 1 11em}
+  .pt-sql-row.is-keep{box-shadow:inset 3px 0 0 var(--accent);background:var(--accent-soft)}
+  .pt-sql-code{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;min-width:0;width:100%}
   .pt-sql-tok{flex:none;font-family:var(--mono);font-size:12px;font-weight:800;color:var(--accent);letter-spacing:.2px}
   .pt-sql-val{min-width:0;font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--ink);overflow-wrap:anywhere;line-height:1.4}
-  .pt-sql-tag{flex:0 1 auto;font-size:11.5px;font-weight:700;color:var(--ink-3);line-height:1.35;text-align:right}
+  .pt-sql-tag{font-size:11.5px;font-weight:650;color:var(--ink-3);line-height:1.35;text-align:left;overflow-wrap:anywhere}
+  .pt-sql-row.is-keep .pt-sql-tag{color:var(--accent);font-weight:750}
   .pt-rule-say{margin:0;font-size:14px;line-height:1.55;color:var(--ink-2)}
   .pt-rule-say p{margin:0}
   .pt-rule-say p+p{margin-top:10px}
@@ -338,8 +342,8 @@
     .pt-intro{padding:14px 13px;border-radius:16px}
     .pt-lead{font-size:14.5px}
     .pt-sql-row{padding:9px 11px}
-    .pt-sql-tok,.pt-sql-val{font-size:12px}
-    .pt-sql-tag{flex-basis:100%;text-align:left}
+    .pt-sql-tok,.pt-sql-val{font-size:11.5px}
+    .pt-sql-code{gap:5px}
     .pt-rule-say{font-size:13.5px}
   }
 
@@ -5113,13 +5117,13 @@ const MODULES = [
   situationTail:"Un <code>JOIN</code> simple écarterait cette commande car elle n’a pas de client. Pour garder toutes les commandes, on utilise <code>RIGHT JOIN</code>.",
     studio:{pointCards:{
       eye:"RIGHT JOIN",title:"Garder aussi celles sans client.",
-      lead:"<code>RIGHT JOIN</code> garde toutes les lignes de la table de droite, même sans correspondance à gauche.",
+      lead:"La table conservée est celle écrite après <code>RIGHT JOIN</code> : ici <code>commandes</code>. Toutes ses lignes seront dans le résultat, même celles sans client.",
       rule:{lines:[
-          {tok:"FROM",val:"clients",tag:"table de gauche"},
-          {tok:"RIGHT JOIN",val:"commandes",tag:"table de droite",keep:1},
-          {tok:"ON",val:"clients.id = commandes.client_id"}
+          {tok:"FROM",val:"clients",tag:"à gauche · sert seulement à compléter"},
+          {tok:"RIGHT JOIN",val:"commandes",tag:"à droite · toutes ses lignes restent",keep:1},
+          {tok:"ON",val:"clients.id = commandes.client_id",tag:"le lien : le même identifiant des deux côtés"}
         ],
-        say:"<p>Pour chaque commande, SQL cherche le client dans <code>clients</code>.</p><p>Sans client — comme la commande invitée — on garde la commande et le nom vaut <code>NULL</code>.</p>"},
+        say:"<p>SQL parcourt <code>commandes</code>, ligne par ligne.</p><p>Pour chaque commande, il cherche dans <code>clients</code> celui dont l’<code>id</code> est égal à <code>commandes.client_id</code>.</p><p>S’il le trouve, le nom complète la ligne. Sinon — c’est le cas de la commande <code>#16</code>, passée sans compte — la ligne reste quand même, et les colonnes de <code>clients</code> valent <code>NULL</code>.</p>"},
       cards:[
         {t:"Pourquoi écrire clients.id et commandes.client_id",bare:1,
          b:"Les deux tables ont une colonne <code>id</code> : on écrit <code>clients.id</code> pour lever l’ambiguïté. Et on compare à <code>commandes.client_id</code> — c’est cette colonne qui recopie l’identifiant du client, pas <code>commandes.id</code>."},
@@ -5159,9 +5163,9 @@ const MODULES = [
       eye:"FULL OUTER JOIN",title:"Garder les deux tables entières.",
       lead:"<code>FULL OUTER JOIN</code> garde toutes les lignes des deux tables, même sans correspondance.",
       rule:{lines:[
-          {tok:"FROM",val:"clients",tag:"table de gauche",keep:1},
-          {tok:"FULL OUTER JOIN",val:"commandes",tag:"table de droite",keep:1},
-          {tok:"ON",val:"clients.id = commandes.client_id"}
+          {tok:"FROM",val:"clients",tag:"à gauche · toutes ses lignes restent",keep:1},
+          {tok:"FULL OUTER JOIN",val:"commandes",tag:"à droite · toutes ses lignes restent",keep:1},
+          {tok:"ON",val:"clients.id = commandes.client_id",tag:"le lien : le même identifiant des deux côtés"}
         ],
         say:"<p>SQL relie chaque client à sa commande quand les identifiants correspondent.</p><p>Sans correspondance — Inès sans commande, ou la commande invitée — la ligne reste et le côté manquant vaut <code>NULL</code>.</p>"},
       cards:[
