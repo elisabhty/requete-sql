@@ -437,6 +437,16 @@
   .pd-outs b.pd-more span{color:var(--accent);font-family:var(--mono);font-size:16px;line-height:.7;letter-spacing:2px}
 
   /* La relation clé primaire → clé étrangère, celle qu'utilise ON. */
+  /* Le contraste COUNT(*) / COUNT(colonne) : deux lignes, deux résultats,
+     la fausse barrée en ambre et la juste en accent. */
+  .pd-count{display:flex;flex-direction:column;gap:6px}
+  .pd-count-row{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:11px;background:var(--surface-2);min-width:0}
+  .pd-count-row b{flex:1 1 auto;min-width:0;font-family:var(--mono);font-size:11px;font-weight:800;overflow-wrap:anywhere}
+  .pd-count-row i{flex:none;width:14px;height:2px;border-radius:2px;background:currentColor;opacity:.45}
+  .pd-count-row span{flex:none;font-family:var(--mono);font-size:14px;font-weight:850}
+  .pd-count-row.is-faux{color:var(--warn);background:var(--warn-soft)}
+  .pd-count-row.is-juste{color:var(--accent);background:var(--accent-soft)}
+  .pd-count small{font-size:10.5px;font-weight:650;color:var(--ink-3);text-align:center}
   .pd-pkfk{display:flex;flex-direction:column;align-items:stretch;gap:0}
   .pd-key{min-width:0;display:flex;flex-direction:column;gap:2px;border-radius:12px;padding:9px 11px;position:relative;z-index:0}
   .pd-key small{font-size:11px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;opacity:.85}
@@ -5688,11 +5698,11 @@ const MODULES = [
       cards:[
         {t:"Relier les tables",
          b:"<p><code>LEFT JOIN</code> relie chaque client à ses commandes tout en conservant les clients qui n’ont encore rien commandé.</p>"},
-        {t:"Regrouper par client",draw:"repeat",src:"Sophie",outs:["commande #1","commande #2","commande #3"],
+        {t:"Regrouper par client",draw:"repeat",src:"Sophie",outs:["commande #1","commande #2","commande #13"],
          b:"<p>Après la jointure, un client peut apparaître plusieurs fois.</p><p><code>GROUP BY clients.id, clients.nom</code> rassemble toutes ses lignes dans un même groupe.</p>"},
         {t:"Compter les commandes",
          b:"<p><code>COUNT(commandes.id)</code> compte le nombre de vraies commandes présentes dans chaque groupe.</p>"},
-        {t:"Pourquoi pas COUNT(*) ?",
+        {t:"Pourquoi pas COUNT(*) ?",draw:"countnull",
          b:"<p>Avec <code>LEFT JOIN</code>, même un client sans commande possède une ligne dans le résultat.</p><p><code>COUNT(*)</code> compterait cette ligne. <code>COUNT(commandes.id)</code>, lui, ignore <code>NULL</code> et renvoie donc correctement 0.</p>"}
       ]},
     reflex:{a:{k:"GROUP BY",t:"crée un groupe pour chaque client"},
@@ -9600,6 +9610,11 @@ function pointDraw(card){
       <span class="pd-outs">${outs.map(o=>`<b>${esc(o)}</b>`).join('')}${more?`<b class="pd-more"><span>…</span>${esc(more)}</b>`:''}</span>
     </div>`;
   }
+  if(kind==='countnull') return `<div class="pd-count" aria-hidden="true">
+      <div class="pd-count-row is-faux"><b>COUNT(*)</b><i></i><span>1</span></div>
+      <div class="pd-count-row is-juste"><b>COUNT(commandes.id)</b><i></i><span>0</span></div>
+      <small>pour Inès, qui n’a aucune commande</small>
+    </div>`;
   if(kind==='pkfk') return `<div class="pd-pkfk" aria-hidden="true">
       <span class="pd-key pk"><small>clé primaire</small><b>clients.id</b></span>
       <span class="pd-link"></span>
