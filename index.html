@@ -345,6 +345,20 @@
   .pt-lead{margin:0 0 14px;font-size:15px;line-height:1.55;color:var(--ink)}
   .pt-intro{margin:0 0 16px;background:var(--surface);border:1px solid var(--card-border);border-radius:18px;padding:16px;box-shadow:var(--card-shadow-sm);min-width:0}
   .pt-intro .pt-lead{margin:0 0 12px}
+  /* Trois temps empilés, reliés par une flèche : chaque bloc reprend les
+     mêmes clients pour qu'on suive la même donnée d'une étape à l'autre. */
+  .pt-flow{margin:0 0 14px;padding:0;display:flex;flex-direction:column;align-items:stretch;gap:0}
+  .pt-flow .fl-step{border:1px solid var(--hairline);border-radius:14px;background:var(--surface);box-shadow:var(--lift-sm);padding:10px 12px 11px}
+  .pt-flow .fl-head{display:flex;align-items:center;gap:7px;margin:0 0 7px}
+  .pt-flow .fl-n{flex:none;width:19px;height:19px;border-radius:6px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:850}
+  .pt-flow .fl-k{font-size:10.5px;font-weight:800;letter-spacing:.55px;text-transform:uppercase;color:var(--ink-3)}
+  .pt-flow .fl-row{display:flex;align-items:baseline;gap:8px;padding:3px 0;min-width:0}
+  .pt-flow .fl-row b{flex:none;min-width:62px;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink)}
+  .pt-flow .fl-v{min-width:0;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent);overflow-wrap:anywhere}
+  .pt-flow .fl-num{font-size:13.5px;font-weight:850}
+  .pt-flow .fl-row.is-vide .fl-v{color:var(--ink-3);font-style:italic;font-weight:600}
+  .pt-flow .fl-arrow{align-self:center;color:var(--accent);font-size:15px;line-height:1;padding:5px 0}
+  @media (max-width:400px){.pt-flow .fl-row b{min-width:56px;font-size:11.5px}.pt-flow .fl-v{font-size:11.5px}}
   .pt-venn{margin:0 0 14px;padding:0;display:flex;flex-direction:column;align-items:center;gap:7px}
   .pt-venn svg{width:100%;max-width:232px;height:auto;display:block;overflow:visible}
   /* Zone conservée : violet plein, atténué par l'opacité du groupe pour que
@@ -5674,20 +5688,21 @@ const MODULES = [
   situation:"Tu veux afficher chaque client avec le nombre de commandes qu’il a passées.<br><br>Le nom du client se trouve dans la table <code>clients</code>, tandis que ses commandes se trouvent dans la table <code>commandes</code>.<br><br>Dans la table <code>clients</code>, tu as par exemple :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr><tr><td>9</td><td>Inès</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, plusieurs lignes peuvent appartenir au même client grâce à <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br><br>Après la jointure, un client peut donc apparaître plusieurs fois : une fois pour chaque commande. Pour obtenir une seule ligne par client, il faut regrouper ses commandes puis les compter.",
     studio:{pointCards:{
       eye:"Jointure + GROUP BY",title:"Un compte par client.",
-      venn:"left",vennG:"clients",vennD:"commandes",
+      flow:"groupby",
       lead:"Pour obtenir un résultat par client, pense en trois étapes : <b>relier → regrouper → compter</b>.",
       rule:{lines:[
-          {tok:"FROM",val:"clients",tag:"à gauche · tous les clients restent",keep:1},
-          {tok:"LEFT JOIN",val:"commandes",tag:"à droite · complète quand une commande existe"},
-          {tok:"ON",val:"clients.id = commandes.client_id",tag:"le lien : le même identifiant des deux côtés"},
-          {tok:"GROUP BY",val:"clients.id, clients.nom",tag:"rassemble les lignes d’un même client"}
+          {tok:"FROM",val:"clients",tag:"le point de départ · tous les clients",keep:1},
+          {tok:"LEFT JOIN",val:"commandes",tag:"relie chaque client à ses commandes"},
+          {tok:"ON",val:"clients.id = commandes.client_id",tag:"indique comment les deux tables correspondent"},
+          {tok:"GROUP BY",val:"clients.id, clients.nom",tag:"rassemble les lignes d’un même client"},
+          {tok:"COUNT(commandes.id)",tag:"compte les commandes de chaque client"}
         ]},
       cards:[
-        {t:"1. Relier les tables",
+        {t:"Relier les tables",
          b:"<p><code>LEFT JOIN</code> relie chaque client à ses commandes tout en conservant les clients qui n’ont encore rien commandé.</p>"},
-        {t:"2. Regrouper par client",draw:"repeat",src:"Sophie",outs:["commande #1","commande #2","commande #3"],
+        {t:"Regrouper par client",draw:"repeat",src:"Sophie",outs:["commande #1","commande #2","commande #3"],
          b:"<p>Après la jointure, un client peut apparaître plusieurs fois.</p><p><code>GROUP BY clients.id, clients.nom</code> rassemble toutes ses lignes dans un même groupe.</p>"},
-        {t:"3. Compter les commandes",
+        {t:"Compter les commandes",
          b:"<p><code>COUNT(commandes.id)</code> compte le nombre de vraies commandes présentes dans chaque groupe.</p>"},
         {t:"Pourquoi pas COUNT(*) ?",
          b:"<p>Avec <code>LEFT JOIN</code>, même un client sans commande possède une ligne dans le résultat.</p><p><code>COUNT(*)</code> compterait cette ligne. <code>COUNT(commandes.id)</code>, lui, ignore <code>NULL</code> et renvoie donc correctement 0.</p>"}
@@ -9504,6 +9519,26 @@ function renderSituationBody(l){
    il croise chaque ligne avec chaque ligne. */
 /* Chaîne vide = schéma sans légende ; clé absente = pas de schéma du tout. */
 const VENN_LEGEND={inner:'',left:'',right:'',full:'',leftonly:'',cross:''};
+/* Schéma en trois temps pour « Jointure + GROUP BY » : un Venn ne dit rien
+   d'un regroupement. On montre la même donnée à chaque étape — les lignes
+   après la jointure, les groupes formés, puis le compte. */
+function pointFlow(kind){
+  if(kind!=='groupby')return '';
+  const etapes=[
+    ['1','Relier',[['Sophie','commande 1'],['Sophie','commande 2'],['Sophie','commande 13'],['Lucas','commande 3'],['Lucas','commande 10'],['Inès','NULL']],''],
+    ['2','Regrouper',[['Sophie','1 · 2 · 13'],['Lucas','3 · 10'],['Inès','NULL']],'fl-set'],
+    ['3','Compter',[['Sophie','3'],['Lucas','2'],['Inès','0']],'fl-num']
+  ];
+  const bloc=(n,titre,lignes,cls)=>`<div class="fl-step">
+      <div class="fl-head"><span class="fl-n">${n}</span><span class="fl-k">${titre}</span></div>
+      ${lignes.map(([g,d])=>`<div class="fl-row${d==='NULL'||d==='0'?' is-vide':''}"><b>${esc(g)}</b><span class="fl-v ${cls}">${esc(d)}</span></div>`).join('')}
+    </div>`;
+  return `<figure class="pt-flow" role="img" aria-label="Trois temps : relier les commandes à leur client, regrouper les lignes d’un même client, compter chaque groupe.">
+      ${bloc(...etapes[0])}<div class="fl-arrow" aria-hidden="true">↓</div>
+      ${bloc(...etapes[1])}<div class="fl-arrow" aria-hidden="true">↓</div>
+      ${bloc(...etapes[2])}
+    </figure>`;
+}
 function pointVenn(kind,gauche,droite){
   const leg=VENN_LEGEND[kind];
   if(leg===undefined)return '';
@@ -9561,8 +9596,8 @@ function renderPointCards(pc){
   if(!pc) return '';
   const lead=pc.lead?`<p class="pt-lead">${pc.lead}</p>`:'';
   const regle=pc.rule?renderPtRule(pc.rule):'';
-  const venn=pc.venn?pointVenn(pc.venn,pc.vennG,pc.vennD):'';
-  const intro=(pc.lead||pc.rule||pc.venn)?`<div class="pt-intro">${lead}${venn}${regle}</div>`:'';
+  const venn=pc.flow?pointFlow(pc.flow):(pc.venn?pointVenn(pc.venn,pc.vennG,pc.vennD):'');
+  const intro=(pc.lead||pc.rule||pc.venn||pc.flow)?`<div class="pt-intro">${lead}${venn}${regle}</div>`:'';
   const chaine=pc.chain?`<ol class="pt-chain">
       ${pc.chain.map((c,i)=>`<li class="pt-hop">
         <span class="pt-hop-n" aria-hidden="true">${i+1}</span>
