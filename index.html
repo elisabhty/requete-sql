@@ -4054,6 +4054,13 @@
   .lr-copy h2{margin:0;color:#23242A;font-size:17.2px;font-weight:820;letter-spacing:-.4px;line-height:1.18}
   .lr-copy p{margin:4px 0 0;color:#72747E;font-size:11.4px;font-weight:550;line-height:1.38}
   .lr-meta{display:block;margin-top:3px;color:#9A9CA5;font-size:10.7px;font-weight:620;line-height:1.3}
+  .lr-toggle{width:40px;height:40px;flex:none;margin:-2px -4px 0 0;padding:0;border:0;border-radius:13px;background:#F7F7FB;color:var(--late-accent);display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;box-shadow:inset 0 0 0 1px rgba(39,42,54,.045);transition:transform .16s var(--spring-ios),background .18s}
+  .lr-toggle:active{transform:scale(.92);background:#EEEDF9}
+  .lr-toggle svg{width:10px;height:16px;transform:rotate(-90deg);transition:transform .34s var(--spring-ios)}
+  .late-recovery.is-collapsed .lr-toggle svg{transform:rotate(90deg)}
+  .lr-details{display:grid;grid-template-rows:1fr;opacity:1;transition:grid-template-rows .38s var(--ease-ios),opacity .22s ease}
+  .lr-details-inner{min-height:0;overflow:hidden}
+  .late-recovery.is-collapsed .lr-details{grid-template-rows:0fr;opacity:0}
   .lr-impact{margin-top:13px;padding:11px 10px;border:1px solid rgba(88,86,214,.10);border-radius:14px;background:#F7F7FC;display:grid;grid-template-columns:minmax(0,1fr) 28px minmax(0,1.25fr);align-items:center;gap:6px}
   .lr-impact-side{min-width:0;text-align:center}
   .lr-impact-side small{display:block;color:#858791;font-size:10px;font-weight:620;line-height:1.2}
@@ -4078,18 +4085,7 @@
   .lr-option-chev{width:20px;height:20px;color:#706EDA;display:flex;align-items:center;justify-content:center}
   .lr-option-chev svg{width:9px;height:14px}
   .lr-later{align-self:center;min-width:96px;min-height:40px;padding:0 14px;border:0;background:transparent;color:#777A84;font-family:var(--ui);font-size:11.9px;font-weight:690;cursor:pointer}
-  .late-recovery-teaser{
-    --late-accent:var(--accent);box-sizing:border-box;width:calc(100% - 28px);min-height:66px;margin:12px 14px 0;padding:10px 12px;border:1px solid rgba(39,42,54,.075);border-radius:18px;
-    background:#fff;color:var(--ink);font-family:var(--ui);text-align:left;display:flex;align-items:center;gap:11px;cursor:pointer;box-shadow:0 14px 30px -27px rgba(31,33,45,.48)
-  }
-  .late-recovery-teaser:active{transform:scale(.988);background:#FAFAFD}
-  .lr-teaser-icon{width:38px;height:38px;flex:none;border-radius:12px;background:#F2F1FF;color:var(--late-accent);display:flex;align-items:center;justify-content:center}
-  .lr-teaser-icon svg{width:23px;height:23px}
-  .late-recovery-teaser>span:nth-child(2){min-width:0;flex:1}
-  .late-recovery-teaser b{display:block;color:#2A2B31;font-size:13.4px;font-weight:760}
-  .late-recovery-teaser small{display:block;margin-top:2px;color:#858791;font-size:10.9px;font-weight:550}
-  .lr-teaser-chev{width:18px;height:18px;color:var(--late-accent);display:flex;align-items:center;justify-content:center}
-  .lr-teaser-chev svg{width:9px;height:14px}
+  @media (prefers-reduced-motion:reduce){.lr-details,.lr-toggle,.lr-toggle svg{transition:none!important}}
 
   /* Ajuster — feuille iOS : le parcours reste en place derrière le réglage */
   #scr-planning .pl-overview-adjust.active{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -4162,7 +4158,7 @@
   .pl-manage-toggle:focus-visible,
   .pl-reprogram:focus-visible,
   .late-banner--home:focus-visible,
-  .late-recovery-teaser:focus-visible,
+  .lr-toggle:focus-visible,
   .lr-option:focus-visible,
   .lr-later:focus-visible,
   .pl-adjust-close:focus-visible,
@@ -11025,15 +11021,26 @@ function openLateRecoveryFromHome(el){
     setTimeout(go,170);
   }else go();
 }
+function setLateRecoveryCollapsed(collapsed,source){
+  const card=source?.closest?.('.late-recovery')||document.getElementById('late-recovery');
+  if(!card)return;
+  const details=card.querySelector('.lr-details');
+  const toggle=card.querySelector('.lr-toggle');
+  lateRecoveryCollapsed=!!collapsed;
+  if(!details||!toggle)return;
+  if(collapsed&&document.activeElement!==toggle)toggle.focus({preventScroll:true});
+  details.inert=!!collapsed;
+  details.setAttribute('aria-hidden',collapsed?'true':'false');
+  toggle.setAttribute('aria-expanded',collapsed?'false':'true');
+  toggle.setAttribute('aria-label',collapsed?'Déplier les options':'Réduire les options');
+  card.classList.toggle('is-collapsed',!!collapsed);
+  if(navigator.vibrate)navigator.vibrate(4);
+}
+function toggleLateRecovery(button){
+  setLateRecoveryCollapsed(!button.closest('.late-recovery')?.classList.contains('is-collapsed'),button);
+}
 function lateRecoveryHTML(){
   const d=latePlanDetails(); if(!d)return '';
-  if(lateRecoveryCollapsed){
-    return `<button type="button" class="late-recovery-teaser" onclick="lateRecoveryCollapsed=false;renderPlanning()" aria-label="${plur(d.count,'activité')} à replacer sur ${plur(d.sessions,'séance')}. Afficher les options.">
-      <span class="lr-teaser-icon" aria-hidden="true">${LATE_BANNER_ICO}</span>
-      <span><b>${plur(d.count,'activité')} à replacer</b><small>${d.wasYesterday?(d.count>1?'Prévues hier':'Prévue hier'):'À replanifier'} · voir les options</small></span>
-      <span class="lr-teaser-chev" aria-hidden="true">${DEF_CHEV_SVG}</span>
-    </button>`;
-  }
   const itemNames=lateItemsLabel(d.ids);
   const source=d.wasYesterday?`${d.count>1?'Prévues hier':'Prévue hier'} · ${itemNames}`:`À reprendre · ${itemNames}`;
   const spreadN=Math.min(d.count,3);
@@ -11043,7 +11050,7 @@ function lateRecoveryHTML(){
     : d.count===spreadN?'1 activité par prochaine séance':`${plur(d.count,'activité')} réparties automatiquement`;
   const beforeLabel=plur(d.todayCount,'activité');
   const afterLabel=`${plur(d.todayAfter,'activité')} · ~${d.todayAfter*MIN_PAR_ACTIVITE} min`;
-  return `<section class="late-recovery" id="late-recovery" aria-labelledby="late-recovery-title">
+  return `<section class="late-recovery${lateRecoveryCollapsed?' is-collapsed':''}" id="late-recovery" aria-labelledby="late-recovery-title">
     <div class="lr-head">
       <span class="lr-icon" aria-hidden="true">${LATE_BANNER_ICO}</span>
       <div class="lr-copy">
@@ -11051,21 +11058,26 @@ function lateRecoveryHTML(){
         <p>${esc(source)}</p>
         <span class="lr-meta">${plur(d.sessions,'séance')}</span>
       </div>
+      <button type="button" class="lr-toggle" aria-expanded="${lateRecoveryCollapsed?'false':'true'}" aria-controls="late-recovery-details" aria-label="${lateRecoveryCollapsed?'Déplier les options':'Réduire les options'}" onclick="toggleLateRecovery(this)">${DEF_CHEV_SVG}</button>
     </div>
-    <div class="lr-impact" role="img" aria-label="Aujourd’hui, ${beforeLabel}. Avec le retard, ${afterLabel}.">
-      <span class="lr-impact-side"><small>Aujourd’hui</small><b>${beforeLabel}</b></span>
-      <span class="lr-impact-flow" aria-hidden="true">${LATE_FLOW_ICO}</span>
-      <span class="lr-impact-side after"><small>Avec le retard</small><b>${afterLabel}</b></span>
-    </div>
-    <div class="lr-safe">${LATE_SAFE_ICO}<span>Fais ton choix.</span></div>
-    <div class="lr-actions">
-      <button type="button" class="lr-option primary" onclick="rattraper()"><b>Ajouter à aujourd’hui</b></button>
-      <button type="button" class="lr-option secondary" onclick="etalerRetard()">
-        <span class="lr-option-icon" aria-hidden="true">${LATE_SPLIT_ICO}</span>
-        <span class="lr-option-copy"><b>${spreadTitle}</b><small>${spreadCopy}</small></span>
-        <span class="lr-option-chev" aria-hidden="true">${DEF_CHEV_SVG}</span>
-      </button>
-      <button type="button" class="lr-later" onclick="lateRecoveryCollapsed=true;renderPlanning()">Plus tard</button>
+    <div class="lr-details" id="late-recovery-details" aria-hidden="${lateRecoveryCollapsed?'true':'false'}" ${lateRecoveryCollapsed?'inert':''}>
+      <div class="lr-details-inner">
+        <div class="lr-impact" role="img" aria-label="Aujourd’hui, ${beforeLabel}. Avec le retard, ${afterLabel}.">
+          <span class="lr-impact-side"><small>Aujourd’hui</small><b>${beforeLabel}</b></span>
+          <span class="lr-impact-flow" aria-hidden="true">${LATE_FLOW_ICO}</span>
+          <span class="lr-impact-side after"><small>Avec le retard</small><b>${afterLabel}</b></span>
+        </div>
+        <div class="lr-safe">${LATE_SAFE_ICO}<span>Fais ton choix.</span></div>
+        <div class="lr-actions">
+          <button type="button" class="lr-option primary" onclick="rattraper()"><b>Ajouter à aujourd’hui</b></button>
+          <button type="button" class="lr-option secondary" onclick="etalerRetard()">
+            <span class="lr-option-icon" aria-hidden="true">${LATE_SPLIT_ICO}</span>
+            <span class="lr-option-copy"><b>${spreadTitle}</b><small>${spreadCopy}</small></span>
+            <span class="lr-option-chev" aria-hidden="true">${DEF_CHEV_SVG}</span>
+          </button>
+          <button type="button" class="lr-later" onclick="setLateRecoveryCollapsed(true,this)">Plus tard</button>
+        </div>
+      </div>
     </div>
   </section>`;
 }
