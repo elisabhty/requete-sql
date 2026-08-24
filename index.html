@@ -367,6 +367,10 @@
   .pt-head{margin:0 0 16px}
   .pt-head-t{margin:0 0 6px;font-size:14px;font-weight:800;color:var(--ink);line-height:1.3}
   .pt-head-b{margin:0;font-size:13.5px;line-height:1.5;color:var(--ink-2)}
+  .pt-card-b p,.pt-head-b p{margin:0}
+  .pt-card-b p+p,.pt-head-b p+p{margin-top:8px}
+  .pt-card-b ul,.pt-head-b ul{margin:8px 0;padding-left:17px;display:flex;flex-direction:column;gap:5px}
+  .pt-card-b li,.pt-head-b li{margin:0}
   .pt-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
   .pt-card{background:var(--surface);border:1px solid var(--card-border);border-radius:18px;padding:15px 16px;box-shadow:var(--card-shadow-sm);container-type:inline-size;container-name:ptcard}
   .pt-card:has(.pd-onids){grid-column:1/-1}
@@ -5235,7 +5239,7 @@ const MODULES = [
         {t:"Clé primaire, clé étrangère",draw:"pkfk",
          b:"<code>clients.id</code> identifie chaque client. <code>commandes.client_id</code> recopie cet identifiant. C’est cette relation que la clause <code>ON</code> utilise."},
         {t:"Quand s’en servir",
-         b:"Réconcilier deux sources dont aucune n’est complète : un inventaire face à des ventes, par exemple. <code>FULL OUTER JOIN</code> fait apparaître d’un coup les articles vendus qui manquent à l’inventaire <b>et</b> ceux de l’inventaire qui ne se sont jamais vendus. Un <code>LEFT JOIN</code> n’en montrerait qu’une moitié."}
+         b:"<p>Utilise <code>FULL OUTER JOIN</code> quand tu veux comparer deux tables sans perdre aucune ligne. Par exemple, tu compares un inventaire avec les ventes :</p><ul><li>un article peut être dans l’inventaire mais n’avoir jamais été vendu ;</li><li>un article vendu peut manquer dans l’inventaire.</li></ul><p><code>FULL OUTER JOIN</code> permet de voir les deux situations dans un seul résultat.</p><p>👉 <b>L’idée à retenir :</b> même sans correspondance, la ligne reste affichée.</p>"}
       ]},
     reflex:{a:{k:"FULL OUTER JOIN",t:"garde toutes les lignes des deux tables"},
       b:{k:"ON",t:"indique quelles lignes correspondent"},
@@ -9118,12 +9122,12 @@ function renderPointCards(pc){
   const head=all.filter(c=>c.bare).map(c=>`<div class="pt-head">
       <h3 class="pt-head-t">${c.t}</h3>
       ${c.draw?`<div class="pt-draw">${pointDraw(c)}</div>`:''}
-      <p class="pt-head-b">${c.b}</p>
+      <div class="pt-head-b">${c.b}</div>
     </div>`).join('');
   const cartes=all.filter(c=>!c.bare).map(c=>`<div class="pt-card">
       <h3 class="pt-card-t">${c.t}</h3>
       ${c.draw?`<div class="pt-draw">${pointDraw(c)}</div>`:''}
-      <p class="pt-card-b">${c.b}</p>
+      <div class="pt-card-b">${c.b}</div>
     </div>`).join('');
   return `${intro}${chaine}${head}${cartes?`<div class="pt-grid">${cartes}</div>`:''}`;
 }
