@@ -1065,13 +1065,19 @@
   .join-trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;position:relative;z-index:1}
   .join-trio .er-col[data-side="prd"] .er-card-h{background:var(--accent)}
   .join-out{display:flex;flex-direction:column;gap:6px;max-height:0;opacity:0;overflow:hidden;margin:0;transition:max-height .5s ease,opacity .4s ease,margin .35s ease}
+  /* Le plafond ne sert qu'à animer l'ouverture : il doit rester au-dessus du
+     plus grand résultat, sinon la dernière ligne se retrouve coupée. Les neuf
+     combinaisons de CROSS JOIN occupent 453 px, et 242 px suffisaient déjà à
+     approcher l'ancien plafond de 280 px dès que le texte grandit. */
   .sql-viz[data-phase="2"] .join-out,
-  .sql-viz[data-phase="3"] .join-out{max-height:280px;opacity:1;margin-top:12px}
+  .sql-viz[data-phase="3"] .join-out,
+  .sql-viz[data-viz="crossjoin"][data-phase="1"] .join-out{max-height:640px;opacity:1;margin-top:12px}
   .join-output-label{display:flex;align-items:center;gap:7px;padding:2px 2px 4px;color:var(--ink-2);font-size:10px;font-weight:800;letter-spacing:.65px;text-transform:uppercase}
   .join-output-label::before{content:'';width:18px;height:1px;background:var(--accent);box-shadow:6px 0 0 rgba(91,91,214,.28)}
   .join-pill{display:flex;align-items:center;gap:8px;padding:10px 13px;border-radius:14px;background:var(--surface);border:1px solid var(--hairline);box-shadow:var(--lift-sm);font-size:12.5px;font-weight:700;color:var(--ink);opacity:0;transform:translateY(10px) scale(.98)}
   .sql-viz[data-phase="2"] .join-pill,
-  .sql-viz[data-phase="3"] .join-pill{animation:joinIn .46s var(--spring-ios) forwards}
+  .sql-viz[data-phase="3"] .join-pill,
+  .sql-viz[data-viz="crossjoin"][data-phase="1"] .join-pill{animation:joinIn .46s var(--spring-ios) forwards}
   .sql-viz[data-phase="2"] .join-pill:nth-child(1),
   .sql-viz[data-phase="3"] .join-pill:nth-child(1){animation-delay:.04s}
   .sql-viz[data-phase="2"] .join-pill:nth-child(2),
@@ -1135,6 +1141,18 @@
   .sql-viz[data-viz="outer"][data-phase="1"] .jchip[data-k="D"]{opacity:.3;transform:scale(.97)}
   .sql-viz[data-viz="outer"][data-phase="2"] .jchip[data-k="C"],
   .sql-viz[data-viz="outer"][data-phase="2"] .jchip[data-k="D"]{background:var(--accent-soft);transform:scale(1.02)}
+  /* CROSS JOIN : temps 2, Sophie se combine avec les trois produits ;
+     temps 3, les deux autres clients font de même. */
+  .sql-viz[data-viz="crossjoin"][data-phase="1"] .jchip[data-k="A"],
+  .sql-viz[data-viz="crossjoin"][data-phase="1"] .jchip[data-k="X"],
+  .sql-viz[data-viz="crossjoin"][data-phase="1"] .jchip[data-k="Y"],
+  .sql-viz[data-viz="crossjoin"][data-phase="1"] .jchip[data-k="Z"]{background:var(--accent-soft)}
+  .sql-viz[data-viz="crossjoin"][data-phase="1"] .jchip[data-k="B"],
+  .sql-viz[data-viz="crossjoin"][data-phase="1"] .jchip[data-k="C"]{opacity:.3;transform:scale(.97)}
+  .sql-viz[data-viz="crossjoin"][data-phase="2"] .jchip{background:var(--accent-soft)}
+  .sql-viz[data-viz="crossjoin"] .join-out .join-pill[data-when]{display:none}
+  .sql-viz[data-viz="crossjoin"][data-phase="1"] .join-pill[data-when="a"],
+  .sql-viz[data-viz="crossjoin"][data-phase="2"] .join-pill[data-when]{display:flex}
   .sql-viz[data-viz="outer"] .join-out .join-pill[data-when]{display:none}
   .sql-viz[data-viz="outer"][data-phase="2"] .join-pill[data-when]{display:flex}
   .sql-viz[data-kind="er"][data-paused="1"] .join-pill,
@@ -5210,6 +5228,52 @@ const MODULES = [
     {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
     {k:'cmd',label:'commandes',sql:"SELECT id, client_id, produit_id, quantite\nFROM commandes;"},
     {k:'fulljoin',label:'FULL OUTER JOIN',sql:"SELECT clients.nom, commandes.produit_id, commandes.quantite\nFROM clients\nFULL OUTER JOIN commandes\nON clients.id = commandes.client_id;",tone:'good'}
+  ] },
+{ id:40, titre:"CROSS JOIN", résumé:"Toutes les combinaisons possibles",
+  situation:"Tu prépares une campagne : chaque client pourrait recevoir une offre sur chaque produit. Il te faut donc toutes les paires client–produit.<br><br>Dans la table <code>clients</code>, tu as 9 clients :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr></tbody></table></div><br><br>Dans la table <code>produits</code>, tu as 8 produits :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Fibre Prébiotique</td></tr><tr><td>2</td><td>Collagène Marin</td></tr><tr><td>3</td><td>Magnésium</td></tr></tbody></table></div><br><br>Aucune colonne ne relie un client à un produit : il n\u2019y a rien à faire correspondre. Tu veux simplement toutes les paires.",
+  situationTail:"<code>CROSS JOIN</code> produit le <b>produit cartésien</b> : chaque ligne de la table de gauche est associée à chaque ligne de la table de droite.",
+    studio:{pointCards:{
+      eye:"CROSS JOIN",title:"Toutes les paires possibles.",
+      lead:"<code>CROSS JOIN</code> associe chaque ligne d\u2019une table à chaque ligne de l\u2019autre. C\u2019est la seule jointure qui ne cherche aucune correspondance.",
+      rule:{lines:[
+          {tok:"FROM",val:"clients",tag:"à gauche · toutes ses lignes",keep:1},
+          {tok:"CROSS JOIN",val:"produits",tag:"à droite · toutes ses lignes",keep:1},
+          {tok:"—",val:"pas de ON",tag:"aucune condition : rien à faire correspondre"}
+        ],
+        say:"<p>SQL prend la première ligne de la table <code>clients</code> et la combine avec chaque ligne de la table <code>produits</code>.</p><p>Puis il recommence avec le client suivant, jusqu\u2019au dernier.</p><p>Aucune ligne n\u2019est écartée et aucune ne vaut <code>NULL</code> : il n\u2019y a pas de correspondance à manquer.</p>"},
+      cards:[
+        {t:"La seule jointure sans ON",bare:1,
+         b:"Les autres jointures demandent <code>ON</code> pour savoir quelles lignes vont ensemble. <code>CROSS JOIN</code> n\u2019en a pas besoin : il les prend toutes, deux à deux."},
+        {t:"Le nombre de lignes se multiplie",draw:"repeat",src:"Sophie",outs:["Fibre Prébiotique","Collagène Marin","Magnésium"],
+         b:"Sophie ressort une fois par produit. Avec 9 clients et 8 produits, le résultat compte <b>9 × 8 = 72 lignes</b> — pas 9, ni 17."},
+        {t:"Quand c\u2019est utile",
+         b:"Générer une grille complète : chaque client × chaque produit pour une campagne, chaque jour × chaque salle pour un planning. Toutes les cases, y compris celles encore vides."},
+        {t:"Le risque",
+         b:"1 000 clients × 500 produits font 500 000 lignes. Sur de grandes tables, <code>CROSS JOIN</code> remplit la mémoire très vite : vérifie la taille des deux tables avant de le lancer."}
+      ]},
+    reflex:{a:{k:"CROSS JOIN",t:"toutes les combinaisons des deux tables"},
+      b:{k:"sans ON",t:"aucune condition de correspondance"},
+      note:"Avant d\u2019écrire <code>CROSS JOIN</code>, demande-toi si tu veux vraiment <b>toutes</b> les paires.<br><br>Pour relier des données qui vont déjà ensemble — un client et ses commandes — c\u2019est <code>JOIN … ON</code> qu\u2019il te faut."},
+    viz:"crossjoin"},
+  anatomie:[{tok:"SELECT clients.nom, produits.nom",txt:"Les colonnes à afficher."},{tok:"FROM clients",txt:"La table de gauche : chacune de ses lignes sera reprise."},{tok:"CROSS JOIN produits",txt:"La table de droite : chaque ligne de clients sera associée à chacune des siennes."},{tok:"(pas de ON)",txt:"Aucune condition : c\u2019est ce qui distingue CROSS JOIN des autres jointures."}],
+  exemple:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;",
+  attendu:"72 lignes : chaque client associé à chaque produit (9 clients × 8 produits).",
+  retenir:"<code>CROSS JOIN</code> associe chaque ligne de la table de gauche à chaque ligne de la table de droite, sans <code>ON</code>.<br><br>Le résultat compte toujours <b>lignes de gauche × lignes de droite</b> : 9 × 8 = 72 dans notre base.<br><br>Structure : <code>SELECT … FROM table1 CROSS JOIN table2;</code>",
+  piege:{t:"Utiliser CROSS JOIN pour relier des clients à leurs commandes",
+    p:"<code>CROSS JOIN</code> ne compare rien : il associe chaque client à <b>toutes</b> les commandes, y compris celles des autres. Le résultat a l\u2019air rempli mais il est faux. Pour rattacher chaque commande à son client, il faut <code>JOIN … ON</code>.",
+    exec:true,
+    sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nCROSS JOIN commandes;",
+    out:"144 lignes : chaque client associé aux 16 commandes, dont celles qu\u2019il n\u2019a pas passées",
+    fixSql:"SELECT clients.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;"},
+  consigne:"Affiche toutes les combinaisons possibles entre chaque client et chaque produit.",
+  solution:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;",
+  indice:"Pars de la table <code>clients</code>, <code>CROSS JOIN</code> la table <code>produits</code>, et n\u2019écris pas de <code>ON</code>.",
+  joinRecap:'cross',
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
+    {k:'prod',label:'produits',sql:"SELECT id, nom\nFROM produits;"},
+    {k:'cross',label:'CROSS JOIN',sql:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;",tone:'good'}
   ] }
 ]},
 
@@ -5643,6 +5707,9 @@ const QCM={
    {q:"Tester l’absence de valeur après une jointure :",o:["WHERE commandes.id = NULL","WHERE commandes.id IS NULL","WHERE commandes.id = 0"],b:1,e:"En SQL, NULL ne se compare pas avec =. On utilise IS NULL."}],
  38:[{q:"<code>RIGHT JOIN</code> conserve :",o:["Seulement les lignes qui correspondent des deux côtés","Toutes les lignes de la table de droite","Toutes les lignes des deux tables"],b:1,e:"Sans correspondance à gauche, les colonnes de clients valent NULL."},
    {q:"Toutes les commandes + leurs clients (y compris l’invité sans client) :",o:["15 lignes avec INNER JOIN","16 lignes avec RIGHT JOIN","9 lignes (un par client)"],b:1,e:"15 correspondances + 1 ligne invitée avec NULL = 16 lignes."}],
+ 40:[{q:"<code>CROSS JOIN</code> retourne :",o:["Les lignes qui correspondent des deux côtés","Toutes les combinaisons possibles des deux tables","Toutes les lignes de la table de gauche"],b:1,e:"Chaque ligne de gauche est associée à chaque ligne de droite, sans condition."},
+  {q:"Avec 9 clients et 8 produits, <code>CROSS JOIN</code> donne :",o:["17 lignes","72 lignes","9 lignes"],b:1,e:"9 × 8 = 72 : le nombre de lignes se multiplie, il ne s’additionne pas."},
+  {q:"Que se passe-t-il si tu ajoutes <code>ON</code> à un <code>CROSS JOIN</code> ?",o:["C’est obligatoire","Ça n’a pas de sens : CROSS JOIN ne compare rien","Ça trie le résultat"],b:1,e:"CROSS JOIN ne cherche aucune correspondance ; pour filtrer sur une clé, c’est JOIN … ON."}],
  39:[{q:"<code>FULL OUTER JOIN</code> conserve :",o:["Seulement les lignes qui correspondent des deux côtés","Toutes les lignes de la table de gauche","Toutes les lignes des deux tables"],b:2,e:"Sans correspondance, les colonnes du côté manquant valent NULL."},
    {q:"Tous les clients + toutes les commandes (Inès et l’invité) :",o:["16 lignes avec LEFT JOIN","16 lignes avec RIGHT JOIN","17 lignes avec FULL OUTER JOIN"],b:2,e:"15 correspondances + Inès + l’invité = 17 lignes."}],
  21:[{q:"SQL évalue les <code>WHEN</code> :",o:["Tous, et garde le dernier vrai","Dans l’ordre, et s’arrête au premier vrai","Dans un ordre imprévisible"],b:1,e:"D’où l’intérêt d’aller du plus restrictif au plus large."},
@@ -8834,7 +8901,7 @@ const JOIN_GUIDES={
   outer:{kicker:'Analyse du périmètre',lead:'Le type de JOIN décrit quelles lignes doivent rester même sans correspondance.',steps:[['INNER','uniquement les correspondances'],['LEFT / RIGHT','toute une source + les correspondances — Inès à gauche, l’invité à droite'],['FULL OUTER','Inès et l’invité, plus les correspondances']],takeaway:'Le choix du JOIN est un choix de périmètre de résultat.'}
 };
 const JOIN_OUTPUT_LABELS={
-  joinon:'Résultat projeté · une ligne par commande correspondante',inner:'Résultat projeté · correspondances uniquement',leftj:'Résultat projeté · table clients conservée',rightj:'Résultat projeté · table commandes conservée',orphan:'Résultat projeté · clients sans commande',triple:'Résultat projeté · client, produit, quantité',outer:'Résultat projeté · les deux tables conservées'
+  joinon:'Résultat projeté · une ligne par commande correspondante',inner:'Résultat projeté · correspondances uniquement',leftj:'Résultat projeté · table clients conservée',rightj:'Résultat projeté · table commandes conservée',orphan:'Résultat projeté · clients sans commande',triple:'Résultat projeté · client, produit, quantité',outer:'Résultat projeté · les deux tables conservées',crossjoin:'Résultat projeté · toutes les paires'
 };
 function renderJoinGuide(key){
   const g=JOIN_GUIDES[key];
@@ -12815,6 +12882,40 @@ const SQL_VIZ={
       <div class="join-pill" data-er-id="c2">Lucas → Protéine<span class="jn">qté 1</span></div>
     </div>
     <p class="er-hint">Sélectionne Sophie : la commande associée puis le produit référencé sont mis en évidence.</p>
+  </div>`},
+  crossjoin:{kind:'er',phases:[
+    {k:'Tables sources',d:'Trois clients d\u2019un côté, trois produits de l\u2019autre. Aucune colonne ne les relie.'},
+    {k:'Aucune condition',d:'Sans <code>ON</code>, SQL ne cherche rien : il prend Sophie et la combine avec chaque produit, puis recommence avec Lucas, puis Emma.'},
+    {k:'Toutes les combinaisons',d:'3 clients \u00d7 3 produits = 9 lignes. Dans la vraie base, 9 \u00d7 8 = 72.' }
+  ],html:`<div class="er-stage join-viz">
+    <div class="join-sets">
+      <div class="join-side"><div class="join-side-h">clients</div>
+        <div class="jchips">
+          <div class="jchip" data-k="A"><span class="er-key">1</span>Sophie</div>
+          <div class="jchip" data-k="B"><span class="er-key">2</span>Lucas</div>
+          <div class="jchip" data-k="C"><span class="er-key">3</span>Emma</div>
+        </div>
+      </div>
+      <div class="join-side" data-side="r"><div class="join-side-h">produits</div>
+        <div class="jchips">
+          <div class="jchip" data-k="X"><span class="er-key">1</span>Fibre</div>
+          <div class="jchip" data-k="Y"><span class="er-key">2</span>Collag\u00e8ne</div>
+          <div class="jchip" data-k="Z"><span class="er-key">3</span>Magn\u00e9sium</div>
+        </div>
+      </div>
+    </div>
+    <div class="join-out" aria-hidden="true">
+      <div class="join-pill" data-when="a">Sophie \u2194 Fibre</div>
+      <div class="join-pill" data-when="a">Sophie \u2194 Collag\u00e8ne</div>
+      <div class="join-pill" data-when="a">Sophie \u2194 Magn\u00e9sium</div>
+      <div class="join-pill" data-when="b">Lucas \u2194 Fibre</div>
+      <div class="join-pill" data-when="b">Lucas \u2194 Collag\u00e8ne</div>
+      <div class="join-pill" data-when="b">Lucas \u2194 Magn\u00e9sium</div>
+      <div class="join-pill" data-when="b">Emma \u2194 Fibre</div>
+      <div class="join-pill" data-when="b">Emma \u2194 Collag\u00e8ne</div>
+      <div class="join-pill" data-when="b">Emma \u2194 Magn\u00e9sium</div>
+    </div>
+    <p class="er-hint">Chaque client ressort une fois par produit : aucune ligne n\u2019est \u00e9cart\u00e9e, aucune ne vaut NULL.</p>
   </div>`},
   outer:{kind:'er',phases:[
     {k:'Tables conservées',d:'Les deux tables sont conservées : chaque client et chaque commande finira dans le résultat.'},
