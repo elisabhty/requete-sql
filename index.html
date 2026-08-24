@@ -1064,16 +1064,12 @@
   .join-trio .er-col[data-side="prd"] .er-card-h{background:var(--accent)}
   .join-out{display:flex;flex-direction:column;gap:6px;max-height:0;opacity:0;overflow:hidden;margin:0;transition:max-height .5s ease,opacity .4s ease,margin .35s ease}
   .sql-viz[data-phase="2"] .join-out,
-  .sql-viz[data-phase="3"] .join-out,
-  .sql-viz[data-viz="outer"][data-phase="1"] .join-out,
-  .sql-viz[data-viz="outer"][data-phase="4"] .join-out{max-height:280px;opacity:1;margin-top:12px}
+  .sql-viz[data-phase="3"] .join-out{max-height:280px;opacity:1;margin-top:12px}
   .join-output-label{display:flex;align-items:center;gap:7px;padding:2px 2px 4px;color:var(--ink-2);font-size:10px;font-weight:800;letter-spacing:.65px;text-transform:uppercase}
   .join-output-label::before{content:'';width:18px;height:1px;background:var(--accent);box-shadow:6px 0 0 rgba(91,91,214,.28)}
   .join-pill{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:12.5px;font-weight:700;color:var(--ink);opacity:0;transform:translateY(8px)}
   .sql-viz[data-phase="2"] .join-pill,
-  .sql-viz[data-phase="3"] .join-pill,
-  .sql-viz[data-viz="outer"][data-phase="1"] .join-pill,
-  .sql-viz[data-viz="outer"][data-phase="4"] .join-pill{animation:joinIn .4s cubic-bezier(.32,.72,.28,1) forwards}
+  .sql-viz[data-phase="3"] .join-pill{animation:joinIn .4s cubic-bezier(.32,.72,.28,1) forwards}
   .sql-viz[data-phase="2"] .join-pill:nth-child(1),
   .sql-viz[data-phase="3"] .join-pill:nth-child(1){animation-delay:.04s}
   .sql-viz[data-phase="2"] .join-pill:nth-child(2),
@@ -1125,21 +1121,16 @@
   .jchips{display:flex;flex-direction:column;gap:0}
   .jchip{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid var(--line);font-size:13px;font-weight:700;color:var(--ink);transition:opacity .4s ease,background .35s ease,filter .35s ease}
   .jchip .er-key{flex:none;width:22px;height:22px;border-radius:7px;background:var(--surface-2);color:var(--ink-2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+  /* Temps 2 : la condition ON apparie Sophie et Lucas ; les deux orphelins
+     ne la satisfont pas. Temps 3 : ils reviennent, conservés eux aussi. */
+  .sql-viz[data-viz="outer"][data-phase="1"] .jchip[data-k="A"],
+  .sql-viz[data-viz="outer"][data-phase="1"] .jchip[data-k="B"]{background:var(--accent-soft)}
   .sql-viz[data-viz="outer"][data-phase="1"] .jchip[data-k="C"],
   .sql-viz[data-viz="outer"][data-phase="1"] .jchip[data-k="D"]{opacity:.22;filter:grayscale(.6)}
-  .sql-viz[data-viz="outer"][data-phase="2"] .jchip[data-k="D"]{opacity:.22;filter:grayscale(.6)}
-  .sql-viz[data-viz="outer"][data-phase="2"] .jchip[data-k="C"]{background:var(--accent-soft)}
-  .sql-viz[data-viz="outer"][data-phase="3"] .jchip[data-k="C"]{opacity:.22;filter:grayscale(.6)}
-  .sql-viz[data-viz="outer"][data-phase="3"] .jchip[data-k="D"]{background:var(--accent-soft)}
-  .sql-viz[data-viz="outer"][data-phase="4"] .jchip[data-k="C"],
-  .sql-viz[data-viz="outer"][data-phase="4"] .jchip[data-k="D"]{background:var(--accent-soft)}
+  .sql-viz[data-viz="outer"][data-phase="2"] .jchip[data-k="C"],
+  .sql-viz[data-viz="outer"][data-phase="2"] .jchip[data-k="D"]{background:var(--accent-soft)}
   .sql-viz[data-viz="outer"] .join-out .join-pill[data-when]{display:none}
-  .sql-viz[data-viz="outer"][data-phase="1"] .join-pill[data-when="in"],
-  .sql-viz[data-viz="outer"][data-phase="2"] .join-pill[data-when="in"],
-  .sql-viz[data-viz="outer"][data-phase="2"] .join-pill[data-when="l"],
-  .sql-viz[data-viz="outer"][data-phase="3"] .join-pill[data-when="in"],
-  .sql-viz[data-viz="outer"][data-phase="3"] .join-pill[data-when="r"],
-  .sql-viz[data-viz="outer"][data-phase="4"] .join-pill[data-when]{display:flex}
+  .sql-viz[data-viz="outer"][data-phase="2"] .join-pill[data-when]{display:flex}
   .sql-viz[data-kind="er"][data-paused="1"] .join-pill,
   .sql-viz[data-kind="er"][data-paused="1"] .join-out,
   .sql-viz[data-kind="er"][data-paused="1"] .jchip{animation-play-state:paused!important}
@@ -1162,17 +1153,6 @@
   .join-guide-takeaway-mark{flex:none;color:var(--accent);font-size:15px;font-weight:900;line-height:1}
   @keyframes joinGuideIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
   .join-stepper{display:flex;gap:6px;align-items:stretch;margin:0 0 12px;padding:0 2px}
-  /* Au-delà de trois étapes, une seule rangée ne laisse que ~38 px de texte
-     par carte et « Sources comparées » se coupe en cinq morceaux. La grille
-     se replie sur autant de colonnes que la largeur en autorise, et revient
-     d'elle-même sur une rangée quand il y a la place. */
-  .join-stepper:has(.join-step:nth-child(4)){display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
-  /* auto-fit remplissait 4 colonnes dès 430 px et laissait la 5e étape
-     seule sur sa rangée, avec des cartes plus étroites qu'en 320 px.
-     Trois colonnes jusqu'à ce que les cinq tiennent vraiment de front. */
-  @container (min-width:520px){
-    .join-stepper:has(.join-step:nth-child(4)){grid-template-columns:repeat(5,minmax(0,1fr))}
-  }
   .join-step{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;gap:6px;min-width:0;flex:1;padding:8px 8px 9px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--ink-3);transition:background .25s ease,border-color .25s ease,color .25s ease,transform .25s var(--spring-ios)}
   .join-step-num{display:flex;align-items:center;justify-content:center;flex:none;width:19px;height:19px;border-radius:6px;background:#E5E5EA;color:#8E8E93;font-size:10px;font-weight:850;transition:background .25s ease,color .25s ease}
   .join-step-label{min-width:0;width:100%;overflow-wrap:break-word;word-break:normal;hyphens:auto;-webkit-hyphens:auto;white-space:normal;line-height:1.25;font-size:11px;font-weight:750;text-align:center}
@@ -8848,7 +8828,7 @@ const JOIN_GUIDES={
   outer:{kicker:'Analyse du périmètre',lead:'Le type de JOIN décrit quelles lignes doivent rester même sans correspondance.',steps:[['INNER','uniquement les correspondances'],['LEFT / RIGHT','toute une source + les correspondances — Inès à gauche, l’invité à droite'],['FULL OUTER','Inès et l’invité, plus les correspondances']],takeaway:'Le choix du JOIN est un choix de périmètre de résultat.'}
 };
 const JOIN_OUTPUT_LABELS={
-  joinon:'Résultat projeté · une ligne par commande correspondante',inner:'Résultat projeté · correspondances uniquement',leftj:'Résultat projeté · table clients conservée',rightj:'Résultat projeté · table commandes conservée',orphan:'Résultat projeté · clients sans commande',triple:'Résultat projeté · client, produit, quantité',outer:'Résultat projeté · périmètre conservé'
+  joinon:'Résultat projeté · une ligne par commande correspondante',inner:'Résultat projeté · correspondances uniquement',leftj:'Résultat projeté · table clients conservée',rightj:'Résultat projeté · table commandes conservée',orphan:'Résultat projeté · clients sans commande',triple:'Résultat projeté · client, produit, quantité',outer:'Résultat projeté · les deux tables conservées'
 };
 function renderJoinGuide(key){
   const g=JOIN_GUIDES[key];
@@ -12831,11 +12811,9 @@ const SQL_VIZ={
     <p class="er-hint">Sélectionne Sophie : la commande associée puis le produit référencé sont mis en évidence.</p>
   </div>`},
   outer:{kind:'er',phases:[
-    {k:'Sources comparées',d:'Sophie et Lucas ont une commande. Inès n’en a aucune. La commande 16 n’a pas de client : un achat en invité.'},
-    {k:'INNER JOIN',d:'Seules les correspondances restent : Sophie et Lucas. Inès et l’invité sont écartés.'},
-    {k:'LEFT JOIN',d:'Tous les clients restent : Sophie, Lucas et Inès (NULL côté commande). L’invité disparaît.' },
-    {k:'RIGHT JOIN',d:'Toutes les commandes restent, y compris l’invité (NULL côté client). Inès disparaît.' },
-    {k:'FULL OUTER JOIN',d:'Les deux orphelins restent : Inès <b>et</b> l’invité, plus les correspondances.' }
+    {k:'Tables conservées',d:'Les deux tables sont conservées : chaque client et chaque commande finira dans le résultat.'},
+    {k:'Condition ON',d:'clients.id = commandes.client_id apparie Sophie à la commande #1 et Lucas à la #3. Inès et la commande invitée ne correspondent à rien.'},
+    {k:'Résultat avec NULL',d:'Les deux lignes appariées, plus Inès et la commande invitée : de leur côté manquant, les colonnes valent NULL.' }
   ],html:`<div class="er-stage join-viz">
     <div class="join-sets">
       <div class="join-side"><div class="join-side-h">clients</div>
@@ -12859,7 +12837,7 @@ const SQL_VIZ={
       <div class="join-pill" data-when="l">Inès ↔ NULL</div>
       <div class="join-pill" data-when="r">NULL ↔ #16</div>
     </div>
-    <p class="er-hint">L’invité n’apparaît qu’en RIGHT JOIN (commandes à droite) ou en FULL OUTER JOIN.</p>
+    <p class="er-hint">Inès n’a aucune commande, la commande #16 n’a aucun client : <code>FULL OUTER JOIN</code> garde les deux.</p>
   </div>`}
 };
 const HAVING_GRP_PHASES=SQL_VIZ.having.phases;
