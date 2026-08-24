@@ -1280,12 +1280,23 @@
   .sql-viz[data-viz="crossjoin"][data-phase="2"] .jchip{background:var(--accent-soft)}
   /* Jointure + GROUP BY : temps 2, les lignes d'un même client se
      rassemblent et Inès reste sans rien à droite ; temps 3, le compte. */
-  .sql-viz[data-viz="joingroupby"][data-phase="1"] .jchip[data-k="A"],
-  .sql-viz[data-viz="joingroupby"][data-phase="1"] .jchip[data-k="B"]{background:var(--accent-soft);transform:scale(1.02)}
-  .sql-viz[data-viz="joingroupby"][data-phase="1"] .jchip[data-k="C"]{opacity:.3;transform:scale(.97)}
+  /* Chaque temps produit un résultat visible : les lignes de la jointure,
+     puis les groupes, puis les comptes. Sans cela les deux premières phases
+     affichaient exactement la même scène. */
+  .sql-viz[data-viz="joingroupby"] .jchip[data-k="A"],
+  .sql-viz[data-viz="joingroupby"] .jchip[data-k="B"]{background:var(--accent-soft)}
+  .sql-viz[data-viz="joingroupby"][data-phase="1"] .jchip[data-k="C"],
   .sql-viz[data-viz="joingroupby"][data-phase="2"] .jchip[data-k="C"]{background:var(--accent-soft)}
+  .sql-viz[data-viz="joingroupby"] .join-out{max-height:0}
+  .sql-viz[data-viz="joingroupby"][data-phase="0"] .join-out,
+  .sql-viz[data-viz="joingroupby"][data-phase="1"] .join-out,
+  .sql-viz[data-viz="joingroupby"][data-phase="2"] .join-out{max-height:640px;opacity:1;margin-top:12px}
+  .sql-viz[data-viz="joingroupby"][data-phase="0"] .join-pill,
+  .sql-viz[data-viz="joingroupby"][data-phase="1"] .join-pill{animation:joinIn .46s var(--spring-ios) forwards}
   .sql-viz[data-viz="joingroupby"] .join-out .join-pill[data-when]{display:none}
-  .sql-viz[data-viz="joingroupby"][data-phase="2"] .join-pill[data-when]{display:flex}
+  .sql-viz[data-viz="joingroupby"][data-phase="0"] .join-pill[data-when="j"],
+  .sql-viz[data-viz="joingroupby"][data-phase="1"] .join-pill[data-when="g"],
+  .sql-viz[data-viz="joingroupby"][data-phase="2"] .join-pill[data-when="n"]{display:flex}
   .sql-viz[data-viz="crossjoin"] .join-out .join-pill[data-when]{display:none}
   .sql-viz[data-viz="crossjoin"][data-phase="1"] .join-pill[data-when="a"],
   .sql-viz[data-viz="crossjoin"][data-phase="2"] .join-pill[data-when]{display:flex}
@@ -5701,13 +5712,13 @@ const MODULES = [
         ]},
       cards:[
         {t:"Relier les tables",
-         b:"<p><code>LEFT JOIN</code> relie chaque client à ses commandes tout en conservant les clients qui n’ont encore rien commandé.</p>"},
+         b:"<p><code>LEFT JOIN</code> relie chaque client à ses commandes, tout en gardant les clients sans commande.</p>"},
         {t:"Regrouper par client",draw:"repeat",src:"Sophie",outs:["commande #1","commande #2","commande #13"],
-         b:"<p>Après la jointure, un client peut apparaître plusieurs fois.</p><p><code>GROUP BY clients.id, clients.nom</code> rassemble toutes ses lignes dans un même groupe.</p>"},
-        {t:"Compter les commandes",
-         b:"<p><code>COUNT(commandes.id)</code> compte le nombre de vraies commandes présentes dans chaque groupe.</p>"},
+         b:"<p><code>GROUP BY</code> rassemble les commandes d’un même client dans un groupe.</p>"},
+        {t:"Compter les commandes",draw:"groupcount",
+         b:"<p><code>COUNT(commandes.id)</code> compte les commandes présentes dans chaque groupe.</p>"},
         {t:"Pourquoi pas COUNT(*) ?",draw:"countnull",
-         b:"<p>Avec <code>LEFT JOIN</code>, même un client sans commande possède une ligne dans le résultat.</p><p><code>COUNT(*)</code> compterait cette ligne. <code>COUNT(commandes.id)</code>, lui, ignore <code>NULL</code> et renvoie donc correctement 0.</p>"}
+         b:"<p>Pour Inès, <code>LEFT JOIN</code> crée une ligne avec <code>commandes.id = NULL</code>.</p><p><code>COUNT(*)</code> compte la ligne : 1. <code>COUNT(commandes.id)</code> ignore le <code>NULL</code> : 0.</p>"}
       ]},
     reflex:{a:{k:"GROUP BY",t:"crée un groupe pour chaque client"},
       b:{k:"COUNT(commandes.id)",t:"compte les commandes du groupe"},
@@ -9402,7 +9413,7 @@ const JOIN_GUIDES={
   outer:{kicker:'Analyse du périmètre',lead:'Le type de JOIN décrit quelles lignes doivent rester même sans correspondance.',steps:[['INNER','uniquement les correspondances'],['LEFT / RIGHT','toute une source + les correspondances — Inès à gauche, l’invité à droite'],['FULL OUTER','Inès et l’invité, plus les correspondances']],takeaway:'Le choix du JOIN est un choix de périmètre de résultat.'}
 };
 const JOIN_OUTPUT_LABELS={
-  joinon:'Résultat projeté · une ligne par commande correspondante',inner:'Résultat projeté · correspondances uniquement',leftj:'Résultat projeté · table clients conservée',rightj:'Résultat projeté · table commandes conservée',orphan:'Résultat projeté · clients sans commande',triple:'Résultat projeté · client, produit, quantité',outer:'Résultat projeté · les deux tables conservées',crossjoin:'Résultat projeté · toutes les paires',joingroupby:'Résultat projeté · une ligne par client'
+  joinon:'Résultat projeté · une ligne par commande correspondante',inner:'Résultat projeté · correspondances uniquement',leftj:'Résultat projeté · table clients conservée',rightj:'Résultat projeté · table commandes conservée',orphan:'Résultat projeté · clients sans commande',triple:'Résultat projeté · client, produit, quantité',outer:'Résultat projeté · les deux tables conservées',crossjoin:'Résultat projeté · toutes les paires',joingroupby:'Résultat de l’étape'
 };
 function renderJoinGuide(key){
   const g=JOIN_GUIDES[key];
@@ -9614,6 +9625,10 @@ function pointDraw(card){
       <span class="pd-outs">${outs.map(o=>`<b>${esc(o)}</b>`).join('')}${more?`<b class="pd-more"><span>…</span>${esc(more)}</b>`:''}</span>
     </div>`;
   }
+  if(kind==='groupcount') return `<div class="pd-count" aria-hidden="true">
+      <div class="pd-count-row is-juste"><b>Sophie</b><i></i><span>3</span></div>
+      <small>commandes dans son groupe</small>
+    </div>`;
   if(kind==='countnull') return `<div class="pd-count" aria-hidden="true">
       <div class="pd-count-row is-faux"><b>COUNT(*)</b><i></i><span>1</span></div>
       <div class="pd-count-row is-juste"><b>COUNT(commandes.id)</b><i></i><span>0</span></div>
@@ -13637,6 +13652,15 @@ const SQL_VIZ={
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
+      <div class="join-pill" data-when="j" data-er-id="1">Sophie<span class="jn">commande #1</span></div>
+      <div class="join-pill" data-when="j" data-er-id="1">Sophie<span class="jn">commande #2</span></div>
+      <div class="join-pill" data-when="j" data-er-id="1">Sophie<span class="jn">commande #13</span></div>
+      <div class="join-pill" data-when="j" data-er-id="2">Lucas<span class="jn">commande #3</span></div>
+      <div class="join-pill" data-when="j" data-er-id="2">Lucas<span class="jn">commande #10</span></div>
+      <div class="join-pill" data-when="j" data-er-id="9">Inès<span class="jn null">NULL</span></div>
+      <div class="join-pill" data-when="g" data-er-id="1">Sophie<span class="jn">#1 · #2 · #13</span></div>
+      <div class="join-pill" data-when="g" data-er-id="2">Lucas<span class="jn">#3 · #10</span></div>
+      <div class="join-pill" data-when="g" data-er-id="9">Inès<span class="jn null">aucune</span></div>
       <div class="join-pill" data-when="n" data-er-id="1">Sophie<span class="jn">3 commandes</span></div>
       <div class="join-pill" data-when="n" data-er-id="2">Lucas<span class="jn">2 commandes</span></div>
       <div class="join-pill" data-when="n" data-er-id="9">Inès<span class="jn null">0 commande</span></div>
