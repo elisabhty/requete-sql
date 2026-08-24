@@ -307,14 +307,27 @@
   .join-recap th,.join-recap td{white-space:normal}
   .join-recap td{padding:12px;border-bottom:1px solid var(--line);color:var(--ink);line-height:1.4;vertical-align:top;overflow-wrap:break-word;font-family:var(--ui)}
   .join-recap tr:last-child td{border-bottom:0}
-  .join-recap .jr-type{width:38%;font-family:var(--mono);font-weight:700;font-size:12.5px;color:var(--ink)}
+  .join-recap .jr-viz,.join-recap thead th:first-child{width:60px}
+  .join-recap .jr-viz{padding-right:0;vertical-align:middle}
+  .join-recap .jr-venn{display:block;width:52px;height:auto}
+  .join-recap .jr-venn .vn-off{fill:none;stroke:var(--accent);stroke-opacity:.34;stroke-width:1.6}
+  .join-recap .jr-venn .vn-on{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.6}
+  .jr-vh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .join-recap .jr-type,.join-recap thead th:nth-child(2){width:34%}
+  .join-recap .jr-type{font-family:var(--mono);font-weight:700;font-size:12.5px;color:var(--ink)}
   .join-recap .jr-quoi{color:var(--ink-2)}
   .join-recap tr.on td{background:var(--accent-soft)}
-  .join-recap tr.on .jr-type{box-shadow:inset 3px 0 0 var(--accent);color:var(--accent)}
+  .join-recap tr.on .jr-viz{box-shadow:inset 3px 0 0 var(--accent)}
+  .join-recap tr.on .jr-type{color:var(--accent)}
   .jr-ici{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:999px;background:var(--accent);color:#fff;font-family:var(--ui);font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;vertical-align:1px;white-space:nowrap}
   @media (max-width:400px){
     .join-recap{font-size:12.5px}
-    .join-recap .jr-type{width:44%;font-size:11.5px}
+    .join-recap .jr-viz,.join-recap thead th:first-child{width:40px}
+  .join-recap .jr-venn{width:34px}
+  .join-recap .jr-viz{padding-left:7px}
+  .join-recap .jr-type,.join-recap thead th:nth-child(2){width:33%}
+  .join-recap .jr-type{font-size:11.5px}
+  .join-recap .jr-quoi{hyphens:auto;-webkit-hyphens:auto}
     .join-recap td{padding:10px 9px}
   }
   /* ============================================================
@@ -8732,12 +8745,32 @@ const JOIN_RECAP=[
   {k:'full', t:'FULL JOIN', d:'Toutes les lignes des deux tables'},
   {k:'cross',t:'CROSS JOIN',d:'Toutes les combinaisons'}
 ];
+/* Vignette du récapitulatif : même lecture que le grand schéma, en 64x36 et
+   sans libellé — le nom du type est dans la cellule voisine. CROSS JOIN a sa
+   propre vignette : une grille, puisqu'il ne conserve pas une zone du
+   recouvrement mais croise chaque ligne avec chaque ligne. */
+function joinVennMini(k){
+  if(k==='cross'){
+    const cases=[3,14,25].map(y=>[17,28,39].map(x=>`<rect x="${x}" y="${y}" width="8" height="8" rx="2.5" class="vn-on"/>`).join('')).join('');
+    return `<svg class="jr-venn" viewBox="0 0 64 36" aria-hidden="true">${cases}</svg>`;
+  }
+  const A='cx="23" cy="18" r="15"';
+  const B='cx="41" cy="18" r="15"';
+  let peint='';
+  if(k==='inner')peint=`<defs><clipPath id="jrm-lens"><circle ${B}/></clipPath></defs><g clip-path="url(#jrm-lens)"><circle ${A} class="vn-on"/></g>`;
+  else if(k==='left')peint=`<circle ${A} class="vn-on"/>`;
+  else if(k==='right')peint=`<circle ${B} class="vn-on"/>`;
+  else if(k==='full')peint=`<circle ${A} class="vn-on"/><circle ${B} class="vn-on"/>`;
+  else return '';
+  return `<svg class="jr-venn" viewBox="0 0 64 36" aria-hidden="true">${peint}<circle ${A} class="vn-off"/><circle ${B} class="vn-off"/></svg>`;
+}
 function joinRecapBlock(l){
   if(!l||!l.joinRecap) return '';
   const vus=[].concat(l.joinRecap);
   const lignes=JOIN_RECAP.map(r=>{
     const ici=vus.indexOf(r.k)>=0;
     return `<tr class="${ici?'on':''}">
+      <td class="jr-viz">${joinVennMini(r.k)}</td>
       <td class="jr-type">${r.t}${ici?'<span class="jr-ici">ce cours</span>':''}</td>
       <td class="jr-quoi">${r.d}</td>
     </tr>`;
@@ -8745,7 +8778,7 @@ function joinRecapBlock(l){
   return `<div class="concept-block">
     <h2><span class="h2-txt">Les types de JOIN</span></h2>
     <table class="join-recap">
-      <thead><tr><th scope="col">Type</th><th scope="col">Lignes retournées</th></tr></thead>
+      <thead><tr><th scope="col"><span class="jr-vh">Schéma</span></th><th scope="col">Type</th><th scope="col">Lignes retournées</th></tr></thead>
       <tbody>${lignes}</tbody>
     </table>
   </div>`;
