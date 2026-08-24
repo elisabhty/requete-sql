@@ -1139,7 +1139,7 @@
   .sql-viz[data-viz="outer"][data-phase="2"] .join-pill[data-when="l"],
   .sql-viz[data-viz="outer"][data-phase="3"] .join-pill[data-when="in"],
   .sql-viz[data-viz="outer"][data-phase="3"] .join-pill[data-when="r"],
-  .sql-viz[data-viz="outer"][data-phase="4"] .join-pill{display:flex}
+  .sql-viz[data-viz="outer"][data-phase="4"] .join-pill[data-when]{display:flex}
   .sql-viz[data-kind="er"][data-paused="1"] .join-pill,
   .sql-viz[data-kind="er"][data-paused="1"] .join-out,
   .sql-viz[data-kind="er"][data-paused="1"] .jchip{animation-play-state:paused!important}
@@ -1162,6 +1162,11 @@
   .join-guide-takeaway-mark{flex:none;color:var(--accent);font-size:15px;font-weight:900;line-height:1}
   @keyframes joinGuideIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
   .join-stepper{display:flex;gap:6px;align-items:stretch;margin:0 0 12px;padding:0 2px}
+  /* Au-delà de trois étapes, une seule rangée ne laisse que ~38 px de texte
+     par carte et « Sources comparées » se coupe en cinq morceaux. La grille
+     se replie sur autant de colonnes que la largeur en autorise, et revient
+     d'elle-même sur une rangée quand il y a la place. */
+  .join-stepper:has(.join-step:nth-child(4)){display:grid;grid-template-columns:repeat(auto-fit,minmax(76px,1fr))}
   .join-step{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;gap:6px;min-width:0;flex:1;padding:8px 8px 9px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--ink-3);transition:background .25s ease,border-color .25s ease,color .25s ease,transform .25s var(--spring-ios)}
   .join-step-num{display:flex;align-items:center;justify-content:center;flex:none;width:19px;height:19px;border-radius:6px;background:#E5E5EA;color:#8E8E93;font-size:10px;font-weight:850;transition:background .25s ease,color .25s ease}
   .join-step-label{min-width:0;width:100%;overflow-wrap:break-word;word-break:normal;hyphens:auto;-webkit-hyphens:auto;white-space:normal;line-height:1.25;font-size:11px;font-weight:750;text-align:center}
@@ -12828,7 +12833,7 @@ const SQL_VIZ={
     {k:'INNER JOIN',d:'Seules les correspondances restent : Sophie et Lucas. Inès et l’invité sont écartés.'},
     {k:'LEFT JOIN',d:'Tous les clients restent : Sophie, Lucas et Inès (NULL côté commande). L’invité disparaît.' },
     {k:'RIGHT JOIN',d:'Toutes les commandes restent, y compris l’invité (NULL côté client). Inès disparaît.' },
-    {k:'FULL OUTER JOIN',d:'Les deux orphelins restent : Inès <b>et</b> l’invité, plus les correspondances. 17 lignes.' }
+    {k:'FULL OUTER JOIN',d:'Les deux orphelins restent : Inès <b>et</b> l’invité, plus les correspondances.' }
   ],html:`<div class="er-stage join-viz">
     <div class="join-sets">
       <div class="join-side"><div class="join-side-h">clients</div>
