@@ -305,15 +305,19 @@
   .join-recap{width:100%;border-collapse:collapse;font-size:13.5px;table-layout:fixed}
   .join-recap th{background:var(--bg);color:var(--ink-3);font-size:10.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;text-align:left;padding:11px 12px;border-bottom:1px solid var(--line)}
   .join-recap th,.join-recap td{white-space:normal}
-  .join-recap td{padding:12px;border-bottom:1px solid var(--line);color:var(--ink);line-height:1.4;vertical-align:top;overflow-wrap:break-word;font-family:var(--ui)}
+  .join-recap td{padding:12px 10px;border-bottom:1px solid var(--line);color:var(--ink);line-height:1.4;vertical-align:middle;text-align:left;overflow-wrap:break-word;font-family:var(--ui)}
   .join-recap tr:last-child td{border-bottom:0}
-  .join-recap .jr-viz,.join-recap thead th:first-child{width:60px}
+  .join-recap .jr-viz,.join-recap thead th:first-child{width:56px}
   .join-recap .jr-viz{padding-right:0;vertical-align:middle}
   .join-recap .jr-venn{display:block;width:52px;height:auto}
-  .join-recap .jr-venn .vn-off{fill:none;stroke:var(--accent);stroke-opacity:.34;stroke-width:1.6}
-  .join-recap .jr-venn .vn-on{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.6}
+  .join-recap .jr-venn .vn-trait{stroke-width:1.6}
   .jr-vh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
   .join-recap .jr-type,.join-recap thead th:nth-child(2){width:34%}
+  /* Au-delà, 34 % feraient 300 px : la vignette et son libellé se
+     retrouvaient séparés par un grand vide. */
+  @media (min-width:560px){
+    .join-recap .jr-type,.join-recap thead th:nth-child(2){width:132px}
+  }
   .join-recap .jr-type{font-family:var(--mono);font-weight:700;font-size:12.5px;color:var(--ink)}
   .join-recap .jr-quoi{color:var(--ink-2)}
   .join-recap tr.on td{background:var(--accent-soft)}
@@ -339,9 +343,10 @@
   .pt-intro .pt-lead{margin:0 0 12px}
   .pt-venn{margin:0 0 14px;padding:0;display:flex;flex-direction:column;align-items:center;gap:7px}
   .pt-venn svg{width:100%;max-width:232px;height:auto;display:block;overflow:visible}
-  .pt-venn .vn-off{fill:none;stroke:var(--accent);stroke-opacity:.34;stroke-width:2}
-  .pt-venn .vn-on{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2}
-  .pt-venn .vn-cut{fill:var(--surface);stroke:none}
+  /* Zone conservée : violet plein, atténué par l'opacité du groupe pour que
+     l'intersection reste lisible. Le reste garde un contour violet clair. */
+  .vn-garde{fill:var(--accent);opacity:.42}
+  .vn-trait{fill:none;stroke:var(--accent);stroke-opacity:.42;stroke-width:2}
   .pt-venn text{font-family:var(--mono);font-size:9.5px;font-weight:800;fill:var(--ink-2);text-anchor:middle}
   .pt-venn figcaption{font-size:12px;line-height:1.4;font-weight:650;color:var(--ink-3);text-align:center}
   @media (max-width:400px){.pt-venn text{font-size:9px}.pt-venn figcaption{font-size:11.5px}}
@@ -8762,18 +8767,21 @@ const JOIN_RECAP=[
    recouvrement mais croise chaque ligne avec chaque ligne. */
 function joinVennMini(k){
   if(k==='cross'){
-    const cases=[3,14,25].map(y=>[17,28,39].map(x=>`<rect x="${x}" y="${y}" width="8" height="8" rx="2.5" class="vn-on"/>`).join('')).join('');
-    return `<svg class="jr-venn" viewBox="0 0 64 36" aria-hidden="true">${cases}</svg>`;
+    const cases=[3,14,25].map(y=>[17,28,39].map(x=>`<rect x="${x}" y="${y}" width="8" height="8" rx="2.5"/>`).join('')).join('');
+    return `<svg class="jr-venn" viewBox="0 0 64 36" aria-hidden="true"><g class="vn-garde">${cases}</g></svg>`;
   }
   const A='cx="23" cy="18" r="15"';
   const B='cx="41" cy="18" r="15"';
-  let peint='';
-  if(k==='inner')peint=`<defs><clipPath id="jrm-lens"><circle ${B}/></clipPath></defs><g clip-path="url(#jrm-lens)"><circle ${A} class="vn-on"/></g>`;
-  else if(k==='left')peint=`<circle ${A} class="vn-on"/>`;
-  else if(k==='right')peint=`<circle ${B} class="vn-on"/>`;
-  else if(k==='full')peint=`<circle ${A} class="vn-on"/><circle ${B} class="vn-on"/>`;
+  let garde='';
+  if(k==='inner')garde=`<circle ${A} clip-path="url(#jr-b)"/>`;
+  else if(k==='left')garde=`<circle ${A}/>`;
+  else if(k==='right')garde=`<circle ${B}/>`;
+  else if(k==='full')garde=`<circle ${A}/><circle ${B}/>`;
   else return '';
-  return `<svg class="jr-venn" viewBox="0 0 64 36" aria-hidden="true">${peint}<circle ${A} class="vn-off"/><circle ${B} class="vn-off"/></svg>`;
+  return `<svg class="jr-venn" viewBox="0 0 64 36" aria-hidden="true">`
+    +`<defs><clipPath id="jr-b"><circle ${B}/></clipPath></defs>`
+    +`<g class="vn-garde">${garde}</g>`
+    +`<circle ${A} class="vn-trait"/><circle ${B} class="vn-trait"/></svg>`;
 }
 function joinRecapBlock(l){
   if(!l||!l.joinRecap) return '';
@@ -9159,18 +9167,23 @@ function pointVenn(kind,gauche,droite){
   if(leg===undefined)return '';
   const A='cx="68" cy="62" r="52"';
   const B='cx="132" cy="62" r="52"';
-  const lens=cls=>`<g clip-path="url(#venn-lens)"><circle ${A} class="${cls}"/></g>`;
-  let peint='';
-  if(kind==='inner')peint=lens('vn-on');
-  else if(kind==='left')peint=`<circle ${A} class="vn-on"/>`;
-  else if(kind==='right')peint=`<circle ${B} class="vn-on"/>`;
-  else if(kind==='full')peint=`<circle ${A} class="vn-on"/><circle ${B} class="vn-on"/>`;
-  else if(kind==='leftonly')peint=`<circle ${A} class="vn-on"/>`+lens('vn-cut');
+  /* Les zones conservées sont peintes sous les contours, dans un groupe dont
+     l'opacité s'applique au rendu final : deux disques qui se chevauchent
+     donnent un aplat uniforme, sans surépaisseur à l'intersection. */
+  let garde='';
+  if(kind==='inner')garde=`<circle ${A} clip-path="url(#vn-b)"/>`;
+  else if(kind==='left')garde=`<circle ${A}/>`;
+  else if(kind==='right')garde=`<circle ${B}/>`;
+  else if(kind==='full')garde=`<circle ${A}/><circle ${B}/>`;
+  else if(kind==='leftonly')garde=`<circle ${A} mask="url(#vn-hors-b)"/>`;
   return `<figure class="pt-venn">
-      <svg viewBox="0 0 200 124" role="img" aria-label="${esc(leg||'Périmètre conservé par la jointure')}">
-        <defs><clipPath id="venn-lens"><circle ${B}/></clipPath></defs>
-        ${peint}
-        <circle ${A} class="vn-off"/><circle ${B} class="vn-off"/>
+      <svg viewBox="0 0 200 124" role="img" aria-label="${esc(leg||'Zone conservée par la jointure')}">
+        <defs>
+          <clipPath id="vn-b"><circle ${B}/></clipPath>
+          <mask id="vn-hors-b"><rect x="0" y="0" width="200" height="124" fill="#fff"/><circle ${B} fill="#000"/></mask>
+        </defs>
+        <g class="vn-garde">${garde}</g>
+        <circle ${A} class="vn-trait"/><circle ${B} class="vn-trait"/>
         <text x="46" y="66">${esc(gauche||'gauche')}</text>
         <text x="154" y="66">${esc(droite||'droite')}</text>
       </svg>
