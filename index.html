@@ -1282,6 +1282,7 @@
      rassemblent et Inès reste sans rien à droite ; temps 3, le compte. */
   /* SELF JOIN : les deux colonnes montrent la même table. On teinte par
      ville pour que l'appariement saute aux yeux avant même le résultat. */
+  .sql-viz[data-viz="selfjoin"] .self-role{margin:0 2px 10px;text-align:center}
   .sql-viz[data-viz="selfjoin"][data-phase="1"] .jchip,
   .sql-viz[data-viz="selfjoin"][data-phase="2"] .jchip{background:var(--accent-soft)}
   .sql-viz[data-viz="selfjoin"] .join-out .join-pill[data-when]{display:none}
@@ -5758,19 +5759,19 @@ const MODULES = [
     {k:'joingroupby',label:'JOIN + GROUP BY',sql:"SELECT clients.nom, COUNT(commandes.id) AS nb_commandes\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nGROUP BY clients.id, clients.nom;",tone:'good'}
   ] },
 { id:42, titre:"SELF JOIN", résumé:"Relier une table à elle-même",
-  situation:"Tu veux afficher les paires de clients qui habitent dans la même ville, par exemple pour organiser des rencontres locales.<br><br>Mais toutes les infos sont dans une seule table : la table <code>clients</code>.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th>ville</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td>Paris</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td></tr><tr><td>3</td><td>Emma</td><td>Marseille</td></tr><tr><td>4</td><td>Nathan</td><td>Paris</td></tr><tr><td>6</td><td>Hugo</td><td>Lyon</td></tr><tr><td>7</td><td>Léa</td><td>Paris</td></tr></tbody></table></div><br><br>Tu veux comparer les clients entre eux, en utilisant la même table deux fois : une fois pour le premier client, une fois pour le second.",
+  situation:"Tu veux trouver les clients qui habitent dans la même ville, par exemple pour organiser des rencontres locales.<br><br>Dans la table <code>clients</code>, plusieurs clients partagent la même ville :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th>ville</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td>Paris</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td></tr><tr><td>3</td><td>Emma</td><td>Marseille</td></tr><tr><td>4</td><td>Nathan</td><td>Paris</td></tr><tr><td>6</td><td>Hugo</td><td>Lyon</td></tr><tr><td>7</td><td>Léa</td><td>Paris</td></tr></tbody></table></div><br><br>Par exemple, Sophie, Nathan et Léa habitent tous les trois à Paris. Tu veux donc obtenir des paires comme <b>Sophie — Nathan</b>, <b>Sophie — Léa</b> et <b>Nathan — Léa</b>.<br><br>Mais les deux personnes à comparer sont dans la même table <code>clients</code>. Il faut donc utiliser cette table deux fois, avec deux noms différents.",
     studio:{pointCards:{
       eye:"SELF JOIN",title:"Relier une table à elle-même.",
-      lead:"Un <code>SELF JOIN</code> relie une table à elle-même en utilisant deux alias distincts.",
+      lead:"Un <code>SELF JOIN</code> compare les lignes d’une table entre elles en donnant deux rôles différents à la même table.",
       rule:{lines:[
-          {tok:"FROM",val:"clients c1",tag:"la table, première lecture",keep:1},
-          {tok:"JOIN",val:"clients c2",tag:"la même table, deuxième lecture",keep:1},
+          {tok:"FROM",val:"clients c1",tag:"la table dans le rôle du premier client",keep:1},
+          {tok:"JOIN",val:"clients c2",tag:"la même table dans le rôle du second",keep:1},
           {tok:"ON",val:"c1.ville = c2.ville",tag:"deux clients de la même ville"},
           {tok:"AND",val:"c1.id < c2.id",tag:"chaque paire une seule fois"}
         ]},
       cards:[
-        {t:"Deux alias obligatoires",
-         b:"<p><code>FROM clients c1 JOIN clients c2</code> : on donne deux noms temporaires à la même table pour pouvoir la référencer deux fois.</p>"},
+        {t:"Une table, deux rôles",
+         b:"<p><code>FROM clients c1 JOIN clients c2</code> utilise deux fois la table <code>clients</code>. Elle n’est pas dupliquée : <code>c1</code> la fait jouer le rôle du premier client, <code>c2</code> celui du second.</p>"},
         {t:"Comparer les villes",
          b:"<p><code>ON c1.ville = c2.ville</code> associe les clients qui partagent la même ville.</p>"},
         {t:"Éviter les doublons",draw:"selfpairs",
@@ -5778,20 +5779,20 @@ const MODULES = [
         {t:"Alias dans SELECT",
          b:"<p><code>c1.nom AS client1, c2.nom AS client2</code> affiche les deux noms de la paire.</p>"}
       ]},
-    reflex:{a:{k:"SELF JOIN",t:"relie une table à elle-même"},
-      b:{k:"Alias",t:"c1 et c2 pour distinguer les deux rôles"},
-      note:"Sans alias, SQL ne peut pas savoir de quel <code>clients</code> tu parles. Donne toujours deux noms différents à la table."},
+    reflex:{a:{k:"SELF JOIN",t:"compare des lignes de la même table"},
+      b:{k:"c1 / c2",t:"donnent deux rôles à cette table"},
+      note:"Réflexe : tu dois comparer une ligne avec d’autres lignes de la même table ? Pense <code>SELF JOIN</code>, puis donne-lui deux alias."},
     viz:"selfjoin"},
   anatomie:[
-    {tok:"FROM clients c1",txt:"Première copie de la table clients, alias c1."},
-    {tok:"JOIN clients c2",txt:"Deuxième copie de la même table, alias c2."},
-    {tok:"ON c1.ville = c2.ville",txt:"Condition : les deux clients doivent habiter la même ville."},
-    {tok:"AND c1.id < c2.id",txt:"Supprime les paires inversées et les clients avec eux-mêmes."},
-    {tok:"SELECT c1.nom, c2.nom, c1.ville",txt:"Affiche les deux noms et la ville commune."}
+    {tok:"FROM clients c1",txt:"La table clients joue le rôle du premier client."},
+    {tok:"JOIN clients c2",txt:"La même table joue maintenant le rôle du deuxième client."},
+    {tok:"ON c1.ville = c2.ville",txt:"Garde les clients qui habitent dans la même ville."},
+    {tok:"AND c1.id < c2.id",txt:"Garde chaque paire une seule fois et empêche un client d’être associé à lui-même."},
+    {tok:"SELECT c1.nom, c2.nom, c1.ville",txt:"Affiche les deux clients et leur ville commune."}
   ],
   exemple:"SELECT c1.nom AS client1, c2.nom AS client2, c1.ville\nFROM clients c1\nJOIN clients c2\nON c1.ville = c2.ville AND c1.id < c2.id;",
   attendu:"4 lignes : Sophie/Nathan, Sophie/Léa, Nathan/Léa (Paris) et Lucas/Hugo (Lyon).",
-  retenir:"Un <code>SELF JOIN</code> lit la même table deux fois sous deux alias : <code>FROM clients c1 JOIN clients c2</code>.<br><br>La condition compare les deux copies — ici <code>c1.ville = c2.ville</code>.<br><br><code>c1.id &lt; c2.id</code> évite les paires inversées et les clients associés à eux-mêmes.",
+  retenir:"Un <code>SELF JOIN</code> lit la même table deux fois sous deux alias : <code>FROM clients c1 JOIN clients c2</code>.<br><br>La table n’est pas dupliquée, elle joue deux rôles que la condition compare — ici <code>c1.ville = c2.ville</code>.<br><br><code>c1.id &lt; c2.id</code> évite les paires inversées et les clients associés à eux-mêmes.",
   piege:{t:"Oublier d’exclure les paires avec le même client",
     p:"Avec seulement <code>ON c1.ville = c2.ville</code>, chaque client apparaît avec lui-même et chaque paire apparaît en double. Ajoute <code>AND c1.id &lt; c2.id</code> pour ne garder qu’une fois chaque paire.",
     exec:true,
@@ -6241,7 +6242,7 @@ const QCM={
  38:[{q:"<code>RIGHT JOIN</code> conserve :",o:["Seulement les lignes qui correspondent des deux côtés","Toutes les lignes de la table de droite","Toutes les lignes des deux tables"],b:1,e:"Sans correspondance à gauche, les colonnes de clients valent NULL."},
    {q:"Toutes les commandes + leurs clients (y compris l’invité sans client) :",o:["15 lignes avec INNER JOIN","16 lignes avec RIGHT JOIN","9 lignes (un par client)"],b:1,e:"15 correspondances + 1 ligne invitée avec NULL = 16 lignes."}],
  42:[{q:"À quoi sert un <code>SELF JOIN</code> ?",o:["À relier deux tables différentes","À relier une table à elle-même","À supprimer les doublons d’une table"],b:1,e:"On lit la même table deux fois, sous deux alias, pour comparer ses lignes entre elles."},
-  {q:"Pourquoi deux alias <code>c1</code> et <code>c2</code> ?",o:["Pour aller plus vite","Parce que SQL ne saurait pas de quelle copie on parle","Parce que c’est obligatoire dans tout JOIN"],b:1,e:"Sans alias, <code>clients.ville</code> serait ambigu : les deux copies portent le même nom."},
+  {q:"Pourquoi deux alias <code>c1</code> et <code>c2</code> ?",o:["Pour aller plus vite","Parce que SQL ne saurait pas duquel des deux rôles on parle","Parce que c’est obligatoire dans tout JOIN"],b:1,e:"Sans alias, <code>clients.ville</code> serait ambigu : les deux rôles portent le même nom de table."},
   {q:"Que fait <code>AND c1.id &lt; c2.id</code> ?",o:["Trie les paires par identifiant","Garde chaque paire une fois et exclut les clients avec eux-mêmes","Ne garde que les clients dont l’id est petit"],b:1,e:"Sans cette condition, on obtient Sophie/Sophie et chaque paire dans les deux sens — 17 lignes au lieu de 4."}],
  41:[{q:"Après un <code>LEFT JOIN</code>, pourquoi écrire <code>COUNT(commandes.id)</code> plutôt que <code>COUNT(*)</code> ?",o:["C’est plus rapide","Parce que COUNT(*) compterait la ligne vide d’un client sans commande","Les deux donnent le même résultat"],b:1,e:"COUNT(*) compte les lignes ; COUNT(colonne) ignore les NULL, ce qui donne 0 aux clients sans commande."},
   {q:"À quoi sert <code>GROUP BY clients.id, clients.nom</code> ici ?",o:["À trier les clients par nom","À rassembler les lignes d’un même client en une seule","À filtrer les clients sans commande"],b:1,e:"Sophie occupe 3 lignes après la jointure ; GROUP BY les rassemble pour n’en produire qu’une."},
@@ -13773,10 +13774,11 @@ const SQL_VIZ={
     <p class="er-hint">Sélectionne Sophie : la commande associée puis le produit référencé sont mis en évidence.</p>
   </div>`},
   selfjoin:{kind:'er',sample:'5 clients · 2 villes',phases:[
-    {k:'Deux copies de la table',d:'La table <code>clients</code> est lue deux fois, sous les alias <code>c1</code> et <code>c2</code>. Ce sont les mêmes lignes des deux côtés.'},
+    {k:'Une table, deux rôles',d:'La table <code>clients</code> n\u2019est pas dupliquée : elle est lue deux fois, sous les alias <code>c1</code> et <code>c2</code>. Ce sont les mêmes lignes des deux côtés.'},
     {k:'Même ville',d:'<code>ON c1.ville = c2.ville</code> rapproche les clients d\u2019une même ville : Paris d\u2019un côté, Lyon de l\u2019autre.'},
     {k:'Une paire, une seule fois',d:'<code>c1.id &lt; c2.id</code> écarte les paires inversées et les clients associés à eux-mêmes. Il reste 4 paires.' }
   ],html:`<div class="er-stage join-viz">
+    <p class="er-note self-role">Une seule table <code>clients</code>, lue sous deux rôles.</p>
     <div class="join-sets">
       <div class="join-side"><div class="join-side-h">clients c1</div>
         <div class="jchips">
