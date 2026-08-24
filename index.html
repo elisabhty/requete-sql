@@ -4984,7 +4984,13 @@ const MODULES = [
     vs:{bad:{tag:"✕ Mauvaises colonnes",sql:"SELECT clients.nom, commandes.produit_id\nFROM clients\nJOIN commandes\nON clients.id = commandes.produit_id;",out:"Incohérent : produit_id identifie un produit, pas un client",pedagogic:true},
         good:{tag:"✓ Bon ON",sql:"SELECT clients.nom, commandes.produit_id\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;",out:"Sophie, Lucas, Emma… chaque commande avec le bon client"}},
     pointCards:{
-      lead:"Sans la clause <code>ON</code>, SQL ne sait pas quelles lignes associer : il faut lui dire ce qui correspond à quoi.",
+      lead:"Avec <code>JOIN</code>, une ligne n’apparaît que si elle existe des deux côtés. C’est la clause <code>ON</code> qui dit ce qui correspond à quoi.",
+      rule:{lines:[
+          {tok:"FROM",val:"clients",tag:"à gauche · gardée seulement si elle correspond"},
+          {tok:"JOIN",val:"commandes",tag:"à droite · gardée seulement si elle correspond"},
+          {tok:"ON",val:"clients.id = commandes.client_id",tag:"le lien : le même identifiant des deux côtés"}
+        ],
+        say:"<p>SQL rapproche les deux tables et retient les couples qui satisfont la condition <code>ON</code>.</p><p>Chaque correspondance produit une ligne : Sophie a passé 3 commandes, elle apparaît donc 3 fois.</p><p>Ce qui ne correspond à rien disparaît, des deux côtés : la commande passée sans compte n’apparaît pas, un client qui n’a rien commandé non plus.</p>"},
       cards:[
         {t:"Pourquoi écrire clients.id et commandes.client_id",bare:1,
          b:"Les deux tables ont une colonne <code>id</code> : on écrit <code>clients.id</code> pour lever l’ambiguïté. Et on compare à <code>commandes.client_id</code> — c’est cette colonne qui recopie l’identifiant du client, pas <code>commandes.id</code>."},
@@ -5023,7 +5029,13 @@ const MODULES = [
   situationTail:"Un <code>JOIN</code> simple écarterait Inès car elle n’a aucune commande. Pour garder tous les clients, on utilise <code>LEFT JOIN</code>.",
     studio:{pointCards:{
       eye:"LEFT JOIN",title:"Garder aussi ceux sans commande.",
-      lead:"<code>LEFT JOIN</code> garde toutes les lignes de la table de gauche, même quand aucune ligne ne correspond à droite.",
+      lead:"La table conservée est celle écrite avant <code>LEFT JOIN</code> : ici <code>clients</code>. Toutes ses lignes seront dans le résultat, même celles sans commande.",
+      rule:{lines:[
+          {tok:"FROM",val:"clients",tag:"à gauche · toutes ses lignes restent",keep:1},
+          {tok:"LEFT JOIN",val:"commandes",tag:"à droite · sert seulement à compléter"},
+          {tok:"ON",val:"clients.id = commandes.client_id",tag:"le lien : le même identifiant des deux côtés"}
+        ],
+        say:"<p>SQL parcourt <code>clients</code>, ligne par ligne.</p><p>Pour chaque client, il cherche dans <code>commandes</code> les lignes dont <code>client_id</code> est égal à <code>clients.id</code>.</p><p>S’il en trouve, chacune produit une ligne. Sinon — c’est le cas d’Inès, qui n’a rien commandé — la ligne reste quand même, et les colonnes de <code>commandes</code> valent <code>NULL</code>.</p>"},
       cards:[
         {t:"Pourquoi écrire clients.id et commandes.client_id",bare:1,
          b:"Les deux tables ont une colonne <code>id</code> : on écrit <code>clients.id</code> pour lever l’ambiguïté. Et on compare à <code>commandes.client_id</code> — c’est cette colonne qui recopie l’identifiant du client, pas <code>commandes.id</code>."},
