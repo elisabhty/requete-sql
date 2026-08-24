@@ -1238,6 +1238,13 @@
   /* Séparateurs en retrait, à la iOS : le trait démarre après le bord
      intérieur au lieu de barrer la carte. En ::before, il n'entre pas
      dans le calcul des hauteurs comme le faisait border-top. */
+  /* Pastilles cliquables : même retour visuel que les lignes des tables ER,
+     et la sélection l'emporte sur la teinte de la phase en cours. */
+  .jchip[data-er-id],.jchip[data-er-fk]{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  .jchip[data-er-id]:active,.jchip[data-er-fk]:active{transform:scale(.98)}
+  .jchip[data-er-id]:focus-visible,.jchip[data-er-fk]:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  .sql-viz .jchip[data-er-on="1"]{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent);opacity:1;transform:none}
+  .sql-viz .jchip[data-er-on="1"] .er-key{background:var(--accent);color:#fff}
   .jchip+.jchip::before,.er-btn+.er-btn::before{content:'';position:absolute;left:13px;right:0;top:0;height:1px;background:var(--line-2)}
   .jchip .er-key{flex:none;width:22px;height:22px;border-radius:8px;background:var(--surface-2);color:var(--ink-2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
   /* Temps 2 : la condition ON apparie Sophie et Lucas ; les deux orphelins
@@ -13593,30 +13600,30 @@ const SQL_VIZ={
     <div class="join-sets">
       <div class="join-side"><div class="join-side-h">clients</div>
         <div class="jchips">
-          <div class="jchip" data-k="A"><span class="er-key">1</span>Sophie</div>
-          <div class="jchip" data-k="B"><span class="er-key">2</span>Lucas</div>
-          <div class="jchip" data-k="C"><span class="er-key">9</span>Inès</div>
+          <div class="jchip" data-k="A" data-er-id="1" role="button" tabindex="0"><span class="er-key">1</span>Sophie</div>
+          <div class="jchip" data-k="B" data-er-id="2" role="button" tabindex="0"><span class="er-key">2</span>Lucas</div>
+          <div class="jchip" data-k="C" data-er-id="9" role="button" tabindex="0"><span class="er-key">9</span>Inès</div>
           ${joinMore(6,'clients')}
         </div>
       </div>
       <div class="join-side" data-side="r"><div class="join-side-h">commandes</div>
         <div class="jchips">
-          <div class="jchip" data-k="A"><span class="er-key">1</span>#1</div>
-          <div class="jchip" data-k="A"><span class="er-key">1</span>#2</div>
-          <div class="jchip" data-k="A"><span class="er-key">1</span>#13</div>
-          <div class="jchip" data-k="B"><span class="er-key">2</span>#3</div>
-          <div class="jchip" data-k="B"><span class="er-key">2</span>#10</div>
+          <div class="jchip" data-k="A" data-er-fk="1" role="button" tabindex="0"><span class="er-key">1</span>#1</div>
+          <div class="jchip" data-k="A" data-er-fk="1" role="button" tabindex="0"><span class="er-key">1</span>#2</div>
+          <div class="jchip" data-k="A" data-er-fk="1" role="button" tabindex="0"><span class="er-key">1</span>#13</div>
+          <div class="jchip" data-k="B" data-er-fk="2" role="button" tabindex="0"><span class="er-key">2</span>#3</div>
+          <div class="jchip" data-k="B" data-er-fk="2" role="button" tabindex="0"><span class="er-key">2</span>#10</div>
           ${joinMore(11,'commandes')}
         </div>
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
-      <div class="join-pill" data-when="n">Sophie<span class="jn">3 commandes</span></div>
-      <div class="join-pill" data-when="n">Lucas<span class="jn">2 commandes</span></div>
-      <div class="join-pill" data-when="n">Inès<span class="jn null">0 commande</span></div>
+      <div class="join-pill" data-when="n" data-er-id="1">Sophie<span class="jn">3 commandes</span></div>
+      <div class="join-pill" data-when="n" data-er-id="2">Lucas<span class="jn">2 commandes</span></div>
+      <div class="join-pill" data-when="n" data-er-id="9">Inès<span class="jn null">0 commande</span></div>
       ${joinMore(6,'clients')}
     </div>
-    <p class="er-hint">Inès reste dans le résultat avec 0 : <code>COUNT</code> ignore les <code>NULL</code>.</p>
+    <p class="er-hint">👆 Touche un client : ses commandes se rassemblent et son compte apparaît.</p>
   </div>`},
   crossjoin:{kind:'er',sample:'3 clients · 3 produits',phases:[
     {k:'1 · Prendre les deux ensembles',d:'<code>CROSS JOIN</code> part de deux tables mais ne cherche aucune clé de correspondance.',sql:'FROM clients CROSS JOIN produits',read:'L’extrait contient 3 clients et 3 produits. Toutes ces lignes vont participer au résultat.'},
@@ -13626,9 +13633,9 @@ const SQL_VIZ={
     <div class="join-sets">
       <div class="join-side"><div class="join-side-h">clients</div>
         <div class="jchips">
-          <div class="jchip" data-k="A"><span class="er-key">1</span>Sophie</div>
-          <div class="jchip" data-k="B"><span class="er-key">2</span>Lucas</div>
-          <div class="jchip" data-k="C"><span class="er-key">3</span>Emma</div>
+          <div class="jchip" data-k="A" data-er-id="1" role="button" tabindex="0"><span class="er-key">1</span>Sophie</div>
+          <div class="jchip" data-k="B" data-er-id="2" role="button" tabindex="0"><span class="er-key">2</span>Lucas</div>
+          <div class="jchip" data-k="C" data-er-id="3" role="button" tabindex="0"><span class="er-key">3</span>Emma</div>
           ${joinMore(6,'clients')}
         </div>
       </div>
@@ -13642,18 +13649,18 @@ const SQL_VIZ={
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
-      <div class="join-pill" data-when="a">Sophie \u2194 Fibre</div>
-      <div class="join-pill" data-when="a">Sophie \u2194 Collag\u00e8ne</div>
-      <div class="join-pill" data-when="a">Sophie \u2194 Magn\u00e9sium</div>
-      <div class="join-pill" data-when="b">Lucas \u2194 Fibre</div>
-      <div class="join-pill" data-when="b">Lucas \u2194 Collag\u00e8ne</div>
-      <div class="join-pill" data-when="b">Lucas \u2194 Magn\u00e9sium</div>
-      <div class="join-pill" data-when="b">Emma \u2194 Fibre</div>
-      <div class="join-pill" data-when="b">Emma \u2194 Collag\u00e8ne</div>
-      <div class="join-pill" data-when="b">Emma \u2194 Magn\u00e9sium</div>
+      <div class="join-pill" data-er-fk="1" data-when="a">Sophie \u2194 Fibre</div>
+      <div class="join-pill" data-er-fk="1" data-when="a">Sophie \u2194 Collag\u00e8ne</div>
+      <div class="join-pill" data-er-fk="1" data-when="a">Sophie \u2194 Magn\u00e9sium</div>
+      <div class="join-pill" data-er-fk="2" data-when="b">Lucas \u2194 Fibre</div>
+      <div class="join-pill" data-er-fk="2" data-when="b">Lucas \u2194 Collag\u00e8ne</div>
+      <div class="join-pill" data-er-fk="2" data-when="b">Lucas \u2194 Magn\u00e9sium</div>
+      <div class="join-pill" data-er-fk="3" data-when="b">Emma \u2194 Fibre</div>
+      <div class="join-pill" data-er-fk="3" data-when="b">Emma \u2194 Collag\u00e8ne</div>
+      <div class="join-pill" data-er-fk="3" data-when="b">Emma \u2194 Magn\u00e9sium</div>
       ${joinMore(63,'combinaisons')}
     </div>
-    <p class="er-hint">Chaque client ressort une fois par produit : aucune ligne n\u2019est \u00e9cart\u00e9e, aucune ne vaut NULL.</p>
+    <p class="er-hint">👆 Touche un client : ses trois combinaisons s’allument d’un coup.</p>
   </div>`},
   outer:{kind:'er',sample:'3 clients · 3 commandes',phases:[
     {k:'1 · Garder les deux côtés',d:'<code>FULL OUTER JOIN</code> promet de conserver chaque client et chaque commande.',sql:'FROM clients FULL OUTER JOIN commandes',read:'Contrairement à <code>LEFT</code> ou <code>RIGHT</code>, aucune des deux sources n’est sacrifiée.'},
@@ -13663,29 +13670,29 @@ const SQL_VIZ={
     <div class="join-sets">
       <div class="join-side"><div class="join-side-h">clients</div>
         <div class="jchips">
-          <div class="jchip" data-k="A"><span class="er-key">1</span>Sophie</div>
-          <div class="jchip" data-k="B"><span class="er-key">2</span>Lucas</div>
-          <div class="jchip" data-k="C"><span class="er-key">9</span>Inès</div>
+          <div class="jchip" data-k="A" data-er-id="1" role="button" tabindex="0"><span class="er-key">1</span>Sophie</div>
+          <div class="jchip" data-k="B" data-er-id="2" role="button" tabindex="0"><span class="er-key">2</span>Lucas</div>
+          <div class="jchip" data-k="C" data-er-id="9" role="button" tabindex="0"><span class="er-key">9</span>Inès</div>
           ${joinMore(6,'clients')}
         </div>
       </div>
       <div class="join-side" data-side="r"><div class="join-side-h">commandes</div>
         <div class="jchips">
-          <div class="jchip" data-k="A"><span class="er-key">1</span>#1</div>
-          <div class="jchip" data-k="B"><span class="er-key">2</span>#3</div>
-          <div class="jchip" data-k="D"><span class="er-key">∅</span>#16 invité</div>
+          <div class="jchip" data-k="A" data-er-fk="1" role="button" tabindex="0"><span class="er-key">1</span>#1</div>
+          <div class="jchip" data-k="B" data-er-fk="2" role="button" tabindex="0"><span class="er-key">2</span>#3</div>
+          <div class="jchip" data-k="D" data-er-id="16" role="button" tabindex="0"><span class="er-key">∅</span>#16 invité</div>
           ${joinMore(13,'commandes')}
         </div>
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
-      <div class="join-pill" data-when="in">Sophie ↔ #1</div>
-      <div class="join-pill" data-when="in">Lucas ↔ #3</div>
-      <div class="join-pill" data-when="l">Inès ↔ NULL</div>
-      <div class="join-pill" data-when="r">NULL ↔ #16</div>
+      <div class="join-pill" data-when="in" data-er-id="1">Sophie ↔ #1</div>
+      <div class="join-pill" data-when="in" data-er-id="2">Lucas ↔ #3</div>
+      <div class="join-pill" data-when="l" data-er-id="9">Inès ↔ NULL</div>
+      <div class="join-pill" data-when="r" data-er-id="16">NULL ↔ #16</div>
       ${joinMore(13,'lignes')}
     </div>
-    <p class="er-hint">Inès n’a aucune commande, la commande #16 n’a aucun client : <code>FULL OUTER JOIN</code> garde les deux.</p>
+    <p class="er-hint">👆 Touche Inès, puis la commande #16 : chacune reste seule de son côté.</p>
   </div>`}
 };
 const HAVING_GRP_PHASES=SQL_VIZ.having.phases;
@@ -13960,6 +13967,15 @@ function bindErViz(root){
     if(was){ clearErOn(root); return; }
     selectErMatch(root,id);
     if(navigator.vibrate)navigator.vibrate(8);
+  });
+  /* Les pastilles sont des div : sans cela, Entrée et Espace ne déclenchent
+     rien une fois la pastille au clavier. */
+  root.addEventListener('keydown',e=>{
+    if(e.key!=='Enter'&&e.key!==' ')return;
+    const row=e.target.closest('[data-er-id],[data-er-fk],[data-er-to],[data-er-src]');
+    if(!row||!root.contains(row)||row.tagName==='BUTTON')return;
+    e.preventDefault();
+    row.click();
   });
 }
 function drawErLinks(root){
