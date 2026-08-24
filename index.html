@@ -1090,6 +1090,8 @@
     .sql-viz[data-kind="er"] .join-step-num,
     .sql-viz[data-kind="er"] .grp-k,
     .sql-viz[data-kind="er"] .grp-desc,
+    .sql-viz[data-kind="er"] .join-phase-card,
+    .sql-viz[data-kind="er"] .join-phase-read,
     .sql-viz[data-kind="er"] .join-output-label,
     .sql-viz[data-kind="er"] .join-bridge,
     .sql-viz[data-kind="er"] .join-bridge-badge{animation-duration:1ms!important;animation-delay:0ms!important;transition:none!important}
@@ -1219,7 +1221,7 @@
   .join-side[data-side="r"] .join-side-h{background:var(--accent)}
   .jchips{display:flex;flex-direction:column;gap:0}
   .jchip{position:relative;display:flex;align-items:center;gap:8px;padding:11px 13px;font-size:13px;font-weight:700;color:var(--ink);transition:opacity .38s var(--spring-ios),background .32s var(--spring-ios),transform .38s var(--spring-ios),box-shadow .32s ease}
-  .jchip:nth-child(2){transition-delay:.055s}.jchip:nth-child(3){transition-delay:.11s}
+  .jchip:nth-child(2){transition-delay:.055s}.jchip:nth-child(3){transition-delay:.11s}.jchip:nth-child(4){transition-delay:.165s}.jchip:nth-child(5){transition-delay:.22s}
   /* Séparateurs en retrait, à la iOS : le trait démarre après le bord
      intérieur au lieu de barrer la carte. En ::before, il n'entre pas
      dans le calcul des hauteurs comme le faisait border-top. */
@@ -1290,15 +1292,25 @@
   .join-step.is-done .join-step-num{background:var(--accent);color:#fff;animation:joinStepDone .3s var(--bounce-ios) both}
   .join-progress{height:3px;margin:-5px 2px 8px;overflow:hidden;border-radius:99px;background:#E5E5EA}
   .join-progress-bar{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),#8A7CFF);box-shadow:0 0 8px rgba(91,91,214,.42);transition:none}
+  .join-phase-card{margin:0 0 13px;padding:10px 11px 11px;border:1px solid rgba(91,91,214,.14);border-radius:15px;background:linear-gradient(145deg,rgba(91,91,214,.055),rgba(255,255,255,.94));box-shadow:inset 0 1px 0 rgba(255,255,255,.72)}
+  .join-phase-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 7px}
+  .join-phase-label{font-size:9px;font-weight:850;letter-spacing:.75px;text-transform:uppercase;color:var(--accent)}
+  .join-phase-sample{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;font-weight:700;color:var(--ink-3)}
+  .join-phase-sql{display:block;width:100%;padding:8px 9px;border:1px solid rgba(60,60,67,.08);border-radius:10px;background:var(--surface);color:var(--ink);font-family:var(--mono);font-size:10.5px;font-weight:700;line-height:1.35;white-space:normal;overflow-wrap:anywhere;box-sizing:border-box}
+  .join-phase-read{display:flex;align-items:flex-start;gap:7px;margin:8px 1px 0;color:var(--ink-2);font-size:11.5px;font-weight:650;line-height:1.42}
+  .join-phase-read code{font-family:var(--mono);font-size:.9em;color:var(--accent);background:rgba(91,91,214,.08);padding:1px 4px;border-radius:5px}
+  .join-phase-read-mark{display:flex;align-items:center;justify-content:center;flex:none;width:18px;height:18px;margin-top:-1px;border-radius:6px;background:var(--accent);color:#fff;font-size:11px;font-weight:850;line-height:1}
   .join-caption{margin:2px 8px 12px;text-align:center;font-size:9px;line-height:1.3;font-weight:500;color:#8E8E93}
   .sql-viz[data-kind="er"] .grp-desc{min-height:3.6em}
   .sql-viz[data-kind="er"] .grp-desc code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);color:var(--accent);padding:1px 6px;border-radius:6px;font-weight:600}
   .sql-viz[data-kind="er"].phase-change .grp-k{animation:joinPhaseTitleIn .36s var(--bounce-ios) both}
   .sql-viz[data-kind="er"].phase-change .grp-desc{animation:joinPhaseDescIn .4s var(--spring-ios) .035s both}
+  .sql-viz[data-kind="er"].phase-change .join-phase-card{animation:joinPhaseCardIn .42s var(--spring-ios) .055s both}
   @keyframes joinStepSpring{0%{transform:scale(.96)}65%{transform:translateY(-3px) scale(1.035)}100%{transform:translateY(-2px) scale(1.02)}}
   @keyframes joinStepDone{0%{transform:scale(.72)}70%{transform:scale(1.12)}100%{transform:none}}
   @keyframes joinPhaseTitleIn{from{opacity:0;transform:translateY(-5px) scale(.97)}to{opacity:1;transform:none}}
   @keyframes joinPhaseDescIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+  @keyframes joinPhaseCardIn{from{opacity:0;transform:translateY(6px) scale(.985)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion:reduce){
     .join-guide-step,.join-guide-step::after,.join-guide-num,.join-guide-takeaway{animation:none!important}
   }
@@ -9396,6 +9408,7 @@ function renderVizShell(key){
     if(!cfg)return '';
   const p0=cfg.phases[0];
   const stepper=cfg.kind==='er'?`<div class="join-stepper" role="tablist" aria-label="Étapes de l’animation">${cfg.phases.map((p,i)=>`<button type="button" class="join-step" data-step="${i}" role="tab" aria-selected="${i===0?'true':'false'}" tabindex="${i===0?'0':'-1'}" onclick="jumpSqlVizPhase(this,${i})" onkeydown="onJoinStepKey(event,this)"><span class="join-step-num">${i+1}</span><span class="join-step-label">${p.k}</span></button>`).join('')}</div><div class="join-progress" aria-hidden="true"><span class="join-progress-bar"></span></div>`:'';
+  const phaseCard=cfg.kind==='er'&&p0.sql?`<div class="join-phase-card" role="note" aria-label="Lecture de l’étape active"><div class="join-phase-head"><span class="join-phase-label">Lecture SQL</span>${cfg.sample?`<span class="join-phase-sample">Extrait guidé · ${esc(cfg.sample)}</span>`:''}</div><code class="join-phase-sql">${esc(p0.sql)}</code><p class="join-phase-read"><span class="join-phase-read-mark" aria-hidden="true">→</span><span>${p0.read||p0.d}</span></p></div>`:'';
   let stage='';
   let caption='';
   if(cfg.kind==='er'){
@@ -9449,6 +9462,7 @@ function renderVizShell(key){
       <span class="grp-paused-badge" aria-live="polite">En pause</span>
     </div>
     ${stepper}
+    ${phaseCard}
     <div class="grp-stage">${stage}</div>
     ${caption}
     <div class="grp-controls">
@@ -13338,10 +13352,10 @@ const SQL_VIZ={
     </div>
     <p class="er-hint">Touche un client ou une commande.</p>
   </div>`},
-  joinon:{kind:'er',stepMs:6500,lastSel:'1',phases:[
-    {k:'Tables sources',d:'Avant la jointure, les informations sont séparées : dans la table <code>clients</code>, <code>id = 1</code> → Sophie ; dans la table <code>commandes</code>, <code>client_id = 1</code> → <code>produit_id = 1</code>.'},
-    {k:'Condition ON',d:'Grâce à la clause <code>ON clients.id = commandes.client_id</code>, SQL comprend : <code>id = 1</code> → Sophie → <code>produit_id = 1</code>.'},
-    {k:'Résultat projeté',d:'SQL relie une ligne de la table <code>clients</code> et une ligne de la table <code>commandes</code> dès qu’elles ont le même id.'}
+  joinon:{kind:'er',sample:'2 clients · 3 commandes',stepMs:6500,lastSel:'1',phases:[
+    {k:'1 · Repérer les données',d:'Le nom est dans <code>clients</code> ; la quantité est dans <code>commandes</code>. Il faut donc lire deux tables.',sql:'FROM clients INNER JOIN commandes',read:'Aucune table ne contient seule les deux colonnes demandées : la jointure va construire cette vue.'},
+    {k:'2 · Tester la correspondance',d:'SQL compare la clé primaire du client à la clé étrangère portée par chaque commande.',sql:'ON clients.id = commandes.client_id',read:'Dans cet extrait, <code>id = 1</code> correspond à deux commandes de Sophie : <code>#1</code> et <code>#2</code>.'},
+    {k:'3 · Construire les lignes',d:'Chaque commande appariée produit sa propre ligne avec le nom du client et la quantité.',sql:'SELECT clients.nom, commandes.quantite',read:'Dans l’extrait, Sophie apparaît deux fois : une jointure crée une ligne par achat, elle ne les fusionne pas.'}
   ],html:`<div class="er-stage er-match join-viz join-story">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
@@ -13353,9 +13367,9 @@ const SQL_VIZ={
       <div class="join-bridge" aria-hidden="true"><span class="join-bridge-badge">ON</span><small>même identifiant</small></div>
       <div class="er-col" data-side="fk">
         <div class="er-card-h">commandes</div>
-        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">client_id=1</span>#101 qté 2</button>
-        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">client_id=1</span>#102 qté 1</button>
-        <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">client_id=2</span>#103 qté 1</button>
+        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">client_id=1</span>#1 · qté 2</button>
+        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">client_id=1</span>#2 · qté 1</button>
+        <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">client_id=2</span>#3 · qté 1</button>
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
@@ -13395,10 +13409,10 @@ const SQL_VIZ={
     </div>
     <p class="er-hint">Inès n’a aucune ligne correspondante dans commandes : elle est exclue du résultat INNER JOIN.</p>
   </div>`},
-  leftj:{kind:'er',lastSel:'9',phases:[
-    {k:'Table conservée',d:'Dans FROM clients LEFT JOIN commandes, la table clients est conservée intégralement.'},
-    {k:'Condition ON',d:'Les lignes de commandes complètent les clients quand commandes.client_id correspond à clients.id.'},
-    {k:'Résultat avec NULL',d:'Inès reste dans le résultat ; les colonnes issues de commandes valent NULL.'}
+  leftj:{kind:'er',sample:'3 clients · 3 commandes',lastSel:'9',phases:[
+    {k:'1 · Choisir le côté gardé',d:'Avec <code>FROM clients LEFT JOIN commandes</code>, tous les clients doivent survivre à la jointure.',sql:'FROM clients LEFT JOIN commandes',read:'La table <code>clients</code> est à gauche : Sophie, Lucas et Inès restent, avec ou sans commande.'},
+    {k:'2 · Chercher les commandes',d:'La clause <code>ON</code> complète chaque client avec les commandes de l’extrait qui portent son identifiant.',sql:'ON clients.id = commandes.client_id',read:'Sophie reçoit <code>#1</code> et <code>#2</code>, Lucas reçoit <code>#3</code>, Inès ne reçoit aucune commande.'},
+    {k:'3 · Matérialiser l’absence',d:'Une ligne sans correspondance reste présente ; les colonnes de la table de droite valent <code>NULL</code>.',sql:'SELECT clients.nom, commandes.id',read:'Le résultat contient <code>Inès | NULL</code> : <code>NULL</code> décrit l’absence de commande, pas l’absence du client.'}
   ],html:`<div class="er-stage er-match join-viz">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
@@ -13424,10 +13438,10 @@ const SQL_VIZ={
     </div>
     <p class="er-hint">Sélectionne Inès : la ligne reste visible, avec NULL côté commandes.</p>
   </div>`},
-  rightj:{kind:'er',lastSel:'g',phases:[
-    {k:'Table conservée',d:'Comme LEFT JOIN garde clients, RIGHT JOIN garde commandes — la table de droite.'},
-    {k:'Condition ON',d:'Même ON : le nom complète la commande.'},
-    {k:'Résultat avec NULL',d:'Sans client, la commande reste : NULL côté clients. Inès disparaît.'}
+  rightj:{kind:'er',sample:'3 clients · 3 commandes',lastSel:'g',phases:[
+    {k:'1 · Garder la droite',d:'<code>RIGHT JOIN</code> conserve toutes les commandes, car elles se trouvent à droite de la jointure.',sql:'FROM clients RIGHT JOIN commandes',read:'Les commandes <code>#1</code>, <code>#3</code> et <code>#16</code> restent, même si leur client est absent.'},
+    {k:'2 · Rechercher le client',d:'SQL utilise la même condition <code>ON</code> pour ajouter le nom du client lorsqu’il existe.',sql:'ON clients.id = commandes.client_id',read:'La commande <code>#16</code> possède un <code>client_id NULL</code> : aucun nom ne peut lui être associé.'},
+    {k:'3 · Lire le côté manquant',d:'La commande invitée reste avec <code>NULL</code> côté clients. Inès, qui n’a aucune commande, disparaît.',sql:'SELECT clients.nom, commandes.id',read:'Le résultat contient <code>NULL | #16</code> : la ligne de droite est conservée, son côté gauche est vide.'}
   ],html:`<div class="er-stage er-match join-viz">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
@@ -13452,10 +13466,10 @@ const SQL_VIZ={
     </div>
     <p class="er-hint">👆 Sélectionne l'invité.</p>
   </div>`},
-  orphan:{kind:'er',lastSel:'9',phases:[
-    {k:'Produire les NULL',d:'LEFT JOIN conserve tous les clients et met NULL côté commandes quand aucune commande n’existe.'},
-    {k:'Filtrer IS NULL',d:'WHERE commandes.id IS NULL retire les clients qui possèdent une commande.'},
-    {k:'Résultat filtré',d:'Le résultat final contient uniquement les clients sans correspondance dans commandes.'}
+  orphan:{kind:'er',sample:'3 clients · 2 commandes',lastSel:'9',phases:[
+    {k:'1 · Rendre l’absence visible',d:'Le <code>LEFT JOIN</code> garde les clients sans commande et produit <code>NULL</code> côté commandes.',sql:'LEFT JOIN commandes ON clients.id = commandes.client_id',read:'Dans cet extrait, Sophie et Lucas trouvent une commande ; Inès obtient une ligne avec <code>commandes.id = NULL</code>.'},
+    {k:'2 · Filtrer les absences',d:'Le filtre retire toutes les lignes possédant un identifiant de commande réel.',sql:'WHERE commandes.id IS NULL',read:'Les lignes de Sophie et Lucas sont écartées ; seule la ligne d’Inès satisfait <code>IS NULL</code>.'},
+    {k:'3 · Obtenir les orphelins',d:'Le résultat ne contient plus que les clients sans aucune correspondance dans <code>commandes</code>.',sql:'SELECT clients.nom',read:'Sur cet extrait comme dans la base complète, le client sans commande est <code>Inès</code>.'}
   ],html:`<div class="er-stage er-match join-viz">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
@@ -13477,10 +13491,10 @@ const SQL_VIZ={
     </div>
     <p class="er-hint">Le filtre IS NULL conserve les lignes où la table commandes n’a rien fourni.</p>
   </div>`},
-  triple:{kind:'er',lastSel:'c1',phases:[
-    {k:'Tables sources',d:'clients fournit le client, commandes contient les références, produits fournit le libellé produit.'},
-    {k:'Relation client',d:'ON clients.id = commandes.client_id rattache chaque commande à son client.'},
-    {k:'Relation produit',d:'ON commandes.produit_id = produits.id rattache chaque commande à son produit.'}
+  triple:{kind:'er',sample:'2 clients · 2 commandes · 2 produits',lastSel:'c1',phases:[
+    {k:'1 · Identifier le pont',d:'La table <code>commandes</code> relie les deux autres grâce à <code>client_id</code> et <code>produit_id</code>.',sql:'clients → commandes → produits',read:'Le nom du client vient de <code>clients</code>, la quantité de <code>commandes</code>, le nom du produit de <code>produits</code>.'},
+    {k:'2 · Relier le client',d:'La première jointure rattache chaque commande à la personne qui l’a passée.',sql:'JOIN commandes ON clients.id = commandes.client_id',read:'<code>Sophie → commande #1</code> et <code>Lucas → commande #3</code>. À ce stade, le produit reste un identifiant.'},
+    {k:'3 · Relier le produit',d:'La seconde jointure transforme la référence produit en libellé lisible.',sql:'JOIN produits ON commandes.produit_id = produits.id',read:'Le chemin complet devient <code>Sophie → #1 → Fibre Prébiotique</code>, avec la quantité 2 portée par la commande.'}
   ],html:`<div class="er-stage er-match join-viz">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="join-trio">
@@ -13506,10 +13520,10 @@ const SQL_VIZ={
     </div>
     <p class="er-hint">Sélectionne Sophie : la commande associée puis le produit référencé sont mis en évidence.</p>
   </div>`},
-  joingroupby:{kind:'er',phases:[
-    {k:'Tables sources',d:'Sophie a deux commandes, Lucas une, Inès aucune.'},
-    {k:'Regroupement',d:'Les lignes d\u2019un même client se rassemblent en un groupe. Inès garde une ligne, mais vide à droite.'},
-    {k:'Le compte',d:'<code>COUNT(commandes.id)</code> compte les commandes de chaque groupe. Inès n\u2019en a aucune : elle ressort avec 0, pas avec 1.' }
+  joingroupby:{kind:'er',sample:'3 clients · 5 commandes',phases:[
+    {k:'1 · Relier sans perdre',d:'Le <code>LEFT JOIN</code> produit une ligne par commande et conserve Inès malgré l’absence de commande.',sql:'LEFT JOIN commandes ON clients.id = commandes.client_id',read:'Sophie produit 3 lignes, Lucas 2, Inès 1 ligne avec <code>commandes.id = NULL</code>.'},
+    {k:'2 · Former un groupe',d:'<code>GROUP BY</code> rassemble toutes les lignes appartenant au même client.',sql:'GROUP BY clients.id, clients.nom',read:'Les 3 lignes de Sophie deviennent un groupe ; les 2 lignes de Lucas un autre ; Inès garde son propre groupe.'},
+    {k:'3 · Compter les vraies commandes',d:'<code>COUNT(commandes.id)</code> compte uniquement les identifiants non <code>NULL</code>.',sql:'COUNT(commandes.id) AS nb_commandes',read:'Résultat réel : <code>Sophie = 3</code>, <code>Lucas = 2</code>, <code>Inès = 0</code>. <code>COUNT(*)</code> donnerait 1 à Inès.' }
   ],html:`<div class="er-stage join-viz">
     <div class="join-sets">
       <div class="join-side"><div class="join-side-h">clients</div>
@@ -13523,21 +13537,23 @@ const SQL_VIZ={
         <div class="jchips">
           <div class="jchip" data-k="A"><span class="er-key">1</span>#1</div>
           <div class="jchip" data-k="A"><span class="er-key">1</span>#2</div>
+          <div class="jchip" data-k="A"><span class="er-key">1</span>#13</div>
           <div class="jchip" data-k="B"><span class="er-key">2</span>#3</div>
+          <div class="jchip" data-k="B"><span class="er-key">2</span>#10</div>
         </div>
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
-      <div class="join-pill" data-when="n">Sophie<span class="jn">2 commandes</span></div>
-      <div class="join-pill" data-when="n">Lucas<span class="jn">1 commande</span></div>
+      <div class="join-pill" data-when="n">Sophie<span class="jn">3 commandes</span></div>
+      <div class="join-pill" data-when="n">Lucas<span class="jn">2 commandes</span></div>
       <div class="join-pill" data-when="n">Inès<span class="jn null">0 commande</span></div>
     </div>
     <p class="er-hint">Inès reste dans le résultat avec 0 : <code>COUNT</code> ignore les <code>NULL</code>.</p>
   </div>`},
-  crossjoin:{kind:'er',phases:[
-    {k:'Tables sources',d:'Trois clients d\u2019un côté, trois produits de l\u2019autre. Aucune colonne ne les relie.'},
-    {k:'Aucune condition',d:'Sans <code>ON</code>, SQL ne cherche rien : il prend Sophie et la combine avec chaque produit, puis recommence avec Lucas, puis Emma.'},
-    {k:'Toutes les combinaisons',d:'3 clients \u00d7 3 produits = 9 lignes. Dans la vraie base, 9 \u00d7 8 = 72.' }
+  crossjoin:{kind:'er',sample:'3 clients · 3 produits',phases:[
+    {k:'1 · Prendre les deux ensembles',d:'<code>CROSS JOIN</code> part de deux tables mais ne cherche aucune clé de correspondance.',sql:'FROM clients CROSS JOIN produits',read:'L’extrait contient 3 clients et 3 produits. Toutes ces lignes vont participer au résultat.'},
+    {k:'2 · Dérouler les paires',d:'SQL associe le premier client à chaque produit, puis recommence pour le client suivant.',sql:'Aucune clause ON',read:'Sophie produit 3 lignes, Lucas 3 lignes et Emma 3 lignes : aucune paire n’est testée ni écartée.'},
+    {k:'3 · Multiplier les volumes',d:'Le nombre de lignes est le produit des deux tailles, jamais leur somme.',sql:'SELECT clients.nom, produits.nom',read:'Extrait : <code>3 × 3 = 9</code> lignes. Base complète : <code>9 × 8 = 72</code> lignes.' }
   ],html:`<div class="er-stage join-viz">
     <div class="join-sets">
       <div class="join-side"><div class="join-side-h">clients</div>
@@ -13568,10 +13584,10 @@ const SQL_VIZ={
     </div>
     <p class="er-hint">Chaque client ressort une fois par produit : aucune ligne n\u2019est \u00e9cart\u00e9e, aucune ne vaut NULL.</p>
   </div>`},
-  outer:{kind:'er',phases:[
-    {k:'Tables conservées',d:'Les deux tables sont conservées : chaque client et chaque commande finira dans le résultat.'},
-    {k:'Condition ON',d:'clients.id = commandes.client_id apparie Sophie à la commande #1 et Lucas à la #3. Inès et la commande invitée ne correspondent à rien.'},
-    {k:'Résultat avec NULL',d:'Les deux lignes appariées, plus Inès et la commande invitée : de leur côté manquant, les colonnes valent NULL.' }
+  outer:{kind:'er',sample:'3 clients · 3 commandes',phases:[
+    {k:'1 · Garder les deux côtés',d:'<code>FULL OUTER JOIN</code> promet de conserver chaque client et chaque commande.',sql:'FROM clients FULL OUTER JOIN commandes',read:'Contrairement à <code>LEFT</code> ou <code>RIGHT</code>, aucune des deux sources n’est sacrifiée.'},
+    {k:'2 · Apparier ce qui correspond',d:'La condition <code>ON</code> réunit les lignes portant le même identifiant.',sql:'ON clients.id = commandes.client_id',read:'Dans cet extrait, Sophie ↔ #1 et Lucas ↔ #3. Inès et la commande #16 restent sans partenaire.'},
+    {k:'3 · Compléter les deux absences',d:'Chaque ligne non appariée reste présente avec <code>NULL</code> du côté manquant.',sql:'SELECT clients.nom, commandes.id',read:'L’extrait produit 4 lignes : 2 paires, <code>Inès | NULL</code> et <code>NULL | #16</code>.' }
   ],html:`<div class="er-stage join-viz">
     <div class="join-sets">
       <div class="join-side"><div class="join-side-h">clients</div>
@@ -13977,6 +13993,10 @@ function havingGrpSetPhase(root,phase,opts){
   const k=root.querySelector('.grp-k'),d=root.querySelector('.grp-desc');
   if(k)k.textContent=p.k;
   if(d)d.innerHTML=p.d;
+  const phaseSql=root.querySelector('.join-phase-sql');
+  const phaseRead=root.querySelector('.join-phase-read > span:last-child');
+  if(phaseSql)phaseSql.textContent=p.sql||'';
+  if(phaseRead)phaseRead.innerHTML=p.read||p.d;
   const steps=root.querySelectorAll('.join-step');
   steps.forEach((step,i)=>{
     step.classList.toggle('is-active',i===phase);
