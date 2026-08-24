@@ -1166,7 +1166,13 @@
      par carte et « Sources comparées » se coupe en cinq morceaux. La grille
      se replie sur autant de colonnes que la largeur en autorise, et revient
      d'elle-même sur une rangée quand il y a la place. */
-  .join-stepper:has(.join-step:nth-child(4)){display:grid;grid-template-columns:repeat(auto-fit,minmax(76px,1fr))}
+  .join-stepper:has(.join-step:nth-child(4)){display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+  /* auto-fit remplissait 4 colonnes dès 430 px et laissait la 5e étape
+     seule sur sa rangée, avec des cartes plus étroites qu'en 320 px.
+     Trois colonnes jusqu'à ce que les cinq tiennent vraiment de front. */
+  @container (min-width:520px){
+    .join-stepper:has(.join-step:nth-child(4)){grid-template-columns:repeat(5,minmax(0,1fr))}
+  }
   .join-step{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;gap:6px;min-width:0;flex:1;padding:8px 8px 9px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--ink-3);transition:background .25s ease,border-color .25s ease,color .25s ease,transform .25s var(--spring-ios)}
   .join-step-num{display:flex;align-items:center;justify-content:center;flex:none;width:19px;height:19px;border-radius:6px;background:#E5E5EA;color:#8E8E93;font-size:10px;font-weight:850;transition:background .25s ease,color .25s ease}
   .join-step-label{min-width:0;width:100%;overflow-wrap:break-word;word-break:normal;hyphens:auto;-webkit-hyphens:auto;white-space:normal;line-height:1.25;font-size:11px;font-weight:750;text-align:center}
@@ -8841,9 +8847,6 @@ const JOIN_GUIDES={
   triple:{kicker:'Analyse multi-tables',lead:'Une jointure à trois tables se lit comme une chaîne de relations binaires.',steps:[['Clients -> commandes','clients.id = commandes.client_id'],['Commandes -> produits','commandes.produit_id = produits.id'],['Projection','client, produit et quantité viennent de tables différentes']],takeaway:'<b>3 tables = 2 conditions ON</b>, chacune sur une relation précise.'},
   outer:{kicker:'Analyse du périmètre',lead:'Le type de JOIN décrit quelles lignes doivent rester même sans correspondance.',steps:[['INNER','uniquement les correspondances'],['LEFT / RIGHT','toute une source + les correspondances — Inès à gauche, l’invité à droite'],['FULL OUTER','Inès et l’invité, plus les correspondances']],takeaway:'Le choix du JOIN est un choix de périmètre de résultat.'}
 };
-const JOIN_VIZ_STEP_LABELS={
-  joinon:['Tables sources','Condition ON','Résultat projeté'],inner:['Tables sources','Condition ON','Lignes conservées'],leftj:['Table conservée','Correspondances','Résultat avec NULL'],rightj:['Table conservée','ON','Résultat NULL'],orphan:['Produire les NULL','Filtrer IS NULL','Lignes sans commande'],triple:['Tables sources','Relation client','Relation produit'],outer:['Sources comparées','INNER JOIN','LEFT JOIN','RIGHT JOIN','FULL OUTER JOIN']
-};
 const JOIN_OUTPUT_LABELS={
   joinon:'Résultat projeté · une ligne par commande correspondante',inner:'Résultat projeté · correspondances uniquement',leftj:'Résultat projeté · table clients conservée',rightj:'Résultat projeté · table commandes conservée',orphan:'Résultat projeté · clients sans commande',triple:'Résultat projeté · client, produit, quantité',outer:'Résultat projeté · périmètre conservé'
 };
@@ -8861,8 +8864,7 @@ function renderVizShell(key){
   const cfg=SQL_VIZ[key];
     if(!cfg)return '';
   const p0=cfg.phases[0];
-  const stepLabels=JOIN_VIZ_STEP_LABELS[key]||[];
-  const stepper=cfg.kind==='er'?`<div class="join-stepper" role="list" aria-label="Étapes de l’animation">${cfg.phases.map((p,i)=>`<div class="join-step" data-step="${i}" role="listitem" aria-current="${i===0?'step':'false'}"><span class="join-step-num">${i+1}</span><span class="join-step-label">${stepLabels[i]||p.k}</span></div>`).join('')}</div><div class="join-progress" aria-hidden="true"><span class="join-progress-bar"></span></div>`:'';
+  const stepper=cfg.kind==='er'?`<div class="join-stepper" role="list" aria-label="Étapes de l’animation">${cfg.phases.map((p,i)=>`<div class="join-step" data-step="${i}" role="listitem" aria-current="${i===0?'step':'false'}"><span class="join-step-num">${i+1}</span><span class="join-step-label">${p.k}</span></div>`).join('')}</div><div class="join-progress" aria-hidden="true"><span class="join-progress-bar"></span></div>`:'';
   let stage='';
   let caption='';
   if(cfg.kind==='er'){
@@ -12693,7 +12695,7 @@ const SQL_VIZ={
   inner:{kind:'er',lastSel:'9',phases:[
     {k:'Tables sources',d:'La table clients fournit les clients. La table commandes fournit les lignes de vente et la référence client_id.'},
     {k:'Condition ON',d:'SQL conserve uniquement les lignes où clients.id correspond à commandes.client_id.'},
-    {k:'Lignes conservées',d:'Le résultat contient Sophie et Lucas, car leurs identifiants sont référencés dans la table commandes.'}
+    {k:'Résultat sans NULL',d:'Le résultat contient Sophie et Lucas, car leurs identifiants sont référencés dans la table commandes.'}
   ],html:`<div class="er-stage er-match join-viz">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
@@ -12719,7 +12721,7 @@ const SQL_VIZ={
   </div>`},
   leftj:{kind:'er',lastSel:'9',phases:[
     {k:'Table conservée',d:'Dans FROM clients LEFT JOIN commandes, la table clients est conservée intégralement.'},
-    {k:'Correspondances',d:'Les lignes de commandes complètent les clients quand commandes.client_id correspond à clients.id.'},
+    {k:'Condition ON',d:'Les lignes de commandes complètent les clients quand commandes.client_id correspond à clients.id.'},
     {k:'Résultat avec NULL',d:'Inès reste dans le résultat ; les colonnes issues de commandes valent NULL.'}
   ],html:`<div class="er-stage er-match join-viz">
     <svg class="er-links" aria-hidden="true"></svg>
@@ -12748,7 +12750,7 @@ const SQL_VIZ={
   </div>`},
   rightj:{kind:'er',lastSel:'g',phases:[
     {k:'Table conservée',d:'Comme LEFT JOIN garde clients, RIGHT JOIN garde commandes — la table de droite.'},
-    {k:'ON',d:'Même ON : le nom complète la commande.'},
+    {k:'Condition ON',d:'Même ON : le nom complète la commande.'},
     {k:'Résultat avec NULL',d:'Sans client, la commande reste : NULL côté clients. Inès disparaît.'}
   ],html:`<div class="er-stage er-match join-viz">
     <svg class="er-links" aria-hidden="true"></svg>
@@ -12777,7 +12779,7 @@ const SQL_VIZ={
   orphan:{kind:'er',lastSel:'9',phases:[
     {k:'Produire les NULL',d:'LEFT JOIN conserve tous les clients et met NULL côté commandes quand aucune commande n’existe.'},
     {k:'Filtrer IS NULL',d:'WHERE commandes.id IS NULL retire les clients qui possèdent une commande.'},
-    {k:'Lignes sans commande',d:'Le résultat final contient uniquement les clients sans correspondance dans commandes.'}
+    {k:'Résultat filtré',d:'Le résultat final contient uniquement les clients sans correspondance dans commandes.'}
   ],html:`<div class="er-stage er-match join-viz">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
