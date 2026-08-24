@@ -5038,17 +5038,20 @@ const MODULES = [
           {tok:"FROM",val:"clients",tag:"à gauche · gardée seulement si elle correspond"},
           {tok:"JOIN",val:"commandes",tag:"à droite · gardée seulement si elle correspond"},
           {tok:"ON",val:"clients.id = commandes.client_id",tag:"le lien : le même identifiant des deux côtés"}
-        ],
-        say:"<p>SQL rapproche les deux tables et retient les couples qui satisfont la condition <code>ON</code>.</p><p>Chaque correspondance produit une ligne : Sophie a passé 3 commandes, elle apparaît donc 3 fois.</p><p>Ce qui ne correspond à rien disparaît, des deux côtés : la commande passée sans compte n’apparaît pas, un client qui n’a rien commandé non plus.</p>"},
+        ]},
       cards:[
         {t:"Pourquoi écrire clients.id et commandes.client_id",bare:1,
          b:"Les deux tables ont une colonne <code>id</code> : on écrit <code>clients.id</code> pour lever l’ambiguïté. Et on compare à <code>commandes.client_id</code> — c’est cette colonne qui recopie l’identifiant du client, pas <code>commandes.id</code>."},
         {t:"La condition ON",draw:"oncond",
          pairs:[{l:"1",n:"Sophie",r:"1"},{l:"2",n:"Lucas",r:"2"},{l:"3",n:"Emma",r:"3"}]},
         {t:"Une ligne par correspondance",draw:"repeat",
-         b:"Sophie a passé 3 commandes, elle apparaît donc <b>3 fois</b> dans le résultat. Chaque correspondance produit sa propre ligne : ce n’est pas une fusion en une seule."},
-        {t:"Clé primaire, clé étrangère",draw:"pkfk",
-         b:"<code>clients.id</code> identifie chaque client. <code>commandes.client_id</code> recopie cet identifiant. C’est cette relation que la clause <code>ON</code> utilise."}
+         b:"<p>Chaque correspondance produit sa propre ligne.</p><p>Sophie a passé 3 commandes : elle apparaît <b>3 fois</b> dans le résultat, une fois par commande.</p><p>Ce n’est pas une fusion : son nom est recopié sur chacune de ses lignes.</p>"},
+        {t:"La correspondance entre les tables",draw:"pkfk",
+         b:"<p><code>clients.id</code> et <code>commandes.client_id</code> servent à chercher les lignes qui vont ensemble.</p><p>Même identifiant → les lignes sont réunies.</p><p>Aucune correspondance → la ligne est écartée : <code>JOIN</code> ne garde que ce qui existe des deux côtés.</p>"},
+        {t:"Quand s’en servir",
+         b:"<p>Utilise <code>JOIN</code> quand seules les lignes complètes t’intéressent, celles qui existent des deux côtés.</p><ul><li>le chiffre d’affaires par client : sans commande, il n’y a rien à calculer ;</li><li>une facture et le détail de ses lignes : une ligne sans facture n’aurait pas de sens.</li></ul><p>👉 <b>L’idée à retenir :</b> ce qui n’a de correspondance nulle part disparaît, des deux côtés.</p>"},
+        {t:"JOIN et INNER JOIN, c’est pareil",
+         b:"<p><code>INNER</code> est le comportement par défaut : <code>JOIN commandes</code> et <code>INNER JOIN commandes</code> produisent exactement le même résultat.</p><p>Les deux s’écrivent, mais mieux vaut s’en tenir à une seule forme dans un même projet.</p>"}
       ]},
     point:"Sans <code>ON</code>, SQL ne sait pas quelles lignes associer.<br><br><b>Le rôle de ON</b> — <code>ON clients.id = commandes.client_id</code> signifie : « associe une ligne de clients à une ligne de commandes lorsque leurs identifiants correspondent. »<br><br>Pour la commande <code>id = 1</code>, <code>client_id</code> vaut 1 → SQL cherche le client dont <code>id = 1</code> → Sophie.<br><br><b>Sophie apparaît 3 fois</b> (commandes 1, 2 et 13) : une ligne est produite pour chaque correspondance. Ce n’est pas une fusion en une seule ligne.<br><br><b>Pourquoi <code>clients.nom</code> ?</b> Les deux tables ont une colonne <code>id</code>. Préfixer avec le nom de la table (<code>table.colonne</code>) évite l’ambiguïté.<br><br><b>Clé primaire et clé étrangère</b> — <code>clients.id</code> est la clé primaire ; <code>commandes.client_id</code> la recopie. C’est cette relation que l’on utilise dans <code>ON</code>.",
     why:{title:"Suis ce qui arrive à tes données.",
@@ -5083,17 +5086,20 @@ const MODULES = [
           {tok:"FROM",val:"clients",tag:"à gauche · toutes ses lignes restent",keep:1},
           {tok:"LEFT JOIN",val:"commandes",tag:"à droite · sert seulement à compléter"},
           {tok:"ON",val:"clients.id = commandes.client_id",tag:"le lien : le même identifiant des deux côtés"}
-        ],
-        say:"<p>SQL parcourt la table <code>clients</code>, ligne par ligne.</p><p>Pour chaque client, il cherche dans la table <code>commandes</code> les lignes dont <code>client_id</code> est égal à <code>clients.id</code>.</p><p>S’il en trouve, chacune produit une ligne. Sinon — c’est le cas d’Inès, qui n’a rien commandé — la ligne reste quand même, et les colonnes de la table <code>commandes</code> valent <code>NULL</code>.</p>"},
+        ]},
       cards:[
         {t:"Pourquoi écrire clients.id et commandes.client_id",bare:1,
          b:"Les deux tables ont une colonne <code>id</code> : on écrit <code>clients.id</code> pour lever l’ambiguïté. Et on compare à <code>commandes.client_id</code> — c’est cette colonne qui recopie l’identifiant du client, pas <code>commandes.id</code>."},
         {t:"La condition ON",draw:"oncond",
          pairs:[{l:"1",n:"Sophie",r:"1"},{l:"7",n:"Léa",r:"7"},{l:"9",n:"Inès",gap:1}]},
         {t:"Une ligne par correspondance",draw:"repeat",
-         b:"Sophie a passé 3 commandes, elle apparaît donc <b>3 fois</b>. Inès n’en a aucune, elle apparaît <b>1 fois</b> avec des <code>NULL</code>."},
-        {t:"Clé primaire, clé étrangère",draw:"pkfk",
-         b:"<code>clients.id</code> identifie chaque client. <code>commandes.client_id</code> recopie cet identifiant. C’est cette relation que la clause <code>ON</code> utilise."}
+         b:"<p>Chaque correspondance produit sa propre ligne : Sophie a 3 commandes, elle apparaît <b>3 fois</b>.</p><p>Un client sans commande produit une ligne, et une seule : Inès apparaît <b>1 fois</b>, avec des <code>NULL</code>.</p><p>D’où les 16 lignes du résultat : les 15 commandes rattachées à un client, plus Inès.</p>"},
+        {t:"La correspondance entre les tables",draw:"pkfk",
+         b:"<p><code>clients.id</code> et <code>commandes.client_id</code> servent à chercher les lignes qui vont ensemble.</p><p>Même identifiant → les lignes sont réunies.</p><p>Aucune correspondance → la ligne de la table <code>clients</code> reste quand même affichée grâce à <code>LEFT JOIN</code>, avec <code>NULL</code> du côté <code>commandes</code>.</p>"},
+        {t:"Quand s’en servir",
+         b:"<p>Utilise <code>LEFT JOIN</code> quand la table de gauche doit rester entière, correspondance ou pas.</p><ul><li>la liste de tous les clients avec leurs commandes, y compris ceux qui n’ont jamais commandé ;</li><li>un catalogue avec ses ventes, pour repérer les articles qui ne se vendent pas.</li></ul><p>👉 <b>L’idée à retenir :</b> ce sont souvent les lignes <b>sans</b> correspondance qui t’intéressent.</p>"},
+        {t:"L’ordre des tables compte",
+         b:"<p><code>FROM clients LEFT JOIN commandes</code> garde tous les clients.</p><p>Écrire <code>FROM commandes LEFT JOIN clients</code> garde toutes les commandes : ce n’est plus la même question.</p><p>Avec <code>LEFT JOIN</code>, la table conservée est toujours celle écrite en premier.</p>"}
       ]},
     reflex:{a:{k:"LEFT JOIN",t:"garde toutes les lignes de la table de gauche"},
       b:{k:"ON",t:"indique quelles lignes correspondent"},
@@ -5129,8 +5135,7 @@ const MODULES = [
           {tok:"LEFT JOIN",val:"commandes",tag:"à droite · sert seulement à compléter"},
           {tok:"ON",val:"clients.id = commandes.client_id",tag:"le lien : le même identifiant des deux côtés"},
           {tok:"WHERE",val:"commandes.id IS NULL",tag:"ne garde que les lignes restées vides à droite"}
-        ],
-        say:"<p>Le <code>LEFT JOIN</code> garde les 9 clients : ceux qui ont commandé reçoivent un <code>commandes.id</code>, Inès n\u2019en reçoit aucun.</p><p><code>commandes.id</code> est la clé primaire de la table <code>commandes</code> : une vraie commande en a toujours un. S\u2019il vaut <code>NULL</code>, c\u2019est que la jointure n\u2019a rien trouvé.</p><p>Le <code>WHERE</code> ne conserve que ces lignes-là. Il reste Inès.</p>"},
+        ]},
       cards:[
         {t:"Pourquoi tester commandes.id",bare:1,
          b:"On teste la <b>clé primaire</b> de la table de droite, pas <code>commandes.client_id</code>. Une vraie commande a toujours un <code>id</code> : s\u2019il est <code>NULL</code>, c\u2019est forcément que la jointure n\u2019a rien trouvé, jamais parce que la donnée manquait."},
@@ -5139,7 +5144,9 @@ const MODULES = [
         {t:"IS NULL, jamais = NULL",
          b:"<code>NULL</code> n\u2019est pas une valeur mais une absence de valeur : rien ne lui est égal, pas même <code>NULL</code>. <code>WHERE commandes.id = NULL</code> s\u2019exécute sans erreur et ne retourne aucune ligne."},
         {t:"Un modèle réutilisable",
-         b:"<code>FROM t1 LEFT JOIN t2 ON … WHERE t2.id IS NULL</code> trouve les lignes de <code>t1</code> sans correspondance dans <code>t2</code>. Pour les produits jamais commandés, le résultat est vide dans notre base : tous ont été commandés au moins une fois."}
+         b:"<code>FROM t1 LEFT JOIN t2 ON … WHERE t2.id IS NULL</code> trouve les lignes de <code>t1</code> sans correspondance dans <code>t2</code>. Pour les produits jamais commandés, le résultat est vide dans notre base : tous ont été commandés au moins une fois."},
+        {t:"Quand s’en servir",
+         b:"<p>Utilise ce duo chaque fois que la question porte sur une <b>absence</b>.</p><ul><li>les clients qui n’ont jamais commandé, à relancer ;</li><li>les produits qui ne se sont jamais vendus, à retirer du catalogue.</li></ul><p>👉 <b>L’idée à retenir :</b> une absence ne se cherche pas directement : il faut d’abord la rendre visible avec un <code>LEFT JOIN</code>.</p>"}
       ]},
     reflex:{a:{k:"LEFT JOIN",t:"garde aussi ceux <b>sans</b> correspondance"},
       b:{k:"IS NULL",t:"sélectionne uniquement ceux <b>sans</b> correspondance"},
@@ -5203,17 +5210,20 @@ const MODULES = [
           {tok:"FROM",val:"clients",tag:"à gauche · sert seulement à compléter"},
           {tok:"RIGHT JOIN",val:"commandes",tag:"à droite · toutes ses lignes restent",keep:1},
           {tok:"ON",val:"clients.id = commandes.client_id",tag:"le lien : le même identifiant des deux côtés"}
-        ],
-        say:"<p>SQL parcourt la table <code>commandes</code>, ligne par ligne.</p><p>Pour chaque commande, il cherche dans la table <code>clients</code> celui dont l’<code>id</code> est égal à <code>commandes.client_id</code>.</p><p>S’il le trouve, le nom complète la ligne. Sinon — c’est le cas de la commande <code>#16</code>, passée sans compte — la ligne reste quand même, et les colonnes de la table <code>clients</code> valent <code>NULL</code>.</p>"},
+        ]},
       cards:[
         {t:"Pourquoi écrire clients.id et commandes.client_id",bare:1,
          b:"Les deux tables ont une colonne <code>id</code> : on écrit <code>clients.id</code> pour lever l’ambiguïté. Et on compare à <code>commandes.client_id</code> — c’est cette colonne qui recopie l’identifiant du client, pas <code>commandes.id</code>."},
         {t:"La condition ON",draw:"oncond",
          pairs:[{l:"1",n:"Sophie",r:"1"},{l:"7",n:"Léa",r:"7"},{gapL:1,r:"NULL"}]},
         {t:"Une ligne par commande",
-         b:"La commande <code>#16</code> existe bien dans la table <code>commandes</code>, mais elle n’est liée à aucun client. Avec <code>RIGHT JOIN</code>, elle n’est pas supprimée : elle reste dans le résultat. Comme aucun client ne lui correspond, les informations du client sont remplacées par <code>NULL</code>."},
-        {t:"Clé primaire, clé étrangère",draw:"pkfk",
-         b:"<code>clients.id</code> identifie chaque client. <code>commandes.client_id</code> recopie cet identifiant. C’est cette relation que la clause <code>ON</code> utilise."}
+         b:"<p>Chaque commande produit sa propre ligne, qu’elle ait un client ou non.</p><p>La commande <code>#16</code> existe dans la table <code>commandes</code> mais n’est liée à aucun client : <code>RIGHT JOIN</code> la garde.</p><p>Faute de client à lui associer, ses colonnes côté <code>clients</code> valent <code>NULL</code>.</p>"},
+        {t:"La correspondance entre les tables",draw:"pkfk",
+         b:"<p><code>clients.id</code> et <code>commandes.client_id</code> servent à chercher les lignes qui vont ensemble.</p><p>Même identifiant → les lignes sont réunies.</p><p>Aucune correspondance → la ligne de la table <code>commandes</code> reste quand même affichée grâce à <code>RIGHT JOIN</code>, avec <code>NULL</code> du côté <code>clients</code>.</p>"},
+        {t:"Quand s’en servir",
+         b:"<p>Utilise <code>RIGHT JOIN</code> quand c’est la table de droite qui doit rester entière.</p><ul><li>toutes les commandes, y compris celles passées sans compte client ;</li><li>tous les paiements reçus, même ceux qu’aucune facture ne réclame.</li></ul><p>👉 <b>L’idée à retenir :</b> <code>RIGHT JOIN</code> fait le travail d’un <code>LEFT JOIN</code> dont on aurait échangé les deux tables.</p>"},
+        {t:"On l’écrit rarement",
+         b:"<p>La plupart des requêtes utilisent <code>LEFT JOIN</code> en échangeant les deux tables plutôt que <code>RIGHT JOIN</code>.</p><p>Certaines bases ne l’ont accepté que tardivement — SQLite depuis 2022 seulement.</p><p>Il faut donc savoir le lire, même si tu ne l’écris pas souvent.</p>"}
       ]},
     reflex:{a:{k:"RIGHT JOIN",t:"garde toutes les lignes de la table de droite"},
       b:{k:"ON",t:"indique quelles lignes correspondent"},
@@ -5340,8 +5350,7 @@ const MODULES = [
           {tok:"LEFT JOIN",val:"commandes",tag:"à droite · complète quand une commande existe"},
           {tok:"ON",val:"clients.id = commandes.client_id",tag:"le lien : le même identifiant des deux côtés"},
           {tok:"GROUP BY",val:"clients.id, clients.nom",tag:"rassemble les lignes d\u2019un même client"}
-        ],
-        say:"<p>Après la jointure, Sophie occupe 3 lignes, une par commande. <code>GROUP BY</code> les rassemble en un seul groupe.</p><p><code>COUNT(commandes.id)</code> compte alors les lignes de chaque groupe : 3 pour Sophie, 2 pour Lucas.</p><p>Inès n\u2019a aucune commande : le <code>LEFT JOIN</code> lui laisse une ligne où <code>commandes.id</code> vaut <code>NULL</code>, et <code>COUNT</code> ignore les <code>NULL</code>. Elle ressort avec 0.</p>"},
+        ]},
       cards:[
         {t:"COUNT(commandes.id), jamais COUNT(*)",bare:1,
          b:"<code>COUNT(*)</code> compte les <b>lignes</b> du groupe : Inès en a une, celle que le <code>LEFT JOIN</code> a remplie de <code>NULL</code>, donc elle afficherait 1 commande. <code>COUNT(commandes.id)</code> compte les <b>valeurs non nulles</b> d\u2019une colonne de la table de droite, et affiche bien 0."},
@@ -5350,7 +5359,9 @@ const MODULES = [
         {t:"Regrouper sur l\u2019identifiant",
          b:"<code>GROUP BY clients.id, clients.nom</code> plutôt que sur le seul nom : deux clients peuvent porter le même nom, l\u2019<code>id</code> les sépare. Le nom accompagne l\u2019id parce qu\u2019il est affiché."},
         {t:"Une ligne par groupe",
-         b:"Avant le <code>GROUP BY</code>, la jointure produit 16 lignes. Après, il en reste 9 : une par client. C\u2019est le regroupement qui fixe le nombre de lignes du résultat, pas la jointure."}
+         b:"Avant le <code>GROUP BY</code>, la jointure produit 16 lignes. Après, il en reste 9 : une par client. C\u2019est le regroupement qui fixe le nombre de lignes du résultat, pas la jointure."},
+        {t:"Quand s’en servir",
+         b:"<p>Utilise une jointure avec <code>GROUP BY</code> dès qu’il faut <b>compter ou totaliser</b> ce qui se rattache à chaque ligne.</p><ul><li>le nombre de commandes par client ;</li><li>le total dépensé par client, avec <code>SUM</code> à la place de <code>COUNT</code>.</li></ul><p>👉 <b>L’idée à retenir :</b> la jointure rassemble, le <code>GROUP BY</code> replie, la fonction d’agrégation calcule.</p>"}
       ]},
     reflex:{a:{k:"LEFT JOIN",t:"relie les clients à leurs commandes, sans en perdre"},
       b:{k:"GROUP BY + COUNT",t:"un compte par client"},
@@ -9141,13 +9152,8 @@ function renderSituationBody(l){
    teintée. Un seul visuel pour situer une jointure par rapport aux autres.
    CROSS JOIN n'y figure pas : il ne conserve pas une zone du recouvrement,
    il croise chaque ligne avec chaque ligne. */
-const VENN_LEGEND={
-  inner:'Seules les lignes présentes des deux côtés.',
-  left:'Toute la table de gauche, plus les correspondances.',
-  right:'Toute la table de droite, plus les correspondances.',
-  full:'',
-  leftonly:'La table de gauche, privée de ses correspondances.'
-};
+/* Chaîne vide = schéma sans légende ; clé absente = pas de schéma du tout. */
+const VENN_LEGEND={inner:'',left:'',right:'',full:'',leftonly:''};
 function pointVenn(kind,gauche,droite){
   const leg=VENN_LEGEND[kind];
   if(leg===undefined)return '';
