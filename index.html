@@ -4911,7 +4911,7 @@ const MODULES = [
   piege:{t:"Recopier le nom dans commandes",p:"Si Sophie déménage, tu devrais corriger chaque commande. Avec un <code>client_id</code>, tu changes <code>ville</code> une seule fois, dans la table <code>clients</code>."},
   consigne:"Affiche le <code>client_id</code> et la <code>quantite</code> de chaque commande.",
   solution:"SELECT client_id, quantite FROM commandes;",
-  indice:"Les colonnes utiles sont dans <code>commandes</code> : <code>client_id</code> et <code>quantite</code>.",
+  indice:"Les colonnes utiles sont dans la table <code>commandes</code> : <code>client_id</code> et <code>quantite</code>.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
     {k:'star',label:'SELECT *',sql:"SELECT *\nFROM commandes;",out:"Des id, pas le nom du client"},
@@ -4966,7 +4966,7 @@ const MODULES = [
     sql:"SELECT client_id FROM commandes;"},
   consigne:"Affiche le <code>client_id</code> et le <code>produit_id</code> de chaque commande.",
   solution:"SELECT client_id, produit_id FROM commandes;",
-  indice:"Les deux ponts sont dans <code>commandes</code> : <code>client_id</code> et <code>produit_id</code>.",
+  indice:"Les deux ponts sont dans la table <code>commandes</code> : <code>client_id</code> et <code>produit_id</code>.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
     {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;",out:"id est unique : une personne, un numéro"},
@@ -5016,7 +5016,7 @@ const MODULES = [
   piege:{t:"Relier les mauvaises colonnes",p:"<code>ON clients.id = commandes.produit_id</code> peut s’exécuter, mais le résultat est faux : <code>produit_id</code> identifie un produit, pas un client. La bonne relation est <code>clients.id = commandes.client_id</code>."},
   consigne:"Affiche le nom de chaque client et la <code>quantite</code> de chaque produit qu’il a commandé.",
   solution:"SELECT clients.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;",
-  indice:"Part de <code>clients</code>, JOIN <code>commandes</code>, puis <code>ON clients.id = commandes.client_id</code>.",
+  indice:"Pars de la table <code>clients</code>, <code>JOIN</code> la table <code>commandes</code>, puis <code>ON clients.id = commandes.client_id</code>.",
   joinRecap:'inner',
   richLesson:true, earlyDemo:true,
   testeVariants:[
@@ -5035,7 +5035,7 @@ const MODULES = [
           {tok:"LEFT JOIN",val:"commandes",tag:"à droite · sert seulement à compléter"},
           {tok:"ON",val:"clients.id = commandes.client_id",tag:"le lien : le même identifiant des deux côtés"}
         ],
-        say:"<p>SQL parcourt <code>clients</code>, ligne par ligne.</p><p>Pour chaque client, il cherche dans <code>commandes</code> les lignes dont <code>client_id</code> est égal à <code>clients.id</code>.</p><p>S’il en trouve, chacune produit une ligne. Sinon — c’est le cas d’Inès, qui n’a rien commandé — la ligne reste quand même, et les colonnes de <code>commandes</code> valent <code>NULL</code>.</p>"},
+        say:"<p>SQL parcourt la table <code>clients</code>, ligne par ligne.</p><p>Pour chaque client, il cherche dans la table <code>commandes</code> les lignes dont <code>client_id</code> est égal à <code>clients.id</code>.</p><p>S’il en trouve, chacune produit une ligne. Sinon — c’est le cas d’Inès, qui n’a rien commandé — la ligne reste quand même, et les colonnes de la table <code>commandes</code> valent <code>NULL</code>.</p>"},
       cards:[
         {t:"Pourquoi écrire clients.id et commandes.client_id",bare:1,
          b:"Les deux tables ont une colonne <code>id</code> : on écrit <code>clients.id</code> pour lever l’ambiguïté. Et on compare à <code>commandes.client_id</code> — c’est cette colonne qui recopie l’identifiant du client, pas <code>commandes.id</code>."},
@@ -5135,7 +5135,7 @@ const MODULES = [
           {tok:"RIGHT JOIN",val:"commandes",tag:"à droite · toutes ses lignes restent",keep:1},
           {tok:"ON",val:"clients.id = commandes.client_id",tag:"le lien : le même identifiant des deux côtés"}
         ],
-        say:"<p>SQL parcourt <code>commandes</code>, ligne par ligne.</p><p>Pour chaque commande, il cherche dans <code>clients</code> celui dont l’<code>id</code> est égal à <code>commandes.client_id</code>.</p><p>S’il le trouve, le nom complète la ligne. Sinon — c’est le cas de la commande <code>#16</code>, passée sans compte — la ligne reste quand même, et les colonnes de <code>clients</code> valent <code>NULL</code>.</p>"},
+        say:"<p>SQL parcourt la table <code>commandes</code>, ligne par ligne.</p><p>Pour chaque commande, il cherche dans la table <code>clients</code> celui dont l’<code>id</code> est égal à <code>commandes.client_id</code>.</p><p>S’il le trouve, le nom complète la ligne. Sinon — c’est le cas de la commande <code>#16</code>, passée sans compte — la ligne reste quand même, et les colonnes de la table <code>clients</code> valent <code>NULL</code>.</p>"},
       cards:[
         {t:"Pourquoi écrire clients.id et commandes.client_id",bare:1,
          b:"Les deux tables ont une colonne <code>id</code> : on écrit <code>clients.id</code> pour lever l’ambiguïté. Et on compare à <code>commandes.client_id</code> — c’est cette colonne qui recopie l’identifiant du client, pas <code>commandes.id</code>."},
@@ -5189,7 +5189,7 @@ const MODULES = [
         {t:"Les deux côtés conservés",
          b:"Chaque correspondance produit une ligne. Les clients sans commande (Inès) et les commandes sans client (id 16) sont aussi conservés."},
         {t:"NULL des deux côtés",
-         b:"Pour Inès, les colonnes de <code>commandes</code> sont NULL. Pour la commande invitée, les colonnes de <code>clients</code> sont NULL."},
+         b:"Pour Inès, les colonnes de la table <code>commandes</code> sont NULL. Pour la commande invitée, les colonnes de la table <code>clients</code> sont NULL."},
         {t:"Clé primaire, clé étrangère",draw:"pkfk",
          b:"<code>clients.id</code> identifie chaque client. <code>commandes.client_id</code> recopie cet identifiant. C’est cette relation que la clause <code>ON</code> utilise."}
       ]},
@@ -8817,7 +8817,7 @@ const JOIN_COURSES={
     situation:'Un suivi doit lister tous les clients et toutes les commandes : ceux sans achat, et les achats sans compte. La table <code>clients</code> et la table <code>commandes</code> doivent rester toutes les deux complètes.',
     mission:'Conserver toutes les lignes des deux tables, puis les relier quand <code>clients.id = commandes.client_id</code>.',
     title:'Préserver les deux tables tout en ajoutant les correspondances disponibles.',
-    explain:'<code>FULL OUTER JOIN</code> conserve toutes les lignes des deux côtés. Si aucune commande ne référence un client, les colonnes de <code>commandes</code> valent <code>NULL</code>. Si aucun client ne correspond à une commande, les colonnes de <code>clients</code> valent <code>NULL</code>.',
+    explain:'<code>FULL OUTER JOIN</code> conserve toutes les lignes des deux côtés. Si aucune commande ne référence un client, les colonnes de la table <code>commandes</code> valent <code>NULL</code>. Si aucun client ne correspond à une commande, les colonnes de la table <code>clients</code> valent <code>NULL</code>.',
     rule:'FROM clients FULL OUTER JOIN commandes',
     watch:'La visualisation montre Inès et l’invité conservés, chacun avec <code>NULL</code> du côté manquant.',
     memory:[
