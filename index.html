@@ -5031,8 +5031,7 @@ const MODULES = [
         {t:"Pourquoi écrire clients.id et commandes.client_id",bare:1,
          b:"Les deux tables ont une colonne <code>id</code> : on écrit <code>clients.id</code> pour lever l’ambiguïté. Et on compare à <code>commandes.client_id</code> — c’est cette colonne qui recopie l’identifiant du client, pas <code>commandes.id</code>."},
         {t:"La condition ON",draw:"oncond",
-         pairs:[{l:"1",n:"Sophie",r:"1"},{l:"2",n:"Lucas",r:"2"},{l:"3",n:"Emma",r:"3"}],
-         b:"Associe une ligne de <b>clients</b> à une ligne de <b>commandes</b> lorsque leurs identifiants correspondent."},
+         pairs:[{l:"1",n:"Sophie",r:"1"},{l:"2",n:"Lucas",r:"2"},{l:"3",n:"Emma",r:"3"}]},
         {t:"Une ligne par correspondance",draw:"repeat",
          b:"Sophie a passé 3 commandes, elle apparaît donc <b>3 fois</b> dans le résultat. Chaque correspondance produit sa propre ligne : ce n’est pas une fusion en une seule."},
         {t:"Clé primaire, clé étrangère",draw:"pkfk",
@@ -5077,8 +5076,7 @@ const MODULES = [
         {t:"Pourquoi écrire clients.id et commandes.client_id",bare:1,
          b:"Les deux tables ont une colonne <code>id</code> : on écrit <code>clients.id</code> pour lever l’ambiguïté. Et on compare à <code>commandes.client_id</code> — c’est cette colonne qui recopie l’identifiant du client, pas <code>commandes.id</code>."},
         {t:"La condition ON",draw:"oncond",
-         pairs:[{l:"1",n:"Sophie",r:"1"},{l:"7",n:"Léa",r:"7"},{l:"9",n:"Inès",gap:1}],
-         b:"Associe une ligne de <b>clients</b> à une ligne de <b>commandes</b> lorsque leurs identifiants correspondent."},
+         pairs:[{l:"1",n:"Sophie",r:"1"},{l:"7",n:"Léa",r:"7"},{l:"9",n:"Inès",gap:1}]},
         {t:"Une ligne par correspondance",draw:"repeat",
          b:"Sophie a passé 3 commandes, elle apparaît donc <b>3 fois</b>. Inès n’en a aucune, elle apparaît <b>1 fois</b> avec des <code>NULL</code>."},
         {t:"Clé primaire, clé étrangère",draw:"pkfk",
@@ -5198,8 +5196,7 @@ const MODULES = [
         {t:"Pourquoi écrire clients.id et commandes.client_id",bare:1,
          b:"Les deux tables ont une colonne <code>id</code> : on écrit <code>clients.id</code> pour lever l’ambiguïté. Et on compare à <code>commandes.client_id</code> — c’est cette colonne qui recopie l’identifiant du client, pas <code>commandes.id</code>."},
         {t:"La condition ON",draw:"oncond",
-         pairs:[{l:"1",n:"Sophie",r:"1"},{l:"7",n:"Léa",r:"7"},{gapL:1,r:"NULL"}],
-         b:"Associe une ligne de <b>clients</b> à une ligne de <b>commandes</b> lorsque leurs identifiants correspondent."},
+         pairs:[{l:"1",n:"Sophie",r:"1"},{l:"7",n:"Léa",r:"7"},{gapL:1,r:"NULL"}]},
         {t:"Une ligne par commande",
          b:"La commande <code>#16</code> existe bien dans la table <code>commandes</code>, mais elle n’est liée à aucun client. Avec <code>RIGHT JOIN</code>, elle n’est pas supprimée : elle reste dans le résultat. Comme aucun client ne lui correspond, les informations du client sont remplacées par <code>NULL</code>."},
         {t:"Clé primaire, clé étrangère",draw:"pkfk",
@@ -5237,14 +5234,12 @@ const MODULES = [
           {tok:"FROM",val:"clients",tag:"à gauche · toutes ses lignes restent",keep:1},
           {tok:"FULL OUTER JOIN",val:"commandes",tag:"à droite · toutes ses lignes restent",keep:1},
           {tok:"ON",val:"clients.id = commandes.client_id",tag:"le lien : le même identifiant des deux côtés"}
-        ],
-        say:"<p>SQL relie chaque client à sa commande quand les identifiants correspondent.</p><p>Sans correspondance — Inès sans commande, ou la commande invitée — la ligne reste et le côté manquant vaut <code>NULL</code>.</p>"},
+        ]},
       cards:[
         {t:"Pourquoi écrire clients.id et commandes.client_id",bare:1,
          b:"Les deux tables ont une colonne <code>id</code> : on écrit <code>clients.id</code> pour lever l’ambiguïté. Et on compare à <code>commandes.client_id</code> — c’est cette colonne qui recopie l’identifiant du client, pas <code>commandes.id</code>."},
         {t:"La condition ON",draw:"oncond",
-         pairs:[{l:"1",n:"Sophie",r:"1"},{l:"7",n:"Léa",r:"7"},{l:"9",n:"Inès",gap:1},{gapL:1,r:"NULL"}],
-         b:"Associe une ligne de <b>clients</b> à une ligne de <b>commandes</b> lorsque leurs identifiants correspondent."},
+         pairs:[{l:"1",n:"Sophie",r:"1"},{l:"7",n:"Léa",r:"7"},{l:"9",n:"Inès",gap:1},{gapL:1,r:"NULL"}]},
         {t:"Les deux côtés conservés",
          b:"<p>Avec <code>FULL OUTER JOIN</code>, aucune des deux tables n’est privilégiée.</p><p>Une ligne de la table <code>clients</code> sans commande reste affichée : Inès est conservée.</p><p>Une ligne de la table <code>commandes</code> sans client reste aussi affichée : la commande <code>#16</code> est conservée.</p><p>Même sans correspondance, les lignes des deux tables restent dans le résultat.</p>"},
         {t:"NULL des deux côtés",
@@ -9171,12 +9166,12 @@ function renderPointCards(pc){
   const head=all.filter(c=>c.bare).map(c=>`<div class="pt-head">
       <h3 class="pt-head-t">${c.t}</h3>
       ${c.draw?`<div class="pt-draw">${pointDraw(c)}</div>`:''}
-      <div class="pt-head-b">${c.b}</div>
+      ${c.b?`<div class="pt-head-b">${c.b}</div>`:''}
     </div>`).join('');
   const cartes=all.filter(c=>!c.bare).map(c=>`<div class="pt-card">
       <h3 class="pt-card-t">${c.t}</h3>
       ${c.draw?`<div class="pt-draw">${pointDraw(c)}</div>`:''}
-      <div class="pt-card-b">${c.b}</div>
+      ${c.b?`<div class="pt-card-b">${c.b}</div>`:''}
     </div>`).join('');
   return `${intro}${chaine}${head}${cartes?`<div class="pt-grid">${cartes}</div>`:''}`;
 }
