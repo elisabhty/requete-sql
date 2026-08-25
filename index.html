@@ -519,9 +519,14 @@
   @keyframes joinBadgeSpring{0%{opacity:0;transform:scale(.66) rotate(-6deg)}65%{opacity:1;transform:scale(1.08) rotate(1deg)}100%{opacity:1;transform:none}}
   @keyframes joinVennDraw{to{stroke-dashoffset:0}}
   @keyframes joinVennFill{from{opacity:0;transform:scale(.72)}to{opacity:.42;transform:none}}
-  .join-micro .situation-body table.concept-table tbody tr[data-kid]{cursor:pointer;border-radius:8px}
-  .join-micro .situation-body table.concept-table tbody tr[data-kid].on td{background:var(--accent-soft);color:var(--accent);transition:background .2s ease,color .2s ease}
-  .join-micro .situation-body table.concept-table tbody tr[data-kid].on td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+  .join-micro .situation-body table.concept-table tbody tr[data-kid],
+  .join-micro .situation-body table.concept-table tbody tr[data-ville]{cursor:pointer;border-radius:8px}
+  .join-micro .situation-body table.concept-table tbody tr[data-kid].on td,
+  .join-micro .situation-body table.concept-table tbody tr[data-ville].on td{background:var(--accent-soft);color:var(--accent);transition:background .2s ease,color .2s ease}
+  .join-micro .situation-body table.concept-table tbody tr[data-kid].on td:first-child,
+  .join-micro .situation-body table.concept-table tbody tr[data-ville].on td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+  .join-micro .situation-body table.concept-table tbody tr[data-ville].share:not(.on) td{background:rgba(91,91,214,.07);transition:background .2s ease,color .2s ease,opacity .2s ease}
+  .join-micro .situation-body table.concept-table tbody tr[data-ville].alone td{opacity:.42}
   .join-micro .memory-rule .memory-b>b{animation:havBadge 2.4s ease-in-out infinite}
   .join-micro .memory-a,.join-micro .memory-b{transition:transform .16s ease,border-color .16s ease}
   .join-micro .memory-a:active,.join-micro .memory-b:active{transform:scale(.98)}
@@ -534,7 +539,8 @@
   .join-micro .anat-line:nth-child(4){animation-delay:.22s}
   @media (hover:hover) and (pointer:fine){
     .join-micro .pt-card:hover{border-color:rgba(91,91,214,.2)}
-    .join-micro .situation-body table.concept-table tbody tr[data-kid]:hover td{background:rgba(91,91,214,.06)}
+    .join-micro .situation-body table.concept-table tbody tr[data-kid]:hover td,
+    .join-micro .situation-body table.concept-table tbody tr[data-ville].share:hover td{background:rgba(91,91,214,.06)}
   }
   .memory-box{background:var(--bg);border:1px solid var(--card-border);border-radius:18px;padding:16px 18px;margin:0;box-shadow:var(--card-shadow-sm)}
   .memory-kicker{color:var(--ink-3);font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px}
@@ -1295,8 +1301,8 @@
   .sql-viz[data-viz="crossjoin"][data-phase="2"] .jchip{background:var(--accent-soft)}
   /* Jointure + GROUP BY : temps 2, les lignes d'un même client se
      rassemblent et Inès reste sans rien à droite ; temps 3, le compte. */
-  /* SELF JOIN : les deux colonnes montrent la même table. On teinte par
-     ville pour que l'appariement saute aux yeux avant même le résultat. */
+  /* SELF JOIN : teinte par ville — même violet, deux intensités —
+     pour que Paris et Lyon se lisent comme des groupes. */
   .sql-viz[data-viz="onmultiple"] .join-out .join-pill[data-when]{display:none}
   .sql-viz[data-viz="onmultiple"][data-phase="0"] .join-out .join-pill[data-when*="j"],
   .sql-viz[data-viz="onmultiple"][data-phase="1"] .join-out .join-pill[data-when*="o"],
@@ -1312,10 +1318,12 @@
   .sql-viz[data-viz="onwhere"][data-phase="2"] .jchip[data-k="low"]{opacity:.3}
   .sql-viz[data-viz="onwhere"][data-phase="2"] .jchip[data-k="out"]{opacity:.3}
   .sql-viz[data-viz="selfjoin"] .self-role{margin:0 2px 10px;text-align:center}
-  .sql-viz[data-viz="selfjoin"][data-phase="1"] .jchip,
-  .sql-viz[data-viz="selfjoin"][data-phase="2"] .jchip{background:var(--accent-soft)}
+  .sql-viz[data-viz="selfjoin"] .jchip[data-k="P"]{background:var(--accent-soft)}
+  .sql-viz[data-viz="selfjoin"] .jchip[data-k="L"]{background:rgba(91,91,214,.1)}
   .sql-viz[data-viz="selfjoin"] .join-out .join-pill[data-when]{display:none}
   .sql-viz[data-viz="selfjoin"][data-phase="2"] .join-pill[data-when]{display:flex}
+  .sql-viz[data-viz="selfjoin"][data-phase="2"] .join-pill[data-er-fk="paris"]{background:var(--accent-soft)}
+  .sql-viz[data-viz="selfjoin"][data-phase="2"] .join-pill[data-er-fk="lyon"]{background:rgba(91,91,214,.1)}
   /* Chaque temps produit un résultat visible : les lignes de la jointure,
      puis les groupes, puis les comptes. Sans cela les deux premières phases
      affichaient exactement la même scène. */
@@ -6048,7 +6056,7 @@ const MODULES = [
     {k:'joingroupby',label:'JOIN + GROUP BY',sql:"SELECT clients.nom, COUNT(commandes.id) AS nb_commandes\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nGROUP BY clients.id, clients.nom;",tone:'good'}
   ] },
 { id:42, titre:"SELF JOIN", résumé:"Relier une table à elle-même",
-  situation:"Tu veux trouver les clients qui habitent dans la même ville, par exemple pour organiser des rencontres locales.<br><br>Dans la table <code>clients</code>, plusieurs clients partagent la même ville :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th>ville</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td>Paris</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td></tr><tr><td>3</td><td>Emma</td><td>Marseille</td></tr><tr><td>4</td><td>Nathan</td><td>Paris</td></tr><tr><td>6</td><td>Hugo</td><td>Lyon</td></tr><tr><td>7</td><td>Léa</td><td>Paris</td></tr></tbody></table></div><br><br>Par exemple, Sophie, Nathan et Léa habitent tous les trois à Paris. Tu veux donc obtenir des paires comme <b>Sophie — Nathan</b>, <b>Sophie — Léa</b> et <b>Nathan — Léa</b>.<br><br>Mais les deux personnes à comparer sont dans la même table <code>clients</code>. Il faut donc utiliser cette table deux fois, avec deux noms différents.",
+  situation:"Tu veux trouver les clients qui habitent dans la même ville, par exemple pour organiser des rencontres locales.<br><br>Dans la table <code>clients</code>, plusieurs clients partagent la même ville :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th>ville</th></tr></thead><tbody><tr data-ville=\"Paris\"><td>1</td><td>Sophie</td><td>Paris</td></tr><tr data-ville=\"Lyon\"><td>2</td><td>Lucas</td><td>Lyon</td></tr><tr data-ville=\"Marseille\"><td>3</td><td>Emma</td><td>Marseille</td></tr><tr data-ville=\"Paris\"><td>4</td><td>Nathan</td><td>Paris</td></tr><tr data-ville=\"Lyon\"><td>6</td><td>Hugo</td><td>Lyon</td></tr><tr data-ville=\"Paris\"><td>7</td><td>Léa</td><td>Paris</td></tr></tbody></table></div><br><br>Par exemple, Sophie, Nathan et Léa habitent tous les trois à Paris. Tu veux donc obtenir des paires comme <b>Sophie — Nathan</b>, <b>Sophie — Léa</b> et <b>Nathan — Léa</b>.<br><br>Mais les deux personnes à comparer sont dans la même table <code>clients</code>. Il faut donc utiliser cette table deux fois, avec deux noms différents.",
     studio:{pointCards:{
       eye:"SELF JOIN",title:"Relier une table à elle-même.",
       lead:"Un <code>SELF JOIN</code> compare les lignes d’une table entre elles en donnant deux rôles différents à la même table.",
@@ -10595,7 +10603,8 @@ const JOIN_SAMPLE_TABLES={
   38:[['clients',9],['commandes',16]],
   39:[['clients',9],['commandes',16]],
   40:[['clients',9],['produits',8]],
-  41:[['clients',9],['commandes',16]]
+  41:[['clients',9],['commandes',16]],
+  42:[['clients',9]]
 };
 function addJoinSampleRows(root,lessonId){
   const meta=JOIN_SAMPLE_TABLES[lessonId];
@@ -10621,11 +10630,63 @@ function addJoinSampleRows(root,lessonId){
     body.appendChild(row);
   });
 }
+function initSelfJoinCityTable(root, table){
+  const body=table.tBodies[0];
+  if(!body) return;
+  const rows=[...body.rows].filter(tr=>!tr.classList.contains('sample-more'));
+  const counts={};
+  rows.forEach(tr=>{
+    const ville=(tr.dataset.ville||(tr.cells[2]&&tr.cells[2].textContent.trim())||'').trim();
+    tr.dataset.ville=ville;
+    counts[ville]=(counts[ville]||0)+1;
+  });
+  rows.forEach(tr=>{
+    const n=counts[tr.dataset.ville]||0;
+    tr.classList.toggle('share', n>1);
+    tr.classList.toggle('alone', n<=1);
+    if(n>1){
+      tr.tabIndex=0;
+      tr.setAttribute('role','button');
+    }
+  });
+  const firstShare=rows.find(tr=>counts[tr.dataset.ville]>1);
+  let cur=firstShare?firstShare.dataset.ville:'Paris';
+  const paint=()=>{
+    rows.forEach(tr=>tr.classList.toggle('on', tr.dataset.ville===cur && counts[tr.dataset.ville]>1));
+  };
+  const set=ville=>{
+    if(!ville||(counts[ville]||0)<=1) return;
+    cur=cur===ville?null:ville;
+    paint();
+  };
+  paint();
+  const sit=root.querySelector('.situation-body');
+  if(sit&&!sit._selfJoinCity){
+    sit._selfJoinCity=true;
+    sit.addEventListener('click',ev=>{
+      const tr=ev.target.closest('tr[data-ville]');
+      if(!tr||(counts[tr.dataset.ville]||0)<=1) return;
+      set(tr.dataset.ville);
+      if(navigator.vibrate) navigator.vibrate(5);
+    });
+    sit.addEventListener('keydown',ev=>{
+      if(ev.key!=='Enter'&&ev.key!==' ') return;
+      const tr=ev.target.closest('tr[data-ville]');
+      if(!tr) return;
+      ev.preventDefault();
+      set(tr.dataset.ville);
+    });
+  }
+}
 function initJoinMicro(){
   if(!hasJoinPointCards(current)) return;
   const root=document.querySelector('#lesson-body .join-micro');
   if(!root) return;
   const tables=root.querySelectorAll('.situation-body table.concept-table');
+  if(tables.length===1 && current.studio && current.studio.viz==='selfjoin'){
+    initSelfJoinCityTable(root, tables[0]);
+    return;
+  }
   if(tables.length<2) return;
   const cli=tables[0], cmd=tables[1];
   const mark=(tr,kid)=>{
