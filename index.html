@@ -1698,6 +1698,9 @@
   }
 
   .anat{background:var(--code-bg);border-radius:14px;padding:6px 0;margin-bottom:16px}
+  .anat-head{display:flex;padding:8px 10px 6px;border-bottom:1px solid rgba(255,255,255,.06)}
+  .anat.tone-bad .anat-head{box-shadow:inset 0 -2px 0 rgba(180,35,24,.45)}
+  .anat.tone-good .anat-head{box-shadow:inset 0 -2px 0 rgba(20,184,166,.45)}
   .anat-line{display:flex;gap:12px;align-items:flex-start;padding:10px 15px}
   .anat-line:not(:last-child){border-bottom:1px solid rgba(255,255,255,.06)}
   .anat-tok{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--t-kw);flex:0 0 132px;width:132px;min-width:132px;max-width:132px;word-break:break-word}
@@ -6234,6 +6237,22 @@ const MODULES = [
     {tok:"ON clients.id = commandes.client_id",txt:"Relie chaque commande à son client."},
     {tok:"AND commandes.quantite > 2",txt:"Filtre les commandes avant de les rattacher : seules celles dont la quantité dépasse 2 peuvent être associées."}
   ],
+  anatomieVariants:[
+    {k:'where',label:'filtre dans WHERE',tone:'bad',lines:[
+      {tok:"SELECT clients.nom, commandes.quantite",txt:"Affiche le client et la quantité trouvée."},
+      {tok:"FROM clients",txt:"On part de la table clients : ce sont les lignes que l’on veut toutes conserver."},
+      {tok:"LEFT JOIN commandes",txt:"Cherche les commandes correspondantes sans supprimer les clients."},
+      {tok:"ON clients.id = commandes.client_id",txt:"Relie chaque commande à son client."},
+      {tok:"WHERE commandes.quantite > 2",txt:"Filtre le résultat après la jointure. Sophie a 2, Inès a NULL : leurs lignes disparaissent."}
+    ]},
+    {k:'on',label:'filtre dans ON',tone:'good',lines:[
+      {tok:"SELECT clients.nom, commandes.quantite",txt:"Affiche le client et la quantité trouvée."},
+      {tok:"FROM clients",txt:"On part de la table clients : ce sont les lignes que l’on veut toutes conserver."},
+      {tok:"LEFT JOIN commandes",txt:"Cherche les commandes correspondantes sans supprimer les clients."},
+      {tok:"ON clients.id = commandes.client_id",txt:"Relie chaque commande à son client."},
+      {tok:"AND commandes.quantite > 2",txt:"Filtre les commandes avant de les rattacher : seules celles dont la quantité dépasse 2 peuvent être associées."}
+    ]}
+  ],
   exemple:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2;",
   attendu:"9 lignes : tous les clients apparaissent. Emma affiche 3, Chloé 3, Léa 4, et les six autres affichent NULL.",
   retenir:"<code>ON</code> filtre les commandes <b>avant</b> de les rattacher aux clients. S’il n’en trouve pas, le <code>LEFT JOIN</code> garde quand même le client, avec <code>NULL</code>.<br><br><code>WHERE</code> filtre le résultat <b>après</b> la jointure. <code>NULL &gt; 2</code> n’est pas vrai : le client sans correspondance disparaît.<br><br>Filtrer la table de droite dans le <code>WHERE</code> transforme donc un <code>LEFT JOIN</code> en <code>INNER JOIN</code>.",
@@ -8599,6 +8618,7 @@ function kbarLessonHints(){
   if(!current) return out;
   const parts=[current.exemple,current.solution,current.teste,current.consigne,current.indice];
   if(current.anatomie) parts.push(...current.anatomie.map(a=>a.tok||''));
+  if(current.anatomieVariants) current.anatomieVariants.forEach(v=>(v.lines||[]).forEach(a=>parts.push(a.tok||'')));
   const blob=parts.filter(Boolean).join('\n').replace(/<[^>]+>/g,' ');
   const catalog=kbarSchemaCatalog();
   const seenT=new Set(), seenC=new Set();
@@ -9939,10 +9959,42 @@ function renderBravoSlide(l){
     </div>`;
 }
 /* ---------- Blocs de cours enrichis (réutilisables) ---------- */
+function anatLinesHtml(lines){
+  return (lines||[]).map(a=>`<div class="anat-line"><div class="anat-tok ${a.plain?'plain':''}${a.punc?' punc':''}">${esc(a.tok)}</div><div class="anat-txt">${a.txt}</div></div>`).join('');
+}
 function anatBlock(l){
-  if(!l.anatomie||!l.anatomie.length)return '';
-  const anat=l.anatomie.map(a=>`<div class="anat-line"><div class="anat-tok ${a.plain?'plain':''}${a.punc?' punc':''}">${esc(a.tok)}</div><div class="anat-txt">${a.txt}</div></div>`).join('');
-  return `<div class="anat">${anat}</div>`;
+  const variants=l&&l.anatomieVariants;
+  const lines=(variants&&variants[0]&&variants[0].lines)||(l&&l.anatomie);
+  if(!lines||!lines.length)return '';
+  const switcher=variants&&variants.length>1
+    ?`<div class="xf-switch" role="tablist">${variants.map((v,i)=>{
+        const on=i===0;
+        const tone=v.tone?` ${v.tone}`:'';
+        return `<button type="button" class="xf-sw${on?' on':''}${tone}" data-i="${i}" role="tab" aria-selected="${on?'true':'false'}" onclick="switchAnatVariant(this)">${esc(v.label)}</button>`;
+      }).join('')}</div>`
+    :'';
+  const variantsAttr=variants&&variants.length>1?` data-variants="${escAttr(JSON.stringify(variants))}" data-vi="0"`:'';
+  const tone0=variants&&variants[0]&&variants[0].tone;
+  return `<div class="anat${tone0?' tone-'+tone0:''}"${variantsAttr}>${switcher?`<div class="anat-head">${switcher}</div>`:''}<div class="anat-body">${anatLinesHtml(lines)}</div></div>`;
+}
+function switchAnatVariant(btn){
+  const wrap=btn.closest('.anat');
+  if(!wrap||!wrap.dataset.variants)return;
+  let variants; try{variants=JSON.parse(wrap.dataset.variants);}catch(e){return;}
+  const i=+btn.dataset.i;
+  const v=variants[i];
+  if(!v)return;
+  wrap.dataset.vi=String(i);
+  wrap.classList.remove('tone-bad','tone-good');
+  if(v.tone) wrap.classList.add('tone-'+v.tone);
+  wrap.querySelectorAll('.xf-sw').forEach(b=>{
+    const on=+b.dataset.i===i;
+    b.classList.toggle('on',on);
+    b.setAttribute('aria-selected',on?'true':'false');
+  });
+  const body=wrap.querySelector('.anat-body');
+  if(body) body.innerHTML=anatLinesHtml(v.lines);
+  if(navigator.vibrate)navigator.vibrate(5);
 }
 function lessonRichBlocks(l){
   return (l.pipeline||[]).map(st=>{
