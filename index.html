@@ -6066,12 +6066,12 @@ const MODULES = [
   situation:"Tu veux trouver les clients qui habitent dans la même ville, par exemple pour organiser des rencontres locales.<br><br>Dans la table <code>clients</code>, plusieurs clients partagent la même ville :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th>ville</th></tr></thead><tbody><tr data-ville=\"Paris\"><td>1</td><td>Sophie</td><td>Paris</td></tr><tr data-ville=\"Lyon\"><td>2</td><td>Lucas</td><td>Lyon</td></tr><tr data-ville=\"Marseille\"><td>3</td><td>Emma</td><td>Marseille</td></tr><tr data-ville=\"Paris\"><td>4</td><td>Nathan</td><td>Paris</td></tr><tr data-ville=\"Lyon\"><td>6</td><td>Hugo</td><td>Lyon</td></tr><tr data-ville=\"Paris\"><td>7</td><td>Léa</td><td>Paris</td></tr></tbody></table></div><br><br>Pour trouver les clients qui habitent dans la même ville, nous allons les associer deux par deux pour former des paires.<br><br><figure class=\"self-map\" aria-label=\"Chaque ligne est une paire de même ville : un client à gauche, un autre à droite\"><div class=\"pd-onids\"><div class=\"pd-onids-lab\"><span>clients c1</span><span>ville</span><span>clients c2</span></div><div class=\"pd-onids-row\"><b>Sophie</b><i><span class=\"sm-ville\">Paris</span></i><b>Nathan</b></div><div class=\"pd-onids-row\"><b>Sophie</b><i><span class=\"sm-ville\">Paris</span></i><b>Léa</b></div><div class=\"pd-onids-row\"><b>Nathan</b><i><span class=\"sm-ville\">Paris</span></i><b>Léa</b></div><div class=\"pd-onids-row\"><b>Lucas</b><i><span class=\"sm-ville\">Lyon</span></i><b>Hugo</b></div></div></figure><br><br>Pour former ces paires, il faut comparer les clients entre eux. Mais tous les clients sont dans la même table <code>clients</code>.<br><br>On va donc utiliser la table <code>clients</code> deux fois, avec un nom différent pour chaque côté de la comparaison.",
     studio:{pointCards:{
       eye:"SELF JOIN",title:"Relier une table à elle-même.",
-      lead:"Un <code>SELF JOIN</code> compare les lignes d’une table entre elles en donnant deux rôles différents à la même table.",
+      lead:"Un <code>SELF JOIN</code> permet de relier des lignes d’une même table entre elles. Pour cela, on utilise la table deux fois avec deux alias différents.",
       rule:{lines:[
-          {tok:"FROM",val:"clients c1",tag:"la table dans le rôle du premier client",keep:1},
-          {tok:"JOIN",val:"clients c2",tag:"la même table dans le rôle du second",keep:1},
-          {tok:"ON",val:"c1.ville = c2.ville",tag:"deux clients de la même ville"},
-          {tok:"AND",val:"c1.id < c2.id",tag:"chaque paire une seule fois"}
+          {tok:"FROM",val:"clients c1",tag:"la table clients, appelée ici c1",keep:1},
+          {tok:"JOIN",val:"clients c2",tag:"la même table, appelée ici c2",keep:1},
+          {tok:"ON",val:"c1.ville = c2.ville",tag:"garder les clients qui ont la même ville"},
+          {tok:"AND",val:"c1.id < c2.id",tag:"garder chaque paire une seule fois"}
         ]},
       cards:[
         {t:"Une table, deux rôles",
@@ -6088,10 +6088,10 @@ const MODULES = [
       note:"Réflexe : tu dois comparer une ligne avec d’autres lignes de la même table ? Pense <code>SELF JOIN</code>, puis donne-lui deux alias."},
     viz:"selfjoin"},
   anatomie:[
-    {tok:"FROM clients c1",txt:"La table clients joue le rôle du premier client."},
-    {tok:"JOIN clients c2",txt:"La même table joue maintenant le rôle du deuxième client."},
-    {tok:"ON c1.ville = c2.ville",txt:"Garde les clients qui habitent dans la même ville."},
-    {tok:"AND c1.id < c2.id",txt:"Garde chaque paire une seule fois et empêche un client d’être associé à lui-même."},
+    {tok:"FROM clients c1",txt:"La table clients, appelée ici c1."},
+    {tok:"JOIN clients c2",txt:"La même table, appelée ici c2."},
+    {tok:"ON c1.ville = c2.ville",txt:"Garder les clients qui ont la même ville."},
+    {tok:"AND c1.id < c2.id",txt:"Garder chaque paire une seule fois."},
     {tok:"SELECT c1.nom, c2.nom, c1.ville",txt:"Affiche les deux clients et leur ville commune."}
   ],
   exemple:"SELECT c1.nom AS client1, c2.nom AS client2, c1.ville\nFROM clients c1\nJOIN clients c2\nON c1.ville = c2.ville AND c1.id < c2.id;",
