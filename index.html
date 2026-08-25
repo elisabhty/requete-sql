@@ -1339,6 +1339,11 @@
   .sql-viz[data-viz="outer"] .join-out .join-pill[data-when]{display:none}
   .sql-viz[data-viz="outer"][data-phase="2"] .join-pill[data-when]{display:flex}
   .subq-recap .jr-type,.subq-recap thead th:first-child{width:36%}
+  /* Le cours tient dans une colonne d'environ 394 px quelle que soit la
+     fenêtre : une troisième colonne n'y entrerait pas. L'exemple se lit donc
+     sous sa description, décalé et en chasse fixe. */
+  .subq-recap .jr-ex{display:block;margin-top:5px;padding-left:9px;border-left:2px solid var(--line-2);font-family:var(--mono);font-size:11px;line-height:1.5;color:var(--ink-3);white-space:pre-wrap;overflow-wrap:anywhere}
+  .subq-recap tr.on .jr-ex{border-left-color:var(--accent)}
   .sql-viz[data-viz="subquery_in"] .join-out .join-pill[data-when],
   .sql-viz[data-viz="subquery_notin"] .join-out .join-pill[data-when],
   .sql-viz[data-viz="subquery_select"] .join-out .join-pill[data-when],
@@ -1378,6 +1383,24 @@
   .sql-viz[data-viz="subquery_from"][data-phase="2"] .jchip[data-k="B"],
   .sql-viz[data-viz="subquery_from"][data-phase="2"] .jchip[data-k="C"]{background:var(--accent-soft)}
   .sql-viz[data-viz="subquery_from"][data-phase="2"] .jchip[data-k="null"]{opacity:.35}
+  .server-badge{display:inline-flex;align-items:center;gap:7px;margin:0 0 12px;padding:7px 12px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font-size:11.5px;font-weight:800;letter-spacing:.15px;line-height:1.3}
+  .server-badge i{font-style:normal;opacity:.85}
+  .xf-noexec{margin:0;padding:14px 16px;background:var(--warn-soft);color:var(--warn);font-size:13.5px;font-weight:650;line-height:1.45}
+  .exframe.no-exec .xf-actions{display:none}
+  .pd-priv{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:2px 0 8px}
+  .pd-priv-chip{display:inline-block;padding:5px 9px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--ink-2)}
+  .pd-priv-chip.on{background:var(--accent-soft);border-color:rgba(91,91,214,.28);color:var(--accent)}
+  .pd-priv-chip.off{opacity:.4;text-decoration:line-through}
+  .pd-priv small{flex:1 1 100%;color:var(--ink-3);font-size:11px}
+  .sql-viz[data-viz="security"] .join-out .join-pill[data-when]{display:none}
+  .sql-viz[data-viz="security"][data-phase="0"] .join-pill[data-when="s"],
+  .sql-viz[data-viz="security"][data-phase="1"] .join-pill[data-when="g"],
+  .sql-viz[data-viz="security"][data-phase="2"] .join-pill[data-when="r"]{display:flex}
+  .sql-viz[data-viz="security"][data-phase="1"] .jchip[data-k="sel"],
+  .sql-viz[data-viz="security"][data-phase="2"] .jchip[data-k="sel"]{background:var(--accent-soft)}
+  .sql-viz[data-viz="security"][data-phase="1"] .jchip[data-k="off"],
+  .sql-viz[data-viz="security"][data-phase="2"] .jchip[data-k="off"]{opacity:.35}
+  .sql-viz[data-viz="security"][data-phase="2"] .jchip[data-k="all"]{background:var(--warn-soft);color:var(--warn)}
   .sql-viz[data-kind="er"][data-paused="1"] .join-pill,
   .sql-viz[data-kind="er"][data-paused="1"] .join-out,
   .sql-viz[data-kind="er"][data-paused="1"] .jchip{animation-play-state:paused!important}
@@ -6119,48 +6142,45 @@ const MODULES = [
   indice:"Compare à <code>(SELECT AVG(age) FROM clients)</code>.",
   richLesson:true, earlyDemo:true },
 { id:45, titre:"Sous-requête dans WHERE avec IN", résumé:"Filtrer avec une liste issue d’une autre requête",
-  situation:"Tu veux afficher les clients qui ont commandé le produit « Fibre Prébiotique » (id 1).<br><br>Le nom du client est dans la table <code>clients</code>. Les produits commandés sont dans <code>commandes</code>, via <code>produit_id</code>.<br><br>Dans la table <code>commandes</code>, le produit 1 apparaît plusieurs fois :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td></tr><tr><td>5</td><td>4</td><td>1</td></tr><tr><td>8</td><td>7</td><td>1</td></tr><tr><td>15</td><td>5</td><td>1</td></tr></tbody></table></div><br><br>Tu peux résoudre le problème en deux étapes : d’abord récupérer les <code>client_id</code> des commandes du produit 1, puis chercher les clients dont l’<code>id</code> appartient à cette liste.",
-  situationTail:"Une sous-requête dans <code>WHERE</code> peut produire une liste de valeurs. <code>IN</code> vérifie ensuite si une valeur appartient à cette liste.",
+  situation:"Tu veux afficher les clients qui ont commandé le produit « Fibre Prébiotique » (id 1).<br><br>Le nom du client est dans la table <code>clients</code>. Les produits commandés sont dans <code>commandes</code>, via <code>produit_id</code>.<br><br>Dans <code>commandes</code>, le produit 1 apparaît quatre fois :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td></tr><tr><td>5</td><td>4</td><td>1</td></tr><tr><td>8</td><td>7</td><td>1</td></tr><tr><td>15</td><td>5</td><td>1</td></tr></tbody></table></div><br><br>Tu peux d’abord récupérer les <code>client_id</code> de ces commandes, puis afficher les clients dont l’<code>id</code> est dans cette liste.",
+  situationTail:"Une sous-requête dans le <code>WHERE</code> avec <code>IN</code> permet de filtrer une table en fonction du résultat d’une autre requête.",
   studio:{pointCards:{
       eye:"IN",title:"La sous-requête crée une liste.",
-      lead:"Avec <code>IN</code>, le résultat d’une première requête devient la liste utilisée pour filtrer la requête principale.",
+      lead:"<code>IN</code> compare une valeur à une liste retournée par une sous-requête.",
       chain:[
         {k:"Créer la liste",v:"SELECT client_id … WHERE produit_id = 1"},
         {k:"Chercher dedans",v:"clients.id IN (…)"}
       ],
       cards:[
-        {t:"1. Créer la liste",
-         b:"<p>La sous-requête récupère les <code>client_id</code> des commandes dont <code>produit_id = 1</code> : 1, 4, 7 et 5.</p>"},
-        {t:"2. Chercher dans la liste",draw:"repeat",src:"clients.id",outs:["1 Sophie","4 Nathan","5 Chloé","7 Léa"],
-         b:"<p><code>clients.id IN (…)</code> garde un client si son identifiant apparaît dans le résultat de la sous-requête.</p>"},
-        {t:"Une seule colonne",
-         b:"<p>La sous-requête utilisée avec <code>IN</code> doit retourner une seule colonne : ici <code>commandes.client_id</code>.</p>"},
-        {t:"Plusieurs valeurs possibles",draw:"oncond",pairs:[{l:'1',n:'Sophie',r:'1'},{l:'4',n:'Nathan',r:'5'},{l:'7',n:'Léa',r:'8'}],
-         b:"<p>Plusieurs clients peuvent avoir commandé le même produit. <code>IN</code> compare <code>clients.id</code> à toute cette liste.</p>"}
+        {t:"Sous-requête entre parenthèses",
+         b:"<p>La sous-requête se place entre parenthèses après <code>IN</code>. Elle retourne ici les <code>client_id</code> 1, 4, 7 et 5.</p>"},
+        {t:"IN, pas =",draw:"oncond",pairs:[{l:'1',n:'Sophie',r:'1'},{l:'4',n:'Nathan',r:'4'},{l:'7',n:'Léa',r:'7'}],
+         b:"<p>Plusieurs clients ont commandé ce produit. <code>IN</code> compare <code>clients.id</code> à toute la liste. Un <code>=</code> n’accepte qu’une seule valeur.</p>"},
+        {t:"Ordre d’exécution",draw:"repeat",src:"clients.id",outs:["1 Sophie","4 Nathan","5 Chloé","7 Léa"],
+         b:"<p>SQL exécute d’abord la sous-requête, puis utilise la liste obtenue pour filtrer la requête principale.</p>"}
       ]},
-    reflex:{a:{k:"Sous-requête",t:"fabrique une liste"},
-      b:{k:"IN",t:"cherche dans cette liste"},
+    reflex:{a:{k:"IN",t:"compare à une liste de valeurs"},
+      b:{k:"Sous-requête",t:"fournit cette liste"},
       note:"Réflexe : si une première requête peut fournir la liste des valeurs recherchées, pense <code>IN (sous-requête)</code>."},
     viz:"subquery_in"},
   anatomie:[
-    {tok:"SELECT clients.nom",txt:"Affiche le nom des clients."},
-    {tok:"FROM clients",txt:"La requête principale travaille sur la table clients."},
-    {tok:"WHERE clients.id IN (...)",txt:"Garde les clients dont l’identifiant appartient à la liste."},
-    {tok:"SELECT commandes.client_id",txt:"La sous-requête produit la liste des identifiants de clients."},
-    {tok:"WHERE commandes.produit_id = 1",txt:"Ne garde que les commandes du produit 1."}
+    {tok:"SELECT clients.nom",txt:"La colonne à afficher."},
+    {tok:"FROM clients",txt:"La table principale."},
+    {tok:"WHERE clients.id IN (...)",txt:"Filtre les clients dont l’id est dans la liste retournée."},
+    {tok:"(SELECT commandes.client_id FROM commandes WHERE commandes.produit_id = 1)",txt:"Sous-requête qui récupère les clients ayant commandé le produit 1."}
   ],
   exemple:"SELECT clients.nom\nFROM clients\nWHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);",
   attendu:"4 lignes : Sophie, Nathan, Chloé et Léa — les clients ayant commandé le produit id 1.",
-  retenir:"Une sous-requête dans <code>WHERE</code> peut fabriquer une <b>liste</b>. <code>IN</code> teste ensuite si une valeur appartient à cette liste.<br><br>La sous-requête doit renvoyer <b>une seule colonne</b>. Avec plusieurs valeurs possibles, n’utilise pas <code>=</code>.",
-  piege:{t:"Utiliser = pour une liste",
-    p:"La sous-requête peut retourner plusieurs <code>client_id</code>. Tu ne cherches donc pas une seule valeur : tu veux savoir si <code>clients.id</code> appartient à une liste. Utilise <code>IN</code>.",
+  retenir:"Une sous-requête dans <code>WHERE</code> peut fabriquer une <b>liste</b>. <code>IN</code> teste ensuite si une valeur appartient à cette liste.<br><br>La sous-requête doit renvoyer <b>une seule colonne</b>. Avec plusieurs valeurs possibles, n’utilise pas <code>=</code>. SQL exécute d’abord l’intérieur des parenthèses.",
+  piege:{t:"Utiliser = au lieu de IN",
+    p:"Si la sous-requête retourne plusieurs lignes, <code>=</code> provoque une erreur. Utilise <code>IN</code> pour comparer à une liste.",
     exec:true,
     sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id = (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);",
-    out:"Cette écriture traite la sous-requête comme une valeur unique. SQLite refuse souvent, ou ne compare qu’une seule ligne.",
+    out:"SQLite refuse souvent, ou ne compare qu’une seule ligne : <code>=</code> attend une valeur unique.",
     fixSql:"SELECT clients.nom\nFROM clients\nWHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);"},
   consigne:"Affiche les noms des clients qui ont commandé le produit id 1 (Fibre Prébiotique).",
   solution:"SELECT clients.nom\nFROM clients\nWHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);",
-  indice:"Commence par récupérer les <code>client_id</code> des commandes du produit 1, puis utilise cette liste avec <code>IN</code>.",
+  indice:"Utilise <code>IN</code> avec une sous-requête sur la table <code>commandes</code> filtrée par <code>produit_id = 1</code>.",
   subqueryRecap:'in',
   richLesson:true, earlyDemo:true,
   testeVariants:[
@@ -6169,49 +6189,48 @@ const MODULES = [
     {k:'sub_in',label:'IN + sous-requête',sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);",tone:'good'}
   ] },
 { id:46, titre:"Sous-requête avec NOT IN", résumé:"Trouver les clients sans commande",
-  situation:"Tu veux maintenant faire l’inverse : afficher les clients qui n’ont jamais passé commande.<br><br>Tu peux d’abord récupérer tous les <code>client_id</code> présents dans <code>commandes</code>, puis garder les clients dont l’<code>id</code> n’apparaît pas dans cette liste.<br><br>Mais il y a un piège dans notre base : la commande invitée <b>#16</b> n’est associée à aucun client.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th><th>date_commande</th></tr></thead><tbody><tr><td>16</td><td>NULL</td><td>4</td><td>1</td><td>2023-08-03</td></tr></tbody></table></div><br><br>La sous-requête peut donc retourner <code>NULL</code> parmi les <code>client_id</code>. Or <code>NOT IN</code> se comporte mal lorsqu’un <code>NULL</code> est présent dans la liste. Il faut d’abord l’exclure.",
-  situationTail:"Avec <code>NOT IN</code>, vérifie toujours si la sous-requête peut retourner <code>NULL</code>. Ici, on ajoute <code>client_id IS NOT NULL</code> avant d’utiliser la liste.",
+  situation:"Tu veux afficher les clients qui n’ont jamais passé commande.<br><br>Une sous-requête peut lister tous les <code>client_id</code> présents dans <code>commandes</code>. Ensuite, tu cherches les clients dont l’<code>id</code> n’est <b>pas</b> dans cette liste.<br><br>Mais attention : la table <code>commandes</code> contient une commande invitée avec <code>client_id</code> NULL. Si la sous-requête renvoie ce NULL, le résultat peut devenir vide.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th><th>date_commande</th></tr></thead><tbody><tr><td>16</td><td>NULL</td><td>4</td><td>1</td><td>2023-08-03</td></tr></tbody></table></div>",
+  situationTail:"<code>NOT IN</code> compare à une liste. Si la liste contient <code>NULL</code>, aucune correspondance n’est trouvée car <code>NULL</code> n’est pas comparable. Il faut donc exclure les NULL dans la sous-requête.",
   studio:{pointCards:{
       eye:"NOT IN",title:"La sous-requête crée une liste à exclure.",
-      lead:"<code>NOT IN</code> trouve les valeurs absentes d’une liste. Un <code>NULL</code> dans cette liste peut empêcher d’obtenir le résultat attendu.",
+      lead:"Pour trouver les absents, utilise <code>NOT IN</code> avec une sous-requête, en éliminant les <code>NULL</code>.",
       chain:[
         {k:"Créer la liste",v:"SELECT client_id FROM commandes"},
         {k:"Retirer le NULL",v:"WHERE client_id IS NOT NULL"},
         {k:"Exclure la liste",v:"clients.id NOT IN (…)"}
       ],
       cards:[
-        {t:"Créer la liste",
-         b:"<p><code>SELECT client_id FROM commandes</code> récupère les identifiants des clients ayant commandé.</p>"},
-        {t:"Le piège du NULL",draw:"nulltrap",
-         b:"<p>La commande #16 possède <code>client_id = NULL</code>. Ce <code>NULL</code> se retrouve donc dans la liste. Avec <code>NOT IN</code>, le résultat devient vide.</p>"},
+        {t:"NOT IN",
+         b:"<p><code>WHERE clients.id NOT IN (sous-requête)</code> garde les lignes dont la valeur n’apparaît pas dans la liste.</p>"},
+        {t:"Problème avec NULL",draw:"nulltrap",
+         b:"<p>Si la sous-requête contient <code>NULL</code> (commande #16), <code>NOT IN</code> ne retourne aucune ligne. On ajoute <code>WHERE client_id IS NOT NULL</code> dans la sous-requête.</p>"},
         {t:"Retirer le NULL",
-         b:"<p><code>WHERE client_id IS NOT NULL</code> retire la commande invitée de la liste avant d’utiliser <code>NOT IN</code>.</p>"},
+         b:"<p>La sous-requête filtre sur <code>client_id IS NOT NULL</code>, puis la requête principale filtre sur <code>NOT IN</code>.</p>"},
         {t:"Chercher les absents",
          b:"<p><code>clients.id NOT IN (…)</code> peut alors garder les clients dont l’identifiant n’apparaît dans aucune commande : ici, Inès.</p>"}
       ]},
-    reflex:{a:{k:"NOT IN",t:"cherche les valeurs absentes"},
-      b:{k:"IS NOT NULL",t:"sécurise la liste"},
-      note:"Réflexe : avant un <code>NOT IN</code>, vérifie si la sous-requête peut retourner <code>NULL</code>."},
+    reflex:{a:{k:"NOT IN",t:"garde les valeurs absentes de la liste"},
+      b:{k:"IS NOT NULL",t:"exclut les NULL de la sous-requête"},
+      note:"Avant d’utiliser <code>NOT IN</code>, vérifie si la colonne peut contenir <code>NULL</code>. Si oui, filtre-la avec <code>IS NOT NULL</code>."},
     viz:"subquery_notin"},
   anatomie:[
-    {tok:"SELECT clients.nom",txt:"Affiche le nom des clients."},
-    {tok:"FROM clients",txt:"La table dans laquelle on cherche les clients sans commande."},
-    {tok:"WHERE clients.id NOT IN (...)",txt:"Garde les identifiants absents de la liste."},
-    {tok:"SELECT commandes.client_id",txt:"Produit la liste des clients ayant commandé."},
-    {tok:"WHERE commandes.client_id IS NOT NULL",txt:"Retire le NULL de la commande invitée avant la comparaison."}
+    {tok:"SELECT clients.nom",txt:"La colonne à afficher."},
+    {tok:"FROM clients",txt:"La table principale."},
+    {tok:"WHERE clients.id NOT IN (...)",txt:"Garde les clients dont l’id n’est pas dans la liste."},
+    {tok:"(SELECT commandes.client_id FROM commandes WHERE commandes.client_id IS NOT NULL)",txt:"Sous-requête qui liste les clients ayant commandé, sans NULL."}
   ],
   exemple:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);",
-  attendu:"1 ligne : Inès, la seule cliente qui n’a jamais passé commande.",
+  attendu:"1 ligne : Inès (la seule cliente sans commande).",
   retenir:"<code>NOT IN</code> cherche les valeurs <b>absentes</b> d’une liste.<br><br>Si la liste contient un <code>NULL</code>, SQL ne peut plus conclure qu’une valeur est absente de <b>toute</b> la liste. Le résultat devient vide.<br><br>La commande invitée #16 impose donc <code>WHERE client_id IS NOT NULL</code> dans la sous-requête.",
-  piege:{t:"Laisser NULL dans la sous-requête",
-    p:"La commande invitée #16 possède <code>client_id = NULL</code>. Si ce <code>NULL</code> reste dans la liste utilisée par <code>NOT IN</code>, SQL ne peut pas conclure qu’un identifiant est absent de toute la liste. Le résultat devient vide.",
+  piege:{t:"Oublier IS NOT NULL dans la sous-requête",
+    p:"Sans <code>WHERE client_id IS NOT NULL</code>, la sous-requête inclut un <code>NULL</code> (commande invitée). <code>NOT IN</code> avec <code>NULL</code> ne retourne aucune ligne.",
     exec:true,
     sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n);",
     out:"0 ligne : Inès disparaît à cause du NULL présent dans la liste.",
     fixSql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);"},
-  consigne:"Affiche les clients qui n’ont jamais passé commande avec <code>NOT IN</code>, sans laisser la commande invitée fausser le résultat.",
+  consigne:"Affiche les clients qui n’ont jamais commandé, en utilisant <code>NOT IN</code> et une sous-requête.",
   solution:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);",
-  indice:"La commande #16 contient un <code>client_id</code> NULL. Retire-le de la sous-requête avant d’utiliser <code>NOT IN</code>.",
+  indice:"Ajoute <code>IS NOT NULL</code> dans la sous-requête pour éviter le piège du NULL.",
   subqueryRecap:'notin',
   richLesson:true, earlyDemo:true,
   testeVariants:[
@@ -6221,11 +6240,11 @@ const MODULES = [
     {k:'notin',label:'NOT IN corrigé',sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);",tone:'good'}
   ] },
 { id:47, titre:"Sous-requête dans SELECT", résumé:"Calculer une valeur pour chaque ligne",
-  situation:"Tu veux afficher chaque client avec son nombre de commandes, mais sans utiliser <code>GROUP BY</code> dans la requête principale.<br><br>Pour chaque client, tu lances une petite sous-requête qui compte uniquement les commandes associées à son <code>id</code>.<br><br>Lorsque la requête principale est sur Sophie, la sous-requête cherche les commandes où <code>client_id = 1</code>. Lorsqu’elle passe à Lucas, elle cherche celles où <code>client_id = 2</code>.<br><br>La sous-requête dépend donc du client actuellement traité : on dit qu’elle est <b>corrélée</b>.",
-  situationTail:"Une sous-requête placée dans <code>SELECT</code> peut calculer une valeur pour chaque ligne. Ici, elle compte les commandes correspondant au client courant.",
+  situation:"Tu veux afficher chaque client avec son nombre de commandes, mais sans utiliser <code>GROUP BY</code>.<br><br>Tu peux placer une sous-requête directement dans le <code>SELECT</code> pour calculer une valeur pour chaque ligne de la table principale.<br><br>Cette sous-requête est <b>corrélée</b> : elle référence l’<code>id</code> du client de la ligne courante. Lorsque la requête principale est sur Sophie, elle compte les commandes où <code>client_id = 1</code>. Pour Lucas, <code>client_id = 2</code>.",
+  situationTail:"Une sous-requête dans le <code>SELECT</code> doit retourner une seule valeur. Elle peut utiliser la valeur d’une colonne de la requête externe pour être corrélée.",
   studio:{pointCards:{
       eye:"SELECT",title:"La sous-requête calcule une valeur.",
-      lead:"Dans <code>SELECT</code>, une sous-requête peut produire une valeur différente pour chaque ligne de la requête principale.",
+      lead:"Une sous-requête dans <code>SELECT</code> calcule une valeur par ligne, souvent en lien avec la ligne courante.",
       rule:{lines:[
           {tok:"SELECT",val:"clients.nom",tag:"une ligne de la requête principale",keep:1},
           {tok:"(SELECT COUNT(*)",val:"FROM commandes",tag:"calcule une valeur pour cette ligne"},
@@ -6233,38 +6252,37 @@ const MODULES = [
           {tok:") AS",val:"nb_commandes",tag:"nomme le résultat"}
         ]},
       cards:[
-        {t:"Une valeur par client",draw:"groupcount",
-         b:"<p><code>COUNT(*)</code> produit un nombre : le nombre de commandes correspondant au client courant.</p>"},
-        {t:"Relier au client courant",
-         b:"<p><code>commandes.client_id = clients.id</code> fait dépendre la sous-requête du client actuellement traité.</p>"},
-        {t:"C’est une corrélation",
-         b:"<p>La sous-requête utilise <code>clients.id</code>, une valeur provenant de la requête principale. On parle de sous-requête corrélée.</p>"},
+        {t:"Sous-requête scalaire",draw:"groupcount",
+         b:"<p>La sous-requête doit retourner une seule valeur (une ligne, une colonne). Ici, <code>COUNT(*)</code> produit le nombre de commandes du client courant.</p>"},
+        {t:"Corrélation",
+         b:"<p>La clause <code>WHERE commandes.client_id = clients.id</code> relie la sous-requête à la ligne externe.</p>"},
+        {t:"Sans GROUP BY",
+         b:"<p>Cela permet de calculer un agrégat par ligne sans avoir à regrouper toute la requête.</p>"},
         {t:"Aucune commande = 0",
          b:"<p>Pour Inès, aucune commande ne possède <code>client_id = 9</code>. <code>COUNT(*)</code> retourne donc 0. La commande invitée #16 n’est comptée pour personne : son <code>client_id</code> vaut <code>NULL</code>.</p>"}
       ]},
-    reflex:{a:{k:"SELECT",t:"une valeur calculée par ligne"},
-      b:{k:"Corrélation",t:"utilise la ligne courante"},
-      note:"Réflexe : si la sous-requête doit calculer quelque chose pour chaque client, elle doit être reliée au <code>clients.id</code> courant."},
+    reflex:{a:{k:"Sous-requête dans SELECT",t:"retourne une valeur par ligne"},
+      b:{k:"Corrélation",t:"référence la ligne externe (clients.id)"},
+      note:"Pense à la corrélation : sans <code>WHERE commandes.client_id = clients.id</code>, la sous-requête retourne toujours le même total pour tous."},
     viz:"subquery_select"},
   anatomie:[
-    {tok:"SELECT clients.nom",txt:"Affiche le nom du client."},
-    {tok:"(SELECT COUNT(*) ...)",txt:"Calcule une valeur supplémentaire pour ce client."},
-    {tok:"FROM commandes",txt:"La sous-requête cherche dans les commandes."},
-    {tok:"WHERE commandes.client_id = clients.id",txt:"Ne compte que les commandes appartenant au client courant."},
-    {tok:"AS nb_commandes",txt:"Donne un nom à la valeur calculée."}
+    {tok:"SELECT clients.nom",txt:"Le nom du client."},
+    {tok:"(SELECT COUNT(*) FROM commandes WHERE commandes.client_id = clients.id)",txt:"La sous-requête compte les commandes du client courant."},
+    {tok:"AS nb_commandes",txt:"Donne un nom à la valeur calculée."},
+    {tok:"FROM clients",txt:"La table principale."}
   ],
   exemple:"SELECT clients.nom,\n  (SELECT COUNT(*)\n   FROM commandes\n   WHERE commandes.client_id = clients.id) AS nb_commandes\nFROM clients;",
-  attendu:"9 lignes : chaque client avec son nombre de commandes. Sophie : 3, Lucas : 2, Inès : 0. La commande invitée #16 n’est comptée pour aucun client car son client_id vaut NULL.",
+  attendu:"9 lignes : chaque client avec son nombre de commandes. Sophie : 3, Lucas : 2, Inès : 0. La commande invitée #16 n’est comptée pour aucun client.",
   retenir:"Une sous-requête dans <code>SELECT</code> calcule <b>une valeur par ligne</b>.<br><br>Elle est souvent <b>corrélée</b> : elle utilise une colonne de la requête principale, ici <code>clients.id</code>.<br><br>Sans ce lien, elle compte toute la table. Pour Inès, <code>COUNT(*)</code> vaut 0. La commande invitée n’appartient à personne.",
-  piege:{t:"Oublier le lien avec le client",
-    p:"Sans <code>WHERE commandes.client_id = clients.id</code>, la sous-requête compte toute la table <code>commandes</code>. Comme elle contient 16 commandes, chaque client afficherait 16.",
+  piege:{t:"Oublier la corrélation",
+    p:"Si tu écris <code>SELECT COUNT(*) FROM commandes</code> sans la clause <code>WHERE</code>, la sous-requête retourne 16 pour chaque client. Le résultat est faux.",
     exec:true,
     sql:"SELECT clients.nom,\n  (SELECT COUNT(*)\n   FROM commandes) AS nb_commandes\nFROM clients;",
     out:"Tous les clients affichent 16, même Inès.",
     fixSql:"SELECT clients.nom,\n  (SELECT COUNT(*)\n   FROM commandes\n   WHERE commandes.client_id = clients.id) AS nb_commandes\nFROM clients;"},
   consigne:"Affiche chaque client avec son nombre de commandes en utilisant une sous-requête dans le SELECT.",
   solution:"SELECT clients.nom,\n  (SELECT COUNT(*)\n   FROM commandes\n   WHERE commandes.client_id = clients.id) AS nb_commandes\nFROM clients;",
-  indice:"Dans la sous-requête, compare <code>commandes.client_id</code> au <code>clients.id</code> de la ligne courante.",
+  indice:"Ajoute une condition dans la sous-requête : <code>WHERE commandes.client_id = clients.id</code>.",
   subqueryRecap:'select',
   richLesson:true, earlyDemo:true,
   testeVariants:[
@@ -6273,11 +6291,11 @@ const MODULES = [
     {k:'sub_select',label:'Sous-requête SELECT',sql:"SELECT clients.nom,\n  (SELECT COUNT(*)\n   FROM commandes\n   WHERE commandes.client_id = clients.id) AS nb_commandes\nFROM clients;",tone:'good'}
   ] },
 { id:48, titre:"Sous-requête dans FROM", résumé:"Utiliser une sous-requête comme table",
-  situation:"Tu veux encore afficher chaque client avec son nombre de commandes, mais cette fois tu vas d’abord construire un résultat intermédiaire.<br><br>La sous-requête regroupe la table <code>commandes</code> par <code>client_id</code> et calcule le nombre de commandes de chaque client. Elle produit un petit résultat avec deux colonnes : <code>client_id</code> et <code>nb</code>.<br><br>Avec la commande invitée, ce résultat contient aussi un groupe inattendu :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>client_id</th><th>nb</th></tr></thead><tbody><tr><td>1</td><td>3</td></tr><tr><td>2</td><td>2</td></tr><tr><td>NULL</td><td>1</td></tr></tbody></table></div><br><br>C’est normal : la commande #16 est comptée dans le groupe <code>NULL</code>. Ce résultat peut ensuite être utilisé comme une table et relié à <code>clients</code>.",
-  situationTail:"Une sous-requête placée dans <code>FROM</code> ou dans un <code>JOIN</code> produit un résultat intermédiaire que la requête principale peut utiliser comme une table.",
+  situation:"Tu veux afficher chaque client avec son nombre de commandes, mais cette fois en utilisant une table dérivée.<br><br>Tu peux écrire une sous-requête dans le <code>FROM</code> qui calcule le nombre de commandes par client, puis la joindre à la table <code>clients</code>.<br><br>Avec la commande invitée, ce résultat contient aussi un groupe inattendu :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>client_id</th><th>nb</th></tr></thead><tbody><tr><td>1</td><td>3</td></tr><tr><td>2</td><td>2</td></tr><tr><td>NULL</td><td>1</td></tr></tbody></table></div><br><br>C’est normal : la commande #16 est comptée dans le groupe <code>NULL</code>. Ce résultat peut ensuite être utilisé comme une table et relié à <code>clients</code>.",
+  situationTail:"Une sous-requête dans le <code>FROM</code> est aussi appelée table dérivée. Elle doit avoir un alias.",
   studio:{pointCards:{
       eye:"FROM",title:"La sous-requête crée une table.",
-      lead:"Une sous-requête dans <code>FROM</code> construit d’abord un résultat intermédiaire, puis la requête principale travaille avec ce résultat.",
+      lead:"Une sous-requête dans <code>FROM</code> crée une table temporaire que l’on peut joindre.",
       rule:{lines:[
           {tok:"SELECT",val:"client_id, COUNT(*) AS nb",tag:"fabrique la table intermédiaire"},
           {tok:"FROM",val:"commandes GROUP BY client_id",tag:"une ligne par client_id, y compris NULL"},
@@ -6285,38 +6303,37 @@ const MODULES = [
           {tok:"LEFT JOIN",val:"… ON clients.id = stats.client_id",tag:"relie chaque client à sa ligne"}
         ]},
       cards:[
-        {t:"1. Construire la table",
-         b:"<p><code>GROUP BY client_id</code> crée une ligne par <code>client_id</code> et <code>COUNT(*)</code> calcule son nombre de commandes. Le groupe <code>NULL</code> compte la commande invitée : 1.</p>"},
-        {t:"2. Donner un nom",
-         b:"<p><code>AS stats</code> donne un nom au résultat intermédiaire. On peut ensuite utiliser <code>stats.client_id</code> et <code>stats.nb</code>.</p>"},
-        {t:"3. Relier les résultats",draw:"nullgroup",
-         b:"<p><code>ON clients.id = stats.client_id</code> associe chaque client à son nombre de commandes. Le groupe <code>NULL</code> ne correspond à aucun <code>clients.id</code> : la commande invitée existe dans les stats, mais n’appartient à personne.</p>"},
-        {t:"4. Garder tous les clients",
-         b:"<p><code>LEFT JOIN</code> conserve les clients qui n’ont aucune ligne dans <code>stats</code>, comme Inès. Son <code>nb</code> vaut alors <code>NULL</code>.</p>"}
+        {t:"Table dérivée",
+         b:"<p>La sous-requête est placée entre parenthèses après <code>FROM</code> ou <code>JOIN</code>, avec un alias. <code>GROUP BY client_id</code> crée une ligne par client, y compris le groupe <code>NULL</code> de la commande invitée.</p>"},
+        {t:"Alias obligatoire",
+         b:"<p>Chaque table dérivée doit avoir un alias, par exemple <code>AS stats</code>. On peut ensuite utiliser <code>stats.client_id</code> et <code>stats.nb</code>.</p>"},
+        {t:"LEFT JOIN",draw:"nullgroup",
+         b:"<p>Pour garder tous les clients, même sans commande, on utilise <code>LEFT JOIN</code>. <code>ON clients.id = stats.client_id</code> ne relie personne au groupe <code>NULL</code>.</p>"},
+        {t:"Garder Inès",
+         b:"<p><code>LEFT JOIN</code> conserve les clients absents de <code>stats</code>, comme Inès. Son <code>nb</code> vaut alors <code>NULL</code>. Un <code>INNER JOIN</code> la ferait disparaître.</p>"}
       ]},
-    reflex:{a:{k:"Sous-requête FROM",t:"fabrique une table intermédiaire"},
-      b:{k:"Alias",t:"permet de nommer et utiliser cette table"},
-      note:"Réflexe : lis d’abord la sous-requête seule. Comprends le petit tableau qu’elle produit, puis regarde comment la requête principale l’utilise."},
+    reflex:{a:{k:"Sous-requête FROM",t:"crée une table temporaire"},
+      b:{k:"LEFT JOIN",t:"permet de garder tous les clients"},
+      note:"Pense à utiliser <code>LEFT JOIN</code> si tu veux inclure les clients sans commande. Un <code>INNER JOIN</code> les ferait disparaître."},
     viz:"subquery_from"},
   anatomie:[
-    {tok:"SELECT client_id, COUNT(*) AS nb",txt:"Crée une ligne avec le nombre de commandes pour chaque client_id."},
-    {tok:"FROM commandes GROUP BY client_id",txt:"Regroupe les commandes selon leur client_id — y compris le groupe NULL."},
-    {tok:"AS stats",txt:"Donne le nom stats au résultat de la sous-requête."},
-    {tok:"LEFT JOIN (...) AS stats",txt:"Utilise ce résultat intermédiaire comme une table."},
-    {tok:"ON clients.id = stats.client_id",txt:"Relie chaque client à sa ligne dans stats. NULL ne joint personne."}
+    {tok:"FROM clients",txt:"La table principale."},
+    {tok:"LEFT JOIN (SELECT client_id, COUNT(*) AS nb FROM commandes GROUP BY client_id) AS stats",txt:"Sous-requête FROM qui regroupe par client."},
+    {tok:"ON clients.id = stats.client_id",txt:"Jointure entre les clients et la table dérivée."},
+    {tok:"SELECT clients.nom, stats.nb",txt:"Affiche le nom et le nombre de commandes."}
   ],
-  exemple:"SELECT clients.nom, stats.nb\nFROM clients\nLEFT JOIN (\n  SELECT client_id, COUNT(*) AS nb\n  FROM commandes\n  GROUP BY client_id\n) AS stats\nON clients.id = stats.client_id;",
-  attendu:"9 lignes : tous les clients avec leur nombre de commandes. Inès affiche NULL car aucune ligne de stats ne correspond à son id. Le groupe NULL (commande #16) n’est relié à aucun client.",
+  exemple:"SELECT clients.nom, stats.nb\nFROM clients\nLEFT JOIN (\n  SELECT client_id, COUNT(*) AS nb\n  FROM commandes\n  GROUP BY client_id\n) AS stats ON clients.id = stats.client_id;",
+  attendu:"9 lignes : tous les clients avec leur nombre de commandes. Inès affiche NULL (ou 0 si on utilise COALESCE). Le groupe NULL (commande #16) n’est relié à aucun client.",
   retenir:"Une sous-requête dans <code>FROM</code> fabrique une <b>table intermédiaire</b>. Il faut lui donner un alias.<br><br>Lis-la d’abord seule : ici elle produit aussi <code>NULL | 1</code>, le groupe de la commande invitée.<br><br><code>ON clients.id = stats.client_id</code> ne relie personne à ce groupe. <code>LEFT JOIN</code> garde Inès, avec <code>nb = NULL</code>.",
-  piege:{t:"Utiliser INNER JOIN",
-    p:"La sous-requête ne produit aucune ligne pour Inès puisqu’elle n’a jamais commandé. Avec <code>INNER JOIN</code>, elle disparaîtrait donc complètement du résultat.",
+  piege:{t:"Utiliser INNER JOIN au lieu de LEFT JOIN",
+    p:"Avec <code>INNER JOIN</code>, les clients sans commande (comme Inès) disparaissent car ils n’ont pas de correspondance dans la table dérivée.",
     exec:true,
-    sql:"SELECT clients.nom, stats.nb\nFROM clients\nJOIN (\n  SELECT client_id, COUNT(*) AS nb\n  FROM commandes\n  GROUP BY client_id\n) AS stats\nON clients.id = stats.client_id;",
+    sql:"SELECT clients.nom, stats.nb\nFROM clients\nJOIN (\n  SELECT client_id, COUNT(*) AS nb\n  FROM commandes\n  GROUP BY client_id\n) AS stats ON clients.id = stats.client_id;",
     out:"Inès disparaît du résultat.",
-    fixSql:"SELECT clients.nom, stats.nb\nFROM clients\nLEFT JOIN (\n  SELECT client_id, COUNT(*) AS nb\n  FROM commandes\n  GROUP BY client_id\n) AS stats\nON clients.id = stats.client_id;"},
-  consigne:"Affiche tous les clients avec leur nombre de commandes en utilisant une sous-requête comme table intermédiaire.",
-  solution:"SELECT clients.nom, stats.nb\nFROM clients\nLEFT JOIN (\n  SELECT client_id, COUNT(*) AS nb\n  FROM commandes\n  GROUP BY client_id\n) AS stats\nON clients.id = stats.client_id;",
-  indice:"Commence par créer une sous-requête qui retourne <code>client_id</code> et son nombre de commandes, puis relie ce résultat à <code>clients</code>.",
+    fixSql:"SELECT clients.nom, stats.nb\nFROM clients\nLEFT JOIN (\n  SELECT client_id, COUNT(*) AS nb\n  FROM commandes\n  GROUP BY client_id\n) AS stats ON clients.id = stats.client_id;"},
+  consigne:"Affiche tous les clients et leur nombre de commandes en utilisant une sous-requête dans le FROM.",
+  solution:"SELECT clients.nom, stats.nb\nFROM clients\nLEFT JOIN (\n  SELECT client_id, COUNT(*) AS nb\n  FROM commandes\n  GROUP BY client_id\n) AS stats ON clients.id = stats.client_id;",
+  indice:"Utilise <code>LEFT JOIN</code> avec une sous-requête qui regroupe par <code>client_id</code>.",
   subqueryRecap:'from',
   richLesson:true, earlyDemo:true,
   testeVariants:[
@@ -6413,7 +6430,57 @@ const MODULES = [
   indice:"<code>DELETE FROM commandes WHERE quantite = 1;</code>",
   richLesson:true, earlyDemo:true,
   write:true,
-  verif:"SELECT * FROM commandes ORDER BY id;" }
+  verif:"SELECT * FROM commandes ORDER BY id;" },
+{ id:50, titre:"Sécurité et droits", résumé:"Contrôler les accès avec GRANT et REVOKE",
+  situation:"Tu veux qu’un utilisateur <code>app_user</code> puisse lire la table <code>clients</code>, mais pas la modifier.<br><br>Avec <code>GRANT</code>, tu lui donnes un droit précis — ici <code>SELECT</code>. Plus tard, <code>REVOKE</code> retire ce droit.<br><br>Un <b>SGBD</b> (système de gestion de base de données) est le logiciel qui stocke tes tables et exécute le SQL. Cette application utilise <code>SQLite</code> : tout tient dans le navigateur, sans comptes utilisateurs.<br><br>MySQL, PostgreSQL et SQL Server sont des SGBD <b>serveur</b> : plusieurs utilisateurs se connectent, chacun avec des droits. C’est là que <code>GRANT</code> et <code>REVOKE</code> existent.<br><br><b>Attention :</b> ces commandes ne s’exécutent pas dans SQLite. Ce cours sert à comprendre le principe. Donner trop de droits permettrait de modifier ou supprimer des données.",
+  situationTail:"<code>GRANT</code> donne un droit précis, comme <code>SELECT</code> sur une table. <code>REVOKE</code> le retire. Le piège classique : <code>ALL PRIVILEGES</code> — tous les droits, partout.",
+  studio:{pointCards:{
+      eye:"Sécurité",title:"Donner le minimum de droits.",
+      lead:"<code>GRANT</code> donne un droit. <code>REVOKE</code> le retire. Toujours accorder le minimum nécessaire.",
+      chain:[
+        {k:"GRANT",v:"accorde un droit"},
+        {k:"REVOKE",v:"retire un droit"},
+        {k:"Principe",v:"le minimum nécessaire"}
+      ],
+      cards:[
+        {t:"GRANT SELECT",draw:"grantselect",
+         b:"<p><code>GRANT SELECT ON clients TO app_user;</code> donne le droit de lire la table <code>clients</code>. Rien d’autre.</p>"},
+        {t:"REVOKE",draw:"revoke",
+         b:"<p><code>REVOKE SELECT ON clients FROM app_user;</code> retire ce droit de lecture.</p>"},
+        {t:"Droits multiples",draw:"privileges",
+         b:"<p>On peut donner <code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code> ou <code>DELETE</code> sur une table précise. L’écriture change selon le SGBD : retiens le principe, pas une syntaxe de marque.</p>"},
+        {t:"Piège : droits trop larges",draw:"allprivileges",
+         b:"<p><code>GRANT ALL PRIVILEGES</code> ouvre tout. Si le besoin est de lire <code>clients</code>, c’est trop. Un compte de lecture reçoit <code>SELECT</code>, rien de plus.</p>"}
+      ]},
+    reflex:{a:{k:"GRANT",t:"donne un droit"},
+      b:{k:"REVOKE",t:"retire un droit"},
+      note:"Demande-toi toujours : « Quel droit minimal cet utilisateur doit-il avoir ? » Et donne seulement ce droit."},
+    viz:"security"},
+  anatomie:[
+    {tok:"GRANT SELECT ON clients",txt:"Donne le droit de lecture sur la table clients."},
+    {tok:"TO app_user",txt:"À l’utilisateur app_user."},
+    {tok:"REVOKE SELECT ON clients",txt:"Retire le droit de lecture sur clients."},
+    {tok:"FROM app_user",txt:"Pour le même utilisateur."}
+  ],
+  exemple:"-- Exemple de principe (syntaxe dépendante du SGBD)\nGRANT SELECT ON clients TO app_user;\n\nREVOKE SELECT ON clients FROM app_user;",
+  attendu:"app_user peut lire la table clients, puis ce droit lui est retiré. Ces commandes ne s’exécutent pas dans SQLite.",
+  retenir:"<code>GRANT</code> donne une permission. <code>REVOKE</code> la retire.<br><br>Un SGBD serveur (MySQL, PostgreSQL, SQL Server) gère des utilisateurs. SQLite, le moteur de cette app, ne le fait pas.<br><br>Principe : accorder le <b>minimum nécessaire</b>. Pour seulement lire <code>clients</code> : <code>GRANT SELECT</code>, pas <code>ALL PRIVILEGES</code>.",
+  piege:{t:"Donner tous les droits",
+    p:"<code>GRANT ALL PRIVILEGES</code> donne tous les droits. C’est dangereux : l’utilisateur pourrait modifier ou supprimer des données. Il vaut mieux <code>GRANT SELECT ON clients</code>.",
+    exec:false,
+    sql:"GRANT ALL PRIVILEGES ON *.* TO app_user;",
+    out:"Tous les droits, sur toutes les bases — beaucoup trop pour un besoin de lecture.",
+    fixSql:"GRANT SELECT ON clients TO app_user;"},
+  consigne:"Accorde à l’utilisateur <code>app_user</code> le droit de lire la table <code>clients</code>, sans donner d’autres droits.",
+  solution:"GRANT SELECT ON clients TO app_user;",
+  indice:"Utilise <code>GRANT SELECT</code> sur la table <code>clients</code>, puis précise l’utilisateur avec <code>TO</code>.",
+  noExec:true,
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'grant_select',label:'GRANT SELECT',sql:"GRANT SELECT ON clients TO app_user;",out:"Droit de lecture seulement — non exécutable ici.",tone:'good',exec:false},
+    {k:'grant_all',label:'GRANT ALL',sql:"GRANT ALL PRIVILEGES ON *.* TO app_user;",out:"Trop de droits pour un simple besoin de lecture.",tone:'bad',exec:false},
+    {k:'revoke',label:'REVOKE',sql:"REVOKE SELECT ON clients FROM app_user;",out:"Le droit de lecture est retiré.",tone:'neutral',exec:false}
+  ] }
 ]}
 ];
 
@@ -6617,7 +6684,9 @@ const CARTES={
  27:{k:"UPDATE",t:"Modifier des lignes",s:"UPDATE clients SET email = '…' WHERE id = 6;",
     m:"<b>Sans WHERE, toute la table est écrasée</b>, sans avertissement. Réflexe : un <code>SELECT</code> avec le même WHERE d’abord."},
  28:{k:"DELETE",t:"Supprimer des lignes",s:"DELETE FROM commandes WHERE id = 15;",
-    m:"Définitif. Même garde-fou que UPDATE. Attention aux orphelins dans les tables liées."}
+    m:"Définitif. Même garde-fou que UPDATE. Attention aux orphelins dans les tables liées."},
+ 50:{k:"GRANT / REVOKE",t:"Accorder le minimum de droits",s:"GRANT SELECT ON clients TO app_user;",
+    m:"<code>GRANT</code> donne une permission, <code>REVOKE</code> la retire. Un SGBD serveur gère des utilisateurs ; SQLite, non. Principe : le minimum nécessaire — lecture seule → <code>SELECT</code>, pas tous les droits."}
 };
 const CARD_GRAD=[['#5B5BD6','#7A6FF0'],['#0E9BC4','#22B8D6'],['#0EA5A0','#2DD4BF'],['#B45309','#E0A040'],['#9333EA','#B45CF0'],['#E5484D','#F0736F'],['#0F766E','#14A89A'],['#B45309','#D97F2B'],['#1E40AF','#3B6FE0'],['#86198F','#B32BAF']];
 function moduleOf(id){ for(let i=0;i<MODULES.length;i++) if(MODULES[i].lessons.some(l=>l.id===id)) return i; return 0; }
@@ -6731,7 +6800,11 @@ const QCM={
  27:[{q:"Un <code>UPDATE</code> sans <code>WHERE</code> :",o:["Échoue","Modifie toute la table, sans avertissement","Ne modifie que la première ligne"],b:1,e:"Accident classique — et coûteux."},
    {q:"Le bon réflexe avant un UPDATE sensible :",o:["Ajouter LIMIT 1","Tester le même WHERE avec un SELECT","Faire l’UPDATE deux fois"],b:1,e:"Tu vois les lignes concernées avant de les toucher."}],
  28:[{q:"<code>DELETE</code> supprime :",o:["Une colonne","Des lignes entières","La table"],b:1,e:"On ne vide jamais une seule case avec DELETE."},
-   {q:"Pour vider une case sans supprimer la ligne :",o:["DELETE colonne","UPDATE … SET colonne = NULL","DROP colonne"],b:1,e:"DELETE agit sur des lignes ; vider une valeur relève de l’UPDATE."}]
+   {q:"Pour vider une case sans supprimer la ligne :",o:["DELETE colonne","UPDATE … SET colonne = NULL","DROP colonne"],b:1,e:"DELETE agit sur des lignes ; vider une valeur relève de l’UPDATE."}],
+ 50:[{q:"<code>GRANT</code> sert à :",o:["Exécuter une requête plus vite","Accorder un droit à un utilisateur","Créer une table"],b:1,e:"<code>GRANT</code> donne une permission. <code>REVOKE</code> la retire."},
+  {q:"Un compte qui doit seulement lire la table <code>clients</code> devrait recevoir :",o:["ALL PRIVILEGES","GRANT SELECT","REVOKE SELECT"],b:1,e:"Le minimum nécessaire : le droit de lecture, pas tous les droits."},
+  {q:"Un SGBD, c’est :",o:["Une table SQL","Le logiciel qui stocke la base et exécute le SQL (SQLite, MySQL, PostgreSQL…)","Un type de JOIN"],b:1,e:"Cette app utilise SQLite. MySQL ou PostgreSQL sont des SGBD serveur, avec des comptes et des droits."},
+  {q:"Pourquoi <code>GRANT</code> échoue dans cette application ?",o:["La syntaxe est fausse","SQLite ne gère pas GRANT / REVOKE comme un serveur","Il manque un WHERE"],b:1,e:"C’est une notion de SQL serveur, volontairement non exécutable ici."}]
 };
 
 /* ============================================================
@@ -8257,7 +8330,7 @@ let kbarLastOrder='';
 let kbarSchemaCache=null;
 let kbarSchemaCacheDb='';
 const KEYS=[['SELECT',1],['FROM',1],['WHERE',1],['*',0],["'",0],[',',0],['=',0],['>',0],['<',0],['>=',0],['%',0],['()',0],
-  ['AND',1],['OR',1],['NOT',1],['LIKE',1],['IN',1],['BETWEEN',1],['DISTINCT',1],
+  ['AND',1],['OR',1],['NOT',1],['LIKE',1],['IN',1],['BETWEEN',1],['DISTINCT',1],['GRANT',1],['REVOKE',1],
   ['GROUP BY',1],['HAVING',1],['ORDER BY',1],['JOIN',1],['ON',1],['AS',1],['COUNT(*)',1],['SUM()',1],['AVG()',1],['DESC',1],['LIMIT',1],['IS NULL',1],[';',0]];
 function kbarSchemaCatalog(){
   const id=activeDbId||'cours';
@@ -9317,17 +9390,20 @@ function mountSqlCopyButtons(root){
     wrap.insertAdjacentHTML('beforeend',sqlCopyBtn());
   });
 }
-const editorBlock=(withViz,fname='exercice.sql')=>`
+const editorBlock=(withViz,fname='exercice.sql')=>{
+  const noExec=current&&current.noExec;
+  return `
   <div class="editor-shell">
     <div class="editor-bar"><span class="dot v"></span><span class="fname">${fname}</span>${sqlCopyBtn('data-ed="ed-lesson"')}${sqlClearBtn('ed-lesson')}</div>
     <div class="editor-area"><pre><code id="hl-lesson"></code></pre>
     <textarea id="ed-lesson" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="Écris ta requête ici…"></textarea></div>
   </div>
-  <div class="run-row"><button class="btn-run" onclick="runLesson()">${RUN_ICO} Exécuter</button>
+  <div class="run-row"><button class="btn-run" onclick="runLesson()">${RUN_ICO} ${noExec?'Vérifier':'Exécuter'}</button>
   <button class="btn-ghost" type="button" onclick="openSchemaSheet()">Schéma</button>
-  ${withViz?`<button class="btn-ghost" type="button" onclick="openViz('ed-lesson')">Pas à pas</button>`:''}</div>
+  ${withViz&&!noExec?`<button class="btn-ghost" type="button" onclick="openViz('ed-lesson')">Pas à pas</button>`:''}</div>
   <div id="lesson-out" role="status" aria-live="polite" aria-atomic="true" style="overflow-anchor:none"></div>
   <div id="hint-slot"></div>`;
+};
 
 let lessonStep=0; // 0 leçon · 1 exercice · 2 quiz
 let lessonStepDir=1; // 1 forward · -1 back
@@ -9779,10 +9855,13 @@ function joinRecapBlock(l){
   </div>`;
 }
 const SUBQ_RECAP=[
-  {k:'in', t:'IN', d:'La sous-requête crée une liste'},
-  {k:'notin', t:'NOT IN', d:'Elle crée une liste à exclure'},
-  {k:'select', t:'SELECT', d:'Elle calcule une valeur'},
-  {k:'from', t:'FROM', d:'Elle crée une table'}
+  {k:'in', t:'IN', d:'renvoie <b>une liste de valeurs à garder</b>', ex:'IN (SELECT client_id\nFROM commandes)'},
+  {k:'notin', t:'NOT IN', d:'renvoie <b>une liste de valeurs à exclure</b>', ex:'NOT IN (SELECT client_id\nFROM commandes)'},
+  /* « renvoie une seule valeur » laissait croire à une valeur pour tout le
+     résultat. Elle est calculée une fois puis reprise sur chaque ligne — et
+     recalculée par ligne si la sous-requête dépend de la ligne courante. */
+  {k:'select', t:'SELECT', d:'renvoie <b>une seule valeur</b>, reprise sur chaque ligne', ex:'(SELECT AVG(prix) FROM produits)'},
+  {k:'from', t:'FROM', d:'renvoie <b>un résultat utilisé comme une table</b>', ex:'FROM (SELECT * FROM produits)'}
 ];
 function subqueryRecapBlock(l){
   if(!l||!l.subqueryRecap) return '';
@@ -9790,8 +9869,8 @@ function subqueryRecapBlock(l){
   const lignes=SUBQ_RECAP.map(r=>{
     const ici=vus.indexOf(r.k)>=0;
     return `<tr class="${ici?'on':''}">
-      <td class="jr-type">${r.t}${ici?'<span class="jr-ici">ce cours</span>':''}</td>
-      <td class="jr-quoi">${r.d}</td>
+      <td class="jr-type">${r.t}${ici?' <span class="jr-ici">ce cours</span>':''}</td>
+      <td class="jr-quoi">${r.d}<code class="jr-ex">${esc(r.ex)}</code></td>
     </tr>`;
   }).join('');
   return `<div class="concept-block">
@@ -10045,7 +10124,7 @@ const JOIN_GUIDES={
   outer:{kicker:'Analyse du périmètre',lead:'Le type de JOIN décrit quelles lignes doivent rester même sans correspondance.',steps:[['INNER','uniquement les correspondances'],['LEFT / RIGHT','toute une source + les correspondances — Inès à gauche, l’invité à droite'],['FULL OUTER','Inès et l’invité, plus les correspondances']],takeaway:'Le choix du JOIN est un choix de périmètre de résultat.'}
 };
 const JOIN_OUTPUT_LABELS={
-  joinon:'Résultat projeté · une ligne par commande correspondante',inner:'Résultat projeté · correspondances uniquement',leftj:'Résultat projeté · table clients conservée',rightj:'Résultat projeté · table commandes conservée',orphan:'Résultat projeté · clients sans commande',triple:'Résultat projeté · client, produit, quantité',outer:'Résultat projeté · les deux tables conservées',crossjoin:'Résultat projeté · toutes les paires',joingroupby:'Résultat de l’étape',selfjoin:'Résultat projeté · une ligne par paire',onwhere:'Résultat de l’étape',onmultiple:'Résultat de l’étape',subquery_in:'Résultat de l’étape',subquery_notin:'Résultat de l’étape',subquery_select:'Résultat de l’étape',subquery_from:'Résultat de l’étape'
+  joinon:'Résultat projeté · une ligne par commande correspondante',inner:'Résultat projeté · correspondances uniquement',leftj:'Résultat projeté · table clients conservée',rightj:'Résultat projeté · table commandes conservée',orphan:'Résultat projeté · clients sans commande',triple:'Résultat projeté · client, produit, quantité',outer:'Résultat projeté · les deux tables conservées',crossjoin:'Résultat projeté · toutes les paires',joingroupby:'Résultat de l’étape',selfjoin:'Résultat projeté · une ligne par paire',onwhere:'Résultat de l’étape',onmultiple:'Résultat de l’étape',subquery_in:'Résultat de l’étape',subquery_notin:'Résultat de l’étape',subquery_select:'Résultat de l’étape',subquery_from:'Résultat de l’étape',security:'Résultat de l’étape'
 };
 function renderJoinGuide(key){
   const g=JOIN_GUIDES[key];
@@ -10149,8 +10228,13 @@ function situationSqlBlock(sql){
     <div class="xf-result" hidden aria-live="polite"></div>
   </div>`;
 }
+function serverConceptBadge(){
+  return `<p class="server-badge" role="note"><i aria-hidden="true">⊘</i> Notion SQL serveur — non exécutable en SQLite</p>`;
+}
 function renderSituationBody(l){
-  let html=situationBodyHtml(l.situation);
+  let html='';
+  if(l.noExec) html+=serverConceptBadge();
+  html+=situationBodyHtml(l.situation);
   if(l.situationSql) html+=situationSqlBlock(l.situationSql);
   if(l.situationTail) html+=flowProseHtml(l.situationTail);
   return html;
@@ -10305,6 +10389,28 @@ function pointDraw(card){
       <div class="pd-count-row is-faux"><b>stats</b><i></i><span>NULL · 1</span></div>
       <div class="pd-count-row is-juste"><b>clients.id</b><i></i><span>—</span></div>
       <small>aucun client ne correspond au groupe NULL</small>
+    </div>`;
+  if(kind==='grantselect') return `<div class="pd-priv" aria-hidden="true">
+      <span class="pd-priv-chip on">SELECT</span>
+      <span class="pd-priv-chip">INSERT</span>
+      <span class="pd-priv-chip">UPDATE</span>
+      <span class="pd-priv-chip">DELETE</span>
+      <small>lire, sans modifier</small>
+    </div>`;
+  if(kind==='revoke') return `<div class="pd-priv" aria-hidden="true">
+      <span class="pd-priv-chip off">SELECT</span>
+      <small>le droit de lecture est retiré</small>
+    </div>`;
+  if(kind==='privileges') return `<div class="pd-priv" aria-hidden="true">
+      <span class="pd-priv-chip">SELECT</span>
+      <span class="pd-priv-chip">INSERT</span>
+      <span class="pd-priv-chip">UPDATE</span>
+      <span class="pd-priv-chip">DELETE</span>
+    </div>`;
+  if(kind==='allprivileges') return `<div class="pd-count" aria-hidden="true">
+      <div class="pd-count-row is-faux"><b>ALL PRIVILEGES</b><i></i><span>trop</span></div>
+      <div class="pd-count-row is-juste"><b>SELECT</b><i></i><span>assez</span></div>
+      <small>si l’utilisateur doit seulement lire</small>
     </div>`;
   return '';
 }
@@ -10549,7 +10655,7 @@ function lessonMainTable(l){
 function testeDefaultSql(l){
   return `SELECT * FROM ${lessonMainTable(l)};`;
 }
-const TESTE_KEYS=['FULL OUTER JOIN','RIGHT JOIN','LEFT JOIN','GROUP BY','ORDER BY','SELECT *','INSERT','UPDATE','DELETE','DISTINCT','BETWEEN','HAVING','WHERE','COUNT','AVG','SUM','MIN','MAX','JOIN','CASE','COALESCE','LIKE','AND','OR','IN','LIMIT','SELECT'];
+const TESTE_KEYS=['FULL OUTER JOIN','RIGHT JOIN','LEFT JOIN','GROUP BY','ORDER BY','SELECT *','INSERT','UPDATE','DELETE','GRANT','REVOKE','DISTINCT','BETWEEN','HAVING','WHERE','COUNT','AVG','SUM','MIN','MAX','JOIN','CASE','COALESCE','LIKE','AND','OR','IN','LIMIT','SELECT'];
 function testeKeyFrom(text){
   const u=String(text||'').toUpperCase().replace(/\s+/g,' ');
   return TESTE_KEYS.find(k=>u.includes(k))||'SELECT';
@@ -10634,6 +10740,9 @@ function initTesteEditor(){
   syncHL('ed-teste','hl-teste');
   fitSqlEditor(ta);
 }
+function lessonNoExec(l,v){
+  return !!(l&&l.noExec)||(v&&v.exec===false);
+}
 function lessonRichFooter(l){
   const variants=testeVariantsOf(l);
   const demoSql=(variants&&variants[0]&&variants[0].sql)||testeDefaultSql(l);
@@ -10641,6 +10750,7 @@ function lessonRichFooter(l){
   const slug=String(l.titre||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'');
   const file=slug?slug+'.sql':'requete.sql';
   const tone0=variants&&variants[0]&&variants[0].tone;
+  const noExec=lessonNoExec(l,variants&&variants[0]);
   const switcher=variants&&variants.length
     ?`<div class="xf-switch" role="tablist">${variants.map((v,i)=>{
         const on=i===0;
@@ -10650,15 +10760,18 @@ function lessonRichFooter(l){
     :'';
   const variantsAttr=variants?` data-variants="${escAttr(JSON.stringify(variants))}" data-vi="0"`:'';
   const expect=testeExpectHtml(variants&&variants[0], l, !variants);
+  const actions=noExec
+    ?`<p class="xf-noexec">Notion SQL serveur — ces commandes ne s’exécutent pas dans SQLite. Lis-les, ne les lance pas.</p>`
+    :`<div class="xf-actions">
+        <button type="button" class="xf-run" onclick="runExemple(this)">${XF_RUN_ICO}Exécuter</button>
+      </div>`;
   return `
     <div class="sect-label"><i>✓</i><span>Teste</span></div>
-    <div class="exframe${tone0?' tone-'+tone0:''}" data-teste-sql="${sql}"${variantsAttr}>
+    <div class="exframe${tone0?' tone-'+tone0:''}${noExec?' no-exec':''}" data-teste-sql="${sql}"${noExec?' data-no-exec="1"':''}${variantsAttr}>
       <div class="xf-head"><span class="xf-name">${file}</span><div class="xf-tools">${sqlCopyBtn('data-ed="ed-teste"')}</div>${switcher}</div>
       ${expect}
       ${testeEditorHtml()}
-      <div class="xf-actions">
-        <button type="button" class="xf-run" onclick="runExemple(this)">${XF_RUN_ICO}Exécuter</button>
-      </div>
+      ${actions}
       <div class="xf-result" hidden aria-live="polite"></div></div>`;
 }
 function switchTesteVariant(btn){
@@ -10687,6 +10800,12 @@ function runExemple(btn){
   const ta=frame&&frame.querySelector('.xf-sql');
   const sql=(ta&&ta.value.trim())||btn.getAttribute('data-sql')||'';
   if(!host||!sql)return;
+  if((frame&&frame.dataset.noExec==='1')||(current&&current.noExec)){
+    host.innerHTML=`<div class="feedback warn"><div class="fi">i</div><div><b>Non exécutable ici</b><p>SQLite ne gère pas <code>GRANT</code> / <code>REVOKE</code>. Cette commande est une notion de SQL serveur.</p></div></div>`;
+    host.hidden=false;
+    host.classList.add('on');
+    return;
+  }
   btn.classList.add('running');
   btn.disabled=true;
   btn.textContent='Exécution…';
@@ -10879,7 +10998,9 @@ function renderLessonFlow(){
       <div class="ls-main">
         <div class="l-kicker">Exercice</div>
         <div class="consigne"><span class="tag">Consigne</span><p>${l.consigne}</p>
-          <p class="tip">Tu peux cliquer sur <b>Schéma</b> pour voir les noms des tables et colonnes.${l.write?'':` Une fois exécutée, tu peux voir l’exécution pas à pas de ta requête avec le bouton <b>Pas à pas</b>.`}</p>
+          <p class="tip">${l.noExec
+            ?'Cette commande ne s’exécute pas dans SQLite. Écris-la, puis touche <b>Vérifier</b> : on compare le principe, pas un résultat de table.'
+            :`Tu peux cliquer sur <b>Schéma</b> pour voir les noms des tables et colonnes.${l.write?'':` Une fois exécutée, tu peux voir l’exécution pas à pas de ta requête avec le bouton <b>Pas à pas</b>.`}`}</p>
         </div>
         ${editorBlock(!l.write,'exercice.sql')}
       </div>`;
@@ -11146,6 +11267,45 @@ function setLessonOut(html){
     requestAnimationFrame(()=>out.setAttribute('aria-live',live||'polite'));
   }
 }
+function normNoExecSql(s){
+  return String(s||'')
+    .replace(/--.*$/gm,'')
+    .replace(/\/\*[\s\S]*?\*\//g,'')
+    .replace(/\s+/g,' ')
+    .replace(/;/g,'')
+    .trim()
+    .toUpperCase();
+}
+function checkNoExecExo(sql,l){
+  const u=normNoExecSql(sql);
+  if(!u) return {ok:false,diag:'Écris d’abord la commande.'};
+  if(/\bALL(\s+PRIVILEGES)?\b/.test(u))
+    return {ok:false,diag:'ALL PRIVILEGES donne trop de droits. Il suffit de SELECT.'};
+  if(/^REVOKE\b/.test(u))
+    return {ok:false,diag:'REVOKE retire un droit. Ici, tu dois en accorder un avec GRANT.'};
+  if(/^GRANT\s+SELECT\b/.test(u)&&/\bCLIENTS\b/.test(u)&&/\bTO\b/.test(u))
+    return {ok:true};
+  if(/^GRANT\s+SELECT\b/.test(u)&&!/\bCLIENTS\b/.test(u))
+    return {ok:false,diag:'Le droit doit porter sur la table clients.'};
+  return {ok:false,diag:'Écris GRANT SELECT … ON … clients … TO …'};
+}
+function markExoPassed(){
+  const dejaExo=etapesDe(current.id).exo;
+  setEtape(current.id,'exo');
+  const leconFinie=lecCompletee(current.id);
+  celebrate();
+  document.querySelectorAll('#lesson-body .ls-bar').forEach((el,i)=>{
+    if(i<=1) el.classList.add('done');
+    if(i===2){el.disabled=false;el.setAttribute('onclick','setLessonStep(2)');}
+  });
+  const sticky=document.querySelector('#lesson-body .ls-nav');
+  if(sticky) sticky.innerHTML=`
+        <button class="ls-prev" type="button" onclick="setLessonStep(0)">‹ Cours</button>
+        <button class="ls-next" type="button" onclick="setLessonStep(2)">Passer au quiz</button>`;
+  pulseCta('#lesson-body .ls-next');
+  if(leconFinie) finaliserLecon();
+  return dejaExo;
+}
 function runLesson(){
   const sql=document.getElementById('ed-lesson').value.trim();
   const out=document.getElementById('lesson-out');
@@ -11154,6 +11314,26 @@ function runLesson(){
   const sol=isDefi?current.sol:current.solution;
   const ordered=isDefi?!!current.ordered:false;
   const write=!isDefi&&current.write;
+  if(!isDefi&&current&&current.noExec){
+    const check=checkNoExecExo(sql,current);
+    if(check.ok){
+      if(mode==='review'){
+        markDone(current.id,true); renderModules(); renderProgress(); renderPlanning();
+        reviewQueue.shift();
+        setLessonOut(`<div class="feedback ok"><div class="fi">✓</div><div><b>Bien retenu</b><p>GRANT SELECT suffit pour consulter clients.</p></div></div>`+(reviewQueue.length?`<button class="next-btn" onclick="openReview(${reviewQueue[0]})">Réviser la suivante →</button>`
+          :`<button class="next-btn" onclick="goBack()">Révisions terminées ✓</button>`));
+        pulseCta('#lesson-out .next-btn');
+        if(navigator.vibrate)navigator.vibrate(12);
+        return;
+      }
+      markExoPassed();
+      setLessonOut(`<div class="ok-panel"><div class="ok-banner">✓ Correct — droit de lecture seulement</div><p class="tip">GRANT SELECT suffit pour consulter <code>clients</code>. Cette commande ne s’exécute pas dans SQLite.</p></div>`);
+      return;
+    }
+    setLessonOut(`<div class="feedback warn"><div class="fi">≈</div><div><b>Pas encore</b><p>${esc(check.diag)}</p></div></div>`);
+    registerExoFail();
+    return;
+  }
   let userRes,solRes,ms=null;
   try{
     if(write){
@@ -14503,6 +14683,178 @@ const SQL_VIZ={
       ${joinMore(13,'lignes')}
     </div>
     <p class="er-hint">👆 Touche Inès, puis la commande #16 : chacune reste seule de son côté.</p>
+  </div>`},
+  subquery_in:{kind:'er',sample:'6 clients · 4 commandes Fibre',phases:[
+    {k:'Créer la liste',d:'La sous-requête parcourt les commandes du produit 1 et en extrait les <code>client_id</code>.',sql:'SELECT commandes.client_id FROM commandes WHERE produit_id = 1',read:'La liste obtenue : <code>1, 4, 5, 7</code>. Une seule colonne, plusieurs valeurs.'},
+    {k:'Chercher dans la liste',d:'La requête principale teste chaque client : son <code>id</code> appartient-il à cette liste ?',sql:'WHERE clients.id IN (…)',read:'Sophie, Nathan, Chloé et Léa correspondent. Lucas et Inès n’y figurent pas.'},
+    {k:'Garder les présents',d:'<code>IN</code> conserve uniquement les clients dont l’identifiant apparaît dans la liste.',sql:'SELECT clients.nom',read:'Résultat : Sophie, Nathan, Chloé, Léa — les clients de la Fibre Prébiotique.'}
+  ],html:`<div class="er-stage join-viz">
+    <div class="join-sets">
+      <div class="join-side"><div class="join-side-h">clients</div>
+        <div class="jchips">
+          <div class="jchip" data-k="hit" data-er-id="1" role="button" tabindex="0"><span class="er-key">1</span>Sophie</div>
+          <div class="jchip" data-k="miss" data-er-id="2" role="button" tabindex="0"><span class="er-key">2</span>Lucas</div>
+          <div class="jchip" data-k="hit" data-er-id="4" role="button" tabindex="0"><span class="er-key">4</span>Nathan</div>
+          <div class="jchip" data-k="hit" data-er-id="5" role="button" tabindex="0"><span class="er-key">5</span>Chloé</div>
+          <div class="jchip" data-k="hit" data-er-id="7" role="button" tabindex="0"><span class="er-key">7</span>Léa</div>
+          <div class="jchip" data-k="miss" data-er-id="9" role="button" tabindex="0"><span class="er-key">9</span>Inès</div>
+        </div>
+      </div>
+      <div class="join-side" data-side="r"><div class="join-side-h">commandes · produit 1</div>
+        <div class="jchips">
+          <div class="jchip" data-k="hit" data-er-fk="1" role="button" tabindex="0"><span class="er-key">#1</span>client 1</div>
+          <div class="jchip" data-k="hit" data-er-fk="4" role="button" tabindex="0"><span class="er-key">#5</span>client 4</div>
+          <div class="jchip" data-k="hit" data-er-fk="7" role="button" tabindex="0"><span class="er-key">#8</span>client 7</div>
+          <div class="jchip" data-k="hit" data-er-fk="5" role="button" tabindex="0"><span class="er-key">#15</span>client 5</div>
+        </div>
+      </div>
+    </div>
+    <div class="join-out" aria-hidden="true">
+      <div class="join-pill" data-when="l" data-er-fk="1">liste · 1</div>
+      <div class="join-pill" data-when="l" data-er-fk="4">liste · 4</div>
+      <div class="join-pill" data-when="l" data-er-fk="5">liste · 5</div>
+      <div class="join-pill" data-when="l" data-er-fk="7">liste · 7</div>
+      <div class="join-pill" data-when="s" data-er-id="1">Sophie ∈ liste</div>
+      <div class="join-pill" data-when="s" data-er-id="4">Nathan ∈ liste</div>
+      <div class="join-pill" data-when="s" data-er-id="5">Chloé ∈ liste</div>
+      <div class="join-pill" data-when="s" data-er-id="7">Léa ∈ liste</div>
+      <div class="join-pill" data-when="r" data-er-id="1">Sophie</div>
+      <div class="join-pill" data-when="r" data-er-id="4">Nathan</div>
+      <div class="join-pill" data-when="r" data-er-id="5">Chloé</div>
+      <div class="join-pill" data-when="r" data-er-id="7">Léa</div>
+    </div>
+    <p class="er-hint">👆 Touche un client : sa commande du produit 1 s’allume s’il en a une.</p>
+  </div>`},
+  subquery_notin:{kind:'er',sample:'5 clients · dont #16',phases:[
+    {k:'La liste brute',d:'La sous-requête ramène tous les <code>client_id</code> de <code>commandes</code>, y compris le <code>NULL</code> de la commande #16.',sql:'SELECT commandes.client_id FROM commandes',read:'La liste contient 1, 2, 3… et <code>NULL</code>. C’est ce <code>NULL</code> qui va tout bloquer.'},
+    {k:'NOT IN + NULL',d:'Avec un <code>NULL</code> dans la liste, SQL ne peut pas conclure qu’un identifiant en est absent.',sql:'WHERE clients.id NOT IN (…)',read:'Résultat vide. Inès disparaît, alors qu’elle n’a jamais commandé.'},
+    {k:'Retirer le NULL',d:'<code>WHERE client_id IS NOT NULL</code> sécurise la liste. <code>NOT IN</code> peut alors chercher les absents.',sql:'WHERE client_id IS NOT NULL',read:'Inès ressort : son id 9 n’apparaît dans aucune commande réelle.'}
+  ],html:`<div class="er-stage join-viz">
+    <div class="join-sets">
+      <div class="join-side"><div class="join-side-h">clients</div>
+        <div class="jchips">
+          <div class="jchip" data-er-id="1" role="button" tabindex="0"><span class="er-key">1</span>Sophie</div>
+          <div class="jchip" data-er-id="2" role="button" tabindex="0"><span class="er-key">2</span>Lucas</div>
+          <div class="jchip" data-er-id="3" role="button" tabindex="0"><span class="er-key">3</span>Emma</div>
+          <div class="jchip" data-k="abs" data-er-id="9" role="button" tabindex="0"><span class="er-key">9</span>Inès</div>
+        </div>
+      </div>
+      <div class="join-side" data-side="r"><div class="join-side-h">commandes.client_id</div>
+        <div class="jchips">
+          <div class="jchip" data-er-fk="1" role="button" tabindex="0"><span class="er-key">#1</span>1</div>
+          <div class="jchip" data-er-fk="2" role="button" tabindex="0"><span class="er-key">#3</span>2</div>
+          <div class="jchip" data-er-fk="3" role="button" tabindex="0"><span class="er-key">#4</span>3</div>
+          <div class="jchip" data-k="null" data-er-id="16" role="button" tabindex="0"><span class="er-key">#16</span>NULL</div>
+        </div>
+      </div>
+    </div>
+    <div class="join-out" aria-hidden="true">
+      <div class="join-pill" data-when="l" data-er-fk="1">liste · 1</div>
+      <div class="join-pill" data-when="l" data-er-fk="2">liste · 2</div>
+      <div class="join-pill" data-when="l" data-er-fk="3">liste · 3</div>
+      <div class="join-pill" data-when="l" data-er-id="16">liste · NULL</div>
+      <div class="join-pill" data-when="b">0 ligne</div>
+      <div class="join-pill" data-when="g" data-er-id="9">Inès</div>
+    </div>
+    <p class="er-hint">👆 Touche la commande #16 : son NULL se retrouve dans la liste.</p>
+  </div>`},
+  subquery_select:{kind:'er',sample:'3 clients · 6 commandes',phases:[
+    {k:'Sophie d’abord',d:'La requête principale est sur Sophie. La sous-requête compte uniquement les commandes où <code>client_id = 1</code>.',sql:'WHERE commandes.client_id = clients.id',read:'Pour Sophie, <code>COUNT(*)</code> vaut 3. La sous-requête dépend de la ligne courante : elle est corrélée.'},
+    {k:'Puis chaque client',d:'SQL recommence pour Lucas, puis pour Inès. Chaque ligne obtient sa propre valeur.',sql:'(SELECT COUNT(*) FROM commandes …) AS nb_commandes',read:'Lucas : 2. Inès : 0, parce qu’aucune commande n’a <code>client_id = 9</code>.'},
+    {k:'L’invité n’est à personne',d:'La commande #16 a <code>client_id = NULL</code>. Elle ne correspond à aucun <code>clients.id</code>.',sql:'NULL = clients.id → jamais vrai',read:'Personne n’affiche 4 à cause de l’invité. Inès reste à 0.'}
+  ],html:`<div class="er-stage join-viz">
+    <div class="join-sets">
+      <div class="join-side"><div class="join-side-h">clients</div>
+        <div class="jchips">
+          <div class="jchip" data-k="A" data-er-id="1" role="button" tabindex="0"><span class="er-key">1</span>Sophie</div>
+          <div class="jchip" data-k="B" data-er-id="2" role="button" tabindex="0"><span class="er-key">2</span>Lucas</div>
+          <div class="jchip" data-k="C" data-er-id="9" role="button" tabindex="0"><span class="er-key">9</span>Inès</div>
+        </div>
+      </div>
+      <div class="join-side" data-side="r"><div class="join-side-h">commandes</div>
+        <div class="jchips">
+          <div class="jchip" data-k="A" data-er-fk="1" role="button" tabindex="0"><span class="er-key">#1</span>1</div>
+          <div class="jchip" data-k="A" data-er-fk="1" role="button" tabindex="0"><span class="er-key">#2</span>1</div>
+          <div class="jchip" data-k="A" data-er-fk="1" role="button" tabindex="0"><span class="er-key">#13</span>1</div>
+          <div class="jchip" data-k="B" data-er-fk="2" role="button" tabindex="0"><span class="er-key">#3</span>2</div>
+          <div class="jchip" data-k="B" data-er-fk="2" role="button" tabindex="0"><span class="er-key">#10</span>2</div>
+          <div class="jchip" data-k="ghost" data-er-id="16" role="button" tabindex="0"><span class="er-key">#16</span>NULL</div>
+        </div>
+      </div>
+    </div>
+    <div class="join-out" aria-hidden="true">
+      <div class="join-pill" data-when="s" data-er-id="1">Sophie<span class="jn">3</span></div>
+      <div class="join-pill" data-when="c" data-er-id="1">Sophie<span class="jn">3</span></div>
+      <div class="join-pill" data-when="c" data-er-id="2">Lucas<span class="jn">2</span></div>
+      <div class="join-pill" data-when="c" data-er-id="9">Inès<span class="jn">0</span></div>
+      <div class="join-pill" data-when="n" data-er-id="1">Sophie<span class="jn">3</span></div>
+      <div class="join-pill" data-when="n" data-er-id="2">Lucas<span class="jn">2</span></div>
+      <div class="join-pill" data-when="n" data-er-id="9">Inès<span class="jn">0</span></div>
+    </div>
+    <p class="er-hint">👆 Touche Sophie : ses 3 commandes s’allument. #16 reste à part.</p>
+  </div>`},
+  subquery_from:{kind:'er',sample:'3 clients · table stats',phases:[
+    {k:'Construire stats',d:'La sous-requête seule groupe les commandes par <code>client_id</code> et compte.',sql:'SELECT client_id, COUNT(*) AS nb FROM commandes GROUP BY client_id',read:'Sophie : 3, Lucas : 2… et un groupe <code>NULL | 1</code> pour la commande invitée. C’est une petite table.'},
+    {k:'Nommer puis relier',d:'<code>AS stats</code> donne un nom à cette table. <code>LEFT JOIN</code> la relie aux clients.',sql:'LEFT JOIN (…) AS stats ON clients.id = stats.client_id',read:'Sophie et Lucas trouvent leur ligne. Le groupe NULL ne correspond à aucun <code>clients.id</code>.'},
+    {k:'Inès reste, l’invité non',d:'<code>LEFT JOIN</code> garde Inès, absente de stats. Son <code>nb</code> vaut <code>NULL</code>.',sql:'Inès ↛ stats · NULL ↛ clients',read:'La commande invitée existe dans les statistiques, mais n’appartient à aucun client.'}
+  ],html:`<div class="er-stage join-viz">
+    <div class="join-sets">
+      <div class="join-side"><div class="join-side-h">clients</div>
+        <div class="jchips">
+          <div class="jchip" data-k="A" data-er-id="1" role="button" tabindex="0"><span class="er-key">1</span>Sophie</div>
+          <div class="jchip" data-k="B" data-er-id="2" role="button" tabindex="0"><span class="er-key">2</span>Lucas</div>
+          <div class="jchip" data-k="C" data-er-id="9" role="button" tabindex="0"><span class="er-key">9</span>Inès</div>
+        </div>
+      </div>
+      <div class="join-side" data-side="r"><div class="join-side-h">stats</div>
+        <div class="jchips">
+          <div class="jchip" data-k="A" data-er-fk="1" role="button" tabindex="0"><span class="er-key">1</span>nb 3</div>
+          <div class="jchip" data-k="B" data-er-fk="2" role="button" tabindex="0"><span class="er-key">2</span>nb 2</div>
+          <div class="jchip" data-k="null" data-er-id="16" role="button" tabindex="0"><span class="er-key">∅</span>NULL · 1</div>
+        </div>
+      </div>
+    </div>
+    <div class="join-out" aria-hidden="true">
+      <div class="join-pill" data-when="t" data-er-fk="1">stats · 1 → 3</div>
+      <div class="join-pill" data-when="t" data-er-fk="2">stats · 2 → 2</div>
+      <div class="join-pill" data-when="t" data-er-id="16">stats · NULL → 1</div>
+      <div class="join-pill" data-when="j" data-er-id="1">Sophie<span class="jn">3</span></div>
+      <div class="join-pill" data-when="j" data-er-id="2">Lucas<span class="jn">2</span></div>
+      <div class="join-pill" data-when="r" data-er-id="1">Sophie<span class="jn">3</span></div>
+      <div class="join-pill" data-when="r" data-er-id="2">Lucas<span class="jn">2</span></div>
+      <div class="join-pill" data-when="r" data-er-id="9">Inès<span class="jn null">NULL</span></div>
+    </div>
+    <p class="er-hint">👆 Touche le groupe NULL : aucun client ne s’allume.</p>
+  </div>`},
+  security:{kind:'er',sample:'un utilisateur · 4 droits',phases:[
+    {k:'Un SGBD',d:'Un SGBD est le logiciel qui stocke tes tables et exécute le SQL. Cette app utilise SQLite. MySQL, PostgreSQL et SQL Server sont des SGBD serveur.',sql:'SQLite · MySQL · PostgreSQL · SQL Server',read:'Sur un serveur, plusieurs utilisateurs se connectent. Chacun a des droits. SQLite, ici, n’a pas ce mécanisme.'},
+    {k:'GRANT SELECT',d:'On accorde uniquement le droit de lecture sur <code>clients</code>. INSERT, UPDATE et DELETE restent fermés.',sql:'GRANT SELECT ON clients TO app_user',read:'app_user peut consulter. Il ne peut pas modifier ni supprimer.'},
+    {k:'Le minimum',d:'<code>ALL PRIVILEGES</code> ouvre tout. Si le besoin est de lire, c’est trop. <code>REVOKE</code> retire ensuite un droit devenu inutile.',sql:'REVOKE SELECT ON clients FROM app_user',read:'GRANT donne. REVOKE retire. On ne donne que ce qui est nécessaire.'}
+  ],html:`<div class="er-stage join-viz">
+    <div class="join-sets">
+      <div class="join-side"><div class="join-side-h">utilisateur</div>
+        <div class="jchips">
+          <div class="jchip" data-er-id="u" role="button" tabindex="0"><span class="er-key">1</span>lecteur</div>
+        </div>
+      </div>
+      <div class="join-side" data-side="r"><div class="join-side-h">droits</div>
+        <div class="jchips">
+          <div class="jchip" data-k="sel" data-er-fk="u" role="button" tabindex="0"><span class="er-key">✓</span>SELECT</div>
+          <div class="jchip" data-k="off" role="button" tabindex="0"><span class="er-key">—</span>INSERT</div>
+          <div class="jchip" data-k="off" role="button" tabindex="0"><span class="er-key">—</span>UPDATE</div>
+          <div class="jchip" data-k="off" role="button" tabindex="0"><span class="er-key">—</span>DELETE</div>
+          <div class="jchip" data-k="all" role="button" tabindex="0"><span class="er-key">!</span>ALL</div>
+        </div>
+      </div>
+    </div>
+    <div class="join-out" aria-hidden="true">
+      <div class="join-pill" data-when="s">SQLite = cette app</div>
+      <div class="join-pill" data-when="s">MySQL / PostgreSQL / SQL Server = serveur</div>
+      <div class="join-pill" data-when="g" data-er-fk="u">lecteur → SELECT</div>
+      <div class="join-pill" data-when="r">SELECT suffit</div>
+      <div class="join-pill" data-when="r">ALL = trop</div>
+    </div>
+    <p class="er-hint">👆 Touche SELECT : c’est le seul droit utile pour consulter.</p>
   </div>`}
 };
 const HAVING_GRP_PHASES=SQL_VIZ.having.phases;
