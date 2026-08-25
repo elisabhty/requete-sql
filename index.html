@@ -6075,13 +6075,13 @@ const MODULES = [
         ]},
       cards:[
         {t:"Une table, deux rôles",
-         b:"<p><code>FROM clients c1 JOIN clients c2</code> utilise deux fois la table <code>clients</code>. Elle n’est pas dupliquée : <code>c1</code> la fait jouer le rôle du premier client, <code>c2</code> celui du second.</p>"},
+         b:"<p><code>FROM clients c1 JOIN clients c2</code> utilise deux fois la même table <code>clients</code>.</p><p><code>c1</code> représente le premier client, <code>c2</code> le second.</p>"},
         {t:"Comparer les villes",
-         b:"<p><code>ON c1.ville = c2.ville</code> associe les clients qui partagent la même ville.</p>"},
+         b:"<p><code>ON c1.ville = c2.ville</code> associe deux clients lorsque leur ville est la même.</p>"},
         {t:"Éviter les doublons",draw:"selfpairs",
-         b:"<p><code>AND c1.id &lt; c2.id</code> garde chaque paire une seule fois et exclut les lignes où un client est associé à lui-même.</p>"},
-        {t:"Alias dans SELECT",
-         b:"<p><code>c1.nom AS client1, c2.nom AS client2</code> affiche les deux noms de la paire.</p>"}
+         b:"<p>Sans cette condition, on pourrait obtenir Sophie · Nathan, Nathan · Sophie et Sophie · Sophie.</p><p><code>AND c1.id &lt; c2.id</code> garde chaque paire une seule fois et empêche d’associer un client à lui-même.</p>"},
+        {t:"Nommer les colonnes",
+         b:"<p><code>c1.nom AS client1</code> et <code>c2.nom AS client2</code> donnent un nom clair aux deux colonnes du résultat.</p>"}
       ]},
     reflex:{a:{k:"SELF JOIN",t:"compare des lignes de la même table"},
       b:{k:"c1 / c2",t:"donnent deux rôles à cette table"},
@@ -10526,7 +10526,7 @@ function pointDraw(card){
       <div class="pd-count-row is-juste"><b>Sophie · Nathan</b><i></i><span>✓</span></div>
       <div class="pd-count-row is-faux"><b>Nathan · Sophie</b><i></i><span>✕</span></div>
       <div class="pd-count-row is-faux"><b>Sophie · Sophie</b><i></i><span>✕</span></div>
-      <small>ce que garde <b>c1.id &lt; c2.id</b></small>
+      <small>ce que la condition garde ou écarte</small>
     </div>`;
   if(kind==='groupcount') return `<div class="pd-count" aria-hidden="true">
       <div class="pd-count-row is-juste"><b>Sophie</b><i></i><span>3</span></div>
