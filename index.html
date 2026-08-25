@@ -454,6 +454,12 @@
   .pd-count-row.is-faux{color:var(--warn);background:var(--warn-soft)}
   .pd-count-row.is-juste{color:var(--accent);background:var(--accent-soft)}
   .pd-count small{font-size:10.5px;font-weight:650;color:var(--ink-3);text-align:center}
+  .pd-ow{display:flex;flex-direction:column;gap:7px}
+  .pd-ow-col{display:flex;flex-direction:column;gap:3px;padding:9px 10px;border-radius:12px;min-width:0}
+  .pd-ow-col.is-on{background:var(--accent-soft);color:var(--accent)}
+  .pd-ow-col.is-where{background:var(--warn-soft);color:var(--warn)}
+  .pd-ow-col b{font-family:var(--mono);font-size:11px;font-weight:850;color:var(--ink)}
+  .pd-ow-col span{font-size:11.5px;font-weight:650;color:var(--ink-2);line-height:1.35}
   .pd-map{display:flex;flex-direction:column;gap:6px}
   .pd-map-row{display:grid;grid-template-columns:auto 28px minmax(0,1fr);align-items:center}
   .pd-map-row b{display:flex;align-items:center;justify-content:center;background:var(--accent-soft);border-radius:9px;padding:7px 10px;font-family:var(--mono);font-size:12.5px;font-weight:800;color:var(--accent)}
@@ -469,6 +475,7 @@
   .pd-out{display:grid;grid-template-columns:1fr 1fr;margin:8px 0 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
   .pd-out b{font-family:var(--mono);font-size:11.5px;font-weight:800;color:var(--accent);background:var(--accent-soft);text-align:center;padding:8px 10px}
   .pd-out span:not(.pd-out-more){font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--ink);text-align:center;padding:8px 10px;border-top:1px solid var(--line)}
+  .pd-out span.null{color:var(--ink-3);font-style:italic;font-weight:700}
   .pd-out .pd-out-more{grid-column:1/-1;display:flex;align-items:center;justify-content:center;padding:7px 10px;border-top:1px solid var(--line);background:linear-gradient(180deg,rgba(91,91,214,.035),rgba(91,91,214,.075));color:var(--accent);font-family:var(--mono);font-size:16px;font-weight:850;letter-spacing:2px;line-height:.65}
   /* Conditions multiples : chaque commande traverse les critères l'un après
      l'autre. Deux colonnes suffisent — celle qui passe tout, et celle qui
@@ -6204,55 +6211,55 @@ const MODULES = [
     {k:'selfjoin',label:'SELF JOIN',sql:"SELECT c1.nom AS client1, c2.nom AS client2, c1.ville\nFROM clients c1\nJOIN clients c2\nON c1.ville = c2.ville AND c1.id < c2.id;",tone:'good'}
   ] },
 { id:43, titre:"ON vs WHERE", résumé:"Filtrer au bon moment",
-  situation:"Tu veux afficher <b>tous les clients</b>, mais seulement leurs commandes dont la quantité est supérieure à 2, pour offrir un cadeau au client fidèle.<br><br>Dans la table <code>clients</code>, tu as notamment :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>3</td><td>Emma</td></tr><tr><td>5</td><td>Chloé</td></tr><tr><td>7</td><td>Léa</td></tr><tr><td>9</td><td>Inès</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, certaines quantités dépassent 2 :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>1</td></tr><tr><td>4</td><td>3</td><td>3</td></tr><tr><td>8</td><td>7</td><td>4</td></tr><tr><td>15</td><td>5</td><td>3</td></tr></tbody></table></div><br><br>Emma, Léa et Chloé ont une commande de quantité supérieure à 2. Les autres clients doivent quand même rester affichés, avec <code>NULL</code> lorsqu’aucune commande ne correspond.<br><br>Avec un <code>LEFT JOIN</code>, l’endroit où tu places le filtre change donc le résultat.",
+  situation:"Tu veux afficher <b>tous les clients</b>, mais seulement leurs commandes dont la quantité dépasse 2. Même un client sans commande correspondante doit rester affiché.<br><br>Dans la table <code>clients</code>, tu as notamment :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>3</td><td>Emma</td></tr><tr><td>5</td><td>Chloé</td></tr><tr><td>7</td><td>Léa</td></tr><tr><td>9</td><td>Inès</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, tu trouves les commandes avec <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>1</td></tr><tr><td>4</td><td>3</td><td>3</td></tr><tr><td>8</td><td>7</td><td>4</td></tr><tr><td>15</td><td>5</td><td>3</td></tr></tbody></table></div><br><br>Sophie a des commandes, mais aucune dont la quantité dépasse 2. Emma, Léa et Chloé en ont. Inès n’en a aucune.<br><br>Sophie et Inès doivent quand même rester affichées, avec <code>NULL</code>.",
     studio:{pointCards:{
-      eye:"ON vs WHERE",title:"Filtrer pendant ou après la jointure.",
-      lead:"Avec <code>LEFT JOIN</code>, retiens cette différence : <b>ON choisit ce qui peut être relié, WHERE choisit ce qui reste affiché.</b>",
+      eye:"ON vs WHERE",title:"Filtrer avant ou après la jointure.",
+      lead:"<code>ON</code> filtre les commandes <b>avant</b> de les rattacher aux clients. <code>WHERE</code> filtre le résultat <b>après</b> la jointure.",
       rule:{lines:[
           {tok:"FROM",val:"clients",tag:"les lignes à garder toutes",keep:1},
-          {tok:"LEFT JOIN",val:"commandes",tag:"la table dont on filtre les lignes",keep:1},
+          {tok:"LEFT JOIN",val:"commandes",tag:"les commandes à rattacher",keep:1},
           {tok:"ON",val:"clients.id = commandes.client_id",tag:"comment les relier"},
-          {tok:"AND",val:"commandes.quantite > 2",tag:"le filtre, pendant la jointure"}
+          {tok:"AND",val:"commandes.quantite > 2",tag:"filtre les commandes avant de les rattacher"}
         ]},
       cards:[
-        {t:"ON filtre pendant la jointure",
-         b:"<p><code>AND commandes.quantite &gt; 2</code> dans le <code>ON</code> veut dire : n’associe que les commandes de quantité supérieure à 2.</p><p>La condition décide de ce qui peut être relié, pas de ce qui reste. Tous les clients sont donc encore là.</p>"},
-        {t:"WHERE filtre le résultat",
-         b:"<p><code>WHERE commandes.quantite &gt; 2</code> s’applique après la jointure, sur les lignes déjà produites.</p><p>Or une ligne sans correspondance porte <code>NULL</code> : <code>NULL &gt; 2</code> n’est pas vrai, la ligne disparaît.</p>"},
+        {t:"ON filtre avant de rattacher",
+         b:"<p><code>AND commandes.quantite &gt; 2</code> dans le <code>ON</code> : SQL cherche uniquement les commandes de quantité supérieure à 2.</p><p>Sophie n’en a pas. Grâce au <code>LEFT JOIN</code>, elle reste quand même :</p><div class=\"pd-out\" role=\"img\" aria-label=\"Résultat avec le filtre dans ON\"><b>nom</b><b>quantite</b><span>Sophie</span><span class=\"null\">NULL</span><span>Emma</span><span>3</span><span>Léa</span><span>4</span><span>Chloé</span><span>3</span><span>Inès</span><span class=\"null\">NULL</span></div>"},
+        {t:"WHERE filtre après la jointure",
+         b:"<p>Cette fois, le <code>LEFT JOIN</code> est d’abord réalisé. Puis <code>WHERE commandes.quantite &gt; 2</code> demande : quantité supérieure à 2.</p><p>Sophie a 2, Inès a <code>NULL</code>. Ni l’un ni l’autre n’est supérieur à 2 : leurs lignes sont supprimées.</p><div class=\"pd-out\" role=\"img\" aria-label=\"Résultat avec le filtre dans WHERE\"><b>nom</b><b>quantite</b><span>Emma</span><span>3</span><span>Léa</span><span>4</span><span>Chloé</span><span>3</span></div>"},
         {t:"Même filtre, deux résultats",draw:"onwhere",
-         b:"<p>La condition est identique, seule sa place change. Dans le <code>ON</code>, Inès reste affichée avec <code>NULL</code> ; dans le <code>WHERE</code>, elle disparaît.</p>"},
+         b:"<p>La condition est identique, seule sa place change.</p>"},
         {t:"Pose-toi la bonne question",
          b:"<p>Veux-tu garder tous les clients, même sans commande correspondante ?</p><p>Si oui, la condition sur <code>commandes</code> va dans le <code>ON</code>. Sinon, le <code>WHERE</code> transforme ton <code>LEFT JOIN</code> en <code>INNER JOIN</code>.</p>"}
       ]},
-    reflex:{a:{k:"ON",t:"choisit les lignes à relier"},
-      b:{k:"WHERE",t:"filtre le résultat final"},
-      note:"Réflexe : avec un <code>LEFT JOIN</code>, tu veux garder toutes les lignes de gauche tout en filtrant celles de droite ? Mets la condition dans le <code>ON</code>."},
+    reflex:{a:{k:"ON",t:"filtre les commandes avant de les rattacher"},
+      b:{k:"WHERE",t:"filtre le résultat après la jointure"},
+      note:"Tu veux garder tous les clients tout en filtrant leurs commandes ? Mets le filtre dans le <code>ON</code>."},
     viz:"onwhere"},
   anatomie:[
     {tok:"SELECT clients.nom, commandes.quantite",txt:"Affiche le client et la quantité trouvée."},
     {tok:"FROM clients",txt:"On part de la table clients : ce sont les lignes que l’on veut toutes conserver."},
     {tok:"LEFT JOIN commandes",txt:"Cherche les commandes correspondantes sans supprimer les clients."},
     {tok:"ON clients.id = commandes.client_id",txt:"Relie chaque commande à son client."},
-    {tok:"AND commandes.quantite > 2",txt:"Parmi les commandes, seules celles dont la quantité dépasse 2 peuvent être associées."}
+    {tok:"AND commandes.quantite > 2",txt:"Filtre les commandes avant de les rattacher : seules celles dont la quantité dépasse 2 peuvent être associées."}
   ],
   exemple:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2;",
   attendu:"9 lignes : tous les clients apparaissent. Emma affiche 3, Chloé 3, Léa 4, et les six autres affichent NULL.",
-  retenir:"Dans un <code>LEFT JOIN</code>, une condition placée dans le <code>ON</code> agit pendant la jointure : elle décide de ce qui peut être relié, et toutes les lignes de gauche restent.<br><br>La même condition placée dans le <code>WHERE</code> agit après, sur le résultat : les lignes sans correspondance portent <code>NULL</code>, elles ne passent pas le filtre et disparaissent.<br><br>Filtrer la table de droite dans le <code>WHERE</code> transforme donc un <code>LEFT JOIN</code> en <code>INNER JOIN</code>.",
+  retenir:"<code>ON</code> filtre les commandes <b>avant</b> de les rattacher aux clients. S’il n’en trouve pas, le <code>LEFT JOIN</code> garde quand même le client, avec <code>NULL</code>.<br><br><code>WHERE</code> filtre le résultat <b>après</b> la jointure. <code>NULL &gt; 2</code> n’est pas vrai : le client sans correspondance disparaît.<br><br>Filtrer la table de droite dans le <code>WHERE</code> transforme donc un <code>LEFT JOIN</code> en <code>INNER JOIN</code>.",
   piege:{t:"Placer le filtre dans WHERE",
-    p:"Avec <code>WHERE commandes.quantite &gt; 2</code>, le filtre s’applique après le <code>LEFT JOIN</code>. Les clients dont la quantité vaut <code>NULL</code> sont alors supprimés du résultat.",
+    p:"Avec <code>WHERE commandes.quantite &gt; 2</code>, le filtre s’applique après le <code>LEFT JOIN</code>. Sophie a 2, Inès a <code>NULL</code> : ni l’un ni l’autre n’est supérieur à 2. Leurs lignes disparaissent.",
     exec:true,
     sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.quantite > 2;",
-    out:"3 lignes seulement : Emma, Léa et Chloé. Les six autres clients disparaissent.",
+    out:"3 lignes seulement : Emma, Léa et Chloé. Sophie et les autres clients sans commande correspondante disparaissent.",
     fixSql:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2;"},
   consigne:"Affiche tous les clients et uniquement leurs commandes dont la quantité est supérieure à 2. Les clients sans commande correspondante doivent rester affichés.",
   solution:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2;",
-  indice:"Tu veux conserver tous les clients. Place donc la condition sur <code>commandes.quantite</code> pendant la jointure, à la suite du <code>ON</code>.",
+  indice:"Tu veux conserver tous les clients. Place donc la condition sur <code>commandes.quantite</code> dans le <code>ON</code>, avant de rattacher.",
   joinRecap:'left',
   richLesson:true, earlyDemo:true,
   testeVariants:[
     {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
     {k:'cmd',label:'commandes',sql:"SELECT id, client_id, quantite\nFROM commandes;"},
-    {k:'where',label:'filtre dans WHERE',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.quantite > 2;",out:"3 lignes : le LEFT JOIN s’est comporté comme un INNER JOIN.",tone:'bad'},
+    {k:'where',label:'filtre dans WHERE',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.quantite > 2;",out:"3 lignes : Sophie a disparu. Le LEFT JOIN s’est comporté comme un INNER JOIN.",tone:'bad'},
     {k:'on',label:'filtre dans ON',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2;",tone:'good'}
   ] },
 { id:49, titre:"Conditions multiples dans ON", résumé:"Ajouter plusieurs critères à une jointure",
@@ -6903,6 +6910,8 @@ const CARTES={
     m:"Deux JOIN pour 3 tables. La table <code>commandes</code> est le pont. Suis clé primaire ↔ clé étrangère. <code>AS</code> si deux colonnes <code>nom</code>."},
  20:{k:"LEFT JOIN",t:"Garder toute la gauche",s:"FROM clients\nLEFT JOIN commandes ON clients.id = commandes.client_id",
     m:"Conserve <b>toutes</b> les lignes de la table de gauche. Sans match à droite → <code>NULL</code>. L’ordre après <code>FROM</code> compte : gauche = conservée entièrement."},
+ 43:{k:"ON vs WHERE",t:"Filtrer avant ou après",s:"LEFT JOIN … ON … AND quantite > 2",
+    m:"<code>ON</code> filtre les commandes <b>avant</b> de les rattacher : le client reste, avec <code>NULL</code>. <code>WHERE</code> filtre <b>après</b> : <code>NULL &gt; 2</code> n’est pas vrai, le client disparaît."},
  37:{k:"IS NULL",t:"Sans correspondance",s:"LEFT JOIN …\nWHERE commandes.id IS NULL",
     m:"<code>LEFT JOIN</code> garde les orphelins avec NULL. <code>WHERE table_droite.id IS NULL</code> ne sélectionne que ceux-là. Jamais <code>= NULL</code>."},
  38:{k:"RIGHT JOIN",t:"Garder toute la droite",s:"FROM clients\nRIGHT JOIN commandes ON clients.id = commandes.client_id",
@@ -7006,8 +7015,8 @@ const QCM={
  49:[{q:"Combien de conditions un <code>ON</code> peut-il contenir ?",o:["Une seule, l’égalité des clés","Autant que nécessaire, reliées par AND","Deux au maximum"],b:1,e:"La première relie les tables ; les suivantes ajoutent des critères."},
   {q:"Une commande de quantité 4 passée le 8 juillet, avec <code>AND quantite &gt; 2 AND date_commande &gt; '2023-07-15'</code> :",o:["Est jointe, sa quantité suffit","N’est pas jointe : la date est fausse","Est jointe avec un avertissement"],b:1,e:"Avec <code>AND</code>, une seule condition fausse suffit à écarter la ligne."},
   {q:"Ces critères étant dans le <code>ON</code> et non dans le <code>WHERE</code>, les clients sans commande retenue :",o:["Disparaissent du résultat","Restent affichés avec NULL","Provoquent une erreur"],b:1,e:"Le <code>LEFT JOIN</code> conserve toutes les lignes de gauche : seules leurs associations changent."}],
- 43:[{q:"Dans un <code>LEFT JOIN</code>, une condition placée dans le <code>ON</code> :",o:["Supprime les lignes de gauche qui n’y répondent pas","Décide seulement quelles lignes de droite peuvent être reliées","Est interdite en dehors de la clé"],b:1,e:"Le <code>ON</code> agit pendant la jointure : toutes les lignes de gauche restent, seules leurs correspondances changent."},
-  {q:"Pourquoi le même filtre dans <code>WHERE</code> fait-il disparaître les clients sans commande ?",o:["Parce que WHERE trie le résultat","Parce que leur quantité vaut NULL, et NULL &gt; 2 n’est pas vrai","Parce que WHERE annule le LEFT JOIN"],b:1,e:"Le <code>WHERE</code> s’applique après la jointure, sur des lignes qui portent déjà <code>NULL</code>."},
+ 43:[{q:"Dans un <code>LEFT JOIN</code>, une condition placée dans le <code>ON</code> :",o:["Supprime les lignes de gauche qui n’y répondent pas","Filtre les commandes avant de les rattacher, et garde tous les clients","Est interdite en dehors de la clé"],b:1,e:"Le <code>ON</code> filtre les correspondances avant de les rattacher : toutes les lignes de gauche restent."},
+  {q:"Pourquoi le même filtre dans <code>WHERE</code> fait-il disparaître les clients sans commande ?",o:["Parce que WHERE trie le résultat","Parce que leur quantité vaut NULL, et NULL &gt; 2 n’est pas vrai","Parce que WHERE annule le LEFT JOIN"],b:1,e:"Le <code>WHERE</code> s’applique après la jointure. <code>NULL &gt; 2</code> n’est pas vrai : la ligne est supprimée."},
   {q:"Filtrer la table de droite dans le <code>WHERE</code> revient à :",o:["Écrire un INNER JOIN","Écrire un CROSS JOIN","Ne rien changer"],b:0,e:"Toutes les lignes sans correspondance étant écartées, il ne reste que les correspondances."}],
  42:[{q:"À quoi sert un <code>SELF JOIN</code> ?",o:["À relier deux tables différentes","À relier une table à elle-même","À supprimer les doublons d’une table"],b:1,e:"On lit la même table deux fois, sous deux alias, pour comparer ses lignes entre elles."},
   {q:"Pourquoi deux alias <code>c1</code> et <code>c2</code> ?",o:["Pour aller plus vite","Parce que SQL ne saurait pas duquel des deux rôles on parle","Parce que c’est obligatoire dans tout JOIN"],b:1,e:"Sans alias, <code>clients.ville</code> serait ambigu : les deux rôles portent le même nom de table."},
@@ -10607,10 +10616,9 @@ function pointDraw(card){
       <small>correspondance ✓ + quantité ✓ + date ✓ = la commande est jointe</small>
     </div>`;
   }
-  if(kind==='onwhere') return `<div class="pd-count" aria-hidden="true">
-      <div class="pd-count-row is-juste"><b>filtre dans ON</b><i></i><span>9</span></div>
-      <div class="pd-count-row is-faux"><b>filtre dans WHERE</b><i></i><span>3</span></div>
-      <small>lignes retournées, pour la même condition</small>
+  if(kind==='onwhere') return `<div class="pd-ow" aria-hidden="true">
+      <div class="pd-ow-col is-on"><b>filtre dans ON</b><span>→ filtre les correspondances</span><span>→ garde tous les clients</span></div>
+      <div class="pd-ow-col is-where"><b>filtre dans WHERE</b><span>→ filtre les lignes du résultat</span><span>→ peut faire disparaître les clients sans correspondance</span></div>
     </div>`;
   if(kind==='selfcols') return `<div class="pd-map" aria-hidden="true">
       <div class="pd-map-row"><b>c1.nom</b><i></i><span>le nom du premier client</span></div>
@@ -10705,7 +10713,8 @@ const JOIN_SAMPLE_TABLES={
   39:[['clients',9],['commandes',16]],
   40:[['clients',9],['produits',8]],
   41:[['clients',9],['commandes',16]],
-  42:[['clients',9]]
+  42:[['clients',9]],
+  43:[['clients',9],['commandes',16]]
 };
 function addJoinSampleRows(root,lessonId){
   const meta=JOIN_SAMPLE_TABLES[lessonId];
@@ -15140,9 +15149,9 @@ const SQL_VIZ={
     <p class="er-hint">\ud83d\udc46 Touche une commande : le client auquel elle se rattache s\u2019allume.</p>
   </div>`},
   onwhere:{kind:'er',sample:'5 clients \u00b7 4 commandes',phases:[
-    {k:'Le LEFT JOIN garde tout',d:'Sans filtre, chaque client re\u00e7oit ses commandes, et celui qui n\u2019en a aucune garde une ligne \u00e0 <code>NULL</code>.',sql:'LEFT JOIN commandes ON clients.id = commandes.client_id',read:'In\u00e8s n\u2019a aucune commande : sa ligne existe quand m\u00eame, avec <code>quantite = NULL</code>.'},
-    {k:'Le filtre dans ON',d:'<code>AND commandes.quantite &gt; 2</code> agit <b>pendant</b> la jointure : la commande #1, de quantit\u00e9 2, n\u2019est plus reliable.',sql:'AND commandes.quantite > 2',read:'Sophie perd sa correspondance mais garde sa ligne, \u00e0 <code>NULL</code>. Tous les clients sont l\u00e0 : 9 lignes dans la base compl\u00e8te.'},
-    {k:'Le filtre dans WHERE',d:'<code>WHERE commandes.quantite &gt; 2</code> agit <b>apr\u00e8s</b> : les lignes \u00e0 <code>NULL</code> ne passent pas le filtre.',sql:'WHERE commandes.quantite > 2',read:'Sophie et In\u00e8s disparaissent. Il ne reste que les correspondances : 3 lignes dans la base compl\u00e8te.' }
+    {k:'Le LEFT JOIN d’abord',d:'Sans filtre, Sophie est reliée à sa commande de quantité 2. Inès, sans commande, garde une ligne à <code>NULL</code>.',sql:'LEFT JOIN commandes ON clients.id = commandes.client_id',read:'Le LEFT JOIN est réalisé : chaque client est encore là.'},
+    {k:'Filtre dans ON',d:'<code>AND commandes.quantite &gt; 2</code> filtre les commandes <b>avant</b> de les rattacher. SQL ne cherche que celles-là.',sql:'AND commandes.quantite > 2',read:'Sophie n’a pas de commande de quantité &gt; 2. Le LEFT JOIN la garde : Sophie <code>NULL</code>.'},
+    {k:'Filtre dans WHERE',d:'<code>WHERE commandes.quantite &gt; 2</code> filtre le résultat <b>après</b> la jointure.',sql:'WHERE commandes.quantite > 2',read:'2 n’est pas supérieur à 2, <code>NULL</code> non plus. Sophie et Inès disparaissent.' }
   ],html:`<div class="er-stage join-viz">
     <div class="join-sets">
       <div class="join-side"><div class="join-side-h">clients</div>
