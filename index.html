@@ -410,7 +410,7 @@
   .pt-card-b li,.pt-head-b li{margin:0}
   .pt-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
   .pt-card{background:var(--surface);border:1px solid var(--card-border);border-radius:18px;padding:15px 16px;box-shadow:var(--card-shadow-sm);container-type:inline-size;container-name:ptcard}
-  .pt-card:has(.pd-onids),.pt-card:has(.pd-sieve){grid-column:1/-1}
+  .pt-card:has(.pd-onids),.pt-card:has(.pd-sieve),.pt-card:has(.pd-map){grid-column:1/-1}
   .pt-card-t{margin:0 0 9px;font-size:14px;font-weight:800;color:var(--ink);line-height:1.3}
   .pt-card-b{margin:0;font-size:13.5px;line-height:1.5;color:var(--ink-2)}
   .pt-draw{margin:0 0 11px}
@@ -454,6 +454,17 @@
   .pd-count-row.is-faux{color:var(--warn);background:var(--warn-soft)}
   .pd-count-row.is-juste{color:var(--accent);background:var(--accent-soft)}
   .pd-count small{font-size:10.5px;font-weight:650;color:var(--ink-3);text-align:center}
+  .pd-map{display:flex;flex-direction:column;gap:6px}
+  .pd-map-row{display:grid;grid-template-columns:auto 28px minmax(0,1fr);align-items:center}
+  .pd-map-row b{display:flex;align-items:center;justify-content:center;background:var(--accent-soft);border-radius:9px;padding:7px 10px;font-family:var(--mono);font-size:12.5px;font-weight:800;color:var(--accent)}
+  .pd-map-row i{display:block;height:2px;background:rgba(91,91,214,.45);border-radius:2px;position:relative}
+  .pd-map-row i::before,.pd-map-row i::after{content:'';position:absolute;top:50%;width:6px;height:6px;border-radius:50%;background:var(--accent);transform:translateY(-50%)}
+  .pd-map-row i::before{left:-2px}
+  .pd-map-row i::after{right:-2px}
+  .pd-map-row span{font-size:12.5px;font-weight:650;color:var(--ink-2);line-height:1.35;min-width:0}
+  .pd-out{display:grid;grid-template-columns:1fr 1fr;margin:8px 0 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+  .pd-out b{font-family:var(--mono);font-size:11.5px;font-weight:800;color:var(--accent);background:var(--accent-soft);text-align:center;padding:8px 10px}
+  .pd-out span{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--ink);text-align:center;padding:8px 10px;border-top:1px solid var(--line)}
   /* Conditions multiples : chaque commande traverse les critères l'un après
      l'autre. Deux colonnes suffisent — celle qui passe tout, et celle qui
      tombe sur le dernier critère. */
@@ -6080,8 +6091,8 @@ const MODULES = [
          b:"<p><code>ON c1.ville = c2.ville</code> associe deux clients lorsque leur ville est la même.</p>"},
         {t:"Éviter les doublons",draw:"selfpairs",
          b:"<p>Sans cette condition, on pourrait obtenir Sophie · Nathan, Nathan · Sophie et Sophie · Sophie.</p><p><code>AND c1.id &lt; c2.id</code> garde chaque paire une seule fois et empêche d’associer un client à lui-même.</p>"},
-        {t:"Nommer les colonnes",
-         b:"<p><code>c1.nom AS client1</code> et <code>c2.nom AS client2</code> donnent un nom clair aux deux colonnes du résultat.</p>"}
+        {t:"Afficher les deux clients",draw:"selfcols",
+         b:"<p><code>c1.nom AS client1</code>,<br><code>c2.nom AS client2</code></p><p><code>AS</code> renomme simplement ces deux colonnes dans le résultat :</p><div class=\"pd-out\" role=\"img\" aria-label=\"Résultat : colonnes client1 et client2\"><b>client1</b><b>client2</b><span>Sophie</span><span>Nathan</span><span>Sophie</span><span>Léa</span><span>Lucas</span><span>Hugo</span></div>"}
       ]},
     reflex:{a:{k:"SELF JOIN",t:"compare des lignes de la même table"},
       b:{k:"c1 / c2",t:"donnent deux rôles à cette table"},
@@ -10521,6 +10532,10 @@ function pointDraw(card){
       <div class="pd-count-row is-juste"><b>filtre dans ON</b><i></i><span>9</span></div>
       <div class="pd-count-row is-faux"><b>filtre dans WHERE</b><i></i><span>3</span></div>
       <small>lignes retournées, pour la même condition</small>
+    </div>`;
+  if(kind==='selfcols') return `<div class="pd-map" aria-hidden="true">
+      <div class="pd-map-row"><b>c1.nom</b><i></i><span>le nom du premier client</span></div>
+      <div class="pd-map-row"><b>c2.nom</b><i></i><span>le nom du second client</span></div>
     </div>`;
   if(kind==='selfpairs') return `<div class="pd-count" aria-hidden="true">
       <div class="pd-count-row is-juste"><b>Sophie · Nathan</b><i></i><span>✓</span></div>
