@@ -6285,8 +6285,8 @@ const MODULES = [
           {tok:"AND",val:"commandes.date_commande > '2023-07-15'",tag:"garder les commandes après le 15 juillet"}
         ]},
       cards:[
-        {t:"AND : tout doit être vrai",draw:"onmultiple",
-         b:"<p>Les trois conditions sont reliées par <code>AND</code>. Il suffit qu’une seule soit fausse pour que la commande ne soit pas associée au client.</p>"}
+        {t:"AND : toutes les conditions doivent être vraies",draw:"onmultiple",
+         b:"<p>Les trois conditions sont reliées par <code>AND</code>. Si une seule est fausse, la commande n’est pas associée au client.</p>"}
       ]},
     reflex:{a:{k:"ON",t:"peut contenir plusieurs conditions"},
       b:{k:"AND",t:"exige que tous les critères soient vrais"},
@@ -7017,7 +7017,7 @@ const QCM={
  38:[{q:"<code>RIGHT JOIN</code> conserve :",o:["Seulement les lignes qui correspondent des deux côtés","Toutes les lignes de la table de droite","Toutes les lignes des deux tables"],b:1,e:"Sans correspondance à gauche, les colonnes de clients valent NULL."},
    {q:"Toutes les commandes + leurs clients (y compris l’invité sans client) :",o:["15 lignes avec INNER JOIN","16 lignes avec RIGHT JOIN","9 lignes (un par client)"],b:1,e:"15 correspondances + 1 ligne invitée avec NULL = 16 lignes."}],
  49:[{q:"Combien de conditions un <code>ON</code> peut-il contenir ?",o:["Une seule, l’égalité des clés","Autant que nécessaire, reliées par AND","Deux au maximum"],b:1,e:"La première relie les tables ; les suivantes ajoutent des critères."},
-  {q:"Une commande de quantité 4 passée le 8 juillet, avec <code>AND quantite &gt; 2 AND date_commande &gt; '2023-07-15'</code> :",o:["Est jointe, sa quantité suffit","N’est pas jointe : la date est fausse","Est jointe avec un avertissement"],b:1,e:"Avec <code>AND</code>, une seule condition fausse suffit à écarter la ligne."},
+  {q:"Une commande de quantité 4 passée le 8 juillet, avec <code>AND quantite &gt; 2 AND date_commande &gt; '2023-07-15'</code> :",o:["Est associée, sa quantité suffit","N’est pas associée : la date est fausse","Est associée avec un avertissement"],b:1,e:"Avec <code>AND</code>, une seule condition fausse suffit à écarter la ligne."},
   {q:"Ces critères étant dans le <code>ON</code> et non dans le <code>WHERE</code>, les clients sans commande retenue :",o:["Disparaissent du résultat","Restent affichés avec NULL","Provoquent une erreur"],b:1,e:"Le <code>LEFT JOIN</code> conserve toutes les lignes de gauche : seules leurs associations changent."}],
  43:[{q:"Dans un <code>LEFT JOIN</code>, une condition placée dans le <code>ON</code> :",o:["Supprime les lignes de gauche qui n’y répondent pas","Filtre les commandes avant de les rattacher, et garde tous les clients","Est interdite en dehors de la clé"],b:1,e:"Le <code>ON</code> filtre les correspondances avant de les rattacher : toutes les lignes de gauche restent."},
   {q:"Pourquoi le même filtre dans <code>WHERE</code> fait-il disparaître les clients sans commande ?",o:["Parce que WHERE trie le résultat","Parce que leur quantité vaut NULL, et NULL &gt; 2 n’est pas vrai","Parce que WHERE annule le LEFT JOIN"],b:1,e:"Le <code>WHERE</code> s’applique après la jointure. <code>NULL &gt; 2</code> n’est pas vrai : la ligne est supprimée."},
@@ -10647,10 +10647,10 @@ function pointDraw(card){
       </div>`;
     return `<div class="pd-sieve" aria-hidden="true">
       <div class="pd-sieve-cols">
-        ${col('commande #8','Léa · quantité 4 · 18 juillet',[['bon client',1],['quantité > 2',1],['après le 15/07',1]],'jointe',1)}
-        ${col('commande #4','Emma · quantité 3 · 8 juillet',[['bon client',1],['quantité > 2',1],['après le 15/07',0]],'non jointe',0)}
+        ${col('commande #8','Léa · quantité 4 · 18 juillet',[['bon client',1],['quantité > 2',1],['après le 15/07',1]],'associée',1)}
+        ${col('commande #4','Emma · quantité 3 · 8 juillet',[['bon client',1],['quantité > 2',1],['après le 15/07',0]],'non associée',0)}
       </div>
-      <small>correspondance ✓ + quantité ✓ + date ✓ = la commande est jointe</small>
+      <small>bon client ✓ + quantité ✓ + date ✓ → commande associée</small>
     </div>`;
   }
   if(kind==='onwhere') return `<div class="pd-ow" aria-hidden="true">
