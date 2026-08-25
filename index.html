@@ -403,7 +403,7 @@
   .pt-card-b li,.pt-head-b li{margin:0}
   .pt-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
   .pt-card{background:var(--surface);border:1px solid var(--card-border);border-radius:18px;padding:15px 16px;box-shadow:var(--card-shadow-sm);container-type:inline-size;container-name:ptcard}
-  .pt-card:has(.pd-onids){grid-column:1/-1}
+  .pt-card:has(.pd-onids),.pt-card:has(.pd-sieve){grid-column:1/-1}
   .pt-card-t{margin:0 0 9px;font-size:14px;font-weight:800;color:var(--ink);line-height:1.3}
   .pt-card-b{margin:0;font-size:13.5px;line-height:1.5;color:var(--ink-2)}
   .pt-draw{margin:0 0 11px}
@@ -447,6 +447,21 @@
   .pd-count-row.is-faux{color:var(--warn);background:var(--warn-soft)}
   .pd-count-row.is-juste{color:var(--accent);background:var(--accent-soft)}
   .pd-count small{font-size:10.5px;font-weight:650;color:var(--ink-3);text-align:center}
+  /* Conditions multiples : chaque commande traverse les critères l'un après
+     l'autre. Deux colonnes suffisent — celle qui passe tout, et celle qui
+     tombe sur le dernier critère. */
+  .pd-sieve{display:flex;flex-direction:column;gap:7px}
+  .pd-sieve-cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .pd-sieve-col{display:flex;flex-direction:column;gap:3px;padding:8px 7px;border-radius:12px;background:var(--surface-2);color:var(--accent);min-width:0}
+  .pd-sieve-col.is-out{color:var(--warn)}
+  .pd-sieve-t{display:flex;flex-direction:column;font-family:var(--mono);font-size:10.5px;font-weight:850;color:var(--ink);text-align:center;line-height:1.25}
+  .pd-sieve-t small{font-family:var(--ui);font-size:9.5px;font-weight:700;color:var(--ink-3)}
+  .pd-sieve-step{display:flex;align-items:center;justify-content:space-between;gap:5px;padding:4px 7px;border-radius:8px;background:var(--surface);min-width:0}
+  .pd-sieve-step em{font-style:normal;font-size:10.5px;font-weight:700;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pd-sieve-step i{flex:none;font-style:normal;font-size:11px;font-weight:850}
+  .pd-sieve-end{margin-top:2px;padding:4px 7px;border-radius:8px;background:var(--accent-soft);font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.4px;text-align:center}
+  .pd-sieve-col.is-out .pd-sieve-end{background:var(--warn-soft)}
+  .pd-sieve>small{font-size:10.5px;font-weight:650;color:var(--ink-3);text-align:center}
   .pd-pkfk{display:flex;flex-direction:column;align-items:stretch;gap:0}
   .pd-key{min-width:0;display:flex;flex-direction:column;gap:2px;border-radius:12px;padding:9px 11px;position:relative;z-index:0}
   .pd-key small{font-size:11px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;opacity:.85}
@@ -1282,6 +1297,13 @@
      rassemblent et Inès reste sans rien à droite ; temps 3, le compte. */
   /* SELF JOIN : les deux colonnes montrent la même table. On teinte par
      ville pour que l'appariement saute aux yeux avant même le résultat. */
+  .sql-viz[data-viz="onmultiple"] .join-out .join-pill[data-when]{display:none}
+  .sql-viz[data-viz="onmultiple"][data-phase="0"] .join-out .join-pill[data-when*="j"],
+  .sql-viz[data-viz="onmultiple"][data-phase="1"] .join-out .join-pill[data-when*="o"],
+  .sql-viz[data-viz="onmultiple"][data-phase="2"] .join-out .join-pill[data-when*="w"]{display:flex}
+  .sql-viz[data-viz="onmultiple"][data-phase="1"] .jchip[data-k="q"],
+  .sql-viz[data-viz="onmultiple"][data-phase="2"] .jchip[data-k="q"],
+  .sql-viz[data-viz="onmultiple"][data-phase="2"] .jchip[data-k="d"]{opacity:.3}
   .sql-viz[data-viz="onwhere"] .join-out .join-pill[data-when]{display:none}
   .sql-viz[data-viz="onwhere"][data-phase="0"] .join-out .join-pill[data-when*="j"],
   .sql-viz[data-viz="onwhere"][data-phase="1"] .join-out .join-pill[data-when*="o"],
@@ -1316,6 +1338,46 @@
   .sql-viz[data-viz="crossjoin"][data-phase="2"] .join-pill[data-when]{display:flex}
   .sql-viz[data-viz="outer"] .join-out .join-pill[data-when]{display:none}
   .sql-viz[data-viz="outer"][data-phase="2"] .join-pill[data-when]{display:flex}
+  .subq-recap .jr-type,.subq-recap thead th:first-child{width:36%}
+  .sql-viz[data-viz="subquery_in"] .join-out .join-pill[data-when],
+  .sql-viz[data-viz="subquery_notin"] .join-out .join-pill[data-when],
+  .sql-viz[data-viz="subquery_select"] .join-out .join-pill[data-when],
+  .sql-viz[data-viz="subquery_from"] .join-out .join-pill[data-when]{display:none}
+  .sql-viz[data-viz="subquery_in"][data-phase="0"] .join-pill[data-when="l"],
+  .sql-viz[data-viz="subquery_in"][data-phase="1"] .join-pill[data-when="s"],
+  .sql-viz[data-viz="subquery_in"][data-phase="2"] .join-pill[data-when="r"]{display:flex}
+  .sql-viz[data-viz="subquery_in"][data-phase="0"] .jchip[data-k="hit"],
+  .sql-viz[data-viz="subquery_in"][data-phase="1"] .jchip[data-k="hit"],
+  .sql-viz[data-viz="subquery_in"][data-phase="2"] .jchip[data-k="hit"]{background:var(--accent-soft)}
+  .sql-viz[data-viz="subquery_in"][data-phase="1"] .jchip[data-k="miss"],
+  .sql-viz[data-viz="subquery_in"][data-phase="2"] .jchip[data-k="miss"]{opacity:.3}
+  .sql-viz[data-viz="subquery_notin"][data-phase="0"] .join-pill[data-when="l"],
+  .sql-viz[data-viz="subquery_notin"][data-phase="1"] .join-pill[data-when="b"],
+  .sql-viz[data-viz="subquery_notin"][data-phase="2"] .join-pill[data-when="g"]{display:flex}
+  .sql-viz[data-viz="subquery_notin"] .jchip[data-k="null"]{background:var(--warn-soft);color:var(--warn)}
+  .sql-viz[data-viz="subquery_notin"][data-phase="1"] .jchip{opacity:.35}
+  .sql-viz[data-viz="subquery_notin"][data-phase="2"] .jchip[data-k="null"]{opacity:.3}
+  .sql-viz[data-viz="subquery_notin"][data-phase="2"] .jchip[data-k="abs"]{background:var(--accent-soft)}
+  .sql-viz[data-viz="subquery_select"][data-phase="0"] .join-pill[data-when="s"],
+  .sql-viz[data-viz="subquery_select"][data-phase="1"] .join-pill[data-when="c"],
+  .sql-viz[data-viz="subquery_select"][data-phase="2"] .join-pill[data-when="n"]{display:flex}
+  .sql-viz[data-viz="subquery_select"][data-phase="0"] .jchip[data-k="A"]{background:var(--accent-soft)}
+  .sql-viz[data-viz="subquery_select"][data-phase="1"] .jchip[data-k="A"],
+  .sql-viz[data-viz="subquery_select"][data-phase="1"] .jchip[data-k="B"],
+  .sql-viz[data-viz="subquery_select"][data-phase="2"] .jchip[data-k="A"],
+  .sql-viz[data-viz="subquery_select"][data-phase="2"] .jchip[data-k="B"],
+  .sql-viz[data-viz="subquery_select"][data-phase="2"] .jchip[data-k="C"]{background:var(--accent-soft)}
+  .sql-viz[data-viz="subquery_select"][data-phase="2"] .jchip[data-k="ghost"]{opacity:.3}
+  .sql-viz[data-viz="subquery_from"][data-phase="0"] .join-pill[data-when="t"],
+  .sql-viz[data-viz="subquery_from"][data-phase="1"] .join-pill[data-when="j"],
+  .sql-viz[data-viz="subquery_from"][data-phase="2"] .join-pill[data-when="r"]{display:flex}
+  .sql-viz[data-viz="subquery_from"] .jchip[data-k="null"]{background:var(--warn-soft);color:var(--warn)}
+  .sql-viz[data-viz="subquery_from"][data-phase="1"] .jchip[data-k="A"],
+  .sql-viz[data-viz="subquery_from"][data-phase="1"] .jchip[data-k="B"],
+  .sql-viz[data-viz="subquery_from"][data-phase="2"] .jchip[data-k="A"],
+  .sql-viz[data-viz="subquery_from"][data-phase="2"] .jchip[data-k="B"],
+  .sql-viz[data-viz="subquery_from"][data-phase="2"] .jchip[data-k="C"]{background:var(--accent-soft)}
+  .sql-viz[data-viz="subquery_from"][data-phase="2"] .jchip[data-k="null"]{opacity:.35}
   .sql-viz[data-kind="er"][data-paused="1"] .join-pill,
   .sql-viz[data-kind="er"][data-paused="1"] .join-out,
   .sql-viz[data-kind="er"][data-paused="1"] .jchip{animation-play-state:paused!important}
@@ -5920,7 +5982,7 @@ const MODULES = [
     {k:'where',label:'filtre dans WHERE',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.quantite > 2;",out:"3 lignes : le LEFT JOIN s’est comporté comme un INNER JOIN.",tone:'bad'},
     {k:'on',label:'filtre dans ON',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2;",tone:'good'}
   ] },
-{ id:44, titre:"Conditions multiples dans ON", résumé:"Ajouter plusieurs critères à une jointure",
+{ id:49, titre:"Conditions multiples dans ON", résumé:"Ajouter plusieurs critères à une jointure",
   situation:"Tu veux afficher <b>tous les clients</b>, mais seulement leurs commandes importantes.<br><br>Pour être considérée comme importante, une commande doit respecter <b>deux critères à la fois</b> : avoir une quantité supérieure à 2 et avoir été passée après le 15 juillet 2023.<br><br>Dans la table <code>clients</code>, tu as notamment :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>5</td><td>Chloé</td></tr><tr><td>7</td><td>Léa</td></tr><tr><td>9</td><td>Inès</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, certaines commandes respectent ces deux critères :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>quantite</th><th>date_commande</th></tr></thead><tbody><tr><td>8</td><td>7</td><td>4</td><td>2023-07-18</td></tr><tr><td>15</td><td>5</td><td>3</td><td>2023-08-01</td></tr></tbody></table></div><br><br>La commande de Léa respecte les deux critères. Celle de Chloé aussi. Les autres commandes ne doivent pas être associées, mais les clients doivent quand même rester affichés.<br><br>Tu peux ajouter plusieurs conditions directement dans le <code>ON</code> et les combiner avec <code>AND</code>.",
     studio:{pointCards:{
       eye:"Conditions multiples",title:"Plusieurs critères dans un seul ON.",
@@ -6056,6 +6118,213 @@ const MODULES = [
   solution:"SELECT nom, age FROM clients WHERE age > (SELECT AVG(age) FROM clients);",
   indice:"Compare à <code>(SELECT AVG(age) FROM clients)</code>.",
   richLesson:true, earlyDemo:true },
+{ id:45, titre:"Sous-requête dans WHERE avec IN", résumé:"Filtrer avec une liste issue d’une autre requête",
+  situation:"Tu veux afficher les clients qui ont commandé le produit « Fibre Prébiotique » (id 1).<br><br>Le nom du client est dans la table <code>clients</code>. Les produits commandés sont dans <code>commandes</code>, via <code>produit_id</code>.<br><br>Dans la table <code>commandes</code>, le produit 1 apparaît plusieurs fois :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td></tr><tr><td>5</td><td>4</td><td>1</td></tr><tr><td>8</td><td>7</td><td>1</td></tr><tr><td>15</td><td>5</td><td>1</td></tr></tbody></table></div><br><br>Tu peux résoudre le problème en deux étapes : d’abord récupérer les <code>client_id</code> des commandes du produit 1, puis chercher les clients dont l’<code>id</code> appartient à cette liste.",
+  situationTail:"Une sous-requête dans <code>WHERE</code> peut produire une liste de valeurs. <code>IN</code> vérifie ensuite si une valeur appartient à cette liste.",
+  studio:{pointCards:{
+      eye:"IN",title:"La sous-requête crée une liste.",
+      lead:"Avec <code>IN</code>, le résultat d’une première requête devient la liste utilisée pour filtrer la requête principale.",
+      chain:[
+        {k:"Créer la liste",v:"SELECT client_id … WHERE produit_id = 1"},
+        {k:"Chercher dedans",v:"clients.id IN (…)"}
+      ],
+      cards:[
+        {t:"1. Créer la liste",
+         b:"<p>La sous-requête récupère les <code>client_id</code> des commandes dont <code>produit_id = 1</code> : 1, 4, 7 et 5.</p>"},
+        {t:"2. Chercher dans la liste",draw:"repeat",src:"clients.id",outs:["1 Sophie","4 Nathan","5 Chloé","7 Léa"],
+         b:"<p><code>clients.id IN (…)</code> garde un client si son identifiant apparaît dans le résultat de la sous-requête.</p>"},
+        {t:"Une seule colonne",
+         b:"<p>La sous-requête utilisée avec <code>IN</code> doit retourner une seule colonne : ici <code>commandes.client_id</code>.</p>"},
+        {t:"Plusieurs valeurs possibles",draw:"oncond",pairs:[{l:'1',n:'Sophie',r:'1'},{l:'4',n:'Nathan',r:'5'},{l:'7',n:'Léa',r:'8'}],
+         b:"<p>Plusieurs clients peuvent avoir commandé le même produit. <code>IN</code> compare <code>clients.id</code> à toute cette liste.</p>"}
+      ]},
+    reflex:{a:{k:"Sous-requête",t:"fabrique une liste"},
+      b:{k:"IN",t:"cherche dans cette liste"},
+      note:"Réflexe : si une première requête peut fournir la liste des valeurs recherchées, pense <code>IN (sous-requête)</code>."},
+    viz:"subquery_in"},
+  anatomie:[
+    {tok:"SELECT clients.nom",txt:"Affiche le nom des clients."},
+    {tok:"FROM clients",txt:"La requête principale travaille sur la table clients."},
+    {tok:"WHERE clients.id IN (...)",txt:"Garde les clients dont l’identifiant appartient à la liste."},
+    {tok:"SELECT commandes.client_id",txt:"La sous-requête produit la liste des identifiants de clients."},
+    {tok:"WHERE commandes.produit_id = 1",txt:"Ne garde que les commandes du produit 1."}
+  ],
+  exemple:"SELECT clients.nom\nFROM clients\nWHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);",
+  attendu:"4 lignes : Sophie, Nathan, Chloé et Léa — les clients ayant commandé le produit id 1.",
+  retenir:"Une sous-requête dans <code>WHERE</code> peut fabriquer une <b>liste</b>. <code>IN</code> teste ensuite si une valeur appartient à cette liste.<br><br>La sous-requête doit renvoyer <b>une seule colonne</b>. Avec plusieurs valeurs possibles, n’utilise pas <code>=</code>.",
+  piege:{t:"Utiliser = pour une liste",
+    p:"La sous-requête peut retourner plusieurs <code>client_id</code>. Tu ne cherches donc pas une seule valeur : tu veux savoir si <code>clients.id</code> appartient à une liste. Utilise <code>IN</code>.",
+    exec:true,
+    sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id = (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);",
+    out:"Cette écriture traite la sous-requête comme une valeur unique. SQLite refuse souvent, ou ne compare qu’une seule ligne.",
+    fixSql:"SELECT clients.nom\nFROM clients\nWHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);"},
+  consigne:"Affiche les noms des clients qui ont commandé le produit id 1 (Fibre Prébiotique).",
+  solution:"SELECT clients.nom\nFROM clients\nWHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);",
+  indice:"Commence par récupérer les <code>client_id</code> des commandes du produit 1, puis utilise cette liste avec <code>IN</code>.",
+  subqueryRecap:'in',
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
+    {k:'cmd',label:'commandes',sql:"SELECT id, client_id, produit_id\nFROM commandes;"},
+    {k:'sub_in',label:'IN + sous-requête',sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);",tone:'good'}
+  ] },
+{ id:46, titre:"Sous-requête avec NOT IN", résumé:"Trouver les clients sans commande",
+  situation:"Tu veux maintenant faire l’inverse : afficher les clients qui n’ont jamais passé commande.<br><br>Tu peux d’abord récupérer tous les <code>client_id</code> présents dans <code>commandes</code>, puis garder les clients dont l’<code>id</code> n’apparaît pas dans cette liste.<br><br>Mais il y a un piège dans notre base : la commande invitée <b>#16</b> n’est associée à aucun client.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th><th>date_commande</th></tr></thead><tbody><tr><td>16</td><td>NULL</td><td>4</td><td>1</td><td>2023-08-03</td></tr></tbody></table></div><br><br>La sous-requête peut donc retourner <code>NULL</code> parmi les <code>client_id</code>. Or <code>NOT IN</code> se comporte mal lorsqu’un <code>NULL</code> est présent dans la liste. Il faut d’abord l’exclure.",
+  situationTail:"Avec <code>NOT IN</code>, vérifie toujours si la sous-requête peut retourner <code>NULL</code>. Ici, on ajoute <code>client_id IS NOT NULL</code> avant d’utiliser la liste.",
+  studio:{pointCards:{
+      eye:"NOT IN",title:"La sous-requête crée une liste à exclure.",
+      lead:"<code>NOT IN</code> trouve les valeurs absentes d’une liste. Un <code>NULL</code> dans cette liste peut empêcher d’obtenir le résultat attendu.",
+      chain:[
+        {k:"Créer la liste",v:"SELECT client_id FROM commandes"},
+        {k:"Retirer le NULL",v:"WHERE client_id IS NOT NULL"},
+        {k:"Exclure la liste",v:"clients.id NOT IN (…)"}
+      ],
+      cards:[
+        {t:"Créer la liste",
+         b:"<p><code>SELECT client_id FROM commandes</code> récupère les identifiants des clients ayant commandé.</p>"},
+        {t:"Le piège du NULL",draw:"nulltrap",
+         b:"<p>La commande #16 possède <code>client_id = NULL</code>. Ce <code>NULL</code> se retrouve donc dans la liste. Avec <code>NOT IN</code>, le résultat devient vide.</p>"},
+        {t:"Retirer le NULL",
+         b:"<p><code>WHERE client_id IS NOT NULL</code> retire la commande invitée de la liste avant d’utiliser <code>NOT IN</code>.</p>"},
+        {t:"Chercher les absents",
+         b:"<p><code>clients.id NOT IN (…)</code> peut alors garder les clients dont l’identifiant n’apparaît dans aucune commande : ici, Inès.</p>"}
+      ]},
+    reflex:{a:{k:"NOT IN",t:"cherche les valeurs absentes"},
+      b:{k:"IS NOT NULL",t:"sécurise la liste"},
+      note:"Réflexe : avant un <code>NOT IN</code>, vérifie si la sous-requête peut retourner <code>NULL</code>."},
+    viz:"subquery_notin"},
+  anatomie:[
+    {tok:"SELECT clients.nom",txt:"Affiche le nom des clients."},
+    {tok:"FROM clients",txt:"La table dans laquelle on cherche les clients sans commande."},
+    {tok:"WHERE clients.id NOT IN (...)",txt:"Garde les identifiants absents de la liste."},
+    {tok:"SELECT commandes.client_id",txt:"Produit la liste des clients ayant commandé."},
+    {tok:"WHERE commandes.client_id IS NOT NULL",txt:"Retire le NULL de la commande invitée avant la comparaison."}
+  ],
+  exemple:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);",
+  attendu:"1 ligne : Inès, la seule cliente qui n’a jamais passé commande.",
+  retenir:"<code>NOT IN</code> cherche les valeurs <b>absentes</b> d’une liste.<br><br>Si la liste contient un <code>NULL</code>, SQL ne peut plus conclure qu’une valeur est absente de <b>toute</b> la liste. Le résultat devient vide.<br><br>La commande invitée #16 impose donc <code>WHERE client_id IS NOT NULL</code> dans la sous-requête.",
+  piege:{t:"Laisser NULL dans la sous-requête",
+    p:"La commande invitée #16 possède <code>client_id = NULL</code>. Si ce <code>NULL</code> reste dans la liste utilisée par <code>NOT IN</code>, SQL ne peut pas conclure qu’un identifiant est absent de toute la liste. Le résultat devient vide.",
+    exec:true,
+    sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n);",
+    out:"0 ligne : Inès disparaît à cause du NULL présent dans la liste.",
+    fixSql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);"},
+  consigne:"Affiche les clients qui n’ont jamais passé commande avec <code>NOT IN</code>, sans laisser la commande invitée fausser le résultat.",
+  solution:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);",
+  indice:"La commande #16 contient un <code>client_id</code> NULL. Retire-le de la sous-requête avant d’utiliser <code>NOT IN</code>.",
+  subqueryRecap:'notin',
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
+    {k:'cmd',label:'commandes',sql:"SELECT id, client_id\nFROM commandes;"},
+    {k:'notin_bad',label:'NOT IN avec NULL',sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n);",out:"0 ligne : le NULL de la commande #16 vide le résultat.",tone:'bad'},
+    {k:'notin',label:'NOT IN corrigé',sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);",tone:'good'}
+  ] },
+{ id:47, titre:"Sous-requête dans SELECT", résumé:"Calculer une valeur pour chaque ligne",
+  situation:"Tu veux afficher chaque client avec son nombre de commandes, mais sans utiliser <code>GROUP BY</code> dans la requête principale.<br><br>Pour chaque client, tu lances une petite sous-requête qui compte uniquement les commandes associées à son <code>id</code>.<br><br>Lorsque la requête principale est sur Sophie, la sous-requête cherche les commandes où <code>client_id = 1</code>. Lorsqu’elle passe à Lucas, elle cherche celles où <code>client_id = 2</code>.<br><br>La sous-requête dépend donc du client actuellement traité : on dit qu’elle est <b>corrélée</b>.",
+  situationTail:"Une sous-requête placée dans <code>SELECT</code> peut calculer une valeur pour chaque ligne. Ici, elle compte les commandes correspondant au client courant.",
+  studio:{pointCards:{
+      eye:"SELECT",title:"La sous-requête calcule une valeur.",
+      lead:"Dans <code>SELECT</code>, une sous-requête peut produire une valeur différente pour chaque ligne de la requête principale.",
+      rule:{lines:[
+          {tok:"SELECT",val:"clients.nom",tag:"une ligne de la requête principale",keep:1},
+          {tok:"(SELECT COUNT(*)",val:"FROM commandes",tag:"calcule une valeur pour cette ligne"},
+          {tok:"WHERE",val:"commandes.client_id = clients.id",tag:"relie au client courant"},
+          {tok:") AS",val:"nb_commandes",tag:"nomme le résultat"}
+        ]},
+      cards:[
+        {t:"Une valeur par client",draw:"groupcount",
+         b:"<p><code>COUNT(*)</code> produit un nombre : le nombre de commandes correspondant au client courant.</p>"},
+        {t:"Relier au client courant",
+         b:"<p><code>commandes.client_id = clients.id</code> fait dépendre la sous-requête du client actuellement traité.</p>"},
+        {t:"C’est une corrélation",
+         b:"<p>La sous-requête utilise <code>clients.id</code>, une valeur provenant de la requête principale. On parle de sous-requête corrélée.</p>"},
+        {t:"Aucune commande = 0",
+         b:"<p>Pour Inès, aucune commande ne possède <code>client_id = 9</code>. <code>COUNT(*)</code> retourne donc 0. La commande invitée #16 n’est comptée pour personne : son <code>client_id</code> vaut <code>NULL</code>.</p>"}
+      ]},
+    reflex:{a:{k:"SELECT",t:"une valeur calculée par ligne"},
+      b:{k:"Corrélation",t:"utilise la ligne courante"},
+      note:"Réflexe : si la sous-requête doit calculer quelque chose pour chaque client, elle doit être reliée au <code>clients.id</code> courant."},
+    viz:"subquery_select"},
+  anatomie:[
+    {tok:"SELECT clients.nom",txt:"Affiche le nom du client."},
+    {tok:"(SELECT COUNT(*) ...)",txt:"Calcule une valeur supplémentaire pour ce client."},
+    {tok:"FROM commandes",txt:"La sous-requête cherche dans les commandes."},
+    {tok:"WHERE commandes.client_id = clients.id",txt:"Ne compte que les commandes appartenant au client courant."},
+    {tok:"AS nb_commandes",txt:"Donne un nom à la valeur calculée."}
+  ],
+  exemple:"SELECT clients.nom,\n  (SELECT COUNT(*)\n   FROM commandes\n   WHERE commandes.client_id = clients.id) AS nb_commandes\nFROM clients;",
+  attendu:"9 lignes : chaque client avec son nombre de commandes. Sophie : 3, Lucas : 2, Inès : 0. La commande invitée #16 n’est comptée pour aucun client car son client_id vaut NULL.",
+  retenir:"Une sous-requête dans <code>SELECT</code> calcule <b>une valeur par ligne</b>.<br><br>Elle est souvent <b>corrélée</b> : elle utilise une colonne de la requête principale, ici <code>clients.id</code>.<br><br>Sans ce lien, elle compte toute la table. Pour Inès, <code>COUNT(*)</code> vaut 0. La commande invitée n’appartient à personne.",
+  piege:{t:"Oublier le lien avec le client",
+    p:"Sans <code>WHERE commandes.client_id = clients.id</code>, la sous-requête compte toute la table <code>commandes</code>. Comme elle contient 16 commandes, chaque client afficherait 16.",
+    exec:true,
+    sql:"SELECT clients.nom,\n  (SELECT COUNT(*)\n   FROM commandes) AS nb_commandes\nFROM clients;",
+    out:"Tous les clients affichent 16, même Inès.",
+    fixSql:"SELECT clients.nom,\n  (SELECT COUNT(*)\n   FROM commandes\n   WHERE commandes.client_id = clients.id) AS nb_commandes\nFROM clients;"},
+  consigne:"Affiche chaque client avec son nombre de commandes en utilisant une sous-requête dans le SELECT.",
+  solution:"SELECT clients.nom,\n  (SELECT COUNT(*)\n   FROM commandes\n   WHERE commandes.client_id = clients.id) AS nb_commandes\nFROM clients;",
+  indice:"Dans la sous-requête, compare <code>commandes.client_id</code> au <code>clients.id</code> de la ligne courante.",
+  subqueryRecap:'select',
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
+    {k:'cmd',label:'commandes',sql:"SELECT id, client_id\nFROM commandes;"},
+    {k:'sub_select',label:'Sous-requête SELECT',sql:"SELECT clients.nom,\n  (SELECT COUNT(*)\n   FROM commandes\n   WHERE commandes.client_id = clients.id) AS nb_commandes\nFROM clients;",tone:'good'}
+  ] },
+{ id:48, titre:"Sous-requête dans FROM", résumé:"Utiliser une sous-requête comme table",
+  situation:"Tu veux encore afficher chaque client avec son nombre de commandes, mais cette fois tu vas d’abord construire un résultat intermédiaire.<br><br>La sous-requête regroupe la table <code>commandes</code> par <code>client_id</code> et calcule le nombre de commandes de chaque client. Elle produit un petit résultat avec deux colonnes : <code>client_id</code> et <code>nb</code>.<br><br>Avec la commande invitée, ce résultat contient aussi un groupe inattendu :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>client_id</th><th>nb</th></tr></thead><tbody><tr><td>1</td><td>3</td></tr><tr><td>2</td><td>2</td></tr><tr><td>NULL</td><td>1</td></tr></tbody></table></div><br><br>C’est normal : la commande #16 est comptée dans le groupe <code>NULL</code>. Ce résultat peut ensuite être utilisé comme une table et relié à <code>clients</code>.",
+  situationTail:"Une sous-requête placée dans <code>FROM</code> ou dans un <code>JOIN</code> produit un résultat intermédiaire que la requête principale peut utiliser comme une table.",
+  studio:{pointCards:{
+      eye:"FROM",title:"La sous-requête crée une table.",
+      lead:"Une sous-requête dans <code>FROM</code> construit d’abord un résultat intermédiaire, puis la requête principale travaille avec ce résultat.",
+      rule:{lines:[
+          {tok:"SELECT",val:"client_id, COUNT(*) AS nb",tag:"fabrique la table intermédiaire"},
+          {tok:"FROM",val:"commandes GROUP BY client_id",tag:"une ligne par client_id, y compris NULL"},
+          {tok:") AS",val:"stats",tag:"donne un nom à cette table",keep:1},
+          {tok:"LEFT JOIN",val:"… ON clients.id = stats.client_id",tag:"relie chaque client à sa ligne"}
+        ]},
+      cards:[
+        {t:"1. Construire la table",
+         b:"<p><code>GROUP BY client_id</code> crée une ligne par <code>client_id</code> et <code>COUNT(*)</code> calcule son nombre de commandes. Le groupe <code>NULL</code> compte la commande invitée : 1.</p>"},
+        {t:"2. Donner un nom",
+         b:"<p><code>AS stats</code> donne un nom au résultat intermédiaire. On peut ensuite utiliser <code>stats.client_id</code> et <code>stats.nb</code>.</p>"},
+        {t:"3. Relier les résultats",draw:"nullgroup",
+         b:"<p><code>ON clients.id = stats.client_id</code> associe chaque client à son nombre de commandes. Le groupe <code>NULL</code> ne correspond à aucun <code>clients.id</code> : la commande invitée existe dans les stats, mais n’appartient à personne.</p>"},
+        {t:"4. Garder tous les clients",
+         b:"<p><code>LEFT JOIN</code> conserve les clients qui n’ont aucune ligne dans <code>stats</code>, comme Inès. Son <code>nb</code> vaut alors <code>NULL</code>.</p>"}
+      ]},
+    reflex:{a:{k:"Sous-requête FROM",t:"fabrique une table intermédiaire"},
+      b:{k:"Alias",t:"permet de nommer et utiliser cette table"},
+      note:"Réflexe : lis d’abord la sous-requête seule. Comprends le petit tableau qu’elle produit, puis regarde comment la requête principale l’utilise."},
+    viz:"subquery_from"},
+  anatomie:[
+    {tok:"SELECT client_id, COUNT(*) AS nb",txt:"Crée une ligne avec le nombre de commandes pour chaque client_id."},
+    {tok:"FROM commandes GROUP BY client_id",txt:"Regroupe les commandes selon leur client_id — y compris le groupe NULL."},
+    {tok:"AS stats",txt:"Donne le nom stats au résultat de la sous-requête."},
+    {tok:"LEFT JOIN (...) AS stats",txt:"Utilise ce résultat intermédiaire comme une table."},
+    {tok:"ON clients.id = stats.client_id",txt:"Relie chaque client à sa ligne dans stats. NULL ne joint personne."}
+  ],
+  exemple:"SELECT clients.nom, stats.nb\nFROM clients\nLEFT JOIN (\n  SELECT client_id, COUNT(*) AS nb\n  FROM commandes\n  GROUP BY client_id\n) AS stats\nON clients.id = stats.client_id;",
+  attendu:"9 lignes : tous les clients avec leur nombre de commandes. Inès affiche NULL car aucune ligne de stats ne correspond à son id. Le groupe NULL (commande #16) n’est relié à aucun client.",
+  retenir:"Une sous-requête dans <code>FROM</code> fabrique une <b>table intermédiaire</b>. Il faut lui donner un alias.<br><br>Lis-la d’abord seule : ici elle produit aussi <code>NULL | 1</code>, le groupe de la commande invitée.<br><br><code>ON clients.id = stats.client_id</code> ne relie personne à ce groupe. <code>LEFT JOIN</code> garde Inès, avec <code>nb = NULL</code>.",
+  piege:{t:"Utiliser INNER JOIN",
+    p:"La sous-requête ne produit aucune ligne pour Inès puisqu’elle n’a jamais commandé. Avec <code>INNER JOIN</code>, elle disparaîtrait donc complètement du résultat.",
+    exec:true,
+    sql:"SELECT clients.nom, stats.nb\nFROM clients\nJOIN (\n  SELECT client_id, COUNT(*) AS nb\n  FROM commandes\n  GROUP BY client_id\n) AS stats\nON clients.id = stats.client_id;",
+    out:"Inès disparaît du résultat.",
+    fixSql:"SELECT clients.nom, stats.nb\nFROM clients\nLEFT JOIN (\n  SELECT client_id, COUNT(*) AS nb\n  FROM commandes\n  GROUP BY client_id\n) AS stats\nON clients.id = stats.client_id;"},
+  consigne:"Affiche tous les clients avec leur nombre de commandes en utilisant une sous-requête comme table intermédiaire.",
+  solution:"SELECT clients.nom, stats.nb\nFROM clients\nLEFT JOIN (\n  SELECT client_id, COUNT(*) AS nb\n  FROM commandes\n  GROUP BY client_id\n) AS stats\nON clients.id = stats.client_id;",
+  indice:"Commence par créer une sous-requête qui retourne <code>client_id</code> et son nombre de commandes, puis relie ce résultat à <code>clients</code>.",
+  subqueryRecap:'from',
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
+    {k:'cmd',label:'commandes',sql:"SELECT id, client_id\nFROM commandes;"},
+    {k:'stats',label:'Table intermédiaire',sql:"SELECT client_id, COUNT(*) AS nb\nFROM commandes\nGROUP BY client_id;"},
+    {k:'sub_from',label:'Sous-requête FROM',sql:"SELECT clients.nom, stats.nb\nFROM clients\nLEFT JOIN (\n  SELECT client_id, COUNT(*) AS nb\n  FROM commandes\n  GROUP BY client_id\n) AS stats\nON clients.id = stats.client_id;",tone:'good'}
+  ] },
 { id:25, titre:"Les dates", résumé:"Filtrer sur une période",
   situation:"Dans la table <code>commandes</code>, tu veux celles passées à partir du 15 juillet 2023. Le format de la date décide si le filtre a un sens.",
     studio:{problem:{title:"Le format AAAA-MM-JJ se compare dans le bon ordre.",
@@ -6333,6 +6602,14 @@ const CARTES={
     m:"Renvoie la première valeur non nulle. Habillage d’affichage uniquement. Utile en calcul : toute opération avec NULL donne NULL."},
  24:{k:"Sous-requête",t:"Une requête dans la requête",s:"WHERE prix > (SELECT AVG(prix) FROM produits)",
     m:"Exécutée en premier, son résultat devient une valeur. Une seule valeur → <code>=</code>, <code>&gt;</code>. Une liste → <code>IN</code>. Lis de l’intérieur vers l’extérieur."},
+ 45:{k:"IN + sous-requête",t:"Filtrer avec une liste",s:"WHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n)",
+    m:"La sous-requête fabrique une <b>liste</b>. <code>IN</code> cherche ensuite si <code>clients.id</code> y figure. Une seule colonne dans la sous-requête. Pas <code>=</code> : plusieurs valeurs sont possibles."},
+ 46:{k:"NOT IN",t:"Exclure une liste, sans NULL",s:"WHERE clients.id NOT IN (\n  SELECT client_id FROM commandes\n  WHERE client_id IS NOT NULL\n)",
+    m:"<code>NOT IN</code> cherche les absents. Un <code>NULL</code> dans la liste (commande #16) vide le résultat. Retire-le d’abord : <code>client_id IS NOT NULL</code>."},
+ 47:{k:"Sous-requête SELECT",t:"Une valeur par ligne",s:"SELECT nom, (SELECT COUNT(*)\n  FROM commandes\n  WHERE client_id = clients.id)\nFROM clients;",
+    m:"Dans <code>SELECT</code>, la sous-requête calcule une valeur pour chaque ligne. Elle est <b>corrélée</b> : elle utilise <code>clients.id</code>. Sans ce lien, tout le monde affiche le même total."},
+ 48:{k:"Sous-requête FROM",t:"Une table intermédiaire",s:"LEFT JOIN (\n  SELECT client_id, COUNT(*) AS nb\n  FROM commandes\n  GROUP BY client_id\n) AS stats",
+    m:"Dans <code>FROM</code>, la sous-requête fabrique une table. Donne-lui un alias. Lis-la seule : elle contient aussi <code>NULL | 1</code> (commande invitée), que <code>ON</code> ne relie à aucun client."},
  25:{k:"Dates",t:"Filtrer une période",s:"WHERE date_commande >= '2023-07-15'",
     m:"En SQLite les dates sont du texte. Le format <b>AAAA-MM-JJ</b> se trie tout seul. <code>strftime('%m', d)</code> extrait le mois."},
  26:{k:"INSERT",t:"Ajouter une ligne",s:"INSERT INTO clients (nom, ville)\nVALUES ('Théo', 'Lille');",
@@ -6407,6 +6684,9 @@ const QCM={
    {q:"Tester l’absence de valeur après une jointure :",o:["WHERE commandes.id = NULL","WHERE commandes.id IS NULL","WHERE commandes.id = 0"],b:1,e:"En SQL, NULL ne se compare pas avec =. On utilise IS NULL."}],
  38:[{q:"<code>RIGHT JOIN</code> conserve :",o:["Seulement les lignes qui correspondent des deux côtés","Toutes les lignes de la table de droite","Toutes les lignes des deux tables"],b:1,e:"Sans correspondance à gauche, les colonnes de clients valent NULL."},
    {q:"Toutes les commandes + leurs clients (y compris l’invité sans client) :",o:["15 lignes avec INNER JOIN","16 lignes avec RIGHT JOIN","9 lignes (un par client)"],b:1,e:"15 correspondances + 1 ligne invitée avec NULL = 16 lignes."}],
+ 49:[{q:"Combien de conditions un <code>ON</code> peut-il contenir ?",o:["Une seule, l’égalité des clés","Autant que nécessaire, reliées par AND","Deux au maximum"],b:1,e:"La première relie les tables ; les suivantes ajoutent des critères."},
+  {q:"Une commande de quantité 4 passée le 8 juillet, avec <code>AND quantite &gt; 2 AND date_commande &gt; '2023-07-15'</code> :",o:["Est jointe, sa quantité suffit","N’est pas jointe : la date est fausse","Est jointe avec un avertissement"],b:1,e:"Avec <code>AND</code>, une seule condition fausse suffit à écarter la ligne."},
+  {q:"Ces critères étant dans le <code>ON</code> et non dans le <code>WHERE</code>, les clients sans commande retenue :",o:["Disparaissent du résultat","Restent affichés avec NULL","Provoquent une erreur"],b:1,e:"Le <code>LEFT JOIN</code> conserve toutes les lignes de gauche : seules leurs associations changent."}],
  43:[{q:"Dans un <code>LEFT JOIN</code>, une condition placée dans le <code>ON</code> :",o:["Supprime les lignes de gauche qui n’y répondent pas","Décide seulement quelles lignes de droite peuvent être reliées","Est interdite en dehors de la clé"],b:1,e:"Le <code>ON</code> agit pendant la jointure : toutes les lignes de gauche restent, seules leurs correspondances changent."},
   {q:"Pourquoi le même filtre dans <code>WHERE</code> fait-il disparaître les clients sans commande ?",o:["Parce que WHERE trie le résultat","Parce que leur quantité vaut NULL, et NULL &gt; 2 n’est pas vrai","Parce que WHERE annule le LEFT JOIN"],b:1,e:"Le <code>WHERE</code> s’applique après la jointure, sur des lignes qui portent déjà <code>NULL</code>."},
   {q:"Filtrer la table de droite dans le <code>WHERE</code> revient à :",o:["Écrire un INNER JOIN","Écrire un CROSS JOIN","Ne rien changer"],b:0,e:"Toutes les lignes sans correspondance étant écartées, il ne reste que les correspondances."}],
@@ -6432,6 +6712,18 @@ const QCM={
    {q:"Après un COALESCE, la valeur stockée dans la table :",o:["Est modifiée","Reste NULL","Est supprimée"],b:1,e:"Habillage d’affichage. Pour modifier, il faut un UPDATE."}],
  24:[{q:"Une sous-requête comparée avec <code>></code> doit renvoyer :",o:["Une seule valeur","Une liste de valeurs","Une table entière"],b:0,e:"Pour comparer à une liste, utilise <code>IN</code>."},
    {q:"Dans quel ordre lire une requête à sous-requête ?",o:["De gauche à droite","De l’intérieur des parenthèses vers l’extérieur","De la fin vers le début"],b:1,e:"SQL exécute l’intérieur d’abord, puis utilise le résultat."}],
+ 45:[{q:"Avec <code>IN</code>, la sous-requête sert à :",o:["Calculer une moyenne","Fabriquer une liste de valeurs","Renommer une table"],b:1,e:"<code>IN</code> teste si une valeur appartient à cette liste."},
+  {q:"Pourquoi écrire <code>IN</code> plutôt que <code>=</code> ici ?",o:["C’est plus rapide","Parce que la sous-requête peut renvoyer plusieurs client_id","Parce que SQL refuse = avec une sous-requête"],b:1,e:"<code>=</code> attend une seule valeur. Plusieurs clients ont commandé le produit 1."},
+  {q:"La sous-requête utilisée avec <code>IN</code> doit renvoyer :",o:["Une seule colonne","Toutes les colonnes de commandes","Deux colonnes, id et nom"],b:0,e:"On compare <code>clients.id</code> à une liste d’identifiants, pas à des lignes entières."}],
+ 46:[{q:"Pourquoi <code>NOT IN (SELECT client_id FROM commandes)</code> renvoie 0 ligne ?",o:["Tous les clients ont commandé","La commande #16 met un NULL dans la liste","NOT IN est interdit avec une sous-requête"],b:1,e:"Un NULL dans la liste empêche SQL de conclure qu’un id est absent de toute la liste."},
+  {q:"Comment sécuriser ce <code>NOT IN</code> ?",o:["Ajouter LIMIT 1","Retirer les NULL : WHERE client_id IS NOT NULL","Remplacer NOT IN par ="],b:1,e:"Sans le NULL de la commande invitée, Inès ressort bien."},
+  {q:"Après correction, le résultat est :",o:["Aucun client","Inès seulement","Tous les clients sauf Sophie"],b:1,e:"Inès est la seule à n’avoir aucune commande."}],
+ 47:[{q:"Une sous-requête dans <code>SELECT</code> sert à :",o:["Filtrer les lignes","Calculer une valeur pour chaque ligne","Créer une table intermédiaire"],b:1,e:"Ici, elle compte les commandes du client courant."},
+  {q:"Pourquoi écrire <code>WHERE commandes.client_id = clients.id</code> ?",o:["Pour trier le résultat","Pour relier la sous-requête à la ligne courante","Parce que JOIN l’exige"],b:1,e:"Sans ce lien, la sous-requête compte toute la table : 16 pour tout le monde."},
+  {q:"Combien de commandes Inès affiche-t-elle ? Et la commande invitée ?",o:["1, et #16 est comptée pour Inès","0, et #16 n’est comptée pour personne","NULL, comme un LEFT JOIN"],b:1,e:"Aucun client_id ne vaut 9. #16 a client_id NULL : elle n’appartient à personne."}],
+ 48:[{q:"Une sous-requête dans <code>FROM</code> produit :",o:["Une seule valeur","Une liste pour IN","Une table intermédiaire"],b:2,e:"On lui donne un alias, puis on s’en sert comme d’une vraie table."},
+  {q:"<code>GROUP BY client_id</code> sur commandes crée aussi :",o:["Une ligne Inès avec 0","Un groupe NULL | 1 pour la commande #16","Une erreur, NULL n’est pas groupable"],b:1,e:"La commande invitée forme son propre groupe. Le ON ne la relie à aucun client."},
+  {q:"Pourquoi <code>LEFT JOIN</code> plutôt que <code>JOIN</code> ?",o:["C’est plus rapide","Pour garder Inès, absente de stats","Parce que l’alias stats l’exige"],b:1,e:"INNER JOIN n’aurait que les clients présents dans stats. Inès disparaîtrait."}],
  25:[{q:"Pourquoi stocker les dates en AAAA-MM-JJ ?",o:["C’est le seul format accepté","L’ordre alphabétique coïncide avec l’ordre chronologique","Ça prend moins de place"],b:1,e:"On peut ainsi comparer et trier des dates comme du texte."},
    {q:"<code>strftime('%Y-%m', date)</code> renvoie :",o:["L’année seule","L’année et le mois","Le jour du mois"],b:1,e:"On tronque la date pour former des paquets mensuels."}],
  26:[{q:"Les colonnes non citées dans un INSERT prennent :",o:["Leur DEFAULT si défini, sinon NULL","Toujours 0","La valeur de la ligne précédente"],b:0,e:"Une colonne omise reçoit son <code>DEFAULT</code> si la table en définit un ; sinon elle reçoit généralement <code>NULL</code>."},
@@ -9486,6 +9778,30 @@ function joinRecapBlock(l){
     </table>
   </div>`;
 }
+const SUBQ_RECAP=[
+  {k:'in', t:'IN', d:'La sous-requête crée une liste'},
+  {k:'notin', t:'NOT IN', d:'Elle crée une liste à exclure'},
+  {k:'select', t:'SELECT', d:'Elle calcule une valeur'},
+  {k:'from', t:'FROM', d:'Elle crée une table'}
+];
+function subqueryRecapBlock(l){
+  if(!l||!l.subqueryRecap) return '';
+  const vus=l.subqueryRecap===true?[]:[].concat(l.subqueryRecap);
+  const lignes=SUBQ_RECAP.map(r=>{
+    const ici=vus.indexOf(r.k)>=0;
+    return `<tr class="${ici?'on':''}">
+      <td class="jr-type">${r.t}${ici?'<span class="jr-ici">ce cours</span>':''}</td>
+      <td class="jr-quoi">${r.d}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="concept-block">
+    <h2><span class="h2-txt">Les 4 rôles d’une sous-requête</span></h2>
+    <table class="join-recap subq-recap">
+      <thead><tr><th scope="col">Emplacement</th><th scope="col">La sous-requête…</th></tr></thead>
+      <tbody>${lignes}</tbody>
+    </table>
+  </div>`;
+}
 function reflexBlock(l){
   const body=lessonReflexHtml(l);
   if(!body) return '';
@@ -9729,7 +10045,7 @@ const JOIN_GUIDES={
   outer:{kicker:'Analyse du périmètre',lead:'Le type de JOIN décrit quelles lignes doivent rester même sans correspondance.',steps:[['INNER','uniquement les correspondances'],['LEFT / RIGHT','toute une source + les correspondances — Inès à gauche, l’invité à droite'],['FULL OUTER','Inès et l’invité, plus les correspondances']],takeaway:'Le choix du JOIN est un choix de périmètre de résultat.'}
 };
 const JOIN_OUTPUT_LABELS={
-  joinon:'Résultat projeté · une ligne par commande correspondante',inner:'Résultat projeté · correspondances uniquement',leftj:'Résultat projeté · table clients conservée',rightj:'Résultat projeté · table commandes conservée',orphan:'Résultat projeté · clients sans commande',triple:'Résultat projeté · client, produit, quantité',outer:'Résultat projeté · les deux tables conservées',crossjoin:'Résultat projeté · toutes les paires',joingroupby:'Résultat de l’étape',selfjoin:'Résultat projeté · une ligne par paire',onwhere:'Résultat de l’étape'
+  joinon:'Résultat projeté · une ligne par commande correspondante',inner:'Résultat projeté · correspondances uniquement',leftj:'Résultat projeté · table clients conservée',rightj:'Résultat projeté · table commandes conservée',orphan:'Résultat projeté · clients sans commande',triple:'Résultat projeté · client, produit, quantité',outer:'Résultat projeté · les deux tables conservées',crossjoin:'Résultat projeté · toutes les paires',joingroupby:'Résultat de l’étape',selfjoin:'Résultat projeté · une ligne par paire',onwhere:'Résultat de l’étape',onmultiple:'Résultat de l’étape',subquery_in:'Résultat de l’étape',subquery_notin:'Résultat de l’étape',subquery_select:'Résultat de l’étape',subquery_from:'Résultat de l’étape'
 };
 function renderJoinGuide(key){
   const g=JOIN_GUIDES[key];
@@ -9941,6 +10257,20 @@ function pointDraw(card){
       <span class="pd-outs">${outs.map(o=>`<b>${esc(o)}</b>`).join('')}${more?`<b class="pd-more"><span>…</span>${esc(more)}</b>`:''}</span>
     </div>`;
   }
+  if(kind==='onmultiple'){
+    const col=(t,st,tests,verdict,ok)=>`<div class="pd-sieve-col${ok?'':' is-out'}">
+        <b class="pd-sieve-t">${t}<small>${st}</small></b>
+        ${tests.map(x=>`<span class="pd-sieve-step"><em>${x[0]}</em><i>${x[1]?'✓':'✕'}</i></span>`).join('')}
+        <span class="pd-sieve-end">${verdict}</span>
+      </div>`;
+    return `<div class="pd-sieve" aria-hidden="true">
+      <div class="pd-sieve-cols">
+        ${col('commande #8','Léa · quantité 4 · 18 juillet',[['bon client',1],['quantité > 2',1],['après le 15/07',1]],'jointe',1)}
+        ${col('commande #4','Emma · quantité 3 · 8 juillet',[['bon client',1],['quantité > 2',1],['après le 15/07',0]],'non jointe',0)}
+      </div>
+      <small>correspondance ✓ + quantité ✓ + date ✓ = la commande est jointe</small>
+    </div>`;
+  }
   if(kind==='onwhere') return `<div class="pd-count" aria-hidden="true">
       <div class="pd-count-row is-juste"><b>filtre dans ON</b><i></i><span>9</span></div>
       <div class="pd-count-row is-faux"><b>filtre dans WHERE</b><i></i><span>3</span></div>
@@ -9965,6 +10295,16 @@ function pointDraw(card){
       <span class="pd-key pk"><small>clé primaire</small><b>clients.id</b></span>
       <span class="pd-link"></span>
       <span class="pd-key fk"><small>clé étrangère</small><b>commandes.client_id</b></span>
+    </div>`;
+  if(kind==='nulltrap') return `<div class="pd-count" aria-hidden="true">
+      <div class="pd-count-row is-faux"><b>NOT IN + NULL</b><i></i><span>0</span></div>
+      <div class="pd-count-row is-juste"><b>NOT IN sans NULL</b><i></i><span>Inès</span></div>
+      <small>la commande invitée #16 fausse la liste</small>
+    </div>`;
+  if(kind==='nullgroup') return `<div class="pd-count" aria-hidden="true">
+      <div class="pd-count-row is-faux"><b>stats</b><i></i><span>NULL · 1</span></div>
+      <div class="pd-count-row is-juste"><b>clients.id</b><i></i><span>—</span></div>
+      <small>aucun client ne correspond au groupe NULL</small>
     </div>`;
   return '';
 }
@@ -10183,7 +10523,7 @@ function lessonDemoBlocks(l){
       </div>
       <p class="coda-sub">En résumé : <code>SELECT</code> s’écrit en premier, mais s’exécute <b>presque en dernier</b>.</p>
     </div>`:'';
-  return `${lessonRichFooter(l)}${anat?`<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`:''}${order}${piegeBlock(l)}${reflexBlock(l)}${joinRecapBlock(l)}`;
+  return `${lessonRichFooter(l)}${anat?`<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`:''}${order}${piegeBlock(l)}${reflexBlock(l)}${joinRecapBlock(l)}${subqueryRecapBlock(l)}`;
 }
 function lessonMainTable(l){
   if(!l)return 'clients';
@@ -13949,6 +14289,41 @@ const SQL_VIZ={
       ${joinMore(13,'lignes')}
     </div>
     <p class="er-hint">Sélectionne Sophie : la commande associée puis le produit référencé sont mis en évidence.</p>
+  </div>`},
+  onmultiple:{kind:'er',sample:'5 clients \u00b7 4 commandes',phases:[
+    {k:'Relier le client',d:'La premi\u00e8re condition du <code>ON</code> rattache chaque commande \u00e0 son client. C\u2019est elle qui fait la jointure.',sql:'ON clients.id = commandes.client_id',read:'Chaque client re\u00e7oit ses commandes ; In\u00e8s n\u2019en a aucune et garde une ligne \u00e0 <code>NULL</code>.'},
+    {k:'Ajouter la quantit\u00e9',d:'<code>AND commandes.quantite &gt; 2</code> retire les commandes trop petites des associations possibles.',sql:'AND commandes.quantite > 2',read:'La commande #1, de quantit\u00e9 2, se d\u00e9tache. Sophie garde sa ligne, d\u00e9sormais \u00e0 <code>NULL</code>.'},
+    {k:'Ajouter la date',d:'<code>AND commandes.date_commande &gt; \'2023-07-15\'</code> ajoute un second crit\u00e8re. Les deux doivent \u00eatre vrais.',sql:"AND commandes.date_commande > '2023-07-15'",read:'La commande #4 d\u2019Emma passait la quantit\u00e9 mais date du 8 juillet : elle se d\u00e9tache aussi. Les clients, eux, restent tous l\u00e0.' }
+  ],html:`<div class="er-stage join-viz">
+    <div class="join-sets">
+      <div class="join-side"><div class="join-side-h">clients</div>
+        <div class="jchips">
+          <div class="jchip" data-er-id="1" role="button" tabindex="0"><span class="er-key">1</span>Sophie</div>
+          <div class="jchip" data-er-id="3" role="button" tabindex="0"><span class="er-key">3</span>Emma</div>
+          <div class="jchip" data-er-id="5" role="button" tabindex="0"><span class="er-key">5</span>Chlo\u00e9</div>
+          <div class="jchip" data-er-id="7" role="button" tabindex="0"><span class="er-key">7</span>L\u00e9a</div>
+          <div class="jchip" data-er-id="9" role="button" tabindex="0"><span class="er-key">9</span>In\u00e8s</div>
+        </div>
+      </div>
+      <div class="join-side" data-side="r"><div class="join-side-h">commandes</div>
+        <div class="jchips">
+          <div class="jchip" data-k="q" data-er-fk="1" role="button" tabindex="0"><span class="er-key">#1</span>2 \u00b7 2 juil.</div>
+          <div class="jchip" data-k="d" data-er-fk="3" role="button" tabindex="0"><span class="er-key">#4</span>3 \u00b7 8 juil.</div>
+          <div class="jchip" data-er-fk="5" role="button" tabindex="0"><span class="er-key">#15</span>3 \u00b7 1<sup>er</sup> ao\u00fbt</div>
+          <div class="jchip" data-er-fk="7" role="button" tabindex="0"><span class="er-key">#8</span>4 \u00b7 18 juil.</div>
+        </div>
+      </div>
+    </div>
+    <div class="join-out" aria-hidden="true">
+      <div class="join-pill" data-when="j" data-er-fk="1">Sophie<span class="jn">2 \u00b7 2 juil.</span></div>
+      <div class="join-pill" data-when="ow" data-er-id="1">Sophie<span class="jn null">NULL</span></div>
+      <div class="join-pill" data-when="jo" data-er-fk="3">Emma<span class="jn">3 \u00b7 8 juil.</span></div>
+      <div class="join-pill" data-when="w" data-er-id="3">Emma<span class="jn null">NULL</span></div>
+      <div class="join-pill" data-when="jow" data-er-fk="5">Chlo\u00e9<span class="jn">3 \u00b7 1<sup>er</sup> ao\u00fbt</span></div>
+      <div class="join-pill" data-when="jow" data-er-fk="7">L\u00e9a<span class="jn">4 \u00b7 18 juil.</span></div>
+      <div class="join-pill" data-when="jow" data-er-id="9">In\u00e8s<span class="jn null">NULL</span></div>
+    </div>
+    <p class="er-hint">\ud83d\udc46 Touche une commande : le client auquel elle se rattache s\u2019allume.</p>
   </div>`},
   onwhere:{kind:'er',sample:'5 clients \u00b7 4 commandes',phases:[
     {k:'Le LEFT JOIN garde tout',d:'Sans filtre, chaque client re\u00e7oit ses commandes, et celui qui n\u2019en a aucune garde une ligne \u00e0 <code>NULL</code>.',sql:'LEFT JOIN commandes ON clients.id = commandes.client_id',read:'In\u00e8s n\u2019a aucune commande : sa ligne existe quand m\u00eame, avec <code>quantite = NULL</code>.'},
