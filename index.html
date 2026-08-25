@@ -1324,8 +1324,9 @@
   .sql-viz[data-viz="crossjoin"][data-phase="2"] .jchip{background:var(--accent-soft)}
   /* Jointure + GROUP BY : temps 2, les lignes d'un même client se
      rassemblent et Inès reste sans rien à droite ; temps 3, le compte. */
-  /* SELF JOIN : teinte par ville — même violet, deux intensités —
-     pour que Paris et Lyon se lisent comme des groupes. */
+  /* SELF JOIN : raconter la transformation au lieu d'afficher immédiatement
+     deux tables identiques. La source unique se replie, les deux alias se
+     déploient, puis on montre pourquoi la seconde condition est nécessaire. */
   .sql-viz[data-viz="onmultiple"] .join-out .join-pill[data-when]{display:none}
   .sql-viz[data-viz="onmultiple"][data-phase="0"] .join-out .join-pill[data-when*="j"],
   .sql-viz[data-viz="onmultiple"][data-phase="1"] .join-out .join-pill[data-when*="o"],
@@ -1340,15 +1341,92 @@
   .sql-viz[data-viz="onwhere"][data-phase="1"] .jchip[data-k="low"],
   .sql-viz[data-viz="onwhere"][data-phase="2"] .jchip[data-k="low"]{opacity:.3}
   .sql-viz[data-viz="onwhere"][data-phase="2"] .jchip[data-k="out"]{opacity:.3}
-  /* SELF JOIN : une ville à la fois. Colorier Paris et Lyon en même temps
-     faisait tout paraître sélectionné. */
-  .sql-viz[data-viz="selfjoin"] .self-role{margin:0 2px 10px;text-align:center}
-  .sql-viz[data-viz="selfjoin"][data-phase="1"]:not(:has([data-er-on="1"])) .jchip[data-k="P"]{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
-  .sql-viz[data-viz="selfjoin"][data-phase="1"]:not(:has([data-er-on="1"])) .jchip[data-k="L"]{opacity:.32}
+  .sql-viz[data-viz="selfjoin"] .self-source{overflow:hidden;max-height:390px;border:1px solid rgba(91,91,214,.16);border-radius:17px;background:var(--surface);box-shadow:var(--lift-sm);opacity:1;transform:none;transition:max-height .55s var(--spring-ios),opacity .32s ease,transform .45s var(--spring-ios),margin .4s ease}
+  .sql-viz[data-viz="selfjoin"] .self-source-head{display:flex;align-items:center;gap:8px;padding:10px 12px;background:linear-gradient(135deg,var(--accent-soft),#fff);border-bottom:1px solid var(--line-2);font-family:var(--ui)}
+  .sql-viz[data-viz="selfjoin"] .self-source-head>span{font-size:9.5px;font-weight:850;letter-spacing:.65px;text-transform:uppercase;color:var(--accent)}
+  .sql-viz[data-viz="selfjoin"] .self-source-head code{font-size:12px;font-weight:850;color:var(--ink)}
+  .sql-viz[data-viz="selfjoin"] .self-source-head b{margin-left:auto;padding:4px 7px;border-radius:8px;background:var(--surface);color:var(--ink-3);font-size:9px;font-weight:800;box-shadow:inset 0 0 0 1px var(--line)}
+  .sql-viz[data-viz="selfjoin"] .self-source-row{display:grid;grid-template-columns:28px minmax(0,1fr) minmax(72px,.85fr);align-items:center;gap:8px;min-height:38px;padding:0 12px;color:var(--ink);font-size:12px;font-weight:700}
+  .sql-viz[data-viz="selfjoin"] .self-source-row+.self-source-row{border-top:1px solid var(--line-2)}
+  .sql-viz[data-viz="selfjoin"] .self-source-row i{display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:8px;background:var(--surface-2);color:var(--ink-2);font-style:normal;font-size:10px;font-weight:850}
+  .sql-viz[data-viz="selfjoin"] .self-source-row small{justify-self:end;color:var(--ink-3);font-family:var(--mono);font-size:10px;font-weight:700}
+  .sql-viz[data-viz="selfjoin"] .self-source .join-more{border-top:1px solid var(--line-2)}
+  .sql-viz[data-viz="selfjoin"] .self-alias-branch{display:flex;align-items:center;justify-content:center;gap:8px;overflow:hidden;max-height:0;margin:0;opacity:0;transform:translateY(-8px);transition:max-height .42s var(--spring-ios),opacity .34s ease,transform .42s var(--spring-ios),margin .38s ease}
+  .sql-viz[data-viz="selfjoin"] .self-alias-branch::before,.sql-viz[data-viz="selfjoin"] .self-alias-branch::after{content:'';width:44px;height:1px;background:linear-gradient(90deg,transparent,rgba(91,91,214,.42))}
+  .sql-viz[data-viz="selfjoin"] .self-alias-branch::after{transform:scaleX(-1)}
+  .sql-viz[data-viz="selfjoin"] .self-alias-branch span{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-family:var(--ui);font-size:9.5px;font-weight:800;white-space:nowrap}
+  .sql-viz[data-viz="selfjoin"] .self-alias-branch b{font-family:var(--mono);font-size:11px}
+  .sql-viz[data-viz="selfjoin"] .self-aliases{overflow:hidden;max-height:0;opacity:0;transform:translateY(12px) scale(.985);transition:max-height .65s var(--spring-ios),opacity .4s ease,transform .55s var(--spring-ios)}
+  .sql-viz[data-viz="selfjoin"] .self-aliases .join-side{transition:border-color .35s ease,box-shadow .35s ease,transform .45s var(--spring-ios)}
+  .sql-viz[data-viz="selfjoin"] .self-aliases .join-side-h{display:flex;flex-direction:column;gap:2px;padding:9px 10px;text-transform:none;letter-spacing:0}
+  .sql-viz[data-viz="selfjoin"] .self-aliases .join-side-h span{font-family:var(--mono);font-size:11px;font-weight:850}
+  .sql-viz[data-viz="selfjoin"] .self-aliases .join-side-h code{padding:1px 5px;border-radius:6px;background:rgba(255,255,255,.2);color:#fff}
+  .sql-viz[data-viz="selfjoin"] .self-aliases .join-side-h small{font-family:var(--ui);font-size:9px;font-weight:700;opacity:.82}
+  .sql-viz[data-viz="selfjoin"] .self-person{display:flex;min-width:0;flex-direction:column;gap:1px;line-height:1.15}
+  .sql-viz[data-viz="selfjoin"] .self-person small{color:var(--ink-3);font-family:var(--mono);font-size:9px;font-weight:700}
+  .sql-viz[data-viz="selfjoin"] .self-audit{overflow:hidden;max-height:0;margin:0;opacity:0;transform:translateY(10px);transition:max-height .58s var(--spring-ios),opacity .36s ease,transform .48s var(--spring-ios),margin .4s ease}
+  .sql-viz[data-viz="selfjoin"] .self-audit-card{padding:11px;border:1px solid rgba(180,83,9,.18);border-radius:15px;background:linear-gradient(145deg,var(--warn-soft),#fff);box-shadow:0 6px 18px rgba(120,70,10,.06)}
+  .sql-viz[data-viz="selfjoin"] .self-audit-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;font-family:var(--ui)}
+  .sql-viz[data-viz="selfjoin"] .self-audit-head span{font-size:10px;font-weight:850;letter-spacing:.5px;text-transform:uppercase;color:var(--warn)}
+  .sql-viz[data-viz="selfjoin"] .self-audit-head b{font-size:10px;color:var(--ink-2)}
+  .sql-viz[data-viz="selfjoin"] .self-audit-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:8px 9px;border-radius:10px;background:rgba(255,255,255,.82);font-size:11px;font-weight:750;color:var(--ink);opacity:0;transform:translateY(7px)}
+  .sql-viz[data-viz="selfjoin"] .self-audit-row+.self-audit-row{margin-top:5px}
+  .sql-viz[data-viz="selfjoin"] .self-audit-row span{display:flex;align-items:center;gap:6px;min-width:0}
+  .sql-viz[data-viz="selfjoin"] .self-audit-row code{color:var(--accent);font-size:10px}
+  .sql-viz[data-viz="selfjoin"] .self-audit-row em{padding:3px 6px;border-radius:7px;background:var(--warn-soft);color:var(--warn);font-family:var(--ui);font-size:8.5px;font-style:normal;font-weight:850;text-transform:uppercase;white-space:nowrap}
+  .sql-viz[data-viz="selfjoin"] .self-audit-row.is-valid em{background:var(--success-soft);color:var(--success)}
+  .sql-viz[data-viz="selfjoin"] .self-audit-more{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:7px;color:var(--ink-3);font-family:var(--ui);font-size:9.5px;font-weight:750}
+  .sql-viz[data-viz="selfjoin"] .self-audit-more b{color:var(--accent);font-family:var(--mono);font-size:15px;letter-spacing:2px;line-height:.7}
+  .sql-viz[data-viz="selfjoin"] .self-filter{display:flex;align-items:center;gap:9px;overflow:hidden;max-height:0;margin:0;padding:0 11px;border:0 solid rgba(15,118,110,.18);border-radius:13px;background:var(--success-soft);color:var(--success);font-family:var(--ui);font-size:11px;font-weight:750;opacity:0;transform:translateY(8px);transition:max-height .45s var(--spring-ios),opacity .35s ease,transform .42s var(--spring-ios),margin .35s ease,padding .35s ease,border-width .35s ease}
+  .sql-viz[data-viz="selfjoin"] .self-filter i{display:flex;align-items:center;justify-content:center;flex:none;width:22px;height:22px;border-radius:50%;background:var(--success);color:#fff;font-style:normal;font-size:12px;font-weight:900}
+  .sql-viz[data-viz="selfjoin"] .self-filter code{color:inherit;font-size:10px}
+  .sql-viz[data-viz="selfjoin"][data-phase="1"] .self-source,
+  .sql-viz[data-viz="selfjoin"][data-phase="2"] .self-source,
+  .sql-viz[data-viz="selfjoin"][data-phase="3"] .self-source{max-height:0;margin:0;border-width:0;box-shadow:none;opacity:0;transform:translateY(-9px) scale(.985)}
+  .sql-viz[data-viz="selfjoin"][data-phase="1"] .self-alias-branch,
+  .sql-viz[data-viz="selfjoin"][data-phase="2"] .self-alias-branch,
+  .sql-viz[data-viz="selfjoin"][data-phase="3"] .self-alias-branch{max-height:42px;margin:0 0 9px;opacity:1;transform:none}
+  .sql-viz[data-viz="selfjoin"][data-phase="1"] .self-aliases,
+  .sql-viz[data-viz="selfjoin"][data-phase="2"] .self-aliases,
+  .sql-viz[data-viz="selfjoin"][data-phase="3"] .self-aliases{max-height:430px;opacity:1;transform:none}
+  .sql-viz[data-viz="selfjoin"][data-phase="1"] .self-aliases .join-side:first-child{animation:selfAliasLeft .52s var(--spring-ios) .04s both}
+  .sql-viz[data-viz="selfjoin"][data-phase="1"] .self-aliases .join-side:last-child{animation:selfAliasRight .52s var(--spring-ios) .12s both}
+  /* Une ville à la fois : colorier Paris et Lyon simultanément donnerait
+     l'impression que toutes les lignes sont déjà sélectionnées. */
+  .sql-viz[data-viz="selfjoin"][data-phase="2"]:not(:has([data-er-on="1"])) .jchip[data-city="paris"]{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+  .sql-viz[data-viz="selfjoin"][data-phase="2"]:not(:has([data-er-on="1"])) .jchip[data-city="lyon"]{opacity:.32}
   .sql-viz[data-viz="selfjoin"]:has([data-er-on="1"]) .jchip:not([data-er-on="1"]){opacity:.32}
   .sql-viz[data-viz="selfjoin"]:has([data-er-on="1"]) .join-pill:not([data-er-on="1"]){opacity:.4}
-  .sql-viz[data-viz="selfjoin"] .join-out .join-pill[data-when]{display:none}
-  .sql-viz[data-viz="selfjoin"][data-phase="2"] .join-pill[data-when]{display:flex}
+  .sql-viz[data-viz="selfjoin"][data-phase="2"] .self-aliases .join-side{border-color:rgba(91,91,214,.24);box-shadow:0 7px 20px rgba(91,91,214,.09)}
+  .sql-viz[data-viz="selfjoin"][data-phase="2"] .self-audit{max-height:255px;margin-top:11px;opacity:1;transform:none}
+  .sql-viz[data-viz="selfjoin"][data-phase="2"] .self-audit-row{animation:selfAuditIn .4s var(--spring-ios) forwards}
+  .sql-viz[data-viz="selfjoin"][data-phase="2"] .self-audit-row:nth-child(2){animation-delay:.05s}
+  .sql-viz[data-viz="selfjoin"][data-phase="2"] .self-audit-row:nth-child(3){animation-delay:.14s}
+  .sql-viz[data-viz="selfjoin"][data-phase="2"] .self-audit-row:nth-child(4){animation-delay:.23s}
+  .sql-viz[data-viz="selfjoin"][data-phase="3"] .self-filter{max-height:72px;margin-top:11px;padding:9px 11px;border-width:1px;opacity:1;transform:none;animation:selfFilterIn .46s var(--bounce-ios) both}
+  .sql-viz[data-viz="selfjoin"] .join-out{max-height:0;opacity:0;margin:0;transform:translateY(7px) scale(.99)}
+  .sql-viz[data-viz="selfjoin"][data-phase="3"] .join-out{max-height:420px;opacity:1;margin-top:11px;transform:none}
+  .sql-viz[data-viz="selfjoin"][data-phase="3"] .join-pill{animation:joinIn .46s var(--spring-ios) forwards}
+  @keyframes selfAliasLeft{from{opacity:0;transform:translateX(18px) scale(.97)}to{opacity:1;transform:none}}
+  @keyframes selfAliasRight{from{opacity:0;transform:translateX(-18px) scale(.97)}to{opacity:1;transform:none}}
+  @keyframes selfAuditIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+  @keyframes selfFilterIn{0%{opacity:0;transform:translateY(8px) scale(.96)}68%{opacity:1;transform:translateY(-1px) scale(1.015)}100%{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){
+    .sql-viz[data-viz="selfjoin"] .self-source,
+    .sql-viz[data-viz="selfjoin"] .self-alias-branch,
+    .sql-viz[data-viz="selfjoin"] .self-aliases,
+    .sql-viz[data-viz="selfjoin"] .self-aliases .join-side,
+    .sql-viz[data-viz="selfjoin"] .self-audit,
+    .sql-viz[data-viz="selfjoin"] .self-audit-row,
+    .sql-viz[data-viz="selfjoin"] .self-filter{animation:none!important;transition:none!important}
+  }
+  @media (max-width:460px){
+    .sql-viz[data-viz="selfjoin"] .join-stepper{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+    .sql-viz[data-viz="selfjoin"] .self-aliases{gap:7px}
+    .sql-viz[data-viz="selfjoin"] .self-aliases .join-side-h{padding:8px 7px}
+    .sql-viz[data-viz="selfjoin"] .jchip{gap:6px;padding:9px 7px}
+    .sql-viz[data-viz="selfjoin"] .self-audit-row{font-size:10px}
+  }
   /* Chaque temps produit un résultat visible : les lignes de la jointure,
      puis les groupes, puis les comptes. Sans cela les deux premières phases
      affichaient exactement la même scène. */
@@ -10298,7 +10376,7 @@ const JOIN_GUIDES={
   outer:{kicker:'Analyse du périmètre',lead:'Le type de JOIN décrit quelles lignes doivent rester même sans correspondance.',steps:[['INNER','uniquement les correspondances'],['LEFT / RIGHT','toute une source + les correspondances — Inès à gauche, l’invité à droite'],['FULL OUTER','Inès et l’invité, plus les correspondances']],takeaway:'Le choix du JOIN est un choix de périmètre de résultat.'}
 };
 const JOIN_OUTPUT_LABELS={
-  joinon:'Résultat projeté · une ligne par commande correspondante',inner:'Résultat projeté · correspondances uniquement',leftj:'Résultat projeté · table clients conservée',rightj:'Résultat projeté · table commandes conservée',orphan:'Résultat projeté · clients sans commande',triple:'Résultat projeté · client, produit, quantité',outer:'Résultat projeté · les deux tables conservées',crossjoin:'Résultat projeté · toutes les paires',joingroupby:'Résultat de l’étape',selfjoin:'Résultat projeté · une ligne par paire',onwhere:'Résultat de l’étape',onmultiple:'Résultat de l’étape',subquery_in:'Résultat de l’étape',subquery_notin:'Résultat de l’étape',subquery_select:'Résultat de l’étape',subquery_from:'Résultat de l’étape',security:'Résultat de l’étape'
+  joinon:'Résultat projeté · une ligne par commande correspondante',inner:'Résultat projeté · correspondances uniquement',leftj:'Résultat projeté · table clients conservée',rightj:'Résultat projeté · table commandes conservée',orphan:'Résultat projeté · clients sans commande',triple:'Résultat projeté · client, produit, quantité',outer:'Résultat projeté · les deux tables conservées',crossjoin:'Résultat projeté · toutes les paires',joingroupby:'Résultat de l’étape',selfjoin:'Résultat final · 4 paires uniques',onwhere:'Résultat de l’étape',onmultiple:'Résultat de l’étape',subquery_in:'Résultat de l’étape',subquery_notin:'Résultat de l’étape',subquery_select:'Résultat de l’étape',subquery_from:'Résultat de l’étape',security:'Résultat de l’étape'
 };
 function renderJoinGuide(key){
   const g=JOIN_GUIDES[key];
@@ -15095,39 +15173,61 @@ const SQL_VIZ={
     </div>
     <p class="er-hint">\ud83d\udc46 Touche un client : sa commande et sa ligne de r\u00e9sultat s\u2019allument.</p>
   </div>`},
-  selfjoin:{kind:'er',sample:'5 clients · 2 villes',phases:[
-    {k:'Une table, deux rôles',d:'La table <code>clients</code> n\u2019est pas dupliquée : elle est lue deux fois, sous les alias <code>c1</code> et <code>c2</code>. Ce sont les mêmes lignes des deux côtés.'},
-    {k:'Même ville',d:'<code>ON c1.ville = c2.ville</code> rapproche les clients d\u2019une même ville. Ici, Paris s\u2019allume ; Lyon reste en retrait.'},
-    {k:'Une paire, une seule fois',d:'<code>c1.id &lt; c2.id</code> écarte les paires inversées et les clients associés à eux-mêmes. Il reste 4 paires.' }
-  ],html:`<div class="er-stage join-viz">
-    <p class="er-note self-role">Une seule table <code>clients</code>, lue sous deux rôles.</p>
-    <div class="join-sets">
-      <div class="join-side"><div class="join-side-h">clients c1</div>
+  selfjoin:{kind:'er',sample:'9 clients · 6 villes',stepMs:7800,phases:[
+    {k:'Une seule table',d:'Tout part d\u2019une seule table <code>clients</code>. Le besoin est de comparer un client à un autre client de cette même table.',sql:'FROM clients',read:'Il y a 9 lignes dans une seule table. Pour former une paire, SQL doit pourtant lire deux clients à la fois.'},
+    {k:'Donner deux rôles',d:'Les alias <code>c1</code> et <code>c2</code> donnent deux rôles à <code>clients</code>. Ils ne créent ni copie ni nouvelle table.',sql:'FROM clients c1\nJOIN clients c2',read:'<code>c1</code> désigne le premier client de la paire ; <code>c2</code> désigne le second. Les deux rôles lisent exactement les mêmes lignes.'},
+    {k:'Comparer les villes',d:'<code>c1.ville = c2.ville</code> rapproche toutes les lignes qui partagent une ville. Cela inclut encore les auto-paires et les paires inversées.',sql:'ON c1.ville = c2.ville',read:'Sophie/Sophie et Nathan/Sophie passent aussi le test. Sur les 9 clients, cette condition seule produit 17 associations candidates.'},
+    {k:'Garder une paire',d:'<code>c1.id &lt; c2.id</code> impose un seul sens : pas de client avec lui-même et pas de paire inversée. Il reste 4 paires uniques.',sql:'AND c1.id < c2.id',read:'<code>1 &lt; 4</code> garde Sophie/Nathan ; <code>4 &lt; 1</code> rejette Nathan/Sophie. C’est la garde qui transforme 17 associations en 4 paires utiles.'}
+  ],html:`<div class="er-stage join-viz self-join-stage">
+    <div class="self-source" aria-label="Extrait de la table clients">
+      <div class="self-source-head"><span>Table source</span><code>clients</code><b>9 lignes</b></div>
+      <div class="self-source-row"><i>1</i><span>Sophie</span><small>Paris</small></div>
+      <div class="self-source-row"><i>4</i><span>Nathan</span><small>Paris</small></div>
+      <div class="self-source-row"><i>7</i><span>Léa</span><small>Paris</small></div>
+      <div class="self-source-row"><i>2</i><span>Lucas</span><small>Lyon</small></div>
+      <div class="self-source-row"><i>6</i><span>Hugo</span><small>Lyon</small></div>
+      ${joinMore(4,'clients')}
+    </div>
+    <div class="self-alias-branch" aria-hidden="true"><span>une source <b>→</b> deux rôles</span></div>
+    <div class="join-sets self-aliases">
+      <div class="join-side"><div class="join-side-h"><span>clients <code>c1</code></span><small>rôle · premier client</small></div>
         <div class="jchips">
-          <div class="jchip" data-k="P" data-er-id="paris" role="button" tabindex="0"><span class="er-key">1</span>Sophie</div>
-          <div class="jchip" data-k="P" data-er-id="paris" role="button" tabindex="0"><span class="er-key">4</span>Nathan</div>
-          <div class="jchip" data-k="P" data-er-id="paris" role="button" tabindex="0"><span class="er-key">7</span>Léa</div>
-          <div class="jchip" data-k="L" data-er-id="lyon" role="button" tabindex="0"><span class="er-key">2</span>Lucas</div>
-          <div class="jchip" data-k="L" data-er-id="lyon" role="button" tabindex="0"><span class="er-key">6</span>Hugo</div>
+          <div class="jchip" data-city="paris" data-er-id="paris" role="button" tabindex="0"><span class="er-key">1</span><span class="self-person">Sophie<small>Paris</small></span></div>
+          <div class="jchip" data-city="paris" data-er-id="paris" role="button" tabindex="0"><span class="er-key">4</span><span class="self-person">Nathan<small>Paris</small></span></div>
+          <div class="jchip" data-city="paris" data-er-id="paris" role="button" tabindex="0"><span class="er-key">7</span><span class="self-person">Léa<small>Paris</small></span></div>
+          <div class="jchip" data-city="lyon" data-er-id="lyon" role="button" tabindex="0"><span class="er-key">2</span><span class="self-person">Lucas<small>Lyon</small></span></div>
+          <div class="jchip" data-city="lyon" data-er-id="lyon" role="button" tabindex="0"><span class="er-key">6</span><span class="self-person">Hugo<small>Lyon</small></span></div>
+          ${joinMore(4,'clients')}
         </div>
       </div>
-      <div class="join-side" data-side="r"><div class="join-side-h">clients c2</div>
+      <div class="join-side" data-side="r"><div class="join-side-h"><span>clients <code>c2</code></span><small>rôle · second client</small></div>
         <div class="jchips">
-          <div class="jchip" data-k="P" data-er-fk="paris" role="button" tabindex="0"><span class="er-key">1</span>Sophie</div>
-          <div class="jchip" data-k="P" data-er-fk="paris" role="button" tabindex="0"><span class="er-key">4</span>Nathan</div>
-          <div class="jchip" data-k="P" data-er-fk="paris" role="button" tabindex="0"><span class="er-key">7</span>Léa</div>
-          <div class="jchip" data-k="L" data-er-fk="lyon" role="button" tabindex="0"><span class="er-key">2</span>Lucas</div>
-          <div class="jchip" data-k="L" data-er-fk="lyon" role="button" tabindex="0"><span class="er-key">6</span>Hugo</div>
+          <div class="jchip" data-city="paris" data-er-fk="paris" role="button" tabindex="0"><span class="er-key">1</span><span class="self-person">Sophie<small>Paris</small></span></div>
+          <div class="jchip" data-city="paris" data-er-fk="paris" role="button" tabindex="0"><span class="er-key">4</span><span class="self-person">Nathan<small>Paris</small></span></div>
+          <div class="jchip" data-city="paris" data-er-fk="paris" role="button" tabindex="0"><span class="er-key">7</span><span class="self-person">Léa<small>Paris</small></span></div>
+          <div class="jchip" data-city="lyon" data-er-fk="lyon" role="button" tabindex="0"><span class="er-key">2</span><span class="self-person">Lucas<small>Lyon</small></span></div>
+          <div class="jchip" data-city="lyon" data-er-fk="lyon" role="button" tabindex="0"><span class="er-key">6</span><span class="self-person">Hugo<small>Lyon</small></span></div>
+          ${joinMore(4,'clients')}
         </div>
       </div>
     </div>
-    <div class="join-out" aria-hidden="true">
-      <div class="join-pill" data-when="p" data-er-fk="paris">Sophie ↔ Nathan<span class="jn">Paris</span></div>
-      <div class="join-pill" data-when="p" data-er-fk="paris">Sophie ↔ Léa<span class="jn">Paris</span></div>
-      <div class="join-pill" data-when="p" data-er-fk="paris">Nathan ↔ Léa<span class="jn">Paris</span></div>
-      <div class="join-pill" data-when="p" data-er-fk="lyon">Lucas ↔ Hugo<span class="jn">Lyon</span></div>
+    <div class="self-audit">
+      <div class="self-audit-card">
+        <div class="self-audit-head"><span>17 associations candidates</span><b>avec la ville seule</b></div>
+        <div class="self-audit-row"><span>Sophie <code>↔</code> Sophie</span><em>même client</em></div>
+        <div class="self-audit-row"><span>Nathan <code>↔</code> Sophie</span><em>sens inverse</em></div>
+        <div class="self-audit-row is-valid"><span>Sophie <code>↔</code> Nathan</span><em>paire utile</em></div>
+        <div class="self-audit-more"><b>…</b><span>14 autres associations candidates</span></div>
+      </div>
     </div>
-    <p class="er-hint">👆 Touche un client : tous ceux de sa ville s\u2019allument des deux côtés.</p>
+    <div class="self-filter"><i>✓</i><span><code>c1.id &lt; c2.id</code> garde un seul sens et retire les auto-paires.</span></div>
+    <div class="join-out">
+      <div class="join-pill" data-er-fk="paris">Sophie ↔ Nathan<span class="jn">Paris · 1 &lt; 4</span></div>
+      <div class="join-pill" data-er-fk="paris">Sophie ↔ Léa<span class="jn">Paris · 1 &lt; 7</span></div>
+      <div class="join-pill" data-er-fk="paris">Nathan ↔ Léa<span class="jn">Paris · 4 &lt; 7</span></div>
+      <div class="join-pill" data-er-fk="lyon">Lucas ↔ Hugo<span class="jn">Lyon · 2 &lt; 6</span></div>
+    </div>
+    <p class="er-hint">👆 Touche une personne : sa ville s\u2019allume dans les deux rôles.</p>
   </div>`},
   joingroupby:{kind:'er',sample:'3 clients · 5 commandes',phases:[
     {k:'Relier sans perdre',d:'Le <code>LEFT JOIN</code> produit une ligne par commande et conserve Inès malgré l’absence de commande.',sql:'LEFT JOIN commandes ON clients.id = commandes.client_id',read:'Sophie produit 3 lignes, Lucas 2, Inès 1 ligne avec <code>commandes.id = NULL</code>.'},
@@ -15789,10 +15889,27 @@ function layoutSqlViz(root,phase,opts){
   else layoutSqlList(root,phase,opts);
 }
 
+function syncSelfJoinA11y(root,phase){
+  if(!root||root.dataset.viz!=='selfjoin')return;
+  const show=(selector,on)=>{
+    const el=root.querySelector(selector);
+    if(!el)return;
+    el.setAttribute('aria-hidden',on?'false':'true');
+    if('inert' in el)el.inert=!on;
+  };
+  show('.self-source',phase===0);
+  show('.self-aliases',phase>=1);
+  show('.self-audit',phase===2);
+  show('.self-filter',phase===3);
+  show('.join-out',phase===3);
+  root.querySelectorAll('.self-aliases [tabindex]').forEach(el=>{el.tabIndex=phase>=1?0:-1;});
+}
+
 function havingGrpSetPhase(root,phase,opts){
   const phases=sqlVizPhases(root);
   const p=phases[phase]||phases[0];
   root.dataset.phase=String(phase);
+  syncSelfJoinA11y(root,phase);
   if(root._phaseChangeTimer)clearTimeout(root._phaseChangeTimer);
   root.classList.remove('phase-change');
   void root.offsetWidth;
