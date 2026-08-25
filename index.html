@@ -5712,6 +5712,58 @@ const MODULES = [
     {k:'prod',label:'produits',sql:"SELECT id, nom\nFROM produits;"},
     {k:'cross',label:'CROSS JOIN',sql:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;",tone:'good'}
   ] },
+{ id:44, titre:"Choisir le bon JOIN", résumé:"Quelle jointure pour quel besoin ?",
+  situation:"Tu dois répondre à plusieurs questions métier avec la base clients/commandes. Pour chacune, il faut choisir la bonne jointure.<br><br>Voici les besoins possibles :<br><br>– Afficher uniquement les clients qui ont passé commande.<br>– Afficher tous les clients, même ceux sans commande.<br>– Afficher toutes les commandes, même celles sans client.<br>– Afficher toutes les combinaisons clients/produits.<br>– Afficher tous les clients et toutes les commandes, avec des NULL des deux côtés.<br><br>Chaque besoin correspond à un type de <code>JOIN</code> précis.<br><br>Dans la table <code>clients</code> (9 lignes) et la table <code>commandes</code> (16 lignes, dont une commande invitée), le choix de la jointure change le résultat.",
+  situationTail:"Le point clé : <b>quelle table doit rester entière ?</b> Selon la réponse, tu choisis <code>INNER JOIN</code>, <code>LEFT JOIN</code>, <code>RIGHT JOIN</code>, <code>FULL OUTER JOIN</code> ou <code>CROSS JOIN</code>.",
+    studio:{pointCards:{
+      eye:"Quel JOIN ?",title:"Quelle table doit rester entière ?",
+      lead:"Chaque type de <code>JOIN</code> garde certaines lignes. Pose-toi toujours la question : « Qui doit rester entier ? »",
+      chain:[
+        {k:"Correspondances seulement",v:"INNER JOIN"},
+        {k:"Toute la gauche",v:"LEFT JOIN"},
+        {k:"Toute la droite",v:"RIGHT JOIN"},
+        {k:"Les deux tables",v:"FULL OUTER JOIN"},
+        {k:"Toutes les combinaisons",v:"CROSS JOIN"}
+      ],
+      cards:[
+        {t:"INNER JOIN",
+         b:"Garde uniquement les lignes qui ont une correspondance des deux côtés. Utile pour les clients <b>avec</b> commande."},
+        {t:"LEFT JOIN",
+         b:"Garde toutes les lignes de la table de gauche. Utile pour afficher <b>tous les clients</b>, même sans commande."},
+        {t:"RIGHT JOIN",
+         b:"Garde toutes les lignes de la table de droite. Utile pour afficher <b>toutes les commandes</b>, même sans client."},
+        {t:"FULL OUTER JOIN",
+         b:"Garde toutes les lignes des deux tables. Utile pour un état complet, même sans correspondance."},
+        {t:"CROSS JOIN",
+         b:"Garde toutes les combinaisons possibles entre les deux tables. Utile pour des grilles ou des listes exhaustives."}
+      ]},
+    reflex:{a:{k:"LEFT JOIN",t:"garde tous les clients"},
+      b:{k:"RIGHT JOIN",t:"garde toutes les commandes"},
+      note:"Quand tu hésites, demande-toi quelle table doit rester entière. Si c’est la première, utilise <code>LEFT JOIN</code>. Si c’est la deuxième, utilise <code>RIGHT JOIN</code>."},
+    viz:"outer"},
+  anatomie:[
+    {tok:"SELECT clients.nom, commandes.quantite",txt:"Les colonnes à afficher."},
+    {tok:"FROM clients",txt:"La table de gauche."},
+    {tok:"LEFT JOIN commandes",txt:"Le type de jointure choisi selon le besoin — ici, garder tous les clients."},
+    {tok:"ON clients.id = commandes.client_id",txt:"La condition de correspondance, toujours présente sauf pour CROSS JOIN."}
+  ],
+  exemple:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",
+  attendu:"LEFT JOIN : 16 lignes (15 commandes + Inès). INNER JOIN : 15 lignes (Inès disparaît). RIGHT JOIN : 16 lignes (15 commandes + l’invité).",
+  piege:{t:"Utiliser INNER JOIN à la place de LEFT JOIN",p:"Si tu écris <code>INNER JOIN</code> au lieu de <code>LEFT JOIN</code>, les clients sans commande (comme Inès) disparaissent. Pour garder tous les clients, il faut <code>LEFT JOIN</code>.",
+    exec:true,
+    sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",
+    fixSql:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;"},
+  consigne:"Affiche tous les clients et leurs commandes éventuelles, en gardant les clients sans commande.",
+  solution:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",
+  indice:"Quelle table doit rester entière ? Utilise la jointure qui la préserve.",
+  joinRecap:true,
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
+    {k:'cmd',label:'commandes',sql:"SELECT id, client_id, quantite\nFROM commandes;"},
+    {k:'inner',label:'INNER JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",tone:'bad'},
+    {k:'left',label:'LEFT JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",tone:'good'}
+  ] },
 { id:41, titre:"Jointure + GROUP BY", résumé:"Compter les commandes par client",
   situation:"Tu veux afficher chaque client avec le nombre de commandes qu’il a passées.<br><br>Le nom du client se trouve dans la table <code>clients</code>, tandis que ses commandes se trouvent dans la table <code>commandes</code>.<br><br>Dans la table <code>clients</code>, tu as par exemple :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr><tr><td>9</td><td>Inès</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, plusieurs lignes peuvent appartenir au même client grâce à <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br><br>Après la jointure, un client peut donc apparaître plusieurs fois : une fois pour chaque commande. Pour obtenir une seule ligne par client, il faut regrouper ses commandes puis les compter.",
     studio:{pointCards:{
@@ -5867,6 +5919,59 @@ const MODULES = [
     {k:'cmd',label:'commandes',sql:"SELECT id, client_id, quantite\nFROM commandes;"},
     {k:'where',label:'filtre dans WHERE',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.quantite > 2;",out:"3 lignes : le LEFT JOIN s’est comporté comme un INNER JOIN.",tone:'bad'},
     {k:'on',label:'filtre dans ON',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2;",tone:'good'}
+  ] },
+{ id:44, titre:"Conditions multiples dans ON", résumé:"Ajouter plusieurs critères à une jointure",
+  situation:"Tu veux afficher <b>tous les clients</b>, mais seulement leurs commandes importantes.<br><br>Pour être considérée comme importante, une commande doit respecter <b>deux critères à la fois</b> : avoir une quantité supérieure à 2 et avoir été passée après le 15 juillet 2023.<br><br>Dans la table <code>clients</code>, tu as notamment :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>5</td><td>Chloé</td></tr><tr><td>7</td><td>Léa</td></tr><tr><td>9</td><td>Inès</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, certaines commandes respectent ces deux critères :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>quantite</th><th>date_commande</th></tr></thead><tbody><tr><td>8</td><td>7</td><td>4</td><td>2023-07-18</td></tr><tr><td>15</td><td>5</td><td>3</td><td>2023-08-01</td></tr></tbody></table></div><br><br>La commande de Léa respecte les deux critères. Celle de Chloé aussi. Les autres commandes ne doivent pas être associées, mais les clients doivent quand même rester affichés.<br><br>Tu peux ajouter plusieurs conditions directement dans le <code>ON</code> et les combiner avec <code>AND</code>.",
+    studio:{pointCards:{
+      eye:"Conditions multiples",title:"Plusieurs critères dans un seul ON.",
+      lead:"Un <code>ON</code> peut vérifier plusieurs conditions. Avec <code>AND</code>, elles doivent toutes être vraies pour que la ligne soit associée.",
+      rule:{lines:[
+          {tok:"FROM",val:"clients",tag:"les lignes à garder toutes",keep:1},
+          {tok:"LEFT JOIN",val:"commandes",tag:"la table dont on trie les lignes",keep:1},
+          {tok:"ON",val:"clients.id = commandes.client_id",tag:"le critère qui relie"},
+          {tok:"AND",val:"commandes.quantite > 2",tag:"le critère sur la quantité"},
+          {tok:"AND",val:"commandes.date_commande > '2023-07-15'",tag:"le critère sur la date"}
+        ]},
+      cards:[
+        {t:"Trouver le bon client",
+         b:"<p><code>clients.id = commandes.client_id</code> vérifie que la commande appartient bien au client.</p><p>C’est le critère qui relie les deux tables : sans lui, la jointure n’a pas de sens.</p>"},
+        {t:"Vérifier la quantité",
+         b:"<p><code>AND commandes.quantite &gt; 2</code> ne garde, parmi les commandes de ce client, que celles dont la quantité dépasse 2.</p>"},
+        {t:"Vérifier la date",
+         b:"<p><code>AND commandes.date_commande &gt; '2023-07-15'</code> ajoute un second critère : la commande doit avoir été passée après le 15 juillet.</p><p>Rien n’empêche d’en ajouter d’autres à la suite.</p>"},
+        {t:"AND : tout doit être vrai",draw:"onmultiple",
+         b:"<p>Les trois conditions sont reliées par <code>AND</code>. Il suffit qu’une seule soit fausse pour que la commande ne soit pas associée au client.</p>"}
+      ]},
+    reflex:{a:{k:"ON",t:"peut contenir plusieurs conditions"},
+      b:{k:"AND",t:"exige que tous les critères soient vrais"},
+      note:"Réflexe : commence par la condition qui relie les tables, puis ajoute les critères supplémentaires avec <code>AND</code>."},
+    viz:"onmultiple"},
+  anatomie:[
+    {tok:"FROM clients",txt:"On part des clients que l’on veut tous conserver."},
+    {tok:"LEFT JOIN commandes",txt:"On cherche les commandes qui peuvent leur être associées."},
+    {tok:"ON clients.id = commandes.client_id",txt:"Le critère qui relie : la commande doit appartenir au client."},
+    {tok:"AND commandes.quantite > 2",txt:"Critère supplémentaire : la quantité doit dépasser 2."},
+    {tok:"AND commandes.date_commande > '2023-07-15'",txt:"Critère supplémentaire : la commande doit être postérieure au 15 juillet 2023."}
+  ],
+  exemple:"SELECT clients.nom, commandes.quantite, commandes.date_commande\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2\nAND commandes.date_commande > '2023-07-15';",
+  attendu:"9 lignes : tous les clients restent affichés. Chloé affiche sa commande de quantité 3 du 2023-08-01 et Léa sa commande de quantité 4 du 2023-07-18. Les autres affichent NULL.",
+  retenir:"Un <code>ON</code> n’est pas limité à l’égalité des clés : tu peux y enchaîner autant de conditions que nécessaire avec <code>AND</code>.<br><br>Avec <code>AND</code>, une commande n’est associée que si <b>tous</b> les critères sont vrais. Une seule condition fausse suffit à l’écarter.<br><br>Comme les critères vivent dans le <code>ON</code> et non dans le <code>WHERE</code>, les clients restent tous affichés, avec <code>NULL</code> quand aucune de leurs commandes ne passe.",
+  piege:{t:"Oublier qu’AND exige tous les critères",
+    p:"Avec <code>AND</code>, une commande doit respecter <b>chaque</b> condition du <code>ON</code>. Retire-en une et des commandes que tu voulais écarter reviennent dans le résultat.",
+    exec:true,
+    sql:"SELECT clients.nom, commandes.quantite, commandes.date_commande\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2;",
+    out:"Emma ressort avec sa commande de quantité 3 du 8 juillet, alors qu’elle est antérieure au 15.",
+    fixSql:"SELECT clients.nom, commandes.quantite, commandes.date_commande\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2\nAND commandes.date_commande > '2023-07-15';"},
+  consigne:"Affiche tous les clients et uniquement leurs commandes de quantité supérieure à 2 passées après le 15 juillet 2023.",
+  solution:"SELECT clients.nom, commandes.quantite, commandes.date_commande\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2\nAND commandes.date_commande > '2023-07-15';",
+  indice:"Commence par relier le client à sa commande, puis ajoute les deux autres critères avec <code>AND</code>.",
+  joinRecap:'left',
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
+    {k:'cmd',label:'commandes',sql:"SELECT id, client_id, quantite, date_commande\nFROM commandes;"},
+    {k:'unseul',label:'un seul critère',sql:"SELECT clients.nom, commandes.quantite, commandes.date_commande\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2;",out:"Emma revient avec sa commande du 8 juillet : le critère de date manque.",tone:'bad'},
+    {k:'onmultiple',label:'les deux critères',sql:"SELECT clients.nom, commandes.quantite, commandes.date_commande\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2\nAND commandes.date_commande > '2023-07-15';",tone:'good'}
   ] }
 ]},
 
@@ -6218,6 +6323,8 @@ const CARTES={
     m:"Conserve <b>toutes</b> les lignes de la table de droite. Sans match à gauche → <code>NULL</code>. L’ordre après <code>FROM</code> compte : droite = conservée entièrement."},
  39:{k:"FULL OUTER",t:"Garder les deux côtés",s:"FROM clients\nFULL OUTER JOIN commandes ON clients.id = commandes.client_id",
     m:"Conserve <b>toutes</b> les lignes des deux tables. Sans match → <code>NULL</code> du côté manquant. Inès et l’invité restent."},
+ 44:{k:"Quel JOIN ?",t:"Quelle table reste entière ?",s:"LEFT JOIN · RIGHT JOIN · FULL OUTER JOIN",
+    m:"Demande-toi quelle table doit rester entière. Gauche → <code>LEFT JOIN</code>. Droite → <code>RIGHT JOIN</code>. Les deux → <code>FULL OUTER JOIN</code>. Seulement les correspondances → <code>INNER JOIN</code>. Toutes les combinaisons → <code>CROSS JOIN</code>."},
  21:{k:"CASE",t:"Fabriquer une catégorie",s:"CASE WHEN prix >= 30 THEN 'Premium'\n     ELSE 'Standard' END",
     m:"Le si/alors/sinon du SQL. <b>SQL s’arrête au premier WHEN vrai</b> : du plus restrictif au plus large. Ne pas oublier <code>END</code>."},
  22:{k:"Colonnes calculées",t:"Calculer dans le SELECT",s:"SELECT nom, prix * stock AS valeur\nFROM produits;",
@@ -6312,6 +6419,9 @@ const QCM={
  40:[{q:"<code>CROSS JOIN</code> retourne :",o:["Les lignes qui correspondent des deux côtés","Toutes les combinaisons possibles des deux tables","Toutes les lignes de la table de gauche"],b:1,e:"Chaque ligne de gauche est associée à chaque ligne de droite, sans condition."},
   {q:"Avec 9 clients et 8 produits, <code>CROSS JOIN</code> donne :",o:["17 lignes","72 lignes","9 lignes"],b:1,e:"9 × 8 = 72 : le nombre de lignes se multiplie, il ne s’additionne pas."},
   {q:"Que se passe-t-il si tu ajoutes <code>ON</code> à un <code>CROSS JOIN</code> ?",o:["C’est obligatoire","Ça n’a pas de sens : CROSS JOIN ne compare rien","Ça trie le résultat"],b:1,e:"CROSS JOIN ne cherche aucune correspondance ; pour filtrer sur une clé, c’est JOIN … ON."}],
+ 44:[{q:"Pour garder tous les clients, même sans commande :",o:["INNER JOIN","LEFT JOIN","CROSS JOIN"],b:1,e:"LEFT JOIN conserve toute la table écrite après FROM — ici clients."},
+  {q:"Pour garder toutes les commandes, même sans client :",o:["LEFT JOIN","RIGHT JOIN","INNER JOIN"],b:1,e:"RIGHT JOIN conserve toute la table écrite après JOIN — ici commandes, y compris l’invité."},
+  {q:"Quand choisir <code>FULL OUTER JOIN</code> ?",o:["Quand seules les correspondances comptent","Quand les deux tables doivent rester entières","Quand tu veux toutes les combinaisons"],b:1,e:"FULL OUTER JOIN garde Inès et la commande invitée. CROSS JOIN, lui, multiplie les lignes sans ON."}],
  39:[{q:"<code>FULL OUTER JOIN</code> conserve :",o:["Seulement les lignes qui correspondent des deux côtés","Toutes les lignes de la table de gauche","Toutes les lignes des deux tables"],b:2,e:"Sans correspondance, les colonnes du côté manquant valent NULL."},
    {q:"Tous les clients + toutes les commandes (Inès et l’invité) :",o:["16 lignes avec LEFT JOIN","16 lignes avec RIGHT JOIN","17 lignes avec FULL OUTER JOIN"],b:2,e:"15 correspondances + Inès + l’invité = 17 lignes."}],
  21:[{q:"SQL évalue les <code>WHEN</code> :",o:["Tous, et garde le dernier vrai","Dans l’ordre, et s’arrête au premier vrai","Dans un ordre imprévisible"],b:1,e:"D’où l’intérêt d’aller du plus restrictif au plus large."},
