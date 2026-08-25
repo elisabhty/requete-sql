@@ -1335,13 +1335,15 @@
   .sql-viz[data-viz="onwhere"][data-phase="1"] .jchip[data-k="low"],
   .sql-viz[data-viz="onwhere"][data-phase="2"] .jchip[data-k="low"]{opacity:.3}
   .sql-viz[data-viz="onwhere"][data-phase="2"] .jchip[data-k="out"]{opacity:.3}
+  /* SELF JOIN : une ville à la fois. Colorier Paris et Lyon en même temps
+     faisait tout paraître sélectionné. */
   .sql-viz[data-viz="selfjoin"] .self-role{margin:0 2px 10px;text-align:center}
-  .sql-viz[data-viz="selfjoin"] .jchip[data-k="P"]{background:var(--accent-soft)}
-  .sql-viz[data-viz="selfjoin"] .jchip[data-k="L"]{background:rgba(91,91,214,.1)}
+  .sql-viz[data-viz="selfjoin"][data-phase="1"]:not(:has([data-er-on="1"])) .jchip[data-k="P"]{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+  .sql-viz[data-viz="selfjoin"][data-phase="1"]:not(:has([data-er-on="1"])) .jchip[data-k="L"]{opacity:.32}
+  .sql-viz[data-viz="selfjoin"]:has([data-er-on="1"]) .jchip:not([data-er-on="1"]){opacity:.32}
+  .sql-viz[data-viz="selfjoin"]:has([data-er-on="1"]) .join-pill:not([data-er-on="1"]){opacity:.4}
   .sql-viz[data-viz="selfjoin"] .join-out .join-pill[data-when]{display:none}
   .sql-viz[data-viz="selfjoin"][data-phase="2"] .join-pill[data-when]{display:flex}
-  .sql-viz[data-viz="selfjoin"][data-phase="2"] .join-pill[data-er-fk="paris"]{background:var(--accent-soft)}
-  .sql-viz[data-viz="selfjoin"][data-phase="2"] .join-pill[data-er-fk="lyon"]{background:rgba(91,91,214,.1)}
   /* Chaque temps produit un résultat visible : les lignes de la jointure,
      puis les groupes, puis les comptes. Sans cela les deux premières phases
      affichaient exactement la même scène. */
@@ -15096,7 +15098,7 @@ const SQL_VIZ={
   </div>`},
   selfjoin:{kind:'er',sample:'5 clients · 2 villes',phases:[
     {k:'Une table, deux rôles',d:'La table <code>clients</code> n\u2019est pas dupliquée : elle est lue deux fois, sous les alias <code>c1</code> et <code>c2</code>. Ce sont les mêmes lignes des deux côtés.'},
-    {k:'Même ville',d:'<code>ON c1.ville = c2.ville</code> rapproche les clients d\u2019une même ville : Paris d\u2019un côté, Lyon de l\u2019autre.'},
+    {k:'Même ville',d:'<code>ON c1.ville = c2.ville</code> rapproche les clients d\u2019une même ville. Ici, Paris s\u2019allume ; Lyon reste en retrait.'},
     {k:'Une paire, une seule fois',d:'<code>c1.id &lt; c2.id</code> écarte les paires inversées et les clients associés à eux-mêmes. Il reste 4 paires.' }
   ],html:`<div class="er-stage join-viz">
     <p class="er-note self-role">Une seule table <code>clients</code>, lue sous deux rôles.</p>
