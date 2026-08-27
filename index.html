@@ -617,17 +617,18 @@
   .cw-form:active{transform:scale(.985)}
   .cw-form-k{font-family:var(--mono);font-size:12px;font-weight:800;letter-spacing:.2px;color:var(--accent)}
   .cw-form-d{margin:3px 0 0;font-size:13.5px;font-weight:700;line-height:1.35;color:var(--ink)}
-  .cw-form .pt-sql{display:none;margin:10px 0 0}
+  .cw-form .pt-sql,.cw-form .cw-syntax{display:none;margin:10px 0 0}
   .cw-form.on{border-color:rgba(91,91,214,.28);background:linear-gradient(165deg,rgba(91,91,214,.06),var(--surface) 42%);box-shadow:0 10px 22px -18px rgba(91,91,214,.55)}
-  .cw-form.on .pt-sql{display:block;animation:joinSoftIn .32s var(--spring-ios) both}
+  .cw-form.on .pt-sql,.cw-form.on .cw-syntax{display:block;animation:joinSoftIn .32s var(--spring-ios) both}
+  .cw-syntax{padding:10px 12px;border-radius:12px;background:var(--surface-2);font-family:var(--mono);font-size:11.5px;font-weight:700;line-height:1.5;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}
   .cw-form-hint{margin:12px 0 0;font-size:13.5px;line-height:1.5;color:var(--ink-2);min-height:1.5em}
   .cw-form-hint.on{animation:joinSoftIn .32s var(--spring-ios) both}
   @media (hover:hover) and (pointer:fine){
     .cw-form:hover{border-color:rgba(91,91,214,.2)}
   }
   @media (prefers-reduced-motion:reduce){
-    .cw-form,.cw-form.on .pt-sql,.cw-form-hint.on{animation:none!important}
-    .cw-form.on .pt-sql{display:block}
+    .cw-form,.cw-form.on .pt-sql,.cw-form.on .cw-syntax,.cw-form-hint.on{animation:none!important}
+    .cw-form.on .pt-sql,.cw-form.on .cw-syntax{display:block}
   }
   .join-micro .situation-body table.concept-table tbody tr[data-cw]{cursor:pointer}
   .join-micro .situation-body table.concept-table tbody tr[data-cw].on td{background:var(--accent-soft);color:var(--accent);transition:background .2s ease,color .2s ease}
@@ -6439,81 +6440,69 @@ const MODULES = [
 
 { titre:"Affiner", sous:"Calculer, classer, composer", lessons:[
 { id:21, titre:"CASE", résumé:"Afficher une valeur selon une condition",
-  situation:"Tu veux classer chaque client selon son âge, sans modifier la table <code>clients</code> :<br>– <b>Jeune</b> : moins de 30 ans<br>– <b>Adulte</b> : de 30 à 50 ans<br>– <b>Senior</b> : plus de 50 ans<br><br>Dans la table <code>clients</code>, tu as notamment :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th>age</th></tr></thead><tbody><tr><td>2</td><td>Lucas</td><td>28</td></tr><tr><td>1</td><td>Sophie</td><td>34</td></tr><tr><td>6</td><td>Hugo</td><td>52</td></tr></tbody></table></div><br><br>Une personne, une classe. SQL lit les <code>WHEN</code> dans l’ordre, et s’arrête au premier qui est vrai.",
+  situation:"Tu veux classer chaque client selon son âge, sans modifier la table <code>clients</code> :<br>– <b>Jeune</b> : moins de 30 ans<br>– <b>Adulte</b> : de 30 à 50 ans<br>– <b>Senior</b> : plus de 50 ans<br><br>Dans la table <code>clients</code>, tu as notamment :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th>age</th></tr></thead><tbody><tr><td>2</td><td>Lucas</td><td>28</td></tr><tr><td>1</td><td>Sophie</td><td>34</td></tr><tr><td>6</td><td>Hugo</td><td>52</td></tr></tbody></table></div>",
     studio:{pointCards:{
-      eye:"CASE",title:"Une classe par ligne.",
+      eye:"CASE",title:"Afficher une valeur selon une condition.",
       walk:1,
-      lead:"<code>CASE</code> est le si / sinon de SQL. Deux écritures : comparer une valeur, ou tester une condition. Dans les deux cas, ce n’est pas un filtre : les 9 clients restent. La table ne change pas.",
+      lead:"<p>L’expression <code>CASE</code> en SQL permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else des langages de programmation, mais intégré directement dans les requêtes SQL. Elle est extrêmement utile pour transformer des données, créer des colonnes calculées, gérer des regroupements ou encore remplacer des valeurs.</p><p>Il existe deux formes de <code>CASE</code> :</p><p><b>CASE simple</b> : compare une expression à une liste de valeurs.</p><p><b>CASE recherché</b> : évalue des conditions booléennes indépendantes.</p>",
       forms:1,
-      rule:{
-        lines:[
-          {tok:"CASE",val:"",tag:"on ouvre"},
-          {tok:"WHEN",val:"age < 30 THEN 'Jeune'",tag:"premier test — si vrai, on s’arrête",keep:1},
-          {tok:"WHEN",val:"age BETWEEN 30 AND 50 THEN 'Adulte'",tag:"lu seulement si le premier est faux"},
-          {tok:"ELSE",val:"'Senior'",tag:"le filet, si rien n’a collé"},
-          {tok:"END AS categorie",val:"",tag:"on ferme, on nomme la colonne"}
-        ]
-      },
       cards:[
-        {t:"<span class=\"pt-kw\">WHEN</span> — le premier vrai gagne",
-         b:"<p>SQL teste les <code>WHEN</code> de haut en bas. Dès qu’un test est vrai, il écrit la valeur et ignore le reste.</p><p>Lucas a 28 ans : <code>age &lt; 30</code> est vrai → <b>Jeune</b>. Le <code>WHEN</code> Adulte n’est même pas lu.</p>"},
-        {t:"<span class=\"pt-kw\">ELSE</span> — le filet",
-         b:"<p>Hugo a 52 ans : les deux <code>WHEN</code> sont faux. <code>ELSE</code> lui donne <b>Senior</b>.</p><p>Sans <code>ELSE</code>, Hugo resterait affiché… avec <code>NULL</code> à la place de la catégorie.</p>"},
-        {t:"<span class=\"pt-kw\">END</span> — obligatoire",
-         b:"<p>Oublier <code>END</code>, c’est une erreur de syntaxe. La requête ne part pas.</p><p>Nomme la colonne avec <code>AS</code>. Et range les tests du plus étroit au plus large : <code>age &lt; 30</code> avant <code>age &lt; 50</code>.</p>"}
+        {t:"Structure CASE",
+         b:"<p><code>CASE WHEN condition THEN valeur … ELSE valeur_defaut END</code>. Chaque <code>WHEN</code> teste une condition dans l’ordre.</p>"},
+        {t:"Premier WHEN gagnant",
+         b:"<p>Dès qu’une condition est vraie, SQL s’arrête et retourne la valeur associée. Les <code>WHEN</code> suivants sont ignorés.</p>"},
+        {t:"ELSE optionnel",
+         b:"<p><code>ELSE</code> est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est <code>NULL</code>.</p>"},
+        {t:"CASE dans SELECT",
+         b:"<p>On utilise généralement <code>CASE</code> dans le <code>SELECT</code> pour créer une colonne calculée, mais on peut aussi l’utiliser dans <code>ORDER BY</code> ou <code>WHERE</code>.</p>"}
       ]},
-    reflex:{a:{k:"WHEN",t:"testé dans l’ordre — on s’arrête au premier vrai"},
-      b:{k:"END",t:"ferme le CASE. ELSE rattrape le reste, sinon NULL"},
-      note:"Valeurs exactes → <code>CASE ville WHEN 'Paris'</code>. Conditions → <code>CASE WHEN age &lt; 30</code>. Du plus étroit au plus large."},
+    reflex:{a:{k:"CASE WHEN",t:"teste une condition"},
+      b:{k:"ELSE",t:"valeur si aucune condition n’est vraie"},
+      note:"Pense à l’ordre de tes <code>WHEN</code> : le premier qui correspond est utilisé. Mets les conditions les plus restrictives en premier."},
     },
   anatomie:[
-    {tok:"SELECT nom, age,",txt:"Les colonnes déjà dans la table."},
-    {tok:"CASE",txt:"On ouvre la classe."},
-    {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Lucas (28) s’arrête ici."},
-    {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Sophie (34) s’arrête ici."},
-    {tok:"ELSE 'Senior'",txt:"Hugo (52) tombe dans le filet."},
-    {tok:"END AS categorie",txt:"On ferme, et on nomme la nouvelle colonne."},
-    {tok:"FROM clients",txt:"Rien n’est écrit dans la table."}
+    {tok:"SELECT nom, age,",txt:"Les colonnes de base."},
+    {tok:"CASE",txt:"Début de l’expression conditionnelle."},
+    {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Première condition : moins de 30 ans."},
+    {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Deuxième condition : entre 30 et 50 ans."},
+    {tok:"ELSE 'Senior'",txt:"Tous les autres cas (plus de 50 ans)."},
+    {tok:"END AS categorie",txt:"Fin du CASE et nom de la colonne."},
+    {tok:"FROM clients",txt:"La table source."}
   ],
   anatomieVariants:[
-    {k:'good',label:'CASE correct',tone:'good',lines:[
-      {tok:"SELECT nom, age,",txt:"Les colonnes déjà dans la table."},
-      {tok:"CASE",txt:"On ouvre la classe."},
-      {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Le test le plus étroit, en premier."},
-      {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Lu seulement si le premier est faux."},
-      {tok:"ELSE 'Senior'",txt:"Le filet : plus de 50 ans."},
-      {tok:"END AS categorie",txt:"On ferme, on nomme."},
-      {tok:"FROM clients",txt:"La table ne change pas."}
-    ]},
-    {k:'order',label:'Mauvais ordre',tone:'bad',lines:[
-      {tok:"SELECT nom, age,",txt:"Les colonnes déjà dans la table."},
-      {tok:"CASE",txt:"On ouvre la classe."},
-      {tok:"WHEN age < 50 THEN 'Adulte'",txt:"Lucas (28) est vrai ici… donc Adulte."},
-      {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Jamais lu : le premier WHEN a déjà gagné."},
-      {tok:"END AS categorie",txt:"Pas d’ELSE : Hugo (52) → NULL."},
-      {tok:"FROM clients",txt:"La requête tourne, le résultat est faux."}
+    {k:'good',label:'CASE recherché',tone:'good',lines:[
+      {tok:"SELECT nom, age,",txt:"Les colonnes de base."},
+      {tok:"CASE",txt:"Début de l’expression conditionnelle."},
+      {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Première condition : moins de 30 ans."},
+      {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Deuxième condition : entre 30 et 50 ans."},
+      {tok:"ELSE 'Senior'",txt:"Tous les autres cas (plus de 50 ans)."},
+      {tok:"END AS categorie",txt:"Fin du CASE et nom de la colonne."},
+      {tok:"FROM clients",txt:"La table source."}
     ]},
     {k:'simple',label:'CASE simple',lines:[
-      {tok:"SELECT nom, ville,",txt:"On part de la ville, une valeur exacte."},
-      {tok:"CASE ville",txt:"On compare cette expression."},
-      {tok:"WHEN 'Paris' THEN 'Capitale'",txt:"Si ville vaut Paris."},
-      {tok:"WHEN 'Lyon' THEN 'Métropole'",txt:"Si ville vaut Lyon."},
-      {tok:"ELSE 'Autre'",txt:"Le filet, si ce n’est ni Paris ni Lyon."},
-      {tok:"END AS label",txt:"On ferme, on nomme."},
-      {tok:"FROM clients",txt:"Pas de seuil ici : seulement des égalités."}
+      {tok:"CASE expression",txt:"Compare une expression à une liste de valeurs."},
+      {tok:"WHEN valeur1 THEN resultat1",txt:"Si l’expression vaut valeur1."},
+      {tok:"WHEN valeur2 THEN resultat2",txt:"Si l’expression vaut valeur2."},
+      {tok:"ELSE resultat_defaut",txt:"Optionnel. Sinon, le résultat est NULL."},
+      {tok:"END",txt:"Fin du CASE."}
+    ]},
+    {k:'order',label:'Mauvais ordre',tone:'bad',lines:[
+      {tok:"WHEN age < 50 THEN 'Adulte'",txt:"Tous les moins de 50 ans passent ici, y compris les moins de 30."},
+      {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Jamais lu : le premier WHEN a déjà gagné."},
+      {tok:"END",txt:"Sans ELSE, les plus de 50 ans ont NULL."}
     ]}
   ],
   exemple:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",
   attendu:"9 lignes. Lucas, Chloé, Gabriel → Jeune. Sophie, Emma, Nathan, Léa, Inès → Adulte. Hugo → Senior.",
-  retenir:"Deux formes. <code>CASE ville WHEN 'Paris'</code> compare une expression à des valeurs. <code>CASE WHEN age &lt; 30</code> teste des conditions. Dans les deux, SQL s’arrête au premier <code>WHEN</code> vrai. Sans <code>ELSE</code>, le reste vaut <code>NULL</code>. <code>END</code> est obligatoire.",
-  piege:{t:"Le WHEN trop large, trop tôt",
-    p:"Si tu écris <code>WHEN age &lt; 50 THEN 'Adulte'</code> avant <code>WHEN age &lt; 30 THEN 'Jeune'</code>, Lucas (28) est déjà Adulte. Le second <code>WHEN</code> n’est jamais lu. Et sans <code>ELSE</code>, Hugo (52) affiche <code>NULL</code>.",
+  retenir:"L’expression <code>CASE</code> permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else, intégré dans les requêtes SQL.<br><br><b>CASE simple</b> : compare une expression à une liste de valeurs. <b>CASE recherché</b> : évalue des conditions booléennes indépendantes.<br><br><code>ELSE</code> est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est <code>NULL</code>.",
+  piege:{t:"Oublier le ELSE ou mal ordonner les WHEN",
+    p:"Si tu écris <code>WHEN age &lt; 50 THEN 'Adulte'</code> avant <code>WHEN age &lt; 30 THEN 'Jeune'</code>, tous les moins de 50 ans (y compris les moins de 30) seront classés 'Adulte'. De même, sans <code>ELSE</code>, les plus de 50 ans auront <code>NULL</code>.",
     exec:true,
     sql:"SELECT nom, age,\n  CASE\n    WHEN age < 50 THEN 'Adulte'\n    WHEN age < 30 THEN 'Jeune'\n  END AS categorie\nFROM clients;",
     fixSql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;"},
-  consigne:"Affiche le nom, l’âge et une catégorie : 'Jeune' si moins de 30 ans, 'Adulte' si entre 30 et 50 ans, 'Senior' sinon.",
+  consigne:"Affiche le nom, l’âge et une catégorie pour chaque client : 'Jeune' si moins de 30 ans, 'Adulte' si entre 30 et 50 ans, 'Senior' sinon.",
   solution:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",
-  indice:"<code>CASE WHEN</code> du plus étroit au plus large, puis <code>ELSE</code>, et n’oublie pas <code>END AS categorie</code>.",
+  indice:"Utilise <code>CASE WHEN</code> avec trois branches et un <code>ELSE</code> final.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
     {k:'good',label:'Recherché',sql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",out:"9 lignes. Lucas, Chloé, Gabriel → Jeune. Hugo → Senior. Les autres → Adulte.",tone:'good'},
@@ -7103,8 +7092,8 @@ const CARTES={
     m:"Conserve <b>toutes</b> les lignes des deux tables. Sans match → <code>NULL</code> du côté manquant. Inès et l’invité restent."},
  44:{k:"Quel JOIN ?",t:"Quelles lignes garder ?",s:"INNER · LEFT · FULL · CROSS",
     m:"Demande-toi quelles lignes doivent rester, même sans correspondance. Seulement les matchs → <code>INNER JOIN</code>. Toute la gauche → <code>LEFT JOIN</code>. Les deux → <code>FULL OUTER JOIN</code>. Toutes les combinaisons → <code>CROSS JOIN</code>. Évite <code>RIGHT JOIN</code> : inverse les tables."},
- 21:{k:"CASE",t:"Une classe par ligne",s:"CASE ville WHEN 'Paris' THEN 'Capitale'\nCASE WHEN age < 30 THEN 'Jeune'\nEND",
-    m:"Deux formes. Simple : compare une expression à des valeurs (<code>CASE ville WHEN 'Paris'</code>). Recherché : teste des conditions (<code>CASE WHEN age &lt; 30</code>). SQL s’arrête au premier <code>WHEN</code> vrai. Sans <code>ELSE</code> → <code>NULL</code>. <code>END</code> est obligatoire."},
+ 21:{k:"CASE",t:"Afficher une valeur selon une condition",s:"CASE expression\n    WHEN valeur1 THEN resultat1\n    ELSE resultat_defaut\nEND",
+    m:"L’expression <code>CASE</code> permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else, intégré dans les requêtes SQL.<br><br><b>CASE simple</b> : compare une expression à une liste de valeurs. <b>CASE recherché</b> : évalue des conditions booléennes indépendantes.<br><br><code>ELSE</code> est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est <code>NULL</code>."},
  22:{k:"Colonnes calculées",t:"Calculer dans le SELECT",s:"SELECT nom, prix * stock AS valeur\nFROM produits;",
     m:"Le SELECT accepte des expressions. Calcul à la volée, rien n’est stocké. <b>Nomme avec AS</b>, sinon l’en-tête affiche la formule."},
  23:{k:"COALESCE",t:"Remplacer les valeurs absentes",s:"COALESCE(NULLIF(TRIM(email), ''), 'Non renseigné')",
@@ -10886,22 +10875,21 @@ function pointDraw(card){
     </div>`;
   }
   if(kind==='caseforms'){
-    const sql=rows=>`<div class="pt-sql" aria-hidden="true">${rows.map(r=>`<div class="pt-sql-row${r.keep?' is-keep':''}"><span class="pt-sql-code"><span class="pt-sql-tok">${esc(r.tok)}</span>${r.val?` <span class="pt-sql-val">${esc(r.val)}</span>`:''}</span></div>`).join('')}</div>`;
     const forms=[
       {k:'simple',t:'CASE simple',d:'Compare une expression à une liste de valeurs.',
-        h:"Sophie habite Paris → Capitale. Tu ne peux pas y écrire age < 30 : ce n’est pas une égalité.",
-        rows:[{tok:'CASE',val:'ville',keep:1},{tok:'WHEN',val:"'Paris' THEN 'Capitale'"},{tok:'WHEN',val:"'Lyon' THEN 'Métropole'"},{tok:'ELSE',val:"'Autre'"},{tok:'END',val:''}]},
-      {k:'search',t:'CASE recherché',d:'Évalue des conditions indépendantes.',
-        h:"C’est celui de ce cours. Lucas a 28 ans : age < 30 est vrai → Jeune. ELSE est optionnel : sans lui, le reste vaut NULL.",
-        rows:[{tok:'CASE',val:'',keep:1},{tok:'WHEN',val:"age < 30 THEN 'Jeune'"},{tok:'WHEN',val:"age BETWEEN 30 AND 50 THEN 'Adulte'"},{tok:'ELSE',val:"'Senior'"},{tok:'END',val:''}]}
+        h:"ELSE est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est NULL.",
+        sql:"CASE expression\n    WHEN valeur1 THEN resultat1\n    WHEN valeur2 THEN resultat2\n    ...\n    [ELSE resultat_defaut]\nEND"},
+      {k:'search',t:'CASE recherché',d:'Évalue des conditions booléennes indépendantes.',
+        h:"ELSE est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est NULL.",
+        sql:"CASE\n    WHEN condition1 THEN resultat1\n    WHEN condition2 THEN resultat2\n    ...\n    [ELSE resultat_defaut]\nEND"}
     ];
     return `<div class="cw-forms">
-      <p class="cw-forms-q">Tu compares à des valeurs, ou tu testes une condition ?</p>
+      <p class="cw-forms-q">Il existe deux formes de CASE :</p>
       <div class="cw-form-list" role="group" aria-label="Deux formes de CASE">
         ${forms.map((f,i)=>`<button type="button" class="cw-form" style="--i:${i}" data-k="${f.k}" data-h="${escAttr(f.h)}">
           <span class="cw-form-k">${esc(f.t)}</span>
           <span class="cw-form-d">${esc(f.d)}</span>
-          ${sql(f.rows)}
+          <pre class="cw-syntax">${esc(f.sql)}</pre>
         </button>`).join('')}
       </div>
       <p class="cw-form-hint" hidden></p>
@@ -11315,7 +11303,7 @@ function renderJoinIntroStudio(l){
       ${pointDraw({draw:'casewalk'})}
     </div>`:'';
   const forms=pc.forms?`<div class="concept-block">
-      <h2><span class="h2-eye">Deux formes</span><span class="h2-txt">Comparer une valeur, ou tester une condition.</span></h2>
+      <h2><span class="h2-eye">Syntaxe de base</span><span class="h2-txt">CASE simple et CASE recherché.</span></h2>
       ${pointDraw({draw:'caseforms'})}
     </div>`:'';
   const viz=s.viz?`<div class="concept-block">
