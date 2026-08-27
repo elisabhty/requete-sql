@@ -6778,7 +6778,7 @@ const MODULES = [
   attendu:"1 ligne : Inès (la seule cliente sans commande).",
   retenir:"<code>NOT IN</code> cherche les valeurs <b>absentes</b> d’une liste.<br><br>Si la liste contient un <code>NULL</code>, SQL ne peut plus conclure qu’une valeur est absente de <b>toute</b> la liste. Le résultat devient vide.<br><br>La commande invitée #16 impose donc <code>WHERE client_id IS NOT NULL</code> dans la sous-requête.",
   piege:{t:"Un NULL dans la liste",
-    p:"La commande invitée #16 a un <code>client_id = NULL</code>. Si la sous-requête le laisse dans la liste, <code>NOT IN</code> ne retourne aucune ligne : SQL ne peut plus conclure qu’un identifiant est absent de toute la liste.",
+    p:"La commande invitée #16 a un <code>client_id = NULL</code>.<br><br>La sous-requête peut donc produire une liste comme :<br><br><code>1, 2, 3, 4, ..., NULL</code><br><br>Avec <code>NOT IN</code>, SQL doit vérifier qu’un <code>id</code> n’est égal à aucune valeur de la liste. Mais face à <code>NULL</code>, la comparaison est inconnue.<br><br>Résultat : <code>NOT IN</code> ne retourne aucune ligne.<br><br>Il faut donc retirer les <code>NULL</code> de la sous-requête :<br><br><code>WHERE client_id IS NOT NULL</code>",
     exec:true,
     sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n);",
     out:"0 ligne : Inès disparaît à cause du NULL présent dans la liste.",
@@ -6791,8 +6791,7 @@ const MODULES = [
   testeVariants:[
     {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
     {k:'cmd',label:'commandes',sql:"SELECT id, client_id\nFROM commandes;"},
-    {k:'notin_bad',label:'NOT IN avec NULL',sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n);",out:"0 ligne : le NULL de la commande #16 vide le résultat.",tone:'bad'},
-    {k:'notin',label:'NOT IN corrigé',sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);",tone:'good'}
+    {k:'notin',label:'NOT IN',sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);",tone:'good'}
   ] },
 { id:47, titre:"Sous-requête dans SELECT", résumé:"Calculer une valeur pour chaque ligne",
   situation:"Tu veux afficher chaque client avec son nombre de commandes, mais sans utiliser <code>GROUP BY</code>.<br><br>Tu peux placer une sous-requête directement dans le <code>SELECT</code> pour calculer une valeur pour chaque ligne de la table principale.<br><br>Cette sous-requête est <b>corrélée</b> : elle référence l’<code>id</code> du client de la ligne courante. Lorsque la requête principale est sur Sophie, elle compte les commandes où <code>client_id = 1</code>. Pour Lucas, <code>client_id = 2</code>.",
