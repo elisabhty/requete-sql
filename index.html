@@ -386,6 +386,8 @@
   .pt-sql-tok{flex:none;font-family:var(--mono);font-size:12px;font-weight:800;color:var(--accent);letter-spacing:.2px}
   .pt-sql-val{min-width:0;font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--ink);overflow-wrap:anywhere;line-height:1.4}
   .pt-sql-tag{font-size:11.5px;font-weight:650;color:var(--ink-3);line-height:1.35;text-align:left;overflow-wrap:anywhere}
+  .pt-sql-tag b{color:var(--ink);font-weight:800}
+  .pt-sql-tag code{font-family:var(--mono);font-size:.92em;font-weight:750}
   .pt-sql-row.is-keep .pt-sql-tag{color:var(--accent);font-weight:750}
   .pt-rule-say{margin:0;font-size:14px;line-height:1.55;color:var(--ink-2)}
   .pt-rule-say p{margin:0}
@@ -6353,13 +6355,13 @@ const MODULES = [
   situation:"Tu veux savoir quels clients commandent le plus souvent.<br><br>Pour cela, tu veux afficher chaque client avec le nombre de commandes qu’il a passées.<br><br>Le nom du client se trouve dans la table <code>clients</code>, tandis que ses commandes se trouvent dans la table <code>commandes</code>.<br><br>Dans la table <code>clients</code>, tu as par exemple :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr><tr><td>9</td><td>Inès</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, plusieurs lignes peuvent appartenir au même client grâce à <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br><br>Nous avons donc besoin de faire une jointure pour relier chaque commande au client correspondant.<br><br>Après la jointure, un client peut apparaître plusieurs fois : une ligne pour chaque commande. Pour obtenir une seule ligne par client avec son nombre de commandes, nous devons ensuite regrouper les lignes avec <code>GROUP BY</code> et compter les commandes avec <code>COUNT</code>.",
     studio:{pointCards:{
       eye:"Jointure + GROUP BY",title:"Un compte par client.",
-      lead:"Pour obtenir un résultat par client, pense en trois étapes : <b>relier → regrouper → compter</b>.",
+      lead:"Pour obtenir le nombre de commandes par client, retiens trois actions : <b>relier → regrouper → compter</b>.",
       rule:{lines:[
-          {tok:"FROM",val:"clients",tag:"le point de départ · tous les clients",keep:1},
-          {tok:"LEFT JOIN",val:"commandes",tag:"relie chaque client à ses commandes"},
-          {tok:"ON",val:"clients.id = commandes.client_id",tag:"indique comment les deux tables correspondent"},
-          {tok:"GROUP BY",val:"clients.id, clients.nom",tag:"rassemble les lignes d’un même client"},
-          {tok:"COUNT(commandes.id)",tag:"compte les commandes de chaque client"}
+          {tok:"FROM",val:"clients",tag:"part de la table <code>clients</code>",keep:1},
+          {tok:"LEFT JOIN",val:"commandes",tag:"<b>RELIE</b> chaque client à ses commandes"},
+          {tok:"ON",val:"clients.id = commandes.client_id",tag:"précise comment les lignes correspondent"},
+          {tok:"GROUP BY",val:"clients.id, clients.nom",tag:"<b>REGROUPE</b> les lignes d’un même client"},
+          {tok:"COUNT(commandes.id)",tag:"<b>COMPTE</b> les commandes de chaque client"}
         ]},
       cards:[
         {t:"Relier les tables",
@@ -10897,7 +10899,7 @@ function renderPtRule(rule){
   const sqlHtml=lines.length
     ? `<div class="pt-sql">${lines.map(ln=>`<div class="pt-sql-row${ln.keep?' is-keep':''}">
         <span class="pt-sql-code"><span class="pt-sql-tok">${esc(ln.tok)}</span> <span class="pt-sql-val">${esc(ln.val||'')}</span></span>
-        ${ln.tag?`<span class="pt-sql-tag">${esc(ln.tag)}</span>`:''}
+        ${ln.tag?`<span class="pt-sql-tag">${ln.tag}</span>`:''}
       </div>`).join('')}</div>`
     : rule.sql?`<div class="pt-sql"><div class="pt-sql-row"><span class="pt-sql-val">${esc(rule.sql)}</span></div></div>`:'';
   const say=rule.say?`<div class="pt-rule-say">${rule.say}</div>`:'';
