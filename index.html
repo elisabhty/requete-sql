@@ -625,10 +625,12 @@
   .cw-form:active{transform:scale(.985)}
   .cw-form-k{font-family:var(--mono);font-size:12px;font-weight:800;letter-spacing:.2px;color:var(--accent)}
   .cw-form-d{margin:3px 0 0;font-size:13.5px;font-weight:700;line-height:1.35;color:var(--ink)}
-  .cw-form .pt-sql,.cw-form .cw-syntax{display:none;margin:10px 0 0}
+  .cw-form .pt-sql,.cw-form .cw-syntax{display:block;margin:10px 0 0}
   .cw-form.on{border-color:rgba(91,91,214,.28);background:linear-gradient(165deg,rgba(91,91,214,.06),var(--surface) 42%);box-shadow:0 10px 22px -18px rgba(91,91,214,.55)}
-  .cw-form.on .pt-sql,.cw-form.on .cw-syntax{display:block;animation:joinSoftIn .32s var(--spring-ios) both}
+  .cw-form.on .pt-sql,.cw-form.on .cw-syntax{animation:joinSoftIn .32s var(--spring-ios) both}
   .cw-syntax{padding:10px 12px;border-radius:12px;background:var(--surface-2);font-family:var(--mono);font-size:11.5px;font-weight:700;line-height:1.5;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}
+  .cw-form-sum{margin:10px 0 0;font-size:13px;font-weight:650;line-height:1.45;color:var(--ink-2)}
+  .cw-form-sum b{color:var(--ink);font-weight:750}
   .cw-form-hint{margin:12px 0 0;font-size:13.5px;line-height:1.5;color:var(--ink-2);min-height:1.5em}
   .cw-form-hint.on{animation:joinSoftIn .32s var(--spring-ios) both}
   @media (hover:hover) and (pointer:fine){
@@ -636,7 +638,6 @@
   }
   @media (prefers-reduced-motion:reduce){
     .cw-form,.cw-form.on .pt-sql,.cw-form.on .cw-syntax,.cw-form-hint.on{animation:none!important}
-    .cw-form.on .pt-sql,.cw-form.on .cw-syntax{display:block}
   }
   .join-micro .situation-body table.concept-table tbody tr[data-cw]{cursor:pointer}
   .join-micro .situation-body table.concept-table tbody tr[data-cw].on td{background:var(--accent-soft);color:var(--accent);transition:background .2s ease,color .2s ease}
@@ -6480,16 +6481,17 @@ const MODULES = [
   anatomieVariants:[
     {k:'simple',label:'Simple',lines:[
       {tok:"SELECT nom, ville,",txt:"Les colonnes de base."},
-      {tok:"CASE ville",txt:"Compare une colonne à plusieurs valeurs précises."},
-      {tok:"WHEN 'Paris' THEN 'Capitale'",txt:"Si ville vaut Paris."},
-      {tok:"WHEN 'Lyon' THEN 'Métropole'",txt:"Si ville vaut Lyon."},
+      {tok:"CASE ville",txt:"On compare une même colonne à plusieurs valeurs précises."},
+      {tok:"WHEN 'Paris' THEN 'Île-de-France'",txt:"Si ville vaut Paris."},
+      {tok:"WHEN 'Lyon' THEN 'Auvergne-Rhône-Alpes'",txt:"Si ville vaut Lyon."},
+      {tok:"WHEN 'Marseille' THEN 'PACA'",txt:"Si ville vaut Marseille."},
       {tok:"ELSE 'Autre'",txt:"Les autres villes."},
-      {tok:"END AS label",txt:"Fin du CASE et nom de la colonne."},
+      {tok:"END AS region",txt:"Fin du CASE et nom de la colonne."},
       {tok:"FROM clients",txt:"La table source."}
     ]},
     {k:'search',label:'Recherché',tone:'good',lines:[
       {tok:"SELECT nom, age,",txt:"Les colonnes de base."},
-      {tok:"CASE",txt:"Teste plusieurs conditions, l’une après l’autre."},
+      {tok:"CASE",txt:"On écrit une condition différente à chaque WHEN."},
       {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Première condition : moins de 30 ans."},
       {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Deuxième condition : entre 30 et 50 ans."},
       {tok:"ELSE 'Senior'",txt:"Tous les autres cas (plus de 50 ans)."},
@@ -6536,7 +6538,7 @@ const MODULES = [
   indice:"Utilise <code>CASE WHEN</code> avec trois branches et un <code>ELSE</code> final.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'simple',label:'Simple',sql:"SELECT nom, ville,\n  CASE ville\n    WHEN 'Paris' THEN 'Capitale'\n    WHEN 'Lyon' THEN 'Métropole'\n    ELSE 'Autre'\n  END AS label\nFROM clients;",out:"Sophie, Nathan, Léa → Capitale. Lucas, Hugo → Métropole. Les autres → Autre."},
+    {k:'simple',label:'Simple',sql:"SELECT nom, ville,\n  CASE ville\n    WHEN 'Paris' THEN 'Île-de-France'\n    WHEN 'Lyon' THEN 'Auvergne-Rhône-Alpes'\n    WHEN 'Marseille' THEN 'PACA'\n    ELSE 'Autre'\n  END AS region\nFROM clients;",out:"Sophie, Nathan, Léa → Île-de-France. Lucas, Hugo → Auvergne-Rhône-Alpes. Emma → PACA. Chloé, Gabriel, Inès → Autre."},
     {k:'search',label:'Recherché',sql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",out:"9 lignes. Lucas, Chloé, Gabriel → Jeune. Hugo → Senior. Les autres → Adulte.",tone:'good'},
     {k:'orderby',label:'ORDER BY',sql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients\nORDER BY CASE\n    WHEN age < 30 THEN 1\n    WHEN age BETWEEN 30 AND 50 THEN 2\n    ELSE 3\n  END;",out:"9 lignes. Jeune d’abord, puis Adulte, puis Senior."},
     {k:'groupby',label:'GROUP BY',sql:"SELECT\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie,\n  COUNT(*) AS nb\nFROM clients\nGROUP BY categorie;",out:"3 groupes : Jeune 3, Adulte 5, Senior 1."},
@@ -10909,12 +10911,14 @@ function pointDraw(card){
   }
   if(kind==='caseforms'){
     const forms=[
-      {k:'simple',t:'CASE simple',d:'Compare une colonne à plusieurs valeurs précises.',
-        h:"ELSE est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est NULL.",
-        sql:"CASE expression\n    WHEN valeur1 THEN resultat1\n    WHEN valeur2 THEN resultat2\n    ...\n    [ELSE resultat_defaut]\nEND"},
-      {k:'search',t:'CASE recherché',d:'Teste plusieurs conditions, l’une après l’autre.',
-        h:"ELSE est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est NULL.",
-        sql:"CASE\n    WHEN condition1 THEN resultat1\n    WHEN condition2 THEN resultat2\n    ...\n    [ELSE resultat_defaut]\nEND"}
+      {k:'simple',t:'CASE simple',d:'On compare une même colonne à plusieurs valeurs précises.',
+        sum:"CASE simple = une <b>même colonne</b> → plusieurs <b>valeurs</b> possibles",
+        h:"Idéal quand tu veux dire : « Si cette colonne vaut X, alors… »",
+        sql:"SELECT nom, ville,\n  CASE ville\n    WHEN 'Paris' THEN 'Île-de-France'\n    WHEN 'Lyon' THEN 'Auvergne-Rhône-Alpes'\n    WHEN 'Marseille' THEN 'PACA'\n    ELSE 'Autre'\n  END AS region\nFROM clients;"},
+      {k:'search',t:'CASE recherché',d:'On écrit une condition différente à chaque WHEN.',
+        sum:"CASE recherché = plusieurs <b>conditions</b> testées l’une après l’autre.",
+        h:"Idéal pour les comparaisons, intervalles et conditions plus complexes.",
+        sql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;"}
     ];
     return `<div class="cw-forms">
       <p class="cw-forms-q">Il existe deux formes de CASE :</p>
@@ -10923,6 +10927,7 @@ function pointDraw(card){
           <span class="cw-form-k">${esc(f.t)}</span>
           <span class="cw-form-d">${esc(f.d)}</span>
           <pre class="cw-syntax">${esc(f.sql)}</pre>
+          <span class="cw-form-sum">${f.sum}</span>
         </button>`).join('')}
       </div>
       <p class="cw-form-hint" hidden></p>
