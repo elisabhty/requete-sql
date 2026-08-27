@@ -1581,18 +1581,81 @@
      sous sa description, décalé et en chasse fixe. */
   .subq-recap .jr-ex{display:block;margin-top:5px;padding-left:9px;border-left:2px solid var(--line-2);font-family:var(--mono);font-size:11px;line-height:1.5;color:var(--ink-3);white-space:pre-wrap;overflow-wrap:anywhere}
   .subq-recap tr.on .jr-ex{border-left-color:var(--accent)}
-  .sql-viz[data-viz="subquery_in"] .join-out .join-pill[data-when],
   .sql-viz[data-viz="subquery_notin"] .join-out .join-pill[data-when],
   .sql-viz[data-viz="subquery_select"] .join-out .join-pill[data-when],
   .sql-viz[data-viz="subquery_from"] .join-out .join-pill[data-when]{display:none}
-  .sql-viz[data-viz="subquery_in"][data-phase="0"] .join-pill[data-when="l"],
-  .sql-viz[data-viz="subquery_in"][data-phase="1"] .join-pill[data-when="s"],
-  .sql-viz[data-viz="subquery_in"][data-phase="2"] .join-pill[data-when="r"]{display:flex}
-  .sql-viz[data-viz="subquery_in"][data-phase="0"] .jchip[data-k="hit"],
-  .sql-viz[data-viz="subquery_in"][data-phase="1"] .jchip[data-k="hit"],
-  .sql-viz[data-viz="subquery_in"][data-phase="2"] .jchip[data-k="hit"]{background:var(--accent-soft)}
-  .sql-viz[data-viz="subquery_in"][data-phase="1"] .jchip[data-k="miss"],
-  .sql-viz[data-viz="subquery_in"][data-phase="2"] .jchip[data-k="miss"]{opacity:.3}
+  /* Sous-requête IN : une transformation par étape. L'ancienne animation
+     exposait les deux tables dès le départ et ne faisait que les recolorer. */
+  .sql-viz[data-viz="subquery_in"] .join-stepper{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sql-viz[data-viz="subquery_in"] .subq-source{overflow:hidden;max-height:440px;border:1px solid rgba(91,91,214,.16);border-radius:17px;background:var(--surface);box-shadow:var(--lift-sm);opacity:1;transform:none;transition:max-height .58s var(--spring-ios),opacity .34s ease,transform .48s var(--spring-ios),border-width .38s ease}
+  .sql-viz[data-viz="subquery_in"] .subq-source-head,.sql-viz[data-viz="subquery_in"] .subq-list-head{display:flex;align-items:center;gap:8px;padding:10px 12px;background:linear-gradient(135deg,var(--accent-soft),#fff);border-bottom:1px solid var(--line-2);font-family:var(--ui)}
+  .sql-viz[data-viz="subquery_in"] .subq-source-head>span,.sql-viz[data-viz="subquery_in"] .subq-list-head>span{font-size:9.5px;font-weight:850;letter-spacing:.65px;text-transform:uppercase;color:var(--accent)}
+  .sql-viz[data-viz="subquery_in"] .subq-source-head code,.sql-viz[data-viz="subquery_in"] .subq-list-head code{font-size:11px;font-weight:850;color:var(--ink)}
+  .sql-viz[data-viz="subquery_in"] .subq-source-head b,.sql-viz[data-viz="subquery_in"] .subq-list-head b{margin-left:auto;padding:4px 7px;border-radius:8px;background:var(--surface);color:var(--ink-3);font-size:8.5px;font-weight:850;white-space:nowrap;box-shadow:inset 0 0 0 1px var(--line)}
+  .sql-viz[data-viz="subquery_in"] .subq-command{display:grid;grid-template-columns:42px minmax(0,1fr) minmax(0,1fr);align-items:center;gap:7px;min-height:38px;padding:0 12px;color:var(--ink);font-family:var(--mono);font-size:11px;font-weight:750;transition:opacity .34s ease,background .34s ease,transform .42s var(--spring-ios)}
+  .sql-viz[data-viz="subquery_in"] .subq-command+.subq-command{border-top:1px solid var(--line-2)}
+  .sql-viz[data-viz="subquery_in"] .subq-command.is-head{min-height:31px;background:var(--surface-2);color:var(--ink-3);font-family:var(--ui);font-size:8.5px;font-weight:850;letter-spacing:.45px;text-transform:uppercase}
+  .sql-viz[data-viz="subquery_in"] .subq-command b{color:var(--ink);font-weight:850}
+  .sql-viz[data-viz="subquery_in"] .subq-command em{justify-self:start;padding:3px 7px;border-radius:7px;background:var(--surface-2);color:var(--ink-2);font-style:normal;font-weight:850}
+  .sql-viz[data-viz="subquery_in"] .subq-command.is-fibre{background:linear-gradient(90deg,rgba(91,91,214,.09),transparent)}
+  .sql-viz[data-viz="subquery_in"] .subq-command.is-fibre em{background:var(--accent);color:#fff}
+  .sql-viz[data-viz="subquery_in"] .subq-command.is-other{opacity:.34}
+  .sql-viz[data-viz="subquery_in"][data-phase="0"] .subq-command.is-fibre{animation:subqRowKeep .48s var(--spring-ios) both}
+  .sql-viz[data-viz="subquery_in"][data-phase="0"] .subq-command:nth-child(4){animation-delay:.08s}
+  .sql-viz[data-viz="subquery_in"][data-phase="0"] .subq-command:nth-child(5){animation-delay:.16s}
+  .sql-viz[data-viz="subquery_in"][data-phase="0"] .subq-command:nth-child(6){animation-delay:.24s}
+  .sql-viz[data-viz="subquery_in"] .subq-list{overflow:hidden;max-height:0;margin:0;border:0 solid rgba(91,91,214,.2);border-radius:17px;background:var(--surface);box-shadow:none;opacity:0;transform:translateY(10px) scale(.985);transition:max-height .55s var(--spring-ios),opacity .36s ease,transform .48s var(--spring-ios),border-width .35s ease,box-shadow .35s ease}
+  .sql-viz[data-viz="subquery_in"] .subq-list-values{display:flex;align-items:center;justify-content:center;gap:7px;padding:15px 12px 8px}
+  .sql-viz[data-viz="subquery_in"] .subq-list-value{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border:0;border-radius:12px;background:var(--accent);color:#fff;font-family:var(--mono);font-size:14px;font-weight:900;box-shadow:0 6px 14px rgba(91,91,214,.2);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .35s var(--spring-ios),box-shadow .3s ease,background .3s ease}
+  .sql-viz[data-viz="subquery_in"] .subq-list-value:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  .sql-viz[data-viz="subquery_in"] .subq-list-value[data-er-on="1"]{background:var(--success);box-shadow:0 7px 18px rgba(15,118,110,.22);transform:translateY(-2px) scale(1.06)}
+  .sql-viz[data-viz="subquery_in"] .subq-list-note{display:flex;align-items:center;justify-content:center;gap:6px;margin:0;padding:0 12px 12px;color:var(--ink-3);font-family:var(--ui);font-size:9.5px;font-weight:750;text-align:center}
+  .sql-viz[data-viz="subquery_in"] .subq-list-note i{display:flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:var(--success-soft);color:var(--success);font-style:normal;font-weight:900}
+  .sql-viz[data-viz="subquery_in"] .subq-compare{overflow:hidden;max-height:0;margin:0;opacity:0;transform:translateY(10px);transition:max-height .62s var(--spring-ios),opacity .38s ease,transform .5s var(--spring-ios),margin .38s ease}
+  .sql-viz[data-viz="subquery_in"] .subq-in-bridge{display:flex;align-items:center;justify-content:center;margin-bottom:9px;padding:8px 10px;border:1px dashed rgba(91,91,214,.3);border-radius:12px;background:rgba(91,91,214,.05);color:var(--accent);font-size:11px;font-weight:850;text-align:center}
+  .sql-viz[data-viz="subquery_in"] .subq-clients{overflow:hidden;border:1px solid var(--hairline);border-radius:16px;background:var(--surface);box-shadow:var(--lift-sm)}
+  .sql-viz[data-viz="subquery_in"] .subq-clients-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;background:var(--accent);color:#fff;font-family:var(--ui);font-size:9.5px;font-weight:850;letter-spacing:.5px;text-transform:uppercase}
+  .sql-viz[data-viz="subquery_in"] .subq-clients-head small{font-size:8.5px;font-weight:750;letter-spacing:0;text-transform:none;opacity:.8}
+  .sql-viz[data-viz="subquery_in"] .subq-client{display:grid;grid-template-columns:27px minmax(0,1fr) auto;align-items:center;gap:8px;min-height:39px;padding:0 11px;color:var(--ink);font-size:11.5px;font-weight:750;cursor:pointer;opacity:0;transform:translateY(7px);transition:background .3s ease,opacity .32s ease,transform .38s var(--spring-ios)}
+  .sql-viz[data-viz="subquery_in"] .subq-client+.subq-client{border-top:1px solid var(--line-2)}
+  .sql-viz[data-viz="subquery_in"] .subq-client .er-key{display:flex;align-items:center;justify-content:center;width:23px;height:23px;border-radius:8px;background:var(--surface-2);color:var(--ink-2);font-family:var(--mono);font-size:10px;font-weight:850}
+  .sql-viz[data-viz="subquery_in"] .subq-client-status{display:flex;align-items:center;gap:4px;padding:3px 6px;border-radius:7px;font-family:var(--ui);font-size:8.5px;font-weight:850;white-space:nowrap}
+  .sql-viz[data-viz="subquery_in"] .subq-client.is-hit{background:linear-gradient(90deg,rgba(15,118,110,.08),transparent)}
+  .sql-viz[data-viz="subquery_in"] .subq-client.is-hit .subq-client-status{background:var(--success-soft);color:var(--success)}
+  .sql-viz[data-viz="subquery_in"] .subq-client.is-miss{opacity:.48!important}
+  .sql-viz[data-viz="subquery_in"] .subq-client.is-miss .subq-client-status{background:var(--surface-2);color:var(--ink-3)}
+  .sql-viz[data-viz="subquery_in"] .subq-client[data-er-on="1"]{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent);opacity:1!important;transform:none}
+  .sql-viz[data-viz="subquery_in"] .subq-client:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  .sql-viz[data-viz="subquery_in"] .subq-test-summary{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:8px;color:var(--ink-3);font-family:var(--ui);font-size:9.5px;font-weight:750}
+  .sql-viz[data-viz="subquery_in"] .subq-test-summary b{color:var(--success)}
+  .sql-viz[data-viz="subquery_in"][data-phase="1"] .subq-source,.sql-viz[data-viz="subquery_in"][data-phase="2"] .subq-source,.sql-viz[data-viz="subquery_in"][data-phase="3"] .subq-source{max-height:0;border-width:0;opacity:0;transform:translateY(-9px) scale(.985)}
+  .sql-viz[data-viz="subquery_in"][data-phase="1"] .subq-list,.sql-viz[data-viz="subquery_in"][data-phase="2"] .subq-list,.sql-viz[data-viz="subquery_in"][data-phase="3"] .subq-list{max-height:180px;border-width:1px;box-shadow:var(--lift-sm);opacity:1;transform:none}
+  .sql-viz[data-viz="subquery_in"][data-phase="1"] .subq-list-value{animation:subqValueIn .45s var(--bounce-ios) both}
+  .sql-viz[data-viz="subquery_in"][data-phase="1"] .subq-list-value:nth-child(2){animation-delay:.09s}
+  .sql-viz[data-viz="subquery_in"][data-phase="1"] .subq-list-value:nth-child(3){animation-delay:.18s}
+  .sql-viz[data-viz="subquery_in"][data-phase="1"] .subq-list-value:nth-child(4){animation-delay:.27s}
+  .sql-viz[data-viz="subquery_in"][data-phase="2"] .subq-compare{max-height:500px;margin-top:10px;opacity:1;transform:none}
+  .sql-viz[data-viz="subquery_in"][data-phase="2"] .subq-client{animation:subqClientTest .4s var(--spring-ios) forwards}
+  .sql-viz[data-viz="subquery_in"][data-phase="2"] .subq-client:nth-child(3){animation-delay:.07s}
+  .sql-viz[data-viz="subquery_in"][data-phase="2"] .subq-client:nth-child(4){animation-delay:.14s}
+  .sql-viz[data-viz="subquery_in"][data-phase="2"] .subq-client:nth-child(5){animation-delay:.21s}
+  .sql-viz[data-viz="subquery_in"][data-phase="2"] .subq-client:nth-child(6){animation-delay:.28s}
+  .sql-viz[data-viz="subquery_in"][data-phase="2"] .subq-client:nth-child(7){animation-delay:.35s}
+  .sql-viz[data-viz="subquery_in"] .join-out{max-height:0;opacity:0;margin:0;transform:translateY(8px) scale(.985)}
+  .sql-viz[data-viz="subquery_in"][data-phase="3"] .join-out{max-height:320px;opacity:1;margin-top:11px;transform:none}
+  .sql-viz[data-viz="subquery_in"][data-phase="3"] .join-pill{padding-left:34px;background:linear-gradient(90deg,var(--success-soft),#fff);border-color:rgba(15,118,110,.16);color:var(--ink);animation:joinIn .46s var(--spring-ios) forwards}
+  .sql-viz[data-viz="subquery_in"][data-phase="3"] .join-pill::before{content:'✓';position:absolute;left:10px;display:flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:var(--success);color:#fff;font-family:var(--ui);font-size:9px;font-weight:900}
+  @keyframes subqRowKeep{from{opacity:.35;transform:translateX(-6px)}to{opacity:1;transform:none}}
+  @keyframes subqValueIn{0%{opacity:0;transform:translateY(9px) scale(.75)}70%{opacity:1;transform:translateY(-2px) scale(1.06)}100%{opacity:1;transform:none}}
+  @keyframes subqClientTest{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){
+    .sql-viz[data-viz="subquery_in"] .subq-source,.sql-viz[data-viz="subquery_in"] .subq-command,.sql-viz[data-viz="subquery_in"] .subq-list,.sql-viz[data-viz="subquery_in"] .subq-list-value,.sql-viz[data-viz="subquery_in"] .subq-compare,.sql-viz[data-viz="subquery_in"] .subq-client{animation:none!important;transition:none!important}
+  }
+  @media (max-width:460px){
+    .sql-viz[data-viz="subquery_in"] .subq-source-head b{max-width:100px;white-space:normal;text-align:right}
+    .sql-viz[data-viz="subquery_in"] .subq-command{grid-template-columns:36px minmax(0,1fr) minmax(0,1fr);padding-inline:9px}
+    .sql-viz[data-viz="subquery_in"] .subq-client{padding-inline:9px}
+  }
   .sql-viz[data-viz="subquery_notin"][data-phase="0"] .join-pill[data-when="l"],
   .sql-viz[data-viz="subquery_notin"][data-phase="1"] .join-pill[data-when="b"],
   .sql-viz[data-viz="subquery_notin"][data-phase="2"] .join-pill[data-when="g"]{display:flex}
@@ -1677,6 +1740,7 @@
   .join-phase-head{display:flex;align-items:center;margin:0 0 7px}
   .join-phase-label{font-size:9px;font-weight:850;letter-spacing:.75px;text-transform:uppercase;color:var(--accent)}
   .join-phase-sql{display:block;width:100%;padding:8px 9px;border:1px solid rgba(60,60,67,.08);border-radius:10px;background:var(--surface);color:var(--ink);font-family:var(--mono);font-size:10.5px;font-weight:700;line-height:1.35;white-space:normal;overflow-wrap:anywhere;box-sizing:border-box}
+  .card .join-phase-sql{white-space:pre-wrap!important;word-break:break-word;overflow-wrap:anywhere;overflow:hidden}
   .join-phase-read{display:flex;align-items:flex-start;gap:7px;margin:8px 1px 0;color:var(--ink-2);font-size:11.5px;font-weight:650;line-height:1.42}
   .join-phase-read code{font-family:var(--mono);font-size:.9em;color:var(--accent);background:rgba(91,91,214,.08);padding:1px 4px;border-radius:5px}
   .join-phase-read-mark{display:flex;align-items:center;justify-content:center;flex:none;width:18px;height:18px;margin-top:-1px;border-radius:6px;background:var(--accent);color:#fff;font-size:11px;font-weight:850;line-height:1}
@@ -10629,7 +10693,7 @@ const JOIN_GUIDES={
   outer:{kicker:'Analyse du périmètre',lead:'Le type de JOIN décrit quelles lignes doivent rester même sans correspondance.',steps:[['INNER','uniquement les correspondances'],['LEFT / RIGHT','toute une source + les correspondances — Inès à gauche, l’invité à droite'],['FULL OUTER','Inès et l’invité, plus les correspondances']],takeaway:'Le choix du JOIN est un choix de périmètre de résultat.'}
 };
 const JOIN_OUTPUT_LABELS={
-  joinon:'Résultat projeté · une ligne par commande correspondante',inner:'Résultat projeté · correspondances uniquement',leftj:'Résultat projeté · table clients conservée',rightj:'Résultat projeté · table commandes conservée',orphan:'Résultat projeté · clients sans commande',triple:'Résultat projeté · client, produit, quantité',outer:'Résultat projeté · les deux tables conservées',crossjoin:'Résultat projeté · toutes les paires',joingroupby:'Résultat de l’étape',selfjoin:'Résultat final · 4 paires uniques',onwhere:'Résultat de l’étape',onmultiple:'Résultat de l’étape',subquery_in:'Résultat de l’étape',subquery_notin:'Résultat de l’étape',subquery_select:'Résultat de l’étape',subquery_from:'Résultat de l’étape',security:'Résultat de l’étape'
+  joinon:'Résultat projeté · une ligne par commande correspondante',inner:'Résultat projeté · correspondances uniquement',leftj:'Résultat projeté · table clients conservée',rightj:'Résultat projeté · table commandes conservée',orphan:'Résultat projeté · clients sans commande',triple:'Résultat projeté · client, produit, quantité',outer:'Résultat projeté · les deux tables conservées',crossjoin:'Résultat projeté · toutes les paires',joingroupby:'Résultat de l’étape',selfjoin:'Résultat final · 4 paires uniques',onwhere:'Résultat de l’étape',onmultiple:'Résultat de l’étape',subquery_in:'Résultat final · 4 clients',subquery_notin:'Résultat de l’étape',subquery_select:'Résultat de l’étape',subquery_from:'Résultat de l’étape',security:'Résultat de l’étape'
 };
 function renderJoinGuide(key){
   const g=JOIN_GUIDES[key];
@@ -15842,46 +15906,53 @@ const SQL_VIZ={
     </div>
     <p class="er-hint">👆 Touche Inès, puis la commande #16 : chacune reste seule de son côté.</p>
   </div>`},
-  subquery_in:{kind:'er',sample:'6 clients · 4 commandes Fibre',phases:[
-    {k:'Créer la liste',d:'La sous-requête parcourt les commandes du produit 1 et en extrait les <code>client_id</code>.',sql:'SELECT commandes.client_id FROM commandes WHERE produit_id = 1',read:'La liste obtenue : <code>1, 4, 5, 7</code>. Une seule colonne, plusieurs valeurs.'},
-    {k:'Chercher dans la liste',d:'La requête principale teste chaque client : son <code>id</code> appartient-il à cette liste ?',sql:'WHERE clients.id IN (…)',read:'Sophie, Nathan, Chloé et Léa correspondent. Lucas et Inès n’y figurent pas.'},
-    {k:'Garder les présents',d:'<code>IN</code> conserve uniquement les clients dont l’identifiant apparaît dans la liste.',sql:'SELECT clients.nom',read:'Résultat : Sophie, Nathan, Chloé, Léa — les clients de la Fibre Prébiotique.'}
-  ],html:`<div class="er-stage join-viz">
-    <div class="join-sets">
-      <div class="join-side"><div class="join-side-h">clients</div>
-        <div class="jchips">
-          <div class="jchip" data-k="hit" data-er-id="1" role="button" tabindex="0"><span class="er-key">1</span>Sophie</div>
-          <div class="jchip" data-k="miss" data-er-id="2" role="button" tabindex="0"><span class="er-key">2</span>Lucas</div>
-          <div class="jchip" data-k="hit" data-er-id="4" role="button" tabindex="0"><span class="er-key">4</span>Nathan</div>
-          <div class="jchip" data-k="hit" data-er-id="5" role="button" tabindex="0"><span class="er-key">5</span>Chloé</div>
-          <div class="jchip" data-k="hit" data-er-id="7" role="button" tabindex="0"><span class="er-key">7</span>Léa</div>
-          <div class="jchip" data-k="miss" data-er-id="9" role="button" tabindex="0"><span class="er-key">9</span>Inès</div>
-        </div>
+  subquery_in:{kind:'er',sample:'6 clients · 4 commandes Fibre',stepMs:7800,phases:[
+    {k:'Filtrer les commandes',d:'SQL exécute d’abord la requête entre parenthèses et ne garde que le produit 1.',sql:'WHERE produit_id = 1',read:'Parmi les 16 commandes, quatre concernent la Fibre Prébiotique : #1, #5, #8 et #15.'},
+    {k:'Fabriquer la liste',d:'La sous-requête projette uniquement la colonne <code>client_id</code>.',sql:'SELECT client_id → [1, 4, 7, 5]',read:'Elle produit la liste dynamique <code>1, 4, 7, 5</code> : une seule colonne, plusieurs lignes.'},
+    {k:'Tester chaque client',d:'La requête extérieure compare chaque <code>clients.id</code> à la liste.',sql:'WHERE clients.id IN (1, 4, 7, 5)',read:'<code>IN</code> répond « présent » pour Sophie, Nathan, Chloé et Léa ; « absent » pour Lucas et Inès.'},
+    {k:'Afficher les présents',d:'Seules les lignes dont le test vaut vrai atteignent le résultat.',sql:'SELECT clients.nom',read:'Résultat final : Sophie, Nathan, Chloé et Léa — quatre clients ayant acheté la Fibre Prébiotique.'}
+  ],html:`<div class="er-stage join-viz subq-in-stage">
+    <section class="subq-source" aria-label="Commandes parcourues par la sous-requête">
+      <div class="subq-source-head"><span>Sous-requête · exécutée d’abord</span><code>commandes</code><b>produit_id = 1</b></div>
+      <div class="subq-command is-head"><span>id</span><span>client_id</span><span>produit_id</span></div>
+      <div class="subq-command is-fibre"><span>#1</span><b>1</b><em>1</em></div>
+      <div class="subq-command is-fibre"><span>#5</span><b>4</b><em>1</em></div>
+      <div class="subq-command is-fibre"><span>#8</span><b>7</b><em>1</em></div>
+      <div class="subq-command is-fibre"><span>#15</span><b>5</b><em>1</em></div>
+      <div class="subq-command is-other"><span>#3</span><b>2</b><em>6</em></div>
+      ${joinMore(11,'commandes')}
+    </section>
+    <section class="subq-list" aria-label="Liste produite par la sous-requête" aria-hidden="true">
+      <div class="subq-list-head"><span>Résultat de la sous-requête</span><code>client_id</code><b>1 colonne</b></div>
+      <div class="subq-list-values" role="list" aria-label="Identifiants produits">
+        <div class="subq-list-value" data-er-fk="1" role="button" tabindex="-1" aria-label="Identifiant 1">1</div>
+        <div class="subq-list-value" data-er-fk="4" role="button" tabindex="-1" aria-label="Identifiant 4">4</div>
+        <div class="subq-list-value" data-er-fk="7" role="button" tabindex="-1" aria-label="Identifiant 7">7</div>
+        <div class="subq-list-value" data-er-fk="5" role="button" tabindex="-1" aria-label="Identifiant 5">5</div>
       </div>
-      <div class="join-side" data-side="r"><div class="join-side-h">commandes · produit 1</div>
-        <div class="jchips">
-          <div class="jchip" data-k="hit" data-er-fk="1" role="button" tabindex="0"><span class="er-key">#1</span>client 1</div>
-          <div class="jchip" data-k="hit" data-er-fk="4" role="button" tabindex="0"><span class="er-key">#5</span>client 4</div>
-          <div class="jchip" data-k="hit" data-er-fk="7" role="button" tabindex="0"><span class="er-key">#8</span>client 7</div>
-          <div class="jchip" data-k="hit" data-er-fk="5" role="button" tabindex="0"><span class="er-key">#15</span>client 5</div>
-        </div>
+      <p class="subq-list-note"><i aria-hidden="true">✓</i>La liste vient des données : elle s’adapte aux commandes.</p>
+    </section>
+    <section class="subq-compare" aria-label="Test des clients avec IN" aria-hidden="true">
+      <div class="subq-in-bridge"><code>clients.id IN (1, 4, 7, 5)</code></div>
+      <div class="subq-clients">
+        <div class="subq-clients-head"><span>clients</span><small>un test par ligne</small></div>
+        <div class="subq-client is-hit" data-er-id="1" role="button" tabindex="-1"><span class="er-key">1</span><span>Sophie</span><span class="subq-client-status">✓ présent</span></div>
+        <div class="subq-client is-miss" data-er-id="2" role="button" tabindex="-1"><span class="er-key">2</span><span>Lucas</span><span class="subq-client-status">× absent</span></div>
+        <div class="subq-client is-hit" data-er-id="4" role="button" tabindex="-1"><span class="er-key">4</span><span>Nathan</span><span class="subq-client-status">✓ présent</span></div>
+        <div class="subq-client is-hit" data-er-id="5" role="button" tabindex="-1"><span class="er-key">5</span><span>Chloé</span><span class="subq-client-status">✓ présent</span></div>
+        <div class="subq-client is-hit" data-er-id="7" role="button" tabindex="-1"><span class="er-key">7</span><span>Léa</span><span class="subq-client-status">✓ présent</span></div>
+        <div class="subq-client is-miss" data-er-id="9" role="button" tabindex="-1"><span class="er-key">9</span><span>Inès</span><span class="subq-client-status">× absent</span></div>
+        ${joinMore(3,'clients')}
       </div>
-    </div>
+      <p class="subq-test-summary"><b>4 présents</b><span>·</span><span>2 absents dans l’extrait</span></p>
+    </section>
     <div class="join-out" aria-hidden="true">
-      <div class="join-pill" data-when="l" data-er-fk="1">liste · 1</div>
-      <div class="join-pill" data-when="l" data-er-fk="4">liste · 4</div>
-      <div class="join-pill" data-when="l" data-er-fk="5">liste · 5</div>
-      <div class="join-pill" data-when="l" data-er-fk="7">liste · 7</div>
-      <div class="join-pill" data-when="s" data-er-id="1">Sophie ∈ liste</div>
-      <div class="join-pill" data-when="s" data-er-id="4">Nathan ∈ liste</div>
-      <div class="join-pill" data-when="s" data-er-id="5">Chloé ∈ liste</div>
-      <div class="join-pill" data-when="s" data-er-id="7">Léa ∈ liste</div>
-      <div class="join-pill" data-when="r" data-er-id="1">Sophie</div>
-      <div class="join-pill" data-when="r" data-er-id="4">Nathan</div>
-      <div class="join-pill" data-when="r" data-er-id="5">Chloé</div>
-      <div class="join-pill" data-when="r" data-er-id="7">Léa</div>
+      <div class="join-pill" data-er-id="1">Sophie</div>
+      <div class="join-pill" data-er-id="4">Nathan</div>
+      <div class="join-pill" data-er-id="5">Chloé</div>
+      <div class="join-pill" data-er-id="7">Léa</div>
     </div>
-    <p class="er-hint">👆 Touche un client : sa commande du produit 1 s’allume s’il en a une.</p>
+    <p class="er-hint">👆 À l’étape 3, touche un client : l’identifiant recherché s’allume dans la liste.</p>
   </div>`},
   subquery_notin:{kind:'er',sample:'5 clients · dont #16',phases:[
     {k:'La liste brute',d:'La sous-requête ramène tous les <code>client_id</code> de <code>commandes</code>, y compris le <code>NULL</code> de la commande #16.',sql:'SELECT commandes.client_id FROM commandes',read:'La liste contient 1, 2, 3… et <code>NULL</code>. C’est ce <code>NULL</code> qui va tout bloquer.'},
@@ -16407,11 +16478,28 @@ function syncSelfJoinA11y(root,phase){
   root.querySelectorAll('.self-aliases [tabindex]').forEach(el=>{el.tabIndex=phase>=1?0:-1;});
 }
 
+function syncSubqueryInA11y(root,phase){
+  if(!root||root.dataset.viz!=='subquery_in')return;
+  const show=(selector,on)=>{
+    const el=root.querySelector(selector);
+    if(!el)return;
+    el.setAttribute('aria-hidden',on?'false':'true');
+    if('inert' in el)el.inert=!on;
+  };
+  show('.subq-source',phase===0);
+  show('.subq-list',phase>=1);
+  show('.subq-compare',phase===2);
+  show('.join-out',phase===3);
+  root.querySelectorAll('.subq-list [tabindex]').forEach(el=>{el.tabIndex=phase>=1?0:-1;});
+  root.querySelectorAll('.subq-compare [tabindex]').forEach(el=>{el.tabIndex=phase===2?0:-1;});
+}
+
 function havingGrpSetPhase(root,phase,opts){
   const phases=sqlVizPhases(root);
   const p=phases[phase]||phases[0];
   root.dataset.phase=String(phase);
   syncSelfJoinA11y(root,phase);
+  syncSubqueryInA11y(root,phase);
   if(root._phaseChangeTimer)clearTimeout(root._phaseChangeTimer);
   root.classList.remove('phase-change');
   void root.offsetWidth;
