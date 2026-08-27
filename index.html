@@ -547,7 +547,7 @@
   .join-micro .concept-block.in .pd-key.fk{animation:joinSoftIn .4s ease .18s both}
   .join-micro .concept-block.in .pd-onids-row i{transform-origin:left center;animation:joinRuleDraw .48s ease-out both}
 
-  /* Arbre de décision : une question, cinq chemins, le JOIN se révèle. */
+  /* Arbre de décision : les feuilles de la seconde question. */
   .jd-tree{margin:0;min-width:0}
   .jd-root{margin:0 0 14px;font-size:15px;font-weight:750;line-height:1.45;color:var(--ink)}
   .jd-list{position:relative;display:flex;flex-direction:column;gap:8px;padding:0 0 0 22px}
@@ -570,14 +570,38 @@
     .jd-node:hover .jd-join{opacity:.85}
   }
   @keyframes jdPop{0%{transform:scale(.86)}62%{transform:scale(1.07)}100%{transform:none}}
-  .jd-hint{margin:12px 0 0;font-size:13.5px;line-height:1.5;color:var(--ink-2);min-height:1.5em}
-  .jd-hint.on{animation:joinSoftIn .32s var(--spring-ios) both}
+  /* Arbre de décision : deux questions, puis la fiche du JOIN choisi. */
+  .jd-branches{display:flex;flex-direction:column;gap:8px;margin:0 0 12px}
+  .jd-branch{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;margin:0;padding:12px 14px;border:1px solid var(--card-border);border-radius:15px;background:var(--surface);color:inherit;font:inherit;text-align:left;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:border-color .2s,background .24s,box-shadow .24s,transform .12s}
+  .jd-branch b{font-size:14px;font-weight:750;line-height:1.3}
+  .jd-branch small{font-size:11.5px;font-weight:650;color:var(--ink-3)}
+  .jd-branch:active{transform:scale(.99)}
+  .jd-branch.on{border-color:rgba(91,91,214,.28);background:linear-gradient(165deg,rgba(91,91,214,.06),var(--surface) 42%);box-shadow:0 10px 22px -18px rgba(91,91,214,.55)}
+  .jd-branch.on b{color:var(--accent)}
+  .jd-tree .jd-tap{margin:0 2px 14px;font-size:12.5px;font-weight:600;line-height:1.45;color:var(--accent)}
+  .jd-tap code{color:var(--ink-2)}
+  .jd-step{margin:0 0 14px}
+  .jd-tree .jd-q{margin:0 0 10px;font-size:14px;font-weight:750;line-height:1.35;color:var(--ink)}
+  .jd-card{margin:14px 0 0;padding:14px;border:1px solid var(--card-border);border-radius:16px;background:var(--surface-2)}
+  .jd-card.on{animation:joinSoftIn .32s var(--spring-ios) both}
+  .jd-card .jd-motto{margin:0 0 10px;font-size:13.5px;line-height:1.45;color:var(--ink-2)}
+  .jd-card .jd-motto b{display:block;font-family:var(--mono);font-size:12px;font-weight:850;letter-spacing:.2px;color:var(--accent);margin-bottom:3px}
+  .jd-card .jd-ex{margin:0 0 10px;font-size:13.5px;line-height:1.45;color:var(--ink)}
+  .jd-card .jd-ex span{display:block;font-family:var(--mono);font-size:9.5px;font-weight:750;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-3);margin-bottom:2px}
+  .jd-card .jd-flow{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin:0 0 8px;padding:8px 10px;border-radius:11px;background:var(--surface)}
+  .jd-card .jd-flow code{font-size:12px;font-weight:800;color:var(--ink-2)}
+  .jd-card .jd-flow i{font-style:normal;font-size:15px;font-weight:850;color:var(--accent)}
+  .jd-card .jd-stat{margin:0 0 8px;padding:8px 10px;border-radius:11px;background:var(--surface);text-align:center;font-size:12.5px;font-weight:650;color:var(--ink-2)}
+  .jd-card .jd-stat b{color:var(--accent);font-weight:850}
+  .jd-card .jd-out{margin:0 0 6px;padding-left:16px;position:relative;font-size:12.5px;font-weight:650;line-height:1.45;color:var(--ink-3)}
+  .jd-card .jd-out::before{content:'→';position:absolute;left:0;color:var(--accent);font-weight:850}
+  .jd-card .ex-code{margin:10px 0 0}
   @media (max-width:360px){
     .jd-node{grid-template-columns:minmax(0,1fr)}
     .jd-join{justify-self:start}
   }
   @media (prefers-reduced-motion:reduce){
-    .jd-list::before,.jd-node,.jd-node::after,.jd-dot,.jd-node.on .jd-join,.jd-hint.on{animation:none!important}
+    .jd-list::before,.jd-node,.jd-node::after,.jd-dot,.jd-node.on .jd-join,.jd-card.on{animation:none!important}
     .jd-join{opacity:1;transform:none}
   }
 
@@ -6254,16 +6278,16 @@ const MODULES = [
       tree:1,
       lead:"La première question n’est pas « quel <code>JOIN</code> ? ». C’est : <b>quelles lignes dois-tu absolument conserver, même sans correspondance ?</b>",
       cards:[
-        {t:"<span class=\"pt-kw\">INNER JOIN</span> — l’intersection",
-         b:"<p>Uniquement les correspondances strictes. Aucune ligne orpheline.</p><p>Exemple : les clients qui ont déjà commandé. Inès disparaît.</p><p>Si tu n’as pas besoin des <code>NULL</code>, commence par là : plus simple, et plus léger.</p>"},
-        {t:"<span class=\"pt-kw\">LEFT JOIN</span> — le garde-fou de la gauche",
-         b:"<p>Toutes les lignes de la table après <code>FROM</code>. S’il n’y a rien à droite, SQL met <code>NULL</code>.</p><p>Exemple : tous les clients, Inès comprise, avec le détail de leurs commandes s’ils en ont.</p><p>Question clé : tu veux garder toute la table de gauche, même seule ? Oui.</p>"},
-        {t:"<span class=\"pt-kw\">RIGHT JOIN</span> — le garde-fou de la droite",
-         b:"<p>Même idée, de l’autre côté : toutes les lignes après <code>JOIN</code>. Ici, toutes les commandes, y compris l’invité <code>#16</code>.</p><p>En SQL, on évite souvent <code>RIGHT JOIN</code>. Inverse les tables et écris <code>LEFT JOIN</code> : c’est plus lisible.</p><p>Question clé : tu veux garder toute la table de droite ? Oui — mais reformule en <code>LEFT JOIN</code>.</p>"},
-        {t:"<span class=\"pt-kw\">FULL OUTER JOIN</span> — l’union",
-         b:"<p>Toutes les lignes des deux tables. Les trous deviennent <code>NULL</code> de chaque côté.</p><p>Exemple : tous les clients <b>et</b> toutes les commandes — Inès et l’invité restent.</p><p>Question clé : tu veux tout garder des deux côtés ? Oui. C’est rare, et ça fait plus de lignes.</p>"},
-        {t:"<span class=\"pt-kw\">CROSS JOIN</span> — le produit",
-         b:"<p>Toutes les combinaisons. Pas de <code>ON</code> : SQL ne cherche aucune relation.</p><p>Exemple : chaque client × chaque produit, pour une campagne d’offres.</p><p>Ne le lance jamais par erreur. 9 × 8 = 72 ici. 1 000 × 1 000 = 1 000 000 de lignes.</p>"}
+        {t:"<span class=\"pt-kw\">INNER JOIN</span> — le plus sobre",
+         b:"<p>Si tu n’as pas besoin des <code>NULL</code>, commence par là : le résultat est plus simple à lire, et plus léger.</p>"},
+        {t:"<span class=\"pt-kw\">LEFT JOIN</span> — le plus courant",
+         b:"<p>C’est celui qu’on écrit le plus souvent : on part de la table qu’on veut garder entière, et on lui accroche le reste.</p>"},
+        {t:"<span class=\"pt-kw\">RIGHT JOIN</span> — à reformuler",
+         b:"<p>En SQL, on l’évite. Inverse les deux tables et écris un <code>LEFT JOIN</code> : c’est le même résultat, en plus lisible.</p>"},
+        {t:"<span class=\"pt-kw\">FULL OUTER JOIN</span> — rare",
+         b:"<p>Réserve-le au cas où deux sources sont incomplètes chacune de son côté et qu’il faut les réconcilier sans rien perdre.</p>"},
+        {t:"<span class=\"pt-kw\">CROSS JOIN</span> — à surveiller",
+         b:"<p>Ne le lance jamais par erreur : les lignes se multiplient. 9 × 8 = 72 ici, mais 1 000 × 1 000 = 1 000 000.</p>"}
       ]},
     reflex:{a:{k:"La question",t:"quelles lignes dois-tu absolument garder ?"},
       b:{k:"LEFT JOIN",t:"préfère-le à RIGHT JOIN, en inversant les tables"},
@@ -6768,8 +6792,7 @@ const MODULES = [
   testeVariants:[
     {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
     {k:'cmd',label:'commandes',sql:"SELECT id, client_id\nFROM commandes;"},
-    {k:'notin_bad',label:'NOT IN avec NULL',sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n);",out:"0 ligne : le NULL de la commande #16 vide le résultat.",tone:'bad'},
-    {k:'notin',label:'NOT IN corrigé',sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);",tone:'good'}
+    {k:'notin',label:'NOT IN + sous-requête',sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);",tone:'good'}
   ] },
 { id:47, titre:"Sous-requête dans SELECT", résumé:"Calculer une valeur pour chaque ligne",
   situation:"Tu veux afficher chaque client avec son nombre de commandes, mais sans utiliser <code>GROUP BY</code>.<br><br>Tu peux placer une sous-requête directement dans le <code>SELECT</code> pour calculer une valeur pour chaque ligne de la table principale.<br><br>Cette sous-requête est <b>corrélée</b> : elle référence l’<code>id</code> du client de la ligne courante. Lorsque la requête principale est sur Sophie, elle compte les commandes où <code>client_id = 1</code>. Pour Lucas, <code>client_id = 2</code>.",
@@ -10942,23 +10965,71 @@ function pointDraw(card){
       <div class="pd-ow-col is-where"><b>filtre dans WHERE</b><span>→ filtre les lignes du résultat</span><span>→ peut faire disparaître les clients sans correspondance</span></div>
     </div>`;
   if(kind==='jointree'){
-    const nodes=[
-      {k:'inner',q:'Uniquement les correspondances ?',j:'INNER JOIN',h:'Inès disparaît. Il ne reste que les clients qui ont déjà commandé.'},
-      {k:'left',q:'Toute la table de gauche, même seule ?',j:'LEFT JOIN',h:'Tous les clients restent. Inès s’affiche avec NULL.'},
-      {k:'right',q:'Toute la table de droite, même seule ?',j:'RIGHT JOIN',h:'Toutes les commandes restent, y compris l’invité #16. Préfère un LEFT JOIN en inversant les tables.'},
-      {k:'full',q:'Tout garder des deux côtés ?',j:'FULL JOIN',h:'Inès et l’invité restent. Les trous deviennent NULL. Rare, et ça fait plus de lignes.'},
-      {k:'cross',q:'Croiser toutes les lignes entre elles ?',j:'CROSS JOIN',h:'Pas de ON. 9 clients × 8 produits = 72 lignes. 1 000 × 1 000 = 1 000 000.'}
+    /* Un vrai arbre : une première question sépare « relier » de « croiser »,
+       une seconde demande ce qu'il faut garder. Chaque feuille ouvre sa fiche
+       — devise, exemple, sens de la conservation, requête. */
+    const leaves={
+      inner:{j:'INNER JOIN',motto:'Je garde seulement les correspondances',
+        ex:'Afficher les clients qui ont passé une commande.',
+        flow:['clients','↔','commandes'],
+        out:['Pas de commande = client absent'],
+        sql:"SELECT clients.nom, commandes.id\nFROM clients\nINNER JOIN commandes\n  ON clients.id = commandes.client_id;"},
+      left:{j:'LEFT JOIN',motto:'Je garde toute la table de gauche',
+        ex:'Afficher tous les clients, même ceux qui n’ont jamais commandé.',
+        flow:['clients','→','commandes'],
+        out:['Pas de commande = <code>NULL</code>'],
+        sql:"SELECT clients.nom, commandes.id\nFROM clients\nLEFT JOIN commandes\n  ON clients.id = commandes.client_id;"},
+      right:{j:'RIGHT JOIN',motto:'Je garde toute la table de droite',
+        ex:'Afficher toutes les commandes, même celles qui ne sont liées à aucun client.',
+        flow:['clients','←','commandes'],
+        out:['Pas de client = <code>NULL</code>'],
+        sql:"SELECT clients.nom, commandes.id\nFROM clients\nRIGHT JOIN commandes\n  ON clients.id = commandes.client_id;"},
+      full:{j:'FULL OUTER JOIN',motto:'Je garde tout des deux côtés',
+        ex:'Afficher tous les clients et toutes les commandes, même sans correspondance.',
+        flow:['clients','↔','commandes'],
+        out:['Client sans commande = <code>NULL</code> côté commande','Commande sans client = <code>NULL</code> côté client'],
+        sql:"SELECT clients.nom, commandes.id\nFROM clients\nFULL OUTER JOIN commandes\n  ON clients.id = commandes.client_id;"},
+      cross:{j:'CROSS JOIN',motto:'Je crée toutes les combinaisons',
+        ex:'Associer chaque client à chaque produit.',
+        stat:'9 clients × 8 produits = <b>72 combinaisons</b>',
+        sql:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;"}
+    };
+    const garde=[
+      {k:'inner',t:'Seulement les correspondances'},
+      {k:'left', t:'Toute la table de gauche, même sans correspondance'},
+      {k:'right',t:'Toute la table de droite, même sans correspondance'},
+      {k:'full', t:'Tout de gauche <b>et</b> tout de droite'}
     ];
+    const fiche=k=>{
+      const f=leaves[k];
+      const flow=f.flow?`<p class="jd-flow"><code>${esc(f.flow[0])}</code><i aria-hidden="true">${f.flow[1]}</i><code>${esc(f.flow[2])}</code></p>`:'';
+      const stat=f.stat?`<p class="jd-stat">${f.stat}</p>`:'';
+      const out=(f.out||[]).map(o=>`<p class="jd-out">${o}</p>`).join('');
+      return `<div class="jd-card" data-k="${k}" hidden>
+        <p class="jd-motto"><b>${esc(f.j)}</b> « ${esc(f.motto)} »</p>
+        <p class="jd-ex"><span>Exemple</span>${esc(f.ex)}</p>
+        ${flow}${stat}${out}
+        <pre class="ex-code">${highlight(f.sql)}</pre>
+      </div>`;
+    };
     return `<div class="jd-tree">
-      <p class="jd-root">Quelles données dois-tu absolument conserver, même sans correspondance ?</p>
-      <div class="jd-list" role="group" aria-label="Choix du JOIN">
-        ${nodes.map((n,i)=>`<button type="button" class="jd-node" style="--i:${i}" data-k="${n.k}" data-h="${escAttr(n.h)}">
-          <span class="jd-dot" aria-hidden="true"></span>
-          <span class="jd-ask">${esc(n.q)}</span>
-          <span class="jd-join">${esc(n.j)}</span>
-        </button>`).join('')}
+      <p class="jd-root">Quel résultat veux-tu obtenir ?</p>
+      <div class="jd-branches" role="group" aria-label="Première question">
+        <button type="button" class="jd-branch" data-b="lien"><b>Relier des lignes qui correspondent</b><small>les deux tables ont un lien</small></button>
+        <button type="button" class="jd-branch" data-b="cross"><b>Créer toutes les combinaisons</b><small>aucun lien à chercher</small></button>
       </div>
-      <p class="jd-hint" hidden></p>
+      <p class="jd-tap">👆 Touche une réponse : l’arbre te conduit au <code>JOIN</code> qu’il te faut.</p>
+      <div class="jd-step" hidden>
+        <p class="jd-q">Que veux-tu garder ?</p>
+        <div class="jd-list" role="group" aria-label="Choix du JOIN">
+          ${garde.map((n,i)=>`<button type="button" class="jd-node" style="--i:${i}" data-k="${n.k}">
+            <span class="jd-dot" aria-hidden="true"></span>
+            <span class="jd-ask">${n.t}</span>
+            <span class="jd-join">${esc(leaves[n.k].j)}</span>
+          </button>`).join('')}
+        </div>
+      </div>
+      ${Object.keys(leaves).map(fiche).join('')}
     </div>`;
   }
   if(kind==='casewalk'){
@@ -11240,31 +11311,53 @@ const WHY_VIZ_TITLE="Suis ce qu'il se passe avec tes données.";
 function initJoinTree(){
   const tree=document.querySelector('#lesson-body .jd-tree');
   if(!tree) return;
-  const hint=tree.querySelector('.jd-hint');
-  const set=btn=>{
+  const step=tree.querySelector('.jd-step');
+  const cards=[...tree.querySelectorAll('.jd-card')];
+  const nodes=[...tree.querySelectorAll('.jd-node')];
+  const branches=[...tree.querySelectorAll('.jd-branch')];
+  const fiche=k=>{
+    cards.forEach(c=>{
+      const on=c.dataset.k===k;
+      c.hidden=!on;
+      if(on){c.classList.remove('on');void c.offsetWidth;c.classList.add('on');}
+    });
+  };
+  const setNode=btn=>{
     if(!btn) return;
-    tree.querySelectorAll('.jd-node').forEach(n=>{
+    nodes.forEach(n=>{
       const on=n===btn;
       n.classList.toggle('on',on);
       n.setAttribute('aria-pressed',on?'true':'false');
     });
-    if(hint){
-      hint.hidden=false;
-      hint.textContent=btn.dataset.h||'';
-      hint.classList.remove('on');
-      void hint.offsetWidth;
-      hint.classList.add('on');
+    fiche(btn.dataset.k);
+  };
+  const setBranch=btn=>{
+    if(!btn) return;
+    branches.forEach(b=>{
+      const on=b===btn;
+      b.classList.toggle('on',on);
+      b.setAttribute('aria-pressed',on?'true':'false');
+    });
+    /* « Croiser » est une feuille : la seconde question ne se pose pas. */
+    if(btn.dataset.b==='cross'){
+      if(step) step.hidden=true;
+      fiche('cross');
+    }else{
+      if(step) step.hidden=false;
+      setNode(nodes.find(n=>n.classList.contains('on'))||nodes[0]);
     }
   };
-  tree.querySelectorAll('.jd-node').forEach(n=>n.setAttribute('aria-pressed','false'));
+  nodes.forEach(n=>n.setAttribute('aria-pressed','false'));
+  branches.forEach(b=>b.setAttribute('aria-pressed','false'));
   tree.addEventListener('click',e=>{
-    const btn=e.target.closest('.jd-node');
-    if(!btn) return;
-    set(btn);
+    const br=e.target.closest('.jd-branch');
+    if(br){ setBranch(br); if(navigator.vibrate) navigator.vibrate(6); return; }
+    const nd=e.target.closest('.jd-node');
+    if(!nd) return;
+    setNode(nd);
     if(navigator.vibrate) navigator.vibrate(6);
   });
-  const first=tree.querySelector('.jd-node');
-  if(first) setTimeout(()=>set(first), prefersReduceMotion()?0:560);
+  if(branches[0]) setTimeout(()=>setBranch(branches[0]), prefersReduceMotion()?0:560);
 }
 function initCaseWalk(){
   const walk=document.querySelector('#lesson-body .cw-walk');
@@ -11399,7 +11492,7 @@ function renderJoinIntroStudio(l){
   const eye=pc.eye||'La clause ON';
   const title=pc.title||'Quelles lignes correspondent.';
   const tree=pc.tree?`<div class="concept-block">
-      <h2><span class="h2-eye">Arbre de décision</span><span class="h2-txt">Le JOIN selon ce que tu gardes.</span></h2>
+      <h2><span class="h2-eye">Arbre de décision</span><span class="h2-txt">Deux questions suffisent à choisir.</span></h2>
       ${pointDraw({draw:'jointree'})}
     </div>`:'';
   const walk=pc.walk?`<div class="concept-block">
