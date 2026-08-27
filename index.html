@@ -2459,6 +2459,10 @@
   .toast .tgo.hidden{display:none}
   .toast.is-action{width:auto;max-width:none;left:14px;right:14px;padding:11px 12px 11px 11px}
   body.in-lesson .toast:not(.is-action){right:14px;max-width:calc(100% - 28px)}
+  /* Dans un cours, la barre d'onglets laisse place au bouton collant, dont la
+     hauteur varie (il passe en colonne sous 360px). On mesure au moment de
+     l'afficher plutôt que de deviner. */
+  body.in-lesson .toast{bottom:var(--toast-lift,calc(max(8px,var(--safe-bottom)) + 92px))}
 
   /* Carnet de notes */
   .seg{display:flex;background:rgba(120,120,128,.12);border-radius:13px;padding:3px;margin:14px 18px 0;position:relative}
@@ -6655,30 +6659,27 @@ const MODULES = [
     {k:'cmd',label:'commandes',sql:"SELECT id, client_id, produit_id\nFROM commandes;"},
     {k:'sub_in',label:'IN + sous-requête',sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);",tone:'good'}
   ] },
-{ id:46, titre:"Sous-requête avec NOT IN", résumé:"Trouver les clients sans commande",
-  situation:"Tu veux afficher les clients qui n’ont jamais passé commande.<br><br>Une sous-requête peut lister tous les <code>client_id</code> présents dans <code>commandes</code>. Ensuite, tu cherches les clients dont l’<code>id</code> n’est <b>pas</b> dans cette liste.<br><br>Mais attention : la table <code>commandes</code> contient une commande invitée avec <code>client_id</code> NULL. Si la sous-requête renvoie ce NULL, le résultat peut devenir vide.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th><th>date_commande</th></tr></thead><tbody><tr><td>16</td><td>NULL</td><td>4</td><td>1</td><td>2023-08-03</td></tr></tbody></table></div>",
-  situationTail:"<code>NOT IN</code> compare à une liste. Si la liste contient <code>NULL</code>, aucune correspondance n’est trouvée car <code>NULL</code> n’est pas comparable. Il faut donc exclure les NULL dans la sous-requête.",
+{ id:46, titre:"Sous-requête dans WHERE avec NOT IN", résumé:"Exclure une liste issue d’une autre requête",
+  situation:"Tu veux identifier les clients qui n’ont encore passé aucune commande, afin de leur envoyer une offre de bienvenue.<br><br>Les clients sont dans la table <code>clients</code>, tandis que les commandes contiennent les <code>client_id</code> des clients qui ont déjà commandé.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th class=\"col-hl\">client_id</th><th>produit_id</th></tr></thead><tbody><tr><td>1</td><td class=\"col-hl\">1</td><td>1</td></tr><tr><td>3</td><td class=\"col-hl\">2</td><td>6</td></tr><tr><td>4</td><td class=\"col-hl\">3</td><td>2</td></tr><tr><td>5</td><td class=\"col-hl\">4</td><td>1</td></tr></tbody></table></div>",
+  situationTail:"Tu peux donc récupérer la liste des <code>client_id</code> présents dans <code>commandes</code>, puis chercher les clients dont l’<code>id</code> n’est pas dans cette liste.<br><br>C’est justement le rôle de <code>NOT IN</code> : la sous-requête crée la liste des clients ayant commandé, puis <code>NOT IN</code> garde ceux qui ne sont pas dans cette liste.",
   studio:{pointCards:{
       eye:"NOT IN",title:"La sous-requête crée une liste à exclure.",
-      lead:"Pour trouver les absents, utilise <code>NOT IN</code> avec une sous-requête, en éliminant les <code>NULL</code>.",
+      lead:"<p>Une sous-requête est simplement une requête SQL imbriquée à l’intérieur d’une autre requête. Lorsqu’on l’utilise avec <code>WHERE ... NOT IN</code>, elle permet de filtrer les résultats de la requête principale en excluant une liste de valeurs dynamiques générées par la sous-requête.</p>",
+      syntaxTitle:"Syntaxe de base",
+      syntax:"SELECT colonne1, colonne2\nFROM table_principale\nWHERE colonne_x NOT IN (SELECT colonne_y FROM table_secondaire WHERE condition);",
       chain:[
-        {k:"Créer la liste",v:"SELECT client_id FROM commandes"},
-        {k:"Retirer le NULL",v:"WHERE client_id IS NOT NULL"},
-        {k:"Exclure la liste",v:"clients.id NOT IN (…)"}
+        {k:"Créer la liste",v:"SELECT client_id … FROM commandes",out:"→ on obtient : 1, 2, 3, 4, 5, 6, 7, 8"},
+        {k:"Garder hors de la liste",v:"clients.id NOT IN (…)"}
       ],
       cards:[
-        {t:"NOT IN",
-         b:"<p><code>WHERE clients.id NOT IN (sous-requête)</code> garde les lignes dont la valeur n’apparaît pas dans la liste.</p>"},
-        {t:"Problème avec NULL",draw:"nulltrap",
-         b:"<p>Si la sous-requête contient <code>NULL</code> (commande #16), <code>NOT IN</code> ne retourne aucune ligne. On ajoute <code>WHERE client_id IS NOT NULL</code> dans la sous-requête.</p>"},
-        {t:"Retirer le NULL",
-         b:"<p>La sous-requête filtre sur <code>client_id IS NOT NULL</code>, puis la requête principale filtre sur <code>NOT IN</code>.</p>"},
-        {t:"Chercher les absents",
-         b:"<p><code>clients.id NOT IN (…)</code> peut alors garder les clients dont l’identifiant n’apparaît dans aucune commande : ici, Inès.</p>"}
+        {t:"Sous-requête entre parenthèses",
+         b:"<p>La sous-requête se place entre parenthèses après <code>NOT IN</code>. Elle retourne ici les <code>client_id</code> des clients qui ont déjà commandé.</p>"},
+        {t:"Ordre d’exécution",draw:"repeat",src:"clients.id",outs:["9 Inès"],
+         b:"<p>SQL exécute d’abord la sous-requête, puis utilise la liste obtenue pour filtrer la requête principale. <code>NOT IN</code> garde les clients dont l’<code>id</code> n’est pas dans cette liste.</p>"}
       ]},
-    reflex:{a:{k:"NOT IN",t:"garde les valeurs absentes de la liste"},
-      b:{k:"IS NOT NULL",t:"exclut les NULL de la sous-requête"},
-      note:"Avant d’utiliser <code>NOT IN</code>, vérifie si la colonne peut contenir <code>NULL</code>. Si oui, filtre-la avec <code>IS NOT NULL</code>."},
+    reflex:{a:{k:"Sous-requête",t:"crée la liste des clients ayant commandé"},
+      b:{k:"NOT IN",t:"garde ceux qui ne sont pas dans cette liste"},
+      note:"Si la sous-requête peut contenir un <code>NULL</code>, filtre-la avec <code>IS NOT NULL</code> avant d’utiliser <code>NOT IN</code>."},
     viz:"subquery_notin"},
   anatomie:[
     {tok:"SELECT clients.nom",txt:"La colonne à afficher."},
@@ -6689,8 +6690,8 @@ const MODULES = [
   exemple:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);",
   attendu:"1 ligne : Inès (la seule cliente sans commande).",
   retenir:"<code>NOT IN</code> cherche les valeurs <b>absentes</b> d’une liste.<br><br>Si la liste contient un <code>NULL</code>, SQL ne peut plus conclure qu’une valeur est absente de <b>toute</b> la liste. Le résultat devient vide.<br><br>La commande invitée #16 impose donc <code>WHERE client_id IS NOT NULL</code> dans la sous-requête.",
-  piege:{t:"Oublier IS NOT NULL dans la sous-requête",
-    p:"Sans <code>WHERE client_id IS NOT NULL</code>, la sous-requête inclut un <code>NULL</code> (commande invitée). <code>NOT IN</code> avec <code>NULL</code> ne retourne aucune ligne.",
+  piege:{t:"Un NULL dans la liste",
+    p:"La commande invitée #16 a un <code>client_id = NULL</code>. Si la sous-requête le laisse dans la liste, <code>NOT IN</code> ne retourne aucune ligne : SQL ne peut plus conclure qu’un identifiant est absent de toute la liste.",
     exec:true,
     sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n);",
     out:"0 ligne : Inès disparaît à cause du NULL présent dans la liste.",
@@ -12465,6 +12466,7 @@ function showUnlock(id){
   const go=document.getElementById('toast-go'); if(go){go.classList.remove('hidden');go.textContent='Voir';}
   document.getElementById('toast-t').textContent=c.k;
   document.getElementById('toast-s').textContent=c.t+' · ajoutée à ta collection';
+  toastLift(t);
   t.classList.add('on');
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('on'),4500);
 }
@@ -13049,6 +13051,15 @@ function etalerRetard(){
   trierSessions();semaineOffset=0;jourSel=d.info.t;lateRecoveryCollapsed=false;save();renderPlanning();
   toast(`${plur(d.count,'activité')} répartie${d.count>1?'s':''} sur ${plur(targets.length,'séance')}`,'Ton planning est à jour');
 }
+function toastLift(t){
+  t.style.removeProperty('--toast-lift');
+  if(!document.body.classList.contains('in-lesson'))return;
+  const nav=document.querySelector('#lesson-body .ls-nav')||document.querySelector('.ls-nav');
+  if(!nav||nav.classList.contains('cta-away'))return;
+  const r=nav.getBoundingClientRect();
+  if(!r.height||r.top>=window.innerHeight||r.bottom<=0)return;
+  t.style.setProperty('--toast-lift',Math.round(window.innerHeight-r.top+12)+'px');
+}
 function toast(msg,sub,tone){
   const t=document.getElementById('toast');
   const mini=document.getElementById('toast-mini');
@@ -13066,7 +13077,7 @@ function toast(msg,sub,tone){
   const go=document.getElementById('toast-go'); if(go)go.classList.add('hidden');
   document.getElementById('toast-t').textContent=msg;
   document.getElementById('toast-s').textContent=sub||'';
-  toastId=null;t.classList.add('on');
+  toastId=null;toastLift(t);t.classList.add('on');
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('on'),sub?2800:2000);
   if(navigator.vibrate)navigator.vibrate(8);
 }
