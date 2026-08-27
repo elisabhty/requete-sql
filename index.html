@@ -624,13 +624,14 @@
   .cw-form{display:flex;flex-direction:column;align-items:stretch;gap:0;width:100%;margin:0;padding:12px 13px;border:1px solid var(--card-border);border-radius:14px;background:var(--surface);color:inherit;font:inherit;text-align:left;cursor:pointer;touch-action:manipulation;-webkit-appearance:none;appearance:none;box-shadow:var(--card-shadow-sm);animation:joinSoftIn .46s var(--spring-ios) both;animation-delay:calc(var(--i)*80ms + 80ms);transition:transform .18s var(--spring-ios),border-color .18s,background .18s,box-shadow .18s}
   .cw-form:active{transform:scale(.985)}
   .cw-form-k{font-family:var(--mono);font-size:12px;font-weight:800;letter-spacing:.2px;color:var(--accent)}
-  .cw-form-d{margin:3px 0 0;font-size:13.5px;font-weight:700;line-height:1.35;color:var(--ink)}
+  .cw-form-sum{margin:4px 0 0;font-size:13px;font-weight:650;line-height:1.45;color:var(--ink-2)}
+  .cw-form-sum b{color:var(--ink);font-weight:750}
+  .cw-form-d{margin:6px 0 0;font-size:13.5px;font-weight:700;line-height:1.35;color:var(--ink)}
   .cw-form .pt-sql,.cw-form .cw-syntax{display:block;margin:10px 0 0}
   .cw-form.on{border-color:rgba(91,91,214,.28);background:linear-gradient(165deg,rgba(91,91,214,.06),var(--surface) 42%);box-shadow:0 10px 22px -18px rgba(91,91,214,.55)}
   .cw-form.on .pt-sql,.cw-form.on .cw-syntax{animation:joinSoftIn .32s var(--spring-ios) both}
   .cw-syntax{padding:10px 12px;border-radius:12px;background:var(--surface-2);font-family:var(--mono);font-size:11.5px;font-weight:700;line-height:1.5;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}
-  .cw-form-sum{margin:10px 0 0;font-size:13px;font-weight:650;line-height:1.45;color:var(--ink-2)}
-  .cw-form-sum b{color:var(--ink);font-weight:750}
+  .pt-intro .cw-forms{margin:0}
   .cw-form-hint{margin:12px 0 0;font-size:13.5px;line-height:1.5;color:var(--ink-2);min-height:1.5em}
   .cw-form-hint.on{animation:joinSoftIn .32s var(--spring-ios) both}
   @media (hover:hover) and (pointer:fine){
@@ -6453,7 +6454,7 @@ const MODULES = [
     studio:{pointCards:{
       eye:"CASE",title:"Afficher une valeur selon une condition.",
       walk:1,
-      lead:"<p>L’expression <code>CASE</code> en SQL permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else des langages de programmation, mais intégré directement dans les requêtes SQL. Elle est extrêmement utile pour transformer des données, créer des colonnes calculées, gérer des regroupements ou encore remplacer des valeurs.</p><p>Il existe deux formes de <code>CASE</code> :</p><p><b>CASE simple</b> : Compare une colonne à plusieurs valeurs précises.</p><p><b>CASE recherché</b> : Teste plusieurs conditions, l’une après l’autre.</p>",
+      lead:"<p>L’expression <code>CASE</code> en SQL permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else des langages de programmation, mais intégré directement dans les requêtes SQL. Elle est extrêmement utile pour transformer des données, créer des colonnes calculées, gérer des regroupements ou encore remplacer des valeurs.</p>",
       forms:1,
       cards:[
         {t:"Structure CASE",
@@ -10807,7 +10808,8 @@ function renderPointCards(pc){
   const lead=pc.lead?`<div class="pt-lead">${pc.lead}</div>`:'';
   const regle=pc.rule?renderPtRule(pc.rule):'';
   const venn=pc.venn?pointVenn(pc.venn,pc.vennG,pc.vennD):'';
-  const intro=(pc.lead||pc.rule||pc.venn)?`<div class="pt-intro">${lead}${venn}${regle}</div>`:'';
+  const formsHtml=pc.forms?pointDraw({draw:'caseforms'}):'';
+  const intro=(pc.lead||pc.rule||pc.venn||pc.forms)?`<div class="pt-intro">${lead}${formsHtml}${venn}${regle}</div>`:'';
   const chaine=pc.chain?`<ol class="pt-chain">
       ${pc.chain.map((c,i)=>`<li class="pt-hop">
         <span class="pt-hop-n" aria-hidden="true">${i+1}</span>
@@ -10925,9 +10927,9 @@ function pointDraw(card){
       <div class="cw-form-list" role="group" aria-label="Deux formes de CASE">
         ${forms.map((f,i)=>`<button type="button" class="cw-form" style="--i:${i}" data-k="${f.k}" data-h="${escAttr(f.h)}">
           <span class="cw-form-k">${esc(f.t)}</span>
+          <span class="cw-form-sum">${f.sum}</span>
           <span class="cw-form-d">${esc(f.d)}</span>
           <pre class="cw-syntax">${esc(f.sql)}</pre>
-          <span class="cw-form-sum">${f.sum}</span>
         </button>`).join('')}
       </div>
       <p class="cw-form-hint" hidden></p>
@@ -11336,10 +11338,6 @@ function renderJoinIntroStudio(l){
       <h2><span class="h2-eye">Ce que ça fabrique</span><span class="h2-txt">Une colonne qui n’est pas dans la table.</span></h2>
       ${pointDraw({draw:'casewalk'})}
     </div>`:'';
-  const forms=pc.forms?`<div class="concept-block">
-      <h2><span class="h2-eye">Syntaxe de base</span><span class="h2-txt">CASE simple et CASE recherché.</span></h2>
-      ${pointDraw({draw:'caseforms'})}
-    </div>`:'';
   const viz=s.viz?`<div class="concept-block">
       <h2><span class="h2-eye">Visualisation</span><span class="h2-txt">${WHY_VIZ_TITLE}</span></h2>
       ${renderVizShell(s.viz)}
@@ -11351,7 +11349,6 @@ function renderJoinIntroStudio(l){
     </div>
     ${tree}
     ${walk}
-    ${forms}
     ${viz}
     <!-- early-demo -->
   </div>`;
