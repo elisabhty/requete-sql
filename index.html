@@ -358,6 +358,10 @@
   .pt-intro{margin:0 0 16px;background:var(--surface);border:1px solid var(--card-border);border-radius:18px;padding:16px;box-shadow:var(--card-shadow-sm);min-width:0}
   .pt-intro .pt-lead{margin:0 0 12px}
   .pt-intro .pt-lead:last-child{margin-bottom:0}
+  .pt-intro .pt-syntax{margin:12px 0 0;min-width:0}
+  .pt-intro .pt-lead + .pt-syntax{margin-top:12px}
+  .pt-syntax-h{margin:0 0 8px;font-size:13.5px;font-weight:800;letter-spacing:-.2px;color:var(--ink)}
+  .pt-intro .pt-syntax .cw-syntax{margin:0}
   .pt-venn{margin:0 0 14px;padding:0;display:flex;flex-direction:column;align-items:center;gap:7px}
   .pt-venn svg{width:100%;max-width:232px;height:auto;display:block;overflow:visible}
   /* Zone conservée : violet plein, atténué par l'opacité du groupe pour que
@@ -6612,7 +6616,9 @@ const MODULES = [
   situationTail:"Les <code>client_id</code> associés sont 1, 4, 7 et 5.<br><br>Il faut maintenant retrouver dans la table <code>clients</code> les clients dont l’<code>id</code> appartient à cette liste.<br><br>C’est justement ce que permet une sous-requête avec <code>IN</code> : la sous-requête récupère d’abord les identifiants, puis la requête principale utilise cette liste pour filtrer les clients.",
   studio:{pointCards:{
       eye:"IN",title:"La sous-requête crée une liste.",
-      lead:"<code>IN</code> compare une valeur à une liste retournée par une sous-requête.",
+      lead:"<p>Une sous-requête est simplement une requête SQL imbriquée à l’intérieur d’une autre requête. Lorsqu’on l’utilise avec <code>WHERE ... IN</code>, elle permet de filtrer les résultats de la requête principale en fonction d’une liste de valeurs dynamiques générées par la sous-requête.</p>",
+      syntaxTitle:"Syntaxe de base",
+      syntax:"SELECT colonne1, colonne2\nFROM table_principale\nWHERE colonne_x IN (SELECT colonne_y FROM table_secondaire WHERE condition);",
       chain:[
         {k:"Créer la liste",v:"SELECT client_id … WHERE produit_id = 1"},
         {k:"Chercher dedans",v:"clients.id IN (…)"}
@@ -6638,11 +6644,11 @@ const MODULES = [
   exemple:"SELECT clients.nom\nFROM clients\nWHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);",
   attendu:"4 lignes : Sophie, Nathan, Chloé et Léa — les clients ayant commandé le produit id 1.",
   retenir:"Une sous-requête dans <code>WHERE</code> peut fabriquer une <b>liste</b>. <code>IN</code> teste ensuite si une valeur appartient à cette liste.<br><br>La sous-requête doit renvoyer <b>une seule colonne</b>. Avec plusieurs valeurs possibles, n’utilise pas <code>=</code>. SQL exécute d’abord l’intérieur des parenthèses.",
-  piege:{t:"Utiliser = au lieu de IN",
-    p:"Si la sous-requête retourne plusieurs lignes, <code>=</code> provoque une erreur. Utilise <code>IN</code> pour comparer à une liste.",
+  piege:{t:"Une seule colonne",
+    p:"La sous-requête après <code>IN</code> doit obligatoirement retourner une seule colonne (par exemple <code>SELECT client_id</code>). Si vous sélectionnez deux colonnes, SQL renverra une erreur.",
     exec:true,
-    sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id = (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);",
-    out:"SQLite refuse souvent, ou ne compare qu’une seule ligne : <code>=</code> attend une valeur unique.",
+    sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id IN (\n  SELECT commandes.client_id, commandes.produit_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);",
+    out:"SQL refuse : la sous-requête renvoie 2 colonnes, <code>IN</code> n’en attend qu’une.",
     fixSql:"SELECT clients.nom\nFROM clients\nWHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);"},
   consigne:"Affiche les noms des clients qui ont commandé le produit id 1 (Fibre Prébiotique).",
   solution:"SELECT clients.nom\nFROM clients\nWHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);",
@@ -10811,7 +10817,11 @@ function renderPointCards(pc){
   const regle=pc.rule?renderPtRule(pc.rule):'';
   const venn=pc.venn?pointVenn(pc.venn,pc.vennG,pc.vennD):'';
   const formsHtml=pc.forms?pointDraw({draw:'caseforms'}):'';
-  const intro=(pc.lead||pc.rule||pc.venn||pc.forms)?`<div class="pt-intro">${lead}${formsHtml}${venn}${regle}</div>`:'';
+  const syntax=pc.syntax?`<div class="pt-syntax">
+      <p class="pt-syntax-h">${esc(pc.syntaxTitle||'Syntaxe de base')}</p>
+      <pre class="cw-syntax">${esc(pc.syntax)}</pre>
+    </div>`:'';
+  const intro=(pc.lead||pc.rule||pc.venn||pc.forms||pc.syntax)?`<div class="pt-intro">${lead}${syntax}${formsHtml}${venn}${regle}</div>`:'';
   const chaine=pc.chain?`<ol class="pt-chain">
       ${pc.chain.map((c,i)=>`<li class="pt-hop">
         <span class="pt-hop-n" aria-hidden="true">${i+1}</span>
