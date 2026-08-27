@@ -6813,7 +6813,7 @@ const MODULES = [
   attendu:"9 lignes : chaque client avec son nombre de commandes. Sophie : 3, Lucas : 2, Inès : 0. La commande invitée #16 n’est comptée pour aucun client.",
   retenir:"Une sous-requête dans <code>SELECT</code> calcule <b>une valeur par ligne</b>.<br><br>Elle est souvent <b>corrélée</b> : elle utilise une colonne de la requête principale, ici <code>clients.id</code>.<br><br>Sans ce lien, elle compte toute la table. Pour Inès, <code>COUNT(*)</code> vaut 0. La commande invitée n’appartient à personne.",
   piege:{t:"Oublier la corrélation",
-    p:"Si tu écris <code>SELECT COUNT(*) FROM commandes</code> sans la clause <code>WHERE</code>, la sous-requête retourne 16 pour chaque client. Le résultat est faux.",
+    p:"Si tu écris <code>SELECT COUNT(*) FROM commandes</code> sans la clause <code>WHERE</code>, la sous-requête retourne 16 pour chaque client. Le résultat est faux.<br><br>Pour obtenir le bon nombre pour chaque client, la sous-requête doit être corrélée à la ligne en cours :<br><code>WHERE commandes.client_id = clients.id</code>",
     exec:true,
     sql:"SELECT clients.nom,\n  (SELECT COUNT(*)\n   FROM commandes) AS nb_commandes\nFROM clients;",
     out:"Tous les clients affichent 16, même Inès.",
