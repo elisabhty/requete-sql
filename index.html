@@ -6789,7 +6789,7 @@ const MODULES = [
     {k:'notin',label:'NOT IN',sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);",tone:'good'}
   ] },
 { id:47, titre:"Sous-requête dans SELECT", résumé:"Calculer une valeur pour chaque ligne",
-  situation:"Tu veux afficher chaque client avec son nombre de commandes, mais sans utiliser <code>GROUP BY</code>.<br><br>Tu peux placer une sous-requête directement dans le <code>SELECT</code> pour calculer une valeur pour chaque ligne de la table principale.<br><br>Cette sous-requête est <b>corrélée</b> : elle référence l’<code>id</code> du client de la ligne courante. Lorsque la requête principale est sur Sophie, elle compte les commandes où <code>client_id = 1</code>. Pour Lucas, <code>client_id = 2</code>.",
+  situation:"Tu veux créer un récapitulatif des clients avec, pour chacun, son nom et le nombre de commandes qu’il a passées.<br><br>Les informations viennent de deux tables :<br><br><ul class=\"agg-list\"><li>le nom se trouve dans <code>clients</code> ;</li><li>les commandes se trouvent dans <code>commandes</code>.</li></ul><br><br>Cette fois, au lieu de regrouper toutes les lignes avec <code>GROUP BY</code>, tu peux calculer le nombre de commandes directement pour chaque client.<br><br>Pour cela, tu peux placer une sous-requête dans le <code>SELECT</code>.",
   situationTail:"Une sous-requête dans le <code>SELECT</code> doit retourner une seule valeur. Elle peut utiliser la valeur d’une colonne de la requête externe pour être corrélée.",
   studio:{pointCards:{
       eye:"SELECT",title:"La sous-requête calcule une valeur.",
@@ -6799,17 +6799,7 @@ const MODULES = [
           {tok:"(SELECT COUNT(*)",val:"FROM commandes",tag:"calcule une valeur pour cette ligne"},
           {tok:"WHERE",val:"commandes.client_id = clients.id",tag:"relie au client courant"},
           {tok:") AS",val:"nb_commandes",tag:"nomme le résultat"}
-        ]},
-      cards:[
-        {t:"Sous-requête scalaire",draw:"groupcount",
-         b:"<p>La sous-requête doit retourner une seule valeur (une ligne, une colonne). Ici, <code>COUNT(*)</code> produit le nombre de commandes du client courant.</p>"},
-        {t:"Corrélation",
-         b:"<p>La clause <code>WHERE commandes.client_id = clients.id</code> relie la sous-requête à la ligne externe.</p>"},
-        {t:"Sans GROUP BY",
-         b:"<p>Cela permet de calculer un agrégat par ligne sans avoir à regrouper toute la requête.</p>"},
-        {t:"Aucune commande = 0",
-         b:"<p>Pour Inès, aucune commande ne possède <code>client_id = 9</code>. <code>COUNT(*)</code> retourne donc 0. La commande invitée #16 n’est comptée pour personne : son <code>client_id</code> vaut <code>NULL</code>.</p>"}
-      ]},
+        ]}},
     reflex:{a:{k:"Sous-requête dans SELECT",t:"retourne une valeur par ligne"},
       b:{k:"Corrélation",t:"référence la ligne externe (clients.id)"},
       note:"Pense à la corrélation : sans <code>WHERE commandes.client_id = clients.id</code>, la sous-requête retourne toujours le même total pour tous."},
