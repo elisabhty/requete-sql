@@ -1596,7 +1596,7 @@
   .sql-viz[data-viz="subquery_in"] .subq-command+.subq-command{border-top:1px solid var(--line-2)}
   .sql-viz[data-viz="subquery_in"] .subq-command.is-head{min-height:31px;background:var(--surface-2);color:var(--ink-3);font-family:var(--ui);font-size:8.5px;font-weight:850;letter-spacing:.45px;text-transform:uppercase}
   .sql-viz[data-viz="subquery_in"] .subq-command b{color:var(--ink);font-weight:850}
-  .sql-viz[data-viz="subquery_in"] .subq-command em{justify-self:start;padding:3px 7px;border-radius:7px;background:var(--surface-2);color:var(--ink-2);font-style:normal;font-weight:850}
+  .sql-viz[data-viz="subquery_in"] .subq-command em{justify-self:start;max-width:100%;padding:3px 7px;border-radius:7px;background:var(--surface-2);color:var(--ink-2);font-style:normal;font-weight:850;line-height:1.25;white-space:normal;text-align:left}
   .sql-viz[data-viz="subquery_in"] .subq-command.is-fibre{background:linear-gradient(90deg,rgba(91,91,214,.09),transparent)}
   .sql-viz[data-viz="subquery_in"] .subq-command.is-fibre em{background:var(--accent);color:#fff}
   .sql-viz[data-viz="subquery_in"] .subq-command.is-other{opacity:.34}
@@ -1652,7 +1652,7 @@
     .sql-viz[data-viz="subquery_in"] .subq-source,.sql-viz[data-viz="subquery_in"] .subq-command,.sql-viz[data-viz="subquery_in"] .subq-list,.sql-viz[data-viz="subquery_in"] .subq-list-value,.sql-viz[data-viz="subquery_in"] .subq-compare,.sql-viz[data-viz="subquery_in"] .subq-client{animation:none!important;transition:none!important}
   }
   @media (max-width:460px){
-    .sql-viz[data-viz="subquery_in"] .subq-source-head b{max-width:100px;white-space:normal;text-align:right}
+    .sql-viz[data-viz="subquery_in"] .subq-source-head b{max-width:140px;white-space:normal;text-align:right}
     .sql-viz[data-viz="subquery_in"] .subq-command{grid-template-columns:36px minmax(0,1fr) minmax(0,1fr);padding-inline:9px}
     .sql-viz[data-viz="subquery_in"] .subq-client{padding-inline:9px}
   }
@@ -6681,7 +6681,7 @@ const MODULES = [
   indice:"Compare à <code>(SELECT AVG(age) FROM clients)</code>.",
   richLesson:true, earlyDemo:true },
 { id:45, titre:"Sous-requête dans WHERE avec IN", résumé:"Filtrer avec une liste issue d’une autre requête",
-  situation:"Tu prépares une offre pour les clients qui ont déjà acheté le produit « Fibre Prébiotique » et tu veux retrouver leurs noms.<br><br>Le nom du client est dans la table <code>clients</code>, tandis que les achats sont enregistrés dans la table <code>commandes</code>.<br><br>Dans <code>commandes</code>, le produit « Fibre Prébiotique » (<code>produit_id = 1</code>) apparaît quatre fois :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th class=\"col-hl\">client_id</th><th>produit_id</th></tr></thead><tbody><tr><td>1</td><td class=\"col-hl\">1</td><td>1</td></tr><tr><td>5</td><td class=\"col-hl\">4</td><td>1</td></tr><tr><td>8</td><td class=\"col-hl\">7</td><td>1</td></tr><tr><td>15</td><td class=\"col-hl\">5</td><td>1</td></tr></tbody></table></div>",
+  situation:"Tu prépares une offre pour les clients qui ont déjà acheté le produit « Fibre Prébiotique » et tu veux retrouver leurs noms.<br><br>Le nom du client est dans la table <code>clients</code>, tandis que les achats sont enregistrés dans la table <code>commandes</code>.<br><br>Dans <code>commandes</code>, le produit « Fibre Prébiotique » (<code>produit_id = 1</code>) apparaît quatre fois :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th class=\"col-hl\">client_id</th><th>produit</th></tr></thead><tbody><tr><td>1</td><td class=\"col-hl\">1</td><td>Fibre Prébiotique</td></tr><tr><td>5</td><td class=\"col-hl\">4</td><td>Fibre Prébiotique</td></tr><tr><td>8</td><td class=\"col-hl\">7</td><td>Fibre Prébiotique</td></tr><tr><td>15</td><td class=\"col-hl\">5</td><td>Fibre Prébiotique</td></tr></tbody></table></div>",
   situationTail:"Les <code>client_id</code> associés sont 1, 4, 7 et 5.<br><br>Il faut maintenant retrouver dans la table <code>clients</code> les clients dont l’<code>id</code> appartient à cette liste.<br><br>C’est justement ce que permet une sous-requête avec <code>IN</code> : la sous-requête récupère d’abord les identifiants, puis la requête principale utilise cette liste pour filtrer les clients.",
   studio:{pointCards:{
       eye:"IN",title:"La sous-requête crée une liste.",
@@ -6694,7 +6694,7 @@ const MODULES = [
       ],
       cards:[
         {t:"Sous-requête entre parenthèses",
-         b:"<p>La sous-requête se place entre parenthèses après <code>IN</code>. Elle retourne ici les <code>client_id</code> 1, 4, 7 et 5.</p>"},
+         b:"<p>La sous-requête se place entre parenthèses après <code>IN</code>. Elle retourne ici les <code>client_id</code> 1, 4, 7 et 5 — ceux de la « Fibre Prébiotique ».</p>"},
         {t:"Ordre d’exécution",draw:"repeat",src:"clients.id",outs:["1 Sophie","4 Nathan","5 Chloé","7 Léa"],
          b:"<p>SQL exécute d’abord la sous-requête, puis utilise la liste obtenue pour filtrer la requête principale.</p>"}
       ]},
@@ -6706,14 +6706,14 @@ const MODULES = [
     {tok:"SELECT clients.nom",txt:"La colonne à afficher."},
     {tok:"FROM clients",txt:"La table principale."},
     {tok:"WHERE clients.id IN (...)",txt:"Filtre les clients dont l’id est dans la liste retournée."},
-    {tok:"(SELECT commandes.client_id FROM commandes WHERE commandes.produit_id = 1)",txt:"Sous-requête qui récupère les clients ayant commandé le produit 1."}
+    {tok:"(SELECT commandes.client_id FROM commandes WHERE commandes.produit_id = 1)",txt:"Sous-requête qui récupère les clients ayant commandé la « Fibre Prébiotique »."}
   ],
   exemple:"SELECT clients.nom\nFROM clients\nWHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);",
-  attendu:"4 lignes : Sophie, Nathan, Chloé et Léa — les clients ayant commandé le produit id 1.",
+  attendu:"4 lignes : Sophie, Nathan, Chloé et Léa — les clients ayant commandé la « Fibre Prébiotique ».",
   retenir:"Une sous-requête dans <code>WHERE</code> peut fabriquer une <b>liste</b>. <code>IN</code> teste ensuite si une valeur appartient à cette liste.<br><br>La sous-requête doit renvoyer <b>une seule colonne</b>. Avec plusieurs valeurs possibles, n’utilise pas <code>=</code>. SQL exécute d’abord l’intérieur des parenthèses.",
   piege:{t:"Une seule colonne",
     p:"La sous-requête après <code>IN</code> doit obligatoirement retourner une seule colonne (par exemple <code>SELECT client_id</code>). Si vous sélectionnez deux colonnes, SQL renverra une erreur."},
-  consigne:"Affiche les noms des clients qui ont commandé le produit id 1 (Fibre Prébiotique).",
+  consigne:"Affiche les noms des clients qui ont commandé le produit « Fibre Prébiotique ».",
   solution:"SELECT clients.nom\nFROM clients\nWHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);",
   indice:"Utilise <code>IN</code> avec une sous-requête sur la table <code>commandes</code> filtrée par <code>produit_id = 1</code>.",
   subqueryRecap:'in',
@@ -6724,7 +6724,7 @@ const MODULES = [
     {k:'sub_in',label:'IN + sous-requête',sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);",tone:'good'}
   ] },
 { id:46, titre:"Sous-requête dans WHERE avec NOT IN", résumé:"Exclure une liste issue d’une autre requête",
-  situation:"Tu veux identifier les clients qui n’ont encore passé aucune commande, afin de leur envoyer une offre de bienvenue.<br><br>Les clients sont dans la table <code>clients</code>, tandis que les commandes contiennent les <code>client_id</code> des clients qui ont déjà commandé.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th class=\"col-hl\">client_id</th><th>produit_id</th></tr></thead><tbody><tr><td>1</td><td class=\"col-hl\">1</td><td>1</td></tr><tr><td>3</td><td class=\"col-hl\">2</td><td>6</td></tr><tr><td>4</td><td class=\"col-hl\">3</td><td>2</td></tr><tr><td>5</td><td class=\"col-hl\">4</td><td>1</td></tr></tbody></table></div>",
+  situation:"Tu veux identifier les clients qui n’ont encore passé aucune commande, afin de leur envoyer une offre de bienvenue.<br><br>Les clients sont dans la table <code>clients</code>, tandis que les commandes contiennent les <code>client_id</code> des clients qui ont déjà commandé.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th class=\"col-hl\">client_id</th><th>produit</th></tr></thead><tbody><tr><td>1</td><td class=\"col-hl\">1</td><td>Fibre Prébiotique</td></tr><tr><td>3</td><td class=\"col-hl\">2</td><td>Protéine Végétale</td></tr><tr><td>4</td><td class=\"col-hl\">3</td><td>Collagène Marin</td></tr><tr><td>5</td><td class=\"col-hl\">4</td><td>Fibre Prébiotique</td></tr></tbody></table></div>",
   situationTail:"Tu peux donc récupérer la liste des <code>client_id</code> présents dans <code>commandes</code>, puis chercher les clients dont l’<code>id</code> n’est pas dans cette liste.<br><br>C’est justement le rôle de <code>NOT IN</code> : la sous-requête crée la liste des clients ayant commandé, puis <code>NOT IN</code> garde ceux qui ne sont pas dans cette liste.",
   studio:{pointCards:{
       eye:"NOT IN",title:"La sous-requête crée une liste à exclure.",
@@ -7317,7 +7317,7 @@ const QCM={
  24:[{q:"Une sous-requête comparée avec <code>></code> doit renvoyer :",o:["Une seule valeur","Une liste de valeurs","Une table entière"],b:0,e:"Pour comparer à une liste, utilise <code>IN</code>."},
    {q:"Dans quel ordre lire une requête à sous-requête ?",o:["De gauche à droite","De l’intérieur des parenthèses vers l’extérieur","De la fin vers le début"],b:1,e:"SQL exécute l’intérieur d’abord, puis utilise le résultat."}],
  45:[{q:"Avec <code>IN</code>, la sous-requête sert à :",o:["Calculer une moyenne","Fabriquer une liste de valeurs","Renommer une table"],b:1,e:"<code>IN</code> teste si une valeur appartient à cette liste."},
-  {q:"Pourquoi écrire <code>IN</code> plutôt que <code>=</code> ici ?",o:["C’est plus rapide","Parce que la sous-requête peut renvoyer plusieurs client_id","Parce que SQL refuse = avec une sous-requête"],b:1,e:"<code>=</code> attend une seule valeur. Plusieurs clients ont commandé le produit 1."},
+  {q:"Pourquoi écrire <code>IN</code> plutôt que <code>=</code> ici ?",o:["C’est plus rapide","Parce que la sous-requête peut renvoyer plusieurs client_id","Parce que SQL refuse = avec une sous-requête"],b:1,e:"<code>=</code> attend une seule valeur. Plusieurs clients ont commandé la « Fibre Prébiotique »."},
   {q:"La sous-requête utilisée avec <code>IN</code> doit renvoyer :",o:["Une seule colonne","Toutes les colonnes de commandes","Deux colonnes, id et nom"],b:0,e:"On compare <code>clients.id</code> à une liste d’identifiants, pas à des lignes entières."}],
  46:[{q:"Pourquoi <code>NOT IN (SELECT client_id FROM commandes)</code> renvoie 0 ligne ?",o:["Tous les clients ont commandé","La commande #16 met un NULL dans la liste","NOT IN est interdit avec une sous-requête"],b:1,e:"Un NULL dans la liste empêche SQL de conclure qu’un id est absent de toute la liste."},
   {q:"Comment sécuriser ce <code>NOT IN</code> ?",o:["Ajouter LIMIT 1","Retirer les NULL : WHERE client_id IS NOT NULL","Remplacer NOT IN par ="],b:1,e:"Sans le NULL de la commande invitée, Inès ressort bien."},
@@ -15917,20 +15917,20 @@ const SQL_VIZ={
     </div>
     <p class="er-hint">👆 Touche Inès, puis la commande #16 : chacune reste seule de son côté.</p>
   </div>`},
-  subquery_in:{kind:'er',sample:'6 clients · 4 commandes Fibre',stepMs:7800,phases:[
-    {k:'Filtrer les commandes',d:'SQL exécute d’abord la requête entre parenthèses et ne garde que le produit 1.',sql:'WHERE produit_id = 1',read:'Parmi les 16 commandes, quatre concernent la Fibre Prébiotique : #1, #5, #8 et #15.'},
+  subquery_in:{kind:'er',sample:'6 clients · 4 commandes Fibre Prébiotique',stepMs:7800,phases:[
+    {k:'Filtrer les commandes',d:'SQL exécute d’abord la requête entre parenthèses et ne garde que la « Fibre Prébiotique ».',sql:'WHERE produit_id = 1',read:'Parmi les 16 commandes, quatre concernent la « Fibre Prébiotique » : #1, #5, #8 et #15.'},
     {k:'Fabriquer la liste',d:'La sous-requête projette uniquement la colonne <code>client_id</code>.',sql:'SELECT client_id → [1, 4, 7, 5]',read:'Elle produit la liste dynamique <code>1, 4, 7, 5</code> : une seule colonne, plusieurs lignes.'},
     {k:'Tester chaque client',d:'La requête extérieure compare chaque <code>clients.id</code> à la liste.',sql:'WHERE clients.id IN (1, 4, 7, 5)',read:'<code>IN</code> répond « présent » pour Sophie, Nathan, Chloé et Léa ; « absent » pour Lucas et Inès.'},
-    {k:'Afficher les présents',d:'Seules les lignes dont le test vaut vrai atteignent le résultat.',sql:'SELECT clients.nom',read:'Résultat final : Sophie, Nathan, Chloé et Léa — quatre clients ayant acheté la Fibre Prébiotique.'}
+    {k:'Afficher les présents',d:'Seules les lignes dont le test vaut vrai atteignent le résultat.',sql:'SELECT clients.nom',read:'Résultat final : Sophie, Nathan, Chloé et Léa — quatre clients ayant acheté la « Fibre Prébiotique ».'}
   ],html:`<div class="er-stage join-viz subq-in-stage">
     <section class="subq-source" aria-label="Commandes parcourues par la sous-requête">
-      <div class="subq-source-head"><span>Sous-requête · exécutée d’abord</span><code>commandes</code><b>produit_id = 1</b></div>
-      <div class="subq-command is-head"><span>id</span><span>client_id</span><span>produit_id</span></div>
-      <div class="subq-command is-fibre"><span>#1</span><b>1</b><em>1</em></div>
-      <div class="subq-command is-fibre"><span>#5</span><b>4</b><em>1</em></div>
-      <div class="subq-command is-fibre"><span>#8</span><b>7</b><em>1</em></div>
-      <div class="subq-command is-fibre"><span>#15</span><b>5</b><em>1</em></div>
-      <div class="subq-command is-other"><span>#3</span><b>2</b><em>6</em></div>
+      <div class="subq-source-head"><span>Sous-requête · exécutée d’abord</span><code>commandes</code><b>Fibre Prébiotique</b></div>
+      <div class="subq-command is-head"><span>id</span><span>client_id</span><span>produit</span></div>
+      <div class="subq-command is-fibre"><span>#1</span><b>1</b><em>Fibre Prébiotique</em></div>
+      <div class="subq-command is-fibre"><span>#5</span><b>4</b><em>Fibre Prébiotique</em></div>
+      <div class="subq-command is-fibre"><span>#8</span><b>7</b><em>Fibre Prébiotique</em></div>
+      <div class="subq-command is-fibre"><span>#15</span><b>5</b><em>Fibre Prébiotique</em></div>
+      <div class="subq-command is-other"><span>#3</span><b>2</b><em>Protéine Végétale</em></div>
       ${joinMore(11,'commandes')}
     </section>
     <section class="subq-list" aria-label="Liste produite par la sous-requête" aria-hidden="true">
