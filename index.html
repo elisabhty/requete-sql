@@ -6416,7 +6416,7 @@ const MODULES = [
   consigne:"Affiche toutes les paires de clients qui habitent la même ville, sans doublons ni association d’un client avec lui-même.",
   solution:"SELECT c1.nom AS client1, c2.nom AS client2, c1.ville\nFROM clients c1\nJOIN clients c2\nON c1.ville = c2.ville AND c1.id < c2.id;",
   indice:"Utilise deux alias de la table <code>clients</code>, compare les villes, puis ajoute <code>c1.id &lt; c2.id</code>.",
-  joinRecap:'inner',
+  joinRecap:'self',
   richLesson:true, earlyDemo:true,
   testeVariants:[
     {k:'cli',label:'clients',sql:"SELECT id, nom, ville\nFROM clients;"},
@@ -10381,16 +10381,23 @@ const JOIN_RECAP=[
   {k:'left', t:'LEFT JOIN', d:'Toutes les lignes de gauche + correspondances de droite'},
   {k:'right',t:'RIGHT JOIN',d:'Toutes les lignes de droite + correspondances de gauche'},
   {k:'full', t:'FULL JOIN', d:'Toutes les lignes des deux tables'},
-  {k:'cross',t:'CROSS JOIN',d:'Toutes les combinaisons'}
+  {k:'cross',t:'CROSS JOIN',d:'Toutes les combinaisons'},
+  {k:'self', t:'SELF JOIN', d:'Lignes d’une même table associées entre elles'}
 ];
 /* Vignette du récapitulatif : même lecture que le grand schéma, en 64x36 et
-   sans libellé — le nom du type est dans la cellule voisine. CROSS JOIN a sa
-   propre vignette : une grille, puisqu'il ne conserve pas une zone du
-   recouvrement mais croise chaque ligne avec chaque ligne. */
+   sans libellé — le nom du type est dans la cellule voisine. CROSS JOIN a une
+   grille (produit cartésien). SELF JOIN a deux copies du même disque : la
+   table est lue deux fois, sous deux alias. */
 function joinVennMini(k){
   if(k==='cross'){
     const cases=[3,14,25].map(y=>[17,28,39].map(x=>`<rect x="${x}" y="${y}" width="8" height="8" rx="2.5"/>`).join('')).join('');
     return `<svg class="jr-venn" viewBox="0 0 64 36" aria-hidden="true"><g class="vn-garde">${cases}</g></svg>`;
+  }
+  if(k==='self'){
+    return `<svg class="jr-venn" viewBox="0 0 64 36" aria-hidden="true">`
+      +`<g class="vn-garde"><circle cx="26" cy="15" r="12"/><circle cx="38" cy="21" r="12"/></g>`
+      +`<circle cx="26" cy="15" r="12" class="vn-trait"/><circle cx="38" cy="21" r="12" class="vn-trait"/>`
+      +`</svg>`;
   }
   const A='cx="23" cy="18" r="15"';
   const B='cx="41" cy="18" r="15"';
