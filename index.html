@@ -632,13 +632,11 @@
   .cw-form.on .pt-sql,.cw-form.on .cw-syntax{animation:joinSoftIn .32s var(--spring-ios) both}
   .cw-syntax{padding:10px 12px;border-radius:12px;background:var(--surface-2);font-family:var(--mono);font-size:11.5px;font-weight:700;line-height:1.5;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}
   .pt-intro .cw-forms{margin:0}
-  .cw-form-hint{margin:12px 0 0;font-size:13.5px;line-height:1.5;color:var(--ink-2);min-height:1.5em}
-  .cw-form-hint.on{animation:joinSoftIn .32s var(--spring-ios) both}
   @media (hover:hover) and (pointer:fine){
     .cw-form:hover{border-color:rgba(91,91,214,.2)}
   }
   @media (prefers-reduced-motion:reduce){
-    .cw-form,.cw-form.on .pt-sql,.cw-form.on .cw-syntax,.cw-form-hint.on{animation:none!important}
+    .cw-form,.cw-form.on .pt-sql,.cw-form.on .cw-syntax{animation:none!important}
   }
   .join-micro .situation-body table.concept-table tbody tr[data-cw]{cursor:pointer}
   .join-micro .situation-body table.concept-table tbody tr[data-cw].on td{background:var(--accent-soft);color:var(--accent);transition:background .2s ease,color .2s ease}
@@ -6451,6 +6449,7 @@ const MODULES = [
 { titre:"Affiner", sous:"Calculer, classer, composer", lessons:[
 { id:21, titre:"CASE", résumé:"Afficher une valeur selon une condition",
   situation:"Tu veux classer chaque client selon son âge, sans modifier la table <code>clients</code> :<br>– <b>Jeune</b> : moins de 30 ans<br>– <b>Adulte</b> : de 30 à 50 ans<br>– <b>Senior</b> : plus de 50 ans<br><br>Dans la table <code>clients</code>, tu as notamment :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th>age</th></tr></thead><tbody><tr><td>2</td><td>Lucas</td><td>28</td></tr><tr><td>1</td><td>Sophie</td><td>34</td></tr><tr><td>6</td><td>Hugo</td><td>52</td></tr></tbody></table></div>",
+  situationTail:"Nous pouvons donc utiliser <code>CASE</code>. <code>CASE</code> est une expression SQL qui permet de choisir un résultat selon une ou plusieurs conditions, ce qui va permettre ici d’attribuer à chaque client une catégorie selon son âge.",
     studio:{pointCards:{
       eye:"CASE",title:"Afficher une valeur selon une condition.",
       walk:1,
@@ -10915,24 +10914,21 @@ function pointDraw(card){
     const forms=[
       {k:'simple',t:'CASE simple',d:'On compare une même colonne à plusieurs valeurs précises.',
         sum:"CASE simple = une <b>même colonne</b> → plusieurs <b>valeurs</b> possibles",
-        h:"Idéal quand tu veux dire : « Si cette colonne vaut X, alors… »",
         sql:"SELECT nom, ville,\n  CASE ville\n    WHEN 'Paris' THEN 'Île-de-France'\n    WHEN 'Lyon' THEN 'Auvergne-Rhône-Alpes'\n    WHEN 'Marseille' THEN 'PACA'\n    ELSE 'Autre'\n  END AS region\nFROM clients;"},
       {k:'search',t:'CASE recherché',d:'On écrit une condition différente à chaque WHEN.',
         sum:"CASE recherché = plusieurs <b>conditions</b> testées l’une après l’autre.",
-        h:"Idéal pour les comparaisons, intervalles et conditions plus complexes.",
         sql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;"}
     ];
     return `<div class="cw-forms">
       <p class="cw-forms-q">Il existe deux formes de CASE :</p>
       <div class="cw-form-list" role="group" aria-label="Deux formes de CASE">
-        ${forms.map((f,i)=>`<button type="button" class="cw-form" style="--i:${i}" data-k="${f.k}" data-h="${escAttr(f.h)}">
+        ${forms.map((f,i)=>`<button type="button" class="cw-form" style="--i:${i}" data-k="${f.k}">
           <span class="cw-form-k">${esc(f.t)}</span>
           <span class="cw-form-sum">${f.sum}</span>
           <span class="cw-form-d">${esc(f.d)}</span>
           <pre class="cw-syntax">${esc(f.sql)}</pre>
         </button>`).join('')}
       </div>
-      <p class="cw-form-hint" hidden></p>
     </div>`;
   }
   if(kind==='selfcols') return `<div class="pd-map" aria-hidden="true">
@@ -11299,7 +11295,6 @@ function initCaseWalk(){
 function initCaseForms(){
   const box=document.querySelector('#lesson-body .cw-forms');
   if(!box) return;
-  const hint=box.querySelector('.cw-form-hint');
   const set=btn=>{
     if(!btn) return;
     box.querySelectorAll('.cw-form').forEach(n=>{
@@ -11307,13 +11302,6 @@ function initCaseForms(){
       n.classList.toggle('on',on);
       n.setAttribute('aria-pressed',on?'true':'false');
     });
-    if(hint){
-      hint.hidden=false;
-      hint.textContent=btn.dataset.h||'';
-      hint.classList.remove('on');
-      void hint.offsetWidth;
-      hint.classList.add('on');
-    }
   };
   box.querySelectorAll('.cw-form').forEach(n=>n.setAttribute('aria-pressed','false'));
   box.addEventListener('click',e=>{
