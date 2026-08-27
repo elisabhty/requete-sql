@@ -591,8 +591,6 @@
   .cw-who.on .cw-nom{color:var(--accent)}
   .cw-note{margin:0 2px 14px;font-size:12.5px;font-weight:600;line-height:1.45;color:var(--accent)}
   .cw-note code,.cw-note b{color:var(--ink-2)}
-  .cw-done{margin:10px 0 0;font-size:13.5px;line-height:1.5;color:var(--ink-2)}
-  .cw-done.on{animation:joinSoftIn .32s var(--spring-ios) both}
   .cw-lane{display:flex;flex-direction:column;gap:6px}
   .cw-step{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:6px 8px;padding:10px 12px;border:1px solid var(--card-border);border-radius:12px;background:var(--surface);opacity:.42;transform:translateY(4px);transition:opacity .22s,transform .28s var(--spring-ios),border-color .18s,background .18s}
   .cw-step.is-on{opacity:1;transform:none}
@@ -606,8 +604,6 @@
   .cw-mark{flex:none;width:1.1em;font-size:12px;font-weight:850;text-align:center;color:var(--ink-3)}
   .cw-step.fail .cw-mark{color:var(--warn)}
   .cw-step.win .cw-mark{color:var(--accent)}
-  .cw-verdict{margin:12px 0 0;font-size:13.5px;line-height:1.5;color:var(--ink-2);min-height:1.5em}
-  .cw-verdict.on{animation:joinSoftIn .32s var(--spring-ios) both}
   @media (max-width:360px){
     .cw-step{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"tok test mark" ". then mark"}
     .cw-tok{grid-area:tok}
@@ -619,7 +615,7 @@
     .cw-who:hover{border-color:rgba(91,91,214,.2)}
   }
   @media (prefers-reduced-motion:reduce){
-    .cw-step,.cw-step.win .cw-then,.cw-verdict.on,.cw-cell.is-set,.cw-done.on{animation:none!important}
+    .cw-step,.cw-step.win .cw-then,.cw-cell.is-set{animation:none!important}
     .cw-step{transform:none;opacity:1}
   }
   .cw-forms{margin:0;min-width:0}
@@ -10909,8 +10905,6 @@ function pointDraw(card){
           <span class="cw-mark"></span>
         </div>`).join('')}
       </div>
-      <p class="cw-verdict" hidden></p>
-      <p class="cw-done" hidden>Les trois lignes ont leur catégorie. La colonne est complète — et la table <code>clients</code> n’a pas bougé d’un octet.</p>
     </div>`;
   }
   if(kind==='caseforms'){
@@ -11192,7 +11186,6 @@ function initJoinTree(){
 function initCaseWalk(){
   const walk=document.querySelector('#lesson-body .cw-walk');
   if(!walk) return;
-  const verdict=walk.querySelector('.cw-verdict');
   const steps=[...walk.querySelectorAll('.cw-step')];
   const chips=[...walk.querySelectorAll('.cw-who')];
   const sit=[...document.querySelectorAll('#lesson-body .situation-body table.concept-table tbody tr')];
@@ -11237,6 +11230,7 @@ function initCaseWalk(){
     clearTimeout(walk._cwT);
     if(reduce){
       steps.forEach((_,i)=>apply(i));
+      if(onWin) onWin();
     }else{
       let i=0;
       const tick=()=>{
@@ -11249,18 +11243,6 @@ function initCaseWalk(){
         }
       };
       walk._cwT=setTimeout(tick,40);
-    }
-    if(reduce&&onWin) onWin();
-    if(verdict){
-      const nom=p.nom||'';
-      const age=p.age;
-      const label=p.label||'';
-      const extra=win===0?' Les WHEN suivants ne sont pas lus.':win===1?' Le premier WHEN est faux, le second gagne.':' Aucun WHEN n’a collé : ELSE rattrape.';
-      verdict.hidden=false;
-      verdict.textContent=nom+' · '+age+' ans → '+label+'.'+extra;
-      verdict.classList.remove('on');
-      void verdict.offsetWidth;
-      verdict.classList.add('on');
     }
   };
   const set=el=>{
@@ -11277,13 +11259,6 @@ function initCaseWalk(){
       if(cell&&!cell.classList.contains('is-set')){
         cell.textContent=p.label;
         cell.classList.add('is-set');
-      }
-      /* La colonne se construit sous les yeux : une fois les trois lignes
-         classées, on nomme ce qui vient d'apparaître. */
-      const done=walk.querySelector('.cw-done');
-      if(done&&done.hidden&&chips.every(c=>c.querySelector('.cw-cell').classList.contains('is-set'))){
-        done.hidden=false;
-        done.classList.add('on');
       }
     });
   };
