@@ -6471,14 +6471,23 @@ const MODULES = [
     {tok:"FROM clients",txt:"La table source."}
   ],
   anatomieVariants:[
-    {k:'where',label:'WHERE',tone:'good',lines:[
-      {tok:"SELECT nom, age",txt:"Les colonnes de base."},
-      {tok:"FROM clients",txt:"La table source."},
-      {tok:"WHERE CASE",txt:"Le filtre est le résultat du CASE."},
+    {k:'simple',label:'Simple',lines:[
+      {tok:"SELECT nom, ville,",txt:"Les colonnes de base."},
+      {tok:"CASE ville",txt:"Compare une expression à une liste de valeurs."},
+      {tok:"WHEN 'Paris' THEN 'Capitale'",txt:"Si ville vaut Paris."},
+      {tok:"WHEN 'Lyon' THEN 'Métropole'",txt:"Si ville vaut Lyon."},
+      {tok:"ELSE 'Autre'",txt:"Les autres villes."},
+      {tok:"END AS label",txt:"Fin du CASE et nom de la colonne."},
+      {tok:"FROM clients",txt:"La table source."}
+    ]},
+    {k:'search',label:'Recherché',tone:'good',lines:[
+      {tok:"SELECT nom, age,",txt:"Les colonnes de base."},
+      {tok:"CASE",txt:"Évalue des conditions booléennes indépendantes."},
       {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Première condition : moins de 30 ans."},
       {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Deuxième condition : entre 30 et 50 ans."},
       {tok:"ELSE 'Senior'",txt:"Tous les autres cas (plus de 50 ans)."},
-      {tok:"END = 'Jeune'",txt:"On ne garde que les lignes Jeune."}
+      {tok:"END AS categorie",txt:"Fin du CASE et nom de la colonne."},
+      {tok:"FROM clients",txt:"La table source."}
     ]},
     {k:'orderby',label:'ORDER BY',lines:[
       {tok:"SELECT nom, age,",txt:"Les colonnes de base."},
@@ -6496,6 +6505,15 @@ const MODULES = [
       {tok:"COUNT(*) AS nb",txt:"Combien de clients dans la classe."},
       {tok:"FROM clients",txt:"La table source."},
       {tok:"GROUP BY categorie",txt:"On groupe sur le résultat du CASE."}
+    ]},
+    {k:'where',label:'WHERE',lines:[
+      {tok:"SELECT nom, age",txt:"Les colonnes de base."},
+      {tok:"FROM clients",txt:"La table source."},
+      {tok:"WHERE CASE",txt:"Le filtre est le résultat du CASE."},
+      {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Première condition : moins de 30 ans."},
+      {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Deuxième condition : entre 30 et 50 ans."},
+      {tok:"ELSE 'Senior'",txt:"Tous les autres cas (plus de 50 ans)."},
+      {tok:"END = 'Jeune'",txt:"On ne garde que les lignes Jeune."}
     ]}
   ],
   exemple:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",
@@ -6511,9 +6529,11 @@ const MODULES = [
   indice:"Utilise <code>CASE WHEN</code> avec trois branches et un <code>ELSE</code> final.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'where',label:'WHERE',sql:"SELECT nom, age\nFROM clients\nWHERE CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END = 'Jeune';",out:"3 lignes : Lucas, Chloé, Gabriel.",tone:'good'},
+    {k:'simple',label:'Simple',sql:"SELECT nom, ville,\n  CASE ville\n    WHEN 'Paris' THEN 'Capitale'\n    WHEN 'Lyon' THEN 'Métropole'\n    ELSE 'Autre'\n  END AS label\nFROM clients;",out:"Sophie, Nathan, Léa → Capitale. Lucas, Hugo → Métropole. Les autres → Autre."},
+    {k:'search',label:'Recherché',sql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",out:"9 lignes. Lucas, Chloé, Gabriel → Jeune. Hugo → Senior. Les autres → Adulte.",tone:'good'},
     {k:'orderby',label:'ORDER BY',sql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients\nORDER BY CASE\n    WHEN age < 30 THEN 1\n    WHEN age BETWEEN 30 AND 50 THEN 2\n    ELSE 3\n  END;",out:"9 lignes. Jeune d’abord, puis Adulte, puis Senior."},
-    {k:'groupby',label:'GROUP BY',sql:"SELECT\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie,\n  COUNT(*) AS nb\nFROM clients\nGROUP BY categorie;",out:"3 groupes : Jeune 3, Adulte 5, Senior 1."}
+    {k:'groupby',label:'GROUP BY',sql:"SELECT\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie,\n  COUNT(*) AS nb\nFROM clients\nGROUP BY categorie;",out:"3 groupes : Jeune 3, Adulte 5, Senior 1."},
+    {k:'where',label:'WHERE',sql:"SELECT nom, age\nFROM clients\nWHERE CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END = 'Jeune';",out:"3 lignes : Lucas, Chloé, Gabriel."}
   ] },
 { id:22, titre:"Colonnes calculées", résumé:"Calculer dans le SELECT",
   situation:"Dans la table <code>produits</code>, tu veux la valeur du stock : prix × quantité, sans créer de colonne en base.",
