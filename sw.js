@@ -14,7 +14,7 @@
    CACHE doit changer à chaque déploiement pour purger l'ancien contenu :
    garde-le aligné sur APP_VERSION dans index.html. */
 
-const CACHE = 'requete-2026-08-27-notin-reflex-v156';
+const CACHE = 'requete-2026-08-27-join-groupby-v158';
 
 const PRECACHE = [
   './',
