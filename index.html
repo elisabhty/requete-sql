@@ -610,6 +610,25 @@
     .cw-step,.cw-step.win .cw-then,.cw-verdict.on{animation:none!important}
     .cw-step{transform:none;opacity:1}
   }
+  .cw-forms{margin:0;min-width:0}
+  .cw-forms-q{margin:0 0 12px;font-size:15px;font-weight:750;line-height:1.45;color:var(--ink)}
+  .cw-form-list{display:flex;flex-direction:column;gap:8px}
+  .cw-form{display:flex;flex-direction:column;align-items:stretch;gap:0;width:100%;margin:0;padding:12px 13px;border:1px solid var(--card-border);border-radius:14px;background:var(--surface);color:inherit;font:inherit;text-align:left;cursor:pointer;touch-action:manipulation;-webkit-appearance:none;appearance:none;box-shadow:var(--card-shadow-sm);animation:joinSoftIn .46s var(--spring-ios) both;animation-delay:calc(var(--i)*80ms + 80ms);transition:transform .18s var(--spring-ios),border-color .18s,background .18s,box-shadow .18s}
+  .cw-form:active{transform:scale(.985)}
+  .cw-form-k{font-family:var(--mono);font-size:12px;font-weight:800;letter-spacing:.2px;color:var(--accent)}
+  .cw-form-d{margin:3px 0 0;font-size:13.5px;font-weight:700;line-height:1.35;color:var(--ink)}
+  .cw-form .pt-sql{display:none;margin:10px 0 0}
+  .cw-form.on{border-color:rgba(91,91,214,.28);background:linear-gradient(165deg,rgba(91,91,214,.06),var(--surface) 42%);box-shadow:0 10px 22px -18px rgba(91,91,214,.55)}
+  .cw-form.on .pt-sql{display:block;animation:joinSoftIn .32s var(--spring-ios) both}
+  .cw-form-hint{margin:12px 0 0;font-size:13.5px;line-height:1.5;color:var(--ink-2);min-height:1.5em}
+  .cw-form-hint.on{animation:joinSoftIn .32s var(--spring-ios) both}
+  @media (hover:hover) and (pointer:fine){
+    .cw-form:hover{border-color:rgba(91,91,214,.2)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .cw-form,.cw-form.on .pt-sql,.cw-form-hint.on{animation:none!important}
+    .cw-form.on .pt-sql{display:block}
+  }
   .join-micro .situation-body table.concept-table tbody tr[data-cw]{cursor:pointer}
   .join-micro .situation-body table.concept-table tbody tr[data-cw].on td{background:var(--accent-soft);color:var(--accent);transition:background .2s ease,color .2s ease}
   .join-micro .situation-body table.concept-table tbody tr[data-cw].on td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
@@ -6420,11 +6439,12 @@ const MODULES = [
 
 { titre:"Affiner", sous:"Calculer, classer, composer", lessons:[
 { id:21, titre:"CASE", résumé:"Afficher une valeur selon une condition",
-  situation:"Tu veux étiqueter chaque client selon son âge, sans ajouter de colonne dans la table :<br>– <b>Jeune</b> si moins de 30 ans<br>– <b>Adulte</b> si entre 30 et 50 ans<br>– <b>Senior</b> sinon<br><br>Dans la table <code>clients</code>, tu as notamment :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th>age</th></tr></thead><tbody><tr><td>2</td><td>Lucas</td><td>28</td></tr><tr><td>1</td><td>Sophie</td><td>34</td></tr><tr><td>6</td><td>Hugo</td><td>52</td></tr></tbody></table></div><br><br>Une personne, une étiquette. SQL lit les <code>WHEN</code> dans l’ordre, et s’arrête au premier qui est vrai.",
+  situation:"Tu veux classer chaque client selon son âge, sans modifier la table <code>clients</code> :<br>– <b>Jeune</b> : moins de 30 ans<br>– <b>Adulte</b> : de 30 à 50 ans<br>– <b>Senior</b> : plus de 50 ans<br><br>Dans la table <code>clients</code>, tu as notamment :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th>age</th></tr></thead><tbody><tr><td>2</td><td>Lucas</td><td>28</td></tr><tr><td>1</td><td>Sophie</td><td>34</td></tr><tr><td>6</td><td>Hugo</td><td>52</td></tr></tbody></table></div><br><br>Une personne, une classe. SQL lit les <code>WHEN</code> dans l’ordre, et s’arrête au premier qui est vrai.",
     studio:{pointCards:{
-      eye:"CASE",title:"Une étiquette par ligne.",
+      eye:"CASE",title:"Une classe par ligne.",
       walk:1,
-      lead:"<code>CASE</code> n’est pas un filtre : les 9 clients restent. Il ajoute une colonne calculée. La table, elle, ne change pas.",
+      lead:"<code>CASE</code> est le si / sinon de SQL. Deux écritures : comparer une valeur, ou tester une condition. Dans les deux cas, ce n’est pas un filtre : les 9 clients restent. La table ne change pas.",
+      forms:1,
       rule:{
         lines:[
           {tok:"CASE",val:"",tag:"on ouvre"},
@@ -6444,11 +6464,11 @@ const MODULES = [
       ]},
     reflex:{a:{k:"WHEN",t:"testé dans l’ordre — on s’arrête au premier vrai"},
       b:{k:"END",t:"ferme le CASE. ELSE rattrape le reste, sinon NULL"},
-      note:"Du plus restrictif au plus large. <code>age &lt; 30</code> avant <code>age &lt; 50</code>, sinon tout le monde passe dans Adulte."},
+      note:"Valeurs exactes → <code>CASE ville WHEN 'Paris'</code>. Conditions → <code>CASE WHEN age &lt; 30</code>. Du plus étroit au plus large."},
     },
   anatomie:[
     {tok:"SELECT nom, age,",txt:"Les colonnes déjà dans la table."},
-    {tok:"CASE",txt:"On ouvre l’étiquette."},
+    {tok:"CASE",txt:"On ouvre la classe."},
     {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Lucas (28) s’arrête ici."},
     {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Sophie (34) s’arrête ici."},
     {tok:"ELSE 'Senior'",txt:"Hugo (52) tombe dans le filet."},
@@ -6458,7 +6478,7 @@ const MODULES = [
   anatomieVariants:[
     {k:'good',label:'CASE correct',tone:'good',lines:[
       {tok:"SELECT nom, age,",txt:"Les colonnes déjà dans la table."},
-      {tok:"CASE",txt:"On ouvre l’étiquette."},
+      {tok:"CASE",txt:"On ouvre la classe."},
       {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Le test le plus étroit, en premier."},
       {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Lu seulement si le premier est faux."},
       {tok:"ELSE 'Senior'",txt:"Le filet : plus de 50 ans."},
@@ -6467,16 +6487,25 @@ const MODULES = [
     ]},
     {k:'order',label:'Mauvais ordre',tone:'bad',lines:[
       {tok:"SELECT nom, age,",txt:"Les colonnes déjà dans la table."},
-      {tok:"CASE",txt:"On ouvre l’étiquette."},
+      {tok:"CASE",txt:"On ouvre la classe."},
       {tok:"WHEN age < 50 THEN 'Adulte'",txt:"Lucas (28) est vrai ici… donc Adulte."},
       {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Jamais lu : le premier WHEN a déjà gagné."},
       {tok:"END AS categorie",txt:"Pas d’ELSE : Hugo (52) → NULL."},
       {tok:"FROM clients",txt:"La requête tourne, le résultat est faux."}
+    ]},
+    {k:'simple',label:'CASE simple',lines:[
+      {tok:"SELECT nom, ville,",txt:"On part de la ville, une valeur exacte."},
+      {tok:"CASE ville",txt:"On compare cette expression."},
+      {tok:"WHEN 'Paris' THEN 'Capitale'",txt:"Si ville vaut Paris."},
+      {tok:"WHEN 'Lyon' THEN 'Métropole'",txt:"Si ville vaut Lyon."},
+      {tok:"ELSE 'Autre'",txt:"Le filet, si ce n’est ni Paris ni Lyon."},
+      {tok:"END AS label",txt:"On ferme, on nomme."},
+      {tok:"FROM clients",txt:"Pas de seuil ici : seulement des égalités."}
     ]}
   ],
   exemple:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",
   attendu:"9 lignes. Lucas, Chloé, Gabriel → Jeune. Sophie, Emma, Nathan, Léa, Inès → Adulte. Hugo → Senior.",
-  retenir:"<code>CASE WHEN … THEN … ELSE … END</code>. SQL s’arrête au premier <code>WHEN</code> vrai. Range les tests du plus étroit au plus large. Sans <code>ELSE</code>, le reste vaut <code>NULL</code>. <code>END</code> est obligatoire.",
+  retenir:"Deux formes. <code>CASE ville WHEN 'Paris'</code> compare une expression à des valeurs. <code>CASE WHEN age &lt; 30</code> teste des conditions. Dans les deux, SQL s’arrête au premier <code>WHEN</code> vrai. Sans <code>ELSE</code>, le reste vaut <code>NULL</code>. <code>END</code> est obligatoire.",
   piege:{t:"Le WHEN trop large, trop tôt",
     p:"Si tu écris <code>WHEN age &lt; 50 THEN 'Adulte'</code> avant <code>WHEN age &lt; 30 THEN 'Jeune'</code>, Lucas (28) est déjà Adulte. Le second <code>WHEN</code> n’est jamais lu. Et sans <code>ELSE</code>, Hugo (52) affiche <code>NULL</code>.",
     exec:true,
@@ -6487,7 +6516,8 @@ const MODULES = [
   indice:"<code>CASE WHEN</code> du plus étroit au plus large, puis <code>ELSE</code>, et n’oublie pas <code>END AS categorie</code>.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'good',label:'CASE correct',sql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",out:"9 lignes. Lucas, Chloé, Gabriel → Jeune. Hugo → Senior. Les autres → Adulte.",tone:'good'},
+    {k:'good',label:'Recherché',sql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",out:"9 lignes. Lucas, Chloé, Gabriel → Jeune. Hugo → Senior. Les autres → Adulte.",tone:'good'},
+    {k:'simple',label:'Simple',sql:"SELECT nom, ville,\n  CASE ville\n    WHEN 'Paris' THEN 'Capitale'\n    WHEN 'Lyon' THEN 'Métropole'\n    ELSE 'Autre'\n  END AS label\nFROM clients;",out:"Sophie, Nathan, Léa → Capitale. Lucas, Hugo → Métropole. Les autres → Autre."},
     {k:'order',label:'Mauvais ordre',sql:"SELECT nom, age,\n  CASE\n    WHEN age < 50 THEN 'Adulte'\n    WHEN age < 30 THEN 'Jeune'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",out:"Lucas (28) devient Adulte : le premier WHEN est trop large.",tone:'bad'},
     {k:'noelse',label:'Sans ELSE',sql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n  END AS categorie\nFROM clients;",out:"Hugo (52) n’a collé à aucun WHEN → NULL.",tone:'bad'}
   ] },
@@ -7073,8 +7103,8 @@ const CARTES={
     m:"Conserve <b>toutes</b> les lignes des deux tables. Sans match → <code>NULL</code> du côté manquant. Inès et l’invité restent."},
  44:{k:"Quel JOIN ?",t:"Quelles lignes garder ?",s:"INNER · LEFT · FULL · CROSS",
     m:"Demande-toi quelles lignes doivent rester, même sans correspondance. Seulement les matchs → <code>INNER JOIN</code>. Toute la gauche → <code>LEFT JOIN</code>. Les deux → <code>FULL OUTER JOIN</code>. Toutes les combinaisons → <code>CROSS JOIN</code>. Évite <code>RIGHT JOIN</code> : inverse les tables."},
- 21:{k:"CASE",t:"Une étiquette par ligne",s:"CASE\n  WHEN age < 30 THEN 'Jeune'\n  WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n  ELSE 'Senior'\nEND",
-    m:"SQL teste les <code>WHEN</code> dans l’ordre et s’arrête au premier vrai. Du plus étroit au plus large. Sans <code>ELSE</code> → <code>NULL</code>. <code>END</code> est obligatoire. Rien n’est écrit dans la table."},
+ 21:{k:"CASE",t:"Une classe par ligne",s:"CASE ville WHEN 'Paris' THEN 'Capitale'\nCASE WHEN age < 30 THEN 'Jeune'\nEND",
+    m:"Deux formes. Simple : compare une expression à des valeurs (<code>CASE ville WHEN 'Paris'</code>). Recherché : teste des conditions (<code>CASE WHEN age &lt; 30</code>). SQL s’arrête au premier <code>WHEN</code> vrai. Sans <code>ELSE</code> → <code>NULL</code>. <code>END</code> est obligatoire."},
  22:{k:"Colonnes calculées",t:"Calculer dans le SELECT",s:"SELECT nom, prix * stock AS valeur\nFROM produits;",
     m:"Le SELECT accepte des expressions. Calcul à la volée, rien n’est stocké. <b>Nomme avec AS</b>, sinon l’en-tête affiche la formule."},
  23:{k:"COALESCE",t:"Remplacer les valeurs absentes",s:"COALESCE(NULLIF(TRIM(email), ''), 'Non renseigné')",
@@ -7187,7 +7217,7 @@ const QCM={
    {q:"Tous les clients + toutes les commandes (Inès et l’invité) :",o:["16 lignes avec LEFT JOIN","16 lignes avec RIGHT JOIN","17 lignes avec FULL OUTER JOIN"],b:2,e:"15 correspondances + Inès + l’invité = 17 lignes."}],
  21:[{q:"SQL évalue les <code>WHEN</code> :",o:["Tous, et garde le dernier vrai","Dans l’ordre, et s’arrête au premier vrai","Dans un ordre imprévisible"],b:1,e:"D’où l’intérêt d’aller du plus étroit au plus large : age < 30 avant age < 50."},
    {q:"Un CASE se referme par :",o:["ELSE","END","STOP"],b:1,e:"Oublier END est une erreur de syntaxe. ELSE, lui, est le filet — optionnel, mais sans lui le reste vaut NULL."},
-   {q:"Tu écris <code>WHEN age &lt; 50</code> avant <code>WHEN age &lt; 30</code>. Lucas (28) devient :",o:["Jeune","Adulte","NULL"],b:1,e:"28 < 50 est déjà vrai. SQL s’arrête et n’ira jamais lire le WHEN Jeune."}],
+   {q:"Pour tester <code>age &lt; 30</code>, tu écris :",o:["CASE age WHEN < 30 THEN 'Jeune'","CASE WHEN age < 30 THEN 'Jeune'","CASE age < 30 WHEN 'Jeune'"],b:1,e:"Un seuil n’est pas une égalité. Il faut le CASE recherché : WHEN suivi d’une condition."}],
  22:[{q:"<code>SELECT prix * 0.8</code> modifie-t-il la table ?",o:["Oui, définitivement","Non, c’est un calcul d’affichage","Seulement après un COMMIT"],b:1,e:"Rien n’est stocké : l’expression est recalculée à chaque requête."},
    {q:"Sans <code>AS</code>, l’en-tête d’une colonne calculée affiche :",o:["Rien","La formule entière","Le nom de la première colonne"],b:1,e:"Nomme systématiquement tes calculs."}],
  23:[{q:"<code>COALESCE(email, 'X')</code> renvoie X quand email :",o:["Vaut 0","Est NULL","Contient un espace"],b:1,e:"Elle renvoie la première valeur non nulle de la liste."},
@@ -10855,6 +10885,28 @@ function pointDraw(card){
       <p class="cw-verdict" hidden></p>
     </div>`;
   }
+  if(kind==='caseforms'){
+    const sql=rows=>`<div class="pt-sql" aria-hidden="true">${rows.map(r=>`<div class="pt-sql-row${r.keep?' is-keep':''}"><span class="pt-sql-code"><span class="pt-sql-tok">${esc(r.tok)}</span>${r.val?` <span class="pt-sql-val">${esc(r.val)}</span>`:''}</span></div>`).join('')}</div>`;
+    const forms=[
+      {k:'simple',t:'CASE simple',d:'Compare une expression à une liste de valeurs.',
+        h:"Sophie habite Paris → Capitale. Tu ne peux pas y écrire age < 30 : ce n’est pas une égalité.",
+        rows:[{tok:'CASE',val:'ville',keep:1},{tok:'WHEN',val:"'Paris' THEN 'Capitale'"},{tok:'WHEN',val:"'Lyon' THEN 'Métropole'"},{tok:'ELSE',val:"'Autre'"},{tok:'END',val:''}]},
+      {k:'search',t:'CASE recherché',d:'Évalue des conditions indépendantes.',
+        h:"C’est celui de ce cours. Lucas a 28 ans : age < 30 est vrai → Jeune. ELSE est optionnel : sans lui, le reste vaut NULL.",
+        rows:[{tok:'CASE',val:'',keep:1},{tok:'WHEN',val:"age < 30 THEN 'Jeune'"},{tok:'WHEN',val:"age BETWEEN 30 AND 50 THEN 'Adulte'"},{tok:'ELSE',val:"'Senior'"},{tok:'END',val:''}]}
+    ];
+    return `<div class="cw-forms">
+      <p class="cw-forms-q">Tu compares à des valeurs, ou tu testes une condition ?</p>
+      <div class="cw-form-list" role="group" aria-label="Deux formes de CASE">
+        ${forms.map((f,i)=>`<button type="button" class="cw-form" style="--i:${i}" data-k="${f.k}" data-h="${escAttr(f.h)}">
+          <span class="cw-form-k">${esc(f.t)}</span>
+          <span class="cw-form-d">${esc(f.d)}</span>
+          ${sql(f.rows)}
+        </button>`).join('')}
+      </div>
+      <p class="cw-form-hint" hidden></p>
+    </div>`;
+  }
   if(kind==='selfcols') return `<div class="pd-map" aria-hidden="true">
       <div class="pd-map-row"><b>c1.nom</b><i></i><span>le nom du premier client</span></div>
       <div class="pd-map-row"><b>c2.nom</b><i></i><span>le nom du second client</span></div>
@@ -11220,6 +11272,35 @@ function initCaseWalk(){
   const first=chips[0];
   if(first) setTimeout(()=>set(first), prefersReduceMotion()?0:520);
 }
+function initCaseForms(){
+  const box=document.querySelector('#lesson-body .cw-forms');
+  if(!box) return;
+  const hint=box.querySelector('.cw-form-hint');
+  const set=btn=>{
+    if(!btn) return;
+    box.querySelectorAll('.cw-form').forEach(n=>{
+      const on=n===btn;
+      n.classList.toggle('on',on);
+      n.setAttribute('aria-pressed',on?'true':'false');
+    });
+    if(hint){
+      hint.hidden=false;
+      hint.textContent=btn.dataset.h||'';
+      hint.classList.remove('on');
+      void hint.offsetWidth;
+      hint.classList.add('on');
+    }
+  };
+  box.querySelectorAll('.cw-form').forEach(n=>n.setAttribute('aria-pressed','false'));
+  box.addEventListener('click',e=>{
+    const btn=e.target.closest('.cw-form');
+    if(!btn) return;
+    set(btn);
+    if(navigator.vibrate) navigator.vibrate(6);
+  });
+  const first=box.querySelector('.cw-form');
+  if(first) setTimeout(()=>set(first), prefersReduceMotion()?0:480);
+}
 function renderJoinIntroStudio(l){
   const s=l.studio||{};
   const pc=s.pointCards||{};
@@ -11233,6 +11314,10 @@ function renderJoinIntroStudio(l){
       <h2><span class="h2-eye">Dans l’ordre</span><span class="h2-txt">SQL s’arrête au premier WHEN vrai.</span></h2>
       ${pointDraw({draw:'casewalk'})}
     </div>`:'';
+  const forms=pc.forms?`<div class="concept-block">
+      <h2><span class="h2-eye">Deux formes</span><span class="h2-txt">Comparer une valeur, ou tester une condition.</span></h2>
+      ${pointDraw({draw:'caseforms'})}
+    </div>`:'';
   const viz=s.viz?`<div class="concept-block">
       <h2><span class="h2-eye">Visualisation</span><span class="h2-txt">${WHY_VIZ_TITLE}</span></h2>
       ${renderVizShell(s.viz)}
@@ -11244,6 +11329,7 @@ function renderJoinIntroStudio(l){
     </div>
     ${tree}
     ${walk}
+    ${forms}
     ${viz}
     <!-- early-demo -->
   </div>`;
@@ -11743,6 +11829,7 @@ function renderLessonFlow(){
     initJoinMicro();
     initJoinTree();
     initCaseWalk();
+    initCaseForms();
   }
   const fab=document.getElementById('fab');
   if(fab) fab.classList.toggle('hide', lessonStep===0||lessonStep===3);
