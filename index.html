@@ -573,15 +573,26 @@
     .jd-join{opacity:1;transform:none}
   }
 
-  /* CASE : une personne, les WHEN se testent, le premier vrai gagne. */
+  /* CASE : l'intérêt se voit dans la colonne qui apparaît à droite de la
+     table. Les trois lignes sont des boutons ; leur cellule « categorie »
+     est vide tant que le CASE n'est pas passé dessus. */
   .cw-walk{margin:0;min-width:0}
-  .cw-people{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
-  .cw-who{display:flex;flex-direction:column;align-items:flex-start;gap:1px;margin:0;padding:9px 12px;border:1px solid var(--card-border);border-radius:14px;background:var(--surface);color:inherit;font:inherit;text-align:left;cursor:pointer;touch-action:manipulation;-webkit-appearance:none;appearance:none;box-shadow:var(--card-shadow-sm);transition:transform .18s var(--spring-ios),border-color .18s,background .18s,box-shadow .18s}
-  .cw-who b{font-size:13.5px;font-weight:750;line-height:1.2}
-  .cw-who small{font-size:11px;font-weight:650;color:var(--ink-3)}
-  .cw-who:active{transform:scale(.985)}
-  .cw-who.on{border-color:rgba(91,91,214,.28);background:linear-gradient(165deg,rgba(91,91,214,.06),var(--surface) 42%);box-shadow:0 10px 22px -18px rgba(91,91,214,.55)}
-  .cw-who.on b{color:var(--accent)}
+  .cw-tbl{display:flex;flex-direction:column;gap:0;margin:0 0 10px;border:1px solid var(--card-border);border-radius:15px;background:var(--surface);overflow:hidden}
+  .cw-tbl-h,.cw-who{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,92px);align-items:center;gap:10px;padding:9px 13px;text-align:left}
+  .cw-tbl-h{background:var(--surface-2);font-family:var(--mono);font-size:10px;font-weight:750;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-3)}
+  .cw-tbl-h b{color:var(--accent);font-weight:850}
+  .cw-who{margin:0;border:0;border-top:1px solid var(--line-2);background:var(--surface);color:inherit;font:inherit;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;width:100%}
+  .cw-nom{font-size:13.5px;font-weight:750;line-height:1.2;overflow-wrap:anywhere}
+  .cw-age{font-size:11.5px;font-weight:650;color:var(--ink-3);white-space:nowrap}
+  .cw-cell{font-style:normal;font-family:var(--mono);font-size:12px;font-weight:800;color:var(--ink-3);opacity:.5;text-align:center;padding:3px 0;border-radius:8px;background:var(--surface-2)}
+  .cw-cell.is-set{color:var(--accent);opacity:1;background:var(--accent-soft);animation:jdPop .38s var(--spring-ios)}
+  .cw-who:active{transform:scale(.995)}
+  .cw-who.on{background:linear-gradient(165deg,rgba(91,91,214,.06),var(--surface) 42%)}
+  .cw-who.on .cw-nom{color:var(--accent)}
+  .cw-note{margin:0 2px 14px;font-size:12.5px;font-weight:600;line-height:1.45;color:var(--accent)}
+  .cw-note code,.cw-note b{color:var(--ink-2)}
+  .cw-done{margin:10px 0 0;font-size:13.5px;line-height:1.5;color:var(--ink-2)}
+  .cw-done.on{animation:joinSoftIn .32s var(--spring-ios) both}
   .cw-lane{display:flex;flex-direction:column;gap:6px}
   .cw-step{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:6px 8px;padding:10px 12px;border:1px solid var(--card-border);border-radius:12px;background:var(--surface);opacity:.42;transform:translateY(4px);transition:opacity .22s,transform .28s var(--spring-ios),border-color .18s,background .18s}
   .cw-step.is-on{opacity:1;transform:none}
@@ -608,7 +619,7 @@
     .cw-who:hover{border-color:rgba(91,91,214,.2)}
   }
   @media (prefers-reduced-motion:reduce){
-    .cw-step,.cw-step.win .cw-then,.cw-verdict.on{animation:none!important}
+    .cw-step,.cw-step.win .cw-then,.cw-verdict.on,.cw-cell.is-set,.cw-done.on{animation:none!important}
     .cw-step{transform:none;opacity:1}
   }
   .cw-forms{margin:0;min-width:0}
@@ -6445,7 +6456,7 @@ const MODULES = [
     studio:{pointCards:{
       eye:"CASE",title:"Afficher une valeur selon une condition.",
       walk:1,
-      lead:"<p>L’expression <code>CASE</code> en SQL permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else des langages de programmation, mais intégré directement dans les requêtes SQL. Elle est extrêmement utile pour transformer des données, créer des colonnes calculées, gérer des regroupements ou encore remplacer des valeurs.</p><p>Il existe deux formes de <code>CASE</code> :</p><p><b>CASE simple</b> : compare une expression à une liste de valeurs.</p><p><b>CASE recherché</b> : évalue des conditions booléennes indépendantes.</p>",
+      lead:"<p>L’expression <code>CASE</code> en SQL permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else des langages de programmation, mais intégré directement dans les requêtes SQL. Elle est extrêmement utile pour transformer des données, créer des colonnes calculées, gérer des regroupements ou encore remplacer des valeurs.</p><p>Il existe deux formes de <code>CASE</code> :</p><p><b>CASE simple</b> : Compare une colonne à plusieurs valeurs précises.</p><p><b>CASE recherché</b> : Teste plusieurs conditions, l’une après l’autre.</p>",
       forms:1,
       cards:[
         {t:"Structure CASE",
@@ -6473,7 +6484,7 @@ const MODULES = [
   anatomieVariants:[
     {k:'simple',label:'Simple',lines:[
       {tok:"SELECT nom, ville,",txt:"Les colonnes de base."},
-      {tok:"CASE ville",txt:"Compare une expression à une liste de valeurs."},
+      {tok:"CASE ville",txt:"Compare une colonne à plusieurs valeurs précises."},
       {tok:"WHEN 'Paris' THEN 'Capitale'",txt:"Si ville vaut Paris."},
       {tok:"WHEN 'Lyon' THEN 'Métropole'",txt:"Si ville vaut Lyon."},
       {tok:"ELSE 'Autre'",txt:"Les autres villes."},
@@ -6482,7 +6493,7 @@ const MODULES = [
     ]},
     {k:'search',label:'Recherché',tone:'good',lines:[
       {tok:"SELECT nom, age,",txt:"Les colonnes de base."},
-      {tok:"CASE",txt:"Évalue des conditions booléennes indépendantes."},
+      {tok:"CASE",txt:"Teste plusieurs conditions, l’une après l’autre."},
       {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Première condition : moins de 30 ans."},
       {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Deuxième condition : entre 30 et 50 ans."},
       {tok:"ELSE 'Senior'",txt:"Tous les autres cas (plus de 50 ans)."},
@@ -6518,7 +6529,7 @@ const MODULES = [
   ],
   exemple:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",
   attendu:"9 lignes. Lucas, Chloé, Gabriel → Jeune. Sophie, Emma, Nathan, Léa, Inès → Adulte. Hugo → Senior.",
-  retenir:"L’expression <code>CASE</code> permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else, intégré dans les requêtes SQL.<br><br><b>CASE simple</b> : compare une expression à une liste de valeurs. <b>CASE recherché</b> : évalue des conditions booléennes indépendantes.<br><br><code>ELSE</code> est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est <code>NULL</code>.",
+  retenir:"L’expression <code>CASE</code> permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else, intégré dans les requêtes SQL.<br><br><b>CASE simple</b> : Compare une colonne à plusieurs valeurs précises. <b>CASE recherché</b> : Teste plusieurs conditions, l’une après l’autre.<br><br><code>ELSE</code> est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est <code>NULL</code>.",
   piege:{t:"Oublier le ELSE ou mal ordonner les WHEN",
     p:"Si tu écris <code>WHEN age &lt; 50 THEN 'Adulte'</code> avant <code>WHEN age &lt; 30 THEN 'Jeune'</code>, tous les moins de 50 ans (y compris les moins de 30) seront classés 'Adulte'. De même, sans <code>ELSE</code>, les plus de 50 ans auront <code>NULL</code>.",
     exec:true,
@@ -7118,7 +7129,7 @@ const CARTES={
  44:{k:"Quel JOIN ?",t:"Quelles lignes garder ?",s:"INNER · LEFT · FULL · CROSS",
     m:"Demande-toi quelles lignes doivent rester, même sans correspondance. Seulement les matchs → <code>INNER JOIN</code>. Toute la gauche → <code>LEFT JOIN</code>. Les deux → <code>FULL OUTER JOIN</code>. Toutes les combinaisons → <code>CROSS JOIN</code>. Évite <code>RIGHT JOIN</code> : inverse les tables."},
  21:{k:"CASE",t:"Afficher une valeur selon une condition",s:"CASE expression\n    WHEN valeur1 THEN resultat1\n    ELSE resultat_defaut\nEND",
-    m:"L’expression <code>CASE</code> permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else, intégré dans les requêtes SQL.<br><br><b>CASE simple</b> : compare une expression à une liste de valeurs. <b>CASE recherché</b> : évalue des conditions booléennes indépendantes.<br><br><code>ELSE</code> est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est <code>NULL</code>."},
+    m:"L’expression <code>CASE</code> permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else, intégré dans les requêtes SQL.<br><br><b>CASE simple</b> : Compare une colonne à plusieurs valeurs précises. <b>CASE recherché</b> : Teste plusieurs conditions, l’une après l’autre.<br><br><code>ELSE</code> est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est <code>NULL</code>."},
  22:{k:"Colonnes calculées",t:"Calculer dans le SELECT",s:"SELECT nom, prix * stock AS valeur\nFROM produits;",
     m:"Le SELECT accepte des expressions. Calcul à la volée, rien n’est stocké. <b>Nomme avec AS</b>, sinon l’en-tête affiche la formule."},
  23:{k:"COALESCE",t:"Remplacer les valeurs absentes",s:"COALESCE(NULLIF(TRIM(email), ''), 'Non renseigné')",
@@ -10883,11 +10894,13 @@ function pointDraw(card){
       {tok:'ELSE',test:'le reste',then:'Senior'}
     ];
     return `<div class="cw-walk">
-      <div class="cw-people" role="group" aria-label="Choisir une personne">
+      <div class="cw-tbl" role="group" aria-label="Choisir un client">
+        <div class="cw-tbl-h" aria-hidden="true"><span>nom</span><span>age</span><b>categorie</b></div>
         ${who.map(p=>`<button type="button" class="cw-who" data-k="${p.k}" data-age="${p.age}" data-win="${p.win}" data-label="${escAttr(p.label)}" data-nom="${escAttr(p.nom)}">
-          <b>${esc(p.nom)}</b><small>${p.age} ans</small>
+          <span class="cw-nom">${esc(p.nom)}</span><span class="cw-age">${p.age} ans</span><i class="cw-cell" aria-hidden="true">—</i>
         </button>`).join('')}
       </div>
+      <p class="cw-note">👆 Touche une ligne. <code>nom</code> et <code>age</code> viennent de la table — <b><code>categorie</code> n’y est pas</b> : c’est <code>CASE</code> qui la fabrique, ligne par ligne.</p>
       <div class="cw-lane" aria-hidden="true">
         ${steps.map((s,i)=>`<div class="cw-step" data-i="${i}">
           <span class="cw-tok">${esc(s.tok)}</span>
@@ -10897,14 +10910,15 @@ function pointDraw(card){
         </div>`).join('')}
       </div>
       <p class="cw-verdict" hidden></p>
+      <p class="cw-done" hidden>Les trois lignes ont leur catégorie. La colonne est complète — et la table <code>clients</code> n’a pas bougé d’un octet.</p>
     </div>`;
   }
   if(kind==='caseforms'){
     const forms=[
-      {k:'simple',t:'CASE simple',d:'Compare une expression à une liste de valeurs.',
+      {k:'simple',t:'CASE simple',d:'Compare une colonne à plusieurs valeurs précises.',
         h:"ELSE est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est NULL.",
         sql:"CASE expression\n    WHEN valeur1 THEN resultat1\n    WHEN valeur2 THEN resultat2\n    ...\n    [ELSE resultat_defaut]\nEND"},
-      {k:'search',t:'CASE recherché',d:'Évalue des conditions booléennes indépendantes.',
+      {k:'search',t:'CASE recherché',d:'Teste plusieurs conditions, l’une après l’autre.',
         h:"ELSE est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est NULL.",
         sql:"CASE\n    WHEN condition1 THEN resultat1\n    WHEN condition2 THEN resultat2\n    ...\n    [ELSE resultat_defaut]\nEND"}
     ];
@@ -11200,7 +11214,7 @@ function initCaseWalk(){
       if(m) m.textContent='';
     });
   };
-  const show=p=>{
+  const show=(p,onWin)=>{
     reset();
     const win=+p.win;
     const reduce=prefersReduceMotion();
@@ -11231,10 +11245,12 @@ function initCaseWalk(){
         if(i<=win) walk._cwT=setTimeout(tick,260);
         else{
           for(let j=win+1;j<steps.length;j++) apply(j);
+          if(onWin) onWin();
         }
       };
       walk._cwT=setTimeout(tick,40);
     }
+    if(reduce&&onWin) onWin();
     if(verdict){
       const nom=p.nom||'';
       const age=p.age;
@@ -11256,7 +11272,20 @@ function initCaseWalk(){
       c.setAttribute('aria-pressed',on?'true':'false');
     });
     paintSit(p.k);
-    show(p);
+    show(p,()=>{
+      const cell=el.querySelector('.cw-cell');
+      if(cell&&!cell.classList.contains('is-set')){
+        cell.textContent=p.label;
+        cell.classList.add('is-set');
+      }
+      /* La colonne se construit sous les yeux : une fois les trois lignes
+         classées, on nomme ce qui vient d'apparaître. */
+      const done=walk.querySelector('.cw-done');
+      if(done&&done.hidden&&chips.every(c=>c.querySelector('.cw-cell').classList.contains('is-set'))){
+        done.hidden=false;
+        done.classList.add('on');
+      }
+    });
   };
   chips.forEach(c=>c.setAttribute('aria-pressed','false'));
   walk.addEventListener('click',e=>{
@@ -11324,7 +11353,7 @@ function renderJoinIntroStudio(l){
       ${pointDraw({draw:'jointree'})}
     </div>`:'';
   const walk=pc.walk?`<div class="concept-block">
-      <h2><span class="h2-eye">Dans l’ordre</span><span class="h2-txt">SQL s’arrête au premier WHEN vrai.</span></h2>
+      <h2><span class="h2-eye">Ce que ça fabrique</span><span class="h2-txt">Une colonne qui n’est pas dans la table.</span></h2>
       ${pointDraw({draw:'casewalk'})}
     </div>`:'';
   const forms=pc.forms?`<div class="concept-block">
