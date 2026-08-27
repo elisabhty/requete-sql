@@ -522,6 +522,8 @@
   .join-micro .concept-block.in .pt-card:nth-child(1){animation-delay:.04s}
   .join-micro .concept-block.in .pt-card:nth-child(2){animation-delay:.1s}
   .join-micro .concept-block.in .pt-card:nth-child(3){animation-delay:.16s}
+  .join-micro .concept-block.in .pt-card:nth-child(4){animation-delay:.22s}
+  .join-micro .concept-block.in .pt-card:nth-child(5){animation-delay:.28s}
   @keyframes joinSoftIn{from{opacity:0;transform:translateY(8px) scale(.975)}to{opacity:1;transform:none}}
   .join-micro .concept-block.in .pd-onids-row{animation:joinSoftIn .42s var(--spring-ios) both}
   .join-micro .concept-block.in .pd-onids-row:nth-of-type(1){animation-delay:.08s}
@@ -535,6 +537,40 @@
   @keyframes joinLinkGrow{from{transform:scaleY(0);opacity:0}to{transform:scaleY(1);opacity:1}}
   .join-micro .concept-block.in .pd-key.fk{animation:joinSoftIn .4s ease .18s both}
   .join-micro .concept-block.in .pd-onids-row i{transform-origin:left center;animation:joinRuleDraw .48s ease-out both}
+
+  /* Arbre de décision : une question, cinq chemins, le JOIN se révèle. */
+  .jd-tree{margin:0;min-width:0}
+  .jd-root{margin:0 0 14px;font-size:15px;font-weight:750;line-height:1.45;color:var(--ink)}
+  .jd-list{position:relative;display:flex;flex-direction:column;gap:8px;padding:0 0 0 22px}
+  .jd-list::before{content:'';position:absolute;left:7px;top:12px;bottom:12px;width:2px;border-radius:2px;background:linear-gradient(180deg,rgba(91,91,214,.42),rgba(91,91,214,.08));transform-origin:top;animation:jdSpine .72s var(--spring-ios) both}
+  @keyframes jdSpine{from{transform:scaleY(0);opacity:0}to{transform:none;opacity:1}}
+  .jd-node{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px 10px;width:100%;margin:0;padding:11px 12px;border:1px solid var(--card-border);border-radius:14px;background:var(--surface);color:inherit;font:inherit;text-align:left;cursor:pointer;touch-action:manipulation;-webkit-appearance:none;appearance:none;box-shadow:var(--card-shadow-sm);animation:joinSoftIn .46s var(--spring-ios) both;animation-delay:calc(var(--i)*70ms + 90ms);transition:transform .18s var(--spring-ios),border-color .18s,background .18s,box-shadow .18s}
+  .jd-node:active{transform:scale(.985)}
+  .jd-node::after{content:'';position:absolute;left:-15px;top:50%;width:8px;height:2px;margin-top:-1px;background:rgba(91,91,214,.28);transform:scaleX(0);transform-origin:left center;animation:jdBranch .32s ease-out calc(var(--i)*70ms + 220ms) both}
+  @keyframes jdBranch{from{transform:scaleX(0);opacity:0}to{transform:none;opacity:1}}
+  .jd-dot{position:absolute;left:-18px;top:50%;width:10px;height:10px;margin-top:-5px;border-radius:50%;background:var(--surface);border:2px solid rgba(91,91,214,.38);z-index:1;transition:background .22s,border-color .22s,transform .22s var(--spring-ios),box-shadow .22s;animation:jdDotIn .36s var(--spring-ios) calc(var(--i)*70ms + 240ms) backwards}
+  @keyframes jdDotIn{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+  .jd-ask{min-width:0;font-size:13.5px;font-weight:700;line-height:1.35;color:var(--ink)}
+  .jd-join{flex:none;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.2px;color:var(--accent);background:var(--accent-soft);padding:4px 8px;border-radius:8px;white-space:nowrap;opacity:.55;transform:scale(.94);transition:opacity .22s,transform .28s var(--spring-ios),background .18s,color .18s}
+  .jd-node.on{border-color:rgba(91,91,214,.28);background:linear-gradient(165deg,rgba(91,91,214,.06),var(--surface) 42%);box-shadow:0 10px 22px -18px rgba(91,91,214,.55)}
+  .jd-node.on .jd-dot{background:var(--accent);border-color:var(--accent);transform:scale(1.12);box-shadow:0 0 0 4px rgba(91,91,214,.16)}
+  .jd-node.on::after{background:var(--accent)}
+  .jd-node.on .jd-join{opacity:1;transform:none;animation:jdPop .38s var(--spring-ios)}
+  @media (hover:hover) and (pointer:fine){
+    .jd-node:hover{border-color:rgba(91,91,214,.2)}
+    .jd-node:hover .jd-join{opacity:.85}
+  }
+  @keyframes jdPop{0%{transform:scale(.86)}62%{transform:scale(1.07)}100%{transform:none}}
+  .jd-hint{margin:12px 0 0;font-size:13.5px;line-height:1.5;color:var(--ink-2);min-height:1.5em}
+  .jd-hint.on{animation:joinSoftIn .32s var(--spring-ios) both}
+  @media (max-width:360px){
+    .jd-node{grid-template-columns:minmax(0,1fr)}
+    .jd-join{justify-self:start}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .jd-list::before,.jd-node,.jd-node::after,.jd-dot,.jd-node.on .jd-join,.jd-hint.on{animation:none!important}
+    .jd-join{opacity:1;transform:none}
+  }
   .join-micro .concept-block.in .pd-onids-row:nth-of-type(1) i{animation-delay:.2s}
   .join-micro .concept-block.in .pd-onids-row:nth-of-type(2) i{animation-delay:.28s}
   .join-micro .concept-block.in .pd-onids-row:nth-of-type(3) i{animation-delay:.36s}
@@ -6065,56 +6101,80 @@ const MODULES = [
     {k:'cross',label:'CROSS JOIN',sql:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;",tone:'good'}
   ] },
 { id:44, titre:"Choisir le bon JOIN", résumé:"Quelle jointure pour quel besoin ?",
-  situation:"Tu dois répondre à plusieurs questions métier avec la base clients/commandes. Pour chacune, il faut choisir la bonne jointure.<br><br>Voici les besoins possibles :<br><br>– Afficher uniquement les clients qui ont passé commande.<br>– Afficher tous les clients, même ceux sans commande.<br>– Afficher toutes les commandes, même celles sans client.<br>– Afficher toutes les combinaisons clients/produits.<br>– Afficher tous les clients et toutes les commandes, avec des NULL des deux côtés.<br><br>Chaque besoin correspond à un type de <code>JOIN</code> précis.<br><br>Dans la table <code>clients</code> (9 lignes) et la table <code>commandes</code> (16 lignes, dont une commande invitée), le choix de la jointure change le résultat.",
-  situationTail:"Le point clé : <b>quelle table doit rester entière ?</b> Selon la réponse, tu choisis <code>INNER JOIN</code>, <code>LEFT JOIN</code>, <code>RIGHT JOIN</code>, <code>FULL OUTER JOIN</code> ou <code>CROSS JOIN</code>.",
+  situation:"Tu dois relier <code>clients</code> et <code>commandes</code>. Avant d’écrire le <code>JOIN</code>, pose-toi une seule question :<br><br><b>Quelles données dois-tu absolument conserver, même s’il n’y a pas de correspondance dans l’autre table ?</b><br><br>C’est cette réponse qui choisit le type de <code>JOIN</code>.<br><br>Dans la table <code>clients</code>, tu as notamment :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>7</td><td>Léa</td></tr><tr><td>9</td><td>Inès</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, tu trouves des commandes avec <code>client_id</code>, et une commande invitée :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>2</td></tr><tr><td>8</td><td>7</td><td>4</td></tr><tr><td>16</td><td>NULL</td><td>1</td></tr></tbody></table></div><br><br>Inès n’a aucune commande. La commande <code>#16</code> n’a aucun client. Selon que tu veux les garder ou non, le <code>JOIN</code> change.",
     studio:{pointCards:{
-      eye:"Quel JOIN ?",title:"Quelle table doit rester entière ?",
-      lead:"Chaque type de <code>JOIN</code> garde certaines lignes. Pose-toi toujours la question : « Qui doit rester entier ? »",
-      chain:[
-        {k:"Correspondances seulement",v:"INNER JOIN"},
-        {k:"Toute la gauche",v:"LEFT JOIN"},
-        {k:"Toute la droite",v:"RIGHT JOIN"},
-        {k:"Les deux tables",v:"FULL OUTER JOIN"},
-        {k:"Toutes les combinaisons",v:"CROSS JOIN"}
-      ],
+      eye:"Quel JOIN ?",title:"Quelle table dois-tu garder entière ?",
+      tree:1,
+      lead:"La première question n’est pas « quel <code>JOIN</code> ? ». C’est : <b>quelles lignes dois-tu absolument conserver, même sans correspondance ?</b>",
       cards:[
-        {t:"INNER JOIN",
-         b:"Garde uniquement les lignes qui ont une correspondance des deux côtés. Utile pour les clients <b>avec</b> commande."},
-        {t:"LEFT JOIN",
-         b:"Garde toutes les lignes de la table de gauche. Utile pour afficher <b>tous les clients</b>, même sans commande."},
-        {t:"RIGHT JOIN",
-         b:"Garde toutes les lignes de la table de droite. Utile pour afficher <b>toutes les commandes</b>, même sans client."},
-        {t:"FULL OUTER JOIN",
-         b:"Garde toutes les lignes des deux tables. Utile pour un état complet, même sans correspondance."},
-        {t:"CROSS JOIN",
-         b:"Garde toutes les combinaisons possibles entre les deux tables. Utile pour des grilles ou des listes exhaustives."}
+        {t:"<span class=\"pt-kw\">INNER JOIN</span> — l’intersection",
+         b:"<p>Uniquement les correspondances strictes. Aucune ligne orpheline.</p><p>Exemple : les clients qui ont déjà commandé. Inès disparaît.</p><p>Si tu n’as pas besoin des <code>NULL</code>, commence par là : plus simple, et plus léger.</p>"},
+        {t:"<span class=\"pt-kw\">LEFT JOIN</span> — le garde-fou de la gauche",
+         b:"<p>Toutes les lignes de la table après <code>FROM</code>. S’il n’y a rien à droite, SQL met <code>NULL</code>.</p><p>Exemple : tous les clients, Inès comprise, avec le détail de leurs commandes s’ils en ont.</p><p>Question clé : tu veux garder toute la table de gauche, même seule ? Oui.</p>"},
+        {t:"<span class=\"pt-kw\">RIGHT JOIN</span> — le garde-fou de la droite",
+         b:"<p>Même idée, de l’autre côté : toutes les lignes après <code>JOIN</code>. Ici, toutes les commandes, y compris l’invité <code>#16</code>.</p><p>En SQL, on évite souvent <code>RIGHT JOIN</code>. Inverse les tables et écris <code>LEFT JOIN</code> : c’est plus lisible.</p><p>Question clé : tu veux garder toute la table de droite ? Oui — mais reformule en <code>LEFT JOIN</code>.</p>"},
+        {t:"<span class=\"pt-kw\">FULL OUTER JOIN</span> — l’union",
+         b:"<p>Toutes les lignes des deux tables. Les trous deviennent <code>NULL</code> de chaque côté.</p><p>Exemple : tous les clients <b>et</b> toutes les commandes — Inès et l’invité restent.</p><p>Question clé : tu veux tout garder des deux côtés ? Oui. C’est rare, et ça fait plus de lignes.</p>"},
+        {t:"<span class=\"pt-kw\">CROSS JOIN</span> — le produit",
+         b:"<p>Toutes les combinaisons. Pas de <code>ON</code> : SQL ne cherche aucune relation.</p><p>Exemple : chaque client × chaque produit, pour une campagne d’offres.</p><p>Ne le lance jamais par erreur. 9 × 8 = 72 ici. 1 000 × 1 000 = 1 000 000 de lignes.</p>"}
       ]},
-    reflex:{a:{k:"LEFT JOIN",t:"garde tous les clients"},
-      b:{k:"RIGHT JOIN",t:"garde toutes les commandes"},
-      note:"Quand tu hésites, demande-toi quelle table doit rester entière. Si c’est la première, utilise <code>LEFT JOIN</code>. Si c’est la deuxième, utilise <code>RIGHT JOIN</code>."},
-    viz:"outer"},
+    reflex:{a:{k:"La question",t:"quelles lignes dois-tu absolument garder ?"},
+      b:{k:"LEFT JOIN",t:"préfère-le à RIGHT JOIN, en inversant les tables"},
+      note:"Réflexe : correspondances seulement → <code>INNER JOIN</code>. Toute la gauche → <code>LEFT JOIN</code>. Les deux côtés → <code>FULL OUTER JOIN</code>. Toutes les combinaisons → <code>CROSS JOIN</code>."},
+    },
   anatomie:[
-    {tok:"SELECT clients.nom, commandes.quantite",txt:"Les colonnes à afficher."},
-    {tok:"FROM clients",txt:"La table de gauche."},
-    {tok:"LEFT JOIN commandes",txt:"Le type de jointure choisi selon le besoin — ici, garder tous les clients."},
-    {tok:"ON clients.id = commandes.client_id",txt:"La condition de correspondance, toujours présente sauf pour CROSS JOIN."}
+    {tok:"SELECT clients.nom, commandes.quantite",txt:"Le nom du client et la quantité, s’il y en a une."},
+    {tok:"FROM clients",txt:"La table de gauche : ici, celle que tu veux garder entière."},
+    {tok:"INNER JOIN commandes",txt:"Ne garde que les correspondances. Inès disparaît."},
+    {tok:"ON clients.id = commandes.client_id",txt:"Le lien : le même identifiant des deux côtés."}
   ],
-  exemple:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",
-  attendu:"LEFT JOIN : 16 lignes (15 commandes + Inès). INNER JOIN : 15 lignes (Inès disparaît). RIGHT JOIN : 16 lignes (15 commandes + l’invité).",
-  piege:{t:"Utiliser INNER JOIN à la place de LEFT JOIN",p:"Si tu écris <code>INNER JOIN</code> au lieu de <code>LEFT JOIN</code>, les clients sans commande (comme Inès) disparaissent. Pour garder tous les clients, il faut <code>LEFT JOIN</code>.",
-    exec:true,
-    sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",
-    fixSql:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;"},
+  anatomieVariants:[
+    {k:'inner',label:'INNER JOIN',lines:[
+      {tok:"SELECT clients.nom, commandes.quantite",txt:"Le nom du client et la quantité trouvée."},
+      {tok:"FROM clients",txt:"On part des clients."},
+      {tok:"INNER JOIN commandes",txt:"Seules les correspondances restent. Inès disparaît."},
+      {tok:"ON clients.id = commandes.client_id",txt:"Le lien entre les deux tables."}
+    ]},
+    {k:'left',label:'LEFT JOIN',tone:'good',lines:[
+      {tok:"SELECT clients.nom, commandes.quantite",txt:"Le nom du client et la quantité, s’il y en a une."},
+      {tok:"FROM clients",txt:"La table de gauche : tous les clients restent."},
+      {tok:"LEFT JOIN commandes",txt:"On ajoute les commandes si elles existent."},
+      {tok:"ON clients.id = commandes.client_id",txt:"Sans correspondance, les colonnes de commandes valent NULL."}
+    ]},
+    {k:'right',label:'RIGHT JOIN',lines:[
+      {tok:"SELECT clients.nom, commandes.quantite",txt:"La quantité de chaque commande, et le client s’il existe."},
+      {tok:"FROM clients",txt:"La table de gauche n’est plus prioritaire."},
+      {tok:"RIGHT JOIN commandes",txt:"Toutes les commandes restent, y compris l’invité #16."},
+      {tok:"ON clients.id = commandes.client_id",txt:"Sans client, les colonnes de clients valent NULL."}
+    ]},
+    {k:'full',label:'FULL OUTER JOIN',lines:[
+      {tok:"SELECT clients.nom, commandes.quantite",txt:"Un côté, l’autre, ou les deux — selon ce qui existe."},
+      {tok:"FROM clients",txt:"Tous les clients restent, Inès comprise."},
+      {tok:"FULL OUTER JOIN commandes",txt:"Toutes les commandes restent aussi, y compris l’invité."},
+      {tok:"ON clients.id = commandes.client_id",txt:"Les trous deviennent NULL, de chaque côté."}
+    ]},
+    {k:'cross',label:'CROSS JOIN',lines:[
+      {tok:"SELECT clients.nom, produits.nom",txt:"Une paire : un client et un produit."},
+      {tok:"FROM clients",txt:"La première table."},
+      {tok:"CROSS JOIN produits",txt:"Chaque client est associé à chaque produit. Pas de ON."}
+    ]}
+  ],
+  exemple:"SELECT clients.nom, commandes.quantite\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",
+  attendu:"INNER JOIN : 15 lignes (Inès disparaît). LEFT JOIN : 16 lignes (Inès + NULL). RIGHT JOIN : 16 lignes (invité + NULL). FULL OUTER JOIN : 17 lignes. CROSS JOIN clients × produits : 72 lignes.",
+  retenir:"Avant d’écrire le <code>JOIN</code>, demande-toi quelles lignes doivent rester, même sans correspondance.<br><br><code>INNER JOIN</code> : seulement les correspondances. <code>LEFT JOIN</code> : toute la table de gauche. <code>FULL OUTER JOIN</code> : les deux tables. <code>CROSS JOIN</code> : toutes les combinaisons, sans <code>ON</code>.<br><br>Évite <code>RIGHT JOIN</code> : inverse les tables et écris <code>LEFT JOIN</code>.",
+  piege:{t:"Un client, plusieurs lignes",
+    p:"Si Sophie a 3 commandes, un <code>LEFT JOIN</code> affiche Sophie 3 fois. Ce n’est pas un bug : une ligne par correspondance. Ne t’étonne pas du nombre de lignes."},
   consigne:"Affiche tous les clients et leurs commandes éventuelles, en gardant les clients sans commande.",
   solution:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",
-  indice:"Quelle table doit rester entière ? Utilise la jointure qui la préserve.",
+  indice:"Quelle table doit rester entière ? Ici, tous les clients : <code>LEFT JOIN</code>.",
   joinRecap:true,
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
-    {k:'cmd',label:'commandes',sql:"SELECT id, client_id, quantite\nFROM commandes;"},
-    {k:'inner',label:'INNER JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",tone:'bad'},
-    {k:'left',label:'LEFT JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",tone:'good'}
+    {k:'inner',label:'INNER JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",out:"15 lignes. Inès disparaît : elle n’a aucune commande."},
+    {k:'left',label:'LEFT JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",out:"16 lignes. Inès reste, avec NULL.",tone:'good'},
+    {k:'right',label:'RIGHT JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nRIGHT JOIN commandes\nON clients.id = commandes.client_id;",out:"16 lignes. L’invité #16 reste, avec NULL côté client."},
+    {k:'full',label:'FULL JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nFULL OUTER JOIN commandes\nON clients.id = commandes.client_id;",out:"17 lignes. Inès et l’invité restent."},
+    {k:'cross',label:'CROSS JOIN',sql:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;",out:"72 lignes : 9 clients × 8 produits. Pas de ON."}
   ] },
 { id:41, titre:"Jointure + GROUP BY", résumé:"Compter les commandes par client",
   situation:"Tu veux afficher chaque client avec le nombre de commandes qu’il a passées.<br><br>Le nom du client se trouve dans la table <code>clients</code>, tandis que ses commandes se trouvent dans la table <code>commandes</code>.<br><br>Dans la table <code>clients</code>, tu as par exemple :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr><tr><td>9</td><td>Inès</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, plusieurs lignes peuvent appartenir au même client grâce à <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br><br>Après la jointure, un client peut donc apparaître plusieurs fois : une fois pour chaque commande. Pour obtenir une seule ligne par client, il faut regrouper ses commandes puis les compter.",
@@ -6916,8 +6976,8 @@ const CARTES={
     m:"Conserve <b>toutes</b> les lignes de la table de droite. Sans match à gauche → <code>NULL</code>. L’ordre après <code>FROM</code> compte : droite = conservée entièrement."},
  39:{k:"FULL OUTER",t:"Garder les deux côtés",s:"FROM clients\nFULL OUTER JOIN commandes ON clients.id = commandes.client_id",
     m:"Conserve <b>toutes</b> les lignes des deux tables. Sans match → <code>NULL</code> du côté manquant. Inès et l’invité restent."},
- 44:{k:"Quel JOIN ?",t:"Quelle table reste entière ?",s:"LEFT JOIN · RIGHT JOIN · FULL OUTER JOIN",
-    m:"Demande-toi quelle table doit rester entière. Gauche → <code>LEFT JOIN</code>. Droite → <code>RIGHT JOIN</code>. Les deux → <code>FULL OUTER JOIN</code>. Seulement les correspondances → <code>INNER JOIN</code>. Toutes les combinaisons → <code>CROSS JOIN</code>."},
+ 44:{k:"Quel JOIN ?",t:"Quelles lignes garder ?",s:"INNER · LEFT · FULL · CROSS",
+    m:"Demande-toi quelles lignes doivent rester, même sans correspondance. Seulement les matchs → <code>INNER JOIN</code>. Toute la gauche → <code>LEFT JOIN</code>. Les deux → <code>FULL OUTER JOIN</code>. Toutes les combinaisons → <code>CROSS JOIN</code>. Évite <code>RIGHT JOIN</code> : inverse les tables."},
  21:{k:"CASE",t:"Fabriquer une catégorie",s:"CASE WHEN prix >= 30 THEN 'Premium'\n     ELSE 'Standard' END",
     m:"Le si/alors/sinon du SQL. <b>SQL s’arrête au premier WHEN vrai</b> : du plus restrictif au plus large. Ne pas oublier <code>END</code>."},
  22:{k:"Colonnes calculées",t:"Calculer dans le SELECT",s:"SELECT nom, prix * stock AS valeur\nFROM produits;",
@@ -7025,9 +7085,9 @@ const QCM={
  40:[{q:"<code>CROSS JOIN</code> retourne :",o:["Les lignes qui correspondent des deux côtés","Toutes les combinaisons possibles des deux tables","Toutes les lignes de la table de gauche"],b:1,e:"Chaque ligne de gauche est associée à chaque ligne de droite, sans condition."},
   {q:"Avec 9 clients et 8 produits, <code>CROSS JOIN</code> donne :",o:["17 lignes","72 lignes","9 lignes"],b:1,e:"9 × 8 = 72 : le nombre de lignes se multiplie, il ne s’additionne pas."},
   {q:"Que se passe-t-il si tu ajoutes <code>ON</code> à un <code>CROSS JOIN</code> ?",o:["C’est obligatoire","Ça n’a pas de sens : CROSS JOIN ne compare rien","Ça trie le résultat"],b:1,e:"CROSS JOIN ne cherche aucune correspondance ; pour filtrer sur une clé, c’est JOIN … ON."}],
- 44:[{q:"Pour garder tous les clients, même sans commande :",o:["INNER JOIN","LEFT JOIN","CROSS JOIN"],b:1,e:"LEFT JOIN conserve toute la table écrite après FROM — ici clients."},
-  {q:"Pour garder toutes les commandes, même sans client :",o:["LEFT JOIN","RIGHT JOIN","INNER JOIN"],b:1,e:"RIGHT JOIN conserve toute la table écrite après JOIN — ici commandes, y compris l’invité."},
-  {q:"Quand choisir <code>FULL OUTER JOIN</code> ?",o:["Quand seules les correspondances comptent","Quand les deux tables doivent rester entières","Quand tu veux toutes les combinaisons"],b:1,e:"FULL OUTER JOIN garde Inès et la commande invitée. CROSS JOIN, lui, multiplie les lignes sans ON."}],
+ 44:[{q:"Pour n’afficher que les clients qui ont déjà commandé :",o:["INNER JOIN","LEFT JOIN","CROSS JOIN"],b:0,e:"INNER JOIN ne garde que les correspondances. Inès, sans commande, disparaît."},
+  {q:"Tu veux toutes les commandes, y compris l’invité. Le plus lisible :",o:["RIGHT JOIN clients → commandes","FROM commandes LEFT JOIN clients","CROSS JOIN"],b:1,e:"Inverse les tables et reste sur LEFT JOIN. RIGHT JOIN fait la même chose, mais se lit moins bien."},
+  {q:"Sophie a 3 commandes. Un LEFT JOIN clients/commandes affiche Sophie :",o:["1 fois","3 fois","0 fois"],b:1,e:"Une ligne par correspondance. Ce n’est pas un doublon accidentel : Sophie a bien 3 commandes."}],
  39:[{q:"<code>FULL OUTER JOIN</code> conserve :",o:["Seulement les lignes qui correspondent des deux côtés","Toutes les lignes de la table de gauche","Toutes les lignes des deux tables"],b:2,e:"Sans correspondance, les colonnes du côté manquant valent NULL."},
    {q:"Tous les clients + toutes les commandes (Inès et l’invité) :",o:["16 lignes avec LEFT JOIN","16 lignes avec RIGHT JOIN","17 lignes avec FULL OUTER JOIN"],b:2,e:"15 correspondances + Inès + l’invité = 17 lignes."}],
  21:[{q:"SQL évalue les <code>WHEN</code> :",o:["Tous, et garde le dernier vrai","Dans l’ordre, et s’arrête au premier vrai","Dans un ordre imprévisible"],b:1,e:"D’où l’intérêt d’aller du plus restrictif au plus large."},
@@ -10651,6 +10711,26 @@ function pointDraw(card){
       <div class="pd-ow-col is-on"><b>filtre dans ON</b><span>→ filtre les correspondances</span><span>→ garde tous les clients</span></div>
       <div class="pd-ow-col is-where"><b>filtre dans WHERE</b><span>→ filtre les lignes du résultat</span><span>→ peut faire disparaître les clients sans correspondance</span></div>
     </div>`;
+  if(kind==='jointree'){
+    const nodes=[
+      {k:'inner',q:'Uniquement les correspondances ?',j:'INNER JOIN',h:'Inès disparaît. Il ne reste que les clients qui ont déjà commandé.'},
+      {k:'left',q:'Toute la table de gauche, même seule ?',j:'LEFT JOIN',h:'Tous les clients restent. Inès s’affiche avec NULL.'},
+      {k:'right',q:'Toute la table de droite, même seule ?',j:'RIGHT JOIN',h:'Toutes les commandes restent, y compris l’invité #16. Préfère un LEFT JOIN en inversant les tables.'},
+      {k:'full',q:'Tout garder des deux côtés ?',j:'FULL JOIN',h:'Inès et l’invité restent. Les trous deviennent NULL. Rare, et ça fait plus de lignes.'},
+      {k:'cross',q:'Croiser toutes les lignes entre elles ?',j:'CROSS JOIN',h:'Pas de ON. 9 clients × 8 produits = 72 lignes. 1 000 × 1 000 = 1 000 000.'}
+    ];
+    return `<div class="jd-tree">
+      <p class="jd-root">Quelles données dois-tu absolument conserver, même sans correspondance ?</p>
+      <div class="jd-list" role="group" aria-label="Choix du JOIN">
+        ${nodes.map((n,i)=>`<button type="button" class="jd-node" style="--i:${i}" data-k="${n.k}" data-h="${escAttr(n.h)}">
+          <span class="jd-dot" aria-hidden="true"></span>
+          <span class="jd-ask">${esc(n.q)}</span>
+          <span class="jd-join">${esc(n.j)}</span>
+        </button>`).join('')}
+      </div>
+      <p class="jd-hint" hidden></p>
+    </div>`;
+  }
   if(kind==='selfcols') return `<div class="pd-map" aria-hidden="true">
       <div class="pd-map-row"><b>c1.nom</b><i></i><span>le nom du premier client</span></div>
       <div class="pd-map-row"><b>c2.nom</b><i></i><span>le nom du second client</span></div>
@@ -10746,6 +10826,7 @@ const JOIN_SAMPLE_TABLES={
   41:[['clients',9],['commandes',16]],
   42:[['clients',9]],
   43:[['clients',9],['commandes',16]],
+  44:[['clients',9],['commandes',16]],
   46:[['commandes',16]],
   49:[['clients',9],['commandes',16]]
 };
@@ -10847,7 +10928,7 @@ function initJoinMicro(){
     mark(tr,tr.cells[1]&&tr.cells[1].textContent.trim());
   });
   const rows=[...root.querySelectorAll('.situation-body tr[data-kid]')];
-  let cur=current.id===20||current.id===39?'9':current.id===38?'NULL':'1';
+  let cur=current.id===20||current.id===39||current.id===44?'9':current.id===38?'NULL':'1';
   const paint=()=>{
     rows.forEach(tr=>tr.classList.toggle('on',tr.dataset.kid===cur));
   };
@@ -10875,11 +10956,44 @@ function initJoinMicro(){
   }
 }
 const WHY_VIZ_TITLE="Suis ce qu'il se passe avec tes données.";
+function initJoinTree(){
+  const tree=document.querySelector('#lesson-body .jd-tree');
+  if(!tree) return;
+  const hint=tree.querySelector('.jd-hint');
+  const set=btn=>{
+    if(!btn) return;
+    tree.querySelectorAll('.jd-node').forEach(n=>{
+      const on=n===btn;
+      n.classList.toggle('on',on);
+      n.setAttribute('aria-pressed',on?'true':'false');
+    });
+    if(hint){
+      hint.hidden=false;
+      hint.textContent=btn.dataset.h||'';
+      hint.classList.remove('on');
+      void hint.offsetWidth;
+      hint.classList.add('on');
+    }
+  };
+  tree.querySelectorAll('.jd-node').forEach(n=>n.setAttribute('aria-pressed','false'));
+  tree.addEventListener('click',e=>{
+    const btn=e.target.closest('.jd-node');
+    if(!btn) return;
+    set(btn);
+    if(navigator.vibrate) navigator.vibrate(6);
+  });
+  const first=tree.querySelector('.jd-node');
+  if(first) setTimeout(()=>set(first), prefersReduceMotion()?0:560);
+}
 function renderJoinIntroStudio(l){
   const s=l.studio||{};
   const pc=s.pointCards||{};
   const eye=pc.eye||'La clause ON';
   const title=pc.title||'Quelles lignes correspondent.';
+  const tree=pc.tree?`<div class="concept-block">
+      <h2><span class="h2-eye">Arbre de décision</span><span class="h2-txt">Le JOIN selon ce que tu gardes.</span></h2>
+      ${pointDraw({draw:'jointree'})}
+    </div>`:'';
   const viz=s.viz?`<div class="concept-block">
       <h2><span class="h2-eye">Visualisation</span><span class="h2-txt">${WHY_VIZ_TITLE}</span></h2>
       ${renderVizShell(s.viz)}
@@ -10889,6 +11003,7 @@ function renderJoinIntroStudio(l){
       <h2><span class="h2-eye">${eye}</span><span class="h2-txt">${title}</span></h2>
       ${s.pointCards?renderPointCards(s.pointCards):flowProseHtml(s.point)}
     </div>
+    ${tree}
     ${viz}
     <!-- early-demo -->
   </div>`;
@@ -11386,6 +11501,7 @@ function renderLessonFlow(){
     initTesteEditor();
     addJoinSampleRows(document.getElementById('lesson-body'),current.id);
     initJoinMicro();
+    initJoinTree();
   }
   const fab=document.getElementById('fab');
   if(fab) fab.classList.toggle('hide', lessonStep===0||lessonStep===3);
