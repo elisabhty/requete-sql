@@ -571,6 +571,48 @@
     .jd-list::before,.jd-node,.jd-node::after,.jd-dot,.jd-node.on .jd-join,.jd-hint.on{animation:none!important}
     .jd-join{opacity:1;transform:none}
   }
+
+  /* CASE : une personne, les WHEN se testent, le premier vrai gagne. */
+  .cw-walk{margin:0;min-width:0}
+  .cw-people{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+  .cw-who{display:flex;flex-direction:column;align-items:flex-start;gap:1px;margin:0;padding:9px 12px;border:1px solid var(--card-border);border-radius:14px;background:var(--surface);color:inherit;font:inherit;text-align:left;cursor:pointer;touch-action:manipulation;-webkit-appearance:none;appearance:none;box-shadow:var(--card-shadow-sm);transition:transform .18s var(--spring-ios),border-color .18s,background .18s,box-shadow .18s}
+  .cw-who b{font-size:13.5px;font-weight:750;line-height:1.2}
+  .cw-who small{font-size:11px;font-weight:650;color:var(--ink-3)}
+  .cw-who:active{transform:scale(.985)}
+  .cw-who.on{border-color:rgba(91,91,214,.28);background:linear-gradient(165deg,rgba(91,91,214,.06),var(--surface) 42%);box-shadow:0 10px 22px -18px rgba(91,91,214,.55)}
+  .cw-who.on b{color:var(--accent)}
+  .cw-lane{display:flex;flex-direction:column;gap:6px}
+  .cw-step{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:6px 8px;padding:10px 12px;border:1px solid var(--card-border);border-radius:12px;background:var(--surface);opacity:.42;transform:translateY(4px);transition:opacity .22s,transform .28s var(--spring-ios),border-color .18s,background .18s}
+  .cw-step.is-on{opacity:1;transform:none}
+  .cw-step.fail{opacity:.7;background:color-mix(in srgb, var(--surface-2) 40%, #fff)}
+  .cw-step.win{opacity:1;border-color:rgba(91,91,214,.28);background:var(--accent-soft)}
+  .cw-step.skip{opacity:.38}
+  .cw-tok{font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.2px;color:var(--accent)}
+  .cw-test{min-width:0;font-size:13px;font-weight:700;line-height:1.3;color:var(--ink)}
+  .cw-then{font-family:var(--mono);font-size:11.5px;font-weight:800;color:var(--ink-3);white-space:nowrap}
+  .cw-step.win .cw-then{color:var(--accent);animation:jdPop .38s var(--spring-ios)}
+  .cw-mark{flex:none;width:1.1em;font-size:12px;font-weight:850;text-align:center;color:var(--ink-3)}
+  .cw-step.fail .cw-mark{color:var(--warn)}
+  .cw-step.win .cw-mark{color:var(--accent)}
+  .cw-verdict{margin:12px 0 0;font-size:13.5px;line-height:1.5;color:var(--ink-2);min-height:1.5em}
+  .cw-verdict.on{animation:joinSoftIn .32s var(--spring-ios) both}
+  @media (max-width:360px){
+    .cw-step{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"tok test mark" ". then mark"}
+    .cw-tok{grid-area:tok}
+    .cw-test{grid-area:test}
+    .cw-then{grid-area:then;justify-self:start}
+    .cw-mark{grid-area:mark}
+  }
+  @media (hover:hover) and (pointer:fine){
+    .cw-who:hover{border-color:rgba(91,91,214,.2)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .cw-step,.cw-step.win .cw-then,.cw-verdict.on{animation:none!important}
+    .cw-step{transform:none;opacity:1}
+  }
+  .join-micro .situation-body table.concept-table tbody tr[data-cw]{cursor:pointer}
+  .join-micro .situation-body table.concept-table tbody tr[data-cw].on td{background:var(--accent-soft);color:var(--accent);transition:background .2s ease,color .2s ease}
+  .join-micro .situation-body table.concept-table tbody tr[data-cw].on td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
   .join-micro .concept-block.in .pd-onids-row:nth-of-type(1) i{animation-delay:.2s}
   .join-micro .concept-block.in .pd-onids-row:nth-of-type(2) i{animation-delay:.28s}
   .join-micro .concept-block.in .pd-onids-row:nth-of-type(3) i{animation-delay:.36s}
@@ -610,6 +652,7 @@
   @media (hover:hover) and (pointer:fine){
     .join-micro .pt-card:hover{border-color:rgba(91,91,214,.2)}
     .join-micro .situation-body table.concept-table tbody tr[data-kid]:hover td,
+    .join-micro .situation-body table.concept-table tbody tr[data-cw]:hover td,
     .join-micro .situation-body table.concept-table tbody tr[data-ville].share:hover td{background:rgba(91,91,214,.06)}
   }
   .memory-box{background:var(--bg);border:1px solid var(--card-border);border-radius:18px;padding:16px 18px;margin:0;box-shadow:var(--card-shadow-sm)}
@@ -6376,26 +6419,78 @@ const MODULES = [
 ]},
 
 { titre:"Affiner", sous:"Calculer, classer, composer", lessons:[
-{ id:21, titre:"CASE", résumé:"Créer des catégories",
-  situation:"Dans la table <code>clients</code>, tu veux une colonne Senior / Junior selon l’âge, sans modifier la table.",
-    studio:{problem:{title:"Un CASE sans END ne fonctionne pas.",
-      body:"SQL n’a pas de si/alors… sauf <code>CASE WHEN … THEN … ELSE … END</code>. Il s’arrête au <b>premier WHEN vrai</b>."},
-    vs:{bad:{tag:"✕ Oublier END",sql:"SELECT nom, age,\n  CASE WHEN age >= 40 THEN 'Senior'\n       ELSE 'Junior'",err:"Erreur de syntaxe : il manque END"},
-        good:{tag:"✓ CASE complet",sql:"SELECT nom, age,\n  CASE WHEN age >= 40 THEN 'Senior'\n       ELSE 'Junior' END AS tranche\nFROM clients;",out:"Une colonne tranche, calculée à l’affichage"}},
-    point:"Va du plus restrictif au plus large. N’oublie jamais <code>END</code>.",
-    why:{title:"Suis ce qui arrive à tes données.",
-      body:"SQL lit l’âge de chaque personne, choisit Senior ou Junior, et ajoute une colonne au résultat. La colonne <code>age</code> dans la table, elle, ne change pas."},
-    reflex:{a:{k:"WHEN",t:"testé <b>dans l’ordre</b>, on s’arrête au premier vrai"},
-      b:{k:"END",t:"ferme le CASE — <b>obligatoire</b>"}}},
-  anatomie:[{tok:"SELECT nom, age",txt:"Colonnes affichées dans le résultat."},{tok:"CASE WHEN age >= 40 THEN 'Senior' ELSE 'Junior' END AS tranche",txt:"Colonne calculée selon l’âge."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."}],
-  exemple:"SELECT nom, age, CASE WHEN age >= 40 THEN 'Senior' ELSE 'Junior' END AS tranche FROM clients;",
-  attendu:"9 lignes, avec une colonne tranche.",
-  retenir:"<code>CASE WHEN … THEN … ELSE … END</code>. SQL s’arrête au premier <code>WHEN</code> vrai. <code>END</code> est obligatoire.",
-  piege:{t:"Oublier END",p:"C’est l’erreur la plus fréquente sur cette syntaxe."},
-  consigne:"Affiche le <code>nom</code> et une colonne <code>tranche</code> : <code>'Senior'</code> si âge ≥ 40, sinon <code>'Junior'</code>.",
-  solution:"SELECT nom, CASE WHEN age >= 40 THEN 'Senior' ELSE 'Junior' END AS tranche FROM clients;",
-  indice:"CASE WHEN … THEN … ELSE … END.",
-  richLesson:true, earlyDemo:true },
+{ id:21, titre:"CASE", résumé:"Afficher une valeur selon une condition",
+  situation:"Tu veux étiqueter chaque client selon son âge, sans ajouter de colonne dans la table :<br>– <b>Jeune</b> si moins de 30 ans<br>– <b>Adulte</b> si entre 30 et 50 ans<br>– <b>Senior</b> sinon<br><br>Dans la table <code>clients</code>, tu as notamment :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th>age</th></tr></thead><tbody><tr><td>2</td><td>Lucas</td><td>28</td></tr><tr><td>1</td><td>Sophie</td><td>34</td></tr><tr><td>6</td><td>Hugo</td><td>52</td></tr></tbody></table></div><br><br>Une personne, une étiquette. SQL lit les <code>WHEN</code> dans l’ordre, et s’arrête au premier qui est vrai.",
+    studio:{pointCards:{
+      eye:"CASE",title:"Une étiquette par ligne.",
+      walk:1,
+      lead:"<code>CASE</code> n’est pas un filtre : les 9 clients restent. Il ajoute une colonne calculée. La table, elle, ne change pas.",
+      rule:{
+        lines:[
+          {tok:"CASE",val:"",tag:"on ouvre"},
+          {tok:"WHEN",val:"age < 30 THEN 'Jeune'",tag:"premier test — si vrai, on s’arrête",keep:1},
+          {tok:"WHEN",val:"age BETWEEN 30 AND 50 THEN 'Adulte'",tag:"lu seulement si le premier est faux"},
+          {tok:"ELSE",val:"'Senior'",tag:"le filet, si rien n’a collé"},
+          {tok:"END AS categorie",val:"",tag:"on ferme, on nomme la colonne"}
+        ]
+      },
+      cards:[
+        {t:"<span class=\"pt-kw\">WHEN</span> — le premier vrai gagne",
+         b:"<p>SQL teste les <code>WHEN</code> de haut en bas. Dès qu’un test est vrai, il écrit la valeur et ignore le reste.</p><p>Lucas a 28 ans : <code>age &lt; 30</code> est vrai → <b>Jeune</b>. Le <code>WHEN</code> Adulte n’est même pas lu.</p>"},
+        {t:"<span class=\"pt-kw\">ELSE</span> — le filet",
+         b:"<p>Hugo a 52 ans : les deux <code>WHEN</code> sont faux. <code>ELSE</code> lui donne <b>Senior</b>.</p><p>Sans <code>ELSE</code>, Hugo resterait affiché… avec <code>NULL</code> à la place de la catégorie.</p>"},
+        {t:"<span class=\"pt-kw\">END</span> — obligatoire",
+         b:"<p>Oublier <code>END</code>, c’est une erreur de syntaxe. La requête ne part pas.</p><p>Nomme la colonne avec <code>AS</code>. Et range les tests du plus étroit au plus large : <code>age &lt; 30</code> avant <code>age &lt; 50</code>.</p>"}
+      ]},
+    reflex:{a:{k:"WHEN",t:"testé dans l’ordre — on s’arrête au premier vrai"},
+      b:{k:"END",t:"ferme le CASE. ELSE rattrape le reste, sinon NULL"},
+      note:"Du plus restrictif au plus large. <code>age &lt; 30</code> avant <code>age &lt; 50</code>, sinon tout le monde passe dans Adulte."},
+    },
+  anatomie:[
+    {tok:"SELECT nom, age,",txt:"Les colonnes déjà dans la table."},
+    {tok:"CASE",txt:"On ouvre l’étiquette."},
+    {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Lucas (28) s’arrête ici."},
+    {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Sophie (34) s’arrête ici."},
+    {tok:"ELSE 'Senior'",txt:"Hugo (52) tombe dans le filet."},
+    {tok:"END AS categorie",txt:"On ferme, et on nomme la nouvelle colonne."},
+    {tok:"FROM clients",txt:"Rien n’est écrit dans la table."}
+  ],
+  anatomieVariants:[
+    {k:'good',label:'CASE correct',tone:'good',lines:[
+      {tok:"SELECT nom, age,",txt:"Les colonnes déjà dans la table."},
+      {tok:"CASE",txt:"On ouvre l’étiquette."},
+      {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Le test le plus étroit, en premier."},
+      {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Lu seulement si le premier est faux."},
+      {tok:"ELSE 'Senior'",txt:"Le filet : plus de 50 ans."},
+      {tok:"END AS categorie",txt:"On ferme, on nomme."},
+      {tok:"FROM clients",txt:"La table ne change pas."}
+    ]},
+    {k:'order',label:'Mauvais ordre',tone:'bad',lines:[
+      {tok:"SELECT nom, age,",txt:"Les colonnes déjà dans la table."},
+      {tok:"CASE",txt:"On ouvre l’étiquette."},
+      {tok:"WHEN age < 50 THEN 'Adulte'",txt:"Lucas (28) est vrai ici… donc Adulte."},
+      {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Jamais lu : le premier WHEN a déjà gagné."},
+      {tok:"END AS categorie",txt:"Pas d’ELSE : Hugo (52) → NULL."},
+      {tok:"FROM clients",txt:"La requête tourne, le résultat est faux."}
+    ]}
+  ],
+  exemple:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",
+  attendu:"9 lignes. Lucas, Chloé, Gabriel → Jeune. Sophie, Emma, Nathan, Léa, Inès → Adulte. Hugo → Senior.",
+  retenir:"<code>CASE WHEN … THEN … ELSE … END</code>. SQL s’arrête au premier <code>WHEN</code> vrai. Range les tests du plus étroit au plus large. Sans <code>ELSE</code>, le reste vaut <code>NULL</code>. <code>END</code> est obligatoire.",
+  piege:{t:"Le WHEN trop large, trop tôt",
+    p:"Si tu écris <code>WHEN age &lt; 50 THEN 'Adulte'</code> avant <code>WHEN age &lt; 30 THEN 'Jeune'</code>, Lucas (28) est déjà Adulte. Le second <code>WHEN</code> n’est jamais lu. Et sans <code>ELSE</code>, Hugo (52) affiche <code>NULL</code>.",
+    exec:true,
+    sql:"SELECT nom, age,\n  CASE\n    WHEN age < 50 THEN 'Adulte'\n    WHEN age < 30 THEN 'Jeune'\n  END AS categorie\nFROM clients;",
+    fixSql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;"},
+  consigne:"Affiche le nom, l’âge et une catégorie : 'Jeune' si moins de 30 ans, 'Adulte' si entre 30 et 50 ans, 'Senior' sinon.",
+  solution:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",
+  indice:"<code>CASE WHEN</code> du plus étroit au plus large, puis <code>ELSE</code>, et n’oublie pas <code>END AS categorie</code>.",
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'good',label:'CASE correct',sql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",out:"9 lignes. Lucas, Chloé, Gabriel → Jeune. Hugo → Senior. Les autres → Adulte.",tone:'good'},
+    {k:'order',label:'Mauvais ordre',sql:"SELECT nom, age,\n  CASE\n    WHEN age < 50 THEN 'Adulte'\n    WHEN age < 30 THEN 'Jeune'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",out:"Lucas (28) devient Adulte : le premier WHEN est trop large.",tone:'bad'},
+    {k:'noelse',label:'Sans ELSE',sql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n  END AS categorie\nFROM clients;",out:"Hugo (52) n’a collé à aucun WHEN → NULL.",tone:'bad'}
+  ] },
 { id:22, titre:"Colonnes calculées", résumé:"Calculer dans le SELECT",
   situation:"Dans la table <code>produits</code>, tu veux la valeur du stock : prix × quantité, sans créer de colonne en base.",
     studio:{problem:{title:"Sans AS, l’en-tête affiche la formule.",
@@ -6978,8 +7073,8 @@ const CARTES={
     m:"Conserve <b>toutes</b> les lignes des deux tables. Sans match → <code>NULL</code> du côté manquant. Inès et l’invité restent."},
  44:{k:"Quel JOIN ?",t:"Quelles lignes garder ?",s:"INNER · LEFT · FULL · CROSS",
     m:"Demande-toi quelles lignes doivent rester, même sans correspondance. Seulement les matchs → <code>INNER JOIN</code>. Toute la gauche → <code>LEFT JOIN</code>. Les deux → <code>FULL OUTER JOIN</code>. Toutes les combinaisons → <code>CROSS JOIN</code>. Évite <code>RIGHT JOIN</code> : inverse les tables."},
- 21:{k:"CASE",t:"Fabriquer une catégorie",s:"CASE WHEN prix >= 30 THEN 'Premium'\n     ELSE 'Standard' END",
-    m:"Le si/alors/sinon du SQL. <b>SQL s’arrête au premier WHEN vrai</b> : du plus restrictif au plus large. Ne pas oublier <code>END</code>."},
+ 21:{k:"CASE",t:"Une étiquette par ligne",s:"CASE\n  WHEN age < 30 THEN 'Jeune'\n  WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n  ELSE 'Senior'\nEND",
+    m:"SQL teste les <code>WHEN</code> dans l’ordre et s’arrête au premier vrai. Du plus étroit au plus large. Sans <code>ELSE</code> → <code>NULL</code>. <code>END</code> est obligatoire. Rien n’est écrit dans la table."},
  22:{k:"Colonnes calculées",t:"Calculer dans le SELECT",s:"SELECT nom, prix * stock AS valeur\nFROM produits;",
     m:"Le SELECT accepte des expressions. Calcul à la volée, rien n’est stocké. <b>Nomme avec AS</b>, sinon l’en-tête affiche la formule."},
  23:{k:"COALESCE",t:"Remplacer les valeurs absentes",s:"COALESCE(NULLIF(TRIM(email), ''), 'Non renseigné')",
@@ -7090,8 +7185,9 @@ const QCM={
   {q:"Sophie a 3 commandes. Un LEFT JOIN clients/commandes affiche Sophie :",o:["1 fois","3 fois","0 fois"],b:1,e:"Une ligne par correspondance. Ce n’est pas un doublon accidentel : Sophie a bien 3 commandes."}],
  39:[{q:"<code>FULL OUTER JOIN</code> conserve :",o:["Seulement les lignes qui correspondent des deux côtés","Toutes les lignes de la table de gauche","Toutes les lignes des deux tables"],b:2,e:"Sans correspondance, les colonnes du côté manquant valent NULL."},
    {q:"Tous les clients + toutes les commandes (Inès et l’invité) :",o:["16 lignes avec LEFT JOIN","16 lignes avec RIGHT JOIN","17 lignes avec FULL OUTER JOIN"],b:2,e:"15 correspondances + Inès + l’invité = 17 lignes."}],
- 21:[{q:"SQL évalue les <code>WHEN</code> :",o:["Tous, et garde le dernier vrai","Dans l’ordre, et s’arrête au premier vrai","Dans un ordre imprévisible"],b:1,e:"D’où l’intérêt d’aller du plus restrictif au plus large."},
-   {q:"Un CASE se referme par :",o:["ELSE","END","STOP"],b:1,e:"Oublier le END est l’erreur la plus fréquente sur cette syntaxe."}],
+ 21:[{q:"SQL évalue les <code>WHEN</code> :",o:["Tous, et garde le dernier vrai","Dans l’ordre, et s’arrête au premier vrai","Dans un ordre imprévisible"],b:1,e:"D’où l’intérêt d’aller du plus étroit au plus large : age < 30 avant age < 50."},
+   {q:"Un CASE se referme par :",o:["ELSE","END","STOP"],b:1,e:"Oublier END est une erreur de syntaxe. ELSE, lui, est le filet — optionnel, mais sans lui le reste vaut NULL."},
+   {q:"Tu écris <code>WHEN age &lt; 50</code> avant <code>WHEN age &lt; 30</code>. Lucas (28) devient :",o:["Jeune","Adulte","NULL"],b:1,e:"28 < 50 est déjà vrai. SQL s’arrête et n’ira jamais lire le WHEN Jeune."}],
  22:[{q:"<code>SELECT prix * 0.8</code> modifie-t-il la table ?",o:["Oui, définitivement","Non, c’est un calcul d’affichage","Seulement après un COMMIT"],b:1,e:"Rien n’est stocké : l’expression est recalculée à chaque requête."},
    {q:"Sans <code>AS</code>, l’en-tête d’une colonne calculée affiche :",o:["Rien","La formule entière","Le nom de la première colonne"],b:1,e:"Nomme systématiquement tes calculs."}],
  23:[{q:"<code>COALESCE(email, 'X')</code> renvoie X quand email :",o:["Vaut 0","Est NULL","Contient un espace"],b:1,e:"Elle renvoie la première valeur non nulle de la liste."},
@@ -10731,6 +10827,34 @@ function pointDraw(card){
       <p class="jd-hint" hidden></p>
     </div>`;
   }
+  if(kind==='casewalk'){
+    const who=[
+      {k:'2',nom:'Lucas',age:28,win:0,label:'Jeune'},
+      {k:'1',nom:'Sophie',age:34,win:1,label:'Adulte'},
+      {k:'6',nom:'Hugo',age:52,win:2,label:'Senior'}
+    ];
+    const steps=[
+      {tok:'WHEN',test:'age < 30',then:'Jeune'},
+      {tok:'WHEN',test:'age BETWEEN 30 AND 50',then:'Adulte'},
+      {tok:'ELSE',test:'le reste',then:'Senior'}
+    ];
+    return `<div class="cw-walk">
+      <div class="cw-people" role="group" aria-label="Choisir une personne">
+        ${who.map(p=>`<button type="button" class="cw-who" data-k="${p.k}" data-age="${p.age}" data-win="${p.win}" data-label="${escAttr(p.label)}" data-nom="${escAttr(p.nom)}">
+          <b>${esc(p.nom)}</b><small>${p.age} ans</small>
+        </button>`).join('')}
+      </div>
+      <div class="cw-lane" aria-hidden="true">
+        ${steps.map((s,i)=>`<div class="cw-step" data-i="${i}">
+          <span class="cw-tok">${esc(s.tok)}</span>
+          <span class="cw-test">${esc(s.test)}</span>
+          <span class="cw-then">${esc(s.then)}</span>
+          <span class="cw-mark"></span>
+        </div>`).join('')}
+      </div>
+      <p class="cw-verdict" hidden></p>
+    </div>`;
+  }
   if(kind==='selfcols') return `<div class="pd-map" aria-hidden="true">
       <div class="pd-map-row"><b>c1.nom</b><i></i><span>le nom du premier client</span></div>
       <div class="pd-map-row"><b>c2.nom</b><i></i><span>le nom du second client</span></div>
@@ -10827,6 +10951,7 @@ const JOIN_SAMPLE_TABLES={
   42:[['clients',9]],
   43:[['clients',9],['commandes',16]],
   44:[['clients',9],['commandes',16]],
+  21:[['clients',9]],
   46:[['commandes',16]],
   49:[['clients',9],['commandes',16]]
 };
@@ -10985,6 +11110,116 @@ function initJoinTree(){
   const first=tree.querySelector('.jd-node');
   if(first) setTimeout(()=>set(first), prefersReduceMotion()?0:560);
 }
+function initCaseWalk(){
+  const walk=document.querySelector('#lesson-body .cw-walk');
+  if(!walk) return;
+  const verdict=walk.querySelector('.cw-verdict');
+  const steps=[...walk.querySelectorAll('.cw-step')];
+  const chips=[...walk.querySelectorAll('.cw-who')];
+  const sit=[...document.querySelectorAll('#lesson-body .situation-body table.concept-table tbody tr')];
+  sit.forEach(tr=>{
+    if(tr.classList.contains('sample-more')) return;
+    const id=tr.cells[0]&&tr.cells[0].textContent.trim();
+    if(!id) return;
+    tr.dataset.cw=id;
+    tr.tabIndex=0;
+    tr.setAttribute('role','button');
+  });
+  const paintSit=k=>{
+    sit.forEach(tr=>tr.classList.toggle('on',tr.dataset.cw===k));
+  };
+  const reset=()=>{
+    steps.forEach(s=>{
+      s.classList.remove('is-on','fail','win','skip');
+      const m=s.querySelector('.cw-mark');
+      if(m) m.textContent='';
+    });
+  };
+  const show=p=>{
+    reset();
+    const win=+p.win;
+    const reduce=prefersReduceMotion();
+    const apply=i=>{
+      const s=steps[i];
+      if(!s) return;
+      s.classList.add('is-on');
+      const m=s.querySelector('.cw-mark');
+      if(i<win){
+        s.classList.add('fail');
+        if(m) m.textContent='✕';
+      }else if(i===win){
+        s.classList.add('win');
+        if(m) m.textContent='✓';
+      }else{
+        s.classList.add('skip');
+        if(m) m.textContent='·';
+      }
+    };
+    clearTimeout(walk._cwT);
+    if(reduce){
+      steps.forEach((_,i)=>apply(i));
+    }else{
+      let i=0;
+      const tick=()=>{
+        apply(i);
+        i++;
+        if(i<=win) walk._cwT=setTimeout(tick,260);
+        else{
+          for(let j=win+1;j<steps.length;j++) apply(j);
+        }
+      };
+      walk._cwT=setTimeout(tick,40);
+    }
+    if(verdict){
+      const nom=p.nom||'';
+      const age=p.age;
+      const label=p.label||'';
+      const extra=win===0?' Les WHEN suivants ne sont pas lus.':win===1?' Le premier WHEN est faux, le second gagne.':' Aucun WHEN n’a collé : ELSE rattrape.';
+      verdict.hidden=false;
+      verdict.textContent=nom+' · '+age+' ans → '+label+'.'+extra;
+      verdict.classList.remove('on');
+      void verdict.offsetWidth;
+      verdict.classList.add('on');
+    }
+  };
+  const set=el=>{
+    if(!el) return;
+    const p={k:el.dataset.k,nom:el.dataset.nom,age:el.dataset.age,win:el.dataset.win,label:el.dataset.label};
+    chips.forEach(c=>{
+      const on=c===el;
+      c.classList.toggle('on',on);
+      c.setAttribute('aria-pressed',on?'true':'false');
+    });
+    paintSit(p.k);
+    show(p);
+  };
+  chips.forEach(c=>c.setAttribute('aria-pressed','false'));
+  walk.addEventListener('click',e=>{
+    const btn=e.target.closest('.cw-who');
+    if(!btn) return;
+    set(btn);
+    if(navigator.vibrate) navigator.vibrate(6);
+  });
+  const sitRoot=document.querySelector('#lesson-body .situation-body');
+  if(sitRoot){
+    sitRoot.addEventListener('click',e=>{
+      const tr=e.target.closest('tr[data-cw]');
+      if(!tr) return;
+      const chip=walk.querySelector('.cw-who[data-k="'+tr.dataset.cw+'"]');
+      if(chip) set(chip);
+    });
+    sitRoot.addEventListener('keydown',e=>{
+      if(e.key!=='Enter'&&e.key!==' ') return;
+      const tr=e.target.closest('tr[data-cw]');
+      if(!tr) return;
+      e.preventDefault();
+      const chip=walk.querySelector('.cw-who[data-k="'+tr.dataset.cw+'"]');
+      if(chip) set(chip);
+    });
+  }
+  const first=chips[0];
+  if(first) setTimeout(()=>set(first), prefersReduceMotion()?0:520);
+}
 function renderJoinIntroStudio(l){
   const s=l.studio||{};
   const pc=s.pointCards||{};
@@ -10993,6 +11228,10 @@ function renderJoinIntroStudio(l){
   const tree=pc.tree?`<div class="concept-block">
       <h2><span class="h2-eye">Arbre de décision</span><span class="h2-txt">Le JOIN selon ce que tu gardes.</span></h2>
       ${pointDraw({draw:'jointree'})}
+    </div>`:'';
+  const walk=pc.walk?`<div class="concept-block">
+      <h2><span class="h2-eye">Dans l’ordre</span><span class="h2-txt">SQL s’arrête au premier WHEN vrai.</span></h2>
+      ${pointDraw({draw:'casewalk'})}
     </div>`:'';
   const viz=s.viz?`<div class="concept-block">
       <h2><span class="h2-eye">Visualisation</span><span class="h2-txt">${WHY_VIZ_TITLE}</span></h2>
@@ -11004,6 +11243,7 @@ function renderJoinIntroStudio(l){
       ${s.pointCards?renderPointCards(s.pointCards):flowProseHtml(s.point)}
     </div>
     ${tree}
+    ${walk}
     ${viz}
     <!-- early-demo -->
   </div>`;
@@ -11502,6 +11742,7 @@ function renderLessonFlow(){
     addJoinSampleRows(document.getElementById('lesson-body'),current.id);
     initJoinMicro();
     initJoinTree();
+    initCaseWalk();
   }
   const fab=document.getElementById('fab');
   if(fab) fab.classList.toggle('hide', lessonStep===0||lessonStep===3);
