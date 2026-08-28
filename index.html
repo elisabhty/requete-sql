@@ -1945,6 +1945,8 @@
   .ex-load{font-family:var(--ui);font-size:12.5px;font-weight:600;color:var(--accent);background:var(--accent-soft);border:none;border-radius:8px;padding:5px 11px;cursor:pointer}
   .ex-code{font-family:var(--mono);font-size:13px;background:var(--code-bg);color:var(--code-ink);border-radius:11px;padding:12px 14px;overflow:visible;white-space:pre-wrap;word-break:break-word;line-height:1.55;touch-action:pan-y}
   .ex-code .t-kw{color:var(--t-kw)}.ex-code .t-fn{color:var(--t-fn)}.ex-code .t-str{color:var(--t-str)}.ex-code .t-num{color:var(--t-num)}.ex-code .t-com{color:var(--t-com)}
+  .ex-code .sql-mark{background:rgba(255,214,90,.42);color:var(--code-ink);border-radius:5px;padding:.06em .32em;box-decoration-break:clone;-webkit-box-decoration-break:clone;font-weight:800}
+  .ex-code .sql-mark .t-kw{color:inherit}
 
   /* ---------- Cours enrichi (ex. HAVING) ---------- */
   .lesson-wrap .card{border-radius:18px;box-shadow:0 8px 20px -16px rgba(20,20,40,.5);padding:18px;margin-bottom:14px}
@@ -6856,9 +6858,9 @@ JOIN produits
           </div>
         </div>`,
         say:"<p>La sous-requête fabrique d’abord une nouvelle table de résultats → la requête principale travaille ensuite sur cette table.</p>"}},
-    reflex:{a:{k:"Sous-requête dans <code>FROM</code>",t:"produit un résultat intermédiaire"},
-      b:{k:"<code>AS commandes_montants</code>",t:"donne un nom à ce résultat"},
-      note:"Une sous-requête utilisée dans le <code>FROM</code> est appelée une table dérivée."},
+    reflex:{a:{k:"Sous-requête dans <code>FROM</code>",t:"construit d’abord<br>une table de résultats"},
+      b:{k:"<code>AS montants</code>",t:"donne un nom<br>à cette nouvelle table"},
+      note:"Le réflexe : quand tu dois d’abord construire un résultat, puis travailler dessus, pense à une sous-requête dans <code>FROM</code>.<br><br>Une sous-requête utilisée dans le <code>FROM</code> est appelée une table dérivée."},
     viz:"subquery_from"},
   anatomie:[
     {tok:"SELECT AVG(montant)",txt:"La moyenne calculée sur le résultat intermédiaire."},
@@ -6871,8 +6873,8 @@ JOIN produits
   retenir:"Une sous-requête dans <code>FROM</code> produit un <b>résultat intermédiaire</b> que la requête principale utilise comme une table.<br><br>Ici : d’abord <code>prix * quantite</code> pour chaque commande, puis <code>AVG(montant)</code> sur ce résultat.<br><br>On l’appelle une <b>table dérivée</b> : elle doit avoir un alias, comme <code>AS commandes_montants</code>.",
   piege:{t:"Oublier l’alias",
     p:"Une sous-requête dans le <code>FROM</code> doit avoir un alias, par exemple <code>AS commandes_montants</code>. Sans ce nom, SQL ne peut pas utiliser le résultat comme une table.",
-    sql:"SELECT AVG(montant)\nFROM (\n  SELECT produits.prix * commandes.quantite AS montant\n  FROM commandes\n  JOIN produits\n    ON commandes.produit_id = produits.id\n);",
-    fixSql:"SELECT AVG(montant)\nFROM (\n  SELECT produits.prix * commandes.quantite AS montant\n  FROM commandes\n  JOIN produits\n    ON commandes.produit_id = produits.id\n) AS commandes_montants;"},
+    mark:"AS commandes_montants",
+    sql:"SELECT AVG(montant)\nFROM (\n  SELECT produits.prix * commandes.quantite AS montant\n  FROM commandes\n  JOIN produits\n    ON commandes.produit_id = produits.id\n) AS commandes_montants;"},
   consigne:"Calcule le montant moyen des commandes en utilisant une sous-requête dans le <code>FROM</code>.",
   solution:"SELECT AVG(montant)\nFROM (\n  SELECT produits.prix * commandes.quantite AS montant\n  FROM commandes\n  JOIN produits\n    ON commandes.produit_id = produits.id\n) AS commandes_montants;",
   indice:"Dans la sous-requête, calcule <code>produits.prix * commandes.quantite AS montant</code>. Donne un alias au résultat, puis calcule <code>AVG(montant)</code>.",
@@ -8628,6 +8630,15 @@ function highlight(code){
     else out+=esc(m[0]);
   }
   return out;
+}
+function highlightMark(sql,mark){
+  const html=highlight(sql);
+  if(!mark) return html;
+  const needle=highlight(mark);
+  if(!needle) return html;
+  const i=html.lastIndexOf(needle);
+  if(i<0) return html;
+  return html.slice(0,i)+'<mark class="sql-mark">'+needle+'</mark>'+html.slice(i+needle.length);
 }
 function fitSqlEditor(ta){
   if(typeof ta==='string') ta=document.getElementById(ta);
@@ -10528,12 +10539,13 @@ function piegeBlock(l){
   const piege=l&&l.piege;
   if(!piege) return '';
   const runMode=!!piege.exec;
+  const sqlHtml=sql=>piege.mark?highlightMark(sql,piege.mark):highlight(sql);
   const badSql=piege.sql
     ? runMode
       ? piegeSqlRunBlock(piege.sql)
       : `<div class="piege-sql exframe">
     <div class="xf-head"><span class="xf-name">SQL</span><div class="xf-tools">${sqlCopyBtn()}</div></div>
-    <div class="ex-code">${highlight(piege.sql)}</div>
+    <div class="ex-code">${sqlHtml(piege.sql)}</div>
   </div>`
     : '';
   const fixSql=piege.fixSql
@@ -10541,7 +10553,7 @@ function piegeBlock(l){
       ? `<div class="piege-fix">${piegeSqlRunBlock(piege.fixSql)}</div>`
       : `<div class="piege-fix"><div class="piege-sql exframe">
     <div class="xf-head"><span class="xf-name">SQL</span><div class="xf-tools">${sqlCopyBtn()}</div></div>
-    <div class="ex-code">${highlight(piege.fixSql)}</div>
+    <div class="ex-code">${sqlHtml(piege.fixSql)}</div>
   </div></div>`
     : '';
   const tail=piege.tail?`<div class="piege-tail">${flowProseHtml(piege.tail)}</div>`:'';
