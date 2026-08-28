@@ -5966,58 +5966,223 @@ FROM clients;</pre></div><p>SQL travaille ici de l’intérieur vers l’extéri
       {fn:"Assembler des textes",d:"<code>||</code>"},
       {fn:"Remplacer un NULL",d:"<code>COALESCE()</code>"}
     ]} },
-{ id:52, titre:"Fonctions numériques", résumé:"Arrondir, valeur absolue",
-  situation:"Dans la table <code>produits</code>, les prix ont des centimes : 29,90 €, 12,50 €. Tu veux les afficher arrondis à l’euro, pour une étiquette plus simple.<br><br>Avec ce que tu connais déjà, tu peux afficher chaque prix :",
-  situationSql:"SELECT nom, prix\nFROM produits;",
-  situationTail:"Tu obtiens bien les 8 prix, avec leurs centimes. Pour arrondir chaque ligne, sans calculer une moyenne sur tout le catalogue, il faut une fonction numérique.",
-    studio:{problem:{eye:"ROUND",title:"Arrondir chaque prix, pas le catalogue.",
-      body:`<div class="pt-lead"><p><code>ROUND</code> arrondit une valeur. Comme <code>LENGTH</code>, elle s’applique à <b>chaque ligne</b> : les 8 produits restent 8 lignes.</p><p><code>AVG(prix)</code> donnerait un seul chiffre pour tout le catalogue. Ce n’est pas la même famille.</p><div class="pt-syntax"><pre class="cw-syntax">ROUND(prix, 0)</pre></div><p>Le second argument est le nombre de décimales. <code>0</code> → à l’unité. 29,90 devient 30. 12,50 devient 13.</p></div>`},
-    uses:{title:"Les fonctions utiles",
+{ id:52, titre:"Fonctions numériques", résumé:"Calculer, arrondir et manipuler des nombres",
+    studio:{problem:{eye:"Fonctions numériques",title:"Calculer, arrondir et manipuler des nombres.",
+      body:`<div class="pt-lead"><p>Dans tes tables, plusieurs colonnes contiennent des nombres :</p><ul class="pt-lead-list"><li><code>produits.prix</code></li><li><code>produits.stock</code></li><li><code>commandes.quantite</code></li><li><code>clients.age</code></li></ul><p>SQL peut utiliser ces valeurs pour effectuer des calculs et les transformer.</p></div>`},
+    uses:{title:"Les calculs, un par un.",
       body:`<div class="pt-lead fn-uses">
         <div class="fn-use">
-          <p class="pt-syntax-h">1. Arrondir</p>
-          <p><code>ROUND(valeur, n)</code> arrondit à <code>n</code> décimales. Sans <code>n</code>, c’est l’unité.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ROUND(prix, 0)</pre></div>
-          <p>Fibre Prébiotique 29,90 → 30. Tisane Détox 12,50 → 13.</p>
+          <p class="pt-syntax-h">1. Les opérateurs — Faire un calcul</p>
+          <p>Dans la table <code>produits</code>, tu veux connaître le prix de deux unités de chaque produit.</p>
+          <p>Tu peux directement effectuer un calcul dans <code>SELECT</code>.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT
+    nom,
+    prix,
+    prix * 2 AS prix_pour_2
+FROM produits;</pre></div>
+          <p>Pour le Collagène Marin à 39,90, SQL calcule : 39,90 × 2 = 79,80.</p>
+          <p>Les principaux opérateurs sont :</p>
+          <div class="table-wrap"><table class="concept-table"><thead><tr><th>Opérateur</th><th>Calcul</th></tr></thead><tbody>
+            <tr><td><code>+</code></td><td>addition</td></tr>
+            <tr><td><code>-</code></td><td>soustraction</td></tr>
+            <tr><td><code>*</code></td><td>multiplication</td></tr>
+            <tr><td><code>/</code></td><td>division</td></tr>
+            <tr><td><code>%</code></td><td>reste d’une division</td></tr>
+          </tbody></table></div>
+          <p>Exemples : <code>prix + 5</code> ajoute 5. <code>stock - 2</code> retire 2. <code>prix * 3</code> multiplie par 3.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">2. Valeur absolue</p>
-          <p><code>ABS</code> enlève le signe : la distance à zéro, toujours positive.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ABS(age - 40)</pre></div>
-          <p>Sophie a 34 ans → 6. Inès a 41 ans → 1. L’écart à 40 ans, sans savoir de quel côté.</p>
+          <p class="pt-syntax-h">2. Calculer le montant d’une commande</p>
+          <p>La table <code>commandes</code> contient la quantité commandée.</p>
+          <p>La table <code>produits</code> contient le prix du produit.</p>
+          <p>Tu veux connaître le montant de chaque commande.</p>
+          <p>Après avoir relié les deux tables :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT
+    commandes.id,
+    produits.nom,
+    commandes.quantite,
+    produits.prix,
+    produits.prix * commandes.quantite AS montant
+FROM commandes
+JOIN produits
+    ON commandes.produit_id = produits.id;</pre></div>
+          <p>SQL effectue pour chaque commande : prix × quantité.</p>
+          <p>Par exemple, si un produit coûte 29,90 € et que la quantité est 2 : 29,90 × 2 = 59,80.</p>
+          <p class="fn-tip"><b>Le réflexe</b> Une colonne peut être utilisée comme un nombre normal : <code>prix * quantite</code>.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">3. Plafond et plancher</p>
-          <p><code>CEIL</code> monte à l’entier supérieur. <code>FLOOR</code> descend à l’entier inférieur.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CEIL(prix)    — 29,90 → 30
-FLOOR(prix)   — 29,90 → 29</pre></div>
-          <p><code>ROUND</code> choisit le plus proche. <code>CEIL</code> et <code>FLOOR</code> coupent toujours dans le même sens.</p>
+          <p class="pt-syntax-h">3. ROUND — Arrondir un résultat</p>
+          <p>Certains calculs peuvent produire beaucoup de chiffres après la virgule.</p>
+          <p>Tu veux limiter un résultat à 2 décimales.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ROUND(nombre, décimales)</pre></div>
+          <p>Par exemple :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT ROUND(12.345, 2);</pre></div>
+          <p>Résultat : 12,35.</p>
+          <p>Avec les produits :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT
+    nom,
+    ROUND(prix * 1.20, 2) AS prix_ttc
+FROM produits;</pre></div>
+          <p>Si le prix vaut 29,90, SQL calcule d’abord 29,90 × 1,20, puis arrondit le résultat à 2 décimales.</p>
+          <p class="fn-tip"><b>À retenir</b> <code>ROUND(prix, 2)</code> → 2 décimales. <code>ROUND(prix, 1)</code> → 1 décimale. <code>ROUND(prix)</code> → arrondi à l’entier.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">4. Attention à la division</p>
+          <p>Tu veux diviser une quantité par 2.</p>
+          <p>Avec SQLite, il faut faire attention au type des nombres utilisés.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT 10 / 3;</pre></div>
+          <p>Lorsque les deux valeurs sont des entiers, SQLite peut effectuer une division entière : 3.</p>
+          <p>alors que :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT 10 / 3.0;</pre></div>
+          <p>donne approximativement 3,3333.</p>
+          <p class="fn-tip"><b>Le réflexe</b> Si tu veux conserver les décimales, utilise au moins une valeur décimale : <code>quantite / 2.0</code> plutôt que <code>quantite / 2</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">5. ABS — Obtenir la valeur absolue</p>
+          <p>Imagine qu’après un calcul de stock, tu obtiennes −5.</p>
+          <p>Tu veux connaître uniquement l’écart, sans tenir compte du signe.</p>
+          <p><code>ABS(-5)</code> donne 5.</p>
+          <p>La syntaxe est <code>ABS(nombre)</code>.</p>
+          <p>Par exemple :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT
+    stock,
+    ABS(stock - 50) AS ecart
+FROM produits;</pre></div>
+          <p>Ici, tu mesures l’écart entre le stock réel et un objectif de 50.</p>
+          <p>Si le stock est 40 : 40 − 50 = −10, mais <code>ABS(-10)</code> = 10.</p>
+          <p class="fn-tip"><b>Le réflexe</b> « Je veux connaître l’écart sans tenir compte de + ou − » → <code>ABS()</code></p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">6. % — Obtenir le reste d’une division</p>
+          <p>Tu veux savoir si l’identifiant d’une commande est pair ou impair.</p>
+          <p>L’opérateur <code>%</code> retourne le reste d’une division.</p>
+          <p><code>10 % 2</code> donne 0, car 10 est divisible exactement par 2.</p>
+          <p>Alors que <code>11 % 2</code> donne 1.</p>
+          <p>Tu peux donc écrire :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT
+    id,
+    CASE
+        WHEN id % 2 = 0 THEN 'Pair'
+        ELSE 'Impair'
+    END AS type_id
+FROM commandes;</pre></div>
+          <p>Pourquoi ? reste = 0 → pair. reste = 1 → impair.</p>
+          <p class="fn-tip"><b>Le réflexe</b> « Je veux connaître le reste d’une division » → <code>%</code>. En SQL, <code>%</code> n’est pas un pourcentage : c’est le modulo.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">7. COALESCE dans un calcul</p>
+          <p>Tu connais déjà <code>COALESCE</code>.</p>
+          <p>Il peut également être très utile avec les nombres.</p>
+          <p>Imagine une quantité qui peut être <code>NULL</code>.</p>
+          <p>Cette opération <code>prix * quantite</code> donnerait <code>NULL</code> si <code>quantite</code> vaut <code>NULL</code>.</p>
+          <p>Tu peux prévoir une valeur de remplacement :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">prix * COALESCE(quantite, 0)</pre></div>
+          <p>Si <code>quantite</code> vaut <code>NULL</code> : <code>COALESCE(NULL, 0)</code> → 0. Le calcul peut alors continuer.</p>
+          <p class="fn-tip"><b>Attention</b> Cela ne signifie pas que <code>NULL</code> et 0 représentent toujours la même chose. Tu dois utiliser 0 uniquement si cette valeur a du sens dans la situation.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">8. NULLIF — Éviter certaines divisions problématiques</p>
+          <p>Tu veux calculer <code>stock / quantité</code>.</p>
+          <p>Mais que se passe-t-il si la quantité vaut 0 ?</p>
+          <p><code>NULLIF()</code> peut transformer une valeur précise en <code>NULL</code>.</p>
+          <p><code>NULLIF(quantite, 0)</code> signifie : si <code>quantite</code> vaut 0, retourne <code>NULL</code>. Sinon, retourne <code>quantite</code>.</p>
+          <p>Tu peux donc écrire :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">stock / NULLIF(quantite, 0)</pre></div>
+          <p>Si <code>quantite</code> = 4 : <code>stock / 4</code>.</p>
+          <p>Si <code>quantite</code> = 0 : <code>stock / NULL</code>, et le résultat devient <code>NULL</code>.</p>
+          <p class="fn-tip"><b>Le réflexe</b> <code>NULLIF(valeur, 0)</code> peut être utile lorsqu’un 0 ne doit pas être utilisé comme diviseur.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">9. RANDOM — Générer une valeur aléatoire</p>
+          <p>Tu veux sélectionner un client au hasard pour un test dans ton application.</p>
+          <p>SQLite possède <code>RANDOM()</code>.</p>
+          <p>Tu peux donc mélanger les clients :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT nom
+FROM clients
+ORDER BY RANDOM();</pre></div>
+          <p>Et pour n’en garder qu’un :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT nom
+FROM clients
+ORDER BY RANDOM()
+LIMIT 1;</pre></div>
+          <p>À chaque exécution, le client choisi peut être différent.</p>
+          <p class="fn-tip"><b>Le réflexe</b> « Je veux tirer une ligne au hasard » → <code>ORDER BY RANDOM() LIMIT 1</code></p>
         </div>
       </div>`},
-    why:{title:"Ce n’est pas une moyenne.",
-      body:"<code>ROUND(prix, 0)</code> laisse 8 lignes, chacune arrondie. <code>AVG(prix)</code> compacte le catalogue en un seul chiffre. Même parenthèses, deux familles : scalaire d’un côté, agrégation de l’autre."},
-    reflex:{a:{k:"ROUND / ABS",t:"une nouvelle valeur <b>par ligne</b>"},
-      b:{k:"AVG / SUM",t:"un chiffre qui <b>résume</b> la colonne"}}},
-  anatomie:[{tok:"SELECT nom,",txt:"Le nom du produit."},{tok:"ROUND(prix, 0)",txt:"Le prix arrondi à l’unité."},{tok:"FROM produits",txt:"La table produits est utilisée comme source."}],
-  exemple:"SELECT nom, ROUND(prix, 0)\nFROM produits;",
-  attendu:"8 lignes. Fibre Prébiotique → 30. Tisane Détox → 13. Shaker Inox → 15.",
-  retenir:"<code>ROUND(valeur, n)</code> arrondit chaque ligne à <code>n</code> décimales. <code>ABS</code> retire le signe. <code>CEIL</code> monte, <code>FLOOR</code> descend. Ce n’est pas <code>AVG</code> : le nombre de lignes ne change pas.",
-  piege:{t:"ROUND n’est pas CAST",p:"<code>ROUND(12.50, 0)</code> donne 13 : on arrondit au plus proche.<br><br><code>CAST(12.50 AS INTEGER)</code> donne 12 : on coupe les décimales, sans arrondir.<br><br>29,90 arrondi → 30. 29,90 converti en entier → 29."},
-  consigne:"Affiche le <code>nom</code> de chaque produit et son <code>prix</code> arrondi à l’unité.",
-  solution:"SELECT nom, ROUND(prix, 0) FROM produits;",
-  indice:"La fonction qui arrondit s’écrit <code>ROUND</code>. Pour l’unité, le second argument vaut <code>0</code>.",
+    why:{eye:"",title:"Combiner plusieurs calculs.",
+      body:`<div class="pt-lead"><p>C’est ici que le cours devient vraiment intéressant.</p><p>Tu veux afficher pour chaque commande : le produit, son prix, la quantité, le montant total, le montant avec une TVA fictive de 20 %, le résultat arrondi à 2 décimales.</p>
+      <div class="pt-syntax"><pre class="cw-syntax">SELECT
+    produits.nom,
+    produits.prix,
+    commandes.quantite,
+    produits.prix * commandes.quantite AS total,
+    ROUND(
+        produits.prix * commandes.quantite * 1.20,
+        2
+    ) AS total_ttc
+FROM commandes
+JOIN produits
+    ON commandes.produit_id = produits.id;</pre></div>
+      <p>SQL travaille ici progressivement :</p>
+      <div class="pt-floors" aria-label="Calcul progressif du montant TTC">
+        <div class="pt-floor-out">
+          <span class="pt-floor-lab">4. ROUND — 2 décimales</span>
+          <pre class="pt-floor-code">ROUND(…, 2)</pre>
+          <div class="pt-floor-in">
+            <span class="pt-floor-lab">3. TVA fictive</span>
+            <pre class="pt-floor-code">montant × 1.20</pre>
+            <div class="pt-floor-in">
+              <span class="pt-floor-lab">2. Montant</span>
+              <pre class="pt-floor-code">prix × quantité</pre>
+              <div class="pt-floor-in">
+                <span class="pt-floor-lab">1. Prix</span>
+                <pre class="pt-floor-code">produits.prix</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div></div>`},
+    or:{title:"L’ordre des opérations.",
+      body:`<div class="pt-lead"><p>Regarde ces deux calculs : <code>prix + 5 * 2</code> et <code>(prix + 5) * 2</code>.</p><p>Ils ne donnent pas forcément le même résultat.</p><p>SQL respecte les priorités mathématiques. La multiplication et la division sont effectuées avant l’addition et la soustraction.</p><p>Ainsi, 10 + 5 × 2 donne 20, alors que (10 + 5) × 2 donne 30.</p><p class="fn-tip"><b>Le réflexe</b> Quand un calcul devient complexe, utilise des parenthèses : <code>(prix * quantite) * 1.20</code>. Le calcul devient beaucoup plus facile à comprendre.</p>
+      <div class="fn-sgbd"><p class="pt-syntax-h">Fonctions numériques ou fonctions d’agrégation ?</p>
+      <p><code>ROUND(prix, 2)</code> et <code>ABS(stock)</code> agissent sur une valeur.</p>
+      <p>Alors que <code>AVG(prix)</code>, <code>MAX(prix)</code>, <code>MIN(prix)</code>, <code>SUM(prix)</code> travaillent sur plusieurs lignes. Ce sont des fonctions d’agrégation.</p>
+      <p>Tu peux les combiner :</p>
+      <div class="pt-syntax"><pre class="cw-syntax">SELECT ROUND(AVG(prix), 2)
+FROM produits;</pre></div>
+      <p>SQL : <code>AVG(prix)</code> → moyenne → <code>ROUND(..., 2)</code> → moyenne arrondie.</p>
+      <p>Mais <code>AVG</code>, <code>SUM</code>, <code>MIN</code>, <code>MAX</code> appartiennent au cours sur les agrégations, pas aux fonctions numériques elles-mêmes.</p></div></div>`},
+    reflex:{note:"Avant de choisir une fonction, demande-toi : <b>qu’est-ce que je veux faire avec le nombre ?</b>",
+      extra:`<ul class="fn-reflex-list"><li>Faire un calcul → <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code></li><li>Arrondir → <code>ROUND()</code></li><li>Mesurer un écart sans tenir compte du signe → <code>ABS()</code></li><li>Trouver le reste d’une division → <code>%</code></li><li>Gérer une valeur manquante → <code>COALESCE()</code></li><li>Éviter d’utiliser une valeur précise dans un calcul → <code>NULLIF()</code></li><li>Créer un résultat aléatoire → <code>RANDOM()</code></li></ul>`}},
+  anatomie:[{tok:"SELECT produits.nom, commandes.quantite,",txt:"Le produit et la quantité commandée."},{tok:"ROUND(produits.prix * commandes.quantite * 1.10, 2) AS montant",txt:"Le montant, augmenté de 10 %, arrondi à 2 décimales."},{tok:"FROM commandes JOIN produits",txt:"Les deux tables sont reliées."},{tok:"ON commandes.produit_id = produits.id",txt:"Chaque commande retrouve son produit."}],
+  exemple:"SELECT produits.nom, commandes.quantite,\n       ROUND(produits.prix * commandes.quantite * 1.10, 2) AS montant\nFROM commandes\nJOIN produits\n    ON commandes.produit_id = produits.id;",
+  attendu:"16 lignes. Fibre Prébiotique, quantité 2 → 65,78.",
+  retenir:"Une colonne se calcule comme un nombre : <code>prix * quantite</code>. <code>ROUND</code> arrondit, <code>ABS</code> ignore le signe, <code>%</code> donne le reste (ce n’est pas un pourcentage). <code>COALESCE</code> remplace un <code>NULL</code>, <code>NULLIF</code> transforme une valeur précise en <code>NULL</code>. Ces fonctions changent le résultat affiché, pas la table.",
+  piege:{t:"ROUND ne modifie pas le prix enregistré",p:"Cette requête :<br><br><code>SELECT ROUND(prix, 0) FROM produits;</code><br><br>peut afficher 30 pour un prix enregistré à 29,90. Mais la valeur contenue dans <code>produits.prix</code> reste 29,90.<br><br>Comme <code>LOWER()</code>, <code>UPPER()</code> ou <code>COALESCE()</code>, <code>ROUND()</code> dans un <code>SELECT</code> transforme le résultat obtenu, pas la valeur enregistrée dans la table.<br><br>Pour réellement modifier les données, il faudrait utiliser <code>UPDATE</code>."},
+  consigne:"Affiche le nom du produit, la quantité, et le montant de chaque commande avec une augmentation fictive de 10 %, arrondi à 2 décimales. Relie la table <code>commandes</code> et la table <code>produits</code>.",
+  solution:"SELECT produits.nom, commandes.quantite, ROUND(produits.prix * commandes.quantite * 1.10, 2) AS montant\nFROM commandes\nJOIN produits\n    ON commandes.produit_id = produits.id;",
+  indice:"<code>ROUND(produits.prix * commandes.quantite * 1.10, 2)</code>. Les tables se relient par <code>commandes.produit_id = produits.id</code>.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'select',label:'SELECT',sql:"SELECT nom, prix FROM produits;",out:"Les 8 prix, avec les centimes"},
-    {k:'round',label:'ROUND',sql:"SELECT nom, ROUND(prix, 0) FROM produits;",out:"8 lignes, prix à l’unité. 29,90 → 30.",tone:'good'},
-    {k:'abs',label:'ABS',sql:"SELECT nom, age, ABS(age - 40) AS ecart\nFROM clients;",out:"L’écart à 40 ans, toujours positif."}
+    {k:'calc',label:'× 2',sql:"SELECT nom, prix, prix * 2 AS prix_pour_2\nFROM produits;",out:"Collagène Marin : 39,90 × 2 = 79,80."},
+    {k:'montant',label:'montant',sql:"SELECT commandes.id, produits.nom, commandes.quantite, produits.prix,\n       produits.prix * commandes.quantite AS montant\nFROM commandes\nJOIN produits\n    ON commandes.produit_id = produits.id;",out:"Fibre Prébiotique, quantité 2 → 59,80."},
+    {k:'round',label:'ROUND',sql:"SELECT nom, ROUND(prix * 1.20, 2) AS prix_ttc\nFROM produits;",out:"29,90 × 1,20, puis 2 décimales."},
+    {k:'div',label:'Division',sql:"SELECT 10 / 3 AS entiers, 10 / 3.0 AS decimales;",out:"10 / 3 → 3. 10 / 3.0 → 3,3333."},
+    {k:'abs',label:'ABS',sql:"SELECT nom, stock, ABS(stock - 50) AS ecart\nFROM produits;",out:"L’écart à 50, toujours positif."},
+    {k:'ttc',label:'TVA',sql:"SELECT produits.nom, commandes.quantite,\n       ROUND(produits.prix * commandes.quantite * 1.10, 2) AS montant\nFROM commandes\nJOIN produits\n    ON commandes.produit_id = produits.id;",out:"Montant + 10 %, arrondi à 2 décimales.",tone:'good'}
   ],
-  fnCmp:{title:"Les fonctions numériques",
+  fnCmp:{title:"Le tableau réflexe",want:1,h1:"Je veux…",h2:"J’utilise",
     rows:[
-      {fn:"ROUND",d:"Arrondit à n décimales. ROUND(12.50, 0) → 13.",on:1},
-      {fn:"ABS",d:"Valeur absolue : enlève le signe."},
-      {fn:"CEIL",d:"Entier immédiatement supérieur. 29,90 → 30."},
-      {fn:"FLOOR",d:"Entier immédiatement inférieur. 29,90 → 29."}
+      {fn:"Additionner",d:"<code>+</code>"},
+      {fn:"Soustraire",d:"<code>-</code>"},
+      {fn:"Multiplier",d:"<code>*</code>"},
+      {fn:"Diviser",d:"<code>/</code>"},
+      {fn:"Obtenir le reste",d:"<code>%</code>"},
+      {fn:"Arrondir",d:"<code>ROUND()</code>"},
+      {fn:"Ignorer le signe",d:"<code>ABS()</code>"},
+      {fn:"Remplacer un NULL",d:"<code>COALESCE()</code>"},
+      {fn:"Transformer une valeur précise en NULL",d:"<code>NULLIF()</code>"},
+      {fn:"Choisir une ligne au hasard",d:"<code>RANDOM()</code>"}
     ]} },
 { id:53, titre:"Fonctions de dates et heures", résumé:"Comparer, extraire, décaler une date",
   situation:"Dans la table <code>commandes</code>, tu veux celles passées à partir du 15 juillet 2023. Une date est du texte : le format décide si le filtre a un sens.<br><br>Les dates sont déjà stockées ainsi :",
@@ -7608,8 +7773,8 @@ const CARTES={
     m:"<code>DISTINCT</code> retire les doublons du résultat. Avec plusieurs colonnes, il compare leur combinaison."},
  51:{k:"Fonctions de texte",t:"Transformer, nettoyer, découper",s:"LOWER(nom) || '-' || LOWER(ville)",
     m:"Demande-toi ce que tu veux faire au texte. Forme → <code>UPPER</code> / <code>LOWER</code>. Nettoyer → <code>TRIM</code>, <code>REPLACE</code>. Découper → <code>SUBSTR</code>. Chercher → <code>INSTR</code>. Assembler → <code>||</code>. Ces fonctions changent l’affichage, pas la table."},
- 52:{k:"Nombres",t:"Arrondir une valeur",s:"SELECT nom, ROUND(prix, 0)\nFROM produits;",
-    m:"<code>ROUND(valeur, n)</code> arrondit chaque ligne. <code>ABS</code> retire le signe. Ce n’est pas <code>AVG</code> : le nombre de lignes ne change pas."},
+ 52:{k:"Fonctions numériques",t:"Calculer, arrondir, manipuler",s:"ROUND(prix * quantite * 1.10, 2)",
+    m:"Une colonne se calcule comme un nombre. <code>ROUND</code> arrondit, <code>ABS</code> ignore le signe, <code>%</code> est le reste — pas un pourcentage. <code>NULLIF(x, 0)</code> évite de diviser par zéro. Ces fonctions changent l’affichage, pas la table."},
  53:{k:"Dates",t:"Comparer et extraire",s:"strftime('%Y-%m', date_commande)",
     m:"Écris les dates en <code>AAAA-MM-JJ</code>. <code>strftime</code> extrait une partie. <code>date(…, '+7 days')</code> décale. Le mois est un texte : <code>'07'</code>."},
  54:{k:"CAST",t:"Changer le type",s:"CAST(prix AS INTEGER)",
@@ -7714,9 +7879,12 @@ const QCM={
    {q:"Que fait <code>SUBSTR(telephone, 1, 2)</code> ?",o:["Elle récupère les deux premiers caractères","Elle supprime deux caractères","Elle cherche le chiffre 2"],b:0,e:"On commence au caractère 1, on prend une longueur de 2 : ici <code>06</code>."},
    {q:"Quelle fonction permet de trouver la position de @ dans un email ?",o:["LENGTH()","INSTR()","LOWER()"],b:1,e:"<code>INSTR(texte, texte_recherché)</code> renvoie la position."},
    {q:"Que permet <code>||</code> en SQLite ?",o:["Comparer deux textes","Assembler plusieurs textes","Supprimer les doublons"],b:1,e:"<code>||</code> concatène. Avec un <code>NULL</code>, tout le résultat devient <code>NULL</code>."}],
- 52:[{q:"<code>ROUND(12.50, 0)</code> renvoie :",o:["12","13","12.50"],b:1,e:"On arrondit au plus proche. 12,50 s’éloigne vers 13."},
-   {q:"<code>ROUND(prix, 0)</code> sur les 8 produits renvoie :",o:["1 ligne, le prix moyen arrondi","8 lignes, chaque prix arrondi","Les produits à prix rond seulement"],b:1,e:"C’est une fonction scalaire : une ligne reste une ligne."},
-   {q:"Pour obtenir 12 à partir de 12,50, sans arrondir :",o:["ROUND(12.50, 0)","CAST(12.50 AS INTEGER)","ABS(12.50)"],b:1,e:"<code>CAST</code> coupe les décimales. <code>ROUND</code> aurait donné 13."}],
+ 52:[{q:"Quelle expression calcule le montant d’une commande ?",o:["prix + quantite","prix * quantite","prix / quantite"],b:1,e:"Le montant, c’est le prix multiplié par la quantité."},
+   {q:"Que fait <code>ROUND(29.987, 2)</code> ?",o:["29","29.98","29.99"],b:2,e:"On arrondit à 2 décimales : 29,987 devient 29,99."},
+   {q:"Que retourne <code>ABS(-12)</code> ?",o:["-12","12","0"],b:1,e:"<code>ABS</code> ignore le signe : la valeur absolue de −12 est 12."},
+   {q:"Que permet <code>%</code> ?",o:["D’obtenir le reste d’une division","D’obtenir un pourcentage automatiquement","D’arrondir un nombre"],b:0,e:"En SQL, <code>%</code> est le modulo, pas un pourcentage. <code>11 % 2</code> vaut 1."},
+   {q:"Pourquoi écrire <code>10 / 3.0</code> plutôt que <code>10 / 3</code> en SQLite ?",o:["Pour obtenir un résultat avec des décimales","Pour arrondir le résultat","Pour éviter NULL"],b:0,e:"Deux entiers donnent une division entière : 10 / 3 = 3. Un 3.0 conserve les décimales."},
+   {q:"Quelle expression calcule un prix en remplaçant une quantité NULL par 0 ?",o:["prix * NULLIF(quantite, 0)","prix * COALESCE(quantite, 0)","ROUND(prix, quantite)"],b:1,e:"<code>COALESCE(quantite, 0)</code> remplace <code>NULL</code> par 0. <code>NULLIF</code> ferait l’inverse sur un 0."}],
  53:[{q:"Quelle écriture se compare dans l’ordre du calendrier ?",o:["'15-07-2023'","'2023-07-15'","'07-15-2023'"],b:1,e:"Le format <code>AAAA-MM-JJ</code> aligne l’alphabet sur le temps."},
    {q:"<code>strftime('%m', '2023-07-02')</code> renvoie :",o:["7","'07'","juillet"],b:1,e:"Le mois est un texte à deux chiffres, avec le zéro devant."},
    {q:"<code>date('2023-07-02', '+7 days')</code> donne :",o:["2023-07-02","2023-07-09","2023-07-07"],b:1,e:"On ajoute une semaine : le 2 juillet devient le 9."}],
@@ -9065,7 +9233,7 @@ function confirmImport(){
 }
 
 const KW=new Set(['SELECT','FROM','WHERE','AND','OR','NOT','ORDER','BY','ASC','DESC','LIMIT','OFFSET','DISTINCT','GROUP','HAVING','JOIN','INNER','LEFT','RIGHT','OUTER','FULL','ON','AS','IN','IS','NULL','LIKE','BETWEEN','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','UNION','ALL','EXISTS','CASE','WHEN','THEN','ELSE','END','CAST']);
-const FN=new Set(['COUNT','SUM','AVG','MIN','MAX','ROUND','ABS','CEIL','FLOOR','LENGTH','UPPER','LOWER','TRIM','LTRIM','RTRIM','SUBSTR','INSTR','REPLACE','COALESCE','STRFTIME','DATE','TYPEOF','IFNULL']);
+const FN=new Set(['COUNT','SUM','AVG','MIN','MAX','ROUND','ABS','CEIL','FLOOR','LENGTH','UPPER','LOWER','TRIM','LTRIM','RTRIM','SUBSTR','INSTR','REPLACE','COALESCE','NULLIF','RANDOM','STRFTIME','DATE','TYPEOF','IFNULL']);
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function escAttr(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function highlight(code){
@@ -12147,7 +12315,7 @@ function lessonMainTable(l){
 function testeDefaultSql(l){
   return `SELECT * FROM ${lessonMainTable(l)};`;
 }
-const TESTE_KEYS=['FULL OUTER JOIN','RIGHT JOIN','LEFT JOIN','GROUP BY','ORDER BY','SELECT *','INSERT','UPDATE','DELETE','GRANT','REVOKE','DISTINCT','BETWEEN','HAVING','WHERE','COUNT','AVG','SUM','MIN','MAX','JOIN','CASE','COALESCE','STRFTIME','LENGTH','UPPER','LOWER','TRIM','SUBSTR','INSTR','REPLACE','ROUND','ABS','CAST','LIKE','AND','OR','IN','LIMIT','SELECT'];
+const TESTE_KEYS=['FULL OUTER JOIN','RIGHT JOIN','LEFT JOIN','GROUP BY','ORDER BY','SELECT *','INSERT','UPDATE','DELETE','GRANT','REVOKE','DISTINCT','BETWEEN','HAVING','WHERE','COUNT','AVG','SUM','MIN','MAX','JOIN','CASE','COALESCE','NULLIF','RANDOM','STRFTIME','LENGTH','UPPER','LOWER','TRIM','SUBSTR','INSTR','REPLACE','ROUND','ABS','CAST','LIKE','AND','OR','IN','LIMIT','SELECT'];
 function testeKeyFrom(text){
   const u=String(text||'').toUpperCase().replace(/\s+/g,' ');
   return TESTE_KEYS.find(k=>u.includes(k))||'SELECT';
