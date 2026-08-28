@@ -376,10 +376,10 @@
   .pt-lead .pt-syntax + p{margin-top:20px}
   .pt-lead-list{margin:4px 0 0;padding:0 0 0 1.15em;display:flex;flex-direction:column;gap:8px}
   .pt-lead-list li{margin:0}
-  .coalesce-uses{display:flex;flex-direction:column;gap:20px}
-  .coalesce-use .pt-syntax-h{margin:0 0 8px}
-  .coalesce-use .pt-syntax{margin:10px 0 0}
-  .coalesce-use .pt-syntax + p{margin-top:10px}
+  .coalesce-uses,.fn-uses{display:flex;flex-direction:column;gap:20px}
+  .coalesce-use .pt-syntax-h,.fn-use .pt-syntax-h{margin:0 0 8px}
+  .coalesce-use .pt-syntax,.fn-use .pt-syntax{margin:10px 0 0}
+  .coalesce-use .pt-syntax + p,.fn-use .pt-syntax + p{margin-top:10px}
   .pt-floors{margin:0 0 12px}
   .pt-floor-out{padding:10px 12px 12px;border:1px solid rgba(91,91,214,.22);border-radius:14px;background:var(--accent-soft)}
   .pt-floor-in{margin:8px 0 8px 12px;padding:10px 12px;border:1px dashed rgba(91,91,214,.38);border-radius:12px;background:var(--surface)}
@@ -5762,6 +5762,229 @@ const MODULES = [
   richLesson:true, earlyDemo:true }
 ]},
 
+
+{ titre:"Fonctions scalaires et manipulation de chaînes / dates", sous:"Transformer une valeur, ligne par ligne", lessons:[
+{ id:51, titre:"Fonctions sur les chaînes de caractères", résumé:"LENGTH, UPPER, TRIM, coller du texte",
+  situation:"Tu prépares des étiquettes : le nom du client, et sa ville écrite en majuscules.<br><br>Dans la table <code>clients</code>, les villes sont déjà là, avec une majuscule initiale : Paris, Lyon, Marseille…<br><br>Avec ce que tu connais déjà, tu peux les afficher telles quelles :",
+  situationSql:"SELECT nom, ville\nFROM clients;",
+  situationTail:"Tu obtiens bien les 9 clients. Les textes ne bougent pas. Pour les transformer — longueur, majuscules, collage — tu utilises une fonction sur les chaînes de caractères.",
+    studio:{problem:{eye:"Fonction scalaire",title:"Une valeur par ligne, transformée.",
+      body:`<div class="pt-lead"><p>Une fonction scalaire s’applique à <b>chaque ligne</b> et renvoie une nouvelle valeur. Les 9 clients restent 9 lignes.</p><p><code>COUNT</code> ou <code>AVG</code>, elles, résument plusieurs lignes en un seul chiffre. Ici, tu ne résumes rien : tu transformes le texte.</p><div class="pt-syntax"><pre class="cw-syntax">UPPER(ville)</pre></div><p>Pour Sophie, <code>ville</code> vaut Paris → le résultat affiche <code>PARIS</code>. Dans la table, la ville reste Paris.</p></div>`},
+    uses:{title:"Les fonctions utiles",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">1. Compter les caractères</p>
+          <p><code>LENGTH</code> renvoie le nombre de caractères d’un texte.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">LENGTH(nom)</pre></div>
+          <p>Sophie → 6. Léa → 3. Gabriel → 7.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">2. Passer en majuscules ou en minuscules</p>
+          <p><code>UPPER</code> met tout en capitales. <code>LOWER</code> fait l’inverse.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">UPPER(ville)</pre></div>
+          <p>Paris → <code>PARIS</code>. Lyon → <code>LYON</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">3. Retirer les espaces aux extrémités</p>
+          <p><code>TRIM</code> enlève les espaces avant et après, pas ceux du milieu.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">TRIM('  Paris  ')</pre></div>
+          <p>→ <code>Paris</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">4. Coller deux textes</p>
+          <p>L’opérateur <code>||</code> concatène. Ce n’est pas une fonction, mais le réflexe est le même : une nouvelle valeur par ligne.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">nom || ' — ' || ville</pre></div>
+          <p>Sophie à Paris → <code>Sophie — Paris</code>.</p>
+        </div>
+      </div>`},
+    why:{title:"La table ne change pas.",
+      body:"<code>UPPER(ville)</code> affiche <code>PARIS</code>. Dans la table <code>clients</code>, la ville reste Paris. Pour modifier réellement la donnée, il faudrait un <code>UPDATE</code>."},
+    reflex:{a:{k:"LENGTH / UPPER / TRIM",t:"une nouvelle valeur <b>par ligne</b>"},
+      b:{k:"COUNT / AVG",t:"un chiffre qui <b>résume</b> plusieurs lignes"}}},
+  anatomie:[{tok:"SELECT nom,",txt:"Le nom, inchangé."},{tok:"LENGTH(nom)",txt:"Le nombre de caractères de ce nom."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."}],
+  exemple:"SELECT nom, LENGTH(nom)\nFROM clients;",
+  attendu:"9 lignes. Sophie → 6, Léa → 3, Gabriel → 7.",
+  retenir:"Une fonction scalaire transforme une valeur, ligne par ligne. <code>LENGTH</code> compte les caractères, <code>UPPER</code> / <code>LOWER</code> changent la casse, <code>TRIM</code> retire les espaces aux bords, <code>||</code> colle deux textes. La table ne change pas.",
+  piege:{t:"UPPER ignore souvent les accents",p:"En SQLite, <code>UPPER</code> ne convertit que les lettres sans accent. <code>UPPER('Léa')</code> donne <code>LéA</code>, pas <code>LÉA</code>.<br><br>Les villes de la table <code>clients</code> n’ont pas d’accent : <code>UPPER(ville)</code> donne bien <code>PARIS</code>, <code>LYON</code>…"},
+  consigne:"Affiche le <code>nom</code> de chaque client et le nombre de caractères de ce nom.",
+  solution:"SELECT nom, LENGTH(nom) FROM clients;",
+  indice:"La fonction qui compte les caractères s’écrit <code>LENGTH</code>. Place la colonne <code>nom</code> entre ses parenthèses.",
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'select',label:'SELECT',sql:"SELECT nom, ville FROM clients;",out:"Les textes tels quels"},
+    {k:'length',label:'LENGTH',sql:"SELECT nom, LENGTH(nom) FROM clients;",out:"9 lignes. Sophie → 6, Léa → 3.",tone:'good'},
+    {k:'upper',label:'UPPER',sql:"SELECT nom, UPPER(ville) FROM clients;",out:"Paris devient PARIS. La table, elle, ne change pas."}
+  ],
+  fnCmp:{title:"Les fonctions sur les chaînes",
+    rows:[
+      {fn:"LENGTH",d:"Nombre de caractères du texte.",on:1},
+      {fn:"UPPER",d:"Passe le texte en majuscules."},
+      {fn:"LOWER",d:"Passe le texte en minuscules."},
+      {fn:"TRIM",d:"Retire les espaces au début et à la fin."},
+      {fn:"||",d:"Colle deux textes l’un à la suite de l’autre."}
+    ]} },
+{ id:52, titre:"Fonctions numériques", résumé:"Arrondir, valeur absolue",
+  situation:"Dans la table <code>produits</code>, les prix ont des centimes : 29,90 €, 12,50 €. Tu veux les afficher arrondis à l’euro, pour une étiquette plus simple.<br><br>Avec ce que tu connais déjà, tu peux afficher chaque prix :",
+  situationSql:"SELECT nom, prix\nFROM produits;",
+  situationTail:"Tu obtiens bien les 8 prix, avec leurs centimes. Pour arrondir chaque ligne, sans calculer une moyenne sur tout le catalogue, il faut une fonction numérique.",
+    studio:{problem:{eye:"ROUND",title:"Arrondir chaque prix, pas le catalogue.",
+      body:`<div class="pt-lead"><p><code>ROUND</code> arrondit une valeur. Comme <code>LENGTH</code>, elle s’applique à <b>chaque ligne</b> : les 8 produits restent 8 lignes.</p><p><code>AVG(prix)</code> donnerait un seul chiffre pour tout le catalogue. Ce n’est pas la même famille.</p><div class="pt-syntax"><pre class="cw-syntax">ROUND(prix, 0)</pre></div><p>Le second argument est le nombre de décimales. <code>0</code> → à l’unité. 29,90 devient 30. 12,50 devient 13.</p></div>`},
+    uses:{title:"Les fonctions utiles",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">1. Arrondir</p>
+          <p><code>ROUND(valeur, n)</code> arrondit à <code>n</code> décimales. Sans <code>n</code>, c’est l’unité.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ROUND(prix, 0)</pre></div>
+          <p>Fibre Prébiotique 29,90 → 30. Tisane Détox 12,50 → 13.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">2. Valeur absolue</p>
+          <p><code>ABS</code> enlève le signe : la distance à zéro, toujours positive.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ABS(age - 40)</pre></div>
+          <p>Sophie a 34 ans → 6. Inès a 41 ans → 1. L’écart à 40 ans, sans savoir de quel côté.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">3. Plafond et plancher</p>
+          <p><code>CEIL</code> monte à l’entier supérieur. <code>FLOOR</code> descend à l’entier inférieur.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CEIL(prix)    — 29,90 → 30
+FLOOR(prix)   — 29,90 → 29</pre></div>
+          <p><code>ROUND</code> choisit le plus proche. <code>CEIL</code> et <code>FLOOR</code> coupent toujours dans le même sens.</p>
+        </div>
+      </div>`},
+    why:{title:"Ce n’est pas une moyenne.",
+      body:"<code>ROUND(prix, 0)</code> laisse 8 lignes, chacune arrondie. <code>AVG(prix)</code> compacte le catalogue en un seul chiffre. Même parenthèses, deux familles : scalaire d’un côté, agrégation de l’autre."},
+    reflex:{a:{k:"ROUND / ABS",t:"une nouvelle valeur <b>par ligne</b>"},
+      b:{k:"AVG / SUM",t:"un chiffre qui <b>résume</b> la colonne"}}},
+  anatomie:[{tok:"SELECT nom,",txt:"Le nom du produit."},{tok:"ROUND(prix, 0)",txt:"Le prix arrondi à l’unité."},{tok:"FROM produits",txt:"La table produits est utilisée comme source."}],
+  exemple:"SELECT nom, ROUND(prix, 0)\nFROM produits;",
+  attendu:"8 lignes. Fibre Prébiotique → 30. Tisane Détox → 13. Shaker Inox → 15.",
+  retenir:"<code>ROUND(valeur, n)</code> arrondit chaque ligne à <code>n</code> décimales. <code>ABS</code> retire le signe. <code>CEIL</code> monte, <code>FLOOR</code> descend. Ce n’est pas <code>AVG</code> : le nombre de lignes ne change pas.",
+  piege:{t:"ROUND n’est pas CAST",p:"<code>ROUND(12.50, 0)</code> donne 13 : on arrondit au plus proche.<br><br><code>CAST(12.50 AS INTEGER)</code> donne 12 : on coupe les décimales, sans arrondir.<br><br>29,90 arrondi → 30. 29,90 converti en entier → 29."},
+  consigne:"Affiche le <code>nom</code> de chaque produit et son <code>prix</code> arrondi à l’unité.",
+  solution:"SELECT nom, ROUND(prix, 0) FROM produits;",
+  indice:"La fonction qui arrondit s’écrit <code>ROUND</code>. Pour l’unité, le second argument vaut <code>0</code>.",
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'select',label:'SELECT',sql:"SELECT nom, prix FROM produits;",out:"Les 8 prix, avec les centimes"},
+    {k:'round',label:'ROUND',sql:"SELECT nom, ROUND(prix, 0) FROM produits;",out:"8 lignes, prix à l’unité. 29,90 → 30.",tone:'good'},
+    {k:'abs',label:'ABS',sql:"SELECT nom, age, ABS(age - 40) AS ecart\nFROM clients;",out:"L’écart à 40 ans, toujours positif."}
+  ],
+  fnCmp:{title:"Les fonctions numériques",
+    rows:[
+      {fn:"ROUND",d:"Arrondit à n décimales. ROUND(12.50, 0) → 13.",on:1},
+      {fn:"ABS",d:"Valeur absolue : enlève le signe."},
+      {fn:"CEIL",d:"Entier immédiatement supérieur. 29,90 → 30."},
+      {fn:"FLOOR",d:"Entier immédiatement inférieur. 29,90 → 29."}
+    ]} },
+{ id:53, titre:"Fonctions de dates et heures", résumé:"Comparer, extraire, décaler une date",
+  situation:"Dans la table <code>commandes</code>, tu veux celles passées à partir du 15 juillet 2023. Une date est du texte : le format décide si le filtre a un sens.<br><br>Les dates sont déjà stockées ainsi :",
+  situationSql:"SELECT id, date_commande\nFROM commandes;",
+  situationTail:"Le format <code>AAAA-MM-JJ</code> se compare et se trie tout seul : l’ordre alphabétique est l’ordre du calendrier. À partir de là, tu peux aussi extraire le mois, ou décaler une date.",
+    studio:{problem:{eye:"AAAA-MM-JJ",title:"Une date lisible, comparable.",
+      body:`<div class="pt-lead"><p>En SQLite, une date est du texte. Le format <b>AAAA-MM-JJ</b> se compare comme du texte, dans l’ordre du calendrier.</p><div class="pt-syntax"><pre class="cw-syntax">WHERE date_commande >= '2023-07-15'</pre></div><p><code>'2023-07-15'</code> fonctionne. <code>'15-07-2023'</code> non : l’ordre des caractères n’est plus celui des jours.</p></div>`},
+    uses:{title:"Les fonctions utiles",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">1. Comparer une période</p>
+          <p>Une date ISO se compare avec <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code>, comme un texte bien ordonné.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">WHERE date_commande >= '2023-07-15'</pre></div>
+          <p>10 commandes, à partir du 15 juillet inclus.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">2. Extraire l’année, le mois, le jour</p>
+          <p><code>strftime</code> découpe la date. <code>'%Y'</code> l’année, <code>'%m'</code> le mois, <code>'%d'</code> le jour, <code>'%Y-%m'</code> l’année-mois.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">strftime('%Y-%m', date_commande)</pre></div>
+          <p>2023-07-02 → <code>2023-07</code>. Le mois est un texte : <code>'07'</code>, pas 7.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">3. Décaler une date</p>
+          <p><code>date</code> comprend des modificateurs : <code>'+7 days'</code>, <code>'+1 month'</code>, <code>'-1 year'</code>.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">date(date_commande, '+7 days')</pre></div>
+          <p>La commande du 2 juillet → livrée le 9 juillet, si tu ajoutes une semaine.</p>
+        </div>
+      </div>`},
+    why:{title:"Le format fait le travail.",
+      body:"SQLite ne « voit » pas un calendrier : il compare des caractères. <code>AAAA-MM-JJ</code> aligne l’alphabet sur le temps. Un autre format casse les filtres et les tris."},
+    reflex:{a:{k:"AAAA-MM-JJ",t:"le format qui se <b>compare tout seul</b>"},
+      b:{k:"strftime",t:"pour extraire l’année, le mois, le jour"}}},
+  anatomie:[{tok:"SELECT id,",txt:"L’identifiant de la commande."},{tok:"strftime('%Y-%m', date_commande)",txt:"L’année et le mois, extraits de la date."},{tok:"FROM commandes",txt:"La table commandes est utilisée comme source."}],
+  exemple:"SELECT id, strftime('%Y-%m', date_commande)\nFROM commandes;",
+  attendu:"16 lignes. 14 commandes en 2023-07, 2 en 2023-08.",
+  retenir:"Écris les dates en <code>AAAA-MM-JJ</code> : ce format se compare et se trie. <code>strftime</code> extrait une partie. <code>date(…, '+7 days')</code> décale. Le mois de <code>strftime</code> est un texte : <code>'07'</code>, pas 7.",
+  piege:{t:"Le format jour / mois / année",p:"<code>'15-07-2023'</code> ne se trie pas : le jour passe avant l’année, l’ordre alphabétique n’est plus celui du calendrier.<br><br>Reste sur <code>'2023-07-15'</code>."},
+  consigne:"Affiche l’<code>id</code> de chaque commande et son mois au format <code>AAAA-MM</code>.",
+  solution:"SELECT id, strftime('%Y-%m', date_commande) FROM commandes;",
+  indice:"La fonction <code>strftime</code> extrait une partie de la date. Le motif année-mois s’écrit <code>'%Y-%m'</code>.",
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'select',label:'SELECT',sql:"SELECT id, date_commande FROM commandes;",out:"Les 16 dates, au format AAAA-MM-JJ"},
+    {k:'where',label:'Filtrer',sql:"SELECT id, date_commande FROM commandes\nWHERE date_commande >= '2023-07-15';",out:"10 commandes, à partir du 15 juillet."},
+    {k:'strftime',label:'strftime',sql:"SELECT id, strftime('%Y-%m', date_commande) AS mois\nFROM commandes;",out:"16 lignes. Juillet ou août 2023.",tone:'good'}
+  ],
+  fnCmp:{title:"Les fonctions de dates",
+    rows:[
+      {fn:"strftime",d:"Extrait une partie : année, mois, jour.",on:1},
+      {fn:"date",d:"Décale une date : +7 days, +1 month."},
+      {fn:">= 'AAAA-MM-JJ'",d:"Compare une période. Le format ISO suffit."}
+    ]} },
+{ id:54, titre:"Fonctions de conversion de types", résumé:"Changer le type d’une valeur",
+  situation:"Dans la table <code>produits</code>, les prix sont des nombres à virgule : 29,90. Tu veux les afficher en euros entiers, en coupant les centimes — pas en arrondissant.<br><br><code>ROUND(prix, 0)</code> donnerait 30 pour 29,90. Toi tu veux 29.",
+    studio:{problem:{eye:"CAST",title:"Changer le type, pas la ligne.",
+      body:`<div class="pt-lead"><p>La fonction <code>CAST</code> convertit une valeur vers un autre type. Syntaxe : <code>CAST(valeur AS type)</code>.</p><div class="pt-syntax"><pre class="cw-syntax">CAST(prix AS INTEGER)</pre></div><p>29,90 devient 29. Les décimales sont coupées, pas arrondies. Les 8 produits restent 8 lignes.</p></div>`},
+    uses:{title:"Les conversions utiles",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">1. Vers un entier</p>
+          <p><code>INTEGER</code> coupe les décimales, vers zéro.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CAST(prix AS INTEGER)</pre></div>
+          <p>29,90 → 29. 12,50 → 12. 15,00 → 15.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">2. Vers du texte</p>
+          <p><code>TEXT</code> permet ensuite de coller, de mesurer, de chercher un motif.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CAST(age AS TEXT)</pre></div>
+          <p>34 reste lisible comme <code>'34'</code>. Utile avant un <code>||</code> ou un <code>LENGTH</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">3. Demander le type actuel</p>
+          <p><code>typeof</code> dit comment SQLite voit la valeur : <code>text</code>, <code>integer</code>, <code>real</code>, <code>null</code>.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">typeof(prix)</pre></div>
+          <p>Dans la table <code>produits</code>, <code>prix</code> est <code>real</code>. Dans la table <code>clients</code>, <code>nom</code> est <code>text</code>, <code>age</code> est <code>integer</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">4. Addition ou collage ?</p>
+          <p><code>+</code> calcule. <code>||</code> colle. Le type décide du résultat.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">'10' + 5     — 15
+'10' || 5    — '105'</pre></div>
+          <p>SQLite convertit parfois tout seul. <code>CAST</code> rend l’intention explicite.</p>
+        </div>
+      </div>`},
+    why:{title:"ROUND arrondit, CAST coupe.",
+      body:"<code>ROUND(29.90, 0)</code> donne 30. <code>CAST(29.90 AS INTEGER)</code> donne 29. Même colonne, deux intentions : rapprocher, ou tronquer."},
+    reflex:{a:{k:"CAST(x AS INTEGER)",t:"coupe les décimales"},
+      b:{k:"ROUND(x, 0)",t:"arrondit au plus proche"}}},
+  anatomie:[{tok:"SELECT nom,",txt:"Le nom du produit."},{tok:"CAST(prix AS INTEGER)",txt:"Le prix converti en entier, sans arrondir."},{tok:"FROM produits",txt:"La table produits est utilisée comme source."}],
+  exemple:"SELECT nom, CAST(prix AS INTEGER)\nFROM produits;",
+  attendu:"8 lignes. Fibre Prébiotique → 29. Tisane Détox → 12. Shaker Inox → 15.",
+  retenir:"<code>CAST(valeur AS type)</code> convertit le type. <code>INTEGER</code> coupe les décimales, <code>TEXT</code> produit une chaîne, <code>REAL</code> un nombre à virgule. <code>typeof</code> dit le type actuel. Ce n’est pas <code>ROUND</code>.",
+  piege:{t:"CAST n’arrondit pas",p:"On attend parfois 30 pour 29,90 €. <code>CAST</code> répond 29 : il tronque.<br><br>Pour arrondir, c’est <code>ROUND</code>. Pour couper, c’est <code>CAST(… AS INTEGER)</code>."},
+  consigne:"Affiche le <code>nom</code> de chaque produit et son <code>prix</code> converti en entier.",
+  solution:"SELECT nom, CAST(prix AS INTEGER) FROM produits;",
+  indice:"La conversion s’écrit <code>CAST(prix AS INTEGER)</code>.",
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'select',label:'SELECT',sql:"SELECT nom, prix FROM produits;",out:"Les 8 prix, avec les centimes"},
+    {k:'round',label:'ROUND',sql:"SELECT nom, ROUND(prix, 0) FROM produits;",out:"29,90 → 30. On arrondit."},
+    {k:'cast',label:'CAST',sql:"SELECT nom, CAST(prix AS INTEGER) FROM produits;",out:"29,90 → 29. On coupe.",tone:'good'}
+  ],
+  fnCmp:{title:"Les conversions",
+    rows:[
+      {fn:"CAST(x AS INTEGER)",d:"Coupe les décimales. 29,90 → 29.",on:1},
+      {fn:"CAST(x AS TEXT)",d:"Passe la valeur en chaîne de caractères."},
+      {fn:"CAST(x AS REAL)",d:"Passe la valeur en nombre à virgule."},
+      {fn:"typeof(x)",d:"Dit le type actuel : text, integer, real, null."}
+    ]} }
+]},
 { titre:"Fonctions d’agrégation", sous:"COUNT, AVG, SUM, MIN, MAX", lessons:[
 { id:14, titre:"COUNT", résumé:"Compter les lignes",
   situation:"Tu viens d’importer la table clients. Avant de continuer, tu veux vérifier combien de personnes y sont vraiment enregistrées.<br><br>Avec ce que tu connais déjà, tu peux afficher leurs noms :",
@@ -7124,7 +7347,7 @@ const CHALLENGES=[
  {id:'c7',apres:45,titre:"Au-dessus de la moyenne",niv:'m',q:"Quels produits coûtent plus cher que le prix moyen ? Affiche le nom et le prix.",
   sol:"SELECT nom, prix FROM produits WHERE prix > (SELECT AVG(prix) FROM produits);",
   indice:"Sous-requête entre parenthèses pour la moyenne, puis comparaison."},
- {id:'c8',apres:25,titre:"Fin de mois",niv:'m',q:"Combien de commandes à partir du 20 juillet 2023 ?",
+ {id:'c8',apres:53,titre:"Fin de mois",niv:'m',q:"Combien de commandes à partir du 20 juillet 2023 ?",
   sol:"SELECT COUNT(*) FROM commandes WHERE date_commande >= '2023-07-20';",
   indice:"Les dates se comparent comme du texte au format AAAA-MM-JJ."},
  {id:'c9',apres:19,titre:"Produit vedette",niv:'m',q:"Quel produit a été commandé le plus de fois (nombre de commandes) ? Affiche le nom et le compte, le plus commandé en premier.",
@@ -7145,7 +7368,7 @@ const CHALLENGES=[
  {id:'c14',apres:16,titre:"Catégories solo",niv:'m',q:"Quelles catégories ne contiennent qu’un seul produit ? Affiche la catégorie.",
   sol:"SELECT categorie FROM produits GROUP BY categorie HAVING COUNT(*) = 1;",
   indice:"GROUP BY categorie, puis <code>HAVING COUNT(*) = 1</code>."},
- {id:'c15',apres:25,titre:"Mois le plus chargé",niv:'m',q:"Quel mois (AAAA-MM) a le plus de commandes ? Affiche mois et nombre, du plus chargé au moins chargé.",
+ {id:'c15',apres:53,titre:"Mois le plus chargé",niv:'m',q:"Quel mois (AAAA-MM) a le plus de commandes ? Affiche mois et nombre, du plus chargé au moins chargé.",
   sol:"SELECT strftime('%Y-%m', date_commande) AS mois, COUNT(*) AS nb FROM commandes GROUP BY mois ORDER BY nb DESC;",ordered:true,
   indice:"strftime('%Y-%m', …), GROUP BY, COUNT(*), ORDER BY nb DESC."},
  {id:'c16',apres:20,titre:"Panier moyen par ville",niv:'d',q:"Pour chaque ville, quantité moyenne commandée. Affiche ville et moyenne, de la plus haute à la plus basse.",
@@ -7240,6 +7463,14 @@ const CARTES={
     m:"<code>ORDER BY</code> classe les lignes ; <code>LIMIT</code> garde seulement les premières."},
  13:{k:"DISTINCT",t:"Valeurs uniques",s:"SELECT DISTINCT ville FROM clients;",
     m:"<code>DISTINCT</code> retire les doublons du résultat. Avec plusieurs colonnes, il compare leur combinaison."},
+ 51:{k:"Chaînes",t:"Transformer un texte",s:"SELECT nom, LENGTH(nom)\nFROM clients;",
+    m:"Une fonction scalaire transforme chaque ligne. <code>LENGTH</code> compte, <code>UPPER</code> / <code>LOWER</code> changent la casse, <code>TRIM</code> retire les espaces, <code>||</code> colle. La table ne change pas."},
+ 52:{k:"Nombres",t:"Arrondir une valeur",s:"SELECT nom, ROUND(prix, 0)\nFROM produits;",
+    m:"<code>ROUND(valeur, n)</code> arrondit chaque ligne. <code>ABS</code> retire le signe. Ce n’est pas <code>AVG</code> : le nombre de lignes ne change pas."},
+ 53:{k:"Dates",t:"Comparer et extraire",s:"strftime('%Y-%m', date_commande)",
+    m:"Écris les dates en <code>AAAA-MM-JJ</code>. <code>strftime</code> extrait une partie. <code>date(…, '+7 days')</code> décale. Le mois est un texte : <code>'07'</code>."},
+ 54:{k:"CAST",t:"Changer le type",s:"CAST(prix AS INTEGER)",
+    m:"<code>CAST(valeur AS type)</code> convertit. <code>INTEGER</code> coupe les décimales, sans arrondir. 29,90 → 29. Pour arrondir, c’est <code>ROUND</code>."},
  14:{k:"COUNT",t:"Compter les lignes",s:"SELECT COUNT(*) FROM table;",
     m:"<code>COUNT(*)</code> compte toutes les lignes. <code>COUNT(colonne)</code> ignore les valeurs <code>NULL</code>."},
  15:{k:"AVG",t:"La moyenne d’une colonne",s:"SELECT AVG(prix) FROM produits;",
@@ -7335,6 +7566,18 @@ const QCM={
    {q:"Comment obtenir les 3 produits les plus chers ?",o:["LIMIT 3","ORDER BY prix DESC LIMIT 3","ORDER BY prix ASC LIMIT 3"],b:1,e:"<code>DESC</code> place les prix les plus élevés en premier, puis <code>LIMIT 3</code> garde les trois premières lignes."}],
  13:[{q:"La table contient 9 clients mais seulement 6 villes différentes. Que renvoie <code>SELECT DISTINCT ville FROM clients;</code> ?",o:["9 lignes","6 lignes","3 lignes"],b:1,e:"<code>DISTINCT</code> n’affiche chaque ville qu’une seule fois."},
    {q:"Dans <code>SELECT DISTINCT ville, age FROM clients</code>, <code>DISTINCT</code> compare :",o:["Uniquement les villes","Uniquement les âges","Les combinaisons ville + âge"],b:2,e:"Avec plusieurs colonnes, l’unicité porte sur la combinaison complète des valeurs sélectionnées."}],
+ 51:[{q:"Que fait <code>LENGTH(nom)</code> ?",o:["Elle compte les clients","Elle compte les caractères de chaque nom","Elle trie les noms"],b:1,e:"Une valeur par ligne : Sophie → 6, Léa → 3."},
+   {q:"En SQLite, <code>UPPER('Léa')</code> donne :",o:["LÉA","LéA","lea"],b:1,e:"<code>UPPER</code> ne convertit en général que les lettres sans accent."},
+   {q:"<code>nom || ' — ' || ville</code> pour Sophie à Paris :",o:["Une erreur","Sophie — Paris","SophieParis"],b:1,e:"<code>||</code> colle les textes, y compris l’espace et le tiret."}],
+ 52:[{q:"<code>ROUND(12.50, 0)</code> renvoie :",o:["12","13","12.50"],b:1,e:"On arrondit au plus proche. 12,50 s’éloigne vers 13."},
+   {q:"<code>ROUND(prix, 0)</code> sur les 8 produits renvoie :",o:["1 ligne, le prix moyen arrondi","8 lignes, chaque prix arrondi","Les produits à prix rond seulement"],b:1,e:"C’est une fonction scalaire : une ligne reste une ligne."},
+   {q:"Pour obtenir 12 à partir de 12,50, sans arrondir :",o:["ROUND(12.50, 0)","CAST(12.50 AS INTEGER)","ABS(12.50)"],b:1,e:"<code>CAST</code> coupe les décimales. <code>ROUND</code> aurait donné 13."}],
+ 53:[{q:"Quelle écriture se compare dans l’ordre du calendrier ?",o:["'15-07-2023'","'2023-07-15'","'07-15-2023'"],b:1,e:"Le format <code>AAAA-MM-JJ</code> aligne l’alphabet sur le temps."},
+   {q:"<code>strftime('%m', '2023-07-02')</code> renvoie :",o:["7","'07'","juillet"],b:1,e:"Le mois est un texte à deux chiffres, avec le zéro devant."},
+   {q:"<code>date('2023-07-02', '+7 days')</code> donne :",o:["2023-07-02","2023-07-09","2023-07-07"],b:1,e:"On ajoute une semaine : le 2 juillet devient le 9."}],
+ 54:[{q:"<code>CAST(29.90 AS INTEGER)</code> renvoie :",o:["30","29","29.90"],b:1,e:"La conversion coupe les décimales, elle n’arrondit pas."},
+   {q:"<code>'10' || 5</code> donne :",o:["15","105","erreur"],b:1,e:"<code>||</code> colle. <code>+</code> aurait calculé 15."},
+   {q:"<code>typeof(prix)</code> dans la table produits :",o:["text","integer","real"],b:2,e:"<code>prix</code> est un nombre à virgule : <code>real</code>."}],
  14:[{q:"Que renvoie <code>SELECT COUNT(*) FROM clients;</code> ?",o:["Les 9 clients","Une seule valeur : 9","9 colonnes"],b:1,e:"<code>COUNT(*)</code> compte les lignes et renvoie leur nombre."},
    {q:"La table contient 9 clients, dont 2 avec un email <code>NULL</code>. Que renvoie <code>COUNT(email)</code> ?",o:["9","7","2"],b:1,e:"<code>COUNT(email)</code> ignore les <code>NULL</code> : 9 - 2 = 7."}],
  15:[{q:"Que renvoie <code>SELECT AVG(prix) FROM produits;</code> ?",o:["Le prix de chaque produit","Le prix moyen des produits","Le produit le plus cher"],b:1,e:"<code>AVG</code> additionne les prix, puis divise par 8."},
@@ -8676,8 +8919,8 @@ function confirmImport(){
   }
 }
 
-const KW=new Set(['SELECT','FROM','WHERE','AND','OR','NOT','ORDER','BY','ASC','DESC','LIMIT','OFFSET','DISTINCT','GROUP','HAVING','JOIN','INNER','LEFT','RIGHT','OUTER','FULL','ON','AS','IN','IS','NULL','LIKE','BETWEEN','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','UNION','ALL','EXISTS','CASE','WHEN','THEN','ELSE','END']);
-const FN=new Set(['COUNT','SUM','AVG','MIN','MAX','ROUND','ABS','LENGTH','UPPER','LOWER','COALESCE','STRFTIME','IFNULL']);
+const KW=new Set(['SELECT','FROM','WHERE','AND','OR','NOT','ORDER','BY','ASC','DESC','LIMIT','OFFSET','DISTINCT','GROUP','HAVING','JOIN','INNER','LEFT','RIGHT','OUTER','FULL','ON','AS','IN','IS','NULL','LIKE','BETWEEN','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','UNION','ALL','EXISTS','CASE','WHEN','THEN','ELSE','END','CAST']);
+const FN=new Set(['COUNT','SUM','AVG','MIN','MAX','ROUND','ABS','CEIL','FLOOR','LENGTH','UPPER','LOWER','TRIM','SUBSTR','REPLACE','COALESCE','STRFTIME','DATE','TYPEOF','IFNULL']);
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function escAttr(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function highlight(code){
@@ -11755,7 +11998,7 @@ function lessonMainTable(l){
 function testeDefaultSql(l){
   return `SELECT * FROM ${lessonMainTable(l)};`;
 }
-const TESTE_KEYS=['FULL OUTER JOIN','RIGHT JOIN','LEFT JOIN','GROUP BY','ORDER BY','SELECT *','INSERT','UPDATE','DELETE','GRANT','REVOKE','DISTINCT','BETWEEN','HAVING','WHERE','COUNT','AVG','SUM','MIN','MAX','JOIN','CASE','COALESCE','LIKE','AND','OR','IN','LIMIT','SELECT'];
+const TESTE_KEYS=['FULL OUTER JOIN','RIGHT JOIN','LEFT JOIN','GROUP BY','ORDER BY','SELECT *','INSERT','UPDATE','DELETE','GRANT','REVOKE','DISTINCT','BETWEEN','HAVING','WHERE','COUNT','AVG','SUM','MIN','MAX','JOIN','CASE','COALESCE','STRFTIME','LENGTH','UPPER','LOWER','TRIM','ROUND','ABS','CAST','LIKE','AND','OR','IN','LIMIT','SELECT'];
 function testeKeyFrom(text){
   const u=String(text||'').toUpperCase().replace(/\s+/g,' ');
   return TESTE_KEYS.find(k=>u.includes(k))||'SELECT';
