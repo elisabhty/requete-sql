@@ -358,6 +358,14 @@
   .pt-lead{margin:0 0 14px;font-size:15px;line-height:1.55;color:var(--ink)}
   .pt-lead p{margin:0;padding-block:2px}
   .pt-lead p+p{margin-top:10px}
+  .pt-lead .pt-syntax{margin:12px 0}
+  .pt-lead-list{margin:4px 0 0;padding:0 0 0 1.15em;display:flex;flex-direction:column;gap:8px}
+  .pt-lead-list li{margin:0}
+  .pt-floors{margin:0 0 12px}
+  .pt-floor-out{padding:10px 12px 12px;border:1px solid rgba(91,91,214,.22);border-radius:14px;background:var(--accent-soft)}
+  .pt-floor-in{margin:8px 0 8px 12px;padding:10px 12px;border:1px dashed rgba(91,91,214,.38);border-radius:12px;background:var(--surface)}
+  .pt-floor-lab{display:block;margin:0 0 6px;font-family:var(--ui);font-size:9.5px;font-weight:850;letter-spacing:.55px;text-transform:uppercase;color:var(--accent)}
+  .pt-floor-code{margin:0;font-family:var(--mono);font-size:12px;font-weight:700;line-height:1.5;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}
   .pt-intro{margin:0 0 16px;background:var(--surface);border:1px solid var(--card-border);border-radius:18px;padding:16px;box-shadow:var(--card-shadow-sm);min-width:0}
   .pt-intro .pt-lead{margin:0 0 12px}
   .pt-intro .pt-lead:last-child{margin-bottom:0}
@@ -402,6 +410,7 @@
     .pt-sql-row{padding:9px 11px}
     .pt-sql-tok,.pt-sql-val,.pt-sql-block{font-size:11.5px}
     .pt-sql-code{gap:5px}
+    .pt-floor-code{font-size:11.5px}
     .pt-rule-say{font-size:13.5px}
   }
 
@@ -6830,41 +6839,50 @@ const MODULES = [
   situation:"Tu veux connaître le montant moyen d’une commande.<br><br>Problème : dans la table <code>commandes</code>, le montant n’existe pas directement. Tu as seulement la quantité commandée, tandis que le prix se trouve dans la table <code>produits</code>.<br><br>Il faut donc procéder en deux étapes :<br><br>1. Calculer le montant de chaque commande<br><code>prix</code> × <code>quantite</code><br><br>2. Calculer la moyenne de ces montants<br><br>Pour cela, tu peux placer une première requête dans le <code>FROM</code>. Son résultat devient alors une table temporaire que la requête principale peut utiliser.<br><br>C’est ce qu’on appelle une sous-requête dans <code>FROM</code>, ou table dérivée. Cette table doit avoir un alias.",
   studio:{pointCards:{
       eye:"FROM",title:"La sous-requête crée un résultat intermédiaire.",
-      lead:"<p>Une sous-requête dans <code>FROM</code> produit un résultat que la requête principale peut utiliser comme une table.</p>",
-      rule:{lines:[
-          {sql:"SELECT commandes.quantite * produits.prix AS montant\nFROM commandes\nJOIN produits\n  ON commandes.produit_id = produits.id",tag:"calcule le montant de chaque commande",
-            preview:"<div class=\"pt-sql-preview\"><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>montant</th></tr></thead><tbody><tr><td>59,80</td></tr><tr><td>39,90</td></tr><tr><td>29,80</td></tr><tr class=\"sample-more\"><td>…</td></tr></tbody></table></div></div>"},
-          {tok:") AS",val:"montants",tag:"donne un nom au résultat intermédiaire",keep:1},
-          {tok:"SELECT AVG(montant)",val:"FROM ( … ) AS montants",tag:"calcule la moyenne à partir de ce résultat"}
-        ],
-        say:"<p>Une sous-requête utilisée dans le <code>FROM</code> est appelée une table dérivée.</p>"}},
+      lead:"<p>Une sous-requête dans la clause <code>FROM</code> (aussi appelée table dérivée ou derived table en anglais) est une requête <code>SELECT</code> placée à l’intérieur de la clause <code>FROM</code> d’une autre requête SQL. Elle est utilisée comme une table temporaire sur laquelle la requête principale peut effectuer des opérations (sélection, jointure, agrégation, etc.).</p><div class=\"pt-syntax\"><p class=\"pt-syntax-h\">Syntaxe générale</p><pre class=\"cw-syntax\">SELECT ...\nFROM (SELECT ... FROM ... WHERE ...) AS commandes_montants\nWHERE ...;</pre></div><p><b>Caractéristiques importantes</b></p><ul class=\"pt-lead-list\"><li>La sous-requête doit être entourée de parenthèses.</li><li>Elle doit obligatoirement avoir un alias (un nom temporaire) pour pouvoir être référencée dans la requête externe.<br>Exemple : <code>AS commandes_montants</code>.</li><li>Elle peut contenir des jointures, des filtres, des calculs, etc.</li><li>Elle n’est pas matérialisée physiquement (sauf optimisation du moteur), mais logiquement elle produit un ensemble de lignes et de colonnes.</li></ul>",
+      rule:{floors:`<div class="pt-floors" aria-label="Requête en deux étages">
+          <div class="pt-floor-out">
+            <span class="pt-floor-lab">Requête principale</span>
+            <pre class="pt-floor-code">SELECT AVG(montant)
+FROM (</pre>
+            <div class="pt-floor-in">
+              <span class="pt-floor-lab">Sous-requête</span>
+              <pre class="pt-floor-code">SELECT produits.prix * commandes.quantite AS montant
+FROM commandes
+JOIN produits
+    ON commandes.produit_id = produits.id</pre>
+            </div>
+            <pre class="pt-floor-code">) AS commandes_montants;</pre>
+          </div>
+        </div>`,
+        say:"<p>La sous-requête fabrique d’abord une nouvelle table de résultats → la requête principale travaille ensuite sur cette table.</p>"}},
     reflex:{a:{k:"Sous-requête dans <code>FROM</code>",t:"produit un résultat intermédiaire"},
-      b:{k:"<code>AS montants</code>",t:"donne un nom à ce résultat"},
+      b:{k:"<code>AS commandes_montants</code>",t:"donne un nom à ce résultat"},
       note:"Une sous-requête utilisée dans le <code>FROM</code> est appelée une table dérivée."},
     viz:"subquery_from"},
   anatomie:[
     {tok:"SELECT AVG(montant)",txt:"La moyenne calculée sur le résultat intermédiaire."},
-    {tok:"FROM ( … ) AS montants",txt:"La sous-requête est utilisée comme une table, avec un alias."},
-    {tok:"SELECT commandes.quantite * produits.prix AS montant",txt:"Chaque commande devient un montant."},
+    {tok:"FROM ( … ) AS commandes_montants",txt:"La sous-requête est utilisée comme une table, avec un alias."},
+    {tok:"SELECT produits.prix * commandes.quantite AS montant",txt:"Chaque commande devient un montant."},
     {tok:"FROM commandes JOIN produits ON commandes.produit_id = produits.id",txt:"Le prix vient de la table <code>produits</code>."}
   ],
-  exemple:"SELECT AVG(montant)\nFROM (\n  SELECT commandes.quantite * produits.prix AS montant\n  FROM commandes\n  JOIN produits\n    ON commandes.produit_id = produits.id\n) AS montants;",
+  exemple:"SELECT AVG(montant)\nFROM (\n  SELECT produits.prix * commandes.quantite AS montant\n  FROM commandes\n  JOIN produits\n    ON commandes.produit_id = produits.id\n) AS commandes_montants;",
   attendu:"1 ligne : la moyenne des 16 montants de commande, environ 46,72.",
-  retenir:"Une sous-requête dans <code>FROM</code> produit un <b>résultat intermédiaire</b> que la requête principale utilise comme une table.<br><br>Ici : d’abord <code>quantite * prix</code> pour chaque commande, puis <code>AVG(montant)</code> sur ce résultat.<br><br>On l’appelle une <b>table dérivée</b> : elle doit avoir un alias, comme <code>AS montants</code>.",
+  retenir:"Une sous-requête dans <code>FROM</code> produit un <b>résultat intermédiaire</b> que la requête principale utilise comme une table.<br><br>Ici : d’abord <code>prix * quantite</code> pour chaque commande, puis <code>AVG(montant)</code> sur ce résultat.<br><br>On l’appelle une <b>table dérivée</b> : elle doit avoir un alias, comme <code>AS commandes_montants</code>.",
   piege:{t:"Oublier l’alias",
-    p:"Une sous-requête dans le <code>FROM</code> doit avoir un alias, par exemple <code>AS montants</code>. Sans ce nom, SQL ne peut pas utiliser le résultat comme une table.",
-    sql:"SELECT AVG(montant)\nFROM (\n  SELECT commandes.quantite * produits.prix AS montant\n  FROM commandes\n  JOIN produits\n    ON commandes.produit_id = produits.id\n);",
-    fixSql:"SELECT AVG(montant)\nFROM (\n  SELECT commandes.quantite * produits.prix AS montant\n  FROM commandes\n  JOIN produits\n    ON commandes.produit_id = produits.id\n) AS montants;"},
+    p:"Une sous-requête dans le <code>FROM</code> doit avoir un alias, par exemple <code>AS commandes_montants</code>. Sans ce nom, SQL ne peut pas utiliser le résultat comme une table.",
+    sql:"SELECT AVG(montant)\nFROM (\n  SELECT produits.prix * commandes.quantite AS montant\n  FROM commandes\n  JOIN produits\n    ON commandes.produit_id = produits.id\n);",
+    fixSql:"SELECT AVG(montant)\nFROM (\n  SELECT produits.prix * commandes.quantite AS montant\n  FROM commandes\n  JOIN produits\n    ON commandes.produit_id = produits.id\n) AS commandes_montants;"},
   consigne:"Calcule le montant moyen des commandes en utilisant une sous-requête dans le <code>FROM</code>.",
-  solution:"SELECT AVG(montant)\nFROM (\n  SELECT commandes.quantite * produits.prix AS montant\n  FROM commandes\n  JOIN produits\n    ON commandes.produit_id = produits.id\n) AS montants;",
-  indice:"Dans la sous-requête, calcule <code>commandes.quantite * produits.prix AS montant</code>. Donne un alias au résultat, puis calcule <code>AVG(montant)</code>.",
+  solution:"SELECT AVG(montant)\nFROM (\n  SELECT produits.prix * commandes.quantite AS montant\n  FROM commandes\n  JOIN produits\n    ON commandes.produit_id = produits.id\n) AS commandes_montants;",
+  indice:"Dans la sous-requête, calcule <code>produits.prix * commandes.quantite AS montant</code>. Donne un alias au résultat, puis calcule <code>AVG(montant)</code>.",
   subqueryRecap:'from',
   richLesson:true, earlyDemo:true,
   testeVariants:[
     {k:'cmd',label:'commandes',sql:"SELECT id, produit_id, quantite\nFROM commandes;"},
     {k:'prd',label:'produits',sql:"SELECT id, nom, prix\nFROM produits;"},
-    {k:'montants',label:'Montants',sql:"SELECT commandes.quantite * produits.prix AS montant\nFROM commandes\nJOIN produits\n  ON commandes.produit_id = produits.id;"},
-    {k:'sub_from',label:'Sous-requête FROM',sql:"SELECT AVG(montant)\nFROM (\n  SELECT commandes.quantite * produits.prix AS montant\n  FROM commandes\n  JOIN produits\n    ON commandes.produit_id = produits.id\n) AS montants;",tone:'good'}
+    {k:'montants',label:'Montants',sql:"SELECT produits.prix * commandes.quantite AS montant\nFROM commandes\nJOIN produits\n  ON commandes.produit_id = produits.id;"},
+    {k:'sub_from',label:'Sous-requête FROM',sql:"SELECT AVG(montant)\nFROM (\n  SELECT produits.prix * commandes.quantite AS montant\n  FROM commandes\n  JOIN produits\n    ON commandes.produit_id = produits.id\n) AS commandes_montants;",tone:'good'}
   ] },
 { id:25, titre:"Les dates", résumé:"Filtrer sur une période",
   situation:"Dans la table <code>commandes</code>, tu veux celles passées à partir du 15 juillet 2023. Le format de la date décide si le filtre a un sens.",
@@ -7201,7 +7219,7 @@ const CARTES={
     m:"<code>NOT IN</code> cherche les absents. Un <code>NULL</code> dans la liste (commande #16) vide le résultat. Retire-le d’abord : <code>client_id IS NOT NULL</code>."},
  47:{k:"Sous-requête SELECT",t:"Une valeur par ligne",s:"SELECT nom, (SELECT COUNT(*)\n  FROM commandes\n  WHERE client_id = clients.id)\nFROM clients;",
     m:"Dans <code>SELECT</code>, la sous-requête calcule une valeur pour chaque ligne. Elle est <b>corrélée</b> : elle utilise <code>clients.id</code>. Sans ce lien, tout le monde affiche le même total."},
- 48:{k:"Sous-requête FROM",t:"Un résultat intermédiaire",s:"SELECT AVG(montant)\nFROM (\n  SELECT quantite * prix AS montant\n  FROM commandes\n  JOIN produits ON …\n) AS montants",
+ 48:{k:"Sous-requête FROM",t:"Un résultat intermédiaire",s:"SELECT AVG(montant)\nFROM (\n  SELECT prix * quantite AS montant\n  FROM commandes\n  JOIN produits ON …\n) AS commandes_montants",
     m:"Dans <code>FROM</code>, la sous-requête produit un résultat que la requête principale utilise comme une table. On l’appelle <b>table dérivée</b> : elle doit avoir un alias."},
  25:{k:"Dates",t:"Filtrer une période",s:"WHERE date_commande >= '2023-07-15'",
     m:"En SQLite les dates sont du texte. Le format <b>AAAA-MM-JJ</b> se trie tout seul. <code>strftime('%m', d)</code> extrait le mois."},
@@ -7318,7 +7336,7 @@ const QCM={
   {q:"Pourquoi écrire <code>WHERE commandes.client_id = clients.id</code> ?",o:["Pour trier le résultat","Pour relier la sous-requête à la ligne courante","Parce que JOIN l’exige"],b:1,e:"Sans ce lien, la sous-requête compte toute la table : 16 pour tout le monde."},
   {q:"Combien de commandes Inès affiche-t-elle ? Et la commande invitée ?",o:["1, et #16 est comptée pour Inès","0, et #16 n’est comptée pour personne","NULL, comme un LEFT JOIN"],b:1,e:"Aucun client_id ne vaut 9. #16 a client_id NULL : elle n’appartient à personne."}],
  48:[{q:"Une sous-requête dans <code>FROM</code> produit :",o:["Une seule valeur","Une liste pour IN","Un résultat utilisé comme une table"],b:2,e:"On lui donne un alias, puis la requête principale calcule dessus."},
-  {q:"Pourquoi écrire <code>AS montants</code> ?",o:["Pour trier le résultat","Parce que le résultat intermédiaire doit avoir un alias","Parce que AVG l’exige toujours"],b:1,e:"Une sous-requête dans FROM est une table dérivée : SQL exige un nom pour s’en servir."},
+  {q:"Pourquoi écrire <code>AS commandes_montants</code> ?",o:["Pour trier le résultat","Parce que le résultat intermédiaire doit avoir un alias","Parce que AVG l’exige toujours"],b:1,e:"Une sous-requête dans FROM est une table dérivée : SQL exige un nom pour s’en servir."},
   {q:"Que calcule la requête principale ici ?",o:["Le nombre de commandes par client","La moyenne des montants déjà calculés","La somme des prix du catalogue"],b:1,e:"La sous-requête fabrique d’abord les montants. <code>AVG(montant)</code> agrège ensuite ce résultat."}],
  25:[{q:"Pourquoi stocker les dates en AAAA-MM-JJ ?",o:["C’est le seul format accepté","L’ordre alphabétique coïncide avec l’ordre chronologique","Ça prend moins de place"],b:1,e:"On peut ainsi comparer et trier des dates comme du texte."},
    {q:"<code>strftime('%Y-%m', date)</code> renvoie :",o:["L’année seule","L’année et le mois","Le jour du mois"],b:1,e:"On tronque la date pour former des paquets mensuels."}],
@@ -10860,8 +10878,11 @@ function pointVenn(kind,gauche,droite){
 }
 function renderPtRule(rule){
   if(!rule) return '';
+  const floors=rule.floors||'';
   const lines=rule.lines||[];
-  const sqlHtml=lines.length
+  const sqlHtml=floors
+    ? floors
+    : lines.length
     ? `<div class="pt-sql">${lines.map(ln=>{
         const code=ln.sql
           ? `<span class="pt-sql-block">${esc(ln.sql)}</span>`
@@ -16142,12 +16163,12 @@ const SQL_VIZ={
     <p class="er-hint">👆 Touche Sophie : ses 3 commandes s’allument. #16 reste à part.</p>
   </div>`},
   subquery_from:{kind:'er',sample:'3 montants · puis la moyenne',stepMs:7800,phases:[
-    {k:'Calculer',d:'La sous-requête relie <code>commandes</code> et <code>produits</code>, puis calcule <code>quantite * prix</code>.',sql:'SELECT commandes.quantite * produits.prix AS montant',read:'Chaque commande devient un montant : 59,80, 39,90, 29,80…'},
-    {k:'Nommer le résultat',d:'<code>AS montants</code> donne un nom au résultat intermédiaire.',sql:') AS montants',read:'Ce résultat peut maintenant être utilisé comme une table par la requête principale.'},
-    {k:'Calculer la moyenne',d:'La requête principale lit cette table et calcule <code>AVG(montant)</code>.',sql:'SELECT AVG(montant) FROM (…) AS montants',read:'SQL agrège les montants déjà calculés. Une ligne : la moyenne.'}
+    {k:'Calculer',d:'La sous-requête relie <code>commandes</code> et <code>produits</code>, puis calcule <code>prix * quantite</code>.',sql:'SELECT produits.prix * commandes.quantite AS montant',read:'Chaque commande devient un montant : 59,80, 39,90, 29,80…'},
+    {k:'Nommer le résultat',d:'<code>AS commandes_montants</code> donne un nom au résultat intermédiaire.',sql:') AS commandes_montants',read:'Ce résultat peut maintenant être utilisé comme une table par la requête principale.'},
+    {k:'Calculer la moyenne',d:'La requête principale lit cette table et calcule <code>AVG(montant)</code>.',sql:'SELECT AVG(montant) FROM (…) AS commandes_montants',read:'SQL agrège les montants déjà calculés. Une ligne : la moyenne.'}
   ],html:`<div class="er-stage join-viz subq-from-stage">
     <section class="subq-source" aria-label="Sous-requête qui calcule les montants">
-      <div class="subq-source-head"><span>Sous-requête · exécutée d’abord</span><code>quantite * prix</code></div>
+      <div class="subq-source-head"><span>Sous-requête · exécutée d’abord</span><code>prix * quantite</code></div>
       <div class="subq-command is-head"><span>commande</span><span>calcul</span><span>montant</span></div>
       <div class="subq-command is-hit"><span>#1</span><em>2 × 29,90</em><b>59,80</b></div>
       <div class="subq-command is-hit"><span>#12</span><em>1 × 39,90</em><b>39,90</b></div>
