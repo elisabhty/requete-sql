@@ -362,7 +362,9 @@
   .join-recap.fn-cmp .fnc-std{display:block;margin-top:3px;font-family:var(--ui);font-size:10.5px;font-weight:650;line-height:1.3;letter-spacing:0;color:var(--ink-3)}
   .join-recap.fn-cmp .fnc-std.is-std{color:var(--accent);font-weight:750}
   .join-recap.fn-cmp .jr-quoi{vertical-align:top}
-  .fn-cmp-say{margin:14px 0 0}
+  /* Sans qualifier le sélecteur, la marge est écrasée par celle des
+     paragraphes du bloc et la phrase colle au tableau. */
+  .concept-block .fn-cmp-say{margin:16px 0 0}
   /* ============================================================
      « Le rôle de ON » découpé en cartes plutôt qu'en un paragraphe unique.
      Tout se replie : pas de nowrap, grilles en minmax(0,1fr), rien sous 11 px.
@@ -6383,15 +6385,11 @@ const MODULES = [
     {k:'cross',label:'CROSS JOIN',sql:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;",tone:'good'}
   ] },
 { id:44, titre:"Choisir le bon JOIN", résumé:"Quelle jointure pour quel besoin ?",
-  situation:"Tu dois relier <code>clients</code> et <code>commandes</code>. Avant d’écrire le <code>JOIN</code>, pose-toi une seule question :<br><br><b>Quelles données dois-tu absolument conserver, même s’il n’y a pas de correspondance dans l’autre table ?</b><br><br>C’est cette réponse qui choisit le type de <code>JOIN</code>.<br><br>Dans la table <code>clients</code>, tu as notamment :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>7</td><td>Léa</td></tr><tr><td>9</td><td>Inès</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, tu trouves des commandes avec <code>client_id</code>, et une commande invitée :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>2</td></tr><tr><td>8</td><td>7</td><td>4</td></tr><tr><td>16</td><td>NULL</td><td>1</td></tr></tbody></table></div><br><br>Inès n’a aucune commande. La commande <code>#16</code> n’a aucun client. Selon que tu veux les garder ou non, le <code>JOIN</code> change.",
     studio:{pointCards:{
       eye:"Quel JOIN ?",title:"Un arbre, une réponse.",
       tree:1,
-      lead:"La première question n’est pas « quel <code>JOIN</code> ? ». C’est : <b>quelles lignes dois-tu absolument garder, même sans correspondance ?</b> Suis l’arbre, il te mène au reste."},
-    reflex:{a:{k:"La question",t:"quelles lignes dois-tu absolument garder ?"},
-      b:{k:"LEFT JOIN",t:"préfère-le à RIGHT JOIN, en inversant les tables"},
-      note:"Réflexe : demande-toi d’abord ce que tu veux garder. Seulement les correspondances → <code>INNER JOIN</code>. Une table entière → <code>LEFT</code> ou <code>RIGHT JOIN</code>. Les deux → <code>FULL OUTER JOIN</code>."},
-    },
+      lead:"<p>Pour choisir le bon <code>JOIN</code>, pose-toi d’abord une question :</p><p>quelles lignes veux-tu garder, même si elles n’ont aucune correspondance ?</p><p>La réponse te guidera vers le bon <code>JOIN</code>.</p>"}},
+    noReflex:true,
   anatomie:[
     {tok:"SELECT clients.nom, commandes.quantite",txt:"Le nom du client et la quantité, s’il y en a une."},
     {tok:"FROM clients",txt:"La table de gauche : ici, celle que tu veux garder entière."},
@@ -6432,8 +6430,6 @@ const MODULES = [
   exemple:"SELECT clients.nom, commandes.quantite\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",
   attendu:"INNER JOIN : 15 lignes (Inès disparaît). LEFT JOIN : 16 lignes (Inès + NULL). RIGHT JOIN : 16 lignes (invité + NULL). FULL OUTER JOIN : 17 lignes. CROSS JOIN clients × produits : 72 lignes.",
   retenir:"Avant d’écrire le <code>JOIN</code>, demande-toi quelles lignes doivent rester, même sans correspondance.<br><br><code>INNER JOIN</code> : seulement les correspondances. <code>LEFT JOIN</code> : toute la table de gauche. <code>FULL OUTER JOIN</code> : les deux tables. <code>CROSS JOIN</code> : toutes les combinaisons, sans <code>ON</code>.<br><br>Évite <code>RIGHT JOIN</code> : inverse les tables et écris <code>LEFT JOIN</code>.",
-  piege:{t:"Un client, plusieurs lignes",
-    p:"Si Sophie a 3 commandes, un <code>LEFT JOIN</code> affiche Sophie 3 fois. Ce n’est pas un bug : une ligne par correspondance. Ne t’étonne pas du nombre de lignes."},
   consigne:"Affiche tous les clients et leurs commandes éventuelles, en gardant les clients sans commande.",
   solution:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",
   indice:"Quelle table doit rester entière ? Ici, tous les clients : <code>LEFT JOIN</code>.",
@@ -10445,7 +10441,7 @@ function havingReflexHtml(){
     <div class="agg-reflex">Si ta condition contient une fonction d’agrégation comme&nbsp;:<ul class="agg-list"><li><code>COUNT()</code></li><li><code>SUM()</code></li><li><code>AVG()</code></li><li><code>MIN()</code></li><li><code>MAX()</code></li></ul><p class="agg-cta">👉 utilise <code>HAVING</code>.</p></div>`;
 }
 function lessonReflexHtml(l){
-  if(!l) return '';
+  if(!l||l.noReflex) return '';
   if(l.studio&&l.studio.reflex) return renderReflex(l.studio.reflex);
   if(l.id===17) return havingReflexHtml();
   if(l.retenir) return flowProseHtml(l.retenir);
@@ -11592,10 +11588,7 @@ function renderJoinIntroStudio(l){
   const pc=s.pointCards||{};
   const eye=pc.eye||'La clause ON';
   const title=pc.title||'Quelles lignes correspondent.';
-  const tree=pc.tree?`<div class="concept-block">
-      <h2><span class="h2-eye">Arbre de décision</span><span class="h2-txt">Descends l’arbre, il te donne le JOIN.</span></h2>
-      ${pointDraw({draw:'jointree'})}
-    </div>`:'';
+  const tree=pc.tree?pointDraw({draw:'jointree'}):'';
   const walk=pc.walk?`<div class="concept-block">
       <h2><span class="h2-eye">Ce que ça fabrique</span><span class="h2-txt">CASE ajoute une colonne au résultat.</span></h2>
       ${pointDraw({draw:'casewalk'})}
@@ -11608,8 +11601,8 @@ function renderJoinIntroStudio(l){
     <div class="concept-block">
       <h2><span class="h2-eye">${eye}</span><span class="h2-txt">${title}</span></h2>
       ${s.pointCards?renderPointCards(s.pointCards):flowProseHtml(s.point)}
+      ${tree}
     </div>
-    ${tree}
     ${walk}
     ${viz}
     <!-- early-demo -->
@@ -12034,10 +12027,10 @@ function renderLessonFlow(){
       <div class="ls-main">
         <div class="lesson-rich${hasJoinPointCards(l)?' join-micro':''}">
           <div class="l-kicker">Cours</div><h1>${l.titre}</h1>
-          <div class="concept-block lesson-lead">
+          ${l.situation?`<div class="concept-block lesson-lead">
             <h2><span class="h2-eye">Situation</span></h2>
             <div class="situation-body">${renderSituationBody(l)}</div>
-          </div>
+          </div>`:''}
           ${lessonRichBlocks(l)}
           <div class="lesson-concept-card">${conceptHtml}</div>
           ${tailDemo}
