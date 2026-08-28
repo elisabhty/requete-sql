@@ -5087,7 +5087,7 @@
         <div>
           <div class="eyebrow">Requête · SQL</div>
           <h1>Apprendre</h1>
-          <p class="sub" id="learn-sub">29 leçons, une vraie base de données.</p>
+          <p class="sub" id="learn-sub">Une carte, ta séance, ta progression.</p>
         </div>
         <div class="learn-side">
           <button class="streak-pill" id="home-streak" type="button" onclick="switchTab('compte')" aria-label="Jours d'affilée — voir mes stats" hidden></button>
@@ -6733,26 +6733,6 @@ const MODULES = [
     {k:'groupby',label:'GROUP BY',sql:"SELECT\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie,\n  COUNT(*) AS nb\nFROM clients\nGROUP BY categorie;",out:"3 groupes : Jeune 3, Adulte 5, Senior 1."},
     {k:'where',label:'WHERE',sql:"SELECT nom, age\nFROM clients\nWHERE CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END = 'Jeune';",out:"3 lignes : Lucas, Chloé, Gabriel."}
   ] },
-{ id:22, titre:"Colonnes calculées", résumé:"Calculer dans le SELECT",
-  situation:"Dans la table <code>produits</code>, tu veux la valeur du stock : prix × quantité, sans créer de colonne en base.",
-    studio:{problem:{title:"Sans AS, l’en-tête affiche la formule.",
-      body:"Le SELECT accepte des expressions. <code>prix * stock</code> se calcule à la volée. <b>Nomme avec AS</b>, sinon l’en-tête affiche la formule."},
-    vs:{bad:{tag:"✕ Sans nom",sql:"SELECT nom, prix, stock, prix * stock FROM produits;",out:"L’en-tête s’appelle prix * stock"},
-        good:{tag:"✓ Avec AS",sql:"SELECT nom, prix, stock, prix * stock AS valeur_stock\nFROM produits;",out:"Colonne claire : valeur_stock"}},
-    point:"C’est un calcul d’affichage. Pour le garder, il faudrait un UPDATE ou une vue.",
-    why:{title:"Suis ce qui arrive à tes données.",
-      body:"SQL lit chaque produit, multiplie prix et stock, et affiche le résultat. Rien n’est enregistré dans la table. Change un prix, relance : le calcul suit."},
-    reflex:{a:{k:"prix * stock",t:"expression dans le SELECT"},
-      b:{k:"AS valeur_stock",t:"donne un <b>nom lisible</b>"}}},
-  anatomie:[{tok:"SELECT nom, prix, stock,",txt:"Colonnes réelles affichées."},{tok:"prix * stock AS valeur_stock",plain:1,txt:"Calcul du stock en valeur."},{tok:"FROM produits",txt:"La table produits est utilisée comme source."}],
-  exemple:"SELECT nom, prix, stock, prix * stock AS valeur_stock FROM produits;",
-  attendu:"8 lignes, avec la valeur du stock.",
-  retenir:"On peut calculer dans le <code>SELECT</code> : <code>prix * stock AS valeur_stock</code>. C’est un affichage : rien n’est enregistré dans la table.",
-  piege:{t:"Croire que ça s’enregistre",p:"Après la requête, la table produits n’a pas de colonne valeur_stock."},
-  consigne:"Affiche le <code>nom</code> et <code>prix</code> × <code>stock</code> dans une colonne <code>valeur_stock</code>.",
-  solution:"SELECT nom, prix * stock AS valeur_stock FROM produits;",
-  indice:"<code>prix * stock AS valeur_stock</code>.",
-  richLesson:true, earlyDemo:true },
 { id:23, titre:"COALESCE", résumé:"Remplacer les valeurs absentes",
   situation:"Dans la table <code>clients</code>, certains clients n’ont pas renseigné leur adresse e-mail : la valeur est <code>NULL</code>.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th class=\"col-hl\">email</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td class=\"col-hl\">sophie@mail.fr</td></tr><tr><td>2</td><td>Lucas</td><td class=\"col-hl\">lucas@mail.fr</td></tr><tr><td>6</td><td>Hugo</td><td class=\"col-hl null\">NULL</td></tr><tr><td>9</td><td>Inès</td><td class=\"col-hl null\">NULL</td></tr></tbody></table></div><br><br>Tu veux afficher l’e-mail de chaque client et, lorsqu’il est manquant, afficher “Non renseigné” à la place.",
     studio:{problem:{eye:"COALESCE",title:"La première valeur non NULL.",
@@ -6811,26 +6791,6 @@ const MODULES = [
       {fn:"IFNULL",moteur:"MySQL",d:"Prend exactement 2 arguments. Retourne le second si le premier est <code>NULL</code>."},
       {fn:"NVL",moteur:"Oracle",d:"Prend exactement 2 arguments. Retourne le second si le premier est <code>NULL</code>."}
     ]} },
-{ id:24, titre:"Sous-requêtes", résumé:"Une requête dans la requête",
-  situation:"Dans la table <code>produits</code>, tu veux ceux qui coûtent plus cher que la moyenne. La moyenne n’existe pas encore : tu la calcules d’abord.",
-    studio:{problem:{title:"AVG ne peut pas vivre tout seul dans un WHERE.",
-      body:"Tu as besoin d’un résultat pour en poser un autre. Une sous-requête s’écrit entre parenthèses. SQL l’exécute <b>en premier</b>, puis s’en sert."},
-    vs:{bad:{tag:"✕ AVG dans WHERE",sql:"SELECT nom, prix FROM produits\nWHERE prix > AVG(prix);",err:"Erreur : misuse of aggregate: AVG()"},
-        good:{tag:"✓ Sous-requête",sql:"SELECT nom, prix FROM produits\nWHERE prix > (SELECT AVG(prix) FROM produits);",out:"Les produits au-dessus de la moyenne"}},
-    point:"Une seule valeur → <code>&gt;</code>, <code>=</code>. Une liste → <code>IN</code>. Lis de l’intérieur vers l’extérieur.",
-    why:{title:"Suis ce qui arrive à tes données.",
-      body:"L’intérieur calcule d’abord la moyenne. Le <code>WHERE</code> extérieur compare ensuite chaque prix à ce nombre. <code>AVG</code> tout seul dans un WHERE, SQL refuse."},
-    reflex:{a:{k:"(SELECT …)",t:"s’exécute <b>en premier</b>"},
-      b:{k:"WHERE col > (…)",t:"compare à <b>une</b> valeur"}}},
-  anatomie:[{tok:"SELECT nom, prix",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM produits",txt:"La table produits est utilisée comme source."},{tok:"WHERE prix > (SELECT AVG(prix) FROM produits)",txt:"Compare chaque prix à la moyenne, calculée d’abord."}],
-  exemple:"SELECT nom, prix FROM produits WHERE prix > (SELECT AVG(prix) FROM produits);",
-  attendu:"Les produits plus chers que la moyenne.",
-  retenir:"Une sous-requête <code>(SELECT …)</code> s’exécute en premier. Un agrégat comme <code>AVG</code> ne peut pas vivre seul dans <code>WHERE</code>.",
-  piege:{t:"Agrégat nu dans WHERE",p:"AVG ne peut pas vivre dans WHERE sans sous-requête (ou HAVING)."},
-  consigne:"Affiche les clients dont l’<code>age</code> est <b>supérieur à l’âge moyen</b>.",
-  solution:"SELECT nom, age FROM clients WHERE age > (SELECT AVG(age) FROM clients);",
-  indice:"Compare à <code>(SELECT AVG(age) FROM clients)</code>.",
-  richLesson:true, earlyDemo:true },
 { id:45, titre:"Sous-requête dans WHERE avec IN", résumé:"Filtrer avec une liste issue d’une autre requête",
   situation:"Tu prépares une offre pour les clients qui ont déjà acheté le produit « Fibre Prébiotique » et tu veux retrouver leurs noms.<br><br>Le nom du client est dans la table <code>clients</code>, tandis que les achats sont enregistrés dans la table <code>commandes</code>.<br><br>Dans <code>commandes</code>, le produit « Fibre Prébiotique » (<code>produit_id = 1</code>) apparaît quatre fois :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th class=\"col-hl\">client_id</th><th>produit</th></tr></thead><tbody><tr><td>1</td><td class=\"col-hl\">1</td><td>Fibre Prébiotique</td></tr><tr><td>5</td><td class=\"col-hl\">4</td><td>Fibre Prébiotique</td></tr><tr><td>8</td><td class=\"col-hl\">7</td><td>Fibre Prébiotique</td></tr><tr><td>15</td><td class=\"col-hl\">5</td><td>Fibre Prébiotique</td></tr></tbody></table></div>",
   situationTail:"Les <code>client_id</code> associés sont 1, 4, 7 et 5.<br><br>Il faut maintenant retrouver dans la table <code>clients</code> les clients dont l’<code>id</code> appartient à cette liste.<br><br>C’est justement ce que permet une sous-requête avec <code>IN</code> : la sous-requête récupère d’abord les identifiants, puis la requête principale utilise cette liste pour filtrer les clients.",
@@ -7009,26 +6969,6 @@ JOIN produits
     {k:'prd',label:'produits',sql:"SELECT id, nom, prix\nFROM produits;"},
     {k:'sub_from',label:'Sous-requête FROM',sql:"SELECT AVG(montant)\nFROM (\n  SELECT produits.prix * commandes.quantite AS montant\n  FROM commandes\n  JOIN produits\n    ON commandes.produit_id = produits.id\n) AS commandes_montants;",tone:'good'}
   ] },
-{ id:25, titre:"Les dates", résumé:"Filtrer sur une période",
-  situation:"Dans la table <code>commandes</code>, tu veux celles passées à partir du 15 juillet 2023. Le format de la date décide si le filtre a un sens.",
-    studio:{problem:{title:"Le format AAAA-MM-JJ se compare dans le bon ordre.",
-      body:"En SQLite, une date est du texte. Le format <b>AAAA-MM-JJ</b> se compare et se trie tout seul : l’ordre alphabétique est l’ordre chronologique."},
-    vs:{bad:{tag:"✕ Jour / mois / année",sql:"SELECT id, date_commande FROM commandes\nWHERE date_commande > '15-07-2023';",out:"L’ordre des caractères ne suit plus le calendrier"},
-        good:{tag:"✓ ISO",sql:"SELECT id, date_commande FROM commandes\nWHERE date_commande >= '2023-07-15';",out:"Les commandes à partir de cette date"}},
-    point:"Écris les dates en <code>'2023-07-15'</code>, jamais en <code>'15-07-2023'</code>.",
-    why:{title:"Suis ce qui arrive à tes données.",
-      body:"SQL compare les caractères. <code>&gt;= '2023-07-15'</code> garde tout ce qui vient après, y compris le 15. Avec le format jour-mois-année, l’ordre n’est plus celui du calendrier."},
-    reflex:{a:{k:"AAAA-MM-JJ",t:"le format qui se <b>trie tout seul</b>"},
-      b:{k:"strftime",t:"pour extraire le mois, le jour…"}}},
-  anatomie:[{tok:"SELECT id, date_commande",txt:"Colonnes affichées dans le résultat."},{tok:"FROM commandes",txt:"La table commandes est utilisée comme source."},{tok:"WHERE date_commande >= '2023-07-15'",txt:"À partir de cette date, format ISO, borne incluse."}],
-  exemple:"SELECT COUNT(*) FROM commandes WHERE date_commande >= '2023-07-15';",
-  attendu:"Le nombre de commandes depuis cette date.",
-  retenir:"Écris les dates en <code>AAAA-MM-JJ</code>. Ce format se compare et se trie tout seul.",
-  piege:{t:"Format local",p:"JJ-MM-AAAA ne se trie pas. Reste sur AAAA-MM-JJ."},
-  consigne:"Compte les commandes passées <b>avant</b> le <code>'2023-07-15'</code>.",
-  solution:"SELECT COUNT(*) FROM commandes WHERE date_commande < '2023-07-15';",
-  indice:"<code>WHERE date_commande &lt; '2023-07-15'</code>.",
-  richLesson:true, earlyDemo:true }
 ]},
 
 { titre:"Modifier", sous:"Écrire dans la base", lessons:[
@@ -7174,7 +7114,7 @@ const CHALLENGES=[
  {id:'c6',apres:7,titre:"Fiches incomplètes",niv:'f',q:"Combien de clients n’ont pas d’email renseigné ?",
   sol:"SELECT COUNT(*) FROM clients WHERE email IS NULL;",
   indice:"COUNT(*) avec un filtre IS NULL."},
- {id:'c7',apres:24,titre:"Au-dessus de la moyenne",niv:'m',q:"Quels produits coûtent plus cher que le prix moyen ? Affiche le nom et le prix.",
+ {id:'c7',apres:45,titre:"Au-dessus de la moyenne",niv:'m',q:"Quels produits coûtent plus cher que le prix moyen ? Affiche le nom et le prix.",
   sol:"SELECT nom, prix FROM produits WHERE prix > (SELECT AVG(prix) FROM produits);",
   indice:"Sous-requête entre parenthèses pour la moyenne, puis comparaison."},
  {id:'c8',apres:25,titre:"Fin de mois",niv:'m',q:"Combien de commandes à partir du 20 juillet 2023 ?",
@@ -7332,12 +7272,10 @@ const CARTES={
     m:"Demande-toi quelles lignes doivent rester, même sans correspondance. Seulement les matchs → <code>INNER JOIN</code>. Toute la gauche → <code>LEFT JOIN</code>. Les deux → <code>FULL OUTER JOIN</code>. Toutes les combinaisons → <code>CROSS JOIN</code>. Évite <code>RIGHT JOIN</code> : inverse les tables."},
  21:{k:"CASE",t:"Afficher une valeur selon une condition",s:"CASE expression\n    WHEN valeur1 THEN resultat1\n    ELSE resultat_defaut\nEND",
     m:"L’expression <code>CASE</code> permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else, intégré dans les requêtes SQL.<br><br><b>CASE simple</b> : Compare une colonne à plusieurs valeurs précises. <b>CASE recherché</b> : Teste plusieurs conditions, l’une après l’autre.<br><br><code>ELSE</code> est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est <code>NULL</code>."},
- 22:{k:"Colonnes calculées",t:"Calculer dans le SELECT",s:"SELECT nom, prix * stock AS valeur\nFROM produits;",
-    m:"Le SELECT accepte des expressions. Calcul à la volée, rien n’est stocké. <b>Nomme avec AS</b>, sinon l’en-tête affiche la formule."},
+
  23:{k:"COALESCE",t:"Remplacer les valeurs absentes",s:"COALESCE(NULLIF(TRIM(email), ''), 'Non renseigné')",
     m:"Renvoie la première valeur non nulle. Habillage d’affichage uniquement. Utile en calcul : toute opération avec NULL donne NULL."},
- 24:{k:"Sous-requête",t:"Une requête dans la requête",s:"WHERE prix > (SELECT AVG(prix) FROM produits)",
-    m:"Exécutée en premier, son résultat devient une valeur. Une seule valeur → <code>=</code>, <code>&gt;</code>. Une liste → <code>IN</code>. Lis de l’intérieur vers l’extérieur."},
+
  45:{k:"IN + sous-requête",t:"Filtrer avec une liste",s:"WHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n)",
     m:"La sous-requête fabrique une <b>liste</b>. <code>IN</code> cherche ensuite si <code>clients.id</code> y figure. Une seule colonne dans la sous-requête. Pas <code>=</code> : plusieurs valeurs sont possibles."},
  46:{k:"NOT IN",t:"Exclure une liste, sans NULL",s:"WHERE clients.id NOT IN (\n  SELECT client_id FROM commandes\n  WHERE client_id IS NOT NULL\n)",
@@ -7346,8 +7284,7 @@ const CARTES={
     m:"Dans <code>SELECT</code>, la sous-requête calcule une valeur pour chaque ligne. Elle est <b>corrélée</b> : elle utilise <code>clients.id</code>. Sans ce lien, tout le monde affiche le même total."},
  48:{k:"Sous-requête FROM",t:"Un résultat intermédiaire",s:"SELECT AVG(montant)\nFROM (\n  SELECT prix * quantite AS montant\n  FROM commandes\n  JOIN produits ON …\n) AS commandes_montants",
     m:"Dans <code>FROM</code>, la sous-requête produit un résultat que la requête principale utilise comme une table. On l’appelle <b>table dérivée</b> : elle doit avoir un alias."},
- 25:{k:"Dates",t:"Filtrer une période",s:"WHERE date_commande >= '2023-07-15'",
-    m:"En SQLite les dates sont du texte. Le format <b>AAAA-MM-JJ</b> se trie tout seul. <code>strftime('%m', d)</code> extrait le mois."},
+
  26:{k:"INSERT",t:"Ajouter une ligne",s:"INSERT INTO clients (nom, ville)\nVALUES ('Théo', 'Lille');",
     m:"Le lien colonnes ↔ valeurs est <b>positionnel</b>. Nomme les colonnes. Les omises passent à NULL ; la clé primaire se remplit seule."},
  27:{k:"UPDATE",t:"Modifier des lignes",s:"UPDATE clients SET email = '…' WHERE id = 6;",
@@ -7445,12 +7382,10 @@ const QCM={
  21:[{q:"SQL évalue les <code>WHEN</code> :",o:["Tous, et garde le dernier vrai","Dans l’ordre, et s’arrête au premier vrai","Dans un ordre imprévisible"],b:1,e:"D’où l’intérêt d’aller du plus étroit au plus large : age < 30 avant age < 50."},
    {q:"Un CASE se referme par :",o:["ELSE","END","STOP"],b:1,e:"Oublier END est une erreur de syntaxe. ELSE, lui, est le filet — optionnel, mais sans lui le reste vaut NULL."},
    {q:"Pour tester <code>age &lt; 30</code>, tu écris :",o:["CASE age WHEN < 30 THEN 'Jeune'","CASE WHEN age < 30 THEN 'Jeune'","CASE age < 30 WHEN 'Jeune'"],b:1,e:"Un seuil n’est pas une égalité. Il faut le CASE recherché : WHEN suivi d’une condition."}],
- 22:[{q:"<code>SELECT prix * 0.8</code> modifie-t-il la table ?",o:["Oui, définitivement","Non, c’est un calcul d’affichage","Seulement après un COMMIT"],b:1,e:"Rien n’est stocké : l’expression est recalculée à chaque requête."},
-   {q:"Sans <code>AS</code>, l’en-tête d’une colonne calculée affiche :",o:["Rien","La formule entière","Le nom de la première colonne"],b:1,e:"Nomme systématiquement tes calculs."}],
+
  23:[{q:"<code>COALESCE(email, 'X')</code> renvoie X quand email :",o:["Vaut 0","Est NULL","Contient un espace"],b:1,e:"Elle renvoie la première valeur non nulle de la liste."},
    {q:"Après un COALESCE, la valeur stockée dans la table :",o:["Est modifiée","Reste NULL","Est supprimée"],b:1,e:"Habillage d’affichage. Pour modifier, il faut un UPDATE."}],
- 24:[{q:"Une sous-requête comparée avec <code>></code> doit renvoyer :",o:["Une seule valeur","Une liste de valeurs","Une table entière"],b:0,e:"Pour comparer à une liste, utilise <code>IN</code>."},
-   {q:"Dans quel ordre lire une requête à sous-requête ?",o:["De gauche à droite","De l’intérieur des parenthèses vers l’extérieur","De la fin vers le début"],b:1,e:"SQL exécute l’intérieur d’abord, puis utilise le résultat."}],
+
  45:[{q:"Avec <code>IN</code>, la sous-requête sert à :",o:["Calculer une moyenne","Fabriquer une liste de valeurs","Renommer une table"],b:1,e:"<code>IN</code> teste si une valeur appartient à cette liste."},
   {q:"Pourquoi écrire <code>IN</code> plutôt que <code>=</code> ici ?",o:["C’est plus rapide","Parce que la sous-requête peut renvoyer plusieurs client_id","Parce que SQL refuse = avec une sous-requête"],b:1,e:"<code>=</code> attend une seule valeur. Plusieurs clients ont commandé la « Fibre Prébiotique »."},
   {q:"La sous-requête utilisée avec <code>IN</code> doit renvoyer :",o:["Une seule colonne","Toutes les colonnes de commandes","Deux colonnes, id et nom"],b:0,e:"On compare <code>clients.id</code> à une liste d’identifiants, pas à des lignes entières."}],
@@ -7463,8 +7398,7 @@ const QCM={
  48:[{q:"Une sous-requête dans <code>FROM</code> produit :",o:["Une seule valeur","Une liste pour IN","Un résultat utilisé comme une table"],b:2,e:"On lui donne un alias, puis la requête principale calcule dessus."},
   {q:"Pourquoi écrire <code>AS commandes_montants</code> ?",o:["Pour trier le résultat","Parce que le résultat intermédiaire doit avoir un alias","Parce que AVG l’exige toujours"],b:1,e:"Une sous-requête dans FROM est une table dérivée : SQL exige un nom pour s’en servir."},
   {q:"Que calcule la requête principale ici ?",o:["Le nombre de commandes par client","La moyenne des montants déjà calculés","La somme des prix du catalogue"],b:1,e:"La sous-requête fabrique d’abord les montants. <code>AVG(montant)</code> agrège ensuite ce résultat."}],
- 25:[{q:"Pourquoi stocker les dates en AAAA-MM-JJ ?",o:["C’est le seul format accepté","L’ordre alphabétique coïncide avec l’ordre chronologique","Ça prend moins de place"],b:1,e:"On peut ainsi comparer et trier des dates comme du texte."},
-   {q:"<code>strftime('%Y-%m', date)</code> renvoie :",o:["L’année seule","L’année et le mois","Le jour du mois"],b:1,e:"On tronque la date pour former des paquets mensuels."}],
+
  26:[{q:"Les colonnes non citées dans un INSERT prennent :",o:["Leur DEFAULT si défini, sinon NULL","Toujours 0","La valeur de la ligne précédente"],b:0,e:"Une colonne omise reçoit son <code>DEFAULT</code> si la table en définit un ; sinon elle reçoit généralement <code>NULL</code>."},
    {q:"Le lien entre colonnes et valeurs est :",o:["Par nom","Par position","Alphabétique"],b:1,e:"D’où le risque de mettre une ville dans la colonne nom sans message d’erreur."}],
  27:[{q:"Un <code>UPDATE</code> sans <code>WHERE</code> :",o:["Échoue","Modifie toute la table, sans avertissement","Ne modifie que la première ligne"],b:1,e:"Accident classique — et coûteux."},
