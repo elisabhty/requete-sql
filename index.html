@@ -351,6 +351,10 @@
   .join-recap .jr-quoi{hyphens:auto;-webkit-hyphens:auto}
     .join-recap td{padding:10px 9px}
   }
+  .join-recap.fn-cmp thead th:first-child,.join-recap.fn-cmp td:first-child{width:22%}
+  .join-recap.fn-cmp thead th:nth-child(2),.join-recap.fn-cmp td:nth-child(2){width:30%}
+  .join-recap.fn-cmp td:first-child{font-family:var(--mono);font-weight:700}
+  .fn-cmp-say{margin:14px 0 0}
   /* ============================================================
      « Le rôle de ON » découpé en cartes plutôt qu'en un paragraphe unique.
      Tout se replie : pas de nowrap, grilles en minmax(0,1fr), rien sous 11 px.
@@ -6684,7 +6688,15 @@ const MODULES = [
   consigne:"Affiche le <code>nom</code> et l’email, en remplaçant les valeurs <code>NULL</code> par <code>'Non renseigné'</code> (colonne <code>contact</code>).",
   solution:"SELECT nom, COALESCE(email, 'Non renseigné') AS contact FROM clients;",
   indice:"<code>COALESCE(email, 'Non renseigné') AS contact</code>.",
-  richLesson:true, earlyDemo:true },
+  richLesson:true, earlyDemo:true,
+  fnCmp:{title:"Différences avec d’autres fonctions similaires",
+    say:"<b><code>COALESCE</code> est préférable</b> car il est standard et plus flexible (nombre d’arguments variable).",
+    rows:[
+      {fn:"COALESCE",std:"Oui",d:"Accepte un nombre variable d’arguments. Retourne la première valeur non <code>NULL</code>.",on:1},
+      {fn:"ISNULL",std:"Non (SQL Server)",d:"Prend exactement 2 arguments. Retourne le second si le premier est <code>NULL</code>."},
+      {fn:"IFNULL",std:"Non (MySQL)",d:"Prend exactement 2 arguments. Retourne le second si le premier est <code>NULL</code>."},
+      {fn:"NVL",std:"Non (Oracle)",d:"Prend exactement 2 arguments. Retourne le second si le premier est <code>NULL</code>."}
+    ]} },
 { id:24, titre:"Sous-requêtes", résumé:"Une requête dans la requête",
   situation:"Dans la table <code>produits</code>, tu veux ceux qui coûtent plus cher que la moyenne. La moyenne n’existe pas encore : tu la calcules d’abord.",
     studio:{problem:{title:"AVG ne peut pas vivre tout seul dans un WHERE.",
@@ -10449,6 +10461,24 @@ function joinRecapBlock(l){
     </table>
   </div>`;
 }
+function fnCmpBlock(l){
+  if(!l||!l.fnCmp||!l.fnCmp.rows) return '';
+  const c=l.fnCmp;
+  const lignes=c.rows.map(r=>`<tr class="${r.on?'on':''}">
+      <td>${esc(r.fn)}</td>
+      <td>${esc(r.std)}</td>
+      <td class="jr-quoi">${r.d}</td>
+    </tr>`).join('');
+  const say=c.say?`<p class="fn-cmp-say">${c.say}</p>`:'';
+  return `<div class="concept-block">
+    <h2><span class="h2-txt">${esc(c.title)}</span></h2>
+    <div class="table-wrap"><table class="join-recap fn-cmp">
+      <thead><tr><th scope="col">Fonction</th><th scope="col">Standard SQL</th><th scope="col">Description</th></tr></thead>
+      <tbody>${lignes}</tbody>
+    </table></div>
+    ${say}
+  </div>`;
+}
 const SUBQ_RECAP=[
   {k:'in', t:'IN', d:'renvoie <b>une liste de valeurs à garder</b>', ex:'IN (SELECT client_id\nFROM commandes)'},
   {k:'notin', t:'NOT IN', d:'renvoie <b>une liste de valeurs à exclure</b>', ex:'NOT IN (SELECT client_id\nFROM commandes)'},
@@ -11626,7 +11656,7 @@ function lessonDemoBlocks(l){
       </div>
       <p class="coda-sub">En résumé : <code>SELECT</code> s’écrit en premier, mais s’exécute <b>presque en dernier</b>.</p>
     </div>`:'';
-  return `${lessonRichFooter(l)}${anat?`<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`:''}${order}${piegeBlock(l)}${reflexBlock(l)}${joinRecapBlock(l)}${subqueryRecapBlock(l)}`;
+  return `${lessonRichFooter(l)}${anat?`<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`:''}${order}${piegeBlock(l)}${reflexBlock(l)}${joinRecapBlock(l)}${subqueryRecapBlock(l)}${fnCmpBlock(l)}`;
 }
 function lessonMainTable(l){
   if(!l)return 'clients';
