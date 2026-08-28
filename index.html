@@ -366,6 +366,10 @@
   .pt-lead .pt-syntax + p{margin-top:20px}
   .pt-lead-list{margin:4px 0 0;padding:0 0 0 1.15em;display:flex;flex-direction:column;gap:8px}
   .pt-lead-list li{margin:0}
+  .coalesce-uses{display:flex;flex-direction:column;gap:20px}
+  .coalesce-use .pt-syntax-h{margin:0 0 8px}
+  .coalesce-use .pt-syntax{margin:10px 0 0}
+  .coalesce-use .pt-syntax + p{margin-top:10px}
   .pt-floors{margin:0 0 12px}
   .pt-floor-out{padding:10px 12px 12px;border:1px solid rgba(91,91,214,.22);border-radius:14px;background:var(--accent-soft)}
   .pt-floor-in{margin:8px 0 8px 12px;padding:10px 12px;border:1px dashed rgba(91,91,214,.38);border-radius:12px;background:var(--surface)}
@@ -6676,6 +6680,35 @@ const MODULES = [
   situation:"Dans la table <code>clients</code>, certains clients n’ont pas renseigné leur adresse e-mail : la valeur est <code>NULL</code>.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th class=\"col-hl\">email</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td class=\"col-hl\">sophie@mail.fr</td></tr><tr><td>2</td><td>Lucas</td><td class=\"col-hl\">lucas@mail.fr</td></tr><tr><td>6</td><td>Hugo</td><td class=\"col-hl null\">NULL</td></tr><tr><td>9</td><td>Inès</td><td class=\"col-hl null\">NULL</td></tr></tbody></table></div><br><br>Tu veux afficher l’e-mail de chaque client et, lorsqu’il est manquant, afficher “Non renseigné” à la place.",
     studio:{problem:{eye:"COALESCE",title:"La première valeur non NULL.",
       body:`<div class="pt-lead"><p><code>COALESCE</code> est une fonction SQL qui permet de chercher la première valeur qui n’est pas <code>NULL</code> parmi plusieurs valeurs.</p><p>Elle est particulièrement utile lorsqu’une donnée peut être manquante et que tu veux utiliser une valeur de remplacement.</p><div class="pt-syntax"><pre class="cw-syntax">COALESCE(expression1, expression2, …, expressionN)</pre></div><p><code>COALESCE</code> lit les valeurs de gauche à droite :</p><ul class="pt-lead-list"><li>si la première valeur n’est pas <code>NULL</code> → elle est utilisée ;</li><li>sinon, <code>COALESCE</code> passe à la suivante ;</li><li>il continue jusqu’à trouver une valeur non <code>NULL</code> ;</li><li>si toutes les valeurs sont <code>NULL</code> → le résultat est <code>NULL</code>.</li></ul><p>Exemple :</p><div class="pt-syntax"><pre class="cw-syntax">COALESCE(email, 'Non renseigné')</pre></div><p>→ Si <code>email</code> contient une adresse, elle est affichée.<br>→ Si <code>email</code> vaut <code>NULL</code>, Non renseigné est affiché.</p></div>`},
+    uses:{title:"Utilisations pratiques de COALESCE",
+      body:`<div class="pt-lead coalesce-uses">
+        <div class="coalesce-use">
+          <p class="pt-syntax-h">1. Remplacer une valeur <code>NULL</code></p>
+          <p>Afficher un texte lorsqu’une information est manquante.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">COALESCE(email, 'Non renseigné')</pre></div>
+        </div>
+        <div class="coalesce-use">
+          <p class="pt-syntax-h">2. Choisir la première valeur disponible</p>
+          <p>Tester plusieurs colonnes dans l’ordre et garder la première qui n’est pas <code>NULL</code>.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">COALESCE(email, telephone, 'Aucun contact')</pre></div>
+          <p>SQL cherche d’abord <code>email</code>, puis <code>telephone</code>, puis utilise <code>'Aucun contact'</code>.</p>
+        </div>
+        <div class="coalesce-use">
+          <p class="pt-syntax-h">3. Éviter qu’un <code>NULL</code> bloque un calcul</p>
+          <p>Dans un calcul, <code>NULL</code> peut rendre tout le résultat <code>NULL</code>.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">prix * COALESCE(quantite, 0)</pre></div>
+          <p>Si <code>quantite</code> vaut <code>NULL</code>, elle est remplacée par 0 pour le calcul.</p>
+        </div>
+        <div class="coalesce-use">
+          <p class="pt-syntax-h">4. Donner une valeur à un résultat qui peut être <code>NULL</code></p>
+          <p><code>COALESCE</code> peut aussi entourer une expression ou une sous-requête susceptible de ne retourner aucune valeur.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">COALESCE(
+  (SELECT MAX(prix) FROM produits WHERE categorie = 'Inconnue'),
+  0
+)</pre></div>
+          <p>Si la sous-requête donne <code>NULL</code>, le résultat sera 0.</p>
+        </div>
+      </div>`},
     why:{title:"Suis ce qui arrive à tes données.",
       body:"SQL lit chaque email. S’il est NULL, il affiche « Non renseigné ». L’email de Hugo dans la table, lui, reste NULL. Pour le modifier, il faut un UPDATE."},
     reflex:{a:{k:"COALESCE(a, b)",t:"a si a n’est pas <code>NULL</code>, sinon b"},
@@ -11613,6 +11646,10 @@ function renderStudio(l){
       <h2><span class="h2-txt">${s.or.title}</span></h2>
       ${flowProseHtml(s.or.body)}
     </div>`:'';
+  const usesBlk=s.uses?`<div class="concept-block">
+      <h2><span class="h2-txt">${s.uses.title}</span></h2>
+      ${s.uses.body||''}
+    </div>`:'';
   return `<div class="concept-page">
     ${guide}
     <div class="concept-block">
@@ -11620,6 +11657,7 @@ function renderStudio(l){
       ${flowProseHtml(s.problem.body)}
       ${probExtra}${demo}${tail}${vs}${point}
     </div>
+    ${usesBlk}
     <div class="concept-block">
       <h2>${whyH2}<span class="h2-txt">${whyTitle}</span></h2>
       ${viz?'':flowProseHtml(s.why.body)}${whyExtra}
