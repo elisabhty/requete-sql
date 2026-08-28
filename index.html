@@ -378,8 +378,25 @@
   .pt-lead-list li{margin:0}
   .coalesce-uses,.fn-uses{display:flex;flex-direction:column;gap:20px}
   .coalesce-use .pt-syntax-h,.fn-use .pt-syntax-h{margin:0 0 8px}
-  .coalesce-use .pt-syntax,.fn-use .pt-syntax{margin:10px 0 0}
+  .coalesce-use .pt-syntax,.fn-use .pt-syntax{margin:10px 0}
   .coalesce-use .pt-syntax + p,.fn-use .pt-syntax + p{margin-top:10px}
+  .fn-use .table-wrap{margin:10px 0}
+  .fn-tip{margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--accent-soft);font-size:14px;line-height:1.45}
+  .fn-tip b{display:block;margin-bottom:4px;font-size:11px;letter-spacing:.4px;text-transform:uppercase;color:var(--accent)}
+  .fn-reflex-list{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+  .fn-reflex-list li{margin:0;padding:8px 12px;border-radius:12px;background:var(--surface-2);font-size:14px;line-height:1.4}
+  .txt-split{margin:14px 0 4px;padding:14px 12px 12px;border:1px solid var(--card-border);border-radius:16px;background:var(--surface);text-align:center}
+  .txt-split-mail{font-family:var(--mono);font-size:16px;font-weight:750;letter-spacing:.04em}
+  .txt-split-mail .at{color:var(--accent);font-weight:850}
+  .txt-split-mail .dom{color:var(--accent)}
+  .txt-split-marks{display:flex;justify-content:center;gap:10px;margin-top:4px;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent);letter-spacing:.2em}
+  .txt-split-marks .m-instr{min-width:4.2em}
+  .txt-split-marks .m-sub{letter-spacing:0}
+  .txt-split-ann{display:flex;justify-content:center;gap:28px;margin-top:4px;font-size:12px;font-weight:750;color:var(--ink-3)}
+  .join-recap.fn-cmp .fnc-nom.is-want{font-family:var(--ui);font-weight:700}
+  .fn-sgbd{margin:16px 0 0;padding:14px 16px;border:1px solid var(--card-border);border-radius:14px;background:var(--surface-2)}
+  .fn-sgbd .pt-syntax-h{margin:0 0 8px}
+  .fn-sgbd p{margin:0;font-size:14px;line-height:1.5;color:var(--ink-2)}
   .pt-floors{margin:0 0 12px}
   .pt-floor-out{padding:10px 12px 12px;border:1px solid rgba(91,91,214,.22);border-radius:14px;background:var(--accent-soft)}
   .pt-floor-in{margin:8px 0 8px 12px;padding:10px 12px;border:1px dashed rgba(91,91,214,.38);border-radius:12px;background:var(--surface)}
@@ -5764,64 +5781,190 @@ const MODULES = [
 
 
 { titre:"Fonctions scalaires et manipulation de chaînes / dates", sous:"Transformer une valeur, ligne par ligne", lessons:[
-{ id:51, titre:"Fonctions sur les chaînes de caractères", résumé:"LENGTH, UPPER, TRIM, coller du texte",
-  situation:"Tu prépares des étiquettes : le nom du client, et sa ville écrite en majuscules.<br><br>Dans la table <code>clients</code>, les villes sont déjà là, avec une majuscule initiale : Paris, Lyon, Marseille…<br><br>Avec ce que tu connais déjà, tu peux les afficher telles quelles :",
-  situationSql:"SELECT nom, ville\nFROM clients;",
-  situationTail:"Tu obtiens bien les 9 clients. Les textes ne bougent pas. Pour les transformer — longueur, majuscules, collage — tu utilises une fonction sur les chaînes de caractères.",
-    studio:{problem:{eye:"Fonction scalaire",title:"Une valeur par ligne, transformée.",
-      body:`<div class="pt-lead"><p>Une fonction scalaire s’applique à <b>chaque ligne</b> et renvoie une nouvelle valeur. Les 9 clients restent 9 lignes.</p><p><code>COUNT</code> ou <code>AVG</code>, elles, résument plusieurs lignes en un seul chiffre. Ici, tu ne résumes rien : tu transformes le texte.</p><div class="pt-syntax"><pre class="cw-syntax">UPPER(ville)</pre></div><p>Pour Sophie, <code>ville</code> vaut Paris → le résultat affiche <code>PARIS</code>. Dans la table, la ville reste Paris.</p></div>`},
-    uses:{title:"Les fonctions utiles",
+{ id:51, titre:"Fonctions de texte", résumé:"Transformer, nettoyer et découper du texte",
+    studio:{problem:{eye:"Fonctions de texte",title:"Transformer, nettoyer et découper du texte.",
+      body:`<div class="pt-lead"><p>Dans la table <code>clients</code>, plusieurs colonnes contiennent du texte : <code>nom</code>, <code>ville</code>, <code>email</code>, <code>telephone</code>…</p><p>SQL ne sert pas seulement à afficher ces valeurs telles quelles.</p><p>Tu peux aussi les transformer, les nettoyer, les assembler ou n’en récupérer qu’une partie.</p><p>Prenons plusieurs situations concrètes.</p></div>`},
+    uses:{title:"Les fonctions, une par une.",
       body:`<div class="pt-lead fn-uses">
         <div class="fn-use">
-          <p class="pt-syntax-h">1. Compter les caractères</p>
-          <p><code>LENGTH</code> renvoie le nombre de caractères d’un texte.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">LENGTH(nom)</pre></div>
-          <p>Sophie → 6. Léa → 3. Gabriel → 7.</p>
+          <p class="pt-syntax-h">1. UPPER et LOWER — Changer la casse</p>
+          <p>Dans la table <code>clients</code>, tu veux afficher les noms en majuscules et les adresses e-mail en minuscules pour obtenir un affichage uniforme.</p>
+          <p>Tu peux utiliser deux fonctions :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">UPPER(texte)
+LOWER(texte)</pre></div>
+          <p><code>UPPER()</code> transforme les lettres en majuscules.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT nom, UPPER(nom) AS nom_majuscule
+FROM clients;</pre></div>
+          <div class="table-wrap"><table class="concept-table"><thead><tr><th>nom</th><th>nom_majuscule</th></tr></thead><tbody><tr><td>Sophie</td><td>SOPHIE</td></tr><tr><td>Lucas</td><td>LUCAS</td></tr><tr><td>Emma</td><td>EMMA</td></tr></tbody></table></div>
+          <p><code>LOWER()</code> fait l’inverse : il transforme les lettres en minuscules.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT email, LOWER(email) AS email_minuscule
+FROM clients;</pre></div>
+          <p class="fn-tip"><b>Le réflexe</b> Mettre en majuscules → <code>UPPER()</code>. Mettre en minuscules → <code>LOWER()</code>.</p>
+          <p>À retenir : ces fonctions changent uniquement le résultat affiché. Elles ne modifient pas les données enregistrées dans la table.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">2. Passer en majuscules ou en minuscules</p>
-          <p><code>UPPER</code> met tout en capitales. <code>LOWER</code> fait l’inverse.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">UPPER(ville)</pre></div>
-          <p>Paris → <code>PARIS</code>. Lyon → <code>LYON</code>.</p>
+          <p class="pt-syntax-h">2. LENGTH — Compter les caractères</p>
+          <p>Tu veux connaître la longueur du nom de chaque client.</p>
+          <p>La fonction <code>LENGTH()</code> permet de compter la longueur d’un texte.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT nom, LENGTH(nom) AS longueur
+FROM clients;</pre></div>
+          <div class="table-wrap"><table class="concept-table"><thead><tr><th>nom</th><th>longueur</th></tr></thead><tbody><tr><td>Sophie</td><td>6</td></tr><tr><td>Lucas</td><td>5</td></tr><tr><td>Emma</td><td>4</td></tr><tr><td>Nathan</td><td>6</td></tr></tbody></table></div>
+          <p>La syntaxe est simple :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">LENGTH(texte)</pre></div>
+          <p class="fn-tip"><b>Le réflexe</b> « Combien de caractères contient cette valeur ? » → pense à <code>LENGTH()</code>.</p>
+          <p>SQLite : <code>LENGTH()</code> compte les caractères d’une valeur texte, et non les octets de sa représentation UTF-8.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">3. Retirer les espaces aux extrémités</p>
-          <p><code>TRIM</code> enlève les espaces avant et après, pas ceux du milieu.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">TRIM('  Paris  ')</pre></div>
-          <p>→ <code>Paris</code>.</p>
+          <p class="pt-syntax-h">3. TRIM — Supprimer les caractères inutiles aux extrémités</p>
+          <p>Imagine qu’une adresse e-mail ait été enregistrée ainsi : <code>"   sophie@mail.fr   "</code></p>
+          <p>Ces espaces peuvent poser problème.</p>
+          <p><code>TRIM()</code> permet de les retirer :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT TRIM('   sophie@mail.fr   ');</pre></div>
+          <p>Résultat : <code>sophie@mail.fr</code></p>
+          <p>Tu peux donc écrire :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT nom, TRIM(email) AS email_propre
+FROM clients;</pre></div>
+          <p>SQLite propose également :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">LTRIM(texte)
+RTRIM(texte)</pre></div>
+          <p><code>LTRIM()</code> → retire à gauche. <code>RTRIM()</code> → retire à droite. <code>TRIM()</code> → retire des deux côtés.</p>
+          <p class="fn-tip"><b>Attention</b> <code>TRIM()</code> ne supprime pas les espaces au milieu d’un texte.</p>
+          <p><code>'   Fibre Prébiotique   '</code> devient <code>'Fibre Prébiotique'</code>, et non <code>'FibrePrébiotique'</code>.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">4. Coller deux textes</p>
-          <p>L’opérateur <code>||</code> concatène. Ce n’est pas une fonction, mais le réflexe est le même : une nouvelle valeur par ligne.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">nom || ' — ' || ville</pre></div>
-          <p>Sophie à Paris → <code>Sophie — Paris</code>.</p>
+          <p class="pt-syntax-h">4. SUBSTR — Extraire une partie d’un texte</p>
+          <p>Dans la table <code>clients</code>, les numéros de téléphone commencent par deux chiffres correspondant au début du numéro : <code>06 39 98 12 04</code></p>
+          <p>Tu veux récupérer uniquement : <code>06</code></p>
+          <p>Avec SQLite :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT nom, SUBSTR(telephone, 1, 2) AS debut
+FROM clients;</pre></div>
+          <p>La fonction fonctionne ainsi :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SUBSTR(texte, position, longueur)</pre></div>
+          <p>Dans <code>SUBSTR(telephone, 1, 2)</code> :</p>
+          <ul class="pt-lead-list"><li><code>telephone</code> → le texte à découper</li><li><code>1</code> → commencer au premier caractère</li><li><code>2</code> → récupérer deux caractères</li></ul>
+          <p class="fn-tip"><b>Le réflexe</b> « Je veux seulement une partie de ce texte. » → <code>SUBSTR()</code></p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">5. INSTR — Trouver où se trouve un texte</p>
+          <p>Dans une adresse e-mail : <code>sophie@mail.fr</code></p>
+          <p>tu veux savoir où se trouve le caractère <code>@</code>.</p>
+          <p>SQLite possède <code>INSTR()</code> :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT INSTR('sophie@mail.fr', '@');</pre></div>
+          <p>La syntaxe est :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">INSTR(texte, texte_recherché)</pre></div>
+          <p>Tu peux aussi l’utiliser sur une colonne :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT
+    email,
+    INSTR(email, '@') AS position_arobase
+FROM clients;</pre></div>
+          <p class="fn-tip"><b>Le réflexe</b> <code>SUBSTR()</code> → récupérer une partie du texte. <code>INSTR()</code> → trouver la position d’une partie du texte.</p>
+          <p>Ces deux fonctions deviennent particulièrement utiles lorsqu’elles sont combinées.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">6. Combiner SUBSTR et INSTR</p>
+          <p>Tu ne veux maintenant plus seulement connaître la position du <code>@</code>.</p>
+          <p>Tu veux récupérer le domaine de chaque adresse e-mail.</p>
+          <p>Pour <code>sophie@mail.fr</code>, tu veux obtenir : <code>mail.fr</code></p>
+          <p>Tu sais déjà trouver <code>@</code> : <code>INSTR(email, '@')</code></p>
+          <p>Il suffit ensuite de commencer juste après :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT
+    email,
+    SUBSTR(email, INSTR(email, '@') + 1) AS domaine
+FROM clients;</pre></div>
+          <p>SQL effectue donc deux opérations :</p>
+          <ul class="pt-lead-list"><li><code>INSTR()</code> trouve <code>@</code>.</li><li><code>SUBSTR()</code> récupère tout ce qui vient après.</li></ul>
+          <figure class="txt-split">
+            <div class="txt-split-mail"><span>sophie</span><span class="at">@</span><span class="dom">mail.fr</span></div>
+            <div class="txt-split-marks" aria-hidden="true"><span class="m-instr">↑</span><span class="m-sub">└─────┘</span></div>
+            <div class="txt-split-ann"><span><code>INSTR</code></span><span><code>SUBSTR</code></span></div>
+          </figure>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">7. REPLACE — Remplacer une partie d’un texte</p>
+          <p>Les numéros de téléphone de la table <code>clients</code> sont affichés avec des espaces : <code>06 39 98 12 04</code></p>
+          <p>Tu veux obtenir : <code>0639981204</code></p>
+          <p><code>REPLACE()</code> permet de remplacer une partie d’un texte par une autre.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT
+    telephone,
+    REPLACE(telephone, ' ', '') AS telephone_compact
+FROM clients;</pre></div>
+          <p>Sa structure est :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">REPLACE(texte, ancien, nouveau)</pre></div>
+          <p>Ici, <code>REPLACE(telephone, ' ', '')</code> signifie : dans <code>telephone</code>, remplace chaque espace par une chaîne vide.</p>
+          <p>Autre exemple :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT REPLACE('Fibre Prébiotique', 'Fibre', 'Poudre');</pre></div>
+          <p>Résultat : <code>Poudre Prébiotique</code></p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">8. || — Assembler plusieurs textes</p>
+          <p>Tu veux créer une phrase à partir du nom et de la ville du client.</p>
+          <p>Par exemple : <code>Sophie - Paris</code></p>
+          <p>En SQLite, tu peux utiliser l’opérateur <code>||</code> :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT nom || ' - ' || ville AS client
+FROM clients;</pre></div>
+          <div class="table-wrap"><table class="concept-table"><thead><tr><th>client</th></tr></thead><tbody><tr><td>Sophie - Paris</td></tr><tr><td>Lucas - Lyon</td></tr><tr><td>Emma - Marseille</td></tr></tbody></table></div>
+          <p><code>||</code> signifie ici : assembler les textes.</p>
+          <p class="fn-tip"><b>Attention à NULL</b> Hugo et Inès ont un <code>email</code> à <code>NULL</code>. Avec SQLite, une concaténation avec <code>NULL</code> utilisant <code>||</code> produit <code>NULL</code>.</p>
+          <p>C’est justement là que <code>COALESCE</code> devient utile :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT
+    nom || ' - ' || COALESCE(email, 'Non renseigné')
+FROM clients;</pre></div>
+          <p>Tu obtiens alors : <code>Hugo - Non renseigné</code></p>
         </div>
       </div>`},
-    why:{title:"La table ne change pas.",
-      body:"<code>UPPER(ville)</code> affiche <code>PARIS</code>. Dans la table <code>clients</code>, la ville reste Paris. Pour modifier réellement la donnée, il faudrait un <code>UPDATE</code>."},
-    reflex:{a:{k:"LENGTH / UPPER / TRIM",t:"une nouvelle valeur <b>par ligne</b>"},
-      b:{k:"COUNT / AVG",t:"un chiffre qui <b>résume</b> plusieurs lignes"}}},
-  anatomie:[{tok:"SELECT nom,",txt:"Le nom, inchangé."},{tok:"LENGTH(nom)",txt:"Le nombre de caractères de ce nom."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."}],
-  exemple:"SELECT nom, LENGTH(nom)\nFROM clients;",
-  attendu:"9 lignes. Sophie → 6, Léa → 3, Gabriel → 7.",
-  retenir:"Une fonction scalaire transforme une valeur, ligne par ligne. <code>LENGTH</code> compte les caractères, <code>UPPER</code> / <code>LOWER</code> changent la casse, <code>TRIM</code> retire les espaces aux bords, <code>||</code> colle deux textes. La table ne change pas.",
-  piege:{t:"UPPER ignore souvent les accents",p:"En SQLite, <code>UPPER</code> ne convertit que les lettres sans accent. <code>UPPER('Léa')</code> donne <code>LéA</code>, pas <code>LÉA</code>.<br><br>Les villes de la table <code>clients</code> n’ont pas d’accent : <code>UPPER(ville)</code> donne bien <code>PARIS</code>, <code>LYON</code>…"},
-  consigne:"Affiche le <code>nom</code> de chaque client et le nombre de caractères de ce nom.",
-  solution:"SELECT nom, LENGTH(nom) FROM clients;",
-  indice:"La fonction qui compte les caractères s’écrit <code>LENGTH</code>. Place la colonne <code>nom</code> entre ses parenthèses.",
+    why:{eye:"",title:"Plusieurs fonctions peuvent travailler ensemble.",
+      body:`<div class="pt-lead"><p>C’est probablement la partie la plus importante du cours.</p><p>Les fonctions ne sont pas limitées à une seule utilisation par requête.</p><p>Tu veux afficher les adresses e-mail :</p><ul class="pt-lead-list"><li>sans espaces inutiles ;</li><li>entièrement en minuscules ;</li><li>avec Non renseigné lorsque l’e-mail est <code>NULL</code>.</li></ul><p>Tu peux combiner les fonctions :</p><div class="pt-syntax"><pre class="cw-syntax">SELECT
+    nom,
+    LOWER(TRIM(COALESCE(email, 'Non renseigné'))) AS email_propre
+FROM clients;</pre></div><p>SQL travaille ici de l’intérieur vers l’extérieur :</p>
+      <div class="pt-floors" aria-label="Fonctions imbriquées, de l’intérieur vers l’extérieur">
+        <div class="pt-floor-out">
+          <span class="pt-floor-lab">3. LOWER — minuscules</span>
+          <pre class="pt-floor-code">LOWER(</pre>
+          <div class="pt-floor-in">
+            <span class="pt-floor-lab">2. TRIM — espaces autour</span>
+            <pre class="pt-floor-code">TRIM(</pre>
+            <div class="pt-floor-in">
+              <span class="pt-floor-lab">1. COALESCE — NULL</span>
+              <pre class="pt-floor-code">COALESCE(email, 'Non renseigné')</pre>
+            </div>
+            <pre class="pt-floor-code">)</pre>
+          </div>
+          <pre class="pt-floor-code">)</pre>
+        </div>
+      </div>
+      <ul class="pt-lead-list"><li><code>COALESCE</code> gère le <code>NULL</code></li><li><code>TRIM</code> retire les espaces autour</li><li><code>LOWER</code> passe le résultat en minuscules</li></ul></div>`},
+    reflex:{note:"Avant de choisir une fonction, demande-toi : <b>qu’est-ce que je veux faire au texte ?</b>",
+      extra:`<ul class="fn-reflex-list"><li>Le mettre en forme → <code>UPPER</code>, <code>LOWER</code></li><li>Le nettoyer → <code>TRIM</code>, <code>REPLACE</code></li><li>Le découper → <code>SUBSTR</code></li><li>Chercher dedans → <code>INSTR</code></li><li>L’assembler → <code>||</code></li><li>Gérer une valeur manquante → <code>COALESCE</code></li></ul>`}},
+  anatomie:[{tok:"SELECT",txt:"Ce que tu affiches."},{tok:"LOWER(nom) || '-' || LOWER(ville)",txt:"Le nom et la ville en minuscules, collés avec un tiret."},{tok:"AS identifiant",txt:"Le nom de la nouvelle colonne."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."}],
+  exemple:"SELECT LOWER(nom) || '-' || LOWER(ville) AS identifiant\nFROM clients;",
+  attendu:"9 lignes. Sophie → sophie-paris. Lucas → lucas-lyon.",
+  retenir:"Avant de choisir une fonction, demande-toi ce que tu veux faire au texte. Mettre en forme → <code>UPPER</code>, <code>LOWER</code>. Nettoyer → <code>TRIM</code>, <code>REPLACE</code>. Découper → <code>SUBSTR</code>. Chercher → <code>INSTR</code>. Assembler → <code>||</code>. Gérer un <code>NULL</code> → <code>COALESCE</code>. Ces fonctions changent le résultat affiché, pas la table.",
+  piege:{t:"Ces fonctions ne nettoient pas réellement la base",p:"Cette requête :<br><br><code>SELECT UPPER(nom) FROM clients;</code><br><br>affiche <code>SOPHIE</code>, mais dans la table <code>clients</code>, la valeur reste <code>Sophie</code>.<br><br>Comme avec <code>COALESCE</code>, les fonctions utilisées dans un <code>SELECT</code> transforment le résultat affiché, pas la donnée enregistrée.<br><br>Pour réellement modifier les données, il faudrait utiliser <code>UPDATE</code>."},
+  consigne:"Crée un identifiant pour chaque client : le nom en minuscules, un tiret, puis la ville en minuscules. Pour Sophie : <code>sophie-paris</code>.",
+  solution:"SELECT LOWER(nom) || '-' || LOWER(ville) AS identifiant FROM clients;",
+  indice:"<code>LOWER(nom) || '-' || LOWER(ville)</code>.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'select',label:'SELECT',sql:"SELECT nom, ville FROM clients;",out:"Les textes tels quels"},
-    {k:'length',label:'LENGTH',sql:"SELECT nom, LENGTH(nom) FROM clients;",out:"9 lignes. Sophie → 6, Léa → 3.",tone:'good'},
-    {k:'upper',label:'UPPER',sql:"SELECT nom, UPPER(ville) FROM clients;",out:"Paris devient PARIS. La table, elle, ne change pas."}
+    {k:'upper',label:'UPPER',sql:"SELECT nom, UPPER(nom) AS nom_majuscule\nFROM clients;",out:"Sophie → SOPHIE. La table, elle, ne change pas."},
+    {k:'length',label:'LENGTH',sql:"SELECT nom, LENGTH(nom) AS longueur\nFROM clients;",out:"Sophie → 6. Lucas → 5. Emma → 4."},
+    {k:'substr',label:'SUBSTR',sql:"SELECT nom, SUBSTR(telephone, 1, 2) AS debut\nFROM clients;",out:"Le début du numéro : 06."},
+    {k:'domaine',label:'INSTR + SUBSTR',sql:"SELECT email, SUBSTR(email, INSTR(email, '@') + 1) AS domaine\nFROM clients;",out:"sophie@mail.fr → mail.fr"},
+    {k:'replace',label:'REPLACE',sql:"SELECT telephone, REPLACE(telephone, ' ', '') AS telephone_compact\nFROM clients;",out:"06 39 98 12 04 → 0639981204"},
+    {k:'identifiant',label:'||',sql:"SELECT LOWER(nom) || '-' || LOWER(ville) AS identifiant\nFROM clients;",out:"Sophie → sophie-paris.",tone:'good'}
   ],
-  fnCmp:{title:"Les fonctions sur les chaînes",
+  fnCmp:{title:"Le tableau réflexe",want:1,h1:"Je veux…",h2:"J’utilise",
+    say:`<div class="fn-sgbd"><p class="pt-syntax-h">Selon le SGBD</p><p>Les fonctions de texte ne sont pas toutes identiques d’un système SQL à l’autre. Ici, tu apprends les fonctions disponibles dans l’environnement SQLite de l’application. Sur MySQL, PostgreSQL, Oracle ou SQL Server, certaines fonctions peuvent avoir un autre nom ou une syntaxe différente.</p></div>`,
     rows:[
-      {fn:"LENGTH",d:"Nombre de caractères du texte.",on:1},
-      {fn:"UPPER",d:"Passe le texte en majuscules."},
-      {fn:"LOWER",d:"Passe le texte en minuscules."},
-      {fn:"TRIM",d:"Retire les espaces au début et à la fin."},
-      {fn:"||",d:"Colle deux textes l’un à la suite de l’autre."}
+      {fn:"Mettre en majuscules",d:"<code>UPPER()</code>"},
+      {fn:"Mettre en minuscules",d:"<code>LOWER()</code>"},
+      {fn:"Compter les caractères",d:"<code>LENGTH()</code>"},
+      {fn:"Nettoyer les extrémités",d:"<code>TRIM()</code>"},
+      {fn:"Extraire une partie",d:"<code>SUBSTR()</code>"},
+      {fn:"Trouver une position",d:"<code>INSTR()</code>"},
+      {fn:"Remplacer du texte",d:"<code>REPLACE()</code>"},
+      {fn:"Assembler des textes",d:"<code>||</code>"},
+      {fn:"Remplacer un NULL",d:"<code>COALESCE()</code>"}
     ]} },
 { id:52, titre:"Fonctions numériques", résumé:"Arrondir, valeur absolue",
   situation:"Dans la table <code>produits</code>, les prix ont des centimes : 29,90 €, 12,50 €. Tu veux les afficher arrondis à l’euro, pour une étiquette plus simple.<br><br>Avec ce que tu connais déjà, tu peux afficher chaque prix :",
@@ -7463,8 +7606,8 @@ const CARTES={
     m:"<code>ORDER BY</code> classe les lignes ; <code>LIMIT</code> garde seulement les premières."},
  13:{k:"DISTINCT",t:"Valeurs uniques",s:"SELECT DISTINCT ville FROM clients;",
     m:"<code>DISTINCT</code> retire les doublons du résultat. Avec plusieurs colonnes, il compare leur combinaison."},
- 51:{k:"Chaînes",t:"Transformer un texte",s:"SELECT nom, LENGTH(nom)\nFROM clients;",
-    m:"Une fonction scalaire transforme chaque ligne. <code>LENGTH</code> compte, <code>UPPER</code> / <code>LOWER</code> changent la casse, <code>TRIM</code> retire les espaces, <code>||</code> colle. La table ne change pas."},
+ 51:{k:"Fonctions de texte",t:"Transformer, nettoyer, découper",s:"LOWER(nom) || '-' || LOWER(ville)",
+    m:"Demande-toi ce que tu veux faire au texte. Forme → <code>UPPER</code> / <code>LOWER</code>. Nettoyer → <code>TRIM</code>, <code>REPLACE</code>. Découper → <code>SUBSTR</code>. Chercher → <code>INSTR</code>. Assembler → <code>||</code>. Ces fonctions changent l’affichage, pas la table."},
  52:{k:"Nombres",t:"Arrondir une valeur",s:"SELECT nom, ROUND(prix, 0)\nFROM produits;",
     m:"<code>ROUND(valeur, n)</code> arrondit chaque ligne. <code>ABS</code> retire le signe. Ce n’est pas <code>AVG</code> : le nombre de lignes ne change pas."},
  53:{k:"Dates",t:"Comparer et extraire",s:"strftime('%Y-%m', date_commande)",
@@ -7566,9 +7709,11 @@ const QCM={
    {q:"Comment obtenir les 3 produits les plus chers ?",o:["LIMIT 3","ORDER BY prix DESC LIMIT 3","ORDER BY prix ASC LIMIT 3"],b:1,e:"<code>DESC</code> place les prix les plus élevés en premier, puis <code>LIMIT 3</code> garde les trois premières lignes."}],
  13:[{q:"La table contient 9 clients mais seulement 6 villes différentes. Que renvoie <code>SELECT DISTINCT ville FROM clients;</code> ?",o:["9 lignes","6 lignes","3 lignes"],b:1,e:"<code>DISTINCT</code> n’affiche chaque ville qu’une seule fois."},
    {q:"Dans <code>SELECT DISTINCT ville, age FROM clients</code>, <code>DISTINCT</code> compare :",o:["Uniquement les villes","Uniquement les âges","Les combinaisons ville + âge"],b:2,e:"Avec plusieurs colonnes, l’unicité porte sur la combinaison complète des valeurs sélectionnées."}],
- 51:[{q:"Que fait <code>LENGTH(nom)</code> ?",o:["Elle compte les clients","Elle compte les caractères de chaque nom","Elle trie les noms"],b:1,e:"Une valeur par ligne : Sophie → 6, Léa → 3."},
-   {q:"En SQLite, <code>UPPER('Léa')</code> donne :",o:["LÉA","LéA","lea"],b:1,e:"<code>UPPER</code> ne convertit en général que les lettres sans accent."},
-   {q:"<code>nom || ' — ' || ville</code> pour Sophie à Paris :",o:["Une erreur","Sophie — Paris","SophieParis"],b:1,e:"<code>||</code> colle les textes, y compris l’espace et le tiret."}],
+ 51:[{q:"Quelle fonction transforme Sophie en SOPHIE ?",o:["LOWER()","UPPER()","LENGTH()"],b:1,e:"<code>UPPER()</code> passe les lettres en majuscules."},
+   {q:"Quelle fonction permet de retirer les espaces autour d’un texte ?",o:["TRIM()","SUBSTR()","REPLACE()"],b:0,e:"<code>TRIM()</code> retire aux deux extrémités, pas au milieu."},
+   {q:"Que fait <code>SUBSTR(telephone, 1, 2)</code> ?",o:["Elle récupère les deux premiers caractères","Elle supprime deux caractères","Elle cherche le chiffre 2"],b:0,e:"On commence au caractère 1, on prend une longueur de 2 : ici <code>06</code>."},
+   {q:"Quelle fonction permet de trouver la position de @ dans un email ?",o:["LENGTH()","INSTR()","LOWER()"],b:1,e:"<code>INSTR(texte, texte_recherché)</code> renvoie la position."},
+   {q:"Que permet <code>||</code> en SQLite ?",o:["Comparer deux textes","Assembler plusieurs textes","Supprimer les doublons"],b:1,e:"<code>||</code> concatène. Avec un <code>NULL</code>, tout le résultat devient <code>NULL</code>."}],
  52:[{q:"<code>ROUND(12.50, 0)</code> renvoie :",o:["12","13","12.50"],b:1,e:"On arrondit au plus proche. 12,50 s’éloigne vers 13."},
    {q:"<code>ROUND(prix, 0)</code> sur les 8 produits renvoie :",o:["1 ligne, le prix moyen arrondi","8 lignes, chaque prix arrondi","Les produits à prix rond seulement"],b:1,e:"C’est une fonction scalaire : une ligne reste une ligne."},
    {q:"Pour obtenir 12 à partir de 12,50, sans arrondir :",o:["ROUND(12.50, 0)","CAST(12.50 AS INTEGER)","ABS(12.50)"],b:1,e:"<code>CAST</code> coupe les décimales. <code>ROUND</code> aurait donné 13."}],
@@ -8920,7 +9065,7 @@ function confirmImport(){
 }
 
 const KW=new Set(['SELECT','FROM','WHERE','AND','OR','NOT','ORDER','BY','ASC','DESC','LIMIT','OFFSET','DISTINCT','GROUP','HAVING','JOIN','INNER','LEFT','RIGHT','OUTER','FULL','ON','AS','IN','IS','NULL','LIKE','BETWEEN','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','UNION','ALL','EXISTS','CASE','WHEN','THEN','ELSE','END','CAST']);
-const FN=new Set(['COUNT','SUM','AVG','MIN','MAX','ROUND','ABS','CEIL','FLOOR','LENGTH','UPPER','LOWER','TRIM','SUBSTR','REPLACE','COALESCE','STRFTIME','DATE','TYPEOF','IFNULL']);
+const FN=new Set(['COUNT','SUM','AVG','MIN','MAX','ROUND','ABS','CEIL','FLOOR','LENGTH','UPPER','LOWER','TRIM','LTRIM','RTRIM','SUBSTR','INSTR','REPLACE','COALESCE','STRFTIME','DATE','TYPEOF','IFNULL']);
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function escAttr(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function highlight(code){
@@ -10762,15 +10907,19 @@ function joinRecapBlock(l){
 function fnCmpBlock(l){
   if(!l||!l.fnCmp||!l.fnCmp.rows) return '';
   const c=l.fnCmp;
+  const h1=c.h1||'Fonction';
+  const h2=c.h2||'Ce qu’elle fait';
+  const want=!!c.want;
   const lignes=c.rows.map(r=>`<tr class="${r.on?'on':''}">
-      <td class="fnc-nom">${esc(r.fn)}<small class="fnc-std${r.std?' is-std':''}">${esc(r.moteur||'')}</small></td>
+      <td class="fnc-nom${want?' is-want':''}">${esc(r.fn)}${r.moteur?`<small class="fnc-std${r.std?' is-std':''}">${esc(r.moteur)}</small>`:''}</td>
       <td class="jr-quoi">${r.d}</td>
     </tr>`).join('');
-  const say=c.say?`<p class="fn-cmp-say">${c.say}</p>`:'';
+  const raw=c.say&&String(c.say).trim();
+  const say=raw?(raw.startsWith('<')?raw:`<p class="fn-cmp-say">${raw}</p>`):'';
   return `<div class="concept-block">
     <h2><span class="h2-txt">${esc(c.title)}</span></h2>
     <table class="join-recap fn-cmp">
-      <thead><tr><th scope="col">Fonction</th><th scope="col">Ce qu’elle fait</th></tr></thead>
+      <thead><tr><th scope="col">${esc(h1)}</th><th scope="col">${esc(h2)}</th></tr></thead>
       <tbody>${lignes}</tbody>
     </table>
     ${say}
@@ -11998,7 +12147,7 @@ function lessonMainTable(l){
 function testeDefaultSql(l){
   return `SELECT * FROM ${lessonMainTable(l)};`;
 }
-const TESTE_KEYS=['FULL OUTER JOIN','RIGHT JOIN','LEFT JOIN','GROUP BY','ORDER BY','SELECT *','INSERT','UPDATE','DELETE','GRANT','REVOKE','DISTINCT','BETWEEN','HAVING','WHERE','COUNT','AVG','SUM','MIN','MAX','JOIN','CASE','COALESCE','STRFTIME','LENGTH','UPPER','LOWER','TRIM','ROUND','ABS','CAST','LIKE','AND','OR','IN','LIMIT','SELECT'];
+const TESTE_KEYS=['FULL OUTER JOIN','RIGHT JOIN','LEFT JOIN','GROUP BY','ORDER BY','SELECT *','INSERT','UPDATE','DELETE','GRANT','REVOKE','DISTINCT','BETWEEN','HAVING','WHERE','COUNT','AVG','SUM','MIN','MAX','JOIN','CASE','COALESCE','STRFTIME','LENGTH','UPPER','LOWER','TRIM','SUBSTR','INSTR','REPLACE','ROUND','ABS','CAST','LIKE','AND','OR','IN','LIMIT','SELECT'];
 function testeKeyFrom(text){
   const u=String(text||'').toUpperCase().replace(/\s+/g,' ');
   return TESTE_KEYS.find(k=>u.includes(k))||'SELECT';
