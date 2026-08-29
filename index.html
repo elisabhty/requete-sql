@@ -6591,63 +6591,246 @@ GROUP BY YEAR(date_commande);</pre></div>
       {fn:"Calculer une différence",d:"<code>DATEDIFF()</code>, <code>AGE()</code>"},
       {fn:"Filtrer des dates",d:"<code>WHERE</code> + comparateurs"}
     ]} },
-{ id:54, titre:"Fonctions de conversion de types", résumé:"Changer le type d’une valeur",
-  situation:"Dans la table <code>produits</code>, les prix sont des nombres à virgule : 29,90. Tu veux les afficher en euros entiers, en coupant les centimes — pas en arrondissant.<br><br><code>ROUND(prix, 0)</code> donnerait 30 pour 29,90. Toi tu veux 29.",
-    studio:{problem:{eye:"CAST",title:"Changer le type, pas la ligne.",
-      body:`<div class="pt-lead"><p>La fonction <code>CAST</code> convertit une valeur vers un autre type. Syntaxe : <code>CAST(valeur AS type)</code>.</p><div class="pt-syntax"><pre class="cw-syntax">CAST(prix AS INTEGER)</pre></div><p>29,90 devient 29. Les décimales sont coupées, pas arrondies. Les 8 produits restent 8 lignes.</p></div>`},
-    uses:{title:"Les conversions utiles",
+{ id:54, titre:"Fonctions de conversion de types", résumé:"Passer d’un type à un autre",
+    studio:{problem:{eye:"Convertir un type",title:"Passer d’un type à un autre.",
+      body:`<div class="pt-lead"><p>Dans une base de données, toutes les valeurs ont un type.</p><p>Par exemple :</p><ul class="pt-lead-list"><li><code>123</code> → nombre</li><li><code>'123'</code> → texte</li><li><code>2025-03-14</code> → date</li><li><code>19.90</code> → nombre décimal</li></ul><p>Deux valeurs peuvent se ressembler visuellement sans être du même type.</p><p>Par exemple, <code>123</code> et <code>'123'</code> n’ont pas forcément le même rôle.</p><p>Le premier peut être utilisé comme nombre. Le second est du texte.</p><p>Pour passer d’un type à un autre, SQL propose des fonctions de conversion.</p></div>`},
+    uses:{title:"Les conversions, une idée à la fois.",
       body:`<div class="pt-lead fn-uses">
         <div class="fn-use">
-          <p class="pt-syntax-h">1. Vers un entier</p>
-          <p><code>INTEGER</code> coupe les décimales, vers zéro.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CAST(prix AS INTEGER)</pre></div>
-          <p>29,90 → 29. 12,50 → 12. 15,00 → 15.</p>
+          <p class="pt-syntax-h">1. Pourquoi convertir une valeur ?</p>
+          <p>Tu peux avoir besoin de convertir une donnée pour : faire un calcul, comparer correctement des valeurs, transformer du texte en nombre, transformer du texte en date, afficher un nombre sous forme de texte.</p>
+          <p>Par exemple, imaginons que tu possèdes <code>'25'</code>.</p>
+          <p>Cette valeur ressemble à un nombre, mais elle est stockée comme du texte.</p>
+          <p>Pour effectuer un calcul, tu peux la convertir :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CAST('25' AS INTEGER)</pre></div>
+          <p>SQL transforme alors :</p>
+          <div class="pt-floors" aria-label="Conversion de texte en nombre">
+            <div class="pt-floor-out">
+              <span class="pt-floor-lab">3. Nombre</span>
+              <pre class="pt-floor-code">25</pre>
+              <div class="pt-floor-in">
+                <span class="pt-floor-lab">2. CAST</span>
+                <pre class="pt-floor-code">CAST(… AS INTEGER)</pre>
+                <div class="pt-floor-in">
+                  <span class="pt-floor-lab">1. Texte</span>
+                  <pre class="pt-floor-code">'25'</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p>Le contenu semble identique, mais le type a changé.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">2. Vers du texte</p>
-          <p><code>TEXT</code> permet ensuite de coller, de mesurer, de chercher un motif.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CAST(age AS TEXT)</pre></div>
-          <p>34 reste lisible comme <code>'34'</code>. Utile avant un <code>||</code> ou un <code>LENGTH</code>.</p>
+          <p class="pt-syntax-h">2. Les principaux types de données</p>
+          <p>En SQL, on rencontre notamment :</p>
+          <div class="table-wrap"><table class="concept-table"><thead><tr><th>Famille</th><th>Exemples</th></tr></thead><tbody>
+            <tr><td>Nombres entiers</td><td><code>INT</code>, <code>INTEGER</code>, <code>BIGINT</code></td></tr>
+            <tr><td>Nombres décimaux</td><td><code>DECIMAL</code>, <code>NUMERIC</code>, <code>FLOAT</code></td></tr>
+            <tr><td>Texte</td><td><code>CHAR</code>, <code>VARCHAR</code>, <code>TEXT</code></td></tr>
+            <tr><td>Dates</td><td><code>DATE</code>, <code>DATETIME</code>, <code>TIMESTAMP</code></td></tr>
+            <tr><td>Booléens</td><td><code>BOOLEAN</code>, <code>BIT</code></td></tr>
+          </tbody></table></div>
+          <p class="fn-tip"><b>L’idée essentielle</b> Une même valeur peut être convertie vers un autre type si la conversion a du sens.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">3. Demander le type actuel</p>
-          <p><code>typeof</code> dit comment SQLite voit la valeur : <code>text</code>, <code>integer</code>, <code>real</code>, <code>null</code>.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">typeof(prix)</pre></div>
-          <p>Dans la table <code>produits</code>, <code>prix</code> est <code>real</code>. Dans la table <code>clients</code>, <code>nom</code> est <code>text</code>, <code>age</code> est <code>integer</code>.</p>
+          <p class="pt-syntax-h">3. La fonction CAST</p>
+          <p>La fonction la plus importante à connaître est <code>CAST()</code>.</p>
+          <p>Sa syntaxe est :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CAST(valeur AS type)</pre></div>
+          <p>Par exemple :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT CAST('123' AS INTEGER);</pre></div>
+          <p>On peut lire :</p>
+          <figure class="extract-call">
+            <div class="extract-sql"><code>CAST( '123' AS INTEGER )</code></div>
+            <div class="extract-marks"><span>↑</span><span>↑</span></div>
+            <div class="extract-ann"><span>valeur</span><span>type voulu</span></div>
+          </figure>
+          <p>SQL prend donc <code>'123'</code> et le convertit en <code>123</code>.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">4. Addition ou collage ?</p>
-          <p><code>+</code> calcule. <code>||</code> colle. Le type décide du résultat.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">'10' + 5     — 15
-'10' || 5    — '105'</pre></div>
-          <p>SQLite convertit parfois tout seul. <code>CAST</code> rend l’intention explicite.</p>
+          <p class="pt-syntax-h">4. Convertir du texte en nombre</p>
+          <p>Une valeur numérique a été enregistrée sous forme de texte. Tu veux maintenant effectuer un calcul avec elle.</p>
+          <p>Par exemple : <code>'50'</code></p>
+          <p>Pour la convertir :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT CAST('50' AS INTEGER);</pre></div>
+          <p>Résultat : 50.</p>
+          <p>Tu peux ensuite l’utiliser dans un calcul :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT CAST('50' AS INTEGER) + 10;</pre></div>
+          <p>Résultat : 60.</p>
+          <p>Le raisonnement est : <code>'50'</code> → conversion → 50 → + 10 → 60.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">5. Convertir un nombre en texte</p>
+          <p>Le sens inverse est également possible.</p>
+          <p>Par exemple :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT CAST(123 AS VARCHAR(10));</pre></div>
+          <p>Le nombre 123 devient une chaîne de caractères : <code>'123'</code>.</p>
+          <p>Cela peut être utile lorsque tu veux construire une phrase. Par exemple : Commande n°123.</p>
+          <p>Tu peux avoir besoin de transformer le numéro en texte avant de l’associer à d’autres caractères.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">6. Convertir un nombre décimal</p>
+          <p>Imaginons <code>'19.90'</code>. La valeur est enregistrée sous forme de texte. Tu veux l’utiliser comme prix.</p>
+          <p>Tu peux écrire :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT CAST('19.90' AS DECIMAL(10,2));</pre></div>
+          <p>Résultat : 19,90.</p>
+          <p>Ici, <code>DECIMAL(10,2)</code> indique notamment que le nombre peut contenir des chiffres après la virgule.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">7. Convertir vers un entier</p>
+          <p>Une conversion vers un entier peut faire perdre la partie décimale.</p>
+          <p>Par exemple :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT CAST(19.90 AS INTEGER);</pre></div>
+          <p>Selon le SGBD, le résultat et certaines règles de conversion peuvent varier.</p>
+          <p>On peut généralement retenir l’idée suivante : 19,90 → <code>INTEGER</code> → 19.</p>
+          <p class="fn-tip"><b>Le type cible est donc important</b> Choisis toujours un type compatible avec la précision dont tu as besoin.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">8. Convertir du texte en date</p>
+          <p>Tu possèdes une date sous forme de texte : <code>'2025-03-14'</code></p>
+          <p>Tu veux la traiter comme une véritable date.</p>
+          <p>Une conversion possible est :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT CAST('2025-03-14' AS DATE);</pre></div>
+          <p>Le principe est : <code>'2025-03-14'</code> → <code>CAST</code> → <code>DATE</code>.</p>
+          <p>Une fois convertie, la valeur peut être utilisée dans des opérations temporelles selon le SGBD.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">9. Pourquoi le format d’une date est important</p>
+          <p>Prenons <code>03/04/2025</code>.</p>
+          <p>Cette valeur peut être ambiguë. Elle peut signifier 3 avril 2025 ou 4 mars 2025, selon les conventions utilisées.</p>
+          <p>Pour éviter les ambiguïtés, le format <code>2025-04-03</code> est généralement plus clair.</p>
+          <p>Certaines fonctions permettent également de préciser explicitement le format de la date.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">10. Convertir une date en texte</p>
+          <p>Tu peux aussi vouloir transformer une date en texte pour l’affichage.</p>
+          <p>Par exemple, <code>2025-03-14</code> peut être affiché comme <code>14/03/2025</code>.</p>
+          <p>Selon le SGBD, on peut utiliser différentes fonctions : <code>TO_CHAR()</code>, <code>DATE_FORMAT()</code>, <code>FORMAT()</code>, <code>CONVERT()</code>.</p>
+          <p>Le principe est : date → conversion / formatage → texte.</p>
+          <p class="fn-tip"><b>Attention</b> Convertir une date en texte et formater une date sont deux notions très proches, mais certaines fonctions servent surtout à choisir l’apparence du résultat.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">11. Conversion explicite</p>
+          <p>Lorsque tu écris toi-même une fonction comme <code>CAST('123' AS INTEGER)</code>, on parle de conversion explicite.</p>
+          <p>Tu précises clairement : valeur de départ → type souhaité.</p>
+          <p>C’est généralement plus lisible car on voit immédiatement la transformation réalisée.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">12. Conversion implicite</p>
+          <p>SQL peut parfois effectuer une conversion automatiquement. On parle alors de conversion implicite.</p>
+          <p>Par exemple, selon le SGBD :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT 10 + '5';</pre></div>
+          <p>le système peut tenter de transformer <code>'5'</code> en 5 avant d’effectuer 10 + 5. Résultat : 15.</p>
+          <p>Mais il ne faut pas trop dépendre de ce comportement. Pourquoi ? Parce que les règles peuvent varier selon le SGBD.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">13. Pourquoi préférer une conversion explicite ?</p>
+          <p>Regarde : <code>SELECT 10 + '5';</code></p>
+          <p>Il faut comprendre ce que le système va décider de faire.</p>
+          <p>Avec :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT 10 + CAST('5' AS INTEGER);</pre></div>
+          <p>l’intention est beaucoup plus claire.</p>
+          <p>Tu indiques : <code>'5'</code> → transformer en nombre → faire le calcul.</p>
+          <p class="fn-tip"><b>À retenir</b> Si le type d’une valeur peut prêter à confusion, une conversion explicite rend la requête plus claire.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">14. Quand une conversion est impossible</p>
+          <p>Toutes les conversions ne sont pas possibles.</p>
+          <p>Par exemple, <code>CAST('123' AS INTEGER)</code> a du sens.</p>
+          <p>Mais <code>CAST('bonjour' AS INTEGER)</code> ne représente pas un nombre valide.</p>
+          <p>Selon le SGBD, la conversion peut : provoquer une erreur, retourner <code>NULL</code>, ou retourner une valeur particulière.</p>
+          <p>Le comportement exact dépend du système utilisé.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">15. Gérer les conversions qui peuvent échouer</p>
+          <p>Certains SGBD proposent des fonctions permettant de tenter une conversion sans provoquer directement une erreur.</p>
+          <p>Par exemple : <code>TRY_CAST()</code> ou <code>TRY_CONVERT()</code>.</p>
+          <p>Le principe est : valeur valide → conversion réussie → résultat. Mais : valeur invalide → conversion impossible → <code>NULL</code>.</p>
+          <p>Par exemple, selon le SGBD :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT TRY_CAST('abc' AS INTEGER);</pre></div>
+          <p>peut retourner <code>NULL</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">16. CAST n’est pas la seule fonction</p>
+          <p><code>CAST()</code> est très importante, mais les SGBD proposent aussi leurs propres fonctions.</p>
+          <p>Par exemple : <code>CONVERT()</code>, <code>TO_DATE()</code>, <code>TO_CHAR()</code>, <code>TO_NUMBER()</code>, <code>STR_TO_DATE()</code>, <code>TRY_CAST()</code>, <code>TRY_CONVERT()</code>.</p>
+          <p>Ces fonctions peuvent être utiles pour : les dates, les nombres, les formats régionaux, les conversions qui peuvent échouer.</p>
         </div>
       </div>`},
-    why:{title:"ROUND arrondit, CAST coupe.",
-      body:"<code>ROUND(29.90, 0)</code> donne 30. <code>CAST(29.90 AS INTEGER)</code> donne 29. Même colonne, deux intentions : rapprocher, ou tronquer."},
-    reflex:{a:{k:"CAST(x AS INTEGER)",t:"coupe les décimales"},
-      b:{k:"ROUND(x, 0)",t:"arrondit au plus proche"}}},
-  anatomie:[{tok:"SELECT nom,",txt:"Le nom du produit."},{tok:"CAST(prix AS INTEGER)",txt:"Le prix converti en entier, sans arrondir."},{tok:"FROM produits",txt:"La table produits est utilisée comme source."}],
-  exemple:"SELECT nom, CAST(prix AS INTEGER)\nFROM produits;",
-  attendu:"8 lignes. Fibre Prébiotique → 29. Tisane Détox → 12. Shaker Inox → 15.",
-  retenir:"<code>CAST(valeur AS type)</code> convertit le type. <code>INTEGER</code> coupe les décimales, <code>TEXT</code> produit une chaîne, <code>REAL</code> un nombre à virgule. <code>typeof</code> dit le type actuel. Ce n’est pas <code>ROUND</code>.",
-  piege:{t:"CAST n’arrondit pas",p:"On attend parfois 30 pour 29,90 €. <code>CAST</code> répond 29 : il tronque.<br><br>Pour arrondir, c’est <code>ROUND</code>. Pour couper, c’est <code>CAST(… AS INTEGER)</code>."},
-  consigne:"Affiche le <code>nom</code> de chaque produit et son <code>prix</code> converti en entier.",
-  solution:"SELECT nom, CAST(prix AS INTEGER) FROM produits;",
-  indice:"La conversion s’écrit <code>CAST(prix AS INTEGER)</code>.",
+    why:{eye:"",title:"Une même conversion, plusieurs syntaxes.",
+      body:`<div class="pt-lead"><p>Prenons une idée simple : transformer le texte <code>'123'</code> en nombre.</p><p>Selon le SGBD, on peut rencontrer :</p>
+      <div class="fn-sgbd"><p class="pt-syntax-h">CAST</p><div class="pt-syntax"><pre class="cw-syntax">CAST('123' AS INTEGER)</pre></div>
+      <p class="pt-syntax-h" style="margin-top:12px">PostgreSQL</p><div class="pt-syntax"><pre class="cw-syntax">'123'::INTEGER</pre></div>
+      <p class="pt-syntax-h" style="margin-top:12px">SQL Server</p><div class="pt-syntax"><pre class="cw-syntax">CONVERT(INT, '123')</pre></div></div>
+      <p>Le raisonnement reste :</p>
+      <div class="pt-floors" aria-label="Texte vers nombre">
+        <div class="pt-floor-out">
+          <span class="pt-floor-lab">3. Nombre</span>
+          <pre class="pt-floor-code">123</pre>
+          <div class="pt-floor-in">
+            <span class="pt-floor-lab">2. Texte vers nombre</span>
+            <pre class="pt-floor-code">CAST / :: / CONVERT</pre>
+            <div class="pt-floor-in">
+              <span class="pt-floor-lab">1. Texte</span>
+              <pre class="pt-floor-code">'123'</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p>C’est ce raisonnement qu’il faut retenir.</p></div>`},
+    or:{title:"Conversion ou formatage ?",
+      body:`<div class="pt-lead"><p>Il faut distinguer deux idées.</p><p><b>Conversion</b> — tu changes réellement de type. Par exemple : <code>CAST('123' AS INTEGER)</code>, <code>TEXT</code> → <code>INTEGER</code>.</p><p><b>Formatage</b> — tu choisis surtout comment une valeur doit être affichée. Par exemple : <code>2025-03-14</code> → <code>14/03/2025</code>. On passe souvent par du texte pour produire cet affichage.</p><p class="fn-tip"><b>Le réflexe</b> Est-ce que je veux changer le type, ou simplement changer l’apparence ?</p>
+      <p>Imaginons une colonne <code>produits.prix</code>, et supposons que tu souhaites afficher le prix sous forme de texte.</p>
+      <div class="pt-syntax"><pre class="cw-syntax">SELECT
+    nom,
+    CAST(prix AS VARCHAR(20)) AS prix_texte
+FROM produits;</pre></div>
+      <p>On pourrait obtenir :</p>
+      <div class="table-wrap"><table class="concept-table"><thead><tr><th>nom</th><th>prix</th><th>prix_texte</th></tr></thead><tbody>
+        <tr><td>Magnésium</td><td>19,90</td><td>'19.90'</td></tr>
+        <tr><td>Vitamine D</td><td>14,90</td><td>'14.90'</td></tr>
+      </tbody></table></div>
+      <p>La valeur est similaire à l’écran, mais son type n’est plus le même.</p>
+      <p>Supposons que tu possèdes <code>'2'</code> et <code>prix = 19.90</code>. Pour calculer prix × quantité, tu peux convertir la quantité :</p>
+      <div class="pt-syntax"><pre class="cw-syntax">SELECT
+    prix * CAST('2' AS INTEGER) AS total
+FROM produits;</pre></div>
+      <p>Le raisonnement est : <code>'2'</code> → <code>CAST</code> → 2, puis 19,90 × 2 → 39,80.</p>
+      <p>Supposons que tu veuilles comparer une date à une valeur écrite sous forme de texte. Tu peux utiliser :</p>
+      <div class="pt-syntax"><pre class="cw-syntax">WHERE date_commande >= CAST('2025-01-01' AS DATE)</pre></div>
+      <p>Le principe est : <code>'2025-01-01'</code> → <code>DATE</code> → comparaison avec <code>date_commande</code>. Cela rend le type attendu explicite.</p>
+      <p class="fn-tip"><b>Attention aux conversions dans WHERE</b> Une conversion peut également avoir un impact sur les performances. Par exemple, <code>WHERE CAST(prix AS VARCHAR(20)) = '19.90'</code> : SQL doit potentiellement convertir la valeur de <code>prix</code> pour de nombreuses lignes avant de comparer. Il est souvent préférable de comparer directement avec le bon type : <code>WHERE prix = 19.90</code>. Si tu peux comparer deux valeurs du même type directement, évite une conversion inutile.</p>
+      <p class="fn-tip"><b>Attention à la précision</b> Prenons 19,99. Si tu le convertis vers un type trop simple, <code>CAST(19.99 AS INTEGER)</code>, tu peux perdre la partie décimale. Pour un prix, un type décimal sera souvent plus adapté : <code>CAST(19.99 AS DECIMAL(10,2))</code>. <code>INTEGER</code> → nombres entiers. <code>DECIMAL</code> → valeurs avec décimales précises. <code>VARCHAR</code> → texte. <code>DATE</code> → date.</p>
+      <p class="fn-tip"><b>Attention à NULL</b> Si une valeur vaut <code>NULL</code>, la convertir ne crée pas automatiquement une valeur. Par exemple, <code>CAST(NULL AS INTEGER)</code> renvoie généralement <code>NULL</code>. Le type peut changer, mais l’information reste absente.</p></div>`},
+    reflex:{note:"Avant d’utiliser une conversion, demande-toi :",
+      extra:`<ul class="fn-reflex-list"><li>Quel est le type actuel ?</li><li>Quel type est nécessaire ?</li><li>La valeur peut-elle être convertie ?</li><li>Quelle fonction convient à mon SGBD ?</li></ul><p class="agg-reflex" style="margin-top:14px">Ne regarde pas seulement la valeur : demande-toi aussi quel est son type.</p>`}},
+  anatomie:[{tok:"SELECT",txt:"Ce que tu affiches."},{tok:"CAST('45' AS INTEGER) + 5",txt:"Le texte devient un nombre, puis on ajoute 5."}],
+  exemple:"SELECT CAST('45' AS INTEGER) + 5;",
+  attendu:"1 ligne. 50.",
+  retenir:"Une valeur SQL possède un type. Quand ce type ne correspond pas à celui dont tu as besoin, <code>CAST(valeur AS type)</code> convertit. Texte → nombre, nombre → texte, texte → date, date → texte. Préfère une conversion explicite. La syntaxe peut varier selon le SGBD.",
+  piege:{t:"Pièges courants",p:"<b>Premier piège : convertir alors que ce n’est pas nécessaire.</b> <code>CAST(prix AS DECIMAL)</code> n’apporte rien si <code>prix</code> est déjà stocké correctement comme nombre décimal.<br><br><b>Deuxième piège : choisir le mauvais type cible.</b> 19,90 → <code>INTEGER</code> peut faire perdre les décimales.<br><br><b>Troisième piège : supposer qu’un texte est toujours convertible.</b> <code>'123'</code> → nombre fonctionne. <code>'abc'</code> → nombre non.<br><br><b>Quatrième piège : dépendre excessivement des conversions implicites.</b> Une requête peut fonctionner avec un SGBD et se comporter différemment avec un autre."},
+  consigne:"Tu possèdes la valeur <code>'45'</code> sous forme de texte. Ajoute-lui 5.",
+  solution:"SELECT CAST('45' AS INTEGER) + 5;",
+  indice:"<code>CAST('45' AS INTEGER) + 5</code>.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'select',label:'SELECT',sql:"SELECT nom, prix FROM produits;",out:"Les 8 prix, avec les centimes"},
-    {k:'round',label:'ROUND',sql:"SELECT nom, ROUND(prix, 0) FROM produits;",out:"29,90 → 30. On arrondit."},
-    {k:'cast',label:'CAST',sql:"SELECT nom, CAST(prix AS INTEGER) FROM produits;",out:"29,90 → 29. On coupe.",tone:'good'}
+    {k:'castint',label:'Texte → nombre',sql:"SELECT CAST('50' AS INTEGER) + 10 AS total;",out:"'50' devient 50, puis 50 + 10 = 60."},
+    {k:'explicite',label:'Explicite',sql:"SELECT 10 + CAST('5' AS INTEGER) AS total;",out:"L’intention est claire : '5' devient un nombre."},
+    {k:'entier',label:'INTEGER',sql:"SELECT CAST(19.90 AS INTEGER) AS entier;",out:"19,90 → 19. La partie décimale disparaît."},
+    {k:'prix',label:'Prix en texte',sql:"SELECT nom, CAST(prix AS VARCHAR(20)) AS prix_texte\nFROM produits;",out:"Le prix reste lisible, mais son type est du texte."},
+    {k:'calc',label:'Calcul',sql:"SELECT nom, prix * CAST('2' AS INTEGER) AS total\nFROM produits;",out:"Magnésium : 19,90 × 2 = 39,80."},
+    {k:'null',label:'NULL',sql:"SELECT CAST(NULL AS INTEGER) AS vide;",out:"NULL reste NULL. La conversion ne crée pas de valeur.",tone:'good'}
   ],
-  fnCmp:{title:"Les conversions",
+  fnCmp:{title:"Le tableau réflexe",want:1,h1:"Besoin",h2:"Fonctions possibles",
+    say:`<div class="fn-sgbd"><p>Toutes ces fonctions ne sont pas disponibles partout. <code>CAST()</code> est la fonction essentielle à connaître. La syntaxe exacte peut varier selon le SGBD, mais le principe de conversion reste le même.</p></div>`,
     rows:[
-      {fn:"CAST(x AS INTEGER)",d:"Coupe les décimales. 29,90 → 29.",on:1},
-      {fn:"CAST(x AS TEXT)",d:"Passe la valeur en chaîne de caractères."},
-      {fn:"CAST(x AS REAL)",d:"Passe la valeur en nombre à virgule."},
-      {fn:"typeof(x)",d:"Dit le type actuel : text, integer, real, null."}
-    ]} }
+      {fn:"Conversion générale",d:"<code>CAST()</code>"},
+      {fn:"Conversion SQL Server",d:"<code>CONVERT()</code>"},
+      {fn:"Conversion sans erreur",d:"<code>TRY_CAST()</code>, <code>TRY_CONVERT()</code>"},
+      {fn:"Texte → date",d:"<code>TO_DATE()</code>, <code>STR_TO_DATE()</code>"},
+      {fn:"Date → texte",d:"<code>TO_CHAR()</code>, <code>DATE_FORMAT()</code>"},
+      {fn:"Texte → nombre",d:"<code>TO_NUMBER()</code>"}
+    ]} },
 ]},
 { titre:"Fonctions d’agrégation", sous:"COUNT, AVG, SUM, MIN, MAX", lessons:[
 { id:14, titre:"COUNT", résumé:"Compter les lignes",
@@ -8153,8 +8336,8 @@ const CARTES={
     m:"Une colonne se calcule comme un nombre. <code>ROUND</code> arrondit, <code>ABS</code> ignore le signe, <code>%</code> est le reste — pas un pourcentage. <code>NULLIF(x, 0)</code> évite de diviser par zéro. Ces fonctions changent l’affichage, pas la table."},
  53:{k:"Dates",t:"Obtenir, extraire, calculer",s:"YEAR(date_commande)",
     m:"Demande-toi ce que tu veux faire avec la date : obtenir, extraire, formater, décaler, mesurer, filtrer. La syntaxe change selon le SGBD ; le raisonnement reste le même."},
- 54:{k:"CAST",t:"Changer le type",s:"CAST(prix AS INTEGER)",
-    m:"<code>CAST(valeur AS type)</code> convertit. <code>INTEGER</code> coupe les décimales, sans arrondir. 29,90 → 29. Pour arrondir, c’est <code>ROUND</code>."},
+ 54:{k:"CAST",t:"Passer d’un type à un autre",s:"CAST('45' AS INTEGER)",
+    m:"Ne regarde pas seulement la valeur : demande-toi aussi son type. <code>CAST(valeur AS type)</code> convertit. Préfère une conversion explicite. La syntaxe peut varier selon le SGBD."},
  14:{k:"COUNT",t:"Compter les lignes",s:"SELECT COUNT(*) FROM table;",
     m:"<code>COUNT(*)</code> compte toutes les lignes. <code>COUNT(colonne)</code> ignore les valeurs <code>NULL</code>."},
  15:{k:"AVG",t:"La moyenne d’une colonne",s:"SELECT AVG(prix) FROM produits;",
@@ -8265,9 +8448,10 @@ const QCM={
    {q:"Que cherche-t-on à faire avec <code>YEAR(date_commande)</code> ?",o:["Ajouter une année","Supprimer l’année","Récupérer l’année de la date","Comparer deux dates"],b:2,e:"<code>YEAR</code> extrait l’année. Pour <code>2023-08-03</code>, le résultat est 2023."},
    {q:"Que représente généralement <code>date_fin - date_debut</code> ?",o:["Une durée","Une nouvelle table","Une colonne supprimée","Un tri"],b:0,e:"Soustraire deux dates mesure l’écart entre elles : une durée."},
    {q:"Que signifie <code>WHERE date_commande &gt;= '2025-01-01'</code> ?",o:["Avant 2025","Uniquement le 1er janvier","À partir du 1er janvier 2025","Supprimer les dates de 2025"],b:2,e:"<code>&gt;=</code> signifie à partir de cette date, borne incluse."}],
- 54:[{q:"<code>CAST(29.90 AS INTEGER)</code> renvoie :",o:["30","29","29.90"],b:1,e:"La conversion coupe les décimales, elle n’arrondit pas."},
-   {q:"<code>'10' || 5</code> donne :",o:["15","105","erreur"],b:1,e:"<code>||</code> colle. <code>+</code> aurait calculé 15."},
-   {q:"<code>typeof(prix)</code> dans la table produits :",o:["text","integer","real"],b:2,e:"<code>prix</code> est un nombre à virgule : <code>real</code>."}],
+ 54:[{q:"À quoi sert <code>CAST()</code> ?",o:["Trier des lignes","Convertir une valeur vers un autre type","Supprimer une colonne","Regrouper les résultats"],b:1,e:"<code>CAST(valeur AS type)</code> convertit une valeur vers un autre type."},
+   {q:"Que fait <code>CAST('123' AS INTEGER)</code> ?",o:["Transforme 123 en texte","Transforme le texte '123' en nombre entier","Ajoute 123","Supprime 123"],b:1,e:"Le texte <code>'123'</code> devient le nombre 123."},
+   {q:"Laquelle de ces conversions peut poser problème ?",o:["CAST('50' AS INTEGER)","CAST('bonjour' AS INTEGER)"],b:1,e:"<code>'bonjour'</code> ne représente pas un nombre."},
+   {q:"Quelle est la différence entre conversion explicite et implicite ?",o:["Il n’y en a aucune","La conversion explicite est écrite dans la requête, l’implicite est réalisée automatiquement par le SGBD","La conversion implicite utilise toujours CAST()","La conversion explicite ne fonctionne qu’avec les dates"],b:1,e:"<code>CAST</code> rend l’intention visible. Sans lui, le SGBD décide tout seul, et les règles varient."}],
  14:[{q:"Que renvoie <code>SELECT COUNT(*) FROM clients;</code> ?",o:["Les 9 clients","Une seule valeur : 9","9 colonnes"],b:1,e:"<code>COUNT(*)</code> compte les lignes et renvoie leur nombre."},
    {q:"La table contient 9 clients, dont 2 avec un email <code>NULL</code>. Que renvoie <code>COUNT(email)</code> ?",o:["9","7","2"],b:1,e:"<code>COUNT(email)</code> ignore les <code>NULL</code> : 9 - 2 = 7."}],
  15:[{q:"Que renvoie <code>SELECT AVG(prix) FROM produits;</code> ?",o:["Le prix de chaque produit","Le prix moyen des produits","Le produit le plus cher"],b:1,e:"<code>AVG</code> additionne les prix, puis divise par 8."},
