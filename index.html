@@ -642,13 +642,15 @@
   .jd-branch.on b{color:var(--accent)}
   .jd-tree .jd-tap{margin:-4px 2px 16px;font-size:12.5px;font-weight:600;line-height:1.45;color:var(--accent)}
   .jd-tap code{color:var(--ink-2)}
-  .jd-step{margin:0 0 14px}
+  /* Le bandeau du cours recouvre le haut : la question doit s’arrêter en
+     dessous quand on l’amène à l’écran. */
+  .jd-step{margin:0 0 14px;scroll-margin-top:88px}
+  .jd-fiches{scroll-margin:88px 0 96px}
   .jd-tree .jd-q{margin:0 0 10px;font-size:14px;font-weight:750;line-height:1.35;color:var(--ink)}
   .jd-tree .jd-q-part{margin:22px 0 10px;padding-top:18px;border-top:1px solid var(--line-2);font-size:12.5px;font-weight:750;letter-spacing:.3px;text-transform:uppercase;color:var(--ink-3)}
   .jd-parts .jd-branch{padding:10px 12px;border-radius:13px;background:var(--surface-2)}
   .jd-parts .jd-branch b{font-size:13px}
   .jd-parts .jd-branch.on{background:linear-gradient(165deg,rgba(91,91,214,.06),var(--surface) 42%)}
-  .jd-fiches{margin:0}
   .jd-tree .jd-ask small{display:block;margin-top:2px;font-family:var(--ui);font-size:11px;font-weight:650;color:var(--ink-3)}
   .jd-card{margin:14px 0 0;padding:14px;border:1px solid var(--card-border);border-radius:16px;background:var(--surface-2)}
   .jd-card.on{animation:joinSoftIn .32s var(--spring-ios) both}
@@ -12045,15 +12047,21 @@ function initJoinTree(){
     if(fiches.previousElementSibling===cible) return;
     cible.insertAdjacentElement('afterend',fiches);
   };
-  /* Quand l'arbre dépasse l'écran, la fiche peut s'ouvrir hors champ. On ne
-     bouge que si elle n'est pas déjà visible, et jamais à l'ouverture du
-     cours : personne n'a rien demandé à ce moment-là. */
-  const montrer=()=>{
-    if(!fiches) return;
+  /* Quand l'arbre dépasse l'écran, ce qui vient de s'ouvrir peut être hors
+     champ. On ne bouge que si c'est le cas, et jamais à l'ouverture du cours :
+     personne n'a rien demandé à ce moment-là.
+     Ouvrir la seconde question amène à son début — la question et sa première
+     réponse — et non à la fiche, qui est encore plus bas. */
+  const montrer=el=>{
+    if(!el) return;
     requestAnimationFrame(()=>{
-      const r=fiches.getBoundingClientRect();
-      if(r.top>=64&&r.bottom<=window.innerHeight-88) return;
-      fiches.scrollIntoView({block:'nearest',behavior:prefersReduceMotion()?'auto':'smooth'});
+      const r=el.getBoundingClientRect();
+      const debut=el===step;
+      const vu=debut
+        ? r.top>=64&&r.top<=window.innerHeight-200
+        : r.top>=64&&r.bottom<=window.innerHeight-88;
+      if(vu) return;
+      el.scrollIntoView({block:debut?'start':'nearest',behavior:prefersReduceMotion()?'auto':'smooth'});
     });
   };
   const fiche=(k,apres)=>{
@@ -12105,11 +12113,11 @@ function initJoinTree(){
   tree.addEventListener('click',e=>{
     if(e.target.closest('.exframe')) return;
     const br=e.target.closest('.jd-branch');
-    if(br){ setBranch(br); montrer(); if(navigator.vibrate) navigator.vibrate(6); return; }
+    if(br){ setBranch(br); montrer(br.dataset.leaf?fiches:step); if(navigator.vibrate) navigator.vibrate(6); return; }
     const nd=e.target.closest('.jd-node');
     if(!nd) return;
     setNode(nd);
-    montrer();
+    montrer(fiches);
     if(navigator.vibrate) navigator.vibrate(6);
   });
   if(branches[0]) setTimeout(()=>setBranch(branches[0]), prefersReduceMotion()?0:560);
