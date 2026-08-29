@@ -659,7 +659,8 @@
   .jd-card .jd-stat{margin:0 0 8px;padding:8px 10px;border-radius:11px;background:var(--surface);text-align:center;font-size:12.5px;font-weight:650;color:var(--ink-2)}
   .jd-card .jd-stat b{color:var(--accent);font-weight:850}
   .jd-card .jd-out{margin:0 0 6px;font-size:12.5px;font-weight:650;line-height:1.45;color:var(--ink-3)}
-  .jd-card .ex-code{margin:10px 0 0}
+  .jd-card .jd-run{margin:12px 0 0}
+  .jd-card .jd-run .ex-code{margin:0}
   .jd-hint{margin:12px 0 0;font-size:13.5px;line-height:1.5;color:var(--ink-2);min-height:1.5em}
   .jd-hint.on{animation:joinSoftIn .32s var(--spring-ios) both}
   @media (max-width:360px){
@@ -11709,7 +11710,12 @@ function pointDraw(card){
         <p class="jd-ex"><span>Besoin</span>${esc(f.besoin)}</p>
         <p class="jd-ex"><span>Exemple</span>${esc(f.ex)}</p>
         ${stat}${out}
-        <pre class="ex-code">${highlight(f.sql)}</pre>
+        <div class="exframe jd-run">
+          <div class="xf-head"><span class="xf-name">${esc(f.j.toLowerCase().replace(/ /g,''))}.sql</span><div class="xf-tools">${sqlCopyBtn()}</div></div>
+          <div class="ex-code">${highlight(f.sql)}</div>
+          <div class="xf-actions"><button type="button" class="xf-run" data-sql="${escAttr(f.sql)}" onclick="runExemple(this)">${XF_RUN_ICO}Exécuter</button></div>
+          <div class="xf-result" hidden aria-live="polite"></div>
+        </div>
       </div>`;
     };
     const table=[
@@ -12039,6 +12045,17 @@ function initJoinTree(){
     if(fiches.previousElementSibling===cible) return;
     cible.insertAdjacentElement('afterend',fiches);
   };
+  /* Quand l'arbre dépasse l'écran, la fiche peut s'ouvrir hors champ. On ne
+     bouge que si elle n'est pas déjà visible, et jamais à l'ouverture du
+     cours : personne n'a rien demandé à ce moment-là. */
+  const montrer=()=>{
+    if(!fiches) return;
+    requestAnimationFrame(()=>{
+      const r=fiches.getBoundingClientRect();
+      if(r.top>=64&&r.bottom<=window.innerHeight-88) return;
+      fiches.scrollIntoView({block:'nearest',behavior:prefersReduceMotion()?'auto':'smooth'});
+    });
+  };
   const fiche=(k,apres)=>{
     poser(apres);
     cards.forEach(c=>{
@@ -12086,11 +12103,13 @@ function initJoinTree(){
   nodes.forEach(n=>n.setAttribute('aria-pressed','false'));
   branches.forEach(b=>b.setAttribute('aria-pressed','false'));
   tree.addEventListener('click',e=>{
+    if(e.target.closest('.exframe')) return;
     const br=e.target.closest('.jd-branch');
-    if(br){ setBranch(br); if(navigator.vibrate) navigator.vibrate(6); return; }
+    if(br){ setBranch(br); montrer(); if(navigator.vibrate) navigator.vibrate(6); return; }
     const nd=e.target.closest('.jd-node');
     if(!nd) return;
     setNode(nd);
+    montrer();
     if(navigator.vibrate) navigator.vibrate(6);
   });
   if(branches[0]) setTimeout(()=>setBranch(branches[0]), prefersReduceMotion()?0:560);
