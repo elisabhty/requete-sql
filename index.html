@@ -16175,7 +16175,7 @@ const SQL_VIZ={
   coalesce:{kind:'er',sample:'9 clients · 2 emails NULL',stepMs:7200,phases:[
     {k:'Lire la colonne email',d:'SQL parcourt les 9 clients. Sept adresses existent ; celles de Hugo et Inès valent <code>NULL</code>.',sql:'SELECT nom, email\nFROM clients',read:'<code>NULL</code> signifie « valeur absente ». Ce n’est ni une chaîne vide, ni le texte « NULL ».'},
     {k:'Garder la première valeur',d:'Pour Sophie, le premier argument contient déjà une adresse. <code>COALESCE</code> la garde et s’arrête.',sql:"COALESCE(email, 'Non renseigné')",read:'Lecture de gauche à droite : <code>sophie@mail.fr</code> est la première valeur non NULL. Le texte de secours n’est pas utilisé.'},
-    {k:'Passer à la suivante',d:'Pour Hugo et Inès, le premier argument vaut <code>NULL</code>. SQL essaie alors le deuxième.',sql:"NULL → 'Non renseigné'",read:'Le texte <code>Non renseigné</code> devient le contact affiché, car c’est la première valeur disponible.'},
+    {k:'Passer à la suivante',d:'Pour Hugo et Inès, le premier argument vaut <code>NULL</code>. SQL essaie alors le deuxième.',sql:"NULL → 'Non renseigné'",read:'SQL ignore <code>NULL</code> et passe à la valeur suivante. <code>\'Non renseigné\'</code> est donc affiché.'},
     {k:'Afficher sans modifier',d:'Le résultat contient toujours 9 clients, avec une valeur lisible dans la colonne <code>contact</code>.',sql:"SELECT nom, COALESCE(email,\n'Non renseigné') AS contact",read:'Hugo et Inès affichent « Non renseigné ». Dans la table <code>clients</code>, leur email reste pourtant <code>NULL</code>.'}
   ],html:`<div class="er-stage join-viz coal-stage">
     <section class="coal-source" aria-label="Extrait des emails de clients">
