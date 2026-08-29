@@ -6519,6 +6519,7 @@ FROM produits;</pre></div>
     {k:'ttc',label:'TVA',sql:"SELECT produits.nom, commandes.quantite,\n       ROUND(produits.prix * commandes.quantite * 1.10, 2) AS montant\nFROM commandes\nJOIN produits\n    ON commandes.produit_id = produits.id;",out:"Montant + 10 %, arrondi à 2 décimales.",tone:'good'}
   ],
   fnCmp:{title:"Le tableau réflexe",want:1,h1:"Je veux…",h2:"J’utilise",
+    say:`<div class="fn-sgbd"><p class="pt-syntax-h">Ici : SQLite</p><p>Le principe reste le même selon le SGBD, mais certains noms ou syntaxes peuvent changer.</p></div>`,
     rows:[
       {fn:"Additionner",d:"<code>+</code>"},
       {fn:"Soustraire",d:"<code>-</code>"},
@@ -6791,15 +6792,18 @@ GROUP BY YEAR(date_commande);</pre></div>
     {k:'periode',label:'Période',sql:"SELECT *\nFROM commandes\nWHERE date_commande >= '2023-07-01'\n  AND date_commande < '2023-08-01';",out:"Le mois de juillet 2023, borné à droite."},
     {k:'group',label:'GROUP BY',sql:"SELECT YEAR(date_commande) AS annee, COUNT(*) AS nombre_commandes\nFROM commandes\nGROUP BY YEAR(date_commande);",out:"Les 16 commandes sont en 2023.",tone:'good'}
   ],
-  fnCmp:{title:"Le tableau réflexe",want:1,h1:"Je veux…",h2:"Dans SQLite ici",
-    say:`<div class="fn-sgbd"><p>Les autres SGBD gardent le même raisonnement, avec parfois un autre nom de fonction.</p></div>`,
+  fnCmp:{title:"Le tableau réflexe",want:1,h1:"Je veux…",h2:"J’utilise",
+    say:`<div class="fn-sgbd"><p class="pt-syntax-h">Ici : SQLite</p><p>Le principe reste le même selon le SGBD, mais certains noms ou syntaxes peuvent changer.</p></div>`,
     rows:[
-      {fn:"Obtenir maintenant",d:"<code>CURRENT_TIMESTAMP</code>"},
-      {fn:"Extraire une partie",d:"<code>strftime()</code>"},
-      {fn:"Changer l’affichage",d:"<code>strftime()</code>"},
-      {fn:"Décaler une date",d:"<code>date()</code>"},
-      {fn:"Mesurer une durée",d:"<code>julianday()</code>"},
-      {fn:"Filtrer une période",d:"<code>WHERE</code> + bornes"}
+      {fn:"Obtenir la date du jour",d:"<code>CURRENT_DATE</code>, <code>date('now')</code>"},
+      {fn:"Obtenir la date et l’heure",d:"<code>CURRENT_TIMESTAMP</code>, <code>datetime('now')</code>"},
+      {fn:"Extraire l’année",d:"<code>YEAR()</code>, <code>EXTRACT()</code>"},
+      {fn:"Extraire le mois",d:"<code>MONTH()</code>, <code>EXTRACT()</code>"},
+      {fn:"Formater une date",d:"<code>strftime()</code>, <code>DATE_FORMAT()</code>"},
+      {fn:"Ajouter du temps",d:"<code>date(…, '+7 days')</code>, <code>DATE_ADD()</code>"},
+      {fn:"Retirer du temps",d:"<code>date(…, '-7 days')</code>, <code>DATE_SUB()</code>"},
+      {fn:"Calculer une durée",d:"<code>julianday()</code>, <code>DATEDIFF()</code>"},
+      {fn:"Filtrer une période",d:"<code>WHERE</code> + comparateurs"}
     ]} },
 { id:54, titre:"Fonctions de conversion de types", résumé:"Passer d’un type à un autre",
     studio:{problem:{eye:"Convertir un type",title:"Passer d’un type à un autre.",
@@ -7031,15 +7035,15 @@ FROM produits;</pre></div>
     {k:'calc',label:'Calcul',sql:"SELECT nom, prix * CAST('2' AS INTEGER) AS total\nFROM produits;",out:"Magnésium : 19,90 × 2 = 39,80."},
     {k:'null',label:'NULL',sql:"SELECT CAST(NULL AS INTEGER) AS vide;",out:"NULL reste NULL. La conversion ne crée pas de valeur.",tone:'good'}
   ],
-  fnCmp:{title:"Le tableau réflexe",want:1,h1:"Besoin",h2:"Fonctions possibles",
-    say:`<div class="fn-sgbd"><p>Toutes ces fonctions ne sont pas disponibles partout. <code>CAST()</code> est la fonction essentielle à connaître. La syntaxe exacte peut varier selon le SGBD, mais le principe de conversion reste le même.</p></div>`,
+  fnCmp:{title:"Le tableau réflexe",want:1,h1:"Je veux…",h2:"J’utilise",
+    say:`<div class="fn-sgbd"><p class="pt-syntax-h">Ici : SQLite</p><p><code>CAST()</code> est la fonction essentielle. Le principe reste le même selon le SGBD, mais certains noms ou syntaxes peuvent changer.</p></div>`,
     rows:[
-      {fn:"Conversion générale",d:"<code>CAST()</code>"},
-      {fn:"Conversion SQL Server",d:"<code>CONVERT()</code>"},
-      {fn:"Conversion sans erreur",d:"<code>TRY_CAST()</code>, <code>TRY_CONVERT()</code>"},
-      {fn:"Texte → date",d:"<code>TO_DATE()</code>, <code>STR_TO_DATE()</code>"},
-      {fn:"Date → texte",d:"<code>TO_CHAR()</code>, <code>DATE_FORMAT()</code>"},
-      {fn:"Texte → nombre",d:"<code>TO_NUMBER()</code>"}
+      {fn:"Changer le type d’une valeur",d:"<code>CAST()</code>"},
+      {fn:"Convertir sans erreur",d:"<code>TRY_CAST()</code>, <code>TRY_CONVERT()</code>"},
+      {fn:"Texte → nombre",d:"<code>CAST(… AS INTEGER)</code>"},
+      {fn:"Nombre → texte",d:"<code>CAST(… AS VARCHAR)</code>"},
+      {fn:"Texte → date",d:"<code>CAST(… AS DATE)</code>, <code>TO_DATE()</code>"},
+      {fn:"Date → texte",d:"<code>TO_CHAR()</code>, <code>DATE_FORMAT()</code>"}
     ]} },
 ]},
 { titre:"Fonctions d’agrégation", sous:"COUNT, AVG, SUM, MIN, MAX", lessons:[
