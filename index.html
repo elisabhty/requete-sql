@@ -11137,7 +11137,11 @@ function fnCmpBlock(l){
       <td class="jr-quoi">${r.d}</td>
     </tr>`).join('');
   const raw=c.say&&String(c.say).trim();
-  const say=raw?(raw.startsWith('<')?raw:`<p class="fn-cmp-say">${raw}</p>`):'';
+  /* Un say qui commence par du gras reste une phrase : seul un vrai bloc se
+     passe du paragraphe. Dans les deux cas le conteneur porte la marge, sinon
+     la phrase colle au bas du tableau. */
+  const bloc=/^<(p|div|ul|ol|table|blockquote|h[1-6])[\s>]/i.test(raw||'');
+  const say=raw?(bloc?`<div class="fn-cmp-say">${raw}</div>`:`<p class="fn-cmp-say">${raw}</p>`):'';
   return `<div class="concept-block">
     <h2><span class="h2-txt">${esc(c.title)}</span></h2>
     <table class="join-recap fn-cmp">
