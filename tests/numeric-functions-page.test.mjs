@@ -44,7 +44,7 @@ assert(html.includes('function initNumericFunctions'), 'micro-interactions initi
 assert(html.includes('Actions possibles sur un nombre') && html.includes('aria-live="polite"'), 'états interactifs accessibles');
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('nfStageSwap'), 'animations compatibles avec la réduction des mouvements');
 assert(html.includes('initNumericFunctions();'), 'laboratoire activé au rendu du cours');
-assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53"), 'récapitulatifs redondants retirés de cette page');
+assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53||l.id===54"), 'récapitulatifs redondants retirés de cette page');
 assert(html.includes('Confondre résultat et valeur stockée'), 'piège affichage / modification raccourci');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
