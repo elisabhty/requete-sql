@@ -45,7 +45,7 @@ assert(html.includes('function initDateFunctions'), 'micro-interactions initiali
 assert(html.includes('aria-live="polite"') && html.includes('Actions possibles sur une date'), 'états interactifs accessibles');
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('dfStageSwap'), 'animations compatibles avec la réduction des mouvements');
 assert(html.includes('initDateFunctions();'), 'laboratoire activé au rendu du cours');
-assert(html.includes("const compactDate=l.id===53") && html.includes("compactDate?'':reflexBlock(l)"), 'récapitulatifs redondants retirés de cette page');
+assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53") && html.includes("compactFunctionLesson?'':reflexBlock(l)"), 'récapitulatifs redondants retirés de cette page');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
