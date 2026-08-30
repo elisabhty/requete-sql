@@ -7706,7 +7706,50 @@ FROM produits;</pre></div>
   testeVariants:[
     {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;",out:"id est unique : une personne, un numéro"},
     {k:'cmd',label:'commandes',sql:"SELECT id, client_id\nFROM commandes;",out:"client_id se répète : un client, plusieurs commandes"}
-  ] }
+  ] },
+{ id:56, titre:"Normalisation", résumé:"Répartir les données dans des tables reliées",
+  situation:"Tu dois créer un tableau de bord Power BI pour analyser les ventes : nombre de commandes, produits vendus et répartition des clients par ville.<br><br>Pour alimenter le tableau de bord, toutes les informations ont d’abord été regroupées dans une seule grande table :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>client_id</th><th>nom</th><th>ville</th><th>commande_id</th><th>produit</th><th>prix</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td>Paris</td><td>1</td><td>Fibre Prébiotique</td><td>29,90</td><td>2</td></tr><tr><td>1</td><td>Sophie</td><td>Paris</td><td>2</td><td>Magnésium</td><td>19,90</td><td>1</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>3</td><td>Protéine Végétale</td><td>34,90</td><td>1</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>10</td><td>Magnésium</td><td>19,90</td><td>2</td></tr></tbody></table></div><br><br>Le tableau de bord fonctionne, mais la table contient beaucoup d’informations répétées.<br><br>À chaque nouvelle commande de Sophie, son nom et sa ville sont enregistrés à nouveau. De la même manière, les informations d’un produit peuvent apparaître dans de nombreuses lignes.<br><br>Cela pose un problème : plus les ventes augmentent, plus les données sont dupliquées et difficiles à maintenir sans incohérence.<br><br>Comment mieux organiser la base de données qui alimente Power BI ?<br><br>C’est là qu’intervient la normalisation : elle permet de répartir les informations dans plusieurs tables reliées, chacune ayant un rôle précis.",
+  situationTail:"Pour apprendre à organiser ces tables correctement, nous allons avancer étape par étape avec les formes normales : <b>1NF</b>, <b>2NF</b> et <b>3NF</b>.",
+    studio:{pointCards:{
+      eye:"Normalisation",title:"Une information, un seul endroit.",
+      lead:"Normaliser, c’est ranger chaque information dans la table dont elle est le sujet. La ville appartient au client, le prix au produit, la quantité à la commande.",
+      chain:[
+        {k:"1NF",v:"une seule valeur par case"},
+        {k:"2NF",v:"chaque colonne dépend de toute la clé"},
+        {k:"3NF",v:"aucune colonne ne dépend d’une autre colonne ordinaire"}
+      ],
+      cards:[
+        {t:"Le coût de la répétition",
+         b:"<p>Dans la grande table, la ville de Sophie est écrite à chaque commande. Si Sophie déménage, il faut la corriger partout.</p><p>Une seule ligne oubliée, et la base se contredit : c’est une <b>anomalie de mise à jour</b>.</p>"},
+        {t:"1NF — une valeur par case",
+         b:"<p>Chaque case contient une seule valeur, jamais une liste. <code>produits : \'Magnésium, Shaker\'</code> devient deux lignes.</p><p>Sans cela, aucune requête ne peut filtrer ou compter proprement.</p>"},
+        {t:"2NF — dépendre de toute la clé",
+         b:"<p>Dans notre table, une ligne est identifiée par la commande et son produit. Or le nom du client ne dépend que du client.</p><p>Il part donc dans sa propre table <code>clients</code>.</p>"},
+        {t:"3NF — pas de dépendance indirecte",
+         b:"<p>Le prix ne dépend pas de la commande : il dépend du produit, qui est lui-même une colonne de la ligne.</p><p>Il part dans <code>produits</code>. Il ne reste dans <code>commandes</code> que ce qui décrit vraiment la commande.</p>"}
+      ]},
+    reflex:{a:{k:"La question",t:"de quoi cette colonne parle-t-elle ?"},
+      b:{k:"La règle",t:"une information écrite à un seul endroit"},
+      note:"Réflexe : si une valeur se répète d’une ligne à l’autre sans être la clé, c’est qu’elle décrit autre chose. Donne-lui sa table."}},
+  anatomie:[
+    {tok:"clients (id, nom, ville)",txt:"Tout ce qui décrit le client, écrit une seule fois."},
+    {tok:"produits (id, nom, prix)",txt:"Tout ce qui décrit le produit, écrit une seule fois."},
+    {tok:"commandes (id, client_id, produit_id, quantite)",txt:"Ce qui décrit la commande, plus deux clés étrangères vers les tables voisines."}
+  ],
+  exemple:"CREATE TABLE clients (\n  id INTEGER PRIMARY KEY,\n  nom TEXT,\n  ville TEXT\n);\n\nCREATE TABLE produits (\n  id INTEGER PRIMARY KEY,\n  nom TEXT,\n  prix REAL\n);\n\nCREATE TABLE commandes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER REFERENCES clients(id),\n  produit_id INTEGER REFERENCES produits(id),\n  quantite INTEGER\n);",
+  attendu:"Trois tables au lieu d’une. La ville de Sophie n’est plus écrite qu’une fois, le prix du Magnésium aussi. Le tableau de bord retrouve les mêmes chiffres avec des jointures.",
+  retenir:"Normaliser, c’est répartir les informations dans plusieurs tables reliées, chacune ayant un sujet précis : le client, le produit, la commande.<br><br>Une information n’est alors écrite qu’à un seul endroit. La corriger une fois suffit, et la base ne peut plus se contredire.<br><br>Les formes normales sont les étapes de ce rangement : <b>1NF</b> une seule valeur par case, <b>2NF</b> chaque colonne dépend de toute la clé, <b>3NF</b> aucune colonne ne dépend d’une autre colonne ordinaire.",
+  piege:{t:"Tout séparer, jusqu’à l’excès",
+    p:"Normaliser n’est pas découper à l’infini. Sortir la ville dans une table <code>villes</code> n’a de sens que si la ville porte ses propres informations — un département, une région. Sinon, chaque lecture paie une jointure de plus pour rien.",
+    exec:false,
+    sql:"SELECT clients.nom, villes.nom\nFROM clients\nJOIN villes ON clients.ville_id = villes.id;",
+    out:"Une jointure de plus à chaque requête, pour retrouver une simple chaîne de caractères.",
+    fixSql:"SELECT nom, ville\nFROM clients;"},
+  consigne:"La grande table mélange trois sujets. Écris la table <code>commandes</code> normalisée : son identifiant, ses deux clés étrangères, et la quantité.",
+  solution:"CREATE TABLE commandes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER REFERENCES clients(id),\n  produit_id INTEGER REFERENCES produits(id),\n  quantite INTEGER\n);",
+  indice:"Une commande ne garde que ce qui la décrit. Le nom du client et le prix du produit vivent ailleurs : elle ne garde que leurs identifiants.",
+  noExec:true,
+  richLesson:true, earlyDemo:true }
 ]},
 
 { titre:"Relier", sous:"Plusieurs tables, une question", lessons:[
@@ -9332,6 +9375,9 @@ const QCM={
  48:[{q:"Une sous-requête dans <code>FROM</code> produit :",o:["Une seule valeur","Une liste pour IN","Un résultat utilisé comme une table"],b:2,e:"On lui donne un alias, puis la requête principale calcule dessus."},
   {q:"Pourquoi écrire <code>AS commandes_montants</code> ?",o:["Pour trier le résultat","Parce que le résultat intermédiaire doit avoir un alias","Parce que AVG l’exige toujours"],b:1,e:"Une sous-requête dans FROM est une table dérivée : SQL exige un nom pour s’en servir."},
   {q:"Que calcule la requête principale ici ?",o:["Le nombre de commandes par client","La moyenne des montants déjà calculés","La somme des prix du catalogue"],b:1,e:"La sous-requête fabrique d’abord les montants. <code>AVG(montant)</code> agrège ensuite ce résultat."}],
+ 56:[{q:"Pourquoi répartir les données dans plusieurs tables ?",o:["Pour que les requêtes soient plus courtes","Pour qu’une information ne soit écrite qu’à un seul endroit","Pour économiser des noms de colonnes"],b:1,e:"Écrite une seule fois, elle se corrige une seule fois : la base ne peut plus se contredire."},
+  {q:"Dans la grande table, la ville de Sophie est répétée à chaque commande. Que se passe-t-il si elle déménage ?",o:["SQL met à jour les autres lignes tout seul","Il faut corriger chaque ligne, et un oubli rend la base incohérente","La ville devient NULL"],b:1,e:"C’est l’anomalie de mise à jour, et c’est ce que la normalisation évite."},
+  {q:"Le prix appartient à quelle table après normalisation ?",o:["commandes, puisqu’on l’y consulte","produits, puisqu’il décrit le produit","clients, puisque le client paie"],b:1,e:"Chaque colonne va dans la table dont elle décrit le sujet."}],
  55:[{q:"<code>EXISTS</code> teste :",o:["Si une valeur appartient à une liste","Si la sous-requête trouve au moins une ligne","Si deux colonnes ont le même nom"],b:1,e:"On ne compare pas une valeur. On demande si une ligne liée existe."},
   {q:"Pourquoi <code>NOT EXISTS</code> trouve Inès, alors que <code>NOT IN</code> sans filtre renvoie 0 ligne ?",o:["Inès a une commande cachée","La commande #16 met un NULL dans la liste de NOT IN","EXISTS ignore la table clients"],b:1,e:"<code>NOT IN</code> peut ne retourner aucune ligne si la liste contient un <code>NULL</code>. <code>NOT EXISTS</code> ne construit pas cette liste : il cherche seulement une commande liée à Inès."},
   {q:"Sans <code>WHERE commandes.client_id = clients.id</code>, <code>EXISTS (SELECT 1 FROM commandes)</code> :",o:["Ne garde qu’Inès","Garde les 9 clients, Inès comprise","Provoque une erreur"],b:1,e:"La table commandes n’est pas vide. Sans corrélation, le test est le même pour tout le monde."}],
