@@ -7866,6 +7866,10 @@ ON clients(email);</pre></div>
         <div class="fn-use">
           <p class="pt-syntax-h">L’index ne modifie pas la table</p>
           <p><code>CREATE INDEX</code> n’ajoute pas de colonne dans la table <code>clients</code>.</p>
+          <div class="idx-side" aria-hidden="true">
+            <span><b>Données</b><i>dans la table</i></span>
+            <span><b>Index email</b><i>à côté, pour retrouver</i></span>
+          </div>
           <p>Les données restent dans la table. L’index est une structure créée <b>en plus</b>, pour aider à les retrouver.</p>
         </div>
         <div class="fn-use">
@@ -7899,6 +7903,10 @@ ON commandes(client_id);</pre></div>
           <p class="pt-syntax-h">Pourquoi ne pas tout indexer ?</p>
           <p>Un index occupe de l’espace. Et quand tu fais un <code>INSERT</code>, un <code>UPDATE</code> ou un <code>DELETE</code>, les index concernés doivent aussi être mis à jour.</p>
           <p>Il peut accélérer certaines lectures, mais il a un coût de stockage et de maintenance.</p>
+          <div class="idx-side" aria-hidden="true">
+            <span><b>Lectures</b><i>potentiellement plus rapides</i></span>
+            <span><b>Écritures</b><i>stockage + maintenance</i></span>
+          </div>
           <p>La règle n’est pas « plus j’ai d’index, plus ma base est rapide ». C’est : créer des index là où ils sont réellement utiles.</p>
         </div>
         <div class="fn-use">
@@ -7907,12 +7915,34 @@ ON commandes(client_id);</pre></div>
           <div class="pt-syntax"><pre class="cw-syntax">CREATE INDEX idx_commandes_client_date
 ON commandes(client_id, date_commande);</pre></div>
           <p>C’est un <b>index composite</b>. L’ordre des colonnes compte : d’abord <code>client_id</code>, puis <code>date_commande</code> à l’intérieur de chaque client.</p>
+          <div class="idx-comp" aria-hidden="true">
+            <div class="idx-comp-g">
+              <b>client 1 · Sophie</b>
+              <span>2023-07-02</span>
+              <span>2023-07-02</span>
+              <span>2023-07-28</span>
+            </div>
+            <div class="idx-comp-g">
+              <b>client 2 · Lucas</b>
+              <span>2023-07-05</span>
+              <span>2023-07-20</span>
+            </div>
+          </div>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">INDEX et UNIQUE, deux idées</p>
           <p><code>INDEX</code> fournit un chemin d’accès. <code>UNIQUE</code> impose une règle : les valeurs ne doivent pas être dupliquées.</p>
-          <p>Une contrainte <code>UNIQUE</code> s’appuie souvent sur un index, mais l’objectif n’est pas le même : performance d’un côté, intégrité de l’autre.</p>
-          <p>La clé primaire <code>id</code> a déjà une structure adaptée. Tu n’as généralement pas besoin de recréer un index sur <code>clients.id</code>.</p>
+          <div class="memory-rule">
+            <div class="memory-a"><b>INDEX</b><span>performance / accès</span></div>
+            <div class="memory-b"><b>UNIQUE</b><span>règle d’unicité</span></div>
+          </div>
+          <p>Une contrainte <code>UNIQUE</code> s’appuie souvent sur un index, mais l’objectif n’est pas le même.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Et la clé primaire ?</p>
+          <p>La table <code>clients</code> a déjà <code>id INTEGER PRIMARY KEY</code>.</p>
+          <p>Les SGBD mettent généralement en place automatiquement une structure adaptée — souvent un index — pour faire respecter cette contrainte et permettre des recherches efficaces.</p>
+          <p>Tu n’as donc généralement pas besoin de recréer <code>CREATE INDEX idx_clients_id ON clients(id)</code>.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Comment savoir si l’index est utilisé ?</p>
