@@ -7754,21 +7754,21 @@ FROM produits;</pre></div>
   situationTail:"<div class=\"sit-sql\"><p>Comment mieux organiser la base de données qui alimente Power BI ?</p><p>C’est là qu’intervient la normalisation : elle permet de répartir les informations dans plusieurs tables reliées, chacune ayant un rôle précis.</p><p>Pour apprendre à organiser ces tables correctement, nous allons avancer étape par étape avec les formes normales : <b>1NF</b>, <b>2NF</b> et <b>3NF</b>.</p></div>",
     studio:{pointCards:{
       eye:"Normalisation",title:"Une information, un seul endroit.",
-      lead:"Normaliser, c’est ranger chaque information dans la table dont elle est le sujet. La ville appartient au client, le prix au produit, la quantité à la commande.",
+      lead:"Normaliser, c’est ranger chaque information dans la table qui correspond à ce qu’elle décrit. La ville décrit le client, le prix décrit le produit, la quantité décrit la commande.",
       chain:[
-        {k:"1NF",v:"une seule valeur par case"},
-        {k:"2NF",v:"chaque colonne dépend de toute la clé"},
-        {k:"3NF",v:"aucune colonne ne dépend d’une autre colonne ordinaire"}
+        {k:"1NF",v:"une seule valeur par cellule"},
+        {k:"2NF",v:"chaque information dépend de toute la clé"},
+        {k:"3NF",v:"chaque information dépend directement de la clé"}
       ],
       cards:[
         {t:"Le coût de la répétition",
          b:"<p>Dans la grande table, la ville de Sophie est écrite à chaque commande. Si Sophie déménage, il faut la corriger partout.</p><p>Une seule ligne oubliée, et la base se contredit : c’est une <b>anomalie de mise à jour</b>.</p>"},
-        {t:"1NF — une valeur par case",
-         b:"<p>Chaque case contient une seule valeur, jamais une liste.</p><p><code>produits : \'Magnésium, Shaker\'</code> devient deux lignes. Sans cela, aucune requête ne peut filtrer ou compter proprement.</p>"},
-        {t:"2NF — dépendre de toute la clé",
-         b:"<p>Chaque colonne dépend de toute la clé, pas d’une partie seulement.</p><p>Ici, une ligne est identifiée par la commande et son produit. Or le nom du client ne dépend que du client : il part dans la table <code>clients</code>.</p>"},
-        {t:"3NF — pas de dépendance indirecte",
-         b:"<p>Aucune colonne ne dépend d’une autre colonne qui n’est pas la clé.</p><p>Le prix ne dépend pas de la commande : il dépend du produit. Il part dans <code>produits</code>. Il ne reste dans <code>commandes</code> que ce qui décrit vraiment la commande.</p>"}
+        {t:"1NF — une seule valeur",
+         b:"<p>Une table est en <b>1NF</b> si et seulement si :</p><ul><li>Toutes les colonnes contiennent des valeurs atomiques (indivisibles). Pas de listes, pas de tableaux, pas d’ensembles de valeurs dans une seule cellule.</li><li>Chaque ligne est unique : il doit exister une clé primaire identifiant chaque enregistrement de manière unique.</li></ul>"},
+        {t:"2NF — toute la clé",
+         b:"<p>Une table est en <b>2NF</b> si et seulement si :</p><ul><li>Elle est déjà en 1NF.</li><li>Chaque colonne non-clé (celle qui ne fait pas partie de la clé primaire) dépend de toute la clé primaire, et non d’une partie seulement.</li></ul><p>👉 La 2NF ne concerne que les tables dont la clé primaire est composite (plusieurs colonnes). Si la table a une clé primaire simple (une seule colonne), elle est automatiquement en 2NF dès qu’elle est en 1NF.</p>"},
+        {t:"3NF — directement de la clé",
+         b:"<p>Une table est en <b>3NF</b> si et seulement si :</p><ul><li>Elle est déjà en 2NF.</li><li>Chaque information dépend directement de la clé.</li></ul><p>Cela signifie qu’une information ne doit pas dépendre d’une autre information non-clé.</p>"}
       ]},
     reflex:{a:{k:"La question",t:"Cette information décrit-elle vraiment cette table ?"},
       b:{k:"La règle",t:"Chaque information à sa place."},
@@ -7781,7 +7781,7 @@ FROM produits;</pre></div>
   ],
   exemple:"CREATE TABLE clients (\n  id INTEGER PRIMARY KEY,\n  nom TEXT,\n  ville TEXT\n);\n\nCREATE TABLE produits (\n  id INTEGER PRIMARY KEY,\n  nom TEXT,\n  prix REAL\n);\n\nCREATE TABLE commandes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER REFERENCES clients(id),\n  produit_id INTEGER REFERENCES produits(id),\n  quantite INTEGER\n);",
   attendu:"Trois tables au lieu d’une. La ville de Sophie n’est plus écrite qu’une fois, le prix du Magnésium aussi. Le tableau de bord retrouve les mêmes chiffres avec des jointures.",
-  retenir:"Normaliser, c’est répartir les informations dans plusieurs tables reliées, chacune ayant un sujet précis : le client, le produit, la commande.<br><br>Une information n’est alors écrite qu’à un seul endroit. La corriger une fois suffit, et la base ne peut plus se contredire.<br><br>Les formes normales sont les étapes de ce rangement : <b>1NF</b> une seule valeur par case, <b>2NF</b> chaque colonne dépend de toute la clé, <b>3NF</b> aucune colonne ne dépend d’une autre colonne ordinaire.",
+  retenir:"Normaliser, c’est ranger chaque information dans la table qui correspond à ce qu’elle décrit.<br><br>Une information n’est alors écrite qu’à un seul endroit. La corriger une fois suffit, et la base ne peut plus se contredire.<br><br>Les formes normales : <b>1NF</b> une seule valeur, <b>2NF</b> toute la clé, <b>3NF</b> directement de la clé.",
   piege:{t:"Tout séparer, jusqu’à l’excès",
     p:"Normaliser n’est pas découper à l’infini. Sortir la ville dans une table <code>villes</code> n’a de sens que si la ville porte ses propres informations — un département, une région. Sinon, chaque lecture paie une jointure de plus pour rien.",
     exec:false,
