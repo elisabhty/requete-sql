@@ -8319,7 +8319,7 @@ FROM produits;</pre></div>
   ] },
 { id:46, titre:"Sous-requête dans WHERE avec NOT IN", résumé:"Exclure une liste issue d’une autre requête",
   situation:"Tu veux identifier les clients qui n’ont encore passé aucune commande, afin de leur envoyer une offre de bienvenue.<br><br>Les clients sont dans la table <code>clients</code>, tandis que les commandes contiennent les <code>client_id</code> des clients qui ont déjà commandé.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th class=\"col-hl\">client_id</th><th>produit</th></tr></thead><tbody><tr><td>1</td><td class=\"col-hl\">1</td><td>Fibre Prébiotique</td></tr><tr><td>3</td><td class=\"col-hl\">2</td><td>Protéine Végétale</td></tr><tr><td>4</td><td class=\"col-hl\">3</td><td>Collagène Marin</td></tr><tr><td>5</td><td class=\"col-hl\">4</td><td>Fibre Prébiotique</td></tr></tbody></table></div>",
-  situationTail:"Tu peux donc récupérer la liste des <code>client_id</code> présents dans <code>commandes</code>, puis chercher les clients dont l’<code>id</code> n’est pas dans cette liste.<br><br>C’est justement le rôle de <code>NOT IN</code> : la sous-requête crée la liste des clients ayant commandé, puis <code>NOT IN</code> garde ceux qui ne sont pas dans cette liste.",
+  situationTail:"Tu peux donc récupérer la liste des <code>client_id</code> présents dans la table <code>commandes</code>, puis chercher les clients dont l’<code>id</code> n’est pas dans cette liste.<br><br>C’est justement le rôle de <code>NOT IN</code> : la sous-requête crée la liste des clients ayant commandé, puis <code>NOT IN</code> garde ceux qui ne sont pas dans cette liste.",
   studio:{pointCards:{
       eye:"NOT IN",title:"La sous-requête crée une liste à exclure.",
       lead:"<p>Une sous-requête est simplement une requête SQL imbriquée à l’intérieur d’une autre requête. Lorsqu’on l’utilise avec <code>WHERE ... NOT IN</code>, elle permet de filtrer les résultats de la requête principale en excluant une liste de valeurs dynamiques générées par la sous-requête.</p>",
@@ -8453,10 +8453,10 @@ JOIN produits
     {k:'sub_from',label:'Sous-requête FROM',sql:"SELECT AVG(montant)\nFROM (\n  SELECT produits.prix * commandes.quantite AS montant\n  FROM commandes\n  JOIN produits\n    ON commandes.produit_id = produits.id\n) AS commandes_montants;",tone:'good'}
   ] },
 { id:55, titre:"EXISTS et NOT EXISTS", résumé:"Tester la présence ou l’absence d’une ligne liée",
-  situation:"Tu veux deux listes : les clients qui ont déjà commandé, et ceux qui n’ont encore rien acheté.<br><br>Les noms sont dans <code>clients</code>. Les achats sont dans <code>commandes</code>. Inès (id 9) n’a aucune commande. La commande invitée #16 a un <code>client_id</code> à <code>NULL</code>.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th>commandes</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td>3</td></tr><tr><td>2</td><td>Lucas</td><td>2</td></tr><tr><td>9</td><td>Inès</td><td>0</td></tr></tbody></table></div>",
-  situationTail:"<code>IN</code> fabrique une liste de valeurs. Ici, tu ne compares pas une valeur : tu demandes si <b>au moins une ligne liée existe</b>. C’est le rôle de <code>EXISTS</code> et de <code>NOT EXISTS</code>.",
-    studio:{problem:{eye:"EXISTS",title:"Tester si une ligne liée existe.",
-      body:`<div class="pt-lead"><p><code>EXISTS</code> ne compare pas des valeurs. Il répond à une seule question : la sous-requête trouve-t-elle <b>au moins une ligne</b> ?</p><p>Oui → la ligne de la requête principale est gardée. Non → elle est écartée. <code>NOT EXISTS</code> inverse le test.</p></div>`},
+  situation:"Tu veux deux listes : les clients qui ont déjà commandé, et ceux qui n’ont encore rien acheté.<br><br>Les noms sont dans la table <code>clients</code>. Les achats sont dans la table <code>commandes</code>. Inès (id 9) n’a aucune commande. La commande invitée #16 a un <code>client_id</code> à <code>NULL</code>.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th>commandes</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td>3</td></tr><tr><td>2</td><td>Lucas</td><td>2</td></tr><tr><td>9</td><td>Inès</td><td>0</td></tr></tbody></table></div>",
+  situationTail:"Avec <code>IN</code>, SQL vérifie si une valeur appartient à une liste.<br><br>Avec <code>EXISTS</code>, on raisonne autrement : pour chaque client, on vérifie simplement s’il existe au moins une commande qui lui appartient.<br><br>C’est exactement ce que permettent <code>EXISTS</code> et <code>NOT EXISTS</code>.",
+    studio:{problem:{eye:"EXISTS",title:"Vérifier si une ligne liée existe.",
+      body:`<div class="pt-lead"><p><code>EXISTS</code> vérifie si une sous-requête trouve au moins une ligne.</p><p>Pour chaque ligne, SQL se pose simplement la question :</p><p>« Est-ce que je trouve au moins une correspondance ? »</p><p>Oui → la ligne est gardée.<br>Non → la ligne est écartée.</p><p><code>NOT EXISTS</code> fait l’inverse : il garde la ligne lorsqu’aucune correspondance n’existe.</p></div>`},
     uses:{title:"Une existence, pas une liste.",
       body:`<div class="pt-lead fn-uses">
         <div class="fn-use">
@@ -8521,7 +8521,7 @@ WHERE clients.id NOT IN (
         <div class="fn-use">
           <p class="pt-syntax-h">EXISTS plutôt qu’un JOIN</p>
           <p>Un <code>JOIN</code> fabrique une ligne par correspondance. Sophie a 3 commandes : elle apparaîtrait 3 fois, sauf si tu ajoutes <code>DISTINCT</code>.</p>
-          <p>Avec <code>EXISTS</code>, Sophie reste une seule fois. Tu ne récupères pas les colonnes de <code>commandes</code> : tu vérifies seulement qu’il en existe.</p>
+          <p>Avec <code>EXISTS</code>, Sophie reste une seule fois. Tu ne récupères pas les colonnes de la table <code>commandes</code> : tu vérifies seulement qu’il en existe.</p>
           <p>Si tu as besoin du <code>produit_id</code> ou de la <code>quantite</code>, écris un <code>JOIN</code>. Si tu veux seulement savoir « a-t-il commandé ? », écris <code>EXISTS</code>.</p>
         </div>
         <div class="fn-use">
@@ -8592,7 +8592,7 @@ WHERE EXISTS (
     {k:'notexists',label:'NOT EXISTS',sql:"SELECT clients.nom\nFROM clients\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM commandes\n  WHERE commandes.client_id = clients.id\n);",out:"Inès seulement.",tone:'good'}
   ],
   fnCmp:{title:"Le tableau réflexe",want:1,h1:"Je veux…",h2:"J’utilise",
-    say:`<div class="fn-sgbd"><p class="pt-syntax-h">Ici : SQLite</p><p>Le raisonnement est le même selon le SGBD. <code>EXISTS</code> et <code>NOT EXISTS</code> font partie du SQL standard.</p></div>`,
+    say:`<div class="fn-sgbd"><p class="pt-syntax-h">Ici comme ailleurs</p><p>Le raisonnement est le même quel que soit le SGBD. <code>EXISTS</code> et <code>NOT EXISTS</code> font partie du SQL standard.</p></div>`,
     rows:[
       {fn:"Vérifier qu’une ligne liée existe",d:"<code>EXISTS</code>"},
       {fn:"Vérifier qu’aucune ligne liée n’existe",d:"<code>NOT EXISTS</code>"},
