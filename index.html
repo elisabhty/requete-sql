@@ -544,6 +544,25 @@
     .coalesce-page>.concept-block.in .coal-route-choice,.coalesce-page>.concept-block.in .coal-route-link,.coalesce-page>.concept-block.in .coal-use-row{animation:none!important}
   }
   .fn-use .table-wrap{margin:10px 0}
+  /* Transaction : le chemin qui mène à COMMIT ou à ROLLBACK. Le dessin dit
+     le cours à lui seul — deux opérations, une question, deux issues. */
+  .tx-flow{display:flex;flex-direction:column;align-items:center;gap:3px;margin:12px 0 0;padding:16px 12px;border:1px solid var(--card-border);border-radius:14px;background:color-mix(in srgb,var(--surface-2) 45%,var(--surface))}
+  .tx-step{width:100%;max-width:250px;padding:9px 12px;border-radius:11px;background:var(--surface);box-shadow:var(--card-shadow-sm);font-family:var(--mono);font-size:12px;font-weight:750;color:var(--ink-2);text-align:center}
+  .tx-step.tx-key{color:var(--accent);background:var(--accent-soft);box-shadow:none}
+  .tx-arrow{font-style:normal;font-size:15px;line-height:1;color:var(--ink-3)}
+  .lesson-rich .tx-q{margin:6px 0 8px;font-size:13px;font-weight:750;color:var(--ink)}
+  .tx-fork{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;max-width:250px}
+  .tx-branch{display:flex;flex-direction:column;align-items:center;gap:1px;padding:9px 8px;border-radius:11px;text-align:center}
+  .tx-branch small{font-size:9.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-3)}
+  .tx-branch b{font-family:var(--mono);font-size:12px;font-weight:850}
+  .tx-branch span{font-size:11px;font-weight:650;color:var(--ink-3)}
+  .tx-branch.is-ok{background:var(--success-soft)}.tx-branch.is-ok b{color:var(--success)}
+  .tx-branch.is-ko{background:var(--warn-soft)}.tx-branch.is-ko b{color:var(--warn)}
+  .tx-fail{display:flex;flex-direction:column;gap:6px;margin:10px 0 0}
+  .tx-fail span{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;border-radius:11px;font-family:var(--mono);font-size:12px;font-weight:750}
+  .tx-fail .is-ok{background:var(--success-soft);color:var(--success)}
+  .tx-fail .is-ko{background:var(--warn-soft);color:var(--warn)}
+  .tx-fail i{font-style:normal;font-weight:850}
   /* Comparaison de deux fonctions sur plusieurs critères. En trois colonnes,
      la troisième sortait du cadre et il fallait deviner qu'on pouvait faire
      défiler. Le critère titre la ligne, les deux réponses se lisent dessous. */
@@ -9778,6 +9797,112 @@ WHERE rang = 1;</pre></div>
   richLesson:true, earlyDemo:true,
   write:true,
   verif:"SELECT * FROM commandes ORDER BY id;" },
+{ id:62, titre:"Transactions", résumé:"Tout valider ou tout annuler",
+  situation:"Un client commande 2 unités d’un produit sur ton site e-commerce.<br><br>Deux modifications doivent être effectuées dans la base : ajouter la commande dans la table <code>commandes</code>, et retirer 2 unités du <code>stock</code> dans la table <code>produits</code>.",
+  situationSql:"INSERT INTO commandes\n    (client_id, produit_id, quantite, date_commande)\nVALUES\n    (1, 3, 2, '2026-08-30');\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;",
+  situationTail:"Mais imagine qu’un problème survienne entre les deux opérations :<br><br><div class=\"tx-fail\"><span class=\"is-ok\">Commande ajoutée<i>✓</i></span><span class=\"is-ko\">Stock mis à jour<i>✕</i></span></div><br>La commande existe maintenant dans la base, mais le stock n’a pas été diminué. Les données ne sont plus cohérentes.<br><br><div class=\"sit-sql\"><p>Comment faire pour que ces deux opérations soient validées ensemble, ou annulées ensemble ?</p><p>C’est le rôle d’une <b>transaction</b>.</p></div>",
+    studio:{pointCards:{
+      eye:"Transaction",title:"Un seul ensemble, un seul sort.",
+      lead:"Une transaction regroupe plusieurs opérations SQL pour qu’elles forment une seule unité de travail. Soit tout est validé, soit tout est annulé.",
+      chain:[
+        {k:"BEGIN",v:"je commence"},
+        {k:"COMMIT",v:"je valide"},
+        {k:"ROLLBACK",v:"j’annule"}
+      ]},
+    uses:{title:"Trois mots, un ensemble.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Le parcours d’une commande</p>
+          <div class="tx-flow" role="img" aria-label="De BEGIN à COMMIT ou ROLLBACK">
+            <span class="tx-step tx-key">BEGIN</span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step">INSERT commande</span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step">UPDATE stock</span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-q">Tout va bien ?</span>
+            <div class="tx-fork">
+              <div class="tx-branch is-ok"><small>oui</small><b>COMMIT</b><span>valider</span></div>
+              <div class="tx-branch is-ko"><small>non</small><b>ROLLBACK</b><span>annuler</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">BEGIN — commencer</p>
+          <div class="pt-syntax"><pre class="cw-syntax">BEGIN;</pre></div>
+          <p>À partir de là, les modifications suivantes font partie de la transaction. Il reste à décider si on veut les conserver ou les annuler.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">COMMIT — valider</p>
+          <div class="pt-syntax"><pre class="cw-syntax">BEGIN;
+
+INSERT INTO commandes
+    (client_id, produit_id, quantite, date_commande)
+VALUES
+    (1, 3, 2, '2026-08-30');
+
+UPDATE produits
+SET stock = stock - 2
+WHERE id = 3;
+
+COMMIT;</pre></div>
+          <p>La commande est ajoutée <b>et</b> le stock diminué. Les deux ensemble.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">ROLLBACK — annuler</p>
+          <p>Si un problème survient, on ne veut surtout pas conserver seulement une partie des modifications.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">BEGIN;
+
+INSERT INTO commandes (...);
+
+UPDATE produits
+SET stock = stock - 2
+WHERE id = 3;
+
+ROLLBACK;</pre></div>
+          <p><code>ROLLBACK</code> annule les modifications effectuées depuis le début de cette transaction. La commande ajoutée disparaît donc elle aussi : on revient à l’état d’avant.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Avant et après COMMIT</p>
+          <p>Tant que <code>COMMIT</code> n’a pas été exécuté, la transaction peut encore être annulée par <code>ROLLBACK</code>.</p>
+          <p>Une fois le <code>COMMIT</code> effectué, les modifications sont validées : un <code>ROLLBACK</code> lancé ensuite ne revient pas dessus.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Autant d’opérations que nécessaire</p>
+          <p>Une transaction n’est pas limitée à deux requêtes. Elle peut en contenir trois, dix, sur autant de tables qu’il faut — l’idée reste la même : elles appartiennent à une même unité de travail.</p>
+          <p class="fn-tip"><b>Une réserve</b> Mieux vaut ne pas garder une transaction ouverte longtemps : tant qu’elle l’est, ses modifications ne sont visibles de personne d’autre.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"La situation",t:"plusieurs opérations doivent réussir ensemble"},
+      b:{k:"La question",t:"que se passe-t-il si l’une d’elles échoue ?"},
+      note:"Réflexe : regroupe les opérations dans une transaction pour pouvoir tout valider ou tout annuler."}},
+  anatomie:[
+    {tok:"BEGIN",txt:"Commence la transaction."},
+    {tok:"INSERT INTO commandes (...)",txt:"Première opération de l’ensemble."},
+    {tok:"UPDATE produits SET stock = stock - 2",txt:"Seconde opération, regroupée avec la première."},
+    {tok:"COMMIT",txt:"Valide les modifications. Ou <code>ROLLBACK</code> pour les annuler."}
+  ],
+  exemple:"BEGIN;\n\nINSERT INTO commandes\n    (client_id, produit_id, quantite, date_commande)\nVALUES\n    (1, 3, 2, '2026-08-30');\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nCOMMIT;",
+  attendu:"La commande est enregistrée et le stock du produit 3 passe de 200 à 198. Avec ROLLBACK à la place de COMMIT, rien ne change : ni commande, ni stock.",
+  retenir:"Une transaction regroupe plusieurs opérations SQL qui doivent être traitées comme un même ensemble.<br><br><b>BEGIN</b> commence, <b>COMMIT</b> valide, <b>ROLLBACK</b> annule les modifications non validées.<br><br>Tant que le <code>COMMIT</code> n’a pas eu lieu, tout est encore annulable. Après, non.",
+  piege:{t:"Croire qu’une erreur annule toujours toute la transaction",
+    p:"On lit souvent que SQL annule automatiquement la transaction dès qu’une requête échoue. Le comportement dépend en réalité du moteur et du type d’erreur.<br><br>Retiens plutôt la règle qui, elle, est toujours vraie : si les opérations ne doivent pas être conservées, c’est <code>ROLLBACK</code> qui les annule.",
+    exec:true,
+    sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nROLLBACK;\n\nSELECT nom, stock\nFROM produits\nWHERE id = 3;",
+    out:"Le stock est inchangé : le ROLLBACK a annulé la modification.",
+    fixSql:"BEGIN;\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nCOMMIT;\n\nSELECT nom, stock\nFROM produits\nWHERE id = 3;"},
+  petitDefi:[{
+    p:"Tu modifies le stock de deux produits, puis tu décides finalement de ne rien conserver. Quel mot-clé termine cette transaction ?",
+    sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 2;\n\n________;",
+    a:"ROLLBACK",
+    answers:["ROLLBACK","rollback","ROLLBACK;"]
+  }],
+  consigne:"Dans une seule transaction validée, ajoute la commande du client 1 pour 2 unités du produit 3 le <code>2026-08-30</code>, puis retire ces 2 unités du stock du produit 3.",
+  solution:"BEGIN;\n\nINSERT INTO commandes\n    (client_id, produit_id, quantite, date_commande)\nVALUES\n    (1, 3, 2, '2026-08-30');\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nCOMMIT;",
+  verif:"SELECT (SELECT COUNT(*) FROM commandes WHERE produit_id = 3 AND quantite = 2 AND date_commande = '2026-08-30') AS commandes_ajoutees, (SELECT stock FROM produits WHERE id = 3) AS stock;",
+  indice:"Ouvre avec <code>BEGIN;</code>, écris les deux requêtes, puis referme avec <code>COMMIT;</code>.",
+  write:true,
+  richLesson:true, earlyDemo:true },
 { id:50, titre:"Sécurité et droits", résumé:"Contrôler les accès avec GRANT et REVOKE",
   situation:"Tu veux qu’un utilisateur <code>app_user</code> puisse lire la table <code>clients</code>, mais pas la modifier.<br><br>Avec <code>GRANT</code>, tu lui donnes un droit précis — ici <code>SELECT</code>. Plus tard, <code>REVOKE</code> retire ce droit.<br><br>Un <b>SGBD</b> (système de gestion de base de données) est le logiciel qui stocke tes tables et exécute le SQL. Cette application utilise <code>SQLite</code> : tout tient dans le navigateur, sans comptes utilisateurs.<br><br>MySQL, PostgreSQL et SQL Server sont des SGBD <b>serveur</b> : plusieurs utilisateurs se connectent, chacun avec des droits. C’est là que <code>GRANT</code> et <code>REVOKE</code> existent.<br><br><b>Attention :</b> ces commandes ne s’exécutent pas dans SQLite. Ce cours sert à comprendre le principe. Donner trop de droits permettrait de modifier ou supprimer des données.",
   situationTail:"<code>GRANT</code> donne un droit précis, comme <code>SELECT</code> sur une table. <code>REVOKE</code> le retire. Le piège classique : <code>ALL PRIVILEGES</code> — tous les droits, partout.",
@@ -10190,6 +10315,10 @@ const QCM={
  58:[{q:"<code>EXPLAIN</code> sert à :",o:["Modifier le résultat du SELECT","Montrer le plan d’exécution prévu par le SGBD","Créer automatiquement un index"],b:1,e:"La requête décrit le résultat. Le plan montre la stratégie choisie pour l’obtenir."},
   {q:"Un parcours de table (<code>SCAN</code>, <code>Seq Scan</code>) :",o:["Est toujours une erreur à corriger","Peut être le bon choix, par exemple si tu demandes toutes les lignes","Signifie que la table n’existe pas"],b:1,e:"<code>SELECT * FROM clients</code> doit parcourir la table. EXPLAIN sert à comprendre, pas à colorier le plan."},
   {q:"Face à une requête lente, le premier réflexe :",o:["Ajouter un index sur chaque colonne","Observer le plan avec EXPLAIN, puis optimiser","Réécrire la requête en majuscules"],b:1,e:"Une requête lente n’appelle pas automatiquement un index. On observe d’abord."}],
+ 62:[{q:"Quel mot-clé commence une transaction ?",o:["<code>START TABLE</code>","<code>BEGIN</code>","<code>COMMIT</code>"],b:1,e:"<code>COMMIT</code> la termine en validant ; <code>START TABLE</code> n’existe pas."},
+  {q:"Que fait <code>COMMIT</code> ?",o:["Il annule les modifications","Il supprime la transaction","Il valide les modifications"],b:2,e:"Après un <code>COMMIT</code>, les modifications sont acquises."},
+  {q:"Que fait <code>ROLLBACK</code> ?",o:["Il annule les modifications non validées de la transaction","Il supprime une table","Il relance automatiquement les requêtes"],b:0,e:"On revient à l’état d’avant le <code>BEGIN</code>."},
+  {q:"Quand une transaction est-elle particulièrement utile ?",o:["Quand plusieurs opérations doivent rester cohérentes ensemble","Uniquement avec <code>SELECT</code>","Pour renommer une colonne"],b:0,e:"C’est tout son objet : une commande sans son stock laisse la base incohérente."}],
  61:[{q:"Que fait <code>CREATE TABLE</code> ?",o:["Elle ajoute une ligne","Elle crée la structure d’une table","Elle trie les données"],b:1,e:"Elle définit les colonnes, leurs types et leurs règles. La table est vide tant qu’aucun <code>INSERT</code> n’a eu lieu."},
   {q:"Quelle contrainte identifie chaque ligne de manière unique ?",o:["<code>DEFAULT</code>","<code>NOT NULL</code>","<code>PRIMARY KEY</code>"],b:2,e:"<code>NOT NULL</code> rend la valeur obligatoire, <code>DEFAULT</code> en fournit une par défaut : ni l’une ni l’autre n’identifie la ligne."},
   {q:"À quoi sert une <code>FOREIGN KEY</code> ?",o:["À relier une valeur à une autre table","À trier une colonne","À supprimer les doublons"],b:0,e:"Elle empêche qu’une commande désigne un client qui n’existe pas."}],
