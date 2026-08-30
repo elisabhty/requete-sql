@@ -5581,6 +5581,26 @@
 <div id="app">
   <div id="loader"><div class="logo-badge">&gt;_</div><div class="spinner"></div>
     <p>Préparation de ta base de données SQLite…</p></div>
+  <!-- Script à part : il tourne même si le gros JS a une erreur de syntaxe. -->
+  <script>
+  (function(){
+    var KEY='requete-sw-rescue';
+    setTimeout(function(){
+      var l=document.getElementById('loader');
+      if(!l||l.style.display==='none'||l.classList.contains('fade-out')||l.classList.contains('fatal'))return;
+      try{ if(sessionStorage.getItem(KEY)) return; sessionStorage.setItem(KEY,'1'); }catch(e){ return; }
+      var go=function(){ location.reload(); };
+      if(!navigator.serviceWorker){ go(); return; }
+      navigator.serviceWorker.getRegistrations().then(function(rs){
+        return Promise.all(rs.map(function(r){ return r.unregister(); }));
+      }).then(function(){
+        return window.caches?caches.keys().then(function(ks){
+          return Promise.all(ks.map(function(k){ return caches.delete(k); }));
+        }):null;
+      }).then(go).catch(go);
+    }, 12000);
+  })();
+  </script>
 
   <div id="onboarding" role="dialog" aria-modal="true" aria-labelledby="ob-title" aria-live="polite">
     <div class="ob-progress" id="ob-progress"></div>
@@ -9189,6 +9209,8 @@ async function loadSqlEngine(){
   throw lastError||new Error('Moteur SQL indisponible');
 }
 function bootFatal(){
+  const loader=document.getElementById('loader');
+  if(loader) loader.classList.add('fatal');
   document.getElementById('loader').innerHTML=
    `<div class="logo-badge" style="background:var(--danger);box-shadow:none">!</div>
     <p><b>Impossible de charger le moteur SQL.</b><br>Vérifie ta connexion, puis recharge la page.</p>`;

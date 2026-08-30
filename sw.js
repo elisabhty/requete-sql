@@ -14,7 +14,7 @@
    CACHE doit changer à chaque déploiement pour purger l'ancien contenu :
    garde-le aligné sur APP_VERSION dans index.html. */
 
-const CACHE = 'requete-2026-08-30-exists-v207';
+const CACHE = 'requete-2026-08-30-boot-v208';
 
 const PRECACHE = [
   './',
@@ -61,7 +61,7 @@ self.addEventListener('fetch', (e) => {
   if (req.mode === 'navigate') {
     e.respondWith((async () => {
       try {
-        const res = await fetch(req);
+        const res = await fetch(req, { cache: 'reload' });
         const cache = await caches.open(CACHE);
         cache.put('./index.html', res.clone());
         return res;
