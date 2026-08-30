@@ -318,6 +318,47 @@
   .situation-body table.concept-table td.col-hl{background:var(--accent-soft);color:var(--accent)}
   .situation-body table.concept-table td.col-hl{font-weight:700}
   .concept-block .table-wrap table.concept-table .sample-more td{padding:9px 12px;background:linear-gradient(180deg,rgba(91,91,214,.035),rgba(91,91,214,.075));color:var(--ink-3);font-family:var(--ui);font-size:11.5px;font-weight:700;letter-spacing:.05px}
+  /* Normalisation : une table unique → trois tables reliées */
+  .nm-board{display:flex;flex-direction:column;gap:12px}
+  .nm-pane{border:1px solid var(--card-border);border-radius:18px;overflow:hidden;background:var(--surface);box-shadow:var(--card-shadow-sm)}
+  .nm-pane.is-before{box-shadow:inset 3px 0 0 var(--danger),var(--card-shadow-sm)}
+  .nm-pane.is-after{box-shadow:inset 3px 0 0 var(--success),var(--card-shadow-sm)}
+  .nm-pane-h{padding:14px 15px 12px}
+  .nm-pane-h b{display:block;font-size:14.5px;font-weight:800;letter-spacing:-.3px;line-height:1.25;color:var(--ink)}
+  .nm-pane-h small{display:block;margin-top:4px;font-size:12.5px;font-weight:600;color:var(--ink-2);line-height:1.4}
+  .nm-badge{display:inline-flex;align-items:center;margin-top:9px;padding:4px 8px;border-radius:8px;font-size:10px;font-weight:800;letter-spacing:.35px;text-transform:uppercase}
+  .nm-pane.is-before .nm-badge{background:var(--danger-soft);color:var(--danger)}
+  .nm-pane.is-after .nm-badge{background:var(--success-soft);color:var(--success)}
+  .nm-pane .table-wrap{margin:0 12px 12px;border:1px solid var(--card-border);border-radius:14px;box-shadow:none}
+  .nm-pane .concept-table{font-size:12px}
+  .nm-pane .concept-table th{padding:8px 9px;font-size:9.5px}
+  .nm-pane .concept-table td{padding:8px 9px}
+  .nm-pane .concept-table td.nm-dup{background:var(--danger-soft);color:var(--danger);font-weight:750}
+  .nm-schema{display:flex;flex-direction:column;gap:0;padding:0 12px 4px}
+  .nm-tbl{border:1px solid var(--card-border);border-radius:14px;overflow:hidden;background:var(--surface)}
+  .nm-tbl .table-wrap{margin:0;border:0;border-radius:0}
+  .nm-tbl-h{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:8px 11px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:#fff}
+  .nm-tbl[data-t="cli"] .nm-tbl-h{background:var(--accent)}
+  .nm-tbl[data-t="cmd"] .nm-tbl-h{background:#1A7A86}
+  .nm-tbl[data-t="prd"] .nm-tbl-h{background:#0D9488}
+  .nm-key{font-size:9px;font-weight:800;letter-spacing:.3px;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,.22)}
+  .nm-key.is-fk{background:rgba(255,210,160,.4)}
+  .nm-rel{display:flex;align-items:center;justify-content:center;gap:8px;padding:7px 0;color:var(--ink-3)}
+  .nm-rel i{width:28px;height:2px;background:var(--line);border-radius:2px}
+  .nm-rel span{min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:800}
+  .nm-rel .is-one{background:var(--accent-soft);color:var(--accent)}
+  .nm-rel .is-many{background:var(--success-soft);color:var(--success)}
+  .nm-pts{margin:0 12px 12px;padding:11px 12px;border-radius:14px;list-style:none}
+  .nm-pts li{position:relative;padding:3px 0 3px 22px;font-size:12.5px;font-weight:600;line-height:1.45;color:var(--ink)}
+  .nm-pts li::before{position:absolute;left:0;top:3px;font-weight:800}
+  .nm-pts.is-bad{background:var(--danger-soft)}
+  .nm-pts.is-bad li::before{content:'✕';color:var(--danger)}
+  .nm-pts.is-ok{background:var(--success-soft)}
+  .nm-pts.is-ok li::before{content:'✓';color:var(--success)}
+  .nm-pane .nm-rel-note{margin:2px 12px 12px;font-size:12.5px;font-weight:600;color:var(--ink-2);line-height:1.4}
+  .nm-arrow{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--ink-3);font-size:12px;font-weight:750}
+  .nm-arrow svg{width:18px;height:18px}
+  .nm-pane .nm-glide{margin:-4px 12px 12px;font-size:12px;font-weight:700;color:var(--ink-3)}
   .sample-more-dots{display:inline-flex;align-items:center;justify-content:center;width:24px;height:18px;margin-right:7px;border-radius:7px;background:rgba(91,91,214,.1);color:var(--accent);font-family:var(--mono);font-size:14px;font-weight:850;line-height:1;vertical-align:-1px}
   .concept-block.in .sample-more td{animation:sampleMoreIn .42s var(--spring-ios) .22s both}
   @keyframes sampleMoreIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
@@ -7708,8 +7749,8 @@ FROM produits;</pre></div>
     {k:'cmd',label:'commandes',sql:"SELECT id, client_id\nFROM commandes;",out:"client_id se répète : un client, plusieurs commandes"}
   ] },
 { id:56, titre:"Normalisation", résumé:"Répartir les données dans des tables reliées",
-  situation:"Tu dois créer un tableau de bord Power BI pour analyser les ventes : nombre de commandes, produits vendus et répartition des clients par ville.<br><br>Pour alimenter le tableau de bord, toutes les informations ont d’abord été regroupées dans une seule grande table :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>client_id</th><th>nom</th><th>ville</th><th>commande_id</th><th>produit</th><th>prix</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td>Paris</td><td>1</td><td>Fibre Prébiotique</td><td>29,90</td><td>2</td></tr><tr><td>1</td><td>Sophie</td><td>Paris</td><td>2</td><td>Magnésium</td><td>19,90</td><td>1</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>3</td><td>Protéine Végétale</td><td>34,90</td><td>1</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>10</td><td>Magnésium</td><td>19,90</td><td>2</td></tr></tbody></table></div><br><br>Le tableau de bord fonctionne, mais la table contient beaucoup d’informations répétées.<br><br>À chaque nouvelle commande de Sophie, son nom et sa ville sont enregistrés à nouveau. De la même manière, les informations d’un produit peuvent apparaître dans de nombreuses lignes.<br><br>Cela pose un problème : plus les ventes augmentent, plus les données sont dupliquées et difficiles à maintenir sans incohérence.<br><br>Comment mieux organiser la base de données qui alimente Power BI ?<br><br>C’est là qu’intervient la normalisation : elle permet de répartir les informations dans plusieurs tables reliées, chacune ayant un rôle précis.",
-  situationTail:"<div class=\"sit-sql\"><p>Pour apprendre à organiser ces tables correctement, nous allons avancer étape par étape avec les formes normales : <b>1NF</b>, <b>2NF</b> et <b>3NF</b>.</p></div>",
+  situation:"Tu dois créer un tableau de bord Power BI pour analyser les ventes : nombre de commandes, produits vendus et répartition des clients par ville.<br><br>Pour alimenter le tableau de bord, toutes les informations ont d’abord été regroupées dans une seule grande table :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>client_id</th><th>nom</th><th>ville</th><th>commande_id</th><th>produit</th><th>prix</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td>Paris</td><td>1</td><td>Fibre Prébiotique</td><td>29,90</td><td>2</td></tr><tr><td>1</td><td>Sophie</td><td>Paris</td><td>2</td><td>Magnésium</td><td>19,90</td><td>1</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>3</td><td>Protéine Végétale</td><td>34,90</td><td>1</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>10</td><td>Magnésium</td><td>19,90</td><td>2</td></tr></tbody></table></div><br><br>Le tableau de bord fonctionne, mais la table contient beaucoup d’informations répétées.<br><br>À chaque nouvelle commande de Sophie, son nom et sa ville sont enregistrés à nouveau. De la même manière, les informations d’un produit peuvent apparaître dans de nombreuses lignes.<br><br>Cela pose un problème : plus les ventes augmentent, plus les données sont dupliquées et difficiles à maintenir sans incohérence.",
+  situationTail:"<div class=\"sit-sql\"><p>Comment mieux organiser la base de données qui alimente Power BI ?</p><p>C’est là qu’intervient la normalisation : elle permet de répartir les informations dans plusieurs tables reliées, chacune ayant un rôle précis.</p><p>Pour apprendre à organiser ces tables correctement, nous allons avancer étape par étape avec les formes normales : <b>1NF</b>, <b>2NF</b> et <b>3NF</b>.</p></div>",
     studio:{pointCards:{
       eye:"Normalisation",title:"Une information, un seul endroit.",
       lead:"Normaliser, c’est ranger chaque information dans la table dont elle est le sujet. La ville appartient au client, le prix au produit, la quantité à la commande.",
@@ -7730,7 +7771,8 @@ FROM produits;</pre></div>
       ]},
     reflex:{a:{k:"La question",t:"de quoi cette colonne parle-t-elle ?"},
       b:{k:"La règle",t:"une information écrite à un seul endroit"},
-      note:"Réflexe : si une valeur se répète d’une ligne à l’autre sans être la clé, c’est qu’elle décrit autre chose. Donne-lui sa table."}},
+      note:"Réflexe : si une valeur se répète d’une ligne à l’autre sans être la clé, c’est qu’elle décrit autre chose. Donne-lui sa table."},
+    normSplit:true},
   anatomie:[
     {tok:"clients (id, nom, ville)",txt:"Tout ce qui décrit le client, écrit une seule fois."},
     {tok:"produits (id, nom, prix)",txt:"Tout ce qui décrit le produit, écrit une seule fois."},
@@ -7749,6 +7791,7 @@ FROM produits;</pre></div>
   solution:"CREATE TABLE commandes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER REFERENCES clients(id),\n  produit_id INTEGER REFERENCES produits(id),\n  quantite INTEGER\n);",
   indice:"Une commande ne garde que ce qui la décrit. Le nom du client et le prix du produit vivent ailleurs : elle ne garde que leurs identifiants.",
   noExec:true,
+  noDemo:true,
   richLesson:true, earlyDemo:true }
 ]},
 
@@ -13810,6 +13853,70 @@ function initCaseForms(){
   const first=box.querySelector('.cw-form');
   if(first) setTimeout(()=>set(first), prefersReduceMotion()?0:480);
 }
+function renderNormSplit(){
+  const th=(...cols)=>`<thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>`;
+  const tr=cells=>`<tr>${cells.map(c=>`<td${c.dup?' class="nm-dup"':''}>${c.t}</td>`).join('')}</tr>`;
+  const cell=(t,dup)=>({t,dup:!!dup});
+  const avantRows=[
+    [cell('1'),cell('Sophie',1),cell('Paris',1),cell('1'),cell('Fibre Prébiotique'),cell('29,90'),cell('2')],
+    [cell('1'),cell('Sophie',1),cell('Paris',1),cell('2'),cell('Magnésium',1),cell('19,90',1),cell('1')],
+    [cell('2'),cell('Lucas'),cell('Lyon'),cell('10'),cell('Magnésium',1),cell('19,90',1),cell('2')],
+    [cell('3'),cell('Emma'),cell('Marseille'),cell('4'),cell('Collagène Marin'),cell('39,90'),cell('3')]
+  ];
+  const tbl=(t,title,keys,head,rows)=>`<div class="nm-tbl" data-t="${t}">
+      <div class="nm-tbl-h">${title}${keys}</div>
+      <div class="table-wrap"><table class="concept-table">${th(...head)}<tbody>${rows}</tbody></table></div>
+    </div>`;
+  const rel=(a,b)=>`<div class="nm-rel" aria-hidden="true"><span class="${a==='1'?'is-one':'is-many'}">${a}</span><i></i><span class="${b==='1'?'is-one':'is-many'}">${b}</span></div>`;
+  return `<div class="concept-block">
+    <h2><span class="h2-eye">Visualisation</span><span class="h2-txt">D’une table unique à trois tables reliées.</span></h2>
+    <div class="nm-board">
+      <div class="nm-pane is-before">
+        <div class="nm-pane-h">
+          <b>Au départ : tout dans une seule table</b>
+          <small>Sophie, Paris et le prix du Magnésium sont recopiés à chaque commande.</small>
+          <span class="nm-badge">Table non normalisée</span>
+        </div>
+        <div class="table-wrap"><table class="concept-table">
+          ${th('client_id','nom','ville','commande_id','produit','prix','quantite')}
+          <tbody>${avantRows.map(tr).join('')}</tbody>
+        </table></div>
+        <p class="nm-glide">Glisse pour voir le produit, le prix et la quantité.</p>
+        <ul class="nm-pts is-bad">
+          <li>Les informations sont répétées : nom, ville, prix…</li>
+          <li>Si une information change, il faut corriger chaque ligne.</li>
+          <li>La table devient vite trop grande et difficile à maintenir.</li>
+        </ul>
+      </div>
+      <div class="nm-arrow" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="nm-pane is-after">
+        <div class="nm-pane-h">
+          <b>Après normalisation</b>
+          <small>Chaque information a sa table. Les clés relient les sujets.</small>
+          <span class="nm-badge">Chaque information à sa place</span>
+        </div>
+        <div class="nm-schema">
+          ${tbl('cli','clients','<span class="nm-key">PK</span>',['id','nom','ville'],
+            '<tr><td>1</td><td>Sophie</td><td>Paris</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td></tr><tr><td>3</td><td>Emma</td><td>Marseille</td></tr>')}
+          ${rel('1','N')}
+          ${tbl('cmd','commandes','<span class="nm-key">PK</span><span class="nm-key is-fk">FK</span>',['id','client_id','produit_id','quantite'],
+            '<tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>10</td><td>2</td><td>3</td><td>2</td></tr><tr><td>4</td><td>3</td><td>2</td><td>3</td></tr>')}
+          ${rel('N','1')}
+          ${tbl('prd','produits','<span class="nm-key">PK</span>',['id','nom','prix'],
+            '<tr><td>1</td><td>Fibre Prébiotique</td><td>29,90</td></tr><tr><td>2</td><td>Collagène Marin</td><td>39,90</td></tr><tr><td>3</td><td>Magnésium</td><td>19,90</td></tr>')}
+        </div>
+        <p class="nm-rel-note">Un client a plusieurs commandes (1-N). Un produit apparaît dans plusieurs commandes (N-1).</p>
+        <ul class="nm-pts is-ok">
+          <li>Moins de répétitions, donc moins d’erreurs.</li>
+          <li>Les données sont plus fiables et plus faciles à mettre à jour.</li>
+          <li>Le tableau de bord analyse plus facilement des tables reliées.</li>
+        </ul>
+      </div>
+    </div>
+  </div>`;
+}
 function renderJoinIntroStudio(l){
   const s=l.studio||{};
   const pc=s.pointCards||{};
@@ -13824,6 +13931,7 @@ function renderJoinIntroStudio(l){
       <h2><span class="h2-eye">Visualisation</span><span class="h2-txt">${WHY_VIZ_TITLE}</span></h2>
       ${renderVizShell(s.viz)}
     </div>`:'';
+  const norm=s.normSplit?renderNormSplit():'';
   return `<div class="concept-page join-intro">
     <div class="concept-block">
       <h2><span class="h2-eye">${eye}</span><span class="h2-txt">${title}</span></h2>
@@ -13832,6 +13940,7 @@ function renderJoinIntroStudio(l){
     </div>
     ${walk}
     ${viz}
+    ${norm}
     <!-- early-demo -->
   </div>`;
 }
@@ -14205,6 +14314,7 @@ function renderStudio(l){
   </div>`;
 }
 function lessonDemoBlocks(l){
+  if(l.noDemo) return reflexBlock(l);
   const anat=anatSections(l);
   if(!anat&&!l.exemple)return '';
   if(JOIN_COURSES[l.id]&&!hasJoinPointCards(l)){
