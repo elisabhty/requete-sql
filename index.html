@@ -550,6 +550,10 @@
   .tx-step{width:100%;max-width:250px;padding:9px 12px;border-radius:11px;background:var(--surface);box-shadow:var(--card-shadow-sm);font-family:var(--mono);font-size:12px;font-weight:750;color:var(--ink-2);text-align:center}
   .tx-step.tx-key{color:var(--accent);background:var(--accent-soft);box-shadow:none}
   .tx-arrow{font-style:normal;font-size:15px;line-height:1;color:var(--ink-3)}
+  .tx-step i{display:block;margin-top:2px;font-style:normal;font-family:var(--ui);font-size:10px;font-weight:700;opacity:.85}
+  .tx-step.tx-ok{background:var(--success-soft);color:var(--success);box-shadow:none}
+  .tx-step.tx-ko{background:var(--warn-soft);color:var(--warn);box-shadow:none}
+  .tx-step.tx-back{background:var(--surface-2);color:var(--ink-2);box-shadow:none}
   .lesson-rich .tx-q{margin:6px 0 8px;font-size:13px;font-weight:750;color:var(--ink)}
   .tx-fork{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;max-width:250px}
   .tx-branch{display:flex;flex-direction:column;align-items:center;gap:1px;padding:9px 8px;border-radius:11px;text-align:center}
@@ -9903,6 +9907,117 @@ ROLLBACK;</pre></div>
   indice:"Ouvre avec <code>BEGIN;</code>, écris les deux requêtes, puis referme avec <code>COMMIT;</code>.",
   write:true,
   richLesson:true, earlyDemo:true },
+{ id:63, titre:"SAVEPOINT", résumé:"Annuler seulement une partie d’une transaction",
+  situation:"Tu sais maintenant qu’une transaction regroupe plusieurs opérations, et qu’un <code>ROLLBACK</code> les annule toutes.<br><br>Mais imagine une transaction à plusieurs étapes :<br><br><div class=\"tx-fail\"><span class=\"is-ok\">Ajouter une commande<i>✓</i></span><span class=\"is-ok\">Modifier le stock<i>✓</i></span><span class=\"is-ko\">Appliquer une modification<i>✕</i></span></div><br>Tu veux annuler la troisième étape, sans perdre les deux premières. Avec un simple <code>ROLLBACK</code>, tu annulerais toute la transaction.",
+  situationTail:"<div class=\"sit-sql\"><p>Comment revenir seulement à un point précis ?</p><p>C’est le rôle d’un <b><code>SAVEPOINT</code></b>.</p></div>",
+    studio:{pointCards:{
+      eye:"SAVEPOINT",title:"Un marque-page dans la transaction.",
+      lead:"Un <code>SAVEPOINT</code> crée un point de retour à l’intérieur d’une transaction. Au lieu de revenir jusqu’au <code>BEGIN</code>, tu reviens à ce point.",
+      chain:[
+        {k:"SAVEPOINT",v:"je marque un point"},
+        {k:"ROLLBACK TO",v:"je reviens à ce point"},
+        {k:"COMMIT",v:"je valide ce que j’ai conservé"}
+      ]},
+    uses:{title:"Revenir à un point, pas au départ.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Le parcours avec un point de retour</p>
+          <div class="tx-flow" role="img" aria-label="De BEGIN au COMMIT en passant par un retour au savepoint">
+            <span class="tx-step tx-key">BEGIN</span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step tx-ok">opération 1<i>✓ conservée</i></span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step tx-ok">opération 2<i>✓ conservée</i></span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step tx-key">SAVEPOINT</span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step tx-ko">opération 3<i>✕ annulée</i></span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step tx-back">ROLLBACK TO<i>↑ retour au point</i></span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step tx-key">COMMIT</span>
+          </div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Créer le point de retour</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SAVEPOINT avant_produit_2;</pre></div>
+          <p>Le nom permet de retrouver ce point plus tard. Une transaction peut en contenir plusieurs, et tu choisis alors jusqu’où revenir.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">ROLLBACK TO — revenir au point</p>
+          <div class="pt-syntax"><pre class="cw-syntax">BEGIN;
+
+UPDATE produits
+SET stock = stock + 10
+WHERE id = 1;
+
+SAVEPOINT avant_produit_2;
+
+UPDATE produits
+SET stock = stock + 50
+WHERE id = 2;
+
+ROLLBACK TO avant_produit_2;</pre></div>
+          <p>La modification du produit 1 est conservée. Celle du produit 2 est annulée : on est revenu à l’état du <code>SAVEPOINT</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">ROLLBACK ou ROLLBACK TO</p>
+          <div class="duo">
+            <div class="duo-row"><p class="duo-k">Je veux tout annuler</p>
+              <p class="duo-v"><b>ROLLBACK</b><span>retour jusqu’au <code>BEGIN</code>, la transaction se termine</span></p></div>
+            <div class="duo-row"><p class="duo-k">Je veux annuler une partie</p>
+              <p class="duo-v"><b>ROLLBACK TO</b><span>retour au point choisi, la transaction continue</span></p></div>
+          </div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">La transaction continue</p>
+          <p>Après un <code>ROLLBACK TO</code>, rien n’est terminé : tu peux corriger, puis valider.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ROLLBACK TO avant_produit_2;
+
+UPDATE produits
+SET stock = stock + 5
+WHERE id = 2;
+
+COMMIT;</pre></div>
+          <p>Au final, <code>+10</code> sur le produit 1 et <code>+5</code> sur le produit 2 sont validés. Le <code>+50</code> a disparu.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">RELEASE — supprimer le point</p>
+          <div class="pt-syntax"><pre class="cw-syntax">RELEASE SAVEPOINT avant_produit_2;</pre></div>
+          <p><code>RELEASE</code> ne veut pas dire « annuler » : il signifie que tu n’auras plus besoin de revenir à ce point.</p>
+          <p class="fn-tip"><b>À ne pas confondre</b> <code>ROLLBACK TO</code> revient au point. <code>RELEASE</code> supprime le point.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"La question",t:"tout annuler, ou seulement une partie ?"},
+      b:{k:"La règle",t:"tout → ROLLBACK · une partie → SAVEPOINT puis ROLLBACK TO"},
+      note:"Réflexe : quand une transaction comporte plusieurs étapes et que tu veux pouvoir revenir à l’une d’elles, pose un <code>SAVEPOINT</code>."}},
+  anatomie:[
+    {tok:"BEGIN",txt:"Commence la transaction."},
+    {tok:"SAVEPOINT avant_produit_2",txt:"Crée un point de retour, sans rien valider."},
+    {tok:"ROLLBACK TO avant_produit_2",txt:"Annule ce qui a été fait depuis ce point. La transaction continue."},
+    {tok:"COMMIT",txt:"Valide finalement les modifications conservées."}
+  ],
+  exemple:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT avant_produit_2;\n\nUPDATE produits\nSET stock = stock + 50\nWHERE id = 2;\n\nROLLBACK TO avant_produit_2;\n\nCOMMIT;",
+  attendu:"Le stock du produit 1 passe de 120 à 130. Celui du produit 2 reste à 80 : le +50 a été annulé par le retour au point de sauvegarde.",
+  retenir:"Un <code>SAVEPOINT</code> crée un point de retour <b>à l’intérieur</b> d’une transaction.<br><br><code>ROLLBACK</code> annule toute la transaction et la termine. <code>ROLLBACK TO</code> revient au point choisi, et la transaction continue.<br><br>Le mémo : <b>SAVEPOINT</b> je marque un point, <b>ROLLBACK TO</b> j’y reviens, <b>COMMIT</b> je valide ce que j’ai conservé.",
+  piege:{t:"Croire qu’un SAVEPOINT valide les modifications",
+    p:"Poser un <code>SAVEPOINT</code> ne valide rien. Il crée seulement un point de retour : tant que le <code>COMMIT</code> n’a pas eu lieu, tout reste annulable, y compris ce qui précède le point.<br><br><code>SAVEPOINT</code> ≠ validation. Seul <code>COMMIT</code> valide.",
+    exec:true,
+    sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT etape_1;\n\nROLLBACK;\n\nSELECT nom, stock\nFROM produits\nWHERE id = 1;",
+    out:"Le stock est inchangé : le SAVEPOINT n’a rien protégé du ROLLBACK.",
+    fixSql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT etape_1;\n\nCOMMIT;\n\nSELECT nom, stock\nFROM produits\nWHERE id = 1;"},
+  petitDefi:[{
+    p:"Tu veux conserver la première modification et annuler la seconde. Quel mot-clé crée le point de retour, à la place des tirets ?",
+    sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\n__________ avant_modification;\n\nUPDATE produits\nSET stock = stock + 50\nWHERE id = 2;\n\nROLLBACK TO avant_modification;\n\nCOMMIT;",
+    a:"SAVEPOINT",
+    answers:["SAVEPOINT","savepoint"]
+  }],
+  consigne:"Dans une transaction, ajoute 10 au stock du produit 1, pose un point de retour nommé <code>avant_modification</code>, ajoute 50 au stock du produit 2, puis annule cette seconde modification avant de valider.",
+  solution:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT avant_modification;\n\nUPDATE produits\nSET stock = stock + 50\nWHERE id = 2;\n\nROLLBACK TO avant_modification;\n\nCOMMIT;",
+  verif:"SELECT id, stock FROM produits WHERE id IN (1, 2) ORDER BY id;",
+  indice:"<code>SAVEPOINT nom;</code> pose le point, <code>ROLLBACK TO nom;</code> y revient. Le <code>COMMIT</code> vient à la fin.",
+  write:true,
+  richLesson:true, earlyDemo:true },
 { id:50, titre:"Sécurité et droits", résumé:"Contrôler les accès avec GRANT et REVOKE",
   situation:"Tu veux qu’un utilisateur <code>app_user</code> puisse lire la table <code>clients</code>, mais pas la modifier.<br><br>Avec <code>GRANT</code>, tu lui donnes un droit précis — ici <code>SELECT</code>. Plus tard, <code>REVOKE</code> retire ce droit.<br><br>Un <b>SGBD</b> (système de gestion de base de données) est le logiciel qui stocke tes tables et exécute le SQL. Cette application utilise <code>SQLite</code> : tout tient dans le navigateur, sans comptes utilisateurs.<br><br>MySQL, PostgreSQL et SQL Server sont des SGBD <b>serveur</b> : plusieurs utilisateurs se connectent, chacun avec des droits. C’est là que <code>GRANT</code> et <code>REVOKE</code> existent.<br><br><b>Attention :</b> ces commandes ne s’exécutent pas dans SQLite. Ce cours sert à comprendre le principe. Donner trop de droits permettrait de modifier ou supprimer des données.",
   situationTail:"<code>GRANT</code> donne un droit précis, comme <code>SELECT</code> sur une table. <code>REVOKE</code> le retire. Le piège classique : <code>ALL PRIVILEGES</code> — tous les droits, partout.",
@@ -10315,6 +10430,10 @@ const QCM={
  58:[{q:"<code>EXPLAIN</code> sert à :",o:["Modifier le résultat du SELECT","Montrer le plan d’exécution prévu par le SGBD","Créer automatiquement un index"],b:1,e:"La requête décrit le résultat. Le plan montre la stratégie choisie pour l’obtenir."},
   {q:"Un parcours de table (<code>SCAN</code>, <code>Seq Scan</code>) :",o:["Est toujours une erreur à corriger","Peut être le bon choix, par exemple si tu demandes toutes les lignes","Signifie que la table n’existe pas"],b:1,e:"<code>SELECT * FROM clients</code> doit parcourir la table. EXPLAIN sert à comprendre, pas à colorier le plan."},
   {q:"Face à une requête lente, le premier réflexe :",o:["Ajouter un index sur chaque colonne","Observer le plan avec EXPLAIN, puis optimiser","Réécrire la requête en majuscules"],b:1,e:"Une requête lente n’appelle pas automatiquement un index. On observe d’abord."}],
+ 63:[{q:"À quoi sert <code>SAVEPOINT</code> ?",o:["À terminer une transaction","À créer un point de retour dans une transaction","À sauvegarder la base sur le disque"],b:1,e:"C’est un marque-page interne à la transaction, pas une sauvegarde de fichier."},
+  {q:"Quelle commande revient à un point de sauvegarde ?",o:["<code>ROLLBACK TO</code>","<code>COMMIT TO</code>","<code>RETURN</code>"],b:0,e:"Elle annule ce qui a été fait depuis ce point, et la transaction continue."},
+  {q:"Quelle différence entre <code>ROLLBACK</code> et <code>ROLLBACK TO</code> ?",o:["Aucune","<code>ROLLBACK</code> annule toute la transaction, <code>ROLLBACK TO</code> revient à un savepoint","<code>ROLLBACK TO</code> valide les données"],b:1,e:"L’un termine la transaction, l’autre la poursuit à partir du point choisi."},
+  {q:"Un <code>SAVEPOINT</code> valide-t-il les modifications ?",o:["Oui","Non : seul COMMIT valide"],b:1,e:"Avant le <code>COMMIT</code>, tout reste annulable — y compris ce qui précède le point."}],
  62:[{q:"Quel mot-clé commence une transaction ?",o:["<code>START TABLE</code>","<code>BEGIN</code>","<code>COMMIT</code>"],b:1,e:"<code>COMMIT</code> la termine en validant ; <code>START TABLE</code> n’existe pas."},
   {q:"Que fait <code>COMMIT</code> ?",o:["Il annule les modifications","Il supprime la transaction","Il valide les modifications"],b:2,e:"Après un <code>COMMIT</code>, les modifications sont acquises."},
   {q:"Que fait <code>ROLLBACK</code> ?",o:["Il annule les modifications non validées de la transaction","Il supprime une table","Il relance automatiquement les requêtes"],b:0,e:"On revient à l’état d’avant le <code>BEGIN</code>."},
