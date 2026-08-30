@@ -358,6 +358,33 @@
   .nm-arrow svg{width:18px;height:18px}
   .nm-pane .nm-glide,.situation-body .nm-glide{margin:-4px 12px 12px;font-size:12px;font-weight:700;color:var(--ink-3)}
   .situation-body .nm-glide{margin:6px 2px 14px}
+  .idx-board{display:flex;flex-direction:column;gap:12px}
+  .idx-pane{border:1px solid var(--card-border);border-radius:18px;overflow:hidden;background:var(--surface);box-shadow:var(--card-shadow-sm)}
+  .idx-pane.is-scan{box-shadow:inset 3px 0 0 var(--danger),var(--card-shadow-sm)}
+  .idx-pane.is-idx{box-shadow:inset 3px 0 0 var(--success),var(--card-shadow-sm)}
+  .idx-pane-h{padding:14px 15px 10px}
+  .idx-pane-h b{display:block;font-size:14.5px;font-weight:800;letter-spacing:-.3px;color:var(--ink)}
+  .idx-pane-h small{display:block;margin-top:4px;font-size:12.5px;font-weight:600;color:var(--ink-2);line-height:1.4}
+  .idx-rows{display:flex;flex-direction:column;gap:6px;padding:0 12px 14px}
+  .idx-rows span{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 11px;border-radius:12px;background:var(--surface-2);font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink-3)}
+  .idx-rows span i{font-style:normal;font-size:11px;font-weight:650}
+  .idx-rows .idx-more{justify-content:center;background:transparent;color:var(--ink-3);padding:2px}
+  .idx-rows .idx-hit{background:var(--danger-soft);color:var(--danger)}
+  .idx-tree{padding:0 12px 14px;display:flex;flex-direction:column;gap:6px}
+  .idx-tree span{display:block;padding:7px 11px;border-radius:12px;background:var(--surface-2);font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink-2)}
+  .idx-tree .idx-hit{background:var(--success-soft);color:var(--success)}
+  .idx-tree .idx-arrow{display:flex;align-items:center;justify-content:center;color:var(--success);font-size:12px;font-weight:800;padding:0;background:transparent}
+  @media (min-width:640px){
+    .idx-board{display:grid;grid-template-columns:1fr 1fr;align-items:stretch}
+  }
+  .idx-comp{display:flex;flex-direction:column;gap:10px;margin:12px 0 4px}
+  .idx-comp-g{padding:10px 12px 12px;border-radius:14px;background:var(--surface-2)}
+  .idx-comp-g b{display:block;margin-bottom:8px;font-size:12.5px;font-weight:800;color:var(--ink)}
+  .idx-comp-g span{display:block;margin-left:14px;padding:5px 0 5px 12px;border-left:2px solid rgba(91,91,214,.28);font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink-2)}
+  .idx-side{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 4px}
+  .idx-side span{display:flex;flex-direction:column;gap:4px;padding:12px 11px;border-radius:14px;background:var(--surface-2);text-align:center}
+  .idx-side b{font-size:12.5px;font-weight:800;color:var(--ink)}
+  .idx-side i{font-style:normal;font-size:11.5px;font-weight:650;color:var(--ink-3);line-height:1.35}
   .sample-more-dots{display:inline-flex;align-items:center;justify-content:center;width:24px;height:18px;margin-right:7px;border-radius:7px;background:rgba(91,91,214,.1);color:var(--accent);font-family:var(--mono);font-size:14px;font-weight:850;line-height:1;vertical-align:-1px}
   .concept-block.in .sample-more td{animation:sampleMoreIn .42s var(--spring-ios) .22s both}
   @keyframes sampleMoreIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
@@ -753,8 +780,23 @@
   @keyframes dfTravel{0%{transform:translateX(-100%)}65%,100%{transform:translateX(100%)}}
   @media (max-width:400px){
     .df-anatomy{padding:14px 8px;gap:3px}.df-unit b{font-size:10.5px}.df-unit small{font-size:7px}
+    /* Sous 360 px, six colonnes laissent 34 px par repère : « seconde » en
+       demande 45 et empiétait sur « minute ». La date passe sur une ligne,
+       l'heure sur la suivante, et chaque libellé retrouve sa place. */
+    @media (max-width:360px){
+      .df-anatomy{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px 5px}
+      .df-sep{display:none}
+      .df-unit small{font-size:8px}
+    }
     .df-stage{padding:14px 14px 11px}.df-intent{padding:9px 10px}.df-intent b{font-size:12px}
     .df-before-after{grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr)}.df-value{font-size:9.5px}
+    /* Le calendrier et l'horloge dépassaient de huit pixels, rognés sans
+       qu'on puisse faire défiler : les secondes disparaissaient. */
+    .df-cal{width:70px}.df-clock{padding:0 10px;font-size:17px}
+    /* La pastille de fonction volait la moitié de la largeur au titre, qui
+       tombait sur trois lignes. Elle passe dessous, sur toute la largeur. */
+    .df-stage-head{flex-direction:column;gap:8px}
+    .df-stage-fn{align-self:flex-start}
   }
   @media (prefers-reduced-motion:reduce){
     .df-stage.is-changing,.df-dialect-code.is-changing,.date-functions-page>.concept-block.in .df-unit,.df-clock .colon,.df-line::after{animation:none!important}
@@ -7791,7 +7833,123 @@ FROM produits;</pre></div>
   indice:"Une commande ne garde que ce qui la décrit. Le nom du client et le prix du produit vivent ailleurs : elle ne garde que leurs identifiants.",
   noExec:true,
   noDemo:true,
-  richLesson:true, earlyDemo:true }
+  richLesson:true, earlyDemo:true },
+{ id:57, titre:"Les index", résumé:"Retrouver plus vite certaines lignes",
+  situation:"Ta base de clients grandit.<br><br>Au début, la table <code>clients</code> ne contenait que quelques lignes. Mais avec le temps, elle peut contenir des millions de clients.<br><br>Ton application doit régulièrement retrouver un client à partir de son e-mail :",
+  situationSql:"SELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",
+  situationTail:"<div class=\"sit-sql\"><p>Avec peu de données, la recherche est rapide.</p><p>Mais sur une très grande table, SQL peut devoir parcourir énormément de lignes pour trouver le bon client.</p><p>Comment lui permettre de retrouver plus rapidement les données recherchées ?</p><p>C’est là qu’interviennent les <b>index</b>.</p></div>",
+    studio:{pointCards:{
+      eye:"Index",title:"Un chemin d’accès vers les données.",
+      lead:"Un index est un chemin d’accès supplémentaire qui aide SQL à retrouver plus rapidement certaines données. Il n’ajoute aucune colonne à la table : c’est une structure créée à côté.",
+      chain:[
+        {k:"Sans index",v:"parcourir la table"},
+        {k:"Avec index",v:"suivre un chemin organisé"},
+        {k:"Règle",v:"seulement là où c’est utile"}
+      ]},
+    uses:{title:"Un index, une idée à la fois.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Sans index : SQL cherche dans la table</p>
+          <p>Tu recherches <code>sophie@mail.fr</code> dans une table devenue immense.</p>
+          <div class="table-wrap"><table class="concept-table"><thead><tr><th>id</th><th>nom</th><th>ville</th><th>email</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td>Paris</td><td>sophie@mail.fr</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>lucas@mail.fr</td></tr><tr><td>3</td><td>Emma</td><td>Marseille</td><td>emma@mail.fr</td></tr><tr class="sample-more"><td colspan="4">… jusqu’à 2&nbsp;000&nbsp;000 de lignes</td></tr></tbody></table></div>
+          <p>Sans index adapté, le SGBD peut devoir parcourir la table et examiner les lignes une par une. On appelle cela un <b>parcours de table</b> (<code>table scan</code>).</p>
+          <p>Plus la table grandit, plus ce type de recherche peut devenir coûteux.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">L’index : un raccourci</p>
+          <p>Pour éviter de parcourir inutilement une grande quantité de données, on crée un index.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE INDEX idx_clients_email
+ON clients(email);</pre></div>
+          <p>L’index est organisé à partir des valeurs de la colonne <code>email</code>. SQL peut alors localiser plus efficacement la ligne de Sophie.</p>
+          <p>Comme dans un livre : sans index, tu tournes les pages. Avec l’index, tu vas directement à la bonne page.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">L’index ne modifie pas la table</p>
+          <p><code>CREATE INDEX</code> n’ajoute pas de colonne dans la table <code>clients</code>.</p>
+          <p>Les données restent dans la table. L’index est une structure créée <b>en plus</b>, pour aider à les retrouver.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Créer un index</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE INDEX nom_index
+ON nom_table(colonne);</pre></div>
+          <p><code>CREATE INDEX</code> crée l’index. <code>idx_clients_email</code> est le nom qu’on lui donne. La table concernée est <code>clients</code>. <code>email</code> est la colonne indexée.</p>
+          <p>Le nom indique généralement la table et la colonne concernées.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">La requête ne change pas</p>
+          <p>Une fois l’index créé, tu continues d’écrire :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
+FROM clients
+WHERE email = 'sophie@mail.fr';</pre></div>
+          <p>Tu n’écris pas « utilise cet index ». Le SGBD choisit lui-même s’il est intéressant de s’en servir.</p>
+          <p>Créer un index donne une <b>possibilité</b> supplémentaire. Cela ne signifie pas qu’il sera utilisé à chaque fois.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Quelles colonnes indexer ?</p>
+          <p>On s’intéresse aux colonnes régulièrement utilisées pour retrouver ou relier des données.</p>
+          <ul class="pt-lead-list">
+            <li>un compte recherché par e-mail → <code>clients.email</code> ;</li>
+            <li>les commandes d’un client → <code>commandes.client_id</code> ;</li>
+            <li>une jointure <code>ON clients.id = commandes.client_id</code> → la colonne qui relie.</li>
+          </ul>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE INDEX idx_commandes_client
+ON commandes(client_id);</pre></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Pourquoi ne pas tout indexer ?</p>
+          <p>Un index occupe de l’espace. Et quand tu fais un <code>INSERT</code>, un <code>UPDATE</code> ou un <code>DELETE</code>, les index concernés doivent aussi être mis à jour.</p>
+          <p>Il peut accélérer certaines lectures, mais il a un coût de stockage et de maintenance.</p>
+          <p>La règle n’est pas « plus j’ai d’index, plus ma base est rapide ». C’est : créer des index là où ils sont réellement utiles.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Index sur plusieurs colonnes</p>
+          <p>Si tu recherches souvent les commandes d’un client à partir d’une date :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE INDEX idx_commandes_client_date
+ON commandes(client_id, date_commande);</pre></div>
+          <p>C’est un <b>index composite</b>. L’ordre des colonnes compte : d’abord <code>client_id</code>, puis <code>date_commande</code> à l’intérieur de chaque client.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">INDEX et UNIQUE, deux idées</p>
+          <p><code>INDEX</code> fournit un chemin d’accès. <code>UNIQUE</code> impose une règle : les valeurs ne doivent pas être dupliquées.</p>
+          <p>Une contrainte <code>UNIQUE</code> s’appuie souvent sur un index, mais l’objectif n’est pas le même : performance d’un côté, intégrité de l’autre.</p>
+          <p>La clé primaire <code>id</code> a déjà une structure adaptée. Tu n’as généralement pas besoin de recréer un index sur <code>clients.id</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Comment savoir si l’index est utilisé ?</p>
+          <p>Créer un index ne garantit pas que SQL va l’utiliser.</p>
+          <p><code>EXPLAIN</code> montre le plan d’exécution prévu par le SGBD : parcours de table, ou utilisation d’un index.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">EXPLAIN QUERY PLAN
+SELECT *
+FROM clients
+WHERE email = 'sophie@mail.fr';</pre></div>
+          <p>Le vocabulaire affiché varie selon PostgreSQL, MySQL, SQLite ou SQL Server.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"La question",t:"Cette colonne sert-elle souvent à retrouver des lignes dans une grande table ?"},
+      b:{k:"La règle",t:"Un index peut accélérer l’accès à ces lignes."},
+      note:"Pense aux index lorsqu’une grande table est régulièrement recherchée, filtrée ou reliée à partir des mêmes colonnes."},
+    idxSplit:true},
+  anatomie:[
+    {tok:"CREATE INDEX idx_clients_email",txt:"Crée un index et lui donne un nom."},
+    {tok:"ON clients",txt:"La table concernée."},
+    {tok:"(email)",txt:"La colonne qui sert à retrouver les lignes."}
+  ],
+  exemple:"CREATE INDEX idx_clients_email ON clients(email);",
+  attendu:"L’index est créé. La table <code>clients</code> n’a pas de nouvelle colonne.",
+  retenir:"Un index est un chemin d’accès supplémentaire qui aide SQL à retrouver plus rapidement certaines données.<br><br>Sans index, SQL peut parcourir une grande partie de la table. Avec un index, il dispose d’un chemin organisé.<br><br>Un index prend de la place et doit être maintenu. Il ne faut donc pas en créer partout.",
+  piege:{t:"Indexer toutes les colonnes",
+    p:"Un index n’est pas gratuit : il occupe de l’espace et doit être mis à jour à chaque <code>INSERT</code>, <code>UPDATE</code> ou <code>DELETE</code>. On indexe les colonnes vraiment utilisées pour chercher ou relier, pas toutes les colonnes « au cas où »."},
+  consigne:"Crée un index nommé <code>idx_clients_email</code> sur la colonne <code>email</code> de la table <code>clients</code>.",
+  solution:"CREATE INDEX idx_clients_email ON clients(email);",
+  indice:"<code>CREATE INDEX idx_clients_email ON clients(email);</code>",
+  richLesson:true, earlyDemo:true,
+  write:true,
+  verif:"SELECT 'idx_clients_email' AS nom, name AS colonne FROM pragma_index_info('idx_clients_email');",
+  testeVariants:[
+    {k:'where',label:'WHERE email',sql:"SELECT nom, email\nFROM clients\nWHERE email = 'sophie@mail.fr';",out:"Sophie, même sans index : la table est encore petite."},
+    {k:'create',label:'CREATE INDEX',sql:"CREATE INDEX idx_clients_email\nON clients(email);",out:"L’index est créé. La table clients n’a pas de nouvelle colonne.",tone:'good'},
+    {k:'explain',label:'EXPLAIN',sql:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",out:"Le plan montre si SQLite parcourt la table ou utilise un index."}
+  ] }
 ]},
 
 { titre:"Relier", sous:"Plusieurs tables, une question", lessons:[
@@ -9285,6 +9443,10 @@ const CARTES={
     m:"Dans <code>FROM</code>, la sous-requête produit un résultat que la requête principale utilise comme une table. On l’appelle <b>table dérivée</b> : elle doit avoir un alias."},
  55:{k:"EXISTS",t:"Présence ou absence d’une ligne",s:"WHERE EXISTS (\n  SELECT 1 FROM commandes\n  WHERE client_id = clients.id\n)",
     m:"Avec <code>IN</code>, tu cherches une valeur dans une liste. Avec <code>EXISTS</code>, tu vérifies qu’une correspondance existe. Vérifie toujours que la sous-requête est bien reliée à la ligne en cours."},
+ 56:{k:"Normalisation",t:"Répartir les données",s:"clients · produits · commandes",
+    m:"Ranger chaque information dans la table qui correspond à ce qu’elle décrit. <b>1NF</b> une seule valeur, <b>2NF</b> toute la clé, <b>3NF</b> directement de la clé."},
+ 57:{k:"INDEX",t:"Retrouver plus vite certaines lignes",s:"CREATE INDEX idx_clients_email\nON clients(email);",
+    m:"Un index est un chemin d’accès supplémentaire. Il n’ajoute pas de colonne. Utile sur les colonnes souvent cherchées ou reliées — pas partout, car il occupe de l’espace et doit être maintenu."},
 
  26:{k:"INSERT",t:"Ajouter une ligne",s:"INSERT INTO clients (nom, ville)\nVALUES ('Théo', 'Lille');",
     m:"Le lien colonnes ↔ valeurs est <b>positionnel</b>. Nomme les colonnes. Les omises passent à NULL ; la clé primaire se remplit seule."},
@@ -9421,6 +9583,9 @@ const QCM={
  56:[{q:"Pourquoi répartir les données dans plusieurs tables ?",o:["Pour que les requêtes soient plus courtes","Pour qu’une information ne soit écrite qu’à un seul endroit","Pour économiser des noms de colonnes"],b:1,e:"Écrite une seule fois, elle se corrige une seule fois : la base ne peut plus se contredire."},
   {q:"Dans la grande table, la ville de Sophie est répétée à chaque commande. Que se passe-t-il si elle déménage ?",o:["SQL met à jour les autres lignes tout seul","Il faut corriger chaque ligne, et un oubli rend la base incohérente","La ville devient NULL"],b:1,e:"C’est l’anomalie de mise à jour, et c’est ce que la normalisation évite."},
   {q:"Le prix appartient à quelle table après normalisation ?",o:["commandes, puisqu’on l’y consulte","produits, puisqu’il décrit le produit","clients, puisque le client paie"],b:1,e:"Chaque colonne va dans la table dont elle décrit le sujet."}],
+ 57:[{q:"Sans index sur <code>email</code>, pour retrouver Sophie, SQL peut :",o:["Lire uniquement la première ligne","Parcourir beaucoup de lignes de la table","Modifier la table <code>clients</code>"],b:1,e:"Sans chemin d’accès organisé, le SGBD peut devoir examiner les lignes une par une."},
+  {q:"<code>CREATE INDEX idx_clients_email ON clients(email)</code> :",o:["Ajoute une colonne email","Crée une structure en plus : la table ne change pas","Change l’écriture du SELECT"],b:1,e:"L’index est à côté de la table. Tu continues d’écrire le même <code>WHERE email = …</code>."},
+  {q:"Pourquoi ne pas indexer toutes les colonnes ?",o:["Parce qu’un index est interdit sur le texte","Parce qu’un index occupe de l’espace et doit être maintenu","Parce que SQL ignore les index"],b:1,e:"On indexe les colonnes vraiment utilisées pour chercher ou relier, pas toutes « au cas où »."}],
  55:[{q:"<code>EXISTS</code> teste :",o:["Si une valeur appartient à une liste","Si la sous-requête trouve au moins une ligne","Si deux colonnes ont le même nom"],b:1,e:"On ne compare pas une valeur. On demande si une ligne liée existe."},
   {q:"Pourquoi <code>NOT EXISTS</code> trouve Inès, alors que <code>NOT IN</code> sans filtre renvoie 0 ligne ?",o:["Inès a une commande cachée","La commande #16 met un NULL dans la liste de NOT IN","EXISTS ignore la table clients"],b:1,e:"<code>NOT IN</code> peut ne retourner aucune ligne si la liste contient un <code>NULL</code>. <code>NOT EXISTS</code> ne construit pas cette liste : il cherche seulement une commande liée à Inès."},
   {q:"Sans <code>WHERE commandes.client_id = clients.id</code>, <code>EXISTS (SELECT 1 FROM commandes)</code> :",o:["Ne garde qu’Inès","Garde les 9 clients, Inès comprise","Provoque une erreur"],b:1,e:"La table commandes n’est pas vide. Sans corrélation, le test est le même pour tout le monde."}],
@@ -10711,7 +10876,7 @@ function confirmImport(){
   }
 }
 
-const KW=new Set(['SELECT','FROM','WHERE','AND','OR','NOT','ORDER','BY','ASC','DESC','LIMIT','OFFSET','DISTINCT','GROUP','HAVING','JOIN','INNER','LEFT','RIGHT','OUTER','FULL','ON','AS','IN','IS','NULL','LIKE','BETWEEN','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','UNION','ALL','EXISTS','CASE','WHEN','THEN','ELSE','END','CAST']);
+const KW=new Set(['SELECT','FROM','WHERE','AND','OR','NOT','ORDER','BY','ASC','DESC','LIMIT','OFFSET','DISTINCT','GROUP','HAVING','JOIN','INNER','LEFT','RIGHT','OUTER','FULL','ON','AS','IN','IS','NULL','LIKE','BETWEEN','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','INDEX','UNIQUE','EXPLAIN','QUERY','PLAN','UNION','ALL','EXISTS','CASE','WHEN','THEN','ELSE','END','CAST']);
 const FN=new Set(['COUNT','SUM','AVG','MIN','MAX','ROUND','ABS','CEIL','FLOOR','LENGTH','UPPER','LOWER','TRIM','LTRIM','RTRIM','SUBSTR','INSTR','REPLACE','COALESCE','NULLIF','RANDOM','STRFTIME','DATE','TYPEOF','IFNULL']);
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function escAttr(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -13931,7 +14096,12 @@ function renderJoinIntroStudio(l){
       <h2><span class="h2-eye">Visualisation</span><span class="h2-txt">${WHY_VIZ_TITLE}</span></h2>
       ${renderVizShell(s.viz)}
     </div>`:'';
+  const uses=s.uses?`<div class="concept-block">
+      <h2><span class="h2-txt">${s.uses.title}</span></h2>
+      ${s.uses.body||''}
+    </div>`:'';
   const norm=s.normSplit?renderNormSplit():'';
+  const idx=s.idxSplit?renderIdxSplit():'';
   return `<div class="concept-page join-intro">
     <div class="concept-block">
       <h2><span class="h2-eye">${eye}</span><span class="h2-txt">${title}</span></h2>
@@ -13941,7 +14111,44 @@ function renderJoinIntroStudio(l){
     ${walk}
     ${viz}
     ${norm}
+    ${idx}
+    ${uses}
     <!-- early-demo -->
+  </div>`;
+}
+function renderIdxSplit(){
+  return `<div class="concept-block">
+    <h2><span class="h2-eye">Visualisation</span><span class="h2-txt">Parcourir la table, ou suivre un chemin.</span></h2>
+    <p>Imagine 2&nbsp;000&nbsp;000 de clients. Tu cherches <code>sophie@mail.fr</code>.</p>
+    <div class="idx-board">
+      <div class="idx-pane is-scan">
+        <div class="idx-pane-h">
+          <b>Sans index</b>
+          <small>SQL examine les lignes une par une.</small>
+        </div>
+        <div class="idx-rows">
+          <span>ligne 1<i>correspond ?</i></span>
+          <span>ligne 2<i>correspond ?</i></span>
+          <span>ligne 3<i>correspond ?</i></span>
+          <span class="idx-more">…</span>
+          <span class="idx-hit">ligne 2 000 000<i>Sophie</i></span>
+        </div>
+      </div>
+      <div class="idx-pane is-idx">
+        <div class="idx-pane-h">
+          <b>Avec index</b>
+          <small>Un chemin organisé vers la bonne ligne.</small>
+        </div>
+        <div class="idx-tree">
+          <span>emma@mail.fr</span>
+          <span>lea@mail.fr</span>
+          <span>lucas@mail.fr</span>
+          <span class="idx-hit">sophie@mail.fr</span>
+          <span class="idx-arrow" aria-hidden="true">↓</span>
+          <span class="idx-hit">sa ligne, dans la table</span>
+        </div>
+      </div>
+    </div>
   </div>`;
 }
 function renderJoinCourse(l){
@@ -14368,7 +14575,7 @@ function lessonMainTable(l){
 function testeDefaultSql(l){
   return `SELECT * FROM ${lessonMainTable(l)};`;
 }
-const TESTE_KEYS=['FULL OUTER JOIN','RIGHT JOIN','LEFT JOIN','NOT EXISTS','EXISTS','GROUP BY','ORDER BY','SELECT *','INSERT','UPDATE','DELETE','GRANT','REVOKE','DISTINCT','BETWEEN','HAVING','WHERE','COUNT','AVG','SUM','MIN','MAX','JOIN','CASE','COALESCE','NULLIF','RANDOM','STRFTIME','CURRENT_DATE','YEAR','DATE','LENGTH','UPPER','LOWER','TRIM','SUBSTR','INSTR','REPLACE','ROUND','ABS','CAST','LIKE','AND','OR','IN','LIMIT','SELECT'];
+const TESTE_KEYS=['CREATE INDEX','FULL OUTER JOIN','RIGHT JOIN','LEFT JOIN','NOT EXISTS','EXISTS','GROUP BY','ORDER BY','SELECT *','INSERT','UPDATE','DELETE','GRANT','REVOKE','DISTINCT','BETWEEN','HAVING','WHERE','COUNT','AVG','SUM','MIN','MAX','JOIN','CASE','COALESCE','NULLIF','RANDOM','STRFTIME','CURRENT_DATE','YEAR','DATE','LENGTH','UPPER','LOWER','TRIM','SUBSTR','INSTR','REPLACE','ROUND','ABS','CAST','LIKE','AND','OR','IN','LIMIT','INDEX','SELECT'];
 function testeKeyFrom(text){
   const u=String(text||'').toUpperCase().replace(/\s+/g,' ');
   return TESTE_KEYS.find(k=>u.includes(k))||'SELECT';
@@ -14507,6 +14714,11 @@ function switchTesteVariant(btn){
   }
   if(navigator.vibrate)navigator.vibrate(5);
 }
+function testeIndexFollowup(sql){
+  const m=String(sql||'').match(/^\s*CREATE\s+INDEX\b[\s\S]*?\bON\s+([A-Za-z_][\w]*)/i);
+  if(!m) return '';
+  return `SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='${m[1].replace(/'/g,"''")}' ORDER BY name;`;
+}
 function runExemple(btn){
   const frame=btn.closest('.exframe');
   const host=frame&&frame.querySelector('.xf-result');
@@ -14524,7 +14736,19 @@ function runExemple(btn){
   btn.textContent='Exécution…';
   const finish=()=>{
     try{
-      const {res,ms}=execQuery(sql);
+      const follow=testeIndexFollowup(sql);
+      let res,ms;
+      if(follow){
+        const d=sandbox();
+        try{
+          const t0=performance.now();
+          d.run(sql);
+          res=d.exec(follow);
+          ms=performance.now()-t0;
+        }finally{ d.close(); }
+      }else{
+        ({res,ms}=execQuery(sql));
+      }
       host.innerHTML=renderTable(res,ms);
       host.hidden=false;
       host.classList.remove('on','flash');
