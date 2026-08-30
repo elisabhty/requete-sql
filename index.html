@@ -7839,9 +7839,9 @@ FROM produits;</pre></div>
   noDemo:true,
   richLesson:true, earlyDemo:true },
 { id:57, titre:"Les index", résumé:"Retrouver plus vite certaines lignes",
-  situation:"Ta base de clients grandit.<br><br>Au début, la table <code>clients</code> ne contenait que quelques lignes. Mais avec le temps, elle peut contenir des millions de clients.<br><br>Ton application doit régulièrement retrouver un client à partir de son e-mail :",
+  situation:"Ta base de clients grandit.<br><br>Au début, la table <code>clients</code> ne contenait que quelques lignes. Mais avec le temps, elle peut contenir des millions de clients.<br><br>Ton site e-commerce doit régulièrement retrouver un client à partir de son e-mail :",
   situationSql:"SELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",
-  situationTail:"<div class=\"sit-sql\"><p>Avec peu de données, la recherche est rapide.</p><p>Mais sur une très grande table, SQL peut devoir parcourir énormément de lignes pour trouver le bon client.</p><p>Comment lui permettre de retrouver plus rapidement les données recherchées ?</p><p>C’est là qu’interviennent les <b>index</b>.</p></div>",
+  situationTail:"<div class=\"sit-sql\"><p>Avec peu de données, la recherche est rapide.</p><p>Mais sur une très grande table, SQL peut devoir parcourir énormément de lignes pour retrouver le bon client.</p><p>Comment accélérer cette recherche ?</p><p>C’est là qu’interviennent les <b>index</b>.</p></div>",
     studio:{pointCards:{
       eye:"Index",title:"Un chemin d’accès vers les données.",
       lead:"Un index est un chemin d’accès supplémentaire qui aide SQL à retrouver plus rapidement certaines données. Il n’ajoute aucune colonne à la table : c’est une structure créée à côté.",
@@ -9269,6 +9269,167 @@ WHERE EXISTS (
     {k:'notin',label:'NOT IN',sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n);",out:"0 ligne : NOT IN peut ne retourner aucune ligne à cause du NULL de la commande #16.",tone:'bad'},
     {k:'notexists',label:'NOT EXISTS',sql:"SELECT clients.nom\nFROM clients\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM commandes\n  WHERE commandes.client_id = clients.id\n);",out:"Inès seulement — offre de bienvenue.",tone:'good'}
   ] },
+{ id:59, titre:"WITH", résumé:"Nommer un résultat intermédiaire",
+  situation:"Tu veux connaître le nombre de commandes passées par chaque client, puis n’afficher que ceux qui en ont au moins 2.<br><br>Tu pourrais imbriquer une requête dans une autre :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">SELECT *\nFROM (\n    SELECT client_id, COUNT(*) AS nb_commandes\n    FROM commandes\n    WHERE client_id IS NOT NULL\n    GROUP BY client_id\n) AS totaux\nWHERE nb_commandes &gt;= 2;</pre></div><br><br>La requête fonctionne. Mais plus les calculs s’enchaînent, plus les parenthèses deviennent difficiles à lire.<br><br>Avec <code>WITH</code>, tu calcules un premier résultat, tu lui donnes un nom, puis tu l’utilises juste après :",
+  situationSql:"WITH totaux AS (\n    SELECT client_id, COUNT(*) AS nb_commandes\n    FROM commandes\n    WHERE client_id IS NOT NULL\n    GROUP BY client_id\n)\nSELECT *\nFROM totaux\nWHERE nb_commandes >= 2;",
+  situationTail:"<div class=\"sit-sql\"><p><code>totaux</code> est une <b>CTE</b> : un résultat intermédiaire nommé, utilisé par la requête qui suit.</p></div>",
+    studio:{pointCards:{
+      eye:"WITH",title:"Je prépare, je nomme, j’utilise.",
+      lead:"Une CTE est un résultat intermédiaire nommé que tu peux utiliser dans la requête qui suit. <code>WITH</code> le prépare, <code>AS</code> le nomme, le <code>SELECT</code> final s’en sert.",
+      chain:[
+        {k:"WITH",v:"je prépare"},
+        {k:"AS",v:"je nomme"},
+        {k:"SELECT",v:"j’utilise"}
+      ]},
+    uses:{title:"Une étape, un nom.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Qu’est-ce qu’une CTE ?</p>
+          <p>CTE signifie <i>Common Table Expression</i> : expression de table commune. Le nom complet importe peu.</p>
+          <p>Retiens : une CTE est un résultat intermédiaire nommé, utilisable dans la requête qui suit — comme une table, le temps de cette instruction.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">La syntaxe de WITH</p>
+          <div class="pt-syntax"><pre class="cw-syntax">WITH nom_cte AS (
+    SELECT ...
+)
+SELECT ...
+FROM nom_cte;</pre></div>
+          <p>Quatre éléments : <code>WITH</code>, le nom, <code>AS (…)</code>, puis la requête principale.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">WITH clients_parisiens AS (
+    SELECT id, nom, ville
+    FROM clients
+    WHERE ville = 'Paris'
+)
+SELECT *
+FROM clients_parisiens;</pre></div>
+          <p><code>clients_parisiens</code> n’est pas une table enregistrée. C’est un résultat disponible pour cette instruction seulement.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">WITH ne crée pas une table</p>
+          <div class="memory-rule">
+            <div class="memory-a"><b>TABLE</b><span>reste dans la base</span></div>
+            <div class="memory-b"><b>CTE</b><span>existe dans l’instruction</span></div>
+          </div>
+          <p>Une fois l’instruction terminée, <code>SELECT * FROM clients_parisiens</code> échoue : la CTE n’existe plus.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Pourquoi une CTE ?</p>
+          <p>Le principal avantage est la lisibilité. Le calcul est séparé de la requête finale.</p>
+          <ol class="pt-lead-list">
+            <li>calculer le nombre de commandes ;</li>
+            <li>relier ce résultat à la table <code>clients</code> ;</li>
+            <li>garder ceux qui en ont au moins 2.</li>
+          </ol>
+          <p>Une CTE n’est pas automatiquement plus rapide. Elle rend un raisonnement complexe plus facile à lire.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Joindre une CTE à une table</p>
+          <p>Une CTE se joint comme un autre résultat tabulaire.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">WITH stats_commandes AS (
+    SELECT client_id, COUNT(*) AS nb_commandes
+    FROM commandes
+    WHERE client_id IS NOT NULL
+    GROUP BY client_id
+)
+SELECT clients.nom, stats_commandes.nb_commandes
+FROM clients
+JOIN stats_commandes
+    ON clients.id = stats_commandes.client_id;</pre></div>
+          <p>La CTE apporte <code>client_id</code> et le nombre. La table <code>clients</code> apporte le nom. Le <code>JOIN</code> rassemble les deux.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Plusieurs CTE</p>
+          <p>Après un seul <code>WITH</code>, plusieurs CTE se séparent par des virgules. Une CTE plus tard peut utiliser une CTE définie avant elle.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">WITH
+stats_commandes AS (
+    SELECT client_id, COUNT(*) AS nb_commandes
+    FROM commandes
+    WHERE client_id IS NOT NULL
+    GROUP BY client_id
+),
+clients_fideles AS (
+    SELECT client_id, nb_commandes
+    FROM stats_commandes
+    WHERE nb_commandes >= 2
+)
+SELECT *
+FROM clients_fideles;</pre></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Plusieurs étapes de calcul</p>
+          <p>Tu veux la moyenne du nombre de commandes par client. D’abord le nombre par client, puis <code>AVG</code> sur ce résultat.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">WITH stats_clients AS (
+    SELECT client_id, COUNT(*) AS nb_commandes
+    FROM commandes
+    WHERE client_id IS NOT NULL
+    GROUP BY client_id
+)
+SELECT AVG(nb_commandes)
+FROM stats_clients;</pre></div>
+          <p>Sophie a 3 commandes, Lucas 2, Hugo 1… La CTE fabrique ces nombres ; le <code>SELECT</code> final calcule leur moyenne.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">CTE ou sous-requête ?</p>
+          <div class="memory-rule">
+            <div class="memory-a"><b>Sous-requête</b><span>calcul placé <b>dans</b> la requête</span></div>
+            <div class="memory-b"><b>CTE</b><span>calcul placé <b>au début</b>, et nommé</span></div>
+          </div>
+          <p>Les deux peuvent donner le même résultat. On choisit souvent <code>WITH</code> parce que le raisonnement se lit de haut en bas.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Réutiliser le même nom</p>
+          <p>Une CTE peut apparaître plusieurs fois dans l’instruction, sans recopier sa définition.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">WITH stats AS (
+    SELECT client_id, COUNT(*) AS nb_commandes
+    FROM commandes
+    WHERE client_id IS NOT NULL
+    GROUP BY client_id
+)
+SELECT *
+FROM stats
+WHERE nb_commandes = (
+    SELECT MAX(nb_commandes)
+    FROM stats
+);</pre></div>
+          <p>Cela ne garantit pas que le SGBD ne calcule qu’une fois. Pour ce cours : tu réutilises un résultat nommé, sans le recopier.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">À découvrir ensuite : WITH RECURSIVE</p>
+          <p>Certaines données forment un arbre : catégorie → sous-catégorie, ou responsable → employé. Quand on ne connaît pas le nombre de niveaux, une CTE peut s’appeler elle-même : <code>WITH RECURSIVE</code>.</p>
+          <p>Ancrage, récursion et condition d’arrêt méritent leur propre cours. Ici, on s’en tient aux CTE classiques.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"La situation",t:"Ton calcul comporte plusieurs étapes."},
+      b:{k:"Le réflexe",t:"Donne un nom au résultat d’une étape avec WITH, puis utilise-le dans la suivante."},
+      extra:`<p class="exp-loop" aria-hidden="true"><b>WITH</b><i>↓</i><span>calcul intermédiaire</span><i>↓</i><span>nom de la CTE</span><i>↓</i><span>requête finale</span></p>`},
+    withSplit:true},
+  anatomie:[
+    {tok:"WITH totaux AS (",txt:"Commence la CTE et lui donne un nom."},
+    {tok:"SELECT client_id, COUNT(*) AS nb_commandes FROM commandes …",txt:"La requête qui construit le résultat intermédiaire."},
+    {tok:")",txt:"Fin de la définition."},
+    {tok:"SELECT * FROM totaux WHERE nb_commandes >= 2",txt:"La requête principale utilise ce résultat."}
+  ],
+  exemple:"WITH totaux AS (\n    SELECT client_id, COUNT(*) AS nb_commandes\n    FROM commandes\n    WHERE client_id IS NOT NULL\n    GROUP BY client_id\n)\nSELECT *\nFROM totaux\nWHERE nb_commandes >= 2;",
+  attendu:"<b>6 lignes</b> : les clients qui ont au moins 2 commandes. Sophie en a 3 ; Hugo et Gabriel, 1, restent dehors. La commande invitée (#16) est exclue par <code>IS NOT NULL</code>.",
+  retenir:"<code>WITH</code> crée un résultat intermédiaire nommé, utilisé par la requête qui suit.<br><br>Une CTE permet de découper une requête en étapes. Plusieurs CTE peuvent s’enchaîner dans la même instruction.<br><br><code>WITH</code> = je prépare. <code>AS</code> = je nomme. Le <code>SELECT</code> final = j’utilise.",
+  piege:{t:"Une CTE n’est pas une table permanente",
+    p:"<code>WITH parisiens AS (SELECT * FROM clients WHERE ville = 'Paris')</code> fonctionne dans cette instruction. Une nouvelle requête <code>SELECT * FROM parisiens;</code> échoue : <code>parisiens</code> n’existait que le temps du <code>WITH</code>."},
+  consigne:"Avec une CTE nommée <code>totaux</code>, compte les commandes de chaque client (sans la commande invitée), puis garde ceux qui en ont au moins 2.",
+  solution:"WITH totaux AS (\n    SELECT client_id, COUNT(*) AS nb_commandes\n    FROM commandes\n    WHERE client_id IS NOT NULL\n    GROUP BY client_id\n)\nSELECT *\nFROM totaux\nWHERE nb_commandes >= 2;",
+  indice:"<code>WITH totaux AS ( … GROUP BY client_id )</code>, puis <code>SELECT * FROM totaux WHERE nb_commandes &gt;= 2</code>.",
+  richLesson:true, earlyDemo:true,
+  petitDefi:[{
+    p:"La CTE <code>stats</code> calcule déjà le nombre de commandes. Complète le filtre pour ne garder que les clients qui en ont au moins deux.",
+    sql:"WITH stats AS (\n    SELECT client_id, COUNT(*) AS nb_commandes\n    FROM commandes\n    WHERE client_id IS NOT NULL\n    GROUP BY client_id\n)\nSELECT *\nFROM stats\nWHERE ____________;",
+    a:"nb_commandes >= 2",
+    answers:["nb_commandes >= 2","nb_commandes>=2"]
+  }],
+  testeVariants:[
+    {k:'sub',label:'Sous-requête',sql:"SELECT *\nFROM (\n    SELECT client_id, COUNT(*) AS nb_commandes\n    FROM commandes\n    WHERE client_id IS NOT NULL\n    GROUP BY client_id\n) AS totaux\nWHERE nb_commandes >= 2;",out:"Même résultat, plus de parenthèses."},
+    {k:'with',label:'WITH',sql:"WITH totaux AS (\n    SELECT client_id, COUNT(*) AS nb_commandes\n    FROM commandes\n    WHERE client_id IS NOT NULL\n    GROUP BY client_id\n)\nSELECT *\nFROM totaux\nWHERE nb_commandes >= 2;",out:"6 clients fidèles. Sophie en tête, avec 3 commandes.",tone:'good'},
+    {k:'join',label:'JOIN + CTE',sql:"WITH stats AS (\n    SELECT client_id, COUNT(*) AS nb_commandes\n    FROM commandes\n    WHERE client_id IS NOT NULL\n    GROUP BY client_id\n)\nSELECT clients.nom, stats.nb_commandes\nFROM clients\nJOIN stats\n    ON clients.id = stats.client_id\nWHERE stats.nb_commandes >= 2;",out:"Les mêmes 6, avec le nom : Sophie, Lucas, Emma, Nathan, Chloé, Léa."}
+  ] }
 ]},
 
 { titre:"Modifier", sous:"Écrire dans la base", lessons:[
