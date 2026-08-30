@@ -685,7 +685,7 @@
   .lesson-rich .df-step b{font-size:13.5px;font-weight:750;color:var(--ink);line-height:1.25}
   .lesson-rich .df-step span{font-family:var(--mono);font-size:12px;font-weight:650;color:var(--accent);overflow-wrap:anywhere}
   .df-arrow{font-style:normal;font-size:17px;line-height:1;color:var(--ink-3)}
-  .sit-sql{margin:4px 0 0;padding:14px 16px;border:1px solid var(--card-border);border-radius:14px;background:color-mix(in srgb,var(--surface-2) 45%,var(--surface))}
+  .sit-sql{margin:16px 0 0;padding:14px 16px;border:1px solid var(--card-border);border-radius:14px;background:color-mix(in srgb,var(--surface-2) 45%,var(--surface))}
   .lesson-rich .sit-sql p{margin:0 0 10px;font-size:14px;line-height:1.55;color:var(--ink-2)}
   .lesson-rich .sit-sql p:last-child{margin-bottom:0}
   .lesson-rich .sit-sql p:first-child{color:var(--ink);font-weight:650}
@@ -9765,6 +9765,8 @@ const CARTES={
     m:"Un index est un chemin d’accès supplémentaire. Il n’ajoute pas de colonne. Utile sur les colonnes souvent cherchées ou reliées — pas partout, car il occupe de l’espace et doit être maintenu."},
  58:{k:"EXPLAIN",t:"Comprendre le plan d’une requête",s:"EXPLAIN QUERY PLAN\nSELECT * FROM clients\nWHERE email = 'sophie@mail.fr';",
     m:"<code>EXPLAIN</code> montre comment le SGBD prévoit d’exécuter la requête. <code>ANALYZE</code> l’exécute vraiment. Une requête lente n’appelle pas automatiquement un index : on observe d’abord."},
+ 59:{k:"WITH",t:"Nommer un résultat intermédiaire",s:"WITH totaux AS (\n  SELECT client_id, COUNT(*) AS nb_commandes\n  FROM commandes\n  GROUP BY client_id\n)\nSELECT * FROM totaux;",
+    m:"<code>WITH</code> prépare, <code>AS</code> nomme, le <code>SELECT</code> final utilise. Une CTE n’est pas une table : elle n’existe que dans l’instruction."},
 
  26:{k:"INSERT",t:"Ajouter une ligne",s:"INSERT INTO clients (nom, ville)\nVALUES ('Théo', 'Lille');",
     m:"Le lien colonnes ↔ valeurs est <b>positionnel</b>. Nomme les colonnes. Les omises passent à NULL ; la clé primaire se remplit seule."},
@@ -9910,6 +9912,9 @@ const QCM={
  55:[{q:"<code>EXISTS</code> teste :",o:["Si une valeur appartient à une liste","Si la sous-requête trouve au moins une ligne","Si deux colonnes ont le même nom"],b:1,e:"On ne compare pas une valeur. On demande si une ligne liée existe."},
   {q:"Pourquoi <code>NOT EXISTS</code> trouve Inès, alors que <code>NOT IN</code> sans filtre renvoie 0 ligne ?",o:["Inès a une commande cachée","La commande #16 met un NULL dans la liste de NOT IN","EXISTS ignore la table clients"],b:1,e:"<code>NOT IN</code> peut ne retourner aucune ligne si la liste contient un <code>NULL</code>. <code>NOT EXISTS</code> ne construit pas cette liste : il cherche seulement une commande liée à Inès."},
   {q:"Sans <code>WHERE commandes.client_id = clients.id</code>, <code>EXISTS (SELECT 1 FROM commandes)</code> :",o:["Ne garde qu’Inès","Garde les 9 clients, Inès comprise","Provoque une erreur"],b:1,e:"La table commandes n’est pas vide. Sans corrélation, le test est le même pour tout le monde."}],
+ 59:[{q:"À quoi sert principalement <code>WITH</code> ?",o:["À enregistrer définitivement une nouvelle table","À donner un nom à un résultat intermédiaire","À modifier une colonne"],b:1,e:"La CTE existe le temps de l’instruction. Elle ne s’enregistre pas dans la base."},
+  {q:"Combien de temps une CTE est-elle disponible ?",o:["Jusqu’à la suppression de la base","Pendant toute la session","Dans l’instruction SQL qui la définit"],b:2,e:"Une nouvelle instruction ne voit plus la CTE. Ce n’est pas une table."},
+  {q:"Une CTE peut-elle utiliser une autre CTE définie avant elle ?",o:["Oui","Non","Seulement avec JOIN"],b:0,e:"Après un seul WITH, les CTE se séparent par des virgules. Une CTE plus tard peut lire une CTE définie plus haut."}],
 
  26:[{q:"Les colonnes non citées dans un INSERT prennent :",o:["Leur DEFAULT si défini, sinon NULL","Toujours 0","La valeur de la ligne précédente"],b:0,e:"Une colonne omise reçoit son <code>DEFAULT</code> si la table en définit un ; sinon elle reçoit généralement <code>NULL</code>."},
    {q:"Le lien entre colonnes et valeurs est :",o:["Par nom","Par position","Alphabétique"],b:1,e:"D’où le risque de mettre une ville dans la colonne nom sans message d’erreur."}],
@@ -11197,7 +11202,7 @@ function confirmImport(){
   }
 }
 
-const KW=new Set(['SELECT','FROM','WHERE','AND','OR','NOT','ORDER','BY','ASC','DESC','LIMIT','OFFSET','DISTINCT','GROUP','HAVING','JOIN','INNER','LEFT','RIGHT','OUTER','FULL','ON','AS','IN','IS','NULL','LIKE','BETWEEN','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','INDEX','UNIQUE','EXPLAIN','QUERY','PLAN','UNION','ALL','EXISTS','CASE','WHEN','THEN','ELSE','END','CAST']);
+const KW=new Set(['SELECT','FROM','WHERE','AND','OR','NOT','ORDER','BY','ASC','DESC','LIMIT','OFFSET','DISTINCT','GROUP','HAVING','JOIN','INNER','LEFT','RIGHT','OUTER','FULL','ON','AS','IN','IS','NULL','LIKE','BETWEEN','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','INDEX','UNIQUE','EXPLAIN','QUERY','PLAN','UNION','ALL','EXISTS','CASE','WHEN','THEN','ELSE','END','CAST','WITH','RECURSIVE']);
 const FN=new Set(['COUNT','SUM','AVG','MIN','MAX','ROUND','ABS','CEIL','FLOOR','LENGTH','UPPER','LOWER','TRIM','LTRIM','RTRIM','SUBSTR','INSTR','REPLACE','COALESCE','NULLIF','RANDOM','STRFTIME','DATE','TYPEOF','IFNULL']);
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function escAttr(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -14424,6 +14429,7 @@ function renderJoinIntroStudio(l){
   const norm=s.normSplit?renderNormSplit():'';
   const idx=s.idxSplit?renderIdxSplit():'';
   const exp=s.expSplit?renderExpSplit():'';
+  const withViz=s.withSplit?renderWithSplit():'';
   return `<div class="concept-page join-intro">
     <div class="concept-block">
       <h2><span class="h2-eye">${eye}</span><span class="h2-txt">${title}</span></h2>
@@ -14435,6 +14441,7 @@ function renderJoinIntroStudio(l){
     ${norm}
     ${idx}
     ${exp}
+    ${withViz}
     ${uses}
     <!-- early-demo -->
   </div>`;
@@ -14505,6 +14512,21 @@ function renderExpSplit(){
           <span class="idx-hit">sa ligne</span>
         </div>
       </div>
+    </div>
+  </div>`;
+}
+function renderWithSplit(){
+  return `<div class="concept-block">
+    <h2><span class="h2-eye">Visualisation</span><span class="h2-txt">Découper le raisonnement en étapes.</span></h2>
+    <p>La CTE fabrique d’abord <code>totaux</code>. La requête principale filtre ensuite.</p>
+    <div class="df-flow" aria-label="Des commandes au résultat">
+      <div class="df-step"><b>commandes</b><span>les lignes d’achat</span></div>
+      <i class="df-arrow" aria-hidden="true">↓</i>
+      <div class="df-step"><b>GROUP BY + COUNT</b><span>une ligne par client</span></div>
+      <i class="df-arrow" aria-hidden="true">↓</i>
+      <div class="df-step"><b>totaux</b><span>la CTE</span></div>
+      <i class="df-arrow" aria-hidden="true">↓</i>
+      <div class="df-step"><b>WHERE nb_commandes &gt;= 2</b><span>requête principale</span></div>
     </div>
   </div>`;
 }
@@ -14932,7 +14954,7 @@ function lessonMainTable(l){
 function testeDefaultSql(l){
   return `SELECT * FROM ${lessonMainTable(l)};`;
 }
-const TESTE_KEYS=['EXPLAIN QUERY PLAN','EXPLAIN','CREATE INDEX','FULL OUTER JOIN','RIGHT JOIN','LEFT JOIN','NOT EXISTS','EXISTS','GROUP BY','ORDER BY','SELECT *','INSERT','UPDATE','DELETE','GRANT','REVOKE','DISTINCT','BETWEEN','HAVING','WHERE','COUNT','AVG','SUM','MIN','MAX','JOIN','CASE','COALESCE','NULLIF','RANDOM','STRFTIME','CURRENT_DATE','YEAR','DATE','LENGTH','UPPER','LOWER','TRIM','SUBSTR','INSTR','REPLACE','ROUND','ABS','CAST','LIKE','AND','OR','IN','LIMIT','INDEX','SELECT'];
+const TESTE_KEYS=['EXPLAIN QUERY PLAN','EXPLAIN','CREATE INDEX','WITH','FULL OUTER JOIN','RIGHT JOIN','LEFT JOIN','NOT EXISTS','EXISTS','GROUP BY','ORDER BY','SELECT *','INSERT','UPDATE','DELETE','GRANT','REVOKE','DISTINCT','BETWEEN','HAVING','WHERE','COUNT','AVG','SUM','MIN','MAX','JOIN','CASE','COALESCE','NULLIF','RANDOM','STRFTIME','CURRENT_DATE','YEAR','DATE','LENGTH','UPPER','LOWER','TRIM','SUBSTR','INSTR','REPLACE','ROUND','ABS','CAST','LIKE','AND','OR','IN','LIMIT','INDEX','SELECT'];
 function testeKeyFrom(text){
   const u=String(text||'').toUpperCase().replace(/\s+/g,' ');
   return TESTE_KEYS.find(k=>u.includes(k))||'SELECT';
