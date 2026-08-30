@@ -442,6 +442,17 @@
     .coalesce-page>.concept-block.in .coal-route-choice,.coalesce-page>.concept-block.in .coal-route-link,.coalesce-page>.concept-block.in .coal-use-row{animation:none!important}
   }
   .fn-use .table-wrap{margin:10px 0}
+  /* Comparaison de deux fonctions sur plusieurs critères. En trois colonnes,
+     la troisième sortait du cadre et il fallait deviner qu'on pouvait faire
+     défiler. Le critère titre la ligne, les deux réponses se lisent dessous. */
+  .fn-use .duo{margin:12px 0;border:1px solid var(--card-border);border-radius:14px;background:var(--surface-2);overflow:hidden}
+  .fn-use .duo-row{padding:10px 12px}
+  .fn-use .duo-row+.duo-row{border-top:1px solid var(--line-2)}
+  .fn-use .duo-k{margin:0 0 7px;font-family:var(--mono);font-size:10px;font-weight:750;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-3)}
+  .fn-use .duo-v{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:9px;margin:0 0 5px;font-size:12.5px;line-height:1.45;color:var(--ink-2)}
+  .fn-use .duo-v:last-child{margin-bottom:0}
+  .fn-use .duo-v b{font-family:var(--mono);font-size:11px;font-weight:800;color:var(--accent);background:var(--accent-soft);padding:2px 7px;border-radius:7px;white-space:nowrap}
+  .fn-use .duo-v.is-alt b{color:var(--ink-3);background:var(--surface)}
   .concept-block.in .fn-use{animation:joinSoftIn .4s ease both}
   .concept-block.in .fn-use:nth-child(2){animation-delay:.05s}
   .concept-block.in .fn-use:nth-child(3){animation-delay:.1s}
@@ -8461,7 +8472,8 @@ JOIN produits
       body:`<div class="pt-lead fn-uses">
         <div class="fn-use">
           <p class="pt-syntax-h">EXISTS — au moins une commande</p>
-          <p>Pour chaque client, SQL ouvre la table <code>commandes</code> et cherche une ligne dont <code>client_id</code> vaut l’<code>id</code> du client en cours.</p>
+          <p>Pour chaque client, <code>EXISTS</code> vérifie s’il existe au moins une commande dont le <code>client_id</code> correspond à l’<code>id</code> de ce client.</p>
+          <p>Dès qu’une correspondance est trouvée, <code>EXISTS</code> est vrai et le client est gardé.</p>
           <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom
 FROM clients
 WHERE EXISTS (
@@ -8469,8 +8481,10 @@ WHERE EXISTS (
   FROM commandes
   WHERE commandes.client_id = clients.id
 );</pre></div>
-          <p>Résultat : 8 noms. Inès disparaît. Sophie reste une seule fois, même si elle a 3 commandes.</p>
-          <p class="fn-tip"><b>SELECT 1</b> Dans la sous-requête, on n’affiche rien d’utile. Seule l’existence compte. Par convention, on écrit <code>SELECT 1</code>.</p>
+          <p>Résultat : 8 clients.</p>
+          <p>Inès n’a aucune commande : elle est écartée.</p>
+          <p>Sophie en a 3 : elle est gardée une seule fois, car <code>EXISTS</code> vérifie seulement qu’au moins une commande existe.</p>
+          <p class="fn-tip"><b>Pourquoi <code>SELECT 1</code> ?</b> <code>EXISTS</code> ne regarde pas les valeurs retournées par la sous-requête. Il vérifie seulement si elle trouve au moins une ligne.<br><br>On écrit donc souvent <code>SELECT 1</code> pour montrer que le contenu de la ligne n’a pas d’importance. <code>SELECT *</code> fonctionnerait aussi.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Une sous-requête corrélée</p>
@@ -8498,12 +8512,20 @@ WHERE NOT EXISTS (
         <div class="fn-use">
           <p class="pt-syntax-h">EXISTS plutôt que IN</p>
           <p><code>IN</code> construit une liste de valeurs, puis compare. <code>EXISTS</code> ne construit pas cette liste : il cherche une ligne, puis s’arrête.</p>
-          <div class="table-wrap"><table class="concept-table"><thead><tr><th></th><th>EXISTS</th><th>IN</th></tr></thead><tbody>
-            <tr><td>Teste</td><td>la présence d’une ligne</td><td>l’appartenance à une liste</td></tr>
-            <tr><td>Sous-requête</td><td>souvent corrélée</td><td>souvent une liste d’abord</td></tr>
-            <tr><td>NULL</td><td>sans effet ici</td><td><code>NOT IN</code> se vide s’il y a un NULL</td></tr>
-            <tr><td>Doublons</td><td>Sophie une fois</td><td>Sophie une fois aussi</td></tr>
-          </tbody></table></div>
+          <div class="duo">
+            <div class="duo-row"><p class="duo-k">Teste</p>
+              <p class="duo-v"><b>EXISTS</b><span>la présence d’une ligne</span></p>
+              <p class="duo-v is-alt"><b>IN</b><span>l’appartenance à une liste</span></p></div>
+            <div class="duo-row"><p class="duo-k">Sous-requête</p>
+              <p class="duo-v"><b>EXISTS</b><span>souvent corrélée</span></p>
+              <p class="duo-v is-alt"><b>IN</b><span>souvent une liste d’abord</span></p></div>
+            <div class="duo-row"><p class="duo-k">NULL</p>
+              <p class="duo-v"><b>EXISTS</b><span>sans effet ici</span></p>
+              <p class="duo-v is-alt"><b>IN</b><span><code>NOT IN</code> se vide s’il y a un <code>NULL</code></span></p></div>
+            <div class="duo-row"><p class="duo-k">Doublons</p>
+              <p class="duo-v"><b>EXISTS</b><span>Sophie une fois</span></p>
+              <p class="duo-v is-alt"><b>IN</b><span>Sophie une fois aussi</span></p></div>
+          </div>
           <p>Pour une petite liste fixe, <code>IN ('Paris', 'Lyon')</code> reste plus simple. Pour une correspondance liée, <code>EXISTS</code> est le bon réflexe.</p>
         </div>
         <div class="fn-use">
