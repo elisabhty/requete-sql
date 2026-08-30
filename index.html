@@ -385,6 +385,10 @@
   .idx-side span{display:flex;flex-direction:column;gap:4px;padding:12px 11px;border-radius:14px;background:var(--surface-2);text-align:center}
   .idx-side b{font-size:12.5px;font-weight:800;color:var(--ink)}
   .idx-side i{font-style:normal;font-size:11.5px;font-weight:650;color:var(--ink-3);line-height:1.35}
+  .exp-loop{display:flex;flex-direction:column;align-items:center;gap:2px;margin:14px 0 2px;text-align:center}
+  .exp-loop b,.exp-loop span{display:block;padding:7px 12px;border-radius:12px;background:var(--surface-2);font-size:13px;font-weight:750;color:var(--ink)}
+  .exp-loop b{font-family:var(--mono);color:var(--accent);background:var(--accent-soft)}
+  .exp-loop i{font-style:normal;font-size:12px;font-weight:800;color:var(--ink-3);line-height:1}
   .sample-more-dots{display:inline-flex;align-items:center;justify-content:center;width:24px;height:18px;margin-right:7px;border-radius:7px;background:rgba(91,91,214,.1);color:var(--accent);font-family:var(--mono);font-size:14px;font-weight:850;line-height:1;vertical-align:-1px}
   .concept-block.in .sample-more td{animation:sampleMoreIn .42s var(--spring-ios) .22s both}
   @keyframes sampleMoreIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
@@ -7979,6 +7983,127 @@ WHERE email = 'sophie@mail.fr';</pre></div>
     {k:'where',label:'WHERE email',sql:"SELECT nom, email\nFROM clients\nWHERE email = 'sophie@mail.fr';",out:"Sophie, même sans index : la table est encore petite."},
     {k:'create',label:'CREATE INDEX',sql:"CREATE INDEX idx_clients_email\nON clients(email);",out:"L’index est créé. La table clients n’a pas de nouvelle colonne.",tone:'good'},
     {k:'explain',label:'EXPLAIN',sql:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",out:"Le plan montre si SQLite parcourt la table ou utilise un index."}
+  ] },
+{ id:58, titre:"EXPLAIN", résumé:"Comprendre une requête lente",
+  situation:"Ta base de clients continue de grandir.<br><br>Tu as créé un index sur <code>email</code> pour accélérer la recherche d’un client :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">CREATE INDEX idx_clients_email\nON clients(email);</pre></div><br><br>Puis ton application exécute régulièrement :",
+  situationSql:"SELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",
+  situationTail:"<div class=\"sit-sql\"><p>Mais une question se pose maintenant :</p><p>Comment savoir si SQL utilise réellement l’index ?</p><p>Et si une requête devient lente, comment comprendre ce qui ralentit ?</p><p>C’est le rôle de <b>EXPLAIN</b>.</p></div>",
+    studio:{pointCards:{
+      eye:"EXPLAIN",title:"Voir la stratégie, pas seulement le résultat.",
+      lead:"Une requête décrit ce que tu veux. <code>EXPLAIN</code> montre comment le SGBD prévoit de l’obtenir. On observe d’abord le plan, puis on optimise.",
+      chain:[
+        {k:"Observer",v:"lire le plan"},
+        {k:"Comprendre",v:"parcours, index, jointure"},
+        {k:"Comparer",v:"après une optimisation"}
+      ]},
+    uses:{title:"Un plan, une idée à la fois.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">EXPLAIN montre comment SQL compte travailler</p>
+          <p>Quand tu écris un <code>SELECT</code>, tu précises le résultat. Le SGBD doit encore décider <b>comment</b> l’obtenir : parcourir la table, ou suivre un index.</p>
+          <p>Le résultat de <code>EXPLAIN</code> s’appelle un <b>plan d’exécution</b>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Utiliser EXPLAIN</p>
+          <p>On place <code>EXPLAIN</code> devant la requête. Dans cette application (SQLite), on écrit <code>EXPLAIN QUERY PLAN</code> :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">EXPLAIN QUERY PLAN
+SELECT *
+FROM clients
+WHERE email = 'sophie@mail.fr';</pre></div>
+          <p>Tu ne demandes plus seulement « donne-moi Sophie ». Tu demandes aussi au SGBD de montrer comment il prévoit de la retrouver.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Premier diagnostic : parcours de table</p>
+          <p>Sans index adapté, le plan peut indiquer un <b>parcours de table</b>. PostgreSQL dit souvent <code>Seq Scan</code>. SQLite affiche <code>SCAN</code>.</p>
+          <p>SQL examine les lignes pour appliquer <code>email = 'sophie@mail.fr'</code>. Sur une petite table, c’est acceptable. Sur une table immense, pour une recherche ciblée, cela peut devenir coûteux.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Deuxième diagnostic : un index</p>
+          <p>Après <code>CREATE INDEX idx_clients_email ON clients(email)</code>, le SGBD <b>peut</b> décider d’utiliser l’index. PostgreSQL parlera parfois d’<code>Index Scan</code>.</p>
+          <p>On passe d’un parcours de toute la table à un chemin organisé vers la ligne de Sophie. C’est ce que le cours sur les index préparait.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Un parcours n’est pas forcément mauvais</p>
+          <p>Il ne faut pas lire <code>SCAN</code> ou <code>Seq Scan</code> comme une erreur.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
+FROM clients;</pre></div>
+          <p>Tu demandes tous les clients : parcourir la table est logique. Même avec un <code>WHERE</code>, si presque toutes les lignes restent, le SGBD peut juger le parcours plus simple qu’un index.</p>
+          <p><code>EXPLAIN</code> sert à comprendre le choix, pas à chercher des mots rouges ou verts.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">EXPLAIN et EXPLAIN ANALYZE</p>
+          <div class="memory-rule">
+            <div class="memory-a"><b>EXPLAIN</b><span>ce que SQL <b>prévoit</b></span></div>
+            <div class="memory-b"><b>ANALYZE</b><span>ce qui s’est <b>réellement</b> passé</span></div>
+          </div>
+          <p><code>EXPLAIN ANALYZE</code>, sur les SGBD qui le proposent, exécute vraiment la requête et ajoute des mesures : temps, nombre de lignes.</p>
+          <p>Attention : la requête est exécutée. Prudence avec un <code>UPDATE</code> ou un <code>DELETE</code>. Cette commande n’existe pas dans SQLite.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Observer les lignes</p>
+          <p>Tu recherches souvent les commandes d’un client :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
+FROM commandes
+WHERE client_id = 1;</pre></div>
+          <p>Le plan permet de voir si le SGBD pense devoir traiter beaucoup de lignes pour n’en rendre que quelques-unes. Un index sur <code>commandes.client_id</code> peut alors fournir un chemin adapté.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">EXPLAIN avec une jointure</p>
+          <p>Avec plusieurs tables, le SGBD décide quelle table traiter en premier, et comment retrouver les correspondances.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">EXPLAIN QUERY PLAN
+SELECT clients.nom, commandes.id
+FROM clients
+JOIN commandes
+    ON clients.id = commandes.client_id;</pre></div>
+          <p>Tu n’as pas à maîtriser tout de suite <code>Nested Loop</code> ou <code>Hash Join</code>. Retiens : la requête dit ce que tu veux ; le plan montre la stratégie.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Une méthode pour une requête lente</p>
+          <ol class="pt-lead-list">
+            <li><b>Observer</b> — <code>EXPLAIN</code> devant la requête.</li>
+            <li><b>Repérer</b> — traite-t-il énormément de lignes pour en renvoyer très peu ?</li>
+            <li><b>Comprendre</b> — parcours, tri, jointure…</li>
+            <li><b>Optimiser</b> — un index, une condition, moins de colonnes, une jointure revue.</li>
+            <li><b>Vérifier</b> — relancer <code>EXPLAIN</code>. Une optimisation se mesure, elle ne se suppose pas.</li>
+          </ol>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Avant / après</p>
+          <p>Avant : <code>WHERE client_id = 1</code> sur une immense table <code>commandes</code>, sans index adapté.</p>
+          <p>Optimisation : <code>CREATE INDEX idx_commandes_client ON commandes(client_id);</code></p>
+          <p>Après : le même <code>EXPLAIN</code> peut maintenant montrer l’index. La boucle à retenir :</p>
+          <p class="exp-loop" aria-hidden="true"><b>Requête lente</b><i>↓</i><b>EXPLAIN</b><i>↓</i><span>comprendre</span><i>↓</i><span>optimiser</span><i>↓</i><b>EXPLAIN</b><i>↓</i><span>comparer</span></p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Une requête lente n’appelle pas automatiquement un index</p>
+          <p>Elle peut aussi ramener trop de données (<code>SELECT *</code> sur toute la table), trier beaucoup, ou joindre énormément de lignes. Une condition peut aussi rendre un index existant moins exploitable.</p>
+          <p>L’index est une solution possible, pas une solution universelle.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"La question",t:"Comment SQL exécute-t-il ma requête ?"},
+      b:{k:"La règle",t:"EXPLAIN montre le plan d’exécution."},
+      note:"Lorsqu’une requête devient lente, observe d’abord son plan d’exécution avant de chercher à l’optimiser.",
+      extra:`<p class="exp-loop" aria-hidden="true"><b>EXPLAIN</b><i>↓</i><span>Observer</span><i>↓</i><span>Comprendre</span><i>↓</i><span>Optimiser</span><i>↓</i><span>Comparer</span></p>`},
+    expSplit:true},
+  anatomie:[
+    {tok:"EXPLAIN QUERY PLAN",txt:"Demande le plan, pas les lignes du résultat."},
+    {tok:"SELECT * FROM clients",txt:"La requête à observer."},
+    {tok:"WHERE email = …",txt:"La recherche ciblée dont on veut voir le chemin."}
+  ],
+  exemple:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",
+  attendu:"Un plan d’exécution : ici, SQLite indique souvent <code>SCAN clients</code> — la table est encore petite.",
+  retenir:"<code>EXPLAIN</code> montre la stratégie prévue par le SGBD. <code>EXPLAIN ANALYZE</code> exécute vraiment la requête pour la mesurer.<br><br>Une requête lente n’appelle pas automatiquement un index : on observe d’abord, puis on optimise.",
+  piege:{t:"Croire que SCAN veut dire « faux »",
+    p:"Un parcours de table est logique si tu demandes presque toutes les lignes. <code>EXPLAIN</code> sert à comprendre le choix du SGBD, pas à colorier le plan en rouge ou en vert."},
+  consigne:"Place <code>EXPLAIN QUERY PLAN</code> devant la recherche de Sophie par e-mail, pour observer le plan d’exécution.",
+  solution:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",
+  indice:"<code>EXPLAIN QUERY PLAN</code>, puis le même <code>SELECT</code> que dans la situation, avec <code>WHERE email</code>.",
+  richLesson:true, earlyDemo:true,
+  explainExo:true,
+  testeVariants:[
+    {k:'email',label:'WHERE email',sql:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",out:"Sur cette petite table, SQLite affiche souvent SCAN — ce n’est pas une erreur."},
+    {k:'all',label:'Tous les clients',sql:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients;",out:"Tu demandes tout : parcourir la table est logique.",tone:'good'},
+    {k:'cmd',label:'Commandes',sql:"EXPLAIN QUERY PLAN\nSELECT *\nFROM commandes\nWHERE client_id = 1;",out:"Le plan montre comment SQLite retrouve les commandes de Sophie."}
   ] }
 ]},
 
@@ -9477,6 +9602,8 @@ const CARTES={
     m:"Ranger chaque information dans la table qui correspond à ce qu’elle décrit. <b>1NF</b> une seule valeur, <b>2NF</b> toute la clé, <b>3NF</b> directement de la clé."},
  57:{k:"INDEX",t:"Retrouver plus vite certaines lignes",s:"CREATE INDEX idx_clients_email\nON clients(email);",
     m:"Un index est un chemin d’accès supplémentaire. Il n’ajoute pas de colonne. Utile sur les colonnes souvent cherchées ou reliées — pas partout, car il occupe de l’espace et doit être maintenu."},
+ 58:{k:"EXPLAIN",t:"Comprendre le plan d’une requête",s:"EXPLAIN QUERY PLAN\nSELECT * FROM clients\nWHERE email = 'sophie@mail.fr';",
+    m:"<code>EXPLAIN</code> montre comment le SGBD prévoit d’exécuter la requête. <code>ANALYZE</code> l’exécute vraiment. Une requête lente n’appelle pas automatiquement un index : on observe d’abord."},
 
  26:{k:"INSERT",t:"Ajouter une ligne",s:"INSERT INTO clients (nom, ville)\nVALUES ('Théo', 'Lille');",
     m:"Le lien colonnes ↔ valeurs est <b>positionnel</b>. Nomme les colonnes. Les omises passent à NULL ; la clé primaire se remplit seule."},
@@ -9616,6 +9743,9 @@ const QCM={
  57:[{q:"Sans index sur <code>email</code>, pour retrouver Sophie, SQL peut :",o:["Lire uniquement la première ligne","Parcourir beaucoup de lignes de la table","Modifier la table <code>clients</code>"],b:1,e:"Sans chemin d’accès organisé, le SGBD peut devoir examiner les lignes une par une."},
   {q:"<code>CREATE INDEX idx_clients_email ON clients(email)</code> :",o:["Ajoute une colonne email","Crée une structure en plus : la table ne change pas","Change l’écriture du SELECT"],b:1,e:"L’index est à côté de la table. Tu continues d’écrire le même <code>WHERE email = …</code>."},
   {q:"Pourquoi ne pas indexer toutes les colonnes ?",o:["Parce qu’un index est interdit sur le texte","Parce qu’un index occupe de l’espace et doit être maintenu","Parce que SQL ignore les index"],b:1,e:"On indexe les colonnes vraiment utilisées pour chercher ou relier, pas toutes « au cas où »."}],
+ 58:[{q:"<code>EXPLAIN</code> sert à :",o:["Modifier le résultat du SELECT","Montrer le plan d’exécution prévu par le SGBD","Créer automatiquement un index"],b:1,e:"La requête décrit le résultat. Le plan montre la stratégie choisie pour l’obtenir."},
+  {q:"Un parcours de table (<code>SCAN</code>, <code>Seq Scan</code>) :",o:["Est toujours une erreur à corriger","Peut être le bon choix, par exemple si tu demandes toutes les lignes","Signifie que la table n’existe pas"],b:1,e:"<code>SELECT * FROM clients</code> doit parcourir la table. EXPLAIN sert à comprendre, pas à colorier le plan."},
+  {q:"Face à une requête lente, le premier réflexe :",o:["Ajouter un index sur chaque colonne","Observer le plan avec EXPLAIN, puis optimiser","Réécrire la requête en majuscules"],b:1,e:"Une requête lente n’appelle pas automatiquement un index. On observe d’abord."}],
  55:[{q:"<code>EXISTS</code> teste :",o:["Si une valeur appartient à une liste","Si la sous-requête trouve au moins une ligne","Si deux colonnes ont le même nom"],b:1,e:"On ne compare pas une valeur. On demande si une ligne liée existe."},
   {q:"Pourquoi <code>NOT EXISTS</code> trouve Inès, alors que <code>NOT IN</code> sans filtre renvoie 0 ligne ?",o:["Inès a une commande cachée","La commande #16 met un NULL dans la liste de NOT IN","EXISTS ignore la table clients"],b:1,e:"<code>NOT IN</code> peut ne retourner aucune ligne si la liste contient un <code>NULL</code>. <code>NOT EXISTS</code> ne construit pas cette liste : il cherche seulement une commande liée à Inès."},
   {q:"Sans <code>WHERE commandes.client_id = clients.id</code>, <code>EXISTS (SELECT 1 FROM commandes)</code> :",o:["Ne garde qu’Inès","Garde les 9 clients, Inès comprise","Provoque une erreur"],b:1,e:"La table commandes n’est pas vide. Sans corrélation, le test est le même pour tout le monde."}],
@@ -14132,6 +14262,7 @@ function renderJoinIntroStudio(l){
     </div>`:'';
   const norm=s.normSplit?renderNormSplit():'';
   const idx=s.idxSplit?renderIdxSplit():'';
+  const exp=s.expSplit?renderExpSplit():'';
   return `<div class="concept-page join-intro">
     <div class="concept-block">
       <h2><span class="h2-eye">${eye}</span><span class="h2-txt">${title}</span></h2>
@@ -14142,6 +14273,7 @@ function renderJoinIntroStudio(l){
     ${viz}
     ${norm}
     ${idx}
+    ${exp}
     ${uses}
     <!-- early-demo -->
   </div>`;
@@ -14176,6 +14308,40 @@ function renderIdxSplit(){
           <span class="idx-hit">sophie@mail.fr</span>
           <span class="idx-arrow" aria-hidden="true">↓</span>
           <span class="idx-hit">sa ligne, dans la table</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+function renderExpSplit(){
+  return `<div class="concept-block">
+    <h2><span class="h2-eye">Visualisation</span><span class="h2-txt">Ce que EXPLAIN peut montrer.</span></h2>
+    <p>Même requête. Deux stratégies possibles.</p>
+    <div class="idx-board">
+      <div class="idx-pane is-scan">
+        <div class="idx-pane-h">
+          <b>Parcours de table</b>
+          <small>SCAN · Seq Scan — SQL examine les lignes.</small>
+        </div>
+        <div class="idx-rows">
+          <span>ligne 1<i>email ?</i></span>
+          <span>ligne 2<i>email ?</i></span>
+          <span>ligne 3<i>email ?</i></span>
+          <span class="idx-more">…</span>
+          <span class="idx-hit">Sophie</span>
+        </div>
+      </div>
+      <div class="idx-pane is-idx">
+        <div class="idx-pane-h">
+          <b>Chemin d’index</b>
+          <small>Index Scan — un accès organisé.</small>
+        </div>
+        <div class="idx-tree">
+          <span>INDEX email</span>
+          <span class="idx-arrow" aria-hidden="true">↓</span>
+          <span class="idx-hit">sophie@mail.fr</span>
+          <span class="idx-arrow" aria-hidden="true">↓</span>
+          <span class="idx-hit">sa ligne</span>
         </div>
       </div>
     </div>
@@ -14605,7 +14771,7 @@ function lessonMainTable(l){
 function testeDefaultSql(l){
   return `SELECT * FROM ${lessonMainTable(l)};`;
 }
-const TESTE_KEYS=['CREATE INDEX','FULL OUTER JOIN','RIGHT JOIN','LEFT JOIN','NOT EXISTS','EXISTS','GROUP BY','ORDER BY','SELECT *','INSERT','UPDATE','DELETE','GRANT','REVOKE','DISTINCT','BETWEEN','HAVING','WHERE','COUNT','AVG','SUM','MIN','MAX','JOIN','CASE','COALESCE','NULLIF','RANDOM','STRFTIME','CURRENT_DATE','YEAR','DATE','LENGTH','UPPER','LOWER','TRIM','SUBSTR','INSTR','REPLACE','ROUND','ABS','CAST','LIKE','AND','OR','IN','LIMIT','INDEX','SELECT'];
+const TESTE_KEYS=['EXPLAIN QUERY PLAN','EXPLAIN','CREATE INDEX','FULL OUTER JOIN','RIGHT JOIN','LEFT JOIN','NOT EXISTS','EXISTS','GROUP BY','ORDER BY','SELECT *','INSERT','UPDATE','DELETE','GRANT','REVOKE','DISTINCT','BETWEEN','HAVING','WHERE','COUNT','AVG','SUM','MIN','MAX','JOIN','CASE','COALESCE','NULLIF','RANDOM','STRFTIME','CURRENT_DATE','YEAR','DATE','LENGTH','UPPER','LOWER','TRIM','SUBSTR','INSTR','REPLACE','ROUND','ABS','CAST','LIKE','AND','OR','IN','LIMIT','INDEX','SELECT'];
 function testeKeyFrom(text){
   const u=String(text||'').toUpperCase().replace(/\s+/g,' ');
   return TESTE_KEYS.find(k=>u.includes(k))||'SELECT';
@@ -14745,9 +14911,14 @@ function switchTesteVariant(btn){
   if(navigator.vibrate)navigator.vibrate(5);
 }
 function testeIndexFollowup(sql){
-  const m=String(sql||'').match(/^\s*CREATE\s+INDEX\b[\s\S]*?\bON\s+([A-Za-z_][\w]*)/i);
+  const s=String(sql||'');
+  if(/\bEXPLAIN\b/i.test(s)) return '';
+  const m=s.match(/^\s*CREATE\s+INDEX\b[\s\S]*?\bON\s+([A-Za-z_][\w]*)/i);
   if(!m) return '';
   return `SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='${m[1].replace(/'/g,"''")}' ORDER BY name;`;
+}
+function testeNeedsSandbox(sql){
+  return /^\s*CREATE\s+INDEX\b/i.test(sql);
 }
 function runExemple(btn){
   const frame=btn.closest('.exframe');
@@ -14768,12 +14939,12 @@ function runExemple(btn){
     try{
       const follow=testeIndexFollowup(sql);
       let res,ms;
-      if(follow){
+      if(follow||testeNeedsSandbox(sql)){
         const d=sandbox();
         try{
           const t0=performance.now();
-          d.run(sql);
-          res=d.exec(follow);
+          if(follow){ d.run(sql); res=d.exec(follow); }
+          else res=d.exec(sql);
           ms=performance.now()-t0;
         }finally{ d.close(); }
       }else{
@@ -15263,6 +15434,19 @@ function checkNoExecExo(sql,l){
     return {ok:false,diag:'Le droit doit porter sur la table clients.'};
   return {ok:false,diag:'Écris GRANT SELECT … ON … clients … TO …'};
 }
+function checkExplainExo(sql){
+  const u=normNoExecSql(sql);
+  if(!u) return {ok:false,diag:'Écris d’abord la commande.'};
+  if(/\bEXPLAIN\s+ANALYZE\b/.test(u))
+    return {ok:false,diag:'EXPLAIN ANALYZE n’existe pas dans SQLite. Ici, on écrit EXPLAIN QUERY PLAN.'};
+  if(!/\bEXPLAIN\s+QUERY\s+PLAN\b/.test(u))
+    return {ok:false,diag:'Commence par EXPLAIN QUERY PLAN, puis la requête à observer.'};
+  if(!/\bCLIENTS\b/.test(u))
+    return {ok:false,diag:'Le plan doit porter sur la table clients.'};
+  if(!/\bEMAIL\b/.test(u))
+    return {ok:false,diag:'Garde le filtre sur email : c’est cette recherche qu’on observe.'};
+  return {ok:true};
+}
 function markExoPassed(){
   const dejaExo=etapesDe(current.id).exo;
   setEtape(current.id,'exo');
@@ -15307,6 +15491,14 @@ function runLesson(){
     setLessonOut(`<div class="feedback warn"><div class="fi">≈</div><div><b>Pas encore</b><p>${esc(check.diag)}</p></div></div>`);
     registerExoFail();
     return;
+  }
+  if(!isDefi&&current&&current.explainExo){
+    const check=checkExplainExo(sql);
+    if(!check.ok){
+      setLessonOut(`<div class="feedback warn"><div class="fi">≈</div><div><b>Pas encore</b><p>${esc(check.diag)}</p></div></div>`);
+      registerExoFail();
+      return;
+    }
   }
   let userRes,solRes,ms=null;
   try{
