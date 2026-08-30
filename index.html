@@ -396,6 +396,14 @@
   .exp-loop b,.exp-loop span{display:block;padding:7px 12px;border-radius:12px;background:var(--surface-2);font-size:13px;font-weight:750;color:var(--ink)}
   .exp-loop b{font-family:var(--mono);color:var(--accent);background:var(--accent-soft)}
   .exp-loop i{font-style:normal;font-size:12px;font-weight:800;color:var(--ink-3);line-height:1}
+  .win-frame{display:flex;flex-direction:column;gap:5px;margin:12px 0 4px;padding:12px;border:1.5px dashed rgba(91,91,214,.35);border-radius:14px;background:rgba(91,91,214,.04)}
+  .win-frame b{font-size:11px;font-weight:800;letter-spacing:.4px;color:var(--accent)}
+  .win-frame span{padding:6px 10px;border-radius:10px;background:var(--surface);font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink-2)}
+  .win-frame span.on{background:var(--accent-soft);color:var(--accent)}
+  .win-keep{display:flex;flex-direction:column;gap:6px;padding:0 12px 14px}
+  .win-keep span{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 11px;border-radius:12px;background:var(--surface-2);font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink-2)}
+  .win-keep span i{font-style:normal;font-size:11px;font-weight:650}
+  .win-keep .win-avg{background:var(--success-soft);color:var(--success)}
   .sample-more-dots{display:inline-flex;align-items:center;justify-content:center;width:24px;height:18px;margin-right:7px;border-radius:7px;background:rgba(91,91,214,.1);color:var(--accent);font-family:var(--mono);font-size:14px;font-weight:850;line-height:1;vertical-align:-1px}
   .concept-block.in .sample-more td{animation:sampleMoreIn .42s var(--spring-ios) .22s both}
   @keyframes sampleMoreIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
@@ -9436,10 +9444,274 @@ WHERE nb_commandes = (
     {k:'sub',label:'Sous-requête',sql:"SELECT *\nFROM (\n    SELECT client_id, COUNT(*) AS nb_commandes\n    FROM commandes\n    WHERE client_id IS NOT NULL\n    GROUP BY client_id\n) AS totaux\nWHERE nb_commandes >= 2;",out:"Même résultat, plus de parenthèses."},
     {k:'with',label:'WITH',sql:"WITH totaux AS (\n    SELECT client_id, COUNT(*) AS nb_commandes\n    FROM commandes\n    WHERE client_id IS NOT NULL\n    GROUP BY client_id\n)\nSELECT *\nFROM totaux\nWHERE nb_commandes >= 2;",out:"6 clients fidèles. Sophie en tête, avec 3 commandes.",tone:'good'},
     {k:'join',label:'JOIN + CTE',sql:"WITH stats AS (\n    SELECT client_id, COUNT(*) AS nb_commandes\n    FROM commandes\n    WHERE client_id IS NOT NULL\n    GROUP BY client_id\n)\nSELECT clients.nom, stats.nb_commandes\nFROM clients\nJOIN stats\n    ON clients.id = stats.client_id\nWHERE stats.nb_commandes >= 2;",out:"Les mêmes 6, avec le nom : Sophie, Lucas, Emma, Nathan, Chloé, Léa."}
+  ] },
+{ id:60, titre:"OVER()", résumé:"Calculer sans regrouper les lignes",
+  situation:"Tu analyses les produits de ton site e-commerce.<br><br>Pour chaque produit, tu veux son nom, sa catégorie, son prix, et le prix moyen de sa catégorie — pour comparer chaque ligne à son groupe.<br><br>Avec <code>GROUP BY</code>, tu peux calculer cette moyenne :",
+  situationSql:"SELECT categorie, AVG(prix) AS prix_moyen\nFROM produits\nGROUP BY categorie;",
+  situationTail:"<div class=\"sit-sql\"><p><code>GROUP BY</code> regroupe les produits : une ligne par catégorie — tu ne vois plus chaque produit individuellement.</p><p>Comment calculer une moyenne tout en conservant chaque produit ?</p><p>C’est le rôle des <b>fonctions de fenêtre</b>.</p></div>",
+    studio:{pointCards:{
+      eye:"OVER",title:"Calculer sans faire disparaître les lignes.",
+      lead:"Une fonction de fenêtre effectue un calcul sur plusieurs lignes sans les regrouper en une seule. <code>GROUP BY</code> résume. <code>OVER()</code> analyse en gardant chaque ligne.",
+      chain:[
+        {k:"GROUP BY",v:"regroupe"},
+        {k:"OVER()",v:"analyse sans regrouper"},
+        {k:"Réflexe",v:"dois-je garder chaque ligne ?"}
+      ]},
+    uses:{title:"Une fenêtre, une idée à la fois.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">GROUP BY regroupe les lignes</p>
+          <p>Dans la table <code>produits</code>, trois articles sont en Bien-être : le produit Fibre Prébiotique (29,90&nbsp;€), le Magnésium (19,90&nbsp;€) et l’Oméga 3 (24,90&nbsp;€).</p>
+          <div class="table-wrap"><table class="concept-table"><thead><tr><th>nom</th><th>categorie</th><th>prix</th></tr></thead><tbody><tr><td>Fibre Prébiotique</td><td>Bien-être</td><td>29,90</td></tr><tr><td>Magnésium</td><td>Bien-être</td><td>19,90</td></tr><tr><td>Oméga 3</td><td>Bien-être</td><td>24,90</td></tr></tbody></table></div>
+          <p>Avec <code>GROUP BY categorie</code>, ces trois lignes deviennent une seule : Bien-être, moyenne 24,90. Le calcul est juste. Les produits ont disparu du résultat.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">La fenêtre conserve les lignes</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT
+    nom,
+    categorie,
+    prix,
+    AVG(prix) OVER (
+        PARTITION BY categorie
+    ) AS prix_moyen
+FROM produits;</pre></div>
+          <p>Chaque produit reste. SQL ajoute le calcul à côté : les trois Bien-être affichent 24,90, sans se fondre en une ligne.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Pourquoi « fenêtre » ?</p>
+          <p>Pour la ligne Magnésium, SQL regarde un ensemble de lignes — sa fenêtre :</p>
+          <div class="win-frame" aria-hidden="true">
+            <b>FENÊTRE · Bien-être</b>
+            <span>Fibre Prébiotique · 29,90</span>
+            <span class="on">Magnésium · 19,90</span>
+            <span>Oméga 3 · 24,90</span>
+          </div>
+          <p>La moyenne 24,90 est écrite sur la ligne Magnésium. La ligne reste visible, tout en bénéficiant d’un calcul sur d’autres lignes.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">OVER() ouvre la fenêtre</p>
+          <p>C’est <code>OVER (…)</code> qui transforme <code>AVG(prix)</code> en fonction de fenêtre.</p>
+          <p><code>AVG(prix) OVER ()</code> calcule sur toutes les lignes. <code>AVG(prix) OVER (PARTITION BY categorie)</code> calcule une moyenne par catégorie.</p>
+          <p><code>OVER</code> dit sur quelles lignes le calcul travaille.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">PARTITION BY découpe le calcul</p>
+          <p><code>PARTITION BY</code> crée des groupes de calcul — pas un autre <code>GROUP BY</code>.</p>
+          <p>Les deux pensent en groupes. Le résultat n’est pas le même : <code>GROUP BY</code> réduit le nombre de lignes. <code>PARTITION BY</code> le laisse intact.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">D’autres fonctions avec OVER()</p>
+          <p><code>SUM</code>, <code>COUNT</code>, <code>MIN</code>, <code>MAX</code> s’utilisent de la même façon.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT
+    nom, categorie, prix,
+    MIN(prix) OVER (PARTITION BY categorie) AS prix_min,
+    MAX(prix) OVER (PARTITION BY categorie) AS prix_max
+FROM produits;</pre></div>
+          <p>Chaque produit se compare au minimum et au maximum de sa catégorie, sans perdre sa ligne.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">ORDER BY dans OVER()</p>
+          <p>Une fenêtre peut aussi avoir un ordre. C’est indispensable pour un cumul, ou pour numéroter.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT
+    client_id, date_commande, quantite,
+    SUM(quantite) OVER (
+        PARTITION BY client_id
+        ORDER BY date_commande
+    ) AS quantite_cumulee
+FROM commandes;</pre></div>
+          <p><code>PARTITION BY</code> sépare les clients. <code>ORDER BY</code> place leurs commandes dans le temps. Le détail des cadres (<code>ROWS BETWEEN</code>) viendra plus tard.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Les familles à venir</p>
+          <ul class="pt-lead-list">
+            <li><b>Calculer</b> — <code>SUM</code>, <code>AVG</code>, <code>COUNT</code>, <code>MIN</code>, <code>MAX</code> ;</li>
+            <li><b>Classer</b> — <code>ROW_NUMBER</code>, <code>RANK</code>, <code>DENSE_RANK</code> ;</li>
+            <li><b>Comparer</b> — <code>LAG</code>, <code>LEAD</code> ;</li>
+            <li><b>Cumuler</b> — <code>SUM() OVER (ORDER BY …)</code>.</li>
+          </ul>
+          <p><code>OVER()</code> est le concept central. Les fonctions viennent ensuite, chacune dans son cours.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Aperçu : ROW_NUMBER()</p>
+          <p>Toutes les fonctions de fenêtre ne sont pas des agrégats. <code>ROW_NUMBER()</code> numérote selon l’ordre de <code>OVER()</code>.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT nom, prix,
+    ROW_NUMBER() OVER (ORDER BY prix DESC) AS position
+FROM produits;</pre></div>
+          <p>Collagène Marin (39,90) est 1, Protéine Végétale (34,90) est 2, le produit Fibre Prébiotique (29,90) est 3. Avec <code>PARTITION BY categorie</code>, le numéro recommence dans chaque catégorie. Un vrai cours suivra.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Aperçu : LAG()</p>
+          <p><code>LAG(quantite) OVER (PARTITION BY client_id ORDER BY date_commande)</code> lit la quantité de la commande précédente du même client. La première n’a pas de précédente : <code>NULL</code>. Là encore, un cours à part.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Le piège : filtrer une fenêtre</p>
+          <p>Tu ne peux généralement pas mettre une fonction de fenêtre dans le <code>WHERE</code> du même niveau. On passe par une CTE — comme au cours précédent.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">WITH classement AS (
+    SELECT nom, categorie, prix,
+        ROW_NUMBER() OVER (
+            PARTITION BY categorie
+            ORDER BY prix DESC
+        ) AS rang
+    FROM produits
+)
+SELECT *
+FROM classement
+WHERE rang = 1;</pre></div>
+          <p>La fenêtre calcule le rang. La CTE le rend filtrable. <code>WHERE rang = 1</code> garde le plus cher de chaque catégorie.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"La question",t:"Dois-je garder chaque ligne ?"},
+      b:{k:"Si non → GROUP BY · Si oui → OVER()",t:"Regrouper, ou calculer sans faire disparaître les lignes."},
+      note:"Si tu veux comparer une ligne à son groupe tout en conservant cette ligne, pense aux fonctions de fenêtre."},
+    winSplit:true},
+  anatomie:[
+    {tok:"AVG(prix)",txt:"Ce que SQL calcule."},
+    {tok:"OVER (",txt:"Ouvre la fenêtre de calcul."},
+    {tok:"PARTITION BY categorie",txt:"Les groupes sur lesquels le calcul est effectué."},
+    {tok:") AS prix_moyen",txt:"Le résultat s’ajoute à chaque ligne."}
+  ],
+  exemple:"SELECT nom, categorie, prix,\n    AVG(prix) OVER (PARTITION BY categorie) AS prix_moyen\nFROM produits;",
+  attendu:"<b>8 lignes</b> : chaque produit, avec la moyenne de sa catégorie. Les trois Bien-être affichent 24,90.",
+  retenir:"Une fonction de fenêtre calcule sur plusieurs lignes tout en conservant chaque ligne.<br><br><code>OVER()</code> définit la fenêtre. <code>PARTITION BY</code> crée des groupes de calcul sans réduire le résultat.<br><br><code>GROUP BY</code> → regroupe. <code>OVER()</code> → analyse sans regrouper.",
+  piege:{t:"Filtrer une fonction de fenêtre dans WHERE",
+    p:"<code>WHERE ROW_NUMBER() OVER (…)</code> est généralement refusé. Calcule d’abord le rang dans une CTE, puis filtre : <code>WHERE rang = 1</code>."},
+  consigne:"Affiche le <code>nom</code>, la <code>categorie</code>, le <code>prix</code> de chaque produit, et le prix moyen de sa catégorie, avec <code>AVG(prix) OVER (…)</code>.",
+  solution:"SELECT nom, categorie, prix,\n    AVG(prix) OVER (PARTITION BY categorie) AS prix_moyen\nFROM produits;",
+  indice:"<code>AVG(prix) OVER (PARTITION BY categorie) AS prix_moyen</code>.",
+  richLesson:true, earlyDemo:true,
+  petitDefi:[{
+    p:"Complète pour afficher chaque produit avec le prix moyen de sa catégorie.",
+    sql:"SELECT\n    nom,\n    categorie,\n    prix,\n    AVG(prix) OVER (\n        __________ categorie\n    ) AS prix_moyen\nFROM produits;",
+    a:"PARTITION BY",
+    answers:["PARTITION BY","partition by"]
+  }],
+  testeVariants:[
+    {k:'group',label:'GROUP BY',sql:"SELECT categorie, AVG(prix) AS prix_moyen\nFROM produits\nGROUP BY categorie;",out:"5 lignes : une moyenne par catégorie. Les produits ont disparu."},
+    {k:'over',label:'OVER()',sql:"SELECT nom, categorie, prix,\n    AVG(prix) OVER (PARTITION BY categorie) AS prix_moyen\nFROM produits;",out:"8 lignes. Chaque produit reste, avec la moyenne de sa catégorie.",tone:'good'},
+    {k:'minmax',label:'MIN / MAX',sql:"SELECT nom, categorie, prix,\n    MIN(prix) OVER (PARTITION BY categorie) AS prix_min,\n    MAX(prix) OVER (PARTITION BY categorie) AS prix_max\nFROM produits;",out:"Le Magnésium (19,90) se compare au min et au max des Bien-être."}
   ] }
 ]},
 
 { titre:"Modifier", sous:"Écrire dans la base", lessons:[
+{ id:61, titre:"CREATE TABLE", résumé:"Créer la structure d’une table",
+  situation:"Ton site e-commerce a besoin d’enregistrer ses clients.<br><br>Pour l’instant, la table <code>clients</code> n’existe pas encore. Tu sais simplement quelles informations tu veux conserver : un identifiant, le nom, la ville, l’âge, l’e-mail, le téléphone et la date d’inscription.<br><br>Avant d’ajouter des clients, il faut donc définir la structure de la table qui va les accueillir.",
+  situationTail:"<div class=\"sit-sql\"><p>C’est le rôle de <code>CREATE TABLE</code> : elle construit la table, colonne par colonne, avec le type de chacune et les règles à respecter.</p></div>",
+    studio:{pointCards:{
+      eye:"CREATE TABLE",title:"Définir la structure avant les données.",
+      lead:"Pour créer une table, on indique son nom, ses colonnes, le type de chaque colonne, et éventuellement des règles à respecter.",
+      chain:[
+        {k:"CREATE TABLE",v:"construit la table"},
+        {k:"Colonne",v:"un nom, un type"},
+        {k:"Contrainte",v:"une règle que les données respectent"}
+      ]},
+    uses:{title:"Une contrainte à la fois.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">La structure, pas les données</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE clients (
+    id INTEGER,
+    nom TEXT,
+    ville TEXT,
+    age INTEGER
+);</pre></div>
+          <p>La table <code>clients</code> existe maintenant, avec quatre colonnes. Elle est vide : aucune ligne n’a encore été ajoutée.</p>
+          <p class="fn-tip"><b>Deux rôles distincts</b> <code>CREATE TABLE</code> construit la table. <code>INSERT</code> y ajoute des lignes.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Le type de chaque colonne</p>
+          <p>Une colonne ne contient pas n’importe quelle information. Le type l’annonce.</p>
+          <div class="table-wrap"><table class="concept-table fit-2">
+            <thead><tr><th>Type</th><th>Exemple</th></tr></thead>
+            <tbody>
+              <tr><td><code>INTEGER</code></td><td>34</td></tr>
+              <tr><td><code>REAL</code></td><td>29.90</td></tr>
+              <tr><td><code>TEXT</code></td><td>'Sophie'</td></tr>
+              <tr><td><code>NULL</code></td><td>absence de valeur</td></tr>
+            </tbody>
+          </table></div>
+          <p>Dans cette base, les dates sont enregistrées en <code>TEXT</code>, au format <code>AAAA-MM-JJ</code> — par exemple <code>2023-01-15</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Sans contrainte, la table accepte presque tout</p>
+          <p>Rien n’empêcherait deux clients de porter le même <code>id</code>. Or <code>id</code> est censé identifier un seul client.</p>
+          <p>Une <b>contrainte</b> est une règle que les données doivent respecter.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">PRIMARY KEY — identifier chaque ligne</p>
+          <div class="pt-syntax"><pre class="cw-syntax">id INTEGER PRIMARY KEY</pre></div>
+          <p>Deux clients ne peuvent pas partager la même clé primaire.</p>
+          <p class="fn-tip"><b>Le réflexe</b> La clé primaire répond à la question : comment identifier exactement cette ligne ?</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">NOT NULL — rendre une valeur obligatoire</p>
+          <div class="pt-syntax"><pre class="cw-syntax">nom TEXT NOT NULL</pre></div>
+          <p>Une ligne dont le <code>nom</code> vaudrait <code>NULL</code> serait refusée.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">UNIQUE — empêcher les doublons</p>
+          <div class="pt-syntax"><pre class="cw-syntax">email TEXT UNIQUE</pre></div>
+          <p>Si <code>sophie@mail.fr</code> existe déjà, aucune autre ligne ne pourra réutiliser cette valeur.</p>
+          <p class="fn-tip"><b>À distinguer</b> <code>PRIMARY KEY</code> identifie la ligne. <code>UNIQUE</code> interdit seulement les valeurs répétées.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">CHECK — imposer une condition</p>
+          <div class="pt-syntax"><pre class="cw-syntax">age INTEGER CHECK (age >= 0)</pre></div>
+          <p>Un âge de <code>-12</code> serait refusé. <code>CHECK</code> exprime une condition que les données doivent respecter.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">DEFAULT — prévoir une valeur</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE comptes (
+    id INTEGER PRIMARY KEY,
+    nom TEXT,
+    statut TEXT DEFAULT 'actif'
+);</pre></div>
+          <p>Un <code>INSERT</code> qui ne précise pas de statut enregistre <code>actif</code>. <code>DEFAULT</code> fournit une valeur lorsqu’aucune n’est indiquée.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">FOREIGN KEY — relier les tables</p>
+          <p>Dans <code>commandes</code>, <code>client_id</code> correspond à <code>clients.id</code> et <code>produit_id</code> à <code>produits.id</code>.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">FOREIGN KEY (client_id)
+    REFERENCES clients(id)</pre></div>
+          <p>Sans ce contrôle, une commande pourrait porter <code>client_id = 5000</code> alors qu’aucun client ne porte cet identifiant. La clé étrangère protège les relations entre les tables.</p>
+          <p class="fn-tip"><b>NULL reste possible</b> Une commande sans client enregistré porte <code>client_id = NULL</code>, ce qui est différent d’un identifiant qui n’existe pas. C’est pourquoi cette colonne n’est pas <code>NOT NULL</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">L’ordre de création compte</p>
+          <p>Une clé étrangère désigne une table qui doit déjà exister. On crée donc les tables indépendantes d’abord, puis celle qui les référence : <code>clients</code>, <code>produits</code>, enfin <code>commandes</code>.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"La question",t:"quelles informations cette table doit-elle contenir ?"},
+      b:{k:"La règle",t:"chaque colonne a un nom, un type, parfois une contrainte"},
+      note:"Réflexe : avant d’ajouter des données, définis leur structure et les règles qu’elles doivent respecter."}},
+  anatomie:[
+    {tok:"CREATE TABLE clients",txt:"Crée une table appelée clients."},
+    {tok:"id",txt:"Le nom de la colonne."},
+    {tok:"INTEGER",txt:"Le type accepté par cette colonne."},
+    {tok:"PRIMARY KEY",txt:"Une règle sur la colonne : cette valeur identifie la ligne."},
+    {tok:",",txt:"La virgule passe à la colonne suivante. Toute la définition tient entre parenthèses."}
+  ],
+  exemple:"CREATE TABLE clients (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    ville TEXT,\n    age INTEGER CHECK (age >= 0),\n    email TEXT,\n    telephone TEXT,\n    date_inscription TEXT\n);\n\nCREATE TABLE produits (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    categorie TEXT,\n    prix REAL,\n    stock INTEGER CHECK (stock >= 0)\n);\n\nCREATE TABLE commandes (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER,\n    produit_id INTEGER NOT NULL,\n    quantite INTEGER CHECK (quantite > 0),\n    date_commande TEXT,\n    FOREIGN KEY (client_id)\n        REFERENCES clients(id),\n    FOREIGN KEY (produit_id)\n        REFERENCES produits(id)\n);",
+  attendu:"Trois tables vides, reliées : commandes pointe vers clients et vers produits. Les INSERT viendront ensuite les remplir.",
+  retenir:"<code>CREATE TABLE</code> définit la structure d’une nouvelle table. Une colonne possède au minimum un <b>nom</b> et un <b>type</b>.<br><br>Elle peut aussi porter une contrainte : <code>PRIMARY KEY</code>, <code>NOT NULL</code>, <code>UNIQUE</code>, <code>CHECK</code>, <code>DEFAULT</code>, <code>FOREIGN KEY</code>.<br><br>Le mémo : <b>CREATE TABLE → colonnes → types → contraintes</b>.",
+  piege:{t:"Croire que CREATE TABLE remplit la table",
+    p:"<code>CREATE TABLE clients (...)</code> ne crée ni Sophie, ni Lucas, ni Emma. Elle crée les colonnes, leurs types et leurs règles — rien d’autre. C’est <code>INSERT</code> qui ajoute ensuite les données.",
+    exec:false,
+    sql:"CREATE TABLE clients (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL\n);",
+    out:"La table existe, et ne contient aucune ligne.",
+    fixSql:"INSERT INTO clients (id, nom)\nVALUES (1, 'Sophie');"},
+  petitDefi:[{
+    p:"Complète la création de cette table pour que le <code>nom</code> soit obligatoire.",
+    sql:"CREATE TABLE categories (\n    id INTEGER PRIMARY KEY,\n    nom TEXT __________\n);",
+    a:"NOT NULL",
+    answers:["NOT NULL","not null"]
+  }],
+  consigne:"Crée la table <code>produits</code> : un identifiant qui identifie chaque ligne, un nom obligatoire, une catégorie en texte, un prix décimal et un stock entier.",
+  solution:"CREATE TABLE produits (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    categorie TEXT,\n    prix REAL,\n    stock INTEGER\n);",
+  indice:"Chaque colonne s’écrit <code>nom type</code>, séparée par une virgule. <code>PRIMARY KEY</code> sur l’identifiant, <code>NOT NULL</code> sur le nom.",
+  noExec:true,
+  createExo:true,
+  noExecOk:{b:"✓ Correct — la structure est complète",t:"Les cinq colonnes sont là, avec leurs types et leurs deux contraintes. Cette commande ne s’exécute pas dans SQLite : on compare le principe."},
+  richLesson:true, earlyDemo:true },
 { id:26, titre:"INSERT", résumé:"Ajouter une ligne",
   situation:"Un nouveau client s’inscrit. Tu l’ajoutes dans la table <code>clients</code>, en nommant les colonnes.",
     studio:{problem:{title:"Inverser nom et ville ne déclenche aucune erreur.",
@@ -9774,6 +10046,8 @@ const CARTES={
     m:"<code>EXPLAIN</code> montre comment le SGBD prévoit d’exécuter la requête. <code>ANALYZE</code> l’exécute vraiment. Une requête lente n’appelle pas automatiquement un index : on observe d’abord."},
  59:{k:"WITH",t:"Nommer un résultat intermédiaire",s:"WITH totaux AS (\n  SELECT client_id, COUNT(*) AS nb_commandes\n  FROM commandes\n  GROUP BY client_id\n)\nSELECT * FROM totaux;",
     m:"<code>WITH</code> prépare, <code>AS</code> nomme, le <code>SELECT</code> final utilise. Une CTE n’est pas une table : elle n’existe que dans l’instruction."},
+ 60:{k:"OVER()",t:"Calculer sans regrouper",s:"AVG(prix) OVER (\n  PARTITION BY categorie\n)",
+    m:"<code>GROUP BY</code> regroupe. <code>OVER()</code> calcule sur plusieurs lignes sans les faire disparaître. <code>PARTITION BY</code> découpe le calcul, pas le résultat."},
 
  26:{k:"INSERT",t:"Ajouter une ligne",s:"INSERT INTO clients (nom, ville)\nVALUES ('Théo', 'Lille');",
     m:"Le lien colonnes ↔ valeurs est <b>positionnel</b>. Nomme les colonnes. Les omises passent à NULL ; la clé primaire se remplit seule."},
@@ -9916,12 +10190,18 @@ const QCM={
  58:[{q:"<code>EXPLAIN</code> sert à :",o:["Modifier le résultat du SELECT","Montrer le plan d’exécution prévu par le SGBD","Créer automatiquement un index"],b:1,e:"La requête décrit le résultat. Le plan montre la stratégie choisie pour l’obtenir."},
   {q:"Un parcours de table (<code>SCAN</code>, <code>Seq Scan</code>) :",o:["Est toujours une erreur à corriger","Peut être le bon choix, par exemple si tu demandes toutes les lignes","Signifie que la table n’existe pas"],b:1,e:"<code>SELECT * FROM clients</code> doit parcourir la table. EXPLAIN sert à comprendre, pas à colorier le plan."},
   {q:"Face à une requête lente, le premier réflexe :",o:["Ajouter un index sur chaque colonne","Observer le plan avec EXPLAIN, puis optimiser","Réécrire la requête en majuscules"],b:1,e:"Une requête lente n’appelle pas automatiquement un index. On observe d’abord."}],
+ 61:[{q:"Que fait <code>CREATE TABLE</code> ?",o:["Elle ajoute une ligne","Elle crée la structure d’une table","Elle trie les données"],b:1,e:"Elle définit les colonnes, leurs types et leurs règles. La table est vide tant qu’aucun <code>INSERT</code> n’a eu lieu."},
+  {q:"Quelle contrainte identifie chaque ligne de manière unique ?",o:["<code>DEFAULT</code>","<code>NOT NULL</code>","<code>PRIMARY KEY</code>"],b:2,e:"<code>NOT NULL</code> rend la valeur obligatoire, <code>DEFAULT</code> en fournit une par défaut : ni l’une ni l’autre n’identifie la ligne."},
+  {q:"À quoi sert une <code>FOREIGN KEY</code> ?",o:["À relier une valeur à une autre table","À trier une colonne","À supprimer les doublons"],b:0,e:"Elle empêche qu’une commande désigne un client qui n’existe pas."}],
  55:[{q:"<code>EXISTS</code> teste :",o:["Si une valeur appartient à une liste","Si la sous-requête trouve au moins une ligne","Si deux colonnes ont le même nom"],b:1,e:"On ne compare pas une valeur. On demande si une ligne liée existe."},
   {q:"Pourquoi <code>NOT EXISTS</code> trouve Inès, alors que <code>NOT IN</code> sans filtre renvoie 0 ligne ?",o:["Inès a une commande cachée","La commande #16 met un NULL dans la liste de NOT IN","EXISTS ignore la table clients"],b:1,e:"<code>NOT IN</code> peut ne retourner aucune ligne si la liste contient un <code>NULL</code>. <code>NOT EXISTS</code> ne construit pas cette liste : il cherche seulement une commande liée à Inès."},
   {q:"Sans <code>WHERE commandes.client_id = clients.id</code>, <code>EXISTS (SELECT 1 FROM commandes)</code> :",o:["Ne garde qu’Inès","Garde les 9 clients, Inès comprise","Provoque une erreur"],b:1,e:"La table commandes n’est pas vide. Sans corrélation, le test est le même pour tout le monde."}],
  59:[{q:"À quoi sert principalement <code>WITH</code> ?",o:["À enregistrer définitivement une nouvelle table","À donner un nom à un résultat intermédiaire","À modifier une colonne"],b:1,e:"La CTE existe le temps de l’instruction. Elle ne s’enregistre pas dans la base."},
   {q:"Combien de temps une CTE est-elle disponible ?",o:["Jusqu’à la suppression de la base","Pendant toute la session","Dans l’instruction SQL qui la définit"],b:2,e:"Une nouvelle instruction ne voit plus la CTE. Ce n’est pas une table."},
   {q:"Une CTE peut-elle utiliser une autre CTE définie avant elle ?",o:["Oui","Non","Seulement avec JOIN"],b:0,e:"Après un seul WITH, les CTE se séparent par des virgules. Une CTE plus tard peut lire une CTE définie plus haut."}],
+ 60:[{q:"Une fonction de fenêtre sert surtout à :",o:["Regrouper les lignes comme GROUP BY","Calculer sur plusieurs lignes sans les faire disparaître","Créer une nouvelle table"],b:1,e:"Chaque produit reste. Le calcul s’ajoute à côté de la ligne."},
+  {q:"Tu veux une ligne par catégorie, sans les produits. Tu écris :",o:["GROUP BY categorie","AVG(prix) OVER (PARTITION BY categorie)","PARTITION BY sans OVER"],b:0,e:"Une ligne par groupe → GROUP BY. Garder chaque ligne et ajouter le calcul → OVER()."},
+  {q:"Pour garder le produit le plus cher de chaque catégorie, on :",o:["Filtre ROW_NUMBER() directement dans WHERE","Calcule le rang dans une CTE, puis WHERE rang = 1","Utilise GROUP BY nom"],b:1,e:"Une fonction de fenêtre ne se filtre généralement pas dans le WHERE du même niveau. La CTE rend le rang utilisable."}],
 
  26:[{q:"Les colonnes non citées dans un INSERT prennent :",o:["Leur DEFAULT si défini, sinon NULL","Toujours 0","La valeur de la ligne précédente"],b:0,e:"Une colonne omise reçoit son <code>DEFAULT</code> si la table en définit un ; sinon elle reçoit généralement <code>NULL</code>."},
    {q:"Le lien entre colonnes et valeurs est :",o:["Par nom","Par position","Alphabétique"],b:1,e:"D’où le risque de mettre une ville dans la colonne nom sans message d’erreur."}],
@@ -11209,7 +11489,7 @@ function confirmImport(){
   }
 }
 
-const KW=new Set(['SELECT','FROM','WHERE','AND','OR','NOT','ORDER','BY','ASC','DESC','LIMIT','OFFSET','DISTINCT','GROUP','HAVING','JOIN','INNER','LEFT','RIGHT','OUTER','FULL','ON','AS','IN','IS','NULL','LIKE','BETWEEN','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','INDEX','UNIQUE','EXPLAIN','QUERY','PLAN','UNION','ALL','EXISTS','CASE','WHEN','THEN','ELSE','END','CAST','WITH','RECURSIVE']);
+const KW=new Set(['SELECT','FROM','WHERE','AND','OR','NOT','ORDER','BY','ASC','DESC','LIMIT','OFFSET','DISTINCT','GROUP','HAVING','JOIN','INNER','LEFT','RIGHT','OUTER','FULL','ON','AS','IN','IS','NULL','LIKE','BETWEEN','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','INDEX','UNIQUE','EXPLAIN','QUERY','PLAN','UNION','ALL','EXISTS','CASE','WHEN','THEN','ELSE','END','CAST','WITH','RECURSIVE','OVER','PARTITION','ROW_NUMBER','RANK','DENSE_RANK','LAG','LEAD']);
 const FN=new Set(['COUNT','SUM','AVG','MIN','MAX','ROUND','ABS','CEIL','FLOOR','LENGTH','UPPER','LOWER','TRIM','LTRIM','RTRIM','SUBSTR','INSTR','REPLACE','COALESCE','NULLIF','RANDOM','STRFTIME','DATE','TYPEOF','IFNULL']);
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function escAttr(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -14437,6 +14717,7 @@ function renderJoinIntroStudio(l){
   const idx=s.idxSplit?renderIdxSplit():'';
   const exp=s.expSplit?renderExpSplit():'';
   const withViz=s.withSplit?renderWithSplit():'';
+  const win=s.winSplit?renderWinSplit():'';
   return `<div class="concept-page join-intro">
     <div class="concept-block">
       <h2><span class="h2-eye">${eye}</span><span class="h2-txt">${title}</span></h2>
@@ -14449,6 +14730,7 @@ function renderJoinIntroStudio(l){
     ${idx}
     ${exp}
     ${withViz}
+    ${win}
     ${uses}
     <!-- early-demo -->
   </div>`;
@@ -14536,6 +14818,39 @@ function renderWithSplit(){
       <div class="df-step"><b>totaux</b><span>la CTE</span></div>
       <i class="df-arrow" aria-hidden="true">↓</i>
       <div class="df-step"><b>WHERE nb_commandes &gt;= 2</b><span>requête principale</span></div>
+    </div>
+  </div>`;
+}
+function renderWinSplit(){
+  return `<div class="concept-block">
+    <h2><span class="h2-eye">Visualisation</span><span class="h2-txt">Regrouper, ou analyser sans perdre les lignes.</span></h2>
+    <p>Trois produits Bien-être. Même moyenne : 24,90&nbsp;€. Deux résultats différents.</p>
+    <div class="idx-board">
+      <div class="idx-pane is-scan">
+        <div class="idx-pane-h">
+          <b>GROUP BY</b>
+          <small>Je veux résumer les lignes.</small>
+        </div>
+        <div class="idx-rows">
+          <span>Fibre Prébiotique</span>
+          <span>Magnésium</span>
+          <span>Oméga 3</span>
+          <span class="idx-more">↓ 1 moyenne</span>
+          <span class="idx-hit">Bien-être · 24,90<i>1 ligne</i></span>
+        </div>
+      </div>
+      <div class="idx-pane is-idx">
+        <div class="idx-pane-h">
+          <b>OVER + PARTITION BY</b>
+          <small>Je veux analyser sans les perdre.</small>
+        </div>
+        <div class="win-keep">
+          <span>Fibre Prébiotique<i>24,90</i></span>
+          <span>Magnésium<i>24,90</i></span>
+          <span>Oméga 3<i>24,90</i></span>
+          <span class="win-avg">3 lignes conservées</span>
+        </div>
+      </div>
     </div>
   </div>`;
 }
@@ -14963,7 +15278,7 @@ function lessonMainTable(l){
 function testeDefaultSql(l){
   return `SELECT * FROM ${lessonMainTable(l)};`;
 }
-const TESTE_KEYS=['EXPLAIN QUERY PLAN','EXPLAIN','CREATE INDEX','WITH','FULL OUTER JOIN','RIGHT JOIN','LEFT JOIN','NOT EXISTS','EXISTS','GROUP BY','ORDER BY','SELECT *','INSERT','UPDATE','DELETE','GRANT','REVOKE','DISTINCT','BETWEEN','HAVING','WHERE','COUNT','AVG','SUM','MIN','MAX','JOIN','CASE','COALESCE','NULLIF','RANDOM','STRFTIME','CURRENT_DATE','YEAR','DATE','LENGTH','UPPER','LOWER','TRIM','SUBSTR','INSTR','REPLACE','ROUND','ABS','CAST','LIKE','AND','OR','IN','LIMIT','INDEX','SELECT'];
+const TESTE_KEYS=['PARTITION BY','OVER','ROW_NUMBER','EXPLAIN QUERY PLAN','EXPLAIN','CREATE INDEX','WITH','FULL OUTER JOIN','RIGHT JOIN','LEFT JOIN','NOT EXISTS','EXISTS','GROUP BY','ORDER BY','SELECT *','INSERT','UPDATE','DELETE','GRANT','REVOKE','DISTINCT','BETWEEN','HAVING','WHERE','COUNT','AVG','SUM','MIN','MAX','JOIN','CASE','COALESCE','NULLIF','RANDOM','STRFTIME','CURRENT_DATE','YEAR','DATE','LENGTH','UPPER','LOWER','TRIM','SUBSTR','INSTR','REPLACE','ROUND','ABS','CAST','LIKE','AND','OR','IN','LIMIT','INDEX','SELECT'];
 function testeKeyFrom(text){
   const u=String(text||'').toUpperCase().replace(/\s+/g,' ');
   return TESTE_KEYS.find(k=>u.includes(k))||'SELECT';
@@ -15613,9 +15928,29 @@ function normNoExecSql(s){
     .trim()
     .toUpperCase();
 }
+/* Une commande de structure ne s'exécute pas ici : on compare le principe.
+   Chaque cours a ses propres règles — les droits, la création de table. */
+function checkCreateExo(u){
+  if(!/^CREATE\s+TABLE\b/.test(u))
+    return {ok:false,diag:'Commence par CREATE TABLE, suivi du nom de la table.'};
+  if(!/\bPRODUITS\b/.test(u))
+    return {ok:false,diag:'La table à créer s’appelle produits.'};
+  if(!/\bID\s+INTEGER\s+PRIMARY\s+KEY\b/.test(u))
+    return {ok:false,diag:'L’identifiant doit porter PRIMARY KEY : id INTEGER PRIMARY KEY.'};
+  if(!/\bNOM\s+TEXT\s+NOT\s+NULL\b/.test(u))
+    return {ok:false,diag:'Le nom est obligatoire : nom TEXT NOT NULL.'};
+  if(!/\bPRIX\s+REAL\b/.test(u))
+    return {ok:false,diag:'Un prix décimal se déclare en REAL.'};
+  if(!/\bSTOCK\s+INTEGER\b/.test(u))
+    return {ok:false,diag:'Le stock est un entier : stock INTEGER.'};
+  if(!/\bCATEGORIE\s+TEXT\b/.test(u))
+    return {ok:false,diag:'Il manque la colonne categorie, en TEXT.'};
+  return {ok:true};
+}
 function checkNoExecExo(sql,l){
   const u=normNoExecSql(sql);
   if(!u) return {ok:false,diag:'Écris d’abord la commande.'};
+  if(l&&l.createExo) return checkCreateExo(u);
   if(/\bALL(\s+PRIVILEGES)?\b/.test(u))
     return {ok:false,diag:'ALL PRIVILEGES donne trop de droits. Il suffit de SELECT.'};
   if(/^REVOKE\b/.test(u))
@@ -15677,7 +16012,9 @@ function runLesson(){
         return;
       }
       markExoPassed();
-      setLessonOut(`<div class="ok-panel"><div class="ok-banner">✓ Correct — droit de lecture seulement</div><p class="tip">GRANT SELECT suffit pour consulter <code>clients</code>. Cette commande ne s’exécute pas dans SQLite.</p></div>`);
+      const okB=(current&&current.noExecOk&&current.noExecOk.b)||'✓ Correct — droit de lecture seulement';
+      const okT=(current&&current.noExecOk&&current.noExecOk.t)||'GRANT SELECT suffit pour consulter <code>clients</code>. Cette commande ne s’exécute pas dans SQLite.';
+      setLessonOut(`<div class="ok-panel"><div class="ok-banner">${okB}</div><p class="tip">${okT}</p></div>`);
       return;
     }
     setLessonOut(`<div class="feedback warn"><div class="fi">≈</div><div><b>Pas encore</b><p>${esc(check.diag)}</p></div></div>`);
