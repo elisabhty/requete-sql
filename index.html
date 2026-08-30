@@ -491,6 +491,7 @@
     .fn-nest-val{font-size:11.5px}
   }
   .fn-tip{margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--accent-soft);font-size:14px;line-height:1.45}
+  .fn-keep{margin:12px 0 0;color:var(--ink-3);font-size:12.5px;line-height:1.45}
   .fn-tip b{display:block;margin-bottom:4px;font-size:11px;letter-spacing:.4px;text-transform:uppercase;color:var(--accent)}
   .fn-reflex-list{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
   .fn-reflex-list li{margin:0;padding:8px 12px;border-radius:12px;background:var(--surface-2);font-size:14px;line-height:1.4}
@@ -906,6 +907,12 @@
   .pt-hop-v{font-family:var(--mono);font-size:13.5px;font-weight:700;color:var(--ink);overflow-wrap:anywhere}
   .pt-hop-out{font-size:12.5px;font-weight:650;color:var(--ink-2);line-height:1.4}
   .pt-hop:last-child .pt-hop-v{color:var(--accent)}
+  .pt-hop-ans{margin-top:4px;font-size:13px;font-weight:750;line-height:1.35}
+  .pt-hop-ans.ok{color:var(--success)}
+  .pt-hop-ans.no{color:var(--danger)}
+  .pt-hop.is-no .pt-hop-n,.pt-hop.is-no:last-child .pt-hop-n{background:var(--danger-soft);color:var(--danger)}
+  .pt-hop.is-no:last-child .pt-hop-v{color:var(--ink)}
+  .pt-hop-more .pt-hop-n{background:transparent;color:var(--ink-3);font-size:15px;font-weight:700}
 
   .pt-head{margin:0 0 16px}
   .pt-head-t{margin:0 0 6px;font-size:14px;font-weight:800;color:var(--ink);line-height:1.3}
@@ -2672,6 +2679,7 @@
   .ex-out b{color:var(--ink)}
 
   .piege{margin:6px 0 0;padding:16px;background:var(--surface);border:1px solid rgba(180,122,22,.12);border-radius:16px;box-shadow:0 8px 20px -18px rgba(122,74,0,.2)}
+  .piege + .piege{margin-top:14px}
   .pdefi-wrap{display:flex;flex-direction:column;gap:14px;padding:16px 18px}
   .pdefi-card{padding:14px 0;border-bottom:1px solid var(--line)}
   .pdefi-card:last-child{border-bottom:0;padding-bottom:0}
@@ -8466,8 +8474,8 @@ JOIN produits
     {k:'sub_from',label:'Sous-requête FROM',sql:"SELECT AVG(montant)\nFROM (\n  SELECT produits.prix * commandes.quantite AS montant\n  FROM commandes\n  JOIN produits\n    ON commandes.produit_id = produits.id\n) AS commandes_montants;",tone:'good'}
   ] },
 { id:55, titre:"EXISTS et NOT EXISTS", résumé:"Tester la présence ou l’absence d’une ligne liée",
-  situation:"Tu veux deux listes : les clients qui ont déjà commandé, et ceux qui n’ont encore rien acheté.<br><br>Les noms sont dans la table <code>clients</code>. Les achats sont dans la table <code>commandes</code>. Inès (id 9) n’a aucune commande. La commande invitée #16 a un <code>client_id</code> à <code>NULL</code>.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th>commandes</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td>3</td></tr><tr><td>2</td><td>Lucas</td><td>2</td></tr><tr><td>9</td><td>Inès</td><td>0</td></tr></tbody></table></div>",
-  situationTail:"Avec <code>IN</code>, SQL vérifie si une valeur appartient à une liste.<br><br>Avec <code>EXISTS</code>, on raisonne autrement : pour chaque client, on vérifie simplement s’il existe au moins une commande qui lui appartient.<br><br>C’est exactement ce que permettent <code>EXISTS</code> et <code>NOT EXISTS</code>.",
+  situation:"Tu veux préparer une campagne commerciale : relancer les clients qui ont déjà commandé et proposer une offre de bienvenue à ceux qui n’ont encore rien acheté.<br><br>Pour cela, tu dois distinguer deux groupes : les clients avec au moins une commande et ceux sans aucune commande.<br><br>Le nom du client se trouve dans la table <code>clients</code>, tandis que ses commandes se trouvent dans la table <code>commandes</code>.<br><br>Pour chaque client, il faut donc répondre à une question très simple :<br><br>« Existe-t-il au moins une commande liée à ce client ? »<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th>commandes</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td>3</td></tr><tr><td>2</td><td>Lucas</td><td>2</td></tr><tr><td>9</td><td>Inès</td><td>0</td></tr></tbody></table></div>",
+  situationTail:"Sophie a des commandes → à relancer<br>Lucas a des commandes → à relancer<br>Inès n’en a aucune → offre de bienvenue<br><br>SQL possède deux opérateurs pour distinguer ces groupes :<br><br><code>EXISTS</code> → au moins une commande<br><code>NOT EXISTS</code> → aucune commande",
     studio:{problem:{eye:"EXISTS",title:"Vérifier si une ligne liée existe.",
       body:`<div class="pt-lead"><p><code>EXISTS</code> vérifie si une sous-requête trouve au moins une ligne.</p><p>Pour chaque ligne, SQL se pose simplement la question :</p><p>« Est-ce que je trouve au moins une correspondance ? »</p><p>Oui → la ligne est gardée.<br>Non → la ligne est écartée.</p><p><code>NOT EXISTS</code> fait l’inverse : il garde la ligne lorsqu’aucune correspondance n’existe.</p></div>`},
     uses:{title:"Une existence, pas une liste.",
@@ -8483,24 +8491,65 @@ WHERE EXISTS (
   FROM commandes
   WHERE commandes.client_id = clients.id
 );</pre></div>
-          <p>Résultat : 8 clients.</p>
+          <p>Résultat : 8 clients à relancer.</p>
           <p>Inès n’a aucune commande : elle est écartée.</p>
           <p>Sophie en a 3 : elle est gardée une seule fois, car <code>EXISTS</code> vérifie seulement qu’au moins une commande existe.</p>
           <p class="fn-tip"><b>Pourquoi <code>SELECT 1</code> ?</b> <code>EXISTS</code> ne regarde pas les valeurs retournées par la sous-requête. Il vérifie seulement si elle trouve au moins une ligne.<br><br>On écrit donc souvent <code>SELECT 1</code> pour montrer que le contenu de la ligne n’a pas d’importance. <code>SELECT *</code> fonctionnerait aussi.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Une sous-requête corrélée</p>
-          <p>La condition <code>commandes.client_id = clients.id</code> relie chaque client à ses commandes. Sans ce lien, la sous-requête est évaluée une seule fois pour tout le monde.</p>
-          <p>SQL s’arrête dès qu’il trouve une ligne. Il n’a pas besoin de compter les commandes de Sophie : une suffit.</p>
-          <ol class="pt-chain" aria-label="Lecture d’EXISTS">
-            <li class="pt-hop"><span class="pt-hop-n">1</span><span class="pt-hop-txt"><b>Sophie</b> — une commande avec <code>client_id = 1</code> existe → gardée</span></li>
-            <li class="pt-hop"><span class="pt-hop-n">2</span><span class="pt-hop-txt"><b>Lucas</b> — une commande avec <code>client_id = 2</code> existe → gardé</span></li>
-            <li class="pt-hop"><span class="pt-hop-n">3</span><span class="pt-hop-txt"><b>Inès</b> — aucune commande avec <code>client_id = 9</code> → écartée</span></li>
+          <p>La sous-requête doit vérifier les commandes du client en cours.</p>
+          <p>C’est cette condition qui crée le lien :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">commandes.client_id = clients.id</pre></div>
+          <p>Pour chaque client, la valeur de <code>clients.id</code> change. La sous-requête est donc vérifiée à nouveau avec l’identifiant du client en cours.</p>
+          <p>C’est ce qu’on appelle une <b>sous-requête corrélée</b> : elle dépend d’une valeur provenant de la requête principale.</p>
+          <ol class="pt-chain" aria-label="Lecture d’EXISTS, client par client">
+            <li class="pt-hop">
+              <span class="pt-hop-n">1</span>
+              <span class="pt-hop-txt">
+                <b>Sophie</b>
+                <span class="pt-hop-k">id = 1</span>
+                <span class="pt-hop-out">SQL cherche :</span>
+                <span class="pt-hop-v">Existe-t-il une commande avec <code>client_id = 1</code> ?</span>
+                <span class="pt-hop-ans ok">OUI → Sophie est gardée</span>
+              </span>
+            </li>
+            <li class="pt-hop">
+              <span class="pt-hop-n">2</span>
+              <span class="pt-hop-txt">
+                <b>Lucas</b>
+                <span class="pt-hop-k">id = 2</span>
+                <span class="pt-hop-out">SQL cherche :</span>
+                <span class="pt-hop-v">Existe-t-il une commande avec <code>client_id = 2</code> ?</span>
+                <span class="pt-hop-ans ok">OUI → Lucas est gardé</span>
+              </span>
+            </li>
+            <li class="pt-hop pt-hop-more" aria-hidden="true">
+              <span class="pt-hop-n">…</span>
+              <span class="pt-hop-txt"><span class="pt-hop-out">les autres clients</span></span>
+            </li>
+            <li class="pt-hop is-no">
+              <span class="pt-hop-n">9</span>
+              <span class="pt-hop-txt">
+                <b>Inès</b>
+                <span class="pt-hop-k">id = 9</span>
+                <span class="pt-hop-out">SQL cherche :</span>
+                <span class="pt-hop-v">Existe-t-il une commande avec <code>client_id = 9</code> ?</span>
+                <span class="pt-hop-ans no">NON → Inès est écartée</span>
+              </span>
+            </li>
           </ol>
+          <p><code>EXISTS</code> n’a pas besoin de compter les commandes. Dès qu’une première correspondance est trouvée, le test est vrai.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">NOT EXISTS — aucune commande</p>
-          <p>Tu cherches maintenant les clients sans achat.</p>
+          <p><code>NOT EXISTS</code> fait l’inverse de <code>EXISTS</code>.</p>
+          <p>Pour chaque client, SQL vérifie toujours s’il existe au moins une commande liée.</p>
+          <p>Cette fois :</p>
+          <ul class="fn-reflex-list">
+            <li>Une commande existe → client écarté</li>
+            <li>Aucune commande n’existe → client gardé</li>
+          </ul>
           <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom
 FROM clients
 WHERE NOT EXISTS (
@@ -8508,49 +8557,75 @@ WHERE NOT EXISTS (
   FROM commandes
   WHERE commandes.client_id = clients.id
 );</pre></div>
-          <p>Résultat : Inès seulement.</p>
-          <p>La commande invitée #16 a <code>client_id = NULL</code>. La comparaison <code>NULL = 9</code> n’est jamais vraie, donc cette ligne n’aide pas Inès. <code>NOT EXISTS</code> reste correct.</p>
+          <p>Résultat : Inès seulement — l’offre de bienvenue.</p>
+          <p>Pour Inès (<code>id = 9</code>), la sous-requête cherche une commande avec <code>client_id = 9</code>.</p>
+          <p>Elle n’en trouve aucune → <code>NOT EXISTS</code> est vrai → Inès est gardée.</p>
+          <p class="fn-tip"><b>Et la commande invitée ?</b> La commande #16 n’est liée à aucun client (<code>client_id = NULL</code>).<br><br>Elle ne compte donc comme commande d’aucun client et ne change pas le résultat.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">EXISTS plutôt que IN</p>
-          <p><code>IN</code> construit une liste de valeurs, puis compare. <code>EXISTS</code> ne construit pas cette liste : il cherche une ligne, puis s’arrête.</p>
-          <div class="duo">
-            <div class="duo-row"><p class="duo-k">Teste</p>
-              <p class="duo-v"><b>EXISTS</b><span>la présence d’une ligne</span></p>
-              <p class="duo-v is-alt"><b>IN</b><span>l’appartenance à une liste</span></p></div>
-            <div class="duo-row"><p class="duo-k">Sous-requête</p>
-              <p class="duo-v"><b>EXISTS</b><span>souvent corrélée</span></p>
-              <p class="duo-v is-alt"><b>IN</b><span>souvent une liste d’abord</span></p></div>
-            <div class="duo-row"><p class="duo-k">NULL</p>
-              <p class="duo-v"><b>EXISTS</b><span>sans effet ici</span></p>
-              <p class="duo-v is-alt"><b>IN</b><span><code>NOT IN</code> se vide s’il y a un <code>NULL</code></span></p></div>
-            <div class="duo-row"><p class="duo-k">Doublons</p>
-              <p class="duo-v"><b>EXISTS</b><span>Sophie une fois</span></p>
-              <p class="duo-v is-alt"><b>IN</b><span>Sophie une fois aussi</span></p></div>
-          </div>
-          <p>Pour une petite liste fixe, <code>IN ('Paris', 'Lyon')</code> reste plus simple. Pour une correspondance liée, <code>EXISTS</code> est le bon réflexe.</p>
+          <p class="pt-syntax-h">IN ou EXISTS ?</p>
+          <p>Les deux peuvent servir à filtrer, mais ils ne raisonnent pas de la même manière.</p>
+          <p><code>IN</code> demande :</p>
+          <p>« Cette valeur est-elle dans cette liste ? »</p>
+          <div class="pt-syntax"><pre class="cw-syntax">WHERE ville IN ('Paris', 'Lyon')</pre></div>
+          <p><code>EXISTS</code> demande :</p>
+          <p>« Existe-t-il au moins une ligne qui correspond ? »</p>
+          <div class="pt-syntax"><pre class="cw-syntax">WHERE EXISTS (
+  SELECT 1
+  FROM commandes
+  WHERE commandes.client_id = clients.id
+)</pre></div>
+          <div class="table-wrap"><table class="concept-table">
+            <thead><tr><th>Tu veux savoir…</th><th>Utilise</th></tr></thead>
+            <tbody>
+              <tr><td>Une valeur appartient à une liste ?</td><td><code>IN</code></td></tr>
+              <tr><td>Une ligne liée existe ?</td><td><code>EXISTS</code></td></tr>
+              <tr><td>Une valeur n’appartient pas à une liste ?</td><td><code>NOT IN</code></td></tr>
+              <tr><td>Aucune ligne liée n’existe ?</td><td><code>NOT EXISTS</code></td></tr>
+            </tbody>
+          </table></div>
+          <p class="fn-tip"><b>Réflexe</b> Liste de valeurs → <code>IN</code><br>Existence d’une correspondance → <code>EXISTS</code></p>
+          <p>Avec <code>IN</code>, tu cherches une valeur dans une liste. Avec <code>EXISTS</code>, tu vérifies qu’une correspondance existe.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Le piège de NOT IN</p>
-          <p>Tu as déjà vu ce piège : la commande #16 met un <code>NULL</code> dans la liste.</p>
+          <p>La commande #16 a un <code>client_id</code> à <code>NULL</code>.</p>
+          <p>La sous-requête produit donc une liste qui contient aussi <code>NULL</code> :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">1, 2, 3, 4, 5, 6, 7, 8, NULL</pre></div>
+          <p>Avec <code>NOT IN</code>, ce <code>NULL</code> pose problème : SQL ne peut plus déterminer avec certitude qu’un identifiant est absent de la liste.</p>
           <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom
 FROM clients
 WHERE clients.id NOT IN (
   SELECT commandes.client_id
   FROM commandes
 );</pre></div>
-          <p>Résultat : 0 ligne. Inès disparaît, alors qu’elle n’a pas commandé.</p>
-          <p class="fn-tip"><b>Le réflexe</b> Pour tester l’absence d’une correspondance, préfère <code>NOT EXISTS</code>. Tu n’as pas besoin de retirer les <code>NULL</code> à la main.</p>
+          <p>Résultat : 0 ligne.</p>
+          <p>Même Inès (<code>id = 9</code>), qui n’a pourtant aucune commande, n’est pas retournée.</p>
+          <p class="fn-tip"><b>Le réflexe</b> Pour vérifier qu’aucune ligne liée n’existe, préfère <code>NOT EXISTS</code>.<br><br>Il évite le piège des <code>NULL</code> présents dans la sous-requête.</p>
+          <p class="fn-keep">À retenir : <code>NOT IN</code> + <code>NULL</code> dans la liste = résultat potentiellement inattendu.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">EXISTS plutôt qu’un JOIN</p>
-          <p>Un <code>JOIN</code> fabrique une ligne par correspondance. Sophie a 3 commandes : elle apparaîtrait 3 fois, sauf si tu ajoutes <code>DISTINCT</code>.</p>
-          <p>Avec <code>EXISTS</code>, Sophie reste une seule fois. Tu ne récupères pas les colonnes de la table <code>commandes</code> : tu vérifies seulement qu’il en existe.</p>
-          <p>Si tu as besoin du <code>produit_id</code> ou de la <code>quantite</code>, écris un <code>JOIN</code>. Si tu veux seulement savoir « a-t-il commandé ? », écris <code>EXISTS</code>.</p>
+          <p class="pt-syntax-h">EXISTS ou JOIN ?</p>
+          <p><code>JOIN</code> et <code>EXISTS</code> ne servent pas exactement au même besoin.</p>
+          <p>Avec un <code>JOIN</code>, tu peux récupérer les informations de la table liée. Si Sophie a 3 commandes, elle peut donc apparaître sur 3 lignes.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom, commandes.quantite
+FROM clients
+JOIN commandes
+  ON clients.id = commandes.client_id;</pre></div>
+          <p>Avec <code>EXISTS</code>, tu ne récupères pas les commandes. Tu vérifies seulement si au moins une commande existe pour chaque client.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom
+FROM clients
+WHERE EXISTS (
+  SELECT 1
+  FROM commandes
+  WHERE commandes.client_id = clients.id
+);</pre></div>
+          <p class="fn-tip"><b>Le réflexe</b> Tu as besoin des données de <code>commandes</code> ? → <code>JOIN</code><br><br>Tu veux seulement savoir si une commande existe ? → <code>EXISTS</code></p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Ajouter une condition</p>
-          <p>La sous-requête peut filtrer davantage. Les clients qui ont commandé la « Fibre Prébiotique » :</p>
+          <p><code>EXISTS</code> peut rechercher une correspondance plus précise.</p>
+          <p>Ici, on ne cherche plus simplement les clients qui ont commandé. On cherche ceux qui ont commandé le produit Fibre Prébiotique (<code>produit_id = 1</code>).</p>
           <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom
 FROM clients
 WHERE EXISTS (
@@ -8559,26 +8634,39 @@ WHERE EXISTS (
   WHERE commandes.client_id = clients.id
     AND commandes.produit_id = 1
 );</pre></div>
-          <p>Résultat : Sophie, Nathan, Chloé et Léa — les mêmes 4 noms qu’avec <code>IN</code>, sans construire la liste.</p>
+          <p>La commande doit respecter les deux conditions :</p>
+          <ul class="fn-reflex-list">
+            <li><code>commandes.client_id = clients.id</code><br>→ elle appartient au client en cours</li>
+            <li><code>commandes.produit_id = 1</code><br>→ elle concerne le produit Fibre Prébiotique</li>
+          </ul>
+          <p>Si au moins une commande respecte les deux, le client est gardé.</p>
+          <p>Résultat : Sophie, Nathan, Chloé et Léa.</p>
         </div>
       </div>`},
-    why:{eye:"",title:"Sans corrélation, le test est le même pour tous.",
-      body:`<div class="pt-lead"><p>Oublier le lien avec le client courant donne un résultat absurde.</p>
+    why:{eye:"",title:"Sans corrélation, EXISTS teste la même chose pour tous",
+      body:`<div class="pt-lead"><p>Si la sous-requête n’est pas reliée au client en cours, <code>EXISTS</code> vérifie simplement si la table <code>commandes</code> contient au moins une ligne.</p>
       <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom
 FROM clients
 WHERE EXISTS (
-  SELECT 1 FROM commandes
+  SELECT 1
+  FROM commandes
 );</pre></div>
-      <p>La table <code>commandes</code> n’est pas vide. <code>EXISTS</code> est donc vrai pour les 9 clients, Inès comprise.</p>
-      <p>La bonne question à se poser : <b>existe-t-il une ligne liée à <em>ce</em> client ?</b></p></div>`},
+      <p>Comme la table <code>commandes</code> n’est pas vide, <code>EXISTS</code> est vrai.</p>
+      <p>Résultat : les 9 clients sont gardés, même Inès.</p>
+      <p>Ce qui manque, c’est le lien avec chaque client :</p>
+      <div class="pt-syntax"><pre class="cw-syntax">WHERE commandes.client_id = clients.id</pre></div>
+      <p>Cette condition permet à la sous-requête de vérifier les commandes du client en cours.</p>
+      <p class="fn-tip"><b>Le réflexe</b> Avec <code>EXISTS</code>, vérifie toujours que la sous-requête est bien reliée à la ligne en cours.</p></div>`},
     or:{title:"À retenir.",
-      body:`<div class="pt-lead"><p>Avant d’écrire la sous-requête, demande-toi ce que tu testes.</p>
+      body:`<div class="pt-lead"><p>Avant d’écrire ta sous-requête, demande-toi ce que tu veux vérifier.</p>
       <ul class="fn-reflex-list">
-        <li>Une valeur appartient-elle à une liste ? → <code>IN</code></li>
-        <li>Une ligne liée existe-t-elle ? → <code>EXISTS</code></li>
-        <li>Aucune ligne liée n’existe ? → <code>NOT EXISTS</code></li>
+        <li>Une valeur est-elle dans une liste ? → <code>IN</code></li>
+        <li>Au moins une ligne liée existe-t-elle ? → <code>EXISTS</code></li>
+        <li>Aucune ligne liée n’existe-t-elle ? → <code>NOT EXISTS</code></li>
       </ul>
-      <p>Relie toujours la sous-requête à la ligne en cours. Écris <code>SELECT 1</code>. Pour l’absence, préfère <code>NOT EXISTS</code> à <code>NOT IN</code>.</p></div>`},
+      <p>Avec <code>EXISTS</code>, relie la sous-requête à la ligne en cours.</p>
+      <p>Dans la sous-requête, on écrit souvent <code>SELECT 1</code> : seules l’existence ou l’absence d’une ligne comptent.</p>
+      <p>Pour vérifier l’absence d’une correspondance, <code>NOT EXISTS</code> évite notamment le piège des <code>NULL</code> que peut rencontrer <code>NOT IN</code>.</p></div>`},
     reflex:{note:"Avant de choisir, demande-toi : <b>est-ce une liste de valeurs, ou l’existence d’une ligne ?</b>",
       extra:`<ul class="fn-reflex-list"><li>Présence d’une correspondance → <code>EXISTS</code></li><li>Absence d’une correspondance → <code>NOT EXISTS</code></li><li>Appartenance à une liste → <code>IN</code></li><li>Toujours corréler : <code>commandes.client_id = clients.id</code></li></ul>`}},
   anatomieList:[
@@ -8596,33 +8684,28 @@ WHERE EXISTS (
     ]}
   ],
   exemple:"SELECT clients.nom\nFROM clients\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM commandes\n  WHERE commandes.client_id = clients.id\n);",
-  attendu:"1 ligne : Inès. La commande invitée #16 ne la fait pas disparaître.",
+  attendu:"1 ligne : Inès, pour l’offre de bienvenue. La commande invitée #16 ne la fait pas disparaître.",
   retenir:"<code>EXISTS</code> teste la <b>présence d’une ligne</b>, pas une valeur. La sous-requête est <b>corrélée</b> : <code>commandes.client_id = clients.id</code>. <code>NOT EXISTS</code> trouve les absents, même si un <code>client_id</code> vaut <code>NULL</code>. Un <code>JOIN</code> multiplie les lignes ; <code>EXISTS</code> n’en garde qu’une.",
-  piege:{t:"Oublier la corrélation, ou utiliser NOT IN",
-    p:"Sans <code>WHERE commandes.client_id = clients.id</code>, <code>EXISTS</code> est vrai pour tout le monde dès qu’il existe une commande.<br><br>Et <code>NOT IN (SELECT client_id FROM commandes)</code> se vide à cause du <code>NULL</code> de la commande #16.",
-    exec:true,
-    sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n);",
-    out:"0 ligne : Inès disparaît à cause du NULL.",
-    fixSql:"SELECT clients.nom\nFROM clients\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM commandes\n  WHERE commandes.client_id = clients.id\n);"},
-  consigne:"Affiche les noms des clients qui n’ont jamais commandé, avec <code>NOT EXISTS</code>.",
+  pieges:[
+    {t:"Oublier de relier la sous-requête",
+      p:"Avec <code>EXISTS</code>, la sous-requête doit être reliée à la ligne en cours :<br><br><code>WHERE commandes.client_id = clients.id</code><br><br>Sans cette condition, SQL vérifie seulement si une commande quelconque existe.<br><br>Comme la table <code>commandes</code> contient des lignes, <code>EXISTS</code> est vrai pour tous les clients, même Inès."},
+    {lab:"Attention",t:"Attention à NOT IN avec NULL",
+      p:"La commande #16 possède un <code>client_id</code> à <code>NULL</code>.<br><br>Si ce <code>NULL</code> apparaît dans la liste produite par la sous-requête, <code>NOT IN</code> peut ne retourner aucune ligne, même pour un client sans commande.",
+      exec:true,
+      sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n);",
+      tail:"Résultat : 0 ligne.<br><br><b>Le bon réflexe</b><br>Pour chercher l’absence d’une ligne liée, préfère :<br><br><code>NOT EXISTS</code>"}
+  ],
+  consigne:"Pour l’offre de bienvenue, affiche les noms des clients qui n’ont jamais commandé, avec <code>NOT EXISTS</code>.",
   solution:"SELECT clients.nom\nFROM clients\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM commandes\n  WHERE commandes.client_id = clients.id\n);",
   indice:"<code>WHERE NOT EXISTS (SELECT 1 FROM commandes WHERE commandes.client_id = clients.id)</code>.",
   subqueryRecap:['exists','notexists'],
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'exists',label:'EXISTS',sql:"SELECT clients.nom\nFROM clients\nWHERE EXISTS (\n  SELECT 1\n  FROM commandes\n  WHERE commandes.client_id = clients.id\n);",out:"8 clients. Inès disparaît. Sophie n’apparaît qu’une fois."},
+    {k:'exists',label:'EXISTS',sql:"SELECT clients.nom\nFROM clients\nWHERE EXISTS (\n  SELECT 1\n  FROM commandes\n  WHERE commandes.client_id = clients.id\n);",out:"8 clients à relancer. Inès disparaît. Sophie n’apparaît qu’une fois."},
     {k:'fibre',label:'Fibre',sql:"SELECT clients.nom\nFROM clients\nWHERE EXISTS (\n  SELECT 1\n  FROM commandes\n  WHERE commandes.client_id = clients.id\n    AND commandes.produit_id = 1\n);",out:"Sophie, Nathan, Chloé et Léa."},
-    {k:'notin',label:'NOT IN',sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n);",out:"0 ligne : le NULL de la commande #16 vide le résultat.",tone:'bad'},
-    {k:'notexists',label:'NOT EXISTS',sql:"SELECT clients.nom\nFROM clients\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM commandes\n  WHERE commandes.client_id = clients.id\n);",out:"Inès seulement.",tone:'good'}
-  ],
-  fnCmp:{title:"Le tableau réflexe",want:1,h1:"Je veux…",h2:"J’utilise",
-    say:`<div class="fn-sgbd"><p class="pt-syntax-h">Ici comme ailleurs</p><p>Le raisonnement est le même quel que soit le SGBD. <code>EXISTS</code> et <code>NOT EXISTS</code> font partie du SQL standard.</p></div>`,
-    rows:[
-      {fn:"Vérifier qu’une ligne liée existe",d:"<code>EXISTS</code>"},
-      {fn:"Vérifier qu’aucune ligne liée n’existe",d:"<code>NOT EXISTS</code>"},
-      {fn:"Comparer à une liste de valeurs",d:"<code>IN</code>"},
-      {fn:"Exclure une liste, sans NULL",d:"<code>NOT IN</code>"}
-    ]} },
+    {k:'notin',label:'NOT IN',sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n);",out:"0 ligne : NOT IN peut ne retourner aucune ligne à cause du NULL de la commande #16.",tone:'bad'},
+    {k:'notexists',label:'NOT EXISTS',sql:"SELECT clients.nom\nFROM clients\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM commandes\n  WHERE commandes.client_id = clients.id\n);",out:"Inès seulement — offre de bienvenue.",tone:'good'}
+  ] },
 ]},
 
 { titre:"Modifier", sous:"Écrire dans la base", lessons:[
@@ -8950,7 +9033,7 @@ const CARTES={
  48:{k:"Sous-requête FROM",t:"Un résultat intermédiaire",s:"SELECT AVG(montant)\nFROM (\n  SELECT prix * quantite AS montant\n  FROM commandes\n  JOIN produits ON …\n) AS commandes_montants",
     m:"Dans <code>FROM</code>, la sous-requête produit un résultat que la requête principale utilise comme une table. On l’appelle <b>table dérivée</b> : elle doit avoir un alias."},
  55:{k:"EXISTS",t:"Présence ou absence d’une ligne",s:"WHERE EXISTS (\n  SELECT 1 FROM commandes\n  WHERE client_id = clients.id\n)",
-    m:"<code>EXISTS</code> teste si une ligne liée existe. <code>NOT EXISTS</code> teste l’absence. La sous-requête est <b>corrélée</b>. Un <code>NULL</code> dans <code>client_id</code> ne casse pas <code>NOT EXISTS</code>, contrairement à <code>NOT IN</code>."},
+    m:"Avec <code>IN</code>, tu cherches une valeur dans une liste. Avec <code>EXISTS</code>, tu vérifies qu’une correspondance existe. Vérifie toujours que la sous-requête est bien reliée à la ligne en cours."},
 
  26:{k:"INSERT",t:"Ajouter une ligne",s:"INSERT INTO clients (nom, ville)\nVALUES ('Théo', 'Lille');",
     m:"Le lien colonnes ↔ valeurs est <b>positionnel</b>. Nomme les colonnes. Les omises passent à NULL ; la clé primaire se remplit seule."},
@@ -9085,7 +9168,7 @@ const QCM={
   {q:"Pourquoi écrire <code>AS commandes_montants</code> ?",o:["Pour trier le résultat","Parce que le résultat intermédiaire doit avoir un alias","Parce que AVG l’exige toujours"],b:1,e:"Une sous-requête dans FROM est une table dérivée : SQL exige un nom pour s’en servir."},
   {q:"Que calcule la requête principale ici ?",o:["Le nombre de commandes par client","La moyenne des montants déjà calculés","La somme des prix du catalogue"],b:1,e:"La sous-requête fabrique d’abord les montants. <code>AVG(montant)</code> agrège ensuite ce résultat."}],
  55:[{q:"<code>EXISTS</code> teste :",o:["Si une valeur appartient à une liste","Si la sous-requête trouve au moins une ligne","Si deux colonnes ont le même nom"],b:1,e:"On ne compare pas une valeur. On demande si une ligne liée existe."},
-  {q:"Pourquoi <code>NOT EXISTS</code> trouve Inès, alors que <code>NOT IN</code> sans filtre renvoie 0 ligne ?",o:["Inès a une commande cachée","La commande #16 met un NULL dans la liste de NOT IN","EXISTS ignore la table clients"],b:1,e:"<code>NOT IN</code> se vide face à un NULL. <code>NOT EXISTS</code> compare ligne par ligne : <code>NULL = 9</code> n’est jamais vrai."},
+  {q:"Pourquoi <code>NOT EXISTS</code> trouve Inès, alors que <code>NOT IN</code> sans filtre renvoie 0 ligne ?",o:["Inès a une commande cachée","La commande #16 met un NULL dans la liste de NOT IN","EXISTS ignore la table clients"],b:1,e:"<code>NOT IN</code> peut ne retourner aucune ligne si la liste contient un <code>NULL</code>. <code>NOT EXISTS</code> ne construit pas cette liste : il cherche seulement une commande liée à Inès."},
   {q:"Sans <code>WHERE commandes.client_id = clients.id</code>, <code>EXISTS (SELECT 1 FROM commandes)</code> :",o:["Ne garde qu’Inès","Garde les 9 clients, Inès comprise","Provoque une erreur"],b:1,e:"La table commandes n’est pas vide. Sans corrélation, le test est le même pour tout le monde."}],
 
  26:[{q:"Les colonnes non citées dans un INSERT prennent :",o:["Leur DEFAULT si défini, sinon NULL","Toujours 0","La valeur de la ligne précédente"],b:0,e:"Une colonne omise reçoit son <code>DEFAULT</code> si la table en définit un ; sinon elle reçoit généralement <code>NULL</code>."},
@@ -12338,8 +12421,7 @@ function checkPetitDefi(i){
   fb.innerHTML=ok?`<b>✓</b> ${esc(d.a)}`: `<b>Pas tout à fait.</b> Réponse attendue : <code>${esc(d.a)}</code>`;
   if(navigator.vibrate)navigator.vibrate(ok?8:25);
 }
-function piegeBlock(l){
-  const piege=l&&l.piege;
+function renderPiege(piege){
   if(!piege) return '';
   const runMode=!!piege.exec;
   const sqlHtml=sql=>piege.mark?highlightMark(sql,piege.mark):highlight(sql);
@@ -12363,11 +12445,15 @@ function piegeBlock(l){
   return `<div class="piege">
     <div class="piege-head">
       <span class="piege-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></span>
-      <span class="piege-lab">Erreur fréquente</span>
+      <span class="piege-lab">${esc(piege.lab||'Erreur fréquente')}</span>
     </div>
     <p class="piege-title">${piege.t}</p>
     <div class="piege-body">${flowProseHtml(piege.p)}</div>${badSql}${fixSql}${tail}
   </div>`;
+}
+function piegeBlock(l){
+  const items=!l?[]:Array.isArray(l.pieges)?l.pieges:l.piege?[].concat(l.piege):[];
+  return items.map(renderPiege).join('');
 }
 function stripNoteHtml(s){
   return String(s||'')
@@ -14344,7 +14430,7 @@ function buildSommaire(){
   if(!slide)return;
   // Repères : titres de blocs (h2) et étiquettes de section
   const marks=[];
-  slide.querySelectorAll('.concept-block h2, .sect-label span, .piege-lab').forEach(el=>{
+  slide.querySelectorAll('.concept-block h2, .sect-label span, .piege-title').forEach(el=>{
     let t=(el.textContent||'').trim().replace(/\s+/g,' ');
     if(!t)return;
     // Pour les h2, on préfère le texte principal (h2-txt)
