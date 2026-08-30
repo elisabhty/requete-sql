@@ -358,7 +358,8 @@
   .nm-pane .nm-rel-note{margin:2px 12px 12px;font-size:12.5px;font-weight:600;color:var(--ink-2);line-height:1.4}
   .nm-arrow{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--ink-3);font-size:12px;font-weight:750}
   .nm-arrow svg{width:18px;height:18px}
-  .nm-pane .nm-glide{margin:-4px 12px 12px;font-size:12px;font-weight:700;color:var(--ink-3)}
+  .nm-pane .nm-glide,.situation-body .nm-glide{margin:-4px 12px 12px;font-size:12px;font-weight:700;color:var(--ink-3)}
+  .situation-body .nm-glide{margin:6px 2px 14px}
   .sample-more-dots{display:inline-flex;align-items:center;justify-content:center;width:24px;height:18px;margin-right:7px;border-radius:7px;background:rgba(91,91,214,.1);color:var(--accent);font-family:var(--mono);font-size:14px;font-weight:850;line-height:1;vertical-align:-1px}
   .concept-block.in .sample-more td{animation:sampleMoreIn .42s var(--spring-ios) .22s both}
   @keyframes sampleMoreIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
@@ -7749,7 +7750,7 @@ FROM produits;</pre></div>
     {k:'cmd',label:'commandes',sql:"SELECT id, client_id\nFROM commandes;",out:"client_id se répète : un client, plusieurs commandes"}
   ] },
 { id:56, titre:"Normalisation", résumé:"Répartir les données dans des tables reliées",
-  situation:"Tu dois créer un tableau de bord Power BI pour analyser les ventes : nombre de commandes, produits vendus et répartition des clients par ville.<br><br>Pour alimenter le tableau de bord, toutes les informations ont d’abord été regroupées dans une seule grande table :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>client_id</th><th>nom</th><th>ville</th><th>commande_id</th><th>produit</th><th>prix</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td>Paris</td><td>1</td><td>Fibre Prébiotique</td><td>29,90</td><td>2</td></tr><tr><td>1</td><td>Sophie</td><td>Paris</td><td>2</td><td>Magnésium</td><td>19,90</td><td>1</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>3</td><td>Protéine Végétale</td><td>34,90</td><td>1</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>10</td><td>Magnésium</td><td>19,90</td><td>2</td></tr></tbody></table></div><br><br>Le tableau de bord fonctionne, mais la table contient beaucoup d’informations répétées.<br><br>À chaque nouvelle commande de Sophie, son nom et sa ville sont enregistrés à nouveau. De la même manière, les informations d’un produit peuvent apparaître dans de nombreuses lignes.<br><br>Cela pose un problème : plus les ventes augmentent, plus les données sont dupliquées et difficiles à maintenir sans incohérence.",
+  situation:"Tu dois créer un tableau de bord Power BI pour analyser les ventes : nombre de commandes, produits vendus et répartition des clients par ville.<br><br>Pour alimenter le tableau de bord, toutes les informations ont d’abord été regroupées dans une seule grande table :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>client_id</th><th>nom</th><th>ville</th><th>commande_id</th><th>produit</th><th>prix</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td>Paris</td><td>1</td><td>Fibre Prébiotique</td><td>29,90</td><td>2</td></tr><tr><td>1</td><td>Sophie</td><td>Paris</td><td>2</td><td>Magnésium</td><td>19,90</td><td>1</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>3</td><td>Protéine Végétale</td><td>34,90</td><td>1</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>10</td><td>Magnésium</td><td>19,90</td><td>2</td></tr></tbody></table></div><p class=\"nm-glide\">👉 Glisse pour voir le produit, le prix et la quantité.</p>Le tableau de bord fonctionne, mais la table contient beaucoup d’informations répétées.<br><br>À chaque nouvelle commande de Sophie, son nom et sa ville sont enregistrés à nouveau. De la même manière, les informations d’un produit peuvent apparaître dans de nombreuses lignes.<br><br>Cela pose un problème : plus les ventes augmentent, plus les données sont dupliquées et difficiles à maintenir sans incohérence.",
   situationTail:"<div class=\"sit-sql\"><p>Comment mieux organiser la base de données qui alimente Power BI ?</p><p>C’est là qu’intervient la normalisation : elle permet de répartir les informations dans plusieurs tables reliées, chacune ayant un rôle précis.</p><p>Pour apprendre à organiser ces tables correctement, nous allons avancer étape par étape avec les formes normales : <b>1NF</b>, <b>2NF</b> et <b>3NF</b>.</p></div>",
     studio:{pointCards:{
       eye:"Normalisation",title:"Une information, un seul endroit.",
@@ -7763,11 +7764,11 @@ FROM produits;</pre></div>
         {t:"Le coût de la répétition",
          b:"<p>Dans la grande table, la ville de Sophie est écrite à chaque commande. Si Sophie déménage, il faut la corriger partout.</p><p>Une seule ligne oubliée, et la base se contredit : c’est une <b>anomalie de mise à jour</b>.</p>"},
         {t:"1NF — une valeur par case",
-         b:"<p>Chaque case contient une seule valeur, jamais une liste. <code>produits : \'Magnésium, Shaker\'</code> devient deux lignes.</p><p>Sans cela, aucune requête ne peut filtrer ou compter proprement.</p>"},
+         b:"<p>Chaque case contient une seule valeur, jamais une liste.</p><p><code>produits : \'Magnésium, Shaker\'</code> devient deux lignes. Sans cela, aucune requête ne peut filtrer ou compter proprement.</p>"},
         {t:"2NF — dépendre de toute la clé",
-         b:"<p>Dans notre table, une ligne est identifiée par la commande et son produit. Or le nom du client ne dépend que du client.</p><p>Il part donc dans sa propre table <code>clients</code>.</p>"},
+         b:"<p>Chaque colonne dépend de toute la clé, pas d’une partie seulement.</p><p>Ici, une ligne est identifiée par la commande et son produit. Or le nom du client ne dépend que du client : il part dans la table <code>clients</code>.</p>"},
         {t:"3NF — pas de dépendance indirecte",
-         b:"<p>Le prix ne dépend pas de la commande : il dépend du produit, qui est lui-même une colonne de la ligne.</p><p>Il part dans <code>produits</code>. Il ne reste dans <code>commandes</code> que ce qui décrit vraiment la commande.</p>"}
+         b:"<p>Aucune colonne ne dépend d’une autre colonne qui n’est pas la clé.</p><p>Le prix ne dépend pas de la commande : il dépend du produit. Il part dans <code>produits</code>. Il ne reste dans <code>commandes</code> que ce qui décrit vraiment la commande.</p>"}
       ]},
     reflex:{a:{k:"La question",t:"de quoi cette colonne parle-t-elle ?"},
       b:{k:"La règle",t:"une information écrite à un seul endroit"},
@@ -9070,6 +9071,7 @@ WHERE EXISTS (
   solution:"GRANT SELECT ON clients TO app_user;",
   indice:"Utilise <code>GRANT SELECT</code> sur la table <code>clients</code>, puis précise l’utilisateur avec <code>TO</code>.",
   noExec:true,
+  serverConcept:true,
   richLesson:true, earlyDemo:true,
   testeVariants:[
     {k:'grant_select',label:'GRANT SELECT',sql:"GRANT SELECT ON clients TO app_user;",out:"Droit de lecture seulement — non exécutable ici.",tone:'good',exec:false},
@@ -13009,7 +13011,7 @@ function serverConceptBadge(){
 }
 function renderSituationBody(l){
   let html='';
-  if(l.noExec) html+=serverConceptBadge();
+  if(l.noExec && l.serverConcept) html+=serverConceptBadge();
   html+=situationBodyHtml(l.situation);
   if(l.situationSql) html+=situationSqlBlock(l.situationSql);
   if(l.situationTail) html+=flowProseHtml(l.situationTail);
@@ -13881,7 +13883,7 @@ function renderNormSplit(){
           ${th('client_id','nom','ville','commande_id','produit','prix','quantite')}
           <tbody>${avantRows.map(tr).join('')}</tbody>
         </table></div>
-        <p class="nm-glide">Glisse pour voir le produit, le prix et la quantité.</p>
+        <p class="nm-glide">👉 Glisse pour voir le produit, le prix et la quantité.</p>
         <ul class="nm-pts is-bad">
           <li>Les informations sont répétées : nom, ville, prix…</li>
           <li>Si une information change, il faut corriger chaque ligne.</li>
