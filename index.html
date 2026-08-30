@@ -556,6 +556,10 @@
   .tx-step.tx-back{background:var(--surface-2);color:var(--ink-2);box-shadow:none}
   .lesson-rich .tx-q{margin:6px 0 8px;font-size:13px;font-weight:750;color:var(--ink)}
   .tx-fork{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;max-width:250px}
+  .tx-fork.tx-fork-3{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .tx-fork-3 .tx-branch{padding:9px 4px}
+  .tx-fork-3 .tx-branch b{font-size:10px}
+  .tx-fork-3 .tx-branch span{font-size:10px}
   .tx-branch{display:flex;flex-direction:column;align-items:center;gap:1px;padding:9px 8px;border-radius:11px;text-align:center}
   .tx-branch small{font-size:9.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-3)}
   .tx-branch b{font-family:var(--mono);font-size:12px;font-weight:850}
@@ -10136,6 +10140,100 @@ ORDER BY stock;</pre></div>
   indice:"<code>CREATE VIEW nom AS</code>, puis la requête telle quelle.",
   write:true,
   richLesson:true, earlyDemo:true },
+{ id:65, titre:"ALTER TABLE", résumé:"Faire évoluer la structure d’une table",
+  situation:"La table <code>clients</code> existe déjà et contient des données : <code>id</code>, <code>nom</code>, <code>ville</code>, <code>age</code>, <code>email</code>, <code>telephone</code>, <code>date_inscription</code>.<br><br>Quelques mois plus tard, ton site e-commerce évolue : tu veux maintenant enregistrer le <b>pays</b> de chaque client.<br><br>Tu pourrais supprimer la table et la recréer avec une colonne de plus — mais tu perdrais les données déjà présentes.",
+  situationTail:"<div class=\"sit-sql\"><p>Comment modifier la structure d’une table sans la recréer entièrement ?</p><p>C’est le rôle d’<b><code>ALTER TABLE</code></b>.</p></div>",
+    studio:{pointCards:{
+      eye:"ALTER TABLE",title:"Faire évoluer une table qui existe.",
+      lead:"<code>CREATE TABLE</code> crée la structure. <code>ALTER TABLE</code> la fait évoluer, sans toucher aux données déjà enregistrées.",
+      chain:[
+        {k:"ADD COLUMN",v:"ajouter une colonne"},
+        {k:"RENAME",v:"renommer une colonne ou la table"},
+        {k:"DROP COLUMN",v:"supprimer une colonne"}
+      ]},
+    uses:{title:"Quatre opérations, une structure.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Les trois chemins</p>
+          <div class="tx-flow" role="img" aria-label="ALTER TABLE et ses trois opérations">
+            <span class="tx-step">table <b>clients</b><i>existe déjà</i></span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step tx-key">ALTER TABLE</span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <div class="tx-fork tx-fork-3">
+              <div class="tx-branch is-ok"><b>ADD COLUMN</b><span>ajouter</span></div>
+              <div class="tx-branch"><b>RENAME</b><span>renommer</span></div>
+              <div class="tx-branch is-ko"><b>DROP COLUMN</b><span>supprimer</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Ajouter une colonne</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
+ADD COLUMN pays TEXT;</pre></div>
+          <p>La table reste <code>clients</code> : seule sa structure a changé. Les lignes déjà présentes n’ont aucune valeur pour cette information — elles prennent donc <code>NULL</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Avec une valeur par défaut</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
+ADD COLUMN pays TEXT DEFAULT 'France';</pre></div>
+          <p>Cette fois, les neuf clients déjà enregistrés reçoivent <code>France</code> au lieu de <code>NULL</code>, et les prochains l’auront aussi tant qu’aucune autre valeur n’est fournie.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Renommer une colonne</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
+RENAME COLUMN telephone TO numero_telephone;</pre></div>
+          <p>Les numéros restent là : c’est le nom de la colonne qui change, pas son contenu.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Renommer la table</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
+RENAME TO utilisateurs;</pre></div>
+          <p>Attention : toutes les requêtes suivantes devront employer le nouveau nom. <code>SELECT * FROM clients</code> ne trouvera plus rien.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Supprimer une colonne</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
+DROP COLUMN telephone;</pre></div>
+          <p class="fn-tip"><b>Sans retour</b> Contrairement au renommage, supprimer une colonne supprime aussi les données qu’elle contenait.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Ce que SQLite ne fait pas</p>
+          <p>D’autres moteurs proposent <code>ALTER COLUMN</code> (PostgreSQL) ou <code>MODIFY COLUMN</code> (MySQL) pour changer le type d’une colonne. SQLite s’en tient volontairement aux quatre opérations ci-dessus.</p>
+          <p>Pour une transformation plus profonde — changer un type, revoir une contrainte — il faut recréer la table avec la nouvelle structure et y recopier les données.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"La question",t:"les valeurs, ou la structure ?"},
+      b:{k:"La règle",t:"les valeurs → UPDATE · la structure → ALTER TABLE"},
+      note:"Réflexe : quand une table existe déjà et que sa structure doit évoluer, pense à <code>ALTER TABLE</code>."}},
+  anatomie:[
+    {tok:"ALTER TABLE",txt:"Annonce la modification d’une table existante."},
+    {tok:"clients",txt:"La table à modifier."},
+    {tok:"ADD COLUMN",txt:"L’opération à effectuer."},
+    {tok:"pays",txt:"Le nom de la nouvelle colonne."},
+    {tok:"TEXT",txt:"Son type."}
+  ],
+  exemple:"ALTER TABLE clients\nADD COLUMN pays TEXT DEFAULT 'France';\n\nSELECT id, nom, pays\nFROM clients\nORDER BY id\nLIMIT 3;",
+  attendu:"La colonne pays existe désormais, et les clients déjà enregistrés portent France. Sans le DEFAULT, ils porteraient NULL.",
+  retenir:"<code>ALTER TABLE</code> fait évoluer la structure d’une table existante, sans la recréer ni perdre ses données.<br><br>Quatre opérations en SQLite : <b>ADD COLUMN</b> ajouter, <b>RENAME COLUMN</b> renommer une colonne, <b>RENAME TO</b> renommer la table, <b>DROP COLUMN</b> supprimer.<br><br>Le mémo : <code>CREATE TABLE</code> crée, <code>ALTER TABLE</code> fait évoluer, <code>UPDATE</code> modifie les données.",
+  piege:{t:"Confondre ALTER TABLE et UPDATE",
+    p:"Les deux modifient quelque chose, mais pas au même niveau.<br><br><code>ALTER TABLE</code> touche la <b>structure</b> : ajouter la colonne <code>pays</code>. <code>UPDATE</code> touche les <b>données</b> : écrire <code>France</code> dans le <code>pays</code> de Sophie.<br><br>Il faut souvent les deux, dans cet ordre : la colonne d’abord, la valeur ensuite.",
+    exec:true,
+    sql:"UPDATE clients\nSET pays = 'France'\nWHERE id = 1;",
+    out:"Erreur : la colonne pays n’existe pas encore. UPDATE ne peut pas la créer.",
+    fixSql:"ALTER TABLE clients\nADD COLUMN pays TEXT;\n\nUPDATE clients\nSET pays = 'France'\nWHERE id = 1;\n\nSELECT id, nom, pays\nFROM clients\nWHERE id = 1;"},
+  petitDefi:[{
+    p:"La table <code>produits</code> existe déjà. Tu veux lui ajouter une colonne <code>marque</code> de type <code>TEXT</code>. Quels mots-clés remplacent les tirets ?",
+    sql:"__________ produits\n__________ marque TEXT;",
+    a:"ALTER TABLE / ADD COLUMN",
+    answers:["ALTER TABLE / ADD COLUMN","ALTER TABLE ADD COLUMN","ALTER TABLE, ADD COLUMN","alter table / add column","ALTER TABLE et ADD COLUMN"]
+  }],
+  consigne:"La table <code>clients</code> doit maintenant enregistrer le pays. Ajoute une colonne <code>pays</code> de type <code>TEXT</code>, avec <code>France</code> comme valeur par défaut.",
+  solution:"ALTER TABLE clients\nADD COLUMN pays TEXT DEFAULT 'France';",
+  verif:"SELECT id, nom, pays FROM clients ORDER BY id;",
+  indice:"<code>ALTER TABLE nom_table</code>, puis <code>ADD COLUMN nom type DEFAULT valeur;</code>.",
+  write:true,
+  richLesson:true, earlyDemo:true },
 { id:50, titre:"Sécurité et droits", résumé:"Contrôler les accès avec GRANT et REVOKE",
   situation:"Tu veux qu’un utilisateur <code>app_user</code> puisse lire la table <code>clients</code>, mais pas la modifier.<br><br>Avec <code>GRANT</code>, tu lui donnes un droit précis — ici <code>SELECT</code>. Plus tard, <code>REVOKE</code> retire ce droit.<br><br>Un <b>SGBD</b> (système de gestion de base de données) est le logiciel qui stocke tes tables et exécute le SQL. Cette application utilise <code>SQLite</code> : tout tient dans le navigateur, sans comptes utilisateurs.<br><br>MySQL, PostgreSQL et SQL Server sont des SGBD <b>serveur</b> : plusieurs utilisateurs se connectent, chacun avec des droits. C’est là que <code>GRANT</code> et <code>REVOKE</code> existent.<br><br><b>Attention :</b> ces commandes ne s’exécutent pas dans SQLite. Ce cours sert à comprendre le principe. Donner trop de droits permettrait de modifier ou supprimer des données.",
   situationTail:"<code>GRANT</code> donne un droit précis, comme <code>SELECT</code> sur une table. <code>REVOKE</code> le retire. Le piège classique : <code>ALL PRIVILEGES</code> — tous les droits, partout.",
@@ -10548,6 +10646,11 @@ const QCM={
  58:[{q:"<code>EXPLAIN</code> sert à :",o:["Modifier le résultat du SELECT","Montrer le plan d’exécution prévu par le SGBD","Créer automatiquement un index"],b:1,e:"La requête décrit le résultat. Le plan montre la stratégie choisie pour l’obtenir."},
   {q:"Un parcours de table (<code>SCAN</code>, <code>Seq Scan</code>) :",o:["Est toujours une erreur à corriger","Peut être le bon choix, par exemple si tu demandes toutes les lignes","Signifie que la table n’existe pas"],b:1,e:"<code>SELECT * FROM clients</code> doit parcourir la table. EXPLAIN sert à comprendre, pas à colorier le plan."},
   {q:"Face à une requête lente, le premier réflexe :",o:["Ajouter un index sur chaque colonne","Observer le plan avec EXPLAIN, puis optimiser","Réécrire la requête en majuscules"],b:1,e:"Une requête lente n’appelle pas automatiquement un index. On observe d’abord."}],
+ 65:[{q:"À quoi sert <code>ALTER TABLE</code> ?",o:["À modifier la structure d’une table existante","À filtrer des lignes","À trier les résultats"],b:0,e:"Elle ajoute, renomme ou supprime des colonnes — sans recréer la table."},
+  {q:"Comment ajouter une colonne <code>pays</code> ?",o:["<code>UPDATE clients ADD pays;</code>","<code>ALTER TABLE clients ADD COLUMN pays TEXT;</code>","<code>CREATE COLUMN pays;</code>"],b:1,e:"<code>UPDATE</code> ne crée pas de colonne, et <code>CREATE COLUMN</code> n’existe pas."},
+  {q:"Quelle commande renomme une colonne en SQLite ?",o:["<code>CHANGE COLUMN</code>","<code>RENAME COLUMN … TO …</code>","<code>UPDATE COLUMN</code>"],b:1,e:"Les données restent : seul le nom change."},
+  {q:"Quelle différence entre <code>ALTER TABLE</code> et <code>UPDATE</code> ?",o:["Aucune","<code>ALTER TABLE</code> modifie la structure, <code>UPDATE</code> les valeurs des lignes","<code>UPDATE</code> crée les colonnes"],b:1,e:"Il faut souvent les deux, dans cet ordre : la colonne, puis la valeur."},
+  {q:"Que se passe-t-il quand tu supprimes une colonne ?",o:["Seul son nom disparaît","La colonne et les données qu’elle contenait sont supprimées","La table entière est supprimée"],b:1,e:"C’est ce qui distingue <code>DROP COLUMN</code> d’un simple renommage."}],
  64:[{q:"Qu’est-ce qu’une vue ?",o:["Une copie obligatoire d’une table","Une requête enregistrée sous un nom","Un index"],b:1,e:"Elle ne contient rien : elle décrit comment obtenir le résultat."},
   {q:"Quelle commande crée une vue ?",o:["<code>CREATE VIEW</code>","<code>CREATE TABLE</code>","<code>SAVE VIEW</code>"],b:0,e:"<code>CREATE TABLE … AS</code> existe aussi, mais elle copie les lignes."},
   {q:"Si les données de <code>produits</code> changent, faut-il recréer la vue ?",o:["Oui, systématiquement","Non : la vue s’appuie sur les données actuelles","Seulement après un DELETE"],b:1,e:"La requête est rejouée à chaque interrogation."},
