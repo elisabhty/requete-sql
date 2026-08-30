@@ -8338,20 +8338,20 @@ FROM produits;</pre></div>
   ] },
 { id:23, titre:"COALESCE", résumé:"Remplacer les valeurs absentes",
   situation:"Dans la table <code>clients</code>, certains clients n’ont pas renseigné leur adresse e-mail : la valeur est <code>NULL</code>.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th class=\"col-hl\">email</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td class=\"col-hl\">sophie@mail.fr</td></tr><tr><td>2</td><td>Lucas</td><td class=\"col-hl\">lucas@mail.fr</td></tr><tr><td>6</td><td>Hugo</td><td class=\"col-hl null\">NULL</td></tr><tr><td>9</td><td>Inès</td><td class=\"col-hl null\">NULL</td></tr></tbody></table></div><div class=\"coal-data-summary\" role=\"note\" aria-label=\"Résumé des adresses e-mail\"><span><i aria-hidden=\"true\"></i>7 adresses présentes</span><span><i aria-hidden=\"true\"></i>2 valeurs NULL</span></div><br><br>Objectif : afficher un contact lisible pour les 9 clients, sans modifier la table.",
-    studio:{problem:{eye:"COALESCE",title:"Une règle : le premier choix disponible.",
+    studio:{problem:{eye:"COALESCE",title:"Une règle : la première valeur qui n’est pas NULL.",
       body:`<div class="coal-primer">
-        <p class="coal-primer-lead"><strong>COALESCE lit de gauche à droite</strong> et s’arrête dès qu’il trouve une valeur qui n’est pas <code>NULL</code>.</p>
+        <p class="coal-primer-lead"><strong>COALESCE lit les valeurs de gauche à droite</strong> et renvoie la première qui n’est pas <code>NULL</code>.</p>
         <div class="coal-route" role="img" aria-label="SQL teste d’abord email puis utilise Non renseigné si email vaut NULL">
           <div class="coal-route-choice"><small>1er choix</small><code>email</code></div>
           <div class="coal-route-link" aria-hidden="true"><span>si NULL</span></div>
-          <div class="coal-route-choice"><small>repli</small><code>'Non renseigné'</code></div>
+          <div class="coal-route-choice"><small>choix suivant</small><code>'Non renseigné'</code></div>
         </div>
         <div class="coal-outcomes">
-          <div class="coal-outcome"><i aria-hidden="true">✓</i><p><b>L’e-mail existe</b><span>SQL le renvoie et s’arrête au premier argument.</span></p></div>
-          <div class="coal-outcome is-null"><i aria-hidden="true">→</i><p><b>L’e-mail vaut NULL</b><span>SQL avance et renvoie la valeur de remplacement.</span></p></div>
+          <div class="coal-outcome"><i aria-hidden="true">✓</i><p><b>L’e-mail n’est pas NULL</b><span><code>COALESCE</code> renvoie l’e-mail. Les valeurs suivantes ne sont pas utilisées.</span></p></div>
+          <div class="coal-outcome is-null"><i aria-hidden="true">→</i><p><b>L’e-mail est NULL</b><span><code>COALESCE</code> passe à la valeur suivante et renvoie <code>'Non renseigné'</code>.</span></p></div>
         </div>
         <div class="pt-syntax coal-syntax"><pre class="cw-syntax">COALESCE(expression1, expression2, …)</pre></div>
-        <p class="coal-edge"><span>Si tous les arguments valent <code>NULL</code>, le résultat reste <code>NULL</code>.</span></p>
+        <p class="coal-edge"><span>Si toutes les valeurs sont <code>NULL</code>, le résultat est <code>NULL</code>.</span></p>
       </div>`},
     uses:{title:"4 façons de l’utiliser",
       body:`<div class="coal-uses-list">
