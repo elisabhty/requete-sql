@@ -6452,7 +6452,12 @@ const MODULES = [
   consigne:"Affiche toutes les colonnes des produits dont le prix est strictement supérieur à 25.",
   solution:"SELECT * FROM produits WHERE prix > 25;",
   indice:"Filtre sur la colonne <code>prix</code>. Comme la consigne dit strictement supérieur à 25, choisis l'opérateur qui exclut 25 et écris le nombre sans guillemets.",
-  richLesson:true, earlyDemo:true },
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'egal',label:'=',sql:"SELECT nom, prix\nFROM produits\nWHERE categorie = 'Nutrition';",out:"L\u2019\u00e9galit\u00e9 teste une valeur pr\u00e9cise : deux produits de cette cat\u00e9gorie."},
+    {k:'sup',label:'>',sql:"SELECT nom, prix\nFROM produits\nWHERE prix > 25;",out:"Trois produits d\u00e9passent 25 \u20ac.",tone:'good'},
+    {k:'supegal',label:'> ou >=',sql:"SELECT nom, prix\nFROM produits\nWHERE prix > 29.90;",out:"Deux produits. Avec >= 29.90, la Fibre Pr\u00e9biotique \u00e0 29,90 \u20ac rentrerait aussi."}
+  ] },
 { id:6, titre:"AND", résumé:"Combiner avec AND",
   situation:"Tu prépares une campagne marketing ciblée à Paris, réservée aux clients de plus de 35 ans. Filtrer seulement sur la ville ou seulement sur l’âge ne suffit pas : il te faut les deux critères en même temps.<br><br>Avec ce que tu connais déjà, tu pourrais filtrer sur la ville seule :",
   situationSql:"WHERE ville = 'Paris'",
@@ -6931,6 +6936,7 @@ JOIN produits
     ON commandes.produit_id = produits.id;</pre></div>
           <p>SQL effectue pour chaque commande : prix × quantité.</p>
           <p>Par exemple, si un produit coûte 29,90 € et que la quantité est 2 : 29,90 × 2 = 59,80.</p>
+          <p class="fn-tip"><b>La jointure vient plus tard</b> Relier deux tables est l’objet du module <b>Relier</b>. Ici, seul le calcul <code>prix * quantite</code> compte : les deux lignes <code>JOIN</code> et <code>ON</code> te sont données.</p>
           <p class="fn-tip"><b>Le réflexe</b> Une colonne peut être utilisée comme un nombre normal : <code>prix * quantite</code>.</p>
         </div>
         <div class="fn-use">
@@ -7078,12 +7084,12 @@ FROM produits;</pre></div>
     reflex:{note:"Avant de choisir une fonction, demande-toi : <b>qu’est-ce que je veux faire avec le nombre ?</b>",
       extra:`<ul class="fn-reflex-list"><li>Faire un calcul → <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code></li><li>Arrondir → <code>ROUND()</code></li><li>Mesurer un écart sans tenir compte du signe → <code>ABS()</code></li><li>Trouver le reste d’une division → <code>%</code></li><li>Gérer une valeur manquante → <code>COALESCE()</code></li><li>Éviter d’utiliser une valeur précise dans un calcul → <code>NULLIF()</code></li><li>Créer un résultat aléatoire → <code>RANDOM()</code></li></ul>`}},
   anatomie:[{tok:"SELECT produits.nom, commandes.quantite,",txt:"Le produit et la quantité commandée."},{tok:"ROUND(produits.prix * commandes.quantite * 1.10, 2) AS montant",txt:"Le montant, augmenté de 10 %, arrondi à 2 décimales."},{tok:"FROM commandes JOIN produits",txt:"Les deux tables sont reliées."},{tok:"ON commandes.produit_id = produits.id",txt:"Chaque commande retrouve son produit."}],
-  exemple:"SELECT produits.nom, commandes.quantite,\n       ROUND(produits.prix * commandes.quantite * 1.10, 2) AS montant\nFROM commandes\nJOIN produits\n    ON commandes.produit_id = produits.id;",
-  attendu:"16 lignes. Fibre Prébiotique, quantité 2 → 65,78.",
+  exemple:"SELECT nom, prix, stock,\n       ROUND(prix * stock, 2) AS valeur_stock\nFROM produits;",
+  attendu:"8 lignes. La Fibre Prébiotique à 29,90 € en 120 exemplaires immobilise 3 588 € de stock.",
   retenir:"Une colonne se calcule comme un nombre : <code>prix * quantite</code>. <code>ROUND</code> arrondit, <code>ABS</code> ignore le signe, <code>%</code> donne le reste (ce n’est pas un pourcentage). <code>COALESCE</code> remplace un <code>NULL</code>, <code>NULLIF</code> transforme une valeur précise en <code>NULL</code>. Ces fonctions changent le résultat affiché, pas la table.",
   piege:{t:"Confondre résultat et valeur stockée",p:"<code>ROUND(prix, 0)</code> peut afficher 30 alors que <code>produits.prix</code> reste 29,90. Un calcul dans <code>SELECT</code> transforme le résultat affiché ; seul un <code>UPDATE</code> modifierait la table."},
-  consigne:"Affiche le nom du produit, la quantité, et le montant de chaque commande avec une augmentation fictive de 10 %, arrondi à 2 décimales. Relie la table <code>commandes</code> et la table <code>produits</code>.",
-  solution:"SELECT produits.nom, commandes.quantite, ROUND(produits.prix * commandes.quantite * 1.10, 2) AS montant\nFROM commandes\nJOIN produits\n    ON commandes.produit_id = produits.id;",
+  consigne:"Le comptable veut savoir combien d’argent dort en stock. Affiche le nom, le prix, le stock, et la valeur immobilisée — <code>prix × stock</code> — arrondie à deux décimales sous le nom <code>valeur_stock</code>.",
+  solution:"SELECT nom, prix, stock,\n       ROUND(prix * stock, 2) AS valeur_stock\nFROM produits;",
   indice:"<code>ROUND(produits.prix * commandes.quantite * 1.10, 2)</code>. Les tables se relient par <code>commandes.produit_id = produits.id</code>.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
@@ -8706,7 +8712,7 @@ JOIN commandes
     reflex:{a:{k:"ON",t:"filtre les commandes au moment de les rattacher"},
       b:{k:"WHERE",t:"filtre les lignes après la jointure"},
       note:"Tu veux garder tous les clients tout en filtrant les commandes associées ? Mets la condition dans <code>ON</code>."},
-    },
+    viz:"onwhere"},
   anatomie:[
     {tok:"SELECT clients.nom, commandes.quantite",txt:"Affiche le client et la quantité trouvée."},
     {tok:"FROM clients",txt:"On part de la table clients : ce sont les lignes que l’on veut toutes conserver."},
@@ -9795,6 +9801,8 @@ WHERE rang = 1;</pre></div>
   indice:"Chaque colonne s’écrit <code>nom type</code>, séparée par une virgule. <code>PRIMARY KEY</code> sur l’identifiant, <code>NOT NULL</code> sur le nom, et <code>CHECK (stock >= 0)</code> sur le stock.",
   noExec:true,
   createExo:true,
+  noExecNote:"Ces trois tables existent déjà dans la base : les recréer déclencherait une erreur. Lis leur structure — c’est exactement celle que tu interroges depuis le début.",
+  noExecWhy:"Les tables <code>clients</code>, <code>produits</code> et <code>commandes</code> existent déjà : SQLite refuserait de les recréer.",
   noExecOk:{b:"✓ Correct — la structure est complète",t:"Les cinq colonnes sont là, avec leurs types et leurs trois contraintes. C’est mot pour mot la table <code>produits</code> de cette base."},
   richLesson:true, earlyDemo:true },
 { id:26, titre:"INSERT", résumé:"Ajouter une ligne",
@@ -10667,8 +10675,8 @@ ROLLBACK;</pre></div>
     {tok:"IF EXISTS",txt:"Facultatif : évite l’erreur si l’objet n’existe pas."},
     {tok:"commandes_test",txt:"Le nom de l’objet à supprimer."}
   ],
-  exemple:"CREATE TABLE commandes_test (\n    id INTEGER PRIMARY KEY,\n    quantite INTEGER\n);\n\nINSERT INTO commandes_test (id, quantite)\nVALUES (1, 3), (2, 5);\n\nDELETE FROM commandes_test;\n\nSELECT COUNT(*) AS lignes_restantes,\n       (SELECT COUNT(*) FROM sqlite_master\n        WHERE type = 'table' AND name = 'commandes_test') AS table_existe\nFROM commandes_test;",
-  attendu:"Zéro ligne restante, mais la table existe encore : DELETE a vidé son contenu sans toucher à sa structure. Il faudra DROP TABLE pour la faire disparaître.",
+  exemple:"CREATE TABLE commandes_test (\n  id INTEGER PRIMARY KEY,\n  quantite INTEGER\n);\n\nINSERT INTO commandes_test\n  (id, quantite)\nVALUES (1, 3), (2, 5);\n\nDELETE FROM commandes_test;\n\nDROP TABLE IF EXISTS commandes_test;\n\nSELECT COUNT(*) AS table_restante\nFROM sqlite_master\nWHERE name = 'commandes_test';",
+  attendu:"Zéro. DELETE avait vidé la table sans la faire disparaître ; DROP la retire de la base — sqlite_master ne la connaît plus.",
   retenir:"<code>DELETE</code> supprime des <b>lignes</b>. <code>DROP</code> supprime l’<b>objet</b> lui-même : la table, avec ses colonnes, ses contraintes et ses index.<br><br>Trois objets, trois commandes : <code>DROP TABLE</code>, <code>DROP VIEW</code>, <code>DROP INDEX</code>. <code>IF EXISTS</code> évite l’erreur quand l’objet n’existe pas.<br><br>Le mémo : <b>DELETE vide, DROP fait disparaître</b>.",
   piege:{t:"Croire que DELETE supprime la table",
     p:"<code>DELETE FROM commandes</code> retire les seize lignes, et s’arrête là. La table reste dans la base, avec ses cinq colonnes et ses clés étrangères — prête à recevoir de nouvelles lignes.<br><br>Pour qu’elle ne soit plus dans la base du tout, il faut <code>DROP TABLE</code>.",
@@ -11790,7 +11798,25 @@ const QCM={
  50:[{q:"<code>GRANT</code> sert à :",o:["Exécuter une requête plus vite","Accorder un droit à un utilisateur","Créer une table"],b:1,e:"<code>GRANT</code> donne une permission. <code>REVOKE</code> la retire."},
   {q:"Un compte qui doit seulement lire la table <code>clients</code> devrait recevoir :",o:["ALL PRIVILEGES","GRANT SELECT","REVOKE SELECT"],b:1,e:"Le minimum nécessaire : le droit de lecture, pas tous les droits."},
   {q:"Un SGBD, c’est :",o:["Une table SQL","Le logiciel qui stocke la base et exécute le SQL (SQLite, MySQL, PostgreSQL…)","Un type de JOIN"],b:1,e:"Cette app utilise SQLite. MySQL ou PostgreSQL sont des SGBD serveur, avec des comptes et des droits."},
-  {q:"Pourquoi <code>GRANT</code> échoue dans cette application ?",o:["La syntaxe est fausse","SQLite ne gère pas GRANT / REVOKE comme un serveur","Il manque un WHERE"],b:1,e:"C’est une notion de SQL serveur, volontairement non exécutable ici."}]
+  {q:"Pourquoi <code>GRANT</code> échoue dans cette application ?",o:["La syntaxe est fausse","SQLite ne gère pas GRANT / REVOKE comme un serveur","Il manque un WHERE"],b:1,e:"C’est une notion de SQL serveur, volontairement non exécutable ici."}],
+ 66:[{q:"<code>DELETE FROM commandes;</code> puis <code>DROP TABLE commandes;</code> — quelle différence ?",o:["Aucune, les deux vident la table","DELETE laisse la table vide, DROP la retire de la base","DROP est plus rapide mais fait la même chose"],b:1,e:"DELETE agit sur le contenu, DROP sur l’objet. Après DELETE la table répond encore ; après DROP, <code>no such table</code>."},
+   {q:"À quoi sert <code>IF EXISTS</code> dans <code>DROP TABLE IF EXISTS paniers;</code> ?",o:["À ne rien faire si la table n’existe pas, sans erreur","À supprimer la table seulement si elle est vide","À demander confirmation avant de supprimer"],b:0,e:"Sans lui, supprimer une table absente échoue sur <code>no such table</code>. Avec lui, l’instruction passe dans les deux cas."},
+   {q:"<code>TRUNCATE TABLE commandes;</code> dans cette application :",o:["Vide la table plus vite que DELETE","Renvoie une erreur de syntaxe : SQLite ne la connaît pas","Supprime la table comme DROP"],b:1,e:"PostgreSQL et MySQL la proposent, pas SQLite. Pour vider une table ici, on écrit <code>DELETE FROM commandes;</code>."}],
+ 67:[{q:"Un <code>INSERT</code> de deux lignes dont la seconde viole une contrainte :",o:["Écrit la première et refuse la seconde","N’écrit aucune des deux","Écrit les deux en signalant un avertissement"],b:1,e:"L’instruction est indivisible : tout passe, ou rien ne passe. La ligne valide n’est pas conservée."},
+   {q:"Ajouter un client avec l’<code>id</code> 1, déjà celui de Sophie, renvoie :",o:["PRIMARY KEY constraint failed","UNIQUE constraint failed: clients.id","DUPLICATE KEY error"],b:1,e:"SQLite parle d’<code>UNIQUE</code> : une clé primaire est avant tout une valeur qui ne peut pas se répéter."},
+   {q:"Une commande avec <code>client_id = NULL</code> est-elle acceptée ?",o:["Oui : NULL ne désigne aucun client, il n’y a rien à vérifier","Non : la clé étrangère l’interdit","Oui, mais seulement si la table est vide"],b:0,e:"C’est le cas de la commande 16 de cette base. Pour rendre le client obligatoire, il faudrait ajouter <code>NOT NULL</code> à côté de la clé étrangère."}],
+ 68:[{q:"Où se déclare <code>ON DELETE CASCADE</code> ?",o:["Dans le DELETE, au moment de supprimer","Dans le CREATE TABLE, à côté de la clé étrangère","Dans un PRAGMA, au début de la session"],b:1,e:"C’est une propriété de la table, posée une fois pour toutes. Au moment du <code>DELETE</code>, il n’y a rien à préciser."},
+   {q:"Une commande garde-t-elle un sens sans son client ? Quelle action choisir ?",o:["CASCADE : la commande disparaît avec lui","SET NULL : la commande reste, détachée","RESTRICT : la suppression est impossible pour toujours"],b:1,e:"Le chiffre d’affaires est préservé, le lien vers la personne est coupé. <code>CASCADE</code> conviendrait à une ligne de panier, qui n’a aucun sens seule."},
+   {q:"Sans aucune action déclarée, supprimer un client encore référencé :",o:["Supprime aussi ses commandes","Est refusé : FOREIGN KEY constraint failed","Met leurs client_id à NULL"],b:1,e:"C’est le comportement le plus prudent, et c’est pour cela qu’il est celui par défaut."}],
+ 69:[{q:"Dans <code>ON CONFLICT(id) DO UPDATE SET prix = excluded.prix</code>, que désigne <code>excluded</code> ?",o:["La ligne déjà présente dans la table","La ligne qui a tenté d’être insérée","La contrainte qui a été violée"],b:1,e:"<code>excluded.prix</code> vaut la valeur refusée. <code>produits.prix</code> désignerait l’ancienne."},
+   {q:"<code>INSERT INTO archive (nom, prix) SELECT nom, prix FROM produits;</code> :",o:["Est invalide : il manque VALUES","Insère autant de lignes que le SELECT en renvoie","N’insère qu’une seule ligne"],b:1,e:"Le <code>SELECT</code> remplace le <code>VALUES</code> : les colonnes se correspondent par position."},
+   {q:"Pourquoi éviter <code>INSERT OR REPLACE</code> pour corriger une seule colonne ?",o:["Il est plus lent que DO UPDATE","Il supprime l’ancienne ligne : les colonnes non citées repartent vides","Il ne fonctionne que sur les clés primaires"],b:1,e:"Corriger la ville de Sophie ainsi effacerait son âge, son e-mail et son téléphone. <code>DO UPDATE</code> ne touche que les colonnes nommées."}],
+ 70:[{q:"Un trigger <code>AFTER INSERT</code> sur une table se déclenche :",o:["Une fois par instruction","Une fois par ligne insérée","Une fois par session"],b:1,e:"SQLite ne connaît que le déclenchement ligne par ligne. Un <code>DELETE</code> qui retire cinq lignes déclenche le trigger cinq fois."},
+   {q:"Dans un trigger <code>AFTER DELETE</code>, quel nom désigne la ligne supprimée ?",o:["NEW","OLD","DELETED"],b:1,e:"<code>NEW</code> est la version qui arrive, <code>OLD</code> celle qui s’en va. Un DELETE n’a que <code>OLD</code>."},
+   {q:"Peut-on corriger une valeur dans un trigger <code>BEFORE</code> avec <code>SET NEW.stock = 0</code> ?",o:["Oui, c’est l’usage principal de BEFORE","Non : en SQLite c’est une erreur de syntaxe","Oui, mais seulement sur une colonne NOT NULL"],b:1,e:"Un trigger <code>BEFORE</code> n’a que deux réponses : laisser passer, ou refuser avec <code>RAISE(ABORT, …)</code>."}],
+ 71:[{q:"Deux caisses lisent un stock de 30, calculent 30 − 1 chacune et écrivent 29. Comment l’éviter ?",o:["En écrivant SET stock = stock - 1, calcul fait par la base","En relisant le stock juste avant d’écrire","En augmentant le niveau d’isolation à READ COMMITTED"],b:0,e:"Une instruction est indivisible : les deux caisses passent l’une après l’autre, 30 puis 29 puis 28. C’est la mise à jour perdue."},
+   {q:"Que fait <code>BEGIN IMMEDIATE</code> de plus que <code>BEGIN</code> ?",o:["Il valide la transaction sans COMMIT","Il prend le verrou d’écriture dès l’ouverture","Il empêche toute lecture concurrente"],b:1,e:"<code>BEGIN</code> seul vaut <code>DEFERRED</code> : rien n’est verrouillé tant qu’on ne fait que lire, et la transaction peut échouer plus tard."},
+   {q:"Quel niveau d’isolation SQLite applique-t-il ?",o:["READ COMMITTED, comme PostgreSQL par défaut","Le comportement de SERIALIZABLE, sans réglage possible","Aucun : les transactions ne sont pas isolées"],b:1,e:"Le moteur verrouille la base entière et n’autorise qu’un seul écrivain à la fois. Il n’existe pas de <code>SET TRANSACTION ISOLATION LEVEL</code>."}]
 };
 
 /* ============================================================
@@ -15385,14 +15411,23 @@ function flowProseHtml(s,{lead=false}={}){
   return parts.map((p,i)=>wrap(p.trim(),i)).join('');
 }
 function situationBodyHtml(s){ return flowProseHtml(s); }
+/* Certaines situations montrent un morceau de requete — « WHERE ville = 'Paris' »
+   — pour illustrer une clause. L'executer donnerait une erreur de syntaxe :
+   ces extraits s'affichent sans bouton. */
+function sqlExecutable(sql){
+  return /^\s*(SELECT|WITH|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|BEGIN|PRAGMA|EXPLAIN|REPLACE|SAVEPOINT|VACUUM|REINDEX)\b/i.test(String(sql||''));
+}
 function situationSqlBlock(sql){
   if(!sql)return '';
-  return `<div class="situation-sql exframe">
+  const actions=sqlExecutable(sql)
+    ?`<div class="xf-actions">
+      <button type="button" class="xf-run" data-sql="${escAttr(sql)}" onclick="runExemple(this)">${XF_RUN_ICO}Exécuter</button>
+    </div>`
+    :'';
+  return `<div class="situation-sql exframe${actions?'':' no-run'}">
     <div class="xf-head"><span class="xf-name">SQL</span><div class="xf-tools">${sqlCopyBtn()}</div></div>
     <div class="ex-code">${highlight(sql)}</div>
-    <div class="xf-actions">
-      <button type="button" class="xf-run" data-sql="${escAttr(sql)}" onclick="runExemple(this)">${XF_RUN_ICO}Exécuter</button>
-    </div>
+    ${actions}
     <div class="xf-result" hidden aria-live="polite"></div>
   </div>`;
 }
@@ -16998,7 +17033,7 @@ function lessonRichFooter(l){
   const variantsAttr=variants?` data-variants="${escAttr(JSON.stringify(variants))}" data-vi="0"`:'';
   const expect=testeExpectHtml(variants&&variants[0], l, !variants);
   const actions=noExec
-    ?`<p class="xf-noexec">Notion SQL serveur — ces commandes ne s’exécutent pas dans SQLite. Lis-les, ne les lance pas.</p>`
+    ?`<p class="xf-noexec">${(l&&l.noExecNote)||'Notion SQL serveur — ces commandes ne s’exécutent pas dans SQLite. Lis-les, ne les lance pas.'}</p>`
     :`<div class="xf-actions">
         <button type="button" class="xf-run" onclick="runExemple(this)">${XF_RUN_ICO}Exécuter</button>
       </div>`;
@@ -17052,7 +17087,8 @@ function runExemple(btn){
   const sql=(ta&&ta.value.trim())||btn.getAttribute('data-sql')||'';
   if(!host||!sql)return;
   if((frame&&frame.dataset.noExec==='1')||(current&&current.noExec)){
-    host.innerHTML=`<div class="feedback warn"><div class="fi">i</div><div><b>Non exécutable ici</b><p>SQLite ne gère pas <code>GRANT</code> / <code>REVOKE</code>. Cette commande est une notion de SQL serveur.</p></div></div>`;
+    const pourquoi=(current&&current.noExecWhy)||'SQLite ne gère pas <code>GRANT</code> / <code>REVOKE</code>. Cette commande est une notion de SQL serveur.';
+    host.innerHTML=`<div class="feedback warn"><div class="fi">i</div><div><b>Non exécutable ici</b><p>${pourquoi}</p></div></div>`;
     host.hidden=false;
     host.classList.add('on');
     return;
