@@ -151,12 +151,22 @@
 
   .mini-grid{border:1px solid var(--card-border);border-radius:14px;overflow:hidden;margin:14px 0;font-family:var(--mono);font-size:12px;background:var(--surface);box-shadow:var(--card-shadow-sm)}
   .mini-grid div{display:grid;grid-template-columns:34px 1fr 1fr}
+  .mini-grid.even div{grid-template-columns:1fr 1fr 1fr}
   .mini-grid .h{background:#FAFAFC;color:var(--accent);font-weight:700}
   .mini-grid span{padding:8px 10px;border-right:1px solid rgba(60,60,67,.08);color:var(--ink)}
   .mini-grid div:not(:last-child) span{border-bottom:1px solid rgba(60,60,67,.08)}
   .mini-grid span:last-child{border-right:none}
+  .mini-grid .more{display:flex;align-items:center;justify-content:center;min-height:28px;padding:0;color:var(--ink-3);letter-spacing:3px;font-weight:850;line-height:.7}
+  .mini-grid .more span{padding:6px 10px;border:none;color:var(--ink-3)}
   .mini-lab{display:flex;flex-wrap:wrap;gap:12px 16px;font-size:12px;color:var(--ink-3);margin:0 0 12px}
   .mini-lab i{font-style:normal}.mini-lab i b{color:var(--accent)}
+  .kind-tables{display:flex;flex-direction:column;gap:12px;margin:14px 0 4px}
+  .kind-table{min-width:0}
+  .kind-table > b{display:block;margin:0 0 6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.03em;color:var(--accent)}
+  .kind-table .mini-grid{margin:0}
+  @media (min-width:620px){
+    .kind-tables{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:start}
+  }
 
   .group-stack,.ent-list{padding:16px 18px 28px;display:flex;flex-direction:column;gap:20px}
   .module{margin:0}
@@ -6351,22 +6361,46 @@ const MODULES = [
       eye:"Relationnel",title:"Des tables, et des liens entre elles.",
       lead:"Une base de données conserve l’information de façon durable et permet de l’interroger. Dans le modèle relationnel, cette information est rangée en tables, et une table peut en désigner une autre.",
       chain:[
-        {k:"Table",v:"un sujet"},
-        {k:"Colonne",v:"une caractéristique"},
+        {k:"Table",v:"un type d’information"},
+        {k:"Colonne",v:"une information"},
         {k:"Ligne",v:"un exemplaire"}
       ]},
     uses:{title:"Du tableur à la base reliée.",
       body:`<div class="pt-lead fn-uses">
         <div class="fn-use">
-          <p class="pt-syntax-h">Une table, comme une feuille de tableur</p>
-          <p>La table <code>clients</code> décrit un seul sujet : les personnes. Une personne par ligne.</p>
+          <p class="pt-syntax-h">Une table organise un type d’information</p>
+          <p>La table <code>clients</code> regroupe les informations sur les clients.</p>
+          <p>Chaque ligne représente un client.</p>
           <div class="mini-grid"><div class="h"><span>id</span><span>nom</span><span>ville</span></div>
             <div><span>1</span><span>Sophie</span><span>Paris</span></div>
-            <div><span>2</span><span>Lucas</span><span>Lyon</span></div></div>
-          <div class="mini-lab"><i><b>↑</b> colonnes = les caractéristiques</i><i><b>←</b> lignes = les clients</i></div>
+            <div><span>2</span><span>Lucas</span><span>Lyon</span></div>
+            <div class="more" aria-hidden="true"><span>…</span></div></div>
+          <div class="mini-lab"><i><b>↑</b> colonnes = les informations sur un client</i><i><b>←</b> lignes = les clients</i></div>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">La colonne : une caractéristique, un type</p>
+          <p class="pt-syntax-h">Une table pour chaque type d’information</p>
+          <p>Les clients, les produits et les commandes ne vont pas dans la même table.</p>
+          <div class="kind-tables">
+            <div class="kind-table"><b>clients</b>
+              <div class="mini-grid even"><div class="h"><span>id</span><span>nom</span><span>ville</span></div>
+                <div><span>1</span><span>Sophie</span><span>Paris</span></div>
+                <div><span>2</span><span>Lucas</span><span>Lyon</span></div>
+                <div class="more" aria-hidden="true"><span>…</span></div></div></div>
+            <div class="kind-table"><b>commandes</b>
+              <div class="mini-grid even"><div class="h"><span>client_id</span><span>produit_id</span><span>quantite</span></div>
+                <div><span>1</span><span>1</span><span>2</span></div>
+                <div><span>1</span><span>3</span><span>1</span></div>
+                <div class="more" aria-hidden="true"><span>…</span></div></div></div>
+            <div class="kind-table"><b>produits</b>
+              <div class="mini-grid even"><div class="h"><span>id</span><span>nom</span><span>prix</span></div>
+                <div><span>1</span><span>Fibre</span><span>29,90</span></div>
+                <div><span>3</span><span>Magnésium</span><span>19,90</span></div>
+                <div class="more" aria-hidden="true"><span>…</span></div></div></div>
+          </div>
+          <p>Chaque table regroupe un type d’information précis.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">La colonne : une information, un type</p>
           <p>Une colonne porte un nom et n’accueille qu’une seule sorte de valeur. La table <code>clients</code> en compte sept : <code>id</code>, <code>nom</code>, <code>ville</code>, <code>age</code>, <code>email</code>, <code>telephone</code>, <code>date_inscription</code>.</p>
           <div class="table-wrap"><table class="concept-table fit-2">
             <thead><tr><th>Colonne</th><th>Type</th></tr></thead>
@@ -6427,7 +6461,7 @@ const MODULES = [
           <p>Le relationnel reste le plus répandu — pour ses garanties de cohérence, et pour SQL, qui permet de poser des questions que le modèle n’avait pas prévues.</p>
         </div>
       </div>`},
-    reflex:{a:{k:"Table",t:"un sujet : <b>clients</b>, <b>produits</b>, <b>commandes</b>"},
+    reflex:{a:{k:"Table",t:"un type d’information : <b>clients</b>, <b>produits</b>, <b>commandes</b>"},
       b:{k:"client_id",t:"le <b>lien</b> vers une autre table"},
       note:"Réflexe : une information ne s’écrit qu’à un seul endroit. Ailleurs, on la désigne par son identifiant."}},
   anatomie:[
