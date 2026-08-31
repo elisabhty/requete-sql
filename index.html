@@ -12405,6 +12405,13 @@ const APP_VERSION='2026-08-19-join-v15';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
+/* sessionStorage disparaît dès que le navigateur décharge l'onglet — ce que
+   fait iOS dès qu'on change d'application, et à chaque lancement depuis
+   l'écran d'accueil. On double donc l'enregistrement dans localStorage, qui
+   survit, mais on ne s'en sert que si la dernière visite est récente : au
+   retour du lendemain, l'accueil reste le bon point de départ. */
+const NAV_KEY_LONG='requete-nav-long-v1';
+const NAV_REPRISE_MS=6*60*60*1000;
 let openTableSchema=null;
 const DBS_KEY='requete-sql-dbs-v1';
 const memStore={};
@@ -12480,11 +12487,19 @@ function saveNav(override){
     }
     if(!nav) nav={view:'tab',tab:activeTab};
   }
-  try{ sessionStorage.setItem(NAV_KEY,JSON.stringify(nav)); }catch(e){}
+  const txt=JSON.stringify(nav);
+  try{ sessionStorage.setItem(NAV_KEY,txt); }catch(e){}
+  try{ localStorage.setItem(NAV_KEY_LONG,JSON.stringify({nav,ts:Date.now()})); }catch(e){}
 }
 function restoreNav(){
   let nav=null;
   try{ nav=JSON.parse(sessionStorage.getItem(NAV_KEY)); }catch(e){}
+  if(!nav){
+    try{
+      const long=JSON.parse(localStorage.getItem(NAV_KEY_LONG));
+      if(long&&long.nav&&Date.now()-(long.ts||0)<NAV_REPRISE_MS) nav=long.nav;
+    }catch(e){}
+  }
   if(!nav)return;
   if(!state.onboarded)return;
   document.body.classList.add('nav-restoring');
@@ -12497,8 +12512,10 @@ function restoreNav(){
       openChallenge(nav.defiId);
     }else if(nav.view==='review'&&nav.reviewId&&allLessons.some(l=>l.id===nav.reviewId)){
       openReview(nav.reviewId);
-    }else if(nav.tab){
-      switchTab(nav.tab);
+    }else{
+      /* Cours retiré ou renuméroté depuis la dernière visite : on revient au
+         moins sur l'onglet d'où l'on venait, plutôt que de tout perdre. */
+      switchTab(nav.tab||nav.fromTab||activeTab);
     }
   }finally{
     restoringNav=false;
