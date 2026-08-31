@@ -29,13 +29,19 @@ const onboardingStart = html.indexOf('function obFlowHeader(');
 const onboardingEnd = html.indexOf('function finishOnboard(', onboardingStart);
 const onboarding = html.slice(onboardingStart, onboardingEnd);
 
-assert((nav.match(/class="tab(?: active)?"/g) || []).length === 5, 'navigation principale limitée à 5 destinations');
+assert((nav.match(/class="tab(?: active)?"/g) || []).length === 7, 'navigation principale contient les 7 destinations demandées');
 assert(nav.includes('data-tab="learn"') && nav.includes('<span class="tab-label">Accueil</span>'), 'Accueil reste la première destination');
+assert(nav.includes('data-tab="planning"') && nav.includes('<span class="tab-label">Parcours</span>'), 'Parcours est accessible directement');
+assert(nav.includes('data-tab="defis"') && nav.includes('<span class="tab-label">Défis</span>'), 'Défis est accessible directement');
 assert(nav.includes('data-tab="notes"') && nav.includes('<span class="tab-label">Mes notes</span>'), 'Mes notes devient un onglet permanent');
 assert(nav.includes('data-tab="collection"') && nav.includes('<span class="tab-label">Cartes mémo</span>'), 'Cartes mémo devient un onglet permanent');
 assert(nav.includes('data-tab="entretien"') && nav.includes('<span class="tab-label">Entretien SQL</span>'), 'Entretien SQL devient un onglet permanent');
 assert(nav.includes('data-tab="compte"') && nav.includes('<span class="tab-label">Mon compte</span>'), 'Mon compte remplace le menu Plus');
-assert(!nav.includes('data-tab="defis"') && !nav.includes('data-tab="planning"') && !nav.includes('data-tab="console"'), 'Défis, Parcours et Console quittent la barre du bas');
+assert(!nav.includes('data-tab="console"'), 'Console reste accessible depuis l’accueil sans surcharger davantage le dock');
+assert(nav.indexOf('data-tab="learn"') < nav.indexOf('data-tab="planning"') && nav.indexOf('data-tab="planning"') < nav.indexOf('data-tab="defis"'), 'ordre Accueil, Parcours, Défis conservé');
+const defisRoot = html.slice(html.indexOf('id="scr-defis"'), html.indexOf('id="scr-lesson"'));
+const planningRoot = html.slice(html.indexOf('id="scr-planning"'), html.indexOf('id="scr-notes"'));
+assert(!defisRoot.includes('home-back') && !planningRoot.includes('home-back'), 'onglets racine sans bouton Accueil redondant');
 assert(html.includes('id="scr-notes"') && html.includes('function renderNotesScreen('), 'Mes notes possède un écran racine dédié');
 assert(html.includes('function homeToolsHTML()') && html.includes('Console SQL') && html.includes('Cartes mémo'), 'raccourcis pratiques ajoutés à l’accueil');
 assert(html.includes("switchTab('defis')") && html.includes("switchTab('entretien')"), 'Défis et Entretien restent accessibles depuis les outils');
@@ -52,7 +58,7 @@ assert(onboarding.includes('Garde ta progression.') && onboarding.includes('Cont
 assert(onboarding.includes('authReady') && onboarding.includes('<small>Bientôt</small>'), 'fournisseurs indisponibles présentés honnêtement');
 assert(onboarding.includes('Mode local et privé') && onboarding.includes('Progression sauvegardée sur cet appareil.'), 'bénéfice du mode local explicité');
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('.plus-details-body'), 'nouvelles micro-interactions respectent la réduction des mouvements');
-assert(serviceWorker.includes('requete-2026-08-30-prod-shell-v213'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-08-31-prod-shell-v215'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
