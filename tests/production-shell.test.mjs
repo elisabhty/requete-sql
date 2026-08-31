@@ -43,7 +43,11 @@ assert(html.includes('.tab{font-size:9.5px') && html.includes('.tab{font-size:9.
 assert(html.includes('@media (min-width:481px)') && html.includes('.tab-label{height:21px;min-height:21px}'), 'libellés du dock alignés sur une zone commune en desktop');
 const defisRoot = html.slice(html.indexOf('id="scr-defis"'), html.indexOf('id="scr-lesson"'));
 const planningRoot = html.slice(html.indexOf('id="scr-planning"'), html.indexOf('id="scr-notes"'));
-assert(!defisRoot.includes('home-back') && !planningRoot.includes('home-back'), 'onglets racine sans bouton Accueil redondant');
+assert(defisRoot.includes('root-home-back') && planningRoot.includes('root-home-back'), 'Défis et Parcours proposent un retour Accueil explicite');
+assert((html.match(/class="home-back root-home-back"/g)||[]).length===5, 'retour Accueil cohérent sur les cinq grandes pages concernées');
+assert(html.includes('function returnToHome()') && html.includes("title.focus({preventScroll:true})"), 'retour Accueil centralisé avec restitution accessible du focus');
+assert(html.includes("function lessonBackLabel(){return activeTab==='planning'?'Parcours':activeTab==='defis'?'Défis':'Accueil';}"), 'leçon renvoyée vers son écran d’origine avec un libellé clair');
+assert(html.includes("label.textContent=focused?'Questions':'Accueil'") && html.includes("focused?'Retour aux questions':'Retour à l’accueil'"), 'Entretien revient aux questions avant de revenir à l’accueil');
 assert(html.includes('id="scr-notes"') && html.includes('function renderNotesScreen('), 'Mes notes possède un écran racine dédié');
 assert(html.includes('function homeToolsHTML()') && html.includes('Console SQL') && html.includes('Cartes mémo'), 'raccourcis pratiques ajoutés à l’accueil');
 assert(html.includes("switchTab('defis')") && html.includes("switchTab('entretien')"), 'Défis et Entretien restent accessibles depuis les outils');
@@ -60,7 +64,7 @@ assert(onboarding.includes('Garde ta progression.') && onboarding.includes('Cont
 assert(onboarding.includes('authReady') && onboarding.includes('<small>Bientôt</small>'), 'fournisseurs indisponibles présentés honnêtement');
 assert(onboarding.includes('Mode local et privé') && onboarding.includes('Progression sauvegardée sur cet appareil.'), 'bénéfice du mode local explicité');
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('.plus-details-body'), 'nouvelles micro-interactions respectent la réduction des mouvements');
-assert(serviceWorker.includes('requete-2026-08-31-prod-shell-v219'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-08-31-prod-shell-v220'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
