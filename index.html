@@ -6271,14 +6271,34 @@
    ============================================================ */
 const SCHEMA_SQL = `
 PRAGMA foreign_keys = ON;
-CREATE TABLE clients (id INTEGER PRIMARY KEY, nom TEXT, ville TEXT, age INTEGER, email TEXT, telephone TEXT, date_inscription TEXT);
-CREATE TABLE produits (id INTEGER PRIMARY KEY, nom TEXT, categorie TEXT, prix REAL, stock INTEGER);
+/* Ce schema est celui qu'enseigne la lecon CREATE TABLE, a l'identique :
+   l'eleve doit retrouver dans la base les contraintes qu'on lui a montrees. */
+CREATE TABLE clients (
+  id INTEGER PRIMARY KEY,
+  nom TEXT NOT NULL,
+  ville TEXT,
+  age INTEGER CHECK (age >= 0),
+  email TEXT UNIQUE,
+  telephone TEXT,
+  date_inscription TEXT
+);
+CREATE TABLE produits (
+  id INTEGER PRIMARY KEY,
+  nom TEXT NOT NULL,
+  categorie TEXT,
+  prix REAL,
+  stock INTEGER CHECK (stock >= 0)
+);
 CREATE TABLE commandes (
   id INTEGER PRIMARY KEY,
-  client_id INTEGER REFERENCES clients(id),
-  produit_id INTEGER NOT NULL REFERENCES produits(id),
-  quantite INTEGER NOT NULL,
-  date_commande TEXT
+  client_id INTEGER,
+  produit_id INTEGER NOT NULL,
+  quantite INTEGER NOT NULL CHECK (quantite > 0),
+  date_commande TEXT,
+  FOREIGN KEY (client_id)
+    REFERENCES clients(id),
+  FOREIGN KEY (produit_id)
+    REFERENCES produits(id)
 );
 INSERT INTO clients VALUES
  (1,'Sophie','Paris',34,'sophie@mail.fr','06 39 98 12 04','2023-01-15'),
@@ -8595,8 +8615,8 @@ JOIN commandes
   exemple:"SELECT clients.nom, commandes.quantite\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",
   attendu:"INNER JOIN : 15 lignes (Inès disparaît). LEFT JOIN : 16 lignes (Inès + NULL). RIGHT JOIN : 16 lignes (invité + NULL). FULL OUTER JOIN : 17 lignes. CROSS JOIN clients × produits : 72 lignes.",
   retenir:"Avant d’écrire le <code>JOIN</code>, demande-toi quelles lignes doivent rester, même sans correspondance.<br><br><code>INNER JOIN</code> : seulement les correspondances. <code>LEFT JOIN</code> : toute la table de gauche. <code>FULL OUTER JOIN</code> : les deux tables. <code>CROSS JOIN</code> : toutes les combinaisons, sans <code>ON</code>.<br><br>Évite <code>RIGHT JOIN</code> : inverse les tables et écris <code>LEFT JOIN</code>.",
-  consigne:"Affiche tous les clients et leurs commandes éventuelles, en gardant les clients sans commande.",
-  solution:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",
+  consigne:"Un audit réclame la liste de tous les clients avec la date de leurs commandes. Les clients qui n’ont jamais commandé doivent figurer au résultat, avec une date vide. Affiche le nom, la ville et la date.",
+  solution:"SELECT clients.nom, clients.ville, commandes.date_commande\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",
   indice:"Quelle table doit rester entière ? Ici, tous les clients : <code>LEFT JOIN</code>.",
   joinRecap:true,
   richLesson:true, earlyDemo:true,
@@ -9743,7 +9763,8 @@ WHERE rang = 1;</pre></div>
         <div class="fn-use">
           <p class="pt-syntax-h">UNIQUE — empêcher les doublons</p>
           <div class="pt-syntax"><pre class="cw-syntax">email TEXT UNIQUE</pre></div>
-          <p>Si <code>sophie@mail.fr</code> existe déjà, aucune autre ligne ne pourra réutiliser cette valeur.</p>
+          <p>C’est la règle que porte <code>email</code> dans cette base : <code>sophie@mail.fr</code> étant déjà enregistré, aucune autre ligne ne peut reprendre cette adresse.</p>
+          <p class="fn-tip"><b>NULL y échappe</b> Hugo et Inès n’ont pas d’e-mail. <code>UNIQUE</code> compare des valeurs, et <code>NULL</code> n’en est pas une : plusieurs lignes peuvent rester sans adresse.</p>
           <p class="fn-tip"><b>À distinguer</b> <code>PRIMARY KEY</code> identifie la ligne. <code>UNIQUE</code> interdit seulement les valeurs répétées.</p>
         </div>
         <div class="fn-use">
@@ -9783,8 +9804,8 @@ WHERE rang = 1;</pre></div>
     {tok:"PRIMARY KEY",txt:"Une règle sur la colonne : cette valeur identifie la ligne."},
     {tok:",",txt:"La virgule passe à la colonne suivante. Toute la définition tient entre parenthèses."}
   ],
-  exemple:"CREATE TABLE clients (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    ville TEXT,\n    age INTEGER CHECK (age >= 0),\n    email TEXT,\n    telephone TEXT,\n    date_inscription TEXT\n);\n\nCREATE TABLE produits (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    categorie TEXT,\n    prix REAL,\n    stock INTEGER CHECK (stock >= 0)\n);\n\nCREATE TABLE commandes (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER,\n    produit_id INTEGER NOT NULL,\n    quantite INTEGER CHECK (quantite > 0),\n    date_commande TEXT,\n    FOREIGN KEY (client_id)\n        REFERENCES clients(id),\n    FOREIGN KEY (produit_id)\n        REFERENCES produits(id)\n);",
-  attendu:"Trois tables vides, reliées : commandes pointe vers clients et vers produits. Les INSERT viendront ensuite les remplir.",
+  exemple:"CREATE TABLE clients (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    ville TEXT,\n    age INTEGER CHECK (age >= 0),\n    email TEXT UNIQUE,\n    telephone TEXT,\n    date_inscription TEXT\n);\n\nCREATE TABLE produits (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    categorie TEXT,\n    prix REAL,\n    stock INTEGER CHECK (stock >= 0)\n);\n\nCREATE TABLE commandes (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER,\n    produit_id INTEGER NOT NULL,\n    quantite INTEGER NOT NULL\n        CHECK (quantite > 0),\n    date_commande TEXT,\n    FOREIGN KEY (client_id)\n        REFERENCES clients(id),\n    FOREIGN KEY (produit_id)\n        REFERENCES produits(id)\n);",
+  attendu:"Trois tables vides, reliées : commandes pointe vers clients et vers produits. C’est exactement la structure de la base sur laquelle tu travailles depuis le début. Les INSERT viendront ensuite la remplir.",
   retenir:"<code>CREATE TABLE</code> définit la structure d’une nouvelle table. Une colonne possède au minimum un <b>nom</b> et un <b>type</b>.<br><br>Elle peut aussi porter une contrainte : <code>PRIMARY KEY</code>, <code>NOT NULL</code>, <code>UNIQUE</code>, <code>CHECK</code>, <code>DEFAULT</code>, <code>FOREIGN KEY</code>.<br><br>Le mémo : <b>CREATE TABLE → colonnes → types → contraintes</b>.",
   piege:{t:"Croire que CREATE TABLE remplit la table",
     p:"<code>CREATE TABLE clients (...)</code> ne crée ni Sophie, ni Lucas, ni Emma. Elle crée les colonnes, leurs types et leurs règles — rien d’autre. C’est <code>INSERT</code> qui ajoute ensuite les données.",
@@ -9798,12 +9819,12 @@ WHERE rang = 1;</pre></div>
     a:"NOT NULL",
     answers:["NOT NULL","not null"]
   }],
-  consigne:"Crée la table <code>produits</code> : un identifiant qui identifie chaque ligne, un nom obligatoire, une catégorie en texte, un prix décimal et un stock entier.",
-  solution:"CREATE TABLE produits (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    categorie TEXT,\n    prix REAL,\n    stock INTEGER\n);",
-  indice:"Chaque colonne s’écrit <code>nom type</code>, séparée par une virgule. <code>PRIMARY KEY</code> sur l’identifiant, <code>NOT NULL</code> sur le nom.",
+  consigne:"Crée la table <code>produits</code> telle qu’elle existe dans cette base : un identifiant qui identifie chaque ligne, un nom obligatoire, une catégorie en texte, un prix décimal, et un stock entier qui ne peut jamais devenir négatif.",
+  solution:"CREATE TABLE produits (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    categorie TEXT,\n    prix REAL,\n    stock INTEGER CHECK (stock >= 0)\n);",
+  indice:"Chaque colonne s’écrit <code>nom type</code>, séparée par une virgule. <code>PRIMARY KEY</code> sur l’identifiant, <code>NOT NULL</code> sur le nom, et <code>CHECK (stock >= 0)</code> sur le stock.",
   noExec:true,
   createExo:true,
-  noExecOk:{b:"✓ Correct — la structure est complète",t:"Les cinq colonnes sont là, avec leurs types et leurs deux contraintes. Cette commande ne s’exécute pas dans SQLite : on compare le principe."},
+  noExecOk:{b:"✓ Correct — la structure est complète",t:"Les cinq colonnes sont là, avec leurs types et leurs trois contraintes. C’est mot pour mot la table <code>produits</code> de cette base."},
   richLesson:true, earlyDemo:true },
 { id:26, titre:"INSERT", résumé:"Ajouter une ligne",
   situation:"Un nouveau client s’inscrit. Tu l’ajoutes dans la table <code>clients</code>, en nommant les colonnes.",
@@ -10415,7 +10436,7 @@ ROLLBACK;</pre></div>
     {k:'lignes',label:'Les lignes',sql:"SELECT COUNT(*) AS lignes\nFROM commandes;",out:"Seize lignes. DELETE les ram\u00e8nerait \u00e0 z\u00e9ro sans retirer commandes de la liste ci-dessus."}
   ] },
 { id:67, titre:"Les contraintes à l’épreuve", résumé:"Ce que la base refuse d’écrire",
-  situation:"Le cours <code>CREATE TABLE</code> a posé des règles sur les colonnes : une clé primaire, des valeurs obligatoires, des clés étrangères.<br><br>Ces règles ne sont pas des commentaires. À chaque écriture, la base les vérifie une par une.<br><br>Tu ajoutes un client avec l’<code>id</code> 1 — déjà pris par Sophie. La ligne n’est pas ajoutée, et la base dit pourquoi.",
+  situation:"Le cours <code>CREATE TABLE</code> a posé des règles sur les colonnes de cette base : une clé primaire, des valeurs obligatoires, un e-mail unique, des quantités positives, des clés étrangères.<br><br>Ces règles ne sont pas des commentaires. À chaque écriture, la base les vérifie une par une.<br><br>Tu ajoutes un client avec l’<code>id</code> 1 — déjà pris par Sophie. La ligne n’est pas ajoutée, et la base dit pourquoi.",
   situationTail:"<div class=\"sit-sql\"><p>Que se passe-t-il exactement quand une règle est enfreinte ?</p><p>L’écriture est <b>annulée</b>, et le message nomme la règle.</p></div>",
     studio:{pointCards:{
       eye:"Contraintes",title:"Une règle enfreinte annule l’écriture.",
@@ -10462,30 +10483,27 @@ VALUES (17, 1, 3);</pre></div>
           <p>La colonne <code>quantite</code> est déclarée <code>NOT NULL</code>. Ne pas la citer revient à y mettre <code>NULL</code> — ce que la règle interdit.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">UNIQUE — la valeur est déjà utilisée</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE inscriptions (
-    id INTEGER PRIMARY KEY,
-    email TEXT UNIQUE,
-    age INTEGER CHECK (age >= 18)
-);
-
-INSERT INTO inscriptions
-VALUES (1, 'sophie@mail.fr', 34);
-INSERT INTO inscriptions
-VALUES (2, 'sophie@mail.fr', 28);</pre></div>
+          <p class="pt-syntax-h">UNIQUE — la valeur est déjà prise</p>
+          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO clients
+    (id, nom, email)
+VALUES (20, 'Sophie B.',
+        'sophie@mail.fr');</pre></div>
           <div class="tx-fail">
-            <span class="is-ko">UNIQUE constraint failed<i>inscriptions.email</i></span>
+            <span class="is-ko">UNIQUE constraint failed<i>clients.email</i></span>
           </div>
-          <p>La première inscription passe. La seconde reprend un e-mail déjà enregistré : elle est refusée.</p>
+          <p>La colonne <code>email</code> est déclarée <code>UNIQUE</code>. Cette adresse est celle de Sophie : aucune autre ligne ne peut la reprendre.</p>
+          <p class="fn-tip"><b>NULL y échappe</b> Hugo et Inès n’ont pas d’e-mail. <code>UNIQUE</code> compare des valeurs, et <code>NULL</code> n’en est pas une : plusieurs lignes peuvent rester sans adresse.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">CHECK — la condition n’est pas remplie</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO inscriptions
-VALUES (3, 'lucas@mail.fr', 15);</pre></div>
+          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO commandes
+    (id, client_id,
+     produit_id, quantite)
+VALUES (17, 1, 3, 0);</pre></div>
           <div class="tx-fail">
-            <span class="is-ko">CHECK constraint failed<i>age >= 18</i></span>
+            <span class="is-ko">CHECK constraint failed<i>quantite &gt; 0</i></span>
           </div>
-          <p>Le message reprend la condition telle qu’elle a été écrite dans <code>CREATE TABLE</code>.</p>
+          <p>Commander zéro unité n’aurait aucun sens. Le message reprend la condition telle qu’elle a été écrite dans <code>CREATE TABLE</code>.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">FOREIGN KEY — la référence n’existe pas</p>
@@ -10542,8 +10560,8 @@ VALUES (20, 'Zinc', 17.90, 70),
     out:"UNIQUE constraint failed: produits.id — et Zinc n’a pas été écrit non plus.",
     fixSql:"INSERT INTO produits\n    (id, nom, prix, stock)\nVALUES (20, 'Zinc', 17.90, 70),\n       (21, 'Fer', 19.90, 55);\n\nSELECT COUNT(*) AS produits\nFROM produits;"},
   petitDefi:[{
-    p:"Une table déclare <code>age INTEGER CHECK (age >= 18)</code>. Tu tentes d’y insérer un âge de 15. Quel mot la base cite-t-elle dans son message de refus ?",
-    sql:"__________ constraint failed: age >= 18",
+    p:"La table <code>commandes</code> déclare <code>quantite INTEGER NOT NULL CHECK (quantite > 0)</code>. Tu tentes d’y insérer une quantité de 0. Quel mot la base cite-t-elle dans son message de refus ?",
+    sql:"__________ constraint failed: quantite > 0",
     a:"CHECK",
     answers:["CHECK","check","CHECK constraint","contrainte CHECK"]
   }],
@@ -10555,7 +10573,8 @@ VALUES (20, 'Zinc', 17.90, 70),
   richLesson:true, earlyDemo:true,
   testeVariants:[
     {k:'pk',label:'PRIMARY KEY',sql:"INSERT INTO clients\n    (id, nom, ville)\nVALUES (1, 'Doublon', 'Nice');",out:"Refus\u00e9 : l\u2019identifiant 1 est celui de Sophie.",tone:'bad'},
-    {k:'nn',label:'NOT NULL',sql:"INSERT INTO commandes\n    (id, client_id, produit_id)\nVALUES (17, 1, 3);",out:"Refus\u00e9 : quantite est obligatoire.",tone:'bad'},
+    {k:'un',label:'UNIQUE',sql:"INSERT INTO clients\n    (id, nom, email)\nVALUES (20, 'Sophie B.',\n        'sophie@mail.fr');",out:"Refus\u00e9 : cette adresse est d\u00e9j\u00e0 celle de Sophie.",tone:'bad'},
+    {k:'ck',label:'CHECK',sql:"INSERT INTO commandes\n    (id, client_id,\n     produit_id, quantite)\nVALUES (17, 1, 3, 0);",out:"Refus\u00e9 : la quantit\u00e9 doit \u00eatre strictement positive.",tone:'bad'},
     {k:'fk',label:'FOREIGN KEY',sql:"INSERT INTO commandes\n    (id, client_id,\n     produit_id, quantite)\nVALUES (17, 5000, 3, 2);",out:"Refus\u00e9 : aucun client ne porte l\u2019identifiant 5000.",tone:'bad'},
     {k:'ok',label:'Accepté',sql:"INSERT INTO commandes\n    (id, client_id,\n     produit_id, quantite)\nVALUES (17, 1, 3, 2);\n\nSELECT id, client_id, produit_id\nFROM commandes\nWHERE id = 17;",out:"Toutes les r\u00e8gles sont respect\u00e9es : la ligne est \u00e9crite.",tone:'good'}
   ] },
@@ -17258,6 +17277,8 @@ function checkCreateExo(u){
     return {ok:false,diag:'Un prix décimal se déclare en REAL.'};
   if(!/\bSTOCK\s+INTEGER\b/.test(u))
     return {ok:false,diag:'Le stock est un entier : stock INTEGER.'};
+  if(!/\bCHECK\s*\(\s*STOCK\s*>=?\s*0\s*\)/.test(u))
+    return {ok:false,diag:'Le stock ne peut jamais devenir négatif : stock INTEGER CHECK (stock >= 0).'};
   if(!/\bCATEGORIE\s+TEXT\b/.test(u))
     return {ok:false,diag:'Il manque la colonne categorie, en TEXT.'};
   return {ok:true};
