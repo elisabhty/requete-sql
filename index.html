@@ -1102,6 +1102,20 @@
   .pt-hop-k{font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-3)}
   .pt-hop-v{font-family:var(--mono);font-size:13.5px;font-weight:700;color:var(--ink);overflow-wrap:anywhere}
   .pt-hop-out{font-size:12.5px;font-weight:650;color:var(--ink-2);line-height:1.4}
+  .pt-hop-ex{font-size:12.5px;font-weight:650;color:var(--ink-2);line-height:1.4}
+  .pt-hop-ex b{color:var(--ink);font-weight:750}
+  .tbl-tree{margin:0 0 14px;padding:12px;border:1px solid var(--card-border);border-radius:16px;background:var(--surface)}
+  .tbl-tree-root{padding:9px 11px;border-radius:11px;background:var(--accent-soft);font-size:13px;font-weight:750;color:var(--ink)}
+  .tbl-tree-root code{font-family:var(--mono);font-size:.92em;color:var(--accent);font-weight:800}
+  .tbl-tree-branch{display:flex;flex-direction:column;gap:8px;margin:10px 0 0 8px;padding:2px 0 0 14px;border-left:2px solid rgba(91,91,214,.22)}
+  .tbl-tree-branch div{padding:8px 10px;border-radius:11px;background:var(--surface-2)}
+  .tbl-tree-branch b{display:block;font-size:10.5px;font-weight:850;letter-spacing:.4px;text-transform:uppercase;color:var(--accent)}
+  .tbl-tree-branch span{display:block;margin-top:3px;font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--ink)}
+  .tbl-tree-branch span code{font-family:inherit;font-size:inherit;font-weight:inherit;color:inherit}
+  .rel-card li.is-key,.rel-card li.is-fk{background:rgba(91,91,214,.1);border-radius:5px;padding:1px 5px}
+  .id-link{margin:0 0 2px;padding:12px 10px 10px;border:1px solid var(--card-border);border-radius:16px;background:var(--surface)}
+  .id-link-row{display:grid;grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr);align-items:stretch;gap:6px}
+  .id-link figcaption{margin:10px 2px 0;text-align:center;font-size:13px;font-weight:650;line-height:1.4;color:var(--ink-2)}
   .pt-hop:last-child .pt-hop-v{color:var(--accent)}
   .pt-hop-ans{margin-top:4px;font-size:13px;font-weight:750;line-height:1.35}
   .pt-hop-ans.ok{color:var(--success)}
@@ -6367,12 +6381,27 @@ const MODULES = [
   situationTail:"<figure class=\"ecom-flow\" aria-label=\"Du site e-commerce à la base relationnelle\"><div class=\"ecom-node is-hero\">Tu gères un site e-commerce</div><i class=\"ecom-arrow\" aria-hidden=\"true\">↓</i><div class=\"ecom-node\">Tu dois mémoriser…</div><i class=\"ecom-arrow\" aria-hidden=\"true\">↓</i><div class=\"ecom-trio\"><div><b>clients</b><span>Qui ?</span></div><div><b>produits</b><span>Quoi ?</span></div><div><b>commandes</b><span>Qui achète quoi ?</span></div></div><i class=\"ecom-arrow\" aria-hidden=\"true\">↓</i><div class=\"ecom-node\">Tables reliées</div><i class=\"ecom-arrow\" aria-hidden=\"true\">↓</i><div class=\"ecom-node is-end\">Base relationnelle</div></figure>",
     studio:{pointCards:{
       eye:"Relationnel",title:"Des tables, et des liens entre elles.",
-      lead:"Une base de données conserve l’information de façon durable et permet de l’interroger. Dans le modèle relationnel, cette information est rangée en tables, et une table peut en désigner une autre.",
+      lead:"<p>Une base de données organise les informations dans des <b>tables</b>.</p><p>Chaque table représente un type d’information, comme les clients, les produits ou les commandes.</p><p>Ces tables peuvent ensuite être <b>reliées entre elles grâce à des identifiants communs</b>.</p>",
       chain:[
-        {k:"Table",v:"un type d’information"},
-        {k:"Colonne",v:"une information"},
-        {k:"Ligne",v:"un exemplaire"}
-      ]},
+        {k:"Table",v:"un type d’information",ex:"<b>les clients</b>"},
+        {k:"Colonne",v:"une caractéristique",ex:"<b>le nom, la ville, l’âge</b>"},
+        {k:"Ligne",v:"un élément enregistré",ex:"<b>Sophie, Paris, 34 ans</b>"}
+      ],
+      after:`<figure class="tbl-tree" aria-label="Une table, ses colonnes et une ligne">
+        <div class="tbl-tree-root"><b>TABLE</b> <code>clients</code></div>
+        <div class="tbl-tree-branch">
+          <div><b>Colonnes</b><span><code>nom</code> · <code>ville</code> · <code>age</code></span></div>
+          <div><b>Ligne</b><span>Sophie · Paris · 34</span></div>
+        </div>
+      </figure>
+      <figure class="id-link" aria-label="Le même identifiant relie clients et commandes">
+        <div class="id-link-row">
+          <section class="rel-card"><h3>clients</h3><ul><li class="is-key">id</li><li>nom</li><li>ville</li></ul></section>
+          <span class="rel-arrow" aria-hidden="true">→</span>
+          <section class="rel-card is-hub"><h3>commandes</h3><ul><li>id</li><li class="is-fk">client_id</li><li>produit_id</li><li>quantite</li></ul></section>
+        </div>
+        <figcaption>même identifiant = lien entre les tables</figcaption>
+      </figure>`},
     uses:{title:"Du tableur à la base reliée.",
       body:`<div class="pt-lead fn-uses">
         <div class="fn-use">
@@ -15679,7 +15708,7 @@ function renderPointCards(pc){
   const chaine=pc.chain?`<ol class="pt-chain">
       ${pc.chain.map((c,i)=>`<li class="pt-hop">
         <span class="pt-hop-n" aria-hidden="true">${i+1}</span>
-        <span class="pt-hop-txt"><span class="pt-hop-k">${c.k}</span><b class="pt-hop-v">${c.v}</b>${c.out?`<span class="pt-hop-out">${esc(c.out)}</span>`:''}</span>
+        <span class="pt-hop-txt"><span class="pt-hop-k">${c.k}</span><b class="pt-hop-v">${c.v}</b>${c.out?`<span class="pt-hop-out">${esc(c.out)}</span>`:''}${c.ex?`<span class="pt-hop-ex">Exemple : ${c.ex}</span>`:''}</span>
       </li>`).join('')}
     </ol>`:'';
   const all=pc.cards||[];
@@ -15693,7 +15722,7 @@ function renderPointCards(pc){
       ${c.draw?`<div class="pt-draw">${pointDraw(c)}</div>`:''}
       ${c.b?`<div class="pt-card-b">${c.b}</div>`:''}
     </div>`).join('');
-  return `${intro}${chaine}${head}${cartes?`<div class="pt-grid">${cartes}</div>`:''}`;
+  return `${intro}${chaine}${pc.after||''}${head}${cartes?`<div class="pt-grid">${cartes}</div>`:''}`;
 }
 /* Schémas minimaux : du HTML mis en forme, pour rester lisible et se replier
    comme le reste — pas d'image à charger. */
