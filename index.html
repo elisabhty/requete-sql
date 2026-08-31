@@ -158,8 +158,11 @@
   .mini-grid span:last-child{border-right:none}
   .mini-grid .more{display:flex;align-items:center;justify-content:center;min-height:28px;padding:0;color:var(--ink-3);letter-spacing:3px;font-weight:850;line-height:.7}
   .mini-grid .more span{padding:6px 10px;border:none;color:var(--ink-3)}
-  .mini-lab{display:flex;flex-wrap:wrap;gap:12px 16px;font-size:12px;color:var(--ink-3);margin:0 0 12px}
-  .mini-lab i{font-style:normal}.mini-lab i b{color:var(--accent)}
+  .mini-lab{display:flex;flex-direction:column;gap:10px;margin:2px 0 4px;font-size:12.5px;color:var(--ink-2)}
+  .mini-lab i{display:flex;flex-direction:column;gap:3px;font-style:normal;font-weight:650;line-height:1.35}
+  .mini-lab i b{color:var(--accent);font-weight:800}
+  .mini-lab i span{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink)}
+  .mini-lab i span code{font-family:inherit;font-size:inherit;font-weight:inherit}
   .kind-tables{display:flex;flex-direction:column;gap:12px;margin:14px 0 4px}
   .kind-table{min-width:0}
   .kind-table > b{display:block;margin:0 0 6px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.03em;color:var(--accent)}
@@ -6407,12 +6410,16 @@ const MODULES = [
         <div class="fn-use">
           <p class="pt-syntax-h">Une table organise un type d’information</p>
           <p>La table <code>clients</code> regroupe les informations sur les clients.</p>
-          <p>Chaque ligne représente un client.</p>
+          <p>La table <code>clients</code> regroupe les informations sur les clients.</p>
+          <p><b>Chaque colonne décrit une caractéristique. Chaque ligne représente un client.</b></p>
           <div class="mini-grid"><div class="h"><span>id</span><span>nom</span><span>ville</span></div>
             <div><span>1</span><span>Sophie</span><span>Paris</span></div>
             <div><span>2</span><span>Lucas</span><span>Lyon</span></div>
             <div class="more" aria-hidden="true"><span>…</span></div></div>
-          <div class="mini-lab"><i><b>↑</b> colonnes = les informations sur un client</i><i><b>←</b> lignes = les clients</i></div>
+          <div class="mini-lab">
+            <i><b>↑ Colonnes</b> = les caractéristiques des clients<span><code>id</code> · <code>nom</code> · <code>ville</code></span></i>
+            <i><b>← Lignes</b> = un client par ligne<span>Sophie · Lucas · …</span></i>
+          </div>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Une table pour chaque type d’information</p>
@@ -8019,12 +8026,42 @@ FROM produits;</pre></div>
             code:"SELECT nom\nFROM clients\nWHERE <span class=\"vs-line good\">id = 1</span>;"}},
     why:{title:"Comment l’id distingue les lignes ?"},
     viz:"pk",
+    uses:{title:"Une clé, plusieurs formes.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Le numéro que la base attribue</p>
+          <div class="pt-syntax"><pre class="cw-syntax">id INTEGER PRIMARY KEY</pre></div>
+          <p>Écrite ainsi, la colonne se remplit toute seule : un <code>INSERT</code> qui ne donne pas d’<code>id</code> reçoit le plus grand identifiant existant, plus un.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">AUTOINCREMENT — ne jamais réutiliser un numéro</p>
+          <p>Supprime la dernière ligne, insères-en une nouvelle : son identifiant reprend celui qui vient d’être libéré. Les numéros sont réemployés.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">id INTEGER PRIMARY KEY
+  AUTOINCREMENT</pre></div>
+          <p>Avec ce mot, SQLite retient le plus grand numéro jamais donné dans une table interne, <code>sqlite_sequence</code>, et repart toujours au-dessus. Un identifiant supprimé ne revient plus.</p>
+          <p class="fn-tip"><b>Quand ça compte</b> Une facture ou un ticket ne doivent pas voir leur numéro réattribué. Ailleurs, le comportement par défaut suffit — et coûte moins cher.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Quand une seule colonne ne suffit pas</p>
+          <p>Une table qui enregistre « ce client a acheté ce produit » n’a pas d’identifiant naturel : ni le client ni le produit ne sont uniques à eux seuls. C’est leur <b>couple</b> qui l’est.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE achats (
+  client_id INTEGER,
+  produit_id INTEGER,
+  PRIMARY KEY (client_id,
+               produit_id)
+);</pre></div>
+          <p>La clé primaire porte alors sur deux colonnes. Chacune peut se répéter — le client 1 revient autant de fois qu’il achète — mais jamais la même paire deux fois.</p>
+          <div class="tx-fail">
+            <span class="is-ko">deux fois (1, 1)<i>UNIQUE constraint failed</i></span>
+          </div>
+        </div>
+      </div>`},
     reflex:{a:{k:"PRIMARY KEY",t:"unique, obligatoire, <b>une par ligne</b>"},
       b:{k:"nom, ville",t:"peuvent se <b>répéter</b> — ce ne sont pas des clés"}}},
   anatomie:[{tok:"id",plain:1,txt:"Clé primaire : un numéro unique par client."},{tok:"nom",plain:1,txt:"Peut se répéter. Ne sert pas d’identifiant."},{tok:"ville",plain:1,txt:"Paris apparaît 3 fois : ce n’est pas une clé."}],
   exemple:"SELECT id, nom FROM clients;",
   attendu:"<b>9 lignes</b> : chaque client avec son <code>id</code> unique.",
-  retenir:"La <b>clé primaire</b> identifie une ligne et une seule. Dans la table <code>clients</code>, c’est <code>id</code>. Le nom ou la ville peuvent se répéter ; l’<code>id</code> non.",
+  retenir:"La <b>clé primaire</b> identifie une ligne et une seule. Dans la table <code>clients</code>, c’est <code>id</code>. Le nom ou la ville peuvent se répéter ; l’<code>id</code> non.<br><br><code>INTEGER PRIMARY KEY</code> se remplit tout seul. <code>AUTOINCREMENT</code> garantit en plus qu’un numéro supprimé ne sera jamais réemployé.<br><br>Quand aucune colonne seule n’identifie la ligne, la clé porte sur plusieurs colonnes : <code>PRIMARY KEY (client_id, produit_id)</code>.",
   piege:{t:"Utiliser le nom comme identifiant",p:"Deux personnes peuvent s’appeler pareil. <code>WHERE nom = 'Sophie'</code> n’est sûr que s’il n’y a qu’une Sophie. <code>WHERE id = 1</code> désigne toujours la même ligne."},
   consigne:"Affiche l’<code>id</code> et le <code>nom</code> de chaque client.",
   solution:"SELECT id, nom FROM clients;",
@@ -8046,12 +8083,26 @@ FROM produits;</pre></div>
             code:"SELECT <span class=\"vs-line good\">client_id</span>\nFROM commandes;"}},
     why:{title:"Comment client_id retrouve Sophie ?"},
     viz:"fk",
+    uses:{title:"Déclarer ne suffit pas.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Une règle que SQLite n’applique pas d’office</p>
+          <p>Une clé étrangère déclarée dans <code>CREATE TABLE</code> n’est pas vérifiée par défaut : SQLite laisse passer une commande dont le <code>client_id</code> ne désigne personne.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">PRAGMA foreign_keys = ON;</pre></div>
+          <p>Cette ligne active le contrôle. Sans elle, <code>client_id = 999</code> entre dans la table sans un mot, et la commande devient orpheline.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Un réglage par connexion, pas par base</p>
+          <p>Le réglage ne s’enregistre pas dans le fichier : il vaut pour la session en cours. Chaque programme qui ouvre la base doit le redemander, en tête de script ou à la connexion.</p>
+          <p class="fn-tip"><b>Ici, c’est déjà fait</b> Cette application l’active à l’ouverture de chaque base de travail : tes exercices voient donc les clés étrangères respectées.</p>
+        </div>
+      </div>`},
     reflex:{a:{k:"PRIMARY KEY",t:"<code>clients.id</code> — unique"},
       b:{k:"FOREIGN KEY",t:"<code>commandes.client_id</code> — <b>peut se répéter</b>"}}},
   anatomie:[{tok:"clients.id",plain:1,txt:"Clé primaire : Sophie = 1, une seule fois."},{tok:"commandes.client_id",plain:1,txt:"Clé étrangère : autant de 1 que Sophie a de commandes."},{tok:"produit_id",plain:1,txt:"Autre clé étrangère, vers <code>produits.id</code>."}],
   exemple:"SELECT client_id, produit_id FROM commandes;",
   attendu:"<b>16 lignes</b> : 15 commandes pointent vers un client ; la commande <code>id = 16</code> est un achat en invité (<code>client_id</code> vide).",
-  retenir:"Une <b>clé étrangère</b> recopie la clé primaire d’une autre table. <code>commandes.client_id</code> vaut <code>clients.id</code>. Un client (1) peut avoir plusieurs commandes : la clé étrangère se répète.",
+  retenir:"Une <b>clé étrangère</b> recopie la clé primaire d’une autre table. <code>commandes.client_id</code> vaut <code>clients.id</code>. Un client (1) peut avoir plusieurs commandes : la clé étrangère se répète.<br><br>Dans SQLite, la vérification n’est pas active par défaut : il faut <code>PRAGMA foreign_keys = ON;</code> à chaque connexion.",
   piege:{t:"Croire que la clé étrangère est unique",p:"La primaire est unique. L’étrangère non : c’est le principe d’une relation 1-N. Sophie (<code>id = 1</code>) a 3 commandes, donc <code>client_id = 1</code> apparaît 3 fois.",
     sql:"SELECT client_id FROM commandes;"},
   consigne:"Affiche le <code>client_id</code> et le <code>produit_id</code> de chaque commande.",
@@ -9529,9 +9580,201 @@ WHERE rang = 1;</pre></div>
     {k:'group',label:'GROUP BY',sql:"SELECT categorie, AVG(prix) AS prix_moyen\nFROM produits\nGROUP BY categorie;",out:"5 lignes : une moyenne par catégorie. Les produits ont disparu."},
     {k:'over',label:'OVER()',sql:"SELECT nom, categorie, prix,\n    AVG(prix) OVER (PARTITION BY categorie) AS prix_moyen\nFROM produits;",out:"8 lignes. Chaque produit reste, avec la moyenne de sa catégorie.",tone:'good'},
     {k:'minmax',label:'MIN / MAX',sql:"SELECT nom, categorie, prix,\n    MIN(prix) OVER (PARTITION BY categorie) AS prix_min,\n    MAX(prix) OVER (PARTITION BY categorie) AS prix_max\nFROM produits;",out:"Le Magnésium (19,90) se compare au min et au max des Bien-être."}
+  ] },
+{ id:73, titre:"UNION", résumé:"Empiler les résultats de deux requêtes",
+  situation:"Tu veux la liste de tous les mots qui servent d’étiquette dans la base : les villes des clients, et les catégories des produits.<br><br>Les deux vivent dans des tables différentes. Une jointure ne convient pas : il n’y a rien à rapprocher, aucune correspondance entre une ville et une catégorie.<br><br>Tu ne veux pas croiser deux tables — tu veux <b>empiler</b> deux résultats.",
+  situationTail:"<div class=\"sit-sql\"><p>Une jointure élargit le résultat : elle ajoute des <b>colonnes</b>.</p><p><b><code>UNION</code></b> l’allonge : il ajoute des <b>lignes</b>.</p></div>",
+    studio:{pointCards:{
+      eye:"UNION",title:"Deux résultats, une seule liste.",
+      lead:"<code>UNION</code> met bout à bout les lignes de deux <code>SELECT</code>. Les colonnes ne se cumulent pas : ce sont les lignes qui s’ajoutent.",
+      chain:[
+        {k:"UNION",v:"empile et dédoublonne"},
+        {k:"UNION ALL",v:"empile tout"},
+        {k:"JOIN",v:"élargit, ne rallonge pas"}
+      ]},
+    uses:{title:"Empiler, plutôt que croiser.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">La forme</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville FROM clients
+UNION
+SELECT categorie FROM produits;</pre></div>
+          <p>Neuf villes et huit catégories entrent ; onze valeurs sortent. Les doublons ont disparu, et Paris n’apparaît qu’une fois même si trois clientes y habitent.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">UNION ALL — garder les doublons</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville FROM clients
+UNION ALL
+SELECT categorie FROM produits;</pre></div>
+          <p>Dix-sept lignes : les neuf plus les huit, sans le moindre tri. C’est la somme brute des deux résultats.</p>
+          <p class="fn-tip"><b>Le moins cher des deux</b> <code>UNION</code> doit comparer toutes les lignes pour écarter les doublons. Si tu sais qu’il n’y en a pas, <code>UNION ALL</code> évite ce travail.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Deux conditions à respecter</p>
+          <p>Les deux requêtes doivent renvoyer le <b>même nombre de colonnes</b>, et des types compatibles rang par rang.</p>
+          <div class="tx-fail">
+            <span class="is-ko">une colonne UNION deux colonnes<i>do not have the same number of result columns</i></span>
+          </div>
+          <p>Le nom des colonnes, lui, est libre : c’est celui de la <b>première</b> requête qui est retenu.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Trier l’ensemble</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville AS valeur FROM clients
+UNION
+SELECT categorie FROM produits
+ORDER BY valeur;</pre></div>
+          <p>Un seul <code>ORDER BY</code>, à la toute fin : il trie le résultat complet, pas chaque moitié. C’est pour cela qu’un alias sur la première requête est commode.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Deux voisins moins connus</p>
+          <p><code>INTERSECT</code> ne garde que les valeurs présentes des <b>deux</b> côtés. <code>EXCEPT</code> garde celles du premier résultat qui sont absentes du second.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville FROM clients
+EXCEPT
+SELECT 'Paris';</pre></div>
+          <p>Cinq villes : toutes sauf Paris. Les trois opérateurs suivent les mêmes règles de colonnes.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">UNION ou JOIN ?</p>
+          <div class="tx-flow" role="img" aria-label="JOIN ajoute des colonnes, UNION ajoute des lignes">
+            <span class="tx-step">deux tables<i>que veux-tu obtenir ?</i></span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <div class="tx-fork">
+              <div class="tx-branch"><b>JOIN</b><span>plus de colonnes</span></div>
+              <div class="tx-branch"><b>UNION</b><span>plus de lignes</span></div>
+            </div>
+          </div>
+          <p>Rapprocher un client de ses commandes : <code>JOIN</code>. Rassembler deux listes de même nature : <code>UNION</code>.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"La question",t:"plus de colonnes, ou plus de lignes ?"},
+      b:{k:"La règle",t:"colonnes → JOIN · lignes → UNION"},
+      note:"Réflexe : <code>UNION</code> dédoublonne, <code>UNION ALL</code> non. Quand tu sais qu’il n’y a pas de doublon, prends <code>UNION ALL</code>."}},
+  anatomie:[
+    {tok:"SELECT ville FROM clients",txt:"La première liste."},
+    {tok:"UNION",txt:"Empile la seconde sous la première, sans doublon."},
+    {tok:"SELECT categorie FROM produits",txt:"La seconde liste, avec autant de colonnes que la première."},
+    {tok:"ORDER BY valeur",txt:"Trie l’ensemble, une seule fois, à la fin."}
+  ],
+  exemple:"SELECT ville AS valeur\nFROM clients\nUNION\nSELECT categorie\nFROM produits\nORDER BY valeur;",
+  attendu:"11 lignes. Neuf villes et huit catégories entrent, mais Paris et Lyon se répétaient : UNION ne les garde qu’une fois.",
+  retenir:"<code>UNION</code> empile les lignes de deux <code>SELECT</code> et écarte les doublons ; <code>UNION ALL</code> les garde tous.<br><br>Les deux requêtes doivent avoir le <b>même nombre de colonnes</b>. Le nom retenu est celui de la première, et l’unique <code>ORDER BY</code> se place à la fin.<br><br>Le mémo : <b>JOIN élargit, UNION rallonge</b>. <code>INTERSECT</code> et <code>EXCEPT</code> suivent les mêmes règles.",
+  piege:{t:"Croire que UNION garde tout",
+    p:"<code>UNION</code> dédoublonne, en silence. Compter les lignes d’un <code>UNION</code> pour connaître le total des deux tables donne un résultat trop petit — et rien ne le signale.<br><br>Pour additionner sans rien perdre, c’est <code>UNION ALL</code>.",
+    exec:true,
+    sql:"SELECT COUNT(*) AS total\nFROM (\n  SELECT ville FROM clients\n  UNION\n  SELECT categorie FROM produits\n);",
+    out:"11, alors que 9 villes et 8 catégories font 17. Six valeurs se répétaient.",
+    fixSql:"SELECT COUNT(*) AS total\nFROM (\n  SELECT ville FROM clients\n  UNION ALL\n  SELECT categorie FROM produits\n);"},
+  petitDefi:[{
+    p:"Tu empiles deux listes dont tu sais qu’elles n’ont aucune valeur commune, et tu veux éviter le travail de dédoublonnage. Qu’écris-tu ?",
+    sql:"SELECT … FROM a\n__________\nSELECT … FROM b;",
+    a:"UNION ALL",
+    answers:["UNION ALL","union all","UNION ALL "]
+  }],
+  consigne:"Le service marketing veut la liste des étiquettes de la base, sans répétition : toutes les villes des clients et toutes les catégories des produits, dans une seule colonne nommée <code>valeur</code>, triée par ordre alphabétique.",
+  solution:"SELECT ville AS valeur\nFROM clients\nUNION\nSELECT categorie\nFROM produits\nORDER BY valeur;",
+  indice:"Deux <code>SELECT</code> d’une colonne chacun, reliés par <code>UNION</code>, puis un seul <code>ORDER BY</code> tout à la fin.",
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'union',label:'UNION',sql:"SELECT ville AS valeur FROM clients\nUNION\nSELECT categorie FROM produits\nORDER BY valeur;",out:"11 valeurs distinctes.",tone:'good'},
+    {k:'all',label:'UNION ALL',sql:"SELECT ville AS valeur FROM clients\nUNION ALL\nSELECT categorie FROM produits;",out:"17 lignes : 9 + 8, doublons compris."},
+    {k:'except',label:'EXCEPT',sql:"SELECT ville FROM clients\nEXCEPT\nSELECT 'Paris';",out:"Toutes les villes sauf Paris."}
+  ] },
+{ id:74, titre:"Fonctions de rang", résumé:"Classer les lignes, ex aequo compris",
+  situation:"Tu veux le classement des clients par nombre de commandes : qui est premier, qui est deuxième.<br><br><code>ORDER BY</code> les met dans l’ordre, mais n’écrit aucun numéro. Et cinq clients ont exactement deux commandes — leur donner des places différentes serait faux.<br><br>Un classement doit dire quelque chose des ex aequo.",
+  situationTail:"<div class=\"sit-sql\"><p>Trois fonctions numérotent les lignes d’un résultat.</p><p>Elles ne diffèrent que sur un point : le traitement des <b>ex aequo</b>.</p></div>",
+    studio:{pointCards:{
+      eye:"Rangs",title:"Numéroter un résultat déjà trié.",
+      lead:"Ces fonctions s’écrivent avec <code>OVER</code>, comme les autres fonctions de fenêtre : elles regardent le résultat trié et y ajoutent un numéro, sans regrouper les lignes.",
+      chain:[
+        {k:"ROW_NUMBER()",v:"un numéro par ligne"},
+        {k:"RANK()",v:"même rang, puis saut"},
+        {k:"DENSE_RANK()",v:"même rang, sans saut"}
+      ]},
+    uses:{title:"Trois façons de compter les ex aequo.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">La forme</p>
+          <div class="pt-syntax"><pre class="cw-syntax">RANK() OVER (ORDER BY prix DESC)</pre></div>
+          <p>La fonction ne prend aucun argument : tout se joue dans le <code>OVER</code>, qui indique l’ordre du classement. C’est cet ordre-là qui décide des numéros, indépendamment de l’<code>ORDER BY</code> final.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Les trois, côte à côte</p>
+          <p>Classons les clients par nombre de commandes. Sophie en a trois, cinq clients en ont deux, deux en ont une, Inès aucune.</p>
+          <div class="table-wrap"><table class="concept-table fit-2">
+            <thead><tr><th>Client</th><th>ROW · RANK · DENSE</th></tr></thead>
+            <tbody>
+              <tr><td>Sophie <i>(3)</i></td><td><code>1 · 1 · 1</code></td></tr>
+              <tr><td>Lucas <i>(2)</i></td><td><code>2 · 2 · 2</code></td></tr>
+              <tr><td>Emma <i>(2)</i></td><td><code>3 · 2 · 2</code></td></tr>
+              <tr><td>Hugo <i>(1)</i></td><td><code>7 · 7 · 3</code></td></tr>
+              <tr><td>Inès <i>(0)</i></td><td><code>9 · 9 · 4</code></td></tr>
+            </tbody>
+          </table></div>
+          <p>Tout se lit sur la ligne d’Hugo : septième s’il faut départager, mais septième <i>rang</i> aussi — cinq clients occupaient la deuxième place. <code>DENSE_RANK</code>, lui, en est à sa troisième valeur distincte.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">ROW_NUMBER — départager coûte que coûte</p>
+          <p>Un numéro par ligne, sans ex aequo possible. Entre deux lignes identiques, l’ordre est arbitraire : deux exécutions peuvent les inverser.</p>
+          <p class="fn-tip"><b>Son usage</b> Paginer, ou ne garder qu’une ligne par groupe. Pas pour publier un classement — il invente une hiérarchie qui n’existe pas.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">RANK — le classement sportif</p>
+          <p>Les ex aequo partagent le rang, et les rangs suivants sautent d’autant. Deux deuxièmes, puis un quatrième : personne n’est troisième.</p>
+          <p>C’est la convention d’un podium — celle qu’attend un lecteur quand tu lui montres un classement.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">DENSE_RANK — compter les niveaux</p>
+          <p>Les ex aequo partagent le rang, et le suivant vient juste après. Aucun trou : le rang compte les <b>valeurs distinctes</b>, pas les lignes.</p>
+          <p>C’est ce qu’il faut pour « les trois meilleurs niveaux de prix », par opposition aux « trois lignes les mieux placées ».</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Classer à l’intérieur de chaque groupe</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ROW_NUMBER() OVER (
+  PARTITION BY categorie
+  ORDER BY prix DESC)</pre></div>
+          <p><code>PARTITION BY</code> remet le compteur à 1 à chaque changement de catégorie. Le Shaker est premier des Accessoires, la Fibre première des Bien-être — chaque catégorie a son propre classement.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Le rang n’est pas filtrable directement</p>
+          <p>Un <code>WHERE rang &lt;= 3</code> échoue : au moment où <code>WHERE</code> s’applique, le rang n’est pas encore calculé — c’est le même ordre d’exécution qui interdit <code>COUNT(*)</code> dans <code>WHERE</code>.</p>
+          <p>Il faut enfermer la requête dans une sous-requête, ou la nommer avec <code>WITH</code>, puis filtrer à l’extérieur.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"La question",t:"que faire des ex aequo ?"},
+      b:{k:"La règle",t:"départager → ROW_NUMBER · podium → RANK · niveaux → DENSE_RANK"},
+      note:"Réflexe : pour un classement lisible par un humain, <code>RANK</code>. Pour ne garder qu’une ligne par groupe, <code>ROW_NUMBER</code>."}},
+  anatomie:[
+    {tok:"RANK()",txt:"La fonction de rang. Elle ne prend pas d’argument."},
+    {tok:"OVER",txt:"Ouvre la fenêtre sur laquelle le rang se calcule."},
+    {tok:"ORDER BY COUNT(o.id) DESC",txt:"L’ordre qui décide du classement."},
+    {tok:"AS rang",txt:"Le nom de la colonne ajoutée au résultat."}
+  ],
+  exemple:"SELECT clients.nom,\n       COUNT(commandes.id) AS commandes,\n       RANK() OVER (\n         ORDER BY COUNT(commandes.id) DESC\n       ) AS rang\nFROM clients\nLEFT JOIN commandes\n  ON commandes.client_id = clients.id\nGROUP BY clients.id\nORDER BY rang, clients.nom;",
+  attendu:"Sophie première avec 3 commandes. Cinq clients partagent le rang 2 — et le suivant est septième, pas troisième.",
+  retenir:"<code>ROW_NUMBER()</code>, <code>RANK()</code> et <code>DENSE_RANK()</code> numérotent les lignes d’un résultat trié par leur <code>OVER (ORDER BY …)</code>.<br><br>Elles ne diffèrent que sur les ex aequo : <b>ROW_NUMBER</b> les départage, <b>RANK</b> leur donne le même rang puis saute, <b>DENSE_RANK</b> leur donne le même rang sans sauter.<br><br><code>PARTITION BY</code> relance le classement à chaque groupe. Le rang ne se filtre qu’à l’extérieur, dans une sous-requête ou un <code>WITH</code>.",
+  piege:{t:"Filtrer le rang dans le WHERE",
+    p:"<code>WHERE rang &lt;= 3</code> ne fonctionne pas : le rang est calculé après le filtrage, comme les agrégats.<br><br>Le remède est le même que pour <code>COUNT(*)</code> : calculer d’abord, filtrer ensuite — dans une sous-requête ou avec <code>WITH</code>.",
+    exec:true,
+    sql:"SELECT nom, prix,\n       RANK() OVER (\n         ORDER BY prix DESC\n       ) AS rang\nFROM produits\nWHERE rang <= 3;",
+    out:"Erreur : la colonne rang n’existe pas encore quand WHERE s’applique.",
+    fixSql:"SELECT nom, prix, rang\nFROM (\n  SELECT nom, prix,\n         RANK() OVER (\n           ORDER BY prix DESC\n         ) AS rang\n  FROM produits\n)\nWHERE rang <= 3;"},
+  petitDefi:[{
+    p:"Deux produits sont ex aequo à la deuxième place. Avec quelle fonction le produit suivant reçoit-il le rang 3, et non 4 ?",
+    sql:"__________() OVER (ORDER BY prix DESC)",
+    a:"DENSE_RANK",
+    answers:["DENSE_RANK","dense_rank","DENSE RANK","DENSE_RANK()"]
+  }],
+  consigne:"Établis le classement des clients par nombre de commandes. Affiche le nom, le nombre de commandes, et un <code>rang</code> qui donne la même place aux ex aequo — comme sur un podium. Trie par rang, puis par nom.",
+  solution:"SELECT clients.nom,\n       COUNT(commandes.id) AS commandes,\n       RANK() OVER (\n         ORDER BY COUNT(commandes.id) DESC\n       ) AS rang\nFROM clients\nLEFT JOIN commandes\n  ON commandes.client_id = clients.id\nGROUP BY clients.id\nORDER BY rang, clients.nom;",
+  indice:"<code>RANK() OVER (ORDER BY COUNT(commandes.id) DESC) AS rang</code>, avec un <code>LEFT JOIN</code> pour garder Inès et son zéro.",
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'trois',label:'Les trois',sql:"SELECT clients.nom,\n       COUNT(commandes.id) AS commandes,\n       ROW_NUMBER() OVER (ORDER BY COUNT(commandes.id) DESC) AS numero,\n       RANK()       OVER (ORDER BY COUNT(commandes.id) DESC) AS rang,\n       DENSE_RANK() OVER (ORDER BY COUNT(commandes.id) DESC) AS serre\nFROM clients\nLEFT JOIN commandes ON commandes.client_id = clients.id\nGROUP BY clients.id\nORDER BY commandes DESC, clients.nom;",out:"Regarde Hugo : num\u00e9ro 8, rang 7, serr\u00e9 3.",tone:'good'},
+    {k:'partition',label:'PARTITION BY',sql:"SELECT categorie, nom, prix,\n       ROW_NUMBER() OVER (\n         PARTITION BY categorie\n         ORDER BY prix DESC) AS rang\nFROM produits\nORDER BY categorie, rang;",out:"Le compteur repart \u00e0 1 \u00e0 chaque cat\u00e9gorie."},
+    {k:'top',label:'Top 3',sql:"SELECT nom, prix, rang\nFROM (\n  SELECT nom, prix,\n         RANK() OVER (\n           ORDER BY prix DESC\n         ) AS rang\n  FROM produits\n)\nWHERE rang <= 3;",out:"Le rang se filtre \u00e0 l\u2019ext\u00e9rieur, pas dans le WHERE de la requ\u00eate."}
   ] }
 ]},
-{ titre:"Création et suppression de tables", sous:"CREATE TABLE, normalisation, ALTER TABLE, DROP", lessons:[
+{ titre:"Création et suppression de tables", sous:"CREATE TABLE, modélisation, ALTER TABLE, DROP", lessons:[
 { id:61, titre:"CREATE TABLE", résumé:"Créer la structure d’une table",
   situation:"Ton site e-commerce a besoin d’enregistrer ses clients.<br><br>Pour l’instant, la table <code>clients</code> n’existe pas encore. Tu sais simplement quelles informations tu veux conserver : un identifiant, le nom, la ville, l’âge, l’e-mail, le téléphone et la date d’inscription.<br><br>Avant d’ajouter des clients, il faut donc définir la structure de la table qui va les accueillir.",
   situationTail:"<div class=\"sit-sql\"><p>C’est le rôle de <code>CREATE TABLE</code> : elle construit la table, colonne par colonne, avec le type de chacune et les règles à respecter.</p></div>",
@@ -9565,10 +9808,12 @@ WHERE rang = 1;</pre></div>
               <tr><td><code>INTEGER</code></td><td>34</td></tr>
               <tr><td><code>REAL</code></td><td>29.90</td></tr>
               <tr><td><code>TEXT</code></td><td>'Sophie'</td></tr>
+              <tr><td><code>BLOB</code></td><td>X'89504E47'</td></tr>
               <tr><td><code>NULL</code></td><td>absence de valeur</td></tr>
             </tbody>
           </table></div>
           <p>Dans cette base, les dates sont enregistrées en <code>TEXT</code>, au format <code>AAAA-MM-JJ</code> — par exemple <code>2023-01-15</code>.</p>
+          <p><code>BLOB</code> sert aux données binaires : une image, un PDF, un fichier audio. On les écrit en hexadécimal, <code>X'89504E47'</code>, ou on les confie au langage qui pilote la base. Aucune colonne de cette base n’en utilise.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Sans contrainte, la table accepte presque tout</p>
@@ -9703,6 +9948,119 @@ WHERE rang = 1;</pre></div>
   noExec:true,
   noDemo:true,
   richLesson:true, earlyDemo:true },
+{ id:72, titre:"Relations 1-1, 1-N et N-N", résumé:"Les trois formes de lien entre deux tables",
+  situation:"Un client passe plusieurs commandes, une commande appartient à un seul client. C’est la seule forme de lien que notre base connaît.<br><br>Deux autres existent. Un client et sa carte de fidélité : chacun n’en a qu’une, et chaque carte n’appartient qu’à un client. Un client et les produits qui l’intéressent : il peut en suivre plusieurs, et chaque produit intéresse plusieurs clients.<br><br>Cette dernière forme ne tient dans aucune des deux tables.",
+  situationTail:"<div class=\"sit-sql\"><p>Trois formes de lien, trois façons de les écrire.</p><p>La troisième réclame une <b>table de plus</b>.</p></div>",
+    studio:{pointCards:{
+      eye:"Cardinalité",title:"Combien de lignes en face ?",
+      lead:"La forme d’une relation se lit dans une seule question : combien de lignes de l’autre table peuvent correspondre à celle-ci, et réciproquement ?",
+      chain:[
+        {k:"1-N",v:"une clé étrangère"},
+        {k:"1-1",v:"une clé étrangère UNIQUE"},
+        {k:"N-N",v:"une table entre les deux"}
+      ]},
+    uses:{title:"Trois formes, trois écritures.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">1-N — la forme la plus courante</p>
+          <div class="pt-syntax"><pre class="cw-syntax">client_id INTEGER
+  REFERENCES clients(id)</pre></div>
+          <p>La clé étrangère se place du côté <b>N</b> — dans <code>commandes</code>, pas dans <code>clients</code>. Elle s’y répète : Sophie porte le numéro 1 sur ses trois commandes.</p>
+          <p class="fn-tip"><b>Le bon côté</b> Mettre la clé dans <code>clients</code> obligerait à y stocker plusieurs numéros de commande dans une seule colonne — ce qu’une colonne ne sait pas faire.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">1-1 — la même chose, en plus strict</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE cartes (
+  id INTEGER PRIMARY KEY,
+  numero TEXT UNIQUE,
+  client_id INTEGER UNIQUE
+    REFERENCES clients(id)
+);</pre></div>
+          <p>Une clé étrangère, plus <code>UNIQUE</code>. Le mot fait toute la différence : sans lui, un client pourrait recevoir deux cartes.</p>
+          <div class="tx-fail">
+            <span class="is-ko">deuxième carte pour le client 1<i>UNIQUE constraint failed</i></span>
+          </div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">N-N — pourquoi une clé ne suffit pas</p>
+          <p>Un client suit plusieurs produits ; un produit est suivi par plusieurs clients. Où mettre la clé étrangère ?</p>
+          <div class="tx-flow" role="img" aria-label="Aucune des deux tables ne peut porter le lien">
+            <div class="tx-fork">
+              <div class="tx-branch is-ko"><b>dans clients</b><span>plusieurs produits</span></div>
+              <div class="tx-branch is-ko"><b>dans produits</b><span>plusieurs clients</span></div>
+            </div>
+          </div>
+          <p>Les deux côtés sont « plusieurs ». Une colonne ne retient qu’une valeur : aucune des deux tables ne peut porter le lien.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">La table de jointure</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE favoris (
+  client_id INTEGER
+    REFERENCES clients(id),
+  produit_id INTEGER
+    REFERENCES produits(id),
+  PRIMARY KEY (client_id,
+               produit_id)
+);</pre></div>
+          <p>Une troisième table, qui ne contient que les deux clés. Chaque ligne dit « ce client suit ce produit ». Un client sur plusieurs lignes, un produit sur plusieurs lignes : les deux « plusieurs » tiennent enfin.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Pourquoi la clé primaire porte sur les deux</p>
+          <p><code>PRIMARY KEY (client_id, produit_id)</code> interdit d’enregistrer deux fois le même couple. Sans elle, rien n’empêcherait le client 1 de suivre trois fois le produit 1.</p>
+          <p>Chaque colonne, prise seule, se répète autant qu’il le faut. C’est leur <b>paire</b> qui doit être unique.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Le lien peut porter ses propres informations</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE favoris (
+  client_id INTEGER,
+  produit_id INTEGER,
+  ajoute_le TEXT,
+  PRIMARY KEY (client_id,
+               produit_id)
+);</pre></div>
+          <p>La date d’ajout ne décrit ni le client ni le produit : elle décrit le <b>lien</b>. Sa place est donc dans la table de jointure — et nulle part ailleurs.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Reconnaître la forme</p>
+          <p>Prends une ligne de chaque table et pose deux fois la même question : <i>combien puis-je en avoir en face ?</i></p>
+          <p>Une seule des deux côtés : <b>1-1</b>. Plusieurs d’un seul côté : <b>1-N</b>, la clé va du côté « plusieurs ». Plusieurs des deux côtés : <b>N-N</b>, et il faut une table de plus.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"La question",t:"combien de lignes en face, de chaque côté ?"},
+      b:{k:"La règle",t:"plusieurs des deux côtés → une table de jointure"},
+      note:"Réflexe : la clé étrangère se place toujours du côté « plusieurs ». Quand les deux côtés le sont, aucune table ne convient — il en faut une troisième."}},
+  anatomie:[
+    {tok:"CREATE TABLE favoris",txt:"La table qui porte le lien, et rien d’autre."},
+    {tok:"client_id INTEGER REFERENCES clients(id)",txt:"Le premier côté de la relation."},
+    {tok:"produit_id INTEGER REFERENCES produits(id)",txt:"Le second côté."},
+    {tok:"PRIMARY KEY (client_id, produit_id)",txt:"Le couple est unique : pas deux fois le même lien."}
+  ],
+  exemple:"CREATE TABLE favoris (\n  client_id INTEGER\n    REFERENCES clients(id),\n  produit_id INTEGER\n    REFERENCES produits(id),\n  PRIMARY KEY (client_id,\n               produit_id)\n);\n\nINSERT INTO favoris VALUES (1, 1);\nINSERT INTO favoris VALUES (1, 3);\nINSERT INTO favoris VALUES (2, 1);\n\nSELECT client_id, produit_id\nFROM favoris;",
+  attendu:"Trois liens : Sophie suit deux produits, Lucas en suit un, et le produit 1 est suivi par deux clients. Les deux « plusieurs » coexistent.",
+  retenir:"La <b>cardinalité</b> se lit en demandant, de chaque côté, combien de lignes peuvent correspondre.<br><br><b>1-N</b> : une clé étrangère, du côté « plusieurs ». <b>1-1</b> : la même, avec <code>UNIQUE</code>. <b>N-N</b> : une <b>table de jointure</b> qui porte les deux clés.<br><br>Sa clé primaire porte sur les deux colonnes : c’est le couple qui doit être unique, pas chaque colonne.",
+  piege:{t:"Vouloir loger un N-N dans une colonne",
+    p:"Mettre <code>produits_suivis</code> dans <code>clients</code> et y écrire « 1,3,5 » semble marcher — jusqu’à la première requête.<br><br>Une colonne contient une valeur, pas une liste. Chercher qui suit le produit 3 devient une recherche de texte, et plus aucune clé étrangère ne protège quoi que ce soit. La table de jointure existe pour éviter exactement cela.",
+    exec:true,
+    sql:"CREATE TABLE favoris (\n  client_id INTEGER,\n  produits_suivis TEXT\n);\n\nINSERT INTO favoris VALUES (1, '1,3');\n\nSELECT * FROM favoris\nWHERE produits_suivis LIKE '%3%';",
+    out:"La ligne remonte — mais un jour le produit 13 la fera remonter aussi.",
+    fixSql:"CREATE TABLE favoris (\n  client_id INTEGER,\n  produit_id INTEGER,\n  PRIMARY KEY (client_id,\n               produit_id)\n);\n\nINSERT INTO favoris VALUES (1, 1);\nINSERT INTO favoris VALUES (1, 3);\n\nSELECT client_id\nFROM favoris\nWHERE produit_id = 3;"},
+  petitDefi:[{
+    p:"Un auteur écrit plusieurs livres, et un livre peut être écrit par plusieurs auteurs. Quelle est la forme de cette relation ?",
+    sql:"auteurs ←→ livres : __________",
+    a:"N-N",
+    answers:["N-N","n-n","NN","plusieurs-à-plusieurs","many-to-many","N,N"]
+  }],
+  consigne:"Les clients veulent pouvoir suivre des produits : chacun en suit plusieurs, et chaque produit est suivi par plusieurs clients. Crée la table <code>favoris</code> qui porte ce lien — les deux clés étrangères, et une clé primaire qui interdit d’enregistrer deux fois le même couple.",
+  solution:"CREATE TABLE favoris (\n  client_id INTEGER\n    REFERENCES clients(id),\n  produit_id INTEGER\n    REFERENCES produits(id),\n  PRIMARY KEY (client_id,\n               produit_id)\n);",
+  verif:"SELECT name, pk FROM pragma_table_info('favoris') ORDER BY cid;",
+  indice:"Deux colonnes <code>REFERENCES</code>, puis <code>PRIMARY KEY (client_id, produit_id)</code> sur une ligne à part.",
+  write:true,
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'nn',label:'Table de jointure',sql:"CREATE TABLE favoris (\n  client_id INTEGER,\n  produit_id INTEGER,\n  PRIMARY KEY (client_id,\n               produit_id)\n);\n\nINSERT INTO favoris VALUES (1, 1);\nINSERT INTO favoris VALUES (1, 3);\nINSERT INTO favoris VALUES (2, 1);\n\nSELECT client_id, produit_id FROM favoris;",out:"Sophie suit deux produits, et le produit 1 int\u00e9resse deux clients.",tone:'good'},
+    {k:'doublon',label:'Deux fois le même lien',sql:"CREATE TABLE favoris (\n  client_id INTEGER,\n  produit_id INTEGER,\n  PRIMARY KEY (client_id,\n               produit_id)\n);\n\nINSERT INTO favoris VALUES (1, 1);\nINSERT INTO favoris VALUES (1, 1);",out:"Refus\u00e9 : la cl\u00e9 primaire porte sur le couple.",tone:'bad'},
+    {k:'unun',label:'1-1',sql:"CREATE TABLE cartes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER UNIQUE\n    REFERENCES clients(id)\n);\n\nINSERT INTO cartes VALUES (1, 1);\nINSERT INTO cartes VALUES (2, 1);",out:"Refus\u00e9 : UNIQUE interdit une deuxi\u00e8me carte au m\u00eame client.",tone:'bad'}
+  ] },
 { id:65, titre:"ALTER TABLE", résumé:"Faire évoluer la structure d’une table",
   situation:"La table <code>clients</code> existe déjà et contient des données : <code>id</code>, <code>nom</code>, <code>ville</code>, <code>age</code>, <code>email</code>, <code>telephone</code>, <code>date_inscription</code>.<br><br>Quelques mois plus tard, ton site e-commerce évolue : tu veux maintenant enregistrer le <b>pays</b> de chaque client.<br><br>Tu pourrais supprimer la table et la recréer avec une colonne de plus — mais tu perdrais les données déjà présentes.",
   situationTail:"<div class=\"sit-sql\"><p>Comment modifier la structure d’une table sans la recréer entièrement ?</p><p>C’est le rôle d’<b><code>ALTER TABLE</code></b>.</p></div>",
@@ -10967,6 +11325,20 @@ DROP TRIGGER baisser_stock;</pre></div>
           <p>Un trigger est un objet de la base, au même titre qu’une table ou une vue — et <code>DROP</code> le retire comme les autres.</p>
         </div>
         <div class="fn-use">
+          <p class="pt-syntax-h">Un trigger qui se rappelle lui-même</p>
+          <p>Le corps d’un trigger écrit dans une table — et cette écriture pourrait déclencher un trigger à son tour, y compris celui-ci. La boucle serait sans fin.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE TRIGGER inc
+AFTER UPDATE ON t
+BEGIN
+  UPDATE t SET v = v + 1
+  WHERE v &lt; 5;
+END;</pre></div>
+          <p>SQLite s’en protège : <b>par défaut, un trigger n’en déclenche pas un autre</b>. Ici, l’<code>UPDATE</code> du corps ne relance rien, et <code>v</code> s’arrête à 2.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">PRAGMA recursive_triggers = ON;</pre></div>
+          <p>Ce réglage lève la protection : le trigger se rappelle jusqu’à ce que son <code>WHERE</code> l’arrête, et <code>v</code> monte à 5. Sans cette condition d’arrêt, la base se bloquerait.</p>
+          <p class="fn-tip"><b>La règle de prudence</b> Un <code>WHEN</code> ou un <code>WHERE</code> qui borne le déclenchement, et de préférence un trigger qui n’écrit pas dans sa propre table.</p>
+        </div>
+        <div class="fn-use">
           <p class="pt-syntax-h">Le revers</p>
           <p>Un trigger agit sans apparaître dans la requête. Quand un <code>INSERT</code> de trois lignes en modifie douze, rien dans le texte de la requête ne l’explique.</p>
           <p>C’est le prix de l’automatisme : une règle qui doit valoir <b>quoi qu’il arrive</b> mérite un trigger, une logique propre à un écran est mieux placée dans l’application.</p>
@@ -11338,8 +11710,10 @@ ON commandes(client_id);</pre></div>
         <div class="fn-use">
           <p class="pt-syntax-h">Index sur plusieurs colonnes</p>
           <p>Si tu recherches souvent les commandes d’un client à partir d’une date :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE INDEX idx_commandes_client_date
-ON commandes(client_id, date_commande);</pre></div>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE INDEX
+  idx_commandes_client_date
+ON commandes(client_id,
+             date_commande);</pre></div>
           <p>C’est un <b>index composite</b>. L’ordre des colonnes compte : d’abord <code>client_id</code>, puis <code>date_commande</code> à l’intérieur de chaque client.</p>
           <div class="idx-comp" aria-hidden="true">
             <div class="idx-comp-g">
@@ -11365,10 +11739,25 @@ ON commandes(client_id, date_commande);</pre></div>
           <p>Une contrainte <code>UNIQUE</code> s’appuie souvent sur un index, mais l’objectif n’est pas le même.</p>
         </div>
         <div class="fn-use">
+          <p class="pt-syntax-h">Des index que tu n’as pas créés</p>
+          <p>Déclarer <code>UNIQUE</code> ne pose pas qu’une règle : SQLite construit aussi l’index qui la fait respecter. Notre base en compte déjà un, sans qu’aucun <code>CREATE INDEX</code> ait été écrit :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT name, tbl_name
+FROM sqlite_master
+WHERE type = 'index';</pre></div>
+          <div class="tx-fail">
+            <span class="is-ok">sqlite_autoindex_clients_1<i>clients</i></span>
+          </div>
+          <p>Il vient du <code>email TEXT UNIQUE</code> de la table <code>clients</code>. Chercher par e-mail est donc déjà rapide.</p>
+        </div>
+        <div class="fn-use">
           <p class="pt-syntax-h">Et la clé primaire ?</p>
-          <p>La table <code>clients</code> a déjà <code>id INTEGER PRIMARY KEY</code>.</p>
-          <p>Les SGBD mettent généralement en place automatiquement une structure adaptée — souvent un index — pour faire respecter cette contrainte et permettre des recherches efficaces.</p>
-          <p>Tu n’as donc généralement pas besoin de recréer <code>CREATE INDEX idx_clients_id ON clients(id)</code>.</p>
+          <p><code>id INTEGER PRIMARY KEY</code> ne crée <b>aucun</b> index — et c’est normal : cette colonne <i>est</i> l’identifiant interne des lignes, celui par lequel SQLite les range déjà.</p>
+          <p>Toute autre clé primaire, elle, reçoit son index automatique :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE villes (
+  code TEXT PRIMARY KEY,
+  nom TEXT
+);</pre></div>
+          <p class="fn-tip"><b>Ce qu’il reste à faire</b> Les colonnes fréquemment filtrées qui ne sont ni clé primaire ni <code>UNIQUE</code> — <code>ville</code>, par exemple — n’ont pas d’index. Ce sont celles-là qui méritent un <code>CREATE INDEX</code>.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Comment savoir si l’index est utilisé ?</p>
@@ -11997,7 +12386,16 @@ const QCM={
    {q:"Peut-on corriger une valeur dans un trigger <code>BEFORE</code> avec <code>SET NEW.stock = 0</code> ?",o:["Oui, c’est l’usage principal de BEFORE","Non : en SQLite c’est une erreur de syntaxe","Oui, mais seulement sur une colonne NOT NULL"],b:1,e:"Un trigger <code>BEFORE</code> n’a que deux réponses : laisser passer, ou refuser avec <code>RAISE(ABORT, …)</code>."}],
  71:[{q:"Deux caisses lisent un stock de 30, calculent 30 − 1 chacune et écrivent 29. Comment l’éviter ?",o:["En écrivant SET stock = stock - 1, calcul fait par la base","En relisant le stock juste avant d’écrire","En augmentant le niveau d’isolation à READ COMMITTED"],b:0,e:"Une instruction est indivisible : les deux caisses passent l’une après l’autre, 30 puis 29 puis 28. C’est la mise à jour perdue."},
    {q:"Que fait <code>BEGIN IMMEDIATE</code> de plus que <code>BEGIN</code> ?",o:["Il valide la transaction sans COMMIT","Il prend le verrou d’écriture dès l’ouverture","Il empêche toute lecture concurrente"],b:1,e:"<code>BEGIN</code> seul vaut <code>DEFERRED</code> : rien n’est verrouillé tant qu’on ne fait que lire, et la transaction peut échouer plus tard."},
-   {q:"Quel niveau d’isolation SQLite applique-t-il ?",o:["READ COMMITTED, comme PostgreSQL par défaut","Le comportement de SERIALIZABLE, sans réglage possible","Aucun : les transactions ne sont pas isolées"],b:1,e:"Le moteur verrouille la base entière et n’autorise qu’un seul écrivain à la fois. Il n’existe pas de <code>SET TRANSACTION ISOLATION LEVEL</code>."}]
+   {q:"Quel niveau d’isolation SQLite applique-t-il ?",o:["READ COMMITTED, comme PostgreSQL par défaut","Le comportement de SERIALIZABLE, sans réglage possible","Aucun : les transactions ne sont pas isolées"],b:1,e:"Le moteur verrouille la base entière et n’autorise qu’un seul écrivain à la fois. Il n’existe pas de <code>SET TRANSACTION ISOLATION LEVEL</code>."}],
+ 72:[{q:"Un client peut suivre plusieurs produits, et un produit être suivi par plusieurs clients. Comment écrire ce lien ?",o:["Une clé étrangère dans clients","Une clé étrangère dans produits","Une troisième table qui porte les deux clés"],b:2,e:"Les deux côtés sont « plusieurs » : aucune colonne ne peut retenir plusieurs valeurs. Il faut une table de jointure."},
+   {q:"Dans une table de jointure, à quoi sert <code>PRIMARY KEY (client_id, produit_id)</code> ?",o:["À interdire deux fois le même couple","À rendre chaque colonne unique","À accélérer les jointures"],b:0,e:"Chaque colonne se répète librement ; c’est la paire qui doit être unique."},
+   {q:"Comment transformer une relation 1-N en 1-1 ?",o:["En ajoutant UNIQUE sur la clé étrangère","En déplaçant la clé dans l’autre table","En ajoutant une table de jointure"],b:0,e:"Sans <code>UNIQUE</code>, un client pourrait recevoir deux cartes. Avec, la seconde est refusée."}],
+ 73:[{q:"Quelle différence entre <code>UNION</code> et <code>UNION ALL</code> ?",o:["UNION trie, UNION ALL non","UNION écarte les doublons, UNION ALL les garde","UNION ne marche que sur deux tables identiques"],b:1,e:"Neuf villes et huit catégories donnent 17 lignes avec ALL, mais 11 sans : six valeurs se répétaient."},
+   {q:"Que doivent avoir en commun les deux <code>SELECT</code> d’un <code>UNION</code> ?",o:["Le même nombre de colonnes","Les mêmes noms de colonnes","La même table de départ"],b:0,e:"Le nombre de colonnes doit correspondre ; les noms sont libres, c’est celui de la première requête qui est retenu."},
+   {q:"Tu veux plus de <b>lignes</b>, pas plus de colonnes. Quel outil ?",o:["JOIN","UNION","GROUP BY"],b:1,e:"<code>JOIN</code> élargit le résultat en ajoutant des colonnes ; <code>UNION</code> le rallonge en empilant des lignes."}],
+ 74:[{q:"Deux produits sont ex aequo au rang 2. Quelle fonction donne 3 au suivant ?",o:["ROW_NUMBER()","RANK()","DENSE_RANK()"],b:2,e:"<code>RANK</code> sauterait à 4. <code>DENSE_RANK</code> compte les valeurs distinctes, sans trou."},
+   {q:"À quoi sert <code>PARTITION BY</code> dans une fonction de rang ?",o:["À filtrer les lignes classées","À relancer le classement à chaque groupe","À trier le résultat final"],b:1,e:"Le compteur repart à 1 à chaque changement de groupe : chaque catégorie a son propre classement."},
+   {q:"Pourquoi <code>WHERE rang &lt;= 3</code> échoue-t-il ?",o:["Le rang est calculé après le filtrage","RANK ne renvoie pas un nombre","Il manque un GROUP BY"],b:0,e:"Même ordre d’exécution que pour les agrégats : il faut calculer dans une sous-requête ou un WITH, puis filtrer à l’extérieur."}]
 };
 
 /* ============================================================
