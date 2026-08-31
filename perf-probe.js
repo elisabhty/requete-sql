@@ -114,6 +114,33 @@
       '</tbody></table>';
   }
 
+  /* Quand le clavier est ouvert, Safari iOS pose une barre d'adresse compacte
+     juste au-dessus. Elle recouvre la page sans que visualViewport la déduise :
+     rien, côté JS, ne dit qu'elle est là. La barre de touches SQL vient donc se
+     placer dessous et se fait masquer. On relève ici les nombres bruts plutôt
+     que de deviner sa hauteur — l'écart entre le bas de la barre SQL et le haut
+     du clavier dira exactement combien de pixels Safari s'octroie. */
+  function clavier() {
+    var vv = window.visualViewport;
+    if (!vv) return '';
+    var inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    if (inset < 40) return '';
+    var kbar = document.getElementById('kbar');
+    var bas = '—';
+    if (kbar && kbar.classList.contains('on')) {
+      var r = kbar.getBoundingClientRect();
+      /* Distance entre le bas de la barre SQL et le bas de la fenêtre. */
+      bas = Math.round(window.innerHeight - r.bottom) + ' px';
+    }
+    return '<p class="pp-note">Clavier ouvert</p><table><tbody>' +
+      '<tr><td>innerHeight</td><td>' + Math.round(window.innerHeight) + '</td></tr>' +
+      '<tr><td>vv.height</td><td>' + Math.round(vv.height) + '</td></tr>' +
+      '<tr><td>vv.offsetTop</td><td>' + Math.round(vv.offsetTop) + '</td></tr>' +
+      '<tr><td>clavier calculé</td><td>' + Math.round(inset) + ' px</td></tr>' +
+      '<tr><td>barre SQL à</td><td>' + bas + '</td></tr>' +
+      '</tbody></table>';
+  }
+
   function bascule(sus, bouton) {
     if (styles[sus.id]) {
       styles[sus.id].remove();
@@ -191,7 +218,9 @@
     var out = box.querySelector('.pp-out');
     setInterval(function () {
       if (box.classList.contains('plie') || estEnScroll()) return;
-      out.innerHTML = html(stats());
+      /* Clavier ouvert : ce sont ses nombres qui intéressent, pas la cadence. */
+      var kb = clavier();
+      out.innerHTML = kb || html(stats());
     }, 500);
 
     /* Le défilement se fait dans les conteneurs .screen, pas dans le document :
