@@ -6331,27 +6331,118 @@ const SCHEMA_META=[
    ============================================================ */
 const MODULES = [
 { titre:"Les bases", sous:"Lire des données", lessons:[
-{ id:0, titre:"Avant de commencer", résumé:"C'est quoi une base de données ?",
-  situation:"Tu travailles sur trois tables : <code>clients</code>, <code>produits</code> et <code>commandes</code>. Avant d’écrire du SQL, tu dois voir ce qu’est vraiment une table : des lignes, décrites par des colonnes.",
-    studio:{problem:{title:"Avant d’écrire du SQL, il faut voir ce qu’est une table.",
-      body:"Pense à un tableur. Une <b>table</b> est une feuille. Chaque <b>ligne</b> est un enregistrement. Chaque <b>colonne</b> est un type d’information. Ici, la table <code>clients</code> stocke une personne par ligne."},
-    extra:`<div class="mini-grid"><div class="h"><span>id</span><span>nom</span><span>ville</span></div>
-      <div><span>1</span><span>Sophie</span><span>Paris</span></div>
-      <div><span>2</span><span>Lucas</span><span>Lyon</span></div></div>
-      <div class="mini-lab"><i><b>↑</b> colonnes = type d’info</i><i><b>←</b> lignes = un enregistrement</i></div>`,
-    why:{title:"SQL répond à des questions. Il ne devine rien.",
-      body:"Quand tu écris une requête, tu dis précisément <b>quoi afficher</b> et <b>où le trouver</b>. Tant que tu utilises <code>SELECT</code>, tu <b>lis</b> uniquement : aucune donnée n’est modifiée."},
-    reflex:{a:{k:"Table",t:"une feuille : <b>clients</b>, <b>produits</b>, <b>commandes</b>"},
-      b:{k:"SELECT",t:"tu <b>observes</b> la base, tu ne la changes pas"}}},
-  anatomie:[{tok:"base",plain:1,txt:"Contient plusieurs tables."},{tok:"table",plain:1,txt:"Un ensemble de lignes."},{tok:"ligne",plain:1,txt:"Un enregistrement complet."},{tok:"colonne",plain:1,txt:"Un type d’information : nom, ville, âge…"}],
+{ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, colonnes, lignes et liens",
+  situation:"Avant d’écrire la moindre requête, il faut savoir ce que tu interroges.<br><br>Cette application travaille sur une base de trois tables : <code>clients</code>, <code>produits</code> et <code>commandes</code>. Neuf clients, huit produits, seize commandes.<br><br>Trois tables, et non une seule grande feuille. C’est ce choix qui donne son nom au modèle <b>relationnel</b>.",
+  situationTail:"<div class=\"sit-sql\"><p>Une base de données range l’information dans des <b>tables</b>.</p><p>Le modèle relationnel ajoute l’essentiel : les tables se <b>relient</b> entre elles.</p></div>",
+    studio:{pointCards:{
+      eye:"Relationnel",title:"Des tables, et des liens entre elles.",
+      lead:"Une base de données conserve l’information de façon durable et permet de l’interroger. Dans le modèle relationnel, cette information est rangée en tables, et une table peut en désigner une autre.",
+      chain:[
+        {k:"Table",v:"un sujet"},
+        {k:"Colonne",v:"une caractéristique"},
+        {k:"Ligne",v:"un exemplaire"}
+      ]},
+    uses:{title:"Du tableur à la base reliée.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Une table, comme une feuille de tableur</p>
+          <p>La table <code>clients</code> décrit un seul sujet : les personnes. Une personne par ligne.</p>
+          <div class="mini-grid"><div class="h"><span>id</span><span>nom</span><span>ville</span></div>
+            <div><span>1</span><span>Sophie</span><span>Paris</span></div>
+            <div><span>2</span><span>Lucas</span><span>Lyon</span></div></div>
+          <div class="mini-lab"><i><b>↑</b> colonnes = les caractéristiques</i><i><b>←</b> lignes = les clients</i></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">La colonne : une caractéristique, un type</p>
+          <p>Une colonne porte un nom et n’accueille qu’une seule sorte de valeur. La table <code>clients</code> en compte sept : <code>id</code>, <code>nom</code>, <code>ville</code>, <code>age</code>, <code>email</code>, <code>telephone</code>, <code>date_inscription</code>.</p>
+          <div class="table-wrap"><table class="concept-table fit-2">
+            <thead><tr><th>Colonne</th><th>Type</th></tr></thead>
+            <tbody>
+              <tr><td><code>nom</code></td><td><code>TEXT</code></td></tr>
+              <tr><td><code>age</code></td><td><code>INTEGER</code></td></tr>
+              <tr><td><code>prix</code></td><td><code>REAL</code></td></tr>
+            </tbody>
+          </table></div>
+          <p>Le type est une promesse : on ne range pas un nom dans une colonne d’entiers.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">La ligne : un exemplaire</p>
+          <p>Une ligne rassemble une valeur pour chaque colonne. La première ligne de <code>clients</code> décrit Sophie, 34 ans, à Paris, inscrite le 15 janvier 2023.</p>
+          <p>Une table peut contenir zéro, une ou des milliers de lignes. Ici, elle en contient neuf.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Pourquoi trois tables, et pas une</p>
+          <p>Sophie a passé trois commandes. Dans une feuille unique, son nom, sa ville et son e-mail seraient recopiés trois fois — et il faudrait les corriger trois fois le jour où elle déménage.</p>
+          <p>Chaque sujet a donc sa table, et l’information n’est écrite qu’une fois. Le cours <b>Normalisation</b> revient en détail sur ce découpage.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Le lien : une colonne qui en désigne une autre</p>
+          <p>La table <code>commandes</code> ne contient aucun nom. À la place, sa colonne <code>client_id</code> porte le numéro du client.</p>
+          <div class="tx-flow" role="img" aria-label="client_id de commandes renvoie à id de clients">
+            <span class="tx-step">commandes<i>client_id = 1</i></span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step tx-key">clients<i>id = 1 → Sophie</i></span>
+          </div>
+          <p>C’est une <b>clé étrangère</b>. Elle relie les deux tables sans recopier la moindre information.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Le mot « relationnel » ne parle pas des lignes</p>
+          <p>Il ne désigne pas un lien entre les lignes d’une même table, mais la possibilité de mettre des <b>tables</b> en relation.</p>
+          <p>Une base relationnelle, c’est un ensemble de tables qui se désignent les unes les autres.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Le vocabulaire formel</p>
+          <p>Les cours théoriques emploient un autre vocabulaire pour les mêmes objets. Tu le croiseras dans la documentation.</p>
+          <div class="table-wrap"><table class="concept-table fit-2">
+            <thead><tr><th>Courant</th><th>Formel</th></tr></thead>
+            <tbody>
+              <tr><td>table</td><td>relation</td></tr>
+              <tr><td>colonne</td><td>attribut</td></tr>
+              <tr><td>ligne</td><td>tuple</td></tr>
+            </tbody>
+          </table></div>
+          <p>« Relation » désigne donc la table elle-même — d’où le nom du modèle.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Le moteur qui gère tout ça</p>
+          <p>Une base ne vit pas seule : un <b>SGBD</b>, système de gestion de base de données, la stocke et exécute tes requêtes.</p>
+          <p>Cette application tourne sur <b>SQLite 3.45</b>, directement dans ton navigateur. PostgreSQL, MySQL et Oracle sont d’autres SGBD, installés sur un serveur. Tous comprennent le SQL, avec quelques différences que les cours signalent au passage.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">D’autres modèles existent</p>
+          <p>Le relationnel n’est pas le seul : d’autres bases rangent l’information en documents, en couples clé-valeur ou en graphes.</p>
+          <p>Le relationnel reste le plus répandu — pour ses garanties de cohérence, et pour SQL, qui permet de poser des questions que le modèle n’avait pas prévues.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"Table",t:"un sujet : <b>clients</b>, <b>produits</b>, <b>commandes</b>"},
+      b:{k:"client_id",t:"le <b>lien</b> vers une autre table"},
+      note:"Réflexe : une information ne s’écrit qu’à un seul endroit. Ailleurs, on la désigne par son identifiant."}},
+  anatomie:[
+    {tok:"SELECT",txt:"Lit des données. Il ne modifie jamais rien."},
+    {tok:"*",plain:1,txt:"Toutes les colonnes de la table."},
+    {tok:"FROM clients",txt:"La table interrogée."},
+    {tok:";",punc:1,txt:"Termine la requête."}
+  ],
   exemple:"SELECT * FROM clients;",
-  attendu:"<b>9 lignes</b> : une ligne par client, avec toutes ses colonnes.",
-  retenir:"Une base contient des tables. Une table a des <b>lignes</b> (enregistrements) et des <b>colonnes</b> (types d’information). Un <code>SELECT</code> lit les données : il ne les modifie pas.",
-  piege:{t:"Peur de casser la base",p:"Un <code>SELECT</code> ne supprime ni ne modifie rien. Tu peux tester sans risque."},
-  consigne:"Lis la table <code>clients</code> en affichant <b>toutes</b> ses colonnes pour te familiariser avec sa structure.",
+  attendu:"<b>9 lignes</b> et 7 colonnes : une ligne par client, chaque colonne décrivant une caractéristique.",
+  retenir:"Une <b>base relationnelle</b> range l’information en <b>tables</b>. Une table décrit un sujet : ses <b>colonnes</b> sont les caractéristiques, ses <b>lignes</b> les exemplaires.<br><br>Chaque colonne a un <b>type</b>, et une table peut en désigner une autre par une <b>clé étrangère</b> — <code>commandes.client_id</code> renvoie à <code>clients.id</code>.<br><br>Le vocabulaire formel dit relation, attribut et tuple. Un <code>SELECT</code> lit : il ne modifie rien.",
+  piege:{t:"Croire que « relationnel » désigne un lien entre les lignes",
+    p:"Le mot ne parle pas des lignes d’une même table, mais des <b>tables entre elles</b>.<br><br>Dans cette base, <code>commandes</code> désigne <code>clients</code> par la colonne <code>client_id</code>. C’est cette mise en relation des tables qui donne son nom au modèle."},
+  petitDefi:[{
+    p:"Dans le vocabulaire formel du modèle relationnel, comment appelle-t-on une <b>ligne</b> ?",
+    sql:"ligne → __________",
+    a:"tuple",
+    answers:["tuple","un tuple","Tuple","enregistrement"]
+  }],
+  consigne:"Ouvre la table <code>clients</code> en affichant <b>toutes</b> ses colonnes, pour voir de tes yeux ses neuf lignes et ses sept caractéristiques.",
   solution:"SELECT * FROM clients;",
   indice:"<code>SELECT * FROM clients;</code> — l’étoile signifie « toutes les colonnes ».",
-  richLesson:true, earlyDemo:true },
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'cli',label:'clients',sql:"SELECT * FROM clients;",out:"Neuf lignes, sept colonnes : un client par ligne."},
+    {k:'prd',label:'produits',sql:"SELECT * FROM produits;",out:"Huit lignes. Un autre sujet, donc une autre table."},
+    {k:'cmd',label:'commandes',sql:"SELECT * FROM commandes;",out:"Seize lignes — et aucun nom : seulement des client_id et des produit_id."}
+  ] },
 { id:3, titre:"SELECT *", résumé:"Voir toute la table",
   situation:"Tu découvres la table produits. Elle contient 8 produits et plusieurs informations sur chacun : <code>id</code>, <code>nom</code>, <code>categorie</code>, <code>prix</code> et <code>stock</code>.<br><br>Avec ce que tu connais déjà, tu pourrais lister les colonnes une par une :",
   situationSql:"SELECT nom, categorie, prix\nFROM produits;",
@@ -11521,8 +11612,8 @@ const NIV={f:{l:'FACILE',c:'f'},m:{l:'MOYEN',c:'m'},d:{l:'DIFFICILE',c:'d'}};
    3bis. LES CARTES
    ============================================================ */
 const CARTES={
- 0:{k:"Base & tables",t:"C'est quoi une base ?",s:"SELECT * FROM clients;",
-    m:"Une base ≈ un classeur. <b>Tables</b> = feuilles, <b>colonnes</b> = types d’info, <b>lignes</b> = enregistrements. Un <code>SELECT</code> ne modifie jamais les données."},
+ 0:{k:"Modèle relationnel",t:"Tables, colonnes, lignes et liens",s:"SELECT * FROM clients;",
+    m:"Une base relationnelle range l’information en <b>tables</b> : <b>colonnes</b> = caractéristiques, <b>lignes</b> = exemplaires. Une table en désigne une autre par une clé étrangère — <code>commandes.client_id</code> renvoie à <code>clients.id</code>. Formellement : relation, attribut, tuple."},
  1:{k:"SELECT",t:"Choisir les colonnes",s:"SELECT nom, telephone FROM clients;",
     m:"<code>SELECT</code> dresse la liste des <b>colonnes</b>. Une virgule sépare chaque nom. Toutes les lignes sortent : ce n’est pas un filtre. La table d’origine ne change pas."},
  3:{k:"SELECT *",t:"Voir toute la table",s:"SELECT * FROM produits;",
@@ -11635,7 +11726,9 @@ function isUnlocked(id){ const s=state.lessons[id]; return !!(s&&s.done); }
 
 const QCM={
  0:[{q:"Dans une base de données, une <b>table</b> correspond à :",o:["Une seule cellule","L’équivalent d’une feuille : clients, produits…","Le logiciel SQL lui-même"],b:1,e:"Tables = feuilles du classeur. Colonnes = types d’info, lignes = enregistrements."},
-   {q:"Que fait un <code>SELECT</code> sur tes données ?",o:["Il peut les effacer si tu te trompes","Il les lit seulement — rien n’est modifié","Il crée automatiquement une nouvelle table"],b:1,e:"Tu peux explorer et te tromper : la base reste intacte."}],
+   {q:"Que fait un <code>SELECT</code> sur tes données ?",o:["Il peut les effacer si tu te trompes","Il les lit seulement — rien n’est modifié","Il crée automatiquement une nouvelle table"],b:1,e:"Tu peux explorer et te tromper : la base reste intacte."},
+   {q:"Le mot « relationnel » désigne un lien entre :",o:["Les lignes d’une même table","Les tables entre elles","Les colonnes et leurs types"],b:1,e:"<code>commandes.client_id</code> désigne <code>clients.id</code> : ce sont les tables qui sont mises en relation."},
+   {q:"Dans le vocabulaire formel, une <b>colonne</b> s’appelle :",o:["Un tuple","Un attribut","Une relation"],b:1,e:"Table = relation, colonne = attribut, ligne = tuple. « Relation » désigne la table elle-même."}],
  1:[{q:"Que renvoie <code>SELECT nom, telephone FROM clients;</code> ?",o:["La première ligne seulement","Les 9 clients, avec seulement nom et telephone","Toutes les colonnes de tous les clients"],b:1,e:"Ce n’est pas un filtre de personnes. SELECT copie les colonnes demandées : les 9 clients sont toujours là, en plus étroit."},
    {q:"<code>SELECT nom telephone FROM clients;</code> sans virgule :",o:["Fonctionne, l’espace suffit","Échoue : il manque la virgule entre les colonnes","N’affiche que nom"],b:1,e:"Après SELECT, les colonnes forment une liste : <code>nom, telephone</code>."}],
  3:[{q:"L’étoile <code>*</code> signifie :",o:["Toutes les lignes","Toutes les colonnes","Toutes les tables"],b:1,e:"Elle remplace la liste des colonnes. Le nombre de lignes ne change pas."},
