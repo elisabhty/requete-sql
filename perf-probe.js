@@ -10,8 +10,30 @@
 (function () {
   'use strict';
 
-  var SEUIL_LONGUE = 32;      /* deux images perdues à 60 Hz */
   var FIN_DE_SCROLL = 140;    /* ms de silence avant de considérer l'arrêt */
+
+  /* Un seuil fixe de 32 ms supposait un écran à 60 Hz. En mode économie
+     d'énergie, iOS bride WebKit à 30 Hz : chaque image dure alors 33 ms et
+     serait comptée comme perdue, ce qui donnait 90 % d'images « longues » sur
+     un défilement en réalité régulier. On mesure donc d'abord la cadence que
+     l'appareil tient réellement, et on ne compte comme perdues que les images
+     qui dépassent nettement cette cadence-là. */
+  var CADENCES = [8.33, 11.11, 16.67, 33.33];   /* 120, 90, 60, 30 Hz */
+
+  function cadence(tri) {
+    if (tri.length < 12) return 0;
+    /* Le 10e centile : assez bas pour ignorer les à-coups, assez haut pour ne
+       pas se caler sur une image isolée anormalement courte. */
+    var plancher = tri[Math.floor(tri.length * 0.1)];
+    var best = CADENCES[0], ecart = Infinity;
+    for (var i = 0; i < CADENCES.length; i++) {
+      var d = Math.abs(plancher - CADENCES[i]);
+      if (d < ecart) { ecart = d; best = CADENCES[i]; }
+    }
+    /* Au-delà de 30 Hz, l'appareil ne suit aucune cadence connue : on garde la
+       mesure brute plutôt que de la forcer dans une case. */
+    return ecart > 6 ? plancher : best;
+  }
 
   /* Les suspects, dans l'ordre où on les soupçonne. Chacun est une feuille de
      style qu'on injecte pour neutraliser une propriété, pas une modification
@@ -50,10 +72,16 @@
 
   function stats() {
     var tri = mesures.slice().sort(function (a, b) { return a - b; });
+    var cad = cadence(tri);
+    /* Une image est perdue si elle dure plus d'une fois et demie la cadence de
+       l'appareil : à 60 Hz cela redonne 25 ms, à 30 Hz cela donne 50 ms. */
+    var seuil = cad ? cad * 1.5 : 25;
     var longues = 0;
-    for (var i = 0; i < tri.length; i++) if (tri[i] > SEUIL_LONGUE) longues++;
+    for (var i = 0; i < tri.length; i++) if (tri[i] > seuil) longues++;
     return {
       n: tri.length,
+      cadence: cad,
+      seuil: seuil,
       p50: quantile(tri, 0.5),
       p95: quantile(tri, 0.95),
       max: tri.length ? tri[tri.length - 1] : 0,
@@ -64,16 +92,24 @@
   }
 
   function html(s) {
-    if (!s.n) {
+    if (!s.n || !s.cadence) {
       return '<p class="pp-vide">Fais défiler la leçon quelques secondes.</p>';
     }
     var verdict = s.pct >= 10 ? 'pp-mauvais' : (s.pct >= 3 ? 'pp-moyen' : 'pp-bon');
-    return '<p class="pp-ips ' + verdict + '"><b>' + s.ips.toFixed(0) + '</b> images/s</p>' +
+    var hz = Math.round(1000 / s.cadence);
+    /* Le plafond est un fait sur l'appareil, pas un défaut de l'application :
+       on le nomme, pour qu'un 30 Hz bridé ne se lise pas comme une saccade. */
+    var note = hz <= 35
+      ? '<p class="pp-note">Appareil bridé à ' + hz + ' Hz — mode économie d’énergie ?</p>'
+      : '';
+    return '<p class="pp-ips ' + verdict + '"><b>' + s.ips.toFixed(0) + '</b> images/s ' +
+      '<span>sur ' + hz + ' possibles</span></p>' + note +
       '<table><tbody>' +
+      '<tr><td>cadence appareil</td><td>' + s.cadence.toFixed(1) + ' ms</td></tr>' +
       '<tr><td>médiane</td><td>' + s.p50.toFixed(1) + ' ms</td></tr>' +
       '<tr><td>p95</td><td>' + s.p95.toFixed(1) + ' ms</td></tr>' +
       '<tr><td>pire</td><td>' + s.max.toFixed(1) + ' ms</td></tr>' +
-      '<tr><td>images &gt; ' + SEUIL_LONGUE + ' ms</td><td>' + s.longues + ' (' + s.pct.toFixed(1) + ' %)</td></tr>' +
+      '<tr><td>images perdues</td><td>' + s.longues + ' (' + s.pct.toFixed(1) + ' %)</td></tr>' +
       '<tr><td>échantillon</td><td>' + s.n + '</td></tr>' +
       '</tbody></table>';
   }
@@ -113,6 +149,8 @@
       '#pp h3 button{background:none;border:0;color:#9B9BB5;font:inherit;padding:2px 6px;cursor:pointer}',
       '#pp .pp-ips{margin:6px 0 4px;font-size:13px;color:#EDEDF5}',
       '#pp .pp-ips b{font-size:22px}',
+      '#pp .pp-ips span{color:#9B9BB5;font-size:11px;font-weight:600}',
+      '#pp .pp-note{margin:0 0 6px;color:#FFD166;font-weight:600}',
       '#pp .pp-bon b{color:#5BE49B}#pp .pp-moyen b{color:#FFD166}#pp .pp-mauvais b{color:#FF8A80}',
       '#pp table{width:100%;border-collapse:collapse}',
       '#pp td{padding:1px 0;color:#B9B9CE}#pp td+td{text-align:right;color:#EDEDF5}',
