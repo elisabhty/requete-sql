@@ -9838,71 +9838,357 @@ WHERE rang = 1;</pre></div>
   noExecOk:{b:"✓ Correct — la structure est complète",t:"Les cinq colonnes sont là, avec leurs types et leurs trois contraintes. C’est mot pour mot la table <code>produits</code> de cette base."},
   richLesson:true, earlyDemo:true },
 { id:26, titre:"INSERT", résumé:"Ajouter une ligne",
-  situation:"Un nouveau client s’inscrit. Tu l’ajoutes dans la table <code>clients</code>, en nommant les colonnes.",
-    studio:{problem:{title:"Inverser nom et ville ne déclenche aucune erreur.",
-      body:"<code>SELECT</code> lit. <code>INSERT</code> écrit. Tu nommes les colonnes, puis tu donnes les valeurs dans le <b>même ordre</b>."},
-    vs:{bad:{tag:"✕ Ordre inversé",sql:"INSERT INTO clients (nom, ville)\nVALUES ('Lille', 'Théo');",out:"La ville dans le nom, le nom dans la ville — sans message d’erreur"},
-        good:{tag:"✓ Colonnes nommées",sql:"INSERT INTO clients (nom, ville)\nVALUES ('Théo', 'Lille');",out:"Une nouvelle ligne : Théo à Lille"}},
-    point:"Le lien colonnes ↔ valeurs est positionnel. Nomme toujours les colonnes.",
-    why:{title:"Suis ce qui arrive à tes données.",
-      body:"SQL place chaque valeur dans la colonne du même rang. Inverse l’ordre, et Lille se retrouve dans <code>nom</code>. Après l’INSERT, un SELECT voit la nouvelle ligne. Ici, tu travailles sur une copie d’essai."},
+  situation:"Un produit arrive au catalogue : Zinc, catégorie Bien-être, 17,90 €, 70 en stock.<br><br>La table <code>produits</code> a cinq colonnes. Tu dois dire à la base laquelle reçoit quoi — et c’est là que tout se joue : le lien entre les colonnes et les valeurs est <b>positionnel</b>.<br><br>Inverser deux valeurs du même type ne déclenche aucune erreur. La ligne est écrite, et elle est fausse.",
+  situationTail:"<div class=\"sit-sql\"><p><code>SELECT</code> lit, <b><code>INSERT</code></b> écrit.</p><p>Nommer les colonnes est le seul moyen de savoir ce qui va où.</p></div>",
+    studio:{pointCards:{
+      eye:"INSERT",title:"Écrire une ligne, colonne par colonne.",
+      lead:"On indique la table, les colonnes visées, puis les valeurs — dans le même ordre que les colonnes.",
+      chain:[
+        {k:"INTO produits",v:"où écrire"},
+        {k:"(colonnes)",v:"lesquelles"},
+        {k:"VALUES (…)",v:"dans le même ordre"}
+      ]},
+    uses:{title:"Nommer, plutôt que compter sur l’ordre.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">La forme à retenir</p>
+          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO produits
+    (nom, categorie, prix, stock)
+VALUES ('Zinc', 'Bien-être',
+        17.90, 70);</pre></div>
+          <p>Chaque valeur rejoint la colonne de même rang : <code>'Zinc'</code> dans <code>nom</code>, <code>17.90</code> dans <code>prix</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Une valeur au mauvais rang ne déclenche rien</p>
+          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO clients (nom, ville)
+VALUES ('Lille', 'Théo');</pre></div>
+          <p>Les deux colonnes attendent du texte. La base accepte : Lille devient un nom de client, Théo une ville. Aucun message, une ligne fausse.</p>
+          <p class="fn-tip"><b>Le seul garde-fou</b> Relire l’<code>INSERT</code> en associant chaque valeur à sa colonne, dans l’ordre.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Sans la liste des colonnes</p>
+          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO produits
+VALUES (20, 'Zinc', 'Bien-être',
+        17.90, 70);</pre></div>
+          <p>C’est permis, à condition de fournir <b>toutes</b> les valeurs, dans l’ordre exact de la table. Le jour où une colonne est ajoutée par <code>ALTER TABLE</code>, cet <code>INSERT</code> cesse de fonctionner.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Les colonnes qu’on ne cite pas</p>
+          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO produits (id, nom)
+VALUES (20, 'Zinc');</pre></div>
+          <p>Elles reçoivent <code>NULL</code> — ou la valeur prévue par <code>DEFAULT</code> si la table en déclare une. Ici, <code>categorie</code>, <code>prix</code> et <code>stock</code> restent vides.</p>
+          <p class="fn-tip"><b>Sauf si la colonne est obligatoire</b> Omettre une colonne <code>NOT NULL</code> revient à y mettre <code>NULL</code> : la ligne est refusée.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">L’identifiant peut s’écrire tout seul</p>
+          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO produits
+    (nom, categorie, prix, stock)
+VALUES ('Zinc', 'Bien-être',
+        17.90, 70);</pre></div>
+          <p>Aucun <code>id</code> n’est fourni. Comme la colonne est <code>INTEGER PRIMARY KEY</code>, SQLite en attribue un : le neuvième produit reçoit l’identifiant 9.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Voir la ligne qui vient d’être écrite</p>
+          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO produits
+    (nom, prix, stock)
+VALUES ('Zinc', 17.90, 70)
+RETURNING id, nom;</pre></div>
+          <p><code>RETURNING</code> renvoie la ligne telle qu’elle a été enregistrée, identifiant compris. Pratique quand la base a rempli des valeurs à ta place.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Ce que la base vérifie au passage</p>
+          <p>Chaque <code>INSERT</code> est contrôlé : identifiant déjà pris, colonne obligatoire vide, valeur hors des clous, référence inexistante. La ligne fautive n’est pas écrite.</p>
+          <p>C’est le sujet du cours <b>Les contraintes à l’épreuve</b>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Au-delà d’une ligne</p>
+          <p>Une même instruction peut écrire plusieurs lignes, recopier le résultat d’un <code>SELECT</code>, ou mettre à jour la ligne quand elle existe déjà.</p>
+          <p>Ces trois formes sont détaillées dans le cours <b>INSERT avancé</b>.</p>
+        </div>
+      </div>`},
     reflex:{a:{k:"INSERT INTO t (a, b)",t:"les colonnes, dans l’ordre"},
-      b:{k:"VALUES (…, …)",t:"les valeurs, <b>dans le même ordre</b>"}}},
-  anatomie:[{tok:"INSERT INTO clients",txt:"Ajoute dans cette table."},{tok:"(nom, ville)",plain:1,txt:"Colonnes visées."},{tok:"VALUES ('Théo', 'Lille')",txt:"Les valeurs."}],
-  exemple:"INSERT INTO clients (nom, ville) VALUES ('Théo', 'Lille');",
-  attendu:"1 ligne ajoutée.",
-  retenir:"<code>INSERT</code> nomme les colonnes, puis donne les valeurs dans le <b>même ordre</b>.",
-  piege:{t:"Se fier à l’ordre des colonnes de la table",p:"Si la table change, ton INSERT casse. Nomme les colonnes."},
-  consigne:"Ajoute un produit <code>'Zinc'</code>, catégorie <code>'Bien-être'</code>, prix <code>17.90</code>, stock <code>70</code>.",
-  solution:"INSERT INTO produits (nom, categorie, prix, stock) VALUES ('Zinc', 'Bien-être', 17.90, 70);",
-  indice:"Nomme les colonnes, puis VALUES dans le même ordre.",
+      b:{k:"VALUES (…, …)",t:"les valeurs, <b>dans le même ordre</b>"},
+      note:"Réflexe : nomme toujours les colonnes. Une inversion entre deux colonnes du même type ne provoque aucune erreur."}},
+  anatomie:[
+    {tok:"INSERT INTO produits",txt:"La table qui reçoit la ligne."},
+    {tok:"(nom, categorie, prix, stock)",txt:"Les colonnes renseignées."},
+    {tok:"VALUES",txt:"Annonce les valeurs."},
+    {tok:"('Zinc', 'Bien-être', 17.90, 70)",txt:"Une valeur par colonne, dans le même ordre."}
+  ],
+  exemple:"INSERT INTO produits\n    (nom, categorie, prix, stock)\nVALUES ('Zinc', 'Bien-être',\n        17.90, 70);\n\nSELECT id, nom, categorie, prix, stock\nFROM produits\nORDER BY id DESC\nLIMIT 1;",
+  attendu:"Une ligne de plus, avec l’identifiant 9 attribué par la base : Zinc, Bien-être, 17.90, stock 70.",
+  retenir:"<code>INSERT INTO table (colonnes) VALUES (valeurs)</code> ajoute une ligne. Le lien colonnes ↔ valeurs est <b>positionnel</b>.<br><br>Sans liste de colonnes, il faut les fournir toutes, dans l’ordre de la table — une déclaration fragile.<br><br>Les colonnes non citées prennent <code>NULL</code> ou leur <code>DEFAULT</code>, et une colonne <code>INTEGER PRIMARY KEY</code> se remplit toute seule.",
+  piege:{t:"Se fier à l’ordre des colonnes de la table",
+    p:"Un <code>INSERT</code> sans liste de colonnes dépend de l’ordre exact de la table. Le jour où <code>ALTER TABLE</code> ajoute une colonne, la requête casse — ou pire, écrit les valeurs de travers.<br><br>Nommer les colonnes rend l’instruction indépendante de la structure.",
+    exec:true,
+    sql:"INSERT INTO clients (nom, ville)\nVALUES ('Lille', 'Théo');\n\nSELECT id, nom, ville\nFROM clients\nORDER BY id DESC\nLIMIT 1;",
+    out:"Aucune erreur — mais Lille est enregistré comme nom, et Théo comme ville.",
+    fixSql:"INSERT INTO clients (nom, ville)\nVALUES ('Théo', 'Lille');\n\nSELECT id, nom, ville\nFROM clients\nORDER BY id DESC\nLIMIT 1;"},
+  petitDefi:[{
+    p:"Tu écris <code>INSERT INTO produits (id, nom) VALUES (20, 'Zinc');</code>. Que contient la colonne <code>prix</code> de cette nouvelle ligne ?",
+    sql:"SELECT prix FROM produits WHERE id = 20;\n→ __________",
+    a:"NULL",
+    answers:["NULL","null","Null","rien","vide"]
+  }],
+  consigne:"Ajoute au catalogue un produit <code>'Zinc'</code>, de catégorie <code>'Bien-être'</code>, au prix de <code>17.90</code>, avec <code>70</code> en stock. Laisse la base attribuer l’identifiant.",
+  solution:"INSERT INTO produits\n    (nom, categorie, prix, stock)\nVALUES ('Zinc', 'Bien-être',\n        17.90, 70);",
+  verif:"SELECT id, nom, categorie, prix, stock FROM produits WHERE nom = 'Zinc';",
+  indice:"Nomme les quatre colonnes entre parenthèses, puis <code>VALUES</code> avec les quatre valeurs dans le même ordre. Ne cite pas <code>id</code>.",
   richLesson:true, earlyDemo:true,
   write:true,
-  verif:"SELECT * FROM produits ORDER BY id;" },
+  testeVariants:[
+    {k:'ordre',label:'Ordre inversé',sql:"INSERT INTO clients (nom, ville)\nVALUES ('Lille', 'Théo');\n\nSELECT id, nom, ville\nFROM clients\nORDER BY id DESC\nLIMIT 1;",out:"Accept\u00e9 sans broncher : Lille est devenu un nom de client.",tone:'bad'},
+    {k:'nomme',label:'Colonnes nommées',sql:"INSERT INTO produits\n    (nom, categorie, prix, stock)\nVALUES ('Zinc', 'Bien-être',\n        17.90, 70);\n\nSELECT id, nom, categorie, prix, stock\nFROM produits\nORDER BY id DESC\nLIMIT 1;",out:"La ligne est juste, et l\u2019identifiant 9 a \u00e9t\u00e9 attribu\u00e9 par la base.",tone:'good'},
+    {k:'partiel',label:'Colonnes omises',sql:"INSERT INTO produits (id, nom)\nVALUES (20, 'Zinc');\n\nSELECT id, nom, categorie, prix, stock\nFROM produits\nWHERE id = 20;",out:"categorie, prix et stock valent NULL : rien ne les a renseign\u00e9s."}
+  ] },
 { id:27, titre:"UPDATE", résumé:"Modifier des lignes",
-  situation:"Dans la table <code>produits</code>, le stock du produit n° 5 passe à 100. Tu changes une valeur, pas toute la table.",
-    studio:{problem:{title:"Sans WHERE, UPDATE change toute la table.",
-      body:"<code>UPDATE</code> change des valeurs. Le WHERE dit <b>quelles lignes</b>. Oublie-le, et tout le monde est modifié — sans avertissement."},
-    vs:{bad:{tag:"✕ Sans WHERE",sql:"UPDATE produits SET stock = 100;",out:"Tous les stocks passent à 100"},
-        good:{tag:"✓ Une ligne",sql:"UPDATE produits SET stock = 100\nWHERE id = 5;",out:"Seul le produit 5 change"}},
-    point:"Réflexe : un <code>SELECT</code> avec le même WHERE d’abord, pour voir les lignes concernées.",
-    why:{title:"Suis ce qui arrive à tes données.",
-      body:"SQL n’a pas de « tu es sûr ? ». Il applique. D’où le SELECT de contrôle avec le même WHERE, avant l’écriture. Ici, tu travailles sur une copie d’essai."},
-    reflex:{a:{k:"UPDATE … SET",t:"la nouvelle valeur"},
-      b:{k:"WHERE",t:"<b>quelles</b> lignes — jamais optionnel dans ta tête"}}},
-  anatomie:[{tok:"UPDATE produits",txt:"Table à modifier."},{tok:"SET stock = 100",txt:"Nouvelle valeur."},{tok:"WHERE id = 5",txt:"<b>Cette</b> ligne seulement."}],
-  exemple:"UPDATE produits SET stock = 100 WHERE id = 5;",
-  attendu:"1 ligne modifiée.",
-  retenir:"<code>UPDATE … SET</code> change des valeurs. Sans <code>WHERE</code>, toute la table est modifiée.",
-  piege:{t:"UPDATE sans WHERE",p:"Accident classique : toute la table est écrasée."},
-  consigne:"Passe le <code>stock</code> du produit d’<code>id</code> 5 à <code>100</code>.",
-  solution:"UPDATE produits SET stock = 100 WHERE id = 5;",
-  indice:"<code>UPDATE produits SET stock = 100 WHERE id = 5;</code>",
+  situation:"Le fournisseur augmente ses tarifs de 5 %. Les huit produits du catalogue sont concernés.<br><br>Tu pourrais recalculer chaque prix à la main et écrire huit instructions. Mais <code>UPDATE</code> sait le faire en une seule — à condition de lui dire <b>quelles lignes</b> modifier.<br><br>Oublier cette précision, c’est modifier toute la table. Sans avertissement, sans confirmation.",
+  situationTail:"<div class=\"sit-sql\"><p><b><code>SET</code></b> dit quelle nouvelle valeur écrire.</p><p><b><code>WHERE</code></b> dit sur quelles lignes.</p></div>",
+    studio:{pointCards:{
+      eye:"UPDATE",title:"Changer des valeurs, pas des lignes.",
+      lead:"<code>UPDATE</code> réécrit des colonnes dans des lignes qui existent déjà. Il n’en ajoute ni n’en supprime aucune.",
+      chain:[
+        {k:"UPDATE produits",v:"la table"},
+        {k:"SET colonne = …",v:"la nouvelle valeur"},
+        {k:"WHERE …",v:"quelles lignes"}
+      ]},
+    uses:{title:"La valeur, puis la portée.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Sans WHERE, toute la table</p>
+          <div class="tx-flow" role="img" aria-label="Sans WHERE toutes les lignes changent, avec WHERE une seule">
+            <span class="tx-step tx-key">UPDATE produits</span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <div class="tx-fork">
+              <div class="tx-branch is-ko"><b>sans WHERE</b><span>les 8 lignes</span></div>
+              <div class="tx-branch is-ok"><b>avec WHERE</b><span>celles visées</span></div>
+            </div>
+          </div>
+          <p><code>WHERE</code> est facultatif pour la base, jamais pour toi. <code>UPDATE produits SET stock = 100;</code> met les huit stocks à 100.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Le réflexe : voir avant d’écrire</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT id, nom, stock
+FROM produits
+WHERE id = 5;</pre></div>
+          <p>Le même <code>WHERE</code>, d’abord en lecture. Tu vois exactement les lignes que l’<code>UPDATE</code> va toucher, avant qu’il ne les touche.</p>
+          <p class="fn-tip"><b>Après coup</b> <code>SELECT changes();</code> indique le nombre de lignes réellement modifiées par la dernière instruction.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Plusieurs colonnes d’un coup</p>
+          <div class="pt-syntax"><pre class="cw-syntax">UPDATE produits
+SET prix = 21.90,
+    stock = 150
+WHERE id = 3;</pre></div>
+          <p>Une virgule entre les affectations. Les deux colonnes changent dans le même mouvement, pour les mêmes lignes.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">La nouvelle valeur peut être un calcul</p>
+          <div class="pt-syntax"><pre class="cw-syntax">UPDATE produits
+SET prix = ROUND(prix * 1.05, 2);</pre></div>
+          <p>À droite du <code>=</code>, <code>prix</code> désigne la valeur <b>actuelle</b> de la ligne. Chaque produit est augmenté de 5 % à partir de son propre prix.</p>
+          <p class="fn-tip"><b>Toujours préférable</b> <code>SET stock = stock - 1</code> plutôt que relire la valeur, calculer ailleurs et réécrire le résultat.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Une valeur venue d’une autre table</p>
+          <div class="pt-syntax"><pre class="cw-syntax">UPDATE produits
+SET stock = stock - (
+  SELECT COALESCE(
+           SUM(quantite), 0)
+  FROM commandes
+  WHERE commandes.produit_id
+      = produits.id
+);</pre></div>
+          <p>La sous-requête est évaluée <b>pour chaque ligne</b> : elle voit <code>produits.id</code> de la ligne en cours. Le stock du produit 1 perd les 10 unités commandées et passe de 120 à 110.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Choisir les lignes par une sous-requête</p>
+          <div class="pt-syntax"><pre class="cw-syntax">UPDATE produits
+SET categorie = 'Vendu'
+WHERE id IN (
+    SELECT DISTINCT produit_id
+    FROM commandes
+);</pre></div>
+          <p>Le <code>WHERE</code> accepte tout ce qu’un <code>SELECT</code> accepte. Ici, seuls les produits qui apparaissent au moins une fois dans <code>commandes</code> sont marqués.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Une valeur différente selon la ligne</p>
+          <div class="pt-syntax"><pre class="cw-syntax">UPDATE produits
+SET prix = CASE
+  WHEN stock > 100 THEN prix * 0.9
+  WHEN stock > 50 THEN prix * 0.95
+  ELSE prix
+END;</pre></div>
+          <p>Une seule instruction, trois traitements. Les produits en surstock baissent de 10 %, les moyens de 5 %, les autres ne bougent pas.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">UPDATE … FROM</p>
+          <div class="pt-syntax"><pre class="cw-syntax">UPDATE produits
+SET stock = stock - v.total
+FROM (
+    SELECT produit_id,
+           SUM(quantite) AS total
+    FROM commandes
+    GROUP BY produit_id
+) AS v
+WHERE produits.id = v.produit_id;</pre></div>
+          <p>Le résultat d’une requête est calculé une seule fois, puis rapproché des lignes à modifier. Plus lisible qu’une sous-requête répétée, et souvent plus rapide.</p>
+          <p class="fn-tip"><b>Une addition récente</b> Cette forme n’existe dans SQLite que depuis la version 3.33. Les cours plus anciens affirment encore qu’elle est impossible.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Les règles s’appliquent aussi ici</p>
+          <p>Un <code>UPDATE</code> est vérifié comme un <code>INSERT</code>. Donner à Lucas l’adresse de Sophie se heurte au <code>UNIQUE</code> de la colonne <code>email</code> :</p>
+          <div class="tx-fail">
+            <span class="is-ko">UPDATE clients SET email = …<i>UNIQUE constraint failed</i></span>
+          </div>
+          <p>Et comme pour un <code>INSERT</code>, le refus annule l’instruction entière : aucune des lignes visées n’est modifiée.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"SET",t:"la nouvelle valeur"},
+      b:{k:"WHERE",t:"<b>quelles</b> lignes — jamais optionnel dans ta tête"},
+      note:"Réflexe : écris d’abord le <code>SELECT</code> avec le même <code>WHERE</code>. Ce que tu vois est ce que tu vas modifier."}},
+  anatomie:[
+    {tok:"UPDATE produits",txt:"La table à modifier."},
+    {tok:"SET prix = ROUND(prix * 1.05, 2)",txt:"La nouvelle valeur, calculée à partir de l’ancienne."},
+    {tok:"WHERE categorie = 'Bien-être'",txt:"Les lignes concernées. Sans cette ligne, toute la table."}
+  ],
+  exemple:"UPDATE produits\nSET prix = ROUND(prix * 1.05, 2)\nWHERE categorie = 'Bien-être';\n\nSELECT id, nom, categorie, prix\nFROM produits\nORDER BY id;",
+  attendu:"Seuls les trois produits Bien-être voient leur prix augmenter de 5 %. Les cinq autres gardent le leur.",
+  retenir:"<code>UPDATE … SET</code> réécrit des colonnes dans des lignes existantes. <code>WHERE</code> décide lesquelles — sans lui, <b>toute la table</b>.<br><br>La nouvelle valeur peut être un calcul (<code>prix * 1.05</code>), une sous-requête, ou un <code>CASE</code> qui traite les lignes différemment.<br><br>Le réflexe : le même <code>WHERE</code> en <code>SELECT</code> d’abord.",
+  piege:{t:"UPDATE sans WHERE",
+    p:"L’accident le plus classique du SQL. <code>UPDATE produits SET stock = 100;</code> ne modifie pas un produit : il en modifie huit.<br><br>Rien ne demande confirmation, et rien ne signale que la portée est plus large que prévu. Seul le <code>SELECT</code> préalable protège.",
+    exec:true,
+    sql:"UPDATE produits SET stock = 100;\n\nSELECT id, nom, stock\nFROM produits\nORDER BY id;",
+    out:"Les huit stocks valent 100 : ceux de 200, de 45 et de 30 ont été écrasés.",
+    fixSql:"UPDATE produits\nSET stock = 100\nWHERE id = 5;\n\nSELECT id, nom, stock\nFROM produits\nORDER BY id;"},
+  petitDefi:[{
+    p:"Tu veux retirer une unité au stock du produit 8, sans écrire la valeur finale toi-même. Que mets-tu à droite du signe égal ?",
+    sql:"UPDATE produits\nSET stock = __________\nWHERE id = 8;",
+    a:"stock - 1",
+    answers:["stock - 1","stock-1","stock -1","stock- 1"]
+  }],
+  consigne:"Le fournisseur augmente de 5 % le tarif de sa gamme Bien-être. Applique cette hausse aux seuls produits de catégorie <code>'Bien-être'</code>, en arrondissant à deux décimales avec <code>ROUND</code>.",
+  solution:"UPDATE produits\nSET prix = ROUND(prix * 1.05, 2)\nWHERE categorie = 'Bien-être';",
+  verif:"SELECT id, nom, categorie, prix FROM produits ORDER BY id;",
+  indice:"<code>SET prix = ROUND(prix * 1.05, 2)</code>, puis <code>WHERE categorie = 'Bien-être'</code>.",
   richLesson:true, earlyDemo:true,
   write:true,
-  verif:"SELECT * FROM produits ORDER BY id;" },
+  testeVariants:[
+    {k:'sans',label:'Sans WHERE',sql:"UPDATE produits SET stock = 100;\n\nSELECT id, nom, stock\nFROM produits\nORDER BY id;",out:"Les huit stocks \u00e0 100 : l\u2019instruction a touch\u00e9 toute la table.",tone:'bad'},
+    {k:'avec',label:'Avec WHERE',sql:"UPDATE produits\nSET stock = 100\nWHERE id = 5;\n\nSELECT id, nom, stock\nFROM produits\nORDER BY id;",out:"Seule la Tisane D\u00e9tox change. Les sept autres gardent leur stock.",tone:'good'},
+    {k:'calcul',label:'Calcul',sql:"UPDATE produits\nSET prix = ROUND(prix * 1.05, 2)\nWHERE categorie = 'Bien-être';\n\nSELECT id, nom, categorie, prix\nFROM produits\nORDER BY id;",out:"Chaque produit Bien-\u00eatre augmente \u00e0 partir de son propre prix."},
+    {k:'case',label:'CASE',sql:"UPDATE produits\nSET prix = CASE\n  WHEN stock > 100 THEN prix * 0.9\n  WHEN stock > 50 THEN prix * 0.95\n  ELSE prix\nEND;\n\nSELECT id, nom, stock, ROUND(prix, 2) AS prix\nFROM produits\nORDER BY id;",out:"Trois traitements dans une seule instruction, selon le stock de chaque ligne."},
+    {k:'from',label:'UPDATE … FROM',sql:"UPDATE produits\nSET stock = stock - v.total\nFROM (\n    SELECT produit_id,\n           SUM(quantite) AS total\n    FROM commandes\n    GROUP BY produit_id\n) AS v\nWHERE produits.id = v.produit_id;\n\nSELECT id, nom, stock\nFROM produits\nORDER BY id;",out:"Chaque stock est diminu\u00e9 des quantit\u00e9s command\u00e9es : 120 devient 110."}
+  ] },
 { id:28, titre:"DELETE", résumé:"Supprimer des lignes",
-  situation:"Dans la table <code>commandes</code>, tu veux retirer celles d’une seule unité. DELETE enlève des <b>lignes entières</b>.",
-    studio:{problem:{title:"Sans WHERE, DELETE vide la table.",
-      body:"DELETE n’efface pas une case : il enlève la ligne. Même garde-fou que UPDATE. Pour vider une valeur sans supprimer la ligne, c’est un UPDATE vers NULL."},
-    vs:{bad:{tag:"✕ Sans WHERE",sql:"DELETE FROM commandes;",out:"Les 16 commandes disparaissent"},
-        good:{tag:"✓ Filtré",sql:"DELETE FROM commandes\nWHERE quantite = 1;",out:"Seulement les commandes d’une unité"}},
-    point:"Définitif (dans cet exercice, on travaille sur une copie). Vérifie avec un SELECT d’abord.",
-    why:{title:"Suis ce qui arrive à tes données.",
-      body:"La ligne n’existe plus. Un SELECT ensuite ne la retrouve pas. Ici, tu travailles sur une copie d’essai."},
+  situation:"Huit commandes ne portent qu’une seule unité. Le service logistique demande de les retirer du registre.<br><br><code>DELETE</code> enlève des <b>lignes entières</b> : la commande disparaît avec sa date, son produit et sa quantité.<br><br>Comme pour <code>UPDATE</code>, c’est le <code>WHERE</code> qui décide de la portée. Sans lui, les seize commandes y passent.",
+  situationTail:"<div class=\"sit-sql\"><p><b><code>DELETE</code></b> retire des lignes.</p><p>La table, ses colonnes et ses règles, elles, restent en place.</p></div>",
+    studio:{pointCards:{
+      eye:"DELETE",title:"Retirer des lignes, pas des valeurs.",
+      lead:"<code>DELETE</code> enlève des lignes entières d’une table. Il ne vide pas une case et ne touche pas à la structure.",
+      chain:[
+        {k:"DELETE FROM",v:"la table"},
+        {k:"WHERE …",v:"quelles lignes"},
+        {k:"Le reste",v:"intact"}
+      ]},
+    uses:{title:"La portée, encore et toujours.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Sans WHERE, la table se vide</p>
+          <div class="tx-flow" role="img" aria-label="Sans WHERE toutes les lignes partent, avec WHERE seulement celles visées">
+            <span class="tx-step tx-key">DELETE FROM commandes</span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <div class="tx-fork">
+              <div class="tx-branch is-ko"><b>sans WHERE</b><span>les 16 lignes</span></div>
+              <div class="tx-branch is-ok"><b>avec WHERE</b><span>les 8 visées</span></div>
+            </div>
+          </div>
+          <p>Aucune confirmation n’est demandée, et l’instruction ne prévient pas qu’elle va plus loin que prévu.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Le réflexe : compter avant de supprimer</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT COUNT(*)
+FROM commandes
+WHERE quantite = 1;</pre></div>
+          <p>Le même <code>WHERE</code>, d’abord en lecture. Huit lignes : c’est bien ce que tu veux retirer.</p>
+          <p class="fn-tip"><b>Après coup</b> <code>SELECT changes();</code> renvoie le nombre de lignes réellement supprimées.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Vider une case n’est pas supprimer une ligne</p>
+          <div class="pt-syntax"><pre class="cw-syntax">UPDATE commandes
+SET date_commande = NULL
+WHERE id = 1;</pre></div>
+          <p><code>DELETE</code> ne sait pas effacer une seule colonne. Pour oublier une information en gardant la ligne, c’est un <code>UPDATE</code> vers <code>NULL</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Choisir les lignes par une sous-requête</p>
+          <div class="pt-syntax"><pre class="cw-syntax">DELETE FROM commandes
+WHERE client_id IN (
+    SELECT id FROM clients
+    WHERE ville = 'Paris'
+);</pre></div>
+          <p>Le <code>WHERE</code> d’un <code>DELETE</code> accepte tout ce qu’un <code>SELECT</code> accepte. Sophie, Nathan et Léa habitent Paris : leurs sept commandes partent, il en reste neuf.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Quand une clé étrangère s’y oppose</p>
+          <div class="tx-fail">
+            <span class="is-ko">DELETE FROM clients WHERE id = 1;<i>FOREIGN KEY constraint failed</i></span>
+          </div>
+          <p>Supprimer Sophie laisserait trois commandes sans client. La base refuse — à moins que la table ne déclare une autre conduite à tenir.</p>
+          <p>C’est le sujet du cours <b>ON DELETE</b>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Supprimer les lignes, ou la table</p>
+          <p><code>DELETE FROM commandes;</code> laisse une table vide, avec ses cinq colonnes et ses règles, prête à recevoir de nouvelles lignes.</p>
+          <p><code>DROP TABLE commandes;</code> la retire de la base. C’est la distinction du cours <b>DROP</b>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Le compteur ne repart pas à zéro</p>
+          <div class="pt-syntax"><pre class="cw-syntax">DELETE FROM sqlite_sequence
+WHERE name = 'commandes';</pre></div>
+          <p>Vider une table ne remet pas son compteur d’identifiants à un : la prochaine ligne reprend là où la précédente s’était arrêtée.</p>
+          <p>Pour le réinitialiser, il faut vider la ligne correspondante de <code>sqlite_sequence</code>, la table interne où SQLite tient ces compteurs.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Se donner le droit de revenir</p>
+          <p>Une suppression validée ne se rattrape pas. À l’intérieur d’un <code>BEGIN</code>, en revanche, un <code>ROLLBACK</code> ramène les lignes.</p>
+          <p>Pour toute suppression un peu large, c’est le filet à déployer — voir le cours <b>Transactions</b>.</p>
+        </div>
+      </div>`},
     reflex:{a:{k:"DELETE FROM t WHERE …",t:"supprime des <b>lignes</b>"},
-      b:{k:"UPDATE … SET x = NULL",t:"vide une <b>valeur</b>, garde la ligne"}}},
-  anatomie:[{tok:"DELETE FROM commandes",txt:"Table visée."},{tok:"WHERE quantite = 1",txt:"Quelles lignes enlever."}],
-  exemple:"DELETE FROM commandes WHERE quantite = 1;",
-  attendu:"Les commandes d’une unité sont retirées.",
-  retenir:"<code>DELETE</code> supprime des <b>lignes</b> entières. Sans <code>WHERE</code>, la table se vide.",
-  piege:{t:"DELETE une colonne",p:"On ne vide pas une case avec DELETE. Utilise UPDATE … SET colonne = NULL."},
-  consigne:"Supprime les commandes dont la <code>quantite</code> est égale à 1.",
-  solution:"DELETE FROM commandes WHERE quantite = 1;",
-  indice:"<code>DELETE FROM commandes WHERE quantite = 1;</code>",
+      b:{k:"UPDATE … SET x = NULL",t:"vide une <b>valeur</b>, garde la ligne"},
+      note:"Réflexe : le même <code>WHERE</code> en <code>SELECT COUNT(*)</code> d’abord. Le nombre affiché est le nombre de lignes que tu vas perdre."}},
+  anatomie:[
+    {tok:"DELETE FROM commandes",txt:"La table où retirer des lignes."},
+    {tok:"WHERE quantite = 1",txt:"Les lignes concernées. Sans cette ligne, toute la table."}
+  ],
+  exemple:"SELECT COUNT(*) AS a_supprimer\nFROM commandes\nWHERE quantite = 1;\n\nDELETE FROM commandes\nWHERE quantite = 1;\n\nSELECT COUNT(*) AS restantes\nFROM commandes;",
+  attendu:"Huit commandes correspondaient au filtre, huit ont été supprimées : il en reste huit sur seize.",
+  retenir:"<code>DELETE FROM table WHERE …</code> retire des <b>lignes entières</b>. Sans <code>WHERE</code>, la table se vide.<br><br>Il ne sait pas effacer une seule colonne : pour cela, <code>UPDATE … SET colonne = NULL</code>.<br><br>Le réflexe : <code>SELECT COUNT(*)</code> avec le même <code>WHERE</code> avant d’écrire, et un <code>BEGIN</code> autour des suppressions larges.",
+  piege:{t:"Croire que DELETE efface une colonne",
+    p:"<code>DELETE</code> ne connaît que la ligne. Il n’existe pas de <code>DELETE</code> qui viderait la seule colonne <code>date_commande</code> en laissant le reste.<br><br>Vouloir oublier une information sans perdre la ligne, c’est le travail d’<code>UPDATE</code>.",
+    exec:true,
+    sql:"DELETE FROM commandes\nWHERE date_commande IS NOT NULL;\n\nSELECT COUNT(*) AS restantes\nFROM commandes;",
+    out:"Zéro : les seize commandes ont une date, donc les seize lignes ont disparu.",
+    fixSql:"UPDATE commandes\nSET date_commande = NULL;\n\nSELECT\n  COUNT(*) AS lignes,\n  COUNT(date_commande) AS avec_date\nFROM commandes;"},
+  petitDefi:[{
+    p:"Tu veux oublier la date de la commande 1 sans perdre la commande. Quelle commande SQL emploies-tu ?",
+    sql:"__________ commandes\nSET date_commande = NULL\nWHERE id = 1;",
+    a:"UPDATE",
+    answers:["UPDATE","update","UPDATE commandes"]
+  }],
+  consigne:"Le registre doit être allégé des commandes ne portant qu’une seule unité. Supprime les commandes dont la <code>quantite</code> est égale à 1.",
+  solution:"DELETE FROM commandes\nWHERE quantite = 1;",
+  verif:"SELECT id, client_id, produit_id, quantite FROM commandes ORDER BY id;",
+  indice:"<code>DELETE FROM commandes WHERE quantite = 1;</code> — et pense au <code>SELECT COUNT(*)</code> de contrôle avant.",
   richLesson:true, earlyDemo:true,
   write:true,
-  verif:"SELECT * FROM commandes ORDER BY id;" },
+  testeVariants:[
+    {k:'sans',label:'Sans WHERE',sql:"DELETE FROM commandes;\n\nSELECT COUNT(*) AS restantes\nFROM commandes;",out:"Z\u00e9ro. Les seize commandes ont disparu d\u2019un coup.",tone:'bad'},
+    {k:'avec',label:'Avec WHERE',sql:"DELETE FROM commandes\nWHERE quantite = 1;\n\nSELECT COUNT(*) AS restantes\nFROM commandes;",out:"Huit restantes : seules les commandes d\u2019une unit\u00e9 sont parties.",tone:'good'},
+    {k:'sousreq',label:'Sous-requête',sql:"DELETE FROM commandes\nWHERE client_id IN (\n    SELECT id FROM clients\n    WHERE ville = 'Paris'\n);\n\nSELECT COUNT(*) AS restantes\nFROM commandes;",out:"Neuf restantes : les sept commandes des clients parisiens sont parties."},
+    {k:'fk',label:'Clé étrangère',sql:"DELETE FROM clients WHERE id = 1;",out:"Refus\u00e9 : Sophie a trois commandes qui la r\u00e9f\u00e9rencent.",tone:'bad'}
+  ] },
 { id:62, titre:"Transactions", résumé:"Tout valider ou tout annuler",
   situation:"Un client commande 2 unités d’un produit sur ton site e-commerce.<br><br>Deux modifications doivent être effectuées dans la base : ajouter la commande dans la table <code>commandes</code>, et retirer 2 unités du <code>stock</code> dans la table <code>produits</code>.",
   situationSql:"INSERT INTO commandes\n    (client_id, produit_id, quantite, date_commande)\nVALUES\n    (1, 3, 2, '2026-08-30');\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;",
