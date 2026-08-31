@@ -88,6 +88,8 @@ assert(account.includes('Ma progression') && account.includes('account-stats-gri
 assert(account.includes('Niveau actuel') && account.includes('account-level-track') && account.includes('Prochain cap'), 'niveau SQL et prochain palier calculés depuis la progression réelle');
 assert(account.includes('Cette semaine') && account.includes('account-week') && account.includes('weekComplete'), 'activité hebdomadaire reliée aux séances du planning');
 assert(account.includes('Accomplissements') && account.includes('account-badges') && account.includes('Première requête'), 'badges pédagogiques débloqués par des actions réelles');
+assert(account.includes("accountStatIcon('progress')") && account.includes("accountStatIcon('streak')") && account.includes("accountStatIcon('lessons')") && account.includes("accountStatIcon('challenges')"), 'les quatre indicateurs utilisent des pictogrammes dédiés et distincts');
+assert(!account.includes("?'🔥':'○'") && html.includes('.account-stat-mark{width:36px;height:36px'), 'emoji remplacé par un système SVG homogène et plus lisible');
 assert(account.includes('Objectif du jour') && account.includes('account-goal-ring'), 'objectif du jour utilise les données du planning');
 assert(account.includes('Apprentissage') && account.includes('Compte et assistance') && account.includes('Profil et objectif') && account.includes('Données et confidentialité') && account.includes('Aide et prise en main'), 'réglages essentiels regroupés en catégories explicites');
 assert(html.includes('function closePlusDetails()') && account.includes('account-sheet-backdrop') && html.includes("querySelectorAll('#scr-compte .plus-details[open]')"), 'réglages détaillés ouverts dans un seul panneau focalisé et refermable');
