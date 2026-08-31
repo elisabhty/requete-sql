@@ -10300,6 +10300,120 @@ DROP COLUMN telephone;</pre></div>
   indice:"<code>ALTER TABLE nom_table</code>, puis <code>ADD COLUMN nom type DEFAULT valeur;</code>.",
   write:true,
   richLesson:true, earlyDemo:true },
+{ id:66, titre:"DROP", résumé:"Supprimer une structure de la base",
+  situation:"Pour un essai, tu as créé une table <code>commandes_test</code> et tu l’as remplie de fausses lignes.<br><br>L’essai est terminé. Tu écris <code>DELETE FROM commandes_test;</code> : les lignes disparaissent bien, mais la table, elle, est toujours là — vide, avec ses colonnes et ses règles.<br><br><code>DELETE</code> ne sait retirer que des lignes. La structure qui les contenait ne le concerne pas.",
+  situationTail:"<div class=\"sit-sql\"><p>Comment supprimer la structure elle-même, et pas seulement son contenu ?</p><p>C’est le rôle de <b><code>DROP</code></b>.</p></div>",
+    studio:{pointCards:{
+      eye:"DROP",title:"Supprimer l’objet, pas seulement les lignes.",
+      lead:"<code>DELETE</code> retire des lignes d’une table. <code>DROP</code> retire la table de la base : ses lignes, ses colonnes, ses contraintes et ses index partent ensemble.",
+      chain:[
+        {k:"DROP TABLE",v:"supprime une table"},
+        {k:"DROP VIEW",v:"supprime une vue"},
+        {k:"DROP INDEX",v:"supprime un index"}
+      ]},
+    uses:{title:"Vider, ou faire disparaître.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Deux niveaux de suppression</p>
+          <div class="tx-flow" role="img" aria-label="DELETE vide la table, DROP la supprime">
+            <span class="tx-step">table <b>commandes_test</b><i>structure + 2 lignes</i></span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <div class="tx-fork">
+              <div class="tx-branch is-ok"><b>DELETE FROM</b><span>la table reste, vide</span></div>
+              <div class="tx-branch is-ko"><b>DROP TABLE</b><span>la table n’existe plus</span></div>
+            </div>
+          </div>
+          <p>Les deux suppriment quelque chose. <code>DELETE</code> agit sur le <b>contenu</b>, <code>DROP</code> sur l’<b>objet</b>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Vider une table</p>
+          <div class="pt-syntax"><pre class="cw-syntax">DELETE FROM commandes_test;</pre></div>
+          <p>Zéro ligne — mais <code>commandes_test</code> figure toujours dans la base, avec ses colonnes <code>id</code> et <code>quantite</code>. Un <code>INSERT</code> peut la remplir de nouveau dans la seconde qui suit.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Supprimer la table</p>
+          <div class="pt-syntax"><pre class="cw-syntax">DROP TABLE commandes_test;</pre></div>
+          <p>Cette fois la table n’est plus dans la base. La requête suivante n’a plus rien à interroger :</p>
+          <div class="tx-fail">
+            <span class="is-ko">SELECT * FROM commandes_test;<i>no such table</i></span>
+          </div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Quand l’objet n’existe pas</p>
+          <p><code>DROP TABLE paniers;</code> échoue si aucune table ne porte ce nom : <code>no such table: paniers</code>.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">DROP TABLE IF EXISTS paniers;</pre></div>
+          <p><code>IF EXISTS</code> supprime la table si elle est là, et ne fait rien si elle n’y est pas. Aucune erreur dans les deux cas.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Trois objets, trois commandes</p>
+          <div class="table-wrap"><table class="concept-table fit-2">
+            <thead><tr><th>Commande</th><th>Supprime</th></tr></thead>
+            <tbody>
+              <tr><td><code>DROP TABLE</code></td><td>la table</td></tr>
+              <tr><td><code>DROP VIEW</code></td><td>la vue</td></tr>
+              <tr><td><code>DROP INDEX</code></td><td>l’index</td></tr>
+            </tbody>
+          </table></div>
+          <p>Seul <code>DROP TABLE</code> emporte des lignes. Supprimer la vue <code>produits_stock_faible</code> ne retire aucun produit : la vue n’était qu’une requête enregistrée sous un nom, et les huit produits restent.</p>
+          <p>Supprimer un index ne retire rien non plus. Les lignes sont simplement retrouvées plus lentement, comme avant sa création.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Ce que DROP TABLE emporte avec lui</p>
+          <p>La table part avec tout ce qui lui appartient : ses lignes, ses colonnes, ses contraintes, et les index construits sur elle. Inutile de les supprimer un par un.</p>
+          <p class="fn-tip"><b>Une vue ne suit pas</b> Une vue bâtie sur une table supprimée reste enregistrée dans la base, mais devient illisible : la lire renvoie <code>no such table</code>. C’est à toi de la supprimer.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Revenir en arrière</p>
+          <p>En SQLite, <code>DROP</code> obéit aux transactions comme <code>DELETE</code>. À l’intérieur d’un <code>BEGIN</code>, un <code>ROLLBACK</code> ramène la table et ses lignes.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">BEGIN;
+DROP TABLE commandes;
+ROLLBACK;</pre></div>
+          <p>La table <code>commandes</code> est de retour, avec ses seize lignes.</p>
+          <p class="fn-tip"><b>Le filet a une limite</b> Après le <code>COMMIT</code>, ou en dehors de toute transaction, la suppression est définitive.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Et TRUNCATE ?</p>
+          <p>PostgreSQL et MySQL proposent une troisième commande, <code>TRUNCATE TABLE</code> : elle vide la table entièrement, plus vite que <code>DELETE</code>, mais garde la structure comme lui.</p>
+          <div class="tx-fail">
+            <span class="is-ko">TRUNCATE TABLE commandes;<i>syntax error</i></span>
+          </div>
+          <p>SQLite ne la connaît pas. Pour vider une table, on écrit <code>DELETE FROM commandes;</code>.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"La question",t:"les lignes, ou la table ?"},
+      b:{k:"La règle",t:"les lignes → DELETE · la table → DROP"},
+      note:"Réflexe : <code>DELETE</code> laisse la table en place, vide. <code>DROP</code> la retire de la base."}},
+  anatomie:[
+    {tok:"DROP",txt:"Annonce la suppression d’un objet de la base."},
+    {tok:"TABLE",txt:"Le type d’objet supprimé : TABLE, VIEW ou INDEX."},
+    {tok:"IF EXISTS",txt:"Facultatif : évite l’erreur si l’objet n’existe pas."},
+    {tok:"commandes_test",txt:"Le nom de l’objet à supprimer."}
+  ],
+  exemple:"CREATE TABLE commandes_test (\n    id INTEGER PRIMARY KEY,\n    quantite INTEGER\n);\n\nINSERT INTO commandes_test (id, quantite)\nVALUES (1, 3), (2, 5);\n\nDELETE FROM commandes_test;\n\nSELECT COUNT(*) AS lignes_restantes,\n       (SELECT COUNT(*) FROM sqlite_master\n        WHERE type = 'table' AND name = 'commandes_test') AS table_existe\nFROM commandes_test;",
+  attendu:"Zéro ligne restante, mais la table existe encore : DELETE a vidé son contenu sans toucher à sa structure. Il faudra DROP TABLE pour la faire disparaître.",
+  retenir:"<code>DELETE</code> supprime des <b>lignes</b>. <code>DROP</code> supprime l’<b>objet</b> lui-même : la table, avec ses colonnes, ses contraintes et ses index.<br><br>Trois objets, trois commandes : <code>DROP TABLE</code>, <code>DROP VIEW</code>, <code>DROP INDEX</code>. <code>IF EXISTS</code> évite l’erreur quand l’objet n’existe pas.<br><br>Le mémo : <b>DELETE vide, DROP fait disparaître</b>.",
+  piege:{t:"Croire que DELETE supprime la table",
+    p:"<code>DELETE FROM commandes</code> retire les seize lignes, et s’arrête là. La table reste dans la base, avec ses cinq colonnes et ses clés étrangères — prête à recevoir de nouvelles lignes.<br><br>Pour qu’elle ne soit plus dans la base du tout, il faut <code>DROP TABLE</code>.",
+    exec:true,
+    sql:"DELETE FROM commandes;\n\nSELECT COUNT(*) AS lignes\nFROM commandes;",
+    out:"0 ligne — mais la table commandes répond encore : elle est vide, pas supprimée.",
+    fixSql:"DROP TABLE commandes;\n\nSELECT type, name\nFROM sqlite_master\nWHERE type = 'table'\nORDER BY name;"},
+  petitDefi:[{
+    p:"La vue <code>ventes_2026</code> ne sert plus. Quels mots-clés remplacent les tirets pour la retirer de la base ?",
+    sql:"__________ ventes_2026;",
+    a:"DROP VIEW",
+    answers:["DROP VIEW","drop view","DROP VIEW ventes_2026","drop view ventes_2026"]
+  }],
+  consigne:"Cette base de travail est une copie : tu peux y supprimer ce que tu veux. Fais disparaître la table <code>commandes</code> de la base — pas seulement ses lignes — sans provoquer d’erreur si elle en est déjà absente.",
+  solution:"DROP TABLE IF EXISTS commandes;",
+  verif:"SELECT type, name FROM sqlite_master WHERE type = 'table' ORDER BY name;",
+  indice:"<code>DROP TABLE nom_table;</code> — et <code>IF EXISTS</code> se place entre <code>TABLE</code> et le nom.",
+  write:true,
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'objets',label:'Les objets',sql:"SELECT type, name\nFROM sqlite_master\nORDER BY type, name;",out:"Les trois tables de la base. C\u2019est cette liste que DROP raccourcit."},
+    {k:'lignes',label:'Les lignes',sql:"SELECT COUNT(*) AS lignes\nFROM commandes;",out:"Seize lignes. DELETE les ram\u00e8nerait \u00e0 z\u00e9ro sans retirer commandes de la liste ci-dessus."}
+  ] },
 { id:50, titre:"Sécurité et droits", résumé:"Contrôler les accès avec GRANT et REVOKE",
   situation:"Tu veux qu’un utilisateur <code>app_user</code> puisse lire la table <code>clients</code>, mais pas la modifier.<br><br>Avec <code>GRANT</code>, tu lui donnes un droit précis — ici <code>SELECT</code>. Plus tard, <code>REVOKE</code> retire ce droit.<br><br>Un <b>SGBD</b> (système de gestion de base de données) est le logiciel qui stocke tes tables et exécute le SQL. Cette application utilise <code>SQLite</code> : tout tient dans le navigateur, sans comptes utilisateurs.<br><br>MySQL, PostgreSQL et SQL Server sont des SGBD <b>serveur</b> : plusieurs utilisateurs se connectent, chacun avec des droits. C’est là que <code>GRANT</code> et <code>REVOKE</code> existent.<br><br><b>Attention :</b> ces commandes ne s’exécutent pas dans SQLite. Ce cours sert à comprendre le principe. Donner trop de droits permettrait de modifier ou supprimer des données.",
   situationTail:"<code>GRANT</code> donne un droit précis, comme <code>SELECT</code> sur une table. <code>REVOKE</code> le retire. Le piège classique : <code>ALL PRIVILEGES</code> — tous les droits, partout.",
@@ -15965,8 +16079,12 @@ function testeIndexFollowup(sql){
   if(!m) return '';
   return `SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='${m[1].replace(/'/g,"''")}' ORDER BY name;`;
 }
+/* Un bloc « Teste » ou un piège exécutable ne doit jamais écrire dans la base
+   de l’élève : « Exécuter » sur un DROP, un ALTER ou un DELETE partirait
+   sinon sur la vraie base et casserait les leçons suivantes. Toute commande
+   qui touche aux données ou à la structure part sur une copie jetable. */
 function testeNeedsSandbox(sql){
-  return /^\s*CREATE\s+INDEX\b/i.test(sql);
+  return /(^|;)\s*(CREATE|DROP|ALTER|INSERT|REPLACE|UPDATE|DELETE|BEGIN|SAVEPOINT|RELEASE|VACUUM|REINDEX)\b/i.test(String(sql||''));
 }
 function runExemple(btn){
   const frame=btn.closest('.exframe');
