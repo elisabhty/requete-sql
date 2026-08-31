@@ -1949,23 +1949,10 @@
   .er-grid > :nth-child(4n){border-right:0}
   .er-fat-grid{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr) minmax(0,1.3fr) 36px}
   .er-td{color:var(--ink);transition:background .45s ease,color .35s,box-shadow .35s}
-  .sql-viz[data-viz="split"][data-phase="1"] .er-td[data-ent="cli"],
-  .sql-viz[data-viz="split"][data-phase="2"] .er-td[data-ent="cli"]{background:var(--accent-soft);color:var(--accent)}
-  .sql-viz[data-viz="split"][data-phase="1"] .er-td[data-ent="prd"],
-  .sql-viz[data-viz="split"][data-phase="2"] .er-td[data-ent="prd"]{background:var(--success-soft);color:var(--success)}
-  .sql-viz[data-viz="split"][data-phase="1"] .er-td[data-ent="cmd"],
-  .sql-viz[data-viz="split"][data-phase="2"] .er-td[data-ent="cmd"]{background:var(--warn-soft);color:var(--warn)}
-  .er-split{display:flex;flex-direction:column}
   .er-fat,.er-three{transition:opacity .5s ease,transform .5s var(--spring-ios),max-height .55s ease,margin .4s ease}
   .er-fat{max-height:260px;overflow:hidden}
   .er-three{display:flex;flex-direction:column;gap:8px;max-height:0;opacity:0;overflow:hidden;transform:translateY(10px);pointer-events:none}
-  .sql-viz[data-viz="split"][data-phase="2"] .er-fat{max-height:0;opacity:0;transform:scale(.98);pointer-events:none;margin:0}
-  .sql-viz[data-viz="split"][data-phase="2"] .er-three{max-height:520px;opacity:1;transform:none;pointer-events:auto}
   .er-mini{border:1px solid var(--card-border);border-radius:12px;overflow:hidden;background:var(--surface);box-shadow:var(--card-shadow-sm);transform:translateY(8px);opacity:0;transition:transform .5s var(--spring-ios),opacity .45s ease}
-  .sql-viz[data-viz="split"][data-phase="2"] .er-mini{transform:none;opacity:1}
-  .sql-viz[data-viz="split"][data-phase="2"] .er-mini:nth-child(1){transition-delay:.05s}
-  .sql-viz[data-viz="split"][data-phase="2"] .er-mini:nth-child(2){transition-delay:.16s}
-  .sql-viz[data-viz="split"][data-phase="2"] .er-mini:nth-child(3){transition-delay:.28s}
   .er-mini .er-card-h{border-radius:0}
   .er-mini[data-t="prd"] .er-card-h{background:var(--accent)}
   .er-mini[data-t="cmd"] .er-card-h{background:var(--accent)}
@@ -7850,33 +7837,6 @@ FROM produits;</pre></div>
 ]},
 
 { titre:"Modélisation", sous:"Tables, clés, relations", lessons:[
-{ id:33, titre:"Plusieurs tables", résumé:"Un sujet par table",
-  situation:"Tu veux savoir qui a commandé quoi. Dans la table <code>commandes</code>, tu cherches le nom du client. Il n’y est pas : seulement un numéro, <code>client_id</code>.<br><br>Avec ce que tu connais déjà, tu peux ouvrir la table :",
-  situationSql:"SELECT *\nFROM commandes;",
-  situationTail:"Tu vois des identifiants, pas « Sophie » ni « Fibre Prébiotique ». C’est voulu : chaque sujet a sa propre table.",
-    studio:{problem:{title:"Une table = un sujet. On ne recopie pas tout partout.",
-      body:""},
-    vs:{bad:{tag:"✕ Une seule feuille",sql:"Sophie | Paris | Fibre | 2\nSophie | Paris | Magnésium | 1",static:"Sophie et Paris sont copiés à chaque commande",
-            code:"Sophie  Paris  Fibre       2\nSophie  Paris  Magnésium   1"},
-        good:{tag:"✓ Une table par sujet",sql:"clients · produits · commandes",static:"Le nom reste dans clients. La commande garde client_id.",
-            code:"clients     → id, nom, ville\nproduits    → id, nom, prix\ncommandes   → client_id, produit_id"}},
-    why:{title:"Pourquoi découper les données ?"},
-    viz:"split",
-    reflex:{a:{k:"1 table",t:"<b>1 sujet</b> : clients, ou produits, ou commandes"},
-      b:{k:"Un id",t:"le <b>pont</b> vers une autre table"}}},
-  anatomie:[{tok:"clients",plain:1,txt:"Les personnes. Une ligne = un client."},{tok:"produits",plain:1,txt:"Le catalogue. Une ligne = un produit."},{tok:"commandes",plain:1,txt:"Les achats. Elle pointe vers les deux autres par des id."}],
-  exemple:"SELECT client_id, quantite FROM commandes;",
-  attendu:"<b>16 lignes</b> : 15 commandes avec un numéro de client, plus une commande invitée (<code>client_id</code> vide).",
-  retenir:"On ne met pas tout dans une seule table. Les tables <code>clients</code>, <code>produits</code> et <code>commandes</code> se partagent le travail. Une commande stocke <code>client_id</code>, pas le nom : le nom reste dans la table <code>clients</code>.",
-  piege:{t:"Recopier le nom dans commandes",p:"Si Sophie déménage, tu devrais corriger chaque commande. Avec un <code>client_id</code>, tu changes <code>ville</code> une seule fois, dans la table <code>clients</code>."},
-  consigne:"Affiche le <code>client_id</code> et la <code>quantite</code> de chaque commande.",
-  solution:"SELECT client_id, quantite FROM commandes;",
-  indice:"Les colonnes utiles sont dans la table <code>commandes</code> : <code>client_id</code> et <code>quantite</code>.",
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-    {k:'star',label:'SELECT *',sql:"SELECT *\nFROM commandes;",out:"Des id, pas le nom du client"},
-    {k:'pont',label:'client_id',sql:"SELECT client_id, quantite\nFROM commandes;",out:"Le pont vers la table clients"}
-  ] },
 { id:34, titre:"Clé primaire", résumé:"Identifier une ligne",
   situation:"Trois clientes habitent Paris. Si tu cherches « la Parisienne », SQL ne peut pas choisir.<br><br>Avec ce que tu connais déjà, tu peux lister les noms et les villes :",
   situationSql:"SELECT nom, ville\nFROM clients;",
@@ -11604,8 +11564,6 @@ const CARTES={
  17:{k:"HAVING",t:"Filtrer les groupes",s:"GROUP BY …\nHAVING …",
     run:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",
     m:"Ordre d’exécution : FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY. <b>WHERE filtre des lignes, HAVING filtre des groupes.</b>"},
- 33:{k:"Plusieurs tables",t:"Un sujet par table",s:"SELECT client_id, quantite FROM commandes;",
-    m:"Une table = un sujet. La table <code>commandes</code> ne recopie pas le nom du client : elle garde <code>client_id</code>, le pont vers la table <code>clients</code>."},
  34:{k:"PRIMARY KEY",t:"Identifier une ligne",s:"SELECT id, nom FROM clients;",
     m:"La <b>clé primaire</b> identifie une ligne et une seule. Dans la table <code>clients</code>, c’est <code>id</code>. Le nom ou la ville peuvent se répéter."},
  35:{k:"FOREIGN KEY",t:"Pointer vers une autre table",s:"SELECT client_id, produit_id FROM commandes;",
@@ -11729,8 +11687,6 @@ const QCM={
    {q:"Il y a 9 clients répartis dans 6 villes. Combien de lignes renvoie <code>SELECT ville, COUNT(*) FROM clients GROUP BY ville;</code> ?",o:["9 lignes","1 ligne","6 lignes"],b:2,e:"Le résultat contient une ligne par groupe. Avec 6 villes différentes, il y a donc 6 lignes."}],
  17:[{q:"<code>WHERE COUNT(*) >= 2</code> :",o:["Fonctionne correctement","Échoue : les agrégats ne sont pas disponibles au moment du WHERE","Renvoie un résultat vide"],b:1,e:"Quand WHERE s’exécute, les groupes n’existent pas encore. C’est le rôle de HAVING."},
    {q:"Dans l’ordre d’exécution, HAVING vient :",o:["Avant GROUP BY","Après GROUP BY","Avant WHERE"],b:1,e:"FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY."}],
- 33:[{q:"Une table devrait contenir :",o:["Toutes les informations possibles","Un seul sujet : clients, ou produits, ou commandes","Uniquement des nombres"],b:1,e:"On découpe par sujet. Une commande ne stocke pas le nom du client : elle pointe vers clients via un id."},
-   {q:"Pourquoi la table <code>commandes</code> a un <code>client_id</code> plutôt que le nom ?",o:["Parce que SQL refuse les noms","Pour ne pas recopier les infos du client à chaque achat","Pour trier plus vite"],b:1,e:"Si Sophie déménage, tu corriges une seule ligne dans la table clients. Toutes ses commandes restent justes."}],
  34:[{q:"Une clé primaire sert à :",o:["Trier la table","Identifier chaque ligne, sans doublon","Filtrer avec WHERE"],b:1,e:"Dans clients, id est unique. Le nom ou la ville peuvent se répéter."},
    {q:"Trois clientes habitent Paris. <code>WHERE ville = 'Paris'</code> renvoie :",o:["Une seule personne","Les 3 Parisiennes — ce n’est pas un identifiant","Une erreur"],b:1,e:"La ville n’est pas unique. Pour une personne précise, on utilise id."}],
  35:[{q:"Une clé étrangère :",o:["Est toujours unique","Recopie la clé primaire d’une autre table","Remplace le JOIN"],b:1,e:"commandes.client_id recopie clients.id. Ce n’est pas unique : un client peut avoir plusieurs commandes."},
@@ -11904,6 +11860,9 @@ function markDone(id,review){
 let db=null,SQL=null,baseBytes=null;
 const allLessons=MODULES.flatMap(m=>m.lessons);
 const TOTAL=allLessons.length;
+/* Toutes les leçons n'ont pas de carte mémo : la collection se compte sur les
+   cartes existantes, pas sur les leçons. */
+const TOTAL_CARTES=allLessons.filter(l=>CARTES[l.id]).length;
 let current=null,mode='lesson',reviewQueue=[],activeTab='learn',restoringNav=false;
 function saveNav(override){
   if(restoringNav)return;
@@ -17829,9 +17788,9 @@ let collFilter='all';
 const FILTERS=[['all','Toutes'],['open','Débloquées'],['lock','À débloquer']];
 function setFilter(f){ collFilter=f; renderCollection(); }
 function renderCollection(){
-  const n=allLessons.filter(l=>isUnlocked(l.id)).length;
+  const n=allLessons.filter(l=>CARTES[l.id]&&isUnlocked(l.id)).length;
   const pill=document.getElementById('coll-n');
-  if(pill) pill.textContent=`${n} / ${TOTAL}`;
+  if(pill) pill.textContent=`${n} / ${TOTAL_CARTES}`;
   const t=document.getElementById('coll-t');
   if(t) t.innerHTML='';
   document.getElementById('coll-filters').innerHTML=FILTERS.map(([k,l])=>
@@ -17839,15 +17798,16 @@ function renderCollection(){
   const host=document.getElementById('cards-grid');
   const CHEV=`<svg class="chev" aria-hidden="true" width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M1.5 1.5L7 7.5l-5.5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   const groups=MODULES.map(mod=>{
-    const items=mod.lessons.filter(l=>{
+    const avecCarte=mod.lessons.filter(l=>CARTES[l.id]);
+    const items=avecCarte.filter(l=>{
       const u=isUnlocked(l.id);
       if(collFilter==='open') return u;
       if(collFilter==='lock') return !u;
       return true;
     });
     if(!items.length) return '';
-    const openN=mod.lessons.filter(l=>isUnlocked(l.id)).length;
-    const count=collFilter==='all'?`${openN}/${mod.lessons.length}`:String(items.length);
+    const openN=avecCarte.filter(l=>isUnlocked(l.id)).length;
+    const count=collFilter==='all'?`${openN}/${avecCarte.length}`:String(items.length);
     const rows=items.map(l=>{
       const u=isUnlocked(l.id);
       const c=CARTES[l.id];
@@ -21031,35 +20991,6 @@ const SQL_VIZ={
     {t:'Léa',extra:'Paris',cat:'Paris',keep:1},{t:'Gabriel',extra:'Toulouse',cat:'Toulouse',keep:1},
     {t:'Inès',extra:'Nantes',cat:'Nantes',keep:1}
   ]},
-  split:{kind:'er',phases:[
-    {k:'Une seule feuille',d:'Tout est mélangé : le client, la ville, le produit, la quantité. Sophie et Paris sont copiés à chaque ligne.'},
-    {k:'3 sujets',d:'Les couleurs séparent les sujets : personne, catalogue, achat. Ils n’ont rien à faire dans la même table.'},
-    {k:'3 tables',d:'Chaque sujet a sa table. La commande ne garde que des id : le pont vers les autres.'}
-  ],html:`<div class="er-stage er-split">
-    <div class="er-fat">
-      <div class="er-card-h">une seule feuille</div>
-      <div class="er-grid er-fat-grid">
-        <div class="er-th">client</div><div class="er-th">ville</div><div class="er-th">produit</div><div class="er-th">qté</div>
-        <div class="er-td" data-ent="cli">Sophie</div><div class="er-td" data-ent="cli">Paris</div><div class="er-td" data-ent="prd">Fibre</div><div class="er-td" data-ent="cmd">2</div>
-        <div class="er-td" data-ent="cli">Sophie</div><div class="er-td" data-ent="cli">Paris</div><div class="er-td" data-ent="prd">Magnésium</div><div class="er-td" data-ent="cmd">1</div>
-        <div class="er-td" data-ent="cli">Lucas</div><div class="er-td" data-ent="cli">Lyon</div><div class="er-td" data-ent="prd">Protéine</div><div class="er-td" data-ent="cmd">1</div>
-      </div>
-      <p class="er-note">Sophie et Paris sont recopiés à chaque commande.</p>
-    </div>
-    <div class="er-three">
-      <div class="er-mini" data-t="cli"><div class="er-card-h">clients</div>
-        <div class="er-mini-row"><span class="er-key">1</span>Sophie · Paris</div>
-        <div class="er-mini-row"><span class="er-key">2</span>Lucas · Lyon</div></div>
-      <div class="er-mini" data-t="prd"><div class="er-card-h">produits</div>
-        <div class="er-mini-row"><span class="er-key">1</span>Fibre</div>
-        <div class="er-mini-row"><span class="er-key">3</span>Magnésium</div>
-        <div class="er-mini-row"><span class="er-key">6</span>Protéine</div></div>
-      <div class="er-mini" data-t="cmd"><div class="er-card-h">commandes</div>
-        <div class="er-mini-row"><span class="er-key">1</span>client 1 · produit 1</div>
-        <div class="er-mini-row"><span class="er-key">2</span>client 1 · produit 3</div>
-        <div class="er-mini-row"><span class="er-key">3</span>client 2 · produit 6</div></div>
-    </div>
-  </div>`},
   pk:{kind:'er',phases:[
     {k:'SELECT nom, ville',d:'Trois clientes habitent Paris. La ville ne dit pas qui est qui.'},
     {k:'PRIMARY KEY',d:'Le badge PK apparaît sur id. Chaque ligne a un numéro, et un seul.'},
