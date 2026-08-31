@@ -11900,6 +11900,8 @@ function projOf(id){
   if(!projState[k]||typeof projState[k]!=='object') projState[k]={draft:'',hist:[],pins:[]};
   if(!Array.isArray(projState[k].hist)) projState[k].hist=[];
   if(!Array.isArray(projState[k].pins)) projState[k].pins=[];
+  projState[k].hist=dedupeConsoleQueries(projState[k].hist,HIST_MAX);
+  projState[k].pins=dedupeConsoleQueries(projState[k].pins,PIN_MAX);
   if(projState[k].draft==null) projState[k].draft='';
   return projState[k];
 }
@@ -12158,6 +12160,25 @@ function consoleSqlKey(sql){
   }
   return key.replace(/;\s*$/,'').trim();
 }
+function dedupeConsoleQueries(list,limit){
+  const seen=new Set(),clean=[];
+  for(const it of Array.isArray(list)?list:[]){
+    const key=consoleSqlKey(it&&it.sql);
+    if(!key||seen.has(key))continue;
+    seen.add(key);clean.push(it);
+    if(limit&&clean.length>=limit)break;
+  }
+  return clean;
+}
+function promoteConsoleQuery(list,entry,limit){
+  const key=consoleSqlKey(entry&&entry.sql);
+  if(!key)return dedupeConsoleQueries(list,limit);
+  return dedupeConsoleQueries([entry,...(Array.isArray(list)?list:[])],limit);
+}
+function removeConsoleQuery(list,sql){
+  const key=consoleSqlKey(sql);
+  return key?(Array.isArray(list)?list:[]).filter(it=>consoleSqlKey(it&&it.sql)!==key):dedupeConsoleQueries(list);
+}
 function isConsoleSqlPinned(sql){
   const key=consoleSqlKey(sql);
   return !!key&&projOf(activeDbId).pins.some(it=>consoleSqlKey(it.sql)===key);
@@ -12216,8 +12237,7 @@ function renderConsoleSide(){
 function recordConsoleRun(sql,ok,extra){
   const p=projOf(activeDbId);
   const row={sql:String(sql||'').trim(),ok:!!ok,ts:Date.now(),n:extra&&extra.n,ms:extra&&extra.ms,err:extra&&extra.err};
-  p.hist.unshift(row);
-  if(p.hist.length>HIST_MAX) p.hist.length=HIST_MAX;
+  p.hist=promoteConsoleQuery(p.hist,row,HIST_MAX);
   saveProjState();
   renderConsoleSide();
 }
@@ -12228,20 +12248,20 @@ function pinConsoleQuery(){
   const p=projOf(activeDbId);
   const key=consoleSqlKey(t);
   const idx=p.pins.findIndex(it=>consoleSqlKey(it.sql)===key);
-  if(idx>=0){p.pins.splice(idx,1);toast('Requête désépinglée');}
-  else{p.pins.unshift({sql:t,ts:Date.now()});if(p.pins.length>PIN_MAX)p.pins.length=PIN_MAX;toast('Requête épinglée','Retrouve-la dans l’onglet Épinglées');}
+  if(idx>=0){p.pins=removeConsoleQuery(p.pins,t);toast('Requête désépinglée');}
+  else{p.pins=promoteConsoleQuery(p.pins,{sql:t,ts:Date.now()},PIN_MAX);toast('Requête épinglée','Retrouve-la dans l’onglet Épinglées');}
   saveProjState();
   renderConsoleSide();
 }
 function unpinConsoleQuery(i){
   const p=projOf(activeDbId);if(!p.pins[i])return;
-  p.pins.splice(i,1);saveProjState();renderConsoleSide();toast('Requête désépinglée');
+  p.pins=removeConsoleQuery(p.pins,p.pins[i].sql);saveProjState();renderConsoleSide();toast('Requête désépinglée');
 }
 function toggleHistoryPin(i){
   const p=projOf(activeDbId),it=p.hist[i];if(!it)return;
   const sql=String(it.sql||'').trim(),key=consoleSqlKey(sql),idx=p.pins.findIndex(x=>consoleSqlKey(x.sql)===key);
-  if(idx>=0){p.pins.splice(idx,1);toast('Requête désépinglée');}
-  else{p.pins.unshift({sql,ts:Date.now()});if(p.pins.length>PIN_MAX)p.pins.length=PIN_MAX;toast('Requête épinglée');}
+  if(idx>=0){p.pins=removeConsoleQuery(p.pins,sql);toast('Requête désépinglée');}
+  else{p.pins=promoteConsoleQuery(p.pins,{sql,ts:Date.now()},PIN_MAX);toast('Requête épinglée');}
   saveProjState();renderConsoleSide();
 }
 function clearConsoleHistory(){
