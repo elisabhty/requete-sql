@@ -14,7 +14,7 @@
    CACHE doit changer à chaque déploiement pour purger l'ancien contenu :
    garde-le aligné sur APP_VERSION dans index.html. */
 
-const CACHE = 'requete-2026-08-31-ecom-sit-v223';
+const CACHE = 'requete-2026-08-31-rel-intro-v224';
 
 const PRECACHE = [
   './',
