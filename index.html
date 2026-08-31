@@ -120,7 +120,7 @@
   .home-progress .hp-fill{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .5s cubic-bezier(.32,.72,.28,1)}
   .home-progress .hp-pct{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);flex:none;min-width:30px;text-align:right}
   .streak-pill[hidden]{display:none!important}
-  #scr-learn>.lgtitle{position:sticky;top:0;z-index:16;padding-top:calc(var(--safe-top) + 14px);padding-bottom:10px;background:rgba(242,242,247,.94);border-bottom:1px solid var(--card-border);backdrop-filter:saturate(180%) blur(18px);-webkit-backdrop-filter:saturate(180%) blur(18px)}
+  #scr-learn>.lgtitle{position:sticky;top:0;z-index:16;padding-top:calc(var(--safe-top) + 14px);padding-bottom:10px;background:#F2F2F7;border-bottom:1px solid var(--card-border)}
   .lgtitle.title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:2px}
   .lgtitle.title-row h1{flex:1;min-width:0}
   #scr-defis .lgtitle.title-row > div:first-child{flex:1;min-width:0}
@@ -212,12 +212,29 @@
   .niv.m{background:var(--warn-soft);color:var(--warn)}
   .niv.d{background:var(--danger-soft);color:var(--danger)}
 
-  .navbar{position:sticky;top:0;z-index:20;background:rgba(245,246,250,.9);backdrop-filter:saturate(190%) blur(22px);-webkit-backdrop-filter:saturate(190%) blur(22px);padding:calc(var(--safe-top) + 6px) 14px 10px;display:flex;align-items:center;min-height:calc(var(--safe-top) + 44px);border-bottom:1px solid rgba(60,60,67,.08);box-shadow:none}
+  .navbar{position:sticky;top:0;z-index:20;background:#F4F5F9;padding:calc(var(--safe-top) + 6px) 14px 10px;display:flex;align-items:center;min-height:calc(var(--safe-top) + 44px);border-bottom:1px solid rgba(60,60,67,.08);box-shadow:none}
   .back{display:flex;align-items:center;gap:4px;color:var(--accent);font-size:15px;font-weight:600;background:none;border:none;cursor:pointer;padding:8px 10px 8px 4px;margin-left:-4px;font-family:var(--ui);border-radius:10px;touch-action:manipulation;min-height:40px;position:relative;z-index:1}
   .back:active{background:rgba(91,91,214,.08)}
   .navbar .nav-title{position:absolute;left:0;right:0;text-align:center;font-size:15.5px;font-weight:700;color:var(--ink);letter-spacing:-.25px;pointer-events:none}
   .lesson-wrap{padding:8px 16px 0}
   #scr-lesson.screen{padding-bottom:calc(var(--safe-bottom) + 9px + var(--kbar-offset));overflow-anchor:none}
+  /* Sur un iPhone à encoche, cet en-tête occupe ~105 px en permanence, sur une
+     fenêtre lisible d'environ 660 px. Comme la barre de Safari ne se replie
+     jamais ici — le défilement a lieu dans un conteneur, pas dans le document —
+     c'est la seule hauteur qu'on puisse rendre au texte. Il s'efface donc en
+     descente, revient dès qu'on remonte, et reste acquis en haut de page. */
+  /* `!important` est nécessaire, pas décoratif : l'animation d'entrée
+     `iosChromeIn` est en `both`, donc son dernière image-clé fige `transform:none`
+     sur l'en-tête, et une animation qui remplit l'emporte sur une déclaration
+     ordinaire. Seul `!important` repasse devant. */
+  #scr-lesson .navbar{transition:transform .24s var(--spring-ios);will-change:transform}
+  #scr-lesson .navbar.nav-away{transform:translateY(-100%)!important}
+  @media (prefers-reduced-motion:reduce){
+    /* Même sélecteur que la règle ci-dessus : à `!important` égal, c'est la
+       spécificité qui tranche, pas l'ordre. */
+    #scr-lesson .navbar.nav-away{transform:none!important}
+    #scr-lesson .navbar{transition:none}
+  }
   #scr-planning.screen{padding-bottom:calc(170px + var(--safe-bottom))}
   .l-kicker{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:1.2px;color:var(--accent);text-transform:uppercase;margin:12px 2px 4px}
   .lesson-wrap h1{font-size:27px;font-weight:800;letter-spacing:-.6px;margin:0 2px 14px;line-height:1.2}
@@ -3704,7 +3721,7 @@
 
   /* ---------- Vue semaine (iOS) ---------- */
   .pl-week{padding-bottom:12px;margin-top:18px;display:flex;flex-direction:column}
-  .wk-chrome{position:sticky;top:0;z-index:16;padding:12px 0 14px;margin:0;background:rgba(246,246,249,.88);backdrop-filter:saturate(190%) blur(24px);-webkit-backdrop-filter:saturate(190%) blur(24px);border-bottom:1px solid var(--card-border)}
+  .wk-chrome{position:sticky;top:0;z-index:16;padding:12px 0 14px;margin:0;background:#F5F5F8;border-bottom:1px solid var(--card-border)}
   .wk-nav{display:flex;align-items:center;gap:8px;margin:0 18px}
   .wk-nav>button{width:44px;height:44px;border-radius:14px;border:1px solid var(--card-border);background:var(--surface);color:var(--accent);font-size:22px;line-height:1;cursor:pointer;flex:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;box-shadow:var(--card-shadow-sm);transition:transform .16s var(--spring-ios),background .16s}
   .wk-nav>button:active{background:var(--accent-soft);transform:scale(.94)}
@@ -3861,7 +3878,7 @@
   .ls-nav::before,.ls-nav::after{content:none;display:none}
   body.in-lesson .tabbar{display:none}
   .ls-nav .ls-prev,.ls-nav .ls-next{pointer-events:auto;touch-action:manipulation}
-  .ls-nav .ls-prev{flex:none;background:rgba(255,255,255,.92);border:none;border-radius:16px;padding:14px 16px;font-family:var(--ui);font-size:14px;font-weight:600;color:var(--ink-2);cursor:pointer;box-shadow:0 8px 22px -12px rgba(20,20,40,.28);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+  .ls-nav .ls-prev{flex:none;background:#fff;border:none;border-radius:16px;padding:14px 16px;font-family:var(--ui);font-size:14px;font-weight:600;color:var(--ink-2);cursor:pointer;box-shadow:0 8px 22px -12px rgba(20,20,40,.28)}
   .ls-nav .ls-prev:active{transform:scale(.985);background:#fff;box-shadow:0 2px 10px -8px rgba(20,20,40,.25)}
   .ls-nav .ls-next{flex:1 1 auto;min-width:0;background:linear-gradient(180deg,#22222C,#14141B);color:#fff;border:none;border-radius:16px;padding:16px;font-family:var(--ui);font-size:15.5px;font-weight:700;cursor:pointer;box-shadow:0 8px 18px -10px rgba(20,20,40,.35);letter-spacing:-.2px}
   .ls-nav .ls-next:only-child{flex:1 1 100%;width:100%}
@@ -4027,7 +4044,7 @@
   .valid-card-chip .valid-card-go{flex:none;font-size:12.5px;font-weight:700;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.22);border:none;color:#fff;cursor:pointer;touch-action:manipulation;min-height:34px;transition:transform .16s var(--spring-ios),background .16s}
   .valid-card-chip .valid-card-go:active{transform:scale(.95);background:rgba(255,255,255,.32)}
 
-  .tabbar{position:absolute;left:0;right:0;bottom:0;z-index:30;background:rgba(245,246,250,.88);backdrop-filter:saturate(150%) blur(22px);-webkit-backdrop-filter:saturate(150%) blur(22px);border-top:0.5px solid var(--card-border);box-shadow:0 -4px 16px rgba(0,0,0,.03);display:flex;padding:4px max(4px,env(safe-area-inset-left)) calc(var(--safe-bottom) + 4px) max(4px,env(safe-area-inset-right))}
+  .tabbar{position:absolute;left:0;right:0;bottom:0;z-index:30;background:#F4F5F9;border-top:0.5px solid var(--card-border);box-shadow:0 -4px 16px rgba(0,0,0,.03);display:flex;padding:4px max(4px,env(safe-area-inset-left)) calc(var(--safe-bottom) + 4px) max(4px,env(safe-area-inset-right))}
   .tab{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#8E8E93;cursor:pointer;font-family:var(--ui);font-size:10px;font-weight:550;letter-spacing:-.1px;padding:4px 1px;position:relative;min-width:0;min-height:48px;touch-action:manipulation;border-radius:12px;transition:color .18s ease}
   .tab:active{transform:scale(.94)}
   .tab svg{width:23px;height:23px;stroke-width:1.75;transition:transform .2s var(--bounce-ios)}
@@ -4723,11 +4740,9 @@
   /* Grands titres et chrome de navigation */
   #scr-learn>.lgtitle{
     padding:calc(var(--safe-top) + 17px) 18px 12px;
-    background:rgba(245,246,250,.84);
+    background:#F4F5F9;
     border-bottom:.5px solid rgba(39,42,54,.075);
     box-shadow:0 8px 24px -24px rgba(31,33,45,.36);
-    backdrop-filter:saturate(185%) blur(24px);
-    -webkit-backdrop-filter:saturate(185%) blur(24px);
     transition:padding .28s var(--ease-ios),background .22s ease;
   }
   #scr-learn>.lgtitle h1{font-size:31px;font-weight:820;letter-spacing:-1px;line-height:1.05;transition:font-size .28s var(--ease-ios)}
@@ -4744,11 +4759,9 @@
   .navbar{
     padding:calc(var(--safe-top) + 7px) 15px 8px;
     min-height:calc(var(--safe-top) + 50px);
-    background:rgba(245,246,250,.9);
+    background:#F4F5F9;
     border-bottom:.5px solid rgba(39,42,54,.08);
     box-shadow:0 8px 24px -24px rgba(31,33,45,.45);
-    backdrop-filter:saturate(150%) blur(24px);
-    -webkit-backdrop-filter:saturate(150%) blur(24px);
   }
   .back{min-height:44px;padding:8px 11px 8px 2px;font-size:15.5px;font-weight:650}
 
@@ -4817,10 +4830,8 @@
     min-height:64px;padding:5px 3px;
     border:1px solid rgba(255,255,255,.86);
     border-radius:24px;
-    background:rgba(248,248,252,.82);
+    background:#F7F7FB;
     box-shadow:0 16px 38px -20px rgba(23,25,35,.5),0 2px 10px -7px rgba(23,25,35,.22),inset 0 .5px 0 #fff;
-    backdrop-filter:saturate(190%) blur(26px);
-    -webkit-backdrop-filter:saturate(190%) blur(26px);
   }
   .tab{
     min-height:56px;padding:2px 0;gap:1px;border-radius:16px;
@@ -4904,10 +4915,8 @@
   .ls-nav{
     bottom:calc(9px + var(--safe-bottom));margin:14px -2px 0;padding:7px;
     gap:7px;border:1px solid rgba(255,255,255,.9);border-radius:23px;
-    background:rgba(247,247,251,.82);
+    background:#F6F6FA;
     box-shadow:0 18px 38px -20px rgba(23,25,35,.48),0 2px 9px -7px rgba(23,25,35,.22),inset 0 .5px 0 #fff;
-    backdrop-filter:saturate(185%) blur(24px);
-    -webkit-backdrop-filter:saturate(185%) blur(24px);
   }
   .ls-nav .ls-next{
     min-height:54px;padding:15px 16px;border-radius:17px;
@@ -15180,12 +15189,21 @@ function brancherCtaScroll(){
     requestAnimationFrame(()=>{
       enAttente=false;
       const nav=scr.querySelector('.ls-nav');
-      if(!nav)return;
+      const entete=scr.querySelector('.navbar');
       const y=scr.scrollTop, d=y-dernier;
       dernier=y;
       if(prefersReduceMotion())return;
       /* On ne masque qu'en descente franche, et jamais tout en bas de page. */
       const versLeBas=d>4;
+      /* L'en-tête, lui, ne revient pas à l'arrêt : il faut remonter pour le
+         rappeler, sinon la hauteur regagnée serait reperdue à chaque pause de
+         lecture. Il est toujours rendu en haut de page. */
+      if(entete){
+        if(y<=56) entete.classList.remove('nav-away');
+        else if(versLeBas) entete.classList.add('nav-away');
+        else if(d<-4) entete.classList.remove('nav-away');
+      }
+      if(!nav)return;
       const finDePage=y+scr.clientHeight>=scr.scrollHeight-140;
       nav.classList.toggle('cta-away',versLeBas&&!finDePage);
       clearTimeout(tempo);
@@ -15196,6 +15214,11 @@ function brancherCtaScroll(){
 function scrollLessonTop(){
   const wrap=document.getElementById('scr-lesson');
   if(!wrap)return;
+  /* Retour en haut sans geste de scroll : l'écouteur ne se déclenchera pas,
+     donc on rend l'en-tête ici. Sinon il resterait escamoté, et avec lui le
+     bouton retour, sur la leçon suivante. */
+  const entete=wrap.querySelector('.navbar');
+  if(entete)entete.classList.remove('nav-away');
   wrap.scrollTop=0;
   requestAnimationFrame(()=>{
     wrap.scrollTop=0;
