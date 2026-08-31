@@ -735,6 +735,19 @@
   .lesson-rich .sit-sql p{margin:0 0 10px;font-size:14px;line-height:1.55;color:var(--ink-2)}
   .lesson-rich .sit-sql p:last-child{margin-bottom:0}
   .lesson-rich .sit-sql p:first-child{color:var(--ink);font-weight:650}
+  .situation-body .sit-roles{margin:0 0 12px;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+  .situation-body .sit-roles li{margin:0;padding:8px 12px;border-radius:12px;background:var(--surface-2);font-size:14px;line-height:1.4}
+  .rel-link{margin:14px 0 0;padding:12px 10px 10px;border:1px solid var(--card-border);border-radius:16px;background:var(--surface)}
+  .rel-link-row{display:grid;grid-template-columns:minmax(0,1fr) 16px minmax(0,1.15fr) 16px minmax(0,1fr);align-items:stretch;gap:4px}
+  .rel-card{min-width:0;padding:8px 7px 9px;border:1px solid var(--card-border);border-radius:12px;background:color-mix(in srgb,var(--surface-2) 40%,var(--surface))}
+  .rel-card.is-hub{border-color:rgba(91,91,214,.28);background:var(--accent-soft)}
+  .rel-card h3{margin:0 0 7px;font-family:var(--mono);font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
+  .rel-card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px}
+  .rel-card li{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-2);line-height:1.3;overflow-wrap:anywhere}
+  .rel-card li.is-key,.rel-card li.is-fk{color:var(--accent)}
+  .rel-arrow{display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:var(--accent);line-height:1}
+  .rel-link figcaption{margin:10px 2px 0;text-align:center;font-size:13px;font-weight:650;line-height:1.4;color:var(--ink-2)}
+  .rel-link figcaption code{font-family:var(--mono);font-size:.9em;color:var(--accent);background:rgba(91,91,214,.08);padding:1px 5px;border-radius:5px}
   .fn-sgbd{margin:16px 0 0;padding:14px 16px;border:1px solid var(--card-border);border-radius:14px;background:var(--surface-2)}
   .fn-sgbd .pt-syntax-h{margin:0 0 8px}
   .fn-sgbd p{margin:0;font-size:14px;line-height:1.5;color:var(--ink-2)}
@@ -6330,10 +6343,10 @@ const SCHEMA_META=[
    2. PROGRAMME
    ============================================================ */
 const MODULES = [
-{ titre:"Les bases", sous:"Lire des données", lessons:[
+{ titre:"Introduction", sous:"Bases de données, tables et relations", lessons:[
 { id:0, titre:"Les bases de données relationnelles", résumé:"Tables, colonnes, lignes et liens",
-  situation:"Avant d’écrire la moindre requête, il faut savoir ce que tu interroges.<br><br>Cette application travaille sur une base de trois tables : <code>clients</code>, <code>produits</code> et <code>commandes</code>. Neuf clients, huit produits, seize commandes.<br><br>Trois tables, et non une seule grande feuille. C’est ce choix qui donne son nom au modèle <b>relationnel</b>.",
-  situationTail:"<div class=\"sit-sql\"><p>Une base de données range l’information dans des <b>tables</b>.</p><p>Le modèle relationnel ajoute l’essentiel : les tables se <b>relient</b> entre elles.</p></div>",
+  situation:"Avant d’écrire la moindre requête, il faut comprendre comment les données sont organisées.<br><br>Cette application utilise trois tables : <code>clients</code>, <code>produits</code> et <code>commandes</code>.<br><br>Chacune contient un type d’information précis :<br><br><ul class=\"sit-roles\"><li><code>clients</code> → les informations sur les clients</li><li><code>produits</code> → les informations sur les produits</li><li><code>commandes</code> → les commandes passées</li></ul><br><br>Mais ces tables ne sont pas isolées : elles sont reliées entre elles.",
+  situationTail:"<div class=\"sit-sql\"><p>Une base relationnelle organise les données dans des tables reliées entre elles.</p><p>Ces relations permettent, par exemple, de savoir quel client a passé quelle commande et quel produit a été commandé.</p></div><figure class=\"rel-link\" aria-label=\"La table commandes relie clients et produits\"><div class=\"rel-link-row\"><section class=\"rel-card\"><h3>clients</h3><ul><li class=\"is-key\">id</li><li>nom</li><li>ville</li></ul></section><span class=\"rel-arrow\" aria-hidden=\"true\">←</span><section class=\"rel-card is-hub\"><h3>commandes</h3><ul><li class=\"is-fk\">client_id</li><li class=\"is-fk\">produit_id</li><li>quantite</li></ul></section><span class=\"rel-arrow\" aria-hidden=\"true\">→</span><section class=\"rel-card\"><h3>produits</h3><ul><li class=\"is-key\">id</li><li>nom</li><li>prix</li></ul></section></div><figcaption>La table <code>commandes</code> fait le lien entre un client et un produit.</figcaption></figure>",
     studio:{pointCards:{
       eye:"Relationnel",title:"Des tables, et des liens entre elles.",
       lead:"Une base de données conserve l’information de façon durable et permet de l’interroger. Dans le modèle relationnel, cette information est rangée en tables, et une table peut en désigner une autre.",
@@ -6442,7 +6455,9 @@ const MODULES = [
     {k:'cli',label:'clients',sql:"SELECT * FROM clients;",out:"Neuf lignes, sept colonnes : un client par ligne."},
     {k:'prd',label:'produits',sql:"SELECT * FROM produits;",out:"Huit lignes. Un autre sujet, donc une autre table."},
     {k:'cmd',label:'commandes',sql:"SELECT * FROM commandes;",out:"Seize lignes — et aucun nom : seulement des client_id et des produit_id."}
-  ] },
+  ] }
+]},
+{ titre:"Interroger une table", sous:"SELECT, WHERE, ORDER BY, LIMIT", lessons:[
 { id:3, titre:"SELECT *", résumé:"Voir toute la table",
   situation:"Tu découvres la table produits. Elle contient 8 produits et plusieurs informations sur chacun : <code>id</code>, <code>nom</code>, <code>categorie</code>, <code>prix</code> et <code>stock</code>.<br><br>Avec ce que tu connais déjà, tu pourrais lister les colonnes une par une :",
   situationSql:"SELECT nom, categorie, prix\nFROM produits;",
@@ -6493,10 +6508,7 @@ const MODULES = [
   consigne:"Prépare le listing d’appel : affiche le <code>nom</code> et le <code>telephone</code> de chaque client.",
   solution:"SELECT nom, telephone FROM clients;",
   indice:"Place les deux colonnes après <code>SELECT</code> et sépare-les par une virgule : <code>nom, telephone</code>.",
-  richLesson:true, earlyDemo:true }
-]},
-
-{ titre:"Filtrer", sous:"Ne garder que ce qui compte", lessons:[
+  richLesson:true, earlyDemo:true },
 { id:4, titre:"WHERE", résumé:"Filtrer les lignes",
   situation:"La boutique de Paris doit contacter ses clients locaux. Dans la table clients, 9 personnes sont enregistrées, mais tu veux afficher uniquement celles qui habitent à Paris.<br><br>Avec ce que tu connais déjà, tu peux choisir les colonnes à afficher :",
   situationSql:"SELECT nom, ville\nFROM clients;",
@@ -6703,10 +6715,7 @@ const MODULES = [
   consigne:"Affiche toutes les colonnes des produits dont le prix est compris entre 15 et 30 euros, bornes incluses.",
   solution:"SELECT * FROM produits WHERE prix BETWEEN 15 AND 30;",
   indice:"Utilise <code>BETWEEN</code> suivi de la borne minimale, puis <code>AND</code> et de la borne maximale : <code>prix BETWEEN 15 AND 30</code>.",
-  richLesson:true, earlyDemo:true }
-]},
-
-{ titre:"Trier & limiter", sous:"Mettre de l’ordre dans le résultat", lessons:[
+  richLesson:true, earlyDemo:true },
 { id:11, titre:"ORDER BY", résumé:"Ordonner le résultat",
   situation:"Tu prépares une campagne marketing : les clients les plus âgés sont contactés en premier. Tu veux donc la liste du plus âgé au plus jeune.<br><br>Avec ce que tu connais déjà, tu peux afficher le nom et l’âge :",
   situationSql:"SELECT nom, age\nFROM clients;",
@@ -6784,9 +6793,7 @@ const MODULES = [
   indice:"Tu veux afficher la colonne <code>ville</code> sans répétition. Ajoute le mot-clé qui retire les doublons juste après <code>SELECT</code>.",
   richLesson:true, earlyDemo:true }
 ]},
-
-
-{ titre:"Fonctions scalaires et manipulation de chaînes / dates", sous:"Transformer une valeur, ligne par ligne", lessons:[
+{ titre:"Fonctions scalaires", sous:"Transformer une valeur, ligne par ligne", lessons:[
 { id:51, titre:"Fonctions de texte", résumé:"Transformer, nettoyer et découper du texte",
     studio:{problem:{eye:"Fonctions de texte",title:"Transformer, nettoyer et découper du texte.",
       body:`<div class="pt-lead"><p>Dans la table <code>clients</code>, plusieurs colonnes contiennent du texte : <code>nom</code>, <code>ville</code>, <code>email</code>, <code>telephone</code>…</p><p>SQL ne sert pas seulement à afficher ces valeurs telles quelles.</p><p>Tu peux aussi les transformer, les nettoyer, les assembler ou n’en récupérer qu’une partie.</p><p>Prenons plusieurs situations concrètes.</p></div>`},
@@ -7717,9 +7724,9 @@ FROM produits;</pre></div>
       {fn:"Nombre → texte",d:"<code>CAST(… AS VARCHAR)</code>"},
       {fn:"Texte → date",d:"<code>CAST(… AS DATE)</code>, <code>TO_DATE()</code>"},
       {fn:"Date → texte",d:"<code>TO_CHAR()</code>, <code>DATE_FORMAT()</code>"}
-    ]} },
+    ]} }
 ]},
-{ titre:"Fonctions d’agrégation", sous:"COUNT, AVG, SUM, MIN, MAX", lessons:[
+{ titre:"Agrégats et regroupements", sous:"COUNT, SUM, AVG, MIN, MAX, GROUP BY, HAVING", lessons:[
 { id:14, titre:"COUNT", résumé:"Compter les lignes",
   situation:"Tu viens d’importer la table clients. Avant de continuer, tu veux vérifier combien de personnes y sont vraiment enregistrées.<br><br>Avec ce que tu connais déjà, tu peux afficher leurs noms :",
   situationSql:"SELECT nom\nFROM clients;",
@@ -7860,10 +7867,7 @@ FROM produits;</pre></div>
   testeVariants:[
     {k:'select',label:'SELECT',sql:"SELECT prix\nFROM produits;",out:"SELECT affiche chaque prix"},
     {k:'max',label:'MAX(colonne)',sql:"SELECT MAX(prix)\nFROM produits;",out:"MAX(colonne) garde la plus grande valeur"}
-  ] }
-]},
-
-{ titre:"Regrouper", sous:"GROUP BY et HAVING", lessons:[
+  ] },
 { id:16, titre:"GROUP BY", résumé:"Un calcul par groupe",
   situation:"Tu prépares un point équipe : combien de clients dans chaque ville ? Paris, Lyon, Marseille…<br><br>Avec ce que tu connais déjà, tu peux afficher chaque client et sa ville :",
   situationSql:"SELECT nom, ville\nFROM clients;",
@@ -7929,11 +7933,9 @@ FROM produits;</pre></div>
   attendu:"<b>2 lignes</b> : Bien-être (3 produits) et Nutrition (2 produits).",
   consigne:"Trouve les catégories qui contiennent <b>au moins 2 produits</b> et affiche, pour chacune, son nom et le nombre de produits.",
   solution:"SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 2;",
-  indice:"<code>… GROUP BY categorie HAVING COUNT(*) >= 2</code>" },
-
+  indice:"<code>… GROUP BY categorie HAVING COUNT(*) >= 2</code>" }
 ]},
-
-{ titre:"Modélisation", sous:"Tables, clés, relations", lessons:[
+{ titre:"Clés et relations", sous:"Identifier une ligne, relier deux tables", lessons:[
 { id:34, titre:"Clé primaire", résumé:"Identifier une ligne",
   situation:"Trois clientes habitent Paris. Si tu cherches « la Parisienne », SQL ne peut pas choisir.<br><br>Avec ce que tu connais déjà, tu peux lister les noms et les villes :",
   situationSql:"SELECT nom, ville\nFROM clients;",
@@ -7988,322 +7990,9 @@ FROM produits;</pre></div>
   testeVariants:[
     {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;",out:"id est unique : une personne, un numéro"},
     {k:'cmd',label:'commandes',sql:"SELECT id, client_id\nFROM commandes;",out:"client_id se répète : un client, plusieurs commandes"}
-  ] },
-{ id:56, titre:"Normalisation", résumé:"Répartir les données dans des tables reliées",
-  situation:"Tu dois créer un tableau de bord Power BI pour analyser les ventes : nombre de commandes, produits vendus et répartition des clients par ville.<br><br>Pour alimenter le tableau de bord, toutes les informations ont d’abord été regroupées dans une seule grande table :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>client_id</th><th>nom</th><th>ville</th><th>commande_id</th><th>produit</th><th>prix</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td>Paris</td><td>1</td><td>Fibre Prébiotique</td><td>29,90</td><td>2</td></tr><tr><td>1</td><td>Sophie</td><td>Paris</td><td>2</td><td>Magnésium</td><td>19,90</td><td>1</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>3</td><td>Protéine Végétale</td><td>34,90</td><td>1</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>10</td><td>Magnésium</td><td>19,90</td><td>2</td></tr></tbody></table></div><p class=\"nm-glide\">👉 Glisse pour voir le produit, le prix et la quantité.</p>Le tableau de bord fonctionne, mais la table contient beaucoup d’informations répétées.<br><br>À chaque nouvelle commande de Sophie, son nom et sa ville sont enregistrés à nouveau. De la même manière, les informations d’un produit peuvent apparaître dans de nombreuses lignes.<br><br>Cela pose un problème : plus les ventes augmentent, plus les données sont dupliquées et difficiles à maintenir sans incohérence.",
-  situationTail:"<div class=\"sit-sql\"><p>Comment mieux organiser la base de données qui alimente Power BI ?</p><p>C’est là qu’intervient la normalisation : elle permet de répartir les informations dans plusieurs tables reliées, chacune ayant un rôle précis.</p><p>Pour apprendre à organiser ces tables correctement, nous allons avancer étape par étape avec les formes normales : <b>1NF</b>, <b>2NF</b> et <b>3NF</b>.</p></div>",
-    studio:{pointCards:{
-      eye:"Normalisation",title:"Une information, un seul endroit.",
-      lead:"Normaliser, c’est ranger chaque information dans la table qui correspond à ce qu’elle décrit. La ville décrit le client, le prix décrit le produit, la quantité décrit la commande.",
-      chain:[
-        {k:"1NF",v:"une seule valeur par cellule"},
-        {k:"2NF",v:"chaque information dépend de toute la clé"},
-        {k:"3NF",v:"chaque information dépend directement de la clé"}
-      ],
-      cards:[
-        {t:"Le coût de la répétition",
-         b:"<p>Dans la grande table, la ville de Sophie est écrite à chaque commande. Si Sophie déménage, il faut la corriger partout.</p><p>Une seule ligne oubliée, et la base se contredit : c’est une <b>anomalie de mise à jour</b>.</p>"},
-        {t:"1NF — une valeur par case",
-         b:"<p>Chaque case contient une seule valeur, jamais une liste.</p><p><code>produits : \'Magnésium, Shaker\'</code> devient deux lignes. Sans cela, aucune requête ne peut filtrer ou compter proprement.</p>"},
-        {t:"2NF — dépendre de toute la clé",
-         b:"<p>Chaque colonne dépend de toute la clé, pas d’une partie seulement.</p><p>Ici, une ligne est identifiée par la commande et son produit. Or le nom du client ne dépend que du client : il part dans la table <code>clients</code>.</p>"},
-        {t:"3NF — pas de dépendance indirecte",
-         b:"<p>Aucune colonne ne dépend d’une autre colonne qui n’est pas la clé.</p><p>Le prix ne dépend pas de la commande : il dépend du produit. Il part dans <code>produits</code>. Il ne reste dans <code>commandes</code> que ce qui décrit vraiment la commande.</p>"}
-      ]},
-    reflex:{a:{k:"La question",t:"Cette information décrit-elle vraiment cette table ?"},
-      b:{k:"La règle",t:"Chaque information à sa place."},
-      note:"Si une information décrit une autre entité, ne la répète pas dans cette table : place-la dans la table qui lui correspond. Demande-toi toujours ce que décrit chaque information.<br><br>Une information sur le client va dans la table <code>clients</code>, une information sur le produit dans la table <code>produits</code>, une information sur la commande dans la table <code>commandes</code>."},
-    normSplit:true},
-  anatomie:[
-    {tok:"clients (id, nom, ville)",txt:"Tout ce qui décrit le client, écrit une seule fois."},
-    {tok:"produits (id, nom, prix)",txt:"Tout ce qui décrit le produit, écrit une seule fois."},
-    {tok:"commandes (id, client_id, produit_id, quantite)",txt:"Ce qui décrit la commande, plus deux clés étrangères vers les tables voisines."}
-  ],
-  exemple:"CREATE TABLE clients (\n  id INTEGER PRIMARY KEY,\n  nom TEXT,\n  ville TEXT\n);\n\nCREATE TABLE produits (\n  id INTEGER PRIMARY KEY,\n  nom TEXT,\n  prix REAL\n);\n\nCREATE TABLE commandes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER REFERENCES clients(id),\n  produit_id INTEGER REFERENCES produits(id),\n  quantite INTEGER\n);",
-  attendu:"Trois tables au lieu d’une. La ville de Sophie n’est plus écrite qu’une fois, le prix du Magnésium aussi. Le tableau de bord retrouve les mêmes chiffres avec des jointures.",
-  retenir:"Normaliser, c’est ranger chaque information dans la table qui correspond à ce qu’elle décrit.<br><br>Une information n’est alors écrite qu’à un seul endroit. La corriger une fois suffit, et la base ne peut plus se contredire.<br><br>Les formes normales : <b>1NF</b> une seule valeur, <b>2NF</b> toute la clé, <b>3NF</b> directement de la clé.",
-  piege:{t:"Tout séparer, jusqu’à l’excès",
-    p:"Normaliser n’est pas découper à l’infini. Sortir la ville dans une table <code>villes</code> n’a de sens que si la ville porte ses propres informations — un département, une région. Sinon, chaque lecture paie une jointure de plus pour rien.",
-    exec:false,
-    sql:"SELECT clients.nom, villes.nom\nFROM clients\nJOIN villes ON clients.ville_id = villes.id;",
-    out:"Une jointure de plus à chaque requête, pour retrouver une simple chaîne de caractères.",
-    fixSql:"SELECT nom, ville\nFROM clients;"},
-  consigne:"La grande table mélange trois sujets. Écris la table <code>commandes</code> normalisée : son identifiant, ses deux clés étrangères, et la quantité.",
-  solution:"CREATE TABLE commandes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER REFERENCES clients(id),\n  produit_id INTEGER REFERENCES produits(id),\n  quantite INTEGER\n);",
-  indice:"Une commande ne garde que ce qui la décrit. Le nom du client et le prix du produit vivent ailleurs : elle ne garde que leurs identifiants.",
-  noExec:true,
-  noDemo:true,
-  richLesson:true, earlyDemo:true },
-{ id:57, titre:"Les index", résumé:"Retrouver plus vite certaines lignes",
-  situation:"Ta base de clients grandit.<br><br>Au début, la table <code>clients</code> ne contenait que quelques lignes. Mais avec le temps, elle peut contenir des millions de clients.<br><br>Ton site e-commerce doit régulièrement retrouver un client à partir de son e-mail :",
-  situationSql:"SELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",
-  situationTail:"<div class=\"sit-sql\"><p>Avec peu de données, la recherche est rapide.</p><p>Mais sur une très grande table, SQL peut devoir parcourir énormément de lignes pour retrouver le bon client.</p><p>Comment accélérer cette recherche ?</p><p>C’est là qu’interviennent les <b>index</b>.</p></div>",
-    studio:{pointCards:{
-      eye:"Index",title:"Un chemin d’accès vers les données.",
-      lead:"Un index est une structure supplémentaire qui aide SQL à retrouver plus rapidement certaines données. Il ne modifie pas les colonnes de la table : il est créé à côté.",
-      chain:[
-        {k:"Sans index",v:"SQL peut parcourir de nombreuses lignes"},
-        {k:"Avec index",v:"SQL peut suivre un chemin organisé"},
-        {k:"Règle",v:"indexer les recherches fréquentes"}
-      ]},
-    uses:{title:"Un index, une idée à la fois.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Sans index : SQL cherche dans la table</p>
-          <p>Tu recherches <code>sophie@mail.fr</code> dans une table devenue immense.</p>
-          <div class="table-wrap"><table class="concept-table"><thead><tr><th>id</th><th>nom</th><th>ville</th><th>email</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td>Paris</td><td>sophie@mail.fr</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>lucas@mail.fr</td></tr><tr><td>3</td><td>Emma</td><td>Marseille</td><td>emma@mail.fr</td></tr><tr class="sample-more"><td colspan="4">… jusqu’à 2&nbsp;000&nbsp;000 de lignes</td></tr></tbody></table></div>
-          <p>Sans index adapté, le SGBD peut devoir parcourir la table et examiner les lignes une par une. On appelle cela un <b>parcours de table</b> (<code>table scan</code>).</p>
-          <p>Plus la table grandit, plus ce type de recherche peut devenir coûteux.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">L’index : un raccourci</p>
-          <p>Pour éviter de parcourir inutilement une grande quantité de données, on crée un index.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE INDEX idx_clients_email
-ON clients(email);</pre></div>
-          <p>L’index est organisé à partir des valeurs de la colonne <code>email</code>. SQL peut alors localiser plus efficacement la ligne de Sophie.</p>
-          <p>Comme dans un livre : sans index, tu tournes les pages. Avec l’index, tu vas directement à la bonne page.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">L’index ne modifie pas la table</p>
-          <p><code>CREATE INDEX</code> n’ajoute pas de colonne dans la table <code>clients</code>.</p>
-          <div class="idx-side" aria-hidden="true">
-            <span><b>Données</b><i>dans la table</i></span>
-            <span><b>Index email</b><i>à côté, pour retrouver</i></span>
-          </div>
-          <p>Les données restent dans la table. L’index est une structure créée <b>en plus</b>, pour aider à les retrouver.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Créer un index</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE INDEX nom_index
-ON nom_table(colonne);</pre></div>
-          <p><code>CREATE INDEX</code> crée l’index. <code>idx_clients_email</code> est le nom qu’on lui donne. La table concernée est <code>clients</code>. <code>email</code> est la colonne indexée.</p>
-          <p>Le nom indique généralement la table et la colonne concernées.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">La requête ne change pas</p>
-          <p>Une fois l’index créé, tu continues d’écrire :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
-FROM clients
-WHERE email = 'sophie@mail.fr';</pre></div>
-          <p>Tu n’écris pas « utilise cet index ». Le SGBD choisit lui-même s’il est intéressant de s’en servir.</p>
-          <p>Créer un index donne une <b>possibilité</b> supplémentaire. Cela ne signifie pas qu’il sera utilisé à chaque fois.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Quelles colonnes indexer ?</p>
-          <p>On s’intéresse aux colonnes régulièrement utilisées pour retrouver ou relier des données.</p>
-          <ul class="pt-lead-list">
-            <li>un compte recherché par e-mail → <code>clients.email</code> ;</li>
-            <li>les commandes d’un client → <code>commandes.client_id</code> ;</li>
-            <li>une jointure <code>ON clients.id = commandes.client_id</code> → la colonne qui relie.</li>
-          </ul>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE INDEX idx_commandes_client
-ON commandes(client_id);</pre></div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Pourquoi ne pas tout indexer ?</p>
-          <p>Un index occupe de l’espace. Et quand tu fais un <code>INSERT</code>, un <code>UPDATE</code> ou un <code>DELETE</code>, les index concernés doivent aussi être mis à jour.</p>
-          <p>Il peut accélérer certaines lectures, mais il a un coût de stockage et de maintenance.</p>
-          <div class="idx-side" aria-hidden="true">
-            <span><b>Lectures</b><i>potentiellement plus rapides</i></span>
-            <span><b>Écritures</b><i>stockage + maintenance</i></span>
-          </div>
-          <p>La règle n’est pas « plus j’ai d’index, plus ma base est rapide ». C’est : créer des index là où ils sont réellement utiles.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Index sur plusieurs colonnes</p>
-          <p>Si tu recherches souvent les commandes d’un client à partir d’une date :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE INDEX idx_commandes_client_date
-ON commandes(client_id, date_commande);</pre></div>
-          <p>C’est un <b>index composite</b>. L’ordre des colonnes compte : d’abord <code>client_id</code>, puis <code>date_commande</code> à l’intérieur de chaque client.</p>
-          <div class="idx-comp" aria-hidden="true">
-            <div class="idx-comp-g">
-              <b>client 1 · Sophie</b>
-              <span>2023-07-02</span>
-              <span>2023-07-02</span>
-              <span>2023-07-28</span>
-            </div>
-            <div class="idx-comp-g">
-              <b>client 2 · Lucas</b>
-              <span>2023-07-05</span>
-              <span>2023-07-20</span>
-            </div>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">INDEX et UNIQUE, deux idées</p>
-          <p><code>INDEX</code> fournit un chemin d’accès. <code>UNIQUE</code> impose une règle : les valeurs ne doivent pas être dupliquées.</p>
-          <div class="memory-rule">
-            <div class="memory-a"><b>INDEX</b><span>performance / accès</span></div>
-            <div class="memory-b"><b>UNIQUE</b><span>règle d’unicité</span></div>
-          </div>
-          <p>Une contrainte <code>UNIQUE</code> s’appuie souvent sur un index, mais l’objectif n’est pas le même.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Et la clé primaire ?</p>
-          <p>La table <code>clients</code> a déjà <code>id INTEGER PRIMARY KEY</code>.</p>
-          <p>Les SGBD mettent généralement en place automatiquement une structure adaptée — souvent un index — pour faire respecter cette contrainte et permettre des recherches efficaces.</p>
-          <p>Tu n’as donc généralement pas besoin de recréer <code>CREATE INDEX idx_clients_id ON clients(id)</code>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Comment savoir si l’index est utilisé ?</p>
-          <p>Créer un index ne garantit pas que SQL va l’utiliser.</p>
-          <p><code>EXPLAIN</code> montre le plan d’exécution prévu par le SGBD : parcours de table, ou utilisation d’un index.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">EXPLAIN QUERY PLAN
-SELECT *
-FROM clients
-WHERE email = 'sophie@mail.fr';</pre></div>
-          <p>Le vocabulaire affiché varie selon PostgreSQL, MySQL, SQLite ou SQL Server.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La question",t:"Cette colonne sert-elle souvent à retrouver des lignes dans une grande table ?"},
-      b:{k:"La règle",t:"Un index peut accélérer l’accès à ces lignes."},
-      note:"Pense aux index lorsqu’une grande table est régulièrement recherchée, filtrée ou reliée à partir des mêmes colonnes."},
-    idxSplit:true},
-  anatomie:[
-    {tok:"CREATE INDEX idx_clients_email",txt:"Crée un index et lui donne un nom."},
-    {tok:"ON clients",txt:"La table concernée."},
-    {tok:"(email)",txt:"La colonne qui sert à retrouver les lignes."}
-  ],
-  exemple:"CREATE INDEX idx_clients_email ON clients(email);",
-  attendu:"L’index est créé. La table <code>clients</code> n’a pas de nouvelle colonne.",
-  retenir:"Un index est un chemin d’accès supplémentaire qui aide SQL à retrouver plus rapidement certaines données.<br><br>Sans index, SQL peut parcourir une grande partie de la table. Avec un index, il dispose d’un chemin organisé.<br><br>Un index prend de la place et doit être maintenu. Il ne faut donc pas en créer partout.",
-  piege:{t:"Indexer toutes les colonnes",
-    p:"Un index n’est pas gratuit : il occupe de l’espace et doit être mis à jour à chaque <code>INSERT</code>, <code>UPDATE</code> ou <code>DELETE</code>. On indexe les colonnes vraiment utilisées pour chercher ou relier, pas toutes les colonnes « au cas où »."},
-  consigne:"Crée un index nommé <code>idx_clients_email</code> sur la colonne <code>email</code> de la table <code>clients</code>.",
-  solution:"CREATE INDEX idx_clients_email ON clients(email);",
-  indice:"<code>CREATE INDEX idx_clients_email ON clients(email);</code>",
-  richLesson:true, earlyDemo:true,
-  write:true,
-  verif:"SELECT 'idx_clients_email' AS nom, name AS colonne FROM pragma_index_info('idx_clients_email');",
-  testeVariants:[
-    {k:'where',label:'WHERE email',sql:"SELECT nom, email\nFROM clients\nWHERE email = 'sophie@mail.fr';",out:"Sophie, même sans index : la table est encore petite."},
-    {k:'create',label:'CREATE INDEX',sql:"CREATE INDEX idx_clients_email\nON clients(email);",out:"L’index est créé. La table clients n’a pas de nouvelle colonne.",tone:'good'},
-    {k:'explain',label:'EXPLAIN',sql:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",out:"Le plan montre si SQLite parcourt la table ou utilise un index."}
-  ] },
-{ id:58, titre:"EXPLAIN", résumé:"Comprendre une requête lente",
-  situation:"Ta base de clients continue de grandir.<br><br>Tu as créé un index sur <code>email</code> pour accélérer la recherche d’un client :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">CREATE INDEX idx_clients_email\nON clients(email);</pre></div><br><br>Puis ton application exécute régulièrement :",
-  situationSql:"SELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",
-  situationTail:"<div class=\"sit-sql\"><p>Mais une question se pose maintenant :</p><p>Comment savoir si SQL utilise réellement l’index ?</p><p>Et si une requête devient lente, comment comprendre ce qui ralentit ?</p><p>C’est le rôle de <b>EXPLAIN</b>.</p></div>",
-    studio:{pointCards:{
-      eye:"EXPLAIN",title:"Voir la stratégie, pas seulement le résultat.",
-      lead:"Une requête décrit ce que tu veux. <code>EXPLAIN</code> montre comment le SGBD prévoit de l’obtenir. On observe d’abord le plan, puis on optimise.",
-      chain:[
-        {k:"Observer",v:"lire le plan"},
-        {k:"Comprendre",v:"parcours, index, jointure"},
-        {k:"Comparer",v:"après une optimisation"}
-      ]},
-    uses:{title:"Un plan, une idée à la fois.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">EXPLAIN montre comment SQL compte travailler</p>
-          <p>Quand tu écris un <code>SELECT</code>, tu précises le résultat. Le SGBD doit encore décider <b>comment</b> l’obtenir : parcourir la table, ou suivre un index.</p>
-          <p>Le résultat de <code>EXPLAIN</code> s’appelle un <b>plan d’exécution</b>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Utiliser EXPLAIN</p>
-          <p>On place <code>EXPLAIN</code> devant la requête. Dans cette application (SQLite), on écrit <code>EXPLAIN QUERY PLAN</code> :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">EXPLAIN QUERY PLAN
-SELECT *
-FROM clients
-WHERE email = 'sophie@mail.fr';</pre></div>
-          <p>Tu ne demandes plus seulement « donne-moi Sophie ». Tu demandes aussi au SGBD de montrer comment il prévoit de la retrouver.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Premier diagnostic : parcours de table</p>
-          <p>Sans index adapté, le plan peut indiquer un <b>parcours de table</b>. PostgreSQL dit souvent <code>Seq Scan</code>. SQLite affiche <code>SCAN</code>.</p>
-          <p>SQL examine les lignes pour appliquer <code>email = 'sophie@mail.fr'</code>. Sur une petite table, c’est acceptable. Sur une table immense, pour une recherche ciblée, cela peut devenir coûteux.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Deuxième diagnostic : un index</p>
-          <p>Après <code>CREATE INDEX idx_clients_email ON clients(email)</code>, le SGBD <b>peut</b> décider d’utiliser l’index. PostgreSQL parlera parfois d’<code>Index Scan</code>.</p>
-          <p>On passe d’un parcours de toute la table à un chemin organisé vers la ligne de Sophie. C’est ce que le cours sur les index préparait.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Un parcours n’est pas forcément mauvais</p>
-          <p>Il ne faut pas lire <code>SCAN</code> ou <code>Seq Scan</code> comme une erreur.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
-FROM clients;</pre></div>
-          <p>Tu demandes tous les clients : parcourir la table est logique. Même avec un <code>WHERE</code>, si presque toutes les lignes restent, le SGBD peut juger le parcours plus simple qu’un index.</p>
-          <p><code>EXPLAIN</code> sert à comprendre le choix, pas à chercher des mots rouges ou verts.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">EXPLAIN et EXPLAIN ANALYZE</p>
-          <div class="memory-rule">
-            <div class="memory-a"><b>EXPLAIN</b><span>ce que SQL <b>prévoit</b></span></div>
-            <div class="memory-b"><b>ANALYZE</b><span>ce qui s’est <b>réellement</b> passé</span></div>
-          </div>
-          <p><code>EXPLAIN ANALYZE</code>, sur les SGBD qui le proposent, exécute vraiment la requête et ajoute des mesures : temps, nombre de lignes.</p>
-          <p>Attention : la requête est exécutée. Prudence avec un <code>UPDATE</code> ou un <code>DELETE</code>. Cette commande n’existe pas dans SQLite.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Observer les lignes</p>
-          <p>Tu recherches souvent les commandes d’un client :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
-FROM commandes
-WHERE client_id = 1;</pre></div>
-          <p>Le plan permet de voir si le SGBD pense devoir traiter beaucoup de lignes pour n’en rendre que quelques-unes. Un index sur <code>commandes.client_id</code> peut alors fournir un chemin adapté.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">EXPLAIN avec une jointure</p>
-          <p>Avec plusieurs tables, le SGBD décide quelle table traiter en premier, et comment retrouver les correspondances.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">EXPLAIN QUERY PLAN
-SELECT clients.nom, commandes.id
-FROM clients
-JOIN commandes
-    ON clients.id = commandes.client_id;</pre></div>
-          <p>Tu n’as pas à maîtriser tout de suite <code>Nested Loop</code> ou <code>Hash Join</code>. Retiens : la requête dit ce que tu veux ; le plan montre la stratégie.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Une méthode pour une requête lente</p>
-          <ol class="pt-lead-list">
-            <li><b>Observer</b> — <code>EXPLAIN</code> devant la requête.</li>
-            <li><b>Repérer</b> — traite-t-il énormément de lignes pour en renvoyer très peu ?</li>
-            <li><b>Comprendre</b> — parcours, tri, jointure…</li>
-            <li><b>Optimiser</b> — un index, une condition, moins de colonnes, une jointure revue.</li>
-            <li><b>Vérifier</b> — relancer <code>EXPLAIN</code>. Une optimisation se mesure, elle ne se suppose pas.</li>
-          </ol>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Avant / après</p>
-          <p>Avant : <code>WHERE client_id = 1</code> sur une immense table <code>commandes</code>, sans index adapté.</p>
-          <p>Optimisation : <code>CREATE INDEX idx_commandes_client ON commandes(client_id);</code></p>
-          <p>Après : le même <code>EXPLAIN</code> peut maintenant montrer l’index. La boucle à retenir :</p>
-          <p class="exp-loop" aria-hidden="true"><b>Requête lente</b><i>↓</i><b>EXPLAIN</b><i>↓</i><span>comprendre</span><i>↓</i><span>optimiser</span><i>↓</i><b>EXPLAIN</b><i>↓</i><span>comparer</span></p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Une requête lente n’appelle pas automatiquement un index</p>
-          <p>Elle peut aussi ramener trop de données (<code>SELECT *</code> sur toute la table), trier beaucoup, ou joindre énormément de lignes. Une condition peut aussi rendre un index existant moins exploitable.</p>
-          <p>L’index est une solution possible, pas une solution universelle.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La question",t:"Comment SQL exécute-t-il ma requête ?"},
-      b:{k:"La règle",t:"EXPLAIN montre le plan d’exécution."},
-      note:"Lorsqu’une requête devient lente, observe d’abord son plan d’exécution avant de chercher à l’optimiser.",
-      extra:`<p class="exp-loop" aria-hidden="true"><b>EXPLAIN</b><i>↓</i><span>Observer</span><i>↓</i><span>Comprendre</span><i>↓</i><span>Optimiser</span><i>↓</i><span>Comparer</span></p>`},
-    expSplit:true},
-  anatomie:[
-    {tok:"EXPLAIN QUERY PLAN",txt:"Demande le plan, pas les lignes du résultat."},
-    {tok:"SELECT * FROM clients",txt:"La requête à observer."},
-    {tok:"WHERE email = …",txt:"La recherche ciblée dont on veut voir le chemin."}
-  ],
-  exemple:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",
-  attendu:"Un plan d’exécution : ici, SQLite indique souvent <code>SCAN clients</code> — la table est encore petite.",
-  retenir:"<code>EXPLAIN</code> montre la stratégie prévue par le SGBD. <code>EXPLAIN ANALYZE</code> exécute vraiment la requête pour la mesurer.<br><br>Une requête lente n’appelle pas automatiquement un index : on observe d’abord, puis on optimise.",
-  piege:{t:"Croire que SCAN veut dire « faux »",
-    p:"Un parcours de table est logique si tu demandes presque toutes les lignes. <code>EXPLAIN</code> sert à comprendre le choix du SGBD, pas à colorier le plan en rouge ou en vert."},
-  consigne:"Place <code>EXPLAIN QUERY PLAN</code> devant la recherche de Sophie par e-mail, pour observer le plan d’exécution.",
-  solution:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",
-  indice:"<code>EXPLAIN QUERY PLAN</code>, puis le même <code>SELECT</code> que dans la situation, avec <code>WHERE email</code>.",
-  richLesson:true, earlyDemo:true,
-  explainExo:true,
-  testeVariants:[
-    {k:'email',label:'WHERE email',sql:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",out:"Sur cette petite table, SQLite affiche souvent SCAN — ce n’est pas une erreur."},
-    {k:'all',label:'Tous les clients',sql:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients;",out:"Tu demandes tout : parcourir la table est logique.",tone:'good'},
-    {k:'cmd',label:'Commandes',sql:"EXPLAIN QUERY PLAN\nSELECT *\nFROM commandes\nWHERE client_id = 1;",out:"Le plan montre comment SQLite retrouve les commandes de Sophie."}
   ] }
 ]},
-
-{ titre:"Relier", sous:"Plusieurs tables, une question", lessons:[
+{ titre:"Jointures", sous:"Interroger plusieurs tables à la fois", lessons:[
 { id:18, titre:"INNER JOIN", résumé:"Relier deux tables",
   situation:"Tu veux afficher le nom de chaque client avec les produits qu’il a commandés.<br><br>Mais il y a un problème : aucune table ne contient toutes ces informations.<br><br>Dans la table <code>clients</code>, tu trouves le nom et l’identifiant du client :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, tu trouves les commandes que le client a passé, avec <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br><br>La table <code>commandes</code> connaît le client grâce à <code>client_id</code>, mais elle ne contient pas son nom.<br><br>Pour récupérer le nom, il faut relier les deux tables.",
   situationTail:"Pour relier les deux tables, on utilise la clause <code>ON</code> : on compare la <b>clé primaire</b> <code>clients.id</code> à la <b>clé étrangère</b> <code>commandes.client_id</code>.",
@@ -8883,8 +8572,7 @@ JOIN commandes
     {k:'onmultiple',label:'les deux critères',sql:"SELECT clients.nom, commandes.quantite, commandes.date_commande\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2\nAND commandes.date_commande > '2023-07-15';",tone:'good'}
   ] }
 ]},
-
-{ titre:"Affiner", sous:"Calculer, classer, composer", lessons:[
+{ titre:"Sous-requêtes et expressions", sous:"Composer une requête à partir d’une autre", lessons:[
 { id:21, titre:"CASE", résumé:"Afficher une valeur selon une condition",
   situation:"Tu prépares une campagne marketing et tu veux adapter le message selon l’âge de chaque client.<br><br>Tu veux donc classer les clients en trois catégories, sans modifier la table <code>clients</code> :<br>– <b>Jeune</b> : moins de 30 ans<br>– <b>Adulte</b> : de 30 à 50 ans<br>– <b>Senior</b> : plus de 50 ans<br><br>Dans la table <code>clients</code>, tu as notamment :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th>age</th></tr></thead><tbody><tr><td>2</td><td>Lucas</td><td>28</td></tr><tr><td>1</td><td>Sophie</td><td>34</td></tr><tr><td>6</td><td>Hugo</td><td>52</td></tr></tbody></table></div>",
   situationTail:"Pour faire cette classification, nous pouvons utiliser <code>CASE</code>, une expression SQL qui permet d’attribuer une valeur selon une ou plusieurs conditions. Ici, elle permet d’attribuer à chaque client une catégorie en fonction de son âge.",
@@ -9772,8 +9460,7 @@ WHERE rang = 1;</pre></div>
     {k:'minmax',label:'MIN / MAX',sql:"SELECT nom, categorie, prix,\n    MIN(prix) OVER (PARTITION BY categorie) AS prix_min,\n    MAX(prix) OVER (PARTITION BY categorie) AS prix_max\nFROM produits;",out:"Le Magnésium (19,90) se compare au min et au max des Bien-être."}
   ] }
 ]},
-
-{ titre:"Modifier", sous:"Écrire dans la base", lessons:[
+{ titre:"Création et suppression de tables", sous:"CREATE TABLE, normalisation, ALTER TABLE, DROP", lessons:[
 { id:61, titre:"CREATE TABLE", résumé:"Créer la structure d’une table",
   situation:"Ton site e-commerce a besoin d’enregistrer ses clients.<br><br>Pour l’instant, la table <code>clients</code> n’existe pas encore. Tu sais simplement quelles informations tu veux conserver : un identifiant, le nom, la ville, l’âge, l’e-mail, le téléphone et la date d’inscription.<br><br>Avant d’ajouter des clients, il faut donc définir la structure de la table qui va les accueillir.",
   situationTail:"<div class=\"sit-sql\"><p>C’est le rôle de <code>CREATE TABLE</code> : elle construit la table, colonne par colonne, avec le type de chacune et les règles à respecter.</p></div>",
@@ -9896,6 +9583,265 @@ WHERE rang = 1;</pre></div>
   noExecWhy:"Les tables <code>clients</code>, <code>produits</code> et <code>commandes</code> existent déjà : SQLite refuserait de les recréer.",
   noExecOk:{b:"✓ Correct — la structure est complète",t:"Les cinq colonnes sont là, avec leurs types et leurs trois contraintes. C’est mot pour mot la table <code>produits</code> de cette base."},
   richLesson:true, earlyDemo:true },
+{ id:56, titre:"Normalisation", résumé:"Répartir les données dans des tables reliées",
+  situation:"Tu dois créer un tableau de bord Power BI pour analyser les ventes : nombre de commandes, produits vendus et répartition des clients par ville.<br><br>Pour alimenter le tableau de bord, toutes les informations ont d’abord été regroupées dans une seule grande table :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>client_id</th><th>nom</th><th>ville</th><th>commande_id</th><th>produit</th><th>prix</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td>Paris</td><td>1</td><td>Fibre Prébiotique</td><td>29,90</td><td>2</td></tr><tr><td>1</td><td>Sophie</td><td>Paris</td><td>2</td><td>Magnésium</td><td>19,90</td><td>1</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>3</td><td>Protéine Végétale</td><td>34,90</td><td>1</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>10</td><td>Magnésium</td><td>19,90</td><td>2</td></tr></tbody></table></div><p class=\"nm-glide\">👉 Glisse pour voir le produit, le prix et la quantité.</p>Le tableau de bord fonctionne, mais la table contient beaucoup d’informations répétées.<br><br>À chaque nouvelle commande de Sophie, son nom et sa ville sont enregistrés à nouveau. De la même manière, les informations d’un produit peuvent apparaître dans de nombreuses lignes.<br><br>Cela pose un problème : plus les ventes augmentent, plus les données sont dupliquées et difficiles à maintenir sans incohérence.",
+  situationTail:"<div class=\"sit-sql\"><p>Comment mieux organiser la base de données qui alimente Power BI ?</p><p>C’est là qu’intervient la normalisation : elle permet de répartir les informations dans plusieurs tables reliées, chacune ayant un rôle précis.</p><p>Pour apprendre à organiser ces tables correctement, nous allons avancer étape par étape avec les formes normales : <b>1NF</b>, <b>2NF</b> et <b>3NF</b>.</p></div>",
+    studio:{pointCards:{
+      eye:"Normalisation",title:"Une information, un seul endroit.",
+      lead:"Normaliser, c’est ranger chaque information dans la table qui correspond à ce qu’elle décrit. La ville décrit le client, le prix décrit le produit, la quantité décrit la commande.",
+      chain:[
+        {k:"1NF",v:"une seule valeur par cellule"},
+        {k:"2NF",v:"chaque information dépend de toute la clé"},
+        {k:"3NF",v:"chaque information dépend directement de la clé"}
+      ],
+      cards:[
+        {t:"Le coût de la répétition",
+         b:"<p>Dans la grande table, la ville de Sophie est écrite à chaque commande. Si Sophie déménage, il faut la corriger partout.</p><p>Une seule ligne oubliée, et la base se contredit : c’est une <b>anomalie de mise à jour</b>.</p>"},
+        {t:"1NF — une valeur par case",
+         b:"<p>Chaque case contient une seule valeur, jamais une liste.</p><p><code>produits : \'Magnésium, Shaker\'</code> devient deux lignes. Sans cela, aucune requête ne peut filtrer ou compter proprement.</p>"},
+        {t:"2NF — dépendre de toute la clé",
+         b:"<p>Chaque colonne dépend de toute la clé, pas d’une partie seulement.</p><p>Ici, une ligne est identifiée par la commande et son produit. Or le nom du client ne dépend que du client : il part dans la table <code>clients</code>.</p>"},
+        {t:"3NF — pas de dépendance indirecte",
+         b:"<p>Aucune colonne ne dépend d’une autre colonne qui n’est pas la clé.</p><p>Le prix ne dépend pas de la commande : il dépend du produit. Il part dans <code>produits</code>. Il ne reste dans <code>commandes</code> que ce qui décrit vraiment la commande.</p>"}
+      ]},
+    reflex:{a:{k:"La question",t:"Cette information décrit-elle vraiment cette table ?"},
+      b:{k:"La règle",t:"Chaque information à sa place."},
+      note:"Si une information décrit une autre entité, ne la répète pas dans cette table : place-la dans la table qui lui correspond. Demande-toi toujours ce que décrit chaque information.<br><br>Une information sur le client va dans la table <code>clients</code>, une information sur le produit dans la table <code>produits</code>, une information sur la commande dans la table <code>commandes</code>."},
+    normSplit:true},
+  anatomie:[
+    {tok:"clients (id, nom, ville)",txt:"Tout ce qui décrit le client, écrit une seule fois."},
+    {tok:"produits (id, nom, prix)",txt:"Tout ce qui décrit le produit, écrit une seule fois."},
+    {tok:"commandes (id, client_id, produit_id, quantite)",txt:"Ce qui décrit la commande, plus deux clés étrangères vers les tables voisines."}
+  ],
+  exemple:"CREATE TABLE clients (\n  id INTEGER PRIMARY KEY,\n  nom TEXT,\n  ville TEXT\n);\n\nCREATE TABLE produits (\n  id INTEGER PRIMARY KEY,\n  nom TEXT,\n  prix REAL\n);\n\nCREATE TABLE commandes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER REFERENCES clients(id),\n  produit_id INTEGER REFERENCES produits(id),\n  quantite INTEGER\n);",
+  attendu:"Trois tables au lieu d’une. La ville de Sophie n’est plus écrite qu’une fois, le prix du Magnésium aussi. Le tableau de bord retrouve les mêmes chiffres avec des jointures.",
+  retenir:"Normaliser, c’est ranger chaque information dans la table qui correspond à ce qu’elle décrit.<br><br>Une information n’est alors écrite qu’à un seul endroit. La corriger une fois suffit, et la base ne peut plus se contredire.<br><br>Les formes normales : <b>1NF</b> une seule valeur, <b>2NF</b> toute la clé, <b>3NF</b> directement de la clé.",
+  piege:{t:"Tout séparer, jusqu’à l’excès",
+    p:"Normaliser n’est pas découper à l’infini. Sortir la ville dans une table <code>villes</code> n’a de sens que si la ville porte ses propres informations — un département, une région. Sinon, chaque lecture paie une jointure de plus pour rien.",
+    exec:false,
+    sql:"SELECT clients.nom, villes.nom\nFROM clients\nJOIN villes ON clients.ville_id = villes.id;",
+    out:"Une jointure de plus à chaque requête, pour retrouver une simple chaîne de caractères.",
+    fixSql:"SELECT nom, ville\nFROM clients;"},
+  consigne:"La grande table mélange trois sujets. Écris la table <code>commandes</code> normalisée : son identifiant, ses deux clés étrangères, et la quantité.",
+  solution:"CREATE TABLE commandes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER REFERENCES clients(id),\n  produit_id INTEGER REFERENCES produits(id),\n  quantite INTEGER\n);",
+  normExo:true,
+  noExecOk:{b:"✓ Correct — chaque information à sa place",t:"La table <code>commandes</code> ne garde que ce qui décrit la commande : ses deux clés étrangères et la quantité. Le nom du client reste dans <code>clients</code>, le prix dans <code>produits</code>."},
+  noExecNote:"Cette table existe déjà dans la base : la recréer déclencherait une erreur. Écris-la pour toi, on compare la structure.",
+  noExecWhy:"La table <code>commandes</code> existe déjà : SQLite refuserait de la recréer.",
+  indice:"Une commande ne garde que ce qui la décrit. Le nom du client et le prix du produit vivent ailleurs : elle ne garde que leurs identifiants.",
+  noExec:true,
+  noDemo:true,
+  richLesson:true, earlyDemo:true },
+{ id:65, titre:"ALTER TABLE", résumé:"Faire évoluer la structure d’une table",
+  situation:"La table <code>clients</code> existe déjà et contient des données : <code>id</code>, <code>nom</code>, <code>ville</code>, <code>age</code>, <code>email</code>, <code>telephone</code>, <code>date_inscription</code>.<br><br>Quelques mois plus tard, ton site e-commerce évolue : tu veux maintenant enregistrer le <b>pays</b> de chaque client.<br><br>Tu pourrais supprimer la table et la recréer avec une colonne de plus — mais tu perdrais les données déjà présentes.",
+  situationTail:"<div class=\"sit-sql\"><p>Comment modifier la structure d’une table sans la recréer entièrement ?</p><p>C’est le rôle d’<b><code>ALTER TABLE</code></b>.</p></div>",
+    studio:{pointCards:{
+      eye:"ALTER TABLE",title:"Faire évoluer une table qui existe.",
+      lead:"<code>CREATE TABLE</code> crée la structure. <code>ALTER TABLE</code> la fait évoluer, sans toucher aux données déjà enregistrées.",
+      chain:[
+        {k:"ADD COLUMN",v:"ajouter une colonne"},
+        {k:"RENAME",v:"renommer une colonne ou la table"},
+        {k:"DROP COLUMN",v:"supprimer une colonne"}
+      ]},
+    uses:{title:"Quatre opérations, une structure.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Les trois chemins</p>
+          <div class="tx-flow" role="img" aria-label="ALTER TABLE et ses trois opérations">
+            <span class="tx-step">table <b>clients</b><i>existe déjà</i></span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step tx-key">ALTER TABLE</span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <div class="tx-fork tx-fork-3">
+              <div class="tx-branch is-ok"><b>ADD COLUMN</b><span>ajouter</span></div>
+              <div class="tx-branch"><b>RENAME</b><span>renommer</span></div>
+              <div class="tx-branch is-ko"><b>DROP COLUMN</b><span>supprimer</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Ajouter une colonne</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
+ADD COLUMN pays TEXT;</pre></div>
+          <p>La table reste <code>clients</code> : seule sa structure a changé. Les lignes déjà présentes n’ont aucune valeur pour cette information — elles prennent donc <code>NULL</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Avec une valeur par défaut</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
+ADD COLUMN pays TEXT DEFAULT 'France';</pre></div>
+          <p>Cette fois, les neuf clients déjà enregistrés reçoivent <code>France</code> au lieu de <code>NULL</code>, et les prochains l’auront aussi tant qu’aucune autre valeur n’est fournie.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Renommer une colonne</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
+RENAME COLUMN telephone TO numero_telephone;</pre></div>
+          <p>Les numéros restent là : c’est le nom de la colonne qui change, pas son contenu.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Renommer la table</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
+RENAME TO utilisateurs;</pre></div>
+          <p>Attention : toutes les requêtes suivantes devront employer le nouveau nom. <code>SELECT * FROM clients</code> ne trouvera plus rien.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Supprimer une colonne</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
+DROP COLUMN telephone;</pre></div>
+          <p class="fn-tip"><b>Sans retour</b> Contrairement au renommage, supprimer une colonne supprime aussi les données qu’elle contenait.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Ce que SQLite ne fait pas</p>
+          <p>D’autres moteurs proposent <code>ALTER COLUMN</code> (PostgreSQL) ou <code>MODIFY COLUMN</code> (MySQL) pour changer le type d’une colonne. SQLite s’en tient volontairement aux quatre opérations ci-dessus.</p>
+          <p>Pour une transformation plus profonde — changer un type, revoir une contrainte — il faut recréer la table avec la nouvelle structure et y recopier les données.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"La question",t:"les valeurs, ou la structure ?"},
+      b:{k:"La règle",t:"les valeurs → UPDATE · la structure → ALTER TABLE"},
+      note:"Réflexe : quand une table existe déjà et que sa structure doit évoluer, pense à <code>ALTER TABLE</code>."}},
+  anatomie:[
+    {tok:"ALTER TABLE",txt:"Annonce la modification d’une table existante."},
+    {tok:"clients",txt:"La table à modifier."},
+    {tok:"ADD COLUMN",txt:"L’opération à effectuer."},
+    {tok:"pays",txt:"Le nom de la nouvelle colonne."},
+    {tok:"TEXT",txt:"Son type."}
+  ],
+  exemple:"ALTER TABLE clients\nADD COLUMN pays TEXT DEFAULT 'France';\n\nSELECT id, nom, pays\nFROM clients\nORDER BY id\nLIMIT 3;",
+  attendu:"La colonne pays existe désormais, et les clients déjà enregistrés portent France. Sans le DEFAULT, ils porteraient NULL.",
+  retenir:"<code>ALTER TABLE</code> fait évoluer la structure d’une table existante, sans la recréer ni perdre ses données.<br><br>Quatre opérations en SQLite : <b>ADD COLUMN</b> ajouter, <b>RENAME COLUMN</b> renommer une colonne, <b>RENAME TO</b> renommer la table, <b>DROP COLUMN</b> supprimer.<br><br>Le mémo : <code>CREATE TABLE</code> crée, <code>ALTER TABLE</code> fait évoluer, <code>UPDATE</code> modifie les données.",
+  piege:{t:"Confondre ALTER TABLE et UPDATE",
+    p:"Les deux modifient quelque chose, mais pas au même niveau.<br><br><code>ALTER TABLE</code> touche la <b>structure</b> : ajouter la colonne <code>pays</code>. <code>UPDATE</code> touche les <b>données</b> : écrire <code>France</code> dans le <code>pays</code> de Sophie.<br><br>Il faut souvent les deux, dans cet ordre : la colonne d’abord, la valeur ensuite.",
+    exec:true,
+    sql:"UPDATE clients\nSET pays = 'France'\nWHERE id = 1;",
+    out:"Erreur : la colonne pays n’existe pas encore. UPDATE ne peut pas la créer.",
+    fixSql:"ALTER TABLE clients\nADD COLUMN pays TEXT;\n\nUPDATE clients\nSET pays = 'France'\nWHERE id = 1;\n\nSELECT id, nom, pays\nFROM clients\nWHERE id = 1;"},
+  petitDefi:[{
+    p:"La table <code>produits</code> existe déjà. Tu veux lui ajouter une colonne <code>marque</code> de type <code>TEXT</code>. Quels mots-clés remplacent les tirets ?",
+    sql:"__________ produits\n__________ marque TEXT;",
+    a:"ALTER TABLE / ADD COLUMN",
+    answers:["ALTER TABLE / ADD COLUMN","ALTER TABLE ADD COLUMN","ALTER TABLE, ADD COLUMN","alter table / add column","ALTER TABLE et ADD COLUMN"]
+  }],
+  consigne:"La table <code>clients</code> doit maintenant enregistrer le pays. Ajoute une colonne <code>pays</code> de type <code>TEXT</code>, avec <code>France</code> comme valeur par défaut.",
+  solution:"ALTER TABLE clients\nADD COLUMN pays TEXT DEFAULT 'France';",
+  verif:"SELECT id, nom, pays FROM clients ORDER BY id;",
+  indice:"<code>ALTER TABLE nom_table</code>, puis <code>ADD COLUMN nom type DEFAULT valeur;</code>.",
+  write:true,
+  richLesson:true, earlyDemo:true },
+{ id:66, titre:"DROP", résumé:"Supprimer une structure de la base",
+  situation:"Pour un essai, tu as créé une table <code>commandes_test</code> et tu l’as remplie de fausses lignes.<br><br>L’essai est terminé. Tu écris <code>DELETE FROM commandes_test;</code> : les lignes disparaissent bien, mais la table, elle, est toujours là — vide, avec ses colonnes et ses règles.<br><br><code>DELETE</code> ne sait retirer que des lignes. La structure qui les contenait ne le concerne pas.",
+  situationTail:"<div class=\"sit-sql\"><p>Comment supprimer la structure elle-même, et pas seulement son contenu ?</p><p>C’est le rôle de <b><code>DROP</code></b>.</p></div>",
+    studio:{pointCards:{
+      eye:"DROP",title:"Supprimer l’objet, pas seulement les lignes.",
+      lead:"<code>DELETE</code> retire des lignes d’une table. <code>DROP</code> retire la table de la base : ses lignes, ses colonnes, ses contraintes et ses index partent ensemble.",
+      chain:[
+        {k:"DROP TABLE",v:"supprime une table"},
+        {k:"DROP VIEW",v:"supprime une vue"},
+        {k:"DROP INDEX",v:"supprime un index"}
+      ]},
+    uses:{title:"Vider, ou faire disparaître.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Deux niveaux de suppression</p>
+          <div class="tx-flow" role="img" aria-label="DELETE vide la table, DROP la supprime">
+            <span class="tx-step">table <b>commandes_test</b><i>structure + 2 lignes</i></span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <div class="tx-fork">
+              <div class="tx-branch is-ok"><b>DELETE FROM</b><span>la table reste, vide</span></div>
+              <div class="tx-branch is-ko"><b>DROP TABLE</b><span>la table n’existe plus</span></div>
+            </div>
+          </div>
+          <p>Les deux suppriment quelque chose. <code>DELETE</code> agit sur le <b>contenu</b>, <code>DROP</code> sur l’<b>objet</b>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Vider une table</p>
+          <div class="pt-syntax"><pre class="cw-syntax">DELETE FROM commandes_test;</pre></div>
+          <p>Zéro ligne — mais <code>commandes_test</code> figure toujours dans la base, avec ses colonnes <code>id</code> et <code>quantite</code>. Un <code>INSERT</code> peut la remplir de nouveau dans la seconde qui suit.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Supprimer la table</p>
+          <div class="pt-syntax"><pre class="cw-syntax">DROP TABLE commandes_test;</pre></div>
+          <p>Cette fois la table n’est plus dans la base. La requête suivante n’a plus rien à interroger :</p>
+          <div class="tx-fail">
+            <span class="is-ko">SELECT * FROM commandes_test;<i>no such table</i></span>
+          </div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Quand l’objet n’existe pas</p>
+          <p><code>DROP TABLE paniers;</code> échoue si aucune table ne porte ce nom : <code>no such table: paniers</code>.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">DROP TABLE IF EXISTS paniers;</pre></div>
+          <p><code>IF EXISTS</code> supprime la table si elle est là, et ne fait rien si elle n’y est pas. Aucune erreur dans les deux cas.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Trois objets, trois commandes</p>
+          <div class="table-wrap"><table class="concept-table fit-2">
+            <thead><tr><th>Commande</th><th>Supprime</th></tr></thead>
+            <tbody>
+              <tr><td><code>DROP TABLE</code></td><td>la table</td></tr>
+              <tr><td><code>DROP VIEW</code></td><td>la vue</td></tr>
+              <tr><td><code>DROP INDEX</code></td><td>l’index</td></tr>
+            </tbody>
+          </table></div>
+          <p>Seul <code>DROP TABLE</code> emporte des lignes. Supprimer la vue <code>produits_stock_faible</code> ne retire aucun produit : la vue n’était qu’une requête enregistrée sous un nom, et les huit produits restent.</p>
+          <p>Supprimer un index ne retire rien non plus. Les lignes sont simplement retrouvées plus lentement, comme avant sa création.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Ce que DROP TABLE emporte avec lui</p>
+          <p>La table part avec tout ce qui lui appartient : ses lignes, ses colonnes, ses contraintes, et les index construits sur elle. Inutile de les supprimer un par un.</p>
+          <p class="fn-tip"><b>Une vue ne suit pas</b> Une vue bâtie sur une table supprimée reste enregistrée dans la base, mais devient illisible : la lire renvoie <code>no such table</code>. C’est à toi de la supprimer.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Revenir en arrière</p>
+          <p>En SQLite, <code>DROP</code> obéit aux transactions comme <code>DELETE</code>. À l’intérieur d’un <code>BEGIN</code>, un <code>ROLLBACK</code> ramène la table et ses lignes.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">BEGIN;
+DROP TABLE commandes;
+ROLLBACK;</pre></div>
+          <p>La table <code>commandes</code> est de retour, avec ses seize lignes.</p>
+          <p class="fn-tip"><b>Le filet a une limite</b> Après le <code>COMMIT</code>, ou en dehors de toute transaction, la suppression est définitive.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Et TRUNCATE ?</p>
+          <p>PostgreSQL et MySQL proposent une troisième commande, <code>TRUNCATE TABLE</code> : elle vide la table entièrement, plus vite que <code>DELETE</code>, mais garde la structure comme lui.</p>
+          <div class="tx-fail">
+            <span class="is-ko">TRUNCATE TABLE commandes;<i>syntax error</i></span>
+          </div>
+          <p>SQLite ne la connaît pas. Pour vider une table, on écrit <code>DELETE FROM commandes;</code>.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"La question",t:"les lignes, ou la table ?"},
+      b:{k:"La règle",t:"les lignes → DELETE · la table → DROP"},
+      note:"Réflexe : <code>DELETE</code> laisse la table en place, vide. <code>DROP</code> la retire de la base."}},
+  anatomie:[
+    {tok:"DROP",txt:"Annonce la suppression d’un objet de la base."},
+    {tok:"TABLE",txt:"Le type d’objet supprimé : TABLE, VIEW ou INDEX."},
+    {tok:"IF EXISTS",txt:"Facultatif : évite l’erreur si l’objet n’existe pas."},
+    {tok:"commandes_test",txt:"Le nom de l’objet à supprimer."}
+  ],
+  exemple:"CREATE TABLE commandes_test (\n  id INTEGER PRIMARY KEY,\n  quantite INTEGER\n);\n\nINSERT INTO commandes_test\n  (id, quantite)\nVALUES (1, 3), (2, 5);\n\nDELETE FROM commandes_test;\n\nDROP TABLE IF EXISTS commandes_test;\n\nSELECT COUNT(*) AS table_restante\nFROM sqlite_master\nWHERE name = 'commandes_test';",
+  attendu:"Zéro. DELETE avait vidé la table sans la faire disparaître ; DROP la retire de la base — sqlite_master ne la connaît plus.",
+  retenir:"<code>DELETE</code> supprime des <b>lignes</b>. <code>DROP</code> supprime l’<b>objet</b> lui-même : la table, avec ses colonnes, ses contraintes et ses index.<br><br>Trois objets, trois commandes : <code>DROP TABLE</code>, <code>DROP VIEW</code>, <code>DROP INDEX</code>. <code>IF EXISTS</code> évite l’erreur quand l’objet n’existe pas.<br><br>Le mémo : <b>DELETE vide, DROP fait disparaître</b>.",
+  piege:{t:"Croire que DELETE supprime la table",
+    p:"<code>DELETE FROM commandes</code> retire les seize lignes, et s’arrête là. La table reste dans la base, avec ses cinq colonnes et ses clés étrangères — prête à recevoir de nouvelles lignes.<br><br>Pour qu’elle ne soit plus dans la base du tout, il faut <code>DROP TABLE</code>.",
+    exec:true,
+    sql:"DELETE FROM commandes;\n\nSELECT COUNT(*) AS lignes\nFROM commandes;",
+    out:"0 ligne — mais la table commandes répond encore : elle est vide, pas supprimée.",
+    fixSql:"DROP TABLE commandes;\n\nSELECT type, name\nFROM sqlite_master\nWHERE type = 'table'\nORDER BY name;"},
+  petitDefi:[{
+    p:"La vue <code>ventes_2026</code> ne sert plus. Quels mots-clés remplacent les tirets pour la retirer de la base ?",
+    sql:"__________ ventes_2026;",
+    a:"DROP VIEW",
+    answers:["DROP VIEW","drop view","DROP VIEW ventes_2026","drop view ventes_2026"]
+  }],
+  consigne:"Cette base de travail est une copie : tu peux y supprimer ce que tu veux. Fais disparaître la table <code>commandes</code> de la base — pas seulement ses lignes — sans provoquer d’erreur si elle en est déjà absente.",
+  solution:"DROP TABLE IF EXISTS commandes;",
+  verif:"SELECT type, name FROM sqlite_master WHERE type = 'table' ORDER BY name;",
+  indice:"<code>DROP TABLE nom_table;</code> — et <code>IF EXISTS</code> se place entre <code>TABLE</code> et le nom.",
+  write:true,
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'objets',label:'Les objets',sql:"SELECT type, name\nFROM sqlite_master\nORDER BY type, name;",out:"Les trois tables de la base. C\u2019est cette liste que DROP raccourcit."},
+    {k:'lignes',label:'Les lignes',sql:"SELECT COUNT(*) AS lignes\nFROM commandes;",out:"Seize lignes. DELETE les ram\u00e8nerait \u00e0 z\u00e9ro sans retirer commandes de la liste ci-dessus."}
+  ] }
+]},
+{ titre:"INSERT, UPDATE, DELETE", sous:"Manipuler les données sans les abîmer", lessons:[
 { id:26, titre:"INSERT", résumé:"Ajouter une ligne",
   situation:"Un produit arrive au catalogue : Zinc, catégorie Bien-être, 17,90 €, 70 en stock.<br><br>La table <code>produits</code> a cinq colonnes. Tu dois dire à la base laquelle reçoit quoi — et c’est là que tout se joue : le lien entre les colonnes et les valeurs est <b>positionnel</b>.<br><br>Inverser deux valeurs du même type ne déclenche aucune erreur. La ligne est écrite, et elle est fausse.",
   situationTail:"<div class=\"sit-sql\"><p><code>SELECT</code> lit, <b><code>INSERT</code></b> écrit.</p><p>Nommer les colonnes est le seul moyen de savoir ce qui va où.</p></div>",
@@ -10248,549 +10194,128 @@ WHERE name = 'commandes';</pre></div>
     {k:'sousreq',label:'Sous-requête',sql:"DELETE FROM commandes\nWHERE client_id IN (\n    SELECT id FROM clients\n    WHERE ville = 'Paris'\n);\n\nSELECT COUNT(*) AS restantes\nFROM commandes;",out:"Neuf restantes : les sept commandes des clients parisiens sont parties."},
     {k:'fk',label:'Clé étrangère',sql:"DELETE FROM clients WHERE id = 1;",out:"Refus\u00e9 : Sophie a trois commandes qui la r\u00e9f\u00e9rencent.",tone:'bad'}
   ] },
-{ id:62, titre:"Transactions", résumé:"Tout valider ou tout annuler",
-  situation:"Un client commande 2 unités d’un produit sur ton site e-commerce.<br><br>Deux modifications doivent être effectuées dans la base : ajouter la commande dans la table <code>commandes</code>, et retirer 2 unités du <code>stock</code> dans la table <code>produits</code>.",
-  situationSql:"INSERT INTO commandes\n    (client_id, produit_id, quantite, date_commande)\nVALUES\n    (1, 3, 2, '2026-08-30');\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;",
-  situationTail:"Mais imagine qu’un problème survienne entre les deux opérations :<br><br><div class=\"tx-fail\"><span class=\"is-ok\">Commande ajoutée<i>✓</i></span><span class=\"is-ko\">Stock mis à jour<i>✕</i></span></div><br>La commande existe maintenant dans la base, mais le stock n’a pas été diminué. Les données ne sont plus cohérentes.<br><br><div class=\"sit-sql\"><p>Comment faire pour que ces deux opérations soient validées ensemble, ou annulées ensemble ?</p><p>C’est le rôle d’une <b>transaction</b>.</p></div>",
+{ id:69, titre:"INSERT avancé", résumé:"Plusieurs lignes, une requête, un conflit",
+  situation:"Ton fournisseur t’envoie une liste de nouveaux produits. Tu écris un <code>INSERT</code> par ligne, l’un après l’autre.<br><br>Le lendemain, il renvoie le même fichier avec deux prix corrigés. Rejouer les <code>INSERT</code> échoue dès la première ligne : les identifiants existent déjà.<br><br>Écrire ligne à ligne, et tout casser à la moindre reprise : <code>INSERT</code> sait faire mieux que ça.",
+  situationTail:"<div class=\"sit-sql\"><p>Trois formes à connaître : insérer plusieurs lignes d’un coup, insérer le résultat d’une requête, et dire quoi faire quand la ligne existe déjà.</p></div>",
     studio:{pointCards:{
-      eye:"Transaction",title:"Un seul ensemble, un seul sort.",
-      lead:"Une transaction regroupe plusieurs opérations SQL pour qu’elles forment une seule unité de travail. Soit tout est validé, soit tout est annulé.",
+      eye:"INSERT",title:"Au-delà d’une ligne à la fois.",
+      lead:"La forme <code>INSERT INTO … VALUES (…)</code> écrit une ligne connue d’avance. Trois variantes couvrent les cas où ce n’est pas suffisant.",
       chain:[
-        {k:"BEGIN",v:"je commence"},
-        {k:"COMMIT",v:"je valide"},
-        {k:"ROLLBACK",v:"j’annule"}
+        {k:"VALUES (…),(…)",v:"plusieurs lignes d’un coup"},
+        {k:"INSERT … SELECT",v:"depuis une requête"},
+        {k:"ON CONFLICT",v:"quand la ligne existe déjà"}
       ]},
-    uses:{title:"Trois mots, un ensemble.",
+    uses:{title:"Trois formes, trois besoins.",
       body:`<div class="pt-lead fn-uses">
         <div class="fn-use">
-          <p class="pt-syntax-h">Le parcours d’une commande</p>
-          <div class="tx-flow" role="img" aria-label="De BEGIN à COMMIT ou ROLLBACK">
-            <span class="tx-step tx-key">BEGIN</span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step">INSERT commande</span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step">UPDATE stock</span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-q">Tout va bien ?</span>
-            <div class="tx-fork">
-              <div class="tx-branch is-ok"><small>oui</small><b>COMMIT</b><span>valider</span></div>
-              <div class="tx-branch is-ko"><small>non</small><b>ROLLBACK</b><span>annuler</span></div>
-            </div>
-          </div>
+          <p class="pt-syntax-h">Plusieurs lignes, une instruction</p>
+          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO produits
+    (id, nom, categorie,
+     prix, stock)
+VALUES (20, 'Zinc', 'Bien-être',
+        17.90, 70),
+       (21, 'Fer', 'Bien-être',
+        19.90, 55);</pre></div>
+          <p>Une seule liste de colonnes, puis autant de parenthèses que de lignes, séparées par des virgules.</p>
+          <p class="fn-tip"><b>Une instruction, un sort commun</b> Si une seule ligne enfreint une règle, aucune n’est écrite. C’est plus rapide que dix <code>INSERT</code>, mais c’est aussi tout ou rien.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">BEGIN — commencer</p>
-          <div class="pt-syntax"><pre class="cw-syntax">BEGIN;</pre></div>
-          <p>À partir de là, les modifications suivantes font partie de la transaction. Il reste à décider si on veut les conserver ou les annuler.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">COMMIT — valider</p>
-          <div class="pt-syntax"><pre class="cw-syntax">BEGIN;
-
-INSERT INTO commandes
-    (client_id, produit_id, quantite, date_commande)
-VALUES
-    (1, 3, 2, '2026-08-30');
-
-UPDATE produits
-SET stock = stock - 2
-WHERE id = 3;
-
-COMMIT;</pre></div>
-          <p>La commande est ajoutée <b>et</b> le stock diminué. Les deux ensemble.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">ROLLBACK — annuler</p>
-          <p>Si un problème survient, on ne veut surtout pas conserver seulement une partie des modifications.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">BEGIN;
-
-INSERT INTO commandes (...);
-
-UPDATE produits
-SET stock = stock - 2
-WHERE id = 3;
-
-ROLLBACK;</pre></div>
-          <p><code>ROLLBACK</code> annule les modifications effectuées depuis le début de cette transaction. La commande ajoutée disparaît donc elle aussi : on revient à l’état d’avant.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Avant et après COMMIT</p>
-          <p>Tant que <code>COMMIT</code> n’a pas été exécuté, la transaction peut encore être annulée par <code>ROLLBACK</code>.</p>
-          <p>Une fois le <code>COMMIT</code> effectué, les modifications sont validées : un <code>ROLLBACK</code> lancé ensuite ne revient pas dessus.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Autant d’opérations que nécessaire</p>
-          <p>Une transaction n’est pas limitée à deux requêtes. Elle peut en contenir trois, dix, sur autant de tables qu’il faut — l’idée reste la même : elles appartiennent à une même unité de travail.</p>
-          <p class="fn-tip"><b>Une réserve</b> Mieux vaut ne pas garder une transaction ouverte longtemps : tant qu’elle l’est, ses modifications ne sont visibles de personne d’autre.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La situation",t:"plusieurs opérations doivent réussir ensemble"},
-      b:{k:"La question",t:"que se passe-t-il si l’une d’elles échoue ?"},
-      note:"Réflexe : regroupe les opérations dans une transaction pour pouvoir tout valider ou tout annuler."}},
-  anatomie:[
-    {tok:"BEGIN",txt:"Commence la transaction."},
-    {tok:"INSERT INTO commandes (...)",txt:"Première opération de l’ensemble."},
-    {tok:"UPDATE produits SET stock = stock - 2",txt:"Seconde opération, regroupée avec la première."},
-    {tok:"COMMIT",txt:"Valide les modifications. Ou <code>ROLLBACK</code> pour les annuler."}
-  ],
-  exemple:"BEGIN;\n\nINSERT INTO commandes\n    (client_id, produit_id, quantite, date_commande)\nVALUES\n    (1, 3, 2, '2026-08-30');\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nCOMMIT;",
-  attendu:"La commande est enregistrée et le stock du produit 3 passe de 200 à 198. Avec ROLLBACK à la place de COMMIT, rien ne change : ni commande, ni stock.",
-  retenir:"Une transaction regroupe plusieurs opérations SQL qui doivent être traitées comme un même ensemble.<br><br><b>BEGIN</b> commence, <b>COMMIT</b> valide, <b>ROLLBACK</b> annule les modifications non validées.<br><br>Tant que le <code>COMMIT</code> n’a pas eu lieu, tout est encore annulable. Après, non.",
-  piege:{t:"Croire qu’une erreur annule toujours toute la transaction",
-    p:"On lit souvent que SQL annule automatiquement la transaction dès qu’une requête échoue. Le comportement dépend en réalité du moteur et du type d’erreur.<br><br>Retiens plutôt la règle qui, elle, est toujours vraie : si les opérations ne doivent pas être conservées, c’est <code>ROLLBACK</code> qui les annule.",
-    exec:true,
-    sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nROLLBACK;\n\nSELECT nom, stock\nFROM produits\nWHERE id = 3;",
-    out:"Le stock est inchangé : le ROLLBACK a annulé la modification.",
-    fixSql:"BEGIN;\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nCOMMIT;\n\nSELECT nom, stock\nFROM produits\nWHERE id = 3;"},
-  petitDefi:[{
-    p:"Tu modifies le stock de deux produits, puis tu décides finalement de ne rien conserver. Quel mot-clé termine cette transaction ?",
-    sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 2;\n\n________;",
-    a:"ROLLBACK",
-    answers:["ROLLBACK","rollback","ROLLBACK;"]
-  }],
-  consigne:"Dans une seule transaction validée, ajoute la commande du client 1 pour 2 unités du produit 3 le <code>2026-08-30</code>, puis retire ces 2 unités du stock du produit 3.",
-  solution:"BEGIN;\n\nINSERT INTO commandes\n    (client_id, produit_id, quantite, date_commande)\nVALUES\n    (1, 3, 2, '2026-08-30');\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nCOMMIT;",
-  verif:"SELECT (SELECT COUNT(*) FROM commandes WHERE produit_id = 3 AND quantite = 2 AND date_commande = '2026-08-30') AS commandes_ajoutees, (SELECT stock FROM produits WHERE id = 3) AS stock;",
-  indice:"Ouvre avec <code>BEGIN;</code>, écris les deux requêtes, puis referme avec <code>COMMIT;</code>.",
-  write:true,
-  richLesson:true, earlyDemo:true },
-{ id:63, titre:"SAVEPOINT", résumé:"Annuler seulement une partie d’une transaction",
-  situation:"Tu sais maintenant qu’une transaction regroupe plusieurs opérations, et qu’un <code>ROLLBACK</code> les annule toutes.<br><br>Mais imagine une transaction à plusieurs étapes :<br><br><div class=\"tx-fail\"><span class=\"is-ok\">Ajouter une commande<i>✓</i></span><span class=\"is-ok\">Modifier le stock<i>✓</i></span><span class=\"is-ko\">Appliquer une modification<i>✕</i></span></div><br>Tu veux annuler la troisième étape, sans perdre les deux premières. Avec un simple <code>ROLLBACK</code>, tu annulerais toute la transaction.",
-  situationTail:"<div class=\"sit-sql\"><p>Comment revenir seulement à un point précis ?</p><p>C’est le rôle d’un <b><code>SAVEPOINT</code></b>.</p></div>",
-    studio:{pointCards:{
-      eye:"SAVEPOINT",title:"Un marque-page dans la transaction.",
-      lead:"Un <code>SAVEPOINT</code> crée un point de retour à l’intérieur d’une transaction. Au lieu de revenir jusqu’au <code>BEGIN</code>, tu reviens à ce point.",
-      chain:[
-        {k:"SAVEPOINT",v:"je marque un point"},
-        {k:"ROLLBACK TO",v:"je reviens à ce point"},
-        {k:"COMMIT",v:"je valide ce que j’ai conservé"}
-      ]},
-    uses:{title:"Revenir à un point, pas au départ.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le parcours avec un point de retour</p>
-          <div class="tx-flow" role="img" aria-label="De BEGIN au COMMIT en passant par un retour au savepoint">
-            <span class="tx-step tx-key">BEGIN</span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step tx-ok">opération 1<i>✓ conservée</i></span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step tx-ok">opération 2<i>✓ conservée</i></span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step tx-key">SAVEPOINT</span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step tx-ko">opération 3<i>✕ annulée</i></span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step tx-back">ROLLBACK TO<i>↑ retour au point</i></span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step tx-key">COMMIT</span>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Créer le point de retour</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SAVEPOINT avant_produit_2;</pre></div>
-          <p>Le nom permet de retrouver ce point plus tard. Une transaction peut en contenir plusieurs, et tu choisis alors jusqu’où revenir.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">ROLLBACK TO — revenir au point</p>
-          <div class="pt-syntax"><pre class="cw-syntax">BEGIN;
-
-UPDATE produits
-SET stock = stock + 10
-WHERE id = 1;
-
-SAVEPOINT avant_produit_2;
-
-UPDATE produits
-SET stock = stock + 50
-WHERE id = 2;
-
-ROLLBACK TO avant_produit_2;</pre></div>
-          <p>La modification du produit 1 est conservée. Celle du produit 2 est annulée : on est revenu à l’état du <code>SAVEPOINT</code>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">ROLLBACK ou ROLLBACK TO</p>
-          <div class="duo">
-            <div class="duo-row"><p class="duo-k">Je veux tout annuler</p>
-              <p class="duo-v"><b>ROLLBACK</b><span>retour jusqu’au <code>BEGIN</code>, la transaction se termine</span></p></div>
-            <div class="duo-row"><p class="duo-k">Je veux annuler une partie</p>
-              <p class="duo-v"><b>ROLLBACK TO</b><span>retour au point choisi, la transaction continue</span></p></div>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">La transaction continue</p>
-          <p>Après un <code>ROLLBACK TO</code>, rien n’est terminé : tu peux corriger, puis valider.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ROLLBACK TO avant_produit_2;
-
-UPDATE produits
-SET stock = stock + 5
-WHERE id = 2;
-
-COMMIT;</pre></div>
-          <p>Au final, <code>+10</code> sur le produit 1 et <code>+5</code> sur le produit 2 sont validés. Le <code>+50</code> a disparu.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">RELEASE — supprimer le point</p>
-          <div class="pt-syntax"><pre class="cw-syntax">RELEASE SAVEPOINT avant_produit_2;</pre></div>
-          <p><code>RELEASE</code> ne veut pas dire « annuler » : il signifie que tu n’auras plus besoin de revenir à ce point.</p>
-          <p class="fn-tip"><b>À ne pas confondre</b> <code>ROLLBACK TO</code> revient au point. <code>RELEASE</code> supprime le point.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La question",t:"tout annuler, ou seulement une partie ?"},
-      b:{k:"La règle",t:"tout → ROLLBACK · une partie → SAVEPOINT puis ROLLBACK TO"},
-      note:"Réflexe : quand une transaction comporte plusieurs étapes et que tu veux pouvoir revenir à l’une d’elles, pose un <code>SAVEPOINT</code>."}},
-  anatomie:[
-    {tok:"BEGIN",txt:"Commence la transaction."},
-    {tok:"SAVEPOINT avant_produit_2",txt:"Crée un point de retour, sans rien valider."},
-    {tok:"ROLLBACK TO avant_produit_2",txt:"Annule ce qui a été fait depuis ce point. La transaction continue."},
-    {tok:"COMMIT",txt:"Valide finalement les modifications conservées."}
-  ],
-  exemple:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT avant_produit_2;\n\nUPDATE produits\nSET stock = stock + 50\nWHERE id = 2;\n\nROLLBACK TO avant_produit_2;\n\nCOMMIT;",
-  attendu:"Le stock du produit 1 passe de 120 à 130. Celui du produit 2 reste à 80 : le +50 a été annulé par le retour au point de sauvegarde.",
-  retenir:"Un <code>SAVEPOINT</code> crée un point de retour <b>à l’intérieur</b> d’une transaction.<br><br><code>ROLLBACK</code> annule toute la transaction et la termine. <code>ROLLBACK TO</code> revient au point choisi, et la transaction continue.<br><br>Le mémo : <b>SAVEPOINT</b> je marque un point, <b>ROLLBACK TO</b> j’y reviens, <b>COMMIT</b> je valide ce que j’ai conservé.",
-  piege:{t:"Croire qu’un SAVEPOINT valide les modifications",
-    p:"Poser un <code>SAVEPOINT</code> ne valide rien. Il crée seulement un point de retour : tant que le <code>COMMIT</code> n’a pas eu lieu, tout reste annulable, y compris ce qui précède le point.<br><br><code>SAVEPOINT</code> ≠ validation. Seul <code>COMMIT</code> valide.",
-    exec:true,
-    sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT etape_1;\n\nROLLBACK;\n\nSELECT nom, stock\nFROM produits\nWHERE id = 1;",
-    out:"Le stock est inchangé : le SAVEPOINT n’a rien protégé du ROLLBACK.",
-    fixSql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT etape_1;\n\nCOMMIT;\n\nSELECT nom, stock\nFROM produits\nWHERE id = 1;"},
-  petitDefi:[{
-    p:"Tu veux conserver la première modification et annuler la seconde. Quel mot-clé crée le point de retour, à la place des tirets ?",
-    sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\n__________ avant_modification;\n\nUPDATE produits\nSET stock = stock + 50\nWHERE id = 2;\n\nROLLBACK TO avant_modification;\n\nCOMMIT;",
-    a:"SAVEPOINT",
-    answers:["SAVEPOINT","savepoint"]
-  }],
-  consigne:"Dans une transaction, ajoute 10 au stock du produit 1, pose un point de retour nommé <code>avant_modification</code>, ajoute 50 au stock du produit 2, puis annule cette seconde modification avant de valider.",
-  solution:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT avant_modification;\n\nUPDATE produits\nSET stock = stock + 50\nWHERE id = 2;\n\nROLLBACK TO avant_modification;\n\nCOMMIT;",
-  verif:"SELECT id, stock FROM produits WHERE id IN (1, 2) ORDER BY id;",
-  indice:"<code>SAVEPOINT nom;</code> pose le point, <code>ROLLBACK TO nom;</code> y revient. Le <code>COMMIT</code> vient à la fin.",
-  write:true,
-  richLesson:true, earlyDemo:true },
-{ id:64, titre:"CREATE VIEW", résumé:"Enregistrer une requête sous un nom",
-  situation:"Sur ton site e-commerce, tu veux régulièrement afficher les produits dont le stock devient faible — disons ceux qui ont moins de 50 unités.",
-  situationSql:"SELECT\n    id,\n    nom,\n    stock\nFROM produits\nWHERE stock < 50;",
-  situationTail:"Cette requête fonctionne. Mais si tu dois t’en servir régulièrement, tu vas devoir la réécrire à chaque fois.<br><br><div class=\"sit-sql\"><p>Comment enregistrer cette requête sous un nom, pour pouvoir ensuite l’interroger plus simplement ?</p><p>C’est le rôle d’une <b>vue</b>.</p></div>",
-    studio:{pointCards:{
-      eye:"CREATE VIEW",title:"Une requête, un nom.",
-      lead:"Une vue est une requête enregistrée sous un nom. On l’interroge ensuite avec <code>SELECT</code>, comme une table.",
-      chain:[
-        {k:"Une requête",v:"celle qu’on réécrit sans cesse"},
-        {k:"CREATE VIEW",v:"lui donne un nom"},
-        {k:"SELECT",v:"interroge ce nom"}
-      ]},
-    uses:{title:"Une requête que l’on garde.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">De la requête à la vue</p>
-          <div class="tx-flow" role="img" aria-label="La table, la requête, la vue, puis son interrogation">
-            <span class="tx-step">table <b>produits</b></span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step">SELECT id, nom, stock<i>WHERE stock &lt; 50</i></span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step tx-key">CREATE VIEW</span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step tx-ok">produits_stock_faible</span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step">SELECT * FROM la vue</span>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Créer la vue</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE VIEW produits_stock_faible AS
-SELECT
-    id,
-    nom,
-    stock
+          <p class="pt-syntax-h">Insérer le résultat d’une requête</p>
+          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO archive (nom, prix)
+SELECT nom, prix
 FROM produits
-WHERE stock &lt; 50;</pre></div>
-          <p>La vue correspond à la requête placée après <code>AS</code>. On l’interroge ensuite comme une source de données :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
-FROM produits_stock_faible;</pre></div>
+WHERE prix &lt; 20;</pre></div>
+          <p>Pas de <code>VALUES</code> ici : le <code>SELECT</code> fournit les lignes. Les quatre produits à moins de 20 € sont recopiés dans <code>archive</code>.</p>
+          <p>Les colonnes se correspondent <b>par position</b>, pas par nom : la première colonne du <code>SELECT</code> alimente la première colonne citée.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Une vue ne copie pas les données</p>
-          <p>C’est le point le plus important. SQLite ne crée pas une seconde table contenant une copie des produits : la vue conserve la <b>requête</b>, et présente les données de la table source.</p>
-          <div class="duo">
-            <div class="duo-row"><p class="duo-k">Une table</p>
-              <p class="duo-v"><b>produits</b><span>contient les données</span></p></div>
-            <div class="duo-row"><p class="duo-k">Une vue</p>
-              <p class="duo-v"><b>produits_stock_faible</b><span>enregistre une manière de les consulter</span></p></div>
-          </div>
+          <p class="pt-syntax-h">Le SELECT peut transformer au passage</p>
+          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO archive (nom, prix)
+SELECT nom, ROUND(prix * 1.1, 2)
+FROM produits
+WHERE categorie = 'Bien-être';</pre></div>
+          <p>Les trois produits Bien-être sont archivés avec un prix majoré de 10 %. Tout ce qu’un <code>SELECT</code> sait faire — filtrer, calculer, joindre — est utilisable ici.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Quand les données changent</p>
-          <p>La Tisane Détox a 60 unités : elle ne respecte pas <code>stock &lt; 50</code>, donc elle n’apparaît pas dans la vue.</p>
-          <p>Si son stock tombe à 45, elle apparaîtra à la prochaine interrogation de la vue — sans qu’il faille recréer quoi que ce soit. La vue s’appuie sur les données <b>actuelles</b>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Simplifier une requête longue</p>
-          <p>L’intérêt grandit avec la complexité. Cette requête relie trois tables :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE VIEW detail_commandes AS
-SELECT
-    commandes.id,
-    clients.nom AS client,
-    produits.nom AS produit,
-    commandes.quantite
-FROM commandes
-JOIN clients
-    ON commandes.client_id = clients.id
-JOIN produits
-    ON commandes.produit_id = produits.id;</pre></div>
-          <p>Deux jointures, quatre colonnes, deux alias — tout cela devient <code>SELECT * FROM detail_commandes;</code>. La logique est centralisée dans la définition de la vue.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Une vue s’interroge comme une table</p>
-          <p>Le résultat n’est pas figé : tu peux continuer à filtrer, trier, limiter.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
-FROM produits_stock_faible
-WHERE stock &lt; 35
-ORDER BY stock;</pre></div>
-          <p>La vue fournit les produits sous 50 unités, ta requête resserre sous 35.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Supprimer une vue</p>
-          <div class="pt-syntax"><pre class="cw-syntax">DROP VIEW produits_stock_faible;</pre></div>
-          <p>La vue disparaît, la table <code>produits</code> reste intacte. C’est logique : la vue n’était qu’une manière de consulter ses données.</p>
-          <p class="fn-tip"><b>En lecture</b> Dans SQLite, une vue se consulte mais ne se modifie pas directement. Pour ce cours, retiens qu’une vue sert à <b>consulter</b> plus simplement.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La situation",t:"tu réécris souvent la même requête"},
-      b:{k:"La règle",t:"enregistre-la sous un nom, puis interroge ce nom"},
-      note:"Réflexe : une requête que tu réécris régulièrement mérite un nom. <code>CREATE VIEW</code> le lui donne."}},
-  anatomie:[
-    {tok:"CREATE VIEW",txt:"Crée une vue."},
-    {tok:"produits_stock_faible",txt:"Le nom donné à la vue."},
-    {tok:"AS",txt:"Introduit la requête enregistrée."},
-    {tok:"SELECT id, nom, stock FROM produits WHERE stock < 50",txt:"Définit les données que la vue présente."}
-  ],
-  exemple:"CREATE VIEW produits_stock_faible AS\nSELECT\n    id,\n    nom,\n    stock\nFROM produits\nWHERE stock < 50;\n\nSELECT *\nFROM produits_stock_faible;",
-  attendu:"2 lignes : la Protéine Végétale à 45 et le Shaker Inox à 30. Les six autres produits ont un stock supérieur ou égal à 50.",
-  retenir:"Une vue est une <b>requête enregistrée sous un nom</b>, que tu interroges ensuite comme une source de données.<br><br>Elle ne copie rien : elle s’appuie sur les données actuelles de ses tables sources. Si elles changent, son résultat change.<br><br>Le mémo : une <b>table</b> contient les données, une <b>vue</b> enregistre une requête sur ces données.",
-  piege:{t:"Confondre CREATE VIEW et CREATE TABLE … AS",
-    p:"<code>CREATE VIEW … AS SELECT</code> enregistre la requête : le résultat suit les données.<br><br><code>CREATE TABLE … AS SELECT</code> crée une vraie table et <b>copie</b> les lignes au moment de sa création. Si la table source change ensuite, la copie ne bouge pas.",
-    exec:true,
-    sql:"CREATE TABLE copie_stock AS\nSELECT id, nom, stock\nFROM produits\nWHERE stock < 50;\n\nUPDATE produits\nSET stock = 10\nWHERE id = 3;\n\nSELECT * FROM copie_stock;",
-    out:"Le Magnésium passé à 10 n’apparaît pas : la copie date de sa création.",
-    fixSql:"CREATE VIEW vue_stock AS\nSELECT id, nom, stock\nFROM produits\nWHERE stock < 50;\n\nUPDATE produits\nSET stock = 10\nWHERE id = 3;\n\nSELECT * FROM vue_stock;"},
-  petitDefi:[{
-    p:"Tu utilises souvent cette requête. Quels mots-clés l’enregistrent sous le nom <code>produits_premium</code> ?",
-    sql:"____________ produits_premium AS\nSELECT\n    nom,\n    prix\nFROM produits\nWHERE prix > 30;",
-    a:"CREATE VIEW",
-    answers:["CREATE VIEW","create view"]
-  }],
-  consigne:"Enregistre sous le nom <code>produits_stock_faible</code> la requête qui affiche l’<code>id</code>, le <code>nom</code> et le <code>stock</code> des produits ayant moins de 50 unités.",
-  solution:"CREATE VIEW produits_stock_faible AS\nSELECT\n    id,\n    nom,\n    stock\nFROM produits\nWHERE stock < 50;",
-  verif:"SELECT id, nom, stock FROM produits_stock_faible ORDER BY id;",
-  indice:"<code>CREATE VIEW nom AS</code>, puis la requête telle quelle.",
-  write:true,
-  richLesson:true, earlyDemo:true },
-{ id:65, titre:"ALTER TABLE", résumé:"Faire évoluer la structure d’une table",
-  situation:"La table <code>clients</code> existe déjà et contient des données : <code>id</code>, <code>nom</code>, <code>ville</code>, <code>age</code>, <code>email</code>, <code>telephone</code>, <code>date_inscription</code>.<br><br>Quelques mois plus tard, ton site e-commerce évolue : tu veux maintenant enregistrer le <b>pays</b> de chaque client.<br><br>Tu pourrais supprimer la table et la recréer avec une colonne de plus — mais tu perdrais les données déjà présentes.",
-  situationTail:"<div class=\"sit-sql\"><p>Comment modifier la structure d’une table sans la recréer entièrement ?</p><p>C’est le rôle d’<b><code>ALTER TABLE</code></b>.</p></div>",
-    studio:{pointCards:{
-      eye:"ALTER TABLE",title:"Faire évoluer une table qui existe.",
-      lead:"<code>CREATE TABLE</code> crée la structure. <code>ALTER TABLE</code> la fait évoluer, sans toucher aux données déjà enregistrées.",
-      chain:[
-        {k:"ADD COLUMN",v:"ajouter une colonne"},
-        {k:"RENAME",v:"renommer une colonne ou la table"},
-        {k:"DROP COLUMN",v:"supprimer une colonne"}
-      ]},
-    uses:{title:"Quatre opérations, une structure.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Les trois chemins</p>
-          <div class="tx-flow" role="img" aria-label="ALTER TABLE et ses trois opérations">
-            <span class="tx-step">table <b>clients</b><i>existe déjà</i></span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step tx-key">ALTER TABLE</span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <div class="tx-fork tx-fork-3">
-              <div class="tx-branch is-ok"><b>ADD COLUMN</b><span>ajouter</span></div>
-              <div class="tx-branch"><b>RENAME</b><span>renommer</span></div>
-              <div class="tx-branch is-ko"><b>DROP COLUMN</b><span>supprimer</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Ajouter une colonne</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
-ADD COLUMN pays TEXT;</pre></div>
-          <p>La table reste <code>clients</code> : seule sa structure a changé. Les lignes déjà présentes n’ont aucune valeur pour cette information — elles prennent donc <code>NULL</code>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Avec une valeur par défaut</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
-ADD COLUMN pays TEXT DEFAULT 'France';</pre></div>
-          <p>Cette fois, les neuf clients déjà enregistrés reçoivent <code>France</code> au lieu de <code>NULL</code>, et les prochains l’auront aussi tant qu’aucune autre valeur n’est fournie.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Renommer une colonne</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
-RENAME COLUMN telephone TO numero_telephone;</pre></div>
-          <p>Les numéros restent là : c’est le nom de la colonne qui change, pas son contenu.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Renommer la table</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
-RENAME TO utilisateurs;</pre></div>
-          <p>Attention : toutes les requêtes suivantes devront employer le nouveau nom. <code>SELECT * FROM clients</code> ne trouvera plus rien.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Supprimer une colonne</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
-DROP COLUMN telephone;</pre></div>
-          <p class="fn-tip"><b>Sans retour</b> Contrairement au renommage, supprimer une colonne supprime aussi les données qu’elle contenait.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Ce que SQLite ne fait pas</p>
-          <p>D’autres moteurs proposent <code>ALTER COLUMN</code> (PostgreSQL) ou <code>MODIFY COLUMN</code> (MySQL) pour changer le type d’une colonne. SQLite s’en tient volontairement aux quatre opérations ci-dessus.</p>
-          <p>Pour une transformation plus profonde — changer un type, revoir une contrainte — il faut recréer la table avec la nouvelle structure et y recopier les données.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La question",t:"les valeurs, ou la structure ?"},
-      b:{k:"La règle",t:"les valeurs → UPDATE · la structure → ALTER TABLE"},
-      note:"Réflexe : quand une table existe déjà et que sa structure doit évoluer, pense à <code>ALTER TABLE</code>."}},
-  anatomie:[
-    {tok:"ALTER TABLE",txt:"Annonce la modification d’une table existante."},
-    {tok:"clients",txt:"La table à modifier."},
-    {tok:"ADD COLUMN",txt:"L’opération à effectuer."},
-    {tok:"pays",txt:"Le nom de la nouvelle colonne."},
-    {tok:"TEXT",txt:"Son type."}
-  ],
-  exemple:"ALTER TABLE clients\nADD COLUMN pays TEXT DEFAULT 'France';\n\nSELECT id, nom, pays\nFROM clients\nORDER BY id\nLIMIT 3;",
-  attendu:"La colonne pays existe désormais, et les clients déjà enregistrés portent France. Sans le DEFAULT, ils porteraient NULL.",
-  retenir:"<code>ALTER TABLE</code> fait évoluer la structure d’une table existante, sans la recréer ni perdre ses données.<br><br>Quatre opérations en SQLite : <b>ADD COLUMN</b> ajouter, <b>RENAME COLUMN</b> renommer une colonne, <b>RENAME TO</b> renommer la table, <b>DROP COLUMN</b> supprimer.<br><br>Le mémo : <code>CREATE TABLE</code> crée, <code>ALTER TABLE</code> fait évoluer, <code>UPDATE</code> modifie les données.",
-  piege:{t:"Confondre ALTER TABLE et UPDATE",
-    p:"Les deux modifient quelque chose, mais pas au même niveau.<br><br><code>ALTER TABLE</code> touche la <b>structure</b> : ajouter la colonne <code>pays</code>. <code>UPDATE</code> touche les <b>données</b> : écrire <code>France</code> dans le <code>pays</code> de Sophie.<br><br>Il faut souvent les deux, dans cet ordre : la colonne d’abord, la valeur ensuite.",
-    exec:true,
-    sql:"UPDATE clients\nSET pays = 'France'\nWHERE id = 1;",
-    out:"Erreur : la colonne pays n’existe pas encore. UPDATE ne peut pas la créer.",
-    fixSql:"ALTER TABLE clients\nADD COLUMN pays TEXT;\n\nUPDATE clients\nSET pays = 'France'\nWHERE id = 1;\n\nSELECT id, nom, pays\nFROM clients\nWHERE id = 1;"},
-  petitDefi:[{
-    p:"La table <code>produits</code> existe déjà. Tu veux lui ajouter une colonne <code>marque</code> de type <code>TEXT</code>. Quels mots-clés remplacent les tirets ?",
-    sql:"__________ produits\n__________ marque TEXT;",
-    a:"ALTER TABLE / ADD COLUMN",
-    answers:["ALTER TABLE / ADD COLUMN","ALTER TABLE ADD COLUMN","ALTER TABLE, ADD COLUMN","alter table / add column","ALTER TABLE et ADD COLUMN"]
-  }],
-  consigne:"La table <code>clients</code> doit maintenant enregistrer le pays. Ajoute une colonne <code>pays</code> de type <code>TEXT</code>, avec <code>France</code> comme valeur par défaut.",
-  solution:"ALTER TABLE clients\nADD COLUMN pays TEXT DEFAULT 'France';",
-  verif:"SELECT id, nom, pays FROM clients ORDER BY id;",
-  indice:"<code>ALTER TABLE nom_table</code>, puis <code>ADD COLUMN nom type DEFAULT valeur;</code>.",
-  write:true,
-  richLesson:true, earlyDemo:true },
-{ id:66, titre:"DROP", résumé:"Supprimer une structure de la base",
-  situation:"Pour un essai, tu as créé une table <code>commandes_test</code> et tu l’as remplie de fausses lignes.<br><br>L’essai est terminé. Tu écris <code>DELETE FROM commandes_test;</code> : les lignes disparaissent bien, mais la table, elle, est toujours là — vide, avec ses colonnes et ses règles.<br><br><code>DELETE</code> ne sait retirer que des lignes. La structure qui les contenait ne le concerne pas.",
-  situationTail:"<div class=\"sit-sql\"><p>Comment supprimer la structure elle-même, et pas seulement son contenu ?</p><p>C’est le rôle de <b><code>DROP</code></b>.</p></div>",
-    studio:{pointCards:{
-      eye:"DROP",title:"Supprimer l’objet, pas seulement les lignes.",
-      lead:"<code>DELETE</code> retire des lignes d’une table. <code>DROP</code> retire la table de la base : ses lignes, ses colonnes, ses contraintes et ses index partent ensemble.",
-      chain:[
-        {k:"DROP TABLE",v:"supprime une table"},
-        {k:"DROP VIEW",v:"supprime une vue"},
-        {k:"DROP INDEX",v:"supprime un index"}
-      ]},
-    uses:{title:"Vider, ou faire disparaître.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Deux niveaux de suppression</p>
-          <div class="tx-flow" role="img" aria-label="DELETE vide la table, DROP la supprime">
-            <span class="tx-step">table <b>commandes_test</b><i>structure + 2 lignes</i></span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <div class="tx-fork">
-              <div class="tx-branch is-ok"><b>DELETE FROM</b><span>la table reste, vide</span></div>
-              <div class="tx-branch is-ko"><b>DROP TABLE</b><span>la table n’existe plus</span></div>
-            </div>
-          </div>
-          <p>Les deux suppriment quelque chose. <code>DELETE</code> agit sur le <b>contenu</b>, <code>DROP</code> sur l’<b>objet</b>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Vider une table</p>
-          <div class="pt-syntax"><pre class="cw-syntax">DELETE FROM commandes_test;</pre></div>
-          <p>Zéro ligne — mais <code>commandes_test</code> figure toujours dans la base, avec ses colonnes <code>id</code> et <code>quantite</code>. Un <code>INSERT</code> peut la remplir de nouveau dans la seconde qui suit.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Supprimer la table</p>
-          <div class="pt-syntax"><pre class="cw-syntax">DROP TABLE commandes_test;</pre></div>
-          <p>Cette fois la table n’est plus dans la base. La requête suivante n’a plus rien à interroger :</p>
+          <p class="pt-syntax-h">Quand la ligne existe déjà</p>
+          <p>Réinsérer un identifiant déjà pris est refusé, comme toute violation de contrainte :</p>
           <div class="tx-fail">
-            <span class="is-ko">SELECT * FROM commandes_test;<i>no such table</i></span>
+            <span class="is-ko">INSERT … VALUES (3, …)<i>UNIQUE constraint failed</i></span>
           </div>
+          <p>Ce refus est le bon comportement par défaut. Mais quand tu réimportes un fichier fournisseur, tu sais que des lignes existent déjà — et tu veux dire quoi en faire.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Quand l’objet n’existe pas</p>
-          <p><code>DROP TABLE paniers;</code> échoue si aucune table ne porte ce nom : <code>no such table: paniers</code>.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">DROP TABLE IF EXISTS paniers;</pre></div>
-          <p><code>IF EXISTS</code> supprime la table si elle est là, et ne fait rien si elle n’y est pas. Aucune erreur dans les deux cas.</p>
+          <p class="pt-syntax-h">DO NOTHING — ignorer les doublons</p>
+          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO produits
+    (id, nom, categorie,
+     prix, stock)
+VALUES (3, 'Magnésium',
+        'Bien-être', 21.90, 200)
+ON CONFLICT(id) DO NOTHING;</pre></div>
+          <p>La ligne 3 existe : elle est laissée telle quelle, sans erreur. Les lignes nouvelles du même <code>INSERT</code>, elles, sont bien ajoutées.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Trois objets, trois commandes</p>
-          <div class="table-wrap"><table class="concept-table fit-2">
-            <thead><tr><th>Commande</th><th>Supprime</th></tr></thead>
-            <tbody>
-              <tr><td><code>DROP TABLE</code></td><td>la table</td></tr>
-              <tr><td><code>DROP VIEW</code></td><td>la vue</td></tr>
-              <tr><td><code>DROP INDEX</code></td><td>l’index</td></tr>
-            </tbody>
-          </table></div>
-          <p>Seul <code>DROP TABLE</code> emporte des lignes. Supprimer la vue <code>produits_stock_faible</code> ne retire aucun produit : la vue n’était qu’une requête enregistrée sous un nom, et les huit produits restent.</p>
-          <p>Supprimer un index ne retire rien non plus. Les lignes sont simplement retrouvées plus lentement, comme avant sa création.</p>
+          <p class="pt-syntax-h">DO UPDATE — insérer ou mettre à jour</p>
+          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO produits
+    (id, nom, categorie,
+     prix, stock)
+VALUES (3, 'Magnésium',
+        'Bien-être', 21.90, 200)
+ON CONFLICT(id) DO UPDATE
+    SET prix = excluded.prix;</pre></div>
+          <p>Si la ligne 3 n’existe pas, elle est créée. Si elle existe, seul son <code>prix</code> est mis à jour. Une seule instruction remplace un <code>SELECT</code> suivi d’un <code>INSERT</code> ou d’un <code>UPDATE</code>.</p>
+          <p class="fn-tip"><b>excluded</b> C’est le nom de la ligne qui a tenté d’entrer. <code>excluded.prix</code> vaut 21.90, la valeur refusée — à ne pas confondre avec <code>produits.prix</code>, l’ancienne.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Ce que DROP TABLE emporte avec lui</p>
-          <p>La table part avec tout ce qui lui appartient : ses lignes, ses colonnes, ses contraintes, et les index construits sur elle. Inutile de les supprimer un par un.</p>
-          <p class="fn-tip"><b>Une vue ne suit pas</b> Une vue bâtie sur une table supprimée reste enregistrée dans la base, mais devient illisible : la lire renvoie <code>no such table</code>. C’est à toi de la supprimer.</p>
+          <p class="pt-syntax-h">Les formes courtes de SQLite</p>
+          <p><code>INSERT OR IGNORE</code> équivaut à <code>DO NOTHING</code> : la ligne en conflit est passée sous silence.</p>
+          <p><code>INSERT OR REPLACE</code>, en revanche, <b>supprime l’ancienne ligne</b> puis en insère une neuve. Les colonnes que tu n’as pas citées ne sont pas conservées : elles repartent à <code>NULL</code>.</p>
+          <p class="fn-tip"><b>Préférer ON CONFLICT</b> <code>DO UPDATE</code> modifie les colonnes que tu nommes et laisse les autres intactes. C’est presque toujours ce que tu veux.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Revenir en arrière</p>
-          <p>En SQLite, <code>DROP</code> obéit aux transactions comme <code>DELETE</code>. À l’intérieur d’un <code>BEGIN</code>, un <code>ROLLBACK</code> ramène la table et ses lignes.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">BEGIN;
-DROP TABLE commandes;
-ROLLBACK;</pre></div>
-          <p>La table <code>commandes</code> est de retour, avec ses seize lignes.</p>
-          <p class="fn-tip"><b>Le filet a une limite</b> Après le <code>COMMIT</code>, ou en dehors de toute transaction, la suppression est définitive.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Et TRUNCATE ?</p>
-          <p>PostgreSQL et MySQL proposent une troisième commande, <code>TRUNCATE TABLE</code> : elle vide la table entièrement, plus vite que <code>DELETE</code>, mais garde la structure comme lui.</p>
-          <div class="tx-fail">
-            <span class="is-ko">TRUNCATE TABLE commandes;<i>syntax error</i></span>
-          </div>
-          <p>SQLite ne la connaît pas. Pour vider une table, on écrit <code>DELETE FROM commandes;</code>.</p>
+          <p class="pt-syntax-h">Laquelle choisir</p>
+          <p>Des lignes connues d’avance : <code>VALUES</code> à plusieurs parenthèses. Des lignes qui viennent d’une table : <code>INSERT … SELECT</code>. Un import qu’on peut rejouer : <code>ON CONFLICT DO UPDATE</code>.</p>
         </div>
       </div>`},
-    reflex:{a:{k:"La question",t:"les lignes, ou la table ?"},
-      b:{k:"La règle",t:"les lignes → DELETE · la table → DROP"},
-      note:"Réflexe : <code>DELETE</code> laisse la table en place, vide. <code>DROP</code> la retire de la base."}},
+    reflex:{a:{k:"La question",t:"d’où viennent les lignes à insérer ?"},
+      b:{k:"La règle",t:"écrites → VALUES · calculées → SELECT · déjà là → ON CONFLICT"},
+      note:"Réflexe : un import qu’on peut rejouer sans erreur s’écrit avec <code>ON CONFLICT … DO UPDATE</code>."}},
   anatomie:[
-    {tok:"DROP",txt:"Annonce la suppression d’un objet de la base."},
-    {tok:"TABLE",txt:"Le type d’objet supprimé : TABLE, VIEW ou INDEX."},
-    {tok:"IF EXISTS",txt:"Facultatif : évite l’erreur si l’objet n’existe pas."},
-    {tok:"commandes_test",txt:"Le nom de l’objet à supprimer."}
+    {tok:"INSERT INTO produits (…)",txt:"La table et les colonnes renseignées."},
+    {tok:"VALUES (3, …)",txt:"La ligne proposée. L’identifiant 3 est déjà pris."},
+    {tok:"ON CONFLICT(id)",txt:"La contrainte surveillée : celle portée par id."},
+    {tok:"DO UPDATE SET",txt:"L’action de repli : modifier au lieu d’échouer."},
+    {tok:"excluded.prix",txt:"Le prix de la ligne refusée, 21.90."}
   ],
-  exemple:"CREATE TABLE commandes_test (\n  id INTEGER PRIMARY KEY,\n  quantite INTEGER\n);\n\nINSERT INTO commandes_test\n  (id, quantite)\nVALUES (1, 3), (2, 5);\n\nDELETE FROM commandes_test;\n\nDROP TABLE IF EXISTS commandes_test;\n\nSELECT COUNT(*) AS table_restante\nFROM sqlite_master\nWHERE name = 'commandes_test';",
-  attendu:"Zéro. DELETE avait vidé la table sans la faire disparaître ; DROP la retire de la base — sqlite_master ne la connaît plus.",
-  retenir:"<code>DELETE</code> supprime des <b>lignes</b>. <code>DROP</code> supprime l’<b>objet</b> lui-même : la table, avec ses colonnes, ses contraintes et ses index.<br><br>Trois objets, trois commandes : <code>DROP TABLE</code>, <code>DROP VIEW</code>, <code>DROP INDEX</code>. <code>IF EXISTS</code> évite l’erreur quand l’objet n’existe pas.<br><br>Le mémo : <b>DELETE vide, DROP fait disparaître</b>.",
-  piege:{t:"Croire que DELETE supprime la table",
-    p:"<code>DELETE FROM commandes</code> retire les seize lignes, et s’arrête là. La table reste dans la base, avec ses cinq colonnes et ses clés étrangères — prête à recevoir de nouvelles lignes.<br><br>Pour qu’elle ne soit plus dans la base du tout, il faut <code>DROP TABLE</code>.",
+  exemple:"INSERT INTO produits\n    (id, nom, categorie,\n     prix, stock)\nVALUES (3, 'Magnésium',\n        'Bien-être', 21.90, 200)\nON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix;\n\nSELECT id, nom, prix, stock\nFROM produits\nWHERE id = 3;",
+  attendu:"Le Magnésium passe de 19.90 à 21.90, et garde ses 200 unités en stock. Aucune ligne n’a été ajoutée : celle qui existait a été mise à jour.",
+  retenir:"<code>VALUES (…),(…)</code> insère plusieurs lignes en une instruction — et les refuse toutes si l’une est fautive.<br><br><code>INSERT … SELECT</code> insère le résultat d’une requête, sans <code>VALUES</code>, colonne par colonne dans l’ordre.<br><br><code>ON CONFLICT(colonne)</code> dit quoi faire quand la ligne existe : <code>DO NOTHING</code> l’ignore, <code>DO UPDATE</code> la met à jour. <code>excluded</code> désigne la ligne refusée.",
+  piege:{t:"Employer INSERT OR REPLACE pour corriger une valeur",
+    p:"<code>OR REPLACE</code> ne modifie pas la ligne : il la <b>supprime</b> et en insère une nouvelle. Les colonnes absentes de l’instruction ne sont pas reprises de l’ancienne — elles repartent vides.<br><br>Corriger la ville de Sophie de cette façon efface son âge, son e-mail, son téléphone et sa date d’inscription.",
     exec:true,
-    sql:"DELETE FROM commandes;\n\nSELECT COUNT(*) AS lignes\nFROM commandes;",
-    out:"0 ligne — mais la table commandes répond encore : elle est vide, pas supprimée.",
-    fixSql:"DROP TABLE commandes;\n\nSELECT type, name\nFROM sqlite_master\nWHERE type = 'table'\nORDER BY name;"},
+    sql:"INSERT OR REPLACE INTO clients\n    (id, nom, ville)\nVALUES (1, 'Sophie', 'Nice');\n\nSELECT id, nom, ville, age, email\nFROM clients\nWHERE id = 1;",
+    out:"La ville est bien changée — mais age et email valent maintenant NULL.",
+    fixSql:"INSERT INTO clients\n    (id, nom, ville)\nVALUES (1, 'Sophie', 'Nice')\nON CONFLICT(id) DO UPDATE\n    SET ville = excluded.ville;\n\nSELECT id, nom, ville, age, email\nFROM clients\nWHERE id = 1;"},
   petitDefi:[{
-    p:"La vue <code>ventes_2026</code> ne sert plus. Quels mots-clés remplacent les tirets pour la retirer de la base ?",
-    sql:"__________ ventes_2026;",
-    a:"DROP VIEW",
-    answers:["DROP VIEW","drop view","DROP VIEW ventes_2026","drop view ventes_2026"]
+    p:"Dans un <code>ON CONFLICT … DO UPDATE</code>, quel nom désigne la ligne qui a tenté d’être insérée ?",
+    sql:"ON CONFLICT(id) DO UPDATE\n    SET prix = __________.prix;",
+    a:"excluded",
+    answers:["excluded","EXCLUDED","excluded.prix"]
   }],
-  consigne:"Cette base de travail est une copie : tu peux y supprimer ce que tu veux. Fais disparaître la table <code>commandes</code> de la base — pas seulement ses lignes — sans provoquer d’erreur si elle en est déjà absente.",
-  solution:"DROP TABLE IF EXISTS commandes;",
-  verif:"SELECT type, name FROM sqlite_master WHERE type = 'table' ORDER BY name;",
-  indice:"<code>DROP TABLE nom_table;</code> — et <code>IF EXISTS</code> se place entre <code>TABLE</code> et le nom.",
+  consigne:"Le fournisseur renvoie le produit d’<code>id</code> 3 au prix de <code>21.90</code>. Écris un seul <code>INSERT</code> qui l’ajoute s’il n’existe pas, et se contente de corriger son <code>prix</code> s’il existe déjà.",
+  solution:"INSERT INTO produits\n    (id, nom, categorie,\n     prix, stock)\nVALUES (3, 'Magnésium',\n        'Bien-être', 21.90, 200)\nON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix;",
+  verif:"SELECT id, nom, categorie, prix, stock FROM produits WHERE id = 3;",
+  indice:"Après le <code>VALUES</code>, ajoute <code>ON CONFLICT(id) DO UPDATE SET prix = excluded.prix;</code>.",
   write:true,
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'objets',label:'Les objets',sql:"SELECT type, name\nFROM sqlite_master\nORDER BY type, name;",out:"Les trois tables de la base. C\u2019est cette liste que DROP raccourcit."},
-    {k:'lignes',label:'Les lignes',sql:"SELECT COUNT(*) AS lignes\nFROM commandes;",out:"Seize lignes. DELETE les ram\u00e8nerait \u00e0 z\u00e9ro sans retirer commandes de la liste ci-dessus."}
-  ] },
+    {k:'multi',label:'Plusieurs lignes',sql:"INSERT INTO produits\n    (id, nom, categorie,\n     prix, stock)\nVALUES (20, 'Zinc', 'Bien-être',\n        17.90, 70),\n       (21, 'Fer', 'Bien-être',\n        19.90, 55);\n\nSELECT COUNT(*) AS produits FROM produits;",out:"Huit produits plus deux : dix."},
+    {k:'select',label:'INSERT … SELECT',sql:"CREATE TABLE archive (nom TEXT, prix REAL);\n\nINSERT INTO archive (nom, prix)\nSELECT nom, prix\nFROM produits\nWHERE prix < 20;\n\nSELECT nom, prix FROM archive ORDER BY prix;",out:"Les quatre produits \u00e0 moins de 20 \u20ac, recopi\u00e9s sans \u00eatre \u00e9crits \u00e0 la main."},
+    {k:'conflit',label:'Sans ON CONFLICT',sql:"INSERT INTO produits\n    (id, nom, categorie,\n     prix, stock)\nVALUES (3, 'Magnésium',\n        'Bien-être', 21.90, 200);",out:"Refus\u00e9 : l\u2019identifiant 3 est d\u00e9j\u00e0 pris.",tone:'bad'},
+    {k:'upsert',label:'DO UPDATE',sql:"INSERT INTO produits\n    (id, nom, categorie,\n     prix, stock)\nVALUES (3, 'Magnésium',\n        'Bien-être', 21.90, 200)\nON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix;\n\nSELECT id, nom, prix, stock FROM produits WHERE id = 3;",out:"Le prix passe \u00e0 21.90, le stock reste \u00e0 200.",tone:'good'}
+  ] }
+]},
+{ titre:"Contraintes et actions référentielles", sous:"Ce que la base refuse, et le sort des lignes liées", lessons:[
 { id:67, titre:"Les contraintes à l’épreuve", résumé:"Ce que la base refuse d’écrire",
   situation:"Le cours <code>CREATE TABLE</code> a posé des règles sur les colonnes de cette base : une clé primaire, des valeurs obligatoires, un e-mail unique, des quantités positives, des clés étrangères.<br><br>Ces règles ne sont pas des commentaires. À chaque écriture, la base les vérifie une par une.<br><br>Tu ajoutes un client avec l’<code>id</code> 1 — déjà pris par Sophie. La ligne n’est pas ajoutée, et la base dit pourquoi.",
   situationTail:"<div class=\"sit-sql\"><p>Que se passe-t-il exactement quand une règle est enfreinte ?</p><p>L’écriture est <b>annulée</b>, et le message nomme la règle.</p></div>",
@@ -11054,127 +10579,228 @@ VALUES (20, 'Zinc', 17.90, 70),
     {k:'cascade',label:'CASCADE',sql:"CREATE TABLE paniers (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER\n        REFERENCES clients(id)\n        ON DELETE CASCADE\n);\n\nINSERT INTO paniers (id, client_id) VALUES (1, 9);\n\nDELETE FROM clients WHERE id = 9;\n\nSELECT COUNT(*) AS paniers_restants FROM paniers;",out:"Z\u00e9ro : le panier est parti avec In\u00e8s.",tone:'good'},
     {k:'setnull',label:'SET NULL',sql:"CREATE TABLE paniers (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER\n        REFERENCES clients(id)\n        ON DELETE SET NULL\n);\n\nINSERT INTO paniers (id, client_id) VALUES (1, 9);\n\nDELETE FROM clients WHERE id = 9;\n\nSELECT id, client_id FROM paniers;",out:"Le panier reste, d\u00e9tach\u00e9 : client_id vaut NULL."},
     {k:'restrict',label:'RESTRICT',sql:"CREATE TABLE paniers (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER\n        REFERENCES clients(id)\n        ON DELETE RESTRICT\n);\n\nINSERT INTO paniers (id, client_id) VALUES (1, 9);\n\nDELETE FROM clients WHERE id = 9;",out:"Refus\u00e9 : In\u00e8s a un panier, la suppression est bloqu\u00e9e.",tone:'bad'}
-  ] },
-{ id:69, titre:"INSERT avancé", résumé:"Plusieurs lignes, une requête, un conflit",
-  situation:"Ton fournisseur t’envoie une liste de nouveaux produits. Tu écris un <code>INSERT</code> par ligne, l’un après l’autre.<br><br>Le lendemain, il renvoie le même fichier avec deux prix corrigés. Rejouer les <code>INSERT</code> échoue dès la première ligne : les identifiants existent déjà.<br><br>Écrire ligne à ligne, et tout casser à la moindre reprise : <code>INSERT</code> sait faire mieux que ça.",
-  situationTail:"<div class=\"sit-sql\"><p>Trois formes à connaître : insérer plusieurs lignes d’un coup, insérer le résultat d’une requête, et dire quoi faire quand la ligne existe déjà.</p></div>",
+  ] }
+]},
+{ titre:"Transactions", sous:"Tout valider ou tout annuler", lessons:[
+{ id:62, titre:"Transactions", résumé:"Tout valider ou tout annuler",
+  situation:"Un client commande 2 unités d’un produit sur ton site e-commerce.<br><br>Deux modifications doivent être effectuées dans la base : ajouter la commande dans la table <code>commandes</code>, et retirer 2 unités du <code>stock</code> dans la table <code>produits</code>.",
+  situationSql:"INSERT INTO commandes\n    (client_id, produit_id, quantite, date_commande)\nVALUES\n    (1, 3, 2, '2026-08-30');\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;",
+  situationTail:"Mais imagine qu’un problème survienne entre les deux opérations :<br><br><div class=\"tx-fail\"><span class=\"is-ok\">Commande ajoutée<i>✓</i></span><span class=\"is-ko\">Stock mis à jour<i>✕</i></span></div><br>La commande existe maintenant dans la base, mais le stock n’a pas été diminué. Les données ne sont plus cohérentes.<br><br><div class=\"sit-sql\"><p>Comment faire pour que ces deux opérations soient validées ensemble, ou annulées ensemble ?</p><p>C’est le rôle d’une <b>transaction</b>.</p></div>",
     studio:{pointCards:{
-      eye:"INSERT",title:"Au-delà d’une ligne à la fois.",
-      lead:"La forme <code>INSERT INTO … VALUES (…)</code> écrit une ligne connue d’avance. Trois variantes couvrent les cas où ce n’est pas suffisant.",
+      eye:"Transaction",title:"Un seul ensemble, un seul sort.",
+      lead:"Une transaction regroupe plusieurs opérations SQL pour qu’elles forment une seule unité de travail. Soit tout est validé, soit tout est annulé.",
       chain:[
-        {k:"VALUES (…),(…)",v:"plusieurs lignes d’un coup"},
-        {k:"INSERT … SELECT",v:"depuis une requête"},
-        {k:"ON CONFLICT",v:"quand la ligne existe déjà"}
+        {k:"BEGIN",v:"je commence"},
+        {k:"COMMIT",v:"je valide"},
+        {k:"ROLLBACK",v:"j’annule"}
       ]},
-    uses:{title:"Trois formes, trois besoins.",
+    uses:{title:"Trois mots, un ensemble.",
       body:`<div class="pt-lead fn-uses">
         <div class="fn-use">
-          <p class="pt-syntax-h">Plusieurs lignes, une instruction</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO produits
-    (id, nom, categorie,
-     prix, stock)
-VALUES (20, 'Zinc', 'Bien-être',
-        17.90, 70),
-       (21, 'Fer', 'Bien-être',
-        19.90, 55);</pre></div>
-          <p>Une seule liste de colonnes, puis autant de parenthèses que de lignes, séparées par des virgules.</p>
-          <p class="fn-tip"><b>Une instruction, un sort commun</b> Si une seule ligne enfreint une règle, aucune n’est écrite. C’est plus rapide que dix <code>INSERT</code>, mais c’est aussi tout ou rien.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Insérer le résultat d’une requête</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO archive (nom, prix)
-SELECT nom, prix
-FROM produits
-WHERE prix &lt; 20;</pre></div>
-          <p>Pas de <code>VALUES</code> ici : le <code>SELECT</code> fournit les lignes. Les quatre produits à moins de 20 € sont recopiés dans <code>archive</code>.</p>
-          <p>Les colonnes se correspondent <b>par position</b>, pas par nom : la première colonne du <code>SELECT</code> alimente la première colonne citée.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le SELECT peut transformer au passage</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO archive (nom, prix)
-SELECT nom, ROUND(prix * 1.1, 2)
-FROM produits
-WHERE categorie = 'Bien-être';</pre></div>
-          <p>Les trois produits Bien-être sont archivés avec un prix majoré de 10 %. Tout ce qu’un <code>SELECT</code> sait faire — filtrer, calculer, joindre — est utilisable ici.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Quand la ligne existe déjà</p>
-          <p>Réinsérer un identifiant déjà pris est refusé, comme toute violation de contrainte :</p>
-          <div class="tx-fail">
-            <span class="is-ko">INSERT … VALUES (3, …)<i>UNIQUE constraint failed</i></span>
+          <p class="pt-syntax-h">Le parcours d’une commande</p>
+          <div class="tx-flow" role="img" aria-label="De BEGIN à COMMIT ou ROLLBACK">
+            <span class="tx-step tx-key">BEGIN</span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step">INSERT commande</span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step">UPDATE stock</span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-q">Tout va bien ?</span>
+            <div class="tx-fork">
+              <div class="tx-branch is-ok"><small>oui</small><b>COMMIT</b><span>valider</span></div>
+              <div class="tx-branch is-ko"><small>non</small><b>ROLLBACK</b><span>annuler</span></div>
+            </div>
           </div>
-          <p>Ce refus est le bon comportement par défaut. Mais quand tu réimportes un fichier fournisseur, tu sais que des lignes existent déjà — et tu veux dire quoi en faire.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">DO NOTHING — ignorer les doublons</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO produits
-    (id, nom, categorie,
-     prix, stock)
-VALUES (3, 'Magnésium',
-        'Bien-être', 21.90, 200)
-ON CONFLICT(id) DO NOTHING;</pre></div>
-          <p>La ligne 3 existe : elle est laissée telle quelle, sans erreur. Les lignes nouvelles du même <code>INSERT</code>, elles, sont bien ajoutées.</p>
+          <p class="pt-syntax-h">BEGIN — commencer</p>
+          <div class="pt-syntax"><pre class="cw-syntax">BEGIN;</pre></div>
+          <p>À partir de là, les modifications suivantes font partie de la transaction. Il reste à décider si on veut les conserver ou les annuler.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">DO UPDATE — insérer ou mettre à jour</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO produits
-    (id, nom, categorie,
-     prix, stock)
-VALUES (3, 'Magnésium',
-        'Bien-être', 21.90, 200)
-ON CONFLICT(id) DO UPDATE
-    SET prix = excluded.prix;</pre></div>
-          <p>Si la ligne 3 n’existe pas, elle est créée. Si elle existe, seul son <code>prix</code> est mis à jour. Une seule instruction remplace un <code>SELECT</code> suivi d’un <code>INSERT</code> ou d’un <code>UPDATE</code>.</p>
-          <p class="fn-tip"><b>excluded</b> C’est le nom de la ligne qui a tenté d’entrer. <code>excluded.prix</code> vaut 21.90, la valeur refusée — à ne pas confondre avec <code>produits.prix</code>, l’ancienne.</p>
+          <p class="pt-syntax-h">COMMIT — valider</p>
+          <div class="pt-syntax"><pre class="cw-syntax">BEGIN;
+
+INSERT INTO commandes
+    (client_id, produit_id, quantite, date_commande)
+VALUES
+    (1, 3, 2, '2026-08-30');
+
+UPDATE produits
+SET stock = stock - 2
+WHERE id = 3;
+
+COMMIT;</pre></div>
+          <p>La commande est ajoutée <b>et</b> le stock diminué. Les deux ensemble.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Les formes courtes de SQLite</p>
-          <p><code>INSERT OR IGNORE</code> équivaut à <code>DO NOTHING</code> : la ligne en conflit est passée sous silence.</p>
-          <p><code>INSERT OR REPLACE</code>, en revanche, <b>supprime l’ancienne ligne</b> puis en insère une neuve. Les colonnes que tu n’as pas citées ne sont pas conservées : elles repartent à <code>NULL</code>.</p>
-          <p class="fn-tip"><b>Préférer ON CONFLICT</b> <code>DO UPDATE</code> modifie les colonnes que tu nommes et laisse les autres intactes. C’est presque toujours ce que tu veux.</p>
+          <p class="pt-syntax-h">ROLLBACK — annuler</p>
+          <p>Si un problème survient, on ne veut surtout pas conserver seulement une partie des modifications.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">BEGIN;
+
+INSERT INTO commandes (...);
+
+UPDATE produits
+SET stock = stock - 2
+WHERE id = 3;
+
+ROLLBACK;</pre></div>
+          <p><code>ROLLBACK</code> annule les modifications effectuées depuis le début de cette transaction. La commande ajoutée disparaît donc elle aussi : on revient à l’état d’avant.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Laquelle choisir</p>
-          <p>Des lignes connues d’avance : <code>VALUES</code> à plusieurs parenthèses. Des lignes qui viennent d’une table : <code>INSERT … SELECT</code>. Un import qu’on peut rejouer : <code>ON CONFLICT DO UPDATE</code>.</p>
+          <p class="pt-syntax-h">Avant et après COMMIT</p>
+          <p>Tant que <code>COMMIT</code> n’a pas été exécuté, la transaction peut encore être annulée par <code>ROLLBACK</code>.</p>
+          <p>Une fois le <code>COMMIT</code> effectué, les modifications sont validées : un <code>ROLLBACK</code> lancé ensuite ne revient pas dessus.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Autant d’opérations que nécessaire</p>
+          <p>Une transaction n’est pas limitée à deux requêtes. Elle peut en contenir trois, dix, sur autant de tables qu’il faut — l’idée reste la même : elles appartiennent à une même unité de travail.</p>
+          <p class="fn-tip"><b>Une réserve</b> Mieux vaut ne pas garder une transaction ouverte longtemps : tant qu’elle l’est, ses modifications ne sont visibles de personne d’autre.</p>
         </div>
       </div>`},
-    reflex:{a:{k:"La question",t:"d’où viennent les lignes à insérer ?"},
-      b:{k:"La règle",t:"écrites → VALUES · calculées → SELECT · déjà là → ON CONFLICT"},
-      note:"Réflexe : un import qu’on peut rejouer sans erreur s’écrit avec <code>ON CONFLICT … DO UPDATE</code>."}},
+    reflex:{a:{k:"La situation",t:"plusieurs opérations doivent réussir ensemble"},
+      b:{k:"La question",t:"que se passe-t-il si l’une d’elles échoue ?"},
+      note:"Réflexe : regroupe les opérations dans une transaction pour pouvoir tout valider ou tout annuler."}},
   anatomie:[
-    {tok:"INSERT INTO produits (…)",txt:"La table et les colonnes renseignées."},
-    {tok:"VALUES (3, …)",txt:"La ligne proposée. L’identifiant 3 est déjà pris."},
-    {tok:"ON CONFLICT(id)",txt:"La contrainte surveillée : celle portée par id."},
-    {tok:"DO UPDATE SET",txt:"L’action de repli : modifier au lieu d’échouer."},
-    {tok:"excluded.prix",txt:"Le prix de la ligne refusée, 21.90."}
+    {tok:"BEGIN",txt:"Commence la transaction."},
+    {tok:"INSERT INTO commandes (...)",txt:"Première opération de l’ensemble."},
+    {tok:"UPDATE produits SET stock = stock - 2",txt:"Seconde opération, regroupée avec la première."},
+    {tok:"COMMIT",txt:"Valide les modifications. Ou <code>ROLLBACK</code> pour les annuler."}
   ],
-  exemple:"INSERT INTO produits\n    (id, nom, categorie,\n     prix, stock)\nVALUES (3, 'Magnésium',\n        'Bien-être', 21.90, 200)\nON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix;\n\nSELECT id, nom, prix, stock\nFROM produits\nWHERE id = 3;",
-  attendu:"Le Magnésium passe de 19.90 à 21.90, et garde ses 200 unités en stock. Aucune ligne n’a été ajoutée : celle qui existait a été mise à jour.",
-  retenir:"<code>VALUES (…),(…)</code> insère plusieurs lignes en une instruction — et les refuse toutes si l’une est fautive.<br><br><code>INSERT … SELECT</code> insère le résultat d’une requête, sans <code>VALUES</code>, colonne par colonne dans l’ordre.<br><br><code>ON CONFLICT(colonne)</code> dit quoi faire quand la ligne existe : <code>DO NOTHING</code> l’ignore, <code>DO UPDATE</code> la met à jour. <code>excluded</code> désigne la ligne refusée.",
-  piege:{t:"Employer INSERT OR REPLACE pour corriger une valeur",
-    p:"<code>OR REPLACE</code> ne modifie pas la ligne : il la <b>supprime</b> et en insère une nouvelle. Les colonnes absentes de l’instruction ne sont pas reprises de l’ancienne — elles repartent vides.<br><br>Corriger la ville de Sophie de cette façon efface son âge, son e-mail, son téléphone et sa date d’inscription.",
+  exemple:"BEGIN;\n\nINSERT INTO commandes\n    (client_id, produit_id, quantite, date_commande)\nVALUES\n    (1, 3, 2, '2026-08-30');\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nCOMMIT;",
+  attendu:"La commande est enregistrée et le stock du produit 3 passe de 200 à 198. Avec ROLLBACK à la place de COMMIT, rien ne change : ni commande, ni stock.",
+  retenir:"Une transaction regroupe plusieurs opérations SQL qui doivent être traitées comme un même ensemble.<br><br><b>BEGIN</b> commence, <b>COMMIT</b> valide, <b>ROLLBACK</b> annule les modifications non validées.<br><br>Tant que le <code>COMMIT</code> n’a pas eu lieu, tout est encore annulable. Après, non.",
+  piege:{t:"Croire qu’une erreur annule toujours toute la transaction",
+    p:"On lit souvent que SQL annule automatiquement la transaction dès qu’une requête échoue. Le comportement dépend en réalité du moteur et du type d’erreur.<br><br>Retiens plutôt la règle qui, elle, est toujours vraie : si les opérations ne doivent pas être conservées, c’est <code>ROLLBACK</code> qui les annule.",
     exec:true,
-    sql:"INSERT OR REPLACE INTO clients\n    (id, nom, ville)\nVALUES (1, 'Sophie', 'Nice');\n\nSELECT id, nom, ville, age, email\nFROM clients\nWHERE id = 1;",
-    out:"La ville est bien changée — mais age et email valent maintenant NULL.",
-    fixSql:"INSERT INTO clients\n    (id, nom, ville)\nVALUES (1, 'Sophie', 'Nice')\nON CONFLICT(id) DO UPDATE\n    SET ville = excluded.ville;\n\nSELECT id, nom, ville, age, email\nFROM clients\nWHERE id = 1;"},
+    sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nROLLBACK;\n\nSELECT nom, stock\nFROM produits\nWHERE id = 3;",
+    out:"Le stock est inchangé : le ROLLBACK a annulé la modification.",
+    fixSql:"BEGIN;\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nCOMMIT;\n\nSELECT nom, stock\nFROM produits\nWHERE id = 3;"},
   petitDefi:[{
-    p:"Dans un <code>ON CONFLICT … DO UPDATE</code>, quel nom désigne la ligne qui a tenté d’être insérée ?",
-    sql:"ON CONFLICT(id) DO UPDATE\n    SET prix = __________.prix;",
-    a:"excluded",
-    answers:["excluded","EXCLUDED","excluded.prix"]
+    p:"Tu modifies le stock de deux produits, puis tu décides finalement de ne rien conserver. Quel mot-clé termine cette transaction ?",
+    sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 2;\n\n________;",
+    a:"ROLLBACK",
+    answers:["ROLLBACK","rollback","ROLLBACK;"]
   }],
-  consigne:"Le fournisseur renvoie le produit d’<code>id</code> 3 au prix de <code>21.90</code>. Écris un seul <code>INSERT</code> qui l’ajoute s’il n’existe pas, et se contente de corriger son <code>prix</code> s’il existe déjà.",
-  solution:"INSERT INTO produits\n    (id, nom, categorie,\n     prix, stock)\nVALUES (3, 'Magnésium',\n        'Bien-être', 21.90, 200)\nON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix;",
-  verif:"SELECT id, nom, categorie, prix, stock FROM produits WHERE id = 3;",
-  indice:"Après le <code>VALUES</code>, ajoute <code>ON CONFLICT(id) DO UPDATE SET prix = excluded.prix;</code>.",
+  consigne:"Dans une seule transaction validée, ajoute la commande du client 1 pour 2 unités du produit 3 le <code>2026-08-30</code>, puis retire ces 2 unités du stock du produit 3.",
+  solution:"BEGIN;\n\nINSERT INTO commandes\n    (client_id, produit_id, quantite, date_commande)\nVALUES\n    (1, 3, 2, '2026-08-30');\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nCOMMIT;",
+  verif:"SELECT (SELECT COUNT(*) FROM commandes WHERE produit_id = 3 AND quantite = 2 AND date_commande = '2026-08-30') AS commandes_ajoutees, (SELECT stock FROM produits WHERE id = 3) AS stock;",
+  indice:"Ouvre avec <code>BEGIN;</code>, écris les deux requêtes, puis referme avec <code>COMMIT;</code>.",
   write:true,
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-    {k:'multi',label:'Plusieurs lignes',sql:"INSERT INTO produits\n    (id, nom, categorie,\n     prix, stock)\nVALUES (20, 'Zinc', 'Bien-être',\n        17.90, 70),\n       (21, 'Fer', 'Bien-être',\n        19.90, 55);\n\nSELECT COUNT(*) AS produits FROM produits;",out:"Huit produits plus deux : dix."},
-    {k:'select',label:'INSERT … SELECT',sql:"CREATE TABLE archive (nom TEXT, prix REAL);\n\nINSERT INTO archive (nom, prix)\nSELECT nom, prix\nFROM produits\nWHERE prix < 20;\n\nSELECT nom, prix FROM archive ORDER BY prix;",out:"Les quatre produits \u00e0 moins de 20 \u20ac, recopi\u00e9s sans \u00eatre \u00e9crits \u00e0 la main."},
-    {k:'conflit',label:'Sans ON CONFLICT',sql:"INSERT INTO produits\n    (id, nom, categorie,\n     prix, stock)\nVALUES (3, 'Magnésium',\n        'Bien-être', 21.90, 200);",out:"Refus\u00e9 : l\u2019identifiant 3 est d\u00e9j\u00e0 pris.",tone:'bad'},
-    {k:'upsert',label:'DO UPDATE',sql:"INSERT INTO produits\n    (id, nom, categorie,\n     prix, stock)\nVALUES (3, 'Magnésium',\n        'Bien-être', 21.90, 200)\nON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix;\n\nSELECT id, nom, prix, stock FROM produits WHERE id = 3;",out:"Le prix passe \u00e0 21.90, le stock reste \u00e0 200.",tone:'good'}
-  ] },
+  richLesson:true, earlyDemo:true },
+{ id:63, titre:"SAVEPOINT", résumé:"Annuler seulement une partie d’une transaction",
+  situation:"Tu sais maintenant qu’une transaction regroupe plusieurs opérations, et qu’un <code>ROLLBACK</code> les annule toutes.<br><br>Mais imagine une transaction à plusieurs étapes :<br><br><div class=\"tx-fail\"><span class=\"is-ok\">Ajouter une commande<i>✓</i></span><span class=\"is-ok\">Modifier le stock<i>✓</i></span><span class=\"is-ko\">Appliquer une modification<i>✕</i></span></div><br>Tu veux annuler la troisième étape, sans perdre les deux premières. Avec un simple <code>ROLLBACK</code>, tu annulerais toute la transaction.",
+  situationTail:"<div class=\"sit-sql\"><p>Comment revenir seulement à un point précis ?</p><p>C’est le rôle d’un <b><code>SAVEPOINT</code></b>.</p></div>",
+    studio:{pointCards:{
+      eye:"SAVEPOINT",title:"Un marque-page dans la transaction.",
+      lead:"Un <code>SAVEPOINT</code> crée un point de retour à l’intérieur d’une transaction. Au lieu de revenir jusqu’au <code>BEGIN</code>, tu reviens à ce point.",
+      chain:[
+        {k:"SAVEPOINT",v:"je marque un point"},
+        {k:"ROLLBACK TO",v:"je reviens à ce point"},
+        {k:"COMMIT",v:"je valide ce que j’ai conservé"}
+      ]},
+    uses:{title:"Revenir à un point, pas au départ.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Le parcours avec un point de retour</p>
+          <div class="tx-flow" role="img" aria-label="De BEGIN au COMMIT en passant par un retour au savepoint">
+            <span class="tx-step tx-key">BEGIN</span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step tx-ok">opération 1<i>✓ conservée</i></span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step tx-ok">opération 2<i>✓ conservée</i></span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step tx-key">SAVEPOINT</span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step tx-ko">opération 3<i>✕ annulée</i></span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step tx-back">ROLLBACK TO<i>↑ retour au point</i></span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step tx-key">COMMIT</span>
+          </div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Créer le point de retour</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SAVEPOINT avant_produit_2;</pre></div>
+          <p>Le nom permet de retrouver ce point plus tard. Une transaction peut en contenir plusieurs, et tu choisis alors jusqu’où revenir.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">ROLLBACK TO — revenir au point</p>
+          <div class="pt-syntax"><pre class="cw-syntax">BEGIN;
+
+UPDATE produits
+SET stock = stock + 10
+WHERE id = 1;
+
+SAVEPOINT avant_produit_2;
+
+UPDATE produits
+SET stock = stock + 50
+WHERE id = 2;
+
+ROLLBACK TO avant_produit_2;</pre></div>
+          <p>La modification du produit 1 est conservée. Celle du produit 2 est annulée : on est revenu à l’état du <code>SAVEPOINT</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">ROLLBACK ou ROLLBACK TO</p>
+          <div class="duo">
+            <div class="duo-row"><p class="duo-k">Je veux tout annuler</p>
+              <p class="duo-v"><b>ROLLBACK</b><span>retour jusqu’au <code>BEGIN</code>, la transaction se termine</span></p></div>
+            <div class="duo-row"><p class="duo-k">Je veux annuler une partie</p>
+              <p class="duo-v"><b>ROLLBACK TO</b><span>retour au point choisi, la transaction continue</span></p></div>
+          </div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">La transaction continue</p>
+          <p>Après un <code>ROLLBACK TO</code>, rien n’est terminé : tu peux corriger, puis valider.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ROLLBACK TO avant_produit_2;
+
+UPDATE produits
+SET stock = stock + 5
+WHERE id = 2;
+
+COMMIT;</pre></div>
+          <p>Au final, <code>+10</code> sur le produit 1 et <code>+5</code> sur le produit 2 sont validés. Le <code>+50</code> a disparu.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">RELEASE — supprimer le point</p>
+          <div class="pt-syntax"><pre class="cw-syntax">RELEASE SAVEPOINT avant_produit_2;</pre></div>
+          <p><code>RELEASE</code> ne veut pas dire « annuler » : il signifie que tu n’auras plus besoin de revenir à ce point.</p>
+          <p class="fn-tip"><b>À ne pas confondre</b> <code>ROLLBACK TO</code> revient au point. <code>RELEASE</code> supprime le point.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"La question",t:"tout annuler, ou seulement une partie ?"},
+      b:{k:"La règle",t:"tout → ROLLBACK · une partie → SAVEPOINT puis ROLLBACK TO"},
+      note:"Réflexe : quand une transaction comporte plusieurs étapes et que tu veux pouvoir revenir à l’une d’elles, pose un <code>SAVEPOINT</code>."}},
+  anatomie:[
+    {tok:"BEGIN",txt:"Commence la transaction."},
+    {tok:"SAVEPOINT avant_produit_2",txt:"Crée un point de retour, sans rien valider."},
+    {tok:"ROLLBACK TO avant_produit_2",txt:"Annule ce qui a été fait depuis ce point. La transaction continue."},
+    {tok:"COMMIT",txt:"Valide finalement les modifications conservées."}
+  ],
+  exemple:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT avant_produit_2;\n\nUPDATE produits\nSET stock = stock + 50\nWHERE id = 2;\n\nROLLBACK TO avant_produit_2;\n\nCOMMIT;",
+  attendu:"Le stock du produit 1 passe de 120 à 130. Celui du produit 2 reste à 80 : le +50 a été annulé par le retour au point de sauvegarde.",
+  retenir:"Un <code>SAVEPOINT</code> crée un point de retour <b>à l’intérieur</b> d’une transaction.<br><br><code>ROLLBACK</code> annule toute la transaction et la termine. <code>ROLLBACK TO</code> revient au point choisi, et la transaction continue.<br><br>Le mémo : <b>SAVEPOINT</b> je marque un point, <b>ROLLBACK TO</b> j’y reviens, <b>COMMIT</b> je valide ce que j’ai conservé.",
+  piege:{t:"Croire qu’un SAVEPOINT valide les modifications",
+    p:"Poser un <code>SAVEPOINT</code> ne valide rien. Il crée seulement un point de retour : tant que le <code>COMMIT</code> n’a pas eu lieu, tout reste annulable, y compris ce qui précède le point.<br><br><code>SAVEPOINT</code> ≠ validation. Seul <code>COMMIT</code> valide.",
+    exec:true,
+    sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT etape_1;\n\nROLLBACK;\n\nSELECT nom, stock\nFROM produits\nWHERE id = 1;",
+    out:"Le stock est inchangé : le SAVEPOINT n’a rien protégé du ROLLBACK.",
+    fixSql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT etape_1;\n\nCOMMIT;\n\nSELECT nom, stock\nFROM produits\nWHERE id = 1;"},
+  petitDefi:[{
+    p:"Tu veux conserver la première modification et annuler la seconde. Quel mot-clé crée le point de retour, à la place des tirets ?",
+    sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\n__________ avant_modification;\n\nUPDATE produits\nSET stock = stock + 50\nWHERE id = 2;\n\nROLLBACK TO avant_modification;\n\nCOMMIT;",
+    a:"SAVEPOINT",
+    answers:["SAVEPOINT","savepoint"]
+  }],
+  consigne:"Dans une transaction, ajoute 10 au stock du produit 1, pose un point de retour nommé <code>avant_modification</code>, ajoute 50 au stock du produit 2, puis annule cette seconde modification avant de valider.",
+  solution:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT avant_modification;\n\nUPDATE produits\nSET stock = stock + 50\nWHERE id = 2;\n\nROLLBACK TO avant_modification;\n\nCOMMIT;",
+  verif:"SELECT id, stock FROM produits WHERE id IN (1, 2) ORDER BY id;",
+  indice:"<code>SAVEPOINT nom;</code> pose le point, <code>ROLLBACK TO nom;</code> y revient. Le <code>COMMIT</code> vient à la fin.",
+  write:true,
+  richLesson:true, earlyDemo:true }
+]},
+{ titre:"Triggers", sous:"Faire réagir la base toute seule", lessons:[
 { id:70, titre:"Les triggers", résumé:"Faire réagir la base toute seule",
   situation:"Dans le cours sur les transactions, enregistrer une commande demandait deux écritures : ajouter la ligne dans <code>commandes</code>, puis retirer la quantité du <code>stock</code> du produit.<br><br>Deux écritures qu’il ne faut jamais oublier d’enchaîner. Un import, un script tiers, une correction faite à la main — et le stock ne correspond plus aux commandes.<br><br>Compter sur la discipline de celui qui écrit la requête est fragile.",
   situationTail:"<div class=\"sit-sql\"><p>Un <b><code>TRIGGER</code></b> est une suite d’instructions que la base exécute d’elle-même, à chaque écriture sur une table.</p></div>",
@@ -11310,7 +10936,9 @@ DROP TRIGGER baisser_stock;</pre></div>
     {k:'stock',label:'Stock',sql:"CREATE TRIGGER baisser_stock\nAFTER INSERT ON commandes\nBEGIN\n  UPDATE produits\n  SET stock = stock - NEW.quantite\n  WHERE id = NEW.produit_id;\nEND;\n\nINSERT INTO commandes (id, client_id, produit_id, quantite, date_commande)\nVALUES (17, 1, 1, 5, '2026-08-31');\n\nSELECT id, nom, stock FROM produits WHERE id = 1;",out:"120 moins 5 : le trigger a fait l\u2019UPDATE tout seul.",tone:'good'},
     {k:'journal',label:'Journal',sql:"CREATE TABLE clients_supprimes (id INTEGER, nom TEXT, le TEXT);\n\nCREATE TRIGGER journal_suppression\nAFTER DELETE ON clients\nBEGIN\n  INSERT INTO clients_supprimes\n    (id, nom, le)\n  VALUES (OLD.id, OLD.nom,\n          date('now'));\nEND;\n\nDELETE FROM clients WHERE id = 9;\n\nSELECT id, nom, le FROM clients_supprimes;",out:"In\u00e8s a disparu de clients, mais son passage est trac\u00e9."},
     {k:'raise',label:'RAISE',sql:"CREATE TRIGGER stock_positif\nBEFORE UPDATE ON produits\nWHEN NEW.stock < 0\nBEGIN\n  SELECT RAISE(ABORT,\n    'Stock négatif interdit');\nEND;\n\nUPDATE produits\nSET stock = stock - 500\nWHERE id = 8;",out:"Le trigger refuse l\u2019\u00e9criture avec son propre message.",tone:'bad'}
-  ] },
+  ] }
+]},
+{ titre:"Concurrence et isolation", sous:"Quand deux écritures arrivent en même temps", lessons:[
 { id:71, titre:"Concurrence et isolation", résumé:"Quand deux écritures arrivent en même temps",
   situation:"Il reste 30 Shakers Inox. Deux caisses enregistrent une vente au même instant.<br><br>Chacune lit le stock — 30 — calcule 30 − 1 dans son application, et écrit 29. Deux ventes ont eu lieu, une seule unité a été retirée.<br><br>Aucune des deux requêtes n’est fautive. C’est leur entrelacement qui l’est.",
   situationTail:"<div class=\"sit-sql\"><p>Comment une base empêche-t-elle deux écritures simultanées de se marcher dessus ?</p><p>C’est la question de l’<b>isolation</b>.</p></div>",
@@ -11440,7 +11068,396 @@ COMMIT;</pre></div>
     {k:'fige',label:'Valeur figée',sql:"UPDATE produits\nSET stock = 29\nWHERE id = 8;\n\nSELECT id, nom, stock FROM produits WHERE id = 8;",out:"29, quoi qu\u2019il se soit pass\u00e9 entre-temps : une vente concurrente serait effac\u00e9e.",tone:'bad'},
     {k:'relatif',label:'Calcul en base',sql:"UPDATE produits\nSET stock = stock - 1\nWHERE id = 8;\n\nSELECT id, nom, stock FROM produits WHERE id = 8;",out:"29 aussi — mais obtenu \u00e0 partir de la valeur courante, donc juste dans tous les cas.",tone:'good'},
     {k:'transaction',label:'BEGIN IMMEDIATE',sql:"BEGIN IMMEDIATE;\n\nUPDATE produits\nSET stock = stock - 1\nWHERE id = 8;\n\nCOMMIT;\n\nSELECT id, nom, stock FROM produits WHERE id = 8;",out:"Le verrou d\u2019\u00e9criture est pris d\u00e8s l\u2019ouverture : rien ne peut s\u2019intercaler.",tone:'good'}
+  ] }
+]},
+{ titre:"Vues, index et optimisation", sous:"Structurer et accélérer", lessons:[
+{ id:64, titre:"CREATE VIEW", résumé:"Enregistrer une requête sous un nom",
+  situation:"Sur ton site e-commerce, tu veux régulièrement afficher les produits dont le stock devient faible — disons ceux qui ont moins de 50 unités.",
+  situationSql:"SELECT\n    id,\n    nom,\n    stock\nFROM produits\nWHERE stock < 50;",
+  situationTail:"Cette requête fonctionne. Mais si tu dois t’en servir régulièrement, tu vas devoir la réécrire à chaque fois.<br><br><div class=\"sit-sql\"><p>Comment enregistrer cette requête sous un nom, pour pouvoir ensuite l’interroger plus simplement ?</p><p>C’est le rôle d’une <b>vue</b>.</p></div>",
+    studio:{pointCards:{
+      eye:"CREATE VIEW",title:"Une requête, un nom.",
+      lead:"Une vue est une requête enregistrée sous un nom. On l’interroge ensuite avec <code>SELECT</code>, comme une table.",
+      chain:[
+        {k:"Une requête",v:"celle qu’on réécrit sans cesse"},
+        {k:"CREATE VIEW",v:"lui donne un nom"},
+        {k:"SELECT",v:"interroge ce nom"}
+      ]},
+    uses:{title:"Une requête que l’on garde.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">De la requête à la vue</p>
+          <div class="tx-flow" role="img" aria-label="La table, la requête, la vue, puis son interrogation">
+            <span class="tx-step">table <b>produits</b></span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step">SELECT id, nom, stock<i>WHERE stock &lt; 50</i></span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step tx-key">CREATE VIEW</span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step tx-ok">produits_stock_faible</span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <span class="tx-step">SELECT * FROM la vue</span>
+          </div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Créer la vue</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE VIEW produits_stock_faible AS
+SELECT
+    id,
+    nom,
+    stock
+FROM produits
+WHERE stock &lt; 50;</pre></div>
+          <p>La vue correspond à la requête placée après <code>AS</code>. On l’interroge ensuite comme une source de données :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
+FROM produits_stock_faible;</pre></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Une vue ne copie pas les données</p>
+          <p>C’est le point le plus important. SQLite ne crée pas une seconde table contenant une copie des produits : la vue conserve la <b>requête</b>, et présente les données de la table source.</p>
+          <div class="duo">
+            <div class="duo-row"><p class="duo-k">Une table</p>
+              <p class="duo-v"><b>produits</b><span>contient les données</span></p></div>
+            <div class="duo-row"><p class="duo-k">Une vue</p>
+              <p class="duo-v"><b>produits_stock_faible</b><span>enregistre une manière de les consulter</span></p></div>
+          </div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Quand les données changent</p>
+          <p>La Tisane Détox a 60 unités : elle ne respecte pas <code>stock &lt; 50</code>, donc elle n’apparaît pas dans la vue.</p>
+          <p>Si son stock tombe à 45, elle apparaîtra à la prochaine interrogation de la vue — sans qu’il faille recréer quoi que ce soit. La vue s’appuie sur les données <b>actuelles</b>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Simplifier une requête longue</p>
+          <p>L’intérêt grandit avec la complexité. Cette requête relie trois tables :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE VIEW detail_commandes AS
+SELECT
+    commandes.id,
+    clients.nom AS client,
+    produits.nom AS produit,
+    commandes.quantite
+FROM commandes
+JOIN clients
+    ON commandes.client_id = clients.id
+JOIN produits
+    ON commandes.produit_id = produits.id;</pre></div>
+          <p>Deux jointures, quatre colonnes, deux alias — tout cela devient <code>SELECT * FROM detail_commandes;</code>. La logique est centralisée dans la définition de la vue.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Une vue s’interroge comme une table</p>
+          <p>Le résultat n’est pas figé : tu peux continuer à filtrer, trier, limiter.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
+FROM produits_stock_faible
+WHERE stock &lt; 35
+ORDER BY stock;</pre></div>
+          <p>La vue fournit les produits sous 50 unités, ta requête resserre sous 35.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Supprimer une vue</p>
+          <div class="pt-syntax"><pre class="cw-syntax">DROP VIEW produits_stock_faible;</pre></div>
+          <p>La vue disparaît, la table <code>produits</code> reste intacte. C’est logique : la vue n’était qu’une manière de consulter ses données.</p>
+          <p class="fn-tip"><b>En lecture</b> Dans SQLite, une vue se consulte mais ne se modifie pas directement. Pour ce cours, retiens qu’une vue sert à <b>consulter</b> plus simplement.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"La situation",t:"tu réécris souvent la même requête"},
+      b:{k:"La règle",t:"enregistre-la sous un nom, puis interroge ce nom"},
+      note:"Réflexe : une requête que tu réécris régulièrement mérite un nom. <code>CREATE VIEW</code> le lui donne."}},
+  anatomie:[
+    {tok:"CREATE VIEW",txt:"Crée une vue."},
+    {tok:"produits_stock_faible",txt:"Le nom donné à la vue."},
+    {tok:"AS",txt:"Introduit la requête enregistrée."},
+    {tok:"SELECT id, nom, stock FROM produits WHERE stock < 50",txt:"Définit les données que la vue présente."}
+  ],
+  exemple:"CREATE VIEW produits_stock_faible AS\nSELECT\n    id,\n    nom,\n    stock\nFROM produits\nWHERE stock < 50;\n\nSELECT *\nFROM produits_stock_faible;",
+  attendu:"2 lignes : la Protéine Végétale à 45 et le Shaker Inox à 30. Les six autres produits ont un stock supérieur ou égal à 50.",
+  retenir:"Une vue est une <b>requête enregistrée sous un nom</b>, que tu interroges ensuite comme une source de données.<br><br>Elle ne copie rien : elle s’appuie sur les données actuelles de ses tables sources. Si elles changent, son résultat change.<br><br>Le mémo : une <b>table</b> contient les données, une <b>vue</b> enregistre une requête sur ces données.",
+  piege:{t:"Confondre CREATE VIEW et CREATE TABLE … AS",
+    p:"<code>CREATE VIEW … AS SELECT</code> enregistre la requête : le résultat suit les données.<br><br><code>CREATE TABLE … AS SELECT</code> crée une vraie table et <b>copie</b> les lignes au moment de sa création. Si la table source change ensuite, la copie ne bouge pas.",
+    exec:true,
+    sql:"CREATE TABLE copie_stock AS\nSELECT id, nom, stock\nFROM produits\nWHERE stock < 50;\n\nUPDATE produits\nSET stock = 10\nWHERE id = 3;\n\nSELECT * FROM copie_stock;",
+    out:"Le Magnésium passé à 10 n’apparaît pas : la copie date de sa création.",
+    fixSql:"CREATE VIEW vue_stock AS\nSELECT id, nom, stock\nFROM produits\nWHERE stock < 50;\n\nUPDATE produits\nSET stock = 10\nWHERE id = 3;\n\nSELECT * FROM vue_stock;"},
+  petitDefi:[{
+    p:"Tu utilises souvent cette requête. Quels mots-clés l’enregistrent sous le nom <code>produits_premium</code> ?",
+    sql:"____________ produits_premium AS\nSELECT\n    nom,\n    prix\nFROM produits\nWHERE prix > 30;",
+    a:"CREATE VIEW",
+    answers:["CREATE VIEW","create view"]
+  }],
+  consigne:"Enregistre sous le nom <code>produits_stock_faible</code> la requête qui affiche l’<code>id</code>, le <code>nom</code> et le <code>stock</code> des produits ayant moins de 50 unités.",
+  solution:"CREATE VIEW produits_stock_faible AS\nSELECT\n    id,\n    nom,\n    stock\nFROM produits\nWHERE stock < 50;",
+  verif:"SELECT id, nom, stock FROM produits_stock_faible ORDER BY id;",
+  indice:"<code>CREATE VIEW nom AS</code>, puis la requête telle quelle.",
+  write:true,
+  richLesson:true, earlyDemo:true },
+{ id:57, titre:"Les index", résumé:"Retrouver plus vite certaines lignes",
+  situation:"Ta base de clients grandit.<br><br>Au début, la table <code>clients</code> ne contenait que quelques lignes. Mais avec le temps, elle peut contenir des millions de clients.<br><br>Ton site e-commerce doit régulièrement retrouver un client à partir de son e-mail :",
+  situationSql:"SELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",
+  situationTail:"<div class=\"sit-sql\"><p>Avec peu de données, la recherche est rapide.</p><p>Mais sur une très grande table, SQL peut devoir parcourir énormément de lignes pour retrouver le bon client.</p><p>Comment accélérer cette recherche ?</p><p>C’est là qu’interviennent les <b>index</b>.</p></div>",
+    studio:{pointCards:{
+      eye:"Index",title:"Un chemin d’accès vers les données.",
+      lead:"Un index est une structure supplémentaire qui aide SQL à retrouver plus rapidement certaines données. Il ne modifie pas les colonnes de la table : il est créé à côté.",
+      chain:[
+        {k:"Sans index",v:"SQL peut parcourir de nombreuses lignes"},
+        {k:"Avec index",v:"SQL peut suivre un chemin organisé"},
+        {k:"Règle",v:"indexer les recherches fréquentes"}
+      ]},
+    uses:{title:"Un index, une idée à la fois.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Sans index : SQL cherche dans la table</p>
+          <p>Tu recherches <code>sophie@mail.fr</code> dans une table devenue immense.</p>
+          <div class="table-wrap"><table class="concept-table"><thead><tr><th>id</th><th>nom</th><th>ville</th><th>email</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td>Paris</td><td>sophie@mail.fr</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>lucas@mail.fr</td></tr><tr><td>3</td><td>Emma</td><td>Marseille</td><td>emma@mail.fr</td></tr><tr class="sample-more"><td colspan="4">… jusqu’à 2&nbsp;000&nbsp;000 de lignes</td></tr></tbody></table></div>
+          <p>Sans index adapté, le SGBD peut devoir parcourir la table et examiner les lignes une par une. On appelle cela un <b>parcours de table</b> (<code>table scan</code>).</p>
+          <p>Plus la table grandit, plus ce type de recherche peut devenir coûteux.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">L’index : un raccourci</p>
+          <p>Pour éviter de parcourir inutilement une grande quantité de données, on crée un index.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE INDEX idx_clients_email
+ON clients(email);</pre></div>
+          <p>L’index est organisé à partir des valeurs de la colonne <code>email</code>. SQL peut alors localiser plus efficacement la ligne de Sophie.</p>
+          <p>Comme dans un livre : sans index, tu tournes les pages. Avec l’index, tu vas directement à la bonne page.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">L’index ne modifie pas la table</p>
+          <p><code>CREATE INDEX</code> n’ajoute pas de colonne dans la table <code>clients</code>.</p>
+          <div class="idx-side" aria-hidden="true">
+            <span><b>Données</b><i>dans la table</i></span>
+            <span><b>Index email</b><i>à côté, pour retrouver</i></span>
+          </div>
+          <p>Les données restent dans la table. L’index est une structure créée <b>en plus</b>, pour aider à les retrouver.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Créer un index</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE INDEX nom_index
+ON nom_table(colonne);</pre></div>
+          <p><code>CREATE INDEX</code> crée l’index. <code>idx_clients_email</code> est le nom qu’on lui donne. La table concernée est <code>clients</code>. <code>email</code> est la colonne indexée.</p>
+          <p>Le nom indique généralement la table et la colonne concernées.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">La requête ne change pas</p>
+          <p>Une fois l’index créé, tu continues d’écrire :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
+FROM clients
+WHERE email = 'sophie@mail.fr';</pre></div>
+          <p>Tu n’écris pas « utilise cet index ». Le SGBD choisit lui-même s’il est intéressant de s’en servir.</p>
+          <p>Créer un index donne une <b>possibilité</b> supplémentaire. Cela ne signifie pas qu’il sera utilisé à chaque fois.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Quelles colonnes indexer ?</p>
+          <p>On s’intéresse aux colonnes régulièrement utilisées pour retrouver ou relier des données.</p>
+          <ul class="pt-lead-list">
+            <li>un compte recherché par e-mail → <code>clients.email</code> ;</li>
+            <li>les commandes d’un client → <code>commandes.client_id</code> ;</li>
+            <li>une jointure <code>ON clients.id = commandes.client_id</code> → la colonne qui relie.</li>
+          </ul>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE INDEX idx_commandes_client
+ON commandes(client_id);</pre></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Pourquoi ne pas tout indexer ?</p>
+          <p>Un index occupe de l’espace. Et quand tu fais un <code>INSERT</code>, un <code>UPDATE</code> ou un <code>DELETE</code>, les index concernés doivent aussi être mis à jour.</p>
+          <p>Il peut accélérer certaines lectures, mais il a un coût de stockage et de maintenance.</p>
+          <div class="idx-side" aria-hidden="true">
+            <span><b>Lectures</b><i>potentiellement plus rapides</i></span>
+            <span><b>Écritures</b><i>stockage + maintenance</i></span>
+          </div>
+          <p>La règle n’est pas « plus j’ai d’index, plus ma base est rapide ». C’est : créer des index là où ils sont réellement utiles.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Index sur plusieurs colonnes</p>
+          <p>Si tu recherches souvent les commandes d’un client à partir d’une date :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE INDEX idx_commandes_client_date
+ON commandes(client_id, date_commande);</pre></div>
+          <p>C’est un <b>index composite</b>. L’ordre des colonnes compte : d’abord <code>client_id</code>, puis <code>date_commande</code> à l’intérieur de chaque client.</p>
+          <div class="idx-comp" aria-hidden="true">
+            <div class="idx-comp-g">
+              <b>client 1 · Sophie</b>
+              <span>2023-07-02</span>
+              <span>2023-07-02</span>
+              <span>2023-07-28</span>
+            </div>
+            <div class="idx-comp-g">
+              <b>client 2 · Lucas</b>
+              <span>2023-07-05</span>
+              <span>2023-07-20</span>
+            </div>
+          </div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">INDEX et UNIQUE, deux idées</p>
+          <p><code>INDEX</code> fournit un chemin d’accès. <code>UNIQUE</code> impose une règle : les valeurs ne doivent pas être dupliquées.</p>
+          <div class="memory-rule">
+            <div class="memory-a"><b>INDEX</b><span>performance / accès</span></div>
+            <div class="memory-b"><b>UNIQUE</b><span>règle d’unicité</span></div>
+          </div>
+          <p>Une contrainte <code>UNIQUE</code> s’appuie souvent sur un index, mais l’objectif n’est pas le même.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Et la clé primaire ?</p>
+          <p>La table <code>clients</code> a déjà <code>id INTEGER PRIMARY KEY</code>.</p>
+          <p>Les SGBD mettent généralement en place automatiquement une structure adaptée — souvent un index — pour faire respecter cette contrainte et permettre des recherches efficaces.</p>
+          <p>Tu n’as donc généralement pas besoin de recréer <code>CREATE INDEX idx_clients_id ON clients(id)</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Comment savoir si l’index est utilisé ?</p>
+          <p>Créer un index ne garantit pas que SQL va l’utiliser.</p>
+          <p><code>EXPLAIN</code> montre le plan d’exécution prévu par le SGBD : parcours de table, ou utilisation d’un index.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">EXPLAIN QUERY PLAN
+SELECT *
+FROM clients
+WHERE email = 'sophie@mail.fr';</pre></div>
+          <p>Le vocabulaire affiché varie selon PostgreSQL, MySQL, SQLite ou SQL Server.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"La question",t:"Cette colonne sert-elle souvent à retrouver des lignes dans une grande table ?"},
+      b:{k:"La règle",t:"Un index peut accélérer l’accès à ces lignes."},
+      note:"Pense aux index lorsqu’une grande table est régulièrement recherchée, filtrée ou reliée à partir des mêmes colonnes."},
+    idxSplit:true},
+  anatomie:[
+    {tok:"CREATE INDEX idx_clients_email",txt:"Crée un index et lui donne un nom."},
+    {tok:"ON clients",txt:"La table concernée."},
+    {tok:"(email)",txt:"La colonne qui sert à retrouver les lignes."}
+  ],
+  exemple:"CREATE INDEX idx_clients_email ON clients(email);",
+  attendu:"L’index est créé. La table <code>clients</code> n’a pas de nouvelle colonne.",
+  retenir:"Un index est un chemin d’accès supplémentaire qui aide SQL à retrouver plus rapidement certaines données.<br><br>Sans index, SQL peut parcourir une grande partie de la table. Avec un index, il dispose d’un chemin organisé.<br><br>Un index prend de la place et doit être maintenu. Il ne faut donc pas en créer partout.",
+  piege:{t:"Indexer toutes les colonnes",
+    p:"Un index n’est pas gratuit : il occupe de l’espace et doit être mis à jour à chaque <code>INSERT</code>, <code>UPDATE</code> ou <code>DELETE</code>. On indexe les colonnes vraiment utilisées pour chercher ou relier, pas toutes les colonnes « au cas où »."},
+  consigne:"Crée un index nommé <code>idx_clients_email</code> sur la colonne <code>email</code> de la table <code>clients</code>.",
+  solution:"CREATE INDEX idx_clients_email ON clients(email);",
+  indice:"<code>CREATE INDEX idx_clients_email ON clients(email);</code>",
+  richLesson:true, earlyDemo:true,
+  write:true,
+  verif:"SELECT 'idx_clients_email' AS nom, name AS colonne FROM pragma_index_info('idx_clients_email');",
+  testeVariants:[
+    {k:'where',label:'WHERE email',sql:"SELECT nom, email\nFROM clients\nWHERE email = 'sophie@mail.fr';",out:"Sophie, même sans index : la table est encore petite."},
+    {k:'create',label:'CREATE INDEX',sql:"CREATE INDEX idx_clients_email\nON clients(email);",out:"L’index est créé. La table clients n’a pas de nouvelle colonne.",tone:'good'},
+    {k:'explain',label:'EXPLAIN',sql:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",out:"Le plan montre si SQLite parcourt la table ou utilise un index."}
   ] },
+{ id:58, titre:"EXPLAIN", résumé:"Comprendre une requête lente",
+  situation:"Ta base de clients continue de grandir.<br><br>Tu as créé un index sur <code>email</code> pour accélérer la recherche d’un client :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">CREATE INDEX idx_clients_email\nON clients(email);</pre></div><br><br>Puis ton application exécute régulièrement :",
+  situationSql:"SELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",
+  situationTail:"<div class=\"sit-sql\"><p>Mais une question se pose maintenant :</p><p>Comment savoir si SQL utilise réellement l’index ?</p><p>Et si une requête devient lente, comment comprendre ce qui ralentit ?</p><p>C’est le rôle de <b>EXPLAIN</b>.</p></div>",
+    studio:{pointCards:{
+      eye:"EXPLAIN",title:"Voir la stratégie, pas seulement le résultat.",
+      lead:"Une requête décrit ce que tu veux. <code>EXPLAIN</code> montre comment le SGBD prévoit de l’obtenir. On observe d’abord le plan, puis on optimise.",
+      chain:[
+        {k:"Observer",v:"lire le plan"},
+        {k:"Comprendre",v:"parcours, index, jointure"},
+        {k:"Comparer",v:"après une optimisation"}
+      ]},
+    uses:{title:"Un plan, une idée à la fois.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">EXPLAIN montre comment SQL compte travailler</p>
+          <p>Quand tu écris un <code>SELECT</code>, tu précises le résultat. Le SGBD doit encore décider <b>comment</b> l’obtenir : parcourir la table, ou suivre un index.</p>
+          <p>Le résultat de <code>EXPLAIN</code> s’appelle un <b>plan d’exécution</b>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Utiliser EXPLAIN</p>
+          <p>On place <code>EXPLAIN</code> devant la requête. Dans cette application (SQLite), on écrit <code>EXPLAIN QUERY PLAN</code> :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">EXPLAIN QUERY PLAN
+SELECT *
+FROM clients
+WHERE email = 'sophie@mail.fr';</pre></div>
+          <p>Tu ne demandes plus seulement « donne-moi Sophie ». Tu demandes aussi au SGBD de montrer comment il prévoit de la retrouver.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Premier diagnostic : parcours de table</p>
+          <p>Sans index adapté, le plan peut indiquer un <b>parcours de table</b>. PostgreSQL dit souvent <code>Seq Scan</code>. SQLite affiche <code>SCAN</code>.</p>
+          <p>SQL examine les lignes pour appliquer <code>email = 'sophie@mail.fr'</code>. Sur une petite table, c’est acceptable. Sur une table immense, pour une recherche ciblée, cela peut devenir coûteux.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Deuxième diagnostic : un index</p>
+          <p>Après <code>CREATE INDEX idx_clients_email ON clients(email)</code>, le SGBD <b>peut</b> décider d’utiliser l’index. PostgreSQL parlera parfois d’<code>Index Scan</code>.</p>
+          <p>On passe d’un parcours de toute la table à un chemin organisé vers la ligne de Sophie. C’est ce que le cours sur les index préparait.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Un parcours n’est pas forcément mauvais</p>
+          <p>Il ne faut pas lire <code>SCAN</code> ou <code>Seq Scan</code> comme une erreur.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
+FROM clients;</pre></div>
+          <p>Tu demandes tous les clients : parcourir la table est logique. Même avec un <code>WHERE</code>, si presque toutes les lignes restent, le SGBD peut juger le parcours plus simple qu’un index.</p>
+          <p><code>EXPLAIN</code> sert à comprendre le choix, pas à chercher des mots rouges ou verts.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">EXPLAIN et EXPLAIN ANALYZE</p>
+          <div class="memory-rule">
+            <div class="memory-a"><b>EXPLAIN</b><span>ce que SQL <b>prévoit</b></span></div>
+            <div class="memory-b"><b>ANALYZE</b><span>ce qui s’est <b>réellement</b> passé</span></div>
+          </div>
+          <p><code>EXPLAIN ANALYZE</code>, sur les SGBD qui le proposent, exécute vraiment la requête et ajoute des mesures : temps, nombre de lignes.</p>
+          <p>Attention : la requête est exécutée. Prudence avec un <code>UPDATE</code> ou un <code>DELETE</code>. Cette commande n’existe pas dans SQLite.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Observer les lignes</p>
+          <p>Tu recherches souvent les commandes d’un client :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
+FROM commandes
+WHERE client_id = 1;</pre></div>
+          <p>Le plan permet de voir si le SGBD pense devoir traiter beaucoup de lignes pour n’en rendre que quelques-unes. Un index sur <code>commandes.client_id</code> peut alors fournir un chemin adapté.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">EXPLAIN avec une jointure</p>
+          <p>Avec plusieurs tables, le SGBD décide quelle table traiter en premier, et comment retrouver les correspondances.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">EXPLAIN QUERY PLAN
+SELECT clients.nom, commandes.id
+FROM clients
+JOIN commandes
+    ON clients.id = commandes.client_id;</pre></div>
+          <p>Tu n’as pas à maîtriser tout de suite <code>Nested Loop</code> ou <code>Hash Join</code>. Retiens : la requête dit ce que tu veux ; le plan montre la stratégie.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Une méthode pour une requête lente</p>
+          <ol class="pt-lead-list">
+            <li><b>Observer</b> — <code>EXPLAIN</code> devant la requête.</li>
+            <li><b>Repérer</b> — traite-t-il énormément de lignes pour en renvoyer très peu ?</li>
+            <li><b>Comprendre</b> — parcours, tri, jointure…</li>
+            <li><b>Optimiser</b> — un index, une condition, moins de colonnes, une jointure revue.</li>
+            <li><b>Vérifier</b> — relancer <code>EXPLAIN</code>. Une optimisation se mesure, elle ne se suppose pas.</li>
+          </ol>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Avant / après</p>
+          <p>Avant : <code>WHERE client_id = 1</code> sur une immense table <code>commandes</code>, sans index adapté.</p>
+          <p>Optimisation : <code>CREATE INDEX idx_commandes_client ON commandes(client_id);</code></p>
+          <p>Après : le même <code>EXPLAIN</code> peut maintenant montrer l’index. La boucle à retenir :</p>
+          <p class="exp-loop" aria-hidden="true"><b>Requête lente</b><i>↓</i><b>EXPLAIN</b><i>↓</i><span>comprendre</span><i>↓</i><span>optimiser</span><i>↓</i><b>EXPLAIN</b><i>↓</i><span>comparer</span></p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Une requête lente n’appelle pas automatiquement un index</p>
+          <p>Elle peut aussi ramener trop de données (<code>SELECT *</code> sur toute la table), trier beaucoup, ou joindre énormément de lignes. Une condition peut aussi rendre un index existant moins exploitable.</p>
+          <p>L’index est une solution possible, pas une solution universelle.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"La question",t:"Comment SQL exécute-t-il ma requête ?"},
+      b:{k:"La règle",t:"EXPLAIN montre le plan d’exécution."},
+      note:"Lorsqu’une requête devient lente, observe d’abord son plan d’exécution avant de chercher à l’optimiser.",
+      extra:`<p class="exp-loop" aria-hidden="true"><b>EXPLAIN</b><i>↓</i><span>Observer</span><i>↓</i><span>Comprendre</span><i>↓</i><span>Optimiser</span><i>↓</i><span>Comparer</span></p>`},
+    expSplit:true},
+  anatomie:[
+    {tok:"EXPLAIN QUERY PLAN",txt:"Demande le plan, pas les lignes du résultat."},
+    {tok:"SELECT * FROM clients",txt:"La requête à observer."},
+    {tok:"WHERE email = …",txt:"La recherche ciblée dont on veut voir le chemin."}
+  ],
+  exemple:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",
+  attendu:"Un plan d’exécution : ici, SQLite indique souvent <code>SCAN clients</code> — la table est encore petite.",
+  retenir:"<code>EXPLAIN</code> montre la stratégie prévue par le SGBD. <code>EXPLAIN ANALYZE</code> exécute vraiment la requête pour la mesurer.<br><br>Une requête lente n’appelle pas automatiquement un index : on observe d’abord, puis on optimise.",
+  piege:{t:"Croire que SCAN veut dire « faux »",
+    p:"Un parcours de table est logique si tu demandes presque toutes les lignes. <code>EXPLAIN</code> sert à comprendre le choix du SGBD, pas à colorier le plan en rouge ou en vert."},
+  consigne:"Place <code>EXPLAIN QUERY PLAN</code> devant la recherche de Sophie par e-mail, pour observer le plan d’exécution.",
+  solution:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",
+  indice:"<code>EXPLAIN QUERY PLAN</code>, puis le même <code>SELECT</code> que dans la situation, avec <code>WHERE email</code>.",
+  richLesson:true, earlyDemo:true,
+  explainExo:true,
+  testeVariants:[
+    {k:'email',label:'WHERE email',sql:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",out:"Sur cette petite table, SQLite affiche souvent SCAN — ce n’est pas une erreur."},
+    {k:'all',label:'Tous les clients',sql:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients;",out:"Tu demandes tout : parcourir la table est logique.",tone:'good'},
+    {k:'cmd',label:'Commandes',sql:"EXPLAIN QUERY PLAN\nSELECT *\nFROM commandes\nWHERE client_id = 1;",out:"Le plan montre comment SQLite retrouve les commandes de Sophie."}
+  ] }
+]},
+{ titre:"Sécurité et droits", sous:"Contrôler les accès", lessons:[
 { id:50, titre:"Sécurité et droits", résumé:"Contrôler les accès avec GRANT et REVOKE",
   situation:"Tu veux qu’un utilisateur <code>app_user</code> puisse lire la table <code>clients</code>, mais pas la modifier.<br><br>Avec <code>GRANT</code>, tu lui donnes un droit précis — ici <code>SELECT</code>. Plus tard, <code>REVOKE</code> retire ce droit.<br><br>Un <b>SGBD</b> (système de gestion de base de données) est le logiciel qui stocke tes tables et exécute le SQL. Cette application utilise <code>SQLite</code> : tout tient dans le navigateur, sans comptes utilisateurs.<br><br>MySQL, PostgreSQL et SQL Server sont des SGBD <b>serveur</b> : plusieurs utilisateurs se connectent, chacun avec des droits. C’est là que <code>GRANT</code> et <code>REVOKE</code> existent.<br><br><b>Attention :</b> ces commandes ne s’exécutent pas dans SQLite. Ce cours sert à comprendre le principe. Donner trop de droits permettrait de modifier ou supprimer des données.",
   situationTail:"<code>GRANT</code> donne un droit précis, comme <code>SELECT</code> sur une table. <code>REVOKE</code> le retire. Le piège classique : <code>ALL PRIVILEGES</code> — tous les droits, partout.",
@@ -17696,10 +17713,26 @@ function checkCreateExo(u){
     return {ok:false,diag:'Il manque la colonne categorie, en TEXT.'};
   return {ok:true};
 }
+function checkNormExo(u){
+  if(!/^CREATE\s+TABLE\b/.test(u))
+    return {ok:false,diag:'Commence par CREATE TABLE, suivi du nom de la table.'};
+  if(!/\bCOMMANDES\b/.test(u))
+    return {ok:false,diag:'La table normalisée à écrire est commandes.'};
+  if(!/\bID\s+INTEGER\s+PRIMARY\s+KEY\b/.test(u))
+    return {ok:false,diag:'Il faut un identifiant : id INTEGER PRIMARY KEY.'};
+  if(!/\bCLIENT_ID\b/.test(u)||!/\bPRODUIT_ID\b/.test(u))
+    return {ok:false,diag:'Les deux clés étrangères sont client_id et produit_id.'};
+  if(!/\bREFERENCES\s+CLIENTS\b/.test(u)||!/\bREFERENCES\s+PRODUITS\b/.test(u))
+    return {ok:false,diag:'Chaque clé étrangère désigne sa table : REFERENCES clients(id) et REFERENCES produits(id).'};
+  if(!/\bQUANTITE\b/.test(u))
+    return {ok:false,diag:'Il manque la quantité : c’est la seule information qui décrit vraiment la commande.'};
+  return {ok:true};
+}
 function checkNoExecExo(sql,l){
   const u=normNoExecSql(sql);
   if(!u) return {ok:false,diag:'Écris d’abord la commande.'};
   if(l&&l.createExo) return checkCreateExo(u);
+  if(l&&l.normExo) return checkNormExo(u);
   if(/\bALL(\s+PRIVILEGES)?\b/.test(u))
     return {ok:false,diag:'ALL PRIVILEGES donne trop de droits. Il suffit de SELECT.'};
   if(/^REVOKE\b/.test(u))
