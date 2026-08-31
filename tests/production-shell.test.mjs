@@ -40,6 +40,7 @@ assert(nav.includes('data-tab="compte"') && nav.includes('<span class="tab-label
 assert(!nav.includes('data-tab="console"'), 'Console reste accessible depuis l’accueil sans surcharger davantage le dock');
 assert(nav.indexOf('data-tab="learn"') < nav.indexOf('data-tab="planning"') && nav.indexOf('data-tab="planning"') < nav.indexOf('data-tab="defis"'), 'ordre Accueil, Parcours, Défis conservé');
 assert(html.includes('.tab{font-size:9.5px') && html.includes('.tab{font-size:9.1px'), 'libellés du dock agrandis aux deux tailles mobiles');
+assert(html.includes('@media (min-width:481px)') && html.includes('.tab-label{height:21px;min-height:21px}'), 'libellés du dock alignés sur une zone commune en desktop');
 const defisRoot = html.slice(html.indexOf('id="scr-defis"'), html.indexOf('id="scr-lesson"'));
 const planningRoot = html.slice(html.indexOf('id="scr-planning"'), html.indexOf('id="scr-notes"'));
 assert(!defisRoot.includes('home-back') && !planningRoot.includes('home-back'), 'onglets racine sans bouton Accueil redondant');
@@ -59,7 +60,7 @@ assert(onboarding.includes('Garde ta progression.') && onboarding.includes('Cont
 assert(onboarding.includes('authReady') && onboarding.includes('<small>Bientôt</small>'), 'fournisseurs indisponibles présentés honnêtement');
 assert(onboarding.includes('Mode local et privé') && onboarding.includes('Progression sauvegardée sur cet appareil.'), 'bénéfice du mode local explicité');
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('.plus-details-body'), 'nouvelles micro-interactions respectent la réduction des mouvements');
-assert(serviceWorker.includes('requete-2026-08-31-prod-shell-v218'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-08-31-prod-shell-v219'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
