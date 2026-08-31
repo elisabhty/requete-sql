@@ -33,13 +33,13 @@ assert((nav.match(/class="tab(?: active)?"/g) || []).length === 7, 'navigation p
 assert(nav.includes('data-tab="learn"') && nav.includes('<span class="tab-label">Accueil</span>'), 'Accueil reste la première destination');
 assert(nav.includes('data-tab="planning"') && nav.includes('<span class="tab-label">Parcours</span>'), 'Parcours est accessible directement');
 assert(nav.includes('data-tab="defis"') && nav.includes('<span class="tab-label">Défis</span>'), 'Défis est accessible directement');
-assert(nav.includes('data-tab="notes"') && nav.includes('<span class="tab-label">Mes notes</span>'), 'Mes notes devient un onglet permanent');
+assert(nav.includes('data-tab="notes"') && nav.includes('<span class="tab-label tab-label-stack"><span>Mes</span><span>notes</span></span>'), 'Mes notes devient un onglet permanent sur deux lignes');
 assert(nav.includes('data-tab="collection"') && nav.includes('<span class="tab-label tab-label-stack"><span>Cartes</span><span>mémo</span></span>'), 'Cartes mémo reste lisible sur deux lignes');
-assert(nav.includes('data-tab="entretien"') && nav.includes('<span class="tab-label">Entretien SQL</span>'), 'Entretien SQL devient un onglet permanent');
-assert(nav.includes('data-tab="compte"') && nav.includes('<span class="tab-label">Mon compte</span>'), 'Mon compte remplace le menu Plus');
+assert(nav.includes('data-tab="entretien"') && nav.includes('<span class="tab-label tab-label-stack"><span>Entretien</span><span>SQL</span></span>'), 'Entretien SQL devient un onglet permanent sur deux lignes');
+assert(nav.includes('data-tab="compte"') && nav.includes('<span class="tab-label tab-label-stack"><span>Mon</span><span>compte</span></span>'), 'Mon compte remplace le menu Plus sur deux lignes');
 assert(!nav.includes('data-tab="console"'), 'Console reste accessible depuis l’accueil sans surcharger davantage le dock');
 assert(nav.indexOf('data-tab="learn"') < nav.indexOf('data-tab="planning"') && nav.indexOf('data-tab="planning"') < nav.indexOf('data-tab="defis"'), 'ordre Accueil, Parcours, Défis conservé');
-assert(html.includes('.tab{font-size:8.5px') && html.includes('.tab{font-size:7.8px'), 'libellés du dock agrandis aux deux tailles mobiles');
+assert(html.includes('.tab{font-size:9.5px') && html.includes('.tab{font-size:9.1px'), 'libellés du dock agrandis aux deux tailles mobiles');
 const defisRoot = html.slice(html.indexOf('id="scr-defis"'), html.indexOf('id="scr-lesson"'));
 const planningRoot = html.slice(html.indexOf('id="scr-planning"'), html.indexOf('id="scr-notes"'));
 assert(!defisRoot.includes('home-back') && !planningRoot.includes('home-back'), 'onglets racine sans bouton Accueil redondant');
@@ -59,7 +59,7 @@ assert(onboarding.includes('Garde ta progression.') && onboarding.includes('Cont
 assert(onboarding.includes('authReady') && onboarding.includes('<small>Bientôt</small>'), 'fournisseurs indisponibles présentés honnêtement');
 assert(onboarding.includes('Mode local et privé') && onboarding.includes('Progression sauvegardée sur cet appareil.'), 'bénéfice du mode local explicité');
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('.plus-details-body'), 'nouvelles micro-interactions respectent la réduction des mouvements');
-assert(serviceWorker.includes('requete-2026-08-31-prod-shell-v216'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-08-31-prod-shell-v217'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
