@@ -24,7 +24,7 @@ const lesson = start >= 0 && end > start ? html.slice(start, end) : '';
 
 assert(Boolean(lesson), 'leçon COALESCE localisée');
 assert(lesson.includes('coal-data-summary'), 'résumé des données présent dès la situation');
-assert(lesson.includes('7 adresses présentes') && lesson.includes('2 valeurs NULL'), 'cardinalités visibles sans compter le tableau');
+assert(lesson.includes('8 adresses présentes') && lesson.includes('2 valeurs NULL'), 'cardinalités visibles sans compter le tableau');
 assert(lesson.includes('première valeur qui n’est pas NULL'), 'règle centrale formulée dans le titre');
 assert(lesson.includes('coal-route') && lesson.includes('1er choix') && lesson.includes('choix suivant'), 'lecture de gauche à droite matérialisée');
 assert(lesson.includes('L’e-mail n’est pas NULL') && lesson.includes('L’e-mail est NULL'), 'les deux branches sont comparables');

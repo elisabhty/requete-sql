@@ -19,14 +19,14 @@ const {consoleSqlKey,dedupeConsoleQueries,promoteConsoleQuery,removeConsoleQuery
 console.log('\n=== Historique et requêtes épinglées sans doublon ===');
 assert(consoleSqlKey(' SELECT  *  FROM clients; ' )===consoleSqlKey('SELECT * FROM clients'),'espaces et point-virgule ne créent pas un doublon');
 
-const old={sql:'SELECT * FROM clients;',ts:1,n:'9 lignes'};
+const old={sql:'SELECT * FROM clients;',ts:1,n:'10 lignes'};
 const recent={sql:'SELECT * FROM produits;',ts:2,n:'8 lignes'};
-const duplicate={sql:' SELECT * FROM clients ',ts:3,n:'9 lignes'};
+const duplicate={sql:' SELECT * FROM clients ',ts:3,n:'10 lignes'};
 const clean=dedupeConsoleQueries([recent,duplicate,old],24);
 assert(clean.length===2,'les doublons déjà stockés sont nettoyés');
 assert(clean[1]===duplicate,'la version la plus récente dans la liste est conservée');
 
-const rerun={sql:'SELECT * FROM clients',ts:4,n:'9 lignes',ms:1};
+const rerun={sql:'SELECT * FROM clients',ts:4,n:'10 lignes',ms:1};
 const promoted=promoteConsoleQuery([recent,old],rerun,24);
 assert(promoted.length===2,'réexécuter une requête ne grossit pas l’historique');
 assert(promoted[0]===rerun,'la requête réexécutée repasse en tête');
