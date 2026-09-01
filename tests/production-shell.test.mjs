@@ -50,8 +50,13 @@ assert(html.includes("function lessonBackLabel(){return activeTab==='planning'?'
 assert(html.includes("label.textContent=focused?'Questions':'Accueil'") && html.includes("focused?'Retour aux questions':'Retour à l’accueil'"), 'Entretien revient aux questions avant de revenir à l’accueil');
 assert(html.includes('id="scr-notes"') && html.includes('function renderNotesScreen('), 'Mes notes possède un écran racine dédié');
 assert(html.includes('function homeToolsHTML()') && html.includes('Console SQL') && html.includes('Cartes mémo'), 'raccourcis pratiques ajoutés à l’accueil');
+assert(html.includes('<span>Pratique libre</span><h2 id="home-tools-title">Outils</h2>') && !html.includes('id="home-tools-title">Outils</h2><button type="button" onclick="switchTab(\'compte\')">Tout voir'), 'section Outils autonome sans faux lien vers les réglages');
 assert(html.includes("switchTab('defis')") && html.includes("switchTab('entretien')"), 'Défis et Entretien restent accessibles depuis les outils');
 assert(html.includes('function homePathPreviewHTML(') && html.includes('home-path-progress'), 'aperçu compact du parcours présent');
+assert(html.includes("left?'Aujourd’hui':'Séance terminée'") && html.includes('environ ${left*8} min'), 'priorité d’accueil donnée à la charge et à la durée de la séance du jour');
+assert(html.includes('class="module home-module ${complete') && html.includes('<summary class="home-module-summary">') && html.includes('Tous les cours'), 'long catalogue remplacé par des modules compacts consultables à la demande');
+assert(html.includes('class="lesson-validation"') && html.includes('<em>Validé</em>'), 'chaque leçon terminée porte un libellé Validé explicite');
+assert(html.includes("complete?'Toutes les leçons sont validées'") && html.includes('class="home-module-valid">Validé</em>'), 'un module porte Validé uniquement lorsque toutes ses leçons le sont');
 assert(account.includes('account-identity') && account.includes('Mode sans compte'), 'identité et mode invité sont explicites');
 assert(account.includes('Ma progression') && account.includes('account-stats-grid'), 'progression réelle structurée comme un tableau de bord');
 assert(account.includes('Niveau actuel') && account.includes('account-level-track') && account.includes('Prochain cap'), 'niveau SQL et prochain palier calculés depuis la progression réelle');
@@ -77,7 +82,7 @@ const primaryKeyLesson = html.slice(html.indexOf('{ id:34, titre:"Clé primaire"
 assert(primaryKeyLesson.includes("WHERE nom = 'Nathan';") && primaryKeyLesson.includes('SQL renvoie <b>2 lignes'), 'la leçon Clé primaire exécute et annonce les deux Nathan réels');
 assert(html.includes("(4,'Nathan','Paris'") && html.includes("(10,'Nathan','Paris'"), 'les deux Nathan de Paris existent dans les données SQLite');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-09-01-settings-v250'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-09-01-validation-v252'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
