@@ -8053,61 +8053,63 @@ FROM produits;</pre></div>
 ]},
 { titre:"Clés et relations", sous:"Identifier une ligne, relier deux tables", lessons:[
 { id:34, titre:"Clé primaire", résumé:"Identifier une ligne",
-  situation:"Trois clients habitent Paris. Si tu cherches lequel précisément, SQL ne peut pas choisir.<br><br>Avec ce que tu connais déjà, tu peux lister les noms et les villes :",
+  situation:"Dans la table <code>clients</code>, Sophie, Nathan et Léa habitent tous les trois à Paris. Si tu cherches un client par sa ville, SQL renvoie plusieurs personnes sans pouvoir en isoler une seule.<br><br>Avec ce que tu connais déjà, tu peux lister les noms et les villes :",
   situationSql:"SELECT nom, ville\nFROM clients;",
-  situationTail:"Paris apparaît 3 fois. Pour désigner <b>exactement une ligne</b>, il faut une colonne unique : la clé primaire <code>id</code>.",
+  situationTail:"Paris apparaît 3 fois. Pour désigner <b>une ligne précise et une seule</b> sans ambiguïté, chaque table possède une colonne unique : la clé primaire <code>id</code>.",
     studio:{problem:{title:"La clé primaire identifie chaque ligne, sans doublon.",
-      body:""},
-    vs:{bad:{tag:"✕ Repérer par la ville",sql:"SELECT nom FROM clients\nWHERE ville = 'Paris';",out:"3 lignes : Sophie, Nathan, Léa — laquelle ?",
+      body:"Chaque table de notre base (<code>clients</code>, <code>produits</code>, <code>commandes</code>) stocke des enregistrements distincts. Pour identifier chaque client, produit ou commande sans aucune ambiguïté, on définit une <b>clé primaire</b> (<code>PRIMARY KEY</code>).<br><br>Dans notre table <code>clients</code>, la colonne <code>id</code> est la clé primaire : elle est garantie <b>unique</b> pour chaque personne et <b>jamais nulle</b>. Même si deux clients avaient le même nom et la même ville, leur <code>id</code> permettrait de les distinguer à coup sûr."},
+    vs:{bad:{tag:"✕ Filtrer par la ville",sql:"SELECT nom FROM clients\nWHERE ville = 'Paris';",out:"3 lignes : Sophie, Nathan, Léa — impossible d’isoler une personne",
             code:"SELECT nom\nFROM clients\nWHERE ville = <span class=\"vs-line bad\">'Paris'</span>;"},
-        good:{tag:"✓ Repérer par l’id",sql:"SELECT nom FROM clients\nWHERE id = 1;",out:"1 ligne : Sophie",
+        good:{tag:"✓ Cibler par l’id unique",sql:"SELECT nom FROM clients\nWHERE id = 1;",out:"1 ligne exacte : Sophie (id = 1)",
             code:"SELECT nom\nFROM clients\nWHERE <span class=\"vs-line good\">id = 1</span>;"}},
-    why:{title:"Comment l’id distingue les lignes ?"},
+    why:{title:"Chaque table a son propre id unique.",
+      body:"Dans notre base de données :<br>• Dans <code>clients</code> : <code>id = 1</code> désigne Sophie, <code>id = 2</code> Lucas, <code>id = 7</code> Léa.<br>• Dans <code>produits</code> : <code>id = 1</code> désigne la Fibre Prébiotique, <code>id = 8</code> le Shaker Inox.<br>• Dans <code>commandes</code> : <code>id = 1</code> identifie le tout premier achat.<br><br>Cette clé primaire est indispensable : c’est elle que la table <code>commandes</code> recopie dans <code>client_id</code> et <code>produit_id</code> pour relier les achats aux bonnes personnes et aux bons produits."},
     viz:"pk",
-    uses:{title:"Une clé, plusieurs formes.",
+    uses:{title:"Une clé primaire au cœur de notre base.",
       body:`<div class="pt-lead fn-uses">
         <div class="fn-use">
-          <p class="pt-syntax-h">Le numéro que la base attribue</p>
-          <div class="pt-syntax"><pre class="cw-syntax">id INTEGER PRIMARY KEY</pre></div>
-          <p>Écrite ainsi, la colonne se remplit toute seule : un <code>INSERT</code> qui ne donne pas d’<code>id</code> reçoit le plus grand identifiant existant, plus un.</p>
+          <p class="pt-syntax-h">1. Définir une clé primaire dans nos tables</p>
+          <p>À la création de notre table <code>clients</code>, la clé primaire est déclarée directement sur la colonne <code>id</code> :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE clients (
+  id INTEGER PRIMARY KEY,
+  nom TEXT,
+  ville TEXT
+);</pre></div>
+          <p>Avec <code>INTEGER PRIMARY KEY</code>, SQLite garantit l’unicité absolue de chaque numéro et l’incrémente automatiquement lors de chaque <code>INSERT</code>.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">AUTOINCREMENT — ne jamais réutiliser un numéro</p>
-          <p>Supprime la dernière ligne, insères-en une nouvelle : son identifiant reprend celui qui vient d’être libéré. Les numéros sont réemployés.</p>
+          <p class="pt-syntax-h">2. Un id par table : clients, produits, commandes</p>
+          <p>Toutes les tables de notre boutique ont leur propre clé primaire :</p>
+          <ul class="pt-lead-list">
+            <li><code>clients.id</code> : identifie chaque client (1 = Sophie, 4 = Nathan…).</li>
+            <li><code>produits.id</code> : identifie chaque article du catalogue (1 = Fibre, 3 = Magnésium…).</li>
+            <li><code>commandes.id</code> : identifie chaque commande passée.</li>
+          </ul>
+          <p>Ces identifiants uniques sont les repères stables vers lesquels pointeront ensuite les clés étrangères <code>commandes.client_id</code> et <code>commandes.produit_id</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">3. AUTOINCREMENT — ne jamais réutiliser un numéro</p>
+          <p>Par défaut, si une ligne est supprimée, SQLite peut réattribuer son numéro lors d’un futur ajout. Avec <code>AUTOINCREMENT</code>, SQLite retient le dernier identifiant attribué dans la table interne <code>sqlite_sequence</code> et repart toujours au-dessus.</p>
           <div class="pt-syntax"><pre class="cw-syntax">id INTEGER PRIMARY KEY
   AUTOINCREMENT</pre></div>
-          <p>Avec ce mot, SQLite retient le plus grand numéro jamais donné dans une table interne, <code>sqlite_sequence</code>, et repart toujours au-dessus. Un identifiant supprimé ne revient plus.</p>
-          <p class="fn-tip"><b>Quand ça compte</b> Une facture ou un ticket ne doivent pas voir leur numéro réattribué. Ailleurs, le comportement par défaut suffit — et coûte moins cher.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Quand une seule colonne ne suffit pas</p>
-          <p>Une table qui enregistre « ce client a acheté ce produit » n’a pas d’identifiant naturel : ni le client ni le produit ne sont uniques à eux seuls. C’est leur <b>couple</b> qui l’est.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE achats (
-  client_id INTEGER,
-  produit_id INTEGER,
-  PRIMARY KEY (client_id,
-               produit_id)
-);</pre></div>
-          <p>La clé primaire porte alors sur deux colonnes. Chacune peut se répéter — le client 1 revient autant de fois qu’il achète — mais jamais la même paire deux fois.</p>
-          <div class="tx-fail">
-            <span class="is-ko">deux fois (1, 1)<i>UNIQUE constraint failed</i></span>
-          </div>
+          <p class="fn-tip"><b>Dans la pratique</b> Pour une facture ou une commande client, <code>AUTOINCREMENT</code> assure une traçabilité sans faille. Pour une table simple comme <code>clients</code>, <code>INTEGER PRIMARY KEY</code> standard suffit largement.</p>
         </div>
       </div>`},
-    reflex:{a:{k:"PRIMARY KEY",t:"unique, obligatoire, <b>une par ligne</b>"},
-      b:{k:"nom, ville",t:"peuvent se <b>répéter</b> — ce ne sont pas des clés"}}},
-  anatomie:[{tok:"id",plain:1,txt:"Clé primaire : un numéro unique par client."},{tok:"nom",plain:1,txt:"Peut se répéter. Ne sert pas d’identifiant."},{tok:"ville",plain:1,txt:"Paris apparaît 3 fois : ce n’est pas une clé."}],
+    reflex:{a:{k:"PRIMARY KEY",t:"<code>clients.id</code>, <code>produits.id</code> : <b>unique et non nul</b>"},
+      b:{k:"nom, ville",t:"peuvent avoir des <b>doublons ou homonymes</b>"}}},
+  anatomie:[{tok:"id",plain:1,txt:"Clé primaire : un numéro unique par client (1 = Sophie, 2 = Lucas…)."},{tok:"nom",plain:1,txt:"Nom du client — deux clients pourraient avoir le même nom."},{tok:"ville",plain:1,txt:"Paris apparaît 3 fois : une ville ne peut pas servir d’identifiant."}],
   exemple:"SELECT id, nom FROM clients;",
   attendu:"<b>9 lignes</b> : chaque client avec son <code>id</code> unique.",
-  retenir:"La <b>clé primaire</b> identifie une ligne et une seule. Dans la table <code>clients</code>, c’est <code>id</code>. Le nom ou la ville peuvent se répéter ; l’<code>id</code> non.<br><br><code>INTEGER PRIMARY KEY</code> se remplit tout seul. <code>AUTOINCREMENT</code> garantit en plus qu’un numéro supprimé ne sera jamais réemployé.<br><br>Quand aucune colonne seule n’identifie la ligne, la clé porte sur plusieurs colonnes : <code>PRIMARY KEY (client_id, produit_id)</code>.",
-  piege:{t:"Utiliser le nom comme identifiant",p:"Deux personnes peuvent s’appeler pareil. <code>WHERE nom = 'Sophie'</code> n’est sûr que s’il n’y a qu’une Sophie. <code>WHERE id = 1</code> désigne toujours la même ligne."},
+  retenir:"La <b>clé primaire</b> (<code>PRIMARY KEY</code>) identifie chaque ligne de façon unique et certaine dans une table (<code>clients.id</code>, <code>produits.id</code>, <code>commandes.id</code>). Elle ne contient jamais de doublon ni de <code>NULL</code>.<br><br>Dans notre base, <code>INTEGER PRIMARY KEY</code> permet à SQLite d’attribuer les identifiants automatiquement. C’est la clé primaire qui sert ensuite de repère aux clés étrangères pour relier nos tables.",
+  piege:{t:"Utiliser le nom ou la ville comme identifiant",p:"Plusieurs clients peuvent s’appeler Sophie ou habiter Paris. <code>WHERE ville = 'Paris'</code> renvoie 3 lignes. Seul <code>WHERE id = 1</code> désigne toujours exactement la même personne."},
   consigne:"Affiche l’<code>id</code> et le <code>nom</code> de chaque client.",
   solution:"SELECT id, nom FROM clients;",
   indice:"Les deux colonnes s’écrivent après <code>SELECT</code>, séparées par une virgule.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'nom',label:'SELECT nom',sql:"SELECT nom, ville\nFROM clients;",out:"Paris n’identifie personne à coup sûr"},
-    {k:'id',label:'SELECT id, nom',sql:"SELECT id, nom\nFROM clients;",out:"id est unique : une ligne, un numéro"}
+    {k:'nom',label:'clients (nom, ville)',sql:"SELECT nom, ville\nFROM clients\nWHERE ville = 'Paris';",out:"Paris renvoie 3 clients : pas d’unicité"},
+    {k:'id',label:'clients (id unique)',sql:"SELECT id, nom, ville\nFROM clients\nWHERE id = 1;",out:"id = 1 cible Sophie avec certitude"},
+    {k:'produits',label:'produits (id unique)',sql:"SELECT id, nom, prix\nFROM produits\nWHERE id = 1;",out:"id = 1 désigne la Fibre Prébiotique"}
   ] },
 { id:35, titre:"Clé étrangère", résumé:"Pointer vers une autre table",
   situation:"Dans la table <code>commandes</code>, <code>client_id</code> vaut 1, 1, 2… Ce n’est pas une quantité : c’est le numéro d’un client.<br><br>Avec ce que tu connais déjà, tu peux lire ces numéros :",
