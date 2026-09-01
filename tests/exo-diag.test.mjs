@@ -12,7 +12,7 @@ import { execSync } from 'child_process';
 import vm from 'vm';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
-const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').replace(/\r\n/g, '\n');
 
 const blockStart = html.indexOf('function normalize');
 const blockEnd = html.indexOf('/* ============================================================\n   6. BARRE DE TOUCHES SQL');
