@@ -59,6 +59,9 @@ assert(account.includes('Profil et préférences') && account.includes('Données
 assert(account.includes('Mode local actif') && account.includes('Connexion optionnelle'), 'stockage local expliqué clairement');
 assert(!account.includes('acc-premium') && !account.includes('4,99 €'), 'fausse offre Premium retirée du parcours de production');
 assert(html.includes("const OB_PROFILE_SLIDES=['name','goal','level','practice','rhythm']") && onboarding.includes("const steps=['account',...OB_PROFILE_SLIDES]"), 'onboarding recentré sur 6 étapes utiles');
+assert(html.includes("const OB_SLIDES = ['welcome','proof','account','name','goal','level','practice','rhythm','ready']"), 'écran de preuve placé après la bienvenue sans allonger le questionnaire');
+assert(onboarding.includes('Monte en niveau,') && onboarding.includes('ob-level-chart') && onboarding.includes('SELECT</span><span>Filtres</span><span>Jointures</span><span>Analyses'), 'progression SQL illustrée par un graphique accessible et des jalons concrets');
+assert(onboarding.includes('<strong>58</strong>') && onboarding.includes('<strong>24</strong>') && onboarding.includes('<strong>10 000+</strong><span>requêtes vérifiées en test'), 'preuves chiffrées reliées au contenu réel et aux tests plutôt qu’à de faux utilisateurs');
 assert(onboarding.includes('Étape ${active+1} sur ${steps.length}') && onboarding.includes('const remaining='), 'étape et durée restante annoncées dynamiquement');
 assert(onboarding.includes('Garde ta progression.') && onboarding.includes('Continuer sans compte'), 'choix du compte clair et mode invité prioritaire');
 assert(onboarding.includes('authReady') && onboarding.includes('<small>Bientôt</small>'), 'fournisseurs indisponibles présentés honnêtement');
@@ -70,7 +73,7 @@ const primaryKeyLesson = html.slice(html.indexOf('{ id:34, titre:"Clé primaire"
 assert(primaryKeyLesson.includes("WHERE nom = 'Nathan';") && primaryKeyLesson.includes('SQL renvoie <b>2 lignes'), 'la leçon Clé primaire exécute et annonce les deux Nathan réels');
 assert(html.includes("(4,'Nathan','Paris'") && html.includes("(10,'Nathan','Paris'"), 'les deux Nathan de Paris existent dans les données SQLite');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-09-01-onboarding-v247'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-09-01-onboarding-v248'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
