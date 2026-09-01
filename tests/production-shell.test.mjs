@@ -67,7 +67,7 @@ assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes(
 const primaryKeyLesson = html.slice(html.indexOf('{ id:34, titre:"Clé primaire"'), html.indexOf('{ id:35, titre:"Clé étrangère"'));
 assert(primaryKeyLesson.includes("WHERE nom = 'Nathan';") && primaryKeyLesson.includes('SQL renvoie <b>2 lignes</b>'), 'la leçon Clé primaire exécute et annonce les deux Nathan réels');
 assert(html.includes("(4,'Nathan','Paris'") && html.includes("(10,'Nathan','Paris'"), 'les deux Nathan de Paris existent dans les données SQLite');
-assert(serviceWorker.includes('requete-2026-09-01-cles-v237'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-09-01-cles-v238'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
