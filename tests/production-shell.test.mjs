@@ -54,6 +54,9 @@ assert(html.includes("switchTab('defis')") && html.includes("switchTab('entretie
 assert(html.includes('function homePathPreviewHTML(') && html.includes('home-path-progress'), 'aperçu compact du parcours présent');
 assert(account.includes('account-identity') && account.includes('Mode sans compte'), 'identité et mode invité sont explicites');
 assert(account.includes('Ma progression') && account.includes('account-stats-grid'), 'progression réelle structurée comme un tableau de bord');
+assert(account.includes('Niveau actuel') && account.includes('account-level-track') && account.includes('Prochain cap'), 'niveau SQL et prochain palier calculés depuis la progression réelle');
+assert(account.includes('Cette semaine') && account.includes('account-week') && account.includes('weekComplete'), 'activité hebdomadaire reliée aux séances du planning');
+assert(account.includes('Accomplissements') && account.includes('account-badges') && account.includes('Première requête'), 'badges pédagogiques débloqués par des actions réelles');
 assert(account.includes('Objectif du jour') && account.includes('account-goal-ring'), 'objectif du jour utilise les données du planning');
 assert(account.includes('Profil et préférences') && account.includes('Données et confidentialité') && account.includes('Aide'), 'réglages essentiels regroupés dans Mon compte');
 assert(account.includes('Mode local actif') && account.includes('Connexion optionnelle'), 'stockage local expliqué clairement');
@@ -73,7 +76,7 @@ const primaryKeyLesson = html.slice(html.indexOf('{ id:34, titre:"Clé primaire"
 assert(primaryKeyLesson.includes("WHERE nom = 'Nathan';") && primaryKeyLesson.includes('SQL renvoie <b>2 lignes'), 'la leçon Clé primaire exécute et annonce les deux Nathan réels');
 assert(html.includes("(4,'Nathan','Paris'") && html.includes("(10,'Nathan','Paris'"), 'les deux Nathan de Paris existent dans les données SQLite');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-09-01-onboarding-v248'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-09-01-account-v249'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
