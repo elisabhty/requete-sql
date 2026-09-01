@@ -58,16 +58,19 @@ assert(account.includes('Objectif du jour') && account.includes('account-goal-ri
 assert(account.includes('Profil et préférences') && account.includes('Données et confidentialité') && account.includes('Aide'), 'réglages essentiels regroupés dans Mon compte');
 assert(account.includes('Mode local actif') && account.includes('Connexion optionnelle'), 'stockage local expliqué clairement');
 assert(!account.includes('acc-premium') && !account.includes('4,99 €'), 'fausse offre Premium retirée du parcours de production');
-assert(onboarding.includes("const steps=['account',...OB_PROFILE_SLIDES]"), 'progression onboarding inclut les 8 étapes réelles');
-assert(onboarding.includes('Étape ${active+1} sur ${steps.length}') && onboarding.includes('≈ 1 min'), 'étape et durée restante annoncées');
+assert(html.includes("const OB_PROFILE_SLIDES=['name','goal','level','practice','rhythm']") && onboarding.includes("const steps=['account',...OB_PROFILE_SLIDES]"), 'onboarding recentré sur 6 étapes utiles');
+assert(onboarding.includes('Étape ${active+1} sur ${steps.length}') && onboarding.includes('const remaining='), 'étape et durée restante annoncées dynamiquement');
 assert(onboarding.includes('Garde ta progression.') && onboarding.includes('Continuer sans compte'), 'choix du compte clair et mode invité prioritaire');
 assert(onboarding.includes('authReady') && onboarding.includes('<small>Bientôt</small>'), 'fournisseurs indisponibles présentés honnêtement');
 assert(onboarding.includes('Mode local et privé') && onboarding.includes('Progression sauvegardée sur cet appareil.'), 'bénéfice du mode local explicité');
+assert(html.includes('function obRunPractice()') && onboarding.includes('Ta première requête.') && html.includes('db.exec("SELECT id, nom, ville FROM clients WHERE ville = \'Paris\' ORDER BY id;")'), 'premier succès SQL exécuté sur la vraie base pendant l’onboarding');
+assert(onboarding.includes('Ta première semaine') && onboarding.includes('Première leçon'), 'écran final enrichi avec un plan de départ concret');
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('.plus-details-body'), 'nouvelles micro-interactions respectent la réduction des mouvements');
 const primaryKeyLesson = html.slice(html.indexOf('{ id:34, titre:"Clé primaire"'), html.indexOf('{ id:35, titre:"Clé étrangère"'));
-assert(primaryKeyLesson.includes("WHERE nom = 'Nathan';") && primaryKeyLesson.includes('SQL renvoie <b>2 lignes</b>'), 'la leçon Clé primaire exécute et annonce les deux Nathan réels');
+assert(primaryKeyLesson.includes("WHERE nom = 'Nathan';") && primaryKeyLesson.includes('SQL renvoie <b>2 lignes'), 'la leçon Clé primaire exécute et annonce les deux Nathan réels');
 assert(html.includes("(4,'Nathan','Paris'") && html.includes("(10,'Nathan','Paris'"), 'les deux Nathan de Paris existent dans les données SQLite');
-assert(serviceWorker.includes('requete-2026-09-01-cles-v244'), 'cache de production renouvelé');
+assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
+assert(serviceWorker.includes('requete-2026-09-01-onboarding-v247'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
