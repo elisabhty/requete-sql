@@ -8117,45 +8117,35 @@ FROM produits;</pre></div>
 { id:34, titre:"Clé primaire", résumé:"Identifier une ligne sans ambiguïté",
   situation:"Un client appelé <b>Nathan</b> téléphone pour modifier son numéro. L’agent cherche sa fiche par nom. Dans notre base, <b>deux clients existent réellement avec le nom Nathan</b> et ils habitent tous les deux à Paris :",
   situationSql:"SELECT id, nom, ville, telephone\nFROM clients\nWHERE nom = 'Nathan';",
-  situationTail:"L’exécution ci-dessus confirme les données présentes dans la base : SQL renvoie <b>2 lignes</b>, Nathan <code>id = 4</code> et Nathan <code>id = 10</code>. Il ne s’agit pas d’un cas hypothétique. Le nom ne suffit pas. La ville non plus : elle vaut Paris dans les deux fiches.<br><br>L’agent demande alors le numéro client indiqué dans l’e-mail de confirmation : <code>4</code>. Avec <code>WHERE id = 4</code>, SQL retrouve <b>une seule fiche</b>. Cette colonne <code>id</code>, conçue pour identifier exactement une ligne, est la <b>clé primaire</b> de la table <code>clients</code>.",
+  situationTail:"SQL renvoie <b>2 lignes</b> : Nathan <code>id = 4</code> et Nathan <code>id = 10</code>. L’agent demande alors le numéro client indiqué dans l’e-mail de confirmation. La réponse, <code>4</code>, permet de cibler la bonne fiche. La colonne <code>id</code> est la <b>clé primaire</b> de <code>clients</code>.",
     studio:{problem:{title:"Même nom, même ville… mais deux personnes différentes.",
-      body:"Notre table <code>clients</code> contient bien deux personnes nommées Nathan à Paris : l’une porte <code>id = 4</code>, l’autre <code>id = 10</code>. Le doublon de nom existe donc déjà dans les données ; ce n’est pas seulement une possibilité.<br><br>Une donnée descriptive comme le nom ou la ville ne constitue pas un identifiant fiable. La <b>clé primaire</b> (<code>PRIMARY KEY</code>) résout ce problème : chaque ligne reçoit un <code>id</code> <b>unique</b> et <b>jamais NULL</b>. Les identifiants 4 et 10 distinguent définitivement les deux Nathan."},
+      body:"Le doublon est bien présent dans les données, ce n’est pas une hypothèse. Le nom et la ville décrivent un client, mais ne garantissent pas son identité. Une <b>clé primaire</b> fournit à chaque ligne un repère <b>unique</b> et <b>jamais NULL</b>."},
     vs:{bad:{tag:"✕ Le nom reste ambigu",sql:"SELECT id, nom, ville FROM clients\nWHERE nom = 'Nathan';",out:"2 fiches : id 4 et id 10 — laquelle modifier ?",
             code:"SELECT id, nom, ville\nFROM clients\nWHERE <span class=\"vs-line bad\">nom = 'Nathan'</span>;"},
         good:{tag:"✓ La clé primaire cible la bonne fiche",sql:"SELECT id, nom, ville FROM clients\nWHERE id = 4;",out:"1 seule fiche : Nathan, id 4, Paris",
             code:"SELECT id, nom, ville\nFROM clients\nWHERE <span class=\"vs-line good\">id = 4</span>;"}},
     why:{title:"Une clé primaire est un repère, pas une description.",
-      body:"Le nom décrit la personne ; l’<code>id</code> identifie sa ligne. Même si Nathan déménage ou change de téléphone, son <code>id = 4</code> reste le même.<br><br>Chaque table possède son propre espace d’identifiants : <code>clients.id = 4</code> désigne Nathan, <code>produits.id = 4</code> désigne la Vitamine D et <code>commandes.id = 4</code> désigne une commande. Il faut donc toujours lire la clé avec le nom de sa table : <code>clients.id</code>, <code>produits.id</code> ou <code>commandes.id</code>."},
+      body:"L’<code>id</code> reste stable si le client déménage ou change de téléphone. Sa valeur n’a de sens qu’avec sa table : <code>clients.id = 4</code> désigne Nathan, tandis que <code>produits.id = 4</code> désigne la Vitamine D."},
     viz:"pk",
-    uses:{title:"De l’homonyme à l’identifiant fiable.",
+    uses:{title:"Déclarer et utiliser la clé.",
       body:`<div class="pt-lead fn-uses">
         <div class="fn-use">
-          <p class="pt-syntax-h">1. Constater l’ambiguïté</p>
-          <p>Filtrer sur <code>nom = 'Nathan'</code> renvoie deux lignes. Ajouter <code>ville = 'Paris'</code> ne change rien : les deux Nathan vivent à Paris. Une colonne descriptive n’est pas forcément unique.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT id, nom, ville
-FROM clients
-WHERE nom = 'Nathan';</pre></div>
-          <p class="fn-tip"><b>Le bon réflexe</b> Avant de modifier une fiche, vérifie que ton critère désigne une seule ligne.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">2. Déclarer la clé primaire</p>
-          <p>La règle est inscrite dès la création de la table :</p>
+          <p class="pt-syntax-h">1. Déclarer la règle</p>
+          <p>La contrainte est définie à la création de la table :</p>
           <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE clients (
   id INTEGER PRIMARY KEY,
   nom TEXT,
   ville TEXT,
   telephone TEXT
 );</pre></div>
-          <p><code>PRIMARY KEY</code> interdit deux lignes portant le même <code>id</code>. Avec <code>INTEGER PRIMARY KEY</code>, SQLite peut aussi attribuer automatiquement un entier à une nouvelle ligne.</p>
+          <p><code>PRIMARY KEY</code> empêche les identifiants en double. Avec <code>INTEGER PRIMARY KEY</code>, SQLite peut générer la prochaine valeur.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">3. Cibler une seule ligne</p>
-          <p>Une fois le numéro client connu, le filtre devient certain :</p>
+          <p class="pt-syntax-h">2. Utiliser le numéro client</p>
           <div class="pt-syntax"><pre class="cw-syntax">SELECT id, nom, telephone
 FROM clients
 WHERE id = 4;</pre></div>
-          <p>Le résultat contient une seule ligne : celle du bon Nathan. L’autre Nathan, <code>id = 10</code>, n’est pas concerné.</p>
-          <p class="fn-tip"><b>À retenir</b> Le nom sert à rechercher ; la clé primaire sert à identifier avec certitude.</p>
+          <p class="fn-tip"><b>Réflexe</b> Pour modifier ou supprimer une fiche précise, filtre sur sa clé plutôt que sur une donnée descriptive.</p>
         </div>
       </div>`},
     reflex:{a:{k:"Nom, ville…",t:"décrivent une personne et peuvent se <b>répéter</b>"},
@@ -8163,8 +8153,8 @@ WHERE id = 4;</pre></div>
   anatomie:[{tok:"SELECT id, nom, ville",txt:"Affiche les informations utiles pour distinguer les fiches."},{tok:"FROM clients",txt:"La recherche porte sur la table des clients."},{tok:"WHERE id = 4",txt:"Utilise la clé primaire : une seule ligne peut posséder cet identifiant."}],
   exemple:"SELECT id, nom, ville FROM clients WHERE id = 4;",
   attendu:"<b>1 ligne</b> : Nathan, <code>id = 4</code>, Paris. Nathan <code>id = 10</code> ne correspond pas au filtre.",
-  retenir:"Une <b>clé primaire</b> identifie une ligne sans ambiguïté. Elle est <b>unique</b> et ne peut pas être <code>NULL</code>.<br><br>Dans <code>clients</code>, le nom Nathan apparaît deux fois, mais les identifiants 4 et 10 ne se répètent pas. Une information descriptive dit <i>qui semble être la personne</i> ; la clé primaire dit <i>quelle ligne précise est visée</i>.",
-  piege:{t:"Prendre une information métier pour un identifiant",p:"Nom, ville, téléphone ou e-mail peuvent être partagés, corrigés ou remplacés. Ici, <code>nom = 'Nathan'</code> et même <code>nom = 'Nathan' AND ville = 'Paris'</code> renvoient deux fiches. Pour cibler le bon Nathan, utilise <code>clients.id = 4</code>."},
+  retenir:"Une <b>clé primaire</b> est une valeur unique et non nulle qui identifie exactement une ligne.",
+  piege:{t:"Identifier une fiche avec une valeur modifiable",p:"Un téléphone ou un e-mail peut changer. L’<code>id</code>, lui, reste le repère technique stable de la ligne."},
   consigne:"Retrouve uniquement la fiche de Nathan dont le numéro client est <code>4</code>. Affiche son <code>id</code>, son <code>nom</code>, sa <code>ville</code> et son <code>telephone</code>.",
   solution:"SELECT id, nom, ville, telephone FROM clients WHERE id = 4;",
   indice:"Le numéro client correspond à la clé primaire <code>id</code>. Ajoute le filtre <code>WHERE id = 4</code>.",
@@ -8175,27 +8165,26 @@ WHERE id = 4;</pre></div>
     {k:'id',label:'Clé primaire',sql:"SELECT id, nom, ville, telephone\nFROM clients\nWHERE id = 4;",out:"1 ligne : le bon Nathan, sans ambiguïté",tone:'good'}
   ] },
 { id:35, titre:"Clé étrangère", résumé:"Relier une ligne à la bonne personne",
-  situation:"La bonne fiche est maintenant identifiée : <b>Nathan n°4</b>. Le service veut afficher ses commandes sans les confondre avec celles de Nathan n°10. Dans la table <code>commandes</code>, le nom du client n’est pas recopié : chaque achat conserve seulement son identifiant dans <code>client_id</code>.",
+  situation:"La bonne fiche est maintenant identifiée : <b>Nathan n°4</b>. Pour retrouver ses achats, la table <code>commandes</code> conserve son identifiant dans <code>client_id</code> plutôt que de recopier son nom.",
   situationSql:"SELECT id, client_id, produit_id, quantite\nFROM commandes\nWHERE client_id = 4;",
-  situationTail:"Le résultat contient les commandes <code>id = 5</code> et <code>id = 12</code>. Sur chacune, <code>client_id = 4</code> renvoie vers <code>clients.id = 4</code> : Nathan n°4.<br><br><code>commandes.client_id</code> est donc une <b>clé étrangère</b>. Elle mémorise la clé primaire d’une ligne située dans une autre table. Nathan n°10 possède <code>clients.id = 10</code> ; aucune commande ne porte encore <code>client_id = 10</code>.",
+  situationTail:"Les commandes n°5 et n°12 portent toutes deux <code>client_id = 4</code>. Cette <b>clé étrangère</b> pointe vers <code>clients.id = 4</code>, donc vers Nathan n°4. Nathan n°10 n’a encore aucune commande.",
     studio:{problem:{title:"La clé étrangère conserve le lien entre les tables.",
-      body:"La table <code>clients</code> décrit les personnes. La table <code>commandes</code> décrit les achats. Pour savoir à qui appartient une commande, on ne recopie ni le nom ni la ville : on stocke la clé primaire du client dans <code>commandes.client_id</code>.<br><br>Ainsi, <code>client_id = 4</code> pointe toujours vers Nathan n°4, même si son nom ou son téléphone change. Plusieurs commandes peuvent porter la même valeur 4 : une clé étrangère <b>peut se répéter</b>."},
+      body:"Une commande et un client sont deux lignes de tables différentes. <code>commandes.client_id</code> stocke la clé du client associé. Contrairement à une clé primaire, une clé étrangère <b>peut se répéter</b>."},
     vs:{bad:{tag:"✕ Relier avec le nom",sql:"SELECT id, nom FROM commandes;",err:"commandes ne contient pas la colonne nom",
             code:"SELECT id, <span class=\"vs-line bad\">nom</span>\nFROM commandes;"},
         good:{tag:"✓ Suivre la clé étrangère",sql:"SELECT id, client_id FROM commandes\nWHERE client_id = 4;",out:"2 commandes : #5 et #12, toutes deux reliées à Nathan n°4",
             code:"SELECT id, client_id\nFROM commandes\nWHERE <span class=\"vs-line good\">client_id = 4</span>;"}},
     why:{title:"Primaire d’un côté, étrangère de l’autre.",
-      body:"Dans <code>clients</code>, <code>id = 4</code> n’existe qu’une fois : c’est la <b>clé primaire</b> de Nathan n°4.<br><br>Dans <code>commandes</code>, <code>client_id = 4</code> apparaît deux fois : c’est une <b>clé étrangère</b> sur les commandes n°5 et n°12. Les deux lignes pointent vers le même client.<br><br>On obtient une relation <b>1 vers plusieurs</b> : un client peut être lié à zéro, une ou plusieurs commandes ; chaque commande est liée à au plus un client."},
+      body:"On obtient une relation <b>1 vers plusieurs</b> : un client peut avoir zéro, une ou plusieurs commandes ; une commande ne référence au plus qu’un client."},
     viz:"fk",
     uses:{title:"Construire un lien fiable entre clients et commandes.",
       body:`<div class="pt-lead fn-uses">
         <div class="fn-use">
-          <p class="pt-syntax-h">1. Lire le sens de la colonne</p>
-          <p><code>commandes.id</code> identifie la commande elle-même. <code>commandes.client_id</code> identifie le client auquel elle appartient. Le suffixe <code>_id</code> indique généralement la table visée.</p>
+          <p class="pt-syntax-h">1. Ne pas confondre les identifiants</p>
+          <p><code>commandes.id</code> identifie l’achat ; <code>commandes.client_id</code> indique son propriétaire.</p>
           <div class="pt-syntax"><pre class="cw-syntax">commande #5  : client_id = 4
 commande #12 : client_id = 4
 client #4    : Nathan</pre></div>
-          <p>Deux commandes différentes peuvent donc pointer vers une seule fiche client.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">2. Déclarer la relation</p>
@@ -8206,14 +8195,14 @@ client #4    : Nathan</pre></div>
   FOREIGN KEY (client_id)
     REFERENCES clients(id)
 );</pre></div>
-          <p>La règle se lit : chaque valeur de <code>commandes.client_id</code> doit correspondre à une valeur existante de <code>clients.id</code>.</p>
+          <p>Une valeur non nulle de <code>client_id</code> doit alors exister dans <code>clients.id</code>.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">3. Faire respecter la relation dans SQLite</p>
           <p>SQLite doit activer le contrôle des clés étrangères à chaque connexion :</p>
           <div class="pt-syntax"><pre class="cw-syntax">PRAGMA foreign_keys = ON;</pre></div>
-          <p>Une commande avec <code>client_id = 999</code> est alors refusée, car aucun client 999 n’existe. <code>client_id = NULL</code> reste possible si la colonne autorise les achats invités, comme la commande n°16 de notre base.</p>
-          <p class="fn-tip"><b>Ici, c’est déjà actif</b> Les exercices appliquent cette vérification à l’ouverture de la base.</p>
+          <p><code>client_id = 999</code> est alors refusé. <code>NULL</code> reste permis pour un achat invité si la colonne l’autorise.</p>
+          <p class="fn-tip"><b>Dans les exercices</b> Ce contrôle est déjà actif.</p>
         </div>
       </div>`},
     reflex:{a:{k:"PRIMARY KEY",t:"<code>clients.id = 4</code> : <b>une seule ligne</b> Nathan"},
@@ -8221,7 +8210,7 @@ client #4    : Nathan</pre></div>
   anatomie:[{tok:"SELECT id, client_id, produit_id, quantite",txt:"Affiche chaque commande et les identifiants qu’elle référence."},{tok:"FROM commandes",txt:"Les lignes étudiées sont les achats."},{tok:"WHERE client_id = 4",txt:"Garde les commandes dont la clé étrangère pointe vers Nathan n°4."}],
   exemple:"SELECT id, client_id, produit_id, quantite FROM commandes WHERE client_id = 4;",
   attendu:"<b>2 lignes</b> : commandes n°5 et n°12. Leur <code>client_id = 4</code> pointe vers Nathan n°4 ; aucune commande ne pointe vers Nathan n°10.",
-  retenir:"Une <b>clé étrangère</b> stocke la clé primaire d’une ligne située dans une autre table. Ici, <code>commandes.client_id</code> référence <code>clients.id</code>.<br><br>La clé primaire est unique dans sa table. La clé étrangère peut se répéter : les commandes 5 et 12 portent toutes deux <code>client_id = 4</code>, car elles appartiennent au même Nathan. Dans SQLite, <code>PRAGMA foreign_keys = ON</code> active la vérification de cette relation.",
+  retenir:"Une <b>clé étrangère</b> référence la clé primaire d’une autre table. Elle crée le lien sans dupliquer les informations du client.",
   piege:{t:"Confondre commandes.id et commandes.client_id",p:"<code>commandes.id = 5</code> signifie « commande n°5 ». <code>commandes.client_id = 4</code> signifie « cette commande appartient au client n°4 ». Les deux colonnes contiennent des identifiants, mais elles n’identifient pas la même chose.",
     sql:"SELECT id, client_id FROM commandes WHERE client_id = 4;"},
   consigne:"Affiche les commandes de Nathan n°4 : leur <code>id</code>, leur <code>client_id</code>, leur <code>produit_id</code> et leur <code>quantite</code>.",
@@ -12522,7 +12511,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-09-01-cles-v237';
+const APP_VERSION='2026-09-01-cles-v238';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
