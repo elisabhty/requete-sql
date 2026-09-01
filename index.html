@@ -8109,9 +8109,9 @@ FROM produits;</pre></div>
 ]},
 { titre:"Clés et relations", sous:"Identifier une ligne, relier deux tables", lessons:[
 { id:34, titre:"Clé primaire", résumé:"Identifier une ligne",
-  situation:"Dans la table <code>clients</code>, Sophie, Nathan et Léa habitent tous les trois à Paris. Si tu cherches un client par sa ville, SQL renvoie plusieurs personnes sans pouvoir en isoler une seule.<br><br>Avec ce que tu connais déjà, tu peux lister les noms et les villes :",
-  situationSql:"SELECT nom, ville\nFROM clients;",
-  situationTail:"Paris apparaît 3 fois. Pour désigner <b>une ligne précise et une seule</b> sans ambiguïté, chaque table possède une colonne unique : la clé primaire <code>id</code>.",
+  situation:"Le service client doit retrouver la fiche de <b>Nathan</b> pour modifier son numéro de téléphone. Il sait qu’il habite à Paris et commence donc par chercher tous les clients de cette ville :",
+  situationSql:"SELECT id, nom, ville\nFROM clients\nWHERE ville = 'Paris';",
+  situationTail:"La requête renvoie <b>3 lignes</b> : Sophie (<code>id = 1</code>), Nathan (<code>id = 4</code>) et Léa (<code>id = 7</code>). La ville ne permet donc pas de cibler Nathan.<br><br>Son nom ne constitue pas non plus un repère fiable : deux clients pourraient s’appeler Nathan, ou son nom pourrait être corrigé. En revanche, son <code>id = 4</code> appartient à lui seul et reste le même. Cette colonne qui identifie <b>une ligne et une seule</b> est la <b>clé primaire</b> : <code>WHERE id = 4</code> retrouve Nathan sans ambiguïté.",
     studio:{problem:{title:"La clé primaire identifie chaque ligne, sans doublon.",
       body:"Chaque table de notre base (<code>clients</code>, <code>produits</code>, <code>commandes</code>) stocke des enregistrements distincts. Pour identifier chaque client, produit ou commande sans aucune ambiguïté, on définit une <b>clé primaire</b> (<code>PRIMARY KEY</code>).<br><br>Dans notre table <code>clients</code>, la colonne <code>id</code> est la clé primaire : elle est garantie <b>unique</b> pour chaque personne et <b>jamais nulle</b>. Même si deux clients avaient le même nom et la même ville, leur <code>id</code> permettrait de les distinguer à coup sûr."},
     vs:{bad:{tag:"✕ Filtrer par la ville",sql:"SELECT nom FROM clients\nWHERE ville = 'Paris';",out:"3 lignes : Sophie, Nathan, Léa — impossible d’isoler une personne",
