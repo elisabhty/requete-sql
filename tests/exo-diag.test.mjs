@@ -41,7 +41,7 @@ vm.runInContext(
   ctx
 );
 
-const { exoFailDiag, errBox, normalize, fmtLignes } = ctx;
+const { exoFailDiag, errBox, normalize, fmtLignes, normalizeState } = ctx;
 const mock = (cols, rows) => [{ columns: cols, values: rows }];
 
 let passed = 0;
@@ -56,6 +56,35 @@ function assert(cond, name, detail = '') {
     console.log(`  ✗ ${name}${detail ? `\n    → ${detail}` : ''}`);
   }
 }
+
+console.log('\n=== normalizeState ===');
+assert(typeof normalizeState === 'function', 'normalizeState est exposée');
+const repaired = normalizeState({
+  lessons: {
+    1: { done: 'oui', level: 9, due: 'abc', lastSeen: 'x' },
+    2: { done: false, level: -2, due: 123, lastSeen: 456 },
+    3: 'bad'
+  },
+  defis: 'oops',
+  notes: 'nope',
+  plan: 'bad-plan',
+  onboarded: 'yes',
+  name: 42,
+  profile: 'x',
+  accountMode: undefined,
+  entretien: null
+});
+assert(repaired.lessons[1].done === true, 'les valeurs booléennes sont corrigées');
+assert(repaired.lessons[1].level === 4, 'niveau trop élevé clampé');
+assert(repaired.lessons[2].due === 123, 'due numérique conservée');
+assert(repaired.lessons[2].level === 0, 'niveau négatif clampé');
+assert(repaired.defis && typeof repaired.defis === 'object', 'defis normalisé en objet');
+assert(Array.isArray(repaired.notes), 'notes normalisées en tableau');
+assert(repaired.plan === null, 'plan incompatible remis à null');
+assert(repaired.onboarded === true, 'onboarded booléen');
+assert(typeof repaired.name === 'string', 'name string');
+assert(repaired.profile && typeof repaired.profile === 'object', 'profile objet');
+assert(repaired.entretien && typeof repaired.entretien === 'object', 'entretien objet');
 
 function assertIncludes(msg, needle, name) {
   const dec = msg.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');

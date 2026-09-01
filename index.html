@@ -12863,7 +12863,7 @@ const Store={
 let state={lessons:{},defis:{},notes:[],plan:null,onboarded:false,name:'',profile:{},accountMode:null,entretien:{}};
 const INTERVALS=[1,3,7,21,60];
 const DAY=86400000;
-function save(){ Store.set(KEY,state); }
+function save(){ state=normalizeState(state); Store.set(KEY,state); }
 async function wipeStorageIfUpdated(){
   const force=/#fresh\b|\bfresh=1\b/.test(location.href);
   let prev=null;
@@ -12999,7 +12999,8 @@ async function boot(){
   }catch(e){ bootFatal(); return; }
   try{
     await wipeStorageIfUpdated();
-    const saved=await Store.get(KEY); if(saved&&saved.lessons) state=saved;
+    const saved=await Store.get(KEY);
+    state=normalizeState(saved||state);
     if(state.onboarded==null) state.onboarded=false;
     if(state.name==null) state.name='';
     if(!state.profile||typeof state.profile!=='object') state.profile={};
@@ -14395,6 +14396,39 @@ function runConsole(){
   };
   if(prefersReduceMotion())finish();
   else setTimeout(finish,380);
+}
+function normalizeState(raw){
+  const source=raw&&typeof raw==='object'&&!Array.isArray(raw)?raw:{};
+  const lessonsSource=source.lessons&&typeof source.lessons==='object'&&!Array.isArray(source.lessons)?source.lessons:{};
+  const lessonIds=typeof allLessons!=='undefined'&&Array.isArray(allLessons)
+    ? allLessons.map(l=>l.id)
+    : Object.keys(lessonsSource);
+  const lessons={};
+  const normalizeEntry=(entrySource)=>{
+    const entry={done:false,level:0,due:null,lastSeen:null};
+    if(entrySource&&typeof entrySource==='object'&&!Array.isArray(entrySource)){
+      const doneVal=entrySource.done;
+      entry.done=doneVal===true||doneVal===1||doneVal==='true'||doneVal==='1'||doneVal==='oui'||doneVal==='yes';
+      const levelVal=Number(entrySource.level);
+      if(Number.isFinite(levelVal)) entry.level=Math.max(0,Math.min(4,Math.floor(levelVal)));
+      const dueVal=Number(entrySource.due);
+      if(Number.isFinite(dueVal)) entry.due=dueVal;
+      const lastSeenVal=Number(entrySource.lastSeen);
+      if(Number.isFinite(lastSeenVal)) entry.lastSeen=lastSeenVal;
+    }
+    return entry;
+  };
+  lessonIds.forEach(id=>{ lessons[id]=normalizeEntry(lessonsSource[id]); });
+  Object.keys(lessonsSource).forEach(id=>{ if(!Object.prototype.hasOwnProperty.call(lessons,id)) lessons[id]=normalizeEntry(lessonsSource[id]); });
+  const defis=source.defis&&typeof source.defis==='object'&&!Array.isArray(source.defis)?source.defis:{};
+  const notes=Array.isArray(source.notes)?source.notes:[];
+  const plan=source.plan&&typeof source.plan==='object'&&!Array.isArray(source.plan)?source.plan:null;
+  const onboarded=!!source.onboarded;
+  const name=typeof source.name==='string'?source.name:'';
+  const profile=source.profile&&typeof source.profile==='object'&&!Array.isArray(source.profile)?source.profile:{};
+  const accountMode=typeof source.accountMode==='string'?source.accountMode:null;
+  const entretien=source.entretien&&typeof source.entretien==='object'&&!Array.isArray(source.entretien)?source.entretien:{};
+  return {lessons,defis,notes,plan,onboarded,name,profile,accountMode,entretien};
 }
 function normalize(result,ordered){
   if(!result||result.length===0)return "∅";
