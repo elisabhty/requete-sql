@@ -34,8 +34,8 @@ assert(source.includes('subq-in-stage'), 'la scène reprend la structure visuell
 assert(source.includes('Fibre Prébiotique'), 'le produit Fibre Prébiotique reste nommé en entier');
 assert(!source.includes('NULL'), 'le piège NULL n’entre pas dans l’animation');
 assert(source.includes("joinMore(12,'commandes')"), 'les commandes non affichées sont signalées par une ellipse');
-assert(source.includes("joinMore(3,'clients')"), 'les clients non affichés sont signalés par une ellipse');
-assert(html.includes("subquery_notin:'Résultat final · 1 client'"), 'le résultat final annonce son cardinal');
+assert(source.includes("joinMore(2,'clients')"), 'les clients non affichés sont signalés par une ellipse');
+assert(html.includes("subquery_notin:'Résultat final · 2 clients'"), 'le résultat final annonce son cardinal');
 assert(html.includes("root.dataset.viz!=='subquery_notin'"), 'les étapes masquées sont retirées de la navigation clavier');
 
 console.log('\n=== Résultats SQL sous-requête NOT IN ===');
@@ -65,7 +65,7 @@ const sql = spawnSync('python3', ['-c', py], { input: schema, encoding: 'utf8' }
 assert(sql.status === 0, 'requête exécutable sur la base du cours');
 const result = sql.status === 0 ? JSON.parse(sql.stdout) : {};
 assert(JSON.stringify(result.ids) === JSON.stringify([1, 2, 3, 4, 5, 6, 7, 8]), 'la sous-requête produit 1 à 8');
-assert(JSON.stringify(result.names) === JSON.stringify(['Inès']), 'NOT IN retourne uniquement Inès');
+assert(JSON.stringify(result.names) === JSON.stringify(['Inès', 'Nathan']), 'NOT IN retourne Inès et Nathan n°10');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);

@@ -2064,7 +2064,7 @@
   .sql-viz[data-viz="pk"][data-phase="1"] .er-badge,
   .sql-viz[data-viz="pk"][data-phase="2"] .er-badge{opacity:1;transform:none}
   .sql-viz[data-viz="pk"][data-phase="2"] .er-pk-row span[data-dup="1"]{color:var(--warn)}
-  .sql-viz[data-viz="pk"][data-phase="2"] .er-pk-row span[data-dup="1"]::after{content:' ×3';font-size:9px;font-weight:800;letter-spacing:.2px;opacity:.75}
+  .sql-viz[data-viz="pk"][data-phase="2"] .er-pk-row span[data-dup="1"]::after{content:' ×4';font-size:9px;font-weight:800;letter-spacing:.2px;opacity:.75}
   .er-pk-row[data-er-on="1"]{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
   /* Clé primaire : rendre visible le raisonnement « valeur répétée → id unique → ligne ciblée ». */
   .pk-lab{display:grid;gap:12px}
@@ -2092,10 +2092,15 @@
   .sql-viz[data-viz="pk"][data-phase="2"] .pk-id::before,
   .sql-viz[data-viz="pk"][data-phase="3"] .pk-id::before{content:'◆';opacity:1;transform:none}
   .sql-viz[data-viz="pk"][data-phase="0"] .pk-city[data-dup="1"]{color:var(--warn);font-weight:800}
-  .sql-viz[data-viz="pk"][data-phase="0"] .pk-city[data-dup="1"]::after{content:' ×3';font-size:9px;opacity:.8}
+  .sql-viz[data-viz="pk"][data-phase="0"] .pk-city[data-dup="1"]::after{content:' ×4';font-size:9px;opacity:.8}
+  .sql-viz[data-viz="pk"][data-phase="0"] .pk-name[data-dup-name="1"]{color:var(--warn);font-weight:850}
+  .sql-viz[data-viz="pk"][data-phase="0"] .pk-name[data-dup-name="1"]::after{content:' ×2';font-size:9px;opacity:.8}
   .sql-viz[data-viz="pk"][data-phase="1"] .pk-city[data-dup="1"]::after,
   .sql-viz[data-viz="pk"][data-phase="2"] .pk-city[data-dup="1"]::after,
   .sql-viz[data-viz="pk"][data-phase="3"] .pk-city[data-dup="1"]::after{content:none}
+  .sql-viz[data-viz="pk"][data-phase="1"] .pk-name[data-dup-name="1"]::after,
+  .sql-viz[data-viz="pk"][data-phase="2"] .pk-name[data-dup-name="1"]::after,
+  .sql-viz[data-viz="pk"][data-phase="3"] .pk-name[data-dup-name="1"]::after{content:none}
   .sql-viz[data-viz="pk"][data-phase="2"] .pk-city[data-dup="1"]{color:var(--ink)}
   .pk-lab .er-pk-row:disabled{cursor:default;color:inherit}
   .sql-viz[data-viz="pk"][data-phase="2"] .er-pk-row:not([data-er-on="1"]){opacity:.42}
@@ -6450,7 +6455,8 @@ INSERT INTO clients VALUES
  (6,'Hugo','Lyon',52,NULL,'06 39 98 68 03','2022-09-30'),
  (7,'Léa','Paris',38,'lea@mail.fr','06 39 98 74 29','2023-05-12'),
  (8,'Gabriel','Toulouse',29,'gabriel@mail.fr','06 39 98 85 16','2023-04-08'),
- (9,'Inès','Nantes',41,NULL,'06 39 98 97 50','2023-07-26');
+ (9,'Inès','Nantes',41,NULL,'06 39 98 97 50','2023-07-26'),
+ (10,'Nathan','Paris',30,'nathan.dupont@mail.fr','06 39 98 10 26','2023-08-03');
 INSERT INTO produits VALUES
  (1,'Fibre Prébiotique','Bien-être',29.90,120),(2,'Collagène Marin','Beauté',39.90,80),
  (3,'Magnésium','Bien-être',19.90,200),(4,'Vitamine D','Nutrition',14.90,150),
@@ -6465,7 +6471,7 @@ INSERT INTO commandes VALUES
  (16,NULL,4,1,'2023-08-03');
 `;
 const SCHEMA_META=[
- {table:"clients",n:9,cols:[{c:"id",t:"INTEGER",b:"pk"},{c:"nom",t:"TEXT"},{c:"ville",t:"TEXT"},{c:"age",t:"INTEGER"},{c:"email",t:"TEXT"},{c:"telephone",t:"TEXT"},{c:"date_inscription",t:"TEXT"}]},
+ {table:"clients",n:10,cols:[{c:"id",t:"INTEGER",b:"pk"},{c:"nom",t:"TEXT"},{c:"ville",t:"TEXT"},{c:"age",t:"INTEGER"},{c:"email",t:"TEXT"},{c:"telephone",t:"TEXT"},{c:"date_inscription",t:"TEXT"}]},
  {table:"produits",n:8,cols:[{c:"id",t:"INTEGER",b:"pk"},{c:"nom",t:"TEXT"},{c:"categorie",t:"TEXT"},{c:"prix",t:"REAL"},{c:"stock",t:"INTEGER"}]},
  {table:"commandes",n:16,cols:[{c:"id",t:"INTEGER",b:"pk"},{c:"client_id",t:"INTEGER",b:"fk"},{c:"produit_id",t:"INTEGER",b:"fk"},{c:"quantite",t:"INTEGER"},{c:"date_commande",t:"TEXT"}]}];
 
@@ -6553,7 +6559,7 @@ const MODULES = [
         <div class="fn-use">
           <p class="pt-syntax-h">La ligne : un élément enregistré</p>
           <p>Une ligne rassemble une valeur pour chaque colonne. La première ligne de <code>clients</code> décrit Sophie, 34 ans, à Paris, inscrite le 15 janvier 2023.</p>
-          <p>Une table peut contenir zéro, une ou des milliers de lignes. Ici, elle en contient neuf.</p>
+          <p>Une table peut contenir zéro, une ou des milliers de lignes. Ici, elle en contient dix.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Pourquoi trois tables, et pas une</p>
@@ -6609,7 +6615,7 @@ const MODULES = [
     {tok:";",punc:1,txt:"Termine la requête."}
   ],
   exemple:"SELECT * FROM clients;",
-  attendu:"<b>9 lignes</b> et 7 colonnes : une ligne par client, chaque colonne décrivant une caractéristique.",
+  attendu:"<b>10 lignes</b> et 7 colonnes : une ligne par client, chaque colonne décrivant une caractéristique.",
   retenir:"Une <b>base relationnelle</b> range l’information en <b>tables</b>. Une table décrit un type d’information : ses <b>colonnes</b> sont les caractéristiques, ses <b>lignes</b> les éléments enregistrés.<br><br>Chaque colonne a un <b>type</b>, et une table peut en désigner une autre par une <b>clé étrangère</b> — <code>commandes.client_id</code> renvoie à <code>clients.id</code>.<br><br>Le vocabulaire formel dit relation, attribut et tuple. Un <code>SELECT</code> lit : il ne modifie rien.",
   piege:{t:"Croire que « relationnel » désigne un lien entre les lignes",
     p:"Le mot ne parle pas des lignes d’une même table, mais des <b>tables entre elles</b>.<br><br>Dans cette base, <code>commandes</code> désigne <code>clients</code> par la colonne <code>client_id</code>. C’est cette mise en relation des tables qui donne son nom au modèle."},
@@ -6619,12 +6625,12 @@ const MODULES = [
     a:"tuple",
     answers:["tuple","un tuple","Tuple","enregistrement"]
   }],
-  consigne:"Ouvre la table <code>clients</code> en affichant <b>toutes</b> ses colonnes, pour voir de tes yeux ses neuf lignes et ses sept caractéristiques.",
+  consigne:"Ouvre la table <code>clients</code> en affichant <b>toutes</b> ses colonnes, pour voir de tes yeux ses dix lignes et ses sept caractéristiques.",
   solution:"SELECT * FROM clients;",
   indice:"<code>SELECT * FROM clients;</code> — l’étoile signifie « toutes les colonnes ».",
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'cli',label:'clients',sql:"SELECT * FROM clients;",out:"Neuf lignes, sept colonnes : un client par ligne."},
+    {k:'cli',label:'clients',sql:"SELECT * FROM clients;",out:"Dix lignes, sept colonnes : un client par ligne."},
     {k:'prd',label:'produits',sql:"SELECT * FROM produits;",out:"Huit lignes. Un autre sujet, donc une autre table."},
     {k:'cmd',label:'commandes',sql:"SELECT * FROM commandes;",out:"Seize lignes — et aucun nom : seulement des client_id et des produit_id."}
   ] }
@@ -6658,23 +6664,23 @@ const MODULES = [
 { id:1, titre:"SELECT", résumé:"Choisir les colonnes du résultat",
   situation:"La table clients contient 9 personnes avec plusieurs informations : nom, ville, âge, email, téléphone… Tu prépares un listing d’appel. Pour chaque client, seules deux informations sont utiles : son nom et son numéro de téléphone.<br><br>Avec ce que tu connais déjà, tu pourrais afficher toute la table :",
   situationSql:"SELECT *\nFROM clients;",
-  situationTail:"Ça affiche les 9 clients avec toutes leurs colonnes. Pour le listing d’appel, seules deux colonnes sont utiles : il faut choisir ce que tu affiches.",
+  situationTail:"Ça affiche les 10 clients avec toutes leurs colonnes. Pour le listing d’appel, seules deux colonnes sont utiles : il faut choisir ce que tu affiches.",
     studio:{problem:{title:"SELECT choisit les colonnes du résultat.",
-      body:"Une table peut contenir beaucoup d’informations sans qu’elles soient toutes utiles à chaque requête. Ici, le listing d’appel a besoin de deux colonnes : <code>nom</code> et <code>telephone</code>. Elles s’écrivent après <code>SELECT</code>, séparées par une virgule : <code>SELECT nom, telephone</code>. Les 9 clients restent présents. Seules les informations affichées changent."},
+      body:"Une table peut contenir beaucoup d’informations sans qu’elles soient toutes utiles à chaque requête. Ici, le listing d’appel a besoin de deux colonnes : <code>nom</code> et <code>telephone</code>. Elles s’écrivent après <code>SELECT</code>, séparées par une virgule : <code>SELECT nom, telephone</code>. Les 10 clients restent présents. Seules les informations affichées changent."},
     vs:{bad:{tag:"✕ Toutes les colonnes",sql:"SELECT *\nFROM clients;",
             code:"SELECT <span class=\"vs-line bad\">*</span>\nFROM clients;"},
         good:{tag:"✓ Les colonnes utiles",sql:"SELECT nom, telephone\nFROM clients;",
             code:"SELECT <span class=\"vs-line good\">nom, telephone</span>\nFROM clients;"}},
-    point:"Avec <code>SELECT *</code>, le résultat contient toutes les colonnes de la table clients : nom, ville, âge, email, téléphone…<br><br>Avec <code>SELECT nom, telephone</code>, il ne contient que les <b>2 colonnes utiles</b>. Les 9 lignes sont toujours là : <code>SELECT</code> agit sur la <b>largeur du résultat</b>, pas sur le nombre de personnes.",
+    point:"Avec <code>SELECT *</code>, le résultat contient toutes les colonnes de la table clients : nom, ville, âge, email, téléphone…<br><br>Avec <code>SELECT nom, telephone</code>, il ne contient que les <b>2 colonnes utiles</b>. Les 10 lignes sont toujours là : <code>SELECT</code> agit sur la <b>largeur du résultat</b>, pas sur le nombre de personnes.",
     why:{title:"Suis ce qui arrive aux données.",
-      body:"<code>FROM clients</code> part de la table clients : <b>9 lignes</b> avec toutes leurs informations.<br><br><code>SELECT nom, telephone</code> ne conserve ensuite que ces deux colonnes dans le résultat.<br><br>On obtient donc un tableau de <b>9 lignes × 2 colonnes</b>. Les autres colonnes ne sont pas supprimées de la table : elles n’apparaissent simplement pas dans ce résultat."},
+      body:"<code>FROM clients</code> part de la table clients : <b>10 lignes</b> avec toutes leurs informations.<br><br><code>SELECT nom, telephone</code> ne conserve ensuite que ces deux colonnes dans le résultat.<br><br>On obtient donc un tableau de <b>10 lignes × 2 colonnes</b>. Les autres colonnes ne sont pas supprimées de la table : elles n’apparaissent simplement pas dans ce résultat."},
     viz:"select",
     reflex:{a:{k:"SELECT",t:"place après <code>SELECT</code> les colonnes que tu veux afficher"},
       b:{k:",",t:"sépare chaque colonne par une virgule"},
       note:"Une colonne : <code>SELECT nom</code><br>Plusieurs colonnes : <code>SELECT nom, telephone</code>"}},
   anatomie:[{tok:"SELECT",txt:"Définit les colonnes qui apparaîtront dans le résultat."},{tok:"nom, telephone",plain:1,txt:"Les deux colonnes retenues. La virgule les sépare."},{tok:"FROM",txt:"Introduit la table utilisée par la requête."},{tok:"clients",plain:1,txt:"La table clients : les données des 9 personnes."}],
   exemple:"SELECT nom, telephone FROM clients;",
-  attendu:"Un résultat de <b>9 lignes</b> et <b>2 colonnes</b> : <code>nom</code> et <code>telephone</code>. Chaque client apparaît avec uniquement les informations utiles au listing d’appel.",
+  attendu:"Un résultat de <b>10 lignes</b> et <b>2 colonnes</b> : <code>nom</code> et <code>telephone</code>. Chaque client apparaît avec uniquement les informations utiles au listing d’appel.",
   retenir:"<code>SELECT</code> choisit les <b>colonnes</b> du résultat. Une colonne : <code>SELECT nom</code>. Plusieurs : <code>SELECT nom, telephone</code>, séparées par une virgule. Les lignes restent.",
   piege:{t:"Oublier la virgule entre les colonnes",p:"Les colonnes placées après <code>SELECT</code> forment une liste. Pour en afficher plusieurs, sépare-les par une virgule : <code>SELECT nom, telephone FROM clients;</code>."},
   consigne:"Prépare le listing d’appel : affiche le <code>nom</code> et le <code>telephone</code> de chaque client.",
@@ -6682,14 +6688,14 @@ const MODULES = [
   indice:"Place les deux colonnes après <code>SELECT</code> et sépare-les par une virgule : <code>nom, telephone</code>.",
   richLesson:true, earlyDemo:true },
 { id:4, titre:"WHERE", résumé:"Filtrer les lignes",
-  situation:"La boutique de Paris doit contacter ses clients locaux. Dans la table clients, 9 personnes sont enregistrées, mais tu veux afficher uniquement celles qui habitent à Paris.<br><br>Avec ce que tu connais déjà, tu peux choisir les colonnes à afficher :",
+  situation:"L’e-commerce de Paris doit contacter ses clients locaux. Dans la table clients, 10 personnes sont enregistrées, mais tu veux afficher uniquement celles qui habitent à Paris.<br><br>Avec ce que tu connais déjà, tu peux choisir les colonnes à afficher :",
   situationSql:"SELECT nom, ville\nFROM clients;",
-  situationTail:"Tu obtiens bien le nom et la ville des 9 clients. Cette fois, le but n’est plus de choisir les colonnes, mais de choisir quelles lignes restent affichées : il faut la clause <code>WHERE</code>.",
+  situationTail:"Tu obtiens bien le nom et la ville des 10 clients. Cette fois, le but n’est plus de choisir les colonnes, mais de choisir quelles lignes restent affichées : il faut la clause <code>WHERE</code>.",
     studio:{problem:{title:"WHERE filtre les lignes selon une condition.",
-      body:"Sans <code>WHERE</code>, la requête affiche toutes les lignes de la table clients. Avec <code>WHERE ville = 'Paris'</code>, chaque ligne est vérifiée. Si la valeur de <code>ville</code> est <code>'Paris'</code>, la ligne reste dans le résultat. Sinon, elle n’apparaît pas. Dans la table clients, Sophie, Nathan et Léa habitent à Paris : le résultat passe donc de 9 lignes à 3 lignes."},
-    vs:{bad:{tag:"✕ Sans filtre",sql:"SELECT nom, ville FROM clients;",out:"9 lignes : Sophie, Lucas, Emma, Nathan, Chloé, Hugo, Léa, Gabriel, Inès",
+      body:"Sans <code>WHERE</code>, la requête affiche toutes les lignes de la table clients. Avec <code>WHERE ville = 'Paris'</code>, chaque ligne est vérifiée. Si la valeur de <code>ville</code> est <code>'Paris'</code>, la ligne reste dans le résultat. Sinon, elle n’apparaît pas. Dans la table clients, Sophie, deux Nathan et Léa habitent à Paris : le résultat passe donc de 10 lignes à 4 lignes."},
+    vs:{bad:{tag:"✕ Sans filtre",sql:"SELECT nom, ville FROM clients;",out:"10 lignes : Sophie, Lucas, Emma, Nathan, Chloé, Hugo, Léa, Gabriel, Inès, Nathan",
             code:"SELECT nom, ville\nFROM clients;"},
-        good:{tag:"✓ Avec WHERE",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris';",out:"3 lignes : Sophie, Nathan, Léa",
+        good:{tag:"✓ Avec WHERE",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris';",out:"4 lignes : Sophie, Nathan (×2), Léa",
             code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line good\">WHERE ville = 'Paris'</span>;"}},
     point:"<code>WHERE</code> agit sur les <b>lignes du résultat</b>.<br><br>La condition <code>ville = 'Paris'</code> signifie : garder uniquement les lignes pour lesquelles la colonne <code>ville</code> contient <code>'Paris'</code>.",
     why:{title:"Suis ce qui arrive aux lignes.",
@@ -6700,8 +6706,8 @@ const MODULES = [
       note:"Pour une valeur texte, utilise des guillemets simples : <code>'Paris'</code>."}},
   anatomie:[{tok:"SELECT nom, ville",txt:"Les colonnes déjà choisies pour l’affichage."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"ville",plain:1,txt:"La colonne dont la valeur est vérifiée."},{tok:"=",plain:1,txt:"Vérifie que les deux valeurs sont égales."},{tok:"'Paris'",plain:1,txt:"La valeur recherchée dans la colonne ville."}],
   exemple:"SELECT nom, ville FROM clients WHERE ville = 'Paris';",
-  attendu:"<b>3 lignes</b> : Sophie, Nathan et Léa, car ce sont les trois clients dont <code>ville</code> vaut <code>'Paris'</code>.",
-  retenir:"<code>WHERE</code> filtre les lignes selon une condition : seules celles qui la respectent apparaissent dans le résultat. Dans <code>SELECT * FROM clients WHERE ville = 'Paris'</code>, la table contient 9 clients, mais seules les 3 lignes de Sophie, Nathan et Léa apparaissent, car ce sont les seuls clients qui habitent à Paris. Les autres lignes ne sont pas supprimées : elles sont simplement écartées du résultat.",
+  attendu:"<b>4 lignes</b> : Sophie, les deux Nathan et Léa, car ce sont les quatre clients dont <code>ville</code> vaut <code>'Paris'</code>.",
+  retenir:"<code>WHERE</code> filtre les lignes selon une condition : seules celles qui la respectent apparaissent dans le résultat. Dans <code>SELECT * FROM clients WHERE ville = 'Paris'</code>, la table contient 10 clients, mais seules les 4 lignes de Sophie, des deux Nathan et de Léa apparaissent. Les autres lignes ne sont pas supprimées : elles sont simplement écartées du résultat.",
   piege:{t:"Oublier les guillemets autour du texte",p:"Paris est une valeur texte. Écris donc <code>WHERE ville = 'Paris'</code>. Sans guillemets, SQL peut interpréter Paris comme un nom de colonne au lieu d’une valeur."},
   consigne:"Affiche toutes les colonnes des clients qui habitent à Paris.",
   solution:"SELECT * FROM clients WHERE ville = 'Paris';",
@@ -6739,8 +6745,8 @@ const MODULES = [
   situationTail:"Tu obtiens les 3 Parisiens. Mais il te faut aussi l’âge : une seule condition ne suffit plus, il faut les combiner avec <code>AND</code>.",
     studio:{problem:{eye:"",title:"Combiner deux conditions",
       body:"<code>AND</code> signifie que les deux conditions doivent être vraies.<br><br>Tu cherches les clients parisiens de plus de 35 ans : <code>ville = 'Paris'</code> et <code>age &gt; 35</code> doivent l’être en même temps pour qu’une ligne reste dans le résultat.",
-      tail:"3 clients habitent à Paris : Sophie, Nathan et Léa. Mais seule Léa, 38 ans, habite à Paris et a plus de 35 ans."},
-    vs:{bad:{tag:"✕ Avec une seule condition",sql:"SELECT nom, ville, age FROM clients\nWHERE ville = 'Paris';",out:"3 lignes : Sophie, Nathan et Léa",
+      tail:"4 clients habitent à Paris : Sophie, deux Nathan et Léa. Mais seule Léa, 38 ans, habite à Paris et a plus de 35 ans."},
+    vs:{bad:{tag:"✕ Avec une seule condition",sql:"SELECT nom, ville, age FROM clients\nWHERE ville = 'Paris';",out:"4 lignes : Sophie, Nathan (×2) et Léa",
             code:"SELECT nom, ville, age\nFROM clients\n<span class=\"vs-line bad\">WHERE ville = 'Paris'</span>;"},
         good:{tag:"✓ Avec AND",sql:"SELECT nom, ville, age FROM clients\nWHERE ville = 'Paris' AND age > 35;",out:"1 ligne : Léa, 38 ans",
             code:"SELECT nom, ville, age\nFROM clients\n<span class=\"vs-line good\">WHERE ville = 'Paris' AND age &gt; 35</span>;"}},
@@ -6780,7 +6786,7 @@ const MODULES = [
       note:"Avec <code>ville = 'Paris' OR ville = 'Lyon'</code>, le client est gardé s'il habite à Paris ou à Lyon. Il n'a pas besoin de respecter les deux conditions."}},
   anatomie:[{tok:"SELECT nom, ville",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE ville = 'Paris'",txt:"première condition"},{tok:"OR",txt:"exige qu’au moins une des conditions soit vraie"},{tok:"ville = 'Lyon'",plain:1,txt:"deuxième condition"}],
   exemple:"SELECT nom, ville FROM clients WHERE ville = 'Paris' OR ville = 'Lyon';",
-  attendu:"<b>5 lignes</b> : Sophie, Lucas, Nathan, Hugo et Léa. Leur ville est Paris ou Lyon.",
+  attendu:"<b>6 lignes</b> : Sophie, Lucas, les deux Nathan, Hugo et Léa. Leur ville est Paris ou Lyon.",
   retenir:"<code>OR</code> garde une ligne si au moins une condition est vraie.<br><br>Avec <code>ville = 'Paris' OR ville = 'Lyon'</code>, 5 clients sont gardés.",
   piege:{t:"Croire qu’OR ne combine que deux conditions",p:"Tu peux enchaîner <b>3 conditions ou plus</b> avec <code>OR</code> :",
     sql:"SELECT nom, ville\nFROM clients\nWHERE ville = 'Paris'\n  OR ville = 'Lyon'\n  OR ville = 'Marseille';"},
@@ -6857,7 +6863,7 @@ const MODULES = [
       note:"Utilise surtout <code>IN</code> lorsque <b>la même colonne</b> peut correspondre à plusieurs valeurs : <code>ville IN ('Paris', 'Lyon')</code>."}},
   anatomie:[{tok:"SELECT nom, ville",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE ville IN ('Paris', 'Lyon')",txt:"La ville doit figurer dans la liste, entre parenthèses."}],
   exemple:"SELECT nom, ville FROM clients WHERE ville IN ('Paris', 'Lyon');",
-  attendu:"<b>5 lignes</b> : Sophie, Lucas, Nathan, Hugo et Léa. Leur ville est soit <code>'Paris'</code>, soit <code>'Lyon'</code>.",
+  attendu:"<b>6 lignes</b> : Sophie, Lucas, les deux Nathan, Hugo et Léa. Leur ville est soit <code>'Paris'</code>, soit <code>'Lyon'</code>.",
   retenir:"<code>IN</code> compare <b>une même colonne</b> à une liste : <code>ville IN ('Paris', 'Lyon')</code>. Plus lisible que plusieurs <code>OR</code>.",
   piege:{t:"Utiliser IN pour des conditions différentes",p:"<code>IN</code> sert à comparer une même colonne à une liste de valeurs. Par exemple : <code>ville IN ('Paris', 'Lyon')</code>. Si les conditions portent sur des colonnes différentes, comme la ville et l’âge, <code>IN</code> ne remplace pas <code>AND</code> ou <code>OR</code>."},
   consigne:"Affiche toutes les colonnes des clients qui habitent à Paris ou à Lyon en utilisant <code>IN</code>.",
@@ -6891,10 +6897,10 @@ const MODULES = [
 { id:11, titre:"ORDER BY", résumé:"Ordonner le résultat",
   situation:"Tu prépares une campagne marketing : les clients les plus âgés sont contactés en premier. Tu veux donc la liste du plus âgé au plus jeune.<br><br>Avec ce que tu connais déjà, tu peux afficher le nom et l’âge :",
   situationSql:"SELECT nom, age\nFROM clients;",
-  situationTail:"Tu obtiens bien les 9 clients avec leur âge. Mais l’ordre des lignes n’est pas garanti : pour ranger le résultat, il faut la clause <code>ORDER BY</code>.",
+  situationTail:"Tu obtiens bien les 10 clients avec leur âge. Mais l’ordre des lignes n’est pas garanti : pour ranger le résultat, il faut la clause <code>ORDER BY</code>.",
     studio:{problem:{title:"ORDER BY range les lignes du résultat.",
       body:"Sans <code>ORDER BY</code>, aucun ordre des lignes n’est garanti. Elles peuvent sembler suivre l’ordre des identifiants aujourd’hui et apparaître autrement plus tard. <code>ORDER BY age DESC</code> range les lignes selon la colonne <code>age</code>, du plus grand âge au plus petit. Le nombre de lignes ne change pas : <code>ORDER BY</code> les réorganise simplement."},
-    vs:{bad:{tag:"✕ Sans ORDER BY",sql:"SELECT nom, age FROM clients;",out:"9 lignes, mais aucun ordre n’est garanti",
+    vs:{bad:{tag:"✕ Sans ORDER BY",sql:"SELECT nom, age FROM clients;",out:"10 lignes, mais aucun ordre n’est garanti",
             code:"SELECT nom, age\nFROM clients;"},
         good:{tag:"✓ Du plus âgé au plus jeune",sql:"SELECT nom, age FROM clients\nORDER BY age DESC;",out:"Hugo 52, Emma 45, Inès 41, Léa 38, Sophie 34…",
             code:"SELECT nom, age\nFROM clients\n<span class=\"vs-line good\">ORDER BY age DESC</span>;"}},
@@ -6906,7 +6912,7 @@ const MODULES = [
       note:"<code>ASC</code> est facultatif car c’est l’ordre par défaut."}},
   anatomie:[{tok:"SELECT nom, age",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"ORDER BY age DESC",txt:"Range les lignes du plus âgé au plus jeune."}],
   exemple:"SELECT nom, age FROM clients ORDER BY age DESC;",
-  attendu:"<b>9 lignes</b>, du plus âgé au plus jeune : Hugo 52, Emma 45, Inès 41, Léa 38, Sophie 34, Nathan 31, Gabriel 29, Lucas 28, Chloé 26.",
+  attendu:"<b>10 lignes</b>, du plus âgé au plus jeune : Hugo 52, Emma 45, Inès 41, Léa 38, Sophie 34, Nathan 31, Nathan 30, Gabriel 29, Lucas 28, Chloé 26.",
   retenir:"<code>ORDER BY</code> range le résultat, il ne filtre aucune ligne. <code>ASC</code> croissant, <code>DESC</code> décroissant.",
   piege:{t:"Se fier à l’ordre affiché sans ORDER BY",p:"Une requête sans <code>ORDER BY</code> ne garantit aucun ordre, même si les lignes semblent suivre les id. Si l’ordre est important, écris-le explicitement avec <code>ORDER BY</code>."},
   consigne:"Affiche toutes les colonnes de la table produits en triant les produits du moins cher au plus cher.",
@@ -6942,15 +6948,15 @@ const MODULES = [
 { id:13, titre:"DISTINCT", résumé:"Valeurs uniques",
   situation:"Dans la table clients, plusieurs personnes habitent dans la même ville. Tu veux la liste des villes différentes, sans afficher plusieurs fois la même ville.<br><br>Avec ce que tu connais déjà, tu peux afficher la ville de chaque client :",
   situationSql:"SELECT ville\nFROM clients;",
-  situationTail:"Tu obtiens bien 9 villes. Mais Paris apparaît 3 fois et Lyon 2 fois : pour n’afficher chaque ville qu’une seule fois, il faut la clause <code>DISTINCT</code>.",
+  situationTail:"Tu obtiens bien 10 villes. Mais Paris apparaît 4 fois et Lyon 2 fois : pour n’afficher chaque ville qu’une seule fois, il faut la clause <code>DISTINCT</code>.",
     studio:{problem:{title:"DISTINCT retire les doublons du résultat.",
-      body:"<code>DISTINCT</code> se place juste après <code>SELECT</code>. Il retire les répétitions du résultat : les 9 lignes deviennent 6 villes différentes."},
-    vs:{bad:{tag:"✕ Avec doublons",sql:"SELECT ville FROM clients;",out:"9 lignes : Paris apparaît 3 fois, Lyon 2 fois",
+      body:"<code>DISTINCT</code> se place juste après <code>SELECT</code>. Il retire les répétitions du résultat : les 10 lignes deviennent 6 villes différentes."},
+    vs:{bad:{tag:"✕ Avec doublons",sql:"SELECT ville FROM clients;",out:"10 lignes : Paris apparaît 4 fois, Lyon 2 fois",
             code:"SELECT <span class=\"vs-line bad\">ville</span>\nFROM clients;"},
         good:{tag:"✓ Sans doublons",sql:"SELECT DISTINCT ville FROM clients;",out:"6 villes : Paris, Lyon, Marseille, Bordeaux, Toulouse, Nantes",
             code:"SELECT <span class=\"vs-line good\">DISTINCT ville</span>\nFROM clients;"}},
-    point:"<code>DISTINCT</code> ne modifie pas la table clients. Les 9 clients restent enregistrés : seuls les doublons sont retirés du résultat affiché.",
-    why:{title:"Comment DISTINCT passe de 9 à 6 lignes ?"},
+    point:"<code>DISTINCT</code> ne modifie pas la table clients. Les 10 clients restent enregistrés : seuls les doublons sont retirés du résultat affiché.",
+    why:{title:"Comment DISTINCT passe de 10 à 6 lignes ?"},
     viz:"distinct",
     reflex:{a:{k:"SELECT",t:"affiche <b>toutes</b> les occurrences"},
       b:{k:"DISTINCT",t:"affiche chaque valeur <b>une seule fois</b>"},
@@ -6958,7 +6964,7 @@ const MODULES = [
   anatomie:[{tok:"SELECT",txt:"Définit ce qui apparaît dans le résultat."},{tok:"DISTINCT",txt:"Retire les doublons du résultat."},{tok:"ville",plain:1,txt:"La colonne dont tu veux obtenir les valeurs différentes."},{tok:"FROM clients",txt:"Les données viennent de la table clients."}],
   exemple:"SELECT DISTINCT ville FROM clients;",
   attendu:"<b>6 lignes</b> : Paris, Lyon, Marseille, Bordeaux, Toulouse et Nantes. Chaque ville apparaît une seule fois.",
-  retenir:"<code>DISTINCT</code> sert à afficher des valeurs uniques. Dans <code>SELECT DISTINCT ville FROM clients</code>, les 9 clients donnent seulement 6 villes différentes, car Paris et Lyon apparaissent plusieurs fois dans la table. Les doublons sont retirés du résultat, pas de la table.",
+  retenir:"<code>DISTINCT</code> sert à afficher des valeurs uniques. Dans <code>SELECT DISTINCT ville FROM clients</code>, les 10 clients donnent seulement 6 villes différentes, car Paris et Lyon apparaissent plusieurs fois dans la table. Les doublons sont retirés du résultat, pas de la table.",
   piege:{t:"DISTINCT avec plusieurs colonnes",p:"Dans <code>SELECT DISTINCT ville, age FROM clients</code>, SQL ne cherche pas seulement les villes différentes. Il cherche les combinaisons ville + âge différentes."},
   consigne:"Affiche chaque ville différente où habite au moins un client.",
   solution:"SELECT DISTINCT ville FROM clients;",
@@ -7136,7 +7142,7 @@ FROM clients;</pre></div>
     ]}
   ],
   exemple:"SELECT LOWER(nom) || '-' || LOWER(ville) AS identifiant\nFROM clients;",
-  attendu:"9 lignes. Sophie → sophie-paris. Lucas → lucas-lyon.",
+  attendu:"10 lignes. Sophie → sophie-paris. Lucas → lucas-lyon.",
   retenir:"Avant de choisir une fonction, demande-toi ce que tu veux faire au texte. Mettre en forme → <code>UPPER</code>, <code>LOWER</code>. Nettoyer → <code>TRIM</code>, <code>REPLACE</code>. Découper → <code>SUBSTR</code>. Chercher → <code>INSTR</code>. Assembler → <code>||</code>. Gérer un <code>NULL</code> → <code>COALESCE</code>. Ces fonctions changent le résultat affiché, pas la table.",
   piege:{t:"Confondre affichage et modification",p:"<code>UPPER(nom)</code> affiche <code>SOPHIE</code>, mais <code>clients.nom</code> reste <code>Sophie</code>. Pour enregistrer la transformation dans la table, il faudrait une requête <code>UPDATE</code>."},
   consigne:"Crée un identifiant pour chaque client : le nom en minuscules, un tiret, puis la ville en minuscules. Pour Sophie : <code>sophie-paris</code>.",
@@ -7902,22 +7908,22 @@ FROM produits;</pre></div>
 { id:14, titre:"COUNT", résumé:"Compter les lignes",
   situation:"Tu viens d’importer la table clients. Avant de continuer, tu veux vérifier combien de personnes y sont vraiment enregistrées.<br><br>Avec ce que tu connais déjà, tu peux afficher leurs noms :",
   situationSql:"SELECT nom\nFROM clients;",
-  situationTail:"Tu obtiens bien les 9 noms. Mais tu dois encore les compter à la main : pour obtenir le total directement, il faut la fonction <code>COUNT(*)</code>.",
+  situationTail:"Tu obtiens bien les 10 noms. Mais tu dois encore les compter à la main : pour obtenir le total directement, il faut la fonction <code>COUNT(*)</code>.",
     studio:{problem:{title:"<code>COUNT(*)</code> compte toutes les lignes.",
       body:""},
-    vs:{bad:{tag:"✕ Afficher pour compter",sql:"SELECT nom FROM clients;",out:"9 lignes : il faut encore les compter",
+    vs:{bad:{tag:"✕ Afficher pour compter",sql:"SELECT nom FROM clients;",out:"10 lignes : il faut encore les compter",
             code:"SELECT <span class=\"vs-line bad\">nom</span>\nFROM clients;"},
-        good:{tag:"✓ Compter avec COUNT",sql:"SELECT COUNT(*) FROM clients;",out:"1 ligne · une valeur : 9",
+        good:{tag:"✓ Compter avec COUNT",sql:"SELECT COUNT(*) FROM clients;",out:"1 ligne · une valeur : 10",
             code:"SELECT <span class=\"vs-line good\">COUNT(*)</span>\nFROM clients;"}},
-    why:{title:"Comment COUNT arrive à 9 ?"},
+    why:{title:"Comment COUNT arrive à 10 ?"},
     viz:"count",
     reflex:{a:{k:"COUNT(*)",t:"compte <b>toutes</b> les lignes"},
       b:{k:"COUNT(colonne)",t:"compte les valeurs <b>renseignées</b>"}}},
   anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"COUNT(*)",txt:"Compte toutes les lignes."},{tok:"FROM clients",txt:"Le comptage porte sur la table clients."}],
   exemple:"SELECT COUNT(*) FROM clients;",
-  attendu:"<b>1 ligne</b>, 1 valeur : 9. C’est le nombre total de clients.",
-  retenir:"<code>COUNT(*)</code> sert à connaître le nombre de lignes. Dans <code>SELECT COUNT(*) FROM clients</code>, les 9 clients sont comptés et le résultat affiche une seule valeur : 9. <code>COUNT(colonne)</code>, lui, ne compte que les valeurs renseignées et ignore les <code>NULL</code>.",
-  piege:{t:"Oublier que COUNT(colonne) ignore les NULL",p:"Dans la table clients, <code>COUNT(*)</code> renvoie 9. Mais <code>COUNT(email)</code> renvoie 7, car 2 emails sont <code>NULL</code>."},
+  attendu:"<b>1 ligne</b>, 1 valeur : 10. C’est le nombre total de clients.",
+  retenir:"<code>COUNT(*)</code> sert à connaître le nombre de lignes. Dans <code>SELECT COUNT(*) FROM clients</code>, les 10 clients sont comptés et le résultat affiche une seule valeur : 10. <code>COUNT(colonne)</code>, lui, ne compte que les valeurs renseignées et ignore les <code>NULL</code>.",
+  piege:{t:"Oublier que COUNT(colonne) ignore les NULL",p:"Dans la table clients, <code>COUNT(*)</code> renvoie 10. Mais <code>COUNT(email)</code> renvoie 8, car 2 emails sont <code>NULL</code>."},
   consigne:"Compte le nombre total de clients dans la table clients.",
   solution:"SELECT COUNT(*) FROM clients;",
   indice:"Tu veux compter toutes les lignes : utilise la fonction <code>COUNT</code> avec <code>*</code>.",
@@ -8043,14 +8049,14 @@ FROM produits;</pre></div>
 { id:16, titre:"GROUP BY", résumé:"Un calcul par groupe",
   situation:"Tu prépares un point équipe : combien de clients dans chaque ville ? Paris, Lyon, Marseille…<br><br>Avec ce que tu connais déjà, tu peux afficher chaque client et sa ville :",
   situationSql:"SELECT nom, ville\nFROM clients;",
-  situationTail:"Tu obtiens bien les 9 clients. Paris revient 3 fois, Lyon 2 fois — tu vois les répétitions, mais pas le total par ville. Pour compter séparément dans chaque groupe, il faut la clause <code>GROUP BY</code>.",
+  situationTail:"Tu obtiens bien les 10 clients. Paris revient 4 fois, Lyon 2 fois — tu vois les répétitions, mais pas le total par ville. Pour compter séparément dans chaque groupe, il faut la clause <code>GROUP BY</code>.",
     studio:{problem:{title:"<code>GROUP BY</code> sépare les lignes en groupes avant de calculer.",
       body:""},
-    vs:{bad:{tag:"✕ Lister pour compter",sql:"SELECT nom, ville\nFROM clients;",out:"9 lignes : Paris 3 fois, Lyon 2 fois — il faut encore compter",
+    vs:{bad:{tag:"✕ Lister pour compter",sql:"SELECT nom, ville\nFROM clients;",out:"10 lignes : Paris 4 fois, Lyon 2 fois — il faut encore compter",
             code:"SELECT <span class=\"vs-line bad\">nom, ville</span>\nFROM clients;"},
-        good:{tag:"✓ Un total par ville",sql:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville;",out:"Paris 3, Lyon 2, puis 1 pour chaque autre ville",
+        good:{tag:"✓ Un total par ville",sql:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville;",out:"Paris 4, Lyon 2, puis 1 pour chaque autre ville",
             code:"SELECT ville, COUNT(*)\nFROM clients\n<span class=\"vs-line good\">GROUP BY ville</span>;"}},
-    point:"Dans la table <code>clients</code>, Paris apparaît 3 fois : Sophie, Nathan et Léa forment donc un groupe de 3. Lyon apparaît 2 fois : Lucas et Hugo forment un groupe de 2. Marseille, Bordeaux, Toulouse et Nantes apparaissent une fois chacune. <code>COUNT(*)</code> est ensuite calculé séparément pour chaque groupe.",
+    point:"Dans la table <code>clients</code>, Paris apparaît 4 fois : Sophie, les deux Nathan et Léa forment donc un groupe de 4. Lyon apparaît 2 fois : Lucas et Hugo forment un groupe de 2. Marseille, Bordeaux, Toulouse et Nantes apparaissent une fois chacune. <code>COUNT(*)</code> est ensuite calculé séparément pour chaque groupe.",
     why:{title:"Comment <code>GROUP BY</code> transforme les données ?"},
     viz:"groupby",
     reflex:{a:{k:"COUNT(*)",t:"un total pour toute la table"},
@@ -8058,16 +8064,16 @@ FROM produits;</pre></div>
       note:"<code>GROUP BY ville</code> signifie : rassemble les lignes qui ont la même ville, puis effectue le calcul sur chaque groupe."}},
   anatomie:[{tok:"SELECT ville, COUNT(*)",txt:"Affiche la ville et le nombre de clients dans son groupe."},{tok:"FROM clients",txt:"Les données viennent de la table <code>clients</code>."},{tok:"GROUP BY ville",txt:"Rassemble les lignes qui ont la même ville."}],
   exemple:"SELECT ville, COUNT(*) FROM clients GROUP BY ville;",
-  attendu:"6 lignes : Paris — 3, Lyon — 2, Marseille — 1, Bordeaux — 1, Toulouse — 1, Nantes — 1.",
+  attendu:"6 lignes : Paris — 4, Lyon — 2, Marseille — 1, Bordeaux — 1, Toulouse — 1, Nantes — 1.",
   retenir:"<code>GROUP BY</code> sert à effectuer un calcul par groupe. Dans <code>SELECT ville, COUNT(*) FROM clients GROUP BY ville</code>, SQL rassemble les clients qui habitent dans la même ville, puis les compte. Résultat : une ligne par ville, avec le nombre de clients correspondant.",
-  piege:{t:"Afficher une colonne qui ne représente pas le groupe",p:"Paris a 3 clients : Sophie, Nathan et Léa. Avec <code>GROUP BY ville</code>, SQL doit renvoyer <b>une seule ligne</b> pour Paris. Il peut afficher <code>ville</code> (la même pour les 3) et <code>COUNT(*)</code> (le total du groupe). Mais <code>nom</code> ? Trois prénoms différents : SQL ne peut pas choisir.<br><br>👉 Dans SELECT : la colonne du <code>GROUP BY</code>, et le calcul.<br>👉 Pas une colonne qui change à l’intérieur du groupe.",
+  piege:{t:"Afficher une colonne qui ne représente pas le groupe",p:"Paris a 4 clients : Sophie, deux Nathan et Léa. Avec <code>GROUP BY ville</code>, SQL doit renvoyer <b>une seule ligne</b> pour Paris. Il peut afficher <code>ville</code> (la même pour les 4) et <code>COUNT(*)</code> (le total du groupe). Mais <code>nom</code> ? Plusieurs lignes différentes : SQL ne peut pas choisir.<br><br>👉 Dans SELECT : la colonne du <code>GROUP BY</code>, et le calcul.<br>👉 Pas une colonne qui change à l’intérieur du groupe.",
     sql:"SELECT nom, ville, COUNT(*)\nFROM clients\nGROUP BY ville;"},
   consigne:"Compte le nombre de clients par ville. Affiche la ville et le nombre de clients correspondant.",
   solution:"SELECT ville, COUNT(*) FROM clients GROUP BY ville;",
   indice:"Tu connais déjà <code>COUNT(*)</code>. Cette fois, demande à SQL de former un groupe pour chaque valeur de la colonne <code>ville</code>.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'liste',label:'SELECT nom, ville',sql:"SELECT nom, ville\nFROM clients;",out:"9 lignes : il faut compter ville par ville"},
+    {k:'liste',label:'SELECT nom, ville',sql:"SELECT nom, ville\nFROM clients;",out:"10 lignes : il faut compter ville par ville"},
     {k:'group',label:'GROUP BY',sql:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville;",out:"6 lignes : un total par ville"}
   ] },
 { id:17, titre:"HAVING", résumé:"Filtrer après regroupement",
@@ -8108,106 +8114,124 @@ FROM produits;</pre></div>
   indice:"<code>… GROUP BY categorie HAVING COUNT(*) >= 2</code>" }
 ]},
 { titre:"Clés et relations", sous:"Identifier une ligne, relier deux tables", lessons:[
-{ id:34, titre:"Clé primaire", résumé:"Identifier une ligne",
-  situation:"Le service client doit retrouver la fiche de <b>Nathan</b> pour modifier son numéro de téléphone. Il sait qu’il habite à Paris et commence donc par chercher tous les clients de cette ville :",
-  situationSql:"SELECT id, nom, ville\nFROM clients\nWHERE ville = 'Paris';",
-  situationTail:"La requête renvoie <b>3 lignes</b> : Sophie (<code>id = 1</code>), Nathan (<code>id = 4</code>) et Léa (<code>id = 7</code>). La ville ne permet donc pas de cibler Nathan.<br><br>Son nom ne constitue pas non plus un repère fiable : deux clients pourraient s’appeler Nathan, ou son nom pourrait être corrigé. En revanche, son <code>id = 4</code> appartient à lui seul et reste le même. Cette colonne qui identifie <b>une ligne et une seule</b> est la <b>clé primaire</b> : <code>WHERE id = 4</code> retrouve Nathan sans ambiguïté.",
-    studio:{problem:{title:"La clé primaire identifie chaque ligne, sans doublon.",
-      body:"Chaque table de notre base (<code>clients</code>, <code>produits</code>, <code>commandes</code>) stocke des enregistrements distincts. Pour identifier chaque client, produit ou commande sans aucune ambiguïté, on définit une <b>clé primaire</b> (<code>PRIMARY KEY</code>).<br><br>Dans notre table <code>clients</code>, la colonne <code>id</code> est la clé primaire : elle est garantie <b>unique</b> pour chaque personne et <b>jamais nulle</b>. Même si deux clients avaient le même nom et la même ville, leur <code>id</code> permettrait de les distinguer à coup sûr."},
-    vs:{bad:{tag:"✕ Filtrer par la ville",sql:"SELECT nom FROM clients\nWHERE ville = 'Paris';",out:"3 lignes : Sophie, Nathan, Léa — impossible d’isoler une personne",
-            code:"SELECT nom\nFROM clients\nWHERE ville = <span class=\"vs-line bad\">'Paris'</span>;"},
-        good:{tag:"✓ Cibler par l’id unique",sql:"SELECT nom FROM clients\nWHERE id = 1;",out:"1 ligne exacte : Sophie (id = 1)",
-            code:"SELECT nom\nFROM clients\nWHERE <span class=\"vs-line good\">id = 1</span>;"}},
-    why:{title:"Chaque table a son propre id unique.",
-      body:"Dans notre base de données :<br>• Dans <code>clients</code> : <code>id = 1</code> désigne Sophie, <code>id = 2</code> Lucas, <code>id = 7</code> Léa.<br>• Dans <code>produits</code> : <code>id = 1</code> désigne la Fibre Prébiotique, <code>id = 8</code> le Shaker Inox.<br>• Dans <code>commandes</code> : <code>id = 1</code> identifie le tout premier achat.<br><br>Cette clé primaire est indispensable : c’est elle que la table <code>commandes</code> recopie dans <code>client_id</code> et <code>produit_id</code> pour relier les achats aux bonnes personnes et aux bons produits."},
+{ id:34, titre:"Clé primaire", résumé:"Identifier une ligne sans ambiguïté",
+  situation:"Un client appelé <b>Nathan</b> téléphone pour modifier son numéro. L’agent cherche sa fiche par nom. Dans notre base, <b>deux clients existent réellement avec le nom Nathan</b> et ils habitent tous les deux à Paris :",
+  situationSql:"SELECT id, nom, ville, telephone\nFROM clients\nWHERE nom = 'Nathan';",
+  situationTail:"L’exécution ci-dessus confirme les données présentes dans la base : SQL renvoie <b>2 lignes</b>, Nathan <code>id = 4</code> et Nathan <code>id = 10</code>. Il ne s’agit pas d’un cas hypothétique. Le nom ne suffit pas. La ville non plus : elle vaut Paris dans les deux fiches.<br><br>L’agent demande alors le numéro client indiqué dans l’e-mail de confirmation : <code>4</code>. Avec <code>WHERE id = 4</code>, SQL retrouve <b>une seule fiche</b>. Cette colonne <code>id</code>, conçue pour identifier exactement une ligne, est la <b>clé primaire</b> de la table <code>clients</code>.",
+    studio:{problem:{title:"Même nom, même ville… mais deux personnes différentes.",
+      body:"Notre table <code>clients</code> contient bien deux personnes nommées Nathan à Paris : l’une porte <code>id = 4</code>, l’autre <code>id = 10</code>. Le doublon de nom existe donc déjà dans les données ; ce n’est pas seulement une possibilité.<br><br>Une donnée descriptive comme le nom ou la ville ne constitue pas un identifiant fiable. La <b>clé primaire</b> (<code>PRIMARY KEY</code>) résout ce problème : chaque ligne reçoit un <code>id</code> <b>unique</b> et <b>jamais NULL</b>. Les identifiants 4 et 10 distinguent définitivement les deux Nathan."},
+    vs:{bad:{tag:"✕ Le nom reste ambigu",sql:"SELECT id, nom, ville FROM clients\nWHERE nom = 'Nathan';",out:"2 fiches : id 4 et id 10 — laquelle modifier ?",
+            code:"SELECT id, nom, ville\nFROM clients\nWHERE <span class=\"vs-line bad\">nom = 'Nathan'</span>;"},
+        good:{tag:"✓ La clé primaire cible la bonne fiche",sql:"SELECT id, nom, ville FROM clients\nWHERE id = 4;",out:"1 seule fiche : Nathan, id 4, Paris",
+            code:"SELECT id, nom, ville\nFROM clients\nWHERE <span class=\"vs-line good\">id = 4</span>;"}},
+    why:{title:"Une clé primaire est un repère, pas une description.",
+      body:"Le nom décrit la personne ; l’<code>id</code> identifie sa ligne. Même si Nathan déménage ou change de téléphone, son <code>id = 4</code> reste le même.<br><br>Chaque table possède son propre espace d’identifiants : <code>clients.id = 4</code> désigne Nathan, <code>produits.id = 4</code> désigne la Vitamine D et <code>commandes.id = 4</code> désigne une commande. Il faut donc toujours lire la clé avec le nom de sa table : <code>clients.id</code>, <code>produits.id</code> ou <code>commandes.id</code>."},
     viz:"pk",
-    uses:{title:"Une clé primaire au cœur de notre base.",
+    uses:{title:"De l’homonyme à l’identifiant fiable.",
       body:`<div class="pt-lead fn-uses">
         <div class="fn-use">
-          <p class="pt-syntax-h">1. Définir une clé primaire dans nos tables</p>
-          <p>À la création de notre table <code>clients</code>, la clé primaire est déclarée directement sur la colonne <code>id</code> :</p>
+          <p class="pt-syntax-h">1. Constater l’ambiguïté</p>
+          <p>Filtrer sur <code>nom = 'Nathan'</code> renvoie deux lignes. Ajouter <code>ville = 'Paris'</code> ne change rien : les deux Nathan vivent à Paris. Une colonne descriptive n’est pas forcément unique.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT id, nom, ville
+FROM clients
+WHERE nom = 'Nathan';</pre></div>
+          <p class="fn-tip"><b>Le bon réflexe</b> Avant de modifier une fiche, vérifie que ton critère désigne une seule ligne.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">2. Déclarer la clé primaire</p>
+          <p>La règle est inscrite dès la création de la table :</p>
           <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE clients (
   id INTEGER PRIMARY KEY,
   nom TEXT,
-  ville TEXT
+  ville TEXT,
+  telephone TEXT
 );</pre></div>
-          <p>Avec <code>INTEGER PRIMARY KEY</code>, SQLite garantit l’unicité de chaque numéro. Si un <code>INSERT</code> ne fournit pas d’<code>id</code>, SQLite lui attribue automatiquement un entier disponible.</p>
+          <p><code>PRIMARY KEY</code> interdit deux lignes portant le même <code>id</code>. Avec <code>INTEGER PRIMARY KEY</code>, SQLite peut aussi attribuer automatiquement un entier à une nouvelle ligne.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">2. Un id par table : clients, produits, commandes</p>
-          <p>Toutes les tables de notre boutique ont leur propre clé primaire :</p>
-          <ul class="pt-lead-list">
-            <li><code>clients.id</code> : identifie chaque client (1 = Sophie, 4 = Nathan…).</li>
-            <li><code>produits.id</code> : identifie chaque article du catalogue (1 = Fibre, 3 = Magnésium…).</li>
-            <li><code>commandes.id</code> : identifie chaque commande passée.</li>
-          </ul>
-          <p>Ces identifiants uniques sont les repères stables vers lesquels pointeront ensuite les clés étrangères <code>commandes.client_id</code> et <code>commandes.produit_id</code>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">3. AUTOINCREMENT — ne jamais réutiliser un numéro</p>
-          <p>Par défaut, si une ligne est supprimée, SQLite peut réattribuer son numéro lors d’un futur ajout. Avec <code>AUTOINCREMENT</code>, SQLite retient le dernier identifiant attribué dans la table interne <code>sqlite_sequence</code> et repart toujours au-dessus.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">id INTEGER PRIMARY KEY
-  AUTOINCREMENT</pre></div>
-          <p class="fn-tip"><b>Dans la pratique</b> <code>AUTOINCREMENT</code> empêche uniquement la réutilisation d’un ancien identifiant. Il ne remplace pas une vraie règle de numérotation métier pour les factures. Pour notre table <code>clients</code>, <code>INTEGER PRIMARY KEY</code> suffit.</p>
+          <p class="pt-syntax-h">3. Cibler une seule ligne</p>
+          <p>Une fois le numéro client connu, le filtre devient certain :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT id, nom, telephone
+FROM clients
+WHERE id = 4;</pre></div>
+          <p>Le résultat contient une seule ligne : celle du bon Nathan. L’autre Nathan, <code>id = 10</code>, n’est pas concerné.</p>
+          <p class="fn-tip"><b>À retenir</b> Le nom sert à rechercher ; la clé primaire sert à identifier avec certitude.</p>
         </div>
       </div>`},
-    reflex:{a:{k:"PRIMARY KEY",t:"<code>clients.id</code>, <code>produits.id</code> : <b>unique et non nul</b>"},
-      b:{k:"nom, ville",t:"peuvent avoir des <b>doublons ou homonymes</b>"}}},
-  anatomie:[{tok:"id",plain:1,txt:"Clé primaire : un numéro unique par client (1 = Sophie, 2 = Lucas…)."},{tok:"nom",plain:1,txt:"Nom du client — deux clients pourraient avoir le même nom."},{tok:"ville",plain:1,txt:"Paris apparaît 3 fois : une ville ne peut pas servir d’identifiant."}],
-  exemple:"SELECT id, nom FROM clients;",
-  attendu:"<b>9 lignes</b> : chaque client avec son <code>id</code> unique.",
-  retenir:"La <b>clé primaire</b> (<code>PRIMARY KEY</code>) identifie chaque ligne de façon unique et certaine dans une table (<code>clients.id</code>, <code>produits.id</code>, <code>commandes.id</code>). Elle ne contient jamais de doublon ni de <code>NULL</code>.<br><br>Dans notre base, <code>INTEGER PRIMARY KEY</code> permet à SQLite d’attribuer les identifiants automatiquement. C’est la clé primaire qui sert ensuite de repère aux clés étrangères pour relier nos tables.",
-  piege:{t:"Utiliser le nom ou la ville comme identifiant",p:"Plusieurs clients peuvent s’appeler Sophie ou habiter Paris. <code>WHERE ville = 'Paris'</code> renvoie 3 lignes. Seul <code>WHERE id = 1</code> désigne toujours exactement la même personne."},
-  consigne:"Affiche l’<code>id</code> et le <code>nom</code> de chaque client.",
-  solution:"SELECT id, nom FROM clients;",
-  indice:"Les deux colonnes s’écrivent après <code>SELECT</code>, séparées par une virgule.",
+    reflex:{a:{k:"Nom, ville…",t:"décrivent une personne et peuvent se <b>répéter</b>"},
+      b:{k:"PRIMARY KEY",t:"identifie <b>une seule ligne</b> : unique et non NULL"}}},
+  anatomie:[{tok:"SELECT id, nom, ville",txt:"Affiche les informations utiles pour distinguer les fiches."},{tok:"FROM clients",txt:"La recherche porte sur la table des clients."},{tok:"WHERE id = 4",txt:"Utilise la clé primaire : une seule ligne peut posséder cet identifiant."}],
+  exemple:"SELECT id, nom, ville FROM clients WHERE id = 4;",
+  attendu:"<b>1 ligne</b> : Nathan, <code>id = 4</code>, Paris. Nathan <code>id = 10</code> ne correspond pas au filtre.",
+  retenir:"Une <b>clé primaire</b> identifie une ligne sans ambiguïté. Elle est <b>unique</b> et ne peut pas être <code>NULL</code>.<br><br>Dans <code>clients</code>, le nom Nathan apparaît deux fois, mais les identifiants 4 et 10 ne se répètent pas. Une information descriptive dit <i>qui semble être la personne</i> ; la clé primaire dit <i>quelle ligne précise est visée</i>.",
+  piege:{t:"Prendre une information métier pour un identifiant",p:"Nom, ville, téléphone ou e-mail peuvent être partagés, corrigés ou remplacés. Ici, <code>nom = 'Nathan'</code> et même <code>nom = 'Nathan' AND ville = 'Paris'</code> renvoient deux fiches. Pour cibler le bon Nathan, utilise <code>clients.id = 4</code>."},
+  consigne:"Retrouve uniquement la fiche de Nathan dont le numéro client est <code>4</code>. Affiche son <code>id</code>, son <code>nom</code>, sa <code>ville</code> et son <code>telephone</code>.",
+  solution:"SELECT id, nom, ville, telephone FROM clients WHERE id = 4;",
+  indice:"Le numéro client correspond à la clé primaire <code>id</code>. Ajoute le filtre <code>WHERE id = 4</code>.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'nom',label:'clients (nom, ville)',sql:"SELECT nom, ville\nFROM clients\nWHERE ville = 'Paris';",out:"Paris renvoie 3 clients : pas d’unicité"},
-    {k:'id',label:'clients (id unique)',sql:"SELECT id, nom, ville\nFROM clients\nWHERE id = 1;",out:"id = 1 cible Sophie avec certitude"},
-    {k:'produits',label:'produits (id unique)',sql:"SELECT id, nom, prix\nFROM produits\nWHERE id = 1;",out:"id = 1 désigne la Fibre Prébiotique"}
+    {k:'nom',label:'Recherche par nom',sql:"SELECT id, nom, ville\nFROM clients\nWHERE nom = 'Nathan';",out:"2 lignes : Nathan n°4 et Nathan n°10"},
+    {k:'nomville',label:'Nom + ville',sql:"SELECT id, nom, ville\nFROM clients\nWHERE nom = 'Nathan' AND ville = 'Paris';",out:"Toujours 2 lignes : le doute reste"},
+    {k:'id',label:'Clé primaire',sql:"SELECT id, nom, ville, telephone\nFROM clients\nWHERE id = 4;",out:"1 ligne : le bon Nathan, sans ambiguïté",tone:'good'}
   ] },
-{ id:35, titre:"Clé étrangère", résumé:"Pointer vers une autre table",
-  situation:"Dans la table <code>commandes</code>, <code>client_id</code> vaut 1, 1, 2… Ce n’est pas une quantité : c’est le numéro d’un client.<br><br>Avec ce que tu connais déjà, tu peux lire ces numéros :",
-  situationSql:"SELECT client_id, quantite\nFROM commandes;",
-  situationTail:"Le 1 revient plusieurs fois : Sophie a plusieurs commandes. <code>client_id</code> copie la clé primaire de la table <code>clients</code>. C’est une <b>clé étrangère</b>.<br><br>Une commande a un <code>client_id</code> vide : un achat en invité. On y reviendra avec <code>RIGHT JOIN</code>.",
-    studio:{problem:{title:"La clé étrangère recopie l’id d’une autre table.",
-      body:""},
-    vs:{bad:{tag:"✕ Stocker le nom",sql:"SELECT nom FROM commandes;",err:"La colonne nom n’existe pas dans commandes",
-            code:"SELECT <span class=\"vs-line bad\">nom</span>\nFROM commandes;"},
-        good:{tag:"✓ Stocker l’id",sql:"SELECT client_id FROM commandes;",out:"Des numéros : 1, 1, 2… le pont vers clients.id",
-            code:"SELECT <span class=\"vs-line good\">client_id</span>\nFROM commandes;"}},
-    why:{title:"Comment client_id retrouve Sophie ?"},
+{ id:35, titre:"Clé étrangère", résumé:"Relier une ligne à la bonne personne",
+  situation:"La bonne fiche est maintenant identifiée : <b>Nathan n°4</b>. Le service veut afficher ses commandes sans les confondre avec celles de Nathan n°10. Dans la table <code>commandes</code>, le nom du client n’est pas recopié : chaque achat conserve seulement son identifiant dans <code>client_id</code>.",
+  situationSql:"SELECT id, client_id, produit_id, quantite\nFROM commandes\nWHERE client_id = 4;",
+  situationTail:"Le résultat contient les commandes <code>id = 5</code> et <code>id = 12</code>. Sur chacune, <code>client_id = 4</code> renvoie vers <code>clients.id = 4</code> : Nathan n°4.<br><br><code>commandes.client_id</code> est donc une <b>clé étrangère</b>. Elle mémorise la clé primaire d’une ligne située dans une autre table. Nathan n°10 possède <code>clients.id = 10</code> ; aucune commande ne porte encore <code>client_id = 10</code>.",
+    studio:{problem:{title:"La clé étrangère conserve le lien entre les tables.",
+      body:"La table <code>clients</code> décrit les personnes. La table <code>commandes</code> décrit les achats. Pour savoir à qui appartient une commande, on ne recopie ni le nom ni la ville : on stocke la clé primaire du client dans <code>commandes.client_id</code>.<br><br>Ainsi, <code>client_id = 4</code> pointe toujours vers Nathan n°4, même si son nom ou son téléphone change. Plusieurs commandes peuvent porter la même valeur 4 : une clé étrangère <b>peut se répéter</b>."},
+    vs:{bad:{tag:"✕ Relier avec le nom",sql:"SELECT id, nom FROM commandes;",err:"commandes ne contient pas la colonne nom",
+            code:"SELECT id, <span class=\"vs-line bad\">nom</span>\nFROM commandes;"},
+        good:{tag:"✓ Suivre la clé étrangère",sql:"SELECT id, client_id FROM commandes\nWHERE client_id = 4;",out:"2 commandes : #5 et #12, toutes deux reliées à Nathan n°4",
+            code:"SELECT id, client_id\nFROM commandes\nWHERE <span class=\"vs-line good\">client_id = 4</span>;"}},
+    why:{title:"Primaire d’un côté, étrangère de l’autre.",
+      body:"Dans <code>clients</code>, <code>id = 4</code> n’existe qu’une fois : c’est la <b>clé primaire</b> de Nathan n°4.<br><br>Dans <code>commandes</code>, <code>client_id = 4</code> apparaît deux fois : c’est une <b>clé étrangère</b> sur les commandes n°5 et n°12. Les deux lignes pointent vers le même client.<br><br>On obtient une relation <b>1 vers plusieurs</b> : un client peut être lié à zéro, une ou plusieurs commandes ; chaque commande est liée à au plus un client."},
     viz:"fk",
-    uses:{title:"Déclarer ne suffit pas.",
+    uses:{title:"Construire un lien fiable entre clients et commandes.",
       body:`<div class="pt-lead fn-uses">
         <div class="fn-use">
-          <p class="pt-syntax-h">Une règle que SQLite n’applique pas d’office</p>
-          <p>Une clé étrangère déclarée dans <code>CREATE TABLE</code> n’est pas vérifiée par défaut : SQLite laisse passer une commande dont le <code>client_id</code> ne désigne personne.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">PRAGMA foreign_keys = ON;</pre></div>
-          <p>Cette ligne active le contrôle. Sans elle, <code>client_id = 999</code> entre dans la table sans un mot, et la commande devient orpheline.</p>
+          <p class="pt-syntax-h">1. Lire le sens de la colonne</p>
+          <p><code>commandes.id</code> identifie la commande elle-même. <code>commandes.client_id</code> identifie le client auquel elle appartient. Le suffixe <code>_id</code> indique généralement la table visée.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">commande #5  : client_id = 4
+commande #12 : client_id = 4
+client #4    : Nathan</pre></div>
+          <p>Deux commandes différentes peuvent donc pointer vers une seule fiche client.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Un réglage par connexion, pas par base</p>
-          <p>Le réglage ne s’enregistre pas dans le fichier : il vaut pour la session en cours. Chaque programme qui ouvre la base doit le redemander, en tête de script ou à la connexion.</p>
-          <p class="fn-tip"><b>Ici, c’est déjà fait</b> Cette application l’active à l’ouverture de chaque base de travail : tes exercices voient donc les clés étrangères respectées.</p>
+          <p class="pt-syntax-h">2. Déclarer la relation</p>
+          <p>La table <code>commandes</code> précise quelle colonne elle référence :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE commandes (
+  id INTEGER PRIMARY KEY,
+  client_id INTEGER,
+  FOREIGN KEY (client_id)
+    REFERENCES clients(id)
+);</pre></div>
+          <p>La règle se lit : chaque valeur de <code>commandes.client_id</code> doit correspondre à une valeur existante de <code>clients.id</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">3. Faire respecter la relation dans SQLite</p>
+          <p>SQLite doit activer le contrôle des clés étrangères à chaque connexion :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">PRAGMA foreign_keys = ON;</pre></div>
+          <p>Une commande avec <code>client_id = 999</code> est alors refusée, car aucun client 999 n’existe. <code>client_id = NULL</code> reste possible si la colonne autorise les achats invités, comme la commande n°16 de notre base.</p>
+          <p class="fn-tip"><b>Ici, c’est déjà actif</b> Les exercices appliquent cette vérification à l’ouverture de la base.</p>
         </div>
       </div>`},
-    reflex:{a:{k:"PRIMARY KEY",t:"<code>clients.id</code> — unique"},
-      b:{k:"FOREIGN KEY",t:"<code>commandes.client_id</code> — <b>peut se répéter</b>"}}},
-  anatomie:[{tok:"clients.id",plain:1,txt:"Clé primaire : Sophie = 1, une seule fois."},{tok:"commandes.client_id",plain:1,txt:"Clé étrangère : autant de 1 que Sophie a de commandes."},{tok:"produit_id",plain:1,txt:"Autre clé étrangère, vers <code>produits.id</code>."}],
-  exemple:"SELECT client_id, produit_id FROM commandes;",
-  attendu:"<b>16 lignes</b> : 15 commandes pointent vers un client ; la commande <code>id = 16</code> est un achat en invité (<code>client_id</code> vide).",
-  retenir:"Une <b>clé étrangère</b> recopie la clé primaire d’une autre table. <code>commandes.client_id</code> vaut <code>clients.id</code>. Un client (1) peut avoir plusieurs commandes : la clé étrangère se répète.<br><br>Dans SQLite, la vérification n’est pas active par défaut : il faut <code>PRAGMA foreign_keys = ON;</code> à chaque connexion.",
-  piege:{t:"Croire que la clé étrangère est unique",p:"La primaire est unique. L’étrangère non : c’est le principe d’une relation 1-N. Sophie (<code>id = 1</code>) a 3 commandes, donc <code>client_id = 1</code> apparaît 3 fois.",
-    sql:"SELECT client_id FROM commandes;"},
-  consigne:"Affiche le <code>client_id</code> et le <code>produit_id</code> de chaque commande.",
-  solution:"SELECT client_id, produit_id FROM commandes;",
-  indice:"Les deux ponts sont dans la table <code>commandes</code> : <code>client_id</code> et <code>produit_id</code>.",
+    reflex:{a:{k:"PRIMARY KEY",t:"<code>clients.id = 4</code> : <b>une seule ligne</b> Nathan"},
+      b:{k:"FOREIGN KEY",t:"<code>commandes.client_id = 4</code> : <b>plusieurs achats</b> possibles"}}},
+  anatomie:[{tok:"SELECT id, client_id, produit_id, quantite",txt:"Affiche chaque commande et les identifiants qu’elle référence."},{tok:"FROM commandes",txt:"Les lignes étudiées sont les achats."},{tok:"WHERE client_id = 4",txt:"Garde les commandes dont la clé étrangère pointe vers Nathan n°4."}],
+  exemple:"SELECT id, client_id, produit_id, quantite FROM commandes WHERE client_id = 4;",
+  attendu:"<b>2 lignes</b> : commandes n°5 et n°12. Leur <code>client_id = 4</code> pointe vers Nathan n°4 ; aucune commande ne pointe vers Nathan n°10.",
+  retenir:"Une <b>clé étrangère</b> stocke la clé primaire d’une ligne située dans une autre table. Ici, <code>commandes.client_id</code> référence <code>clients.id</code>.<br><br>La clé primaire est unique dans sa table. La clé étrangère peut se répéter : les commandes 5 et 12 portent toutes deux <code>client_id = 4</code>, car elles appartiennent au même Nathan. Dans SQLite, <code>PRAGMA foreign_keys = ON</code> active la vérification de cette relation.",
+  piege:{t:"Confondre commandes.id et commandes.client_id",p:"<code>commandes.id = 5</code> signifie « commande n°5 ». <code>commandes.client_id = 4</code> signifie « cette commande appartient au client n°4 ». Les deux colonnes contiennent des identifiants, mais elles n’identifient pas la même chose.",
+    sql:"SELECT id, client_id FROM commandes WHERE client_id = 4;"},
+  consigne:"Affiche les commandes de Nathan n°4 : leur <code>id</code>, leur <code>client_id</code>, leur <code>produit_id</code> et leur <code>quantite</code>.",
+  solution:"SELECT id, client_id, produit_id, quantite FROM commandes WHERE client_id = 4;",
+  indice:"Dans <code>commandes</code>, la colonne qui pointe vers <code>clients.id</code> est <code>client_id</code>. Filtre-la sur la valeur 4.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;",out:"id est unique : une personne, un numéro"},
-    {k:'cmd',label:'commandes',sql:"SELECT id, client_id\nFROM commandes;",out:"client_id se répète : un client, plusieurs commandes"}
+    {k:'clients',label:'Les deux Nathan',sql:"SELECT id, nom, ville\nFROM clients\nWHERE nom = 'Nathan';",out:"Nathan n°4 et Nathan n°10 : deux clés primaires"},
+    {k:'cmd4',label:'Commandes de l’id 4',sql:"SELECT id, client_id, produit_id, quantite\nFROM commandes\nWHERE client_id = 4;",out:"#5 et #12 pointent vers Nathan n°4",tone:'good'},
+    {k:'cmd10',label:'Commandes de l’id 10',sql:"SELECT id, client_id\nFROM commandes\nWHERE client_id = 10;",out:"0 ligne : Nathan n°10 n’a pas encore commandé"}
   ] }
 ]},
 { titre:"Jointures", sous:"Interroger plusieurs tables à la fois", lessons:[
@@ -8281,7 +8305,7 @@ FROM produits;</pre></div>
         {t:"La condition ON",draw:"oncond",
          pairs:[{l:"1",n:"Sophie",r:"1"},{l:"7",n:"Léa",r:"7"},{l:"9",n:"Inès",gap:1}]},
         {t:"Une ligne par correspondance",draw:"repeat",src:"Sophie",outs:["commande #1","commande #2","commande #3"],
-         b:"<p>Chaque correspondance produit sa propre ligne : Sophie a 3 commandes, elle apparaît <b>3 fois</b>.</p><p>Un client sans commande produit une ligne, et une seule : Inès apparaît <b>1 fois</b>, avec des <code>NULL</code>.</p><p>D’où les 16 lignes du résultat : les 15 commandes rattachées à un client, plus Inès.</p>"},
+         b:"<p>Chaque correspondance produit sa propre ligne : Sophie a 3 commandes, elle apparaît <b>3 fois</b>.</p><p>Un client sans commande produit une ligne, et une seule : Inès et Nathan n°10 apparaissent chacun <b>1 fois</b>, avec des <code>NULL</code>.</p><p>D’où les 17 lignes du résultat : les 15 commandes rattachées à un client, plus les deux clients sans commande.</p>"},
         {t:"La correspondance entre les tables",draw:"pkfk",
          b:"<p><code>clients.id</code> et <code>commandes.client_id</code> servent à chercher les lignes qui vont ensemble.</p><p>Même identifiant → les lignes sont réunies.</p><p>Aucune correspondance → la ligne de la table <code>clients</code> reste quand même affichée grâce à <code>LEFT JOIN</code>, avec <code>NULL</code> du côté <code>commandes</code>.</p>"},
         {t:"Quand s’en servir",
@@ -8295,7 +8319,7 @@ FROM produits;</pre></div>
     viz:"leftj"},
   anatomie:[{tok:"SELECT clients.nom, commandes.quantite",txt:"Les colonnes à afficher."},{tok:"FROM clients",txt:"La table de gauche : tous ses enregistrements seront conservés."},{tok:"LEFT JOIN commandes",txt:"La table de droite : on ajoute les correspondances si elles existent."},{tok:"ON clients.id = commandes.client_id",txt:"La condition de correspondance. Si aucune correspondance, les colonnes de droite sont NULL."}],
   exemple:"SELECT clients.nom, commandes.produit_id, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",
-  attendu:"16 lignes : 15 commandes avec un client + Inès avec des NULL. La commande invitée n’apparaît pas.",
+  attendu:"17 lignes : 15 commandes avec un client + Inès et Nathan n°10 avec des NULL. La commande invitée n’apparaît pas.",
   piege:{t:"Utiliser JOIN au lieu de LEFT JOIN",p:"Un <code>JOIN</code> simple (INNER JOIN) écarterait Inès car elle n’a aucune commande. Pour garder tous les clients, il faut <code>LEFT JOIN</code>.",
     exec:true,
     sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;",
@@ -8311,7 +8335,7 @@ FROM produits;</pre></div>
     {k:'leftjoin',label:'LEFT JOIN',sql:"SELECT clients.nom, commandes.produit_id, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",tone:'good'}
   ] },
 { id:37, titre:"LEFT JOIN + IS NULL", résumé:"Isoler les clients sans commande",
-  situation:"Tu veux afficher uniquement les clients qui n’ont jamais passé commande.<br><br>Un <code>LEFT JOIN</code> garde tous les clients, mais tu dois ensuite filtrer pour ne garder que ceux sans aucune correspondance.<br><br>Dans la table <code>clients</code>, tu as tous les clients, y compris Inès :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr><tr><td>9</td><td>Inès</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, tu as les commandes avec <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br><br>Inès n’apparaît dans aucune commande. Si tu fais un <code>LEFT JOIN</code>, elle apparaîtra avec des <code>NULL</code> dans les colonnes de <code>commandes</code>. Il ne reste plus qu’à filtrer ces lignes.",
+  situation:"Tu veux afficher uniquement les clients qui n’ont jamais passé commande.<br><br>Un <code>LEFT JOIN</code> garde tous les clients, mais tu dois ensuite filtrer pour ne garder que ceux sans aucune correspondance.<br><br>Dans la table <code>clients</code>, tu as 10 clients, dont Inès et Nathan n°10 :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>9</td><td>Inès</td></tr><tr><td>10</td><td>Nathan</td></tr><tr class=\"sample-more\"><td colspan=\"2\">… et 6 autres clients</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, tu as 16 commandes avec <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr><tr class=\"sample-more\"><td colspan=\"4\">… et 13 autres commandes</td></tr></tbody></table></div><br><br>Aucune commande ne porte <code>client_id = 9</code> ou <code>client_id = 10</code>. Après le <code>LEFT JOIN</code>, Inès et Nathan n°10 ont donc des <code>NULL</code> dans les colonnes de <code>commandes</code>. Il ne reste plus qu’à filtrer ces lignes.",
     studio:{pointCards:{
       lead:"Pour trouver les lignes sans correspondance, utilise <code>LEFT JOIN</code> puis filtre avec <code>IS NULL</code> sur une colonne de la table de droite.",
       cards:[
@@ -8335,7 +8359,7 @@ FROM produits;</pre></div>
     {tok:"WHERE commandes.id IS NULL",txt:"Garde uniquement les lignes où aucune commande n’a été trouvée."}
   ],
   exemple:"SELECT clients.nom\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;",
-  attendu:"1 ligne : Inès (la seule cliente sans commande).",
+  attendu:"2 lignes : Inès et Nathan n°10, les deux clients sans commande.",
   piege:{t:"Utiliser = NULL au lieu de IS NULL",
     p:"En SQL, <code>NULL</code> ne se compare pas avec <code>=</code>. <code>WHERE commandes.id = NULL</code> ne retourne aucune ligne. Il faut écrire <code>WHERE commandes.id IS NULL</code>.",
     exec:true,
@@ -8480,7 +8504,7 @@ FROM produits;</pre></div>
     viz:"outer"},
   anatomie:[{tok:"SELECT clients.nom, commandes.quantite",txt:"Les colonnes à afficher."},{tok:"FROM clients",txt:"La table de gauche : tous ses enregistrements seront conservés."},{tok:"FULL OUTER JOIN commandes",txt:"La table de droite : tous ses enregistrements seront aussi conservés."},{tok:"ON clients.id = commandes.client_id",txt:"La condition de correspondance. Si aucune correspondance, les colonnes du côté manquant sont NULL."}],
   exemple:"SELECT clients.nom, commandes.produit_id, commandes.quantite\nFROM clients\nFULL OUTER JOIN commandes\nON clients.id = commandes.client_id;",
-  attendu:"17 lignes : 15 commandes avec le client correspondant + Inès (NULL côté commandes) + la commande invitée id 16 (NULL côté clients).",
+  attendu:"18 lignes : 15 commandes avec le client correspondant + Inès et Nathan n°10 (NULL côté commandes) + la commande invitée id 16 (NULL côté clients).",
   piege:{t:"Utiliser LEFT JOIN au lieu de FULL OUTER JOIN",p:"<code>LEFT JOIN</code> garde bien Inès, mais la commande invitée (id 16) n’a pas de client correspondant donc elle disparaît. Pour garder les deux côtés, il faut <code>FULL OUTER JOIN</code>.",
     exec:true,
     sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",
@@ -8496,7 +8520,7 @@ FROM produits;</pre></div>
     {k:'fulljoin',label:'FULL OUTER JOIN',sql:"SELECT clients.nom, commandes.produit_id, commandes.quantite\nFROM clients\nFULL OUTER JOIN commandes\nON clients.id = commandes.client_id;",tone:'good'}
   ] },
 { id:40, titre:"CROSS JOIN", résumé:"Toutes les combinaisons possibles",
-  situation:"Tu veux afficher toutes les combinaisons possibles entre les clients et les produits, par exemple pour préparer une campagne où chaque client pourrait recevoir une offre pour chaque produit.<br><br>Dans la table <code>clients</code>, tu as 9 clients :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr></tbody></table></div><br><br>Dans la table <code>produits</code>, tu as 8 produits :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Fibre Prébiotique</td></tr><tr><td>2</td><td>Collagène Marin</td></tr><tr><td>3</td><td>Magnésium</td></tr></tbody></table></div><br><br>Ici, tu ne cherches pas à faire correspondre certaines lignes entre elles. Tu veux associer <b>chaque client à chaque produit</b>.",
+  situation:"Tu veux afficher toutes les combinaisons possibles entre les clients et les produits, par exemple pour préparer une campagne où chaque client pourrait recevoir une offre pour chaque produit.<br><br>Dans la table <code>clients</code>, tu as 10 clients :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr><tr class=\"sample-more\"><td colspan=\"2\">… et 7 autres clients</td></tr></tbody></table></div><br><br>Dans la table <code>produits</code>, tu as 8 produits :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Fibre Prébiotique</td></tr><tr><td>2</td><td>Collagène Marin</td></tr><tr><td>3</td><td>Magnésium</td></tr><tr class=\"sample-more\"><td colspan=\"2\">… et 5 autres produits</td></tr></tbody></table></div><br><br>Ici, tu ne cherches pas à faire correspondre certaines lignes entre elles. Tu veux associer <b>chaque client à chaque produit</b>.",
   situationTail:"<code>CROSS JOIN</code> crée toutes les combinaisons possibles : chaque ligne de la première table est associée à toutes les lignes de la deuxième table.",
     studio:{pointCards:{
       eye:"CROSS JOIN",title:"Toutes les paires possibles.",
@@ -8510,7 +8534,7 @@ FROM produits;</pre></div>
         {t:"Aucune clause ON",
          b:"<p>Avec <code>CROSS JOIN</code>, il n’y a pas de <code>ON</code>.</p><p>SQL ne cherche pas de correspondance : il associe chaque ligne de la première table à toutes les lignes de la deuxième.</p><p>Aucune ligne ne peut donc être écartée, et aucune ne vaut <code>NULL</code>.</p>"},
         {t:"Le nombre de lignes se multiplie",draw:"repeat",src:"Sophie",outs:["Fibre Prébiotique","Collagène Marin","Magnésium"],more:"5 autres produits",
-         b:"<p>Le nombre de lignes obtenu est : nombre de lignes de la première table × nombre de lignes de la deuxième.</p><p>Ici : <b>9 × 8 = 72 lignes</b>.</p><p>Il se multiplie, il ne s’additionne jamais.</p>"},
+         b:"<p>Le nombre de lignes obtenu est : nombre de lignes de la première table × nombre de lignes de la deuxième.</p><p>Ici : <b>10 × 8 = 80 lignes</b>.</p><p>Il se multiplie, il ne s’additionne jamais.</p>"},
         {t:"Créer toutes les possibilités",
          b:"<p><code>CROSS JOIN</code> est utile quand tu veux générer toutes les associations possibles.</p><ul><li>clients × produits, pour une campagne ;</li><li>dates × créneaux, pour un planning ;</li><li>tailles × couleurs, pour un catalogue.</li></ul><p>👉 <b>L’idée à retenir :</b> il sert à <b>créer</b> des couples, pas à retrouver ceux qui existent déjà.</p>"},
         {t:"Attention au volume",
@@ -8526,13 +8550,13 @@ FROM produits;</pre></div>
     {tok:"CROSS JOIN produits",txt:"Associe chaque client à chaque produit. Aucune clause <code>ON</code> n’est nécessaire."}
   ],
   exemple:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;",
-  attendu:"72 lignes : chaque client est associé aux 8 produits. Sophie apparaît donc 8 fois, Lucas 8 fois, et ainsi de suite pour les 9 clients.",
-  retenir:"<code>CROSS JOIN</code> associe chaque ligne de la première table à toutes les lignes de la deuxième, sans <code>ON</code>.<br><br>Le résultat compte toujours <b>lignes de gauche × lignes de droite</b> : 9 × 8 = 72 dans notre base.<br><br>Structure : <code>SELECT … FROM table1 CROSS JOIN table2;</code>",
+  attendu:"80 lignes : chaque client est associé aux 8 produits. Sophie apparaît donc 8 fois, Lucas 8 fois, et ainsi de suite pour les 10 clients.",
+  retenir:"<code>CROSS JOIN</code> associe chaque ligne de la première table à toutes les lignes de la deuxième, sans <code>ON</code>.<br><br>Le résultat compte toujours <b>lignes de gauche × lignes de droite</b> : 10 × 8 = 80 dans notre base.<br><br>Structure : <code>SELECT … FROM table1 CROSS JOIN table2;</code>",
   piege:{t:"Utiliser CROSS JOIN pour relier des clients à leurs commandes",
     p:"<code>CROSS JOIN</code> ne vérifie pas à quel client appartient chaque commande. Il associe chaque client à toutes les commandes. Pour retrouver les commandes de chaque client, il faut utiliser <code>JOIN</code> avec une condition <code>ON</code>.",
     exec:true,
     sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nCROSS JOIN commandes;",
-    out:"Résultat incorrect pour ce besoin : chaque client est associé aux 16 commandes, soit 9 × 16 = 144 lignes.",
+    out:"Résultat incorrect pour ce besoin : chaque client est associé aux 16 commandes, soit 10 × 16 = 160 lignes.",
     fixSql:"SELECT clients.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;"},
   consigne:"Affiche toutes les combinaisons possibles entre chaque client et chaque produit.",
   solution:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;",
@@ -8588,7 +8612,7 @@ FROM produits;</pre></div>
     ]}
   ],
   exemple:"SELECT clients.nom, commandes.quantite\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",
-  attendu:"INNER JOIN : 15 lignes (Inès disparaît). LEFT JOIN : 16 lignes (Inès + NULL). RIGHT JOIN : 16 lignes (invité + NULL). FULL OUTER JOIN : 17 lignes. CROSS JOIN clients × produits : 72 lignes.",
+  attendu:"INNER JOIN : 15 lignes (Inès et Nathan n°10 disparaissent). LEFT JOIN : 17 lignes (2 clients sans commande + NULL). RIGHT JOIN : 16 lignes (invité + NULL). FULL OUTER JOIN : 18 lignes. CROSS JOIN clients × produits : 80 lignes.",
   retenir:"Avant d’écrire le <code>JOIN</code>, demande-toi quelles lignes doivent rester, même sans correspondance.<br><br><code>INNER JOIN</code> : seulement les correspondances. <code>LEFT JOIN</code> : toute la table de gauche. <code>FULL OUTER JOIN</code> : les deux tables. <code>CROSS JOIN</code> : toutes les combinaisons, sans <code>ON</code>.<br><br><code>RIGHT JOIN</code> : toute la table de droite — le miroir du <code>LEFT JOIN</code>.",
   consigne:"Un audit réclame la liste de tous les clients avec la date de leurs commandes. Les clients qui n’ont jamais commandé doivent figurer au résultat, avec une date vide. Affiche le nom, la ville et la date.",
   solution:"SELECT clients.nom, clients.ville, commandes.date_commande\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",
@@ -8596,11 +8620,11 @@ FROM produits;</pre></div>
   joinRecap:true,
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'inner',label:'INNER JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",out:"15 lignes. Inès disparaît : elle n’a aucune commande."},
-    {k:'left',label:'LEFT JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",out:"16 lignes. Inès reste, avec NULL.",tone:'good'},
+    {k:'inner',label:'INNER JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",out:"15 lignes. Inès et Nathan n°10 disparaissent : ils n’ont aucune commande."},
+    {k:'left',label:'LEFT JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",out:"17 lignes. Inès et Nathan n°10 restent, avec NULL.",tone:'good'},
     {k:'right',label:'RIGHT JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nRIGHT JOIN commandes\nON clients.id = commandes.client_id;",out:"16 lignes. L’invité #16 reste, avec NULL côté client."},
-    {k:'full',label:'FULL JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nFULL OUTER JOIN commandes\nON clients.id = commandes.client_id;",out:"17 lignes. Inès et l’invité restent."},
-    {k:'cross',label:'CROSS JOIN',sql:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;",out:"72 lignes : 9 clients × 8 produits. Pas de ON."}
+    {k:'full',label:'FULL JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nFULL OUTER JOIN commandes\nON clients.id = commandes.client_id;",out:"18 lignes. Inès, Nathan n°10 et l’invité restent."},
+    {k:'cross',label:'CROSS JOIN',sql:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;",out:"80 lignes : 10 clients × 8 produits. Pas de ON."}
   ] },
 { id:41, titre:"Jointure + GROUP BY", résumé:"Compter les commandes par client",
   situation:"Tu veux savoir quels clients commandent le plus souvent.<br><br>Pour cela, tu veux afficher chaque client avec le nombre de commandes qu’il a passées.<br><br>Le nom du client se trouve dans la table <code>clients</code>, tandis que ses commandes se trouvent dans la table <code>commandes</code>.<br><br>Dans la table <code>clients</code>, tu as par exemple :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr><tr><td>9</td><td>Inès</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, plusieurs lignes peuvent appartenir au même client grâce à <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br><br>Nous avons donc besoin de faire une jointure pour relier chaque commande au client correspondant.<br><br>Après la jointure, un client peut apparaître plusieurs fois : une ligne pour chaque commande. Pour obtenir une seule ligne par client avec son nombre de commandes, nous devons ensuite regrouper les lignes avec <code>GROUP BY</code> et compter les commandes avec <code>COUNT</code>.",
@@ -8627,7 +8651,7 @@ FROM produits;</pre></div>
     {tok:"GROUP BY clients.id, clients.nom",txt:"Regroupe toutes les lignes appartenant au même client avant de les compter."}
   ],
   exemple:"SELECT clients.nom, COUNT(commandes.id) AS nb_commandes\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nGROUP BY clients.id, clients.nom;",
-  attendu:"9 lignes : une ligne par client avec son nombre de commandes. Sophie : 3, Lucas : 2, Inès : 0.",
+  attendu:"10 lignes : une ligne par client avec son nombre de commandes. Sophie : 3, Lucas : 2, Inès : 0, Nathan n°10 : 0.",
   retenir:"Pour compter des lignes liées sans perdre personne :<br><br><code>FROM t1 LEFT JOIN t2 ON … GROUP BY t1.id</code> puis <code>COUNT(t2.id)</code>.<br><br><b>LEFT JOIN</b> garde ceux qui n’ont rien. <b>COUNT(colonne)</b> ignore les <code>NULL</code> et leur donne 0, là où <code>COUNT(*)</code> leur donnerait 1.",
   piege:{t:"Compter avec COUNT(*)",
     p:"Après un <code>LEFT JOIN</code>, un client sans commande reste présent avec des <code>NULL</code> du côté de <code>commandes</code>. <code>COUNT(*)</code> compte quand même cette ligne et donnerait donc 1. Pour compter uniquement les vraies commandes, utilise <code>COUNT(commandes.id)</code>.",
@@ -8678,10 +8702,10 @@ FROM produits;</pre></div>
     {tok:"SELECT c1.nom, c2.nom, c1.ville",txt:"Affiche les deux clients et leur ville commune."}
   ],
   exemple:"SELECT c1.nom AS client1, c2.nom AS client2, c1.ville\nFROM clients c1\nJOIN clients c2\nON c1.ville = c2.ville AND c1.id < c2.id;",
-  attendu:"4 lignes : Sophie/Nathan, Sophie/Léa, Nathan/Léa (Paris) et Lucas/Hugo (Lyon).",
+  attendu:"7 lignes : 6 paires à Paris entre Sophie, Nathan n°4, Léa et Nathan n°10, plus Lucas/Hugo à Lyon.",
   retenir:"Un <code>SELF JOIN</code> lit la même table deux fois sous deux alias : <code>FROM clients c1 JOIN clients c2</code>.<br><br>La table n’est pas dupliquée, elle joue deux rôles que la condition compare — ici <code>c1.ville = c2.ville</code>.<br><br><code>c1.id &lt; c2.id</code> évite les paires inversées et les clients associés à eux-mêmes.",
   piege:{t:"Oublier d’exclure les paires avec le même client",
-    p:"Avec seulement <code>ON c1.ville = c2.ville</code>, chaque client apparaît avec lui-même et chaque paire apparaît en double — 17 lignes au lieu de 4. Ajoute <code>AND c1.id &lt; c2.id</code> pour ne garder qu’une fois chaque paire."},
+    p:"Avec seulement <code>ON c1.ville = c2.ville</code>, chaque client apparaît avec lui-même et chaque paire apparaît en double — 24 lignes au lieu de 7. Ajoute <code>AND c1.id &lt; c2.id</code> pour ne garder qu’une fois chaque paire."},
   consigne:"Affiche toutes les paires de clients qui habitent la même ville, sans doublons ni association d’un client avec lui-même.",
   solution:"SELECT c1.nom AS client1, c2.nom AS client2, c1.ville\nFROM clients c1\nJOIN clients c2\nON c1.ville = c2.ville AND c1.id < c2.id;",
   indice:"Utilise deux alias de la table <code>clients</code>, compare les villes, puis ajoute <code>c1.id &lt; c2.id</code>.",
@@ -8735,7 +8759,7 @@ FROM produits;</pre></div>
     ]}
   ],
   exemple:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2;",
-  attendu:"9 lignes : tous les clients apparaissent. Emma affiche 3, Chloé 3, Léa 4, et les six autres affichent NULL.",
+  attendu:"10 lignes : tous les clients apparaissent. Emma affiche 3, Chloé 3, Léa 4, et les sept autres affichent NULL.",
   retenir:"<code>ON</code> filtre les commandes <b>avant</b> de les rattacher aux clients. S’il n’en trouve pas, le <code>LEFT JOIN</code> garde quand même le client, avec <code>NULL</code>.<br><br><code>WHERE</code> filtre le résultat <b>après</b> la jointure. <code>NULL &gt; 2</code> n’est pas vrai : le client sans correspondance disparaît.<br><br>Filtrer la table de droite dans le <code>WHERE</code> transforme donc un <code>LEFT JOIN</code> en <code>INNER JOIN</code>.",
   consigne:"Affiche tous les clients et uniquement leurs commandes dont la quantité est supérieure à 2. Les clients sans commande correspondante doivent rester affichés.",
   solution:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2;",
@@ -8775,7 +8799,7 @@ FROM produits;</pre></div>
     {tok:"AND commandes.date_commande > '2023-07-15'",txt:"Critère supplémentaire : la commande doit être postérieure au 15 juillet 2023."}
   ],
   exemple:"SELECT clients.nom, commandes.quantite, commandes.date_commande\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2\nAND commandes.date_commande > '2023-07-15';",
-  attendu:"9 lignes : tous les clients restent affichés. Chloé affiche sa commande de quantité 3 du 2023-08-01 et Léa sa commande de quantité 4 du 2023-07-18. Les autres affichent NULL.",
+  attendu:"10 lignes : tous les clients restent affichés. Chloé affiche sa commande de quantité 3 du 2023-08-01 et Léa sa commande de quantité 4 du 2023-07-18. Les autres affichent NULL.",
   retenir:"Un <code>ON</code> n’est pas limité à l’égalité des clés : tu peux y enchaîner autant de conditions que nécessaire avec <code>AND</code>.<br><br>Avec <code>AND</code>, une commande n’est associée que si <b>tous</b> les critères sont vrais. Une seule condition fausse suffit à l’écarter.<br><br>Comme les critères vivent dans le <code>ON</code> et non dans le <code>WHERE</code>, les clients restent tous affichés, avec <code>NULL</code> quand aucune de leurs commandes ne passe.",
   piege:{t:"Oublier qu’AND exige tous les critères",
     p:"Avec <code>AND</code>, une commande doit respecter <b>chaque</b> condition du <code>ON</code>. Retire-en une et des commandes que tu voulais écarter reviennent dans le résultat."},
@@ -8870,7 +8894,7 @@ FROM produits;</pre></div>
     ]}
   ],
   exemple:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",
-  attendu:"9 lignes. Lucas, Chloé, Gabriel → Jeune. Sophie, Emma, Nathan, Léa, Inès → Adulte. Hugo → Senior.",
+  attendu:"10 lignes. Lucas, Chloé, Gabriel → Jeune. Sophie, Emma, les deux Nathan, Léa, Inès → Adulte. Hugo → Senior.",
   retenir:"L’expression <code>CASE</code> permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else, intégré dans les requêtes SQL.<br><br><b>CASE simple</b> : Compare une colonne à plusieurs valeurs précises. <b>CASE recherché</b> : Teste plusieurs conditions, l’une après l’autre.<br><br><code>ELSE</code> est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est <code>NULL</code>.",
   piege:{t:"Oublier le ELSE ou mal ordonner les WHEN",
     p:"Si tu écris <code>WHEN age &lt; 50 THEN 'Adulte'</code> avant <code>WHEN age &lt; 30 THEN 'Jeune'</code>, tous les moins de 50 ans (y compris les moins de 30) seront classés 'Adulte'. De même, sans <code>ELSE</code>, les plus de 50 ans auront <code>NULL</code>.",
@@ -8883,13 +8907,13 @@ FROM produits;</pre></div>
   richLesson:true, earlyDemo:true,
   testeVariants:[
     {k:'simple',label:'Simple',sql:"SELECT nom, ville,\n  CASE ville\n    WHEN 'Paris' THEN 'Île-de-France'\n    WHEN 'Lyon' THEN 'Auvergne-Rhône-Alpes'\n    WHEN 'Marseille' THEN 'PACA'\n    ELSE 'Autre'\n  END AS region\nFROM clients;",out:"Sophie, Nathan, Léa → Île-de-France. Lucas, Hugo → Auvergne-Rhône-Alpes. Emma → PACA. Chloé, Gabriel, Inès → Autre."},
-    {k:'search',label:'Recherché',sql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",out:"9 lignes. Lucas, Chloé, Gabriel → Jeune. Hugo → Senior. Les autres → Adulte.",tone:'good'},
-    {k:'orderby',label:'ORDER BY',sql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients\nORDER BY CASE\n    WHEN age < 30 THEN 1\n    WHEN age BETWEEN 30 AND 50 THEN 2\n    ELSE 3\n  END;",out:"9 lignes. Jeune d’abord, puis Adulte, puis Senior."},
-    {k:'groupby',label:'GROUP BY',sql:"SELECT\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie,\n  COUNT(*) AS nb\nFROM clients\nGROUP BY categorie;",out:"3 groupes : Jeune 3, Adulte 5, Senior 1."},
+    {k:'search',label:'Recherché',sql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",out:"10 lignes. Lucas, Chloé, Gabriel → Jeune. Hugo → Senior. Les autres → Adulte.",tone:'good'},
+    {k:'orderby',label:'ORDER BY',sql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients\nORDER BY CASE\n    WHEN age < 30 THEN 1\n    WHEN age BETWEEN 30 AND 50 THEN 2\n    ELSE 3\n  END;",out:"10 lignes. Jeune d’abord, puis Adulte, puis Senior."},
+    {k:'groupby',label:'GROUP BY',sql:"SELECT\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie,\n  COUNT(*) AS nb\nFROM clients\nGROUP BY categorie;",out:"3 groupes : Jeune 3, Adulte 6, Senior 1."},
     {k:'where',label:'WHERE',sql:"SELECT nom, age\nFROM clients\nWHERE CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END = 'Jeune';",out:"3 lignes : Lucas, Chloé, Gabriel."}
   ] },
 { id:23, titre:"COALESCE", résumé:"Remplacer les valeurs absentes",
-  situation:"Dans la table <code>clients</code>, certains clients n’ont pas renseigné leur adresse e-mail : la valeur est <code>NULL</code>.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th class=\"col-hl\">email</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td class=\"col-hl\">sophie@mail.fr</td></tr><tr><td>2</td><td>Lucas</td><td class=\"col-hl\">lucas@mail.fr</td></tr><tr><td>6</td><td>Hugo</td><td class=\"col-hl null\">NULL</td></tr><tr><td>9</td><td>Inès</td><td class=\"col-hl null\">NULL</td></tr></tbody></table></div><div class=\"coal-data-summary\" role=\"note\" aria-label=\"Résumé des adresses e-mail\"><span><i aria-hidden=\"true\"></i>7 adresses présentes</span><span><i aria-hidden=\"true\"></i>2 valeurs NULL</span></div><br><br>Objectif : afficher un contact lisible pour les 9 clients, sans modifier la table.",
+  situation:"Dans la table <code>clients</code>, certains clients n’ont pas renseigné leur adresse e-mail : la valeur est <code>NULL</code>.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th class=\"col-hl\">email</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td class=\"col-hl\">sophie@mail.fr</td></tr><tr><td>2</td><td>Lucas</td><td class=\"col-hl\">lucas@mail.fr</td></tr><tr><td>6</td><td>Hugo</td><td class=\"col-hl null\">NULL</td></tr><tr><td>9</td><td>Inès</td><td class=\"col-hl null\">NULL</td></tr><tr class=\"sample-more\"><td colspan=\"3\">… et 6 autres clients</td></tr></tbody></table></div><div class=\"coal-data-summary\" role=\"note\" aria-label=\"Résumé des adresses e-mail\"><span><i aria-hidden=\"true\"></i>8 adresses présentes</span><span><i aria-hidden=\"true\"></i>2 valeurs NULL</span></div><br><br>Objectif : afficher un contact lisible pour les 10 clients, sans modifier la table.",
     studio:{problem:{eye:"COALESCE",title:"Une règle : la première valeur qui n’est pas NULL.",
       body:`<div class="coal-primer">
         <p class="coal-primer-lead"><strong>COALESCE lit les valeurs de gauche à droite</strong> et renvoie la première qui n’est pas <code>NULL</code>.</p>
@@ -8947,7 +8971,7 @@ FROM produits;</pre></div>
     viz:"coalesce"},
   anatomie:[{tok:"SELECT nom,",txt:"Le nom affiché."},{tok:"COALESCE(email, 'Non renseigné') AS contact",txt:"L’email, ou « Non renseigné » si absent."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."}],
   exemple:"SELECT nom, COALESCE(email, 'Non renseigné') AS contact FROM clients;",
-  attendu:"9 lignes. Hugo et Inès affichent « Non renseigné ».",
+  attendu:"10 lignes. Hugo et Inès affichent « Non renseigné ».",
   retenir:"<code>COALESCE(a, b)</code> affiche a s’il existe, sinon b. La base ne change pas.",
   piege:{t:"COALESCE ne modifie pas les données",p:"<code>COALESCE</code> peut afficher une valeur à la place de <code>NULL</code>, mais la valeur enregistrée dans la table reste inchangée.<br><br>Pour modifier réellement la donnée, il faut utiliser <code>UPDATE</code>."},
   consigne:"Affiche le <code>nom</code> et l’email, en remplaçant les valeurs <code>NULL</code> par <code>'Non renseigné'</code> (colonne <code>contact</code>).",
@@ -8956,7 +8980,7 @@ FROM produits;</pre></div>
   richLesson:true, earlyDemo:true,
   testeVariants:[
     {k:'select',label:'SELECT',sql:"SELECT nom, email FROM clients;",out:"Hugo et Inès ont un email vide"},
-    {k:'coalesce',label:'COALESCE',sql:"SELECT nom, COALESCE(email, 'Non renseigné') AS contact\nFROM clients;",out:"9 lignes. Hugo et Inès affichent « Non renseigné ».",tone:'good'}
+    {k:'coalesce',label:'COALESCE',sql:"SELECT nom, COALESCE(email, 'Non renseigné') AS contact\nFROM clients;",out:"10 lignes. Hugo et Inès affichent « Non renseigné ».",tone:'good'}
   ],
   fnCmp:{title:"Quel équivalent selon le moteur ?",
     say:"<p class=\"fn-cmp-say\"><b>Privilégie <code>COALESCE</code></b> : elle appartient au standard SQL et accepte autant d’arguments que nécessaire.</p>",
@@ -9024,7 +9048,7 @@ FROM produits;</pre></div>
       cards:[
         {t:"Sous-requête entre parenthèses",
          b:"<p>La sous-requête se place entre parenthèses après <code>NOT IN</code>. Elle retourne ici les <code>client_id</code> des clients qui ont déjà commandé.</p>"},
-        {t:"Ordre d’exécution",draw:"repeat",src:"clients.id",outs:["9 Inès"],
+        {t:"Ordre d’exécution",draw:"repeat",src:"clients.id",outs:["9 Inès","10 Nathan"],
          b:"<p>SQL exécute d’abord la sous-requête, puis utilise la liste obtenue pour filtrer la requête principale. <code>NOT IN</code> garde les clients dont l’<code>id</code> n’est pas dans cette liste.</p>"}
       ]},
     reflex:{a:{k:"Sous-requête",t:"crée la liste des <code>client_id</code> ayant commandé"},
@@ -9038,13 +9062,13 @@ FROM produits;</pre></div>
     {tok:"(SELECT commandes.client_id FROM commandes WHERE commandes.client_id IS NOT NULL)",txt:"Sous-requête qui liste les clients ayant commandé, sans NULL."}
   ],
   exemple:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);",
-  attendu:"1 ligne : Inès (la seule cliente sans commande).",
+  attendu:"2 lignes : Inès et Nathan n°10, les deux clients sans commande.",
   retenir:"<code>NOT IN</code> cherche les valeurs <b>absentes</b> d’une liste.<br><br>Si la liste contient un <code>NULL</code>, SQL ne peut plus conclure qu’une valeur est absente de <b>toute</b> la liste. Le résultat devient vide.<br><br>La commande invitée #16 impose donc <code>WHERE client_id IS NOT NULL</code> dans la sous-requête.",
   piege:{t:"Un NULL dans la liste",
     p:"La commande invitée #16 a un <code>client_id = NULL</code>. La sous-requête peut donc produire une liste comme :<br><code>1, 2, 3, 4, ..., NULL</code><br><br>Avec <code>NOT IN</code>, SQL doit vérifier qu’un <code>id</code> n’est égal à aucune valeur de la liste. Mais face à <code>NULL</code>, la comparaison est inconnue.<br><br>Résultat : <code>NOT IN</code> ne retourne aucune ligne.<br><br>Il faut donc retirer les <code>NULL</code> de la sous-requête :<br><code>WHERE client_id IS NOT NULL</code>",
     exec:true,
     sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n);",
-    out:"0 ligne : Inès disparaît à cause du NULL présent dans la liste.",
+    out:"0 ligne : Inès et Nathan n°10 disparaissent à cause du NULL présent dans la liste.",
     fixSql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);"},
   consigne:"Affiche les clients qui n’ont jamais commandé, en utilisant <code>NOT IN</code> et une sous-requête.",
   solution:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);",
@@ -9078,7 +9102,7 @@ FROM produits;</pre></div>
     {tok:"FROM clients",txt:"La table principale."}
   ],
   exemple:"SELECT clients.nom,\n  (SELECT COUNT(*)\n   FROM commandes\n   WHERE commandes.client_id = clients.id) AS nb_commandes\nFROM clients;",
-  attendu:"9 lignes : chaque client avec son nombre de commandes. Sophie : 3, Lucas : 2, Inès : 0. La commande invitée #16 n’est comptée pour aucun client.",
+  attendu:"10 lignes : chaque client avec son nombre de commandes. Sophie : 3, Lucas : 2, Inès : 0, Nathan n°10 : 0. La commande invitée #16 n’est comptée pour aucun client.",
   retenir:"Une sous-requête dans <code>SELECT</code> calcule <b>une valeur par ligne</b>.<br><br>Elle est souvent <b>corrélée</b> : elle utilise une colonne de la requête principale, ici <code>clients.id</code>.<br><br>Sans ce lien, elle compte toute la table. Pour Inès, <code>COUNT(*)</code> vaut 0. La commande invitée n’appartient à personne.",
   piege:{t:"Oublier la corrélation",
     p:"Si tu écris <code>SELECT COUNT(*) FROM commandes</code> sans la clause <code>WHERE</code>, la sous-requête retourne 16 pour chaque client. Le résultat est faux.<br><br>Pour obtenir le bon nombre pour chaque client, la sous-requête doit être corrélée à la ligne en cours :<br><code>WHERE commandes.client_id = clients.id</code>",
@@ -9229,7 +9253,7 @@ WHERE NOT EXISTS (
   FROM commandes
   WHERE commandes.client_id = clients.id
 );</pre></div>
-          <p>Résultat : Inès seulement — l’offre de bienvenue.</p>
+          <p>Résultat : Inès et Nathan n°10 — les deux clients à qui proposer l’offre de bienvenue.</p>
           <p>Pour Inès (<code>id = 9</code>), la sous-requête cherche une commande avec <code>client_id = 9</code>.</p>
           <p>Elle n’en trouve aucune → <code>NOT EXISTS</code> est vrai → Inès est gardée.</p>
           <p class="fn-tip"><b>Et la commande invitée ?</b> La commande #16 n’est liée à aucun client (<code>client_id = NULL</code>).<br><br>Elle ne compte donc comme commande d’aucun client et ne change pas le résultat.</p>
@@ -9324,7 +9348,7 @@ WHERE EXISTS (
   FROM commandes
 );</pre></div>
       <p>Comme la table <code>commandes</code> n’est pas vide, <code>EXISTS</code> est vrai.</p>
-      <p>Résultat : les 9 clients sont gardés, même Inès.</p>
+      <p>Résultat : les 10 clients sont gardés, même Inès et Nathan n°10.</p>
       <p>Ce qui manque, c’est le lien avec chaque client :</p>
       <div class="pt-syntax"><pre class="cw-syntax">WHERE commandes.client_id = clients.id</pre></div>
       <p>Cette condition permet à la sous-requête de vérifier les commandes du client en cours.</p>
@@ -9369,7 +9393,7 @@ WHERE EXISTS (
     {k:'exists',label:'EXISTS',sql:"SELECT clients.nom\nFROM clients\nWHERE EXISTS (\n  SELECT 1\n  FROM commandes\n  WHERE commandes.client_id = clients.id\n);",out:"8 clients à relancer. Inès disparaît. Sophie n’apparaît qu’une fois."},
     {k:'fibre',label:'Fibre',sql:"SELECT clients.nom\nFROM clients\nWHERE EXISTS (\n  SELECT 1\n  FROM commandes\n  WHERE commandes.client_id = clients.id\n    AND commandes.produit_id = 1\n);",out:"Sophie, Nathan, Chloé et Léa."},
     {k:'notin',label:'NOT IN',sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n);",out:"0 ligne : NOT IN peut ne retourner aucune ligne à cause du NULL de la commande #16.",tone:'bad'},
-    {k:'notexists',label:'NOT EXISTS',sql:"SELECT clients.nom\nFROM clients\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM commandes\n  WHERE commandes.client_id = clients.id\n);",out:"Inès seulement — offre de bienvenue.",tone:'good'}
+    {k:'notexists',label:'NOT EXISTS',sql:"SELECT clients.nom\nFROM clients\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM commandes\n  WHERE commandes.client_id = clients.id\n);",out:"Inès et Nathan n°10 — offre de bienvenue.",tone:'good'}
   ] },
 { id:59, titre:"WITH", résumé:"Nommer un résultat intermédiaire",
   situation:"Tu veux connaître le nombre de commandes passées par chaque client, puis n’afficher que ceux qui en ont au moins 2.<br><br>Tu pourrais imbriquer une requête dans une autre :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">SELECT *\nFROM (\n    SELECT client_id, COUNT(*) AS nb_commandes\n    FROM commandes\n    WHERE client_id IS NOT NULL\n    GROUP BY client_id\n) AS totaux\nWHERE nb_commandes &gt;= 2;</pre></div><br><br>La requête fonctionne. Mais plus les calculs s’enchaînent, plus les parenthèses deviennent difficiles à lire.<br><br>Avec <code>WITH</code>, tu calcules un premier résultat, tu lui donnes un nom, puis tu l’utilises juste après :",
@@ -9695,14 +9719,14 @@ WHERE rang = 1;</pre></div>
           <div class="pt-syntax"><pre class="cw-syntax">SELECT ville FROM clients
 UNION
 SELECT categorie FROM produits;</pre></div>
-          <p>Neuf villes et huit catégories entrent ; onze valeurs sortent. Les doublons ont disparu, et Paris n’apparaît qu’une fois même si trois clients y habitent.</p>
+          <p>Dix villes et huit catégories entrent ; onze valeurs sortent. Les doublons ont disparu, et Paris n’apparaît qu’une fois même si quatre clients y habitent.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">UNION ALL — garder les doublons</p>
           <div class="pt-syntax"><pre class="cw-syntax">SELECT ville FROM clients
 UNION ALL
 SELECT categorie FROM produits;</pre></div>
-          <p>Dix-sept lignes : les neuf plus les huit, sans le moindre tri. C’est la somme brute des deux résultats.</p>
+          <p>Dix-huit lignes : les dix plus les huit, sans le moindre tri. C’est la somme brute des deux résultats.</p>
           <p class="fn-tip"><b>Le moins cher des deux</b> <code>UNION</code> doit comparer toutes les lignes pour écarter les doublons. Si tu sais qu’il n’y en a pas, <code>UNION ALL</code> évite ce travail.</p>
         </div>
         <div class="fn-use">
@@ -9752,13 +9776,13 @@ SELECT 'Paris';</pre></div>
     {tok:"ORDER BY valeur",txt:"Trie l’ensemble, une seule fois, à la fin."}
   ],
   exemple:"SELECT ville AS valeur\nFROM clients\nUNION\nSELECT categorie\nFROM produits\nORDER BY valeur;",
-  attendu:"11 lignes. Neuf villes et huit catégories entrent, mais Paris et Lyon se répétaient : UNION ne les garde qu’une fois.",
+  attendu:"11 lignes. Dix villes et huit catégories entrent, mais Paris et Lyon se répétaient : UNION ne les garde qu’une fois.",
   retenir:"<code>UNION</code> empile les lignes de deux <code>SELECT</code> et écarte les doublons ; <code>UNION ALL</code> les garde tous.<br><br>Les deux requêtes doivent avoir le <b>même nombre de colonnes</b>. Le nom retenu est celui de la première, et l’unique <code>ORDER BY</code> se place à la fin.<br><br>Le mémo : <b>JOIN élargit, UNION rallonge</b>. <code>INTERSECT</code> et <code>EXCEPT</code> suivent les mêmes règles.",
   piege:{t:"Croire que UNION garde tout",
     p:"<code>UNION</code> dédoublonne, en silence. Compter les lignes d’un <code>UNION</code> pour connaître le total des deux tables donne un résultat trop petit — et rien ne le signale.<br><br>Pour additionner sans rien perdre, c’est <code>UNION ALL</code>.",
     exec:true,
     sql:"SELECT COUNT(*) AS total\nFROM (\n  SELECT ville FROM clients\n  UNION\n  SELECT categorie FROM produits\n);",
-    out:"11, alors que 9 villes et 8 catégories font 17. Six valeurs se répétaient.",
+    out:"11, alors que 10 villes et 8 catégories font 18. Sept valeurs se répétaient.",
     fixSql:"SELECT COUNT(*) AS total\nFROM (\n  SELECT ville FROM clients\n  UNION ALL\n  SELECT categorie FROM produits\n);"},
   petitDefi:[{
     p:"Tu empiles deux listes dont tu sais qu’elles n’ont aucune valeur commune, et tu veux éviter le travail de dédoublonnage. Qu’écris-tu ?",
@@ -10194,7 +10218,7 @@ ADD COLUMN pays TEXT;</pre></div>
           <p class="pt-syntax-h">Avec une valeur par défaut</p>
           <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
 ADD COLUMN pays TEXT DEFAULT 'France';</pre></div>
-          <p>Cette fois, les neuf clients déjà enregistrés reçoivent <code>France</code> au lieu de <code>NULL</code>, et les prochains l’auront aussi tant qu’aucune autre valeur n’est fournie.</p>
+          <p>Cette fois, les dix clients déjà enregistrés reçoivent <code>France</code> au lieu de <code>NULL</code>, et les prochains l’auront aussi tant qu’aucune autre valeur n’est fournie.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Renommer une colonne</p>
@@ -10657,7 +10681,7 @@ WHERE client_id IN (
     SELECT id FROM clients
     WHERE ville = 'Paris'
 );</pre></div>
-          <p>Le <code>WHERE</code> d’un <code>DELETE</code> accepte tout ce qu’un <code>SELECT</code> accepte. Sophie, Nathan et Léa habitent Paris : leurs sept commandes partent, il en reste neuf.</p>
+          <p>Le <code>WHERE</code> d’un <code>DELETE</code> accepte tout ce qu’un <code>SELECT</code> accepte. Sophie, les deux Nathan et Léa habitent Paris : les sept commandes rattachées aux trois clients actifs partent, il en reste neuf.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Quand une clé étrangère s’y oppose</p>
@@ -12302,7 +12326,7 @@ const QCM={
    {q:"Que fait un <code>SELECT</code> sur tes données ?",o:["Il peut les effacer si tu te trompes","Il les lit seulement — rien n’est modifié","Il crée automatiquement une nouvelle table"],b:1,e:"Tu peux explorer et te tromper : la base reste intacte."},
    {q:"Le mot « relationnel » désigne un lien entre :",o:["Les lignes d’une même table","Les tables entre elles","Les colonnes et leurs types"],b:1,e:"<code>commandes.client_id</code> désigne <code>clients.id</code> : ce sont les tables qui sont mises en relation."},
    {q:"Dans le vocabulaire formel, une <b>colonne</b> s’appelle :",o:["Un tuple","Un attribut","Une relation"],b:1,e:"Table = relation, colonne = attribut, ligne = tuple. « Relation » désigne la table elle-même."}],
- 1:[{q:"Que renvoie <code>SELECT nom, telephone FROM clients;</code> ?",o:["La première ligne seulement","Les 9 clients, avec seulement nom et telephone","Toutes les colonnes de tous les clients"],b:1,e:"Ce n’est pas un filtre de personnes. SELECT copie les colonnes demandées : les 9 clients sont toujours là, en plus étroit."},
+ 1:[{q:"Que renvoie <code>SELECT nom, telephone FROM clients;</code> ?",o:["La première ligne seulement","Les 10 clients, avec seulement nom et telephone","Toutes les colonnes de tous les clients"],b:1,e:"Ce n’est pas un filtre de personnes. SELECT copie les colonnes demandées : les 10 clients sont toujours là, en plus étroit."},
    {q:"<code>SELECT nom telephone FROM clients;</code> sans virgule :",o:["Fonctionne, l’espace suffit","Échoue : il manque la virgule entre les colonnes","N’affiche que nom"],b:1,e:"Après SELECT, les colonnes forment une liste : <code>nom, telephone</code>."}],
  3:[{q:"L’étoile <code>*</code> signifie :",o:["Toutes les lignes","Toutes les colonnes","Toutes les tables"],b:1,e:"Elle remplace la liste des colonnes. Le nombre de lignes ne change pas."},
    {q:"<code>SELECT *, nom FROM produits;</code> :",o:["N’affiche que nom","Demande nom une deuxième fois, alors que * l’inclut déjà","Ignore l’étoile"],b:1,e:"<code>*</code> représente déjà toutes les colonnes. <code>SELECT *</code> suffit."}],
@@ -12323,10 +12347,10 @@ const QCM={
  10:[{q:"<code>BETWEEN 15 AND 30</code> inclut :",o:["Ni 15 ni 30","15 et 30","Seulement 15"],b:1,e:"Équivalent à <code>&gt;= 15 AND &lt;= 30</code>. Shaker à 15,00 € est gardé."},
    {q:"<code>prix BETWEEN 15 AND 30</code> équivaut à :",o:["prix > 15 AND prix < 30","prix >= 15 AND prix <= 30","prix IN (15,30)"],b:1,e:"Les deux bornes sont incluses, comme <code>&gt;=</code> et <code>&lt;=</code>."}],
  11:[{q:"Sans <code>ORDER BY</code>, l’ordre des lignes est :",o:["Alphabétique","Celui des identifiants","Non garanti"],b:2,e:"Même si les lignes semblent suivre les id, rien n’est promis. Si l’ordre compte, écris <code>ORDER BY</code>."},
-   {q:"<code>ORDER BY age DESC</code> range :",o:["Du plus jeune au plus âgé","Du plus âgé au plus jeune","Seulement les plus de 35 ans"],b:1,e:"<code>DESC</code> = décroissant. Les 9 personnes restent : seul l’ordre change."}],
+  {q:"<code>ORDER BY age DESC</code> range :",o:["Du plus jeune au plus âgé","Du plus âgé au plus jeune","Seulement les plus de 35 ans"],b:1,e:"<code>DESC</code> = décroissant. Les 10 personnes restent : seul l’ordre change."}],
  12:[{q:"Que fait <code>LIMIT 3</code> ?",o:["Il garde les 3 premières lignes du résultat","Il garde toujours les 3 valeurs les plus élevées","Il trie automatiquement les lignes"],b:0,e:"<code>LIMIT</code> limite le nombre de lignes. Il ne réalise aucun tri."},
    {q:"Comment obtenir les 3 produits les plus chers ?",o:["LIMIT 3","ORDER BY prix DESC LIMIT 3","ORDER BY prix ASC LIMIT 3"],b:1,e:"<code>DESC</code> place les prix les plus élevés en premier, puis <code>LIMIT 3</code> garde les trois premières lignes."}],
- 13:[{q:"La table contient 9 clients mais seulement 6 villes différentes. Que renvoie <code>SELECT DISTINCT ville FROM clients;</code> ?",o:["9 lignes","6 lignes","3 lignes"],b:1,e:"<code>DISTINCT</code> n’affiche chaque ville qu’une seule fois."},
+ 13:[{q:"La table contient 10 clients mais seulement 6 villes différentes. Que renvoie <code>SELECT DISTINCT ville FROM clients;</code> ?",o:["10 lignes","6 lignes","4 lignes"],b:1,e:"<code>DISTINCT</code> n’affiche chaque ville qu’une seule fois."},
    {q:"Dans <code>SELECT DISTINCT ville, age FROM clients</code>, <code>DISTINCT</code> compare :",o:["Uniquement les villes","Uniquement les âges","Les combinaisons ville + âge"],b:2,e:"Avec plusieurs colonnes, l’unicité porte sur la combinaison complète des valeurs sélectionnées."}],
  51:[{q:"Quelle fonction transforme Sophie en SOPHIE ?",o:["LOWER()","UPPER()","LENGTH()"],b:1,e:"<code>UPPER()</code> passe les lettres en majuscules."},
    {q:"Quelle fonction permet de retirer les espaces autour d’un texte ?",o:["TRIM()","SUBSTR()","REPLACE()"],b:0,e:"<code>TRIM()</code> retire aux deux extrémités, pas au milieu."},
@@ -12347,8 +12371,8 @@ const QCM={
    {q:"Que fait <code>CAST('123' AS INTEGER)</code> ?",o:["Transforme 123 en texte","Transforme le texte '123' en nombre entier","Ajoute 123","Supprime 123"],b:1,e:"Le texte <code>'123'</code> devient le nombre 123."},
    {q:"Laquelle de ces conversions peut poser problème ?",o:["CAST('50' AS INTEGER)","CAST('bonjour' AS INTEGER)"],b:1,e:"<code>'bonjour'</code> ne représente pas un nombre."},
    {q:"Quelle est la différence entre conversion explicite et implicite ?",o:["Il n’y en a aucune","La conversion explicite est écrite dans la requête, l’implicite est réalisée automatiquement par le SGBD","La conversion implicite utilise toujours CAST()","La conversion explicite ne fonctionne qu’avec les dates"],b:1,e:"<code>CAST</code> rend l’intention visible. Sans lui, le SGBD décide tout seul, et les règles varient."}],
- 14:[{q:"Que renvoie <code>SELECT COUNT(*) FROM clients;</code> ?",o:["Les 9 clients","Une seule valeur : 9","9 colonnes"],b:1,e:"<code>COUNT(*)</code> compte les lignes et renvoie leur nombre."},
-   {q:"La table contient 9 clients, dont 2 avec un email <code>NULL</code>. Que renvoie <code>COUNT(email)</code> ?",o:["9","7","2"],b:1,e:"<code>COUNT(email)</code> ignore les <code>NULL</code> : 9 - 2 = 7."}],
+ 14:[{q:"Que renvoie <code>SELECT COUNT(*) FROM clients;</code> ?",o:["Les 10 clients","Une seule valeur : 10","10 colonnes"],b:1,e:"<code>COUNT(*)</code> compte les lignes et renvoie leur nombre."},
+   {q:"La table contient 10 clients, dont 2 avec un email <code>NULL</code>. Que renvoie <code>COUNT(email)</code> ?",o:["10","8","2"],b:1,e:"<code>COUNT(email)</code> ignore les <code>NULL</code> : 10 - 2 = 8."}],
  15:[{q:"Que renvoie <code>SELECT AVG(prix) FROM produits;</code> ?",o:["Le prix de chaque produit","Le prix moyen des produits","Le produit le plus cher"],b:1,e:"<code>AVG</code> additionne les prix, puis divise par 8."},
    {q:"Comment <code>AVG</code> obtient 23,9875 ?",o:["Il compte les produits","Il additionne les 8 prix, puis divise par 8","Il garde le prix du milieu"],b:1,e:"191,90 ÷ 8 = 23,9875. C’est la moyenne, pas un comptage."}],
  30:[{q:"Que fait <code>SUM(prix)</code> ?",o:["Il compte les produits","Il additionne les prix","Il garde le prix le plus élevé"],b:1,e:"<code>SUM</code> additionne les valeurs de la colonne."},
@@ -12358,24 +12382,24 @@ const QCM={
  32:[{q:"Quelle fonction donne le prix le plus élevé ?",o:["MAX(prix)","AVG(prix)","SUM(prix)"],b:0,e:"<code>MAX(prix)</code> renvoie la plus grande valeur de la colonne <code>prix</code>."},
    {q:"<code>SELECT nom, MAX(prix) FROM produits;</code> :",o:["Affiche le produit le plus cher","Mélange une ligne et un calcul sur plusieurs lignes","Trie le catalogue"],b:1,e:"SQL refuse en général ce mélange. Pour le produit le plus cher : <code>ORDER BY prix DESC LIMIT 1</code>."}],
  16:[{q:"Que fait <code>GROUP BY ville</code> ?",o:["Il trie les clients par ville","Il rassemble les lignes qui ont la même ville","Il garde une seule ville"],b:1,e:"<code>GROUP BY ville</code> forme un groupe pour chaque ville différente."},
-   {q:"Il y a 9 clients répartis dans 6 villes. Combien de lignes renvoie <code>SELECT ville, COUNT(*) FROM clients GROUP BY ville;</code> ?",o:["9 lignes","1 ligne","6 lignes"],b:2,e:"Le résultat contient une ligne par groupe. Avec 6 villes différentes, il y a donc 6 lignes."}],
+  {q:"Il y a 10 clients répartis dans 6 villes. Combien de lignes renvoie <code>SELECT ville, COUNT(*) FROM clients GROUP BY ville;</code> ?",o:["10 lignes","1 ligne","6 lignes"],b:2,e:"Le résultat contient une ligne par groupe. Avec 6 villes différentes, il y a donc 6 lignes."}],
  17:[{q:"<code>WHERE COUNT(*) >= 2</code> :",o:["Fonctionne correctement","Échoue : les agrégats ne sont pas disponibles au moment du WHERE","Renvoie un résultat vide"],b:1,e:"Quand WHERE s’exécute, les groupes n’existent pas encore. C’est le rôle de HAVING."},
    {q:"Dans l’ordre d’exécution, HAVING vient :",o:["Avant GROUP BY","Après GROUP BY","Avant WHERE"],b:1,e:"FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY."}],
- 34:[{q:"Une clé primaire sert à :",o:["Trier la table","Identifier chaque ligne, sans doublon","Filtrer avec WHERE"],b:1,e:"Dans clients, id est unique. Le nom ou la ville peuvent se répéter."},
-   {q:"Trois clients habitent Paris. <code>WHERE ville = 'Paris'</code> renvoie :",o:["Une seule personne","Les 3 clients de Paris — ce n’est pas un identifiant","Une erreur"],b:1,e:"La ville n’est pas unique. Pour une personne précise, on utilise id."}],
- 35:[{q:"Une clé étrangère :",o:["Est toujours unique","Recopie la clé primaire d’une autre table","Remplace le JOIN"],b:1,e:"commandes.client_id recopie clients.id. Ce n’est pas unique : un client peut avoir plusieurs commandes."},
-   {q:"Sophie a 3 commandes. <code>client_id = 1</code> apparaît :",o:["1 fois","3 fois","9 fois"],b:1,e:"Relation 1-N : une personne, plusieurs achats. La clé étrangère se répète."}],
+ 34:[{q:"Deux clients s’appellent Nathan et habitent Paris. Quel critère identifie avec certitude Nathan n°4 ?",o:["nom = 'Nathan'","ville = 'Paris'","id = 4"],b:2,e:"Le nom et la ville se répètent. La clé primaire id est unique : id = 4 cible une seule fiche."},
+   {q:"Quelle règle doit respecter une clé primaire ?",o:["Elle peut se répéter si le nom change","Elle est unique et jamais NULL","Elle doit contenir le nom du client"],b:1,e:"Une clé primaire donne un repère obligatoire et unique à chaque ligne."}],
+ 35:[{q:"Dans la commande n°5, <code>client_id = 4</code> signifie :",o:["La commande porte le numéro 4","La commande appartient au client dont clients.id vaut 4","Le produit porte le numéro 4"],b:1,e:"commandes.client_id est une clé étrangère vers clients.id : la commande appartient à Nathan n°4."},
+   {q:"Pourquoi <code>client_id = 4</code> apparaît-il sur les commandes n°5 et n°12 ?",o:["Une clé étrangère peut se répéter pour relier plusieurs commandes au même client","La clé primaire de Nathan est en double","Les deux commandes sont identiques"],b:0,e:"La clé primaire 4 n’existe qu’une fois dans clients. Elle peut être référencée par plusieurs lignes de commandes."}],
  18:[{q:"À quoi sert la clause <code>ON</code> ?",o:["À trier le résultat","À dire quelles lignes de deux tables correspondent","À filtrer les lignes"],b:1,e:"Ce n’est pas une fonction : c’est la clause qui donne la condition de correspondance entre les deux tables."},
    {q:"Sophie a 3 commandes. Dans un JOIN clients/commandes, son nom apparaît :",o:["1 fois","3 fois","9 fois"],b:1,e:"Une ligne est produite pour chaque correspondance trouvée."},
    {q:"Écrire <code>JOIN</code> sans préciser INNER ou LEFT, c’est :",o:["Un LEFT JOIN","Un INNER JOIN","Un produit cartésien"],b:1,e:"En SQL standard, JOIN seul signifie INNER JOIN : seules les correspondances restent."}],
  19:[{q:"Pour relier clients, commandes et produits, il faut :",o:["Un JOIN avec deux conditions ON","Deux JOIN, chacun avec son ON","Relier clients.id = produits.id"],b:1,e:"Chaque lien (client↔commande, commande↔produit) a son propre JOIN."},
    {q:"Pourquoi la table <code>commandes</code> est au centre ?",o:["Elle contient client_id et produit_id","Elle a le plus de lignes","C’est la première table alphabetiquement"],b:0,e:"C’est la table pont entre clients et produits."}],
  20:[{q:"<code>LEFT JOIN</code> conserve :",o:["Seulement les lignes qui correspondent des deux côtés","Toutes les lignes de la table de gauche","Toutes les lignes des deux tables"],b:1,e:"Sans correspondance à droite, les colonnes de commandes valent NULL."},
-   {q:"Tous les clients + leurs commandes (y compris Inès sans commande) :",o:["15 lignes avec INNER JOIN","16 lignes avec LEFT JOIN","9 lignes (un par client)"],b:1,e:"15 correspondances + 1 ligne Inès avec NULL = 16 lignes."}],
- 37:[{q:"Pour trouver les clients sans commande, il faut :",o:["INNER JOIN + WHERE id IS NULL","LEFT JOIN + WHERE commandes.id IS NULL","LEFT JOIN seul, sans WHERE"],b:1,e:"LEFT JOIN garde Inès avec NULL ; le WHERE filtre sur cette absence."},
+  {q:"Tous les clients + leurs commandes (dont 2 sans commande) :",o:["15 lignes avec INNER JOIN","17 lignes avec LEFT JOIN","10 lignes (un par client)"],b:1,e:"15 correspondances + 2 lignes sans commande avec NULL = 17 lignes."}],
+ 37:[{q:"Pour trouver les clients sans commande, il faut :",o:["INNER JOIN + WHERE id IS NULL","LEFT JOIN + WHERE commandes.id IS NULL","LEFT JOIN seul, sans WHERE"],b:1,e:"LEFT JOIN garde Inès et Nathan n°10 avec NULL ; le WHERE filtre sur cette absence."},
    {q:"Tester l’absence de valeur après une jointure :",o:["WHERE commandes.id = NULL","WHERE commandes.id IS NULL","WHERE commandes.id = 0"],b:1,e:"En SQL, NULL ne se compare pas avec =. On utilise IS NULL."}],
  38:[{q:"<code>RIGHT JOIN</code> conserve :",o:["Seulement les lignes qui correspondent des deux côtés","Toutes les lignes de la table de droite","Toutes les lignes des deux tables"],b:1,e:"Sans correspondance à gauche, les colonnes de clients valent NULL."},
-   {q:"Toutes les commandes + leurs clients (y compris l’invité sans client) :",o:["15 lignes avec INNER JOIN","16 lignes avec RIGHT JOIN","9 lignes (un par client)"],b:1,e:"15 correspondances + 1 ligne invitée avec NULL = 16 lignes."}],
+  {q:"Toutes les commandes + leurs clients (y compris l’invité sans client) :",o:["15 lignes avec INNER JOIN","16 lignes avec RIGHT JOIN","10 lignes (un par client)"],b:1,e:"15 correspondances + 1 ligne invitée avec NULL = 16 lignes."}],
  49:[{q:"Combien de conditions un <code>ON</code> peut-il contenir ?",o:["Une seule, l’égalité des clés","Autant que nécessaire, reliées par AND","Deux au maximum"],b:1,e:"La première relie les tables ; les suivantes ajoutent des critères."},
   {q:"Une commande de quantité 4 passée le 8 juillet, avec <code>AND quantite &gt; 2 AND date_commande &gt; '2023-07-15'</code> :",o:["Est associée, sa quantité suffit","N’est pas associée : la date est fausse","Est associée avec un avertissement"],b:1,e:"Avec <code>AND</code>, une seule condition fausse suffit à écarter la ligne."},
   {q:"Ces critères étant dans le <code>ON</code> et non dans le <code>WHERE</code>, les clients sans commande retenue :",o:["Disparaissent du résultat","Restent affichés avec NULL","Provoquent une erreur"],b:1,e:"Le <code>LEFT JOIN</code> conserve toutes les lignes de gauche : seules leurs associations changent."}],
@@ -12384,18 +12408,18 @@ const QCM={
   {q:"Filtrer la table de droite dans le <code>WHERE</code> revient à :",o:["Écrire un INNER JOIN","Écrire un CROSS JOIN","Ne rien changer"],b:0,e:"Toutes les lignes sans correspondance étant écartées, il ne reste que les correspondances."}],
  42:[{q:"À quoi sert un <code>SELF JOIN</code> ?",o:["À relier deux tables différentes","À relier une table à elle-même","À supprimer les doublons d’une table"],b:1,e:"On lit la même table deux fois, sous deux alias, pour comparer ses lignes entre elles."},
   {q:"Pourquoi deux alias <code>c1</code> et <code>c2</code> ?",o:["Pour aller plus vite","Parce que SQL ne saurait pas duquel des deux rôles on parle","Parce que c’est obligatoire dans tout JOIN"],b:1,e:"Sans alias, <code>clients.ville</code> serait ambigu : les deux rôles portent le même nom de table."},
-  {q:"Que fait <code>AND c1.id &lt; c2.id</code> ?",o:["Trie les paires par identifiant","Garde chaque paire une fois et exclut les clients avec eux-mêmes","Ne garde que les clients dont l’id est petit"],b:1,e:"Sans cette condition, on obtient Sophie/Sophie et chaque paire dans les deux sens — 17 lignes au lieu de 4."}],
+  {q:"Que fait <code>AND c1.id &lt; c2.id</code> ?",o:["Trie les paires par identifiant","Garde chaque paire une fois et exclut les clients avec eux-mêmes","Ne garde que les clients dont l’id est petit"],b:1,e:"Sans cette condition, on obtient les auto-paires et chaque paire dans les deux sens — 24 lignes au lieu de 7."}],
  41:[{q:"Après un <code>LEFT JOIN</code>, pourquoi écrire <code>COUNT(commandes.id)</code> plutôt que <code>COUNT(*)</code> ?",o:["C’est plus rapide","Parce que COUNT(*) compterait la ligne vide d’un client sans commande","Les deux donnent le même résultat"],b:1,e:"COUNT(*) compte les lignes ; COUNT(colonne) ignore les NULL, ce qui donne 0 aux clients sans commande."},
   {q:"À quoi sert <code>GROUP BY clients.id, clients.nom</code> ici ?",o:["À trier les clients par nom","À rassembler les lignes d’un même client en une seule","À filtrer les clients sans commande"],b:1,e:"Sophie occupe 3 lignes après la jointure ; GROUP BY les rassemble pour n’en produire qu’une."},
   {q:"Avec un <code>JOIN</code> simple à la place du <code>LEFT JOIN</code> :",o:["Inès ressortirait avec 0","Inès disparaîtrait du résultat","Rien ne changerait"],b:1,e:"Sans correspondance, INNER JOIN écarte la ligne : les clients sans commande n’apparaissent pas."}],
  40:[{q:"<code>CROSS JOIN</code> retourne :",o:["Les lignes qui correspondent des deux côtés","Toutes les combinaisons possibles des deux tables","Toutes les lignes de la table de gauche"],b:1,e:"Chaque ligne de gauche est associée à chaque ligne de droite, sans condition."},
-  {q:"Avec 9 clients et 8 produits, <code>CROSS JOIN</code> donne :",o:["17 lignes","72 lignes","9 lignes"],b:1,e:"9 × 8 = 72 : le nombre de lignes se multiplie, il ne s’additionne pas."},
+  {q:"Avec 10 clients et 8 produits, <code>CROSS JOIN</code> donne :",o:["18 lignes","80 lignes","10 lignes"],b:1,e:"10 × 8 = 80 : le nombre de lignes se multiplie, il ne s’additionne pas."},
   {q:"Que se passe-t-il si tu ajoutes <code>ON</code> à un <code>CROSS JOIN</code> ?",o:["C’est obligatoire","Ça n’a pas de sens : CROSS JOIN ne compare rien","Ça trie le résultat"],b:1,e:"CROSS JOIN ne cherche aucune correspondance ; pour filtrer sur une clé, c’est JOIN … ON."}],
- 44:[{q:"Pour n’afficher que les clients qui ont déjà commandé :",o:["INNER JOIN","LEFT JOIN","CROSS JOIN"],b:0,e:"INNER JOIN ne garde que les correspondances. Inès, sans commande, disparaît."},
+ 44:[{q:"Pour n’afficher que les clients qui ont déjà commandé :",o:["INNER JOIN","LEFT JOIN","CROSS JOIN"],b:0,e:"INNER JOIN ne garde que les correspondances. Inès et Nathan n°10, sans commande, disparaissent."},
   {q:"Tu veux toutes les commandes, y compris l’invité. Le plus lisible :",o:["RIGHT JOIN clients → commandes","FROM commandes LEFT JOIN clients","CROSS JOIN"],b:1,e:"Inverse les tables et reste sur LEFT JOIN. RIGHT JOIN fait la même chose, mais se lit moins bien."},
   {q:"Sophie a 3 commandes. Un LEFT JOIN clients/commandes affiche Sophie :",o:["1 fois","3 fois","0 fois"],b:1,e:"Une ligne par correspondance. Ce n’est pas un doublon accidentel : Sophie a bien 3 commandes."}],
  39:[{q:"<code>FULL OUTER JOIN</code> conserve :",o:["Seulement les lignes qui correspondent des deux côtés","Toutes les lignes de la table de gauche","Toutes les lignes des deux tables"],b:2,e:"Sans correspondance, les colonnes du côté manquant valent NULL."},
-   {q:"Tous les clients + toutes les commandes (Inès et l’invité) :",o:["16 lignes avec LEFT JOIN","16 lignes avec RIGHT JOIN","17 lignes avec FULL OUTER JOIN"],b:2,e:"15 correspondances + Inès + l’invité = 17 lignes."}],
+   {q:"Tous les clients + toutes les commandes (2 clients inactifs et l’invité) :",o:["17 lignes avec LEFT JOIN","16 lignes avec RIGHT JOIN","18 lignes avec FULL OUTER JOIN"],b:2,e:"15 correspondances + 2 clients sans commande + l’invité = 18 lignes."}],
  21:[{q:"SQL évalue les <code>WHEN</code> :",o:["Tous, et garde le dernier vrai","Dans l’ordre, et s’arrête au premier vrai","Dans un ordre imprévisible"],b:1,e:"D’où l’intérêt d’aller du plus étroit au plus large : age < 30 avant age < 50."},
    {q:"Un CASE se referme par :",o:["ELSE","END","STOP"],b:1,e:"Oublier END est une erreur de syntaxe. ELSE, lui, est le filet — optionnel, mais sans lui le reste vaut NULL."},
    {q:"Pour tester <code>age &lt; 30</code>, tu écris :",o:["CASE age WHEN < 30 THEN 'Jeune'","CASE WHEN age < 30 THEN 'Jeune'","CASE age < 30 WHEN 'Jeune'"],b:1,e:"Un seuil n’est pas une égalité. Il faut le CASE recherché : WHEN suivi d’une condition."}],
@@ -12408,7 +12432,7 @@ const QCM={
   {q:"La sous-requête utilisée avec <code>IN</code> doit renvoyer :",o:["Une seule colonne","Toutes les colonnes de commandes","Deux colonnes, id et nom"],b:0,e:"On compare <code>clients.id</code> à une liste d’identifiants, pas à des lignes entières."}],
  46:[{q:"Pourquoi <code>NOT IN (SELECT client_id FROM commandes)</code> renvoie 0 ligne ?",o:["Tous les clients ont commandé","La commande #16 met un NULL dans la liste","NOT IN est interdit avec une sous-requête"],b:1,e:"Un NULL dans la liste empêche SQL de conclure qu’un id est absent de toute la liste."},
   {q:"Comment sécuriser ce <code>NOT IN</code> ?",o:["Ajouter LIMIT 1","Retirer les NULL : WHERE client_id IS NOT NULL","Remplacer NOT IN par ="],b:1,e:"Sans le NULL de la commande invitée, Inès ressort bien."},
-  {q:"Après correction, le résultat est :",o:["Aucun client","Inès seulement","Tous les clients sauf Sophie"],b:1,e:"Inès est la seule à n’avoir aucune commande."}],
+  {q:"Après correction, le résultat est :",o:["Aucun client","Inès et Nathan n°10","Tous les clients sauf Sophie"],b:1,e:"Inès et Nathan n°10 sont les deux clients sans commande."}],
  47:[{q:"Une sous-requête dans <code>SELECT</code> sert à :",o:["Filtrer les lignes","Calculer une valeur pour chaque ligne","Créer une table intermédiaire"],b:1,e:"Ici, elle compte les commandes du client courant."},
   {q:"Pourquoi écrire <code>WHERE commandes.client_id = clients.id</code> ?",o:["Pour trier le résultat","Pour relier la sous-requête à la ligne courante","Parce que JOIN l’exige"],b:1,e:"Sans ce lien, la sous-requête compte toute la table : 16 pour tout le monde."},
   {q:"Combien de commandes Inès affiche-t-elle ? Et la commande invitée ?",o:["1, et #16 est comptée pour Inès","0, et #16 n’est comptée pour personne","NULL, comme un LEFT JOIN"],b:1,e:"Aucun client_id ne vaut 9. #16 a client_id NULL : elle n’appartient à personne."}],
@@ -12446,8 +12470,8 @@ const QCM={
   {q:"Quelle contrainte identifie chaque ligne de manière unique ?",o:["<code>DEFAULT</code>","<code>NOT NULL</code>","<code>PRIMARY KEY</code>"],b:2,e:"<code>NOT NULL</code> rend la valeur obligatoire, <code>DEFAULT</code> en fournit une par défaut : ni l’une ni l’autre n’identifie la ligne."},
   {q:"À quoi sert une <code>FOREIGN KEY</code> ?",o:["À relier une valeur à une autre table","À trier une colonne","À supprimer les doublons"],b:0,e:"Elle empêche qu’une commande désigne un client qui n’existe pas."}],
  55:[{q:"<code>EXISTS</code> teste :",o:["Si une valeur appartient à une liste","Si la sous-requête trouve au moins une ligne","Si deux colonnes ont le même nom"],b:1,e:"On ne compare pas une valeur. On demande si une ligne liée existe."},
-  {q:"Pourquoi <code>NOT EXISTS</code> trouve Inès, alors que <code>NOT IN</code> sans filtre renvoie 0 ligne ?",o:["Inès a une commande cachée","La commande #16 met un NULL dans la liste de NOT IN","EXISTS ignore la table clients"],b:1,e:"<code>NOT IN</code> peut ne retourner aucune ligne si la liste contient un <code>NULL</code>. <code>NOT EXISTS</code> ne construit pas cette liste : il cherche seulement une commande liée à Inès."},
-  {q:"Sans <code>WHERE commandes.client_id = clients.id</code>, <code>EXISTS (SELECT 1 FROM commandes)</code> :",o:["Ne garde qu’Inès","Garde les 9 clients, Inès comprise","Provoque une erreur"],b:1,e:"La table commandes n’est pas vide. Sans corrélation, le test est le même pour tout le monde."}],
+  {q:"Pourquoi <code>NOT EXISTS</code> trouve les deux clients inactifs, alors que <code>NOT IN</code> sans filtre renvoie 0 ligne ?",o:["Ils ont une commande cachée","La commande #16 met un NULL dans la liste de NOT IN","EXISTS ignore la table clients"],b:1,e:"<code>NOT IN</code> peut ne retourner aucune ligne si la liste contient un <code>NULL</code>. <code>NOT EXISTS</code> ne construit pas cette liste : il cherche une commande liée à chaque client."},
+  {q:"Sans <code>WHERE commandes.client_id = clients.id</code>, <code>EXISTS (SELECT 1 FROM commandes)</code> :",o:["Ne garde qu’Inès","Garde les 10 clients, même ceux sans commande","Provoque une erreur"],b:1,e:"La table commandes n’est pas vide. Sans corrélation, le test est le même pour tout le monde."}],
  59:[{q:"À quoi sert principalement <code>WITH</code> ?",o:["À enregistrer définitivement une nouvelle table","À donner un nom à un résultat intermédiaire","À modifier une colonne"],b:1,e:"La CTE existe le temps de l’instruction. Elle ne s’enregistre pas dans la base."},
   {q:"Combien de temps une CTE est-elle disponible ?",o:["Jusqu’à la suppression de la base","Pendant toute la session","Dans l’instruction SQL qui la définit"],b:2,e:"Une nouvelle instruction ne voit plus la CTE. Ce n’est pas une table."},
   {q:"Une CTE peut-elle utiliser une autre CTE définie avant elle ?",o:["Oui","Non","Seulement avec JOIN"],b:0,e:"Après un seul WITH, les CTE se séparent par des virgules. Une CTE plus tard peut lire une CTE définie plus haut."}],
@@ -12486,7 +12510,7 @@ const QCM={
  72:[{q:"Un client peut suivre plusieurs produits, et un produit être suivi par plusieurs clients. Comment écrire ce lien ?",o:["Une clé étrangère dans clients","Une clé étrangère dans produits","Une troisième table qui porte les deux clés"],b:2,e:"Les deux côtés sont « plusieurs » : aucune colonne ne peut retenir plusieurs valeurs. Il faut une table de jointure."},
    {q:"Dans une table de jointure, à quoi sert <code>PRIMARY KEY (client_id, produit_id)</code> ?",o:["À interdire deux fois le même couple","À rendre chaque colonne unique","À accélérer les jointures"],b:0,e:"Chaque colonne se répète librement ; c’est la paire qui doit être unique."},
    {q:"Comment transformer une relation 1-N en 1-1 ?",o:["En ajoutant UNIQUE sur la clé étrangère","En déplaçant la clé dans l’autre table","En ajoutant une table de jointure"],b:0,e:"Sans <code>UNIQUE</code>, un client pourrait recevoir deux cartes. Avec, la seconde est refusée."}],
- 73:[{q:"Quelle différence entre <code>UNION</code> et <code>UNION ALL</code> ?",o:["UNION trie, UNION ALL non","UNION écarte les doublons, UNION ALL les garde","UNION ne marche que sur deux tables identiques"],b:1,e:"Neuf villes et huit catégories donnent 17 lignes avec ALL, mais 11 sans : six valeurs se répétaient."},
+ 73:[{q:"Quelle différence entre <code>UNION</code> et <code>UNION ALL</code> ?",o:["UNION trie, UNION ALL non","UNION écarte les doublons, UNION ALL les garde","UNION ne marche que sur deux tables identiques"],b:1,e:"Dix villes et huit catégories donnent 18 lignes avec ALL, mais 11 sans : sept valeurs se répétaient."},
    {q:"Que doivent avoir en commun les deux <code>SELECT</code> d’un <code>UNION</code> ?",o:["Le même nombre de colonnes","Les mêmes noms de colonnes","La même table de départ"],b:0,e:"Le nombre de colonnes doit correspondre ; les noms sont libres, c’est celui de la première requête qui est retenu."},
    {q:"Tu veux plus de <b>lignes</b>, pas plus de colonnes. Quel outil ?",o:["JOIN","UNION","GROUP BY"],b:1,e:"<code>JOIN</code> élargit le résultat en ajoutant des colonnes ; <code>UNION</code> le rallonge en empilant des lignes."}],
  74:[{q:"Deux produits sont ex aequo au rang 2. Quelle fonction donne 3 au suivant ?",o:["ROW_NUMBER()","RANK()","DENSE_RANK()"],b:2,e:"<code>RANK</code> sauterait à 4. <code>DENSE_RANK</code> compte les valeurs distinctes, sans trou."},
@@ -12498,7 +12522,7 @@ const QCM={
    4. PERSISTANCE
    ============================================================ */
 /* Bump APP_VERSION on every deploy to wipe local progress / re-show onboarding. */
-const APP_VERSION='2026-08-19-join-v15';
+const APP_VERSION='2026-09-01-cles-v237';
 const KEY='requete-sql-v3';
 const VER_KEY='requete-sql-app-version';
 const NAV_KEY='requete-nav-v1';
@@ -16024,7 +16048,7 @@ const JOIN_GUIDES={
   outer:{kicker:'Analyse du périmètre',lead:'Le type de JOIN décrit quelles lignes doivent rester même sans correspondance.',steps:[['INNER','uniquement les correspondances'],['LEFT / RIGHT','toute une source + les correspondances — Inès à gauche, l’invité à droite'],['FULL OUTER','Inès et l’invité, plus les correspondances']],takeaway:'Le choix du JOIN est un choix de périmètre de résultat.'}
 };
 const JOIN_OUTPUT_LABELS={
-  joinon:'Résultat projeté · une ligne par commande correspondante',inner:'Résultat projeté · correspondances uniquement',leftj:'Résultat projeté · table clients conservée',rightj:'Résultat projeté · table commandes conservée',orphan:'Résultat projeté · clients sans commande',triple:'Résultat projeté · client, produit, quantité',outer:'Résultat projeté · les deux tables conservées',crossjoin:'Résultat projeté · toutes les paires',joingroupby:'Résultat de l’étape',selfjoin:'Résultat final · 4 paires uniques',onwhere:'Résultat de l’étape',onmultiple:'Résultat de l’étape',coalesce:'Résultat final · 9 contacts',subquery_in:'Résultat final · 4 clients',subquery_notin:'Résultat final · 1 client',subquery_select:'Résultat de l’étape',subquery_from:'Résultat final · moyenne des 16 montants',security:'Résultat de l’étape'
+  joinon:'Résultat projeté · une ligne par commande correspondante',inner:'Résultat projeté · correspondances uniquement',leftj:'Résultat projeté · table clients conservée',rightj:'Résultat projeté · table commandes conservée',orphan:'Résultat projeté · clients sans commande',triple:'Résultat projeté · client, produit, quantité',outer:'Résultat projeté · les deux tables conservées',crossjoin:'Résultat projeté · toutes les paires',joingroupby:'Résultat de l’étape',selfjoin:'Résultat final · 7 paires uniques',onwhere:'Résultat de l’étape',onmultiple:'Résultat de l’étape',coalesce:'Résultat final · 10 contacts',subquery_in:'Résultat final · 4 clients',subquery_notin:'Résultat final · 2 clients',subquery_select:'Résultat de l’étape',subquery_from:'Résultat final · moyenne des 16 montants',security:'Résultat de l’étape'
 };
 function renderJoinGuide(key){
   const g=JOIN_GUIDES[key];
@@ -16060,7 +16084,7 @@ function renderVizShell(key){
       const cls=v==null?' null':(c.num?' num':'');
       return `<span class="sel-c${cls}" data-col="${c.k}" data-keep="${c.keep}">${v==null?'NULL':esc(String(v))}</span>`;
     }).join('')}</div>`).join('');
-    stage=`<div class="sel-table"><div class="sel-row sel-head">${head}</div>${body}</div><div class="sel-meta">9 lignes · 2 colonnes</div>`;
+    stage=`<div class="sel-table"><div class="sel-row sel-head">${head}</div>${body}</div><div class="sel-meta">10 lignes · 2 colonnes</div>`;
   }else{
     let list=cfg.chips||[];
     if(cfg.kind==='minmax'){
@@ -16311,7 +16335,7 @@ function pointDraw(card){
       cross:{j:'CROSS JOIN',emoji:'✨',memo:'Mémo : CROSS multiplie les possibilités ; il ne cherche pas de clé commune.',
         besoin:'Obtenir toutes les combinaisons possibles, sans chercher aucun lien.',
         ex:'Associer chaque client à chaque produit.',
-        stat:'9 clients × 8 produits = <b>72 combinaisons</b>',
+        stat:'10 clients × 8 produits = <b>80 combinaisons</b>',
         sql:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;"},
       self:{j:'SELF JOIN',emoji:'🪞',memo:'Mémo : SELF donne deux rôles différents à une seule et même table.',
         besoin:'Comparer des lignes d’une même table, en lui donnant deux rôles.',
@@ -20747,7 +20771,7 @@ function paintOb(){
   }else if(slide==='base'){
     html=`${back}<div class="ob-hero c">
       <div class="ob-cards" aria-hidden="true">
-        <div class="ob-mini"><span>clients</span>9 lignes · 4 colonnes</div>
+        <div class="ob-mini"><span>clients</span>10 lignes · 4 colonnes</div>
         <div class="ob-mini"><span>commandes</span>16 lignes · 5 colonnes</div>
         <div class="ob-mini"><span>produits</span>8 lignes · 4 colonnes</div>
       </div>
@@ -21534,9 +21558,9 @@ function joinMore(n,label){
 
 const SQL_VIZ={
   select:{kind:'cols',phases:[
-    {k:'FROM',d:'La table clients : 9 lignes, avec toutes leurs colonnes.'},
+    {k:'FROM',d:'La table clients : 10 lignes, avec toutes leurs colonnes.'},
     {k:'SELECT nom, telephone',d:'SQL choisit ces 2 colonnes. Les autres restent dans la table, pas dans le résultat.'},
-    {k:'9 lignes × 2 colonnes',d:'Le résultat est plus étroit. Les 9 personnes sont toujours là.'}
+    {k:'10 lignes × 2 colonnes',d:'Le résultat est plus étroit. Les 10 personnes sont toujours là.'}
   ],cols:[
     {k:'nom',h:'nom',keep:1},{k:'ville',h:'ville',keep:0},{k:'age',h:'age',keep:0,num:1},{k:'email',h:'email',keep:0},{k:'telephone',h:'telephone',keep:1}
   ],rows:[
@@ -21548,14 +21572,15 @@ const SQL_VIZ={
     {nom:'Hugo',ville:'Lyon',age:52,email:null,telephone:'06 39 98 68 03'},
     {nom:'Léa',ville:'Paris',age:38,email:'lea@mail.fr',telephone:'06 39 98 74 29'},
     {nom:'Gabriel',ville:'Toulouse',age:29,email:'gabriel@mail.fr',telephone:'06 39 98 85 16'},
-    {nom:'Inès',ville:'Nantes',age:41,email:null,telephone:'06 39 98 97 50'}
+    {nom:'Inès',ville:'Nantes',age:41,email:null,telephone:'06 39 98 97 50'},
+    {nom:'Nathan',ville:'Paris',age:30,email:'nathan.dupont@mail.fr',telephone:'06 39 98 10 26'}
   ]},
   where:{kind:'filter',phases:[
-    {k:'SELECT nom, ville FROM clients',d:'La table clients compte 9 lignes, qui s’affichent toutes.'},
-    {k:"WHERE ville = 'Paris'",d:"SQL teste chaque ligne. Il n’en reste que 3 : celles qui respectent la condition ville = 'Paris'. Rien n’est effacé de la table."}
+    {k:'SELECT nom, ville FROM clients',d:'La table clients compte 10 lignes, qui s’affichent toutes.'},
+    {k:"WHERE ville = 'Paris'",d:"SQL teste chaque ligne. Il n’en reste que 4 : celles qui respectent la condition ville = 'Paris'. Rien n’est effacé de la table."}
   ],chips:[
     {t:'Sophie',extra:'Paris',keep:1},{t:'Lucas',extra:'Lyon',keep:0},{t:'Emma',extra:'Marseille',keep:0},{t:'Nathan',extra:'Paris',keep:1},
-    {t:'Chloé',extra:'Bordeaux',keep:0},{t:'Hugo',extra:'Lyon',keep:0},{t:'Léa',extra:'Paris',keep:1},{t:'Gabriel',extra:'Toulouse',keep:0},{t:'Inès',extra:'Nantes',keep:0}
+    {t:'Chloé',extra:'Bordeaux',keep:0},{t:'Hugo',extra:'Lyon',keep:0},{t:'Léa',extra:'Paris',keep:1},{t:'Gabriel',extra:'Toulouse',keep:0},{t:'Inès',extra:'Nantes',keep:0},{t:'Nathan n°10',extra:'Paris',keep:1}
   ]},
   compare:{kind:'filter',phases:[
     {k:'SELECT nom, prix FROM produits',d:'La table produits compte 8 lignes. Chaque produit possède un prix qui va être comparé au seuil de 25 €.'},
@@ -21566,40 +21591,40 @@ const SQL_VIZ={
     {t:'Oméga 3',extra:'24,90',keep:0},{t:'Shaker',extra:'15,00',keep:0}
   ]},
   andor:{kind:'filter',phases:[
-    {k:'SELECT nom, ville, age FROM clients',d:'Les 9 clients sont affichés avec leur nom, leur ville et leur âge.'},
-    {k:"WHERE ville = 'Paris'",d:'SQL garde uniquement les clients qui habitent à Paris : 3 lignes restent.'},
+    {k:'SELECT nom, ville, age FROM clients',d:'Les 10 clients sont affichés avec leur nom, leur ville et leur âge.'},
+    {k:"WHERE ville = 'Paris'",d:'SQL garde uniquement les clients qui habitent à Paris : 4 lignes restent.'},
     {k:"AND age > 35",d:'Une deuxième condition s’ajoute : il faut aussi avoir plus de 35 ans. Une seule ligne respecte les deux conditions.'}
   ],chips:[
     {t:'Sophie',extra:'Paris · 34',keep0:1,keep:0},{t:'Lucas',extra:'Lyon · 28',keep0:0,keep:0},{t:'Emma',extra:'Marseille · 45',keep0:0,keep:0},
     {t:'Nathan',extra:'Paris · 31',keep0:1,keep:0},{t:'Chloé',extra:'Bordeaux · 26',keep0:0,keep:0},{t:'Hugo',extra:'Lyon · 52',keep0:0,keep:0},
-    {t:'Léa',extra:'Paris · 38',keep0:1,keep:1},{t:'Gabriel',extra:'Toulouse · 29',keep0:0,keep:0},{t:'Inès',extra:'Nantes · 41',keep0:0,keep:0}
+    {t:'Léa',extra:'Paris · 38',keep0:1,keep:1},{t:'Gabriel',extra:'Toulouse · 29',keep0:0,keep:0},{t:'Inès',extra:'Nantes · 41',keep0:0,keep:0},{t:'Nathan n°10',extra:'Paris · 30',keep0:1,keep:0}
   ]},
   or:{kind:'filter',phases:[
-    {k:'SELECT nom, ville FROM clients',d:'Les 9 clients sont affichés avec leur nom et leur ville.'},
-    {k:"WHERE ville = 'Paris'",d:'SQL garde uniquement les clients qui habitent à Paris : 3 lignes restent.'},
-    {k:"OR ville = 'Lyon'",d:'Une deuxième condition s’ajoute : habiter à Lyon. Cinq lignes respectent au moins une des deux conditions.'}
+    {k:'SELECT nom, ville FROM clients',d:'Les 10 clients sont affichés avec leur nom et leur ville.'},
+    {k:"WHERE ville = 'Paris'",d:'SQL garde uniquement les clients qui habitent à Paris : 4 lignes restent.'},
+    {k:"OR ville = 'Lyon'",d:'Une deuxième condition s’ajoute : habiter à Lyon. Six lignes respectent au moins une des deux conditions.'}
   ],chips:[
     {t:'Sophie',extra:'Paris',keep0:1,keep:1},{t:'Lucas',extra:'Lyon',keep0:0,keep:1},{t:'Emma',extra:'Marseille',keep0:0,keep:0},
     {t:'Nathan',extra:'Paris',keep0:1,keep:1},{t:'Chloé',extra:'Bordeaux',keep0:0,keep:0},{t:'Hugo',extra:'Lyon',keep0:0,keep:1},
-    {t:'Léa',extra:'Paris',keep0:1,keep:1},{t:'Gabriel',extra:'Toulouse',keep0:0,keep:0},{t:'Inès',extra:'Nantes',keep0:0,keep:0}
+    {t:'Léa',extra:'Paris',keep0:1,keep:1},{t:'Gabriel',extra:'Toulouse',keep0:0,keep:0},{t:'Inès',extra:'Nantes',keep0:0,keep:0},{t:'Nathan n°10',extra:'Paris',keep0:1,keep:1}
   ]},
   nulls:{kind:'filter',phases:[
-    {k:'SELECT nom, email FROM clients',d:'Les 9 clients s’affichent avec leur nom et leur email.'},
+    {k:'SELECT nom, email FROM clients',d:'Les 10 clients s’affichent avec leur nom et leur email.'},
     {k:'WHERE email = NULL',d:'Avec =, SQL ne teste pas NULL correctement : aucune ligne ne reste.'},
     {k:'WHERE email IS NULL',d:'IS NULL détecte l’absence : Hugo et Inès sont gardés.'}
   ],chips:[
     {t:'Sophie',extra:'sophie@…',keep0:0,keep:0},{t:'Lucas',extra:'lucas@…',keep0:0,keep:0},{t:'Emma',extra:'emma@…',keep0:0,keep:0},
     {t:'Nathan',extra:'nathan@…',keep0:0,keep:0},{t:'Chloé',extra:'chloe@…',keep0:0,keep:0},{t:'Hugo',extra:'NULL',keep0:0,keep:1},
-    {t:'Léa',extra:'lea@…',keep0:0,keep:0},{t:'Gabriel',extra:'gabriel@…',keep0:0,keep:0},{t:'Inès',extra:'NULL',keep0:0,keep:1}
+    {t:'Léa',extra:'lea@…',keep0:0,keep:0},{t:'Gabriel',extra:'gabriel@…',keep0:0,keep:0},{t:'Inès',extra:'NULL',keep0:0,keep:1},{t:'Nathan n°10',extra:'nathan.dupont@…',keep0:0,keep:0}
   ]},
-  coalesce:{kind:'er',sample:'9 clients · 2 emails NULL',stepMs:7200,phases:[
-    {k:'Lire la colonne email',d:'SQL parcourt les 9 clients. Sept adresses existent ; celles de Hugo et Inès valent <code>NULL</code>.',sql:'SELECT nom, email\nFROM clients',read:'<code>NULL</code> signifie « valeur absente ». Ce n’est ni une chaîne vide, ni le texte « NULL ».'},
+  coalesce:{kind:'er',sample:'10 clients · 2 emails NULL',stepMs:7200,phases:[
+    {k:'Lire la colonne email',d:'SQL parcourt les 10 clients. Huit adresses existent ; celles de Hugo et Inès valent <code>NULL</code>.',sql:'SELECT nom, email\nFROM clients',read:'<code>NULL</code> signifie « valeur absente ». Ce n’est ni une chaîne vide, ni le texte « NULL ».'},
     {k:'Garder la première valeur',d:'Pour Sophie, le premier argument contient déjà une adresse. <code>COALESCE</code> la garde et s’arrête.',sql:"COALESCE(email, 'Non renseigné')",read:'Lecture de gauche à droite : <code>sophie@mail.fr</code> est la première valeur non NULL. Le texte de secours n’est pas utilisé.'},
     {k:'Passer à la suivante',d:'Pour Hugo et Inès, le premier argument vaut <code>NULL</code>. SQL essaie alors le deuxième.',sql:"NULL → 'Non renseigné'",read:'SQL ignore <code>NULL</code> et passe à la valeur suivante. <code>\'Non renseigné\'</code> est donc affiché.'},
-    {k:'Afficher sans modifier',d:'Le résultat contient toujours 9 clients, avec une valeur lisible dans la colonne <code>contact</code>.',sql:"SELECT nom, COALESCE(email,\n'Non renseigné') AS contact",read:'Hugo et Inès affichent « Non renseigné ». Dans la table <code>clients</code>, leur email reste pourtant <code>NULL</code>.'}
+    {k:'Afficher sans modifier',d:'Le résultat contient toujours 10 clients, avec une valeur lisible dans la colonne <code>contact</code>.',sql:"SELECT nom, COALESCE(email,\n'Non renseigné') AS contact",read:'Hugo et Inès affichent « Non renseigné ». Dans la table <code>clients</code>, leur email reste pourtant <code>NULL</code>.'}
   ],html:`<div class="er-stage join-viz coal-stage">
     <section class="coal-source" aria-label="Extrait des emails de clients">
-      <div class="coal-head"><span>Données réellement stockées</span><code>clients.email</code><b>9 clients · 2 NULL</b></div>
+      <div class="coal-head"><span>Données réellement stockées</span><code>clients.email</code><b>10 clients · 2 NULL</b></div>
       <div class="coal-grid">
         <div class="coal-cell is-head">nom</div><div class="coal-cell is-head">email</div>
         <div class="coal-cell">Sophie</div><div class="coal-cell">sophie@mail.fr</div>
@@ -21607,7 +21632,7 @@ const SQL_VIZ={
         <div class="coal-cell">Hugo</div><div class="coal-cell is-null">NULL</div>
         <div class="coal-cell">Inès</div><div class="coal-cell is-null">NULL</div>
       </div>
-      ${joinMore(5,'clients')}
+      ${joinMore(6,'clients')}
     </section>
     <section class="coal-eval" data-case="present" aria-label="COALESCE avec un email présent" aria-hidden="true">
       <div class="coal-head"><span>Cas 1 · la valeur existe</span><code>Sophie</code><b>arrêt au 1er argument</b></div>
@@ -21627,27 +21652,27 @@ const SQL_VIZ={
       <div class="join-pill">Lucas<span class="jn">lucas@mail.fr</span></div>
       <div class="join-pill" data-tone="fallback">Hugo<span class="jn">Non renseigné</span></div>
       <div class="join-pill" data-tone="fallback">Inès<span class="jn">Non renseigné</span></div>
-      ${joinMore(5,'clients')}
+      ${joinMore(6,'clients')}
       <div class="coal-final-note"><i>↳</i><span>COALESCE change seulement l’affichage du <code>SELECT</code>. Un <code>UPDATE</code> serait nécessaire pour modifier la table.</span></div>
     </div>
     <p class="er-hint">👆 Utilise les étapes pour suivre la lecture de gauche à droite, jusqu’à la première valeur non NULL.</p>
   </div>`},
   like:{kind:'filter',phases:[
-    {k:'SELECT nom FROM clients',d:'Les 9 clients s’affichent avec leur nom.'},
+    {k:'SELECT nom FROM clients',d:'Les 10 clients s’affichent avec leur nom.'},
     {k:"WHERE nom LIKE 'L%'",d:'SQL teste chaque nom : commence-t-il par L ?'},
     {k:"WHERE nom LIKE 'L%'",d:'Le joker % signifie que n’importe quel texte peut suivre le L. Lucas et Léa correspondent donc au motif \'L%\'.'},
   ],chips:[
     {t:'Sophie',keep0:0,keep:0},{t:'Lucas',keep0:1,keep:1},{t:'Emma',keep0:0,keep:0},
     {t:'Nathan',keep0:0,keep:0},{t:'Chloé',keep0:0,keep:0},{t:'Hugo',keep0:0,keep:0},
-    {t:'Léa',keep0:1,keep:1},{t:'Gabriel',keep0:0,keep:0},{t:'Inès',keep0:0,keep:0}
+    {t:'Léa',keep0:1,keep:1},{t:'Gabriel',keep0:0,keep:0},{t:'Inès',keep0:0,keep:0},{t:'Nathan n°10',keep0:0,keep:0}
   ]},
   inbetween:{kind:'filter',phases:[
-    {k:'SELECT nom, ville FROM clients',d:'Les 9 clients s’affichent avec leur nom et leur ville. SQL va ensuite vérifier si chaque ville figure dans une liste.'},
-    {k:"WHERE ville IN ('Paris', 'Lyon')",d:'IN garde les clients dont la ville est Paris ou Lyon : 5 lignes restent. Même résultat qu’avec des OR, en plus lisible.'}
+    {k:'SELECT nom, ville FROM clients',d:'Les 10 clients s’affichent avec leur nom et leur ville. SQL va ensuite vérifier si chaque ville figure dans une liste.'},
+    {k:"WHERE ville IN ('Paris', 'Lyon')",d:'IN garde les clients dont la ville est Paris ou Lyon : 6 lignes restent. Même résultat qu’avec des OR, en plus lisible.'}
   ],chips:[
     {t:'Sophie',extra:'Paris',keep:1},{t:'Lucas',extra:'Lyon',keep:1},{t:'Emma',extra:'Marseille',keep:0},
     {t:'Nathan',extra:'Paris',keep:1},{t:'Chloé',extra:'Bordeaux',keep:0},{t:'Hugo',extra:'Lyon',keep:1},
-    {t:'Léa',extra:'Paris',keep:1},{t:'Gabriel',extra:'Toulouse',keep:0},{t:'Inès',extra:'Nantes',keep:0}
+    {t:'Léa',extra:'Paris',keep:1},{t:'Gabriel',extra:'Toulouse',keep:0},{t:'Inès',extra:'Nantes',keep:0},{t:'Nathan n°10',extra:'Paris',keep:1}
   ]},
   between:{kind:'filter',phases:[
     {k:'SELECT nom, prix FROM produits',d:'Les 8 produits s’affichent avec leur nom et leur prix. SQL va vérifier si chaque prix est compris entre 15 et 30 €.'},
@@ -21658,13 +21683,13 @@ const SQL_VIZ={
     {t:'Oméga 3',extra:'24,90',keep:1},{t:'Shaker',extra:'15,00',keep:1}
   ]},
   orderby:{kind:'sort',phases:[
-    {k:'SELECT nom, age FROM clients',d:'Les 9 clients s’affichent. Sans ORDER BY, aucun ordre n’est garanti.'},
+    {k:'SELECT nom, age FROM clients',d:'Les 10 clients s’affichent. Sans ORDER BY, aucun ordre n’est garanti.'},
     {k:'ORDER BY age DESC',d:'SQL lit l’âge de chaque ligne : c’est la clé du tri. Personne n’est écarté.'},
-    {k:'ORDER BY age DESC',d:'Les mêmes 9 personnes se rangent du plus âgé au plus jeune. Seul l’ordre change.'}
+    {k:'ORDER BY age DESC',d:'Les mêmes 10 personnes se rangent du plus âgé au plus jeune. Seul l’ordre change.'}
   ],chips:[
     {t:'Sophie',extra:'34',rank:4},{t:'Lucas',extra:'28',rank:7},{t:'Emma',extra:'45',rank:1},
     {t:'Nathan',extra:'31',rank:5},{t:'Chloé',extra:'26',rank:8},{t:'Hugo',extra:'52',rank:0},
-    {t:'Léa',extra:'38',rank:3},{t:'Gabriel',extra:'29',rank:6},{t:'Inès',extra:'41',rank:2}
+    {t:'Léa',extra:'38',rank:3},{t:'Gabriel',extra:'29',rank:7},{t:'Inès',extra:'41',rank:2},{t:'Nathan n°10',extra:'30',rank:6}
   ]},
   limit:{kind:'limit',phases:[
     {k:'SELECT nom, prix FROM produits',d:'Les 8 produits s’affichent. Sans ORDER BY, aucun ordre n’est garanti.'},
@@ -21677,20 +21702,20 @@ const SQL_VIZ={
     {t:'Oméga 3',extra:'24,90',rank:3,keep:0},{t:'Shaker',extra:'15,00',rank:5,keep:0}
   ]},
   distinct:{kind:'filter',phases:[
-    {k:'SELECT ville FROM clients',d:'Les 9 villes s’affichent, dans l’ordre de la table. Paris apparaît 3 fois, Lyon 2 fois.'},
+    {k:'SELECT ville FROM clients',d:'Les 10 villes s’affichent, dans l’ordre de la table. Paris apparaît 4 fois, Lyon 2 fois.'},
     {k:'DISTINCT',d:'SQL parcourt chaque ville. La première fois qu’une ville apparaît, il la garde. Les suivantes sont des doublons.'},
     {k:'6 villes',d:'Les doublons quittent le résultat. La table clients, elle, ne change pas.'}
   ],chips:[
     {t:'Paris',keep:1},{t:'Lyon',keep:1},{t:'Marseille',keep:1},{t:'Paris',keep:0},
-    {t:'Bordeaux',keep:1},{t:'Lyon',keep:0},{t:'Paris',keep:0},{t:'Toulouse',keep:1},{t:'Nantes',keep:1}
+    {t:'Bordeaux',keep:1},{t:'Lyon',keep:0},{t:'Paris',keep:0},{t:'Toulouse',keep:1},{t:'Nantes',keep:1},{t:'Paris',keep:0}
   ]},
   count:{kind:'count',phases:[
-    {k:'SELECT nom FROM clients',d:'Les 9 noms s’affichent. Pour connaître le total, il faut encore les compter.'},
-    {k:'COUNT(*)',d:'SQL parcourt chaque ligne et ajoute 1 : Sophie, Lucas, Emma… jusqu’à 9.'},
-    {k:'COUNT(*) = 9',d:'Les 9 lignes deviennent un seul résultat : 9. Ce n’est plus une liste.'}
-  ],total:9,chips:[
+    {k:'SELECT nom FROM clients',d:'Les 10 noms s’affichent. Pour connaître le total, il faut encore les compter.'},
+    {k:'COUNT(*)',d:'SQL parcourt chaque ligne et ajoute 1 : Sophie, Lucas, Emma… jusqu’à 10.'},
+    {k:'COUNT(*) = 10',d:'Les 10 lignes deviennent un seul résultat : 10. Ce n’est plus une liste.'}
+  ],total:10,chips:[
     {t:'Sophie',n:1},{t:'Lucas',n:2},{t:'Emma',n:3},{t:'Nathan',n:4},
-    {t:'Chloé',n:5},{t:'Hugo',n:6},{t:'Léa',n:7},{t:'Gabriel',n:8},{t:'Inès',n:9}
+    {t:'Chloé',n:5},{t:'Hugo',n:6},{t:'Léa',n:7},{t:'Gabriel',n:8},{t:'Inès',n:9},{t:'Nathan',n:10}
   ]},
   avg:{kind:'agg',phases:[
     {k:'SELECT prix FROM produits',d:'Les 8 prix s’affichent. Pour la moyenne, SQL va d’abord les additionner, puis diviser par 8.'},
@@ -21736,68 +21761,70 @@ const SQL_VIZ={
     {t:'Oméga 3',cat:'Bien-être',keep:1},{t:'Shaker',cat:'Accessoire',keep:0}
   ]},
   groupby:{kind:'group',phases:[
-    {k:'SELECT nom, ville FROM clients',d:'Les 9 clients s’affichent, chacun avec sa ville. Paris revient 3 fois, Lyon 2 fois.'},
+    {k:'SELECT nom, ville FROM clients',d:'Les 10 clients s’affichent, chacun avec sa ville. Paris revient 4 fois, Lyon 2 fois.'},
     {k:'GROUP BY ville',d:'SQL rassemble les clients qui ont la même ville. Il forme 6 groupes.'},
     {k:'COUNT(*) par groupe',d:'Il compte dans chaque groupe. Le résultat a 6 lignes : une ville, un total.'}
   ],buckets:[
-    {cat:'Paris',n:3,keep:1},{cat:'Lyon',n:2,keep:1},{cat:'Marseille',n:1,keep:1},
+    {cat:'Paris',n:4,keep:1},{cat:'Lyon',n:2,keep:1},{cat:'Marseille',n:1,keep:1},
     {cat:'Bordeaux',n:1,keep:1},{cat:'Toulouse',n:1,keep:1},{cat:'Nantes',n:1,keep:1}
   ],chips:[
     {t:'Sophie',extra:'Paris',cat:'Paris',keep:1},{t:'Lucas',extra:'Lyon',cat:'Lyon',keep:1},
     {t:'Emma',extra:'Marseille',cat:'Marseille',keep:1},{t:'Nathan',extra:'Paris',cat:'Paris',keep:1},
     {t:'Chloé',extra:'Bordeaux',cat:'Bordeaux',keep:1},{t:'Hugo',extra:'Lyon',cat:'Lyon',keep:1},
     {t:'Léa',extra:'Paris',cat:'Paris',keep:1},{t:'Gabriel',extra:'Toulouse',cat:'Toulouse',keep:1},
-    {t:'Inès',extra:'Nantes',cat:'Nantes',keep:1}
+    {t:'Inès',extra:'Nantes',cat:'Nantes',keep:1},{t:'Nathan n°10',extra:'Paris',cat:'Paris',keep:1}
   ]},
   pk:{kind:'er',stepMs:7200,phases:[
-    {k:'1 · Une valeur peut se répéter',sql:"WHERE ville = 'Paris'",read:'Paris correspond à Sophie, Nathan et Léa : la ville ne permet pas d’identifier une seule ligne.',d:'Observe la colonne ville : Paris apparaît trois fois. Un filtre sur la ville renvoie donc trois clients.'},
-    {k:'2 · id est la clé primaire',sql:'id INTEGER PRIMARY KEY',read:'Chaque valeur de clients.id est unique et obligatoire : 1, 4 et 7 désignent trois lignes différentes.',d:'Le symbole ◆ révèle la clé primaire. Contrairement au nom ou à la ville, chaque id n’apparaît qu’une fois.'},
-    {k:'3 · La clé cible une seule ligne',sql:'WHERE id = 1',read:'Comme id est unique, la condition cible exactement Sophie — ni Nathan, ni Léa.',d:'Touche une ligne pour changer la cible. Une clé primaire transforme un numéro en repère fiable.'},
-    {k:'4 · Chaque table a sa clé',sql:'3 tables · 3 clés id',read:'Le nombre 1 peut exister dans plusieurs tables : une clé primaire est unique dans sa propre table.',d:'La même règle structure toute la base : chaque client, produit et commande possède son propre id.'}
+    {k:'1 · Le nom ne suffit pas',sql:"WHERE nom = 'Nathan'",read:'La recherche renvoie deux personnes : Nathan n°4 et Nathan n°10. Elles habitent même toutes les deux à Paris.',d:'Observe les deux lignes Nathan : nom et ville se répètent. Impossible de savoir quelle fiche modifier avec ces seules informations.'},
+    {k:'2 · id est la clé primaire',sql:'id INTEGER PRIMARY KEY',read:'Chaque valeur de <code>clients.id</code> est unique et obligatoire. Les deux Nathan portent donc deux repères différents : 4 et 10.',d:'Le symbole ◆ révèle la clé primaire. Un id correspond à une seule ligne de la table.'},
+    {k:'3 · Cibler le bon Nathan',sql:'WHERE id = 4',read:'Le numéro client 4 cible exactement Nathan n°4. Nathan n°10 ne peut pas être sélectionné par erreur.',d:'Touche une ligne pour changer la cible : chaque id conduit toujours à une seule fiche.'},
+    {k:'4 · Une clé par table',sql:'clients.id · produits.id · commandes.id',read:'Un même nombre peut exister dans plusieurs tables. Le nom de la table précise toujours de quelle clé il s’agit.',d:'Chaque table identifie ses propres lignes avec sa propre clé primaire.'}
   ],html:`<div class="er-stage pk-lab">
     <div class="pk-table-shell">
       <div class="er-pk-table">
-        <div class="er-card-h"><span class="pk-table-title">clients <small class="pk-table-role">9 lignes</small></span><span class="pk-key-badge">PRIMARY KEY</span></div>
+        <div class="er-card-h"><span class="pk-table-title">clients <small class="pk-table-role">10 lignes</small></span><span class="pk-key-badge">PRIMARY KEY</span></div>
         <div class="er-pk-head"><span>id</span><span>nom</span><span>ville</span></div>
-        <button type="button" class="er-pk-row" data-er-id="client-1" data-pk-id="1" data-pk-name="Sophie" aria-label="Client 1, Sophie, Paris"><span class="pk-id" data-col="id">1</span><span>Sophie</span><span class="pk-city" data-dup="1">Paris</span></button>
-        <button type="button" class="er-pk-row" data-er-id="client-4" data-pk-id="4" data-pk-name="Nathan" aria-label="Client 4, Nathan, Paris"><span class="pk-id" data-col="id">4</span><span>Nathan</span><span class="pk-city" data-dup="1">Paris</span></button>
-        <button type="button" class="er-pk-row" data-er-id="client-7" data-pk-id="7" data-pk-name="Léa" aria-label="Client 7, Léa, Paris"><span class="pk-id" data-col="id">7</span><span>Léa</span><span class="pk-city" data-dup="1">Paris</span></button>
+        <button type="button" class="er-pk-row" data-er-id="client-1" data-pk-id="1" data-pk-name="Sophie" aria-label="Client 1, Sophie, Paris"><span class="pk-id" data-col="id">1</span><span class="pk-name">Sophie</span><span class="pk-city" data-dup="1">Paris</span></button>
+        <button type="button" class="er-pk-row" data-er-id="client-4" data-pk-id="4" data-pk-name="Nathan" aria-label="Client 4, Nathan, Paris"><span class="pk-id" data-col="id">4</span><span class="pk-name" data-dup-name="1">Nathan</span><span class="pk-city" data-dup="1">Paris</span></button>
+        <button type="button" class="er-pk-row" data-er-id="client-7" data-pk-id="7" data-pk-name="Léa" aria-label="Client 7, Léa, Paris"><span class="pk-id" data-col="id">7</span><span class="pk-name">Léa</span><span class="pk-city" data-dup="1">Paris</span></button>
+        <button type="button" class="er-pk-row" data-er-id="client-10" data-pk-id="10" data-pk-name="Nathan" aria-label="Client 10, Nathan, Paris"><span class="pk-id" data-col="id">10</span><span class="pk-name" data-dup-name="1">Nathan</span><span class="pk-city" data-dup="1">Paris</span></button>
         <button type="button" class="er-pk-row" data-er-id="client-9" data-pk-id="9" data-pk-name="Inès" aria-label="Client 9, Inès, Nantes"><span class="pk-id" data-col="id">9</span><span>Inès</span><span class="pk-city">Nantes</span></button>
+        ${joinMore(5,'clients')}
       </div>
     </div>
     <div class="pk-result" role="status" aria-live="polite">
-      <span class="pk-result-mark" aria-hidden="true">1</span>
-      <span class="pk-result-copy"><strong>id = 1 → Sophie</strong><span>Une seule valeur, une seule ligne.</span></span>
+      <span class="pk-result-mark" aria-hidden="true">4</span>
+      <span class="pk-result-copy"><strong>id = 4 → Nathan</strong><span>Une seule valeur, une seule ligne.</span></span>
     </div>
     <div class="pk-scope" aria-label="Clés primaires des trois tables">
       <div class="pk-scope-card"><b>clients</b><span>◆ id = 1</span><small>Sophie</small></div>
       <div class="pk-scope-card"><b>produits</b><span>◆ id = 1</span><small>Fibre Prébiotique</small></div>
       <div class="pk-scope-card"><b>commandes</b><span>◆ id = 1</span><small>Commande n° 1</small></div>
     </div>
-    <p class="er-hint">À l’étape 3, touche une ligne : l’id sélectionne exactement ce client.</p>
+    <p class="er-hint">À l’étape 3, touche Nathan n°4 puis Nathan n°10 : le nom reste identique, seul l’id cible la bonne ligne.</p>
   </div>`},
   fk:{kind:'er',phases:[
-    {k:'Deux tables',d:'À gauche, l’id unique d’un client. À droite, client_id dans les commandes.'},
-    {k:'FOREIGN KEY',d:'client_id recopie clients.id. Touche Sophie : ses commandes s’allument.'},
-    {k:'Relation 1-N',d:'Un client, plusieurs commandes. Les traits relient chaque achat à la bonne personne.'}
+    {k:'1 · Deux Nathan distincts',d:'Dans <code>clients</code>, Nathan n°4 et Nathan n°10 portent le même nom, mais leur clé primaire est différente.'},
+    {k:'2 · client_id pointe vers clients.id',d:'Dans <code>commandes</code>, les achats n°5 et n°12 portent <code>client_id = 4</code>. Ils pointent donc vers Nathan n°4.'},
+    {k:'3 · Une relation 1 vers plusieurs',d:'Une clé primaire apparaît une seule fois dans <code>clients</code>. Sa valeur peut être recopiée par plusieurs clés étrangères dans <code>commandes</code>.'}
   ],html:`<div class="er-stage er-match">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
       <div class="er-col" data-side="pk">
-        <div class="er-card-h">clients<span class="er-pk">PK</span></div>
-        <button type="button" class="er-btn" data-er-id="1"><span class="er-key">1</span>Sophie</button>
-        <button type="button" class="er-btn" data-er-id="2"><span class="er-key">2</span>Lucas</button>
-        <button type="button" class="er-btn" data-er-id="3"><span class="er-key">3</span>Emma</button>
+        <div class="er-card-h">clients.id<span class="er-pk">PRIMARY KEY</span></div>
+        <button type="button" class="er-btn" data-er-id="4"><span class="er-key">4</span>Nathan n°4</button>
+        <button type="button" class="er-btn" data-er-id="10"><span class="er-key">10</span>Nathan n°10</button>
+        ${joinMore(8,'clients')}
       </div>
       <div class="er-col" data-side="fk">
-        <div class="er-card-h">commandes<span class="er-fk">FK</span></div>
-        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">1</span>#1 · qté 2</button>
-        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">1</span>#2 · qté 1</button>
-        <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">2</span>#3 · qté 1</button>
-        <button type="button" class="er-btn" data-er-fk="3"><span class="er-key">3</span>#4 · qté 3</button>
+        <div class="er-card-h">commandes.client_id<span class="er-fk">FOREIGN KEY</span></div>
+        <button type="button" class="er-btn" data-er-fk="4"><span class="er-key">4</span>#5 · produit 1 · qté 1</button>
+        <button type="button" class="er-btn" data-er-fk="4"><span class="er-key">4</span>#12 · produit 2 · qté 1</button>
+        <div class="er-btn" aria-label="Nathan numéro 10 ne possède aucune commande"><span class="er-key">10</span>aucune commande</div>
+        ${joinMore(14,'commandes')}
       </div>
     </div>
-    <p class="er-hint">Touche un client ou une commande.</p>
+    <p class="er-hint">Touche Nathan n°4 ou l’une de ses commandes : le même identifiant 4 relie les deux tables.</p>
   </div>`},
   joinon:{kind:'er',sample:'2 clients · 3 commandes',stepMs:6500,lastSel:'1',phases:[
     {k:'Repérer les données',d:'Le nom est dans <code>clients</code> ; la quantité est dans <code>commandes</code>. Il faut donc lire deux tables.',sql:'FROM clients INNER JOIN commandes',read:'Aucune table ne contient seule les deux colonnes demandées : la jointure va construire cette vue.'},
@@ -21924,7 +21951,7 @@ const SQL_VIZ={
   </div>`},
   orphan:{kind:'er',sample:'3 clients · 2 commandes',lastSel:'9',phases:[
     {k:'Rendre l’absence visible',d:'Le <code>LEFT JOIN</code> garde les clients sans commande et produit <code>NULL</code> côté commandes.',sql:'LEFT JOIN commandes ON clients.id = commandes.client_id',read:'Dans cet extrait, Sophie et Lucas trouvent une commande ; Inès obtient une ligne avec <code>commandes.id = NULL</code>.'},
-    {k:'Filtrer les absences',d:'Le filtre retire toutes les lignes possédant un identifiant de commande réel.',sql:'WHERE commandes.id IS NULL',read:'Les lignes de Sophie et Lucas sont écartées ; seule la ligne d’Inès satisfait <code>IS NULL</code>.'},
+    {k:'Filtrer les absences',d:'Le filtre retire toutes les lignes possédant un identifiant de commande réel.',sql:'WHERE commandes.id IS NULL',read:'Les lignes de Sophie et Lucas sont écartées ; Inès et Nathan n°10 satisfont <code>IS NULL</code>.'},
     {k:'Obtenir les orphelins',d:'Le résultat ne contient plus que les clients sans aucune correspondance dans <code>commandes</code>.',sql:'SELECT clients.nom',read:'Sur cet extrait comme dans la base complète, le client sans commande est <code>Inès</code>.'}
   ],html:`<div class="er-stage er-match join-viz">
     <svg class="er-links" aria-hidden="true"></svg>
@@ -22051,17 +22078,18 @@ const SQL_VIZ={
     </div>
     <p class="er-hint">\ud83d\udc46 Touche un client : sa commande et sa ligne de r\u00e9sultat s\u2019allument.</p>
   </div>`},
-  selfjoin:{kind:'er',sample:'9 clients · 6 villes',stepMs:7800,phases:[
-    {k:'Une seule table',d:'Tout part d\u2019une seule table <code>clients</code>. Le besoin est de comparer un client à un autre client de cette même table.',sql:'FROM clients',read:'Il y a 9 lignes dans une seule table. Pour former une paire, SQL doit pourtant lire deux clients à la fois.'},
+  selfjoin:{kind:'er',sample:'10 clients · 6 villes',stepMs:7800,phases:[
+    {k:'Une seule table',d:'Tout part d\u2019une seule table <code>clients</code>. Le besoin est de comparer un client à un autre client de cette même table.',sql:'FROM clients',read:'Il y a 10 lignes dans une seule table. Pour former une paire, SQL doit pourtant lire deux clients à la fois.'},
     {k:'Donner deux rôles',d:'Les alias <code>c1</code> et <code>c2</code> donnent deux rôles à <code>clients</code>. Ils ne créent ni copie ni nouvelle table.',sql:'FROM clients c1\nJOIN clients c2',read:'<code>c1</code> désigne le premier client de la paire ; <code>c2</code> désigne le second. Les deux rôles lisent exactement les mêmes lignes.'},
-    {k:'Comparer les villes',d:'<code>c1.ville = c2.ville</code> rapproche toutes les lignes qui partagent une ville. Cela inclut encore les auto-paires et les paires inversées.',sql:'ON c1.ville = c2.ville',read:'Sophie/Sophie et Nathan/Sophie passent aussi le test. Sur les 9 clients, cette condition seule produit 17 associations candidates.'},
-    {k:'Garder une paire',d:'<code>c1.id &lt; c2.id</code> impose un seul sens : pas de client avec lui-même et pas de paire inversée. Il reste 4 paires uniques.',sql:'AND c1.id < c2.id',read:'<code>1 &lt; 4</code> garde Sophie/Nathan ; <code>4 &lt; 1</code> rejette Nathan/Sophie. C’est la garde qui transforme 17 associations en 4 paires utiles.'}
+    {k:'Comparer les villes',d:'<code>c1.ville = c2.ville</code> rapproche toutes les lignes qui partagent une ville. Cela inclut encore les auto-paires et les paires inversées.',sql:'ON c1.ville = c2.ville',read:'Sophie/Sophie et Nathan/Sophie passent aussi le test. Sur les 10 clients, cette condition seule produit 24 associations candidates.'},
+    {k:'Garder une paire',d:'<code>c1.id &lt; c2.id</code> impose un seul sens : pas de client avec lui-même et pas de paire inversée. Il reste 7 paires uniques.',sql:'AND c1.id < c2.id',read:'<code>1 &lt; 4</code> garde Sophie/Nathan ; <code>4 &lt; 1</code> rejette Nathan/Sophie. C’est la garde qui transforme 24 associations en 7 paires utiles.'}
   ],html:`<div class="er-stage join-viz self-join-stage">
     <div class="self-source" aria-label="Extrait de la table clients">
-      <div class="self-source-head"><span>Table source</span><code>clients</code><b>9 lignes</b></div>
+      <div class="self-source-head"><span>Table source</span><code>clients</code><b>10 lignes</b></div>
       <div class="self-source-row"><i>1</i><span>Sophie</span><small>Paris</small></div>
       <div class="self-source-row"><i>4</i><span>Nathan</span><small>Paris</small></div>
       <div class="self-source-row"><i>7</i><span>Léa</span><small>Paris</small></div>
+      <div class="self-source-row"><i>10</i><span>Nathan</span><small>Paris</small></div>
       <div class="self-source-row"><i>2</i><span>Lucas</span><small>Lyon</small></div>
       <div class="self-source-row"><i>6</i><span>Hugo</span><small>Lyon</small></div>
       ${joinMore(4,'clients')}
@@ -22073,6 +22101,7 @@ const SQL_VIZ={
           <div class="jchip" data-city="paris" data-er-id="paris" role="button" tabindex="0"><span class="er-key">1</span><span class="self-person">Sophie<small>Paris</small></span></div>
           <div class="jchip" data-city="paris" data-er-id="paris" role="button" tabindex="0"><span class="er-key">4</span><span class="self-person">Nathan<small>Paris</small></span></div>
           <div class="jchip" data-city="paris" data-er-id="paris" role="button" tabindex="0"><span class="er-key">7</span><span class="self-person">Léa<small>Paris</small></span></div>
+          <div class="jchip" data-city="paris" data-er-id="paris" role="button" tabindex="0"><span class="er-key">10</span><span class="self-person">Nathan<small>Paris</small></span></div>
           <div class="jchip" data-city="lyon" data-er-id="lyon" role="button" tabindex="0"><span class="er-key">2</span><span class="self-person">Lucas<small>Lyon</small></span></div>
           <div class="jchip" data-city="lyon" data-er-id="lyon" role="button" tabindex="0"><span class="er-key">6</span><span class="self-person">Hugo<small>Lyon</small></span></div>
           ${joinMore(4,'clients')}
@@ -22083,6 +22112,7 @@ const SQL_VIZ={
           <div class="jchip" data-city="paris" data-er-fk="paris" role="button" tabindex="0"><span class="er-key">1</span><span class="self-person">Sophie<small>Paris</small></span></div>
           <div class="jchip" data-city="paris" data-er-fk="paris" role="button" tabindex="0"><span class="er-key">4</span><span class="self-person">Nathan<small>Paris</small></span></div>
           <div class="jchip" data-city="paris" data-er-fk="paris" role="button" tabindex="0"><span class="er-key">7</span><span class="self-person">Léa<small>Paris</small></span></div>
+          <div class="jchip" data-city="paris" data-er-fk="paris" role="button" tabindex="0"><span class="er-key">10</span><span class="self-person">Nathan<small>Paris</small></span></div>
           <div class="jchip" data-city="lyon" data-er-fk="lyon" role="button" tabindex="0"><span class="er-key">2</span><span class="self-person">Lucas<small>Lyon</small></span></div>
           <div class="jchip" data-city="lyon" data-er-fk="lyon" role="button" tabindex="0"><span class="er-key">6</span><span class="self-person">Hugo<small>Lyon</small></span></div>
           ${joinMore(4,'clients')}
@@ -22091,11 +22121,11 @@ const SQL_VIZ={
     </div>
     <div class="self-audit">
       <div class="self-audit-card">
-        <div class="self-audit-head"><span>17 associations candidates</span><b>avec la ville seule</b></div>
+        <div class="self-audit-head"><span>24 associations candidates</span><b>avec la ville seule</b></div>
         <div class="self-audit-row"><span>Sophie <code>↔</code> Sophie</span><em>même client</em></div>
         <div class="self-audit-row"><span>Nathan <code>↔</code> Sophie</span><em>sens inverse</em></div>
         <div class="self-audit-row is-valid"><span>Sophie <code>↔</code> Nathan</span><em>paire utile</em></div>
-        <div class="self-audit-more"><b>…</b><span>14 autres associations candidates</span></div>
+        <div class="self-audit-more"><b>…</b><span>21 autres associations candidates</span></div>
       </div>
     </div>
     <div class="self-filter"><i>✓</i><span><code>c1.id &lt; c2.id</code> garde un seul sens et retire les auto-paires.</span></div>
@@ -22103,6 +22133,9 @@ const SQL_VIZ={
       <div class="join-pill" data-er-fk="paris">Sophie ↔ Nathan<span class="jn">Paris · 1 &lt; 4</span></div>
       <div class="join-pill" data-er-fk="paris">Sophie ↔ Léa<span class="jn">Paris · 1 &lt; 7</span></div>
       <div class="join-pill" data-er-fk="paris">Nathan ↔ Léa<span class="jn">Paris · 4 &lt; 7</span></div>
+      <div class="join-pill" data-er-fk="paris">Sophie ↔ Nathan n°10<span class="jn">Paris · 1 &lt; 10</span></div>
+      <div class="join-pill" data-er-fk="paris">Nathan n°4 ↔ Nathan n°10<span class="jn">Paris · 4 &lt; 10</span></div>
+      <div class="join-pill" data-er-fk="paris">Léa ↔ Nathan n°10<span class="jn">Paris · 7 &lt; 10</span></div>
       <div class="join-pill" data-er-fk="lyon">Lucas ↔ Hugo<span class="jn">Lyon · 2 &lt; 6</span></div>
     </div>
     <p class="er-hint">👆 Touche une personne : sa ville s\u2019allume dans les deux rôles.</p>
@@ -22152,7 +22185,7 @@ const SQL_VIZ={
   crossjoin:{kind:'er',sample:'3 clients · 3 produits',phases:[
     {k:'Prendre les deux ensembles',d:'<code>CROSS JOIN</code> part de deux tables mais ne cherche aucune clé de correspondance.',sql:'FROM clients CROSS JOIN produits',read:'L’extrait contient 3 clients et 3 produits. Toutes ces lignes vont participer au résultat.'},
     {k:'Dérouler les paires',d:'SQL associe le premier client à chaque produit, puis recommence pour le client suivant.',sql:'Aucune clause ON',read:'Sophie produit 3 lignes, Lucas 3 lignes et Emma 3 lignes : aucune paire n’est testée ni écartée.'},
-    {k:'Multiplier les volumes',d:'Le nombre de lignes est le produit des deux tailles, jamais leur somme.',sql:'SELECT clients.nom, produits.nom',read:'Extrait : <code>3 × 3 = 9</code> lignes. Base complète : <code>9 × 8 = 72</code> lignes.' }
+    {k:'Multiplier les volumes',d:'Le nombre de lignes est le produit des deux tailles, jamais leur somme.',sql:'SELECT clients.nom, produits.nom',read:'Extrait : <code>3 × 3 = 9</code> lignes. Base complète : <code>10 × 8 = 80</code> lignes.' }
   ],html:`<div class="er-stage join-viz">
     <div class="join-sets">
       <div class="join-side"><div class="join-side-h">clients</div>
@@ -22269,8 +22302,8 @@ const SQL_VIZ={
   subquery_notin:{kind:'er',sample:'6 clients · 8 client_id déjà commandés',stepMs:7800,phases:[
     {k:'Parcourir les commandes',d:'SQL exécute d’abord la requête entre parenthèses et récupère tous les <code>client_id</code> de <code>commandes</code>.',sql:'SELECT client_id FROM commandes',read:'Parmi les 16 commandes, l’extrait montre #1, #3, #4 et #5 — chacune porte déjà un <code>client_id</code>.'},
     {k:'Fabriquer la liste',d:'La sous-requête projette uniquement la colonne <code>client_id</code>.',sql:'SELECT client_id → [1, 2, 3, 4, 5, 6, 7, 8]',read:'Elle produit la liste dynamique <code>1, 2, 3, 4, 5, 6, 7, 8</code> : une seule colonne, les clients ayant déjà commandé.'},
-    {k:'Tester chaque client',d:'La requête extérieure compare chaque <code>clients.id</code> à la liste.',sql:'WHERE clients.id NOT IN (1, 2, 3, 4, 5, 6, 7, 8)',read:'<code>NOT IN</code> répond « hors liste » pour Inès ; « dans la liste » pour Sophie, Lucas, Nathan, Chloé et Léa.'},
-    {k:'Afficher les absents',d:'Seules les lignes dont le test vaut vrai atteignent le résultat.',sql:'SELECT clients.nom',read:'Résultat final : Inès — la seule cliente n’ayant passé aucune commande.'}
+    {k:'Tester chaque client',d:'La requête extérieure compare chaque <code>clients.id</code> à la liste.',sql:'WHERE clients.id NOT IN (1, 2, 3, 4, 5, 6, 7, 8)',read:'<code>NOT IN</code> répond « hors liste » pour Inès et Nathan n°10 ; « dans la liste » pour les clients d’id 1 à 8.'},
+    {k:'Afficher les absents',d:'Seules les lignes dont le test vaut vrai atteignent le résultat.',sql:'SELECT clients.nom',read:'Résultat final : Inès et Nathan n°10 — les deux clients n’ayant passé aucune commande.'}
   ],html:`<div class="er-stage join-viz subq-in-stage">
     <section class="subq-source" aria-label="Commandes parcourues par la sous-requête">
       <div class="subq-source-head"><span>Sous-requête · exécutée d’abord</span><code>commandes</code><b>déjà commandé</b></div>
@@ -22305,12 +22338,14 @@ const SQL_VIZ={
         <div class="subq-client is-miss" data-er-id="5" role="button" tabindex="-1"><span class="er-key">5</span><span>Chloé</span><span class="subq-client-status">× dans la liste</span></div>
         <div class="subq-client is-miss" data-er-id="7" role="button" tabindex="-1"><span class="er-key">7</span><span>Léa</span><span class="subq-client-status">× dans la liste</span></div>
         <div class="subq-client is-hit" data-er-id="9" role="button" tabindex="-1"><span class="er-key">9</span><span>Inès</span><span class="subq-client-status">✓ hors liste</span></div>
-        ${joinMore(3,'clients')}
+        <div class="subq-client is-hit" data-er-id="10" role="button" tabindex="-1"><span class="er-key">10</span><span>Nathan</span><span class="subq-client-status">✓ hors liste</span></div>
+        ${joinMore(2,'clients')}
       </div>
-      <p class="subq-test-summary"><b>1 hors liste</b><span>·</span><span>5 dans la liste dans l’extrait</span></p>
+      <p class="subq-test-summary"><b>2 hors liste</b><span>·</span><span>5 dans la liste dans l’extrait</span></p>
     </section>
     <div class="join-out" aria-hidden="true">
       <div class="join-pill" data-er-id="9">Inès</div>
+      <div class="join-pill" data-er-id="10">Nathan n°10</div>
     </div>
     <p class="er-hint">👆 À l’étape 3, touche un client : l’identifiant recherché s’allume dans la liste.</p>
   </div>`},
@@ -22663,7 +22698,7 @@ function clearErOn(root){
 }
 function syncPkResult(root,row){
   if(!root||root.dataset.viz!=='pk')return;
-  const selected=row&&row.matches('[data-pk-id]')?row:root.querySelector('[data-pk-id="1"]');
+  const selected=row&&row.matches('[data-pk-id]')?row:root.querySelector('[data-pk-id="4"]');
   if(!selected)return;
   const id=selected.dataset.pkId,name=selected.dataset.pkName;
   const mark=root.querySelector('.pk-result-mark');
@@ -22690,7 +22725,7 @@ function syncPkPhase(root,phase){
     row.tabIndex=phase===2?0:-1;
   });
   if(phase===2){
-    const first=root.querySelector('[data-pk-id="1"]');
+    const first=root.querySelector('[data-pk-id="4"]');
     if(first){first.setAttribute('data-er-on','1');syncPkResult(root,first);}
   }
 }
