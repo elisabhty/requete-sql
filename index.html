@@ -6626,133 +6626,138 @@ const SCHEMA_META=[
 const MODULES = [
 { titre:"Introduction", sous:"Bases de données, tables et relations", lessons:[
 { id:0, titre:"Les bases de données relationnelles", résumé:"Tables, colonnes, lignes et liens",
-  situation:"Tu gères un site e-commerce spécialisé dans la vente en ligne de compléments alimentaires et de produits de nutrition sportive.<br><br>Chaque jour, des clients s’inscrivent, consultent tes références et passent des commandes.<br><br>Pour faire fonctionner ta boutique, tu dois donc conserver plusieurs informations :<br><br><ul class=\"sit-roles\"><li><code>clients</code> → Qui sont tes clients ?</li><li><code>produits</code> → Quels produits vends-tu ?</li><li><code>commandes</code> → Qui a commandé quoi ?</li></ul><br><br>Plutôt que de tout mélanger au même endroit, ces informations sont organisées dans trois tables : <code>clients</code>, <code>produits</code> et <code>commandes</code>.<br><br>Et surtout, ces tables sont reliées entre elles : une commande peut être associée à un client et à un produit.<br><br>C’est le principe d’une base de données relationnelle.",
-  situationTail:"<figure class=\"ecom-flow\" aria-label=\"Du site e-commerce à la base relationnelle\"><div class=\"ecom-node is-hero\">Tu gères une boutique en ligne</div><i class=\"ecom-arrow\" aria-hidden=\"true\">↓</i><div class=\"ecom-node\">Tu dois mémoriser…</div><i class=\"ecom-arrow\" aria-hidden=\"true\">↓</i><div class=\"ecom-trio\"><div><b>clients</b><span>Qui ?</span></div><div><b>produits</b><span>Compléments / nutrition sportive</span></div><div><b>commandes</b><span>Qui achète quoi ?</span></div></div><i class=\"ecom-arrow\" aria-hidden=\"true\">↓</i><div class=\"ecom-node\">Tables reliées</div><i class=\"ecom-arrow\" aria-hidden=\"true\">↓</i><div class=\"ecom-node is-end\">Base relationnelle</div></figure>",
+  situation:"Tu gères une boutique en ligne de compléments alimentaires et de nutrition sportive.<br><br>Chaque jour, des clients s’inscrivent, consultent ton catalogue et passent des commandes.<br><br>Pour piloter ton activité sans mélanger les données, tu organises l’information en trois tables dédiées :<br><br><ul class=\"sit-roles\"><li><code>clients</code> → Qui sont tes acheteurs ?</li><li><code>produits</code> → Quels produits vends-tu ?</li><li><code>commandes</code> → Qui a commandé quel produit, et en quelle quantité ?</li></ul><br>Ces tables sont ensuite <b>reliées entre elles par des identifiants</b> : c’est le principe même d’une <b>base de données relationnelle</b>.",
+  situationTail:"<figure class=\"rel-link\" aria-label=\"Schéma relationnel de la boutique e-commerce\"><div class=\"rel-link-row\"><section class=\"rel-card\"><h3>clients</h3><ul><li class=\"is-key\">id (PK)</li><li>nom</li><li>ville</li></ul></section><span class=\"rel-arrow\" aria-hidden=\"true\">→</span><section class=\"rel-card is-hub\"><h3>commandes</h3><ul><li>id (PK)</li><li class=\"is-fk\">client_id (FK)</li><li class=\"is-fk\">produit_id (FK)</li><li>quantite</li></ul></section><span class=\"rel-arrow\" aria-hidden=\"true\">←</span><section class=\"rel-card\"><h3>produits</h3><ul><li class=\"is-key\">id (PK)</li><li>nom</li><li>prix</li></ul></section></div><figcaption>Les clés étrangères (<code>FK</code>) relient chaque commande à un client et à un produit.</figcaption></figure>",
     studio:{pointCards:{
-      eye:"Relationnel",title:"Des tables, et des liens entre elles.",
-      lead:"<p>Une base de données organise les informations dans des <b>tables</b>.</p><p>Chaque table représente un type d’information, comme les clients, les compléments ou les commandes.</p><p>Ces tables peuvent ensuite être <b>reliées entre elles grâce à des identifiants communs</b>.</p>",
+      eye:"Modèle relationnel",title:"3 piliers : Tables, Colonnes, Lignes",
+      lead:"<p>Une base de données relationnelle stocke chaque sujet dans une <b>table</b> distincte.</p><p>Les tables sont découpées en <b>colonnes</b> (caractéristiques) et composées de <b>lignes</b> (enregistrements).</p><p>Elles sont ensuite <b>reliées entre elles</b> grâce à des identifiants communs (les clés).</p>",
       chain:[
-        {k:"Table",v:"un type d’information",ex:"<b>les clients</b>"},
-        {k:"Colonne",v:"une caractéristique",ex:"<b>le nom, la ville, l’âge</b>"},
-        {k:"Ligne",v:"un élément enregistré",ex:"<b>Sophie, Paris, 34 ans</b>"}
+        {k:"1. Table",v:"Le sujet métier",ex:"<b>clients</b>, <b>produits</b>, <b>commandes</b>"},
+        {k:"2. Colonne",v:"Une caractéristique typée",ex:"<b>nom (TEXT)</b>, <b>prix (REAL)</b>"},
+        {k:"3. Ligne",v:"Un enregistrement concret",ex:"<b>1 · Sophie · Paris · 34 ans</b>"}
       ],
-      after:`<figure class="tbl-tree" aria-label="Une table, ses colonnes et une ligne">
-        <div class="tbl-tree-root"><b>TABLE</b> <code>clients</code></div>
+      after:`<figure class="tbl-tree" aria-label="Anatomie d'une table SQL">
+        <div class="tbl-tree-root"><b>TABLE</b> <code>clients</code> <i>(sujet : tes acheteurs)</i></div>
         <div class="tbl-tree-branch">
-          <div><b>Colonnes</b><span><code>nom</code> · <code>ville</code> · <code>age</code></span></div>
-          <div><b>Ligne</b><span>Sophie · Paris · 34</span></div>
+          <div><b>Colonnes (verticales)</b><span><code>id</code> · <code>nom</code> · <code>ville</code> · <code>age</code> · <code>email</code></span></div>
+          <div><b>Ligne (horizontale)</b><span>1 · Sophie · Paris · 34 ans · sophie@mail.fr</span></div>
+          <div><b>Cellule (valeur)</b><span>Sophie</span></div>
         </div>
-      </figure>
-      <figure class="id-link" aria-label="Le même identifiant relie clients et commandes">
-        <div class="id-link-row">
-          <section class="rel-card"><h3>clients</h3><ul><li class="is-key">id</li><li>nom</li><li>ville</li></ul></section>
-          <span class="rel-arrow" aria-hidden="true">→</span>
-          <section class="rel-card is-hub"><h3>commandes</h3><ul><li>id</li><li class="is-fk">client_id</li><li>produit_id</li><li>quantite</li></ul></section>
-        </div>
-        <figcaption>même identifiant = lien entre les tables</figcaption>
       </figure>`},
-    uses:{title:"Du tableur à la base reliée.",
+    uses:{title:"Comprendre le relationnel en 5 schémas",
       body:`<div class="pt-lead fn-uses">
         <div class="fn-use">
-          <p class="pt-syntax-h">Une table organise un type d’information</p>
-          <p>La table <code>clients</code> regroupe les informations sur les clients de ta boutique.</p>
-          <p><b>Chaque colonne décrit une caractéristique. Chaque ligne représente un client.</b></p>
+          <p class="pt-syntax-h">Schéma 1 : L’anatomie d’une table</p>
+          <p>Une table est une grille structurée : les <b>colonnes</b> définissent les caractéristiques, les <b>lignes</b> contiennent les éléments enregistrés.</p>
           <div class="mini-grid"><div class="h"><span>id</span><span>nom</span><span>ville</span></div>
             <div><span>1</span><span>Sophie</span><span>Paris</span></div>
             <div><span>2</span><span>Lucas</span><span>Lyon</span></div>
             <div class="more" aria-hidden="true"><span>…</span></div></div>
           <div class="mini-lab">
-            <i><b>↑ Colonnes = les caractéristiques des clients</b><span><code>id</code> · <code>nom</code> · <code>ville</code></span></i>
-            <i><b>← Lignes = un client par ligne</b><span>Sophie · Lucas · …</span></i>
+            <i><b>⬆ Colonnes</b><span>Les champs définis avec leur type (<code>id</code> INTEGER, <code>nom</code> TEXT, <code>ville</code> TEXT)</span></i>
+            <i><b>⬅ Lignes</b><span>Chaque client unique de la boutique (Sophie, Lucas…)</span></i>
+            <i><b>🎯 Cellule</b><span>La valeur située à l’intersection d’une ligne et d’une colonne</span></i>
           </div>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Une table pour chaque type d’information</p>
-          <p>Les clients, les produits et les commandes ne vont pas dans la même table.</p>
-          <div class="kind-tables">
-            <div class="kind-table"><b>clients</b>
-              <div class="mini-grid even"><div class="h"><span>id</span><span>nom</span><span>ville</span></div>
-                <div><span>1</span><span>Sophie</span><span>Paris</span></div>
-                <div><span>2</span><span>Lucas</span><span>Lyon</span></div>
-                <div class="more" aria-hidden="true"><span>…</span></div></div></div>
-            <div class="kind-table"><b>commandes</b>
-              <div class="mini-grid even"><div class="h"><span>client_id</span><span>produit_id</span><span>quantite</span></div>
-                <div><span>1</span><span>1</span><span>2</span></div>
-                <div><span>1</span><span>3</span><span>1</span></div>
-                <div class="more" aria-hidden="true"><span>…</span></div></div></div>
-            <div class="kind-table"><b>produits</b>
-              <div class="mini-grid even"><div class="h"><span>id</span><span>nom</span><span>prix</span></div>
-                <div><span>1</span><span>Fibre</span><span>29,90</span></div>
-                <div><span>3</span><span>Magnésium</span><span>19,90</span></div>
-                <div class="more" aria-hidden="true"><span>…</span></div></div></div>
+          <p class="pt-syntax-h">Schéma 2 : Pourquoi plusieurs tables au lieu d’une seule ?</p>
+          <p>Dans un tableur unique, le nom et l’adresse de Sophie seraient recopiés à chaque commande passée :</p>
+          <div class="nm-board">
+            <div class="nm-pane is-before">
+              <div class="nm-pane-h">
+                <b>❌ Tableur unique (non relationnel)</b>
+                <small>Sophie, Paris et son e-mail sont dupliqués à chaque achat.</small>
+              </div>
+              <div class="table-wrap"><table class="concept-table">
+                <thead><tr><th>client</th><th>ville</th><th>email</th><th>produit</th><th>qte</th></tr></thead>
+                <tbody>
+                  <tr><td class="nm-dup">Sophie</td><td class="nm-dup">Paris</td><td class="nm-dup">sophie@mail.fr</td><td>Fibre Prébiotique</td><td>2</td></tr>
+                  <tr><td class="nm-dup">Sophie</td><td class="nm-dup">Paris</td><td class="nm-dup">sophie@mail.fr</td><td>Magnésium</td><td>1</td></tr>
+                </tbody>
+              </table></div>
+              <ul class="nm-pts is-bad">
+                <li>Si Sophie déménage, il faut modifier chaque ligne où elle apparaît.</li>
+                <li>Risque élevé d’erreurs et de données contradictoires.</li>
+              </ul>
+            </div>
+            <div class="nm-pane is-after">
+              <div class="nm-pane-h">
+                <b>✅ Modèle relationnel (3 tables spécialisées)</b>
+                <small>Chaque information à sa place, sans doublon inutile.</small>
+              </div>
+              <div class="kind-tables">
+                <div class="kind-table"><b>clients</b>
+                  <div class="mini-grid"><div class="h"><span>id</span><span>nom</span><span>ville</span></div>
+                    <div><span>1</span><span>Sophie</span><span>Paris</span></div>
+                  </div>
+                </div>
+                <div class="kind-table"><b>commandes</b>
+                  <div class="mini-grid even"><div class="h"><span>client_id</span><span>produit_id</span><span>qte</span></div>
+                    <div><span>1</span><span>1</span><span>2</span></div>
+                    <div><span>1</span><span>3</span><span>1</span></div>
+                  </div>
+                </div>
+                <div class="kind-table"><b>produits</b>
+                  <div class="mini-grid even"><div class="h"><span>id</span><span>nom</span><span>prix</span></div>
+                    <div><span>1</span><span>Fibre</span><span>29,90</span></div>
+                    <div><span>3</span><span>Magnésium</span><span>19,90</span></div>
+                  </div>
+                </div>
+              </div>
+              <ul class="nm-pts is-ok">
+                <li>L’adresse de Sophie n’est écrite qu’une seule fois dans <code>clients</code>.</li>
+                <li>Changer sa ville met à jour toutes ses commandes instantanément.</li>
+              </ul>
+            </div>
           </div>
-          <p>Chaque table regroupe un type d’information précis.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">La colonne : une information, un type</p>
-          <p>Une colonne porte un nom et n’accueille qu’une seule sorte de valeur. La table <code>clients</code> en compte sept : <code>id</code>, <code>nom</code>, <code>ville</code>, <code>age</code>, <code>email</code>, <code>telephone</code>, <code>date_inscription</code>.</p>
+          <p class="pt-syntax-h">Schéma 3 : Les clés (PK et FK) relient les tables</p>
+          <p>Pour faire le lien entre les tables sans recopier de texte, on utilise des <b>identifiants numériques</b> :</p>
+          <div class="tx-flow" role="img" aria-label="Liaison entre commandes, clients et produits">
+            <span class="tx-step"><code>commandes</code><i>client_id = 1</i></span>
+            <span class="rel-arrow" aria-hidden="true">➔ pointe vers</span>
+            <span class="tx-step tx-key"><code>clients</code><i>id = 1 → Sophie (Paris)</i></span>
+            <div style="height:6px"></div>
+            <span class="tx-step"><code>commandes</code><i>produit_id = 3</i></span>
+            <span class="rel-arrow" aria-hidden="true">➔ pointe vers</span>
+            <span class="tx-step tx-key"><code>produits</code><i>id = 3 → Magnésium (19,90 €)</i></span>
+          </div>
+          <div class="mini-lab" style="margin-top:12px">
+            <i><b>Clé primaire (PK - Primary Key)</b><span>L’identifiant unique d’une ligne dans sa propre table (ex : <code>clients.id</code>).</span></i>
+            <i><b>Clé étrangère (FK - Foreign Key)</b><span>Une colonne qui référence la clé primaire d’une autre table (ex : <code>commandes.client_id</code>).</span></i>
+          </div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Schéma 4 : Le vocabulaire SQL (Courant vs Académique)</p>
+          <p>Le langage SQL et la théorie relationnelle emploient des termes équivalents :</p>
           <div class="table-wrap"><table class="concept-table fit-2">
-            <thead><tr><th>Colonne</th><th>Type</th></tr></thead>
+            <thead><tr><th>Terme courant (pratique)</th><th>Terme formel (théorie)</th><th>Dans notre boutique</th></tr></thead>
             <tbody>
-              <tr><td><code>nom</code></td><td><code>TEXT</code></td></tr>
-              <tr><td><code>age</code></td><td><code>INTEGER</code></td></tr>
-              <tr><td><code>prix</code></td><td><code>REAL</code></td></tr>
+              <tr><td><b>Table</b></td><td>Relation</td><td><code>clients</code>, <code>produits</code></td></tr>
+              <tr><td><b>Colonne</b></td><td>Attribut / Champ</td><td><code>nom</code>, <code>prix</code>, <code>ville</code></td></tr>
+              <tr><td><b>Ligne</b></td><td>Tuple / Enregistrement</td><td>Sophie, 34 ans, Paris</td></tr>
+              <tr><td><b>Clé primaire</b></td><td>Identifiant unique (PK)</td><td><code>clients.id = 1</code></td></tr>
+              <tr><td><b>Clé étrangère</b></td><td>Référence externe (FK)</td><td><code>commandes.client_id</code></td></tr>
             </tbody>
           </table></div>
-          <p>Le type est une promesse : on ne range pas un nom dans une colonne d’entiers.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">La ligne : un élément enregistré</p>
-          <p>Une ligne rassemble une valeur pour chaque colonne. La première ligne de <code>clients</code> décrit Sophie, 34 ans, à Paris, inscrite le 15 janvier 2023.</p>
-          <p>Une table peut contenir zéro, une ou des milliers de lignes. Ici, elle en contient dix.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Pourquoi trois tables, et pas une</p>
-          <p>Sophie a passé trois commandes. Dans une feuille unique, son nom, sa ville et son e-mail seraient recopiés trois fois — et il faudrait les corriger trois fois le jour où elle déménage.</p>
-          <p>Chaque sujet a donc sa table, et l’information n’est écrite qu’une fois. Le cours <b>Normalisation</b> revient en détail sur ce découpage.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le lien : une colonne qui en désigne une autre</p>
-          <p>La table <code>commandes</code> ne contient aucun nom. À la place, sa colonne <code>client_id</code> porte le numéro du client.</p>
-          <div class="tx-flow" role="img" aria-label="client_id de commandes renvoie à id de clients">
-            <span class="tx-step">commandes<i>client_id = 1</i></span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step tx-key">clients<i>id = 1 → Sophie</i></span>
+          <p class="pt-syntax-h">Schéma 5 : De ta requête SQL à la base (Le SGBD)</p>
+          <p>Pour interroger ces tables, tu écris des requêtes en langage <b>SQL</b> transmises à un moteur appelé <b>SGBD</b> (Système de Gestion de Base de Données) :</p>
+          <div class="tx-flow" role="img" aria-label="Flux du SQL au stockage SGBD">
+            <div class="tx-step"><b>Ta requête SQL</b><i>ex : SELECT * FROM clients;</i></div>
+            <i class="ecom-arrow" aria-hidden="true">↓</i>
+            <div class="tx-step tx-key"><b>Le SGBD (moteur)</b><i>SQLite (dans cette appli), PostgreSQL, MySQL…</i></div>
+            <i class="ecom-arrow" aria-hidden="true">↓</i>
+            <div class="tx-step tx-ok"><b>La base relationnelle</b><i>Données organisées et stockées de façon cohérente</i></div>
           </div>
-          <p>C’est une <b>clé étrangère</b>. Elle relie les deux tables sans recopier la moindre information.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le mot « relationnel » ne parle pas des lignes</p>
-          <p>Il ne désigne pas un lien entre les lignes d’une même table, mais la possibilité de mettre des <b>tables</b> en relation.</p>
-          <p>Une base relationnelle, c’est un ensemble de tables qui se désignent les unes les autres.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le vocabulaire formel</p>
-          <p>Les cours théoriques emploient un autre vocabulaire pour les mêmes objets. Tu le croiseras dans la documentation.</p>
-          <div class="table-wrap"><table class="concept-table fit-2">
-            <thead><tr><th>Courant</th><th>Formel</th></tr></thead>
-            <tbody>
-              <tr><td>table</td><td>relation</td></tr>
-              <tr><td>colonne</td><td>attribut</td></tr>
-              <tr><td>ligne</td><td>tuple</td></tr>
-            </tbody>
-          </table></div>
-          <p>« Relation » désigne donc la table elle-même — d’où le nom du modèle.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le moteur qui gère tout ça</p>
-          <p>Une base ne vit pas seule : un <b>SGBD</b>, système de gestion de base de données, la stocke et exécute tes requêtes.</p>
-          <p>Cette application tourne sur <b>SQLite 3.45</b>, directement dans ton navigateur. PostgreSQL, MySQL et Oracle sont d’autres SGBD, installés sur un serveur. Tous comprennent le SQL, avec quelques différences que les cours signalent au passage.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">D’autres modèles existent</p>
-          <p>Le relationnel n’est pas le seul : d’autres bases rangent l’information en documents, en couples clé-valeur ou en graphes.</p>
-          <p>Le relationnel reste le plus répandu — pour ses garanties de cohérence, et pour SQL, qui permet de poser des questions que le modèle n’avait pas prévues.</p>
+          <p style="margin-top:12px">L’instruction <code>SELECT</code> sert uniquement à <b>lire</b> les données. Elle ne modifie jamais le contenu de la base.</p>
         </div>
       </div>`},
-    reflex:{a:{k:"Table",t:"un type d’information : <b>clients</b>, <b>produits</b>, <b>commandes</b>"},
-      b:{k:"client_id",t:"le <b>lien</b> vers une autre table"},
-      note:"Réflexe : une information ne s’écrit qu’à un seul endroit. Ailleurs, on la désigne par son identifiant."}},
+    reflex:{a:{k:"1 table",t:"= <b>1 sujet précis</b> (clients, produits, commandes)"},
+      b:{k:"1 clé",t:"= <b>1 lien direct</b> sans recopier de données"},
+      note:"Réflexe : en base relationnelle, une information ne s’écrit qu’à un seul endroit. Les tables se relient par leurs identifiants (clés)."}},
   anatomie:[
     {tok:"SELECT",txt:"Lit des données. Il ne modifie jamais rien."},
     {tok:"*",plain:1,txt:"Toutes les colonnes de la table."},
@@ -6761,9 +6766,9 @@ const MODULES = [
   ],
   exemple:"SELECT * FROM clients;",
   attendu:"<b>10 lignes</b> et 7 colonnes : une ligne par client, chaque colonne décrivant une caractéristique.",
-  retenir:"Une <b>base relationnelle</b> range l’information en <b>tables</b>. Une table décrit un type d’information : ses <b>colonnes</b> sont les caractéristiques, ses <b>lignes</b> les éléments enregistrés.<br><br>Chaque colonne a un <b>type</b>, et une table peut en désigner une autre par une <b>clé étrangère</b> — <code>commandes.client_id</code> renvoie à <code>clients.id</code>.<br><br>Le vocabulaire formel dit relation, attribut et tuple. Un <code>SELECT</code> lit : il ne modifie rien.",
-  piege:{t:"Croire que « relationnel » désigne un lien entre les lignes",
-    p:"Le mot ne parle pas des lignes d’une même table, mais des <b>tables entre elles</b>.<br><br>Dans cette base, <code>commandes</code> désigne <code>clients</code> par la colonne <code>client_id</code>. C’est cette mise en relation des tables qui donne son nom au modèle."},
+  retenir:"Une <b>base relationnelle</b> organise les données dans des <b>tables</b> spécialisées (<code>clients</code>, <code>produits</code>, <code>commandes</code>).<br><br>• <b>Colonnes</b> : caractéristiques typées (<code>TEXT</code>, <code>INTEGER</code>, <code>REAL</code>).<br>• <b>Lignes</b> : enregistrements individuels (Sophie, Lucas…).<br>• <b>Clés</b> : identifient chaque ligne (clé primaire <code>PK</code>) et relient les tables entre elles (clé étrangère <code>FK</code>) sans recopie de données.<br><br><code>SELECT</code> permet d’interroger et de lire les tables sans jamais modifier la base.",
+  piege:{t:"Croire que « relationnel » désigne un lien entre les lignes d'une table",
+    p:"Le terme <b>relationnel</b> ne parle pas des lignes entre elles, mais de la capacité à mettre des <b>tables entières en relation</b>.<br><br>Dans notre boutique, <code>commandes</code> désigne <code>clients</code> grâce à la colonne <code>client_id</code>, et <code>produits</code> grâce à <code>produit_id</code>."},
   petitDefi:[{
     p:"Dans le vocabulaire formel du modèle relationnel, comment appelle-t-on une <b>ligne</b> ?",
     sql:"ligne → __________",
