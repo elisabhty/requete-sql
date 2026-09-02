@@ -845,6 +845,61 @@
   .rel-lab i span code{font-family:var(--mono);font-size:.92em}
   .rel-intro .tbl-tree{margin:16px 0 0;background:color-mix(in srgb,var(--surface-2) 55%,var(--surface))}
   .rel-intro .fn-uses{gap:0}
+  /* Leçon 1 : le schéma de la situation devient manipulable — toucher une FK
+     allume la clé primaire qu'elle désigne. */
+  .rel-link .rel-arrow{animation:relArrowPulse 2.6s ease-in-out infinite}
+  @keyframes relArrowPulse{0%,100%{opacity:.45}50%{opacity:1}}
+  .rel-card li.is-fk{cursor:pointer;padding:2px 4px;margin:-2px -4px;border-radius:7px;transition:background .18s ease}
+  .rel-card li.is-fk:hover{background:rgba(91,91,214,.1)}
+  .rel-card li.is-key{padding:2px 4px;margin:-2px -4px;border-radius:7px;transition:background .18s ease,box-shadow .18s ease}
+  .rel-link:has(li.is-fk[data-fk="clients"]:hover) .rel-card[data-rel="clients"] li.is-key,
+  .rel-link:has(li.is-fk[data-fk="produits"]:hover) .rel-card[data-rel="produits"] li.is-key{background:var(--accent-soft);box-shadow:0 0 0 2px rgba(91,91,214,.35)}
+  /* Schéma SGBD : un point lumineux suit le trajet de la requête jusqu'à la base. */
+  .rel-intro .tx-flow{position:relative;overflow:hidden}
+  .rel-intro .tx-flow::after{content:'';position:absolute;z-index:1;left:50%;top:16px;width:9px;height:9px;margin-left:-4.5px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px 3px rgba(91,91,214,.45);animation:txDotTravel 3.4s ease-in-out infinite}
+  @keyframes txDotTravel{0%{top:16px;opacity:0}14%{opacity:1}84%{opacity:1}100%{top:calc(100% - 24px);opacity:0}}
+  .rel-intro .tx-flow .ecom-arrow{animation:relArrowPulse 2.6s ease-in-out infinite}
+  /* Anatomie animée : la surbrillance balaie colonnes → ligne → cellule en boucle,
+     en phase avec la légende sous le tableau. */
+  .anat-zoom{margin:16px 0 0;padding:14px 12px 12px;border:1px solid var(--card-border);border-radius:16px;background:color-mix(in srgb,var(--surface-2) 55%,var(--surface))}
+  .anat-zoom-root{font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
+  .anat-zoom-root code{color:var(--accent)}
+  .anat-zoom-root i{font-family:var(--ui);font-style:normal;font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink-3)}
+  .anat-grid{margin-top:10px;border:1px solid var(--card-border);border-radius:12px;overflow:hidden;background:var(--surface);font-family:var(--mono);font-size:12px}
+  .anat-row{display:grid;grid-template-columns:52px 1fr 1fr}
+  .anat-c{min-width:0;padding:8px 10px;border-right:1px solid rgba(60,60,67,.08);color:var(--ink);overflow-wrap:anywhere}
+  .anat-c:last-child{border-right:none}
+  .anat-row:not(:last-child) .anat-c{border-bottom:1px solid rgba(60,60,67,.08)}
+  .anat-head{background:#FAFAFC;color:var(--accent);font-weight:700}
+  .anat-head .anat-c{display:flex;flex-direction:column;gap:3px;animation:anatPhaseA 12s ease-in-out infinite}
+  .type-pill{align-self:flex-start;padding:1px 5px;border-radius:5px;font-size:8.5px;font-style:normal;font-weight:850;letter-spacing:.03em;color:#fff}
+  .type-pill.t-int{background:#7C3AED}
+  .type-pill.t-text{background:#0F766E}
+  .type-pill.t-real{background:#C2410C}
+  .anat-r1 .anat-c{animation:anatPhaseB 12s ease-in-out infinite}
+  .anat-r1 .anat-cell-star{animation:anatPhaseC 12s ease-in-out infinite}
+  @keyframes anatPhaseA{0%,6%{background:transparent;box-shadow:none}11%,28%{background:rgba(124,58,237,.1);box-shadow:inset 0 0 0 1.5px rgba(124,58,237,.4)}33%,100%{background:transparent;box-shadow:none}}
+  @keyframes anatPhaseB{0%,33%{background:transparent;box-shadow:none}38%,61%{background:rgba(20,184,166,.1);box-shadow:inset 0 0 0 1.5px rgba(20,184,166,.4)}66%,100%{background:transparent;box-shadow:none}}
+  @keyframes anatPhaseC{0%,33%{background:transparent;box-shadow:none}38%,61%{background:rgba(20,184,166,.1);box-shadow:inset 0 0 0 1.5px rgba(20,184,166,.4)}71%,94%{background:rgba(91,91,214,.14);box-shadow:inset 0 0 0 2px var(--accent)}100%{background:transparent;box-shadow:none}}
+  .anat-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .anat-leg{display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--card-border);font-size:11px;font-weight:750;color:var(--ink-3)}
+  .anat-leg i{font-style:normal;font-size:9px}
+  .anat-leg small{font-weight:600;color:var(--ink-3)}
+  .anat-leg.leg-col{animation:anatLegA 12s ease-in-out infinite}
+  .anat-leg.leg-row{animation:anatLegB 12s ease-in-out infinite}
+  .anat-leg.leg-cell{animation:anatLegC 12s ease-in-out infinite}
+  @keyframes anatLegA{0%,6%{color:var(--ink-3);border-color:var(--card-border)}11%,28%{color:#7C3AED;border-color:rgba(124,58,237,.5)}33%,100%{color:var(--ink-3);border-color:var(--card-border)}}
+  @keyframes anatLegB{0%,33%{color:var(--ink-3);border-color:var(--card-border)}38%,61%{color:#0F766E;border-color:rgba(20,184,166,.5)}66%,100%{color:var(--ink-3);border-color:var(--card-border)}}
+  @keyframes anatLegC{0%,66%{color:var(--ink-3);border-color:var(--card-border)}71%,94%{color:var(--accent);border-color:rgba(91,91,214,.5)}100%{color:var(--ink-3);border-color:var(--card-border)}}
+  @media (prefers-reduced-motion:reduce){
+    .rel-link .rel-arrow,.rel-intro .tx-flow .ecom-arrow,
+    .anat-head .anat-c,.anat-r1 .anat-c,.anat-r1 .anat-cell-star,
+    .anat-leg.leg-col,.anat-leg.leg-row,.anat-leg.leg-cell{animation:none!important}
+    .rel-intro .tx-flow::after{content:none}
+    .anat-head .anat-c{background:rgba(124,58,237,.08)}
+    .anat-r1 .anat-c{background:rgba(20,184,166,.07)}
+    .anat-r1 .anat-cell-star{box-shadow:inset 0 0 0 2px var(--accent)}
+  }
   .rel-roadmap{display:flex;align-items:flex-start;gap:0;margin:0 0 18px;padding:0;list-style:none;overflow-x:auto;scrollbar-width:none}
   .rel-roadmap::-webkit-scrollbar{display:none}
   .rel-roadmap li{position:relative;display:flex;min-width:76px;flex:1;flex-direction:column;gap:5px;color:var(--ink-3);font-size:10px;font-weight:750;line-height:1.25;text-align:center}
@@ -6747,8 +6802,8 @@ const MODULES = [
 { titre:"Introduction", sous:"Bases de données, tables et relations", lessons:[
 { id:0, titre:"Les bases de données relationnelles", résumé:"Tables, colonnes, lignes et liens",
   situation:"Tu gères <b>NutriBoost</b>, une boutique en ligne de compléments alimentaires et de nutrition sportive.<br><br>Chaque jour, des clients s’inscrivent, consultent ton catalogue et passent des commandes.<br><br>Pour piloter ton activité sans mélanger les données, tu organises l’information en trois tables dédiées :<br><br><figure class=\"ecom-shot\"><img src=\"assets/nutriboost-accueil.png\" alt=\"La page d’accueil de NutriBoost : recherche, catégories et meilleures ventes\" loading=\"lazy\"><figcaption>NutriBoost, la boutique dont tu vas lire la base de données.</figcaption></figure><br><br><ul class=\"sit-roles\"><li><code>clients</code><span>Qui sont tes acheteurs ?</span></li><li><code>produits</code><span>Quels produits vends-tu ?</span></li><li><code>commandes</code><span>Qui a commandé quel produit, et en quelle quantité ?</span></li></ul>Ces tables sont ensuite <b>reliées entre elles par des identifiants</b> : c’est le principe même d’une <b>base de données relationnelle</b>.",
-  situationTail:"<figure class=\"rel-link\" aria-label=\"Schéma relationnel de la boutique NutriBoost\"><div class=\"rel-link-row\"><section class=\"rel-card\"><h3>clients</h3><ul><li class=\"is-key\"><span class=\"key-pill\">PK</span>id</li><li>nom</li><li>ville</li></ul></section><span class=\"rel-arrow\" aria-hidden=\"true\">→</span><section class=\"rel-card is-hub\"><h3>commandes</h3><ul><li class=\"is-key\"><span class=\"key-pill\">PK</span>id</li><li class=\"is-fk\"><span class=\"key-pill\">FK</span>client_id</li><li class=\"is-fk\"><span class=\"key-pill\">FK</span>produit_id</li><li>quantite</li></ul></section><span class=\"rel-arrow\" aria-hidden=\"true\">←</span><section class=\"rel-card\"><h3>produits</h3><ul><li class=\"is-key\"><span class=\"key-pill\">PK</span>id</li><li>nom</li><li>prix</li></ul></section></div><figcaption>Les clés étrangères (<code>FK</code>) relient chaque commande à un client et à un produit.</figcaption></figure>",
-    studio:{viz:'relationnel',pointCards:{
+  situationTail:"<figure class=\"rel-link\" aria-label=\"Schéma relationnel de la boutique NutriBoost\"><div class=\"rel-link-row\"><section class=\"rel-card\" data-rel=\"clients\"><h3>clients</h3><ul><li class=\"is-key\"><span class=\"key-pill\">PK</span>id</li><li>nom</li><li>ville</li></ul></section><span class=\"rel-arrow\" aria-hidden=\"true\">→</span><section class=\"rel-card is-hub\"><h3>commandes</h3><ul><li class=\"is-key\"><span class=\"key-pill\">PK</span>id</li><li class=\"is-fk\" data-fk=\"clients\"><span class=\"key-pill\">FK</span>client_id</li><li class=\"is-fk\" data-fk=\"produits\"><span class=\"key-pill\">FK</span>produit_id</li><li>quantite</li></ul></section><span class=\"rel-arrow\" aria-hidden=\"true\">←</span><section class=\"rel-card\" data-rel=\"produits\"><h3>produits</h3><ul><li class=\"is-key\"><span class=\"key-pill\">PK</span>id</li><li>nom</li><li>prix</li></ul></section></div><figcaption>Les clés étrangères (<code>FK</code>) relient chaque commande à un client et à un produit. Touche une clé <code>FK</code> : la clé primaire qu’elle désigne s’illumine.</figcaption></figure>",
+    studio:{viz:'relationnel',vizFirst:true,vizTitle:'De la feuille unique aux trois tables reliées.',pointCards:{
       eye:"Modèle relationnel",title:"3 piliers : Tables, Colonnes, Lignes",
       lead:"<p>Une base de données relationnelle stocke chaque sujet dans une <b>table</b> distincte.</p><p>Les tables sont découpées en <b>colonnes</b> (caractéristiques) et composées de <b>lignes</b> (enregistrements).</p><p>Elles sont ensuite <b>reliées entre elles</b> grâce à des identifiants communs (les clés).</p>",
       chain:[
@@ -6756,12 +6811,25 @@ const MODULES = [
         {k:"2. Colonne",v:"Une caractéristique typée",ex:"<b>nom (TEXT)</b>, <b>prix (REAL)</b>"},
         {k:"3. Ligne",v:"Un enregistrement concret",ex:"<b>1 · Sophie · Paris · 34 ans</b>"}
       ],
-      after:`<figure class="tbl-tree" aria-label="Anatomie d'une table SQL">
-        <div class="tbl-tree-root"><b>TABLE</b> <code>clients</code> <i>(sujet : tes acheteurs)</i></div>
-        <div class="tbl-tree-branch">
-          <div><b>Colonnes (verticales)</b><span><code>id</code> · <code>nom</code> · <code>ville</code> · <code>age</code> · <code>email</code></span></div>
-          <div><b>Ligne (horizontale)</b><span>1 · Sophie · Paris · 34 ans · sophie@mail.fr</span></div>
-          <div><b>Cellule (valeur)</b><span>Sophie</span></div>
+      after:`<figure class="anat-zoom" aria-label="Anatomie animée d'une table SQL : la surbrillance balaie les colonnes, puis une ligne, puis une cellule">
+        <div class="anat-zoom-root"><b>TABLE</b> <code>clients</code> <i>(sujet : tes acheteurs)</i></div>
+        <div class="anat-grid">
+          <div class="anat-row anat-head">
+            <span class="anat-c">id<i class="type-pill t-int">INTEGER</i></span>
+            <span class="anat-c">nom<i class="type-pill t-text">TEXT</i></span>
+            <span class="anat-c">ville<i class="type-pill t-text">TEXT</i></span>
+          </div>
+          <div class="anat-row anat-r1">
+            <span class="anat-c">1</span><span class="anat-c anat-cell-star">Sophie</span><span class="anat-c">Paris</span>
+          </div>
+          <div class="anat-row">
+            <span class="anat-c">2</span><span class="anat-c">Lucas</span><span class="anat-c">Lyon</span>
+          </div>
+        </div>
+        <div class="anat-legend">
+          <span class="anat-leg leg-col"><i aria-hidden="true">▮</i>Colonnes<small>verticales · typées</small></span>
+          <span class="anat-leg leg-row"><i aria-hidden="true">▬</i>Ligne<small>horizontale · un client</small></span>
+          <span class="anat-leg leg-cell"><i aria-hidden="true">●</i>Cellule<small>une valeur : « Sophie »</small></span>
         </div>
       </figure>`},
     uses:{title:"Aller plus loin en 4 schémas",
@@ -17550,7 +17618,7 @@ function renderJoinIntroStudio(l){
       ${pointDraw({draw:'casewalk'})}
     </div>`:'';
   const viz=s.viz?`<div class="concept-block">
-      <h2><span class="h2-eye">Visualisation</span><span class="h2-txt">${WHY_VIZ_TITLE}</span></h2>
+      <h2><span class="h2-eye">${s.vizEye||'Visualisation'}</span><span class="h2-txt">${s.vizTitle||WHY_VIZ_TITLE}</span></h2>
       ${renderVizShell(s.viz)}
     </div>`:'';
   const uses=s.uses?`<div class="concept-block">
@@ -17562,14 +17630,18 @@ function renderJoinIntroStudio(l){
   const exp=s.expSplit?renderExpSplit():'';
   const withViz=s.withSplit?renderWithSplit():'';
   const win=s.winSplit?renderWinSplit():'';
-  return `<div class="concept-page join-intro${l.id===0?' rel-intro':''}">
-    <div class="concept-block">
+  const pcBlock=`<div class="concept-block">
       <h2><span class="h2-eye">${eye}</span><span class="h2-txt">${title}</span></h2>
       ${s.pointCards?renderPointCards(s.pointCards):flowProseHtml(s.point)}
       ${tree}
-    </div>
+    </div>`;
+  /* vizFirst : le récit animé passe avant la formalisation (leçon 1) —
+     on montre d'abord pourquoi on découpe, puis on nomme les concepts. */
+  return `<div class="concept-page join-intro${l.id===0?' rel-intro':''}">
+    ${s.vizFirst?viz:''}
+    ${pcBlock}
     ${walk}
-    ${viz}
+    ${s.vizFirst?'':viz}
     ${norm}
     ${idx}
     ${exp}
