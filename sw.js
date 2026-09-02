@@ -14,7 +14,7 @@
    CACHE doit changer à chaque déploiement pour purger l'ancien contenu :
    garde-le aligné sur APP_VERSION dans index.html. */
 
-const CACHE = 'requete-2026-09-02-nutriboost-v260';
+const CACHE = 'requete-2026-09-02-nav-lecon0-v261';
 
 const PRECACHE = [
   './',
