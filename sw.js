@@ -14,7 +14,7 @@
    CACHE doit changer à chaque déploiement pour purger l'ancien contenu :
    garde-le aligné sur APP_VERSION dans index.html. */
 
-const CACHE = 'requete-2026-09-01-curriculum-v259';
+const CACHE = 'requete-2026-09-02-nutriboost-v260';
 
 const PRECACHE = [
   './',
@@ -30,6 +30,7 @@ const PRECACHE = [
   './vendor/sqljs/sql-wasm.js',
   './vendor/sqljs/sql-wasm.wasm',
   './assets/mascotte-requete.png',
+  './assets/nutriboost-accueil.png',
 ];
 
 self.addEventListener('install', (e) => {
