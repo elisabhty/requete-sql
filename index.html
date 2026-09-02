@@ -2300,6 +2300,53 @@
      voisine (visible dès 320 px). */
   .join-trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;position:relative;z-index:1}
   .join-trio .er-col[data-side="prd"] .er-card-h{background:var(--accent)}
+  /* Animation du premier cours. Deux vues occupent tour à tour la scène : la
+     feuille de calcul (étapes 1-2) puis les trois tables reliées (3-5). On les
+     échange en display plutôt qu'en opacité, sinon la scène garde la hauteur
+     de la plus haute des deux et laisse un grand vide. */
+  .rv-lab .rv-flat,.rv-lab .rv-trio{display:none}
+  .sql-viz[data-viz="relationnel"][data-phase="0"] .rv-flat,
+  .sql-viz[data-viz="relationnel"][data-phase="1"] .rv-flat{display:block}
+  .sql-viz[data-viz="relationnel"][data-phase="2"] .rv-trio,
+  .sql-viz[data-viz="relationnel"][data-phase="3"] .rv-trio,
+  .sql-viz[data-viz="relationnel"][data-phase="4"] .rv-trio{display:grid}
+  .rv-flat{border:1px solid var(--hairline);border-radius:16px;overflow:hidden;background:var(--surface);box-shadow:var(--lift-sm)}
+  .rv-flat .er-card-h{justify-content:space-between;background:var(--danger)}
+  .rv-flag{font-size:9px;font-weight:750;letter-spacing:.02em;text-transform:none;opacity:.86}
+  .rv-grid{padding:2px 0}
+  .rv-h,.rv-r{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.4fr) 34px;gap:4px;padding:7px 10px;align-items:center}
+  .rv-h{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);border-bottom:1px solid var(--line-2)}
+  .rv-r{font-size:11.5px;font-weight:600;color:var(--ink);border-bottom:1px solid var(--line-2)}
+  .rv-r:last-child{border-bottom:0}
+  .rv-r>span{min-width:0;overflow-wrap:anywhere}
+  .rv-r>span:last-child{text-align:right;color:var(--ink-2)}
+  .rv-dup{border-radius:6px;padding:2px 4px;margin:-2px -4px;transition:background .34s ease,color .34s ease,box-shadow .34s ease}
+  .sql-viz[data-viz="relationnel"][data-phase="1"] .rv-dup{background:var(--danger-soft);color:var(--danger);font-weight:800;box-shadow:inset 0 0 0 1px rgba(200,54,79,.22)}
+  /* Les traits ne veulent rien dire tant que les identifiants n'ont pas été
+     présentés : ils n'apparaissent qu'à partir de l'étape 4. */
+  .sql-viz[data-viz="relationnel"] .er-links{opacity:0;transition:opacity .4s ease}
+  .sql-viz[data-viz="relationnel"][data-phase="3"] .er-links,
+  .sql-viz[data-viz="relationnel"][data-phase="4"] .er-links{opacity:1}
+  .rv-who{display:flex;min-width:0;flex-direction:column;gap:1px}
+  .rv-loc{font-size:10px;font-style:normal;font-weight:650;color:var(--ink-3)}
+  /* <s> arrive barré par défaut : la rature ne doit apparaître qu'au moment
+     où Sophie déménage, sinon Paris semble faux dès la première étape. */
+  .rv-move s{text-decoration:none}
+  .rv-move b{display:none}
+  .sql-viz[data-viz="relationnel"][data-phase="4"] .rv-move s{text-decoration:line-through;opacity:.45}
+  .sql-viz[data-viz="relationnel"][data-phase="4"] .rv-move b{display:inline;margin-left:5px;color:var(--accent);font-weight:800}
+  .sql-viz[data-viz="relationnel"][data-phase="4"] .er-col[data-side="pk"] .er-btn:first-of-type,
+  .sql-viz[data-viz="relationnel"][data-phase="4"] .rv-hers{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+  .sql-viz[data-viz="relationnel"].phase-change .rv-flat,
+  .sql-viz[data-viz="relationnel"].phase-change .rv-trio>.er-col{animation:rvIn .44s var(--spring-ios) both}
+  .sql-viz[data-viz="relationnel"].phase-change .rv-trio>.er-col:nth-child(2){animation-delay:.08s}
+  .sql-viz[data-viz="relationnel"].phase-change .rv-trio>.er-col:nth-child(3){animation-delay:.16s}
+  @keyframes rvIn{from{opacity:0;transform:translateY(9px) scale(.985)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){
+    .sql-viz[data-viz="relationnel"].phase-change .rv-flat,
+    .sql-viz[data-viz="relationnel"].phase-change .rv-trio>.er-col{animation:none}
+    .rv-dup,.sql-viz[data-viz="relationnel"] .er-links{transition:none}
+  }
   .join-out{display:flex;flex-direction:column;gap:6px;max-height:0;opacity:0;overflow:hidden;margin:0;transform:translateY(7px) scale(.99);transform-origin:top center;transition:max-height .52s var(--spring-ios),opacity .38s ease,margin .38s ease,transform .46s var(--spring-ios)}
   /* Le plafond ne sert qu'à animer l'ouverture : il doit rester au-dessus du
      plus grand résultat, sinon la dernière ligne se retrouve coupée. Les neuf
@@ -6701,7 +6748,7 @@ const MODULES = [
 { id:0, titre:"Les bases de données relationnelles", résumé:"Tables, colonnes, lignes et liens",
   situation:"Tu gères <b>NutriBoost</b>, une boutique en ligne de compléments alimentaires et de nutrition sportive.<br><br>Chaque jour, des clients s’inscrivent, consultent ton catalogue et passent des commandes.<br><br>Pour piloter ton activité sans mélanger les données, tu organises l’information en trois tables dédiées :<br><br><figure class=\"ecom-shot\"><img src=\"assets/nutriboost-accueil.png\" alt=\"La page d’accueil de NutriBoost : recherche, catégories et meilleures ventes\" loading=\"lazy\"><figcaption>NutriBoost, la boutique dont tu vas lire la base de données.</figcaption></figure><br><br><ul class=\"sit-roles\"><li><code>clients</code><span>Qui sont tes acheteurs ?</span></li><li><code>produits</code><span>Quels produits vends-tu ?</span></li><li><code>commandes</code><span>Qui a commandé quel produit, et en quelle quantité ?</span></li></ul>Ces tables sont ensuite <b>reliées entre elles par des identifiants</b> : c’est le principe même d’une <b>base de données relationnelle</b>.",
   situationTail:"<figure class=\"rel-link\" aria-label=\"Schéma relationnel de la boutique NutriBoost\"><div class=\"rel-link-row\"><section class=\"rel-card\"><h3>clients</h3><ul><li class=\"is-key\"><span class=\"key-pill\">PK</span>id</li><li>nom</li><li>ville</li></ul></section><span class=\"rel-arrow\" aria-hidden=\"true\">→</span><section class=\"rel-card is-hub\"><h3>commandes</h3><ul><li class=\"is-key\"><span class=\"key-pill\">PK</span>id</li><li class=\"is-fk\"><span class=\"key-pill\">FK</span>client_id</li><li class=\"is-fk\"><span class=\"key-pill\">FK</span>produit_id</li><li>quantite</li></ul></section><span class=\"rel-arrow\" aria-hidden=\"true\">←</span><section class=\"rel-card\"><h3>produits</h3><ul><li class=\"is-key\"><span class=\"key-pill\">PK</span>id</li><li>nom</li><li>prix</li></ul></section></div><figcaption>Les clés étrangères (<code>FK</code>) relient chaque commande à un client et à un produit.</figcaption></figure>",
-    studio:{pointCards:{
+    studio:{viz:'relationnel',pointCards:{
       eye:"Modèle relationnel",title:"3 piliers : Tables, Colonnes, Lignes",
       lead:"<p>Une base de données relationnelle stocke chaque sujet dans une <b>table</b> distincte.</p><p>Les tables sont découpées en <b>colonnes</b> (caractéristiques) et composées de <b>lignes</b> (enregistrements).</p><p>Elles sont ensuite <b>reliées entre elles</b> grâce à des identifiants communs (les clés).</p>",
       chain:[
@@ -6717,8 +6764,8 @@ const MODULES = [
           <div><b>Cellule (valeur)</b><span>Sophie</span></div>
         </div>
       </figure>`},
-    uses:{title:"Comprendre le relationnel en 5 schémas",
-      body:`<ol class="rel-roadmap" aria-label="Parcours des cinq schémas"><li><button type="button" class="on" data-schema="0"><b>1</b><span>Table</span></button></li><li><button type="button" data-schema="1"><b>2</b><span>Sans doublon</span></button></li><li><button type="button" data-schema="2"><b>3</b><span>Clés</span></button></li><li><button type="button" data-schema="3"><b>4</b><span>Vocabulaire</span></button></li><li><button type="button" data-schema="4"><b>5</b><span>SGBD</span></button></li></ol><div class="pt-lead fn-uses">
+    uses:{title:"Aller plus loin en 4 schémas",
+      body:`<ol class="rel-roadmap" aria-label="Parcours des quatre schémas"><li><button type="button" class="on" data-schema="0"><b>1</b><span>Table</span></button></li><li><button type="button" data-schema="1"><b>2</b><span>Clés</span></button></li><li><button type="button" data-schema="2"><b>3</b><span>Vocabulaire</span></button></li><li><button type="button" data-schema="3"><b>4</b><span>SGBD</span></button></li></ol><div class="pt-lead fn-uses">
         <details class="fn-use" open>
           <summary><span class="pt-syntax-h">L’anatomie d’une table</span></summary><div class="fn-use-body">
           <p>Une table est une grille structurée : les <b>colonnes</b> définissent les caractéristiques, les <b>lignes</b> contiennent les éléments enregistrés.</p>
@@ -6730,58 +6777,6 @@ const MODULES = [
             <i><b>Colonnes</b><span>Les champs définis avec leur type (<code>id</code> INTEGER, <code>nom</code> TEXT, <code>ville</code> TEXT)</span></i>
             <i><b>Lignes</b><span>Chaque client unique de la boutique (Sophie, Lucas…)</span></i>
             <i><b>Cellule</b><span>La valeur située à l’intersection d’une ligne et d’une colonne</span></i>
-          </div>
-        </div></details>
-        <details class="fn-use">
-          <summary><span class="pt-syntax-h">Pourquoi plusieurs tables au lieu d’une seule ?</span></summary><div class="fn-use-body">
-          <p>Dans un tableur unique, le nom et l’adresse de Sophie seraient recopiés à chaque commande passée :</p>
-          <div class="nm-board">
-            <div class="nm-pane is-before">
-              <div class="nm-pane-h">
-                <b>❌ Tableur unique (non relationnel)</b>
-                <small>Sophie, Paris et son e-mail sont dupliqués à chaque achat.</small>
-              </div>
-              <div class="table-wrap"><table class="concept-table">
-                <thead><tr><th>client</th><th>ville</th><th>email</th><th>produit</th><th>qte</th></tr></thead>
-                <tbody>
-                  <tr><td class="nm-dup">Sophie</td><td class="nm-dup">Paris</td><td class="nm-dup">sophie@mail.fr</td><td>Fibre Prébiotique</td><td>2</td></tr>
-                  <tr><td class="nm-dup">Sophie</td><td class="nm-dup">Paris</td><td class="nm-dup">sophie@mail.fr</td><td>Magnésium</td><td>1</td></tr>
-                </tbody>
-              </table></div>
-              <ul class="nm-pts is-bad">
-                <li>Si Sophie déménage, il faut modifier chaque ligne où elle apparaît.</li>
-                <li>Risque élevé d’erreurs et de données contradictoires.</li>
-              </ul>
-            </div>
-            <div class="nm-pane is-after">
-              <div class="nm-pane-h">
-                <b>✅ Modèle relationnel (3 tables spécialisées)</b>
-                <small>Chaque information à sa place, sans doublon inutile.</small>
-              </div>
-              <div class="kind-tables">
-                <div class="kind-table"><b>clients</b>
-                  <div class="mini-grid"><div class="h"><span>id</span><span>nom</span><span>ville</span></div>
-                    <div><span>1</span><span>Sophie</span><span>Paris</span></div>
-                  </div>
-                </div>
-                <div class="kind-table"><b>commandes</b>
-                  <div class="mini-grid even"><div class="h"><span>client_id</span><span>produit_id</span><span>qte</span></div>
-                    <div><span>1</span><span>1</span><span>2</span></div>
-                    <div><span>1</span><span>3</span><span>1</span></div>
-                  </div>
-                </div>
-                <div class="kind-table"><b>produits</b>
-                  <div class="mini-grid even"><div class="h"><span>id</span><span>nom</span><span>prix</span></div>
-                    <div><span>1</span><span>Fibre</span><span>29,90</span></div>
-                    <div><span>3</span><span>Magnésium</span><span>19,90</span></div>
-                  </div>
-                </div>
-              </div>
-              <ul class="nm-pts is-ok">
-                <li>L’adresse de Sophie n’est écrite qu’une seule fois dans <code>clients</code>.</li>
-                <li>Changer sa ville met à jour toutes ses commandes instantanément.</li>
-              </ul>
-            </div>
           </div>
         </div></details>
         <details class="fn-use">
@@ -16515,7 +16510,7 @@ function renderVizShell(key){
     if(!cfg)return '';
   const p0=cfg.phases[0];
   const stepper=cfg.kind==='er'?`<div class="join-stepper" role="tablist" aria-label="Étapes de l’animation">${cfg.phases.map((p,i)=>`<button type="button" class="join-step" data-step="${i}" role="tab" aria-selected="${i===0?'true':'false'}" tabindex="${i===0?'0':'-1'}" onclick="jumpSqlVizPhase(this,${i})" onkeydown="onJoinStepKey(event,this)"><span class="join-step-num">${i+1}</span><span class="join-step-label">${p.k}</span></button>`).join('')}</div><div class="join-progress" aria-hidden="true"><span class="join-progress-bar"></span></div>`:'';
-  const phaseCard=cfg.kind==='er'&&p0.sql?`<div class="join-phase-card" role="note" aria-label="Lecture de l’étape active"><div class="join-phase-head"><span class="join-phase-label">Lecture SQL</span></div><code class="join-phase-sql">${esc(p0.sql)}</code><p class="join-phase-read"><span class="join-phase-read-mark" aria-hidden="true">→</span><span>${p0.read||p0.d}</span></p></div>`:'';
+  const phaseCard=cfg.kind==='er'&&p0.sql?`<div class="join-phase-card" role="note" aria-label="Lecture de l’étape active"><div class="join-phase-head"><span class="join-phase-label">${esc(cfg.phaseLabel||'Lecture SQL')}</span></div><code class="join-phase-sql">${esc(p0.sql)}</code><p class="join-phase-read"><span class="join-phase-read-mark" aria-hidden="true">→</span><span>${p0.read||p0.d}</span></p></div>`:'';
   let stage='';
   let caption='';
   if(cfg.kind==='er'){
@@ -22161,6 +22156,61 @@ function joinMore(n,label){
 }
 
 const SQL_VIZ={
+  /* Premier cours : on ne sait encore lire aucune requête. L'animation part
+     donc d'une feuille de calcul, terrain connu, et montre pourquoi on la
+     découpe en trois tables reliées plutôt que d'expliquer le mot relationnel. */
+  relationnel:{kind:'er',phaseLabel:'Le point clé',stepMs:7800,phases:[
+    {k:'1 · Une feuille',sql:'client · ville · produit',
+      read:'Une ligne par commande. À côté de chaque produit, on recopie le nom et la ville de l’acheteuse.',
+      d:'Tout tient dans un tableau unique. Sur trois lignes, ça se lit très bien.'},
+    {k:'2 · Doublons',sql:'Sophie · Paris, 2 fois',
+      read:'Sophie a commandé deux fois : son nom et sa ville sont donc écrits deux fois. Sur des milliers de commandes, la même information est réécrite des milliers de fois.',
+      d:'En rouge, les cellules qui répètent ce que la feuille sait déjà de Sophie.'},
+    {k:'3 · Trois tables',sql:'3 tables spécialisées',
+      read:'On range chaque sujet à part : qui achète, ce que la boutique vend, et qui a acheté quoi. Sophie n’est plus écrite qu’une seule fois, dans <code>clients</code>.',
+      d:'La feuille unique se sépare en trois tables spécialisées.'},
+    {k:'4 · Les liens',sql:'client_id → clients.id',
+      read:'À la place du nom recopié, <code>commandes</code> ne garde qu’un numéro : <code>client_id = 1</code> désigne la première ligne de <code>clients</code>, <code>produit_id = 3</code> la troisième ligne de <code>produits</code>.',
+      d:'Touche une commande : sa fiche client et sa fiche produit s’allument.'},
+    {k:'5 · Corriger',sql:'ville : Paris → Lyon',
+      read:'Sophie déménage. On corrige sa ville sur une seule ligne, et ses deux commandes désignent aussitôt la bonne adresse. Dans la feuille unique, il aurait fallu retrouver et corriger chaque ligne.',
+      d:'C’est ça, « relationnel » : une information vit à un seul endroit, les autres tables la désignent.'}
+  ],html:`<div class="er-stage er-match rv-lab">
+    <svg class="er-links" aria-hidden="true"></svg>
+    <div class="rv-flat">
+      <div class="er-card-h"><span>une seule feuille</span><span class="rv-flag">tout au même endroit</span></div>
+      <div class="rv-grid">
+        <div class="rv-h"><span>client</span><span>ville</span><span>produit</span><span>qté</span></div>
+        <div class="rv-r"><span class="rv-dup">Sophie</span><span class="rv-dup">Paris</span><span>Fibre Prébiotique</span><span>2</span></div>
+        <div class="rv-r"><span class="rv-dup">Sophie</span><span class="rv-dup">Paris</span><span>Magnésium</span><span>1</span></div>
+        <div class="rv-r"><span>Lucas</span><span>Lyon</span><span>Protéine Végétale</span><span>1</span></div>
+      </div>
+      ${joinMore(13,'commandes')}
+    </div>
+    <div class="join-trio rv-trio">
+      <div class="er-col" data-side="pk">
+        <div class="er-card-h">clients</div>
+        <button type="button" class="er-btn" data-er-id="c1"><span class="er-key">1</span><span class="rv-who">Sophie<i class="rv-loc rv-move"><s>Paris</s><b>Lyon</b></i></span></button>
+        <button type="button" class="er-btn" data-er-id="c2"><span class="er-key">2</span><span class="rv-who">Lucas<i class="rv-loc">Lyon</i></span></button>
+        ${joinMore(8,'clients')}
+      </div>
+      <div class="er-col" data-side="fk">
+        <div class="er-card-h">commandes</div>
+        <button type="button" class="er-btn rv-hers" data-er-fk="c1" data-er-src="p1"><span class="er-key">1</span>#1 · qté 2</button>
+        <button type="button" class="er-btn rv-hers" data-er-fk="c1" data-er-src="p3"><span class="er-key">1</span>#2 · qté 1</button>
+        <button type="button" class="er-btn" data-er-fk="c2" data-er-src="p6"><span class="er-key">2</span>#3 · qté 1</button>
+        ${joinMore(13,'commandes')}
+      </div>
+      <div class="er-col" data-side="prd">
+        <div class="er-card-h">produits</div>
+        <button type="button" class="er-btn" data-er-to="p1"><span class="er-key">1</span>Fibre Prébiotique</button>
+        <button type="button" class="er-btn" data-er-to="p3"><span class="er-key">3</span>Magnésium</button>
+        <button type="button" class="er-btn" data-er-to="p6"><span class="er-key">6</span>Protéine Végétale</button>
+        ${joinMore(5,'produits')}
+      </div>
+    </div>
+    <p class="er-hint">À l’étape 4, touche une commande : la fiche client et la fiche produit qu’elle désigne s’allument. Sur un écran large, un trait relie les deux.</p>
+  </div>`},
   select:{kind:'cols',phases:[
     {k:'FROM',d:'La table clients : 10 lignes, avec toutes leurs colonnes.'},
     {k:'SELECT nom, telephone',d:'SQL choisit ces 2 colonnes. Les autres restent dans la table, pas dans le résultat.'},
