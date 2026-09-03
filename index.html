@@ -7013,32 +7013,7 @@ const MODULES = [
     {k:'cmd',label:'commandes',sql:"SELECT * FROM commandes;",out:"Seize lignes — et aucun nom : seulement des client_id et des produit_id."}
   ] }
 ]},
-{ titre:"Interroger une table", sous:"SELECT, WHERE, ORDER BY, LIMIT, OFFSET", lessons:[
-{ id:3, titre:"SELECT *", résumé:"Voir toute la table",
-  situation:"Tu découvres la table produits. Elle contient 8 produits et plusieurs informations sur chacun : <code>id</code>, <code>nom</code>, <code>categorie</code>, <code>prix</code> et <code>stock</code>.<br><br>Avec ce que tu connais déjà, tu pourrais lister les colonnes une par une :",
-  situationSql:"SELECT nom, categorie, prix\nFROM produits;",
-  situationTail:"Ça fonctionne, mais écrire chaque colonne devient vite long. Pour voir toute la table d’un coup, tu peux utiliser <code>SELECT *</code>.",
-    studio:{problem:{title:"L’étoile <code>*</code> représente toutes les colonnes.",
-      body:"Quand tu explores une table, tu peux vouloir afficher tout son contenu sans écrire le nom de chaque colonne. Dans <code>SELECT *</code>, l’étoile <code>*</code> signifie simplement : toutes les colonnes. Avec la table produits, le résultat contient donc les 5 colonnes disponibles : <code>id</code>, <code>nom</code>, <code>categorie</code>, <code>prix</code> et <code>stock</code>."},
-    vs:{bad:{tag:"✕ Étoile + colonne",sql:"SELECT *, nom\nFROM produits;",out:"nom est demandé en plus alors que * l’inclut déjà",
-            code:"SELECT <span class=\"vs-line bad\">*, nom</span>\nFROM produits;"},
-        good:{tag:"✓ Toutes les colonnes",sql:"SELECT *\nFROM produits;",out:"8 lignes, 5 colonnes : id, nom, categorie, prix, stock",
-            code:"SELECT <span class=\"vs-line good\">*</span>\nFROM produits;"}},
-    point:"Avec <code>SELECT * FROM produits;</code>, le résultat reprend toute la table produits :<br><br><code>id | nom | categorie | prix | stock</code><br>1 | Fibre Prébiotique | … | 29,90 | …<br>2 | Collagène Marin | … | 39,90 | …<br>3 | Magnésium | … | 19,90 | …<br><br>Et ainsi de suite pour les <b>8 produits</b>.<br><br>L’étoile évite simplement d’écrire les 5 noms de colonnes un par un.",
-    why:{title:"Que récupère SELECT * ?",
-      body:"<code>FROM produits</code> désigne la table produits.<br><br>L’étoile <code>*</code> prend <b>toutes ses colonnes</b>. Comme rien ne limite les lignes, les 8 produits apparaissent également.<br><br>Résultat : <b>8 lignes × 5 colonnes</b>. C’est une façon pratique d’observer rapidement le contenu d’une table."},
-    reflex:{a:{k:"*",t:"représente <b>toutes les colonnes</b>"},
-      b:{k:"SELECT *",t:"pratique pour <b>découvrir et inspecter</b> une table"},
-      note:"<code>*</code> signifie « toutes les colonnes ». Dans la prochaine leçon, tu verras comment n’afficher que les informations dont tu as besoin."}},
-  anatomie:[{tok:"SELECT",txt:"Commence la lecture des données."},{tok:"*",punc:1,txt:"Représente toutes les colonnes de la table."},{tok:"FROM produits",txt:"Précise que les données viennent de la table produits."}],
-  exemple:"SELECT * FROM produits;",
-  attendu:"<b>8 lignes</b> et <b>5 colonnes</b> : <code>id</code>, <code>nom</code>, <code>categorie</code>, <code>prix</code> et <code>stock</code>.",
-  retenir:"L’étoile <code>*</code> signifie « toutes les colonnes ». <code>SELECT *</code> affiche toute la table pour la découvrir. Les lignes restent.",
-  piege:{t:"Ajouter une colonne déjà comprise dans *",p:"L’étoile représente déjà toutes les colonnes. Écrire <code>SELECT *, nom FROM produits;</code> demande donc <code>nom</code> une deuxième fois. Pour afficher toute la table, <code>SELECT * FROM produits;</code> suffit."},
-  consigne:"Affiche toutes les colonnes de la table produits pour voir son contenu.",
-  solution:"SELECT * FROM produits;",
-  indice:"Utilise <code>*</code> après <code>SELECT</code> pour représenter toutes les colonnes.",
-  richLesson:true, earlyDemo:true },
+{ titre:"Lire une table", sous:"SELECT, filtres, tri et pagination", lessons:[
 { id:1, titre:"SELECT", résumé:"Choisir les colonnes du résultat",
   situation:"La table clients contient 9 personnes avec plusieurs informations : nom, ville, âge, email, téléphone… Tu prépares un listing d’appel. Pour chaque client, seules deux informations sont utiles : son nom et son numéro de téléphone.<br><br>Avec ce que tu connais déjà, tu pourrais afficher toute la table :",
   situationSql:"SELECT *\nFROM clients;",
@@ -7064,6 +7039,56 @@ const MODULES = [
   consigne:"Prépare le listing d’appel : affiche le <code>nom</code> et le <code>telephone</code> de chaque client.",
   solution:"SELECT nom, telephone FROM clients;",
   indice:"Place les deux colonnes après <code>SELECT</code> et sépare-les par une virgule : <code>nom, telephone</code>.",
+  richLesson:true, earlyDemo:true },
+{ id:3, titre:"SELECT *", résumé:"Voir toute la table",
+  situation:"Tu découvres la table produits. Elle contient 8 produits et plusieurs informations sur chacun : <code>id</code>, <code>nom</code>, <code>categorie</code>, <code>prix</code> et <code>stock</code>.<br><br>Avec ce que tu connais déjà, tu pourrais lister les colonnes une par une :",
+  situationSql:"SELECT nom, categorie, prix\nFROM produits;",
+  situationTail:"Ça fonctionne, mais écrire chaque colonne devient vite long. Pour voir toute la table d’un coup, tu peux utiliser <code>SELECT *</code>.",
+    studio:{problem:{title:"L’étoile <code>*</code> représente toutes les colonnes.",
+      body:"Quand tu explores une table, tu peux vouloir afficher tout son contenu sans écrire le nom de chaque colonne. Dans <code>SELECT *</code>, l’étoile <code>*</code> signifie simplement : toutes les colonnes. Avec la table produits, le résultat contient donc les 5 colonnes disponibles : <code>id</code>, <code>nom</code>, <code>categorie</code>, <code>prix</code> et <code>stock</code>."},
+    vs:{bad:{tag:"✕ Étoile + colonne",sql:"SELECT *, nom\nFROM produits;",out:"nom est demandé en plus alors que * l’inclut déjà",
+            code:"SELECT <span class=\"vs-line bad\">*, nom</span>\nFROM produits;"},
+        good:{tag:"✓ Toutes les colonnes",sql:"SELECT *\nFROM produits;",out:"8 lignes, 5 colonnes : id, nom, categorie, prix, stock",
+            code:"SELECT <span class=\"vs-line good\">*</span>\nFROM produits;"}},
+    point:"Avec <code>SELECT * FROM produits;</code>, le résultat reprend toute la table produits :<br><br><code>id | nom | categorie | prix | stock</code><br>1 | Fibre Prébiotique | … | 29,90 | …<br>2 | Collagène Marin | … | 39,90 | …<br>3 | Magnésium | … | 19,90 | …<br><br>Et ainsi de suite pour les <b>8 produits</b>.<br><br>L’étoile évite simplement d’écrire les 5 noms de colonnes un par un.",
+    why:{title:"Que récupère SELECT * ?",
+      body:"<code>FROM produits</code> désigne la table produits.<br><br>L’étoile <code>*</code> prend <b>toutes ses colonnes</b>. Comme rien ne limite les lignes, les 8 produits apparaissent également.<br><br>Résultat : <b>8 lignes × 5 colonnes</b>. C’est une façon pratique d’observer rapidement le contenu d’une table."},
+    reflex:{a:{k:"*",t:"représente <b>toutes les colonnes</b>"},
+      b:{k:"SELECT *",t:"pratique pour <b>découvrir et inspecter</b> une table"},
+      note:"<code>*</code> signifie « toutes les colonnes ». Dans la prochaine leçon, tu verras comment n’afficher que les informations dont tu as besoin."}},
+  anatomie:[{tok:"SELECT",txt:"Commence la lecture des données."},{tok:"*",punc:1,txt:"Représente toutes les colonnes de la table."},{tok:"FROM produits",txt:"Précise que les données viennent de la table produits."}],
+  exemple:"SELECT * FROM produits;",
+  attendu:"<b>8 lignes</b> et <b>5 colonnes</b> : <code>id</code>, <code>nom</code>, <code>categorie</code>, <code>prix</code> et <code>stock</code>.",
+  retenir:"L’étoile <code>*</code> signifie « toutes les colonnes ». <code>SELECT *</code> affiche toute la table pour la découvrir. Les lignes restent.",
+  piege:{t:"Ajouter une colonne déjà comprise dans *",p:"L’étoile représente déjà toutes les colonnes. Écrire <code>SELECT *, nom FROM produits;</code> demande donc <code>nom</code> une deuxième fois. Pour afficher toute la table, <code>SELECT * FROM produits;</code> suffit."},
+  consigne:"Affiche toutes les colonnes de la table produits pour voir son contenu.",
+  solution:"SELECT * FROM produits;",
+  indice:"Utilise <code>*</code> après <code>SELECT</code> pour représenter toutes les colonnes.",
+  richLesson:true, earlyDemo:true },
+{ id:13, titre:"DISTINCT", résumé:"Valeurs uniques",
+  situation:"Dans la table clients, plusieurs personnes habitent dans la même ville. Tu veux la liste des villes différentes, sans afficher plusieurs fois la même ville.<br><br>Avec ce que tu connais déjà, tu peux afficher la ville de chaque client :",
+  situationSql:"SELECT ville\nFROM clients;",
+  situationTail:"Tu obtiens bien 10 villes. Mais Paris apparaît 4 fois et Lyon 2 fois : pour n’afficher chaque ville qu’une seule fois, il faut la clause <code>DISTINCT</code>.",
+    studio:{problem:{title:"DISTINCT retire les doublons du résultat.",
+      body:"<code>DISTINCT</code> se place juste après <code>SELECT</code>. Il retire les répétitions du résultat : les 10 lignes deviennent 6 villes différentes."},
+    vs:{bad:{tag:"✕ Avec doublons",sql:"SELECT ville FROM clients;",out:"10 lignes : Paris apparaît 4 fois, Lyon 2 fois",
+            code:"SELECT <span class=\"vs-line bad\">ville</span>\nFROM clients;"},
+        good:{tag:"✓ Sans doublons",sql:"SELECT DISTINCT ville FROM clients;",out:"6 villes : Paris, Lyon, Marseille, Bordeaux, Toulouse, Nantes",
+            code:"SELECT <span class=\"vs-line good\">DISTINCT ville</span>\nFROM clients;"}},
+    point:"<code>DISTINCT</code> ne modifie pas la table clients. Les 10 clients restent enregistrés : seuls les doublons sont retirés du résultat affiché.",
+    why:{title:"Comment DISTINCT passe de 10 à 6 lignes ?"},
+    viz:"distinct",
+    reflex:{a:{k:"SELECT",t:"affiche <b>toutes</b> les occurrences"},
+      b:{k:"DISTINCT",t:"affiche chaque valeur <b>une seule fois</b>"},
+      note:"Avec plusieurs colonnes, <code>DISTINCT</code> compare leur combinaison. Deux lignes sont considérées comme identiques seulement si toutes les valeurs sélectionnées sont identiques."}},
+  anatomie:[{tok:"SELECT",txt:"Définit ce qui apparaît dans le résultat."},{tok:"DISTINCT",txt:"Retire les doublons du résultat."},{tok:"ville",plain:1,txt:"La colonne dont tu veux obtenir les valeurs différentes."},{tok:"FROM clients",txt:"Les données viennent de la table clients."}],
+  exemple:"SELECT DISTINCT ville FROM clients;",
+  attendu:"<b>6 lignes</b> : Paris, Lyon, Marseille, Bordeaux, Toulouse et Nantes. Chaque ville apparaît une seule fois.",
+  retenir:"<code>DISTINCT</code> sert à afficher des valeurs uniques. Dans <code>SELECT DISTINCT ville FROM clients</code>, les 10 clients donnent seulement 6 villes différentes, car Paris et Lyon apparaissent plusieurs fois dans la table. Les doublons sont retirés du résultat, pas de la table.",
+  piege:{t:"DISTINCT avec plusieurs colonnes",p:"Dans <code>SELECT DISTINCT ville, age FROM clients</code>, SQL ne cherche pas seulement les villes différentes. Il cherche les combinaisons ville + âge différentes."},
+  consigne:"Affiche chaque ville différente où habite au moins un client.",
+  solution:"SELECT DISTINCT ville FROM clients;",
+  indice:"Tu veux afficher la colonne <code>ville</code> sans répétition. Ajoute le mot-clé qui retire les doublons juste après <code>SELECT</code>.",
   richLesson:true, earlyDemo:true },
 { id:4, titre:"WHERE", résumé:"Filtrer les lignes",
   situation:"L’e-commerce de Paris doit contacter ses clients locaux. Dans la table clients, 10 personnes sont enregistrées, mais tu veux afficher uniquement celles qui habitent à Paris.<br><br>Avec ce que tu connais déjà, tu peux choisir les colonnes à afficher :",
@@ -7091,7 +7116,7 @@ const MODULES = [
   solution:"SELECT * FROM clients WHERE ville = 'Paris';",
   indice:"Ajoute un filtre après <code>FROM clients</code> pour garder uniquement les lignes où <code>ville</code> vaut <code>'Paris'</code>.",
   richLesson:true, earlyDemo:true },
-{ id:5, titre:"Comparer des nombres", résumé:"Filtrer avec un seuil numérique",
+{ id:5, titre:"Comparer des valeurs", résumé:"Filtrer avec =, !=, >, <, >=, <=",
   situation:"Tu analyses le catalogue pour repérer les produits haut de gamme. Dans la table <code>produits</code>, 8 produits sont enregistrés avec leur prix. Tu veux garder uniquement ceux dont le prix est strictement supérieur à 25 €.<br><br>Avec ce que tu connais déjà, tu peux filtrer avec une égalité exacte :",
   situationSql:"WHERE categorie = 'Nutrition'",
   situationTail:"Avec <code>=</code>, tu testes une valeur précise. Ici, tu veux comparer un prix à un seuil numérique : il faut des opérateurs comme <code>&gt;</code>.",
@@ -7354,34 +7379,9 @@ const MODULES = [
     {k:'p1',label:'Page 1',sql:"SELECT id, nom, prix FROM produits ORDER BY prix DESC, id ASC LIMIT 3 OFFSET 0;",out:"Positions 1 à 3."},
     {k:'p2',label:'Page 2',sql:"SELECT id, nom, prix FROM produits ORDER BY prix DESC, id ASC LIMIT 3 OFFSET 3;",out:"Positions 4 à 6.",tone:'good'},
     {k:'unstable',label:'Sans tri',sql:"SELECT id, nom, prix FROM produits LIMIT 3 OFFSET 3;",out:"Trois lignes, mais une page non garantie.",tone:'bad'}
-  ] },
-{ id:13, titre:"DISTINCT", résumé:"Valeurs uniques",
-  situation:"Dans la table clients, plusieurs personnes habitent dans la même ville. Tu veux la liste des villes différentes, sans afficher plusieurs fois la même ville.<br><br>Avec ce que tu connais déjà, tu peux afficher la ville de chaque client :",
-  situationSql:"SELECT ville\nFROM clients;",
-  situationTail:"Tu obtiens bien 10 villes. Mais Paris apparaît 4 fois et Lyon 2 fois : pour n’afficher chaque ville qu’une seule fois, il faut la clause <code>DISTINCT</code>.",
-    studio:{problem:{title:"DISTINCT retire les doublons du résultat.",
-      body:"<code>DISTINCT</code> se place juste après <code>SELECT</code>. Il retire les répétitions du résultat : les 10 lignes deviennent 6 villes différentes."},
-    vs:{bad:{tag:"✕ Avec doublons",sql:"SELECT ville FROM clients;",out:"10 lignes : Paris apparaît 4 fois, Lyon 2 fois",
-            code:"SELECT <span class=\"vs-line bad\">ville</span>\nFROM clients;"},
-        good:{tag:"✓ Sans doublons",sql:"SELECT DISTINCT ville FROM clients;",out:"6 villes : Paris, Lyon, Marseille, Bordeaux, Toulouse, Nantes",
-            code:"SELECT <span class=\"vs-line good\">DISTINCT ville</span>\nFROM clients;"}},
-    point:"<code>DISTINCT</code> ne modifie pas la table clients. Les 10 clients restent enregistrés : seuls les doublons sont retirés du résultat affiché.",
-    why:{title:"Comment DISTINCT passe de 10 à 6 lignes ?"},
-    viz:"distinct",
-    reflex:{a:{k:"SELECT",t:"affiche <b>toutes</b> les occurrences"},
-      b:{k:"DISTINCT",t:"affiche chaque valeur <b>une seule fois</b>"},
-      note:"Avec plusieurs colonnes, <code>DISTINCT</code> compare leur combinaison. Deux lignes sont considérées comme identiques seulement si toutes les valeurs sélectionnées sont identiques."}},
-  anatomie:[{tok:"SELECT",txt:"Définit ce qui apparaît dans le résultat."},{tok:"DISTINCT",txt:"Retire les doublons du résultat."},{tok:"ville",plain:1,txt:"La colonne dont tu veux obtenir les valeurs différentes."},{tok:"FROM clients",txt:"Les données viennent de la table clients."}],
-  exemple:"SELECT DISTINCT ville FROM clients;",
-  attendu:"<b>6 lignes</b> : Paris, Lyon, Marseille, Bordeaux, Toulouse et Nantes. Chaque ville apparaît une seule fois.",
-  retenir:"<code>DISTINCT</code> sert à afficher des valeurs uniques. Dans <code>SELECT DISTINCT ville FROM clients</code>, les 10 clients donnent seulement 6 villes différentes, car Paris et Lyon apparaissent plusieurs fois dans la table. Les doublons sont retirés du résultat, pas de la table.",
-  piege:{t:"DISTINCT avec plusieurs colonnes",p:"Dans <code>SELECT DISTINCT ville, age FROM clients</code>, SQL ne cherche pas seulement les villes différentes. Il cherche les combinaisons ville + âge différentes."},
-  consigne:"Affiche chaque ville différente où habite au moins un client.",
-  solution:"SELECT DISTINCT ville FROM clients;",
-  indice:"Tu veux afficher la colonne <code>ville</code> sans répétition. Ajoute le mot-clé qui retire les doublons juste après <code>SELECT</code>.",
-  richLesson:true, earlyDemo:true }
+  ] }
 ]},
-{ titre:"Fonctions scalaires", sous:"Transformer une valeur, ligne par ligne", lessons:[
+{ titre:"Fonctions et expressions", sous:"Transformer les valeurs ligne par ligne", lessons:[
 { id:51, titre:"Fonctions de texte", résumé:"Transformer, nettoyer et découper du texte",
     studio:{problem:{eye:"Fonctions de texte",title:"Transformer, nettoyer et découper du texte.",
       body:`<div class="pt-lead"><p>Dans la table <code>clients</code>, plusieurs colonnes contiennent du texte : <code>nom</code>, <code>ville</code>, <code>email</code>, <code>telephone</code>…</p><p>SQL ne sert pas seulement à afficher ces valeurs telles quelles.</p><p>Tu peux aussi les transformer, les nettoyer, les assembler ou n’en récupérer qu’une partie.</p><p>Prenons plusieurs situations concrètes.</p></div>`},
@@ -8312,9 +8312,184 @@ FROM produits;</pre></div>
       {fn:"Nombre → texte",d:"<code>CAST(… AS VARCHAR)</code>"},
       {fn:"Texte → date",d:"<code>CAST(… AS DATE)</code>, <code>TO_DATE()</code>"},
       {fn:"Date → texte",d:"<code>TO_CHAR()</code>, <code>DATE_FORMAT()</code>"}
+    ]} },
+{ id:21, titre:"CASE", résumé:"Afficher une valeur selon une condition",
+  situation:"Tu prépares une campagne marketing et tu veux adapter le message selon l’âge de chaque client.<br><br>Tu veux donc classer les clients en trois catégories, sans modifier la table <code>clients</code> :<br>– <b>Jeune</b> : moins de 30 ans<br>– <b>Adulte</b> : de 30 à 50 ans<br>– <b>Senior</b> : plus de 50 ans<br><br>Dans la table <code>clients</code>, tu as notamment :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th>age</th></tr></thead><tbody><tr><td>2</td><td>Lucas</td><td>28</td></tr><tr><td>1</td><td>Sophie</td><td>34</td></tr><tr><td>6</td><td>Hugo</td><td>52</td></tr></tbody></table></div>",
+  situationTail:"Pour faire cette classification, nous pouvons utiliser <code>CASE</code>, une expression SQL qui permet d’attribuer une valeur selon une ou plusieurs conditions. Ici, elle permet d’attribuer à chaque client une catégorie en fonction de son âge.",
+    studio:{pointCards:{
+      eye:"CASE",title:"Afficher une valeur selon une condition.",
+      walk:1,
+      lead:"<p>L’expression <code>CASE</code> en SQL permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else des langages de programmation, mais intégré directement dans les requêtes SQL. Elle est extrêmement utile pour transformer des données, créer des colonnes calculées, gérer des regroupements ou encore remplacer des valeurs.</p>",
+      forms:1,
+      cards:[
+        {t:"Structure CASE",
+         b:"<p><code>CASE WHEN condition THEN valeur … ELSE valeur_defaut END</code>. Chaque <code>WHEN</code> teste une condition dans l’ordre.</p>"},
+        {t:"Premier WHEN gagnant",
+         b:"<p>Dès qu’une condition est vraie, SQL s’arrête et retourne la valeur associée. Les <code>WHEN</code> suivants sont ignorés.</p>"},
+        {t:"ELSE optionnel",
+         b:"<p><code>ELSE</code> est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est <code>NULL</code>.</p>"},
+        {t:"CASE dans SELECT",
+         b:"<p>On utilise généralement <code>CASE</code> dans le <code>SELECT</code> pour créer une colonne calculée, mais on peut aussi l’utiliser dans <code>WHERE</code>, <code>ORDER BY</code> ou <code>GROUP BY</code>.</p>"}
+      ]},
+    reflex:{a:{k:"CASE simple",t:"Idéal quand tu veux dire : « Si cette colonne vaut X, alors… »"},
+      b:{k:"CASE recherché",t:"Idéal pour les comparaisons, intervalles et conditions plus complexes."},
+      note:"<b>CASE simple</b> = une même colonne → plusieurs valeurs possibles.<br><b>CASE recherché</b> = plusieurs conditions testées l’une après l’autre."},
+    },
+  anatomie:[
+    {tok:"SELECT nom, age,",txt:"Les colonnes de base."},
+    {tok:"CASE",txt:"Début de l’expression conditionnelle."},
+    {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Première condition : moins de 30 ans."},
+    {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Deuxième condition : entre 30 et 50 ans."},
+    {tok:"ELSE 'Senior'",txt:"Tous les autres cas (plus de 50 ans)."},
+    {tok:"END AS categorie",txt:"Fin du CASE et nom de la colonne."},
+    {tok:"FROM clients",txt:"La table source."}
+  ],
+  anatomieVariants:[
+    {k:'simple',label:'Simple',lines:[
+      {tok:"SELECT nom, ville,",txt:"Les colonnes de base."},
+      {tok:"CASE ville",txt:"On compare une même colonne à plusieurs valeurs précises."},
+      {tok:"WHEN 'Paris' THEN 'Île-de-France'",txt:"Si ville vaut Paris."},
+      {tok:"WHEN 'Lyon' THEN 'Auvergne-Rhône-Alpes'",txt:"Si ville vaut Lyon."},
+      {tok:"WHEN 'Marseille' THEN 'PACA'",txt:"Si ville vaut Marseille."},
+      {tok:"ELSE 'Autre'",txt:"Les autres villes."},
+      {tok:"END AS region",txt:"Fin du CASE et nom de la colonne."},
+      {tok:"FROM clients",txt:"La table source."}
+    ]},
+    {k:'search',label:'Recherché',tone:'good',lines:[
+      {tok:"SELECT nom, age,",txt:"Les colonnes de base."},
+      {tok:"CASE",txt:"On écrit une condition différente à chaque WHEN."},
+      {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Première condition : moins de 30 ans."},
+      {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Deuxième condition : entre 30 et 50 ans."},
+      {tok:"ELSE 'Senior'",txt:"Tous les autres cas (plus de 50 ans)."},
+      {tok:"END AS categorie",txt:"Fin du CASE et nom de la colonne."},
+      {tok:"FROM clients",txt:"La table source."}
+    ]},
+    {k:'orderby',label:'ORDER BY',lines:[
+      {tok:"SELECT nom, age,",txt:"Les colonnes de base."},
+      {tok:"CASE … END AS categorie",txt:"La catégorie affichée."},
+      {tok:"FROM clients",txt:"La table source."},
+      {tok:"ORDER BY CASE",txt:"On trie selon une valeur calculée, pas selon le nom."},
+      {tok:"WHEN age < 30 THEN 1",txt:"Les Jeune en premier."},
+      {tok:"WHEN age BETWEEN 30 AND 50 THEN 2",txt:"Puis les Adulte."},
+      {tok:"ELSE 3",txt:"Les Senior en dernier."},
+      {tok:"END",txt:"Fin du CASE de tri."}
+    ]},
+    {k:'groupby',label:'GROUP BY',lines:[
+      {tok:"SELECT",txt:"Une ligne par classe d’âge."},
+      {tok:"CASE … END AS categorie",txt:"La classe du groupe."},
+      {tok:"COUNT(*) AS nb",txt:"Combien de clients dans la classe."},
+      {tok:"FROM clients",txt:"La table source."},
+      {tok:"GROUP BY categorie",txt:"On groupe sur le résultat du CASE."}
+    ]},
+    {k:'where',label:'WHERE',lines:[
+      {tok:"SELECT nom, age",txt:"Les colonnes de base."},
+      {tok:"FROM clients",txt:"La table source."},
+      {tok:"WHERE CASE",txt:"Le filtre est le résultat du CASE."},
+      {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Première condition : moins de 30 ans."},
+      {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Deuxième condition : entre 30 et 50 ans."},
+      {tok:"ELSE 'Senior'",txt:"Tous les autres cas (plus de 50 ans)."},
+      {tok:"END = 'Jeune'",txt:"On ne garde que les lignes Jeune."}
+    ]}
+  ],
+  exemple:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",
+  attendu:"10 lignes. Lucas, Chloé, Gabriel → Jeune. Sophie, Emma, les deux Nathan, Léa, Inès → Adulte. Hugo → Senior.",
+  retenir:"L’expression <code>CASE</code> permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else, intégré dans les requêtes SQL.<br><br><b>CASE simple</b> : Compare une colonne à plusieurs valeurs précises. <b>CASE recherché</b> : Teste plusieurs conditions, l’une après l’autre.<br><br><code>ELSE</code> est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est <code>NULL</code>.",
+  piege:{t:"Oublier le ELSE ou mal ordonner les WHEN",
+    p:"Si tu écris <code>WHEN age &lt; 50 THEN 'Adulte'</code> avant <code>WHEN age &lt; 30 THEN 'Jeune'</code>, tous les moins de 50 ans (y compris les moins de 30) seront classés 'Adulte'. De même, sans <code>ELSE</code>, les plus de 50 ans auront <code>NULL</code>.",
+    exec:true,
+    sql:"SELECT nom, age,\n  CASE\n    WHEN age < 50 THEN 'Adulte'\n    WHEN age < 30 THEN 'Jeune'\n  END AS categorie\nFROM clients;",
+    fixSql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;"},
+  consigne:"Affiche le nom, l’âge et une catégorie pour chaque client : 'Jeune' si moins de 30 ans, 'Adulte' si entre 30 et 50 ans, 'Senior' sinon.",
+  solution:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",
+  indice:"Utilise <code>CASE WHEN</code> avec trois branches et un <code>ELSE</code> final.",
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'simple',label:'Simple',sql:"SELECT nom, ville,\n  CASE ville\n    WHEN 'Paris' THEN 'Île-de-France'\n    WHEN 'Lyon' THEN 'Auvergne-Rhône-Alpes'\n    WHEN 'Marseille' THEN 'PACA'\n    ELSE 'Autre'\n  END AS region\nFROM clients;",out:"Sophie, Nathan, Léa → Île-de-France. Lucas, Hugo → Auvergne-Rhône-Alpes. Emma → PACA. Chloé, Gabriel, Inès → Autre."},
+    {k:'search',label:'Recherché',sql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",out:"10 lignes. Lucas, Chloé, Gabriel → Jeune. Hugo → Senior. Les autres → Adulte.",tone:'good'},
+    {k:'orderby',label:'ORDER BY',sql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients\nORDER BY CASE\n    WHEN age < 30 THEN 1\n    WHEN age BETWEEN 30 AND 50 THEN 2\n    ELSE 3\n  END;",out:"10 lignes. Jeune d’abord, puis Adulte, puis Senior."},
+    {k:'groupby',label:'GROUP BY',sql:"SELECT\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie,\n  COUNT(*) AS nb\nFROM clients\nGROUP BY categorie;",out:"3 groupes : Jeune 3, Adulte 6, Senior 1."},
+    {k:'where',label:'WHERE',sql:"SELECT nom, age\nFROM clients\nWHERE CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END = 'Jeune';",out:"3 lignes : Lucas, Chloé, Gabriel."}
+  ] },
+{ id:23, titre:"COALESCE", résumé:"Remplacer les valeurs absentes",
+  situation:"Dans la table <code>clients</code>, certains clients n’ont pas renseigné leur adresse e-mail : la valeur est <code>NULL</code>.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th class=\"col-hl\">email</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td class=\"col-hl\">sophie@mail.fr</td></tr><tr><td>2</td><td>Lucas</td><td class=\"col-hl\">lucas@mail.fr</td></tr><tr><td>6</td><td>Hugo</td><td class=\"col-hl null\">NULL</td></tr><tr><td>9</td><td>Inès</td><td class=\"col-hl null\">NULL</td></tr><tr class=\"sample-more\"><td colspan=\"3\">… et 6 autres clients</td></tr></tbody></table></div><div class=\"coal-data-summary\" role=\"note\" aria-label=\"Résumé des adresses e-mail\"><span><i aria-hidden=\"true\"></i>8 adresses présentes</span><span><i aria-hidden=\"true\"></i>2 valeurs NULL</span></div><br><br>Objectif : afficher un contact lisible pour les 10 clients, sans modifier la table.",
+    studio:{problem:{eye:"COALESCE",title:"Une règle : la première valeur qui n’est pas NULL.",
+      body:`<div class="coal-primer">
+        <p class="coal-primer-lead"><strong>COALESCE lit les valeurs de gauche à droite</strong> et renvoie la première qui n’est pas <code>NULL</code>.</p>
+        <div class="coal-route" role="img" aria-label="SQL teste d’abord email puis utilise Non renseigné si email vaut NULL">
+          <div class="coal-route-choice"><small>1er choix</small><code>email</code></div>
+          <div class="coal-route-link" aria-hidden="true"><span>si NULL</span></div>
+          <div class="coal-route-choice"><small>choix suivant</small><code>'Non renseigné'</code></div>
+        </div>
+        <div class="coal-outcomes">
+          <div class="coal-outcome"><i aria-hidden="true">✓</i><p><b>L’e-mail n’est pas NULL</b><span><code>COALESCE</code> renvoie l’e-mail. Les valeurs suivantes ne sont pas utilisées.</span></p></div>
+          <div class="coal-outcome is-null"><i aria-hidden="true">→</i><p><b>L’e-mail est NULL</b><span><code>COALESCE</code> passe à la valeur suivante et renvoie <code>'Non renseigné'</code>.</span></p></div>
+        </div>
+        <div class="pt-syntax coal-syntax"><pre class="cw-syntax">COALESCE(expression1, expression2, …)</pre></div>
+        <p class="coal-edge"><span>Si toutes les valeurs sont <code>NULL</code>, le résultat est <code>NULL</code>.</span></p>
+      </div>`},
+    uses:{title:"4 façons de l’utiliser",
+      body:`<div class="coal-uses-list">
+        <article class="coal-use-row">
+          <span class="coal-use-n">01</span><div class="coal-use-copy">
+            <h3>Afficher un remplacement</h3><p>Rendre une information absente compréhensible pour l’utilisateur.</p>
+            <div class="pt-syntax"><pre class="cw-syntax">COALESCE(email, 'Non renseigné')</pre></div>
+            <p class="coal-use-result">Hugo → Non renseigné</p>
+          </div>
+        </article>
+        <article class="coal-use-row">
+          <span class="coal-use-n">02</span><div class="coal-use-copy">
+            <h3>Choisir le premier contact</h3><p>Tester plusieurs colonnes dans l’ordre de préférence.</p>
+            <div class="pt-syntax"><pre class="cw-syntax">COALESCE(email, telephone, 'Aucun contact')</pre></div>
+            <p class="coal-use-result">email → téléphone → texte de repli</p>
+          </div>
+        </article>
+        <article class="coal-use-row">
+          <span class="coal-use-n">03</span><div class="coal-use-copy">
+            <h3>Sécuriser un calcul</h3><p>Éviter qu’une valeur absente rende tout le calcul <code>NULL</code>.</p>
+            <div class="pt-syntax"><pre class="cw-syntax">prix * COALESCE(quantite, 0)</pre></div>
+            <p class="coal-use-result">quantité absente → 0 pour ce calcul</p>
+          </div>
+        </article>
+        <article class="coal-use-row">
+          <span class="coal-use-n">04</span><div class="coal-use-copy">
+            <h3>Garantir un résultat</h3><p>Prévoir un repli pour une expression ou une sous-requête vide.</p>
+            <div class="pt-syntax"><pre class="cw-syntax">COALESCE(
+  (SELECT MAX(prix) FROM produits
+   WHERE categorie = 'Inconnue'),
+  0
+)</pre></div>
+            <p class="coal-use-result">aucun prix trouvé → 0</p>
+          </div>
+        </article>
+      </div>`},
+    why:{title:"Suis ce qui arrive à tes données.",
+      body:"SQL lit chaque email. S’il est NULL, il affiche « Non renseigné ». L’email de Hugo dans la table, lui, reste NULL. Pour le modifier, il faut un UPDATE."},
+    reflex:{a:{k:"COALESCE(a, b)",t:"a si a n’est pas <code>NULL</code>, sinon b"},
+      b:{k:"UPDATE",t:"modifie réellement la valeur dans la table"}},
+    viz:"coalesce"},
+  anatomie:[{tok:"SELECT nom,",txt:"Le nom affiché."},{tok:"COALESCE(email, 'Non renseigné') AS contact",txt:"L’email, ou « Non renseigné » si absent."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."}],
+  exemple:"SELECT nom, COALESCE(email, 'Non renseigné') AS contact FROM clients;",
+  attendu:"10 lignes. Hugo et Inès affichent « Non renseigné ».",
+  retenir:"<code>COALESCE(a, b)</code> affiche a s’il existe, sinon b. La base ne change pas.",
+  piege:{t:"COALESCE ne modifie pas les données",p:"<code>COALESCE</code> peut afficher une valeur à la place de <code>NULL</code>, mais la valeur enregistrée dans la table reste inchangée.<br><br>Pour modifier réellement la donnée, il faut utiliser <code>UPDATE</code>."},
+  consigne:"Affiche le <code>nom</code> et l’email, en remplaçant les valeurs <code>NULL</code> par <code>'Non renseigné'</code> (colonne <code>contact</code>).",
+  solution:"SELECT nom, COALESCE(email, 'Non renseigné') AS contact FROM clients;",
+  indice:"<code>COALESCE(email, 'Non renseigné') AS contact</code>.",
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'select',label:'SELECT',sql:"SELECT nom, email FROM clients;",out:"Hugo et Inès ont un email vide"},
+    {k:'coalesce',label:'COALESCE',sql:"SELECT nom, COALESCE(email, 'Non renseigné') AS contact\nFROM clients;",out:"10 lignes. Hugo et Inès affichent « Non renseigné ».",tone:'good'}
+  ],
+  fnCmp:{title:"Quel équivalent selon le moteur ?",
+    say:"<p class=\"fn-cmp-say\"><b>Privilégie <code>COALESCE</code></b> : elle appartient au standard SQL et accepte autant d’arguments que nécessaire.</p>",
+    rows:[
+      {fn:"COALESCE",std:1,moteur:"standard SQL",d:"Accepte un nombre variable d’arguments. Retourne la première valeur non <code>NULL</code>.",on:1},
+      {fn:"ISNULL",moteur:"SQL Server",d:"Prend exactement 2 arguments. Retourne le second si le premier est <code>NULL</code>."},
+      {fn:"IFNULL",moteur:"MySQL",d:"Prend exactement 2 arguments. Retourne le second si le premier est <code>NULL</code>."},
+      {fn:"NVL",moteur:"Oracle",d:"Prend exactement 2 arguments. Retourne le second si le premier est <code>NULL</code>."}
     ]} }
 ]},
-{ titre:"Agrégats et regroupements", sous:"Calculer, regrouper et agréger nombres ou textes", lessons:[
+{ titre:"Agrégats et regroupements", sous:"Calculer, regrouper et agréger", lessons:[
 { id:14, titre:"COUNT", résumé:"Compter les lignes",
   situation:"Tu viens d’importer la table clients. Avant de continuer, tu veux vérifier combien de personnes y sont vraiment enregistrées.<br><br>Avec ce que tu connais déjà, tu peux afficher leurs noms :",
   situationSql:"SELECT nom\nFROM clients;",
@@ -8806,56 +8981,6 @@ client #4    : Nathan</pre></div>
     {k:'cmd',label:'commandes',sql:"SELECT id, client_id, produit_id, quantite\nFROM commandes;"},
     {k:'leftisnull',label:'LEFT JOIN + IS NULL',sql:"SELECT clients.nom\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;",tone:'good'}
   ] },
-{ id:19, titre:"Jointure 3 tables", résumé:"Relier clients, commandes et produits",
-  situation:"Tu veux afficher pour chaque commande : le nom du client, le nom du produit et la quantité commandée.<br><br>Mais le nom du client est dans la table <code>clients</code>, la quantité dans la table <code>commandes</code>, et le nom du produit dans la table <code>produits</code>.<br><br>Dans la table <code>clients</code>, tu as :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, tu as :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br><br>Dans la table <code>produits</code>, tu as :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Fibre Prébiotique</td></tr><tr><td>3</td><td>Magnésium</td></tr><tr><td>6</td><td>Protéine Végétale</td></tr></tbody></table></div><br><br>Pour relier ces trois tables, il faut enchaîner deux jointures : d\u2019abord entre <code>clients</code> et <code>commandes</code>, puis entre <code>commandes</code> et <code>produits</code>.",
-    studio:{pointCards:{
-      eye:"Jointure 3 tables",title:"Suivre le chemin entre les tables.",
-      lead:"Pour relier 3 tables, ajoute-les une par une. Chaque <code>JOIN</code> indique quelle table ajouter, et chaque <code>ON</code> indique comment la relier.",
-      rule:{lines:[
-          {tok:"FROM",val:"clients",tag:"On part des clients"},
-          {tok:"JOIN",val:"commandes",tag:"On ajoute leurs commandes"},
-          {tok:"ON",val:"clients.id = commandes.client_id",tag:"Chaque commande retrouve son client"},
-          {tok:"JOIN",val:"produits",tag:"On ajoute les produits"},
-          {tok:"ON",val:"commandes.produit_id = produits.id",tag:"Chaque commande retrouve son produit"}
-        ]},
-      chain:[
-        {k:'On part de',v:'clients'},
-        {k:'On rejoint',v:'commandes'},
-        {k:'puis',v:'produits'}
-      ]
-      },
-    reflex:{a:{k:"JOIN",t:"ajoute une table à la fois"},
-      b:{k:"ON",t:"indique comment la relier"},
-      note:"Avec plusieurs tables, repère le chemin qui les relie. Ici, <code>commandes</code> fait le lien entre <code>clients</code> et <code>produits</code>."},
-    viz:"triple"},
-  anatomie:[
-    {tok:"SELECT clients.nom, produits.nom, commandes.quantite",txt:"Choisit les informations à afficher dans les trois tables."},
-    {tok:"FROM clients",txt:"On commence avec la table <code>clients</code>."},
-    {tok:"JOIN commandes",txt:"Ajoute la table <code>commandes</code>."},
-    {tok:"ON clients.id = commandes.client_id",txt:"Relie chaque commande à son client."},
-    {tok:"JOIN produits",txt:"Ajoute ensuite la table <code>produits</code>."},
-    {tok:"ON commandes.produit_id = produits.id",txt:"Relie chaque commande à son produit."}
-  ],
-  exemple:"SELECT clients.nom, produits.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id\nJOIN produits\nON commandes.produit_id = produits.id;",
-  attendu:"15 lignes : une ligne par commande, avec le nom du client, le nom du produit et la quantité correspondante.",
-  retenir:"Pour relier trois tables, enchaîne les JOIN en suivant les relations :<br><br><code>FROM table1 JOIN table2 ON relation1 JOIN table3 ON relation2</code><br><br>Dans notre base : <code>clients → commandes → produits</code>. La table <code>commandes</code> est le pont.<br><br>De <code>client_id = 1, produit_id = 1, quantite = 2</code> à « Sophie → Fibre Prébiotique → 2 ».",
-  piege:{t:"Relier les mauvaises colonnes",
-    p:"<code>commandes.client_id</code> contient l’identifiant d’un client : il doit donc être comparé à <code>clients.id</code>. Pour retrouver un produit, il faut utiliser <code>commandes.produit_id</code> avec <code>produits.id</code>.",
-    exec:true,
-    sql:"SELECT clients.nom, produits.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id\nJOIN produits\nON commandes.client_id = produits.id;",
-    out:"Les produits associés aux commandes sont incorrects.",
-    fixSql:"SELECT clients.nom, produits.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id\nJOIN produits\nON commandes.produit_id = produits.id;"},
-  consigne:"Affiche pour chaque commande le nom du client, le nom du produit et la quantité commandée.",
-  solution:"SELECT clients.nom, produits.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id\nJOIN produits\nON commandes.produit_id = produits.id;",
-  indice:"Suis le chemin <code>clients → commandes → produits</code>. Chaque flèche correspond à une jointure.",
-  joinRecap:'inner',
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-    {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
-    {k:'cmd',label:'commandes',sql:"SELECT id, client_id, produit_id, quantite\nFROM commandes;"},
-    {k:'prod',label:'produits',sql:"SELECT id, nom\nFROM produits;"},
-    {k:'join3',label:'JOIN 3 tables',sql:"SELECT clients.nom, produits.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id\nJOIN produits\nON commandes.produit_id = produits.id;",tone:'good'}
-  ] },
 { id:38, titre:"RIGHT JOIN", résumé:"Garder toutes les commandes, même sans client",
   situation:"Tu veux afficher le nom de chaque client avec les produits qu’il a commandés.<br><br>Mais cette fois, tu dois aussi afficher les commandes passées sans compte client.<br><br>Dans la table <code>clients</code>, tu trouves le nom et l’identifiant du client :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>7</td><td>Léa</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, tu trouves les commandes avec <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>8</td><td>7</td><td>1</td><td>4</td></tr><tr><td>16</td><td>NULL</td><td>4</td><td>1</td></tr></tbody></table></div><br><br>La commande <code>id = 16</code> n’a pas de <code>client_id</code>. Pourtant, tu veux la garder dans le résultat.",
   situationTail:"Un <code>JOIN</code> simple écarterait cette commande car elle n’a pas de client. Pour garder toutes les commandes, on utilise <code>RIGHT JOIN</code>.",
@@ -8999,7 +9124,7 @@ client #4    : Nathan</pre></div>
     {k:'prod',label:'produits',sql:"SELECT id, nom\nFROM produits;"},
     {k:'cross',label:'CROSS JOIN',sql:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;",tone:'good'}
   ] },
-{ id:44, titre:"Choisir le bon JOIN", résumé:"Quelle jointure pour quel besoin ?",
+{ id:44, titre:"Quel JOIN choisir", résumé:"INNER, LEFT, RIGHT, FULL ou CROSS : le bon outil pour le besoin",
     studio:{pointCards:{
       eye:"Quel JOIN ?",title:"Un arbre, une réponse.",
       tree:1,
@@ -9056,6 +9181,56 @@ client #4    : Nathan</pre></div>
     {k:'right',label:'RIGHT JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nRIGHT JOIN commandes\nON clients.id = commandes.client_id;",out:"16 lignes. L’invité #16 reste, avec NULL côté client."},
     {k:'full',label:'FULL JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nFULL OUTER JOIN commandes\nON clients.id = commandes.client_id;",out:"18 lignes. Inès, Nathan n°10 et l’invité restent."},
     {k:'cross',label:'CROSS JOIN',sql:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;",out:"80 lignes : 10 clients × 8 produits. Pas de ON."}
+  ] },
+{ id:19, titre:"Jointure 3 tables", résumé:"Relier clients, commandes et produits",
+  situation:"Tu veux afficher pour chaque commande : le nom du client, le nom du produit et la quantité commandée.<br><br>Mais le nom du client est dans la table <code>clients</code>, la quantité dans la table <code>commandes</code>, et le nom du produit dans la table <code>produits</code>.<br><br>Dans la table <code>clients</code>, tu as :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, tu as :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br><br>Dans la table <code>produits</code>, tu as :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Fibre Prébiotique</td></tr><tr><td>3</td><td>Magnésium</td></tr><tr><td>6</td><td>Protéine Végétale</td></tr></tbody></table></div><br><br>Pour relier ces trois tables, il faut enchaîner deux jointures : d\u2019abord entre <code>clients</code> et <code>commandes</code>, puis entre <code>commandes</code> et <code>produits</code>.",
+    studio:{pointCards:{
+      eye:"Jointure 3 tables",title:"Suivre le chemin entre les tables.",
+      lead:"Pour relier 3 tables, ajoute-les une par une. Chaque <code>JOIN</code> indique quelle table ajouter, et chaque <code>ON</code> indique comment la relier.",
+      rule:{lines:[
+          {tok:"FROM",val:"clients",tag:"On part des clients"},
+          {tok:"JOIN",val:"commandes",tag:"On ajoute leurs commandes"},
+          {tok:"ON",val:"clients.id = commandes.client_id",tag:"Chaque commande retrouve son client"},
+          {tok:"JOIN",val:"produits",tag:"On ajoute les produits"},
+          {tok:"ON",val:"commandes.produit_id = produits.id",tag:"Chaque commande retrouve son produit"}
+        ]},
+      chain:[
+        {k:'On part de',v:'clients'},
+        {k:'On rejoint',v:'commandes'},
+        {k:'puis',v:'produits'}
+      ]
+      },
+    reflex:{a:{k:"JOIN",t:"ajoute une table à la fois"},
+      b:{k:"ON",t:"indique comment la relier"},
+      note:"Avec plusieurs tables, repère le chemin qui les relie. Ici, <code>commandes</code> fait le lien entre <code>clients</code> et <code>produits</code>."},
+    viz:"triple"},
+  anatomie:[
+    {tok:"SELECT clients.nom, produits.nom, commandes.quantite",txt:"Choisit les informations à afficher dans les trois tables."},
+    {tok:"FROM clients",txt:"On commence avec la table <code>clients</code>."},
+    {tok:"JOIN commandes",txt:"Ajoute la table <code>commandes</code>."},
+    {tok:"ON clients.id = commandes.client_id",txt:"Relie chaque commande à son client."},
+    {tok:"JOIN produits",txt:"Ajoute ensuite la table <code>produits</code>."},
+    {tok:"ON commandes.produit_id = produits.id",txt:"Relie chaque commande à son produit."}
+  ],
+  exemple:"SELECT clients.nom, produits.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id\nJOIN produits\nON commandes.produit_id = produits.id;",
+  attendu:"15 lignes : une ligne par commande, avec le nom du client, le nom du produit et la quantité correspondante.",
+  retenir:"Pour relier trois tables, enchaîne les JOIN en suivant les relations :<br><br><code>FROM table1 JOIN table2 ON relation1 JOIN table3 ON relation2</code><br><br>Dans notre base : <code>clients → commandes → produits</code>. La table <code>commandes</code> est le pont.<br><br>De <code>client_id = 1, produit_id = 1, quantite = 2</code> à « Sophie → Fibre Prébiotique → 2 ».",
+  piege:{t:"Relier les mauvaises colonnes",
+    p:"<code>commandes.client_id</code> contient l’identifiant d’un client : il doit donc être comparé à <code>clients.id</code>. Pour retrouver un produit, il faut utiliser <code>commandes.produit_id</code> avec <code>produits.id</code>.",
+    exec:true,
+    sql:"SELECT clients.nom, produits.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id\nJOIN produits\nON commandes.client_id = produits.id;",
+    out:"Les produits associés aux commandes sont incorrects.",
+    fixSql:"SELECT clients.nom, produits.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id\nJOIN produits\nON commandes.produit_id = produits.id;"},
+  consigne:"Affiche pour chaque commande le nom du client, le nom du produit et la quantité commandée.",
+  solution:"SELECT clients.nom, produits.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id\nJOIN produits\nON commandes.produit_id = produits.id;",
+  indice:"Suis le chemin <code>clients → commandes → produits</code>. Chaque flèche correspond à une jointure.",
+  joinRecap:'inner',
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
+    {k:'cmd',label:'commandes',sql:"SELECT id, client_id, produit_id, quantite\nFROM commandes;"},
+    {k:'prod',label:'produits',sql:"SELECT id, nom\nFROM produits;"},
+    {k:'join3',label:'JOIN 3 tables',sql:"SELECT clients.nom, produits.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id\nJOIN produits\nON commandes.produit_id = produits.id;",tone:'good'}
   ] },
 { id:41, titre:"Jointure + GROUP BY", résumé:"Compter les commandes par client",
   situation:"Tu veux savoir quels clients commandent le plus souvent.<br><br>Pour cela, tu veux afficher chaque client avec le nombre de commandes qu’il a passées.<br><br>Le nom du client se trouve dans la table <code>clients</code>, tandis que ses commandes se trouvent dans la table <code>commandes</code>.<br><br>Dans la table <code>clients</code>, tu as par exemple :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr><tr><td>9</td><td>Inès</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, plusieurs lignes peuvent appartenir au même client grâce à <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br><br>Nous avons donc besoin de faire une jointure pour relier chaque commande au client correspondant.<br><br>Après la jointure, un client peut apparaître plusieurs fois : une ligne pour chaque commande. Pour obtenir une seule ligne par client avec son nombre de commandes, nous devons ensuite regrouper les lignes avec <code>GROUP BY</code> et compter les commandes avec <code>COUNT</code>.",
@@ -9245,182 +9420,7 @@ client #4    : Nathan</pre></div>
     {k:'onmultiple',label:'les deux critères',sql:"SELECT clients.nom, commandes.quantite, commandes.date_commande\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2\nAND commandes.date_commande > '2023-07-15';",tone:'good'}
   ] }
 ]},
-{ titre:"Sous-requêtes et expressions", sous:"CTE, ensembles et fonctions de fenêtre", lessons:[
-{ id:21, titre:"CASE", résumé:"Afficher une valeur selon une condition",
-  situation:"Tu prépares une campagne marketing et tu veux adapter le message selon l’âge de chaque client.<br><br>Tu veux donc classer les clients en trois catégories, sans modifier la table <code>clients</code> :<br>– <b>Jeune</b> : moins de 30 ans<br>– <b>Adulte</b> : de 30 à 50 ans<br>– <b>Senior</b> : plus de 50 ans<br><br>Dans la table <code>clients</code>, tu as notamment :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th>age</th></tr></thead><tbody><tr><td>2</td><td>Lucas</td><td>28</td></tr><tr><td>1</td><td>Sophie</td><td>34</td></tr><tr><td>6</td><td>Hugo</td><td>52</td></tr></tbody></table></div>",
-  situationTail:"Pour faire cette classification, nous pouvons utiliser <code>CASE</code>, une expression SQL qui permet d’attribuer une valeur selon une ou plusieurs conditions. Ici, elle permet d’attribuer à chaque client une catégorie en fonction de son âge.",
-    studio:{pointCards:{
-      eye:"CASE",title:"Afficher une valeur selon une condition.",
-      walk:1,
-      lead:"<p>L’expression <code>CASE</code> en SQL permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else des langages de programmation, mais intégré directement dans les requêtes SQL. Elle est extrêmement utile pour transformer des données, créer des colonnes calculées, gérer des regroupements ou encore remplacer des valeurs.</p>",
-      forms:1,
-      cards:[
-        {t:"Structure CASE",
-         b:"<p><code>CASE WHEN condition THEN valeur … ELSE valeur_defaut END</code>. Chaque <code>WHEN</code> teste une condition dans l’ordre.</p>"},
-        {t:"Premier WHEN gagnant",
-         b:"<p>Dès qu’une condition est vraie, SQL s’arrête et retourne la valeur associée. Les <code>WHEN</code> suivants sont ignorés.</p>"},
-        {t:"ELSE optionnel",
-         b:"<p><code>ELSE</code> est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est <code>NULL</code>.</p>"},
-        {t:"CASE dans SELECT",
-         b:"<p>On utilise généralement <code>CASE</code> dans le <code>SELECT</code> pour créer une colonne calculée, mais on peut aussi l’utiliser dans <code>WHERE</code>, <code>ORDER BY</code> ou <code>GROUP BY</code>.</p>"}
-      ]},
-    reflex:{a:{k:"CASE simple",t:"Idéal quand tu veux dire : « Si cette colonne vaut X, alors… »"},
-      b:{k:"CASE recherché",t:"Idéal pour les comparaisons, intervalles et conditions plus complexes."},
-      note:"<b>CASE simple</b> = une même colonne → plusieurs valeurs possibles.<br><b>CASE recherché</b> = plusieurs conditions testées l’une après l’autre."},
-    },
-  anatomie:[
-    {tok:"SELECT nom, age,",txt:"Les colonnes de base."},
-    {tok:"CASE",txt:"Début de l’expression conditionnelle."},
-    {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Première condition : moins de 30 ans."},
-    {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Deuxième condition : entre 30 et 50 ans."},
-    {tok:"ELSE 'Senior'",txt:"Tous les autres cas (plus de 50 ans)."},
-    {tok:"END AS categorie",txt:"Fin du CASE et nom de la colonne."},
-    {tok:"FROM clients",txt:"La table source."}
-  ],
-  anatomieVariants:[
-    {k:'simple',label:'Simple',lines:[
-      {tok:"SELECT nom, ville,",txt:"Les colonnes de base."},
-      {tok:"CASE ville",txt:"On compare une même colonne à plusieurs valeurs précises."},
-      {tok:"WHEN 'Paris' THEN 'Île-de-France'",txt:"Si ville vaut Paris."},
-      {tok:"WHEN 'Lyon' THEN 'Auvergne-Rhône-Alpes'",txt:"Si ville vaut Lyon."},
-      {tok:"WHEN 'Marseille' THEN 'PACA'",txt:"Si ville vaut Marseille."},
-      {tok:"ELSE 'Autre'",txt:"Les autres villes."},
-      {tok:"END AS region",txt:"Fin du CASE et nom de la colonne."},
-      {tok:"FROM clients",txt:"La table source."}
-    ]},
-    {k:'search',label:'Recherché',tone:'good',lines:[
-      {tok:"SELECT nom, age,",txt:"Les colonnes de base."},
-      {tok:"CASE",txt:"On écrit une condition différente à chaque WHEN."},
-      {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Première condition : moins de 30 ans."},
-      {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Deuxième condition : entre 30 et 50 ans."},
-      {tok:"ELSE 'Senior'",txt:"Tous les autres cas (plus de 50 ans)."},
-      {tok:"END AS categorie",txt:"Fin du CASE et nom de la colonne."},
-      {tok:"FROM clients",txt:"La table source."}
-    ]},
-    {k:'orderby',label:'ORDER BY',lines:[
-      {tok:"SELECT nom, age,",txt:"Les colonnes de base."},
-      {tok:"CASE … END AS categorie",txt:"La catégorie affichée."},
-      {tok:"FROM clients",txt:"La table source."},
-      {tok:"ORDER BY CASE",txt:"On trie selon une valeur calculée, pas selon le nom."},
-      {tok:"WHEN age < 30 THEN 1",txt:"Les Jeune en premier."},
-      {tok:"WHEN age BETWEEN 30 AND 50 THEN 2",txt:"Puis les Adulte."},
-      {tok:"ELSE 3",txt:"Les Senior en dernier."},
-      {tok:"END",txt:"Fin du CASE de tri."}
-    ]},
-    {k:'groupby',label:'GROUP BY',lines:[
-      {tok:"SELECT",txt:"Une ligne par classe d’âge."},
-      {tok:"CASE … END AS categorie",txt:"La classe du groupe."},
-      {tok:"COUNT(*) AS nb",txt:"Combien de clients dans la classe."},
-      {tok:"FROM clients",txt:"La table source."},
-      {tok:"GROUP BY categorie",txt:"On groupe sur le résultat du CASE."}
-    ]},
-    {k:'where',label:'WHERE',lines:[
-      {tok:"SELECT nom, age",txt:"Les colonnes de base."},
-      {tok:"FROM clients",txt:"La table source."},
-      {tok:"WHERE CASE",txt:"Le filtre est le résultat du CASE."},
-      {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Première condition : moins de 30 ans."},
-      {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Deuxième condition : entre 30 et 50 ans."},
-      {tok:"ELSE 'Senior'",txt:"Tous les autres cas (plus de 50 ans)."},
-      {tok:"END = 'Jeune'",txt:"On ne garde que les lignes Jeune."}
-    ]}
-  ],
-  exemple:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",
-  attendu:"10 lignes. Lucas, Chloé, Gabriel → Jeune. Sophie, Emma, les deux Nathan, Léa, Inès → Adulte. Hugo → Senior.",
-  retenir:"L’expression <code>CASE</code> permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else, intégré dans les requêtes SQL.<br><br><b>CASE simple</b> : Compare une colonne à plusieurs valeurs précises. <b>CASE recherché</b> : Teste plusieurs conditions, l’une après l’autre.<br><br><code>ELSE</code> est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est <code>NULL</code>.",
-  piege:{t:"Oublier le ELSE ou mal ordonner les WHEN",
-    p:"Si tu écris <code>WHEN age &lt; 50 THEN 'Adulte'</code> avant <code>WHEN age &lt; 30 THEN 'Jeune'</code>, tous les moins de 50 ans (y compris les moins de 30) seront classés 'Adulte'. De même, sans <code>ELSE</code>, les plus de 50 ans auront <code>NULL</code>.",
-    exec:true,
-    sql:"SELECT nom, age,\n  CASE\n    WHEN age < 50 THEN 'Adulte'\n    WHEN age < 30 THEN 'Jeune'\n  END AS categorie\nFROM clients;",
-    fixSql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;"},
-  consigne:"Affiche le nom, l’âge et une catégorie pour chaque client : 'Jeune' si moins de 30 ans, 'Adulte' si entre 30 et 50 ans, 'Senior' sinon.",
-  solution:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",
-  indice:"Utilise <code>CASE WHEN</code> avec trois branches et un <code>ELSE</code> final.",
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-    {k:'simple',label:'Simple',sql:"SELECT nom, ville,\n  CASE ville\n    WHEN 'Paris' THEN 'Île-de-France'\n    WHEN 'Lyon' THEN 'Auvergne-Rhône-Alpes'\n    WHEN 'Marseille' THEN 'PACA'\n    ELSE 'Autre'\n  END AS region\nFROM clients;",out:"Sophie, Nathan, Léa → Île-de-France. Lucas, Hugo → Auvergne-Rhône-Alpes. Emma → PACA. Chloé, Gabriel, Inès → Autre."},
-    {k:'search',label:'Recherché',sql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",out:"10 lignes. Lucas, Chloé, Gabriel → Jeune. Hugo → Senior. Les autres → Adulte.",tone:'good'},
-    {k:'orderby',label:'ORDER BY',sql:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients\nORDER BY CASE\n    WHEN age < 30 THEN 1\n    WHEN age BETWEEN 30 AND 50 THEN 2\n    ELSE 3\n  END;",out:"10 lignes. Jeune d’abord, puis Adulte, puis Senior."},
-    {k:'groupby',label:'GROUP BY',sql:"SELECT\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie,\n  COUNT(*) AS nb\nFROM clients\nGROUP BY categorie;",out:"3 groupes : Jeune 3, Adulte 6, Senior 1."},
-    {k:'where',label:'WHERE',sql:"SELECT nom, age\nFROM clients\nWHERE CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END = 'Jeune';",out:"3 lignes : Lucas, Chloé, Gabriel."}
-  ] },
-{ id:23, titre:"COALESCE", résumé:"Remplacer les valeurs absentes",
-  situation:"Dans la table <code>clients</code>, certains clients n’ont pas renseigné leur adresse e-mail : la valeur est <code>NULL</code>.<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th class=\"col-hl\">email</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td class=\"col-hl\">sophie@mail.fr</td></tr><tr><td>2</td><td>Lucas</td><td class=\"col-hl\">lucas@mail.fr</td></tr><tr><td>6</td><td>Hugo</td><td class=\"col-hl null\">NULL</td></tr><tr><td>9</td><td>Inès</td><td class=\"col-hl null\">NULL</td></tr><tr class=\"sample-more\"><td colspan=\"3\">… et 6 autres clients</td></tr></tbody></table></div><div class=\"coal-data-summary\" role=\"note\" aria-label=\"Résumé des adresses e-mail\"><span><i aria-hidden=\"true\"></i>8 adresses présentes</span><span><i aria-hidden=\"true\"></i>2 valeurs NULL</span></div><br><br>Objectif : afficher un contact lisible pour les 10 clients, sans modifier la table.",
-    studio:{problem:{eye:"COALESCE",title:"Une règle : la première valeur qui n’est pas NULL.",
-      body:`<div class="coal-primer">
-        <p class="coal-primer-lead"><strong>COALESCE lit les valeurs de gauche à droite</strong> et renvoie la première qui n’est pas <code>NULL</code>.</p>
-        <div class="coal-route" role="img" aria-label="SQL teste d’abord email puis utilise Non renseigné si email vaut NULL">
-          <div class="coal-route-choice"><small>1er choix</small><code>email</code></div>
-          <div class="coal-route-link" aria-hidden="true"><span>si NULL</span></div>
-          <div class="coal-route-choice"><small>choix suivant</small><code>'Non renseigné'</code></div>
-        </div>
-        <div class="coal-outcomes">
-          <div class="coal-outcome"><i aria-hidden="true">✓</i><p><b>L’e-mail n’est pas NULL</b><span><code>COALESCE</code> renvoie l’e-mail. Les valeurs suivantes ne sont pas utilisées.</span></p></div>
-          <div class="coal-outcome is-null"><i aria-hidden="true">→</i><p><b>L’e-mail est NULL</b><span><code>COALESCE</code> passe à la valeur suivante et renvoie <code>'Non renseigné'</code>.</span></p></div>
-        </div>
-        <div class="pt-syntax coal-syntax"><pre class="cw-syntax">COALESCE(expression1, expression2, …)</pre></div>
-        <p class="coal-edge"><span>Si toutes les valeurs sont <code>NULL</code>, le résultat est <code>NULL</code>.</span></p>
-      </div>`},
-    uses:{title:"4 façons de l’utiliser",
-      body:`<div class="coal-uses-list">
-        <article class="coal-use-row">
-          <span class="coal-use-n">01</span><div class="coal-use-copy">
-            <h3>Afficher un remplacement</h3><p>Rendre une information absente compréhensible pour l’utilisateur.</p>
-            <div class="pt-syntax"><pre class="cw-syntax">COALESCE(email, 'Non renseigné')</pre></div>
-            <p class="coal-use-result">Hugo → Non renseigné</p>
-          </div>
-        </article>
-        <article class="coal-use-row">
-          <span class="coal-use-n">02</span><div class="coal-use-copy">
-            <h3>Choisir le premier contact</h3><p>Tester plusieurs colonnes dans l’ordre de préférence.</p>
-            <div class="pt-syntax"><pre class="cw-syntax">COALESCE(email, telephone, 'Aucun contact')</pre></div>
-            <p class="coal-use-result">email → téléphone → texte de repli</p>
-          </div>
-        </article>
-        <article class="coal-use-row">
-          <span class="coal-use-n">03</span><div class="coal-use-copy">
-            <h3>Sécuriser un calcul</h3><p>Éviter qu’une valeur absente rende tout le calcul <code>NULL</code>.</p>
-            <div class="pt-syntax"><pre class="cw-syntax">prix * COALESCE(quantite, 0)</pre></div>
-            <p class="coal-use-result">quantité absente → 0 pour ce calcul</p>
-          </div>
-        </article>
-        <article class="coal-use-row">
-          <span class="coal-use-n">04</span><div class="coal-use-copy">
-            <h3>Garantir un résultat</h3><p>Prévoir un repli pour une expression ou une sous-requête vide.</p>
-            <div class="pt-syntax"><pre class="cw-syntax">COALESCE(
-  (SELECT MAX(prix) FROM produits
-   WHERE categorie = 'Inconnue'),
-  0
-)</pre></div>
-            <p class="coal-use-result">aucun prix trouvé → 0</p>
-          </div>
-        </article>
-      </div>`},
-    why:{title:"Suis ce qui arrive à tes données.",
-      body:"SQL lit chaque email. S’il est NULL, il affiche « Non renseigné ». L’email de Hugo dans la table, lui, reste NULL. Pour le modifier, il faut un UPDATE."},
-    reflex:{a:{k:"COALESCE(a, b)",t:"a si a n’est pas <code>NULL</code>, sinon b"},
-      b:{k:"UPDATE",t:"modifie réellement la valeur dans la table"}},
-    viz:"coalesce"},
-  anatomie:[{tok:"SELECT nom,",txt:"Le nom affiché."},{tok:"COALESCE(email, 'Non renseigné') AS contact",txt:"L’email, ou « Non renseigné » si absent."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."}],
-  exemple:"SELECT nom, COALESCE(email, 'Non renseigné') AS contact FROM clients;",
-  attendu:"10 lignes. Hugo et Inès affichent « Non renseigné ».",
-  retenir:"<code>COALESCE(a, b)</code> affiche a s’il existe, sinon b. La base ne change pas.",
-  piege:{t:"COALESCE ne modifie pas les données",p:"<code>COALESCE</code> peut afficher une valeur à la place de <code>NULL</code>, mais la valeur enregistrée dans la table reste inchangée.<br><br>Pour modifier réellement la donnée, il faut utiliser <code>UPDATE</code>."},
-  consigne:"Affiche le <code>nom</code> et l’email, en remplaçant les valeurs <code>NULL</code> par <code>'Non renseigné'</code> (colonne <code>contact</code>).",
-  solution:"SELECT nom, COALESCE(email, 'Non renseigné') AS contact FROM clients;",
-  indice:"<code>COALESCE(email, 'Non renseigné') AS contact</code>.",
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-    {k:'select',label:'SELECT',sql:"SELECT nom, email FROM clients;",out:"Hugo et Inès ont un email vide"},
-    {k:'coalesce',label:'COALESCE',sql:"SELECT nom, COALESCE(email, 'Non renseigné') AS contact\nFROM clients;",out:"10 lignes. Hugo et Inès affichent « Non renseigné ».",tone:'good'}
-  ],
-  fnCmp:{title:"Quel équivalent selon le moteur ?",
-    say:"<p class=\"fn-cmp-say\"><b>Privilégie <code>COALESCE</code></b> : elle appartient au standard SQL et accepte autant d’arguments que nécessaire.</p>",
-    rows:[
-      {fn:"COALESCE",std:1,moteur:"standard SQL",d:"Accepte un nombre variable d’arguments. Retourne la première valeur non <code>NULL</code>.",on:1},
-      {fn:"ISNULL",moteur:"SQL Server",d:"Prend exactement 2 arguments. Retourne le second si le premier est <code>NULL</code>."},
-      {fn:"IFNULL",moteur:"MySQL",d:"Prend exactement 2 arguments. Retourne le second si le premier est <code>NULL</code>."},
-      {fn:"NVL",moteur:"Oracle",d:"Prend exactement 2 arguments. Retourne le second si le premier est <code>NULL</code>."}
-    ]} },
+{ titre:"Sous-requêtes et ensembles", sous:"IN, EXISTS, CTE et UNION", lessons:[
 { id:45, titre:"Sous-requête dans WHERE avec IN", résumé:"Filtrer avec une liste issue d’une autre requête",
   situation:"Tu prépares une offre pour les clients qui ont déjà acheté le produit « Fibre Prébiotique » et tu veux retrouver leurs noms.<br><br>Le nom du client est dans la table <code>clients</code>, tandis que les achats sont enregistrés dans la table <code>commandes</code>.<br><br>Dans <code>commandes</code>, le produit « Fibre Prébiotique » (<code>produit_id = 1</code>) apparaît quatre fois :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th class=\"col-hl\">client_id</th><th>produit</th></tr></thead><tbody><tr><td>1</td><td class=\"col-hl\">1</td><td>Fibre Prébiotique</td></tr><tr><td>5</td><td class=\"col-hl\">4</td><td>Fibre Prébiotique</td></tr><tr><td>8</td><td class=\"col-hl\">7</td><td>Fibre Prébiotique</td></tr><tr><td>15</td><td class=\"col-hl\">5</td><td>Fibre Prébiotique</td></tr></tbody></table></div>",
   situationTail:"Les <code>client_id</code> associés sont 1, 4, 7 et 5.<br><br>Il faut maintenant retrouver dans la table <code>clients</code> les clients dont l’<code>id</code> appartient à cette liste.<br><br>C’est justement ce que permet une sous-requête avec <code>IN</code> : la sous-requête récupère d’abord les identifiants, puis la requête principale utilise cette liste pour filtrer les clients.",
@@ -10020,6 +10020,106 @@ WHERE nb_commandes = (
     {k:'even',label:'Nombres pairs',sql:"WITH RECURSIVE n(x) AS (SELECT 2 UNION ALL SELECT x + 2 FROM n WHERE x < 10) SELECT x FROM n;",out:"2, 4, 6, 8, 10."},
     {k:'nostop',label:'Sans arrêt',sql:"WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM n) SELECT x FROM n;",out:"La récursion n’a aucune borne : ne pas exécuter en production.",tone:'bad',exec:false}
   ] },
+{ id:73, titre:"UNION et UNION ALL", résumé:"Empiler deux résultats, avec ou sans doublons",
+  situation:"Tu veux la liste de tous les mots qui servent d’étiquette dans la base : les villes des clients, et les catégories des produits.<br><br>Les deux vivent dans des tables différentes. Une jointure ne convient pas : il n’y a rien à rapprocher, aucune correspondance entre une ville et une catégorie.<br><br>Tu ne veux pas croiser deux tables — tu veux <b>empiler</b> deux résultats.",
+  situationTail:"<div class=\"sit-sql\"><p>Une jointure élargit le résultat : elle ajoute des <b>colonnes</b>.</p><p><b><code>UNION</code></b> l’allonge : il ajoute des <b>lignes</b>.</p></div>",
+    studio:{pointCards:{
+      eye:"UNION",title:"Deux résultats, une seule liste.",
+      lead:"<code>UNION</code> met bout à bout les lignes de deux <code>SELECT</code>. Les colonnes ne se cumulent pas : ce sont les lignes qui s’ajoutent.",
+      chain:[
+        {k:"UNION",v:"empile et dédoublonne"},
+        {k:"UNION ALL",v:"empile tout"},
+        {k:"JOIN",v:"élargit, ne rallonge pas"}
+      ]},
+    uses:{title:"Empiler, plutôt que croiser.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">La forme</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville FROM clients
+UNION
+SELECT categorie FROM produits;</pre></div>
+          <p>Dix villes et huit catégories entrent ; onze valeurs sortent. Les doublons ont disparu, et Paris n’apparaît qu’une fois même si quatre clients y habitent.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">UNION ALL — garder les doublons</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville FROM clients
+UNION ALL
+SELECT categorie FROM produits;</pre></div>
+          <p>Dix-huit lignes : les dix plus les huit, sans le moindre tri. C’est la somme brute des deux résultats.</p>
+          <p class="fn-tip"><b>Le moins cher des deux</b> <code>UNION</code> doit comparer toutes les lignes pour écarter les doublons. Si tu sais qu’il n’y en a pas, <code>UNION ALL</code> évite ce travail.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Deux conditions à respecter</p>
+          <p>Les deux requêtes doivent renvoyer le <b>même nombre de colonnes</b>, et des types compatibles rang par rang.</p>
+          <div class="tx-fail">
+            <span class="is-ko">une colonne UNION deux colonnes<i>do not have the same number of result columns</i></span>
+          </div>
+          <p>Le nom des colonnes, lui, est libre : c’est celui de la <b>première</b> requête qui est retenu.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Trier l’ensemble</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville AS valeur FROM clients
+UNION
+SELECT categorie FROM produits
+ORDER BY valeur;</pre></div>
+          <p>Un seul <code>ORDER BY</code>, à la toute fin : il trie le résultat complet, pas chaque moitié. C’est pour cela qu’un alias sur la première requête est commode.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Deux voisins moins connus</p>
+          <p><code>INTERSECT</code> ne garde que les valeurs présentes des <b>deux</b> côtés. <code>EXCEPT</code> garde celles du premier résultat qui sont absentes du second.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville FROM clients
+EXCEPT
+SELECT 'Paris';</pre></div>
+          <p>Cinq villes : toutes sauf Paris. Les trois opérateurs suivent les mêmes règles de colonnes.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">UNION ou JOIN ?</p>
+          <div class="tx-flow" role="img" aria-label="JOIN ajoute des colonnes, UNION ajoute des lignes">
+            <span class="tx-step">deux tables<i>que veux-tu obtenir ?</i></span>
+            <i class="tx-arrow" aria-hidden="true">↓</i>
+            <div class="tx-fork">
+              <div class="tx-branch"><b>JOIN</b><span>plus de colonnes</span></div>
+              <div class="tx-branch"><b>UNION</b><span>plus de lignes</span></div>
+            </div>
+          </div>
+          <p>Rapprocher un client de ses commandes : <code>JOIN</code>. Rassembler deux listes de même nature : <code>UNION</code>.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"La question",t:"plus de colonnes, ou plus de lignes ?"},
+      b:{k:"La règle",t:"colonnes → JOIN · lignes → UNION"},
+      note:"Réflexe : <code>UNION</code> dédoublonne, <code>UNION ALL</code> non. Quand tu sais qu’il n’y a pas de doublon, prends <code>UNION ALL</code>."}},
+  anatomie:[
+    {tok:"SELECT ville FROM clients",txt:"La première liste."},
+    {tok:"UNION",txt:"Empile la seconde sous la première, sans doublon."},
+    {tok:"SELECT categorie FROM produits",txt:"La seconde liste, avec autant de colonnes que la première."},
+    {tok:"ORDER BY valeur",txt:"Trie l’ensemble, une seule fois, à la fin."}
+  ],
+  exemple:"SELECT ville AS valeur\nFROM clients\nUNION\nSELECT categorie\nFROM produits\nORDER BY valeur;",
+  attendu:"11 lignes. Dix villes et huit catégories entrent, mais Paris et Lyon se répétaient : UNION ne les garde qu’une fois.",
+  retenir:"<code>UNION</code> empile les lignes de deux <code>SELECT</code> et écarte les doublons ; <code>UNION ALL</code> les garde tous.<br><br>Les deux requêtes doivent avoir le <b>même nombre de colonnes</b>. Le nom retenu est celui de la première, et l’unique <code>ORDER BY</code> se place à la fin.<br><br>Le mémo : <b>JOIN élargit, UNION rallonge</b>. <code>INTERSECT</code> et <code>EXCEPT</code> suivent les mêmes règles.",
+  piege:{t:"Croire que UNION garde tout",
+    p:"<code>UNION</code> dédoublonne, en silence. Compter les lignes d’un <code>UNION</code> pour connaître le total des deux tables donne un résultat trop petit — et rien ne le signale.<br><br>Pour additionner sans rien perdre, c’est <code>UNION ALL</code>.",
+    exec:true,
+    sql:"SELECT COUNT(*) AS total\nFROM (\n  SELECT ville FROM clients\n  UNION\n  SELECT categorie FROM produits\n);",
+    out:"11, alors que 10 villes et 8 catégories font 18. Sept valeurs se répétaient.",
+    fixSql:"SELECT COUNT(*) AS total\nFROM (\n  SELECT ville FROM clients\n  UNION ALL\n  SELECT categorie FROM produits\n);"},
+  petitDefi:[{
+    p:"Tu empiles deux listes dont tu sais qu’elles n’ont aucune valeur commune, et tu veux éviter le travail de dédoublonnage. Qu’écris-tu ?",
+    sql:"SELECT … FROM a\n__________\nSELECT … FROM b;",
+    a:"UNION ALL",
+    answers:["UNION ALL","union all","UNION ALL "]
+  }],
+  consigne:"Le service marketing veut la liste des étiquettes de la base, sans répétition : toutes les villes des clients et toutes les catégories des produits, dans une seule colonne nommée <code>valeur</code>, triée par ordre alphabétique.",
+  solution:"SELECT ville AS valeur\nFROM clients\nUNION\nSELECT categorie\nFROM produits\nORDER BY valeur;",
+  indice:"Deux <code>SELECT</code> d’une colonne chacun, reliés par <code>UNION</code>, puis un seul <code>ORDER BY</code> tout à la fin.",
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+    {k:'union',label:'UNION',sql:"SELECT ville AS valeur FROM clients\nUNION\nSELECT categorie FROM produits\nORDER BY valeur;",out:"11 valeurs distinctes.",tone:'good'},
+    {k:'all',label:'UNION ALL',sql:"SELECT ville AS valeur FROM clients\nUNION ALL\nSELECT categorie FROM produits;",out:"18 lignes : 10 + 8, doublons compris."},
+    {k:'except',label:'EXCEPT',sql:"SELECT ville FROM clients\nEXCEPT\nSELECT 'Paris';",out:"Toutes les villes sauf Paris."}
+  ] }
+]},
+{ titre:"Fonctions de fenêtre", sous:"Calculer sans regrouper les lignes", lessons:[
 { id:60, titre:"OVER()", résumé:"Calculer sans regrouper les lignes",
   situation:"Tu analyses les produits de ton site e-commerce.<br><br>Pour chaque produit, tu veux son nom, sa catégorie, son prix, et le prix moyen de sa catégorie — pour comparer chaque ligne à son groupe.<br><br>Avec <code>GROUP BY</code>, tu peux calculer cette moyenne :",
   situationSql:"SELECT categorie, AVG(prix) AS prix_moyen\nFROM produits\nGROUP BY categorie;",
@@ -10165,104 +10265,6 @@ WHERE rang = 1;</pre></div>
     {k:'over',label:'OVER()',sql:"SELECT nom, categorie, prix,\n    AVG(prix) OVER (PARTITION BY categorie) AS prix_moyen\nFROM produits;",out:"8 lignes. Chaque produit reste, avec la moyenne de sa catégorie.",tone:'good'},
     {k:'minmax',label:'MIN / MAX',sql:"SELECT nom, categorie, prix,\n    MIN(prix) OVER (PARTITION BY categorie) AS prix_min,\n    MAX(prix) OVER (PARTITION BY categorie) AS prix_max\nFROM produits;",out:"Le Magnésium (19,90) se compare au min et au max des Bien-être."}
   ] },
-{ id:73, titre:"UNION et UNION ALL", résumé:"Empiler deux résultats, avec ou sans doublons",
-  situation:"Tu veux la liste de tous les mots qui servent d’étiquette dans la base : les villes des clients, et les catégories des produits.<br><br>Les deux vivent dans des tables différentes. Une jointure ne convient pas : il n’y a rien à rapprocher, aucune correspondance entre une ville et une catégorie.<br><br>Tu ne veux pas croiser deux tables — tu veux <b>empiler</b> deux résultats.",
-  situationTail:"<div class=\"sit-sql\"><p>Une jointure élargit le résultat : elle ajoute des <b>colonnes</b>.</p><p><b><code>UNION</code></b> l’allonge : il ajoute des <b>lignes</b>.</p></div>",
-    studio:{pointCards:{
-      eye:"UNION",title:"Deux résultats, une seule liste.",
-      lead:"<code>UNION</code> met bout à bout les lignes de deux <code>SELECT</code>. Les colonnes ne se cumulent pas : ce sont les lignes qui s’ajoutent.",
-      chain:[
-        {k:"UNION",v:"empile et dédoublonne"},
-        {k:"UNION ALL",v:"empile tout"},
-        {k:"JOIN",v:"élargit, ne rallonge pas"}
-      ]},
-    uses:{title:"Empiler, plutôt que croiser.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">La forme</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville FROM clients
-UNION
-SELECT categorie FROM produits;</pre></div>
-          <p>Dix villes et huit catégories entrent ; onze valeurs sortent. Les doublons ont disparu, et Paris n’apparaît qu’une fois même si quatre clients y habitent.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">UNION ALL — garder les doublons</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville FROM clients
-UNION ALL
-SELECT categorie FROM produits;</pre></div>
-          <p>Dix-huit lignes : les dix plus les huit, sans le moindre tri. C’est la somme brute des deux résultats.</p>
-          <p class="fn-tip"><b>Le moins cher des deux</b> <code>UNION</code> doit comparer toutes les lignes pour écarter les doublons. Si tu sais qu’il n’y en a pas, <code>UNION ALL</code> évite ce travail.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Deux conditions à respecter</p>
-          <p>Les deux requêtes doivent renvoyer le <b>même nombre de colonnes</b>, et des types compatibles rang par rang.</p>
-          <div class="tx-fail">
-            <span class="is-ko">une colonne UNION deux colonnes<i>do not have the same number of result columns</i></span>
-          </div>
-          <p>Le nom des colonnes, lui, est libre : c’est celui de la <b>première</b> requête qui est retenu.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Trier l’ensemble</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville AS valeur FROM clients
-UNION
-SELECT categorie FROM produits
-ORDER BY valeur;</pre></div>
-          <p>Un seul <code>ORDER BY</code>, à la toute fin : il trie le résultat complet, pas chaque moitié. C’est pour cela qu’un alias sur la première requête est commode.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Deux voisins moins connus</p>
-          <p><code>INTERSECT</code> ne garde que les valeurs présentes des <b>deux</b> côtés. <code>EXCEPT</code> garde celles du premier résultat qui sont absentes du second.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville FROM clients
-EXCEPT
-SELECT 'Paris';</pre></div>
-          <p>Cinq villes : toutes sauf Paris. Les trois opérateurs suivent les mêmes règles de colonnes.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">UNION ou JOIN ?</p>
-          <div class="tx-flow" role="img" aria-label="JOIN ajoute des colonnes, UNION ajoute des lignes">
-            <span class="tx-step">deux tables<i>que veux-tu obtenir ?</i></span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <div class="tx-fork">
-              <div class="tx-branch"><b>JOIN</b><span>plus de colonnes</span></div>
-              <div class="tx-branch"><b>UNION</b><span>plus de lignes</span></div>
-            </div>
-          </div>
-          <p>Rapprocher un client de ses commandes : <code>JOIN</code>. Rassembler deux listes de même nature : <code>UNION</code>.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La question",t:"plus de colonnes, ou plus de lignes ?"},
-      b:{k:"La règle",t:"colonnes → JOIN · lignes → UNION"},
-      note:"Réflexe : <code>UNION</code> dédoublonne, <code>UNION ALL</code> non. Quand tu sais qu’il n’y a pas de doublon, prends <code>UNION ALL</code>."}},
-  anatomie:[
-    {tok:"SELECT ville FROM clients",txt:"La première liste."},
-    {tok:"UNION",txt:"Empile la seconde sous la première, sans doublon."},
-    {tok:"SELECT categorie FROM produits",txt:"La seconde liste, avec autant de colonnes que la première."},
-    {tok:"ORDER BY valeur",txt:"Trie l’ensemble, une seule fois, à la fin."}
-  ],
-  exemple:"SELECT ville AS valeur\nFROM clients\nUNION\nSELECT categorie\nFROM produits\nORDER BY valeur;",
-  attendu:"11 lignes. Dix villes et huit catégories entrent, mais Paris et Lyon se répétaient : UNION ne les garde qu’une fois.",
-  retenir:"<code>UNION</code> empile les lignes de deux <code>SELECT</code> et écarte les doublons ; <code>UNION ALL</code> les garde tous.<br><br>Les deux requêtes doivent avoir le <b>même nombre de colonnes</b>. Le nom retenu est celui de la première, et l’unique <code>ORDER BY</code> se place à la fin.<br><br>Le mémo : <b>JOIN élargit, UNION rallonge</b>. <code>INTERSECT</code> et <code>EXCEPT</code> suivent les mêmes règles.",
-  piege:{t:"Croire que UNION garde tout",
-    p:"<code>UNION</code> dédoublonne, en silence. Compter les lignes d’un <code>UNION</code> pour connaître le total des deux tables donne un résultat trop petit — et rien ne le signale.<br><br>Pour additionner sans rien perdre, c’est <code>UNION ALL</code>.",
-    exec:true,
-    sql:"SELECT COUNT(*) AS total\nFROM (\n  SELECT ville FROM clients\n  UNION\n  SELECT categorie FROM produits\n);",
-    out:"11, alors que 10 villes et 8 catégories font 18. Sept valeurs se répétaient.",
-    fixSql:"SELECT COUNT(*) AS total\nFROM (\n  SELECT ville FROM clients\n  UNION ALL\n  SELECT categorie FROM produits\n);"},
-  petitDefi:[{
-    p:"Tu empiles deux listes dont tu sais qu’elles n’ont aucune valeur commune, et tu veux éviter le travail de dédoublonnage. Qu’écris-tu ?",
-    sql:"SELECT … FROM a\n__________\nSELECT … FROM b;",
-    a:"UNION ALL",
-    answers:["UNION ALL","union all","UNION ALL "]
-  }],
-  consigne:"Le service marketing veut la liste des étiquettes de la base, sans répétition : toutes les villes des clients et toutes les catégories des produits, dans une seule colonne nommée <code>valeur</code>, triée par ordre alphabétique.",
-  solution:"SELECT ville AS valeur\nFROM clients\nUNION\nSELECT categorie\nFROM produits\nORDER BY valeur;",
-  indice:"Deux <code>SELECT</code> d’une colonne chacun, reliés par <code>UNION</code>, puis un seul <code>ORDER BY</code> tout à la fin.",
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-    {k:'union',label:'UNION',sql:"SELECT ville AS valeur FROM clients\nUNION\nSELECT categorie FROM produits\nORDER BY valeur;",out:"11 valeurs distinctes.",tone:'good'},
-    {k:'all',label:'UNION ALL',sql:"SELECT ville AS valeur FROM clients\nUNION ALL\nSELECT categorie FROM produits;",out:"18 lignes : 10 + 8, doublons compris."},
-    {k:'except',label:'EXCEPT',sql:"SELECT ville FROM clients\nEXCEPT\nSELECT 'Paris';",out:"Toutes les villes sauf Paris."}
-  ] },
 { id:74, titre:"Fonctions de rang", résumé:"Classer les lignes, ex aequo compris",
   situation:"Tu veux le classement des clients par nombre de commandes : qui est premier, qui est deuxième.<br><br><code>ORDER BY</code> les met dans l’ordre, mais n’écrit aucun numéro. Et cinq clients ont exactement deux commandes — leur donner des places différentes serait faux.<br><br>Un classement doit dire quelque chose des ex aequo.",
   situationTail:"<div class=\"sit-sql\"><p>Trois fonctions numérotent les lignes d’un résultat.</p><p>Elles ne diffèrent que sur un point : le traitement des <b>ex aequo</b>.</p></div>",
@@ -10390,7 +10392,7 @@ SELECT 'Paris';</pre></div>
     {k:'lead',label:'LEAD',sql:"SELECT id, quantite, LEAD(quantite) OVER (ORDER BY id) AS suivante FROM commandes ORDER BY id;",out:"Chaque commande voit la quantité juste après."},
     {k:'default',label:'Valeur par défaut',sql:"SELECT id, quantite, LAG(quantite, 1, 0) OVER (ORDER BY id) AS precedente FROM commandes ORDER BY id;",out:"La première ligne affiche 0 au lieu de NULL."}
   ] },
-{ id:79, titre:"Fenêtres avancées", résumé:"Cadres mobiles, quartiles et valeurs de bord",
+{ id:79, titre:"Fenêtres glissantes", résumé:"Moyennes mobiles, quartiles NTILE et valeurs de bord",
   situation:"Une fenêtre ordonnée ne signifie pas toujours « toutes les lignes du groupe ». Pour calculer une moyenne mobile, il faut préciser exactement quelles voisines participent au calcul : la ligne précédente et la ligne courante, par exemple.",
   situationSql:"SELECT id, quantite,\n       AVG(quantite) OVER (\n         ORDER BY id\n         ROWS BETWEEN 1 PRECEDING AND CURRENT ROW\n       ) AS moyenne_2\nFROM commandes\nORDER BY id;",
   situationTail:"<div class=\"sit-sql\"><p>Le <b>cadre</b> se déplace avec la ligne courante. Il contient ici au maximum deux lignes.</p></div>",
@@ -10425,131 +10427,7 @@ SELECT 'Paris';</pre></div>
     {k:'last',label:'Dernière valeur',sql:"SELECT categorie, nom, LAST_VALUE(nom) OVER (PARTITION BY categorie ORDER BY prix, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS dernier FROM produits ORDER BY categorie, prix, id;",out:"Chaque produit voit le dernier nom de sa catégorie dans l’ordre choisi."}
   ] }
 ]},
-{ titre:"Création et suppression de tables", sous:"CREATE TABLE, modélisation, ALTER TABLE, DROP", lessons:[
-{ id:61, titre:"CREATE TABLE", résumé:"Créer la structure d’une table",
-  situation:"Ton site e-commerce a besoin d’enregistrer ses clients.<br><br>Pour l’instant, la table <code>clients</code> n’existe pas encore. Tu sais simplement quelles informations tu veux conserver : un identifiant, le nom, la ville, l’âge, l’e-mail, le téléphone et la date d’inscription.<br><br>Avant d’ajouter des clients, il faut donc définir la structure de la table qui va les accueillir.",
-  situationTail:"<div class=\"sit-sql\"><p>C’est le rôle de <code>CREATE TABLE</code> : elle construit la table, colonne par colonne, avec le type de chacune et les règles à respecter.</p></div>",
-    studio:{pointCards:{
-      eye:"CREATE TABLE",title:"Définir la structure avant les données.",
-      lead:"Pour créer une table, on indique son nom, ses colonnes, le type de chaque colonne, et éventuellement des règles à respecter.",
-      chain:[
-        {k:"CREATE TABLE",v:"construit la table"},
-        {k:"Colonne",v:"un nom, un type"},
-        {k:"Contrainte",v:"une règle que les données respectent"}
-      ]},
-    uses:{title:"Une contrainte à la fois.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">La structure, pas les données</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE clients (
-    id INTEGER,
-    nom TEXT,
-    ville TEXT,
-    age INTEGER
-);</pre></div>
-          <p>La table <code>clients</code> existe maintenant, avec quatre colonnes. Elle est vide : aucune ligne n’a encore été ajoutée.</p>
-          <p class="fn-tip"><b>Deux rôles distincts</b> <code>CREATE TABLE</code> construit la table. <code>INSERT</code> y ajoute des lignes.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le type de chaque colonne</p>
-          <p>Une colonne ne contient pas n’importe quelle information. Le type l’annonce.</p>
-          <div class="table-wrap"><table class="concept-table fit-2">
-            <thead><tr><th>Type</th><th>Exemple</th></tr></thead>
-            <tbody>
-              <tr><td><code>INTEGER</code></td><td>34</td></tr>
-              <tr><td><code>REAL</code></td><td>29.90</td></tr>
-              <tr><td><code>TEXT</code></td><td>'Sophie'</td></tr>
-              <tr><td><code>BLOB</code></td><td>X'89504E47'</td></tr>
-              <tr><td><code>NULL</code></td><td>absence de valeur</td></tr>
-            </tbody>
-          </table></div>
-          <p>Dans cette base, les dates sont enregistrées en <code>TEXT</code>, au format <code>AAAA-MM-JJ</code> — par exemple <code>2023-01-15</code>.</p>
-          <p><code>BLOB</code> sert aux données binaires : une image, un PDF, un fichier audio. On les écrit en hexadécimal, <code>X'89504E47'</code>, ou on les confie au langage qui pilote la base. Aucune colonne de cette base n’en utilise.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Sans contrainte, la table accepte presque tout</p>
-          <p>Rien n’empêcherait deux clients de porter le même <code>id</code>. Or <code>id</code> est censé identifier un seul client.</p>
-          <p>Une <b>contrainte</b> est une règle que les données doivent respecter.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">PRIMARY KEY — identifier chaque ligne</p>
-          <div class="pt-syntax"><pre class="cw-syntax">id INTEGER PRIMARY KEY</pre></div>
-          <p>Deux clients ne peuvent pas partager la même clé primaire.</p>
-          <p class="fn-tip"><b>Le réflexe</b> La clé primaire répond à la question : comment identifier exactement cette ligne ?</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">NOT NULL — rendre une valeur obligatoire</p>
-          <div class="pt-syntax"><pre class="cw-syntax">nom TEXT NOT NULL</pre></div>
-          <p>Une ligne dont le <code>nom</code> vaudrait <code>NULL</code> serait refusée.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">UNIQUE — empêcher les doublons</p>
-          <div class="pt-syntax"><pre class="cw-syntax">email TEXT UNIQUE</pre></div>
-          <p>C’est la règle que porte <code>email</code> dans cette base : <code>sophie@mail.fr</code> étant déjà enregistré, aucune autre ligne ne peut reprendre cette adresse.</p>
-          <p class="fn-tip"><b>NULL y échappe</b> Hugo et Inès n’ont pas d’e-mail. <code>UNIQUE</code> compare des valeurs, et <code>NULL</code> n’en est pas une : plusieurs lignes peuvent rester sans adresse.</p>
-          <p class="fn-tip"><b>À distinguer</b> <code>PRIMARY KEY</code> identifie la ligne. <code>UNIQUE</code> interdit seulement les valeurs répétées.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">CHECK — imposer une condition</p>
-          <div class="pt-syntax"><pre class="cw-syntax">age INTEGER CHECK (age >= 0)</pre></div>
-          <p>Un âge de <code>-12</code> serait refusé. <code>CHECK</code> exprime une condition que les données doivent respecter.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">DEFAULT — prévoir une valeur</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE comptes (
-    id INTEGER PRIMARY KEY,
-    nom TEXT,
-    statut TEXT DEFAULT 'actif'
-);</pre></div>
-          <p>Un <code>INSERT</code> qui ne précise pas de statut enregistre <code>actif</code>. <code>DEFAULT</code> fournit une valeur lorsqu’aucune n’est indiquée.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">FOREIGN KEY — relier les tables</p>
-          <p>Dans <code>commandes</code>, <code>client_id</code> correspond à <code>clients.id</code> et <code>produit_id</code> à <code>produits.id</code>.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">FOREIGN KEY (client_id)
-    REFERENCES clients(id)</pre></div>
-          <p>Sans ce contrôle, une commande pourrait porter <code>client_id = 5000</code> alors qu’aucun client ne porte cet identifiant. La clé étrangère protège les relations entre les tables.</p>
-          <p class="fn-tip"><b>NULL reste possible</b> Une commande sans client enregistré porte <code>client_id = NULL</code>, ce qui est différent d’un identifiant qui n’existe pas. C’est pourquoi cette colonne n’est pas <code>NOT NULL</code>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">L’ordre de création compte</p>
-          <p>Une clé étrangère désigne une table qui doit déjà exister. On crée donc les tables indépendantes d’abord, puis celle qui les référence : <code>clients</code>, <code>produits</code>, enfin <code>commandes</code>.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La question",t:"quelles informations cette table doit-elle contenir ?"},
-      b:{k:"La règle",t:"chaque colonne a un nom, un type, parfois une contrainte"},
-      note:"Réflexe : avant d’ajouter des données, définis leur structure et les règles qu’elles doivent respecter."}},
-  anatomie:[
-    {tok:"CREATE TABLE clients",txt:"Crée une table appelée clients."},
-    {tok:"id",txt:"Le nom de la colonne."},
-    {tok:"INTEGER",txt:"Le type accepté par cette colonne."},
-    {tok:"PRIMARY KEY",txt:"Une règle sur la colonne : cette valeur identifie la ligne."},
-    {tok:",",txt:"La virgule passe à la colonne suivante. Toute la définition tient entre parenthèses."}
-  ],
-  exemple:"CREATE TABLE clients (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    ville TEXT,\n    age INTEGER CHECK (age >= 0),\n    email TEXT UNIQUE,\n    telephone TEXT,\n    date_inscription TEXT\n);\n\nCREATE TABLE produits (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    categorie TEXT,\n    prix REAL,\n    stock INTEGER CHECK (stock >= 0)\n);\n\nCREATE TABLE commandes (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER,\n    produit_id INTEGER NOT NULL,\n    quantite INTEGER NOT NULL\n        CHECK (quantite > 0),\n    date_commande TEXT,\n    FOREIGN KEY (client_id)\n        REFERENCES clients(id),\n    FOREIGN KEY (produit_id)\n        REFERENCES produits(id)\n);",
-  attendu:"Trois tables vides, reliées : commandes pointe vers clients et vers produits. C’est exactement la structure de la base sur laquelle tu travailles depuis le début. Les INSERT viendront ensuite la remplir.",
-  retenir:"<code>CREATE TABLE</code> définit la structure d’une nouvelle table. Une colonne possède au minimum un <b>nom</b> et un <b>type</b>.<br><br>Elle peut aussi porter une contrainte : <code>PRIMARY KEY</code>, <code>NOT NULL</code>, <code>UNIQUE</code>, <code>CHECK</code>, <code>DEFAULT</code>, <code>FOREIGN KEY</code>.<br><br>Le mémo : <b>CREATE TABLE → colonnes → types → contraintes</b>.",
-  piege:{t:"Croire que CREATE TABLE remplit la table",
-    p:"<code>CREATE TABLE clients (...)</code> ne crée ni Sophie, ni Lucas, ni Emma. Elle crée les colonnes, leurs types et leurs règles — rien d’autre. C’est <code>INSERT</code> qui ajoute ensuite les données.",
-    exec:false,
-    sql:"CREATE TABLE clients (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL\n);",
-    out:"La table existe, et ne contient aucune ligne.",
-    fixSql:"INSERT INTO clients (id, nom)\nVALUES (1, 'Sophie');"},
-  petitDefi:[{
-    p:"Complète la création de cette table pour que le <code>nom</code> soit obligatoire.",
-    sql:"CREATE TABLE categories (\n    id INTEGER PRIMARY KEY,\n    nom TEXT __________\n);",
-    a:"NOT NULL",
-    answers:["NOT NULL","not null"]
-  }],
-  consigne:"Crée la table <code>produits</code> telle qu’elle existe dans cette base : un identifiant qui identifie chaque ligne, un nom obligatoire, une catégorie en texte, un prix décimal, et un stock entier qui ne peut jamais devenir négatif.",
-  solution:"CREATE TABLE produits (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    categorie TEXT,\n    prix REAL,\n    stock INTEGER CHECK (stock >= 0)\n);",
-  indice:"Chaque colonne s’écrit <code>nom type</code>, séparée par une virgule. <code>PRIMARY KEY</code> sur l’identifiant, <code>NOT NULL</code> sur le nom, et <code>CHECK (stock >= 0)</code> sur le stock.",
-  noExec:true,
-  createExo:true,
-  noExecNote:"Ces trois tables existent déjà dans la base : les recréer déclencherait une erreur. Lis leur structure — c’est exactement celle que tu interroges depuis le début.",
-  noExecWhy:"Les tables <code>clients</code>, <code>produits</code> et <code>commandes</code> existent déjà : SQLite refuserait de les recréer.",
-  noExecOk:{b:"✓ Correct — la structure est complète",t:"Les cinq colonnes sont là, avec leurs types et leurs trois contraintes. C’est mot pour mot la table <code>produits</code> de cette base."},
-  richLesson:true, earlyDemo:true },
+{ titre:"Modéliser", sous:"Normalisation et cardinalités", lessons:[
 { id:56, titre:"Normalisation", résumé:"Répartir les données dans des tables reliées",
   situation:"Tu dois créer un tableau de bord Power BI pour analyser les ventes : nombre de commandes, produits vendus et répartition des clients par ville.<br><br>Pour alimenter le tableau de bord, toutes les informations ont d’abord été regroupées dans une seule grande table :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>client_id</th><th>nom</th><th>ville</th><th>commande_id</th><th>produit</th><th>prix</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td>Paris</td><td>1</td><td>Fibre Prébiotique</td><td>29,90</td><td>2</td></tr><tr><td>1</td><td>Sophie</td><td>Paris</td><td>2</td><td>Magnésium</td><td>19,90</td><td>1</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>3</td><td>Protéine Végétale</td><td>34,90</td><td>1</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>10</td><td>Magnésium</td><td>19,90</td><td>2</td></tr></tbody></table></div><p class=\"nm-glide\">👉 Glisse pour voir le produit, le prix et la quantité.</p>Le tableau de bord fonctionne, mais la table contient beaucoup d’informations répétées.<br><br>À chaque nouvelle commande de Sophie, son nom et sa ville sont enregistrés à nouveau. De la même manière, les informations d’un produit peuvent apparaître dans de nombreuses lignes.<br><br>Cela pose un problème : plus les ventes augmentent, plus les données sont dupliquées et difficiles à maintenir sans incohérence.",
   situationTail:"<div class=\"sit-sql\"><p>Comment mieux organiser la base de données qui alimente Power BI ?</p><p>C’est là qu’intervient la normalisation : elle permet de répartir les informations dans plusieurs tables reliées, chacune ayant un rôle précis.</p><p>Pour apprendre à organiser ces tables correctement, nous allons avancer étape par étape avec les formes normales : <b>1NF</b>, <b>2NF</b> et <b>3NF</b>.</p></div>",
@@ -10711,7 +10589,133 @@ SELECT 'Paris';</pre></div>
     {k:'nn',label:'Table de jointure',sql:"CREATE TABLE favoris (\n  client_id INTEGER,\n  produit_id INTEGER,\n  PRIMARY KEY (client_id,\n               produit_id)\n);\n\nINSERT INTO favoris VALUES (1, 1);\nINSERT INTO favoris VALUES (1, 3);\nINSERT INTO favoris VALUES (2, 1);\n\nSELECT client_id, produit_id FROM favoris;",out:"Sophie suit deux produits, et le produit 1 int\u00e9resse deux clients.",tone:'good'},
     {k:'doublon',label:'Deux fois le même lien',sql:"CREATE TABLE favoris (\n  client_id INTEGER,\n  produit_id INTEGER,\n  PRIMARY KEY (client_id,\n               produit_id)\n);\n\nINSERT INTO favoris VALUES (1, 1);\nINSERT INTO favoris VALUES (1, 1);",out:"Refus\u00e9 : la cl\u00e9 primaire porte sur le couple.",tone:'bad'},
     {k:'unun',label:'1-1',sql:"CREATE TABLE cartes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER UNIQUE\n    REFERENCES clients(id)\n);\n\nINSERT INTO cartes VALUES (1, 1);\nINSERT INTO cartes VALUES (2, 1);",out:"Refus\u00e9 : UNIQUE interdit une deuxi\u00e8me carte au m\u00eame client.",tone:'bad'}
-  ] },
+  ] }
+]},
+{ titre:"Créer et faire évoluer les tables", sous:"CREATE, ALTER et DROP TABLE", lessons:[
+{ id:61, titre:"CREATE TABLE", résumé:"Créer la structure d’une table",
+  situation:"Ton site e-commerce a besoin d’enregistrer ses clients.<br><br>Pour l’instant, la table <code>clients</code> n’existe pas encore. Tu sais simplement quelles informations tu veux conserver : un identifiant, le nom, la ville, l’âge, l’e-mail, le téléphone et la date d’inscription.<br><br>Avant d’ajouter des clients, il faut donc définir la structure de la table qui va les accueillir.",
+  situationTail:"<div class=\"sit-sql\"><p>C’est le rôle de <code>CREATE TABLE</code> : elle construit la table, colonne par colonne, avec le type de chacune et les règles à respecter.</p></div>",
+    studio:{pointCards:{
+      eye:"CREATE TABLE",title:"Définir la structure avant les données.",
+      lead:"Pour créer une table, on indique son nom, ses colonnes, le type de chaque colonne, et éventuellement des règles à respecter.",
+      chain:[
+        {k:"CREATE TABLE",v:"construit la table"},
+        {k:"Colonne",v:"un nom, un type"},
+        {k:"Contrainte",v:"une règle que les données respectent"}
+      ]},
+    uses:{title:"Une contrainte à la fois.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">La structure, pas les données</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE clients (
+    id INTEGER,
+    nom TEXT,
+    ville TEXT,
+    age INTEGER
+);</pre></div>
+          <p>La table <code>clients</code> existe maintenant, avec quatre colonnes. Elle est vide : aucune ligne n’a encore été ajoutée.</p>
+          <p class="fn-tip"><b>Deux rôles distincts</b> <code>CREATE TABLE</code> construit la table. <code>INSERT</code> y ajoute des lignes.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Le type de chaque colonne</p>
+          <p>Une colonne ne contient pas n’importe quelle information. Le type l’annonce.</p>
+          <div class="table-wrap"><table class="concept-table fit-2">
+            <thead><tr><th>Type</th><th>Exemple</th></tr></thead>
+            <tbody>
+              <tr><td><code>INTEGER</code></td><td>34</td></tr>
+              <tr><td><code>REAL</code></td><td>29.90</td></tr>
+              <tr><td><code>TEXT</code></td><td>'Sophie'</td></tr>
+              <tr><td><code>BLOB</code></td><td>X'89504E47'</td></tr>
+              <tr><td><code>NULL</code></td><td>absence de valeur</td></tr>
+            </tbody>
+          </table></div>
+          <p>Dans cette base, les dates sont enregistrées en <code>TEXT</code>, au format <code>AAAA-MM-JJ</code> — par exemple <code>2023-01-15</code>.</p>
+          <p><code>BLOB</code> sert aux données binaires : une image, un PDF, un fichier audio. On les écrit en hexadécimal, <code>X'89504E47'</code>, ou on les confie au langage qui pilote la base. Aucune colonne de cette base n’en utilise.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Sans contrainte, la table accepte presque tout</p>
+          <p>Rien n’empêcherait deux clients de porter le même <code>id</code>. Or <code>id</code> est censé identifier un seul client.</p>
+          <p>Une <b>contrainte</b> est une règle que les données doivent respecter.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">PRIMARY KEY — identifier chaque ligne</p>
+          <div class="pt-syntax"><pre class="cw-syntax">id INTEGER PRIMARY KEY</pre></div>
+          <p>Deux clients ne peuvent pas partager la même clé primaire.</p>
+          <p class="fn-tip"><b>Le réflexe</b> La clé primaire répond à la question : comment identifier exactement cette ligne ?</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">NOT NULL — rendre une valeur obligatoire</p>
+          <div class="pt-syntax"><pre class="cw-syntax">nom TEXT NOT NULL</pre></div>
+          <p>Une ligne dont le <code>nom</code> vaudrait <code>NULL</code> serait refusée.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">UNIQUE — empêcher les doublons</p>
+          <div class="pt-syntax"><pre class="cw-syntax">email TEXT UNIQUE</pre></div>
+          <p>C’est la règle que porte <code>email</code> dans cette base : <code>sophie@mail.fr</code> étant déjà enregistré, aucune autre ligne ne peut reprendre cette adresse.</p>
+          <p class="fn-tip"><b>NULL y échappe</b> Hugo et Inès n’ont pas d’e-mail. <code>UNIQUE</code> compare des valeurs, et <code>NULL</code> n’en est pas une : plusieurs lignes peuvent rester sans adresse.</p>
+          <p class="fn-tip"><b>À distinguer</b> <code>PRIMARY KEY</code> identifie la ligne. <code>UNIQUE</code> interdit seulement les valeurs répétées.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">CHECK — imposer une condition</p>
+          <div class="pt-syntax"><pre class="cw-syntax">age INTEGER CHECK (age >= 0)</pre></div>
+          <p>Un âge de <code>-12</code> serait refusé. <code>CHECK</code> exprime une condition que les données doivent respecter.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">DEFAULT — prévoir une valeur</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE comptes (
+    id INTEGER PRIMARY KEY,
+    nom TEXT,
+    statut TEXT DEFAULT 'actif'
+);</pre></div>
+          <p>Un <code>INSERT</code> qui ne précise pas de statut enregistre <code>actif</code>. <code>DEFAULT</code> fournit une valeur lorsqu’aucune n’est indiquée.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">FOREIGN KEY — relier les tables</p>
+          <p>Dans <code>commandes</code>, <code>client_id</code> correspond à <code>clients.id</code> et <code>produit_id</code> à <code>produits.id</code>.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">FOREIGN KEY (client_id)
+    REFERENCES clients(id)</pre></div>
+          <p>Sans ce contrôle, une commande pourrait porter <code>client_id = 5000</code> alors qu’aucun client ne porte cet identifiant. La clé étrangère protège les relations entre les tables.</p>
+          <p class="fn-tip"><b>NULL reste possible</b> Une commande sans client enregistré porte <code>client_id = NULL</code>, ce qui est différent d’un identifiant qui n’existe pas. C’est pourquoi cette colonne n’est pas <code>NOT NULL</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">L’ordre de création compte</p>
+          <p>Une clé étrangère désigne une table qui doit déjà exister. On crée donc les tables indépendantes d’abord, puis celle qui les référence : <code>clients</code>, <code>produits</code>, enfin <code>commandes</code>.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"La question",t:"quelles informations cette table doit-elle contenir ?"},
+      b:{k:"La règle",t:"chaque colonne a un nom, un type, parfois une contrainte"},
+      note:"Réflexe : avant d’ajouter des données, définis leur structure et les règles qu’elles doivent respecter."}},
+  anatomie:[
+    {tok:"CREATE TABLE clients",txt:"Crée une table appelée clients."},
+    {tok:"id",txt:"Le nom de la colonne."},
+    {tok:"INTEGER",txt:"Le type accepté par cette colonne."},
+    {tok:"PRIMARY KEY",txt:"Une règle sur la colonne : cette valeur identifie la ligne."},
+    {tok:",",txt:"La virgule passe à la colonne suivante. Toute la définition tient entre parenthèses."}
+  ],
+  exemple:"CREATE TABLE clients (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    ville TEXT,\n    age INTEGER CHECK (age >= 0),\n    email TEXT UNIQUE,\n    telephone TEXT,\n    date_inscription TEXT\n);\n\nCREATE TABLE produits (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    categorie TEXT,\n    prix REAL,\n    stock INTEGER CHECK (stock >= 0)\n);\n\nCREATE TABLE commandes (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER,\n    produit_id INTEGER NOT NULL,\n    quantite INTEGER NOT NULL\n        CHECK (quantite > 0),\n    date_commande TEXT,\n    FOREIGN KEY (client_id)\n        REFERENCES clients(id),\n    FOREIGN KEY (produit_id)\n        REFERENCES produits(id)\n);",
+  attendu:"Trois tables vides, reliées : commandes pointe vers clients et vers produits. C’est exactement la structure de la base sur laquelle tu travailles depuis le début. Les INSERT viendront ensuite la remplir.",
+  retenir:"<code>CREATE TABLE</code> définit la structure d’une nouvelle table. Une colonne possède au minimum un <b>nom</b> et un <b>type</b>.<br><br>Elle peut aussi porter une contrainte : <code>PRIMARY KEY</code>, <code>NOT NULL</code>, <code>UNIQUE</code>, <code>CHECK</code>, <code>DEFAULT</code>, <code>FOREIGN KEY</code>.<br><br>Le mémo : <b>CREATE TABLE → colonnes → types → contraintes</b>.",
+  piege:{t:"Croire que CREATE TABLE remplit la table",
+    p:"<code>CREATE TABLE clients (...)</code> ne crée ni Sophie, ni Lucas, ni Emma. Elle crée les colonnes, leurs types et leurs règles — rien d’autre. C’est <code>INSERT</code> qui ajoute ensuite les données.",
+    exec:false,
+    sql:"CREATE TABLE clients (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL\n);",
+    out:"La table existe, et ne contient aucune ligne.",
+    fixSql:"INSERT INTO clients (id, nom)\nVALUES (1, 'Sophie');"},
+  petitDefi:[{
+    p:"Complète la création de cette table pour que le <code>nom</code> soit obligatoire.",
+    sql:"CREATE TABLE categories (\n    id INTEGER PRIMARY KEY,\n    nom TEXT __________\n);",
+    a:"NOT NULL",
+    answers:["NOT NULL","not null"]
+  }],
+  consigne:"Crée la table <code>produits</code> telle qu’elle existe dans cette base : un identifiant qui identifie chaque ligne, un nom obligatoire, une catégorie en texte, un prix décimal, et un stock entier qui ne peut jamais devenir négatif.",
+  solution:"CREATE TABLE produits (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    categorie TEXT,\n    prix REAL,\n    stock INTEGER CHECK (stock >= 0)\n);",
+  indice:"Chaque colonne s’écrit <code>nom type</code>, séparée par une virgule. <code>PRIMARY KEY</code> sur l’identifiant, <code>NOT NULL</code> sur le nom, et <code>CHECK (stock >= 0)</code> sur le stock.",
+  noExec:true,
+  createExo:true,
+  noExecNote:"Ces trois tables existent déjà dans la base : les recréer déclencherait une erreur. Lis leur structure — c’est exactement celle que tu interroges depuis le début.",
+  noExecWhy:"Les tables <code>clients</code>, <code>produits</code> et <code>commandes</code> existent déjà : SQLite refuserait de les recréer.",
+  noExecOk:{b:"✓ Correct — la structure est complète",t:"Les cinq colonnes sont là, avec leurs types et leurs trois contraintes. C’est mot pour mot la table <code>produits</code> de cette base."},
+  richLesson:true, earlyDemo:true },
 { id:65, titre:"ALTER TABLE", résumé:"Faire évoluer la structure d’une table",
   situation:"La table <code>clients</code> existe déjà et contient des données : <code>id</code>, <code>nom</code>, <code>ville</code>, <code>age</code>, <code>email</code>, <code>telephone</code>, <code>date_inscription</code>.<br><br>Quelques mois plus tard, ton site e-commerce évolue : tu veux maintenant enregistrer le <b>pays</b> de chaque client.<br><br>Tu pourrais supprimer la table et la recréer avec une colonne de plus — mais tu perdrais les données déjà présentes.",
   situationTail:"<div class=\"sit-sql\"><p>Comment modifier la structure d’une table sans la recréer entièrement ?</p><p>C’est le rôle d’<b><code>ALTER TABLE</code></b>.</p></div>",
@@ -10921,7 +10925,7 @@ ROLLBACK;</pre></div>
     {k:'lignes',label:'Les lignes',sql:"SELECT COUNT(*) AS lignes\nFROM commandes;",out:"Seize lignes. DELETE les ram\u00e8nerait \u00e0 z\u00e9ro sans retirer commandes de la liste ci-dessus."}
   ] }
 ]},
-{ titre:"INSERT, UPDATE, DELETE", sous:"Manipuler les données sans les abîmer", lessons:[
+{ titre:"Écrire et modifier les données", sous:"INSERT, UPDATE, DELETE", lessons:[
 { id:26, titre:"INSERT", résumé:"Ajouter une ligne",
   situation:"Un produit arrive au catalogue : Zinc, catégorie Bien-être, 17,90 €, 70 en stock.<br><br>La table <code>produits</code> a cinq colonnes. Tu dois dire à la base laquelle reçoit quoi — et c’est là que tout se joue : le lien entre les colonnes et les valeurs est <b>positionnel</b>.<br><br>Inverser deux valeurs du même type ne déclenche aucune erreur. La ligne est écrite, et elle est fausse.",
   situationTail:"<div class=\"sit-sql\"><p><code>SELECT</code> lit, <b><code>INSERT</code></b> écrit.</p><p>Nommer les colonnes est le seul moyen de savoir ce qui va où.</p></div>",
@@ -11274,7 +11278,7 @@ WHERE name = 'commandes';</pre></div>
     {k:'sousreq',label:'Sous-requête',sql:"DELETE FROM commandes\nWHERE client_id IN (\n    SELECT id FROM clients\n    WHERE ville = 'Paris'\n);\n\nSELECT COUNT(*) AS restantes\nFROM commandes;",out:"Neuf restantes : les sept commandes des clients parisiens sont parties."},
     {k:'fk',label:'Clé étrangère',sql:"DELETE FROM clients WHERE id = 1;",out:"Refus\u00e9 : Sophie a trois commandes qui la r\u00e9f\u00e9rencent.",tone:'bad'}
   ] },
-{ id:69, titre:"INSERT avancé", résumé:"Plusieurs lignes, une requête, un conflit",
+{ id:69, titre:"INSERT multiple et gestion de conflit", résumé:"Insérer plusieurs lignes et réagir aux doublons",
   situation:"Ton fournisseur t’envoie une liste de nouveaux produits. Tu écris un <code>INSERT</code> par ligne, l’un après l’autre.<br><br>Le lendemain, il renvoie le même fichier avec deux prix corrigés. Rejouer les <code>INSERT</code> échoue dès la première ligne : les identifiants existent déjà.<br><br>Écrire ligne à ligne, et tout casser à la moindre reprise : <code>INSERT</code> sait faire mieux que ça.",
   situationTail:"<div class=\"sit-sql\"><p>Trois formes à connaître : insérer plusieurs lignes d’un coup, insérer le résultat d’une requête, et dire quoi faire quand la ligne existe déjà.</p></div>",
     studio:{pointCards:{
@@ -11395,8 +11399,8 @@ ON CONFLICT(id) DO UPDATE
     {k:'upsert',label:'DO UPDATE',sql:"INSERT INTO produits\n    (id, nom, categorie,\n     prix, stock)\nVALUES (3, 'Magnésium',\n        'Bien-être', 21.90, 200)\nON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix;\n\nSELECT id, nom, prix, stock FROM produits WHERE id = 3;",out:"Le prix passe \u00e0 21.90, le stock reste \u00e0 200.",tone:'good'}
   ] }
 ]},
-{ titre:"Contraintes et actions référentielles", sous:"Ce que la base refuse, et le sort des lignes liées", lessons:[
-{ id:67, titre:"Les contraintes à l’épreuve", résumé:"Ce que la base refuse d’écrire",
+{ titre:"Contraintes et intégrité", sous:"Ce que la base refuse ou impose", lessons:[
+{ id:67, titre:"Les contraintes en action", résumé:"NOT NULL, UNIQUE, CHECK : ce que la base refuse d’écrire",
   situation:"Le cours <code>CREATE TABLE</code> a posé des règles sur les colonnes de cette base : une clé primaire, des valeurs obligatoires, un e-mail unique, des quantités positives, des clés étrangères.<br><br>Ces règles ne sont pas des commentaires. À chaque écriture, la base les vérifie une par une.<br><br>Tu ajoutes un client avec l’<code>id</code> 1 — déjà pris par Sophie. La ligne n’est pas ajoutée, et la base dit pourquoi.",
   situationTail:"<div class=\"sit-sql\"><p>Que se passe-t-il exactement quand une règle est enfreinte ?</p><p>L’écriture est <b>annulée</b>, et le message nomme la règle.</p></div>",
     studio:{pointCards:{
@@ -11880,7 +11884,7 @@ COMMIT;</pre></div>
   write:true,
   richLesson:true, earlyDemo:true }
 ]},
-{ titre:"Triggers", sous:"Faire réagir la base toute seule", lessons:[
+{ titre:"Triggers et concurrence", sous:"Automatiser et isoler les écritures", lessons:[
 { id:70, titre:"Les triggers", résumé:"Faire réagir la base toute seule",
   situation:"Dans le cours sur les transactions, enregistrer une commande demandait deux écritures : ajouter la ligne dans <code>commandes</code>, puis retirer la quantité du <code>stock</code> du produit.<br><br>Deux écritures qu’il ne faut jamais oublier d’enchaîner. Un import, un script tiers, une correction faite à la main — et le stock ne correspond plus aux commandes.<br><br>Compter sur la discipline de celui qui écrit la requête est fragile.",
   situationTail:"<div class=\"sit-sql\"><p>Un <b><code>TRIGGER</code></b> est une suite d’instructions que la base exécute d’elle-même, à chaque écriture sur une table.</p></div>",
@@ -12030,9 +12034,7 @@ END;</pre></div>
     {k:'stock',label:'Stock',sql:"CREATE TRIGGER baisser_stock\nAFTER INSERT ON commandes\nBEGIN\n  UPDATE produits\n  SET stock = stock - NEW.quantite\n  WHERE id = NEW.produit_id;\nEND;\n\nINSERT INTO commandes (id, client_id, produit_id, quantite, date_commande)\nVALUES (17, 1, 1, 5, '2026-08-31');\n\nSELECT id, nom, stock FROM produits WHERE id = 1;",out:"120 moins 5 : le trigger a fait l\u2019UPDATE tout seul.",tone:'good'},
     {k:'journal',label:'Journal',sql:"CREATE TABLE clients_supprimes (id INTEGER, nom TEXT, le TEXT);\n\nCREATE TRIGGER journal_suppression\nAFTER DELETE ON clients\nBEGIN\n  INSERT INTO clients_supprimes\n    (id, nom, le)\n  VALUES (OLD.id, OLD.nom,\n          date('now'));\nEND;\n\nDELETE FROM clients WHERE id = 9;\n\nSELECT id, nom, le FROM clients_supprimes;",out:"In\u00e8s a disparu de clients, mais son passage est trac\u00e9."},
     {k:'raise',label:'RAISE',sql:"CREATE TRIGGER stock_positif\nBEFORE UPDATE ON produits\nWHEN NEW.stock < 0\nBEGIN\n  SELECT RAISE(ABORT,\n    'Stock négatif interdit');\nEND;\n\nUPDATE produits\nSET stock = stock - 500\nWHERE id = 8;",out:"Le trigger refuse l\u2019\u00e9criture avec son propre message.",tone:'bad'}
-  ] }
-]},
-{ titre:"Concurrence et isolation", sous:"Quand deux écritures arrivent en même temps", lessons:[
+  ] },
 { id:71, titre:"Concurrence et isolation", résumé:"Quand deux écritures arrivent en même temps",
   situation:"Il reste 30 Shakers Inox. Deux caisses enregistrent une vente au même instant.<br><br>Chacune lit le stock — 30 — calcule 30 − 1 dans son application, et écrit 29. Deux ventes ont eu lieu, une seule unité a été retirée.<br><br>Aucune des deux requêtes n’est fautive. C’est leur entrelacement qui l’est.",
   situationTail:"<div class=\"sit-sql\"><p>Comment une base empêche-t-elle deux écritures simultanées de se marcher dessus ?</p><p>C’est la question de l’<b>isolation</b>.</p></div>",
@@ -12621,7 +12623,7 @@ JOIN commandes
     {k:'revoke',label:'REVOKE',sql:"REVOKE SELECT ON clients FROM app_user;",out:"Le droit de lecture est retiré.",tone:'neutral',exec:false}
   ] }
 ]}
-];
+]
 
 
 /* ============================================================
