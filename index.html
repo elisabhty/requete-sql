@@ -1665,7 +1665,8 @@
   .memory-rule span{display:block;font-size:13px;color:var(--ink-2);line-height:1.5}
   .memory-rule span b{color:var(--ink);font-weight:700}
   .memory-rule .memory-where>b,.memory-rule .memory-a>b{color:var(--ink)}
-  .memory-rule .memory-having>b,.memory-rule .memory-b>b{color:var(--accent);background:var(--accent-soft);border-color:rgba(91,91,214,.18)}
+  .memory-rule.is-trio{grid-template-columns:1fr;gap:10px}
+  .memory-rule .memory-having>b,.memory-rule .memory-b>b,.memory-rule .memory-c>b{color:var(--accent);background:var(--accent-soft);border-color:rgba(91,91,214,.18)}
   .memory-note{margin:0!important;font-size:14px!important;color:var(--ink-2);line-height:1.55}
   .memory-note + .memory-analogy{margin-top:12px}
   .memory-analogy + .memory-note{margin-top:14px!important;padding-top:14px;border-top:1px solid rgba(91,91,214,.14)}
@@ -6885,9 +6886,10 @@ const MODULES = [
           </div>
           <p style="margin-top:12px">L’instruction <code>SELECT</code> sert uniquement à <b>lire</b> les données. Elle ne modifie jamais le contenu de la base.</p>
         </div></div></div>`},
-    reflex:{a:{k:"1 table",t:"= <b>1 sujet précis</b> (clients, produits, commandes)"},
-      b:{k:"1 clé",t:"= <b>1 lien direct</b> sans recopier de données"},
-      note:"Réflexe : en base relationnelle, une information ne s’écrit qu’à un seul endroit. Les tables se relient par leurs identifiants (clés)."}},
+    reflex:{a:{k:"1 table",t:"= <b>1 type d’information</b><br><code>clients</code>, <code>produits</code>, <code>commandes</code>"},
+      b:{k:"1 clé primaire",t:"= <b>1 ligne identifiée</b><br>ex. <code>clients.id</code> identifie un client"},
+      c:{k:"1 clé étrangère",t:"= <b>1 lien vers une autre table</b><br>ex. <code>commandes.client_id</code> → <code>clients.id</code>"},
+      note:"Chaque table organise ses propres informations. Pour relier deux tables, on utilise leurs identifiants (clés)."}},
   anatomie:[
     {tok:"SELECT",txt:"Lit des données. Il ne modifie jamais rien."},
     {tok:"*",plain:1,txt:"Toutes les colonnes de la table."},
@@ -16172,7 +16174,9 @@ function renderReflex(r){
   const card=(cls,k,t)=>`<div class="${cls}"><b>${k}</b><span>${t}</span></div>`;
   const note=r.note?`<p class="agg-reflex" style="margin-top:14px">${r.note}</p>`:'';
   const extra=r.extra||'';
-  const cards=(r.a&&r.b)?`<div class="memory-rule">${card('memory-a',r.a.k,r.a.t)}${card('memory-b',r.b.k,r.b.t)}</div>`:'';
+  /* Trois règles ne tiennent pas sur la grille à deux colonnes : elles
+     s'empilent, une par ligne. */
+  const cards=(r.a&&r.b)?`<div class="memory-rule${r.c?' is-trio':''}">${card('memory-a',r.a.k,r.a.t)}${card('memory-b',r.b.k,r.b.t)}${r.c?card('memory-c',r.c.k,r.c.t):''}</div>`:'';
   return `${cards}${note}${extra}`;
 }
 const BOOKMARK_SVG='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 3.2h12A1.8 1.8 0 0 1 19.8 5v16.2l-7.8-4.2-7.8 4.2V5A1.8 1.8 0 0 1 6 3.2z"/></svg>';
@@ -16423,6 +16427,7 @@ function lessonReflexText(l){
     return [
       r.a?`${r.a.k} — ${stripNoteHtml(r.a.t)}`:'',
       r.b?`${r.b.k} — ${stripNoteHtml(r.b.t)}`:'',
+      r.c?`${r.c.k} — ${stripNoteHtml(r.c.t)}`:'',
       r.note?stripNoteHtml(r.note):'',
       r.extra?stripNoteHtml(r.extra):''
     ].filter(Boolean).join('\n\n');
