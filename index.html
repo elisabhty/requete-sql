@@ -4600,7 +4600,7 @@
   .ob-slide{position:absolute;inset:0;padding:28px 28px 0;display:none;flex-direction:column;align-items:stretch;opacity:0;transform:translateX(24px)}
   .ob-slide.on{display:flex;animation:obIn .4s cubic-bezier(.32,.72,.28,1) forwards}
   .ob-slide.out{display:flex;animation:obOut .28s ease forwards}
-  @keyframes obIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+  @keyframes obIn{from{opacity:0;transform:translateY(16px) scale(.98);filter:blur(4px)}to{opacity:1;transform:none;filter:blur(0)}}
   @keyframes obOut{from{opacity:1;transform:none}to{opacity:0;transform:translateX(-18px)}}
   .ob-hero{width:100%;aspect-ratio:1.35;border-radius:24px;display:flex;align-items:center;justify-content:center;margin-bottom:28px;position:relative;overflow:hidden;box-shadow:0 16px 40px rgba(26,26,40,.18)}
   .ob-hero.a{background:linear-gradient(150deg,#5B5BD6,#7A6FF0)}
@@ -4644,10 +4644,16 @@
   .ob-metrics b{display:block;font-family:var(--mono);font-size:18px;font-weight:700}
   .ob-metrics small{font-size:10.5px;opacity:.8;letter-spacing:.3px;text-transform:uppercase}
     /* --- Onboarding : slides produit --- */
-  .ob-bar{flex:1;height:4px;border-radius:3px;background:var(--line-2);overflow:hidden}
-  .ob-bar span{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .45s cubic-bezier(.32,.72,.28,1)}
-  .ob-progress{transition:opacity .25s}
+  .ob-bar{flex:1;height:5px;border-radius:3px;background:var(--line-2);overflow:hidden;position:relative}
+  .ob-bar span{display:block;height:100%;border-radius:3px;background:var(--accent-grad);box-shadow:0 0 10px rgba(122,111,240,.5);transition:width .6s var(--ease-ios)}
+  .ob-progress{transition:opacity .25s;display:flex;align-items:center;gap:10px}
   #onboarding.ob-hideprog .ob-progress{opacity:0}
+  /* Halo d'ambiance violet en haut de la fenêtre d'onboarding. */
+  #onboarding::before{content:'';position:absolute;inset:0 0 auto;height:300px;pointer-events:none;background:radial-gradient(60% 90% at 50% 0%,rgba(122,111,240,.12),transparent 70%);z-index:0}
+  #onboarding>*{position:relative;z-index:1}
+  @media (prefers-reduced-motion:reduce){
+    #onboarding::before{content:none}
+  }
   .ob-hello{display:flex;flex-direction:column;align-items:center;text-align:center}
   .ob-hello .mascot{width:min(52%,206px);margin:2px auto 22px}
   .ob-trust{list-style:none;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:20px 0 0;padding:0}
@@ -4724,10 +4730,10 @@
   #onboarding .ob-slide{position:absolute;inset:0;display:flex;padding:0;opacity:1;transform:none;overflow:hidden}
   #onboarding .ob-slide.on{animation:none}
   #onboarding .ob-slide.out{animation:obPageOut .2s ease both}
-  @keyframes obPageOut{to{opacity:0;transform:translateX(-12px)}}
+  @keyframes obPageOut{to{opacity:0;transform:translateY(-10px);filter:blur(3px)}}
   #onboarding #ob-body{width:100%;height:100%;padding:calc(var(--safe-top) + 20px) 24px 12px;overflow-y:auto;overscroll-behavior:contain}
   .ob-screen{width:100%;max-width:440px;min-height:100%;margin:0 auto;display:flex;flex-direction:column;animation:obPageIn .34s var(--ease-ios) both}
-  @keyframes obPageIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+  @keyframes obPageIn{from{opacity:0;transform:translateY(16px) scale(.985);filter:blur(4px)}to{opacity:1;transform:none;filter:blur(0)}}
   .ob-screen.welcome{align-items:center;text-align:center;padding-top:2px}
   .ob-brand{align-self:flex-start;display:flex;align-items:center;gap:9px;color:var(--ink);font-size:19px;font-weight:800;letter-spacing:-.35px}
   .ob-brand code{color:var(--accent);font-family:var(--mono);font-size:22px;font-weight:800}
@@ -4817,9 +4823,13 @@
   .ob-flow-top{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:18px;margin-bottom:18px}
   .ob-flow-top .ob-back{margin:0 0 0 -10px}
   .ob-mini-progress{display:grid;grid-template-columns:repeat(var(--ob-steps,6),1fr);gap:7px;align-items:center}
-  .ob-mini-progress i{height:4px;border-radius:99px;background:#DDDDE5;transition:background .22s,transform .28s var(--spring-ios)}
-  .ob-mini-progress i.done{background:#A9A9EE}
-  .ob-mini-progress i.on{background:var(--accent);transform:scaleX(1.12)}
+  .ob-mini-progress i{height:5px;border-radius:99px;background:#DDDDE5;transition:background .3s,transform .3s var(--spring-ios),box-shadow .3s}
+  .ob-mini-progress i.done{background:linear-gradient(90deg,#B9B9F2,#A9A9EE)}
+  .ob-mini-progress i.on{background:var(--accent-grad);transform:scaleX(1.14);box-shadow:0 0 10px rgba(122,111,240,.55);animation:obSegPulse 1.8s ease-in-out infinite}
+  @keyframes obSegPulse{0%,100%{box-shadow:0 0 6px rgba(122,111,240,.4)}50%{box-shadow:0 0 14px rgba(122,111,240,.7)}}
+  @media (prefers-reduced-motion:reduce){
+    .ob-mini-progress i.on{animation:none}
+  }
   .ob-profile{min-height:auto;padding-bottom:8px}
   .ob-profile .ob-title{font-size:28px;line-height:1.1;text-align:center;letter-spacing:-.8px}
   .ob-profile .ob-lead{margin-top:8px;text-align:center;font-size:14px}
@@ -21501,6 +21511,9 @@ function paintOb(){
   body.classList.remove('out');
   body.innerHTML=html;
   body.scrollTop=0;
+  /* Salve de confettis à l'arrivée sur l'écran final « prêt » : le parcours
+     est construit, c'est un moment de réussite. */
+  if(slide==='ready'||slide==='pret'){ if(typeof celebrate==='function') celebrate(); }
 
   const btn=document.getElementById('ob-next');
   const skip=document.getElementById('ob-skip');
@@ -21872,6 +21885,9 @@ function paintOb(){
   body.classList.remove('out');
   body.innerHTML=html;
   body.scrollTop=0;
+  /* Salve de confettis à l'arrivée sur l'écran final : le parcours vient
+     d'être construit, c'est le moment de réussite de l'onboarding. */
+  if(slide==='ready'){ setTimeout(()=>{ if(OB_SLIDES[obStep]==='ready'&&typeof celebrate==='function') celebrate(); },260); }
 }
 function finishOnboard(action){
   if(!draft.niveau)draft.niveau='debutant';
