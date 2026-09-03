@@ -14,7 +14,7 @@
    CACHE doit changer à chaque déploiement pour purger l'ancien contenu :
    garde-le aligné sur APP_VERSION dans index.html. */
 
-const CACHE = 'requete-2026-09-03-ui-premium-focus-v271';
+const CACHE = 'requete-2026-09-03-transitions-spotlight-v272';
 
 const PRECACHE = [
   './',
