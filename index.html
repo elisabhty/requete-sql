@@ -128,6 +128,10 @@
   .home-progress{margin:10px 18px 0;display:flex;align-items:center;gap:10px}
   .home-progress .hp-track{flex:1;height:6px;border-radius:999px;background:var(--line);overflow:hidden}
   .home-progress .hp-fill{display:block;height:100%;border-radius:999px;background:var(--accent-grad);box-shadow:0 0 8px rgba(122,111,240,.55);transition:width .6s var(--ease-ios)}
+  /* Progression vivante : les barres jaillissent depuis 0 à l'arrivée sur
+     l'accueil. La classe hp-pop est posée une fois par renderProgress. */
+  .hp-pop .hp-fill{animation:barGrow .9s var(--ease-ios) both}
+  @keyframes barGrow{from{width:0}}
   .home-progress .hp-pct{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);flex:none;min-width:30px;text-align:right}
   .streak-pill[hidden]{display:none!important}
   #scr-learn>.lgtitle{position:sticky;top:0;z-index:16;padding-top:calc(var(--safe-top) + 14px);padding-bottom:10px;background:#F2F2F7;border-bottom:1px solid var(--card-border)}
@@ -293,6 +297,16 @@
   .card{position:relative;background:var(--surface);border:1px solid var(--card-border);border-radius:20px;padding:20px 22px;box-shadow:var(--card-shadow);margin-bottom:16px;transition:transform .3s var(--spring-ios),box-shadow .3s ease,border-color .3s ease}
   @media (hover:hover) and (pointer:fine){
     .card:hover{transform:translateY(-2px);box-shadow:var(--lift-md);border-color:rgba(91,91,214,.14)}
+  }
+  /* Effet spotlight : un halo violet suit le curseur sur les cartes (souris
+     uniquement, désactivé si mouvement réduit). Les variables --sx/--sy sont
+     alimentées par un listener global léger. */
+  .spot{position:relative}
+  .spot::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .35s ease;background:radial-gradient(220px circle at var(--sx,50%) var(--sy,50%),rgba(122,111,240,.13),transparent 65%);z-index:0}
+  .spot:hover::before{opacity:1}
+  .spot>*{position:relative;z-index:1}
+  @media (hover:none),(prefers-reduced-motion:reduce){
+    .spot::before{content:none}
   }
   .card p{font-size:15px;margin:0 0 11px}.card p:last-child{margin-bottom:0}
   .card h3{font-size:20px;line-height:1.2;letter-spacing:-.35px;margin:0 0 16px;color:var(--ink)}
@@ -4390,10 +4404,13 @@
     radial-gradient(900px 500px at 100% 0%, rgba(15,118,110,.06), transparent 50%),
     var(--bg)}
   #app{box-shadow:0 0 0 1px var(--line)}
-  .screen.active{animation:screenIn .34s var(--spring-ios)}
+  .screen.active{animation:screenIn .38s var(--spring-ios)}
   body.nav-restoring .screen.active{animation:none!important;opacity:1;transform:none}
-  @keyframes screenIn{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
-  @keyframes screenOut{from{transform:none;opacity:1}to{transform:translateY(-8px);opacity:0}}
+  @media (prefers-reduced-motion:reduce){
+    .screen.active{animation:none!important}
+  }
+  @keyframes screenIn{from{transform:translateY(14px) scale(.995);opacity:0;filter:blur(3px)}to{transform:none;opacity:1;filter:blur(0)}}
+  @keyframes screenOut{from{transform:none;opacity:1}to{transform:translateY(-10px);opacity:0}}
   .row,.chip,.btn-run,.btn-ghost,.btn-note,.next-btn,.pl-opt,.qopt,.tab,.revise,.home-today,.gcard,.fab,.helpers button,.ex-load,.pl-go,.th-go,.fchip,.hc-go,.hc-sec,.ls-nav button,.bravo-row,.bravo-go,.bravo-sec,.bravo-next-btn,.bravo-link,.bravo-gcard{
     transition:transform .18s var(--spring-ios), background .18s, box-shadow .22s, border-color .16s, color .16s, opacity .16s, filter .16s}
   .row,.chip,.btn-run,.btn-ghost,.btn-note,.next-btn,.pl-opt,.qopt,.tab,.revise,.home-today,.gcard,.fab,.helpers button,.ex-load,.pl-go,.th-go,.fchip,.hc-go,.hc-sec,.ls-nav button,.bravo-row,.bravo-go,.bravo-sec,.bravo-next-btn,.bravo-link,.bravo-gcard{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -4503,7 +4520,7 @@
   .hc-tag{font-family:var(--mono);font-size:10px;font-weight:750;letter-spacing:1.4px;text-transform:uppercase;color:var(--accent);margin:0}
   .hc-meta-r{font-family:var(--mono);font-size:11px;color:var(--ink-3);font-weight:550;white-space:nowrap}
   .hc-top{display:flex;align-items:center;gap:15px;position:relative;z-index:1}
-  .hc-ring{--p:0;width:58px;height:58px;flex:none;border-radius:50%;background:conic-gradient(var(--accent) calc(var(--p)*1%),#ECECF3 0);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  .hc-ring{--p:0;width:58px;height:58px;flex:none;border-radius:50%;background:conic-gradient(var(--accent) calc(var(--p)*1%),#ECECF3 0);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.04);transition:--p .9s var(--ease-ios)}
   .home-card.ok .hc-ring{background:conic-gradient(var(--success) calc(var(--p)*1%),#ECECF3 0)}
   .hc-ring::after{content:'';position:absolute;width:44px;height:44px;border-radius:50%;background:var(--surface)}
   .hc-ring span{position:relative;z-index:1;font-family:var(--mono);font-weight:750;font-size:12px;color:var(--accent)}
@@ -13212,10 +13229,27 @@ async function boot(){
     tickRappel();
     setInterval(tickRappel,30000);
     document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') tickRappel(); });
+    initSpotlight();
   }catch(e){
     console.error('Erreur pendant l’initialisation :',e);
   }
   hideLoader();
+}
+/* Spotlight : le curseur dépose les coordonnées du halo sur la carte survolée.
+   Délégation unique, passive, souris uniquement — aucun coût au toucher. */
+function initSpotlight(){
+  if(!window.matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+  if(prefersReduceMotion()) return;
+  const SEL='.card,.home-module,.home-card,.concept-block';
+  document.addEventListener('pointermove',ev=>{
+    if(ev.pointerType!=='mouse') return;
+    const el=ev.target.closest(SEL);
+    if(!el) return;
+    if(!el.classList.contains('spot')) el.classList.add('spot');
+    const r=el.getBoundingClientRect();
+    el.style.setProperty('--sx',(ev.clientX-r.left)+'px');
+    el.style.setProperty('--sy',(ev.clientY-r.top)+'px');
+  },{passive:true});
 }
 let activeDbId='cours';
 let customDbs={}; // id → SQL.Database
