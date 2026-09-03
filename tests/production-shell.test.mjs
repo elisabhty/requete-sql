@@ -111,7 +111,7 @@ assert(html.includes('{ id:75, titre:"OFFSET et pagination"') && html.includes('
 assert(html.includes('{ id:76, titre:"GROUP_CONCAT"') && html.includes('STRING_AGG'), 'agrégation de texte couverte avec ouverture multi-SGBD');
 assert(html.includes('{ id:77, titre:"WITH RECURSIVE"') && html.includes('condition d’arrêt'), 'CTE récursives expliquées avec leur garde-fou');
 assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION BY client_id'), 'comparaison aux lignes voisines couverte');
-assert(html.includes('{ id:79, titre:"Fenêtres avancées"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
+assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
 assert(html.includes('{ id:73, titre:"UNION et UNION ALL"') && html.includes('18 lignes : 10 + 8') && !html.includes('17 lignes : 9 + 8'), 'UNION ALL visible et cardinalité corrigée');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
 assert(serviceWorker.includes('requete-2026-09-04-compte-moderne-v276'), 'cache de production renouvelé');
