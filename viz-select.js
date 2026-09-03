@@ -63,7 +63,7 @@
   /* ---------- fil d’étapes ---------- */
   function buildSteps(root) {
     var bar = root.querySelector(".grp-viz-bar");
-    if (!bar || bar.querySelector(".vb-steps")) return;
+    if (!bar || bar.querySelector(".vb-steps") || root.querySelector(".join-stepper")) return;
     var n = sqlVizPhases(root).length;
     var wrap = document.createElement("div");
     wrap.className = "vb-steps";
@@ -200,6 +200,8 @@
     root.dataset.seen = "1";
     havingGrpSyncControls(root);
     paintSteps(root, sqlVizPhases(root).length - 1, 0, false, true);
+    var progress = root.querySelector(".join-progress-bar");
+    if (progress) { progress.style.transition = "none"; progress.style.width = "100%"; }
     if (navigator.vibrate) navigator.vibrate(10);   // sans effet sur iOS
   }
 
@@ -213,13 +215,14 @@
     if (fromPhase >= last) return finishViz(root);
 
     var next = fromPhase + 1;
-    var totalDelay = fromPhase === 0 ? DUR[0] : DUR[1];
+    var totalDelay = vizHoldMs(root) / (Number(root.dataset.speed) || 1);
     var delay = customDelay != null ? customDelay : totalDelay;
 
     root._phaseStart = Date.now();
     root._phaseDuration = delay;
 
     paintSteps(root, fromPhase, delay, true, true);
+    startJoinProgress(root, delay, fromPhase, customDelay != null ? 1 - delay / totalDelay : 0);
 
     root._grpTimer = setTimeout(function () {
       havingGrpSetPhase(root, next);
@@ -241,7 +244,9 @@
     if (prefersReduceMotion()) {
       root.dataset.playing = "0";
       root.dataset.seen = "1";
-      havingGrpSetPhase(root, last, { animate: false });
+      havingGrpSetPhase(root, 0, { animate: false });
+      var progress = root.querySelector(".join-progress-bar");
+      if (progress) { progress.style.transition = "none"; progress.style.width = (100 / sqlVizPhases(root).length) + "%"; }
       havingGrpSyncControls(root);
       return;
     }
@@ -266,8 +271,11 @@
     var tf = run ? getComputedStyle(dot.querySelector("i")).transform : null;
 
     stopViz(root);
+    var progress = root.querySelector(".join-progress-bar");
+    if (progress) { var width = getComputedStyle(progress).width; progress.style.transition = "none"; progress.style.width = width; }
     root.dataset.playing = "0";
     root.dataset.paused = "1";
+    root.classList.remove("phase-change");
     layoutSqlViz(root, parseInt(root.dataset.phase || "0", 10), { animate: false });
     havingGrpSyncControls(root);
 
