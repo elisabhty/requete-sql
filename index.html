@@ -12552,13 +12552,23 @@ WHERE client_id = 1
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Comment savoir si l’index est utilisé ?</p>
-          <p>Créer un index ne garantit pas que SQL va l’utiliser.</p>
-          <p><code>EXPLAIN</code> montre le plan d’exécution prévu par le SGBD : parcours de table, ou utilisation d’un index.</p>
+          <p>Créer un index ne signifie pas que le SGBD va forcément l’utiliser. Pour savoir comment une requête sera exécutée, on peut consulter son <b>plan d’exécution</b>.</p>
+          <p>Il permet notamment de voir si le SGBD prévoit :</p>
+          <ul class="pt-lead-list">
+            <li>de parcourir la table ;</li>
+            <li>ou d’utiliser un index.</li>
+          </ul>
+          <p>Avec SQLite :</p>
           <div class="pt-syntax"><pre class="cw-syntax">EXPLAIN QUERY PLAN
 SELECT *
 FROM clients
 WHERE email = 'sophie@mail.fr';</pre></div>
-          <p>Le vocabulaire affiché varie selon PostgreSQL, MySQL, SQLite ou SQL Server.</p>
+          <div class="tx-fail">
+            <span class="is-ok">SEARCH clients USING INDEX
+sqlite_autoindex_clients_1 (email=?)</span>
+          </div>
+          <p>Ici, <code>USING INDEX</code> indique que SQLite prévoit d’utiliser un index pour la recherche, au lieu de parcourir la table.</p>
+          <p>💡 La commande et le vocabulaire varient selon le SGBD. PostgreSQL, MySQL, SQLite et SQL Server proposent chacun leurs outils pour consulter le plan d’exécution.</p>
         </div>
       </div>`},
     reflex:{a:{k:"La question",t:"Cette colonne sert-elle souvent à retrouver des lignes dans une grande table ?"},
