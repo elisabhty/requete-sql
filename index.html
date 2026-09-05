@@ -1324,6 +1324,12 @@
   .id-link-row{display:grid;grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr);align-items:stretch;gap:6px}
   .id-link figcaption{margin:10px 2px 0;text-align:center;font-size:13px;font-weight:650;line-height:1.4;color:var(--ink-2)}
   .pt-hop:last-child .pt-hop-v{color:var(--accent)}
+  /* Variante prose : le gabarit d'origine est en chasse fixe et tout en
+     gras, ce qui convient à un fragment technique mais rend une phrase
+     illisible et noie les mots qu'on veut souligner. */
+  .pt-hop-v.is-prose{font-family:var(--ui);font-size:14.5px;font-weight:450;line-height:1.5;color:var(--ink)}
+  .pt-hop-v.is-prose b{font-weight:750;color:var(--ink)}
+  .pt-hop:last-child .pt-hop-v.is-prose{color:var(--ink)}
   .pt-hop-ans{margin-top:4px;font-size:13px;font-weight:750;line-height:1.35}
   .pt-hop-ans.ok{color:var(--success)}
   .pt-hop-ans.no{color:var(--danger)}
@@ -12421,9 +12427,9 @@ ORDER BY stock;</pre></div>
       eye:"Index",title:"Un chemin d’accès vers les données.",
       lead:"<p>Un index est une structure qui aide SQL à retrouver plus rapidement certaines lignes d’une table, un peu comme l’index d’un livre permet d’aller directement à l’information recherchée.</p><p>Il ne modifie pas les colonnes de la table : il est créé à côté.</p>",
       chain:[
-        {k:"Sans index",v:"SQL peut parcourir de nombreuses lignes"},
-        {k:"Avec index",v:"SQL peut suivre un chemin organisé"},
-        {k:"Règle",v:"indexer les recherches fréquentes"}
+        {k:"Sans index",prose:1,v:"SQL peut devoir parcourir <b>de nombreuses lignes</b> pour trouver le résultat."},
+        {k:"Avec index",prose:1,v:"SQL peut utiliser l’index pour <b>accéder plus directement aux lignes recherchées</b>."},
+        {k:"À retenir",prose:1,v:"Un index est surtout utile sur les <b>colonnes souvent utilisées pour rechercher ou filtrer des données</b>."}
       ]},
     uses:{title:"Un index, une idée à la fois.",
       body:`<div class="pt-lead fn-uses">
@@ -17054,7 +17060,7 @@ function renderPointCards(pc){
   const chaine=pc.chain?`<ol class="pt-chain">
       ${pc.chain.map((c,i)=>`<li class="pt-hop">
         <span class="pt-hop-n" aria-hidden="true">${i+1}</span>
-        <span class="pt-hop-txt"><span class="pt-hop-k">${c.k}</span><b class="pt-hop-v">${c.v}</b>${c.out?`<span class="pt-hop-out">${esc(c.out)}</span>`:''}${c.ex?`<span class="pt-hop-ex">Exemple : ${c.ex}</span>`:''}</span>
+        <span class="pt-hop-txt"><span class="pt-hop-k">${c.k}</span><b class="pt-hop-v${c.prose?' is-prose':''}">${c.v}</b>${c.out?`<span class="pt-hop-out">${esc(c.out)}</span>`:''}${c.ex?`<span class="pt-hop-ex">Exemple : ${c.ex}</span>`:''}</span>
       </li>`).join('')}
     </ol>`:'';
   const all=pc.cards||[];
