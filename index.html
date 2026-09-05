@@ -8850,9 +8850,35 @@ FROM produits;</pre></div>
         </div>
       </div>`},
     uses:{title:"Agréger du texte.",body:`<div class="pt-lead fn-uses">
-      <div class="fn-use"><p class="pt-syntax-h">La forme SQLite</p><div class="pt-syntax"><pre class="cw-syntax">GROUP_CONCAT(expression, séparateur)</pre></div><p>Les valeurs <code>NULL</code> sont ignorées. Sans séparateur explicite, SQLite utilise une virgule.</p></div>
-      <div class="fn-use"><p class="pt-syntax-h">Une syntaxe qui varie</p><p>PostgreSQL et SQL Server proposent notamment <code>STRING_AGG(nom, ', ')</code>. Le besoin est portable ; le nom et la gestion de l’ordre dépendent du SGBD.</p></div>
-      <div class="fn-use"><p class="pt-syntax-h">L’ordre n’est pas implicite</p><p>L’<code>ORDER BY</code> final trie les catégories, pas forcément les noms à l’intérieur de chaque cellule. Si cet ordre est contractuel, vérifie la syntaxe de ton SGBD ou prépare d’abord une sous-requête ordonnée.</p></div>
+      <div class="fn-use">
+        <p class="pt-syntax-h">La syntaxe</p>
+        <div class="pt-syntax"><pre class="cw-syntax">GROUP_CONCAT(colonne, séparateur)</pre></div>
+        <ul class="pt-lead-list">
+          <li><code>colonne</code> → les valeurs que tu veux rassembler ;</li>
+          <li><code>séparateur</code> → ce que tu veux placer entre chaque valeur.</li>
+        </ul>
+        <p>Par exemple, <code>GROUP_CONCAT(nom, ', ')</code> donne, pour la catégorie Bien-être :</p>
+        <p><code>Fibre Prébiotique, Magnésium, Oméga 3</code></p>
+        <p>Les valeurs <code>NULL</code> sont ignorées.</p>
+      </div>
+      <div class="fn-use">
+        <p class="pt-syntax-h">Le séparateur est optionnel</p>
+        <p>Si tu ne précises rien, les valeurs sont séparées par une virgule, sans espace :</p>
+        <div class="pt-syntax"><pre class="cw-syntax">GROUP_CONCAT(nom)</pre></div>
+        <p><code>Fibre Prébiotique,Magnésium,Oméga 3</code></p>
+        <p>Tu peux choisir le tien :</p>
+        <div class="pt-syntax"><pre class="cw-syntax">GROUP_CONCAT(nom, ' / ')</pre></div>
+        <p><code>Fibre Prébiotique / Magnésium / Oméga 3</code></p>
+      </div>
+      <div class="fn-use">
+        <p class="pt-syntax-h">Le nom change selon le SGBD</p>
+        <p>SQLite et MySQL proposent <code>GROUP_CONCAT</code>. PostgreSQL et SQL Server proposent notamment <code>STRING_AGG</code>.</p>
+        <p>💡 Le principe reste le même : rassembler plusieurs textes en une seule valeur.</p>
+      </div>
+      <div class="fn-use">
+        <p class="pt-syntax-h">Pour aller plus loin : l’ordre des noms</p>
+        <p>L’<code>ORDER BY</code> final trie les catégories, pas forcément les noms à l’intérieur de chaque cellule. Si cet ordre compte, il faut le demander explicitement — la syntaxe dépend alors du SGBD.</p>
+      </div>
     </div>`},
     reflex:{a:{k:"Nombres",t:"SUM, AVG, MIN, MAX"},b:{k:"Textes",t:"GROUP_CONCAT en SQLite · STRING_AGG ailleurs"}}},
   anatomie:[
