@@ -477,6 +477,12 @@
   /* La date qui satisfait la recherche : sans elle, le schéma montre le
      rangement de l'index mais pas ce qu'on vient y chercher. */
   .idx-comp-g span.on{border-left-color:var(--success);color:var(--success);font-weight:800}
+  /* Une transformation se lit mal sans signe entre l'avant et l'après :
+     la flèche porte le passage, la teinte marque le résultat. */
+  .idx-comp-arrow{text-align:center;color:var(--accent);font-size:13px;font-weight:800;line-height:1;margin:-2px 0}
+  .idx-comp-g.is-result{background:var(--success-soft)}
+  .idx-comp-g.is-result b{color:var(--success)}
+  .idx-comp-g.is-result span{margin-left:0;padding-left:0;border-left:0;color:var(--success);font-weight:800}
   .idx-side{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 4px}
   .idx-side span{display:flex;flex-direction:column;gap:4px;padding:12px 11px;border-radius:14px;background:var(--surface-2);text-align:center}
   .idx-side b{font-size:12.5px;font-weight:800;color:var(--ink)}
@@ -566,6 +572,8 @@
   .pt-lead .pt-syntax{margin:12px 0}
   .pt-lead .pt-syntax + p{margin-top:20px}
   .pt-lead-list{margin:4px 0 0;padding:0 0 0 1.15em;display:flex;flex-direction:column;gap:8px}
+  /* Sans cela, le paragraphe qui suit la liste vient coller au dernier point. */
+  .pt-lead-list:not(:last-child){margin-bottom:13px}
   .pt-lead-list li{margin:0}
   .fn-uses{display:flex;flex-direction:column;gap:14px;counter-reset:fnuse}
   .fn-use{counter-increment:fnuse;padding:14px 15px 15px;border:1px solid var(--card-border);border-radius:16px;background:var(--surface);box-shadow:var(--card-shadow-sm)}
@@ -8844,8 +8852,9 @@ FROM produits;</pre></div>
           <span>Magnésium</span>
           <span>Oméga 3</span>
         </div>
-        <div class="idx-comp-g">
-          <b>deviennent une seule cellule</b>
+        <div class="idx-comp-arrow" aria-hidden="true">↓</div>
+        <div class="idx-comp-g is-result">
+          <b>une seule cellule</b>
           <span>Fibre Prébiotique, Magnésium, Oméga 3</span>
         </div>
       </div>`},
@@ -8858,17 +8867,17 @@ FROM produits;</pre></div>
           <li><code>séparateur</code> → ce que tu veux placer entre chaque valeur.</li>
         </ul>
         <p>Par exemple, <code>GROUP_CONCAT(nom, ', ')</code> donne, pour la catégorie Bien-être :</p>
-        <p><code>Fibre Prébiotique, Magnésium, Oméga 3</code></p>
+        <div class="tx-fail"><span class="is-ok">Fibre Prébiotique, Magnésium, Oméga 3</span></div>
         <p>Les valeurs <code>NULL</code> sont ignorées.</p>
       </div>
       <div class="fn-use">
         <p class="pt-syntax-h">Le séparateur est optionnel</p>
         <p>Si tu ne précises rien, les valeurs sont séparées par une virgule, sans espace :</p>
         <div class="pt-syntax"><pre class="cw-syntax">GROUP_CONCAT(nom)</pre></div>
-        <p><code>Fibre Prébiotique,Magnésium,Oméga 3</code></p>
+        <div class="tx-fail"><span class="is-ok">Fibre Prébiotique,Magnésium,Oméga 3</span></div>
         <p>Tu peux choisir le tien :</p>
         <div class="pt-syntax"><pre class="cw-syntax">GROUP_CONCAT(nom, ' / ')</pre></div>
-        <p><code>Fibre Prébiotique / Magnésium / Oméga 3</code></p>
+        <div class="tx-fail"><span class="is-ok">Fibre Prébiotique / Magnésium / Oméga 3</span></div>
       </div>
       <div class="fn-use">
         <p class="pt-syntax-h">Le nom change selon le SGBD</p>
