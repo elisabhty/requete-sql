@@ -17,31 +17,46 @@ function assert(condition, label) {
   }
 }
 
-const start = html.indexOf('/* Onboarding production v3.');
-const end = html.indexOf('function celebrate(){', start);
-const onboarding = html.slice(start, end);
+/* Le bloc est délimité par le commentaire d'en-tête de l'onboarding et la
+   première fonction qui le suit. Si l'un des deux repères bouge, la tranche
+   devient vide et tout tombe d'un coup : la première assertion le signale
+   explicitement plutôt que de laisser croire à vingt régressions. */
+const start = html.indexOf('/* Onboarding production v2.');
+const end = html.indexOf('\nfunction celebrate(){', start);
+const onboarding = start >= 0 && end > start ? html.slice(start, end) : '';
 
-console.log('\n=== Onboarding enrichi et personnalisé ===');
-assert(html.includes("const OB_SLIDES = ['welcome','practice','account','name','goal','age','job','source','level','rhythm','frequency','ready']"), 'découverte et fréquence font partie du flux complet');
-assert(onboarding.includes('Essaie ta première requête.') && onboarding.includes('Affiche le nom de chaque client.'), 'la promesse du produit est démontrée avant les questions');
-assert(onboarding.includes("function obPickDemo(val)") && onboarding.includes("obDemoChoice==='nom'"), 'la mini-requête possède un vrai état interactif');
-assert(onboarding.includes('Bien joué ! La requête renvoie les noms.') && onboarding.includes('… 6 autres clients'), 'la correction immédiate et le résultat incomplet sont explicites');
-assert(onboarding.includes("const providers=authReady?") && onboarding.includes('Connexion multi-appareils'), 'la connexion réelle reste branchable sans afficher trois faux boutons actifs');
+console.log('\n=== Onboarding : parcours, pratique réelle et accessibilité ===');
+assert(onboarding.length > 5000, 'bloc onboarding localisé (repères de découpe intacts)');
+
+console.log('\n--- Le parcours ---');
+assert(html.includes("const OB_SLIDES = ['welcome','proof','account','name','goal','level','practice','rhythm','ready']"), 'les neuf étapes du parcours sont déclarées dans l’ordre');
+assert(onboarding.includes("if(slide==='welcome')obGoto('proof')") && onboarding.includes("else if(slide==='level')obGoto('practice')") && onboarding.includes("else if(slide==='rhythm')obGoto('ready')"), 'obNext enchaîne les étapes dans cet ordre');
+assert(onboarding.includes("obEntry") && onboarding.includes('function obBack()'), 'chaque étape peut revenir en arrière');
+
+console.log('\n--- La preuve avant les questions ---');
+assert(onboarding.includes('ob-proof') && onboarding.includes('Tu pratiques sur SQLite'), 'l’étape de preuve annonce le vrai moteur SQL');
+assert(onboarding.includes('function obRunPractice()') && onboarding.includes('db.exec('), 'l’étape de pratique exécute une vraie requête, pas une simulation');
+assert(onboarding.includes('draft.practiceRows') && onboarding.includes('draft.practiceDone=draft.practiceRows.length>0'), 'la réussite dépend des lignes réellement renvoyées');
+assert(/catch\(e\)\{\s*draft\.practiceRows=\[\];\s*draft\.practiceDone=false;/.test(onboarding), 'une erreur du moteur ne fait pas passer la pratique pour réussie');
+
+console.log('\n--- Le compte ---');
+assert(html.includes('window.REQUETE_AUTH'), 'l’authentification passe par un adaptateur externe, sans faux compte par défaut');
 assert(onboarding.includes('Continuer sans compte') && onboarding.includes('Mode local et privé'), 'le mode sans compte reste le chemin immédiatement utilisable');
-assert(onboarding.includes('OB_GOAL_DETAILS') && onboarding.includes('Fondations solides · vocabulaire métier · pratique régulière'), 'l’objectif sélectionné reçoit une explication concrète');
-assert(onboarding.includes("else if(slide==='frequency')") && onboarding.includes('[2,3,5,7].map'), 'la fréquence hebdomadaire devient un vrai choix du planning');
-assert(onboarding.includes('ob-week-days') && onboarding.includes('PATTERN[freq]'), 'le rythme choisi produit un aperçu des jours de séance');
-assert(onboarding.includes("if(!draft.freq)draft.freq=3") && onboarding.includes('state.plan=apercuPlan(draft.niveau,draft.rythme,draft.freq)'), 'la fréquence choisie est réellement enregistrée dans le parcours');
-assert(onboarding.includes('des défis séparés') && onboarding.includes('Première leçon'), 'le résumé final distingue les défis du contenu de cours');
-assert(onboarding.includes('role="radiogroup"') && onboarding.includes('aria-checked='), 'les choix restent compréhensibles par les technologies d’assistance');
+assert(onboarding.includes('function obChooseGuest()'), 'le choix « sans compte » est traité explicitement');
+
+console.log('\n--- Le parcours produit à la fin ---');
+assert(onboarding.includes('obRythmeMinutes(') && html.includes('state.plan=apercuPlan('), 'le rythme choisi alimente réellement le planning');
+assert(onboarding.includes('Première leçon'), 'le récapitulatif final annonce la première leçon');
+assert(html.includes('#onboarding.ob-ready-step'), 'la dernière étape a sa mise en page dédiée');
+
+console.log('\n--- Accessibilité ---');
 assert(html.includes('id="onboarding" role="dialog" aria-modal="true"') && html.includes('aria-hidden="true" inert'), 'la modale est masquée et inerte avant son ouverture');
-assert(onboarding.includes("stage.inert=true") && onboarding.includes("stage.inert=false"), 'l’application en arrière-plan est neutralisée puis restaurée');
-assert(onboarding.includes("title.focus({preventScroll:true})"), 'le focus suit le titre de chaque nouvelle étape');
-assert(onboarding.includes("selected.focus({preventScroll:true})"), 'le focus reste sur le choix après une mise à jour interactive');
-assert(html.includes('.ob-demo-result{') && html.includes('@keyframes obDemoReveal'), 'la réussite de la démo possède une micro-animation dédiée');
-assert(onboarding.includes("paintOb(true)") && html.includes('#onboarding.ob-selection-update .ob-screen{animation:none}'), 'un changement de choix ne rejoue pas toute l’animation de page');
-assert(html.includes('.ob-demo-result,.ob-selection-update .ob-answer.on,.ob-selection-update .ob-frequency-option.on{animation:none}'), 'la réduction des mouvements couvre les nouveaux effets');
-assert(html.includes('#onboarding.ob-ready-step .ob-screen.ready{justify-content:center}') && onboarding.includes("slide==='ready'&&!obLegalMode"), 'le récapitulatif final répartit le vide plutôt que de créer un grand trou');
+assert(onboarding.includes("root.removeAttribute('aria-hidden')") && onboarding.includes("root.setAttribute('aria-hidden','true')"), 'la modale est rendue au lecteur d’écran à l’ouverture puis retirée à la fermeture');
+assert(onboarding.includes('role="radiogroup"') && onboarding.includes('aria-checked='), 'les choix restent compréhensibles par les technologies d’assistance');
+assert(onboarding.includes('aria-label="Retour"'), 'le bouton retour est nommé pour les technologies d’assistance');
+
+console.log('\n--- Mouvement ---');
+assert(html.includes('.ob-mini-progress i.on{animation:none}'), 'la réduction des mouvements couvre les animations de l’onboarding');
 assert(!html.includes('.ob-foot{transform:translateY(-86px)}'), 'l’ancien décalage vertical fragile du pied de page a disparu');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
