@@ -6,7 +6,22 @@
 <title>Requête — Apprends le SQL</title>
 <meta name="description" content="Apprends le SQL en pratiquant sur une vraie base SQLite. Leçons, défis, révision espacée et console interactive.">
 <meta name="theme-color" content="#F5F6FA">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="light dark">
+<script>
+/* Thème sombre — appliqué avant le premier rendu pour éviter tout flash.
+   Préférence : localStorage 'requete-theme' = 'clair' | 'sombre' | absent (auto : suit le système). */
+(function(){
+  try{
+    var t=localStorage.getItem('requete-theme');
+    if(t!=='clair'&&t!=='sombre')t='auto';
+    var dark=t==='sombre'||(t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);
+    if(dark){
+      document.documentElement.setAttribute('data-theme','sombre');
+      var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content','#101118');
+    }
+  }catch(e){}
+})();
+</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Requête">
@@ -5095,6 +5110,64 @@
     --tabbar-h:68px;
     --ls-nav-h:84px;
   }
+
+  /* ============================================================
+     Mode sombre — activé par data-theme="sombre" sur <html>.
+     Le script de démarrage le pose selon la préférence enregistrée
+     ('requete-theme') ou le réglage système. On remplace les tokens,
+     puis on corrige les quelques fonds clairs codés en dur.
+     ============================================================ */
+  html[data-theme='sombre']{
+    --bg:#101118; --surface:#181A23; --surface-2:#1F212C; --surface-elevated:#1D1F29;
+    --ink:#F0F1F7; --ink-2:#A6A9B6; --ink-3:#7D808E;
+    --line:rgba(233,235,246,.11); --line-2:rgba(233,235,246,.065);
+    --card-border:rgba(233,235,246,.085); --hairline:rgba(233,235,246,.07);
+    --accent:#8582FF; --accent-2:#9E97FF; --accent-soft:rgba(133,130,255,.17); --accent-ink:#B8B5FF;
+    --ios-cyan:#4CC9FA;
+    --card-shadow:0 1px 2px rgba(0,0,0,.45),0 14px 36px -22px rgba(0,0,0,.75),inset 0 .5px 0 rgba(255,255,255,.05);
+    --card-shadow-sm:0 1px 2px rgba(0,0,0,.4),0 8px 22px -18px rgba(0,0,0,.65);
+    --glass:rgba(24,26,35,.74); --glass-brd:rgba(255,255,255,.07);
+    --success:#3FD3C0; --success-soft:rgba(63,211,192,.13);
+    --danger:#FF8093; --danger-soft:rgba(255,128,147,.13);
+    --warn:#F2A65A; --warn-soft:rgba(242,166,90,.13);
+  }
+  html[data-theme='sombre'] body{
+    background:
+      radial-gradient(900px 560px at 12% -8%,rgba(133,130,255,.09),transparent 58%),
+      radial-gradient(760px 520px at 100% 12%,rgba(76,201,250,.05),transparent 55%),
+      #0A0B10;
+  }
+  html[data-theme='sombre'] #app{
+    background:
+      radial-gradient(420px 240px at 105% -4%,rgba(133,130,255,.05),transparent 64%),
+      var(--bg);
+  }
+  /* Chrome de navigation : liserés et fonds clairs codés en dur */
+  html[data-theme='sombre'] #scr-learn>.lgtitle,
+  html[data-theme='sombre'] .navbar{border-bottom-color:rgba(233,235,246,.09)}
+  html[data-theme='sombre'] #scr-learn.is-scrolled>.lgtitle{background:rgba(16,17,24,.92)}
+  html[data-theme='sombre'] .learn-avatar{
+    background:linear-gradient(145deg,#232532 0%,#191A26 100%);
+    border-color:rgba(133,130,255,.28);
+    box-shadow:0 8px 22px -12px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  /* Petits fonds clairs en dur : en-têtes de mini-tableaux, puces, chevrons */
+  html[data-theme='sombre'] .mini-grid .h,
+  html[data-theme='sombre'] .anat-head,
+  html[data-theme='sombre'] .pipe-table th,
+  html[data-theme='sombre'] .er-th,
+  html[data-theme='sombre'] .er-pk-head{background:#23252F}
+  html[data-theme='sombre'] .memory-rule div>b{background:#23252F;border-color:rgba(233,235,246,.12)}
+  html[data-theme='sombre'] .concept-order,
+  html[data-theme='sombre'] .vs-out{background:#1C1E28}
+  html[data-theme='sombre'] .ob-opt{background:#1B1D26;border-color:#2A2C38}
+  html[data-theme='sombre'] .cp-chev{background:rgba(133,130,255,.16)}
+  html[data-theme='sombre'] .lesson-lead .join-question{background:linear-gradient(145deg,#26253A,#1E1D2E);border-color:rgba(133,130,255,.22)}
+  html[data-theme='sombre'] .som-item .som-n{background:rgba(133,130,255,.18)}
+  html[data-theme='sombre'] .mascot{background:#1B1D26}
+  /* Sélecteur de thème dans Mon compte → Réglages */
+  .theme-slots{display:flex;gap:6px;margin-left:auto;flex:none}
+  .theme-slots .acc-remind-slot{padding:7px 12px;font-size:12.5px;white-space:nowrap}
 
   body{
     background:
@@ -22131,6 +22204,33 @@ function rappelSlotId(h){
   if(n<18) return 'afternoon';
   return 'evening';
 }
+/* ===== Thème (clair / sombre / auto) =====
+   'auto' suit le système ; le choix est mémorisé dans localStorage. */
+function getTheme(){
+  try{ const t=localStorage.getItem('requete-theme'); return (t==='clair'||t==='sombre')?t:'auto'; }catch(e){ return 'auto'; }
+}
+function applyTheme(){
+  const t=getTheme();
+  const dark=t==='sombre'||(t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);
+  if(dark) document.documentElement.setAttribute('data-theme','sombre');
+  else document.documentElement.removeAttribute('data-theme');
+  document.documentElement.style.colorScheme=dark?'dark':'light';
+  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content',dark?'#101118':'#F5F6FA');
+}
+function setTheme(t){
+  if(t!=='auto'&&t!=='clair'&&t!=='sombre') t='auto';
+  try{ t==='auto'?localStorage.removeItem('requete-theme'):localStorage.setItem('requete-theme',t); }catch(e){}
+  applyTheme();
+  document.querySelectorAll('.theme-slots .acc-remind-slot').forEach(b=>{
+    const on=b.dataset.theme===t;
+    b.classList.toggle('on',on);
+    b.setAttribute('aria-pressed',String(on));
+  });
+  if(navigator.vibrate)navigator.vibrate(8);
+}
+try{
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{ if(getTheme()==='auto') applyTheme(); });
+}catch(e){}
 function setRappelHeure(h){
   try{ localStorage.setItem('requete-rappel-heure',h); }catch(e){}
   renderCompte();
@@ -22201,6 +22301,7 @@ function renderCompte(){
   const remind=rappelOn();
   const hour=rappelHeure();
   const slot=rappelSlotId(hour);
+  const theme=getTheme();
   const hours=(RAPPEL_SLOTS.find(s=>s.id===slot)||RAPPEL_SLOTS[2]).hours;
   const connected=state.accountMode==='connected';
   const profile=state.profile||{};
@@ -22295,6 +22396,20 @@ function renderCompte(){
     </section>
     <section class="account-settings-block">
       <div class="account-settings-heading"><div><p class="account-settings-title">Réglages</p><h2>Personnalise ton expérience</h2></div><small>Modifiables à tout moment</small></div>
+      <div class="account-settings-group">
+        <p class="account-settings-group-title">Apparence</p>
+        <div class="account-settings-list">
+          <div class="account-setting-row">
+            <span class="plus-row-icon route">🌗</span>
+            <span><b>Thème</b><small>Clair, sombre ou automatique (système)</small></span>
+            <span class="theme-slots" role="group" aria-label="Thème de l’application">
+              <button class="acc-remind-slot ${theme==='auto'?'on':''}" type="button" data-theme="auto" aria-pressed="${theme==='auto'}" onclick="event.stopPropagation();setTheme('auto')">Auto</button>
+              <button class="acc-remind-slot ${theme==='clair'?'on':''}" type="button" data-theme="clair" aria-pressed="${theme==='clair'}" onclick="event.stopPropagation();setTheme('clair')">Clair</button>
+              <button class="acc-remind-slot ${theme==='sombre'?'on':''}" type="button" data-theme="sombre" aria-pressed="${theme==='sombre'}" onclick="event.stopPropagation();setTheme('sombre')">Sombre</button>
+            </span>
+          </div>
+        </div>
+      </div>
       <div class="account-settings-group">
         <p class="account-settings-group-title">Apprentissage</p>
         <div class="account-settings-list">
