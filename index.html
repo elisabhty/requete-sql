@@ -8835,8 +8835,20 @@ FROM produits;</pre></div>
   situationSql:"SELECT categorie,\n       GROUP_CONCAT(nom, ', ') AS produits\nFROM produits\nGROUP BY categorie\nORDER BY categorie;",
   situationTail:"<div class=\"sit-sql\"><p>C’est exactement ce que permet <code>GROUP_CONCAT</code>.</p><p>C’est une <b>fonction d’agrégation pour le texte</b> : elle rassemble plusieurs valeurs d’un même groupe en une seule chaîne de caractères.</p></div>",
   studio:{pointCards:{eye:"GROUP_CONCAT",title:"Plusieurs textes, une seule cellule.",
-      lead:"Après le regroupement, <code>GROUP_CONCAT</code> assemble les valeurs non nulles et place le séparateur choisi entre elles.",
-      chain:[{k:"GROUP BY",v:"forme les catégories"},{k:"GROUP_CONCAT",v:"assemble les noms"},{k:"Séparateur",v:"rend la liste lisible"}]},
+      lead:"Après avoir formé les groupes avec <code>GROUP BY</code>, <code>GROUP_CONCAT</code> rassemble les valeurs de chaque groupe dans une seule cellule.",
+      chain:[{k:"GROUP BY",v:"forme un groupe par catégorie"},{k:"GROUP_CONCAT",v:"rassemble les noms du groupe"},{k:"Séparateur",v:"sépare les noms dans la cellule"}],
+      after:`<div class="idx-comp" aria-hidden="true">
+        <div class="idx-comp-g">
+          <b>catégorie Bien-être</b>
+          <span>Fibre Prébiotique</span>
+          <span>Magnésium</span>
+          <span>Oméga 3</span>
+        </div>
+        <div class="idx-comp-g">
+          <b>deviennent une seule cellule</b>
+          <span>Fibre Prébiotique, Magnésium, Oméga 3</span>
+        </div>
+      </div>`},
     uses:{title:"Agréger du texte.",body:`<div class="pt-lead fn-uses">
       <div class="fn-use"><p class="pt-syntax-h">La forme SQLite</p><div class="pt-syntax"><pre class="cw-syntax">GROUP_CONCAT(expression, séparateur)</pre></div><p>Les valeurs <code>NULL</code> sont ignorées. Sans séparateur explicite, SQLite utilise une virgule.</p></div>
       <div class="fn-use"><p class="pt-syntax-h">Une syntaxe qui varie</p><p>PostgreSQL et SQL Server proposent notamment <code>STRING_AGG(nom, ', ')</code>. Le besoin est portable ; le nom et la gestion de l’ordre dépendent du SGBD.</p></div>

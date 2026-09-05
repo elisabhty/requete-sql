@@ -42,7 +42,7 @@ assert(!init.includes('setTimeout(()=>setBranch(branches[0])'), 'aucun JOIN n’
 assert(!init.includes('setNode(nodes[0])'), 'la table A n’est plus choisie automatiquement');
 assert(html.includes('.jd-coach-emoji') && html.includes('@keyframes jdCoachTap'), 'micro-animation de toucher disponible');
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('.jd-result-check'), 'animations compatibles avec la réduction des mouvements');
-assert(serviceWorker.includes('requete-2026-09-05-group-concat-catalogue-v305'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-09-05-group-concat-mecanisme-v306'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
