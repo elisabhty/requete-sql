@@ -11,10 +11,10 @@
    - domaines tiers (polices) → jamais interceptés : on laisse le navigateur
      échouer seul plutôt que de faire attendre le service worker.
 
-   CACHE doit changer à chaque déploiement pour purger l'ancien contenu :
-   garde-le aligné sur APP_VERSION dans index.html. */
+  CACHE change à chaque déploiement des ressources. APP_VERSION concerne
+  les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-09-05-mode-sombre-v279';
+const CACHE = 'requete-2026-09-05-pedagogie-nutriboost-v280';
 
 const PRECACHE = [
   './',
@@ -27,6 +27,9 @@ const PRECACHE = [
   './viz-orderby.js',
   './viz-orderby.css',
   './anim-responsive.css',
+  './lesson-cases.js',
+  './lesson-case-view.js',
+  './lesson-cases.css',
   './vendor/sqljs/sql-wasm.js',
   './vendor/sqljs/sql-wasm.wasm',
   './assets/mascotte-requete.png',
@@ -67,19 +70,20 @@ self.addEventListener('fetch', (e) => {
         cache.put('./index.html', res.clone());
         return res;
       } catch (err) {
-        return (await caches.match('./index.html')) || (await caches.match('./')) || Response.error();
+        const cache = await caches.open(CACHE);
+        return (await cache.match('./index.html')) || (await cache.match('./')) || Response.error();
       }
     })());
     return;
   }
 
   e.respondWith((async () => {
-    const hit = await caches.match(req, { ignoreSearch: true });
+    const cache = await caches.open(CACHE);
+    const hit = await cache.match(req, { ignoreSearch: true });
     if (hit) return hit;
     try {
       const res = await fetch(req);
       if (res && res.ok && res.type === 'basic') {
-        const cache = await caches.open(CACHE);
         cache.put(req, res.clone());
       }
       return res;
