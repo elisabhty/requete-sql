@@ -14,7 +14,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-09-05-pedagogie-nutriboost-v280';
+const CACHE = 'requete-2026-09-05-as-besoin-metier-v281';
 
 const PRECACHE = [
   './',

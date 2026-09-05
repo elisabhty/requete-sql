@@ -7046,9 +7046,9 @@ const MODULES = [
   indice:"Place les deux colonnes après <code>SELECT</code> et sépare-les par une virgule : <code>nom, telephone</code>.",
   richLesson:true, earlyDemo:true },
 { id:2, titre:"Renommer avec AS", résumé:"Donner un nom lisible à une colonne du résultat",
-  situation:"Tu affiches le nom et le prix des produits. Le résultat porte les noms exacts des colonnes : <code>nom</code>, <code>prix</code>.<br><br>Pour un rapport destiné à ta direction, tu préfères des en-têtes parlants, comme « produit » et « prix_euros ».",
+  situation:"Tu affiches le nom et le prix des produits :",
   situationSql:"SELECT nom, prix FROM produits;",
-  situationTail:"SQL permet de renommer une colonne <b>à l'affichage</b> avec <code>AS</code>, sans toucher à la table.",
+  situationTail:"SQL utilise les noms des colonnes comme en-têtes : <code>nom</code> et <code>prix</code>.<br><br>Mais ces noms sont surtout pensés pour la base de données. Pour les équipes métier, qui vont consulter les résultats dans un rapport ou un tableau de bord, tu veux des intitulés plus clairs et compréhensibles.<br><br>Tu souhaites donc afficher <code>produit</code> à la place de <code>nom</code>, et <code>prix_euros</code> à la place de <code>prix</code>.<br><br><div class=\"sit-sql\"><p>Comment adapter les noms affichés sans modifier les colonnes de la base de données ?</p><p>C’est exactement ce que permet <code>AS</code>.</p></div>",
     studio:{problem:{title:"AS donne un alias : un nom d'affichage pour le résultat.",
       body:"Après une colonne, <code>AS</code> introduit le nom qui apparaîtra dans le résultat : <code>prix AS prix_euros</code>. La table n'est pas modifiée, seul l'en-tête change. L'alias peut contenir un espace s'il est entre guillemets doubles : <code>prix AS \"Prix €\"</code>."},
     reflex:{a:{k:"AS",t:"renomme une colonne <b>dans le résultat seulement</b>"},
@@ -18312,12 +18312,15 @@ function renderStudio(l){
   const demo=s.problem.demo?`<pre class="ex-code">${highlight(s.problem.demo)}</pre>`:'';
   const tail=s.problem.tail?`<p>${s.problem.tail}</p>`:'';
   const point=s.point?flowProseHtml(s.point):'';
-  const whyExtra=s.why.extra||'';
+  /* Toutes les leçons n'ont pas de bloc « Pourquoi » : sans ce repli, celles
+     qui s'en passent plantaient au rendu et ne s'ouvraient plus du tout. */
+  const why=s.why||null;
+  const whyExtra=(why&&why.extra)||'';
   const viz=s.viz?renderVizShell(s.viz):(s.extra||'');
   const guide=s.viz?renderJoinGuide(s.viz):'';
-  const whyEye=s.why.eye!==undefined?s.why.eye:'Pourquoi';
+  const whyEye=why&&why.eye!==undefined?why.eye:'Pourquoi';
   const whyH2=whyEye?`<span class="h2-eye">${whyEye}</span>`:'';
-  const whyTitle=s.viz?WHY_VIZ_TITLE:s.why.title;
+  const whyTitle=s.viz?WHY_VIZ_TITLE:(why?why.title:'');
   const orBlk=s.or?`<div class="concept-block">
       <h2><span class="h2-txt">${s.or.title}</span></h2>
       ${flowProseHtml(s.or.body)}
@@ -18334,11 +18337,11 @@ function renderStudio(l){
       ${probExtra}${demo}${tail}${vs}${point}
     </div>
     ${usesBlk}
-    <div class="concept-block">
+    ${(why||viz)?`<div class="concept-block">
       <h2>${whyH2}<span class="h2-txt">${whyTitle}</span></h2>
-      ${viz?'':flowProseHtml(s.why.body)}${whyExtra}
+      ${viz?'':flowProseHtml(why&&why.body)}${whyExtra}
       ${viz}
-    </div>
+    </div>`:''}
     ${orBlk}
     <!-- early-demo -->
   </div>`;
