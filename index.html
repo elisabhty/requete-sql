@@ -400,6 +400,9 @@
   .nm-pane-h{padding:14px 15px 12px}
   .nm-pane-h b{display:block;font-size:14.5px;font-weight:800;letter-spacing:-.3px;line-height:1.25;color:var(--ink)}
   .nm-pane-h small{display:block;margin-top:4px;font-size:12.5px;font-weight:600;color:var(--ink-2);line-height:1.4}
+  /* sqlite_master et sqlite_autoindex_… n'existent que sous SQLite : le
+     badge évite de faire passer un détail de moteur pour du SQL général. */
+  .sql-dialecte{display:inline-block;flex:none;align-self:center;margin-left:8px;padding:3px 7px;line-height:1.35;border-radius:7px;background:var(--surface-2);color:var(--ink-3);font-family:var(--ui);font-size:10px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;vertical-align:middle}
   .nm-badge{display:inline-flex;align-items:center;margin-top:9px;padding:4px 8px;border-radius:8px;font-size:10px;font-weight:800;letter-spacing:.35px;text-transform:uppercase}
   .nm-pane.is-before .nm-badge{background:var(--danger-soft);color:var(--danger)}
   .nm-pane.is-after .nm-badge{background:var(--success-soft);color:var(--success)}
@@ -12570,15 +12573,17 @@ CREATE TABLE clients (
           <p>💡 Selon le SGBD, une contrainte <code>UNIQUE</code> est généralement mise en œuvre à l’aide d’un index unique. Mais <code>INDEX</code> et <code>UNIQUE</code> n’ont pas le même objectif.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Des index que tu n’as pas créés</p>
-          <p>Déclarer <code>UNIQUE</code> ne pose pas qu’une règle : SQLite construit aussi l’index qui la fait respecter. Notre base en compte déjà un, sans qu’aucun <code>CREATE INDEX</code> ait été écrit :</p>
+          <p class="pt-syntax-h">Certains index sont créés automatiquement<span class="sql-dialecte">Cas SQLite</span></p>
+          <p>Lorsque tu déclares une contrainte <code>UNIQUE</code>, SQLite doit pouvoir vérifier qu’aucune valeur identique n’existe déjà. Pour faire respecter cette règle, il crée automatiquement un index unique.</p>
+          <p>Tu peux donc avoir un index dans ta base sans avoir écrit <code>CREATE INDEX</code> toi-même :</p>
           <div class="pt-syntax"><pre class="cw-syntax">SELECT name, tbl_name
 FROM sqlite_master
 WHERE type = 'index';</pre></div>
           <div class="tx-fail">
             <span class="is-ok">sqlite_autoindex_clients_1<i>clients</i></span>
           </div>
-          <p>Il vient du <code>email TEXT UNIQUE</code> de la table <code>clients</code>. Chercher par e-mail est donc déjà rapide.</p>
+          <p>Cet index a été créé automatiquement à cause de <code>email TEXT UNIQUE</code> dans la table <code>clients</code>.</p>
+          <p>Il n’est donc pas nécessaire de créer un deuxième index classique sur la même colonne <code>email</code>.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Et la clé primaire ?</p>
