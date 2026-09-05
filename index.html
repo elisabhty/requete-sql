@@ -457,9 +457,18 @@
   .idx-tree .idx-arrow{display:flex;align-items:center;justify-content:center;color:var(--success);font-size:12px;font-weight:800;padding:0;background:transparent}
   /* La légende entre les deux étapes n'est pas une valeur de l'index :
      elle sort du cadre gris et reprend la police d'interface. */
+  /* Une entrée d'index : la valeur à gauche, la référence vers la ligne à
+     droite. C'est ce couple qui montre ce que contient un index. */
+  .idx-tree .idx-ref{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .idx-tree .idx-ref i{font-style:normal;font-weight:650;color:var(--ink-3);white-space:nowrap}
   .idx-tree .idx-many{background:transparent;color:var(--ink-3);font-family:var(--ui);font-size:11.5px;font-weight:650;line-height:1.4;padding:2px;text-align:center}
   @media (min-width:640px){
     .idx-board{display:grid;grid-template-columns:1fr 1fr;align-items:stretch}
+    /* Deux colonnes : le panneau tombe sous 200 px et « lucas@mail.fr →
+       ligne 2 » ne tient plus sur une ligne. On resserre plutôt que de
+       laisser les entrées prendre des hauteurs inégales. */
+    .idx-tree .idx-ref{font-size:10.5px;gap:4px}
+    .idx-tree .idx-ref i{font-size:10px}
   }
   .idx-comp{display:flex;flex-direction:column;gap:10px;margin:12px 0 4px}
   .idx-comp-g{padding:10px 12px 12px;border-radius:14px;background:var(--surface-2)}
@@ -17979,16 +17988,16 @@ function renderIdxSplit(){
       </div>
       <div class="idx-pane is-idx">
         <div class="idx-pane-h">
-          <b>Avec un index sur <code>email</code></b>
-          <small>SQL peut utiliser l’index pour retrouver plus rapidement l’e-mail recherché.</small>
+          <b>INDEX <code>idx_clients_email</code></b>
+          <small>Les e-mails rangés dans l’ordre, chacun avec la ligne où le retrouver.</small>
         </div>
         <div class="idx-tree">
-          <span>emma@mail.fr</span>
-          <span>lea@mail.fr</span>
-          <span>lucas@mail.fr</span>
-          <span class="idx-hit">sophie@mail.fr<i aria-hidden="true">✓</i></span>
+          <span class="idx-ref">emma@mail.fr<i>→ ligne 3</i></span>
+          <span class="idx-ref">lea@mail.fr<i>→ ligne 7</i></span>
+          <span class="idx-ref">lucas@mail.fr<i>→ ligne 2</i></span>
+          <span class="idx-hit idx-ref">sophie@mail.fr<i aria-hidden="true">→ ligne 1 ✓</i></span>
           <span class="idx-arrow" aria-hidden="true">↓</span>
-          <span class="idx-many">l’index indique où retrouver la ligne de Sophie</span>
+          <span class="idx-many">TABLE clients</span>
           <span class="idx-arrow" aria-hidden="true">↓</span>
           <span class="idx-hit">Sophie · Paris · 34 · sophie@mail.fr</span>
         </div>
