@@ -6543,32 +6543,19 @@
   .sql-viz[data-paused="1"] .grp-stage *,.sql-viz[data-paused="1"] .grp-stage *::before,.sql-viz[data-paused="1"] .grp-stage *::after{animation-delay:0s!important;animation-duration:.001ms!important;animation-iteration-count:1!important}
   .sql-viz[data-paused="1"] .grp-desc{animation:none!important;opacity:1!important}
   .viz-navigation{display:flex;align-items:center;gap:8px;margin:12px 0 8px;flex-wrap:wrap;color:var(--ink-2);font-size:12px}
-  .viz-navigation button,.anat-walk button{min-width:44px;min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--accent);font:inherit;font-weight:700;cursor:pointer}
+  .viz-navigation button{min-width:44px;min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--accent);font:inherit;font-weight:700;cursor:pointer}
   .viz-navigation button:disabled{opacity:.35;cursor:default}
   .viz-position{font-variant-numeric:tabular-nums;text-align:center;flex:1}
   .viz-speed{display:flex;align-items:center;gap:6px;margin-left:auto}
   .viz-speed select{min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;padding:6px}
-  .sql-viz :is(button,select):focus-visible,.anat-walk button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
-  .schema-walk{background:transparent!important}
-  .schema-walk .anat-line{display:block;padding:0}
-  .schema-walk .anat-reading{background:var(--accent-soft);outline:2px solid var(--accent);outline-offset:2px;box-shadow:none}
-  .anat-walk{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:10px;border-top:1px solid var(--line);background:var(--surface-2);font-size:12px;color:var(--ink-2)}
-  .anat-walk>span{flex:1;min-width:95px;font-weight:700}
-  .anat-walk output{min-width:76px;text-align:center;font-variant-numeric:tabular-nums}
-  .anat-walk button:last-child{padding:0 10px}
-  .anat-line{position:relative;transition:background .25s ease,box-shadow .25s ease}
-  .anat-line.anat-reading{background:#30294c;box-shadow:inset 3px 0 #B79CFF}
-  .anat-line.anat-reading .anat-tok{color:#D8C9FF}
-  .anat-line.anat-reading .anat-txt{color:#F2EEF9}
+  .sql-viz :is(button,select):focus-visible{outline:3px solid var(--accent);outline-offset:3px}
   @media(max-width:460px){.anat-line{flex-direction:column;gap:6px}.anat-tok{width:100%;max-width:none;min-width:0;flex-basis:auto;overflow-wrap:anywhere}}
   @media(prefers-reduced-motion:no-preference){
-    .anat-line.anat-reading .anat-txt{animation:joinPhaseDescIn .28s ease both}
     .sql-viz.phase-change .grp-desc{animation:joinPhaseDescIn .3s ease both}
   }
   @media(max-width:380px){
     .sql-viz .join-stepper{grid-template-columns:repeat(2,minmax(0,1fr))}
     .viz-speed{width:100%;justify-content:flex-end}
-    .anat-walk>span{flex-basis:100%}
   }
   @media(prefers-reduced-motion:reduce){
     .sql-viz *,.sql-viz *::before,.sql-viz *::after,.anat *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
@@ -16306,7 +16293,7 @@ function renderBravoSlide(l){
 }
 /* ---------- Blocs de cours enrichis (réutilisables) ---------- */
 function anatLinesHtml(lines){
-  return (lines||[]).map((a,i)=>`<div class="anat-line" style="--anat-index:${i}"><div class="anat-tok ${a.plain?'plain':''}${a.punc?' punc':''}">${esc(a.tok)}</div><div class="anat-txt">${a.txt}</div></div>`).join('');
+  return (lines||[]).map(a=>`<div class="anat-line"><div class="anat-tok ${a.plain?'plain':''}${a.punc?' punc':''}">${esc(a.tok)}</div><div class="anat-txt">${a.txt}</div></div>`).join('');
 }
 function anatBlock(l){
   const variants=l&&l.anatomieVariants;
@@ -16336,36 +16323,6 @@ function anatSections(l){
   if(!anat) return '';
   return `<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`;
 }
-function initAnatomyWalk(){
-  document.querySelectorAll('#lesson-body .nm-schema').forEach(schema=>{
-    schema.classList.add('anat','schema-walk');
-    [...schema.children].filter(el=>el.classList.contains('nm-tbl')).forEach(el=>el.classList.add('anat-line'));
-  });
-  document.querySelectorAll('#lesson-body .anat').forEach(wrap=>{
-    if(wrap.querySelector('.anat-walk'))return;
-    const rows=wrap.querySelectorAll('.anat-line');
-    if(rows.length<2)return;
-    const controls=document.createElement('div');
-    controls.className='anat-walk';
-    controls.innerHTML='<span>'+ (wrap.classList.contains('schema-walk')?'Lire les relations':'Lire la requête') +'</span><button type="button" onclick="stepAnatomy(this,-1)" aria-label="Fragment SQL précédent">←</button><output aria-live="polite">Vue complète</output><button type="button" onclick="stepAnatomy(this,1)" aria-label="Fragment SQL suivant">→</button><button type="button" onclick="resetAnatomy(this)">Tout voir</button>';
-    if(wrap.classList.contains('schema-walk'))controls.querySelectorAll('button[aria-label]').forEach((button,i)=>button.setAttribute('aria-label',i?'Table suivante':'Table précédente'));
-    wrap.appendChild(controls);
-  });
-}
-function stepAnatomy(btn,direction){
-  const wrap=btn.closest('.anat'),rows=[...wrap.querySelectorAll('.anat-line')];
-  const previous=wrap.dataset.readIndex===undefined?-1:Number(wrap.dataset.readIndex);
-  const index=previous<0?(direction>0?0:rows.length-1):(previous+direction+rows.length)%rows.length;
-  wrap.dataset.readIndex=String(index);
-  rows.forEach((row,i)=>{row.classList.toggle('anat-reading',i===index);if(i===index)row.setAttribute('aria-current','step');else row.removeAttribute('aria-current');});
-  wrap.querySelector('.anat-walk output').textContent=(index+1)+' / '+rows.length;
-}
-function resetAnatomy(btn){
-  const wrap=btn.closest('.anat');
-  delete wrap.dataset.readIndex;
-  wrap.querySelectorAll('.anat-line').forEach(row=>{row.classList.remove('anat-reading');row.removeAttribute('aria-current');});
-  wrap.querySelector('.anat-walk output').textContent='Vue complète';
-}
 function switchAnatVariant(btn){
   const wrap=btn.closest('.anat');
   if(!wrap||!wrap.dataset.variants)return;
@@ -16383,7 +16340,6 @@ function switchAnatVariant(btn){
   });
   const body=wrap.querySelector('.anat-body');
   if(body) body.innerHTML=anatLinesHtml(v.lines);
-  if(wrap.querySelector('.anat-walk'))resetAnatomy(btn);
   if(navigator.vibrate)navigator.vibrate(5);
 }
 function lessonRichBlocks(l){
@@ -18911,7 +18867,6 @@ function renderLessonFlow(){
   if(lessonStep===2) renderValidation();
   if(lessonStep===3) requestAnimationFrame(revealBravoCard);
   if(lessonStep===0){
-    initAnatomyWalk();
     buildSommaire();
     initOrderRappelAnim();
     initTesteEditor();
