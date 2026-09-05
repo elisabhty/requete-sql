@@ -474,6 +474,9 @@
   .idx-comp-g{padding:10px 12px 12px;border-radius:14px;background:var(--surface-2)}
   .idx-comp-g b{display:block;margin-bottom:8px;font-size:12.5px;font-weight:800;color:var(--ink)}
   .idx-comp-g span{display:block;margin-left:14px;padding:5px 0 5px 12px;border-left:2px solid rgba(91,91,214,.28);font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink-2)}
+  /* La date qui satisfait la recherche : sans elle, le schéma montre le
+     rangement de l'index mais pas ce qu'on vient y chercher. */
+  .idx-comp-g span.on{border-left-color:var(--success);color:var(--success);font-weight:800}
   .idx-side{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 4px}
   .idx-side span{display:flex;flex-direction:column;gap:4px;padding:12px 11px;border-radius:14px;background:var(--surface-2);text-align:center}
   .idx-side b{font-size:12.5px;font-weight:800;color:var(--ink)}
@@ -12513,24 +12516,38 @@ ON commandes(client_id);</pre></div>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Index sur plusieurs colonnes</p>
-          <p>Si tu recherches souvent les commandes d’un client à partir d’une date :</p>
+          <p>Si tu recherches souvent les commandes d’un client à partir d’une certaine date :</p>
           <div class="pt-syntax"><pre class="cw-syntax">CREATE INDEX
   idx_commandes_client_date
 ON commandes(client_id,
              date_commande);</pre></div>
-          <p>C’est un <b>index composite</b>. L’ordre des colonnes compte : d’abord <code>client_id</code>, puis <code>date_commande</code> à l’intérieur de chaque client.</p>
+          <p>C’est un <b>index composite</b> : un seul index construit à partir de plusieurs colonnes. Ici, l’index est organisé :</p>
+          <ol class="pt-lead-list">
+            <li>d’abord par <code>client_id</code> ;</li>
+            <li>puis par <code>date_commande</code> pour chaque client.</li>
+          </ol>
           <div class="idx-comp" aria-hidden="true">
             <div class="idx-comp-g">
               <b>client 1 · Sophie</b>
               <span>2023-07-02</span>
               <span>2023-07-02</span>
-              <span>2023-07-28</span>
+              <span class="on">2023-07-28 ✓</span>
             </div>
             <div class="idx-comp-g">
               <b>client 2 · Lucas</b>
               <span>2023-07-05</span>
               <span>2023-07-20</span>
             </div>
+          </div>
+          <p>Cette organisation sert par exemple à cette recherche :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
+FROM commandes
+WHERE client_id = 1
+  AND date_commande &gt;= '2023-07-15';</pre></div>
+          <p>SQL peut d’abord retrouver les commandes du client 1, puis rechercher les dates correspondantes dans ce groupe.</p>
+          <div class="sit-sql">
+            <p><b>L’ordre est important.</b></p>
+            <p>Un index <code>(client_id, date_commande)</code> est particulièrement adapté aux recherches qui commencent par <code>client_id</code>. Il n’est pas équivalent à un index <code>(date_commande, client_id)</code>.</p>
           </div>
         </div>
         <div class="fn-use">
