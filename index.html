@@ -455,6 +455,9 @@
   .idx-tree .idx-hit{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--success-soft);color:var(--success)}
   .idx-tree .idx-hit i{font-style:normal;font-weight:850}
   .idx-tree .idx-arrow{display:flex;align-items:center;justify-content:center;color:var(--success);font-size:12px;font-weight:800;padding:0;background:transparent}
+  /* La légende entre les deux étapes n'est pas une valeur de l'index :
+     elle sort du cadre gris et reprend la police d'interface. */
+  .idx-tree .idx-many{background:transparent;color:var(--ink-3);font-family:var(--ui);font-size:11.5px;font-weight:650;line-height:1.4;padding:2px;text-align:center}
   @media (min-width:640px){
     .idx-board{display:grid;grid-template-columns:1fr 1fr;align-items:stretch}
   }
@@ -1324,12 +1327,6 @@
   .id-link-row{display:grid;grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr);align-items:stretch;gap:6px}
   .id-link figcaption{margin:10px 2px 0;text-align:center;font-size:13px;font-weight:650;line-height:1.4;color:var(--ink-2)}
   .pt-hop:last-child .pt-hop-v{color:var(--accent)}
-  /* Variante prose : le gabarit d'origine est en chasse fixe et tout en
-     gras, ce qui convient à un fragment technique mais rend une phrase
-     illisible et noie les mots qu'on veut souligner. */
-  .pt-hop-v.is-prose{font-family:var(--ui);font-size:14.5px;font-weight:450;line-height:1.5;color:var(--ink)}
-  .pt-hop-v.is-prose b{font-weight:750;color:var(--ink)}
-  .pt-hop:last-child .pt-hop-v.is-prose{color:var(--ink)}
   .pt-hop-ans{margin-top:4px;font-size:13px;font-weight:750;line-height:1.35}
   .pt-hop-ans.ok{color:var(--success)}
   .pt-hop-ans.no{color:var(--danger)}
@@ -12427,9 +12424,9 @@ ORDER BY stock;</pre></div>
       eye:"Index",title:"Un chemin d’accès vers les données.",
       lead:"<p>Un index est une structure qui aide SQL à retrouver plus rapidement certaines lignes d’une table, un peu comme l’index d’un livre permet d’aller directement à l’information recherchée.</p><p>Il ne modifie pas les colonnes de la table : il est créé à côté.</p>",
       chain:[
-        {k:"Sans index",prose:1,v:"SQL peut devoir parcourir <b>de nombreuses lignes</b> pour trouver le résultat."},
-        {k:"Avec index",prose:1,v:"SQL peut utiliser l’index pour <b>accéder plus directement aux lignes recherchées</b>."},
-        {k:"À retenir",prose:1,v:"Un index est surtout utile sur les <b>colonnes souvent utilisées pour rechercher ou filtrer des données</b>."}
+        {k:"Sans index",v:"SQL peut devoir parcourir <b>de nombreuses lignes</b> pour trouver le résultat."},
+        {k:"Avec index",v:"SQL peut utiliser l’index pour <b>accéder plus directement aux lignes recherchées</b>."},
+        {k:"À retenir",v:"Un index est surtout utile sur les <b>colonnes souvent utilisées pour rechercher ou filtrer des données</b>."}
       ]},
     uses:{title:"Un index, une idée à la fois.",
       body:`<div class="pt-lead fn-uses">
@@ -17060,7 +17057,7 @@ function renderPointCards(pc){
   const chaine=pc.chain?`<ol class="pt-chain">
       ${pc.chain.map((c,i)=>`<li class="pt-hop">
         <span class="pt-hop-n" aria-hidden="true">${i+1}</span>
-        <span class="pt-hop-txt"><span class="pt-hop-k">${c.k}</span><b class="pt-hop-v${c.prose?' is-prose':''}">${c.v}</b>${c.out?`<span class="pt-hop-out">${esc(c.out)}</span>`:''}${c.ex?`<span class="pt-hop-ex">Exemple : ${c.ex}</span>`:''}</span>
+        <span class="pt-hop-txt"><span class="pt-hop-k">${c.k}</span><b class="pt-hop-v">${c.v}</b>${c.out?`<span class="pt-hop-out">${esc(c.out)}</span>`:''}${c.ex?`<span class="pt-hop-ex">Exemple : ${c.ex}</span>`:''}</span>
       </li>`).join('')}
     </ol>`:'';
   const all=pc.cards||[];
@@ -17952,29 +17949,31 @@ function renderJoinIntroStudio(l){
   </div>`;
 }
 function renderIdxSplit(){
+  /* Les deux panneaux doivent chercher exactement la même chose, sinon on ne
+     voit pas ce que l'index change : à gauche on compare les e-mails ligne à
+     ligne dans la table, à droite on les cherche dans l'index. */
   return `<div class="concept-block">
     <h2><span class="h2-eye">Visualisation</span><span class="h2-txt">Parcourir la table, ou suivre un chemin.</span></h2>
-    <p>Imagine 2&nbsp;000&nbsp;000 de clients. Tu recherches <code>sophie@mail.fr</code>.</p>
+    <p>Imagine 2&nbsp;000&nbsp;000 de clients. Même recherche des deux côtés : <code>email = 'sophie@mail.fr'</code>.</p>
     <div class="idx-board">
       <div class="idx-pane is-scan">
         <div class="idx-pane-h">
           <b>Sans index</b>
-          <small>SQL peut devoir examiner beaucoup de lignes.</small>
+          <small>SQL peut devoir examiner les lignes une par une.</small>
         </div>
         <div class="idx-rows">
-          <span>ligne 1<i>correspond ?</i></span>
-          <span>ligne 2<i>correspond ?</i></span>
-          <span>ligne 3<i>correspond ?</i></span>
+          <span>Sophie · sophie@mail.fr<i>✓</i></span>
+          <span>Lucas · lucas@mail.fr<i>?</i></span>
+          <span>Emma · emma@mail.fr<i>?</i></span>
+          <span>Nathan · nathan@mail.fr<i>?</i></span>
           <span class="idx-more">…</span>
-          <span class="idx-many">beaucoup de lignes examinées</span>
-          <span class="idx-arrow" aria-hidden="true">↓</span>
-          <span class="idx-hit">Sophie</span>
+          <span class="idx-many">SQL peut examiner beaucoup de lignes avant de trouver la bonne</span>
         </div>
       </div>
       <div class="idx-pane is-idx">
         <div class="idx-pane-h">
-          <b>Avec index</b>
-          <small>SQL peut utiliser l’index pour retrouver la valeur.</small>
+          <b>Avec un index sur <code>email</code></b>
+          <small>SQL peut utiliser l’index pour retrouver plus rapidement l’e-mail recherché.</small>
         </div>
         <div class="idx-tree">
           <span>emma@mail.fr</span>
@@ -17982,7 +17981,9 @@ function renderIdxSplit(){
           <span>lucas@mail.fr</span>
           <span class="idx-hit">sophie@mail.fr<i aria-hidden="true">✓</i></span>
           <span class="idx-arrow" aria-hidden="true">↓</span>
-          <span class="idx-hit">ligne correspondante dans clients</span>
+          <span class="idx-many">l’index indique où retrouver la ligne de Sophie</span>
+          <span class="idx-arrow" aria-hidden="true">↓</span>
+          <span class="idx-hit">Sophie · Paris · 34 · sophie@mail.fr</span>
         </div>
       </div>
     </div>
