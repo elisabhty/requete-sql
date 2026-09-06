@@ -7100,6 +7100,26 @@ const MODULES = [
     {tok:"FROM clients",txt:"La table interrogée."},
     {tok:";",punc:1,txt:"Termine la requête."}
   ],
+  anatomieVariants:[
+    {k:'cli',label:'clients',lines:[
+      {tok:"SELECT",txt:"Lit des données. Il ne modifie jamais rien."},
+      {tok:"*",plain:1,txt:"Toutes les colonnes de la table."},
+      {tok:"FROM clients",txt:"La table interrogée : tes acheteurs."},
+      {tok:";",punc:1,txt:"Termine la requête."}
+    ]},
+    {k:'prd',label:'produits',lines:[
+      {tok:"SELECT",txt:"Lit des données. Il ne modifie jamais rien."},
+      {tok:"*",plain:1,txt:"Toutes les colonnes de la table."},
+      {tok:"FROM produits",txt:"La table interrogée : les produits du catalogue."},
+      {tok:";",punc:1,txt:"Termine la requête."}
+    ]},
+    {k:'cmd',label:'commandes',lines:[
+      {tok:"SELECT",txt:"Lit des données. Il ne modifie jamais rien."},
+      {tok:"*",plain:1,txt:"Toutes les colonnes de la table."},
+      {tok:"FROM commandes",txt:"La table interrogée : les commandes passées, sans les noms — seulement des identifiants."},
+      {tok:";",punc:1,txt:"Termine la requête."}
+    ]}
+  ],
   exemple:"SELECT * FROM clients;",
   attendu:"<b>10 lignes</b> et 7 colonnes : une ligne par client, chaque colonne décrivant une caractéristique.",
   retenir:"Une <b>base relationnelle</b> organise les données dans des <b>tables</b> spécialisées (<code>clients</code>, <code>produits</code>, <code>commandes</code>).<br><br>• <b>Colonnes</b> : caractéristiques typées (<code>TEXT</code>, <code>INTEGER</code>, <code>REAL</code>).<br>• <b>Lignes</b> : enregistrements individuels (Sophie, Lucas…).<br>• <b>Clés</b> : identifient chaque ligne (clé primaire <code>PK</code>) et relient les tables entre elles (clé étrangère <code>FK</code>) sans recopie de données.<br><br><code>SELECT</code> permet d’interroger et de lire les tables sans jamais modifier la base.",
@@ -7206,6 +7226,23 @@ WHERE ville = 'Paris';</pre></div>
       b:{k:"SELECT *",t:"pratique pour <b>découvrir et inspecter</b> une table"},
       note:"<code>*</code> signifie « toutes les colonnes ». Dans la prochaine leçon, tu verras comment n’afficher que les informations dont tu as besoin."}},
   anatomie:[{tok:"SELECT",txt:"Commence la lecture des données."},{tok:"*",punc:1,txt:"Représente toutes les colonnes de la table."},{tok:"FROM produits",txt:"Précise que les données viennent de la table produits."}],
+  anatomieVariants:[
+    {k:'avant',label:'Étoile + colonne',tone:'bad',lines:[
+      {tok:"SELECT",txt:"Commence la lecture des données."},
+      {tok:"*",punc:1,txt:"Représente toutes les colonnes de la table."},
+      {tok:", nom",plain:1,txt:"Redondant : nom fait déjà partie des colonnes de *."},
+      {tok:"FROM produits",txt:"Précise que les données viennent de la table produits."}
+    ]},
+    {k:'avec',label:'SELECT *',tone:'good',lines:[
+      {tok:"SELECT",txt:"Commence la lecture des données."},
+      {tok:"*",punc:1,txt:"Représente toutes les colonnes de la table."},
+      {tok:"FROM produits",txt:"Précise que les données viennent de la table produits."}
+    ]}
+  ],
+  testeVariants:[
+    {k:'avant',label:'Étoile + colonne',sql:"SELECT *, nom\nFROM produits;",out:"nom est demandé en plus alors que * l’inclut déjà",tone:'bad'},
+    {k:'avec',label:'SELECT *',sql:"SELECT *\nFROM produits;",out:"8 lignes, 5 colonnes : id, nom, categorie, prix, stock",tone:'good'}
+  ],
   exemple:"SELECT * FROM produits;",
   attendu:"<b>8 lignes</b> et <b>5 colonnes</b> : <code>id</code>, <code>nom</code>, <code>categorie</code>, <code>prix</code> et <code>stock</code>.",
   retenir:"L’étoile <code>*</code> signifie « toutes les colonnes ». <code>SELECT *</code> affiche toute la table pour la découvrir. Les lignes restent.",
@@ -7284,6 +7321,20 @@ WHERE condition;</pre></div>
       b:{k:"=",t:"vérifie ici que la valeur est exactement <code>'Paris'</code>"},
       note:"Pour une valeur texte, utilise des guillemets simples : <code>'Paris'</code>."}},
   anatomie:[{tok:"SELECT nom, ville",txt:"Les colonnes déjà choisies pour l’affichage."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"ville",plain:1,txt:"La colonne dont la valeur est vérifiée."},{tok:"=",plain:1,txt:"Vérifie que les deux valeurs sont égales."},{tok:"'Paris'",plain:1,txt:"La valeur recherchée dans la colonne ville."}],
+  anatomieVariants:[
+    {k:'avant',label:'SELECT',lines:[
+      {tok:"SELECT nom, ville",txt:"Les colonnes choisies pour l’affichage."},
+      {tok:"FROM clients",txt:"La table clients est utilisée comme source."}
+    ]},
+    {k:'avec',label:'WHERE',tone:'good',lines:[
+      {tok:"SELECT nom, ville",txt:"Les colonnes déjà choisies pour l’affichage."},
+      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
+      {tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},
+      {tok:"ville",plain:1,txt:"La colonne dont la valeur est vérifiée."},
+      {tok:"=",plain:1,txt:"Vérifie que les deux valeurs sont égales."},
+      {tok:"'Paris'",plain:1,txt:"La valeur recherchée dans la colonne ville."}
+    ]}
+  ],
   exemple:"SELECT nom, ville FROM clients WHERE ville = 'Paris';",
   attendu:"<b>4 lignes</b> : Sophie, les deux Nathan et Léa, car ce sont les quatre clients dont <code>ville</code> vaut <code>'Paris'</code>.",
   retenir:"<code>WHERE</code> filtre les lignes selon une condition : seules celles qui la respectent apparaissent dans le résultat. Dans <code>SELECT * FROM clients WHERE ville = 'Paris'</code>, la table contient 10 clients, mais seules les 4 lignes de Sophie, des deux Nathan et de Léa apparaissent. Les autres lignes ne sont pas supprimées : elles sont simplement écartées du résultat.",
@@ -7305,6 +7356,32 @@ WHERE condition;</pre></div>
     viz:"compare",
     reflex:{extra:`<p style="margin:0;font-size:14.5px;line-height:1.55;color:var(--ink-2)">Les opérateurs <code>&gt;</code> et <code>&lt;</code> excluent la limite.<br>Les opérateurs <code>&gt;=</code> et <code>&lt;=</code> l’incluent.</p>`}},
   anatomie:[{tok:"SELECT nom, prix",txt:"affiche le nom et le prix"},{tok:"FROM produits",txt:"utilise la table produits"},{tok:"WHERE",txt:"filtre les lignes"},{tok:"prix",plain:1,txt:"la colonne comparée"},{tok:">",plain:1,txt:"signifie « strictement supérieur à »"},{tok:"25",plain:1,txt:"le seuil de comparaison"}],
+  anatomieVariants:[
+    {k:'egal',label:'=',lines:[
+      {tok:"SELECT nom, prix",txt:"affiche le nom et le prix"},
+      {tok:"FROM produits",txt:"utilise la table produits"},
+      {tok:"WHERE",txt:"filtre les lignes"},
+      {tok:"categorie",plain:1,txt:"la colonne comparée"},
+      {tok:"=",plain:1,txt:"signifie « exactement égal à »"},
+      {tok:"'Nutrition'",plain:1,txt:"la valeur recherchée, entre guillemets car c’est du texte"}
+    ]},
+    {k:'sup',label:'>',tone:'good',lines:[
+      {tok:"SELECT nom, prix",txt:"affiche le nom et le prix"},
+      {tok:"FROM produits",txt:"utilise la table produits"},
+      {tok:"WHERE",txt:"filtre les lignes"},
+      {tok:"prix",plain:1,txt:"la colonne comparée"},
+      {tok:">",plain:1,txt:"signifie « strictement supérieur à »"},
+      {tok:"25",plain:1,txt:"le seuil de comparaison"}
+    ]},
+    {k:'supegal',label:'> ou >=',lines:[
+      {tok:"SELECT nom, prix",txt:"affiche le nom et le prix"},
+      {tok:"FROM produits",txt:"utilise la table produits"},
+      {tok:"WHERE",txt:"filtre les lignes"},
+      {tok:"prix",plain:1,txt:"la colonne comparée"},
+      {tok:">",plain:1,txt:"exclut la valeur exacte du seuil : avec >=, elle serait incluse"},
+      {tok:"29.90",plain:1,txt:"le seuil de comparaison"}
+    ]}
+  ],
   exemple:"SELECT nom, prix FROM produits WHERE prix > 25;",
   attendu:"<b>3 lignes sur 8</b> : Fibre Prébiotique à 29,90 €, Collagène Marin à 39,90 € et Protéine Végétale à 34,90 €.",
   retenir:"<code>&gt;</code> → strictement supérieur à<br><code>&lt;</code> → strictement inférieur à<br><code>&gt;=</code> → supérieur ou égal à<br><code>&lt;=</code> → inférieur ou égal à<br><br>Dans <code>SELECT * FROM produits WHERE prix > 25</code>, seules les 3 lignes dont le prix dépasse 25 € apparaissent.<br><br><code>&gt; 25</code> exclut exactement 25 €, tandis que <code>&gt;= 25</code> l’inclut.",
@@ -7321,7 +7398,7 @@ WHERE condition;</pre></div>
 { id:6, titre:"AND", résumé:"Combiner avec AND",
   situation:"Tu prépares une campagne marketing ciblée à Paris, réservée aux clients de plus de 35 ans. Filtrer seulement sur la ville ou seulement sur l’âge ne suffit pas : il te faut les deux critères en même temps.<br><br>Avec ce que tu connais déjà, tu pourrais filtrer sur la ville seule :",
   situationSql:"WHERE ville = 'Paris'",
-  situationTail:"Tu obtiens les 3 Parisiens. Mais il te faut aussi l’âge : une seule condition ne suffit plus, il faut les combiner avec <code>AND</code>.",
+  situationTail:"Tu obtiens les 4 Parisiens. Mais il te faut aussi l’âge : une seule condition ne suffit plus, il faut les combiner avec <code>AND</code>.",
     studio:{problem:{eye:"",title:"Combiner deux conditions",
       body:"<code>AND</code> signifie que les deux conditions doivent être vraies.<br><br>Tu cherches les clients parisiens de plus de 35 ans : <code>ville = 'Paris'</code> et <code>age &gt; 35</code> doivent l’être en même temps pour qu’une ligne reste dans le résultat.",
       tail:"4 clients habitent à Paris : Sophie, deux Nathan et Léa. Mais seule Léa, 38 ans, habite à Paris et a plus de 35 ans."},
@@ -7336,6 +7413,24 @@ WHERE condition;</pre></div>
       b:{k:"Effet",t:"ajouter un <code>AND</code> <b>resserre</b> le résultat"},
       note:"Avec <code>ville = 'Paris' AND age &gt; 35</code>, une ligne doit respecter les deux conditions : habiter à Paris et avoir plus de 35 ans."}},
   anatomie:[{tok:"SELECT nom, ville, age",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE ville = 'Paris'",txt:"première condition"},{tok:"AND",txt:"exige que les deux conditions soient vraies"},{tok:"age > 35",plain:1,txt:"deuxième condition"}],
+  anatomieVariants:[
+    {k:'avant',label:'WHERE',lines:[
+      {tok:"SELECT nom, ville, age",txt:"Les colonnes affichées dans le résultat."},
+      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
+      {tok:"WHERE ville = 'Paris'",txt:"une seule condition : la ville."}
+    ]},
+    {k:'avec',label:'AND',tone:'good',lines:[
+      {tok:"SELECT nom, ville, age",txt:"Les colonnes affichées dans le résultat."},
+      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
+      {tok:"WHERE ville = 'Paris'",txt:"première condition"},
+      {tok:"AND",txt:"exige que les deux conditions soient vraies"},
+      {tok:"age > 35",plain:1,txt:"deuxième condition"}
+    ]}
+  ],
+  testeVariants:[
+    {k:'avant',label:'WHERE',sql:"SELECT nom, ville, age FROM clients\nWHERE ville = 'Paris';",out:"4 lignes : Sophie, Nathan (×2) et Léa"},
+    {k:'avec',label:'AND',sql:"SELECT nom, ville, age FROM clients\nWHERE ville = 'Paris' AND age > 35;",out:"1 ligne : Léa, 38 ans",tone:'good'}
+  ],
   exemple:"SELECT nom, ville, age FROM clients WHERE ville = 'Paris' AND age > 35;",
   attendu:"<b>1 ligne</b> : Léa, 38 ans, car elle habite à Paris et a plus de 35 ans.",
   retenir:"<code>AND</code> garde une ligne si toutes les conditions sont vraies.<br><br>Avec <code>ville = 'Paris' AND age &gt; 35</code>, seule Léa respecte les deux conditions.",
@@ -7356,7 +7451,7 @@ WHERE condition;</pre></div>
             pedagogic:true,out:"Résultat trompeur : seuls les Parisiens apparaissent, Lucas et Hugo (Lyon) manquent. Après OR, il faut une condition complète — ville = 'Lyon', pas 'Lyon' seul."},
         good:{tag:"✓ Avec OR",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",
             code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line good\">WHERE ville = 'Paris'\n   OR ville = 'Lyon'</span>;",
-            out:"5 lignes : Sophie, Lucas, Nathan, Hugo et Léa"}},
+            out:"6 lignes : Sophie, Lucas, Nathan (×2), Hugo et Léa"}},
     why:{eye:"",title:"Comment OR élargit le résultat",
       body:"Avec <code>OR</code>, une ligne est gardée si au moins une des conditions est vraie."},
     viz:"or",
@@ -7364,9 +7459,29 @@ WHERE condition;</pre></div>
       b:{k:"Effet",t:"ajouter un <code>OR</code> <b>élargit</b> le résultat"},
       note:"Avec <code>ville = 'Paris' OR ville = 'Lyon'</code>, le client est gardé s'il habite à Paris ou à Lyon. Il n'a pas besoin de respecter les deux conditions."}},
   anatomie:[{tok:"SELECT nom, ville",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE ville = 'Paris'",txt:"première condition"},{tok:"OR",txt:"exige qu’au moins une des conditions soit vraie"},{tok:"ville = 'Lyon'",plain:1,txt:"deuxième condition"}],
+  anatomieVariants:[
+    {k:'avant',label:'Incomplet',tone:'bad',lines:[
+      {tok:"SELECT nom, ville",txt:"Les colonnes affichées dans le résultat."},
+      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
+      {tok:"WHERE ville = 'Paris'",txt:"première condition, complète."},
+      {tok:"OR",txt:"exige qu’au moins une des conditions soit vraie"},
+      {tok:"'Lyon'",plain:1,txt:"condition incomplète : il manque « ville = » avant. SQL ne compare pas 'Lyon' à la colonne ville."}
+    ]},
+    {k:'avec',label:'OR',tone:'good',lines:[
+      {tok:"SELECT nom, ville",txt:"Les colonnes affichées dans le résultat."},
+      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
+      {tok:"WHERE ville = 'Paris'",txt:"première condition"},
+      {tok:"OR",txt:"exige qu’au moins une des conditions soit vraie"},
+      {tok:"ville = 'Lyon'",plain:1,txt:"deuxième condition"}
+    ]}
+  ],
+  testeVariants:[
+    {k:'avant',label:'Incomplet',sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR 'Lyon';",out:"Résultat trompeur : seuls les Parisiens apparaissent, Lucas et Hugo (Lyon) manquent.",tone:'bad'},
+    {k:'avec',label:'OR',sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",out:"6 lignes : Sophie, Lucas, Nathan (×2), Hugo et Léa",tone:'good'}
+  ],
   exemple:"SELECT nom, ville FROM clients WHERE ville = 'Paris' OR ville = 'Lyon';",
   attendu:"<b>6 lignes</b> : Sophie, Lucas, les deux Nathan, Hugo et Léa. Leur ville est Paris ou Lyon.",
-  retenir:"<code>OR</code> garde une ligne si au moins une condition est vraie.<br><br>Avec <code>ville = 'Paris' OR ville = 'Lyon'</code>, 5 clients sont gardés.",
+  retenir:"<code>OR</code> garde une ligne si au moins une condition est vraie.<br><br>Avec <code>ville = 'Paris' OR ville = 'Lyon'</code>, 6 clients sont gardés.",
   piege:{t:"Croire qu’OR ne combine que deux conditions",p:"Tu peux enchaîner <b>3 conditions ou plus</b> avec <code>OR</code> :",
     sql:"SELECT nom, ville\nFROM clients\nWHERE ville = 'Paris'\n  OR ville = 'Lyon'\n  OR ville = 'Marseille';"},
   consigne:"Affiche toutes les colonnes des clients qui habitent à Paris ou à Lyon.",
@@ -7408,6 +7523,24 @@ WHERE condition;</pre></div>
       b:{k:"IS NOT NULL",t:"garde les lignes où la valeur est <b>renseignée</b>"},
       note:"Le réflexe à retenir : avec <code>NULL</code>, jamais <code>=</code>.<br><br><code>email IS NULL</code> → email absent<br><code>email IS NOT NULL</code> → email renseigné"}},
   anatomie:[{tok:"SELECT nom, email",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre sur les lignes."},{tok:"email IS NULL",txt:"Teste si la valeur de email est absente."}],
+  anatomieVariants:[
+    {k:'avant',label:'= NULL',tone:'bad',lines:[
+      {tok:"SELECT nom, email",txt:"Les colonnes affichées dans le résultat."},
+      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
+      {tok:"WHERE",txt:"Introduit le filtre sur les lignes."},
+      {tok:"email = NULL",txt:"Ne fonctionne jamais : NULL ne se compare pas avec =. SQL ne renvoie aucune ligne."}
+    ]},
+    {k:'avec',label:'IS NULL',tone:'good',lines:[
+      {tok:"SELECT nom, email",txt:"Les colonnes affichées dans le résultat."},
+      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
+      {tok:"WHERE",txt:"Introduit le filtre sur les lignes."},
+      {tok:"email IS NULL",txt:"Teste si la valeur de email est absente."}
+    ]}
+  ],
+  testeVariants:[
+    {k:'avant',label:'= NULL',sql:"SELECT nom, email FROM clients\nWHERE email = NULL;",out:"0 ligne : NULL ne se teste pas avec =",tone:'bad'},
+    {k:'avec',label:'IS NULL',sql:"SELECT nom, email FROM clients\nWHERE email IS NULL;",out:"2 lignes : Hugo et Inès",tone:'good'}
+  ],
   exemple:"SELECT nom, email FROM clients WHERE email IS NULL;",
   attendu:"<b>2 lignes</b> : Hugo et Inès, les deux clients dont l’email est absent.",
   retenir:"<code>NULL</code> = valeur absente, ni 0 ni <code>''</code>. On teste avec <code>IS NULL</code> / <code>IS NOT NULL</code>, jamais avec <code>=</code>.",
@@ -7435,6 +7568,22 @@ WHERE condition;</pre></div>
 <li><code>LIKE '%mot%'</code> → <b>contient mot</b></li>
 </ul><p style="margin:10px 0 0;font-size:14.5px;line-height:1.55;color:var(--ink-2)">Sans <code>%</code>, <code>LIKE 'L'</code> recherche une correspondance exacte avec <code>'L'</code>.</p></div>`}},
   anatomie:[{tok:"SELECT nom",txt:"La colonne affichée dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE nom LIKE 'L%'",txt:"Le nom doit commencer par L. Le % accepte n’importe quelle suite après."}],
+  anatomieVariants:[
+    {k:'avant',label:'Sans %',tone:'bad',lines:[
+      {tok:"SELECT nom",txt:"La colonne affichée dans le résultat."},
+      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
+      {tok:"WHERE nom LIKE 'L'",txt:"Sans joker, LIKE cherche une correspondance exacte avec 'L' : aucun nom ne vaut 'L' seul."}
+    ]},
+    {k:'avec',label:'Avec %',tone:'good',lines:[
+      {tok:"SELECT nom",txt:"La colonne affichée dans le résultat."},
+      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
+      {tok:"WHERE nom LIKE 'L%'",txt:"Le nom doit commencer par L. Le % accepte n’importe quelle suite après."}
+    ]}
+  ],
+  testeVariants:[
+    {k:'avant',label:'Sans %',sql:"SELECT nom FROM clients\nWHERE nom LIKE 'L';",out:"0 ligne : aucun nom n’est exactement 'L'",tone:'bad'},
+    {k:'avec',label:'Avec %',sql:"SELECT nom FROM clients\nWHERE nom LIKE 'L%';",out:"2 lignes : Lucas et Léa",tone:'good'}
+  ],
   exemple:"SELECT nom FROM clients WHERE nom LIKE 'L%';",
   attendu:"<b>2 lignes</b> : Lucas et Léa.",
   retenir:"<code>LIKE</code> cherche un motif. <code>%</code> remplace une suite de caractères : <code>'L%'</code> commence par L, <code>'%mot%'</code> contient mot.",
@@ -7449,9 +7598,9 @@ WHERE condition;</pre></div>
   situationTail:"Ça fonctionne. Mais quand plusieurs valeurs sont possibles pour une même colonne, SQL propose une écriture plus simple : <code>IN</code>.",
     studio:{problem:{title:"IN vérifie si une valeur appartient à une liste.",
       body:"Tu connais déjà <code>OR</code> : <code>ville = 'Paris' OR ville = 'Lyon'</code> fonctionne parfaitement. Mais la colonne <code>ville</code> est répétée. Avec <code>IN</code>, les valeurs recherchées sont regroupées dans une liste : <code>ville IN ('Paris', 'Lyon')</code>. Les deux écritures produisent ici exactement le même résultat."},
-    vs:{bad:{tag:"✕ OR répétés",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",out:"5 lignes : correct, mais la colonne ville est répétée",
+    vs:{bad:{tag:"✕ OR répétés",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",out:"6 lignes : correct, mais la colonne ville est répétée",
             code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line bad\">WHERE ville = 'Paris'\n   OR ville = 'Lyon'</span>;"},
-        good:{tag:"✓ Avec IN",sql:"SELECT nom, ville FROM clients\nWHERE ville IN ('Paris', 'Lyon');",out:"5 lignes : Sophie, Lucas, Nathan, Hugo, Léa",
+        good:{tag:"✓ Avec IN",sql:"SELECT nom, ville FROM clients\nWHERE ville IN ('Paris', 'Lyon');",out:"6 lignes : Sophie, Lucas, Nathan (×2), Hugo, Léa",
             code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line good\">WHERE ville IN ('Paris', 'Lyon')</span>;"}},
     why:{title:"Pourquoi utiliser IN plutôt que plusieurs OR ?"},
     viz:"inbetween",
@@ -7459,6 +7608,22 @@ WHERE condition;</pre></div>
       b:{k:"NOT IN (...)",t:"garde les lignes dont la valeur <b>n’est pas dans la liste</b>"},
       note:"Utilise surtout <code>IN</code> lorsque <b>la même colonne</b> peut correspondre à plusieurs valeurs : <code>ville IN ('Paris', 'Lyon')</code>."}},
   anatomie:[{tok:"SELECT nom, ville",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE ville IN ('Paris', 'Lyon')",txt:"La ville doit figurer dans la liste, entre parenthèses."}],
+  anatomieVariants:[
+    {k:'avant',label:'OR répétés',tone:'bad',lines:[
+      {tok:"SELECT nom, ville",txt:"Les colonnes affichées dans le résultat."},
+      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
+      {tok:"WHERE ville = 'Paris' OR ville = 'Lyon'",txt:"Correct, mais la colonne ville est répétée à chaque condition."}
+    ]},
+    {k:'avec',label:'IN',tone:'good',lines:[
+      {tok:"SELECT nom, ville",txt:"Les colonnes affichées dans le résultat."},
+      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
+      {tok:"WHERE ville IN ('Paris', 'Lyon')",txt:"La ville doit figurer dans la liste, entre parenthèses."}
+    ]}
+  ],
+  testeVariants:[
+    {k:'avant',label:'OR répétés',sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",out:"6 lignes : correct, mais la colonne ville est répétée",tone:'bad'},
+    {k:'avec',label:'IN',sql:"SELECT nom, ville FROM clients\nWHERE ville IN ('Paris', 'Lyon');",out:"6 lignes : Sophie, Lucas, Nathan (×2), Hugo, Léa",tone:'good'}
+  ],
   exemple:"SELECT nom, ville FROM clients WHERE ville IN ('Paris', 'Lyon');",
   attendu:"<b>6 lignes</b> : Sophie, Lucas, les deux Nathan, Hugo et Léa. Leur ville est soit <code>'Paris'</code>, soit <code>'Lyon'</code>.",
   retenir:"<code>IN</code> compare <b>une même colonne</b> à une liste : <code>ville IN ('Paris', 'Lyon')</code>. Plus lisible que plusieurs <code>OR</code>.",
@@ -7483,6 +7648,18 @@ WHERE condition;</pre></div>
       b:{k:"Bornes",t:"la valeur minimale et la valeur maximale sont <b>incluses</b>"},
       note:"Retenir l’équivalence aide à éviter les erreurs : <code>BETWEEN 15 AND 30</code> = <code>&gt;= 15 AND &lt;= 30</code>."}},
   anatomie:[{tok:"SELECT nom, prix",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM produits",txt:"La table produits est utilisée comme source."},{tok:"WHERE prix BETWEEN 15 AND 30",txt:"Le prix doit être compris entre 15 et 30, bornes incluses."}],
+  anatomieVariants:[
+    {k:'avant',label:'WHERE',tone:'bad',lines:[
+      {tok:"SELECT nom, prix",txt:"Les colonnes affichées dans le résultat."},
+      {tok:"FROM produits",txt:"La table produits est utilisée comme source."},
+      {tok:"WHERE prix >= 15 AND prix <= 30",txt:"Correct, mais deux comparaisons pour un seul intervalle."}
+    ]},
+    {k:'avec',label:'BETWEEN',tone:'good',lines:[
+      {tok:"SELECT nom, prix",txt:"Les colonnes affichées dans le résultat."},
+      {tok:"FROM produits",txt:"La table produits est utilisée comme source."},
+      {tok:"WHERE prix BETWEEN 15 AND 30",txt:"Le prix doit être compris entre 15 et 30, bornes incluses."}
+    ]}
+  ],
   exemple:"SELECT nom, prix FROM produits WHERE prix BETWEEN 15 AND 30;",
   attendu:"<b>4 lignes</b> : Shaker Inox à 15,00 €, Magnésium à 19,90 €, Oméga 3 à 24,90 € et Fibre Prébiotique à 29,90 €.",
   retenir:"<code>BETWEEN</code> encadre un intervalle, <b>bornes incluses</b>. <code>prix BETWEEN 15 AND 30</code> = <code>prix &gt;= 15 AND prix &lt;= 30</code>.",
@@ -7508,6 +7685,17 @@ WHERE condition;</pre></div>
       b:{k:"DESC",t:"ordre <b>décroissant</b> — du plus grand au plus petit"},
       note:"<code>ASC</code> est facultatif car c’est l’ordre par défaut."}},
   anatomie:[{tok:"SELECT nom, age",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"ORDER BY age DESC",txt:"Range les lignes du plus âgé au plus jeune."}],
+  anatomieVariants:[
+    {k:'avant',label:'SELECT',tone:'bad',lines:[
+      {tok:"SELECT nom, age",txt:"Les colonnes affichées dans le résultat."},
+      {tok:"FROM clients",txt:"La table clients est utilisée comme source."}
+    ]},
+    {k:'avec',label:'ORDER BY',tone:'good',lines:[
+      {tok:"SELECT nom, age",txt:"Les colonnes affichées dans le résultat."},
+      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
+      {tok:"ORDER BY age DESC",txt:"Range les lignes du plus âgé au plus jeune."}
+    ]}
+  ],
   exemple:"SELECT nom, age FROM clients ORDER BY age DESC;",
   attendu:"<b>10 lignes</b>, du plus âgé au plus jeune : Hugo 52, Emma 45, Inès 41, Léa 38, Sophie 34, Nathan 31, Nathan 30, Gabriel 29, Lucas 28, Chloé 26.",
   retenir:"<code>ORDER BY</code> range le résultat, il ne filtre aucune ligne. <code>ASC</code> croissant, <code>DESC</code> décroissant.",
@@ -7551,6 +7739,23 @@ WHERE condition;</pre></div>
       b:{k:"LIMIT",t:"détermine <b>combien</b> de lignes garder"},
       note:"Pour obtenir un top 3 : trie d’abord avec <code>ORDER BY … DESC</code>, puis garde les 3 premières lignes avec <code>LIMIT 3</code>."}},
   anatomie:[{tok:"SELECT nom, prix",txt:"Affiche le nom et le prix."},{tok:"FROM produits",txt:"Les données viennent de la table produits."},{tok:"ORDER BY prix DESC",txt:"Classe les produits du plus cher au moins cher."},{tok:"LIMIT 3",txt:"Garde uniquement les 3 premières lignes après le tri."}],
+  anatomieVariants:[
+    {k:'avant',label:'LIMIT seul',tone:'bad',lines:[
+      {tok:"SELECT nom, prix",txt:"Affiche le nom et le prix."},
+      {tok:"FROM produits",txt:"Les données viennent de la table produits."},
+      {tok:"LIMIT 3",txt:"Garde 3 lignes, mais sans tri : rien ne dit que ce sont les 3 produits les plus chers."}
+    ]},
+    {k:'avec',label:'ORDER BY + LIMIT',tone:'good',lines:[
+      {tok:"SELECT nom, prix",txt:"Affiche le nom et le prix."},
+      {tok:"FROM produits",txt:"Les données viennent de la table produits."},
+      {tok:"ORDER BY prix DESC",txt:"Classe les produits du plus cher au moins cher."},
+      {tok:"LIMIT 3",txt:"Garde uniquement les 3 premières lignes après le tri."}
+    ]}
+  ],
+  testeVariants:[
+    {k:'avant',label:'LIMIT seul',sql:"SELECT nom, prix FROM produits\nLIMIT 3;",out:"3 lignes, mais pas forcément les 3 produits les plus chers",tone:'bad'},
+    {k:'avec',label:'ORDER BY + LIMIT',sql:"SELECT nom, prix FROM produits\nORDER BY prix DESC\nLIMIT 3;",out:"3 lignes : Collagène Marin, Protéine Végétale, Fibre Prébiotique",tone:'good'}
+  ],
   exemple:"SELECT nom, prix FROM produits ORDER BY prix DESC LIMIT 3;",
   attendu:"<b>3 lignes</b> : Collagène Marin à 39,90 €, Protéine Végétale à 34,90 € et Fibre Prébiotique à 29,90 €.",
   retenir:"<code>LIMIT n</code> garde seulement les n premières lignes du résultat. Dans <code>ORDER BY prix DESC LIMIT 3</code>, les produits sont d’abord classés du plus cher au moins cher, puis seuls les 3 premiers sont affichés.",
