@@ -29,12 +29,20 @@ console.log('\n=== Onboarding : parcours, pratique réelle et accessibilité ===
 assert(onboarding.length > 5000, 'bloc onboarding localisé (repères de découpe intacts)');
 
 console.log('\n--- Le parcours ---');
-assert(html.includes("const OB_SLIDES = ['welcome','proof','account','name','goal','level','practice','rhythm','ready']"), 'les neuf étapes du parcours sont déclarées dans l’ordre');
-assert(onboarding.includes("if(slide==='welcome')obGoto('proof')") && onboarding.includes("else if(slide==='level')obGoto('practice')") && onboarding.includes("else if(slide==='rhythm')obGoto('ready')"), 'obNext enchaîne les étapes dans cet ordre');
+assert(html.includes("const OB_SLIDES = ['welcome','name','goal','level','rhythm','practice','account','ready']"), 'les huit étapes du parcours sont déclarées dans l’ordre');
+assert(onboarding.includes("if(slide==='welcome')obGoto('name')") && onboarding.includes("else if(slide==='rhythm')obGoto('practice')") && onboarding.includes("else if(slide==='practice')obGoto('account')"), 'obNext enchaîne les étapes dans cet ordre');
 assert(onboarding.includes("obEntry") && onboarding.includes('function obBack()'), 'chaque étape peut revenir en arrière');
 
-console.log('\n--- La preuve avant les questions ---');
-assert(onboarding.includes('ob-proof') && onboarding.includes('Tu pratiques sur SQLite'), 'l’étape de preuve annonce le vrai moteur SQL');
+console.log('\n--- La cohérence du tunnel ---');
+assert(!onboarding.includes("slide==='age'") && !onboarding.includes("slide==='job'") && !onboarding.includes("slide==='source'"), 'les étapes mortes du questionnaire historique ont disparu');
+assert((()=>{const flow=(html.match(/const OB_SLIDES = \[([^\]]+)\]/)||[])[1]||'';return flow.indexOf('practice')<flow.indexOf('account')&&flow.indexOf('account')<flow.indexOf('ready');})(), 'le compte est proposé après le premier succès SQL et avant l’écran final');
+assert(onboarding.indexOf('Garde ta progression.')<onboarding.indexOf('Ton parcours est prêt'), 'la sauvegarde du succès précède l’écran final');
+assert((onboarding.match(/obGoto\('ready'\)/g)||[]).length===2, 'sans compte ou connecté, l’onboarding se termine sur l’écran final');
+assert(onboarding.includes("obSetFooter('Passer à la pratique',()=>obGoto('practice')"), 'le rythme mène à la pratique, pas directement au récapitulatif');
+assert(onboarding.includes('ob-level-chart') && onboarding.includes('Monte en niveau, requête après requête.'), 'l’échelle de progression éclaire le choix du niveau');
+
+console.log('\n--- La preuve dès l’accueil ---');
+assert(onboarding.includes('ob-proof-stats') && onboarding.includes('<strong>74</strong>') && onboarding.includes('Tu pratiques sur SQLite'), 'l’accueil prouve le contenu réel : chiffres du cours et moteur SQLite');
 assert(onboarding.includes('function obRunPractice()') && onboarding.includes('db.exec('), 'l’étape de pratique exécute une vraie requête, pas une simulation');
 assert(onboarding.includes('draft.practiceRows') && onboarding.includes('draft.practiceDone=draft.practiceRows.length>0'), 'la réussite dépend des lignes réellement renvoyées');
 assert(/catch\(e\)\{\s*draft\.practiceRows=\[\];\s*draft\.practiceDone=false;/.test(onboarding), 'une erreur du moteur ne fait pas passer la pratique pour réussie');
