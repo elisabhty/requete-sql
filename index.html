@@ -7434,8 +7434,8 @@ WHERE condition;</pre></div>
       body:"Avec <code>AND</code>, chaque ligne doit respecter les deux conditions."},
     viz:"andor",
     reflex:{a:{k:"AND",t:"toutes les conditions doivent être vraies"},
-      b:{k:"Effet",t:"ajouter un <code>AND</code> <b>resserre</b> le résultat"},
-      note:"Avec <code>ville = 'Paris' AND age &gt; 35</code>, une ligne doit respecter les deux conditions : habiter à Paris et avoir plus de 35 ans."}},
+      b:{k:"Effet",t:"chaque <code>AND</code> <b>resserre</b> le résultat"},
+      note:"Avec <code>ville = 'Paris' AND age &gt; 35</code>, SQL conserve uniquement les lignes qui respectent les deux conditions.<br><br>Paris ✓ + plus de 35 ans ✓ → ligne conservée<br>Une condition ✕ → ligne écartée"}},
   anatomie:[{tok:"SELECT nom, ville, age",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE ville = 'Paris'",txt:"première condition"},{tok:"AND",txt:"exige que les deux conditions soient vraies"},{tok:"age > 35",plain:1,txt:"deuxième condition"}],
   anatomieVariants:[
     {k:'avant',label:'WHERE',lines:[
@@ -7458,8 +7458,8 @@ WHERE condition;</pre></div>
   exemple:"SELECT nom, ville, age FROM clients WHERE ville = 'Paris' AND age > 35;",
   attendu:"<b>1 ligne</b> : Léa, 38 ans, car elle habite à Paris et a plus de 35 ans.",
   retenir:"<code>AND</code> garde une ligne si toutes les conditions sont vraies.<br><br>Avec <code>ville = 'Paris' AND age &gt; 35</code>, seule Léa respecte les deux conditions.",
-  piege:{t:"Croire qu’on est limité à deux conditions",p:"Tu peux combiner <b>3 conditions ou plus</b> avec <code>AND</code> :",
-    sql:"SELECT nom, ville, age\nFROM clients\nWHERE ville = 'Paris'\n  AND age > 35\n  AND nom = 'Léa';"},
+  piege:{t:"Croire qu’on est limité à deux conditions",p:"Tu peux combiner plusieurs conditions avec <code>AND</code>. Une ligne est conservée uniquement si toutes les conditions sont vraies.<br><br>Par exemple, tu veux cibler les clients qui habitent à Paris, ont plus de 35 ans et se sont inscrits après le 1ᵉʳ janvier 2023 :",
+    sql:"SELECT nom, ville, age\nFROM clients\nWHERE ville = 'Paris'\n  AND age > 35\n  AND date_inscription > '2023-01-01';"},
   consigne:"Affiche toutes les colonnes des clients qui habitent à Paris et ont plus de 35 ans.",
   solution:"SELECT * FROM clients WHERE ville = 'Paris' AND age > 35;",
   indice:"Écris les deux conditions de part et d’autre de <code>AND</code> : <code>ville = 'Paris' AND age &gt; 35</code>.",
