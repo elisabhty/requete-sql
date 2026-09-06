@@ -55,6 +55,18 @@ assert(onboarding.includes("root.removeAttribute('aria-hidden')") && onboarding.
 assert(onboarding.includes('role="radiogroup"') && onboarding.includes('aria-checked='), 'les choix restent compréhensibles par les technologies d’assistance');
 assert(onboarding.includes('aria-label="Retour"'), 'le bouton retour est nommé pour les technologies d’assistance');
 
+console.log('\n--- L\'expérience dès la première seconde ---');
+assert(onboarding.includes('function obRunWelcomeDemo()') && onboarding.includes('id="ob-demo-code"') && onboarding.includes("[\"'Paris';\",'s']"), 'l\'accueil tape une vraie requête du cours dans une console animée');
+assert(onboarding.includes('4 clients habitent à Paris') && onboarding.includes('aria-hidden="true"><div class="ob-code"'), 'la console d\'accueil annonce le vrai résultat et reste décorative pour les lecteurs d\'écran');
+assert(html.includes('#onboarding.ob-enter .ob-answer{animation:'), 'les réponses apparaissent en cascade à l\'entrée d\'une étape');
+assert(onboarding.includes("classList.add('ob-selection-update')") && html.includes('.ob-selection-update .ob-answer.on'), 'choisir une réponse déclenche le pop de sélection');
+assert(onboarding.includes('function obNamePreview()') && onboarding.includes('ob-name-preview'), 'le prénom saisi est renvoyé en aperçu immédiat');
+assert(onboarding.includes('function obLevelHint()') && onboarding.includes('Tu commenceras par'), 'le niveau choisi révèle la vraie première leçon du plan');
+assert(html.includes('.ob-practice-table span:not(.head){animation:'), 'les lignes du résultat SQL arrivent une par une');
+assert(onboarding.includes('Ta séance type :') && html.includes('.ob-rhythm-summary'), 'le rythme choisi résume la séance type réelle');
+assert(html.includes("if(obRoot&&obRoot.classList.contains('on')){"), 'l\'onboarding capte le clavier dès qu\'il est ouvert');
+assert(html.includes("e.target.tagName==='INPUT'") && onboarding.includes('function brancherObSwipeV2()'), 'Entrée valide depuis le champ et le balayage tactile navigue entre les étapes');
+
 console.log('\n--- Mouvement ---');
 assert(html.includes('.ob-mini-progress i.on{animation:none}'), 'la réduction des mouvements couvre les animations de l’onboarding');
 assert(!html.includes('.ob-foot{transform:translateY(-86px)}'), 'l’ancien décalage vertical fragile du pied de page a disparu');
