@@ -18782,12 +18782,18 @@ function renderStudio(l){
       <h2><span class="h2-txt">${s.uses.title}</span></h2>
       ${s.uses.body||''}
     </div>`:'';
+  const problemBody=flowProseHtml(s.problem.body);
+  /* Leçon WHERE : le cadre définition + syntaxe se lit avant les exemples
+     ✕/✓, et le texte qui les commente vient après — plutôt que le sens
+     inverse utilisé par défaut ailleurs. */
+  const problemInner=l.id===4
+    ?`${probExtra}${vs}${problemBody}${demo}${tail}${point}`
+    :`${problemBody}${probExtra}${demo}${tail}${vs}${point}`;
   return `<div class="concept-page${l.id===23?' coalesce-page':''}">
     ${guide}
     <div class="concept-block">
       <h2>${probH2}<span class="h2-txt">${s.problem.title}</span></h2>
-      ${flowProseHtml(s.problem.body)}
-      ${probExtra}${demo}${tail}${vs}${point}
+      ${problemInner}
     </div>
     ${usesBlk}
     ${(why||viz)?`<div class="concept-block">
