@@ -48,7 +48,7 @@ assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes(
 assert(html.includes('initConversionFunctions();'), 'laboratoire activé au rendu du cours');
 assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53||l.id===54"), 'récapitulatifs redondants retirés de cette page');
 assert(html.includes('Trois vérifications avant CAST'), 'piège final raccourci et actionnable');
-assert(serviceWorker.includes("requete-2026-09-06-or-probleme-cadre-v357"), 'cache de production renouvelé');
+assert(serviceWorker.includes("requete-2026-09-06-or-viz-elargit-v358"), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
