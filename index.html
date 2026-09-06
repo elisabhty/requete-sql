@@ -831,10 +831,10 @@
   .lesson-rich .sit-sql p{margin:0 0 10px;font-size:14px;line-height:1.55;color:var(--ink-2)}
   .lesson-rich .sit-sql p:last-child{margin-bottom:0}
   .lesson-rich .sit-sql p:first-child{color:var(--ink);font-weight:650}
-  /* La situation pose un contexte métier ; la problématique le resserre en
-     une seule question. Fond teinté (pas juste un liseré comme .sit-memo) pour
-     qu'elle se voie au premier coup d'œil, même en scannant vite la leçon. */
-  .sit-prob{margin:16px 0 0;padding:15px 17px;border-radius:18px;background:var(--accent-soft)}
+  /* Carte à part entière, avant la Situation (pas nichée dedans) : elle pose
+     la question avant même le contexte métier, comme un titre de chapitre.
+     Enfant direct de .lesson-rich (flex column, gap) : pas de marge propre. */
+  .sit-prob{margin:0;padding:15px 17px;border-radius:18px;background:var(--accent-soft)}
   .sit-prob-head{display:flex;align-items:center;gap:9px;margin:0 0 8px}
   .sit-prob-ico{width:26px;height:26px;flex:none;border-radius:9px;background:var(--surface);color:var(--accent);display:flex;align-items:center;justify-content:center}
   .sit-prob-ico svg{width:15px;height:15px}
@@ -17427,7 +17427,6 @@ function renderSituationBody(l){
   html+=situationBodyHtml(l.situation);
   if(l.situationSql) html+=situationSqlBlock(l.situationSql);
   if(l.situationTail) html+=flowProseHtml(l.situationTail);
-  if(l.problematique) html+=renderProblematique(l.problematique);
   return html;
 }
 /* Le « rôle de ON » tenait dans un seul paragraphe de six idées enchaînées :
@@ -19298,6 +19297,7 @@ function renderLessonFlow(){
       <div class="ls-main">
         <div class="lesson-rich${hasJoinPointCards(l)?' join-micro':''}">
           <div class="l-kicker">Cours</div><h1>${l.titre}</h1>
+          ${l.problematique?renderProblematique(l.problematique):''}
           ${l.situation?`<div class="concept-block lesson-lead">
             <h2><span class="h2-eye">Situation</span></h2>
             <div class="situation-body">${renderSituationBody(l)}</div>
