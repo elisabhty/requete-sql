@@ -2105,11 +2105,12 @@
   .sql-viz[data-viz="nulls"][data-phase="2"] .grp-chip[data-keep="1"],
   .sql-viz[data-viz="like"][data-phase="2"] .grp-chip[data-keep="1"],
   .sql-viz[data-kind="limit"]:not(.vw)[data-phase="1"] .grp-chip[data-keep="1"]{border-color:rgba(20,184,166,.4);box-shadow:0 4px 14px rgba(20,184,166,.16)}
-  .sql-viz[data-kind="filter"]:not([data-viz="andor"]):not([data-viz="or"]):not([data-viz="nulls"]):not([data-viz="like"]):not([data-viz="distinct"])[data-phase="1"] .grp-chip[data-keep="0"],
-  .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep="0"],
-  .sql-viz[data-viz="or"][data-phase="2"] .grp-chip[data-keep="0"],
-  .sql-viz[data-viz="nulls"][data-phase="2"] .grp-chip[data-keep="0"],
-  .sql-viz[data-viz="like"][data-phase="2"] .grp-chip[data-keep="0"]{text-decoration:line-through}
+  /* Pas de texte barré sur les lignes écartées : WHERE (et ses dérivés
+     AND/OR/NULL/LIKE/comparaisons) ne supprime rien de la table, il filtre
+     seulement le résultat. Le grisé + l'opacité réduite suffisent à montrer
+     qu'une ligne est écartée, sans donner l'impression qu'elle a été
+     supprimée. DISTINCT avait déjà cette exception ; elle s'applique
+     maintenant à tous les kind:'filter'. */
   .grp-extra{color:#8E8E93;font-weight:500;margin-left:6px;font-size:10.5px;transition:opacity .45s,max-width .45s}
   .grp-desc{font-size:14px;color:var(--ink-2);line-height:1.45;font-weight:600;max-width:100%}
   .grp-paused-badge{display:none;position:absolute;top:0;right:0;font-family:var(--ui);font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border:1px solid rgba(91,91,214,.28);border-radius:999px;padding:4px 10px;line-height:1.2;white-space:nowrap;pointer-events:none}
@@ -23099,8 +23100,8 @@ const SQL_VIZ={
     {t:'Chloé',extra:'Bordeaux',keep:0},{t:'Hugo',extra:'Lyon',keep:0},{t:'Léa',extra:'Paris',keep:1},{t:'Gabriel',extra:'Toulouse',keep:0},{t:'Inès',extra:'Nantes',keep:0},{t:'Nathan n°10',extra:'Paris',keep:1}
   ]},
   compare:{kind:'filter',phases:[
-    {k:'SELECT nom, prix FROM produits',d:'La table produits compte 8 lignes. Chaque produit possède un prix qui va être comparé au seuil de 25 €.'},
-    {k:'WHERE prix > 25',d:'La condition garde uniquement les prix strictement supérieurs à 25 €. 3 lignes sur 8 restent : Fibre Prébiotique, Collagène Marin et Protéine Végétale.'}
+    {k:'SELECT nom, prix FROM produits',d:'SQL commence par récupérer les colonnes demandées. La table produits contient 8 lignes. Pour l’instant, aucun filtre n’est appliqué : les 8 produits sont donc présents.'},
+    {k:'WHERE prix > 25',d:'SQL teste ensuite la condition prix > 25 pour chaque ligne. Si le prix est supérieur à 25 €, la ligne est conservée. Sinon, elle est écartée du résultat. Sur les 8 produits, 3 respectent la condition : Fibre Prébiotique, Collagène Marin et Protéine Végétale.'}
   ],chips:[
     {t:'Fibre Préb.',extra:'29,90',keep:1},{t:'Collagène',extra:'39,90',keep:1},{t:'Magnésium',extra:'19,90',keep:0},
     {t:'Vit. D',extra:'14,90',keep:0},{t:'Tisane',extra:'12,50',keep:0},{t:'Protéine',extra:'34,90',keep:1},
