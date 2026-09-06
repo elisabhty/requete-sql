@@ -831,6 +831,15 @@
   .lesson-rich .sit-sql p{margin:0 0 10px;font-size:14px;line-height:1.55;color:var(--ink-2)}
   .lesson-rich .sit-sql p:last-child{margin-bottom:0}
   .lesson-rich .sit-sql p:first-child{color:var(--ink);font-weight:650}
+  /* La situation pose un contexte métier ; la problématique le resserre en
+     une seule question. Fond teinté (pas juste un liseré comme .sit-memo) pour
+     qu'elle se voie au premier coup d'œil, même en scannant vite la leçon. */
+  .sit-prob{margin:16px 0 0;padding:15px 17px;border-radius:18px;background:var(--accent-soft)}
+  .sit-prob-head{display:flex;align-items:center;gap:9px;margin:0 0 8px}
+  .sit-prob-ico{width:26px;height:26px;flex:none;border-radius:9px;background:var(--surface);color:var(--accent);display:flex;align-items:center;justify-content:center}
+  .sit-prob-ico svg{width:15px;height:15px}
+  .sit-prob-lab{font-size:14.5px;font-weight:800;letter-spacing:-.1px;color:var(--accent)}
+  .lesson-rich .sit-prob-body{margin:0;font-size:14.5px;line-height:1.6;color:var(--ink)}
   /* CREATE VIEW : une vue ne se comprend qu'en comparant deux écritures de la
      même requête — celle qu'on réécrit à chaque fois, et celle qui porte un nom.
      Les deux blocs s'empilent pour rester lisibles sur téléphone. */
@@ -850,6 +859,16 @@
   .lesson-rich .sit-memo p{margin:0;font-size:14px;line-height:1.55;color:var(--ink-2)}
   .lesson-rich .sit-memo .sit-memo-lab{display:flex;align-items:center;gap:7px;margin:0 0 7px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--accent)}
   .sit-memo-lab i{font-size:13px;font-style:normal}
+  /* Liste « n'est pas » : la confusion NULL / 0 / '' vient de trois valeurs qui
+     se ressemblent en prose courante, alignées derrière une même puce. Sorties
+     en mini-chips avec un ✕, elles se distinguent d'un coup d'œil. */
+  .pt-notlist{margin:14px 0;padding:14px 16px;border-radius:16px;background:var(--danger-soft)}
+  .lesson-rich .pt-notlist-lab{margin:0 0 10px;font-size:14.5px;line-height:1.5;color:var(--ink)}
+  .pt-notlist-items{display:flex;flex-wrap:wrap;gap:8px}
+  .pt-notlist-item{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:12px;background:var(--surface);box-shadow:var(--card-shadow-sm);font-size:13px}
+  .pt-notlist-item i{font-style:normal;font-weight:800;color:var(--danger);font-size:12px}
+  .pt-notlist-item code{margin:0}
+  .pt-notlist-item b{font-weight:600;color:var(--ink-2)}
   .situation-body .sit-roles{margin:4px 0 14px;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
   .situation-body .sit-roles li{flex:1 1 148px;min-width:0;margin:0;padding:12px 13px;border-radius:14px;background:var(--surface);border:1px solid var(--card-border);box-shadow:var(--card-shadow-sm);display:flex;flex-direction:column;gap:4px}
   .situation-body .sit-roles code{width:max-content;max-width:100%;font-size:13px;font-weight:800}
@@ -7029,6 +7048,7 @@ const MODULES = [
 { id:0, titre:"Les bases de données relationnelles", résumé:"Tables, colonnes, lignes et liens",
   situation:"Tu gères <b>NutriBoost</b>, une boutique en ligne de compléments alimentaires et de nutrition sportive.<br><br>Chaque jour, des clients s’inscrivent, consultent ton catalogue et passent des commandes.<br><br>Pour piloter ton activité sans mélanger les données, tu organises l’information en trois tables dédiées :<br><br><figure class=\"ecom-shot\"><img src=\"assets/nutriboost-accueil.png\" alt=\"La page d’accueil de NutriBoost : recherche, catégories et meilleures ventes\" loading=\"lazy\"><figcaption>NutriBoost, la boutique dont tu vas lire la base de données.</figcaption></figure><br><br><ul class=\"sit-roles\"><li><code>clients</code><span>Qui sont tes acheteurs ?</span></li><li><code>produits</code><span>Quels produits vends-tu ?</span></li><li><code>commandes</code><span>Qui a commandé quel produit, et en quelle quantité ?</span></li></ul>Ces tables sont ensuite <b>reliées entre elles par des identifiants</b> : c’est le principe même d’une <b>base de données relationnelle</b>.",
   situationTail:"<figure class=\"rel-link\" aria-label=\"Schéma relationnel de la boutique NutriBoost\"><div class=\"rel-link-row\"><section class=\"rel-card\" data-rel=\"clients\"><h3>clients</h3><ul><li class=\"is-key\"><span class=\"key-pill\">PK</span>id</li><li>nom</li><li>ville</li></ul></section><span class=\"rel-arrow\" aria-hidden=\"true\">→</span><section class=\"rel-card is-hub\"><h3>commandes</h3><ul><li class=\"is-key\"><span class=\"key-pill\">PK</span>id</li><li class=\"is-fk\" data-fk=\"clients\"><span class=\"key-pill\">FK</span>client_id</li><li class=\"is-fk\" data-fk=\"produits\"><span class=\"key-pill\">FK</span>produit_id</li><li>quantite</li></ul></section><span class=\"rel-arrow\" aria-hidden=\"true\">←</span><section class=\"rel-card\" data-rel=\"produits\"><h3>produits</h3><ul><li class=\"is-key\"><span class=\"key-pill\">PK</span>id</li><li>nom</li><li>prix</li></ul></section></div><figcaption>Les clés étrangères (<code>FK</code>) relient chaque commande à un client et à un produit. Touche une clé <code>FK</code> : la clé primaire qu’elle désigne s’illumine.</figcaption></figure>",
+  problematique:"Comment organiser les informations de la boutique — clients, produits et commandes — sans tout mélanger, tout en conservant les liens entre elles ?",
     studio:{pointCards:{
       eye:"Modèle relationnel",title:"3 piliers : Tables, Colonnes, Lignes",
       lead:"<p>Une base de données relationnelle stocke chaque sujet dans une <b>table</b> distincte.</p><p>Les tables sont découpées en <b>colonnes</b> (caractéristiques) et composées de <b>lignes</b> (enregistrements).</p><p>Elles sont ensuite <b>reliées entre elles</b> grâce à des identifiants communs (les clés).</p>",
@@ -7170,7 +7190,8 @@ const MODULES = [
 { id:1, titre:"SELECT", résumé:"Choisir les colonnes du résultat",
   situation:"Tu prépares un listing d’appel pour l’équipe commerciale.<br><br>La table <code>clients</code> contient plusieurs informations : nom, ville, âge, email, téléphone… Mais pour ce listing, tu as seulement besoin du nom et du numéro de téléphone de chaque client.<br><br>Avec ce que tu connais déjà, tu pourrais écrire :",
   situationSql:"SELECT *\nFROM clients;",
-  situationTail:"Mais <code>*</code> affiche toutes les colonnes, même celles dont tu n’as pas besoin.<br><br><div class=\"sit-sql\"><p>Comment demander à SQL d’afficher uniquement le nom et le téléphone du client ?</p></div>",
+  situationTail:"Mais <code>*</code> affiche toutes les colonnes, même celles dont tu n’as pas besoin.",
+  problematique:"L’équipe commerciale a besoin de la liste des clients. Comment afficher uniquement leur nom et leur téléphone, sans afficher les autres informations ?",
     studio:{problem:{title:"SELECT choisit les colonnes du résultat.",
       body:"<div class=\"sit-sql\"><p><code>SELECT</code> est l’instruction la plus utilisée en SQL. Elle sert à <b>interroger</b> une base de données : tu poses une question, elle renvoie un tableau de résultats.</p><p>Par exemple : « Quels sont les noms de tous les clients ? »</p></div><br><br>Une table peut contenir beaucoup d’informations, mais tu n’as pas toujours besoin de tout afficher.<br><br>Pour ton listing d’appel, seules deux colonnes sont utiles : <code>nom</code> et <code>telephone</code>. Il suffit de les écrire après <code>SELECT</code>, séparées par une virgule.",
       extra:`<p class="pt-syntax-h">La forme générale d’une requête</p>
@@ -7219,7 +7240,8 @@ WHERE ville = 'Paris';</pre></div>
 { id:2, titre:"Renommer avec AS", résumé:"Donner un nom lisible à une colonne du résultat",
   situation:"Tu affiches le nom et le prix des produits :",
   situationSql:"SELECT nom, prix FROM produits;",
-  situationTail:"SQL utilise les noms des colonnes comme en-têtes : <code>nom</code> et <code>prix</code>.<br><br>Mais ces noms sont surtout pensés pour la base de données. Pour les équipes métier, qui vont consulter les résultats dans un rapport ou un tableau de bord, tu veux des intitulés plus clairs et compréhensibles.<br><br>Tu souhaites donc afficher <code>produit</code> à la place de <code>nom</code>, et <code>prix_euros</code> à la place de <code>prix</code>.<br><br><div class=\"sit-sql\"><p>Comment adapter les noms affichés sans modifier les colonnes de la base de données ?</p><p>C’est exactement ce que permet <code>AS</code>.</p></div>",
+  situationTail:"SQL utilise les noms des colonnes comme en-têtes : <code>nom</code> et <code>prix</code>.<br><br>Mais ces noms sont surtout pensés pour la base de données. Pour les équipes métier, qui vont consulter les résultats dans un rapport ou un tableau de bord, tu veux des intitulés plus clairs et compréhensibles.<br><br>Tu souhaites donc afficher <code>produit</code> à la place de <code>nom</code>, et <code>prix_euros</code> à la place de <code>prix</code>.",
+  problematique:"L’équipe commerciale trouve les noms des colonnes trop techniques. Comment afficher des intitulés plus clairs dans le résultat sans modifier la base de données ?",
     studio:{problem:{title:"AS donne un alias : un nom d'affichage pour le résultat.",
       body:"Après une colonne, <code>AS</code> introduit le nom qui apparaîtra dans le résultat : <code>prix AS prix_euros</code>. La table n'est pas modifiée, seul l'en-tête change. L'alias peut contenir un espace s'il est entre guillemets doubles : <code>prix AS \"Prix €\"</code>."},
     reflex:{a:{k:"AS",t:"renomme une colonne <b>dans le résultat seulement</b>"},
@@ -7237,7 +7259,8 @@ WHERE ville = 'Paris';</pre></div>
 { id:3, titre:"SELECT *", résumé:"Voir toute la table",
   situation:"Tu découvres la table produits. Elle contient 8 produits et plusieurs informations sur chacun : <code>id</code>, <code>nom</code>, <code>categorie</code>, <code>prix</code> et <code>stock</code>.<br><br>Avec ce que tu connais déjà, tu pourrais lister les colonnes une par une :",
   situationSql:"SELECT nom, categorie, prix\nFROM produits;",
-  situationTail:"Ça fonctionne, mais écrire chaque colonne devient vite long. Pour voir toute la table d’un coup, tu peux utiliser <code>SELECT *</code>.",
+  situationTail:"Ça fonctionne, mais écrire chaque colonne devient vite long.",
+  problematique:"Tu veux maintenant consulter toutes les informations enregistrées sur les produits. Comment afficher toutes les colonnes sans les écrire une par une ?",
     studio:{problem:{title:"L’étoile <code>*</code> représente toutes les colonnes.",
       body:"Quand tu explores une table, tu peux vouloir afficher tout son contenu sans écrire le nom de chaque colonne. Dans <code>SELECT *</code>, l’étoile <code>*</code> signifie simplement : toutes les colonnes. Avec la table produits, le résultat contient donc les 5 colonnes disponibles : <code>id</code>, <code>nom</code>, <code>categorie</code>, <code>prix</code> et <code>stock</code>."},
     vs:{bad:{tag:"✕ Étoile + colonne",sql:"SELECT *, nom\nFROM produits;",out:"nom est demandé en plus alors que * l’inclut déjà",
@@ -7279,7 +7302,8 @@ WHERE ville = 'Paris';</pre></div>
 { id:13, titre:"DISTINCT", résumé:"Valeurs uniques",
   situation:"Dans la table clients, plusieurs personnes habitent dans la même ville. Tu veux la liste des villes différentes, sans afficher plusieurs fois la même ville.<br><br>Avec ce que tu connais déjà, tu peux afficher la ville de chaque client :",
   situationSql:"SELECT ville\nFROM clients;",
-  situationTail:"Tu obtiens 10 lignes, car SQL affiche la ville de chaque client.<br><br>Certaines villes apparaissent donc plusieurs fois : Paris apparaît 4 fois et Lyon 2 fois.<br><br>Mais ici, tu veux connaître les villes différentes, sans doublons.<br><br>Pour n’afficher chaque ville qu’une seule fois, SQL propose le mot-clé <code>DISTINCT</code>.",
+  situationTail:"Tu obtiens 10 lignes, car SQL affiche la ville de chaque client.<br><br>Certaines villes apparaissent donc plusieurs fois : Paris apparaît 4 fois et Lyon 2 fois.<br><br>Mais ici, tu veux connaître les villes différentes, sans doublons.",
+  problematique:"L’équipe commerciale veut connaître les villes dans lesquelles elle possède des clients. Comment obtenir la liste des villes sans afficher plusieurs fois la même ville ?",
     studio:{problem:{title:"DISTINCT retire les doublons du résultat.",
       body:"<code>DISTINCT</code> se place juste après <code>SELECT</code>. Il retire les répétitions du résultat : les 10 lignes deviennent 6 villes différentes.",
       extra:`<div class="sit-sql">
@@ -7325,7 +7349,8 @@ FROM nom_table;</pre></div>
 { id:4, titre:"WHERE", résumé:"Filtrer les lignes",
   situation:"L’e-commerce souhaite contacter ses clients qui habitent à Paris. Dans la table clients, 10 clients sont enregistrés, mais tu veux afficher uniquement ceux qui habitent à Paris.<br><br>Avec ce que tu connais déjà, tu peux choisir les colonnes à afficher :",
   situationSql:"SELECT nom, ville\nFROM clients;",
-  situationTail:"Tu obtiens bien le nom et la ville des 10 clients. Mais tu n’as besoin que des clients qui habitent à Paris : il faut maintenant indiquer à SQL quelles lignes conserver.<br><br>C’est exactement le rôle de <code>WHERE</code>.<br><br><code>SELECT</code> → quelles colonnes afficher.<br><code>WHERE</code> → quelles lignes conserver.",
+  situationTail:"Tu obtiens bien le nom et la ville des 10 clients. Mais tu n’as besoin que des clients qui habitent à Paris : il faut maintenant indiquer à SQL quelles lignes conserver.",
+  problematique:"L’équipe prépare une campagne réservée aux clients parisiens. Comment afficher uniquement les clients qui habitent à Paris ?",
     studio:{problem:{title:"WHERE filtre les lignes selon une condition.",
       body:"Sans <code>WHERE</code>, la requête affiche les 10 clients. Avec <code>WHERE ville = 'Paris'</code>, SQL vérifie chaque ligne : si la valeur de <code>ville</code> est <code>'Paris'</code>, la ligne est conservée. Sinon, elle n’apparaît pas dans le résultat. Dans la table clients, Sophie, les deux Nathan et Léa habitent à Paris : le résultat passe donc de 10 lignes à 4 lignes.",
       extra:`<div class="sit-sql">
@@ -7371,7 +7396,8 @@ WHERE condition;</pre></div>
 { id:5, titre:"Comparer des valeurs", résumé:"Filtrer avec =, !=, >, <, >=, <=",
   situation:"Tu analyses le catalogue pour repérer les produits haut de gamme. Dans la table <code>produits</code>, chaque produit a un prix. Tu veux afficher uniquement les produits dont le prix est strictement supérieur à 25 €.<br><br>Jusqu’ici, tu as utilisé <code>=</code> pour rechercher une valeur précise :",
   situationSql:"WHERE prix = 24.90",
-  situationTail:"Cette condition sélectionne uniquement le produit qui coûte exactement 24,90 € : Oméga 3.<br><br>Mais ici, tu ne cherches pas une valeur précise : tu veux comparer le prix à un seuil. Pour cela, SQL utilise des opérateurs de comparaison, comme <code>&gt;</code>.",
+  situationTail:"Cette condition sélectionne uniquement le produit qui coûte exactement 24,90 € : Oméga 3.<br><br>Mais ici, tu ne cherches pas une valeur précise : tu veux comparer le prix à un seuil.",
+  problematique:"L’équipe veut identifier les produits dont le prix dépasse 25 €. Comment filtrer les produits selon leur prix plutôt que rechercher un montant exact ?",
     studio:{problem:{eye:"",title:"Les opérateurs de comparaison",
       body:"Tu sais déjà filtrer des lignes avec <code>WHERE</code>. Pour comparer une valeur, SQL propose plusieurs opérateurs de comparaison :",
       extra:`<div class="agg-reflex"><ul class="agg-list"><li><code>=</code> → égal à</li><li><code>!=</code> → différent de</li><li><code>&gt;</code> → strictement supérieur à</li><li><code>&lt;</code> → strictement inférieur à</li><li><code>&gt;=</code> → supérieur ou égal à</li><li><code>&lt;=</code> → inférieur ou égal à</li></ul></div><p><code>prix &gt; 25</code> signifie : le prix doit être strictement supérieur à 25.</p>`,
@@ -7425,7 +7451,8 @@ WHERE condition;</pre></div>
 { id:6, titre:"AND", résumé:"Combiner avec AND",
   situation:"Tu prépares une campagne marketing destinée aux clients qui remplissent deux critères : habiter à Paris <b>et</b> avoir plus de 35 ans.<br><br>Tu sais déjà filtrer les clients qui habitent à Paris :",
   situationSql:"SELECT nom, ville, age\nFROM clients\nWHERE ville = 'Paris';",
-  situationTail:"Cette condition retourne les 4 clients parisiens : Sophie, les deux Nathan et Léa.<br><br>Mais tous ne correspondent pas à ta cible : tu veux aussi qu’ils aient plus de 35 ans.<br><br>Il faut donc demander à SQL de vérifier deux conditions en même temps.<br><br>C’est exactement le rôle de <code>AND</code>.",
+  situationTail:"Cette condition retourne les 4 clients parisiens : Sophie, les deux Nathan et Léa.<br><br>Mais tous ne correspondent pas à ta cible : tu veux aussi qu’ils aient plus de 35 ans.<br><br>Il faut donc demander à SQL de vérifier deux conditions en même temps.",
+  problematique:"Pour une campagne ciblée, l’équipe cherche les clients qui habitent à Paris et ont plus de 35 ans. Comment imposer ces deux critères en même temps ?",
     studio:{problem:{eye:"",title:"Combiner deux conditions",
       body:"<code>AND</code> permet de demander à SQL de vérifier plusieurs conditions en même temps.<br><br>Tu cherches les clients qui habitent à Paris → <code>ville = 'Paris'</code><br>et qui ont plus de 35 ans → <code>age &gt; 35</code><br><br>Pour qu’une ligne soit conservée, les deux conditions doivent être vraies.",
       extra:`<div class="sit-sql">
@@ -7474,7 +7501,8 @@ WHERE condition;</pre></div>
 { id:29, titre:"OR", résumé:"Combiner avec OR",
   situation:"Deux agences — Paris et Lyon — utilisent la même base clients.<br><br>Tu veux récupérer les clients qui habitent à Paris ou à Lyon.<br><br>Tu connais déjà <code>AND</code>, qui exige que toutes les conditions soient respectées. Mais regarde ce qui se passerait ici :",
   situationSql:"SELECT nom, ville\nFROM clients\nWHERE ville = 'Paris'\n  AND ville = 'Lyon';",
-  situationTail:"Cette condition demanderait à un même client d’habiter à Paris <b>et</b> à Lyon en même temps. Aucun client ne peut respecter les deux conditions.<br><br>Or, ici, une seule des deux villes suffit : le client peut habiter à Paris <b>ou</b> à Lyon.<br><br>C’est exactement le rôle de <code>OR</code>.",
+  situationTail:"Cette condition demanderait à un même client d’habiter à Paris <b>et</b> à Lyon en même temps. Aucun client ne peut respecter les deux conditions.<br><br>Or, ici, une seule des deux villes suffit : le client peut habiter à Paris <b>ou</b> à Lyon.",
+  problematique:"La campagne est maintenant ouverte aux clients de Paris ou de Lyon. Comment garder un client dès qu’il correspond à l’une de ces deux possibilités ?",
     studio:{problem:{eye:"",title:"Choisir entre plusieurs possibilités",
       body:"Tu cherches les clients qui habitent à Paris ou à Lyon :<br><br><code>ville = 'Paris' OR ville = 'Lyon'</code><br><br>Pour chaque client, SQL vérifie les deux possibilités. Il suffit qu’une seule soit vraie pour conserver la ligne.",
       extra:`<div class="sit-sql">
@@ -7531,9 +7559,10 @@ WHERE condition;</pre></div>
   indice:"Écris les deux conditions de part et d’autre de <code>OR</code> : <code>ville = 'Paris' OR ville = 'Lyon'</code>.",
   richLesson:true, earlyDemo:true },
 { id:22, titre:"NOT", résumé:"Exclure ce qui correspond",
-  situation:"Tu veux contacter tous les clients <b>sauf</b> ceux de Paris, pour une offre réservée à la province.<br><br>Tu sais déjà garder que les Parisiens avec <code>WHERE ville = 'Paris'</code>. Pour obtenir l'inverse, tu pourrais écrire <code>!=</code> :",
-  situationSql:"SELECT nom, ville\nFROM clients\nWHERE ville != 'Paris';",
-  situationTail:"Ça fonctionne. SQL offre aussi <code>NOT</code>, qui inverse n'importe quelle condition — pratique pour les tests plus complexes comme <code>NOT LIKE</code> ou <code>NOT IN</code>.",
+  situation:"Tu veux contacter tous les clients <b>sauf</b> ceux de Paris, pour une offre réservée à la province.<br><br>Tu sais déjà garder les clients qui habitent à Paris :",
+  situationSql:"SELECT nom, ville\nFROM clients\nWHERE ville = 'Paris';",
+  situationTail:"Cette fois, tu veux l'inverse : tous les clients qui n'habitent <b>pas</b> à Paris.",
+  problematique:"Tu sais rechercher les clients qui correspondent à une condition. Mais comment demander à SQL de garder, au contraire, ceux qui ne correspondent pas à une condition ?",
     studio:{problem:{eye:"Le principe",title:"NOT inverse une condition entière.",
       body:"<code>NOT</code> permet d’exclure ce qui correspond à une condition.<br><br><code>NOT</code> signifie simplement « ne pas ».<br><br>Par exemple, tu veux afficher tous les clients qui n’habitent pas à Paris :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">SELECT nom, ville\nFROM clients\nWHERE NOT ville = 'Paris';</pre></div><br><br>SQL vérifie <code>ville = 'Paris'</code>, puis <code>NOT</code> fait l’inverse :<br>Paris → exclu<br>Une autre ville → gardé<br><br><code>NOT</code> peut aussi s’appliquer à plusieurs conditions regroupées entre parenthèses :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">WHERE NOT (ville = 'Paris' AND age > 30);</pre></div><br><br>Ici, SQL exclut les clients qui sont à la fois à Paris et âgés de plus de 30 ans.",
       extra:`<div class="sit-sql">
@@ -7559,9 +7588,10 @@ WHERE condition;</pre></div>
 { id:7, titre:"NULL", résumé:"La valeur absente",
   situation:"L’équipe commerciale prépare une campagne de relance pour présenter une nouvelle offre aux clients.<br><br>Mais il y a un problème : certains clients n’ont aucune adresse email renseignée.<br><br>L’équipe veut donc retrouver ces clients afin de pouvoir les contacter par téléphone.<br><br>Jusqu’ici, tu as utilisé <code>=</code> pour rechercher une valeur précise :",
   situationSql:"SELECT nom, email\nFROM clients\nWHERE email = 'sophie@mail.fr';",
-  situationTail:"Cette requête fonctionne lorsqu’on connaît l’email recherché.<br><br>Mais ici, l’équipe cherche justement les clients pour lesquels aucun email n’a été renseigné.<br><br>Il n’y a donc aucune valeur à comparer avec <code>=</code>.<br><br>Comment demander à SQL de retrouver une information absente ?<br><br>C’est là qu’intervient <code>NULL</code>.",
+  situationTail:"Cette requête fonctionne lorsqu’on connaît l’email recherché.<br><br>Mais ici, l’équipe cherche justement les clients pour lesquels aucun email n’a été renseigné.<br><br>Il n’y a donc aucune valeur à comparer avec <code>=</code>.",
+  problematique:"Certains clients n’ont pas renseigné leur email. Comment les retrouver pour que l’équipe commerciale puisse les contacter autrement ?",
     studio:{problem:{eye:"Le principe",title:"NULL représente l’absence de valeur.",
-      body:"<code>NULL</code> signifie qu’aucune valeur n’est renseignée dans la colonne.<br><br>Par exemple, si un client n’a pas d’email renseigné, son email vaut <code>NULL</code>.<br><br>Attention, <code>NULL</code> n’est pas :<br>le nombre <code>0</code><br>un texte vide <code>''</code><br>le mot <code>\"NULL\"</code><br><br>C’est l’absence de valeur. C’est pour cette raison qu’on ne peut pas la tester avec <code>=</code> : pour demander à SQL « l’email est-il absent ? », on utilise <code>IS NULL</code>."},
+      body:"<code>NULL</code> signifie qu’aucune valeur n’est renseignée dans la colonne.<br><br>Par exemple, si un client n’a pas d’email renseigné, son email vaut <code>NULL</code>.<br><br><div class=\"pt-notlist\"><p class=\"pt-notlist-lab\">Attention, <code>NULL</code> n’est pas :</p><div class=\"pt-notlist-items\"><span class=\"pt-notlist-item\"><i aria-hidden=\"true\">✕</i><code>0</code><b>le nombre zéro</b></span><span class=\"pt-notlist-item\"><i aria-hidden=\"true\">✕</i><code>''</code><b>un texte vide</b></span><span class=\"pt-notlist-item\"><i aria-hidden=\"true\">✕</i><code>\"NULL\"</code><b>le mot écrit en texte</b></span></div></div><br><br>C’est l’absence de valeur. C’est pour cette raison qu’on ne peut pas la tester avec <code>=</code> : pour demander à SQL « l’email est-il absent ? », on utilise <code>IS NULL</code>."},
     vs:{bad:{tag:"✕ = NULL — Incorrect",sql:"SELECT nom, email FROM clients\nWHERE email = NULL;",out:"0 ligne : NULL ne se teste pas avec =",
             code:"SELECT nom, email\nFROM clients\n<span class=\"vs-line bad\">WHERE email = NULL</span>;"},
         good:{tag:"✓ IS NULL — Correct",sql:"SELECT nom, email FROM clients\nWHERE email IS NULL;",out:"2 lignes : Hugo et Inès",
@@ -7601,8 +7631,9 @@ WHERE condition;</pre></div>
   richLesson:true, earlyDemo:true },
 { id:8, titre:"LIKE", résumé:"Chercher un motif",
   situation:"Dans la table clients, tu recherches un client, mais tu ne te souviens que du début de son nom : il commence par L.<br><br>Avec ce que tu connais déjà, tu pourrais chercher un nom exact :",
-  situationSql:"WHERE nom = 'Lucas'",
-  situationTail:"Tu retrouves Lucas si tu connais le nom complet. Mais tu ne te souviens que du début : il faut chercher un motif avec <code>LIKE</code>.",
+  situationSql:"SELECT nom\nFROM clients\nWHERE nom = 'Lucas';",
+  situationTail:"Tu retrouves Lucas si tu connais le nom complet. Mais tu ne te souviens que du début.",
+  problematique:"L’équipe cherche un client dont elle se souvient seulement que le prénom commence par « L ». Comment le retrouver sans connaître son nom complet ?",
     studio:{problem:{title:"LIKE permet de rechercher des caractères dans un texte.",
       body:"Avec <code>=</code>, tu recherches une valeur exacte. Avec <code>LIKE</code>, tu peux rechercher du texte qui commence, finit ou contient certains caractères. Le symbole <code>%</code> représente la partie qui peut varier. Par exemple, <code>LIKE 'L%'</code> signifie : le nom commence par L, peu importe ce qui vient après."},
     vs:{bad:{tag:"✕ Sans joker",sql:"SELECT nom FROM clients\nWHERE nom LIKE 'L';",out:"0 ligne : aucun nom n’est exactement 'L'",
@@ -7645,7 +7676,8 @@ WHERE condition;</pre></div>
 { id:9, titre:"IN", résumé:"Filtrer avec une liste",
   situation:"Tu prépares un envoi pour les clients de Paris et de Lyon. Dans la table clients, tu veux afficher les personnes qui habitent à Paris ou Lyon.<br><br>Avec ce que tu connais déjà, tu pourrais utiliser <code>OR</code> :",
   situationSql:"SELECT nom, ville\nFROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",
-  situationTail:"Ça fonctionne. Mais quand plusieurs valeurs sont possibles pour une même colonne, SQL propose une écriture plus simple : <code>IN</code>.",
+  situationTail:"Ça fonctionne. Mais quand plusieurs valeurs sont possibles pour une même colonne, la colonne <code>ville</code> se répète à chaque condition.",
+  problematique:"L’équipe veut cibler les clients de Paris et de Lyon en une seule fois. Comment éviter de répéter <code>ville = ... OR ville = ...</code> pour chaque ville ?",
     studio:{problem:{title:"IN vérifie si une valeur appartient à une liste.",
       body:"Tu connais déjà <code>OR</code> : <code>ville = 'Paris' OR ville = 'Lyon'</code> fonctionne parfaitement. Mais la colonne <code>ville</code> est répétée. Avec <code>IN</code>, les valeurs recherchées sont regroupées dans une liste : <code>ville IN ('Paris', 'Lyon')</code>. Les deux écritures produisent ici exactement le même résultat."},
     vs:{bad:{tag:"✕ OR répétés",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",out:"6 lignes : correct, mais la colonne ville est répétée",
@@ -17375,12 +17407,27 @@ function situationSqlBlock(sql){
 function serverConceptBadge(){
   return `<p class="server-badge" role="note"><i aria-hidden="true">⊘</i> Notion SQL serveur — non exécutable en SQLite</p>`;
 }
+/* La situation raconte un contexte ; la problématique le resserre en une
+   question unique, juste avant que le cours n'y réponde. Un champ à part
+   (plutôt que la dernière phrase de situationTail) pour qu'elle garde son
+   encadré visuel même quand situationTail finit autrement. */
+function renderProblematique(text){
+  if(!text) return '';
+  return `<div class="sit-prob">
+    <div class="sit-prob-head">
+      <span class="sit-prob-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M8.5 14.5A6 6 0 1 1 15.5 14.5c-1 .8-1.5 1.5-1.5 2.5h-4c0-1-.5-1.7-1.5-2.5Z"/></svg></span>
+      <span class="sit-prob-lab">Problématique</span>
+    </div>
+    <p class="sit-prob-body">${text}</p>
+  </div>`;
+}
 function renderSituationBody(l){
   let html='';
   if(l.noExec && l.serverConcept) html+=serverConceptBadge();
   html+=situationBodyHtml(l.situation);
   if(l.situationSql) html+=situationSqlBlock(l.situationSql);
   if(l.situationTail) html+=flowProseHtml(l.situationTail);
+  if(l.problematique) html+=renderProblematique(l.problematique);
   return html;
 }
 /* Le « rôle de ON » tenait dans un seul paragraphe de six idées enchaînées :
