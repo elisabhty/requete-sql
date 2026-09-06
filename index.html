@@ -7468,11 +7468,15 @@ WHERE condition;</pre></div>
   situation:"Deux agences — Paris et Lyon — utilisent la même base clients.<br><br>Tu veux récupérer les clients qui habitent à Paris ou à Lyon.<br><br>Tu connais déjà <code>AND</code>, qui exige que toutes les conditions soient respectées. Mais regarde ce qui se passerait ici :",
   situationSql:"WHERE ville = 'Paris'\n  AND ville = 'Lyon'",
   situationTail:"Cette condition demanderait à un même client d’habiter à Paris <b>et</b> à Lyon en même temps. Aucun client ne peut respecter les deux conditions.<br><br>Or, ici, une seule des deux villes suffit : le client peut habiter à Paris <b>ou</b> à Lyon.<br><br>C’est exactement le rôle de <code>OR</code>.",
-    studio:{problem:{eye:"",title:"Combiner deux conditions",
-      body:"<code>OR</code> signifie qu’au moins une des conditions doit être vraie pour garder une ligne.<br><br>Tu cherches les clients qui habitent à Paris ou à Lyon :<br><br><code>ville = 'Paris' OR ville = 'Lyon'</code><br><br>Pour chaque client, SQL vérifie les deux possibilités. Une seule suffit.<br><br>Avec <code>AND</code>, les deux conditions doivent être vraies. Avec <code>OR</code>, au moins une des conditions doit être vraie."},
-    vs:{bad:{tag:"✕ Condition incomplète",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR 'Lyon';",
+    studio:{problem:{eye:"",title:"Choisir entre plusieurs possibilités",
+      body:"Tu cherches les clients qui habitent à Paris ou à Lyon :<br><br><code>ville = 'Paris' OR ville = 'Lyon'</code><br><br>Pour chaque client, SQL vérifie les deux possibilités. Il suffit qu’une seule soit vraie pour conserver la ligne.",
+      extra:`<div class="sit-sql">
+        <p><code>OR</code> est un opérateur logique qui permet de combiner plusieurs conditions. Contrairement à <code>AND</code>, toutes les conditions n’ont pas besoin d’être vraies.</p>
+        <p>La règle est simple : il suffit qu’au moins une condition soit vraie pour que la ligne soit conservée. La ligne est écartée uniquement si toutes les conditions sont fausses.</p>
+      </div>`},
+    vs:{bad:{tag:"✕ OR suivi d’une simple valeur",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR 'Lyon';",
             code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line bad\">WHERE ville = 'Paris'\n   OR 'Lyon'</span>;",
-            pedagogic:true,out:"Résultat trompeur : seuls les Parisiens apparaissent, Lucas et Hugo (Lyon) manquent. Après OR, il faut une condition complète — ville = 'Lyon', pas 'Lyon' seul."},
+            pedagogic:true,out:"'Lyon' est seulement une valeur, pas une condition complète : il faut écrire condition OR condition, jamais condition OR valeur."},
         good:{tag:"✓ Avec OR",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",
             code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line good\">WHERE ville = 'Paris'\n   OR ville = 'Lyon'</span>;",
             out:"6 lignes : Sophie, Lucas, Nathan (×2), Hugo et Léa"}},
@@ -7500,7 +7504,7 @@ WHERE condition;</pre></div>
     ]}
   ],
   testeVariants:[
-    {k:'avant',label:'Incomplet',sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR 'Lyon';",out:"Résultat trompeur : seuls les Parisiens apparaissent, Lucas et Hugo (Lyon) manquent.",tone:'bad'},
+    {k:'avant',label:'Incomplet',sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR 'Lyon';",out:"'Lyon' est seulement une valeur, pas une condition complète : il faut écrire condition OR condition, jamais condition OR valeur.",tone:'bad'},
     {k:'avec',label:'OR',sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",out:"6 lignes : Sophie, Lucas, Nathan (×2), Hugo et Léa",tone:'good'}
   ],
   exemple:"SELECT nom, ville FROM clients WHERE ville = 'Paris' OR ville = 'Lyon';",
