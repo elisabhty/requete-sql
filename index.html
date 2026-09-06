@@ -7474,9 +7474,9 @@ WHERE condition;</pre></div>
         <p><code>OR</code> est un opérateur logique qui permet de combiner plusieurs conditions. Contrairement à <code>AND</code>, toutes les conditions n’ont pas besoin d’être vraies.</p>
         <p>La règle est simple : il suffit qu’au moins une condition soit vraie pour que la ligne soit conservée. La ligne est écartée uniquement si toutes les conditions sont fausses.</p>
       </div>`},
-    vs:{bad:{tag:"✕ OR suivi d’une simple valeur",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR 'Lyon';",
-            code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line bad\">WHERE ville = 'Paris'\n   OR 'Lyon'</span>;",
-            pedagogic:true,out:"'Lyon' est seulement une valeur, pas une condition complète : il faut écrire condition OR condition, jamais condition OR valeur."},
+    vs:{bad:{tag:"✕ Avec AND",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n  AND ville = 'Lyon';",
+            code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line bad\">WHERE ville = 'Paris'\n  AND ville = 'Lyon'</span>;",
+            out:"Aucun client n’habite à Paris et à Lyon en même temps : 0 ligne. AND exige que les deux conditions soient vraies pour la même ligne."},
         good:{tag:"✓ Avec OR",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",
             code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line good\">WHERE ville = 'Paris'\n   OR ville = 'Lyon'</span>;",
             out:"6 lignes : Sophie, Lucas, Nathan (×2), Hugo et Léa"}},
@@ -7488,12 +7488,12 @@ WHERE condition;</pre></div>
       note:"Avec <code>ville = 'Paris' OR ville = 'Lyon'</code>, le client est gardé s'il habite à Paris ou à Lyon. Il n'a pas besoin de respecter les deux conditions."}},
   anatomie:[{tok:"SELECT nom, ville",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE ville = 'Paris'",txt:"première condition"},{tok:"OR",txt:"exige qu’au moins une des conditions soit vraie"},{tok:"ville = 'Lyon'",plain:1,txt:"deuxième condition"}],
   anatomieVariants:[
-    {k:'avant',label:'Incomplet',tone:'bad',lines:[
+    {k:'avant',label:'AND',tone:'bad',lines:[
       {tok:"SELECT nom, ville",txt:"Les colonnes affichées dans le résultat."},
       {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
-      {tok:"WHERE ville = 'Paris'",txt:"première condition, complète."},
-      {tok:"OR",txt:"exige qu’au moins une des conditions soit vraie"},
-      {tok:"'Lyon'",plain:1,txt:"condition incomplète : il manque « ville = » avant. SQL ne compare pas 'Lyon' à la colonne ville."}
+      {tok:"WHERE ville = 'Paris'",txt:"première condition"},
+      {tok:"AND",txt:"exige que les deux conditions soient vraies pour la même ligne"},
+      {tok:"ville = 'Lyon'",plain:1,txt:"deuxième condition : impossible à respecter en même temps que la première"}
     ]},
     {k:'avec',label:'OR',tone:'good',lines:[
       {tok:"SELECT nom, ville",txt:"Affiche le nom et la ville des clients."},
@@ -7504,14 +7504,19 @@ WHERE condition;</pre></div>
     ]}
   ],
   testeVariants:[
-    {k:'avant',label:'Incomplet',sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR 'Lyon';",out:"'Lyon' est seulement une valeur, pas une condition complète : il faut écrire condition OR condition, jamais condition OR valeur.",tone:'bad'},
+    {k:'avant',label:'AND',sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n  AND ville = 'Lyon';",out:"Aucun client n’habite à Paris et à Lyon en même temps : 0 ligne. AND exige que les deux conditions soient vraies pour la même ligne.",tone:'bad'},
     {k:'avec',label:'OR',sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",out:"6 lignes : Sophie, Lucas, Nathan (×2), Hugo et Léa",tone:'good'}
   ],
   exemple:"SELECT nom, ville FROM clients WHERE ville = 'Paris' OR ville = 'Lyon';",
   attendu:"<b>6 lignes</b> : Sophie, Lucas, les deux Nathan, Hugo et Léa. Leur ville est Paris ou Lyon.",
   retenir:"<code>OR</code> garde une ligne si au moins une condition est vraie.<br><br>Avec <code>ville = 'Paris' OR ville = 'Lyon'</code>, 6 clients sont gardés.",
-  piege:{t:"Croire qu’OR ne combine que deux conditions",p:"Tu peux enchaîner <b>3 conditions ou plus</b> avec <code>OR</code> :",
-    sql:"SELECT nom, ville\nFROM clients\nWHERE ville = 'Paris'\n  OR ville = 'Lyon'\n  OR ville = 'Marseille';"},
+  pieges:[
+    {t:"OR suivi d’une simple valeur",p:"Après <code>OR</code>, il faut répéter la colonne : <code>condition OR condition</code>, jamais <code>condition OR valeur</code>.",
+      sql:"SELECT nom, ville\nFROM clients\nWHERE ville = 'Paris'\n   OR 'Lyon';",
+      tail:"'Lyon' est seulement une valeur, pas une condition complète : SQL ne la compare à rien."},
+    {t:"Croire qu’OR ne combine que deux conditions",p:"Tu peux enchaîner <b>3 conditions ou plus</b> avec <code>OR</code> :",
+      sql:"SELECT nom, ville\nFROM clients\nWHERE ville = 'Paris'\n  OR ville = 'Lyon'\n  OR ville = 'Marseille';"}
+  ],
   consigne:"Affiche toutes les colonnes des clients qui habitent à Paris ou à Lyon.",
   solution:"SELECT * FROM clients WHERE ville = 'Paris' OR ville = 'Lyon';",
   indice:"Écris les deux conditions de part et d’autre de <code>OR</code> : <code>ville = 'Paris' OR ville = 'Lyon'</code>.",
