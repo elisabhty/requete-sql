@@ -7511,9 +7511,11 @@ WHERE condition;</pre></div>
   attendu:"<b>6 lignes</b> : Sophie, Lucas, les deux Nathan, Hugo et Léa. Leur ville est Paris ou Lyon.",
   retenir:"<code>OR</code> garde une ligne si au moins une condition est vraie.<br><br>Avec <code>ville = 'Paris' OR ville = 'Lyon'</code>, 6 clients sont gardés.",
   pieges:[
-    {t:"OR suivi d’une simple valeur",p:"Après <code>OR</code>, il faut répéter la colonne : <code>condition OR condition</code>, jamais <code>condition OR valeur</code>.",
+    {t:"Chaque côté de OR doit être une condition complète",p:"<code>OR</code> relie deux conditions. Il ne suffit donc pas d’écrire une deuxième valeur après <code>OR</code>.<br><br><b>❌ Incorrect</b>",
       sql:"SELECT nom, ville\nFROM clients\nWHERE ville = 'Paris'\n   OR 'Lyon';",
-      tail:"'Lyon' est seulement une valeur, pas une condition complète : SQL ne la compare à rien."},
+      mid:"Ici, la première partie est une condition : <code>ville = 'Paris'</code> → SQL sait quoi vérifier.<br><br>Mais <code>'Lyon'</code> est seulement une valeur. SQL ne sait pas quelle colonne doit être égale à <code>'Lyon'</code>.<br><br>Il faut écrire la deuxième condition en entier :<br><br><b>✅ Correct</b>",
+      fixSql:"SELECT nom, ville\nFROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",
+      tail:"<b>À retenir</b> — avec <code>OR</code>, pense : <code>condition 1 OR condition 2</code>, et non <code>condition OR valeur</code>."},
     {t:"Croire qu’OR ne combine que deux conditions",p:"Tu peux enchaîner <b>3 conditions ou plus</b> avec <code>OR</code> :",
       sql:"SELECT nom, ville\nFROM clients\nWHERE ville = 'Paris'\n  OR ville = 'Lyon'\n  OR ville = 'Marseille';"}
   ],
@@ -17059,6 +17061,10 @@ function renderPiege(piege){
     <div class="ex-code">${sqlHtml(piege.fixSql)}</div>
   </div></div>`
     : '';
+  /* `mid` se lit entre les deux exemples SQL (le mauvais puis le corrigé) :
+     utile quand il faut expliquer pourquoi l'un échoue avant de montrer le
+     correctif, plutôt que de tout reléguer après les deux blocs dans `tail`. */
+  const mid=piege.mid?`<div class="piege-tail">${flowProseHtml(piege.mid)}</div>`:'';
   const tail=piege.tail?`<div class="piege-tail">${flowProseHtml(piege.tail)}</div>`:'';
   return `<div class="piege">
     <div class="piege-head">
@@ -17066,7 +17072,7 @@ function renderPiege(piege){
       <span class="piege-lab">${esc(piege.lab||'Erreur fréquente')}</span>
     </div>
     <p class="piege-title">${piege.t}</p>
-    <div class="piege-body">${flowProseHtml(piege.p)}</div>${badSql}${fixSql}${tail}
+    <div class="piege-body">${flowProseHtml(piege.p)}</div>${badSql}${mid}${fixSql}${tail}
   </div>`;
 }
 function piegeBlock(l){
