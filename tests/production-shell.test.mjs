@@ -95,8 +95,8 @@ assert(account.includes('Apprentissage') && account.includes('Compte et assistan
 assert(html.includes('function closePlusDetails()') && account.includes('account-sheet-backdrop') && html.includes("querySelectorAll('#scr-compte .plus-details[open]')"), 'réglages détaillés ouverts dans un seul panneau focalisé et refermable');
 assert(account.includes('Mode local actif') && account.includes('Connexion optionnelle'), 'stockage local expliqué clairement');
 assert(!account.includes('acc-premium') && !account.includes('4,99 €'), 'fausse offre Premium retirée du parcours de production');
-assert(html.includes("const OB_PROFILE_SLIDES=['name','goal','level','practice','rhythm']") && onboarding.includes("const steps=['account',...OB_PROFILE_SLIDES]"), 'onboarding recentré sur 6 étapes utiles');
-assert(html.includes("const OB_SLIDES = ['welcome','proof','account','name','goal','level','practice','rhythm','ready']"), 'écran de preuve placé après la bienvenue sans allonger le questionnaire');
+assert(html.includes("const OB_PROFILE_SLIDES=['name','goal','level','rhythm','practice']") && onboarding.includes("const steps=[...OB_PROFILE_SLIDES,'account']"), 'onboarding : 6 étapes, personnalisation d’abord puis sauvegarde du succès');
+assert(html.includes("const OB_SLIDES = ['welcome','name','goal','level','rhythm','practice','account','ready']"), 'parcours cohérent : prouver, personnaliser, pratiquer, sauvegarder');
 assert(onboarding.includes('Monte en niveau,') && onboarding.includes('ob-level-chart') && onboarding.includes('SELECT</span><span>Filtres</span><span>Jointures</span><span>Analyses'), 'progression SQL illustrée par un graphique accessible et des jalons concrets');
 assert(onboarding.includes('<strong>74</strong>') && onboarding.includes('<strong>25</strong>') && onboarding.includes('<strong>10 000+</strong><span>requêtes vérifiées en test'), 'preuves chiffrées reliées au contenu réel et aux tests plutôt qu’à de faux utilisateurs');
 assert(onboarding.includes('Étape ${active+1} sur ${steps.length}') && onboarding.includes('const remaining='), 'étape et durée restante annoncées dynamiquement');
@@ -116,7 +116,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
 assert(html.includes('{ id:73, titre:"UNION et UNION ALL"') && html.includes('18 lignes : 10 + 8') && !html.includes('17 lignes : 9 + 8'), 'UNION ALL visible et cardinalité corrigée');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-09-06-distinct-lignes-v329'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-09-06-onboarding-tunnel-v330'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
