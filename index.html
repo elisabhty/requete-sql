@@ -2116,11 +2116,19 @@
      (phase 0) : il n'apparaît, ligne après ligne, qu'à la phase où WHERE
      s'applique — pour montrer que SQL teste chaque ligne à son tour. */
   .grp-cmp{opacity:0;margin-left:6px;font-family:var(--mono);font-size:10px;font-weight:700;color:var(--ink-3)}
-  .sql-viz[data-viz="compare"][data-phase="1"] .grp-chip[data-keep="1"] .grp-cmp{color:var(--accent)}
-  .sql-viz[data-viz="compare"][data-phase="1"] .grp-chip .grp-cmp{animation:cmpCmpIn .3s ease var(--dw,0ms) both}
-  .sql-viz[data-viz="compare"][data-phase="1"] .grp-chip{animation:cmpVisit .5s ease var(--dw,0ms) both}
+  .sql-viz[data-viz="compare"][data-phase="1"] .grp-chip[data-keep="1"] .grp-cmp,
+  .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep="1"] .grp-cmp{color:var(--accent)}
+  .sql-viz[data-viz="compare"][data-phase="1"] .grp-chip .grp-cmp,
+  .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep0="1"] .grp-cmp{animation:cmpCmpIn .3s ease var(--dw,0ms) both}
+  .sql-viz[data-viz="compare"][data-phase="1"] .grp-chip,
+  .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep0="1"]{animation:cmpVisit .5s ease var(--dw,0ms) both}
   @keyframes cmpCmpIn{from{opacity:0}to{opacity:1}}
   @keyframes cmpVisit{0%{background:var(--surface)}40%{background:rgba(91,91,214,.14)}100%{background:var(--surface)}}
+  /* AND : à l'étape « AND age > 35 », les clients déjà écartés par le
+     premier filtre (pas à Paris) doivent paraître plus effacés que ceux
+     qui viennent tout juste d'échouer au second — sinon on croit que
+     l'âge est testé sur les 10 lignes plutôt que sur les 4 Parisiens. */
+  .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep0="0"]{opacity:.12;filter:grayscale(.9)}
   .grp-desc{font-size:14px;color:var(--ink-2);line-height:1.45;font-weight:600;max-width:100%}
   .grp-paused-badge{display:none;position:absolute;top:0;right:0;font-family:var(--ui);font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border:1px solid rgba(91,91,214,.28);border-radius:999px;padding:4px 10px;line-height:1.2;white-space:nowrap;pointer-events:none}
   .grp-viz[data-paused="1"] .grp-paused-badge{display:inline-flex;align-items:center}
@@ -23124,13 +23132,13 @@ const SQL_VIZ={
     {t:'Oméga 3',extra:'24,90',cmp:'> 25',keep:0},{t:'Shaker',extra:'15,00',cmp:'> 25',keep:0}
   ]},
   andor:{kind:'filter',phases:[
-    {k:'SELECT nom, ville, age FROM clients',d:'Les 10 clients sont affichés avec leur nom, leur ville et leur âge.'},
-    {k:"WHERE ville = 'Paris'",d:'SQL garde uniquement les clients qui habitent à Paris : 4 lignes restent.'},
-    {k:"AND age > 35",d:'Une deuxième condition s’ajoute : il faut aussi avoir plus de 35 ans. Une seule ligne respecte les deux conditions.'}
+    {k:'SELECT nom, ville, age FROM clients',d:'SQL récupère d’abord les colonnes demandées. Les 10 clients sont encore présents : aucun filtre n’a été appliqué.'},
+    {k:"WHERE ville = 'Paris'",d:'SQL vérifie la première condition : habiter à Paris. 4 clients la respectent : Sophie, deux Nathan et Léa.'},
+    {k:"AND age > 35",d:'Parmi ces 4 clients, SQL vérifie maintenant la deuxième condition : avoir plus de 35 ans. Seule Léa respecte les deux conditions.'}
   ],chips:[
-    {t:'Sophie',extra:'Paris · 34',keep0:1,keep:0},{t:'Lucas',extra:'Lyon · 28',keep0:0,keep:0},{t:'Emma',extra:'Marseille · 45',keep0:0,keep:0},
-    {t:'Nathan',extra:'Paris · 31',keep0:1,keep:0},{t:'Chloé',extra:'Bordeaux · 26',keep0:0,keep:0},{t:'Hugo',extra:'Lyon · 52',keep0:0,keep:0},
-    {t:'Léa',extra:'Paris · 38',keep0:1,keep:1},{t:'Gabriel',extra:'Toulouse · 29',keep0:0,keep:0},{t:'Inès',extra:'Nantes · 41',keep0:0,keep:0},{t:'Nathan n°10',extra:'Paris · 30',keep0:1,keep:0}
+    {t:'Sophie',extra:'Paris · 34',cmp:'> 35',keep0:1,keep:0},{t:'Lucas',extra:'Lyon · 28',keep0:0,keep:0},{t:'Emma',extra:'Marseille · 45',keep0:0,keep:0},
+    {t:'Nathan',extra:'Paris · 31',cmp:'> 35',keep0:1,keep:0},{t:'Chloé',extra:'Bordeaux · 26',keep0:0,keep:0},{t:'Hugo',extra:'Lyon · 52',keep0:0,keep:0},
+    {t:'Léa',extra:'Paris · 38',cmp:'> 35',keep0:1,keep:1},{t:'Gabriel',extra:'Toulouse · 29',keep0:0,keep:0},{t:'Inès',extra:'Nantes · 41',keep0:0,keep:0},{t:'Nathan n°10',extra:'Paris · 30',cmp:'> 35',keep0:1,keep:0}
   ]},
   or:{kind:'filter',phases:[
     {k:'SELECT nom, ville FROM clients',d:'Les 10 clients sont affichés avec leur nom et leur ville.'},
@@ -24181,7 +24189,7 @@ function layoutSqlList(root,phase,{animate=true}={}){
     c.style.transitionDelay=delay+'ms';
     const step=kind==='minmax'?200:120;
     if(kind==='count'||kind==='agg'||kind==='minmax') c.style.setProperty('--dw',animate?(i*step)+'ms':'0ms');
-    else if(root.dataset.viz==='compare') c.style.setProperty('--dw',animate?(i*150)+'ms':'0ms');
+    else if(root.dataset.viz==='compare'||root.dataset.viz==='andor') c.style.setProperty('--dw',animate?(i*150)+'ms':'0ms');
     if(kind==='minmax'){
       const out=c.dataset.out;
       if(!animate||out==null||out==='') c.style.setProperty('--out','0ms');
