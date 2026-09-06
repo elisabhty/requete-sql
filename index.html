@@ -14781,6 +14781,10 @@ function bindTableSwipe(root){
         if(wrap.firstElementChild) ro.observe(wrap.firstElementChild);
       }
     }
+    /* Aussi en synchrone : le rAF ne se déclenche pas dans un onglet masqué,
+       et l'indicateur « Glisse » restait alors invisible sur un tableau qui
+       déborde pourtant. Les deux passes suivantes affinent après mise en page. */
+    syncTableSwipe(shell);
     requestAnimationFrame(()=>{
       syncTableSwipe(shell);
       requestAnimationFrame(()=>syncTableSwipe(shell));
@@ -18773,10 +18777,12 @@ function runVsSql(btn){
       void host.offsetWidth;
       host.classList.add('flash');
     }finally{
-      d.close();
+      /* Le libellé d'abord : si la fermeture du bac à sable échoue, le bouton
+         resterait sinon vide et désactivé, sans moyen de relancer. */
       btn.classList.remove('running');
       btn.disabled=false;
       btn.innerHTML=XF_RUN_ICO+'Exécuter';
+      try{ d.close(); }catch(_){}
     }
   };
   if(prefersReduceMotion())finish();
