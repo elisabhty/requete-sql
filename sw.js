@@ -14,7 +14,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-09-06-compare-cmp-anime-v347';
+const CACHE = 'requete-2026-09-06-comparer-reflexe-cartes-v348';
 
 const PRECACHE = [
   './',
