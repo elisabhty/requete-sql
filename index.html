@@ -7412,11 +7412,15 @@ WHERE condition;</pre></div>
   situationSql:"WHERE ville = 'Paris'",
   situationTail:"Cette condition retourne les 4 clients parisiens : Sophie, deux Nathan et Léa.<br><br>Mais tous ne correspondent pas à ta cible : tu veux aussi qu’ils aient plus de 35 ans.<br><br>Il faut donc demander à SQL de vérifier deux conditions en même temps.<br><br>C’est exactement le rôle de <code>AND</code>.",
     studio:{problem:{eye:"",title:"Combiner deux conditions",
-      body:"<code>AND</code> signifie que les deux conditions doivent être vraies.<br><br>Tu cherches les clients parisiens de plus de 35 ans : <code>ville = 'Paris'</code> et <code>age &gt; 35</code> doivent l’être en même temps pour qu’une ligne reste dans le résultat.",
-      tail:"4 clients habitent à Paris : Sophie, deux Nathan et Léa. Mais seule Léa, 38 ans, habite à Paris et a plus de 35 ans."},
-    vs:{bad:{tag:"✕ Avec une seule condition",sql:"SELECT nom, ville, age FROM clients\nWHERE ville = 'Paris';",out:"4 lignes : Sophie, Nathan (×2) et Léa",
+      body:"<code>AND</code> permet de demander à SQL de vérifier plusieurs conditions en même temps.<br><br>Tu cherches les clients qui habitent à Paris → <code>ville = 'Paris'</code><br>et qui ont plus de 35 ans → <code>age &gt; 35</code><br><br>Pour qu’une ligne soit conservée, les deux conditions doivent être vraies.",
+      extra:`<div class="sit-sql">
+        <p><code>AND</code> est un opérateur logique qui permet de combiner plusieurs conditions dans une clause <code>WHERE</code> (ou ailleurs).</p>
+        <p>La règle est simple : le résultat n’est vrai que si <b>toutes</b> les conditions reliées par <code>AND</code> sont vraies. Dès qu’une seule condition est fausse, le résultat global devient faux.</p>
+      </div>`,
+      tail:"Parmi les 4 clients parisiens — Sophie, deux Nathan et Léa — seule Léa, 38 ans, respecte aussi la condition <code>age &gt; 35</code>."},
+    vs:{bad:{tag:"✕ Avec une seule condition",sql:"SELECT nom, ville, age FROM clients\nWHERE ville = 'Paris';",out:"4 lignes : Sophie, les deux Nathan et Léa sont retournés, quel que soit leur âge",
             code:"SELECT nom, ville, age\nFROM clients\n<span class=\"vs-line bad\">WHERE ville = 'Paris'</span>;"},
-        good:{tag:"✓ Avec AND",sql:"SELECT nom, ville, age FROM clients\nWHERE ville = 'Paris' AND age > 35;",out:"1 ligne : Léa, 38 ans",
+        good:{tag:"✓ Avec AND",sql:"SELECT nom, ville, age FROM clients\nWHERE ville = 'Paris' AND age > 35;",out:"1 ligne : seule Léa est retournée, car elle respecte les deux conditions",
             code:"SELECT nom, ville, age\nFROM clients\n<span class=\"vs-line good\">WHERE ville = 'Paris' AND age &gt; 35</span>;"}},
     why:{eye:"",title:"Pourquoi une seule ligne ?",
       body:"Avec <code>AND</code>, chaque ligne doit respecter les deux conditions."},
