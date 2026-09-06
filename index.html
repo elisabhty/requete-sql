@@ -2056,7 +2056,7 @@
   .pipe-table tr.out .num{text-decoration:line-through}
 
   .grp-viz{margin:14px 0 0;padding:18px 16px 16px;background:var(--surface);border:1px solid var(--card-border);border-radius:22px;box-shadow:var(--card-shadow);overflow:visible}
-  .grp-viz-bar{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin-bottom:14px;position:relative;width:100%;padding:0 0 0 8px;box-sizing:border-box}
+  .grp-viz-bar{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin-bottom:8px;position:relative;width:100%;padding:0 0 0 8px;box-sizing:border-box}
   .grp-viz[data-paused="1"] .grp-viz-bar{padding-right:92px}
   .grp-k{font-family:var(--mono);font-size:11px;font-weight:700;background:var(--ink);color:#fff;padding:6px 11px;border-radius:10px;letter-spacing:.2px;transition:background .3s;max-width:100%;width:fit-content;box-sizing:border-box;word-break:break-word;line-height:1.35;box-shadow:0 2px 6px rgba(0,0,0,.08)}
   .grp-viz[data-phase="1"] .grp-k{background:var(--accent)}
@@ -2997,8 +2997,6 @@
   .join-step.is-active .join-step-num{background:var(--accent);color:#fff;transform:scale(1.06)}
   .join-step.is-done{color:var(--accent);border-color:transparent;background:var(--accent-soft)}
   .join-step.is-done .join-step-num{background:var(--accent);color:#fff;animation:joinStepDone .3s var(--bounce-ios) both}
-  .join-progress{height:3px;margin:-5px 2px 8px;overflow:hidden;border-radius:99px;background:#E5E5EA}
-  .join-progress-bar{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),#8A7CFF);box-shadow:0 0 8px rgba(91,91,214,.42);transition:none}
   .join-phase-card{margin:0 0 13px;padding:10px 11px 11px;border:1px solid rgba(91,91,214,.14);border-radius:15px;background:linear-gradient(145deg,rgba(91,91,214,.055),rgba(255,255,255,.94));box-shadow:inset 0 1px 0 rgba(255,255,255,.72)}
   .join-phase-head{display:flex;align-items:center;margin:0 0 7px}
   .join-phase-label{font-size:9px;font-weight:850;letter-spacing:.75px;text-transform:uppercase;color:var(--accent)}
@@ -16877,7 +16875,7 @@ function renderVizShell(key){
   const cfg=SQL_VIZ[key];
     if(!cfg)return '';
   const p0=cfg.phases[0];
-  const stepper=`<div class="join-stepper" role="tablist" aria-label="Étapes de l’animation">${cfg.phases.map((p,i)=>`<button type="button" class="join-step" data-step="${i}" role="tab" aria-selected="${i===0?'true':'false'}" tabindex="${i===0?'0':'-1'}" onclick="jumpSqlVizPhase(this,${i})" onkeydown="onJoinStepKey(event,this)"><span class="join-step-num">${i+1}</span><span class="join-step-label">${p.k}</span></button>`).join('')}</div><div class="join-progress" aria-hidden="true"><span class="join-progress-bar"></span></div>`;
+  const stepper=`<div class="join-stepper" role="tablist" aria-label="Étapes de l’animation">${cfg.phases.map((p,i)=>`<button type="button" class="join-step" data-step="${i}" role="tab" aria-selected="${i===0?'true':'false'}" tabindex="${i===0?'0':'-1'}" onclick="jumpSqlVizPhase(this,${i})" onkeydown="onJoinStepKey(event,this)"><span class="join-step-num">${i+1}</span><span class="join-step-label">${p.k}</span></button>`).join('')}</div>`;
   const phaseCard=cfg.kind==='er'&&p0.sql?`<div class="join-phase-card" role="note" aria-label="Lecture de l’étape active"><div class="join-phase-head"><span class="join-phase-label">${esc(cfg.phaseLabel||'Lecture SQL')}</span></div><code class="join-phase-sql">${esc(p0.sql)}</code><p class="join-phase-read"><span class="join-phase-read-mark" aria-hidden="true">→</span><span>${p0.read||p0.d}</span></p></div>`:'';
   let stage='';
   let caption='';
@@ -22624,9 +22622,9 @@ const SQL_VIZ={
     <p class="er-hint">À l’étape 4, touche une commande : la fiche client et la fiche produit qu’elle désigne s’allument. Sur un écran large, un trait relie les deux.</p>
   </div>`},
   select:{kind:'cols',phases:[
-    {k:'FROM',d:'La table clients : 10 lignes, avec toutes leurs colonnes.'},
-    {k:'SELECT nom, telephone',d:'SQL choisit ces 2 colonnes. Les autres restent dans la table, pas dans le résultat.'},
-    {k:'10 lignes × 2 colonnes',d:'Le résultat est plus étroit. Les 10 personnes sont toujours là.'}
+    {k:'FROM',d:'SQL part de la table clients, qui contient 10 lignes et toutes les colonnes disponibles.'},
+    {k:'SELECT nom, telephone',d:'SQL sélectionne uniquement les colonnes nom et telephone pour les afficher dans le résultat. Les autres colonnes restent bien présentes dans la table.'},
+    {k:'10 lignes × 2 colonnes',d:'Les 10 personnes sont toujours affichées, mais seulement avec les 2 colonnes sélectionnées : nom et telephone.'}
   ],cols:[
     {k:'nom',h:'nom',keep:1},{k:'ville',h:'ville',keep:0},{k:'age',h:'age',keep:0,num:1},{k:'email',h:'email',keep:0},{k:'telephone',h:'telephone',keep:1}
   ],rows:[
