@@ -7534,8 +7534,12 @@ WHERE condition;</pre></div>
   situation:"Tu veux contacter tous les clients <b>sauf</b> ceux de Paris, pour une offre réservée à la province.<br><br>Tu sais déjà garder que les Parisiens avec <code>WHERE ville = 'Paris'</code>. Pour obtenir l'inverse, tu pourrais écrire <code>!=</code> :",
   situationSql:"SELECT nom, ville\nFROM clients\nWHERE ville != 'Paris';",
   situationTail:"Ça fonctionne. SQL offre aussi <code>NOT</code>, qui inverse n'importe quelle condition — pratique pour les tests plus complexes comme <code>NOT LIKE</code> ou <code>NOT IN</code>.",
-    studio:{problem:{title:"NOT inverse une condition entière.",
-      body:"Placé devant une condition, <code>NOT</code> garde les lignes qui ne la respectent <b>pas</b> : <code>WHERE NOT ville = 'Paris'</code> garde tout le monde sauf les Parisiens. Il se combine avec <code>AND</code> et <code>OR</code> — pense alors aux parenthèses pour être clair : <code>NOT (ville = 'Paris' AND age > 30)</code>."},
+    studio:{problem:{eye:"Le principe",title:"NOT inverse une condition entière.",
+      body:"<code>NOT</code> permet d’exclure ce qui correspond à une condition.<br><br><code>NOT</code> signifie simplement « ne pas ».<br><br>Par exemple, tu veux afficher tous les clients qui n’habitent pas à Paris :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">SELECT nom, ville\nFROM clients\nWHERE NOT ville = 'Paris';</pre></div><br><br>SQL vérifie <code>ville = 'Paris'</code>, puis <code>NOT</code> fait l’inverse :<br>Paris → exclu<br>Une autre ville → gardé<br><br><code>NOT</code> peut aussi s’appliquer à plusieurs conditions regroupées entre parenthèses :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">WHERE NOT (ville = 'Paris' AND age > 30);</pre></div><br><br>Ici, SQL exclut les clients qui sont à la fois à Paris et âgés de plus de 30 ans.",
+      extra:`<div class="sit-sql">
+        <p><code>NOT</code> est un opérateur logique unaire (il ne s’applique qu’à une seule condition). Il sert à inverser le résultat d’une condition :</p>
+        <p>Si la condition est <b>vraie</b> → <code>NOT</code> la rend <b>fausse</b>.<br>Si la condition est <b>fausse</b> → <code>NOT</code> la rend <b>vraie</b>.<br>Si la condition est <code>NULL</code> (inconnue) → <code>NOT</code> la rend <code>NULL</code> (l’inverse de l’inconnu reste inconnu).</p>
+      </div>`},
     reflex:{a:{k:"NOT",t:"garde les lignes qui <b>ne respectent pas</b> la condition"},
       b:{k:"Parenthèses",t:"elles fixent clairement ce qui est inversé"},
       note:"<code>NOT ville = 'Paris'</code> revient à <code>ville != 'Paris'</code>. NOT sert surtout pour inverser des tests composés."}},
