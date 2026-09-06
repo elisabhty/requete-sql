@@ -2112,6 +2112,15 @@
      supprimée. DISTINCT avait déjà cette exception ; elle s'applique
      maintenant à tous les kind:'filter'. */
   .grp-extra{color:#8E8E93;font-weight:500;margin-left:6px;font-size:10.5px;transition:opacity .45s,max-width .45s}
+  /* Le comparateur (« > 25 ») reste invisible avant que la condition existe
+     (phase 0) : il n'apparaît, ligne après ligne, qu'à la phase où WHERE
+     s'applique — pour montrer que SQL teste chaque ligne à son tour. */
+  .grp-cmp{opacity:0;margin-left:6px;font-family:var(--mono);font-size:10px;font-weight:700;color:var(--ink-3)}
+  .sql-viz[data-viz="compare"][data-phase="1"] .grp-chip[data-keep="1"] .grp-cmp{color:var(--accent)}
+  .sql-viz[data-viz="compare"][data-phase="1"] .grp-chip .grp-cmp{animation:cmpCmpIn .3s ease var(--dw,0ms) both}
+  .sql-viz[data-viz="compare"][data-phase="1"] .grp-chip{animation:cmpVisit .5s ease var(--dw,0ms) both}
+  @keyframes cmpCmpIn{from{opacity:0}to{opacity:1}}
+  @keyframes cmpVisit{0%{background:var(--surface)}40%{background:rgba(91,91,214,.14)}100%{background:var(--surface)}}
   .grp-desc{font-size:14px;color:var(--ink-2);line-height:1.45;font-weight:600;max-width:100%}
   .grp-paused-badge{display:none;position:absolute;top:0;right:0;font-family:var(--ui);font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border:1px solid rgba(91,91,214,.28);border-radius:999px;padding:4px 10px;line-height:1.2;white-space:nowrap;pointer-events:none}
   .grp-viz[data-paused="1"] .grp-paused-badge{display:inline-flex;align-items:center}
@@ -17252,8 +17261,9 @@ function renderVizShell(key){
       const out=c.out==null||c.out===''?'':` data-out="${c.out}"`;
       const tag=c.tag&&c.mark?` data-tag="${c.tag}"`:'';
       const extra=c.extra?`<span class="grp-extra">${c.extra}</span>`:'';
+      const cmp=c.cmp?`<span class="grp-cmp">${c.cmp}</span>`:'';
       const cat=c.cat?` data-cat="${c.cat}"`:'';
-      return `<div class="grp-chip"${keep}${keep0}${rank}${n}${mark}${win}${out}${tag}${cat}>${c.t}${extra}</div>`;
+      return `<div class="grp-chip"${keep}${keep0}${rank}${n}${mark}${win}${out}${tag}${cat}>${c.t}${extra}${cmp}</div>`;
     }).join('');
     const buckets=(cfg.buckets||[]).map(b=>
       `<div class="grp-bucket" data-cat="${b.cat}" data-n="${b.n}" data-keep="${b.keep}"><span class="grp-bucket-lbl">${b.cat}</span><span class="grp-count">${b.n}</span></div>`
@@ -23103,9 +23113,9 @@ const SQL_VIZ={
     {k:'SELECT nom, prix FROM produits',d:'SQL commence par récupérer les colonnes demandées. La table produits contient 8 lignes. Pour l’instant, aucun filtre n’est appliqué : les 8 produits sont donc présents.'},
     {k:'WHERE prix > 25',d:'SQL teste ensuite la condition prix > 25 pour chaque ligne. Si le prix est supérieur à 25 €, la ligne est conservée. Sinon, elle est écartée du résultat. Sur les 8 produits, 3 respectent la condition : la Fibre Prébiotique, le Collagène Marin et la Protéine Végétale.'}
   ],chips:[
-    {t:'Fibre Préb.',extra:'29,90',keep:1},{t:'Collagène',extra:'39,90',keep:1},{t:'Magnésium',extra:'19,90',keep:0},
-    {t:'Vit. D',extra:'14,90',keep:0},{t:'Tisane',extra:'12,50',keep:0},{t:'Protéine',extra:'34,90',keep:1},
-    {t:'Oméga 3',extra:'24,90',keep:0},{t:'Shaker',extra:'15,00',keep:0}
+    {t:'Fibre Préb.',extra:'29,90',cmp:'> 25',keep:1},{t:'Collagène',extra:'39,90',cmp:'> 25',keep:1},{t:'Magnésium',extra:'19,90',cmp:'> 25',keep:0},
+    {t:'Vit. D',extra:'14,90',cmp:'> 25',keep:0},{t:'Tisane',extra:'12,50',cmp:'> 25',keep:0},{t:'Protéine',extra:'34,90',cmp:'> 25',keep:1},
+    {t:'Oméga 3',extra:'24,90',cmp:'> 25',keep:0},{t:'Shaker',extra:'15,00',cmp:'> 25',keep:0}
   ]},
   andor:{kind:'filter',phases:[
     {k:'SELECT nom, ville, age FROM clients',d:'Les 10 clients sont affichés avec leur nom, leur ville et leur âge.'},
@@ -24165,6 +24175,7 @@ function layoutSqlList(root,phase,{animate=true}={}){
     c.style.transitionDelay=delay+'ms';
     const step=kind==='minmax'?200:120;
     if(kind==='count'||kind==='agg'||kind==='minmax') c.style.setProperty('--dw',animate?(i*step)+'ms':'0ms');
+    else if(root.dataset.viz==='compare') c.style.setProperty('--dw',animate?(i*150)+'ms':'0ms');
     if(kind==='minmax'){
       const out=c.dataset.out;
       if(!animate||out==null||out==='') c.style.setProperty('--out','0ms');
