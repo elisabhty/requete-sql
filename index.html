@@ -7320,7 +7320,7 @@ FROM nom_table;</pre></div>
   situationSql:"SELECT nom, ville\nFROM clients;",
   situationTail:"Tu obtiens bien le nom et la ville des 10 clients. Mais tu n’as besoin que des clients qui habitent à Paris : il faut maintenant indiquer à SQL quelles lignes conserver.<br><br>C’est exactement le rôle de <code>WHERE</code>.<br><br><code>SELECT</code> → quelles colonnes afficher.<br><code>WHERE</code> → quelles lignes conserver.",
     studio:{problem:{title:"WHERE filtre les lignes selon une condition.",
-      body:"Sans <code>WHERE</code>, la requête affiche les 10 clients. Avec <code>WHERE ville = 'Paris'</code>, SQL vérifie chaque ligne : si la valeur de <code>ville</code> est <code>'Paris'</code>, la ligne est conservée. Sinon, elle n’apparaît pas dans le résultat. Dans la table clients, Sophie, deux Nathan et Léa habitent à Paris : le résultat passe donc de 10 lignes à 4 lignes.",
+      body:"Sans <code>WHERE</code>, la requête affiche les 10 clients. Avec <code>WHERE ville = 'Paris'</code>, SQL vérifie chaque ligne : si la valeur de <code>ville</code> est <code>'Paris'</code>, la ligne est conservée. Sinon, elle n’apparaît pas dans le résultat. Dans la table clients, Sophie, les deux Nathan et Léa habitent à Paris : le résultat passe donc de 10 lignes à 4 lignes.",
       extra:`<div class="sit-sql">
         <p><code>WHERE</code> est une clause qui sert à filtrer les lignes d’une table. Elle permet de ne récupérer que les enregistrements qui répondent à une ou plusieurs conditions précises.</p>
         <div class="pt-syntax"><pre class="cw-syntax">SELECT colonne1, colonne2
@@ -7418,14 +7418,14 @@ WHERE condition;</pre></div>
 { id:6, titre:"AND", résumé:"Combiner avec AND",
   situation:"Tu prépares une campagne marketing destinée aux clients qui remplissent deux critères : habiter à Paris <b>et</b> avoir plus de 35 ans.<br><br>Tu sais déjà filtrer les clients qui habitent à Paris :",
   situationSql:"WHERE ville = 'Paris'",
-  situationTail:"Cette condition retourne les 4 clients parisiens : Sophie, deux Nathan et Léa.<br><br>Mais tous ne correspondent pas à ta cible : tu veux aussi qu’ils aient plus de 35 ans.<br><br>Il faut donc demander à SQL de vérifier deux conditions en même temps.<br><br>C’est exactement le rôle de <code>AND</code>.",
+  situationTail:"Cette condition retourne les 4 clients parisiens : Sophie, les deux Nathan et Léa.<br><br>Mais tous ne correspondent pas à ta cible : tu veux aussi qu’ils aient plus de 35 ans.<br><br>Il faut donc demander à SQL de vérifier deux conditions en même temps.<br><br>C’est exactement le rôle de <code>AND</code>.",
     studio:{problem:{eye:"",title:"Combiner deux conditions",
       body:"<code>AND</code> permet de demander à SQL de vérifier plusieurs conditions en même temps.<br><br>Tu cherches les clients qui habitent à Paris → <code>ville = 'Paris'</code><br>et qui ont plus de 35 ans → <code>age &gt; 35</code><br><br>Pour qu’une ligne soit conservée, les deux conditions doivent être vraies.",
       extra:`<div class="sit-sql">
         <p><code>AND</code> est un opérateur logique qui permet de combiner plusieurs conditions dans une clause <code>WHERE</code> (ou ailleurs).</p>
         <p>La règle est simple : le résultat n’est vrai que si <b>toutes</b> les conditions reliées par <code>AND</code> sont vraies. Dès qu’une seule condition est fausse, le résultat global devient faux.</p>
       </div>`,
-      tail:"Parmi les 4 clients parisiens — Sophie, deux Nathan et Léa — seule Léa, 38 ans, respecte aussi la condition <code>age &gt; 35</code>."},
+      tail:"Parmi les 4 clients parisiens — Sophie, les deux Nathan et Léa — seule Léa, 38 ans, respecte aussi la condition <code>age &gt; 35</code>."},
     vs:{bad:{tag:"✕ Avec une seule condition",sql:"SELECT nom, ville, age FROM clients\nWHERE ville = 'Paris';",out:"4 lignes : Sophie, les deux Nathan et Léa sont retournés, quel que soit leur âge",
             code:"SELECT nom, ville, age\nFROM clients\n<span class=\"vs-line bad\">WHERE ville = 'Paris'</span>;"},
         good:{tag:"✓ Avec AND",sql:"SELECT nom, ville, age FROM clients\nWHERE ville = 'Paris' AND age > 35;",out:"1 ligne : seule Léa est retournée, car elle respecte les deux conditions",
@@ -9110,7 +9110,7 @@ FROM produits;</pre></div>
   exemple:"SELECT ville, COUNT(*) FROM clients GROUP BY ville;",
   attendu:"6 lignes : Paris — 4, Lyon — 2, Marseille — 1, Bordeaux — 1, Toulouse — 1, Nantes — 1.",
   retenir:"<code>GROUP BY</code> sert à effectuer un calcul par groupe. Dans <code>SELECT ville, COUNT(*) FROM clients GROUP BY ville</code>, SQL rassemble les clients qui habitent dans la même ville, puis les compte. Résultat : une ligne par ville, avec le nombre de clients correspondant.",
-  piege:{t:"Afficher une colonne qui ne représente pas le groupe",p:"Paris a 4 clients : Sophie, deux Nathan et Léa. Avec <code>GROUP BY ville</code>, SQL doit renvoyer <b>une seule ligne</b> pour Paris. Il peut afficher <code>ville</code> (la même pour les 4) et <code>COUNT(*)</code> (le total du groupe). Mais <code>nom</code> ? Plusieurs lignes différentes : SQL ne peut pas choisir.<br><br>👉 Dans SELECT : la colonne du <code>GROUP BY</code>, et le calcul.<br>👉 Pas une colonne qui change à l’intérieur du groupe.",
+  piege:{t:"Afficher une colonne qui ne représente pas le groupe",p:"Paris a 4 clients : Sophie, les deux Nathan et Léa. Avec <code>GROUP BY ville</code>, SQL doit renvoyer <b>une seule ligne</b> pour Paris. Il peut afficher <code>ville</code> (la même pour les 4) et <code>COUNT(*)</code> (le total du groupe). Mais <code>nom</code> ? Plusieurs lignes différentes : SQL ne peut pas choisir.<br><br>👉 Dans SELECT : la colonne du <code>GROUP BY</code>, et le calcul.<br>👉 Pas une colonne qui change à l’intérieur du groupe.",
     sql:"SELECT nom, ville, COUNT(*)\nFROM clients\nGROUP BY ville;"},
   consigne:"Compte le nombre de clients par ville. Affiche la ville et le nombre de clients correspondant.",
   solution:"SELECT ville, COUNT(*) FROM clients GROUP BY ville;",
@@ -23133,7 +23133,7 @@ const SQL_VIZ={
   ]},
   andor:{kind:'filter',phases:[
     {k:'SELECT nom, ville, age FROM clients',d:'SQL récupère d’abord les colonnes demandées. Les 10 clients sont encore présents : aucun filtre n’a été appliqué.'},
-    {k:"WHERE ville = 'Paris'",d:'SQL vérifie la première condition : habiter à Paris. 4 clients la respectent : Sophie, deux Nathan et Léa.'},
+    {k:"WHERE ville = 'Paris'",d:'SQL vérifie la première condition : habiter à Paris. 4 clients la respectent : Sophie, les deux Nathan et Léa.'},
     {k:"AND age > 35",d:'Parmi ces 4 clients, SQL vérifie maintenant la deuxième condition : avoir plus de 35 ans. Seule Léa respecte les deux conditions.'}
   ],chips:[
     {t:'Sophie',extra:'Paris · 34',cmp:'> 35',keep0:1,keep:0},{t:'Lucas',extra:'Lyon · 28',keep0:0,keep:0},{t:'Emma',extra:'Marseille · 45',keep0:0,keep:0},
