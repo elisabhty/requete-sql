@@ -7231,6 +7231,19 @@ FROM nom_table;</pre></div>
       b:{k:"DISTINCT",t:"affiche chaque valeur <b>une seule fois</b>"},
       note:"Avec plusieurs colonnes, <code>DISTINCT</code> compare leur combinaison. Deux lignes sont considérées comme identiques seulement si toutes les valeurs sélectionnées sont identiques."}},
   anatomie:[{tok:"SELECT",txt:"Définit ce qui apparaît dans le résultat."},{tok:"DISTINCT",txt:"Retire les doublons du résultat."},{tok:"ville",plain:1,txt:"La colonne dont tu veux obtenir les valeurs différentes."},{tok:"FROM clients",txt:"Les données viennent de la table clients."}],
+  anatomieVariants:[
+    {k:'avant',label:'SELECT',lines:[
+      {tok:"SELECT",txt:"Définit ce qui apparaît dans le résultat."},
+      {tok:"ville",plain:1,txt:"La colonne demandée : la ville de chaque client."},
+      {tok:"FROM clients",txt:"Les données viennent de la table clients."}
+    ]},
+    {k:'avec',label:'DISTINCT',tone:'good',lines:[
+      {tok:"SELECT",txt:"Définit ce qui apparaît dans le résultat."},
+      {tok:"DISTINCT",txt:"Retire les doublons du résultat."},
+      {tok:"ville",plain:1,txt:"La colonne dont tu veux obtenir les valeurs différentes."},
+      {tok:"FROM clients",txt:"Les données viennent de la table clients."}
+    ]}
+  ],
   exemple:"SELECT DISTINCT ville FROM clients;",
   attendu:"<b>6 lignes</b> : Paris, Lyon, Marseille, Bordeaux, Toulouse et Nantes. Chaque ville apparaît une seule fois.",
   retenir:"<code>DISTINCT</code> sert à afficher des valeurs uniques. Dans <code>SELECT DISTINCT ville FROM clients</code>, les 10 clients donnent seulement 6 villes différentes, car Paris et Lyon apparaissent plusieurs fois dans la table. Les doublons sont retirés du résultat, pas de la table.",
@@ -9419,7 +9432,7 @@ client #4    : Nathan</pre></div>
     {k:'inner',label:'INNER JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id;",out:"15 lignes. Inès et Nathan n°10 disparaissent : ils n’ont aucune commande."},
     {k:'left',label:'LEFT JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",out:"17 lignes. Inès et Nathan n°10 restent, avec NULL.",tone:'good'},
     {k:'right',label:'RIGHT JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nRIGHT JOIN commandes\nON clients.id = commandes.client_id;",out:"16 lignes. L’invité #16 reste, avec NULL côté client."},
-    {k:'full',label:'FULL JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nFULL OUTER JOIN commandes\nON clients.id = commandes.client_id;",out:"18 lignes. Inès, Nathan n°10 et l’invité restent."},
+    {k:'full',label:'FULL OUTER JOIN',sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nFULL OUTER JOIN commandes\nON clients.id = commandes.client_id;",out:"18 lignes. Inès, Nathan n°10 et l’invité restent."},
     {k:'cross',label:'CROSS JOIN',sql:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;",out:"80 lignes : 10 clients × 8 produits. Pas de ON."}
   ] },
 { id:19, titre:"Jointure 3 tables", résumé:"Relier clients, commandes et produits",
@@ -16436,13 +16449,9 @@ function anatSections(l){
   if(!anat) return '';
   return `<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`;
 }
-function switchAnatVariant(btn){
-  const wrap=btn.closest('.anat');
-  if(!wrap||!wrap.dataset.variants)return;
-  let variants; try{variants=JSON.parse(wrap.dataset.variants);}catch(e){return;}
-  const i=+btn.dataset.i;
-  const v=variants[i];
-  if(!v)return;
+function paintAnatVariant(wrap, variants, i){
+  const v=variants&&variants[i];
+  if(!wrap||!v)return v;
   wrap.dataset.vi=String(i);
   wrap.classList.remove('tone-bad','tone-good');
   if(v.tone) wrap.classList.add('tone-'+v.tone);
@@ -16453,6 +16462,53 @@ function switchAnatVariant(btn){
   });
   const body=wrap.querySelector('.anat-body');
   if(body) body.innerHTML=anatLinesHtml(v.lines);
+  return v;
+}
+/* Deux onglets différents (Teste + La requête expliquée) peuvent décrire les
+   mêmes variantes d'une requête. On les relie par leur clé `k` (ou, à défaut,
+   leur libellé) : changer l'un fait suivre l'autre, sans forcer un index
+   identique quand les deux listes ne se correspondent pas terme à terme. */
+function matchVariantIndex(variants, ref){
+  if(!variants||!ref)return -1;
+  if(ref.k!=null){
+    const byKey=variants.findIndex(v=>v&&v.k!=null&&v.k===ref.k);
+    if(byKey!==-1)return byKey;
+  }
+  if(ref.label!=null){
+    const norm=s=>String(s||'').trim().toLowerCase();
+    const byLabel=variants.findIndex(v=>v&&norm(v.label)===norm(ref.label));
+    if(byLabel!==-1)return byLabel;
+  }
+  return -1;
+}
+function syncLinkedVariant(sourceEl, sourceVariant){
+  const root=sourceEl&&sourceEl.closest('.lesson-rich');
+  if(!root||!sourceVariant)return;
+  if(sourceEl.classList.contains('exframe')){
+    const anat=root.querySelector('.anat[data-variants]');
+    if(!anat)return;
+    let variants; try{variants=JSON.parse(anat.dataset.variants);}catch(e){return;}
+    const i=matchVariantIndex(variants,sourceVariant);
+    if(i===-1||+anat.dataset.vi===i)return;
+    paintAnatVariant(anat,variants,i);
+  }else if(sourceEl.classList.contains('anat')){
+    const frame=root.querySelector('.exframe[data-variants]');
+    if(!frame)return;
+    const variants=testeFrameVariants(frame);
+    const i=matchVariantIndex(variants,sourceVariant);
+    if(i===-1||+frame.dataset.vi===i)return;
+    const v=paintTesteVariant(frame,variants,i);
+    applyTesteVariantToEditor(frame,v);
+  }
+}
+function switchAnatVariant(btn){
+  const wrap=btn.closest('.anat');
+  if(!wrap||!wrap.dataset.variants)return;
+  let variants; try{variants=JSON.parse(wrap.dataset.variants);}catch(e){return;}
+  const i=+btn.dataset.i;
+  const v=paintAnatVariant(wrap,variants,i);
+  if(!v)return;
+  syncLinkedVariant(wrap,v);
   if(navigator.vibrate)navigator.vibrate(5);
 }
 function lessonRichBlocks(l){
@@ -18698,24 +18754,28 @@ function lessonRichFooter(l){
       ${actions}
       <div class="xf-result" hidden aria-live="polite"></div></div>`;
 }
+function applyTesteVariantToEditor(frame, v){
+  if(!v)return;
+  const ta=frame&&frame.querySelector('.xf-sql');
+  if(!ta)return;
+  ta.value=v.sql;
+  syncHL('ed-teste','hl-teste');
+  fitSqlEditor(ta);
+  if(current&&mode==='lesson'){
+    const st=state.lessons[current.id]||(state.lessons[current.id]={level:0});
+    st.testeDraft=v.sql;
+    st.testeVi=+frame.dataset.vi;
+    save();
+  }
+}
 function switchTesteVariant(btn){
   const frame=btn.closest('.exframe');
   const variants=testeFrameVariants(frame);
   if(!variants)return;
   const i=+btn.dataset.i;
   const v=paintTesteVariant(frame, variants, i); if(!v)return;
-  const ta=frame.querySelector('.xf-sql');
-  if(ta){
-    ta.value=v.sql;
-    syncHL('ed-teste','hl-teste');
-    fitSqlEditor(ta);
-    if(current&&mode==='lesson'){
-      const st=state.lessons[current.id]||(state.lessons[current.id]={level:0});
-      st.testeDraft=v.sql;
-      st.testeVi=i;
-      save();
-    }
-  }
+  applyTesteVariantToEditor(frame, v);
+  syncLinkedVariant(frame, v);
   if(navigator.vibrate)navigator.vibrate(5);
 }
 function testeIndexFollowup(sql){
