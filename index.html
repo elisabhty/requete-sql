@@ -7571,7 +7571,7 @@ WHERE condition;</pre></div>
     viz:"nulls",
     reflex:{a:{k:"IS NULL",t:"garde les lignes où la valeur est <b>absente</b>"},
       b:{k:"IS NOT NULL",t:"garde les lignes où la valeur est <b>renseignée</b>"},
-      note:"Le réflexe à retenir : avec <code>NULL</code>, jamais <code>=</code>.<br><br><code>email IS NULL</code> → email absent<br><code>email IS NOT NULL</code> → email renseigné"}},
+      note:"Pour tester <code>NULL</code>, utilise toujours <code>IS</code> ou <code>IS NOT</code>.<br><br><code>email IS NULL</code> → email absent<br><code>email IS NOT NULL</code> → email renseigné"}},
   anatomie:[{tok:"SELECT nom, email",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre sur les lignes."},{tok:"email IS NULL",txt:"Teste si la valeur de email est absente."}],
   anatomieVariants:[
     {k:'avant',label:'= NULL',tone:'bad',lines:[
@@ -7594,7 +7594,7 @@ WHERE condition;</pre></div>
   exemple:"SELECT nom, email FROM clients WHERE email IS NULL;",
   attendu:"<b>2 lignes</b> : Hugo et Inès, les deux clients dont l’email est absent.",
   retenir:"<code>NULL</code> = valeur absente, ni 0 ni <code>''</code>. On teste avec <code>IS NULL</code> / <code>IS NOT NULL</code>, jamais avec <code>=</code>.",
-  piege:{t:"Confondre NULL et une valeur vide",p:"<code>NULL</code> signifie aucune valeur. Ce n’est ni 0, ni <code>''</code>.<br><code>email = ''</code> recherche un texte vide.<br><code>email IS NULL</code> recherche une valeur absente."},
+  piege:{t:"Confondre NULL et un texte vide",p:"<code>NULL</code> et <code>''</code> ne veulent pas dire la même chose :<br><code>NULL</code> → aucune valeur n’a été renseignée<br><code>''</code> → une valeur existe, mais le texte est vide<br><br>Par exemple :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">WHERE email = ''</pre></div><br><br>recherche les emails enregistrés comme texte vide. Alors que :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">WHERE email IS NULL</pre></div><br><br>recherche les clients pour lesquels aucun email n’est renseigné."},
   consigne:"Affiche le nom des clients qui ont un email renseigné.",
   solution:"SELECT nom FROM clients WHERE email IS NOT NULL;",
   indice:"Pour garder les lignes où l’email n’est pas absent, utilise l’inverse de <code>IS NULL</code> : <code>IS NOT NULL</code>.",
