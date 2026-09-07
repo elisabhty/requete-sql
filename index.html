@@ -8188,12 +8188,12 @@ learningCheck:{
   situation:"Ton équipe prépare une sélection « petits prix » pour une campagne promotionnelle.<br><br>Pour cette sélection, elle veut mettre en avant les produits dont le prix est compris entre 15 € et 30 €.<br><br>Avec ce que tu connais déjà, tu peux écrire deux conditions :",
   situationSql:"SELECT nom, prix\nFROM produits\nWHERE prix >= 15\n   AND prix <= 30;",
   situationTail:"Ça fonctionne. Mais il existe une façon plus simple d’exprimer « entre 15 et 30 » en SQL : <code>BETWEEN</code>.",
-    studio:{problem:{title:"BETWEEN vérifie si une valeur se trouve dans un intervalle.",
-      body:"Tu sais déjà écrire <code>prix &gt;= 15 AND prix &lt;= 30</code>. Avec <code>BETWEEN</code>, la même condition s’écrit plus simplement : <code>prix BETWEEN 15 AND 30</code>. Point important : les deux limites sont incluses. Un prix de 15 € ou de 30 € fait donc partie de l’intervalle."},
-    vs:{bad:{tag:"✕ Deux comparaisons",sql:"SELECT nom, prix FROM produits\nWHERE prix >= 15 AND prix <= 30;",out:"Correct, mais plus long à lire",
-            code:"SELECT nom, prix\nFROM produits\n<span class=\"vs-line bad\">WHERE prix &gt;= 15 AND prix &lt;= 30</span>;"},
-        good:{tag:"✓ Avec BETWEEN",sql:"SELECT nom, prix FROM produits\nWHERE prix BETWEEN 15 AND 30;",out:"4 lignes : Shaker Inox, Magnésium, Oméga 3, Fibre Prébiotique",
-            code:"SELECT nom, prix\nFROM produits\n<span class=\"vs-line good\">WHERE prix BETWEEN 15 AND 30</span>;"}},
+    studio:{problem:{title:"BETWEEN vérifie si une valeur se trouve entre deux limites.",
+      body:"Tu sais déjà écrire :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">prix &gt;= 15 AND prix &lt;= 30</pre></div><br><br>Avec <code>BETWEEN</code>, tu peux exprimer la même chose plus simplement :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">prix BETWEEN 15 AND 30</pre></div><br><br>SQL vérifie alors si le prix se trouve entre 15 € et 30 €, limites comprises.<br><br>Donc :<br>15 € → inclus ✓<br>22 € → inclus ✓<br>30 € → inclus ✓<br>31 € → exclu ✕"},
+    vs:{bad:{tag:"AVEC DEUX COMPARAISONS",tone:"neutral",sql:"SELECT nom, prix FROM produits\nWHERE prix >= 15 AND prix <= 30;",out:"4 lignes : Shaker Inox, Magnésium, Oméga 3, Fibre Prébiotique",
+            code:"SELECT nom, prix\nFROM produits\n<span class=\"vs-line\">WHERE prix &gt;= 15 AND prix &lt;= 30</span>;"},
+        good:{tag:"AVEC BETWEEN",tone:"neutral",sql:"SELECT nom, prix FROM produits\nWHERE prix BETWEEN 15 AND 30;",out:"4 lignes : Shaker Inox, Magnésium, Oméga 3, Fibre Prébiotique",
+            code:"SELECT nom, prix\nFROM produits\n<span class=\"vs-line\">WHERE prix BETWEEN 15 AND 30</span>;"}},
     why:{title:"Pourquoi utiliser BETWEEN plutôt que deux comparaisons ?"},
     viz:"between",
     reflex:{a:{k:"BETWEEN",t:"garde les valeurs <b>comprises dans l’intervalle</b>"},
@@ -25582,8 +25582,8 @@ const SQL_VIZ={
     {t:'Léa',extra:'Paris',keep:1},{t:'Gabriel',extra:'Toulouse',keep:0},{t:'Inès',extra:'Nantes',keep:0},{t:'Nathan n°10',extra:'Paris',keep:1}
   ]},
   between:{kind:'filter',phases:[
-    {k:'SELECT nom, prix FROM produits',d:'Les 8 produits s’affichent avec leur nom et leur prix. SQL va vérifier si chaque prix est compris entre 15 et 30 €.'},
-    {k:'WHERE prix BETWEEN 15 AND 30',d:'BETWEEN garde les produits de 15 à 30 €, bornes incluses : 4 lignes restent. Le Shaker à 15,00 € est bien conservé.'}
+    {k:'SELECT nom, prix FROM produits',d:'SQL récupère d’abord le nom et le prix des 8 produits.'},
+    {k:'WHERE prix BETWEEN 15 AND 30',d:'Pour chaque produit, SQL vérifie : son prix est-il compris entre 15 € et 30 € ? S’il est dans cet intervalle, le produit est gardé. Sinon, il est écarté.'}
   ],chips:[
     {t:'Fibre Préb.',extra:'29,90',keep:1},{t:'Collagène',extra:'39,90',keep:0},{t:'Magnésium',extra:'19,90',keep:1},
     {t:'Vit. D',extra:'14,90',keep:0},{t:'Tisane',extra:'12,50',keep:0},{t:'Protéine',extra:'34,90',keep:0},
