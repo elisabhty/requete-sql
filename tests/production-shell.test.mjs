@@ -33,19 +33,19 @@ assert((nav.match(/class="tab(?: active)?"/g) || []).length === 7, 'navigation p
 assert(nav.includes('data-tab="learn"') && nav.includes('<span class="tab-label">Accueil</span>'), 'Accueil reste la première destination');
 assert(nav.includes('data-tab="planning"') && nav.includes('<span class="tab-label">Parcours</span>'), 'Parcours est accessible directement');
 assert(nav.includes('data-tab="defis"') && nav.includes('<span class="tab-label">Défis</span>'), 'Défis est accessible directement');
-assert(nav.includes('data-tab="notes"') && nav.includes('<span class="tab-label tab-label-stack"><span>Mes</span><span>notes</span></span>'), 'Mes notes devient un onglet permanent sur deux lignes');
-assert(nav.includes('data-tab="collection"') && nav.includes('<span class="tab-label tab-label-stack"><span>Cartes</span><span>mémo</span></span>'), 'Cartes mémo reste lisible sur deux lignes');
+assert(nav.includes('data-tab="notes"') && nav.includes('<span class="tab-label">Notes</span>'), 'Mes notes devient un onglet permanent avec un libellé compact');
+assert(nav.includes('data-tab="collection"') && nav.includes('<span class="tab-label">Cartes</span>'), 'Cartes mémo reste lisible avec un libellé compact');
 assert(html.includes('id="coll-overview"') && html.includes('coll-overview-ring') && html.includes('aria-label="${pct}% des cartes débloquées"'), 'Cartes mémo présente la progression globale de la collection');
 assert(html.includes('completedModules') && html.includes('Modules complets') && html.includes('À obtenir'), 'statistiques de collection calculées depuis les cartes réellement débloquées');
 assert(html.includes("nextLesson=allLessons.find(l=>CARTES[l.id]&&!isUnlocked(l.id))") && html.includes('Prochaine carte') && html.includes('Voir la leçon'), 'prochaine carte reliée à sa leçon réelle');
 assert(html.includes('class="coll-module ${complete?\'complete\':\'\'}"') && html.includes("complete?'Validé':count"), 'modules de cartes compacts et explicitement validés');
 assert(html.includes("classList.add('collection-static')") && html.includes('.collection-static>.fbar'), 'filtres de cartes changés sans rejouer les animations de page');
-assert(nav.includes('data-tab="entretien"') && nav.includes('<span class="tab-label tab-label-stack"><span>Entretien</span><span>SQL</span></span>'), 'Entretien SQL devient un onglet permanent sur deux lignes');
+assert(nav.includes('data-tab="entretien"') && nav.includes('<span class="tab-label">Entretien</span>'), 'Entretien SQL devient un onglet permanent avec un libellé compact');
 assert(html.includes('ent-readiness-stats') && html.includes('masteredTopics') && html.includes('À retravailler') && html.includes('Thèmes validés'), 'Entretien SQL présente une préparation calculée depuis les réponses réelles');
 assert(html.includes('class="ent-group ent-topic${complete?\' complete\':\'\'}"') && html.includes("complete?'Validé'"), 'thèmes d’entretien compacts et explicitement validés');
 assert(html.includes('class="ent-mastered-label">Maîtrisée</span>'), 'question maîtrisée porte un statut textuel explicite');
 assert(html.includes("classList.add('entretien-static')") && html.includes('.entretien-static>.ent-status'), 'filtres d’entretien changés sans rejouer les animations de page');
-assert(nav.includes('data-tab="compte"') && nav.includes('<span class="tab-label tab-label-stack"><span>Mon</span><span>compte</span></span>'), 'Mon compte remplace le menu Plus sur deux lignes');
+assert(nav.includes('data-tab="compte"') && nav.includes('<span class="tab-label">Compte</span>'), 'Mon compte remplace le menu Plus avec un libellé compact');
 assert(!nav.includes('data-tab="console"'), 'Console reste accessible depuis l’accueil sans surcharger davantage le dock');
 assert(nav.indexOf('data-tab="learn"') < nav.indexOf('data-tab="planning"') && nav.indexOf('data-tab="planning"') < nav.indexOf('data-tab="defis"'), 'ordre Accueil, Parcours, Défis conservé');
 assert(html.includes('.tab{font-size:9.5px') && html.includes('.tab{font-size:9.1px'), 'libellés du dock agrandis aux deux tailles mobiles');
@@ -116,7 +116,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
 assert(html.includes('{ id:73, titre:"UNION et UNION ALL"') && html.includes('18 lignes : 10 + 8') && !html.includes('17 lignes : 9 + 8'), 'UNION ALL visible et cardinalité corrigée');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-09-07-null-emoji-cta-v380'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-09-07-curriculum-navigation-v381'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
