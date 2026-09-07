@@ -8309,7 +8309,11 @@ learningCheck:{
     reflex:{a:{k:"Ordre",t:"la 1ʳᵉ colonne trie, la suivante <b>départage les égalités</b>"},
       b:{k:"ASC / DESC",t:"se règlent <b>colonne par colonne</b>"},
       note:"<code>ORDER BY categorie, prix DESC</code> = catégories A→Z, et dans chacune du plus cher au moins cher."}},
-  anatomie:[{tok:"SELECT nom, categorie, prix",txt:"Les colonnes affichées."},{tok:"FROM produits",txt:"La table lue."},{tok:"ORDER BY categorie, prix DESC",txt:"Tri par catégorie, puis prix décroissant à catégorie égale."}],
+  anatomie:[
+    {tok:"ORDER BY categorie",txt:"1ᵉʳ critère : trie par catégorie."},
+    {tok:", prix",txt:"2ᵉ critère : à catégorie égale, trie par prix."},
+    {tok:"ASC / DESC",txt:"Chaque critère peut avoir son propre sens de tri."}
+  ],
   exemple:"SELECT nom, categorie, prix FROM produits ORDER BY categorie, prix DESC;",
   attendu:"<b>8 lignes</b> groupées par catégorie ; à l'intérieur de chaque catégorie, du plus cher au moins cher.",
   retenir:"<code>ORDER BY a, b</code> trie par <code>a</code> puis départage les égalités avec <code>b</code>. Le sens <code>ASC</code>/<code>DESC</code> se précise pour chaque colonne.",
@@ -8320,16 +8324,18 @@ learningCheck:{
   richLesson:true, ordered:true ,
 testeVariants:[
   {
-    "k": "base",
-    "label": "Exemple",
-    "sql": "SELECT nom, categorie, prix FROM produits ORDER BY categorie, prix;"
+    "k": "twocriteria",
+    "label": "Deux critères",
+    "sql": "SELECT nom, categorie, prix\nFROM produits\nORDER BY categorie, prix;",
+    "out": "SQL trie d’abord par categorie. À catégorie égale, il trie par prix.",
+    "expectRows": 8
   },
   {
-    "k": "rec_ties",
-    "label": "Départager par id",
-    "sql": "WITH produits_test(id,nom,categorie,prix) AS (VALUES (2,'B','Accessoire',15),(1,'A','Accessoire',15)) SELECT * FROM produits_test ORDER BY categorie, prix, id;",
-    "out": "À catégorie et prix égaux, id départage A puis B.",
-    "expectRows": 2
+    "k": "mixedsort",
+    "label": "Sens différents",
+    "sql": "SELECT nom, categorie, prix\nFROM produits\nORDER BY categorie ASC, prix DESC;",
+    "out": "Les catégories sont triées par ordre croissant. Dans chaque catégorie, les produits sont triés du plus cher au moins cher.",
+    "expectRows": 8
   }
 ]
 ,
