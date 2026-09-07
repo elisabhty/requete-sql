@@ -1,0 +1,28 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+const ctx=vm.createContext({});
+vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='),html.indexOf('let state=')),ctx);
+ctx.allLessons=vm.runInContext('MODULES.flatMap(m=>m.lessons)',ctx);
+const nodes=Object.fromEntries(['course-search','course-search-status','course-search-results','clear-course-search'].map(id=>[id,{value:'',textContent:'',innerHTML:'',focus(){this.focused=true;}}]));
+const modules=Array.from({length:16},()=>({hidden:false}));
+ctx.document={getElementById:id=>nodes[id],querySelectorAll:()=>modules};
+ctx.lessonListRow=l=>`<button>${l.titre}</button>`;
+vm.runInContext(html.slice(html.indexOf('let courseSearch='),html.indexOf('function syncTabUI(')),ctx);
+ctx.filterCourseCatalog('jointure');
+assert.equal(nodes['course-search-status'].textContent,'12 cours trouvés');
+assert.ok(nodes['course-search-results'].innerHTML.includes('INNER JOIN'));
+assert.ok(modules.every(m=>m.hidden));
+ctx.filterCourseCatalog('numeriques');assert.ok(nodes['course-search-results'].innerHTML.includes('Fonctions numériques'),'recherche sans accents');
+ctx.filterCourseCatalog('zzzz');assert.ok(nodes['course-search-results'].innerHTML.includes('Aucun cours'));
+ctx.clearCourseSearch();assert.ok(modules.every(m=>!m.hidden));assert.equal(nodes['course-search-results'].hidden,true);assert.equal(nodes['course-search'].focused,true);
+vm.runInContext(html.slice(html.indexOf('function navigateMainTabs('),html.indexOf('function jumpToSection(')),ctx);
+let chosen=-1,focused=-1,prevented=false;
+const tabs=Array.from({length:7},(_,i)=>({click(){chosen=i},focus(){focused=i}}));
+function key(index,k){ctx.navigateMainTabs({key:k,currentTarget:{querySelectorAll:()=>tabs},target:{closest:()=>tabs[index]},preventDefault(){prevented=true;}});}
+key(0,'ArrowLeft');assert.equal(chosen,6);assert.equal(focused,6);assert.equal(prevented,true);
+key(6,'ArrowRight');assert.equal(chosen,0);
+key(2,'End');assert.equal(chosen,6);
+key(2,'Home');assert.equal(chosen,0);
+console.log('Recherche des cours, accents, état vide, effacement et navigation clavier : OK.');
