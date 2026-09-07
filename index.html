@@ -8143,47 +8143,36 @@ learningCheck:{
     viz:"inbetween",
     reflex:{a:{k:"IN (...)",t:"garde les lignes dont la valeur est <b>dans la liste</b>"},
       b:{k:"NOT IN (...)",t:"garde les lignes dont la valeur <b>n’est pas dans la liste</b>"},
-      note:"Utilise surtout <code>IN</code> lorsque <b>la même colonne</b> peut correspondre à plusieurs valeurs : <code>ville IN ('Paris', 'Lyon')</code>."}},
+      note:"Plusieurs valeurs possibles pour une même colonne ? Pense à <code>IN</code>.<br><br><code>ville IN ('Paris', 'Lyon')</code>"}},
   anatomie:[{tok:"SELECT nom, ville",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE ville IN ('Paris', 'Lyon')",txt:"La ville doit figurer dans la liste, entre parenthèses."}],
   anatomieVariants:[
-    {k:'avant',label:'OR répétés',tone:'bad',lines:[
+    {k:'in',label:'Avec IN',tone:'neutral',lines:[
       {tok:"SELECT nom, ville",txt:"Les colonnes affichées dans le résultat."},
       {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
-      {tok:"WHERE ville = 'Paris' OR ville = 'Lyon'",txt:"Correct, mais la colonne ville est répétée à chaque condition."}
+      {tok:"WHERE ville IN ('Paris', 'Lyon', 'Nantes')",txt:"La ville doit figurer dans la liste, entre parenthèses."}
     ]},
-    {k:'avec',label:'IN',tone:'good',lines:[
+    {k:'or',label:'Avec OR',tone:'neutral',lines:[
       {tok:"SELECT nom, ville",txt:"Les colonnes affichées dans le résultat."},
       {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
-      {tok:"WHERE ville IN ('Paris', 'Lyon')",txt:"La ville doit figurer dans la liste, entre parenthèses."}
+      {tok:"WHERE ville = 'Paris' OR ville = 'Lyon' OR ville = 'Nantes'",txt:"Même résultat, mais la colonne ville est répétée trois fois."}
     ]}
   ],
   testeVariants:[
-    {k:'avant',label:'OR répétés',sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",out:"6 lignes : correct, mais la colonne ville est répétée",tone:'bad'},
-    {k:'avec',label:'IN',sql:"SELECT nom, ville FROM clients\nWHERE ville IN ('Paris', 'Lyon');",out:"6 lignes : Sophie, Lucas, Nathan (×2), Hugo, Léa",tone:'good'}
+    {k:'in',label:'Avec IN',sql:"SELECT nom, ville FROM clients\nWHERE ville IN ('Paris', 'Lyon', 'Nantes');",out:"7 lignes : Sophie, Lucas, Nathan (×2), Hugo, Léa, Inès",tone:'neutral'},
+    {k:'or',label:'Avec OR',sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon'\n   OR ville = 'Nantes';",out:"7 lignes : mêmes clients qu’avec IN",tone:'neutral'}
   ],
   exemple:"SELECT nom, ville FROM clients WHERE ville IN ('Paris', 'Lyon');",
   attendu:"<b>6 lignes</b> : Sophie, Lucas, les deux Nathan, Hugo et Léa. Leur ville est soit <code>'Paris'</code>, soit <code>'Lyon'</code>.",
   retenir:"<code>IN</code> compare <b>une même colonne</b> à une liste : <code>ville IN ('Paris', 'Lyon')</code>. Plus lisible que plusieurs <code>OR</code>.",
-  piege:{t:"Utiliser IN pour des conditions différentes",p:"<code>IN</code> sert à comparer une même colonne à une liste de valeurs. Par exemple : <code>ville IN ('Paris', 'Lyon')</code>. Si les conditions portent sur des colonnes différentes, comme la ville et l’âge, <code>IN</code> ne remplace pas <code>AND</code> ou <code>OR</code>."},
+  piege:{t:"Utiliser IN pour mélanger plusieurs colonnes",p:"<code>IN</code> sert à comparer une seule colonne à plusieurs valeurs.<br><br>✅ Par exemple :",
+    sql:"WHERE ville IN ('Paris', 'Lyon')",
+    mid:"SQL vérifie plusieurs valeurs possibles pour la même colonne <code>ville</code>.<br><br>Mais si tu veux vérifier la ville ET l’âge, tu changes de colonne :",
+    fixSql:"WHERE ville = 'Paris'\n  AND age > 30",
+    tail:"Ici, <code>IN</code> ne remplace pas <code>AND</code>, car les deux conditions portent sur des colonnes différentes."},
   consigne:"Affiche toutes les colonnes des clients qui habitent à Paris ou à Lyon en utilisant <code>IN</code>.",
   solution:"SELECT * FROM clients WHERE ville IN ('Paris', 'Lyon');",
   indice:"Place les deux villes dans une liste entre parenthèses après <code>IN</code> : <code>ville IN ('Paris', 'Lyon')</code>.",
   richLesson:true, earlyDemo:true ,
-testeVariants:[
-  {
-    "k": "base",
-    "label": "Exemple",
-    "sql": "SELECT * FROM clients WHERE ville IN ('Paris', 'Lyon');"
-  },
-  {
-    "k": "rec_or",
-    "label": "Écriture avec OR",
-    "sql": "SELECT id, nom, ville FROM clients WHERE ville = 'Paris' OR ville = 'Lyon';",
-    "out": "Les mêmes six clients qu’avec IN.",
-    "expectRows": 6
-  }
-]
-,
 learningCheck:{
   "question": "ville IN ('Paris', 'Lyon') équivaut à quelle combinaison ?",
   "options": [
@@ -25585,8 +25574,8 @@ const SQL_VIZ={
     {t:'Léa',cmp:'L',keep:1},{t:'Gabriel',cmp:'G',keep:0},{t:'Inès',cmp:'I',keep:0},{t:'Nathan',cmp:'N',keep:0}
   ]},
   inbetween:{kind:'filter',phases:[
-    {k:'SELECT nom, ville FROM clients',d:'Les 10 clients s’affichent avec leur nom et leur ville. SQL va ensuite vérifier si chaque ville figure dans une liste.'},
-    {k:"WHERE ville IN ('Paris', 'Lyon')",d:'IN garde les clients dont la ville est Paris ou Lyon : 6 lignes restent. Même résultat qu’avec des OR, en plus lisible.'}
+    {k:'SELECT nom, ville FROM clients',d:'SQL récupère le nom et la ville de chaque client.'},
+    {k:"WHERE ville IN ('Paris', 'Lyon')",d:'Pour chaque client, SQL vérifie si sa ville se trouve dans la liste (\'Paris\', \'Lyon\'). Si oui, le client est gardé. Sinon, il est écarté. Résultat : 6 clients, ceux de Paris ou de Lyon.'}
   ],chips:[
     {t:'Sophie',extra:'Paris',keep:1},{t:'Lucas',extra:'Lyon',keep:1},{t:'Emma',extra:'Marseille',keep:0},
     {t:'Nathan',extra:'Paris',keep:1},{t:'Chloé',extra:'Bordeaux',keep:0},{t:'Hugo',extra:'Lyon',keep:1},
