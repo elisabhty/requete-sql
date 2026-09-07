@@ -8187,7 +8187,7 @@ learningCheck:{
 { id:10, titre:"BETWEEN", résumé:"Filtrer un intervalle",
   situation:"Ton équipe prépare une sélection « petits prix » pour une campagne promotionnelle.<br><br>Pour cette sélection, elle veut mettre en avant les produits dont le prix est compris entre 15 € et 30 €.<br><br>Avec ce que tu connais déjà, tu peux écrire deux conditions :",
   situationSql:"SELECT nom, prix\nFROM produits\nWHERE prix >= 15\n   AND prix <= 30;",
-  situationTail:"Ça fonctionne. Mais il existe une façon plus simple d’exprimer « entre 15 et 30 » en SQL : <code>BETWEEN</code>.",
+  situationTail:"Ça fonctionne. Mais SQL propose un opérateur de comparaison spécialement conçu pour vérifier si une valeur se trouve entre deux limites : <code>BETWEEN</code>.",
     studio:{problem:{title:"BETWEEN vérifie si une valeur se trouve entre deux limites.",
       body:"Tu sais déjà écrire :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">prix &gt;= 15 AND prix &lt;= 30</pre></div><br><br>Avec <code>BETWEEN</code>, tu peux exprimer la même chose plus simplement :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">prix BETWEEN 15 AND 30</pre></div><br><br>SQL vérifie alors si le prix se trouve entre 15 € et 30 €, limites comprises.<br><br>Donc :<br>15 € → inclus ✓<br>22 € → inclus ✓<br>30 € → inclus ✓<br>31 € → exclu ✕"},
     vs:{bad:{tag:"AVEC DEUX COMPARAISONS",tone:"neutral",sql:"SELECT nom, prix FROM produits\nWHERE prix >= 15 AND prix <= 30;",out:"4 lignes : Shaker Inox, Magnésium, Oméga 3, Fibre Prébiotique",
@@ -8196,20 +8196,20 @@ learningCheck:{
             code:"SELECT nom, prix\nFROM produits\n<span class=\"vs-line\">WHERE prix BETWEEN 15 AND 30</span>;"}},
     why:{title:"Pourquoi utiliser BETWEEN plutôt que deux comparaisons ?"},
     viz:"between",
-    reflex:{a:{k:"BETWEEN",t:"garde les valeurs <b>comprises dans l’intervalle</b>"},
+    reflex:{a:{k:"BETWEEN",t:"vérifie si une valeur se trouve <b>dans un intervalle</b>"},
       b:{k:"Bornes",t:"la valeur minimale et la valeur maximale sont <b>incluses</b>"},
-      note:"Retenir l’équivalence aide à éviter les erreurs : <code>BETWEEN 15 AND 30</code> = <code>&gt;= 15 AND &lt;= 30</code>."}},
+      note:"Le réflexe : quand tu veux vérifier qu’une valeur se trouve entre deux limites, pense à <code>BETWEEN</code>.<br><br><code>prix BETWEEN 15 AND 30</code> équivaut à <code>prix &gt;= 15 AND prix &lt;= 30</code>."}},
   anatomie:[{tok:"SELECT nom, prix",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM produits",txt:"La table produits est utilisée comme source."},{tok:"WHERE prix BETWEEN 15 AND 30",txt:"Le prix doit être compris entre 15 et 30, bornes incluses."}],
   anatomieVariants:[
-    {k:'avant',label:'WHERE',tone:'bad',lines:[
+    {k:'avant',label:'WHERE',tone:'neutral',lines:[
       {tok:"SELECT nom, prix",txt:"Les colonnes affichées dans le résultat."},
       {tok:"FROM produits",txt:"La table produits est utilisée comme source."},
-      {tok:"WHERE prix >= 15 AND prix <= 30",txt:"Correct, mais deux comparaisons pour un seul intervalle."}
+      {tok:"WHERE prix >= 15 AND prix <= 30",txt:"Cette condition garde les prix supérieurs ou égaux à 15 ET inférieurs ou égaux à 30."}
     ]},
-    {k:'avec',label:'BETWEEN',tone:'good',lines:[
+    {k:'avec',label:'BETWEEN',tone:'neutral',lines:[
       {tok:"SELECT nom, prix",txt:"Les colonnes affichées dans le résultat."},
       {tok:"FROM produits",txt:"La table produits est utilisée comme source."},
-      {tok:"WHERE prix BETWEEN 15 AND 30",txt:"Le prix doit être compris entre 15 et 30, bornes incluses."}
+      {tok:"WHERE prix BETWEEN 15 AND 30",txt:"BETWEEN exprime le même intervalle en une seule condition. 15 et 30 sont inclus."}
     ]}
   ],
   exemple:"SELECT nom, prix FROM produits WHERE prix BETWEEN 15 AND 30;",
@@ -8222,16 +8222,18 @@ learningCheck:{
   richLesson:true, earlyDemo:true ,
 testeVariants:[
   {
-    "k": "base",
+    "k": "range2040",
     "label": "Exemple",
-    "sql": "SELECT * FROM produits WHERE prix BETWEEN 15 AND 30;"
+    "sql": "SELECT nom, prix FROM produits WHERE prix BETWEEN 20 AND 40;",
+    "out": "4 lignes : Fibre Prébiotique à 29,90 €, Collagène Marin à 39,90 €, Protéine Végétale à 34,90 € et Oméga 3 à 24,90 €.",
+    "expectRows": 4
   },
   {
-    "k": "rec_edges",
+    "k": "bornes1515",
     "label": "Bornes incluses",
-    "sql": "WITH prix_test(prix) AS (VALUES (14),(15),(30),(31)) SELECT prix, prix BETWEEN 15 AND 30 AS conserve FROM prix_test;",
-    "out": "15 et 30 passent, 14 et 31 non.",
-    "expectRows": 4
+    "sql": "SELECT nom, prix FROM produits WHERE prix BETWEEN 15 AND 15;",
+    "out": "1 ligne : Shaker Inox à 15,00 € — même avec deux bornes identiques, BETWEEN inclut la valeur.",
+    "expectRows": 1
   }
 ]
 ,
