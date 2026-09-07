@@ -6729,6 +6729,41 @@
  #scr-entretien .ent-readiness-stats{display:none}
 }
 @media(prefers-reduced-motion:reduce){.tabbar .tab{transition:none}.ux-shortcut{scroll-behavior:auto}}
+.plan-next-session{padding:22px;margin:0 0 18px;border-radius:24px;background:linear-gradient(140deg,#f3f0ff,#fff);border:1px solid #dedaf4;box-shadow:0 10px 28px -22px #514dd1}
+.plan-next-session>small{display:block;font:700 11px/1.6 var(--ui);color:var(--accent-ink);text-transform:uppercase;letter-spacing:.06em}
+.plan-next-session h2{font-size:23px;line-height:1.25;margin:10px 0;color:var(--ink)}
+.plan-next-session p{font-size:13px;line-height:1.6;color:var(--ink-2);margin:0 0 17px}
+.plan-next-actions{display:flex;flex-wrap:wrap;gap:9px}
+.plan-next-actions button,.plan-module-row button{min-height:44px;padding:11px 14px;font:650 13px/1.4 var(--ui);border-radius:13px;cursor:pointer;border:1px solid #d9d5ef;background:#f0edff;color:var(--accent-ink)}
+.plan-next-actions button:first-child{background:var(--accent);color:white;border-color:var(--accent);flex:1}
+.plan-next-actions button:focus-visible,.plan-module-row button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.plan-modules{margin:20px 0;background:var(--card);border:1px solid var(--card-border);border-radius:20px;overflow:hidden}
+.plan-modules>summary{cursor:pointer;padding:20px;font:700 15px/1.5 var(--ui)}
+.plan-modules>summary span{display:block;margin-left:18px;color:var(--ink-2);font-size:12px;font-weight:400}
+.plan-modules-body{padding:0 18px 18px}
+.plan-modules-body>label{display:block;font-size:12px;color:var(--ink-2);margin:0 0 6px}
+.plan-modules-body>select{width:100%;min-height:44px;border-radius:10px;border:1px solid var(--card-border);padding:9px;background:var(--bg);color:var(--ink);font:500 14px var(--ui)}
+.plan-module-row{display:flex;align-items:center;gap:12px;padding:18px 0;border-bottom:1px solid var(--card-border)}
+.plan-module-row>div{flex:1;min-width:0}
+.plan-module-row span{font-size:10px;letter-spacing:.05em;color:var(--ink-2)}
+.plan-module-row h3{font-size:15px;line-height:1.5;margin:4px 0}
+.plan-module-row p,.plan-module-empty{font-size:12px;line-height:1.6;color:var(--ink-2);margin:0 0 8px}
+.plan-module-row progress{display:block;width:100%;height:5px;accent-color:var(--accent)}
+.plan-module-row button{flex-shrink:0;font-size:12px;padding:10px}
+#module-progress-status{font-size:12px;color:var(--ink-2)}
+.reading-preferences{padding:16px 0 20px;margin-bottom:18px;border-bottom:1px solid var(--card-border)}
+.reading-preferences h3{font-size:16px;margin:0 0 7px}
+.reading-preferences>p{font-size:12px;line-height:1.6;color:var(--ink-2);margin:0 0 12px}
+.reading-option{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:64px;cursor:pointer;padding:13px 0;border-top:1px solid var(--card-border)}
+.reading-option b{display:block;font-size:14px;line-height:1.5}
+.reading-option small{display:block;margin-top:3px;font-size:12px;line-height:1.5;color:var(--ink-2)}
+.reading-option input{flex-shrink:0;width:24px;height:24px;accent-color:var(--accent);cursor:pointer}
+.reading-option input:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
+.reading-preferences #reading-preferences-status:empty{display:none}
+html[data-reading="large"] .screen p:not(.eyebrow),html[data-reading="large"] .screen .sub,html[data-reading="large"] .screen .tip{font-size:17px;line-height:1.75}
+html[data-reading="large"] .editor-area textarea,html[data-reading="large"] .editor-area pre{font-size:17px!important;line-height:1.65!important}
+html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-motion="reduce"] *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+@media(max-width:360px){.plan-next-session{padding:18px}.plan-next-actions button{width:100%}.plan-module-row{flex-wrap:wrap}.plan-module-row>div{flex-basis:100%}.plan-module-row button{width:100%}}
 </style>
 <link rel="stylesheet" href="viz-select.css?v=noloop">
 <link rel="stylesheet" href="viz-where.css?v=distinct3">
@@ -15716,6 +15751,7 @@ async function boot(){
     await wipeStorageIfUpdated();
     const saved=await Store.get(KEY);
     state=normalizeState(saved||state);
+    applyReadingPreferences();
     if(state.onboarded==null) state.onboarded=false;
     if(state.name==null) state.name='';
     if(!state.profile||typeof state.profile!=='object') state.profile={};
@@ -17174,7 +17210,8 @@ function normalizeState(raw){
   const profile=source.profile&&typeof source.profile==='object'&&!Array.isArray(source.profile)?source.profile:{};
   const accountMode=typeof source.accountMode==='string'?source.accountMode:null;
   const entretien=source.entretien&&typeof source.entretien==='object'&&!Array.isArray(source.entretien)?source.entretien:{};
-  return {lessons,defis,notes,plan,onboarded,name,profile,accountMode,entretien};
+  const preferences={largeText:source.preferences?.largeText===true,reduceMotion:source.preferences?.reduceMotion===true};
+  return {lessons,defis,notes,plan,onboarded,name,profile,accountMode,entretien,preferences};
 }
 function normalize(result,ordered){
   if(!result||result.length===0)return "∅";
@@ -17893,8 +17930,64 @@ function returnToHome(){
     if(title)try{title.focus({preventScroll:true});}catch(e){title.focus();}
   });
 }
+function applyReadingPreferences(){
+  const prefs=state.preferences||{};
+  document.documentElement.dataset.reading=prefs.largeText?'large':'standard';
+  document.documentElement.dataset.motion=prefs.reduceMotion?'reduce':'system';
+}
+function setReadingPreference(key,enabled){
+  if(!['largeText','reduceMotion'].includes(key))return;
+  state.preferences={...state.preferences,[key]:!!enabled};
+  save();applyReadingPreferences();
+  const status=document.getElementById('reading-preferences-status');
+  if(status)status.textContent='Préférence enregistrée sur cet appareil.';
+}
+function readingPreferencesHtml(){
+  const prefs=state.preferences||{};
+  return `<section class="reading-preferences" aria-labelledby="reading-preferences-title"><h3 id="reading-preferences-title">Confort de lecture</h3><p>Appliqué immédiatement, sans modifier ton parcours.</p>
+    <label class="reading-option"><span><b>Texte plus grand</b><small>Agrandit les explications et les éditeurs SQL.</small></span><input type="checkbox" role="switch" ${prefs.largeText?'checked':''} onchange="setReadingPreference('largeText',this.checked)"></label>
+    <label class="reading-option"><span><b>Réduire les animations</b><small>Limite les transitions et les effets de l’interface.</small></span><input type="checkbox" role="switch" ${prefs.reduceMotion?'checked':''} onchange="setReadingPreference('reduceMotion',this.checked)"></label>
+    <p class="reading-system-note">Les préférences de réduction des mouvements de ton appareil restent respectées.</p><p id="reading-preferences-status" role="status"></p>
+  </section>`;
+}
+function nextScheduledSession(sessions,today,done){
+  return (sessions||[]).filter(s=>s.d>=today&&Array.isArray(s.lessons)).slice().sort((a,b)=>a.d.localeCompare(b.d)).map(s=>({...s,remaining:s.lessons.filter(id=>!done(id))})).find(s=>s.remaining.length)||null;
+}
+function nextSessionHtml(){
+  const today=dstr(auj());
+  const session=nextScheduledSession(state.plan?.sessions,today,itemDone);
+  if(!session)return `<section class="plan-next-session"><small>Ton prochain pas</small><h2>Aucune séance à venir</h2><p>Tu peux ajuster ton rythme ou reprendre un module à ton choix.</p><div class="plan-next-actions"><button type="button" onclick="openPlanAdjust(this)">Ajuster mon rythme</button><button type="button" onclick="showModuleProgress()">Voir les modules</button></div></section>`;
+  const first=session.remaining[0],meta=itemMeta(first);
+  const date=parseD(session.d).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  const started=session.remaining.length<session.lessons.length;
+  return `<section class="plan-next-session" aria-labelledby="plan-next-title"><small>${session.d===today?'Ta séance du jour':'Prochaine séance · '+esc(date)}</small><h2 id="plan-next-title">${esc(meta.titre)}</h2><p>${session.remaining.length} activité${session.remaining.length>1?'s':''} restante${session.remaining.length>1?'s':''} · environ ${session.remaining.length*MIN_PAR_ACTIVITE} min</p><div class="plan-next-actions"><button type="button" onclick="openItem(${escAttr(JSON.stringify(first))})">${started?'Continuer':'Commencer'} la séance</button><button type="button" onclick="showModuleProgress()">Voir les modules</button></div></section>`;
+}
+function moduleProgressData(modules,lessons){
+  return modules.map((module,index)=>{const done=module.lessons.filter(l=>lessons[l.id]?.done).length;return {index,title:module.titre,total:module.lessons.length,done,next:module.lessons.find(l=>!lessons[l.id]?.done)?.id,first:module.lessons[0]?.id};});
+}
+let moduleProgressFilter='all';
+function moduleProgressRows(filter){
+  const rows=moduleProgressData(MODULES,state.lessons).filter(m=>filter==='done'?m.done===m.total:filter==='started'?m.done>0&&m.done<m.total:true);
+  if(!rows.length)return `<p class="plan-module-empty">${filter==='done'?'Les modules terminés apparaîtront ici.':'Commence une leçon pour retrouver ici tes modules en cours.'}</p>`;
+  return rows.map(m=>`<div class="plan-module-row"><div><span>Module ${String(m.index+1).padStart(2,'0')}</span><h3>${esc(m.title)}</h3><p>${m.done===m.total?'Terminé':m.done?'En cours':'À découvrir'} · ${m.done}/${m.total} leçons</p><progress value="${m.done}" max="${m.total}" aria-label="Progression du module ${escAttr(m.title)}"></progress></div><button type="button" aria-label="${m.next==null?'Revoir':m.done?'Continuer':'Commencer'} ${escAttr(m.title)}" onclick="openLesson(${m.next??m.first})">${m.next==null?'Revoir':m.done?'Continuer':'Commencer'}</button></div>`).join('');
+}
+function moduleExplorerHtml(){
+  return `<details class="plan-modules"><summary>Ma progression par module<span>${MODULES.length} modules</span></summary><div class="plan-modules-body"><label for="module-progress-filter">Afficher les modules</label><select id="module-progress-filter" onchange="filterModuleProgress(this.value)"><option value="all" ${moduleProgressFilter==='all'?'selected':''}>Tous</option><option value="started" ${moduleProgressFilter==='started'?'selected':''}>En cours</option><option value="done" ${moduleProgressFilter==='done'?'selected':''}>Terminés</option></select><div id="module-progress-rows">${moduleProgressRows(moduleProgressFilter)}</div><p id="module-progress-status" role="status"></p></div></details>`;
+}
+function filterModuleProgress(filter){
+  if(!['all','started','done'].includes(filter))return;
+  moduleProgressFilter=filter;
+  document.getElementById('module-progress-rows').innerHTML=moduleProgressRows(filter);
+  document.getElementById('module-progress-status').textContent=document.querySelectorAll('#module-progress-rows .plan-module-row').length+' module(s) affiché(s)';
+}
+function showModuleProgress(){
+  const panel=document.querySelector('.plan-modules');if(!panel)return;
+  panel.open=true;jumpToSection('.plan-modules');
+  document.getElementById('module-progress-filter')?.focus({preventScroll:true});
+}
+
 function prefersReduceMotion(){
-  return window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return !!state.preferences?.reduceMotion||!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 }
 function pulseCta(sel){
   const el=typeof sel==='string'?document.querySelector(sel):sel;
@@ -23084,7 +23177,7 @@ function renderPlanning(){
   if(!state.plan){
     planToolsOpen=false;
     planAdjustDraft=null;
-    host.innerHTML=renderSetup();
+    host.innerHTML=renderSetup()+moduleExplorerHtml();
     const sub=document.getElementById('pl-sub');if(sub)sub.textContent="Un parcours étalé sur les jours qui t'arrangent.";
     renderHomeToday();return;
   }
@@ -23096,9 +23189,11 @@ function renderPlanning(){
   const h1=document.querySelector('#scr-planning .lgtitle h1');
   if(h1) h1.textContent='Parcours';
   host.innerHTML=`
+    ${nextSessionHtml()}
     ${planOverviewHTML(st)}
     ${studioTodayList()}
-    <div class="pl-week">${renderSemaine()}</div>`;
+    <div class="pl-week">${renderSemaine()}</div>
+    ${moduleExplorerHtml()}`;
   brancherDrag();renderHomeToday();
 }
 function chipTap(e,id){if(dragging||Date.now()-blocTap<400)return;openItem(parseItemId(id));}
@@ -25068,6 +25163,7 @@ function renderCompte(){
     </section>
     <section class="account-settings-block">
       <div class="account-settings-heading"><div><p class="account-settings-title">Réglages</p><h2>Personnalise ton expérience</h2></div><small>Modifiables à tout moment</small></div>
+      ${readingPreferencesHtml()}
       <div class="account-settings-group">
         <p class="account-settings-group-title">Apprentissage</p>
         <div class="account-settings-list">
