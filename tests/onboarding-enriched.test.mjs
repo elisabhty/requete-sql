@@ -30,7 +30,7 @@ assert(onboarding.length > 5000, 'bloc onboarding localisé (repères de découp
 
 console.log('\n--- Le parcours ---');
 assert(html.includes("const OB_SLIDES = ['welcome','name','goal','level','rhythm','practice','account','ready']"), 'les huit étapes du parcours sont déclarées dans l’ordre');
-assert(onboarding.includes("if(slide==='welcome')obGoto('name')") && onboarding.includes("else if(slide==='rhythm')obGoto('practice')") && onboarding.includes("else if(slide==='practice')obGoto('account')"), 'obNext enchaîne les étapes dans cet ordre');
+assert(onboarding.includes("if(slide==='welcome')obGoto('name')") && onboarding.includes("else if(slide==='rhythm')obGoto('practice')") && onboarding.includes("else if(slide==='practice')obGoto(obAfterPractice())"), 'obNext enchaîne les étapes dans cet ordre (compte sauté sans fournisseur, vers ready directement)');
 assert(onboarding.includes("obEntry") && onboarding.includes('function obBack()'), 'chaque étape peut revenir en arrière');
 
 console.log('\n--- La cohérence du tunnel ---');
@@ -39,10 +39,10 @@ assert((()=>{const flow=(html.match(/const OB_SLIDES = \[([^\]]+)\]/)||[])[1]||'
 assert(onboarding.indexOf('Garde ta progression.')<onboarding.indexOf('Ton parcours est prêt'), 'la sauvegarde du succès précède l’écran final');
 assert((onboarding.match(/obGoto\('ready'\)/g)||[]).length===2, 'sans compte ou connecté, l’onboarding se termine sur l’écran final');
 assert(onboarding.includes("obSetFooter('Passer à la pratique',()=>obGoto('practice')"), 'le rythme mène à la pratique, pas directement au récapitulatif');
-assert(onboarding.includes('ob-level-chart') && onboarding.includes('Monte en niveau, requête après requête.'), 'l’échelle de progression éclaire le choix du niveau');
+assert(onboarding.includes('function obLevelPath()') && onboarding.includes("const stages=['SELECT','Filtres & tris','Jointures','Analyses']"), 'l’échelle de progression éclaire le choix du niveau');
 
 console.log('\n--- La preuve dès l’accueil ---');
-assert(onboarding.includes('ob-proof-stats') && onboarding.includes('<strong>74</strong>') && onboarding.includes('Tu pratiques sur SQLite'), 'l’accueil prouve le contenu réel : chiffres du cours et moteur SQLite');
+assert(onboarding.includes('ob-proof-stats') && onboarding.includes('${TOTAL}') && onboarding.includes("db.exec(\"SELECT COUNT(*) FROM clients WHERE ville = 'Paris';\")"), 'l’accueil prouve le contenu réel : chiffres calculés depuis la base et le catalogue, jamais codés en dur');
 assert(onboarding.includes('function obRunPractice()') && onboarding.includes('db.exec('), 'l’étape de pratique exécute une vraie requête, pas une simulation');
 assert(onboarding.includes('draft.practiceRows') && onboarding.includes('draft.practiceDone=draft.practiceRows.length>0'), 'la réussite dépend des lignes réellement renvoyées');
 assert(/catch\(e\)\{\s*draft\.practiceRows=\[\];\s*draft\.practiceDone=false;/.test(onboarding), 'une erreur du moteur ne fait pas passer la pratique pour réussie');
@@ -65,7 +65,7 @@ assert(onboarding.includes('aria-label="Retour"'), 'le bouton retour est nommé 
 
 console.log('\n--- L\'expérience dès la première seconde ---');
 assert(onboarding.includes('function obRunWelcomeDemo()') && onboarding.includes('id="ob-demo-code"') && onboarding.includes("[\"'Paris';\",'s']"), 'l\'accueil tape une vraie requête du cours dans une console animée');
-assert(onboarding.includes('4 clients habitent à Paris') && onboarding.includes('aria-hidden="true"><div class="ob-code"'), 'la console d\'accueil annonce le vrai résultat et reste décorative pour les lecteurs d\'écran');
+assert(onboarding.includes("${plur(nParis,'client')} à Paris") && onboarding.includes('aria-hidden="true"><div class="ob-code"'), 'la console d\'accueil annonce le vrai résultat et reste décorative pour les lecteurs d\'écran');
 assert(html.includes('#onboarding.ob-enter .ob-answer{animation:'), 'les réponses apparaissent en cascade à l\'entrée d\'une étape');
 assert(onboarding.includes("classList.add('ob-selection-update')") && html.includes('.ob-selection-update .ob-answer.on'), 'choisir une réponse déclenche le pop de sélection');
 assert(onboarding.includes('function obNamePreview()') && onboarding.includes('ob-name-preview'), 'le prénom saisi est renvoyé en aperçu immédiat');

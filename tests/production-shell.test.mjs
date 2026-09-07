@@ -95,16 +95,16 @@ assert(account.includes('Apprentissage') && account.includes('Compte et assistan
 assert(html.includes('function closePlusDetails()') && account.includes('account-sheet-backdrop') && html.includes("querySelectorAll('#scr-compte .plus-details[open]')"), 'réglages détaillés ouverts dans un seul panneau focalisé et refermable');
 assert(account.includes('Mode local actif') && account.includes('Connexion optionnelle'), 'stockage local expliqué clairement');
 assert(!account.includes('acc-premium') && !account.includes('4,99 €'), 'fausse offre Premium retirée du parcours de production');
-assert(html.includes("const OB_PROFILE_SLIDES=['name','goal','level','rhythm','practice']") && onboarding.includes("const steps=[...OB_PROFILE_SLIDES,'account']"), 'onboarding : 6 étapes, personnalisation d’abord puis sauvegarde du succès');
+assert(html.includes("const OB_PROFILE_SLIDES=['name','goal','level','rhythm','practice']") && html.includes("function obFlowSteps(){return obAuthReady()?[...OB_PROFILE_SLIDES,'account']:[...OB_PROFILE_SLIDES];}"), 'onboarding : 6 étapes, personnalisation d’abord puis sauvegarde du succès (compte sauté sans fournisseur branché)');
 assert(html.includes("const OB_SLIDES = ['welcome','name','goal','level','rhythm','practice','account','ready']"), 'parcours cohérent : prouver, personnaliser, pratiquer, sauvegarder');
-assert(onboarding.includes('Monte en niveau,') && onboarding.includes('ob-level-chart') && onboarding.includes('SELECT</span><span>Filtres</span><span>Jointures</span><span>Analyses'), 'progression SQL illustrée par un graphique accessible et des jalons concrets');
-assert(onboarding.includes('<strong>74</strong>') && onboarding.includes('<strong>25</strong>') && onboarding.includes('<strong>10 000+</strong><span>requêtes vérifiées en test'), 'preuves chiffrées reliées au contenu réel et aux tests plutôt qu’à de faux utilisateurs');
+assert(html.includes('function obLevelPath()') && html.includes("const stages=['SELECT','Filtres & tris','Jointures','Analyses']") && onboarding.includes('${obLevelPath()}'), 'progression SQL illustrée par un chemin compact et accessible, réagissant au niveau choisi');
+assert(onboarding.includes('ob-proof-stats') && onboarding.includes('<strong>${TOTAL}</strong><span>leçons courtes</span>') && onboarding.includes('<strong>${nDefis}</strong><span>défis SQL</span>'), 'preuves chiffrées reliées au contenu réel : nombre de leçons et de défis calculés, pas des chiffres fixes');
 assert(onboarding.includes('Étape ${active+1} sur ${steps.length}') && onboarding.includes('const remaining='), 'étape et durée restante annoncées dynamiquement');
 assert(onboarding.includes('Garde ta progression.') && onboarding.includes('Continuer sans compte'), 'choix du compte clair et mode invité prioritaire');
 assert(onboarding.includes('authReady') && onboarding.includes('<small>Bientôt</small>'), 'fournisseurs indisponibles présentés honnêtement');
 assert(onboarding.includes('Mode local et privé') && onboarding.includes('Progression sauvegardée sur cet appareil.'), 'bénéfice du mode local explicité');
 assert(html.includes('function obRunPractice()') && onboarding.includes('Ta première requête.') && html.includes('db.exec("SELECT id, nom, ville FROM clients WHERE ville = \'Paris\' ORDER BY id;")'), 'premier succès SQL exécuté sur la vraie base pendant l’onboarding');
-assert(onboarding.includes('Ta première semaine') && onboarding.includes('Première leçon'), 'écran final enrichi avec un plan de départ concret');
+assert(onboarding.includes('Tes 7 prochains jours') && onboarding.includes('Première leçon') && onboarding.includes('ob-ready-days'), 'écran final enrichi avec un plan de départ concret, calculé depuis le plan réellement généré');
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('.plus-details-body'), 'nouvelles micro-interactions respectent la réduction des mouvements');
 const primaryKeyLesson = html.slice(html.indexOf('{ id:34, titre:"Clé primaire"'), html.indexOf('{ id:35, titre:"Clé étrangère"'));
 assert(primaryKeyLesson.includes("WHERE nom = 'Nathan';") && primaryKeyLesson.includes('SQL renvoie <b>2 lignes'), 'la leçon Clé primaire exécute et annonce les deux Nathan réels');
@@ -116,7 +116,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
 assert(html.includes('{ id:73, titre:"UNION et UNION ALL"') && html.includes('18 lignes : 10 + 8') && !html.includes('17 lignes : 9 + 8'), 'UNION ALL visible et cardinalité corrigée');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-09-07-like-refonte-teste-piege-reflexe-v400'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-09-07-onboarding-ux-v401'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
