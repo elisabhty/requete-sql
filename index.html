@@ -8008,7 +8008,13 @@ WHERE nom LIKE &#39;L__&#39;;" onclick="runExemple(this)"><svg class="xf-run-ico
     </div>
     <div class="xf-result" hidden aria-live="polite"></div>
   </div>
-        <p>SQL cherche donc : L + 1 caractère + 1 caractère — autrement dit, un nom de 3 caractères commençant par L.<br>👉 Exécute la requête pour voir le résultat.</p>
+        <p>Ici, chaque <code>_</code> remplace exactement un caractère.<br>Dans <code>'L__'</code> :</p>
+        <ul class="pt-lead-list">
+          <li><code>L</code> doit être la première lettre ;</li>
+          <li>le premier <code>_</code> accepte n’importe quel caractère ;</li>
+          <li>le second <code>_</code> accepte encore n’importe quel caractère.</li>
+        </ul>
+        <p>SQL cherche donc un nom de 3 caractères qui commence par L.<br>👉 Exécute la requête pour voir le résultat.</p>
         <p>C’est la différence essentielle :<br><code>%</code> → 0, 1 ou plusieurs caractères<br><code>_</code> → exactement 1 caractère</p>
         <p class="pt-syntax-h">Combiner les jokers</p>
         <p>Les jokers peuvent être combinés.</p>
@@ -8024,11 +8030,11 @@ WHERE nom LIKE &#39;_a%&#39;;" onclick="runExemple(this)"><svg class="xf-run-ico
     </div>
     <div class="xf-result" hidden aria-live="polite"></div>
   </div>
-        <pre class="cw-syntax">_    a    %
-│    │    │
-│    │    └─ n’importe quelle suite de caractères
-│    └────── le 2e caractère doit être "a"
-└─────────── n’importe quel caractère</pre>
+        <div class="agg-reflex"><ul class="agg-list">
+          <li><code>_</code> (1er caractère) → <b>n’importe quel caractère</b></li>
+          <li><code>a</code> (2e caractère) → <b>doit être « a »</b></li>
+          <li><code>%</code> (après) → <b>n’importe quelle suite de caractères</b></li>
+        </ul></div>
         <p>SQL cherche donc les noms dont le deuxième caractère est a.<br>👉 Exécute la requête pour voir le résultat.</p>
         <p class="pt-syntax-h" style="margin-top:20px">NOT LIKE</p>
         <p>Tu peux aussi rechercher ce qui ne correspond <b>pas</b> à un modèle :</p>
@@ -8045,45 +8051,53 @@ WHERE nom NOT LIKE &#39;L%&#39;;" onclick="runExemple(this)"><svg class="xf-run-
     <div class="xf-result" hidden aria-live="polite"></div>
   </div>
         <p>SQL conserve alors les clients dont le nom ne commence pas par L.<br>👉 Exécute la requête pour voir le résultat.</p>`},
-    vs:{bad:{tag:"✕ Sans joker",sql:"SELECT nom FROM clients\nWHERE nom LIKE 'L';",out:"0 ligne : aucun nom n’est exactement 'L'",
-            code:"SELECT nom\nFROM clients\n<span class=\"vs-line bad\">WHERE nom LIKE 'L'</span>;"},
-        good:{tag:"✓ Avec %",sql:"SELECT nom FROM clients\nWHERE nom LIKE 'L%';",out:"2 lignes : Lucas et Léa",
-            code:"SELECT nom\nFROM clients\n<span class=\"vs-line good\">WHERE nom LIKE 'L%'</span>;"}},
     why:{title:"Voir le filtre en action",
       body:"SQL teste chaque nom un par un. Avec <code>LIKE 'L%'</code>, le joker <code>%</code> accepte tout ce qui suit le L."},
     viz:"like",
-    reflex:{extra:`<div class="agg-reflex"><ul class="agg-list">
+    reflex:{extra:`<div class="agg-reflex"><p class="agg-cta">👉 <code>%</code> = zéro, un ou plusieurs caractères. <code>_</code> = exactement un caractère.</p><ul class="agg-list">
 <li><code>LIKE 'L%'</code> → <b>commence par L</b></li>
 <li><code>LIKE '%a'</code> → <b>finit par a</b></li>
 <li><code>LIKE '%ph%'</code> → <b>contient ph</b></li>
-<li><code>LIKE 'L__'</code> → <b>L + exactement 2 caractères</b></li>
+<li><code>LIKE 'L__'</code> → <b>commence par L et fait 3 caractères</b></li>
 <li><code>NOT LIKE</code> → <b>ne correspond pas au modèle</b></li>
 </ul></div>`}},
   anatomie:[{tok:"SELECT nom",txt:"La colonne affichée dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE nom LIKE 'L%'",txt:"Le nom doit commencer par L. Le % accepte n’importe quelle suite après."}],
   anatomieVariants:[
-    {k:'avant',label:'Sans %',tone:'bad',lines:[
-      {tok:"SELECT nom",txt:"La colonne affichée dans le résultat."},
-      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
-      {tok:"WHERE nom LIKE 'L'",txt:"Sans joker, LIKE cherche une correspondance exacte avec 'L' : aucun nom ne vaut 'L' seul."}
-    ]},
-    {k:'avec',label:'Avec %',tone:'good',lines:[
+    {k:'pct',label:'L%',tone:'neutral',lines:[
       {tok:"SELECT nom",txt:"La colonne affichée dans le résultat."},
       {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
       {tok:"WHERE nom LIKE 'L%'",txt:"Le nom doit commencer par L. Le % accepte n’importe quelle suite après."}
+    ]},
+    {k:'underscore',label:'L__',tone:'neutral',lines:[
+      {tok:"SELECT nom",txt:"La colonne affichée dans le résultat."},
+      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
+      {tok:"WHERE nom LIKE 'L__'",txt:"Le nom doit commencer par L, suivi d’exactement deux caractères : un nom de 3 caractères au total."}
+    ]},
+    {k:'combo',label:'_a%',tone:'neutral',lines:[
+      {tok:"SELECT nom",txt:"La colonne affichée dans le résultat."},
+      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
+      {tok:"WHERE nom LIKE '_a%'",txt:"Le deuxième caractère doit être a ; le premier et la suite peuvent être n’importe quoi."}
+    ]},
+    {k:'not',label:'NOT LIKE',tone:'neutral',lines:[
+      {tok:"SELECT nom",txt:"La colonne affichée dans le résultat."},
+      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
+      {tok:"WHERE nom NOT LIKE 'L%'",txt:"Garde les noms qui ne commencent pas par L."}
     ]}
   ],
   testeVariants:[
-    {k:'avant',label:'Sans %',sql:"SELECT nom FROM clients\nWHERE nom LIKE 'L';",out:"0 ligne : aucun nom n’est exactement 'L'",tone:'bad'},
-    {k:'avec',label:'Avec %',sql:"SELECT nom FROM clients\nWHERE nom LIKE 'L%';",out:"2 lignes : Lucas et Léa",tone:'good'}
+    {k:'pct',label:'L%',sql:"SELECT nom FROM clients\nWHERE nom LIKE 'L%';",out:"2 lignes : Lucas et Léa",tone:'neutral'},
+    {k:'underscore',label:'L__',sql:"SELECT nom FROM clients\nWHERE nom LIKE 'L__';",out:"1 ligne : Léa",tone:'neutral'},
+    {k:'combo',label:'_a%',sql:"SELECT nom FROM clients\nWHERE nom LIKE '_a%';",out:"3 lignes : Nathan, Gabriel et Nathan",tone:'neutral'},
+    {k:'not',label:'NOT LIKE',sql:"SELECT nom FROM clients\nWHERE nom NOT LIKE 'L%';",out:"8 lignes : tous les clients sauf Lucas et Léa",tone:'neutral'}
   ],
   exemple:"SELECT nom FROM clients WHERE nom LIKE 'L%';",
   attendu:"<b>2 lignes</b> : Lucas et Léa.",
   retenir:"<code>LIKE</code> cherche un motif. <code>%</code> remplace une suite de caractères : <code>'L%'</code> commence par L, <code>'%mot%'</code> contient mot. <code>_</code> remplace exactement un caractère.",
   piege:{t:"Confondre = et LIKE",p:"Ne confonds pas :",
     sql:"WHERE nom = 'L'",
-    mid:"La première condition cherche exactement <code>L</code>.<br><br>Avec :",
+    mid:"Avec <code>=</code>, SQL cherche une valeur exactement égale à <code>L</code>. Il ne trouvera donc ni <code>Lucas</code>, ni <code>Léa</code>.<br><br>Avec :",
     fixSql:"WHERE nom LIKE 'L%'",
-    tail:"La seconde cherche tous les noms qui commencent par L."},
+    tail:"Avec <code>LIKE</code> et <code>%</code>, SQL cherche les noms qui commencent par <code>L</code>, quelle que soit la suite."},
   consigne:"Affiche toutes les colonnes des clients dont le nom commence par L.",
   solution:"SELECT * FROM clients WHERE nom LIKE 'L%';",
   indice:"Pour signifier « commence par L », place L au début du motif et <code>%</code> après : <code>'L%'</code>.",
