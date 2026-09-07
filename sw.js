@@ -14,7 +14,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-09-07-null-principe-emoji-v384';
+const CACHE = 'requete-2026-09-07-retrait-toi-de-prevoir-v385';
 
 const PRECACHE = [
   './',
