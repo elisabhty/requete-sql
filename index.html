@@ -8134,9 +8134,9 @@ learningCheck:{
   situationTail:"Ça fonctionne. Mais si tu dois ajouter plusieurs villes, tu vas devoir répéter <code>ville =</code> à chaque nouvelle condition.",
   problematique:"Existe-t-il une façon plus simple d’indiquer à SQL une liste de valeurs possibles ?",
     studio:{problem:{title:"IN vérifie si une valeur appartient à une liste.",
-      body:"Tu connais déjà <code>OR</code> : <code>ville = 'Paris' OR ville = 'Lyon'</code> fonctionne parfaitement. Mais la colonne <code>ville</code> est répétée. Avec <code>IN</code>, les valeurs recherchées sont regroupées dans une liste : <code>ville IN ('Paris', 'Lyon')</code>. Les deux écritures produisent ici exactement le même résultat."},
-    vs:{bad:{tag:"✕ OR répétés",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",out:"6 lignes : correct, mais la colonne ville est répétée",
-            code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line bad\">WHERE ville = 'Paris'\n   OR ville = 'Lyon'</span>;"},
+      body:"<code>IN</code> vérifie si une valeur se trouve dans une liste.<br><br>Tu connais déjà <code>OR</code>. Pour rechercher les clients de Paris ou de Lyon, tu peux écrire :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">WHERE ville = 'Paris'\n   OR ville = 'Lyon'</pre></div><br><br>Ça fonctionne, mais tu dois répéter la colonne <code>ville</code> pour chaque valeur.<br><br>Avec <code>IN</code>, tu regroupes directement les valeurs recherchées dans une liste :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">WHERE ville IN ('Paris', 'Lyon')</pre></div><br><br>SQL vérifie alors si la valeur de <code>ville</code> est Paris ou Lyon.<br><br>Les deux écritures donnent le même résultat, mais <code>IN</code> est plus court et plus lisible lorsque plusieurs valeurs sont possibles."},
+    vs:{bad:{tag:"AVEC OR",tone:"neutral",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",out:"6 lignes : correct, mais la colonne ville est répétée",
+            code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line\">WHERE ville = 'Paris'\n   OR ville = 'Lyon'</span>;"},
         good:{tag:"✓ Avec IN",sql:"SELECT nom, ville FROM clients\nWHERE ville IN ('Paris', 'Lyon');",out:"6 lignes : Sophie, Lucas, Nathan (×2), Hugo, Léa",
             code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line good\">WHERE ville IN ('Paris', 'Lyon')</span>;"}},
     why:{title:"Pourquoi utiliser IN plutôt que plusieurs OR ?"},
@@ -19004,16 +19004,20 @@ function lessonRichBlocks(l){
 }
 function renderVs(vs){
   if(!vs)return '';
+  /* side.tone permet à une leçon de sortir une carte du duo incorrect/correct
+     par défaut — utile quand la carte de gauche n'est pas une erreur, juste
+     une écriture plus longue (ex. OR répétés face à IN). */
   const col=(side,tone)=>{
-    const tag=side.tag||(tone==='bad'?'✕ Incorrect':'✓ Correct');
+    const t=side.tone||tone;
+    const tag=side.tag||(t==='bad'?'✕ Incorrect':'✓ Correct');
     const sql=side.sql||'';
     const code=typeof side.code==='string'?side.code:highlight(sql);
     const run=side.static?'':`<button type="button" class="vs-run" data-sql="${escAttr(sql)}" data-hint="${escAttr(side.out||'')}"${side.pedagogic?' data-pedagogic="1"':''} onclick="runVsSql(this)">${XF_RUN_ICO}Exécuter</button>`;
     const out=side.static
-      ?`<div class="vs-out static ${tone} live">${side.static}</div>`
+      ?`<div class="vs-out static ${t} live">${side.static}</div>`
       :`<div class="vs-out" hidden aria-live="polite"></div>`;
-    return `<div class="vs-col ${tone}">
-      <div class="vs-tag ${tone}">${tag}</div>
+    return `<div class="vs-col ${t}">
+      <div class="vs-tag ${t}">${tag}</div>
       <div class="ex-code">${code}</div>
       ${run}${out}
     </div>`;
