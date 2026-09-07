@@ -2101,17 +2101,18 @@
   .sql-viz[data-viz="nulls"][data-phase="0"] .grp-chip,
   .sql-viz[data-viz="like"][data-phase="0"] .grp-chip{opacity:1;filter:none;text-decoration:none;background:var(--surface);border-color:var(--line-2);box-shadow:0 2px 8px rgba(20,20,40,.07)}
   .sql-viz[data-viz="andor"][data-phase="1"] .grp-chip[data-keep0="0"],
-  .sql-viz[data-viz="or"][data-phase="1"] .grp-chip[data-keep0="0"],
-  .sql-viz[data-viz="like"][data-phase="1"] .grp-chip[data-keep0="0"]{opacity:.32;filter:grayscale(.35);text-decoration:none}
+  .sql-viz[data-viz="or"][data-phase="1"] .grp-chip[data-keep0="0"]{opacity:.32;filter:grayscale(.35);text-decoration:none}
   .sql-viz[data-viz="andor"][data-phase="1"] .grp-chip[data-keep0="1"],
-  .sql-viz[data-viz="or"][data-phase="1"] .grp-chip[data-keep0="1"],
-  .sql-viz[data-viz="like"][data-phase="1"] .grp-chip[data-keep0="1"]{opacity:1;filter:none;border-color:rgba(91,91,214,.42);box-shadow:0 4px 14px rgba(91,91,214,.16);background:var(--accent-soft)}
+  .sql-viz[data-viz="or"][data-phase="1"] .grp-chip[data-keep0="1"]{opacity:1;filter:none;border-color:rgba(91,91,214,.42);box-shadow:0 4px 14px rgba(91,91,214,.16);background:var(--accent-soft)}
   .sql-viz[data-viz="andor"][data-phase="1"] .grp-chip[data-keep0="1"] .grp-extra,
-  .sql-viz[data-viz="or"][data-phase="1"] .grp-chip[data-keep0="1"] .grp-extra,
-  .sql-viz[data-viz="like"][data-phase="1"] .grp-chip[data-keep0="1"] .grp-extra{color:var(--accent);font-weight:600}
+  .sql-viz[data-viz="or"][data-phase="1"] .grp-chip[data-keep0="1"] .grp-extra{color:var(--accent);font-weight:600}
   /* NULL : 2 phases seulement (plus de « = NULL » intermédiaire), donc la
      phase 1 est la phase finale — elle lit data-keep comme un filtre
-     standard, pas data-keep0 (réservé aux viz à 3 phases ci-dessus). */
+     standard, pas data-keep0 (réservé aux viz à 3 phases ci-dessus).
+     LIKE : sa phase 1 (comparaison) ne grise plus rien du tout — voir plus
+     bas, elle rejoint le mécanisme de « compare » (grp-cmp) à la place,
+     pour matérialiser le test lettre par lettre sans spoiler le résultat
+     avant la phase 2. */
   .sql-viz[data-kind="filter"]:not([data-viz="andor"]):not([data-viz="or"]):not([data-viz="nulls"]):not([data-viz="like"]):not([data-viz="distinct"])[data-phase="1"] .grp-chip[data-keep="0"],
   .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep="0"],
   .sql-viz[data-viz="or"][data-phase="2"] .grp-chip[data-keep="0"],
@@ -2137,10 +2138,13 @@
      s'applique — pour montrer que SQL teste chaque ligne à son tour. */
   .grp-cmp{opacity:0;margin-left:6px;font-family:var(--mono);font-size:10px;font-weight:700;color:var(--ink-3)}
   .sql-viz[data-viz="compare"][data-phase="1"] .grp-chip[data-keep="1"] .grp-cmp,
+  .sql-viz[data-viz="like"][data-phase="1"] .grp-chip[data-keep="1"] .grp-cmp,
   .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep="1"] .grp-cmp{color:var(--accent)}
   .sql-viz[data-viz="compare"][data-phase="1"] .grp-chip .grp-cmp,
+  .sql-viz[data-viz="like"][data-phase="1"] .grp-chip .grp-cmp,
   .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep0="1"] .grp-cmp{animation:cmpCmpIn .3s ease var(--dw,0ms) both}
   .sql-viz[data-viz="compare"][data-phase="1"] .grp-chip,
+  .sql-viz[data-viz="like"][data-phase="1"] .grp-chip,
   .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep0="1"]{animation:cmpVisit .5s ease var(--dw,0ms) both}
   @keyframes cmpCmpIn{from{opacity:0}to{opacity:1}}
   @keyframes cmpVisit{0%{background:var(--surface)}40%{background:rgba(91,91,214,.14)}100%{background:var(--surface)}}
@@ -25472,13 +25476,13 @@ const SQL_VIZ={
     <p class="er-hint">👆 Utilise les étapes pour suivre la lecture de gauche à droite, jusqu’à la première valeur non NULL.</p>
   </div>`},
   like:{kind:'filter',phases:[
-    {k:'SELECT nom FROM clients',d:'Les 10 clients s’affichent avec leur nom.'},
-    {k:"WHERE nom LIKE 'L%'",d:'SQL teste chaque nom : commence-t-il par L ?'},
-    {k:"WHERE nom LIKE 'L%'",d:'Le joker % signifie que n’importe quel texte peut suivre le L. Lucas et Léa correspondent donc au motif \'L%\'.'},
+    {k:'SELECT nom FROM clients',d:'SQL affiche d’abord tous les noms de la table clients.'},
+    {k:"WHERE nom LIKE 'L%'",d:'SQL compare chaque nom au modèle \'L%\'.'},
+    {k:'RÉSULTAT',d:'Le joker % accepte n’importe quelle suite de caractères après le L. SQL garde donc les 2 noms qui correspondent au modèle \'L%\' : Lucas et Léa.'},
   ],chips:[
-    {t:'Sophie',keep0:0,keep:0},{t:'Lucas',keep0:1,keep:1},{t:'Emma',keep0:0,keep:0},
-    {t:'Nathan',keep0:0,keep:0},{t:'Chloé',keep0:0,keep:0},{t:'Hugo',keep0:0,keep:0},
-    {t:'Léa',keep0:1,keep:1},{t:'Gabriel',keep0:0,keep:0},{t:'Inès',keep0:0,keep:0},{t:'Nathan n°10',keep0:0,keep:0}
+    {t:'Sophie',cmp:'S',keep:0},{t:'Lucas',cmp:'L',keep:1},{t:'Emma',cmp:'E',keep:0},
+    {t:'Nathan',cmp:'N',keep:0},{t:'Chloé',cmp:'C',keep:0},{t:'Hugo',cmp:'H',keep:0},
+    {t:'Léa',cmp:'L',keep:1},{t:'Gabriel',cmp:'G',keep:0},{t:'Inès',cmp:'I',keep:0},{t:'Nathan',cmp:'N',keep:0}
   ]},
   inbetween:{kind:'filter',phases:[
     {k:'SELECT nom, ville FROM clients',d:'Les 10 clients s’affichent avec leur nom et leur ville. SQL va ensuite vérifier si chaque ville figure dans une liste.'},
@@ -26462,7 +26466,7 @@ function layoutSqlList(root,phase,{animate=true}={}){
     c.style.transitionDelay=delay+'ms';
     const step=kind==='minmax'?200:120;
     if(kind==='count'||kind==='agg'||kind==='minmax') c.style.setProperty('--dw',animate?(i*step)+'ms':'0ms');
-    else if(root.dataset.viz==='compare'||root.dataset.viz==='andor') c.style.setProperty('--dw',animate?(i*150)+'ms':'0ms');
+    else if(root.dataset.viz==='compare'||root.dataset.viz==='andor'||root.dataset.viz==='like') c.style.setProperty('--dw',animate?(i*150)+'ms':'0ms');
     if(kind==='minmax'){
       const out=c.dataset.out;
       if(!animate||out==null||out==='') c.style.setProperty('--out','0ms');
