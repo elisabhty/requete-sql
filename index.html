@@ -7981,8 +7981,40 @@ learningCheck:{
   situationSql:"SELECT nom\nFROM clients\nWHERE nom = 'Lucas';",
   situationTail:"Tu retrouves Lucas si tu connais le nom complet. Mais tu ne te souviens que du début.",
   problematique:"L’équipe cherche un client dont elle se souvient seulement que le prénom commence par « L ». Comment le retrouver sans connaître son nom complet ?",
-    studio:{problem:{title:"LIKE permet de rechercher des caractères dans un texte.",
-      body:"Avec <code>=</code>, tu recherches une valeur exacte. Avec <code>LIKE</code>, tu peux rechercher du texte qui commence, finit ou contient certains caractères. Le symbole <code>%</code> représente la partie qui peut varier. Par exemple, <code>LIKE 'L%'</code> signifie : le nom commence par L, peu importe ce qui vient après."},
+    studio:{problem:{title:"LIKE compare du texte à un modèle, pas à une valeur exacte.",
+      body:"<code>LIKE</code> est un opérateur de comparaison utilisé avec <code>WHERE</code>.<br><br>Il permet de rechercher du texte en suivant un <b>modèle</b>, plutôt qu’une valeur exacte.<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">SELECT nom\nFROM clients\nWHERE nom LIKE 'L%';</pre></div><br><br>Ici, SQL cherche tous les noms qui commencent par L.<br><br>Résultat dans ta base : <b>Lucas</b> et <b>Léa</b>.",
+      extra:`<p class="pt-syntax-h">Le joker %</p>
+        <p>Le symbole <code>%</code> représente zéro, un ou plusieurs caractères. Sa position change donc la recherche :</p>
+        <div class="table-wrap"><table class="concept-table"><thead><tr><th>Modèle</th><th>Signification</th></tr></thead><tbody>
+          <tr><td><code>'L%'</code></td><td>commence par L</td></tr>
+          <tr><td><code>'%a'</code></td><td>se termine par a</td></tr>
+          <tr><td><code>'%ph%'</code></td><td>contient ph</td></tr>
+        </tbody></table></div>
+        <p class="agg-cta">👉 <code>%</code> signifie « peu importe ce qu’il y a ici ».</p>
+        <p class="pt-syntax-h">Le joker _</p>
+        <p><code>_</code> représente exactement un caractère.</p>
+        <div class="pt-syntax"><pre class="cw-syntax">SELECT nom
+FROM clients
+WHERE nom LIKE 'L__';</pre></div>
+        <p>SQL cherche donc : L + 1 caractère + 1 caractère — autrement dit, un nom de 3 caractères commençant par L.<br>Résultat dans ta base : <b>Léa</b>.</p>
+        <p>C’est la différence essentielle :<br><code>%</code> → 0, 1 ou plusieurs caractères<br><code>_</code> → exactement 1 caractère</p>
+        <p class="pt-syntax-h">Combiner les jokers</p>
+        <p>Les jokers peuvent être combinés.</p>
+        <div class="pt-syntax"><pre class="cw-syntax">SELECT nom
+FROM clients
+WHERE nom LIKE '_a%';</pre></div>
+        <pre class="cw-syntax">_    a    %
+│    │    │
+│    │    └─ n’importe quelle suite de caractères
+│    └────── le 2e caractère doit être "a"
+└─────────── n’importe quel caractère</pre>
+        <p>SQL cherche donc les noms dont le deuxième caractère est a.<br>Résultat dans ta base : <b>3 lignes</b> — Nathan (×2) et Gabriel.</p>
+        <p class="pt-syntax-h">NOT LIKE</p>
+        <p>Tu peux aussi rechercher ce qui ne correspond <b>pas</b> à un modèle :</p>
+        <div class="pt-syntax"><pre class="cw-syntax">SELECT nom
+FROM clients
+WHERE nom NOT LIKE 'L%';</pre></div>
+        <p>SQL conserve alors les clients dont le nom ne commence pas par L.<br>Résultat dans ta base : <b>8 lignes</b>.</p>`},
     vs:{bad:{tag:"✕ Sans joker",sql:"SELECT nom FROM clients\nWHERE nom LIKE 'L';",out:"0 ligne : aucun nom n’est exactement 'L'",
             code:"SELECT nom\nFROM clients\n<span class=\"vs-line bad\">WHERE nom LIKE 'L'</span>;"},
         good:{tag:"✓ Avec %",sql:"SELECT nom FROM clients\nWHERE nom LIKE 'L%';",out:"2 lignes : Lucas et Léa",
@@ -7992,9 +8024,11 @@ learningCheck:{
     viz:"like",
     reflex:{extra:`<div class="agg-reflex"><ul class="agg-list">
 <li><code>LIKE 'L%'</code> → <b>commence par L</b></li>
-<li><code>LIKE '%L'</code> → <b>finit par L</b></li>
-<li><code>LIKE '%mot%'</code> → <b>contient mot</b></li>
-</ul><p style="margin:10px 0 0;font-size:14.5px;line-height:1.55;color:var(--ink-2)">Sans <code>%</code>, <code>LIKE 'L'</code> recherche une correspondance exacte avec <code>'L'</code>.</p></div>`}},
+<li><code>LIKE '%a'</code> → <b>finit par a</b></li>
+<li><code>LIKE '%ph%'</code> → <b>contient ph</b></li>
+<li><code>LIKE 'L__'</code> → <b>L + exactement 2 caractères</b></li>
+<li><code>NOT LIKE</code> → <b>ne correspond pas au modèle</b></li>
+</ul></div>`}},
   anatomie:[{tok:"SELECT nom",txt:"La colonne affichée dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE nom LIKE 'L%'",txt:"Le nom doit commencer par L. Le % accepte n’importe quelle suite après."}],
   anatomieVariants:[
     {k:'avant',label:'Sans %',tone:'bad',lines:[
@@ -8014,26 +8048,16 @@ learningCheck:{
   ],
   exemple:"SELECT nom FROM clients WHERE nom LIKE 'L%';",
   attendu:"<b>2 lignes</b> : Lucas et Léa.",
-  retenir:"<code>LIKE</code> cherche un motif. <code>%</code> remplace une suite de caractères : <code>'L%'</code> commence par L, <code>'%mot%'</code> contient mot.",
-  piege:{t:"Oublier le %",p:"<code>LIKE 'L'</code> recherche une valeur correspondant à <code>'L'</code>. Pour chercher tous les noms qui commencent par L, ajoute le joker après la lettre : <code>LIKE 'L%'</code>."},
+  retenir:"<code>LIKE</code> cherche un motif. <code>%</code> remplace une suite de caractères : <code>'L%'</code> commence par L, <code>'%mot%'</code> contient mot. <code>_</code> remplace exactement un caractère.",
+  piege:{t:"Confondre = et LIKE",p:"Ne confonds pas :",
+    sql:"WHERE nom = 'L'",
+    mid:"La première condition cherche exactement <code>L</code>.<br><br>Avec :",
+    fixSql:"WHERE nom LIKE 'L%'",
+    tail:"La seconde cherche tous les noms qui commencent par L."},
   consigne:"Affiche toutes les colonnes des clients dont le nom commence par L.",
   solution:"SELECT * FROM clients WHERE nom LIKE 'L%';",
   indice:"Pour signifier « commence par L », place L au début du motif et <code>%</code> après : <code>'L%'</code>.",
   richLesson:true, earlyDemo:true ,
-testeVariants:[
-  {
-    "k": "base",
-    "label": "Exemple",
-    "sql": "SELECT * FROM clients WHERE nom LIKE 'L%';"
-  },
-  {
-    "k": "rec_underscore",
-    "label": "_a%",
-    "sql": "SELECT nom FROM clients WHERE nom LIKE '_a%';",
-    "out": "Le deuxième caractère est a, comme dans Nathan et Gabriel."
-  }
-]
-,
 learningCheck:{
   "question": "Quelle différence entre L% et _a% ?",
   "options": [
