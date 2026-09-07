@@ -2102,28 +2102,29 @@
   .sql-viz[data-viz="like"][data-phase="0"] .grp-chip{opacity:1;filter:none;text-decoration:none;background:var(--surface);border-color:var(--line-2);box-shadow:0 2px 8px rgba(20,20,40,.07)}
   .sql-viz[data-viz="andor"][data-phase="1"] .grp-chip[data-keep0="0"],
   .sql-viz[data-viz="or"][data-phase="1"] .grp-chip[data-keep0="0"],
-  .sql-viz[data-viz="nulls"][data-phase="1"] .grp-chip[data-keep0="0"],
   .sql-viz[data-viz="like"][data-phase="1"] .grp-chip[data-keep0="0"]{opacity:.32;filter:grayscale(.35);text-decoration:none}
   .sql-viz[data-viz="andor"][data-phase="1"] .grp-chip[data-keep0="1"],
   .sql-viz[data-viz="or"][data-phase="1"] .grp-chip[data-keep0="1"],
-  .sql-viz[data-viz="nulls"][data-phase="1"] .grp-chip[data-keep0="1"],
   .sql-viz[data-viz="like"][data-phase="1"] .grp-chip[data-keep0="1"]{opacity:1;filter:none;border-color:rgba(91,91,214,.42);box-shadow:0 4px 14px rgba(91,91,214,.16);background:var(--accent-soft)}
   .sql-viz[data-viz="andor"][data-phase="1"] .grp-chip[data-keep0="1"] .grp-extra,
   .sql-viz[data-viz="or"][data-phase="1"] .grp-chip[data-keep0="1"] .grp-extra,
-  .sql-viz[data-viz="nulls"][data-phase="1"] .grp-chip[data-keep0="1"] .grp-extra,
   .sql-viz[data-viz="like"][data-phase="1"] .grp-chip[data-keep0="1"] .grp-extra{color:var(--accent);font-weight:600}
+  /* NULL : 2 phases seulement (plus de « = NULL » intermédiaire), donc la
+     phase 1 est la phase finale — elle lit data-keep comme un filtre
+     standard, pas data-keep0 (réservé aux viz à 3 phases ci-dessus). */
   .sql-viz[data-kind="filter"]:not([data-viz="andor"]):not([data-viz="or"]):not([data-viz="nulls"]):not([data-viz="like"]):not([data-viz="distinct"])[data-phase="1"] .grp-chip[data-keep="0"],
   .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep="0"],
   .sql-viz[data-viz="or"][data-phase="2"] .grp-chip[data-keep="0"],
-  .sql-viz[data-viz="nulls"][data-phase="2"] .grp-chip[data-keep="0"],
+  .sql-viz[data-viz="nulls"][data-phase="1"] .grp-chip[data-keep="0"],
   .sql-viz[data-viz="like"][data-phase="2"] .grp-chip[data-keep="0"],
   .sql-viz[data-kind="limit"]:not(.vw)[data-phase="1"] .grp-chip[data-keep="0"]{opacity:.3;filter:grayscale(.4)}
   .sql-viz[data-kind="filter"]:not([data-viz="andor"]):not([data-viz="or"]):not([data-viz="nulls"]):not([data-viz="like"]):not([data-viz="distinct"])[data-phase="1"] .grp-chip[data-keep="1"],
   .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep="1"],
   .sql-viz[data-viz="or"][data-phase="2"] .grp-chip[data-keep="1"],
-  .sql-viz[data-viz="nulls"][data-phase="2"] .grp-chip[data-keep="1"],
+  .sql-viz[data-viz="nulls"][data-phase="1"] .grp-chip[data-keep="1"],
   .sql-viz[data-viz="like"][data-phase="2"] .grp-chip[data-keep="1"],
   .sql-viz[data-kind="limit"]:not(.vw)[data-phase="1"] .grp-chip[data-keep="1"]{border-color:rgba(20,184,166,.4);box-shadow:0 4px 14px rgba(20,184,166,.16)}
+  .sql-viz[data-viz="nulls"][data-phase="1"] .grp-chip[data-keep="1"] .grp-extra{color:var(--accent);font-weight:600}
   /* Pas de texte barré sur les lignes écartées : WHERE (et ses dérivés
      AND/OR/NULL/LIKE/comparaisons) ne supprime rien de la table, il filtre
      seulement le résultat. Le grisé + l'opacité réduite suffisent à montrer
@@ -25319,12 +25320,11 @@ const SQL_VIZ={
   ]},
   nulls:{kind:'filter',phases:[
     {k:'SELECT nom, email FROM clients',d:'SQL affiche tous les clients, qu’un email soit renseigné ou non.'},
-    {k:'WHERE email = NULL',d:'NULL ne se compare pas avec =. Aucune ligne n’est sélectionnée.'},
-    {k:'WHERE email IS NULL',d:'IS NULL recherche les emails absents : seuls Hugo et Inès sont sélectionnés.'}
+    {k:'WHERE email IS NULL',d:'IS NULL garde uniquement les clients dont l’email est absent : Hugo et Inès.'}
   ],chips:[
-    {t:'Sophie',extra:'sophie@…',keep0:0,keep:0},{t:'Lucas',extra:'lucas@…',keep0:0,keep:0},{t:'Emma',extra:'emma@…',keep0:0,keep:0},
-    {t:'Nathan',extra:'nathan@…',keep0:0,keep:0},{t:'Chloé',extra:'chloe@…',keep0:0,keep:0},{t:'Hugo',extra:'NULL',keep0:0,keep:1},
-    {t:'Léa',extra:'lea@…',keep0:0,keep:0},{t:'Gabriel',extra:'gabriel@…',keep0:0,keep:0},{t:'Inès',extra:'NULL',keep0:0,keep:1},{t:'Nathan n°10',extra:'nathan.dupont@…',keep0:0,keep:0}
+    {t:'Sophie',extra:'sophie@…',keep:0},{t:'Lucas',extra:'lucas@…',keep:0},{t:'Emma',extra:'emma@…',keep:0},
+    {t:'Nathan',extra:'nathan@…',keep:0},{t:'Chloé',extra:'chloe@…',keep:0},{t:'Hugo',extra:'NULL',keep:1},
+    {t:'Léa',extra:'lea@…',keep:0},{t:'Gabriel',extra:'gabriel@…',keep:0},{t:'Inès',extra:'NULL',keep:1},{t:'Nathan n°10',extra:'nathan.dupont@…',keep:0}
   ]},
   coalesce:{kind:'er',sample:'10 clients · 2 emails NULL',stepMs:7200,phases:[
     {k:'Lire la colonne email',d:'SQL parcourt les 10 clients. Huit adresses existent ; celles de Hugo et Inès valent <code>NULL</code>.',sql:'SELECT nom, email\nFROM clients',read:'<code>NULL</code> signifie « valeur absente ». Ce n’est ni une chaîne vide, ni le texte « NULL ».'},
