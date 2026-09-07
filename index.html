@@ -2126,6 +2126,11 @@
   .sql-viz[data-viz="like"][data-phase="2"] .grp-chip[data-keep="1"],
   .sql-viz[data-kind="limit"]:not(.vw)[data-phase="1"] .grp-chip[data-keep="1"]{border-color:rgba(20,184,166,.4);box-shadow:0 4px 14px rgba(20,184,166,.16)}
   .sql-viz[data-viz="nulls"][data-phase="1"] .grp-chip[data-keep="1"] .grp-extra{color:var(--accent);font-weight:600}
+  /* Étape « ORDER BY age » : les lignes ne bougent pas encore (le tri
+     n'arrive qu'à la dernière phase, voir sortAt dans layoutSqlList) — on
+     met seulement l'âge en évidence pour montrer que SQL regarde cette
+     colonne avant de réordonner quoi que ce soit. */
+  .sql-viz[data-viz="orderby"][data-phase="1"] .grp-chip .grp-extra{color:var(--accent);font-weight:700}
   /* Pas de texte barré sur les lignes écartées : WHERE (et ses dérivés
      AND/OR/NULL/LIKE/comparaisons) ne supprime rien de la table, il filtre
      seulement le résultat. Le grisé + l'opacité réduite suffisent à montrer
@@ -8241,33 +8246,27 @@ learningCheck:{
   situationSql:"SELECT nom, date_inscription\nFROM clients;",
   situationTail:"Tu obtiens bien tous les clients, mais ils ne sont pas forcément affichés dans l’ordre souhaité.<br><br>Comment demander à SQL de trier les résultats ? C’est exactement ce que permet la clause <code>ORDER BY</code>.",
     studio:{problem:{title:"ORDER BY range les lignes du résultat.",
-      body:"Sans <code>ORDER BY</code>, aucun ordre des lignes n’est garanti. Elles peuvent sembler suivre l’ordre des identifiants aujourd’hui et apparaître autrement plus tard. <code>ORDER BY age DESC</code> range les lignes selon la colonne <code>age</code>, du plus grand âge au plus petit. Le nombre de lignes ne change pas : <code>ORDER BY</code> les réorganise simplement."},
-    vs:{bad:{tag:"✕ Sans ORDER BY",sql:"SELECT nom, age FROM clients;",out:"10 lignes, mais aucun ordre n’est garanti",
+      body:"<code>ORDER BY</code> trie les lignes du résultat.<br><br>Sans <code>ORDER BY</code>, SQL affiche les lignes sans garantir leur ordre.<br><br>Avec :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">ORDER BY age DESC</pre></div><br><br>SQL prend la colonne <code>age</code> comme critère de tri et classe les clients du plus âgé au plus jeune.<br><br><code>DESC</code> signifie que le tri se fait du plus grand au plus petit.<br><br>👉 <code>ORDER BY</code> ne supprime et n’ajoute aucune ligne : il change uniquement leur ordre d’affichage."},
+    vs:{bad:{tag:"✕ SANS TRI",sql:"SELECT nom, age FROM clients;",out:"10 lignes, mais aucun ordre n’est garanti",
             code:"SELECT nom, age\nFROM clients;"},
-        good:{tag:"✓ Du plus âgé au plus jeune",sql:"SELECT nom, age FROM clients\nORDER BY age DESC;",out:"Hugo 52, Emma 45, Inès 41, Léa 38, Sophie 34…",
+        good:{tag:"✓ TRIÉS DU PLUS ÂGÉ AU PLUS JEUNE",sql:"SELECT nom, age FROM clients\nORDER BY age DESC;",out:"Hugo 52, Emma 45, Inès 41, Léa 38, Sophie 34…",
             code:"SELECT nom, age\nFROM clients\n<span class=\"vs-line good\">ORDER BY age DESC</span>;"}},
     why:{title:"ASC ou DESC : dans quel sens trier ?",
       body:"<code>ASC</code> signifie <b>ordre croissant</b> : du plus petit au plus grand. Pour un âge, 26 vient avant 52.<br><br><code>DESC</code> signifie <b>ordre décroissant</b> : du plus grand au plus petit. Pour un âge, 52 vient avant 26.<br><br><code>ASC</code> est le choix par défaut : <code>ORDER BY age</code> et <code>ORDER BY age ASC</code> produisent le même tri."},
     viz:"orderby",
-    reflex:{a:{k:"ASC",t:"ordre <b>croissant</b> — du plus petit au plus grand"},
-      b:{k:"DESC",t:"ordre <b>décroissant</b> — du plus grand au plus petit"},
-      note:"<code>ASC</code> est facultatif car c’est l’ordre par défaut."}},
-  anatomie:[{tok:"SELECT nom, age",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"ORDER BY age DESC",txt:"Range les lignes du plus âgé au plus jeune."}],
-  anatomieVariants:[
-    {k:'avant',label:'SELECT',tone:'bad',lines:[
-      {tok:"SELECT nom, age",txt:"Les colonnes affichées dans le résultat."},
-      {tok:"FROM clients",txt:"La table clients est utilisée comme source."}
-    ]},
-    {k:'avec',label:'ORDER BY',tone:'good',lines:[
-      {tok:"SELECT nom, age",txt:"Les colonnes affichées dans le résultat."},
-      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
-      {tok:"ORDER BY age DESC",txt:"Range les lignes du plus âgé au plus jeune."}
-    ]}
+    reflex:{a:{k:"ASC ↑",t:"ordre <b>croissant</b> — du plus petit au plus grand<br><code>12 → 20 → 35 → 50</code>"},
+      b:{k:"DESC ↓",t:"ordre <b>décroissant</b> — du plus grand au plus petit<br><code>50 → 35 → 20 → 12</code>"},
+      note:"💡 À retenir : <code>ASC</code> est le sens utilisé par défaut.<br><br><code>ORDER BY prix</code> revient donc à écrire <code>ORDER BY prix ASC</code>."}},
+  anatomie:[
+    {tok:"ORDER BY prix ASC",txt:"Trie les résultats selon <code>prix</code>, du plus petit au plus grand."},
+    {tok:"ASC",txt:"Signifie <i>ascending</i> : ordre croissant.<br>Ex. : 12,50 → 14,90 → 15,00 → 19,90…"},
+    {tok:"ORDER BY prix DESC",txt:"Trie les résultats selon <code>prix</code>, du plus grand au plus petit."},
+    {tok:"DESC",txt:"Signifie <i>descending</i> : ordre décroissant.<br>Ex. : 39,90 → 34,90 → 29,90 → 24,90…"}
   ],
   exemple:"SELECT nom, age FROM clients ORDER BY age DESC;",
   attendu:"<b>10 lignes</b>, du plus âgé au plus jeune : Hugo 52, Emma 45, Inès 41, Léa 38, Sophie 34, Nathan 31, Nathan 30, Gabriel 29, Lucas 28, Chloé 26.",
   retenir:"<code>ORDER BY</code> range le résultat, il ne filtre aucune ligne. <code>ASC</code> croissant, <code>DESC</code> décroissant.",
-  piege:{t:"Se fier à l’ordre affiché sans ORDER BY",p:"Une requête sans <code>ORDER BY</code> ne garantit aucun ordre, même si les lignes semblent suivre les id. Si l’ordre est important, écris-le explicitement avec <code>ORDER BY</code>."},
+  piege:{t:"Penser que les lignes sont déjà triées",p:"Sans <code>ORDER BY</code>, SQL ne garantit aucun ordre des lignes, même si elles semblent déjà bien rangées.<br><br>👉 Si l’ordre compte, indique toujours le tri avec <code>ORDER BY</code>."},
   consigne:"Affiche toutes les colonnes de la table produits en triant les produits du moins cher au plus cher.",
   solution:"SELECT * FROM produits ORDER BY prix ASC;",
   indice:"Trie sur la colonne <code>prix</code> dans l’ordre croissant avec <code>ORDER BY prix ASC</code>. <code>ASC</code> est facultatif.",
@@ -8275,16 +8274,18 @@ learningCheck:{
   ordered:true ,
 testeVariants:[
   {
-    "k": "base",
-    "label": "Exemple",
-    "sql": "SELECT * FROM produits ORDER BY prix ASC;"
+    "k": "asc",
+    "label": "↑ Prix croissant (ASC)",
+    "sql": "SELECT * FROM produits\nORDER BY prix ASC;",
+    "out": "8 lignes, de Tisane Détox (12,50 €) à Collagène Marin (39,90 €).",
+    "expectRows": 8
   },
   {
-    "k": "rec_asc",
-    "label": "Âges croissants",
-    "sql": "SELECT nom, age FROM clients ORDER BY age ASC, id;",
-    "out": "Chloé, 26 ans, passe en premier.",
-    "expectRows": 10
+    "k": "desc",
+    "label": "↓ Prix décroissant (DESC)",
+    "sql": "SELECT * FROM produits\nORDER BY prix DESC;",
+    "out": "8 lignes, de Collagène Marin (39,90 €) à Tisane Détox (12,50 €).",
+    "expectRows": 8
   }
 ]
 ,
@@ -8300,11 +8301,11 @@ learningCheck:{
 }
 },
 { id:24, titre:"ORDER BY plusieurs colonnes", résumé:"Départager les égalités par un second critère",
-  situation:"Tu tries les produits par catégorie. Mais plusieurs produits partagent la même catégorie, et leur ordre interne est imprévisible.<br><br>Tu veux d'abord regrouper par catégorie, puis, <b>à catégorie égale</b>, trier du moins cher au plus cher.",
+  situation:"Tu veux afficher les produits par catégorie, puis les classer du moins cher au plus cher à l’intérieur de chaque catégorie.<br><br>Avec ce que tu connais déjà, tu peux trier les produits par catégorie :",
   situationSql:"ORDER BY categorie",
-  situationTail:"<code>ORDER BY</code> accepte <b>plusieurs colonnes</b>, séparées par des virgules : la première trie, la suivante départage les égalités, et ainsi de suite.",
+  situationTail:"Mais lorsque plusieurs produits ont la même catégorie, dans quel ordre doivent-ils apparaître entre eux ?<br><br>Tu as besoin d’un deuxième critère de tri : le prix.",
     studio:{problem:{title:"Chaque colonne supplémentaire départage les ex æquo de la précédente.",
-      body:"<code>ORDER BY categorie, prix</code> trie par catégorie ; quand deux produits ont la même, le <code>prix</code> tranche. Chaque colonne a son propre sens : <code>ORDER BY categorie ASC, prix DESC</code> trie la catégorie en croissant et le prix en décroissant."},
+      body:"<code>ORDER BY</code> peut trier sur plusieurs colonnes, séparées par des virgules.<br><br>SQL trie d’abord selon la première colonne. En cas d’égalité, il utilise la suivante pour départager les lignes.<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">SELECT nom, categorie, prix\nFROM produits\nORDER BY categorie ASC, prix ASC;</pre></div><br><br>① <code>categorie</code> → premier critère de tri<br>② même catégorie ? → <code>prix</code> départage les produits"},
     reflex:{a:{k:"Ordre",t:"la 1ʳᵉ colonne trie, la suivante <b>départage les égalités</b>"},
       b:{k:"ASC / DESC",t:"se règlent <b>colonne par colonne</b>"},
       note:"<code>ORDER BY categorie, prix DESC</code> = catégories A→Z, et dans chacune du plus cher au moins cher."}},
@@ -25580,12 +25581,12 @@ const SQL_VIZ={
     {t:'Oméga 3',extra:'24,90',keep:1},{t:'Shaker',extra:'15,00',keep:1}
   ]},
   orderby:{kind:'sort',phases:[
-    {k:'SELECT nom, age FROM clients',d:'Les 10 clients s’affichent. Sans ORDER BY, aucun ordre n’est garanti.'},
-    {k:'ORDER BY age DESC',d:'SQL lit l’âge de chaque ligne : c’est la clé du tri. Personne n’est écarté.'},
-    {k:'ORDER BY age DESC',d:'Les mêmes 10 personnes se rangent du plus âgé au plus jeune. Seul l’ordre change.'}
+    {k:'SELECT nom, age',d:'Les 10 clients sont récupérés. À ce stade, aucun tri n’est demandé.'},
+    {k:'ORDER BY age',d:'SQL utilise <code>age</code> comme critère de tri.'},
+    {k:'DESC',d:'<code>DESC</code> demande de classer les âges du plus grand au plus petit. Les mêmes 10 clients sont alors réorganisés.'}
   ],chips:[
-    {t:'Sophie',extra:'34',rank:4},{t:'Lucas',extra:'28',rank:7},{t:'Emma',extra:'45',rank:1},
-    {t:'Nathan',extra:'31',rank:5},{t:'Chloé',extra:'26',rank:8},{t:'Hugo',extra:'52',rank:0},
+    {t:'Sophie',extra:'34',rank:4},{t:'Lucas',extra:'28',rank:8},{t:'Emma',extra:'45',rank:1},
+    {t:'Nathan',extra:'31',rank:5},{t:'Chloé',extra:'26',rank:9},{t:'Hugo',extra:'52',rank:0},
     {t:'Léa',extra:'38',rank:3},{t:'Gabriel',extra:'29',rank:7},{t:'Inès',extra:'41',rank:2},{t:'Nathan n°10',extra:'30',rank:6}
   ]},
   limit:{kind:'limit',phases:[
