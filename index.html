@@ -8437,13 +8437,18 @@ learningCheck:{
 }
 },
 { id:75, titre:"OFFSET et pagination", résumé:"Découper un résultat en pages stables",
-  situation:"Ton catalogue affiche trois produits par page. La première page utilise déjà <code>LIMIT 3</code>.<br><br>Pour afficher la page suivante, il faut ignorer les trois produits déjà vus, sans perdre l’ordre du classement.",
-  situationSql:"SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC, id ASC\nLIMIT 3 OFFSET 3;",
-  situationTail:"<div class=\"sit-sql\"><p><code>LIMIT 3</code> fixe la taille de la page. <code>OFFSET 3</code> saute les trois premières lignes du résultat <b>déjà trié</b>.</p></div>",
+  situation:"Ton catalogue affiche 3 produits par page.<br><br>Pour la première page, tu affiches les 3 premiers produits :",
+  situationSql:"ORDER BY prix DESC\nLIMIT 3;",
+  situationTail:"Mais que se passe-t-il lorsque l’utilisateur clique sur Page 2 ?<br><br>Tu ne veux pas afficher à nouveau les mêmes produits. SQL doit passer les 3 premiers, puis afficher les 3 suivants.<br><br>C’est exactement le rôle de <code>OFFSET</code>.<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 3 OFFSET 3;</pre></div><br><br><code>LIMIT 3</code> → affiche au maximum 3 produits.<br><code>OFFSET 3</code> → ignore les 3 premiers produits et commence au suivant.",
   studio:{pointCards:{eye:"OFFSET",title:"Trier, sauter, puis garder.",
-      lead:"Une pagination fiable repose sur trois éléments : un ordre stable, le nombre de lignes à ignorer, puis la taille de la page.",
-      chain:[{k:"ORDER BY",v:"stabilise l’ordre"},{k:"OFFSET",v:"saute les lignes déjà vues"},{k:"LIMIT",v:"fixe la taille de page"}]},
+      lead:"Une pagination repose sur deux éléments : combien de lignes garder, et combien en ignorer avant de commencer.",
+      chain:[{k:"LIMIT",v:"combien de lignes afficher"},{k:"OFFSET",v:"combien de lignes passer avant de commencer"}]},
     uses:{title:"Passer d’une page à l’autre.",body:`<div class="pt-lead fn-uses">
+      <div class="fn-use"><p class="pt-syntax-h">Une page, un OFFSET</p><table class="join-recap sort-cmp"><thead><tr><th scope="col">Page</th><th scope="col">Produits</th><th scope="col">Requête</th></tr></thead><tbody>
+        <tr><td class="jr-type">Page 1</td><td class="jr-quoi">1, 2, 3</td><td class="jr-quoi"><code>LIMIT 3 OFFSET 0</code></td></tr>
+        <tr><td class="jr-type">Page 2</td><td class="jr-quoi">4, 5, 6</td><td class="jr-quoi"><code>LIMIT 3 OFFSET 3</code></td></tr>
+        <tr><td class="jr-type">Page 3</td><td class="jr-quoi">7, 8, 9</td><td class="jr-quoi"><code>LIMIT 3 OFFSET 6</code></td></tr>
+      </tbody></table></div>
       <div class="fn-use"><p class="pt-syntax-h">Calculer le décalage</p><p>Pour des pages de 3 lignes, la page 1 commence à 0, la page 2 à 3 et la page 3 à 6.</p><div class="pt-syntax"><pre class="cw-syntax">OFFSET = (numéro_page - 1) × taille_page</pre></div></div>
       <div class="fn-use"><p class="pt-syntax-h">Un ordre stable est indispensable</p><p>Sans <code>ORDER BY</code>, aucune page n’est reproductible. Si deux prix sont égaux, ajoute une clé unique comme <code>id</code> pour départager : <code>ORDER BY prix DESC, id ASC</code>.</p></div>
       <div class="fn-use"><p class="pt-syntax-h">Les limites d’OFFSET</p><p>Sur une très grande table, SQL doit tout de même parcourir les lignes ignorées. Pour une application massive, on préfère parfois reprendre après la dernière clé affichée. Pour ce catalogue, <code>LIMIT … OFFSET …</code> reste la solution la plus claire.</p></div>
