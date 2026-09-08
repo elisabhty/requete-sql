@@ -511,7 +511,7 @@
      de se replier sur les petits écrans.
      ============================================================ */
   .join-recap{width:100%;border-collapse:collapse;font-size:13.5px;table-layout:fixed}
-  .join-recap th{background:var(--bg);color:var(--ink-3);font-size:10.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;text-align:left;padding:11px 12px;border-bottom:1px solid var(--line)}
+  .join-recap th{background:var(--bg);color:var(--ink-3);font-size:10.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);overflow-wrap:break-word}
   .join-recap th,.join-recap td{white-space:normal}
   .join-recap td{padding:12px 10px;border-bottom:1px solid var(--line);color:var(--ink);line-height:1.4;vertical-align:middle;text-align:left;overflow-wrap:break-word;font-family:var(--ui)}
   .join-recap tr:last-child td{border-bottom:0}
@@ -560,6 +560,14 @@
      pensés pour l'icône du récapitulatif JOIN : un libellé texte comme
      « Type de donnée » se retrouvait coupé mot par mot. */
   .join-recap.sort-cmp thead th:first-child,.join-recap.sort-cmp .jr-type{width:34%}
+  /* Colonne « Requête » (fragment SQL en <code>) : le code hérite du
+     white-space:nowrap global (utile en prose, pas dans une colonne de
+     ~90px) et débordait sans jamais passer à la ligne. La 2ᵉ colonne
+     (contenu court : « 1, 2, 3 ») rétrécit pour lui laisser la place. */
+  .join-recap.has-sql thead th:first-child{width:22%}
+  .join-recap.has-sql thead th:nth-child(2){width:29%}
+  .join-recap.has-sql thead th:nth-child(3){width:49%}
+  .join-recap.has-sql code{white-space:normal;word-break:break-word;line-height:1.4;display:inline-block}
   /* Sans qualifier le sélecteur, la marge est écrasée par celle des
      paragraphes du bloc et la phrase colle au tableau. */
   .concept-block .fn-cmp-say{margin:16px 0 0}
@@ -8491,7 +8499,7 @@ learningCheck:{
         <div class="offset-demo-row"><i>7</i><b>Vitamine D</b><span>14,90 €</span></div>
         <div class="offset-demo-row"><i>8</i><b>Tisane Détox</b><span>12,50 €</span></div>
       </div></div>
-      <div class="fn-use"><p class="pt-syntax-h">Construire plusieurs pages</p><p>Le <code>LIMIT</code> reste identique d’une page à l’autre : c’est l’<code>OFFSET</code> qui avance.</p><table class="join-recap sort-cmp"><thead><tr><th scope="col">Page</th><th scope="col">Produits</th><th scope="col">Requête</th></tr></thead><tbody>
+      <div class="fn-use"><p class="pt-syntax-h">Construire plusieurs pages</p><p>Le <code>LIMIT</code> reste identique d’une page à l’autre : c’est l’<code>OFFSET</code> qui avance.</p><table class="join-recap sort-cmp has-sql"><thead><tr><th scope="col">Page</th><th scope="col">Produits</th><th scope="col">Requête</th></tr></thead><tbody>
         <tr><td class="jr-type">Page 1</td><td class="jr-quoi">1, 2, 3</td><td class="jr-quoi"><code>LIMIT 3 OFFSET 0</code></td></tr>
         <tr><td class="jr-type">Page 2</td><td class="jr-quoi">4, 5, 6</td><td class="jr-quoi"><code>LIMIT 3 OFFSET 3</code></td></tr>
         <tr><td class="jr-type">Page 3</td><td class="jr-quoi">7, 8</td><td class="jr-quoi"><code>LIMIT 3 OFFSET 6</code></td></tr>
