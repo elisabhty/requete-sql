@@ -8372,19 +8372,17 @@ learningCheck:{
   anatomieVariants:[
     {k:'avant',label:'LIMIT seul',tone:'bad',lines:[
       {tok:"SELECT nom, prix",txt:"Affiche le nom et le prix."},
-      {tok:"FROM produits",txt:"Les données viennent de la table produits."},
-      {tok:"LIMIT 3",txt:"Garde 3 lignes, mais sans tri : rien ne dit que ce sont les 3 produits les plus chers."}
+      {tok:"FROM produits",txt:"Utilise la table produits."},
+      {tok:"LIMIT 3",txt:"Garde au maximum 3 lignes du résultat. Aucun tri n’est demandé."}
     ]},
     {k:'avec',label:'ORDER BY + LIMIT',tone:'good',lines:[
-      {tok:"SELECT nom, prix",txt:"Affiche le nom et le prix."},
-      {tok:"FROM produits",txt:"Les données viennent de la table produits."},
       {tok:"ORDER BY prix DESC",txt:"Classe les produits du plus cher au moins cher."},
-      {tok:"LIMIT 3",txt:"Garde uniquement les 3 premières lignes après le tri."}
+      {tok:"LIMIT 3",txt:"Garde les 3 premiers produits de ce classement."}
     ]}
   ],
   testeVariants:[
-    {k:'avant',label:'LIMIT seul',sql:"SELECT nom, prix FROM produits\nLIMIT 3;",out:"3 lignes, mais pas forcément les 3 produits les plus chers",tone:'bad'},
-    {k:'avec',label:'ORDER BY + LIMIT',sql:"SELECT nom, prix FROM produits\nORDER BY prix DESC\nLIMIT 3;",out:"3 lignes : Collagène Marin, Protéine Végétale, Fibre Prébiotique",tone:'good'}
+    {k:'avant',label:'LIMIT seul',sql:"SELECT nom, prix\nFROM produits\nLIMIT 3;",out:"3 lignes, mais pas forcément les 3 produits les plus chers",tone:'bad'},
+    {k:'avec',label:'ORDER BY + LIMIT',sql:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 3;",out:"3 lignes : Collagène Marin, Protéine Végétale, Fibre Prébiotique",tone:'good'}
   ],
   exemple:"SELECT nom, prix FROM produits ORDER BY prix DESC LIMIT 3;",
   attendu:"<b>3 lignes</b> : Collagène Marin à 39,90 €, Protéine Végétale à 34,90 € et Fibre Prébiotique à 29,90 €.",
