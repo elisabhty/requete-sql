@@ -8259,17 +8259,18 @@ learningCheck:{
     why:{title:"ASC ou DESC : dans quel sens trier ?",
       body:"<code>ASC</code> signifie <b>ordre croissant</b> : du plus petit au plus grand. Pour un âge, 26 vient avant 52.<br><br><code>DESC</code> signifie <b>ordre décroissant</b> : du plus grand au plus petit. Pour un âge, 52 vient avant 26.<br><br><code>ASC</code> est le choix par défaut : <code>ORDER BY age</code> et <code>ORDER BY age ASC</code> produisent le même tri."},
     viz:"orderby",
-    reflex:{a:{k:"ASC ↑",t:"ordre <b>croissant</b> — du plus petit au plus grand<br><code>12 → 20 → 35 → 50</code>"},
-      b:{k:"DESC ↓",t:"ordre <b>décroissant</b> — du plus grand au plus petit<br><code>50 → 35 → 20 → 12</code>"},
-      note:"💡 À retenir : <code>ASC</code> est le sens utilisé par défaut.<br><br><code>ORDER BY prix</code> revient donc à écrire <code>ORDER BY prix ASC</code>."}},
+    reflex:{a:{k:"ASC ↑",t:"Ordre croissant — du plus ancien au plus récent<br><code>2023-01-10 → 2023-04-15 → 2023-08-03</code>"},
+      b:{k:"DESC ↓",t:"Ordre décroissant — du plus récent au plus ancien<br><code>2023-08-03 → 2023-04-15 → 2023-01-10</code>"},
+      note:"💡 À retenir : <code>ASC</code> est le sens utilisé par défaut.<br><br>Donc : <code>ORDER BY date_inscription</code> revient à écrire <code>ORDER BY date_inscription ASC</code>."},
+    or:{title:"Gérer les valeurs NULL dans un tri",body:"Prenons notre table <code>clients</code>, dans laquelle certains clients n’ont pas d’adresse email :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">SELECT nom, email\nFROM clients\nORDER BY email ASC;</pre></div><br><br>Avec <code>ASC</code>, les clients dont <code>email</code> vaut <code>NULL</code> apparaissent en premier, puis les autres emails sont triés par ordre alphabétique.<br><br>SQLite permet également d’indiquer explicitement où placer les <code>NULL</code> :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">SELECT nom, email\nFROM clients\nORDER BY email ASC NULLS LAST;</pre></div><br><br>Ici :<br><code>email ASC</code> → trie les emails de A à Z.<br><code>NULLS LAST</code> → place les emails manquants à la fin.<br><br>À l’inverse :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">ORDER BY email ASC NULLS FIRST;</pre></div><br><br>place les valeurs <code>NULL</code> au début.<br><br>👉 À retenir : <code>NULLS FIRST</code> et <code>NULLS LAST</code> permettent de choisir explicitement où afficher les valeurs manquantes, plutôt que de dépendre du comportement par défaut."}},
   anatomie:[
-    {tok:"ORDER BY prix ASC",txt:"Trie les résultats selon <code>prix</code>, du plus petit au plus grand."},
-    {tok:"ASC",txt:"Signifie <i>ascending</i> : ordre croissant.<br>Ex. : 12,50 → 14,90 → 15,00 → 19,90…"},
-    {tok:"ORDER BY prix DESC",txt:"Trie les résultats selon <code>prix</code>, du plus grand au plus petit."},
-    {tok:"DESC",txt:"Signifie <i>descending</i> : ordre décroissant.<br>Ex. : 39,90 → 34,90 → 29,90 → 24,90…"}
+    {tok:"ORDER BY date_inscription ASC",txt:"Trie les résultats selon <code>date_inscription</code>, du plus ancien au plus récent."},
+    {tok:"ASC",txt:"Signifie <i>ascending</i> : ordre croissant.<br>Ex. : 2022-09-30 → 2022-11-05 → 2023-01-15 → 2023-02-18…"},
+    {tok:"ORDER BY date_inscription DESC",txt:"Trie les résultats selon <code>date_inscription</code>, du plus récent au plus ancien."},
+    {tok:"DESC",txt:"Signifie <i>descending</i> : ordre décroissant.<br>Ex. : 2023-08-03 → 2023-07-26 → 2023-06-10 → 2023-05-12…"}
   ],
-  exemple:"SELECT nom, age FROM clients ORDER BY age DESC;",
-  attendu:"<b>10 lignes</b>, du plus âgé au plus jeune : Hugo 52, Emma 45, Inès 41, Léa 38, Sophie 34, Nathan 31, Nathan 30, Gabriel 29, Lucas 28, Chloé 26.",
+  exemple:"SELECT nom, date_inscription FROM clients ORDER BY date_inscription DESC;",
+  attendu:"<b>10 lignes</b>, du plus récent au plus ancien : Nathan (2023-08-03), Inès (2023-07-26), Nathan (2023-06-10), Léa (2023-05-12), Gabriel (2023-04-08), Lucas (2023-03-22), Chloé (2023-02-18), Sophie (2023-01-15), Emma (2022-11-05), Hugo (2022-09-30).",
   retenir:"<code>ORDER BY</code> range le résultat, il ne filtre aucune ligne. <code>ASC</code> croissant, <code>DESC</code> décroissant.",
   piege:{t:"Penser que les lignes sont déjà triées",p:"Sans <code>ORDER BY</code>, SQL ne garantit aucun ordre des lignes, même si elles semblent déjà bien rangées.<br><br>👉 Si l’ordre compte, indique toujours le tri avec <code>ORDER BY</code>."},
   consigne:"Affiche toutes les colonnes de la table produits en triant les produits du moins cher au plus cher.",
@@ -8288,17 +8289,17 @@ learningCheck:{
 testeVariants:[
   {
     "k": "asc",
-    "label": "↑ Prix croissant (ASC)",
-    "sql": "SELECT * FROM produits\nORDER BY prix ASC;",
-    "out": "8 lignes, de Tisane Détox (12,50 €) à Collagène Marin (39,90 €).",
-    "expectRows": 8
+    "label": "↑ Plus ancien (ASC)",
+    "sql": "SELECT * FROM clients\nORDER BY date_inscription ASC;",
+    "out": "10 lignes, de Hugo (2022-09-30) à Nathan (2023-08-03).",
+    "expectRows": 10
   },
   {
     "k": "desc",
-    "label": "↓ Prix décroissant (DESC)",
-    "sql": "SELECT * FROM produits\nORDER BY prix DESC;",
-    "out": "8 lignes, de Collagène Marin (39,90 €) à Tisane Détox (12,50 €).",
-    "expectRows": 8
+    "label": "↓ Plus récent (DESC)",
+    "sql": "SELECT * FROM clients\nORDER BY date_inscription DESC;",
+    "out": "10 lignes, de Nathan (2023-08-03) à Hugo (2022-09-30).",
+    "expectRows": 10
   }
 ]
 ,
@@ -25586,13 +25587,13 @@ const SQL_VIZ={
     {t:'Oméga 3',extra:'24,90',keep:1},{t:'Shaker',extra:'15,00',keep:1}
   ]},
   orderby:{kind:'sort',phases:[
-    {k:'SELECT nom, age',d:'Les 10 clients sont récupérés. À ce stade, aucun tri n’est demandé.'},
-    {k:'ORDER BY age',d:'SQL utilise <code>age</code> comme critère de tri.'},
-    {k:'DESC',d:'<code>DESC</code> demande de classer les âges du plus grand au plus petit. Les mêmes 10 clients sont alors réorganisés.'}
+    {k:'SELECT nom, date_inscription',d:'SQL récupère les 10 clients avec leur date d’inscription. Aucun classement n’est encore demandé.'},
+    {k:'ORDER BY date_inscription',d:'SQL utilise <code>date_inscription</code> comme critère de tri.'},
+    {k:'DESC',d:'<code>DESC</code> demande de classer les dates de la plus récente à la plus ancienne. Les mêmes 10 clients sont alors réorganisés.'}
   ],chips:[
-    {t:'Sophie',extra:'34',rank:4},{t:'Lucas',extra:'28',rank:8},{t:'Emma',extra:'45',rank:1},
-    {t:'Nathan',extra:'31',rank:5},{t:'Chloé',extra:'26',rank:9},{t:'Hugo',extra:'52',rank:0},
-    {t:'Léa',extra:'38',rank:3},{t:'Gabriel',extra:'29',rank:7},{t:'Inès',extra:'41',rank:2},{t:'Nathan n°10',extra:'30',rank:6}
+    {t:'Sophie',extra:'2023-01-15',rank:7},{t:'Lucas',extra:'2023-03-22',rank:5},{t:'Emma',extra:'2022-11-05',rank:8},
+    {t:'Nathan',extra:'2023-06-10',rank:2},{t:'Chloé',extra:'2023-02-18',rank:6},{t:'Hugo',extra:'2022-09-30',rank:9},
+    {t:'Léa',extra:'2023-05-12',rank:3},{t:'Gabriel',extra:'2023-04-08',rank:4},{t:'Inès',extra:'2023-07-26',rank:1},{t:'Nathan n°10',extra:'2023-08-03',rank:0}
   ]},
   limit:{kind:'limit',phases:[
     {k:'SELECT nom, prix FROM produits',d:'SQL récupère les 8 produits avec leur prix. Aucun classement n’est encore demandé.'},
