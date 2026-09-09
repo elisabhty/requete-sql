@@ -8510,7 +8510,7 @@ learningCheck:{
 { id:75, titre:"OFFSET et pagination", résumé:"Découper un résultat en pages stables",
   situation:"Ton site e-commerce possède un catalogue de produits.<br><br>Les informations affichées dans ce catalogue — nom, prix, stock… — sont récupérées dans la table <code>produits</code> de ta base de données.<br><br>Mais si la table contient des centaines ou des milliers de produits, tu ne veux pas tout envoyer et tout afficher sur une seule page.<br><br>Ton site décide donc d’afficher 3 produits par page.<br><br>Pour la Page 1, SQL récupère les 3 premiers produits du classement :",
   situationSql:"SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 3;",
-  situationTail:"<code>ORDER BY prix DESC</code> → classe les produits du plus cher au moins cher.<br><code>LIMIT 3</code> → SQL ne renvoie que les 3 premiers.<br><br>Le site peut alors afficher ces 3 produits sur la première page.<br><br>Mais l’utilisateur clique maintenant sur Page 2.<br><br>Si le site exécute à nouveau :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">LIMIT 3;</pre></div><br><br>SQL renverra encore les 3 premiers produits.<br><br>Or, sur la Page 2, tu veux récupérer les 3 produits suivants.<br><br>SQL doit donc :<br>1. ignorer les 3 produits déjà récupérés pour la Page 1 ;<br>2. récupérer les 3 suivants pour la Page 2.<br><br>C’est le rôle de <code>OFFSET</code> :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 3 OFFSET 3;</pre></div><br><br><code>OFFSET 3</code> → ignore les 3 premières lignes du résultat.<br><code>LIMIT 3</code> → récupère ensuite les 3 lignes suivantes.",
+  situationTail:"<code>ORDER BY prix DESC</code> → classe les produits du plus cher au moins cher.<br><code>LIMIT 3</code> → SQL ne renvoie que les 3 premiers.<br><br>Le site peut alors afficher ces 3 produits sur la première page.<br><br>Mais l’utilisateur clique maintenant sur Page 2.<br><br>Si le site exécute à nouveau :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">LIMIT 3;</pre></div><br><br>SQL renverra encore les 3 premiers produits.<br><br>Or, sur la Page 2, tu veux récupérer les 3 produits suivants.<br><br>SQL doit donc :<br>1. ignorer les 3 produits déjà récupérés pour la Page 1 ;<br>2. récupérer les 3 suivants pour la Page 2.<br><br>C’est le rôle de <code>OFFSET</code> :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 3 OFFSET 3;</pre></div>",
   studio:{pointCards:{eye:"OFFSET",title:"Trier, sauter, puis garder.",
       lead:"Une pagination repose sur deux éléments : combien de lignes garder, et combien en ignorer avant de commencer.",
       chain:[{k:"LIMIT",v:"combien de lignes afficher"},{k:"OFFSET",v:"combien de lignes passer avant de commencer"}]},
@@ -8527,7 +8527,6 @@ learningCheck:{
         <tr><td class="jr-type">3</td><td class="jr-quoi">(3 - 1) × 3</td><td class="jr-quoi">6</td></tr>
         <tr><td class="jr-type">4</td><td class="jr-quoi">(4 - 1) × 3</td><td class="jr-quoi">9</td></tr>
       </tbody></table></div>
-      <div class="fn-use"><p class="pt-syntax-h">Un ordre stable est indispensable</p><p>Sans <code>ORDER BY</code>, aucune page n’est reproductible : <code>LIMIT 3 OFFSET 3</code> saute bien 3 lignes, mais sans dire dans quel ordre.</p></div>
       <div class="fn-use"><p class="pt-syntax-h">Pourquoi deux colonnes dans ORDER BY ?</p><p>Plusieurs produits peuvent partager exactement le même prix. Imagine par exemple :</p><table class="join-recap sort-cmp"><thead><tr><th scope="col">id</th><th scope="col">Produit</th><th scope="col">Prix</th></tr></thead><tbody>
         <tr><td class="jr-type">4</td><td class="jr-quoi">Oméga 3</td><td class="jr-quoi">24,90 €</td></tr>
         <tr><td class="jr-type">10</td><td class="jr-quoi">Vitamine C</td><td class="jr-quoi">24,90 €</td></tr>
@@ -8564,10 +8563,14 @@ WHERE prix &lt; 29.90
    OR (prix = 29.90 AND id &gt; 1)
 ORDER BY prix DESC, id ASC
 LIMIT 3;</pre></div><p>Retourne les mêmes 3 produits que <code>LIMIT 3 OFFSET 3</code> — Oméga 3, Magnésium, Shaker Inox — mais sans jamais compter de lignes à sauter.</p></div>
-      <div class="fn-use"><p class="pt-syntax-h">Exemple concret : une API</p><p>Une API paginée par OFFSET reçoit par exemple <code>?page=3&amp;limit=20</code>, calcule <code>OFFSET = (3 - 1) × 20 = 40</code>, puis exécute :</p><div class="pt-syntax"><pre class="cw-syntax">SELECT id, nom, prix
+      <div class="fn-use"><p class="pt-syntax-h">Exemple concret</p><p><b>Avec OFFSET</b></p><div class="pt-syntax"><pre class="cw-syntax">SELECT *
 FROM produits
-ORDER BY prix DESC, id ASC
-LIMIT 20 OFFSET 40;</pre></div><p>Une API par curseur recevrait plutôt une information représentant le dernier résultat déjà vu, pour demander « la suite » — adapté aux interfaces « Charger plus » ou au scroll infini.</p></div>
+ORDER BY id
+LIMIT 20 OFFSET 40;</pre></div><p>SQL ignore les 40 premiers produits, puis affiche les 20 suivants.<br><br>👉 Pratique pour afficher directement la page 3.</p><p><b>Avec un curseur</b></p><p>Imaginons que le dernier produit affiché ait l’<code>id = 40</code> :</p><div class="pt-syntax"><pre class="cw-syntax">SELECT *
+FROM produits
+WHERE id &gt; 40
+ORDER BY id
+LIMIT 20;</pre></div><p>SQL ne recompte pas les 40 premières lignes : il demande simplement « Donne-moi les 20 produits qui viennent après le produit 40. »<br><br>👉 C’est beaucoup plus parlant que « continue après une valeur connue ».</p></div>
     </div>`},
     reflex:{a:{k:"Page n",t:"OFFSET = (n − 1) × taille"},b:{k:"Toujours",t:"un ORDER BY stable avant de paginer"},
       note:"Avant d’écrire une pagination, pose-toi trois questions : dans quel ordre (<code>ORDER BY</code>) ? combien par page (<code>LIMIT</code>) ? combien déjà passées (<code>OFFSET</code>) ?"}},
@@ -8596,13 +8599,12 @@ LIMIT 20 OFFSET 40;</pre></div><p>Une API par curseur recevrait plutôt une info
   indice:"Page 2 de taille 3 : il faut ignorer <code>(2 - 1) × 3</code> lignes.",
   fnCmp:{title:"OFFSET ou curseur ?",h1:"Pagination OFFSET",h2:"Pagination par curseur",
     rows:[
-      {fn:"Simple à comprendre",d:"Plus complexe"},
-      {fn:"LIMIT 20 OFFSET 40",d:"Continue après une valeur connue"},
-      {fn:"Accès direct à « page 3 » facile",d:"Adaptée à « Suivant » / scroll infini"},
-      {fn:"Un grand OFFSET peut coûter cher",d:"Évite de parcourir les lignes ignorées"},
-      {fn:"Sensible aux données qui changent",d:"Préserve mieux la continuité du parcours"}
+      {fn:"SQL saute un nombre précis de lignes",d:"SQL reprend après le dernier résultat affiché"},
+      {fn:"Permet d’aller directement à la page 3, 4, 5…",d:"Idéal pour un bouton « Suivant » ou un scroll infini"},
+      {fn:"Peut devenir plus lent lorsqu’on saute beaucoup de lignes",d:"Plus efficace pour parcourir beaucoup de données"},
+      {fn:"Si les données changent entre deux pages, certains résultats peuvent être répétés ou manqués",d:"Gère généralement mieux les données qui changent"}
     ],
-    say:"Il n’existe pas de méthode systématiquement meilleure : le choix dépend de l’interface, du volume de données et de la façon dont les utilisateurs parcourent les résultats."},
+    say:"💡 À retenir : <code>OFFSET</code> est pratique pour une pagination classique avec des numéros de pages. Le curseur est surtout utile pour charger progressivement les résultats avec « Suivant » ou un scroll infini."},
   richLesson:true, earlyDemo:true, ordered:true,
   petitDefi:[{p:"Avec 5 lignes par page, quel décalage faut-il pour ouvrir la page 4 ?",sql:"LIMIT 5 OFFSET __________;",a:"15",answers:["15"]}],
   testeVariants:[
