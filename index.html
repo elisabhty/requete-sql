@@ -8679,18 +8679,6 @@ LIMIT 3;</pre></div><p>Autrement dit, SQL cherche : « Les produits moins chers 
   exemple:"SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC, id ASC\nLIMIT 3 OFFSET 3;",
   attendu:"3 lignes : les produits classés aux positions 4 à 6.",
   retenir:"<code>LIMIT</code> fixe la taille d’une page. <code>OFFSET</code> indique combien de lignes triées ignorer.<br><br>Pour la page <i>n</i> : <code>OFFSET = (n - 1) × taille</code>.<br><br>Une pagination doit toujours utiliser un <code>ORDER BY</code> stable, idéalement terminé par une clé unique.<br><br>Un <code>OFFSET</code> très élevé peut devenir coûteux à parcourir. Pour de très grands volumes ou une interface qui avance résultat après résultat, la pagination par curseur (keyset) peut être une meilleure stratégie.",
-  pieges:[
-    {t:"Confondre LIMIT et OFFSET",p:"Avec :",
-      sql:"LIMIT 6;",
-      mid:"Cela ne signifie pas « affiche la deuxième page de 3 produits ». Cela signifie simplement : renvoie au maximum 6 lignes.<br><br>Pour la deuxième page de 3 produits :",
-      fixSql:"LIMIT 3 OFFSET 3;",
-      tail:"<code>LIMIT</code> définit la taille de la page. <code>OFFSET</code> définit où cette page commence."},
-    {t:"Oublier ORDER BY",p:"Avec :",
-      sql:"SELECT nom, prix\nFROM produits\nLIMIT 3 OFFSET 3;",
-      mid:"La pagination existe techniquement, mais elle ne repose pas sur un classement explicitement défini.",
-      fixSql:"SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC, id ASC\nLIMIT 3 OFFSET 3;",
-      tail:"Pour une pagination fiable : définis d’abord l’ordre, puis applique <code>LIMIT</code> et <code>OFFSET</code>."}
-  ],
   consigne:"Affiche la deuxième page de produits, à raison de 3 produits par page, du plus cher au moins cher. Utilise l’identifiant pour départager les prix égaux.",
   solution:"SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC, id ASC\nLIMIT 3 OFFSET 3;",
   indice:"Page 2 de taille 3 : il faut ignorer <code>(2 - 1) × 3</code> lignes.",
