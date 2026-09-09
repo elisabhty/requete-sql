@@ -972,14 +972,6 @@
      contrairement à .offset-scan seule, pensée pour un écart extrême. */
   .offset-scan.is-real .offset-scan-skip{flex:2}
   .offset-scan.is-real .offset-scan-keep{flex:1;min-width:64px}
-  /* Deux approches mises côte à côte (ex. OFFSET vs curseur sur le même
-     exemple) : chaque colonne porte son propre extrait de requête plutôt
-     que deux paragraphes empilés qui se relisent un peu comme une redite. */
-  .offset-compare{display:flex;gap:12px;margin:12px 0;flex-wrap:wrap}
-  .offset-compare-col{flex:1;min-width:180px;display:flex;flex-direction:column}
-  .offset-compare-col > b{display:block;margin:0 0 6px;font-family:var(--ui);font-size:11px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:var(--ink-3)}
-  .offset-compare-col .pt-syntax{margin:0 0 8px}
-  .offset-compare-col p{margin:0;font-size:12.5px;line-height:1.45;color:var(--ink-2)}
   /* Pourquoi le OU fonctionne pour un tri à deux colonnes : deux petites
      cartes « cas » plutôt qu'une phrase seule — la disjonction du WHERE
      devient un choix visible entre deux situations. */
@@ -8632,17 +8624,6 @@ WHERE prix &lt; 29.90
    OR (prix = 29.90 AND id &gt; 1)
 ORDER BY prix DESC, id ASC
 LIMIT 3;</pre></div><p>Autrement dit, SQL cherche : « Les produits moins chers que mon dernier produit, OU ceux au même prix mais placés après lui grâce à leur id. » Il récupère alors les 3 prochains produits dans l’ordre du catalogue.</p><p><b>À retenir</b></p><p>Avec un curseur, le repère doit suivre les colonnes utilisées dans <code>ORDER BY</code> :</p><ul class="pt-lead-list"><li><code>ORDER BY id ASC</code> → le curseur peut utiliser <code>id</code>.</li><li><code>ORDER BY prix DESC, id ASC</code> → le curseur doit utiliser <code>prix + id</code>.</li></ul><p>Contrairement à <code>OFFSET</code>, SQL ne reçoit plus un nombre de lignes à ignorer : il sait à partir de quelles valeurs continuer.</p></div>
-      <div class="fn-use"><p class="pt-syntax-h">Exemple concret</p><p>Le même principe s’applique avec n’importe quel <code>id</code> de départ — ici pour reprendre après le produit 40 :</p><div class="offset-compare">
-        <div class="offset-compare-col"><b>Avec OFFSET</b><div class="pt-syntax"><pre class="cw-syntax">SELECT *
-FROM produits
-ORDER BY id
-LIMIT 20 OFFSET 40;</pre></div><p>Ignore les 40 premiers produits, puis affiche les 20 suivants.<br><br>👉 Pratique pour afficher directement la page 3.</p></div>
-        <div class="offset-compare-col"><b>Avec un curseur</b><div class="pt-syntax"><pre class="cw-syntax">SELECT *
-FROM produits
-WHERE id &gt; 40
-ORDER BY id
-LIMIT 20;</pre></div><p>Ne recompte pas les 40 premières lignes : demande directement « les 20 produits après le produit 40 ».<br><br>👉 Plus parlant que « continue après une valeur connue ».</p></div>
-      </div></div>
       <div class="fn-use"><p class="pt-syntax-h">La syntaxe selon le SGBD</p><p>Ce cours utilise SQLite. Le principe de la pagination reste le même partout, mais l’écriture <code>LIMIT … OFFSET …</code> n’est pas universelle : certains moteurs utilisent une autre syntaxe.</p><div class="table-wrap"><table class="join-recap has-sql"><thead><tr><th scope="col">SGBD</th><th scope="col">Syntaxe de pagination</th><th scope="col">Exemple</th></tr></thead><tbody>
         <tr class="on"><td class="jr-type">SQLite<br><small>Ce cours</small></td><td class="jr-quoi"><code>LIMIT count OFFSET offset</code></td><td class="jr-quoi"><code>SELECT * FROM produits<br>ORDER BY id<br>LIMIT 20 OFFSET 40;</code></td></tr>
         <tr><td class="jr-type">MySQL</td><td class="jr-quoi"><code>LIMIT count OFFSET offset</code><br><small>ou <code>LIMIT offset, count</code></small></td><td class="jr-quoi"><code>SELECT * FROM produits<br>ORDER BY id<br>LIMIT 20 OFFSET 40;</code></td></tr>
