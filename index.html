@@ -980,20 +980,6 @@
   .offset-compare-col > b{display:block;margin:0 0 6px;font-family:var(--ui);font-size:11px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:var(--ink-3)}
   .offset-compare-col .pt-syntax{margin:0 0 8px}
   .offset-compare-col p{margin:0;font-size:12.5px;line-height:1.45;color:var(--ink-2)}
-  /* Comparatif SGBD (fin de la leçon OFFSET) : une carte empilée par moteur
-     plutôt qu'un tableau à 3 colonnes — un tableau ne tiendrait jamais sur
-     un téléphone une fois posés un motif de syntaxe et un exemple SQL
-     complet côte à côte. Empilé, chaque carte reste lisible à toute largeur. */
-  .sgbd-compare{display:flex;flex-direction:column;gap:10px;margin:12px 0}
-  .sgbd-compare-card{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:12px 14px;box-shadow:var(--card-shadow-sm)}
-  .sgbd-compare-head{display:flex;align-items:center;gap:8px;margin:0 0 8px}
-  .sgbd-compare-name{font-family:var(--ui);font-size:13.5px;font-weight:800;color:var(--ink)}
-  .sgbd-compare-tag{flex:none;font-family:var(--ui);font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:3px 8px;border-radius:999px}
-  .sgbd-compare-lab{margin:8px 0 4px;font-family:var(--ui);font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-3)}
-  .sgbd-compare-card > .sgbd-compare-lab:first-of-type{margin-top:0}
-  .sgbd-compare-card code{font-size:12px;white-space:normal;word-break:break-word}
-  .sgbd-compare-note{margin:4px 0 0;font-size:11.5px;color:var(--ink-3)}
-  .sgbd-compare-card .pt-syntax{margin:4px 0 0}
   /* Pourquoi le OU fonctionne pour un tri à deux colonnes : deux petites
      cartes « cas » plutôt qu'une phrase seule — la disjonction du WHERE
      devient un choix visible entre deux situations. */
@@ -8657,29 +8643,15 @@ WHERE id &gt; 40
 ORDER BY id
 LIMIT 20;</pre></div><p>Ne recompte pas les 40 premières lignes : demande directement « les 20 produits après le produit 40 ».<br><br>👉 Plus parlant que « continue après une valeur connue ».</p></div>
       </div></div>
-      <div class="fn-use"><p class="pt-syntax-h">La syntaxe selon le SGBD</p><p>Ce cours utilise SQLite. Le principe de la pagination reste le même partout, mais l’écriture <code>LIMIT … OFFSET …</code> n’est pas universelle : certains moteurs utilisent une autre syntaxe.</p><div class="sgbd-compare">
-        <div class="sgbd-compare-card"><div class="sgbd-compare-head"><span class="sgbd-compare-name">SQLite</span><span class="sgbd-compare-tag">Ce cours</span></div><p class="sgbd-compare-lab">Syntaxe</p><code>LIMIT count OFFSET offset</code><p class="sgbd-compare-lab">Exemple</p><div class="pt-syntax"><pre class="cw-syntax">SELECT * FROM produits
-ORDER BY id
-LIMIT 20 OFFSET 40;</pre></div></div>
-        <div class="sgbd-compare-card"><div class="sgbd-compare-head"><span class="sgbd-compare-name">MySQL</span></div><p class="sgbd-compare-lab">Syntaxe</p><code>LIMIT count OFFSET offset</code><p class="sgbd-compare-note">ou <code>LIMIT offset, count</code></p><p class="sgbd-compare-lab">Exemple</p><div class="pt-syntax"><pre class="cw-syntax">SELECT * FROM produits
-ORDER BY id
-LIMIT 20 OFFSET 40;</pre></div></div>
-        <div class="sgbd-compare-card"><div class="sgbd-compare-head"><span class="sgbd-compare-name">MariaDB</span></div><p class="sgbd-compare-lab">Syntaxe</p><code>LIMIT count OFFSET offset</code><p class="sgbd-compare-note">Identique à MySQL.</p><p class="sgbd-compare-lab">Exemple</p><div class="pt-syntax"><pre class="cw-syntax">SELECT * FROM produits
-ORDER BY id
-LIMIT 20 OFFSET 40;</pre></div></div>
-        <div class="sgbd-compare-card"><div class="sgbd-compare-head"><span class="sgbd-compare-name">PostgreSQL</span></div><p class="sgbd-compare-lab">Syntaxe</p><code>LIMIT count OFFSET offset</code><p class="sgbd-compare-note">Supporte aussi la syntaxe standard <code>OFFSET … FETCH</code>.</p><p class="sgbd-compare-lab">Exemple</p><div class="pt-syntax"><pre class="cw-syntax">SELECT * FROM produits
-ORDER BY id
-LIMIT 20 OFFSET 40;</pre></div></div>
-        <div class="sgbd-compare-card"><div class="sgbd-compare-head"><span class="sgbd-compare-name">SQL Server</span></div><p class="sgbd-compare-lab">Syntaxe</p><code>OFFSET offset ROWS FETCH NEXT count ROWS ONLY</code><p class="sgbd-compare-note">Nécessite un <code>ORDER BY</code>.</p><p class="sgbd-compare-lab">Exemple</p><div class="pt-syntax"><pre class="cw-syntax">SELECT * FROM produits
-ORDER BY id
-OFFSET 40 ROWS FETCH NEXT 20 ROWS ONLY;</pre></div></div>
-        <div class="sgbd-compare-card"><div class="sgbd-compare-head"><span class="sgbd-compare-name">Oracle (12c et +)</span></div><p class="sgbd-compare-lab">Syntaxe</p><code>OFFSET offset ROWS FETCH NEXT count ROWS ONLY</code><p class="sgbd-compare-lab">Exemple</p><div class="pt-syntax"><pre class="cw-syntax">SELECT * FROM produits
-ORDER BY id
-OFFSET 40 ROWS FETCH NEXT 20 ROWS ONLY;</pre></div></div>
-        <div class="sgbd-compare-card"><div class="sgbd-compare-head"><span class="sgbd-compare-name">IBM Db2</span></div><p class="sgbd-compare-lab">Syntaxe</p><code>OFFSET offset ROWS FETCH NEXT count ROWS ONLY</code><p class="sgbd-compare-note">Selon la version.</p><p class="sgbd-compare-lab">Exemple</p><div class="pt-syntax"><pre class="cw-syntax">SELECT * FROM produits
-ORDER BY id
-OFFSET 40 ROWS FETCH NEXT 20 ROWS ONLY;</pre></div></div>
-      </div></div>
+      <div class="fn-use"><p class="pt-syntax-h">La syntaxe selon le SGBD</p><p>Ce cours utilise SQLite. Le principe de la pagination reste le même partout, mais l’écriture <code>LIMIT … OFFSET …</code> n’est pas universelle : certains moteurs utilisent une autre syntaxe.</p><div class="table-wrap"><table class="join-recap has-sql"><thead><tr><th scope="col">SGBD</th><th scope="col">Syntaxe de pagination</th><th scope="col">Exemple</th></tr></thead><tbody>
+        <tr class="on"><td class="jr-type">SQLite<br><small>Ce cours</small></td><td class="jr-quoi"><code>LIMIT count OFFSET offset</code></td><td class="jr-quoi"><code>SELECT * FROM produits<br>ORDER BY id<br>LIMIT 20 OFFSET 40;</code></td></tr>
+        <tr><td class="jr-type">MySQL</td><td class="jr-quoi"><code>LIMIT count OFFSET offset</code><br><small>ou <code>LIMIT offset, count</code></small></td><td class="jr-quoi"><code>SELECT * FROM produits<br>ORDER BY id<br>LIMIT 20 OFFSET 40;</code></td></tr>
+        <tr><td class="jr-type">MariaDB</td><td class="jr-quoi"><code>LIMIT count OFFSET offset</code><br><small>Identique à MySQL</small></td><td class="jr-quoi"><code>SELECT * FROM produits<br>ORDER BY id<br>LIMIT 20 OFFSET 40;</code></td></tr>
+        <tr><td class="jr-type">PostgreSQL</td><td class="jr-quoi"><code>LIMIT count OFFSET offset</code><br><small>Supporte aussi OFFSET…FETCH</small></td><td class="jr-quoi"><code>SELECT * FROM produits<br>ORDER BY id<br>LIMIT 20 OFFSET 40;</code></td></tr>
+        <tr><td class="jr-type">SQL Server</td><td class="jr-quoi"><code>OFFSET offset ROWS FETCH NEXT count ROWS ONLY</code><br><small>Nécessite un ORDER BY</small></td><td class="jr-quoi"><code>SELECT * FROM produits<br>ORDER BY id<br>OFFSET 40 ROWS FETCH NEXT 20 ROWS ONLY;</code></td></tr>
+        <tr><td class="jr-type">Oracle<br><small>12c et +</small></td><td class="jr-quoi"><code>OFFSET offset ROWS FETCH NEXT count ROWS ONLY</code></td><td class="jr-quoi"><code>SELECT * FROM produits<br>ORDER BY id<br>OFFSET 40 ROWS FETCH NEXT 20 ROWS ONLY;</code></td></tr>
+        <tr><td class="jr-type">IBM Db2</td><td class="jr-quoi"><code>OFFSET offset ROWS FETCH NEXT count ROWS ONLY</code><br><small>Selon la version</small></td><td class="jr-quoi"><code>SELECT * FROM produits<br>ORDER BY id<br>OFFSET 40 ROWS FETCH NEXT 20 ROWS ONLY;</code></td></tr>
+      </tbody></table></div></div>
     </div>`},
     reflex:{a:{k:"Page n",t:"OFFSET = (n − 1) × taille"},b:{k:"Toujours",t:"un ORDER BY stable avant de paginer"},
       note:"Avant d’écrire une pagination, pose-toi trois questions : dans quel ordre (<code>ORDER BY</code>) ? combien par page (<code>LIMIT</code>) ? combien déjà passées (<code>OFFSET</code>) ?"}},
