@@ -1055,8 +1055,29 @@
   @keyframes offsetDiffSkip{from{opacity:1;background:var(--surface)}to{opacity:.45;background:var(--surface)}}
   @keyframes offsetDiffKeep{from{background:var(--surface)}to{background:var(--accent-soft)}}
   @keyframes offsetDiffMark{from{background:var(--surface)}to{background:var(--accent-soft)}}
+  .offset-anim.is-run[data-page="1"] .offset-anim-row[data-p="1"],
+  .offset-anim.is-run[data-page="2"] .offset-anim-row[data-p="2"],
+  .offset-anim.is-run[data-page="3"] .offset-anim-row[data-p="3"]{animation:offsetAnimPick .34s ease var(--dw,0ms) both}
+  @keyframes offsetAnimPick{from{transform:translateX(-4px);opacity:.55}to{transform:none;opacity:1}}
+  .offset-anim-caption.is-flash{animation:offsetCapFlash .38s ease both}
+  @keyframes offsetCapFlash{0%,100%{background:var(--surface-2)}45%{background:var(--accent-soft)}}
+  .offset-scan.is-run .offset-scan-skip{animation:offsetScanIn .55s ease both}
+  .offset-scan.is-run .offset-scan-keep{animation:offsetScanIn .45s ease .2s both}
+  @keyframes offsetScanIn{from{opacity:0;transform:scaleX(.92)}to{opacity:1;transform:scaleX(1)}}
+  .offset-shift.is-run .offset-shift-arrow i{animation:offsetShiftArrow 1.4s ease-in-out infinite}
+  .offset-shift.is-run .offset-demo-row.is-dup{animation:offsetDupPulse .7s ease .35s both}
+  @keyframes offsetShiftArrow{0%,100%{transform:translateX(0);opacity:.55}50%{transform:translateX(5px);opacity:1}}
+  @keyframes offsetDupPulse{0%,100%{background:var(--danger-soft)}45%{background:rgba(180,35,24,.18)}}
+  .offset-branch{transition:transform .2s var(--spring-ios),box-shadow .2s,border-color .2s}
+  @media (hover:hover) and (pointer:fine){.offset-branch:hover{transform:translateY(-1px);border-color:rgba(91,91,214,.22);box-shadow:0 8px 20px -16px rgba(91,91,214,.18)}}
+  .offset-branches.is-run .offset-branch:nth-child(1){animation:offsetBranchIn .36s ease both}
+  .offset-branches.is-run .offset-branch:nth-child(2){animation:offsetBranchIn .36s ease .08s both}
+  @keyframes offsetBranchIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .offset-diff-sql.is-update{animation:offsetSqlFlash .32s ease both}
+  @keyframes offsetSqlFlash{0%,100%{background:var(--surface-2)}50%{background:var(--accent-soft)}}
+  .offset-diff-caption.is-flash{animation:offsetCapFlash .38s ease both}
   @media (prefers-reduced-motion:reduce){
-    .offset-diff.is-run .offset-diff-row{animation:none!important}
+    .offset-diff.is-run .offset-diff-row,.offset-anim.is-run .offset-anim-row,.offset-scan.is-run .offset-scan-skip,.offset-scan.is-run .offset-scan-keep,.offset-shift.is-run .offset-shift-arrow i,.offset-shift.is-run .offset-demo-row.is-dup,.offset-branches.is-run .offset-branch,.offset-diff-sql.is-update,.offset-anim-caption.is-flash,.offset-diff-caption.is-flash{animation:none!important}
   }
   /* Carte à part entière, avant la Situation (pas nichée dedans) : elle pose
      la question avant même le contexte métier, comme un titre de chapitre.
@@ -8671,24 +8692,20 @@ learningCheck:{
 { id:75, titre:"OFFSET et pagination", résumé:"Découper un résultat en pages stables",
   situation:"Ton site e-commerce possède un catalogue de produits.<br><br>Les informations affichées dans ce catalogue — nom, prix, stock… — sont récupérées dans la table <code>produits</code> de ta base de données.<br><br>Mais si la table contient des centaines ou des milliers de produits, tu ne veux pas tout envoyer et tout afficher sur une seule page.<br><br>Tu décides donc d’afficher 3 produits par page.<br><br>Pour la Page 1, SQL récupère les 3 premiers produits du classement :",
   situationSql:"SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 3;",
-  situationTail:"<code>ORDER BY prix DESC</code> → classe les produits du plus cher au moins cher.<br><code>LIMIT 3</code> → SQL ne renvoie que les 3 premiers.<br><br>Le site peut alors afficher ces 3 produits sur la première page.<br><br>👉 Mais l’utilisateur clique maintenant sur Page 2.<br><br>Si le site exécute à nouveau :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">LIMIT 3;</pre></div><br><br>SQL renverra encore les 3 premiers produits.<br><br>Or, sur la Page 2, tu veux récupérer les 3 produits suivants.<br><br>SQL doit donc :<br>① ignorer les 3 produits déjà récupérés pour la Page 1 ;<br>② récupérer les 3 suivants pour la Page 2.<br><br>C’est le rôle de <code>OFFSET</code> :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 3 OFFSET 3;</pre></div>",
+  situationTail:"<code>ORDER BY prix DESC</code> → classe les produits du plus cher au moins cher.<br><code>LIMIT 3</code> → SQL ne renvoie que les 3 premiers.<br><br>Le site peut alors afficher ces 3 produits sur la première page.<br><br>👉 Mais l’utilisateur clique maintenant sur Page 2.<br><br>Si le site exécute à nouveau :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">LIMIT 3;</pre></div><br><br>SQL renverra encore les 3 premiers produits.<br><br>Or, sur la Page 2, tu veux récupérer les 3 produits suivants.<br><br>SQL doit donc :<br>① ignorer les 3 produits déjà récupérés pour la Page 1 ;<br>② récupérer les 3 suivants pour la Page 2.<br><br>C’est le rôle de <code>OFFSET</code> :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC, id ASC\nLIMIT 3 OFFSET 3;</pre></div>",
   studio:{pointCards:{eye:"OFFSET",title:"Ignorer des lignes, puis afficher les suivantes.",
       lead:"Pour créer plusieurs pages de résultats, SQL a besoin de savoir deux choses :",
       chain:[{k:"LIMIT",v:"combien de lignes afficher"},{k:"OFFSET",v:"combien de lignes ignorer avant d’afficher les résultats"}]},
     uses:{title:"Passer d’une page à l’autre.",body:`<div class="pt-lead fn-uses">
-      <div class="fn-use"><p class="pt-syntax-h">Visualiser le fonctionnement</p><p>Par exemple :</p><div class="pt-syntax"><pre class="cw-syntax">LIMIT 3 OFFSET 3;</pre></div><p>SQL comprend : ignore les 3 premières lignes, puis affiche les 3 suivantes.</p><ul class="pt-lead-list"><li><code>LIMIT 3</code> → j’affiche au maximum 3 lignes</li><li><code>OFFSET 3</code> → j’ignore les 3 premières lignes</li></ul><p>Pour afficher 3 produits par page, <code>LIMIT</code> reste toujours à 3. En revanche, <code>OFFSET</code> change selon la page : il indique à SQL combien de produits déjà affichés il doit ignorer avant de récupérer les suivants.</p><p>👇 Clique sur une page pour voir SQL passer les lignes déjà vues (<code>OFFSET</code>) et garder les suivantes (<code>LIMIT</code>) :</p><div class="offset-anim" data-page="1"><div class="offset-anim-tabs"><button type="button" class="offset-anim-tab on" onclick="setOffsetAnimPage(this,1)">Page 1</button><button type="button" class="offset-anim-tab" onclick="setOffsetAnimPage(this,2)">Page 2</button><button type="button" class="offset-anim-tab" onclick="setOffsetAnimPage(this,3)">Page 3</button></div><div class="offset-anim-list"><div class="offset-anim-row" data-p="1"><i>1</i><b>Collagène Marin</b><span>39,90 €</span></div><div class="offset-anim-row" data-p="1"><i>2</i><b>Protéine Végétale</b><span>34,90 €</span></div><div class="offset-anim-row" data-p="1"><i>3</i><b>Fibre Prébiotique</b><span>29,90 €</span></div><div class="offset-anim-row" data-p="2"><i>4</i><b>Oméga 3</b><span>24,90 €</span></div><div class="offset-anim-row" data-p="2"><i>5</i><b>Magnésium</b><span>19,90 €</span></div><div class="offset-anim-row" data-p="2"><i>6</i><b>Shaker Inox</b><span>15,00 €</span></div><div class="offset-anim-row" data-p="3"><i>7</i><b>Vitamine D</b><span>14,90 €</span></div><div class="offset-anim-row" data-p="3"><i>8</i><b>Tisane Détox</b><span>12,50 €</span></div></div><p class="offset-anim-caption"><code>LIMIT 3 OFFSET 0</code> — récupère les positions 1 à 3.</p></div></div>
+      <div class="fn-use"><p class="pt-syntax-h">Visualiser le fonctionnement</p><p>Par exemple :</p><div class="pt-syntax"><pre class="cw-syntax">LIMIT 3 OFFSET 3;</pre></div><p>SQL comprend : ignore les 3 premières lignes, puis affiche les 3 suivantes.</p><ul class="pt-lead-list"><li><code>LIMIT 3</code> → j’affiche au maximum 3 lignes</li><li><code>OFFSET 3</code> → j’ignore les 3 premières lignes</li></ul><p>Pour afficher 3 produits par page, <code>LIMIT</code> reste toujours à 3. En revanche, <code>OFFSET</code> change selon la page : il indique à SQL combien de produits déjà affichés il doit ignorer avant de récupérer les suivants.</p><p>👇 Clique sur une page pour voir SQL passer les lignes déjà vues (<code>OFFSET</code>) et garder les suivantes (<code>LIMIT</code>) :</p><div class="offset-anim is-run" data-page="1"><div class="offset-anim-tabs"><button type="button" class="offset-anim-tab on" onclick="setOffsetAnimPage(this,1)">Page 1</button><button type="button" class="offset-anim-tab" onclick="setOffsetAnimPage(this,2)">Page 2</button><button type="button" class="offset-anim-tab" onclick="setOffsetAnimPage(this,3)">Page 3</button></div><div class="offset-anim-list"><div class="offset-anim-row" data-p="1"><i>1</i><b>Collagène Marin</b><span>39,90 €</span></div><div class="offset-anim-row" data-p="1"><i>2</i><b>Protéine Végétale</b><span>34,90 €</span></div><div class="offset-anim-row" data-p="1"><i>3</i><b>Fibre Prébiotique</b><span>29,90 €</span></div><div class="offset-anim-row" data-p="2"><i>4</i><b>Oméga 3</b><span>24,90 €</span></div><div class="offset-anim-row" data-p="2"><i>5</i><b>Magnésium</b><span>19,90 €</span></div><div class="offset-anim-row" data-p="2"><i>6</i><b>Shaker Inox</b><span>15,00 €</span></div><div class="offset-anim-row" data-p="3"><i>7</i><b>Vitamine D</b><span>14,90 €</span></div><div class="offset-anim-row" data-p="3"><i>8</i><b>Tisane Détox</b><span>12,50 €</span></div></div><p class="offset-anim-caption"><code>LIMIT 3 OFFSET 0</code> — Collagène Marin, Protéine Végétale, le produit Fibre Prébiotique.</p></div></div>
       <div class="fn-use"><p class="pt-syntax-h">Calculer automatiquement OFFSET</p><p>À chaque changement de page, l’application recalcule la valeur de <code>OFFSET</code>. SQL utilise ensuite cette valeur pour savoir combien de lignes ignorer.</p><div class="pt-syntax"><pre class="cw-syntax">OFFSET = (numéro_page - 1) × taille_page</pre></div><table class="join-recap sort-cmp"><thead><tr><th scope="col">Page</th><th scope="col">Calcul</th><th scope="col">OFFSET</th></tr></thead><tbody>
         <tr><td class="jr-type">1</td><td class="jr-quoi">(1 - 1) × 3</td><td class="jr-quoi">0</td></tr>
         <tr><td class="jr-type">2</td><td class="jr-quoi">(2 - 1) × 3</td><td class="jr-quoi">3</td></tr>
         <tr><td class="jr-type">3</td><td class="jr-quoi">(3 - 1) × 3</td><td class="jr-quoi">6</td></tr>
         <tr><td class="jr-type">4</td><td class="jr-quoi">(4 - 1) × 3</td><td class="jr-quoi">9</td></tr>
       </tbody></table></div>
-      <div class="fn-use"><p class="pt-syntax-h">Pourquoi ajouter une deuxième colonne dans ORDER BY ?</p><p>Plusieurs produits peuvent avoir exactement le même prix. Par exemple :</p><table class="join-recap sort-cmp"><thead><tr><th scope="col">id</th><th scope="col">Produit</th><th scope="col">Prix</th></tr></thead><tbody>
-        <tr><td class="jr-type">4</td><td class="jr-quoi">Oméga 3</td><td class="jr-quoi">24,90 €</td></tr>
-        <tr><td class="jr-type">10</td><td class="jr-quoi">Vitamine C</td><td class="jr-quoi">24,90 €</td></tr>
-      </tbody></table><p>Avec seulement :</p><div class="pt-syntax"><pre class="cw-syntax">ORDER BY prix DESC</pre></div><p>SQL trie les produits par prix. Mais ici, les deux prix sont identiques : quelle ligne doit venir en premier ?</p><p>Pour fixer un ordre clair, on ajoute l’id du produit :</p><div class="pt-syntax"><pre class="cw-syntax">ORDER BY prix DESC, id ASC</pre></div><p>SQL applique alors deux règles :</p><ul class="pt-lead-list"><li>Trier par <code>prix DESC</code> → du prix le plus élevé au plus bas.</li><li>Si deux prix sont identiques → trier par <code>id ASC</code>, du plus petit ID au plus grand.</li></ul><p>Donc ici : <b>Oméga 3</b> (ID 4) → <b>Vitamine C</b> (ID 10)</p><p>👉 Pourquoi c’est important pour la pagination ?<br>Chaque produit garde une position claire dans le classement, même lorsque plusieurs produits ont le même prix.</p></div>
-      <div class="fn-use"><p class="pt-syntax-h">Quand OFFSET devient très grand</p><p><code>OFFSET</code> est pratique, mais plus sa valeur augmente, plus SQL peut avoir beaucoup de lignes à parcourir avant d’arriver aux résultats demandés.</p><p>Imagine une table contenant 1 000 000 de produits :</p><div class="pt-syntax"><pre class="cw-syntax">LIMIT 20 OFFSET 800000;</pre></div><p>SQL doit aller jusqu’aux 800 000 premières lignes avant de pouvoir récupérer les 20 suivantes.</p><div class="offset-scan"><div class="offset-scan-bar"><div class="offset-scan-skip"><span>800 000 lignes</span><small>OFFSET</small></div><div class="offset-scan-keep"><span>20</span><small>LIMIT</small></div></div></div><p>Sur les premières pages, ce n’est généralement pas un problème. Mais lorsqu’on va très loin dans les résultats, la requête peut devenir plus coûteuse et donc plus lente.</p><p>👉 C’est ce qu’on appelle la <b>pagination profonde</b> : utiliser un <code>OFFSET</code> très élevé pour atteindre une page très éloignée.</p></div>
-      <div class="fn-use"><p class="pt-syntax-h">Que se passe-t-il si les données changent ?</p><p><code>OFFSET</code> se base sur la position actuelle des lignes. Imagine que la page 1 affiche <b>A</b>, <b>B</b>, <b>C</b>. Avant que l’utilisateur ouvre la page 2, un nouveau produit <code>X</code> est ajouté en première position :</p><div class="offset-shift"><div class="offset-shift-col"><p class="offset-shift-label">Page 1 affichée</p><div class="offset-demo is-list"><div class="offset-demo-row"><i>1</i><b>A</b></div><div class="offset-demo-row"><i>2</i><b>B</b></div><div class="offset-demo-row"><i>3</i><b>C</b></div></div></div><div class="offset-shift-arrow"><i>→</i><code>+ X</code></div><div class="offset-shift-col"><p class="offset-shift-label">Nouvel ordre</p><div class="offset-demo is-list"><div class="offset-demo-row is-skip"><i>1</i><b>X</b><small>OFFSET</small></div><div class="offset-demo-row is-skip"><i>2</i><b>A</b><small>OFFSET</small></div><div class="offset-demo-row is-skip"><i>3</i><b>B</b><small>OFFSET</small></div><div class="offset-demo-row is-dup"><i>4</i><b>C</b><small>déjà vu</small></div><div class="offset-demo-row is-keep"><i>5</i><b>D</b><small>LIMIT</small></div><div class="offset-demo-row is-keep"><i>6</i><b>E</b><small>LIMIT</small></div></div></div></div><p>Pour afficher la page 2, SQL exécute toujours :</p><div class="pt-syntax"><pre class="cw-syntax">LIMIT 3 OFFSET 3;</pre></div><p>Il ignore donc les 3 premières lignes du nouveau classement : <s class="offset-struck">X, A, B</s><br>Puis affiche les 3 suivantes : <b>C</b>, <b>D</b>, <b>E</b>.</p><p>⚠️ Le problème : <code>C</code> apparaît une deuxième fois, alors qu’il était déjà visible sur la page 1.</p><p>👉 Pourquoi ?<br><code>OFFSET</code> ne mémorise pas les produits déjà affichés. <code>OFFSET 3</code> signifie simplement : « Dans les résultats actuels, ignore les 3 premières lignes. »</p><p>Si un produit est ajouté ou supprimé entre deux pages, les positions peuvent changer. On peut alors voir deux fois le même produit, ou au contraire en manquer un.</p><p><b>Et si on reprenait là où on s’est arrêté ?</b></p><p>C’est justement l’une des raisons d’utiliser une autre méthode : la pagination par curseur.</p><p>👉 Au lieu de dire à SQL « Ignore les 3 premières lignes », on lui indique plutôt : « Continue après le dernier produit que j’ai reçu. » C’est le principe que tu vas découvrir juste après.</p></div>
+      <div class="fn-use"><p class="pt-syntax-h">Pourquoi ajouter <code>id ASC</code> dans ORDER BY ?</p><p>Dans la table <code>produits</code>, chaque article a aujourd’hui un prix différent. Mais dès que deux produits partagent exactement le même prix, SQL ne garantit plus leur ordre relatif avec seul <code>ORDER BY prix DESC</code>.</p><p>Imagine par exemple Oméga 3 (id 7, 24,90&nbsp;€) et un second produit au même prix : sans repère supplémentaire, SQL pourrait les inverser d’une exécution à l’autre.</p><p>Pour fixer un ordre clair, on ajoute l’id du produit :</p><div class="pt-syntax"><pre class="cw-syntax">ORDER BY prix DESC, id ASC</pre></div><p>SQL applique alors deux règles :</p><ul class="pt-lead-list"><li>Trier par <code>prix DESC</code> → du prix le plus élevé au plus bas.</li><li>Si deux prix sont identiques → trier par <code>id ASC</code>, du plus petit id au plus grand.</li></ul><p>👉 Pourquoi c’est important pour la pagination ? Chaque produit garde une position fixe dans le classement, même lorsque plusieurs produits ont le même prix.</p></div>
+      <div class="fn-use"><p class="pt-syntax-h">Que se passe-t-il si les données changent ?</p><p><code>OFFSET</code> se base sur la position actuelle des lignes. Imagine que la page 1 affiche <b>A</b>, <b>B</b>, <b>C</b>. Avant que l’utilisateur ouvre la page 2, un nouveau produit <code>X</code> est ajouté en première position :</p><div class="offset-shift is-run"><div class="offset-shift-col"><p class="offset-shift-label">Page 1 affichée</p><div class="offset-demo is-list"><div class="offset-demo-row"><i>1</i><b>A</b></div><div class="offset-demo-row"><i>2</i><b>B</b></div><div class="offset-demo-row"><i>3</i><b>C</b></div></div></div><div class="offset-shift-arrow"><i>→</i><code>+ X</code></div><div class="offset-shift-col"><p class="offset-shift-label">Nouvel ordre</p><div class="offset-demo is-list"><div class="offset-demo-row is-skip"><i>1</i><b>X</b><small>OFFSET</small></div><div class="offset-demo-row is-skip"><i>2</i><b>A</b><small>OFFSET</small></div><div class="offset-demo-row is-skip"><i>3</i><b>B</b><small>OFFSET</small></div><div class="offset-demo-row is-dup"><i>4</i><b>C</b><small>déjà vu</small></div><div class="offset-demo-row is-keep"><i>5</i><b>D</b><small>LIMIT</small></div><div class="offset-demo-row is-keep"><i>6</i><b>E</b><small>LIMIT</small></div></div></div></div><p>Pour afficher la page 2, SQL exécute toujours :</p><div class="pt-syntax"><pre class="cw-syntax">LIMIT 3 OFFSET 3;</pre></div><p>Il ignore donc les 3 premières lignes du nouveau classement : <s class="offset-struck">X, A, B</s><br>Puis affiche les 3 suivantes : <b>C</b>, <b>D</b>, <b>E</b>.</p><p>⚠️ Le problème : <code>C</code> apparaît une deuxième fois, alors qu’il était déjà visible sur la page 1.</p><p>👉 Pourquoi ?<br><code>OFFSET</code> ne mémorise pas les produits déjà affichés. <code>OFFSET 3</code> signifie simplement : « Dans les résultats actuels, ignore les 3 premières lignes. »</p><p>Si un produit est ajouté ou supprimé entre deux pages, les positions peuvent changer. On peut alors voir deux fois le même produit, ou au contraire en manquer un.</p><p><b>Et si on reprenait là où on s’est arrêté ?</b></p><p>C’est justement l’une des raisons d’utiliser une autre méthode : la pagination par curseur.</p><p>👉 Au lieu de dire à SQL « Ignore les 3 premières lignes », on lui indique plutôt : « Continue après le dernier produit que j’ai reçu. » C’est le principe que tu vas découvrir juste après.</p></div>
       <div class="fn-use"><p class="pt-syntax-h">La pagination par curseur</p><p>Avec <code>OFFSET</code>, SQL avance en comptant le nombre de lignes à ignorer :</p><div class="pt-syntax"><pre class="cw-syntax">LIMIT 3 OFFSET 3;</pre></div><p>Cela signifie : « Ignore les 3 premières lignes, puis affiche les 3 suivantes. »</p><p>La pagination par curseur fonctionne autrement. Au lieu de compter les lignes à ignorer, on garde un repère indiquant où reprendre.</p><p>Pour comprendre le principe, commençons par un cas simple où les produits sont classés par <code>id</code> croissant. Imagine que la première page affiche :</p><div class="offset-demo is-list">
         <div class="offset-demo-row"><i>1</i><b>Fibre Prébiotique</b></div>
         <div class="offset-demo-row"><i>2</i><b>Collagène Marin</b></div>
@@ -8698,12 +8715,13 @@ FROM produits
 WHERE id &gt; 3
 ORDER BY id ASC
 LIMIT 3;</pre></div><p>Comment SQL comprend cette requête ?</p><div class="offset-sql-steps"><p><code>WHERE id &gt; 3</code> → « Reprends après l’id 3. »</p><p>SQL peut alors récupérer : <code>id 4</code> → <code>id 5</code> → <code>id 6</code>.</p><p><code>LIMIT 3</code> → « Arrête-toi après 3 résultats. »</p></div><p><b>La différence essentielle</b></p><p>👉 Clique sur un onglet pour voir comment SQL avance.</p><div class="offset-diff is-run" data-mode="offset"><div class="offset-anim-tabs" role="tablist" aria-label="Comparer OFFSET et curseur"><button type="button" class="offset-anim-tab on" role="tab" aria-selected="true" onclick="setOffsetDiff(this,'offset')">OFFSET</button><button type="button" class="offset-anim-tab" role="tab" aria-selected="false" onclick="setOffsetDiff(this,'cursor')">Curseur</button></div><div class="offset-diff-sql"><pre class="cw-syntax">LIMIT 3 OFFSET 3;</pre></div><div class="offset-diff-list"><div class="offset-diff-row" data-role="skip" style="--dw:0ms"><i>1</i><b>Fibre Prébiotique</b><small>OFFSET</small></div><div class="offset-diff-row" data-role="skip" style="--dw:140ms"><i>2</i><b>Collagène Marin</b><small>OFFSET</small></div><div class="offset-diff-row" data-role="mark" style="--dw:280ms"><i>3</i><b>Magnésium</b><small class="offset-diff-mark">OFFSET</small></div><div class="offset-diff-row" data-role="keep" style="--dw:420ms"><i>4</i><b>Vitamine D</b><small>LIMIT</small></div><div class="offset-diff-row" data-role="keep" style="--dw:560ms"><i>5</i><b>Tisane Détox</b><small>LIMIT</small></div><div class="offset-diff-row" data-role="keep" style="--dw:700ms"><i>6</i><b>Protéine Végétale</b><small>LIMIT</small></div></div><p class="offset-diff-caption">« Ignore 3 lignes, puis affiche les suivantes. »</p></div><p>C’est pour cela qu’on parle de curseur : on conserve un repère pour savoir où reprendre.</p></div>
-      <div class="fn-use"><p class="pt-syntax-h">Et si on trie avec plusieurs colonnes ?</p><p>Jusqu’ici, nous avons trié les produits uniquement par <code>id</code>. Mais notre catalogue est en réalité trié ainsi :</p><div class="pt-syntax"><pre class="cw-syntax">ORDER BY prix DESC, id ASC;</pre></div><p>SQL classe donc :</p><ul class="pt-lead-list"><li>d’abord par prix, du plus cher au moins cher ;</li><li>si deux produits ont le même prix, par <code>id</code> croissant.</li></ul><p>👉 Le curseur doit donc mémoriser les deux valeurs utilisées pour le tri. Imaginons que le dernier produit de la page soit :</p><div class="offset-demo is-list"><div class="offset-demo-row is-cursor"><i>1</i><b>Fibre Prébiotique</b><small>29,90&nbsp;€ · id 1</small></div></div><p>Notre repère devient donc : <code>prix = 29.90</code> et <code>id = 1</code>.</p><p>Comment trouver ce qui vient après ? Il existe deux possibilités.</p><div class="offset-branches"><div class="offset-branch"><span class="offset-branch-tag">Cas 1</span><code>prix &lt; 29.90</code><p><b>Le produit est moins cher.</b> Comme le catalogue est trié du prix le plus élevé au plus bas, il se trouve forcément après Fibre Prébiotique.</p></div><div class="offset-branch"><span class="offset-branch-tag">Cas 2</span><code>prix = 29.90 AND id &gt; 1</code><p><b>Même prix exactement.</b> Le prix ne permet pas de les départager : SQL utilise donc le deuxième critère du tri, l’<code>id</code>.</p></div></div><p>On réunit les deux possibilités avec <code>OR</code> :</p><div class="pt-syntax"><pre class="cw-syntax">SELECT id, nom, prix
+      <div class="fn-use"><p class="pt-syntax-h">Et si on trie avec plusieurs colonnes ?</p><p>Jusqu’ici, nous avons trié les produits uniquement par <code>id</code>. Mais notre catalogue est en réalité trié ainsi :</p><div class="pt-syntax"><pre class="cw-syntax">ORDER BY prix DESC, id ASC;</pre></div><p>SQL classe donc :</p><ul class="pt-lead-list"><li>d’abord par prix, du plus cher au moins cher ;</li><li>si deux produits ont le même prix, par <code>id</code> croissant.</li></ul><p>👉 Le curseur doit donc mémoriser les deux valeurs utilisées pour le tri. Imaginons que le dernier produit de la page soit :</p><div class="offset-demo is-list"><div class="offset-demo-row is-cursor"><i>1</i><b>Fibre Prébiotique</b><small>29,90&nbsp;€ · id 1</small></div></div><p>Notre repère devient donc : <code>prix = 29.90</code> et <code>id = 1</code>.</p><p>Comment trouver ce qui vient après ? Il existe deux possibilités.</p><div class="offset-branches is-run"><div class="offset-branch"><span class="offset-branch-tag">Cas 1</span><code>prix &lt; 29.90</code><p><b>Le produit est moins cher.</b> Comme le catalogue est trié du prix le plus élevé au plus bas, il se trouve forcément après Fibre Prébiotique.</p></div><div class="offset-branch"><span class="offset-branch-tag">Cas 2</span><code>prix = 29.90 AND id &gt; 1</code><p><b>Même prix exactement.</b> Le prix ne permet pas de les départager : SQL utilise donc le deuxième critère du tri, l’<code>id</code>.</p></div></div><p>On réunit les deux possibilités avec <code>OR</code> :</p><div class="pt-syntax"><pre class="cw-syntax">SELECT id, nom, prix
 FROM produits
 WHERE prix &lt; 29.90
    OR (prix = 29.90 AND id &gt; 1)
 ORDER BY prix DESC, id ASC
 LIMIT 3;</pre></div><p>Autrement dit, SQL cherche : « Les produits moins chers que mon dernier produit, OU ceux au même prix mais placés après lui grâce à leur id. » Il récupère alors les 3 prochains produits dans l’ordre du catalogue.</p><p><b>À retenir</b></p><p>Avec un curseur, le repère doit suivre les colonnes utilisées dans <code>ORDER BY</code> :</p><ul class="pt-lead-list"><li><code>ORDER BY id ASC</code> → le curseur peut utiliser <code>id</code>.</li><li><code>ORDER BY prix DESC, id ASC</code> → le curseur doit utiliser <code>prix + id</code>.</li></ul><p>👉 Contrairement à <code>OFFSET</code>, SQL ne reçoit plus un nombre de lignes à ignorer : il sait à partir de quelles valeurs continuer.</p></div>
+      <div class="fn-use"><p class="pt-syntax-h">Quand OFFSET devient très grand</p><p><code>OFFSET</code> est pratique, mais plus sa valeur augmente, plus SQL peut avoir beaucoup de lignes à parcourir avant d’arriver aux résultats demandés.</p><p>Imagine une table contenant 1 000 000 de produits :</p><div class="pt-syntax"><pre class="cw-syntax">LIMIT 20 OFFSET 800000;</pre></div><p>SQL doit aller jusqu’aux 800 000 premières lignes avant de pouvoir récupérer les 20 suivantes.</p><div class="offset-scan is-run"><div class="offset-scan-bar"><div class="offset-scan-skip"><span>800 000 lignes</span><small>OFFSET</small></div><div class="offset-scan-keep"><span>20</span><small>LIMIT</small></div></div></div><p>Sur les premières pages, ce n’est généralement pas un problème. Mais lorsqu’on va très loin dans les résultats, la requête peut devenir plus coûteuse et donc plus lente.</p><p>👉 C’est ce qu’on appelle la <b>pagination profonde</b> : utiliser un <code>OFFSET</code> très élevé pour atteindre une page très éloignée.</p></div>
       <div class="fn-use"><p class="pt-syntax-h">La syntaxe peut varier selon le système SQL</p><p>Tous les systèmes SQL permettent de limiter les résultats et de créer une pagination, mais ils n’utilisent pas toujours exactement la même syntaxe.</p><div class="table-wrap"><table class="join-recap is-sgbd"><thead><tr><th scope="col">Système</th><th scope="col">Exemple</th></tr></thead><tbody>
         <tr><td class="jr-type">SQLite <span class="jr-ici">ce cours</span></td><td class="jr-quoi"><code>LIMIT 10 OFFSET 20</code></td></tr>
         <tr><td class="jr-type">MySQL / MariaDB</td><td class="jr-quoi"><code>LIMIT 10 OFFSET 20</code></td></tr>
@@ -8742,7 +8760,7 @@ LIMIT 3;</pre></div><p>Autrement dit, SQL cherche : « Les produits moins chers 
     ]}
   ],
   exemple:"SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC, id ASC\nLIMIT 3 OFFSET 3;",
-  attendu:"3 lignes : les produits classés aux positions 4 à 6.",
+  attendu:"3 lignes : Oméga 3, Magnésium, Shaker Inox.",
   retenir:"<code>LIMIT</code> fixe la taille d’une page. <code>OFFSET</code> indique combien de lignes triées ignorer.<br><br>Pour la page <i>n</i> : <code>OFFSET = (n - 1) × taille</code>.<br><br>Une pagination doit toujours utiliser un <code>ORDER BY</code> stable, idéalement terminé par une clé unique.<br><br>Un <code>OFFSET</code> très élevé peut devenir coûteux à parcourir. Pour de très grands volumes ou une interface qui avance résultat après résultat, la pagination par curseur (keyset) peut être une meilleure stratégie.",
   consigne:"Affiche la deuxième page de produits, à raison de 3 produits par page, du plus cher au moins cher. Utilise l’identifiant pour départager les prix égaux.",
   solution:"SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC, id ASC\nLIMIT 3 OFFSET 3;",
@@ -8762,34 +8780,34 @@ LIMIT 3;</pre></div><p>Autrement dit, SQL cherche : « Les produits moins chers 
     "k": "p1",
     "label": "Page 1",
     "sql": "SELECT id, nom, prix FROM produits ORDER BY prix DESC, id ASC LIMIT 3 OFFSET 0;",
-    "out": "Positions 1 à 3."
+    "out": "Collagène Marin, Protéine Végétale, le produit Fibre Prébiotique."
   },
   {
     "k": "p2",
     "label": "Page 2",
     "sql": "SELECT id, nom, prix FROM produits ORDER BY prix DESC, id ASC LIMIT 3 OFFSET 3;",
-    "out": "Positions 4 à 6.",
+    "out": "Oméga 3, Magnésium, Shaker Inox.",
     "tone": "good"
   },
   {
     "k": "unstable",
     "label": "Sans tri",
     "sql": "SELECT id, nom, prix FROM produits LIMIT 3 OFFSET 3;",
-    "out": "Trois lignes, mais une page non garantie.",
+    "out": "Trois lignes sans tri garanti : l’ordre peut changer.",
     "tone": "bad"
   },
   {
     "k": "rec_page1",
     "label": "Revenir au début",
     "sql": "SELECT id, nom, prix FROM produits ORDER BY prix DESC, id ASC LIMIT 3 OFFSET 0;",
-    "out": "Premiers trois produits du même ordre stable.",
+    "out": "Collagène Marin, Protéine Végétale, le produit Fibre Prébiotique — retour page 1.",
     "expectRows": 3
   },
   {
     "k": "rec_page3",
     "label": "Page 3",
     "sql": "SELECT id, nom, prix FROM produits ORDER BY prix DESC, id ASC LIMIT 3 OFFSET 6;",
-    "out": "La dernière page ne contient que deux produits.",
+    "out": "Vitamine D, Tisane Détox — seulement 2 produits sur 8.",
     "expectRows": 2
   }
 ]
@@ -21674,6 +21692,19 @@ function setOffsetDiff(btn,mode){
   root.dataset.mode=mode;
   void root.offsetWidth;
   root.classList.add('is-run');
+  const sqlBox=root.querySelector('.offset-diff-sql');
+  if(sqlBox&&!prefersReduceMotion()){
+    sqlBox.classList.remove('is-update');
+    void sqlBox.offsetWidth;
+    sqlBox.classList.add('is-update');
+    sqlBox.addEventListener('animationend',()=>sqlBox.classList.remove('is-update'),{once:true});
+  }
+  if(cap&&!prefersReduceMotion()){
+    cap.classList.remove('is-flash');
+    void cap.offsetWidth;
+    cap.classList.add('is-flash');
+    cap.addEventListener('animationend',()=>cap.classList.remove('is-flash'),{once:true});
+  }
   if(navigator.vibrate)navigator.vibrate(5);
 }
 /* Illustration OFFSET/LIMIT (leçon pagination) : bascule Page 1 / Page 2
@@ -21682,16 +21713,31 @@ function setOffsetDiff(btn,mode){
 function setOffsetAnimPage(btn,n){
   const root=btn.closest('.offset-anim');
   if(!root)return;
+  root.querySelectorAll('.offset-anim-tab').forEach(t=>{
+    const on=t===btn;
+    t.classList.toggle('on',on);
+    t.setAttribute('aria-selected',on?'true':'false');
+  });
+  root.classList.remove('is-run');
   root.dataset.page=String(n);
-  root.querySelectorAll('.offset-anim-tab').forEach(t=>t.classList.remove('on'));
-  btn.classList.add('on');
+  root.querySelectorAll('.offset-anim-row').forEach((row,i)=>row.style.setProperty('--dw',(i*45)+'ms'));
+  void root.offsetWidth;
+  root.classList.add('is-run');
   const cap=root.querySelector('.offset-anim-caption');
   const captions={
-    1:'<code>LIMIT 3 OFFSET 0</code> — récupère les positions 1 à 3.',
-    2:'<code>LIMIT 3 OFFSET 3</code> — ignore les positions 1 à 3, récupère les positions 4 à 6.',
-    3:'<code>LIMIT 3 OFFSET 6</code> — ignore les positions 1 à 6, récupère les positions 7 à 8. Notre catalogue n’a que 8 produits : cette page n’en contient donc que deux.'
+    1:'<code>LIMIT 3 OFFSET 0</code> — Collagène Marin, Protéine Végétale, le produit Fibre Prébiotique.',
+    2:'<code>LIMIT 3 OFFSET 3</code> — Oméga 3, Magnésium, Shaker Inox.',
+    3:'<code>LIMIT 3 OFFSET 6</code> — Vitamine D, Tisane Détox : seulement 2 produits sur 8.'
   };
-  if(cap) cap.innerHTML=captions[n]||captions[1];
+  if(cap){
+    cap.innerHTML=captions[n]||captions[1];
+    if(!prefersReduceMotion()){
+      cap.classList.remove('is-flash');
+      void cap.offsetWidth;
+      cap.classList.add('is-flash');
+      cap.addEventListener('animationend',()=>cap.classList.remove('is-flash'),{once:true});
+    }
+  }
   if(navigator.vibrate)navigator.vibrate(5);
 }
 function switchTesteVariant(btn){
