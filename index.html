@@ -2245,7 +2245,7 @@
   .grp-viz-bar{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin-bottom:0;position:relative;width:100%;padding:0 0 0 8px;box-sizing:border-box}
   .grp-viz[data-paused="1"] .grp-viz-bar{padding-right:92px}
   /* La description tient parfois sur deux lignes (ex. leçon LIMIT,
-     étapes « ORDER BY prix » et « LIMIT 3 » après fusion des phrases) et
+     étapes « ORDER BY prix DESC » et « LIMIT 3 » après fusion des phrases) et
      colle alors directement aux onglets d'étape juste en dessous. */
   .sql-viz[data-viz="limit"] .grp-viz-bar{margin-bottom:10px}
   .grp-k{font-family:var(--mono);font-size:11px;font-weight:700;background:var(--ink);color:#fff;padding:6px 11px;border-radius:10px;letter-spacing:.2px;transition:background .3s;max-width:100%;width:fit-content;box-sizing:border-box;word-break:break-word;line-height:1.35;box-shadow:0 2px 6px rgba(0,0,0,.08)}
@@ -2274,13 +2274,13 @@
   .sql-viz[data-viz="or"][data-phase="2"] .grp-chip[data-keep="0"],
   .sql-viz[data-viz="nulls"][data-phase="1"] .grp-chip[data-keep="0"],
   .sql-viz[data-viz="like"][data-phase="2"] .grp-chip[data-keep="0"],
-  .sql-viz[data-kind="limit"]:not(.vw)[data-phase="1"] .grp-chip[data-keep="0"]{opacity:.3;filter:grayscale(.4)}
+  .sql-viz[data-kind="limit"]:not(.vw)[data-phase="2"] .grp-chip[data-keep="0"]{opacity:.3;filter:grayscale(.4)}
   .sql-viz[data-kind="filter"]:not([data-viz="andor"]):not([data-viz="or"]):not([data-viz="nulls"]):not([data-viz="like"]):not([data-viz="distinct"])[data-phase="1"] .grp-chip[data-keep="1"],
   .sql-viz[data-viz="andor"][data-phase="2"] .grp-chip[data-keep="1"],
   .sql-viz[data-viz="or"][data-phase="2"] .grp-chip[data-keep="1"],
   .sql-viz[data-viz="nulls"][data-phase="1"] .grp-chip[data-keep="1"],
   .sql-viz[data-viz="like"][data-phase="2"] .grp-chip[data-keep="1"],
-  .sql-viz[data-kind="limit"]:not(.vw)[data-phase="1"] .grp-chip[data-keep="1"]{border-color:rgba(20,184,166,.4);box-shadow:0 4px 14px rgba(20,184,166,.16)}
+  .sql-viz[data-kind="limit"]:not(.vw)[data-phase="2"] .grp-chip[data-keep="1"]{border-color:rgba(20,184,166,.4);box-shadow:0 4px 14px rgba(20,184,166,.16)}
   .sql-viz[data-viz="nulls"][data-phase="1"] .grp-chip[data-keep="1"] .grp-extra{color:var(--accent);font-weight:600}
   /* Étape « ORDER BY age » : les lignes ne bougent pas encore (le tri
      n'arrive qu'à la dernière phase, voir sortAt dans layoutSqlList) — on
@@ -2381,7 +2381,7 @@
   @media (max-width:380px){.grp-chip{font-size:10px;padding:6px 8px}.grp-k{font-size:10.5px}.grp-pause,.grp-replay{font-size:12px;padding:9px 8px}}
 
   /* COUNT : numéroter chaque ligne, puis tout ramener à un seul chiffre */
-  .sql-viz[data-kind="count"] .grp-chip,.sql-viz[data-kind="agg"] .grp-chip{padding-right:36px}
+  .sql-viz[data-kind="count"] .grp-chip,.sql-viz[data-kind="agg"] .grp-chip,.sql-viz[data-kind="limit"] .grp-chip{padding-right:36px}
   .sql-viz[data-kind="agg"] .grp-chip{padding-right:68px}
   .sql-viz[data-kind="count"] .grp-chip::after,.sql-viz[data-kind="agg"] .grp-chip::after{content:attr(data-n);position:absolute;right:8px;top:50%;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--mono);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(-50%) scale(.7);pointer-events:none;box-shadow:0 2px 8px rgba(91,91,214,.28)}
   .sql-viz[data-kind="agg"] .grp-chip::after{width:auto;min-width:48px;height:22px;padding:0 7px;border-radius:8px;font-size:10px}
@@ -6950,7 +6950,7 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 @media(max-width:360px){.plan-next-session{padding:18px}.plan-next-actions button{width:100%}.plan-module-row{flex-wrap:wrap}.plan-module-row>div{flex-basis:100%}.plan-module-row button{width:100%}}
 </style>
 <link rel="stylesheet" href="viz-select.css?v=noloop">
-<link rel="stylesheet" href="viz-where.css?v=distinct3">
+<link rel="stylesheet" href="viz-where.css?v=limit2">
 <link rel="stylesheet" href="viz-orderby.css">
 <link rel="stylesheet" href="anim-responsive.css?v=1">
 <script src="viz-select.js?v=noloop" defer></script>
@@ -8553,39 +8553,51 @@ learningCheck:{
     viz:"limit",
     reflex:{a:{k:"ORDER BY",t:"détermine <b>l’ordre</b> des lignes"},
       b:{k:"LIMIT",t:"détermine <b>combien</b> de lignes garder"}}},
-  anatomie:[{tok:"SELECT nom, prix",txt:"Affiche le nom et le prix."},{tok:"FROM produits",txt:"Les données viennent de la table produits."},{tok:"ORDER BY prix DESC",txt:"Classe les produits du plus cher au moins cher."},{tok:"LIMIT 3",txt:"Garde uniquement les 3 premières lignes après le tri."}],
+  anatomie:[{tok:"SELECT nom, prix",txt:"Affiche le nom et le prix."},{tok:"FROM produits",txt:"Les données viennent de la table <code>produits</code>."},{tok:"ORDER BY prix DESC",txt:"Classe les produits du plus cher au moins cher."},{tok:"LIMIT 3",txt:"Garde uniquement les 3 premières lignes après le tri."}],
   anatomieVariants:[
     {k:'avant',label:'LIMIT seul',tone:'bad',lines:[
       {tok:"SELECT nom, prix",txt:"Affiche le nom et le prix."},
-      {tok:"FROM produits",txt:"Utilise la table produits."},
+      {tok:"FROM produits",txt:"Utilise la table <code>produits</code>."},
       {tok:"LIMIT 3",txt:"Garde au maximum 3 lignes du résultat. Aucun tri n’est demandé."}
     ]},
     {k:'avec',label:'ORDER BY + LIMIT',tone:'good',lines:[
+      {tok:"SELECT nom, prix",txt:"Affiche le nom et le prix."},
+      {tok:"FROM produits",txt:"Utilise la table <code>produits</code>."},
       {tok:"ORDER BY prix DESC",txt:"Classe les produits du plus cher au moins cher."},
       {tok:"LIMIT 3",txt:"Garde les 3 premiers produits de ce classement."}
     ]}
   ],
   testeVariants:[
-    {k:'avant',label:'LIMIT seul',sql:"SELECT nom, prix\nFROM produits\nLIMIT 3;",out:"3 lignes, mais pas forcément les 3 produits les plus chers",tone:'bad'},
-    {k:'avec',label:'ORDER BY + LIMIT',sql:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 3;",out:"3 lignes : Collagène Marin, Protéine Végétale, Fibre Prébiotique",tone:'good'}
+    {k:'avant',label:'LIMIT seul',sql:"SELECT nom, prix\nFROM produits\nLIMIT 3;",out:"3 lignes, mais pas forcément les 3 plus chers : le produit Fibre Prébiotique, le Collagène Marin, le Magnésium.",tone:'bad'},
+    {k:'avec',label:'ORDER BY + LIMIT',sql:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 3;",out:"3 lignes : le Collagène Marin, la Protéine Végétale, le produit Fibre Prébiotique.",tone:'good'}
   ],
   exemple:"SELECT nom, prix FROM produits ORDER BY prix DESC LIMIT 3;",
-  attendu:"<b>3 lignes</b> : Collagène Marin à 39,90 €, Protéine Végétale à 34,90 € et Fibre Prébiotique à 29,90 €.",
+  attendu:"<b>3 lignes</b> : le Collagène Marin à 39,90 €, la Protéine Végétale à 34,90 € et le produit Fibre Prébiotique à 29,90 €.",
   retenir:"<code>LIMIT n</code> garde seulement les n premières lignes du résultat. Dans <code>ORDER BY prix DESC LIMIT 3</code>, les produits sont d’abord classés du plus cher au moins cher, puis seuls les 3 premiers sont affichés.",
+  piege:{t:"Croire que LIMIT 3 donne les 3 plus chers",p:"<code>LIMIT</code> ne choisit pas <i>quelles</i> lignes : il coupe le résultat déjà formé.<br><br>Sans <code>ORDER BY</code>, SQL ne promet aucun ordre. Les 3 lignes renvoyées peuvent être n’importe lesquelles.",
+    sql:"SELECT nom, prix\nFROM produits\nLIMIT 3;",
+    mid:"Ici tu obtiens le produit Fibre Prébiotique, le Collagène Marin et le Magnésium — l’ordre de la table, pas le classement des prix.",
+    fixSql:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 3;"},
   consigne:"Affiche toutes les colonnes des 3 produits les plus chers.",
   solution:"SELECT * FROM produits ORDER BY prix DESC LIMIT 3;",
-  indice:"Commence par classer les prix du plus élevé au plus faible. Ensuite, indique combien de lignes tu veux conserver.",
+  indice:"Les exemples du cours montrent <code>nom, prix</code>. Ici, la consigne demande <code>SELECT *</code>. Classe d’abord avec <code>ORDER BY prix DESC</code>, puis <code>LIMIT 3</code>.",
   richLesson:true, earlyDemo:true,
-  ordered:true ,
+  ordered:true,
+  petitDefi:[{
+    p:"Complète pour ne garder que les 3 produits les plus chers.",
+    sql:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\n__________ 3;",
+    a:"LIMIT",
+    answers:["LIMIT","limit"]
+  }],
 learningCheck:{
   "question": "LIMIT 3 seul garantit-il les trois produits les plus chers ?",
   "options": [
-    "Non",
+    "Non : il faut aussi ORDER BY prix DESC",
     "Oui",
     "Oui si la table est petite"
   ],
   "answer": 0,
-  "explanation": "LIMIT limite le nombre de lignes. ORDER BY prix DESC définit lesquelles arrivent en premier."
+  "explanation": "LIMIT coupe le résultat. ORDER BY prix DESC place d’abord les plus chers : le Collagène Marin, la Protéine Végétale, le produit Fibre Prébiotique."
 }
 },
 { id:75, titre:"OFFSET et pagination", résumé:"Découper un résultat en pages stables",
@@ -8602,7 +8614,7 @@ learningCheck:{
         <tr><td class="jr-type">2</td><td class="jr-quoi">(2 - 1) × 3</td><td class="jr-quoi">3</td></tr>
         <tr><td class="jr-type">3</td><td class="jr-quoi">(3 - 1) × 3</td><td class="jr-quoi">6</td></tr>
         <tr><td class="jr-type">4</td><td class="jr-quoi">(4 - 1) × 3</td><td class="jr-quoi">9</td></tr>
-      </tbody></table></div>
+      </tbody></table><p>À chaque changement de page, l’application recalcule la valeur de <code>OFFSET</code>. SQL utilise ensuite cette valeur pour savoir combien de lignes ignorer.</p></div>
       <div class="fn-use"><p class="pt-syntax-h">Pourquoi deux colonnes dans ORDER BY ?</p><p>Plusieurs produits peuvent partager exactement le même prix. Imagine par exemple :</p><table class="join-recap sort-cmp"><thead><tr><th scope="col">id</th><th scope="col">Produit</th><th scope="col">Prix</th></tr></thead><tbody>
         <tr><td class="jr-type">4</td><td class="jr-quoi">Oméga 3</td><td class="jr-quoi">24,90 €</td></tr>
         <tr><td class="jr-type">10</td><td class="jr-quoi">Vitamine C</td><td class="jr-quoi">24,90 €</td></tr>
@@ -21341,7 +21353,7 @@ function lessonDemoBlocks(l){
       <p class="coda-sub">En résumé : <code>SELECT</code> s’écrit en premier, mais s’exécute <b>presque en dernier</b>.</p>
     </div>`:'';
   const compactFunctionLesson=l.id===52||l.id===53||l.id===54;
-  return `${lessonRichFooter(l)}${anat}${order}${piegeBlock(l)}${compactFunctionLesson?'':reflexBlock(l)}${joinRecapBlock(l)}${subqueryRecapBlock(l)}${compactFunctionLesson?'':fnCmpBlock(l)}`;
+  return `${lessonRichFooter(l)}${anat}${order}${piegeBlock(l)}${learningCheckHtml(l)}${compactFunctionLesson?'':reflexBlock(l)}${joinRecapBlock(l)}${subqueryRecapBlock(l)}${compactFunctionLesson?'':fnCmpBlock(l)}`;
 }
 function lessonMainTable(l){
   if(!l)return 'clients';
@@ -25896,13 +25908,13 @@ const SQL_VIZ={
   ]},
   limit:{kind:'limit',phases:[
     {k:'SELECT nom, prix',d:'SQL récupère les 8 produits avec leur prix. Aucun classement n’est encore demandé.'},
-    {k:'ORDER BY prix',d:'SQL classe les 8 produits du plus cher au moins cher. Aucun produit n’est retiré. C’est important : <code>ORDER BY</code> change l’ordre, pas le nombre de lignes.'},
+    {k:'ORDER BY prix DESC',d:'SQL classe les 8 produits du plus cher au moins cher. Aucun produit n’est retiré. C’est important : <code>ORDER BY</code> change l’ordre, pas le nombre de lignes.'},
     {k:'LIMIT 3',d:'SQL garde uniquement les 3 premières lignes du résultat trié. <code>ORDER BY</code> décide qui arrive en premier → <code>LIMIT</code> décide combien de lignes restent.'}
   ],chips:[
-    {t:'Fibre Préb.',extra:'29,90',rank:2,keep:1},{t:'Collagène',extra:'39,90',rank:0,keep:1},
-    {t:'Magnésium',extra:'19,90',rank:4,keep:0},{t:'Vit. D',extra:'14,90',rank:6,keep:0},
-    {t:'Tisane',extra:'12,50',rank:7,keep:0},{t:'Protéine',extra:'34,90',rank:1,keep:1},
-    {t:'Oméga 3',extra:'24,90',rank:3,keep:0},{t:'Shaker',extra:'15,00',rank:5,keep:0}
+    {t:'Fibre Prébiotique',extra:'29,90',rank:2,keep:1},{t:'Collagène Marin',extra:'39,90',rank:0,keep:1},
+    {t:'Magnésium',extra:'19,90',rank:4,keep:0},{t:'Vitamine D',extra:'14,90',rank:6,keep:0},
+    {t:'Tisane Détox',extra:'12,50',rank:7,keep:0},{t:'Protéine Végétale',extra:'34,90',rank:1,keep:1},
+    {t:'Oméga 3',extra:'24,90',rank:3,keep:0},{t:'Shaker Inox',extra:'15,00',rank:5,keep:0}
   ]},
   distinct:{kind:'filter',phases:[
     {k:'SELECT ville FROM clients',d:'SQL parcourt les 10 clients et affiche leur ville, dans l’ordre de la table. Paris apparaît 4 fois, Lyon 2 fois.'},
@@ -26840,7 +26852,7 @@ function layoutSqlList(root,phase,{animate=true}={}){
   const cols=(kind==='cols' && sw>=280)?2:1;
   const inner=Math.max(120, sw-pad*2);
   const colW=cols===1?inner:(inner-gapX*(cols-1))/cols;
-  const rowH=kind==='cols'?38:34;
+  const rowH=kind==='cols'?38:(kind==='limit'?36:34);
   chips.forEach((c,i)=>{
     const col=i%cols, row=Math.floor(i/cols);
     const x=pad+col*(colW+gapX);
@@ -26851,6 +26863,12 @@ function layoutSqlList(root,phase,{animate=true}={}){
     c.style.transitionDelay=delay+'ms';
     const step=kind==='minmax'?200:120;
     if(kind==='count'||kind==='agg'||kind==='minmax') c.style.setProperty('--dw',animate?(i*step)+'ms':'0ms');
+    else if(kind==='limit'){
+      const rank=+c.dataset.rank||i;
+      c.style.setProperty('--dw',animate?(rank*90)+'ms':'0ms');
+      c.style.setProperty('--dwm',animate?(rank*90+80)+'ms':'0ms');
+      c.style.zIndex=String(20-rank);
+    }
     else if(root.dataset.viz==='compare'||root.dataset.viz==='andor'||root.dataset.viz==='like') c.style.setProperty('--dw',animate?(i*150)+'ms':'0ms');
     if(kind==='minmax'){
       const out=c.dataset.out;
@@ -26864,7 +26882,7 @@ function layoutSqlList(root,phase,{animate=true}={}){
     c.style.maxWidth=colW+'px';
     c.style.height=rowH+'px';
     c.style.paddingLeft='10px';
-    c.style.paddingRight=kind==='minmax'?'54px':(kind==='agg'?'68px':(kind==='count'?'36px':'10px'));
+    c.style.paddingRight=kind==='minmax'?'54px':(kind==='agg'?'68px':(kind==='count'||kind==='limit'?'36px':'10px'));
     c.style.display='flex';
     c.style.alignItems='center';
     c.style.transform=`translate(${x}px,${y}px)`;
