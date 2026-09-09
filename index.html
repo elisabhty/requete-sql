@@ -8549,7 +8549,7 @@ learningCheck:{
   situationSql:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC;",
   situationTail:"Mais il y a un problème : les 8 produits sont toujours affichés, alors que tu n’en veux que 3.<br><br>Comment demander à SQL de ne garder que les 3 premières lignes du résultat ? C’est exactement ce que permet la clause <code>LIMIT</code>.",
     studio:{problem:{title:"LIMIT limite le nombre de lignes du résultat.",
-      body:"<code>LIMIT 3</code> demande à SQL de renvoyer au maximum 3 lignes.<br><br>Mais attention : <code>LIMIT</code> ne détermine pas quelles lignes doivent apparaître en premier.<br><br>Pour obtenir les 3 produits les plus chers :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">ORDER BY prix DESC\nLIMIT 3;</pre></div><br><br>① <code>ORDER BY prix DESC</code> → trie les produits du plus cher au moins cher.<br>② <code>LIMIT 3</code> → garde les 3 premiers produits après ce tri.<br><br>Dans une requête comme celle-ci, <code>LIMIT</code> se place après <code>ORDER BY</code>.<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">SELECT colonnes\nFROM table\nWHERE condition\nORDER BY colonne ASC/DESC\nLIMIT nombre;</pre></div>"},
+      body:"<code>LIMIT 3</code> demande à SQL de renvoyer au maximum 3 lignes.<br><br>Mais attention : <code>LIMIT</code> ne détermine pas quelles lignes doivent apparaître en premier.<br><br>Pour obtenir les 3 produits les plus chers :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">ORDER BY prix DESC\nLIMIT 3;</pre></div><br><br>① <code>ORDER BY prix DESC</code> → trie les produits du plus cher au moins cher.<br>② <code>LIMIT 3</code> → garde les 3 premiers produits après ce tri."},
     vs:{bad:{tag:"✕ LIMIT SEUL",sql:"SELECT nom, prix FROM produits\nLIMIT 3;",out:"Limite le nombre de lignes, sans définir leur ordre.",
             code:"SELECT nom, prix\nFROM produits\n<span class=\"vs-line bad\">LIMIT 3</span>;"},
         good:{tag:"✓ ORDER BY + LIMIT",sql:"SELECT nom, prix FROM produits\nORDER BY prix DESC\nLIMIT 3;",out:"Trie d’abord les lignes, puis conserve les premières.",
@@ -21459,6 +21459,11 @@ function initTesteEditor(){
     const savedIndex=s&&Number.isInteger(s.testeVi)?s.testeVi:0;
     const index=Math.min(savedIndex,variants.length-1);
     const v=paintTesteVariant(frame, variants, index);
+    /* Un onglet Teste restauré d'une visite précédente (testeVi persisté)
+       doit remettre l'anatomie liée au même onglet dès le premier rendu —
+       sinon les deux widgets démarrent désynchronisés jusqu'au prochain
+       clic, qui les recorrige via ce même mécanisme. */
+    syncLinkedVariant(frame, v);
     initial=draft!=null?draft:(v?v.sql:variants[0].sql);
   }else if(draft!=null&&draft!=='') initial=draft;
   ta.value=initial;
