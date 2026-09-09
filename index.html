@@ -301,6 +301,21 @@
   .sect-label{display:flex;align-items:center;gap:8px;margin:0 2px 8px}
   .sect-label i{width:22px;height:22px;border-radius:7px;background:var(--accent-soft);color:var(--accent);font-family:var(--mono);font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;font-style:normal;flex:none;box-shadow:0 1px 2px rgba(91,91,214,.1)}
   .sect-label span{font-size:12px;font-weight:750;color:var(--ink-2);text-transform:uppercase;letter-spacing:.7px}
+  /* Variante bouton : le titre se réplie, un chevron indique l'état, et un
+     sous-titre rappelle quelle variante de requête reste affichée dessous
+     même repliée (utile quand elle est pilotée par l'onglet Teste du haut). */
+  .sect-label.anat-reveal{width:100%;border:none;background:transparent;padding:6px 6px 6px 4px;margin:0 0 4px -4px;font:inherit;text-align:left;border-radius:10px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s ease}
+  @media (hover:hover) and (pointer:fine){.sect-label.anat-reveal:hover{background:var(--surface-2)}}
+  .sect-label.anat-reveal:active{transform:scale(.99)}
+  .anat-reveal-copy{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0}
+  .anat-reveal-copy b{font-size:12px;font-weight:750;color:var(--ink-2);text-transform:uppercase;letter-spacing:.7px}
+  .anat-reveal-copy small{font-size:11px;font-weight:650;color:var(--accent);text-transform:none;letter-spacing:0}
+  .anat-reveal-chev{flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:var(--ink-3);transition:transform .25s ease}
+  .anat-reveal-chev svg{width:14px;height:14px}
+  .sect-label.anat-reveal[aria-expanded="true"] .anat-reveal-chev{transform:rotate(90deg)}
+  .anat-panel:not([hidden]){animation:anatPanelIn .28s ease both}
+  @keyframes anatPanelIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.anat-reveal-chev,.anat-panel:not([hidden]){animation:none!important;transition:none!important}}
 
   .card{position:relative;background:var(--surface);border:1px solid var(--card-border);border-radius:20px;padding:20px 22px;box-shadow:var(--card-shadow);margin-bottom:16px;transition:transform .3s var(--spring-ios),box-shadow .3s ease,border-color .3s ease}
   @media (hover:hover) and (pointer:fine){
@@ -3349,6 +3364,10 @@
   .anat-head{display:flex;padding:8px 10px 6px;border-bottom:1px solid rgba(255,255,255,.06)}
   .anat.tone-bad .anat-head{box-shadow:inset 0 -2px 0 rgba(180,35,24,.45)}
   .anat.tone-good .anat-head{box-shadow:inset 0 -2px 0 rgba(20,184,166,.45)}
+  /* Sans anat-head (onglets masqués, cf. .anat-reveal), le ton se voit
+     directement sur le corps plutôt que de disparaître avec la barre. */
+  .anat.tone-bad.no-head{box-shadow:inset 3px 0 0 var(--danger)}
+  .anat.tone-good.no-head{box-shadow:inset 3px 0 0 var(--success)}
   .anat-line{display:flex;gap:12px;align-items:flex-start;padding:10px 15px}
   .anat-line:not(:last-child){border-bottom:1px solid rgba(255,255,255,.06)}
   .anat-tok{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--t-kw);flex:0 0 132px;width:132px;min-width:132px;max-width:132px;word-break:break-word}
@@ -8635,10 +8654,32 @@ LIMIT 20;</pre></div><p>Ne recompte pas les 40 premières lignes : demande direc
     </div>`},
     reflex:{a:{k:"Page n",t:"OFFSET = (n − 1) × taille"},b:{k:"Toujours",t:"un ORDER BY stable avant de paginer"},
       note:"Avant d’écrire une pagination, pose-toi trois questions : dans quel ordre (<code>ORDER BY</code>) ? combien par page (<code>LIMIT</code>) ? combien déjà passées (<code>OFFSET</code>) ?"}},
-  anatomie:[
-    {tok:"ORDER BY prix DESC, id ASC",txt:"Définit un ordre complet et reproductible."},
-    {tok:"LIMIT 3",txt:"Conserve trois lignes pour cette page."},
-    {tok:"OFFSET 3",txt:"Ignore les trois lignes de la page précédente."}
+  anatCollapsible:true,
+  anatomieVariants:[
+    {k:"p1",label:"Page 1",lines:[
+      {tok:"ORDER BY prix DESC, id ASC",txt:"Définit un ordre complet et reproductible."},
+      {tok:"LIMIT 3",txt:"Conserve trois lignes pour cette page."},
+      {tok:"OFFSET 0",txt:"Ne saute aucune ligne : c’est la première page."}
+    ]},
+    {k:"p2",label:"Page 2",tone:"good",lines:[
+      {tok:"ORDER BY prix DESC, id ASC",txt:"Définit un ordre complet et reproductible."},
+      {tok:"LIMIT 3",txt:"Conserve trois lignes pour cette page."},
+      {tok:"OFFSET 3",txt:"Ignore les trois lignes de la page précédente."}
+    ]},
+    {k:"unstable",label:"Sans tri",tone:"bad",lines:[
+      {tok:"LIMIT 3 OFFSET 3",txt:"Ignore trois lignes puis en garde trois — mais dans quel ordre ?"},
+      {tok:"Pas de ORDER BY",plain:1,txt:"Sans lui, SQL ne garantit aucun ordre : le contenu de cette « page 2 » peut changer d’une exécution à l’autre."}
+    ]},
+    {k:"rec_page1",label:"Revenir au début",lines:[
+      {tok:"ORDER BY prix DESC, id ASC",txt:"Le même ordre stable qu’à la page 1."},
+      {tok:"LIMIT 3",txt:"Conserve trois lignes."},
+      {tok:"OFFSET 0",txt:"Aucune ligne à sauter : on repart du début."}
+    ]},
+    {k:"rec_page3",label:"Page 3",lines:[
+      {tok:"ORDER BY prix DESC, id ASC",txt:"Toujours le même ordre stable."},
+      {tok:"LIMIT 3",txt:"Demande jusqu’à trois lignes."},
+      {tok:"OFFSET 6",txt:"Ignore les six premières lignes : il n’en reste que deux."}
+    ]}
   ],
   exemple:"SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC, id ASC\nLIMIT 3 OFFSET 3;",
   attendu:"3 lignes : les produits classés aux positions 4 à 6.",
@@ -19059,11 +19100,12 @@ function renderBravoSlide(l){
 function anatLinesHtml(lines){
   return (lines||[]).map(a=>`<div class="anat-line"><div class="anat-tok ${a.plain?'plain':''}${a.punc?' punc':''}">${esc(a.tok)}</div><div class="anat-txt">${a.txt}</div></div>`).join('');
 }
-function anatBlock(l){
+function anatBlock(l,opts){
+  const hideSwitcher=opts&&opts.hideSwitcher;
   const variants=l&&l.anatomieVariants;
   const lines=(variants&&variants[0]&&variants[0].lines)||(l&&l.anatomie);
   if(!lines||!lines.length)return '';
-  const switcher=variants&&variants.length>1
+  const switcher=(variants&&variants.length>1&&!hideSwitcher)
     ?`<div class="xf-switch" role="tablist">${variants.map((v,i)=>{
         const on=i===0;
         const tone=v.tone?` ${v.tone}`:'';
@@ -19072,8 +19114,13 @@ function anatBlock(l){
     :'';
   const variantsAttr=variants&&variants.length>1?` data-variants="${escAttr(JSON.stringify(variants))}" data-vi="0"`:'';
   const tone0=variants&&variants[0]&&variants[0].tone;
-  return `<div class="anat${tone0?' tone-'+tone0:''}"${variantsAttr}>${switcher?`<div class="anat-head">${switcher}</div>`:''}<div class="anat-body">${anatLinesHtml(lines)}</div></div>`;
+  return `<div class="anat${tone0?' tone-'+tone0:''}${hideSwitcher?' no-head':''}"${variantsAttr}>${switcher?`<div class="anat-head">${switcher}</div>`:''}<div class="anat-body">${anatLinesHtml(lines)}</div></div>`;
 }
+/* Variante « repliée » : le titre devient un bouton (« Explique-moi la
+   requête »), le contenu démarre caché. Utile quand ce bloc décrit une
+   requête à onglets (Page 1/2/3…) déjà pilotés par le Teste juste au-dessus
+   — un seul jeu d'onglets en haut plutôt que deux jeux redondants, et le
+   sous-titre du bouton rappelle quel onglet est actif même repliée. */
 function anatSections(l){
   if(l&&l.anatomieList&&l.anatomieList.length){
     return l.anatomieList.map(sec=>{
@@ -19083,8 +19130,14 @@ function anatSections(l){
       return `<div class="sect-label"><i>◆</i><span>${esc(sec.label||'La requête expliquée')}</span></div>${html}`;
     }).join('');
   }
-  const anat=anatBlock(l);
+  const collapsible=!!l.anatCollapsible;
+  const anat=anatBlock(l,collapsible?{hideSwitcher:true}:undefined);
   if(!anat) return '';
+  if(collapsible){
+    const variants=l.anatomieVariants;
+    const meta=variants&&variants[0]&&variants[0].label;
+    return `<button type="button" class="sect-label anat-reveal" aria-expanded="false" aria-controls="anat-panel-main" onclick="toggleAnatReveal(this)"><i>◆</i><span class="anat-reveal-copy"><b>Explique-moi la requête</b>${meta?`<small class="anat-reveal-meta">${esc(meta)}</small>`:''}</span><span class="anat-reveal-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></button><div class="anat-panel" id="anat-panel-main" hidden>${anat}</div>`;
+  }
   return `<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`;
 }
 function paintAnatVariant(wrap, variants, i){
@@ -19100,6 +19153,15 @@ function paintAnatVariant(wrap, variants, i){
   });
   const body=wrap.querySelector('.anat-body');
   if(body) body.innerHTML=anatLinesHtml(v.lines);
+  /* Repliée (anat-reveal), le bouton n'a pas ses propres onglets : son
+     sous-titre reprend le libellé de la variante active, mis à jour même
+     quand c'est l'onglet Teste du haut qui a déclenché ce repaint. */
+  const panel=wrap.closest('.anat-panel');
+  const btn=panel&&panel.previousElementSibling;
+  if(btn&&btn.classList.contains('anat-reveal')){
+    const meta=btn.querySelector('.anat-reveal-meta');
+    if(meta) meta.textContent=v.label||'';
+  }
   return v;
 }
 /* Deux onglets différents (Teste + La requête expliquée) peuvent décrire les
@@ -19147,6 +19209,14 @@ function switchAnatVariant(btn){
   const v=paintAnatVariant(wrap,variants,i);
   if(!v)return;
   syncLinkedVariant(wrap,v);
+  if(navigator.vibrate)navigator.vibrate(5);
+}
+function toggleAnatReveal(btn){
+  const panel=document.getElementById(btn.getAttribute('aria-controls'));
+  if(!panel)return;
+  const open=btn.getAttribute('aria-expanded')==='true';
+  btn.setAttribute('aria-expanded',open?'false':'true');
+  panel.hidden=open;
   if(navigator.vibrate)navigator.vibrate(5);
 }
 function lessonRichBlocks(l){
