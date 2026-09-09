@@ -913,6 +913,40 @@
      touchent directement (les <p> du bloc fn-use n'ont pas de marge
      basse propre). */
   .fn-use p + .offset-anim{margin-top:12px}
+  /* Avant / après insertion d'une ligne (OFFSET et pagination) : deux
+     mini-listes .offset-demo côte à côte, reliées par une flèche — montre
+     concrètement le décalage plutôt que de le décrire en texte. La ligne
+     dupliquée entre les deux pages reprend le rouge « doublon » déjà utilisé
+     par .nm-dup ailleurs dans l'app. */
+  .offset-shift{display:flex;align-items:stretch;gap:12px;margin:14px 0;flex-wrap:wrap}
+  .offset-shift-col{flex:1;min-width:170px;display:flex;flex-direction:column}
+  .offset-shift-col .offset-demo{margin:0}
+  .offset-shift-label{margin:0 0 6px;font-family:var(--ui);font-size:11px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:var(--ink-3)}
+  .offset-shift-arrow{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:var(--ui);font-size:11px;font-weight:700;color:var(--ink-2);text-align:center;padding:0 2px}
+  .offset-shift-arrow i{font-style:normal;font-size:17px;line-height:1;color:var(--ink-3)}
+  @media (max-width:540px){.offset-shift{flex-direction:column}.offset-shift-arrow{flex-direction:row;padding:2px 0}}
+  .offset-demo-row.is-dup{background:var(--danger-soft)}
+  .offset-demo-row.is-dup i{background:var(--danger);color:#fff;border-color:transparent}
+  .offset-demo-row.is-dup small{color:var(--danger)}
+  /* Coût d'un grand OFFSET (pagination profonde) : une barre « lignes
+     parcourues » très large contre une fine tranche « lignes gardées » —
+     schéma volontairement pas à l'échelle (le rapport réel est bien plus
+     extrême), juste pour rendre le coût tangible. */
+  .offset-scan{margin:14px 0}
+  .offset-scan-bar{display:flex;height:38px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+  .offset-scan-skip{flex:94;display:flex;align-items:center;justify-content:center;background:var(--warn-soft);overflow:hidden}
+  .offset-scan-skip span{font-family:var(--ui);font-size:11px;font-weight:800;color:var(--warn);white-space:nowrap;padding:0 8px}
+  .offset-scan-keep{flex:6;min-width:44px;display:flex;align-items:center;justify-content:center;background:var(--accent);overflow:hidden}
+  .offset-scan-keep span{font-family:var(--mono);font-size:10.5px;font-weight:800;color:#fff;white-space:nowrap}
+  .offset-scan-caption{margin:8px 0 0;font-family:var(--ui);font-size:12.5px;line-height:1.5;color:var(--ink-2)}
+  /* Pourquoi le OU fonctionne pour un tri à deux colonnes : deux petites
+     cartes « cas » plutôt qu'une phrase seule — la disjonction du WHERE
+     devient un choix visible entre deux situations. */
+  .offset-branches{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap}
+  .offset-branch{flex:1;min-width:180px;padding:11px 13px;border-radius:14px;border:1px solid var(--line);background:var(--surface)}
+  .offset-branch-tag{display:inline-block;margin:0 0 6px;font-family:var(--ui);font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:3px 8px;border-radius:999px}
+  .offset-branch > code{display:block;margin:0 0 6px;font-size:12.5px;white-space:normal;word-break:break-word}
+  .offset-branch p{margin:0;font-size:12.5px;line-height:1.45;color:var(--ink-2)}
   /* Carte à part entière, avant la Situation (pas nichée dedans) : elle pose
      la question avant même le contexte métier, comme un titre de chapitre.
      Enfant direct de .lesson-rich (flex column, gap) : pas de marge propre. */
@@ -8534,8 +8568,8 @@ learningCheck:{
         <tr><td class="jr-type">10</td><td class="jr-quoi">Vitamine C</td><td class="jr-quoi">24,90 €</td></tr>
       </tbody></table><p><code>prix DESC</code> seul ne permet pas de départager ces deux lignes. En ajoutant <code>id ASC</code>, SQL trie d’abord par <code>prix</code>, puis, à égalité, par <code>id</code> croissant — un ordre déterministe, essentiel pour une pagination fiable.</p></div>
       <div class="fn-use"><p class="pt-syntax-h">OFFSET sans changer LIMIT</p><p><code>LIMIT</code> et <code>OFFSET</code> répondent à deux questions différentes : combien de lignes veux-tu, et combien en passer avant de commencer.</p><div class="pt-syntax"><pre class="cw-syntax">LIMIT 10 OFFSET 20;</pre></div><p>Passe les 20 premières lignes, puis renvoie au maximum 10 lignes — typiquement la 3<sup>e</sup> page d’une interface qui affiche 10 résultats par page.</p></div>
-      <div class="fn-use"><p class="pt-syntax-h">La pagination profonde</p><p>OFFSET est simple, mais a un coût : SQL doit tout de même parcourir les lignes ignorées avant d’atteindre celles qui intéressent. Sur une table d’un million de produits, <code>LIMIT 20 OFFSET 800000</code> peut donc devenir coûteux selon le SGBD, la requête, les index et le plan d’exécution — on parle de <b>pagination profonde</b>.</p></div>
-      <div class="fn-use"><p class="pt-syntax-h">Les données peuvent changer entre deux pages</p><p><code>OFFSET</code> fonctionne à partir de la position des lignes au moment où la requête est exécutée.<br><br>Imagine que l’utilisateur affiche la page 1 :<br><br>Page 1 : <code>A</code> · <code>B</code> · <code>C</code><br><br>Puis, avant qu’il clique sur Page 2, un nouveau produit <code>X</code> est ajouté au début du classement. Le résultat devient :<br><br><code>X</code> · <code>A</code> · <code>B</code> · <code>C</code> · <code>D</code> · <code>E</code> …</p><p>Pour afficher la page 2, SQL exécute :</p><div class="pt-syntax"><pre class="cw-syntax">LIMIT 3 OFFSET 3;</pre></div><p><code>OFFSET 3</code> passe maintenant : <code>X</code> · <code>A</code> · <code>B</code><br>Puis <code>LIMIT 3</code> récupère : <code>C</code> · <code>D</code> · <code>E</code><br><br>⚠️ Problème : <code>C</code> était déjà affiché sur la page 1. Il apparaît donc une deuxième fois.<br><br>Pourquoi ? <code>OFFSET</code> ne se souvient pas que la page précédente contenait <code>A</code>, <code>B</code> et <code>C</code>. Il dit simplement à SQL : « Dans le résultat actuel, passe les 3 premières lignes. »<br><br>Si des données sont ajoutées ou supprimées entre deux requêtes, les positions peuvent changer.<br><br>C’est cette limite qui permet ensuite d’introduire naturellement la pagination par curseur : et si, au lieu de dire « passe 3 lignes », on disait à SQL « reprends après le dernier produit que j’ai reçu » ? → c’est le principe de la pagination par curseur.</p></div>
+      <div class="fn-use"><p class="pt-syntax-h">La pagination profonde</p><p>OFFSET est simple, mais a un coût : SQL doit tout de même parcourir les lignes ignorées avant d’atteindre celles qui intéressent.</p><div class="offset-scan"><div class="offset-scan-bar"><div class="offset-scan-skip"><span>800 000 lignes parcourues</span></div><div class="offset-scan-keep"><span>20</span></div></div><p class="offset-scan-caption">Sur une table d’un million de produits, <code>LIMIT 20 OFFSET 800000</code> oblige SQL à avancer jusqu’à la position 800 000 avant de garder les 20 lignes demandées — schéma non à l’échelle. Selon le SGBD, la requête, les index et le plan d’exécution, ce coût peut devenir significatif : on parle de <b>pagination profonde</b>.</p></div></div>
+      <div class="fn-use"><p class="pt-syntax-h">Les données peuvent changer entre deux pages</p><p><code>OFFSET</code> fonctionne à partir de la position des lignes au moment où la requête est exécutée. Imagine que l’utilisateur affiche la page 1, puis qu’un nouveau produit <code>X</code> est inséré en tête de classement avant qu’il clique sur Page 2 :</p><div class="offset-shift"><div class="offset-shift-col"><p class="offset-shift-label">Page 1 affichée</p><div class="offset-demo is-list"><div class="offset-demo-row"><i>1</i><b>A</b></div><div class="offset-demo-row"><i>2</i><b>B</b></div><div class="offset-demo-row"><i>3</i><b>C</b></div></div></div><div class="offset-shift-arrow"><i>→</i><code>+ X</code></div><div class="offset-shift-col"><p class="offset-shift-label">Nouvel ordre</p><div class="offset-demo is-list"><div class="offset-demo-row is-skip"><i>1</i><b>X</b><small>OFFSET</small></div><div class="offset-demo-row is-skip"><i>2</i><b>A</b><small>OFFSET</small></div><div class="offset-demo-row is-skip"><i>3</i><b>B</b><small>OFFSET</small></div><div class="offset-demo-row is-dup"><i>4</i><b>C</b><small>déjà vu</small></div><div class="offset-demo-row is-keep"><i>5</i><b>D</b><small>LIMIT</small></div><div class="offset-demo-row is-keep"><i>6</i><b>E</b><small>LIMIT</small></div></div></div></div><p>Pour afficher la page 2, SQL exécute toujours <code>LIMIT 3 OFFSET 3</code> : il ignore les 3 premières lignes du nouvel ordre (<code>X</code>, <code>A</code>, <code>B</code>), puis garde les 3 suivantes (<code>C</code>, <code>D</code>, <code>E</code>).<br><br>⚠️ Problème : <code>C</code> était déjà affiché sur la page 1. Il apparaît donc une deuxième fois.<br><br>Pourquoi ? <code>OFFSET</code> ne se souvient pas que la page précédente contenait <code>A</code>, <code>B</code> et <code>C</code>. Il dit simplement à SQL : « Dans le résultat actuel, passe les 3 premières lignes. »<br><br>Si des données sont ajoutées ou supprimées entre deux requêtes, les positions peuvent donc changer.<br><br>C’est cette limite qui permet ensuite d’introduire naturellement la pagination par curseur : et si, au lieu de dire « passe 3 lignes », on disait à SQL « reprends après le dernier produit que j’ai reçu » ? → c’est le principe de la pagination par curseur.</p></div>
       <div class="fn-use"><p class="pt-syntax-h">La pagination par curseur (keyset)</p><p>Avec <code>OFFSET</code>, SQL avance en comptant les lignes à passer :</p><div class="pt-syntax"><pre class="cw-syntax">LIMIT 3 OFFSET 3;</pre></div><p>→ passe 3 lignes, puis récupère les 3 suivantes.</p><p>La pagination par curseur utilise une autre logique : elle mémorise une valeur de la dernière ligne reçue pour savoir où reprendre.</p><p>Imaginons que la première page renvoie :</p><div class="offset-demo is-list">
         <div class="offset-demo-row"><i>1</i><b>Fibre Prébiotique</b></div>
         <div class="offset-demo-row"><i>2</i><b>Collagène Marin</b></div>
@@ -8564,7 +8598,7 @@ FROM produits
 WHERE prix &lt; 29.90
    OR (prix = 29.90 AND id &gt; 1)
 ORDER BY prix DESC, id ASC
-LIMIT 3;</pre></div><p>Retourne les mêmes 3 produits que <code>LIMIT 3 OFFSET 3</code> — Oméga 3, Magnésium, Shaker Inox — mais sans jamais compter de lignes à sauter.</p></div>
+LIMIT 3;</pre></div><p>Le <code>OU</code> couvre deux cas :</p><div class="offset-branches"><div class="offset-branch"><span class="offset-branch-tag">Cas 1</span><code>prix &lt; 29.90</code><p>Un prix strictement plus bas vient forcément après — pas besoin de regarder l’<code>id</code>.</p></div><div class="offset-branch"><span class="offset-branch-tag">Cas 2</span><code>prix = 29.90 ET id &gt; 1</code><p>À prix égal, seul l’<code>id</code> permet de ne garder que ce qui suit la dernière ligne reçue.</p></div></div><p>Retourne les mêmes 3 produits que <code>LIMIT 3 OFFSET 3</code> — Oméga 3, Magnésium, Shaker Inox — mais sans jamais compter de lignes à sauter.</p></div>
       <div class="fn-use"><p class="pt-syntax-h">Exemple concret</p><p><b>Avec OFFSET</b></p><div class="pt-syntax"><pre class="cw-syntax">SELECT *
 FROM produits
 ORDER BY id
