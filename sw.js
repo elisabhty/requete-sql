@@ -14,7 +14,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-09-09-offset-emojis-responsive-fix-v465';
+const CACHE = 'requete-2026-09-09-offset-tu-decides-v466';
 
 const PRECACHE = [
   './',
