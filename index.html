@@ -301,20 +301,18 @@
   .sect-label{display:flex;align-items:center;gap:8px;margin:0 2px 8px}
   .sect-label i{width:22px;height:22px;border-radius:7px;background:var(--accent-soft);color:var(--accent);font-family:var(--mono);font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;font-style:normal;flex:none;box-shadow:0 1px 2px rgba(91,91,214,.1)}
   .sect-label span{font-size:12px;font-weight:750;color:var(--ink-2);text-transform:uppercase;letter-spacing:.7px}
-  /* Variante bouton : le titre se réplie, un chevron indique l'état, et un
-     sous-titre rappelle quelle variante de requête reste affichée dessous
-     même repliée (utile quand elle est pilotée par l'onglet Teste du haut).
-     Card visible en permanence (pas juste au survol) : sans elle, le bloc se
-     lit comme un simple libellé, pas comme quelque chose à toucher. */
-  .sect-label.anat-reveal{width:100%;border:1px solid var(--card-border);background:var(--surface);padding:11px 12px;margin:0 0 4px;font:inherit;text-align:left;border-radius:14px;cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:var(--card-shadow-sm);transition:transform .16s var(--spring-ios),background .16s,box-shadow .16s}
-  @media (hover:hover) and (pointer:fine){.sect-label.anat-reveal:hover{background:var(--surface-2);box-shadow:var(--lift-md)}}
-  .sect-label.anat-reveal:active{transform:scale(.97);background:var(--accent-soft);box-shadow:none}
-  .anat-reveal-copy{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0}
-  .anat-reveal-copy b{font-size:12px;font-weight:750;color:var(--ink-2);text-transform:uppercase;letter-spacing:.7px}
-  .anat-reveal-copy small{font-size:11px;font-weight:650;color:var(--accent);text-transform:none;letter-spacing:0}
-  .anat-reveal-chev{flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;color:var(--accent);transition:transform .3s var(--spring-ios),background .16s}
-  .anat-reveal-chev svg{width:13px;height:13px}
+  /* Variante bouton : une seule ligne (titre + pastille de variante +
+     chevron), assez haute pour le doigt, sans carte à deux étages. */
+  .sect-label.anat-reveal{width:100%;min-height:44px;box-sizing:border-box;border:1px solid var(--card-border);background:var(--surface);padding:8px 10px;margin:0 0 4px;font:inherit;text-align:left;border-radius:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;gap:8px;transition:background .16s,border-color .16s}
+  @media (hover:hover) and (pointer:fine){.sect-label.anat-reveal:hover{background:var(--surface-2)}}
+  .sect-label.anat-reveal:active{background:var(--accent-soft)}
+  .sect-label.anat-reveal .anat-reveal-copy{flex:1;min-width:0;font-size:13.5px;font-weight:750;color:var(--ink);text-transform:none;letter-spacing:0;line-height:1.25}
+  .sect-label.anat-reveal .anat-reveal-meta{flex:none;max-width:42%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:3px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:750;letter-spacing:0;text-transform:none}
+  .anat-reveal-meta:empty{display:none}
+  .anat-reveal-chev{flex:none;width:22px;height:22px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;color:var(--accent);transition:transform .3s var(--spring-ios),background .16s}
+  .anat-reveal-chev svg{width:12px;height:12px}
   .sect-label.anat-reveal:active .anat-reveal-chev{background:#fff}
+  .sect-label.anat-reveal[aria-expanded="true"]{border-color:rgba(91,91,214,.28);background:var(--accent-soft)}
   .sect-label.anat-reveal[aria-expanded="true"] .anat-reveal-chev{transform:rotate(90deg)}
   .anat-panel:not([hidden]){animation:anatPanelIn .28s var(--spring-ios) both}
   @keyframes anatPanelIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
@@ -1067,8 +1065,7 @@
   .sit-vue-arrow{font-style:normal;font-size:16px;line-height:1;font-weight:800;color:var(--accent)}
   /* L'encadre qui suit porte le point qui distingue une vue d'une table :
      rien n'est copie. Meme facture que le memo des cartes de fin de cours. */
-  .sit-memo{position:relative;overflow:hidden;margin:14px 0 0;padding:13px 15px 13px 17px;border:1px solid var(--card-border);border-radius:16px;background:linear-gradient(180deg,#fff,var(--surface))}
-  .sit-memo::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--accent),var(--accent-2))}
+  .sit-memo{position:relative;overflow:hidden;margin:14px 0 0;padding:13px 15px;border:1px solid var(--card-border);border-radius:16px;background:linear-gradient(180deg,#fff,var(--surface))}
   .lesson-rich .sit-memo p{margin:0;font-size:14px;line-height:1.55;color:var(--ink-2)}
   .lesson-rich .sit-memo .sit-memo-lab{display:flex;align-items:center;gap:7px;margin:0 0 7px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--accent)}
   .sit-memo-lab i{font-size:13px;font-style:normal}
@@ -3428,8 +3425,7 @@
      directement sur le corps plutôt que de disparaître avec la barre. */
   .anat.tone-bad.no-head{box-shadow:inset 3px 0 0 var(--danger)}
   .anat.tone-good.no-head{box-shadow:inset 3px 0 0 var(--success)}
-  .anat-line{display:flex;gap:12px;align-items:flex-start;padding:10px 15px}
-  .anat-line:not(:last-child){border-bottom:1px solid rgba(255,255,255,.06)}
+  .anat-line{display:flex;gap:12px;align-items:flex-start;padding:8px 15px}
   .anat-tok{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--t-kw);flex:0 0 132px;width:132px;min-width:132px;max-width:132px;word-break:break-word}
   .anat-tok.plain{color:var(--code-ink);font-weight:500}
   .anat-tok.punc{color:#8A8A9C}
@@ -4630,8 +4626,7 @@
   .vs-dot{width:15px;height:15px;border-radius:50%;border:1.5px solid var(--line-2);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff}
   .vstep.ok .vs-dot{background:var(--success);border-color:var(--success)}
   .qcm-card{background:var(--surface);border:1px solid var(--card-border);border-radius:22px;padding:20px 20px 18px;box-shadow:var(--card-shadow);margin-bottom:14px;position:relative;overflow:hidden}
-  .qcm-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent)}
-  .qcm-card.ok::before{background:var(--success)}
+  .qcm-card.ok{border-color:rgba(11,107,74,.18)}
   .qtag{display:inline-flex;align-items:center;font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:4px 10px;border-radius:999px;margin-bottom:10px}
   .qcm-card.ok .qtag{color:var(--success);background:var(--success-soft)}
   .qtxt{font-size:16px;font-weight:750;margin:0 0 14px;line-height:1.4;letter-spacing:-.2px;color:var(--ink)}
@@ -6906,8 +6901,8 @@
 .learning-check-options button[aria-pressed="true"]{background:#e8efdf;border-color:#64813f;color:#293a19}
 .learning-check-options button:focus-visible,.txt-families button:focus-visible{outline:3px solid #64813f;outline-offset:3px}
 .learning-check-feedback,.learning-check-note{font-size:13px;line-height:1.7;margin:16px 0 0}
-.learning-check-feedback{padding:12px;border-left:3px solid #a97735;background:#faf4e9}
-.learning-check-feedback[data-correct="true"]{border-color:#64813f;background:#eff5e8}
+.learning-check-feedback{padding:12px 14px;border-radius:12px;background:#faf4e9}
+.learning-check-feedback[data-correct="true"]{background:#eff5e8}
 .txt-families{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
 .txt-families button{padding:10px 12px;min-height:44px;border:1px solid #ccd2c4;border-radius:20px;background:transparent;color:inherit;font:inherit;font-size:13px;cursor:pointer}
 .txt-families button[aria-pressed="true"]{background:#e8efdf;color:#293a19}
@@ -8682,7 +8677,7 @@ learningCheck:{
       </tbody></table><p>Avec seulement :</p><div class="pt-syntax"><pre class="cw-syntax">ORDER BY prix DESC</pre></div><p>SQL trie les produits par prix. Mais ici, les deux prix sont identiques : quelle ligne doit venir en premier ?</p><p>Pour fixer un ordre clair, on ajoute l’id :</p><div class="pt-syntax"><pre class="cw-syntax">ORDER BY prix DESC, id ASC</pre></div><p>SQL applique alors deux règles :</p><ul class="pt-lead-list"><li>Trier par <code>prix DESC</code> → du prix le plus élevé au plus bas.</li><li>Si deux prix sont identiques → trier par <code>id ASC</code>, du plus petit ID au plus grand.</li></ul><p>Donc ici : <b>Oméga 3</b> (ID 4) → <b>Vitamine C</b> (ID 10)</p><p>👉 Pourquoi c’est important pour la pagination ?<br><br>Chaque produit garde une position claire dans le classement, même lorsque plusieurs produits ont le même prix.</p></div>
       <div class="fn-use"><p class="pt-syntax-h">OFFSET sans changer LIMIT</p><p><code>LIMIT</code> et <code>OFFSET</code> répondent à deux questions différentes : combien de lignes veux-tu, et combien en passer avant de commencer.</p><div class="pt-syntax"><pre class="cw-syntax">LIMIT 10 OFFSET 20;</pre></div><div class="offset-scan is-real"><div class="offset-scan-bar"><div class="offset-scan-skip"><span>20 lignes</span><small>OFFSET</small></div><div class="offset-scan-keep"><span>10</span><small>LIMIT</small></div></div><p class="offset-scan-caption">Passe les 20 premières lignes, puis renvoie au maximum 10.<br><br>👉 Typiquement la 3<sup>e</sup> page d’une interface qui affiche 10 résultats par page.</p></div></div>
       <div class="fn-use"><p class="pt-syntax-h">Quand OFFSET devient très grand</p><p><code>OFFSET</code> est pratique, mais plus sa valeur augmente, plus SQL peut avoir beaucoup de lignes à parcourir avant d’arriver aux résultats demandés.</p><p>Imagine une table contenant 1 000 000 de produits :</p><div class="pt-syntax"><pre class="cw-syntax">LIMIT 20 OFFSET 800000;</pre></div><p>SQL doit aller jusqu’aux 800 000 premières lignes avant de pouvoir récupérer les 20 suivantes.</p><p>Visuellement :</p><div class="offset-scan"><div class="offset-scan-bar"><div class="offset-scan-skip"><span>800 000 lignes</span><small>OFFSET</small></div><div class="offset-scan-keep"><span>20</span><small>LIMIT</small></div></div></div><p>Sur les premières pages, ce n’est généralement pas un problème. Mais lorsqu’on va très loin dans les résultats, la requête peut devenir plus coûteuse et donc plus lente.</p><p>👉 C’est ce qu’on appelle la <b>pagination profonde</b> : utiliser un <code>OFFSET</code> très élevé pour atteindre une page très éloignée.</p></div>
-      <div class="fn-use"><p class="pt-syntax-h">Que se passe-t-il si les données changent ?</p><p><code>OFFSET</code> se base sur la position actuelle des lignes. Imagine que la page 1 affiche <b>A</b>, <b>B</b>, <b>C</b>. Avant que l’utilisateur ouvre la page 2, un nouveau produit <code>X</code> est ajouté en première position :</p><div class="offset-shift"><div class="offset-shift-col"><p class="offset-shift-label">Page 1 affichée</p><div class="offset-demo is-list"><div class="offset-demo-row"><i>1</i><b>A</b></div><div class="offset-demo-row"><i>2</i><b>B</b></div><div class="offset-demo-row"><i>3</i><b>C</b></div></div></div><div class="offset-shift-arrow"><i>→</i><code>+ X</code></div><div class="offset-shift-col"><p class="offset-shift-label">Nouvel ordre</p><div class="offset-demo is-list"><div class="offset-demo-row is-skip"><i>1</i><b>X</b><small>OFFSET</small></div><div class="offset-demo-row is-skip"><i>2</i><b>A</b><small>OFFSET</small></div><div class="offset-demo-row is-skip"><i>3</i><b>B</b><small>OFFSET</small></div><div class="offset-demo-row is-dup"><i>4</i><b>C</b><small>déjà vu</small></div><div class="offset-demo-row is-keep"><i>5</i><b>D</b><small>LIMIT</small></div><div class="offset-demo-row is-keep"><i>6</i><b>E</b><small>LIMIT</small></div></div></div></div><p>Pour afficher la page 2, SQL exécute toujours :</p><div class="pt-syntax"><pre class="cw-syntax">LIMIT 3 OFFSET 3;</pre></div><p>Il ignore donc les 3 premières lignes du nouveau classement : <s class="offset-struck">X, A, B</s><br>Puis affiche les 3 suivantes : <b>C</b>, <b>D</b>, <b>E</b>.</p><p>⚠️ Le problème : <code>C</code> apparaît une deuxième fois, alors qu’il était déjà visible sur la page 1.</p><p>👉 Pourquoi ?<br><br><code>OFFSET</code> ne mémorise pas les produits déjà affichés. <code>OFFSET 3</code> signifie simplement : « Dans les résultats actuels, ignore les 3 premières lignes. »</p><p>Si un produit est ajouté ou supprimé entre deux pages, les positions peuvent changer. On peut alors voir deux fois le même produit, ou au contraire en manquer un.</p><p><b>Transition vers le curseur</b></p><p>C’est justement l’une des raisons d’utiliser une autre méthode : la pagination par curseur.</p><p>Au lieu de dire à SQL « Ignore les 3 premières lignes », on lui indique plutôt : « Continue après le dernier produit que j’ai reçu. » C’est le principe que tu vas découvrir juste après.</p></div>
+      <div class="fn-use"><p class="pt-syntax-h">Que se passe-t-il si les données changent ?</p><p><code>OFFSET</code> se base sur la position actuelle des lignes. Imagine que la page 1 affiche <b>A</b>, <b>B</b>, <b>C</b>. Avant que l’utilisateur ouvre la page 2, un nouveau produit <code>X</code> est ajouté en première position :</p><div class="offset-shift"><div class="offset-shift-col"><p class="offset-shift-label">Page 1 affichée</p><div class="offset-demo is-list"><div class="offset-demo-row"><i>1</i><b>A</b></div><div class="offset-demo-row"><i>2</i><b>B</b></div><div class="offset-demo-row"><i>3</i><b>C</b></div></div></div><div class="offset-shift-arrow"><i>→</i><code>+ X</code></div><div class="offset-shift-col"><p class="offset-shift-label">Nouvel ordre</p><div class="offset-demo is-list"><div class="offset-demo-row is-skip"><i>1</i><b>X</b><small>OFFSET</small></div><div class="offset-demo-row is-skip"><i>2</i><b>A</b><small>OFFSET</small></div><div class="offset-demo-row is-skip"><i>3</i><b>B</b><small>OFFSET</small></div><div class="offset-demo-row is-dup"><i>4</i><b>C</b><small>déjà vu</small></div><div class="offset-demo-row is-keep"><i>5</i><b>D</b><small>LIMIT</small></div><div class="offset-demo-row is-keep"><i>6</i><b>E</b><small>LIMIT</small></div></div></div></div><p>Pour afficher la page 2, SQL exécute toujours :</p><div class="pt-syntax"><pre class="cw-syntax">LIMIT 3 OFFSET 3;</pre></div><p>Il ignore donc les 3 premières lignes du nouveau classement : <s class="offset-struck">X, A, B</s><br>Puis affiche les 3 suivantes : <b>C</b>, <b>D</b>, <b>E</b>.</p><p>⚠️ Le problème : <code>C</code> apparaît une deuxième fois, alors qu’il était déjà visible sur la page 1.</p><p>👉 Pourquoi ?<br><br><code>OFFSET</code> ne mémorise pas les produits déjà affichés. <code>OFFSET 3</code> signifie simplement : « Dans les résultats actuels, ignore les 3 premières lignes. »</p><p>Si un produit est ajouté ou supprimé entre deux pages, les positions peuvent changer. On peut alors voir deux fois le même produit, ou au contraire en manquer un.</p><p><b>Et si on reprenait là où on s’est arrêté ?</b></p><p>C’est justement l’une des raisons d’utiliser une autre méthode : la pagination par curseur.</p><p>Au lieu de dire à SQL « Ignore les 3 premières lignes », on lui indique plutôt : « Continue après le dernier produit que j’ai reçu. » C’est le principe que tu vas découvrir juste après.</p></div>
       <div class="fn-use"><p class="pt-syntax-h">La pagination par curseur</p><p>Avec <code>OFFSET</code>, SQL avance en comptant le nombre de lignes à ignorer :</p><div class="pt-syntax"><pre class="cw-syntax">LIMIT 3 OFFSET 3;</pre></div><p>Cela signifie : « Ignore les 3 premières lignes, puis affiche les 3 suivantes. »</p><p>La pagination par curseur fonctionne autrement. Au lieu de compter les lignes à ignorer, on garde un repère indiquant où reprendre.</p><p>Pour comprendre le principe, commençons par un cas simple où les produits sont classés par <code>id</code> croissant. Imagine que la première page affiche :</p><div class="offset-demo is-list">
         <div class="offset-demo-row"><i>1</i><b>Fibre Prébiotique</b></div>
         <div class="offset-demo-row"><i>2</i><b>Collagène Marin</b></div>
@@ -19178,7 +19173,7 @@ function anatSections(l){
   if(collapsible){
     const variants=l.anatomieVariants;
     const meta=variants&&variants[0]&&variants[0].label;
-    return `<button type="button" class="sect-label anat-reveal" aria-expanded="false" aria-controls="anat-panel-main" onclick="toggleAnatReveal(this)"><i>◆</i><span class="anat-reveal-copy"><b>Explique-moi la requête</b>${meta?`<small class="anat-reveal-meta">${esc(meta)}</small>`:''}</span><span class="anat-reveal-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></button><div class="anat-panel" id="anat-panel-main" hidden>${anat}</div>`;
+    return `<button type="button" class="sect-label anat-reveal" aria-expanded="false" aria-controls="anat-panel-main" onclick="toggleAnatReveal(this)"><i>◆</i><span class="anat-reveal-copy">Explique-moi la requête</span>${meta?`<small class="anat-reveal-meta">${esc(meta)}</small>`:''}<span class="anat-reveal-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></button><div class="anat-panel" id="anat-panel-main" hidden>${anat}</div>`;
   }
   return `<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`;
 }
