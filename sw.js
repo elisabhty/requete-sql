@@ -14,7 +14,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-09-09-fncmp-prose-colonne-large-v463';
+const CACHE = 'requete-2026-09-09-offset-passe-profonde-compare-scan-cursor-v464';
 
 const PRECACHE = [
   './',
