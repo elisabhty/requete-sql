@@ -1022,7 +1022,7 @@
   .offset-diff-sql{margin:0;padding:10px 12px;border-bottom:1px solid var(--line-2);background:var(--surface-2)}
   .offset-diff-sql .cw-syntax{margin:0;font-size:12.5px}
   .offset-diff-list{display:flex;flex-direction:column}
-  .offset-diff-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line-2);background:var(--surface)}
+  .offset-diff-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line-2);background:var(--surface);transition:opacity .3s ease,background .3s ease}
   .offset-diff-row:last-child{border-bottom:0}
   .offset-diff-row i{flex:none;width:20px;height:20px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-style:normal;font-family:var(--mono);font-size:10px;font-weight:700;color:var(--ink-2)}
   .offset-diff-row b{flex:1;min-width:0;font-family:var(--ui);font-size:13px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1044,26 +1044,14 @@
   .offset-diff[data-mode="cursor"] .offset-diff-row[data-role="mark"]{background:var(--accent-soft)}
   .offset-diff[data-mode="cursor"] .offset-diff-row[data-role="mark"] i{background:#fff;color:var(--accent);border:2px solid var(--accent)}
   .offset-diff[data-mode="cursor"] .offset-diff-row[data-role="mark"] small{color:var(--accent)}
-  .offset-diff.is-run[data-mode="offset"] .offset-diff-row[data-role="skip"],
-  .offset-diff.is-run[data-mode="offset"] .offset-diff-row[data-role="mark"]{animation:offsetDiffSkip .36s ease var(--dw,0ms) both}
-  .offset-diff.is-run[data-mode="offset"] .offset-diff-row[data-role="keep"],
-  .offset-diff.is-run[data-mode="cursor"] .offset-diff-row[data-role="keep"]{animation:offsetDiffKeep .36s ease var(--dw,0ms) both}
-  .offset-diff.is-run[data-mode="cursor"] .offset-diff-row[data-role="mark"]{animation:offsetDiffMark .36s ease both}
-  .offset-diff-caption{margin:0;padding:10px 12px;font-family:var(--ui);font-size:12.5px;line-height:1.5;color:var(--ink-2);border-top:1px solid var(--line-2);background:var(--surface-2)}
+  .offset-diff-row.is-pulse{animation:offsetDiffPulse .3s ease var(--dw,0ms) both}
+  @keyframes offsetDiffPulse{from{transform:translateX(-2px)}to{transform:none}}
+  .offset-diff-caption{margin:0;padding:10px 12px;font-family:var(--ui);font-size:12.5px;line-height:1.5;color:var(--ink-2);border-top:1px solid var(--line-2);background:var(--surface-2);transition:color .2s ease}
   .offset-sql-steps{display:flex;flex-direction:column;gap:6px;margin:0 0 14px}
   .offset-sql-steps p{margin:0;line-height:1.5}
-  @keyframes offsetDiffSkip{from{opacity:1;background:var(--surface)}to{opacity:.45;background:var(--surface)}}
-  @keyframes offsetDiffKeep{from{background:var(--surface)}to{background:var(--accent-soft)}}
-  @keyframes offsetDiffMark{from{background:var(--surface)}to{background:var(--accent-soft)}}
-  .offset-anim.is-run[data-page="1"] .offset-anim-row[data-p="1"],
-  .offset-anim.is-run[data-page="2"] .offset-anim-row[data-p="2"],
-  .offset-anim.is-run[data-page="3"] .offset-anim-row[data-p="3"]{animation:offsetAnimPick .34s ease var(--dw,0ms) both}
-  @keyframes offsetAnimPick{from{transform:translateX(-4px);opacity:.55}to{transform:none;opacity:1}}
-  .offset-anim-caption.is-flash{animation:offsetCapFlash .38s ease both}
-  @keyframes offsetCapFlash{0%,100%{background:var(--surface-2)}45%{background:var(--accent-soft)}}
   .offset-scan.is-run .offset-scan-skip{animation:offsetScanIn .55s ease both}
   .offset-scan.is-run .offset-scan-keep{animation:offsetScanIn .45s ease .2s both}
-  @keyframes offsetScanIn{from{opacity:0;transform:scaleX(.92)}to{opacity:1;transform:scaleX(1)}}
+  @keyframes offsetScanIn{from{transform:scaleX(.96)}to{transform:scaleX(1)}}
   .offset-shift.is-run .offset-shift-arrow i{animation:offsetShiftArrow 1.4s ease-in-out infinite}
   .offset-shift.is-run .offset-demo-row.is-dup{animation:offsetDupPulse .7s ease .35s both}
   @keyframes offsetShiftArrow{0%,100%{transform:translateX(0);opacity:.55}50%{transform:translateX(5px);opacity:1}}
@@ -1072,12 +1060,11 @@
   @media (hover:hover) and (pointer:fine){.offset-branch:hover{transform:translateY(-1px);border-color:rgba(91,91,214,.22);box-shadow:0 8px 20px -16px rgba(91,91,214,.18)}}
   .offset-branches.is-run .offset-branch:nth-child(1){animation:offsetBranchIn .36s ease both}
   .offset-branches.is-run .offset-branch:nth-child(2){animation:offsetBranchIn .36s ease .08s both}
-  @keyframes offsetBranchIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-  .offset-diff-sql.is-update{animation:offsetSqlFlash .32s ease both}
-  @keyframes offsetSqlFlash{0%,100%{background:var(--surface-2)}50%{background:var(--accent-soft)}}
-  .offset-diff-caption.is-flash{animation:offsetCapFlash .38s ease both}
+  @keyframes offsetBranchIn{from{transform:translateY(4px)}to{transform:none}}
+  .offset-diff-sql .cw-syntax{transition:opacity .18s ease}
+  .offset-diff-sql.is-fade .cw-syntax{opacity:.55}
   @media (prefers-reduced-motion:reduce){
-    .offset-diff.is-run .offset-diff-row,.offset-anim.is-run .offset-anim-row,.offset-scan.is-run .offset-scan-skip,.offset-scan.is-run .offset-scan-keep,.offset-shift.is-run .offset-shift-arrow i,.offset-shift.is-run .offset-demo-row.is-dup,.offset-branches.is-run .offset-branch,.offset-diff-sql.is-update,.offset-anim-caption.is-flash,.offset-diff-caption.is-flash{animation:none!important}
+    .offset-diff-row.is-pulse,.offset-scan.is-run .offset-scan-skip,.offset-scan.is-run .offset-scan-keep,.offset-shift.is-run .offset-shift-arrow i,.offset-shift.is-run .offset-demo-row.is-dup,.offset-branches.is-run .offset-branch{animation:none!important}
   }
   /* Carte à part entière, avant la Situation (pas nichée dedans) : elle pose
      la question avant même le contexte métier, comme un titre de chapitre.
@@ -21677,33 +21664,25 @@ function setOffsetDiff(btn,mode){
     if(sql)sql.textContent='WHERE id > 3\nORDER BY id ASC\nLIMIT 3;';
     if(cap)cap.textContent='« Reprends après mon dernier repère, l’id 3, puis affiche les 3 suivants. »';
     if(mark)mark.textContent='Repère';
-    root.querySelectorAll('.offset-diff-row[data-role="keep"]').forEach((row,i)=>{
-      row.style.setProperty('--dw',(180+i*140)+'ms');
-    });
   }else{
     if(sql)sql.textContent='LIMIT 3 OFFSET 3;';
     if(cap)cap.textContent='« Ignore 3 lignes, puis affiche les suivantes. »';
     if(mark)mark.textContent='OFFSET';
-    root.querySelectorAll('.offset-diff-row[data-role="keep"]').forEach((row,i)=>{
-      row.style.setProperty('--dw',(420+i*140)+'ms');
-    });
   }
-  root.classList.remove('is-run');
   root.dataset.mode=mode;
-  void root.offsetWidth;
-  root.classList.add('is-run');
   const sqlBox=root.querySelector('.offset-diff-sql');
-  if(sqlBox&&!prefersReduceMotion()){
-    sqlBox.classList.remove('is-update');
-    void sqlBox.offsetWidth;
-    sqlBox.classList.add('is-update');
-    sqlBox.addEventListener('animationend',()=>sqlBox.classList.remove('is-update'),{once:true});
+  if(sqlBox){
+    sqlBox.classList.add('is-fade');
+    setTimeout(()=>sqlBox.classList.remove('is-fade'),prefersReduceMotion()?0:120);
   }
-  if(cap&&!prefersReduceMotion()){
-    cap.classList.remove('is-flash');
-    void cap.offsetWidth;
-    cap.classList.add('is-flash');
-    cap.addEventListener('animationend',()=>cap.classList.remove('is-flash'),{once:true});
+  if(!prefersReduceMotion()){
+    root.querySelectorAll('.offset-diff-row[data-role="keep"]').forEach((row,i)=>{
+      row.style.setProperty('--dw',(i*70)+'ms');
+      row.classList.remove('is-pulse');
+      void row.offsetWidth;
+      row.classList.add('is-pulse');
+      row.addEventListener('animationend',()=>row.classList.remove('is-pulse'),{once:true});
+    });
   }
   if(navigator.vibrate)navigator.vibrate(5);
 }
@@ -21718,26 +21697,14 @@ function setOffsetAnimPage(btn,n){
     t.classList.toggle('on',on);
     t.setAttribute('aria-selected',on?'true':'false');
   });
-  root.classList.remove('is-run');
   root.dataset.page=String(n);
-  root.querySelectorAll('.offset-anim-row').forEach((row,i)=>row.style.setProperty('--dw',(i*45)+'ms'));
-  void root.offsetWidth;
-  root.classList.add('is-run');
   const cap=root.querySelector('.offset-anim-caption');
   const captions={
     1:'<code>LIMIT 3 OFFSET 0</code> — Collagène Marin, Protéine Végétale, le produit Fibre Prébiotique.',
     2:'<code>LIMIT 3 OFFSET 3</code> — le produit Oméga 3, Magnésium, Shaker Inox.',
     3:'<code>LIMIT 3 OFFSET 6</code> — Vitamine D, Tisane Détox : seulement 2 produits sur 8.'
   };
-  if(cap){
-    cap.innerHTML=captions[n]||captions[1];
-    if(!prefersReduceMotion()){
-      cap.classList.remove('is-flash');
-      void cap.offsetWidth;
-      cap.classList.add('is-flash');
-      cap.addEventListener('animationend',()=>cap.classList.remove('is-flash'),{once:true});
-    }
-  }
+  if(cap) cap.innerHTML=captions[n]||captions[1];
   if(navigator.vibrate)navigator.vibrate(5);
 }
 function switchTesteVariant(btn){
@@ -27596,7 +27563,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-09-offset-omega-v510';
+  const SW_CACHE='requete-2026-09-09-offset-anim-v511';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
