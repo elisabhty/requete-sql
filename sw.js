@@ -14,7 +14,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-09-09-offset-visuels-shift-scan-branches-v461';
+const CACHE = 'requete-2026-09-09-offset-scan-limit-offset-badges-v462';
 
 const PRECACHE = [
   './',
