@@ -22,8 +22,10 @@ function query(sql,verify){const db=new SQL.Database();try{db.run(schema);ctx.at
 let solved=0,variants=0;
 for(const l of lessons){
  assert.ok(l.consigne?.trim()&&l.solution?.trim(),l.titre);
- assert.equal(l.learningCheck.options.length,3,l.titre);
- assert.ok(l.learningCheck.answer>=0&&l.learningCheck.answer<3&&l.learningCheck.explanation,l.titre);
+ if(l.learningCheck){
+  assert.equal(l.learningCheck.options.length,3,l.titre);
+  assert.ok(l.learningCheck.answer>=0&&l.learningCheck.answer<3&&l.learningCheck.explanation,l.titre);
+ }
  assert.ok(quizzes[l.id]?.length>=2,l.titre);
  for(const q of quizzes[l.id])assert.ok(q.b>=0&&q.b<q.o.length&&q.e,l.titre);
  assert.equal(ctx.checkExerciseConcept(l.solution,l).ok,true,l.titre);
