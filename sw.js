@@ -14,7 +14,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-09-09-offset-pointcards-concret-v468';
+const CACHE = 'requete-2026-09-09-offset-profonde-donnees-changent-simplif-v469';
 
 const PRECACHE = [
   './',
