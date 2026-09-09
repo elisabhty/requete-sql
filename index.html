@@ -905,7 +905,14 @@
   .offset-anim[data-page="2"] .offset-anim-row:not([data-p="2"]){opacity:.4}
   .offset-anim[data-page="2"] .offset-anim-row[data-p="2"]{background:var(--accent-soft)}
   .offset-anim[data-page="2"] .offset-anim-row[data-p="2"] i{background:var(--accent);color:#fff;border-color:transparent}
+  .offset-anim[data-page="3"] .offset-anim-row:not([data-p="3"]){opacity:.4}
+  .offset-anim[data-page="3"] .offset-anim-row[data-p="3"]{background:var(--accent-soft)}
+  .offset-anim[data-page="3"] .offset-anim-row[data-p="3"] i{background:var(--accent);color:#fff;border-color:transparent}
   .offset-anim-caption{margin:0;padding:10px 12px;font-family:var(--ui);font-size:12.5px;color:var(--ink-2);border-top:1px solid var(--line-2);background:var(--surface-2)}
+  /* Un peu d'air entre le texte d'intro et le widget, sinon ils se
+     touchent directement (les <p> du bloc fn-use n'ont pas de marge
+     basse propre). */
+  .fn-use p + .offset-anim{margin-top:12px}
   /* Carte à part entière, avant la Situation (pas nichée dedans) : elle pose
      la question avant même le contexte métier, comme un titre de chapitre.
      Enfant direct de .lesson-rich (flex column, gap) : pas de marge propre. */
@@ -8515,12 +8522,7 @@ learningCheck:{
       lead:"Une pagination repose sur deux éléments : combien de lignes garder, et combien en ignorer avant de commencer.",
       chain:[{k:"LIMIT",v:"combien de lignes afficher"},{k:"OFFSET",v:"combien de lignes passer avant de commencer"}]},
     uses:{title:"Passer d’une page à l’autre.",body:`<div class="pt-lead fn-uses">
-      <div class="fn-use"><p class="pt-syntax-h">Visualiser le fonctionnement</p><p>Clique sur une page pour voir SQL passer les lignes déjà vues (<code>OFFSET</code>) et garder les suivantes (<code>LIMIT</code>) :</p><div class="offset-anim" data-page="1"><div class="offset-anim-tabs"><button type="button" class="offset-anim-tab on" onclick="setOffsetAnimPage(this,1)">Page 1</button><button type="button" class="offset-anim-tab" onclick="setOffsetAnimPage(this,2)">Page 2</button></div><div class="offset-anim-list"><div class="offset-anim-row" data-p="1"><i>1</i><b>Collagène Marin</b><span>39,90 €</span></div><div class="offset-anim-row" data-p="1"><i>2</i><b>Protéine Végétale</b><span>34,90 €</span></div><div class="offset-anim-row" data-p="1"><i>3</i><b>Fibre Prébiotique</b><span>29,90 €</span></div><div class="offset-anim-row" data-p="2"><i>4</i><b>Oméga 3</b><span>24,90 €</span></div><div class="offset-anim-row" data-p="2"><i>5</i><b>Magnésium</b><span>19,90 €</span></div><div class="offset-anim-row" data-p="2"><i>6</i><b>Shaker Inox</b><span>15,00 €</span></div><div class="offset-anim-row"><i>7</i><b>Vitamine D</b><span>14,90 €</span></div><div class="offset-anim-row"><i>8</i><b>Tisane Détox</b><span>12,50 €</span></div></div><p class="offset-anim-caption"><code>LIMIT 3 OFFSET 0</code> — récupère les positions 1 à 3.</p></div></div>
-      <div class="fn-use"><p class="pt-syntax-h">Construire plusieurs pages</p><p>Le <code>LIMIT</code> reste identique d’une page à l’autre : c’est l’<code>OFFSET</code> qui avance.</p><table class="join-recap sort-cmp has-sql"><thead><tr><th scope="col">Page</th><th scope="col">Produits</th><th scope="col">Requête</th></tr></thead><tbody>
-        <tr><td class="jr-type">Page 1</td><td class="jr-quoi">1, 2, 3</td><td class="jr-quoi"><code>LIMIT 3 OFFSET 0</code></td></tr>
-        <tr><td class="jr-type">Page 2</td><td class="jr-quoi">4, 5, 6</td><td class="jr-quoi"><code>LIMIT 3 OFFSET 3</code></td></tr>
-        <tr><td class="jr-type">Page 3</td><td class="jr-quoi">7, 8</td><td class="jr-quoi"><code>LIMIT 3 OFFSET 6</code></td></tr>
-      </tbody></table><p>Notre catalogue ne compte que 8 produits : la page 3 n’en contient donc que deux.</p></div>
+      <div class="fn-use"><p class="pt-syntax-h">Visualiser le fonctionnement</p><p>Le <code>LIMIT</code> reste identique d’une page à l’autre : c’est l’<code>OFFSET</code> qui avance. Clique sur une page pour voir SQL passer les lignes déjà vues (<code>OFFSET</code>) et garder les suivantes (<code>LIMIT</code>) :</p><div class="offset-anim" data-page="1"><div class="offset-anim-tabs"><button type="button" class="offset-anim-tab on" onclick="setOffsetAnimPage(this,1)">Page 1</button><button type="button" class="offset-anim-tab" onclick="setOffsetAnimPage(this,2)">Page 2</button><button type="button" class="offset-anim-tab" onclick="setOffsetAnimPage(this,3)">Page 3</button></div><div class="offset-anim-list"><div class="offset-anim-row" data-p="1"><i>1</i><b>Collagène Marin</b><span>39,90 €</span></div><div class="offset-anim-row" data-p="1"><i>2</i><b>Protéine Végétale</b><span>34,90 €</span></div><div class="offset-anim-row" data-p="1"><i>3</i><b>Fibre Prébiotique</b><span>29,90 €</span></div><div class="offset-anim-row" data-p="2"><i>4</i><b>Oméga 3</b><span>24,90 €</span></div><div class="offset-anim-row" data-p="2"><i>5</i><b>Magnésium</b><span>19,90 €</span></div><div class="offset-anim-row" data-p="2"><i>6</i><b>Shaker Inox</b><span>15,00 €</span></div><div class="offset-anim-row" data-p="3"><i>7</i><b>Vitamine D</b><span>14,90 €</span></div><div class="offset-anim-row" data-p="3"><i>8</i><b>Tisane Détox</b><span>12,50 €</span></div></div><p class="offset-anim-caption"><code>LIMIT 3 OFFSET 0</code> — récupère les positions 1 à 3.</p></div></div>
       <div class="fn-use"><p class="pt-syntax-h">Calculer automatiquement OFFSET</p><p>Une application ne réécrit pas une requête différente pour chaque page : elle calcule le décalage.</p><div class="pt-syntax"><pre class="cw-syntax">OFFSET = (numéro_page - 1) × taille_page</pre></div><table class="join-recap sort-cmp"><thead><tr><th scope="col">Page</th><th scope="col">Calcul</th><th scope="col">OFFSET</th></tr></thead><tbody>
         <tr><td class="jr-type">1</td><td class="jr-quoi">(1 - 1) × 3</td><td class="jr-quoi">0</td></tr>
         <tr><td class="jr-type">2</td><td class="jr-quoi">(2 - 1) × 3</td><td class="jr-quoi">3</td></tr>
@@ -21451,9 +21453,12 @@ function setOffsetAnimPage(btn,n){
   root.querySelectorAll('.offset-anim-tab').forEach(t=>t.classList.remove('on'));
   btn.classList.add('on');
   const cap=root.querySelector('.offset-anim-caption');
-  if(cap) cap.innerHTML=n===1
-    ?'<code>LIMIT 3 OFFSET 0</code> — récupère les positions 1 à 3.'
-    :'<code>LIMIT 3 OFFSET 3</code> — ignore les positions 1 à 3, récupère les positions 4 à 6.';
+  const captions={
+    1:'<code>LIMIT 3 OFFSET 0</code> — récupère les positions 1 à 3.',
+    2:'<code>LIMIT 3 OFFSET 3</code> — ignore les positions 1 à 3, récupère les positions 4 à 6.',
+    3:'<code>LIMIT 3 OFFSET 6</code> — ignore les positions 1 à 6, récupère les positions 7 à 8. Notre catalogue n’a que 8 produits : cette page n’en contient donc que deux.'
+  };
+  if(cap) cap.innerHTML=captions[n]||captions[1];
   if(navigator.vibrate)navigator.vibrate(5);
 }
 function switchTesteVariant(btn){
