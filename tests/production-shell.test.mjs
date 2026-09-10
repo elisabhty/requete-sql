@@ -84,13 +84,13 @@ assert(html.includes('class="pl-chip-valid"') && html.includes("<i aria-hidden=\
 assert(html.includes('Séance validée') && html.includes('dp-session-valid'), 'séance complète explicitement marquée validée');
 assert(!html.includes('${planManageHTML(p)}'), 'réglage de rythme redondant retiré du bas du parcours');
 assert(account.includes('account-identity') && account.includes('Mode sans compte'), 'identité et mode invité sont explicites');
-assert(account.includes('Ma progression') && account.includes('account-stats-grid'), 'progression réelle structurée comme un tableau de bord');
+assert(account.includes('Ma progression') && account.includes('account-stats-grid') && account.includes('account-progress-hub'), 'progression réelle regroupée dans un tableau de bord unique');
 assert(account.includes('Niveau actuel') && account.includes('account-level-track') && account.includes('Prochain cap'), 'niveau SQL et prochain palier calculés depuis la progression réelle');
 assert(account.includes('Cette semaine') && account.includes('account-week') && account.includes('weekComplete'), 'activité hebdomadaire reliée aux séances du planning');
 assert(account.includes('Accomplissements') && account.includes('account-badges') && account.includes('Première requête'), 'badges pédagogiques débloqués par des actions réelles');
 assert(account.includes("accountStatIcon('progress')") && account.includes("accountStatIcon('streak')") && account.includes("accountStatIcon('lessons')") && account.includes("accountStatIcon('challenges')"), 'les quatre indicateurs utilisent des pictogrammes dédiés et distincts');
 assert(!account.includes("?'🔥':'○'") && html.includes('.account-stat-mark{width:36px;height:36px'), 'emoji remplacé par un système SVG homogène et plus lisible');
-assert(account.includes('Objectif du jour') && account.includes('account-goal-ring'), 'objectif du jour utilise les données du planning');
+assert(account.includes('Objectif du jour') && account.includes('account-goal-ring') && account.includes('account-hub-goal'), 'objectif du jour intégré en tête du tableau de bord');
 assert(account.includes('Apprentissage') && account.includes('Compte et assistance') && account.includes('Profil et objectif') && account.includes('Données et confidentialité') && account.includes('Aide et prise en main'), 'réglages essentiels regroupés en catégories explicites');
 assert(html.includes('function closePlusDetails()') && account.includes('account-sheet-backdrop') && html.includes("querySelectorAll('#scr-compte .plus-details[open]')"), 'réglages détaillés ouverts dans un seul panneau focalisé et refermable');
 assert(account.includes('Mode local actif') && account.includes('Connexion optionnelle'), 'stockage local expliqué clairement');
@@ -116,7 +116,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
 assert(html.includes('{ id:73, titre:"UNION et UNION ALL"') && html.includes('18 lignes : 10 + 8') && !html.includes('17 lignes : 9 + 8'), 'UNION ALL visible et cardinalité corrigée');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-09-10-desktop-largeur-v524'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-09-10-compte-clarity-v525'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
