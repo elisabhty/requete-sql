@@ -6947,20 +6947,20 @@
 .tabbar .tab.active{color:var(--accent-ink)}
 .tabbar .tab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;background:var(--accent-soft)}
 .screen{scroll-padding-top:20px;scroll-padding-bottom:110px}
-.ux-shortcut{display:block;width:fit-content;max-width:100%;min-height:44px;padding:10px 14px;margin:0 0 18px;border:1px solid var(--card-border);border-radius:13px;background:var(--card);color:var(--accent-ink);font:600 13px/1.5 var(--ui);cursor:pointer;text-align:left}
+.ux-shortcut{display:block;width:fit-content;max-width:100%;min-height:44px;padding:10px 14px;margin:0 0 18px;border:1px solid var(--card-border);border-radius:13px;background:var(--surface);color:var(--accent-ink);font:600 13px/1.5 var(--ui);cursor:pointer;text-align:left;box-shadow:0 1px 2px rgba(0,0,0,.05)}
 .ux-shortcut[hidden]{display:none}
 .ux-shortcut:focus-visible,.ux-card-review:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 #scr-learn>.ux-shortcut{margin:18px 18px 4px}
 .catalog-search{margin:4px 0 18px}
 .catalog-search label{display:block;font:600 12px/1.5 var(--ui);color:var(--ink-2);margin-bottom:7px}
-.catalog-search>div{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--card-border);border-radius:14px;padding:3px 10px}
+.catalog-search>div{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--card-border);border-radius:14px;padding:3px 10px}
 .catalog-search>div:focus-within{outline:2px solid var(--accent);outline-offset:2px}
 .catalog-search input{min-width:0;flex:1;width:100%;height:46px;border:0;background:transparent;color:var(--ink);font:400 15px var(--ui);outline:0}
 .catalog-search input::-webkit-search-cancel-button{-webkit-appearance:none}
 .catalog-search button{min-height:44px;border:0;background:transparent;color:var(--accent-ink);font:600 12px var(--ui);cursor:pointer}
 .catalog-search p{margin:8px 2px 0;font-size:12px;color:var(--ink-2)}
 .catalog-search p:empty{display:none}
-.catalog-no-results{padding:20px;background:var(--card);border-radius:16px;font-size:14px;line-height:1.7;color:var(--ink-2)}
+.catalog-no-results{padding:20px;background:var(--surface);border-radius:16px;font-size:14px;line-height:1.7;color:var(--ink-2)}
 #modules>.home-module[hidden],#course-search-results[hidden]{display:none}
 #course-search-results .row{min-height:64px}
 #defis-hero .def-focus-stats{display:none}
@@ -6997,7 +6997,7 @@
 .plan-next-actions button,.plan-module-row button{min-height:44px;padding:11px 14px;font:650 13px/1.4 var(--ui);border-radius:13px;cursor:pointer;border:1px solid #d9d5ef;background:#f0edff;color:var(--accent-ink)}
 .plan-next-actions button:first-child{background:var(--accent);color:white;border-color:var(--accent);flex:1}
 .plan-next-actions button:focus-visible,.plan-module-row button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
-.plan-modules{margin:20px 0;background:var(--card);border:1px solid var(--card-border);border-radius:20px;overflow:hidden}
+.plan-modules{margin:20px 0;background:var(--surface);border:1px solid var(--card-border);border-radius:20px;overflow:hidden}
 .plan-modules>summary{cursor:pointer;padding:20px;font:700 15px/1.5 var(--ui)}
 .plan-modules>summary span{display:block;margin-left:18px;color:var(--ink-2);font-size:12px;font-weight:400}
 .plan-modules-body{padding:0 18px 18px}
@@ -24749,11 +24749,13 @@ function renderGreeting(){
   const el=document.getElementById('greeting');
   if(!el)return;
   const name=(state.name||'').trim();
-  if(!name){el.hidden=true;el.textContent='';return;}
+  /* Le h1 affiche déjà « Bonjour, {prénom} » : ne pas répéter le prénom
+     juste en dessous. Le sous-titre horaire ne sert que sans prénom. */
+  if(name){el.hidden=true;el.textContent='';return;}
   const h=new Date().getHours();
   const hi=h<12?'Bonjour':h<18?'Bon après-midi':'Bonsoir';
   el.hidden=false;
-  el.innerHTML=`${hi}, <b>${esc(name)}</b> — à toi de jouer.`;
+  el.innerHTML=`${hi} — à toi de jouer.`;
 }
 function renderStartCta(){ renderHomeHero(); }
 function maybeOnboard(){
@@ -27670,7 +27672,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-10-audit-ui-v515';
+  const SW_CACHE='requete-2026-09-10-ui-pass2-v516';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
