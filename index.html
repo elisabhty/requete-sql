@@ -301,6 +301,12 @@
   .sect-label{display:flex;align-items:center;gap:8px;margin:0 2px 8px}
   .sect-label i{width:22px;height:22px;border-radius:7px;background:var(--accent-soft);color:var(--accent);font-family:var(--mono);font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;font-style:normal;flex:none;box-shadow:0 1px 2px rgba(91,91,214,.1)}
   .sect-label span{font-size:12px;font-weight:750;color:var(--ink-2);text-transform:uppercase;letter-spacing:.7px}
+  /* Sous-titre d'une requête à l'intérieur du panneau « Explique-moi la
+     requête » : même allure que .sect-label mais pas repris dans le sommaire. */
+  .anat-sub{display:flex;align-items:center;gap:8px;margin:0 2px 8px}
+  .anat-panel .anat-sub:not(:first-child){margin-top:16px}
+  .anat-sub i{width:22px;height:22px;border-radius:7px;background:var(--accent-soft);color:var(--accent);font-family:var(--mono);font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;font-style:normal;flex:none;box-shadow:0 1px 2px rgba(91,91,214,.1)}
+  .anat-sub span{font-size:12px;font-weight:750;color:var(--ink-2);text-transform:uppercase;letter-spacing:.7px}
   /* Variante bouton : une seule ligne (titre + pastille de variante +
      chevron), assez haute pour le doigt, sans carte à deux étages. */
   .sect-label.anat-reveal{width:100%;min-height:44px;box-sizing:border-box;border:1px solid rgba(91,91,214,.18);background:linear-gradient(180deg,rgba(249,248,255,.98),rgba(244,242,255,.94));padding:10px 12px;margin:0 0 6px;font:inherit;text-align:left;border-radius:14px;cursor:pointer;-webkit-tap-highlight-color:transparent;gap:10px;box-shadow:0 1px 0 rgba(255,255,255,.92) inset,0 8px 22px -18px rgba(91,91,214,.2);transition:border-color .18s,box-shadow .18s,transform .18s var(--spring-ios)}
@@ -19360,12 +19366,17 @@ function anatBlock(l,opts){
    sous-titre du bouton rappelle quel onglet est actif même repliée. */
 function anatSections(l){
   if(l&&l.anatomieList&&l.anatomieList.length){
-    return l.anatomieList.map(sec=>{
+    /* Plusieurs requêtes expliquées : on les replie derrière un seul bouton
+       « Explique-moi la requête » (comme les leçons à onglet unique), chaque
+       requête gardant son sous-titre à l'intérieur du panneau. */
+    const inner=l.anatomieList.map(sec=>{
       const lines=sec.lines||[];
       if(!lines.length) return '';
       const html=`<div class="anat${sec.tone?' tone-'+sec.tone:''}"><div class="anat-body">${anatLinesHtml(lines)}</div></div>`;
-      return `<div class="sect-label"><i>◆</i><span>${esc(sec.label||'La requête expliquée')}</span></div>${html}`;
+      return `<div class="anat-sub"><i>◆</i><span>${esc(sec.label||'La requête expliquée')}</span></div>${html}`;
     }).join('');
+    if(!inner) return '';
+    return `<button type="button" class="sect-label anat-reveal" aria-expanded="false" aria-controls="anat-panel-main" onclick="toggleAnatReveal(this)"><i>◆</i><span class="anat-reveal-copy">Explique-moi la requête</span><span class="anat-reveal-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></button><div class="anat-panel" id="anat-panel-main" hidden>${inner}</div>`;
   }
   const collapsible=!!l.anatCollapsible;
   const anat=anatBlock(l,collapsible?{hideSwitcher:true}:undefined);
