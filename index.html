@@ -8966,6 +8966,14 @@ LIMIT 3;</pre></div><p>Autrement dit, SQL cherche : « Les produits moins chers 
     "tone": "good"
   },
   {
+    "k": "cursor",
+    "label": "Curseur",
+    "sql": "SELECT id, nom, prix FROM produits WHERE (prix < 29.90) OR (prix = 29.90 AND id > 1) ORDER BY prix DESC, id ASC LIMIT 3;",
+    "out": "Mêmes trois produits que OFFSET 3, sans compter les lignes sautées : on reprend après le repère (prix 29,90 · id 1).",
+    "tone": "good",
+    "expectRows": 3
+  },
+  {
     "k": "unstable",
     "label": "Sans ORDER BY",
     "sql": "SELECT id, nom, prix FROM produits LIMIT 3 OFFSET 3;",
@@ -27778,7 +27786,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-10-desktop-largeur-v524';
+  const SW_CACHE='requete-2026-09-10-teste-curseur-v531';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
