@@ -971,7 +971,8 @@
   .offset-anim[data-page="3"] .offset-anim-row:not([data-p="3"]){opacity:.4}
   .offset-anim[data-page="3"] .offset-anim-row[data-p="3"]{background:var(--accent-soft)}
   .offset-anim[data-page="3"] .offset-anim-row[data-p="3"] i{background:var(--accent);color:#fff;border-color:transparent}
-  .offset-anim-caption{margin:0;padding:10px 12px;font-family:var(--ui);font-size:12.5px;color:var(--ink-2);border-top:1px solid var(--line-2);background:var(--surface-2)}
+  .offset-anim-caption{margin:0;padding:10px 12px;min-height:78px;display:flex;flex-direction:column;justify-content:center;font-family:var(--ui);font-size:12.5px;color:var(--ink-2);border-top:1px solid var(--line-2);background:var(--surface-2);transition:opacity .16s ease}
+  .offset-anim-caption.is-fade{opacity:.3}
   /* Un peu d'air entre le texte d'intro et le widget, sinon ils se
      touchent directement (les <p> du bloc fn-use n'ont pas de marge
      basse propre). */
@@ -1019,8 +1020,8 @@
      OFFSET parcourt 1-2-3 puis garde 4-5-6. Le curseur pose un repère sur
      l’id 3 et reprend juste après, sans recomptage. */
   .offset-diff{margin:14px 0;border-radius:16px;border:1px solid var(--line);background:var(--surface);overflow:hidden;box-shadow:var(--card-shadow-sm)}
-  .offset-diff-sql{margin:0;padding:10px 12px;border-bottom:1px solid var(--line-2);background:var(--surface-2)}
-  .offset-diff-sql .cw-syntax{margin:0;font-size:12.5px}
+  .offset-diff-sql{margin:0;padding:10px 12px;min-height:97px;display:flex;align-items:center;border-bottom:1px solid var(--line-2);background:var(--surface-2)}
+  .offset-diff-sql .cw-syntax{margin:0;width:100%;font-size:12.5px}
   .offset-diff-list{display:flex;flex-direction:column}
   .offset-diff-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line-2);background:var(--surface);transition:opacity .3s ease,background .3s ease}
   .offset-diff-row:last-child{border-bottom:0}
@@ -1046,7 +1047,7 @@
   .offset-diff[data-mode="cursor"] .offset-diff-row[data-role="mark"] small{color:var(--accent)}
   .offset-diff-row.is-pulse{animation:offsetDiffPulse .3s ease var(--dw,0ms) both}
   @keyframes offsetDiffPulse{from{transform:translateX(-2px)}to{transform:none}}
-  .offset-diff-caption{margin:0;padding:10px 12px;font-family:var(--ui);font-size:12.5px;line-height:1.5;color:var(--ink-2);border-top:1px solid var(--line-2);background:var(--surface-2);transition:color .2s ease}
+  .offset-diff-caption{margin:0;padding:10px 12px;min-height:56px;display:flex;flex-direction:column;justify-content:center;font-family:var(--ui);font-size:12.5px;line-height:1.5;color:var(--ink-2);border-top:1px solid var(--line-2);background:var(--surface-2);transition:color .2s ease,opacity .16s ease}
   .offset-sql-steps{display:flex;flex-direction:column;gap:6px;margin:0 0 14px}
   .offset-sql-steps p{margin:0;line-height:1.5}
   .offset-scan.is-run .offset-scan-skip{animation:offsetScanIn .55s ease both}
@@ -1061,8 +1062,9 @@
   .offset-branches.is-run .offset-branch:nth-child(1){animation:offsetBranchIn .36s ease both}
   .offset-branches.is-run .offset-branch:nth-child(2){animation:offsetBranchIn .36s ease .08s both}
   @keyframes offsetBranchIn{from{transform:translateY(4px)}to{transform:none}}
-  .offset-diff-sql .cw-syntax{transition:opacity .18s ease}
-  .offset-diff-sql.is-fade .cw-syntax{opacity:.55}
+  .offset-diff-sql .cw-syntax{transition:opacity .16s ease}
+  .offset-diff-sql.is-fade .cw-syntax{opacity:.4}
+  .offset-diff-caption.is-fade{opacity:.35}
   @media (prefers-reduced-motion:reduce){
     .offset-diff-row.is-pulse,.offset-scan.is-run .offset-scan-skip,.offset-scan.is-run .offset-scan-keep,.offset-shift.is-run .offset-shift-arrow i,.offset-shift.is-run .offset-demo-row.is-dup,.offset-branches.is-run .offset-branch{animation:none!important}
   }
@@ -21796,22 +21798,34 @@ function setOffsetDiff(btn,mode){
   const sql=root.querySelector('.offset-diff-sql .cw-syntax');
   const cap=root.querySelector('.offset-diff-caption');
   const mark=root.querySelector('.offset-diff-mark');
-  if(mode==='cursor'){
-    if(sql)sql.textContent='WHERE id > 3\nORDER BY id ASC\nLIMIT 3;';
-    if(cap)cap.textContent='« Reprends après mon dernier repère, l’id 3, puis affiche les 3 suivants. »';
-    if(mark)mark.textContent='Repère';
-  }else{
-    if(sql)sql.textContent='LIMIT 3 OFFSET 3;';
-    if(cap)cap.textContent='« Ignore 3 lignes, puis affiche les suivantes. »';
-    if(mark)mark.textContent='OFFSET';
-  }
-  root.dataset.mode=mode;
   const sqlBox=root.querySelector('.offset-diff-sql');
-  if(sqlBox){
-    sqlBox.classList.add('is-fade');
-    setTimeout(()=>sqlBox.classList.remove('is-fade'),prefersReduceMotion()?0:120);
+  const reduce=prefersReduceMotion();
+  const applyText=()=>{
+    if(mode==='cursor'){
+      if(sql)sql.textContent='WHERE id > 3\nORDER BY id ASC\nLIMIT 3;';
+      if(cap)cap.textContent='« Reprends après mon dernier repère, l’id 3, puis affiche les 3 suivants. »';
+      if(mark)mark.textContent='Repère';
+    }else{
+      if(sql)sql.textContent='LIMIT 3 OFFSET 3;';
+      if(cap)cap.textContent='« Ignore 3 lignes, puis affiche les suivantes. »';
+      if(mark)mark.textContent='OFFSET';
+    }
+  };
+  root.dataset.mode=mode;
+  /* Le cadre garde une hauteur fixe (min-height CSS) : on change le texte
+     pendant qu'il est estompé pour éviter le à-coup visuel. */
+  if(reduce){
+    applyText();
+  }else{
+    if(sqlBox)sqlBox.classList.add('is-fade');
+    if(cap)cap.classList.add('is-fade');
+    setTimeout(()=>{
+      applyText();
+      if(sqlBox)sqlBox.classList.remove('is-fade');
+      if(cap)cap.classList.remove('is-fade');
+    },110);
   }
-  if(!prefersReduceMotion()){
+  if(!reduce){
     root.querySelectorAll('.offset-diff-row[data-role="keep"]').forEach((row,i)=>{
       row.style.setProperty('--dw',(i*70)+'ms');
       row.classList.remove('is-pulse');
@@ -21840,7 +21854,16 @@ function setOffsetAnimPage(btn,n){
     2:'<code>LIMIT 3 OFFSET 3</code> — le produit Oméga 3, Magnésium, Shaker Inox.',
     3:'<code>LIMIT 3 OFFSET 6</code> — Vitamine D, Tisane Détox : seulement 2 produits sur 8.'
   };
-  if(cap) cap.innerHTML=captions[n]||captions[1];
+  const html=captions[n]||captions[1];
+  if(cap){
+    /* La légende suit le fondu des lignes plutôt que de sauter d'un coup. */
+    if(prefersReduceMotion()){
+      cap.innerHTML=html;
+    }else{
+      cap.classList.add('is-fade');
+      setTimeout(()=>{ cap.innerHTML=html; cap.classList.remove('is-fade'); },110);
+    }
+  }
   if(navigator.vibrate)navigator.vibrate(5);
 }
 function switchTesteVariant(btn){
