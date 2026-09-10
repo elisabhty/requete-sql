@@ -5722,16 +5722,17 @@
   @media (min-width:481px){
     .tab-label{height:21px;min-height:21px}
   }
-  /* Le cadre « app » s'active dès 600 px : entre 520 et 720 px de fenêtre,
-     la colonne mobile flottait sans contour sur le fond gris et paraissait
-     cassée (remontée utilisateur du 10 sept.). */
+  /* Dès 600 px : cadre arrondi qui occupe la fenêtre, plafonné à 1120 px.
+     En dessous, l'app reste une colonne mobile plein écran (téléphones). */
   @media (min-width:600px){
     body{padding:14px;overflow:hidden}
     #app{
-      max-width:500px;height:calc(100dvh - 28px);min-height:calc(100dvh - 28px);
+      width:100%;max-width:min(1120px,100%);
+      height:calc(100dvh - 28px);min-height:calc(100dvh - 28px);
       border-radius:34px;overflow:hidden;
       box-shadow:0 34px 80px -36px rgba(26,28,42,.48),0 0 0 1px rgba(255,255,255,.62),inset 0 1px 0 #fff;
     }
+    .kbar-wrap,.imp-sheet{max-width:min(1120px,calc(100vw - 28px))}
   }
   @media (prefers-reduced-motion:reduce){
     #scr-learn>.lgtitle,#scr-learn>.lgtitle h1,#scr-learn>.lgtitle p.sub,.ls-node{transition:none}
@@ -6994,7 +6995,7 @@
  #scr-entretien .ent-readiness-stats{display:none}
 }
 @media(prefers-reduced-motion:reduce){.tabbar .tab{transition:none}.ux-shortcut{scroll-behavior:auto}}
-.plan-next-session{padding:22px;margin:0 0 18px;border-radius:24px;background:linear-gradient(140deg,#f3f0ff,#fff);border:1px solid #dedaf4;box-shadow:0 10px 28px -22px #514dd1}
+.plan-next-session{padding:22px;margin:12px 14px 18px;border-radius:24px;background:linear-gradient(140deg,#f3f0ff,#fff);border:1px solid #dedaf4;box-shadow:0 10px 28px -22px #514dd1}
 .plan-next-session>small{display:block;font:700 11px/1.6 var(--ui);color:var(--accent-ink);text-transform:uppercase;letter-spacing:.06em}
 .plan-next-session h2{font-size:23px;line-height:1.25;margin:10px 0;color:var(--ink)}
 .plan-next-session p{font-size:13px;line-height:1.6;color:var(--ink-2);margin:0 0 17px}
@@ -7164,6 +7165,33 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
     .fab:hover{animation:fabWiggle .5s ease}
   }
   @keyframes fabWiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-10deg) scale(1.06)}60%{transform:rotate(8deg) scale(1.06)}}
+}
+
+/* Grand écran : deux colonnes dès que le cadre dépasse ~870 px. */
+@media (min-width:900px){
+  #scr-learn>.lgtitle h1,#scr-defis>.lgtitle h1,#scr-planning>.lgtitle h1,#scr-collection>.lgtitle h1,#scr-entretien>.lgtitle h1,#scr-compte>.lgtitle h1,#scr-notes>.lgtitle h1{max-width:none}
+  #scr-learn>.lgtitle p.sub,#scr-defis>.lgtitle p.sub,#scr-planning>.lgtitle p.sub,#scr-collection>.lgtitle p.sub,#scr-entretien>.lgtitle p.sub{max-width:520px}
+  .home-tools{grid-template-columns:repeat(4,minmax(0,1fr))}
+  #home-hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);align-items:start;gap:0 8px}
+  #home-hero>.cont-plan,#home-hero>.late-banner--home{grid-column:1/-1}
+  #home-hero>.home-tools-block{grid-column:1}
+  #home-hero>.home-path-card{grid-column:2;margin-top:18px}
+  #home-hero>.home-tools-block .home-tools{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #planning-body{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.95fr);gap:16px;padding:4px 4px 28px;align-items:stretch}
+  #planning-body>*{grid-column:1/-1}
+  #planning-body>.plan-next-session{grid-column:1;margin:8px 14px 0;align-self:stretch;display:flex;flex-direction:column;justify-content:center;box-sizing:border-box;min-height:100%}
+  #planning-body>.pl-overview{grid-column:2;margin:8px 14px 0;align-self:stretch;box-sizing:border-box;min-height:100%}
+  #planning-body>.pl-overview .pl-overview-next b{white-space:normal;overflow:visible;text-overflow:unset}
+  #scr-compte .acc-stack{display:grid;grid-template-columns:1fr 1fr;align-items:start}
+  #scr-compte .account-identity,#scr-compte .account-progress-panel,#scr-compte .account-settings-block,#scr-compte .plus-details,#scr-compte .account-goal{grid-column:1/-1}
+  #scr-compte .account-sync-card{grid-column:1}
+  #scr-compte .account-sync-card+.account-goal{grid-column:2}
+  #scr-compte .account-week-panel{grid-column:1}
+  #scr-compte .account-badges-panel{grid-column:2}
+  .lesson-wrap{padding-left:28px;padding-right:28px}
+  .console-work-pad{padding-left:24px;padding-right:24px}
+  #scr-collection #cards-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  #scr-collection #cards-grid>.coll-module[open]{grid-column:1/-1}
 }
 </style>
 <link rel="stylesheet" href="viz-select.css?v=noloop">
@@ -27727,7 +27755,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-10-cadre-app-600-v523';
+  const SW_CACHE='requete-2026-09-10-desktop-largeur-v524';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
