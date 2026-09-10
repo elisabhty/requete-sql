@@ -32,7 +32,7 @@ assert(guides.includes("k:'replace'") && guides.includes('REPLACE'), 'remplaceme
 assert(guides.includes("k:'join'") && guides.includes("LOWER(nom) || '-' || LOWER(ville)"), 'assemblage et exercice reliés');
 assert(html.includes('function renderTextFunctionsStudio'), 'rendu dédié à la leçon 51');
 assert(html.includes("if(l.id===51)return renderTextFunctionsStudio(l)"), 'ancienne pile de texte remplacée dans la page');
-assert(html.includes('Une valeur entre, une nouvelle valeur sort.'), 'principe montré avant la syntaxe');
+assert(html.includes('Manipuler du texte avec SQL'), 'principe montré avant la syntaxe');
 assert(html.includes('txt-demo') && html.includes('txt-transform'), 'avant/après visuels présents');
 assert(html.includes('const TEXT_PIPE_STEPS=') && html.includes('de l’intérieur vers l’extérieur'), 'combinaison des fonctions expliquée par étapes');
 assert(html.includes('function initTextFunctions'), 'micro-interactions initialisées');
