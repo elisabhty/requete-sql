@@ -21767,16 +21767,12 @@ function showJoinFilterComparison(button){
   }catch(e){button.nextElementSibling.textContent=e.message;}finally{db.close();}
 }
 function learningCheckHtml(l){
-  const q=l.learningCheck;
-  if(!q)return '';
-  const note=l.id===53?'Dans ce laboratoire, YEAR, MONTH et DAY sont ajoutées à SQLite. SQLite propose nativement strftime pour extraire ces valeurs.':l.id===71?'La scène illustre deux sessions. Le laboratoire exécute une seule connexion SQLite : il ne reproduit pas une compétition entre deux utilisateurs.':l.id===57?'Dans cette base, email est UNIQUE et possède déjà un index automatique. Le laboratoire utilise ville pour comparer réellement un parcours sans index et une recherche avec index.':'';
-  return `<section class="learning-check" aria-labelledby="learning-check-title-${l.id}" data-lesson="${l.id}">
-    ${lessonObservationHtml(l)}<p class="learning-check-eyebrow">À toi de prévoir · sans effet sur ta progression</p>
-    <h3 id="learning-check-title-${l.id}">${esc(q.question)}</h3>
-    <div class="learning-check-options">${q.options.map((label,i)=>`<button type="button" aria-pressed="false" onclick="answerLearningCheck(this,${i})">${esc(label)}</button>`).join('')}</div>
-    <p class="learning-check-feedback" role="status" hidden></p>
-    ${note?`<p class="learning-check-note">${esc(note)}</p>`:''}
-  </section>`;
+  /* Le questionnaire « À toi de prévoir » a été retiré de tous les cours.
+     On conserve seulement les aides d'observation propres à quelques leçons
+     (schéma des sources, comparaison ON/WHERE, exercices de classement). */
+  const obs=lessonObservationHtml(l);
+  if(!obs)return '';
+  return `<section class="learning-check" data-lesson="${l.id}">${obs}</section>`;
 }
 function answerLearningCheck(button,index){
   const section=button.closest('.learning-check');
