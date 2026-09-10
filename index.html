@@ -774,8 +774,9 @@
   .fn-nest-val{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--ink);overflow-wrap:anywhere;text-align:right;min-width:0}
   .fn-nest-io.out .fn-nest-val{color:var(--accent)}
   .fn-nest-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}
-  .fn-nest-step{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 10px 9px;border:1px solid var(--card-border);border-radius:13px;background:var(--surface);cursor:pointer;text-align:left;transition:border-color .18s ease,background .18s ease,box-shadow .18s ease;font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+  .fn-nest-step{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 10px 9px;border:1px solid var(--card-border);border-radius:13px;background:var(--surface);cursor:pointer;text-align:left;transition:border-color .18s ease,background .18s ease,box-shadow .18s ease,transform .16s var(--spring-ios);font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
   .fn-nest-step.on{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 1px rgba(91,91,214,.12)}
+  .fn-nest-step:active{transform:scale(.97)}
   .fn-nest-n{font-family:var(--mono);font-size:11px;font-weight:850;color:var(--ink-3);line-height:1.2}
   .fn-nest-step.on .fn-nest-n{color:var(--accent)}
   .fn-nest-fn{font-family:var(--mono);font-size:12.5px;font-weight:800;color:var(--ink);line-height:1.25}
@@ -872,9 +873,10 @@
   .txt-pipe-step.done{border-color:rgba(91,91,214,.2);background:var(--accent-soft);color:var(--accent)}
   .txt-pipe-step.on{border-color:var(--accent);box-shadow:0 5px 13px rgba(91,91,214,.13);transform:translateY(-2px)}
   .txt-pipe-caption{min-height:38px;margin:10px 1px 0!important;color:var(--ink-2)!important;font-size:12px!important;line-height:1.45!important}
-  .txt-pipe-replay{appearance:none;display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:11px;padding:10px;border:0;border-radius:12px;background:var(--accent-soft);color:var(--accent);font-family:var(--ui);font-size:12px;font-weight:780;cursor:pointer;transition:transform .2s var(--spring-ios),background .2s ease}
-  .txt-pipe-replay:active{transform:scale(.98)}
-  .txt-pipe-replay svg{width:15px;height:15px}
+  .txt-pipe-replay{appearance:none;display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:11px;padding:10px;border:0;border-radius:12px;background:var(--accent-soft);color:var(--accent);font-family:var(--ui);font-size:12px;font-weight:780;cursor:pointer;transition:transform .16s var(--spring-ios),background .18s ease,color .18s ease,box-shadow .18s ease}
+  .txt-pipe-replay:active{transform:scale(.96);background:var(--accent);color:#fff;box-shadow:0 8px 18px -8px rgba(91,91,214,.6)}
+  .txt-pipe-replay svg{width:15px;height:15px;transition:transform .5s var(--bounce-ios)}
+  .txt-pipe-replay:active svg{transform:rotate(-360deg)}
   .text-functions-page>.concept-block.in .txt-transform-box:first-child{animation:txtBoxIn .42s var(--spring-ios) .05s both}
   .text-functions-page>.concept-block.in .txt-transform-arrow{animation:txtArrowIn .42s ease .16s both}
   .text-functions-page>.concept-block.in .txt-transform-box:last-child{animation:txtBoxIn .42s var(--spring-ios) .27s both}
@@ -20938,9 +20940,16 @@ function initFnNest(){
       s.classList.toggle('on',on);
       s.setAttribute('aria-selected',on?'true':'false');
     });
-    if(outEl) outEl.textContent=data[step].out;
-    if(sayEl) sayEl.textContent=data[step].say;
+    if(outEl){
+      outEl.textContent=data[step].out;
+      if(!prefersReduceMotion()) outEl.animate([{opacity:.35},{opacity:1}],{duration:300,easing:'ease'});
+    }
+    if(sayEl){
+      sayEl.textContent=data[step].say;
+      if(!prefersReduceMotion()) sayEl.animate([{opacity:.35,transform:'translateY(2px)'},{opacity:1,transform:'none'}],{duration:320,easing:'ease'});
+    }
   };
+  const STEP_MS=1700;
   const replay=()=>{
     clearTimeout(box._fnT);
     if(prefersReduceMotion()){ setStep(0); return; }
@@ -20948,9 +20957,9 @@ function initFnNest(){
     const tick=()=>{
       setStep(i);
       i++;
-      if(i<steps.length) box._fnT=setTimeout(tick,880);
+      if(i<steps.length) box._fnT=setTimeout(tick,STEP_MS);
     };
-    box._fnT=setTimeout(tick,280);
+    box._fnT=setTimeout(tick,450);
   };
   box.addEventListener('click',e=>{
     const stepBtn=e.target.closest('.fn-nest-step');
@@ -20960,10 +20969,10 @@ function initFnNest(){
       if(navigator.vibrate) navigator.vibrate(6);
       return;
     }
-    if(e.target.closest('.fn-nest-replay')) replay();
+    if(e.target.closest('.fn-nest-replay')){ if(navigator.vibrate) navigator.vibrate(8); replay(); }
   });
   setStep(0);
-  if(!prefersReduceMotion()) box._fnT=setTimeout(replay,640);
+  if(!prefersReduceMotion()) box._fnT=setTimeout(replay,900);
 }
 function initCaseForms(){
   const box=document.querySelector('#lesson-body .cw-forms');
@@ -21329,13 +21338,14 @@ function initTextFunctions(){
     pipe.dataset.step=String(i);
     steps.forEach((b,j)=>{b.classList.toggle('on',j===i);b.classList.toggle('done',j<=i);b.setAttribute('aria-selected',j===i?'true':'false');});
     const out=pipe.querySelector('.txt-pipe-out');const cap=pipe.querySelector('.txt-pipe-caption');
-    if(out)out.textContent=s.out;if(cap)cap.textContent=s.caption;
+    if(out){out.textContent=s.out;if(!prefersReduceMotion())out.animate([{opacity:.35},{opacity:1}],{duration:300,easing:'ease'});}
+    if(cap){cap.textContent=s.caption;if(!prefersReduceMotion())cap.animate([{opacity:.35,transform:'translateY(2px)'},{opacity:1,transform:'none'}],{duration:320,easing:'ease'});}
   };
   let timers=[];
   const play=()=>{
     timers.forEach(clearTimeout);timers=[];setStep(0);
     if(prefersReduceMotion()){setStep(2);return;}
-    timers.push(setTimeout(()=>setStep(1),650),setTimeout(()=>setStep(2),1300));
+    timers.push(setTimeout(()=>setStep(1),1500),setTimeout(()=>setStep(2),3000));
   };
   steps.forEach((b,i)=>b.addEventListener('click',()=>{timers.forEach(clearTimeout);setStep(i);if(navigator.vibrate)navigator.vibrate(5);}));
   const replay=pipe.querySelector('.txt-pipe-replay');if(replay)replay.addEventListener('click',()=>{play();if(navigator.vibrate)navigator.vibrate(7);});
@@ -27795,7 +27805,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-10-teste-curseur-v531';
+  const SW_CACHE='requete-2026-09-10-fn-nest-animation-v536';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
