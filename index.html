@@ -7131,6 +7131,28 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 #scr-compte .account-identity-copy b,#scr-compte .account-identity-copy small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #scr-compte>.ux-shortcut{margin:4px 16px 10px}
 @media(max-width:410px){#scr-compte .account-connect{min-height:44px}}
+
+/* ============================================================
+   MICRO-INTERACTIONS — flèches et boutons vivants
+   (inactives si réduction des mouvements demandée)
+   ============================================================ */
+@media (prefers-reduced-motion:no-preference){
+  /* Raccourcis : petite flèche qui attire l'œil, glisse au toucher/survol */
+  .ux-shortcut::after{content:'›';display:inline-block;margin-left:8px;font-size:15px;font-weight:800;line-height:1;color:var(--accent);animation:shortcutNudge 3.2s ease-in-out infinite}
+  .ux-shortcut:active::after{transform:translateX(4px);animation:none}
+  @keyframes shortcutNudge{0%,88%,100%{transform:translateX(0)}92%,96%{transform:translateX(5px)}}
+  /* Bouton retour : chevron qui recule */
+  .home-back:active svg{transform:translateX(-2px)}
+  @media(hover:hover){
+    .ux-shortcut:hover::after{transform:translateX(4px);animation:none}
+    .home-back:hover svg{transform:translateX(-3px)}
+    .btn-run:hover .run-ico,.xf-run:hover .xf-run-ico{transform:scale(1.12)}
+    .ent-hero-cta:hover svg,.ent-next:hover svg,.def-focus-cta:hover svg{transform:translateX(3px)}
+    .cp-cta:hover .cp-chev{transform:translateX(3px)}
+    .fab:hover{animation:fabWiggle .5s ease}
+  }
+  @keyframes fabWiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-10deg) scale(1.06)}60%{transform:rotate(8deg) scale(1.06)}}
+}
 </style>
 <link rel="stylesheet" href="viz-select.css?v=noloop">
 <link rel="stylesheet" href="viz-where.css?v=limit2">
@@ -27672,7 +27694,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-10-ui-pass2-v516';
+  const SW_CACHE='requete-2026-09-10-micro-v517';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
