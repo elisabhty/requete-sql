@@ -24,10 +24,10 @@ const guides = guideStart >= 0 && guideEnd > guideStart ? html.slice(guideStart,
 
 assert(Boolean(guides), 'guides interactifs localisés');
 assert((guides.match(/\{k:'/g) || []).length === 6, '6 intentions plutôt qu’une longue liste de fonctions');
-assert(guides.includes("k:'format'") && guides.includes('UPPER · LOWER'), 'mise en forme disponible');
+assert(guides.includes("k:'format'") && guides.includes('UPPER / LOWER'), 'mise en forme disponible');
 assert(guides.includes("k:'clean'") && guides.includes('TRIM'), 'nettoyage disponible');
 assert(guides.includes("k:'measure'") && guides.includes('LENGTH'), 'mesure disponible');
-assert(guides.includes("k:'extract'") && guides.includes('INSTR · SUBSTR'), 'extraction disponible');
+assert(guides.includes("k:'extract'") && guides.includes('INSTR + SUBSTR'), 'extraction disponible');
 assert(guides.includes("k:'replace'") && guides.includes('REPLACE'), 'remplacement disponible');
 assert(guides.includes("k:'join'") && guides.includes("LOWER(nom) || '-' || LOWER(ville)"), 'assemblage et exercice reliés');
 assert(html.includes('function renderTextFunctionsStudio'), 'rendu dédié à la leçon 51');

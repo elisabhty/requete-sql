@@ -21250,12 +21250,12 @@ function renderJoinCourse(l){
   </div>`;
 }
 const TEXT_FUNCTION_GUIDES=[
-  {k:'format',label:'Mettre en forme',short:'UPPER · LOWER',title:'Uniformiser la casse',fn:'LOWER()',before:'Sophie@MAIL.FR',after:'sophie@mail.fr',sql:'LOWER(email)',note:'Utilise UPPER pour les majuscules, LOWER pour les minuscules.'},
-  {k:'clean',label:'Nettoyer',short:'TRIM',title:'Retirer les espaces autour',fn:'TRIM()',before:'<span class="is-space">···</span>sophie@mail.fr<span class="is-space">···</span>',after:'sophie@mail.fr',sql:'TRIM(email)',note:'TRIM retire aux extrémités. Les espaces au milieu sont conservés.'},
-  {k:'measure',label:'Mesurer',short:'LENGTH',title:'Compter les caractères',fn:'LENGTH()',before:'<span class="txt-char-row"><i>S</i><i>o</i><i>p</i><i>h</i><i>i</i><i>e</i></span>',after:'<span class="txt-count">6</span>',sql:'LENGTH(nom)',note:'LENGTH répond à la question : combien de caractères contient cette valeur ?'},
-  {k:'extract',label:'Extraire',short:'INSTR · SUBSTR',title:'Récupérer le domaine',fn:'SUBSTR()',before:'<span class="is-cut">sophie@</span><span class="is-hit">mail.fr</span>',after:'mail.fr',sql:"SUBSTR(email, INSTR(email, '@') + 1)",note:'INSTR trouve @ ; SUBSTR récupère tout ce qui vient après.'},
-  {k:'replace',label:'Remplacer',short:'REPLACE',title:'Supprimer les séparateurs',fn:'REPLACE()',before:'06<span class="is-space">·</span>39<span class="is-space">·</span>98<span class="is-space">·</span>12<span class="is-space">·</span>04',after:'0639981204',sql:"REPLACE(telephone, ' ', '')",note:'REPLACE cherche chaque espace et le remplace ici par une chaîne vide.'},
-  {k:'join',label:'Assembler',short:'||',title:'Créer un identifiant',fn:'||',before:'Sophie + Paris',after:'sophie-paris',sql:"LOWER(nom) || '-' || LOWER(ville)",note:'|| assemble les morceaux dans l’ordre où ils sont écrits.'}
+  {k:'format',label:'Modifier la casse',short:'UPPER / LOWER',kind:'Mise en forme',title:'Uniformiser la casse',fn:'LOWER()',before:'Sophie@MAIL.FR',after:'sophie@mail.fr',sql:'LOWER(email)',note:'Utilise UPPER pour les majuscules, LOWER pour les minuscules.'},
+  {k:'clean',label:'Retirer les espaces aux extrémités',short:'TRIM',kind:'Nettoyage',title:'Retirer les espaces autour',fn:'TRIM()',before:'<span class="is-space">···</span>sophie@mail.fr<span class="is-space">···</span>',after:'sophie@mail.fr',sql:'TRIM(email)',note:'TRIM retire aux extrémités. Les espaces au milieu sont conservés.'},
+  {k:'measure',label:'Compter les caractères',short:'LENGTH',kind:'Mesure',title:'Compter les caractères',fn:'LENGTH()',before:'<span class="txt-char-row"><i>S</i><i>o</i><i>p</i><i>h</i><i>i</i><i>e</i></span>',after:'<span class="txt-count">6</span>',sql:'LENGTH(nom)',note:'LENGTH répond à la question : combien de caractères contient cette valeur ?'},
+  {k:'extract',label:'Localiser puis extraire une partie',short:'INSTR + SUBSTR',kind:'Extraction',title:'Récupérer le domaine',fn:'SUBSTR()',before:'<span class="is-cut">sophie@</span><span class="is-hit">mail.fr</span>',after:'mail.fr',sql:"SUBSTR(email, INSTR(email, '@') + 1)",note:'INSTR trouve @ ; SUBSTR récupère tout ce qui vient après.'},
+  {k:'replace',label:'Remplacer ou supprimer une partie du texte',short:'REPLACE',kind:'Remplacement',title:'Supprimer les séparateurs',fn:'REPLACE()',before:'06<span class="is-space">·</span>39<span class="is-space">·</span>98<span class="is-space">·</span>12<span class="is-space">·</span>04',after:'0639981204',sql:"REPLACE(telephone, ' ', '')",note:'REPLACE cherche chaque espace et le remplace ici par une chaîne vide.'},
+  {k:'join',label:'Assembler plusieurs valeurs',short:'||',kind:'Assemblage',title:'Créer un identifiant',fn:'||',before:'Sophie + Paris',after:'sophie-paris',sql:"LOWER(nom) || '-' || LOWER(ville)",note:'|| assemble les morceaux dans l’ordre où ils sont écrits.'}
 ];
 const TEXT_PIPE_STEPS=[
   {fn:'COALESCE',lab:'gérer NULL',out:'  SOPHIE@MAIL.FR  ',caption:'COALESCE garantit une valeur. Ici, l’e-mail existe déjà : il est conservé.'},
@@ -21263,7 +21263,7 @@ const TEXT_PIPE_STEPS=[
   {fn:'LOWER',lab:'passer en minuscules',out:'sophie@mail.fr',caption:'LOWER uniformise enfin la casse du résultat.'}
 ];
 function textFunctionStageHtml(g){
-  return `<div class="txt-lab-top"><div><small>Transformation</small><h3>${g.title}</h3></div><code class="txt-lab-fn">${esc(g.fn)}</code></div>
+  return `<div class="txt-lab-top"><div><small>${esc(g.kind||'Transformation')}</small><h3>${g.title}</h3></div><code class="txt-lab-fn">${esc(g.fn)}</code></div>
     <div class="txt-demo" aria-label="Avant et après ${escAttr(g.title)}">
       <div class="txt-demo-value">${g.before}</div>
       <span class="txt-demo-arrow" aria-hidden="true"><svg viewBox="0 0 32 18" fill="none"><path d="M2 9h25M21 3l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -21286,7 +21286,7 @@ function renderTextFunctionsStudio(){
   return `<div class="concept-page text-functions-page">
     <div class="concept-block">
       <h2><span class="h2-eye">Fonctions de texte</span><span class="h2-txt">Manipuler du texte avec SQL</span></h2>
-      <p class="txt-hero-lead">Les fonctions de chaînes permettent de nettoyer, extraire, mesurer ou transformer du texte directement dans une requête SQL.<br>La fonction produit une nouvelle valeur dans le résultat de la requête, sans modifier la valeur stockée dans la table.</p>
+      <p class="txt-hero-lead">Les fonctions de chaînes permettent de nettoyer, extraire, mesurer ou transformer du texte directement dans une requête SQL.</p>
       <div class="txt-transform" role="img" aria-label="Une adresse avec espaces et majuscules devient une adresse propre en minuscules">
         <div class="txt-transform-box"><small>Valeur stockée</small><code>···SOPHIE@MAIL.FR···</code></div>
         <span class="txt-transform-arrow" aria-hidden="true"><svg viewBox="0 0 40 20" fill="none"><path d="M2 10h32M27 3l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -21295,14 +21295,14 @@ function renderTextFunctionsStudio(){
       <p class="txt-transform-note"><i aria-hidden="true">✓</i><span>La fonction transforme le résultat affiché, pas la valeur stockée dans la table.</span></p>
     </div>
     <div class="concept-block">
-      <h2><span class="h2-eye">Mini-laboratoire</span><span class="h2-txt">Que veux-tu faire avec ton texte ?</span></h2>
+      <h2><span class="h2-eye">Mini-laboratoire</span><span class="h2-txt">Comment veux-tu manipuler cette valeur ?</span></h2>
       <div class="txt-families" role="group" aria-label="Familles de fonctions"><button type="button" aria-pressed="true" onclick="chooseTextFamily(this,'clean')">Nettoyer</button><button type="button" aria-pressed="false" onclick="chooseTextFamily(this,'extract')">Extraire et mesurer</button><button type="button" aria-pressed="false" onclick="chooseTextFamily(this,'transform')">Transformer</button></div>
       <div class="txt-intents" role="tablist" aria-label="Actions possibles sur un texte">${TEXT_FUNCTION_GUIDES.map((g,i)=>`<button type="button" class="txt-intent${g.k==='clean'?' on':''}" role="tab" aria-selected="${g.k==='clean'?'true':'false'}" data-k="${g.k}"${['clean','replace'].includes(g.k)?'':' hidden'}><b>${g.label}</b><small>${g.short}</small></button>`).join('')}</div>
       <div class="txt-lab-stage" aria-live="polite">${textFunctionStageHtml(first)}</div>
     </div>
     <div class="concept-block">
-      <h2><span class="h2-eye">Fonctions imbriquées</span><span class="h2-txt">Combine-les de l’intérieur vers l’extérieur.</span></h2>
-      <p class="txt-pipeline-lead">SQL termine une transformation, puis transmet son résultat à la suivante.</p>
+      <h2><span class="h2-eye">Fonctions imbriquées</span><span class="h2-txt">Une fonction travaille sur le résultat de la précédente</span></h2>
+      <p class="txt-pipeline-lead">Quand plusieurs fonctions sont imbriquées, SQL commence par la fonction la plus à l’intérieur, puis utilise son résultat dans la fonction suivante.</p>
       ${textPipeHtml()}
     </div>
     <!-- early-demo -->
@@ -21310,7 +21310,7 @@ function renderTextFunctionsStudio(){
 }
 function chooseTextFamily(button,family){
   const page=button.closest('.text-functions-page');
-  const keys={clean:['clean','replace'],extract:['extract','measure'],transform:['format','join']}[family];
+  const keys={clean:['clean','replace'],extract:['measure','extract'],transform:['format','join']}[family];
   page.querySelectorAll('.txt-families button').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
   const intents=[...page.querySelectorAll('.txt-intent')];
   intents.forEach(b=>{b.hidden=!keys.includes(b.dataset.k);});
@@ -27805,7 +27805,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-10-fn-nest-animation-v536';
+  const SW_CACHE='requete-2026-09-10-mini-labo-familles-v537';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
