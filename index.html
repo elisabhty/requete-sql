@@ -6826,7 +6826,7 @@
   #scr-compte.active .account-identity,#scr-compte.active .account-panel,#scr-compte.active .account-settings-block,#scr-compte.active .account-sync-card{animation:iosSurfaceIn .4s var(--spring-ios) both}
   #scr-compte.active .account-stat-mark{animation:iosPopIn .42s var(--spring-ios) .13s both}
   #scr-compte.active .account-stat:nth-child(2) .account-stat-mark{animation-delay:.17s}#scr-compte.active .account-stat:nth-child(3) .account-stat-mark{animation-delay:.21s}#scr-compte.active .account-stat:nth-child(4) .account-stat-mark{animation-delay:.25s}
-  #scr-compte.active .account-progress-panel{animation-delay:.05s}#scr-compte.active .account-goal{animation-delay:.08s}#scr-compte.active .account-week-panel{animation-delay:.11s}#scr-compte.active .account-badges-panel{animation-delay:.14s}#scr-compte.active .account-settings-block{animation-delay:.17s}#scr-compte.active .account-sync-card{animation-delay:.2s}
+  #scr-compte.active .account-sync-card{animation-delay:.05s}#scr-compte.active .account-goal{animation-delay:.08s}#scr-compte.active .account-progress-panel{animation-delay:.11s}#scr-compte.active .account-week-panel{animation-delay:.14s}#scr-compte.active .account-badges-panel{animation-delay:.17s}#scr-compte.active .account-settings-block{animation-delay:.2s}
 
   /* Onboarding — durée visible, compte honnête et mode local rassurant */
   #onboarding.ob-account-step #ob-body{padding-top:calc(var(--safe-top) + 10px)}
@@ -7011,7 +7011,7 @@
 .plan-module-row progress{display:block;width:100%;height:5px;accent-color:var(--accent)}
 .plan-module-row button{flex-shrink:0;font-size:12px;padding:10px}
 #module-progress-status{font-size:12px;color:var(--ink-2)}
-.reading-preferences{padding:16px 0 20px;margin-bottom:18px;border-bottom:1px solid var(--card-border)}
+.reading-preferences{padding:14px;margin-bottom:14px;border:1px solid var(--card-border);border-radius:18px;background:var(--surface-2)}
 .reading-preferences h3{font-size:16px;margin:0 0 7px}
 .reading-preferences>p{font-size:12px;line-height:1.6;color:var(--ink-2);margin:0 0 12px}
 .reading-option{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:64px;cursor:pointer;padding:13px 0;border-top:1px solid var(--card-border)}
@@ -7067,8 +7067,15 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 @media(max-width:410px){#scr-learn .cp-cta{min-width:44px;min-height:44px}}
 
 /* --- Parcours --- */
-#scr-planning .wk-nav>button{width:44px;height:44px}
-#scr-planning .pl-chip .nx{width:44px;height:44px;min-height:44px}
+/* Dimensions visuelles d'origine conservées ; la zone tactile 44px est
+   assurée par une extension invisible (::after), sans déformer la mise en page. */
+#scr-planning .wk-nav>button{width:39px;height:39px;position:relative}
+#scr-planning .wk-nav>button::after{content:'';position:absolute;inset:-4px}
+#scr-planning .pl-chip .nx{width:39px;height:39px;min-height:39px;position:relative}
+#scr-planning .pl-chip .nx::after{content:'';position:absolute;inset:-4px}
+/* Titres d'activités sur 2 lignes, chips de hauteur uniforme */
+#scr-planning .pl-chip{min-height:78px}
+#scr-planning .pl-chip .ct>span{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 #scr-planning .pl-overview-adjust{min-height:44px;padding:0 14px}
 #scr-planning .pl-week-legend{font-size:10px}
 #scr-planning .pl-hint{color:#767986;font-size:11.5px}
@@ -25791,6 +25798,12 @@ function renderCompte(){
       </div>
       <div class="account-local-status"><span>${plusIcon('privacy')}</span><b>${connected?'Compte actif':'Mode local actif'}</b><small>${connected?'Export et contrôle disponibles':'Connexion optionnelle'}</small></div>
     </section>
+    ${connected?'':`<section class="account-sync-card"><span>${plusIcon('account')}</span><div><b>Sécurise ta progression</b><small>Crée un compte quand tu veux. L’app reste utilisable sans connexion.</small></div><button type="button" onclick="startOnboarding('account')">Découvrir</button></section>`}
+    <button type="button" class="account-panel account-goal" onclick="switchTab('planning')">
+      <span class="account-goal-ring" style="--p:0" data-grow-p="${goalPct}" aria-hidden="true"><i>${goalPct===100?'✓':goalPct+'%'}</i></span>
+      <span class="account-goal-copy"><small>${state.plan?'Ton rythme':'Ton prochain pas'}</small><b>${goalTitle}</b><span>${goalCopy}</span></span>
+      <span class="account-goal-meta">${goalMeta}${CHEV}</span>
+    </button>
     <section class="account-panel account-progress-panel">
       <div class="account-section-head"><div><span>Ma progression</span><b>${progress.done} activité${progress.done>1?'s':''} terminée${progress.done>1?'s':''}</b></div><button type="button" onclick="switchTab('learn')">Voir le parcours</button></div>
       <div class="account-stats-grid">
@@ -25805,11 +25818,6 @@ function renderCompte(){
         <div class="account-level-next"><span>Prochain cap</span><b>${levelBand.next}</b></div>
       </div>
     </section>
-    <button type="button" class="account-panel account-goal" onclick="switchTab('planning')">
-      <span class="account-goal-ring" style="--p:0" data-grow-p="${goalPct}" aria-hidden="true"><i>${goalPct===100?'✓':goalPct+'%'}</i></span>
-      <span class="account-goal-copy"><small>${state.plan?'Ton rythme':'Ton prochain pas'}</small><b>${goalTitle}</b><span>${goalCopy}</span></span>
-      <span class="account-goal-meta">${goalMeta}${CHEV}</span>
-    </button>
     <section class="account-panel account-week-panel">
       <div class="account-section-head"><div><span>Cette semaine</span><b>${weekComplete} séance${weekComplete>1?'s':''} sur ${weekPlanned||0} terminée${weekComplete>1?'s':''}</b></div><button type="button" onclick="switchTab('planning')">Ajuster</button></div>
       <div class="account-week" role="list" aria-label="Activité des sept jours de la semaine">${weekHTML}</div>
@@ -25838,7 +25846,6 @@ function renderCompte(){
         </div>
       </div>
     </section>
-    ${connected?'':`<section class="account-sync-card"><span>${plusIcon('account')}</span><div><b>Sécurise ta progression</b><small>Crée un compte quand tu veux. L’app reste utilisable sans connexion.</small></div><button type="button" onclick="startOnboarding('account')">Découvrir</button></section>`}
     <details class="plus-details" id="plus-profile-settings">
       <summary><span>Profil et objectif</span><small>Adapte le parcours à tes besoins</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body">
@@ -27694,7 +27701,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-10-micro-v517';
+  const SW_CACHE='requete-2026-09-10-parcours-compte-v519';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
