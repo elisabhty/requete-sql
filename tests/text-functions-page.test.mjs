@@ -19,7 +19,7 @@ function assert(condition, label) {
 
 console.log('\n=== Page Fonctions de texte ===');
 const guideStart = html.indexOf('const TEXT_FUNCTION_GUIDES=');
-const guideEnd = html.indexOf('const TEXT_PIPE_STEPS=', guideStart);
+const guideEnd = html.indexOf('function textFunctionStageHtml(', guideStart);
 const guides = guideStart >= 0 && guideEnd > guideStart ? html.slice(guideStart, guideEnd) : '';
 
 assert(Boolean(guides), 'guides interactifs localisés');
@@ -34,7 +34,7 @@ assert(html.includes('function renderTextFunctionsStudio'), 'rendu dédié à la
 assert(html.includes("if(l.id===51)return renderTextFunctionsStudio(l)"), 'ancienne pile de texte remplacée dans la page');
 assert(html.includes('Manipuler du texte avec SQL'), 'principe montré avant la syntaxe');
 assert(html.includes('txt-demo') && html.includes('txt-transform'), 'avant/après visuels présents');
-assert(html.includes('const TEXT_PIPE_STEPS=') && html.includes('de l’intérieur vers l’extérieur'), 'combinaison des fonctions expliquée par étapes');
+assert(html.includes('class="txt-nest"') && html.includes("LOWER(TRIM(COALESCE(email, '')))") && html.includes('txt-nest-steps'), 'imbrication décomposée étape par étape');
 assert(html.includes('function initTextFunctions'), 'micro-interactions initialisées');
 assert(html.includes('aria-live="polite"') && html.includes('role="tablist"'), 'états interactifs accessibles');
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('txtStageSwap'), 'animations compatibles avec la réduction des mouvements');
