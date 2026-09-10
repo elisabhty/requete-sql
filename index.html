@@ -774,14 +774,18 @@
   .fn-nest-val{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--ink);overflow-wrap:anywhere;text-align:right;min-width:0}
   .fn-nest-io.out .fn-nest-val{color:var(--accent)}
   .fn-nest-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}
-  .fn-nest-step{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 10px 9px;border:1px solid var(--card-border);border-radius:13px;background:var(--surface);cursor:pointer;text-align:left;transition:border-color .18s ease,background .18s ease,box-shadow .18s ease,transform .16s var(--spring-ios);font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+  .fn-nest-step{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 10px 9px;border:1px solid var(--card-border);border-radius:13px;background:var(--surface);cursor:pointer;text-align:left;transition:border-color .18s ease,background .18s ease,box-shadow .18s ease,transform .16s var(--spring-ios);font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
   .fn-nest-step.on{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 1px rgba(91,91,214,.12)}
   .fn-nest-step:active{transform:scale(.97)}
+  .fn-nest-step::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--accent);transform:scaleX(0);transform-origin:left;opacity:0;transition:opacity .3s ease}
+  .fn-nest.playing .fn-nest-step.on::after{opacity:1;animation:fnNestProg var(--fn-step-ms,2800ms) linear both}
+  @keyframes fnNestProg{from{transform:scaleX(0)}to{transform:scaleX(1)}}
   .fn-nest-n{font-family:var(--mono);font-size:11px;font-weight:850;color:var(--ink-3);line-height:1.2}
   .fn-nest-step.on .fn-nest-n{color:var(--accent)}
   .fn-nest-fn{font-family:var(--mono);font-size:12.5px;font-weight:800;color:var(--ink);line-height:1.25}
   .fn-nest-step small{font-size:10.5px;font-weight:650;color:var(--ink-3);line-height:1.3}
-  .fn-nest-say{margin:12px 0 0!important;font-size:13.5px;line-height:1.5;color:var(--ink-2)}
+  .fn-nest-say{display:flex;align-items:flex-start;gap:9px;margin:12px 0 0!important;padding:10px 12px;border-radius:12px;border:1px solid var(--card-border);border-left:3px solid var(--accent);background:var(--surface);font-size:13.5px;line-height:1.5;color:var(--ink-2)}
+  .fn-nest-say-n{flex:none;display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--mono);font-size:11px;font-weight:850}
   .fn-nest-replay{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:12px;padding:11px 14px;border:0;border-radius:13px;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:750;cursor:pointer;font-family:inherit;transition:transform .16s var(--spring-ios),background .18s ease,color .18s ease,box-shadow .18s ease;-webkit-tap-highlight-color:transparent}
   .fn-nest-replay:active{transform:scale(.96);background:var(--accent);color:#fff;box-shadow:0 8px 18px -8px rgba(91,91,214,.6)}
   .fn-nest-replay svg{width:16px;height:16px;flex:none;transition:transform .5s var(--bounce-ios)}
@@ -866,13 +870,21 @@
   .txt-pipe-value.is-result{margin-top:10px;border:1px solid rgba(91,91,214,.2)}
   .txt-pipe-value.is-result code{color:var(--accent);font-weight:800}
   .txt-pipe-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:10px 0}
-  .txt-pipe-step{appearance:none;min-width:0;padding:9px 5px;border:1px solid var(--card-border);border-radius:11px;background:var(--surface);color:var(--ink-2);font-family:var(--ui);cursor:pointer;transition:transform .2s var(--spring-ios),background .2s ease,border-color .2s ease,color .2s ease}
+  .txt-pipe-step{appearance:none;position:relative;overflow:hidden;min-width:0;padding:9px 5px;border:1px solid var(--card-border);border-radius:11px;background:var(--surface);color:var(--ink-2);font-family:var(--ui);cursor:pointer;transition:transform .2s var(--spring-ios),background .2s ease,border-color .2s ease,color .2s ease}
   .txt-pipe-step:active{transform:scale(.97)}
   .txt-pipe-step span{display:block;margin-bottom:3px;font-family:var(--mono);font-size:10px;font-weight:850}
   .txt-pipe-step small{display:block;font-size:9.5px;line-height:1.3}
   .txt-pipe-step.done{border-color:rgba(91,91,214,.2);background:var(--accent-soft);color:var(--accent)}
   .txt-pipe-step.on{border-color:var(--accent);box-shadow:0 5px 13px rgba(91,91,214,.13);transform:translateY(-2px)}
-  .txt-pipe-caption{min-height:38px;margin:10px 1px 0!important;color:var(--ink-2)!important;font-size:12.5px!important;line-height:1.45!important}
+  /* Barre de progression sous l'onglet actif pendant la lecture auto :
+     elle matérialise le temps accordé à chaque étape et relie visuellement
+     l'onglet à la valeur et à la légende qui changent en dessous. */
+  .txt-pipe-step::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--accent);transform:scaleX(0);transform-origin:left;opacity:0;transition:opacity .3s ease}
+  .txt-pipeline.playing .txt-pipe-step.on::after{opacity:1;animation:txtPipeProg var(--txt-step-ms,2800ms) linear both}
+  @keyframes txtPipeProg{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+  .txt-pipe-caption{display:flex;align-items:flex-start;gap:9px;min-height:38px;margin:10px 1px 0!important;padding:9px 11px;border-radius:12px;border:1px solid var(--card-border);border-left:3px solid var(--accent);background:var(--surface);color:var(--ink-2)!important;font-size:12.5px!important;line-height:1.45!important}
+  .txt-pipe-caption-n{flex:none;display:flex;align-items:center;justify-content:center;width:19px;height:19px;margin-top:1px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--mono);font-size:10.5px;font-weight:850}
+  .txt-pipe-caption-txt{min-width:0}
   .txt-pipe-replay{appearance:none;display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:11px;padding:10px;border:0;border-radius:12px;background:var(--accent-soft);color:var(--accent);font-family:var(--ui);font-size:12px;font-weight:780;cursor:pointer;transition:transform .16s var(--spring-ios),background .18s ease,color .18s ease,box-shadow .18s ease}
   .txt-pipe-replay:active{transform:scale(.96);background:var(--accent);color:#fff;box-shadow:0 8px 18px -8px rgba(91,91,214,.6)}
   .txt-pipe-replay svg{width:15px;height:15px;transition:transform .5s var(--bounce-ios)}
@@ -894,6 +906,7 @@
   @media (prefers-reduced-motion:reduce){
     .txt-lab-stage.is-changing,.text-functions-page>.concept-block.in .txt-transform-box,.text-functions-page>.concept-block.in .txt-transform-arrow{animation:none!important}
     .txt-intent,.txt-pipe-step,.txt-pipe-replay{transition:none!important}
+    .txt-pipeline.playing .txt-pipe-step.on::after{animation:none!important}
   }
   .join-recap.fn-cmp .fnc-nom.is-want{font-family:var(--ui);font-weight:700}
   /* Quand la mise en situation en vient au SQL — les mots-clés, la clause à
@@ -5394,6 +5407,7 @@
     .bravo-ring{--p:100}
     .bravo-sparks{display:none}
     .grp-chip,.grp-bucket,.grp-count,.sel-c,.sel-meta,.concept-block,.vs-col,.memory-rule div,.grp-pause,.grp-replay,.ls-nav .ls-next,.ls-nav .ls-prev{transition:none!important}
+    .fn-nest.playing .fn-nest-step.on::after{animation:none!important}
     .sql-viz[data-kind="cols"][data-phase="1"] .sel-c[data-keep="1"]{animation:none!important}
     .grp-viz[data-phase="0"] .grp-bucket{opacity:0}
     .grp-viz[data-phase="1"] .grp-bucket,.grp-viz[data-phase="2"] .grp-bucket{opacity:1;transform:none}
@@ -9155,7 +9169,7 @@ FROM clients;</pre></div>
           <span class="fn-nest-lab">Après cette étape</span>
           <code class="fn-nest-val" data-fn-nest-out>SOPHIE@MAIL.FR</code>
         </div>
-        <p class="fn-nest-say" data-fn-nest-say>COALESCE garantit une valeur. Ici, l’e-mail existe déjà : il est conservé.</p>
+        <p class="fn-nest-say" data-fn-nest-say><span class="fn-nest-say-n" aria-hidden="true">1</span><span data-fn-nest-say-txt>COALESCE garantit une valeur. Ici, l’e-mail existe déjà : il est conservé.</span></p>
         <button type="button" class="fn-nest-replay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>Rejouer les 3 étapes</button>
       </div></div>`},
     reflex:{note:"Avant de choisir une fonction, demande-toi : <b>qu’est-ce que je veux faire au texte ?</b>",
@@ -20945,19 +20959,28 @@ function initFnNest(){
       if(!prefersReduceMotion()) outEl.animate([{opacity:.35},{opacity:1}],{duration:300,easing:'ease'});
     }
     if(sayEl){
-      sayEl.textContent=data[step].say;
-      if(!prefersReduceMotion()) sayEl.animate([{opacity:.35,transform:'translateY(2px)'},{opacity:1,transform:'none'}],{duration:320,easing:'ease'});
+      const nEl=sayEl.querySelector('.fn-nest-say-n');
+      const tEl=sayEl.querySelector('[data-fn-nest-say-txt]');
+      if(nEl) nEl.textContent=String(step+1);
+      if(tEl) tEl.textContent=data[step].say;
+      else sayEl.textContent=data[step].say;
+      if(!prefersReduceMotion()) sayEl.animate([{opacity:.3,transform:'translateY(3px)'},{opacity:1,transform:'none'}],{duration:380,easing:'ease'});
     }
   };
-  const STEP_MS=1700;
+  /* Même rythme que le pipeline de la page Fonctions de texte : 2,8 s par
+     étape, matérialisé par la barre de progression sous l'onglet actif. */
+  const STEP_MS=2800;
+  box.style.setProperty('--fn-step-ms',STEP_MS+'ms');
   const replay=()=>{
     clearTimeout(box._fnT);
-    if(prefersReduceMotion()){ setStep(0); return; }
+    box.classList.remove('playing');void box.offsetWidth;box.classList.add('playing');
+    if(prefersReduceMotion()){ setStep(0); box.classList.remove('playing'); return; }
     let i=0;
     const tick=()=>{
       setStep(i);
       i++;
       if(i<steps.length) box._fnT=setTimeout(tick,STEP_MS);
+      else box._fnT=setTimeout(()=>box.classList.remove('playing'),STEP_MS);
     };
     box._fnT=setTimeout(tick,450);
   };
@@ -20965,6 +20988,7 @@ function initFnNest(){
     const stepBtn=e.target.closest('.fn-nest-step');
     if(stepBtn){
       clearTimeout(box._fnT);
+      box.classList.remove('playing');
       setStep(+stepBtn.dataset.step||0);
       if(navigator.vibrate) navigator.vibrate(6);
       return;
@@ -21277,7 +21301,7 @@ function textPipeHtml(){
     <div class="txt-pipe-value"><small>Valeur reçue</small><code>···SOPHIE@MAIL.FR···</code></div>
     <div class="txt-pipe-steps" role="tablist" aria-label="Ordre des fonctions imbriquées">${TEXT_PIPE_STEPS.map((s,i)=>`<button type="button" class="txt-pipe-step${i===0?' on done':''}" role="tab" aria-selected="${i===0?'true':'false'}" data-i="${i}"><span>${i+1}. ${s.fn}</span><small>${s.lab}</small></button>`).join('')}</div>
     <div class="txt-pipe-value is-result" aria-live="polite"><small>Après cette étape</small><code class="txt-pipe-out">${TEXT_PIPE_STEPS[0].out}</code></div>
-    <p class="txt-pipe-caption">${TEXT_PIPE_STEPS[0].caption}</p>
+    <p class="txt-pipe-caption"><span class="txt-pipe-caption-n" aria-hidden="true">1</span><span class="txt-pipe-caption-txt">${TEXT_PIPE_STEPS[0].caption}</span></p>
     <button type="button" class="txt-pipe-replay"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.2-5.5M4 4.5v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Rejouer les 3 étapes</button>
   </div>`;
 }
@@ -21339,15 +21363,34 @@ function initTextFunctions(){
     steps.forEach((b,j)=>{b.classList.toggle('on',j===i);b.classList.toggle('done',j<=i);b.setAttribute('aria-selected',j===i?'true':'false');});
     const out=pipe.querySelector('.txt-pipe-out');const cap=pipe.querySelector('.txt-pipe-caption');
     if(out){out.textContent=s.out;if(!prefersReduceMotion())out.animate([{opacity:.35},{opacity:1}],{duration:300,easing:'ease'});}
-    if(cap){cap.textContent=s.caption;if(!prefersReduceMotion())cap.animate([{opacity:.35,transform:'translateY(2px)'},{opacity:1,transform:'none'}],{duration:320,easing:'ease'});}
+    if(cap){
+      /* La légende porte le numéro de l'étape active : le lien entre
+         l'onglet surligné et le texte d'explication reste visible. */
+      const n=cap.querySelector('.txt-pipe-caption-n');
+      const txt=cap.querySelector('.txt-pipe-caption-txt');
+      if(n)n.textContent=String(i+1);
+      if(txt)txt.textContent=s.caption;else cap.textContent=s.caption;
+      if(!prefersReduceMotion())cap.animate([{opacity:.3,transform:'translateY(3px)'},{opacity:1,transform:'none'}],{duration:380,easing:'ease'});
+    }
   };
+  /* Rythme de lecture : chaque étape reste affichée assez longtemps pour
+     lire la légende (2,8 s). La barre de progression sous l'onglet actif
+     (classe .playing) rend ce rythme visible. */
+  const STEP_MS=2800;
+  pipe.style.setProperty('--txt-step-ms',STEP_MS+'ms');
   let timers=[];
   const play=()=>{
-    timers.forEach(clearTimeout);timers=[];setStep(0);
-    if(prefersReduceMotion()){setStep(2);return;}
-    timers.push(setTimeout(()=>setStep(1),1500),setTimeout(()=>setStep(2),3000));
+    timers.forEach(clearTimeout);timers=[];
+    pipe.classList.remove('playing');void pipe.offsetWidth;pipe.classList.add('playing');
+    setStep(0);
+    if(prefersReduceMotion()){setStep(2);pipe.classList.remove('playing');return;}
+    timers.push(
+      setTimeout(()=>setStep(1),STEP_MS),
+      setTimeout(()=>setStep(2),STEP_MS*2),
+      setTimeout(()=>pipe.classList.remove('playing'),STEP_MS*3)
+    );
   };
-  steps.forEach((b,i)=>b.addEventListener('click',()=>{timers.forEach(clearTimeout);setStep(i);if(navigator.vibrate)navigator.vibrate(5);}));
+  steps.forEach((b,i)=>b.addEventListener('click',()=>{timers.forEach(clearTimeout);pipe.classList.remove('playing');setStep(i);if(navigator.vibrate)navigator.vibrate(5);}));
   const replay=pipe.querySelector('.txt-pipe-replay');if(replay)replay.addEventListener('click',()=>{play();if(navigator.vibrate)navigator.vibrate(7);});
   const scr=document.getElementById('scr-lesson');
   whenSettled(pipe,scr,{ratio:.3,threshold:[.3]},play);
