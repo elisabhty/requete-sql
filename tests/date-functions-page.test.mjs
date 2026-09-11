@@ -38,6 +38,7 @@ assert(html.includes('function renderDateFunctionsStudio'), 'rendu dédié à la
 assert(html.includes('if(l.id===53)return renderDateFunctionsStudio(l)'), 'ancienne pile de texte remplacée');
 assert(html.includes('df-anatomy') && html.includes('année</small>') && html.includes('seconde</small>'), 'date et heure décomposées visuellement');
 assert(html.includes('Comprendre les dates et les heures') && html.includes('Une valeur, plusieurs parties'), 'introduction courte avant la décomposition');
+assert(html.includes('Quand la commande a-t-elle été passée') && html.includes('df-pick-to') && html.includes('mois</small><b>08</b>'), 'questions concrètes puis extraction du mois');
 assert(!html.includes('Mais manipuler le temps en SQL demande quelques précautions'), 'précautions avancées hors de l’intro');
 assert(html.includes('function initDateFunctions'), 'micro-interactions initialisées');
 assert(html.includes('df-stage-head" aria-live="polite"') && html.includes('Actions possibles sur une date'), 'états interactifs accessibles');
@@ -53,6 +54,7 @@ for (const title of order) {
   if (i <= prev) orderOk = false;
   prev = i;
 }
+assert(!studio.slice(0, studio.indexOf('Choisir la bonne notion')).includes('sans ambiguïté'), 'formats ambigus hors de l’intro');
 assert(orderOk && (studio.match(/<div class="concept-block">/g) || []).length === 8, 'huit cadres dans l’ordre pédagogique');
 assert(!studio.includes('Et pour les fuseaux horaires ?') && !studio.includes('Convertir une valeur'), 'cadres hors fil retirés');
 assert(studio.includes('concept-table vocab-table'), 'mémo de syntaxe repliable sur mobile');
