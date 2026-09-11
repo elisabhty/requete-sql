@@ -21726,7 +21726,13 @@ function initTesteEditor(){
        sinon les deux widgets démarrent désynchronisés jusqu'au prochain
        clic, qui les recorrige via ce même mécanisme. */
     syncLinkedVariant(frame, v);
-    initial=draft!=null?draft:(v?v.sql:variants[0].sql);
+    /* Si l'index persisté a dû être ramené dans les bornes (la leçon a
+       depuis moins de variantes qu'à la dernière visite), le brouillon
+       sauvegardé correspondait à un onglet qui n'existe plus : il ne faut
+       pas l'afficher sous l'onglet désormais actif, au risque de montrer
+       un SQL qui ne correspond ni au libellé ni au résultat attendu. */
+    const draftStale=index!==savedIndex;
+    initial=(draft!=null&&!draftStale)?draft:(v?v.sql:variants[0].sql);
   }else if(draft!=null&&draft!=='') initial=draft;
   ta.value=initial;
   setupEditor('ed-teste','hl-teste');
@@ -27771,7 +27777,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-10-intent-tabs-sans-glow-v551';
+  const SW_CACHE='requete-2026-09-10-teste-draft-perime-v552';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
