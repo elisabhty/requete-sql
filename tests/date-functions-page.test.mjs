@@ -27,7 +27,7 @@ assert((guides.match(/\{k:'/g) || []).length === 6, '6 intentions plutôt que 13
 assert(guides.includes("k:'now'") && guides.includes('CURRENT_TIMESTAMP'), 'date et heure actuelles disponibles');
 assert(!guides.includes('AOÛT') && !guides.includes('13:30:00'), 'horloge du labo non figée dans le guide');
 assert(html.includes('function dateNowVisualHtml') && html.includes("timeZone:'UTC'"), 'calendrier et horloge construits à l’instant UTC');
-assert(html.includes('startDateNowTick') && html.includes('stopDateNowTick'), 'horloge du labo mise à jour chaque seconde');
+assert(html.includes('df-clock-time') && html.includes("page.querySelector('.df-stage .df-visual')") && html.includes('startDateNowTick') && html.includes('stopDateNowTick'), 'horloge du labo mise à jour chaque seconde');
 assert(guides.includes("k:'extract'") && guides.includes('strftime'), 'extraction d’une partie disponible');
 assert(guides.includes("k:'format'") && guides.includes('%d/%m/%Y'), 'formatage avant/après disponible');
 assert(guides.includes("k:'shift'") && guides.includes("'+5 days'"), 'décalage sur une ligne du temps disponible');
@@ -40,7 +40,7 @@ assert(html.includes('df-anatomy') && html.includes('année</small>') && html.in
 assert(html.includes('Comprendre les dates et les heures') && html.includes('Une valeur, plusieurs parties'), 'introduction courte avant la décomposition');
 assert(!html.includes('Mais manipuler le temps en SQL demande quelques précautions'), 'précautions avancées hors de l’intro');
 assert(html.includes('function initDateFunctions'), 'micro-interactions initialisées');
-assert(html.includes('aria-live="polite"') && html.includes('Actions possibles sur une date'), 'états interactifs accessibles');
+assert(html.includes('df-stage-head" aria-live="polite"') && html.includes('Actions possibles sur une date'), 'états interactifs accessibles');
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('dfStageSwap'), 'animations compatibles avec la réduction des mouvements');
 assert(html.includes('initDateFunctions();'), 'laboratoire activé au rendu du cours');
 assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53||l.id===54") && html.includes("compactFunctionLesson?'':reflexBlock(l)"), 'récapitulatifs redondants retirés de cette page');
@@ -55,6 +55,7 @@ for (const title of order) {
 }
 assert(orderOk && (studio.match(/<div class="concept-block">/g) || []).length === 8, 'huit cadres dans l’ordre pédagogique');
 assert(!studio.includes('Et pour les fuseaux horaires ?') && !studio.includes('Convertir une valeur'), 'cadres hors fil retirés');
+assert(studio.includes('concept-table vocab-table'), 'mémo de syntaxe repliable sur mobile');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);

@@ -1330,12 +1330,13 @@
   .df-value.is-result{border-color:rgba(91,91,214,.2);color:var(--accent);box-shadow:0 4px 12px rgba(91,91,214,.08)}
   .df-arrow{display:flex;align-items:center;justify-content:center;color:var(--accent)}
   .df-arrow svg{width:28px;height:18px;overflow:visible}
-  .df-now{display:flex;align-items:stretch;gap:9px}
+  .df-now{display:flex;width:100%;align-items:stretch;justify-content:center;gap:9px}
   .df-cal{width:78px;border:1px solid rgba(91,91,214,.2);border-radius:14px;background:var(--surface);box-shadow:var(--card-shadow-sm);overflow:hidden;text-align:center}
   .df-cal small{display:block;padding:5px;background:var(--accent);color:#fff;font-size:8px;font-weight:850;letter-spacing:.5px}
   .df-cal b{display:block;padding:9px 3px 1px;font-size:25px;line-height:1;color:var(--ink)}
   .df-cal span{display:block;padding:3px 3px 8px;font-size:8px;font-weight:800;color:var(--ink-3)}
-  .df-clock{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 13px;border:1px solid var(--line);border-radius:14px;background:var(--surface);font-family:var(--mono);font-size:20px;font-weight:800;color:var(--accent);line-height:1}
+  .df-clock{display:flex;flex:1;min-width:0;flex-direction:column;align-items:center;justify-content:center;padding:8px 13px;border:1px solid var(--line);border-radius:14px;background:var(--surface);font-family:var(--mono);font-size:20px;font-weight:800;color:var(--accent);line-height:1}
+  .df-clock-time{display:flex;align-items:center;justify-content:center;gap:2px;white-space:nowrap}
   .df-clock .colon{animation:dfBlink 1.2s ease-in-out infinite}
   .df-clock small{display:block;margin-top:5px;font-size:8px;font-weight:850;letter-spacing:.6px;color:var(--ink-3)}
   .df-parts{display:flex;align-items:flex-start;justify-content:center;gap:5px;width:100%}
@@ -21403,11 +21404,11 @@ function dateNowVisualHtml(d){
   const t=d||new Date();
   const pad=n=>String(n).padStart(2,'0');
   const month=t.toLocaleString('fr-FR',{month:'long',timeZone:'UTC'}).toUpperCase();
-  return `<div class="df-now"><div class="df-cal"><small>${esc(month)}</small><b>${t.getUTCDate()}</b><span>${t.getUTCFullYear()}</span></div><div class="df-clock">${pad(t.getUTCHours())}<span class="colon">:</span>${pad(t.getUTCMinutes())}<span class="colon">:</span>${pad(t.getUTCSeconds())}<small>UTC</small></div></div>`;
+  return `<div class="df-now"><div class="df-cal"><small>${esc(month)}</small><b>${t.getUTCDate()}</b><span>${t.getUTCFullYear()}</span></div><div class="df-clock"><span class="df-clock-time">${pad(t.getUTCHours())}<span class="colon">:</span>${pad(t.getUTCMinutes())}<span class="colon">:</span>${pad(t.getUTCSeconds())}</span><small>UTC</small></div></div>`;
 }
 function dateFunctionStageHtml(g){
   const visual=g.k==='now'?dateNowVisualHtml():g.visual;
-  return `<div class="df-stage-head"><div><small>Opération temporelle</small><h3>${esc(g.title)}</h3></div><code class="df-stage-fn">${esc(g.fn)}</code></div>
+  return `<div class="df-stage-head" aria-live="polite"><div><small>Opération temporelle</small><h3>${esc(g.title)}</h3></div><code class="df-stage-fn">${esc(g.fn)}</code></div>
     <div class="df-visual" aria-label="${escAttr(g.title)}">${visual}</div>
     ${piegeSqlRunBlock(g.sql)}
     ${g.note?`<p class="df-note">${g.note}</p>`:''}`;
@@ -21457,7 +21458,7 @@ function renderDateFunctionsStudio(){
       <h2><span class="h2-eye">Mini-laboratoire</span><span class="h2-txt">Six gestes à maîtriser</span></h2>
       <p class="df-lead">Chaque onglet part d’un besoin simple. Lis le schéma, observe la fonction, puis exécute la requête.</p>
       <div class="df-intents" role="tablist" aria-label="Actions possibles sur une date">${DATE_FUNCTION_GUIDES.map((g,i)=>`<button type="button" class="df-intent${i===0?' on':''}" role="tab" aria-selected="${i===0?'true':'false'}" data-k="${g.k}"><b>${g.label}</b>${g.short?`<small>${g.short}</small>`:''}</button>`).join('')}</div>
-      <div class="df-stage" aria-live="polite">${dateFunctionStageHtml(first)}</div>
+      <div class="df-stage">${dateFunctionStageHtml(first)}</div>
     </div>
     <div class="concept-block">
       <h2><span class="h2-eye">Mois</span><span class="h2-txt">Calculer un début ou une fin de mois</span></h2>
@@ -21520,7 +21521,7 @@ FROM commandes;</pre></div>
     <div class="concept-block">
       <h2><span class="h2-eye">Mémo</span><span class="h2-txt">Retrouver rapidement la syntaxe</span></h2>
       <p class="df-lead">Dans ce cours, les requêtes s’exécutent en SQLite. Les autres SGBD gardent les mêmes idées, mais changent souvent de fonction.</p>
-      <div class="table-wrap"><table class="concept-table"><thead><tr><th scope="col">Besoin</th><th scope="col">SQLite</th><th scope="col">Autres écritures</th></tr></thead><tbody>
+      <div class="table-wrap"><table class="concept-table vocab-table"><thead><tr><th scope="col">Besoin</th><th scope="col">SQLite</th><th scope="col">Autres écritures</th></tr></thead><tbody>
         <tr><td>Date actuelle</td><td><code>date('now')</code></td><td><code>CURRENT_DATE</code>, <code>CURDATE()</code></td></tr>
         <tr><td>Heure actuelle</td><td><code>time('now')</code></td><td><code>CURRENT_TIME</code>, <code>CURTIME()</code></td></tr>
         <tr><td>Date + heure</td><td><code>datetime('now')</code></td><td><code>CURRENT_TIMESTAMP</code>, <code>NOW()</code></td></tr>
@@ -21542,11 +21543,20 @@ function stopDateNowTick(){
   if(dfNowTick){clearInterval(dfNowTick);dfNowTick=null;}
 }
 function paintDateNowVisual(host){
-  if(host) host.innerHTML=dateNowVisualHtml();
+  if(!host) return;
+  const t=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  const month=t.toLocaleString('fr-FR',{month:'long',timeZone:'UTC'}).toUpperCase();
+  const now=host.querySelector('.df-now');
+  if(!now){host.innerHTML=dateNowVisualHtml(t);return;}
+  now.querySelector('.df-cal small').textContent=month;
+  now.querySelector('.df-cal b').textContent=t.getUTCDate();
+  now.querySelector('.df-cal span').textContent=t.getUTCFullYear();
+  now.querySelector('.df-clock-time').innerHTML=`${pad(t.getUTCHours())}<span class="colon">:</span>${pad(t.getUTCMinutes())}<span class="colon">:</span>${pad(t.getUTCSeconds())}`;
 }
 function startDateNowTick(page){
   stopDateNowTick();
-  const visual=page.querySelector('.df-visual');
+  const visual=page.querySelector('.df-stage .df-visual');
   if(!visual||!page.querySelector('.df-intent.on[data-k="now"]')) return;
   paintDateNowVisual(visual);
   if(prefersReduceMotion()) return;
@@ -21555,7 +21565,7 @@ function startDateNowTick(page){
       stopDateNowTick();
       return;
     }
-    paintDateNowVisual(page.querySelector('.df-visual'));
+    paintDateNowVisual(page.querySelector('.df-stage .df-visual'));
   },1000);
 }
 function initDateFunctions(){
@@ -27964,7 +27974,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-11-df-texte-gpt-v571';
+  const SW_CACHE='requete-2026-09-11-df-ui-followup-v572';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
