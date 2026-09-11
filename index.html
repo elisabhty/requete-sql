@@ -1459,10 +1459,17 @@
   .df-duration .df-timeline{width:min(100%,280px)}
   .df-days{display:inline-flex;align-items:center;justify-content:center;padding:7px 11px;border-radius:10px;background:var(--accent);color:#fff;font-size:13px;font-weight:850;box-shadow:0 6px 16px rgba(91,91,214,.18)}
   .df-range{width:100%}
-  .df-range-title{display:block;margin-bottom:11px;text-align:center;font-size:11px;font-weight:850;color:var(--accent)}
+  .df-range-title{display:block;margin-bottom:11px;text-align:center;font-size:11px;font-weight:850;letter-spacing:.04em;color:var(--accent)}
+  .df-range.is-july .df-range-title{margin:8px 0 0}
   .df-range-axis{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:7px;font-family:var(--mono);font-size:9.5px;font-weight:750}
   .df-range-fill{height:10px;border-radius:99px;background:linear-gradient(90deg,var(--accent),rgba(91,91,214,.36));box-shadow:inset 0 0 0 1px rgba(91,91,214,.18)}
   .df-range-legend{display:flex;justify-content:space-between;margin-top:7px;font-size:8.5px;font-weight:800;color:var(--ink-3)}
+  .df-bet-hits{display:flex;flex-direction:column;gap:6px;margin:0 0 13px;padding:0;list-style:none}
+  .df-bet-hits li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;background:var(--surface);font-family:var(--mono);font-size:12.5px;font-weight:750}
+  .df-bet-hits li.is-ok{border:1px solid rgba(29,143,117,.18);background:rgba(29,143,117,.07);color:#147d68}
+  .df-bet-hits li.is-ko{border:1px solid rgba(195,59,88,.16);background:rgba(195,59,88,.06);color:#c33b58}
+  .df-bet-hits code{background:transparent!important;padding:0!important;color:inherit!important;white-space:nowrap;overflow-wrap:normal}
+  .df-bet-hits b{flex:none;font-size:14px;font-weight:800}
   .df-code{margin:0 0 8px!important}
   .df-code .cw-syntax{min-height:0}
   .df-note{display:flex;gap:7px;align-items:flex-start;margin:0!important;color:var(--ink-3)!important;font-size:11.5px!important;line-height:1.4!important}
@@ -21618,24 +21625,25 @@ FROM commandes;</pre></div>
     </div>
     <div class="concept-block">
       <h2><span class="h2-eye">Période</span><span class="h2-txt">Filtrer un mois sans oublier les dernières heures</span></h2>
-      <p class="df-lead">Si une colonne contient une date et une heure, filtrer jusqu’au dernier jour du mois peut être piégeux.</p>
-      <p>Pour récupérer tout le mois de juillet, utilise deux bornes :</p>
-      <ul class="df-asks">
-        <li>le début de juillet est inclus</li>
-        <li>le début d’août est exclu</li>
-      </ul>
-      <div class="df-visual" aria-label="Juillet inclus, 1er août exclu">
-        <div class="df-range"><b class="df-range-title">JUILLET 2023</b><div class="df-range-axis"><span>01/07</span><i class="df-range-fill"></i><span>01/08</span></div><div class="df-range-legend"><span>● inclus</span><span>○ exclu</span></div></div>
-      </div>
-      <div class="pt-syntax"><pre class="cw-syntax">WHERE date_heure >= '2023-07-01'
-  AND date_heure &lt;  '2023-08-01'</pre></div>
-      <p>Cette condition conserve toutes les valeurs de juillet, quelle que soit leur heure : du 1er juillet à partir de <code>00:00:00</code> jusqu’aux dernières valeurs temporelles précédant le 1er août.</p>
-      <p>Cette méthode conserve tout le 31 juillet, jusqu’au début du 1er août.</p>
-      <p class="df-note"><span><b>Attention à <code>BETWEEN</code>.</b> Il inclut les deux bornes. Avec une colonne contenant une heure, cela peut facilement exclure une partie de la dernière journée si la borne de fin est mal choisie.</span></p>
-      <p>Par exemple :</p>
+      <h3 class="df-sub">Pourquoi éviter BETWEEN ici ?</h3>
+      <p>Si la colonne contient aussi une heure, indiquer seulement <code>'2023-07-31'</code> comme fin de période peut oublier les événements survenus plus tard dans la journée du 31 juillet.</p>
+      <p>Imagine que tu as ces commandes, et que tu écris :</p>
       <div class="df-trap-sql is-ko"><code>WHERE date_heure BETWEEN '2023-07-01'
   AND '2023-07-31'</code></div>
-      <p>Ici, <code>'2023-07-31'</code> correspond au début du 31 juillet dans une comparaison date-heure, pas à toute la journée.</p>
+      <p>La borne de fin s’arrête au début du 31 juillet : <code>2023-07-31 00:00:00</code>.</p>
+      <ul class="df-bet-hits">
+        <li class="is-ok"><code>2023-07-30 15:00:00</code><b aria-hidden="true">✓</b></li>
+        <li class="is-ok"><code>2023-07-31 00:00:00</code><b aria-hidden="true">✓</b></li>
+        <li class="is-ko"><code>2023-07-31 10:30:00</code><b aria-hidden="true">✗</b></li>
+        <li class="is-ko"><code>2023-07-31 18:45:00</code><b aria-hidden="true">✗</b></li>
+      </ul>
+      <p>Écris plutôt :</p>
+      <div class="pt-syntax"><pre class="cw-syntax">WHERE date_heure >= '2023-07-01'
+  AND date_heure &lt;  '2023-08-01'</pre></div>
+      <div class="df-visual" aria-label="Tout juillet, du 1er juillet à minuit jusqu’au 1er août exclu">
+        <div class="df-range is-july"><div class="df-range-axis"><span>01/07 00:00</span><i class="df-range-fill"></i><span>01/08 00:00</span></div><b class="df-range-title">TOUT JUILLET</b></div>
+      </div>
+      <p class="df-note"><span>On inclut le début du 1er juillet et on s’arrête juste avant le 1er août.</span></p>
     </div>
     <div class="concept-block">
       <h2><span class="h2-eye">Fuseaux</span><span class="h2-txt">Une même heure ne désigne pas toujours le même moment</span></h2>
@@ -28197,7 +28205,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-11-df-cut-v588';
+  const SW_CACHE='requete-2026-09-11-df-bet-v589';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
