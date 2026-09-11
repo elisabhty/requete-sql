@@ -45,7 +45,7 @@ assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes(
 assert(html.includes('initDateFunctions();'), 'laboratoire activé au rendu du cours');
 assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53||l.id===54") && html.includes("compactFunctionLesson?'':reflexBlock(l)"), 'récapitulatifs redondants retirés de cette page');
 const studio = html.slice(html.indexOf('function renderDateFunctionsStudio'), html.indexOf('let dfNowTick'));
-const order = ['Comprendre les dates et les heures','Choisir la bonne notion','Six gestes à maîtriser','Calculer un début ou une fin de mois','Filtrer sans perdre la fin de journée','Distinguer l’instant et l’heure affichée','Les réflexes qui évitent les bugs','Retrouver rapidement la syntaxe'];
+const order = ['Comprendre les dates et les heures','Choisir la bonne notion','Six gestes à maîtriser','Retrouver le début ou la fin d’un mois','Filtrer sans perdre la fin de journée','Distinguer l’instant et l’heure affichée','Les réflexes qui évitent les bugs','Retrouver rapidement la syntaxe'];
 let prev = -1;
 let orderOk = true;
 for (const title of order) {
@@ -56,6 +56,8 @@ for (const title of order) {
 assert(orderOk && (studio.match(/<div class="concept-block">/g) || []).length === 8, 'huit cadres dans l’ordre pédagogique');
 assert(!studio.includes('Et pour les fuseaux horaires ?') && !studio.includes('Convertir une valeur'), 'cadres hors fil retirés');
 assert(studio.includes('concept-table vocab-table'), 'mémo de syntaxe repliable sur mobile');
+assert(studio.includes('df-month-path') && studio.includes('2023-09-01') && studio.includes('+1 month'), 'chemin en quatre étapes pour la fin du mois');
+assert(!studio.includes('Ne devine pas le dernier jour'), 'ouverture du cadre mois moins brutale');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
