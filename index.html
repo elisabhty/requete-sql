@@ -1389,7 +1389,8 @@
      en mobile à cause du white-space:nowrap global des .concept-block code.
      On les laisse se replier : ne casse que si nécessaire, sans effet sur
      desktop où ils tiennent sur une ligne. */
-  .date-functions-page .concept-block p code,.date-functions-page .df-idea code,.date-functions-page .df-trap code{white-space:normal;overflow-wrap:anywhere}
+  .date-functions-page .concept-block p code,.date-functions-page .df-trap code{white-space:normal;overflow-wrap:anywhere}
+  .date-functions-page .df-idea code,.date-functions-page .df-note code{white-space:nowrap;overflow-wrap:normal}
   .date-functions-page>.concept-block.in .df-anatomy-read{animation:dfUnitIn .42s var(--spring-ios) both}
   .date-functions-page>.concept-block.in .df-unit{animation:dfUnitIn .42s var(--spring-ios) both}
   .date-functions-page>.concept-block.in .df-anatomy-group:first-child .df-unit:nth-child(1){animation-delay:.06s}
@@ -1414,6 +1415,7 @@
     .df-anatomy-split{grid-template-columns:1fr;gap:8px}
     .df-unit{flex:1}
     .df-unit b{min-width:0;width:100%;font-size:13px}.df-unit small{font-size:8px}
+    .df-ideas{grid-template-columns:1fr}
     .df-stage{padding:14px 14px 11px}.df-intent{padding:9px 10px}.df-intent b{font-size:12px}
     .df-before-after{grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr)}.df-value{font-size:9.5px}
     /* Le calendrier et l'horloge dépassaient de huit pixels, rognés sans
@@ -21389,12 +21391,12 @@ function initTextFunctions(){
   intents.forEach(btn=>btn.addEventListener('click',()=>choose(btn)));
 }
 const DATE_FUNCTION_GUIDES=[
-  {k:'now',label:'Date et heure actuelles',short:'CURRENT_TIMESTAMP',title:'Obtenir la date et l’heure actuelles',fn:'CURRENT_TIMESTAMP',sql:'SELECT CURRENT_TIMESTAMP;',note:'<code>CURRENT_TIMESTAMP</code> renvoie la date et l’heure au moment où la requête est exécutée. Dans SQLite, c’est toujours en UTC.'},
-  {k:'extract',label:'Extraire une partie',short:'année, mois, jour…',title:'Isoler le mois',fn:'strftime()',sql:"SELECT date_commande,\n       strftime('%m', date_commande) AS mois\nFROM commandes\nLIMIT 8;",note:'La date reste complète dans la table : seul le mois est renvoyé.',visual:`<div class="df-parts"><span class="df-part"><b>2023</b><small>année</small></span><i class="df-dash">–</i><span class="df-part on"><b>07</b><small>mois</small></span><i class="df-dash">–</i><span class="df-part"><b>18</b><small>jour</small></span></div>`},
-  {k:'format',label:'Changer le format',short:'18/07/2023',title:'Afficher au format français',fn:'strftime()',sql:"SELECT date_commande,\n       strftime('%d/%m/%Y', date_commande) AS date_fr\nFROM commandes\nLIMIT 8;",note:'Formater change l’affichage. Convertir, c’est autre chose : passer d’un type à un autre.',visual:`<div class="df-before-after"><span class="df-value">2023-07-18</span><span class="df-arrow" aria-hidden="true"><svg viewBox="0 0 32 18" fill="none"><path d="M2 9h25M21 3l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="df-value is-result">18/07/2023</span></div>`},
-  {k:'shift',label:'Ajouter ou retirer',short:'+ 5 jours',title:'Prévoir l’expédition',fn:'date()',sql:"SELECT date_commande,\n       date(date_commande, '+5 days') AS expedition\nFROM commandes\nLIMIT 8;",note:'Le résultat est une nouvelle date. Le raisonnement est le même partout ; l’écriture change selon le SGBD (<code>INTERVAL</code>, <code>DATE_ADD()</code>…).',visual:`<div class="df-timeline"><span class="df-node"><i></i>18/07</span><span class="df-line"><b>+ 5 jours</b></span><span class="df-node"><i></i>23/07</span></div>`},
-  {k:'duration',label:'Calculer une durée',short:'fin − début',title:'Compter les jours écoulés',fn:'julianday()',sql:"SELECT julianday('2025-03-20') - julianday('2025-03-14') AS jours;",note:'Une durée vient toujours de la date de fin moins la date de début.',visual:`<div class="df-duration"><div class="df-timeline"><span class="df-node"><i></i>14 mars</span><span class="df-line"></span><span class="df-node"><i></i>20 mars</span></div><strong class="df-days">6 jours</strong></div>`},
-  {k:'period',label:'Filtrer une période',short:'≥ début et < fin',title:'Garder tout le mois de juillet',fn:'WHERE',sql:"SELECT date_commande\nFROM commandes\nWHERE date_commande >= '2023-07-01'\n  AND date_commande < '2023-08-01'\nORDER BY date_commande;",note:'Le 1<sup>er</sup> juillet est inclus. Le 1<sup>er</sup> août est exclu : toute la journée du 31 reste dedans, même avec une heure.',visual:`<div class="df-range"><b class="df-range-title">JUILLET 2023</b><div class="df-range-axis"><span>01/07</span><i class="df-range-fill"></i><span>01/08</span></div><div class="df-range-legend"><span>● inclus</span><span>○ exclu</span></div></div>`}
+  {k:'now',label:'Lire maintenant',short:'CURRENT_TIMESTAMP',title:'Lire la date et l’heure actuelles',fn:'CURRENT_TIMESTAMP',sql:'SELECT CURRENT_TIMESTAMP;',note:'<code>CURRENT_TIMESTAMP</code> donne le moment de l’exécution. Dans SQLite, cette valeur est en UTC.'},
+  {k:'extract',label:'Extraire une partie',short:'année, mois, jour…',title:'Extraire seulement le mois',fn:'strftime()',sql:"SELECT date_commande,\n       strftime('%m', date_commande) AS mois\nFROM commandes\nLIMIT 8;",note:'La colonne <code>date_commande</code> reste entière. La requête ajoute simplement une colonne calculée avec le mois.',visual:`<div class="df-parts"><span class="df-part"><b>2023</b><small>année</small></span><i class="df-dash">–</i><span class="df-part on"><b>07</b><small>mois</small></span><i class="df-dash">–</i><span class="df-part"><b>18</b><small>jour</small></span></div>`},
+  {k:'format',label:'Changer l’affichage',short:'18/07/2023',title:'Afficher la date en français',fn:'strftime()',sql:"SELECT date_commande,\n       strftime('%d/%m/%Y', date_commande) AS date_fr\nFROM commandes\nLIMIT 8;",note:'Ici, on ne change pas la date stockée. On change seulement sa forme dans le résultat.',visual:`<div class="df-before-after"><span class="df-value">2023-07-18</span><span class="df-arrow" aria-hidden="true"><svg viewBox="0 0 32 18" fill="none"><path d="M2 9h25M21 3l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="df-value is-result">18/07/2023</span></div>`},
+  {k:'shift',label:'Décaler une date',short:'+ 5 jours',title:'Ajouter cinq jours',fn:'date()',sql:"SELECT date_commande,\n       date(date_commande, '+5 days') AS expedition\nFROM commandes\nLIMIT 8;",note:'Le calcul fabrique une nouvelle date. La date d’origine reste enregistrée telle quelle.',visual:`<div class="df-timeline"><span class="df-node"><i></i>18/07</span><span class="df-line"><b>+ 5 jours</b></span><span class="df-node"><i></i>23/07</span></div>`},
+  {k:'duration',label:'Mesurer une durée',short:'fin - début',title:'Compter les jours entre deux dates',fn:'julianday()',sql:"SELECT julianday('2025-03-20') - julianday('2025-03-14') AS jours;",note:'Une durée se calcule dans cet ordre : date de fin moins date de début.',visual:`<div class="df-duration"><div class="df-timeline"><span class="df-node"><i></i>14 mars</span><span class="df-line"></span><span class="df-node"><i></i>20 mars</span></div><strong class="df-days">6 jours</strong></div>`},
+  {k:'period',label:'Filtrer une période',short:'début inclus, fin exclue',title:'Garder tout le mois de juillet',fn:'WHERE',sql:"SELECT date_commande\nFROM commandes\nWHERE date_commande >= '2023-07-01'\n  AND date_commande < '2023-08-01'\nORDER BY date_commande;",note:'Ce filtre garde juillet entier. Le début est inclus ; le début du mois suivant est exclu.',visual:`<div class="df-range"><b class="df-range-title">JUILLET 2023</b><div class="df-range-axis"><span>01/07</span><i class="df-range-fill"></i><span>01/08</span></div><div class="df-range-legend"><span>● inclus</span><span>○ exclu</span></div></div>`}
 ];
 function dateNowVisualHtml(d){
   /* UTC : CURRENT_TIMESTAMP de SQLite est toujours en UTC. */
@@ -21415,10 +21417,10 @@ function renderDateFunctionsStudio(){
   return `<div class="concept-page date-functions-page">
     <div class="concept-block">
       <h2><span class="h2-eye">Date + heure</span><span class="h2-txt">Comprendre les dates et les heures</span></h2>
-      <p>Les dates et les heures sont partout dans une base de données : date d’inscription, date de commande, date de livraison, heure de connexion, etc.</p>
-      <p>SQL permet de les stocker, comparer, filtrer et utiliser dans des calculs.</p>
-      <p>Mais avant de les manipuler, il faut comprendre comment elles sont construites.</p>
-      <p class="df-anatomy-lead">Une date et une heure peuvent contenir plusieurs informations :</p>
+      <p>Une base de données mémorise souvent des moments : une inscription, une commande, une livraison, une connexion.</p>
+      <p>Avec <code>SQL</code>, tu peux comparer ces valeurs, filtrer une période, extraire une partie ou calculer un écart.</p>
+      <p>Avant les fonctions, il faut lire la valeur correctement.</p>
+      <p class="df-anatomy-lead">Une date avec heure rassemble plusieurs informations :</p>
       <div class="df-anatomy" role="img" aria-label="29 août 2026 à 13 heures 30 minutes et 0 seconde">
         <div class="df-anatomy-read"><span class="is-date">2026-08-29</span><span class="is-time">13:30:00</span></div>
         <div class="df-anatomy-split">
@@ -21436,57 +21438,57 @@ function renderDateFunctionsStudio(){
           </div>
         </div>
       </div>
-      <p class="df-anatomy-note"><b>🕒 Une seule valeur, plusieurs informations</b><span>SQL peut utiliser la date et l’heure complètes ou seulement la partie dont tu as besoin : l’année, le mois, le jour, l’heure, la minute ou la seconde.</span></p>
-      <p>Le format <code>AAAA-MM-JJ HH:MM:SS</code> permet de représenter clairement une date accompagnée d’une heure.</p>
+      <p class="df-anatomy-note"><b>🕒 Une valeur, plusieurs parties</b><span><code>SQL</code> peut utiliser la valeur complète ou seulement une partie : l’année, le mois, le jour, l’heure, la minute ou la seconde.</span></p>
+      <p>Le format <code>AAAA-MM-JJ HH:MM:SS</code> permet d’écrire une date accompagnée d’une heure sans ambiguïté.</p>
     </div>
     <div class="concept-block">
-      <h2><span class="h2-eye">Quatre notions</span><span class="h2-txt">Date, heure, instant ou durée</span></h2>
-      <p class="df-lead">Avant les fonctions, il faut savoir ce que tu veux conserver. Ces quatre idées ne se mélangent pas.</p>
+      <h2><span class="h2-eye">Repère</span><span class="h2-txt">Choisir la bonne notion</span></h2>
+      <p class="df-lead">Toutes les valeurs temporelles ne racontent pas la même chose. Commence par nommer ce que tu manipules.</p>
       <div class="df-ideas">
-        <div class="df-idea"><small>Date</small><b>2026-08-29</b><span>Quel jour ? Type <code>DATE</code>.</span></div>
-        <div class="df-idea is-accent"><small>Heure</small><b>13:30:00</b><span>Quelle heure, sur cette horloge ? Type <code>TIME</code>.</span></div>
-        <div class="df-idea"><small>Instant</small><b>2026-08-29 13:30:00</b><span>Quel moment précis ? Type <code>TIMESTAMP</code> ou <code>DATETIME</code>.</span></div>
-        <div class="df-idea is-accent"><small>Durée</small><b>7 jours</b><span>Combien de temps ? Type <code>INTERVAL</code>.</span></div>
+        <div class="df-idea"><small>Date</small><b>2026-08-29</b><span>Un jour civil. Exemple : une date de naissance. Type <code>DATE</code>.</span></div>
+        <div class="df-idea is-accent"><small>Heure</small><b>13:30:00</b><span>Une heure locale, sans jour. Exemple : ouverture à 09:00. Type <code>TIME</code>.</span></div>
+        <div class="df-idea"><small>Instant</small><b>2026-08-29 13:30:00</b><span>Un événement précis. Exemple : une commande passée. Type <code>TIMESTAMP</code> ou <code>DATETIME</code>.</span></div>
+        <div class="df-idea is-accent"><small>Durée</small><b>7 jours</b><span>Un écart entre deux moments. Exemple : un délai. Type <code>INTERVAL</code>.</span></div>
       </div>
-      <p>Le type dépend de l’information. <code>DATE</code> pour un jour, <code>TIME</code> pour une heure seule, <code>TIMESTAMP</code> ou <code>DATETIME</code> pour les deux ensemble.</p>
-      <p class="df-note"><code>INTERVAL</code> n’est pas une date : <code>INTERVAL '7 days'</code> est une durée, souvent pour décaler une date. Les noms exacts varient selon le SGBD. On parlera des fuseaux plus loin.</p>
+      <p>Le bon type dépend donc de la question : quel jour, quelle heure, quel moment exact ou combien de temps ?</p>
+      <p class="df-note"><code>INTERVAL</code> représente une durée, pas une date. Il sert souvent à ajouter ou retirer du temps.</p>
     </div>
     <div class="concept-block">
-      <h2><span class="h2-eye">Mini-laboratoire</span><span class="h2-txt">Six actions sur une date</span></h2>
-      <p class="df-lead">Clique une action, lis le schéma, puis exécute la requête. Le besoin reste le même d’un SGBD à l’autre : seule l’écriture change.</p>
+      <h2><span class="h2-eye">Mini-laboratoire</span><span class="h2-txt">Six gestes à maîtriser</span></h2>
+      <p class="df-lead">Chaque onglet part d’un besoin simple. Lis le schéma, observe la fonction, puis exécute la requête.</p>
       <div class="df-intents" role="tablist" aria-label="Actions possibles sur une date">${DATE_FUNCTION_GUIDES.map((g,i)=>`<button type="button" class="df-intent${i===0?' on':''}" role="tab" aria-selected="${i===0?'true':'false'}" data-k="${g.k}"><b>${g.label}</b>${g.short?`<small>${g.short}</small>`:''}</button>`).join('')}</div>
       <div class="df-stage" aria-live="polite">${dateFunctionStageHtml(first)}</div>
     </div>
     <div class="concept-block">
-      <h2><span class="h2-eye">Calculer</span><span class="h2-txt">Trouver le début et la fin d’un mois</span></h2>
-      <p class="df-lead">Pour un mois entier, on calcule souvent le premier jour, puis le dernier.</p>
+      <h2><span class="h2-eye">Mois</span><span class="h2-txt">Calculer un début ou une fin de mois</span></h2>
+      <p class="df-lead">Ne devine pas le dernier jour d’un mois. Pars d’une date, ramène-la au début du mois, puis laisse le calendrier faire le calcul.</p>
       <div class="df-steps" role="img" aria-label="18 août devient le 1er août, puis le 31 août">
-        <div class="df-step"><i>commande</i><b>2023-08-18</b></div>
-        <div class="df-step"><i>début du mois</i><b>2023-08-01</b></div>
-        <div class="df-step is-result"><i>fin du mois</i><b>2023-08-31</b></div>
+        <div class="df-step"><i>valeur</i><b>2023-08-18</b></div>
+        <div class="df-step"><i>début</i><b>2023-08-01</b></div>
+        <div class="df-step is-result"><i>fin</i><b>2023-08-31</b></div>
       </div>
-      <p><b>Premier jour</b> — avec SQLite :</p>
+      <p>Avec SQLite, le début du mois s’écrit :</p>
       <div class="pt-syntax"><pre class="cw-syntax">SELECT date(date_commande, 'start of month')
 FROM commandes;</pre></div>
-      <p><b>Dernier jour</b> — on avance d’un mois, puis on recule d’un jour :</p>
+      <p>Pour la fin du mois, on prend le début, on ajoute un mois, puis on retire un jour :</p>
       <div class="pt-syntax"><pre class="cw-syntax">SELECT date(date_commande, 'start of month', '+1 month', '-1 day')
 FROM commandes;</pre></div>
-      <p class="df-note">Tous les mois n’ont pas 31 jours, et février change les années bissextiles. Un <code>+ 1 month</code> depuis le 31 janvier peut donner des résultats différents selon le SGBD.</p>
+      <p class="df-note">Ce réflexe évite de supposer qu’un mois dure toujours 30 ou 31 jours.</p>
     </div>
     <div class="concept-block">
-      <h2><span class="h2-eye">Filtrer</span><span class="h2-txt">Garder une période sans rater une heure</span></h2>
-      <p class="df-lead"><code>BETWEEN</code> inclut les deux bornes. Avec une heure, <code>date_heure &lt;= '2023-07-31'</code> laisse tomber le 31 juillet à 15:00.</p>
+      <h2><span class="h2-eye">Période</span><span class="h2-txt">Filtrer sans perdre la fin de journée</span></h2>
+      <p class="df-lead">Pour filtrer un mois, le plus fiable est de garder le début inclus et d’exclure le début du mois suivant.</p>
       <div class="df-visual" aria-label="Juillet inclus, 1er août exclu">
         <div class="df-range"><b class="df-range-title">JUILLET 2023</b><div class="df-range-axis"><span>01/07</span><i class="df-range-fill"></i><span>01/08</span></div><div class="df-range-legend"><span>● inclus</span><span>○ exclu</span></div></div>
       </div>
       <div class="pt-syntax"><pre class="cw-syntax">WHERE date_heure >= '2023-07-01'
   AND date_heure &lt; '2023-08-01'</pre></div>
-      <p>Le 1<sup>er</sup> juillet est dedans. Le 1<sup>er</sup> août est dehors. Toute la journée du 31 reste dans le résultat.</p>
-      <p class="df-note">Avant de comparer, demande-toi : la colonne a-t-elle une heure ? la borne est-elle incluse ? le format est-il lu correctement ?</p>
+      <p>Si la colonne contient une heure, cette forme garde aussi le 31 juillet à 23:59:59.</p>
+      <p class="df-note"><code>BETWEEN</code> inclut ses deux bornes. C’est pratique, mais parfois dangereux avec les heures.</p>
     </div>
     <div class="concept-block">
-      <h2><span class="h2-eye">Fuseaux</span><span class="h2-txt">La même seconde, deux heures affichées</span></h2>
-      <p class="df-lead">Une heure seule ne dit pas où. <code>14:00</code> à Paris n’est pas <code>14:00</code> à New York.</p>
+      <h2><span class="h2-eye">Fuseaux</span><span class="h2-txt">Distinguer l’instant et l’heure affichée</span></h2>
+      <p class="df-lead">Une heure sans contexte peut tromper. <code>14:00</code> à Paris et <code>14:00</code> à New York ne désignent pas le même instant.</p>
       <div class="df-tz">
         <div class="df-visual" aria-label="À un même instant, deux heures locales différentes">
           <div class="df-timeline">
@@ -21503,34 +21505,32 @@ FROM commandes;</pre></div>
           </div>
         </div>
       </div>
-      <p>UTC sert de référence commune. L’instant ne change pas : seule l’heure affichée change.</p>
-      <p><code>+02:00</code> est un décalage. <code>Europe/Paris</code> est un fuseau : un ensemble de règles, y compris l’heure d’été.</p>
-      <p>Faut-il tout stocker en UTC ? Non. Un paiement, une connexion, une commande : UTC convient. Une date de naissance ou « le magasin ouvre à 09:00 » : une date civile ou une heure locale suffisent.</p>
-      <p class="df-note">Pour convertir, la syntaxe change : <code>AT TIME ZONE</code>, <code>CONVERT_TZ()</code>… SQLite gère peu les fuseaux (<code>'utc'</code>, <code>'localtime'</code>).</p>
+      <p><code>UTC</code> sert de repère commun : l’instant reste le même, seule l’heure affichée change.</p>
+      <p><code>+02:00</code> indique un décalage. <code>Europe/Paris</code> indique un fuseau, avec ses règles de changement d’heure.</p>
+      <p class="df-note">Pour les événements précis, stocker en <code>UTC</code> est souvent utile. Pour une date de naissance ou une heure d’ouverture, une date civile ou une heure locale suffit.</p>
     </div>
     <div class="concept-block">
-      <h2><span class="h2-eye">Pièges</span><span class="h2-txt">Trois erreurs fréquentes</span></h2>
+      <h2><span class="h2-eye">Pièges</span><span class="h2-txt">Les réflexes qui évitent les bugs</span></h2>
       <div class="df-traps">
-        <p class="df-trap"><b>Une date absente s’écrit <code>IS NULL</code></b><span><code>date_livraison = NULL</code> ne trouve rien. Une livraison encore inconnue se teste avec <code>IS NULL</code> ou <code>IS NOT NULL</code>.</span></p>
-        <p class="df-trap"><b>Ne transforme pas la colonne pour filtrer</b><span><code>WHERE strftime('%Y', date_commande) = '2023'</code> peut empêcher l’index de servir. Préfère un intervalle : <code>date_commande >= '2023-01-01' AND date_commande &lt; '2024-01-01'</code>.</span></p>
-        <p class="df-trap"><b>Le calendrier n’est pas régulier</b><span>29 février, mois de 28, 30 ou 31 jours, heures qui sautent ou se répètent : un calcul <code>+ 1 month</code> ou un fuseau local peut surprendre.</span></p>
+        <p class="df-trap"><b>Une date absente se teste avec <code>IS NULL</code></b><span><code>date_livraison = NULL</code> ne fonctionne pas comme une comparaison classique. Écris <code>date_livraison IS NULL</code> ou <code>date_livraison IS NOT NULL</code>.</span></p>
+        <p class="df-trap"><b>Filtre directement sur la colonne</b><span><code>WHERE strftime('%Y', date_commande) = '2023'</code> peut empêcher un index d’aider. Préfère <code>date_commande >= '2023-01-01' AND date_commande &lt; '2024-01-01'</code>.</span></p>
+        <p class="df-trap"><b>Le calendrier a des cas limites</b><span>Années bissextiles, fins de mois, heures d’été ou d’hiver : les calculs temporels demandent des bornes explicites.</span></p>
       </div>
     </div>
     <div class="concept-block">
-      <h2><span class="h2-eye">Mémo</span><span class="h2-txt">Retrouver la bonne écriture</span></h2>
-      <p class="df-lead">Dans ce cours, on écrit en SQLite. Le besoin est le même ailleurs.</p>
-      <div class="table-wrap"><table class="concept-table"><thead><tr><th scope="col">Je veux…</th><th scope="col">SQLite</th><th scope="col">Ailleurs</th></tr></thead><tbody>
+      <h2><span class="h2-eye">Mémo</span><span class="h2-txt">Retrouver rapidement la syntaxe</span></h2>
+      <p class="df-lead">Dans ce cours, les requêtes s’exécutent en SQLite. Les autres SGBD gardent les mêmes idées, mais changent souvent de fonction.</p>
+      <div class="table-wrap"><table class="concept-table"><thead><tr><th scope="col">Besoin</th><th scope="col">SQLite</th><th scope="col">Autres écritures</th></tr></thead><tbody>
         <tr><td>Date actuelle</td><td><code>date('now')</code></td><td><code>CURRENT_DATE</code>, <code>CURDATE()</code></td></tr>
         <tr><td>Heure actuelle</td><td><code>time('now')</code></td><td><code>CURRENT_TIME</code>, <code>CURTIME()</code></td></tr>
         <tr><td>Date + heure</td><td><code>datetime('now')</code></td><td><code>CURRENT_TIMESTAMP</code>, <code>NOW()</code></td></tr>
-        <tr><td>Extraire l’année</td><td><code>strftime('%Y', d)</code></td><td><code>EXTRACT()</code>, <code>YEAR()</code></td></tr>
-        <tr><td>Extraire le mois</td><td><code>strftime('%m', d)</code></td><td><code>EXTRACT()</code>, <code>MONTH()</code></td></tr>
-        <tr><td>Extraire le jour</td><td><code>strftime('%d', d)</code></td><td><code>EXTRACT()</code>, <code>DAY()</code></td></tr>
+        <tr><td>Extraire une partie</td><td><code>strftime('%Y', d)</code></td><td><code>EXTRACT()</code>, <code>YEAR()</code>, <code>MONTH()</code></td></tr>
         <tr><td>Formater</td><td><code>strftime(format, d)</code></td><td><code>TO_CHAR()</code>, <code>DATE_FORMAT()</code></td></tr>
-        <tr><td>Ajouter 7 jours</td><td><code>date(d, '+7 days')</code></td><td><code>INTERVAL</code>, <code>DATE_ADD()</code></td></tr>
+        <tr><td>Ajouter du temps</td><td><code>date(d, '+7 days')</code></td><td><code>INTERVAL</code>, <code>DATE_ADD()</code>, <code>DATEADD()</code></td></tr>
         <tr><td>Calculer une durée</td><td><code>julianday(fin)-julianday(debut)</code></td><td><code>DATEDIFF()</code>, <code>TIMESTAMPDIFF()</code></td></tr>
-        <tr><td>Début du mois</td><td><code>date(d,'start of month')</code></td><td><code>DATE_TRUNC()</code>, <code>LAST_DAY()</code></td></tr>
-        <tr><td>Filtrer une période</td><td><code>WHERE d >= debut AND d &lt; fin</code></td><td>Même principe</td></tr>
+        <tr><td>Début du mois</td><td><code>date(d,'start of month')</code></td><td><code>DATE_TRUNC()</code></td></tr>
+        <tr><td>Fin du mois</td><td><code>date(d,'start of month','+1 month','-1 day')</code></td><td><code>LAST_DAY()</code>, <code>EOMONTH()</code></td></tr>
+        <tr><td>Période</td><td><code>WHERE d >= debut AND d &lt; fin</code></td><td>Même principe</td></tr>
         <tr><td>Valeur absente</td><td><code>IS NULL</code></td><td><code>IS NULL</code></td></tr>
       </tbody></table></div>
     </div>
@@ -27964,7 +27964,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-11-df-fil-v570';
+  const SW_CACHE='requete-2026-09-11-df-texte-gpt-v571';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });

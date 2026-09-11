@@ -37,7 +37,7 @@ assert(guides.includes('FROM commandes') && html.includes("piegeSqlRunBlock(g.sq
 assert(html.includes('function renderDateFunctionsStudio'), 'rendu dédié à la leçon 53');
 assert(html.includes('if(l.id===53)return renderDateFunctionsStudio(l)'), 'ancienne pile de texte remplacée');
 assert(html.includes('df-anatomy') && html.includes('année</small>') && html.includes('seconde</small>'), 'date et heure décomposées visuellement');
-assert(html.includes('Comprendre les dates et les heures') && html.includes('Une seule valeur, plusieurs informations'), 'introduction courte avant la décomposition');
+assert(html.includes('Comprendre les dates et les heures') && html.includes('Une valeur, plusieurs parties'), 'introduction courte avant la décomposition');
 assert(!html.includes('Mais manipuler le temps en SQL demande quelques précautions'), 'précautions avancées hors de l’intro');
 assert(html.includes('function initDateFunctions'), 'micro-interactions initialisées');
 assert(html.includes('aria-live="polite"') && html.includes('Actions possibles sur une date'), 'états interactifs accessibles');
@@ -45,7 +45,7 @@ assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes(
 assert(html.includes('initDateFunctions();'), 'laboratoire activé au rendu du cours');
 assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53||l.id===54") && html.includes("compactFunctionLesson?'':reflexBlock(l)"), 'récapitulatifs redondants retirés de cette page');
 const studio = html.slice(html.indexOf('function renderDateFunctionsStudio'), html.indexOf('let dfNowTick'));
-const order = ['Comprendre les dates et les heures','Date, heure, instant ou durée','Six actions sur une date','Trouver le début et la fin d’un mois','Garder une période sans rater une heure','La même seconde, deux heures affichées','Trois erreurs fréquentes','Retrouver la bonne écriture'];
+const order = ['Comprendre les dates et les heures','Choisir la bonne notion','Six gestes à maîtriser','Calculer un début ou une fin de mois','Filtrer sans perdre la fin de journée','Distinguer l’instant et l’heure affichée','Les réflexes qui évitent les bugs','Retrouver rapidement la syntaxe'];
 let prev = -1;
 let orderOk = true;
 for (const title of order) {
