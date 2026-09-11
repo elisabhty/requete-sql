@@ -37,6 +37,8 @@ assert(guides.includes('FROM commandes') && html.includes("piegeSqlRunBlock(g.sq
 assert(html.includes('function renderDateFunctionsStudio'), 'rendu dédié à la leçon 53');
 assert(html.includes('if(l.id===53)return renderDateFunctionsStudio(l)'), 'ancienne pile de texte remplacée');
 assert(html.includes('df-anatomy') && html.includes('année</small>') && html.includes('seconde</small>'), 'date et heure décomposées visuellement');
+assert(html.includes('Comprendre les dates et les heures') && html.includes('Une seule valeur, plusieurs informations'), 'introduction courte avant la décomposition');
+assert(!html.includes('Mais manipuler le temps en SQL demande quelques précautions'), 'précautions avancées hors de l’intro');
 assert(html.includes('function initDateFunctions'), 'micro-interactions initialisées');
 assert(html.includes('aria-live="polite"') && html.includes('Actions possibles sur une date'), 'états interactifs accessibles');
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('dfStageSwap'), 'animations compatibles avec la réduction des mouvements');
