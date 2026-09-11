@@ -14,7 +14,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-09-11-df-note-fusion-v563';
+const CACHE = 'requete-2026-09-11-df-distinction-retiree-v564';
 
 const PRECACHE = [
   './',
