@@ -1368,7 +1368,7 @@
   .df-ideas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 13px}
   .df-idea{min-width:0;padding:12px 11px;border:1px solid var(--card-border);border-radius:14px;background:var(--surface);box-shadow:var(--card-shadow-sm)}
   .df-idea small{display:block;margin-bottom:6px;font-size:8.5px;font-weight:850;letter-spacing:.55px;text-transform:uppercase;color:var(--ink-3)}
-  .df-idea b{display:block;font-family:var(--mono);font-size:13px;line-height:1.3;color:var(--ink);overflow-wrap:anywhere}
+  .df-idea b{display:block;font-family:var(--mono);font-size:13px;line-height:1.3;color:var(--ink);white-space:nowrap;overflow-wrap:normal}
   .df-idea span{display:block;margin-top:5px;font-size:12px;line-height:1.35;color:var(--ink-2)}
   .df-idea.is-accent{border-color:rgba(91,91,214,.2);background:rgba(91,91,214,.05)}
   .df-idea.is-accent small,.df-idea.is-accent b{color:var(--accent)}
@@ -1407,7 +1407,20 @@
     .df-month-mini .df-month-mod{flex-direction:column;gap:4px;padding:0 2px}
     .df-month-mini .df-month-mod i{transform:none}
   }
-  .df-tz{display:flex;flex-direction:column;gap:10px;margin:0 0 13px}
+  .df-visual.is-tz{flex-direction:column;gap:12px;min-height:0}
+  .df-tz-diff{display:grid;width:100%;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px}
+  .df-tz-city{min-width:0;padding:12px 8px;border:1px solid var(--line);border-radius:12px;background:var(--surface);text-align:center}
+  .df-tz-city small{display:block;font-size:9.5px;font-weight:850;letter-spacing:.04em;color:var(--ink-3)}
+  .df-tz-city b{display:block;margin-top:5px;font-family:var(--mono);font-size:18px;font-weight:800;line-height:1.1;color:var(--ink)}
+  .df-tz-neq{display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;line-height:1;color:var(--accent)}
+  .df-tz-same{display:flex;flex-direction:column;align-items:center;width:min(100%,280px)}
+  .df-tz-utc{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:7.5rem;padding:10px 14px;border-radius:12px;background:var(--accent);color:#fff;box-shadow:0 6px 16px rgba(91,91,214,.18);text-align:center}
+  .df-tz-utc b{font-family:var(--mono);font-size:18px;font-weight:800;line-height:1.1}
+  .df-tz-utc small{font-size:8.5px;font-weight:850;letter-spacing:.7px;text-transform:uppercase;opacity:.8}
+  .df-tz-fork{display:block;width:100%;height:34px;margin:2px 0 0;color:var(--accent);opacity:.42}
+  .df-tz-locals{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;width:100%}
+  .df-tz-cap{margin:0!important;text-align:center;font-size:12px!important;line-height:1.35!important;color:var(--ink-3)!important}
+  .df-tz-compare{margin:0 0 13px}
   .df-traps{display:flex;flex-direction:column;gap:10px;margin:0}
   .df-trap{padding:14px 14px 13px;border-radius:16px;background:color-mix(in srgb,var(--surface-2) 28%,#fff)}
   .df-trap>b{display:block;margin-bottom:8px;font-size:14.5px;line-height:1.3;color:var(--ink)}
@@ -1497,7 +1510,7 @@
     .df-stage-head{flex-direction:column;gap:8px}
     .df-stage-fns{max-width:none;justify-content:flex-start}
     .df-stage-fn{align-self:flex-start}
-    .df-idea b{font-size:12px}.df-step b{font-size:12px}
+    .df-idea b{font-size:12px;white-space:nowrap}.df-step b{font-size:12px}
   }
   @media (prefers-reduced-motion:reduce){
     .df-stage.is-changing,.date-functions-page>.concept-block.in .df-anatomy-read,.date-functions-page>.concept-block.in .df-unit,.date-functions-page>.concept-block.in .df-idea,.date-functions-page>.concept-block.in .df-step,.date-functions-page>.concept-block.in .df-trap,.date-functions-page>.concept-block.in .df-month-node,.df-clock .colon,.df-line::after{animation:none!important}
@@ -21625,32 +21638,59 @@ FROM commandes;</pre></div>
       <p>Ici, <code>'2023-07-31'</code> correspond au début du 31 juillet dans une comparaison date-heure, pas à toute la journée.</p>
     </div>
     <div class="concept-block">
-      <h2><span class="h2-eye">Fuseaux</span><span class="h2-txt">Distinguer l’instant et l’heure affichée</span></h2>
-      <p class="df-lead">Une heure sans contexte peut tromper. <code>14:00</code> à Paris et <code>14:00</code> à New York ne désignent pas le même instant.</p>
-      <div class="df-tz">
-        <div class="df-visual" aria-label="À un même instant, deux heures locales différentes">
-          <div class="df-timeline">
-            <span class="df-node"><i></i>Paris 14:00</span>
-            <span class="df-line"></span>
-            <span class="df-node"><i></i>New York 08:00</span>
-          </div>
+      <h2><span class="h2-eye">Fuseaux</span><span class="h2-txt">Une même heure ne désigne pas toujours le même moment</span></h2>
+      <p class="df-lead">Une heure sans fuseau manque de contexte.</p>
+      <div class="df-visual is-tz" aria-label="14:00 à Paris n’est pas le même instant que 14:00 à New York">
+        <div class="df-tz-diff">
+          <div class="df-tz-city"><small>Paris</small><b>14:00</b></div>
+          <span class="df-tz-neq" aria-hidden="true">≠</span>
+          <div class="df-tz-city"><small>New York</small><b>14:00</b></div>
         </div>
-        <div class="df-visual" aria-label="12:00 UTC affiché à Paris et à New York">
-          <div class="df-timeline">
-            <span class="df-node"><i></i>Paris 14:00</span>
-            <span class="df-line"><b>12:00 UTC</b></span>
-            <span class="df-node"><i></i>New York 08:00</span>
-          </div>
-        </div>
+        <p class="df-tz-cap">Même heure affichée, instants différents.</p>
       </div>
-      <p><code>UTC</code> sert de repère commun : l’instant reste le même, seule l’heure affichée change.</p>
-      <p>Une date accompagnée d’une heure, sans fuseau, peut rester ambiguë. Un instant, lui, désigne un moment précis sur la ligne du temps.</p>
+      <p>Ces deux heures affichent <code>14:00</code>, mais elles ne correspondent pas au même instant.</p>
+      <h3 class="df-sub">Un même instant peut aussi afficher des heures différentes</h3>
+      <p>À l’inverse, un même moment peut être affiché différemment selon le fuseau :</p>
+      <div class="df-visual is-tz" aria-label="12:00 UTC s’affiche 14:00 à Paris et 08:00 à New York">
+        <div class="df-tz-same">
+          <div class="df-tz-utc"><b>12:00</b><small>UTC</small></div>
+          <svg class="df-tz-fork" viewBox="0 0 200 34" fill="none" aria-hidden="true"><path d="M100 0v10M50 10h100M50 10v24M150 10v24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="df-tz-locals">
+            <div class="df-tz-city"><small>Paris</small><b>14:00</b></div>
+            <div class="df-tz-city"><small>New York</small><b>08:00</b></div>
+          </div>
+        </div>
+        <p class="df-tz-cap">Heures affichées différentes, même instant.</p>
+      </div>
+      <p>L’instant reste le même. Seule l’heure affichée change.</p>
+      <h3 class="df-sub">Date + heure ou instant ?</h3>
+      <p>Une valeur comme <code>2026-08-29 13:30:00</code> donne une date et une heure, mais ne précise pas à elle seule le fuseau auquel cette heure se rapporte.</p>
       <div class="df-ideas">
-        <div class="df-idea"><small>Date + heure</small><b>2026-08-29 13:30:00</b><span>Une date et une heure, sans dire où.</span></div>
-        <div class="df-idea is-accent"><small>Instant</small><b>2026-08-29T11:30:00Z</b><span>Le même moment, ancré en UTC.</span></div>
+        <div class="df-idea"><small>Date + heure</small><b>2026-08-29 13:30:00</b><span>Le 29 août à 13h30, sans préciser le fuseau.</span></div>
+        <div class="df-idea is-accent"><small>Instant</small><b>2026-08-29T11:30:00Z</b><span>Un moment précis exprimé ici en UTC.</span></div>
       </div>
-      <p><code>+02:00</code> indique un décalage. <code>Europe/Paris</code> indique un fuseau, avec ses règles de changement d’heure.</p>
-      <p class="df-note">Pour les événements précis, stocker en <code>UTC</code> est souvent utile. Pour une date de naissance ou une heure d’ouverture, une date civile ou une heure locale suffit.</p>
+      <p>Le <code>Z</code> signifie que l’heure est exprimée en <code>UTC</code>.</p>
+      <h3 class="df-sub">Décalage et fuseau : ce n’est pas la même chose</h3>
+      <div class="df-ideas df-tz-compare">
+        <div class="df-idea"><small>Décalage</small><b>+02:00</b><span>2 heures d’avance sur <code>UTC</code></span></div>
+        <div class="df-idea is-accent"><small>Fuseau</small><b>Europe/Paris</b><span>Zone avec ses règles horaires</span></div>
+      </div>
+      <p><code>Europe/Paris</code> contient notamment les règles permettant de savoir quel décalage s’applique selon la date.</p>
+      <p><code>+02:00</code> indique un décalage. <code>Europe/Paris</code> indique un fuseau et ses règles.</p>
+      <h3 class="df-sub">Faut-il tout stocker en UTC ?</h3>
+      <p>Le bon réflexe dépend de ce que tu stockes.</p>
+      <p>Pour un événement précis — une commande créée, un paiement effectué, une connexion — <code>UTC</code> est souvent une bonne référence.</p>
+      <p>Pour une date de naissance, inutile de la transformer en <code>UTC</code> : c’est avant tout une date civile. De même, « le magasin ouvre à 09:00 » représente une heure locale.</p>
+      <ul class="df-reflex">
+        <li><span class="df-reflex-q">Événement précis</span><i aria-hidden="true">→</i><span class="df-reflex-a">instant / <code>UTC</code> souvent adapté</span></li>
+        <li><span class="df-reflex-q">Date de naissance</span><i aria-hidden="true">→</i><span class="df-reflex-a"><code>DATE</code></span></li>
+        <li><span class="df-reflex-q">Heure d’ouverture</span><i aria-hidden="true">→</i><span class="df-reflex-a"><code>TIME</code> / heure locale</span></li>
+      </ul>
+      <p>Pour afficher un instant dans un autre fuseau, les SGBD n’utilisent pas tous la même fonction. SQLite n’a pas de fonction dédiée.</p>
+      <div class="df-ideas">
+        <div class="df-idea"><small>PostgreSQL</small><b>AT TIME ZONE</b></div>
+        <div class="df-idea is-accent"><small>MySQL</small><b>CONVERT_TZ()</b></div>
+      </div>
     </div>
     <div class="concept-block">
       <h2><span class="h2-eye">Pièges</span><span class="h2-txt">Les réflexes qui évitent les erreurs</span></h2>
@@ -21713,6 +21753,7 @@ FROM commandes;</pre></div>
         <tr><td>Début du mois</td><td><code>date(d,'start of month')</code></td><td><code>DATE_TRUNC()</code></td></tr>
         <tr><td>Fin du mois</td><td><code>date(d,'start of month','+1 month','-1 day')</code></td><td><code>LAST_DAY()</code>, <code>EOMONTH()</code></td></tr>
         <tr><td>Période</td><td><code>WHERE d >= debut AND d &lt; fin</code></td><td>Même principe</td></tr>
+        <tr><td>Convertir un fuseau</td><td>Pas de fonction dédiée</td><td><code>AT TIME ZONE</code>, <code>CONVERT_TZ()</code></td></tr>
         <tr><td>Valeur absente</td><td><code>IS NULL</code></td><td><code>IS NULL</code></td></tr>
       </tbody></table></div>
     </div>
@@ -28157,7 +28198,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-11-df-lab6-v584';
+  const SW_CACHE='requete-2026-09-11-df-tz-v587';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
