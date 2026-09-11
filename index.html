@@ -21478,7 +21478,7 @@ function initTextFunctions(){
 const DATE_FUNCTION_GUIDES=[
   {k:'now',label:'Obtenir maintenant',short:'date + heure actuelles',title:'Obtenir la date et l’heure actuelles',fn:['CURRENT_TIMESTAMP'],sql:'SELECT CURRENT_TIMESTAMP;',why:'Tu veux connaître la date et l’heure au moment où la requête s’exécute. SQL peut les récupérer automatiquement : tu n’as pas besoin de les écrire toi-même.',note:'<b>À retenir.</b> La valeur est calculée au moment où la requête s’exécute. Si tu relances la requête plus tard, le résultat change.'},
   {k:'extract',label:'Extraire une partie',short:'année · mois · jour · heure',title:'Extraire une partie d’une date',fn:['strftime()','EXTRACT()'],sql:"SELECT strftime('%m', date_commande)\nFROM commandes\nLIMIT 8;",why:'Tu as une date complète, mais tu as seulement besoin de l’année, du mois, du jour ou de l’heure. SQL peut extraire uniquement la partie qui t’intéresse.',visual:`<div class="df-before-after is-triple"><span class="df-value">2023-07-18</span><span class="df-path-mod">mois</span><span class="df-value is-result">07</span></div>`},
-  {k:'format',label:'Formater une date',short:'2023-07-18 → 18/07/2023',title:'Changer l’affichage d’une date',fn:['strftime()','TO_CHAR()','DATE_FORMAT()'],sql:"SELECT strftime('%d/%m/%Y', date_commande)\nFROM commandes\nLIMIT 8;",why:'Ta date est enregistrée sous la forme <code>2023-07-18</code>, mais tu veux l’afficher sous une forme plus familière comme <code>18/07/2023</code>. SQL peut changer sa présentation sans modifier la date d’origine.',visual:`<div class="df-before-after"><span class="df-value">2023-07-18</span><span class="df-arrow" aria-hidden="true"><svg viewBox="0 0 32 18" fill="none"><path d="M2 9h25M21 3l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="df-value is-result">18/07/2023</span></div>`},
+  {k:'format',label:'Formater une date',short:'2023-07-18 → 18/07/2023',title:'Changer l’affichage d’une date',fn:['strftime()','TO_CHAR()','DATE_FORMAT()'],sql:"SELECT strftime('%d/%m/%Y', date_commande)\nFROM commandes\nLIMIT 8;",why:'Ta date est enregistrée sous la forme <code>2023-07-18</code>, mais tu veux l’afficher sous une forme plus familière comme <code>18/07/2023</code>. SQL peut changer sa présentation sans modifier la date d’origine.'},
   {k:'shift',label:'Décaler une date',short:'+ 5 jours · - 1 mois',title:'Ajouter ou retirer du temps',fn:['date()','INTERVAL','DATE_ADD()','DATEADD()'],sql:"SELECT date(date_commande, '+5 days')\nFROM commandes\nLIMIT 8;",why:'Tu veux connaître une date située quelques jours, mois ou années avant ou après une autre date. SQL peut effectuer ce décalage automatiquement.',visual:`<div class="df-before-after is-triple"><span class="df-value">2023-07-18</span><span class="df-path-mod">+ 5 jours</span><span class="df-value is-result">2023-07-23</span></div>`},
   {k:'duration',label:'Calculer une durée',short:'date_fin − date_début',title:'Calculer le temps entre deux dates',fn:['julianday()','DATEDIFF()','TIMESTAMPDIFF()'],sql:"SELECT julianday('2023-07-23') - julianday('2023-07-18') AS jours;",why:'Tu connais une date de début et une date de fin, et tu veux savoir combien de temps les sépare. SQL peut calculer cet écart pour obtenir une durée.',visual:`<div class="df-duration"><div class="df-timeline"><span class="df-node"><i></i>18/07</span><span class="df-line"></span><span class="df-node"><i></i>23/07</span></div><strong class="df-days">5 jours</strong></div>`},
   {k:'period',label:'Filtrer une période',short:'début inclus · fin exclue',title:'Garder uniquement une période',fn:['WHERE','>=','<'],sql:"SELECT date_commande\nFROM commandes\nWHERE date_commande >= '2023-07-01'\n  AND date_commande < '2023-08-01';",why:'Tu veux récupérer uniquement les données comprises dans une période précise, par exemple toutes les commandes du mois de juillet. SQL peut définir une borne de début et une borne de fin.',visual:`<div class="df-range"><b class="df-range-title">JUILLET 2023</b><div class="df-range-axis"><span>01/07</span><i class="df-range-fill"></i><span>01/08</span></div><div class="df-range-legend"><span>● inclus</span><span>○ exclu</span></div></div>`}
@@ -21703,7 +21703,6 @@ FROM commandes;</pre></div>
           <div class="df-trap-sql is-ko"><code>date_livraison = NULL</code></div>
           <p>Pour rechercher les lignes qui possèdent une date :</p>
           <div class="df-trap-sql is-ok"><code>date_livraison IS NOT NULL</code></div>
-          <p class="df-note"><span>Avec <code>NULL</code>, utilise <code>IS NULL</code> ou <code>IS NOT NULL</code>.</span></p>
         </article>
         <article class="df-trap">
           <b>Pour une période, préfère des bornes claires</b>
@@ -21735,7 +21734,6 @@ FROM commandes;</pre></div>
             <div class="df-trap-date is-ok"><b>2026-04-03</b><small>3 avril, sans ambiguïté</small></div>
           </div>
           <p>Préfère une représentation claire, du type <code>AAAA-MM-JJ</code>.</p>
-          <p class="df-note"><span>Utilise un format de date clair et cohérent dans tes données.</span></p>
         </article>
       </div>
     </div>
@@ -22210,6 +22208,7 @@ function answerLearningCheck(button,index){
 }
 
 function lessonRichFooter(l){
+  if(l.id===53)return '';
   const variants=testeVariantsOf(l);
   const demoSql=(variants&&variants[0]&&variants[0].sql)||testeDefaultSql(l);
   const sql=escAttr(demoSql);
@@ -28198,7 +28197,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-11-df-tz-v587';
+  const SW_CACHE='requete-2026-09-11-df-cut-v588';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
