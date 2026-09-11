@@ -1366,6 +1366,12 @@
   .df-idea span{display:block;margin-top:5px;font-size:12px;line-height:1.35;color:var(--ink-2)}
   .df-idea.is-accent{border-color:rgba(91,91,214,.2);background:rgba(91,91,214,.05)}
   .df-idea.is-accent small,.df-idea.is-accent b{color:var(--accent)}
+  .df-idea-type{display:block;margin-top:8px;font-style:normal;font-size:11px;line-height:1.3;color:var(--ink-3)}
+  .df-reflex{display:flex;flex-direction:column;gap:6px;margin:0 0 13px;padding:0;list-style:none}
+  .df-reflex li{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--surface-2) 28%,#fff);font-size:14px;line-height:1.4;color:var(--ink)}
+  .df-reflex-q{flex:1 1 12rem;min-width:0}
+  .df-reflex i{color:var(--ink-3);font-style:normal;font-weight:700}
+  .df-reflex-a{display:inline-flex;align-items:center;flex-wrap:wrap;gap:5px;margin-left:auto}
   .df-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:0 0 13px}
   .df-steps.is-pair{grid-template-columns:repeat(2,minmax(0,1fr))}
   .df-step{display:flex;min-width:0;flex-direction:column;align-items:center;gap:5px;padding:11px 6px;border:1px solid var(--card-border);border-radius:13px;background:var(--surface);text-align:center}
@@ -21510,16 +21516,23 @@ function renderDateFunctionsStudio(){
       <p class="df-note"><span><b>À retenir.</b> <code>AAAA-MM-JJ HH:MM:SS</code> représente une date suivie d’une heure dans un ordre clair : année → mois → jour, puis heure → minute → seconde.</span></p>
     </div>
     <div class="concept-block">
-      <h2><span class="h2-eye">Repère</span><span class="h2-txt">Choisir la bonne notion</span></h2>
-      <p class="df-lead">Toutes les valeurs temporelles ne racontent pas la même chose. Commence par nommer ce que tu manipules.</p>
+      <h2><span class="h2-eye">Repère</span><span class="h2-txt">Choisir la bonne information temporelle</span></h2>
+      <p class="df-lead">Toutes les valeurs liées au temps ne représentent pas la même chose.</p>
+      <p>Avant de choisir un type, demande-toi simplement : qu’est-ce que je veux mémoriser ?</p>
       <div class="df-ideas">
-        <div class="df-idea"><small>Date</small><b>2026-08-29</b><span>Un jour civil. Exemple : une date de naissance. Type <code>DATE</code>.</span></div>
-        <div class="df-idea is-accent"><small>Heure</small><b>13:30:00</b><span>Une heure locale, sans jour. Exemple : ouverture à 09:00. Type <code>TIME</code>.</span></div>
-        <div class="df-idea"><small>Instant</small><b>2026-08-29 13:30:00</b><span>Un événement précis. Exemple : une commande passée. Type <code>TIMESTAMP</code> ou <code>DATETIME</code>.</span></div>
-        <div class="df-idea is-accent"><small>Durée</small><b>7 jours</b><span>Un écart entre deux moments. Exemple : un délai. Type <code>INTERVAL</code>.</span></div>
+        <div class="df-idea"><small>Date</small><b>2026-08-29</b><span>Un jour précis, sans heure. Exemple : la date de naissance d’un client.</span><em class="df-idea-type"><code>DATE</code></em></div>
+        <div class="df-idea is-accent"><small>Heure</small><b>13:30:00</b><span>Une heure, sans date. Exemple : un magasin ouvre à 09:00.</span><em class="df-idea-type"><code>TIME</code></em></div>
+        <div class="df-idea"><small>Date + heure</small><b>2026-08-29 13:30:00</b><span>Une date accompagnée d’une heure. Exemple : une commande enregistrée le 29 août à 13h30.</span><em class="df-idea-type"><code>TIMESTAMP</code> · <code>DATETIME</code></em></div>
+        <div class="df-idea is-accent"><small>Durée</small><b>7 jours</b><span>Une quantité de temps, et non une date. Exemple : un délai de livraison de 7 jours.</span><em class="df-idea-type"><code>INTERVAL</code></em></div>
       </div>
-      <p>Le bon type dépend donc de la question : quel jour, quelle heure, quel moment exact ou combien de temps ?</p>
-      <p class="df-note"><code>INTERVAL</code> représente une durée, pas une date. Il sert souvent à ajouter ou retirer du temps.</p>
+      <p><b>Le réflexe :</b> pose-toi la bonne question.</p>
+      <ul class="df-reflex">
+        <li><span class="df-reflex-q">📅 Quel jour ?</span><i aria-hidden="true">→</i><span class="df-reflex-a"><code>DATE</code></span></li>
+        <li><span class="df-reflex-q">🕐 Quelle heure ?</span><i aria-hidden="true">→</i><span class="df-reflex-a"><code>TIME</code></span></li>
+        <li><span class="df-reflex-q">📅🕐 Quelle date et quelle heure ?</span><i aria-hidden="true">→</i><span class="df-reflex-a"><code>TIMESTAMP</code> / <code>DATETIME</code></span></li>
+        <li><span class="df-reflex-q">⏱️ Combien de temps ?</span><i aria-hidden="true">→</i><span class="df-reflex-a"><code>INTERVAL</code></span></li>
+      </ul>
+      <p class="df-note"><span><code>INTERVAL</code> est différent des autres : il représente une durée, pas une date ou une heure. Il sert notamment à ajouter ou retirer du temps.</span></p>
     </div>
     <div class="concept-block">
       <h2><span class="h2-eye">Mini-laboratoire</span><span class="h2-txt">Six gestes à maîtriser</span></h2>
@@ -21600,6 +21613,11 @@ FROM commandes;</pre></div>
         </div>
       </div>
       <p><code>UTC</code> sert de repère commun : l’instant reste le même, seule l’heure affichée change.</p>
+      <p>Une date accompagnée d’une heure, sans fuseau, peut rester ambiguë. Un instant, lui, désigne un moment précis sur la ligne du temps.</p>
+      <div class="df-ideas">
+        <div class="df-idea"><small>Date + heure</small><b>2026-08-29 13:30:00</b><span>Une date et une heure, sans dire où.</span></div>
+        <div class="df-idea is-accent"><small>Instant</small><b>2026-08-29T11:30:00Z</b><span>Le même moment, ancré en UTC.</span></div>
+      </div>
       <p><code>+02:00</code> indique un décalage. <code>Europe/Paris</code> indique un fuseau, avec ses règles de changement d’heure.</p>
       <p class="df-note">Pour les événements précis, stocker en <code>UTC</code> est souvent utile. Pour une date de naissance ou une heure d’ouverture, une date civile ou une heure locale suffit.</p>
     </div>
@@ -28106,7 +28124,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-11-df-intro-v577';
+  const SW_CACHE='requete-2026-09-11-df-types-v578';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
