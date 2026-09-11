@@ -39,6 +39,7 @@ assert(html.includes('if(l.id===53)return renderDateFunctionsStudio(l)'), 'ancie
 assert(html.includes('df-anatomy') && html.includes('année</small>') && html.includes('seconde</small>'), 'date et heure décomposées visuellement');
 assert(html.includes('Comprendre les dates et les heures') && html.includes('Une valeur, plusieurs parties'), 'introduction courte avant la décomposition');
 assert(html.includes('Quand la commande a-t-elle été passée') && html.includes('df-pick-to') && html.includes('mois</small><b>08</b>'), 'questions concrètes puis extraction du mois');
+assert(html.includes('Le format') && html.includes('suit toujours le même ordre'), 'à retenir centré sur l’ordre du format');
 assert(!html.includes('Mais manipuler le temps en SQL demande quelques précautions'), 'précautions avancées hors de l’intro');
 assert(html.includes('function initDateFunctions'), 'micro-interactions initialisées');
 assert(html.includes('df-stage-head" aria-live="polite"') && html.includes('Opérations essentielles sur les dates'), 'états interactifs accessibles');
