@@ -44,6 +44,17 @@ assert(html.includes('aria-live="polite"') && html.includes('Actions possibles s
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('dfStageSwap'), 'animations compatibles avec la réduction des mouvements');
 assert(html.includes('initDateFunctions();'), 'laboratoire activé au rendu du cours');
 assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53||l.id===54") && html.includes("compactFunctionLesson?'':reflexBlock(l)"), 'récapitulatifs redondants retirés de cette page');
+const studio = html.slice(html.indexOf('function renderDateFunctionsStudio'), html.indexOf('let dfNowTick'));
+const order = ['Comprendre les dates et les heures','Date, heure, instant ou durée','Six actions sur une date','Trouver le début et la fin d’un mois','Garder une période sans rater une heure','La même seconde, deux heures affichées','Trois erreurs fréquentes','Retrouver la bonne écriture'];
+let prev = -1;
+let orderOk = true;
+for (const title of order) {
+  const i = studio.indexOf(title);
+  if (i <= prev) orderOk = false;
+  prev = i;
+}
+assert(orderOk && (studio.match(/<div class="concept-block">/g) || []).length === 8, 'huit cadres dans l’ordre pédagogique');
+assert(!studio.includes('Et pour les fuseaux horaires ?') && !studio.includes('Convertir une valeur'), 'cadres hors fil retirés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
