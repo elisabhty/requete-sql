@@ -1470,6 +1470,15 @@
   .df-bet-hits li.is-ko{border:1px solid rgba(195,59,88,.16);background:rgba(195,59,88,.06);color:#c33b58}
   .df-bet-hits code{background:transparent!important;padding:0!important;color:inherit!important;white-space:nowrap;overflow-wrap:normal}
   .df-bet-hits b{flex:none;font-size:14px;font-weight:800}
+  .date-functions-page .df-memo-wrap{margin:0}
+  .date-functions-page .concept-block .table-wrap table.df-memo-table{width:max-content;min-width:100%;table-layout:auto}
+  .date-functions-page .concept-block .table-wrap table.df-memo-table th,
+  .date-functions-page .concept-block .table-wrap table.df-memo-table td{text-align:left;white-space:nowrap;vertical-align:top;padding:10px 12px}
+  .date-functions-page .concept-block .table-wrap table.df-memo-table td:first-child{font-weight:750;color:var(--ink);white-space:normal;min-width:8.5rem;max-width:10.5rem}
+  .date-functions-page .concept-block .table-wrap table.df-memo-table th:first-child,
+  .date-functions-page .concept-block .table-wrap table.df-memo-table td:first-child{position:sticky;left:0;z-index:1;background:var(--surface);box-shadow:1px 0 0 var(--line)}
+  .date-functions-page .concept-block .table-wrap table.df-memo-table th:first-child{background:var(--bg)}
+  .date-functions-page .concept-block .table-wrap table.df-memo-table td code{white-space:nowrap;overflow-wrap:normal;font-size:11px}
   .df-code{margin:0 0 8px!important}
   .df-code .cw-syntax{min-height:0}
   .df-note{display:flex;gap:7px;align-items:flex-start;margin:0!important;color:var(--ink-3)!important;font-size:11.5px!important;line-height:1.4!important}
@@ -21746,22 +21755,26 @@ FROM commandes;</pre></div>
       </div>
     </div>
     <div class="concept-block">
-      <h2><span class="h2-eye">Mémo</span><span class="h2-txt">Retrouver rapidement la syntaxe</span></h2>
-      <p class="df-lead">Dans ce cours, les requêtes s’exécutent en SQLite. Les autres SGBD gardent les mêmes idées, mais changent souvent de fonction.</p>
-      <div class="table-wrap"><table class="concept-table vocab-table"><thead><tr><th scope="col">Besoin</th><th scope="col">SQLite</th><th scope="col">Autres écritures</th></tr></thead><tbody>
-        <tr><td>Date actuelle</td><td><code>date('now')</code></td><td><code>CURRENT_DATE</code>, <code>CURDATE()</code></td></tr>
-        <tr><td>Heure actuelle</td><td><code>time('now')</code></td><td><code>CURRENT_TIME</code>, <code>CURTIME()</code></td></tr>
-        <tr><td>Date + heure</td><td><code>datetime('now')</code></td><td><code>CURRENT_TIMESTAMP</code>, <code>NOW()</code></td></tr>
-        <tr><td>Extraire une partie</td><td><code>strftime('%Y', d)</code></td><td><code>EXTRACT()</code>, <code>YEAR()</code>, <code>MONTH()</code></td></tr>
-        <tr><td>Formater</td><td><code>strftime(format, d)</code></td><td><code>TO_CHAR()</code>, <code>DATE_FORMAT()</code></td></tr>
-        <tr><td>Ajouter du temps</td><td><code>date(d, '+7 days')</code></td><td><code>INTERVAL</code>, <code>DATE_ADD()</code>, <code>DATEADD()</code></td></tr>
-        <tr><td>Calculer une durée</td><td><code>julianday(fin)-julianday(debut)</code></td><td><code>DATEDIFF()</code>, <code>TIMESTAMPDIFF()</code></td></tr>
-        <tr><td>Début du mois</td><td><code>date(d,'start of month')</code></td><td><code>DATE_TRUNC()</code></td></tr>
-        <tr><td>Fin du mois</td><td><code>date(d,'start of month','+1 month','-1 day')</code></td><td><code>LAST_DAY()</code>, <code>EOMONTH()</code></td></tr>
-        <tr><td>Période</td><td><code>WHERE d >= debut AND d &lt; fin</code></td><td>Même principe</td></tr>
-        <tr><td>Convertir un fuseau</td><td>Pas de fonction dédiée</td><td><code>AT TIME ZONE</code>, <code>CONVERT_TZ()</code></td></tr>
-        <tr><td>Valeur absente</td><td><code>IS NULL</code></td><td><code>IS NULL</code></td></tr>
+      <h2><span class="h2-eye">Mémo</span><span class="h2-txt">Dates et heures selon le SGBD</span></h2>
+      <p class="df-lead">Une même opération peut s’écrire différemment selon le SGBD. Dans ce cours, les exercices utilisent SQLite. Ce mémo te permet de retrouver l’équivalent dans PostgreSQL, MySQL, SQL Server et Oracle.</p>
+      <div class="table-wrap df-memo-wrap"><table class="concept-table df-memo-table"><thead><tr><th scope="col">Besoin</th><th scope="col">SQLite</th><th scope="col">PostgreSQL</th><th scope="col">MySQL</th><th scope="col">SQL Server</th><th scope="col">Oracle</th></tr></thead><tbody>
+        <tr><td>Date actuelle</td><td><code>date('now')</code></td><td><code>CURRENT_DATE</code></td><td><code>CURDATE()</code></td><td><code>CAST(GETDATE() AS date)</code></td><td><code>TRUNC(SYSDATE)</code></td></tr>
+        <tr><td>Heure actuelle</td><td><code>time('now')</code></td><td><code>CURRENT_TIME</code></td><td><code>CURTIME()</code></td><td><code>CAST(GETDATE() AS time)</code></td><td><code>TO_CHAR(SYSDATE, 'HH24:MI:SS')</code></td></tr>
+        <tr><td>Date + heure</td><td><code>datetime('now')</code></td><td><code>CURRENT_TIMESTAMP</code></td><td><code>NOW()</code></td><td><code>GETDATE()</code></td><td><code>CURRENT_TIMESTAMP</code></td></tr>
+        <tr><td>Extraire l’année</td><td><code>strftime('%Y', d)</code></td><td><code>EXTRACT(YEAR FROM d)</code></td><td><code>YEAR(d)</code></td><td><code>YEAR(d)</code></td><td><code>EXTRACT(YEAR FROM d)</code></td></tr>
+        <tr><td>Extraire le mois</td><td><code>strftime('%m', d)</code></td><td><code>EXTRACT(MONTH FROM d)</code></td><td><code>MONTH(d)</code></td><td><code>MONTH(d)</code></td><td><code>EXTRACT(MONTH FROM d)</code></td></tr>
+        <tr><td>Extraire le jour</td><td><code>strftime('%d', d)</code></td><td><code>EXTRACT(DAY FROM d)</code></td><td><code>DAY(d)</code></td><td><code>DAY(d)</code></td><td><code>EXTRACT(DAY FROM d)</code></td></tr>
+        <tr><td>Formater une date</td><td><code>strftime(format, d)</code></td><td><code>TO_CHAR(d, format)</code></td><td><code>DATE_FORMAT(d, format)</code></td><td><code>FORMAT(d, format)</code></td><td><code>TO_CHAR(d, format)</code></td></tr>
+        <tr><td>Ajouter 7 jours</td><td><code>date(d, '+7 days')</code></td><td><code>d + INTERVAL '7 days'</code></td><td><code>DATE_ADD(d, INTERVAL 7 DAY)</code></td><td><code>DATEADD(day, 7, d)</code></td><td><code>d + 7</code></td></tr>
+        <tr><td>Retirer 7 jours</td><td><code>date(d, '-7 days')</code></td><td><code>d - INTERVAL '7 days'</code></td><td><code>DATE_SUB(d, INTERVAL 7 DAY)</code></td><td><code>DATEADD(day, -7, d)</code></td><td><code>d - 7</code></td></tr>
+        <tr><td>Durée en jours</td><td><code>julianday(fin) - julianday(debut)</code></td><td><code>fin - debut</code></td><td><code>DATEDIFF(fin, debut)</code></td><td><code>DATEDIFF(day, debut, fin)</code></td><td><code>fin - debut</code></td></tr>
+        <tr><td>Début du mois</td><td><code>date(d, 'start of month')</code></td><td><code>DATE_TRUNC('month', d)</code></td><td><code>DATE_FORMAT(d, '%Y-%m-01')</code></td><td><code>DATETRUNC(month, d)</code></td><td><code>TRUNC(d, 'MM')</code></td></tr>
+        <tr><td>Fin du mois</td><td><code>date(d, 'start of month', '+1 month', '-1 day')</code></td><td><code>(DATE_TRUNC('month', d) + INTERVAL '1 month - 1 day')::date</code></td><td><code>LAST_DAY(d)</code></td><td><code>EOMONTH(d)</code></td><td><code>LAST_DAY(d)</code></td></tr>
+        <tr><td>Filtrer une période</td><td><code>d &gt;= debut AND d &lt; fin</code></td><td><code>d &gt;= debut AND d &lt; fin</code></td><td><code>d &gt;= debut AND d &lt; fin</code></td><td><code>d &gt;= debut AND d &lt; fin</code></td><td><code>d &gt;= debut AND d &lt; fin</code></td></tr>
+        <tr><td>Date absente</td><td><code>IS NULL</code></td><td><code>IS NULL</code></td><td><code>IS NULL</code></td><td><code>IS NULL</code></td><td><code>IS NULL</code></td></tr>
+        <tr><td>Convertir un fuseau</td><td><code>'utc' / 'localtime'</code></td><td><code>AT TIME ZONE</code></td><td><code>CONVERT_TZ()</code></td><td><code>AT TIME ZONE</code></td><td><code>FROM_TZ() + AT TIME ZONE</code></td></tr>
       </tbody></table></div>
+      <p class="df-note"><span>Pour une date présente, utilise <code>IS NOT NULL</code> — la syntaxe est la même dans les cinq SGBD.</span></p>
     </div>
     <!-- early-demo -->
   </div>`;
@@ -28205,7 +28218,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-11-df-bet-v589';
+  const SW_CACHE='requete-2026-09-11-df-memo-v590';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
