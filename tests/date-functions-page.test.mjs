@@ -41,12 +41,12 @@ assert(html.includes('Comprendre les dates et les heures') && html.includes('Une
 assert(html.includes('Quand la commande a-t-elle été passée') && html.includes('df-pick-to') && html.includes('mois</small><b>08</b>'), 'questions concrètes puis extraction du mois');
 assert(!html.includes('Mais manipuler le temps en SQL demande quelques précautions'), 'précautions avancées hors de l’intro');
 assert(html.includes('function initDateFunctions'), 'micro-interactions initialisées');
-assert(html.includes('df-stage-head" aria-live="polite"') && html.includes('Actions possibles sur une date'), 'états interactifs accessibles');
+assert(html.includes('df-stage-head" aria-live="polite"') && html.includes('Opérations essentielles sur les dates'), 'états interactifs accessibles');
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('dfStageSwap'), 'animations compatibles avec la réduction des mouvements');
 assert(html.includes('initDateFunctions();'), 'laboratoire activé au rendu du cours');
 assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53||l.id===54") && html.includes("compactFunctionLesson?'':reflexBlock(l)"), 'récapitulatifs redondants retirés de cette page');
 const studio = html.slice(html.indexOf('function renderDateFunctionsStudio'), html.indexOf('let dfNowTick'));
-const order = ['Comprendre les dates et les heures','Choisir la bonne information temporelle','Six gestes à maîtriser','Retrouver le début ou la fin d’un mois','Filtrer sans perdre la fin de journée','Distinguer l’instant et l’heure affichée','Les réflexes qui évitent les erreurs','Retrouver rapidement la syntaxe'];
+const order = ['Comprendre les dates et les heures','Choisir la bonne information temporelle','6 opérations essentielles sur les dates','Retrouver le début ou la fin d’un mois','Filtrer sans perdre la fin de journée','Distinguer l’instant et l’heure affichée','Les réflexes qui évitent les erreurs','Retrouver rapidement la syntaxe'];
 let prev = -1;
 let orderOk = true;
 for (const title of order) {
@@ -55,9 +55,12 @@ for (const title of order) {
   prev = i;
 }
 assert(!studio.slice(0, studio.indexOf('Choisir la bonne information temporelle')).includes('sans ambiguïté'), 'formats ambigus hors de l’intro');
-const vocab = studio.slice(studio.indexOf('Choisir la bonne information temporelle'), studio.indexOf('Six gestes à maîtriser'));
+const vocab = studio.slice(studio.indexOf('Choisir la bonne information temporelle'), studio.indexOf('6 opérations essentielles sur les dates'));
 assert(!vocab.includes('Instant') && !vocab.includes('instant exact'), 'instant réservé au chapitre fuseaux');
 assert(vocab.includes('Date + heure') && vocab.includes('TIMESTAMP') && vocab.includes('DATETIME') && vocab.includes('df-reflex'), 'date + heure et réflexe mémorisable');
+assert(guides.includes("label:'Obtenir maintenant'") && !guides.includes("label:'Lire maintenant'"), 'obtenir plutôt que lire une date stockée');
+assert(guides.includes("label:'Formater une date'") && guides.includes("label:'Calculer une durée'"), 'verbes SQL alignés sur les six opérations');
+assert(guides.includes('tu n’as pas besoin de les écrire') && guides.includes('Si tu relances la requête'), 'situation puis à retenir pour maintenant');
 assert(studio.includes('2026-08-29T11:30:00Z'), 'instant ancré en UTC dans les fuseaux');
 assert(orderOk && (studio.match(/<div class="concept-block">/g) || []).length === 8, 'huit cadres dans l’ordre pédagogique');
 assert(!studio.includes('Et pour les fuseaux horaires ?') && !studio.includes('Convertir une valeur'), 'cadres hors fil retirés');
