@@ -79,8 +79,11 @@ assert(tz.includes('New York</small><b>14:00</b>') && tz.includes('df-tz-neq'), 
 assert(tz.indexOf('New York</small><b>14:00</b>') < tz.indexOf('12:00') && tz.indexOf('New York</small><b>08:00</b>') > tz.indexOf('12:00'), '08:00 à New York n’apparaît qu’avec l’instant UTC');
 assert(tz.includes('>Z</code>') && tz.includes('+02:00') && tz.includes('Europe/Paris'), 'Z, décalage et fuseau expliqués après les schémas');
 assert(tz.includes('Le bon réflexe dépend') && tz.includes('AT TIME ZONE') && tz.includes('CONVERT_TZ()'), 'stockage puis syntaxes de conversion');
-assert(!period.includes('23:59:59') && period.includes('jusqu’au début du 1er août'), 'fin de journée sans figer 23:59:59');
+assert(!period.includes('23:59:59') && period.includes('juste avant le 1er août'), 'fin de journée sans figer 23:59:59');
 assert(period.includes("BETWEEN '2023-07-01'") && period.includes("'2023-07-31'"), 'piège BETWEEN illustré');
+assert(period.includes('Pourquoi éviter BETWEEN') && period.includes('2023-07-31 10:30:00') && period.includes('2023-07-31 18:45:00'), 'BETWEEN montré avec les heures perdues du 31');
+assert(period.includes('TOUT JUILLET') && period.includes('01/08 00:00'), 'tout juillet borné au 1er août');
+assert(!period.includes('comparaison date-heure'), 'borne de fin expliquée sans jargon');
 assert((studio.match(/<article class="df-trap">/g) || []).length === 4, 'quatre pièges pédagogiques');
 assert(studio.includes('03/04/2026') && studio.includes('2026-04-03'), 'formats de date ambigus illustrés');
 assert(!studio.includes('peut empêcher un index d’aider'), 'index relégué en bonus, pas en titre');
