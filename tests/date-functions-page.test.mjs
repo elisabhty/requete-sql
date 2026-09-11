@@ -25,6 +25,9 @@ const guides = guideStart >= 0 && guideEnd > guideStart ? html.slice(guideStart,
 assert(Boolean(guides), 'guide temporel interactif localisé');
 assert((guides.match(/\{k:'/g) || []).length === 6, '6 intentions plutôt que 13 longs chapitres');
 assert(guides.includes("k:'now'") && guides.includes('CURRENT_TIMESTAMP'), 'date et heure actuelles disponibles');
+assert(!guides.includes('AOÛT') && !guides.includes('13:30:00'), 'horloge du labo non figée dans le guide');
+assert(html.includes('function dateNowVisualHtml') && html.includes("timeZone:'UTC'"), 'calendrier et horloge construits à l’instant UTC');
+assert(html.includes('startDateNowTick') && html.includes('stopDateNowTick'), 'horloge du labo mise à jour chaque seconde');
 assert(guides.includes("k:'extract'") && guides.includes('strftime'), 'extraction d’une partie disponible');
 assert(guides.includes("k:'format'") && guides.includes('%d/%m/%Y'), 'formatage avant/après disponible');
 assert(guides.includes("k:'shift'") && guides.includes("'+5 days'"), 'décalage sur une ligne du temps disponible');
