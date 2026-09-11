@@ -21367,9 +21367,142 @@ function renderDateFunctionsStudio(){
       <p class="df-anatomy-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span><code>AAAA-MM-JJ HH:MM:SS</code> permet de représenter clairement une date et une heure, sans ambiguïté.</span></p>
     </div>
     <div class="concept-block">
+      <h2><span class="h2-eye">⚠️ Point de vigilance</span><span class="h2-txt">Une date n’est pas un texte comme un autre</span></h2>
+      <p class="df-lead">SQL doit comprendre une date pour répondre à « ajoute 7 jours », « combien de jours entre les deux ? » ou « toutes les commandes d’août ». Un texte libre comme <code>demain après-midi</code> n’est pas exploitable, et un format court peut être ambigu.</p>
+      <div class="df-visual" aria-label="Un format ambigu devient un format non ambigu">
+        <div class="df-before-after">
+          <span class="df-value">03/04/2026</span>
+          <span class="df-arrow" aria-hidden="true"><svg viewBox="0 0 32 18" fill="none"><path d="M2 9h25M21 3l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span class="df-value is-result">2026-04-03</span>
+        </div>
+      </div>
+      <p class="df-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>⚠️ <code>03/04/2026</code> : 3 avril ou 4 mars ? Selon le pays, l’ordre jour/mois change. Le format ISO <code>AAAA-MM-JJ</code> se lit toujours de la même façon.</span></p>
+    </div>
+    <div class="concept-block">
+      <h2><span class="h2-eye">📘 À connaître</span><span class="h2-txt">Les types de données temporelles</span></h2>
+      <p class="df-lead">Les types disponibles dépendent du SGBD. Voici les plus courants.</p>
+      <div class="table-wrap"><table class="concept-table"><thead><tr><th scope="col">Type</th><th scope="col">Contient</th><th scope="col">Exemple</th></tr></thead><tbody>
+        <tr><td>DATE</td><td>Année + mois + jour</td><td><code>2026-08-29</code></td></tr>
+        <tr><td>TIME</td><td>Heure + minute + seconde</td><td><code>13:30:00</code></td></tr>
+        <tr><td>TIMESTAMP / DATETIME</td><td>Date + heure</td><td><code>2026-08-29 13:30:00</code></td></tr>
+        <tr><td>TIMESTAMPTZ</td><td>Instant + fuseau (PostgreSQL)</td><td><code>2026-08-29 13:30:00+02</code></td></tr>
+        <tr><td>INTERVAL</td><td>Une durée, pas un moment</td><td><code>INTERVAL '7 days'</code></td></tr>
+      </tbody></table></div>
+      <p class="df-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>💡 <code>INTERVAL</code> représente une <b>durée</b> (« 7 jours »), pas un instant précis. On l’utilise dans un calcul : <code>date_commande + INTERVAL '7 days'</code>.</span></p>
+    </div>
+    <div class="concept-block">
+      <h2><span class="h2-eye">🪶 Spécificité</span><span class="h2-txt">SQLite n’a pas de type dédié</span></h2>
+      <p class="df-lead">Ce cours utilise SQLite. Contrairement à d’autres SGBD, SQLite ne possède pas de type <code>DATE</code> ou <code>TIMESTAMP</code> à part entière : une date est stockée comme du texte.</p>
+      <div class="pt-syntax"><pre class="cw-syntax">date_commande = '2023-08-03'
+date_heure    = '2023-08-03 14:30:00'</pre></div>
+      <p>SQLite fournit ensuite des fonctions pour manipuler ces valeurs : <code>date()</code> · <code>time()</code> · <code>datetime()</code> · <code>strftime()</code> · <code>julianday()</code> · <code>unixepoch()</code></p>
+      <p class="df-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>👉 Retiens le principe, pas seulement les fonctions : les noms changent selon le SGBD, mais les besoins restent les mêmes.</span></p>
+    </div>
+    <div class="concept-block">
       <h2><span class="h2-eye">Mini-laboratoire</span><span class="h2-txt">Choisis ce que tu veux faire dans le temps.</span></h2>
       <div class="df-intents" role="tablist" aria-label="Actions possibles sur une date">${DATE_FUNCTION_GUIDES.map((g,i)=>`<button type="button" class="df-intent${i===0?' on':''}" role="tab" aria-selected="${i===0?'true':'false'}" data-k="${g.k}"><b>${g.label}</b>${g.short?`<small>${g.short}</small>`:''}</button>`).join('')}</div>
       <div class="df-stage" aria-live="polite">${dateFunctionStageHtml(first)}</div>
+    </div>
+    <div class="concept-block">
+      <h2><span class="h2-eye">🔁 Nuance</span><span class="h2-txt">Convertir n’est pas formater</span></h2>
+      <p class="df-lead"><b>Formater</b> change la représentation pour l’affichage. <b>Convertir</b> transforme une valeur pour qu’elle soit traitée comme un autre type.</p>
+      <div class="pt-syntax"><pre class="cw-syntax">SELECT date('2026-08-29');</pre></div>
+      <p class="df-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Selon le SGBD, on rencontre aussi <code>CAST()</code>, <code>CONVERT()</code>, <code>TO_DATE()</code>, <code>STR_TO_DATE()</code> — la syntaxe de conversion varie fortement.</span></p>
+    </div>
+    <div class="concept-block">
+      <h2><span class="h2-eye">🌍 Selon le SGBD</span><span class="h2-txt">Le raisonnement reste, l’écriture change</span></h2>
+      <p class="df-lead">Même opération partout — ajouter 7 jours à <code>date_commande</code> — mais une syntaxe différente selon le système.</p>
+      <div class="table-wrap"><table class="concept-table"><thead><tr><th scope="col">SGBD</th><th scope="col">Exemple</th></tr></thead><tbody>
+        <tr><td>SQLite</td><td><code>date(d, '+7 days')</code></td></tr>
+        <tr><td>PostgreSQL</td><td><code>d + INTERVAL '7 days'</code></td></tr>
+        <tr><td>MySQL</td><td><code>DATE_ADD(d, INTERVAL 7 DAY)</code></td></tr>
+        <tr><td>SQL Server</td><td><code>DATEADD(day, 7, d)</code></td></tr>
+        <tr><td>Oracle</td><td><code>d + 7</code></td></tr>
+      </tbody></table></div>
+      <p class="df-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>👉 Le raisonnement reste, l’écriture change.</span></p>
+    </div>
+    <div class="concept-block">
+      <h2><span class="h2-eye">📅 Calcul utile</span><span class="h2-txt">Premier et dernier jour du mois</span></h2>
+      <div class="pt-syntax"><pre class="cw-syntax">SELECT date(date_commande, 'start of month')
+FROM commandes;</pre></div>
+      <p><code>2023-08-18</code> → <code>2023-08-01</code></p>
+      <p>Pour le <b>dernier</b> jour du mois, SQL avance d’un mois puis retire un jour :</p>
+      <p>① <code>start of month</code> → <code>2023-08-01</code><br>② <code>+1 month</code> → <code>2023-09-01</code><br>③ <code>-1 day</code> → <code>2023-08-31</code></p>
+      <div class="pt-syntax"><pre class="cw-syntax">SELECT date(date_commande, 'start of month', '+1 month', '-1 day')
+FROM commandes;</pre></div>
+    </div>
+    <div class="concept-block">
+      <h2><span class="h2-eye">🎯 Piège fréquent</span><span class="h2-txt">Filtrer une période, sans piège</span></h2>
+      <div class="pt-syntax"><pre class="cw-syntax">SELECT * FROM commandes
+WHERE date_commande BETWEEN '2023-07-01' AND '2023-07-31';</pre></div>
+      <p><code>BETWEEN</code> inclut les deux bornes.</p>
+      <p class="df-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>⚠️ Si la colonne contient aussi une <b>heure</b>, <code>&lt;= '2023-07-31'</code> ignore les commandes du 31 après minuit. Préfère la borne de droite exclue :</span></p>
+      <div class="pt-syntax"><pre class="cw-syntax">SELECT * FROM commandes
+WHERE date_heure >= '2023-07-01'
+  AND date_heure &lt;  '2023-08-01';</pre></div>
+      <p>👉 Début de juillet inclus, début d’août exclu — tout le mois, sans piège d’heure.</p>
+    </div>
+    <div class="concept-block">
+      <h2><span class="h2-eye">🌐 Notion avancée</span><span class="h2-txt">Un instant, plusieurs heures locales</span></h2>
+      <p class="df-lead">Une heure seule n’identifie pas toujours un instant : <code>14:00</code> à Paris n’est pas <code>14:00</code> à New York.</p>
+      <div class="df-visual" aria-label="Un même instant UTC affiché dans deux fuseaux différents">
+        <div class="df-timeline">
+          <span class="df-node"><i></i>Paris 14:00</span>
+          <span class="df-line"><b>même instant</b></span>
+          <span class="df-node"><i></i>New York 08:00</span>
+        </div>
+      </div>
+      <p class="df-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>👉 L’instant ne change pas — c’est sa représentation locale qui change. <code>12:00 UTC</code> devient <code>14:00</code> à Paris et <code>08:00</code> à New York.</span></p>
+      <p style="margin-top:14px"><b>Décalage UTC ≠ fuseau horaire</b> — <code>+02:00</code> n’indique qu’une différence par rapport à UTC ; <code>Europe/Paris</code> est un ensemble de règles qui peut changer selon la date (heure d’été/hiver).</p>
+      <div class="table-wrap"><table class="concept-table"><thead><tr><th scope="col">SGBD</th><th scope="col">Conversion de fuseau</th></tr></thead><tbody>
+        <tr><td>PostgreSQL</td><td><code>d AT TIME ZONE 'Europe/Paris'</code></td></tr>
+        <tr><td>MySQL</td><td><code>CONVERT_TZ(d, 'UTC', 'Europe/Paris')</code></td></tr>
+        <tr><td>Oracle</td><td><code>FROM_TZ(d, 'UTC') AT TIME ZONE 'Europe/Paris'</code></td></tr>
+        <tr><td>SQL Server</td><td><code>d AT TIME ZONE 'Europe/Paris'</code></td></tr>
+        <tr><td>SQLite</td><td>gestion limitée (<code>'utc'</code>, <code>'localtime'</code>)</td></tr>
+      </tbody></table></div>
+    </div>
+    <div class="concept-block">
+      <h2><span class="h2-eye">🧭 Décision</span><span class="h2-txt">Faut-il toujours stocker en UTC ?</span></h2>
+      <p class="df-lead">Non — « toujours en UTC » est trop simple. Ça dépend de ce que représente la donnée.</p>
+      <div class="table-wrap"><table class="concept-table"><thead><tr><th scope="col">La donnée représente…</th><th scope="col">Exemple</th><th scope="col">Stockage</th></tr></thead><tbody>
+        <tr><td>un instant précis</td><td>paiement, message, connexion</td><td>UTC</td></tr>
+        <tr><td>une date civile</td><td>date de naissance</td><td>date seule, sans fuseau</td></tr>
+        <tr><td>une heure locale récurrente</td><td>« le magasin ouvre à 09:00 »</td><td>heure locale</td></tr>
+      </tbody></table></div>
+      <p class="df-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>💡 Avant de choisir, demande-toi : instant précis, date civile, ou heure locale récurrente ?</span></p>
+    </div>
+    <div class="concept-block">
+      <h2><span class="h2-eye">🪤 Cas limites</span><span class="h2-txt">Les pièges à connaître</span></h2>
+      <ul class="fn-reflex-list">
+        <li>📆 <b>Années bissextiles</b> — le 29 février complique l’ajout d’un an autour de cette date.</li>
+        <li>🗓️ <b>Fins de mois</b> — tous les mois n’ont pas la même durée ; « 31 janvier + 1 mois » dépend des règles du SGBD.</li>
+        <li>🕐 <b>Changements d’heure</b> — une heure locale peut ne jamais exister ou apparaître deux fois lors du passage été/hiver.</li>
+        <li>🔍 <b>Fonction sur une colonne indexée</b> — <code>WHERE strftime('%Y', d) = '2023'</code> peut empêcher l’usage d’un index ; préfère <code>WHERE d >= '2023-01-01' AND d &lt; '2024-01-01'</code>.</li>
+        <li>❔ <b>NULL</b> — une date absente s’écrit <code>WHERE date_livraison IS NULL</code>, jamais <code>= NULL</code>.</li>
+      </ul>
+    </div>
+    <div class="concept-block">
+      <h2><span class="h2-eye">🔑 Distinction clé</span><span class="h2-txt">Date, durée, instant : ne pas confondre</span></h2>
+      <div class="table-wrap"><table class="concept-table"><thead><tr><th scope="col">Notion</th><th scope="col">Exemple</th><th scope="col">Répond à…</th></tr></thead><tbody>
+        <tr><td>Date</td><td><code>2026-08-29</code></td><td>Quel jour ?</td></tr>
+        <tr><td>Heure locale</td><td><code>13:30</code></td><td>Quelle heure, sur cette horloge ?</td></tr>
+        <tr><td>Instant</td><td><code>2026-08-29T11:30:00Z</code></td><td>Quel moment précis, sur la ligne du temps ?</td></tr>
+        <tr><td>Durée</td><td>7 jours</td><td>Combien de temps ?</td></tr>
+      </tbody></table></div>
+    </div>
+    <div class="concept-block">
+      <h2><span class="h2-eye">📋 Mémo</span><span class="h2-txt">Date &amp; heure, tous SGBD confondus</span></h2>
+      <div class="table-wrap"><table class="concept-table"><thead><tr><th scope="col">Je veux…</th><th scope="col">SQLite (ce cours)</th><th scope="col">Autres syntaxes</th></tr></thead><tbody>
+        <tr><td>Date actuelle</td><td><code>date('now')</code></td><td><code>CURRENT_DATE</code>, <code>CURDATE()</code></td></tr>
+        <tr><td>Date + heure</td><td><code>datetime('now')</code></td><td><code>CURRENT_TIMESTAMP</code>, <code>NOW()</code></td></tr>
+        <tr><td>Extraire une partie</td><td><code>strftime('%Y', d)</code></td><td><code>EXTRACT()</code>, <code>YEAR()</code></td></tr>
+        <tr><td>Formater</td><td><code>strftime(format, d)</code></td><td><code>TO_CHAR()</code>, <code>DATE_FORMAT()</code></td></tr>
+        <tr><td>Ajouter 7 jours</td><td><code>date(d, '+7 days')</code></td><td><code>INTERVAL</code>, <code>DATE_ADD()</code>, <code>DATEADD()</code></td></tr>
+        <tr><td>Calculer une durée</td><td><code>julianday(fin)-julianday(début)</code></td><td><code>DATEDIFF()</code>, <code>TIMESTAMPDIFF()</code></td></tr>
+        <tr><td>Début du mois</td><td><code>date(d,'start of month')</code></td><td><code>DATE_TRUNC()</code></td></tr>
+        <tr><td>Fin du mois</td><td><code>date(d,'start of month','+1 month','-1 day')</code></td><td><code>LAST_DAY()</code>, <code>EOMONTH()</code></td></tr>
+      </tbody></table></div>
     </div>
     <!-- early-demo -->
   </div>`;
@@ -27777,7 +27910,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-10-teste-draft-perime-v552';
+  const SW_CACHE='requete-2026-09-10-date-cours-complet-v553';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
