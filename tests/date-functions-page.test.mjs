@@ -29,7 +29,8 @@ assert(!guides.includes('AOÛT') && !guides.includes('13:30:00'), 'horloge du la
 assert(html.includes('function dateNowVisualHtml') && html.includes("timeZone:'UTC'"), 'calendrier et horloge construits à l’instant UTC');
 assert(html.includes('df-clock-time') && html.includes("page.querySelector('.df-stage .df-visual')") && html.includes('startDateNowTick') && html.includes('stopDateNowTick'), 'horloge du labo mise à jour chaque seconde');
 assert(guides.includes("k:'extract'") && guides.includes('strftime'), 'extraction d’une partie disponible');
-assert(guides.includes("k:'format'") && guides.includes('%d/%m/%Y'), 'formatage avant/après disponible');
+assert(guides.includes("k:'format'") && guides.includes('%d/%m/%Y'), 'formatage disponible');
+assert(!guides.split("k:'format'")[1].split("k:'shift'")[0].includes('visual:'), 'schéma avant/après du formatage retiré');
 assert(guides.includes("k:'shift'") && guides.includes("'+5 days'"), 'décalage sur une ligne du temps disponible');
 assert(guides.includes("k:'duration'") && guides.includes('julianday'), 'durée entre deux dates disponible');
 assert(guides.includes("k:'period'") && guides.includes("date_commande < '2023-08-01'"), 'période à borne droite exclue disponible');
@@ -83,6 +84,8 @@ assert(period.includes("BETWEEN '2023-07-01'") && period.includes("'2023-07-31'"
 assert((studio.match(/<article class="df-trap">/g) || []).length === 4, 'quatre pièges pédagogiques');
 assert(studio.includes('03/04/2026') && studio.includes('2026-04-03'), 'formats de date ambigus illustrés');
 assert(!studio.includes('peut empêcher un index d’aider'), 'index relégué en bonus, pas en titre');
+assert(!studio.includes('Avec <code>NULL</code>, utilise') && !studio.includes('Utilise un format de date clair'), 'notes de piège redondantes retirées');
+assert(/function lessonRichFooter\(l\)\{\s*if\(l\.id===53\)return '';/.test(html), 'playground Teste retiré de la leçon 53');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
