@@ -62,7 +62,10 @@ assert(vocab.includes('Date + heure') && vocab.includes('TIMESTAMP') && vocab.in
 assert(vocab.includes('df-reflex-ico') && !vocab.includes('📅') && !vocab.includes('🕐') && !vocab.includes('⏱️'), 'réflexe en pictogrammes plutôt qu’emojis');
 assert(guides.includes("label:'Obtenir maintenant'") && !guides.includes("label:'Lire maintenant'"), 'obtenir plutôt que lire une date stockée');
 assert(guides.includes("label:'Formater une date'") && guides.includes("label:'Calculer une durée'"), 'verbes SQL alignés sur les six opérations');
+assert((guides.match(/why:'/g) || []).length === 6, 'chaque opération part d’une situation');
+assert(guides.includes('EXTRACT()') && guides.includes('TO_CHAR()') && guides.includes('DATE_ADD()') && guides.includes('TIMESTAMPDIFF()'), 'fonctions multi-SGBD visibles sur les cartes');
 assert(guides.includes('tu n’as pas besoin de les écrire') && guides.includes('Si tu relances la requête'), 'situation puis à retenir pour maintenant');
+assert(guides.includes('Extraire une partie d’une date') && guides.includes('Garder uniquement une période'), 'titres d’opération alignés sur le besoin');
 assert(studio.includes('2026-08-29T11:30:00Z'), 'instant ancré en UTC dans les fuseaux');
 assert(orderOk && (studio.match(/<div class="concept-block">/g) || []).length === 8, 'huit cadres dans l’ordre pédagogique');
 assert(!studio.includes('Et pour les fuseaux horaires ?') && !studio.includes('Convertir une valeur'), 'cadres hors fil retirés');

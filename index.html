@@ -1336,12 +1336,15 @@
   .df-stage-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin:0 0 14px}
   .df-stage-head small{display:block;margin-bottom:4px;font-size:8.5px;font-weight:850;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-3)}
   .df-stage-head h3{margin:0;font-size:16px;line-height:1.25;letter-spacing:-.25px;color:var(--ink)}
+  .df-stage-fns{display:flex;flex:none;flex-wrap:wrap;justify-content:flex-end;gap:5px;max-width:min(100%,16rem)}
   .df-stage-fn{flex:none;padding:5px 8px!important;border-radius:8px!important;font-size:9.5px!important}
   .df-why{margin:0 0 12px!important;font-size:14px!important;line-height:1.5!important;color:var(--ink)!important}
   .df-sample{margin:0 0 12px!important;font-size:13px!important;line-height:1.45!important;color:var(--ink-2)!important}
   .df-now-sample{white-space:nowrap}
   .df-visual{display:flex;min-height:96px;align-items:center;justify-content:center;margin:0 0 10px;padding:12px 10px;border:1px solid rgba(91,91,214,.1);border-radius:16px;background:rgba(91,91,214,.035);overflow:hidden}
   .df-before-after{display:grid;width:100%;grid-template-columns:minmax(0,1fr) 38px minmax(0,1fr);align-items:center;gap:7px}
+  .df-before-after.is-triple{grid-template-columns:minmax(0,1.1fr) auto minmax(0,1fr)}
+  .df-path-mod{display:flex;align-items:center;justify-content:center;padding:5px 8px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-size:9.5px;font-weight:850;letter-spacing:.02em;white-space:nowrap}
   .df-value{display:flex;min-width:0;min-height:45px;align-items:center;justify-content:center;padding:9px 7px;border:1px solid var(--line);border-radius:11px;background:var(--surface);font-family:var(--mono);font-size:10.5px;font-weight:750;line-height:1.35;text-align:center;overflow-wrap:anywhere}
   .df-value.is-result{border-color:rgba(91,91,214,.2);color:var(--accent);box-shadow:0 4px 12px rgba(91,91,214,.08)}
   .df-arrow{display:flex;align-items:center;justify-content:center;color:var(--accent)}
@@ -1458,7 +1461,7 @@
      desktop où ils tiennent sur une ligne. */
   .date-functions-page .concept-block p code{white-space:normal;overflow-wrap:anywhere}
   .date-functions-page .df-idea code{white-space:nowrap;overflow-wrap:normal}
-  .date-functions-page .df-note span code,.date-functions-page .df-sample code{white-space:nowrap}
+  .date-functions-page .df-note span code,.date-functions-page .df-sample code,.date-functions-page .concept-block .df-why code{white-space:nowrap;overflow-wrap:normal}
   .date-functions-page>.concept-block.in .df-anatomy-read{animation:dfUnitIn .42s var(--spring-ios) both}
   .date-functions-page>.concept-block.in .df-unit{animation:dfUnitIn .42s var(--spring-ios) both}
   .date-functions-page>.concept-block.in .df-anatomy-group:first-child .df-unit:nth-child(1){animation-delay:.06s}
@@ -1485,13 +1488,14 @@
     .df-unit b{min-width:0;width:100%;font-size:13px}.df-unit small{font-size:8px}
     .df-ideas{grid-template-columns:1fr}
     .df-stage{padding:14px 14px 11px}.df-intent{padding:9px 10px}.df-intent b{font-size:12px}
-    .df-before-after{grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr)}.df-value{font-size:9.5px}
+    .df-before-after{grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr)}.df-before-after.is-triple{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}.df-value{font-size:9.5px}
     /* Le calendrier et l'horloge dépassaient de huit pixels, rognés sans
        qu'on puisse faire défiler : les secondes disparaissaient. */
     .df-cal{width:70px}.df-clock{padding:0 10px;font-size:17px}
     /* La pastille de fonction volait la moitié de la largeur au titre, qui
        tombait sur trois lignes. Elle passe dessous, sur toute la largeur. */
     .df-stage-head{flex-direction:column;gap:8px}
+    .df-stage-fns{max-width:none;justify-content:flex-start}
     .df-stage-fn{align-self:flex-start}
     .df-idea b{font-size:12px}.df-step b{font-size:12px}
   }
@@ -21459,12 +21463,12 @@ function initTextFunctions(){
   intents.forEach(btn=>btn.addEventListener('click',()=>choose(btn)));
 }
 const DATE_FUNCTION_GUIDES=[
-  {k:'now',label:'Obtenir maintenant',short:'date + heure actuelles',title:'Obtenir la date et l’heure actuelles',fn:'CURRENT_TIMESTAMP',sql:'SELECT CURRENT_TIMESTAMP;',why:'Tu veux connaître la date et l’heure au moment où la requête s’exécute. SQL peut les récupérer automatiquement : tu n’as pas besoin de les écrire toi-même.',note:'<b>À retenir.</b> La valeur est calculée au moment où la requête s’exécute. Si tu relances la requête plus tard, le résultat change.'},
-  {k:'extract',label:'Extraire une partie',short:'année · mois · jour · heure',title:'Extraire seulement le mois',fn:'strftime()',sql:"SELECT date_commande,\n       strftime('%m', date_commande) AS mois\nFROM commandes\nLIMIT 8;",note:'La colonne <code>date_commande</code> reste entière. La requête ajoute simplement une colonne calculée avec le mois.',visual:`<div class="df-parts"><span class="df-part"><b>2023</b><small>année</small></span><i class="df-dash">–</i><span class="df-part on"><b>07</b><small>mois</small></span><i class="df-dash">–</i><span class="df-part"><b>18</b><small>jour</small></span></div>`},
-  {k:'format',label:'Formater une date',short:'2023-07-18 → 18/07/2023',title:'Formater une date',fn:'strftime()',sql:"SELECT date_commande,\n       strftime('%d/%m/%Y', date_commande) AS date_fr\nFROM commandes\nLIMIT 8;",note:'Ici, on ne change pas la date stockée. On change seulement sa forme dans le résultat.',visual:`<div class="df-before-after"><span class="df-value">2023-07-18</span><span class="df-arrow" aria-hidden="true"><svg viewBox="0 0 32 18" fill="none"><path d="M2 9h25M21 3l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="df-value is-result">18/07/2023</span></div>`},
-  {k:'shift',label:'Décaler une date',short:'+ 5 jours · - 1 mois',title:'Décaler une date',fn:'date()',sql:"SELECT date_commande,\n       date(date_commande, '+5 days') AS expedition\nFROM commandes\nLIMIT 8;",note:'Le calcul fabrique une nouvelle date. La date d’origine reste enregistrée telle quelle.',visual:`<div class="df-timeline"><span class="df-node"><i></i>18/07</span><span class="df-line"><b>+ 5 jours</b></span><span class="df-node"><i></i>23/07</span></div>`},
-  {k:'duration',label:'Calculer une durée',short:'date_fin − date_début',title:'Calculer une durée',fn:'julianday()',sql:"SELECT julianday('2025-03-20') - julianday('2025-03-14') AS jours;",note:'Une durée se calcule dans cet ordre : date de fin moins date de début.',visual:`<div class="df-duration"><div class="df-timeline"><span class="df-node"><i></i>14 mars</span><span class="df-line"></span><span class="df-node"><i></i>20 mars</span></div><strong class="df-days">6 jours</strong></div>`},
-  {k:'period',label:'Filtrer une période',short:'début inclus · fin exclue',title:'Filtrer une période',fn:'WHERE',sql:"SELECT date_commande\nFROM commandes\nWHERE date_commande >= '2023-07-01'\n  AND date_commande < '2023-08-01'\nORDER BY date_commande;",note:'Ce filtre garde juillet entier. Le début est inclus ; le début du mois suivant est exclu.',visual:`<div class="df-range"><b class="df-range-title">JUILLET 2023</b><div class="df-range-axis"><span>01/07</span><i class="df-range-fill"></i><span>01/08</span></div><div class="df-range-legend"><span>● inclus</span><span>○ exclu</span></div></div>`}
+  {k:'now',label:'Obtenir maintenant',short:'date + heure actuelles',title:'Obtenir la date et l’heure actuelles',fn:['CURRENT_TIMESTAMP'],sql:'SELECT CURRENT_TIMESTAMP;',why:'Tu veux connaître la date et l’heure au moment où la requête s’exécute. SQL peut les récupérer automatiquement : tu n’as pas besoin de les écrire toi-même.',note:'<b>À retenir.</b> La valeur est calculée au moment où la requête s’exécute. Si tu relances la requête plus tard, le résultat change.'},
+  {k:'extract',label:'Extraire une partie',short:'année · mois · jour · heure',title:'Extraire une partie d’une date',fn:['strftime()','EXTRACT()'],sql:"SELECT strftime('%m', date_commande)\nFROM commandes\nLIMIT 8;",why:'Tu as une date complète, mais tu as seulement besoin de l’année, du mois, du jour ou de l’heure. SQL peut extraire uniquement la partie qui t’intéresse.',visual:`<div class="df-before-after is-triple"><span class="df-value">2023-07-18</span><span class="df-path-mod">mois</span><span class="df-value is-result">07</span></div>`},
+  {k:'format',label:'Formater une date',short:'2023-07-18 → 18/07/2023',title:'Changer l’affichage d’une date',fn:['strftime()','TO_CHAR()','DATE_FORMAT()'],sql:"SELECT strftime('%d/%m/%Y', date_commande)\nFROM commandes\nLIMIT 8;",why:'Ta date est enregistrée sous la forme <code>2023-07-18</code>, mais tu veux l’afficher sous une forme plus familière comme <code>18/07/2023</code>. SQL peut changer sa présentation sans modifier la date d’origine.',visual:`<div class="df-before-after"><span class="df-value">2023-07-18</span><span class="df-arrow" aria-hidden="true"><svg viewBox="0 0 32 18" fill="none"><path d="M2 9h25M21 3l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="df-value is-result">18/07/2023</span></div>`},
+  {k:'shift',label:'Décaler une date',short:'+ 5 jours · - 1 mois',title:'Ajouter ou retirer du temps',fn:['date()','INTERVAL','DATE_ADD()','DATEADD()'],sql:"SELECT date(date_commande, '+5 days')\nFROM commandes\nLIMIT 8;",why:'Tu veux connaître une date située quelques jours, mois ou années avant ou après une autre date. SQL peut effectuer ce décalage automatiquement.',visual:`<div class="df-before-after is-triple"><span class="df-value">2023-07-18</span><span class="df-path-mod">+ 5 jours</span><span class="df-value is-result">2023-07-23</span></div>`},
+  {k:'duration',label:'Calculer une durée',short:'date_fin − date_début',title:'Calculer le temps entre deux dates',fn:['julianday()','DATEDIFF()','TIMESTAMPDIFF()'],sql:"SELECT julianday('2023-07-23') - julianday('2023-07-18') AS jours;",why:'Tu connais une date de début et une date de fin, et tu veux savoir combien de temps les sépare. SQL peut calculer cet écart pour obtenir une durée.',visual:`<div class="df-duration"><div class="df-timeline"><span class="df-node"><i></i>18/07</span><span class="df-line"></span><span class="df-node"><i></i>23/07</span></div><strong class="df-days">5 jours</strong></div>`},
+  {k:'period',label:'Filtrer une période',short:'début inclus · fin exclue',title:'Garder uniquement une période',fn:['WHERE','>=','<'],sql:"SELECT date_commande\nFROM commandes\nWHERE date_commande >= '2023-07-01'\n  AND date_commande < '2023-08-01';",why:'Tu veux récupérer uniquement les données comprises dans une période précise, par exemple toutes les commandes du mois de juillet. SQL peut définir une borne de début et une borne de fin.',visual:`<div class="df-range"><b class="df-range-title">JUILLET 2023</b><div class="df-range-axis"><span>01/07</span><i class="df-range-fill"></i><span>01/08</span></div><div class="df-range-legend"><span>● inclus</span><span>○ exclu</span></div></div>`}
 ];
 function dateNowStamp(d){
   const t=d||new Date();
@@ -21480,12 +21484,13 @@ function dateNowVisualHtml(d){
 }
 function dateFunctionStageHtml(g){
   const visual=g.k==='now'?dateNowVisualHtml():g.visual;
+  const fns=Array.isArray(g.fn)?g.fn:[g.fn];
   const why=g.why?`<p class="df-why">${g.why}</p>`:'';
   const sample=g.k==='now'?`<p class="df-sample">Exemple de résultat : <code class="df-now-sample">${dateNowStamp()}</code></p>`:'';
-  return `<div class="df-stage-head" aria-live="polite"><div><small>Opération temporelle</small><h3>${esc(g.title)}</h3></div><code class="df-stage-fn">${esc(g.fn)}</code></div>
+  return `<div class="df-stage-head" aria-live="polite"><div><small>Opération temporelle</small><h3>${esc(g.title)}</h3></div><div class="df-stage-fns">${fns.map(f=>`<code class="df-stage-fn">${esc(f)}</code>`).join('')}</div></div>
     ${why}
-    <div class="df-visual" aria-label="${escAttr(g.title)}">${visual}</div>
     ${piegeSqlRunBlock(g.sql)}
+    ${visual?`<div class="df-visual" aria-label="${escAttr(g.title)}">${visual}</div>`:''}
     ${sample}
     ${g.note?`<p class="df-note"><span>${g.note}</span></p>`:''}`;
 }
@@ -28152,7 +28157,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-11-df-ico-v582';
+  const SW_CACHE='requete-2026-09-11-df-lab6-v584';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
