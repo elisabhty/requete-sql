@@ -1326,7 +1326,7 @@
   .df-intents{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 14px}
   .df-intent{appearance:none;display:flex;min-width:0;min-height:58px;flex-direction:column;justify-content:center;gap:3px;padding:10px 12px;border:1px solid var(--card-border);border-radius:14px;background:var(--surface);color:var(--ink-2);font-family:var(--ui);text-align:left;cursor:pointer;transition:transform .2s var(--spring-ios),background .2s ease,border-color .2s ease,box-shadow .2s ease,color .2s ease}
   .df-intent b{font-size:13px;line-height:1.25}
-  .df-intent small{font-family:var(--mono);font-size:8.5px;font-weight:750;line-height:1.25;color:var(--ink-3)}
+  .df-intent small{font-family:var(--mono);font-size:8.5px;font-weight:750;line-height:1.3;color:var(--ink-3);overflow-wrap:anywhere}
   .df-intent:hover{border-color:rgba(91,91,214,.25)}
   .df-intent:active{transform:scale(.975)}
   .df-intent.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
@@ -1337,6 +1337,9 @@
   .df-stage-head small{display:block;margin-bottom:4px;font-size:8.5px;font-weight:850;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-3)}
   .df-stage-head h3{margin:0;font-size:16px;line-height:1.25;letter-spacing:-.25px;color:var(--ink)}
   .df-stage-fn{flex:none;padding:5px 8px!important;border-radius:8px!important;font-size:9.5px!important}
+  .df-why{margin:0 0 12px!important;font-size:14px!important;line-height:1.5!important;color:var(--ink)!important}
+  .df-sample{margin:0 0 12px!important;font-size:13px!important;line-height:1.45!important;color:var(--ink-2)!important}
+  .df-now-sample{white-space:nowrap}
   .df-visual{display:flex;min-height:96px;align-items:center;justify-content:center;margin:0 0 10px;padding:12px 10px;border:1px solid rgba(91,91,214,.1);border-radius:16px;background:rgba(91,91,214,.035);overflow:hidden}
   .df-before-after{display:grid;width:100%;grid-template-columns:minmax(0,1fr) 38px minmax(0,1fr);align-items:center;gap:7px}
   .df-value{display:flex;min-width:0;min-height:45px;align-items:center;justify-content:center;padding:9px 7px;border:1px solid var(--line);border-radius:11px;background:var(--surface);font-family:var(--mono);font-size:10.5px;font-weight:750;line-height:1.35;text-align:center;overflow-wrap:anywhere}
@@ -1452,7 +1455,7 @@
      desktop où ils tiennent sur une ligne. */
   .date-functions-page .concept-block p code{white-space:normal;overflow-wrap:anywhere}
   .date-functions-page .df-idea code{white-space:nowrap;overflow-wrap:normal}
-  .date-functions-page .df-note span code{white-space:nowrap}
+  .date-functions-page .df-note span code,.date-functions-page .df-sample code{white-space:nowrap}
   .date-functions-page>.concept-block.in .df-anatomy-read{animation:dfUnitIn .42s var(--spring-ios) both}
   .date-functions-page>.concept-block.in .df-unit{animation:dfUnitIn .42s var(--spring-ios) both}
   .date-functions-page>.concept-block.in .df-anatomy-group:first-child .df-unit:nth-child(1){animation-delay:.06s}
@@ -21453,13 +21456,18 @@ function initTextFunctions(){
   intents.forEach(btn=>btn.addEventListener('click',()=>choose(btn)));
 }
 const DATE_FUNCTION_GUIDES=[
-  {k:'now',label:'Lire maintenant',short:'CURRENT_TIMESTAMP',title:'Lire la date et l’heure actuelles',fn:'CURRENT_TIMESTAMP',sql:'SELECT CURRENT_TIMESTAMP;',note:'<code>CURRENT_TIMESTAMP</code> donne le moment de l’exécution. Dans SQLite, cette valeur est en UTC.'},
-  {k:'extract',label:'Extraire une partie',short:'année, mois, jour…',title:'Extraire seulement le mois',fn:'strftime()',sql:"SELECT date_commande,\n       strftime('%m', date_commande) AS mois\nFROM commandes\nLIMIT 8;",note:'La colonne <code>date_commande</code> reste entière. La requête ajoute simplement une colonne calculée avec le mois.',visual:`<div class="df-parts"><span class="df-part"><b>2023</b><small>année</small></span><i class="df-dash">–</i><span class="df-part on"><b>07</b><small>mois</small></span><i class="df-dash">–</i><span class="df-part"><b>18</b><small>jour</small></span></div>`},
-  {k:'format',label:'Changer l’affichage',short:'18/07/2023',title:'Afficher la date en français',fn:'strftime()',sql:"SELECT date_commande,\n       strftime('%d/%m/%Y', date_commande) AS date_fr\nFROM commandes\nLIMIT 8;",note:'Ici, on ne change pas la date stockée. On change seulement sa forme dans le résultat.',visual:`<div class="df-before-after"><span class="df-value">2023-07-18</span><span class="df-arrow" aria-hidden="true"><svg viewBox="0 0 32 18" fill="none"><path d="M2 9h25M21 3l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="df-value is-result">18/07/2023</span></div>`},
-  {k:'shift',label:'Décaler une date',short:'+ 5 jours',title:'Ajouter cinq jours',fn:'date()',sql:"SELECT date_commande,\n       date(date_commande, '+5 days') AS expedition\nFROM commandes\nLIMIT 8;",note:'Le calcul fabrique une nouvelle date. La date d’origine reste enregistrée telle quelle.',visual:`<div class="df-timeline"><span class="df-node"><i></i>18/07</span><span class="df-line"><b>+ 5 jours</b></span><span class="df-node"><i></i>23/07</span></div>`},
-  {k:'duration',label:'Mesurer une durée',short:'fin - début',title:'Compter les jours entre deux dates',fn:'julianday()',sql:"SELECT julianday('2025-03-20') - julianday('2025-03-14') AS jours;",note:'Une durée se calcule dans cet ordre : date de fin moins date de début.',visual:`<div class="df-duration"><div class="df-timeline"><span class="df-node"><i></i>14 mars</span><span class="df-line"></span><span class="df-node"><i></i>20 mars</span></div><strong class="df-days">6 jours</strong></div>`},
-  {k:'period',label:'Filtrer une période',short:'début inclus, fin exclue',title:'Garder tout le mois de juillet',fn:'WHERE',sql:"SELECT date_commande\nFROM commandes\nWHERE date_commande >= '2023-07-01'\n  AND date_commande < '2023-08-01'\nORDER BY date_commande;",note:'Ce filtre garde juillet entier. Le début est inclus ; le début du mois suivant est exclu.',visual:`<div class="df-range"><b class="df-range-title">JUILLET 2023</b><div class="df-range-axis"><span>01/07</span><i class="df-range-fill"></i><span>01/08</span></div><div class="df-range-legend"><span>● inclus</span><span>○ exclu</span></div></div>`}
+  {k:'now',label:'Obtenir maintenant',short:'date + heure actuelles',title:'Obtenir la date et l’heure actuelles',fn:'CURRENT_TIMESTAMP',sql:'SELECT CURRENT_TIMESTAMP;',why:'Tu veux connaître la date et l’heure au moment où la requête s’exécute. SQL peut les récupérer automatiquement : tu n’as pas besoin de les écrire toi-même.',note:'<b>À retenir.</b> La valeur est calculée au moment où la requête s’exécute. Si tu relances la requête plus tard, le résultat change.'},
+  {k:'extract',label:'Extraire une partie',short:'année · mois · jour · heure',title:'Extraire seulement le mois',fn:'strftime()',sql:"SELECT date_commande,\n       strftime('%m', date_commande) AS mois\nFROM commandes\nLIMIT 8;",note:'La colonne <code>date_commande</code> reste entière. La requête ajoute simplement une colonne calculée avec le mois.',visual:`<div class="df-parts"><span class="df-part"><b>2023</b><small>année</small></span><i class="df-dash">–</i><span class="df-part on"><b>07</b><small>mois</small></span><i class="df-dash">–</i><span class="df-part"><b>18</b><small>jour</small></span></div>`},
+  {k:'format',label:'Formater une date',short:'2023-07-18 → 18/07/2023',title:'Formater une date',fn:'strftime()',sql:"SELECT date_commande,\n       strftime('%d/%m/%Y', date_commande) AS date_fr\nFROM commandes\nLIMIT 8;",note:'Ici, on ne change pas la date stockée. On change seulement sa forme dans le résultat.',visual:`<div class="df-before-after"><span class="df-value">2023-07-18</span><span class="df-arrow" aria-hidden="true"><svg viewBox="0 0 32 18" fill="none"><path d="M2 9h25M21 3l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="df-value is-result">18/07/2023</span></div>`},
+  {k:'shift',label:'Décaler une date',short:'+ 5 jours · - 1 mois',title:'Décaler une date',fn:'date()',sql:"SELECT date_commande,\n       date(date_commande, '+5 days') AS expedition\nFROM commandes\nLIMIT 8;",note:'Le calcul fabrique une nouvelle date. La date d’origine reste enregistrée telle quelle.',visual:`<div class="df-timeline"><span class="df-node"><i></i>18/07</span><span class="df-line"><b>+ 5 jours</b></span><span class="df-node"><i></i>23/07</span></div>`},
+  {k:'duration',label:'Calculer une durée',short:'date_fin − date_début',title:'Calculer une durée',fn:'julianday()',sql:"SELECT julianday('2025-03-20') - julianday('2025-03-14') AS jours;",note:'Une durée se calcule dans cet ordre : date de fin moins date de début.',visual:`<div class="df-duration"><div class="df-timeline"><span class="df-node"><i></i>14 mars</span><span class="df-line"></span><span class="df-node"><i></i>20 mars</span></div><strong class="df-days">6 jours</strong></div>`},
+  {k:'period',label:'Filtrer une période',short:'début inclus · fin exclue',title:'Filtrer une période',fn:'WHERE',sql:"SELECT date_commande\nFROM commandes\nWHERE date_commande >= '2023-07-01'\n  AND date_commande < '2023-08-01'\nORDER BY date_commande;",note:'Ce filtre garde juillet entier. Le début est inclus ; le début du mois suivant est exclu.',visual:`<div class="df-range"><b class="df-range-title">JUILLET 2023</b><div class="df-range-axis"><span>01/07</span><i class="df-range-fill"></i><span>01/08</span></div><div class="df-range-legend"><span>● inclus</span><span>○ exclu</span></div></div>`}
 ];
+function dateNowStamp(d){
+  const t=d||new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  return `${t.getUTCFullYear()}-${pad(t.getUTCMonth()+1)}-${pad(t.getUTCDate())} ${pad(t.getUTCHours())}:${pad(t.getUTCMinutes())}:${pad(t.getUTCSeconds())}`;
+}
 function dateNowVisualHtml(d){
   /* UTC : CURRENT_TIMESTAMP de SQLite est toujours en UTC. */
   const t=d||new Date();
@@ -21469,10 +21477,14 @@ function dateNowVisualHtml(d){
 }
 function dateFunctionStageHtml(g){
   const visual=g.k==='now'?dateNowVisualHtml():g.visual;
+  const why=g.why?`<p class="df-why">${g.why}</p>`:'';
+  const sample=g.k==='now'?`<p class="df-sample">Exemple de résultat : <code class="df-now-sample">${dateNowStamp()}</code></p>`:'';
   return `<div class="df-stage-head" aria-live="polite"><div><small>Opération temporelle</small><h3>${esc(g.title)}</h3></div><code class="df-stage-fn">${esc(g.fn)}</code></div>
+    ${why}
     <div class="df-visual" aria-label="${escAttr(g.title)}">${visual}</div>
     ${piegeSqlRunBlock(g.sql)}
-    ${g.note?`<p class="df-note">${g.note}</p>`:''}`;
+    ${sample}
+    ${g.note?`<p class="df-note"><span>${g.note}</span></p>`:''}`;
 }
 function renderDateFunctionsStudio(){
   const first=DATE_FUNCTION_GUIDES[0];
@@ -21535,9 +21547,10 @@ function renderDateFunctionsStudio(){
       <p class="df-note"><span><code>INTERVAL</code> est différent des autres : il représente une durée, pas une date ou une heure. Il sert notamment à ajouter ou retirer du temps.</span></p>
     </div>
     <div class="concept-block">
-      <h2><span class="h2-eye">Mini-laboratoire</span><span class="h2-txt">Six gestes à maîtriser</span></h2>
-      <p class="df-lead">Chaque onglet part d’un besoin simple. Lis le schéma, observe la fonction, puis exécute la requête.</p>
-      <div class="df-intents" role="tablist" aria-label="Actions possibles sur une date">${DATE_FUNCTION_GUIDES.map((g,i)=>`<button type="button" class="df-intent${i===0?' on':''}" role="tab" aria-selected="${i===0?'true':'false'}" data-k="${g.k}"><b>${g.label}</b>${g.short?`<small>${g.short}</small>`:''}</button>`).join('')}</div>
+      <h2><span class="h2-eye">Mini-laboratoire</span><span class="h2-txt">6 opérations essentielles sur les dates</span></h2>
+      <p class="df-lead">Une fois une date enregistrée, SQL peut la lire, la décomposer, la présenter autrement, la décaler, mesurer une durée ou filtrer une période.</p>
+      <p>Choisis une opération pour voir comment elle fonctionne.</p>
+      <div class="df-intents" role="tablist" aria-label="Opérations essentielles sur les dates">${DATE_FUNCTION_GUIDES.map((g,i)=>`<button type="button" class="df-intent${i===0?' on':''}" role="tab" aria-selected="${i===0?'true':'false'}" data-k="${g.k}"><b>${g.label}</b>${g.short?`<small>${g.short}</small>`:''}</button>`).join('')}</div>
       <div class="df-stage">${dateFunctionStageHtml(first)}</div>
     </div>
     <div class="concept-block">
@@ -21703,6 +21716,8 @@ function paintDateNowVisual(host){
   now.querySelector('.df-cal b').textContent=t.getUTCDate();
   now.querySelector('.df-cal span').textContent=t.getUTCFullYear();
   now.querySelector('.df-clock-time').innerHTML=`${pad(t.getUTCHours())}<span class="colon">:</span>${pad(t.getUTCMinutes())}<span class="colon">:</span>${pad(t.getUTCSeconds())}`;
+  const sample=host.closest('.df-stage')?.querySelector('.df-now-sample');
+  if(sample) sample.textContent=dateNowStamp(t);
 }
 function startDateNowTick(page){
   stopDateNowTick();
@@ -28124,7 +28139,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-11-df-types-v578';
+  const SW_CACHE='requete-2026-09-11-df-lab-v579';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
