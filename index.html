@@ -1322,8 +1322,9 @@
   .df-cal small{display:block;padding:5px;background:var(--accent);color:#fff;font-size:8px;font-weight:850;letter-spacing:.5px}
   .df-cal b{display:block;padding:9px 3px 1px;font-size:25px;line-height:1;color:var(--ink)}
   .df-cal span{display:block;padding:3px 3px 8px;font-size:8px;font-weight:800;color:var(--ink-3)}
-  .df-clock{display:flex;align-items:center;padding:0 13px;border:1px solid var(--line);border-radius:14px;background:var(--surface);font-family:var(--mono);font-size:20px;font-weight:800;color:var(--accent)}
+  .df-clock{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 13px;border:1px solid var(--line);border-radius:14px;background:var(--surface);font-family:var(--mono);font-size:20px;font-weight:800;color:var(--accent);line-height:1}
   .df-clock .colon{animation:dfBlink 1.2s ease-in-out infinite}
+  .df-clock small{display:block;margin-top:5px;font-size:8px;font-weight:850;letter-spacing:.6px;color:var(--ink-3)}
   .df-parts{display:flex;align-items:flex-end;justify-content:center;gap:5px;width:100%}
   .df-part{display:flex;flex-direction:column;align-items:center;gap:5px}
   .df-part b{padding:9px 8px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-family:var(--mono);font-size:13px}
@@ -21352,16 +21353,24 @@ function initTextFunctions(){
   intents.forEach(btn=>btn.addEventListener('click',()=>choose(btn)));
 }
 const DATE_FUNCTION_GUIDES=[
-  {k:'now',label:'Obtenir la date et l’heure actuelles',short:'CURRENT_TIMESTAMP',title:'Obtenir la date et l’heure actuelles',fn:'CURRENT_TIMESTAMP',sql:'SELECT CURRENT_TIMESTAMP;',note:'<code>CURRENT_TIMESTAMP</code> renvoie la date et l’heure au moment où la requête est exécutée.',visual:`<div class="df-now"><div class="df-cal"><small>AOÛT</small><b>29</b><span>2026</span></div><div class="df-clock">13<span class="colon">:</span>30<span class="colon">:</span>00</div></div>`},
+  {k:'now',label:'Obtenir la date et l’heure actuelles',short:'CURRENT_TIMESTAMP',title:'Obtenir la date et l’heure actuelles',fn:'CURRENT_TIMESTAMP',sql:'SELECT CURRENT_TIMESTAMP;',note:'<code>CURRENT_TIMESTAMP</code> renvoie la date et l’heure au moment où la requête est exécutée.'},
   {k:'extract',label:'Extraire une partie',short:'année, mois, jour, heure…',title:'Isoler le mois',fn:'strftime()',sql:"SELECT date_commande,\n       strftime('%m', date_commande) AS mois\nFROM commandes\nLIMIT 8;",note:'La date reste complète dans la table : seul le mois est renvoyé.',visual:`<div class="df-parts"><span class="df-part"><b>2023</b><small>année</small></span><i class="df-dash">–</i><span class="df-part on"><b>07</b><small>mois</small></span><i class="df-dash">–</i><span class="df-part"><b>18</b><small>jour</small></span></div>`},
   {k:'format',label:'Changer le format d’affichage',title:'Afficher au format français',fn:'strftime()',sql:"SELECT date_commande,\n       strftime('%d/%m/%Y', date_commande) AS date_fr\nFROM commandes\nLIMIT 8;",visual:`<div class="df-before-after"><span class="df-value">2023-07-18</span><span class="df-arrow" aria-hidden="true"><svg viewBox="0 0 32 18" fill="none"><path d="M2 9h25M21 3l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="df-value is-result">18/07/2023</span></div>`},
   {k:'shift',label:'Ajouter ou retirer du temps',title:'Prévoir l’expédition',fn:'date()',sql:"SELECT date_commande,\n       date(date_commande, '+5 days') AS expedition\nFROM commandes\nLIMIT 8;",note:'La date de départ avance de 5 jours ; le résultat est une nouvelle date.',visual:`<div class="df-timeline"><span class="df-node"><i></i>18/07</span><span class="df-line"><b>+ 5 jours</b></span><span class="df-node"><i></i>23/07</span></div>`},
   {k:'duration',label:'Calculer une durée',title:'Compter les jours écoulés',fn:'julianday()',sql:"SELECT julianday('2025-03-20') - julianday('2025-03-14') AS jours;",note:'Une durée vient toujours de la date de fin moins la date de début.',visual:`<div class="df-duration"><div class="df-timeline"><span class="df-node"><i></i>14 mars</span><span class="df-line"></span><span class="df-node"><i></i>20 mars</span></div><strong class="df-days">6 jours</strong></div>`},
   {k:'period',label:'Filtrer selon une date',title:'Garder tout le mois de juillet',fn:'WHERE',sql:"SELECT date_commande\nFROM commandes\nWHERE date_commande >= '2023-07-01'\n  AND date_commande < '2023-08-01'\nORDER BY date_commande;",note:'Le début est inclus ; la borne du mois suivant est exclue.',visual:`<div class="df-range"><b class="df-range-title">JUILLET 2023</b><div class="df-range-axis"><span>01/07</span><i class="df-range-fill"></i><span>01/08</span></div><div class="df-range-legend"><span>● inclus</span><span>○ exclu</span></div></div>`}
 ];
+function dateNowVisualHtml(d){
+  /* UTC : CURRENT_TIMESTAMP de SQLite est toujours en UTC. */
+  const t=d||new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  const month=t.toLocaleString('fr-FR',{month:'long',timeZone:'UTC'}).toUpperCase();
+  return `<div class="df-now"><div class="df-cal"><small>${esc(month)}</small><b>${t.getUTCDate()}</b><span>${t.getUTCFullYear()}</span></div><div class="df-clock">${pad(t.getUTCHours())}<span class="colon">:</span>${pad(t.getUTCMinutes())}<span class="colon">:</span>${pad(t.getUTCSeconds())}<small>UTC</small></div></div>`;
+}
 function dateFunctionStageHtml(g){
+  const visual=g.k==='now'?dateNowVisualHtml():g.visual;
   return `<div class="df-stage-head"><div><small>Opération temporelle</small><h3>${esc(g.title)}</h3></div><code class="df-stage-fn">${esc(g.fn)}</code></div>
-    <div class="df-visual" aria-label="${escAttr(g.title)}">${g.visual}</div>
+    <div class="df-visual" aria-label="${escAttr(g.title)}">${visual}</div>
     ${piegeSqlRunBlock(g.sql)}
     ${g.note?`<p class="df-note">${g.note}</p>`:''}`;
 }
@@ -21370,6 +21379,9 @@ function renderDateFunctionsStudio(){
   return `<div class="concept-page date-functions-page">
     <div class="concept-block">
       <h2><span class="h2-eye">Date + heure</span><span class="h2-txt">Une date et une heure se décomposent en plusieurs parties</span></h2>
+      <p>Les dates et les heures sont présentes partout dans les bases de données : date d’inscription d’un client, date d’une commande, date de naissance, heure d’une connexion, date de livraison, logs, etc.</p>
+      <p>Mais manipuler le temps en SQL demande quelques précautions : les types et les fonctions varient selon les SGBD, les formats peuvent être ambigus, les mois n’ont pas tous la même durée et les fuseaux horaires peuvent modifier l’heure affichée.</p>
+      <p>L’objectif n’est donc pas seulement d’apprendre des fonctions, mais de comprendre comment SQL représente, extrait, transforme, compare et calcule le temps.</p>
       <p class="df-lead">Une valeur de date et d’heure contient plusieurs informations : année, mois, jour, heure, minute et seconde. SQL peut utiliser la valeur complète ou extraire seulement la partie dont tu as besoin.</p>
       <div class="df-anatomy" role="img" aria-label="29 août 2026 à 13 heures 30 minutes et 0 seconde">
         <span class="df-unit"><b>2026</b><small>année</small></span><span class="df-unit"><b>08</b><small>mois</small></span><span class="df-unit"><b>29</b><small>jour</small></span><i class="df-sep">·</i><span class="df-unit is-time"><b>13</b><small>heure</small></span><span class="df-unit is-time"><b>30</b><small>minute</small></span><span class="df-unit is-time"><b>00</b><small>seconde</small></span>
@@ -21597,6 +21609,27 @@ WHERE date_livraison IS NULL;</pre></div>
     <!-- early-demo -->
   </div>`;
 }
+let dfNowTick=null;
+function stopDateNowTick(){
+  if(dfNowTick){clearInterval(dfNowTick);dfNowTick=null;}
+}
+function paintDateNowVisual(host){
+  if(host) host.innerHTML=dateNowVisualHtml();
+}
+function startDateNowTick(page){
+  stopDateNowTick();
+  const visual=page.querySelector('.df-visual');
+  if(!visual||!page.querySelector('.df-intent.on[data-k="now"]')) return;
+  paintDateNowVisual(visual);
+  if(prefersReduceMotion()) return;
+  dfNowTick=setInterval(()=>{
+    if(!document.body.contains(page)||!page.querySelector('.df-intent.on[data-k="now"]')){
+      stopDateNowTick();
+      return;
+    }
+    paintDateNowVisual(page.querySelector('.df-visual'));
+  },1000);
+}
 function initDateFunctions(){
   const page=document.querySelector('#lesson-body .date-functions-page');
   if(!page)return;
@@ -21605,10 +21638,13 @@ function initDateFunctions(){
   intents.forEach(btn=>btn.addEventListener('click',()=>{
     const guide=DATE_FUNCTION_GUIDES.find(g=>g.k===btn.dataset.k);if(!guide||!stage)return;
     intents.forEach(n=>{const on=n===btn;n.classList.toggle('on',on);n.setAttribute('aria-selected',on?'true':'false');});
+    stopDateNowTick();
     stage.innerHTML=dateFunctionStageHtml(guide);
     stage.classList.remove('is-changing');void stage.offsetWidth;stage.classList.add('is-changing');
+    if(guide.k==='now') startDateNowTick(page);
     if(navigator.vibrate)navigator.vibrate(5);
   }));
+  startDateNowTick(page);
 }
 const NUMERIC_FUNCTION_GUIDES=[
   {k:'calculate',label:'Faire un calcul',short:'+ · − · × · ÷',title:'Calculer le montant',fn:'*',sql:'prix * quantite AS montant',note:'SQL effectue ce calcul séparément pour chaque ligne.',visual:`<div class="nf-equation"><span class="nf-num">29,90</span><i class="nf-op">×</i><span class="nf-num">2</span><i class="nf-op">=</i><span class="nf-num is-result">59,80</span></div>`},
@@ -28000,7 +28036,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-10-df-sgbd-ecriture-v556';
+  const SW_CACHE='requete-2026-09-11-df-intro-motivation-v559';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
