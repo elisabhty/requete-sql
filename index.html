@@ -9722,11 +9722,9 @@ GROUP BY YEAR(date_commande);</pre></div>
       <p>Puis tu choisis la fonction adaptée à ton SGBD.</p></div>`},
     reflex:{note:"Avant de choisir une fonction, demande-toi : <b>qu’est-ce que je veux faire avec ma date ?</b>",
       extra:`<ul class="fn-reflex-list"><li>Obtenir la date actuelle → <code>CURRENT_DATE</code>, <code>NOW()</code></li><li>Extraire une partie → <code>YEAR()</code>, <code>EXTRACT()</code></li><li>Formater → <code>DATE_FORMAT()</code>, <code>strftime()</code></li><li>Ajouter ou retirer du temps → <code>DATE_ADD()</code>, <code>DATE_SUB()</code></li><li>Calculer une durée → <code>DATEDIFF()</code></li><li>Filtrer une période → <code>WHERE</code> + comparateurs</li></ul>`}},
-  anatomie:[{tok:"SELECT date_commande,",txt:"La date enregistrée pour chaque commande."},{tok:"YEAR(date_commande) AS annee",txt:"L’année extraite de cette date."},{tok:"FROM commandes",txt:"La table commandes est utilisée comme source."}],
   exemple:"SELECT date_commande, YEAR(date_commande) AS annee\nFROM commandes;",
   attendu:"16 lignes. 2023-07-02 → 2023.",
   retenir:"La bonne question : qu’est-ce que je veux faire avec ma date ? Obtenir, extraire, formater, décaler, mesurer une durée, filtrer. La syntaxe change selon le SGBD ; le raisonnement reste le même.",
-  piege:{t:"Trois repères à garder",p:"Préfère le format non ambigu <code>AAAA-MM-JJ</code>. Le formatage change l’affichage, pas la valeur stockée. Enfin, une opération faite sur une date <code>NULL</code> renvoie généralement <code>NULL</code>."},
   consigne:"Affiche chaque commande avec sa <code>date_commande</code> et son année.",
   solution:"SELECT date_commande, YEAR(date_commande) AS annee FROM commandes;",
   indice:"<code>YEAR(date_commande) AS annee</code>. Selon le SGBD, on peut aussi écrire <code>EXTRACT(YEAR FROM date_commande)</code>.",
@@ -9768,13 +9766,6 @@ GROUP BY YEAR(date_commande);</pre></div>
     "sql": "SELECT YEAR(date_commande) AS annee, COUNT(*) AS nombre_commandes\nFROM commandes\nGROUP BY YEAR(date_commande);",
     "out": "Les 16 commandes sont en 2023.",
     "tone": "good"
-  },
-  {
-    "k": "rec_native",
-    "label": "SQLite natif",
-    "sql": "SELECT date_commande, CAST(strftime('%Y', date_commande) AS INTEGER) AS annee FROM commandes;",
-    "out": "La même année avec des fonctions natives de SQLite.",
-    "expectRows": 16
   }
 ],
   fnCmp:{title:"Le tableau réflexe",want:1,h1:"Je veux…",h2:"J’utilise",
@@ -27780,7 +27771,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-10-format-sans-note-v549';
+  const SW_CACHE='requete-2026-09-10-date-nettoyage-fin-v550';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
