@@ -42,7 +42,7 @@ assert(studio.includes('La donnée n’a pas toujours le bon type') && studio.in
 assert(studio.includes('Comment demander à SQL de transformer une valeur d’un type vers un autre ?'), 'question d’ouverture recentrée sur CAST');
 assert(studio.includes('CAST(expression AS type)') && studio.includes('CAST(valeur AS type)') && studio.includes("SELECT CAST('34' AS INTEGER);"), 'CAST présenté comme cœur de la leçon, puis comme structure du laboratoire');
 assert(html.includes('Ce qui se passe') && html.includes('function conversionMachineHtml'), 'chaque conversion montre le passage de type');
-assert(studio.includes('Même principe, syntaxe parfois différente') && studio.includes('TRY_CAST()') && studio.includes('strftime()'), 'particularités SGBD seulement annoncées après CAST');
+assert(studio.includes('TRY_CAST()') && studio.includes('strftime()') && !studio.includes('Même principe, syntaxe parfois différente') && !studio.includes('C’est notamment utile lorsque des nombres provenant d’un import'), 'encadrés redondants du mini-laboratoire retirés');
 assert(studio.includes('Convertir ne veut pas dire formater') && studio.includes('TO_CHAR()') && studio.includes('DATE_FORMAT()'), 'conversion distinguée du formatage');
 assert(studio.includes("CAST('29.956' AS DECIMAL(10,2))") && studio.includes('précision totale'), 'DECIMAL(10,2) expliqué');
 assert(studio.includes('évite de compter inutilement sur une conversion automatique'), 'conversion explicite présentée sans règle absolue');
@@ -61,7 +61,7 @@ assert(html.includes('initConversionFunctions();'), 'laboratoire activé au rend
 assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53||l.id===54"), 'récapitulatifs redondants retirés de cette page');
 assert(html.includes('const hideLessonLab=l.id===52||l.id===54'), 'console Teste redondante masquée');
 assert(!html.slice(html.indexOf('function conversionFunctionStageHtml'), html.indexOf('function renderConversionFunctionsStudio')).includes('g.note'), 'notes sous les requêtes du mini-laboratoire retirées');
-assert(serviceWorker.includes('requete-2026-09-12-cf-sgbd-alts-v671'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-09-12-cf-lab-trim-v672'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
