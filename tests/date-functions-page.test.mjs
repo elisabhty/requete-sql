@@ -71,6 +71,8 @@ assert(studio.includes('2026-08-29T11:30:00Z'), 'instant ancré en UTC dans les 
 assert(orderOk && (studio.match(/<div class="concept-block">/g) || []).length === 8, 'huit cadres dans l’ordre pédagogique');
 assert(!studio.includes('Et pour les fuseaux horaires ?') && !studio.includes('Convertir une valeur'), 'cadres hors fil retirés');
 assert(studio.includes('df-memo-table') && studio.includes('PostgreSQL') && studio.includes('SQL Server') && studio.includes('Oracle'), 'mémo en tableau des cinq SGBD');
+assert(studio.includes('df-memo-scroll') && studio.includes('Glisse'), 'mémo large avec indicateur de glissement');
+assert(html.includes('bindTableSwipe(page)'), 'indicateur de glissement activé sur le mémo');
 assert(studio.includes("EXTRACT(YEAR FROM d)") && studio.includes('DATEADD(day, 7, d)') && studio.includes('FROM_TZ()'), 'équivalents année, décalage et fuseau renseignés');
 assert(studio.includes('df-month-path') && studio.includes('2023-09-01') && studio.includes('+1 month'), 'chemin en quatre étapes pour la fin du mois');
 assert(!studio.includes('Ne devine pas le dernier jour'), 'ouverture du cadre mois moins brutale');

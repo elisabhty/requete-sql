@@ -1470,14 +1470,16 @@
   .df-bet-hits li.is-ko{border:1px solid rgba(195,59,88,.16);background:rgba(195,59,88,.06);color:#c33b58}
   .df-bet-hits code{background:transparent!important;padding:0!important;color:inherit!important;white-space:nowrap;overflow-wrap:normal}
   .df-bet-hits b{flex:none;font-size:14px;font-weight:800}
+  .date-functions-page .df-memo-scroll{margin:0 0 12px}
   .date-functions-page .df-memo-wrap{margin:0}
   .date-functions-page .concept-block .table-wrap table.df-memo-table{width:max-content;min-width:100%;table-layout:auto}
   .date-functions-page .concept-block .table-wrap table.df-memo-table th,
-  .date-functions-page .concept-block .table-wrap table.df-memo-table td{text-align:left;white-space:nowrap;vertical-align:top;padding:10px 12px}
-  .date-functions-page .concept-block .table-wrap table.df-memo-table td:first-child{font-weight:750;color:var(--ink);white-space:normal;min-width:8.5rem;max-width:10.5rem}
+  .date-functions-page .concept-block .table-wrap table.df-memo-table td{text-align:left;white-space:nowrap;vertical-align:middle;padding:10px 12px}
+  .date-functions-page .concept-block .table-wrap table.df-memo-table td:first-child{font-weight:750;color:var(--ink)}
   .date-functions-page .concept-block .table-wrap table.df-memo-table th:first-child,
   .date-functions-page .concept-block .table-wrap table.df-memo-table td:first-child{position:sticky;left:0;z-index:1;background:var(--surface);box-shadow:1px 0 0 var(--line)}
   .date-functions-page .concept-block .table-wrap table.df-memo-table th:first-child{background:var(--bg)}
+  .date-functions-page .concept-block .table-wrap table.df-memo-table tbody tr:last-child td{padding-bottom:18px}
   .date-functions-page .concept-block .table-wrap table.df-memo-table td code{white-space:nowrap;overflow-wrap:normal;font-size:11px}
   .df-code{margin:0 0 8px!important}
   .df-code .cw-syntax{min-height:0}
@@ -21757,7 +21759,7 @@ FROM commandes;</pre></div>
     <div class="concept-block">
       <h2><span class="h2-eye">Mémo</span><span class="h2-txt">Dates et heures selon le SGBD</span></h2>
       <p class="df-lead">Une même opération peut s’écrire différemment selon le SGBD. Dans ce cours, les exercices utilisent SQLite. Ce mémo te permet de retrouver l’équivalent dans PostgreSQL, MySQL, SQL Server et Oracle.</p>
-      <div class="table-wrap df-memo-wrap"><table class="concept-table df-memo-table"><thead><tr><th scope="col">Besoin</th><th scope="col">SQLite</th><th scope="col">PostgreSQL</th><th scope="col">MySQL</th><th scope="col">SQL Server</th><th scope="col">Oracle</th></tr></thead><tbody>
+      <div class="table-scroll df-memo-scroll"><div class="table-wrap df-memo-wrap"><table class="concept-table df-memo-table"><thead><tr><th scope="col">Besoin</th><th scope="col">SQLite</th><th scope="col">PostgreSQL</th><th scope="col">MySQL</th><th scope="col">SQL Server</th><th scope="col">Oracle</th></tr></thead><tbody>
         <tr><td>Date actuelle</td><td><code>date('now')</code></td><td><code>CURRENT_DATE</code></td><td><code>CURDATE()</code></td><td><code>CAST(GETDATE() AS date)</code></td><td><code>TRUNC(SYSDATE)</code></td></tr>
         <tr><td>Heure actuelle</td><td><code>time('now')</code></td><td><code>CURRENT_TIME</code></td><td><code>CURTIME()</code></td><td><code>CAST(GETDATE() AS time)</code></td><td><code>TO_CHAR(SYSDATE, 'HH24:MI:SS')</code></td></tr>
         <tr><td>Date + heure</td><td><code>datetime('now')</code></td><td><code>CURRENT_TIMESTAMP</code></td><td><code>NOW()</code></td><td><code>GETDATE()</code></td><td><code>CURRENT_TIMESTAMP</code></td></tr>
@@ -21774,6 +21776,7 @@ FROM commandes;</pre></div>
         <tr><td>Date absente</td><td><code>IS NULL</code></td><td><code>IS NULL</code></td><td><code>IS NULL</code></td><td><code>IS NULL</code></td><td><code>IS NULL</code></td></tr>
         <tr><td>Convertir un fuseau</td><td><code>'utc' / 'localtime'</code></td><td><code>AT TIME ZONE</code></td><td><code>CONVERT_TZ()</code></td><td><code>AT TIME ZONE</code></td><td><code>FROM_TZ() + AT TIME ZONE</code></td></tr>
       </tbody></table></div>
+      <div class="table-swipe" aria-hidden="true"><span class="table-swipe-pos"><span class="order-hint-chip">Glisse<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h13M13 7l5 5-5 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span></div></div>
       <p class="df-note"><span>Pour une date présente, utilise <code>IS NOT NULL</code> — la syntaxe est la même dans les cinq SGBD.</span></p>
     </div>
     <!-- early-demo -->
@@ -21826,6 +21829,7 @@ function initDateFunctions(){
     if(navigator.vibrate)navigator.vibrate(5);
   }));
   startDateNowTick(page);
+  bindTableSwipe(page);
 }
 const NUMERIC_FUNCTION_GUIDES=[
   {k:'calculate',label:'Faire un calcul',short:'+ · − · × · ÷',title:'Calculer le montant',fn:'*',sql:'prix * quantite AS montant',note:'SQL effectue ce calcul séparément pour chaque ligne.',visual:`<div class="nf-equation"><span class="nf-num">29,90</span><i class="nf-op">×</i><span class="nf-num">2</span><i class="nf-op">=</i><span class="nf-num is-result">59,80</span></div>`},
@@ -28218,7 +28222,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-11-df-memo-v590';
+  const SW_CACHE='requete-2026-09-12-df-memo-v591';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
