@@ -42,11 +42,11 @@ assert(studio.includes('La donnée n’a pas toujours le bon type') && studio.in
 assert(studio.includes('Comment demander à SQL de transformer une valeur d’un type vers un autre ?'), 'question d’ouverture recentrée sur CAST');
 assert(studio.includes('CAST(expression AS type)') && studio.includes('CAST(valeur AS type)') && studio.includes("SELECT CAST('34' AS INTEGER);"), 'CAST présenté comme cœur de la leçon, puis comme structure du laboratoire');
 assert(html.includes('Ce qui se passe') && html.includes('function conversionMachineHtml'), 'chaque conversion montre le passage de type');
-assert(studio.includes('Même principe, syntaxe parfois différente') && studio.includes('TRY_CAST()') && studio.includes('fonctions dédiées'), 'particularités SGBD seulement annoncées après CAST');
+assert(studio.includes('Même principe, syntaxe parfois différente') && studio.includes('TRY_CAST()') && studio.includes('strftime()'), 'particularités SGBD seulement annoncées après CAST');
 assert(studio.includes('Convertir ne veut pas dire formater') && studio.includes('TO_CHAR()') && studio.includes('DATE_FORMAT()'), 'conversion distinguée du formatage');
 assert(studio.includes("CAST('29.956' AS DECIMAL(10,2))") && studio.includes('précision totale'), 'DECIMAL(10,2) expliqué');
 assert(studio.includes('évite de compter inutilement sur une conversion automatique'), 'conversion explicite présentée sans règle absolue');
-assert(studio.includes('La même opération, une écriture par SGBD') && studio.includes('cf-sgbd-table') && studio.includes('cf-sgbd-fns') && studio.includes('::') && studio.includes('TRY_CAST()') && studio.includes('STR_TO_DATE()') && !studio.includes('df-memo-table') && !studio.includes('Des fonctions spécifiques existent aussi') && !studio.includes('Dans ce cours, les exercices utilisent SQLite'), 'un tableau récapitulatif clair, sans note sous le tableau');
+assert(studio.includes('La même opération, une écriture par SGBD') && studio.includes('cf-sgbd-table') && studio.includes('cf-sgbd-fns') && studio.includes('Conversion générale') && studio.includes('Autres syntaxes / fonctions') && studio.includes('date()') && studio.includes('datetime()') && studio.includes('strftime()') && studio.includes('DATE_FORMAT()') && studio.includes('TRY_CONVERT()') && studio.includes('PARSE()') && studio.includes('Pas toutes des équivalents de CAST()') && studio.includes('interpréter ou à formater') && !studio.includes('df-memo-table') && !studio.includes('Des fonctions spécifiques existent aussi') && !studio.includes('fonctions dédiées') && !studio.includes('Dans ce cours, les exercices utilisent SQLite'), 'tableau nommé, fonctions concrètes, et précision conversion / formatage');
 assert(studio.includes('CAST(ROUND(prix) AS INTEGER)') && studio.includes('de l’intérieur vers l’extérieur'), 'fonctions imbriquées');
 assert(studio.includes('Pièges à éviter') && studio.includes('Les erreurs fréquentes avec CAST()') && studio.includes('cf-traps') && (studio.match(/<article class="cf-trap">/g) || []).length === 5, 'un cadre scannable avec cinq mini-blocs');
 assert(studio.includes('Valeur incompatible') && studio.includes("CAST('bonjour' AS INTEGER)") && studio.includes('NULL reste NULL') && studio.includes('CAST(NULL AS INTEGER)') && studio.includes('Le séparateur décimal') && studio.includes("REPLACE('29,90'") && studio.includes('Convertir ≠ arrondir') && studio.includes('ROUND(3.99)') && studio.includes('WHERE et JOIN') && studio.includes("id = CAST('4' AS INTEGER)"), 'les cinq pièges CAST restent couverts');
@@ -61,7 +61,7 @@ assert(html.includes('initConversionFunctions();'), 'laboratoire activé au rend
 assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53||l.id===54"), 'récapitulatifs redondants retirés de cette page');
 assert(html.includes('const hideLessonLab=l.id===52||l.id===54'), 'console Teste redondante masquée');
 assert(!html.slice(html.indexOf('function conversionFunctionStageHtml'), html.indexOf('function renderConversionFunctionsStudio')).includes('g.note'), 'notes sous les requêtes du mini-laboratoire retirées');
-assert(serviceWorker.includes('requete-2026-09-12-cf-sgbd-clear-v670'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-09-12-cf-sgbd-alts-v671'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
