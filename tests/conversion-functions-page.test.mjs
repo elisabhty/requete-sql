@@ -46,7 +46,7 @@ assert(studio.includes('Même principe, syntaxe parfois différente') && studio.
 assert(studio.includes('Convertir ne veut pas dire formater') && studio.includes('TO_CHAR()') && studio.includes('DATE_FORMAT()'), 'conversion distinguée du formatage');
 assert(studio.includes("CAST('29.956' AS DECIMAL(10,2))") && studio.includes('précision totale'), 'DECIMAL(10,2) expliqué');
 assert(studio.includes('évite de compter inutilement sur une conversion automatique'), 'conversion explicite présentée sans règle absolue');
-assert(studio.includes('TRY_CAST()') && studio.includes("'42'::INTEGER") && studio.includes('fonctions date()*'), 'variantes SGBD regroupées à part');
+assert(studio.includes('La même opération, une écriture par SGBD') && studio.includes('cf-sgbd-table') && studio.includes('::') && studio.includes('TRY_CAST()') && studio.includes('STR_TO_DATE()') && !studio.includes('df-memo-table') && !studio.includes('Des fonctions spécifiques existent aussi'), 'un tableau récapitulatif par SGBD, sans grand tableau à glisser');
 assert(studio.includes('CAST(ROUND(prix) AS INTEGER)') && studio.includes('de l’intérieur vers l’extérieur'), 'fonctions imbriquées');
 assert(studio.includes('Pièges à éviter') && studio.includes('Les erreurs fréquentes avec CAST()') && studio.includes('cf-traps') && (studio.match(/<article class="cf-trap">/g) || []).length === 5, 'un cadre scannable avec cinq mini-blocs');
 assert(studio.includes('Valeur incompatible') && studio.includes("CAST('bonjour' AS INTEGER)") && studio.includes('NULL reste NULL') && studio.includes('CAST(NULL AS INTEGER)') && studio.includes('Le séparateur décimal') && studio.includes("REPLACE('29,90'") && studio.includes('Convertir ≠ arrondir') && studio.includes('ROUND(3.99)') && studio.includes('WHERE et JOIN') && studio.includes("id = CAST('4' AS INTEGER)"), 'les cinq pièges CAST restent couverts');
@@ -61,7 +61,7 @@ assert(html.includes('initConversionFunctions();'), 'laboratoire activé au rend
 assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53||l.id===54"), 'récapitulatifs redondants retirés de cette page');
 assert(html.includes('const hideLessonLab=l.id===52||l.id===54'), 'console Teste redondante masquée');
 assert(!html.slice(html.indexOf('function conversionFunctionStageHtml'), html.indexOf('function renderConversionFunctionsStudio')).includes('g.note'), 'notes sous les requêtes du mini-laboratoire retirées');
-assert(serviceWorker.includes('requete-2026-09-12-cf-traps-scan-v668'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-09-12-cf-sgbd-recap-v669'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
