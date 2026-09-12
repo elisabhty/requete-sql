@@ -1840,11 +1840,33 @@
   .conversion-functions-page .concept-block{overflow:hidden}
   .conversion-functions-page .piege-sql{margin:0 0 16px}
   .conversion-functions-page .piege-sql:last-child{margin-bottom:0}
-  .lesson-rich .conversion-functions-page .piege{opacity:1;animation:none;margin:0}
-  .cf-trap-list{margin:0;padding:0 0 0 18px}
-  .cf-trap-list li{margin:0 0 9px;font-size:14px;line-height:1.55;color:var(--ink-2)}
-  .cf-trap-list li:last-child{margin-bottom:0}
-  .conversion-functions-page .piege-body .cf-trap-list code{white-space:normal}
+  .lesson-rich .conversion-functions-page .piege{opacity:1;animation:none;margin:0;padding:16px 14px}
+  .conversion-functions-page .piege-title{margin-bottom:12px}
+  .cf-traps{display:flex;flex-direction:column;gap:8px;margin:0}
+  .cf-trap{padding:12px 12px 11px;border-radius:14px;background:color-mix(in srgb,var(--surface-2) 28%,#fff)}
+  .cf-trap>b{display:block;margin:0 0 7px;font-size:14px;line-height:1.3;color:var(--ink)}
+  .cf-trap>p{margin:0 0 7px!important;font-size:13.5px!important;line-height:1.45!important;color:var(--ink-2)!important}
+  .cf-trap>p:last-child{margin-bottom:0!important}
+  .cf-trap-sql{margin:0 0 8px;padding:8px 10px;border-radius:11px;background:var(--surface);font-family:var(--mono);font-size:12.5px;line-height:1.4}
+  .cf-trap .cf-trap-sql:last-child{margin-bottom:0}
+  .cf-trap-sql small{display:block;margin:0 0 4px;font-family:var(--ui);font-size:10.5px;font-weight:750;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)}
+  .cf-trap-sql code{display:block;white-space:pre-wrap;overflow-wrap:anywhere;background:transparent!important;padding:0!important;color:inherit!important}
+  .cf-trap-sql.is-ok{border:1px solid rgba(29,143,117,.18);background:rgba(29,143,117,.07)}
+  .cf-trap-sql.is-ok small{color:#147d68}
+  .cf-trap-sql.is-ok code{color:#147d68!important}
+  .cf-trap-sql.is-ko{border:1px solid rgba(195,59,88,.16);background:rgba(195,59,88,.06)}
+  .cf-trap-sql.is-ko small{color:#c33b58}
+  .cf-trap-sql.is-ko code{color:#c33b58!important}
+  .cf-trap-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:0 0 8px}
+  .cf-trap-pair:last-child{margin-bottom:0}
+  .cf-trap-val{padding:8px 10px;border-radius:11px;background:var(--surface);text-align:center}
+  .cf-trap-val b{display:block;font-family:var(--mono);font-size:15px;color:var(--ink)}
+  .cf-trap-val small{display:block;margin-top:3px;font-size:11px;line-height:1.3;color:var(--ink-3)}
+  .cf-trap-val.is-ok{border:1px solid rgba(29,143,117,.18);background:rgba(29,143,117,.07)}
+  .cf-trap-val.is-ok b{color:#147d68}
+  .cf-trap-val.is-ko{border:1px solid rgba(195,59,88,.16);background:rgba(195,59,88,.06)}
+  .cf-trap-val.is-ko b{color:#c33b58}
+  .cf-trap-tip{margin:0!important;font-size:13px!important;line-height:1.45!important;color:var(--ink)!important}
   .conversion-functions-page h2 .h2-emo{flex:none;font-size:14px;line-height:1;letter-spacing:0;text-transform:none;font-weight:400}
   .conversion-functions-page .nf-sub{margin:16px 0 8px;font-size:16.5px;font-weight:800;letter-spacing:-.3px;line-height:1.25;color:var(--ink)}
   .cf-types{display:flex;flex-direction:column;gap:6px;margin:0 0 13px;padding:0;list-style:none}
@@ -22194,15 +22216,47 @@ function renderConversionFunctionsStudio(){
       </div>
     </div>
     ${renderPiege({
-      lab:'Piège',
+      lab:'Pièges à éviter',
       t:'Les erreurs fréquentes avec CAST()',
-      p:`<ul class="cf-trap-list">
-        <li><code>CAST('bonjour' AS INTEGER)</code> n’est pas convertible : selon le SGBD, ça peut échouer, surtout avec un CSV, un formulaire ou un import.</li>
-        <li><code>CAST(NULL AS INTEGER)</code> reste <code>NULL</code> : ça ne devient pas automatiquement 0.</li>
-        <li>En SQL, on écrit <code>29.90</code> et non <code>29,90</code> : nettoie la virgule avec <code>REPLACE()</code> avant <code>CAST()</code>.</li>
-        <li>Convertir n’est pas arrondir : <code>CAST(3.99 AS INTEGER)</code> n’est pas <code>ROUND(3.99)</code>.</li>
-        <li>Dans <code>WHERE</code> ou <code>JOIN</code>, convertis la valeur, pas la colonne : <code>id = CAST('4' AS INTEGER)</code>, pas <code>CAST(id AS VARCHAR(10)) = '4'</code>.</li>
-      </ul>`
+      p:`<div class="cf-traps">
+        <article class="cf-trap">
+          <b>Valeur incompatible</b>
+          <div class="cf-trap-sql"><code>CAST('bonjour' AS INTEGER)</code></div>
+          <p><code>'bonjour'</code> ne représente pas un nombre. Selon le SGBD, la conversion peut échouer ou produire un résultat particulier.</p>
+          <p class="cf-trap-tip">👉 C’est surtout important avec un fichier, un formulaire ou un import.</p>
+        </article>
+        <article class="cf-trap">
+          <b>NULL reste NULL</b>
+          <div class="cf-trap-sql"><code>CAST(NULL AS INTEGER)</code></div>
+          <p>Le résultat reste <code>NULL</code>.</p>
+          <p class="cf-trap-tip">👉 Une conversion ne transforme pas automatiquement une valeur absente en 0.</p>
+        </article>
+        <article class="cf-trap">
+          <b>Le séparateur décimal</b>
+          <p>Dans une valeur numérique SQL, on utilise généralement un point.</p>
+          <div class="cf-trap-pair">
+            <div class="cf-trap-val is-ok"><b>29.90</b><small>point</small></div>
+            <div class="cf-trap-val is-ko"><b>29,90</b><small>virgule</small></div>
+          </div>
+          <p>Si un texte importé contient une virgule, il peut être nécessaire de le nettoyer avant de le convertir :</p>
+          <div class="cf-trap-sql"><code>CAST(REPLACE('29,90', ',', '.') AS DECIMAL(10,2))</code></div>
+        </article>
+        <article class="cf-trap">
+          <b>Convertir ≠ arrondir</b>
+          <div class="cf-trap-pair">
+            <div class="cf-trap-sql"><small>Changer le type</small><code>CAST(3.99 AS INTEGER)</code></div>
+            <div class="cf-trap-sql"><small>Arrondir</small><code>ROUND(3.99)</code></div>
+          </div>
+          <p>Ce sont deux opérations différentes. Le résultat exact de <code>CAST(3.99 AS INTEGER)</code> peut varier selon le SGBD.</p>
+        </article>
+        <article class="cf-trap">
+          <b>WHERE et JOIN</b>
+          <p>Si <code>id</code> est déjà un entier, préfère comparer avec une valeur du même type.</p>
+          <div class="cf-trap-sql is-ok"><small>Préférer</small><code>id = CAST('4' AS INTEGER)</code></div>
+          <div class="cf-trap-sql is-ko"><small>Plutôt éviter</small><code>CAST(id AS VARCHAR(10)) = '4'</code></div>
+          <p class="cf-trap-tip">👉 Convertir la colonne peut, selon le SGBD et la requête, limiter certaines optimisations, notamment un index.</p>
+        </article>
+      </div>`
     })}
     <div class="concept-block">
       <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">💡</span>À retenir</span><span class="h2-txt">CAST d’abord, puis ton SGBD</span></h2>
@@ -28495,7 +28549,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-12-df-sgbd-title-v667';
+  const SW_CACHE='requete-2026-09-12-cf-traps-scan-v668';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
