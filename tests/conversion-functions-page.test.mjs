@@ -48,7 +48,8 @@ assert(studio.includes("CAST('29.956' AS DECIMAL(10,2))") && studio.includes('pr
 assert(studio.includes('évite de compter inutilement sur une conversion automatique'), 'conversion explicite présentée sans règle absolue');
 assert(studio.includes('TRY_CAST()') && studio.includes("'42'::INTEGER") && studio.includes('fonctions date()*'), 'variantes SGBD regroupées à part');
 assert(studio.includes('CAST(ROUND(prix) AS INTEGER)') && studio.includes('de l’intérieur vers l’extérieur'), 'fonctions imbriquées');
-assert(studio.includes('Les erreurs fréquentes avec CAST()') && studio.includes('cf-trap-list') && studio.includes("CAST('bonjour' AS INTEGER)") && studio.includes('CAST(NULL AS INTEGER)') && studio.includes('29,90') && studio.includes('ROUND(3.99)') && studio.includes("id = CAST('4' AS INTEGER)"), 'un seul cadre piège avec les erreurs courantes');
+assert(studio.includes('Pièges à éviter') && studio.includes('Les erreurs fréquentes avec CAST()') && studio.includes('cf-traps') && (studio.match(/<article class="cf-trap">/g) || []).length === 5, 'un cadre scannable avec cinq mini-blocs');
+assert(studio.includes('Valeur incompatible') && studio.includes("CAST('bonjour' AS INTEGER)") && studio.includes('NULL reste NULL') && studio.includes('CAST(NULL AS INTEGER)') && studio.includes('Le séparateur décimal') && studio.includes("REPLACE('29,90'") && studio.includes('Convertir ≠ arrondir') && studio.includes('ROUND(3.99)') && studio.includes('WHERE et JOIN') && studio.includes("id = CAST('4' AS INTEGER)"), 'les cinq pièges CAST restent couverts');
 assert(!studio.includes('Une conversion n’est pas toujours possible') && !studio.includes('Attention dans WHERE et JOIN') && !studio.includes('Le point décimal') && !studio.includes('NULL reste un cas particulier') && !studio.includes('h2-txt">Convertir n’est pas arrondir'), 'anciens cadres piège complets retirés');
 assert(studio.includes('Convertir change le type de la valeur. Formater change sa présentation.'), 'réflexe final conversion / formatage');
 assert(!studio.includes('Trois vérifications avant CAST'), 'ancien piège documentaire retiré');
@@ -60,7 +61,7 @@ assert(html.includes('initConversionFunctions();'), 'laboratoire activé au rend
 assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53||l.id===54"), 'récapitulatifs redondants retirés de cette page');
 assert(html.includes('const hideLessonLab=l.id===52||l.id===54'), 'console Teste redondante masquée');
 assert(!html.slice(html.indexOf('function conversionFunctionStageHtml'), html.indexOf('function renderConversionFunctionsStudio')).includes('g.note'), 'notes sous les requêtes du mini-laboratoire retirées');
-assert(serviceWorker.includes('requete-2026-09-12-df-sgbd-title-v667'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-09-12-cf-traps-scan-v668'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
