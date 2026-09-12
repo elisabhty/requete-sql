@@ -1782,6 +1782,7 @@
   .nf-reflex{display:flex;flex-direction:column;gap:6px;margin:0 0 13px;padding:0;list-style:none}
   .nf-reflex li{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--surface-2) 28%,#fff);font-size:14px;line-height:1.4;color:var(--ink)}
   .nf-reflex i{color:var(--accent);font-style:normal}
+  .nf-reflex-fns{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px}
   .nf-mm{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin:0 0 13px}
   .nf-mm-col{min-width:0;padding:12px 10px;border:1px solid var(--card-border);border-radius:15px;background:var(--surface)}
   .nf-mm-col.is-accent{border-color:rgba(91,91,214,.22);background:rgba(91,91,214,.05)}
@@ -9567,7 +9568,7 @@ learningCheck:{
     studio:{problem:{eye:"Fonctions numériques",title:"Calculer sans modifier la table.",
       body:`<div class="pt-lead"><p>Dans tes tables, plusieurs colonnes contiennent des nombres :</p><ul class="pt-lead-list"><li><code>produits.prix</code></li><li><code>produits.stock</code></li><li><code>commandes.quantite</code></li><li><code>clients.age</code></li></ul><p>SQL peut utiliser ces valeurs pour effectuer des calculs et les transformer.</p></div>`},
     reflex:{note:"Avant de choisir une fonction, demande-toi : <b>quel calcul veux-tu obtenir ?</b>",
-      extra:`<ul class="fn-reflex-list"><li>Arrondir → <code>ROUND()</code></li><li>Toujours vers le haut → <code>CEIL()</code></li><li>Toujours vers le bas → <code>FLOOR()</code></li><li>Valeur sans le signe → <code>ABS()</code></li><li>Reste d’une division → <code>%</code> / <code>MOD()</code></li><li>Puissance → <code>POWER()</code></li><li>Racine carrée → <code>SQRT()</code></li><li>Moyenne de plusieurs lignes → <code>AVG()</code></li></ul>`}},
+      extra:`<ul class="fn-reflex-list"><li>Arrondir ? → <code>ROUND()</code></li><li>Arrondir vers le haut ? → <code>CEIL()</code> / <code>CEILING()</code></li><li>Arrondir vers le bas ? → <code>FLOOR()</code></li><li>Tronquer les décimales ? → <code>TRUNC()</code> / <code>TRUNCATE()</code></li><li>Obtenir la valeur absolue ? → <code>ABS()</code></li><li>Connaître le signe ? → <code>SIGN()</code></li><li>Obtenir le reste d’une division ? → <code>MOD()</code> / <code>%</code></li><li>Calculer une puissance ? → <code>POWER()</code> / <code>POW()</code></li><li>Calculer une racine carrée ? → <code>SQRT()</code></li><li>Garder la plus petite valeur ? → <code>LEAST()</code></li><li>Garder la plus grande valeur ? → <code>GREATEST()</code></li><li>Générer une valeur aléatoire ? → <code>RANDOM()</code> / <code>RAND()</code></li><li>Additionner plusieurs lignes ? → <code>SUM()</code></li><li>Calculer une moyenne ? → <code>AVG()</code></li><li>Trouver le minimum parmi plusieurs lignes ? → <code>MIN()</code></li><li>Trouver le maximum parmi plusieurs lignes ? → <code>MAX()</code></li></ul>`}},
   exemple:"SELECT nom,\n       ROUND(prix) AS prix_arrondi\nFROM produits;",
   attendu:"8 lignes. La Fibre Prébiotique passe de 29,90 à 30, le Collagène Marin de 39,90 à 40, le Magnésium de 19,90 à 20.",
   retenir:"Une fonction numérique calcule une nouvelle valeur dans le résultat, sans modifier la table. <code>ROUND</code>, <code>CEIL</code> et <code>FLOOR</code> gèrent les arrondis. <code>ABS</code> et <code>SIGN</code> travaillent sur le signe. <code>%</code> donne le reste. <code>MAX</code> parcourt plusieurs lignes ; <code>GREATEST</code> compare des valeurs sur une même ligne. Le nom exact peut changer selon le SGBD.",
@@ -22020,14 +22021,22 @@ function renderNumericFunctionsStudio(){
       <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">💡</span>À retenir</span><span class="h2-txt">Demande-toi d’abord quel calcul tu veux</span></h2>
       <p class="nf-lead">Il existe beaucoup de fonctions numériques, et leur nom peut varier. L’objectif n’est pas d’apprendre toute la liste par cœur.</p>
       <ul class="nf-reflex">
-        <li>Arrondir ? <i aria-hidden="true">→</i> <code>ROUND</code></li>
-        <li>Toujours vers le haut ? <i aria-hidden="true">→</i> <code>CEIL</code> / <code>CEILING</code></li>
-        <li>Toujours vers le bas ? <i aria-hidden="true">→</i> <code>FLOOR</code></li>
-        <li>Valeur sans le signe ? <i aria-hidden="true">→</i> <code>ABS</code></li>
-        <li>Reste d’une division ? <i aria-hidden="true">→</i> <code>MOD</code> / <code>%</code></li>
-        <li>Puissance ou racine ? <i aria-hidden="true">→</i> <code>POWER</code>, <code>SQRT</code></li>
-        <li>Somme ou moyenne de plusieurs lignes ? <i aria-hidden="true">→</i> <code>SUM</code>, <code>AVG</code></li>
-        <li>Plus petite / plus grande parmi des lignes ? <i aria-hidden="true">→</i> <code>MIN</code> / <code>MAX</code></li>
+        <li>Arrondir ? <i aria-hidden="true">→</i> <code>ROUND()</code></li>
+        <li>Arrondir vers le haut ? <i aria-hidden="true">→</i> <span class="nf-reflex-fns"><code>CEIL()</code> / <code>CEILING()</code></span></li>
+        <li>Arrondir vers le bas ? <i aria-hidden="true">→</i> <code>FLOOR()</code></li>
+        <li>Tronquer les décimales ? <i aria-hidden="true">→</i> <span class="nf-reflex-fns"><code>TRUNC()</code> / <code>TRUNCATE()</code></span></li>
+        <li>Obtenir la valeur absolue ? <i aria-hidden="true">→</i> <code>ABS()</code></li>
+        <li>Connaître le signe ? <i aria-hidden="true">→</i> <code>SIGN()</code></li>
+        <li>Obtenir le reste d’une division ? <i aria-hidden="true">→</i> <span class="nf-reflex-fns"><code>MOD()</code> / <code>%</code></span></li>
+        <li>Calculer une puissance ? <i aria-hidden="true">→</i> <span class="nf-reflex-fns"><code>POWER()</code> / <code>POW()</code></span></li>
+        <li>Calculer une racine carrée ? <i aria-hidden="true">→</i> <code>SQRT()</code></li>
+        <li>Garder la plus petite valeur ? <i aria-hidden="true">→</i> <code>LEAST()</code></li>
+        <li>Garder la plus grande valeur ? <i aria-hidden="true">→</i> <code>GREATEST()</code></li>
+        <li>Générer une valeur aléatoire ? <i aria-hidden="true">→</i> <span class="nf-reflex-fns"><code>RANDOM()</code> / <code>RAND()</code></span></li>
+        <li>Additionner plusieurs lignes ? <i aria-hidden="true">→</i> <code>SUM()</code></li>
+        <li>Calculer une moyenne ? <i aria-hidden="true">→</i> <code>AVG()</code></li>
+        <li>Trouver le minimum parmi plusieurs lignes ? <i aria-hidden="true">→</i> <code>MIN()</code></li>
+        <li>Trouver le maximum parmi plusieurs lignes ? <i aria-hidden="true">→</i> <code>MAX()</code></li>
       </ul>
       <p>Puis tu vérifies la syntaxe exacte de ton SGBD.</p>
     </div>
