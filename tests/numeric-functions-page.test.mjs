@@ -36,7 +36,7 @@ assert(guides.includes("k:'floor'") && guides.includes('FLOOR(prix)'), 'arrondi 
 assert(guides.includes("k:'trunc'") && guides.includes('TRUNC(prix)'), 'troncature disponible');
 assert(guides.includes("k:'abs'") && guides.includes('ABS(age - 40)'), 'valeur absolue disponible');
 assert(guides.includes("k:'sign'") && guides.includes('SIGN(stock - 120)'), 'signe disponible');
-assert(guides.includes("k:'modulo'") && guides.includes('stock % 50'), 'modulo présenté comme un reste');
+assert(guides.includes("k:'modulo'") && guides.includes('stock % 50') && guides.includes('nf-mod-expr'), 'modulo présenté comme un reste lisible');
 assert(guides.includes("k:'power'") && guides.includes('POWER(quantite, 2)'), 'puissance disponible');
 assert(guides.includes("k:'sqrt'") && guides.includes('SQRT(quantite)'), 'racine carrée disponible');
 assert(guides.includes("k:'greatest'") && guides.includes('GREATEST(prix, stock)'), 'plus grande valeur sur une ligne disponible');

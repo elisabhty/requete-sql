@@ -1630,7 +1630,7 @@
   .nf-equation{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;font-family:var(--mono);font-weight:850}
   .nf-num{display:flex;min-width:52px;height:42px;align-items:center;justify-content:center;padding:0 7px;border:1px solid var(--line);border-radius:11px;background:var(--surface);font-size:12px;color:var(--ink)}
   .nf-num.is-result{border-color:rgba(91,91,214,.2);color:var(--accent);box-shadow:0 5px 13px rgba(91,91,214,.1)}
-  .nf-op{color:var(--accent);font-size:16px}
+  .nf-op{color:var(--accent);font-size:16px;font-style:normal;font-weight:850}
   .nf-round .is-drop{color:var(--ink-3);text-decoration:line-through;opacity:.5}
   .nf-round .is-keep{color:var(--accent)}
   .nf-division{display:grid;width:100%;grid-template-columns:auto 1fr auto;align-items:center;gap:7px 9px}
@@ -1643,6 +1643,11 @@
   .nf-gap-line i::before,.nf-gap-line i::after{content:'';position:absolute;top:50%;width:12px;height:12px;border:3px solid var(--surface);border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px rgba(91,91,214,.18);transform:translateY(-50%)}
   .nf-gap-line i::before{left:-2px}.nf-gap-line i::after{right:-2px}
   .nf-gap strong{padding:7px 11px;border-radius:10px;background:var(--accent);color:#fff;font-size:12px;box-shadow:0 6px 15px rgba(91,91,214,.18)}
+  .nf-mod{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;flex-wrap:wrap}
+  .nf-mod-expr{display:flex;align-items:center;justify-content:center;gap:8px}
+  .nf-mod .nf-num{min-width:56px;height:44px;font-size:15px}
+  .nf-mod-eq{font-size:18px;line-height:1;font-style:normal}
+  .nf-mod-eq::before{content:'='}
   .nf-modulo{display:flex;align-items:center;justify-content:center;gap:12px;width:100%}
   .nf-pairs{display:grid;grid-template-columns:repeat(2,13px);gap:5px;padding:9px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
   .nf-pairs i{width:13px;height:13px;border-radius:50%;background:rgba(91,91,214,.28)}
@@ -1810,7 +1815,10 @@
   @media (max-width:480px){
     .nf-hero{gap:5px;padding:15px 8px}.nf-hero-val b{min-width:49px;font-size:12px}.nf-hero-op{font-size:15px}
     .nf-stage{padding:14px 14px 11px}.nf-intent{padding:9px 10px}.nf-intent b{font-size:12px}
-    .nf-equation{gap:4px}.nf-num{min-width:46px;font-size:10.5px}.nf-division code{font-size:10px}
+    .nf-equation{gap:6px}.nf-num{min-width:48px;font-size:12px}.nf-division code{font-size:10px}
+    .nf-mod{flex-direction:column;gap:8px}
+    .nf-mod-eq::before{content:'↓'}
+    .nf-mod .nf-num{min-width:64px;height:46px;font-size:16px}
     .nf-lineagg,.nf-mm,.nf-sign,.nf-aggs,.nf-adv{grid-template-columns:1fr}
     .nf-stage-fns{flex-direction:column;align-items:flex-end;max-width:none}
     .number-functions-page .piege-sql .ex-code{font-size:12px;padding:14px 14px}
@@ -21856,7 +21864,7 @@ const NUMERIC_FUNCTION_GUIDES=[
   {k:'trunc',label:'Tronquer',short:'TRUNC',title:'Tronquer un nombre',fn:['TRUNC()','TRUNCATE()'],sql:"SELECT nom, prix, TRUNC(prix) AS prix_tronque\nFROM produits\nWHERE nom = 'Fibre Prébiotique';",why:'<code>TRUNC()</code> coupe les décimales sans arrondir. Sur un nombre positif, le résultat rejoint <code>FLOOR()</code>.',visual:`<div class="nf-equation nf-round"><span class="nf-num">29,90</span><i class="nf-op">→</i><span class="nf-num is-result">29</span></div>`},
   {k:'abs',label:'Valeur absolue',short:'ABS',title:'Valeur absolue',fn:['ABS()'],sql:"SELECT nom, age, ABS(age - 40) AS ecart\nFROM clients\nWHERE nom = 'Chloé';",why:'<code>ABS()</code> renvoie un nombre sans son signe négatif.',visual:`<div class="nf-abs-axis"><div class="nf-abs-line"><span>−14</span><i></i><b class="nf-abs-zero" aria-hidden="true"></b><i></i><span>+14</span></div><strong>écart = 14</strong></div>`},
   {k:'sign',label:'Signe',short:'SIGN',title:'Connaître le signe',fn:['SIGN()'],sql:"SELECT nom, stock, SIGN(stock - 120) AS signe\nFROM produits\nWHERE nom IN ('Collagène Marin', 'Fibre Prébiotique', 'Magnésium');",why:'<code>SIGN()</code> indique si un nombre est positif, négatif ou nul.',visual:`<div class="nf-sign"><span class="nf-sign-item is-neg"><small>négatif</small><b>−1</b></span><span class="nf-sign-item is-zero"><small>zéro</small><b>0</b></span><span class="nf-sign-item is-pos"><small>positif</small><b>1</b></span></div>`},
-  {k:'modulo',label:'Reste',short:'% · MOD',title:'Reste d’une division',fn:['MOD()','%'],sql:"SELECT nom, stock, stock % 50 AS reste\nFROM produits\nWHERE nom = 'Fibre Prébiotique';",why:'<code>MOD()</code> ou <code>%</code> récupère ce qu’il reste après une division.',visual:`<div class="nf-equation"><span class="nf-num">120</span><i class="nf-op">% 50</i><span class="nf-num is-result">20</span></div>`},
+  {k:'modulo',label:'Reste',short:'% · MOD',title:'Reste d’une division',fn:['MOD()','%'],sql:"SELECT nom, stock, stock % 50 AS reste\nFROM produits\nWHERE nom = 'Fibre Prébiotique';",why:'<code>MOD()</code> ou <code>%</code> récupère ce qu’il reste après une division.',visual:`<div class="nf-mod"><span class="nf-mod-expr"><span class="nf-num">120</span><i class="nf-op">%</i><span class="nf-num">50</span></span><i class="nf-op nf-mod-eq" aria-hidden="true"></i><span class="nf-num is-result">20</span></div>`},
   {k:'power',label:'Puissance',short:'POWER',title:'Calculer une puissance',fn:['POWER()','POW()'],sql:'SELECT id, quantite, POWER(quantite, 2) AS quantite_carre\nFROM commandes\nWHERE id = 1;',why:'<code>POWER()</code> multiplie un nombre par lui-même plusieurs fois.',visual:`<div class="nf-pow"><b>2</b><i>×</i><b>2</b><i>=</i><strong>4</strong></div>`},
   {k:'sqrt',label:'Racine carrée',short:'SQRT',title:'Calculer une racine carrée',fn:['SQRT()'],sql:'SELECT id, quantite, SQRT(quantite) AS racine\nFROM commandes\nWHERE quantite = 4;',why:'<code>SQRT()</code> trouve le nombre qui, multiplié par lui-même, donne la valeur de départ.',visual:`<div class="nf-sqrt"><span class="nf-num">4</span><i class="nf-op">→</i><span class="nf-num is-result">2</span></div>`},
   {k:'greatest',label:'Plus grande',short:'GREATEST',title:'Trouver la plus grande valeur',fn:['GREATEST()'],sql:"SELECT nom, prix, stock, GREATEST(prix, stock) AS plus_grande\nFROM produits\nWHERE nom = 'Fibre Prébiotique';",why:'<code>GREATEST()</code> compare plusieurs valeurs d’une même ligne et garde la plus grande.',visual:`<div class="nf-great-box"><small>SQL compare</small><div class="nf-great"><span>29,90</span><span class="is-win">120</span></div><small>et garde <b>120</b></small></div>`},
@@ -28434,7 +28442,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-12-nf-avg-sum-v651';
+  const SW_CACHE='requete-2026-09-12-nf-mod-mob-v652';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
