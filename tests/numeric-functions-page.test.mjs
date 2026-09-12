@@ -48,8 +48,10 @@ assert(studio.includes('Dans ta base, plusieurs colonnes contiennent des nombres
 assert(studio.includes('Comment demander à SQL d’effectuer ces calculs directement à partir des données ?'), 'question d’ouverture recentrée sur SQL');
 assert(studio.includes('nf-machine') && studio.includes('ROUND()'), 'fonction montrée par un schéma plutôt qu’un bloc exécutable');
 assert(studio.includes('nf-apply-more') && studio.includes('et 5 autres produits'), 'schéma ROUND indique les autres produits non affichés');
-assert(stage.includes('nf-visual') && !stage.includes('piegeSqlRunBlock(g.sql)'), 'mini-laboratoire sans cadre SQL exécutable');
-assert(studio && !studio.includes('piegeSqlRunBlock'), 'page numérique sans cadre SQL exécutable');
+assert(stage.includes('nf-visual') && stage.includes('piegeSqlRunBlock(g.sql)'), 'mini-laboratoire encore exécutable');
+assert(studio.includes("piegeSqlRunBlock('SELECT nom, prix,\\n       ROUND(prix) AS prix_arrondi\\nFROM produits;')"), 'exemple sur toute la colonne produits conservé');
+assert(studio.includes('SELECT AVG(prix)') && studio.includes('SELECT ROUND(AVG(prix))'), 'exemples AVG et ROUND(AVG) encore exécutables');
+assert(!studio.includes("WHERE nom = 'Fibre Prébiotique';"), 'premier cadre ROUND sur un seul produit retiré');
 assert(html.includes('function initNumericFunctions'), 'micro-interactions initialisées');
 assert(html.includes('aria-label="Fonctions numériques"') && html.includes('aria-live="polite"'), 'états interactifs accessibles');
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('nfStageSwap'), 'animations compatibles avec la réduction des mouvements');
