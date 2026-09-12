@@ -43,7 +43,7 @@ assert(studio.includes('Comment demander à SQL de transformer une valeur d’un
 assert(studio.includes('CAST(expression AS type)') && studio.includes('CAST(valeur AS type)') && studio.includes("SELECT CAST('34' AS INTEGER);"), 'CAST présenté comme cœur de la leçon, puis comme structure du laboratoire');
 assert(html.includes('Ce qui se passe') && html.includes('function conversionMachineHtml'), 'chaque conversion montre le passage de type');
 assert(studio.includes('TRY_CAST()') && studio.includes('strftime()') && !studio.includes('Même principe, syntaxe parfois différente') && !studio.includes('C’est notamment utile lorsque des nombres provenant d’un import'), 'encadrés redondants du mini-laboratoire retirés');
-assert(studio.includes('Convertir ne veut pas dire formater') && studio.includes('TO_CHAR()') && studio.includes('DATE_FORMAT()'), 'conversion distinguée du formatage');
+assert(studio.includes('À ne pas confondre') && studio.includes('Convertir ne veut pas dire formater') && studio.includes('La valeur passe du texte à un nombre décimal.') && studio.includes('sans que l’objectif soit de changer la nature de l’information') && studio.includes('présentation adaptée à l’affichage') && studio.includes('Convertir = changer le type.') && studio.includes('Formater = changer l’affichage.') && !studio.includes('type métier') && !studio.includes('Convertir agit sur le type'), 'conversion distinguée du formatage');
 assert(studio.includes("CAST('29.956' AS DECIMAL(10,2))") && studio.includes('précision totale'), 'DECIMAL(10,2) expliqué');
 assert(studio.includes('évite de compter inutilement sur une conversion automatique'), 'conversion explicite présentée sans règle absolue');
 assert(studio.includes('La même opération, une écriture par SGBD') && studio.includes('cf-sgbd-table') && studio.includes('cf-sgbd-fns') && studio.includes('Conversion générale') && studio.includes('Autres syntaxes / fonctions') && studio.includes('date()') && studio.includes('datetime()') && studio.includes('strftime()') && studio.includes('DATE_FORMAT()') && studio.includes('TRY_CONVERT()') && studio.includes('PARSE()') && studio.includes('Pas toutes des équivalents de CAST()') && studio.includes('interpréter ou à formater') && !studio.includes('df-memo-table') && !studio.includes('Des fonctions spécifiques existent aussi') && !studio.includes('fonctions dédiées') && !studio.includes('Dans ce cours, les exercices utilisent SQLite'), 'tableau nommé, fonctions concrètes, et précision conversion / formatage');
@@ -61,7 +61,7 @@ assert(html.includes('initConversionFunctions();'), 'laboratoire activé au rend
 assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53||l.id===54"), 'récapitulatifs redondants retirés de cette page');
 assert(html.includes('const hideLessonLab=l.id===52||l.id===54'), 'console Teste redondante masquée');
 assert(!html.slice(html.indexOf('function conversionFunctionStageHtml'), html.indexOf('function renderConversionFunctionsStudio')).includes('g.note'), 'notes sous les requêtes du mini-laboratoire retirées');
-assert(serviceWorker.includes('requete-2026-09-12-cf-lab-trim-v672'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-09-13-cf-vs-v673'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
