@@ -92,6 +92,7 @@ assert(tz.includes('👉 Pour pouvoir comparer') && tz.includes('👉 On connaî
 assert(tz.includes('Le bon réflexe dépend') && tz.includes('AT TIME ZONE') && tz.includes('CONVERT_TZ()'), 'stockage puis syntaxes de conversion');
 assert(!period.includes('23:59:59') && period.includes('avant le 1er août'), 'fin de journée sans figer 23:59:59');
 assert(period.includes("BETWEEN '2023-07-01'") && period.includes("'2023-07-31'"), 'piège BETWEEN illustré');
+assert(period.includes('date_commande') && !period.includes('date_heure'), 'période sur la colonne réelle date_commande');
 const afterBetween = period.slice(period.indexOf('BETWEEN'));
 assert(afterBetween.includes("'2023-07-31'") && afterBetween.includes('peut être interprétée comme') && afterBetween.includes('2023-07-31 00:00:00') && afterBetween.includes('2023-07-31 22:45:00'), 'la borne date est d’abord lue comme minuit');
 assert(period.includes('TOUT JUILLET') && period.includes('01/08 00:00'), 'tout juillet borné au 1er août');
