@@ -44,6 +44,7 @@ assert(guides.includes("k:'least'") && guides.includes('LEAST(prix, stock)'), 'p
 assert(guides.includes("k:'random'") && guides.includes('ORDER BY RANDOM()'), 'tirage aléatoire conservé');
 assert(html.includes('function renderNumericFunctionsStudio'), 'rendu dédié à la leçon 52');
 assert(html.includes('if(l.id===52)return renderNumericFunctionsStudio(l)'), 'ancienne pile de texte remplacée');
+assert(html.includes('.nf-lead{') && html.includes('.nf-lead{margin:0 0 15px!important;color:var(--ink)!important'), 'textes d’introduction en noir');
 assert(studio.includes('Dans ta base, plusieurs colonnes contiennent des nombres') && studio.includes('toutes sortes de calculs'), 'introduction numérique simplifiée');
 assert(studio.includes('Quel est le prix moyen des produits de la boutique ?') && studio.includes('Quelle quantité moyenne est commandée par commande ?'), 'questions d’ouverture concrètes');
 assert(studio.includes('Comment demander à SQL d’effectuer ces calculs directement à partir des données ?'), 'question d’ouverture recentrée sur SQL');
