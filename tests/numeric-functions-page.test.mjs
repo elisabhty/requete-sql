@@ -45,6 +45,7 @@ assert(guides.includes("k:'random'") && guides.includes('ORDER BY RANDOM()'), 't
 assert(html.includes('function renderNumericFunctionsStudio'), 'rendu dédié à la leçon 52');
 assert(html.includes('if(l.id===52)return renderNumericFunctionsStudio(l)'), 'ancienne pile de texte remplacée');
 assert(studio.includes('nf-machine') && studio.includes('ROUND()'), 'fonction montrée par un schéma plutôt qu’un bloc exécutable');
+assert(studio.includes('nf-apply-more') && studio.includes('et 5 autres produits'), 'schéma ROUND indique les autres produits non affichés');
 assert(stage.includes('nf-visual') && !stage.includes('piegeSqlRunBlock(g.sql)'), 'mini-laboratoire sans cadre SQL exécutable');
 assert(studio && !studio.includes('piegeSqlRunBlock'), 'page numérique sans cadre SQL exécutable');
 assert(html.includes('function initNumericFunctions'), 'micro-interactions initialisées');
