@@ -72,6 +72,9 @@ assert(studio.includes('2026-08-29T11:30:00Z'), 'instant ancré en UTC dans les 
 assert(orderOk && (studio.match(/<div class="concept-block">/g) || []).length === 8, 'huit cadres dans l’ordre pédagogique');
 assert(!studio.includes('Et pour les fuseaux horaires ?') && !studio.includes('Convertir une valeur'), 'cadres hors fil retirés');
 assert(studio.includes('df-memo-table') && studio.includes('PostgreSQL') && studio.includes('SQL Server') && studio.includes('Oracle'), 'mémo en tableau des cinq SGBD');
+const memo = studio.slice(studio.indexOf('Dates et heures selon le SGBD'));
+assert(memo.includes('df-keep') && memo.includes('À retenir') && memo.indexOf('df-keep') < memo.indexOf('df-memo-table'), 'à retenir de toute la leçon avant le tableau');
+assert(memo.includes('TIMESTAMP') && memo.includes('préfère souvent') && memo.includes('Europe/Paris') && memo.includes('date seule'), 'grands réflexes dates et heures, pas seulement les fuseaux');
 assert(!studio.includes('Pour une date présente'), 'note IS NOT NULL retirée du mémo');
 assert(studio.includes('df-memo-scroll') && studio.includes('Glisse'), 'mémo large avec indicateur de glissement');
 assert(html.includes('bindTableSwipe(page)'), 'indicateur de glissement activé sur le mémo');
