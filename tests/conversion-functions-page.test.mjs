@@ -58,7 +58,8 @@ assert(html.includes('nf-machine-arrow') && html.includes('.conversion-functions
 assert(html.includes('initConversionFunctions();'), 'laboratoire activé au rendu du cours');
 assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53||l.id===54"), 'récapitulatifs redondants retirés de cette page');
 assert(html.includes('const hideLessonLab=l.id===52||l.id===54'), 'console Teste redondante masquée');
-assert(serviceWorker.includes('requete-2026-09-12-cf-date-vis-v662'), 'cache de production renouvelé');
+assert(!html.slice(html.indexOf('function conversionFunctionStageHtml'), html.indexOf('function renderConversionFunctionsStudio')).includes('g.note'), 'notes sous les requêtes du mini-laboratoire retirées');
+assert(serviceWorker.includes('requete-2026-09-12-cf-lab-notes-v663'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
