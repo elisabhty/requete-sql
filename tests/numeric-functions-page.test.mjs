@@ -54,6 +54,7 @@ assert(stage.includes('nf-visual') && stage.includes('piegeSqlRunBlock(g.sql)'),
 assert(studio.includes("piegeSqlRunBlock('SELECT nom, prix,\\n       ROUND(prix) AS prix_arrondi\\nFROM produits;')"), 'exemple sur toute la colonne produits conservé');
 assert(html.includes("k:'avg'") && html.includes('SELECT AVG(prix) AS prix_moyen') && html.includes("k:'sum'") && html.includes('SELECT SUM(stock) AS stock_total'), 'AVG et SUM ont chacun une requête dédiée');
 assert(studio.includes('Exemple :') && studio.includes('nf-agg-tabs') && studio.includes('numericAggStageHtml(NUMERIC_AGG_GUIDES[0])'), 'moyenne et somme présentées dans deux onglets');
+assert(html.includes('.lesson-rich .nf-agg-stage .exframe') && html.includes('.lesson-rich .cf-stage .exframe'), 'cadres SQL des onglets visibles sans attendre .in');
 assert(studio.includes('D’autres fonctions également ne calculent pas ligne par ligne'), 'autres agrégats introduits après AVG et SUM');
 assert(studio.includes('SELECT ROUND(AVG(prix))'), 'exemple ROUND(AVG) encore exécutable');
 assert(!studio.includes("WHERE nom = 'Fibre Prébiotique';"), 'premier cadre ROUND sur un seul produit retiré');
