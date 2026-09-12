@@ -1408,9 +1408,12 @@
   .df-tz-utc{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:7.5rem;padding:10px 14px;border-radius:12px;background:var(--accent);color:#fff;box-shadow:0 6px 16px rgba(91,91,214,.18);text-align:center}
   .df-tz-utc b{font-family:var(--mono);font-size:18px;font-weight:800;line-height:1.1}
   .df-tz-utc small{font-size:11px;font-weight:750;letter-spacing:.02em;line-height:1.25;text-transform:uppercase;opacity:.8}
+  .df-tz-season .df-tz-utc{width:100%;max-width:17rem;min-width:0}
+  .df-tz-season .df-tz-utc small{text-transform:none;letter-spacing:0;font-weight:650;opacity:.9}
   .df-tz-fork{display:block;width:100%;height:34px;margin:2px 0 0;color:var(--accent);opacity:.42}
   .df-tz-locals{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;width:100%}
   .df-tz-cap{margin:0!important;text-align:center;font-size:12px!important;line-height:1.35!important;color:var(--ink-3)!important}
+  .df-tz-cap.is-why{margin-top:12px!important;text-align:left;font-size:13.5px!important;line-height:1.45!important;color:var(--ink-2)!important}
   .df-tz-compare{margin:0 0 13px}
   .df-ideas.is-triple{grid-template-columns:1fr}
   @media (min-width:720px){
@@ -1428,6 +1431,7 @@
   .df-tz-z i{font-style:normal;color:var(--accent)}
   .df-tz-season{display:flex;flex-direction:column;align-items:center;width:min(100%,320px)}
   .df-tz-season .df-tz-city{width:100%}
+  .df-tz-city.is-zone small{font-size:11px;font-weight:750;letter-spacing:.02em;text-transform:uppercase}
   .df-tz-city.is-zone b{font-size:16px}
   .df-tz-down{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0 2px;font-size:11px;font-weight:750;letter-spacing:.02em;line-height:1.25;color:var(--ink-3)}
   .df-tz-down::before{content:'↓';color:var(--accent);font-size:16px;font-weight:800;line-height:1}
@@ -21762,19 +21766,19 @@ FROM commandes;</pre></div>
       <h3 class="df-sub">Le fuseau horaire</h3>
       <p>Un fuseau comme <code>Europe/Paris</code> contient les règles horaires d’une région.</p>
       <p>👉 Pourquoi avons-nous besoin de règles ? Parce que le décalage de Paris par rapport à <code>UTC</code> peut changer selon la période de l’année.</p>
-      <div class="df-visual is-tz" aria-label="Europe/Paris consulte la date : UTC+02:00 en été, UTC+01:00 en hiver">
+      <div class="df-visual is-tz" aria-label="Selon la date, Europe/Paris donne UTC+02:00 en été ou UTC+01:00 en hiver">
         <div class="df-tz-season">
-          <div class="df-tz-utc"><b>UTC</b><small>référence</small></div>
-          <span class="df-tz-down">heure de référence</span>
-          <div class="df-tz-city is-zone"><small>fuseau</small><b>Europe/Paris</b></div>
-          <span class="df-tz-down">regarde la date</span>
+          <div class="df-tz-utc"><b>UTC</b><small>heure de référence mondiale</small></div>
+          <span class="df-tz-down" aria-hidden="true"></span>
+          <div class="df-tz-city is-zone"><small>Fuseau horaire</small><b>Europe/Paris</b></div>
+          <span class="df-tz-down">selon la date</span>
           <svg class="df-tz-fork" viewBox="0 0 200 34" fill="none" aria-hidden="true"><path d="M100 0v10M50 10h100M50 10v24M150 10v24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <div class="df-tz-locals">
             <div class="df-tz-city"><small>été</small><b>UTC+02:00</b></div>
             <div class="df-tz-city"><small>hiver</small><b>UTC+01:00</b></div>
           </div>
+          <p class="df-tz-cap is-why">💡 <code>Europe/Paris</code> permet de savoir quel décalage appliquer à une date donnée : par exemple <code>UTC+02:00</code> en été ou <code>UTC+01:00</code> en hiver.</p>
         </div>
-        <p class="df-tz-cap">Le fuseau plus la date donnent le décalage à appliquer.</p>
       </div>
       <p>Le 29 août 2026, <code>Europe/Paris</code> correspond à <code>UTC+02:00</code>. Le 29 décembre 2026, le même fuseau correspond à <code>UTC+01:00</code>.</p>
       <p>👉 Le système utilise donc le fuseau et la date pour déterminer le décalage à appliquer.</p>
@@ -28290,7 +28294,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-12-df-lab-v608';
+  const SW_CACHE='requete-2026-09-12-df-lab-v609';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
