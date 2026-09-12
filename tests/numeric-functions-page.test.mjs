@@ -44,6 +44,7 @@ assert(guides.includes("k:'least'") && guides.includes('LEAST(prix, stock)'), 'p
 assert(guides.includes("k:'random'") && guides.includes('ORDER BY RANDOM()'), 'tirage aléatoire conservé');
 assert(html.includes('function renderNumericFunctionsStudio'), 'rendu dédié à la leçon 52');
 assert(html.includes('if(l.id===52)return renderNumericFunctionsStudio(l)'), 'ancienne pile de texte remplacée');
+assert(studio.includes('Dans ta base, plusieurs colonnes contiennent des nombres') && studio.includes('toutes sortes de calculs'), 'introduction numérique simplifiée');
 assert(studio.includes('nf-machine') && studio.includes('ROUND()'), 'fonction montrée par un schéma plutôt qu’un bloc exécutable');
 assert(studio.includes('nf-apply-more') && studio.includes('et 5 autres produits'), 'schéma ROUND indique les autres produits non affichés');
 assert(stage.includes('nf-visual') && !stage.includes('piegeSqlRunBlock(g.sql)'), 'mini-laboratoire sans cadre SQL exécutable');
