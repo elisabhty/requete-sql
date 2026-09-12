@@ -1916,10 +1916,15 @@
   .cf-iso .is-ok small{color:var(--accent)}
   .cf-iso b{display:block;font-family:var(--mono);font-size:13px;line-height:1.35;color:var(--ink)}
   .cf-iso span{display:block;margin-top:6px;font-size:12px;line-height:1.4;color:var(--ink-2)}
-  .cf-sgbd-next{display:flex;flex-direction:column;gap:6px;margin:10px 0 0;padding:0;list-style:none}
-  .cf-sgbd-next li{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:9px 12px;border-radius:12px;background:color-mix(in srgb,var(--surface-2) 28%,#fff)}
-  .cf-sgbd-next span{font-size:13px;font-weight:750;color:var(--ink)}
-  .cf-sgbd-next code{min-width:0;text-align:right;overflow-wrap:anywhere;font-size:12px}
+  .conversion-functions-page .table-wrap.cf-sgbd-wrap{margin:0 0 12px;overflow:hidden}
+  .conversion-functions-page .concept-block .table-wrap table.cf-sgbd-table{width:100%;table-layout:fixed}
+  .conversion-functions-page .concept-block .table-wrap table.cf-sgbd-table th,
+  .conversion-functions-page .concept-block .table-wrap table.cf-sgbd-table td{text-align:left;white-space:normal;vertical-align:top;padding:11px 12px}
+  .conversion-functions-page .concept-block .table-wrap table.cf-sgbd-table th:first-child,
+  .conversion-functions-page .concept-block .table-wrap table.cf-sgbd-table td:first-child{width:34%;font-weight:750}
+  .conversion-functions-page .concept-block .table-wrap table.cf-sgbd-table td code{white-space:nowrap;font-size:11.5px}
+  .conversion-functions-page .nf-note{overflow-wrap:break-word}
+  .conversion-functions-page .nf-note code{white-space:normal}
   .cf-sources{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 4px}
   .cf-sources span{padding:6px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:750}
   .cf-fail{display:grid;width:100%;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
@@ -22093,15 +22098,7 @@ function renderConversionFunctionsStudio(){
       <div class="cf-stage" aria-live="polite">${conversionFunctionStageHtml(first)}</div>
       <div class="nf-read">
         <b><span aria-hidden="true">💡</span> Même principe, syntaxe parfois différente</b>
-        <p><code>CAST()</code> permet de comprendre le principe général de la conversion. Selon le SGBD, d’autres types, syntaxes ou fonctions peuvent être utilisés pour certaines conversions.</p>
-        <p>Par exemple, tu verras ensuite :</p>
-        <ul class="cf-sgbd-next">
-          <li><span>PostgreSQL</span><code>::</code></li>
-          <li><span>SQL Server</span><code>CONVERT()</code>, <code>TRY_CAST()</code></li>
-          <li><span>Oracle</span><code>TO_NUMBER()</code>, <code>TO_DATE()</code>, <code>TO_CHAR()</code></li>
-          <li><span>MySQL</span><code>CONVERT()</code>, <code>STR_TO_DATE()</code></li>
-          <li><span>SQLite</span><code>CAST()</code> + fonctions dédiées</li>
-        </ul>
+        <p><code>CAST()</code> permet de comprendre le principe général. Selon le SGBD, d’autres écritures existent : tu les retrouveras dans le tableau récapitulatif plus bas.</p>
       </div>
     </div>
     <div class="concept-block">
@@ -22164,27 +22161,16 @@ function renderConversionFunctionsStudio(){
       </div>
     </div>
     <div class="concept-block">
-      <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">📝</span>SGBD</span><span class="h2-txt">CAST n’est pas identique partout</span></h2>
-      <p class="nf-lead">Dans ce cours, les exercices utilisent SQLite. Ce tableau te permet de retrouver l’équivalent ailleurs.</p>
-      <div class="table-scroll df-memo-scroll"><div class="table-wrap df-memo-wrap"><table class="concept-table df-memo-table"><thead><tr><th scope="col">Besoin</th><th scope="col">SQLite</th><th scope="col">PostgreSQL</th><th scope="col">MySQL</th><th scope="col">SQL Server</th><th scope="col">Oracle</th></tr></thead><tbody>
-        <tr><td>Conversion<br>générale</td><td><code>CAST()</code></td><td><code>CAST()</code></td><td><code>CAST()</code></td><td><code>CAST()</code></td><td><code>CAST()</code></td></tr>
-        <tr><td>Raccourci</td><td>—</td><td><code>::</code></td><td>—</td><td>—</td><td>—</td></tr>
-        <tr><td>Vers entier</td><td><code>CAST(x AS INTEGER)</code></td><td><code>CAST(x AS INTEGER)</code></td><td><code>CAST(x AS SIGNED)</code></td><td><code>CAST(x AS INT)</code></td><td><code>CAST(x AS INTEGER)</code></td></tr>
-        <tr><td>Vers décimal</td><td><code>CAST(x AS REAL)</code> / <code>NUMERIC</code></td><td><code>CAST(x AS NUMERIC)</code></td><td><code>CAST(x AS DECIMAL)</code></td><td><code>CAST(x AS DECIMAL)</code></td><td><code>CAST(x AS NUMBER)</code></td></tr>
-        <tr><td>Vers texte</td><td><code>CAST(x AS TEXT)</code></td><td><code>CAST(x AS TEXT)</code></td><td><code>CAST(x AS CHAR)</code></td><td><code>CAST(x AS VARCHAR(...))</code></td><td><code>CAST(x AS VARCHAR2(...))</code></td></tr>
-        <tr><td>Vers date</td><td>fonctions date()*</td><td><code>CAST(x AS DATE)</code></td><td><code>CAST(x AS DATE)</code></td><td><code>CAST(x AS DATE)</code></td><td><code>CAST(x AS DATE)</code></td></tr>
-        <tr><td>Conversion<br>sécurisée</td><td>comportement propre à SQLite</td><td>selon le besoin / la version</td><td>selon le besoin / la version</td><td><code>TRY_CAST()</code></td><td>options dédiées</td></tr>
+      <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">📝</span>SGBD</span><span class="h2-txt">La même opération, une écriture par SGBD</span></h2>
+      <p class="nf-lead">Une même conversion peut s’écrire différemment selon le SGBD. <code>CAST()</code> reste le principe commun.</p>
+      <div class="table-wrap cf-sgbd-wrap"><table class="concept-table cf-sgbd-table"><thead><tr><th scope="col">SGBD</th><th scope="col">Écriture</th></tr></thead><tbody>
+        <tr><td>SQLite</td><td><code>CAST()</code> · fonctions dédiées</td></tr>
+        <tr><td>PostgreSQL</td><td><code>CAST()</code> · <code>::</code> · <code>TO_NUMBER()</code> · <code>TO_DATE()</code> · <code>TO_CHAR()</code></td></tr>
+        <tr><td>MySQL</td><td><code>CAST()</code> · <code>CONVERT()</code> · <code>STR_TO_DATE()</code></td></tr>
+        <tr><td>SQL Server</td><td><code>CAST()</code> · <code>CONVERT()</code> · <code>TRY_CAST()</code></td></tr>
+        <tr><td>Oracle</td><td><code>CAST()</code> · <code>TO_NUMBER()</code> · <code>TO_DATE()</code> · <code>TO_CHAR()</code></td></tr>
       </tbody></table></div>
-      <div class="table-swipe" aria-hidden="true"><span class="table-swipe-pos"><span class="order-hint-chip">Glisse<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h13M13 7l5 5-5 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span></div></div>
-      <p class="nf-note">* SQLite fonctionne avec un système de types différent. Ses fonctions de date méritent d’être présentées séparément plutôt que comme l’équivalent exact d’un véritable type <code>DATE</code>.</p>
-      <h3 class="nf-sub">Des fonctions spécifiques existent aussi</h3>
-      <div class="nf-adv">
-        <div class="nf-adv-card"><small>PostgreSQL</small><b>'42'::INTEGER</b><span>est une syntaxe raccourcie pour une conversion. On rencontre aussi <code>TO_CHAR()</code>, <code>TO_DATE()</code>, <code>TO_NUMBER()</code> pour certains besoins de conversion et de formatage.</span></div>
-        <div class="nf-adv-card"><small>SQL Server</small><b>CAST() · CONVERT() · TRY_CAST() · TRY_CONVERT()</b><span><code>TRY_CAST('bonjour' AS INT)</code> renvoie <code>NULL</code> plutôt que de provoquer une erreur de conversion.</span></div>
-        <div class="nf-adv-card"><small>Oracle</small><b>CAST() · TO_CHAR() · TO_DATE() · TO_NUMBER()</b><span>Des fonctions dédiées complètent <code>CAST()</code> selon le type visé.</span></div>
-        <div class="nf-adv-card"><small>MySQL</small><b>CAST() · CONVERT() · STR_TO_DATE() · DATE_FORMAT()</b><span>Utile notamment pour les dates et leur présentation.</span></div>
-        <div class="nf-adv-card"><small>SQLite</small><b>INTEGER · REAL · TEXT · NUMERIC · BLOB</b><span>On utilise principalement ces classes/types, et <code>CAST()</code> pour une conversion explicite.</span></div>
-      </div>
+      <p class="nf-note">Dans ce cours, les exercices utilisent SQLite. Sur SQL Server, <code>TRY_CAST()</code> peut renvoyer <code>NULL</code> si la valeur n’est pas convertible.</p>
     </div>
     <div class="concept-block">
       <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">🧩</span>Combiner</span><span class="h2-txt">Les fonctions peuvent être imbriquées</span></h2>
@@ -28549,7 +28535,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-12-cf-traps-scan-v668';
+  const SW_CACHE='requete-2026-09-12-cf-sgbd-recap-v669';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
