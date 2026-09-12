@@ -882,7 +882,7 @@
   .text-functions-page>.concept-block.in .txt-transform-box:first-child{animation:txtBoxIn .42s var(--spring-ios) .05s both}
   .text-functions-page>.concept-block.in .txt-transform-arrow{animation:txtArrowIn .42s ease .16s both}
   .text-functions-page>.concept-block.in .txt-transform-box:last-child{animation:txtBoxIn .42s var(--spring-ios) .27s both}
-  @keyframes txtStageSwap{from{opacity:.45;transform:translateY(5px) scale(.99)}to{opacity:1;transform:none}}
+  @keyframes txtStageSwap{from{transform:translateY(4px)}to{transform:none}}
   @keyframes txtBoxIn{from{opacity:0;transform:translateY(7px) scale(.98)}to{opacity:1;transform:none}}
   @keyframes txtArrowIn{from{opacity:0;transform:scaleX(.45)}to{opacity:1;transform:none}}
   @media (max-width:400px){
@@ -1571,7 +1571,7 @@
   .date-functions-page>.concept-block.in .df-idea:nth-child(2),.date-functions-page>.concept-block.in .df-step:nth-child(2),.date-functions-page>.concept-block.in .df-trap:nth-child(2){animation-delay:.06s}
   .date-functions-page>.concept-block.in .df-idea:nth-child(3),.date-functions-page>.concept-block.in .df-step:nth-child(3),.date-functions-page>.concept-block.in .df-trap:nth-child(3){animation-delay:.12s}
   .date-functions-page>.concept-block.in .df-idea:nth-child(4),.date-functions-page>.concept-block.in .df-trap:nth-child(4){animation-delay:.18s}
-  @keyframes dfStageSwap{from{opacity:.45;transform:translateY(5px) scale(.99)}to{opacity:1;transform:none}}
+  @keyframes dfStageSwap{from{transform:translateY(4px)}to{transform:none}}
   @keyframes dfUnitIn{from{opacity:0;transform:translateY(7px) scale(.96)}to{opacity:1;transform:none}}
   @keyframes dfTravel{0%{background-position:-46% 0}65%,100%{background-position:146% 0}}
   @media (max-width:520px){
@@ -1687,7 +1687,7 @@
   .nf-order-flow>i{color:var(--accent);font-style:normal;font-size:18px;text-align:center}
   .nf-order-step.is-result{background:var(--accent);box-shadow:0 6px 16px rgba(91,91,214,.18)}
   .nf-order-step.is-result small,.nf-order-step.is-result b{color:#fff}
-  @keyframes nfStageSwap{from{opacity:.45;transform:translateY(5px) scale(.99)}to{opacity:1;transform:none}}
+  @keyframes nfStageSwap{from{transform:translateY(4px)}to{transform:none}}
   @keyframes nfPick{from{opacity:.4;transform:scale(.82) rotate(-3deg)}to{opacity:1;transform:none}}
   @keyframes nfApplyIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   @keyframes nfMachine{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
@@ -1888,7 +1888,7 @@
   .cf-fail-col em{font-family:var(--mono);font-style:normal;font-size:13px;font-weight:850}
   .cf-fail-col.is-ok em{color:#147d68}
   .cf-fail-col.is-ko em{color:#b02d49}
-  @keyframes cfStageSwap{from{opacity:.45;transform:translateY(5px) scale(.99)}to{opacity:1;transform:none}}
+  @keyframes cfStageSwap{from{transform:translateY(4px)}to{transform:none}}
   @media (min-width:640px){
     .cf-intents{grid-template-columns:repeat(3,minmax(0,1fr))}
   }
@@ -21255,6 +21255,19 @@ function chooseTextFamily(button,family){
   intents.forEach(b=>{b.hidden=!keys.includes(b.dataset.k);});
   intents.find(b=>b.dataset.k===keys[0]).click();
 }
+function swapLessonStage(stage,html){
+  if(!stage)return;
+  const h=stage.offsetHeight;
+  if(h)stage.style.minHeight=h+'px';
+  stage.innerHTML=html;
+  stage.classList.remove('is-changing');
+  void stage.offsetWidth;
+  stage.classList.add('is-changing');
+  const done=()=>{if(stage.style.minHeight)stage.style.minHeight='';};
+  const onEnd=ev=>{if(ev&&ev.target!==stage)return;stage.removeEventListener('animationend',onEnd);done();};
+  stage.addEventListener('animationend',onEnd);
+  setTimeout(onEnd,480);
+}
 function initTextFunctions(){
   const page=document.querySelector('#lesson-body .text-functions-page');
   if(!page)return;
@@ -21264,8 +21277,7 @@ function initTextFunctions(){
     const g=TEXT_FUNCTION_GUIDES.find(x=>x.k===btn.dataset.k);
     if(!g||!stage)return;
     intents.forEach(n=>{const on=n===btn;n.classList.toggle('on',on);n.setAttribute('aria-selected',on?'true':'false');});
-    stage.innerHTML=textFunctionStageHtml(g);
-    stage.classList.remove('is-changing');void stage.offsetWidth;stage.classList.add('is-changing');
+    swapLessonStage(stage,textFunctionStageHtml(g));
     if(navigator.vibrate)navigator.vibrate(5);
   };
   intents.forEach(btn=>btn.addEventListener('click',()=>choose(btn)));
@@ -21630,8 +21642,7 @@ function initDateFunctions(){
   intents.forEach(btn=>btn.addEventListener('click',()=>{
     const guide=DATE_FUNCTION_GUIDES.find(g=>g.k===btn.dataset.k);if(!guide||!stage)return;
     intents.forEach(n=>{const on=n===btn;n.classList.toggle('on',on);n.setAttribute('aria-selected',on?'true':'false');});
-    stage.innerHTML=dateFunctionStageHtml(guide);
-    stage.classList.remove('is-changing');void stage.offsetWidth;stage.classList.add('is-changing');
+    swapLessonStage(stage,dateFunctionStageHtml(guide));
     if(navigator.vibrate)navigator.vibrate(5);
   }));
   bindTableSwipe(page);
@@ -21886,8 +21897,7 @@ function initNumericFunctions(){
   intents.forEach(btn=>btn.addEventListener('click',()=>{
     const guide=NUMERIC_FUNCTION_GUIDES.find(g=>g.k===btn.dataset.k);if(!guide||!stage)return;
     intents.forEach(n=>{const on=n===btn;n.classList.toggle('on',on);n.setAttribute('aria-selected',on?'true':'false');});
-    stage.innerHTML=numericFunctionStageHtml(guide);
-    stage.classList.remove('is-changing');void stage.offsetWidth;stage.classList.add('is-changing');
+    swapLessonStage(stage,numericFunctionStageHtml(guide));
     if(navigator.vibrate)navigator.vibrate(5);
   }));
   const aggStage=page.querySelector('.nf-agg-stage');
@@ -21895,8 +21905,7 @@ function initNumericFunctions(){
   aggTabs.forEach(btn=>btn.addEventListener('click',()=>{
     const guide=NUMERIC_AGG_GUIDES.find(g=>g.k===btn.dataset.k);if(!guide||!aggStage)return;
     aggTabs.forEach(n=>{const on=n===btn;n.classList.toggle('on',on);n.setAttribute('aria-selected',on?'true':'false');});
-    aggStage.innerHTML=numericAggStageHtml(guide);
-    aggStage.classList.remove('is-changing');void aggStage.offsetWidth;aggStage.classList.add('is-changing');
+    swapLessonStage(aggStage,numericAggStageHtml(guide));
     if(navigator.vibrate)navigator.vibrate(5);
   }));
   bindTableSwipe(page);
@@ -22191,8 +22200,7 @@ function initConversionFunctions(){
   intents.forEach(btn=>btn.addEventListener('click',()=>{
     const guide=CONVERSION_FUNCTION_GUIDES.find(g=>g.k===btn.dataset.k);if(!guide||!stage)return;
     intents.forEach(n=>{const on=n===btn;n.classList.toggle('on',on);n.setAttribute('aria-selected',on?'true':'false');});
-    stage.innerHTML=conversionFunctionStageHtml(guide);
-    stage.classList.remove('is-changing');void stage.offsetWidth;stage.classList.add('is-changing');
+    swapLessonStage(stage,conversionFunctionStageHtml(guide));
     if(navigator.vibrate)navigator.vibrate(5);
   }));
   bindTableSwipe(page);
@@ -28452,7 +28460,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-12-nf-agg-vis-v657';
+  const SW_CACHE='requete-2026-09-12-nf-tab-swap-v658';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
