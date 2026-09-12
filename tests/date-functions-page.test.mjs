@@ -80,6 +80,7 @@ assert(!studio.includes('Ne devine pas le dernier jour'), 'ouverture du cadre mo
 const period = studio.slice(studio.indexOf('Filtrer un mois sans oublier les dernières heures'), studio.indexOf('Une même heure ne désigne pas toujours le même moment'));
 const tz = studio.slice(studio.indexOf('Une même heure ne désigne pas toujours le même moment'), studio.indexOf('Les réflexes qui évitent les erreurs'));
 assert(tz.includes('New York</small><b>14:00</b>') && tz.includes('df-tz-neq'), '14:00 à Paris n’est pas 14:00 à New York');
+assert(html.includes('.df-tz-city small{display:block;font-size:13px') && html.includes('.df-unit small{font-size:11px'), 'libellés du cours moins écrasés');
 assert(tz.indexOf('New York</small><b>14:00</b>') < tz.indexOf('12:00') && tz.indexOf('New York</small><b>08:00</b>') > tz.indexOf('12:00'), '08:00 à New York n’apparaît qu’avec l’instant UTC');
 assert(tz.includes('>Z</code>') && tz.includes('+02:00') && tz.includes('Europe/Paris'), 'Z, décalage et fuseau expliqués après les schémas');
 assert(tz.includes('Le bon réflexe dépend') && tz.includes('AT TIME ZONE') && tz.includes('CONVERT_TZ()'), 'stockage puis syntaxes de conversion');
