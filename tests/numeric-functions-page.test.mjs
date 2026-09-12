@@ -34,7 +34,7 @@ assert(guides.includes("k:'round'") && guides.includes('ROUND(prix) AS prix_arro
 assert(guides.includes("k:'ceil'") && guides.includes('CEIL(prix)'), 'arrondi vers le haut disponible');
 assert(guides.includes("k:'floor'") && guides.includes('FLOOR(prix)'), 'arrondi vers le bas disponible');
 assert(guides.includes("k:'trunc'") && guides.includes('TRUNC(prix)'), 'troncature disponible');
-assert(guides.includes("k:'abs'") && guides.includes('ABS(age - 40)'), 'valeur absolue disponible');
+assert(guides.includes("k:'abs'") && guides.includes('ABS(age - 40)') && guides.includes('−14') && guides.includes('is-result">14') && !guides.includes('nf-abs-axis'), 'valeur absolue montrée comme une transformation');
 assert(guides.includes("k:'sign'") && guides.includes('SIGN(stock - 120)'), 'signe disponible');
 assert(guides.includes("k:'modulo'") && guides.includes('stock % 50') && guides.includes('nf-mod-expr'), 'modulo présenté comme un reste lisible');
 assert(guides.includes("k:'power'") && guides.includes('POWER(quantite, 2)'), 'puissance disponible');
