@@ -54,10 +54,11 @@ assert(!studio.includes('Trois vérifications avant CAST'), 'ancien piège docum
 assert(html.includes('function initConversionFunctions'), 'micro-interactions initialisées');
 assert(html.includes('aria-label="Conversions courantes entre types"') && html.includes('aria-live="polite"'), 'états interactifs accessibles');
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('cfStageSwap'), 'animations compatibles avec la réduction des mouvements');
+assert(html.includes('nf-machine-arrow') && html.includes('.conversion-functions-page .nf-machine{flex-direction:column'), 'schéma CAST empilé sur petit écran');
 assert(html.includes('initConversionFunctions();'), 'laboratoire activé au rendu du cours');
 assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53||l.id===54"), 'récapitulatifs redondants retirés de cette page');
 assert(html.includes('const hideLessonLab=l.id===52||l.id===54'), 'console Teste redondante masquée');
-assert(serviceWorker.includes('requete-2026-09-12-cf-lire-v660'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-09-12-cf-cast-resp-v661'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
