@@ -52,7 +52,9 @@ assert(studio.includes('nf-machine') && studio.includes('ROUND()'), 'fonction mo
 assert(studio.includes('nf-apply-more') && studio.includes('et 5 autres produits'), 'schéma ROUND indique les autres produits non affichés');
 assert(stage.includes('nf-visual') && stage.includes('piegeSqlRunBlock(g.sql)'), 'mini-laboratoire encore exécutable');
 assert(studio.includes("piegeSqlRunBlock('SELECT nom, prix,\\n       ROUND(prix) AS prix_arrondi\\nFROM produits;')"), 'exemple sur toute la colonne produits conservé');
-assert(studio.includes('SELECT AVG(prix)') && studio.includes('SELECT ROUND(AVG(prix))'), 'exemples AVG et ROUND(AVG) encore exécutables');
+assert(html.includes("k:'avg'") && html.includes('SELECT AVG(prix) AS prix_moyen') && html.includes("k:'sum'") && html.includes('SELECT SUM(stock) AS stock_total'), 'AVG et SUM ont chacun une requête dédiée');
+assert(studio.includes('nf-agg-tabs') && studio.includes('numericAggStageHtml(NUMERIC_AGG_GUIDES[0])'), 'moyenne et somme présentées dans deux onglets');
+assert(studio.includes('SELECT ROUND(AVG(prix))'), 'exemple ROUND(AVG) encore exécutable');
 assert(!studio.includes("WHERE nom = 'Fibre Prébiotique';"), 'premier cadre ROUND sur un seul produit retiré');
 assert(html.includes('function initNumericFunctions'), 'micro-interactions initialisées');
 assert(html.includes('aria-label="Fonctions numériques"') && html.includes('aria-live="polite"'), 'états interactifs accessibles');
