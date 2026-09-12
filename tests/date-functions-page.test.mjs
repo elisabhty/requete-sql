@@ -89,6 +89,7 @@ assert(tz.indexOf('New York</small><b>13:30</b>') < tz.indexOf('UTC : l’heure 
 assert(tz.indexOf('2026-08-29T11:30:00Z') < tz.indexOf('Décalage et fuseau') && tz.indexOf('Le décalage') < tz.indexOf('Le fuseau horaire') && tz.includes('29 décembre 2026'), 'Z, puis décalage, puis fuseau avec le changement d’heure');
 assert(!tz.includes('Si UTC') && !tz.includes('+ 2 heures'), 'exemple UTC 11:30 redondant retiré');
 assert(tz.includes('>Z</code>') && tz.includes('+02:00') && tz.includes('Europe/Paris') && tz.includes('df-tz-season'), 'Z, décalage et fuseau expliqués après UTC');
+assert(tz.includes('heure de référence mondiale') && tz.includes('selon la date') && !tz.includes('regarde la date') && !tz.includes('consulte la date'), 'le système utilise le fuseau et la date, le fuseau ne les consulte pas');
 assert(tz.includes('La différence à retenir') && tz.includes('2 heures d’avance'), 'écart UTC / décalage / fuseau résumé à la fin');
 assert(tz.includes('👉 Pour pouvoir comparer') && tz.includes('👉 On connaît maintenant') && tz.includes('👉 Pourquoi avons-nous besoin') && tz.includes('👉 Le système utilise donc') && tz.includes('👉 Pour un événement précis') && tz.includes('👉 Pour une date de naissance'), 'repères du chapitre fuseaux signalés par un doigt');
 assert(tz.includes('Le bon réflexe dépend') && tz.includes('AT TIME ZONE') && tz.includes('CONVERT_TZ()'), 'stockage puis syntaxes de conversion');
