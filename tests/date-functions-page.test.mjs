@@ -98,6 +98,8 @@ assert(period.includes('date_commande') && !period.includes('date_heure'), 'pér
 const afterBetween = period.slice(period.indexOf('BETWEEN'));
 assert(afterBetween.includes("'2023-07-31'") && afterBetween.includes('peut être interprétée comme') && afterBetween.includes('2023-07-31 00:00:00') && afterBetween.includes('2023-07-31 22:45:00'), 'la borne date est d’abord lue comme minuit');
 assert(period.includes('TOUT JUILLET') && period.includes('01/08 00:00'), 'tout juillet borné au 1er août');
+assert(period.includes('df-period-cmp') && period.includes('31 juillet, soir') && !period.includes('df-bet-hits'), 'BETWEEN et la borne suivante comparés sur les mêmes commandes');
+assert(period.includes('inclus') && period.includes('exclu') && period.includes('À éviter') && period.includes('Plus sûr'), 'bornes et filtres étiquetés');
 assert(!period.includes('comparaison date-heure') && !period.includes('La borne de fin s’arrête'), 'borne de fin expliquée sans jargon');
 assert(period.includes('utilise <code>&gt;=</code>') && !period.includes('utilise souvent'), 'réflexe de période sans souvent');
 assert((studio.match(/<article class="df-trap">/g) || []).length === 4, 'quatre pièges pédagogiques');
