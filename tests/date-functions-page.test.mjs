@@ -47,7 +47,7 @@ assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes(
 assert(html.includes('initDateFunctions();'), 'laboratoire activé au rendu du cours');
 assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53||l.id===54") && html.includes("compactFunctionLesson?'':reflexBlock(l)"), 'récapitulatifs redondants retirés de cette page');
 const studio = html.slice(html.indexOf('function renderDateFunctionsStudio'), html.indexOf('const NUMERIC_FUNCTION_GUIDES'));
-const order = ['Comprendre les dates et les heures','Choisir la bonne information temporelle','6 opérations essentielles sur les dates','Retrouver le début ou la fin d’un mois','Filtrer un mois entier','Une même heure ne désigne pas toujours le même moment','Les réflexes qui évitent les erreurs','Dates et heures selon le SGBD'];
+const order = ['Comprendre les dates et les heures','Choisir la bonne information temporelle','6 opérations essentielles sur les dates','Retrouver le début ou la fin d’un mois','Filtrer un mois entier','Une même heure ne désigne pas toujours le même moment','Les réflexes qui évitent les erreurs','Les dates, en quelques points.','La même opération, une écriture par SGBD'];
 let prev = -1;
 let orderOk = true;
 for (const title of order) {
@@ -68,11 +68,11 @@ assert(guides.includes('EXTRACT()') && guides.includes('TO_CHAR()') && guides.in
 assert(guides.includes('au moment où ta requête s’exécute') && !guides.includes('Si tu relances la requête'), 'situation de maintenant sans note d’horloge');
 assert(guides.includes('Extraire une partie d’une date') && guides.includes('Garder uniquement une période'), 'titres d’opération alignés sur le besoin');
 assert(studio.includes('2026-08-29T11:30:00Z'), 'instant ancré en UTC dans les fuseaux');
-assert(orderOk && (studio.match(/<div class="concept-block">/g) || []).length === 8, 'huit cadres dans l’ordre pédagogique');
+assert(orderOk && (studio.match(/<div class="concept-block">/g) || []).length === 9, 'neuf cadres dans l’ordre pédagogique');
 assert(!studio.includes('Et pour les fuseaux horaires ?') && !studio.includes('Convertir une valeur'), 'cadres hors fil retirés');
 assert(studio.includes('df-memo-table') && studio.includes('PostgreSQL') && studio.includes('SQL Server') && studio.includes('Oracle'), 'mémo en tableau des cinq SGBD');
-const memo = studio.slice(studio.indexOf('Dates et heures selon le SGBD'));
-assert(memo.includes('df-keep') && memo.includes('À retenir') && memo.indexOf('df-keep') < memo.indexOf('df-memo-table'), 'à retenir de toute la leçon avant le tableau');
+const memo = studio.slice(studio.lastIndexOf('À retenir'));
+assert(memo.includes('À retenir') && memo.includes('df-asks') && memo.indexOf('Les dates, en quelques points.') < memo.indexOf('La même opération, une écriture par SGBD') && memo.indexOf('La même opération, une écriture par SGBD') < memo.indexOf('df-memo-table'), 'à retenir de toute la leçon avant le tableau');
 assert(memo.includes('TIMESTAMP') && memo.includes('préfère souvent') && memo.includes('Europe/Paris') && memo.includes('date seule'), 'grands réflexes dates et heures, pas seulement les fuseaux');
 assert(!studio.includes('Pour une date présente'), 'note IS NOT NULL retirée du mémo');
 assert(studio.includes('df-memo-scroll') && studio.includes('Glisse'), 'mémo large avec indicateur de glissement');
