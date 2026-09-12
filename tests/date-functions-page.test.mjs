@@ -48,7 +48,7 @@ assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes(
 assert(html.includes('initDateFunctions();'), 'laboratoire activé au rendu du cours');
 assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53||l.id===54") && html.includes("compactFunctionLesson?'':reflexBlock(l)"), 'récapitulatifs redondants retirés de cette page');
 const studio = html.slice(html.indexOf('function renderDateFunctionsStudio'), html.indexOf('let dfNowTick'));
-const order = ['Comprendre les dates et les heures','Choisir la bonne information temporelle','6 opérations essentielles sur les dates','Retrouver le début ou la fin d’un mois','Filtrer un mois sans oublier les dernières heures','Une même heure ne désigne pas toujours le même moment','Les réflexes qui évitent les erreurs','Dates et heures selon le SGBD'];
+const order = ['Comprendre les dates et les heures','Choisir la bonne information temporelle','6 opérations essentielles sur les dates','Retrouver le début ou la fin d’un mois','Filtrer un mois entier','Une même heure ne désigne pas toujours le même moment','Les réflexes qui évitent les erreurs','Dates et heures selon le SGBD'];
 let prev = -1;
 let orderOk = true;
 for (const title of order) {
@@ -77,18 +77,19 @@ assert(html.includes('bindTableSwipe(page)'), 'indicateur de glissement activé 
 assert(studio.includes("EXTRACT(YEAR FROM d)") && studio.includes('DATEADD(day, 7, d)') && studio.includes('FROM_TZ()'), 'équivalents année, décalage et fuseau renseignés');
 assert(studio.includes('df-month-path') && studio.includes('2023-09-01') && studio.includes('+1 month'), 'chemin en quatre étapes pour la fin du mois');
 assert(!studio.includes('Ne devine pas le dernier jour'), 'ouverture du cadre mois moins brutale');
-const period = studio.slice(studio.indexOf('Filtrer un mois sans oublier les dernières heures'), studio.indexOf('Une même heure ne désigne pas toujours le même moment'));
+const period = studio.slice(studio.indexOf('Filtrer un mois entier'), studio.indexOf('Une même heure ne désigne pas toujours le même moment'));
 const tz = studio.slice(studio.indexOf('Une même heure ne désigne pas toujours le même moment'), studio.indexOf('Les réflexes qui évitent les erreurs'));
 assert(tz.includes('New York</small><b>14:00</b>') && tz.includes('df-tz-neq'), '14:00 à Paris n’est pas 14:00 à New York');
 assert(html.includes('.df-tz-city small{display:block;font-size:13px') && html.includes('.df-unit small{font-size:11px'), 'libellés du cours moins écrasés');
 assert(tz.indexOf('New York</small><b>14:00</b>') < tz.indexOf('12:00') && tz.indexOf('New York</small><b>08:00</b>') > tz.indexOf('12:00'), '08:00 à New York n’apparaît qu’avec l’instant UTC');
 assert(tz.includes('>Z</code>') && tz.includes('+02:00') && tz.includes('Europe/Paris'), 'Z, décalage et fuseau expliqués après les schémas');
 assert(tz.includes('Le bon réflexe dépend') && tz.includes('AT TIME ZONE') && tz.includes('CONVERT_TZ()'), 'stockage puis syntaxes de conversion');
-assert(!period.includes('23:59:59') && period.includes('juste avant le 1er août'), 'fin de journée sans figer 23:59:59');
+assert(!period.includes('23:59:59') && period.includes('avant le 1er août'), 'fin de journée sans figer 23:59:59');
 assert(period.includes("BETWEEN '2023-07-01'") && period.includes("'2023-07-31'"), 'piège BETWEEN illustré');
-assert(period.includes('Pourquoi éviter BETWEEN') && period.includes('2023-07-31 10:30:00') && period.includes('2023-07-31 18:45:00'), 'BETWEEN montré avec les heures perdues du 31');
+const afterBetween = period.slice(period.indexOf('BETWEEN'));
+assert(afterBetween.includes("'2023-07-31'") && afterBetween.includes('peut être interprétée comme') && afterBetween.includes('2023-07-31 00:00:00') && afterBetween.includes('2023-07-31 22:45:00'), 'la borne date est d’abord lue comme minuit');
 assert(period.includes('TOUT JUILLET') && period.includes('01/08 00:00'), 'tout juillet borné au 1er août');
-assert(!period.includes('comparaison date-heure'), 'borne de fin expliquée sans jargon');
+assert(!period.includes('comparaison date-heure') && !period.includes('La borne de fin s’arrête'), 'borne de fin expliquée sans jargon');
 assert((studio.match(/<article class="df-trap">/g) || []).length === 4, 'quatre pièges pédagogiques');
 assert(studio.includes('03/04/2026') && studio.includes('2026-04-03'), 'formats de date ambigus illustrés');
 assert(!studio.includes('peut empêcher un index d’aider'), 'index relégué en bonus, pas en titre');
