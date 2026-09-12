@@ -85,6 +85,7 @@ assert(html.includes('.df-tz-city small{display:block;font-size:13px') && html.i
 assert(html.includes('@media (max-width:520px)') && html.includes('.df-anatomy-split{grid-template-columns:1fr') && html.includes('.df-ideas{grid-template-columns:1fr}'), 'date, heure et types empilés sur téléphone');
 assert(tz.indexOf('New York</small><b>13:30</b>') < tz.indexOf('UTC : l’heure de référence') && tz.indexOf('UTC : l’heure de référence') < tz.indexOf('2026-08-29T11:30:00Z'), 'UTC arrive après le trou de la date + heure, avant le Z');
 assert(tz.indexOf('2026-08-29T11:30:00Z') < tz.indexOf('Décalage et fuseau') && tz.indexOf('Le décalage') < tz.indexOf('Le fuseau horaire') && tz.includes('29 décembre 2026'), 'Z, puis décalage, puis fuseau avec le changement d’heure');
+assert(!tz.includes('Si UTC') && !tz.includes('+ 2 heures'), 'exemple UTC 11:30 redondant retiré');
 assert(tz.includes('>Z</code>') && tz.includes('+02:00') && tz.includes('Europe/Paris') && tz.includes('df-tz-season'), 'Z, décalage et fuseau expliqués après UTC');
 assert(tz.includes('La différence à retenir') && tz.includes('2 heures d’avance'), 'écart UTC / décalage / fuseau résumé à la fin');
 assert(tz.includes('Le bon réflexe dépend') && tz.includes('AT TIME ZONE') && tz.includes('CONVERT_TZ()'), 'stockage puis syntaxes de conversion');
