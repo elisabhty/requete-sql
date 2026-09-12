@@ -30,7 +30,7 @@ assert(html.includes('function dateNowVisualHtml') && html.includes("timeZone:'U
 assert(html.includes('df-clock-time') && html.includes("page.querySelector('.df-stage .df-visual')") && html.includes('startDateNowTick') && html.includes('stopDateNowTick'), 'horloge du labo mise à jour chaque seconde');
 assert(guides.includes("k:'extract'") && guides.includes('strftime'), 'extraction d’une partie disponible');
 assert(guides.includes("k:'format'") && guides.includes('%d/%m/%Y'), 'formatage disponible');
-assert(!guides.split("k:'format'")[1].split("k:'shift'")[0].includes('visual:'), 'schéma avant/après du formatage retiré');
+assert(!guides.includes('visual:'), 'schémas décoratifs du laboratoire retirés');
 assert(guides.includes("k:'shift'") && guides.includes("'+5 days'"), 'décalage sur une ligne du temps disponible');
 assert(guides.includes("k:'duration'") && guides.includes('julianday'), 'durée entre deux dates disponible');
 assert(guides.includes("k:'period'") && guides.includes("date_commande < '2023-08-01'"), 'période à borne droite exclue disponible');
@@ -71,6 +71,7 @@ assert(studio.includes('2026-08-29T11:30:00Z'), 'instant ancré en UTC dans les 
 assert(orderOk && (studio.match(/<div class="concept-block">/g) || []).length === 8, 'huit cadres dans l’ordre pédagogique');
 assert(!studio.includes('Et pour les fuseaux horaires ?') && !studio.includes('Convertir une valeur'), 'cadres hors fil retirés');
 assert(studio.includes('df-memo-table') && studio.includes('PostgreSQL') && studio.includes('SQL Server') && studio.includes('Oracle'), 'mémo en tableau des cinq SGBD');
+assert(!studio.includes('Pour une date présente'), 'note IS NOT NULL retirée du mémo');
 assert(studio.includes('df-memo-scroll') && studio.includes('Glisse'), 'mémo large avec indicateur de glissement');
 assert(html.includes('bindTableSwipe(page)'), 'indicateur de glissement activé sur le mémo');
 assert(studio.includes("EXTRACT(YEAR FROM d)") && studio.includes('DATEADD(day, 7, d)') && studio.includes('FROM_TZ()'), 'équivalents année, décalage et fuseau renseignés');
