@@ -88,6 +88,7 @@ assert(tz.indexOf('2026-08-29T11:30:00Z') < tz.indexOf('Décalage et fuseau') &&
 assert(!tz.includes('Si UTC') && !tz.includes('+ 2 heures'), 'exemple UTC 11:30 redondant retiré');
 assert(tz.includes('>Z</code>') && tz.includes('+02:00') && tz.includes('Europe/Paris') && tz.includes('df-tz-season'), 'Z, décalage et fuseau expliqués après UTC');
 assert(tz.includes('La différence à retenir') && tz.includes('2 heures d’avance'), 'écart UTC / décalage / fuseau résumé à la fin');
+assert(tz.includes('👉 Pour pouvoir comparer') && tz.includes('👉 On connaît maintenant') && tz.includes('👉 Pourquoi avons-nous besoin') && tz.includes('👉 Le système utilise donc') && tz.includes('👉 Pour un événement précis') && tz.includes('👉 Pour une date de naissance'), 'repères du chapitre fuseaux signalés par un doigt');
 assert(tz.includes('Le bon réflexe dépend') && tz.includes('AT TIME ZONE') && tz.includes('CONVERT_TZ()'), 'stockage puis syntaxes de conversion');
 assert(!period.includes('23:59:59') && period.includes('avant le 1er août'), 'fin de journée sans figer 23:59:59');
 assert(period.includes("BETWEEN '2023-07-01'") && period.includes("'2023-07-31'"), 'piège BETWEEN illustré');
