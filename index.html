@@ -1750,6 +1750,16 @@
   .nf-lineagg-col.is-agg>b{background:var(--accent);color:#fff}
   .number-functions-page>.concept-block.in .nf-lineagg-col{animation:nfApplyIn .4s var(--spring-ios) both}
   .number-functions-page>.concept-block.in .nf-lineagg-col.is-agg{animation-delay:.1s}
+  .nf-agg-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:0 0 10px}
+  .nf-agg-tab{appearance:none;display:flex;min-width:0;flex-direction:column;justify-content:center;gap:3px;min-height:52px;padding:10px 12px;border:1px solid var(--card-border);border-radius:12px;background:var(--surface);color:var(--ink-2);font-family:var(--ui);text-align:left;cursor:pointer;transition:transform .2s var(--spring-ios),border-color .2s ease,background .2s ease,color .2s ease,box-shadow .2s ease}
+  .nf-agg-tab:active{transform:scale(.97)}
+  .nf-agg-tab b{font-size:13px;line-height:1.25}
+  .nf-agg-tab small{font-family:var(--mono);font-size:10px;font-weight:750;color:var(--ink-3)}
+  .nf-agg-tab.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);box-shadow:0 5px 13px rgba(91,91,214,.1)}
+  .nf-agg-tab.on small{color:var(--accent)}
+  .nf-agg-stage{margin:0 0 13px}
+  .nf-agg-stage.is-changing{animation:nfStageSwap .38s var(--spring-ios)}
+  .nf-agg-stage .piege-sql{margin:0}
   .nf-aggs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 13px}
   .nf-agg{min-width:0;padding:12px 11px;border:1px solid var(--card-border);border-radius:14px;background:var(--surface);box-shadow:var(--card-shadow-sm)}
   .nf-agg small{display:block;margin-bottom:6px;font-size:11px;font-weight:750;letter-spacing:.02em;text-transform:uppercase;color:var(--ink-3)}
@@ -1813,8 +1823,8 @@
     .nf-inorder-flow b,.nf-inorder-flow em{font-size:12px;text-align:center}
   }
   @media (prefers-reduced-motion:reduce){
-    .nf-stage.is-changing,.nf-order-box.is-changing,.nf-random span.is-picked,.nf-great span.is-win,.number-functions-page>.concept-block.in .nf-hero-val,.number-functions-page>.concept-block.in .nf-machine-fn,.number-functions-page>.concept-block.in .nf-machine-out,.number-functions-page>.concept-block.in .nf-apply-row,.number-functions-page>.concept-block.in .nf-apply-more,.number-functions-page>.concept-block.in .nf-lineagg-col,.number-functions-page>.concept-block.in .nf-inorder-card,.nf-abs-line i{animation:none!important}
-    .nf-intent,.nf-order-tab{transition:none!important}
+    .nf-stage.is-changing,.nf-agg-stage.is-changing,.nf-order-box.is-changing,.nf-random span.is-picked,.nf-great span.is-win,.number-functions-page>.concept-block.in .nf-hero-val,.number-functions-page>.concept-block.in .nf-machine-fn,.number-functions-page>.concept-block.in .nf-machine-out,.number-functions-page>.concept-block.in .nf-apply-row,.number-functions-page>.concept-block.in .nf-apply-more,.number-functions-page>.concept-block.in .nf-lineagg-col,.number-functions-page>.concept-block.in .nf-inorder-card,.nf-abs-line i{animation:none!important}
+    .nf-intent,.nf-agg-tab,.nf-order-tab{transition:none!important}
   }
   /* Conversion de types — voir la valeur, son type et le risque avant CAST. */
   .conversion-functions-page{gap:14px}
@@ -21862,6 +21872,15 @@ function numericFunctionStageHtml(g){
     <p class="nf-ex">Par exemple :</p>
     ${piegeSqlRunBlock(g.sql)}`;
 }
+const NUMERIC_AGG_GUIDES=[
+  {k:'avg',label:'Moyenne',short:'AVG',sql:'SELECT AVG(prix) AS prix_moyen\nFROM produits;',why:'<code>AVG()</code> calcule le prix moyen des produits de la boutique.'},
+  {k:'sum',label:'Somme',short:'SUM',sql:'SELECT SUM(stock) AS stock_total\nFROM produits;',why:'<code>SUM()</code> additionne le stock de tous les produits.'}
+];
+function numericAggStageHtml(g){
+  return `${g.why?`<p class="nf-why">${g.why}</p>`:''}
+    <p class="nf-ex">Par exemple :</p>
+    ${piegeSqlRunBlock(g.sql)}`;
+}
 function renderNumericFunctionsStudio(){
   const first=NUMERIC_FUNCTION_GUIDES[0];
   return `<div class="concept-page number-functions-page">
@@ -21943,15 +21962,14 @@ function renderNumericFunctionsStudio(){
           <b>un résultat pour l’ensemble</b>
         </div>
       </div>
+      <div class="nf-agg-tabs" role="tablist" aria-label="Moyenne ou somme">${NUMERIC_AGG_GUIDES.map((g,i)=>`<button type="button" class="nf-agg-tab${i===0?' on':''}" role="tab" aria-selected="${i===0?'true':'false'}" data-k="${g.k}"><b>${g.label}</b><small>${g.short}</small></button>`).join('')}</div>
+      <div class="nf-agg-stage">${numericAggStageHtml(NUMERIC_AGG_GUIDES[0])}</div>
       <div class="nf-aggs">
-        <div class="nf-agg"><small>Somme</small><b>SUM(prix)</b><span>Additionne tous les prix.</span></div>
-        <div class="nf-agg"><small>Moyenne</small><b>AVG(prix)</b><span>Calcule le prix moyen.</span></div>
         <div class="nf-agg"><small>Minimum</small><b>MIN(prix)</b><span>Trouve le prix le plus bas.</span></div>
         <div class="nf-agg"><small>Maximum</small><b>MAX(prix)</b><span>Trouve le prix le plus élevé.</span></div>
         <div class="nf-agg"><small>Compter</small><b>COUNT(*)</b><span>Compte les lignes.</span></div>
         <div class="nf-agg"><small>Dispersion</small><b>STDDEV · VARIANCE</b><span>Mesurent l’écart autour de la moyenne. Selon le SGBD, on lit aussi <code>STDEV</code> ou <code>VAR</code>.</span></div>
       </div>
-      ${piegeSqlRunBlock("SELECT AVG(prix) AS prix_moyen\nFROM produits\nWHERE nom IN ('Fibre Prébiotique', 'Collagène Marin', 'Magnésium');")}
     </div>
     <div class="concept-block">
       <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">🧩</span>Combiner des fonctions</span><span class="h2-txt">Une fonction peut utiliser le résultat d’une autre</span></h2>
@@ -22081,6 +22099,15 @@ function initNumericFunctions(){
     intents.forEach(n=>{const on=n===btn;n.classList.toggle('on',on);n.setAttribute('aria-selected',on?'true':'false');});
     stage.innerHTML=numericFunctionStageHtml(guide);
     stage.classList.remove('is-changing');void stage.offsetWidth;stage.classList.add('is-changing');
+    if(navigator.vibrate)navigator.vibrate(5);
+  }));
+  const aggStage=page.querySelector('.nf-agg-stage');
+  const aggTabs=[...page.querySelectorAll('.nf-agg-tab')];
+  aggTabs.forEach(btn=>btn.addEventListener('click',()=>{
+    const guide=NUMERIC_AGG_GUIDES.find(g=>g.k===btn.dataset.k);if(!guide||!aggStage)return;
+    aggTabs.forEach(n=>{const on=n===btn;n.classList.toggle('on',on);n.setAttribute('aria-selected',on?'true':'false');});
+    aggStage.innerHTML=numericAggStageHtml(guide);
+    aggStage.classList.remove('is-changing');void aggStage.offsetWidth;aggStage.classList.add('is-changing');
     if(navigator.vibrate)navigator.vibrate(5);
   }));
   bindTableSwipe(page);
@@ -28407,7 +28434,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-12-nf-asks-lead-v650';
+  const SW_CACHE='requete-2026-09-12-nf-avg-sum-v651';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
