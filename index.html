@@ -1880,6 +1880,19 @@
   .cf-dec-marks{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:320px}
   .cf-dec-marks span{padding:9px 10px;border-radius:11px;background:var(--surface);border:1px solid var(--line);font-size:12px;line-height:1.35;color:var(--ink-2);text-align:center}
   .cf-dec-marks b{display:block;margin-bottom:3px;font-family:var(--mono);font-size:12px;color:var(--ink)}
+  .cf-sample{margin:0 0 10px;text-align:center}
+  .cf-sample code{display:inline-block;padding:8px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--card-border);font-size:16px;font-weight:850}
+  .cf-iso{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin:0 0 4px}
+  .cf-iso>div{min-width:0;padding:12px 10px;border:1px solid var(--card-border);border-radius:13px;background:var(--surface);text-align:center}
+  .cf-iso .is-ok{border-color:rgba(91,91,214,.22);background:rgba(91,91,214,.05)}
+  .cf-iso small{display:block;margin-bottom:6px;font-size:11px;font-weight:750;letter-spacing:.02em;text-transform:uppercase;color:var(--ink-3)}
+  .cf-iso .is-ok small{color:var(--accent)}
+  .cf-iso b{display:block;font-family:var(--mono);font-size:13px;line-height:1.35;color:var(--ink)}
+  .cf-iso span{display:block;margin-top:6px;font-size:12px;line-height:1.4;color:var(--ink-2)}
+  .cf-sgbd-next{display:flex;flex-direction:column;gap:6px;margin:10px 0 0;padding:0;list-style:none}
+  .cf-sgbd-next li{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:9px 12px;border-radius:12px;background:color-mix(in srgb,var(--surface-2) 28%,#fff)}
+  .cf-sgbd-next span{font-size:13px;font-weight:750;color:var(--ink)}
+  .cf-sgbd-next code{min-width:0;text-align:right;overflow-wrap:anywhere;font-size:12px}
   .cf-sources{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 4px}
   .cf-sources span{padding:6px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:750}
   .cf-fail{display:grid;width:100%;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
@@ -1901,7 +1914,7 @@
     .cf-stage{padding:14px 14px 11px}.cf-intent{padding:9px 10px}.cf-intent b{font-size:12px}
   }
   @media (max-width:480px){
-    .cf-fail{grid-template-columns:1fr}
+    .cf-fail,.cf-iso{grid-template-columns:1fr}
     .conversion-functions-page .nf-mm{grid-template-columns:1fr}
     .conversion-functions-page .piege-sql .ex-code{font-size:12px;padding:14px 14px}
     .conversion-functions-page .nf-sit-table .concept-table th,
@@ -21916,40 +21929,91 @@ function initNumericFunctions(){
   }));
   bindTableSwipe(page);
 }
+function conversionMachineHtml(g){
+  return `<div class="nf-visual" role="img" aria-label="${escAttr(g.title)}">
+    <div class="nf-machine">
+      <span class="nf-machine-in"><b>${esc(g.from)}</b><small>${esc(g.fromType)}</small></span>
+      <i class="nf-machine-arrow" aria-hidden="true">→</i>
+      <span class="nf-machine-fn">${esc(g.fn)}</span>
+      <i class="nf-machine-arrow" aria-hidden="true">→</i>
+      <span class="nf-machine-out"><b>${esc(g.to)}</b><small>${esc(g.toType)}</small></span>
+    </div>
+  </div>`;
+}
 const CONVERSION_FUNCTION_GUIDES=[
   {k:'integer',label:'Texte → entier',short:"'34' · INTEGER",title:'Texte → entier',
-    why:'Utile lorsqu’un nombre a été reçu ou importé sous forme de texte.',
-    sql:"SELECT CAST('34' AS INTEGER);",
-    visual:`<div class="cf-before-after"><span class="cf-value"><b>'34'</b><small>TEXT</small></span><i class="cf-arrow" aria-hidden="true">→</i><span class="cf-value is-result"><b>34</b><small>INTEGER</small></span></div>`},
+    lead:'Une donnée peut contenir un nombre tout en étant enregistrée comme du texte.',
+    sample:"'34'",sampleNote:'Les guillemets indiquent qu’il s’agit ici de texte.',
+    beforeSql:'Pour obtenir un entier :',
+    sql:"SELECT CAST('34' AS INTEGER) AS age;",
+    from:"'34'",fromType:'texte',fn:'CAST(... AS INTEGER)',to:'34',toType:'entier',
+    after:'Le contenu reste 34, mais son type change.',
+    tip:'C’est notamment utile lorsque des nombres provenant d’un import ont été reçus sous forme de texte.'},
   {k:'decimal',label:'Texte → décimal',short:"'29.90' · DECIMAL",title:'Texte → décimal',
-    why:'La valeur peut maintenant être traitée comme un nombre décimal.',
-    sql:"SELECT CAST('29.90' AS DECIMAL(10,2));",
-    visual:`<div class="cf-before-after"><span class="cf-value"><b>'29.90'</b><small>TEXT</small></span><i class="cf-arrow" aria-hidden="true">→</i><span class="cf-value is-result"><b>29.90</b><small>DECIMAL</small></span></div>`},
+    lead:'Même principe avec un prix reçu sous forme de texte.',
+    sample:"'29.90'",
+    beforeSql:'Pour le convertir en nombre décimal :',
+    sql:"SELECT CAST('29.90' AS DECIMAL(10,2)) AS prix;",
+    from:"'29.90'",fromType:'texte',fn:'CAST(... AS DECIMAL(10,2))',to:'29.90',toType:'décimal',
+    after:'La valeur peut maintenant être traitée comme une valeur numérique.',
+    extra:`<h3 class="nf-sub">Que signifie DECIMAL(10,2) ?</h3>
+      <div class="cf-visual" role="img" aria-label="DECIMAL 10 virgule 2 : jusqu’à 10 chiffres au total, 2 après la virgule">
+        <div class="cf-dec">
+          <div class="cf-dec-fn">DECIMAL(<i>10</i>, <i>2</i>)</div>
+          <div class="cf-dec-marks">
+            <span><b>10</b>jusqu’à 10 chiffres au total</span>
+            <span><b>2</b>jusqu’à 2 chiffres après la virgule</span>
+          </div>
+        </div>
+      </div>`},
   {k:'text',label:'Nombre → texte',short:'34 · VARCHAR',title:'Nombre → texte',
-    why:'Utile notamment lorsqu’une valeur numérique doit être utilisée comme du texte.',
-    sql:"SELECT CAST(34 AS VARCHAR(10));",
-    visual:`<div class="cf-before-after"><span class="cf-value"><b>34</b><small>INTEGER</small></span><i class="cf-arrow" aria-hidden="true">→</i><span class="cf-value is-result"><b>'34'</b><small>TEXT</small></span></div>`},
+    lead:'On peut aussi effectuer la conversion inverse.',
+    sample:'34',
+    beforeSql:'Pour obtenir une valeur textuelle :',
+    sql:"SELECT CAST(34 AS VARCHAR(10)) AS age_texte;",
+    from:'34',fromType:'entier',fn:'CAST(... AS VARCHAR(10))',to:"'34'",toType:'texte',
+    after:'Le nombre 34 devient une valeur textuelle.',
+    tip:'Cette conversion peut être utile lorsque tu dois utiliser un nombre dans un contenu destiné à être affiché comme du texte.'},
   {k:'date',label:'Texte → date',short:'AAAA-MM-JJ · DATE',title:'Texte → date',
-    why:'Le texte représente désormais une date que le SGBD peut traiter comme telle.',
-    sql:"CAST('2026-09-12' AS DATE)",
-    sqliteSql:"SELECT date('2026-09-12') AS date_sql;",
-    visual:`<div class="cf-flow" role="img" aria-label="Le texte 2026-09-12 devient une date"><span>'2026-09-12'</span><i aria-hidden="true">↓</i><b>DATE</b></div>`},
-  {k:'datetime',label:'Date + heure → date',short:'14:35 · DATE',title:'Date + heure → date',
-    why:'Pour ne conserver que la partie date.',
-    sql:"CAST(date_heure AS DATE)",
-    sqliteSql:"SELECT date('2026-09-12 14:35:27') AS uniquement_la_date;",
-    visual:`<div class="cf-flow" role="img" aria-label="2026-09-12 14:35:27 devient 2026-09-12"><span>2026-09-12 14:35:27</span><i aria-hidden="true">↓</i><b>CAST(... AS DATE)</b><i aria-hidden="true">↓</i><em>2026-09-12</em></div>`}
+    lead:'Une date peut elle aussi arriver sous forme de texte.',
+    sample:"'2026-09-12'",
+    beforeSql:'Pour demander une conversion vers le type DATE :',
+    sql:"SELECT CAST('2026-09-12' AS DATE) AS date_sql;",
+    live:false,
+    from:"'2026-09-12'",fromType:'texte',fn:'CAST(... AS DATE)',to:'2026-09-12',toType:'date',
+    after:'SQL peut alors traiter la valeur comme une date, selon les capacités et règles du SGBD.',
+    extra:`<h3 class="nf-sub">Pourquoi utiliser ce format ?</h3>
+      <p>Pour les dates non ambiguës, on privilégie généralement une représentation ISO comme <code>AAAA-MM-JJ</code>.</p>
+      <div class="cf-iso">
+        <div class="is-ok"><small>Clair</small><b>2026-09-12</b><span>Année, mois, jour — sans ambiguïté.</span></div>
+        <div><small>Ambigu</small><b>09/12/2026</b><span>Mois/jour ou jour/mois, selon les conventions.</span></div>
+      </div>`},
+  {k:'datetime',label:'Date + heure → date',short:'18:45 · DATE',title:'Date + heure → date',
+    lead:'Une valeur peut contenir à la fois une date et une heure.',
+    sample:'2026-09-12 18:45:27',
+    beforeSql:'Si tu as seulement besoin de la date, une conversion vers DATE peut retirer la partie heure :',
+    sql:"SELECT CAST('2026-09-12 18:45:27' AS DATE) AS date_sql;",
+    live:false,
+    from:'2026-09-12 18:45:27',fromType:'date + heure',fn:'CAST(... AS DATE)',to:'2026-09-12',toType:'date',
+    after:'👉 La partie heure n’est plus présente dans le résultat de type DATE.'},
+  {k:'intdec',label:'Entier → décimal',short:'7 · DECIMAL',title:'Entier → décimal',
+    lead:'Une conversion peut aussi avoir lieu entre deux types numériques.',
+    beforeSql:'Par exemple :',
+    sql:"SELECT CAST(7 AS DECIMAL(10,2)) AS nombre;",
+    from:'7',fromType:'entier',fn:'CAST(... AS DECIMAL(10,2))',to:'7.00',toType:'décimal',
+    after:'Cela peut notamment être utile lorsque le calcul doit travailler avec un type numérique décimal.'}
 ];
 function conversionFunctionStageHtml(g){
-  const example=g.sqliteSql
-    ?`<div class="pt-syntax cf-code"><pre class="cw-syntax">${esc(g.sql)}</pre></div>
-      <p class="nf-ex">Par exemple :</p>
-      ${piegeSqlRunBlock(g.sqliteSql)}`
-    :`<p class="nf-ex">Par exemple :</p>
-      ${piegeSqlRunBlock(g.sql)}`;
-  return `${g.why?`<p class="nf-why">${g.why}</p>`:''}
-    <div class="cf-visual" role="img" aria-label="${escAttr(g.title)}">${g.visual}</div>
-    ${example}`;
+  return `${g.lead?`<p class="nf-why">${g.lead}</p>`:''}
+    ${g.sample?`<p class="nf-ex">Par exemple :</p><p class="cf-sample"><code>${esc(g.sample)}</code></p>`:''}
+    ${g.sampleNote?`<p>${g.sampleNote}</p>`:''}
+    ${g.beforeSql?`<p>${g.beforeSql}</p>`:''}
+    ${g.live===false?`<div class="pt-syntax cf-code"><pre class="cw-syntax">${esc(g.sql)}</pre></div>`:piegeSqlRunBlock(g.sql)}
+    <p class="nf-ex">Ce qui se passe</p>
+    ${conversionMachineHtml(g)}
+    ${g.after?`<p>${g.after}</p>`:''}
+    ${g.extra||''}
+    ${g.tip?`<div class="nf-read"><b><span aria-hidden="true">💡</span> À retenir</b><p>${g.tip}</p></div>`:''}`;
 }
 function renderConversionFunctionsStudio(){
   const first=CONVERSION_FUNCTION_GUIDES[0];
@@ -21994,9 +22058,34 @@ function renderConversionFunctionsStudio(){
     </div>
     <div class="concept-block">
       <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">🧪</span>Mini-laboratoire</span><span class="h2-txt">Les conversions les plus courantes</span></h2>
-      <p class="nf-lead">Choisis une conversion pour voir le type changer, puis tester la requête. <span aria-hidden="true">👇</span></p>
+      <p class="nf-lead">Avec <code>CAST()</code>, tu peux demander à SQL de transformer une valeur vers un autre type.</p>
+      <p>La structure reste la même :</p>
+      <div class="pt-syntax"><pre class="cw-syntax">CAST(valeur AS type)</pre></div>
+      <p>Voici les conversions que tu rencontreras le plus souvent. <span aria-hidden="true">👇</span></p>
       <div class="cf-intents" role="tablist" aria-label="Conversions courantes entre types">${CONVERSION_FUNCTION_GUIDES.map((g,i)=>`<button type="button" class="cf-intent${i===0?' on':''}" role="tab" aria-selected="${i===0?'true':'false'}" data-k="${g.k}"><b>${g.label}</b><small>${g.short}</small></button>`).join('')}</div>
       <div class="cf-stage" aria-live="polite">${conversionFunctionStageHtml(first)}</div>
+      <h3 class="nf-sub">Une conversion n’est pas toujours possible</h3>
+      <p><code>CAST()</code> ne peut pas transformer n’importe quelle valeur en n’importe quel type.</p>
+      <div class="cf-visual">
+        <div class="cf-fail">
+          <div class="cf-fail-col is-ok"><b>CAST('42' AS INTEGER)</b><small>'42' → 42</small><em>✓</em></div>
+          <div class="cf-fail-col is-ko"><b>CAST('bonjour' AS INTEGER)</b><small>'bonjour' → nombre ?</small><em>?</em></div>
+        </div>
+      </div>
+      <p>Selon le SGBD, une conversion incompatible peut provoquer une erreur ou un comportement différent.</p>
+      <p>C’est particulièrement important avec des données provenant de fichiers, formulaires ou imports.</p>
+      <div class="nf-read">
+        <b><span aria-hidden="true">💡</span> Même principe, syntaxe parfois différente</b>
+        <p><code>CAST()</code> permet de comprendre le principe général de la conversion. Selon le SGBD, d’autres types, syntaxes ou fonctions peuvent être utilisés pour certaines conversions.</p>
+        <p>Par exemple, tu verras ensuite :</p>
+        <ul class="cf-sgbd-next">
+          <li><span>PostgreSQL</span><code>::</code></li>
+          <li><span>SQL Server</span><code>CONVERT()</code>, <code>TRY_CAST()</code></li>
+          <li><span>Oracle</span><code>TO_NUMBER()</code>, <code>TO_DATE()</code>, <code>TO_CHAR()</code></li>
+          <li><span>MySQL</span><code>CONVERT()</code>, <code>STR_TO_DATE()</code></li>
+          <li><span>SQLite</span><code>CAST()</code> + fonctions dédiées</li>
+        </ul>
+      </div>
     </div>
     <div class="concept-block">
       <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">🎨</span>Convertir</span><span class="h2-txt">Convertir ne veut pas dire formater</span></h2>
@@ -22185,6 +22274,7 @@ function renderConversionFunctionsStudio(){
         <li>nombre → texte</li>
         <li>texte → date</li>
         <li>date + heure → date</li>
+        <li>entier → décimal</li>
         <li>nombre → autre type numérique</li>
       </ul>
       <p>Une conversion peut échouer si la valeur n’est pas compatible avec le type demandé.</p>
@@ -28465,7 +28555,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-12-cf-ex-v664';
+  const SW_CACHE='requete-2026-09-12-cf-lab-cast-v665';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
