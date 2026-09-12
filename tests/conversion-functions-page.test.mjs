@@ -37,7 +37,7 @@ assert(!guides.includes("k:'precision'") && !guides.includes("k:'invalid'"), 'pe
 assert(!html.includes('const CONVERSION_DECISIONS='), 'ancien laboratoire de décisions retiré');
 assert(html.includes('function renderConversionFunctionsStudio'), 'rendu dédié à la leçon 54');
 assert(html.includes('if(l.id===54)return renderConversionFunctionsStudio(l)'), 'ancienne pile de texte remplacée');
-assert(studio.includes('La donnée n’a pas toujours le bon type') && studio.includes('cf-types') && studio.includes("clients.age") && studio.includes("'34'"), 'situation recentrée sur le type reçu');
+assert(studio.includes('La donnée n’a pas toujours le bon type') && studio.includes('cf-types') && studio.includes('<code>age</code>') && studio.includes("'34'"), 'situation recentrée sur le type reçu');
 assert(studio.includes('Comment demander à SQL de transformer une valeur d’un type vers un autre ?'), 'question d’ouverture recentrée sur CAST');
 assert(studio.includes('CAST(expression AS type)') && studio.includes("SELECT CAST('34' AS INTEGER);"), 'CAST présenté comme cœur de la leçon');
 assert(studio.includes('Convertir ne veut pas dire formater') && studio.includes('TO_CHAR()') && studio.includes('DATE_FORMAT()'), 'conversion distinguée du formatage');
@@ -57,7 +57,7 @@ assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes(
 assert(html.includes('initConversionFunctions();'), 'laboratoire activé au rendu du cours');
 assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53||l.id===54"), 'récapitulatifs redondants retirés de cette page');
 assert(html.includes('const hideLessonLab=l.id===52||l.id===54'), 'console Teste redondante masquée');
-assert(serviceWorker.includes('requete-2026-09-12-nf-tab-swap-v658'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-09-12-cf-col-v659'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
