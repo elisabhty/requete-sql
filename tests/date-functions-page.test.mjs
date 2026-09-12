@@ -25,9 +25,8 @@ const guides = guideStart >= 0 && guideEnd > guideStart ? html.slice(guideStart,
 assert(Boolean(guides), 'guide temporel interactif localisé');
 assert((guides.match(/\{k:'/g) || []).length === 6, '6 intentions plutôt que 13 longs chapitres');
 assert(guides.includes("k:'now'") && guides.includes('CURRENT_TIMESTAMP'), 'date et heure actuelles disponibles');
-assert(!guides.includes('AOÛT') && !guides.includes('13:30:00'), 'horloge du labo non figée dans le guide');
-assert(html.includes('function dateNowVisualHtml') && html.includes("timeZone:'UTC'"), 'calendrier et horloge construits à l’instant UTC');
-assert(html.includes('df-clock-time') && html.includes("page.querySelector('.df-stage .df-visual')") && html.includes('startDateNowTick') && html.includes('stopDateNowTick'), 'horloge du labo mise à jour chaque seconde');
+assert(!guides.includes('AOÛT') && !guides.includes('13:30:00'), 'horloge décorative retirée du laboratoire');
+assert(!html.includes('dateNowVisualHtml') && !html.includes('df-clock-time') && !html.includes('Exemple de résultat'), 'calendrier, horloge et exemple de résultat retirés');
 assert(guides.includes("k:'extract'") && guides.includes('strftime'), 'extraction d’une partie disponible');
 assert(guides.includes("k:'format'") && guides.includes('%d/%m/%Y'), 'formatage disponible');
 assert(!guides.includes('visual:'), 'schémas décoratifs du laboratoire retirés');
@@ -47,7 +46,7 @@ assert(html.includes('df-stage-head" aria-live="polite"') && html.includes('Opé
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('dfStageSwap'), 'animations compatibles avec la réduction des mouvements');
 assert(html.includes('initDateFunctions();'), 'laboratoire activé au rendu du cours');
 assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53||l.id===54") && html.includes("compactFunctionLesson?'':reflexBlock(l)"), 'récapitulatifs redondants retirés de cette page');
-const studio = html.slice(html.indexOf('function renderDateFunctionsStudio'), html.indexOf('let dfNowTick'));
+const studio = html.slice(html.indexOf('function renderDateFunctionsStudio'), html.indexOf('const NUMERIC_FUNCTION_GUIDES'));
 const order = ['Comprendre les dates et les heures','Choisir la bonne information temporelle','6 opérations essentielles sur les dates','Retrouver le début ou la fin d’un mois','Filtrer un mois entier','Une même heure ne désigne pas toujours le même moment','Les réflexes qui évitent les erreurs','Dates et heures selon le SGBD'];
 let prev = -1;
 let orderOk = true;
@@ -66,7 +65,7 @@ assert(guides.includes("label:'Obtenir maintenant'") && !guides.includes("label:
 assert(guides.includes("label:'Formater une date'") && guides.includes("label:'Calculer une durée'"), 'verbes SQL alignés sur les six opérations');
 assert((guides.match(/why:'/g) || []).length === 6, 'chaque opération part d’une situation');
 assert(guides.includes('EXTRACT()') && guides.includes('TO_CHAR()') && guides.includes('DATE_ADD()') && guides.includes('TIMESTAMPDIFF()'), 'fonctions multi-SGBD visibles sur les cartes');
-assert(guides.includes('au moment où ta requête s’exécute') && guides.includes('Si tu relances la requête'), 'situation puis à retenir pour maintenant');
+assert(guides.includes('au moment où ta requête s’exécute') && !guides.includes('Si tu relances la requête'), 'situation de maintenant sans note d’horloge');
 assert(guides.includes('Extraire une partie d’une date') && guides.includes('Garder uniquement une période'), 'titres d’opération alignés sur le besoin');
 assert(studio.includes('2026-08-29T11:30:00Z'), 'instant ancré en UTC dans les fuseaux');
 assert(orderOk && (studio.match(/<div class="concept-block">/g) || []).length === 8, 'huit cadres dans l’ordre pédagogique');
