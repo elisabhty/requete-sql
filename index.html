@@ -1421,6 +1421,25 @@
   .df-tz-locals{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;width:100%}
   .df-tz-cap{margin:0!important;text-align:center;font-size:12px!important;line-height:1.35!important;color:var(--ink-3)!important}
   .df-tz-compare{margin:0 0 13px}
+  .df-ideas.is-triple{grid-template-columns:1fr}
+  @media (min-width:720px){
+    .df-ideas.is-triple{grid-template-columns:repeat(3,minmax(0,1fr))}
+  }
+  .df-tz-offs{display:flex;flex-direction:column;gap:6px;width:100%;margin:0;padding:0;list-style:none}
+  .df-tz-offs li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+  .df-tz-offs span{font-size:13px;font-weight:650;line-height:1.3;color:var(--ink-2)}
+  .df-tz-offs b{font-family:var(--mono);font-size:16px;font-weight:800;line-height:1.1;color:var(--ink)}
+  .df-tz-offs li:first-child{border-color:transparent;background:var(--accent);color:#fff;box-shadow:0 6px 16px rgba(91,91,214,.18)}
+  .df-tz-offs li:first-child span{color:rgba(255,255,255,.82)}
+  .df-tz-offs li:first-child b{color:#fff}
+  .df-tz-z{width:100%;padding:14px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);text-align:center}
+  .df-tz-z b{display:block;font-family:var(--mono);font-size:15px;font-weight:800;line-height:1.3;color:var(--ink);overflow-wrap:anywhere}
+  .df-tz-z i{font-style:normal;color:var(--accent)}
+  .df-tz-season{display:flex;flex-direction:column;align-items:center;width:min(100%,320px)}
+  .df-tz-season .df-tz-city{width:100%}
+  .df-tz-city.is-zone b{font-size:16px}
+  .df-tz-down{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0 2px;font-size:11px;font-weight:750;letter-spacing:.02em;line-height:1.25;color:var(--ink-3)}
+  .df-tz-down::before{content:'↓';color:var(--accent);font-size:16px;font-weight:800;line-height:1}
   .df-traps{display:flex;flex-direction:column;gap:10px;margin:0}
   .df-trap{padding:14px 14px 13px;border-radius:16px;background:color-mix(in srgb,var(--surface-2) 28%,#fff)}
   .df-trap>b{display:block;margin-bottom:8px;font-size:14.5px;line-height:1.3;color:var(--ink)}
@@ -21669,44 +21688,82 @@ FROM commandes;</pre></div>
     </div>
     <div class="concept-block">
       <h2><span class="h2-eye">Fuseaux</span><span class="h2-txt">Une même heure ne désigne pas toujours le même moment</span></h2>
-      <p class="df-lead">Une heure sans fuseau manque de contexte.</p>
-      <div class="df-visual is-tz" aria-label="14:00 à Paris n’est pas le même instant que 14:00 à New York">
+      <h3 class="df-sub">Date + heure : est-ce suffisant ?</h3>
+      <p class="df-lead">Une valeur comme <code>2026-08-29 13:30:00</code> nous donne une date et une heure.</p>
+      <p>Mais il manque une information importante : 13h30 dans quelle partie du monde ?</p>
+      <div class="df-visual is-tz" aria-label="13:30 à Paris n’est pas le même moment que 13:30 à New York">
         <div class="df-tz-diff">
-          <div class="df-tz-city"><small>Paris</small><b>14:00</b></div>
+          <div class="df-tz-city"><small>Paris</small><b>13:30</b></div>
           <span class="df-tz-neq" aria-hidden="true">≠</span>
-          <div class="df-tz-city"><small>New York</small><b>14:00</b></div>
+          <div class="df-tz-city"><small>New York</small><b>13:30</b></div>
         </div>
-        <p class="df-tz-cap">Même heure affichée, instants différents.</p>
+        <p class="df-tz-cap">13h30 à Paris et 13h30 à New York ne correspondent pas au même moment.</p>
       </div>
-      <p>Ces deux heures affichent <code>14:00</code>, mais elles ne correspondent pas au même instant.</p>
-      <h3 class="df-sub">Un même instant peut aussi afficher des heures différentes</h3>
-      <p>À l’inverse, un même moment peut être affiché différemment selon le fuseau :</p>
-      <div class="df-visual is-tz" aria-label="12:00 UTC s’affiche 14:00 à Paris et 08:00 à New York">
-        <div class="df-tz-same">
-          <div class="df-tz-utc"><b>12:00</b><small>UTC</small></div>
+      <p>Pour pouvoir comparer les heures partout dans le monde, on utilise donc une heure de référence commune : <code>UTC</code>.</p>
+      <h3 class="df-sub">UTC : l’heure de référence</h3>
+      <p><code>UTC</code> est l’heure de référence mondiale.</p>
+      <p>On peut imaginer <code>UTC</code> comme un point de départ à partir duquel les autres heures sont calculées.</p>
+      <p>Par exemple, imaginons qu’il soit <code>12:00</code> <code>UTC</code>. Selon l’endroit, l’heure locale peut être en avance ou en retard sur <code>UTC</code> :</p>
+      <div class="df-visual is-tz" aria-label="À 12:00 UTC, l’heure locale vaut 14:00 avec +02:00, 13:00 avec +01:00 et 08:00 avec −04:00">
+        <ul class="df-tz-offs">
+          <li><span>UTC</span><b>12:00</b></li>
+          <li><span>UTC + 02:00</span><b>14:00</b></li>
+          <li><span>UTC + 01:00</span><b>13:00</b></li>
+          <li><span>UTC − 04:00</span><b>08:00</b></li>
+        </ul>
+      </div>
+      <p>Le + signifie qu’on ajoute des heures à <code>UTC</code>. Le − signifie qu’on retire des heures à <code>UTC</code>.</p>
+      <p>Ainsi, <code>+02:00</code> signifie : l’heure locale est 2 heures en avance sur <code>UTC</code>.</p>
+      <p>Si <code>UTC</code> indique <code>11:30</code> :</p>
+      <div class="df-month-mini" role="img" aria-label="11:30 UTC plus 2 heures donne 13:30">
+        <div class="df-month-node"><small>UTC</small><b>11:30</b></div>
+        <div class="df-month-mod"><i aria-hidden="true">›</i><code>+ 2 heures</code></div>
+        <div class="df-month-node is-result"><small>+02:00</small><b>13:30</b></div>
+      </div>
+      <h3 class="df-sub">Et le Z dans une date ?</h3>
+      <p>Tu peux rencontrer une valeur comme :</p>
+      <div class="df-visual is-tz" aria-label="2026-08-29T11:30:00Z signifie le 29 août 2026 à 11h30 UTC">
+        <div class="df-tz-z"><b>2026-08-29T11:30:00<i>Z</i></b></div>
+      </div>
+      <p>Le <code>Z</code> indique ici que l’heure est exprimée en <code>UTC</code>.</p>
+      <p>Donc <code>2026-08-29T11:30:00Z</code> signifie simplement : le 29 août 2026 à 11h30 <code>UTC</code>.</p>
+      <p>On connaît maintenant précisément le moment auquel la valeur fait référence.</p>
+      <h3 class="df-sub">Décalage et fuseau : ce n’est pas la même chose</h3>
+      <p>C’est ici qu’il faut bien distinguer deux notions.</p>
+      <h3 class="df-sub">Le décalage</h3>
+      <p>Un décalage comme <code>+02:00</code> indique simplement l’écart avec <code>UTC</code>.</p>
+      <div class="df-visual is-tz" aria-label="11:30 UTC plus 2 heures donne 13:30 en UTC+02:00">
+        <ul class="df-tz-offs">
+          <li><span>UTC</span><b>11:30</b></li>
+          <li><span>UTC+02:00</span><b>13:30</b></li>
+        </ul>
+      </div>
+      <p><code>+02:00</code> ne nous dit donc pas forcément dans quel pays ou quelle ville nous sommes. Il nous dit seulement : cette heure a 2 heures d’avance sur <code>UTC</code>.</p>
+      <h3 class="df-sub">Le fuseau horaire</h3>
+      <p>Un fuseau comme <code>Europe/Paris</code> contient les règles horaires d’une région.</p>
+      <p>Pourquoi avons-nous besoin de règles ? Parce que le décalage de Paris par rapport à <code>UTC</code> peut changer selon la période de l’année.</p>
+      <div class="df-visual is-tz" aria-label="Europe/Paris consulte la date : UTC+02:00 en été, UTC+01:00 en hiver">
+        <div class="df-tz-season">
+          <div class="df-tz-utc"><b>UTC</b><small>référence</small></div>
+          <span class="df-tz-down">heure de référence</span>
+          <div class="df-tz-city is-zone"><small>fuseau</small><b>Europe/Paris</b></div>
+          <span class="df-tz-down">regarde la date</span>
           <svg class="df-tz-fork" viewBox="0 0 200 34" fill="none" aria-hidden="true"><path d="M100 0v10M50 10h100M50 10v24M150 10v24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <div class="df-tz-locals">
-            <div class="df-tz-city"><small>Paris</small><b>14:00</b></div>
-            <div class="df-tz-city"><small>New York</small><b>08:00</b></div>
+            <div class="df-tz-city"><small>été</small><b>UTC+02:00</b></div>
+            <div class="df-tz-city"><small>hiver</small><b>UTC+01:00</b></div>
           </div>
         </div>
-        <p class="df-tz-cap">Heures affichées différentes, même instant.</p>
+        <p class="df-tz-cap">Le fuseau plus la date donnent le décalage à appliquer.</p>
       </div>
-      <p>L’instant reste le même. Seule l’heure affichée change.</p>
-      <h3 class="df-sub">Date + heure ou instant ?</h3>
-      <p>Une valeur comme <code>2026-08-29 13:30:00</code> donne une date et une heure, mais ne précise pas à elle seule le fuseau auquel cette heure se rapporte.</p>
-      <div class="df-ideas">
-        <div class="df-idea"><small>Date + heure</small><b>2026-08-29 13:30:00</b><span>Le 29 août à 13h30, sans préciser le fuseau.</span></div>
-        <div class="df-idea is-accent"><small>Instant</small><b>2026-08-29T11:30:00Z</b><span>Un moment précis exprimé ici en UTC.</span></div>
+      <p>Le 29 août 2026, <code>Europe/Paris</code> correspond à <code>UTC+02:00</code>. Le 29 décembre 2026, le même fuseau correspond à <code>UTC+01:00</code>.</p>
+      <p>Le système utilise donc le fuseau et la date pour déterminer le décalage à appliquer.</p>
+      <h3 class="df-sub">La différence à retenir</h3>
+      <div class="df-ideas is-triple df-tz-compare">
+        <div class="df-idea"><small>Référence</small><b>UTC</b><span>L’heure de référence.</span></div>
+        <div class="df-idea"><small>Décalage</small><b>+02:00</b><span>2 heures d’avance sur <code>UTC</code>.</span></div>
+        <div class="df-idea is-accent"><small>Fuseau</small><b>Europe/Paris</b><span>Les règles pour savoir quel décalage appliquer selon la date.</span></div>
       </div>
-      <p>Le <code>Z</code> signifie que l’heure est exprimée en <code>UTC</code>.</p>
-      <h3 class="df-sub">Décalage et fuseau : ce n’est pas la même chose</h3>
-      <div class="df-ideas df-tz-compare">
-        <div class="df-idea"><small>Décalage</small><b>+02:00</b><span>2 heures d’avance sur <code>UTC</code></span></div>
-        <div class="df-idea is-accent"><small>Fuseau</small><b>Europe/Paris</b><span>Zone avec ses règles horaires</span></div>
-      </div>
-      <p><code>Europe/Paris</code> contient notamment les règles permettant de savoir quel décalage s’applique selon la date.</p>
-      <p><code>+02:00</code> indique un décalage. <code>Europe/Paris</code> indique un fuseau et ses règles.</p>
       <h3 class="df-sub">Faut-il tout stocker en UTC ?</h3>
       <p>Le bon réflexe dépend de ce que tu stockes.</p>
       <p>Pour un événement précis — une commande créée, un paiement effectué, une connexion — <code>UTC</code> est souvent une bonne référence.</p>
@@ -28232,7 +28289,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-12-df-lab-v597';
+  const SW_CACHE='requete-2026-09-12-df-lab-v598';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
