@@ -21855,9 +21855,7 @@ function numericFunctionStageHtml(g){
   const why=g.why?`<p class="nf-why">${g.why}</p>`:'';
   return `<div class="nf-stage-head"><div><small>Opération numérique</small><h3>${esc(g.title)}</h3></div><div class="nf-stage-fns">${fns.map(f=>`<code class="nf-stage-fn">${esc(f)}</code>`).join('')}</div></div>
     ${why}
-    <div class="nf-visual" aria-label="${escAttr(g.title)}">${g.visual}</div>
-    <p class="nf-ex">Par exemple :</p>
-    ${piegeSqlRunBlock(g.sql)}`;
+    <div class="nf-visual" aria-label="${escAttr(g.title)}">${g.visual}</div>`;
 }
 function renderNumericFunctionsStudio(){
   const first=NUMERIC_FUNCTION_GUIDES[0];
@@ -21892,10 +21890,8 @@ function renderNumericFunctionsStudio(){
           <span class="nf-machine-out"><b>30</b><small>résultat</small></span>
         </div>
       </div>
-      ${piegeSqlRunBlock("SELECT nom, prix, ROUND(prix) AS prix_arrondi\nFROM produits\nWHERE nom = 'Fibre Prébiotique';")}
       <h3 class="nf-sub">Appliquer une fonction à une colonne</h3>
       <p>Une fonction peut aussi être appliquée aux valeurs d’une colonne.</p>
-      ${piegeSqlRunBlock('SELECT nom, prix,\n       ROUND(prix) AS prix_arrondi\nFROM produits;')}
       <p>SQL applique alors <code>ROUND()</code> au prix de chaque ligne :</p>
       <div class="nf-apply" role="img" aria-label="ROUND appliqué au prix de trois produits">
         <div class="nf-apply-row"><b>Fibre Prébiotique</b><span class="nf-apply-eq"><span>29,90</span><i aria-hidden="true">→</i><em>30</em></span></div>
@@ -21906,7 +21902,7 @@ function renderNumericFunctionsStudio(){
     </div>
     <div class="concept-block">
       <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">🧪</span>Mini-laboratoire</span><span class="h2-txt">Explore les fonctions numériques</span></h2>
-      <p class="nf-lead">Choisis une opération pour comprendre ce qu’elle fait, voir un exemple, puis tester la requête. <span aria-hidden="true">👇</span></p>
+      <p class="nf-lead">Choisis une opération pour comprendre ce qu’elle fait et lire son schéma. <span aria-hidden="true">👇</span></p>
       <div class="nf-intents" role="tablist" aria-label="Fonctions numériques">${NUMERIC_FUNCTION_GUIDES.map((g,i)=>`<button type="button" class="nf-intent${i===0?' on':''}" role="tab" aria-selected="${i===0?'true':'false'}" data-k="${g.k}"><b>${g.label}</b><small>${g.short}</small></button>`).join('')}</div>
       <div class="nf-stage" aria-live="polite">${numericFunctionStageHtml(first)}</div>
     </div>
@@ -21947,13 +21943,11 @@ function renderNumericFunctionsStudio(){
         <div class="nf-agg"><small>Compter</small><b>COUNT(*)</b><span>Compte les lignes.</span></div>
         <div class="nf-agg"><small>Dispersion</small><b>STDDEV · VARIANCE</b><span>Mesurent l’écart autour de la moyenne. Selon le SGBD, on lit aussi <code>STDEV</code> ou <code>VAR</code>.</span></div>
       </div>
-      ${piegeSqlRunBlock("SELECT AVG(prix) AS prix_moyen\nFROM produits\nWHERE nom IN ('Fibre Prébiotique', 'Collagène Marin', 'Magnésium');")}
     </div>
     <div class="concept-block">
       <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">🧩</span>Combiner des fonctions</span><span class="h2-txt">Une fonction peut utiliser le résultat d’une autre</span></h2>
       <p class="nf-lead">Les fonctions SQL peuvent être imbriquées : le résultat d’une première fonction devient l’entrée d’une seconde.</p>
-      <p>Cette requête sélectionne trois produits, calcule la moyenne de leurs prix avec <code>AVG()</code>, puis arrondit le résultat avec <code>ROUND()</code>.</p>
-      ${piegeSqlRunBlock("SELECT ROUND(AVG(prix)) AS prix_moyen\nFROM produits\nWHERE nom IN ('Fibre Prébiotique', 'Collagène Marin', 'Magnésium');")}
+      <p>Par exemple, <code>ROUND(AVG(prix))</code> calcule d’abord la moyenne avec <code>AVG()</code>, puis arrondit ce résultat avec <code>ROUND()</code>.</p>
       <h3 class="nf-sub">SQL calcule de l’intérieur vers l’extérieur</h3>
       <div class="nf-inorder">
         <div class="nf-inorder-card">
@@ -28403,7 +28397,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-12-df-lab-v610';
+  const SW_CACHE='requete-2026-09-12-nf-no-exec-v642';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
