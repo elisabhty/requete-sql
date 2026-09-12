@@ -15925,7 +15925,7 @@ const CARTES={
     m:"<code>DISTINCT</code> retire les doublons du résultat. Avec plusieurs colonnes, il compare leur combinaison."},
  51:{k:"Fonctions de texte",t:"Transformer, nettoyer, découper",s:"LOWER(nom) || '-' || LOWER(ville)",
     m:"Demande-toi ce que tu veux faire au texte. Forme → <code>UPPER</code> / <code>LOWER</code>. Nettoyer → <code>TRIM</code>, <code>REPLACE</code>. Découper → <code>SUBSTR</code>. Chercher → <code>INSTR</code>. Assembler → <code>||</code>. Ces fonctions changent l’affichage, pas la table."},
-  52:{k:"Fonctions numériques",t:"Calculer, arrondir, manipuler",s:"ROUND(AVG(prix), 2)",
+  52:{k:"Fonctions numériques",t:"Calculer, arrondir, manipuler",s:"ROUND(AVG(prix))",
     m:"Une fonction numérique calcule une nouvelle valeur dans le résultat, sans modifier la table. Choisis d’abord le calcul : arrondir, valeur absolue, reste, moyenne… Puis vérifie la syntaxe de ton SGBD."},
  53:{k:"Dates",t:"Obtenir, extraire, calculer",s:"YEAR(date_commande)",
     m:"Demande-toi ce que tu veux faire avec la date : obtenir, extraire, formater, décaler, mesurer, filtrer. La syntaxe change selon le SGBD ; le raisonnement reste le même."},
@@ -21954,28 +21954,28 @@ function renderNumericFunctionsStudio(){
     <div class="concept-block">
       <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">🧩</span>Combiner des fonctions</span><span class="h2-txt">Une fonction peut utiliser le résultat d’une autre</span></h2>
       <p class="nf-lead">Les fonctions SQL peuvent être imbriquées : le résultat d’une première fonction devient l’entrée d’une seconde.</p>
-      <p>Par exemple, tu veux connaître le prix moyen de tes produits, puis l’arrondir à 2 décimales.</p>
-      ${piegeSqlRunBlock('SELECT ROUND(AVG(prix), 2) AS prix_moyen\nFROM produits;')}
+      <p>Par exemple, tu veux la moyenne de 29,90, 39,90 et 19,90, puis l’arrondir.</p>
+      ${piegeSqlRunBlock("SELECT ROUND(AVG(prix)) AS prix_moyen\nFROM produits\nWHERE nom IN ('Fibre Prébiotique', 'Collagène Marin', 'Magnésium');")}
       <h3 class="nf-sub">SQL calcule de l’intérieur vers l’extérieur</h3>
       <div class="nf-inorder">
         <div class="nf-inorder-card">
           <small>1 — Calculer la moyenne</small>
-          <div class="nf-inorder-flow" role="img" aria-label="Tous les prix, puis AVG(prix), puis 23,9875">
-            <span>Tous les prix</span>
+          <div class="nf-inorder-flow" role="img" aria-label="29,90, 39,90 et 19,90, puis AVG(prix), puis 29,90">
+            <span>29,90 · 39,90 · 19,90</span>
             <i aria-hidden="true">↓</i>
             <b>AVG(prix)</b>
             <i aria-hidden="true">↓</i>
-            <em>23,9875</em>
+            <em>29,90</em>
           </div>
         </div>
         <div class="nf-inorder-card is-result">
           <small>2 — Arrondir le résultat</small>
-          <div class="nf-inorder-flow" role="img" aria-label="23,9875, puis ROUND à 2 décimales, puis 23,99">
-            <span>23,9875</span>
+          <div class="nf-inorder-flow" role="img" aria-label="29,90, puis ROUND, puis 30">
+            <span>29,90</span>
             <i aria-hidden="true">↓</i>
-            <b>ROUND(..., 2)</b>
+            <b>ROUND(...)</b>
             <i aria-hidden="true">↓</i>
-            <em>23,99</em>
+            <em>30</em>
           </div>
         </div>
       </div>
@@ -21983,11 +21983,11 @@ function renderNumericFunctionsStudio(){
         <b><span aria-hidden="true">🧠</span> Le réflexe</b>
         <p>Pour lire des fonctions imbriquées, commence par la fonction la plus à l’intérieur, puis remonte vers l’extérieur.</p>
         <p>Dans :</p>
-        <div class="pt-syntax"><pre class="cw-syntax">ROUND(AVG(prix), 2)</pre></div>
+        <div class="pt-syntax"><pre class="cw-syntax">ROUND(AVG(prix))</pre></div>
         <p>on lit donc :</p>
         <ol>
           <li><b>①</b> <code>AVG(prix)</code> → calcule la moyenne</li>
-          <li><b>②</b> <code>ROUND(..., 2)</code> → arrondit cette moyenne à 2 décimales</li>
+          <li><b>②</b> <code>ROUND(...)</code> → arrondit cette moyenne</li>
         </ol>
       </div>
     </div>
