@@ -61,6 +61,7 @@ const vocab = studio.slice(studio.indexOf('Choisir la bonne information temporel
 assert(!vocab.includes('Instant') && !vocab.includes('instant exact'), 'instant réservé au chapitre fuseaux');
 assert(vocab.includes('Date + heure') && vocab.includes('TIMESTAMP') && vocab.includes('DATETIME') && vocab.includes('df-reflex'), 'date + heure et réflexe mémorisable');
 assert(vocab.includes('df-reflex-ico') && !vocab.includes('📅') && !vocab.includes('🕐') && !vocab.includes('⏱️'), 'réflexe en pictogrammes plutôt qu’emojis');
+assert(studio.includes('h2-emo') && studio.includes('📅') && studio.includes('🧭') && studio.includes('🧪') && studio.includes('📆') && studio.includes('⏳') && studio.includes('🌍') && studio.includes('⚠️') && studio.includes('📝'), 'un emoji en tête de chaque cadre');
 assert(guides.includes("label:'Obtenir maintenant'") && !guides.includes("label:'Lire maintenant'"), 'obtenir plutôt que lire une date stockée');
 assert(guides.includes("label:'Formater une date'") && guides.includes("label:'Calculer une durée'"), 'verbes SQL alignés sur les six opérations');
 assert((guides.match(/why:'/g) || []).length === 6, 'chaque opération part d’une situation');
