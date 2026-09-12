@@ -81,6 +81,7 @@ const period = studio.slice(studio.indexOf('Filtrer un mois entier'), studio.ind
 const tz = studio.slice(studio.indexOf('Une même heure ne désigne pas toujours le même moment'), studio.indexOf('Les réflexes qui évitent les erreurs'));
 assert(tz.includes('New York</small><b>13:30</b>') && tz.includes('df-tz-neq'), '13:30 à Paris n’est pas 13:30 à New York');
 assert(html.includes('.df-tz-city small{display:block;font-size:13px') && html.includes('.df-unit small{font-size:11px'), 'libellés du cours moins écrasés');
+assert(html.includes('@media (max-width:520px)') && html.includes('.df-anatomy-split{grid-template-columns:1fr') && html.includes('.df-ideas{grid-template-columns:1fr}'), 'date, heure et types empilés sur téléphone');
 assert(tz.indexOf('New York</small><b>13:30</b>') < tz.indexOf('UTC : l’heure de référence') && tz.indexOf('UTC : l’heure de référence') < tz.indexOf('2026-08-29T11:30:00Z'), 'UTC arrive après le trou de la date + heure, avant le Z');
 assert(tz.indexOf('2026-08-29T11:30:00Z') < tz.indexOf('Décalage et fuseau') && tz.indexOf('Le décalage') < tz.indexOf('Le fuseau horaire') && tz.includes('29 décembre 2026'), 'Z, puis décalage, puis fuseau avec le changement d’heure');
 assert(tz.includes('>Z</code>') && tz.includes('+02:00') && tz.includes('Europe/Paris') && tz.includes('df-tz-season'), 'Z, décalage et fuseau expliqués après UTC');
