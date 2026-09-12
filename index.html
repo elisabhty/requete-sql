@@ -16058,11 +16058,11 @@ const QCM={
    {q:"Quelle fonction permet de trouver la position de @ dans un email ?",o:["LENGTH()","INSTR()","LOWER()"],b:1,e:"<code>INSTR(texte, texte_recherché)</code> renvoie la position."},
    {q:"Que permet <code>||</code> en SQLite ?",o:["Comparer deux textes","Assembler plusieurs textes","Supprimer les doublons"],b:1,e:"<code>||</code> concatène. Avec un <code>NULL</code>, tout le résultat devient <code>NULL</code>."}],
   52:[{q:"Que fait une fonction numérique dans <code>SELECT</code> ?",o:["Elle modifie la valeur enregistrée dans la table","Elle calcule une nouvelle valeur dans le résultat","Elle ajoute une colonne permanente à la table"],b:1,e:"SQL affiche un calcul. La colonne d’origine, par exemple <code>produits.prix</code>, reste inchangée."},
-   {q:"Que fait <code>ROUND(29.987, 2)</code> ?",o:["29","29.98","29.99"],b:2,e:"On arrondit à 2 décimales : 29,987 devient 29,99."},
-   {q:"Avec 29,40, que renvoient <code>CEIL</code> et <code>FLOOR</code> ?",o:["30 et 29","29 et 30","30 et 30"],b:0,e:"<code>CEIL</code> monte toujours à l’entier supérieur. <code>FLOOR</code> descend toujours à l’entier inférieur."},
-   {q:"Que retourne <code>ABS(-25)</code> ?",o:["-25","25","0"],b:1,e:"<code>ABS</code> ignore le signe : c’est la distance à zéro."},
-   {q:"Que permet <code>%</code> ?",o:["D’obtenir le reste d’une division","D’obtenir un pourcentage automatiquement","D’arrondir un nombre"],b:0,e:"En SQL, <code>%</code> est le modulo, pas un pourcentage. <code>17 % 5</code> vaut 2."},
-   {q:"Quelle requête compare plusieurs valeurs sur une même ligne ?",o:["SELECT MAX(prix) FROM produits","SELECT GREATEST(10, 25, 18)","SELECT AVG(prix) FROM produits"],b:1,e:"<code>GREATEST</code> compare des valeurs entre elles. <code>MAX</code> et <code>AVG</code> parcourent plusieurs lignes."}],
+   {q:"Sur un prix de 29,90 €, que renvoie <code>ROUND(prix)</code> ?",o:["29","29,90","30"],b:2,e:"<code>ROUND</code> arrondit à l’entier le plus proche : 29,90 devient 30."},
+   {q:"Avec le prix 12,50 €, que renvoient <code>CEIL</code> et <code>FLOOR</code> ?",o:["13 et 12","12 et 13","13 et 13"],b:0,e:"<code>CEIL</code> monte toujours à l’entier supérieur. <code>FLOOR</code> descend toujours à l’entier inférieur."},
+   {q:"Chloé a 26 ans. Que renvoie <code>ABS(age - 40)</code> ?",o:["-14","14","26"],b:1,e:"<code>ABS</code> ignore le signe : l’écart 26 − 40 vaut −14, la valeur absolue est 14."},
+   {q:"Que permet <code>%</code> ?",o:["D’obtenir le reste d’une division","D’obtenir un pourcentage automatiquement","D’arrondir un nombre"],b:0,e:"En SQL, <code>%</code> est le modulo, pas un pourcentage. Le stock 120 de la Fibre donne <code>120 % 50</code> = 20."},
+   {q:"Quelle requête compare plusieurs valeurs sur une même ligne ?",o:["SELECT MAX(prix) FROM produits","SELECT GREATEST(prix, stock) FROM produits","SELECT AVG(prix) FROM produits"],b:1,e:"<code>GREATEST</code> compare des valeurs entre elles, sur une même ligne. <code>MAX</code> et <code>AVG</code> parcourent plusieurs lignes."}],
  53:[{q:"À quoi sert une fonction comme <code>CURRENT_DATE</code> ?",o:["Modifier toutes les dates","Obtenir la date actuelle","Extraire une année","Trier les dates"],b:1,e:"<code>CURRENT_DATE</code> renvoie la date du jour. Elle ne modifie aucune valeur enregistrée."},
    {q:"Que cherche-t-on à faire avec <code>YEAR(date_commande)</code> ?",o:["Ajouter une année","Supprimer l’année","Récupérer l’année de la date","Comparer deux dates"],b:2,e:"<code>YEAR</code> extrait l’année. Pour <code>2023-08-03</code>, le résultat est 2023."},
    {q:"Que représente généralement <code>date_fin - date_debut</code> ?",o:["Une durée","Une nouvelle table","Une colonne supprimée","Un tri"],b:0,e:"Soustraire deux dates mesure l’écart entre elles : une durée."},
@@ -21840,7 +21840,7 @@ const NUMERIC_FUNCTION_GUIDES=[
   {k:'round',label:'Arrondir',short:'ROUND',title:'Arrondir un nombre',fn:['ROUND()'],sql:"SELECT nom, prix, ROUND(prix) AS prix_arrondi\nFROM produits\nWHERE nom = 'Fibre Prébiotique';",why:'<code>ROUND()</code> arrondit à la valeur la plus proche.',visual:`<div class="nf-equation nf-round"><span class="nf-num">29,90</span><i class="nf-op">→</i><span class="nf-num is-result">30</span></div>`},
   {k:'ceil',label:'Vers le haut',short:'CEIL',title:'Arrondir vers le haut',fn:['CEIL()','CEILING()'],sql:"SELECT nom, prix, CEIL(prix) AS prix_haut\nFROM produits\nWHERE nom = 'Tisane Détox';",why:'<code>CEIL()</code> va toujours à l’entier supérieur.',visual:`<div class="nf-equation"><span class="nf-num">12,50</span><i class="nf-op">↑</i><span class="nf-num is-result">13</span></div>`},
   {k:'floor',label:'Vers le bas',short:'FLOOR',title:'Arrondir vers le bas',fn:['FLOOR()'],sql:"SELECT nom, prix, FLOOR(prix) AS prix_bas\nFROM produits\nWHERE nom = 'Fibre Prébiotique';",why:'<code>FLOOR()</code> va toujours à l’entier inférieur.',visual:`<div class="nf-equation"><span class="nf-num">29,90</span><i class="nf-op">↓</i><span class="nf-num is-result">29</span></div>`},
-  {k:'trunc',label:'Tronquer',short:'TRUNC',title:'Tronquer un nombre',fn:['TRUNC()','TRUNCATE()'],sql:"SELECT nom, prix, TRUNC(prix) AS prix_tronque\nFROM produits\nWHERE nom = 'Fibre Prébiotique';",why:'<code>TRUNC()</code> coupe les décimales sans arrondir.',visual:`<div class="nf-equation nf-round"><span class="nf-num">29,90</span><i class="nf-op">→</i><span class="nf-num is-result">29</span></div>`},
+  {k:'trunc',label:'Tronquer',short:'TRUNC',title:'Tronquer un nombre',fn:['TRUNC()','TRUNCATE()'],sql:"SELECT nom, prix, TRUNC(prix) AS prix_tronque\nFROM produits\nWHERE nom = 'Fibre Prébiotique';",why:'<code>TRUNC()</code> coupe les décimales sans arrondir. Sur un nombre positif, le résultat rejoint <code>FLOOR()</code>.',visual:`<div class="nf-equation nf-round"><span class="nf-num">29,90</span><i class="nf-op">→</i><span class="nf-num is-result">29</span></div>`},
   {k:'abs',label:'Valeur absolue',short:'ABS',title:'Valeur absolue',fn:['ABS()'],sql:"SELECT nom, age, ABS(age - 40) AS ecart\nFROM clients\nWHERE nom = 'Chloé';",why:'<code>ABS()</code> renvoie un nombre sans son signe négatif.',visual:`<div class="nf-abs-axis"><div class="nf-abs-line"><span>−14</span><i></i><b class="nf-abs-zero" aria-hidden="true"></b><i></i><span>+14</span></div><strong>écart = 14</strong></div>`},
   {k:'sign',label:'Signe',short:'SIGN',title:'Connaître le signe',fn:['SIGN()'],sql:"SELECT nom, stock, SIGN(stock - 120) AS signe\nFROM produits\nWHERE nom IN ('Collagène Marin', 'Fibre Prébiotique', 'Magnésium');",why:'<code>SIGN()</code> indique si un nombre est positif, négatif ou nul.',visual:`<div class="nf-sign"><span class="nf-sign-item is-neg"><small>négatif</small><b>−1</b></span><span class="nf-sign-item is-zero"><small>zéro</small><b>0</b></span><span class="nf-sign-item is-pos"><small>positif</small><b>1</b></span></div>`},
   {k:'modulo',label:'Reste',short:'% · MOD',title:'Reste d’une division',fn:['MOD()','%'],sql:"SELECT nom, stock, stock % 50 AS reste\nFROM produits\nWHERE nom = 'Fibre Prébiotique';",why:'<code>MOD()</code> ou <code>%</code> récupère ce qu’il reste après une division.',visual:`<div class="nf-equation"><span class="nf-num">120</span><i class="nf-op">% 50</i><span class="nf-num is-result">20</span></div>`},
@@ -21864,7 +21864,7 @@ function renderNumericFunctionsStudio(){
   return `<div class="concept-page number-functions-page">
     <div class="concept-block">
       <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">🛒</span>Situation</span><span class="h2-txt">Faire parler les nombres avec SQL</span></h2>
-      <p class="nf-lead">Dans ta boutique, la table <code>produits</code> contient notamment le prix et le stock de chaque produit.</p>
+      <p class="nf-lead">Dans ta boutique, la table <code>produits</code> contient notamment le prix et le stock de chaque produit. D’autres nombres se trouvent dans <code>commandes.quantite</code> et <code>clients.age</code>.</p>
       <div class="table-wrap nf-sit-table"><table class="concept-table"><thead><tr><th>nom</th><th>prix</th><th>stock</th></tr></thead><tbody>
         <tr><td>Fibre Prébiotique</td><td>29,90</td><td>120</td></tr>
         <tr><td>Collagène Marin</td><td>39,90</td><td>80</td></tr>
@@ -21892,7 +21892,7 @@ function renderNumericFunctionsStudio(){
           <span class="nf-machine-out"><b>30</b><small>résultat</small></span>
         </div>
       </div>
-      ${piegeSqlRunBlock('SELECT ROUND(29.90);')}
+      ${piegeSqlRunBlock("SELECT nom, prix, ROUND(prix) AS prix_arrondi\nFROM produits\nWHERE nom = 'Fibre Prébiotique';")}
       <h3 class="nf-sub">Appliquer une fonction à une colonne</h3>
       <p>Une fonction peut aussi être appliquée aux valeurs d’une colonne.</p>
       ${piegeSqlRunBlock('SELECT nom, prix,\n       ROUND(prix) AS prix_arrondi\nFROM produits;')}
@@ -21947,7 +21947,7 @@ function renderNumericFunctionsStudio(){
         <div class="nf-agg"><small>Compter</small><b>COUNT(*)</b><span>Compte les lignes.</span></div>
         <div class="nf-agg"><small>Dispersion</small><b>STDDEV · VARIANCE</b><span>Mesurent l’écart autour de la moyenne. Selon le SGBD, on lit aussi <code>STDEV</code> ou <code>VAR</code>.</span></div>
       </div>
-      ${piegeSqlRunBlock('SELECT AVG(prix) AS prix_moyen\nFROM produits;')}
+      ${piegeSqlRunBlock("SELECT AVG(prix) AS prix_moyen\nFROM produits\nWHERE nom IN ('Fibre Prébiotique', 'Collagène Marin', 'Magnésium');")}
     </div>
     <div class="concept-block">
       <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">🧩</span>Combiner des fonctions</span><span class="h2-txt">Une fonction peut utiliser le résultat d’une autre</span></h2>
@@ -22000,8 +22000,8 @@ function renderNumericFunctionsStudio(){
         </div>
         <div class="nf-mm-col is-accent">
           <small>Une même ligne</small>
-          <b>GREATEST(10, 25, 18)</b>
-          <span>Parmi 10, 25 et 18, quelle valeur est la plus grande ?</span>
+          <b>GREATEST(prix, stock)</b>
+          <span>Sur une même ligne, parmi 29,90 et 120, quelle valeur est la plus grande ?</span>
         </div>
       </div>
       <p>Même logique pour <code>MIN()</code> et <code>LEAST()</code>.</p>
@@ -22051,8 +22051,8 @@ function renderNumericFunctionsStudio(){
         <tr><td>Puissance</td><td><code>POWER</code></td><td><code>POWER</code></td><td><code>POWER</code> / <code>POW</code></td><td><code>POWER</code></td><td><code>POWER</code></td></tr>
         <tr><td>Racine</td><td><code>SQRT</code></td><td><code>SQRT</code></td><td><code>SQRT</code></td><td><code>SQRT</code></td><td><code>SQRT</code></td></tr>
         <tr><td>Aléatoire</td><td><code>RANDOM</code></td><td><code>RANDOM</code></td><td><code>RAND</code></td><td><code>RAND</code></td><td><code>DBMS_RANDOM.VALUE</code></td></tr>
-        <tr><td>Max entre<br>valeurs</td><td><code>MAX</code></td><td><code>GREATEST</code></td><td><code>GREATEST</code></td><td><code>GREATEST</code>¹</td><td><code>GREATEST</code></td></tr>
-        <tr><td>Min entre<br>valeurs</td><td><code>MIN</code></td><td><code>LEAST</code></td><td><code>LEAST</code></td><td><code>LEAST</code>¹</td><td><code>LEAST</code></td></tr>
+        <tr><td>Max entre<br>valeurs</td><td><code>MAX</code> / <code>GREATEST</code></td><td><code>GREATEST</code></td><td><code>GREATEST</code></td><td><code>GREATEST</code>¹</td><td><code>GREATEST</code></td></tr>
+        <tr><td>Min entre<br>valeurs</td><td><code>MIN</code> / <code>LEAST</code></td><td><code>LEAST</code></td><td><code>LEAST</code></td><td><code>LEAST</code>¹</td><td><code>LEAST</code></td></tr>
         <tr><td>Modulo</td><td><code>%</code></td><td><code>MOD</code> / <code>%</code></td><td><code>MOD</code> / <code>%</code></td><td><code>%</code></td><td><code>MOD</code></td></tr>
         <tr><td>Somme</td><td><code>SUM</code></td><td><code>SUM</code></td><td><code>SUM</code></td><td><code>SUM</code></td><td><code>SUM</code></td></tr>
         <tr><td>Moyenne</td><td><code>AVG</code></td><td><code>AVG</code></td><td><code>AVG</code></td><td><code>AVG</code></td><td><code>AVG</code></td></tr>
