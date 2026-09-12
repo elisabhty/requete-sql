@@ -79,10 +79,12 @@ assert(studio.includes('df-month-path') && studio.includes('2023-09-01') && stud
 assert(!studio.includes('Ne devine pas le dernier jour'), 'ouverture du cadre mois moins brutale');
 const period = studio.slice(studio.indexOf('Filtrer un mois entier'), studio.indexOf('Une même heure ne désigne pas toujours le même moment'));
 const tz = studio.slice(studio.indexOf('Une même heure ne désigne pas toujours le même moment'), studio.indexOf('Les réflexes qui évitent les erreurs'));
-assert(tz.includes('New York</small><b>14:00</b>') && tz.includes('df-tz-neq'), '14:00 à Paris n’est pas 14:00 à New York');
+assert(tz.includes('New York</small><b>13:30</b>') && tz.includes('df-tz-neq'), '13:30 à Paris n’est pas 13:30 à New York');
 assert(html.includes('.df-tz-city small{display:block;font-size:13px') && html.includes('.df-unit small{font-size:11px'), 'libellés du cours moins écrasés');
-assert(tz.indexOf('New York</small><b>14:00</b>') < tz.indexOf('12:00') && tz.indexOf('New York</small><b>08:00</b>') > tz.indexOf('12:00'), '08:00 à New York n’apparaît qu’avec l’instant UTC');
-assert(tz.includes('>Z</code>') && tz.includes('+02:00') && tz.includes('Europe/Paris'), 'Z, décalage et fuseau expliqués après les schémas');
+assert(tz.indexOf('New York</small><b>13:30</b>') < tz.indexOf('UTC : l’heure de référence') && tz.indexOf('UTC : l’heure de référence') < tz.indexOf('2026-08-29T11:30:00Z'), 'UTC arrive après le trou de la date + heure, avant le Z');
+assert(tz.indexOf('2026-08-29T11:30:00Z') < tz.indexOf('Décalage et fuseau') && tz.indexOf('Le décalage') < tz.indexOf('Le fuseau horaire') && tz.includes('29 décembre 2026'), 'Z, puis décalage, puis fuseau avec le changement d’heure');
+assert(tz.includes('>Z</code>') && tz.includes('+02:00') && tz.includes('Europe/Paris') && tz.includes('df-tz-season'), 'Z, décalage et fuseau expliqués après UTC');
+assert(tz.includes('La différence à retenir') && tz.includes('2 heures d’avance'), 'écart UTC / décalage / fuseau résumé à la fin');
 assert(tz.includes('Le bon réflexe dépend') && tz.includes('AT TIME ZONE') && tz.includes('CONVERT_TZ()'), 'stockage puis syntaxes de conversion');
 assert(!period.includes('23:59:59') && period.includes('avant le 1er août'), 'fin de journée sans figer 23:59:59');
 assert(period.includes("BETWEEN '2023-07-01'") && period.includes("'2023-07-31'"), 'piège BETWEEN illustré');
