@@ -45,6 +45,7 @@ assert(guides.includes("k:'random'") && guides.includes('ORDER BY RANDOM()'), 't
 assert(html.includes('function renderNumericFunctionsStudio'), 'rendu dédié à la leçon 52');
 assert(html.includes('if(l.id===52)return renderNumericFunctionsStudio(l)'), 'ancienne pile de texte remplacée');
 assert(studio.includes('Dans ta base, plusieurs colonnes contiennent des nombres') && studio.includes('toutes sortes de calculs'), 'introduction numérique simplifiée');
+assert(studio.includes('Comment demander à SQL d’effectuer ces calculs directement à partir des données ?'), 'question d’ouverture recentrée sur SQL');
 assert(studio.includes('nf-machine') && studio.includes('ROUND()'), 'fonction montrée par un schéma plutôt qu’un bloc exécutable');
 assert(studio.includes('nf-apply-more') && studio.includes('et 5 autres produits'), 'schéma ROUND indique les autres produits non affichés');
 assert(stage.includes('nf-visual') && !stage.includes('piegeSqlRunBlock(g.sql)'), 'mini-laboratoire sans cadre SQL exécutable');
