@@ -21635,26 +21635,37 @@ FROM commandes;</pre></div>
       <p class="df-note">Le réflexe : laisse le calendrier faire le calcul. Cette méthode fonctionne sans avoir à connaître à l’avance le nombre de jours du mois.</p>
     </div>
     <div class="concept-block">
-      <h2><span class="h2-eye">Période</span><span class="h2-txt">Filtrer un mois sans oublier les dernières heures</span></h2>
-      <h3 class="df-sub">Pourquoi éviter BETWEEN ici ?</h3>
-      <p>Si la colonne contient aussi une heure, indiquer seulement <code>'2023-07-31'</code> comme fin de période peut oublier les événements survenus plus tard dans la journée du 31 juillet.</p>
-      <p>Imagine que tu as ces commandes, et que tu écris :</p>
+      <h2><span class="h2-eye">Période</span><span class="h2-txt">Filtrer un mois entier</span></h2>
+      <p class="df-lead">Tu veux récupérer toutes les commandes passées en juillet, y compris celles du 31 juillet au soir.</p>
+      <p>Ta colonne <code>date_heure</code> contient la date et l’heure :</p>
+      <ul class="df-bet-hits">
+        <li class="is-ok"><code>2023-07-30 14:20:00</code><b aria-hidden="true">✓</b></li>
+        <li class="is-ok"><code>2023-07-31 00:00:00</code><b aria-hidden="true">✓</b></li>
+        <li class="is-ok"><code>2023-07-31 10:30:00</code><b aria-hidden="true">✓</b></li>
+        <li class="is-ok"><code>2023-07-31 22:45:00</code><b aria-hidden="true">✓</b></li>
+      </ul>
+      <p>Tu pourrais être tenté d’écrire :</p>
       <div class="df-trap-sql is-ko"><code>WHERE date_heure BETWEEN '2023-07-01'
   AND '2023-07-31'</code></div>
-      <p>La borne de fin s’arrête au début du 31 juillet : <code>2023-07-31 00:00:00</code>.</p>
+      <h3 class="df-sub">Le problème</h3>
+      <p>Dans ce contexte, la borne <code>'2023-07-31'</code> peut être interprétée comme <code>2023-07-31 00:00:00</code>.</p>
+      <p>C’est le tout début du 31 juillet, pas la fin de la journée.</p>
+      <p>Donc une commande passée le <code>2023-07-31 22:45:00</code> risque de ne pas être récupérée.</p>
       <ul class="df-bet-hits">
-        <li class="is-ok"><code>2023-07-30 15:00:00</code><b aria-hidden="true">✓</b></li>
+        <li class="is-ok"><code>2023-07-30 14:20:00</code><b aria-hidden="true">✓</b></li>
         <li class="is-ok"><code>2023-07-31 00:00:00</code><b aria-hidden="true">✓</b></li>
         <li class="is-ko"><code>2023-07-31 10:30:00</code><b aria-hidden="true">✗</b></li>
-        <li class="is-ko"><code>2023-07-31 18:45:00</code><b aria-hidden="true">✗</b></li>
+        <li class="is-ko"><code>2023-07-31 22:45:00</code><b aria-hidden="true">✗</b></li>
       </ul>
-      <p>Écris plutôt :</p>
+      <h3 class="df-sub">La méthode plus sûre</h3>
+      <p>Au lieu de dire « jusqu’au 31 juillet », on dit : à partir du 1er juillet et avant le 1er août.</p>
       <div class="pt-syntax"><pre class="cw-syntax">WHERE date_heure >= '2023-07-01'
   AND date_heure &lt;  '2023-08-01'</pre></div>
+      <p>Ainsi, SQL récupère tout le mois de juillet, quelle que soit l’heure de la commande.</p>
       <div class="df-visual" aria-label="Tout juillet, du 1er juillet à minuit jusqu’au 1er août exclu">
         <div class="df-range is-july"><div class="df-range-axis"><span>01/07 00:00</span><i class="df-range-fill"></i><span>01/08 00:00</span></div><b class="df-range-title">TOUT JUILLET</b></div>
       </div>
-      <p class="df-note"><span>On inclut le début du 1er juillet et on s’arrête juste avant le 1er août.</span></p>
+      <p class="df-note"><span>Pour filtrer une période avec des dates + heures, utilise souvent <code>&gt;=</code> début et <code>&lt;</code> période suivante plutôt que <code>BETWEEN</code>.</span></p>
     </div>
     <div class="concept-block">
       <h2><span class="h2-eye">Fuseaux</span><span class="h2-txt">Une même heure ne désigne pas toujours le même moment</span></h2>
@@ -28221,7 +28232,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-12-df-lab-v596';
+  const SW_CACHE='requete-2026-09-12-df-lab-v597';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
