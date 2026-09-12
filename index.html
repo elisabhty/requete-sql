@@ -1584,6 +1584,7 @@
   .nf-lead{margin:0 0 15px!important;color:var(--ink-2)!important;font-size:15px!important;line-height:1.5!important}
   .nf-hero{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 12px;padding:18px 12px;border:1px solid rgba(91,91,214,.16);border-radius:18px;background:linear-gradient(145deg,rgba(91,91,214,.075),rgba(91,91,214,.015))}
   .number-functions-page .nf-hero + p{margin:0 0 10px!important;font-size:14px!important;line-height:1.45!important;color:var(--ink-2)!important}
+  .number-functions-page .piege-sql{margin:0 0 12px}
   .nf-hero-val{display:flex;min-width:60px;flex-direction:column;align-items:center;gap:5px}
   .nf-hero-val b{display:flex;min-width:58px;height:42px;align-items:center;justify-content:center;padding:0 8px;border:1px solid var(--card-border);border-radius:12px;background:var(--surface);box-shadow:var(--card-shadow-sm);font-family:var(--mono);font-size:14px;color:var(--ink)}
   .nf-hero-val small{font-size:8px;font-weight:850;letter-spacing:.45px;text-transform:uppercase;color:var(--ink-3)}
@@ -2311,7 +2312,7 @@
   /* Cadre exécutable injecté dans un mini-laboratoire (df-stage/txt-lab-stage) :
      il apparaît après le passage de l'observateur de révélation, donc il ne
      reçoit jamais la classe .in — on le rend visible d'office. */
-  .lesson-rich .df-stage .exframe,.lesson-rich .txt-lab-stage .exframe{opacity:1;animation:none}
+  .lesson-rich .df-stage .exframe,.lesson-rich .nf-stage .exframe,.lesson-rich .txt-lab-stage .exframe{opacity:1;animation:none}
   .lesson-rich .pipe-step{opacity:0}
   .lesson-rich .pipe-step.in{opacity:1;animation:lessonFade .35s ease forwards}
   .lesson-rich .pipe-step.in:nth-child(1){animation-delay:.08s}
@@ -9599,7 +9600,6 @@ FROM produits;</pre></div>
       <p>Mais <code>AVG</code>, <code>SUM</code>, <code>MIN</code>, <code>MAX</code> appartiennent au cours sur les agrégations, pas aux fonctions numériques elles-mêmes.</p></div></div>`},
     reflex:{note:"Avant de choisir une fonction, demande-toi : <b>qu’est-ce que je veux faire avec le nombre ?</b>",
       extra:`<ul class="fn-reflex-list"><li>Faire un calcul → <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code></li><li>Arrondir → <code>ROUND()</code></li><li>Mesurer un écart sans tenir compte du signe → <code>ABS()</code></li><li>Trouver le reste d’une division → <code>%</code></li><li>Gérer une valeur manquante → <code>COALESCE()</code></li><li>Éviter d’utiliser une valeur précise dans un calcul → <code>NULLIF()</code></li><li>Créer un résultat aléatoire → <code>RANDOM()</code></li></ul>`}},
-  anatomie:[{tok:"SELECT produits.nom, commandes.quantite,",txt:"Le produit et la quantité commandée."},{tok:"ROUND(produits.prix * commandes.quantite * 1.10, 2) AS montant",txt:"Le montant, augmenté de 10 %, arrondi à 2 décimales."},{tok:"FROM commandes JOIN produits",txt:"Les deux tables sont reliées."},{tok:"ON commandes.produit_id = produits.id",txt:"Chaque commande retrouve son produit."}],
   exemple:"SELECT nom, prix, stock,\n       ROUND(prix * stock, 2) AS valeur_stock\nFROM produits;",
   attendu:"8 lignes. La Fibre Prébiotique à 29,90 € en 120 exemplaires immobilise 3 588 € de stock.",
   retenir:"Une colonne se calcule comme un nombre : <code>prix * quantite</code>. <code>ROUND</code> arrondit, <code>ABS</code> ignore le signe, <code>%</code> donne le reste (ce n’est pas un pourcentage). <code>COALESCE</code> remplace un <code>NULL</code>, <code>NULLIF</code> transforme une valeur précise en <code>NULL</code>. Ces fonctions changent le résultat affiché, pas la table.",
@@ -9608,52 +9608,6 @@ FROM produits;</pre></div>
   solution:"SELECT nom, prix, stock,\n       ROUND(prix * stock, 2) AS valeur_stock\nFROM produits;",
   indice:"<code>ROUND(produits.prix * commandes.quantite * 1.10, 2)</code>. Les tables se relient par <code>commandes.produit_id = produits.id</code>.",
   richLesson:true, earlyDemo:true,
-  testeVariants:[
-  {
-    "k": "calc",
-    "label": "× 2",
-    "sql": "SELECT nom, prix, prix * 2 AS prix_pour_2\nFROM produits;",
-    "out": "Collagène Marin : 39,90 × 2 = 79,80."
-  },
-  {
-    "k": "montant",
-    "label": "montant",
-    "sql": "SELECT commandes.id, produits.nom, commandes.quantite, produits.prix,\n       produits.prix * commandes.quantite AS montant\nFROM commandes\nJOIN produits\n    ON commandes.produit_id = produits.id;",
-    "out": "Fibre Prébiotique, quantité 2 → 59,80."
-  },
-  {
-    "k": "round",
-    "label": "ROUND",
-    "sql": "SELECT nom, ROUND(prix * 1.20, 2) AS prix_ttc\nFROM produits;",
-    "out": "29,90 × 1,20, puis 2 décimales."
-  },
-  {
-    "k": "div",
-    "label": "Division",
-    "sql": "SELECT 10 / 3 AS entiers, 10 / 3.0 AS decimales;",
-    "out": "10 / 3 → 3. 10 / 3.0 → 3,3333."
-  },
-  {
-    "k": "abs",
-    "label": "ABS",
-    "sql": "SELECT nom, stock, ABS(stock - 50) AS ecart\nFROM produits;",
-    "out": "L’écart à 50, toujours positif."
-  },
-  {
-    "k": "ttc",
-    "label": "TVA",
-    "sql": "SELECT produits.nom, commandes.quantite,\n       ROUND(produits.prix * commandes.quantite * 1.10, 2) AS montant\nFROM commandes\nJOIN produits\n    ON commandes.produit_id = produits.id;",
-    "out": "Montant + 10 %, arrondi à 2 décimales.",
-    "tone": "good"
-  },
-  {
-    "k": "rec_format",
-    "label": "Arrondir ou formater",
-    "sql": "SELECT ROUND(19.9, 2) AS arrondi, typeof(ROUND(19.9, 2)) AS type_arrondi, printf('%.2f',19.9) AS affichage, typeof(printf('%.2f',19.9)) AS type_affichage;",
-    "out": "19.9 reste un nombre ; 19.90 est ici un texte formaté.",
-    "expectRows": 1
-  }
-],
   fnCmp:{title:"Le tableau réflexe",want:1,h1:"Je veux…",h2:"J’utilise",
     say:`<div class="fn-sgbd"><p>Les fonctions présentées dans ce cours sont écrites avec la syntaxe de SQLite. Dans d’autres systèmes SQL, le principe reste le même, mais le nom de certaines fonctions ou leur écriture peut varier.</p></div>`,
     rows:[
@@ -21905,13 +21859,13 @@ function initDateFunctions(){
   bindTableSwipe(page);
 }
 const NUMERIC_FUNCTION_GUIDES=[
-  {k:'calculate',label:'Faire un calcul',short:'+ · − · × · ÷',title:'Calculer le montant',fn:'*',sql:'prix * quantite AS montant',note:'SQL effectue ce calcul séparément pour chaque ligne.',visual:`<div class="nf-equation"><span class="nf-num">29,90</span><i class="nf-op">×</i><span class="nf-num">2</span><i class="nf-op">=</i><span class="nf-num is-result">59,80</span></div>`},
-  {k:'round',label:'Arrondir',short:'ROUND',title:'Garder deux décimales',fn:'ROUND()',sql:'ROUND(29.987, 2)',note:'Le deuxième argument indique combien de décimales conserver.',visual:`<div class="nf-equation nf-round"><span class="nf-num">29,<span class="is-keep">98</span><span class="is-drop">7</span></span><i class="nf-op">=</i><span class="nf-num is-result">29,99</span></div>`},
-  {k:'divide',label:'Diviser',short:'/ · entier ou décimal',title:'Choisir le type de division',fn:'/',sql:'10 / 3.0',note:'Dans SQLite, ajoute une valeur décimale pour conserver les décimales.',visual:`<div class="nf-division"><small>entiers</small><code>10 / 3</code><b>3</b><small>décimal</small><code>10 / 3.0</code><b>3,333…</b></div>`},
-  {k:'gap',label:'Mesurer un écart',short:'ABS',title:'Ignorer le signe',fn:'ABS()',sql:'ABS(stock - 50)',note:'ABS transforme −10 en 10 : il mesure la distance, sans le signe.',visual:`<div class="nf-gap"><div class="nf-gap-line"><span>40</span><i></i><span>50</span></div><strong>écart = 10</strong></div>`},
-  {k:'modulo',label:'Trouver le reste',short:'%',title:'Repérer un nombre impair',fn:'%',sql:'11 % 2',note:'Le modulo donne un reste. Ici 1, donc 11 est impair.',visual:`<div class="nf-modulo"><div class="nf-pairs">${'<i></i>'.repeat(11)}</div><span class="nf-modulo-arrow">=</span><span class="nf-modulo-result"><b>1</b><small>reste</small></span></div>`},
-  {k:'safe',label:'Sécuriser un calcul',short:'NULLIF · COALESCE',title:'Éviter de diviser par zéro',fn:'NULLIF()',sql:'stock / NULLIF(quantite, 0)',note:'Si quantité vaut 0, NULLIF renvoie NULL et le calcul ne divise pas par zéro.',visual:`<div class="nf-safe"><span class="nf-safe-value">quantité = 0</span><i class="nf-safe-arrow">›</i><span class="nf-safe-result">NULLIF → NULL</span></div>`},
-  {k:'random',label:'Tirer une ligne au hasard',short:'RANDOM · LIMIT 1',title:'Choisir un client au hasard',fn:'RANDOM()',sql:'ORDER BY RANDOM()\nLIMIT 1',note:'L’ordre est mélangé à chaque exécution, puis LIMIT 1 garde une ligne.',visual:`<div class="nf-random"><span>Sophie</span><span class="is-picked">Lucas</span><span>Emma</span><span>Nathan</span></div>`}
+  {k:'calculate',label:'Faire un calcul',short:'+ · − · × · ÷',title:'Calculer le montant',fn:'*',sql:"SELECT produits.prix, commandes.quantite,\n       produits.prix * commandes.quantite AS montant\nFROM commandes\nJOIN produits\n    ON commandes.produit_id = produits.id;",note:'SQL effectue ce calcul séparément pour chaque ligne.',visual:`<div class="nf-equation"><span class="nf-num">29,90</span><i class="nf-op">×</i><span class="nf-num">2</span><i class="nf-op">=</i><span class="nf-num is-result">59,80</span></div>`},
+  {k:'round',label:'Arrondir',short:'ROUND',title:'Garder deux décimales',fn:'ROUND()',sql:'SELECT ROUND(29.987, 2) AS arrondi;',note:'Le deuxième argument indique combien de décimales conserver.',visual:`<div class="nf-equation nf-round"><span class="nf-num">29,<span class="is-keep">98</span><span class="is-drop">7</span></span><i class="nf-op">=</i><span class="nf-num is-result">29,99</span></div>`},
+  {k:'divide',label:'Diviser',short:'/ · entier ou décimal',title:'Choisir le type de division',fn:'/',sql:'SELECT 10 / 3 AS entiers, 10 / 3.0 AS decimales;',note:'Dans SQLite, ajoute une valeur décimale pour conserver les décimales.',visual:`<div class="nf-division"><small>entiers</small><code>10 / 3</code><b>3</b><small>décimal</small><code>10 / 3.0</code><b>3,333…</b></div>`},
+  {k:'gap',label:'Mesurer un écart',short:'ABS',title:'Ignorer le signe',fn:'ABS()',sql:'SELECT nom, stock, ABS(stock - 50) AS ecart\nFROM produits;',note:'ABS transforme −10 en 10 : il mesure la distance, sans le signe.',visual:`<div class="nf-gap"><div class="nf-gap-line"><span>40</span><i></i><span>50</span></div><strong>écart = 10</strong></div>`},
+  {k:'modulo',label:'Trouver le reste',short:'%',title:'Repérer un nombre impair',fn:'%',sql:'SELECT 11 % 2 AS reste;',note:'Le modulo donne un reste. Ici 1, donc 11 est impair.',visual:`<div class="nf-modulo"><div class="nf-pairs">${'<i></i>'.repeat(11)}</div><span class="nf-modulo-arrow">=</span><span class="nf-modulo-result"><b>1</b><small>reste</small></span></div>`},
+  {k:'safe',label:'Sécuriser un calcul',short:'NULLIF · COALESCE',title:'Éviter de diviser par zéro',fn:'NULLIF()',sql:'SELECT 10 / NULLIF(0, 0) AS securise;',note:'Si quantité vaut 0, NULLIF renvoie NULL et le calcul ne divise pas par zéro.',visual:`<div class="nf-safe"><span class="nf-safe-value">quantité = 0</span><i class="nf-safe-arrow">›</i><span class="nf-safe-result">NULLIF → NULL</span></div>`},
+  {k:'random',label:'Tirer une ligne au hasard',short:'RANDOM · LIMIT 1',title:'Choisir un client au hasard',fn:'RANDOM()',sql:'SELECT nom\nFROM clients\nORDER BY RANDOM()\nLIMIT 1;',note:'L’ordre est mélangé à chaque exécution, puis LIMIT 1 garde une ligne.',visual:`<div class="nf-random"><span>Sophie</span><span class="is-picked">Lucas</span><span>Emma</span><span>Nathan</span></div>`}
 ];
 const NUMERIC_ORDER_CASES=[
   {k:'priority',label:'10 + 5 × 2',expr:'10 + <span class="first">5 × 2</span>',step:'5 × 2 = 10',result:'10 + 10 = 20'},
@@ -21920,7 +21874,7 @@ const NUMERIC_ORDER_CASES=[
 function numericFunctionStageHtml(g){
   return `<div class="nf-stage-head"><div><small>Opération numérique</small><h3>${esc(g.title)}</h3></div><code class="nf-stage-fn">${esc(g.fn)}</code></div>
     <div class="nf-visual" aria-label="${escAttr(g.title)}">${g.visual}</div>
-    <div class="pt-syntax nf-code"><pre class="cw-syntax">${esc(g.sql)}</pre></div>
+    ${piegeSqlRunBlock(g.sql)}
     <p class="nf-note">${g.note}</p>`;
 }
 function numericOrderHtml(c){
@@ -21937,11 +21891,7 @@ function renderNumericFunctionsStudio(){
         <span class="nf-hero-val"><b>29,90</b><small>prix</small></span><i class="nf-hero-op">×</i><span class="nf-hero-val"><b>2</b><small>quantité</small></span><i class="nf-hero-op">=</i><span class="nf-hero-val is-result"><b>59,80</b><small>montant</small></span>
       </div>
       <p>Le prix est dans la table <code>produits</code>, la quantité dans <code>commandes</code>. On relie les deux tables pour calculer :</p>
-      <div class="pt-syntax nf-code"><pre class="cw-syntax">SELECT produits.prix, commandes.quantite,
-       produits.prix * commandes.quantite AS montant
-FROM commandes
-JOIN produits
-    ON commandes.produit_id = produits.id;</pre></div>
+      ${piegeSqlRunBlock("SELECT produits.prix, commandes.quantite,\n       produits.prix * commandes.quantite AS montant\nFROM commandes\nJOIN produits\n    ON commandes.produit_id = produits.id;")}
       <p class="nf-hero-note"><i aria-hidden="true">✓</i><span>Le calcul affiche une nouvelle colonne <code>montant</code> dans le résultat. Les tables d’origine restent inchangées : aucune nouvelle colonne n’y est ajoutée.</span></p>
     </div>
     <div class="concept-block">
@@ -22135,7 +22085,8 @@ function lessonDemoBlocks(l){
       <p class="coda-sub">En résumé : <code>SELECT</code> s’écrit en premier, mais s’exécute <b>presque en dernier</b>.</p>
     </div>`:'';
   const compactFunctionLesson=l.id===52||l.id===53||l.id===54;
-  return `${lessonRichFooter(l)}${anat}${order}${piegeBlock(l)}${learningCheckHtml(l)}${joinRecapBlock(l)}${subqueryRecapBlock(l)}${compactFunctionLesson?'':fnCmpBlock(l)}${compactFunctionLesson?'':reflexBlock(l)}`;
+  const hideLessonLab=l.id===52;
+  return `${hideLessonLab?'':lessonRichFooter(l)}${hideLessonLab?'':anat}${order}${piegeBlock(l)}${learningCheckHtml(l)}${joinRecapBlock(l)}${subqueryRecapBlock(l)}${compactFunctionLesson?'':fnCmpBlock(l)}${compactFunctionLesson?'':reflexBlock(l)}`;
 }
 function lessonMainTable(l){
   if(!l)return 'clients';
