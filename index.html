@@ -1840,6 +1840,11 @@
   .conversion-functions-page .concept-block{overflow:hidden}
   .conversion-functions-page .piege-sql{margin:0 0 16px}
   .conversion-functions-page .piege-sql:last-child{margin-bottom:0}
+  .lesson-rich .conversion-functions-page .piege{opacity:1;animation:none;margin:0}
+  .cf-trap-list{margin:0;padding:0 0 0 18px}
+  .cf-trap-list li{margin:0 0 9px;font-size:14px;line-height:1.55;color:var(--ink-2)}
+  .cf-trap-list li:last-child{margin-bottom:0}
+  .conversion-functions-page .piege-body .cf-trap-list code{white-space:normal}
   .conversion-functions-page h2 .h2-emo{flex:none;font-size:14px;line-height:1;letter-spacing:0;text-transform:none;font-weight:400}
   .conversion-functions-page .nf-sub{margin:16px 0 8px;font-size:16.5px;font-weight:800;letter-spacing:-.3px;line-height:1.25;color:var(--ink)}
   .cf-types{display:flex;flex-direction:column;gap:6px;margin:0 0 13px;padding:0;list-style:none}
@@ -22064,16 +22069,6 @@ function renderConversionFunctionsStudio(){
       <p>Voici les conversions que tu rencontreras le plus souvent. <span aria-hidden="true">👇</span></p>
       <div class="cf-intents" role="tablist" aria-label="Conversions courantes entre types">${CONVERSION_FUNCTION_GUIDES.map((g,i)=>`<button type="button" class="cf-intent${i===0?' on':''}" role="tab" aria-selected="${i===0?'true':'false'}" data-k="${g.k}"><b>${g.label}</b><small>${g.short}</small></button>`).join('')}</div>
       <div class="cf-stage" aria-live="polite">${conversionFunctionStageHtml(first)}</div>
-      <h3 class="nf-sub">Une conversion n’est pas toujours possible</h3>
-      <p><code>CAST()</code> ne peut pas transformer n’importe quelle valeur en n’importe quel type.</p>
-      <div class="cf-visual">
-        <div class="cf-fail">
-          <div class="cf-fail-col is-ok"><b>CAST('42' AS INTEGER)</b><small>'42' → 42</small><em>✓</em></div>
-          <div class="cf-fail-col is-ko"><b>CAST('bonjour' AS INTEGER)</b><small>'bonjour' → nombre ?</small><em>?</em></div>
-        </div>
-      </div>
-      <p>Selon le SGBD, une conversion incompatible peut provoquer une erreur ou un comportement différent.</p>
-      <p>C’est particulièrement important avec des données provenant de fichiers, formulaires ou imports.</p>
       <div class="nf-read">
         <b><span aria-hidden="true">💡</span> Même principe, syntaxe parfois différente</b>
         <p><code>CAST()</code> permet de comprendre le principe général de la conversion. Selon le SGBD, d’autres types, syntaxes ou fonctions peuvent être utilisés pour certaines conversions.</p>
@@ -22125,21 +22120,6 @@ function renderConversionFunctionsStudio(){
       <p class="nf-note">La gestion des valeurs qui dépassent la précision autorisée peut varier selon le SGBD. Ici, SQLite peut conserver 29.956.</p>
     </div>
     <div class="concept-block">
-      <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">⚠️</span>Échec</span><span class="h2-txt">Une conversion peut échouer</span></h2>
-      <p class="nf-lead">Toutes les valeurs ne peuvent pas être converties.</p>
-      <div class="cf-visual">
-        <div class="cf-fail">
-          <div class="cf-fail-col is-ok"><b>'42'</b><small>→ INTEGER</small><em>42</em></div>
-          <div class="cf-fail-col is-ko"><b>'bonjour'</b><small>→ INTEGER</small><em>?</em></div>
-        </div>
-      </div>
-      <p><code>'bonjour'</code> n’a pas de conversion numérique évidente.</p>
-      ${piegeSqlRunBlock("SELECT CAST('bonjour' AS INTEGER);")}
-      <p>Selon le SGBD, une conversion invalide peut provoquer une erreur, retourner une valeur particulière ou être gérée différemment. Ici, SQLite renvoie souvent 0.</p>
-      <p>C’est donc particulièrement important lorsque les données viennent d’un :</p>
-      <div class="cf-sources"><span>CSV</span><span>fichier</span><span>formulaire</span><span>API</span><span>import externe</span></div>
-    </div>
-    <div class="concept-block">
       <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">↔️</span>Types</span><span class="h2-txt">Conversion explicite et implicite</span></h2>
       <p class="nf-lead">Tu peux demander toi-même la conversion, ou parfois laisser le SGBD la décider.</p>
       <div class="nf-mm">
@@ -22160,25 +22140,6 @@ function renderConversionFunctionsStudio(){
         <b><span aria-hidden="true">💡</span> Le réflexe</b>
         <p>Lorsque les types sont différents, évite de compter inutilement sur une conversion automatique. Une conversion explicite rend souvent ton intention plus claire et plus prévisible.</p>
       </div>
-    </div>
-    <div class="concept-block">
-      <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">🔍</span>WHERE</span><span class="h2-txt">Attention dans WHERE et JOIN</span></h2>
-      <p class="nf-lead">Prenons une colonne numérique : <code>clients.id</code> → <code>INTEGER</code>.</p>
-      <p>Il vaut généralement mieux comparer cette colonne à une valeur du même type.</p>
-      <div class="nf-mm">
-        <div class="nf-mm-col">
-          <small>Plutôt éviter</small>
-          <b>CAST(id AS VARCHAR(10)) = '4'</b>
-          <span>La conversion porte sur la colonne utilisée pour la recherche.</span>
-        </div>
-        <div class="nf-mm-col is-accent">
-          <small>Lorsque c’est approprié</small>
-          <b>id = CAST('4' AS INTEGER)</b>
-          <span>Tu convertis la valeur, et tu laisses la colonne comparable.</span>
-        </div>
-      </div>
-      ${piegeSqlRunBlock("SELECT nom FROM clients\nWHERE id = CAST('4' AS INTEGER);")}
-      <p>Appliquer une fonction ou une conversion à une colonne utilisée pour la recherche peut empêcher certaines optimisations, notamment l’utilisation directe d’un index selon le SGBD et la requête.</p>
     </div>
     <div class="concept-block">
       <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">📝</span>SGBD</span><span class="h2-txt">CAST n’est pas identique partout</span></h2>
@@ -22202,21 +22163,6 @@ function renderConversionFunctionsStudio(){
         <div class="nf-adv-card"><small>MySQL</small><b>CAST() · CONVERT() · STR_TO_DATE() · DATE_FORMAT()</b><span>Utile notamment pour les dates et leur présentation.</span></div>
         <div class="nf-adv-card"><small>SQLite</small><b>INTEGER · REAL · TEXT · NUMERIC · BLOB</b><span>On utilise principalement ces classes/types, et <code>CAST()</code> pour une conversion explicite.</span></div>
       </div>
-    </div>
-    <div class="concept-block">
-      <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">,</span>Virgule</span><span class="h2-txt">Le point décimal</span></h2>
-      <p class="nf-lead">Dans une valeur numérique SQL, on écrit généralement <code>29.90</code> et non <code>29,90</code>.</p>
-      <p>Si un import contient <code>'29,90'</code>, il peut être nécessaire de nettoyer la chaîne avant la conversion.</p>
-      <div class="cf-visual" role="img" aria-label="29 virgule 90 devient 29 point 90 puis le nombre 29.90">
-        <div class="cf-flow"><span>'29,90'</span><i aria-hidden="true">↓</i><b>REPLACE(..., ',', '.')</b><i aria-hidden="true">↓</i><span>'29.90'</span><i aria-hidden="true">↓</i><em>29.90</em></div>
-      </div>
-      ${piegeSqlRunBlock("SELECT CAST(\n    REPLACE('29,90', ',', '.')\n    AS DECIMAL(10,2)\n) AS prix;")}
-    </div>
-    <div class="concept-block">
-      <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">∅</span>NULL</span><span class="h2-txt">NULL reste un cas particulier</span></h2>
-      <p class="nf-lead">Une conversion de <code>NULL</code> donne généralement <code>NULL</code>.</p>
-      ${piegeSqlRunBlock("SELECT CAST(NULL AS INTEGER) AS vide;")}
-      <p><code>NULL</code> ne devient donc pas automatiquement 0. C’est important lors du nettoyage des données.</p>
     </div>
     <div class="concept-block">
       <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">🧩</span>Combiner</span><span class="h2-txt">Les fonctions peuvent être imbriquées</span></h2>
@@ -22247,23 +22193,17 @@ function renderConversionFunctionsStudio(){
         </div>
       </div>
     </div>
-    <div class="concept-block">
-      <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">⚠️</span>Piège</span><span class="h2-txt">Convertir n’est pas arrondir</span></h2>
-      <p class="nf-lead">Les conversions entre types numériques peuvent avoir des comportements qui varient selon les systèmes et les types concernés.</p>
-      <div class="nf-mm">
-        <div class="nf-mm-col is-accent">
-          <small>Arrondir</small>
-          <b>ROUND(3.99)</b>
-          <span>Si ton intention métier est réellement d’arrondir, exprime-la.</span>
-        </div>
-        <div class="nf-mm-col">
-          <small>Convertir le type</small>
-          <b>CAST(... AS INTEGER)</b>
-          <span>Si ton intention est de changer le type, utilise une conversion.</span>
-        </div>
-      </div>
-      <p>Une conversion de type et un arrondi répondent à deux besoins différents. Évite aussi de croire que <code>CAST(3.99 AS INTEGER)</code> donne forcément 3 dans tous les SGBD.</p>
-    </div>
+    ${renderPiege({
+      lab:'Piège',
+      t:'Les erreurs fréquentes avec CAST()',
+      p:`<ul class="cf-trap-list">
+        <li><code>CAST('bonjour' AS INTEGER)</code> n’est pas convertible : selon le SGBD, ça peut échouer, surtout avec un CSV, un formulaire ou un import.</li>
+        <li><code>CAST(NULL AS INTEGER)</code> reste <code>NULL</code> : ça ne devient pas automatiquement 0.</li>
+        <li>En SQL, on écrit <code>29.90</code> et non <code>29,90</code> : nettoie la virgule avec <code>REPLACE()</code> avant <code>CAST()</code>.</li>
+        <li>Convertir n’est pas arrondir : <code>CAST(3.99 AS INTEGER)</code> n’est pas <code>ROUND(3.99)</code>.</li>
+        <li>Dans <code>WHERE</code> ou <code>JOIN</code>, convertis la valeur, pas la colonne : <code>id = CAST('4' AS INTEGER)</code>, pas <code>CAST(id AS VARCHAR(10)) = '4'</code>.</li>
+      </ul>`
+    })}
     <div class="concept-block">
       <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">💡</span>À retenir</span><span class="h2-txt">CAST d’abord, puis ton SGBD</span></h2>
       <p class="nf-lead"><code>CAST()</code> permet de convertir explicitement une valeur vers un autre type.</p>
@@ -28555,7 +28495,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-12-cf-lab-cast-v665';
+  const SW_CACHE='requete-2026-09-12-cf-trap-card-v666';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
