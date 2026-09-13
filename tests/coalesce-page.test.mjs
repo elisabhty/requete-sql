@@ -58,6 +58,8 @@ assert(lesson.includes('coal-cmp-note') && !lesson.includes('fn-cmp-say coal-ref
 assert(lesson.includes('plusieurs arguments') && lesson.includes('plus facilement portable') && !lesson.includes('autant d’arguments que nécessaire'), 'COALESCE est recommandé pour sa portabilité, sans promettre un nombre d’arguments illimité');
 assert(!lesson.includes('Quel équivalent selon le moteur ?'), 'l’ancien titre d’équivalence est retiré');
 assert(html.includes("concept-page${l.id===23?' coalesce-page':''}"), 'styles limités à la page COALESCE');
+assert(lesson.includes('anatFollowTeste:true') && lesson.includes('k:"select"') && lesson.includes('k:"coalesce"') && lesson.includes('k:"rec_empty"'), 'l’explication suit les 3 onglets Teste');
+assert(html.includes('lessonRichFooter(l,joinTesteAnat?anat:\'\')') && html.includes('has-anat'), 'Teste et la requête expliquée partagent le même cadre');
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('coalUseIn'), 'micro-interactions compatibles avec la réduction des animations');
 assert(!lesson.includes('coalesce-uses'), 'ancienne pile répétitive supprimée');
 
