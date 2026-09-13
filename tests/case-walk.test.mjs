@@ -38,6 +38,7 @@ const forms = html.indexOf("if(kind==='caseforms')") >= 0
   ? html.slice(html.indexOf("if(kind==='caseforms')"), html.indexOf("if(kind==='selfcols')"))
   : '';
 assert(forms.includes('cw-form-schema') && forms.includes("CASE") && forms.includes('ville') && forms.includes('age < 30'), 'les deux formes ont un schéma, pas seulement du SQL');
+assert(forms.includes('cw-form-emoji') && forms.includes('🏷️') && forms.includes('🔎'), 'chaque forme a un emoji et un titre aéré');
 assert(html.includes('.cw-form .cw-syntax{display:none') || html.includes('.cw-form .pt-sql,.cw-form .cw-syntax{display:none'), 'le SQL des formes se révèle au toucher');
 
 const lesson21 = html.slice(html.indexOf('{ id:21, titre:"CASE"'), html.indexOf('{ id:23, titre:"COALESCE"'));
