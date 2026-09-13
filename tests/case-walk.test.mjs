@@ -48,6 +48,7 @@ assert(lesson21.includes('cw-order') && lesson21.includes('non testé') && lesso
 assert(lesson21.includes("ELSE 'Autre'") && lesson21.includes('cw-nullout'), 'ELSE optionnel montre la valeur de repli et NULL');
 assert(lesson21.includes('Où utiliser CASE ?') && !lesson21.includes('CASE dans SELECT') && lesson21.includes('categorie_age'), 'la carte dit où utiliser CASE, pas seulement SELECT');
 assert(html.includes('Comment CASE prend sa décision'), 'le schéma explique la décision de CASE');
+assert(lesson21.includes('logique conditionnelle') && lesson21.includes('SINON SI') && lesson21.includes('cw-if'), 'l’intro présente CASE comme SI / SINON SI / SINON');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
