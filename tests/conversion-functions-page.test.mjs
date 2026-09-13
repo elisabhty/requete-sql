@@ -34,7 +34,7 @@ assert(guides.includes("k:'text'") && guides.includes('CAST(34 AS VARCHAR(10))')
 assert(guides.includes("k:'date'") && guides.includes("SELECT CAST('2026-09-12' AS DATE)") && !guides.includes("date('2026-09-12')") && !guides.includes('12 septembre'), 'texte vers date montré avec CAST, sans date() SQLite');
 assert(guides.includes("k:'datetime'") && guides.includes("CAST('2026-09-12 18:45:27' AS DATE)"), 'date + heure vers date avec CAST');
 assert(guides.includes("k:'intdec'") && guides.includes('CAST(7 AS DECIMAL(10,2))'), 'entier vers décimal');
-assert(!guides.includes('sqliteSql') && !guides.includes("k:'precision'") && !guides.includes("k:'invalid'"), 'CAST partout, sans variante SQLite dans le laboratoire');
+assert(!guides.includes('sqliteSql') && !guides.includes("k:'precision'") && !guides.includes("k:'invalid'") && !guides.includes('live:false') && html.includes('function sqliteRunnableSql'), 'CAST partout, tous les onglets exécutables');
 assert(!html.includes('const CONVERSION_DECISIONS='), 'ancien laboratoire de décisions retiré');
 assert(html.includes('function renderConversionFunctionsStudio'), 'rendu dédié à la leçon 54');
 assert(html.includes('if(l.id===54)return renderConversionFunctionsStudio(l)'), 'ancienne pile de texte remplacée');
@@ -61,7 +61,7 @@ assert(html.includes('initConversionFunctions();'), 'laboratoire activé au rend
 assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53||l.id===54"), 'récapitulatifs redondants retirés de cette page');
 assert(html.includes('const hideLessonLab=l.id===52||l.id===54'), 'console Teste redondante masquée');
 assert(!html.slice(html.indexOf('function conversionFunctionStageHtml'), html.indexOf('function renderConversionFunctionsStudio')).includes('g.note'), 'notes sous les requêtes du mini-laboratoire retirées');
-assert(serviceWorker.includes('requete-2026-09-13-cf-recap-title-v675'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-09-13-cf-lab-exec-v676'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);

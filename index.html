@@ -22016,7 +22016,6 @@ const CONVERSION_FUNCTION_GUIDES=[
     sample:"'2026-09-12'",
     beforeSql:'Pour demander une conversion vers le type DATE :',
     sql:"SELECT CAST('2026-09-12' AS DATE) AS date_sql;",
-    live:false,
     from:"'2026-09-12'",fromType:'texte',fn:'CAST(... AS DATE)',to:'2026-09-12',toType:'date',
     after:'SQL peut alors traiter la valeur comme une date, selon les capacités et règles du SGBD.',
     extra:`<h3 class="nf-sub">Pourquoi utiliser ce format ?</h3>
@@ -22030,7 +22029,6 @@ const CONVERSION_FUNCTION_GUIDES=[
     sample:'2026-09-12 18:45:27',
     beforeSql:'Si tu as seulement besoin de la date, une conversion vers DATE peut retirer la partie heure :',
     sql:"SELECT CAST('2026-09-12 18:45:27' AS DATE) AS date_sql;",
-    live:false,
     from:'2026-09-12 18:45:27',fromType:'date + heure',fn:'CAST(... AS DATE)',to:'2026-09-12',toType:'date',
     after:'👉 La partie heure n’est plus présente dans le résultat de type DATE.'},
   {k:'intdec',label:'Entier → décimal',short:'7 · DECIMAL',title:'Entier → décimal',
@@ -22045,7 +22043,7 @@ function conversionFunctionStageHtml(g){
     ${g.sample?`<p class="nf-ex">Par exemple :</p><p class="cf-sample"><code>${esc(g.sample)}</code></p>`:''}
     ${g.sampleNote?`<p>${g.sampleNote}</p>`:''}
     ${g.beforeSql?`<p>${g.beforeSql}</p>`:''}
-    ${g.live===false?`<div class="pt-syntax cf-code"><pre class="cw-syntax">${esc(g.sql)}</pre></div>`:piegeSqlRunBlock(g.sql)}
+    ${piegeSqlRunBlock(g.sql)}
     <p class="nf-ex">Ce qui se passe</p>
     ${conversionMachineHtml(g)}
     ${g.after?`<p>${g.after}</p>`:''}
@@ -22695,12 +22693,19 @@ function testeIndexFollowup(sql){
 function testeNeedsSandbox(sql){
   return /(^|;)\s*(CREATE|DROP|ALTER|INSERT|REPLACE|UPDATE|DELETE|BEGIN|SAVEPOINT|RELEASE|VACUUM|REINDEX)\b/i.test(String(sql||''));
 }
+function sqliteRunnableSql(sql, frame){
+  /* SQLite n’a pas de type DATE : CAST('2026-09-12' AS DATE) devient l’entier 2026.
+     Dans le mini-laboratoire des conversions, date() donne le résultat attendu. */
+  if(!frame||!frame.closest('.conversion-functions-page')) return sql;
+  return String(sql||'').replace(/CAST\(\s*'([^']+)'\s+AS\s+DATE\s*\)/gi,(_,v)=>`date('${v}')`);
+}
 function runExemple(btn){
   const frame=btn.closest('.exframe');
   const host=frame&&frame.querySelector('.xf-result');
   const ta=frame&&frame.querySelector('.xf-sql');
   const sql=(ta&&ta.value.trim())||btn.getAttribute('data-sql')||'';
   if(!host||!sql)return;
+  const runSql=sqliteRunnableSql(sql, frame);
   if((frame&&frame.dataset.noExec==='1')||(current&&current.noExec)){
     const activeVariant=testeFrameVariants(frame)?.[Number(frame.dataset.vi||0)];
     const pourquoi=(activeVariant&&activeVariant.exec===false?esc(activeVariant.out||'Cet exemple est présenté sans exécution.'):null)||(current&&current.noExecWhy)||'SQLite ne gère pas <code>GRANT</code> / <code>REVOKE</code>. Cette commande est une notion de SQL serveur.';
@@ -22714,18 +22719,18 @@ function runExemple(btn){
   btn.textContent='Exécution…';
   const finish=()=>{
     try{
-      const follow=testeIndexFollowup(sql);
+      const follow=testeIndexFollowup(runSql);
       let res,ms;
-      if(follow||testeNeedsSandbox(sql)){
+      if(follow||testeNeedsSandbox(runSql)){
         const d=sandbox();
         try{
           const t0=performance.now();
-          if(follow){ d.run(sql); res=d.exec(follow); }
-          else res=d.exec(sql);
+          if(follow){ d.run(runSql); res=d.exec(follow); }
+          else res=d.exec(runSql);
           ms=performance.now()-t0;
         }finally{ d.close(); }
       }else{
-        ({res,ms}=execQuery(sql));
+        ({res,ms}=execQuery(runSql));
       }
       host.innerHTML=renderTable(res,ms);
       host.hidden=false;
@@ -28536,7 +28541,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-13-cf-recap-title-v675';
+  const SW_CACHE='requete-2026-09-13-cf-lab-exec-v676';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
