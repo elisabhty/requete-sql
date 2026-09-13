@@ -14,7 +14,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-09-13-coal-ask-v716';
+const CACHE = 'requete-2026-09-13-coal-iphone-v717';
 
 const PRECACHE = [
   './',
