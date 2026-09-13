@@ -24,7 +24,10 @@ const lesson = start >= 0 && end > start ? html.slice(start, end) : '';
 
 assert(Boolean(lesson), 'leçon COALESCE localisée');
 assert(lesson.includes('coal-data-summary'), 'résumé des données présent dès la situation');
-assert(lesson.includes('8 adresses présentes') && lesson.includes('2 valeurs NULL'), 'cardinalités visibles sans compter le tableau');
+assert(lesson.includes('coal-sit') && lesson.includes('coal-mail') && lesson.includes('coal-null'), 'tableau et résumé forment un seul bloc, présent et NULL distincts');
+assert(lesson.includes('<b>8</b> adresses renseignées') && lesson.includes('<b>2</b> adresses absentes (NULL)'), 'cardinalités visibles sans compter le tableau');
+assert(lesson.includes('sit-prob') && lesson.includes('Question') && lesson.includes('Non renseigné') && lesson.includes('sans modifier les données de la table'), 'la situation pose la question d’affichage, pas seulement un objectif');
+assert(!lesson.includes('afficher un contact lisible'), 'l’ancien objectif est retiré');
 assert(lesson.includes('première valeur qui n’est pas NULL'), 'règle centrale formulée dans le titre');
 assert(lesson.includes('coal-route') && lesson.includes('1er choix') && lesson.includes('choix suivant'), 'lecture de gauche à droite matérialisée');
 assert(lesson.includes('L’e-mail n’est pas NULL') && lesson.includes('L’e-mail est NULL'), 'les deux branches sont comparables');
@@ -33,7 +36,7 @@ assert(lesson.includes('Afficher un remplacement'), 'usage affichage conservé')
 assert(lesson.includes('Choisir le premier contact'), 'usage multi-colonnes conservé');
 assert(lesson.includes('Sécuriser un calcul'), 'usage calcul conservé');
 assert(lesson.includes('Garantir un résultat'), 'usage sous-requête conservé');
-assert(lesson.includes('sans modifier la table'), 'différence affichage / écriture annoncée tôt');
+assert(lesson.includes('sans modifier les données de la table'), 'différence affichage / écriture annoncée tôt');
 assert(lesson.includes('Quel équivalent selon le moteur ?'), 'comparatif final renommé selon le besoin utilisateur');
 assert(html.includes("concept-page${l.id===23?' coalesce-page':''}"), 'styles limités à la page COALESCE');
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('coalUseIn'), 'micro-interactions compatibles avec la réduction des animations');
