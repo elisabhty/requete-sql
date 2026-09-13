@@ -1907,6 +1907,14 @@
   .cf-dec-marks{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:320px}
   .cf-dec-marks span{padding:9px 10px;border-radius:11px;background:var(--surface);border:1px solid var(--line);font-size:12px;line-height:1.35;color:var(--ink-2);text-align:center}
   .cf-dec-marks b{display:block;margin-bottom:3px;font-family:var(--mono);font-size:12px;color:var(--ink)}
+  .cf-dec-tree{margin:0 0 14px;padding:16px 14px 14px;border:1px solid var(--card-border);border-radius:16px;background:var(--surface)}
+  .cf-dec-tree .cf-dec-fn{display:block;margin:0 0 14px;text-align:center}
+  .cf-dec-tree-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+  .cf-dec-tree-list li{display:flex;align-items:flex-start;gap:8px;margin:0;font-size:13.5px;line-height:1.4;color:var(--ink)}
+  .cf-dec-tree-list i{flex:none;color:var(--accent);font-family:var(--mono);font-style:normal;font-weight:750}
+  .cf-dec-tree-list b{margin-right:4px;font-family:var(--mono);color:var(--accent)}
+  .cf-dec-round{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 12px}
+  .cf-dec-round i{color:var(--accent);font-style:normal;font-weight:850}
   .cf-sample{margin:0 0 10px;text-align:center}
   .cf-sample code{display:inline-block;padding:8px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--card-border);font-size:16px;font-weight:850}
   .cf-iso{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin:0 0 4px}
@@ -21999,8 +22007,8 @@ const CONVERSION_FUNCTION_GUIDES=[
         <div class="cf-dec">
           <div class="cf-dec-fn">DECIMAL(<i>10</i>, <i>2</i>)</div>
           <div class="cf-dec-marks">
-            <span><b>10</b>jusqu’à 10 chiffres au total</span>
-            <span><b>2</b>jusqu’à 2 chiffres après la virgule</span>
+            <span><b>10</b>chiffres au total</span>
+            <span><b>2</b>chiffres après la virgule</span>
           </div>
         </div>
       </div>`},
@@ -22126,17 +22134,19 @@ function renderConversionFunctionsStudio(){
     </div>
     <div class="concept-block">
       <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">🔢</span>DECIMAL</span><span class="h2-txt">Précision et nombre de décimales</span></h2>
-      <p class="nf-lead">Quand tu écris <code>CAST('29.956' AS DECIMAL(10,2))</code>, les deux nombres ont un rôle.</p>
-      <div class="cf-visual" role="img" aria-label="DECIMAL 10 virgule 2 : précision totale 10, jusqu’à 2 chiffres après la virgule">
-        <div class="cf-dec">
-          <div class="cf-dec-fn">DECIMAL(<i>10</i>, <i>2</i>)</div>
-          <div class="cf-dec-marks">
-            <span><b>10</b>précision totale</span>
-            <span><b>2</b>jusqu’à 2 chiffres après la virgule</span>
-          </div>
-        </div>
+      <p class="nf-lead">Dans <code>DECIMAL(10,2)</code>, <code>10</code> indique le nombre maximal de chiffres au total et <code>2</code> le nombre de chiffres après la virgule.</p>
+      <div class="cf-dec-tree" role="img" aria-label="DECIMAL 10 virgule 2 : 10 chiffres au total, 2 chiffres après la virgule">
+        <div class="cf-dec-fn">DECIMAL(<i>10</i>, <i>2</i>)</div>
+        <ul class="cf-dec-tree-list">
+          <li><i aria-hidden="true">└──</i><span><b>2</b> chiffres après la virgule</span></li>
+          <li><i aria-hidden="true">└──────</i><span><b>10</b> chiffres au total</span></li>
+        </ul>
       </div>
-      <p>Par exemple, <code>29.956</code> devient souvent <code>29.96</code>.</p>
+      <p class="nf-ex">Exemple</p>
+      <div class="pt-syntax"><pre class="cw-syntax">CAST('29.956' AS DECIMAL(10,2))</pre></div>
+      <p>La valeur doit être représentée avec 2 chiffres après la virgule :</p>
+      <p class="cf-dec-round"><code>29.956</code> <i aria-hidden="true">→</i> <code>29.96</code></p>
+      <p>Donc pour <code>DECIMAL(10,2)</code>, tu peux avoir au maximum 8 chiffres avant la virgule et 2 après.</p>
       ${piegeSqlRunBlock("SELECT CAST('29.956' AS DECIMAL(10,2)) AS prix;")}
     </div>
     <div class="concept-block">
@@ -28542,7 +28552,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-13-cf-vs-type-v677';
+  const SW_CACHE='requete-2026-09-13-cf-dec-v678';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
