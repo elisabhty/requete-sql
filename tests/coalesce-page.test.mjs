@@ -43,6 +43,9 @@ assert(lesson.includes('Choisir la première information disponible') && lesson.
 assert(lesson.includes('Éviter qu’un calcul retourne NULL') && lesson.includes('29,90 × NULL') && lesson.includes('29,90 × 0'), 'usage calcul montré avec et sans NULL');
 assert(lesson.includes('Prévoir une valeur si aucun résultat n’est trouvé') && lesson.includes("WHERE categorie = 'Inconnue'"), 'usage agrégation : colonne produits.categorie, sans accent');
 assert(!lesson.includes('4 façons de l’utiliser') && !lesson.includes('Sécuriser un calcul') && !lesson.includes('Garantir un résultat'), 'anciens titres d’usages retirés');
+assert(lesson.includes('À ne pas confondre') && lesson.includes('COALESCE ne modifie pas la donnée'), 'confusion affichage / table, pas une erreur SQL');
+assert(lesson.includes('valeur renvoyée par la requête') && lesson.includes('Hugo peut afficher'), 'la différence requête / table est montrée avec Hugo');
+assert(!lesson.includes('peut afficher une valeur à la place de'), 'l’ancienne formulation abstraite est retirée');
 assert(lesson.includes('sans modifier les données de la table'), 'différence affichage / écriture annoncée tôt');
 assert(lesson.includes('Quel équivalent selon le moteur ?'), 'comparatif final renommé selon le besoin utilisateur');
 assert(html.includes("concept-page${l.id===23?' coalesce-page':''}"), 'styles limités à la page COALESCE');
