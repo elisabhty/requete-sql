@@ -7,6 +7,7 @@
 <meta name="description" content="Apprends le SQL en pratiquant sur une vraie base SQLite. Leçons, défis, révision espacée et console interactive.">
 <meta name="theme-color" content="#F5F6FA">
 <meta name="color-scheme" content="light">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Requête">
@@ -7497,6 +7498,36 @@
 .lesson-comparison>button,.lesson-mapping>button{font:inherit;font-size:13px;line-height:1.5;min-height:44px;padding:10px 14px;border:1px solid #c8c3ee;border-radius:10px;background:#eeecfb;color:#473a9e;cursor:pointer;max-width:100%;white-space:normal;text-align:left}
 .lesson-comparison>button:focus-visible,.lesson-mapping>button:focus-visible{outline:3px solid #6653d4;outline-offset:3px}
 @media(max-width:600px){.learning-check{padding:16px}.learning-check-options{flex-direction:column}.learning-check-options button{width:100%}.lesson-comparison-grid{grid-template-columns:1fr}}
+
+/* Catalogue : progression, résultats contextualisés et lecture confortable. */
+#scr-learn #modules{scroll-margin-top:64px}
+.catalog-filters{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.catalog-filters button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink-2);font:650 12px/1.4 var(--ui);cursor:pointer}
+.catalog-filters button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink)}
+.catalog-filters button span{font:650 11px/1.4 var(--mono);opacity:.85}
+.catalog-filters button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.catalog-result-group{margin-bottom:20px}
+.catalog-result-group h3{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 3px 9px;color:var(--ink-2);font:650 13px/1.5 var(--ui)}
+.catalog-result-group h3 span{font:600 11px var(--mono)}
+.catalog-result-group .list{overflow:hidden;border:1px solid var(--line);border-radius:16px;background:var(--surface)}
+.catalog-no-results h3{margin:0 0 6px;color:var(--ink);font-size:17px}
+.catalog-no-results p{margin:0 0 16px}
+.catalog-no-results button{min-height:44px;border:0;border-radius:11px;padding:10px 14px;background:var(--accent-soft);color:var(--accent-ink);font:650 13px var(--ui);cursor:pointer}
+#scr-learn .home-module-copy b{white-space:normal;overflow:visible;font-size:15px;line-height:1.4}
+#scr-learn .home-module-copy small{white-space:normal;color:var(--ink-2);font-size:12px;line-height:1.45}
+#scr-learn .home-module .row{min-height:68px;flex-wrap:wrap}
+#scr-learn .home-module .row .lz-body b{font-size:14px;line-height:1.4}
+#scr-learn .home-module .row .lz-body small{font-size:12px;line-height:1.5;color:var(--ink-2)}
+#scr-learn .home-catalog-head p,#scr-learn .home-tool small,#scr-learn .home-path-meta,#scr-learn .cp-sub{font-size:12px;line-height:1.5;color:var(--ink-2)}
+#scr-learn .home-catalog-head button,#scr-learn .home-section-head button{min-height:44px}
+#course-search-results .row{flex-wrap:wrap;padding:14px;gap:10px}
+#modules .row .lz-body{flex:1;min-width:100px}
+.catalog-lesson-state{padding:4px 7px;border-radius:7px;font:650 10px/1.4 var(--ui);white-space:nowrap}
+.catalog-lesson-state.review{color:var(--warn);background:var(--warn-soft)}
+.catalog-lesson-state.next{color:var(--accent-ink);background:var(--accent-soft)}
+#modules .row:has(.catalog-lesson-state.review) .lesson-validation{display:none}
+@media(max-width:380px){.catalog-filters{display:grid;grid-template-columns:1fr 1fr}.catalog-filters button{justify-content:space-between}#modules .catalog-lesson-state{font-size:10px;padding:3px 5px}}
+
 /* Navigation and reading refinements shared by the application tabs. */
 .tabbar{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:var(--accent-soft) transparent;scroll-padding-inline:6px}
 .tabbar .tab{flex:1 0 52px;min-width:52px;font-size:10px;color:#626573;min-height:54px}
@@ -10090,7 +10121,7 @@ learningCheck:{
         {t:"ELSE est optionnel",
          b:"<p><code>ELSE</code> indique la valeur à retourner si aucun <code>WHEN</code> n’est vrai.</p><pre class=\"cw-syntax\">ELSE 'Autre'</pre><p>S’il n’y a pas de <code>ELSE</code> et qu’aucune condition n’est vraie, <code>CASE</code> retourne :</p><p class=\"cw-nullout\"><code>NULL</code></p>"},
         {t:"Où utiliser CASE ?",
-         b:"<p>👉 <code>CASE</code> peut être utilisé à différents endroits d’une requête. On le rencontre surtout dans <code>SELECT</code>, où il permet de créer une valeur à partir de conditions.</p><p>💡 <b>À retenir</b> : l’emplacement de <code>CASE</code> dépend de ce que tu veux faire : créer une valeur, trier selon une condition ou construire un regroupement conditionnel.</p>"}
+         b:"<p>👉 <code>CASE</code> peut être utilisé à différents endroits d’une requête.</p><ul class=\"fn-reflex-list\"><li><code>SELECT</code> → créer une valeur ou une colonne calculée selon une condition.</li><li><code>ORDER BY</code> → définir un ordre de tri personnalisé selon des conditions.</li><li><code>GROUP BY</code> → créer des catégories conditionnelles puis regrouper les lignes.</li><li><code>WHERE</code> → construire une logique de filtrage conditionnelle, même si on peut souvent écrire la condition plus simplement sans CASE.</li><li>Avec les fonctions d’agrégation → faire des calculs conditionnels, par exemple compter seulement certains clients : <code>COUNT(CASE WHEN age &lt; 30 THEN 1 END)</code></li></ul>"}
       ]},
     reflex:{a:{k:"CASE simple",t:"une valeur comparée à plusieurs valeurs"},
       b:{k:"CASE recherché",t:"plusieurs conditions à tester"}},
@@ -18433,21 +18464,52 @@ function jumpToSection(selector){
   heading.tabIndex=-1;heading.focus({preventScroll:true});
 }
 let courseSearch='';
+let courseFilter='all';
+const courseFilterLabels={all:'Tous',todo:'À apprendre',due:'À réviser',done:'Validés'};
+function courseMatchesFilter(lesson,filter=courseFilter){
+  const done=!!state.lessons[lesson.id]?.done;
+  return filter==='todo'?!done:filter==='done'?done:filter==='due'?!!isDue(lesson.id):true;
+}
+function courseCatalogFiltersHTML(){
+  return `<div class="catalog-filters" role="group" aria-label="Filtrer les cours par progression">${Object.entries(courseFilterLabels).map(([key,label])=>`<button type="button" data-course-filter="${key}" aria-pressed="${courseFilter===key}" onclick="setCourseFilter('${key}')">${label}<span>${allLessons.filter(l=>courseMatchesFilter(l,key)).length}</span></button>`).join('')}</div>`;
+}
+function setCourseFilter(filter){
+  if(!Object.hasOwn(courseFilterLabels,filter))return;
+  courseFilter=filter;
+  filterCourseCatalog(courseSearch);
+}
 function filterCourseCatalog(value){
   courseSearch=value;
   const normalize=text=>String(text).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
   const query=normalize(value.trim());
   const host=document.getElementById('course-search-results');
   if(!host)return;
-  document.querySelectorAll('#modules>.home-module').forEach(m=>m.hidden=!!query);
+  const filtered=!!query||courseFilter!=='all';
+  document.querySelectorAll('#modules>.home-module').forEach(m=>m.hidden=filtered);
+  document.querySelectorAll('[data-course-filter]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.courseFilter===courseFilter)));
   const clear=document.getElementById('clear-course-search');if(clear)clear.hidden=!value;
-  const matches=query?allLessons.filter(l=>{const module=MODULES.find(m=>m.lessons.some(item=>item.id===l.id));const text=normalize(l.titre+' '+l.résumé+' '+(module?.titre||''));return query.split(/\s+/).every(word=>text.includes(word));}):[];
-  document.getElementById('course-search-status').textContent=query?`${matches.length} cours trouvé${matches.length>1?'s':''}`:'';
-  host.hidden=!query;
-  host.innerHTML=!query?'':matches.length?`<div class="list">${matches.map(lessonListRow).join('')}</div>`:'<p class="catalog-no-results">Aucun cours ne correspond. Essaie un mot comme « jointure », « date » ou « SELECT ».</p>';
+  const groups=MODULES.map(module=>({module,lessons:module.lessons.filter(l=>{
+    const text=normalize(l.titre+' '+l.résumé+' '+module.titre);
+    return courseMatchesFilter(l)&&(!query||query.split(/\s+/).every(word=>text.includes(word)));
+  })})).filter(group=>group.lessons.length);
+  const count=groups.reduce((n,group)=>n+group.lessons.length,0);
+  const status=document.getElementById('course-search-status');
+  status.textContent=filtered?`${count} cours trouvé${count>1?'s':''}${courseFilter!=='all'?' · '+courseFilterLabels[courseFilter]:''}`:'';
+  host.hidden=!filtered;
+  const emptyTitle=query?'Aucun cours ne correspond':courseFilter==='due'?'Tu es à jour':courseFilter==='done'?'Tes réussites apparaîtront ici':'Tout est validé !';
+  const emptyDetail=query?'Essaie un autre mot ou élargis le filtre.':courseFilter==='due'?'Les cours à réviser apparaîtront ici au bon moment.':courseFilter==='done'?'Termine une leçon pour la retrouver dans cette liste.':'Tu peux retrouver tes cours et les revoir à tout moment.';
+  host.innerHTML=!filtered?'':count?groups.map(({module,lessons},index)=>`<section class="catalog-result-group" aria-labelledby="catalog-result-${index}"><h3 id="catalog-result-${index}">${esc(module.titre)}<span>${lessons.length}</span></h3><div class="list">${lessons.map(lessonListRow).join('')}</div></section>`).join(''):`<div class="catalog-no-results"><h3>${emptyTitle}</h3><p>${emptyDetail}</p><button type="button" onclick="resetCourseCatalog()">Voir tous les cours</button></div>`;
 }
 function clearCourseSearch(){
-  const input=document.getElementById('course-search');input.value='';filterCourseCatalog('');input.focus();
+  const input=document.getElementById('course-search');input.value='';filterCourseCatalog('');input.focus({preventScroll:true});
+}
+function resetCourseCatalog(){courseFilter='all';clearCourseSearch();}
+function courseSearchKeydown(event){
+  if(event.key==='Escape'){event.preventDefault();clearCourseSearch();}
+  if(event.key==='Enter'){
+    const first=document.querySelector('#course-search-results:not([hidden]) .row');
+    if(first){event.preventDefault();first.focus();}
+  }
 }
 function syncTabUI(tab){
   document.querySelectorAll('.tab').forEach(t=>{
@@ -18832,6 +18894,7 @@ function lessonListRow(l){
   return `<button type="button" class="row ${ok?'done-row':''} ${cur?'current':''}" onclick="openLesson(${l.id})" aria-current="${cur?'step':'false'}">
     <div class="lz-num ${numCls}">${due?'↻':l.id}</div>
     <span class="lz-body"><b>${l.titre}</b><small>${ok?l.résumé:(nbFaites(l.id)?`${l.résumé} · ${nbFaites(l.id)}/${nbEtapes(l.id)} étapes`:l.résumé)}</small></span>
+    ${due?'<span class="catalog-lesson-state review">À réviser</span>':cur?'<span class="catalog-lesson-state next">À suivre</span>':''}
     ${ok?`<span class="lesson-validation"><span class="lesson-status" aria-hidden="true">${ENT_OK_SVG}</span><em>Validé</em></span>`:`<svg class="chev" aria-hidden="true" width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M1.5 1.5L7 7.5l-5.5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`}</button>`;
 }
 let defisLevel='f';
@@ -18848,6 +18911,7 @@ function defiListRow(c,i){
 function renderModules(){
   const host=document.getElementById('modules');
   if(!host)return;
+  const openModules=new Set([...host.querySelectorAll('.home-module[open]')].map(node=>node.dataset.moduleIndex));
   const modulesHTML=MODULES.map((mod,moduleIndex)=>{
     let rows='',done=0,tot=0;
     mod.lessons.forEach(l=>{
@@ -18858,9 +18922,9 @@ function renderModules(){
     const pct=Math.round(done/tot*100);
     const complete=done===tot;
     const status=complete?'Toutes les leçons sont validées':done?`${tot-done} leçon${tot-done>1?'s':''} restante${tot-done>1?'s':''}`:(mod.sous||'À découvrir');
-    return `<details class="module home-module ${complete?'validated':''}"><summary class="home-module-summary"><span class="home-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1).padStart(2,'0')}</span><span class="home-module-copy"><b>${esc(mod.titre)}</b><small>${esc(status)}</small></span><span class="home-module-side">${complete?`<em class="home-module-valid">Validé</em>`:`<span class="home-module-count">${done}/${tot}</span>`}<span class="home-module-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></span><span class="home-module-progress" role="progressbar" aria-label="Progression du module ${esc(mod.titre)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></span></summary><div class="list">${rows}</div></details>`;
+    return `<details class="module home-module ${complete?'validated':''}" data-module-index="${moduleIndex}"${openModules.has(String(moduleIndex))?' open':''}><summary class="home-module-summary"><span class="home-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1).padStart(2,'0')}</span><span class="home-module-copy"><b>${esc(mod.titre)}</b><small>${esc(status)}</small></span><span class="home-module-side">${complete?`<em class="home-module-valid">Validé</em>`:`<span class="home-module-count">${done}/${tot}</span>`}<span class="home-module-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></span><span class="home-module-progress" role="progressbar" aria-label="Progression du module ${esc(mod.titre)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></span></summary><div class="list">${rows}</div></details>`;
   }).join('');
-  host.innerHTML=`<div class="home-catalog-head"><div><span>Catalogue</span><h2>Tous les cours</h2><p>Ouvre un module pour parcourir ses leçons.</p></div><button type="button" onclick="switchTab('planning')">Voir mon plan</button></div><div class="catalog-search"><label for="course-search">Trouver une notion</label><div><input id="course-search" type="search" placeholder="SELECT, jointure, dates…" value="${escAttr(courseSearch)}" oninput="filterCourseCatalog(this.value)"><button id="clear-course-search" type="button" onclick="clearCourseSearch()" aria-label="Effacer la recherche de cours" hidden>Effacer</button></div><p id="course-search-status" role="status"></p></div><div id="course-search-results" hidden></div>${modulesHTML}`;
+  host.innerHTML=`<div class="home-catalog-head"><div><span>Catalogue</span><h2>Tous les cours</h2><p>Ouvre un module pour parcourir ses leçons.</p></div><button type="button" onclick="switchTab('planning')">Voir mon plan</button></div><div class="catalog-search"><label for="course-search">Trouver une notion</label><div><input id="course-search" type="search" placeholder="SELECT, jointure, dates…" value="${escAttr(courseSearch)}" oninput="filterCourseCatalog(this.value)" onkeydown="courseSearchKeydown(event)" aria-controls="course-search-results"><button id="clear-course-search" type="button" onclick="clearCourseSearch()" aria-label="Effacer la recherche de cours" hidden>Effacer</button></div><p id="course-search-status" role="status" aria-live="polite" aria-atomic="true"></p></div>${courseCatalogFiltersHTML()}<div id="course-search-results" hidden></div>${modulesHTML}`;
   filterCourseCatalog(courseSearch);
 }
 function renderDefis(catalogOnly=false){
@@ -26517,7 +26581,7 @@ function celebrate(){
 }
 function buzz(type='light'){
   try{
-    if(!navigator.vibrate) return;
+    if(!navigator.vibrate||!navigator.userActivation?.hasBeenActive) return;
     if(typeof type==='number'){ navigator.vibrate(type); return; }
     switch(type){
       case 'selection': navigator.vibrate(4); break;
@@ -28683,7 +28747,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-13-case-gb-v710';
+  const SW_CACHE='requete-2026-09-13-catalog-case-v712';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
