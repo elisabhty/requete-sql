@@ -36,11 +36,13 @@ assert(!lesson.includes('1er choix') && !lesson.includes('choix suivant'), 'le s
 assert(lesson.includes('L’e-mail existe') && lesson.includes('s’arrête là') && lesson.includes('L’e-mail est NULL'), 'les deux branches sont comparables, avec un arrêt visible');
 assert(lesson.includes('COALESCE(valeur1, valeur2, …)'), 'la syntaxe reste lisible pour un débutant');
 assert(lesson.includes('Une valeur peut être une colonne, une expression ou une fonction'), 'valeur1 n’est pas limitée à un littéral');
+assert(lesson.includes('4 usages courants de COALESCE'), 'titre des usages formulé comme un cours SQL');
 assert((lesson.match(/class="coal-use-row"/g) || []).length === 4, '4 usages courts et structurés');
-assert(lesson.includes('Afficher un remplacement'), 'usage affichage conservé');
-assert(lesson.includes('Choisir le premier contact'), 'usage multi-colonnes conservé');
-assert(lesson.includes('Sécuriser un calcul'), 'usage calcul conservé');
-assert(lesson.includes('Garantir un résultat'), 'usage sous-requête conservé');
+assert(lesson.includes('Afficher une valeur de remplacement') && lesson.includes('résultat affiché'), 'usage affichage : COALESCE ne réécrit pas la table');
+assert(lesson.includes('Choisir la première information disponible') && lesson.includes("sinon 'Aucun contact'"), 'usage multi-valeurs aligné sur la lecture gauche-droite');
+assert(lesson.includes('Éviter qu’un calcul retourne NULL') && lesson.includes('29,90 × NULL') && lesson.includes('29,90 × 0'), 'usage calcul montré avec et sans NULL');
+assert(lesson.includes('Prévoir une valeur si aucun résultat n’est trouvé') && lesson.includes("WHERE categorie = 'Inconnue'"), 'usage agrégation : colonne produits.categorie, sans accent');
+assert(!lesson.includes('4 façons de l’utiliser') && !lesson.includes('Sécuriser un calcul') && !lesson.includes('Garantir un résultat'), 'anciens titres d’usages retirés');
 assert(lesson.includes('sans modifier les données de la table'), 'différence affichage / écriture annoncée tôt');
 assert(lesson.includes('Quel équivalent selon le moteur ?'), 'comparatif final renommé selon le besoin utilisateur');
 assert(html.includes("concept-page${l.id===23?' coalesce-page':''}"), 'styles limités à la page COALESCE');

@@ -730,6 +730,12 @@
   .coal-use-copy .pt-syntax{margin:0}
   .coal-use-result{display:flex;align-items:flex-start;gap:6px;margin:7px 2px 0!important;color:var(--ink-3)!important;font-size:11.5px!important;line-height:1.4!important}
   .coal-use-result::before{content:'↳';color:var(--accent);font-family:var(--mono);font-weight:850;flex:none}
+  .coal-use-math{display:flex;flex-direction:column;gap:7px;margin:10px 0 0;padding:10px 12px;border-radius:12px;background:var(--surface-2);list-style:none}
+  .coal-use-math li{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;color:var(--ink-2);font-size:12.5px;font-weight:650;line-height:1.35}
+  .coal-use-math code{padding:0;background:none;color:var(--ink);font-weight:750}
+  .coal-use-math b{flex:none;font-family:var(--mono);font-weight:850}
+  .coal-use-math .is-null b{color:var(--accent)}
+  .coal-use-math .is-ok b{color:var(--success)}
   .coalesce-page>.concept-block.in .coal-route-choice:first-child{animation:coalChoiceIn .42s var(--spring-ios) .08s both}
   .coalesce-page>.concept-block.in .coal-route-link{animation:coalLinkIn .42s ease .18s both}
   .coalesce-page>.concept-block.in .coal-route-choice:last-child{animation:coalChoiceIn .42s var(--spring-ios) .28s both}
@@ -10287,34 +10293,39 @@ learningCheck:{
         <p class="coal-syntax-hint">Une valeur peut être une colonne, une expression ou une fonction.</p>
         <p class="coal-edge"><span>Si toutes les valeurs sont <code>NULL</code>, le résultat est <code>NULL</code>.</span></p>
       </div>`},
-    uses:{title:"4 façons de l’utiliser",
+    uses:{title:"4 usages courants de COALESCE",
       body:`<div class="coal-uses-list">
         <article class="coal-use-row">
           <span class="coal-use-n">01</span><div class="coal-use-copy">
-            <h3>Afficher un remplacement</h3><p>Rendre une information absente compréhensible pour l’utilisateur.</p>
+            <h3>Afficher une valeur de remplacement</h3><p>Remplacer un <code>NULL</code> dans le résultat affiché par une valeur plus claire.</p>
             <div class="pt-syntax"><pre class="cw-syntax">COALESCE(email, 'Non renseigné')</pre></div>
             <p class="coal-use-result">Hugo → Non renseigné</p>
           </div>
         </article>
         <article class="coal-use-row">
           <span class="coal-use-n">02</span><div class="coal-use-copy">
-            <h3>Choisir le premier contact</h3><p>Tester plusieurs colonnes dans l’ordre de préférence.</p>
+            <h3>Choisir la première information disponible</h3><p>Tester plusieurs valeurs dans l’ordre et garder la première qui n’est pas <code>NULL</code>.</p>
             <div class="pt-syntax"><pre class="cw-syntax">COALESCE(email, telephone, 'Aucun contact')</pre></div>
-            <p class="coal-use-result">email → téléphone → texte de repli</p>
+            <p class="coal-use-result">e-mail → sinon téléphone → sinon 'Aucun contact'</p>
           </div>
         </article>
         <article class="coal-use-row">
           <span class="coal-use-n">03</span><div class="coal-use-copy">
-            <h3>Sécuriser un calcul</h3><p>Éviter qu’une valeur absente rende tout le calcul <code>NULL</code>.</p>
+            <h3>Éviter qu’un calcul retourne NULL</h3><p>Dans un calcul, une valeur <code>NULL</code> peut rendre le résultat <code>NULL</code>. <code>COALESCE</code> permet de prévoir une valeur de remplacement.</p>
             <div class="pt-syntax"><pre class="cw-syntax">prix * COALESCE(quantite, 0)</pre></div>
             <p class="coal-use-result">quantité absente → 0 pour ce calcul</p>
+            <ul class="coal-use-math">
+              <li class="is-null"><code>29,90 × NULL</code><b>NULL</b></li>
+              <li class="is-ok"><code>29,90 × 0</code><b>0</b></li>
+            </ul>
           </div>
         </article>
         <article class="coal-use-row">
           <span class="coal-use-n">04</span><div class="coal-use-copy">
-            <h3>Garantir un résultat</h3><p>Prévoir un repli pour une expression ou une sous-requête vide.</p>
+            <h3>Prévoir une valeur si aucun résultat n’est trouvé</h3><p>Certaines expressions ou fonctions d’agrégation peuvent renvoyer <code>NULL</code>. <code>COALESCE</code> permet alors de prévoir une valeur par défaut.</p>
             <div class="pt-syntax"><pre class="cw-syntax">COALESCE(
-  (SELECT MAX(prix) FROM produits
+  (SELECT MAX(prix)
+   FROM produits
    WHERE categorie = 'Inconnue'),
   0
 )</pre></div>
@@ -28779,7 +28790,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-13-coal-rule-v718';
+  const SW_CACHE='requete-2026-09-13-coal-uses-v719';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
