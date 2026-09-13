@@ -39,6 +39,9 @@ assert(html.includes("coalesce:'Résultat final · 10 contacts'"), 'le résultat
 assert(html.includes('function syncCoalesceA11y'), 'les scènes masquées sont retirées de l’arbre accessible');
 assert(html.includes('viz:"coalesce"'), 'la visualisation est reliée à la leçon COALESCE');
 assert(!source.includes('Regarder → vérifier'), 'la légende sous l’animation est retirée');
+assert(source.includes("COALESCE(\\n  email,\\n  'Non renseigné'\\n)"), 'la lecture SQL coupe entre les arguments, pas dans le texte de secours');
+assert(!source.includes("COALESCE(email,\\n'Non renseigné')"), 'l’ancien retour à la ligne au milieu de COALESCE est retiré');
+assert(html.includes('#lesson-body .sql-viz[data-viz="coalesce"] .join-phase-sql') && html.includes('overflow-wrap:break-word'), 'le SQL de COALESCE ne casse plus un mot au milieu');
 
 console.log('\n=== Résultats SQL COALESCE ===');
 const schema = html.match(/const SCHEMA_SQL = `([\s\S]*?)`;/)?.[1] || '';
