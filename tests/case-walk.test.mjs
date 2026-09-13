@@ -37,12 +37,12 @@ assert(init.includes("prefersReduceMotion()") && init.includes("classList.add('i
 const forms = html.indexOf("if(kind==='caseforms')") >= 0
   ? html.slice(html.indexOf("if(kind==='caseforms')"), html.indexOf("if(kind==='selfcols')"))
   : '';
-assert(forms.includes('cw-form-schema') && forms.includes("CASE") && forms.includes('ville') && forms.includes('age < 30'), 'les deux formes ont un schéma, pas seulement du SQL');
+assert(forms.includes('cw-form-sql') && forms.includes('SELECT') && forms.includes('CASE ville') && forms.includes('age BETWEEN 30 AND 50') && forms.includes('FROM clients'), 'les deux formes montrent la structure dans une requête SQL');
 assert(forms.includes('cw-form-emoji') && forms.includes('🏷️') && forms.includes('🔎'), 'chaque forme a un emoji et un titre aéré');
-assert(!forms.includes('SELECT nom') && !forms.includes('cw-syntax'), 'les formes n’affichent plus la requête SELECT complète');
+assert(!forms.includes('cw-form-schema') && !forms.includes('cw-fs-out'), 'le schéma à flèches est remplacé par du SQL');
 
 const lesson21 = html.slice(html.indexOf('{ id:21, titre:"CASE"'), html.indexOf('{ id:23, titre:"COALESCE"'));
-assert(lesson21.includes('Structure de CASE') && lesson21.includes('condition_1') && lesson21.includes('SI') && lesson21.includes('ALORS'), 'la structure CASE est expliquée avec SI / ALORS');
+assert(lesson21.includes('Structure de CASE') && lesson21.includes('condition_1') && lesson21.includes('SELECT') && lesson21.includes('FROM clients') && lesson21.includes('SI') && lesson21.includes('ALORS'), 'la structure CASE est expliquée avec SI / ALORS dans une requête');
 assert(lesson21.includes('Le premier WHEN vrai est retenu') && !lesson21.includes('Premier WHEN gagnant'), 'le premier WHEN vrai est retenu, pas « gagnant »');
 assert(lesson21.includes('cw-order') && lesson21.includes('non testé') && lesson21.includes('de haut en bas'), 'la lecture des WHEN va de haut en bas');
 assert(lesson21.includes("ELSE 'Autre'") && lesson21.includes('cw-nullout'), 'ELSE optionnel montre la valeur de repli et NULL');
