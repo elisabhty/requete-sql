@@ -42,7 +42,7 @@ assert(forms.includes('cw-form-emoji') && forms.includes('🏷️') && forms.inc
 assert(!forms.includes('cw-form-schema') && !forms.includes('cw-fs-out'), 'le schéma à flèches est remplacé par du SQL');
 
 const lesson21 = html.slice(html.indexOf('{ id:21, titre:"CASE"'), html.indexOf('{ id:23, titre:"COALESCE"'));
-assert(lesson21.includes('Structure de CASE') && lesson21.includes('SI') && lesson21.includes('ALORS'), 'la structure CASE est expliquée avec SI / ALORS');
+assert(!lesson21.includes('Structure de CASE'), 'la carte Structure de CASE est retirée');
 assert(lesson21.indexOf('logique conditionnelle') < lesson21.indexOf('WHEN condition_1') && lesson21.indexOf('WHEN condition_1') < lesson21.indexOf('Elle fonctionne comme une logique'), 'la requête CASE est collée juste après la phrase d’intro');
 assert(lesson21.includes('Le premier WHEN vrai est retenu') && !lesson21.includes('Premier WHEN gagnant'), 'le premier WHEN vrai est retenu, pas « gagnant »');
 assert(lesson21.includes('cw-order') && lesson21.includes('non testé') && lesson21.includes('de haut en bas'), 'la lecture des WHEN va de haut en bas');
