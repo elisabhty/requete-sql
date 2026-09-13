@@ -47,6 +47,9 @@ assert(lesson.includes('À ne pas confondre') && lesson.includes('COALESCE ne mo
 assert(lesson.includes('valeur renvoyée par la requête') && lesson.includes('Hugo peut afficher'), 'la différence requête / table est montrée avec Hugo');
 assert(!lesson.includes('peut afficher une valeur à la place de'), 'l’ancienne formulation abstraite est retirée');
 assert(lesson.includes('sans modifier les données de la table'), 'différence affichage / écriture annoncée tôt');
+assert(lesson.includes('COALESCE(a, b, …)') && lesson.includes('première valeur disponible'), 'réflexe centré sur COALESCE');
+assert(lesson.includes('lit les valeurs de gauche à droite') && lesson.includes('si toutes sont'), 'le réflexe dit lire, renvoyer, puis le cas tout-NULL');
+assert(!lesson.includes('modifie réellement la valeur dans la table'), 'UPDATE n’est plus dans le réflexe');
 assert(lesson.includes('Quel équivalent selon le moteur ?'), 'comparatif final renommé selon le besoin utilisateur');
 assert(html.includes("concept-page${l.id===23?' coalesce-page':''}"), 'styles limités à la page COALESCE');
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('coalUseIn'), 'micro-interactions compatibles avec la réduction des animations');
