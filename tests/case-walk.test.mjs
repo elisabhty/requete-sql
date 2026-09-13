@@ -46,7 +46,7 @@ assert(lesson21.includes('Structure de CASE') && lesson21.includes('condition_1'
 assert(lesson21.includes('Le premier WHEN vrai est retenu') && !lesson21.includes('Premier WHEN gagnant'), 'le premier WHEN vrai est retenu, pas « gagnant »');
 assert(lesson21.includes('cw-order') && lesson21.includes('non testé') && lesson21.includes('de haut en bas'), 'la lecture des WHEN va de haut en bas');
 assert(lesson21.includes("ELSE 'Autre'") && lesson21.includes('cw-nullout'), 'ELSE optionnel montre la valeur de repli et NULL');
-assert(lesson21.includes('Où utiliser CASE ?') && !lesson21.includes('CASE dans SELECT') && lesson21.includes('categorie_age'), 'la carte dit où utiliser CASE, pas seulement SELECT');
+assert(lesson21.includes('Où utiliser CASE ?') && !lesson21.includes('CASE dans SELECT') && !lesson21.includes('categorie_age') && lesson21.includes('GROUP BY categorie') && lesson21.includes('COUNT(*) AS nb'), 'la carte montre CASE dans GROUP BY, pas seulement SELECT');
 assert(!lesson21.includes('Ordre trop large') && !lesson21.includes('rec_first'), 'l’onglet Ordre trop large n’apparaît plus dans Teste ni dans la requête expliquée');
 assert(html.includes('Comment CASE prend sa décision'), 'le schéma explique la décision de CASE');
 assert(lesson21.includes('logique conditionnelle') && lesson21.includes('SINON SI') && lesson21.includes('cw-if'), 'l’intro présente CASE comme SI / SINON SI / SINON');
