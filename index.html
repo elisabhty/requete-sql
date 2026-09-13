@@ -596,6 +596,11 @@
   .join-recap.fn-cmp .fnc-std{display:block;margin-top:3px;font-family:var(--ui);font-size:10.5px;font-weight:650;line-height:1.3;letter-spacing:0;color:var(--ink-3)}
   .join-recap.fn-cmp .fnc-std.is-std{color:var(--accent);font-weight:750}
   .join-recap.fn-cmp .jr-quoi{vertical-align:top}
+  .join-recap.fn-cmp.is-sgbd2 thead th:first-child,.join-recap.fn-cmp.is-sgbd2 .fnc-nom{width:50%}
+  .join-recap.fn-cmp.is-sgbd2 thead th:nth-child(2),.join-recap.fn-cmp.is-sgbd2 .fnc-sgbd{width:50%}
+  .join-recap.fn-cmp.is-sgbd2 .fnc-nom,.join-recap.fn-cmp.is-sgbd2 .fnc-sgbd{vertical-align:middle}
+  .join-recap.fn-cmp.is-sgbd2 .fnc-sgbd{font-size:13.5px;font-weight:650;color:var(--ink-2)}
+  .join-recap.fn-cmp.is-sgbd2 .fnc-sgbd.is-std{color:var(--accent);font-weight:750}
   /* Variante « prose » : la 1ʳᵉ colonne compare parfois des phrases entières
      (ex. OFFSET vs curseur) plutôt qu'un nom de fonction court — le 31 % en
      police mono devient trop étroit et force un mot par ligne. On élargit
@@ -10383,13 +10388,13 @@ learningCheck:{
     "expectRows": 1
   }
 ],
-  fnCmp:{title:"Les alternatives selon le SGBD",h2:"Principe",
+  fnCmp:{title:"Les alternatives selon le SGBD",sgbd:1,h2:"SGBD",
     say:"<p class=\"fn-cmp-say coal-cmp-note\"><i aria-hidden=\"true\">💡</i><span>Le réflexe : privilégie <code>COALESCE</code> lorsque c’est possible. Elle fait partie du standard SQL, fonctionne avec plusieurs arguments et rend la requête plus facilement portable entre différents SGBD.</span></p>",
     rows:[
-      {fn:"COALESCE",std:1,moteur:"Standard SQL",d:"Parcourt plusieurs valeurs et renvoie la première non <code>NULL</code>.",on:1},
-      {fn:"ISNULL",moteur:"SQL Server",d:"Si la 1re valeur est <code>NULL</code>, renvoie la 2e."},
-      {fn:"IFNULL",moteur:"MySQL",d:"Si la 1re valeur est <code>NULL</code>, renvoie la 2e."},
-      {fn:"NVL",moteur:"Oracle",d:"Si la 1re valeur est <code>NULL</code>, renvoie la 2e."}
+      {fn:"COALESCE",std:1,moteur:"Standard SQL",on:1},
+      {fn:"ISNULL",moteur:"SQL Server"},
+      {fn:"IFNULL",moteur:"MySQL"},
+      {fn:"NVL",moteur:"Oracle"}
     ]} ,
 learningCheck:{
   "question": "COALESCE('', 'Non renseigné') renvoie quoi ?",
@@ -19839,13 +19844,11 @@ function fnCmpBlock(l){
   const sgbd=!!c.sgbd;
   const h1=c.h1||'Fonction';
   const h2=sgbd?(c.h2||'SGBD'):(c.h2||'Ce qu’elle fait');
-  const h3=c.h3||'Principe';
   const want=!!c.want;
   const lignes=c.rows.map(r=>sgbd
     ?`<tr class="${r.on?'on':''}">
       <td class="fnc-nom">${esc(r.fn)}</td>
       <td class="fnc-sgbd${r.std?' is-std':''}">${esc(r.moteur||'')}</td>
-      <td class="jr-quoi">${r.d}</td>
     </tr>`
     :`<tr class="${r.on?'on':''}">
       <td class="fnc-nom${want?' is-want':''}">${esc(r.fn)}${r.moteur?`<small class="fnc-std${r.std?' is-std':''}">${esc(r.moteur)}</small>`:''}</td>
@@ -19859,8 +19862,8 @@ function fnCmpBlock(l){
   const say=raw?(bloc?`<div class="fn-cmp-say">${raw}</div>`:`<p class="fn-cmp-say">${raw}</p>`):'';
   return `<div class="concept-block">
     <h2><span class="h2-txt">${esc(c.title)}</span></h2>
-    <table class="join-recap fn-cmp${c.prose?' is-prose':''}${sgbd?' is-sgbd3':''}">
-      <thead><tr><th scope="col">${esc(h1)}</th><th scope="col">${esc(h2)}</th>${sgbd?`<th scope="col">${esc(h3)}</th>`:''}</tr></thead>
+    <table class="join-recap fn-cmp${c.prose?' is-prose':''}${sgbd?' is-sgbd2':''}">
+      <thead><tr><th scope="col">${esc(h1)}</th><th scope="col">${esc(h2)}</th></tr></thead>
       <tbody>${lignes}</tbody>
     </table>
     ${say}
@@ -28811,7 +28814,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-13-coal-tbl-v729';
+  const SW_CACHE='requete-2026-09-13-coal-tbl-v730';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
