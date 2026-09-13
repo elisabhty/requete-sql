@@ -38,6 +38,7 @@ assert(source.includes("joinMore(6,'clients')"), 'les clients non affichés sont
 assert(html.includes("coalesce:'Résultat final · 10 contacts'"), 'le résultat final annonce son cardinal');
 assert(html.includes('function syncCoalesceA11y'), 'les scènes masquées sont retirées de l’arbre accessible');
 assert(html.includes('viz:"coalesce"'), 'la visualisation est reliée à la leçon COALESCE');
+assert(!source.includes('Regarder → vérifier'), 'la légende sous l’animation est retirée');
 
 console.log('\n=== Résultats SQL COALESCE ===');
 const schema = html.match(/const SCHEMA_SQL = `([\s\S]*?)`;/)?.[1] || '';
