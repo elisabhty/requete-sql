@@ -51,6 +51,7 @@ assert(lesson.includes('COALESCE(a, b, …)') && lesson.includes('première vale
 assert(lesson.includes('lit les valeurs de gauche à droite') && lesson.includes('si toutes sont'), 'le réflexe dit lire, renvoyer, puis le cas tout-NULL');
 assert(!lesson.includes('modifie réellement la valeur dans la table'), 'UPDATE n’est plus dans le réflexe');
 assert(lesson.includes('Les alternatives selon le SGBD') && lesson.includes('sgbd:1') && html.includes('is-sgbd3'), 'comparatif nommé comme des alternatives, pas des équivalents');
+assert(html.includes('is-sgbd3{display:flex;flex-direction:column') && html.includes('width:100%!important'), 'sur mobile, Standard SQL ne reste pas coincé dans 24 % de largeur');
 assert(lesson.includes('plusieurs arguments') && lesson.includes('plus facilement portable') && !lesson.includes('autant d’arguments que nécessaire'), 'COALESCE est recommandé pour sa portabilité, sans promettre un nombre d’arguments illimité');
 assert(!lesson.includes('Quel équivalent selon le moteur ?'), 'l’ancien titre d’équivalence est retiré');
 assert(html.includes("concept-page${l.id===23?' coalesce-page':''}"), 'styles limités à la page COALESCE');
