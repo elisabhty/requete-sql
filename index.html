@@ -27177,10 +27177,10 @@ const SQL_VIZ={
     {t:'Léa',extra:'lea@mail.fr',keep:0},{t:'Gabriel',extra:'gabriel@mail.fr',keep:0},{t:'Inès',extra:'NULL',keep:1},{t:'Nathan',extra:'nathan.dupont@mail.fr',keep:0}
   ]},
   coalesce:{kind:'er',sample:'10 clients · 2 emails NULL',stepMs:7200,phases:[
-    {k:'Lire la colonne email',d:'SQL parcourt les 10 clients. Huit adresses existent ; celles de Hugo et Inès valent <code>NULL</code>.',sql:'SELECT nom, email\nFROM clients',read:'<code>NULL</code> signifie « valeur absente ». Ce n’est ni une chaîne vide, ni le texte « NULL ».'},
-    {k:'Garder la première valeur',d:'Pour Sophie, le premier argument contient déjà une adresse. <code>COALESCE</code> la garde et s’arrête.',sql:"COALESCE(email, 'Non renseigné')",read:'Lecture de gauche à droite : <code>sophie@mail.fr</code> est la première valeur non NULL. Le texte de secours n’est pas utilisé.'},
-    {k:'Passer à la suivante',d:'Pour Hugo et Inès, le premier argument vaut <code>NULL</code>. SQL essaie alors le deuxième.',sql:"NULL → 'Non renseigné'",read:'SQL ignore <code>NULL</code> et passe à la valeur suivante. <code>\'Non renseigné\'</code> est donc affiché.'},
-    {k:'Afficher sans modifier',d:'Le résultat contient toujours 10 clients, avec une valeur lisible dans la colonne <code>contact</code>.',sql:"SELECT nom, COALESCE(email,\n'Non renseigné') AS contact",read:'Hugo et Inès affichent « Non renseigné ». Dans la table <code>clients</code>, leur email reste pourtant <code>NULL</code>.'}
+    {k:'Lire la première valeur',d:'Pour chaque client, <code>COALESCE</code> commence par regarder la valeur de <code>email</code>.',sql:"COALESCE(email, 'Non renseigné')",read:'<code>NULL</code> signifie « valeur absente ». Ce n’est ni une chaîne vide, ni le texte « NULL ».'},
+    {k:'Vérifier si elle est NULL',d:'Pour Sophie, <code>email</code> contient une valeur. Comme elle n’est pas <code>NULL</code>, <code>COALESCE</code> la renvoie immédiatement.',sql:"COALESCE(email, 'Non renseigné')",read:'Si l’e-mail existe, <code>COALESCE</code> le garde et s’arrête. S’il vaut <code>NULL</code>, <code>COALESCE</code> continue.'},
+    {k:'Passer à la suivante',d:'Pour Hugo et Inès, <code>email</code> vaut <code>NULL</code>. <code>COALESCE</code> passe donc à la valeur suivante : <code>\'Non renseigné\'</code>.',sql:"NULL → 'Non renseigné'",read:'<code>COALESCE</code> passe au prochain argument. <code>\'Non renseigné\'</code> devient le résultat.'},
+    {k:'Afficher le résultat',d:'Le résultat contient toujours 10 clients. Seule la valeur affichée dans <code>contact</code> change : l’e-mail lorsqu’il existe, <code>\'Non renseigné\'</code> sinon.',sql:"SELECT nom, COALESCE(email,\n'Non renseigné') AS contact",read:'<code>COALESCE</code> ne modifie pas les données stockées. Hugo et Inès ont toujours <code>NULL</code> dans <code>clients.email</code>.'}
   ],html:`<div class="er-stage join-viz coal-stage">
     <section class="coal-source" aria-label="Extrait des emails de clients">
       <div class="coal-head"><span>Données réellement stockées</span><code>clients.email</code><b>10 clients · 2 NULL</b></div>
@@ -27197,14 +27197,14 @@ const SQL_VIZ={
       <div class="coal-head"><span>Cas 1 · la valeur existe</span><code>Sophie</code><b>arrêt au 1er argument</b></div>
       <div class="coal-formula"><code>COALESCE(</code><span>email</span><span>,</span><span>'Non renseigné'</span><code>)</code></div>
       <div class="coal-case"><b class="coal-person">Sophie</b><span class="coal-arg is-picked">sophie@mail.fr</span><span class="coal-arrow">→</span><span class="coal-arg">Non renseigné</span></div>
-      <p class="coal-stop"><i>✓</i><span>Première valeur non NULL trouvée : SQL la renvoie immédiatement.</span></p>
+      <p class="coal-stop"><i>✓</i><span>L’e-mail existe : <code>COALESCE</code> le garde et s’arrête.</span></p>
     </section>
     <section class="coal-eval" data-case="null" aria-label="COALESCE avec un email NULL" aria-hidden="true">
       <div class="coal-head"><span>Cas 2 · la valeur manque</span><code>Hugo et Inès</code><b>passage au 2e argument</b></div>
       <div class="coal-formula"><code>COALESCE(</code><span>email</span><span>,</span><span>'Non renseigné'</span><code>)</code></div>
       <div class="coal-case"><b class="coal-person">Hugo</b><span class="coal-arg is-null">NULL</span><span class="coal-arrow">→</span><span class="coal-arg is-picked">Non renseigné</span></div>
       <div class="coal-case"><b class="coal-person">Inès</b><span class="coal-arg is-null">NULL</span><span class="coal-arrow">→</span><span class="coal-arg is-picked">Non renseigné</span></div>
-      <p class="coal-stop"><i>✓</i><span>Le premier argument est absent : le deuxième devient le résultat affiché.</span></p>
+      <p class="coal-stop"><i>✓</i><span><code>COALESCE</code> passe au prochain argument.</span></p>
     </section>
     <div class="join-out" aria-hidden="true">
       <div class="join-pill">Sophie<span class="jn">sophie@mail.fr</span></div>
@@ -27212,9 +27212,9 @@ const SQL_VIZ={
       <div class="join-pill" data-tone="fallback">Hugo<span class="jn">Non renseigné</span></div>
       <div class="join-pill" data-tone="fallback">Inès<span class="jn">Non renseigné</span></div>
       ${joinMore(6,'clients')}
-      <div class="coal-final-note"><i>↳</i><span>COALESCE change seulement l’affichage du <code>SELECT</code>. Un <code>UPDATE</code> serait nécessaire pour modifier la table.</span></div>
+      <div class="coal-final-note"><i>↳</i><span><code>COALESCE</code> ne modifie pas les données stockées. Hugo et Inès ont toujours <code>NULL</code> dans <code>clients.email</code>.</span></div>
     </div>
-    <p class="er-hint">👆 Utilise les étapes pour suivre la lecture de gauche à droite, jusqu’à la première valeur non NULL.</p>
+    <p class="er-hint">👆 Regarder → vérifier → continuer si NULL → renvoyer la première valeur non NULL.</p>
   </div>`},
   like:{kind:'filter',phases:[
     {k:'SELECT nom FROM clients',d:'SQL affiche d’abord tous les noms de la table clients.'},
@@ -28790,7 +28790,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-13-coal-uses-v719';
+  const SW_CACHE='requete-2026-09-13-coal-steps-v720';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
