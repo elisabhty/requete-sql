@@ -30,7 +30,7 @@ assert(html.includes('@container coalsit') && html.includes('grid-template-colum
 assert(lesson.includes('nf-hero-note is-ask') && lesson.includes('Non renseigné') && lesson.includes('sans modifier les données de la table'), 'la situation pose la question d’affichage, pas seulement un objectif');
 assert(!lesson.includes('afficher un contact lisible'), 'l’ancien objectif est retiré');
 assert(lesson.includes('garde la première valeur disponible'), 'règle centrale formulée dans le titre');
-assert(lesson.includes('examine les valeurs de gauche à droite'), 'la lecture de gauche à droite est dite avant le schéma');
+assert(lesson.includes('examine les valeurs de gauche à droite') && !lesson.includes('<strong>COALESCE examine'), 'la lecture de gauche à droite est dite sans emphase');
 assert(lesson.includes('coal-route') && lesson.includes('1re valeur') && lesson.includes('2e valeur'), 'lecture de gauche à droite matérialisée');
 assert(!lesson.includes('1er choix') && !lesson.includes('choix suivant'), 'le schéma parle de valeurs, pas de choix');
 assert(lesson.includes('L’e-mail existe') && lesson.includes('s’arrête là') && lesson.includes('L’e-mail est NULL'), 'les deux branches sont comparables, avec un arrêt visible');
