@@ -2091,6 +2091,25 @@
   .pt-card-t{margin:0 0 9px;font-size:14px;font-weight:800;color:var(--ink);line-height:1.3}
   .pt-card-t .pt-kw,.pt-head-t .pt-kw,.pt-lead .pt-kw{font-family:var(--mono);font-size:inherit;font-weight:800;letter-spacing:.15px;background:var(--surface-2);color:inherit;padding:0 .32em;border-radius:4px;line-height:inherit;vertical-align:baseline}
   .pt-card-b{margin:0;font-size:13.5px;line-height:1.5;color:var(--ink-2)}
+  .pt-card-b .cw-syntax{margin:10px 0;min-width:0}
+  .pt-card-b .cw-syntax:last-child{margin-bottom:0}
+  .pt-card:has(.cw-syntax),.pt-card:has(.cw-order){grid-column:1/-1}
+  .cw-order{display:flex;flex-direction:column;align-items:stretch;gap:0;margin:12px 0 2px}
+  .cw-order-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 8px;padding:9px 11px;border:1px solid var(--card-border);border-radius:12px;background:var(--surface-2);font-size:13px;font-weight:700;color:var(--ink)}
+  .cw-order-row.is-fail{opacity:.72}
+  .cw-order-row.is-win{border-color:rgba(91,91,214,.28);background:var(--accent-soft);color:var(--ink)}
+  .cw-order-row.is-skip{opacity:.42}
+  .cw-order-eval{font-family:var(--mono);font-size:12px;font-weight:750;color:var(--ink-3)}
+  .cw-order-row.is-fail .cw-order-eval{color:var(--warn)}
+  .cw-order-row.is-win .cw-order-eval{color:var(--accent)}
+  .cw-order-mark{margin-left:auto;font-size:13px;font-weight:850;color:var(--ink-3)}
+  .cw-order-row.is-fail .cw-order-mark{color:var(--warn)}
+  .cw-order-row.is-win .cw-order-mark{color:var(--accent);margin-left:auto}
+  .cw-order-out{font-family:var(--mono);font-size:12px;font-weight:800;color:var(--accent)}
+  .cw-order-arrow{display:block;margin:3px 0;color:var(--accent);font-style:normal;font-weight:850;font-size:14px;line-height:1;text-align:center}
+  .cw-order-arrow.is-off{opacity:.28}
+  .cw-nullout{display:inline-flex;margin:8px 0 0;padding:6px 10px;border-radius:10px;background:var(--surface-2);font-size:13px;font-weight:800;color:var(--ink-3)}
+  .cw-nullout code{font-size:13px;font-weight:800}
   .concept-block .pt-card code{white-space:normal;overflow-wrap:break-word;max-width:100%}
   .pt-draw{margin:0 0 11px}
 
@@ -10057,14 +10076,14 @@ learningCheck:{
       lead:"<p>L’expression <code>CASE</code> en SQL permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else des langages de programmation, mais intégré directement dans les requêtes SQL. Elle est extrêmement utile pour transformer des données, créer des colonnes calculées, gérer des regroupements ou encore remplacer des valeurs.</p>",
       forms:1,
       cards:[
-        {t:"Structure CASE",
-         b:"<p><code>CASE WHEN condition THEN valeur … ELSE valeur_defaut END</code>. Chaque <code>WHEN</code> teste une condition dans l’ordre.</p>"},
-        {t:"Premier WHEN gagnant",
-         b:"<p>Dès qu’une condition est vraie, SQL s’arrête et retourne la valeur associée. Les <code>WHEN</code> suivants sont ignorés.</p>"},
-        {t:"ELSE optionnel",
-         b:"<p><code>ELSE</code> est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est <code>NULL</code>.</p>"},
-        {t:"CASE dans SELECT",
-         b:"<p>On utilise généralement <code>CASE</code> dans le <code>SELECT</code> pour créer une colonne calculée, mais on peut aussi l’utiliser dans <code>WHERE</code>, <code>ORDER BY</code> ou <code>GROUP BY</code>.</p>"}
+        {t:"Structure de CASE",
+         b:"<p><code>CASE</code> teste des conditions dans l’ordre où elles sont écrites :</p><pre class=\"cw-syntax\">CASE\n    WHEN condition_1 THEN valeur_1\n    WHEN condition_2 THEN valeur_2\n    ELSE valeur_par_defaut\nEND</pre><p>Chaque <code>WHEN</code> signifie :</p><p><b>SI</b> cette condition est vraie → <b>ALORS</b> retourne cette valeur.</p>"},
+        {t:"Le premier WHEN vrai est retenu",
+         b:"<p>SQL teste les <code>WHEN</code> de haut en bas.</p><p>Dès qu’une condition est vraie, il retourne la valeur associée et ne teste pas les suivantes.</p><div class=\"cw-order\" role=\"img\" aria-label=\"WHEN 1 faux, WHEN 2 vrai donc résultat, WHEN 3 non testé\"><div class=\"cw-order-row is-fail\"><span class=\"cw-tok\">WHEN 1</span><span class=\"cw-order-eval\">→ faux</span><span class=\"cw-order-mark\">✕</span></div><i class=\"cw-order-arrow\" aria-hidden=\"true\">↓</i><div class=\"cw-order-row is-win\"><span class=\"cw-tok\">WHEN 2</span><span class=\"cw-order-eval\">→ vrai</span><span class=\"cw-order-mark\">✓</span><span class=\"cw-order-out\">→ résultat</span></div><i class=\"cw-order-arrow is-off\" aria-hidden=\"true\">↓</i><div class=\"cw-order-row is-skip\"><span class=\"cw-tok\">WHEN 3</span><span class=\"cw-order-eval\">non testé</span></div></div>"},
+        {t:"ELSE est optionnel",
+         b:"<p><code>ELSE</code> indique la valeur à retourner si aucun <code>WHEN</code> n’est vrai.</p><pre class=\"cw-syntax\">ELSE 'Autre'</pre><p>S’il n’y a pas de <code>ELSE</code> et qu’aucune condition n’est vraie, <code>CASE</code> retourne :</p><p class=\"cw-nullout\"><code>NULL</code></p>"},
+        {t:"Où utiliser CASE ?",
+         b:"<p><code>CASE</code> est souvent utilisé dans <code>SELECT</code> pour créer une valeur calculée à partir de conditions.</p><p>Par exemple :</p><pre class=\"cw-syntax\">SELECT nom,\n  CASE\n    WHEN age &lt; 30 THEN 'Moins de 30 ans'\n    ELSE '30 ans ou plus'\n  END AS categorie_age\nFROM clients;</pre><p>Il peut également être utilisé dans d’autres parties d’une requête, notamment <code>ORDER BY</code>, <code>WHERE</code> ou <code>GROUP BY</code>.</p>"}
       ]},
     reflex:{a:{k:"CASE simple",t:"Idéal quand tu veux dire : « Si cette colonne vaut X, alors… »"},
       b:{k:"CASE recherché",t:"Idéal pour les comparaisons, intervalles et conditions plus complexes."},
@@ -28654,7 +28673,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-13-case-walk-v694';
+  const SW_CACHE='requete-2026-09-13-case-cards-v695';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });

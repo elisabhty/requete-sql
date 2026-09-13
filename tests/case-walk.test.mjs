@@ -40,5 +40,12 @@ const forms = html.indexOf("if(kind==='caseforms')") >= 0
 assert(forms.includes('cw-form-schema') && forms.includes("CASE") && forms.includes('ville') && forms.includes('age < 30'), 'les deux formes ont un schéma, pas seulement du SQL');
 assert(html.includes('.cw-form .cw-syntax{display:none') || html.includes('.cw-form .pt-sql,.cw-form .cw-syntax{display:none'), 'le SQL des formes se révèle au toucher');
 
+const lesson21 = html.slice(html.indexOf('{ id:21, titre:"CASE"'), html.indexOf('{ id:23, titre:"COALESCE"'));
+assert(lesson21.includes('Structure de CASE') && lesson21.includes('condition_1') && lesson21.includes('SI') && lesson21.includes('ALORS'), 'la structure CASE est expliquée avec SI / ALORS');
+assert(lesson21.includes('Le premier WHEN vrai est retenu') && !lesson21.includes('Premier WHEN gagnant'), 'le premier WHEN vrai est retenu, pas « gagnant »');
+assert(lesson21.includes('cw-order') && lesson21.includes('non testé') && lesson21.includes('de haut en bas'), 'la lecture des WHEN va de haut en bas');
+assert(lesson21.includes("ELSE 'Autre'") && lesson21.includes('cw-nullout'), 'ELSE optionnel montre la valeur de repli et NULL');
+assert(lesson21.includes('Où utiliser CASE ?') && !lesson21.includes('CASE dans SELECT') && lesson21.includes('categorie_age'), 'la carte dit où utiliser CASE, pas seulement SELECT');
+
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
