@@ -2398,7 +2398,7 @@
   .cw-step.fail .cw-mark{color:var(--warn)}
   .cw-step.win .cw-mark{color:var(--accent)}
   .cw-end{margin:7px 0 0;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.55px;text-transform:uppercase;color:var(--accent);text-align:center}
-  .cw-say{margin:8px 2px 0;min-height:1.5em;font-size:13px;font-weight:650;line-height:1.4;color:var(--ink);text-align:center}
+  .cw-say{margin:8px 2px 0;min-height:2.6em;font-size:13px;font-weight:650;line-height:1.4;color:var(--ink);text-align:center;white-space:pre-line}
   .cw-say b{color:var(--accent);font-weight:800}
   .cw-say:empty{visibility:hidden}
   @media (hover:hover) and (pointer:fine){
@@ -20404,7 +20404,7 @@ function pointDraw(card){
     const steps=[
       {tok:'WHEN',test:'age < 30',then:"THEN 'Jeune'"},
       {tok:'WHEN',test:'age BETWEEN 30 AND 50',then:"THEN 'Adulte'"},
-      {tok:'ELSE',test:'les autres cas',then:"THEN 'Senior'"}
+      {tok:'ELSE',test:"'Senior'"}
     ];
     return `<div class="cw-walk">
       <div class="cw-tbl" role="group" aria-label="Choisir un client">
@@ -20413,7 +20413,7 @@ function pointDraw(card){
           <span class="cw-nom">${esc(p.nom)}</span><span class="cw-age">${p.age} ans</span><i class="cw-cell" aria-hidden="true">—</i>
         </button>`).join('')}
       </div>
-      <p class="cw-note">👆 Touche une ligne. <code>CASE</code> teste les conditions <b>dans l’ordre</b>, puis s’arrête.</p>
+      <p class="cw-note">👆 Touche une ligne pour suivre son parcours. <code>CASE</code> teste les <code>WHEN</code> <b>dans l’ordre</b> et s’arrête au premier qui est vrai.</p>
       <div class="cw-machine">
         <div class="cw-probe" data-cw-probe>Touche un client</div>
         <i class="cw-probe-arrow" aria-hidden="true">↓</i>
@@ -20422,7 +20422,7 @@ function pointDraw(card){
           ${steps.map((s,i)=>`<div class="cw-step" data-i="${i}">
             <div class="cw-step-main"><span class="cw-tok">${esc(s.tok)}</span><span class="cw-test">${esc(s.test)}</span></div>
             <span class="cw-eval" data-cw-eval></span>
-            <span class="cw-then">${esc(s.then)}</span>
+            ${s.then?`<span class="cw-then">${esc(s.then)}</span>`:''}
             <span class="cw-mark"></span>
           </div>`).join('')}
           <p class="cw-end">END</p>
@@ -20884,15 +20884,14 @@ function initCaseWalk(){
     sit.forEach(tr=>tr.classList.toggle('on',tr.dataset.cw===k));
   };
   const evalStep=(age,i)=>{
-    if(i===0) return {ok:age<30,txt:age+' < 30 → '+(age<30?'vrai':'faux')};
-    if(i===1) return {ok:age>=30&&age<=50,txt:age+' BETWEEN 30 AND 50 → '+(age>=30&&age<=50?'vrai':'faux')};
-    return {ok:true,txt:'ELSE'};
+    if(i===0) return {ok:age<30,txt:age+' < 30 → '+(age<30?'VRAI':'FAUX')};
+    if(i===1) return {ok:age>=30&&age<=50,txt:age+' est entre 30 et 50 → '+(age>=30&&age<=50?'VRAI':'FAUX')};
+    return {ok:true,txt:''};
   };
   const sayFor=p=>{
-    const age=+p.age;
-    if(+p.win===0) return age+' < 30 → '+p.label+'. SQL s’arrête.';
-    if(+p.win===1) return 'BETWEEN → '+p.label+'. SQL s’arrête.';
-    return 'aucun WHEN → '+p.label+'.';
+    if(+p.win===0) return 'Les suivantes ne sont pas testées.\n→ Résultat : '+p.label;
+    if(+p.win===1) return 'ELSE n’est pas utilisé.\n→ Résultat : '+p.label;
+    return '→ Résultat : '+p.label;
   };
   const reset=()=>{
     steps.forEach(s=>{
@@ -20930,7 +20929,7 @@ function initCaseWalk(){
     }
     s.classList.add('skip');
     if(m) m.textContent='·';
-    if(ev) ev.textContent='ignoré';
+    if(ev) ev.textContent=i===2?'n’est pas utilisé':'non testé';
   };
   const show=(p,onWin)=>{
     reset();
@@ -20972,7 +20971,7 @@ function initCaseWalk(){
     });
     if(probe){
       probe.classList.add('is-on');
-      probe.innerHTML=esc(p.nom)+' <small>'+esc(p.age)+' ans</small>';
+      probe.innerHTML=esc(p.nom)+' <small>— '+esc(p.age)+' ans</small>';
     }
     paintSit(p.k);
     show(p,()=>{
@@ -21165,7 +21164,7 @@ function renderJoinIntroStudio(l){
   const title=pc.title||'Quelles lignes correspondent.';
   const tree=pc.tree?pointDraw({draw:'jointree'}):'';
   const walk=pc.walk?`<div class="concept-block">
-      <h2><span class="h2-eye">Ce que ça fabrique</span><span class="h2-txt">CASE ajoute une colonne au résultat.</span></h2>
+      <h2><span class="h2-eye">Ce que ça fabrique</span><span class="h2-txt">Comment CASE prend sa décision</span></h2>
       ${pointDraw({draw:'casewalk'})}
     </div>`:'';
   const vizInner=`<h2><span class="h2-eye">${s.vizEye||'Visualisation'}</span><span class="h2-txt">${s.vizTitle||WHY_VIZ_TITLE}</span></h2>
@@ -28673,7 +28672,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-13-case-cards-v695';
+  const SW_CACHE='requete-2026-09-13-case-else-v696';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });

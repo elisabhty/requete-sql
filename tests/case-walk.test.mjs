@@ -27,11 +27,11 @@ const init = initStart >= 0 && initEnd > initStart ? html.slice(initStart, initE
 
 assert(Boolean(draw) && Boolean(init), 'schéma CASE et interactions localisés');
 assert(draw.includes('cw-machine') && draw.includes('cw-probe') && draw.includes('cw-case-lab') && draw.includes('cw-end'), 'CASE est montré comme une machine, pas seulement une liste');
-assert(draw.includes("THEN 'Jeune'") && draw.includes("THEN 'Adulte'") && draw.includes("THEN 'Senior'"), 'chaque branche révèle son THEN');
+assert(draw.includes("THEN 'Jeune'") && draw.includes("THEN 'Adulte'") && draw.includes("ELSE") && draw.includes("'Senior'") && !draw.includes("THEN 'Senior'"), 'ELSE n’a pas de THEN');
 assert(draw.includes('data-cw-say') && draw.includes('aria-live="polite"'), 'le résultat de l’évaluation est annoncé');
-assert(draw.includes('dans l’ordre') && !draw.includes('viennent de la table <code>clients</code>'), 'la consigne insiste sur l’ordre des WHEN');
+assert(draw.includes('s’arrête au premier qui est vrai') && !draw.includes('puis s’arrête'), 'la consigne dit que CASE s’arrête au premier WHEN vrai');
 assert(init.includes("mode==='test'") && init.includes('is-test') && init.includes('320'), 'chaque WHEN est d’abord testé, puis tranché');
-assert(init.includes('BETWEEN 30 AND 50') && init.includes('SQL s’arrête'), 'le verdict relie l’âge à l’arrêt de CASE');
+assert(init.includes('est entre 30 et 50') && init.includes('Résultat') && init.includes('n’est pas utilisé'), 'le verdict relie chaque âge à la décision de CASE');
 assert(init.includes("prefersReduceMotion()") && init.includes("classList.add('is-set')"), 'mouvement réduit et colonne categorie restent couverts');
 
 const forms = html.indexOf("if(kind==='caseforms')") >= 0
@@ -46,6 +46,7 @@ assert(lesson21.includes('Le premier WHEN vrai est retenu') && !lesson21.include
 assert(lesson21.includes('cw-order') && lesson21.includes('non testé') && lesson21.includes('de haut en bas'), 'la lecture des WHEN va de haut en bas');
 assert(lesson21.includes("ELSE 'Autre'") && lesson21.includes('cw-nullout'), 'ELSE optionnel montre la valeur de repli et NULL');
 assert(lesson21.includes('Où utiliser CASE ?') && !lesson21.includes('CASE dans SELECT') && lesson21.includes('categorie_age'), 'la carte dit où utiliser CASE, pas seulement SELECT');
+assert(html.includes('Comment CASE prend sa décision'), 'le schéma explique la décision de CASE');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
