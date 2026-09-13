@@ -39,7 +39,7 @@ const forms = html.indexOf("if(kind==='caseforms')") >= 0
   : '';
 assert(forms.includes('cw-form-schema') && forms.includes("CASE") && forms.includes('ville') && forms.includes('age < 30'), 'les deux formes ont un schéma, pas seulement du SQL');
 assert(forms.includes('cw-form-emoji') && forms.includes('🏷️') && forms.includes('🔎'), 'chaque forme a un emoji et un titre aéré');
-assert(html.includes('.cw-form .cw-syntax{display:none') || html.includes('.cw-form .pt-sql,.cw-form .cw-syntax{display:none'), 'le SQL des formes se révèle au toucher');
+assert(!forms.includes('SELECT nom') && !forms.includes('cw-syntax'), 'les formes n’affichent plus la requête SELECT complète');
 
 const lesson21 = html.slice(html.indexOf('{ id:21, titre:"CASE"'), html.indexOf('{ id:23, titre:"COALESCE"'));
 assert(lesson21.includes('Structure de CASE') && lesson21.includes('condition_1') && lesson21.includes('SI') && lesson21.includes('ALORS'), 'la structure CASE est expliquée avec SI / ALORS');
