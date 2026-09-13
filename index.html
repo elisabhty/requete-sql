@@ -4597,6 +4597,7 @@
   .cd-syntax.pattern .cd-pattern-line{color:var(--code-ink)}
   .cd-syntax.pattern .cd-kw{color:var(--t-kw)}
   .cd-syntax.pattern .cd-dots{color:#8A8A9C;opacity:1}
+  .cd-syntaxes .cd-lab:not(:first-child){margin-top:16px}
   .cd-lab{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:.8px;margin:0 4px 9px;font-family:var(--mono)}
   .cd-lab.memo{color:var(--accent)}
   .cd-lab-i{font-size:13px;font-style:normal}
@@ -15885,8 +15886,14 @@ const CARTES={
     m:"Conserve <b>toutes</b> les lignes des deux tables. Sans match → <code>NULL</code> du côté manquant. Inès et l’invité restent."},
  44:{k:"Quel JOIN ?",t:"Quelles lignes garder ?",s:"INNER · LEFT · FULL · CROSS",
     m:"Demande-toi quelles lignes doivent rester, même sans correspondance. Seulement les matchs → <code>INNER JOIN</code>. Toute la gauche → <code>LEFT JOIN</code>. Les deux → <code>FULL OUTER JOIN</code>. Toutes les combinaisons → <code>CROSS JOIN</code>. Toute la droite → <code>RIGHT JOIN</code>, le miroir du <code>LEFT JOIN</code>."},
- 21:{k:"CASE",t:"Afficher une valeur selon une condition",s:"CASE expression\n    WHEN valeur1 THEN resultat1\n    ELSE resultat_defaut\nEND",
-    m:"L’expression <code>CASE</code> permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else, intégré dans les requêtes SQL.<br><br><b>CASE simple</b> : Compare une colonne à plusieurs valeurs précises. <b>CASE recherché</b> : Teste plusieurs conditions, l’une après l’autre.<br><br><code>ELSE</code> est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est <code>NULL</code>."},
+ 21:{k:"CASE",t:"Afficher une valeur selon une condition",
+    s:"-- CASE simple\nCASE expression\n    WHEN valeur THEN resultat\n    ELSE resultat_defaut\nEND\n\n-- CASE recherché\nCASE\n    WHEN condition THEN resultat\n    ELSE resultat_defaut\nEND",
+    ss:[
+      {lab:"CASE simple",s:"CASE expression\n    WHEN valeur THEN resultat\n    ELSE resultat_defaut\nEND"},
+      {lab:"CASE recherché",s:"CASE\n    WHEN condition THEN resultat\n    ELSE resultat_defaut\nEND"}
+    ],
+    run:"SELECT nom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",
+    m:"L’expression <code>CASE</code> permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else, intégré dans les requêtes SQL.<br><br><b>CASE simple</b> : une valeur comparée à plusieurs valeurs. <b>CASE recherché</b> : plusieurs conditions à tester.<br><br><code>ELSE</code> est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est <code>NULL</code>."},
 
  23:{k:"COALESCE",t:"Remplacer les valeurs absentes",s:"COALESCE(NULLIF(TRIM(email), ''), 'Non renseigné')",
     m:"Renvoie la première valeur non nulle. Habillage d’affichage uniquement. Utile en calcul : toute opération avec NULL donne NULL."},
@@ -23731,6 +23738,12 @@ function cardRunnableSql(c){
   if(c&&c.run) return c.run;
   return (c&&c.s)||'';
 }
+function cardSyntaxHtml(c){
+  if(c&&c.ss&&c.ss.length){
+    return `<div class="cd-syntaxes">${c.ss.map(b=>`<p class="cd-lab">${esc(b.lab)}</p><div class="ex-code">${highlight(b.s)}</div>`).join('')}</div>`;
+  }
+  return cardIsPattern(c)?cardPatternHtml(c,'cd-syntax pattern'):`<div class="ex-code">${highlight(c.s)}</div>`;
+}
 function openCard(id){
   if(!isUnlocked(id))return;
   openCardId=id;
@@ -23740,8 +23753,7 @@ function openCard(id){
   document.getElementById('fab').classList.add('hide');
   const shareIco=`<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M8.5 6.5 12 3l3.5 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 12v6.5A2.5 2.5 0 0 0 7.5 21h9a2.5 2.5 0 0 0 2.5-2.5V12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
   const tryIco=`<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9.05 5.36c-.7-.42-1.55.1-1.55.9v11.48c0 .8.85 1.32 1.55.9l9.52-5.74c.66-.4.66-1.4 0-1.8L9.05 5.36z" fill="currentColor"/></svg>`;
-  const posterSql=cardIsPattern(c)?cardPatternHtml(c):`<pre class="cd-sql">${esc(cardPosterSql(c))}</pre>`;
-  const syntaxBlock=cardIsPattern(c)?cardPatternHtml(c,'cd-syntax pattern'):`<div class="ex-code">${highlight(c.s)}</div>`;
+  const syntaxHead=c.ss&&c.ss.length?'':`<p class="cd-lab">Syntaxe</p>`;
   document.getElementById('card-body').innerHTML=`
     <div class="cd-share" style="background:${gradOf(id)}">
       <div class="cd-top"><span class="cd-brand">Requête</span><span class="cd-idx">CARTE ${String(id).padStart(2,'0')}</span></div>
@@ -23751,8 +23763,8 @@ function openCard(id){
     <p class="cd-lab memo"><span class="cd-lab-i">💡</span>À retenir</p>
     <div class="cd-memo">${c.m}</div>
     <button type="button" class="coda-note" onclick="noteFromCard(${id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ajouter dans notes</button>
-    <p class="cd-lab">Syntaxe</p>
-    ${syntaxBlock}
+    ${syntaxHead}
+    ${cardSyntaxHtml(c)}
     <div class="cd-actions">
       <button type="button" class="cd-share-btn" onclick="shareCard(${id})">${shareIco}Partager</button>
       <button type="button" class="cd-try-btn" onclick="cardToConsole(${id})">${tryIco}Essayer</button>
@@ -28671,7 +28683,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-13-case-reflex-v707';
+  const SW_CACHE='requete-2026-09-13-case-memo-v708';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });

@@ -52,6 +52,8 @@ assert(!lesson21.includes('Ordre trop large') && !lesson21.includes('rec_first')
 assert(html.includes('Comment CASE prend sa décision'), 'le schéma explique la décision de CASE');
 assert(lesson21.includes('logique conditionnelle') && lesson21.includes('SINON SI') && lesson21.includes('cw-if'), 'l’intro présente CASE comme SI / SINON SI / SINON');
 assert(lesson21.includes('une valeur comparée à plusieurs valeurs') && lesson21.includes('plusieurs conditions à tester') && !lesson21.includes('Idéal quand tu veux dire') && !lesson21.includes('une même colonne → plusieurs valeurs possibles'), 'le réflexe oppose CASE simple et CASE recherché, sans le texte du bas');
+const card21=html.slice(html.indexOf('21:{k:"CASE"'), html.indexOf('23:{k:"COALESCE"'));
+assert(card21.includes('CASE expression') && card21.includes('WHEN condition') && card21.includes('CASE simple') && card21.includes('CASE recherché') && card21.includes('ss:['), 'la carte mémo montre les deux formes de CASE');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
