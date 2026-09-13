@@ -48,6 +48,7 @@ assert(lesson21.includes('Le premier WHEN vrai est retenu') && !lesson21.include
 assert(lesson21.includes('cw-order') && lesson21.includes('non testé') && lesson21.includes('de haut en bas'), 'la lecture des WHEN va de haut en bas');
 assert(lesson21.includes("ELSE 'Autre'") && lesson21.includes('cw-nullout'), 'ELSE optionnel montre la valeur de repli et NULL');
 assert(lesson21.includes('Où utiliser CASE ?') && lesson21.includes('différents endroits') && lesson21.includes('fonctions d’agrégation') && lesson21.includes('COUNT(CASE WHEN') && !lesson21.includes('surtout dans') && !lesson21.includes('souvent utilisé'), 'la carte liste les emplacements de CASE');
+assert(html.includes('.pt-card-b .fn-reflex-list li{background:#fff'), 'les emplacements de CASE ont un fond blanc');
 assert(!lesson21.includes('Ordre trop large') && !lesson21.includes('rec_first'), 'l’onglet Ordre trop large n’apparaît plus dans Teste ni dans la requête expliquée');
 assert(html.includes('Comment CASE prend sa décision'), 'le schéma explique la décision de CASE');
 assert(lesson21.includes('logique conditionnelle') && lesson21.includes('SINON SI') && lesson21.includes('cw-if'), 'l’intro présente CASE comme SI / SINON SI / SINON');
