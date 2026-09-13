@@ -22753,10 +22753,13 @@ function testeNeedsSandbox(sql){
   return /(^|;)\s*(CREATE|DROP|ALTER|INSERT|REPLACE|UPDATE|DELETE|BEGIN|SAVEPOINT|RELEASE|VACUUM|REINDEX)\b/i.test(String(sql||''));
 }
 function sqliteRunnableSql(sql, frame){
-  /* SQLite n’a pas de type DATE : CAST('2026-09-12' AS DATE) devient l’entier 2026.
-     Dans le mini-laboratoire des conversions, date() donne le résultat attendu. */
+  /* SQLite n’a ni DATE ni DECIMAL à échelle fixe : CAST(... AS DATE) devient
+     l’entier 2026, et CAST('29.90' AS DECIMAL(10,2)) s’affiche 29.9.
+     Dans cette leçon, on garde CAST à l’écran et on exécute l’équivalent lisible. */
   if(!frame||!frame.closest('.conversion-functions-page')) return sql;
-  return String(sql||'').replace(/CAST\(\s*'([^']+)'\s+AS\s+DATE\s*\)/gi,(_,v)=>`date('${v}')`);
+  return String(sql||'')
+    .replace(/CAST\(\s*'([^']+)'\s+AS\s+DATE\s*\)/gi,(_,v)=>`date('${v}')`)
+    .replace(/CAST\(\s*((?:'[^']*'|\w+\([^()]*\)|\d+(?:\.\d+)?))\s+AS\s+DECIMAL\(\s*\d+\s*,\s*(\d+)\s*\)\s*\)/gi,(_,expr,scale)=>`printf('%.${scale}f', CAST(${expr} AS NUMERIC))`);
 }
 function runExemple(btn){
   const frame=btn.closest('.exframe');
@@ -28600,7 +28603,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-13-cf-syntax-white-v683';
+  const SW_CACHE='requete-2026-09-13-cf-dec-scale-v684';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
