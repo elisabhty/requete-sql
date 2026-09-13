@@ -51,6 +51,7 @@ assert(lesson21.includes('Où utiliser CASE ?') && lesson21.includes('surtout da
 assert(!lesson21.includes('Ordre trop large') && !lesson21.includes('rec_first'), 'l’onglet Ordre trop large n’apparaît plus dans Teste ni dans la requête expliquée');
 assert(html.includes('Comment CASE prend sa décision'), 'le schéma explique la décision de CASE');
 assert(lesson21.includes('logique conditionnelle') && lesson21.includes('SINON SI') && lesson21.includes('cw-if'), 'l’intro présente CASE comme SI / SINON SI / SINON');
+assert(lesson21.includes('une valeur comparée à plusieurs valeurs') && lesson21.includes('plusieurs conditions à tester') && !lesson21.includes('Idéal quand tu veux dire') && !lesson21.includes('une même colonne → plusieurs valeurs possibles'), 'le réflexe oppose CASE simple et CASE recherché, sans le texte du bas');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
