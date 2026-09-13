@@ -52,8 +52,8 @@ assert(lesson.includes('coal-reflex-path') && lesson.includes('la renvoie et s�
 assert(!lesson.includes('À retenir') && !lesson.includes('première valeur non <code>NULL</code> = résultat'), 'le bandeau À retenir est retiré du réflexe');
 assert(!lesson.includes('COALESCE(a, b, …)') && !lesson.includes('lit les valeurs de gauche à droite') && !lesson.includes('si toutes sont'), 'le cas tout-NULL et l’ancienne liste de règles sont hors du réflexe');
 assert(!lesson.includes('modifie réellement la valeur dans la table'), 'UPDATE n’est plus dans le réflexe');
-assert(lesson.includes('Les alternatives selon le SGBD') && lesson.includes('sgbd:1') && html.includes('is-sgbd3'), 'comparatif nommé comme des alternatives, pas des équivalents');
-assert(html.includes('is-sgbd3{display:flex;flex-direction:column') && html.includes('width:100%!important'), 'sur mobile, Standard SQL ne reste pas coincé dans 24 % de largeur');
+assert(lesson.includes('Les alternatives selon le SGBD') && lesson.includes('h2:"Principe"') && lesson.includes('moteur:"Standard SQL"') && !lesson.includes('sgbd:1'), 'comparatif en tableau à deux colonnes, SGBD sous le nom');
+assert(lesson.includes('coal-cmp-note') && !lesson.includes('fn-cmp-say coal-reflex-memo'), 'le bandeau sous le tableau n’est plus en gras');
 assert(lesson.includes('plusieurs arguments') && lesson.includes('plus facilement portable') && !lesson.includes('autant d’arguments que nécessaire'), 'COALESCE est recommandé pour sa portabilité, sans promettre un nombre d’arguments illimité');
 assert(!lesson.includes('Quel équivalent selon le moteur ?'), 'l’ancien titre d’équivalence est retiré');
 assert(html.includes("concept-page${l.id===23?' coalesce-page':''}"), 'styles limités à la page COALESCE');
