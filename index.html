@@ -1915,6 +1915,21 @@
   .cf-dec-tree-list b{margin-right:4px;font-family:var(--mono);color:var(--accent)}
   .cf-dec-round{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 12px}
   .cf-dec-round i{color:var(--accent);font-style:normal;font-weight:850}
+  .cf-kind{margin:0 0 10px;padding:14px 14px 13px;border:1px solid var(--card-border);border-radius:16px;background:var(--surface)}
+  .cf-kind.is-accent{border-color:rgba(91,91,214,.22);background:rgba(91,91,214,.05)}
+  .cf-kind>small{display:block;margin-bottom:6px;font-size:11px;font-weight:750;letter-spacing:.02em;text-transform:uppercase;color:var(--ink-3)}
+  .cf-kind.is-accent>small{color:var(--accent)}
+  .cf-kind>b{display:block;margin:0 0 10px;font-family:var(--ui);font-size:15px;font-weight:750;line-height:1.3;color:var(--ink)}
+  .cf-kind p{margin:0 0 10px!important;font-size:14px!important;line-height:1.5!important;color:var(--ink-2)!important}
+  .cf-kind p:last-child{margin-bottom:0!important}
+  .cf-kind .pt-syntax{margin:0 0 10px}
+  .cf-kind .nf-visual{margin:4px 0 12px}
+  .cf-imp-cmp{display:flex;flex-direction:column;gap:6px;margin:0 0 12px}
+  .cf-imp-cmp div{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:#fff}
+  .cf-imp-cmp i{color:var(--accent);font-style:normal;font-weight:850}
+  .cf-imp-cmp span{font-size:13px;color:var(--ink-2)}
+  .cf-imp-eq{display:flex;flex-direction:column;align-items:center;gap:6px;margin:4px 0 0}
+  .cf-imp-eq i{color:var(--accent);font-style:normal;font-weight:850}
   .cf-sample{margin:0 0 10px;text-align:center}
   .cf-sample code{display:inline-block;padding:8px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--card-border);font-size:16px;font-weight:850}
   .cf-iso{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin:0 0 4px}
@@ -22151,21 +22166,47 @@ function renderConversionFunctionsStudio(){
     </div>
     <div class="concept-block">
       <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">↔️</span>Types</span><span class="h2-txt">Conversion explicite et implicite</span></h2>
-      <p class="nf-lead">Tu peux demander toi-même la conversion, ou parfois laisser le SGBD la décider.</p>
-      <div class="nf-mm">
-        <div class="nf-mm-col is-accent">
-          <small>Explicite</small>
-          <b>CAST('42' AS INTEGER)</b>
-          <span>Tu vois immédiatement ce qui doit se passer.</span>
+      <p class="nf-lead">Une valeur peut changer de type de deux façons : soit tu demandes la conversion dans la requête, soit le SGBD la réalise automatiquement lorsque ses règles le permettent.</p>
+      <div class="cf-kind is-accent">
+        <small>Explicite</small>
+        <b>Tu demandes la conversion</b>
+        <div class="pt-syntax"><pre class="cw-syntax">CAST('42' AS INTEGER)</pre></div>
+        <p>Ici, <code>'42'</code> est du texte et tu demandes explicitement à SQL de le convertir en nombre entier.</p>
+        <div class="nf-visual" role="img" aria-label="Le texte 42 passe par CAST et devient l’entier 42">
+          <div class="nf-machine">
+            <span class="nf-machine-in"><b>'42'</b><small>texte</small></span>
+            <i class="nf-machine-arrow" aria-hidden="true">→</i>
+            <span class="nf-machine-fn">CAST</span>
+            <i class="nf-machine-arrow" aria-hidden="true">→</i>
+            <span class="nf-machine-out"><b>42</b><small>entier</small></span>
+          </div>
         </div>
-        <div class="nf-mm-col">
-          <small>Implicite</small>
-          <b>Le SGBD convertit tout seul</b>
-          <span>Dans certaines situations, il peut convertir une valeur pour faire fonctionner une opération.</span>
+        <p>Tu contrôles le type obtenu : la conversion est clairement visible dans la requête.</p>
+      </div>
+      <div class="cf-kind">
+        <small>Implicite</small>
+        <b>Le SGBD tente la conversion automatiquement</b>
+        <p>Dans certaines opérations, deux valeurs n’ont pas le même type. Le SGBD peut alors convertir automatiquement l’une d’elles pour pouvoir effectuer l’opération.</p>
+        <p>Par exemple, selon le SGBD :</p>
+        <div class="pt-syntax"><pre class="cw-syntax">42 = '42'</pre></div>
+        <p>On compare ici :</p>
+        <div class="cf-imp-cmp">
+          <div><code>42</code><i aria-hidden="true">→</i><span>nombre</span></div>
+          <div><code>'42'</code><i aria-hidden="true">→</i><span>texte</span></div>
+        </div>
+        <p>Le SGBD peut décider de convertir <code>'42'</code> en nombre avant d’effectuer la comparaison.</p>
+        <div class="cf-imp-eq" role="img" aria-label="42 égal texte 42 peut devenir 42 égal 42">
+          <code>42 = '42'</code>
+          <i aria-hidden="true">↓</i>
+          <code>42 = 42</code>
         </div>
       </div>
-      <p>Le problème : les règles de conversion implicite ne sont pas identiques dans tous les SGBD.</p>
-      ${piegeSqlRunBlock("SELECT 10 + CAST('5' AS INTEGER) AS total;")}
+      <h3 class="nf-sub">Pourquoi faut-il faire attention ?</h3>
+      <p>Les règles de conversion implicite ne sont pas identiques dans tous les SGBD. Une requête acceptée par l’un peut produire un résultat différent ou une erreur dans un autre.</p>
+      <div class="nf-read">
+        <b><span aria-hidden="true">💡</span> Le réflexe</b>
+        <p>Lorsque le type attendu est important, préfère une conversion explicite avec <code>CAST()</code> plutôt que de compter sur une conversion automatique.</p>
+      </div>
     </div>
     <div class="concept-block">
       <h2><span class="h2-eye"><span class="h2-emo" aria-hidden="true">📝</span>SGBD</span><span class="h2-txt">La même opération, une écriture par SGBD</span></h2>
@@ -28552,7 +28593,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-13-cf-dec-v678';
+  const SW_CACHE='requete-2026-09-13-cf-implicit-v679';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
