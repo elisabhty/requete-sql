@@ -1931,14 +1931,16 @@
   .cf-kind.is-accent .nf-machine-fn{background:#fff;border:1px solid rgba(60,60,67,.1);color:var(--ink)}
   .cf-kind .nf-visual{margin:4px 0 12px}
   .cf-kind .piege-sql{margin:0}
-  .cf-imp-prix{display:flex;flex-direction:column;align-items:center;gap:8px;margin:4px 0 12px;padding:14px 12px 12px;border:1px solid var(--line);border-radius:14px;background:#fff}
-  .cf-imp-prix-row,.cf-imp-prix-mid{display:grid;grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr);align-items:center;gap:6px;width:100%}
-  .cf-imp-prix-row span{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
-  .cf-imp-prix-row b,.cf-imp-prix-mid b{font-family:var(--mono);font-size:15px;font-weight:850;color:var(--ink)}
-  .cf-imp-prix-row small{font-size:10px;font-weight:750;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)}
-  .cf-imp-prix-row i,.cf-imp-prix-mid i{color:var(--accent);font-style:normal;font-weight:850;text-align:center}
-  .cf-imp-prix-mid>span{display:flex;flex-direction:column;align-items:center;gap:2px}
-  .cf-imp-prix-ok{margin:0;font-size:15px;font-weight:850;color:var(--accent);line-height:1}
+  .cf-imp-prix{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin:4px 0 12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:#fff}
+  .cf-imp-prix-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px}
+  .cf-imp-prix-item code{background:transparent;color:var(--ink);padding:0;font-size:15px;font-weight:850}
+  .cf-imp-prix-item span{font-size:13px;color:var(--ink-2)}
+  .cf-imp-prix-op{align-self:center;color:var(--accent);font-style:normal;font-weight:850;line-height:1}
+  .cf-imp-prix-cast{display:flex;flex-direction:column;align-items:center;gap:5px;padding:4px 0 2px}
+  .cf-imp-prix-cast small{font-size:11px;font-weight:750;letter-spacing:.02em;text-transform:uppercase;color:var(--ink-3)}
+  .cf-imp-prix-cast code{background:rgba(91,91,214,.08);color:var(--accent);padding:6px 12px;border-radius:10px;font-size:15px;font-weight:850}
+  .cf-imp-prix-res{margin:0;text-align:center}
+  .cf-imp-prix-res code{display:inline-block;padding:8px 14px;border-radius:12px;background:var(--accent);color:#fff;font-size:15px;font-weight:850}
   .cf-sample{margin:0 0 10px;text-align:center}
   .cf-sample code{display:inline-block;padding:8px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--card-border);font-size:16px;font-weight:850}
   .cf-iso{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin:0 0 4px}
@@ -22199,23 +22201,12 @@ function renderConversionFunctionsStudio(){
         <p>Tu recherches les produits qui coûtent plus de 20&nbsp;€. La colonne <code>prix</code> contient des nombres décimaux, alors que <code>20</code> est un nombre entier.</p>
         <div class="pt-syntax"><pre class="cw-syntax">WHERE prix > 20</pre></div>
         <p>Pour effectuer la comparaison, le SGBD peut convertir automatiquement <code>20</code> vers un type numérique compatible avec <code>prix</code>. Tu n’as écrit aucun <code>CAST()</code> : la conversion est implicite.</p>
-        <div class="cf-imp-prix" role="img" aria-label="29,90 décimal supérieur à 20 entier, converti en 20,00">
-          <div class="cf-imp-prix-row">
-            <span><b>29.90</b><small>décimal</small></span>
-            <i aria-hidden="true">&gt;</i>
-            <span><b>20</b><small>entier</small></span>
-          </div>
-          <div class="cf-imp-prix-mid">
-            <span></span>
-            <span></span>
-            <span><i aria-hidden="true">↓</i><b>20.00</b></span>
-          </div>
-          <div class="cf-imp-prix-row">
-            <span><b>29.90</b></span>
-            <i aria-hidden="true">&gt;</i>
-            <span><b>20.00</b></span>
-          </div>
-          <p class="cf-imp-prix-ok" aria-hidden="true">✓</p>
+        <div class="cf-imp-prix" role="img" aria-label="29,90 est décimal, 20 est entier, le SGBD convertit 20 en 20,00, puis 29,90 est supérieur à 20,00">
+          <div class="cf-imp-prix-item"><code>29.90</code><span>décimal</span></div>
+          <i class="cf-imp-prix-op" aria-hidden="true">&gt;</i>
+          <div class="cf-imp-prix-item"><code>20</code><span>entier</span></div>
+          <div class="cf-imp-prix-cast"><small>converti en</small><code>20.00</code></div>
+          <p class="cf-imp-prix-res"><code>29.90 &gt; 20.00</code></p>
         </div>
         ${piegeSqlRunBlock("SELECT nom, prix\nFROM produits\nWHERE prix > 20;")}
       </div>
@@ -28614,7 +28605,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-13-cf-imp-prix-v685';
+  const SW_CACHE='requete-2026-09-13-cf-imp-stack-v686';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
