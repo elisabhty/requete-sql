@@ -50,7 +50,9 @@ assert(lesson.includes('sans modifier les données de la table'), 'différence a
 assert(lesson.includes('COALESCE(a, b, …)') && lesson.includes('première valeur disponible'), 'réflexe centré sur COALESCE');
 assert(lesson.includes('lit les valeurs de gauche à droite') && lesson.includes('si toutes sont'), 'le réflexe dit lire, renvoyer, puis le cas tout-NULL');
 assert(!lesson.includes('modifie réellement la valeur dans la table'), 'UPDATE n’est plus dans le réflexe');
-assert(lesson.includes('Quel équivalent selon le moteur ?'), 'comparatif final renommé selon le besoin utilisateur');
+assert(lesson.includes('Les alternatives selon le SGBD') && lesson.includes('sgbd:1') && html.includes('is-sgbd3'), 'comparatif nommé comme des alternatives, pas des équivalents');
+assert(lesson.includes('plusieurs arguments') && lesson.includes('plus facilement portable') && !lesson.includes('autant d’arguments que nécessaire'), 'COALESCE est recommandé pour sa portabilité, sans promettre un nombre d’arguments illimité');
+assert(!lesson.includes('Quel équivalent selon le moteur ?'), 'l’ancien titre d’équivalence est retiré');
 assert(html.includes("concept-page${l.id===23?' coalesce-page':''}"), 'styles limités à la page COALESCE');
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('coalUseIn'), 'micro-interactions compatibles avec la réduction des animations');
 assert(!lesson.includes('coalesce-uses'), 'ancienne pile répétitive supprimée');
