@@ -29,9 +29,13 @@ assert(lesson.includes('<b>8</b><em>adresses renseignées</em>') && lesson.inclu
 assert(html.includes('@container coalsit') && html.includes('grid-template-columns:1fr'), 'le résumé se superpose quand le tableau est étroit');
 assert(lesson.includes('nf-hero-note is-ask') && lesson.includes('Non renseigné') && lesson.includes('sans modifier les données de la table'), 'la situation pose la question d’affichage, pas seulement un objectif');
 assert(!lesson.includes('afficher un contact lisible'), 'l’ancien objectif est retiré');
-assert(lesson.includes('première valeur qui n’est pas NULL'), 'règle centrale formulée dans le titre');
-assert(lesson.includes('coal-route') && lesson.includes('1er choix') && lesson.includes('choix suivant'), 'lecture de gauche à droite matérialisée');
-assert(lesson.includes('L’e-mail n’est pas NULL') && lesson.includes('L’e-mail est NULL'), 'les deux branches sont comparables');
+assert(lesson.includes('garde la première valeur disponible'), 'règle centrale formulée dans le titre');
+assert(lesson.includes('examine les valeurs de gauche à droite'), 'la lecture de gauche à droite est dite avant le schéma');
+assert(lesson.includes('coal-route') && lesson.includes('1re valeur') && lesson.includes('2e valeur'), 'lecture de gauche à droite matérialisée');
+assert(!lesson.includes('1er choix') && !lesson.includes('choix suivant'), 'le schéma parle de valeurs, pas de choix');
+assert(lesson.includes('L’e-mail existe') && lesson.includes('s’arrête là') && lesson.includes('L’e-mail est NULL'), 'les deux branches sont comparables, avec un arrêt visible');
+assert(lesson.includes('COALESCE(valeur1, valeur2, …)'), 'la syntaxe reste lisible pour un débutant');
+assert(lesson.includes('Une valeur peut être une colonne, une expression ou une fonction'), 'valeur1 n’est pas limitée à un littéral');
 assert((lesson.match(/class="coal-use-row"/g) || []).length === 4, '4 usages courts et structurés');
 assert(lesson.includes('Afficher un remplacement'), 'usage affichage conservé');
 assert(lesson.includes('Choisir le premier contact'), 'usage multi-colonnes conservé');
