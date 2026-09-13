@@ -47,8 +47,10 @@ assert(lesson.includes('À ne pas confondre') && lesson.includes('COALESCE ne mo
 assert(lesson.includes('valeur renvoyée par la requête') && lesson.includes('Hugo peut afficher'), 'la différence requête / table est montrée avec Hugo');
 assert(!lesson.includes('peut afficher une valeur à la place de'), 'l’ancienne formulation abstraite est retirée');
 assert(lesson.includes('sans modifier les données de la table'), 'différence affichage / écriture annoncée tôt');
-assert(lesson.includes('COALESCE(a, b, …)') && lesson.includes('première valeur disponible'), 'réflexe centré sur COALESCE');
-assert(lesson.includes('lit les valeurs de gauche à droite') && lesson.includes('si toutes sont'), 'le réflexe dit lire, renvoyer, puis le cas tout-NULL');
+assert(lesson.includes('COALESCE(a, b, c)') && lesson.includes('SQL cherche la première valeur disponible'), 'réflexe : syntaxe courte, puis la recherche de la première valeur');
+assert(lesson.includes('coal-reflex-path') && lesson.includes('la renvoie et s’arrête'), 'le parcours a → b → c s’arrête à la première valeur disponible');
+assert(lesson.includes('À retenir') && lesson.includes('première valeur non') && lesson.includes('= résultat'), 'mémo réduit à première valeur non NULL = résultat');
+assert(!lesson.includes('COALESCE(a, b, …)') && !lesson.includes('lit les valeurs de gauche à droite') && !lesson.includes('si toutes sont'), 'le cas tout-NULL et l’ancienne liste de règles sont hors du réflexe');
 assert(!lesson.includes('modifie réellement la valeur dans la table'), 'UPDATE n’est plus dans le réflexe');
 assert(lesson.includes('Les alternatives selon le SGBD') && lesson.includes('sgbd:1') && html.includes('is-sgbd3'), 'comparatif nommé comme des alternatives, pas des équivalents');
 assert(html.includes('is-sgbd3{display:flex;flex-direction:column') && html.includes('width:100%!important'), 'sur mobile, Standard SQL ne reste pas coincé dans 24 % de largeur');
