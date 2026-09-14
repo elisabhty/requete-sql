@@ -1,0 +1,38 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+const nodes=new Map();
+let focused=null;
+for(const section of ['settings','progress']){
+  nodes.set('account-tab-'+section,{setAttribute(k,v){this[k]=v;},focus(){focused=section;}});
+  nodes.set('account-panel-'+section,{hidden:section!=='settings'});
+}
+const ctx=vm.createContext({document:{getElementById:id=>nodes.get(id)}});
+vm.runInContext(html.slice(html.indexOf("let accountSection='settings';"),html.indexOf('function renderCompte(){')),ctx);
+ctx.setAccountSection('progress');
+assert.equal(nodes.get('account-panel-settings').hidden,true);
+assert.equal(nodes.get('account-panel-progress').hidden,false);
+assert.equal(nodes.get('account-tab-progress').tabIndex,0);
+assert.equal(nodes.get('account-tab-settings')['aria-selected'],'false');
+ctx.setAccountSection('unknown');
+assert.equal(nodes.get('account-panel-progress').hidden,false);
+let prevented=0;
+ctx.accountSectionKeydown({key:'Home',preventDefault(){prevented++;}});
+assert.equal(focused,'settings');
+assert.equal(nodes.get('account-panel-progress').hidden,true);
+ctx.accountSectionKeydown({key:'End',preventDefault(){prevented++;}});
+assert.equal(focused,'progress');
+ctx.accountSectionKeydown({key:'Tab',preventDefault(){prevented++;}});
+assert.equal(prevented,2,'laisser Tab sortir du groupe');
+let renderCount=0;
+ctx.semaineOffset=3;ctx.jourSel='future';ctx.auj=()=>new Date('2026-09-14');ctx.dstr=d=>d.toISOString().slice(0,10);
+ctx.renderPlanning=()=>renderCount++;
+ctx.document.querySelector=()=>({scrollIntoView(){},focus(){}});
+vm.runInContext(html.slice(html.indexOf('function focusPlanningToday(){'),html.indexOf('function chipTap(')),ctx);
+ctx.focusPlanningToday();
+assert.equal(ctx.semaineOffset,0);assert.equal(ctx.jourSel,'2026-09-14');assert.equal(renderCount,1);
+const calls=[];ctx.switchTab=name=>calls.push(name);ctx.openPlanAdjust=()=>calls.push('dialog');ctx.state={plan:null};
+ctx.openAccountPlanSettings();assert.deepEqual(calls,['planning']);
+ctx.state.plan={};ctx.openAccountPlanSettings();assert.deepEqual(calls,['planning','planning','dialog']);
+console.log('Navigation compte, clavier, retour à aujourd’hui et accès au rythme : OK.');
