@@ -3599,8 +3599,8 @@
   /* COALESCE : lecture de gauche à droite, un seul état visible par étape. */
   .sql-viz[data-viz="coalesce"] .join-stepper{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
   .sql-viz[data-viz="coalesce"] .join-phase-card{min-width:0}
-  .sql-viz[data-viz="coalesce"] .join-phase-sql{white-space:pre-wrap!important;word-break:normal;overflow-wrap:break-word;overflow:hidden}
-  #lesson-body .sql-viz[data-viz="coalesce"] .join-phase-sql{word-break:normal;overflow-wrap:break-word}
+  .sql-viz[data-viz="coalesce"] .join-phase-sql{white-space:normal!important;word-break:normal;overflow-wrap:break-word;overflow:hidden}
+  #lesson-body .sql-viz[data-viz="coalesce"] .join-phase-sql{white-space:normal!important;word-break:normal;overflow-wrap:break-word}
   .sql-viz[data-viz="coalesce"] .coal-source,.sql-viz[data-viz="coalesce"] .coal-eval{overflow:hidden;border:1px solid rgba(91,91,214,.16);border-radius:17px;background:var(--surface);box-shadow:var(--lift-sm);transition:max-height .56s var(--spring-ios),opacity .34s ease,transform .48s var(--spring-ios),border-width .34s ease,margin .34s ease}
   .sql-viz[data-viz="coalesce"] .coal-source{max-height:430px;opacity:1;transform:none}
   .sql-viz[data-viz="coalesce"] .coal-head{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;padding:10px 12px;background:linear-gradient(135deg,var(--accent-soft),#fff);border-bottom:1px solid var(--line-2);font-family:var(--ui)}
@@ -3616,8 +3616,8 @@
   .sql-viz[data-viz="coalesce"][data-phase="0"] .coal-cell:nth-child(n+7){animation-delay:.1s}
   .sql-viz[data-viz="coalesce"][data-phase="0"] .coal-cell:nth-child(n+9){animation-delay:.2s}
   .sql-viz[data-viz="coalesce"] .coal-eval{max-height:0;margin:0;border-width:0;opacity:0;transform:translateY(10px) scale(.985)}
-  .sql-viz[data-viz="coalesce"] .coal-formula{display:block;margin:0;padding:13px 12px;border-bottom:1px solid var(--line-2);background:var(--surface-2);font-family:var(--mono);font-size:12px;font-weight:800;line-height:1.45;white-space:pre;overflow-x:auto;text-align:left}
-  .sql-viz[data-viz="coalesce"] .coal-formula code{display:block;color:var(--accent);font-size:inherit;font-weight:900;background:none;padding:0;border-radius:0;white-space:inherit}
+  .sql-viz[data-viz="coalesce"] .coal-formula{display:block;margin:0;padding:13px 12px;border-bottom:1px solid var(--line-2);background:var(--surface-2);font-family:var(--mono);font-size:12px;font-weight:800;line-height:1.45;white-space:normal;overflow-wrap:break-word;word-break:normal;text-align:left}
+  .sql-viz[data-viz="coalesce"] .coal-formula code{display:inline;color:var(--accent);font-size:inherit;font-weight:900;background:none;padding:0;border-radius:0;white-space:inherit}
   .sql-viz[data-viz="coalesce"] .coal-glue{display:inline-flex;align-items:baseline;white-space:nowrap;gap:0}
   .sql-viz[data-viz="coalesce"] .coal-case{display:grid;grid-template-columns:48px minmax(0,1fr) 19px minmax(0,1fr);align-items:center;gap:6px;padding:11px 10px}
   .sql-viz[data-viz="coalesce"] .coal-case+.coal-case{border-top:1px solid var(--line-2)}
@@ -27232,10 +27232,10 @@ const SQL_VIZ={
     {t:'Léa',extra:'lea@mail.fr',keep:0},{t:'Gabriel',extra:'gabriel@mail.fr',keep:0},{t:'Inès',extra:'NULL',keep:1},{t:'Nathan',extra:'nathan.dupont@mail.fr',keep:0}
   ]},
   coalesce:{kind:'er',sample:'10 clients · 2 emails NULL',stepMs:7200,phases:[
-    {k:'Lire la première valeur',d:'Pour chaque client, <code>COALESCE</code> commence par regarder la valeur de <span class="coal-glue"><code>email</code>.</span>',sql:"COALESCE(\n  email,\n  'Non renseigné'\n)",read:'<code>NULL</code> signifie «\u00a0valeur absente\u00a0». Ce n’est ni une chaîne vide, ni le texte «\u00a0NULL\u00a0».'},
-    {k:'Vérifier si elle est NULL',d:'Pour Sophie, <code>email</code> contient une valeur. Comme elle n’est pas <code>NULL</code>, <code>COALESCE</code> la renvoie immédiatement.',sql:"COALESCE(\n  email,\n  'Non renseigné'\n)",read:'Si l’e-mail existe, <code>COALESCE</code> le garde et s’arrête. S’il vaut <code>NULL</code>, <code>COALESCE</code> continue.'},
-    {k:'Passer à la suivante',d:'Pour Hugo et Inès, <code>email</code> vaut <code>NULL</code>. <code>COALESCE</code> passe donc à la valeur suivante : <code>\'Non renseigné\'</code>.',sql:"NULL → 'Non renseigné'",read:'<code>COALESCE</code> passe au prochain argument. <code>\'Non renseigné\'</code> devient le résultat.'},
-    {k:'Afficher le résultat',d:'Le résultat contient toujours 10 clients. Seule la valeur affichée dans <code>contact</code> change : l’e-mail lorsqu’il existe, <code>\'Non renseigné\'</code> sinon.',sql:"SELECT nom,\nCOALESCE(\n  email,\n  'Non renseigné'\n) AS contact",read:'<code>COALESCE</code> ne modifie pas les données stockées. Hugo et Inès ont toujours <code>NULL</code> dans <span class="coal-glue"><code>clients.email</code>.</span>'}
+    {k:'Lire la première valeur',d:'Pour chaque client, <code>COALESCE</code> commence par regarder la valeur de <span class="coal-glue"><code>email</code>.</span>',sql:"SELECT nom, email FROM clients",read:'<code>NULL</code> signifie «\u00a0valeur absente\u00a0». Ce n’est ni une chaîne vide, ni le mot NULL.'},
+    {k:'Vérifier si elle est NULL',d:'Pour Sophie, <code>email</code> contient une valeur. Comme elle n’est pas <code>NULL</code>, <code>COALESCE</code> la renvoie immédiatement.',sql:"COALESCE(email, 'Non\u00a0renseigné')",read:'Si l’e-mail existe, <code>COALESCE</code> le garde et s’arrête. S’il vaut <code>NULL</code>, <code>COALESCE</code> continue.'},
+    {k:'Passer à la suivante',d:'Pour Hugo et Inès, <code>email</code> vaut <code>NULL</code>. <code>COALESCE</code> passe donc à la valeur suivante : <code>\'Non renseigné\'</code>.',sql:"NULL → 'Non\u00a0renseigné'",read:'<code>COALESCE</code> passe au prochain argument. <code>\'Non renseigné\'</code> devient le résultat.'},
+    {k:'Afficher le résultat',d:'Le résultat contient toujours 10 clients. Seule la valeur affichée dans <code>contact</code> change : l’e-mail lorsqu’il existe, <code>\'Non renseigné\'</code> sinon.',sql:"SELECT nom, COALESCE(email, 'Non\u00a0renseigné') AS contact",read:'<code>COALESCE</code> ne modifie pas les données stockées. Hugo et Inès ont toujours <code>NULL</code> dans <span class="coal-glue"><code>clients.email</code>.</span>'}
   ],html:`<div class="er-stage join-viz coal-stage">
     <section class="coal-source" aria-label="Extrait des emails de clients">
       <div class="coal-head"><span>Données réellement stockées</span><code>clients.email</code><b>10 clients · 2 NULL</b></div>
@@ -27250,19 +27250,13 @@ const SQL_VIZ={
     </section>
     <section class="coal-eval" data-case="present" aria-label="COALESCE avec un email présent" aria-hidden="true">
       <div class="coal-head"><span>Cas 1 · la valeur existe</span><code>Sophie</code><b>arrêt au 1er argument</b></div>
-      <pre class="coal-formula"><code>COALESCE(
-  email,
-  'Non renseigné'
-)</code></pre>
+      <div class="coal-formula"><code>COALESCE(email, 'Non\u00a0renseigné')</code></div>
       <div class="coal-case"><b class="coal-person">Sophie</b><span class="coal-arg is-picked">sophie@mail.fr</span><span class="coal-arrow">→</span><span class="coal-arg">Non renseigné</span></div>
       <p class="coal-stop"><i>✓</i><span>L’e-mail existe : <code>COALESCE</code> le garde et s’arrête.</span></p>
     </section>
     <section class="coal-eval" data-case="null" aria-label="COALESCE avec un email NULL" aria-hidden="true">
       <div class="coal-head"><span>Cas 2 · la valeur manque</span><code>Hugo et Inès</code><b>passage au 2e argument</b></div>
-      <pre class="coal-formula"><code>COALESCE(
-  email,
-  'Non renseigné'
-)</code></pre>
+      <div class="coal-formula"><code>COALESCE(email, 'Non\u00a0renseigné')</code></div>
       <div class="coal-case"><b class="coal-person">Hugo</b><span class="coal-arg is-null">NULL</span><span class="coal-arrow">→</span><span class="coal-arg is-picked">Non renseigné</span></div>
       <div class="coal-case"><b class="coal-person">Inès</b><span class="coal-arg is-null">NULL</span><span class="coal-arrow">→</span><span class="coal-arg is-picked">Non renseigné</span></div>
       <p class="coal-stop"><i>✓</i><span><code>COALESCE</code> passe au prochain argument.</span></p>
@@ -28850,7 +28844,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-13-coal-spc-v732';
+  const SW_CACHE='requete-2026-09-14-coal-spc-v733';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
