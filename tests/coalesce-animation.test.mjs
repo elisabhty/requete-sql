@@ -34,6 +34,7 @@ assert(source.includes('sophie@mail.fr') && source.includes('is-picked'), 'le ca
 assert(source.includes('Hugo') && source.includes('Inès') && source.includes('Non renseigné'), 'les deux emails NULL utilisent le texte de secours');
 assert(source.includes('passe au prochain argument'), 'la suite après NULL est attribuée à COALESCE');
 assert(source.includes('ne modifie pas les données stockées') && source.includes('clients.email'), 'l’affichage est distingué de la table');
+assert(/\.sql-viz\[data-viz="coalesce"\] \.coal-final-note\{[^}]*background:var\(--surface\);color:var\(--ink-2\)/.test(html) && source.includes('<code>clients.email.</code>'), 'la note finale est sur fond blanc, sans point orphelin');
 assert(source.includes("joinMore(6,'clients')"), 'les clients non affichés sont signalés par une ellipse');
 assert(html.includes("coalesce:'Résultat final · 10 contacts'"), 'le résultat final annonce son cardinal');
 assert(html.includes('function syncCoalesceA11y'), 'les scènes masquées sont retirées de l’arbre accessible');
