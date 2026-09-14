@@ -45,6 +45,7 @@ assert(source.includes("COALESCE(email, 'Non\\u00a0renseigné')"), 'le texte de 
 assert(!source.includes("COALESCE(\\n  email") && !source.includes("COALESCE(email,\\n'Non"), 'plus de retours à la ligne forcés au milieu de COALESCE');
 assert(source.includes('<code>email.</code>') && !source.includes('<code>email</code>.'), 'le point n’est plus orphelin après la pastille email');
 assert(source.includes('coal-glue') && source.includes('valeur absente') && source.includes('Ce\\u00a0n’est'), '« valeur absente » et Ce n’est restent collés');
+assert(!source.includes('</code>,') && !source.includes('</code>.'), 'virgule et point restent dans la pastille, pas après');
 
 console.log('\n=== Résultats SQL COALESCE ===');
 const schema = html.match(/const SCHEMA_SQL = `([\s\S]*?)`;/)?.[1] || '';
