@@ -3618,7 +3618,7 @@
   .sql-viz[data-viz="coalesce"] .coal-eval{max-height:0;margin:0;border-width:0;opacity:0;transform:translateY(10px) scale(.985)}
   .sql-viz[data-viz="coalesce"] .coal-formula{display:block;margin:0;padding:13px 12px;border-bottom:1px solid var(--line-2);background:var(--surface-2);font-family:var(--mono);font-size:12px;font-weight:800;line-height:1.45;white-space:normal;overflow-wrap:break-word;word-break:normal;text-align:left}
   .sql-viz[data-viz="coalesce"] .coal-formula code{display:inline;color:var(--accent);font-size:inherit;font-weight:900;background:none;padding:0;border-radius:0;white-space:inherit}
-  .sql-viz[data-viz="coalesce"] .coal-glue{display:inline-flex;align-items:baseline;white-space:nowrap;gap:0}
+  .sql-viz[data-viz="coalesce"] .coal-glue{display:inline;white-space:nowrap}
   .sql-viz[data-viz="coalesce"] .coal-case{display:grid;grid-template-columns:48px minmax(0,1fr) 19px minmax(0,1fr);align-items:center;gap:6px;padding:11px 10px}
   .sql-viz[data-viz="coalesce"] .coal-case+.coal-case{border-top:1px solid var(--line-2)}
   .sql-viz[data-viz="coalesce"] .coal-person{font-size:10px;font-weight:850;color:var(--ink)}
@@ -27232,10 +27232,10 @@ const SQL_VIZ={
     {t:'Léa',extra:'lea@mail.fr',keep:0},{t:'Gabriel',extra:'gabriel@mail.fr',keep:0},{t:'Inès',extra:'NULL',keep:1},{t:'Nathan',extra:'nathan.dupont@mail.fr',keep:0}
   ]},
   coalesce:{kind:'er',sample:'10 clients · 2 emails NULL',stepMs:7200,phases:[
-    {k:'Lire la première valeur',d:'Pour chaque client, <code>COALESCE</code> commence par regarder la valeur de <span class="coal-glue"><code>email</code>.</span>',sql:"SELECT nom, email FROM clients",read:'<code>NULL</code> signifie «\u00a0valeur absente\u00a0». Ce n’est ni une chaîne vide, ni le mot NULL.'},
+    {k:'Lire la première valeur',d:'Pour chaque client, <code>COALESCE</code> commence par regarder <code>email.</code>',sql:"SELECT nom, email FROM\u00a0clients",read:'<code>NULL</code> signifie <span class="coal-glue">«\u00a0valeur absente\u00a0»</span>. Ce\u00a0n’est ni une chaîne vide, ni le mot NULL.'},
     {k:'Vérifier si elle est NULL',d:'Pour Sophie, <code>email</code> contient une valeur. Comme elle n’est pas <code>NULL</code>, <code>COALESCE</code> la renvoie immédiatement.',sql:"COALESCE(email, 'Non\u00a0renseigné')",read:'Si l’e-mail existe, <code>COALESCE</code> le garde et s’arrête. S’il vaut <code>NULL</code>, <code>COALESCE</code> continue.'},
     {k:'Passer à la suivante',d:'Pour Hugo et Inès, <code>email</code> vaut <code>NULL</code>. <code>COALESCE</code> passe donc à la valeur suivante : <code>\'Non renseigné\'</code>.',sql:"NULL → 'Non\u00a0renseigné'",read:'<code>COALESCE</code> passe au prochain argument. <code>\'Non renseigné\'</code> devient le résultat.'},
-    {k:'Afficher le résultat',d:'Le résultat contient toujours 10 clients. Seule la valeur affichée dans <code>contact</code> change : l’e-mail lorsqu’il existe, <code>\'Non renseigné\'</code> sinon.',sql:"SELECT nom, COALESCE(email, 'Non\u00a0renseigné') AS contact",read:'<code>COALESCE</code> ne modifie pas les données stockées. Hugo et Inès ont toujours <code>NULL</code> dans <span class="coal-glue"><code>clients.email</code>.</span>'}
+    {k:'Afficher le résultat',d:'Le résultat contient toujours 10 clients. Seule la valeur affichée dans <code>contact</code> change : l’e-mail lorsqu’il existe, <code>\'Non renseigné\'</code> sinon.',sql:"SELECT nom, COALESCE(email, 'Non\u00a0renseigné') AS\u00a0contact",read:'<code>COALESCE</code> ne modifie pas les données stockées. Hugo et Inès ont toujours <code>NULL</code> dans <code>clients.email.</code>'}
   ],html:`<div class="er-stage join-viz coal-stage">
     <section class="coal-source" aria-label="Extrait des emails de clients">
       <div class="coal-head"><span>Données réellement stockées</span><code>clients.email</code><b>10 clients · 2 NULL</b></div>
@@ -28844,7 +28844,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-14-coal-spc-v733';
+  const SW_CACHE='requete-2026-09-14-coal-spc-v734';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });

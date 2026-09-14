@@ -39,10 +39,11 @@ assert(html.includes("coalesce:'Résultat final · 10 contacts'"), 'le résultat
 assert(html.includes('function syncCoalesceA11y'), 'les scènes masquées sont retirées de l’arbre accessible');
 assert(html.includes('viz:"coalesce"'), 'la visualisation est reliée à la leçon COALESCE');
 assert(!source.includes('Regarder → vérifier'), 'la légende sous l’animation est retirée');
-assert(source.includes("sql:\"SELECT nom, email FROM clients\""), 'l’étape 1 lit les emails stockés sans forcer un retour à la ligne');
+assert(source.includes("sql:\"SELECT nom, email FROM\\u00a0clients\""), 'FROM clients reste collé si la ligne se coupe');
 assert(source.includes("COALESCE(email, 'Non\\u00a0renseigné')"), 'le texte de secours reste collé, même si la ligne est étroite');
 assert(!source.includes("COALESCE(\\n  email") && !source.includes("COALESCE(email,\\n'Non"), 'plus de retours à la ligne forcés au milieu de COALESCE');
-assert(html.includes('#lesson-body .sql-viz[data-viz="coalesce"] .join-phase-sql') && html.includes('white-space:normal!important'), 'le SQL utilise la largeur du cadre au lieu de laisser un vide');
+assert(source.includes('<code>email.</code>') && !source.includes('<code>email</code>.'), 'le point n’est plus orphelin après la pastille email');
+assert(source.includes('coal-glue') && source.includes('valeur absente') && source.includes('Ce\\u00a0n’est'), '« valeur absente » et Ce n’est restent collés');
 
 console.log('\n=== Résultats SQL COALESCE ===');
 const schema = html.match(/const SCHEMA_SQL = `([\s\S]*?)`;/)?.[1] || '';
