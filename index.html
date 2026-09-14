@@ -337,9 +337,11 @@
   .sect-label.anat-reveal[aria-expanded="true"] .anat-reveal-chev{transform:rotate(90deg);background:rgba(91,91,214,.16)}
   .sect-label.anat-reveal[aria-expanded="true"] .anat-reveal-chev svg{animation:none}
   .anat-panel:not([hidden]){animation:anatPanelIn .28s var(--spring-ios) both}
-  .anat-panel.is-closing{animation:anatPanelOut .22s ease both;pointer-events:none}
+  /* Fermeture : on replie la hauteur (fond conservé) au lieu d'un fondu,
+     sinon le fond du cadre apparaît derrière le panneau devenu transparent. */
+  .anat-panel.is-closing{animation:none;overflow:hidden;height:0!important;padding-top:0!important;padding-bottom:0!important;transition:height .24s cubic-bezier(.32,.72,.28,1);pointer-events:none}
+  .anat-panel.is-closing>*{opacity:0;transition:opacity .14s ease}
   @keyframes anatPanelIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
-  @keyframes anatPanelOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-6px)}}
   @media (prefers-reduced-motion:reduce){.sect-label.anat-reveal,.anat-reveal-chev,.anat-reveal-chev svg,.anat-reveal-meta,.anat-panel:not([hidden]),.anat-panel.is-closing{animation:none!important;transition:none!important}}
 
   .card{position:relative;background:var(--surface);border:1px solid var(--card-border);border-radius:20px;padding:20px 22px;box-shadow:var(--card-shadow);margin-bottom:16px;transition:transform .3s var(--spring-ios),box-shadow .3s ease,border-color .3s ease}
@@ -19717,11 +19719,20 @@ function toggleAnatReveal(btn){
     if(prefersReduceMotion()){
       panel.hidden=true;
     }else{
+      /* Hauteur fixée avant le repli pour que la transition ait un point de départ. */
+      panel.style.height=panel.offsetHeight+'px';
+      void panel.offsetWidth;
       panel.classList.add('is-closing');
-      panel.addEventListener('animationend',()=>{
+      let done=false;
+      const finish=()=>{
+        if(done)return; done=true;
         panel.classList.remove('is-closing');
+        panel.style.height='';
         panel.hidden=true;
-      },{once:true});
+      };
+      const onEnd=e=>{ if(e.target===panel&&e.propertyName==='height'){ panel.removeEventListener('transitionend',onEnd); finish(); } };
+      panel.addEventListener('transitionend',onEnd);
+      setTimeout(()=>{ panel.removeEventListener('transitionend',onEnd); finish(); },320);
       btn.classList.remove('anat-just-closed');
       void btn.offsetWidth;
       btn.classList.add('anat-just-closed');
@@ -28883,7 +28894,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-14-coal-spc-v741';
+  const SW_CACHE='requete-2026-09-14-coal-spc-v742';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
