@@ -19593,10 +19593,11 @@ function anatSections(l){
   const followTeste=!!l.anatFollowTeste;
   const anat=anatBlock(l,(collapsible||followTeste)?{hideSwitcher:true}:undefined);
   if(!anat) return '';
-  if(collapsible){
+  if(collapsible||followTeste){
     const variants=l.anatomieVariants;
     const meta=variants&&variants[0]&&variants[0].label;
-    return `<button type="button" class="sect-label anat-reveal" aria-expanded="false" aria-controls="anat-panel-main" onclick="toggleAnatReveal(this)"><i>◆</i><span class="anat-reveal-copy">Explique-moi la requête</span>${meta?`<small class="anat-reveal-meta">${esc(meta)}</small>`:''}<span class="anat-reveal-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></button><div class="anat-panel" id="anat-panel-main" hidden>${anat}</div>`;
+    const copy=followTeste?'La requête expliquée':'Explique-moi la requête';
+    return `<button type="button" class="sect-label anat-reveal" aria-expanded="false" aria-controls="anat-panel-main" onclick="toggleAnatReveal(this)"><i>◆</i><span class="anat-reveal-copy">${copy}</span>${meta?`<small class="anat-reveal-meta">${esc(meta)}</small>`:''}<span class="anat-reveal-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></button><div class="anat-panel" id="anat-panel-main" hidden>${anat}</div>`;
   }
   return `<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`;
 }
@@ -28857,7 +28858,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-14-coal-spc-v739';
+  const SW_CACHE='requete-2026-09-14-coal-spc-v740';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
