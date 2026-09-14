@@ -10479,20 +10479,71 @@ learningCheck:{
   situation:"Tu veux savoir combien de clients sont enregistrés dans ta base de données.<br><br>Avec ce que tu connais déjà, tu pourrais afficher tous leurs noms :",
   situationSql:"SELECT nom\nFROM clients;",
   situationTail:"Tu obtiens les noms des clients enregistrés. Mais ici, ce qui t’intéresse n’est pas de voir la liste : tu veux obtenir directement le nombre total de clients.<br><br>Plutôt que de compter les lignes une par une, tu peux utiliser <code>COUNT(*)</code>, une fonction d’agrégation qui permet de connaître directement le nombre de lignes d’une table.",
-    studio:{problem:{title:"<code>COUNT(*)</code> compte toutes les lignes.",
-      body:""},
-    vs:{bad:{tag:"✕ Afficher pour compter",sql:"SELECT nom FROM clients;",out:"10 lignes : il faut encore les compter",
-            code:"SELECT <span class=\"vs-line bad\">nom</span>\nFROM clients;"},
-        good:{tag:"✓ Compter avec COUNT",sql:"SELECT COUNT(*) FROM clients;",out:"1 ligne · une valeur : 10",
-            code:"SELECT <span class=\"vs-line good\">COUNT(*)</span>\nFROM clients;"}},
-    why:{title:"Comment COUNT arrive à 10 ?"},
+    studio:{problem:{title:"<code>COUNT()</code> compte des lignes ou des valeurs.",
+      body:"<p>C’est une fonction d’agrégation. Il existe plusieurs façons de l’utiliser selon ce que tu veux compter.</p>"},
+    uses:{title:"Les façons de compter.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Compter toutes les lignes</p>
+          <p>Si tu veux savoir combien de clients sont enregistrés au total :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT COUNT(*)
+FROM clients;</pre></div>
+          <p>Résultat : <b>10</b></p>
+          <p><code>*</code> signifie ici que tu comptes toutes les lignes, même si certaines colonnes contiennent <code>NULL</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Compter les valeurs renseignées</p>
+          <p>Tu peux aussi demander à SQL de compter les valeurs présentes dans une colonne précise.</p>
+          <p>Par exemple, certains clients n’ont pas renseigné leur e-mail :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT COUNT(email)
+FROM clients;</pre></div>
+          <p><code>COUNT(email)</code> compte uniquement les lignes où <code>email</code> contient une valeur.</p>
+          <p>👉 Les <code>NULL</code> ne sont pas comptés.</p>
+          <p>C’est une différence importante :</p>
+          <div class="table-wrap"><table class="concept-table fit-2"><thead><tr><th>Écriture</th><th>SQL compte</th></tr></thead><tbody>
+            <tr><td><code>COUNT(*)</code></td><td>Toutes les lignes</td></tr>
+            <tr><td><code>COUNT(email)</code></td><td>Seulement les e-mails renseignés</td></tr>
+            <tr><td><code>COUNT(DISTINCT ville)</code></td><td>Les villes différentes, sans doublons ni <code>NULL</code></td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Compter sans les doublons</p>
+          <p>Imaginons maintenant que tu ne veuilles pas connaître le nombre de clients, mais combien de villes différentes sont représentées :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT COUNT(DISTINCT ville)
+FROM clients;</pre></div>
+          <p>Résultat : <b>6</b></p>
+          <p>Même si plusieurs clients habitent à Paris, Paris n’est compté qu’une seule fois.</p>
+        </div>
+      </div>`},
+    why:{title:"Comment COUNT(*) arrive à 10 ?"},
     viz:"count",
-    reflex:{a:{k:"COUNT(*)",t:"compte <b>toutes</b> les lignes"},
-      b:{k:"COUNT(colonne)",t:"compte les valeurs <b>renseignées</b>"}}},
-  anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"COUNT(*)",txt:"Compte toutes les lignes."},{tok:"FROM clients",txt:"Le comptage porte sur la table clients."}],
+    reflex:{a:{k:"COUNT(*)",t:"toutes les <b>lignes</b>"},
+      b:{k:"COUNT(colonne)",t:"les valeurs <b>renseignées</b>"},
+      c:{k:"COUNT(DISTINCT col)",t:"les valeurs <b>différentes</b>"}}},
+  anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"COUNT(*)",txt:"Compte toutes les lignes, même si une colonne est NULL."},{tok:"FROM clients",txt:"Le comptage porte sur la table clients."}],
+  anatFollowTeste:true,
+  anatomieVariants:[
+    {k:"count_star",label:"COUNT(*)",lines:[
+      {tok:"SELECT COUNT(*)",txt:"Compte toutes les lignes, même si une colonne est <code>NULL</code>."},
+      {tok:"FROM clients",txt:"Le comptage porte sur la table clients."}
+    ]},
+    {k:"count_email",label:"COUNT(email)",lines:[
+      {tok:"SELECT COUNT(email)",txt:"Compte uniquement les emails renseignés. Les <code>NULL</code> sont ignorés."},
+      {tok:"FROM clients",txt:"Le comptage porte sur la table clients."}
+    ]},
+    {k:"count_distinct",label:"DISTINCT",lines:[
+      {tok:"SELECT COUNT(DISTINCT ville)",txt:"Chaque ville n’est comptée qu’une seule fois."},
+      {tok:"FROM clients",txt:"Le comptage porte sur la table clients."}
+    ]},
+    {k:"count_where",label:"WHERE",lines:[
+      {tok:"SELECT COUNT(*)",txt:"Compte les lignes."},
+      {tok:"FROM clients",txt:"Le comptage porte sur la table clients."},
+      {tok:"WHERE ville = 'Paris'",txt:"Seuls les clients de Paris sont conservés, puis comptés."}
+    ]}
+  ],
   exemple:"SELECT COUNT(*) FROM clients;",
   attendu:"<b>1 ligne</b>, 1 valeur : 10. C’est le nombre total de clients.",
-  retenir:"<code>COUNT(*)</code> sert à connaître le nombre de lignes. Dans <code>SELECT COUNT(*) FROM clients</code>, les 10 clients sont comptés et le résultat affiche une seule valeur : 10. <code>COUNT(colonne)</code>, lui, ne compte que les valeurs renseignées et ignore les <code>NULL</code>.",
+  retenir:"<code>COUNT(*)</code> → toutes les lignes.<br><code>COUNT(colonne)</code> → les valeurs renseignées.<br><code>COUNT(DISTINCT colonne)</code> → les valeurs différentes.",
   piege:{t:"Oublier que COUNT(colonne) ignore les NULL",p:"Dans la table clients, <code>COUNT(*)</code> renvoie 10. Mais <code>COUNT(email)</code> renvoie 8, car 2 emails sont <code>NULL</code>."},
   consigne:"Compte le nombre total de clients dans la table clients.",
   solution:"SELECT COUNT(*) FROM clients;",
@@ -10500,22 +10551,31 @@ learningCheck:{
   richLesson:true, earlyDemo:true,
   testeVariants:[
   {
-    "k": "select",
-    "label": "SELECT",
-    "sql": "SELECT nom\nFROM clients;",
-    "out": "SELECT affiche chaque nom"
-  },
-  {
-    "k": "count",
+    "k": "count_star",
     "label": "COUNT(*)",
     "sql": "SELECT COUNT(*)\nFROM clients;",
-    "out": "COUNT(*) compte toutes les lignes"
+    "out": "Combien de clients sont enregistrés au total ?",
+    "expectRows": 1
   },
   {
-    "k": "rec_emails",
-    "label": "Lignes et emails",
-    "sql": "SELECT COUNT(*) AS clients, COUNT(email) AS emails FROM clients;",
-    "out": "10 lignes, mais seulement 8 emails présents.",
+    "k": "count_email",
+    "label": "COUNT(email)",
+    "sql": "SELECT COUNT(email)\nFROM clients;",
+    "out": "Combien de clients ont renseigné leur e-mail ?",
+    "expectRows": 1
+  },
+  {
+    "k": "count_distinct",
+    "label": "DISTINCT",
+    "sql": "SELECT COUNT(DISTINCT ville)\nFROM clients;",
+    "out": "Combien de villes différentes sont représentées ?",
+    "expectRows": 1
+  },
+  {
+    "k": "count_where",
+    "label": "WHERE",
+    "sql": "SELECT COUNT(*)\nFROM clients\nWHERE ville = 'Paris';",
+    "out": "Combien de clients habitent à Paris ?",
     "expectRows": 1
   }
 ] ,
