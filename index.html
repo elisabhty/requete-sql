@@ -4164,7 +4164,7 @@
   /* Variante bouton dans le cadre sombre : à ras du cadre (pas de carte
      claire flottante), texte blanc, pastille et chevron lisibles sur le
      fond code. Le chevron seul porte le mouvement d'invitation. */
-  .exframe.has-anat > .sect-label.anat-reveal{position:relative;min-height:50px;padding:12px 14px 12px 16px;margin:0;border:0;border-top:1px solid rgba(255,255,255,.08);border-radius:0;background:var(--code-bg);box-shadow:none;gap:10px;transition:background .18s ease}
+  .exframe.has-anat > .sect-label.anat-reveal{position:relative;min-height:50px;padding:12px 14px 12px 16px;margin:0;border:0;border-top:1px solid rgba(255,255,255,.08);border-radius:0;background:var(--code-bg);box-shadow:none;gap:10px;transition:background .18s ease;animation:none}
   .exframe.has-anat > .sect-label.anat-reveal::after{content:"";position:absolute;inset:0;background:rgba(255,255,255,.05);opacity:0;pointer-events:none;transition:opacity .18s ease}
   .exframe.has-anat > .sect-label.anat-reveal:active{transform:none;border-color:rgba(255,255,255,.08);background:var(--code-bg)}
   .exframe.has-anat > .sect-label.anat-reveal:active::after{opacity:1}
@@ -4174,7 +4174,8 @@
   .exframe.has-anat > .sect-label.anat-reveal .anat-reveal-chev{width:28px;height:28px;background:rgba(255,255,255,.1);color:#F2F2F7}
   .exframe.has-anat > .sect-label.anat-reveal .anat-reveal-chev svg{width:13px;height:13px}
   .exframe.has-anat > .sect-label.anat-reveal:active .anat-reveal-chev{background:rgba(255,255,255,.18)}
-  .exframe.has-anat > .sect-label.anat-reveal[aria-expanded="true"]{background:color-mix(in srgb,#fff 5%,var(--code-bg));border-top-color:rgba(255,255,255,.08);box-shadow:none}
+  .exframe.has-anat > .sect-label.anat-reveal[aria-expanded="false"]{animation:none;box-shadow:none}
+  .exframe.has-anat > .sect-label.anat-reveal[aria-expanded="true"]{background:color-mix(in srgb,#fff 5%,var(--code-bg));border-top-color:rgba(255,255,255,.08);box-shadow:none;animation:none}
   .exframe.has-anat > .sect-label.anat-reveal[aria-expanded="true"] .anat-reveal-chev{background:var(--accent);color:#fff}
   @media (hover:hover) and (pointer:fine){
     .exframe.has-anat > .sect-label.anat-reveal:hover{border-color:rgba(255,255,255,.08);box-shadow:none}
@@ -19614,7 +19615,7 @@ function anatSections(l){
       return `<div class="anat-sub"><i>◆</i><span>${esc(sec.label||'La requête expliquée')}</span></div>${html}`;
     }).join('');
     if(!inner) return '';
-    return `<button type="button" class="sect-label anat-reveal" aria-expanded="false" aria-controls="anat-panel-main" onclick="toggleAnatReveal(this)"><i>◆</i><span class="anat-reveal-copy">Explique-moi la requête</span><span class="anat-reveal-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></button><div class="anat-panel" id="anat-panel-main" hidden>${inner}</div>`;
+    return `<button type="button" class="sect-label anat-reveal" aria-expanded="false" aria-controls="anat-panel-main" onclick="toggleAnatReveal(this)"><i>◆</i><span class="anat-reveal-copy">Voir la requête expliquée</span><span class="anat-reveal-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></button><div class="anat-panel" id="anat-panel-main" hidden>${inner}</div>`;
   }
   const collapsible=!!l.anatCollapsible;
   const followTeste=!!l.anatFollowTeste;
@@ -19623,8 +19624,7 @@ function anatSections(l){
   if(collapsible||followTeste){
     const variants=l.anatomieVariants;
     const meta=variants&&variants[0]&&variants[0].label;
-    const copy=followTeste?'La requête expliquée':'Explique-moi la requête';
-    return `<button type="button" class="sect-label anat-reveal" aria-expanded="false" aria-controls="anat-panel-main" onclick="toggleAnatReveal(this)"><i>◆</i><span class="anat-reveal-copy">${copy}</span>${meta?`<small class="anat-reveal-meta">${esc(meta)}</small>`:''}<span class="anat-reveal-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></button><div class="anat-panel" id="anat-panel-main" hidden>${anat}</div>`;
+    return `<button type="button" class="sect-label anat-reveal" aria-expanded="false" aria-controls="anat-panel-main" onclick="toggleAnatReveal(this)"><i>◆</i><span class="anat-reveal-copy">Voir la requête expliquée</span>${meta?`<small class="anat-reveal-meta">${esc(meta)}</small>`:''}<span class="anat-reveal-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></button><div class="anat-panel" id="anat-panel-main" hidden>${anat}</div>`;
   }
   return `<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`;
 }
@@ -19710,12 +19710,17 @@ function switchAnatVariant(btn){
   syncLinkedVariant(wrap,v);
   if(navigator.vibrate)navigator.vibrate(5);
 }
+function setAnatRevealCopy(btn, open){
+  const el=btn&&btn.querySelector('.anat-reveal-copy');
+  if(el) el.textContent=open?'La requête expliquée':'Voir la requête expliquée';
+}
 function toggleAnatReveal(btn){
   const panel=document.getElementById(btn.getAttribute('aria-controls'));
   if(!panel)return;
   const open=btn.getAttribute('aria-expanded')==='true';
   if(open){
     btn.setAttribute('aria-expanded','false');
+    setAnatRevealCopy(btn,false);
     if(prefersReduceMotion()){
       panel.hidden=true;
     }else{
@@ -19742,6 +19747,7 @@ function toggleAnatReveal(btn){
     panel.hidden=false;
     panel.classList.remove('is-closing');
     btn.setAttribute('aria-expanded','true');
+    setAnatRevealCopy(btn,true);
   }
   if(navigator.vibrate)navigator.vibrate(5);
 }
@@ -28894,7 +28900,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-14-coal-spc-v742';
+  const SW_CACHE='requete-2026-09-14-coal-spc-v743';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
