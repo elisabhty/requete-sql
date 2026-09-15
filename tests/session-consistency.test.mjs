@@ -9,7 +9,7 @@ const ctx=vm.createContext({
   isDefiId:id=>typeof id==='string',nbFaites:()=>0,itemMeta:id=>({titre:'Activité '+id,sous:'Détail'}),
   esc:String,escAttr:s=>String(s).replaceAll('"','&quot;'),
   document:{getElementById:id=>id==='home-hero'?host:null,querySelector:()=>null},
-  majBadgePlanning(){},renderLearnAvatar(){},renderHomeStreak(){},
+  majBadgePlanning(){},renderLearnAvatar(){},renderHomeStreak(){},renderGreeting(){},
   progressContinuer:()=>({percent:0,lessonTotal:3,challengeTotal:0}),
   infoJour:()=>({retard:[]}),homeToolsHTML:()=>'',homePathPreviewHTML:()=>'',moduleDeLecon:()=>null,
   plur:(n,s)=>`${n} ${s}`
