@@ -18861,14 +18861,32 @@ function readingPreferencesHtml({compact=false}={}){
 function nextScheduledSession(sessions,today,done){
   return (sessions||[]).filter(s=>s.d>=today&&Array.isArray(s.lessons)).slice().sort((a,b)=>a.d.localeCompare(b.d)).map(s=>({...s,remaining:s.lessons.filter(id=>!done(id))})).find(s=>s.remaining.length)||null;
 }
-function nextSessionHtml(){
+// Source commune pour les recommandations : ne modifie jamais les dates du plan.
+function recommendedSession(){
   const today=dstr(auj());
-  const session=nextScheduledSession(state.plan?.sessions,today,itemDone);
-  if(!session)return `<section class="plan-next-session"><small>Ton prochain pas</small><h2>Aucune séance à venir</h2><p>Tu peux ajuster ton rythme ou reprendre un module à ton choix.</p><div class="plan-next-actions"><button type="button" onclick="openPlanAdjust(this)">Ajuster mon rythme</button><button type="button" onclick="showModuleProgress()">Voir les modules</button></div></section>`;
-  const first=session.remaining[0],meta=itemMeta(first);
-  const date=parseD(session.d).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
-  const started=session.remaining.length<session.lessons.length;
-  return `<section class="plan-next-session" aria-labelledby="plan-next-title"><small>${session.d===today?'Ta séance du jour':'Prochaine séance · '+esc(date)}</small><h2 id="plan-next-title">${esc(meta.titre)}</h2><p>${session.remaining.length} activité${session.remaining.length>1?'s':''} restante${session.remaining.length>1?'s':''} · environ ${session.remaining.length*MIN_PAR_ACTIVITE} min</p><div class="plan-next-actions"><button type="button" onclick="openItem(${escAttr(JSON.stringify(first))})">${started?'Continuer':'Commencer'} la séance</button><button type="button" onclick="showModuleProgress()">Voir les modules</button></div></section>`;
+  let session;
+  if(state.plan){
+    session=nextScheduledSession(state.plan.sessions,today,itemDone)
+      ||nextScheduledSession(state.plan.sessions,'',itemDone);
+  }else{
+    const lesson=allLessons.find(l=>!itemDone(l.id));
+    session=lesson?{d:today,lessons:[lesson.id],remaining:[lesson.id]}:null;
+  }
+  if(!session)return null;
+  const id=session.remaining[0];
+  const started=session.remaining.length<session.lessons.length
+    ||(!isDefiId(id)&&nbFaites(id)>0);
+  const label=session.d<today?'Séance à reprendre':session.d===today?'Ta séance du jour'
+    :'Prochaine séance · '+parseD(session.d).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  const count=session.remaining.length;
+  return {...session,id,started,label,minutes:count*MIN_PAR_ACTIVITE,
+    summary:`${count} activité${count>1?'s':''} restante${count>1?'s':''} · environ ${count*MIN_PAR_ACTIVITE} min`};
+}
+function nextSessionHtml(){
+  const session=recommendedSession();
+  if(!session)return `<section class="plan-next-session"><small>Ton prochain pas</small><h2>Parcours terminé</h2><p>Toutes les activités de ton parcours sont validées. Tu peux reprendre un module à ton choix.</p><div class="plan-next-actions"><button type="button" onclick="showModuleProgress()">Revoir les modules</button></div></section>`;
+  const meta=itemMeta(session.id);
+  return `<section class="plan-next-session" aria-labelledby="plan-next-title"><small>${esc(session.label)}</small><h2 id="plan-next-title">${esc(meta.titre)}</h2><p>${esc(session.summary)}</p><div class="plan-next-actions"><button type="button" onclick="openItem(${escAttr(JSON.stringify(session.id))})">${session.started?'Continuer':'Commencer'} la séance</button><button type="button" onclick="showModuleProgress()">Voir les modules</button></div></section>`;
 }
 function moduleProgressData(modules,lessons){
   return modules.map((module,index)=>{const done=module.lessons.filter(l=>lessons[l.id]?.done).length;return {index,title:module.titre,total:module.lessons.length,done,next:module.lessons.find(l=>!lessons[l.id]?.done)?.id,first:module.lessons[0]?.id};});
@@ -18932,11 +18950,7 @@ function moduleDeLecon(id){
   return MODULES.find(m=>m.lessons.some(l=>l.id===id))||null;
 }
 function prochaineActiviteParcours(){
-  if(state.plan&&state.plan.sessions&&state.plan.sessions.length){
-    const nxt=toutesActivites().find(id=>!itemDone(id));
-    return nxt!=null?nxt:null;
-  }
-  return nextOpenLessonId();
+  return recommendedSession()?.id??null;
 }
 function progressContinuer(){
   if(state.plan&&state.plan.sessions&&state.plan.sessions.length){
@@ -18976,23 +18990,8 @@ function pctSeanceJour(info){
   return Math.round(done/tot*100);
 }
 function prochaineEtapeParcours(){
-  /* Prochain item non fait du parcours planifié (aujourd’hui, sinon prochaine séance). */
-  const info=infoJour(); if(!info||!info.reste) return null;
-  if(info.today){
-    const next=info.today.lessons.find(id=>!itemDone(id));
-    if(next!=null) return {iso:info.today.d,id:next};
-  }
-  if(info.suivante){
-    const next=info.suivante.lessons.find(id=>!itemDone(id));
-    if(next!=null) return {iso:info.suivante.d,id:next};
-  }
-  const t=dstr(auj());
-  for(const s of (state.plan.sessions||[])){
-    if(s.d<t) continue;
-    const next=s.lessons.find(id=>!itemDone(id));
-    if(next!=null) return {iso:s.d,id:next};
-  }
-  return null;
+  const session=recommendedSession();
+  return session?{iso:session.d,id:session.id}:null;
 }
 function homeToolIcon(kind){
   const icons={
@@ -19037,23 +19036,12 @@ function renderHomeHero(){
   if(hp){ hp.hidden=true; hp.innerHTML=''; }
 
   const CHEV='<span class="cp-chev" aria-hidden="true"><svg viewBox="0 0 9 15" fill="none"><path d="M1.5 1.5L7 7.5l-5.5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
-  const nxt=prochaineActiviteParcours();
+  const session=recommendedSession();
+  const nxt=session?.id??null;
   const prog=progressContinuer();
   const info=state.plan?infoJour():null;
-  const remainingParts=[
-    prog.remainingLessons?plur(prog.remainingLessons,'leçon'):'',
-    prog.remainingChallenges?plur(prog.remainingChallenges,'défi'):''
-  ].filter(Boolean);
-  let focusLabel='Ton parcours',focusText=prog.remaining?`${remainingParts.join(' · ')} à découvrir`:'Parcours terminé — entretiens tes acquis.';
-  if(info&&info.today&&info.today.lessons.length){
-    const left=resteDe(info.today);
-    focusLabel=left?'Aujourd’hui':'Séance terminée';
-    focusText=left?`${left} activité${left>1?'s':''} restante${left>1?'s':''} · environ ${left*8} min`:'Objectif du jour atteint. Beau travail.';
-  }else if(info&&info.suivante){
-    const left=resteDe(info.suivante);
-    focusLabel='Prochaine séance';
-    focusText=`${libelleJour(info.suivante.d)} · ${left} activité${left>1?'s':''} · environ ${left*8} min`;
-  }
+  const focusLabel=session?session.label:'Parcours terminé';
+  const focusText=session?session.summary:'Parcours terminé — entretiens tes acquis.';
 
   let lateHtml='';
   if(info&&info.retard&&info.retard.length){
@@ -19092,7 +19080,7 @@ function renderHomeHero(){
   const arg=defi?`'${nxt}'`:nxt;
   const lesson=defi?null:allLessons.find(l=>l.id===nxt);
   const activityDetail=(lesson&&lesson.résumé)||meta.résumé||meta.q||(defi?'Mets tes acquis à l’épreuve.':'Comprends le concept puis écris la requête.');
-  const minutes=defi?6:8;
+  const minutes=MIN_PAR_ACTIVITE;
   const metaParts=[
     {t:phase,cls:''},
     idxInMod&&mod&&!defi?{t:`${idxInMod}/${mod.lessons.length}`,cls:'cp-meta-n'}:null
@@ -19115,12 +19103,12 @@ function renderHomeHero(){
         <span class="cp-ico" aria-hidden="true">${ico}</span>
         <span class="cp-copy">
           <span class="cp-badge-row">
-            <span class="cp-badge">À suivre</span>
+            <span class="cp-badge">${session.started?'En cours':'À suivre'}</span>
             <span class="cp-idx">${esc(lessonLabel)}</span>
           </span>
           <h3>${esc(meta.titre)}</h3>
           <span class="cp-desc">${esc(activityDetail)}</span>
-          <span class="cp-meta">${metaHtml}<span class="cp-meta-sep" aria-hidden="true">·</span><span>${minutes} min</span></span>
+          <span class="cp-meta">${metaHtml}<span class="cp-meta-sep" aria-hidden="true">·</span><span>Cette activité · ${minutes} min</span></span>
         </span>
         <span class="cp-cta" aria-hidden="true">Continuer ${CHEV}</span>
       </button>
@@ -19620,38 +19608,26 @@ function bravoRecapHtml(l){
   </div>`;
 }
 function bravoNextHtml(){
-  const etape=typeof prochaineEtapeParcours==='function'?prochaineEtapeParcours():null;
+  const session=recommendedSession();
+  const etape=session?{id:session.id}:null;
   if(etape){
     const meta=itemMeta(etape.id);
     const arg=isDefiId(etape.id)?`'${etape.id}'`:etape.id;
     const mark=isDefiId(etape.id)?'⚑':String(etape.id);
     const markCls=isDefiId(etape.id)?' defi':'';
     return `<button type="button" class="bravo-next-btn" onclick="openItem(${arg})">
-      <span class="bravo-next-lab">Prochaine étape du parcours</span>
+      <span class="bravo-next-lab">${esc(session.label)}</span>
       <span class="bravo-next-body">
         <span class="bn-num${markCls}">${mark}</span>
-        <span class="bn-copy"><b>${esc(meta.titre)}</b><small>${esc(meta.sous)}</small></span>
+        <span class="bn-copy"><b>${esc(meta.titre)}</b><small>${esc(session.summary)}</small></span>
         <span class="bn-arrow" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
       </span>
     </button>`;
   }
-  const suiv=allLessons.find(x=>!(state.lessons[x.id]&&state.lessons[x.id].done));
-  if(suiv){
-    return `<button type="button" class="bravo-next-btn" onclick="openLesson(${suiv.id})">
-      <span class="bravo-next-lab">Leçon suivante</span>
-      <span class="bravo-next-body">
-        <span class="bn-num">${suiv.id}</span>
-        <span class="bn-copy"><b>${esc(suiv.titre)}</b><small>${esc(suiv.résumé||'Leçon')}</small></span>
-        <span class="bn-arrow" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
-      </span>
-    </button>`;
-  }
-  return `<div class="bravo-done-note"><span class="fi">🎉</span><div><b>Programme terminé</b><p>Les ${TOTAL} leçons sont bouclées${state.plan?' et les défis du parcours sont résolus':''} — bravo !</p></div></div>`;
+  return `<div class="bravo-done-note"><span class="fi">🎉</span><div><b>Parcours terminé</b><p>Toutes les activités de ton parcours sont validées — bravo !</p></div></div>`;
 }
 function bravoActionsHtml(l){
-  const etape=typeof prochaineEtapeParcours==='function'?prochaineEtapeParcours():null;
-  const suiv=!etape?allLessons.find(x=>!(state.lessons[x.id]&&state.lessons[x.id].done)):null;
-  const hasNext=!!(etape||suiv);
+  const hasNext=!!recommendedSession();
   const goBtn=hasNext?'':`<button type="button" class="bravo-go" onclick="exitLessonToTab('learn')">Retour à l’accueil</button>`;
   const hasCard=!!CARTES[l.id];
   const secBtn=!hasCard&&state.plan
