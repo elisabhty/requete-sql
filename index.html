@@ -7648,8 +7648,7 @@
 #scr-defis .def-levels{scroll-margin-top:12px}
 #scr-notes .notes-hub.empty .notes-overview-stats{display:none}
 #scr-notes .notes-hub.empty .notes-overview{padding:18px}
-#scr-notes .notes-hub.empty .notes-empty{padding:24px 18px}
-#scr-notes .notes-hub.empty .notes-empty .ne-i{display:none}
+#scr-notes .notes-hub.empty .notes-empty{padding:28px 20px 24px}
 #scr-notes .notes-starters{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:16px}
 #scr-notes .notes-starters button{min-height:44px;padding:9px 13px;line-height:1.4}
 #coll-filters{display:flex;flex-wrap:wrap;gap:7px;overflow:visible}
@@ -7910,6 +7909,135 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 }
 @media(max-width:400px){.planning-toolbar{margin-inline:14px}.planning-toolbar button{padding-inline:10px;font-size:12px}.planning-progress>summary{flex-wrap:wrap}.planning-progress>summary span{margin-left:0}.account-local-status{gap:8px;flex-wrap:wrap}}
 
+/* ============================================================
+   POLISH — chrome, empty states, search, focus
+   Conserve le violet pédagogique existant, sans nouveau branding.
+   ============================================================ */
+
+/* Focus clavier unique, sans recouvrir les champs qui ont déjà un halo. */
+:focus-visible{outline:3px solid rgba(88,86,214,.38);outline-offset:2px}
+input:focus-visible,textarea:focus-visible,select:focus-visible,[contenteditable]:focus-visible{outline:none}
+
+/* En-têtes collants : le titre reste lisible en défilant, comme à l’accueil. */
+#scr-defis>.lgtitle,
+#scr-planning>.lgtitle,
+#scr-notes>.lgtitle,
+#scr-collection>.lgtitle,
+#scr-entretien>.lgtitle,
+#scr-compte>.lgtitle,
+#scr-console>.lgtitle{
+  position:sticky;top:0;z-index:16;
+  background:color-mix(in srgb,var(--bg) 88%,#fff);
+  -webkit-backdrop-filter:blur(18px) saturate(1.4);
+  backdrop-filter:blur(18px) saturate(1.4);
+  border-bottom:.5px solid rgba(39,42,54,.07);
+  box-shadow:0 10px 24px -22px rgba(31,33,45,.4);
+}
+#scr-learn>.lgtitle{background:color-mix(in srgb,var(--bg) 88%,#fff);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4)}
+#scr-learn.is-scrolled>.lgtitle{background:rgba(250,250,253,.92)}
+
+/* Retour Accueil plus discret, toujours ≥ 44 px. */
+.screen>.home-back{
+  min-height:44px;padding:calc(var(--safe-top) + 6px) 16px 2px;
+  color:var(--ink-2);font-weight:650;
+}
+.screen>.home-back:hover,.screen>.home-back:focus-visible{color:var(--accent)}
+#scr-notes>.home-back,#scr-entretien>.home-back{padding-bottom:2px}
+
+/* Accueil : recherche dans le header, plus de bouton-carte isolé. */
+#scr-learn .learn-side .ux-shortcut{
+  display:inline-flex;align-items:center;justify-content:center;gap:0;
+  width:44px;height:44px;min-height:44px;margin:0;padding:0;
+  border-radius:14px;border:1px solid rgba(88,86,214,.12);
+  background:linear-gradient(180deg,#fff,var(--accent-soft));
+  color:var(--accent-ink);box-shadow:0 6px 14px -12px rgba(88,86,214,.45);
+}
+#scr-learn .learn-side .ux-shortcut svg{width:18px;height:18px;flex:none}
+#scr-learn .learn-side .ux-shortcut span{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0,0,0,0);white-space:nowrap;border:0;
+}
+#scr-learn .learn-side .ux-shortcut::after{content:none}
+#scr-learn:has(#greeting:not([hidden])) .lgtitle p.sub{display:none!important}
+.greeting{margin:8px 18px 0}
+
+/* Champ catalogue : icône + halo, comme le carnet. */
+.catalog-search .si{display:flex;align-items:center;color:var(--ink-3);flex:none}
+.catalog-search .si svg{width:18px;height:18px}
+.catalog-search>div{padding:3px 10px 3px 12px}
+.catalog-filters{
+  padding:4px;border:1px solid var(--line);border-radius:15px;
+  background:var(--surface-2);
+}
+.catalog-filters button{
+  flex:1 1 0;border-color:transparent;background:transparent;box-shadow:none;
+}
+.catalog-filters button[aria-pressed="true"]{
+  background:var(--surface);box-shadow:var(--card-shadow-sm);
+}
+
+/* États vides : même hiérarchie (icône, titre, détail). */
+.coll-empty,.catalog-no-results,.console-query-empty{
+  text-align:center;padding:32px 22px;color:var(--ink-2);
+  background:var(--surface);border:1px solid var(--card-border);
+  border-radius:22px;box-shadow:var(--card-shadow-sm);line-height:1.55;
+}
+.coll-empty .ne-i,.catalog-no-results .ne-i,.notes-empty .ne-i{
+  width:56px;height:56px;border-radius:18px;margin:0 auto 14px;
+  background:var(--accent-soft);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 20px -8px rgba(91,91,214,.32);
+}
+.coll-empty .ne-i svg,.catalog-no-results .ne-i svg{width:26px;height:26px;display:block}
+.coll-empty b,.catalog-no-results h3,.console-query-empty b{
+  display:block;margin:0 0 6px;color:var(--ink);font-size:16.5px;font-weight:750;letter-spacing:-.2px
+}
+.coll-empty span,.catalog-no-results p,.console-query-empty{font-size:13.5px}
+.catalog-no-results{padding:28px 20px 22px}
+.catalog-no-results p{margin:0 0 16px}
+.console-query-empty{margin:8px 0;font-size:13.5px;font-weight:500}
+
+/* Dock : l’onglet actif se lit d’un coup d’œil parmi les 7 destinations. */
+.tabbar .tab.active{
+  background:rgba(91,91,214,.08);
+  color:var(--accent-ink);
+}
+.tabbar .tab:focus-visible{outline-offset:0}
+
+/* Compte : carte d’identité au même langage que Notes / Cartes. */
+#scr-compte .account-identity{
+  border:1px solid rgba(88,86,214,.11);
+  background:
+    radial-gradient(180px 120px at 0 0,rgba(119,114,242,.13),transparent 72%),
+    linear-gradient(145deg,rgba(255,255,255,.99),rgba(249,249,255,.97));
+  box-shadow:0 20px 43px -31px rgba(50,47,130,.5),inset 0 .5px 0 #fff;
+}
+#scr-compte .account-identity::before{display:none}
+#scr-compte .account-identity-edit:hover{background:rgba(91,91,214,.06)}
+#scr-compte .account-identity-edit:active{background:rgba(91,91,214,.1)}
+#scr-compte .account-identity-copy b{color:var(--ink)}
+#scr-compte .account-identity-copy small{color:var(--ink-2);white-space:normal}
+#scr-compte .aie-hint{color:var(--accent-ink)}
+
+/* Cartes et filtres : zone tactile et texte non tronqué. */
+.coll-empty{margin:8px 0 0}
+#scr-collection .coll-module-copy b,#scr-notes .notes-overview-copy>span{white-space:normal}
+
+@media (min-width:600px){
+  #scr-learn .learn-side .ux-shortcut{
+    width:auto;padding:0 14px 0 12px;gap:8px;border-radius:999px;
+  }
+  #scr-learn .learn-side .ux-shortcut span{
+    position:static;width:auto;height:auto;margin:0;clip:auto;overflow:visible;
+    white-space:nowrap;font:650 12.5px/1 var(--ui);
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  #scr-defis>.lgtitle,#scr-planning>.lgtitle,#scr-notes>.lgtitle,
+  #scr-collection>.lgtitle,#scr-entretien>.lgtitle,#scr-compte>.lgtitle,
+  #scr-console>.lgtitle,#scr-learn>.lgtitle{backdrop-filter:none;-webkit-backdrop-filter:none}
+}
+
 </style>
 <link rel="stylesheet" href="viz-select.css?v=noloop">
 <link rel="stylesheet" href="viz-where.css?v=limit2">
@@ -7970,13 +8098,13 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
           <p class="sub" id="learn-sub">Prêt·e pour ta prochaine requête ?</p>
         </div>
         <div class="learn-side">
+          <button class="ux-shortcut" type="button" onclick="jumpToSection('#modules');document.getElementById('course-search').focus({preventScroll:true})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><span>Rechercher un cours</span></button>
           <button class="streak-pill" id="home-streak" type="button" onclick="setAccountSection('progress');switchTab('compte')" aria-label="Jours d'affilée — voir mes stats" hidden></button>
           <div class="learn-avatar" id="learn-avatar" aria-hidden="true">R</div>
         </div>
       </div>
       <p class="greeting" id="greeting" hidden></p>
       <div class="home-progress" id="home-progress" hidden></div>
-      <button class="ux-shortcut" type="button" onclick="jumpToSection('#modules');document.getElementById('course-search').focus({preventScroll:true})">Rechercher un cours</button>
       <div id="home-hero"></div>
       <div id="modules" class="group-stack"></div>
     </section>
@@ -18737,7 +18865,7 @@ function filterCourseCatalog(value){
   host.hidden=!filtered;
   const emptyTitle=query?'Aucun cours ne correspond':courseFilter==='due'?'Tu es à jour':courseFilter==='done'?'Tes réussites apparaîtront ici':'Tout est validé !';
   const emptyDetail=query?'Essaie un autre mot ou élargis le filtre.':courseFilter==='due'?'Les cours à réviser apparaîtront ici au bon moment.':courseFilter==='done'?'Termine une leçon pour la retrouver dans cette liste.':'Tu peux retrouver tes cours et les revoir à tout moment.';
-  host.innerHTML=!filtered?'':count?groups.map(({module,lessons},index)=>`<section class="catalog-result-group" aria-labelledby="catalog-result-${index}"><h3 id="catalog-result-${index}">${esc(module.titre)}<span>${lessons.length}</span></h3><div class="list">${lessons.map(lessonListRow).join('')}</div></section>`).join(''):`<div class="catalog-no-results"><h3>${emptyTitle}</h3><p>${emptyDetail}</p><button type="button" onclick="resetCourseCatalog()">Voir tous les cours</button></div>`;
+  host.innerHTML=!filtered?'':count?groups.map(({module,lessons},index)=>`<section class="catalog-result-group" aria-labelledby="catalog-result-${index}"><h3 id="catalog-result-${index}">${esc(module.titre)}<span>${lessons.length}</span></h3><div class="list">${lessons.map(lessonListRow).join('')}</div></section>`).join(''):`<div class="catalog-no-results"><div class="ne-i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></div><h3>${emptyTitle}</h3><p>${emptyDetail}</p><button type="button" onclick="resetCourseCatalog()">Voir tous les cours</button></div>`;
 }
 function clearCourseSearch(){
   const input=document.getElementById('course-search');input.value='';filterCourseCatalog('');input.focus({preventScroll:true});
@@ -19149,7 +19277,7 @@ function renderModules(){
     const status=complete?'Toutes les leçons sont validées':done?`${tot-done} leçon${tot-done>1?'s':''} restante${tot-done>1?'s':''}`:(mod.sous||'À découvrir');
     return `<details class="module home-module ${complete?'validated':''}" data-module-index="${moduleIndex}"${openModules.has(String(moduleIndex))?' open':''}><summary class="home-module-summary"><span class="home-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1).padStart(2,'0')}</span><span class="home-module-copy"><b>${esc(mod.titre)}</b><small>${esc(status)}</small></span><span class="home-module-side">${complete?`<em class="home-module-valid">Validé</em>`:`<span class="home-module-count">${done}/${tot}</span>`}<span class="home-module-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></span><span class="home-module-progress" role="progressbar" aria-label="Progression du module ${esc(mod.titre)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></span></summary><div class="list">${rows}</div></details>`;
   }).join('');
-  host.innerHTML=`<div class="home-catalog-head"><div><span>Catalogue</span><h2>Tous les cours</h2><p>Ouvre un module pour parcourir ses leçons.</p></div><button type="button" onclick="switchTab('planning')">Voir mon plan</button></div><div class="catalog-search"><label for="course-search">Trouver une notion</label><div><input id="course-search" type="search" placeholder="SELECT, jointure, dates…" value="${escAttr(courseSearch)}" oninput="filterCourseCatalog(this.value)" onkeydown="courseSearchKeydown(event)" aria-controls="course-search-results"><button id="clear-course-search" type="button" onclick="clearCourseSearch()" aria-label="Effacer la recherche de cours" hidden>Effacer</button></div><p id="course-search-status" role="status" aria-live="polite" aria-atomic="true"></p></div>${courseCatalogFiltersHTML()}<div id="course-search-results" hidden></div>${modulesHTML}`;
+  host.innerHTML=`<div class="home-catalog-head"><div><span>Catalogue</span><h2>Tous les cours</h2><p>Ouvre un module pour parcourir ses leçons.</p></div><button type="button" onclick="switchTab('planning')">Voir mon plan</button></div><div class="catalog-search"><label for="course-search">Trouver une notion</label><div><span class="si" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></span><input id="course-search" type="search" placeholder="SELECT, jointure, dates…" value="${escAttr(courseSearch)}" oninput="filterCourseCatalog(this.value)" onkeydown="courseSearchKeydown(event)" aria-controls="course-search-results"><button id="clear-course-search" type="button" onclick="clearCourseSearch()" aria-label="Effacer la recherche de cours" hidden>Effacer</button></div><p id="course-search-status" role="status" aria-live="polite" aria-atomic="true"></p></div>${courseCatalogFiltersHTML()}<div id="course-search-results" hidden></div>${modulesHTML}`;
   filterCourseCatalog(courseSearch);
 }
 function renderDefis(catalogOnly=false){
@@ -23999,7 +24127,7 @@ function renderCollection(){
     return `<details class="coll-module ${complete?'complete':''}"${collFilter==='open'?' open':''}><summary><span class="coll-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1).padStart(2,'0')}</span><span class="coll-module-copy"><b>${esc(mod.titre)}</b><small>${complete?'Toutes les cartes sont débloquées':collFilter==='open'?`${openN} carte${openN>1?'s':''} disponible${openN>1?'s':''}`:`${avecCarte.length-openN} carte${avecCarte.length-openN>1?'s':''} à obtenir`}</small></span><span class="coll-module-side"><em>${complete?'Validé':count}</em><i aria-hidden="true">⌄</i></span></summary><div class="list">${rows}</div></details>`;
   }).filter(Boolean);
   if(!groups.length){
-    host.innerHTML=`<div class="coll-empty">Aucune carte dans ce filtre. Termine une leçon pour débloquer sa fiche mémo.</div>`;
+    host.innerHTML=`<div class="coll-empty"><div class="ne-i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="13" height="14" rx="2.5"/><path d="M8 6V4h10a2 2 0 0 1 2 2v11h-3"/></svg></div><b>Aucune carte dans ce filtre</b><span>Termine une leçon pour débloquer sa fiche mémo.</span></div>`;
     return;
   }
   host.innerHTML=groups.join('');
