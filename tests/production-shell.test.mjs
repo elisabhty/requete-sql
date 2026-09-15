@@ -67,7 +67,7 @@ assert(html.includes('function homeToolsHTML()') && html.includes('Console SQL')
 assert(html.includes('<span>Pratique libre</span><h2 id="home-tools-title">Outils</h2>') && !html.includes('id="home-tools-title">Outils</h2><button type="button" onclick="switchTab(\'compte\')">Tout voir'), 'section Outils autonome sans faux lien vers les réglages');
 assert(html.includes("switchTab('defis')") && html.includes("switchTab('entretien')"), 'Défis et Entretien restent accessibles depuis les outils');
 assert(html.includes('function homePathPreviewHTML(') && html.includes('home-path-progress'), 'aperçu compact du parcours présent');
-assert(html.includes("left?'Aujourd’hui':'Séance terminée'") && html.includes('environ ${left*8} min'), 'priorité d’accueil donnée à la charge et à la durée de la séance du jour');
+assert(html.includes("const session=recommendedSession();") && html.includes("const focusText=session?session.summary:"), 'accueil fondé sur la séance et la durée communes');
 assert(html.includes('class="module home-module ${complete') && html.includes('<summary class="home-module-summary">') && html.includes('Tous les cours'), 'long catalogue remplacé par des modules compacts consultables à la demande');
 assert(html.includes('class="lesson-validation"') && html.includes('<em>Validé</em>'), 'chaque leçon terminée porte un libellé Validé explicite');
 assert(html.includes("complete?'Toutes les leçons sont validées'") && html.includes('class="home-module-valid">Validé</em>'), 'un module porte Validé uniquement lorsque toutes ses leçons le sont');
