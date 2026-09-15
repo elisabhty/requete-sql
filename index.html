@@ -308,14 +308,15 @@
   .anat-panel .anat-sub:not(:first-child){margin-top:16px}
   .anat-sub i{width:22px;height:22px;border-radius:7px;background:var(--accent-soft);color:var(--accent);font-family:var(--mono);font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;font-style:normal;flex:none;box-shadow:0 1px 2px rgba(91,91,214,.1)}
   .anat-sub span{font-size:12px;font-weight:750;color:var(--ink-2);text-transform:uppercase;letter-spacing:.7px}
-  /* Variante bouton : une seule ligne (titre + pastille de variante +
-     chevron), assez haute pour le doigt, sans carte à deux étages. */
+  /* Variante bouton : titre + pastille de variante + chevron. La pastille
+     passe sur deux lignes si le nom de variante est trop long, plutôt que
+     de le couper avec une ellipse. */
   .sect-label.anat-reveal{width:100%;min-height:44px;box-sizing:border-box;border:1px solid rgba(91,91,214,.18);background:linear-gradient(180deg,rgba(249,248,255,.98),rgba(244,242,255,.94));padding:10px 12px;margin:0 0 6px;font:inherit;text-align:left;border-radius:14px;cursor:pointer;-webkit-tap-highlight-color:transparent;gap:10px;box-shadow:0 1px 0 rgba(255,255,255,.92) inset,0 8px 22px -18px rgba(91,91,214,.2);transition:border-color .18s,box-shadow .18s,transform .18s var(--spring-ios)}
   .sect-label.anat-reveal>i{width:24px;height:24px;border-radius:8px;background:#14141B;color:#fff;box-shadow:none;font-size:9px;transition:transform .22s var(--spring-ios)}
   @media (hover:hover) and (pointer:fine){.sect-label.anat-reveal:hover{border-color:rgba(91,91,214,.34);box-shadow:0 1px 0 rgba(255,255,255,.95) inset,0 12px 26px -16px rgba(91,91,214,.28)}}
   .sect-label.anat-reveal:active{transform:scale(.99);border-color:rgba(91,91,214,.38);background:linear-gradient(180deg,rgba(240,238,255,.98),rgba(235,232,255,.96))}
   .sect-label.anat-reveal .anat-reveal-copy{flex:1;min-width:0;font-size:14px;font-weight:750;color:var(--ink);text-transform:none;letter-spacing:-.01em;line-height:1.25}
-  .sect-label.anat-reveal .anat-reveal-meta{flex:none;max-width:42%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:4px 9px;border-radius:999px;background:rgba(91,91,214,.1);color:var(--accent);font-size:11px;font-weight:750;letter-spacing:0;text-transform:none;transition:background .18s,transform .22s var(--spring-ios)}
+  .sect-label.anat-reveal .anat-reveal-meta{flex:none;width:fit-content;max-width:min(46%,7.2rem);min-width:0;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;white-space:normal;text-align:center;line-height:1.25;padding:5px 9px;border-radius:12px;background:rgba(91,91,214,.1);color:var(--accent);font-size:11px;font-weight:750;letter-spacing:0;text-transform:none;overflow-wrap:break-word;transition:background .18s,transform .22s var(--spring-ios)}
   .anat-reveal-meta:empty{display:none}
   .anat-reveal-chev{flex:none;width:24px;height:24px;border-radius:50%;background:rgba(91,91,214,.1);display:flex;align-items:center;justify-content:center;color:var(--accent);transition:transform .3s var(--spring-ios),background .18s}
   .anat-reveal-chev svg{width:12px;height:12px;display:block;transition:transform .22s var(--spring-ios),opacity .18s}
@@ -429,6 +430,26 @@
      sinon la question déborde de sa colonne. */
   .concept-block .table-wrap table.concept-table.fit-2 td{padding:11px 12px;white-space:normal;overflow-wrap:break-word}
   .concept-block .table-wrap table.concept-table.fit-2 td code{white-space:nowrap;font-size:11px}
+  /* Recap écriture → sens : la colonne de droite est une phrase, pas un
+     chiffre. Alignée à gauche, elle se lit sans virgule orpheline. */
+  .concept-block .table-wrap table.concept-table.is-stack th:last-child,
+  .concept-block .table-wrap table.concept-table.is-stack td:last-child{text-align:left}
+  /* Sur iPhone, COUNT(DISTINCT …) en nowrap mange la ligne à 55/45.
+     Chaque paire s'empile : pastille au-dessus, sens en dessous. */
+  @media (max-width:520px){
+    .concept-block .table-wrap table.concept-table.is-stack{table-layout:auto}
+    .concept-block .table-wrap table.concept-table.is-stack thead{display:none}
+    .concept-block .table-wrap table.concept-table.is-stack tbody,
+    .concept-block .table-wrap table.concept-table.is-stack tr{display:block;width:100%}
+    .concept-block .table-wrap table.concept-table.is-stack tr{padding:12px 14px;border-bottom:1px solid var(--line)}
+    .concept-block .table-wrap table.concept-table.is-stack tr:last-child{border-bottom:0}
+    .concept-block .table-wrap table.concept-table.is-stack th,
+    .concept-block .table-wrap table.concept-table.is-stack td{display:block;width:auto!important;max-width:100%;padding:0;text-align:left;border:0;background:transparent}
+    .concept-block .table-wrap table.concept-table.is-stack td:first-child{margin:0 0 5px}
+    .concept-block .table-wrap table.concept-table.is-stack td:last-child{color:var(--ink-2);font-size:13.5px;line-height:1.4}
+    .concept-block .table-wrap table.concept-table.is-stack tbody tr:nth-child(even){background:color-mix(in srgb,var(--surface-2) 38%,transparent)}
+    .concept-block .table-wrap table.concept-table.is-stack tbody tr:nth-child(even) td{background:transparent}
+  }
   .concept-block .table-wrap table.concept-table tbody tr{transition:background .18s ease}
   .situation-body table.concept-table th.col-hl,
   .situation-body table.concept-table td.col-hl{background:var(--accent-soft);color:var(--accent)}
@@ -719,6 +740,53 @@
   .coal-reflex-path{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 2px;margin:0;padding:11px 12px;border-radius:14px;background:var(--surface-2);font-size:13.5px;font-weight:650;line-height:1.3}
   .coal-reflex-path>code{padding:3px 8px;border-radius:8px;background:var(--surface);color:var(--accent);font-weight:800}
   .coal-reflex-path>span{color:var(--ink-3);font-size:12px;white-space:nowrap}
+  .gb-formula{display:flex;flex-direction:column;gap:8px;margin:14px 0 0;padding:12px 14px;border-radius:14px;background:var(--surface-2)}
+  .gb-formula>div{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 8px;margin:0;font-size:14px;font-weight:650;line-height:1.4;color:var(--ink)}
+  .gb-formula code{padding:3px 8px;border-radius:8px;background:var(--surface);color:var(--accent);font-weight:800}
+  .gb-formula span{color:var(--ink-3);font-weight:700}
+  .piege-body .pt-syntax{margin:0 0 10px}
+  .piege-body .pt-syntax .cw-syntax{margin:0}
+  .piege-body .pt-lead-list{margin:2px 0 10px;color:var(--ink)}
+  .gb-paris-names{margin:0 0 10px;padding:11px 12px;border-radius:12px;background:var(--surface-2);font-size:14px;font-weight:750;line-height:1.4;color:var(--ink);text-align:center}
+  .gb-piege-reflex{margin:0;padding:14px 14px 12px;border-radius:14px;background:rgba(180,122,22,.08)}
+  .gb-piege-reflex .pt-syntax-h{margin:0 0 8px}
+  .gb-piege-reflex>p{margin:0 0 10px}
+  .gb-piege-reflex .gb-sel-caption{margin:0 0 8px;font-size:13px;color:var(--ink-3)}
+  .gb-sel-cases{margin:0 0 12px;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px}
+  .gb-sel-cases li{display:flex;align-items:flex-start;gap:8px;margin:0;font-size:14px;font-weight:650;line-height:1.45;color:var(--ink)}
+  .gb-sel-cases span{flex:none;color:var(--accent);font-weight:800}
+  .gb-sel-map{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:4px 8px;margin:0;padding:12px 10px 10px;border-radius:12px;background:var(--surface)}
+  .gb-sel-kw{padding-top:3px;font-family:var(--mono);font-size:13px;font-weight:800;color:var(--ink)}
+  .gb-sel-comma{padding-top:3px;font-family:var(--mono);font-size:13px;font-weight:800;color:var(--ink-3)}
+  .gb-sel-item{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
+  .gb-sel-item code{padding:3px 8px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-weight:800}
+  .gb-sel-item i{font-style:normal;color:var(--accent);font-family:var(--mono);font-size:11px;font-weight:700;line-height:1.2}
+  .gb-sel-item small{font-size:11px;font-weight:750;color:var(--ink-2);letter-spacing:.01em}
+  .pt-lead .gb-formula{margin:16px 0}
+  .pt-lead .gb-formula:last-child{margin-bottom:0}
+  .pt-lead .gb-confuse{margin:20px 0 0}
+  .pt-lead .gb-confuse .pt-syntax-h{margin:0 0 10px}
+  .pt-lead .gb-confuse .memory-rule{margin:0;grid-template-columns:1fr 1fr;gap:10px}
+  .pt-lead .gb-confuse .memory-rule div{padding:14px 10px}
+  .hav-vs{margin:0;gap:10px}
+  .hav-vs .hav-vs-ex{display:block;margin:10px 0 0;padding:7px 8px;border-radius:8px;background:var(--surface-2);font-family:var(--mono);font-size:11px;font-weight:750;line-height:1.35;color:var(--ink);white-space:normal;overflow-wrap:anywhere}
+  .hav-vs-rule{margin:14px 0 0!important;padding:12px 14px;border-radius:14px;background:var(--accent-soft);color:var(--ink)!important;font-size:14.5px!important;font-weight:700;line-height:1.45!important}
+  .hav-vs-rule code{white-space:nowrap}
+  .hav-steps{margin:12px 0 14px;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;counter-reset:havstep}
+  .fn-use .hav-steps + p{margin-top:0}
+  .hav-steps li{position:relative;display:flex;flex-direction:column;gap:4px;margin:0;padding:11px 12px 11px 44px;border-radius:12px;background:var(--surface-2)}
+  .hav-steps li::before{counter-increment:havstep;content:counter(havstep);position:absolute;left:12px;top:12px;width:22px;height:22px;border-radius:7px;background:var(--accent-soft);color:var(--accent);font-family:var(--mono);font-size:11px;font-weight:850;display:flex;align-items:center;justify-content:center}
+  .hav-steps code{width:max-content;max-width:100%;font-size:12.5px;font-weight:800;overflow-wrap:anywhere}
+  .hav-steps span{font-size:13px;line-height:1.4;color:var(--ink-2)}
+  .hav-path{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 5px;margin:14px 0 0;padding:12px;border-radius:14px;background:var(--surface-2);font-size:13px;font-weight:700;line-height:1.35;color:var(--ink);text-align:center}
+  .hav-path i{font-style:normal;color:var(--ink-3);font-weight:700}
+  .hav-path code{padding:3px 8px;border-radius:8px;background:var(--surface);color:var(--accent);font-weight:800}
+  .hav-path b{font-weight:800}
+  .fn-use .hav-path{margin-top:12px}
+  .order-rappel .hav-path,.reflex-end .hav-path{margin-top:14px}
+  @media (max-width:430px){
+    .memory-rule.hav-vs{grid-template-columns:1fr}
+  }
   .coal-reflex-memo{display:flex;align-items:flex-start;gap:8px;margin:0!important;padding:12px 14px;border-radius:14px;background:var(--accent-soft);color:var(--ink)!important;font-size:14.5px!important;line-height:1.45!important;font-weight:650}
   .coal-reflex-memo i{font-style:normal;flex:none}
   .coal-route-choice code{width:max-content;max-width:100%;padding:0;background:none;color:var(--accent);font-size:12px;overflow-wrap:anywhere;white-space:normal}
@@ -796,6 +864,7 @@
   .tx-branch.is-ok{background:var(--success-soft)}.tx-branch.is-ok b{color:var(--success)}
   .tx-branch.is-ko{background:var(--warn-soft)}.tx-branch.is-ko b{color:var(--warn)}
   .tx-fail{display:flex;flex-direction:column;gap:6px;margin:10px 0 0}
+  .fn-use .tx-fail + p{margin-top:14px}
   .tx-fail span{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;border-radius:11px;font-family:var(--mono);font-size:12px;font-weight:750}
   .tx-fail .is-ok{background:var(--success-soft);color:var(--success)}
   .tx-fail .is-ko{background:var(--warn-soft);color:var(--warn)}
@@ -969,6 +1038,15 @@
   .lesson-rich .sit-sql p{margin:0 0 10px;font-size:14px;line-height:1.55;color:var(--ink-2)}
   .lesson-rich .sit-sql p:last-child{margin-bottom:0}
   .lesson-rich .sit-sql p:first-child{color:var(--ink);font-weight:650}
+  /* Encadré « fonction » : fond clair, icône colorée à gauche. Réutilisable
+     pour introduire COUNT, AVG, CAST, CASE, etc. dans une situation. */
+  .fn-spot{display:flex;align-items:flex-start;gap:10px;margin:14px 0 0;padding:12px 14px 12px 11px;border:1px solid var(--card-border);border-radius:16px;background:linear-gradient(180deg,#fff,var(--surface-2));box-shadow:var(--card-shadow-sm)}
+  .fn-spot-copy{flex:1;min-width:0}
+  .lesson-lead .situation-body .fn-spot{margin:14px 0 0}
+  .lesson-lead .situation-body .fn-spot p,
+  .lesson-rich .fn-spot p{margin:0;font-size:14.5px;line-height:1.55;color:var(--ink);font-weight:400}
+  .fn-spot-ico{flex:none;width:28px;height:28px;margin-top:2px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}
+  .fn-spot-ico svg{width:15px;height:15px;display:block}
   /* Illustration « base → pages » (leçon OFFSET) : deux cartes de lignes
      numérotées, séparées par un connecteur en pointillés qui porte le
      compte de lignes sautées. Remplace un schéma en ASCII-art. */
@@ -2557,6 +2635,8 @@
   .memory-rule span b{color:var(--ink);font-weight:700}
   .memory-rule .memory-where>b,.memory-rule .memory-a>b{color:var(--ink)}
   .memory-rule.is-trio{grid-template-columns:1fr;gap:10px}
+  .memory-rule .memory-sub{display:block;margin-top:8px;font-size:11px;font-weight:650;letter-spacing:.02em;color:var(--ink-3);line-height:1.4}
+  .memory-rule .memory-sub code{font-family:var(--mono);font-size:.92em;background:var(--accent-soft);color:var(--accent);padding:1px 6px;border-radius:6px;font-weight:700}
   .memory-rule .memory-having>b,.memory-rule .memory-b>b,.memory-rule .memory-c>b{color:var(--accent);background:var(--accent-soft);border-color:rgba(91,91,214,.18)}
   .memory-note{margin:0!important;font-size:14px!important;color:var(--ink-2);line-height:1.55}
   .memory-note + .memory-analogy{margin-top:12px}
@@ -2788,6 +2868,7 @@
   .vs.stack{grid-template-columns:1fr;gap:16px}
   .concept-block .memory-rule{margin-top:4px}
   .concept-block .agg-reflex{margin-top:14px}
+  .reflex-end .gb-savoir{margin-top:14px}
   .vs-col{display:flex;flex-direction:column;border:1px solid rgba(60,60,67,.1);border-radius:16px;overflow:hidden;background:var(--surface);min-width:0;height:auto}
   .vs-tag{display:flex;align-items:center;gap:7px;padding:11px 14px;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;flex:none}
   .vs-tag.bad{color:var(--danger);background:rgba(180,35,24,.06)}
@@ -2983,7 +3064,7 @@
   .sql-viz[data-viz="having"][data-phase="2"] .grp-bucket[data-n="1"]{opacity:1;filter:none;border-color:rgba(60,60,67,.2);background:rgba(60,60,67,.04)}
   .sql-viz[data-viz="having"][data-phase="2"] .grp-bucket[data-keep="1"]{opacity:1;filter:none;border:2px solid #0F766E;background:rgba(20,184,166,.1);box-shadow:0 0 0 4px rgba(20,184,166,.12)}
   .grp-bucket-lbl{display:block;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--accent);padding:8px 40px 0 10px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .grp-bucket[data-n="1"] .grp-bucket-lbl{font-size:9px;letter-spacing:.2px;padding:8px 34px 0 8px}
+  .grp-bucket[data-n="1"] .grp-bucket-lbl{font-size:9px;letter-spacing:.15px;padding:8px 30px 0 8px;white-space:normal;overflow:visible;text-overflow:unset}
   .sql-viz[data-viz="having"][data-phase="2"] .grp-bucket[data-n="1"] .grp-bucket-lbl{color:var(--ink-3);text-decoration:line-through;opacity:.7}
   .sql-viz[data-viz="having"][data-phase="2"] .grp-bucket[data-keep="1"] .grp-bucket-lbl{color:#0F766E;text-decoration:none}
   .grp-count{position:absolute;top:6px;right:6px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;min-width:28px;padding:0;margin:0;font-family:var(--mono);font-size:14px;font-weight:800;line-height:1;color:#fff;background:var(--accent);border:2px solid var(--accent);border-radius:50%;text-align:center;box-shadow:0 3px 10px rgba(91,91,214,.35);opacity:0;transform:scale(.8);transition:opacity .45s .35s,transform .45s .35s,color .3s,border-color .3s,background .3s,box-shadow .3s;z-index:6;pointer-events:none}
@@ -3028,6 +3109,13 @@
   .sql-viz[data-viz="groupby"][data-phase="2"] .grp-bucket{border:2px solid rgba(91,91,214,.32);background:var(--accent-soft);box-shadow:none;filter:none}
   .sql-viz[data-viz="groupby"][data-phase="2"] .grp-bucket-lbl{padding:13px 44px 0 14px;font-size:12.5px;letter-spacing:.25px;color:var(--ink);text-decoration:none;opacity:1}
   .sql-viz[data-viz="groupby"][data-phase="2"] .grp-count{opacity:1;transform:scale(1);color:#fff;background:var(--accent);border-color:var(--accent);box-shadow:0 3px 10px rgba(91,91,214,.35)}
+  .sql-viz[data-viz="groupby"] .grp-desc code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);color:var(--accent);padding:2px 7px;border-radius:6px;font-weight:600;line-height:1.3}
+  .sql-viz[data-viz="groupby"] .join-stepper{grid-template-columns:repeat(3,minmax(0,1fr));margin-top:6px}
+  .sql-viz[data-viz="groupby"] .grp-stage{margin-bottom:0;transition:height .45s cubic-bezier(.32,.72,.28,1),opacity .25s ease}
+  .sql-viz[data-viz="groupby"] .viz-navigation{margin-top:8px}
+  .sql-viz[data-viz="groupby"] .grp-viz-bar{margin-bottom:12px}
+  .sql-viz[data-viz="groupby"] .grp-chip{min-width:0}
+  .sql-viz[data-viz="groupby"][data-phase="1"] .grp-extra{display:none}
   .grp-controls{display:flex;gap:8px;width:100%;margin:0}
   .grp-pause,.grp-replay{display:flex;align-items:center;justify-content:center;gap:6px;flex:1;margin:0;padding:10px;font-family:var(--ui);font-size:13px;font-weight:700;color:var(--accent);background:var(--surface);border:1px solid rgba(91,91,214,.18);border-radius:12px;cursor:pointer;touch-action:manipulation;min-height:44px}
   .grp-pause[hidden]{display:none!important}
@@ -3041,8 +3129,16 @@
   .sql-viz[data-kind="agg"] .grp-chip{padding-right:68px}
   .sql-viz[data-kind="count"] .grp-chip::after,.sql-viz[data-kind="agg"] .grp-chip::after{content:attr(data-n);position:absolute;right:8px;top:50%;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--mono);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(-50%) scale(.7);pointer-events:none;box-shadow:0 2px 8px rgba(91,91,214,.28)}
   .sql-viz[data-kind="agg"] .grp-chip::after{width:auto;min-width:48px;height:22px;padding:0 7px;border-radius:8px;font-size:10px}
-  .sql-viz[data-kind="count"][data-phase="1"] .grp-chip,.sql-viz[data-kind="agg"][data-phase="1"] .grp-chip{animation:cntVisit .5s ease var(--dw,0ms) both}
-  .sql-viz[data-kind="count"][data-phase="1"] .grp-chip::after,.sql-viz[data-kind="agg"][data-phase="1"] .grp-chip::after{animation:cntTick .34s cubic-bezier(.32,.72,.28,1) var(--dw,0ms) both}
+  .sql-viz[data-kind="count"][data-phase="1"] .grp-chip:not([data-keep="0"]),.sql-viz[data-kind="agg"][data-phase="1"] .grp-chip{animation:cntVisit .5s ease var(--dw,0ms) both}
+  .sql-viz[data-kind="count"][data-phase="1"] .grp-chip:not([data-keep="0"])::after,.sql-viz[data-kind="agg"][data-phase="1"] .grp-chip::after{animation:cntTick .34s cubic-bezier(.32,.72,.28,1) var(--dw,0ms) both}
+  .sql-viz[data-kind="count"][data-phase="1"] .grp-chip[data-keep="0"]{animation:cntSkip .5s ease var(--dw,0ms) both}
+  .sql-viz[data-kind="count"][data-phase="1"] .grp-chip[data-keep="0"]::after{background:#C4C4D4;box-shadow:none;animation:cntTick .34s cubic-bezier(.32,.72,.28,1) var(--dw,0ms) both}
+  .sql-viz[data-kind="count"] .grp-chip[data-keep="0"] .grp-extra{color:var(--warn);font-weight:700;font-family:var(--mono);flex:none}
+  .sql-viz[data-viz="countemail"] .grp-chip{gap:8px}
+  .sql-viz[data-viz="countemail"] .grp-extra{min-width:0;flex:1;margin-left:0;overflow:hidden;text-overflow:ellipsis;font-family:var(--mono);font-size:10.5px}
+  @keyframes cntSkip{0%{border-color:var(--line-2);background:var(--surface)}100%{border-color:rgba(180,83,9,.28);background:rgba(180,83,9,.08);opacity:.78}}
+  .viz-bridge{margin:18px 2px 0;font-size:14px;line-height:1.5;color:var(--ink-2)}
+  .viz-bridge + .grp-viz{margin-top:10px}
   .sql-viz[data-kind="agg"][data-phase="1"] .grp-chip[data-mark="1"]{animation:aggMark .5s ease var(--dw,0ms) both}
   .sql-viz[data-kind="agg"][data-phase="1"] .grp-chip[data-mark="1"]::after{background:#0F766E;box-shadow:0 2px 8px rgba(15,118,110,.28)}
   @keyframes cntVisit{0%{border-color:var(--line-2);background:var(--surface)}40%{border-color:rgba(91,91,214,.42);background:var(--accent-soft)}100%{border-color:rgba(91,91,214,.28);background:var(--accent-soft)}}
@@ -4120,6 +4216,8 @@
   /* Pastilles façon fenêtre de terminal, avant le nom du fichier. */
   .exframe .xf-name::before{content:'';flex:none;width:8px;height:8px;border-radius:50%;background:#FF5F57;box-shadow:14px 0 0 #FEBC2E,28px 0 0 #28C840;margin-right:24px;opacity:.85}
   .xf-switch{display:flex;flex-wrap:wrap;gap:4px;padding:3px;background:rgba(255,255,255,.08);border-radius:10px;flex:none;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .xf-switch.is-cols2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow-x:visible}
+  .xf-switch.is-cols2 .xf-sw{display:flex;align-items:center;justify-content:center;width:100%;min-width:0;padding-left:8px;padding-right:8px}
   .xf-sw{flex:none;border:none;background:transparent;color:#9A9AB0;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.3px;padding:7px 10px;border-radius:8px;cursor:pointer;touch-action:manipulation;min-height:44px;white-space:nowrap;transition:background .18s,color .18s,transform .18s var(--spring-ios)}
   .xf-sw:active{transform:scale(.95)}
   .xf-sw.on{background:rgba(255,255,255,.16);color:#F2F2F7}
@@ -4214,6 +4312,7 @@
   .piege-ico svg{width:14px;height:14px;display:block}
   .piege-lab{font-size:12px;font-weight:700;letter-spacing:-.1px;color:var(--warn)}
   .piege-title{margin:0 0 8px;font-size:18px;font-weight:800;letter-spacing:-.35px;line-height:1.25;color:var(--ink)}
+  .piege-title code{font-family:var(--mono);font-size:.82em;background:rgba(180,122,22,.1);color:#8A6212;padding:1px 6px;border-radius:6px;font-weight:800}
   .piege-body{margin:0;font-size:14px;font-weight:400;line-height:1.6;color:var(--ink-2)}
   .piege-body p{margin:0 0 10px}
   .piege-body p:last-child{margin-bottom:0}
@@ -4224,13 +4323,20 @@
   .piege .piege-sql .xf-result{margin:0 12px 12px}
   .piege-fix{margin:14px 0 0}
   .piege-tail{margin:12px 0 0;font-size:14px;line-height:1.6;color:var(--ink-2)}
+  .piege-tail p{margin:0 0 10px}
+  .piege-tail p:last-child{margin-bottom:0}
+  .piege-tail .piege-ok{margin:20px 0 0;color:var(--ink);font-size:14px;font-weight:700;line-height:1.4}
   .piege-tail .table-wrap{margin:0 0 10px;overflow-x:auto}
   .piege-tail table.concept-table{width:100%;border-collapse:collapse;font-size:13px}
   .piege-tail table.concept-table th{background:var(--bg);color:var(--ink-3);font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;text-align:center;padding:9px 12px;border-bottom:1px solid var(--line)}
   .piege-tail table.concept-table td{padding:9px 12px;border-bottom:1px solid var(--line);color:var(--ink);line-height:1.4;text-align:center}
   .piege-tail table.concept-table tr:last-child td{border-bottom:0}
-  .piege-tail p{margin:0}
   .piege-tail code{font-family:var(--mono);font-size:.86em;background:rgba(180,122,22,.1);color:#8A6212;padding:1px 6px;border-radius:6px;font-weight:600}
+  .piege-tail .gb-piege-reflex .pt-syntax-h{margin:0 0 8px}
+  .piege-tail .gb-piege-reflex>p{margin:0 0 10px}
+  .piege-tail .gb-piege-reflex .gb-sel-caption{margin:0 0 8px}
+  .piege-tail .gb-piege-reflex .gb-sel-cases{margin:0 0 12px}
+  .piege-tail .gb-piege-reflex .gb-sel-item code{background:var(--accent-soft);color:var(--accent);padding:3px 8px;border-radius:8px;font-weight:800}
 
   .consigne{background:var(--surface);color:var(--ink);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 8px 20px -16px rgba(20,20,40,.5)}
   .consigne .tag{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:var(--ink-3);display:block;margin-bottom:6px}
@@ -7970,7 +8076,7 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
           <p class="sub" id="learn-sub">Prêt·e pour ta prochaine requête ?</p>
         </div>
         <div class="learn-side">
-          <button class="streak-pill" id="home-streak" type="button" onclick="setAccountSection('progress');switchTab('compte')" aria-label="Jours d'affilée — voir mes stats" hidden></button>
+          <button class="streak-pill" id="home-streak" type="button" onclick="switchTab('compte')" aria-label="Jours d'affilée — voir mes stats" hidden></button>
           <div class="learn-avatar" id="learn-avatar" aria-hidden="true">R</div>
         </div>
       </div>
@@ -8276,7 +8382,7 @@ INSERT INTO clients VALUES
  (2,'Lucas','Lyon',28,'lucas@mail.fr','06 39 98 21 47','2023-03-22'),
  (3,'Emma','Marseille',45,'emma@mail.fr','06 39 98 33 08','2022-11-05'),
  (4,'Nathan','Paris',31,'nathan@mail.fr','06 39 98 40 15','2023-06-10'),
- (5,'Chloé','Bordeaux',26,'chloe@mail.fr','06 39 98 51 62','2023-02-18'),
+ (5,'Chloé','Mobile',26,'chloe@mail.fr','06 39 98 51 62','2023-02-18'),
  (6,'Hugo','Lyon',52,NULL,'06 39 98 68 03','2022-09-30'),
  (7,'Léa','Paris',38,'lea@mail.fr','06 39 98 74 29','2023-05-12'),
  (8,'Gabriel','Toulouse',29,'gabriel@mail.fr','06 39 98 85 16','2023-04-08'),
@@ -8299,6 +8405,22 @@ const SCHEMA_META=[
  {table:"clients",n:10,cols:[{c:"id",t:"INTEGER",b:"pk"},{c:"nom",t:"TEXT"},{c:"ville",t:"TEXT"},{c:"age",t:"INTEGER"},{c:"email",t:"TEXT"},{c:"telephone",t:"TEXT"},{c:"date_inscription",t:"TEXT"}]},
  {table:"produits",n:8,cols:[{c:"id",t:"INTEGER",b:"pk"},{c:"nom",t:"TEXT"},{c:"categorie",t:"TEXT"},{c:"prix",t:"REAL"},{c:"stock",t:"INTEGER"}]},
  {table:"commandes",n:16,cols:[{c:"id",t:"INTEGER",b:"pk"},{c:"client_id",t:"INTEGER",b:"fk"},{c:"produit_id",t:"INTEGER",b:"fk"},{c:"quantite",t:"INTEGER"},{c:"date_commande",t:"TEXT"}]}];
+
+/* Encadré réutilisable : une fonction SQL, présentée à part dans la situation. */
+const FN_SPOT_ICO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.4"/><path d="M9 17c2 0 2.8-1 2.8-2.8V10c0-2 1-3.3 3.2-3"/><path d="M9 11.2h5.7"/></svg>';
+function fnSpot(body){
+  const inner=/^\s*</.test(String(body||''))?body:`<p>${body}</p>`;
+  return `<div class="fn-spot"><span class="fn-spot-ico" aria-hidden="true">${FN_SPOT_ICO}</span><div class="fn-spot-copy">${inner}</div></div>`;
+}
+function havingChainHtml(){
+  return `<p class="hav-path" role="img" aria-label="Lignes, puis WHERE, puis GROUP BY, puis HAVING, puis les groupes conservés">
+    <span>Lignes</span><i>→</i>
+    <code>WHERE</code><i>→</i>
+    <code>GROUP BY</code><i>→</i>
+    <code>HAVING</code><i>→</i>
+    <b>groupes conservés</b>
+  </p>`;
+}
 
 /* ============================================================
    2. PROGRAMME
@@ -8655,7 +8777,7 @@ FROM nom_table;</pre></div>
       </div>`},
     vs:{bad:{tag:"✕ Avec doublons",sql:"SELECT ville FROM clients;",out:"10 lignes : Paris apparaît 4 fois, Lyon 2 fois",
             code:"SELECT <span class=\"vs-line bad\">ville</span>\nFROM clients;"},
-        good:{tag:"✓ Sans doublons",sql:"SELECT DISTINCT ville FROM clients;",out:"6 villes : Paris, Lyon, Marseille, Bordeaux, Toulouse, Nantes",
+        good:{tag:"✓ Sans doublons",sql:"SELECT DISTINCT ville FROM clients;",out:"6 villes : Paris, Lyon, Marseille, Mobile, Toulouse, Nantes",
             code:"SELECT <span class=\"vs-line good\">DISTINCT ville</span>\nFROM clients;"}},
     point:"<code>DISTINCT</code> ne modifie pas les données de la table clients. Les 10 clients restent enregistrés : seuls les doublons sont retirés du résultat affiché.",
     why:{title:"Comment DISTINCT passe de 10 à 6 lignes ?"},
@@ -8678,7 +8800,7 @@ FROM nom_table;</pre></div>
     ]}
   ],
   exemple:"SELECT DISTINCT ville FROM clients;",
-  attendu:"<b>6 lignes</b> : Paris, Lyon, Marseille, Bordeaux, Toulouse et Nantes. Chaque ville apparaît une seule fois.",
+  attendu:"<b>6 lignes</b> : Paris, Lyon, Marseille, Mobile, Toulouse et Nantes. Chaque ville apparaît une seule fois.",
   retenir:"<code>DISTINCT</code> sert à afficher des valeurs uniques. Dans <code>SELECT DISTINCT ville FROM clients</code>, les 10 clients donnent seulement 6 villes différentes, car Paris et Lyon apparaissent plusieurs fois dans la table. Les doublons sont retirés du résultat, pas de la table.",
   piege:{lab:"À retenir",t:"DISTINCT avec plusieurs colonnes",
     p:"<code>DISTINCT</code> ne s’applique pas seulement à <code>ville</code>. SQL regarde la combinaison <code>ville</code> + <code>age</code>, et ne retire une ligne que si les deux valeurs sont identiques à celles d’une autre ligne.",
@@ -10528,9 +10650,9 @@ learningCheck:{
 { id:14, titre:"COUNT", résumé:"Compter les lignes",
   situation:"Tu veux savoir combien de clients sont enregistrés dans ta base de données.<br><br>Avec ce que tu connais déjà, tu pourrais afficher tous leurs noms :",
   situationSql:"SELECT nom\nFROM clients;",
-  situationTail:"Tu obtiens les noms des clients enregistrés. Mais ici, ce qui t’intéresse n’est pas de voir la liste : tu veux obtenir directement le nombre total de clients.<br><br>Plutôt que de compter les lignes une par une, tu peux utiliser <code>COUNT(*)</code>, une fonction d’agrégation qui permet de connaître directement le nombre de lignes d’une table.",
-    studio:{problem:{title:"<code>COUNT()</code> compte des lignes ou des valeurs.",
-      body:"<p>C’est une fonction d’agrégation. Il existe plusieurs façons de l’utiliser selon ce que tu veux compter.</p>"},
+  situationTail:"Tu obtiens les noms des clients enregistrés. Mais ici, ce qui t’intéresse n’est pas de voir la liste : tu veux obtenir directement le nombre total de clients.<br><br>"+fnSpot("Plutôt que de compter les lignes une par une, tu peux utiliser <code>COUNT(*)</code>, une fonction d’agrégation qui permet de connaître directement le nombre de lignes d’une table."),
+    studio:{problem:{title:"",
+      body:"<p><code>COUNT()</code> est une fonction d’agrégation SQL qui permet de compter des lignes ou des valeurs non NULL.</p><p>Son écriture change selon ce que tu veux compter :</p><div class=\"pt-syntax\"><pre class=\"cw-syntax\">COUNT(*)\nCOUNT(expression)\nCOUNT(DISTINCT expression)</pre></div>"},
     uses:{title:"Les façons de compter.",
       body:`<div class="pt-lead fn-uses">
         <div class="fn-use">
@@ -10550,10 +10672,10 @@ FROM clients;</pre></div>
           <p><code>COUNT(email)</code> compte uniquement les lignes où <code>email</code> contient une valeur.</p>
           <p>👉 Les <code>NULL</code> ne sont pas comptés.</p>
           <p>C’est une différence importante :</p>
-          <div class="table-wrap"><table class="concept-table fit-2"><thead><tr><th>Écriture</th><th>SQL compte</th></tr></thead><tbody>
+          <div class="table-wrap"><table class="concept-table fit-2 is-stack"><thead><tr><th>Écriture</th><th>SQL compte</th></tr></thead><tbody>
             <tr><td><code>COUNT(*)</code></td><td>Toutes les lignes</td></tr>
-            <tr><td><code>COUNT(email)</code></td><td>Seulement les e-mails renseignés</td></tr>
-            <tr><td><code>COUNT(DISTINCT ville)</code></td><td>Les villes différentes, sans doublons ni <code>NULL</code></td></tr>
+            <tr><td><code>COUNT(email)</code></td><td>Les e-mails renseignés</td></tr>
+            <tr><td><code>COUNT(DISTINCT ville)</code></td><td>Les villes différentes, sans doublons ni NULL</td></tr>
           </tbody></table></div>
         </div>
         <div class="fn-use">
@@ -10567,9 +10689,11 @@ FROM clients;</pre></div>
       </div>`},
     why:{title:"Comment COUNT(*) arrive à 10 ?"},
     viz:"count",
-    reflex:{a:{k:"COUNT(*)",t:"toutes les <b>lignes</b>"},
-      b:{k:"COUNT(colonne)",t:"les valeurs <b>renseignées</b>"},
-      c:{k:"COUNT(DISTINCT col)",t:"les valeurs <b>différentes</b>"}}},
+    viz2:"countemail",
+    viz2Lead:"Même idée avec <code>COUNT(email)</code> : les valeurs <code>NULL</code> ne sont pas comptées.",
+    reflex:{a:{k:"COUNT(*)",t:"toutes les <b>lignes</b>",s:"→ <code>NULL</code> compris"},
+      b:{k:"COUNT(colonne)",t:"les valeurs <b>renseignées</b>",s:"→ <code>NULL</code> ignorés"},
+      c:{k:"COUNT(DISTINCT colonne)",t:"les valeurs <b>différentes</b>",s:"→ doublons et <code>NULL</code> ignorés"}}},
   anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"COUNT(*)",txt:"Compte toutes les lignes, même si une colonne est NULL."},{tok:"FROM clients",txt:"Le comptage porte sur la table clients."}],
   anatFollowTeste:true,
   anatomieVariants:[
@@ -10593,8 +10717,8 @@ FROM clients;</pre></div>
   ],
   exemple:"SELECT COUNT(*) FROM clients;",
   attendu:"<b>1 ligne</b>, 1 valeur : 10. C’est le nombre total de clients.",
-  retenir:"<code>COUNT(*)</code> → toutes les lignes.<br><code>COUNT(colonne)</code> → les valeurs renseignées.<br><code>COUNT(DISTINCT colonne)</code> → les valeurs différentes.",
-  piege:{t:"Oublier que COUNT(colonne) ignore les NULL",p:"Dans la table clients, <code>COUNT(*)</code> renvoie 10. Mais <code>COUNT(email)</code> renvoie 8, car 2 emails sont <code>NULL</code>."},
+  retenir:"<code>COUNT(*)</code> → toutes les lignes, <code>NULL</code> compris.<br><code>COUNT(colonne)</code> → les valeurs renseignées, <code>NULL</code> ignorés.<br><code>COUNT(DISTINCT colonne)</code> → les valeurs différentes, doublons et <code>NULL</code> ignorés.",
+  piege:{t:"Oublier que COUNT(colonne) ignore les NULL",p:"Dans une table <code>clients</code>, imaginons 10 lignes (10 clients au total). Parmi ces 10 clients, 2 n’ont pas renseigné leur adresse e-mail : la valeur est <code>NULL</code>.<br><br><code>COUNT(*)</code> compte le nombre total de lignes. Il ne se soucie pas du contenu. Résultat : <b>10</b>.<br><br><code>COUNT(email)</code> compte les valeurs non <code>NULL</code> dans la colonne <code>email</code>. Il ignore les 2 clients sans e-mail. Résultat : <b>8</b>."},
   consigne:"Compte le nombre total de clients dans la table clients.",
   solution:"SELECT COUNT(*) FROM clients;",
   indice:"Tu veux compter toutes les lignes : utilise la fonction <code>COUNT</code> avec <code>*</code>.",
@@ -10640,323 +10764,112 @@ learningCheck:{
   "explanation": "COUNT(*) compte les dix lignes ; COUNT(email) ignore les deux NULL."
 }
 },
-{ id:15, titre:"AVG", résumé:"La moyenne d’une colonne",
-  situation:"Tu regardes le catalogue. Avant de lancer une promo, tu veux un seul chiffre : autour de quel prix se situent les produits.<br><br>Avec ce que tu connais déjà, tu peux afficher chaque prix :",
-  situationSql:"SELECT prix\nFROM produits;",
-  situationTail:"Tu obtiens bien les 8 prix. Mais tu dois encore faire la moyenne à la main : pour l’obtenir directement, il faut la fonction <code>AVG</code>.",
-    studio:{problem:{title:"<code>AVG(colonne)</code> calcule la moyenne.",
-      body:""},
-    vs:{bad:{tag:"✕ Afficher pour moyenner",sql:"SELECT prix FROM produits;",out:"8 prix : il faut encore calculer la moyenne",
-            code:"SELECT <span class=\"vs-line bad\">prix</span>\nFROM produits;"},
-        good:{tag:"✓ Moyenne avec AVG",sql:"SELECT AVG(prix) FROM produits;",out:"1 ligne · une valeur : 23,9875",
-            code:"SELECT <span class=\"vs-line good\">AVG(prix)</span>\nFROM produits;"}},
-    why:{title:"Comment AVG calcule la moyenne ?"},
-    viz:"avg",
-    reflex:{a:{k:"COUNT(*)",t:"compte les <b>lignes</b>"},
-      b:{k:"AVG(colonne)",t:"moyenne des <b>valeurs</b>"}}},
-  anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"AVG(prix)",txt:"Additionne les prix, puis divise par 8."},{tok:"FROM produits",txt:"Le calcul porte sur la table produits."}],
-  exemple:"SELECT AVG(prix) FROM produits;",
-  attendu:"<b>1 ligne</b>, 1 valeur : 23,9875. C’est 191,90 ÷ 8, le prix moyen des 8 produits.",
-  retenir:"<code>AVG</code> calcule la moyenne : SQL additionne les valeurs, puis divise par leur nombre. Dans <code>SELECT AVG(prix) FROM produits</code>, 191,90 ÷ 8 donne 23,9875.",
-  piege:{t:"Confondre AVG et COUNT",p:"<code>COUNT(*)</code> compte combien de lignes il y a : ici, 8 produits.<br><code>AVG(prix)</code> calcule le prix moyen : ici, 23,99 €.<br><br>👉 COUNT = combien de lignes ?<br>👉 AVG = quelle est la moyenne d’une colonne ?"},
-  consigne:"Calcule le prix moyen de tous les produits.",
-  solution:"SELECT AVG(prix) FROM produits;",
-  indice:"La fonction qui calcule une moyenne est <code>AVG</code>. Place la colonne <code>prix</code> entre ses parenthèses.",
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-  {
-    "k": "select",
-    "label": "SELECT",
-    "sql": "SELECT prix\nFROM produits;",
-    "out": "SELECT affiche chaque prix"
-  },
-  {
-    "k": "avg",
-    "label": "AVG(colonne)",
-    "sql": "SELECT AVG(prix)\nFROM produits;",
-    "out": "AVG(colonne) calcule la moyenne"
-  },
-  {
-    "k": "rec_null",
-    "label": "Moyenne avec NULL",
-    "sql": "WITH valeurs(v) AS (VALUES (10),(20),(NULL)) SELECT AVG(v) AS moyenne, COUNT(v) AS valeurs FROM valeurs;",
-    "out": "Moyenne 15, calculée sur deux valeurs présentes.",
-    "expectRows": 1
-  }
-] ,
-learningCheck:{
-  "question": "AVG sur les valeurs 10, 20 et NULL vaut combien ?",
-  "options": [
-    "15",
-    "10",
-    "NULL"
-  ],
-  "answer": 0,
-  "explanation": "AVG ignore NULL : (10 + 20) / 2, et non / 3."
-}
-},
-{ id:30, titre:"SUM", résumé:"La somme d’une colonne",
-  situation:"Ton manager prépare un reporting. Il ne veut pas la liste des prix : il veut un seul montant, la valeur totale du catalogue.<br><br>Avec ce que tu connais déjà, tu peux afficher chaque prix :",
-  situationSql:"SELECT prix\nFROM produits;",
-  situationTail:"Tu obtiens bien les 8 prix. Mais tu dois encore les additionner à la main : pour obtenir le total directement, il faut la fonction <code>SUM</code>.",
-    studio:{problem:{title:"<code>SUM(colonne)</code> additionne les valeurs.",
-      body:""},
-    vs:{bad:{tag:"✕ Afficher pour additionner",sql:"SELECT prix FROM produits;",out:"8 prix : il faut encore faire l’addition",
-            code:"SELECT <span class=\"vs-line bad\">prix</span>\nFROM produits;"},
-        good:{tag:"✓ Total avec SUM",sql:"SELECT SUM(prix) FROM produits;",out:"1 ligne · une valeur : 191,90",
-            code:"SELECT <span class=\"vs-line good\">SUM(prix)</span>\nFROM produits;"}},
-    why:{title:"Comment SUM additionne les prix ?"},
-    viz:"sum",
-    reflex:{a:{k:"AVG(colonne)",t:"la <b>moyenne</b> des prix"},
-      b:{k:"SUM(colonne)",t:"le <b>total</b> des prix"}}},
-  anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"SUM(prix)",txt:"Additionne tous les prix."},{tok:"FROM produits",txt:"Le calcul porte sur la table produits."}],
-  exemple:"SELECT SUM(prix) FROM produits;",
-  attendu:"<b>1 ligne</b>, 1 valeur : 191,90. C’est la somme des 8 prix.",
-  retenir:"<code>SUM</code> additionne les valeurs d’une colonne. Dans <code>SELECT SUM(prix) FROM produits</code>, les 8 prix deviennent une seule valeur : 191,90.",
-  piege:{t:"Prendre SUM pour un chiffre d’affaires",p:"<code>SUM(prix)</code> additionne les prix du catalogue, pas les ventes. Un vrai CA multiplie chaque commande par sa quantité, puis additionne."},
-  consigne:"Calcule la somme des prix de tous les produits.",
-  solution:"SELECT SUM(prix) FROM produits;",
-  indice:"La fonction qui additionne est <code>SUM</code>. Place la colonne <code>prix</code> entre ses parenthèses.",
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-  {
-    "k": "select",
-    "label": "SELECT",
-    "sql": "SELECT prix\nFROM produits;",
-    "out": "SELECT affiche chaque prix"
-  },
-  {
-    "k": "sum",
-    "label": "SUM(colonne)",
-    "sql": "SELECT SUM(prix)\nFROM produits;",
-    "out": "SUM(colonne) additionne les valeurs"
-  },
-  {
-    "k": "rec_sales",
-    "label": "Ventes des commandes",
-    "sql": "SELECT SUM(produits.prix * commandes.quantite) AS chiffre_affaires FROM commandes JOIN produits ON produits.id = commandes.produit_id;",
-    "out": "Chaque prix est pondéré par la quantité vendue.",
-    "expectRows": 1
-  }
-] ,
-learningCheck:{
-  "question": "SUM(prix) dans produits représente-t-il le chiffre d’affaires des commandes ?",
-  "options": [
-    "Non",
-    "Oui",
-    "Oui si tous les prix sont positifs"
-  ],
-  "answer": 0,
-  "explanation": "La somme des prix catalogue ne compte aucune vente. Pour les commandes, on additionne prix × quantite après la jointure."
-}
-},
-{ id:31, titre:"MIN", résumé:"La plus petite valeur",
-  situation:"Tu lances une offre d’entrée de gamme. Tu veux repérer le produit le moins cher — la Tisane Détox à 12,50 € — comme référence.<br><br>Avec ce que tu connais déjà, tu peux afficher chaque prix :",
-  situationSql:"SELECT prix\nFROM produits;",
-  situationTail:"Tu obtiens bien les 8 prix. Mais tu dois encore chercher le plus petit à l’œil : pour l’obtenir directement, il faut la fonction <code>MIN</code>.",
-    studio:{problem:{title:"<code>MIN(colonne)</code> renvoie la plus petite valeur.",
-      body:""},
-    vs:{bad:{tag:"✕ Afficher pour chercher",sql:"SELECT prix FROM produits;",out:"8 prix : il faut encore repérer le plus bas",
-            code:"SELECT <span class=\"vs-line bad\">prix</span>\nFROM produits;"},
-        good:{tag:"✓ Minimum avec MIN",sql:"SELECT MIN(prix) FROM produits;",out:"1 ligne · une valeur : 12,50 (Tisane Détox)",
-            code:"SELECT <span class=\"vs-line good\">MIN(prix)</span>\nFROM produits;"}},
-    why:{title:"Comment MIN trouve le plus petit prix ?"},
-    viz:"min",
-    reflex:{a:{k:"AVG(colonne)",t:"la <b>moyenne</b> de tous les prix"},
-      b:{k:"MIN(colonne)",t:"le prix <b>le plus bas</b>"}}},
-  anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"MIN(prix)",txt:"Garde le plus petit prix."},{tok:"FROM produits",txt:"Le calcul porte sur la table produits."}],
-  exemple:"SELECT MIN(prix) FROM produits;",
-  attendu:"<b>1 ligne</b>, 1 valeur : 12,50. C’est le prix de la Tisane Détox, le produit le moins cher du catalogue.",
-  retenir:"<code>MIN</code> renvoie la plus petite valeur d’une colonne. Dans <code>SELECT MIN(prix) FROM produits</code>, les 8 prix deviennent une seule valeur : 12,50 — le prix de la Tisane Détox.",
-  piege:{t:"Mettre MIN dans WHERE",p:"Pour chercher le produit le moins cher, on pourrait être tenté d’écrire :<br><br><code>WHERE prix = MIN(prix)</code><br><br>Mais cela ne fonctionne pas : <code>WHERE</code> filtre les lignes avant que <code>MIN</code> ait calculé le prix minimum.<br><br>👉 WHERE = filtre les lignes<br>👉 MIN() = calcule une valeur sur plusieurs lignes<br><br>Exécute les deux requêtes pour comparer :",
-    exec:true,
-    sql:"SELECT nom\nFROM produits\nWHERE prix = MIN(prix);",
-    fixSql:"SELECT nom\nFROM produits\nWHERE prix = (SELECT MIN(prix) FROM produits);"},
-  consigne:"Affiche le prix le plus bas de la table produits.",
-  solution:"SELECT MIN(prix) FROM produits;",
-  indice:"La fonction qui cherche la plus petite valeur est <code>MIN</code>. Place la colonne <code>prix</code> entre ses parenthèses.",
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-  {
-    "k": "select",
-    "label": "SELECT",
-    "sql": "SELECT prix\nFROM produits;",
-    "out": "SELECT affiche chaque prix"
-  },
-  {
-    "k": "min",
-    "label": "MIN(colonne)",
-    "sql": "SELECT MIN(prix)\nFROM produits;",
-    "out": "MIN(colonne) garde la plus petite valeur"
-  },
-  {
-    "k": "rec_rows",
-    "label": "Lignes au minimum",
-    "sql": "SELECT nom, prix FROM produits WHERE prix = (SELECT MIN(prix) FROM produits);",
-    "out": "Le minimum est 12,50 ; cette requête retrouve la Tisane Détox.",
-    "expectRows": 1
-  }
-] ,
-learningCheck:{
-  "question": "MIN(prix) retourne-t-il automatiquement le nom du produit le moins cher ?",
-  "options": [
-    "Oui : toute sa ligne",
-    "Oui : son identifiant",
-    "Non : seulement la valeur minimale"
-  ],
-  "answer": 2,
-  "explanation": "Chercher la valeur et retrouver les lignes qui la portent sont deux opérations distinctes."
-}
-},
-{ id:32, titre:"MAX", résumé:"La plus grande valeur",
-  situation:"Tu prépares une gamme premium. Tu veux le produit le plus cher — le Collagène Marin à 39,90 € — pour caler le haut de l’offre.<br><br>Avec ce que tu connais déjà, tu peux afficher chaque prix :",
-  situationSql:"SELECT prix\nFROM produits;",
-  situationTail:"Tu obtiens bien les 8 prix. Mais tu dois encore chercher le plus grand à l’œil : pour l’obtenir directement, il faut la fonction <code>MAX</code>.",
-    studio:{problem:{title:"<code>MAX(colonne)</code> renvoie la plus grande valeur.",
-      body:""},
-    vs:{bad:{tag:"✕ Afficher pour chercher",sql:"SELECT prix FROM produits;",out:"8 prix : il faut encore repérer le plus élevé",
-            code:"SELECT <span class=\"vs-line bad\">prix</span>\nFROM produits;"},
-        good:{tag:"✓ Maximum avec MAX",sql:"SELECT MAX(prix) FROM produits;",out:"1 ligne · une valeur : 39,90 (Collagène Marin)",
-            code:"SELECT <span class=\"vs-line good\">MAX(prix)</span>\nFROM produits;"}},
-    why:{title:"Comment MAX trouve le plus grand prix ?"},
-    viz:"max",
-    reflex:{a:{k:"MIN(colonne)",t:"le prix <b>le plus bas</b>"},
-      b:{k:"MAX(colonne)",t:"le prix <b>le plus élevé</b>"}}},
-  anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"MAX(prix)",txt:"Garde le plus grand prix."},{tok:"FROM produits",txt:"Le calcul porte sur la table produits."}],
-  exemple:"SELECT MAX(prix) FROM produits;",
-  attendu:"<b>1 ligne</b>, 1 valeur : 39,90. C’est le prix du Collagène Marin, le produit le plus cher du catalogue.",
-  retenir:"<code>MAX</code> renvoie la plus grande valeur d’une colonne. Dans <code>SELECT MAX(prix) FROM produits</code>, les 8 prix deviennent une seule valeur : 39,90 — le prix du Collagène Marin.",
-  piege:{t:"Mettre MAX dans WHERE",p:"Pour chercher le produit le plus cher, on pourrait être tenté d’écrire :<br><br><code>WHERE prix = MAX(prix)</code><br><br>Mais cela ne fonctionne pas : <code>WHERE</code> filtre les lignes avant que <code>MAX</code> ait calculé le prix maximum.<br><br>👉 WHERE = filtre les lignes<br>👉 MAX() = calcule une valeur sur plusieurs lignes<br><br>Exécute les deux requêtes pour comparer :",
-    exec:true,
-    sql:"SELECT nom\nFROM produits\nWHERE prix = MAX(prix);",
-    fixSql:"SELECT nom\nFROM produits\nWHERE prix = (SELECT MAX(prix) FROM produits);"},
-  consigne:"Affiche le prix le plus élevé de la table produits.",
-  solution:"SELECT MAX(prix) FROM produits;",
-  indice:"La fonction qui cherche la plus grande valeur est <code>MAX</code>. Place la colonne <code>prix</code> entre ses parenthèses.",
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-  {
-    "k": "select",
-    "label": "SELECT",
-    "sql": "SELECT prix\nFROM produits;",
-    "out": "SELECT affiche chaque prix"
-  },
-  {
-    "k": "max",
-    "label": "MAX(colonne)",
-    "sql": "SELECT MAX(prix)\nFROM produits;",
-    "out": "MAX(colonne) garde la plus grande valeur"
-  },
-  {
-    "k": "rec_ties",
-    "label": "Maximum partagé",
-    "sql": "WITH prix_test(nom,prix) AS (VALUES ('A',40),('B',40),('C',20)) SELECT nom, prix FROM prix_test WHERE prix=(SELECT MAX(prix) FROM prix_test);",
-    "out": "A et B portent tous deux la valeur maximale.",
-    "expectRows": 2
-  }
-] ,
-learningCheck:{
-  "question": "Deux produits partagent le prix maximal. Un filtre sur prix = MAX(prix) en garde combien ?",
-  "options": [
-    "Aucun",
-    "Deux",
-    "Un seul"
-  ],
-  "answer": 1,
-  "explanation": "La valeur maximale est unique en tant que valeur, mais plusieurs lignes peuvent la porter."
-}
-},
-{ id:25, titre:"COUNT DISTINCT", résumé:"Compter les valeurs différentes",
-  situation:"Tu veux savoir dans combien de <b>villes différentes</b> vivent tes clients.<br><br>Un simple <code>COUNT(ville)</code> compte chaque client : dix lignes, donc dix. Mais plusieurs clients vivent dans la même ville.",
-  situationSql:"SELECT COUNT(ville) FROM clients;",
-  situationTail:"Pour ne compter chaque ville qu'<b>une seule fois</b>, on combine <code>COUNT</code> et <code>DISTINCT</code> : <code>COUNT(DISTINCT ville)</code>.",
-    studio:{problem:{title:"DISTINCT retire les doublons avant de compter.",
-      body:"<code>COUNT(DISTINCT ville)</code> compte les valeurs <b>différentes</b> : si trois clients habitent Paris, Paris ne compte qu'une fois. C'est l'outil idéal pour « combien de clients distincts ont commandé » ou « combien de catégories sont représentées »."},
-    reflex:{a:{k:"COUNT(*)",t:"compte <b>toutes les lignes</b>, doublons inclus"},
-      b:{k:"COUNT(DISTINCT col)",t:"compte les <b>valeurs différentes</b>"},
-      note:"Retenir la différence évite les surestimations : COUNT(*) répond « combien de lignes », COUNT(DISTINCT ville) « combien de villes »."}},
-  anatomie:[{tok:"SELECT COUNT(DISTINCT ville)",txt:"Compte les villes différentes, pas les lignes."},{tok:"FROM clients",txt:"La table lue."}],
-  exemple:"SELECT COUNT(DISTINCT ville) FROM clients;",
-  attendu:"<b>7</b> : les dix clients vivent dans sept villes différentes.",
-  retenir:"<code>COUNT(DISTINCT colonne)</code> compte les <b>valeurs différentes</b>, chaque doublon n'étant compté qu'une fois. Utile pour des clients, villes ou catégories uniques.",
-  piege:{t:"Compter les lignes au lieu des valeurs",p:"<code>COUNT(ville)</code> compte dix lignes même si trois sont à Paris. Pour des villes uniques, il faut <code>COUNT(DISTINCT ville)</code>."},
-  consigne:"Compte dans combien de villes différentes vivent tes clients.",
-  solution:"SELECT COUNT(DISTINCT ville) FROM clients;",
-  indice:"Place <code>DISTINCT</code> à l'intérieur de <code>COUNT(…)</code>, avant la colonne : <code>COUNT(DISTINCT ville)</code>.",
-  richLesson:true ,
-testeVariants:[
-  {
-    "k": "base",
-    "label": "Exemple",
-    "sql": "SELECT COUNT(DISTINCT ville) FROM clients;"
-  },
-  {
-    "k": "rec_three",
-    "label": "Trois comptages",
-    "sql": "SELECT COUNT(*) AS lignes, COUNT(ville) AS villes_presentes, COUNT(DISTINCT ville) AS villes_distinctes FROM clients;",
-    "out": "10 lignes, 10 valeurs présentes, 6 villes différentes.",
-    "expectRows": 1
-  }
-]
-,
-learningCheck:{
-  "question": "Avec dix clients et six villes différentes, COUNT(DISTINCT ville) vaut combien ?",
-  "options": [
-    "10",
-    "Le nombre de clients parisiens",
-    "6"
-  ],
-  "answer": 2,
-  "explanation": "COUNT(*) et COUNT(ville) valent dix ici car ville ne contient pas de NULL. DISTINCT réduit les valeurs avant de compter."
-}
-},
 { id:16, titre:"GROUP BY", résumé:"Un calcul par groupe",
-  situation:"Tu prépares un point équipe : combien de clients dans chaque ville ? Paris, Lyon, Marseille…<br><br>Avec ce que tu connais déjà, tu peux afficher chaque client et sa ville :",
-  situationSql:"SELECT nom, ville\nFROM clients;",
-  situationTail:"Tu obtiens bien les 10 clients. Paris revient 4 fois, Lyon 2 fois — tu vois les répétitions, mais pas le total par ville. Pour compter séparément dans chaque groupe, il faut la clause <code>GROUP BY</code>.",
-    studio:{problem:{title:"<code>GROUP BY</code> sépare les lignes en groupes avant de calculer.",
-      body:""},
-    vs:{bad:{tag:"✕ Lister pour compter",sql:"SELECT nom, ville\nFROM clients;",out:"10 lignes : Paris 4 fois, Lyon 2 fois — il faut encore compter",
-            code:"SELECT <span class=\"vs-line bad\">nom, ville</span>\nFROM clients;"},
-        good:{tag:"✓ Un total par ville",sql:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville;",out:"Paris 4, Lyon 2, puis 1 pour chaque autre ville",
-            code:"SELECT ville, COUNT(*)\nFROM clients\n<span class=\"vs-line good\">GROUP BY ville</span>;"}},
-    point:"Dans la table <code>clients</code>, Paris apparaît 4 fois : Sophie, les deux Nathan et Léa forment donc un groupe de 4. Lyon apparaît 2 fois : Lucas et Hugo forment un groupe de 2. Marseille, Bordeaux, Toulouse et Nantes apparaissent une fois chacune. <code>COUNT(*)</code> est ensuite calculé séparément pour chaque groupe.",
+  situation:"Tu veux savoir combien de clients habitent dans chaque ville.<br><br>Avec <code>COUNT(*)</code>, tu sais déjà compter tous les clients :",
+  situationSql:"SELECT COUNT(*)\nFROM clients;",
+  situationTail:"Tu obtiens un seul total : <b>10</b>.<br><br>Cette fois, tu ne veux pas un total général. Tu veux un total pour chaque ville : combien de clients à Paris, combien à Lyon, combien à Marseille…<br><br>Pour cela, SQL doit d’abord regrouper les clients qui habitent dans la même ville, puis les compter.<br><br>"+fnSpot("C’est le rôle de <code>GROUP BY</code> : une clause qui permet de regrouper les lignes ayant la même valeur dans une ou plusieurs colonnes."),
+    studio:{problem:{title:"<code>GROUP BY</code> regroupe les lignes qui ont la même valeur.",
+      body:`<div class="pt-lead">
+        <p>Le rôle principal de <code>GROUP BY</code> est de créer des groupes de lignes qui partagent les mêmes valeurs dans les colonnes spécifiées.</p>
+        <p>Par exemple :</p>
+        <div class="pt-syntax"><pre class="cw-syntax">GROUP BY ville</pre></div>
+        <p>SQL rassemble les lignes qui ont la même ville : Paris ensemble, Lyon ensemble, Marseille ensemble…</p>
+        <p>Une fois les groupes formés, tu peux effectuer un calcul sur chaque groupe avec une fonction d’agrégation :</p>
+        <div class="gb-formula" role="list">
+          <div><code>COUNT()</code> <span>→</span> compter</div>
+          <div><code>SUM()</code> <span>→</span> additionner</div>
+          <div><code>AVG()</code> <span>→</span> calculer la moyenne</div>
+          <div><code>MIN()</code> <span>→</span> trouver le minimum</div>
+          <div><code>MAX()</code> <span>→</span> trouver le maximum</div>
+        </div>
+        <div class="gb-confuse">
+          <p class="pt-syntax-h">À ne pas confondre</p>
+          <div class="memory-rule">
+            <div class="memory-b"><b>GROUP BY</b><span>regroupe les lignes</span></div>
+            <div class="memory-a"><b>ORDER BY</b><span>trie les lignes</span></div>
+          </div>
+        </div>
+      </div>`},
     why:{title:"Comment <code>GROUP BY</code> transforme les données ?"},
     viz:"groupby",
     reflex:{a:{k:"COUNT(*)",t:"un total pour toute la table"},
-      b:{k:"GROUP BY",t:"un calcul pour chaque groupe"},
-      note:"<code>GROUP BY ville</code> signifie : rassemble les lignes qui ont la même ville, puis effectue le calcul sur chaque groupe."}},
+      b:{k:"GROUP BY colonne",t:"un groupe par valeur"},
+      c:{k:"COUNT(*) + GROUP BY",t:"un total pour chaque groupe"},
+      extra:`<div class="nf-read gb-savoir">
+        <b>À savoir</b>
+        <p><code>GROUP BY</code> peut s’utiliser avec <code>COUNT()</code> pour compter chaque groupe, mais aussi avec d’autres fonctions d’agrégation comme <code>SUM()</code>, <code>AVG()</code>, <code>MIN()</code> ou <code>MAX()</code>.</p>
+      </div>`}},
   anatomie:[{tok:"SELECT ville, COUNT(*)",txt:"Affiche la ville et le nombre de clients dans son groupe."},{tok:"FROM clients",txt:"Les données viennent de la table <code>clients</code>."},{tok:"GROUP BY ville",txt:"Rassemble les lignes qui ont la même ville."}],
+  anatFollowTeste:true,
+  anatomieVariants:[
+    {k:"count",label:"COUNT()",lines:[
+      {tok:"SELECT ville, COUNT(*)",txt:"Affiche la ville et le nombre de clients de son groupe."},
+      {tok:"FROM clients",txt:"Les données viennent de la table <code>clients</code>."},
+      {tok:"GROUP BY ville",txt:"Une ville = un groupe = une ligne de résultat."}
+    ]},
+    {k:"where",label:"WHERE + GROUP BY",lines:[
+      {tok:"SELECT ville, COUNT(*)",txt:"Affiche la ville et le nombre de clients restants dans son groupe."},
+      {tok:"FROM clients",txt:"Les données viennent de la table <code>clients</code>."},
+      {tok:"WHERE age >= 30",txt:"SQL filtre d’abord les lignes : seuls les clients de 30 ans et plus restent."},
+      {tok:"GROUP BY ville",txt:"Ensuite seulement, il regroupe ce qui reste par ville."}
+    ]},
+    {k:"multi",label:"GROUP BY ville, age",lines:[
+      {tok:"SELECT ville, age, COUNT(*)",txt:"Affiche la ville, l’âge et le nombre de clients de cette combinaison."},
+      {tok:"FROM clients",txt:"Les données viennent de la table <code>clients</code>."},
+      {tok:"GROUP BY ville, age",txt:"Chaque couple ville + âge forme son propre groupe."}
+    ]},
+    {k:"sum",label:"SUM()",lines:[
+      {tok:"SELECT produit_id, SUM(quantite)",txt:"Affiche le produit et la quantité totale commandée."},
+      {tok:"FROM commandes",txt:"Cette fois, on lit la table <code>commandes</code>."},
+      {tok:"GROUP BY produit_id",txt:"Un groupe par produit, puis <code>SUM()</code> additionne les quantités."}
+    ]},
+    {k:"avg",label:"AVG()",lines:[
+      {tok:"SELECT ville, AVG(age)",txt:"Affiche la ville et l’âge moyen de ses clients."},
+      {tok:"FROM clients",txt:"Les données viennent de la table <code>clients</code>."},
+      {tok:"GROUP BY ville",txt:"Un groupe par ville, puis <code>AVG()</code> calcule la moyenne."}
+    ]},
+    {k:"order",label:"ORDER BY",lines:[
+      {tok:"SELECT ville, COUNT(*) AS total",txt:"Compte les clients par ville, sous le nom <code>total</code>."},
+      {tok:"FROM clients",txt:"Les données viennent de la table <code>clients</code>."},
+      {tok:"GROUP BY ville",txt:"Forme d’abord les groupes."},
+      {tok:"ORDER BY total DESC",txt:"Trie ensuite le résultat : les villes les plus nombreuses en premier."}
+    ]}
+  ],
   exemple:"SELECT ville, COUNT(*) FROM clients GROUP BY ville;",
-  attendu:"6 lignes : Paris — 4, Lyon — 2, Marseille — 1, Bordeaux — 1, Toulouse — 1, Nantes — 1.",
+  attendu:"6 lignes : Paris — 4, Lyon — 2, Marseille — 1, Mobile — 1, Toulouse — 1, Nantes — 1.",
   retenir:"<code>GROUP BY</code> sert à effectuer un calcul par groupe. Dans <code>SELECT ville, COUNT(*) FROM clients GROUP BY ville</code>, SQL rassemble les clients qui habitent dans la même ville, puis les compte. Résultat : une ligne par ville, avec le nombre de clients correspondant.",
-  piege:{t:"Afficher une colonne qui ne représente pas le groupe",p:"Paris a 4 clients : Sophie, les deux Nathan et Léa. Avec <code>GROUP BY ville</code>, SQL doit renvoyer <b>une seule ligne</b> pour Paris. Il peut afficher <code>ville</code> (la même pour les 4) et <code>COUNT(*)</code> (le total du groupe). Mais <code>nom</code> ? Plusieurs lignes différentes : SQL ne peut pas choisir.<br><br>👉 Dans SELECT : la colonne du <code>GROUP BY</code>, et le calcul.<br>👉 Pas une colonne qui change à l’intérieur du groupe.",
-    sql:"SELECT nom, ville, COUNT(*)\nFROM clients\nGROUP BY ville;"},
+  piege:{t:"Afficher une colonne qui n’est pas dans le <code>GROUP BY</code>",
+    p:"Avec :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">GROUP BY ville</pre></div><br><br>SQL regroupe tous les clients qui habitent dans la même ville.<br><br>Pour Paris, il forme donc un groupe avec :<br><br><div class=\"gb-paris-names\">Sophie · Nathan · Léa · Nathan</div><br><br>Puis SQL doit afficher une seule ligne pour ce groupe.<br><br>Il peut afficher :<br><br><ul class=\"pt-lead-list\"><li><code>ville</code> → Paris : tous les clients du groupe ont la même ville.</li><li><code>COUNT(*)</code> → 4 : il peut compter les 4 clients du groupe.</li></ul><br><br>Mais il ne peut pas afficher simplement <code>nom</code> :<br>quel nom choisir parmi Sophie, Nathan et Léa ?<br><br>👉 C’est pour cela que <code>nom</code> ne doit pas être dans le <code>SELECT</code> si tu regroupes uniquement par ville.<br><br><b>❌ Incorrect</b>",
+    sql:"SELECT nom, ville, COUNT(*)\nFROM clients\nGROUP BY ville;",
+    mid:"<b>✅ Correct</b>",
+    fixSql:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville;",
+    tail:`<div class="gb-piege-reflex">
+        <p class="pt-syntax-h">La règle à retenir</p>
+        <p>Quand tu utilises <code>GROUP BY</code>, les éléments affichés dans <code>SELECT</code> doivent correspondre&nbsp;:</p>
+        <ul class="gb-sel-cases">
+          <li><span>→</span> soit à ce qui sert à former les groupes</li>
+          <li><span>→</span> soit à un calcul effectué sur chaque groupe</li>
+        </ul>
+        <p class="gb-sel-caption">Par exemple :</p>
+        <figure class="gb-sel-map" aria-label="ville vient du GROUP BY, COUNT(*) est un calcul">
+          <span class="gb-sel-kw">SELECT</span>
+          <span class="gb-sel-item"><code>ville</code><i aria-hidden="true">└──</i><small>GROUP BY</small></span>
+          <span class="gb-sel-comma">,</span>
+          <span class="gb-sel-item"><code>COUNT(*)</code><i aria-hidden="true">└──</i><small>calcul</small></span>
+        </figure>
+      </div>`},
   consigne:"Compte le nombre de clients par ville. Affiche la ville et le nombre de clients correspondant.",
   solution:"SELECT ville, COUNT(*) FROM clients GROUP BY ville;",
   indice:"Tu connais déjà <code>COUNT(*)</code>. Cette fois, demande à SQL de former un groupe pour chaque valeur de la colonne <code>ville</code>.",
-  richLesson:true, earlyDemo:true,
+  richLesson:true, earlyDemo:true, testeSwitch:'cols2',
   testeVariants:[
-  {
-    "k": "liste",
-    "label": "SELECT nom, ville",
-    "sql": "SELECT nom, ville\nFROM clients;",
-    "out": "10 lignes : il faut compter ville par ville"
-  },
-  {
-    "k": "group",
-    "label": "GROUP BY",
-    "sql": "SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville;",
-    "out": "6 lignes : un total par ville"
-  },
-  {
-    "k": "rec_groups",
-    "label": "Lignes et groupes",
-    "sql": "SELECT (SELECT COUNT(*) FROM clients) AS clients, (SELECT COUNT(DISTINCT ville) FROM clients) AS villes;",
-    "out": "Dix lignes d’entrée, six groupes possibles.",
-    "expectRows": 1
-  }
-] ,
+    {k:"count",label:"COUNT()",sql:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville;",out:"1 ville = 1 groupe = 1 résultat."},
+    {k:"where",label:"WHERE + GROUP BY",sql:"SELECT ville, COUNT(*)\nFROM clients\nWHERE age >= 30\nGROUP BY ville;",out:"SQL filtre d’abord les clients, puis les regroupe par ville."},
+    {k:"multi",label:"GROUP BY ville, age",sql:"SELECT ville, age, COUNT(*)\nFROM clients\nGROUP BY ville, age;",out:"Chaque combinaison ville + âge forme son propre groupe."},
+    {k:"sum",label:"SUM()",sql:"SELECT produit_id, SUM(quantite)\nFROM commandes\nGROUP BY produit_id;",out:"La quantité totale commandée pour chaque produit."},
+    {k:"avg",label:"AVG()",sql:"SELECT ville, AVG(age)\nFROM clients\nGROUP BY ville;",out:"L’âge moyen des clients dans chaque ville."},
+    {k:"order",label:"ORDER BY",sql:"SELECT ville, COUNT(*) AS total\nFROM clients\nGROUP BY ville\nORDER BY total DESC;",out:"Les villes avec le plus de clients en premier."}
+  ],
 learningCheck:{
   "question": "Après GROUP BY ville, que représente chaque ligne du résultat ?",
   "options": [
@@ -10969,37 +10882,214 @@ learningCheck:{
 }
 },
 { id:17, titre:"HAVING", résumé:"Filtrer après regroupement",
-  situation:"Dans la table produits, chaque produit appartient à une catégorie. Tu veux ne garder que les catégories qui comptent au moins 2 produits.<br><br>Avec ce que tu connais déjà, tu peux compter les produits par catégorie :",
+  situation:"Tu veux savoir quelles catégories contiennent au moins 2 produits.<br><br>Avec ce que tu connais déjà, tu peux compter le nombre de produits dans chaque catégorie :",
   situationSql:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie;",
-  situationTail:"Tu obtiens bien les 5 catégories avec leur total. Mais Beauté, Boisson et Accessoire n’ont qu’un seul produit : pour ne garder que les groupes d’au moins 2 produits, il faut la clause <code>HAVING</code>.",
-    studio:{problem:{title:"<code>WHERE</code> filtre les lignes. <code>HAVING</code> filtre les groupes.",
-      body:""},
-    vs:{stack:true,
-        bad:{tag:"✕ Avec WHERE",sql:"SELECT categorie, COUNT(*)\nFROM produits\nWHERE COUNT(*) >= 2\nGROUP BY categorie;",out:"Échoue : COUNT n’existe pas encore au moment du WHERE",pedagogic:true,
-            code:"SELECT categorie, COUNT(*)\nFROM produits\n<span class=\"vs-line bad\">WHERE COUNT(*) >= 2</span>\nGROUP BY categorie;"},
-        good:{tag:"✓ Avec HAVING",sql:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",out:"2 lignes : Bien-être (3) et Nutrition (2)",
-            code:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\n<span class=\"vs-line good\">HAVING COUNT(*) >= 2</span>;"}},
+  situationTail:"Tu obtiens une ligne par catégorie avec son nombre de produits.<br><br>Mais il reste un problème : SQL affiche aussi les catégories qui ne contiennent qu’un seul produit.<br><br>Cette fois, tu veux garder uniquement les groupes dont le total est supérieur ou égal à 2.<br><br>"+fnSpot("C’est le rôle de <code>HAVING</code> : une clause SQL qui permet de filtrer les groupes créés par <code>GROUP BY</code>. C’est l’équivalent de <code>WHERE</code>, mais pour les résultats agrégés."),
+    studio:{problem:{title:"<code>HAVING</code> filtre les groupes créés par <code>GROUP BY</code>.",
+      body:`<div class="pt-lead">
+        <p>Lorsque tu utilises <code>GROUP BY</code>, SQL rassemble les lignes en groupes. Tu peux ensuite effectuer un calcul sur chaque groupe :</p>
+        <div class="gb-formula" role="list">
+          <div><code>COUNT()</code> <span>→</span> compter</div>
+          <div><code>SUM()</code> <span>→</span> additionner</div>
+          <div><code>AVG()</code> <span>→</span> calculer une moyenne</div>
+          <div><code>MIN()</code> <span>→</span> trouver la plus petite valeur</div>
+          <div><code>MAX()</code> <span>→</span> trouver la plus grande valeur</div>
+        </div>
+        <p><code>HAVING</code> permet ensuite de décider quels groupes doivent rester dans le résultat.</p>
+        <p>La clause se place après <code>GROUP BY</code> :</p>
+        <div class="pt-syntax"><pre class="cw-syntax">SELECT colonne, fonction_agregation
+FROM table
+GROUP BY colonne
+HAVING condition;</pre></div>
+        <p>Par exemple :</p>
+        <div class="pt-syntax"><pre class="cw-syntax">SELECT categorie, COUNT(*)
+FROM produits
+GROUP BY categorie
+HAVING COUNT(*) >= 2;</pre></div>
+        <p>On peut lire la requête ainsi :</p>
+        <div class="gb-formula" role="list">
+          <div><code>GROUP BY categorie</code> <span>→</span> forme un groupe pour chaque catégorie</div>
+          <div><code>COUNT(*)</code> <span>→</span> compte les produits de chaque groupe</div>
+          <div><code>HAVING COUNT(*) >= 2</code> <span>→</span> garde les groupes d’au moins 2 produits</div>
+        </div>
+      </div>`},
+    uses:{title:"La distinction indispensable",
+      body:`<div class="pt-lead">
+        <p>Les deux clauses permettent de filtrer, mais elles n’agissent pas au même moment.</p>
+        <div class="memory-rule hav-vs">
+          <div class="memory-where">
+            <b>WHERE</b>
+            <span>filtre les <b>lignes</b></span>
+            <small class="memory-sub">avant <code>GROUP BY</code></small>
+            <code class="hav-vs-ex">WHERE age &gt;= 30</code>
+          </div>
+          <div class="memory-having">
+            <b>HAVING</b>
+            <span>filtre les <b>groupes</b></span>
+            <small class="memory-sub">après <code>GROUP BY</code></small>
+            <code class="hav-vs-ex">HAVING COUNT(*) &gt;= 2</code>
+          </div>
+        </div>
+        <p class="hav-vs-rule"><code>WHERE</code> choisit les lignes qui vont former les groupes. <code>HAVING</code> choisit les groupes qui resteront dans le résultat.</p>
+      </div>`},
     why:{title:"Comment HAVING filtre les groupes ?"},
-    viz:"having"},
+    viz:"having",
+    or:{title:"Comment l’utiliser.",
+      body:`<div class="pt-lead fn-uses">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Filtrer selon le nombre de clients</p>
+          <p>Garder uniquement les villes qui comptent au moins 2 clients :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville, COUNT(*)
+FROM clients
+GROUP BY ville
+HAVING COUNT(*) >= 2;</pre></div>
+          <p>Résultat :</p>
+          <div class="tx-fail"><span class="is-ok">Paris<i>4</i></span><span class="is-ok">Lyon<i>2</i></span></div>
+          <p><code>GROUP BY</code> forme les groupes par ville, puis <code>HAVING</code> garde uniquement ceux dont <code>COUNT(*)</code> est supérieur ou égal à 2.</p>
+          <div class="gb-formula" role="list">
+            <div><code>= 2</code> <span>→</span> exactement 2 lignes</div>
+            <div><code>&gt; 2</code> <span>→</span> plus de 2 lignes</div>
+            <div><code>&gt;= 2</code> <span>→</span> au moins 2 lignes</div>
+          </div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">HAVING avec d’autres calculs</p>
+          <p><code>HAVING</code> peut aussi filtrer un groupe selon le résultat d’une autre fonction d’agrégation.</p>
+          <p>Garder les catégories dont le prix moyen dépasse 25&nbsp;€ :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT categorie, AVG(prix)
+FROM produits
+GROUP BY categorie
+HAVING AVG(prix) &gt; 25;</pre></div>
+          <p>Résultat :</p>
+          <div class="tx-fail"><span class="is-ok">Beauté<i>39,90</i></span></div>
+          <p>Garder les produits dont la quantité totale commandée dépasse 5 :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT produit_id, SUM(quantite)
+FROM commandes
+GROUP BY produit_id
+HAVING SUM(quantite) &gt; 5;</pre></div>
+          <p>Résultat :</p>
+          <div class="tx-fail"><span class="is-ok">1<i>10</i></span></div>
+          <p>Le produit 1 a été commandé 10 fois au total.</p>
+          <div class="gb-formula" role="list">
+            <div><code>COUNT()</code> <span>→</span> selon un nombre</div>
+            <div><code>SUM()</code> <span>→</span> selon un total</div>
+            <div><code>AVG()</code> <span>→</span> selon une moyenne</div>
+            <div><code>MIN()</code> <span>→</span> selon un minimum</div>
+            <div><code>MAX()</code> <span>→</span> selon un maximum</div>
+          </div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Combiner WHERE et HAVING</p>
+          <p><code>WHERE</code> et <code>HAVING</code> peuvent être utilisés dans la même requête : <code>WHERE</code> filtre les lignes avant le regroupement, puis <code>HAVING</code> filtre les groupes obtenus.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville, COUNT(*)
+FROM clients
+WHERE age >= 30
+GROUP BY ville
+HAVING COUNT(*) >= 2;</pre></div>
+          <ol class="hav-steps">
+            <li><code>WHERE age >= 30</code><span>→ garde uniquement les clients de 30 ans ou plus</span></li>
+            <li><code>GROUP BY ville</code><span>→ regroupe les clients restants par ville</span></li>
+            <li><code>HAVING COUNT(*) >= 2</code><span>→ garde uniquement les villes qui comptent au moins 2 clients</span></li>
+          </ol>
+          <p>Exemple : Lyon compte Lucas (28&nbsp;ans) et Hugo (52&nbsp;ans).</p>
+          <p>Après <code>WHERE age >= 30</code>, Lucas est retiré. Il ne reste donc qu’Hugo dans le groupe Lyon.</p>
+          <p>Comme <code>HAVING</code> demande au moins 2 clients, Lyon n’apparaît pas dans le résultat final.</p>
+          <p class="hav-path" role="img" aria-label="WHERE puis GROUP BY puis HAVING">
+            <code>WHERE</code><i>→</i><code>GROUP BY</code><i>→</i><code>HAVING</code>
+          </p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Plusieurs conditions</p>
+          <p>Comme avec <code>WHERE</code>, plusieurs conditions peuvent être combinées avec <code>AND</code> ou <code>OR</code>.</p>
+          <p>Garder les villes qui ont au moins 2 clients <b>et</b> un âge moyen supérieur à 30&nbsp;ans :</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville, COUNT(*), AVG(age)
+FROM clients
+GROUP BY ville
+HAVING COUNT(*) >= 2
+   AND AVG(age) &gt; 30;</pre></div>
+          <p>Résultat :</p>
+          <div class="tx-fail"><span class="is-ok">Paris<i>4 · 33,25 ans</i></span><span class="is-ok">Lyon<i>2 · 40 ans</i></span></div>
+          <p>SQL garde uniquement les villes qui respectent les deux conditions.</p>
+        </div>
+      </div>`},
+    reflex:{a:{k:"WHERE",t:"→ filtre les <b>lignes</b> avant le regroupement"},
+      b:{k:"GROUP BY",t:"→ forme les <b>groupes</b>"},
+      c:{k:"HAVING",t:"→ filtre les <b>groupes</b> après le regroupement"},
+      extra:`${havingChainHtml()}
+        <div class="nf-read gb-savoir">
+          <b>Bon à savoir</b>
+          <p>On associe surtout <code>HAVING</code> à <code>GROUP BY</code>. Sans <code>GROUP BY</code>, tout le tableau est vu comme un seul groupe. Le réflexe à garder : <code>HAVING</code> filtre les groupes après <code>GROUP BY</code>.</p>
+        </div>`}},
   anatomie:[{tok:"SELECT categorie, COUNT(*)",txt:"Affiche la catégorie et le nombre de produits."},
     {tok:"FROM produits",txt:"Lit la table produits."},
     {tok:"GROUP BY categorie",txt:"Regroupe les lignes par catégorie."},
     {tok:"HAVING COUNT(*) >= 2",txt:"<b>Ne garde que</b> les catégories ayant au moins deux produits."}],
+  anatFollowTeste:true,
+  anatomieVariants:[
+    {k:"count",label:"COUNT()",lines:[
+      {tok:"SELECT ville, COUNT(*)",txt:"Affiche la ville et le nombre de clients de son groupe."},
+      {tok:"FROM clients",txt:"Les données viennent de la table <code>clients</code>."},
+      {tok:"GROUP BY ville",txt:"Forme un groupe par ville."},
+      {tok:"HAVING COUNT(*) >= 2",txt:"<b>Ne garde que</b> les villes d’au moins 2 clients."}
+    ]},
+    {k:"avg",label:"AVG()",lines:[
+      {tok:"SELECT categorie, AVG(prix)",txt:"Affiche la catégorie et le prix moyen de ses produits."},
+      {tok:"FROM produits",txt:"Les données viennent de la table <code>produits</code>."},
+      {tok:"GROUP BY categorie",txt:"Forme un groupe par catégorie."},
+      {tok:"HAVING AVG(prix) > 25",txt:"<b>Ne garde que</b> les groupes dont la moyenne dépasse 25&nbsp;€."}
+    ]},
+    {k:"sum",label:"SUM()",lines:[
+      {tok:"SELECT produit_id, SUM(quantite)",txt:"Affiche le produit et la quantité totale commandée."},
+      {tok:"FROM commandes",txt:"Les données viennent de la table <code>commandes</code>."},
+      {tok:"GROUP BY produit_id",txt:"Forme un groupe par produit."},
+      {tok:"HAVING SUM(quantite) > 5",txt:"<b>Ne garde que</b> les produits commandés plus de 5 fois."}
+    ]},
+    {k:"combo",label:"WHERE + HAVING",lines:[
+      {tok:"SELECT ville, COUNT(*)",txt:"Affiche la ville et le nombre de clients restants."},
+      {tok:"FROM clients",txt:"Les données viennent de la table <code>clients</code>."},
+      {tok:"WHERE age >= 30",txt:"Filtre d’abord les lignes : seuls les clients de 30 ans et plus restent."},
+      {tok:"GROUP BY ville",txt:"Regroupe ensuite ce qui reste par ville."},
+      {tok:"HAVING COUNT(*) >= 2",txt:"Garde les villes qui ont encore au moins 2 clients."}
+    ]},
+    {k:"and",label:"AND",lines:[
+      {tok:"SELECT ville, COUNT(*), AVG(age)",txt:"Affiche la ville, le nombre de clients et l’âge moyen."},
+      {tok:"FROM clients",txt:"Les données viennent de la table <code>clients</code>."},
+      {tok:"GROUP BY ville",txt:"Forme un groupe par ville."},
+      {tok:"HAVING COUNT(*) >= 2 AND AVG(age) > 30",txt:"Garde les villes qui respectent <b>les deux</b> conditions."}
+    ]}
+  ],
   pipeline:[],
   richLesson:true,
   earlyDemo:true,
   orderRappel:true,
   exemple:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",
   testeVariants:[
-    {k:'where',label:'WHERE + COUNT',tone:'bad',
-     sql:"SELECT categorie, COUNT(*)\nFROM produits\nWHERE COUNT(*) >= 2\nGROUP BY categorie;",
-     out:"Échoue : COUNT n’existe pas encore au moment du WHERE"},
-    {k:'having',label:'HAVING + COUNT',tone:'good',
-     sql:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",
-     out:"2 lignes : Bien-être (3) et Nutrition (2)"}
+    {k:'count',label:'COUNT()',
+     sql:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville\nHAVING COUNT(*) >= 2;",
+     out:"Paris 4, Lyon 2."},
+    {k:'avg',label:'AVG()',
+     sql:"SELECT categorie, AVG(prix)\nFROM produits\nGROUP BY categorie\nHAVING AVG(prix) > 25;",
+     out:"1 ligne : Beauté (39,90)."},
+    {k:'sum',label:'SUM()',
+     sql:"SELECT produit_id, SUM(quantite)\nFROM commandes\nGROUP BY produit_id\nHAVING SUM(quantite) > 5;",
+     out:"1 ligne : le produit 1, commandé 10 fois."},
+    {k:'combo',label:'WHERE + HAVING',
+     sql:"SELECT ville, COUNT(*)\nFROM clients\nWHERE age >= 30\nGROUP BY ville\nHAVING COUNT(*) >= 2;",
+     out:"Paris reste : 4 clients de 30 ans ou plus."},
+    {k:'and',label:'AND',
+     sql:"SELECT ville, COUNT(*), AVG(age)\nFROM clients\nGROUP BY ville\nHAVING COUNT(*) >= 2\n   AND AVG(age) > 30;",
+     out:"Paris et Lyon : au moins 2 clients et un âge moyen supérieur à 30."}
   ],
-  retenir:"<code>WHERE</code> filtre les lignes avant le regroupement. <code>HAVING</code> filtre les groupes après, et peut utiliser <code>COUNT</code>, <code>SUM</code>, <code>AVG</code>…",
-  piege:{t:"Mettre un agrégat dans WHERE",p:"<code>WHERE</code> s’applique avant le <code>GROUP BY</code> : <code>COUNT(*)</code>, <code>SUM()</code> ou <code>AVG()</code> n’existent pas encore. Place la condition sur l’agrégat dans <code>HAVING</code>."},
+  retenir:"WHERE → filtre les lignes avant le regroupement. GROUP BY → forme les groupes. HAVING → filtre les groupes après le regroupement.",
+  piege:{t:"Filtrer un <code>COUNT()</code> avec <code>WHERE</code>",
+    p:"<b>❌ Incorrect</b>",
+    sql:"SELECT ville, COUNT(*)\nFROM clients\nWHERE COUNT(*) >= 2\nGROUP BY ville;",
+    mid:`<p>Le problème vient de l’ordre des opérations.</p>
+<p>Lorsque <code>WHERE</code> intervient, les clients n’ont pas encore été regroupés par ville. SQL ne dispose donc pas encore du résultat de <code>COUNT(*)</code> par ville.</p>
+<p>Il faut d’abord créer les groupes avec <code>GROUP BY</code>, puis filtrer ces groupes avec <code>HAVING</code>.</p>
+<p class="piege-ok"><b>✅ Correct</b></p>`,
+    fixSql:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville\nHAVING COUNT(*) >= 2;",
+    tail:"<code>HAVING</code> peut filtrer selon le résultat du calcul effectué sur chaque groupe."},
   attendu:"<b>2 lignes</b> : Bien-être (3 produits) et Nutrition (2 produits).",
   consigne:"Trouve les catégories qui contiennent <b>au moins 2 produits</b> et affiche, pour chacune, son nom et le nombre de produits.",
   solution:"SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 2;",
@@ -11012,7 +11102,7 @@ learningCheck:{
     "COUNT est interdit dans SQLite"
   ],
   "answer": 1,
-  "explanation": "Cette erreur est volontaire. WHERE filtre les lignes avant regroupement ; HAVING filtre ensuite les groupes."
+  "explanation": "WHERE filtre les lignes avant qu’elles soient regroupées : COUNT(*) n’existe pas encore. HAVING filtre ensuite les groupes."
 }
 },
 { id:76, titre:"GROUP_CONCAT", résumé:"Rassembler les textes d’un groupe",
@@ -15975,7 +16065,7 @@ const CHALLENGES=[
  {id:'c2',apres:16,titre:"Villes actives",niv:'f',q:"Quelles villes ont au moins 2 clients ? Affiche ville et effectif.",
   sol:"SELECT ville, COUNT(*) AS nb FROM clients GROUP BY ville HAVING COUNT(*) >= 2;",
   indice:"GROUP BY ville, puis HAVING COUNT(*) >= 2."},
- {id:'c3',apres:15,titre:"Panier moyen",niv:'f',q:"Quelle est la quantité moyenne commandée, toutes commandes confondues ?",
+ {id:'c3',apres:14,titre:"Panier moyen",niv:'f',q:"Quelle est la quantité moyenne commandée, toutes commandes confondues ?",
   sol:"SELECT AVG(quantite) FROM commandes;",
   indice:"Une seule agrégation sur la table commandes."},
  {id:'c4',apres:19,titre:"CA par produit",niv:'d',q:"Pour chaque produit, calcule le CA (quantité × prix). Affiche le nom et le CA, du plus élevé au plus faible.",
@@ -16120,20 +16210,12 @@ const CARTES={
  54:{k:"CAST",t:"Passer d’un type à un autre",s:"CAST(expression AS type)",
     m:"<code>CAST(expression AS type)</code> convertit explicitement une valeur. Convertir change le type ; formater change la présentation. Une conversion peut échouer. La syntaxe peut varier selon le SGBD."},
  14:{k:"COUNT",t:"Compter les lignes",s:"SELECT COUNT(*) FROM table;",
-    m:"<code>COUNT(*)</code> compte toutes les lignes. <code>COUNT(colonne)</code> ignore les valeurs <code>NULL</code>."},
- 15:{k:"AVG",t:"La moyenne d’une colonne",s:"SELECT AVG(prix) FROM produits;",
-    m:"<code>AVG</code> additionne les valeurs, puis divise par leur nombre. Ici 191,90 ÷ 8 = 23,9875."},
- 30:{k:"SUM",t:"La somme d’une colonne",s:"SELECT SUM(prix) FROM produits;",
-    m:"<code>SUM</code> additionne les valeurs d’une colonne. Les 8 prix deviennent une seule valeur : 191,90."},
- 31:{k:"MIN",t:"La plus petite valeur",s:"SELECT MIN(prix) FROM produits;",
-    m:"<code>MIN</code> renvoie la plus petite valeur. Pas le nom du produit : seulement le prix, ici 12,50."},
- 32:{k:"MAX",t:"La plus grande valeur",s:"SELECT MAX(prix) FROM produits;",
-    m:"<code>MAX</code> renvoie la plus grande valeur. <code>SELECT nom, MAX(prix)</code> mélange une ligne et un calcul : à éviter."},
+    m:"<code>COUNT(*)</code> compte toutes les lignes. <code>COUNT(colonne)</code> ignore les <code>NULL</code>. <code>COUNT(DISTINCT colonne)</code> compte les valeurs différentes."},
  16:{k:"GROUP BY",t:"Un calcul par groupe",s:"SELECT ville, COUNT(*) FROM clients GROUP BY ville;",
     m:"<code>GROUP BY</code> rassemble les lignes qui partagent la même valeur, puis permet de calculer sur chaque groupe."},
  17:{k:"HAVING",t:"Filtrer les groupes",s:"GROUP BY …\nHAVING …",
     run:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",
-    m:"Ordre d’exécution : FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY. <b>WHERE filtre des lignes, HAVING filtre des groupes.</b>"},
+    m:"<code>WHERE</code> choisit les lignes à regrouper. <code>HAVING</code> choisit les groupes à garder."},
  76:{k:"GROUP_CONCAT",t:"Agréger du texte",s:"GROUP_CONCAT(nom, ', ')",
     m:"Dans SQLite, <code>GROUP_CONCAT</code> assemble les textes non nuls d’un groupe. Le séparateur est le second argument. D’autres moteurs utilisent notamment <code>STRING_AGG</code>."},
  34:{k:"PRIMARY KEY",t:"Identifier une ligne",s:"SELECT id, nom FROM clients;",
@@ -16224,8 +16306,6 @@ const QCM={
    {q:"<code>NOT (ville='Paris' AND age>30)</code> inverse :",o:["Seulement ville='Paris'","Seulement age>30","Toute la condition entre parenthèses"],b:2,e:"Les parenthèses délimitent ce qui est inversé. Sans elles, <code>NOT</code> ne porterait que sur la première condition."}],
  24:[{q:"<code>ORDER BY categorie, prix</code> trie d'abord par :",o:["prix","categorie","les deux en même temps"],b:1,e:"La première colonne trie. <code>prix</code> ne sert qu'à départager les produits d'une même catégorie."},
    {q:"<code>ORDER BY categorie, prix DESC</code> met en décroissant :",o:["categorie et prix","seulement prix","seulement categorie"],b:1,e:"<code>DESC</code> ne porte que sur la colonne juste avant lui. <code>categorie</code> reste croissante."}],
- 25:[{q:"<code>COUNT(DISTINCT ville)</code> compte :",o:["Toutes les lignes","Les villes différentes","La première ville"],b:1,e:"<code>DISTINCT</code> retire les doublons avant de compter : trois clients à Paris ne comptent qu'une fois."},
-   {q:"Si trois clients habitent Paris et deux Lyon, <code>COUNT(DISTINCT ville)</code> renvoie :",o:["5","2","3"],b:1,e:"Deux villes différentes : Paris et Lyon. <code>COUNT(*)</code> aurait renvoyé 5 (les lignes)."}],
  4:[{q:"<code>WHERE</code> filtre :",o:["Les colonnes affichées","Les lignes retenues","Les tables interrogées"],b:1,e:"<code>SELECT</code> choisit les colonnes. <code>WHERE</code> choisit quelles lignes restent dans le résultat."},
    {q:"Comment comparer une colonne à du texte ?",o:['ville = "Paris"',"ville = 'Paris'","ville = Paris"],b:1,e:"Guillemets simples : <code>ville = 'Paris'</code>. Sans eux, SQL peut croire que Paris est une colonne."}],
  5:[{q:"Avec <code>WHERE prix &gt;= 25</code>, un produit à exactement 25 € est-il gardé ?",o:["Oui, car &gt;= inclut 25","Non, car il faut dépasser 25","Non, car 25 doit être entre guillemets"],b:0,e:"<code>&gt;=</code> signifie supérieur ou égal à. Un prix de 25 € est donc inclus."},
@@ -16268,15 +16348,8 @@ const QCM={
    {q:"Laquelle de ces conversions peut poser problème ?",o:["CAST('50' AS INTEGER)","CAST('bonjour' AS INTEGER)"],b:1,e:"<code>'bonjour'</code> ne représente pas un nombre."},
    {q:"Quelle est la différence entre conversion explicite et implicite ?",o:["Il n’y en a aucune","La conversion explicite est écrite dans la requête, l’implicite est réalisée automatiquement par le SGBD","La conversion implicite utilise toujours CAST()","La conversion explicite ne fonctionne qu’avec les dates"],b:1,e:"<code>CAST</code> rend l’intention visible. Sans lui, le SGBD décide tout seul, et les règles varient."}],
  14:[{q:"Que renvoie <code>SELECT COUNT(*) FROM clients;</code> ?",o:["Les 10 clients","Une seule valeur : 10","10 colonnes"],b:1,e:"<code>COUNT(*)</code> compte les lignes et renvoie leur nombre."},
-   {q:"La table contient 10 clients, dont 2 avec un email <code>NULL</code>. Que renvoie <code>COUNT(email)</code> ?",o:["10","8","2"],b:1,e:"<code>COUNT(email)</code> ignore les <code>NULL</code> : 10 - 2 = 8."}],
- 15:[{q:"Que renvoie <code>SELECT AVG(prix) FROM produits;</code> ?",o:["Le prix de chaque produit","Le prix moyen des produits","Le produit le plus cher"],b:1,e:"<code>AVG</code> additionne les prix, puis divise par 8."},
-   {q:"Comment <code>AVG</code> obtient 23,9875 ?",o:["Il compte les produits","Il additionne les 8 prix, puis divise par 8","Il garde le prix du milieu"],b:1,e:"191,90 ÷ 8 = 23,9875. C’est la moyenne, pas un comptage."}],
- 30:[{q:"Que fait <code>SUM(prix)</code> ?",o:["Il compte les produits","Il additionne les prix","Il garde le prix le plus élevé"],b:1,e:"<code>SUM</code> additionne les valeurs de la colonne."},
-   {q:"<code>SUM(prix)</code> sur le catalogue, c’est :",o:["Le chiffre d’affaires","La somme des prix affichés","Le panier moyen"],b:1,e:"Les prix du catalogue, pas les ventes. Un CA multiplie chaque commande par sa quantité."}],
- 31:[{q:"Que renvoie <code>SELECT MIN(prix) FROM produits;</code> ?",o:["Le produit le moins cher, avec son nom","Le plus petit prix","Les 8 prix triés"],b:1,e:"<code>MIN</code> renvoie une valeur, pas la ligne du produit."},
-   {q:"Pour afficher aussi le nom du produit le moins cher :",o:["MIN(nom), MIN(prix)","ORDER BY prix ASC LIMIT 1","WHERE prix = MIN(prix)"],b:1,e:"<code>MIN(prix)</code> ne donne pas le nom. Un tri puis <code>LIMIT 1</code> garde la ligne entière."}],
- 32:[{q:"Quelle fonction donne le prix le plus élevé ?",o:["MAX(prix)","AVG(prix)","SUM(prix)"],b:0,e:"<code>MAX(prix)</code> renvoie la plus grande valeur de la colonne <code>prix</code>."},
-   {q:"<code>SELECT nom, MAX(prix) FROM produits;</code> :",o:["Affiche le produit le plus cher","Mélange une ligne et un calcul sur plusieurs lignes","Trie le catalogue"],b:1,e:"SQL refuse en général ce mélange. Pour le produit le plus cher : <code>ORDER BY prix DESC LIMIT 1</code>."}],
+   {q:"La table contient 10 clients, dont 2 avec un email <code>NULL</code>. Que renvoie <code>COUNT(email)</code> ?",o:["10","8","2"],b:1,e:"<code>COUNT(email)</code> ignore les <code>NULL</code> : 10 - 2 = 8."},
+   {q:"<code>COUNT(DISTINCT ville)</code> compte :",o:["Toutes les lignes","Les villes différentes","La première ville"],b:1,e:"<code>DISTINCT</code> retire les doublons avant de compter : trois clients à Paris ne comptent qu’une fois."}],
  16:[{q:"Que fait <code>GROUP BY ville</code> ?",o:["Il trie les clients par ville","Il rassemble les lignes qui ont la même ville","Il garde une seule ville"],b:1,e:"<code>GROUP BY ville</code> forme un groupe pour chaque ville différente."},
   {q:"Il y a 10 clients répartis dans 6 villes. Combien de lignes renvoie <code>SELECT ville, COUNT(*) FROM clients GROUP BY ville;</code> ?",o:["10 lignes","1 ligne","6 lignes"],b:2,e:"Le résultat contient une ligne par groupe. Avec 6 villes différentes, il y a donc 6 lignes."}],
  17:[{q:"<code>WHERE COUNT(*) >= 2</code> :",o:["Fonctionne correctement","Échoue : les agrégats ne sont pas disponibles au moment du WHERE","Renvoie un résultat vide"],b:1,e:"Quand WHERE s’exécute, les groupes n’existent pas encore. C’est le rôle de HAVING."},
@@ -19581,10 +19654,11 @@ function revealBravoCard(){
 function bravoRecapHtml(l){
   let body = '';
   if(l.id === 17){
-    body = `<div class="memory-rule">
-      <div class="memory-where"><b>WHERE</b><span>filtre les <b>lignes</b><br>avant le regroupement</span></div>
-      <div class="memory-having"><b>HAVING</b><span>filtre les <b>groupes</b><br>après le regroupement</span></div>
-    </div>`;
+    body = `<div class="memory-rule is-trio">
+      <div class="memory-a"><b>WHERE</b><span>→ filtre les <b>lignes</b> avant le regroupement</span></div>
+      <div class="memory-b"><b>GROUP BY</b><span>→ forme les <b>groupes</b></span></div>
+      <div class="memory-c"><b>HAVING</b><span>→ filtre les <b>groupes</b> après le regroupement</span></div>
+    </div>${havingChainHtml()}`;
   } else if(l.solution){
     body = `<pre class="bravo-recap-sql">${highlight(l.solution)}</pre>`;
   } else if(l.exemple){
@@ -19681,6 +19755,11 @@ function anatBlock(l,opts){
    requête à onglets (Page 1/2/3…) déjà pilotés par le Teste juste au-dessus
    — un seul jeu d'onglets en haut plutôt que deux jeux redondants, et le
    sous-titre du bouton rappelle quel onglet est actif même repliée. */
+function anatRevealMetaLabel(label){
+  /* Dans la pastille, GROUP BY / ORDER BY restent collés : un titre long
+     passe alors sur deux lignes sans isoler BY tout seul. */
+  return String(label||'').replace(/\b(GROUP|ORDER|PARTITION) BY\b/g,'$1\u00a0BY');
+}
 function anatSections(l){
   if(l&&l.anatomieList&&l.anatomieList.length){
     /* Plusieurs requêtes expliquées : on les replie derrière un seul bouton
@@ -19702,7 +19781,7 @@ function anatSections(l){
   if(collapsible||followTeste){
     const variants=l.anatomieVariants;
     const meta=variants&&variants[0]&&variants[0].label;
-    return `<button type="button" class="sect-label anat-reveal" aria-expanded="false" aria-controls="anat-panel-main" onclick="toggleAnatReveal(this)"><i>◆</i><span class="anat-reveal-copy">Voir la requête expliquée</span>${meta?`<small class="anat-reveal-meta">${esc(meta)}</small>`:''}<span class="anat-reveal-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></button><div class="anat-panel" id="anat-panel-main" hidden>${anat}</div>`;
+    return `<button type="button" class="sect-label anat-reveal" aria-expanded="false" aria-controls="anat-panel-main" onclick="toggleAnatReveal(this)"><i>◆</i><span class="anat-reveal-copy">Voir la requête expliquée</span>${meta?`<small class="anat-reveal-meta">${esc(anatRevealMetaLabel(meta))}</small>`:''}<span class="anat-reveal-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></button><div class="anat-panel" id="anat-panel-main" hidden>${anat}</div>`;
   }
   return `<div class="sect-label"><i>◆</i><span>La requête expliquée</span></div>${anat}`;
 }
@@ -19727,7 +19806,7 @@ function paintAnatVariant(wrap, variants, i){
   if(btn&&btn.classList.contains('anat-reveal')){
     const meta=btn.querySelector('.anat-reveal-meta');
     if(meta){
-      const next=v.label||'';
+      const next=anatRevealMetaLabel(v.label||'');
       if(meta.textContent!==next){
         meta.textContent=next;
         if(btn.getAttribute('aria-expanded')!=='true'&&!prefersReduceMotion()){
@@ -19915,12 +19994,16 @@ function renderVs(vs){
 }
 function renderReflex(r){
   if(!r)return '';
-  const card=(cls,k,t)=>`<div class="${cls}"><b>${k}</b><span>${t}</span></div>`;
+  const card=(cls,item)=>{
+    if(!item)return '';
+    const sub=item.s?`<small class="memory-sub">${item.s}</small>`:'';
+    return `<div class="${cls}"><b>${item.k}</b><span>${item.t}</span>${sub}</div>`;
+  };
   const note=r.note?`<p class="agg-reflex" style="margin-top:14px">${r.note}</p>`:'';
   const extra=r.extra||'';
   /* Trois règles ne tiennent pas sur la grille à deux colonnes : elles
      s'empilent, une par ligne. */
-  const cards=(r.a&&r.b)?`<div class="memory-rule${r.c?' is-trio':''}">${card('memory-a',r.a.k,r.a.t)}${card('memory-b',r.b.k,r.b.t)}${r.c?card('memory-c',r.c.k,r.c.t):''}</div>`:'';
+  const cards=(r.a&&r.b)?`<div class="memory-rule${r.c?' is-trio':''}">${card('memory-a',r.a)}${card('memory-b',r.b)}${r.c?card('memory-c',r.c):''}</div>`:'';
   return `${cards}${note}${extra}`;
 }
 const BOOKMARK_SVG='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 3.2h12A1.8 1.8 0 0 1 19.8 5v16.2l-7.8-4.2-7.8 4.2V5A1.8 1.8 0 0 1 6 3.2z"/></svg>';
@@ -19928,11 +20011,11 @@ function retenirNoteBtn(){
   return `<button type="button" class="coda-note" onclick="noteFromRetenir()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ajouter dans notes</button>`;
 }
 function havingReflexHtml(){
-  return `<div class="memory-rule">
-      <div class="memory-where"><b>WHERE</b><span>filtre les <b>lignes</b><br>avant le regroupement</span></div>
-      <div class="memory-having"><b>HAVING</b><span>filtre les <b>groupes</b><br>après le regroupement</span></div>
-    </div>
-    <div class="agg-reflex">Si ta condition contient une fonction d’agrégation comme&nbsp;:<ul class="agg-list"><li><code>COUNT()</code></li><li><code>SUM()</code></li><li><code>AVG()</code></li><li><code>MIN()</code></li><li><code>MAX()</code></li></ul><p class="agg-cta">👉 utilise <code>HAVING</code>.</p></div>`;
+  return `<div class="memory-rule is-trio">
+      <div class="memory-a"><b>WHERE</b><span>→ filtre les <b>lignes</b> avant le regroupement</span></div>
+      <div class="memory-b"><b>GROUP BY</b><span>→ forme les <b>groupes</b></span></div>
+      <div class="memory-c"><b>HAVING</b><span>→ filtre les <b>groupes</b> après le regroupement</span></div>
+    </div>${havingChainHtml()}`;
 }
 function lessonReflexHtml(l){
   if(!l||l.noReflex) return '';
@@ -20168,26 +20251,26 @@ function stripNoteHtml(s){
 }
 function lessonReflexText(l){
   if(!l) return '';
-  if(l.orderRappel){
-    return [
-      'WHERE s’applique avant le GROUP BY : il filtre les lignes individuelles, pas les résultats agrégés.',
-      'Donc pas de COUNT(*), SUM(), AVG(), etc. dans WHERE.',
-      'HAVING s’applique après le GROUP BY : il filtre les groupes formés et peut utiliser des agrégats (COUNT(*), SUM(), AVG(), etc.).',
-      'En résumé : SELECT s’écrit en premier, mais s’exécute presque en dernier.'
-    ].join('\n\n');
-  }
   const r=l.studio&&l.studio.reflex;
   if(r){
+    const line=item=>item?`${item.k} — ${stripNoteHtml(item.t)}${item.s?'\n'+stripNoteHtml(item.s):''}`:'';
     return [
-      r.a?`${r.a.k} — ${stripNoteHtml(r.a.t)}`:'',
-      r.b?`${r.b.k} — ${stripNoteHtml(r.b.t)}`:'',
-      r.c?`${r.c.k} — ${stripNoteHtml(r.c.t)}`:'',
+      line(r.a),
+      line(r.b),
+      line(r.c),
       r.note?stripNoteHtml(r.note):'',
       r.extra?stripNoteHtml(r.extra):''
     ].filter(Boolean).join('\n\n');
   }
+  if(l.orderRappel){
+    return [
+      'WHERE choisit les lignes à regrouper.',
+      'HAVING choisit les groupes à garder.',
+      'En résumé : SELECT s’écrit en premier, mais s’exécute presque en dernier.'
+    ].join('\n\n');
+  }
   if(l.id===17){
-    return 'WHERE filtre les lignes avant le regroupement. HAVING filtre les groupes après, et peut utiliser COUNT, SUM, AVG…';
+    return 'WHERE choisit les lignes à regrouper. HAVING choisit les groupes à garder.';
   }
   return stripNoteHtml(l.retenir||'');
 }
@@ -20327,7 +20410,7 @@ function renderVizShell(key){
   const cfg=SQL_VIZ[key];
     if(!cfg)return '';
   const p0=cfg.phases[0];
-  const stepper=`<div class="join-stepper" role="tablist" aria-label="Étapes de l’animation">${cfg.phases.map((p,i)=>`<button type="button" class="join-step" data-step="${i}" role="tab" aria-selected="${i===0?'true':'false'}" tabindex="${i===0?'0':'-1'}" onclick="jumpSqlVizPhase(this,${i})" onkeydown="onJoinStepKey(event,this)"><span class="join-step-num">${i+1}</span><span class="join-step-label">${p.k}</span></button>`).join('')}</div>`;
+  const stepper=`<div class="join-stepper" role="tablist" aria-label="Étapes de l’animation">${cfg.phases.map((p,i)=>`<button type="button" class="join-step" data-step="${i}" role="tab" aria-selected="${i===0?'true':'false'}" tabindex="${i===0?'0':'-1'}" onclick="jumpSqlVizPhase(this,${i})" onkeydown="onJoinStepKey(event,this)"><span class="join-step-num">${i+1}</span><span class="join-step-label">${p.btn||p.k}</span></button>`).join('')}</div>`;
   const phaseCard=cfg.kind==='er'&&p0.sql?`<div class="join-phase-card" role="note" aria-label="Lecture de l’étape active"><div class="join-phase-head"><span class="join-phase-label">${esc(cfg.phaseLabel||'Lecture SQL')}</span></div><code class="join-phase-sql">${esc(p0.sql)}</code><p class="join-phase-read"><span class="join-phase-read-mark" aria-hidden="true">→</span><span>${p0.read||p0.d}</span></p></div>`:'';
   let stage='';
   let caption='';
@@ -20403,7 +20486,7 @@ function flowProseHtml(s,{lead=false}={}){
   const parts=String(s).split(/<br\s*\/?>\s*<br\s*\/?>/i);
   const wrap=(t,i)=>{
     if(!t)return '';
-    if(/^<(div|table|ul|ol|figure)\b/i.test(t)) return t;
+    if(/^<(div|table|ul|ol|figure|aside|section|p)\b/i.test(t)) return t;
     const cls=(lead&&i===0)?' class="why-lead"':'';
     return `<p${cls}>${t}</p>`;
   };
@@ -22726,7 +22809,7 @@ function renderStudio(l){
      qui s'en passent plantaient au rendu et ne s'ouvraient plus du tout. */
   const why=s.why||null;
   const whyExtra=(why&&why.extra)||'';
-  const viz=s.viz?renderVizShell(s.viz):(s.extra||'');
+  const viz=(s.viz?renderVizShell(s.viz):'')+(s.viz2?`${s.viz2Lead?`<p class="viz-bridge">${s.viz2Lead}</p>`:''}${renderVizShell(s.viz2)}`:'')||s.extra||'';
   const guide=s.viz?renderJoinGuide(s.viz):'';
   const whyEye=why&&why.eye!==undefined?why.eye:'Pourquoi';
   const whyH2=whyEye?`<span class="h2-eye">${whyEye}</span>`:'';
@@ -22740,6 +22823,7 @@ function renderStudio(l){
       ${s.uses.body||''}
     </div>`:'';
   const problemBody=flowProseHtml(s.problem.body);
+  const probTitle=s.problem.title?`<span class="h2-txt">${s.problem.title}</span>`:'';
   /* Leçon WHERE : le cadre définition + syntaxe se lit avant les exemples
      ✕/✓, et le texte qui les commente vient après — plutôt que le sens
      inverse utilisé par défaut ailleurs. Leçon OR : seul le cadre passe
@@ -22752,7 +22836,7 @@ function renderStudio(l){
   return `<div class="concept-page${l.id===23?' coalesce-page':''}">
     ${guide}
     <div class="concept-block">
-      <h2>${probH2}<span class="h2-txt">${s.problem.title}</span></h2>
+      <h2>${probH2}${probTitle}</h2>
       ${problemInner}
     </div>
     ${usesBlk}
@@ -22776,22 +22860,41 @@ function lessonDemoBlocks(l){
     <div class="cfs-label">Rappel · ordre d’exécution</div>
     <div class="concept-order"><code style="margin-left:8px">FROM</code><i>›</i><code>WHERE</code><i>›</i><code>GROUP BY</code><i>›</i><code class="on">HAVING</code><i>›</i><code>SELECT</code><i>›</i><code>ORDER BY</code><i style="width:10px;flex:none"></i></div>
     <div class="order-hint"><span class="order-hint-chip">Glisse<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h13M13 7l5 5-5 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
-    <div class="coda-lines">
+    ${l.id===17?`<div class="coda-lines">
         <div class="coda-line ko">
           <span class="coda-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-6.5 7.5v4.5L10 19v-6.5L4 5z"/></svg></span>
           <div class="coda-body">
-            <p><code>WHERE</code> s’applique <span class="hl">avant le GROUP BY</span> : il filtre les lignes individuelles, pas les résultats agrégés.</p>
-            <p>Donc pas de <code>COUNT(*)</code>, <code>SUM()</code>, <code>AVG()</code>, etc. dans <code>WHERE</code>.</p>
+            <p><code>WHERE</code> filtre les <span class="hl">lignes</span> avant le regroupement.</p>
+          </div>
+        </div>
+        <div class="coda-line ok">
+          <span class="coda-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 19c.4-3.2 2.8-5 6-5s5.6 1.8 6 5"/></svg></span>
+          <div class="coda-body">
+            <p><code>GROUP BY</code> forme les <span class="hl">groupes</span>.</p>
           </div>
         </div>
         <div class="coda-line ok">
           <span class="coda-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 19c.4-3.2 2.8-5 6-5s5.6 1.8 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M16.2 19c.3-2.2 1.8-3.6 3.8-4"/></svg></span>
           <div class="coda-body">
-            <p><code>HAVING</code> s’applique <span class="hl">après le GROUP BY</span> : il filtre les groupes formés et peut utiliser des agrégats (<code>COUNT(*)</code>, <code>SUM()</code>, <code>AVG()</code>, etc.).</p>
+            <p><code>HAVING</code> filtre les <span class="hl">groupes</span> après le regroupement.</p>
           </div>
         </div>
       </div>
-      <p class="coda-sub">En résumé : <code>SELECT</code> s’écrit en premier, mais s’exécute <b>presque en dernier</b>.</p>
+      ${havingChainHtml()}`:`<div class="coda-lines">
+        <div class="coda-line ko">
+          <span class="coda-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-6.5 7.5v4.5L10 19v-6.5L4 5z"/></svg></span>
+          <div class="coda-body">
+            <p><code>WHERE</code> choisit les <span class="hl">lignes à regrouper</span>.</p>
+          </div>
+        </div>
+        <div class="coda-line ok">
+          <span class="coda-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 19c.4-3.2 2.8-5 6-5s5.6 1.8 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M16.2 19c.3-2.2 1.8-3.6 3.8-4"/></svg></span>
+          <div class="coda-body">
+            <p><code>HAVING</code> choisit les <span class="hl">groupes à garder</span>.</p>
+          </div>
+        </div>
+      </div>
+      <p class="coda-sub">En résumé : <code>SELECT</code> s’écrit en premier, mais s’exécute <b>presque en dernier</b>.</p>`}
     </div>`:'';
   const compactFunctionLesson=l.id===52||l.id===53||l.id===54;
   const hideLessonLab=l.id===52||l.id===54;
@@ -22982,7 +23085,7 @@ function lessonRichFooter(l, innerAfterEditor){
   const tone0=variants&&variants[0]&&variants[0].tone;
   const noExec=lessonNoExec(l,variants&&variants[0]);
   const switcher=variants&&variants.length
-    ?`<div class="xf-switch" role="tablist">${variants.map((v,i)=>{
+    ?`<div class="xf-switch${l.testeSwitch==='cols2'?' is-cols2':''}" role="tablist">${variants.map((v,i)=>{
         const on=i===0;
         const tone=v.tone?` ${v.tone}`:'';
         return `<button type="button" class="xf-sw${on?' on':''}${tone}" data-i="${i}" role="tab" aria-selected="${on?'true':'false'}" onclick="switchTesteVariant(this)">${esc(v.label)}</button>`;
@@ -27350,7 +27453,7 @@ const SQL_VIZ={
     {nom:'Lucas',ville:'Lyon',age:28,email:'lucas@mail.fr',telephone:'06 39 98 21 47'},
     {nom:'Emma',ville:'Marseille',age:45,email:'emma@mail.fr',telephone:'06 39 98 33 08'},
     {nom:'Nathan',ville:'Paris',age:31,email:'nathan@mail.fr',telephone:'06 39 98 40 15'},
-    {nom:'Chloé',ville:'Bordeaux',age:26,email:'chloe@mail.fr',telephone:'06 39 98 51 62'},
+    {nom:'Chloé',ville:'Mobile',age:26,email:'chloe@mail.fr',telephone:'06 39 98 51 62'},
     {nom:'Hugo',ville:'Lyon',age:52,email:null,telephone:'06 39 98 68 03'},
     {nom:'Léa',ville:'Paris',age:38,email:'lea@mail.fr',telephone:'06 39 98 74 29'},
     {nom:'Gabriel',ville:'Toulouse',age:29,email:'gabriel@mail.fr',telephone:'06 39 98 85 16'},
@@ -27362,7 +27465,7 @@ const SQL_VIZ={
     {k:"WHERE ville = 'Paris'",d:"SQL teste chaque ligne. Il n’en reste que 4 : celles qui respectent la condition ville = 'Paris'. Rien n’est effacé de la table."}
   ],chips:[
     {t:'Sophie',extra:'Paris',keep:1},{t:'Lucas',extra:'Lyon',keep:0},{t:'Emma',extra:'Marseille',keep:0},{t:'Nathan',extra:'Paris',keep:1},
-    {t:'Chloé',extra:'Bordeaux',keep:0},{t:'Hugo',extra:'Lyon',keep:0},{t:'Léa',extra:'Paris',keep:1},{t:'Gabriel',extra:'Toulouse',keep:0},{t:'Inès',extra:'Nantes',keep:0},{t:'Nathan n°10',extra:'Paris',keep:1}
+    {t:'Chloé',extra:'Mobile',keep:0},{t:'Hugo',extra:'Lyon',keep:0},{t:'Léa',extra:'Paris',keep:1},{t:'Gabriel',extra:'Toulouse',keep:0},{t:'Inès',extra:'Nantes',keep:0},{t:'Nathan n°10',extra:'Paris',keep:1}
   ]},
   compare:{kind:'filter',phases:[
     {k:'SELECT nom, prix FROM produits',d:'SQL commence par récupérer les colonnes demandées. La table produits contient 8 lignes. Pour l’instant, aucun filtre n’est appliqué : les 8 produits sont donc présents.'},
@@ -27378,7 +27481,7 @@ const SQL_VIZ={
     {k:"AND age > 35",d:'Parmi ces 4 clients, SQL vérifie maintenant la deuxième condition : avoir plus de 35 ans. Seule Léa respecte les deux conditions.'}
   ],chips:[
     {t:'Sophie',extra:'Paris · 34',cmp:'> 35',keep0:1,keep:0},{t:'Lucas',extra:'Lyon · 28',keep0:0,keep:0},{t:'Emma',extra:'Marseille · 45',keep0:0,keep:0},
-    {t:'Nathan',extra:'Paris · 31',cmp:'> 35',keep0:1,keep:0},{t:'Chloé',extra:'Bordeaux · 26',keep0:0,keep:0},{t:'Hugo',extra:'Lyon · 52',keep0:0,keep:0},
+    {t:'Nathan',extra:'Paris · 31',cmp:'> 35',keep0:1,keep:0},{t:'Chloé',extra:'Mobile · 26',keep0:0,keep:0},{t:'Hugo',extra:'Lyon · 52',keep0:0,keep:0},
     {t:'Léa',extra:'Paris · 38',cmp:'> 35',keep0:1,keep:1},{t:'Gabriel',extra:'Toulouse · 29',keep0:0,keep:0},{t:'Inès',extra:'Nantes · 41',keep0:0,keep:0},{t:'Nathan n°10',extra:'Paris · 30',cmp:'> 35',keep0:1,keep:0}
   ]},
   or:{kind:'filter',phases:[
@@ -27387,7 +27490,7 @@ const SQL_VIZ={
     {k:"OR ville = 'Lyon'",d:'SQL accepte maintenant deux possibilités : habiter à Paris ou habiter à Lyon. Une ligne est conservée dès qu’elle respecte au moins une des deux conditions. 6 clients sur 10 sont conservés : les 4 clients de Paris et les 2 clients de Lyon.'}
   ],chips:[
     {t:'Sophie',extra:'Paris',keep0:1,keep:1},{t:'Lucas',extra:'Lyon',keep0:0,keep:1},{t:'Emma',extra:'Marseille',keep0:0,keep:0},
-    {t:'Nathan',extra:'Paris',keep0:1,keep:1},{t:'Chloé',extra:'Bordeaux',keep0:0,keep:0},{t:'Hugo',extra:'Lyon',keep0:0,keep:1},
+    {t:'Nathan',extra:'Paris',keep0:1,keep:1},{t:'Chloé',extra:'Mobile',keep0:0,keep:0},{t:'Hugo',extra:'Lyon',keep0:0,keep:1},
     {t:'Léa',extra:'Paris',keep0:1,keep:1},{t:'Gabriel',extra:'Toulouse',keep0:0,keep:0},{t:'Inès',extra:'Nantes',keep0:0,keep:0},{t:'Nathan',extra:'Paris',keep0:1,keep:1}
   ]},
   nulls:{kind:'filter',phases:[
@@ -27451,7 +27554,7 @@ const SQL_VIZ={
     {k:"WHERE ville IN ('Paris', 'Lyon')",d:'Pour chaque client, SQL vérifie si sa ville se trouve dans la liste (\'Paris\', \'Lyon\'). Si oui, le client est gardé. Sinon, il est écarté. Résultat : 6 clients, ceux de Paris ou de Lyon.'}
   ],chips:[
     {t:'Sophie',extra:'Paris',keep:1},{t:'Lucas',extra:'Lyon',keep:1},{t:'Emma',extra:'Marseille',keep:0},
-    {t:'Nathan',extra:'Paris',keep:1},{t:'Chloé',extra:'Bordeaux',keep:0},{t:'Hugo',extra:'Lyon',keep:1},
+    {t:'Nathan',extra:'Paris',keep:1},{t:'Chloé',extra:'Mobile',keep:0},{t:'Hugo',extra:'Lyon',keep:1},
     {t:'Léa',extra:'Paris',keep:1},{t:'Gabriel',extra:'Toulouse',keep:0},{t:'Inès',extra:'Nantes',keep:0},{t:'Nathan n°10',extra:'Paris',keep:1}
   ]},
   between:{kind:'filter',phases:[
@@ -27487,7 +27590,7 @@ const SQL_VIZ={
     {k:'6 villes différentes',d:'Les villes en double disparaissent du résultat. Aucun client n’a été supprimé de la table clients : elle contient toujours ses 10 lignes.'}
   ],chips:[
     {t:'Paris',keep:1},{t:'Lyon',keep:1},{t:'Marseille',keep:1},{t:'Paris',keep:0},
-    {t:'Bordeaux',keep:1},{t:'Lyon',keep:0},{t:'Paris',keep:0},{t:'Toulouse',keep:1},{t:'Nantes',keep:1},{t:'Paris',keep:0}
+    {t:'Mobile',keep:1},{t:'Lyon',keep:0},{t:'Paris',keep:0},{t:'Toulouse',keep:1},{t:'Nantes',keep:1},{t:'Paris',keep:0}
   ]},
   count:{kind:'count',phases:[
     {k:'SELECT nom FROM clients',d:'Les 10 noms s’affichent. Pour connaître le total, il faut encore les compter.'},
@@ -27497,40 +27600,21 @@ const SQL_VIZ={
     {t:'Sophie',n:1},{t:'Lucas',n:2},{t:'Emma',n:3},{t:'Nathan',n:4},
     {t:'Chloé',n:5},{t:'Hugo',n:6},{t:'Léa',n:7},{t:'Gabriel',n:8},{t:'Inès',n:9},{t:'Nathan',n:10}
   ]},
-  avg:{kind:'agg',phases:[
-    {k:'SELECT prix FROM produits',d:'Les 8 prix s’affichent. Pour la moyenne, SQL va d’abord les additionner, puis diviser par 8.'},
-    {k:'AVG(prix)',d:'SQL additionne chaque prix : 29,90, puis 69,80, puis 89,70… jusqu’à 191,90.'},
-    {k:'191,90 ÷ 8',d:'Il divise ensuite le total par le nombre de prix. 191,90 ÷ 8 = 23,9875.'}
-  ],display:'23,9875',formula:'191,90 ÷ 8',lbl:'moyenne · 1 ligne',chips:[
-    {t:'29,90',n:'29,90'},{t:'39,90',n:'69,80'},{t:'19,90',n:'89,70'},{t:'14,90',n:'104,60'},
-    {t:'12,50',n:'117,10'},{t:'34,90',n:'152,00'},{t:'24,90',n:'176,90'},{t:'15,00',n:'191,90'}
-  ]},
-  sum:{kind:'agg',phases:[
-    {k:'SELECT prix FROM produits',d:'Les 8 prix s’affichent. Pour le total, il faut encore les additionner.'},
-    {k:'SUM(prix)',d:'SQL parcourt chaque prix et l’ajoute au total : 29,90, puis 69,80… jusqu’à 191,90.'},
-    {k:'SUM(prix) = 191,90',d:'Les 8 prix deviennent un seul résultat : 191,90. Ce n’est plus une liste.'}
-  ],display:'191,90',lbl:'somme · 1 ligne',chips:[
-    {t:'29,90',n:'29,90'},{t:'39,90',n:'69,80'},{t:'19,90',n:'89,70'},{t:'14,90',n:'104,60'},
-    {t:'12,50',n:'117,10'},{t:'34,90',n:'152,00'},{t:'24,90',n:'176,90'},{t:'15,00',n:'191,90'}
-  ]},
-  min:{kind:'minmax',mode:'min',tag:'MIN',phases:[
-    {k:'SELECT prix FROM produits',d:'Les 8 prix s’affichent. Pour le plus bas, SQL va les comparer un par un.'},
-    {k:'MIN(prix)',d:'Il garde le plus petit déjà vu. Dès qu’un prix est plus grand, il s’efface. 12,50 reste.'},
-    {k:'MIN(prix) = 12,50',d:'Il ne reste qu’une valeur : 12,50. Ce n’est plus une liste.'}
-  ],display:'12,50',lbl:'minimum · 1 ligne',chips:[
-    {t:'29,90'},{t:'39,90'},{t:'19,90'},{t:'14,90'},{t:'12,50'},{t:'34,90'},{t:'24,90'},{t:'15,00'}
-  ]},
-  max:{kind:'minmax',mode:'max',tag:'MAX',phases:[
-    {k:'SELECT prix FROM produits',d:'Les 8 prix s’affichent. Pour le plus élevé, SQL va les comparer un par un.'},
-    {k:'MAX(prix)',d:'Il garde le plus grand déjà vu. 29,90 d’abord, puis 39,90 prend la tête. Les plus petits s’effacent.'},
-    {k:'MAX(prix) = 39,90',d:'Il ne reste qu’une valeur : 39,90. Ce n’est plus une liste.'}
-  ],display:'39,90',lbl:'maximum · 1 ligne',chips:[
-    {t:'29,90'},{t:'39,90'},{t:'19,90'},{t:'14,90'},{t:'12,50'},{t:'34,90'},{t:'24,90'},{t:'15,00'}
+  countemail:{kind:'count',phases:[
+    {k:'SELECT email FROM clients',d:'Les 10 e-mails s’affichent. Deux d’entre eux valent <code>NULL</code> : Hugo et Inès.'},
+    {k:'COUNT(email)',d:'SQL ajoute 1 seulement si l’e-mail existe. Hugo et Inès, en <code>NULL</code>, ne sont pas comptés.'},
+    {k:'COUNT(email) = 8',d:'Il reste un seul résultat : 8. Les 2 valeurs <code>NULL</code> ont été ignorées.'}
+  ],total:8,lbl:'e-mails renseignés',chips:[
+    {t:'Sophie',extra:'sophie@mail.fr',n:1,keep:1},{t:'Lucas',extra:'lucas@mail.fr',n:2,keep:1},
+    {t:'Emma',extra:'emma@mail.fr',n:3,keep:1},{t:'Nathan',extra:'nathan@mail.fr',n:4,keep:1},
+    {t:'Chloé',extra:'chloe@mail.fr',n:5,keep:1},{t:'Hugo',extra:'NULL',n:'×',keep:0},
+    {t:'Léa',extra:'lea@mail.fr',n:6,keep:1},{t:'Gabriel',extra:'gabriel@mail.fr',n:7,keep:1},
+    {t:'Inès',extra:'NULL',n:'×',keep:0},{t:'Nathan',extra:'nathan.dupont@mail.fr',n:8,keep:1}
   ]},
   having:{kind:'group',phases:[
     {k:'SELECT categorie FROM produits',d:'Les 8 produits s’affichent, chacun avec sa catégorie.'},
     {k:'GROUP BY categorie',d:'SQL rassemble les produits de même catégorie. Il forme 5 groupes.'},
-    {k:'HAVING COUNT(*) ≥ 2',d:'Il ne garde que Bien-être (3) et Nutrition (2). Les groupes d’un seul produit disparaissent.'}
+    {k:'HAVING COUNT(*) ≥ 2',d:'Il ne garde que Bien-être (3) et Nutrition (2). Les groupes ne contenant qu’un seul produit disparaissent.'}
   ],buckets:[
     {cat:'Bien-être',n:3,keep:1},{cat:'Beauté',n:1,keep:0},{cat:'Boisson',n:1,keep:0},
     {cat:'Nutrition',n:2,keep:1},{cat:'Accessoire',n:1,keep:0}
@@ -27541,18 +27625,18 @@ const SQL_VIZ={
     {t:'Oméga 3',cat:'Bien-être',keep:1},{t:'Shaker',cat:'Accessoire',keep:0}
   ]},
   groupby:{kind:'group',phases:[
-    {k:'SELECT nom, ville FROM clients',d:'Les 10 clients s’affichent, chacun avec sa ville. Paris revient 4 fois, Lyon 2 fois.'},
-    {k:'GROUP BY ville',d:'SQL rassemble les clients qui ont la même ville. Il forme 6 groupes.'},
-    {k:'COUNT(*) par groupe',d:'Il compte dans chaque groupe. Le résultat a 6 lignes : une ville, un total.'}
+    {k:'SELECT nom, ville FROM clients',btn:'Afficher les lignes',d:'Les 10 clients s’affichent avec leur ville. Certaines villes apparaissent plusieurs fois : Paris 4 fois, Lyon 2 fois.'},
+    {k:'GROUP BY ville',btn:'Regrouper par ville',d:'SQL regroupe les lignes qui ont la même ville. Chaque ville forme alors son propre groupe.'},
+    {k:'COUNT(*) par groupe',btn:'Compter chaque groupe',d:'<code>COUNT(*)</code> compte ensuite le nombre de lignes dans chaque groupe. SQL renvoie une ligne par ville avec son total.'}
   ],buckets:[
     {cat:'Paris',n:4,keep:1},{cat:'Lyon',n:2,keep:1},{cat:'Marseille',n:1,keep:1},
-    {cat:'Bordeaux',n:1,keep:1},{cat:'Toulouse',n:1,keep:1},{cat:'Nantes',n:1,keep:1}
+    {cat:'Mobile',n:1,keep:1},{cat:'Toulouse',n:1,keep:1},{cat:'Nantes',n:1,keep:1}
   ],chips:[
     {t:'Sophie',extra:'Paris',cat:'Paris',keep:1},{t:'Lucas',extra:'Lyon',cat:'Lyon',keep:1},
     {t:'Emma',extra:'Marseille',cat:'Marseille',keep:1},{t:'Nathan',extra:'Paris',cat:'Paris',keep:1},
-    {t:'Chloé',extra:'Bordeaux',cat:'Bordeaux',keep:1},{t:'Hugo',extra:'Lyon',cat:'Lyon',keep:1},
+    {t:'Chloé',extra:'Mobile',cat:'Mobile',keep:1},{t:'Hugo',extra:'Lyon',cat:'Lyon',keep:1},
     {t:'Léa',extra:'Paris',cat:'Paris',keep:1},{t:'Gabriel',extra:'Toulouse',cat:'Toulouse',keep:1},
-    {t:'Inès',extra:'Nantes',cat:'Nantes',keep:1},{t:'Nathan n°10',extra:'Paris',cat:'Paris',keep:1}
+    {t:'Inès',extra:'Nantes',cat:'Nantes',keep:1},{t:'Nathan',extra:'Paris',cat:'Paris',keep:1}
   ]},
   pk:{kind:'er',stepMs:7200,phases:[
     {k:'1 · Le nom ne suffit pas',sql:"WHERE nom = 'Nathan'",read:'La recherche renvoie deux personnes : Nathan n°4 et Nathan n°10. Elles habitent même toutes les deux à Paris.',d:'Observe les deux lignes Nathan : nom et ville se répètent. Impossible de savoir quelle fiche modifier avec ces seules informations.'},
@@ -28280,6 +28364,20 @@ function havingGrpBucketLayout(sw){
   const pad=0,gap=8,inner=sw-pad*2;
   const topH=118, midH=92, smallH=96;
   const y1=pad+topH+gap, y2=y1+midH+gap;
+  /* iPhone : trois colonnes trop étroites pour Boisson / Accessoire
+     (BOISS…, ACCES…). On passe en 2 + 1 pour garder les noms entiers. */
+  if(inner<360){
+    const half=(inner-gap)/2;
+    const y3=y2+smallH+gap;
+    return{
+      'Bien-être':{x:pad,y:pad,w:inner,h:topH,cols:2},
+      'Nutrition':{x:pad,y:y1,w:inner,h:midH,cols:2},
+      'Beauté':{x:pad,y:y2,w:half,h:smallH,cols:1},
+      'Boisson':{x:pad+half+gap,y:y2,w:half,h:smallH,cols:1},
+      'Accessoire':{x:pad,y:y3,w:half,h:smallH,cols:1},
+      _h:y3+smallH+pad
+    };
+  }
   const third=(inner-gap*2)/3;
   return{
     'Bien-être':{x:pad,y:pad,w:inner,h:topH,cols:2},
@@ -28293,13 +28391,14 @@ function havingGrpBucketLayout(sw){
 function groupbyBucketLayout(sw){
   const pad=0,gap=8,inner=sw-pad*2;
   const half=(inner-gap)/2;
-  const topH=148, midH=96, botH=96;
+  /* Paris a 4 pastilles : 42 (titre) + 4×30 + 3×5 + 6 = 183. */
+  const topH=184, midH=92, botH=92;
   const y1=pad+topH+gap, y2=y1+midH+gap;
   return{
     'Paris':{x:pad,y:pad,w:half,h:topH,cols:1},
     'Lyon':{x:pad+half+gap,y:pad,w:half,h:topH,cols:1},
     'Marseille':{x:pad,y:y1,w:half,h:midH,cols:1},
-    'Bordeaux':{x:pad+half+gap,y:y1,w:half,h:midH,cols:1},
+    'Mobile':{x:pad+half+gap,y:y1,w:half,h:midH,cols:1},
     'Toulouse':{x:pad,y:y2,w:half,h:botH,cols:1},
     'Nantes':{x:pad+half+gap,y:y2,w:half,h:botH,cols:1},
     _h:y2+botH+pad
@@ -28307,7 +28406,7 @@ function groupbyBucketLayout(sw){
 }
 function groupbyResultLayout(sw){
   const pad=0,gap=6,rowH=46,inner=sw-pad*2;
-  const cities=['Paris','Lyon','Marseille','Bordeaux','Toulouse','Nantes'];
+  const cities=['Paris','Lyon','Marseille','Mobile','Toulouse','Nantes'];
   const layout={};
   cities.forEach((cat,i)=>{
     layout[cat]={x:pad,y:pad+i*(rowH+gap),w:inner,h:rowH,cols:1};
@@ -28342,8 +28441,13 @@ function layoutHavingGrpViz(root,phase,{animate=true}={}){
   chips.forEach(c=>{(byCat[c.dataset.cat]||(byCat[c.dataset.cat]=[])).push(c);});
   const rowH=34;
   const minListH=8+chips.length*rowH+10;
-  // Hauteur stable = max(liste, groupes) pour éviter le saut de page entre phases
-  const stableH=Math.max(minListH,grouped._h,compact._h);
+  const isGb=(root.dataset.viz||'')==='groupby';
+  /* GROUP BY : chaque étape a sa propre hauteur — sinon l’étape « compter »
+     garde le vide des seaux Paris/Lyon. HAVING garde une hauteur stable
+     pour ne pas faire sauter la page entre phases. */
+  const stableH=isGb
+    ?(phase===0?minListH:phase===1?grouped._h:compact._h)
+    :Math.max(minListH,grouped._h,compact._h);
   if(phase===0){
     const x=10,w=Math.min(220,Math.max(140,sw-24));
     const step=chips.length?Math.max(rowH,(stableH-16)/chips.length):rowH;
@@ -28384,6 +28488,8 @@ function layoutHavingGrpViz(root,phase,{animate=true}={}){
         c.style.lineHeight='1';
         c.style.display='flex';
         c.style.alignItems='center';
+        c.style.minWidth='0';
+        c.style.overflow='hidden';
         c.style.transform=`translate(${r.x+padX+col*(cellW+gapX)}px,${r.y+padTop+row*(cellH+gapY)}px)`;
       });
     });
@@ -29011,7 +29117,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-14-coal-spc-v743';
+  const SW_CACHE='requete-2026-09-14-coal-spc-v794';
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
   });
