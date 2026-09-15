@@ -19027,9 +19027,7 @@ function renderHomeHero(){
   renderHomeStreak();
   const nL=Object.values(state.lessons||{}).filter(l=>l.done).length;
   const nD=Object.keys(state.defis||{}).length;
-  const name=(state.name||'').trim();
-  const title=document.querySelector('#scr-learn>.lgtitle h1');
-  if(title) title.textContent=name?`Bonjour, ${name}`:'Bonjour';
+  renderGreeting();
   const sub=document.getElementById('learn-sub');
   if(sub) sub.textContent=nL===0?'Prêt·e pour ta prochaine requête ?':`${nL}/${TOTAL} leçons · ${nD} défis relevés`;
   const hp=document.getElementById('home-progress');
@@ -26057,17 +26055,18 @@ let obLock=false;
 const OB_SLIDES = ['welcome','name','goal','level','rhythm','practice','account','ready'];
 const OB_STEPS = OB_SLIDES.length;
 let obSwipeOn = false;
+function greetingForHour(hour){
+  return hour<12?'Bonjour':hour<18?'Bon après-midi':'Bonsoir';
+}
 function renderGreeting(){
+  const name=(state.name||'').trim();
+  const hi=greetingForHour(new Date().getHours());
+  const title=document.querySelector('#scr-learn>.lgtitle h1');
+  if(title)title.textContent=name?`${hi}, ${name}`:hi;
   const el=document.getElementById('greeting');
   if(!el)return;
-  const name=(state.name||'').trim();
-  /* Le h1 affiche déjà « Bonjour, {prénom} » : ne pas répéter le prénom
-     juste en dessous. Le sous-titre horaire ne sert que sans prénom. */
-  if(name){el.hidden=true;el.textContent='';return;}
-  const h=new Date().getHours();
-  const hi=h<12?'Bonjour':h<18?'Bon après-midi':'Bonsoir';
-  el.hidden=false;
-  el.innerHTML=`${hi} — à toi de jouer.`;
+  el.hidden=!!name;
+  el.textContent=name?'':'À toi de jouer.';
 }
 function renderStartCta(){ renderHomeHero(); }
 function maybeOnboard(){
