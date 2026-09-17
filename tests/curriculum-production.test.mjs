@@ -44,7 +44,7 @@ for(const l of lessons){
  }
 }
 const lesson=id=>lessons.find(l=>l.id===id);
-assert.equal(lessons.length,73);
+assert.equal(lessons.length,74);
 assert.equal(ctx.exerciseResultsMatch(query('SELECT nom,prix FROM produits'),query(lesson(2).solution),lesson(2)),false,'alias requis');
 assert.equal(ctx.exerciseResultsMatch(query(lesson(1).solution+' SELECT 99;'),query(lesson(1).solution),lesson(1)),false,'résultats multiples');
 assert.equal(ctx.exerciseResultsMatch(query('SELECT nom,telephone FROM clients ORDER BY nom DESC'),query(lesson(1).solution),lesson(1)),true,'ordre libre sans demande de tri');
