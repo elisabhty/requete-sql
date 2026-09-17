@@ -19,7 +19,9 @@ function assert(condition, label) {
 
 console.log('\n=== Page COALESCE ===');
 const start = html.indexOf('{ id:23, titre:"COALESCE"');
-const end = html.indexOf('\n{ id:45,', start);
+/* Fin à la leçon suivante, quelle qu’elle soit : les leçons ne sont pas
+   rangées par id dans le fichier, viser id:45 englobait d’autres leçons. */
+const end = html.indexOf('\n{ id:', start + 10);
 const lesson = start >= 0 && end > start ? html.slice(start, end) : '';
 
 assert(Boolean(lesson), 'leçon COALESCE localisée');
