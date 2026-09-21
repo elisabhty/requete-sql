@@ -32,7 +32,7 @@ assert(guides.includes("k:'format'") && guides.includes('%d/%m/%Y'), 'formatage 
 assert(!guides.includes('visual:'), 'schémas décoratifs du laboratoire retirés');
 assert(guides.includes("k:'shift'") && guides.includes("'+5 days'"), 'décalage sur une ligne du temps disponible');
 assert(guides.includes("k:'duration'") && guides.includes('julianday'), 'durée entre deux dates disponible');
-assert(guides.includes("k:'period'") && guides.includes("date_commande < '2023-08-01'"), 'période à borne droite exclue disponible');
+assert(guides.includes("k:'period'") && guides.includes("date_commande < '2026-08-01'"), 'période à borne droite exclue disponible');
 assert(guides.includes('FROM commandes') && html.includes("piegeSqlRunBlock(g.sql)"), 'chaque opération temporelle est exécutable');
 assert(html.includes('function renderDateFunctionsStudio'), 'rendu dédié à la leçon 53');
 assert(html.includes('if(l.id===53)return renderDateFunctionsStudio(l)'), 'ancienne pile de texte remplacée');
@@ -78,7 +78,7 @@ assert(!studio.includes('Pour une date présente'), 'note IS NOT NULL retirée d
 assert(studio.includes('df-memo-scroll') && studio.includes('Glisse'), 'mémo large avec indicateur de glissement');
 assert(html.includes('bindTableSwipe(page)'), 'indicateur de glissement activé sur le mémo');
 assert(studio.includes("EXTRACT(YEAR FROM d)") && studio.includes('DATEADD(day, 7, d)') && studio.includes('FROM_TZ()'), 'équivalents année, décalage et fuseau renseignés');
-assert(studio.includes('df-month-path') && studio.includes('2023-09-01') && studio.includes('+1 month'), 'chemin en quatre étapes pour la fin du mois');
+assert(studio.includes('df-month-path') && studio.includes('2026-09-01') && studio.includes('+1 month'), 'chemin en quatre étapes pour la fin du mois');
 assert(!studio.includes('Ne devine pas le dernier jour'), 'ouverture du cadre mois moins brutale');
 const period = studio.slice(studio.indexOf('Filtrer un mois entier'), studio.indexOf('Une même heure ne désigne pas toujours le même moment'));
 const tz = studio.slice(studio.indexOf('Une même heure ne désigne pas toujours le même moment'), studio.indexOf('Les réflexes qui évitent les erreurs'));
@@ -94,10 +94,10 @@ assert(tz.includes('La différence à retenir') && tz.includes('2 heures d’ava
 assert(tz.includes('👉 Pour pouvoir comparer') && tz.includes('👉 On connaît maintenant') && tz.includes('👉 Pourquoi avons-nous besoin') && tz.includes('👉 Le système utilise donc') && tz.includes('👉 Pour un événement précis') && tz.includes('👉 Pour une date de naissance'), 'repères du chapitre fuseaux signalés par un doigt');
 assert(tz.includes('Le bon réflexe dépend') && tz.includes('AT TIME ZONE') && tz.includes('CONVERT_TZ()'), 'stockage puis syntaxes de conversion');
 assert(!period.includes('23:59:59') && period.includes('avant le 1er août'), 'fin de journée sans figer 23:59:59');
-assert(period.includes("BETWEEN '2023-07-01'") && period.includes("'2023-07-31'"), 'piège BETWEEN illustré');
+assert(period.includes("BETWEEN '2026-07-01'") && period.includes("'2026-07-31'"), 'piège BETWEEN illustré');
 assert(period.includes('date_commande') && !period.includes('date_heure'), 'période sur la colonne réelle date_commande');
 const afterBetween = period.slice(period.indexOf('BETWEEN'));
-assert(afterBetween.includes("'2023-07-31'") && afterBetween.includes('peut être interprétée comme') && afterBetween.includes('2023-07-31 00:00:00') && afterBetween.includes('2023-07-31 22:45:00'), 'la borne date est d’abord lue comme minuit');
+assert(afterBetween.includes("'2026-07-31'") && afterBetween.includes('peut être interprétée comme') && afterBetween.includes('2026-07-31 00:00:00') && afterBetween.includes('2026-07-31 22:45:00'), 'la borne date est d’abord lue comme minuit');
 assert(period.includes('TOUT JUILLET') && period.includes('01/08 00:00'), 'tout juillet borné au 1er août');
 assert(period.includes('df-period-cmp') && period.includes('31 juillet, soir') && !period.includes('df-bet-hits'), 'BETWEEN et la borne suivante comparés sur les mêmes commandes');
 assert(period.includes('inclus') && period.includes('exclu') && period.includes('À éviter') && period.includes('Plus sûr'), 'bornes et filtres étiquetés');
