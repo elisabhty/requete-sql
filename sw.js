@@ -14,11 +14,13 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-09-14-coal-spc-v1019';
+const CACHE = 'requete-2026-09-22-inner-editorial-v1020';
 
 const PRECACHE = [
   './',
   './index.html',
+  './inner-join-course.css?v=3',
+  './inner-join-course.js?v=3',
   './manifest.webmanifest',
   './viz-select.js',
   './viz-select.css',

@@ -8564,6 +8564,8 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 <script src="viz-orderby.js" defer></script>
 <!-- Sonde de fluidité : chargée seulement avec ?perf=1, jamais pour les lecteurs. -->
 <script>if(/[?&]perf=1(&|$)/.test(location.search)){var pp=document.createElement("script");pp.src="perf-probe.js";pp.defer=true;document.head.appendChild(pp);}</script>
+<link rel="stylesheet" href="inner-join-course.css?v=3">
+<script src="inner-join-course.js?v=3" defer></script>
 </head>
 <body>
 <div id="app">
@@ -25053,6 +25055,7 @@ function revealLessonContent(instant){
 }
 function renderLessonFlow(){
   if(!current||mode!=='lesson')return;
+  document.getElementById('scr-lesson').classList.toggle('inner-editorial',current.id===18&&lessonStep===0);
   const ae=document.activeElement;
   if(ae&&typeof ae.blur==='function'&&document.getElementById('scr-lesson')&&document.getElementById('scr-lesson').contains(ae)) ae.blur();
   const l=current, meta=lessonStepMeta();
@@ -25085,6 +25088,7 @@ function renderLessonFlow(){
       <div class="ls-main">
         <div class="lesson-rich${hasJoinPointCards(l)?' join-micro':''}">
           <div class="l-kicker">Cours</div><h1>${l.titre}</h1>
+          ${l.id===18?'<p class="inner-subtitle">L’enquête de satisfaction</p>':''}
           ${l.problematique?renderProblematique(l.problematique):''}
           ${l.situation?`<div class="concept-block lesson-lead">
             <h2><span class="h2-eye">Situation</span></h2>
@@ -25161,6 +25165,7 @@ function renderLessonFlow(){
   if(lessonStep===3) requestAnimationFrame(revealBravoCard);
   if(lessonStep===0){
     buildSommaire();
+    if(l.id===18&&window.initInnerJoinCourse) window.initInnerJoinCourse();
     initOrderRappelAnim();
     initTesteEditor();
     initRelationalSchemas();
