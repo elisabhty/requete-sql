@@ -1,0 +1,30 @@
+name: Apply INNER JOIN course update
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/codex-apply-inner-join.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply-course-patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Apply the reviewed course patch
+        run: git apply .codex-inner-join.patch
+      - name: Commit the course and remove temporary files
+        run: |
+          rm .codex-inner-join.patch
+          rm .github/workflows/codex-apply-inner-join.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Améliore la page cours INNER JOIN"
+          git push origin HEAD:main
