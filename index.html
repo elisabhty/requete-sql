@@ -8564,8 +8564,6 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 <script src="viz-orderby.js" defer></script>
 <!-- Sonde de fluidité : chargée seulement avec ?perf=1, jamais pour les lecteurs. -->
 <script>if(/[?&]perf=1(&|$)/.test(location.search)){var pp=document.createElement("script");pp.src="perf-probe.js";pp.defer=true;document.head.appendChild(pp);}</script>
-<link rel="stylesheet" href="inner-join-course.css?v=3">
-<script src="inner-join-course.js?v=3" defer></script>
 </head>
 <body>
 <div id="app">
@@ -12768,314 +12766,62 @@ learningCheck:{
 ]},
 { titre:"Jointures", sous:"Interroger plusieurs tables à la fois", lessons:[
 { id:18, titre:"INNER JOIN", résumé:"L’enquête de satisfaction",
-  situation:`<p>Chaque mois, l’équipe envoie une enquête de satisfaction aux clients ayant récemment passé une commande.</p><p>Cette fois, elle veut interroger uniquement les clients ayant commandé en <b>juillet 2026</b>.</p><p>Pour préparer l’envoi, il lui faut une liste contenant&nbsp;:</p><div class="pk-rel" aria-label="Deux informations à réunir"><article><b>👤 Nom</b><span>identifier le client</span></article><article><b>✉️ E-mail</b><span>envoyer le questionnaire</span></article></div><p>Problème&nbsp;: la table <code>commandes</code> contient bien les achats de juillet, mais ni le nom ni l’e-mail des clients.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Pars des commandes de juillet, retrouve les clients correspondants et prépare <b>une seule ligne par personne joignable</b>.</p></div>`,
-  studio:{problem:{eye:"",title:"🔎 Indice n°1 — retrouver les commandes de juillet",
-    body:`<p>Commençons par isoler les commandes passées entre le 1er et le 31 juillet 2026.</p><p>Nous utilisons <code>BETWEEN</code>, déjà rencontré dans le cours sur les périodes&nbsp;:</p><div class="sit-sql join-jump"><p><code>date_commande</code></p><p>→ entre <code>2026-07-01</code> et <code>2026-07-31</code></p></div>`,
-    extra:`<!--SITSQL--><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🧾</i>Premier constat</p><p>SQL retrouve <b>14 commandes</b>. Mais 14 commandes ne signifient pas forcément 14 clients&nbsp;: une même personne peut avoir commandé plusieurs fois.</p></div>`},
-    uses:{title:"L’enquête de satisfaction",
-      sql:"SELECT id, client_id, date_commande\nFROM commandes\nWHERE date_commande BETWEEN '2026-07-01' AND '2026-07-31';",
-      sql2:"SELECT clients.nom,\n       commandes.id\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id;",
-      sql3:"SELECT clients.nom,\n       clients.email,\n       commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31';",
-      sql4:"SELECT DISTINCT clients.nom,\n       clients.email\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31'\n  AND clients.email IS NOT NULL;",
-      body:`<div class="fn-uses">
-        <div class="fn-use">
-          <p>Premier indice obtenu&nbsp;: nous avons retrouvé les <b>14 commandes</b> passées en juillet.</p>
-          <p>Mais dans la table <code>commandes</code>, nous n’avons pas directement le nom ou l’e-mail du client. Nous avons seulement son <code>client_id</code>.</p>
-          <p>Or, ces informations se trouvent dans une autre table&nbsp;: la table <code>clients</code>.</p>
-          <div class="sit-sql join-jump"><p>👉 Comment relier chaque commande à son client pour retrouver son nom et son e-mail&nbsp;?</p></div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">🔎 Indice n°2 — suivons une commande</p>
-          <div class="sit-sql join-follow join-jump" aria-label="Commande 5, client_id 4">
-            <p><b>Commande n°5</b></p>
-            <p><code>client_id = 4</code></p>
-            <p class="join-follow-arrow" aria-hidden="true">↓</p>
-            <p>À quel client correspond l’identifiant 4&nbsp;?</p>
-          </div>
-          <p>Dans <code>commandes</code>, on trouve&nbsp;:</p>
-          <div class="sit-sql join-jump"><p><code>client_id = 4</code></p></div>
-          <p>On cherche alors dans <code>clients</code> la ligne où&nbsp;:</p>
-          <div class="sit-sql join-jump"><p><code>id = 4</code> → Nathan</p></div>
-          <p>Et puisque son e-mail se trouve sur cette même ligne&nbsp;:</p>
-          <div class="sit-sql join-jump"><p><code>id = 4</code> → Nathan → <code>nathan@mail.fr</code></p></div>
-          <p>Nous venons de faire la correspondance manuellement&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">commandes.client_id = clients.id</pre></div>
-          <p>Mais répéter cette recherche pour chaque commande serait vite fastidieux.</p>
-          <div class="sit-sql join-jump"><p>👉 Comment demander à SQL de faire automatiquement cette correspondance pour toutes les commandes&nbsp;?</p></div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">🔗 SQL peut suivre ce lien pour nous</p>
-          <p>Une jointure permet de réunir les informations de plusieurs tables à partir d’un lien commun.</p>
-          <p>Ici, le lien est déjà connu&nbsp;:</p>
-          <div class="sit-sql join-jump">
-            <p class="rel-card-ttl">Le lien entre les deux tables</p>
-            <div class="rel-on-map" aria-label="ON relie commandes.client_id à clients.id">
-              <div class="rel-on-side is-l">
-                <code>commandes</code>
-                <small>client_id</small>
-                <span aria-hidden="true">🔗</span>
-              </div>
-              <div class="rel-on-side is-r">
-                <code>clients</code>
-                <small>id</small>
-                <span aria-hidden="true">🔑</span>
-              </div>
-              <svg class="rel-on-arms" viewBox="0 0 240 40" preserveAspectRatio="none" aria-hidden="true">
-                <path d="M36 4 L120 36"/>
-                <path d="M204 4 L120 36"/>
-              </svg>
-              <b>ON</b>
-              <i aria-hidden="true">↓</i>
-              <code class="rel-on-eq">commandes.client_id = clients.id</code>
-            </div>
-          </div>
-          <p><code>INNER JOIN</code> annonce la table à rapprocher. <code>ON</code> donne ensuite la règle qui permet de reconnaître les lignes correspondantes.</p>
-          <p>Dans notre cas&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ON commandes.client_id = clients.id</pre></div>
-          <p>On peut le lire simplement&nbsp;:</p>
-          <div class="sit-sql join-jump"><p>«&nbsp;Relie une commande au client lorsque son <code>client_id</code> correspond à l’<code>id</code> du client.&nbsp;»</p></div>
-          <p>Nous avons donc les deux pièces du mécanisme&nbsp;: <code>INNER JOIN</code> choisit l’autre table, puis <code>ON</code> explique comment retrouver la bonne ligne.</p>
-          <div class="sit-sql join-jump">
-            <p class="sit-memo-lab"><i aria-hidden="true">🧩</i>La structure</p>
-            <div class="pt-syntax"><pre class="cw-syntax">SELECT ...
-FROM commandes
-INNER JOIN clients
-    ON commandes.client_id = clients.id;</pre></div>
-            <div class="join-read" aria-label="Lecture de INNER JOIN et ON">
-              <code>FROM commandes</code>
-              <i aria-hidden="true">↓</i>
-              <span>On part des commandes</span>
-              <code>INNER JOIN clients</code>
-              <i aria-hidden="true">↓</i>
-              <span>On les rapproche des clients</span>
-              <code>ON commandes.client_id = clients.id</code>
-              <i aria-hidden="true">↓</i>
-              <span>On indique comment trouver les lignes qui correspondent</span>
-            </div>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Notre premier INNER JOIN</p>
-          <p>Commençons simplement&nbsp;:</p>
-          <!--SITSQL2-->
-          <div class="sit-sql join-jump">
-            <p class="sit-memo-lab"><i aria-hidden="true">🔎</i>Décomposons la jointure</p>
-            <div class="join-break">
-              <code>FROM commandes</code>
-              <p>On part de la table <code>commandes</code>.</p>
-              <code>INNER JOIN clients</code>
-              <p>On demande à SQL de réunir <code>commandes</code> avec <code>clients</code>.</p>
-              <p>Mais SQL doit savoir quelles lignes vont ensemble.</p>
-              <code>ON commandes.client_id = clients.id</code>
-              <p><code>ON</code> lui donne la règle de correspondance&nbsp;: le <code>client_id</code> d’une commande doit correspondre à l’<code>id</code> d’un client.</p>
-            </div>
-          </div>
-          <div class="rel-pair join-jump" aria-label="client_id 4 correspond à Nathan">
-            <div class="rel-pair-h"><span>commandes</span><i aria-hidden="true">→</i><span>clients</span></div>
-            <div class="rel-pair-row">
-              <b>client_id = 4</b>
-              <i aria-hidden="true">→</i>
-              <small>id = 4<em>Nathan</em></small>
-            </div>
-          </div>
-          <div class="fk-check is-ok join-jump">
-            <b>✓</b>
-            <small>correspondance</small>
-          </div>
-          <div class="sit-sql join-jump">
-            <p class="sit-memo-lab"><i aria-hidden="true">🧩</i>La structure</p>
-            <div class="pt-syntax"><pre class="cw-syntax">SELECT ...
-FROM table_1
-INNER JOIN table_2
-    ON table_1.cle = table_2.cle;</pre></div>
-            <div class="fk-vs">
-              <article>
-                <b>INNER JOIN</b>
-                <p>Quelle table réunir&nbsp;?</p>
-              </article>
-              <article>
-                <b>ON</b>
-                <p>Comment reconnaître les lignes qui correspondent&nbsp;?</p>
-              </article>
-            </div>
-          </div>
-          <p>Maintenant que SQL sait comment relier les deux tables, voyons ce qu’il retrouve pour nos commandes.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Ce que SQL retrouve</p>
-          <p>Exécute la requête&nbsp;: chaque commande rattachée à un client est maintenant accompagnée de son nom.</p>
-          <p>SQL a suivi le <code>client_id</code> jusqu’à <code>clients.id</code>, comme nous l’avions fait à la main pour Nathan.</p>
-          <p>Puis il recommence pour toutes les autres commandes. La commande invitée, sans client correspondant, est écartée.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">🔎 Indice n°3 — ajoutons les informations utiles</p>
-          <p>Nous avons compris comment associer une commande à son client. Revenons à notre mission.</p>
-          <p>Le <b>nom</b> et l’<b>e-mail</b> viennent de <code>clients</code>. La date utilisée pour sélectionner juillet vient de <code>commandes</code>.</p>
-          <p>Nous pouvons donc les utiliser ensemble dans la même requête&nbsp;:</p>
-          <!--SITSQL3-->
-          <p>Nous obtenons <b>14 lignes</b>&nbsp;: une par commande de juillet.</p>
-          <p>Mais Nathan a commandé deux fois&nbsp;: il apparaît donc deux fois. La jointure n’a pas créé un doublon par erreur&nbsp;; elle produit bien <b>une ligne par correspondance</b>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">🎯 Transformons le résultat en liste d’envoi</p>
-          <p>L’équipe veut envoyer un seul questionnaire par client. Nous ajoutons donc <code>DISTINCT</code> pour ne garder qu’une fois chaque combinaison nom + e-mail.</p>
-          <p>Hugo a bien commandé en juillet, mais son e-mail vaut <code>NULL</code>. Avec <code>AND clients.email IS NOT NULL</code>, la liste finale ne conserve que les personnes que l’équipe peut réellement contacter.</p>
-          <!--SITSQL4-->
-          <p>Cette fois, nous avons exactement ce dont l’équipe a besoin&nbsp;: <b>7 destinataires uniques et joignables</b>.</p>
-          <div class="fk-check is-ok">
-            <b>⭐ Liste prête</b>
-            <small>un seul questionnaire par client joignable</small>
-          </div>
-          <p>La jointure a retrouvé les clients. <code>WHERE</code> a gardé juillet et les e-mails renseignés. <code>DISTINCT</code> a supprimé les répétitions de la liste.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Chaque mot-clé a sa mission</p>
-          <p>Notre requête combine plusieurs outils déjà rencontrés. Aucun ne fait le travail d’un autre.</p>
-          <div class="fk-vs">
-            <article>
-              <b>INNER JOIN + ON</b>
-              <p>Quelles lignes correspondent&nbsp;?</p>
-              <p><code>commandes.client_id = clients.id</code></p>
-            </article>
-            <article>
-              <b>WHERE</b>
-              <p>Quelles lignes voulons-nous garder&nbsp;?</p>
-              <p>juillet + e-mail renseigné</p>
-            </article>
-            <article>
-              <b>DISTINCT</b>
-              <p>Quelles répétitions retirer&nbsp;?</p>
-              <p>un seul destinataire par nom + e-mail</p>
-            </article>
-          </div>
-          <div class="sit-memo">
-            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-            <p><code>INNER JOIN</code> réunit les tables et <code>ON</code> indique quelles lignes vont ensemble.</p>
-            <p><code>WHERE</code> filtre les lignes. <code>DISTINCT</code> retire les répétitions du résultat.</p>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Mais pourquoi INNER&nbsp;?</p>
-          <p>Nous savons maintenant ce que fait <code>JOIN</code>. Il reste une partie du nom à comprendre&nbsp;: pourquoi <b>INNER</b> JOIN&nbsp;?</p>
-          <p>Pour le découvrir, observons ce qui se passe lorsqu’une commande possède un client correspondant.</p>
-          <div class="fk-check is-ok">
-            <b>commandes.client_id = 4</b>
-            <i aria-hidden="true">→</i>
-            <b>clients.id = 4</b>
-            <small>✓ correspondance · Nathan</small>
-          </div>
-          <p>La ligne peut être réunie. Elle apparaît donc dans le résultat.</p>
-          <p>Mais notre base contient aussi une situation particulière&nbsp;: une commande invitée, sans client enregistré.</p>
-          <div class="fk-check is-ko">
-            <b>commandes.client_id = NULL</b>
-            <i aria-hidden="true">→</i>
-            <b>clients.id = ?</b>
-            <small>✕ aucune correspondance</small>
-          </div>
-          <p>Il n’existe aucun <code>clients.id = NULL</code>. SQL ne peut donc pas former de paire.</p>
-          <p>Et avec <code>INNER JOIN</code>&nbsp;: la commande sans correspondance <b>n’apparaît pas</b>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le principe de INNER JOIN</p>
-          <p>On peut maintenant comprendre la règle complète.</p>
-          <div class="sit-sql">
-            <p class="rel-card-ttl">INNER JOIN ne garde que les correspondances</p>
-            <p class="rel-card-why"><span>✓ Commande + client correspondant → conservée</span><span>✕ Commande sans client correspondant → écartée</span></p>
-          </div>
-          <p><code>INNER JOIN</code> conserve uniquement les lignes qui trouvent une correspondance dans les deux tables.</p>
-          <p>C’est pour cela que la commande invitée ne permet pas d’identifier une personne à qui envoyer le questionnaire.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Une commande, plusieurs informations</p>
-          <p>La puissance d’une jointure ne se limite pas au nom.</p>
-          <p>Une fois les tables reliées, nous pouvons sélectionner les colonnes dont nous avons besoin dans chacune d’elles.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT commandes.id,
-       commandes.date_commande,
-       clients.nom,
-       clients.email,
-       clients.ville
-FROM commandes
-INNER JOIN clients
-    ON commandes.client_id = clients.id
-WHERE commandes.date_commande
-      BETWEEN '2026-07-01' AND '2026-07-31';</pre></div>
-          <p>Nous obtenons dans un même résultat la commande, la date, le nom, l’e-mail et la ville — alors que ces informations étaient réparties entre <code>commandes</code> et <code>clients</code>.</p>
-          <div class="sit-memo">
-            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-            <p>Une jointure ne fusionne pas définitivement les tables. Elle permet simplement de croiser leurs informations dans le résultat de la requête.</p>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">🔎 Fin de l’enquête</p>
-          <p>Au départ, nous avions <b>14 commandes de juillet</b>, mais aucun nom ni e-mail dans la table <code>commandes</code>.</p>
-          <p><code>INNER JOIN</code> et <code>ON commandes.client_id = clients.id</code> ont permis de retrouver le client correspondant à chaque commande.</p>
-          <p>Enfin, nous avons conservé les e-mails renseignés et retiré les répétitions&nbsp;: l’équipe obtient <b>7 destinataires uniques et joignables</b>.</p>
-          <div class="fk-tree" aria-label="De la commande à l’enquête de satisfaction">
-            <div class="fk-tree-root"><b>commandes</b><span>client_id</span></div>
-            <i class="fk-tree-stem" aria-hidden="true">↓</i>
-            <div class="fk-tree-fork">
-              <article><i aria-hidden="true">↓</i><b>INNER JOIN</b><span>ON … = clients.id</span></article>
-              <article><i aria-hidden="true">↓</i><b>clients</b><span>nom + e-mail</span></article>
-            </div>
-          </div>
-          <div class="fk-check is-ok">
-            <b>⭐ Mission accomplie</b>
-            <small>7 clients peuvent recevoir le questionnaire</small>
-          </div>
-        </div>
-      </div>`},
-    reflexTitle:"À retenir",
-    reflex:{extra:`<div class="pk-reflex">
-      <div class="sit-memo">
-        <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-        <p>Une jointure permet de réunir dans un même résultat des informations provenant de plusieurs tables.</p>
-        <p><code>INNER JOIN</code> conserve uniquement les lignes qui ont une correspondance des deux côtés.</p>
-        <p>La structure à retenir&nbsp;:</p>
-        <div class="pt-syntax"><pre class="cw-syntax">SELECT ...
-FROM table1
-INNER JOIN table2
-    ON table1.cle = table2.cle;</pre></div>
-        <p>Dans notre enquête&nbsp;:</p>
-        <div class="pt-syntax"><pre class="cw-syntax">FROM commandes
-INNER JOIN clients
-    ON commandes.client_id = clients.id</pre></div>
-      </div>
-      <div class="sit-memo">
-        <p class="sit-memo-lab">Le réflexe</p>
-        <p><b>INNER JOIN</b> — Quelles tables veux-tu réunir&nbsp;?</p>
-        <p><b>ON</b> — Comment leurs lignes se correspondent-elles&nbsp;?</p>
-        <p><b>WHERE</b> — Quelles données veux-tu conserver&nbsp;?</p>
-        <p><b>DISTINCT</b> — Faut-il retirer les répétitions du résultat&nbsp;?</p>
-      </div>
-      <div class="sit-memo">
-        <p class="sit-memo-lab"><i aria-hidden="true">🔜</i>À suivre</p>
-        <p>Notre commande invitée a disparu parce qu’elle ne correspond à aucun client.</p>
-        <p>Mais parfois, on souhaite justement conserver une ligne même lorsqu’aucune correspondance n’existe dans l’autre table.</p>
-        <p>C’est ce que permettra de découvrir le prochain type de jointure.</p>
-      </div>
-    </div>`}},
-  anatomie:[{tok:"SELECT clients.nom, clients.email, commandes.date_commande",txt:"Le nom et l’e-mail viennent de clients ; la date vient de commandes."},{tok:"FROM commandes",txt:"On part des commandes du mois."},{tok:"INNER JOIN clients",txt:"On joint uniquement les clients qui correspondent."},{tok:"ON commandes.client_id = clients.id",txt:"Le lien : la clé étrangère retrouve la clé primaire."},{tok:"WHERE commandes.date_commande BETWEEN '2026-07-01' AND '2026-07-31'",txt:"On ne garde que les commandes de juillet 2026."}],
+  situation:`<p>Chaque mois, l’équipe envoie une enquête de satisfaction aux clients ayant récemment passé une commande.</p><p>L’objectif est simple&nbsp;: recueillir leur avis sur leur expérience d’achat.</p><p>Pour l’enquête de ce mois-ci, l’équipe souhaite contacter uniquement les clients ayant passé une commande en <b>juillet 2026</b>.</p><p>Pour envoyer le questionnaire, elle doit préparer une liste contenant&nbsp;:</p><div class="pk-rel" aria-label="Trois informations à réunir"><article><b>👤 Nom</b><span>du client</span></article><article><b>✉️ E-mail</b><span>pour le contacter</span></article><article><b>📅 Date</b><span>de sa commande</span></article></div><p>Seulement, lorsqu’elle consulte la table des commandes, elle semble un peu perdue… aucun nom, aucune adresse mail.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Retrouve le nom et l’e-mail des clients ayant commandé en juillet 2026 afin de préparer la liste d’envoi du questionnaire.</p></div>`,
+    studio:{pointCards:{
+      eye:"INNER JOIN",title:"Retrouver le client de chaque commande.",
+      venn:"inner",vennG:"clients",vennD:"commandes",
+      lead:"<code>commandes</code> connaît le client par <code>client_id</code>. Le nom et l’e-mail sont dans <code>clients</code>. <code>INNER JOIN</code> réunit les deux, et ne garde que les commandes qui trouvent un client.",
+      rule:{lines:[
+          {tok:"FROM",val:"commandes",tag:"on part des commandes"},
+          {tok:"INNER JOIN",val:"clients",tag:"on va chercher le nom et l’e-mail"},
+          {tok:"ON",val:"commandes.client_id = clients.id",tag:"le même identifiant des deux côtés"}
+        ]},
+      cards:[
+        {t:"Pourquoi écrire commandes.client_id et clients.id",bare:1,
+         b:"Les deux tables ont une colonne <code>id</code>. <code>commandes.id</code> numérote la commande, pas le client. C’est <code>client_id</code> qui recopie <code>clients.id</code>."},
+        {t:"La condition ON",draw:"oncond",
+         pairs:[{l:"1",n:"Sophie",r:"1"},{l:"2",n:"Lucas",r:"2"},{l:"4",n:"Nathan",r:"4"}],
+         b:"<p>Même identifiant → la commande et le client forment une ligne.</p><p>La commande invitée a <code>client_id</code> vide : aucune ligne de <code>clients</code> ne lui correspond.</p>"},
+        {t:"Une ligne par commande",draw:"repeat",src:"Sophie",outs:["2 juillet","2 juillet","28 juillet"],
+         b:"<p>Chaque correspondance produit sa propre ligne. Les tables, elles, ne changent pas.</p><p>Sophie a passé 3 commandes en juillet : son nom apparaît <b>3 fois</b>, une fois par commande.</p>"},
+        {t:"Une seule fois par client",
+         b:"<p>Pour n’envoyer qu’un questionnaire par personne, le nom et l’e-mail suffisent. <code>DISTINCT</code>, juste après <code>SELECT</code>, retire du résultat les lignes identiques.</p><div class=\"pt-syntax\"><pre class=\"cw-syntax\">SELECT DISTINCT clients.nom, clients.email\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id;</pre></div><p><code>DISTINCT</code> compare toute la combinaison affichée. Si tu gardes aussi la date, les deux commandes de Sophie du 2 juillet ne font plus qu’une ligne.</p>"},
+        {t:"ON relie, WHERE filtre",
+         b:"<p><code>ON</code> dit quelles lignes vont ensemble.</p><p><code>WHERE</code> dit lesquelles garder. Ici, seulement juillet 2026.</p><div class=\"pt-syntax\"><pre class=\"cw-syntax\">WHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31'</pre></div><p>Sans ce filtre, la commande de Chloé du 1<sup>er</sup> août resterait dans la liste.</p>"},
+        {t:"INNER JOIN ne garde que les paires",
+         b:"<p>Une commande sans client, ou un client sans commande, ne forme pas de paire. La ligne disparaît.</p><p>C’est pour cela que la commande invitée n’est pas dans la liste d’envoi : personne à qui écrire.</p><p><code>JOIN</code> et <code>INNER JOIN</code> font exactement la même chose. <code>INNER</code> est le comportement par défaut.</p>"}
+      ]},
+    reflex:{a:{k:"INNER JOIN",t:"ne garde que les correspondances"},
+      b:{k:"ON",t:"dit quelles lignes vont ensemble"},
+      c:{k:"WHERE",t:"garde juillet, pas les autres mois"},
+      note:"Une commande = une ligne. Sophie, trois commandes, apparaît trois fois.<br><br><code>DISTINCT</code> ne garde que les combinaisons différentes du résultat. Il ne modifie pas les tables."},
+    viz:"joinon"},
+  anatomie:[{tok:"SELECT clients.nom, clients.email, commandes.date_commande",txt:"Le nom et l’e-mail viennent de clients ; la date vient de commandes."},{tok:"FROM commandes",txt:"On part des commandes."},{tok:"INNER JOIN clients",txt:"On ne garde que les commandes qui trouvent un client."},{tok:"ON commandes.client_id = clients.id",txt:"Le lien : client_id recopie clients.id."},{tok:"WHERE commandes.date_commande BETWEEN '2026-07-01' AND '2026-07-31'",txt:"On ne garde que juillet 2026."}],
   exemple:"SELECT clients.nom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31';",
-  attendu:"<b>14 lignes</b> : une par commande de juillet 2026, avec le nom et l’e-mail du client. La commande invitée, en août et sans client, n’apparaît pas.",
-  retenir:"Une jointure réunit dans un même résultat des informations provenant de plusieurs tables.<br><br>INNER JOIN conserve uniquement les lignes qui ont une correspondance des deux côtés.<br><br>ON dit quelles lignes vont ensemble. WHERE filtre le résultat.<br><br>FROM commandes INNER JOIN clients ON commandes.client_id = clients.id",
+  attendu:"<b>14 lignes</b> : une par commande de juillet 2026, avec le nom et l’e-mail. Sophie apparaît 3 fois. La commande invitée, en août et sans client, n’apparaît pas.",
+  retenir:"<code>INNER JOIN</code> réunit deux tables et ne garde que les lignes qui correspondent des deux côtés.<br><br><code>ON</code> dit quelles lignes vont ensemble. <code>WHERE</code> filtre le résultat.<br><br>Une correspondance = une ligne. <code>DISTINCT</code> retire ensuite les combinaisons identiques, sans modifier les tables.<br><br>FROM commandes INNER JOIN clients ON commandes.client_id = clients.id",
+  piege:{t:"Relier les mauvaises colonnes",p:"<code>ON clients.id = commandes.produit_id</code> peut s’exécuter, mais le résultat est faux : <code>produit_id</code> identifie un produit, pas un client. La bonne relation est <code>clients.id = commandes.client_id</code>."},
   consigne:"Affiche le nom, l’e-mail et la date de commande des clients qui ont commandé en juillet 2026.",
   solution:"SELECT clients.nom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31';",
   indice:"Pars de <code>commandes</code>, <code>INNER JOIN clients</code> avec <code>ON commandes.client_id = clients.id</code>, puis filtre juillet avec <code>BETWEEN '2026-07-01' AND '2026-07-31'</code>.",
+  joinRecap:'inner',
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'juillet',label:'Juillet',sql:"SELECT id, client_id, date_commande\nFROM commandes\nWHERE date_commande BETWEEN '2026-07-01' AND '2026-07-31';",out:"14 lignes : les commandes de juillet, sans nom ni e-mail."},
-    {k:'join',label:'INNER JOIN',sql:"SELECT clients.nom, commandes.id\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id;",out:"15 lignes : chaque commande rattachée à un client. L’invité disparaît."},
-    {k:'liste',label:'Liste de juillet',sql:"SELECT clients.nom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31';",out:"14 lignes : nom, e-mail et date, uniquement pour juillet 2026.",tone:'good'}
+    {k:'cli',label:'clients',sql:"SELECT id, nom, email\nFROM clients;"},
+    {k:'cmd',label:'commandes',sql:"SELECT id, client_id, date_commande\nFROM commandes;"},
+    {k:'join',label:'INNER JOIN',sql:"SELECT clients.nom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id;",out:"15 lignes : chaque commande rattachée à un client. L’invité disparaît."},
+    {k:'dist',label:'DISTINCT',sql:"SELECT DISTINCT clients.nom, clients.email\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id;",out:"8 lignes : un e-mail par client qui a commandé. Sophie n’apparaît qu’une fois."},
+    {k:'juillet',label:'Juillet',sql:"SELECT clients.nom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31';",out:"14 lignes : nom, e-mail et date, uniquement pour juillet 2026.",tone:'good'}
   ],
 learningCheck:{
-  "question": "Pourquoi la commande invitée n’apparaît-elle pas avec INNER JOIN ?",
+  "question": "Sophie a trois commandes en juillet. Combien de lignes la jointure produit-elle pour elle ?",
   "options": [
-    "Parce que sa date n’est pas en juillet",
-    "Parce qu’aucune ligne de clients ne lui correspond",
-    "Parce que INNER JOIN ignore la table commandes"
+    "Trois",
+    "Une",
+    "Deux"
   ],
-  "answer": 1,
-  "explanation": "INNER JOIN ne garde que les lignes qui trouvent une correspondance des deux côtés. Sans client_id, aucune paire ne peut se former."
+  "answer": 0,
+  "explanation": "INNER JOIN produit une ligne par correspondance. Trois commandes, trois lignes. DISTINCT ne les réunit que si les colonnes affichées sont identiques."
 }
 },
 { id:20, titre:"LEFT JOIN", résumé:"Garder tous les clients, même sans commande",
@@ -22034,7 +21780,7 @@ const JOIN_COURSES={
   }
 };
 const JOIN_GUIDES={
-  joinon:{kicker:'Analyse de jointure',lead:'Identifie d’abord où se trouve chaque donnée, puis la colonne qui permet de relier les tables.',steps:[['Table clients','dans la table clients : id identifie le client, nom fournit le libellé à afficher'],['Table commandes','dans la table commandes : quantite décrit l’achat, client_id référence le client'],['Résultat','la jointure aligne clients.nom avec commandes.quantite']],takeaway:'<b>JOIN</b> combine les tables. <b>ON</b> définit la condition de correspondance.'},
+  joinon:{kicker:'Analyse de jointure',lead:'Identifie d’abord où se trouve chaque donnée, puis la colonne qui permet de relier les tables.',steps:[['Table clients','dans la table clients : id identifie le client, nom et email servent à le contacter'],['Table commandes','dans la table commandes : date_commande date l’achat, client_id référence le client'],['Résultat','la jointure aligne clients.nom avec commandes.date_commande']],takeaway:'<b>INNER JOIN</b> ne garde que les correspondances. <b>ON</b> dit lesquelles.'},
   inner:{kicker:'Analyse INNER JOIN',lead:'Vérifie que la ligne existe des deux côtés avant de la projeter.',steps:[['Table clients','clients.id identifie le client'],['Table commandes','commandes.client_id doit référencer ce client'],['Résultat','seules les lignes appariées sont projetées']],takeaway:'<b>INNER JOIN</b> exclut toute ligne qui ne satisfait pas la condition <code>ON</code>.'},
   leftj:{kicker:'Analyse LEFT JOIN',lead:'Choisis la table qui doit rester complète, puis ajoute les données disponibles à droite.',steps:[['Gauche','clients est la table conservée'],['Droite','commandes complète la ligne quand une commande existe'],['NULL','absence de commande = colonnes commandes à NULL']],takeaway:'<b>LEFT JOIN</b> conserve toutes les lignes de la table placée avant le JOIN.'},
   rightj:{kicker:'Analyse RIGHT JOIN',lead:'Tu connais LEFT JOIN : il garde la gauche. RIGHT JOIN garde la droite.',steps:[['Droite','commandes — toutes les lignes restent'],['Gauche','clients complète quand un client existe'],['NULL','sans client → NULL côté clients']],takeaway:'<b>LEFT JOIN</b> → clients · <b>RIGHT JOIN</b> → commandes.'},
@@ -25055,7 +24801,6 @@ function revealLessonContent(instant){
 }
 function renderLessonFlow(){
   if(!current||mode!=='lesson')return;
-  document.getElementById('scr-lesson').classList.toggle('inner-editorial',current.id===18&&lessonStep===0);
   const ae=document.activeElement;
   if(ae&&typeof ae.blur==='function'&&document.getElementById('scr-lesson')&&document.getElementById('scr-lesson').contains(ae)) ae.blur();
   const l=current, meta=lessonStepMeta();
@@ -25088,7 +24833,6 @@ function renderLessonFlow(){
       <div class="ls-main">
         <div class="lesson-rich${hasJoinPointCards(l)?' join-micro':''}">
           <div class="l-kicker">Cours</div><h1>${l.titre}</h1>
-          ${l.id===18?'<p class="inner-subtitle">L’enquête de satisfaction</p>':''}
           ${l.problematique?renderProblematique(l.problematique):''}
           ${l.situation?`<div class="concept-block lesson-lead">
             <h2><span class="h2-eye">Situation</span></h2>
@@ -25165,7 +24909,6 @@ function renderLessonFlow(){
   if(lessonStep===3) requestAnimationFrame(revealBravoCard);
   if(lessonStep===0){
     buildSommaire();
-    if(l.id===18&&window.initInnerJoinCourse) window.initInnerJoinCourse();
     initOrderRappelAnim();
     initTesteEditor();
     initRelationalSchemas();
@@ -29390,9 +29133,9 @@ const SQL_VIZ={
     <p class="er-hint">Touche Nathan n°4 ou l’une de ses commandes : le même identifiant 4 relie les deux tables.</p>
   </div>`},
   joinon:{kind:'er',sample:'2 clients · 3 commandes',stepMs:6500,lastSel:'1',phases:[
-    {k:'Repérer les données',d:'Le nom est dans <code>clients</code> ; la quantité est dans <code>commandes</code>. Il faut donc lire deux tables.',sql:'FROM clients INNER JOIN commandes',read:'Aucune table ne contient seule les deux colonnes demandées : la jointure va construire cette vue.'},
-    {k:'Tester la correspondance',d:'SQL compare la clé primaire du client à la clé étrangère portée par chaque commande.',sql:'ON clients.id = commandes.client_id',read:'Dans cet extrait, <code>id = 1</code> correspond à deux commandes de Sophie : <code>#1</code> et <code>#2</code>.'},
-    {k:'Construire les lignes',d:'Chaque commande appariée produit sa propre ligne avec le nom du client et la quantité.',sql:'SELECT clients.nom, commandes.quantite',read:'Dans l’extrait, Sophie apparaît deux fois : une jointure crée une ligne par achat, elle ne les fusionne pas.'}
+    {k:'Repérer les données',d:'Le nom et l’e-mail sont dans <code>clients</code> ; la date est dans <code>commandes</code>. Il faut donc lire deux tables.',sql:'FROM commandes INNER JOIN clients',read:'Aucune table ne contient seule le nom et la date : la jointure va construire cette vue.'},
+    {k:'Tester la correspondance',d:'SQL compare <code>clients.id</code> à <code>commandes.client_id</code>.',sql:'ON commandes.client_id = clients.id',read:'Dans cet extrait, <code>id = 1</code> correspond à deux commandes de Sophie : <code>#1</code> et <code>#2</code>, toutes deux le 2 juillet.'},
+    {k:'Construire les lignes',d:'Chaque commande appariée produit sa propre ligne, même si la date est la même.',sql:'SELECT clients.nom, commandes.date_commande',read:'Sophie apparaît deux fois : une jointure crée une ligne par commande, elle ne les fusionne pas.'}
   ],html:`<div class="er-stage er-match join-viz join-story">
     <svg class="er-links" aria-hidden="true"></svg>
     <div class="er-pair">
@@ -29405,18 +29148,18 @@ const SQL_VIZ={
       <div class="join-bridge" aria-hidden="true"><span class="join-bridge-badge">ON</span><small>même identifiant</small></div>
       <div class="er-col" data-side="fk">
         <div class="er-card-h">commandes</div>
-        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">client_id=1</span>#1 · qté 2</button>
-        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">client_id=1</span>#2 · qté 1</button>
-        <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">client_id=2</span>#3 · qté 1</button>
+        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">client_id=1</span>#1 · 2 juil.</button>
+        <button type="button" class="er-btn" data-er-fk="1"><span class="er-key">client_id=1</span>#2 · 2 juil.</button>
+        <button type="button" class="er-btn" data-er-fk="2"><span class="er-key">client_id=2</span>#3 · 5 juil.</button>
         ${joinMore(13,'commandes')}
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
       <div class="join-mini-table">
-        <span class="head">client</span><span class="head">quantité</span>
-        <span>Sophie</span><span>2</span>
-        <span>Sophie</span><span>1</span>
-        <span>Lucas</span><span>1</span>
+        <span class="head">client</span><span class="head">date</span>
+        <span>Sophie</span><span>2 juil.</span>
+        <span>Sophie</span><span>2 juil.</span>
+        <span>Lucas</span><span>5 juil.</span>
       </div>
       ${joinMore(12,'lignes')}
     </div>
@@ -31004,7 +30747,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-14-coal-spc-v1019';
+  const SW_CACHE='requete-2026-09-22-inner-cards-v1021';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
