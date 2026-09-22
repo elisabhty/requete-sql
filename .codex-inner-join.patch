@@ -1,0 +1,178 @@
+diff --git a/index.html b/index.html
+index 17ea8d3..29e5d90 100644
+--- a/index.html
++++ b/index.html
+@@ -12766,24 +12766,24 @@ learningCheck:{
+ ]},
+ { titre:"Jointures", sous:"Interroger plusieurs tables à la fois", lessons:[
+ { id:18, titre:"INNER JOIN", résumé:"L’enquête de satisfaction",
+-  situation:`<p>Chaque mois, l’équipe envoie une enquête de satisfaction aux clients ayant récemment passé une commande.</p><p>L’objectif est simple&nbsp;: recueillir leur avis sur leur expérience d’achat.</p><p>Pour l’enquête de ce mois-ci, l’équipe souhaite contacter uniquement les clients ayant passé une commande en <b>juillet 2026</b>.</p><p>Pour envoyer le questionnaire, elle doit préparer une liste contenant&nbsp;:</p><div class="pk-rel" aria-label="Trois informations à réunir"><article><b>👤 Nom</b><span>du client</span></article><article><b>✉️ E-mail</b><span>pour le contacter</span></article><article><b>📅 Date</b><span>de sa commande</span></article></div><p>Seulement, lorsqu’elle consulte la table des commandes, elle semble un peu perdue… aucun nom, aucune adresse mail.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Retrouve le nom et l’e-mail des clients ayant commandé en juillet 2026 afin de préparer la liste d’envoi du questionnaire.</p></div>`,
+-  studio:{problem:{eye:"",title:"🔎 Commençons par retrouver les commandes passées en juillet",
+-    body:`<p>On cherche d’abord toutes les commandes dont la date est comprise entre le 1er et le 31 juillet 2026.</p><p>Pour définir cet intervalle, on utilise <code>BETWEEN</code> (à voir dans un prochain cours)&nbsp;:</p><div class="sit-sql join-jump"><p><code>date_commande</code></p><p>→ entre <code>2026-07-01</code> et <code>2026-07-31</code></p></div>`,
+-    extra:`<!--SITSQL--><div class="sit-memo"><p><i aria-hidden="true">💡</i> <code>BETWEEN</code> inclut les deux dates&nbsp;: les commandes du 1er juillet et celles du 31 juillet sont donc également recherchées.</p></div>`},
++  situation:`<p>Chaque mois, l’équipe envoie une enquête de satisfaction aux clients ayant récemment passé une commande.</p><p>Cette fois, elle veut interroger uniquement les clients ayant commandé en <b>juillet 2026</b>.</p><p>Pour préparer l’envoi, il lui faut une liste contenant&nbsp;:</p><div class="pk-rel" aria-label="Deux informations à réunir"><article><b>👤 Nom</b><span>identifier le client</span></article><article><b>✉️ E-mail</b><span>envoyer le questionnaire</span></article></div><p>Problème&nbsp;: la table <code>commandes</code> contient bien les achats de juillet, mais ni le nom ni l’e-mail des clients.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Pars des commandes de juillet, retrouve les clients correspondants et prépare <b>une seule ligne par personne joignable</b>.</p></div>`,
++  studio:{problem:{eye:"",title:"🔎 Indice n°1 — retrouver les commandes de juillet",
++    body:`<p>Commençons par isoler les commandes passées entre le 1er et le 31 juillet 2026.</p><p>Nous utilisons <code>BETWEEN</code>, déjà rencontré dans le cours sur les périodes&nbsp;:</p><div class="sit-sql join-jump"><p><code>date_commande</code></p><p>→ entre <code>2026-07-01</code> et <code>2026-07-31</code></p></div>`,
++    extra:`<!--SITSQL--><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🧾</i>Premier constat</p><p>SQL retrouve <b>14 commandes</b>. Mais 14 commandes ne signifient pas forcément 14 clients&nbsp;: une même personne peut avoir commandé plusieurs fois.</p></div>`},
+     uses:{title:"L’enquête de satisfaction",
+       sql:"SELECT id, client_id, date_commande\nFROM commandes\nWHERE date_commande BETWEEN '2026-07-01' AND '2026-07-31';",
+       sql2:"SELECT clients.nom,\n       commandes.id\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id;",
+-      sql3:"SELECT clients.nom,\n       clients.email,\n       commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id;",
+-      sql4:"SELECT clients.nom,\n       clients.email,\n       commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31';",
++      sql3:"SELECT clients.nom,\n       clients.email,\n       commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31';",
++      sql4:"SELECT DISTINCT clients.nom,\n       clients.email\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31'\n  AND clients.email IS NOT NULL;",
+       body:`<div class="fn-uses">
+         <div class="fn-use">
+-          <p>Avec la requête SQL précédente, nous avons retrouvé toutes les commandes passées en juillet.</p>
++          <p>Premier indice obtenu&nbsp;: nous avons retrouvé les <b>14 commandes</b> passées en juillet.</p>
+           <p>Mais dans la table <code>commandes</code>, nous n’avons pas directement le nom ou l’e-mail du client. Nous avons seulement son <code>client_id</code>.</p>
+           <p>Or, ces informations se trouvent dans une autre table&nbsp;: la table <code>clients</code>.</p>
+           <div class="sit-sql join-jump"><p>👉 Comment relier chaque commande à son client pour retrouver son nom et son e-mail&nbsp;?</p></div>
+         </div>
+         <div class="fn-use">
+-          <p class="pt-syntax-h">Suivons une commande</p>
++          <p class="pt-syntax-h">🔎 Indice n°2 — suivons une commande</p>
+           <div class="sit-sql join-follow join-jump" aria-label="Commande 5, client_id 4">
+             <p><b>Commande n°5</b></p>
+             <p><code>client_id = 4</code></p>
+@@ -12802,7 +12802,7 @@ learningCheck:{
+           <div class="sit-sql join-jump"><p>👉 Comment demander à SQL de faire automatiquement cette correspondance pour toutes les commandes&nbsp;?</p></div>
+         </div>
+         <div class="fn-use">
+-          <p class="pt-syntax-h">🔗 C’est exactement le rôle d’une jointure</p>
++          <p class="pt-syntax-h">🔗 SQL peut suivre ce lien pour nous</p>
+           <p>Une jointure permet de réunir les informations de plusieurs tables à partir d’un lien commun.</p>
+           <p>Ici, le lien est déjà connu&nbsp;:</p>
+           <div class="sit-sql join-jump">
+@@ -12827,13 +12827,12 @@ learningCheck:{
+               <code class="rel-on-eq">commandes.client_id = clients.id</code>
+             </div>
+           </div>
+-          <p><code>ON</code> indique à SQL quelles lignes des deux tables correspondent.</p>
++          <p><code>INNER JOIN</code> annonce la table à rapprocher. <code>ON</code> donne ensuite la règle qui permet de reconnaître les lignes correspondantes.</p>
+           <p>Dans notre cas&nbsp;:</p>
+           <div class="pt-syntax"><pre class="cw-syntax">ON commandes.client_id = clients.id</pre></div>
+           <p>On peut le lire simplement&nbsp;:</p>
+           <div class="sit-sql join-jump"><p>«&nbsp;Relie une commande au client lorsque son <code>client_id</code> correspond à l’<code>id</code> du client.&nbsp;»</p></div>
+-          <p>Nous connaissons déjà le lien entre les deux tables.</p>
+-          <p>Il reste maintenant à indiquer à SQL comment les réunir.</p>
++          <p>Nous avons donc les deux pièces du mécanisme&nbsp;: <code>INNER JOIN</code> choisit l’autre table, puis <code>ON</code> explique comment retrouver la bonne ligne.</p>
+           <div class="sit-sql join-jump">
+             <p class="sit-memo-lab"><i aria-hidden="true">🧩</i>La structure</p>
+             <div class="pt-syntax"><pre class="cw-syntax">SELECT ...
+@@ -12854,7 +12853,7 @@ INNER JOIN clients
+           </div>
+         </div>
+         <div class="fn-use">
+-          <p class="pt-syntax-h">Notre première INNER JOIN</p>
++          <p class="pt-syntax-h">Notre premier INNER JOIN</p>
+           <p>Commençons simplement&nbsp;:</p>
+           <!--SITSQL2-->
+           <div class="sit-sql join-jump">
+@@ -12902,50 +12901,55 @@ INNER JOIN table_2
+         </div>
+         <div class="fn-use">
+           <p class="pt-syntax-h">Ce que SQL retrouve</p>
+-          <p>Exécute la requête&nbsp;: chaque commande est maintenant accompagnée du nom du client qui lui correspond.</p>
++          <p>Exécute la requête&nbsp;: chaque commande rattachée à un client est maintenant accompagnée de son nom.</p>
+           <p>SQL a suivi le <code>client_id</code> jusqu’à <code>clients.id</code>, comme nous l’avions fait à la main pour Nathan.</p>
+-          <p>Puis il recommence pour les autres commandes.</p>
++          <p>Puis il recommence pour toutes les autres commandes. La commande invitée, sans client correspondant, est écartée.</p>
+         </div>
+         <div class="fn-use">
+-          <p class="pt-syntax-h">Retrouvons maintenant les e-mails</p>
++          <p class="pt-syntax-h">🔎 Indice n°3 — ajoutons les informations utiles</p>
+           <p>Nous avons compris comment associer une commande à son client. Revenons à notre mission.</p>
+-          <p>Nous avons besoin du <b>nom</b> et de l’<b>e-mail</b>. Ces deux informations se trouvent dans <code>clients</code>.</p>
+-          <p>Nous pouvons donc les demander dans le <code>SELECT</code>&nbsp;:</p>
++          <p>Le <b>nom</b> et l’<b>e-mail</b> viennent de <code>clients</code>. La date utilisée pour sélectionner juillet vient de <code>commandes</code>.</p>
++          <p>Nous pouvons donc les utiliser ensemble dans la même requête&nbsp;:</p>
+           <!--SITSQL3-->
+-          <p>On se rapproche de notre objectif. Mais il y a un problème…</p>
+-          <p>Nous voulions uniquement les clients ayant commandé en <b>juillet</b>.</p>
+-          <p>Pour l’instant, notre jointure peut récupérer des commandes d’autres mois.</p>
++          <p>Nous obtenons <b>14 lignes</b>&nbsp;: une par commande de juillet.</p>
++          <p>Mais Nathan a commandé deux fois&nbsp;: il apparaît donc deux fois. La jointure n’a pas créé un doublon par erreur&nbsp;; elle produit bien <b>une ligne par correspondance</b>.</p>
+         </div>
+         <div class="fn-use">
+-          <p class="pt-syntax-h">Gardons uniquement juillet 2026</p>
+-          <p>Nous connaissons déjà l’outil nécessaire&nbsp;: <code>WHERE</code>.</p>
++          <p class="pt-syntax-h">🎯 Transformons le résultat en liste d’envoi</p>
++          <p>L’équipe veut envoyer un seul questionnaire par client. Nous ajoutons donc <code>DISTINCT</code> pour ne garder qu’une fois chaque combinaison nom + e-mail.</p>
++          <p>Hugo a bien commandé en juillet, mais son e-mail vaut <code>NULL</code>. Avec <code>AND clients.email IS NOT NULL</code>, la liste finale ne conserve que les personnes que l’équipe peut réellement contacter.</p>
+           <!--SITSQL4-->
+-          <p>Cette fois, nous avons exactement ce dont l’équipe avait besoin&nbsp;: nom, e-mail, et une commande de juillet 2026.</p>
++          <p>Cette fois, nous avons exactement ce dont l’équipe a besoin&nbsp;: <b>7 destinataires uniques et joignables</b>.</p>
+           <div class="fk-check is-ok">
+             <b>⭐ Liste prête</b>
+-            <small>les clients à qui envoyer l’enquête</small>
++            <small>un seul questionnaire par client joignable</small>
+           </div>
+-          <p>Mais notre enquête sur <code>INNER JOIN</code> n’est pas terminée.</p>
++          <p>La jointure a retrouvé les clients. <code>WHERE</code> a gardé juillet et les e-mails renseignés. <code>DISTINCT</code> a supprimé les répétitions de la liste.</p>
+         </div>
+         <div class="fn-use">
+-          <p class="pt-syntax-h">ON et WHERE&nbsp;: deux rôles différents</p>
+-          <p>Notre requête utilise les deux. Ils peuvent sembler proches, mais ils répondent à deux questions différentes.</p>
++          <p class="pt-syntax-h">Chaque mot-clé a sa mission</p>
++          <p>Notre requête combine plusieurs outils déjà rencontrés. Aucun ne fait le travail d’un autre.</p>
+           <div class="fk-vs">
+             <article>
+-              <b>ON</b>
+-              <p>Quelles lignes vont ensemble&nbsp;?</p>
++              <b>INNER JOIN + ON</b>
++              <p>Quelles lignes correspondent&nbsp;?</p>
+               <p><code>commandes.client_id = clients.id</code></p>
+             </article>
+             <article>
+               <b>WHERE</b>
+               <p>Quelles lignes voulons-nous garder&nbsp;?</p>
+-              <p>les commandes de juillet 2026</p>
++              <p>juillet + e-mail renseigné</p>
++            </article>
++            <article>
++              <b>DISTINCT</b>
++              <p>Quelles répétitions retirer&nbsp;?</p>
++              <p>un seul destinataire par nom + e-mail</p>
+             </article>
+           </div>
+           <div class="sit-memo">
+             <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
+-            <p><code>ON</code> crée la correspondance.</p>
+-            <p><code>WHERE</code> filtre le résultat recherché.</p>
++            <p><code>INNER JOIN</code> réunit les tables et <code>ON</code> indique quelles lignes vont ensemble.</p>
++            <p><code>WHERE</code> filtre les lignes. <code>DISTINCT</code> retire les répétitions du résultat.</p>
+           </div>
+         </div>
+         <div class="fn-use">
+@@ -13001,10 +13005,9 @@ WHERE commandes.date_commande
+         </div>
+         <div class="fn-use">
+           <p class="pt-syntax-h">🔎 Fin de l’enquête</p>
+-          <p>Reprenons notre mission&nbsp;: retrouver le nom et l’e-mail des clients ayant commandé en juillet 2026.</p>
+-          <p>Au départ, <code>commandes</code> nous donnait seulement <code>client_id</code>.</p>
+-          <p>Nous avons utilisé la relation <code>commandes.client_id = clients.id</code> pour retrouver les informations correspondantes dans <code>clients</code>.</p>
+-          <p>Puis nous avons conservé uniquement les commandes de juillet.</p>
++          <p>Au départ, nous avions <b>14 commandes de juillet</b>, mais aucun nom ni e-mail dans la table <code>commandes</code>.</p>
++          <p><code>INNER JOIN</code> et <code>ON commandes.client_id = clients.id</code> ont permis de retrouver le client correspondant à chaque commande.</p>
++          <p>Enfin, nous avons conservé les e-mails renseignés et retiré les répétitions&nbsp;: l’équipe obtient <b>7 destinataires uniques et joignables</b>.</p>
+           <div class="fk-tree" aria-label="De la commande à l’enquête de satisfaction">
+             <div class="fk-tree-root"><b>commandes</b><span>client_id</span></div>
+             <i class="fk-tree-stem" aria-hidden="true">↓</i>
+@@ -13015,7 +13018,7 @@ WHERE commandes.date_commande
+           </div>
+           <div class="fk-check is-ok">
+             <b>⭐ Mission accomplie</b>
+-            <small>l’équipe a la liste des clients à contacter</small>
++            <small>7 clients peuvent recevoir le questionnaire</small>
+           </div>
+         </div>
+       </div>`},
+@@ -13040,6 +13043,7 @@ INNER JOIN clients
+         <p><b>INNER JOIN</b> — Quelles tables veux-tu réunir&nbsp;?</p>
+         <p><b>ON</b> — Comment leurs lignes se correspondent-elles&nbsp;?</p>
+         <p><b>WHERE</b> — Quelles données veux-tu conserver&nbsp;?</p>
++        <p><b>DISTINCT</b> — Faut-il retirer les répétitions du résultat&nbsp;?</p>
+       </div>
+       <div class="sit-memo">
+         <p class="sit-memo-lab"><i aria-hidden="true">🔜</i>À suivre</p>
