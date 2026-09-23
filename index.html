@@ -12998,6 +12998,7 @@ learningCheck:{
   consigne:"Affiche le nom, l’e-mail et la date de commande des clients ayant commandé en juillet 2026.",
   solution:"SELECT clients.nom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31';",
   indice:"Pars de la <code>table commandes</code>, ajoute <code>INNER JOIN clients</code> avec <code>ON commandes.client_id = clients.id</code>, puis filtre juillet avec <code>BETWEEN '2026-07-01' AND '2026-07-31'</code>.",
+  joinRecap:'inner',
   richLesson:true, earlyDemo:true,
   testeSwitch:'cols2',
   testeVariants:[
@@ -13106,6 +13107,7 @@ LEFT JOIN commandes
   consigne:"Affiche le nom de tous les clients et la <code>quantite</code> de leurs commandes, en gardant ceux qui n’ont aucune commande.",
   solution:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",
   indice:"Utilise <code>LEFT JOIN</code> pour garder tous les clients, même ceux qui n’ont aucune ligne dans la table <code>commandes</code>.",
+  joinRecap:'left',
   richLesson:true, earlyDemo:true,
   testeVariants:[
     {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
@@ -13209,6 +13211,7 @@ LEFT JOIN commandes
   consigne:"Affiche uniquement les clients qui n’ont passé aucune commande.",
   solution:"SELECT clients.nom\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;",
   indice:"Utilise <code>LEFT JOIN</code> puis <code>WHERE commandes.id IS NULL</code>.",
+  joinRecap:'left',
   richLesson:true, earlyDemo:true,
   testeSwitch:'cols2',
   testeVariants:[
@@ -13319,6 +13322,7 @@ learningCheck:{
   consigne:"Affiche le nom des clients et la <code>quantite</code> de toutes les commandes, en gardant celles qui n’ont aucun client.",
   solution:"SELECT clients.nom, commandes.quantite\nFROM clients\nRIGHT JOIN commandes\nON clients.id = commandes.client_id;",
   indice:"Utilise <code>RIGHT JOIN</code> pour garder toutes les commandes, même celles qui n’ont aucune ligne dans la table <code>clients</code>.",
+  joinRecap:'right',
   richLesson:true, earlyDemo:true,
   testeSwitch:'cols2',
   testeVariants:[
@@ -13418,6 +13422,7 @@ learningCheck:{
   consigne:"Affiche le nom de tous les clients et la <code>quantite</code> de toutes les commandes, en gardant les lignes sans correspondance des deux côtés.",
   solution:"SELECT clients.nom, commandes.quantite\nFROM clients\nFULL OUTER JOIN commandes\nON clients.id = commandes.client_id;",
   indice:"Utilise <code>FULL OUTER JOIN</code> pour conserver à la fois les clients sans commande et les commandes sans client.",
+  joinRecap:'full',
   richLesson:true, earlyDemo:true,
   testeVariants:[
     {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
@@ -13496,6 +13501,7 @@ learningCheck:{
   consigne:"Affiche toutes les combinaisons possibles entre chaque client et chaque produit.",
   solution:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;",
   indice:"Utilise <code>CROSS JOIN</code> entre les tables <code>clients</code> et <code>produits</code>. Tu n’as pas besoin de <code>ON</code>.",
+  joinRecap:'cross',
   richLesson:true, earlyDemo:true,
   testeVariants:[
     {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
@@ -13658,6 +13664,7 @@ learningCheck:{
   consigne:"Affiche pour chaque commande le nom du client, le nom du produit et la quantité commandée.",
   solution:"SELECT clients.nom, produits.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id\nJOIN produits\nON commandes.produit_id = produits.id;",
   indice:"Suis le chemin <code>clients → commandes → produits</code>. Chaque flèche correspond à une jointure.",
+  joinRecap:'inner',
   richLesson:true, earlyDemo:true,
   testeSwitch:'cols2',
   testeVariants:[
@@ -13766,6 +13773,7 @@ learningCheck:{
   consigne:"Affiche chaque client avec son nombre de commandes, y compris les clients qui n’ont encore passé aucune commande.",
   solution:"SELECT clients.nom, COUNT(commandes.id) AS nb_commandes\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nGROUP BY clients.id, clients.nom;",
   indice:"Relie d’abord les clients aux commandes avec <code>LEFT JOIN</code>, regroupe ensuite les lignes par client, puis compte les <code>commandes.id</code>.",
+  joinRecap:'left',
   richLesson:true, earlyDemo:true,
   testeSwitch:'cols2',
   testeVariants:[
@@ -13870,6 +13878,7 @@ JOIN <span class="fk-syn-hit">clients c2</span></pre></div>
   consigne:"Affiche toutes les paires de clients qui habitent la même ville, sans doublons ni association d’un client avec lui-même.",
   solution:"SELECT c1.nom AS client1, c2.nom AS client2, c1.ville\nFROM clients c1\nJOIN clients c2\nON c1.ville = c2.ville AND c1.id < c2.id;",
   indice:"Utilise deux alias de la table <code>clients</code>, compare les villes, puis ajoute <code>c1.id &lt; c2.id</code>.",
+  joinRecap:'self',
   richLesson:true, earlyDemo:true,
   testeSwitch:'cols2',
   testeVariants:[
@@ -14045,6 +14054,7 @@ learningCheck:{
   consigne:"Affiche tous les clients et uniquement leurs commandes de quantité supérieure à 2 passées après le 15 juillet 2026.",
   solution:"SELECT clients.nom, commandes.quantite, commandes.date_commande\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2\nAND commandes.date_commande > '2026-07-15';",
   indice:"Commence par relier le client à sa commande, puis ajoute les deux autres critères avec <code>AND</code>.",
+  joinRecap:'left',
   richLesson:true, earlyDemo:true,
   testeSwitch:'cols2',
   testeVariants:[
