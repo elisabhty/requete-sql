@@ -1411,7 +1411,7 @@
   .offset-diff-sql.is-fade .cw-syntax{opacity:.4}
   .offset-diff-caption.is-fade{opacity:.35}
   @media (prefers-reduced-motion:reduce){
-    .offset-diff-row.is-pulse,.offset-scan.is-run .offset-scan-skip,.offset-scan.is-run .offset-scan-keep,.offset-shift.is-run .offset-shift-arrow i,.offset-shift.is-run .offset-demo-row.is-dup,.offset-branches.is-run .offset-branch,.fk-tree-root,.fk-tree-stem,.fk-tree-fork article,.fk-syn-hit,.fk-syn-map article,.fk-ref article,.fk-check,.rel-arrow-dot,.fk-corr-dot,.concept-block.in .fk-corr-demo .is-hit,.concept-block.in .fk-corr-demo .fk-corr-srcs span,.concept-block.in .fk-corr-demo .fk-corr-link,.fk-syn-flow-dot{animation:none!important}
+    .offset-diff-row.is-pulse,.offset-scan.is-run .offset-scan-skip,.offset-scan.is-run .offset-scan-keep,.offset-shift.is-run .offset-shift-arrow i,.offset-shift.is-run .offset-demo-row.is-dup,.offset-branches.is-run .offset-branch,.fk-tree-root,.fk-tree-stem,.fk-tree-fork article,.fk-syn-hit,.fk-syn-map article,.fk-ref article,.fk-check,.fk-miss,.fk-verdict,.rel-arrow-dot,.fk-corr-dot,.concept-block.in .fk-corr-demo .is-hit,.concept-block.in .fk-corr-demo .fk-corr-srcs span,.concept-block.in .fk-corr-demo .fk-corr-link,.fk-syn-flow-dot{animation:none!important}
     .concept-block.in .fk-corr-demo .pk-mini span.is-hit,.concept-block.in .fk-corr-demo .fk-corr-dest span.is-hit{background:var(--accent-soft);color:var(--accent)}
     .concept-block.in .fk-corr-demo .fk-corr-srcs span,.concept-block.in .fk-corr-demo .fk-corr-link{opacity:1}
     .concept-block.in .fk-corr-dot{opacity:1}
@@ -1451,6 +1451,18 @@
   .pk-mini span.is-hit{background:var(--accent-soft);color:var(--accent)}
   .pk-comp{margin:12px 0 2px;padding:12px;border-radius:16px;background:#fff;border:1px solid var(--card-border)}
   .pk-comp .pk-mini{margin:0}
+  .fk-miss{margin:12px 0 2px;padding:12px;border-radius:16px;background:#fff;border:1px solid var(--card-border);animation:fkTreeIn .4s ease both}
+  .fk-miss-q{display:flex;align-items:center;gap:8px;margin:0 0 10px!important;padding:8px 10px;border-radius:10px;background:var(--surface);font-size:13px!important}
+  .fk-miss-q b{font-family:var(--mono);font-size:12.5px;font-weight:800;color:var(--ink)}
+  .fk-miss-q em{margin-left:auto;font-style:normal;font-weight:800;color:var(--danger)}
+  .fk-miss .pk-mini{margin:0}
+  .pk-mini span.is-dim{opacity:.45}
+  .pk-mini span.fk-miss-row{background:transparent;border:1.5px dashed color-mix(in srgb,var(--danger) 45%,transparent);color:var(--danger);font-weight:800}
+  .fk-verdict{margin:10px 0 2px;padding:12px 14px;border-radius:16px;background:var(--danger-soft);border:1px solid color-mix(in srgb,var(--danger) 22%,transparent);animation:fkTreeIn .4s ease .15s both}
+  .fk-verdict p{margin:0!important}
+  .fk-verdict .fk-verdict-lab{font-size:10.5px!important;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--danger);opacity:.8}
+  .fk-verdict .fk-verdict-t{margin:3px 0 4px!important;font-size:15px!important;font-weight:800;color:var(--danger)}
+  .fk-verdict p:last-child{font-size:14px;line-height:1.5;color:var(--ink-2)}
   .rel-pair{margin:12px 0 2px;padding:12px 10px;border-radius:16px;background:#fff;border:1px solid var(--card-border)}
   .rel-pair-h,.rel-pair-row{display:grid;grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr);align-items:center;column-gap:6px}
   .rel-pair-h{margin:0 0 8px;padding:0 2px;font-size:10.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-3)}
@@ -12246,12 +12258,20 @@ learningCheck:{
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Et si le client n’existe pas&nbsp;?</p>
-          <p>Imaginons maintenant une commande avec <code>client_id = 99</code>.</p>
-          <p>Le SGBD cherche la valeur correspondante dans <code>clients</code>&nbsp;:</p>
-          <p>Aucun client n’a l’<code>id</code> 99.</p>
-          <p>Si la contrainte de clé étrangère est appliquée&nbsp;:</p>
-          <p>❌ Le SGBD refuse l’enregistrement&nbsp;: <code>client_id = 99</code> fait référence à un client inexistant.</p>
-          <p>La clé étrangère empêche ainsi de créer une référence vers une ligne qui n’existe pas.</p>
+          <p>Imaginons maintenant une commande avec <code>client_id = 99</code>. Le SGBD cherche ce client dans <code>clients</code>&nbsp;:</p>
+          <div class="fk-miss" role="img" aria-label="Recherche de l’id 99 dans clients : aucun résultat">
+            <p class="fk-miss-q"><span>🔎</span><b>clients.id = 99</b><em>?</em></p>
+            <div class="pk-mini"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-dim">2</span><span class="is-dim">Lucas</span><span class="is-dim">4</span><span class="is-dim">Nathan</span><span class="is-dim">7</span><span class="is-dim">Léa</span><span class="fk-miss-row">99</span><span class="fk-miss-row">aucun client</span></div>
+          </div>
+          <div class="fk-verdict">
+            <p class="fk-verdict-lab">Avec la contrainte FOREIGN KEY</p>
+            <p class="fk-verdict-t">❌ Enregistrement refusé</p>
+            <p><code>client_id = 99</code> fait référence à un client qui n’existe pas.</p>
+          </div>
+          <div class="sit-memo">
+            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
+            <p>La clé étrangère empêche de créer une référence vers une ligne qui n’existe pas.</p>
+          </div>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Pourquoi ce contrôle est-il utile&nbsp;?</p>
