@@ -1554,6 +1554,20 @@
     .ijl *{animation:none!important;transition:none!important}
     .ijl-link.is-new{stroke-dashoffset:0}
   }
+  /* Requête annotée : une ligne de SQL, son explication juste dessous */
+  .ij-anno{margin:12px 0 14px;border-radius:14px;background:#fff;border:1px solid var(--card-border);overflow:hidden}
+  .ij-anno-row{display:flex;flex-direction:column;gap:3px;padding:10px 12px 10px 14px;border-top:1px solid var(--line-2);position:relative}
+  .ij-anno-row:first-child{border-top:0}
+  .ij-anno-row code{padding:0;background:transparent;font-family:var(--mono);font-size:12.5px;font-weight:700;line-height:1.5;color:var(--ink);white-space:normal;overflow-wrap:anywhere}
+  .ij-anno-row span{font-size:13.5px;line-height:1.45;color:var(--ink-2)}
+  .ij-anno-row span b{font-weight:700;color:var(--ink)}
+  .ij-anno-row.is-muted code{color:var(--ink-3);font-weight:600}
+  .ij-anno-row.is-muted span{color:var(--ink-3)}
+  .ij-anno-row.is-key{background:color-mix(in srgb,var(--accent) 6%,#fff)}
+  .ij-anno-row.is-key::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--accent)}
+  .ij-anno-row.is-key code{color:var(--accent);font-weight:800}
+  /* Cours de jointure : surlignage d’une ligne de code sans créer de trou */
+  .jn-course .cw-syntax .fk-syn-hit{display:inline;margin:0 -4px;padding:1px 4px;border-radius:6px;-webkit-box-decoration-break:clone;box-decoration-break:clone;animation:none}
   .fk-course .pt-syntax .cw-syntax{background:#fafafc;border:1px solid rgba(39,42,54,.16);border-radius:12px}
   .fk-course .sit-memo.is-attn{margin:12px 0}
   .fk-verdict{margin:10px 0 2px;padding:12px 14px;border-radius:16px;background:var(--danger-soft);border:1px solid color-mix(in srgb,var(--danger) 22%,transparent);animation:fkTreeIn .4s ease .15s both}
@@ -12903,7 +12917,7 @@ learningCheck:{
       body:"Pour réunir ces informations, <code>INNER JOIN</code> associe chaque commande de la <code>table commandes</code> au client de la <code>table clients</code> dont l’<code>id</code> correspond à son <code>client_id</code>.<br><br>Les deux lignes forment alors <b>une seule</b> ligne du résultat.",
       extra:`<div class="jn-merge" role="img" aria-label="La commande 3 et le client 2 forment une ligne du résultat"><div class="jn-merge-src"><span><small>table commandes</small>#3 · client 2</span><span><small>table clients</small>2 · Lucas</span></div><i aria-hidden="true">=</i><div class="jn-merge-out"><small>Une ligne du résultat</small>Lucas · lucas@mail.fr · 5 juil.</div></div>`},
     uses:{title:"INNER JOIN en 5 étapes",
-      body:`<div class="pt-lead fn-uses fk-course">
+      body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
           <p class="pt-syntax-h">Le lien : client_id = clients.id</p>
           <p>Dans la <code>table commandes</code>, chaque commande enregistre le numéro de son client dans la colonne <code>client_id</code>.</p>
@@ -12915,30 +12929,8 @@ learningCheck:{
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Écrire la jointure</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom, clients.email,
-       commandes.date_commande
-FROM commandes
-<span class="fk-syn-hit">INNER JOIN clients</span>
-    <span class="fk-syn-hit">ON commandes.client_id = clients.id</span></pre></div>
-          <div class="fk-syn-map" aria-label="Lecture de FROM, INNER JOIN et ON">
-            <article>
-              <code>FROM commandes</code>
-              <i aria-hidden="true">↓</i>
-              <span>on part de la table commandes</span>
-            </article>
-            <i aria-hidden="true">↓</i>
-            <article>
-              <code>INNER JOIN clients</code>
-              <i aria-hidden="true">↓</i>
-              <span>on va chercher les clients dans la table clients</span>
-            </article>
-            <i aria-hidden="true">↓</i>
-            <article>
-              <code>ON commandes.client_id = clients.id</code>
-              <i aria-hidden="true">↓</i>
-              <span>celui dont l’id correspond à client_id</span>
-            </article>
-          </div>
+          <p>La requête se lit ligne par ligne&nbsp;:</p>
+          <div class="ij-anno" role="list" aria-label="La requête INNER JOIN lue ligne par ligne"><div class="ij-anno-row is-muted"><code>SELECT clients.nom, clients.email,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;commandes.date_commande</code><span>les colonnes à afficher</span></div><div class="ij-anno-row"><code>FROM commandes</code><span>on part de la <b>table commandes</b></span></div><div class="ij-anno-row is-key"><code>INNER JOIN clients</code><span>on va chercher les clients dans la <b>table clients</b></span></div><div class="ij-anno-row is-key"><code>ON commandes.client_id = clients.id</code><span>on associe chaque commande au client dont l’<b>id</b> correspond à son <b>client_id</b></span></div></div>
           <div class="sit-memo">
             <p class="sit-memo-lab"><i aria-hidden="true">💡</i>Bon à savoir</p>
             <p>Écrire <code>JOIN</code> tout court revient à écrire <code>INNER JOIN</code>&nbsp;: c’est la jointure par défaut.</p>
@@ -12972,10 +12964,7 @@ FROM commandes
         <div class="fn-use">
           <p class="pt-syntax-h">ON relie, WHERE filtre</p>
           <p><code>ON</code> indique quelles lignes vont ensemble. <code>WHERE</code> filtre ensuite le résultat pour ne garder que les commandes de juillet 2026.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">…
-    ON commandes.client_id = clients.id
-<span class="fk-syn-hit">WHERE commandes.date_commande
-      BETWEEN '2026-07-01' AND '2026-07-31'</span></pre></div>
+          <div class="ij-anno" role="list" aria-label="ON puis WHERE"><div class="ij-anno-row is-muted"><code>ON commandes.client_id = clients.id</code><span>relie chaque commande à son client</span></div><div class="ij-anno-row is-key"><code>WHERE commandes.date_commande<br>&nbsp;&nbsp;BETWEEN '2026-07-01' AND '2026-07-31'</code><span>ne garde que les commandes de juillet 2026</span></div></div>
           <div class="fk-verdict is-ok">
             <p class="fk-verdict-lab">Résultat</p>
             <p class="fk-verdict-t">✅ 14 commandes de juillet</p>
@@ -13036,7 +13025,7 @@ learningCheck:{
       body:"Tous les clients sont invités, même ceux qui n’ont jamais commandé. <code>LEFT JOIN</code> garde toute la table de gauche, puis la complète avec la droite quand c’est possible.",
       extra:`<div class="jn-sides" role="img" aria-label="LEFT JOIN : toutes les lignes de clients restent, les commandes complètent quand elles existent"><article class="is-kept"><small>gauche</small><b>clients</b><span>🛡️ toutes les lignes</span></article><i aria-hidden="true">⟷</i><article><small>droite</small><b>commandes</b><span>si une paire existe</span></article></div>`},
     uses:{title:"LEFT JOIN, étape par étape",
-      body:`<div class="pt-lead fn-uses fk-course">
+      body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
           <p class="pt-syntax-h">Choisir la table à protéger</p>
           <p>Demande-toi&nbsp;: «&nbsp;Qui ne doit surtout pas disparaître&nbsp;?&nbsp;» Ici, les clients. Leur table s’écrit donc à gauche, juste après <code>FROM</code>.</p>
@@ -13153,7 +13142,7 @@ learningCheck:{
             </article>
           </div>`},
     uses:{title:"LEFT JOIN + IS NULL, étape par étape",
-      body:`<div class="pt-lead fn-uses fk-course">
+      body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
           <p class="pt-syntax-h">Étape 1 : rendre l’absence visible</p>
           <p>Le <code>LEFT JOIN</code> garde tous les clients. Ceux qui n’ont aucune commande reçoivent des <code>NULL</code> du côté de <code>commandes</code>&nbsp;:</p>
@@ -13266,7 +13255,7 @@ learningCheck:{
       body:"<code>RIGHT JOIN</code> est le miroir de <code>LEFT JOIN</code>&nbsp;: il protège la table écrite après lui, à droite.",
       extra:`<div class="jn-sides" role="img" aria-label="RIGHT JOIN : toutes les lignes de commandes restent, les clients complètent quand ils existent"><article><small>gauche</small><b>clients</b><span>si une paire existe</span></article><i aria-hidden="true">⟷</i><article class="is-kept"><small>droite</small><b>commandes</b><span>🛡️ toutes les lignes</span></article></div>`},
     uses:{title:"RIGHT JOIN, étape par étape",
-      body:`<div class="pt-lead fn-uses fk-course">
+      body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
           <p class="pt-syntax-h">La table protégée est à droite</p>
           <div class="pt-syntax"><pre class="cw-syntax">FROM clients
@@ -13376,7 +13365,7 @@ learningCheck:{
       body:"<code>FULL OUTER JOIN</code> garde toutes les lignes des deux tables, même sans correspondance.",
       extra:`<div class="jn-sides" role="img" aria-label="FULL OUTER JOIN : les deux tables restent entières"><article class="is-kept"><small>gauche</small><b>clients</b><span>🛡️ toutes les lignes</span></article><i aria-hidden="true">⟷</i><article class="is-kept"><small>droite</small><b>commandes</b><span>🛡️ toutes les lignes</span></article></div>`},
     uses:{title:"FULL OUTER JOIN, étape par étape",
-      body:`<div class="pt-lead fn-uses fk-course">
+      body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
           <p class="pt-syntax-h">LEFT et RIGHT oublient chacun quelqu’un</p>
           <div class="fk-duo" aria-label="Ce que LEFT JOIN et RIGHT JOIN oublient">
@@ -13457,7 +13446,7 @@ learningCheck:{
             <div class="pk-mini"><span class="is-h">client</span><span class="is-h">produit</span><span>Sophie</span><span>Fibre Prébiotique</span><span>Sophie</span><span>Collagène Marin</span><span>Lucas</span><span>Fibre Prébiotique</span><span>Lucas</span><span>Collagène Marin</span><span>Emma</span><span>Fibre Prébiotique</span><span>Emma</span><span>Collagène Marin</span></div>
           </div>`},
     uses:{title:"CROSS JOIN, étape par étape",
-      body:`<div class="pt-lead fn-uses fk-course">
+      body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
           <p class="pt-syntax-h">Aucune clause ON</p>
           <div class="pt-syntax"><pre class="cw-syntax">FROM clients
@@ -13608,7 +13597,7 @@ learningCheck:{
             </div>
           </div>`},
     uses:{title:"3 tables, étape par étape",
-      body:`<div class="pt-lead fn-uses fk-course">
+      body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
           <p class="pt-syntax-h">Deux tables à la fois</p>
           <p>Une jointure relie toujours <b>deux</b> tables. Pour en relier trois, on enchaîne deux jointures&nbsp;:</p>
@@ -13713,7 +13702,7 @@ learningCheck:{
             </article>
           </div>`},
     uses:{title:"Relier, regrouper, compter",
-      body:`<div class="pt-lead fn-uses fk-course">
+      body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
           <p class="pt-syntax-h">Relier : une ligne par commande</p>
           <p>Après le <code>LEFT JOIN</code>, Sophie apparaît une fois par commande. Inès, sans commande, apparaît une fois avec <code>NULL</code>&nbsp;:</p>
@@ -13822,7 +13811,7 @@ learningCheck:{
       body:"Pour comparer des clients entre eux, on lit la table <code>clients</code> deux fois, sous deux noms différents.",
       extra:`<div class="jn-sides" role="img" aria-label="La table clients utilisée deux fois, sous les alias c1 et c2"><article class="is-kept"><small>clients</small><b>c1</b><span>le premier client</span></article><i aria-hidden="true">⟷</i><article class="is-kept"><small>clients</small><b>c2</b><span>le second client</span></article></div>`},
     uses:{title:"SELF JOIN, étape par étape",
-      body:`<div class="pt-lead fn-uses fk-course">
+      body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
           <p class="pt-syntax-h">Une table, deux rôles</p>
           <div class="pt-syntax"><pre class="cw-syntax">FROM <span class="fk-syn-hit">clients c1</span>
@@ -13997,7 +13986,7 @@ learningCheck:{
    <span class="fk-syn-hit">AND commandes.quantite &gt; 2</span>
    <span class="fk-syn-hit">AND commandes.date_commande &gt; '2026-07-15'</span></pre></div>`},
     uses:{title:"Conditions multiples, étape par étape",
-      body:`<div class="pt-lead fn-uses fk-course">
+      body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
           <p class="pt-syntax-h">Chaque commande passe trois tests</p>
           <p>Le bon client, une quantité supérieure à 2, une date après le 15 juillet&nbsp;:</p>
