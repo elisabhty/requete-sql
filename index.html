@@ -12959,10 +12959,27 @@ learningCheck:{
           <p>La commande n°16 n’a pas de client, tandis qu’Inès n’a jamais passé de commande&nbsp;: aucune des deux n’apparaît dans le résultat.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Une ligne par paire</p>
-          <p>Sophie a passé trois commandes en juillet. Chacune de ses commandes forme une paire avec sa ligne de la <code>table clients</code>&nbsp;:</p>
+          <p class="pt-syntax-h">Et si une ligne correspond plusieurs fois&nbsp;?</p>
+          <p>Sophie a passé trois commandes en juillet.</p>
+          <p>Chacune de ses commandes correspond à sa ligne dans la <code>table clients</code>. <code>INNER JOIN</code> crée donc une ligne de résultat pour chaque correspondance&nbsp;:</p>
           <div class="pk-comp"><div class="pk-mini is-3"><span class="is-h">nom</span><span class="is-h">commande</span><span class="is-h">date</span><span class="is-hit">Sophie</span><span>#1</span><span>2 juil.</span><span class="is-hit">Sophie</span><span>#2</span><span>2 juil.</span><span class="is-hit">Sophie</span><span>#13</span><span>28 juil.</span></div></div>
-          <p>Son nom apparaît donc trois fois dans le résultat. En revanche, la <code>table clients</code> et la <code>table commandes</code> ne sont pas modifiées.</p>
+          <p>Sophie apparaît donc trois fois dans le résultat.</p>
+          <p>C’est normal&nbsp;: ce sont trois commandes différentes.</p>
+          <p>Si l’objectif est maintenant d’obtenir la liste des clients ayant commandé, sans répéter un même client pour chacune de ses commandes, on peut utiliser <code>DISTINCT</code>.</p>
+          <p>Mais il faut conserver l’identifiant du client avec son nom&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT <span class="fk-syn-hit">DISTINCT</span>
+       clients.id,
+       clients.nom
+FROM commandes
+INNER JOIN clients
+    ON commandes.client_id = clients.id;</pre></div>
+          <p><code>DISTINCT</code> élimine les répétitions portant sur la combinaison <code>id</code> + <code>nom</code>.</p>
+          <p>Ainsi, un client ayant passé trois commandes n’apparaît plus qu’une fois, tout en conservant son identité grâce à son <code>id</code>.</p>
+          <div class="sit-memo">
+            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
+            <p>Une commande correspondante = une ligne.</p>
+            <p>Pour obtenir ensuite une seule ligne par client, utilise <code>DISTINCT</code> sur son <code>id</code> et son <code>nom</code>.</p>
+          </div>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">ON relie, WHERE filtre</p>
