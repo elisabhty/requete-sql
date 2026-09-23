@@ -1501,7 +1501,7 @@
   .ij-need{display:flex;flex-direction:column;gap:6px;margin:12px 0 16px;padding:10px;border-radius:16px;background:#fff;border:1px solid var(--card-border)}
   .ij-need > div{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:10px;background:var(--surface-2)}
   .ij-need b{font-size:13.5px;font-weight:750;color:var(--ink)}
-  .ij-need span{padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-family:var(--mono);font-size:11.5px;font-weight:800}
+  .ij-need span{flex:none;white-space:nowrap;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-family:var(--mono);font-size:11.5px;font-weight:800}
   .ij-need span.is-b{background:var(--success-soft);color:var(--success)}
   /* INNER JOIN : animation pas à pas */
   .ijl{margin:12px 0 4px;padding:14px;border-radius:18px;background:#fff;border:1px solid var(--card-border)}
@@ -12898,18 +12898,19 @@ learningCheck:{
 ]},
 { titre:"Jointures", sous:"Interroger plusieurs tables à la fois", lessons:[
 { id:18, titre:"INNER JOIN", résumé:"L’enquête de satisfaction",
-  situation:`<p>Chaque mois, l’équipe envoie une enquête de satisfaction aux clients qui ont commandé. Ce mois-ci&nbsp;: ceux de <b>juillet 2026</b>.</p><p>Pour chaque commande, il lui faut trois informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Nom</b><span>clients</span></div><div role="listitem"><b>✉️ E-mail</b><span>clients</span></div><div role="listitem"><b>📅 Date</b><span class="is-b">commandes</span></div></div><p>Problème&nbsp;: aucune table ne contient les trois. Il faut <b>relier</b> <code>commandes</code> et <code>clients</code>.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Affiche le nom, l’e-mail et la date de commande des clients qui ont commandé en juillet 2026.</p></div>`,
+  situation:`<p>Chaque mois, l’équipe envoie une enquête de satisfaction aux clients qui ont commandé récemment.</p><p>Ce mois-ci, elle s’intéresse aux commandes passées en <b>juillet 2026</b>.</p><p>Pour préparer l’envoi, elle a besoin de trois informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Nom</b><span>table clients</span></div><div role="listitem"><b>✉️ E-mail</b><span>table clients</span></div><div role="listitem"><b>📅 Date de commande</b><span class="is-b">table commandes</span></div></div><p><b>Problème&nbsp;:</b> aucune table ne contient à elle seule toutes ces informations.</p><p>Le nom et l’e-mail se trouvent dans la <code>table clients</code>, tandis que la date de commande se trouve dans la <code>table commandes</code>.</p><p>Il faut donc relier la <code>table clients</code> et la <code>table commandes</code> pour réunir les informations dont l’équipe a besoin.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Affiche le nom, l’e-mail et la date de commande des clients ayant commandé en juillet 2026.</p></div>`,
     studio:{problem:{eye:"",title:"Coller deux lignes qui vont ensemble.",
-      body:"<code>INNER JOIN</code> associe chaque commande au client dont l’<code>id</code> vaut son <code>client_id</code>. Les deux lignes deviennent <b>une seule</b> ligne du résultat.",
-      extra:`<div class="jn-merge" role="img" aria-label="La commande 3 et le client 2 forment une ligne du résultat"><div class="jn-merge-src"><span><small>commandes</small>#3 · client 2</span><span><small>clients</small>2 · Lucas</span></div><i aria-hidden="true">=</i><div class="jn-merge-out"><small>Une ligne du résultat</small>Lucas · lucas@mail.fr · 5 juil.</div></div>`},
+      body:"Pour réunir ces informations, <code>INNER JOIN</code> associe chaque commande de la <code>table commandes</code> au client de la <code>table clients</code> dont l’<code>id</code> correspond à son <code>client_id</code>.<br><br>Les deux lignes forment alors <b>une seule</b> ligne du résultat.",
+      extra:`<div class="jn-merge" role="img" aria-label="La commande 3 et le client 2 forment une ligne du résultat"><div class="jn-merge-src"><span><small>table commandes</small>#3 · client 2</span><span><small>table clients</small>2 · Lucas</span></div><i aria-hidden="true">=</i><div class="jn-merge-out"><small>Une ligne du résultat</small>Lucas · lucas@mail.fr · 5 juil.</div></div>`},
     uses:{title:"INNER JOIN en 5 étapes",
       body:`<div class="pt-lead fn-uses fk-course">
         <div class="fn-use">
           <p class="pt-syntax-h">Le lien : client_id = clients.id</p>
-          <p>Chaque commande note le numéro de son client dans <code>client_id</code>. C’est la clé étrangère&nbsp;: elle recopie <code>clients.id</code>.</p>
+          <p>Dans la <code>table commandes</code>, chaque commande enregistre le numéro de son client dans la colonne <code>client_id</code>.</p>
+          <p>Ce numéro correspond à l’<code>id</code> d’un client dans la <code>table clients</code>&nbsp;: c’est la clé étrangère vue au cours précédent.</p>
           <div class="fk-duo" aria-label="client_id dans commandes recopie id dans clients">
-            <article class="is-ok"><p class="fk-duo-lab">commandes</p><b>#3</b><code>client_id = 2</code><small>connaît le numéro du client</small></article>
-            <article class="is-ok"><p class="fk-duo-lab">clients</p><b>Lucas</b><code>id = 2</code><small>connaît son nom et son e-mail</small></article>
+            <article class="is-ok"><p class="fk-duo-lab">table commandes</p><b>#3</b><code>client_id = 2</code><small>connaît le numéro du client</small></article>
+            <article class="is-ok"><p class="fk-duo-lab">table clients</p><b>Lucas</b><code>id = 2</code><small>connaît son nom et son e-mail</small></article>
           </div>
         </div>
         <div class="fn-use">
@@ -12923,24 +12924,24 @@ FROM commandes
             <article>
               <code>FROM commandes</code>
               <i aria-hidden="true">↓</i>
-              <span>on part de chaque commande</span>
+              <span>on part de la table commandes</span>
             </article>
             <i aria-hidden="true">↓</i>
             <article>
               <code>INNER JOIN clients</code>
               <i aria-hidden="true">↓</i>
-              <span>on lui cherche un client</span>
+              <span>on va chercher les clients dans la table clients</span>
             </article>
             <i aria-hidden="true">↓</i>
             <article>
               <code>ON commandes.client_id = clients.id</code>
               <i aria-hidden="true">↓</i>
-              <span>celui dont l’id vaut client_id</span>
+              <span>celui dont l’id correspond à client_id</span>
             </article>
           </div>
           <div class="sit-memo">
             <p class="sit-memo-lab"><i aria-hidden="true">💡</i>Bon à savoir</p>
-            <p><code>JOIN</code> tout court veut dire <code>INNER JOIN</code>&nbsp;: c’est la jointure par défaut.</p>
+            <p>Écrire <code>JOIN</code> tout court revient à écrire <code>INNER JOIN</code>&nbsp;: c’est la jointure par défaut.</p>
           </div>
         </div>
         <div class="fn-use">
@@ -12959,17 +12960,18 @@ FROM commandes
               <small>pas de paire, ligne écartée ❌</small>
             </article>
           </div>
-          <p>C’est le sens de <b>INNER</b>&nbsp;: seules les lignes présentes <b>des deux côtés</b> restent. Inès, qui n’a jamais commandé, n’apparaît pas non plus.</p>
+          <p>C’est tout le sens de <b>INNER</b>&nbsp;: seules les lignes qui trouvent une correspondance <b>des deux côtés</b> sont conservées.</p>
+          <p>La commande n°16 n’a pas de client, tandis qu’Inès n’a jamais passé de commande&nbsp;: aucune des deux n’apparaît dans le résultat.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Une ligne par paire</p>
-          <p>Sophie a passé 3 commandes en juillet. Chacune forme sa propre paire avec elle&nbsp;:</p>
+          <p>Sophie a passé trois commandes en juillet. Chacune de ses commandes forme une paire avec sa ligne de la <code>table clients</code>&nbsp;:</p>
           <div class="pk-comp"><div class="pk-mini is-3"><span class="is-h">nom</span><span class="is-h">commande</span><span class="is-h">date</span><span class="is-hit">Sophie</span><span>#1</span><span>2 juil.</span><span class="is-hit">Sophie</span><span>#2</span><span>2 juil.</span><span class="is-hit">Sophie</span><span>#13</span><span>28 juil.</span></div></div>
-          <p>Son nom apparaît donc 3 fois. Les tables, elles, ne changent pas.</p>
+          <p>Son nom apparaît donc trois fois dans le résultat. En revanche, la <code>table clients</code> et la <code>table commandes</code> ne sont pas modifiées.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">ON relie, WHERE filtre</p>
-          <p><code>ON</code> dit quelles lignes vont ensemble. <code>WHERE</code> dit lesquelles garder ensuite&nbsp;: ici, juillet 2026.</p>
+          <p><code>ON</code> indique quelles lignes vont ensemble. <code>WHERE</code> filtre ensuite le résultat pour ne garder que les commandes de juillet 2026.</p>
           <div class="pt-syntax"><pre class="cw-syntax">…
     ON commandes.client_id = clients.id
 <span class="fk-syn-hit">WHERE commandes.date_commande
@@ -12977,7 +12979,7 @@ FROM commandes
           <div class="fk-verdict is-ok">
             <p class="fk-verdict-lab">Résultat</p>
             <p class="fk-verdict-t">✅ 14 commandes de juillet</p>
-            <p>La commande de Chloé du 1<sup>er</sup> août est retirée par <code>WHERE</code>.</p>
+            <p>La commande de Chloé, passée le 1<sup>er</sup> août, est retirée par <code>WHERE</code>.</p>
           </div>
         </div>
       </div>`},
@@ -12990,8 +12992,8 @@ FROM commandes
           <p class="ijl-clause"><code></code></p>
           <div class="ijl-stage">
             <svg class="ijl-links" aria-hidden="true"></svg>
-            <div class="ijl-col"><p class="ijl-col-h">commandes</p><div class="ijl-row is-paired" data-k="1"><b>#1</b><span>client_id 1</span></div><div class="ijl-row is-paired" data-k="2"><b>#3</b><span>client_id 2</span></div><div class="ijl-row is-paired" data-k="4"><b>#5</b><span>client_id 4</span></div><div class="ijl-row is-paired" data-k="1"><b>#13</b><span>client_id 1</span></div><div class="ijl-row is-paired" data-k="5"><b>#15</b><span>client_id 5</span></div><div class="ijl-row is-orphan" data-k=""><b>#16</b><span>NULL</span><em>sans paire</em></div></div>
-            <div class="ijl-col is-r"><p class="ijl-col-h">clients</p><div class="ijl-row is-paired" data-c="1"><b>1</b><span>Sophie</span></div><div class="ijl-row is-paired" data-c="2"><b>2</b><span>Lucas</span></div><div class="ijl-row is-paired" data-c="4"><b>4</b><span>Nathan</span></div><div class="ijl-row is-paired" data-c="5"><b>5</b><span>Chloé</span></div><div class="ijl-row is-orphan" data-c="9"><b>9</b><span>Inès</span><em>sans paire</em></div></div>
+            <div class="ijl-col"><p class="ijl-col-h">table commandes</p><div class="ijl-row is-paired" data-k="1"><b>#1</b><span>client_id 1</span></div><div class="ijl-row is-paired" data-k="2"><b>#3</b><span>client_id 2</span></div><div class="ijl-row is-paired" data-k="4"><b>#5</b><span>client_id 4</span></div><div class="ijl-row is-paired" data-k="1"><b>#13</b><span>client_id 1</span></div><div class="ijl-row is-paired" data-k="5"><b>#15</b><span>client_id 5</span></div><div class="ijl-row is-orphan" data-k=""><b>#16</b><span>NULL</span><em>sans paire</em></div></div>
+            <div class="ijl-col is-r"><p class="ijl-col-h">table clients</p><div class="ijl-row is-paired" data-c="1"><b>1</b><span>Sophie</span></div><div class="ijl-row is-paired" data-c="2"><b>2</b><span>Lucas</span></div><div class="ijl-row is-paired" data-c="4"><b>4</b><span>Nathan</span></div><div class="ijl-row is-paired" data-c="5"><b>5</b><span>Chloé</span></div><div class="ijl-row is-orphan" data-c="9"><b>9</b><span>Inès</span><em>sans paire</em></div></div>
           </div>
           <div class="ijl-out"><p class="ijl-out-h">Résultat · <b class="ijl-n">5</b> lignes</p><div class="ijl-grid"><span class="is-h">nom</span><span class="is-h">commande</span><span class="is-h">date</span><span style="--i:0">Sophie</span><span style="--i:0">#1</span><span style="--i:0">2 juil.</span><span style="--i:1">Lucas</span><span style="--i:1">#3</span><span style="--i:1">5 juil.</span><span style="--i:2">Nathan</span><span style="--i:2">#5</span><span style="--i:2">11 juil.</span><span style="--i:3">Sophie</span><span style="--i:3">#13</span><span style="--i:3">28 juil.</span><span class="is-aug" style="--i:4">Chloé</span><span class="is-aug" style="--i:4">#15</span><span class="is-aug" style="--i:4">1 août</span></div></div>
         </section>`},
@@ -13000,19 +13002,19 @@ FROM commandes
             <p>Une paire = une ligne. Sans paire, la ligne disparaît.</p>
           </div>`}},
   joinFn:true,
-  anatomie:[{tok:"SELECT clients.nom, clients.email, commandes.date_commande",txt:"Le nom et l’e-mail viennent de clients ; la date vient de commandes."},{tok:"FROM commandes",txt:"On part des commandes."},{tok:"INNER JOIN clients",txt:"On ne garde que les commandes qui trouvent un client."},{tok:"ON commandes.client_id = clients.id",txt:"Le lien : client_id recopie clients.id."},{tok:"WHERE commandes.date_commande BETWEEN '2026-07-01' AND '2026-07-31'",txt:"On ne garde que juillet 2026."}],
+  anatomie:[{tok:"SELECT clients.nom, clients.email, commandes.date_commande",txt:"Le nom et l’e-mail viennent de la table clients ; la date vient de la table commandes."},{tok:"FROM commandes",txt:"On part de la table commandes."},{tok:"INNER JOIN clients",txt:"On ne garde que les commandes qui trouvent un client dans la table clients."},{tok:"ON commandes.client_id = clients.id",txt:"Le lien : client_id correspond à l’id de la table clients."},{tok:"WHERE commandes.date_commande BETWEEN '2026-07-01' AND '2026-07-31'",txt:"On ne garde que les commandes de juillet 2026."}],
   exemple:"SELECT clients.nom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31';",
   attendu:"<b>14 lignes</b> : une par commande de juillet 2026, avec le nom et l’e-mail. Sophie apparaît 3 fois. La commande invitée, en août et sans client, n’apparaît pas.",
   retenir:"<code>INNER JOIN</code> réunit deux tables et ne garde que les lignes qui correspondent des deux côtés.<br><br><code>ON</code> dit quelles lignes vont ensemble. <code>WHERE</code> filtre le résultat.<br><br>Une correspondance = une ligne. Sans correspondance, la ligne disparaît.<br><br>FROM commandes INNER JOIN clients ON commandes.client_id = clients.id",
-  piege:{t:"Relier les mauvaises colonnes",p:"<code>ON clients.id = commandes.produit_id</code> peut s’exécuter, mais le résultat est faux : <code>produit_id</code> identifie un produit, pas un client. La bonne relation est <code>clients.id = commandes.client_id</code>."},
-  consigne:"Affiche le nom, l’e-mail et la date de commande des clients qui ont commandé en juillet 2026.",
+  piege:{t:"Relier les mauvaises colonnes",p:"<code>ON clients.id = commandes.produit_id</code> peut s’exécuter, mais le résultat est faux : <code>produit_id</code> identifie un produit de la <code>table produits</code>, pas un client. La bonne relation est <code>clients.id = commandes.client_id</code>."},
+  consigne:"Affiche le nom, l’e-mail et la date de commande des clients ayant commandé en juillet 2026.",
   solution:"SELECT clients.nom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31';",
-  indice:"Pars de <code>commandes</code>, <code>INNER JOIN clients</code> avec <code>ON commandes.client_id = clients.id</code>, puis filtre juillet avec <code>BETWEEN '2026-07-01' AND '2026-07-31'</code>.",
+  indice:"Pars de la <code>table commandes</code>, ajoute <code>INNER JOIN clients</code> avec <code>ON commandes.client_id = clients.id</code>, puis filtre juillet avec <code>BETWEEN '2026-07-01' AND '2026-07-31'</code>.",
   richLesson:true, earlyDemo:true,
   testeSwitch:'cols2',
   testeVariants:[
-    {k:'cli',label:'clients',sql:"SELECT id, nom, email\nFROM clients;"},
-    {k:'cmd',label:'commandes',sql:"SELECT id, client_id, date_commande\nFROM commandes;"},
+    {k:'cli',label:'table clients',sql:"SELECT id, nom, email\nFROM clients;"},
+    {k:'cmd',label:'table commandes',sql:"SELECT id, client_id, date_commande\nFROM commandes;"},
     {k:'join',label:'INNER JOIN',sql:"SELECT clients.nom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id;",out:"15 lignes : chaque commande rattachée à un client. L’invité disparaît."},
     {k:'juillet',label:'Juillet',sql:"SELECT clients.nom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31';",out:"14 lignes : nom, e-mail et date, uniquement pour juillet 2026.",tone:'good'}
   ],
@@ -22969,11 +22971,11 @@ function initRelationalSchemas(){
 }
 /* INNER JOIN : animation pas à pas (commandes ⟷ clients → résultat). */
 const IJL_STEPS=[
-  {t:'Deux tables séparées',sql:'FROM commandes',c:'<code>commandes</code> connaît le numéro du client (<code>client_id</code>). <code>clients</code> connaît son nom. Aucune ligne n’a tout.'},
-  {t:'ON relie les lignes',sql:'ON commandes.client_id = clients.id',c:'Chaque commande cherche le client dont l’<code>id</code> vaut son <code>client_id</code>. Sophie reçoit deux liens&nbsp;: #1 et #13.'},
-  {t:'INNER garde les paires',sql:'INNER JOIN clients',c:'La commande #16 n’a pas de client, Inès n’a pas de commande&nbsp;: sans paire, ces lignes sont écartées.'},
-  {t:'Une ligne par paire',sql:'SELECT clients.nom, commandes.id, commandes.date_commande',c:'Chaque lien devient une ligne du résultat. Sophie, avec deux commandes, apparaît deux fois.'},
-  {t:'WHERE garde juillet',sql:"WHERE commandes.date_commande BETWEEN '2026-07-01' AND '2026-07-31'",c:'La commande de Chloé date du 1<sup>er</sup> août&nbsp;: <code>WHERE</code> la retire. Sur toute la base, il reste 14 lignes.'}
+  {t:'Deux tables séparées',sql:'FROM commandes',c:'La <code>table commandes</code> connaît le numéro du client grâce à <code>client_id</code>, tandis que la <code>table clients</code> connaît son nom. Aucune ligne ne contient tout.'},
+  {t:'ON relie les lignes',sql:'ON commandes.client_id = clients.id',c:'Chaque commande cherche, dans la <code>table clients</code>, le client dont l’<code>id</code> correspond à son <code>client_id</code>. Sophie reçoit deux liens&nbsp;: #1 et #13.'},
+  {t:'INNER garde les paires',sql:'INNER JOIN clients',c:'La commande #16 n’a pas de client, tandis qu’Inès n’a aucune commande. Sans correspondance, ces lignes sont écartées.'},
+  {t:'Une ligne par paire',sql:'SELECT clients.nom, commandes.id, commandes.date_commande',c:'Chaque lien devient une ligne du résultat. Sophie, qui a deux commandes, apparaît donc deux fois.'},
+  {t:'WHERE garde juillet',sql:"WHERE commandes.date_commande BETWEEN '2026-07-01' AND '2026-07-31'",c:'La commande de Chloé a été passée le 1<sup>er</sup> août&nbsp;: <code>WHERE</code> la retire. Sur l’ensemble de la base, il reste 14 lignes.'}
 ];
 function initInnerJoinLab(){
   const root=document.querySelector('#lesson-body .ijl');
