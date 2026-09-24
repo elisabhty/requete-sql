@@ -1724,6 +1724,29 @@
   .ijl[data-lab="left"]:is([data-step="3"],[data-step="4"]) .ijl-row.is-orphan{background:var(--accent-soft);border-style:solid}
   .ijl[data-lab="left"]:is([data-step="3"],[data-step="4"]) .ijl-row.is-orphan em{font-size:0;color:var(--accent)}
   .ijl[data-lab="left"]:is([data-step="3"],[data-step="4"]) .ijl-row.is-orphan em::after{content:'gardé · NULL';font-size:10.5px}
+  /* Entonnoir « Mission accomplie » */
+  .ij-funnel{list-style:none;margin:14px 0 12px;padding:14px 10px;border-radius:14px;background:var(--surface-2);display:flex;flex-direction:column;align-items:center;gap:0}
+  .ij-funnel li{margin:0}
+  .ij-fn-row{display:flex;align-items:center;gap:10px;width:var(--w);min-width:0;padding:9px 12px;border-radius:12px;background:#fff;border:1px solid var(--card-border);box-shadow:0 2px 6px -4px rgba(22,22,26,.18)}
+  .ij-fn-row b{flex:none;min-width:34px;font-family:var(--mono);font-size:20px;font-weight:800;line-height:1;text-align:center;color:var(--ink)}
+  .ij-fn-row span{min-width:0;font-size:13.5px;font-weight:700;line-height:1.35;color:var(--ink)}
+  .ij-fn-row span code{font-size:11.5px}
+  .ij-fn-row em{font-style:normal;font-weight:800;color:var(--ink)}
+  .ij-fn-row small{display:block;margin-top:2px;font-size:11.5px;font-weight:500;color:var(--ink-3)}
+  .ij-fn-row.is-out small{color:rgba(255,255,255,.85)}
+  .ij-fn-row em{font-style:normal;font-weight:700;color:var(--ink-2)}
+  .ij-fn-row.is-out{background:var(--accent);border-color:transparent;box-shadow:0 10px 20px -12px rgba(91,91,214,.9)}
+  .ij-fn-row.is-out b,.ij-fn-row.is-out span{color:#fff}
+  .ij-fn-step{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 8px;text-align:center}
+  .ij-fn-step::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:repeating-linear-gradient(to bottom,var(--line) 0 4px,transparent 4px 7px);z-index:0}
+  .ij-fn-step code{position:relative;z-index:1;padding:3px 8px;border-radius:999px;background:#fff;border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);color:var(--accent);font-size:11px;font-weight:800;white-space:nowrap}
+  .ij-fn-step small{position:relative;z-index:1;padding:0 6px;background:var(--surface-2);font-size:11px;font-weight:600;color:var(--ink-3)}
+  @media (max-width:360px){.ij-funnel{padding:12px 8px}.ij-fn-row{width:100%}}
+  .ij-done.is-in .ij-fn-row,.ij-done.is-in .ij-fn-step{animation:ijDoneChip .4s ease both}
+  .ij-done.is-in .ij-funnel > :nth-child(2){animation-delay:.2s}
+  .ij-done.is-in .ij-funnel > :nth-child(3){animation-delay:.32s}
+  .ij-done.is-in .ij-funnel > :nth-child(4){animation-delay:.44s}
+  .ij-done.is-in .ij-funnel > .is-out{animation:ijDoneOut .5s cubic-bezier(.2,.9,.3,1.4) .6s both}
   .fk-course .pt-syntax .cw-syntax{background:#fafafc;border:1px solid rgba(39,42,54,.16);border-radius:12px}
   .fk-course .sit-memo.is-attn{margin:12px 0}
   .fk-verdict{margin:10px 0 2px;padding:12px 14px;border-radius:16px;background:var(--danger-soft);border:1px solid color-mix(in srgb,var(--danger) 22%,transparent);animation:fkTreeIn .4s ease .15s both}
@@ -13241,7 +13264,7 @@ LEFT JOIN commandes
           <p>Il ne reste plus qu’à réunir toutes les étapes.</p>
           <p>👇 Exécute la requête pour découvrir les futurs membres du club&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT clients.nom&#10;FROM clients&#10;LEFT JOIN commandes&#10;    ON clients.id = commandes.client_id&#10;WHERE commandes.id IS NULL;"></div>
-          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><div class="ij-done-flow" aria-hidden="true"><div class="ij-done-src"><span>tous les clients</span></div><i>↓ LEFT JOIN</i><div class="ij-done-src"><span>clients sans commande conservés</span></div><i>↓ WHERE commandes.id IS NULL</i><span class="is-out">⭐ futurs membres du club</span></div><p class="ij-done-p">On a réussi à retrouver ces clients précisément parce que <code>LEFT JOIN</code> ne les a pas supprimés lorsqu’aucune commande ne correspondait.</p></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De tous les clients aux futurs membres du club"><li class="ij-fn-row" style="--w:100%"><b>10</b><span>clients au départ<small>toute la table clients</small></span></li><li class="ij-fn-step"><code>LEFT JOIN commandes</code><small>personne n’est retiré</small></li><li class="ij-fn-row" style="--w:94%"><b>10</b><span>clients gardés<small>dont <em>2 sans commande</em>, avec NULL</small></span></li><li class="ij-fn-step"><code>WHERE commandes.id IS NULL</code><small>on ne garde que les NULL</small></li><li class="ij-fn-row is-out" style="--w:88%"><b>2</b><span>⭐ futurs membres du club<small>Inès, Nathan n°10</small></span></li></ol><p class="ij-done-p">On a réussi à retrouver ces clients précisément parce que <code>LEFT JOIN</code> ne les a pas supprimés lorsqu’aucune commande ne correspondait.</p></div>
           <div class="sit-memo">
             <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
             <p><code>LEFT JOIN</code> garde toutes les lignes de la table de gauche.</p>
