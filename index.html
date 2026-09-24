@@ -1698,6 +1698,20 @@
   .ij-done-flow span.is-out{background:var(--accent);color:#fff}
   .ij-done-flow i{font-style:normal;font-weight:800;color:var(--ink-3)}
   .fk-course .ij-done-p{font-size:14.5px;line-height:1.55;color:var(--ink-2)}
+  /* Mission accomplie : cachée jusqu’à l’exécution, puis apparition */
+  .ij-done.is-locked{display:none}
+  .ij-done.is-in{animation:ijDoneIn .5s cubic-bezier(.2,.9,.3,1.2) both}
+  .ij-done.is-in .ij-done-ico{animation:ijDonePop .6s cubic-bezier(.2,.9,.3,1.4) .15s both}
+  .ij-done.is-in .ij-done-src span,.ij-done.is-in .ij-done-flow > i,.ij-done.is-in .ij-done-flow > .is-out{animation:ijDoneChip .4s ease both}
+  .ij-done.is-in .ij-done-src span:nth-child(1){animation-delay:.25s}
+  .ij-done.is-in .ij-done-src span:nth-child(3){animation-delay:.35s}
+  .ij-done.is-in .ij-done-flow > i{animation-delay:.5s}
+  .ij-done.is-in .ij-done-flow > .is-out{animation:ijDoneOut .5s cubic-bezier(.2,.9,.3,1.4) .62s both}
+  @keyframes ijDoneIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+  @keyframes ijDonePop{0%{transform:scale(.4) rotate(-20deg)}70%{transform:scale(1.15) rotate(6deg)}100%{transform:none}}
+  @keyframes ijDoneChip{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @keyframes ijDoneOut{0%{opacity:0;transform:scale(.6)}70%{opacity:1;transform:scale(1.08)}100%{transform:none}}
+  @media (prefers-reduced-motion:reduce){.ij-done.is-in,.ij-done.is-in *{animation:none!important}}
   .fk-course .pt-syntax .cw-syntax{background:#fafafc;border:1px solid rgba(39,42,54,.16);border-radius:12px}
   .fk-course .sit-memo.is-attn{margin:12px 0}
   .fk-verdict{margin:10px 0 2px;padding:12px 14px;border-radius:16px;background:var(--danger-soft);border:1px solid color-mix(in srgb,var(--danger) 22%,transparent);animation:fkTreeIn .4s ease .15s both}
@@ -13102,7 +13116,7 @@ INNER JOIN clients
           <p>Il ne reste plus qu’à réunir toutes les étapes.</p>
           <p>👇 Exécute la requête pour voir le résultat&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT clients.nom,&#10;       clients.email,&#10;       commandes.date_commande&#10;FROM commandes&#10;INNER JOIN clients&#10;    ON commandes.client_id = clients.id&#10;WHERE commandes.date_commande&#10;      BETWEEN &#x27;2026-07-01&#x27; AND &#x27;2026-07-31&#x27;;"></div>
-          <div class="ij-done" role="note" aria-label="Mission accomplie"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><div class="ij-done-flow" aria-hidden="true"><div class="ij-done-src"><span>table clients</span><i>+</i><span>table commandes</span></div><i>↓</i><span class="is-out">un seul résultat</span></div><p class="ij-done-p">Les informations qui étaient séparées entre la <code>table clients</code> et la <code>table commandes</code> sont maintenant réunies dans un même résultat&nbsp;: la liste d’envoi de l’enquête est prête.</p></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><div class="ij-done-flow" aria-hidden="true"><div class="ij-done-src"><span>table clients</span><i>+</i><span>table commandes</span></div><i>↓</i><span class="is-out">un seul résultat</span></div><p class="ij-done-p">Les informations qui étaient séparées entre la <code>table clients</code> et la <code>table commandes</code> sont maintenant réunies dans un même résultat&nbsp;: la liste d’envoi de l’enquête est prête.</p></div>
           <div class="sit-memo">
             <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
             <p><code>INNER JOIN</code> réunit deux tables et ne garde que les lignes qui ont une correspondance des deux côtés.</p>
@@ -23235,6 +23249,20 @@ function initRunSqlSlots(){
     wrap.className='ij-run-frame';
     wrap.innerHTML=piegeSqlRunBlock(el.dataset.runSql);
     el.replaceWith(wrap);
+    /* La carte « Mission accomplie » de l’étape n’apparaît qu’après une exécution réussie. */
+    const done=wrap.closest('.fn-use')&&wrap.closest('.fn-use').querySelector('.ij-done.is-locked');
+    const res=wrap.querySelector('.xf-result');
+    if(!done||!res)return;
+    const reveal=()=>{
+      if(!done.classList.contains('is-locked'))return;
+      if(res.hidden||!res.querySelector('table'))return;
+      done.classList.remove('is-locked');
+      done.classList.add('is-in');
+      if(navigator.vibrate)navigator.vibrate([8,40,14]);
+      const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+      setTimeout(()=>done.scrollIntoView({behavior:reduce?'auto':'smooth',block:'nearest'}),reduce?0:420);
+    };
+    new MutationObserver(reveal).observe(res,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
   });
 }
 function initJoinMicro(){
