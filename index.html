@@ -23298,9 +23298,15 @@ function initRunSqlSlots(){
     const done=wrap.closest('.fn-use')&&wrap.closest('.fn-use').querySelector('.ij-done.is-locked');
     const res=wrap.querySelector('.xf-result');
     if(!done||!res)return;
+    let pending=false;
     const reveal=()=>{
-      if(!done.classList.contains('is-locked'))return;
+      if(pending||!done.classList.contains('is-locked'))return;
       if(res.hidden||!res.querySelector('table'))return;
+      /* Laisse le temps de lire le résultat avant d’afficher la carte et d’y descendre. */
+      pending=true;
+      setTimeout(show,1800);
+    };
+    const show=()=>{
       done.classList.remove('is-locked');
       done.classList.add('is-in');
       if(navigator.vibrate)navigator.vibrate([8,40,14]);
