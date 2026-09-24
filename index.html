@@ -732,6 +732,46 @@
      gauche : il se retrouvait décalé sous le nom. Il occupe maintenant sa
      propre ligne, calée sur le début du texte. */
   .jr-ici{display:block;width:max-content;max-width:100%;margin:5px 0 0;padding:2px 7px;border-radius:999px;background:var(--accent);color:#fff;font-family:var(--ui);font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;white-space:nowrap}
+  /* Récapitulatif des JOIN : vignettes en tuiles, entrée en cascade, ligne touchée mise en avant */
+  .join-recap.jr-types{border-collapse:separate;border-spacing:0;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--surface)}
+  .join-recap.jr-types th{background:var(--surface-2)}
+  .join-recap.jr-types tbody tr td{background:transparent;transition:background-color .25s ease}
+  .join-recap.jr-types tbody tr{position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none}
+  .join-recap.jr-types .jr-viz{box-shadow:none!important}
+  .join-recap.jr-types .jr-viz,.join-recap.jr-types thead th:first-child{width:52px;padding-left:8px;padding-right:0}
+  .join-recap.jr-types .jr-tile{display:flex;align-items:center;justify-content:center;width:40px;height:34px;border-radius:12px;background:var(--surface-2);transition:transform .35s var(--spring-ios),background-color .25s ease,box-shadow .25s ease}
+  .join-recap.jr-types .jr-venn{width:32px}
+  .join-recap.jr-types .jr-type{padding-left:8px}
+  .join-recap.jr-types tr.on td{background:var(--accent-soft)}
+  .join-recap.jr-types tr.on td:first-child{box-shadow:inset 3px 0 0 var(--accent)!important}
+  .join-recap.jr-types tr.on .jr-tile{background:#fff;box-shadow:0 4px 12px -6px rgba(91,91,214,.55)}
+  .join-recap.jr-types tr.on .vn-garde{opacity:.6}
+  .join-recap.jr-types tr.on .vn-trait{stroke-opacity:.75}
+  .join-recap.jr-types .jr-ici{animation:jrBadge 2.4s ease-in-out 1s infinite}
+  @media (hover:hover){
+    .join-recap.jr-types tbody tr:hover td{background:color-mix(in srgb,var(--surface-2) 70%,transparent)}
+    .join-recap.jr-types tbody tr.on:hover td{background:var(--accent-soft)}
+    .join-recap.jr-types tbody tr:hover .jr-tile{transform:translateY(-2px) scale(1.06)}
+  }
+  .join-recap.jr-types tbody tr:focus-visible td{background:color-mix(in srgb,var(--accent-soft) 60%,transparent)}
+  .join-recap.jr-types tr.is-tap td{animation:jrTapRow .7s ease}
+  .join-recap.jr-types tr.is-tap .jr-tile{animation:jrTapTile .55s var(--spring-ios)}
+  .join-recap.jr-types tr.is-tap .vn-garde{transform-box:view-box;transform-origin:center;animation:jrTapFill .7s var(--spring-ios)}
+  .join-recap.jr-types tr.is-tap .vn-trait{stroke-dasharray:100;animation:jrTapDraw .6s ease-out}
+  .concept-block.in .join-recap.jr-types tbody tr{animation:jrRowIn .5s var(--spring-ios) both}
+  .concept-block.in .join-recap.jr-types tbody tr:nth-child(2){animation-delay:.06s}
+  .concept-block.in .join-recap.jr-types tbody tr:nth-child(3){animation-delay:.12s}
+  .concept-block.in .join-recap.jr-types tbody tr:nth-child(4){animation-delay:.18s}
+  .concept-block.in .join-recap.jr-types tbody tr:nth-child(5){animation-delay:.24s}
+  .concept-block.in .join-recap.jr-types tbody tr:nth-child(6){animation-delay:.3s}
+  .concept-block.in .join-recap.jr-types tbody tr.is-tap{animation:none}
+  @keyframes jrRowIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @keyframes jrTapRow{0%{background:color-mix(in srgb,var(--accent) 16%,transparent)}100%{background:transparent}}
+  @keyframes jrTapTile{0%{transform:scale(.88)}60%{transform:scale(1.1)}100%{transform:none}}
+  @keyframes jrTapFill{0%{opacity:0;transform:scale(.55)}100%{transform:none}}
+  @keyframes jrTapDraw{from{stroke-dashoffset:100}to{stroke-dashoffset:0}}
+  @keyframes jrBadge{0%,70%,100%{box-shadow:0 0 0 0 rgba(91,91,214,0)}35%{box-shadow:0 0 0 4px rgba(91,91,214,.18)}}
+  @media (prefers-reduced-motion:reduce){.join-recap.jr-types *,.join-recap.jr-types tbody tr{animation:none!important;transition:none!important}}
   @media (max-width:400px){
     .join-recap{font-size:12.5px}
     .join-recap .jr-viz,.join-recap thead th:first-child{width:40px}
@@ -22176,20 +22216,28 @@ function joinRecapBlock(l){
   const vus=[].concat(l.joinRecap);
   const lignes=JOIN_RECAP.map(r=>{
     const ici=vus.indexOf(r.k)>=0;
-    return `<tr class="${ici?'on':''}">
-      <td class="jr-viz">${joinVennMini(r.k)}</td>
+    return `<tr class="${ici?'on':''}" tabindex="0">
+      <td class="jr-viz"><span class="jr-tile">${joinVennMini(r.k)}</span></td>
       <td class="jr-type">${r.t}${ici?'<span class="jr-ici">ce cours</span>':''}</td>
       <td class="jr-quoi">${r.d}</td>
     </tr>`;
   }).join('');
   return `<div class="concept-block">
     <h2><span class="h2-txt">Les types de JOIN</span></h2>
-    <table class="join-recap">
+    <table class="join-recap jr-types">
       <thead><tr><th scope="col"><span class="jr-vh">Schéma</span></th><th scope="col">Type</th><th scope="col">Lignes retournées</th></tr></thead>
       <tbody>${lignes}</tbody>
     </table>
   </div>`;
 }
+/* Toucher une ligne du récapitulatif la met en avant et rejoue son schéma. */
+document.addEventListener('click',e=>{
+  const tr=e.target.closest&&e.target.closest('.jr-types tbody tr');
+  if(!tr) return;
+  tr.parentNode.querySelectorAll('tr.is-tap').forEach(o=>{if(o!==tr)o.classList.remove('is-tap');});
+  tr.classList.remove('is-tap');void tr.offsetWidth;tr.classList.add('is-tap');
+  if(navigator.vibrate)navigator.vibrate(6);
+});
 function fnCmpBlock(l){
   if(!l||!l.fnCmp||!l.fnCmp.rows) return '';
   const c=l.fnCmp;
