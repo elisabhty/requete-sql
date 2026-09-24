@@ -1829,6 +1829,31 @@
   .lr-quad span.is-on{background:var(--accent-soft);border-color:transparent}
   .lr-quad b{font-family:var(--mono);font-size:12.5px;font-weight:800;color:var(--accent-ink)}
   .lr-quad small{font-size:12px;font-weight:600;line-height:1.3;color:var(--ink-2)}
+  /* CROSS JOIN : ville par ville, sans correspondance */
+  .ijl[data-lab="cross"][data-step="1"] .ijl-row.is-l{background:var(--surface-2)}
+  .ijl[data-lab="cross"] .ijl-out{display:block}
+  .ijl[data-lab="cross"][data-step="0"] .ijl-out{display:none}
+  .ijl[data-lab="cross"] .ijl-grid span.is-p,.ijl[data-lab="cross"] .ijl-grid span.is-l{display:none}
+  .ijl[data-lab="cross"]:not([data-step="0"]) .ijl-grid span.is-p,.ijl[data-lab="cross"]:is([data-step="2"],[data-step="3"]) .ijl-grid span.is-l{display:block}
+  .ijl[data-lab="cross"][data-step="1"] .ijl-grid span.is-p,.ijl[data-lab="cross"][data-step="2"] .ijl-grid span.is-l{animation:ijlIn .35s ease both;animation-delay:calc(.35s + var(--i) * 110ms)}
+  .ijl[data-lab="cross"][data-step="3"] .ijl-grid span:not(.is-h){background:var(--accent);color:#fff}
+  .ijl-grid.cj-grid{grid-template-columns:minmax(0,.8fr) minmax(0,1.5fr)}
+  .pk-comp.ij-t .pk-mini.is-1{grid-template-columns:1fr}
+  .cj-pair{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:10px;align-items:start}
+  .cj-pair .pk-comp.ij-t{margin:12px 0}
+  .pk-comp.ij-t .pk-mini.cj-res{grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr)}
+  .cj-formula{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 8px;margin:14px 0!important;padding:12px;border-radius:14px;background:var(--surface-2)}
+  .cj-formula span{padding:6px 11px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:13.5px;font-weight:600;color:var(--ink-2)}
+  .cj-formula span b{font-family:var(--mono);font-weight:800;color:var(--ink)}
+  .cj-formula span.is-out{background:var(--accent);border-color:transparent;color:#fff}
+  .cj-formula span.is-out b{color:#fff}
+  .cj-formula i{font-style:normal;font-size:17px;font-weight:800;color:var(--accent)}
+  .cj-formula.is-words span{font-family:var(--mono);font-size:12.5px}
+  .cj-mat{grid-column:1/-1;display:grid;grid-template-columns:repeat(8,1fr);gap:4px;padding-top:10px;border-top:1px dashed rgba(255,255,255,.25)}
+  .cj-mat i{height:9px;border-radius:3px;background:rgba(255,255,255,.85)}
+  .lr-duo .lr-lead{margin:0 0 8px!important;font-size:13.5px}
+  .lr-quad.is-2 span{gap:6px}
+  .lr-quad.is-2 b{font-size:12px}
   /* Entonnoir « Mission accomplie » */
   .ij-funnel{list-style:none;margin:14px 0 12px;padding:12px;border-radius:16px;background:var(--surface-2);display:flex;flex-direction:column;gap:0}
   .ij-funnel li{margin:0}
@@ -13707,83 +13732,127 @@ learningCheck:{
   "explanation": "FULL OUTER JOIN garde toutes les lignes des deux tables. Inès reste avec NULL côté commandes, la commande #16 reste avec NULL côté clients."
 }
 },
-{ id:40, titre:"CROSS JOIN", résumé:"Toutes les combinaisons possibles",
-  situation:"Tu veux afficher toutes les combinaisons possibles entre les clients et les produits, par exemple pour préparer une campagne où chaque client pourrait recevoir une offre pour chaque produit.<br><br>Dans la table <code>clients</code>, tu as 10 clients :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr><tr class=\"sample-more\"><td colspan=\"2\">… et 7 autres clients</td></tr></tbody></table></div><br><br>Dans la table <code>produits</code>, tu as 8 produits :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Fibre Prébiotique</td></tr><tr><td>2</td><td>Collagène Marin</td></tr><tr><td>3</td><td>Magnésium</td></tr><tr class=\"sample-more\"><td colspan=\"2\">… et 5 autres produits</td></tr></tbody></table></div><br><br>Ici, tu ne cherches pas à faire correspondre certaines lignes entre elles. Tu veux associer <b>chaque client à chaque produit</b>.",
-  situationTail:"<code>CROSS JOIN</code> crée toutes les combinaisons possibles : chaque ligne de la première table est associée à toutes les lignes de la deuxième table.",
-    studio:{problem:{eye:"",title:"Toutes les paires possibles.",
-      body:"<code>CROSS JOIN</code> associe chaque ligne d’une table à <b>toutes</b> les lignes de l’autre, sans chercher de correspondance.",
-      extra:`<div class="fk-look" role="img" aria-label="3 clients fois 2 produits donnent 6 lignes">
-            <p class="fk-look-q"><span aria-hidden="true">🔎</span><b>3 clients × 2 produits</b><em class="is-ok">6 lignes</em></p>
-            <div class="pk-mini"><span class="is-h">client</span><span class="is-h">produit</span><span>Sophie</span><span>Fibre Prébiotique</span><span>Sophie</span><span>Collagène Marin</span><span>Lucas</span><span>Fibre Prébiotique</span><span>Lucas</span><span>Collagène Marin</span><span>Emma</span><span>Fibre Prébiotique</span><span>Emma</span><span>Collagène Marin</span></div>
-          </div>`},
-    uses:{title:"CROSS JOIN, étape par étape",
+{ id:40, titre:"CROSS JOIN", résumé:"Créer toutes les combinaisons",
+  situation:`<p>L’équipe prépare une campagne commerciale.</p><p>Elle veut créer une offre pour <b>chaque produit dans chaque ville où vivent les clients</b>. Par exemple&nbsp;:</p><ul class="fo-list"><li>Fibre Prébiotique → Paris</li><li>Fibre Prébiotique → Lyon</li><li>Collagène Marin → Paris</li><li>Collagène Marin → Lyon</li><li>etc.</li></ul><p>Pour préparer la liste, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>🏙️ Ville</b><span>table clients</span></div><div role="listitem"><b>📦 Produit</b><span class="is-b">table produits</span></div></div><p>🤔 <b>Problème&nbsp;:</b> il n’existe aucun lien entre une ville et un produit. Et justement, nous ne voulons pas chercher une correspondance.</p><p>👉 Nous voulons associer <b>chaque produit à chaque ville</b>.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Crée toutes les combinaisons possibles entre les produits et les villes des clients.</p></div>`,
+    studio:{problem:{eye:"",title:"Toutes les combinaisons, ça veut dire quoi&nbsp;?",
+      body:"Imaginons seulement deux villes et trois produits&nbsp;:",
+      extra:`<div class="cj-pair"><div class="pk-comp ij-t"><p class="ij-tlab">villes</p><div class="pk-mini is-1"><span class="is-h">ville</span><span>Paris</span><span>Lyon</span></div></div><div class="pk-comp ij-t"><p class="ij-tlab">table produits</p><div class="pk-mini is-1"><span class="is-h">nom</span><span>Fibre Prébiotique</span><span>Collagène Marin</span><span>Magnésium</span></div></div></div>
+        <p>Avec <code>CROSS JOIN</code>, chaque ville est associée à <b>chaque produit</b>&nbsp;:</p>
+        <div class="pk-comp ij-t"><p class="ij-tlab">résultat</p><div class="pk-mini cj-res"><span class="is-h">ville</span><span class="is-h">produit</span><span>Paris</span><span>Fibre Prébiotique</span><span>Paris</span><span>Collagène Marin</span><span>Paris</span><span>Magnésium</span><span>Lyon</span><span>Fibre Prébiotique</span><span>Lyon</span><span>Collagène Marin</span><span>Lyon</span><span>Magnésium</span></div></div>
+        <p class="cj-formula" role="img" aria-label="2 villes fois 3 produits égale 6 combinaisons"><span><b>2</b> villes</span><i aria-hidden="true">×</i><span><b>3</b> produits</span><i aria-hidden="true">=</i><span class="is-out"><b>6</b> combinaisons</span></p>
+        <p>Aucune correspondance n’est recherchée. SQL crée simplement <b>toutes les associations possibles</b>.</p>`},
+    uses:{title:"Écrire la requête",
       body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
-          <p class="pt-syntax-h">Aucune clause ON</p>
-          <div class="pt-syntax"><pre class="cw-syntax">FROM clients
+          <p class="pt-syntax-h">Récupérer les villes</p>
+          <p>Les villes se trouvent dans la <code>table clients</code>. Mais plusieurs clients peuvent habiter dans la même ville. On récupère donc les villes différentes&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT <span class="fk-syn-hit">DISTINCT</span> ville
+FROM clients</pre></div>
+          <p class="ij-arrow">👉 <code>DISTINCT</code> évite de créer plusieurs fois les mêmes combinaisons pour une même ville.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Ajouter tous les produits</p>
+          <p>Nous voulons maintenant associer chaque ville à tous les produits. C’est le rôle de&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">CROSS JOIN produits</pre></div>
+          <p>Contrairement aux jointures précédentes, nous n’avons pas besoin de <code>ON</code>. Pourquoi&nbsp;?</p>
+          <p class="ij-arrow">👉 <code>CROSS JOIN</code> ne cherche pas quelles lignes correspondent. Il crée directement toutes les combinaisons possibles.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Construire la requête</p>
+          <p>Pour utiliser uniquement les villes différentes, on peut d’abord les préparer&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT villes.ville,
+       produits.nom
+FROM (
+    SELECT DISTINCT ville
+    FROM clients
+) AS <span class="fk-syn-hit">villes</span>
 <span class="fk-syn-hit">CROSS JOIN produits</span>;</pre></div>
-          <p>Il n’y a rien à relier&nbsp;: SQL ne cherche aucune correspondance. Chaque client rencontre chaque produit.</p>
+          <p class="ij-arrow">👉 SQL prend chaque ville… et l’associe à chaque produit.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Le nombre de lignes se multiplie</p>
-          <div class="fk-verdict is-ok">
-            <p class="fk-verdict-lab">Calcul</p>
-            <p class="fk-verdict-t">10 × 8 = 80 lignes</p>
-            <p>Lignes de la première table × lignes de la deuxième. Ça se multiplie, ça ne s’additionne pas.</p>
+          <p class="pt-syntax-h">Comprendre le nombre de lignes</p>
+          <p>Le nombre de lignes obtenu dépend directement de la taille des deux listes&nbsp;:</p>
+          <p class="cj-formula is-words"><span>nombre de villes</span><i aria-hidden="true">×</i><span>nombre de produits</span></p>
+          <p>Dans notre base&nbsp;:</p>
+          <p class="cj-formula" role="img" aria-label="6 villes fois 8 produits égale 48 combinaisons"><span><b>6</b> villes</span><i aria-hidden="true">×</i><span><b>8</b> produits</span><i aria-hidden="true">=</i><span class="is-out"><b>48</b> combinaisons</span></p>
+          <p class="ij-arrow">👉 Plus les deux listes sont grandes, plus <code>CROSS JOIN</code> génère de lignes.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">La requête complète</p>
+          <p>Il ne reste plus qu’à réunir toutes les étapes.</p>
+          <p>👇 Exécute la requête pour générer le catalogue&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT villes.ville,&#10;       produits.nom AS produit&#10;FROM (&#10;    SELECT DISTINCT ville&#10;    FROM clients&#10;) AS villes&#10;CROSS JOIN produits;"></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 6 villes et 8 produits à 48 combinaisons"><li class="ij-fn-row"><b>6</b><span>villes différentes<small>grâce à DISTINCT</small></span></li><li class="ij-fn-step"><code>CROSS JOIN produits</code><small>× 8 produits</small></li><li class="ij-fn-row is-out"><b>48</b><span>offres dans le catalogue<small>6 villes × 8 produits</small></span><i class="cj-mat" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></i></li></ol><p class="ij-done-p">Chaque ville est maintenant associée à chaque produit. Le catalogue contient toutes les combinaisons possibles.</p></div>
+          <div class="sit-memo">
+            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
+            <p><code>CROSS JOIN</code> associe chaque ligne d’une table à chaque ligne de l’autre.</p>
+            <p>Il ne cherche aucune correspondance. C’est pourquoi il n’utilise généralement pas <code>ON</code>.</p>
+            <p>Nombre de lignes = lignes de gauche × lignes de droite.</p>
           </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Quand s’en servir</p>
-          <p>Pour générer toutes les possibilités&nbsp;:</p>
-          <ul class="jn-list"><li>clients × produits, pour une campagne&nbsp;;</li><li>dates × créneaux, pour un planning&nbsp;;</li><li>tailles × couleurs, pour un catalogue.</li></ul>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Attention au volume</p>
-          <div class="sit-memo is-attn">
-            <p class="sit-memo-lab"><i aria-hidden="true">⚠️</i>Attention</p>
-            <p>1 000 lignes × 1 000 lignes produisent déjà 1 000 000 de lignes. Vérifie la taille des deux tables avant de lancer un <code>CROSS JOIN</code>.</p>
-          </div>
+          <button type="button" class="coda-note" onclick="noteFromRetenir()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ajouter dans notes</button>
         </div>
       </div>`},
-    reflex:{a:{k:"CROSS JOIN",t:"chaque ligne × chaque ligne"}, b:{k:"Pas de ON",t:"aucune correspondance cherchée"}, extra:`<div class="sit-memo">
-            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-            <p>Nombre de lignes = lignes de la table A × lignes de la table B.</p>
-          </div>`},
-    viz:"crossjoin"},
+    or:{title:"CROSS JOIN est différent des autres JOIN",
+      body:`<div class="pt-lead fn-uses fk-course jn-course lr-cmp">
+        <div class="lr-duo">
+          <article><p class="lr-tag">Jointures précédentes</p><p class="lr-out lr-lead"><code>ON</code> définit une correspondance&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">ON clients.id = commandes.client_id</span></pre></div></article>
+          <article class="is-on"><p class="lr-tag">CROSS JOIN</p><p class="lr-out lr-lead">Aucune correspondance n’est nécessaire&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">CROSS JOIN produits</pre></div></article>
+        </div>
+        <div class="fn-use">
+          <table class="join-recap jr-types">
+            <thead><tr><th scope="col"><span class="jr-vh">Schéma</span></th><th scope="col">Jointure</th><th scope="col">Principe</th></tr></thead>
+            <tbody><tr tabindex="0"><td class="jr-viz"><span class="jr-tile"><svg class="jr-venn" viewBox="0 0 64 36" aria-hidden="true"><defs><clipPath id="cj-b"><circle cx="41" cy="18" r="15"/></clipPath></defs><g class="vn-garde"><circle cx="23" cy="18" r="15" clip-path="url(#cj-b)"/></g><circle cx="23" cy="18" r="15" class="vn-trait"/><circle cx="41" cy="18" r="15" class="vn-trait"/></svg></span></td><td class="jr-type">INNER JOIN</td><td class="jr-quoi">Garder les correspondances</td></tr><tr tabindex="0"><td class="jr-viz"><span class="jr-tile"><svg class="jr-venn" viewBox="0 0 64 36" aria-hidden="true"><g class="vn-garde"><circle cx="23" cy="18" r="15"/></g><circle cx="23" cy="18" r="15" class="vn-trait"/><circle cx="41" cy="18" r="15" class="vn-trait"/></svg></span></td><td class="jr-type">LEFT JOIN</td><td class="jr-quoi">Tout garder à gauche</td></tr><tr tabindex="0"><td class="jr-viz"><span class="jr-tile"><svg class="jr-venn" viewBox="0 0 64 36" aria-hidden="true"><g class="vn-garde"><circle cx="41" cy="18" r="15"/></g><circle cx="23" cy="18" r="15" class="vn-trait"/><circle cx="41" cy="18" r="15" class="vn-trait"/></svg></span></td><td class="jr-type">RIGHT JOIN</td><td class="jr-quoi">Tout garder à droite</td></tr><tr tabindex="0"><td class="jr-viz"><span class="jr-tile"><svg class="jr-venn" viewBox="0 0 64 36" aria-hidden="true"><g class="vn-garde"><circle cx="23" cy="18" r="15"/><circle cx="41" cy="18" r="15"/></g><circle cx="23" cy="18" r="15" class="vn-trait"/><circle cx="41" cy="18" r="15" class="vn-trait"/></svg></span></td><td class="jr-type">FULL OUTER JOIN</td><td class="jr-quoi">Tout garder des deux côtés</td></tr><tr class="on" tabindex="0"><td class="jr-viz"><span class="jr-tile"><svg class="jr-venn" viewBox="0 0 64 36" aria-hidden="true"><g class="vn-garde"><rect x="17" y="3" width="8" height="8" rx="2.5"/><rect x="28" y="3" width="8" height="8" rx="2.5"/><rect x="39" y="3" width="8" height="8" rx="2.5"/><rect x="17" y="14" width="8" height="8" rx="2.5"/><rect x="28" y="14" width="8" height="8" rx="2.5"/><rect x="39" y="14" width="8" height="8" rx="2.5"/><rect x="17" y="25" width="8" height="8" rx="2.5"/><rect x="28" y="25" width="8" height="8" rx="2.5"/><rect x="39" y="25" width="8" height="8" rx="2.5"/></g></svg></span></td><td class="jr-type">CROSS JOIN<span class="jr-ici">ce cours</span></td><td class="jr-quoi">Créer toutes les combinaisons</td></tr></tbody>
+          </table>
+        </div>
+        <div class="sit-memo lr-reflex">
+          <p class="sit-memo-lab"><i aria-hidden="true">💡</i>Le réflexe</p>
+          <div class="lr-quad is-2"><span><small>Tu veux savoir quelles lignes correspondent&nbsp;?</small><b>→ jointure avec ON</b></span><span class="is-on"><small>Tu veux créer toutes les combinaisons possibles&nbsp;?</small><b>→ CROSS JOIN</b></span></div>
+        </div>
+      </div>`},
+    why:{eye:"Animation",title:"Suis le CROSS JOIN, ville par ville",
+      extra:`<section class="ijl" data-lab="cross" data-step="0" aria-label="Animation : suivre un CROSS JOIN étape par étape">
+          <div class="ijl-head"><span class="ijl-count">Étape <b>1</b> sur 4</span><div class="ijl-dots" role="group" aria-label="Aller à une étape"><button type="button" data-go="0" aria-label="Aller à l’étape 1" aria-current="step"></button><button type="button" data-go="1" aria-label="Aller à l’étape 2"></button><button type="button" data-go="2" aria-label="Aller à l’étape 3"></button><button type="button" data-go="3" aria-label="Aller à l’étape 4"></button></div></div>
+          <p class="ijl-title">Deux listes séparées</p>
+          <p class="ijl-cap"></p>
+          <div class="ijl-ask" hidden><p class="ijl-ask-q"></p><div class="ijl-ask-opts"></div><p class="ijl-ask-fb" hidden></p></div>
+          <div class="ijl-nav"><button type="button" class="ijl-prev" aria-label="Étape précédente">←</button><button type="button" class="ijl-next">Suivant →</button></div>
+          <p class="ijl-clause"><code></code></p>
+          <div class="ijl-stage">
+            <svg class="ijl-links" aria-hidden="true"></svg>
+            <div class="ijl-col"><p class="ijl-col-h">villes</p><div class="ijl-row is-paired is-p" data-k="p" data-at="1"><span>Paris</span></div><div class="ijl-row is-paired is-l" data-k="l" data-at="2"><span>Lyon</span></div></div>
+            <div class="ijl-col is-r"><p class="ijl-col-h">table produits</p><div class="ijl-row is-paired" data-c="p l"><span>Fibre Prébiotique</span></div><div class="ijl-row is-paired" data-c="p l"><span>Collagène Marin</span></div><div class="ijl-row is-paired" data-c="p l"><span>Magnésium</span></div></div>
+          </div>
+          <div class="ijl-out"><p class="ijl-out-h">Résultat · <b class="ijl-n">0</b> lignes</p><div class="ijl-grid is-2 cj-grid"><span class="is-h">ville</span><span class="is-h">produit</span><span class="is-p" style="--i:0">Paris</span><span class="is-p" style="--i:0">Fibre Prébiotique</span><span class="is-p" style="--i:1">Paris</span><span class="is-p" style="--i:1">Collagène Marin</span><span class="is-p" style="--i:2">Paris</span><span class="is-p" style="--i:2">Magnésium</span><span class="is-l" style="--i:0">Lyon</span><span class="is-l" style="--i:0">Fibre Prébiotique</span><span class="is-l" style="--i:1">Lyon</span><span class="is-l" style="--i:1">Collagène Marin</span><span class="is-l" style="--i:2">Lyon</span><span class="is-l" style="--i:2">Magnésium</span></div></div>
+          <p class="ijl-sr-only ijl-live" aria-live="polite" aria-atomic="true"></p>
+        </section>`}},
   joinFn:true,
-  anatomie:[
-    {tok:"SELECT clients.nom, produits.nom",txt:"Les colonnes que tu veux afficher."},
-    {tok:"FROM clients",txt:"La première table : ici, les clients."},
-    {tok:"CROSS JOIN produits",txt:"Associe chaque client à chaque produit. Aucune clause <code>ON</code> n’est nécessaire."}
-  ],
-  exemple:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;",
-  attendu:"80 lignes : chaque client est associé aux 8 produits. Sophie apparaît donc 8 fois, Lucas 8 fois, et ainsi de suite pour les 10 clients.",
-  retenir:"<code>CROSS JOIN</code> associe chaque ligne de la première table à toutes les lignes de la deuxième, sans <code>ON</code>.<br><br>Le résultat compte toujours <b>lignes de gauche × lignes de droite</b> : 10 × 8 = 80 dans notre base.<br><br>Structure : <code>SELECT … FROM table1 CROSS JOIN table2;</code>",
-  piege:{t:"Utiliser CROSS JOIN pour relier des clients à leurs commandes",
-    p:"<code>CROSS JOIN</code> ne vérifie pas à quel client appartient chaque commande. Il associe chaque client à toutes les commandes. Pour retrouver les commandes de chaque client, il faut utiliser <code>JOIN</code> avec une condition <code>ON</code>.",
-    exec:true,
-    sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nCROSS JOIN commandes;",
-    out:"Résultat incorrect pour ce besoin : chaque client est associé aux 16 commandes, soit 10 × 16 = 160 lignes.",
-    fixSql:"SELECT clients.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;"},
-  consigne:"Affiche toutes les combinaisons possibles entre chaque client et chaque produit.",
-  solution:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;",
-  indice:"Utilise <code>CROSS JOIN</code> entre les tables <code>clients</code> et <code>produits</code>. Tu n’as pas besoin de <code>ON</code>.",
+  whyFirst:true,
+  noReflex:true,
+  noTeste:true,
+  noAnat:true,
+  anatomie:[{tok:"SELECT villes.ville, produits.nom AS produit",txt:"La ville et le nom du produit."},{tok:"FROM (SELECT DISTINCT ville FROM clients) AS villes",txt:"La liste des villes différentes."},{tok:"CROSS JOIN produits",txt:"Chaque ville est associée à chaque produit, sans condition ON."}],
+  exemple:"SELECT villes.ville,\n       produits.nom AS produit\nFROM (\n    SELECT DISTINCT ville\n    FROM clients\n) AS villes\nCROSS JOIN produits;",
+  attendu:"<b>48 lignes</b> : 6 villes × 8 produits. Chaque ville apparaît 8 fois, une fois par produit.",
+  consigne:"Crée toutes les combinaisons possibles entre les produits et les villes des clients. Affiche <code>ville</code> et <code>produit</code>.",
+  solution:"SELECT villes.ville,\n       produits.nom AS produit\nFROM (\n    SELECT DISTINCT ville\n    FROM clients\n) AS villes\nCROSS JOIN produits;",
+  indice:"Prépare les villes différentes avec <code>SELECT DISTINCT ville FROM clients</code> dans une sous-requête nommée <code>villes</code>, puis ajoute <code>CROSS JOIN produits</code>, sans <code>ON</code>.",
+  retenir:"<code>CROSS JOIN</code> associe chaque ligne d’une table à chaque ligne de l’autre.<br><br>Il ne cherche aucune correspondance. C’est pourquoi il n’utilise généralement pas <code>ON</code>.<br><br>Nombre de lignes = lignes de gauche × lignes de droite.",
   joinRecap:'cross',
   richLesson:true, earlyDemo:true,
   testeVariants:[
-    {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
+    {k:'villes',label:'villes',sql:"SELECT DISTINCT ville\nFROM clients;"},
     {k:'prod',label:'produits',sql:"SELECT id, nom\nFROM produits;"},
-    {k:'cross',label:'CROSS JOIN',sql:"SELECT clients.nom, produits.nom\nFROM clients\nCROSS JOIN produits;",tone:'good'}
+    {k:'cross',label:'CROSS JOIN',sql:"SELECT villes.ville, produits.nom AS produit\nFROM (SELECT DISTINCT ville FROM clients) AS villes\nCROSS JOIN produits;",tone:'good'}
   ] ,
 learningCheck:{
-  "question": "Dix clients croisés avec huit produits donnent combien de paires ?",
+  "question": "3 villes et 5 produits : combien de lignes produit un CROSS JOIN ?",
   "options": [
-    "18",
-    "10",
-    "80"
+    "8",
+    "15",
+    "5"
   ],
-  "answer": 2,
-  "explanation": "CROSS JOIN combine chaque client avec chaque produit : 10 × 8. Le volume croît par multiplication."
+  "answer": 1,
+  "explanation": "CROSS JOIN associe chaque ville à chaque produit : 3 × 5 = 15 lignes."
 }
 },
 { id:44, titre:"Quel JOIN choisir", résumé:"INNER, LEFT, RIGHT, FULL ou CROSS : le bon outil pour le besoin",
@@ -23228,7 +23297,8 @@ const IJL_STEPS=[{"t": "Deux tables séparées", "sql": "FROM commandes", "c": "
 const IJL_LEFT_STEPS=[{"t": "Deux tables séparées", "sql": "FROM clients", "c": "À gauche, la <code>table clients</code>. À droite, la <code>table commandes</code>. Certains clients ont une ou plusieurs commandes, d’autres n’en ont aucune."}, {"t": "ON cherche les correspondances", "sql": "LEFT JOIN commandes <mark>ON clients.id = commandes.client_id</mark>", "c": "SQL compare le <code>client_id</code> de chaque commande avec l’<code>id</code> des clients et crée une correspondance pour chaque commande. 🔗"}, {"t": "Et s’il n’y a aucune correspondance ?", "sql": "LEFT JOIN commandes ON clients.id = <mark>commandes.client_id</mark>", "c": "Arrivé à Inès (<code>clients.id = 9</code>), SQL cherche <code>commandes.client_id = 9</code> mais ne trouve aucune commande, tout comme pour Nathan n°10. 🔎", "ask": {"q": "🤔 Selon toi, que devient Inès avec <code>LEFT JOIN</code>&nbsp;?", "o": ["Elle disparaît", "Elle reste dans le résultat"], "ok": 1, "yes": "<b>✅ Exact</b><code>LEFT JOIN</code> garde toutes les lignes de la table située à gauche, même lorsqu’elles ne trouvent aucune correspondance.", "no": "<b>❌ Pas tout à fait</b>C’est <code>INNER JOIN</code> qui la ferait disparaître. <code>LEFT JOIN</code> garde toutes les lignes de la table de gauche&nbsp;: Inès reste."}}, {"t": "La partie manquante devient NULL", "sql": "<mark>LEFT</mark> JOIN commandes ON clients.id = commandes.client_id", "c": "Inès n’a aucune commande&nbsp;: <code>NULL</code> signifie ici aucune commande correspondante trouvée."}, {"t": "Une correspondance = une ligne", "sql": "SELECT clients.nom, commandes.id AS commande_id", "c": "Un client avec plusieurs commandes apparaît plusieurs fois. Un client sans commande apparaît quand même une fois, avec <code>NULL</code> du côté des commandes. C’est la grande différence avec <code>INNER JOIN</code>."}];
 const IJL_RIGHT_STEPS=[{"t": "Deux tables séparées", "sql": "FROM clients", "c": "La <code>table clients</code> contient les noms. La <code>table commandes</code> contient les commandes.<br>👉 Pour réunir ces informations, il faut relier les deux tables."}, {"t": "ON cherche les correspondances", "sql": "RIGHT JOIN commandes <mark>ON clients.id = commandes.client_id</mark>", "c": "SQL compare <code>clients.id</code> ↕ <code>commandes.client_id</code>. Quand les valeurs correspondent, le client et la commande sont reliés. 🔗"}, {"t": "RIGHT garde la droite", "sql": "<mark>RIGHT</mark> JOIN commandes ON clients.id = commandes.client_id", "c": "La <code>table commandes</code> est située à droite.<br>👉 <code>RIGHT JOIN</code> conserve donc toutes ses lignes, même lorsqu’une commande ne trouve aucun client correspondant."}, {"t": "La commande mystère", "sql": "RIGHT JOIN commandes ON clients.id = <mark>commandes.client_id</mark>", "c": "Pour la commande #16, <code>commandes.client_id = NULL</code>&nbsp;: 🔎 aucun client ne peut lui être associé.<br>Mais puisqu’elle appartient à la table de droite, ✅ <code>RIGHT JOIN</code> la conserve."}, {"t": "La partie manquante devient NULL", "sql": "SELECT commandes.id AS commande_id, clients.nom", "c": "La commande #16 reste dans le résultat, mais aucun client ne lui correspond.<br>👉 <code>NULL</code> signifie ici&nbsp;: aucun client correspondant."}];
 const IJL_FULL_STEPS=[{"t": "Deux tables séparées", "sql": "FROM clients", "c": "À gauche, la <code>table clients</code>. À droite, la <code>table commandes</code>. Certaines lignes correspondent, d’autres non.<br>👉 Notre objectif&nbsp;: ne perdre aucune ligne."}, {"t": "ON cherche les correspondances", "sql": "FULL OUTER JOIN commandes <mark>ON clients.id = commandes.client_id</mark>", "c": "SQL compare <code>clients.id</code> ↕ <code>commandes.client_id</code>. Quand les identifiants correspondent, les lignes sont reliées&nbsp;: 🔗 client + commande."}, {"t": "FULL garde aussi les clients seuls", "sql": "<mark>FULL OUTER</mark> JOIN commandes ON clients.id = commandes.client_id", "c": "Inès ne possède aucune commande&nbsp;: 🔎 aucune correspondance. Avec <code>INNER JOIN</code>, elle serait écartée.<br>✅ Avec <code>FULL OUTER JOIN</code>, Inès reste. La partie <code>commandes</code> vaut <code>NULL</code>."}, {"t": "FULL garde aussi les commandes seules", "sql": "<mark>FULL OUTER</mark> JOIN commandes ON clients.id = commandes.client_id", "c": "La commande #16 n’est rattachée à aucun client&nbsp;: 🔎 aucune correspondance.<br>✅ Avec <code>FULL OUTER JOIN</code>, elle reste elle aussi. La partie <code>clients</code> vaut <code>NULL</code>."}, {"t": "Tout est réuni", "sql": "SELECT clients.nom, commandes.id AS commande_id", "c": "<span class=\"ijl-sum\"><span><b>🔗 Client + commande</b><i>réunis</i></span><span><b>👤 Client sans commande</b><i>commande = NULL</i></span><span><b>📦 Commande sans client</b><i>client = NULL</i></span></span>👉 Aucune ligne n’est écartée faute de correspondance."}];
-const IJL_LABS={inner:{steps:IJL_STEPS,counts:[6,6,6,6,5]},left:{steps:IJL_LEFT_STEPS,counts:[8,8,8,8,8]},right:{steps:IJL_RIGHT_STEPS,counts:[7,7,7,7,7]},full:{steps:IJL_FULL_STEPS,counts:[8,8,8,8,8]}};
+const IJL_CROSS_STEPS=[{"t": "Deux listes séparées", "sql": "FROM villes", "c": "À gauche, les villes. À droite, les produits.<br>Pour l’instant, les deux listes sont séparées."}, {"t": "Première ville", "sql": "<mark>CROSS JOIN produits</mark>", "c": "SQL prend <b>Paris</b> et l’associe à <b>tous les produits</b>.<br>👉 Paris produit donc 3 combinaisons."}, {"t": "Ville suivante", "sql": "<mark>CROSS JOIN produits</mark>", "c": "SQL passe ensuite à <b>Lyon</b> et recommence avec tous les produits.<br>👉 Lyon produit elle aussi 3 combinaisons."}, {"t": "Toutes les combinaisons sont créées", "sql": "SELECT villes.ville, produits.nom AS produit", "c": "2 villes × 3 produits = <b>6 lignes</b>.<br>👉 Chaque ligne de la première liste est associée à chaque ligne de la seconde."}];
+const IJL_LABS={inner:{steps:IJL_STEPS,counts:[6,6,6,6,5]},left:{steps:IJL_LEFT_STEPS,counts:[8,8,8,8,8]},right:{steps:IJL_RIGHT_STEPS,counts:[7,7,7,7,7]},full:{steps:IJL_FULL_STEPS,counts:[8,8,8,8,8]},cross:{steps:IJL_CROSS_STEPS,counts:[0,3,6,6],stepLinks:2}};
 function initInnerJoinLab(){
   document.querySelectorAll('#lesson-body .ijl').forEach(initIjlLab);
 }
@@ -23254,14 +23324,18 @@ function initIjlLab(root){
     let n=0;
     root.querySelectorAll('.ijl-col:not(.is-r) .ijl-row[data-k]').forEach(row=>{
       const k=row.dataset.k;if(!k)return;
-      root.querySelectorAll(`.ijl-col.is-r .ijl-row[data-c="${k}"]`).forEach(dest=>{
+      /* data-at : la ligne ne se relie qu’à partir de cette étape (CROSS JOIN, ville par ville). */
+      const at=row.dataset.at?Number(row.dataset.at):1;
+      if(step<at)return;
+      const fresh=animate&&(!row.dataset.at||at===step);
+      root.querySelectorAll(`.ijl-col.is-r .ijl-row[data-c~="${k}"]`).forEach(dest=>{
         const a=row.getBoundingClientRect(),b=dest.getBoundingClientRect();
         const x1=a.right-box.left-2,y1=a.top+a.height/2-box.top,x2=b.left-box.left+2,y2=b.top+b.height/2-box.top,mx=(x1+x2)/2;
         const path=document.createElementNS('http://www.w3.org/2000/svg','path');
         path.setAttribute('d',`M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`);
         path.setAttribute('class','ijl-link');
         svg.appendChild(path);
-        if(animate&&!(mq&&mq.matches)){
+        if(fresh&&!(mq&&mq.matches)){
           const len=Math.ceil(path.getTotalLength());
           path.style.setProperty('--len',len);
           path.style.setProperty('--d',(n*0.1)+'s');
@@ -23306,9 +23380,9 @@ function initIjlLab(root){
     clause.innerHTML=s.sql;
     dots.forEach((d,j)=>{if(j===step)d.setAttribute('aria-current','step');else d.removeAttribute('aria-current');d.classList.toggle('is-done',j<step);});
     paintAsk();paintNav();
-    draw(step===1&&drawnAt!==1);
+    draw(LAB.stepLinks?step>drawnAt&&step<=LAB.stepLinks:step===1&&drawnAt!==1);
     drawnAt=step;
-    if(live)live.textContent=`Étape ${step+1} sur 5. ${s.t}. ${plain(s.c)}${step>=3?` Résultat : ${cnt} lignes de l’extrait.`:''}`;
+    if(live)live.textContent=`Étape ${step+1} sur ${STEPS.length}. ${s.t}. ${plain(s.c)}${step>=3?` Résultat : ${cnt} lignes de l’extrait.`:''}`;
     if(user&&navigator.vibrate)navigator.vibrate(5);
   };
   askOpts.addEventListener('click',ev=>{
