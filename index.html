@@ -1572,6 +1572,7 @@
   .jn-merge > i.jn-merge-via{margin:0;font-size:11.5px;font-weight:800;letter-spacing:.2px}
   .ij-cond{margin:10px 0!important;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--accent) 6%,#fff);border-left:3px solid var(--accent)}
   .ij-cond code{padding:0;background:transparent;font-size:13px;font-weight:800;color:var(--accent);overflow-wrap:anywhere}
+  .fk-course p.ij-arrow{margin:6px 0 14px;font-size:14.5px;line-height:1.5;color:var(--ink-2)}
   .fk-course .pt-syntax .cw-syntax{background:#fafafc;border:1px solid rgba(39,42,54,.16);border-radius:12px}
   .fk-course .sit-memo.is-attn{margin:12px 0}
   .fk-verdict{margin:10px 0 2px;padding:12px 14px;border-radius:16px;background:var(--danger-soft);border:1px solid color-mix(in srgb,var(--danger) 22%,transparent);animation:fkTreeIn .4s ease .15s both}
@@ -12984,13 +12985,19 @@ INNER JOIN clients
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">ON relie, WHERE filtre</p>
-          <p><code>ON</code> indique quelles lignes vont ensemble. <code>WHERE</code> filtre ensuite le résultat pour ne garder que les commandes de juillet 2026.</p>
-          <div class="ij-anno" role="list" aria-label="ON puis WHERE"><div class="ij-anno-row is-muted"><code>ON commandes.client_id = clients.id</code><span>relie chaque commande à son client</span></div><div class="ij-anno-row is-key"><code>WHERE commandes.date_commande<br>&nbsp;&nbsp;BETWEEN '2026-07-01' AND '2026-07-31'</code><span>ne garde que les commandes de juillet 2026</span></div></div>
+          <p><code>ON</code> indique comment les lignes des deux tables correspondent.</p>
+          <p><code>WHERE</code> intervient ensuite pour ne garder que les commandes passées en juillet 2026.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ON commandes.client_id = clients.id</pre></div>
+          <p class="ij-arrow">→ relie chaque commande au bon client.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">WHERE commandes.date_commande
+      BETWEEN '2026-07-01' AND '2026-07-31'</pre></div>
+          <p class="ij-arrow">→ parmi les commandes reliées, ne garde que celles de juillet 2026.</p>
           <div class="fk-verdict is-ok">
             <p class="fk-verdict-lab">Résultat</p>
             <p class="fk-verdict-t">✅ 14 commandes de juillet</p>
-            <p>La commande de Chloé, passée le 1<sup>er</sup> août, est retirée par <code>WHERE</code>.</p>
+            <p>La commande de Chloé, passée le 1<sup>er</sup> août, a bien trouvé sa cliente grâce à <code>ON</code>, mais elle est ensuite écartée par <code>WHERE</code>.</p>
           </div>
+        </div>
         </div>
       </div>`},
     why:{eye:"Animation",title:"Regarde la jointure se construire.",
