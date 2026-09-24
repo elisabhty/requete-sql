@@ -1697,6 +1697,7 @@
   .ij-done-flow span{padding:5px 9px;border-radius:999px;background:#fff;font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--ink-2);white-space:nowrap}
   .ij-done-flow span.is-out{background:var(--accent);color:#fff}
   .ij-done-flow i{font-style:normal;font-weight:800;color:var(--ink-3)}
+  .ij-done-flow > i{font-family:var(--mono);font-size:11px;font-weight:700;text-align:center;line-height:1.35}
   .fk-course .ij-done-p{font-size:14.5px;line-height:1.55;color:var(--ink-2)}
   /* Mission accomplie : cachée jusqu’à l’exécution, puis apparition */
   .ij-done.is-locked{display:none}
@@ -1712,6 +1713,17 @@
   @keyframes ijDoneChip{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   @keyframes ijDoneOut{0%{opacity:0;transform:scale(.6)}70%{opacity:1;transform:scale(1.08)}100%{transform:none}}
   @media (prefers-reduced-motion:reduce){.ij-done.is-in,.ij-done.is-in *{animation:none!important}}
+  /* Animation LEFT JOIN : la ligne sans correspondance est gardée, avec NULL */
+  .pk-comp.ij-t .ij-tmore{margin:6px 0 0!important;text-align:center;font-size:12px;font-weight:700;color:var(--ink-3)}
+  .ijl-grid.is-2{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
+  .ijl[data-lab="left"] .ijl-grid span.is-nul:nth-child(even){background:transparent;border:1.5px dashed var(--line);color:var(--ink-3);font-style:italic}
+  .ijl[data-lab="left"]:is([data-step="2"],[data-step="3"],[data-step="4"]) .ijl-row.is-orphan{opacity:1;flex-wrap:wrap;row-gap:1px;background:#fff;border:1.5px dashed color-mix(in srgb,var(--accent) 45%,transparent)}
+  .ijl[data-lab="left"]:is([data-step="2"],[data-step="3"],[data-step="4"]) .ijl-row.is-orphan span{text-decoration:none;color:var(--ink)}
+  .ijl[data-lab="left"]:is([data-step="2"],[data-step="3"],[data-step="4"]) .ijl-row.is-orphan b{color:var(--ink)}
+  .ijl[data-lab="left"]:is([data-step="2"],[data-step="3"],[data-step="4"]) .ijl-row.is-orphan em{display:block;flex-basis:100%;margin:0;padding:0;background:transparent;color:var(--ink-3)}
+  .ijl[data-lab="left"]:is([data-step="3"],[data-step="4"]) .ijl-row.is-orphan{background:var(--accent-soft);border-style:solid}
+  .ijl[data-lab="left"]:is([data-step="3"],[data-step="4"]) .ijl-row.is-orphan em{font-size:0;color:var(--accent)}
+  .ijl[data-lab="left"]:is([data-step="3"],[data-step="4"]) .ijl-row.is-orphan em::after{content:'gardé · NULL';font-size:10.5px}
   .fk-course .pt-syntax .cw-syntax{background:#fafafc;border:1px solid rgba(39,42,54,.16);border-radius:12px}
   .fk-course .sit-memo.is-attn{margin:12px 0}
   .fk-verdict{margin:10px 0 2px;padding:12px 14px;border-radius:16px;background:var(--danger-soft);border:1px solid color-mix(in srgb,var(--danger) 22%,transparent);animation:fkTreeIn .4s ease .15s both}
@@ -13175,95 +13187,99 @@ learningCheck:{
   "explanation": "INNER JOIN produit une ligne par correspondance. Trois commandes, trois lignes : les tables, elles, ne changent pas."
 }
 },
-{ id:20, titre:"LEFT JOIN", résumé:"Garder tous les clients, même sans commande",
-  situation:`<p>Nutriboost prépare le lancement d’un nouveau produit et crée un <b>club de testeurs</b>.</p><p>La règle est généreuse&nbsp;: <b>tous les clients inscrits</b> sont invités, même ceux qui n’ont encore jamais commandé.</p><p>Pour personnaliser l’opération, l’équipe veut préparer un tableau contenant&nbsp;:</p><div class="pk-rel" aria-label="Informations du club des testeurs"><article><b>👤 Client</b><span>tous les inscrits</span></article><article><b>📦 Quantité</b><span>si une commande existe</span></article></div><p>Dans <code>clients</code>, Inès et Nathan n°10 sont bien inscrits. Mais aucune ligne de <code>commandes</code> ne leur correspond.</p><div class="table-wrap"><table class="concept-table"><thead><tr><th>id</th><th>nom</th><th>commande trouvée&nbsp;?</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td>oui</td></tr><tr><td>7</td><td>Léa</td><td>oui</td></tr><tr><td>9</td><td>Inès</td><td>non</td></tr><tr><td>10</td><td>Nathan</td><td>non</td></tr></tbody></table></div><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Ajoute les informations de commande lorsqu’elles existent, <b>sans faire disparaître les clients qui n’en ont aucune</b>.</p></div>`,
-  situationTail:"Avec <code>INNER JOIN</code>, Inès et Nathan n°10 seraient oubliés. Le <code>LEFT JOIN</code> part de la liste complète des clients et la conserve jusqu’au résultat.",
-    studio:{problem:{eye:"",title:"Personne ne doit disparaître.",
-      body:"Tous les clients sont invités, même ceux qui n’ont jamais commandé. <code>LEFT JOIN</code> garde toute la table de gauche, puis la complète avec la droite quand c’est possible.",
-      extra:`<div class="jn-sides" role="img" aria-label="LEFT JOIN : toutes les lignes de clients restent, les commandes complètent quand elles existent"><article class="is-kept"><small>gauche</small><b>clients</b><span>🛡️ toutes les lignes</span></article><i aria-hidden="true">⟷</i><article><small>droite</small><b>commandes</b><span>si une paire existe</span></article></div>`},
-    uses:{title:"LEFT JOIN, étape par étape",
+{ id:20, titre:"LEFT JOIN", résumé:"Garder même sans correspondance",
+  situation:`<p>L’équipe prépare le lancement d’un nouveau produit.</p><p>Avant sa sortie, elle veut créer un <b>club de testeurs</b> et inviter en priorité les clients qui n’ont encore passé <b>aucune commande</b>.</p><p>Pour préparer les invitations, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Nom</b><span>table clients</span></div><div role="listitem"><b>🛒 Commandes passées</b><span class="is-b">table commandes</span></div></div><p>🤔 <b>Problème&nbsp;:</b> avec <code>INNER JOIN</code>, seuls les clients qui ont une commande apparaissent.</p><p>Or, cette fois, ce sont justement les clients <b>sans commande</b> qui nous intéressent.</p><p>👉 Il nous faut donc une jointure capable de garder tous les clients, même lorsqu’aucune commande ne leur correspond.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Retrouve les clients qui n’ont encore passé aucune commande pour les inviter au club de testeurs.</p></div>`,
+    studio:{problem:{eye:"",title:"Que se passe-t-il quand un client n’a aucune commande&nbsp;?",
+      body:"🔎 Prenons Inès&nbsp;:",
+      extra:`<div class="pk-comp ij-t"><p class="ij-tlab">table clients</p><div class="pk-mini"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-hit">9</span><span>Inès</span></div></div>
+        <p>SQL cherche ses commandes dans la <code>table commandes</code>&nbsp;:</p>
+        <div class="pk-comp ij-t"><p class="ij-tlab">table commandes</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">client_id</span><span class="is-h">produit_id</span><span>1</span><span>1</span><span>1</span><span>2</span><span>1</span><span>3</span><span>3</span><span>2</span><span>6</span></div><p class="ij-tmore">… et 13 autres commandes</p></div>
+        <p>Il cherche&nbsp;:</p>
+        <div class="ij-match" role="img" aria-label="clients.id vaut 9, on cherche commandes.client_id égal à 9"><code>clients.id = 9</code><i aria-hidden="true">↕</i><code>commandes.client_id = 9</code></div>
+        <p>🔎 Mais aucune commande ne correspond.</p>
+        <div class="ij-cases" role="list"><div class="ij-case" role="listitem"><span class="ij-case-ico is-ko" aria-hidden="true">✕</span><div><p class="ij-case-t">Avec INNER JOIN</p><p>Aucune correspondance pour Inès.</p><p class="ij-case-v is-ko">Inès disparaît du résultat</p></div></div><div class="ij-case" role="listitem"><span class="ij-case-ico is-ok" aria-hidden="true">✓</span><div><p class="ij-case-t">Avec LEFT JOIN</p><p>Aucune correspondance non plus… mais la ligne de gauche est gardée.</p><p class="ij-case-v is-ok">Inès est conservée</p></div></div></div>
+        <p>Comme SQL n’a trouvé aucune commande à lui associer, les informations provenant de la <code>table commandes</code> valent <code>NULL</code>&nbsp;:</p>
+        <div class="pk-comp ij-t"><p class="ij-tlab">une ligne du résultat</p><div class="pk-mini"><span class="is-h">nom</span><span class="is-h">commande_id</span><span class="is-hit">Inès</span><span class="is-null">NULL</span></div></div>
+        <p class="ij-arrow">👉 C’est justement ce <code>NULL</code> qui va nous permettre de repérer les clients sans commande.</p>`},
+    uses:{title:"Écrire la requête",
       body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
-          <p class="pt-syntax-h">Choisir la table à protéger</p>
-          <p>Demande-toi&nbsp;: «&nbsp;Qui ne doit surtout pas disparaître&nbsp;?&nbsp;» Ici, les clients. Leur table s’écrit donc à gauche, juste après <code>FROM</code>.</p>
-          <div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">FROM clients</span>
+          <p class="pt-syntax-h">Construisons la jointure</p>
+          <p>Notre mission concerne <b>tous</b> les clients, y compris ceux qui n’ont jamais commandé. On part donc de la <code>table clients</code>&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom
+FROM clients</pre></div>
+          <p class="ij-arrow">👉 La <code>table clients</code> est placée à gauche de la jointure.</p>
+          <p>On ajoute ensuite les commandes&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">LEFT JOIN commandes</pre></div>
+          <p class="ij-arrow">👉 <code>LEFT JOIN</code> signifie ici&nbsp;: «&nbsp;Garde tous les clients, même s’ils n’ont aucune commande.&nbsp;»</p>
+          <p>Il reste à indiquer comment retrouver les commandes appartenant à chaque client. C’est le rôle de <code>ON</code>&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ON clients.id = commandes.client_id</pre></div>
+          <p class="ij-arrow">👉 SQL compare les deux identifiants&nbsp;:</p>
+          <div class="ij-match" role="img" aria-label="clients.id comparé à commandes.client_id"><code>clients.id</code><i aria-hidden="true">↕</i><code>commandes.client_id</code></div>
+          <p>Quand les identifiants correspondent, le client et sa commande sont reliés. La jointure devient&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom,
+       <span class="fk-syn-hit">commandes.id AS commande_id</span>
+FROM clients
 LEFT JOIN commandes
-    ON clients.id = commandes.client_id</pre></div>
+    ON clients.id = commandes.client_id;</pre></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Repérer les clients sans commande</p>
+          <p>La jointure garde maintenant tous les clients. Lorsqu’un client n’a aucune commande, nous avons vu que <code>commandes.id</code> vaut <code>NULL</code>.</p>
+          <p>Notre mission demande justement de retrouver ces clients. On peut donc les filtrer avec&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">WHERE commandes.id IS NULL</pre></div>
+          <p class="ij-arrow">👉 On demande à SQL de ne garder que les clients pour lesquels aucune commande n’a été trouvée.</p>
           <div class="sit-memo">
             <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-            <p>La table écrite <b>avant</b> <code>LEFT JOIN</code> est la table protégée.</p>
+            <p><code>LEFT JOIN</code>&nbsp;: garde tous les clients, même sans commande.</p>
+            <p><code>ON</code>&nbsp;: indique comment retrouver les commandes de chaque client.</p>
+            <p><code>WHERE … IS NULL</code>&nbsp;: isole ceux pour lesquels aucune commande n’a été trouvée.</p>
           </div>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Quand la paire existe</p>
-          <p>Léa (<code>id = 7</code>) a passé deux commandes. Le SGBD les trouve dans <code>commandes</code>&nbsp;:</p>
-          <div class="fk-look" role="img" aria-label="Deux commandes trouvées pour Léa">
-            <p class="fk-look-q"><span aria-hidden="true">🔎</span><b>commandes.client_id = 7</b><em class="is-ok">2 trouvées</em></p>
-            <div class="pk-mini"><span class="is-h">commande</span><span class="is-h">client_id</span><span class="is-dim">#1</span><span class="is-dim">1</span><span class="is-hit">#8</span><span class="is-hit">7</span><span class="is-hit">#9</span><span class="is-hit">7</span></div>
-          </div>
-          <div class="fk-verdict is-ok">
-            <p class="fk-verdict-lab">Comme INNER JOIN</p>
-            <p class="fk-verdict-t">✅ Léa + ses 2 commandes</p>
-            <p>Une ligne par paire&nbsp;: Léa apparaît 2 fois.</p>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Quand la paire n’existe pas</p>
-          <p>Inès (<code>id = 9</code>) n’a jamais commandé&nbsp;:</p>
-          <div class="fk-look" role="img" aria-label="Aucune commande pour Inès">
-            <p class="fk-look-q"><span aria-hidden="true">🔎</span><b>commandes.client_id = 9</b><em>introuvable</em></p>
-            <div class="pk-mini"><span class="is-h">commande</span><span class="is-h">client_id</span><span class="is-dim">#1</span><span class="is-dim">1</span><span class="is-dim">#8</span><span class="is-dim">7</span><span class="fk-miss-row">—</span><span class="fk-miss-row">aucune</span></div>
-          </div>
-          <div class="fk-verdict is-ok">
-            <p class="fk-verdict-lab">Avec LEFT JOIN</p>
-            <p class="fk-verdict-t">✅ Inès reste dans le résultat</p>
-            <p>Là où <code>INNER JOIN</code> l’aurait écartée, elle garde sa ligne.</p>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">NULL veut dire « rien trouvé »</p>
-          <p>Pour Inès, les colonnes qui viennent de <code>commandes</code> n’ont rien à afficher&nbsp;: elles valent <code>NULL</code>.</p>
-          <div class="pk-comp"><div class="pk-mini is-3"><span class="is-h">nom</span><span class="is-h">commande</span><span class="is-h">quantite</span><span>Léa</span><span>#8</span><span>4</span><span>Léa</span><span>#9</span><span>2</span><span class="is-hit">Inès</span><span class="is-null">NULL</span><span class="is-null">NULL</span></div></div>
+          <p class="pt-syntax-h">La requête complète</p>
+          <p>Il ne reste plus qu’à réunir toutes les étapes.</p>
+          <p>👇 Exécute la requête pour découvrir les futurs membres du club&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT clients.nom&#10;FROM clients&#10;LEFT JOIN commandes&#10;    ON clients.id = commandes.client_id&#10;WHERE commandes.id IS NULL;"></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><div class="ij-done-flow" aria-hidden="true"><div class="ij-done-src"><span>tous les clients</span></div><i>↓ LEFT JOIN</i><div class="ij-done-src"><span>clients sans commande conservés</span></div><i>↓ WHERE commandes.id IS NULL</i><span class="is-out">⭐ futurs membres du club</span></div><p class="ij-done-p">On a réussi à retrouver ces clients précisément parce que <code>LEFT JOIN</code> ne les a pas supprimés lorsqu’aucune commande ne correspondait.</p></div>
           <div class="sit-memo">
             <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-            <p><code>NULL</code> n’est ni une erreur ni un zéro. Il signifie&nbsp;: aucune correspondance trouvée.</p>
+            <p><code>LEFT JOIN</code> garde toutes les lignes de la table de gauche.</p>
+            <p>Lorsqu’aucune ligne de droite ne correspond, les informations manquantes valent <code>NULL</code>.</p>
+            <p><code>ON</code> indique comment les deux tables sont reliées.</p>
+            <p><code>WHERE … IS NULL</code> permet ici de retrouver ceux qui n’ont aucune correspondance.</p>
           </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">L’ordre des tables compte</p>
-          <p>Inverser les deux tables change la table protégée&nbsp;:</p>
-          <div class="fk-duo" aria-label="Même jointure, tables inversées">
-            <article class="is-ok">
-              <p class="fk-duo-lab">clients à gauche</p>
-              <b>protège les clients</b>
-              <code>FROM clients LEFT JOIN commandes</code>
-              <small>Inès reste ✅</small>
-            </article>
-            <article class="is-ko">
-              <p class="fk-duo-lab">commandes à gauche</p>
-              <b>protège les commandes</b>
-              <code>FROM commandes LEFT JOIN clients</code>
-              <small>Inès disparaît ❌</small>
-            </article>
-          </div>
+          <button type="button" class="coda-note" onclick="noteFromRetenir()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ajouter dans notes</button>
         </div>
       </div>`},
-    reflex:{a:{k:"LEFT JOIN",t:"garde toute la table de gauche"}, b:{k:"NULL",t:"aucune correspondance trouvée"}, extra:`<div class="sit-memo">
-            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-            <p>Place à gauche la liste que tu refuses de perdre.</p>
-          </div>`},
-    viz:"leftj"},
+    why:{eye:"Animation",title:"Suis le LEFT JOIN, ligne par ligne",
+      extra:`<section class="ijl" data-lab="left" data-step="0" aria-label="Animation : suivre un LEFT JOIN étape par étape">
+          <div class="ijl-head"><span class="ijl-count">Étape <b>1</b> sur 5</span><div class="ijl-dots" role="group" aria-label="Aller à une étape"><button type="button" data-go="0" aria-label="Aller à l’étape 1" aria-current="step"></button><button type="button" data-go="1" aria-label="Aller à l’étape 2"></button><button type="button" data-go="2" aria-label="Aller à l’étape 3"></button><button type="button" data-go="3" aria-label="Aller à l’étape 4"></button><button type="button" data-go="4" aria-label="Aller à l’étape 5"></button></div></div>
+          <p class="ijl-title">Deux tables séparées</p>
+          <p class="ijl-cap"></p>
+          <div class="ijl-ask" hidden><p class="ijl-ask-q"></p><div class="ijl-ask-opts"></div><p class="ijl-ask-fb" hidden></p></div>
+          <div class="ijl-nav"><button type="button" class="ijl-prev" aria-label="Étape précédente">←</button><button type="button" class="ijl-next">Suivant →</button></div>
+          <p class="ijl-clause"><code></code></p>
+          <div class="ijl-stage">
+            <svg class="ijl-links" aria-hidden="true"></svg>
+            <div class="ijl-col"><p class="ijl-col-h">table clients</p><div class="ijl-row is-paired" data-k="1"><b>1</b><span>Sophie</span></div><div class="ijl-row is-paired" data-k="2"><b>2</b><span>Lucas</span></div><div class="ijl-row is-paired" data-k="4"><b>4</b><span>Nathan</span></div><div class="ijl-row is-orphan" data-k=""><b>9</b><span>Inès</span><em>aucune commande</em></div><div class="ijl-row is-orphan" data-k=""><b>10</b><span>Nathan</span><em>aucune commande</em></div><div class="ijl-more">+ 5 autres clients</div></div>
+            <div class="ijl-col is-r"><p class="ijl-col-h">table commandes</p><div class="ijl-row is-paired" data-c="1"><b>#1</b><span>client_id 1</span></div><div class="ijl-row is-paired" data-c="1"><b>#2</b><span>client_id 1</span></div><div class="ijl-row is-paired" data-c="1"><b>#13</b><span>client_id 1</span></div><div class="ijl-row is-paired" data-c="2"><b>#3</b><span>client_id 2</span></div><div class="ijl-row is-paired" data-c="4"><b>#5</b><span>client_id 4</span></div><div class="ijl-row is-paired" data-c="4"><b>#12</b><span>client_id 4</span></div><div class="ijl-more">+ 10 autres commandes</div></div>
+          </div>
+          <div class="ijl-out"><p class="ijl-out-h">Résultat · <b class="ijl-n">8</b> lignes de l’extrait</p><div class="ijl-grid is-2"><span class="is-h">nom</span><span class="is-h">commande_id</span><span style="--i:0">Sophie</span><span style="--i:0">#1</span><span style="--i:1">Sophie</span><span style="--i:1">#2</span><span style="--i:2">Sophie</span><span style="--i:2">#13</span><span style="--i:3">Lucas</span><span style="--i:3">#3</span><span style="--i:4">Nathan</span><span style="--i:4">#5</span><span style="--i:5">Nathan</span><span style="--i:5">#12</span><span class="is-nul" style="--i:6">Inès</span><span class="is-nul" style="--i:6">NULL</span><span class="is-nul" style="--i:7">Nathan</span><span class="is-nul" style="--i:7">NULL</span><p class="ijl-more is-span">+ 9 autres lignes sur l’ensemble de la base</p></div></div>
+          <p class="ijl-sr-only ijl-live" aria-live="polite" aria-atomic="true"></p>
+        </section>`}},
   joinFn:true,
+  whyFirst:true,
+  noReflex:true,
+  noTeste:true,
+  noAnat:true,
   anatomie:[{tok:"SELECT clients.nom, commandes.quantite",txt:"Les colonnes à afficher."},{tok:"FROM clients",txt:"La table de gauche : tous ses enregistrements seront conservés."},{tok:"LEFT JOIN commandes",txt:"La table de droite : on ajoute les correspondances si elles existent."},{tok:"ON clients.id = commandes.client_id",txt:"La condition de correspondance. Si aucune correspondance, les colonnes de droite sont NULL."}],
-  exemple:"SELECT clients.nom, commandes.produit_id, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",
-  attendu:"17 lignes : 15 commandes avec un client + Inès et Nathan n°10 avec des NULL. La commande invitée n’apparaît pas.",
-  piege:{t:"Utiliser JOIN au lieu de LEFT JOIN",p:"Un <code>JOIN</code> simple (INNER JOIN) écarterait Inès car elle n’a aucune commande. Pour garder tous les clients, il faut <code>LEFT JOIN</code>.",
-    exec:true,
-    sql:"SELECT clients.nom, commandes.quantite\nFROM clients\nJOIN commandes\nON clients.id = commandes.client_id;",
-    fixSql:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;"},
-  consigne:"Affiche le nom de tous les clients et la <code>quantite</code> de leurs commandes, en gardant ceux qui n’ont aucune commande.",
-  solution:"SELECT clients.nom, commandes.quantite\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id;",
-  indice:"Utilise <code>LEFT JOIN</code> pour garder tous les clients, même ceux qui n’ont aucune ligne dans la table <code>commandes</code>.",
+  exemple:"SELECT clients.nom\nFROM clients\nLEFT JOIN commandes\n    ON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;",
+  attendu:"<b>2 lignes</b> : Inès et Nathan n°10, les deux clients qui n’ont encore passé aucune commande.",
+  consigne:"Retrouve les clients qui n’ont encore passé aucune commande pour les inviter au club de testeurs. Affiche leur <code>nom</code>.",
+  solution:"SELECT clients.nom\nFROM clients\nLEFT JOIN commandes\n    ON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;",
+  indice:"Pars de la <code>table clients</code>, ajoute <code>LEFT JOIN commandes</code> avec <code>ON clients.id = commandes.client_id</code>, puis garde les lignes où <code>commandes.id IS NULL</code>.",
+  retenir:"<code>LEFT JOIN</code> garde toutes les lignes de la table de gauche.<br><br>Lorsqu’aucune ligne de droite ne correspond, les informations manquantes valent <code>NULL</code>.<br><br><code>ON</code> indique comment les deux tables sont reliées.<br><br><code>WHERE … IS NULL</code> permet ici de retrouver ceux qui n’ont aucune correspondance.",
   joinRecap:'left',
   richLesson:true, earlyDemo:true,
   testeVariants:[
@@ -23126,10 +23142,15 @@ function initRelationalSchemas(){
 }
 /* INNER JOIN : animation pas à pas (commandes ⟷ clients → résultat), avec deux questions de prédiction. */
 const IJL_STEPS=[{"t": "Deux tables séparées", "sql": "FROM commandes", "c": "La <code>table commandes</code> connaît le numéro du client grâce à <code>client_id</code>, tandis que la <code>table clients</code> connaît son nom. Aucune ligne ne contient tout."}, {"t": "ON relie les lignes", "sql": "INNER JOIN clients <mark>ON commandes.client_id = clients.id</mark>", "c": "Chaque commande cherche, dans la <code>table clients</code>, le client dont l’<code>id</code> correspond à son <code>client_id</code>. Sophie reçoit trois liens&nbsp;: #1, #2 et #13.", "ask": {"q": "🤔 Selon toi, que devient la commande #16, qui n’a pas de client&nbsp;?", "o": ["Elle est gardée", "Elle est écartée"], "ok": 1, "yes": "<b>✅ Exact</b>Sans correspondance, aucune paire ne se forme. Passe à l’étape suivante pour le voir.", "no": "<b>❌ Pas tout à fait</b>Sans client, la commande #16 ne forme aucune paire. Elle va être écartée."}}, {"t": "INNER garde les paires", "sql": "<mark>INNER</mark> JOIN clients ON commandes.client_id = clients.id", "c": "La commande #16 n’a pas de client, tandis qu’Inès et Nathan n°10 n’ont aucune commande. Sans correspondance, ces lignes sont écartées.", "ask": {"q": "🤔 Sophie a trois commandes. Combien de fois apparaîtra-t-elle dans le résultat&nbsp;?", "o": ["1 fois", "3 fois"], "ok": 1, "yes": "<b>✅ Exact</b>Une correspondance = une ligne.", "no": "<b>❌ Non</b>Chacune de ses trois commandes forme sa propre paire avec Sophie. Elle apparaîtra trois fois."}}, {"t": "Une ligne par paire", "sql": "SELECT clients.nom, commandes.id, commandes.date_commande", "c": "Chaque lien devient une ligne du résultat. 👉 Sophie apparaît trois fois&nbsp;: ce ne sont pas des doublons, ce sont trois commandes différentes."}, {"t": "WHERE garde juillet", "sql": "WHERE commandes.date_commande BETWEEN '2026-07-01' AND '2026-07-31'", "c": "La commande de Chloé a été passée le 1<sup>er</sup> août&nbsp;: <code>WHERE</code> la retire. Sur l’ensemble de la base, il reste 14 lignes."}];
+const IJL_LEFT_STEPS=[{"t": "Deux tables séparées", "sql": "FROM clients", "c": "À gauche, la <code>table clients</code>. À droite, la <code>table commandes</code>. Certains clients ont une ou plusieurs commandes, d’autres n’en ont aucune."}, {"t": "ON cherche les correspondances", "sql": "LEFT JOIN commandes <mark>ON clients.id = commandes.client_id</mark>", "c": "Chaque client cherche les commandes dont le <code>client_id</code> correspond à son <code>id</code>. Sophie (<code>id = 1</code>) trouve trois commandes&nbsp;: #1, #2 et #13. 🔗 Les lignes sont reliées."}, {"t": "Et s’il n’y a aucune correspondance ?", "sql": "LEFT JOIN commandes ON clients.id = <mark>commandes.client_id</mark>", "c": "Arrivé à Inès (<code>clients.id = 9</code>), SQL cherche <code>commandes.client_id = 9</code>. 🔎 Aucune commande. Même chose pour Nathan n°10.", "ask": {"q": "🤔 Selon toi, que devient Inès avec <code>LEFT JOIN</code>&nbsp;?", "o": ["Elle disparaît", "Elle reste dans le résultat"], "ok": 1, "yes": "<b>✅ Exact</b><code>LEFT JOIN</code> garde toutes les lignes de la table située à gauche, même lorsqu’elles ne trouvent aucune correspondance.", "no": "<b>❌ Pas tout à fait</b>C’est <code>INNER JOIN</code> qui la ferait disparaître. <code>LEFT JOIN</code> garde toutes les lignes de la table de gauche&nbsp;: Inès reste."}}, {"t": "La partie manquante devient NULL", "sql": "<mark>LEFT</mark> JOIN commandes ON clients.id = commandes.client_id", "c": "Inès n’a aucune commande&nbsp;: SQL n’a aucune valeur à placer dans les colonnes de la <code>table commandes</code>. Il renvoie <code>NULL</code>. 👉 <code>NULL</code> signifie ici&nbsp;: aucune commande correspondante trouvée."}, {"t": "Une correspondance = une ligne", "sql": "SELECT clients.nom, commandes.id AS commande_id", "c": "Un client avec plusieurs commandes apparaît plusieurs fois. Un client sans commande apparaît quand même une fois, avec <code>NULL</code> du côté des commandes. C’est la grande différence avec <code>INNER JOIN</code>."}];
+const IJL_LABS={inner:{steps:IJL_STEPS,counts:[6,6,6,6,5]},left:{steps:IJL_LEFT_STEPS,counts:[8,8,8,8,8]}};
 function initInnerJoinLab(){
-  const root=document.querySelector('#lesson-body .ijl');
+  document.querySelectorAll('#lesson-body .ijl').forEach(initIjlLab);
+}
+function initIjlLab(root){
   if(!root||root._ijl)return;
   root._ijl=true;
+  const LAB=IJL_LABS[root.dataset.lab||'inner']||IJL_LABS.inner,STEPS=LAB.steps;
   const stage=root.querySelector('.ijl-stage'),svg=root.querySelector('.ijl-links');
   const dots=[...root.querySelectorAll('.ijl-dots button')],clause=root.querySelector('.ijl-clause code');
   const prev=root.querySelector('.ijl-prev'),next=root.querySelector('.ijl-next');
@@ -23148,25 +23169,26 @@ function initInnerJoinLab(){
     let n=0;
     root.querySelectorAll('.ijl-col:not(.is-r) .ijl-row[data-k]').forEach(row=>{
       const k=row.dataset.k;if(!k)return;
-      const dest=root.querySelector(`.ijl-col.is-r .ijl-row[data-c="${k}"]`);if(!dest)return;
-      const a=row.getBoundingClientRect(),b=dest.getBoundingClientRect();
-      const x1=a.right-box.left-2,y1=a.top+a.height/2-box.top,x2=b.left-box.left+2,y2=b.top+b.height/2-box.top,mx=(x1+x2)/2;
-      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-      path.setAttribute('d',`M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`);
-      path.setAttribute('class','ijl-link');
-      svg.appendChild(path);
-      if(animate&&!(mq&&mq.matches)){
-        const len=Math.ceil(path.getTotalLength());
-        path.style.setProperty('--len',len);
-        path.style.setProperty('--d',(n*0.1)+'s');
-        path.classList.add('is-new');
-      }
-      n++;
+      root.querySelectorAll(`.ijl-col.is-r .ijl-row[data-c="${k}"]`).forEach(dest=>{
+        const a=row.getBoundingClientRect(),b=dest.getBoundingClientRect();
+        const x1=a.right-box.left-2,y1=a.top+a.height/2-box.top,x2=b.left-box.left+2,y2=b.top+b.height/2-box.top,mx=(x1+x2)/2;
+        const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+        path.setAttribute('d',`M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`);
+        path.setAttribute('class','ijl-link');
+        svg.appendChild(path);
+        if(animate&&!(mq&&mq.matches)){
+          const len=Math.ceil(path.getTotalLength());
+          path.style.setProperty('--len',len);
+          path.style.setProperty('--d',(n*0.1)+'s');
+          path.classList.add('is-new');
+        }
+        n++;
+      });
     });
   };
-  const locked=()=>{const s=IJL_STEPS[step];return !!(s.ask&&answers[step]===undefined);};
+  const locked=()=>{const s=STEPS[step];return !!(s.ask&&answers[step]===undefined);};
   const paintAsk=()=>{
-    const s=IJL_STEPS[step];
+    const s=STEPS[step];
     if(!s.ask){ask.hidden=true;return;}
     ask.hidden=false;
     askQ.innerHTML=s.ask.q;
@@ -23182,26 +23204,26 @@ function initInnerJoinLab(){
     const hadFocus=document.activeElement===prev;
     prev.disabled=step===0;
     if(hadFocus&&prev.disabled)next.focus();
-    const last=step===IJL_STEPS.length-1;
+    const last=step===STEPS.length-1;
     const lock=locked();
     next.setAttribute('aria-disabled',lock?'true':'false');
     next.classList.toggle('is-locked',lock);
     next.textContent=last?'Rejouer ↺':(lock?'Réponds pour continuer':'Suivant →');
   };
   const set=(i,user)=>{
-    step=Math.max(0,Math.min(IJL_STEPS.length-1,i));
-    const s=IJL_STEPS[step];
+    step=Math.max(0,Math.min(STEPS.length-1,i));
+    const s=STEPS[step];
     root.dataset.step=String(step);
     root.querySelector('.ijl-count b').textContent=step+1;
     root.querySelector('.ijl-title').textContent=s.t;
     root.querySelector('.ijl-cap').innerHTML=s.c;
-    root.querySelector('.ijl-n').textContent=step>=4?'5':'6';
+    const cnt=(LAB.counts||[])[step];root.querySelector('.ijl-n').textContent=cnt;
     clause.innerHTML=s.sql;
     dots.forEach((d,j)=>{if(j===step)d.setAttribute('aria-current','step');else d.removeAttribute('aria-current');d.classList.toggle('is-done',j<step);});
     paintAsk();paintNav();
     draw(step===1&&drawnAt!==1);
     drawnAt=step;
-    if(live)live.textContent=`Étape ${step+1} sur 5. ${s.t}. ${plain(s.c)}${step>=3?` Résultat : ${step>=4?5:6} lignes de l’extrait.`:''}`;
+    if(live)live.textContent=`Étape ${step+1} sur 5. ${s.t}. ${plain(s.c)}${step>=3?` Résultat : ${cnt} lignes de l’extrait.`:''}`;
     if(user&&navigator.vibrate)navigator.vibrate(5);
   };
   askOpts.addEventListener('click',ev=>{
@@ -23210,16 +23232,16 @@ function initInnerJoinLab(){
     answers[step]=Number(b.dataset.i);
     paintAsk();paintNav();
     if(live)live.textContent=plain(askFb.innerHTML);
-    if(navigator.vibrate)navigator.vibrate(answers[step]===IJL_STEPS[step].ask.ok?8:[10,40,10]);
+    if(navigator.vibrate)navigator.vibrate(answers[step]===STEPS[step].ask.ok?8:[10,40,10]);
   });
   prev.addEventListener('click',()=>set(step-1,true));
   next.addEventListener('click',()=>{
     if(locked()){const f=askOpts.querySelector('button');if(f)f.focus();return;}
-    set(step===IJL_STEPS.length-1?0:step+1,true);
+    set(step===STEPS.length-1?0:step+1,true);
   });
   dots.forEach((d,j)=>{
     d.addEventListener('click',()=>{
-      for(let k=0;k<j;k++)if(IJL_STEPS[k].ask&&answers[k]===undefined){set(k,true);return;}
+      for(let k=0;k<j;k++)if(STEPS[k].ask&&answers[k]===undefined){set(k,true);return;}
       set(j,true);
     });
   });
