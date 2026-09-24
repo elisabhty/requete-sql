@@ -1665,6 +1665,18 @@
     .ijl-more{white-space:normal}
   }
   @media (prefers-reduced-motion:reduce){.ij-ask-opts button,.ijl-ask-opts button{transition:none}}
+  /* INNER JOIN : cas gardé / écarté, sobre (couleur réservée à la pastille) */
+  .ij-cases{margin:12px 0 14px;border:1px solid var(--card-border);border-radius:14px;background:#fff;overflow:hidden}
+  .ij-case{display:flex;gap:12px;padding:12px 14px}
+  .ij-case + .ij-case{border-top:1px solid var(--line-2)}
+  .ij-case p{margin:0!important;font-size:14.5px;line-height:1.5;color:var(--ink-2)}
+  .ij-case .ij-case-t{margin-bottom:2px!important;font-size:15px;font-weight:800;color:var(--ink)}
+  .ij-case .ij-case-v{margin-top:6px!important;font-size:13.5px;font-weight:700}
+  .ij-case-v.is-ok{color:var(--success)}
+  .ij-case-v.is-ko{color:#B02A43}
+  .ij-case-ico{flex:none;display:flex;align-items:center;justify-content:center;width:24px;height:24px;margin-top:1px;border-radius:999px;font-size:13px;font-weight:900;color:#fff}
+  .ij-case-ico.is-ok{background:var(--success)}
+  .ij-case-ico.is-ko{background:#B02A43}
   .fk-course .pt-syntax .cw-syntax{background:#fafafc;border:1px solid rgba(39,42,54,.16);border-radius:12px}
   .fk-course .sit-memo.is-attn{margin:12px 0}
   .fk-verdict{margin:10px 0 2px;padding:12px 14px;border-radius:16px;background:var(--danger-soft);border:1px solid color-mix(in srgb,var(--danger) 22%,transparent);animation:fkTreeIn .4s ease .15s both}
@@ -13028,18 +13040,11 @@ learningCheck:{
           <p class="pt-syntax-h">INNER JOIN ne garde que les correspondances</p>
           <p><code>INNER JOIN</code> relie deux tables avec une règle importante&nbsp;:</p>
           <p class="ij-rule">Seules les lignes qui trouvent une correspondance dans les deux tables sont conservées.</p>
-          <div class="fk-verdict is-ok">
-            <p class="fk-verdict-lab">✅ Une correspondance existe</p>
-            <p class="fk-verdict-t">Commande #3 ↔ Lucas</p>
-            <p><code>client_id = 2</code> ↕ <code>id = 2</code>&nbsp;: les identifiants correspondent.<br>👉 La paire est gardée.</p>
+          <div class="ij-cases" role="list">
+            <div class="ij-case" role="listitem"><span class="ij-case-ico is-ok" aria-hidden="true">✓</span><div><p class="ij-case-t">Commande #3 ↔ Lucas</p><p><code>client_id = 2</code> et <code>id = 2</code>&nbsp;: les identifiants correspondent.</p><p class="ij-case-v is-ok">La paire est gardée</p></div></div>
+            <div class="ij-case" role="listitem"><span class="ij-case-ico is-ko" aria-hidden="true">✕</span><div><p class="ij-case-t">Commande #16</p><p>C’est une commande invitée&nbsp;: <code>client_id = NULL</code>. Elle ne permet de retrouver aucun client dans la <code>table clients</code>.</p><p class="ij-case-v is-ko">Aucune paire&nbsp;: la commande est écartée</p></div></div>
           </div>
-          <div class="fk-verdict">
-            <p class="fk-verdict-lab">❌ Aucune correspondance</p>
-            <p class="fk-verdict-t">Commande #16</p>
-            <p>C’est une commande invitée&nbsp;: <code>client_id = NULL</code>. Elle ne permet de retrouver aucun client dans la <code>table clients</code>.<br>👉 Aucune paire ne peut être formée&nbsp;: la commande est écartée.</p>
-          </div>
-          <p>C’est tout le sens de <code>INNER JOIN</code>&nbsp;:</p>
-          <div class="ij-sum" role="list"><p role="listitem" class="is-ok">Correspondance → ligne gardée ✅</p><p role="listitem" class="is-ko">Pas de correspondance → ligne écartée ❌</p></div>
+          <p class="ij-arrow">👉 C’est tout le sens de <code>INNER JOIN</code>&nbsp;: une correspondance, la ligne est gardée&nbsp;; pas de correspondance, elle est écartée.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Construisons la jointure</p>
