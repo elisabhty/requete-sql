@@ -13374,131 +13374,6 @@ learningCheck:{
   "explanation": "La table clients est conservée intégralement. Les colonnes sans correspondance sont remplies de NULL."
 }
 },
-{ id:37, titre:"LEFT JOIN + IS NULL", résumé:"Isoler les clients sans commande",
-  situation:"Tu veux afficher uniquement les clients qui n’ont jamais passé commande.<br><br>Un <code>LEFT JOIN</code> garde tous les clients, mais tu dois ensuite filtrer pour ne garder que ceux sans aucune correspondance.<br><br>Dans la table <code>clients</code>, tu as 10 clients, dont Inès et Nathan n°10 :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>9</td><td>Inès</td></tr><tr><td>10</td><td>Nathan</td></tr><tr class=\"sample-more\"><td colspan=\"2\">… et 6 autres clients</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, tu as 16 commandes avec <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr><tr class=\"sample-more\"><td colspan=\"4\">… et 13 autres commandes</td></tr></tbody></table></div><br><br>Aucune commande ne porte <code>client_id = 9</code> ou <code>client_id = 10</code>. Après le <code>LEFT JOIN</code>, Inès et Nathan n°10 ont donc des <code>NULL</code> dans les colonnes de <code>commandes</code>. Il ne reste plus qu’à filtrer ces lignes.",
-    studio:{problem:{eye:"",title:"Trouver ceux qui n’ont rien.",
-      body:"Pour isoler une absence, il faut d’abord la rendre visible. <code>LEFT JOIN</code> fait apparaître des <code>NULL</code>, puis <code>WHERE … IS NULL</code> ne garde que ces lignes.",
-      extra:`<div class="fk-syn-map" aria-label="Deux étapes : rendre l’absence visible, puis la filtrer">
-            <article>
-              <code>LEFT JOIN commandes</code>
-              <i aria-hidden="true">↓</i>
-              <span>les clients sans commande apparaissent avec NULL</span>
-            </article>
-            <i aria-hidden="true">↓</i>
-            <article>
-              <code>WHERE commandes.id IS NULL</code>
-              <i aria-hidden="true">↓</i>
-              <span>on ne garde qu’eux</span>
-            </article>
-          </div>`},
-    uses:{title:"LEFT JOIN + IS NULL, étape par étape",
-      body:`<div class="pt-lead fn-uses fk-course jn-course">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Étape 1 : rendre l’absence visible</p>
-          <p>Le <code>LEFT JOIN</code> garde tous les clients. Ceux qui n’ont aucune commande reçoivent des <code>NULL</code> du côté de <code>commandes</code>&nbsp;:</p>
-          <div class="pk-comp"><div class="pk-mini is-3"><span class="is-h">nom</span><span class="is-h">commandes.id</span><span class="is-h">quantite</span><span>Sophie</span><span>1</span><span>2</span><span>Léa</span><span>8</span><span>4</span><span class="is-hit">Inès</span><span class="is-null">NULL</span><span class="is-null">NULL</span><span class="is-hit">Nathan n°10</span><span class="is-null">NULL</span><span class="is-null">NULL</span></div></div>
-          <p>Avec un <code>INNER JOIN</code>, Inès et Nathan n°10 auraient disparu avant même qu’on puisse les chercher.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Étape 2 : ne garder que les NULL</p>
-          <div class="pt-syntax"><pre class="cw-syntax">FROM clients
-LEFT JOIN commandes
-    ON clients.id = commandes.client_id
-<span class="fk-syn-hit">WHERE commandes.id IS NULL</span></pre></div>
-          <div class="fk-verdict is-ok">
-            <p class="fk-verdict-lab">Résultat</p>
-            <p class="fk-verdict-t">✅ 2 clients sans commande</p>
-            <p>Inès et Nathan n°10&nbsp;: les seuls dont la partie <code>commandes</code> est vide.</p>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Pourquoi tester commandes.id&nbsp;?</p>
-          <p>On teste une colonne de la table de <b>droite</b> qui n’est jamais vide quand une commande existe&nbsp;: sa clé primaire.</p>
-          <div class="fk-duo" aria-label="Tester une colonne de gauche ou de droite">
-            <article class="is-ko">
-              <p class="fk-duo-lab">clients.id IS NULL</p>
-              <b>0 ligne</b>
-              
-              <small>Un client a toujours un id.</small>
-            </article>
-            <article class="is-ok">
-              <p class="fk-duo-lab">commandes.id IS NULL</p>
-              <b>2 lignes</b>
-              
-              <small>Seuls les clients sans commande.</small>
-            </article>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">IS NULL, jamais = NULL</p>
-          <div class="sit-memo is-attn">
-            <p class="sit-memo-lab"><i aria-hidden="true">⚠️</i>Attention</p>
-            <p><code>NULL</code> n’est pas une valeur mais une absence de valeur. Une comparaison avec <code>=</code> ne l’attrape jamais&nbsp;: on écrit <code>IS NULL</code>.</p>
-          </div>
-        </div>
-      </div>`},
-    reflex:{a:{k:"LEFT JOIN",t:"fait apparaître les absents"}, b:{k:"IS NULL",t:"ne garde qu’eux"}, chain:true, extra:`<div class="sit-memo">
-            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-            <p>Pour trouver ce qui manque&nbsp;: <code>LEFT JOIN</code>, puis <code>WHERE</code> sur la clé de droite <code>IS NULL</code>.</p>
-          </div>`},
-    viz:"orphan"},
-  joinFn:true,
-  anatomie:[
-    {tok:"SELECT clients.nom",txt:"La colonne à afficher."},
-    {tok:"FROM clients",txt:"La table de gauche : tous ses enregistrements sont conservés."},
-    {tok:"LEFT JOIN commandes",txt:"La table de droite : on ajoute les correspondances si elles existent."},
-    {tok:"ON clients.id = commandes.client_id",txt:"La condition de correspondance."},
-    {tok:"WHERE commandes.id IS NULL",txt:"Garde uniquement les lignes où aucune commande n’a été trouvée."}
-  ],
-  exemple:"SELECT clients.nom\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;",
-  attendu:"2 lignes : Inès et Nathan n°10, les deux clients sans commande.",
-  piege:{t:"Utiliser = NULL au lieu de IS NULL",
-    p:"En SQL, <code>NULL</code> ne se compare pas avec <code>=</code>. <code>WHERE commandes.id = NULL</code> ne retourne aucune ligne. Il faut écrire <code>WHERE commandes.id IS NULL</code>.",
-    exec:true,
-    sql:"SELECT clients.nom\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.id = NULL;",
-    fixSql:"SELECT clients.nom\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;"},
-  consigne:"Affiche uniquement les clients qui n’ont passé aucune commande.",
-  solution:"SELECT clients.nom\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;",
-  indice:"Utilise <code>LEFT JOIN</code> puis <code>WHERE commandes.id IS NULL</code>.",
-  joinRecap:'left',
-  richLesson:true, earlyDemo:true,
-  testeSwitch:'cols2',
-  testeVariants:[
-  {
-    "k": "cli",
-    "label": "clients",
-    "sql": "SELECT id, nom\nFROM clients;"
-  },
-  {
-    "k": "cmd",
-    "label": "commandes",
-    "sql": "SELECT id, client_id, produit_id, quantite\nFROM commandes;"
-  },
-  {
-    "k": "leftisnull",
-    "label": "LEFT JOIN + IS NULL",
-    "sql": "SELECT clients.nom\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;",
-    "tone": "good"
-  },
-  {
-    "k": "rec_count",
-    "label": "Compter une absence",
-    "sql": "SELECT clients.id, clients.nom, COUNT(*) AS lignes, COUNT(commandes.id) AS commandes FROM clients LEFT JOIN commandes ON commandes.client_id=clients.id GROUP BY clients.id HAVING COUNT(commandes.id)=0;",
-    "out": "Inès et Nathan n°10 : une ligne conservée, zéro commande.",
-    "expectRows": 2
-  }
-] ,
-learningCheck:{
-  "question": "Quelle colonne tester pour repérer une commande absente ?",
-  "options": [
-    "clients.nom IS NULL",
-    "COUNT(*) = 0 dans WHERE",
-    "commandes.id IS NULL"
-  ],
-  "answer": 2,
-  "explanation": "Une clé de commande présente ne vaut pas NULL. Son absence après LEFT JOIN identifie donc le cas recherché."
-}
-},
 { id:38, titre:"RIGHT JOIN", résumé:"Garder toutes les commandes, même sans client",
   situation:"Tu veux afficher le nom de chaque client avec les produits qu’il a commandés.<br><br>Mais cette fois, tu dois aussi afficher les commandes passées sans compte client.<br><br>Dans la table <code>clients</code>, tu trouves le nom et l’identifiant du client :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>7</td><td>Léa</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, tu trouves les commandes avec <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>8</td><td>7</td><td>1</td><td>4</td></tr><tr><td>16</td><td>NULL</td><td>4</td><td>1</td></tr></tbody></table></div><br><br>La commande <code>id = 16</code> n’a pas de <code>client_id</code>. Pourtant, tu veux la garder dans le résultat.",
   situationTail:"Un <code>JOIN</code> simple écarterait cette commande car elle n’a pas de client. Pour garder toutes les commandes, on utilise <code>RIGHT JOIN</code>.",
@@ -18207,7 +18082,7 @@ const CHALLENGES=[
  {id:'c4',apres:19,titre:"CA par produit",niv:'d',q:"Pour chaque produit, calcule le CA (quantité × prix). Affiche le nom et le CA, du plus élevé au plus faible.",
   sol:"SELECT produits.nom, SUM(commandes.quantite * produits.prix) AS ca FROM commandes JOIN produits ON commandes.produit_id=produits.id GROUP BY produits.id, produits.nom ORDER BY ca DESC;",ordered:true,
   indice:"Multiplie dans le SUM : <code>SUM(commandes.quantite * produits.prix)</code>."},
- {id:'c5',apres:37,titre:"Les inactifs",niv:'m',q:"Quels clients n’ont jamais passé de commande ? Affiche leur nom.",
+ {id:'c5',apres:20,titre:"Les inactifs",niv:'m',q:"Quels clients n’ont jamais passé de commande ? Affiche leur nom.",
   sol:"SELECT clients.nom FROM clients LEFT JOIN commandes ON clients.id=commandes.client_id WHERE commandes.id IS NULL;",
   indice:"LEFT JOIN depuis clients, puis lignes où la colonne de droite est NULL."},
  {id:'c6',apres:7,titre:"Fiches incomplètes",niv:'f',q:"Combien de clients n’ont pas d’email renseigné ?",
@@ -18366,8 +18241,6 @@ const CARTES={
     m:"Conserve <b>toutes</b> les lignes de la table de gauche. Sans match à droite → <code>NULL</code>. L’ordre après <code>FROM</code> compte : gauche = conservée entièrement."},
  43:{k:"ON vs WHERE",t:"Filtrer avant ou après",s:"LEFT JOIN … ON … AND quantite > 2",
     m:"<code>ON</code> filtre les commandes <b>avant</b> de les rattacher : le client reste, avec <code>NULL</code>. <code>WHERE</code> filtre <b>après</b> : <code>NULL &gt; 2</code> n’est pas vrai, le client disparaît."},
- 37:{k:"IS NULL",t:"Sans correspondance",s:"LEFT JOIN …\nWHERE commandes.id IS NULL",
-    m:"<code>LEFT JOIN</code> garde les orphelins avec NULL. <code>WHERE table_droite.id IS NULL</code> ne sélectionne que ceux-là. Jamais <code>= NULL</code>."},
  38:{k:"RIGHT JOIN",t:"Garder toute la droite",s:"FROM clients\nRIGHT JOIN commandes ON clients.id = commandes.client_id",
     m:"Conserve <b>toutes</b> les lignes de la table de droite. Sans match à gauche → <code>NULL</code>. L’ordre après <code>FROM</code> compte : droite = conservée entièrement."},
  39:{k:"FULL OUTER",t:"Garder les deux côtés",s:"FROM clients\nFULL OUTER JOIN commandes ON clients.id = commandes.client_id",
@@ -18509,8 +18382,6 @@ const QCM={
    {q:"Pourquoi la table <code>commandes</code> est au centre ?",o:["Elle contient client_id et produit_id","Elle a le plus de lignes","C’est la première table alphabetiquement"],b:0,e:"C’est la table pont entre clients et produits."}],
  20:[{q:"<code>LEFT JOIN</code> conserve :",o:["Seulement les lignes qui correspondent des deux côtés","Toutes les lignes de la table de gauche","Toutes les lignes des deux tables"],b:1,e:"Sans correspondance à droite, les colonnes de commandes valent NULL."},
   {q:"Tous les clients + leurs commandes (dont 2 sans commande) :",o:["15 lignes avec INNER JOIN","17 lignes avec LEFT JOIN","10 lignes (un par client)"],b:1,e:"15 correspondances + 2 lignes sans commande avec NULL = 17 lignes."}],
- 37:[{q:"Pour trouver les clients sans commande, il faut :",o:["INNER JOIN + WHERE id IS NULL","LEFT JOIN + WHERE commandes.id IS NULL","LEFT JOIN seul, sans WHERE"],b:1,e:"LEFT JOIN garde Inès et Nathan n°10 avec NULL ; le WHERE filtre sur cette absence."},
-   {q:"Tester l’absence de valeur après une jointure :",o:["WHERE commandes.id = NULL","WHERE commandes.id IS NULL","WHERE commandes.id = 0"],b:1,e:"En SQL, NULL ne se compare pas avec =. On utilise IS NULL."}],
  38:[{q:"<code>RIGHT JOIN</code> conserve :",o:["Seulement les lignes qui correspondent des deux côtés","Toutes les lignes de la table de droite","Toutes les lignes des deux tables"],b:1,e:"Sans correspondance à gauche, les colonnes de clients valent NULL."},
   {q:"Toutes les commandes + leurs clients (y compris l’invité sans client) :",o:["15 lignes avec INNER JOIN","16 lignes avec RIGHT JOIN","10 lignes (un par client)"],b:1,e:"15 correspondances + 1 ligne invitée avec NULL = 16 lignes."}],
  49:[{q:"Combien de conditions un <code>ON</code> peut-il contenir ?",o:["Une seule, l’égalité des clés","Autant que nécessaire, reliées par AND","Deux au maximum"],b:1,e:"La première relie les tables ; les suivantes ajoutent des critères."},
@@ -22492,20 +22363,6 @@ const JOIN_COURSES={
       'Sans correspondance, les colonnes de droite sont renseignées avec <code>NULL</code>.'
     ]
   },
-  37:{
-    viz:'orphan',
-    situation:'Une campagne de relance cible les clients enregistrés dans la table <code>clients</code> qui n’ont aucune ligne associée dans la table <code>commandes</code>.',
-    mission:'Faire apparaître l’absence de commande avec un <code>LEFT JOIN</code>, puis filtrer les lignes où la partie <code>commandes</code> reste vide.',
-    title:'Identifier les lignes sans correspondance dans la table de droite.',
-    explain:'Un <code>INNER JOIN</code> supprimerait les clients sans commande avant même de pouvoir les analyser. La méthode consiste à conserver la table <code>clients</code> avec <code>LEFT JOIN</code>, puis à sélectionner les lignes où <code>commandes.id IS NULL</code>.',
-    rule:'LEFT JOIN puis WHERE commandes.id IS NULL',
-    watch:'La visualisation sépare la phase qui produit les <code>NULL</code> de la phase qui les filtre.',
-    memory:[
-      '<code>LEFT JOIN</code> rend visibles les lignes sans correspondance.',
-      '<code>WHERE commandes.id IS NULL</code> isole les clients sans commande.',
-      '<code>NULL</code> se teste avec <code>IS NULL</code>, jamais avec <code>= NULL</code>.'
-    ]
-  },
   19:{
     viz:'triple',
     situation:'Un export de ventes doit afficher le client, le produit acheté et la quantité. Le nom du client est dans la table <code>clients</code>. Le nom du produit est dans la table <code>produits</code>. La table <code>commandes</code> contient les références <code>client_id</code> et <code>produit_id</code>.',
@@ -23107,7 +22964,6 @@ function isJoinMicro(l){
 const JOIN_SAMPLE_TABLES={
   18:[['clients',9],['commandes',16]],
   20:[['clients',9],['commandes',16]],
-  37:[['clients',9],['commandes',16]],
   19:[['clients',9],['commandes',16],['produits',8]],
   38:[['clients',9],['commandes',16]],
   39:[['clients',9],['commandes',16]],
