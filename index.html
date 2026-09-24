@@ -13045,21 +13045,23 @@ learningCheck:{
     uses:{title:"Écrire la requête",
       body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
-          <p class="pt-syntax-h">Construisons la jointure</p>
-          <p>On veut afficher&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom,
-       clients.email,
-       commandes.date_commande
+          <p class="pt-syntax-h">Partons des commandes</p>
+          <p>On cherche les clients qui ont passé une commande, ainsi que la date de leur commande.</p>
+          <p>On commence donc par la <code>table commandes</code>&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT commandes.date_commande
 FROM commandes</pre></div>
-          <p class="ij-arrow">👉 On part de la <code>table commandes</code>.</p>
-          <p>Mais le nom et l’e-mail se trouvent dans une autre table. On ajoute donc&nbsp;:</p>
+          <p class="ij-arrow">👉 Pour l’instant, SQL peut retrouver la date de chaque commande.</p>
+          <p>Mais il nous manque le nom et l’e-mail du client&nbsp;: ces informations se trouvent dans la <code>table clients</code>. On doit donc relier les deux tables.</p>
           <div class="pt-syntax"><pre class="cw-syntax">INNER JOIN clients</pre></div>
-          <p class="ij-arrow">👉 On demande à SQL de relier la <code>table clients</code>.</p>
-          <p>Mais SQL doit encore savoir quelles lignes vont ensemble. C’est le rôle de <code>ON</code>&nbsp;:</p>
+          <p class="ij-arrow">👉 <code>INNER JOIN clients</code> indique à SQL&nbsp;: «&nbsp;Ajoute la <code>table clients</code> à notre recherche.&nbsp;»</p>
+          <p>Mais SQL doit encore savoir quelle commande appartient à quel client. C’est le rôle de <code>ON</code>&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax">ON commandes.client_id = clients.id</pre></div>
-          <p>La jointure devient&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom,
-       clients.email,
+          <p class="ij-arrow">👉 SQL compare les deux identifiants&nbsp;:</p>
+          <div class="ij-match" role="img" aria-label="commandes.client_id comparé à clients.id"><code>commandes.client_id</code><i aria-hidden="true">↕</i><code>clients.id</code></div>
+          <p>Quand ils sont égaux, la commande et le client sont reliés.</p>
+          <p>On peut maintenant sélectionner toutes les informations dont on a besoin&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT <span class="fk-syn-hit">clients.nom</span>,
+       <span class="fk-syn-hit">clients.email</span>,
        commandes.date_commande
 FROM commandes
 INNER JOIN clients
