@@ -1685,6 +1685,7 @@
   .fk-course :is(.ij-ask-fb,.ijl-ask-fb),.ijl :is(.ij-ask-fb,.ijl-ask-fb){font-weight:500;color:var(--ink-2)!important}
   :is(.ij-ask-fb,.ijl-ask-fb).is-ok b{color:var(--success)}
   :is(.ij-ask-fb,.ijl-ask-fb).is-ko b{color:#B02A43}
+  .fk-course .sit-memo + .coda-note{margin-top:10px}
   .fk-course .pt-syntax .cw-syntax{background:#fafafc;border:1px solid rgba(39,42,54,.16);border-radius:12px}
   .fk-course .sit-memo.is-attn{margin:12px 0}
   .fk-verdict{margin:10px 0 2px;padding:12px 14px;border-radius:16px;background:var(--danger-soft);border:1px solid color-mix(in srgb,var(--danger) 22%,transparent);animation:fkTreeIn .4s ease .15s both}
@@ -13089,11 +13090,12 @@ INNER JOIN clients
           <p>🎯 <b>Mission accomplie&nbsp;:</b> les informations qui étaient séparées entre <code>table clients</code> et <code>table commandes</code> sont maintenant réunies dans un même résultat.</p>
           <div class="sit-memo">
             <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-            <p><code>INNER JOIN</code> réunit deux tables et ne garde que les lignes qui correspondent des deux côtés.</p>
-            <p><code>ON</code> indique quelles lignes vont ensemble.</p>
-            <p><code>WHERE</code> filtre ensuite le résultat.</p>
-            <p>Une correspondance = une ligne.</p>
+            <p><code>INNER JOIN</code> réunit deux tables et ne garde que les lignes qui ont une correspondance des deux côtés.</p>
+            <p><code>ON</code> indique comment les lignes des deux tables sont reliées.</p>
+            <p><code>WHERE</code> filtre ensuite les lignes obtenues.</p>
+            <p>Une correspondance = une ligne dans le résultat.</p>
           </div>
+          <button type="button" class="coda-note" onclick="noteFromRetenir()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ajouter dans notes</button>
         </div>
       </div>`},
     why:{eye:"Animation",title:"Suis la jointure, ligne par ligne",
@@ -13120,7 +13122,7 @@ INNER JOIN clients
   anatomie:[{tok:"SELECT clients.nom, clients.email, commandes.date_commande",txt:"Le nom et l’e-mail viennent de la table clients ; la date vient de la table commandes."},{tok:"FROM commandes",txt:"On part de la table commandes."},{tok:"INNER JOIN clients",txt:"On ne garde que les commandes qui trouvent un client dans la table clients."},{tok:"ON commandes.client_id = clients.id",txt:"Le lien : client_id correspond à l’id de la table clients."},{tok:"WHERE commandes.date_commande BETWEEN '2026-07-01' AND '2026-07-31'",txt:"On ne garde que les commandes de juillet 2026."}],
   exemple:"SELECT clients.nom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31';",
   attendu:"<b>14 lignes</b> : une par commande de juillet 2026, avec le nom et l’e-mail. Sophie apparaît 3 fois. La commande invitée, en août et sans client, n’apparaît pas.",
-  retenir:"<code>INNER JOIN</code> réunit deux tables et ne garde que les lignes qui correspondent des deux côtés.<br><br><code>ON</code> indique quelles lignes vont ensemble. <code>WHERE</code> filtre ensuite le résultat.<br><br>Une correspondance = une ligne.",
+  retenir:"<code>INNER JOIN</code> réunit deux tables et ne garde que les lignes qui ont une correspondance des deux côtés.<br><br><code>ON</code> indique comment les lignes des deux tables sont reliées.<br><br><code>WHERE</code> filtre ensuite les lignes obtenues.<br><br>Une correspondance = une ligne dans le résultat.",
   consigne:"Affiche le nom, l’e-mail et la date de commande des clients ayant commandé en juillet 2026.",
   solution:"SELECT clients.nom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31';",
   indice:"Pars de la <code>table commandes</code>, ajoute <code>INNER JOIN clients</code> avec <code>ON commandes.client_id = clients.id</code>, puis filtre juillet avec <code>BETWEEN '2026-07-01' AND '2026-07-31'</code>.",
