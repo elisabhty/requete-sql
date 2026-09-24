@@ -13042,18 +13042,8 @@ learningCheck:{
         <div class="pk-comp ij-t"><p class="ij-tlab">une ligne du résultat</p><div class="pk-mini is-3 is-email2"><span class="is-h">nom</span><span class="is-h">email</span><span class="is-h">date_commande</span><span class="is-hit">Lucas</span><span class="is-hit">lucas@mail.fr</span><span class="is-hit">2026-07-05</span></div></div>
         <p class="ij-arrow">👉 C’est le principe d’une jointure&nbsp;: relier les lignes de plusieurs tables qui correspondent.</p>
         <p class="ij-arrow">👉 SQL fait ce travail pour <b>toutes</b> les commandes à la fois.</p>`},
-    uses:{title:"INNER JOIN pas à pas",
+    uses:{title:"Écrire la requête",
       body:`<div class="pt-lead fn-uses fk-course jn-course">
-        <div class="fn-use">
-          <p class="pt-syntax-h">INNER JOIN ne garde que les correspondances</p>
-          <p><code>INNER JOIN</code> relie deux tables avec une règle importante&nbsp;:</p>
-          <p class="ij-rule">Seules les lignes qui trouvent une correspondance dans les deux tables sont conservées.</p>
-          <div class="ij-cases" role="list">
-            <div class="ij-case" role="listitem"><span class="ij-case-ico is-ok" aria-hidden="true">✓</span><div><p class="ij-case-t">Commande #3 ↔ Lucas</p><p><code>client_id = 2</code> et <code>id = 2</code>&nbsp;: les identifiants correspondent.</p><p class="ij-case-v is-ok">La paire est gardée</p></div></div>
-            <div class="ij-case" role="listitem"><span class="ij-case-ico is-ko" aria-hidden="true">✕</span><div><p class="ij-case-t">Commande #16</p><p>C’est une commande invitée&nbsp;: <code>client_id = NULL</code>. Elle ne permet de retrouver aucun client dans la <code>table clients</code>.</p><p class="ij-case-v is-ko">Aucune paire&nbsp;: la commande est écartée</p></div></div>
-          </div>
-          <p class="ij-arrow">👉 C’est tout le sens de <code>INNER JOIN</code>&nbsp;: une correspondance, la ligne est gardée&nbsp;; pas de correspondance, elle est écartée.</p>
-        </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Construisons la jointure</p>
           <p>On veut afficher&nbsp;:</p>
@@ -13074,48 +13064,19 @@ FROM commandes</pre></div>
 FROM commandes
 INNER JOIN clients
     ON commandes.client_id = clients.id;</pre></div>
-          <p>La requête se lit simplement&nbsp;:</p>
-          <div class="ij-anno" role="list" aria-label="La jointure lue ligne par ligne"><div class="ij-anno-row"><code>FROM commandes</code><span>pars des commandes</span></div><div class="ij-anno-row is-key"><code>INNER JOIN clients</code><span>relie-les aux clients</span></div><div class="ij-anno-row is-key"><code>ON commandes.client_id = clients.id</code><span>en associant chaque commande au client dont l’<b>id</b> correspond à son <b>client_id</b></span></div></div>
           <div class="sit-memo">
             <p class="sit-memo-lab"><i aria-hidden="true">💡</i>Bon à savoir</p>
             <p><code>JOIN</code> tout court revient ici à écrire <code>INNER JOIN</code>.</p>
           </div>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Une correspondance = une ligne</p>
-          <p><code>INNER JOIN</code> ne crée pas forcément une ligne par client. Il crée une ligne pour <b>chaque correspondance</b> trouvée.</p>
-          <p>🛍️ Prenons Sophie.</p>
-          <div class="pk-comp ij-t"><p class="ij-tlab">table commandes</p><div class="pk-mini is-3"><span class="is-h">commande</span><span class="is-h">client_id</span><span class="is-h">date</span><span>#1</span><span class="is-hit">1</span><span>2 juil.</span><span>#2</span><span class="is-hit">1</span><span>2 juil.</span><span>#13</span><span class="is-hit">1</span><span>28 juil.</span></div></div>
-          <div class="pk-comp ij-t"><p class="ij-tlab">table clients</p><div class="pk-mini is-2"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-hit">1</span><span>Sophie</span></div></div>
-          <p>Les trois commandes ont <code>client_id = 1</code>. Elles correspondent donc toutes à Sophie&nbsp;:</p>
-          <div class="ij-map" role="list"><span role="listitem"><b>#1</b><i aria-hidden="true">→</i>Sophie</span><span role="listitem"><b>#2</b><i aria-hidden="true">→</i>Sophie</span><span role="listitem"><b>#13</b><i aria-hidden="true">→</i>Sophie</span></div>
-          <p>SQL obtient&nbsp;:</p>
-          <div class="pk-comp ij-t"><p class="ij-tlab">résultat</p><div class="pk-mini is-3"><span class="is-h">nom</span><span class="is-h">commande</span><span class="is-h">date</span><span class="is-hit">Sophie</span><span>#1</span><span>2 juil.</span><span class="is-hit">Sophie</span><span>#2</span><span>2 juil.</span><span class="is-hit">Sophie</span><span>#13</span><span>28 juil.</span></div></div>
-          <p class="ij-arrow">👉 Sophie apparaît trois fois.</p>
-          <p>✅ Ce ne sont pas des doublons&nbsp;: ce sont trois commandes différentes.</p>
-          <div class="sit-memo">
-            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-            <p>Une correspondance trouvée = une ligne dans le résultat.</p>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">ON relie, WHERE filtre</p>
+          <p class="pt-syntax-h">Filtrer avec WHERE</p>
           <p>La jointure fonctionne maintenant. Mais notre mission demande uniquement les commandes de juillet 2026&nbsp;: il reste donc à filtrer les dates.</p>
-          <p class="ij-sub" role="heading" aria-level="4">🔗 ON relie</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ON commandes.client_id = clients.id</pre></div>
-          <p><code>ON</code> indique quelles lignes des deux tables correspondent.</p>
-          <p class="ij-arrow">👉 Chaque commande est reliée à son client.</p>
-          <p class="ij-sub" role="heading" aria-level="4">🔎 WHERE filtre</p>
           <div class="pt-syntax"><pre class="cw-syntax">WHERE commandes.date_commande
       BETWEEN '2026-07-01' AND '2026-07-31'</pre></div>
-          <p><code>WHERE</code> intervient ensuite pour ne garder que les commandes de juillet 2026.</p>
+          <p><code>WHERE</code> intervient <b>après</b> la jointure&nbsp;: <code>ON</code> a déjà relié chaque commande à son client, <code>WHERE</code> ne garde ensuite que les commandes de juillet 2026.</p>
           <p>On peut donc retenir&nbsp;:</p>
           <div class="ij-anno" role="list" aria-label="ON puis WHERE"><div class="ij-anno-row"><code>ON</code><span>Quelles lignes vont ensemble&nbsp;?</span></div><div class="ij-anno-row"><code>WHERE</code><span>Parmi elles, lesquelles veux-tu garder&nbsp;?</span></div></div>
-          <div class="fk-verdict is-ok">
-            <p class="fk-verdict-lab">Résultat</p>
-            <p class="fk-verdict-t">✅ 14 commandes en juillet</p>
-            <p>La commande de Chloé, passée le 1<sup>er</sup> août, a bien trouvé sa cliente grâce à <code>ON</code>, mais elle est ensuite écartée par <code>WHERE</code>.</p>
-          </div>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">La requête complète</p>
@@ -13123,7 +13084,6 @@ INNER JOIN clients
           <div class="ij-ask" data-ok="0" data-yes="<b>✅ Exact</b>15 commandes trouvent leur client, et <code>WHERE</code> retire celle de Chloé du 1<sup>er</sup> août. Exécute pour vérifier&nbsp;!" data-no="<b>❌ Pas tout à fait</b>15 commandes trouvent leur client, puis <code>WHERE</code> retire celle de Chloé du 1<sup>er</sup> août. Résultat&nbsp;: 14 lignes. Exécute pour vérifier&nbsp;!"><p class="ij-ask-q">🤔 Avant d’exécuter&nbsp;: combien de lignes vas-tu obtenir&nbsp;?</p><div class="ij-ask-opts"><button type="button">14</button><button type="button">15</button><button type="button">16</button></div><p class="ij-ask-fb" hidden></p></div>
           <p>👇 Exécute la requête pour voir le résultat&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT clients.nom,&#10;       clients.email,&#10;       commandes.date_commande&#10;FROM commandes&#10;INNER JOIN clients&#10;    ON commandes.client_id = clients.id&#10;WHERE commandes.date_commande&#10;      BETWEEN &#x27;2026-07-01&#x27; AND &#x27;2026-07-31&#x27;;"></div>
-          <div class="ij-anno" role="list" aria-label="Le rôle de chaque partie"><div class="ij-anno-row is-muted"><code>SELECT</code><span>choisit les informations à afficher</span></div><div class="ij-anno-row"><code>FROM commandes</code><span>part de la table commandes</span></div><div class="ij-anno-row is-key"><code>INNER JOIN clients</code><span>relie la table clients</span></div><div class="ij-anno-row is-key"><code>ON commandes.client_id = clients.id</code><span>indique quelles lignes correspondent</span></div><div class="ij-anno-row"><code>WHERE …</code><span>ne garde que les commandes de juillet</span></div></div>
           <p>🎯 <b>Mission accomplie&nbsp;:</b> les informations qui étaient séparées entre <code>table clients</code> et <code>table commandes</code> sont maintenant réunies dans un même résultat.</p>
           <div class="sit-memo">
             <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
@@ -23132,7 +23092,7 @@ function initRelationalSchemas(){
   });
 }
 /* INNER JOIN : animation pas à pas (commandes ⟷ clients → résultat), avec deux questions de prédiction. */
-const IJL_STEPS=[{"t": "Deux tables séparées", "sql": "FROM commandes", "c": "La <code>table commandes</code> connaît le numéro du client grâce à <code>client_id</code>, tandis que la <code>table clients</code> connaît son nom. Aucune ligne ne contient tout."}, {"t": "ON relie les lignes", "sql": "INNER JOIN clients <mark>ON commandes.client_id = clients.id</mark>", "c": "Chaque commande cherche, dans la <code>table clients</code>, le client dont l’<code>id</code> correspond à son <code>client_id</code>. Sophie reçoit trois liens&nbsp;: #1, #2 et #13.", "ask": {"q": "🤔 Selon toi, que devient la commande #16, qui n’a pas de client&nbsp;?", "o": ["Elle est gardée", "Elle est écartée"], "ok": 1, "yes": "<b>✅ Exact</b>Sans correspondance, aucune paire ne se forme. Passe à l’étape suivante pour le voir.", "no": "<b>❌ Pas tout à fait</b>Sans client, la commande #16 ne forme aucune paire. Elle va être écartée."}}, {"t": "INNER garde les paires", "sql": "<mark>INNER</mark> JOIN clients ON commandes.client_id = clients.id", "c": "La commande #16 n’a pas de client, tandis qu’Inès et Nathan n°10 n’ont aucune commande. Sans correspondance, ces lignes sont écartées.", "ask": {"q": "🤔 Sophie a trois commandes. Combien de fois apparaîtra-t-elle dans le résultat&nbsp;?", "o": ["1 fois", "3 fois"], "ok": 1, "yes": "<b>✅ Exact</b>Une correspondance = une ligne.", "no": "<b>❌ Non</b>Chacune de ses trois commandes forme sa propre paire avec Sophie. Elle apparaîtra trois fois."}}, {"t": "Une ligne par paire", "sql": "SELECT clients.nom, commandes.id, commandes.date_commande", "c": "Chaque lien devient une ligne du résultat. 👉 Sophie, qui a trois commandes, apparaît donc trois fois."}, {"t": "WHERE garde juillet", "sql": "WHERE commandes.date_commande BETWEEN '2026-07-01' AND '2026-07-31'", "c": "La commande de Chloé a été passée le 1<sup>er</sup> août&nbsp;: <code>WHERE</code> la retire. Sur l’ensemble de la base, il reste 14 lignes."}];
+const IJL_STEPS=[{"t": "Deux tables séparées", "sql": "FROM commandes", "c": "La <code>table commandes</code> connaît le numéro du client grâce à <code>client_id</code>, tandis que la <code>table clients</code> connaît son nom. Aucune ligne ne contient tout."}, {"t": "ON relie les lignes", "sql": "INNER JOIN clients <mark>ON commandes.client_id = clients.id</mark>", "c": "Chaque commande cherche, dans la <code>table clients</code>, le client dont l’<code>id</code> correspond à son <code>client_id</code>. Sophie reçoit trois liens&nbsp;: #1, #2 et #13.", "ask": {"q": "🤔 Selon toi, que devient la commande #16, qui n’a pas de client&nbsp;?", "o": ["Elle est gardée", "Elle est écartée"], "ok": 1, "yes": "<b>✅ Exact</b>Sans correspondance, aucune paire ne se forme. Passe à l’étape suivante pour le voir.", "no": "<b>❌ Pas tout à fait</b>Sans client, la commande #16 ne forme aucune paire. Elle va être écartée."}}, {"t": "INNER garde les paires", "sql": "<mark>INNER</mark> JOIN clients ON commandes.client_id = clients.id", "c": "La commande #16 n’a pas de client, tandis qu’Inès et Nathan n°10 n’ont aucune commande. Sans correspondance, ces lignes sont écartées.", "ask": {"q": "🤔 Sophie a trois commandes. Combien de fois apparaîtra-t-elle dans le résultat&nbsp;?", "o": ["1 fois", "3 fois"], "ok": 1, "yes": "<b>✅ Exact</b>Une correspondance = une ligne.", "no": "<b>❌ Non</b>Chacune de ses trois commandes forme sa propre paire avec Sophie. Elle apparaîtra trois fois."}}, {"t": "Une ligne par paire", "sql": "SELECT clients.nom, commandes.id, commandes.date_commande", "c": "Chaque lien devient une ligne du résultat. 👉 Sophie apparaît trois fois&nbsp;: ce ne sont pas des doublons, ce sont trois commandes différentes."}, {"t": "WHERE garde juillet", "sql": "WHERE commandes.date_commande BETWEEN '2026-07-01' AND '2026-07-31'", "c": "La commande de Chloé a été passée le 1<sup>er</sup> août&nbsp;: <code>WHERE</code> la retire. Sur l’ensemble de la base, il reste 14 lignes."}];
 function initInnerJoinLab(){
   const root=document.querySelector('#lesson-body .ijl');
   if(!root||root._ijl)return;
