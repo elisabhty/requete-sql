@@ -1594,6 +1594,8 @@
   .ij-map span{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--accent-soft);font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent)}
   .ij-map b{font-weight:800;color:var(--ink)}
   .ij-map i{font-style:normal}
+  .ij-run-frame{margin:12px 0 14px}
+  .ij-run-frame .piege-sql{margin:0}
   .fk-course .pt-syntax .cw-syntax{background:#fafafc;border:1px solid rgba(39,42,54,.16);border-radius:12px}
   .fk-course .sit-memo.is-attn{margin:12px 0}
   .fk-verdict{margin:10px 0 2px;padding:12px 14px;border-radius:16px;background:var(--danger-soft);border:1px solid color-mix(in srgb,var(--danger) 22%,transparent);animation:fkTreeIn .4s ease .15s both}
@@ -13047,15 +13049,8 @@ INNER JOIN clients
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">La requête complète</p>
-          <p>Il ne reste plus qu’à réunir toutes les étapes&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom,
-       clients.email,
-       commandes.date_commande
-FROM commandes
-INNER JOIN clients
-    ON commandes.client_id = clients.id
-WHERE commandes.date_commande
-      BETWEEN '2026-07-01' AND '2026-07-31';</pre></div>
+          <p>Il ne reste plus qu’à réunir toutes les étapes. 👇 Exécute la requête pour voir le résultat&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT clients.nom,&#10;       clients.email,&#10;       commandes.date_commande&#10;FROM commandes&#10;INNER JOIN clients&#10;    ON commandes.client_id = clients.id&#10;WHERE commandes.date_commande&#10;      BETWEEN &#x27;2026-07-01&#x27; AND &#x27;2026-07-31&#x27;;"></div>
           <div class="ij-anno" role="list" aria-label="Le rôle de chaque partie"><div class="ij-anno-row is-muted"><code>SELECT</code><span>choisit les informations à afficher</span></div><div class="ij-anno-row"><code>FROM commandes</code><span>part de la table des commandes</span></div><div class="ij-anno-row is-key"><code>INNER JOIN clients</code><span>relie la table clients</span></div><div class="ij-anno-row is-key"><code>ON commandes.client_id = clients.id</code><span>indique quelles lignes correspondent</span></div><div class="ij-anno-row"><code>WHERE …</code><span>ne garde que les commandes de juillet</span></div></div>
           <p>🎯 <b>Mission accomplie&nbsp;:</b> les informations qui étaient séparées entre <code>table clients</code> et <code>table commandes</code> sont maintenant réunies dans un même résultat.</p>
           <div class="sit-memo">
@@ -13083,6 +13078,8 @@ WHERE commandes.date_commande
         </section>`},},
   joinFn:true,
   noReflex:true,
+  noTeste:true,
+  noAnat:true,
   anatomie:[{tok:"SELECT clients.nom, clients.email, commandes.date_commande",txt:"Le nom et l’e-mail viennent de la table clients ; la date vient de la table commandes."},{tok:"FROM commandes",txt:"On part de la table commandes."},{tok:"INNER JOIN clients",txt:"On ne garde que les commandes qui trouvent un client dans la table clients."},{tok:"ON commandes.client_id = clients.id",txt:"Le lien : client_id correspond à l’id de la table clients."},{tok:"WHERE commandes.date_commande BETWEEN '2026-07-01' AND '2026-07-31'",txt:"On ne garde que les commandes de juillet 2026."}],
   exemple:"SELECT clients.nom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31';",
   attendu:"<b>14 lignes</b> : une par commande de juillet 2026, avec le nom et l’e-mail. Sophie apparaît 3 fois. La commande invitée, en août et sans client, n’apparaît pas.",
@@ -23135,6 +23132,15 @@ function initInnerJoinLab(){
   }else window.addEventListener('resize',()=>draw(false));
   set(0,false);
 }
+/* Emplacements de requête exécutable dans le texte d’un cours. */
+function initRunSqlSlots(){
+  document.querySelectorAll('#lesson-body .ij-run[data-run-sql]').forEach(el=>{
+    const wrap=document.createElement('div');
+    wrap.className='ij-run-frame';
+    wrap.innerHTML=piegeSqlRunBlock(el.dataset.runSql);
+    el.replaceWith(wrap);
+  });
+}
 function initJoinMicro(){
   if(!isJoinMicro(current)) return;
   const root=document.querySelector('#lesson-body .join-micro');
@@ -24995,7 +25001,7 @@ function lessonDemoBlocks(l){
   const compactFunctionLesson=l.id===52||l.id===53||l.id===54;
   const hideLessonLab=l.id===52||l.id===54;
   const joinTesteAnat=!!l.anatFollowTeste;
-  return `${hideLessonLab?'':lessonRichFooter(l,joinTesteAnat?anat:'')}${hideLessonLab||joinTesteAnat?'':anat}${order}${piegeBlock(l)}${learningCheckHtml(l)}${joinRecapBlock(l)}${subqueryRecapBlock(l)}${compactFunctionLesson?'':fnCmpBlock(l)}${compactFunctionLesson?'':reflexBlock(l)}`;
+  return `${hideLessonLab?'':lessonRichFooter(l,joinTesteAnat?anat:'')}${hideLessonLab||joinTesteAnat||l.noAnat?'':anat}${order}${piegeBlock(l)}${learningCheckHtml(l)}${joinRecapBlock(l)}${subqueryRecapBlock(l)}${compactFunctionLesson?'':fnCmpBlock(l)}${compactFunctionLesson?'':reflexBlock(l)}`;
 }
 function lessonMainTable(l){
   if(!l)return 'clients';
@@ -25172,7 +25178,7 @@ function answerLearningCheck(button,index){
 }
 
 function lessonRichFooter(l, innerAfterEditor){
-  if(l.id===53)return '';
+  if(l.id===53||l.noTeste)return '';
   const variants=testeVariantsOf(l);
   const demoSql=(variants&&variants[0]&&variants[0].sql)||testeDefaultSql(l);
   const sql=escAttr(demoSql);
@@ -25604,6 +25610,7 @@ function renderLessonFlow(){
     addJoinSampleRows(document.getElementById('lesson-body'),current.id);
     initJoinMicro();
     initInnerJoinLab();
+    initRunSqlSlots();
     initJoinTree();
     initCaseWalk();
     initCaseForms();
