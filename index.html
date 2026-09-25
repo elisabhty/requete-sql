@@ -1943,9 +1943,28 @@
   .jc-ask-n{flex:none;display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;background:var(--accent-soft);font-family:var(--mono);font-size:12px;font-weight:800;color:var(--accent-ink)}
   .jc-ask .ij-ask-opts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
   .jc-ask .ij-ask-opts button{min-width:0;min-height:40px;padding:6px 2px;font-family:var(--mono);font-size:11.5px;font-weight:800}
-  .jc-done{margin:4px 0 14px!important;padding:12px 14px;border-radius:14px;background:var(--success-soft);font-size:14px;color:var(--success)}
-  .jc-done.is-in{animation:ijDoneIn .5s cubic-bezier(.2,.9,.3,1.2) both}
-  @media (prefers-reduced-motion:reduce){.jc-guide *,.jw *,.jc-done,.jc-quiz *{animation:none!important;transition:none!important}}
+  .jc-score.is-bump .jc-score-t b{display:inline-block;animation:jcBump .35s cubic-bezier(.3,1.6,.5,1)}
+  @keyframes jcBump{0%{transform:scale(1)}50%{transform:scale(1.45)}100%{transform:scale(1)}}
+  .jc-done{position:relative;margin:4px 0 16px;padding:22px 16px 18px;border-radius:20px;text-align:center;overflow:hidden}
+  .jc-done p{margin:0!important}
+  .jc-done.is-win{background:var(--accent-grad);color:#fff;box-shadow:0 18px 34px -18px rgba(91,91,214,.9);animation:ijDoneIn .55s cubic-bezier(.2,.9,.3,1.25) both}
+  .jc-done.is-retry{background:#fff;border:1.5px solid color-mix(in srgb,var(--warning,#D97706) 35%,var(--line));animation:jcShake .5s ease both}
+  @keyframes jcShake{0%{opacity:0;transform:translateY(10px)}40%{opacity:1;transform:translateX(-6px)}60%{transform:translateX(5px)}80%{transform:translateX(-3px)}100%{transform:none}}
+  .jc-end-ico{display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;margin-bottom:8px;border-radius:18px;background:rgba(255,255,255,.2);font-size:30px;animation:ijDonePop .7s cubic-bezier(.2,.9,.3,1.4) .15s both}
+  .jc-done.is-retry .jc-end-ico{background:var(--surface-2)}
+  .jc-done .jc-end-score{font-family:var(--mono);font-size:15px;font-weight:800;opacity:.85}
+  .jc-end-score b{font-size:34px;line-height:1}
+  .jc-done .jc-end-t{margin-top:6px!important;font-size:18px;font-weight:800;line-height:1.3}
+  .jc-done .jc-end-p{margin-top:4px!important;font-size:14px;line-height:1.5;opacity:.92}
+  .fk-course .jc-done.is-win p{color:#fff}
+  .fk-course .jc-done.is-retry .jc-end-t{color:var(--ink)}
+  .fk-course .jc-done.is-retry .jc-end-p,.jc-done.is-retry .jc-end-score{color:var(--ink-2)}
+  .jc-end-btn{margin-top:14px;min-height:44px;padding:10px 18px;border:0;border-radius:12px;background:var(--accent);font:inherit;font-size:14.5px;font-weight:800;color:#fff;cursor:pointer;transition:transform .15s}
+  .jc-end-btn:active{transform:scale(.97)}
+  .jc-end-btn.is-ghost{background:rgba(255,255,255,.18);color:#fff}
+  .jc-end-btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .jc-done.is-win .jc-end-btn:focus-visible{outline-color:#fff}
+  @media (prefers-reduced-motion:reduce){.jc-guide *,.jw *,.jc-done,.jc-done *,.jc-quiz *{animation:none!important;transition:none!important}}
   /* Entonnoir « Mission accomplie » */
   .ij-funnel{list-style:none;margin:14px 0 12px;padding:12px;border-radius:16px;background:var(--surface-2);display:flex;flex-direction:column;gap:0}
   .ij-funnel li{margin:0}
@@ -13925,7 +13944,7 @@ learningCheck:{
           <div class="ij-ask jc-ask" data-ok="3" data-yes="<b>✅ FULL OUTER JOIN</b>Les clients sans commande et les commandes sans client restent tous&nbsp;: aucune ligne n’est écartée." data-no="<b>❌ C’est FULL OUTER JOIN</b>Le contrôle doit garder les clients sans commande <b>et</b> les commandes sans client&nbsp;: les deux côtés restent entiers."><p class="ij-ask-q"><span class="jc-ask-n">3</span><span>🔎 Contrôler en fin de mois tous les clients et toutes les commandes, sans rien perdre.</span></p><div class="ij-ask-opts"><button type="button">INNER</button><button type="button">LEFT</button><button type="button">RIGHT</button><button type="button">FULL</button><button type="button">CROSS</button></div><p class="ij-ask-fb" hidden></p></div>
           <div class="ij-ask jc-ask" data-ok="0" data-yes="<b>✅ INNER JOIN</b>Seuls les clients qui ont une commande nous intéressent&nbsp;: on ne garde que les correspondances." data-no="<b>❌ C’est INNER JOIN</b>Les lignes sans correspondance ne sont pas utiles ici&nbsp;: un client sans commande ne recevra pas l’enquête."><p class="ij-ask-q"><span class="jc-ask-n">4</span><span>✉️ Envoyer une enquête de satisfaction aux clients qui ont passé une commande.</span></p><div class="ij-ask-opts"><button type="button">INNER</button><button type="button">LEFT</button><button type="button">RIGHT</button><button type="button">FULL</button><button type="button">CROSS</button></div><p class="ij-ask-fb" hidden></p></div>
           <div class="ij-ask jc-ask" data-ok="2" data-yes="<b>✅ RIGHT JOIN</b>Avec <code>FROM clients RIGHT JOIN commandes</code>, toutes les commandes restent, même celles sans client." data-no="<b>❌ C’est RIGHT JOIN</b>Avec <code>FROM clients</code> à gauche, ce sont les commandes, à droite, qui doivent rester entières."><p class="ij-ask-q"><span class="jc-ask-n">5</span><span>📦 Avec <code>FROM clients</code>, afficher toutes les commandes à expédier, avec le nom du client quand il existe.</span></p><div class="ij-ask-opts"><button type="button">INNER</button><button type="button">LEFT</button><button type="button">RIGHT</button><button type="button">FULL</button><button type="button">CROSS</button></div><p class="ij-ask-fb" hidden></p></div>
-          <p class="jc-done" hidden>🎯 <b>Mission accomplie&nbsp;!</b> Tu sais choisir la jointure adaptée à chaque besoin.</p>
+          <div class="jc-done" hidden aria-live="polite"></div>
           <div class="sit-memo">
             <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
             <p>Avant d’écrire le <code>JOIN</code>, demande-toi quelles lignes doivent rester, même sans correspondance.</p>
@@ -23491,6 +23510,26 @@ const JW_STATE={
   right:{n:16,kw:'RIGHT JOIN',keep:{sophie:1,ines:0,c16:1},note:' · dont 1 commande sans client'},
   full:{n:18,kw:'FULL OUTER JOIN',keep:{sophie:1,ines:1,c16:1},note:' · rien n’est écarté'}
 };
+/* Feu d’artifice de fin de quiz : plusieurs gerbes successives dans le calque #burst. */
+function jcFireworks(n){
+  if(navigator.vibrate)navigator.vibrate([12,40,12,40,18]);
+  if(prefersReduceMotion())return;
+  const host=document.getElementById('burst');if(!host)return;
+  const colors=['#5B5BD6','#7A6FF0','#0F766E','#FFB877','#7CC7FF','#E5484D','#FFD66E'];
+  for(let b=0;b<n;b++){
+    const ox=12+Math.random()*76,oy=14+Math.random()*42,count=22,delay=b*260;
+    for(let i=0;i<count;i++){
+      const el=document.createElement('i');
+      const ang=(Math.PI*2*i)/count+Math.random()*.4,dist=70+Math.random()*90,sz=5+Math.random()*5;
+      el.style.left=ox+'%';el.style.top=oy+'%';
+      el.style.setProperty('--x',Math.cos(ang)*dist+'px');el.style.setProperty('--y',Math.sin(ang)*dist+'px');
+      el.style.background=colors[(i+b)%colors.length];el.style.width=sz+'px';el.style.height=sz+'px';
+      el.style.animationDelay=(delay+Math.random()*80)+'ms';el.style.animationDuration='1.3s';
+      host.appendChild(el);
+      setTimeout(()=>el.remove(),delay+1600);
+    }
+  }
+}
 function initJoinChooser(){
   const vib=p=>{if(navigator.vibrate)navigator.vibrate(p);};
   document.querySelectorAll('#lesson-body .jc-guide').forEach(g=>{
@@ -23532,13 +23571,47 @@ function initJoinChooser(){
   document.querySelectorAll('#lesson-body .jc-quiz').forEach(qz=>{
     if(qz._jcq)return;qz._jcq=true;
     const boxes=[...qz.querySelectorAll('.jc-ask')],score=qz.querySelector('.jc-score'),done=qz.querySelector('.jc-done');
+    const reduce=()=>window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const countUp=(el,to)=>{
+      if(reduce()){el.textContent=to;return;}
+      let n=0;el.textContent='0';
+      const tick=()=>{n++;el.textContent=n;if(n<to)setTimeout(tick,110);};
+      if(to>0)setTimeout(tick,250);
+    };
+    const reset=()=>{
+      boxes.forEach(b=>{delete b.dataset.done;b.querySelectorAll('.ij-ask-opts button').forEach(x=>{x.classList.remove('is-right','is-wrong','is-off');x.removeAttribute('aria-disabled');});const fb=b.querySelector('.ij-ask-fb');fb.hidden=true;fb.innerHTML='';});
+      done.hidden=true;done.innerHTML='';done.className='jc-done';
+      paint();
+      boxes[0].scrollIntoView({behavior:reduce()?'auto':'smooth',block:'center'});
+      const f=boxes[0].querySelector('.ij-ask-opts button');if(f)setTimeout(()=>f.focus({preventScroll:true}),400);
+    };
+    const finish=good=>{
+      const win=good>=4;
+      done.className='jc-done '+(win?'is-win':'is-retry');
+      done.innerHTML=win
+        ?`<span class="jc-end-ico" aria-hidden="true">${good===5?'🏆':'🎉'}</span><p class="jc-end-score"><b>0</b>/5</p><p class="jc-end-t">${good===5?'Sans faute, bravo&nbsp;!':'Bravo, mission accomplie&nbsp;!'}</p><p class="jc-end-p">Tu sais choisir la jointure adaptée à chaque besoin.</p><button type="button" class="jc-end-btn is-ghost">↺ Refaire le quiz</button>`
+        :`<span class="jc-end-ico" aria-hidden="true">💪</span><p class="jc-end-score"><b>0</b>/5</p><p class="jc-end-t">Presque&nbsp;! Encore un petit effort.</p><p class="jc-end-p">Il faut au moins 4 bonnes réponses. Relis les explications, puis réessaie.</p><button type="button" class="jc-end-btn">↺ Recommencer le quiz</button>`;
+      done.hidden=false;
+      done.querySelector('.jc-end-btn').addEventListener('click',reset);
+      countUp(done.querySelector('.jc-end-score b'),good);
+      setTimeout(()=>done.scrollIntoView({behavior:reduce()?'auto':'smooth',block:'center'}),300);
+      if(win)setTimeout(()=>jcFireworks(good===5?6:4),450);
+      else if(navigator.vibrate)navigator.vibrate([15,60,15]);
+    };
     const paint=()=>{
       const answered=boxes.filter(b=>b.dataset.done),good=answered.filter(b=>!b.querySelector('.is-wrong')).length;
       score.querySelector('b').textContent=good;
       score.querySelector('.jc-score-bar i').style.width=(answered.length/boxes.length*100)+'%';
-      if(answered.length===boxes.length&&done.hidden){done.hidden=false;done.classList.add('is-in');done.firstChild&&done.scrollIntoView&&setTimeout(()=>done.scrollIntoView({behavior:'smooth',block:'nearest'}),350);}
+      return {answered:answered.length,good};
     };
-    qz.addEventListener('click',e=>{if(e.target.closest('.ij-ask-opts button'))setTimeout(paint,0);});
+    qz.addEventListener('click',e=>{
+      if(!e.target.closest('.jc-ask .ij-ask-opts button'))return;
+      setTimeout(()=>{
+        const r=paint();
+        score.classList.remove('is-bump');void score.offsetWidth;score.classList.add('is-bump');
+        if(r.answered===boxes.length&&done.hidden)finish(r.good);
+      },0);
+    });
   });
 }
 /* Emplacements de requête exécutable dans le texte d’un cours. */
