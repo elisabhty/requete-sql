@@ -14117,132 +14117,134 @@ learningCheck:{
   "explanation": "Chaque JOIN ajoute une table : on part de commandes, puis on ajoute clients, puis produits. Trois tables, deux JOIN."
 }
 },
-{ id:41, titre:"Jointure + GROUP BY", résumé:"Compter les commandes par client",
-  situation:"Tu veux savoir quels clients commandent le plus souvent.<br><br>Pour cela, tu veux afficher chaque client avec le nombre de commandes qu’il a passées.<br><br>Le nom du client se trouve dans la table <code>clients</code>, tandis que ses commandes se trouvent dans la table <code>commandes</code>.<br><br>Dans la table <code>clients</code>, tu as par exemple :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>2</td><td>Lucas</td></tr><tr><td>3</td><td>Emma</td></tr><tr><td>9</td><td>Inès</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, plusieurs lignes peuvent appartenir au même client grâce à <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>produit_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>3</td><td>1</td></tr><tr><td>3</td><td>2</td><td>6</td><td>1</td></tr></tbody></table></div><br><br>Nous avons donc besoin de faire une jointure pour relier chaque commande au client correspondant.<br><br>Après la jointure, un client peut apparaître plusieurs fois : une ligne pour chaque commande. Pour obtenir une seule ligne par client avec son nombre de commandes, nous devons ensuite regrouper les lignes avec <code>GROUP BY</code> et compter les commandes avec <code>COUNT</code>.",
-    studio:{problem:{eye:"",title:"Un compte par client.",
-      body:"Pour compter les commandes de chaque client, enchaîne trois gestes&nbsp;: relier, regrouper, compter.",
-      extra:`<div class="fk-syn-map" aria-label="Relier, regrouper, compter">
+{ id:41, titre:"JOIN + GROUP BY", résumé:"Compter les commandes par ville",
+  situation:`<p>L’équipe se demande quelles villes commandent le plus.</p><p>Elle souhaite connaître le <b>nombre de commandes passées dans chaque ville</b>. Le résultat attendu ressemble à ceci&nbsp;:</p><div class="pk-comp ij-t"><p class="ij-tlab">résultat attendu</p><div class="pk-mini is-2"><span class="is-h">ville</span><span class="is-h">nombre_commandes</span><span>Paris</span><span class="is-hit">?</span><span>Lyon</span><span class="is-hit">?</span><span>Marseille</span><span class="is-hit">?</span></div><p class="ij-tmore">…</p></div><p>Pour y répondre, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>🏙️ Ville</b><span>table clients</span></div><div role="listitem"><b>🛒 Commandes</b><span class="is-b">table commandes</span></div></div><p>🤔 <b>Problème&nbsp;:</b> la ville et les commandes ne sont pas dans la même table.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Compte le nombre de commandes passées dans chaque ville.</p></div>`,
+    studio:{problem:{eye:"",title:"Deux informations, deux tables",
+      body:"Dans la <code>table clients</code>, on connaît la ville de chaque client&nbsp;:",
+      extra:`<div class="pk-comp ij-t"><p class="ij-tlab">table clients</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">ville</span><span>1</span><span>Sophie</span><span class="is-hit">Paris</span><span>2</span><span>Lucas</span><span class="is-hit">Lyon</span><span>3</span><span>Emma</span><span class="is-hit">Marseille</span><span>4</span><span>Nathan</span><span class="is-hit">Paris</span></div><p class="ij-tmore">… et 6 autres clients</p></div>
+        <p>Dans la <code>table commandes</code>, on trouve les commandes&nbsp;:</p>
+        <div class="pk-comp ij-t"><p class="ij-tlab">table commandes</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">client_id</span><span class="is-h">produit_id</span><span class="is-hit">1</span><span>1</span><span>1</span><span class="is-hit">2</span><span>1</span><span>3</span><span class="is-hit">3</span><span>2</span><span>6</span></div><p class="ij-tmore">… et 13 autres commandes</p></div>
+        <p class="ij-arrow">👉 <code>clients</code> connaît la ville.</p>
+        <p class="ij-arrow">👉 <code>commandes</code> connaît les commandes.</p>
+        <p>Pour compter les commandes par ville, il faut d’abord <b>relier</b> ces deux informations.</p>`},
+    uses:{title:"Écrire la requête",
+      body:`<div class="pt-lead fn-uses fk-course jn-course">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Relier chaque commande à une ville</p>
+          <p>La <code>table commandes</code> contient <code>client_id</code>. Cette valeur permet de retrouver le client correspondant dans la <code>table clients</code>&nbsp;:</p>
+          <div class="ij-match" role="img" aria-label="clients.id relié à commandes.client_id"><code>clients.id</code><i aria-hidden="true">↕</i><code>commandes.client_id</code></div>
+          <p>On peut donc utiliser une jointure&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.ville,
+       commandes.id
+FROM clients
+<span class="fk-syn-hit">INNER JOIN commandes</span>
+    ON clients.id = commandes.client_id;</pre></div>
+          <p>On obtient alors des lignes de ce type&nbsp;:</p>
+          <div class="pk-comp ij-t"><p class="ij-tlab">résultat de la jointure</p><div class="pk-mini is-2"><span class="is-h">ville</span><span class="is-h">id</span><span>Paris</span><span>1</span><span>Paris</span><span>2</span><span>Lyon</span><span>3</span></div><p class="ij-tmore">… et 12 autres lignes</p></div>
+          <p class="ij-arrow">💡 Chaque commande est maintenant associée à la ville du client qui l’a passée.</p>
+          <p>Mais on a encore <b>une ligne par commande</b>. Notre objectif est différent&nbsp;: obtenir <b>une ligne par ville</b>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Regrouper les commandes par ville</p>
+          <p>C’est ici que <code>GROUP BY</code> intervient&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">GROUP BY <span class="fk-syn-hit">clients.ville</span></pre></div>
+          <p>Les lignes ayant la même ville sont regroupées&nbsp;:</p>
+          <div class="pk-comp ij-t"><p class="ij-tlab">un groupe par ville</p><div class="pk-mini"><span class="is-h">ville</span><span class="is-h">commandes du groupe</span><span class="is-hit">Lyon</span><span>#3, #7, #10</span><span class="is-hit">Marseille</span><span>#4, #14</span><span class="is-hit">Mobile</span><span>#6, #15</span><span class="is-hit">Paris</span><span>#1, #2, #5, #8, #9, #12, #13</span><span class="is-hit">Toulouse</span><span>#11</span></div></div>
+          <p class="ij-arrow">👉 <code>GROUP BY</code> forme donc un groupe pour chaque ville.</p>
+          <p>Mais il reste à savoir <b>combien de commandes</b> contient chaque groupe.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Compter les commandes</p>
+          <p>On utilise <code>COUNT()</code>&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">COUNT(commandes.id)</span> AS nombre_commandes</pre></div>
+          <p>Le comptage est effectué <b>dans chaque groupe</b> créé par <code>GROUP BY</code>. Par exemple, pour Paris&nbsp;:</p>
+          <ol class="ij-funnel" aria-label="Le groupe Paris contient 7 commandes"><li class="ij-fn-row"><b>7</b><span>Paris<small>7 commandes dans le groupe</small></span><i class="ij-fn-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></i></li></ol>
+          <p>On obtient alors&nbsp;:</p>
+          <div class="pk-comp ij-t"><p class="ij-tlab">résultat</p><div class="pk-mini is-2"><span class="is-h">ville</span><span class="is-h">nombre_commandes</span><span>Lyon</span><span class="is-hit">3</span><span>Marseille</span><span class="is-hit">2</span><span>Mobile</span><span class="is-hit">2</span><span>Paris</span><span class="is-hit">7</span><span>Toulouse</span><span class="is-hit">1</span></div></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">La requête complète</p>
+          <p>On réunit maintenant les trois éléments&nbsp;:</p>
+          <div class="fk-syn-map" aria-label="Relier, regrouper, compter">
             <article>
-              <code>LEFT JOIN commandes</code>
+              <code>INNER JOIN commandes</code>
               <i aria-hidden="true">↓</i>
-              <span>relier : une ligne par commande</span>
+              <span>relier une commande à sa ville</span>
             </article>
             <i aria-hidden="true">↓</i>
             <article>
-              <code>GROUP BY clients.id, clients.nom</code>
+              <code>GROUP BY clients.ville</code>
               <i aria-hidden="true">↓</i>
-              <span>regrouper : un paquet par client</span>
+              <span>réunir les commandes d’une même ville</span>
             </article>
             <i aria-hidden="true">↓</i>
             <article>
               <code>COUNT(commandes.id)</code>
               <i aria-hidden="true">↓</i>
-              <span>compter : les commandes du paquet</span>
+              <span>compter les commandes de chaque groupe</span>
             </article>
-          </div>`},
-    uses:{title:"Relier, regrouper, compter",
-      body:`<div class="pt-lead fn-uses fk-course jn-course">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Relier : une ligne par commande</p>
-          <p>Après le <code>LEFT JOIN</code>, Sophie apparaît une fois par commande. Inès, sans commande, apparaît une fois avec <code>NULL</code>&nbsp;:</p>
-          <div class="pk-comp"><div class="pk-mini"><span class="is-h">nom</span><span class="is-h">commandes.id</span><span class="is-hit">Sophie</span><span>1</span><span class="is-hit">Sophie</span><span>2</span><span class="is-hit">Sophie</span><span>13</span><span>Inès</span><span class="is-null">NULL</span></div></div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Regrouper : un paquet par client</p>
-          <div class="pt-syntax"><pre class="cw-syntax">GROUP BY <span class="fk-syn-hit">clients.id</span>, clients.nom</pre></div>
-          <p>Pourquoi <code>clients.id</code>&nbsp;? Parce que deux clients s’appellent Nathan (n°4 et n°10). Regrouper par nom seul les fusionnerait.</p>
+          </div>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.ville,
+       <span class="fk-syn-hit">COUNT(commandes.id)</span> AS nombre_commandes
+FROM clients
+<span class="fk-syn-hit">INNER JOIN commandes</span>
+    ON clients.id = commandes.client_id
+<span class="fk-syn-hit">GROUP BY clients.ville</span>;</pre></div>
+          <p>👇 Exécute la requête pour découvrir les villes qui commandent le plus&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT clients.ville,&#10;       COUNT(commandes.id) AS nombre_commandes&#10;FROM clients&#10;INNER JOIN commandes&#10;    ON clients.id = commandes.client_id&#10;GROUP BY clients.ville;"></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 15 commandes reliées à 5 villes"><li class="ij-fn-row"><b>15</b><span>commandes reliées à une ville<small><code>INNER JOIN</code> : une ligne par commande</small></span><i class="ij-fn-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></i></li><li class="ij-fn-step"><code>GROUP BY clients.ville</code><small>un groupe par ville, puis <code>COUNT</code></small></li><li class="ij-fn-row is-out"><b>5</b><span>villes, chacune avec son total<small>Paris&nbsp;7&nbsp;· Lyon&nbsp;3&nbsp;· Marseille&nbsp;2&nbsp;· Mobile&nbsp;2&nbsp;· Toulouse&nbsp;1</small></span></li></ol><p class="ij-done-p ij-done-win">🏆 Paris arrive en tête avec 7 commandes.</p><p class="ij-done-p">Nantes n’apparaît pas&nbsp;: Inès, la seule cliente de Nantes, n’a encore passé aucune commande.</p></div>
           <div class="sit-memo">
             <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-            <p>On regroupe par la clé primaire&nbsp;: elle ne confond jamais deux clients.</p>
+            <p><code>JOIN</code> relie une commande à la ville de son client.</p>
+            <p><code>GROUP BY</code> réunit les commandes d’une même ville.</p>
+            <p><code>COUNT</code> compte les commandes de chaque groupe.</p>
           </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Compter : COUNT(commandes.id)</p>
-          <p><code>COUNT(colonne)</code> ignore les <code>NULL</code>. C’est exactement ce qu’il faut pour Inès&nbsp;:</p>
-          <div class="fk-duo" aria-label="COUNT étoile contre COUNT de commandes.id">
-            <article class="is-ko">
-              <p class="fk-duo-lab">COUNT(*)</p>
-              <b>Inès : 1</b>
-              
-              <small>compte la ligne NULL ❌</small>
-            </article>
-            <article class="is-ok">
-              <p class="fk-duo-lab">COUNT(commandes.id)</p>
-              <b>Inès : 0</b>
-              
-              <small>ne compte que les vraies commandes ✅</small>
-            </article>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le résultat</p>
-          <div class="pk-comp"><div class="pk-mini"><span class="is-h">nom</span><span class="is-h">nb_commandes</span><span>Sophie</span><span>3</span><span>Lucas</span><span>2</span><span>Hugo</span><span>1</span><span class="is-hit">Inès</span><span class="is-hit">0</span></div></div>
-          <p>Une ligne par client, y compris ceux qui n’ont encore rien commandé.</p>
+          <button type="button" class="coda-note" onclick="noteFromRetenir()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ajouter dans notes</button>
         </div>
       </div>`},
-    reflex:{a:{k:"JOIN",t:"relie"}, b:{k:"GROUP BY",t:"regroupe"}, c:{k:"COUNT",t:"compte"}, chain:true, extra:`<div class="sit-memo">
-            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-            <p>Avec un <code>LEFT JOIN</code>, compte une colonne de droite&nbsp;: <code>COUNT(commandes.id)</code>, pas <code>COUNT(*)</code>.</p>
-          </div>`},
-    viz:"joingroupby"},
+    reflexTitle:"Le réflexe à retenir",
+    reflex:{extra:`<p>Quand l’information utilisée pour <b>regrouper</b> et l’information utilisée pour <b>compter</b> se trouvent dans des tables différentes&nbsp;:</p>
+          <div class="memory-rule is-trio is-chain"><div class="memory-a"><b>① JOIN</b><span>relier les informations</span><small class="memory-sub">client ↔ commande</small></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>② GROUP BY</b><span>former les groupes</span><small class="memory-sub">Paris | Lyon | Marseille | …</small></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>③ COUNT</b><span>calculer dans chaque groupe</span><small class="memory-sub">Paris → 7 commandes</small></div></div>
+          <p class="agg-reflex" style="margin-top:14px">👉 On relie d’abord les données, puis on les regroupe pour effectuer le calcul.</p>`}},
   joinFn:true,
+  noTeste:true,
+  noAnat:true,
   anatomie:[
-    {tok:"SELECT clients.nom",txt:"Affiche le nom du client."},
-    {tok:"COUNT(commandes.id) AS nb_commandes",txt:"Compte ses commandes et donne au résultat le nom <code>nb_commandes</code>."},
-    {tok:"FROM clients",txt:"On part de la table <code>clients</code>."},
-    {tok:"LEFT JOIN commandes",txt:"Ajoute les commandes tout en gardant les clients sans commande."},
-    {tok:"ON clients.id = commandes.client_id",txt:"Relie chaque commande au bon client."},
-    {tok:"GROUP BY clients.id, clients.nom",txt:"Regroupe toutes les lignes appartenant au même client avant de les compter."}
+    {tok:"SELECT clients.ville",txt:"Affiche la ville du client."},
+    {tok:"COUNT(commandes.id) AS nombre_commandes",txt:"Compte les commandes de chaque ville et nomme le résultat <code>nombre_commandes</code>."},
+    {tok:"FROM clients",txt:"On part de la table <code>clients</code>, qui connaît la ville."},
+    {tok:"INNER JOIN commandes",txt:"Ajoute les commandes de chaque client."},
+    {tok:"ON clients.id = commandes.client_id",txt:"Relie chaque commande au client qui l’a passée."},
+    {tok:"GROUP BY clients.ville",txt:"Regroupe les lignes qui appartiennent à la même ville avant de les compter."}
   ],
-  exemple:"SELECT clients.nom, COUNT(commandes.id) AS nb_commandes\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nGROUP BY clients.id, clients.nom;",
-  attendu:"10 lignes : une ligne par client avec son nombre de commandes. Sophie : 3, Lucas : 2, Inès : 0, Nathan n°10 : 0.",
-  retenir:"Pour compter des lignes liées sans perdre personne :<br><br><code>FROM t1 LEFT JOIN t2 ON … GROUP BY t1.id</code> puis <code>COUNT(t2.id)</code>.<br><br><b>LEFT JOIN</b> garde ceux qui n’ont rien. <b>COUNT(colonne)</b> ignore les <code>NULL</code> et leur donne 0, là où <code>COUNT(*)</code> leur donnerait 1.",
-  piege:{t:"Compter avec COUNT(*)",
-    p:"Après un <code>LEFT JOIN</code>, un client sans commande reste présent avec des <code>NULL</code> du côté de <code>commandes</code>. <code>COUNT(*)</code> compte quand même cette ligne et donnerait donc 1. Pour compter uniquement les vraies commandes, utilise <code>COUNT(commandes.id)</code>.",
+  exemple:"SELECT clients.ville,\n       COUNT(commandes.id) AS nombre_commandes\nFROM clients\nINNER JOIN commandes\n    ON clients.id = commandes.client_id\nGROUP BY clients.ville;",
+  attendu:"<b>5 lignes</b> : une par ville ayant au moins une commande. Paris : 7, Lyon : 3, Marseille : 2, Mobile : 2, Toulouse : 1.",
+  retenir:"Quand l’information utilisée pour regrouper et celle utilisée pour compter se trouvent dans des tables différentes :<br><br>① <b>JOIN</b> relie les informations.<br>② <b>GROUP BY</b> forme les groupes.<br>③ <b>COUNT</b> calcule dans chaque groupe.<br><br>On relie d’abord les données, puis on les regroupe pour effectuer le calcul.",
+  piege:{t:"Pourquoi la jointure est-elle indispensable&nbsp;?",
+    p:"On pourrait être tenté de regrouper directement la <code>table commandes</code>&nbsp;:",
     exec:true,
-    sql:"SELECT clients.nom, COUNT(*) AS nb_commandes\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nGROUP BY clients.id, clients.nom;",
-    out:"Inès affiche 1 alors qu’elle n’a aucune commande.",
-    fixSql:"SELECT clients.nom, COUNT(commandes.id) AS nb_commandes\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nGROUP BY clients.id, clients.nom;"},
-  consigne:"Affiche chaque client avec son nombre de commandes, y compris les clients qui n’ont encore passé aucune commande.",
-  solution:"SELECT clients.nom, COUNT(commandes.id) AS nb_commandes\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nGROUP BY clients.id, clients.nom;",
-  indice:"Relie d’abord les clients aux commandes avec <code>LEFT JOIN</code>, regroupe ensuite les lignes par client, puis compte les <code>commandes.id</code>.",
-  joinRecap:'left',
+    sql:"SELECT ville, COUNT(*)\nFROM commandes\nGROUP BY ville;",
+    mid:"❌ Cela ne fonctionne pas&nbsp;: la colonne <code>ville</code> n’existe pas dans <code>commandes</code>. Elle se trouve dans <code>clients</code>.<br><br>La jointure permet d’avoir, dans le même résultat intermédiaire, <b>la ville du client + sa commande</b>. <code>GROUP BY</code> peut ensuite effectuer le regroupement demandé&nbsp;:",
+    fixSql:"SELECT clients.ville,\n       COUNT(commandes.id) AS nombre_commandes\nFROM clients\nINNER JOIN commandes\n    ON clients.id = commandes.client_id\nGROUP BY clients.ville;"},
+  consigne:"Compte le nombre de commandes passées dans chaque ville. Affiche <code>ville</code> et <code>nombre_commandes</code>.",
+  solution:"SELECT clients.ville,\n       COUNT(commandes.id) AS nombre_commandes\nFROM clients\nINNER JOIN commandes\n    ON clients.id = commandes.client_id\nGROUP BY clients.ville;",
+  indice:"Relie <code>clients</code> et <code>commandes</code> avec <code>INNER JOIN</code> sur <code>clients.id = commandes.client_id</code>, regroupe avec <code>GROUP BY clients.ville</code>, puis compte avec <code>COUNT(commandes.id)</code>.",
+  joinRecap:'inner',
   richLesson:true, earlyDemo:true,
-  testeSwitch:'cols2',
   testeVariants:[
-  {
-    "k": "cli",
-    "label": "clients",
-    "sql": "SELECT id, nom\nFROM clients;"
-  },
-  {
-    "k": "cmd",
-    "label": "commandes",
-    "sql": "SELECT id, client_id, produit_id, quantite\nFROM commandes;"
-  },
-  {
-    "k": "joingroupby",
-    "label": "JOIN + GROUP BY",
-    "sql": "SELECT clients.nom, COUNT(commandes.id) AS nb_commandes\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nGROUP BY clients.id, clients.nom;",
-    "tone": "good"
-  },
-  {
-    "k": "rec_count",
-    "label": "Comparer les COUNT",
-    "sql": "SELECT clients.id, clients.nom, COUNT(*) AS lignes, COUNT(commandes.id) AS nb_commandes FROM clients LEFT JOIN commandes ON commandes.client_id=clients.id GROUP BY clients.id ORDER BY clients.id;",
-    "out": "Pour les clients sans commande : COUNT(*) = 1, COUNT(id) = 0.",
-    "expectRows": 10
-  }
-] ,
+    {k:'cli',label:'clients',sql:"SELECT id, nom, ville\nFROM clients;"},
+    {k:'cmd',label:'commandes',sql:"SELECT id, client_id, produit_id\nFROM commandes;"},
+    {k:'joingroupby',label:'JOIN + GROUP BY',sql:"SELECT clients.ville, COUNT(commandes.id) AS nombre_commandes\nFROM clients\nINNER JOIN commandes\nON clients.id = commandes.client_id\nGROUP BY clients.ville;",tone:'good'}
+  ] ,
 learningCheck:{
-  "question": "Pour un client sans commande, COUNT(*) et COUNT(commandes.id) valent quoi ?",
+  "question": "Pourquoi faut-il une jointure pour compter les commandes par ville ?",
   "options": [
-    "1 et 1",
-    "1 et 0",
-    "0 et 0"
+    "Parce que GROUP BY ne fonctionne jamais sans JOIN",
+    "Parce que la ville est dans clients et les commandes dans commandes",
+    "Parce que COUNT a besoin de deux tables"
   ],
   "answer": 1,
-  "explanation": "LEFT JOIN conserve une ligne avec des NULL. COUNT(*) la compte ; COUNT(commandes.id) ignore l’id NULL."
+  "explanation": "La ville se trouve dans clients, les commandes dans commandes. La jointure les réunit sur une même ligne, puis GROUP BY peut regrouper par ville."
 }
 },
 { id:42, titre:"SELF JOIN", résumé:"Relier une table à elle-même",
@@ -32009,7 +32011,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-25-ux-polish-v1066';
+  const SW_CACHE='requete-2026-09-25-join-groupby-v1067';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
