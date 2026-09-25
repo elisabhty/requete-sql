@@ -2048,6 +2048,9 @@
   .ij-done.is-in .ij-funnel > :nth-child(3){animation-delay:.32s}
   .ij-done.is-in .ij-funnel > :nth-child(4){animation-delay:.44s}
   .ij-done.is-in .ij-funnel > .is-out{animation:ijDoneOut .5s cubic-bezier(.2,.9,.3,1.4) .6s both}
+  .ij-need b{min-width:0;line-height:1.3}
+  .ij-need > div:has(> span){flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:6px}
+  .ij-need span{font-family:var(--mono)}
   .fk-course .pt-syntax .cw-syntax{background:#fafafc;border:1px solid rgba(39,42,54,.16);border-radius:12px}
   .fk-course .sit-memo.is-attn{margin:12px 0}
   .fk-verdict{margin:10px 0 2px;padding:12px 14px;border-radius:16px;background:var(--danger-soft);border:1px solid color-mix(in srgb,var(--danger) 22%,transparent);animation:fkTreeIn .4s ease .15s both}
@@ -12792,7 +12795,7 @@ learningCheck:{
         <div class="fn-use">
           <p class="pt-syntax-h">Une clé étrangère peut se répéter</p>
           <p>Dans le cours précédent, nous avons vu qu’une clé primaire doit être unique.</p>
-          <p>Mais regarde <code>client_id</code>&nbsp;:</p>
+          <p>Mais regarde la colonne <code>client_id</code>&nbsp;:</p>
           <div class="pk-comp"><div class="pk-mini"><span class="is-h">id</span><span class="is-h">client_id</span><span>5</span><span class="is-hit">4</span><span>12</span><span class="is-hit">4</span></div></div>
           <p>Le <code>4</code> apparaît plusieurs fois. Et c’est parfaitement normal.</p>
           <p>Parce qu’un même client peut avoir plusieurs commandes&nbsp;:</p>
@@ -12945,7 +12948,7 @@ learningCheck:{
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Une table peut avoir plusieurs clés étrangères</p>
-          <p>Dans <code>commandes</code>, nous avons également <code>produit_id</code>.</p>
+          <p>Dans <code>commandes</code>, nous avons également le <code>produit_id</code>.</p>
           <p>Une commande est liée à un client grâce à <code>client_id</code>, et à un produit grâce à <code>produit_id</code>.</p>
           <div class="fk-tree" aria-label="Deux clés étrangères depuis commandes">
             <div class="fk-tree-root"><b>commandes</b><span>🔑 id</span></div>
@@ -13107,7 +13110,7 @@ learningCheck:{
             </div>
             <p class="rel-card-why"><b>Pourquoi 1 ↔ 1&nbsp;?</b><span>Un client a au maximum une fiche fidélité.</span><span>Une fiche n’appartient qu’à un seul client.</span></p>
           </div>
-          <p>Dans la table <code>fidelite</code>, <code>client_id</code> est une clé étrangère vers <code>clients.id</code>. <code>UNIQUE</code> empêche le même client d’avoir plusieurs fiches.</p>
+          <p>Dans la table <code>fidelite</code>, le <code>client_id</code> est une clé étrangère vers <code>clients.id</code>. <code>UNIQUE</code> empêche le même client d’avoir plusieurs fiches.</p>
           <div class="sit-memo">
             <p class="sit-memo-lab"><i aria-hidden="true">💡</i>Première information</p>
             <p>Nathan affiche <b>250 points</b>. Nous ne savons pas encore si c’est le bon nombre. Pour le vérifier, il faut retrouver ses commandes.</p>
@@ -13258,7 +13261,7 @@ learningCheck:{
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Mais où est le lien entre clients et produits&nbsp;?</p>
-          <p>La table <code>clients</code> ne contient pas <code>produit_id</code>. La table <code>produits</code> ne contient pas <code>client_id</code>.</p>
+          <p>La table <code>clients</code> ne contient pas de <code>produit_id</code>. La table <code>produits</code> ne contient pas de <code>client_id</code>.</p>
           <p>Pourtant, on sait quels produits Nathan a commandés. Grâce à la table <code>commandes</code>, qui porte les deux clés&nbsp;:</p>
           <div class="pk-comp"><div class="pk-mini"><span class="is-h">client_id</span><span class="is-h">produit_id</span><span>4</span><span>1</span><span>4</span><span>2</span></div></div>
           <div class="fk-tree" aria-label="commandes relie clients et produits">
@@ -13398,7 +13401,7 @@ learningCheck:{
 ]},
 { titre:"Jointures", sous:"Interroger plusieurs tables à la fois", lessons:[
 { id:18, titre:"INNER JOIN", résumé:"Relier uniquement ce qui correspond",
-  situation:`<p>Chaque mois, l’équipe relation client envoie une enquête de satisfaction aux clients qui ont commandé récemment.</p><p>Ce mois-ci, elle s’intéresse aux commandes passées en <b>juillet 2026</b>.</p><p>Pour préparer l’envoi, elle a besoin de trois informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Nom du client</b><span>table clients</span></div><div role="listitem"><b>✉️ E-mail du client</b><span>table clients</span></div><div role="listitem"><b>📅 Date de commande</b><span class="is-b">table commandes</span></div></div><p>🤔 <b>Problème&nbsp;:</b> aucune table ne contient à elle seule toutes ces informations.</p><p>Le nom et l’e-mail se trouvent dans la <code>table clients</code>, tandis que la date de commande se trouve dans la <code>table commandes</code>.</p><p class="ij-arrow">👉 Il faut donc relier les deux tables pour réunir les informations dont l’équipe a besoin.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Affiche le nom, l’e-mail et la date de commande des clients ayant commandé en juillet 2026.</p></div>`,
+  situation:`<p>Chaque mois, l’équipe relation client envoie une enquête de satisfaction aux clients qui ont commandé récemment.</p><p>Ce mois-ci, elle s’intéresse aux commandes passées en <b>juillet 2026</b>.</p><p>Pour préparer l’envoi, elle a besoin de trois informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Nom du client</b><span>clients.nom</span></div><div role="listitem"><b>✉️ E-mail du client</b><span>clients.email</span></div><div role="listitem"><b>📅 Date de la commande</b><span class="is-b">commandes.date_commande</span></div></div><p>🤔 <b>Problème&nbsp;:</b> aucune table ne contient à elle seule toutes ces informations.</p><p>Le nom et l’e-mail se trouvent dans la <code>table clients</code>, tandis que la date de commande se trouve dans la <code>table commandes</code>.</p><p class="ij-arrow">👉 Il faut donc relier les deux tables pour réunir les informations dont l’équipe a besoin.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Affiche le nom, l’e-mail et la date de commande des clients ayant commandé en juillet 2026.</p></div>`,
     studio:{problem:{eye:"",title:"Comment relier une commande à son client&nbsp;?",
       body:"Prenons une commande au hasard&nbsp;:",
       extra:`<div class="pk-comp ij-t"><p class="ij-tlab">table commandes</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">client_id</span><span class="is-h">date_commande</span><span>3</span><span class="is-hit">2</span><span>2026-07-05</span></div></div>
@@ -13518,7 +13521,7 @@ learningCheck:{
 }
 },
 { id:20, titre:"LEFT JOIN", résumé:"Garder même sans correspondance",
-  situation:`<p>L’équipe développement produit prépare le lancement d’un nouveau produit.</p><p>Avant sa sortie, elle veut créer un <b>club de testeurs</b> et inviter en priorité les clients qui n’ont encore passé <b>aucune commande</b>.</p><p>Pour préparer les invitations, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Nom du client</b><span>table clients</span></div><div role="listitem"><b>🛒 Commandes passées</b><span class="is-b">table commandes</span></div></div><p>🤔 <b>Problème&nbsp;:</b> avec <code>INNER JOIN</code>, seuls les clients qui ont une commande apparaissent.</p><p>Or, cette fois, ce sont justement les clients <b>sans commande</b> qui nous intéressent.</p><p>👉 Il nous faut donc une jointure capable de garder tous les clients, même lorsqu’aucune commande ne leur correspond.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Retrouve les clients qui n’ont encore passé aucune commande pour les inviter au club de testeurs.</p></div>`,
+  situation:`<p>L’équipe développement produit prépare le lancement d’un nouveau produit.</p><p>Avant sa sortie, elle veut créer un <b>club de testeurs</b> et inviter en priorité les clients qui n’ont encore passé <b>aucune commande</b>.</p><p>Pour préparer les invitations, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Nom du client</b><span>clients.nom</span></div><div role="listitem"><b>🛒 Commandes du client</b><span class="is-b">commandes.client_id</span></div></div><p>🤔 <b>Problème&nbsp;:</b> avec <code>INNER JOIN</code>, seuls les clients qui ont une commande apparaissent.</p><p>Or, cette fois, ce sont justement les clients <b>sans commande</b> qui nous intéressent.</p><p>👉 Il nous faut donc une jointure capable de garder tous les clients, même lorsqu’aucune commande ne leur correspond.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Retrouve les clients qui n’ont encore passé aucune commande pour les inviter au club de testeurs.</p></div>`,
     studio:{problem:{eye:"",title:"Que se passe-t-il quand un client n’a aucune commande&nbsp;?",
       body:"🔎 Prenons en exemple Inès&nbsp;:",
       extra:`<div class="pk-comp ij-t"><p class="ij-tlab">table clients</p><div class="pk-mini"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-hit">9</span><span>Inès</span></div></div>
@@ -13623,7 +13626,7 @@ learningCheck:{
 }
 },
 { id:38, titre:"RIGHT JOIN", résumé:"Tout garder à droite",
-  situation:`<p>L’équipe logistique prépare les commandes avant leur expédition.</p><p>Pour chaque commande, elle veut retrouver <b>le numéro de commande</b> et <b>le nom du client</b> qui l’a passée.</p><p>Pour mener l’enquête, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Nom du client</b><span>table clients</span></div><div role="listitem"><b>📦 Numéro de commande</b><span class="is-b">table commandes</span></div></div><p>🤔 <b>Problème&nbsp;:</b> certaines commandes peuvent ne correspondre à aucun client.</p><p>Or, l’équipe veut voir <b>toutes les commandes</b>, sans exception.</p><p>👉 Il faut donc relier les deux tables sans perdre les commandes qui n’ont pas de client associé.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Affiche toutes les commandes et, lorsqu’il existe, le nom du client associé.</p></div>`,
+  situation:`<p>L’équipe logistique prépare les commandes avant leur expédition.</p><p>Pour chaque commande, elle veut retrouver <b>le numéro de commande</b> et <b>le nom du client</b> qui l’a passée.</p><p>Pour mener l’enquête, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Nom du client</b><span>clients.nom</span></div><div role="listitem"><b>📦 Numéro de la commande</b><span class="is-b">commandes.id</span></div></div><p>🤔 <b>Problème&nbsp;:</b> certaines commandes peuvent ne correspondre à aucun client.</p><p>Or, l’équipe veut voir <b>toutes les commandes</b>, sans exception.</p><p>👉 Il faut donc relier les deux tables sans perdre les commandes qui n’ont pas de client associé.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Affiche toutes les commandes et, lorsqu’il existe, le nom du client associé.</p></div>`,
     studio:{problem:{eye:"",title:"Une commande sans client&nbsp;?",
       body:"🔎 Prenons la commande <b>#16</b>&nbsp;:",
       extra:`<div class="pk-comp ij-t"><p class="ij-tlab">table commandes</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">client_id</span><span class="is-h">produit_id</span><span class="is-hit">16</span><span class="is-null">NULL</span><span>4</span></div></div>
@@ -13755,7 +13758,7 @@ learningCheck:{
 }
 },
 { id:39, titre:"FULL OUTER JOIN", résumé:"Tout garder des deux côtés",
-  situation:`<p>Avant de clôturer le mois, l’équipe comptabilité effectue un contrôle entre les clients et les commandes.</p><p>Elle veut repérer toutes les situations&nbsp;:</p><ul class="fo-list"><li>les clients qui ont commandé&nbsp;;</li><li>les clients qui n’ont aucune commande&nbsp;;</li><li>les commandes qui ne sont rattachées à aucun client.</li></ul><p>Pour mener le contrôle, elle a besoin des deux tables&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Nom du client</b><span>table clients</span></div><div role="listitem"><b>📦 Commande passée</b><span class="is-b">table commandes</span></div></div><p>🤔 <b>Problème&nbsp;:</b> certaines lignes peuvent exister d’un côté sans avoir de correspondance de l’autre.</p><p>👉 Cette fois, aucune ligne ne doit disparaître.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Réunis tous les clients et toutes les commandes dans un même résultat, qu’ils aient ou non une correspondance.</p></div>`,
+  situation:`<p>Avant de clôturer le mois, l’équipe comptabilité effectue un contrôle entre les clients et les commandes.</p><p>Elle veut repérer toutes les situations&nbsp;:</p><ul class="fo-list"><li>les clients qui ont commandé&nbsp;;</li><li>les clients qui n’ont aucune commande&nbsp;;</li><li>les commandes qui ne sont rattachées à aucun client.</li></ul><p>Pour mener le contrôle, elle a besoin des deux tables&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Nom du client</b><span>clients.nom</span></div><div role="listitem"><b>📦 Numéro de la commande</b><span class="is-b">commandes.id</span></div></div><p>🤔 <b>Problème&nbsp;:</b> certaines lignes peuvent exister d’un côté sans avoir de correspondance de l’autre.</p><p>👉 Cette fois, aucune ligne ne doit disparaître.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Réunis tous les clients et toutes les commandes dans un même résultat, qu’ils aient ou non une correspondance.</p></div>`,
     studio:{problem:{eye:"",title:"Trois situations possibles",
       body:"Lorsque SQL compare les deux tables, trois cas peuvent se présenter.",
       extra:`<div class="fo-cases">
@@ -13870,7 +13873,7 @@ learningCheck:{
 }
 },
 { id:40, titre:"CROSS JOIN", résumé:"Créer toutes les combinaisons",
-  situation:`<p>L’équipe commerciale prépare une nouvelle campagne.</p><p>Elle veut créer une offre pour <b>chaque produit dans chaque ville où vivent les clients</b>. Par exemple&nbsp;:</p><ul class="cj-offers" aria-label="Exemples d’offres"><li style="--i:0"><span class="cj-o-p">Fibre Prébiotique</span><i aria-hidden="true">→</i><span class="cj-o-v">Paris</span></li><li style="--i:1"><span class="cj-o-p">Fibre Prébiotique</span><i aria-hidden="true">→</i><span class="cj-o-v">Lyon</span></li><li style="--i:2"><span class="cj-o-p">Collagène Marin</span><i aria-hidden="true">→</i><span class="cj-o-v">Paris</span></li><li style="--i:3"><span class="cj-o-p">Collagène Marin</span><i aria-hidden="true">→</i><span class="cj-o-v">Lyon</span></li><li class="is-more" style="--i:4">… et ainsi de suite pour chaque produit et chaque ville</li></ul><p>Pour préparer la liste, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>🏙️ Ville du client</b><span>table clients</span></div><div role="listitem"><b>📦 Produit proposé</b><span class="is-b">table produits</span></div></div><p>🤔 <b>Problème&nbsp;:</b> il n’existe aucun lien entre une ville et un produit. Et justement, nous ne voulons pas chercher une correspondance.</p><p>👉 Nous voulons associer <b>chaque produit à chaque ville</b>.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Crée toutes les combinaisons possibles entre les produits et les villes des clients.</p></div>`,
+  situation:`<p>L’équipe commerciale prépare une nouvelle campagne.</p><p>Elle veut créer une offre pour <b>chaque produit dans chaque ville où vivent les clients</b>. Par exemple&nbsp;:</p><ul class="cj-offers" aria-label="Exemples d’offres"><li style="--i:0"><span class="cj-o-p">Fibre Prébiotique</span><i aria-hidden="true">→</i><span class="cj-o-v">Paris</span></li><li style="--i:1"><span class="cj-o-p">Fibre Prébiotique</span><i aria-hidden="true">→</i><span class="cj-o-v">Lyon</span></li><li style="--i:2"><span class="cj-o-p">Collagène Marin</span><i aria-hidden="true">→</i><span class="cj-o-v">Paris</span></li><li style="--i:3"><span class="cj-o-p">Collagène Marin</span><i aria-hidden="true">→</i><span class="cj-o-v">Lyon</span></li><li class="is-more" style="--i:4">… et ainsi de suite pour chaque produit et chaque ville</li></ul><p>Pour préparer la liste, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>🏙️ Ville du client</b><span>clients.ville</span></div><div role="listitem"><b>📦 Nom du produit</b><span class="is-b">produits.nom</span></div></div><p>🤔 <b>Problème&nbsp;:</b> il n’existe aucun lien entre une ville et un produit. Et justement, nous ne voulons pas chercher une correspondance.</p><p>👉 Nous voulons associer <b>chaque produit à chaque ville</b>.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Crée toutes les combinaisons possibles entre les produits et les villes des clients.</p></div>`,
     studio:{problem:{eye:"",title:"Toutes les combinaisons, ça veut dire quoi&nbsp;?",
       body:"Imaginons seulement deux villes et trois produits&nbsp;:",
       extra:`<div class="cj-pair"><div class="pk-comp ij-t"><p class="ij-tlab">villes</p><div class="pk-mini is-1"><span class="is-h">ville</span><span>Paris</span><span>Lyon</span></div></div><div class="pk-comp ij-t"><p class="ij-tlab">table produits</p><div class="pk-mini is-1"><span class="is-h">nom</span><span>Fibre Prébiotique</span><span>Collagène Marin</span><span>Magnésium</span></div></div></div>
@@ -14051,7 +14054,7 @@ learningCheck:{
 }
 },
 { id:19, titre:"Jointure de 3 tables", résumé:"Relier toute l’histoire",
-  situation:`<p>Un produit présente un défaut et l’équipe SAV doit contacter les personnes concernées.</p><p>Pour chaque achat, elle a besoin de quatre informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Nom du client</b><span>table clients</span></div><div role="listitem"><b>✉️ E-mail du client</b><span>table clients</span></div><div role="listitem"><b>📦 Produit acheté</b><span class="is-c">table produits</span></div><div role="listitem"><b>📅 Date d’achat</b><span class="is-b">table commandes</span></div></div><p>🤔 <b>Problème&nbsp;:</b> ces informations sont réparties dans 3&nbsp;tables différentes.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Prépare les fiches du SAV&nbsp;: pour chaque achat, le nom et l’e-mail du client, le produit acheté et la date de la commande.</p></div>`,
+  situation:`<p>Un produit présente un défaut et l’équipe SAV doit contacter les personnes concernées.</p><p>Pour chaque achat, elle a besoin de quatre informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Nom du client</b><span>clients.nom</span></div><div role="listitem"><b>✉️ E-mail du client</b><span>clients.email</span></div><div role="listitem"><b>📦 Nom du produit acheté</b><span class="is-c">produits.nom</span></div><div role="listitem"><b>📅 Date de la commande</b><span class="is-b">commandes.date_commande</span></div></div><p>🤔 <b>Problème&nbsp;:</b> ces informations sont réparties dans 3&nbsp;tables différentes.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Prépare les fiches du SAV&nbsp;: pour chaque achat, le nom et l’e-mail du client, le produit acheté et la date de la commande.</p></div>`,
     studio:{problem:{eye:"",title:"Pourquoi faut-il relier trois tables&nbsp;?",
       body:"Regardons ce que contient chaque table&nbsp;:",
       extra:`<div class="pk-comp ij-t"><p class="ij-tlab">table clients</p><div class="pk-mini is-3 is-email"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">email</span><span class="is-hit">1</span><span>Sophie</span><span>sophie@mail.fr</span><span class="is-hit">2</span><span>Lucas</span><span>lucas@mail.fr</span></div></div>
@@ -14065,7 +14068,7 @@ learningCheck:{
       body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
           <p class="pt-syntax-h">Premier lien&nbsp;: retrouver le client</p>
-          <p>Dans la table <code>commandes</code>, <code>client_id</code> permet de retrouver le client correspondant&nbsp;:</p>
+          <p>Dans la table <code>commandes</code>, le <code>client_id</code> permet de retrouver le client correspondant&nbsp;:</p>
           <div class="ij-match" role="img" aria-label="clients.id comparé à commandes.client_id"><code>clients.id</code><i aria-hidden="true">↕</i><code>commandes.client_id</code></div>
           <div class="pt-syntax"><pre class="cw-syntax">FROM commandes
 <span class="fk-syn-hit">INNER JOIN clients</span>
@@ -14075,7 +14078,7 @@ learningCheck:{
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Deuxième lien&nbsp;: retrouver le produit</p>
-          <p>La même table <code>commandes</code> contient aussi <code>produit_id</code>. Il correspond à <code>id</code> dans la table <code>produits</code>&nbsp;:</p>
+          <p>La même table <code>commandes</code> contient aussi le <code>produit_id</code>. Il correspond à <code>id</code> dans la table <code>produits</code>&nbsp;:</p>
           <div class="ij-match" role="img" aria-label="commandes.produit_id comparé à produits.id"><code>commandes.produit_id</code><i aria-hidden="true">↕</i><code>produits.id</code></div>
           <p>On ajoute donc une deuxième jointure&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">INNER JOIN produits</span>
@@ -14114,7 +14117,7 @@ JOIN table3 ON …</pre></div>
   noReflex:true,
   noTeste:true,
   noAnat:true,
-  anatomie:[{tok:"SELECT clients.nom, clients.email, produits.nom AS produit, commandes.date_commande",txt:"Les informations utiles au SAV."},{tok:"FROM commandes",txt:"La table pont : elle contient client_id et produit_id."},{tok:"INNER JOIN clients ON commandes.client_id = clients.id",txt:"Premier lien : qui a commandé ?"},{tok:"INNER JOIN produits ON commandes.produit_id = produits.id",txt:"Deuxième lien : quel produit ?"}],
+  anatomie:[{tok:"SELECT clients.nom, clients.email, produits.nom AS produit, commandes.date_commande",txt:"Les informations utiles au SAV."},{tok:"FROM commandes",txt:"La table pont : elle contient le client_id et le produit_id."},{tok:"INNER JOIN clients ON commandes.client_id = clients.id",txt:"Premier lien : qui a commandé ?"},{tok:"INNER JOIN produits ON commandes.produit_id = produits.id",txt:"Deuxième lien : quel produit ?"}],
   exemple:"SELECT clients.nom,\n       clients.email,\n       produits.nom AS produit,\n       commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nINNER JOIN produits\n    ON commandes.produit_id = produits.id;",
   attendu:"<b>15 lignes</b> : une par commande rattachée à un client, avec le nom et l’e-mail du client, le produit et la date.",
   retenir:"Une jointure n’est pas limitée à 2 tables. Pour relier 3 tables, on enchaîne les jointures : <code>FROM table1 JOIN table2 ON … JOIN table3 ON …</code><br><br>Chaque <code>JOIN</code> ajoute une nouvelle table grâce à une correspondance entre leurs colonnes.",
@@ -14141,7 +14144,7 @@ learningCheck:{
 }
 },
 { id:41, titre:"JOIN + GROUP BY", résumé:"Compter les commandes par ville",
-  situation:`<p>L’équipe commerciale se demande quelles villes commandent le plus.</p><p>Elle souhaite connaître le <b>nombre de commandes passées dans chaque ville</b>. Le résultat attendu ressemble à ceci&nbsp;:</p><div class="pk-comp ij-t"><p class="ij-tlab">résultat attendu</p><div class="pk-mini is-2"><span class="is-h">ville</span><span class="is-h">nombre_commandes</span><span>Paris</span><span class="is-hit">?</span><span>Lyon</span><span class="is-hit">?</span><span>Marseille</span><span class="is-hit">?</span></div><p class="ij-tmore">…</p></div><p>Pour y répondre, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>🏙️ Ville du client</b><span>table clients</span></div><div role="listitem"><b>🛒 Commandes passées</b><span class="is-b">table commandes</span></div></div><p>🤔 <b>Problème&nbsp;:</b> la ville du client et les commandes passées ne se trouvent pas dans la même table.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Compte le nombre de commandes passées dans chaque ville.</p></div>`,
+  situation:`<p>L’équipe commerciale se demande quelles villes commandent le plus.</p><p>Elle souhaite connaître le <b>nombre de commandes passées dans chaque ville</b>. Le résultat attendu ressemble à ceci&nbsp;:</p><div class="pk-comp ij-t"><p class="ij-tlab">résultat attendu</p><div class="pk-mini is-2"><span class="is-h">ville</span><span class="is-h">nombre_commandes</span><span>Paris</span><span class="is-hit">?</span><span>Lyon</span><span class="is-hit">?</span><span>Marseille</span><span class="is-hit">?</span></div><p class="ij-tmore">…</p></div><p>Pour y répondre, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>🏙️ Ville du client</b><span>clients.ville</span></div><div role="listitem"><b>🛒 Commandes du client</b><span class="is-b">commandes.client_id</span></div></div><p>🤔 <b>Problème&nbsp;:</b> la ville du client et les commandes passées ne se trouvent pas dans la même table.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Compte le nombre de commandes passées dans chaque ville.</p></div>`,
     studio:{problem:{eye:"",title:"Deux informations, deux tables",
       body:"La <code>table clients</code> contient la ville de chaque client&nbsp;:",
       extra:`<div class="pk-comp ij-t"><p class="ij-tlab">table clients</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">ville</span><span>1</span><span>Sophie</span><span class="is-hit">Paris</span><span>2</span><span>Lucas</span><span class="is-hit">Lyon</span><span>3</span><span>Emma</span><span class="is-hit">Marseille</span><span>4</span><span>Nathan</span><span class="is-hit">Paris</span></div><p class="ij-tmore">… et 6 autres clients</p></div>
@@ -14154,7 +14157,7 @@ learningCheck:{
       body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
           <p class="pt-syntax-h">Relier chaque commande à une ville</p>
-          <p>La <code>table commandes</code> contient <code>client_id</code>. Cette valeur permet de retrouver le client correspondant dans la <code>table clients</code>&nbsp;:</p>
+          <p>La <code>table commandes</code> contient le <code>client_id</code>. Cette valeur permet de retrouver le client correspondant dans la <code>table clients</code>&nbsp;:</p>
           <div class="ij-match" role="img" aria-label="clients.id relié à commandes.client_id"><code>clients.id</code><i aria-hidden="true">↕</i><code>commandes.client_id</code></div>
           <p>Une jointure permet de rattacher chaque commande au client qui l’a passée, et donc à la ville de ce client&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.ville,
@@ -14377,7 +14380,7 @@ learningCheck:{
 }
 },
 { id:43, titre:"ON vs WHERE", résumé:"Filtrer au bon moment",
-  situation:"Tu prépares un tableau de suivi commercial. Tu veux afficher <b>tous les clients</b> et, à côté de chacun, uniquement ses commandes dont la quantité dépasse 2.<br><br>Les clients sans commande correspondante doivent quand même apparaître dans le tableau.<br><br>Dans la table <code>clients</code>, tu as notamment :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>3</td><td>Emma</td></tr><tr><td>5</td><td>Chloé</td></tr><tr><td>7</td><td>Léa</td></tr><tr><td>9</td><td>Inès</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, tu trouves les commandes avec <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>1</td></tr><tr><td>4</td><td>3</td><td>3</td></tr><tr><td>8</td><td>7</td><td>4</td></tr><tr><td>15</td><td>5</td><td>3</td></tr></tbody></table></div><br><br>On veut donc filtrer les commandes tout en gardant tous les clients. Mais où placer la condition <code>quantite &gt; 2</code> : dans <code>ON</code> ou dans <code>WHERE</code> ?",
+  situation:"Tu prépares un tableau de suivi commercial. Tu veux afficher <b>tous les clients</b> et, à côté de chacun, uniquement ses commandes dont la quantité dépasse 2.<br><br>Les clients sans commande correspondante doivent quand même apparaître dans le tableau.<br><br>Dans la table <code>clients</code>, tu as notamment :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>3</td><td>Emma</td></tr><tr><td>5</td><td>Chloé</td></tr><tr><td>7</td><td>Léa</td></tr><tr><td>9</td><td>Inès</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, tu trouves les commandes avec leur <code>client_id</code> :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>1</td><td>1</td></tr><tr><td>4</td><td>3</td><td>3</td></tr><tr><td>8</td><td>7</td><td>4</td></tr><tr><td>15</td><td>5</td><td>3</td></tr></tbody></table></div><br><br>On veut donc filtrer les commandes tout en gardant tous les clients. Mais où placer la condition <code>quantite &gt; 2</code> : dans <code>ON</code> ou dans <code>WHERE</code> ?",
     studio:{pointCards:{
       eye:"ON vs WHERE",title:"Filtrer avant ou après la jointure.",
       lead:"<p>La différence est le moment où le filtre agit :</p><p><span class=\"pt-kw\">ON</span> filtre les commandes pendant la jointure.<br>Les clients sans commande correspondante sont donc conservés avec <code>NULL</code>.</p><p><span class=\"pt-kw\">WHERE</span> filtre le résultat obtenu après la jointure.<br>Les lignes avec <code>NULL</code> qui ne respectent pas la condition sont donc supprimées.</p>",
@@ -14445,7 +14448,7 @@ learningCheck:{
 { id:49, titre:"Plusieurs conditions dans ON", résumé:"Relier seulement les produits encore en stock",
   situation:`<p>L’équipe logistique se demande <b>quels produits commandés ont encore assez de stock</b>.</p><p>Elle souhaite retrouver les produits présents dans les commandes, mais uniquement s’ils ont un <b>stock suffisant</b>&nbsp;: plus de 50 unités.</p><p>Pour qu’un produit soit relié à une commande, il faut donc vérifier <b>deux conditions</b>&nbsp;:</p><div class="ij-need" role="list" aria-label="Les deux conditions à vérifier"><div role="listitem"><b>① Le bon produit</b><span>produit_id = id</span></div><div role="listitem"><b>② Un stock suffisant</b><span class="is-b">stock &gt; 50</span></div></div><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Retrouve les commandes dont le produit a encore un stock suffisant (plus de 50 unités).</p></div>`,
     studio:{problem:{eye:"",title:"Une première condition pour relier les tables",
-      body:"La <code>table&nbsp;commandes</code> contient <code>produit_id</code>&nbsp;:",
+      body:"La <code>table&nbsp;commandes</code> contient le <code>produit_id</code>&nbsp;:",
       extra:`<div class="pk-comp ij-t"><p class="ij-tlab">table commandes</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">produit_id</span><span class="is-h">quantite</span><span>1</span><span class="is-hit">1</span><span>2</span><span>2</span><span class="is-hit">3</span><span>1</span><span>3</span><span class="is-hit">6</span><span>1</span></div><p class="ij-tmore">… et 13 autres commandes</p></div>
         <p>👆 Chaque commande indique le produit commandé.</p>
         <p>Les informations sur les produits se trouvent dans la <code>table&nbsp;produits</code>&nbsp;:</p>
@@ -14562,7 +14565,7 @@ WHERE id <span class="fk-syn-hit">IN (...)</span>;</pre></div>
       body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
           <p class="pt-syntax-h">La sous-requête construit la liste</p>
-          <p>Dans la <code>table&nbsp;commandes</code>, <code>client_id</code> indique quel client a passé chaque commande. Le Magnésium a l’identifiant <code>3</code> dans la <code>table&nbsp;produits</code>. On peut donc rechercher&nbsp;:</p>
+          <p>Dans la <code>table&nbsp;commandes</code>, le <code>client_id</code> indique quel client a passé chaque commande. Le Magnésium a l’identifiant <code>3</code> dans la <code>table&nbsp;produits</code>. On peut donc rechercher&nbsp;:</p>
           <p>👇 Exécute cette requête&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT client_id&#10;FROM commandes&#10;WHERE produit_id = 3;"></div>
           <p>Elle construit une liste d’identifiants de clients&nbsp;:</p>
@@ -15099,7 +15102,7 @@ WHERE EXISTS (
       {tok:"SELECT clients.nom",txt:"Le nom du client."},
       {tok:"FROM clients",txt:"La table principale."},
       {tok:"WHERE NOT EXISTS (...)",txt:"Garde le client si aucune commande liée n’existe."},
-      {tok:"SELECT 1 FROM commandes WHERE commandes.client_id = clients.id",txt:"Même corrélation. Un <code>NULL</code> dans <code>client_id</code> ne casse pas le test."}
+      {tok:"SELECT 1 FROM commandes WHERE commandes.client_id = clients.id",txt:"Même corrélation. Un <code>NULL</code> dans la colonne <code>client_id</code> ne casse pas le test."}
     ]}
   ],
   exemple:"SELECT clients.nom\nFROM clients\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM commandes\n  WHERE commandes.client_id = clients.id\n);",
@@ -15232,7 +15235,7 @@ SELECT clients.nom, stats_commandes.nb_commandes
 FROM clients
 JOIN stats_commandes
     ON clients.id = stats_commandes.client_id;</pre></div>
-          <p>La CTE apporte <code>client_id</code> et le nombre. La table <code>clients</code> apporte le nom. Le <code>JOIN</code> rassemble les deux.</p>
+          <p>La CTE apporte le <code>client_id</code> et le nombre. La table <code>clients</code> apporte le nom. Le <code>JOIN</code> rassemble les deux.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Plusieurs CTE</p>
@@ -16161,7 +16164,7 @@ learningCheck:{
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">FOREIGN KEY — relier les tables</p>
-          <p>Dans <code>commandes</code>, <code>client_id</code> correspond à <code>clients.id</code> et <code>produit_id</code> à <code>produits.id</code>.</p>
+          <p>Dans <code>commandes</code>, le <code>client_id</code> correspond à <code>clients.id</code> et <code>produit_id</code> à <code>produits.id</code>.</p>
           <div class="pt-syntax"><pre class="cw-syntax">FOREIGN KEY (client_id)
     REFERENCES clients(id)</pre></div>
           <p>Sans ce contrôle, une commande pourrait porter <code>client_id = 5000</code> alors qu’aucun client ne porte cet identifiant. La clé étrangère protège les relations entre les tables.</p>
@@ -18757,7 +18760,7 @@ const QCM={
    {q:"Pourquoi la commande invitée disparaît-elle avec <code>INNER JOIN</code> ?",o:["Parce qu’elle est trop récente","Parce qu’aucune ligne de clients ne lui correspond","Parce que INNER JOIN ignore les e-mails vides"],b:1,e:"INNER JOIN ne garde que les lignes qui trouvent une correspondance des deux côtés. Sans client_id, aucune paire ne se forme."},
    {q:"Inès n’a passé aucune commande. Apparaît-elle dans le résultat de la jointure ?",o:["Oui, avec une date vide","Non, aucune commande ne lui correspond","Oui, une seule fois"],b:1,e:"INNER JOIN ne garde que les lignes qui correspondent des deux côtés. Sans commande, Inès ne forme aucune paire : elle est écartée."}],
  19:[{q:"Pour relier clients, commandes et produits, il faut :",o:["Un JOIN avec deux conditions ON","Deux JOIN, chacun avec son ON","Relier clients.id = produits.id"],b:1,e:"Chaque lien (client↔commande, commande↔produit) a son propre JOIN."},
-   {q:"Pourquoi la table <code>commandes</code> est au centre ?",o:["Elle contient client_id et produit_id","Elle a le plus de lignes","C’est la première table alphabetiquement"],b:0,e:"C’est la table pont entre clients et produits."}],
+   {q:"Pourquoi la table <code>commandes</code> est au centre ?",o:["Elle contient le client_id et le produit_id","Elle a le plus de lignes","C’est la première table alphabetiquement"],b:0,e:"C’est la table pont entre clients et produits."}],
  20:[{q:"<code>LEFT JOIN</code> conserve :",o:["Seulement les lignes qui correspondent des deux côtés","Toutes les lignes de la table de gauche","Toutes les lignes des deux tables"],b:1,e:"Sans correspondance à droite, les colonnes de commandes valent NULL."},
   {q:"Tous les clients + leurs commandes (dont 2 sans commande) :",o:["15 lignes avec INNER JOIN","17 lignes avec LEFT JOIN","10 lignes (un par client)"],b:1,e:"15 correspondances + 2 lignes sans commande avec NULL = 17 lignes."}],
  38:[{q:"<code>RIGHT JOIN</code> conserve :",o:["Seulement les lignes qui correspondent des deux côtés","Toutes les lignes de la table de droite","Toutes les lignes des deux tables"],b:1,e:"Sans correspondance à gauche, les colonnes de clients valent NULL."},
@@ -25408,7 +25411,7 @@ function renderConversionFunctionsStudio(){
         <b>Le SGBD adapte le type automatiquement</b>
         <p>Tu recherches les produits qui coûtent plus de 20&nbsp;€. La colonne <code>prix</code> contient des nombres décimaux, alors que <code>20</code> est un nombre entier.</p>
         <div class="pt-syntax"><pre class="cw-syntax">WHERE prix > 20</pre></div>
-        <p>Pour effectuer la comparaison, le SGBD peut convertir automatiquement <code>20</code> vers un type numérique compatible avec <code>prix</code>. Tu n’as écrit aucun <code>CAST()</code> : la conversion est implicite.</p>
+        <p>Pour effectuer la comparaison, le SGBD peut convertir automatiquement <code>20</code> vers un type numérique compatible avec la colonne <code>prix</code>. Tu n’as écrit aucun <code>CAST()</code> : la conversion est implicite.</p>
         <div class="cf-imp-prix" role="img" aria-label="29,90 est décimal, 20 est entier, le SGBD convertit 20 en 20,00, puis 29,90 est supérieur à 20,00">
           <div class="cf-imp-prix-item"><code>29.90</code><span>décimal</span></div>
           <i class="cf-imp-prix-op" aria-hidden="true">&gt;</i>
@@ -30294,8 +30297,8 @@ const SQL_VIZ={
   ]},
   coalesce:{kind:'er',sample:'10 clients · 2 emails NULL',stepMs:7200,phases:[
     {k:'Lire la première valeur',d:'Pour chaque client, <code>COALESCE</code> commence par regarder <code>email.</code>',sql:"SELECT nom, email FROM\u00a0clients",read:'<code>NULL</code> signifie <span class="coal-glue">«\u00a0valeur absente\u00a0»</span>. Ce\u00a0n’est ni une chaîne vide, ni le mot NULL.'},
-    {k:'Vérifier si elle est NULL',d:'Pour Sophie, <code>email</code> contient une valeur. Comme elle n’est pas <code>NULL,</code> <code>COALESCE</code> la renvoie immédiatement.',sql:"COALESCE(email, 'Non\u00a0renseigné')",read:'Si l’e-mail existe, <code>COALESCE</code> le garde et s’arrête. S’il vaut <code>NULL,</code> <code>COALESCE</code> continue.'},
-    {k:'Passer à la suivante',d:'Pour Hugo et Inès, <code>email</code> vaut <code>NULL.</code> <code>COALESCE</code> passe donc à la valeur suivante : <code>\'Non renseigné\'.</code>',sql:"NULL → 'Non\u00a0renseigné'",read:'<code>COALESCE</code> passe au prochain argument. <code>\'Non renseigné\'</code> devient le résultat.'},
+    {k:'Vérifier si elle est NULL',d:'Pour Sophie, la colonne <code>email</code> contient une valeur. Comme elle n’est pas <code>NULL,</code> <code>COALESCE</code> la renvoie immédiatement.',sql:"COALESCE(email, 'Non\u00a0renseigné')",read:'Si l’e-mail existe, <code>COALESCE</code> le garde et s’arrête. S’il vaut <code>NULL,</code> <code>COALESCE</code> continue.'},
+    {k:'Passer à la suivante',d:'Pour Hugo et Inès, la colonne <code>email</code> vaut <code>NULL.</code> <code>COALESCE</code> passe donc à la valeur suivante : <code>\'Non renseigné\'.</code>',sql:"NULL → 'Non\u00a0renseigné'",read:'<code>COALESCE</code> passe au prochain argument. <code>\'Non renseigné\'</code> devient le résultat.'},
     {k:'Afficher le résultat',d:'Le résultat contient toujours 10 clients. Seule la valeur affichée dans <code>contact</code> change : l’e-mail lorsqu’il existe, <code>\'Non renseigné\'</code> sinon.',sql:"SELECT nom, COALESCE(email, 'Non\u00a0renseigné') AS\u00a0contact",read:'<code>COALESCE</code> ne modifie pas les données stockées. Hugo et Inès ont toujours <code>NULL</code> dans <code>clients.email.</code>'}
   ],html:`<div class="er-stage join-viz coal-stage">
     <section class="coal-source" aria-label="Extrait des emails de clients">
