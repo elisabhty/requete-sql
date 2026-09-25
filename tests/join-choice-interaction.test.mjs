@@ -18,7 +18,7 @@ function assert(condition, label) {
   }
 }
 
-console.log('\n=== Cours Choisir le bon JOIN ===');
+console.log('\n=== Cours Quel JOIN choisir\u00a0? ===');
 const drawStart = html.indexOf("if(kind==='jointree')");
 const drawEnd = html.indexOf("if(kind==='casewalk')", drawStart);
 const draw = drawStart >= 0 && drawEnd > drawStart ? html.slice(drawStart, drawEnd) : '';
@@ -26,7 +26,7 @@ const initStart = html.indexOf('function initJoinTree()');
 const initEnd = html.indexOf('function initCaseWalk()', initStart);
 const init = initStart >= 0 && initEnd > initStart ? html.slice(initStart, initEnd) : '';
 
-assert(html.includes('{ id:44, titre:"Quel JOIN choisir"'), 'le cours 44 reste identifié');
+assert(html.includes('{ id:44, titre:"Quel JOIN choisir\u00a0?"'), 'le cours 44 reste identifié');
 assert(Boolean(draw) && Boolean(init), 'rendu et interactions du mini-jeu localisés');
 assert(draw.includes('jd-coach') && draw.includes('À toi · étape 1 sur 2'), 'guide visuel affiché avant le premier choix');
 assert(draw.includes('role="status" aria-live="polite" aria-atomic="true"'), 'consignes annoncées de façon accessible');
