@@ -14034,7 +14034,7 @@ learningCheck:{
       body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
           <p class="pt-syntax-h">Premier lien&nbsp;: retrouver le client</p>
-          <p>Dans <code>commandes</code>, <code>client_id</code> permet de retrouver le client correspondant&nbsp;:</p>
+          <p>Dans la table <code>commandes</code>, <code>client_id</code> permet de retrouver le client correspondant&nbsp;:</p>
           <div class="ij-match" role="img" aria-label="clients.id comparé à commandes.client_id"><code>clients.id</code><i aria-hidden="true">↕</i><code>commandes.client_id</code></div>
           <div class="pt-syntax"><pre class="cw-syntax">FROM commandes
 <span class="fk-syn-hit">INNER JOIN clients</span>
@@ -14049,7 +14049,7 @@ learningCheck:{
           <p>On ajoute donc une deuxième jointure&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">INNER JOIN produits</span>
     ON commandes.produit_id = produits.id</pre></div>
-          <p class="ij-arrow">👉 La table <code>commandes</code> sert ici de pont entre <code>clients</code> et <code>produits</code>.</p>
+          <p class="ij-arrow">👉 La table <code>commandes</code> sert ici de pont entre la table <code>clients</code> et la table <code>produits</code>.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Les 3 tables sont maintenant reliées</p>
@@ -14060,7 +14060,7 @@ learningCheck:{
             <p class="j3-link"><code>commandes.produit_id = produits.id</code></p>
             <div class="j3-card"><p class="j3-card-h">produits</p><span class="is-key">id = 3</span><span>Magnésium</span></div>
           </div>
-          <p class="ij-arrow">👉 Deux liens à faire, donc deux <code>JOIN</code>&nbsp;: tous les deux passent par <code>commandes</code>.</p>
+          <p class="ij-arrow">👉 Deux liens à faire, donc deux <code>JOIN</code>&nbsp;: tous les deux passent par la table <code>commandes</code>.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">La requête complète</p>
@@ -14089,7 +14089,7 @@ JOIN table3 ON …</pre></div>
   retenir:"Une jointure n’est pas limitée à 2 tables. Pour relier 3 tables, on enchaîne les jointures : <code>FROM table1 JOIN table2 ON … JOIN table3 ON …</code><br><br>Chaque <code>JOIN</code> ajoute une nouvelle table grâce à une correspondance entre leurs colonnes.",
   consigne:"Prépare les fiches du SAV : pour chaque achat, affiche le nom et l’e-mail du client, le produit acheté (<code>produit</code>) et la date de la commande.",
   solution:"SELECT clients.nom,\n       clients.email,\n       produits.nom AS produit,\n       commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nINNER JOIN produits\n    ON commandes.produit_id = produits.id;",
-  indice:"Pars de la table <code>commandes</code>, qui sert de pont. Ajoute <code>clients</code> avec <code>commandes.client_id = clients.id</code>, puis <code>produits</code> avec <code>commandes.produit_id = produits.id</code>.",
+  indice:"Pars de la table <code>commandes</code>, qui sert de pont. Ajoute la table <code>clients</code> avec <code>commandes.client_id = clients.id</code>, puis la table <code>produits</code> avec <code>commandes.produit_id = produits.id</code>.",
   joinRecap:'inner',
   richLesson:true, earlyDemo:true,
   testeVariants:[
@@ -14116,8 +14116,8 @@ learningCheck:{
       extra:`<div class="pk-comp ij-t"><p class="ij-tlab">table clients</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">ville</span><span>1</span><span>Sophie</span><span class="is-hit">Paris</span><span>2</span><span>Lucas</span><span class="is-hit">Lyon</span><span>3</span><span>Emma</span><span class="is-hit">Marseille</span><span>4</span><span>Nathan</span><span class="is-hit">Paris</span></div><p class="ij-tmore">… et 6 autres clients</p></div>
         <p>Dans la <code>table commandes</code>, on trouve les commandes&nbsp;:</p>
         <div class="pk-comp ij-t"><p class="ij-tlab">table commandes</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">client_id</span><span class="is-h">produit_id</span><span class="is-hit">1</span><span>1</span><span>1</span><span class="is-hit">2</span><span>1</span><span>3</span><span class="is-hit">3</span><span>2</span><span>6</span></div><p class="ij-tmore">… et 13 autres commandes</p></div>
-        <p class="ij-arrow">👉 <code>clients</code> connaît la ville.</p>
-        <p class="ij-arrow">👉 <code>commandes</code> connaît les commandes.</p>
+        <p class="ij-arrow">👉 La <code>table clients</code> connaît la ville.</p>
+        <p class="ij-arrow">👉 La <code>table commandes</code> connaît les commandes.</p>
         <p>Pour compter les commandes par ville, il faut d’abord <b>relier</b> ces deux informations.</p>`},
     uses:{title:"Écrire la requête",
       body:`<div class="pt-lead fn-uses fk-course jn-course">
@@ -14216,11 +14216,11 @@ FROM clients
     p:"On pourrait être tenté de regrouper directement la <code>table commandes</code>&nbsp;:",
     exec:true,
     sql:"SELECT ville, COUNT(*)\nFROM commandes\nGROUP BY ville;",
-    mid:"❌ Cela ne fonctionne pas&nbsp;: la colonne <code>ville</code> n’existe pas dans <code>commandes</code>. Elle se trouve dans <code>clients</code>.<br><br>La jointure permet d’avoir, dans le même résultat intermédiaire, <b>la ville du client + sa commande</b>. <code>GROUP BY</code> peut ensuite effectuer le regroupement demandé&nbsp;:",
+    mid:"❌ Cela ne fonctionne pas&nbsp;: la colonne <code>ville</code> n’existe pas dans la <code>table commandes</code>. Elle se trouve dans la <code>table clients</code>.<br><br>La jointure permet d’avoir, dans le même résultat intermédiaire, <b>la ville du client + sa commande</b>. <code>GROUP BY</code> peut ensuite effectuer le regroupement demandé&nbsp;:",
     fixSql:"SELECT clients.ville,\n       COUNT(commandes.id) AS nombre_commandes\nFROM clients\nINNER JOIN commandes\n    ON clients.id = commandes.client_id\nGROUP BY clients.ville;"},
   consigne:"Compte le nombre de commandes passées dans chaque ville. Affiche <code>ville</code> et <code>nombre_commandes</code>.",
   solution:"SELECT clients.ville,\n       COUNT(commandes.id) AS nombre_commandes\nFROM clients\nINNER JOIN commandes\n    ON clients.id = commandes.client_id\nGROUP BY clients.ville;",
-  indice:"Relie <code>clients</code> et <code>commandes</code> avec <code>INNER JOIN</code> sur <code>clients.id = commandes.client_id</code>, regroupe avec <code>GROUP BY clients.ville</code>, puis compte avec <code>COUNT(commandes.id)</code>.",
+  indice:"Relie la <code>table clients</code> et la <code>table commandes</code> avec <code>INNER JOIN</code> sur <code>clients.id = commandes.client_id</code>, regroupe avec <code>GROUP BY clients.ville</code>, puis compte avec <code>COUNT(commandes.id)</code>.",
   joinRecap:'inner',
   richLesson:true, earlyDemo:true,
   testeVariants:[
@@ -32002,7 +32002,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-25-num-lignes-v1077';
+  const SW_CACHE='requete-2026-09-25-join3-table-v1078';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
