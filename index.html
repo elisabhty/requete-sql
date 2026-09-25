@@ -9548,7 +9548,7 @@ INSERT INTO clients VALUES
  (2,'Lucas','Lyon',28,'lucas@mail.fr','06 39 98 21 47','2023-03-22'),
  (3,'Emma','Marseille',45,'emma@mail.fr','06 39 98 33 08','2022-11-05'),
  (4,'Nathan','Paris',31,'nathan@mail.fr','06 39 98 40 15','2023-06-10'),
- (5,'Chloé','Mobile',26,'chloe@mail.fr','06 39 98 51 62','2023-02-18'),
+ (5,'Chloé','Bordeaux',26,'chloe@mail.fr','06 39 98 51 62','2023-02-18'),
  (6,'Hugo','Lyon',52,NULL,'06 39 98 68 03','2022-09-30'),
  (7,'Léa','Paris',38,'lea@mail.fr','06 39 98 74 29','2023-05-12'),
  (8,'Gabriel','Toulouse',29,'gabriel@mail.fr','06 39 98 85 16','2023-04-08'),
@@ -9946,7 +9946,7 @@ FROM nom_table;</pre></div>
       </div>`},
     vs:{bad:{tag:"✕ Avec doublons",sql:"SELECT ville FROM clients;",out:"10 lignes : Paris apparaît 4 fois, Lyon 2 fois",
             code:"SELECT <span class=\"vs-line bad\">ville</span>\nFROM clients;"},
-        good:{tag:"✓ Sans doublons",sql:"SELECT DISTINCT ville FROM clients;",out:"6 villes : Paris, Lyon, Marseille, Mobile, Toulouse, Nantes",
+        good:{tag:"✓ Sans doublons",sql:"SELECT DISTINCT ville FROM clients;",out:"6 villes : Paris, Lyon, Marseille, Bordeaux, Toulouse, Nantes",
             code:"SELECT <span class=\"vs-line good\">DISTINCT ville</span>\nFROM clients;"}},
     point:"<code>DISTINCT</code> ne modifie pas les données de la table clients. Les 10 clients restent enregistrés : seuls les doublons sont retirés du résultat affiché.",
     why:{title:"Comment DISTINCT passe de 10 à 6 lignes ?"},
@@ -9969,7 +9969,7 @@ FROM nom_table;</pre></div>
     ]}
   ],
   exemple:"SELECT DISTINCT ville FROM clients;",
-  attendu:"<b>6 lignes</b> : Paris, Lyon, Marseille, Mobile, Toulouse et Nantes. Chaque ville apparaît une seule fois.",
+  attendu:"<b>6 lignes</b> : Paris, Lyon, Marseille, Bordeaux, Toulouse et Nantes. Chaque ville apparaît une seule fois.",
   retenir:"<code>DISTINCT</code> sert à afficher des valeurs uniques. Dans <code>SELECT DISTINCT ville FROM clients</code>, les 10 clients donnent seulement 6 villes différentes, car Paris et Lyon apparaissent plusieurs fois dans la table. Les doublons sont retirés du résultat, pas de la table.",
   piege:{lab:"À retenir",t:"DISTINCT avec plusieurs colonnes",
     p:"<code>DISTINCT</code> ne s’applique pas seulement à <code>ville</code>. SQL regarde la combinaison <code>ville</code> + <code>age</code>, et ne retire une ligne que si les deux valeurs sont identiques à celles d’une autre ligne.",
@@ -12005,7 +12005,7 @@ learningCheck:{
     ]}
   ],
   exemple:"SELECT ville, COUNT(*) FROM clients GROUP BY ville;",
-  attendu:"6 lignes : Paris — 4, Lyon — 2, Marseille — 1, Mobile — 1, Toulouse — 1, Nantes — 1.",
+  attendu:"6 lignes : Paris — 4, Lyon — 2, Marseille — 1, Bordeaux — 1, Toulouse — 1, Nantes — 1.",
   retenir:"<code>GROUP BY</code> sert à effectuer un calcul par groupe. Dans <code>SELECT ville, COUNT(*) FROM clients GROUP BY ville</code>, SQL rassemble les clients qui habitent dans la même ville, puis les compte. Résultat : une ligne par ville, avec le nombre de clients correspondant.",
   piege:{t:"Afficher une colonne qui n’est pas dans le <code>GROUP BY</code>",
     p:"Avec :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">GROUP BY ville</pre></div><br><br>SQL regroupe tous les clients qui habitent dans la même ville.<br><br>Pour Paris, il forme donc un groupe avec :<br><br><div class=\"gb-paris-names\">Sophie · Nathan · Léa · Nathan</div><br><br>Puis SQL doit afficher une seule ligne pour ce groupe.<br><br>Il peut afficher :<br><br><ul class=\"pt-lead-list\"><li><code>ville</code> → Paris : tous les clients du groupe ont la même ville.</li><li><code>COUNT(*)</code> → 4 : il peut compter les 4 clients du groupe.</li></ul><br><br>Mais il ne peut pas afficher simplement <code>nom</code> :<br>quel nom choisir parmi Sophie, Nathan et Léa ?<br><br>👉 C’est pour cela que <code>nom</code> ne doit pas être dans le <code>SELECT</code> si tu regroupes uniquement par ville.<br><br><b>❌ Incorrect</b>",
@@ -14174,7 +14174,7 @@ FROM clients
           <p>C’est ici que <code>GROUP BY</code> intervient&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax">GROUP BY <span class="fk-syn-hit">clients.ville</span></pre></div>
           <p>Les lignes ayant la même ville sont regroupées&nbsp;:</p>
-          <div class="pk-comp ij-t"><p class="ij-tlab">un groupe par ville</p><div class="pk-mini"><span class="is-h">ville</span><span class="is-h">commandes du groupe</span><span class="is-hit">Lyon</span><span>#3, #7, #10</span><span class="is-hit">Marseille</span><span>#4, #14</span><span class="is-hit">Mobile</span><span>#6, #15</span><span class="is-hit">Paris</span><span>#1, #2, #5, #8, #9, #12, #13</span><span class="is-hit">Toulouse</span><span>#11</span></div></div>
+          <div class="pk-comp ij-t"><p class="ij-tlab">un groupe par ville</p><div class="pk-mini"><span class="is-h">ville</span><span class="is-h">commandes du groupe</span><span class="is-hit">Bordeaux</span><span>#6, #15</span><span class="is-hit">Lyon</span><span>#3, #7, #10</span><span class="is-hit">Marseille</span><span>#4, #14</span><span class="is-hit">Paris</span><span>#1, #2, #5, #8, #9, #12, #13</span><span class="is-hit">Toulouse</span><span>#11</span></div></div>
           <p class="ij-arrow">👉 <code>GROUP BY</code> forme donc un groupe pour chaque ville.</p>
           <p>Mais il reste à savoir <b>combien de commandes</b> contient chaque groupe.</p>
         </div>
@@ -14185,7 +14185,7 @@ FROM clients
           <p>Le comptage est effectué <b>dans chaque groupe</b> créé par <code>GROUP BY</code>. Par exemple, pour Paris&nbsp;:</p>
           <ol class="ij-funnel" aria-label="Le groupe Paris contient 7 commandes"><li class="ij-fn-row"><b>7</b><span>Paris<small>7 commandes dans le groupe</small></span><i class="ij-fn-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></i></li></ol>
           <p>On obtient alors&nbsp;:</p>
-          <div class="pk-comp ij-t"><p class="ij-tlab">résultat</p><div class="pk-mini is-2"><span class="is-h">ville</span><span class="is-h">nombre_commandes</span><span>Lyon</span><span class="is-hit">3</span><span>Marseille</span><span class="is-hit">2</span><span>Mobile</span><span class="is-hit">2</span><span>Paris</span><span class="is-hit">7</span><span>Toulouse</span><span class="is-hit">1</span></div></div>
+          <div class="pk-comp ij-t"><p class="ij-tlab">résultat</p><div class="pk-mini is-2"><span class="is-h">ville</span><span class="is-h">nombre_commandes</span><span>Bordeaux</span><span class="is-hit">2</span><span>Lyon</span><span class="is-hit">3</span><span>Marseille</span><span class="is-hit">2</span><span>Paris</span><span class="is-hit">7</span><span>Toulouse</span><span class="is-hit">1</span></div></div>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">La requête complète</p>
@@ -14211,7 +14211,7 @@ FROM clients
           </div>
           <p>👇 Exécute la requête pour découvrir les villes qui commandent le plus&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT clients.ville,&#10;       COUNT(commandes.id) AS nombre_commandes&#10;FROM clients&#10;INNER JOIN commandes&#10;    ON clients.id = commandes.client_id&#10;GROUP BY clients.ville;"></div>
-          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 15 commandes reliées à 5 villes"><li class="ij-fn-row"><b>15</b><span>commandes reliées à une ville<small><code>INNER JOIN</code> : une ligne par commande</small></span><i class="ij-fn-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></i></li><li class="ij-fn-step"><code>GROUP BY clients.ville</code><small>un groupe par ville, puis <code>COUNT</code></small></li><li class="ij-fn-row is-out"><b>5</b><span>villes, chacune avec son total<small>Paris&nbsp;7&nbsp;· Lyon&nbsp;3&nbsp;· Marseille&nbsp;2&nbsp;· Mobile&nbsp;2&nbsp;· Toulouse&nbsp;1</small></span></li></ol><p class="ij-done-p ij-done-win">🏆 Paris arrive en tête avec 7 commandes.</p><p class="ij-done-p">Nantes n’apparaît pas&nbsp;: Inès, la seule cliente de Nantes, n’a encore passé aucune commande.</p></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 15 commandes reliées à 5 villes"><li class="ij-fn-row"><b>15</b><span>commandes reliées à une ville<small><code>INNER JOIN</code> : une ligne par commande</small></span><i class="ij-fn-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></i></li><li class="ij-fn-step"><code>GROUP BY clients.ville</code><small>un groupe par ville, puis <code>COUNT</code></small></li><li class="ij-fn-row is-out"><b>5</b><span>villes, chacune avec son total<small>Paris&nbsp;7&nbsp;· Lyon&nbsp;3&nbsp;· Marseille&nbsp;2&nbsp;· Bordeaux&nbsp;2&nbsp;· Toulouse&nbsp;1</small></span></li></ol><p class="ij-done-p ij-done-win">🏆 Paris arrive en tête avec 7 commandes.</p><p class="ij-done-p">Nantes n’apparaît pas&nbsp;: Inès, la seule cliente de Nantes, n’a encore passé aucune commande.</p></div>
           <div class="sit-memo">
             <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
             <p><code>JOIN</code> relie une commande à la ville de son client.</p>
@@ -14237,7 +14237,7 @@ FROM clients
     {tok:"GROUP BY clients.ville",txt:"Regroupe les lignes qui appartiennent à la même ville avant de les compter."}
   ],
   exemple:"SELECT clients.ville,\n       COUNT(commandes.id) AS nombre_commandes\nFROM clients\nINNER JOIN commandes\n    ON clients.id = commandes.client_id\nGROUP BY clients.ville;",
-  attendu:"<b>5 lignes</b> : une par ville ayant au moins une commande. Paris : 7, Lyon : 3, Marseille : 2, Mobile : 2, Toulouse : 1.",
+  attendu:"<b>5 lignes</b> : une par ville ayant au moins une commande. Paris : 7, Lyon : 3, Marseille : 2, Bordeaux : 2, Toulouse : 1.",
   retenir:"Quand l’information utilisée pour regrouper et celle utilisée pour compter se trouvent dans des tables différentes :<br><br>① <b>JOIN</b> relie les informations.<br>② <b>GROUP BY</b> forme les groupes.<br>③ <b>COUNT</b> calcule dans chaque groupe.<br><br>On relie d’abord les données, puis on les regroupe pour effectuer le calcul.",
   piege:{t:"Pourquoi la jointure est-elle indispensable&nbsp;?",
     p:"On pourrait être tenté de regrouper directement la <code>table commandes</code>&nbsp;:",
@@ -30246,7 +30246,7 @@ const SQL_VIZ={
     {nom:'Lucas',ville:'Lyon',age:28,email:'lucas@mail.fr',telephone:'06 39 98 21 47'},
     {nom:'Emma',ville:'Marseille',age:45,email:'emma@mail.fr',telephone:'06 39 98 33 08'},
     {nom:'Nathan',ville:'Paris',age:31,email:'nathan@mail.fr',telephone:'06 39 98 40 15'},
-    {nom:'Chloé',ville:'Mobile',age:26,email:'chloe@mail.fr',telephone:'06 39 98 51 62'},
+    {nom:'Chloé',ville:'Bordeaux',age:26,email:'chloe@mail.fr',telephone:'06 39 98 51 62'},
     {nom:'Hugo',ville:'Lyon',age:52,email:null,telephone:'06 39 98 68 03'},
     {nom:'Léa',ville:'Paris',age:38,email:'lea@mail.fr',telephone:'06 39 98 74 29'},
     {nom:'Gabriel',ville:'Toulouse',age:29,email:'gabriel@mail.fr',telephone:'06 39 98 85 16'},
@@ -30258,7 +30258,7 @@ const SQL_VIZ={
     {k:"WHERE ville = 'Paris'",d:"SQL teste chaque ligne. Il n’en reste que 4 : celles qui respectent la condition ville = 'Paris'. Rien n’est effacé de la table."}
   ],chips:[
     {t:'Sophie',extra:'Paris',keep:1},{t:'Lucas',extra:'Lyon',keep:0},{t:'Emma',extra:'Marseille',keep:0},{t:'Nathan',extra:'Paris',keep:1},
-    {t:'Chloé',extra:'Mobile',keep:0},{t:'Hugo',extra:'Lyon',keep:0},{t:'Léa',extra:'Paris',keep:1},{t:'Gabriel',extra:'Toulouse',keep:0},{t:'Inès',extra:'Nantes',keep:0},{t:'Nathan n°10',extra:'Paris',keep:1}
+    {t:'Chloé',extra:'Bordeaux',keep:0},{t:'Hugo',extra:'Lyon',keep:0},{t:'Léa',extra:'Paris',keep:1},{t:'Gabriel',extra:'Toulouse',keep:0},{t:'Inès',extra:'Nantes',keep:0},{t:'Nathan n°10',extra:'Paris',keep:1}
   ]},
   compare:{kind:'filter',phases:[
     {k:'SELECT nom, prix FROM produits',d:'SQL commence par récupérer les colonnes demandées. La table produits contient 8 lignes. Pour l’instant, aucun filtre n’est appliqué : les 8 produits sont donc présents.'},
@@ -30274,7 +30274,7 @@ const SQL_VIZ={
     {k:"AND age > 35",d:'Parmi ces 4 clients, SQL vérifie maintenant la deuxième condition : avoir plus de 35 ans. Seule Léa respecte les deux conditions.'}
   ],chips:[
     {t:'Sophie',extra:'Paris · 34',cmp:'> 35',keep0:1,keep:0},{t:'Lucas',extra:'Lyon · 28',keep0:0,keep:0},{t:'Emma',extra:'Marseille · 45',keep0:0,keep:0},
-    {t:'Nathan',extra:'Paris · 31',cmp:'> 35',keep0:1,keep:0},{t:'Chloé',extra:'Mobile · 26',keep0:0,keep:0},{t:'Hugo',extra:'Lyon · 52',keep0:0,keep:0},
+    {t:'Nathan',extra:'Paris · 31',cmp:'> 35',keep0:1,keep:0},{t:'Chloé',extra:'Bordeaux · 26',keep0:0,keep:0},{t:'Hugo',extra:'Lyon · 52',keep0:0,keep:0},
     {t:'Léa',extra:'Paris · 38',cmp:'> 35',keep0:1,keep:1},{t:'Gabriel',extra:'Toulouse · 29',keep0:0,keep:0},{t:'Inès',extra:'Nantes · 41',keep0:0,keep:0},{t:'Nathan n°10',extra:'Paris · 30',cmp:'> 35',keep0:1,keep:0}
   ]},
   or:{kind:'filter',phases:[
@@ -30283,7 +30283,7 @@ const SQL_VIZ={
     {k:"OR ville = 'Lyon'",d:'SQL accepte maintenant deux possibilités : habiter à Paris ou habiter à Lyon. Une ligne est conservée dès qu’elle respecte au moins une des deux conditions. 6 clients sur 10 sont conservés : les 4 clients de Paris et les 2 clients de Lyon.'}
   ],chips:[
     {t:'Sophie',extra:'Paris',keep0:1,keep:1},{t:'Lucas',extra:'Lyon',keep0:0,keep:1},{t:'Emma',extra:'Marseille',keep0:0,keep:0},
-    {t:'Nathan',extra:'Paris',keep0:1,keep:1},{t:'Chloé',extra:'Mobile',keep0:0,keep:0},{t:'Hugo',extra:'Lyon',keep0:0,keep:1},
+    {t:'Nathan',extra:'Paris',keep0:1,keep:1},{t:'Chloé',extra:'Bordeaux',keep0:0,keep:0},{t:'Hugo',extra:'Lyon',keep0:0,keep:1},
     {t:'Léa',extra:'Paris',keep0:1,keep:1},{t:'Gabriel',extra:'Toulouse',keep0:0,keep:0},{t:'Inès',extra:'Nantes',keep0:0,keep:0},{t:'Nathan',extra:'Paris',keep0:1,keep:1}
   ]},
   nulls:{kind:'filter',phases:[
@@ -30347,7 +30347,7 @@ const SQL_VIZ={
     {k:"WHERE ville IN ('Paris', 'Lyon')",d:'Pour chaque client, SQL vérifie si sa ville se trouve dans la liste (\'Paris\', \'Lyon\'). Si oui, le client est gardé. Sinon, il est écarté. Résultat : 6 clients, ceux de Paris ou de Lyon.'}
   ],chips:[
     {t:'Sophie',extra:'Paris',keep:1},{t:'Lucas',extra:'Lyon',keep:1},{t:'Emma',extra:'Marseille',keep:0},
-    {t:'Nathan',extra:'Paris',keep:1},{t:'Chloé',extra:'Mobile',keep:0},{t:'Hugo',extra:'Lyon',keep:1},
+    {t:'Nathan',extra:'Paris',keep:1},{t:'Chloé',extra:'Bordeaux',keep:0},{t:'Hugo',extra:'Lyon',keep:1},
     {t:'Léa',extra:'Paris',keep:1},{t:'Gabriel',extra:'Toulouse',keep:0},{t:'Inès',extra:'Nantes',keep:0},{t:'Nathan n°10',extra:'Paris',keep:1}
   ]},
   between:{kind:'filter',phases:[
@@ -30383,7 +30383,7 @@ const SQL_VIZ={
     {k:'6 villes différentes',d:'Les villes en double disparaissent du résultat. Aucun client n’a été supprimé de la table clients : elle contient toujours ses 10 lignes.'}
   ],chips:[
     {t:'Paris',keep:1},{t:'Lyon',keep:1},{t:'Marseille',keep:1},{t:'Paris',keep:0},
-    {t:'Mobile',keep:1},{t:'Lyon',keep:0},{t:'Paris',keep:0},{t:'Toulouse',keep:1},{t:'Nantes',keep:1},{t:'Paris',keep:0}
+    {t:'Bordeaux',keep:1},{t:'Lyon',keep:0},{t:'Paris',keep:0},{t:'Toulouse',keep:1},{t:'Nantes',keep:1},{t:'Paris',keep:0}
   ]},
   count:{kind:'count',phases:[
     {k:'SELECT nom FROM clients',d:'Les 10 noms s’affichent. Pour connaître le total, il faut encore les compter.'},
@@ -30439,11 +30439,11 @@ const SQL_VIZ={
     {k:'COUNT(*) par groupe',btn:'Compter chaque groupe',d:'<code>COUNT(*)</code> compte ensuite le nombre de lignes dans chaque groupe. SQL renvoie une ligne par ville avec son total.'}
   ],buckets:[
     {cat:'Paris',n:4,keep:1},{cat:'Lyon',n:2,keep:1},{cat:'Marseille',n:1,keep:1},
-    {cat:'Mobile',n:1,keep:1},{cat:'Toulouse',n:1,keep:1},{cat:'Nantes',n:1,keep:1}
+    {cat:'Bordeaux',n:1,keep:1},{cat:'Toulouse',n:1,keep:1},{cat:'Nantes',n:1,keep:1}
   ],chips:[
     {t:'Sophie',extra:'Paris',cat:'Paris',keep:1},{t:'Lucas',extra:'Lyon',cat:'Lyon',keep:1},
     {t:'Emma',extra:'Marseille',cat:'Marseille',keep:1},{t:'Nathan',extra:'Paris',cat:'Paris',keep:1},
-    {t:'Chloé',extra:'Mobile',cat:'Mobile',keep:1},{t:'Hugo',extra:'Lyon',cat:'Lyon',keep:1},
+    {t:'Chloé',extra:'Bordeaux',cat:'Bordeaux',keep:1},{t:'Hugo',extra:'Lyon',cat:'Lyon',keep:1},
     {t:'Léa',extra:'Paris',cat:'Paris',keep:1},{t:'Gabriel',extra:'Toulouse',cat:'Toulouse',keep:1},
     {t:'Inès',extra:'Nantes',cat:'Nantes',keep:1},{t:'Nathan',extra:'Paris',cat:'Paris',keep:1}
   ]},
@@ -31207,7 +31207,7 @@ function groupbyBucketLayout(sw){
     'Paris':{x:pad,y:pad,w:half,h:topH,cols:1},
     'Lyon':{x:pad+half+gap,y:pad,w:half,h:topH,cols:1},
     'Marseille':{x:pad,y:y1,w:half,h:midH,cols:1},
-    'Mobile':{x:pad+half+gap,y:y1,w:half,h:midH,cols:1},
+    'Bordeaux':{x:pad+half+gap,y:y1,w:half,h:midH,cols:1},
     'Toulouse':{x:pad,y:y2,w:half,h:botH,cols:1},
     'Nantes':{x:pad+half+gap,y:y2,w:half,h:botH,cols:1},
     _h:y2+botH+pad
@@ -31215,7 +31215,7 @@ function groupbyBucketLayout(sw){
 }
 function groupbyResultLayout(sw){
   const pad=0,gap=6,rowH=46,inner=sw-pad*2;
-  const cities=['Paris','Lyon','Marseille','Mobile','Toulouse','Nantes'];
+  const cities=['Paris','Lyon','Marseille','Bordeaux','Toulouse','Nantes'];
   const layout={};
   cities.forEach((cat,i)=>{
     layout[cat]={x:pad,y:pad+i*(rowH+gap),w:inner,h:rowH,cols:1};
