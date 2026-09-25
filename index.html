@@ -2196,18 +2196,15 @@
   .fk-ref-link svg{display:block;width:18px;height:20px;overflow:visible}
   .fk-ref-link svg path{fill:none;stroke:var(--accent);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
   .fk-ref-link em{font-style:normal;font-size:11.5px;font-weight:800;letter-spacing:.2px;color:var(--accent)}
-  .fk-syn-map{display:flex;flex-direction:column;align-items:center;gap:6px;margin:12px 0 2px;padding:12px;border-radius:16px;background:#fff;border:1px solid var(--card-border)}
-  .fk-syn-map article{display:flex;flex-direction:column;align-items:center;gap:5px;width:100%;padding:12px 10px;border-radius:14px;background:var(--surface);text-align:center;animation:fkTreeIn .36s ease both}
-  .fk-syn-map article:nth-child(3){animation-delay:.18s}
-  .fk-syn-map code{font-family:var(--mono);font-size:12.5px;font-weight:800;color:var(--ink)}
-  .fk-syn-map span{padding:4px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12.5px;font-weight:700}
-  .fk-syn-map i{display:flex;align-items:center;justify-content:center;height:16px}
-  .fk-syn-map i svg{display:block;width:14px;height:100%;overflow:visible}
-  .fk-syn-flow-line{fill:none;stroke:var(--accent);stroke-width:1.6;stroke-linecap:round;opacity:.3}
-  .fk-syn-flow-head{fill:none;stroke:var(--accent);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;opacity:.55}
-  .fk-syn-flow-dot{fill:var(--accent);animation:fkSynFlowDot 1.6s ease-in-out infinite}
-  .fk-syn-map i:nth-of-type(2) .fk-syn-flow-dot{animation-delay:.3s}
-  @keyframes fkSynFlowDot{0%{transform:translateY(0);opacity:0}12%{opacity:1}80%{opacity:1}100%{transform:translateY(10px);opacity:0}}
+  .fk-syn-map{list-style:none;display:flex;flex-direction:column;gap:0;margin:12px 0 2px;padding:6px 14px;border-radius:16px;background:#fff;border:1px solid var(--card-border)}
+  .fk-syn-map li{position:relative;display:grid;grid-template-columns:26px 1fr;column-gap:12px;align-items:start;margin:0;padding:12px 0;animation:fkTreeIn .36s ease both}
+  .fk-syn-map li + li{border-top:1px dashed var(--line)}
+  .fk-syn-map li:nth-child(2){animation-delay:.12s}
+  .fk-syn-map li:nth-child(3){animation-delay:.24s}
+  .fk-syn-map b{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent-ink);font-size:12.5px;font-weight:800;line-height:1}
+  .fk-syn-map div{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0;padding-top:3px}
+  .fk-syn-map code{font-family:var(--mono);font-size:12.5px;font-weight:800;color:var(--ink);overflow-wrap:anywhere}
+  .fk-syn-map span{font-size:13.5px;font-weight:500;line-height:1.4;color:var(--ink-2)}
   .fk-quiz-pair{display:flex;flex-direction:column;gap:8px;margin:12px 0 2px}
   .fk-quiz-pair article{display:flex;flex-direction:column;gap:6px;padding:12px 13px;border-radius:14px;background:var(--surface-2)}
   .fk-quiz-pair b{font-size:10.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--accent)}
@@ -12950,19 +12947,10 @@ learningCheck:{
     REFERENCES clients(id)</span>
 );</pre></div>
           <p>Concentrons-nous sur ces deux lignes. On peut les lire presque comme une phrase&nbsp;:</p>
-          <div class="fk-syn-map" aria-label="Lecture de FOREIGN KEY et REFERENCES">
-            <article>
-              <code>FOREIGN KEY (client_id)</code>
-              <i aria-hidden="true">↓</i>
-              <span>client_id est une clé étrangère</span>
-            </article>
-            <i aria-hidden="true">↓</i>
-            <article>
-              <code>REFERENCES clients(id)</code>
-              <i aria-hidden="true">↓</i>
-              <span>qui fait référence à clients.id</span>
-            </article>
-          </div>
+          <ol class="fk-syn-map" aria-label="Lecture de FOREIGN KEY et REFERENCES">
+            <li><b aria-hidden="true">1</b><div><code>FOREIGN KEY (client_id)</code><span>client_id est une clé étrangère</span></div></li>
+            <li><b aria-hidden="true">2</b><div><code>REFERENCES clients(id)</code><span>qui fait référence à clients.id</span></div></li>
+          </ol>
           <p>Donc&nbsp;: «&nbsp;<code>client_id</code> est une clé étrangère qui fait référence à <code>id</code> de la table <code>clients</code>.&nbsp;»</p>
         </div>
         <div class="fn-use">
@@ -14209,25 +14197,11 @@ FROM clients
         <div class="fn-use">
           <p class="pt-syntax-h">La requête complète</p>
           <p>On réunit maintenant les trois éléments&nbsp;:</p>
-          <div class="fk-syn-map" aria-label="Relier, regrouper, compter">
-            <article>
-              <code>INNER JOIN commandes</code>
-              <i aria-hidden="true">↓</i>
-              <span>relier une commande à sa ville</span>
-            </article>
-            <i aria-hidden="true">↓</i>
-            <article>
-              <code>GROUP BY clients.ville</code>
-              <i aria-hidden="true">↓</i>
-              <span>réunir les commandes d’une même ville</span>
-            </article>
-            <i aria-hidden="true">↓</i>
-            <article>
-              <code>COUNT(commandes.id)</code>
-              <i aria-hidden="true">↓</i>
-              <span>compter les commandes de chaque groupe</span>
-            </article>
-          </div>
+          <ol class="fk-syn-map" aria-label="Relier, regrouper, compter">
+            <li><b aria-hidden="true">1</b><div><code>INNER JOIN commandes</code><span>Relier chaque commande à la ville du client</span></div></li>
+            <li><b aria-hidden="true">2</b><div><code>GROUP BY clients.ville</code><span>Réunir les commandes d’une même ville</span></div></li>
+            <li><b aria-hidden="true">3</b><div><code>COUNT(commandes.id)</code><span>Compter les commandes de chaque groupe</span></div></li>
+          </ol>
           <p>👇 Exécute la requête pour découvrir les villes qui commandent le plus&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT clients.ville,&#10;       COUNT(commandes.id) AS nombre_commandes&#10;FROM clients&#10;INNER JOIN commandes&#10;    ON clients.id = commandes.client_id&#10;GROUP BY clients.ville;"></div>
           <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 15 commandes reliées à 5 villes"><li class="ij-fn-row"><b>15</b><span>commandes reliées à une ville<small><code>INNER JOIN</code> : une ligne par commande</small></span><i class="ij-fn-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></i></li><li class="ij-fn-step"><code>GROUP BY clients.ville</code><small>un groupe par ville, puis <code>COUNT</code></small></li><li class="ij-fn-row is-out"><b>5</b><span>villes, chacune avec son total<small>Paris&nbsp;7&nbsp;· Lyon&nbsp;3&nbsp;· Marseille&nbsp;2&nbsp;· Bordeaux&nbsp;2&nbsp;· Toulouse&nbsp;1</small></span></li></ol><p class="ij-done-p ij-done-win">🏆 Paris arrive en tête avec 7 commandes.</p><p class="ij-done-p">Nantes n’apparaît pas&nbsp;: Inès, la seule cliente de Nantes, n’a encore passé aucune commande.</p></div>
