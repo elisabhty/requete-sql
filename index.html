@@ -1533,6 +1533,11 @@
   .on-where li{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:12px;background:#fff;border:1px solid var(--card-border)}
   .on-where li code{width:max-content;max-width:100%;white-space:normal}
   .on-where li span{font-size:13.5px;line-height:1.45;color:var(--ink-2)}
+  /* Sous-requête dans WHERE avec IN */
+  p.ij-box.sq-list code{font-size:15px;font-weight:800;letter-spacing:.5px}
+  .sit-memo.sq-notin{margin-top:18px}
+  .sit-memo.sq-notin .pt-syntax{margin:8px 0 10px}
+  .sit-memo.sq-notin .ij-need{margin:10px 0 12px}
   /* SELF JOIN : la table clients dans ses deux rôles (À retenir) */
   .sj-tree{display:flex;flex-direction:column;align-items:center;gap:4px;margin:10px 0 12px;padding:14px 12px;border-radius:14px;background:var(--surface-2)}
   .sj-root,.sj-q{padding:4px 12px;border-radius:999px;font-family:var(--mono);font-size:12px;font-weight:800}
@@ -14541,77 +14546,128 @@ learningCheck:{
 }
 ]},
 { titre:"Sous-requêtes et ensembles", sous:"IN, EXISTS, CTE et UNION", lessons:[
-{ id:45, titre:"Sous-requête dans WHERE avec IN", résumé:"Filtrer avec une liste issue d’une autre requête",
-  situation:"Tu prépares une offre pour les clients qui ont déjà acheté le produit « Fibre Prébiotique » et tu veux retrouver leurs noms.<br><br>Le nom du client est dans la table <code>clients</code>, tandis que les achats sont enregistrés dans la table <code>commandes</code>.<br><br>Dans <code>commandes</code>, le produit « Fibre Prébiotique » (<code>produit_id = 1</code>) apparaît quatre fois :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th class=\"col-hl\">client_id</th><th>produit</th></tr></thead><tbody><tr><td>1</td><td class=\"col-hl\">1</td><td>Fibre Prébiotique</td></tr><tr><td>5</td><td class=\"col-hl\">4</td><td>Fibre Prébiotique</td></tr><tr><td>8</td><td class=\"col-hl\">7</td><td>Fibre Prébiotique</td></tr><tr><td>15</td><td class=\"col-hl\">5</td><td>Fibre Prébiotique</td></tr></tbody></table></div>",
-  situationTail:"Les <code>client_id</code> associés sont 1, 4, 7 et 5.<br><br>Il faut maintenant retrouver dans la table <code>clients</code> les clients dont l’<code>id</code> appartient à cette liste.<br><br>C’est justement ce que permet une sous-requête avec <code>IN</code> : la sous-requête récupère d’abord les identifiants, puis la requête principale utilise cette liste pour filtrer les clients.",
-  studio:{pointCards:{
-      eye:"IN",title:"La sous-requête crée une liste.",
-      lead:"<p>Une sous-requête est simplement une requête SQL imbriquée à l’intérieur d’une autre requête. Lorsqu’on l’utilise avec <code>WHERE ... IN</code>, elle permet de filtrer les résultats de la requête principale en fonction d’une liste de valeurs dynamiques générées par la sous-requête.</p>",
-      syntaxTitle:"Syntaxe de base",
-      syntax:"SELECT colonne1, colonne2\nFROM table_principale\nWHERE colonne_x IN (SELECT colonne_y FROM table_secondaire WHERE condition);",
-      chain:[
-        {k:"Créer la liste",v:"SELECT client_id … WHERE produit_id = 1",out:"→ on obtient : 1, 4, 7, 5"},
-        {k:"Vérifier dans la liste",v:"clients.id IN (…)"}
-      ],
-      cards:[
-        {t:"Sous-requête entre parenthèses",
-         b:"<p>La sous-requête se place entre parenthèses après <code>IN</code>. Elle retourne ici les <code>client_id</code> 1, 4, 7 et 5 — ceux de la « Fibre Prébiotique ».</p>"},
-        {t:"Ordre d’exécution",draw:"repeat",src:"clients.id",outs:["1 Sophie","4 Nathan","5 Chloé","7 Léa"],
-         b:"<p>SQL exécute d’abord la sous-requête, puis utilise la liste obtenue pour filtrer la requête principale.</p>"}
-      ]},
-    reflex:{a:{k:"Sous-requête",t:"crée la liste"},
-      b:{k:"IN",t:"vérifie si la valeur est dans la liste"},
-      note:"Si une sous-requête permet d’obtenir plusieurs valeurs possibles, utilise <code>IN (sous-requête)</code> pour vérifier si une valeur en fait partie."},
-    viz:"subquery_in"},
+{ id:45, titre:"Sous-requête dans WHERE avec IN", résumé:"Quels clients ont déjà commandé du Magnésium ?",
+  situation:`<p>L’équipe souhaite retrouver <b>tous les clients ayant déjà commandé du Magnésium</b>.</p><p>🤔 <b>Problème&nbsp;:</b> les informations nécessaires sont réparties dans plusieurs tables.</p><div class="pk-comp ij-t"><p class="ij-tlab">table clients</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">ville</span><span>1</span><span>Sophie</span><span>Paris</span><span>2</span><span>Lucas</span><span>Lyon</span><span>3</span><span>Emma</span><span>Marseille</span></div><p class="ij-tmore">… et 7 autres clients</p></div><p>👆 La <code>table&nbsp;clients</code> contient les clients.</p><div class="pk-comp ij-t"><p class="ij-tlab">table commandes</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">client_id</span><span class="is-h">produit_id</span><span>1</span><span>1</span><span>1</span><span>2</span><span>1</span><span>3</span><span>3</span><span>2</span><span>6</span></div><p class="ij-tmore">… et 13 autres commandes</p></div><p>👆 La <code>table&nbsp;commandes</code> contient les achats.</p><p class="ij-box">On veut afficher des clients, mais le critère recherché se trouve dans leurs commandes.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Retrouve les clients qui ont déjà commandé du Magnésium.</p></div>`,
+    studio:{problem:{eye:"",title:"Partir de la question principale",
+      body:"Le résultat final doit contenir des <b>clients</b>. On commence donc par&nbsp;:",
+      extra:`<div class="pt-syntax"><pre class="cw-syntax">SELECT nom
+FROM clients;</pre></div>
+        <p>Mais on ne veut pas tous les clients&nbsp;: seulement ceux dont l’<code>id</code> apparaît parmi les clients qui ont commandé du Magnésium. On arrive donc à&nbsp;:</p>
+        <div class="pt-syntax"><pre class="cw-syntax">SELECT nom
+FROM clients
+WHERE id <span class="fk-syn-hit">IN (...)</span>;</pre></div>
+        <p class="ij-box"><code>IN</code> signifie ici&nbsp;: «&nbsp;l’id du client fait-il partie de cette liste&nbsp;?&nbsp;»</p>
+        <p class="ij-arrow">👉 Reste à construire cette liste.</p>`},
+    uses:{title:"Écrire la requête",
+      body:`<div class="pt-lead fn-uses fk-course jn-course">
+        <div class="fn-use">
+          <p class="pt-syntax-h">La sous-requête construit la liste</p>
+          <p>Dans la <code>table&nbsp;commandes</code>, <code>client_id</code> indique quel client a passé chaque commande. Le Magnésium a l’identifiant <code>3</code> dans la <code>table&nbsp;produits</code>. On peut donc rechercher&nbsp;:</p>
+          <p>👇 Exécute cette requête&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT client_id&#10;FROM commandes&#10;WHERE produit_id = 3;"></div>
+          <p>Elle construit une liste d’identifiants de clients&nbsp;:</p>
+          <p class="ij-box sq-list"><code>(1, 2)</code></p>
+          <p class="ij-arrow">👉 C’est cette requête que l’on va placer à l’intérieur de la requête principale.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Placer la sous-requête dans WHERE</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT nom
+FROM clients
+WHERE id IN (
+    <span class="fk-syn-hit">SELECT client_id</span>
+    <span class="fk-syn-hit">FROM commandes</span>
+    <span class="fk-syn-hit">WHERE produit_id = 3</span>
+);</pre></div>
+          <p>La partie surlignée, entre parenthèses, est la <b>sous-requête</b>. Elle fournit les valeurs utilisées par <code>IN</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Comprendre le mécanisme</p>
+          <p>On peut lire la requête en deux temps.</p>
+          <p><b>① La sous-requête</b> renvoie les identifiants&nbsp;:</p>
+          <div class="pk-comp ij-t"><p class="ij-tlab">résultat de la sous-requête</p><div class="pk-mini is-1"><span class="is-h">client_id</span><span class="is-hit">1</span><span class="is-hit">2</span></div></div>
+          <p><b>② La requête principale</b>&nbsp;: le <code>WHERE</code> revient alors à vérifier&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">WHERE id IN (1, 2)</pre></div>
+          <p>Pour chaque client&nbsp;:</p>
+          <div class="pk-comp ij-t"><p class="ij-tlab">chaque client est testé</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">id IN (1, 2)</span><span>1</span><span>Sophie</span><span class="is-hit">✅</span><span>2</span><span>Lucas</span><span class="is-hit">✅</span><span>3</span><span>Emma</span><span>❌</span><span>4</span><span>Nathan</span><span>❌</span></div><p class="ij-tmore">… et 6 autres clients ❌</p></div>
+          <p class="ij-arrow">👉 Seuls les clients dont l’identifiant appartient au résultat de la sous-requête sont conservés.</p>
+          <p>👇 Exécute la requête complète pour le vérifier&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT nom&#10;FROM clients&#10;WHERE id IN (&#10;    SELECT client_id&#10;    FROM commandes&#10;    WHERE produit_id = 3&#10;);"></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 10 clients à 2 clients qui ont commandé du Magnésium"><li class="ij-fn-row"><b>10</b><span>clients au départ<small>toute la table clients</small></span><i class="ij-fn-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></i></li><li class="ij-fn-step"><code>WHERE id IN (1, 2)</code><small>la liste vient de la sous-requête</small></li><li class="ij-fn-row is-out"><b>2</b><span>clients ont commandé du Magnésium<small>Sophie et Lucas</small></span><i class="ij-fn-dots" aria-hidden="true"><i class="is-null"></i><i class="is-null"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></i></li></ol></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Pourquoi utiliser IN&nbsp;?</p>
+          <p>Une sous-requête peut renvoyer <b>plusieurs valeurs</b>. Ici, deux clients ont commandé du Magnésium&nbsp;: 1 et 2.</p>
+          <p>On ne peut donc pas écrire&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">WHERE id <span class="fk-syn-hit">=</span> (
+    SELECT client_id ...
+)</pre></div>
+          <p>car <code>=</code> attend ici <b>une seule valeur</b>.</p>
+          <p class="ij-arrow">⚠️ SQLite ne signale pas d’erreur&nbsp;: il garde seulement la première valeur de la liste. Le résultat ne contient alors que Sophie, et Lucas disparaît sans prévenir. D’autres bases, comme PostgreSQL, renvoient une erreur.</p>
+          <p>Avec <code>IN</code>, on vérifie l’appartenance à <b>tout un ensemble</b> de valeurs&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">WHERE id <span class="fk-syn-hit">IN</span> (
+    sous-requête
+);</pre></div>
+          <div class="sit-memo sq-notin">
+            <p class="sit-memo-lab"><i aria-hidden="true">🔄</i>Et l’inverse&nbsp;? NOT IN</p>
+            <p><code>IN</code> conserve les lignes dont la valeur apparaît dans le résultat de la sous-requête. <code>NOT IN</code> fait l’inverse&nbsp;: il conserve celles dont la valeur <b>n’apparaît pas</b>.</p>
+            <p>Avec la même situation, on peut rechercher les clients qui n’ont <b>jamais</b> commandé de Magnésium&nbsp;:</p>
+            <div class="pt-syntax"><pre class="cw-syntax">SELECT nom
+FROM clients
+WHERE id <span class="fk-syn-hit">NOT IN</span> (
+    SELECT client_id
+    FROM commandes
+    WHERE produit_id = 3
+);</pre></div>
+            <p>La sous-requête renvoie <code>(1, 2)</code>, donc le <code>WHERE</code> revient à <code>id NOT IN (1, 2)</code>&nbsp;:</p>
+            <p>👉 Les clients 1 et 2 sont écartés.<br>👉 Les 8 autres sont conservés.</p>
+            <div class="ij-need" role="list" aria-label="IN et NOT IN"><div role="listitem"><b>IN</b><span>fait partie du résultat</span></div><div role="listitem"><b>NOT IN</b><span class="is-b">n’en fait pas partie</span></div></div>
+            <p>⚠️ <b>Attention aux <code>NULL</code>.</b> Si la sous-requête peut renvoyer <code>NULL</code>, <code>NOT IN</code> peut donner un résultat inattendu. Dans notre base, <code>commandes.client_id</code> vaut justement <code>NULL</code> pour la commande n°16 (Vitamine D)&nbsp;: pour ce produit, <code>NOT IN</code> ne renvoie <b>aucun</b> client. On verra que <code>NOT EXISTS</code> est souvent plus sûr dans ce cas.</p>
+          </div>
+        </div>
+      </div>`},
+    reflexTitle:"À retenir",
+    reflex:{extra:`<p>Une sous-requête dans <code>WHERE</code> avec <code>IN</code> permet de répondre à une question en utilisant le résultat d’une autre requête comme <b>liste de valeurs</b>.</p>
+          <p>La structure à retenir&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT colonne
+FROM table
+WHERE colonne IN (
+    SELECT colonne
+    FROM autre_table
+    WHERE condition
+);</pre></div>
+          <p>Dans notre exemple&nbsp;:</p>
+          <div class="memory-rule is-trio is-chain"><div class="memory-a"><b>Sous-requête</b><span>quels client_id ont commandé du Magnésium&nbsp;?</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>IN</b><span>l’id de ce client fait-il partie de cette liste&nbsp;?</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>Requête principale</b><span>afficher les clients concernés</span></div></div>
+          <p class="agg-reflex" style="margin-top:14px">👉 La sous-requête trouve les identifiants&nbsp;; <code>IN</code> permet de retrouver les lignes correspondantes dans la requête principale.</p>`}},
+  noTeste:true,
+  noAnat:true,
   anatomie:[
-    {tok:"SELECT clients.nom",txt:"La colonne à afficher."},
-    {tok:"FROM clients",txt:"La table principale."},
-    {tok:"WHERE clients.id IN (...)",txt:"Filtre les clients dont l’id est dans la liste retournée."},
-    {tok:"(SELECT commandes.client_id FROM commandes WHERE commandes.produit_id = 1)",txt:"Sous-requête qui récupère les clients ayant commandé la « Fibre Prébiotique »."}
+    {tok:"SELECT nom",txt:"La colonne à afficher."},
+    {tok:"FROM clients",txt:"La table principale : on veut des clients."},
+    {tok:"WHERE id IN (...)",txt:"Garde les clients dont l’id fait partie de la liste."},
+    {tok:"(SELECT client_id FROM commandes WHERE produit_id = 3)",txt:"La sous-requête : les clients qui ont commandé du Magnésium."}
   ],
-  exemple:"SELECT clients.nom\nFROM clients\nWHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);",
-  attendu:"4 lignes : Sophie, Nathan, Chloé et Léa — les clients ayant commandé la « Fibre Prébiotique ».",
-  retenir:"Une sous-requête dans <code>WHERE</code> peut fabriquer une <b>liste</b>. <code>IN</code> teste ensuite si une valeur appartient à cette liste.<br><br>La sous-requête doit renvoyer <b>une seule colonne</b>. Avec plusieurs valeurs possibles, n’utilise pas <code>=</code>. SQL exécute d’abord l’intérieur des parenthèses.",
-  piege:{t:"Une seule colonne",
-    p:"La sous-requête après <code>IN</code> doit obligatoirement retourner une seule colonne (par exemple <code>SELECT client_id</code>). Si vous sélectionnez deux colonnes, SQL renverra une erreur."},
-  consigne:"Affiche les noms des clients qui ont commandé le produit « Fibre Prébiotique ».",
-  solution:"SELECT clients.nom\nFROM clients\nWHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);",
-  indice:"Utilise <code>IN</code> avec une sous-requête sur la table <code>commandes</code> filtrée par <code>produit_id = 1</code>.",
+  exemple:"SELECT nom\nFROM clients\nWHERE id IN (\n    SELECT client_id\n    FROM commandes\n    WHERE produit_id = 3\n);",
+  attendu:"<b>2 lignes</b> : Sophie et Lucas, les deux clients qui ont déjà commandé du Magnésium.",
+  retenir:"Une sous-requête dans <code>WHERE</code> avec <code>IN</code> utilise le résultat d’une autre requête comme <b>liste de valeurs</b>.<br><br>La sous-requête trouve les identifiants ; <code>IN</code> vérifie si chaque valeur fait partie de cette liste.<br><br>Avec plusieurs valeurs possibles, n’utilise pas <code>=</code>, qui attend une seule valeur.",
+  consigne:"Affiche le nom des clients qui ont déjà commandé du Magnésium (<code>produit_id = 3</code>).",
+  solution:"SELECT nom\nFROM clients\nWHERE id IN (\n    SELECT client_id\n    FROM commandes\n    WHERE produit_id = 3\n);",
+  indice:"Construis d’abord la liste avec <code>SELECT client_id FROM commandes WHERE produit_id = 3</code>, puis place-la entre parenthèses après <code>WHERE id IN</code>.",
   subqueryRecap:'in',
   richLesson:true, earlyDemo:true,
   testeVariants:[
-  {
-    "k": "cli",
-    "label": "clients",
-    "sql": "SELECT id, nom\nFROM clients;"
-  },
-  {
-    "k": "cmd",
-    "label": "commandes",
-    "sql": "SELECT id, client_id, produit_id\nFROM commandes;"
-  },
-  {
-    "k": "sub_in",
-    "label": "IN + sous-requête",
-    "sql": "SELECT clients.nom\nFROM clients\nWHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n);",
-    "tone": "good"
-  },
-  {
-    "k": "rec_list",
-    "label": "Liste intérieure",
-    "sql": "SELECT client_id FROM commandes WHERE produit_id=1;",
-    "out": "Cette liste est celle testée par IN, avant de chercher les noms."
-  }
-] ,
+    {k:'cli',label:'clients',sql:"SELECT id, nom\nFROM clients;"},
+    {k:'rec_list',label:'Liste intérieure',sql:"SELECT client_id\nFROM commandes\nWHERE produit_id = 3;",out:"Cette liste est celle testée par IN."},
+    {k:'sub_in',label:'IN + sous-requête',sql:"SELECT nom\nFROM clients\nWHERE id IN (\n    SELECT client_id\n    FROM commandes\n    WHERE produit_id = 3\n);",tone:'good'}
+  ] ,
 learningCheck:{
-  "question": "La sous-requête d’un IN scalaire doit produire quoi ?",
+  "question": "Pourquoi écrire IN plutôt que = devant une sous-requête ?",
   "options": [
-    "Une colonne de valeurs",
-    "Toutes les colonnes",
-    "Une seule ligne obligatoirement"
+    "Parce que la sous-requête peut renvoyer plusieurs valeurs",
+    "Parce que IN est plus rapide",
+    "Parce que = ne fonctionne qu’avec du texte"
   ],
   "answer": 0,
-  "explanation": "La liste peut contenir plusieurs lignes, mais chaque élément doit être comparable à la valeur de la requête principale."
+  "explanation": "= compare à une seule valeur. IN vérifie l’appartenance à toute la liste renvoyée par la sous-requête."
 }
 },
 { id:46, titre:"Sous-requête dans WHERE avec NOT IN", résumé:"Exclure une liste issue d’une autre requête",
@@ -32079,7 +32135,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-25-on-multiple-v1081';
+  const SW_CACHE='requete-2026-09-25-sousreq-in-v1083';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
