@@ -5552,7 +5552,11 @@
   .table-scroll .table-wrap{margin-bottom:0;animation:none}
   .table-swipe{position:absolute;inset:0;pointer-events:none;z-index:2;opacity:0;transition:opacity .2s ease}
   .table-scroll.can-swipe:not(.at-end) .table-swipe{opacity:1}
-  .table-swipe::after{content:'';position:absolute;top:0;right:0;bottom:0;width:64px;background:linear-gradient(90deg,transparent,var(--surface) 72%);border-radius:0 16px 16px 0}
+  .table-swipe::after{content:'';position:absolute;top:0;right:0;bottom:0;width:34px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--surface) 88%,transparent));border-radius:0 16px 16px 0}
+  .table-swipe-hint{margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:3px 9px 3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--ui);font-size:10.5px;font-weight:750;letter-spacing:.4px;text-transform:uppercase;white-space:nowrap;visibility:hidden;opacity:0;transform:translateX(-4px);transition:opacity .2s ease,transform .2s ease,visibility 0s linear .2s}
+  .table-swipe-hint.is-on{visibility:visible;opacity:1;transform:none;transition:opacity .2s ease,transform .2s ease}
+  .table-swipe-hint svg{width:12px;height:12px;display:block;flex:none;animation:hintNudge 1.35s ease-in-out infinite}
+  .table-scroll.is-scrolled th.rn{box-shadow:6px 0 8px -6px rgba(20,20,40,.22)}
   .table-swipe-pos{position:absolute;top:8px;right:10px}
   .table-swipe .order-hint-chip{animation:hintPulse 2.2s ease-in-out infinite;box-shadow:0 6px 16px -8px rgba(20,20,40,.35),0 1px 0 rgba(255,255,255,.7) inset}
   .table-swipe .order-hint-chip svg{animation:hintNudge 1.35s ease-in-out infinite}
@@ -7213,7 +7217,7 @@
     .pl-stat.streak.hot svg,.acc-stat.streak.hot .streak-n svg,.streak-pill.hot svg,
     .exframe .xf-result.on .table-wrap tbody tr,.vs-out.live .table-wrap tbody tr,.vs-out.live.flash,.vs-out.live .result-meta,.vs-out.live .table-wrap,.vs-out.live .table-wrap thead,.vs-run.running .xf-run-ico,.vs-out.err.live .vs-err-box,
     .result-live .result-meta,.result-live .table-scroll,.result-live .table-wrap,.result-live .table-wrap thead,.result-live .table-wrap tbody tr,
-    .table-swipe .order-hint-chip,.table-swipe .order-hint-chip svg,.vs-out.live .table-scroll,
+    .table-swipe .order-hint-chip,.table-swipe .order-hint-chip svg,.table-swipe-hint svg,.vs-out.live .table-scroll,
     .query-loading,.query-loading.out,
     .bad-line,.good-line,.vs-err-box,.vs-out.ok .pipe-table,
     .memory-rule .memory-having>b,.join-micro .memory-rule .memory-b>b,.join-micro .pt-card,.join-micro .pd-onids-row,.join-micro .pd-outs b,.join-micro .pd-link,.join-micro .pd-key.fk,.join-micro .anat-line,.join-micro .join-recap tr.on,.ls-nav,.ls-nav .ls-next,.ls-bar.on,.ls-bar.on .ls-node,
@@ -20333,6 +20337,10 @@ function fmtCell(v){
   if(typeof v==='number')return `<td class="num">${Math.round(v*100)/100}</td>`;
   return `<td>${esc(v)}</td>`;
 }
+/* Indication « Glisse » : posée à droite de la ligne « 15 lignes · 3 ms »
+   (ou du bandeau ✓ Correct), jamais sur les données. syncTableSwipe l’allume
+   tant que le tableau déborde et qu’on n’a pas encore fait glisser. */
+const TABLE_SWIPE_HINT='<span class="table-swipe-hint" aria-hidden="true">Glisse<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h13M13 7l5 5-5 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
 function renderTable(result,ms,opts){
   if(!result||result.length===0)
     return `<div class="feedback ok"><div class="fi">✓</div><div><b>Requête exécutée</b><p>Aucune ligne à afficher${ms!=null?` (${ms.toFixed(1)} ms)`:''}.</p></div></div>`;
@@ -20340,10 +20348,10 @@ function renderTable(result,ms,opts){
   const bits=[`<span>${values.length} ligne${values.length>1?'s':''}</span>`];
   if(opts&&opts.cols) bits.push(`<span>${columns.length} colonne${columns.length>1?'s':''}</span>`);
   if(ms!=null) bits.push(`<span>${Math.round(ms)} ms</span>`);
-  return `<div class="result-meta">${bits.join('<span>·</span>')}</div>
+  return `<div class="result-meta">${bits.join('<span>·</span>')}${TABLE_SWIPE_HINT}</div>
   <div class="table-scroll"><div class="table-wrap"><table><thead><tr><th class="rn" scope="col" aria-label="Numéro de ligne">#</th>${columns.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead>
   <tbody>${values.map((r,i)=>`<tr style="--i:${Math.min(i,28)}"><th class="rn" scope="row">${i+1}</th>`+r.map(fmtCell).join('')+'</tr>').join('')}</tbody></table></div>
-  <div class="table-swipe" aria-hidden="true"><span class="table-swipe-pos"><span class="order-hint-chip">Glisse<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h13M13 7l5 5-5 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span></div></div>`;
+  <div class="table-swipe" aria-hidden="true"></div></div>`;
 }
 function syncTableSwipe(shell){
   const wrap=shell&&shell.querySelector('.table-wrap');
@@ -20351,6 +20359,10 @@ function syncTableSwipe(shell){
   const overflow=wrap.scrollWidth>wrap.clientWidth+2;
   shell.classList.toggle('can-swipe',overflow);
   shell.classList.toggle('at-end',!overflow||wrap.scrollLeft+wrap.clientWidth>=wrap.scrollWidth-4);
+  shell.classList.toggle('is-scrolled',wrap.scrollLeft>2);
+  const prev=shell.previousElementSibling;
+  const hint=prev&&prev.querySelector('.table-swipe-hint');
+  if(hint) hint.classList.toggle('is-on',overflow&&wrap.scrollLeft<=2);
 }
 function bindTableSwipe(root){
   const scope=root&&root.querySelectorAll?root:document;
@@ -26602,7 +26614,7 @@ function runLesson(){
       celebrate();
       const nU=userRes&&userRes[0]?userRes[0].values.length:0;
       const bare=table.replace(/^<div class="result-meta">[\s\S]*?<\/div>/,'');
-      setLessonOut(`<div class="ok-panel"><div class="ok-banner">✓ Correct — ${fmtLignes(nU)} retournée${nU!==1?'s':''}</div>${bare}</div>`);
+      setLessonOut(`<div class="ok-panel"><div class="ok-banner">✓ Correct — ${fmtLignes(nU)} retournée${nU!==1?'s':''}${TABLE_SWIPE_HINT}</div>${bare}</div>`);
       document.querySelectorAll('#lesson-body .ls-bar').forEach((el,i)=>{
         if(i<=1) el.classList.add('done');
         if(i===2){el.disabled=false;el.setAttribute('onclick','setLessonStep(2)');}
@@ -32002,7 +32014,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-25-join3-table-v1078';
+  const SW_CACHE='requete-2026-09-25-glisse-v1079';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
