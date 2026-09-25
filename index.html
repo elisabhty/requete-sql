@@ -5756,7 +5756,11 @@
   .gcard.lock .gsql{display:none}
   .gcard .ndot{position:absolute;top:11px;right:11px;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.32);display:flex;align-items:center;justify-content:center;font-size:10px;z-index:2;box-shadow:0 2px 6px rgba(0,0,0,.1)}
   .gcard:active{transform:scale(.97);box-shadow:0 10px 22px -16px rgba(20,20,40,.4)}
-  .coll-empty{text-align:center;color:var(--ink-3);font-size:14.5px;padding:36px 30px;line-height:1.55}
+  .coll-empty{text-align:center;color:var(--ink-3);font-size:14.5px;padding:40px 30px;line-height:1.55;display:flex;flex-direction:column;align-items:center}
+  .coll-empty-ico{width:46px;height:46px;margin:0 0 13px;border-radius:15px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}
+  .coll-empty-ico svg{width:22px;height:22px;display:block}
+  .coll-empty b{display:block;margin-bottom:5px;color:var(--ink);font-size:16px;letter-spacing:-.28px;font-weight:750}
+  .coll-empty>span{font-size:13.5px}
 
   /* Détail carte — poster partageable */
   .cd-share{border-radius:26px;padding:24px 22px 20px;color:#fff;position:relative;overflow:hidden;margin-bottom:16px;box-shadow:0 24px 48px -20px rgba(20,20,40,.55),0 1px 0 rgba(255,255,255,.24) inset}
@@ -7439,6 +7443,9 @@
       box-shadow:0 34px 80px -36px rgba(26,28,42,.48),0 0 0 1px rgba(255,255,255,.62),inset 0 1px 0 #fff;
     }
     .kbar-wrap,.imp-sheet{max-width:min(1120px,calc(100vw - 28px))}
+    /* Le dock reste compact et centré : étiré sur toute la largeur du cadre,
+       les 7 onglets se disperseraient avec de grands vides entre eux. */
+    .tabbar{left:50%;right:auto;transform:translateX(-50%);width:min(640px,calc(100% - 20px))}
   }
   @media (prefers-reduced-motion:reduce){
     #scr-learn>.lgtitle,#scr-learn>.lgtitle h1,#scr-learn>.lgtitle p.sub,.ls-node{transition:none}
@@ -8725,6 +8732,13 @@
 .ux-shortcut{display:block;width:fit-content;max-width:100%;min-height:44px;padding:10px 14px;margin:0 0 18px;border:1px solid var(--card-border);border-radius:13px;background:var(--surface);color:var(--accent-ink);font:600 13px/1.5 var(--ui);cursor:pointer;text-align:left;box-shadow:0 1px 2px rgba(0,0,0,.05)}
 .ux-shortcut[hidden]{display:none}
 .ux-shortcut:focus-visible,.ux-card-review:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+/* Variante champ de recherche : loupe + libellé façon placeholder, alignée sur
+   le champ « Trouver une notion » du catalogue vers lequel elle renvoie. */
+.ux-shortcut--search{display:flex;align-items:center;gap:9px;width:auto;padding:11px 14px;border-radius:14px;color:var(--ink-3);font-weight:550}
+.ux-shortcut--search svg{width:17px;height:17px;flex:none}
+.ux-shortcut--search span{flex:1;min-width:0}
+.ux-shortcut--search::after{margin-left:auto}
+@media (hover:hover) and (pointer:fine){.ux-shortcut--search:hover{border-color:rgba(91,91,214,.32);background:#FCFCFE}}
 #scr-learn>.ux-shortcut{margin:18px 18px 4px}
 .catalog-search{margin:4px 0 18px}
 .catalog-search label{display:block;font:600 12px/1.5 var(--ui);color:var(--ink-2);margin-bottom:7px}
@@ -9071,7 +9085,7 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
       </div>
       <p class="greeting" id="greeting" hidden></p>
       <div class="home-progress" id="home-progress" hidden></div>
-      <button class="ux-shortcut" type="button" onclick="jumpToSection('#modules');document.getElementById('course-search').focus({preventScroll:true})">Rechercher un cours</button>
+      <button class="ux-shortcut ux-shortcut--search" type="button" onclick="jumpToSection('#modules');document.getElementById('course-search').focus({preventScroll:true})"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.8-3.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Rechercher un cours</span></button>
       <div id="home-hero"></div>
       <div id="modules" class="group-stack"></div>
     </section>
@@ -26532,7 +26546,7 @@ function renderCollection(){
     return `<details class="coll-module ${complete?'complete':''}"${collFilter==='open'?' open':''}><summary><span class="coll-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1).padStart(2,'0')}</span><span class="coll-module-copy"><b>${esc(mod.titre)}</b><small>${complete?'Toutes les cartes sont débloquées':collFilter==='open'?`${openN} carte${openN>1?'s':''} disponible${openN>1?'s':''}`:`${avecCarte.length-openN} carte${avecCarte.length-openN>1?'s':''} à obtenir`}</small></span><span class="coll-module-side"><em>${complete?'Validé':count}</em><i aria-hidden="true">⌄</i></span></summary><div class="list">${rows}</div></details>`;
   }).filter(Boolean);
   if(!groups.length){
-    host.innerHTML=`<div class="coll-empty">Aucune carte dans ce filtre. Termine une leçon pour débloquer sa fiche mémo.</div>`;
+    host.innerHTML=`<div class="coll-empty"><span class="coll-empty-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="6" width="13" height="14" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M8 6V4h10a2 2 0 0 1 2 2v11h-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b>Aucune carte dans ce filtre</b><span>Termine une leçon pour débloquer sa fiche mémo.</span></div>`;
     return;
   }
   host.innerHTML=groups.join('');
