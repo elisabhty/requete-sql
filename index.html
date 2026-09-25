@@ -2019,6 +2019,25 @@
   .ij-done.is-in .j3-done > :nth-child(2),.ij-done.is-in .j3-done > :nth-child(4){animation-delay:.25s}
   .ij-done.is-in .j3-done > :nth-child(1),.ij-done.is-in .j3-done > :nth-child(5){animation-delay:.4s}
   /* Entonnoir « Mission accomplie » */
+  .gb-count{margin:14px 0 12px;padding:14px;border-radius:16px;background:#fff;border:1px solid var(--card-border);box-shadow:var(--card-shadow-sm)}
+  .gb-count-head{display:grid;grid-template-columns:44px 1fr;align-items:center;column-gap:12px}
+  .gb-count-n{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:var(--accent-soft);font-family:var(--mono);font-size:20px;font-weight:800;line-height:1;color:var(--accent-ink)}
+  .gb-count-n.is-tick{animation:gbTick .28s ease}
+  .gb-count-head span{min-width:0;font-size:14px;font-weight:700;line-height:1.3;color:var(--ink)}
+  .gb-count-head small{display:block;margin-top:3px;font-size:12px;font-weight:500;line-height:1.4;color:var(--ink-3)}
+  .gb-count-head small strong{font-weight:800;color:var(--accent-ink)}
+  .gb-count-chips{list-style:none;margin:12px 0 0;padding:12px 0 0;border-top:1px dashed var(--line);display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+  .gb-count-chips li{margin:0;display:flex;flex-direction:column;align-items:stretch;gap:3px;min-width:0;text-align:center}
+  .gb-count-chips code{display:block;padding:4px 0;border-radius:8px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:12px;font-weight:700}
+  .gb-count-chips em{font-style:normal;font-family:var(--mono);font-size:11px;font-weight:800;color:var(--accent-ink)}
+  .gb-count.is-armed .gb-count-chips code{background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--ink-3)}
+  .gb-count.is-armed .gb-count-chips em{opacity:0}
+  .gb-count.is-armed .gb-count-chips li.is-on code{background:var(--accent-soft);color:var(--accent-ink);transition:background .2s,color .2s}
+  .gb-count.is-armed .gb-count-chips li.is-on em{opacity:1;animation:gbPlus .35s ease both}
+  .gb-count-replay{display:none;margin:10px 0 0 auto;padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:transparent;font-family:inherit;font-size:12px;font-weight:600;line-height:1.3;color:var(--ink-3);cursor:pointer}
+  .gb-count.is-done .gb-count-replay{display:block}
+  @keyframes gbPlus{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  @keyframes gbTick{50%{transform:scale(1.12)}}
   .ij-funnel{list-style:none;margin:14px 0 12px;padding:12px;border-radius:16px;background:var(--surface-2);display:flex;flex-direction:column;gap:0}
   .ij-funnel li{margin:0}
   .ij-fn-row{display:grid;grid-template-columns:44px 1fr;align-items:center;column-gap:12px;row-gap:8px;padding:12px;border-radius:14px;background:#fff;border:1px solid var(--card-border);box-shadow:var(--card-shadow-sm)}
@@ -14183,7 +14202,7 @@ FROM clients
           <p><code>COUNT()</code> est une <b>fonction d’agrégation</b> : elle compte les lignes d’un groupe. Pour compter les commandes, on l’applique à la colonne <code>id</code> de la <code>table commandes</code>&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">COUNT(commandes.id)</span> AS nombre_commandes</pre></div>
           <p>Le comptage est effectué <b>dans chaque groupe</b> créé par <code>GROUP BY</code>. Par exemple, pour Paris&nbsp;:</p>
-          <ol class="ij-funnel" aria-label="Le groupe Paris contient 7 commandes"><li class="ij-fn-row"><b>7</b><span>Paris<small>7 commandes dans le groupe</small></span><i class="ij-fn-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></i></li></ol>
+          <div class="gb-count" role="img" aria-label="Groupe Paris : COUNT ajoute 1 pour chacune des 7 commandes, soit 7"><div class="gb-count-head"><b class="gb-count-n" data-total="7">7</b><span>Paris<small>COUNT() ajoute <strong>+1</strong> pour chaque commande du groupe</small></span></div><ol class="gb-count-chips" aria-hidden="true"><li style="--i:0"><code>#1</code><em>+1</em></li><li style="--i:1"><code>#2</code><em>+1</em></li><li style="--i:2"><code>#5</code><em>+1</em></li><li style="--i:3"><code>#8</code><em>+1</em></li><li style="--i:4"><code>#9</code><em>+1</em></li><li style="--i:5"><code>#12</code><em>+1</em></li><li style="--i:6"><code>#13</code><em>+1</em></li></ol><button type="button" class="gb-count-replay" aria-label="Rejouer le comptage">↻ Rejouer</button></div>
           <p>On obtient alors&nbsp;:</p>
           <div class="pk-comp ij-t"><p class="ij-tlab">résultat</p><div class="pk-mini is-2"><span class="is-h">ville</span><span class="is-h">nombre_commandes</span><span>Bordeaux</span><span class="is-hit">2</span><span>Lyon</span><span class="is-hit">3</span><span>Marseille</span><span class="is-hit">2</span><span>Paris</span><span class="is-hit">7</span><span>Toulouse</span><span class="is-hit">1</span></div></div>
         </div>
@@ -26271,6 +26290,7 @@ function renderLessonFlow(){
     initJoinMicro();
     initInnerJoinLab();
     initRunSqlSlots();
+    initGroupCount();
     initAskSlots();
     initJoinChooser();
     initJoinTree();
@@ -26330,6 +26350,30 @@ function whenSettled(el,scr,opts,cb){
   },{root:scr,threshold:(opts&&opts.threshold)||[ratio||0.01]});
   io.observe(el);
   return {disconnect(){ if(!done){done=true;detach();} }};
+}
+/* ---------- GROUP BY + COUNT : comptage +1 par commande ---------- */
+function initGroupCount(){
+  const scr=document.getElementById('scr-lesson');
+  document.querySelectorAll('#lesson-body .gb-count').forEach(box=>{
+    const n=box.querySelector('.gb-count-n'),chips=[...box.querySelectorAll('.gb-count-chips li')];
+    const total=+n.dataset.total||chips.length;
+    let timers=[];
+    const stop=()=>{timers.forEach(clearTimeout);timers=[];};
+    const play=()=>{
+      stop();
+      box.classList.add('is-armed');box.classList.remove('is-done');
+      chips.forEach(c=>c.classList.remove('is-on'));n.textContent='0';
+      chips.forEach((c,k)=>timers.push(setTimeout(()=>{
+        c.classList.add('is-on');n.textContent=String(k+1);
+        n.classList.remove('is-tick');void n.offsetWidth;n.classList.add('is-tick');
+        if(k===chips.length-1){n.textContent=String(total);box.classList.add('is-done');}
+      },350+k*420)));
+    };
+    box.querySelector('.gb-count-replay').onclick=play;
+    if(prefersReduceMotion()){box.classList.add('is-done');return;}
+    box.classList.add('is-armed');n.textContent='0';
+    whenSettled(box,scr,{ratio:.5,threshold:[.5]},play);
+  });
 }
 function initOrderRappelAnim(){
   const el=document.querySelector('#lesson-body .order-rappel');
