@@ -1643,7 +1643,7 @@
   .fk-course p.ij-arrow{margin:6px 0 14px;font-size:14.5px;line-height:1.5;color:var(--ink-2)}
   /* Tous les cours : le texte remplit ses lignes, les pastilles de code peuvent passer à la ligne */
   #lesson-body :is(p,li) code{white-space:normal;-webkit-box-decoration-break:clone;box-decoration-break:clone}
-  #lesson-body :is(p,li){text-wrap:pretty}
+  #lesson-body :is(p,li){text-wrap:wrap}
   /* INNER JOIN v3 : mini-tables étiquetées, correspondance, règle */
   .pk-comp.ij-t{padding:10px 12px 12px}
   .ij-t .ij-tlab,.fk-course .ij-t .ij-tlab{margin:0 0 6px!important;font-family:var(--mono);font-size:10.5px!important;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-3)}
@@ -21106,6 +21106,54 @@ function vizGo(d){ const i=vizI+d; if(i<0||i>=vizSteps.length)return; vizI=i; re
    8. ÉCRANS
    ============================================================ */
 const tabScrollPositions={};
+/* Sur mobile, un glissement vertical qui commence sur la barre de navigation
+   du bas fait défiler l’écran en dessous (la barre n’est pas dans la zone qui
+   défile). Un simple toucher reste un clic ; un glissement horizontal garde le
+   défilement propre de la barre. */
+(function(){
+  const BARS='.tabbar,.kbar';
+  let st=null;
+  const scroller=()=>document.querySelector('.screen.active');
+  const reduce=()=>window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.addEventListener('touchstart',e=>{
+    const bar=e.target.closest&&e.target.closest(BARS);
+    if(!bar||e.touches.length!==1){st=null;return;}
+    const t=e.touches[0];
+    st={x:t.clientX,y:t.clientY,ly:t.clientY,lt:performance.now(),v:0,mode:null,el:scroller()};
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(!st||!st.el)return;
+    const t=e.touches[0],dx=t.clientX-st.x,dy=t.clientY-st.y;
+    if(!st.mode){
+      if(Math.abs(dx)<6&&Math.abs(dy)<6)return;
+      st.mode=Math.abs(dy)>Math.abs(dx)?'y':'x';
+    }
+    if(st.mode!=='y')return;
+    e.preventDefault();
+    const now=performance.now(),d=st.ly-t.clientY;
+    st.el.scrollTop+=d;
+    st.v=d/Math.max(1,now-st.lt);
+    st.ly=t.clientY;st.lt=now;
+  },{passive:false});
+  document.addEventListener('touchend',()=>{
+    if(!st)return;
+    if(st.mode==='y'){
+      const el=st.el;let v=st.v*16;
+      if(!reduce()){const step=()=>{if(Math.abs(v)<.5)return;el.scrollTop+=v;v*=.94;requestAnimationFrame(step);};requestAnimationFrame(step);}
+      const kill=ev=>{ev.preventDefault();ev.stopPropagation();};
+      document.addEventListener('click',kill,{capture:true,once:true});
+      setTimeout(()=>document.removeEventListener('click',kill,{capture:true}),350);
+    }
+    st=null;
+  },{passive:true});
+  document.addEventListener('touchcancel',()=>{st=null;},{passive:true});
+  document.addEventListener('wheel',e=>{
+    const bar=e.target.closest&&e.target.closest(BARS);
+    if(!bar||Math.abs(e.deltaY)<=Math.abs(e.deltaX))return;
+    const el=scroller();if(!el)return;
+    e.preventDefault();el.scrollTop+=e.deltaY;
+  },{passive:false});
+})();
 function navigateMainTabs(event){
   if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
   const tabs=[...event.currentTarget.querySelectorAll('.tab')];
