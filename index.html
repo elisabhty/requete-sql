@@ -1907,8 +1907,8 @@
   .jw{margin:12px 0 4px;padding:14px;border-radius:18px;background:#fff;border:1px solid var(--card-border)}
   .jw p{margin:0}
   .jw .jw-lead{margin:0 0 12px;font-size:14px;color:var(--ink-2)}
-  .jw-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px;border-radius:14px;background:var(--surface-2)}
-  .jw-tabs button{min-height:40px;border:0;border-radius:10px;background:transparent;font-family:var(--mono);font-size:12.5px;font-weight:800;color:var(--ink-3);cursor:pointer;transition:background .2s,color .2s,box-shadow .2s}
+  .jw-tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:4px;border-radius:14px;background:var(--surface-2)}
+  .jw-tabs button{min-width:0;min-height:40px;padding:0 2px;border:0;border-radius:10px;background:transparent;font-family:var(--mono);font-size:12px;font-weight:800;color:var(--ink-3);cursor:pointer;transition:background .2s,color .2s,box-shadow .2s}
   .jw-tabs button[aria-selected="true"]{background:#fff;color:var(--accent-ink);box-shadow:0 2px 8px -3px rgba(24,24,48,.25)}
   .jw-head{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;margin:14px 0 12px}
   .jw-venn{display:flex;align-items:center;justify-content:center;width:56px;height:46px;border-radius:12px;background:var(--accent-soft)}
@@ -1916,6 +1916,7 @@
   .jw-sql code{display:block;padding:0;background:transparent;font-family:var(--mono);font-size:11.5px;font-weight:700;line-height:1.5;color:var(--ink-2);white-space:normal}
   .jw-sql b{color:var(--accent-ink)}
   .jw-rows{display:flex;flex-direction:column;gap:6px}
+  .jw-row[hidden]{display:none}
   .jw-row{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;column-gap:8px;row-gap:6px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--accent-soft);border:1.5px solid transparent;transition:background .3s,opacity .3s,border-color .3s}
   .jw-who{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:750;color:var(--ink)}
   .jw-who i{font-style:normal}
@@ -13949,14 +13950,16 @@ learningCheck:{
           <div class="jc-done" hidden aria-live="polite"></div>
         </div>
       </div>`},
-    why:{eye:"Comparer",title:"Même requête, quatre résultats",
+    why:{eye:"Comparer",title:"Quelles lignes sont conservées&nbsp;?",
       extra:`<div class="jw" data-j="inner">
-          <p class="jw-lead">Change la jointure et observe ce que deviennent les trois cas&nbsp;:</p>
-          <div class="jw-tabs" role="tablist" aria-label="Choisir une jointure"><button type="button" role="tab" data-j="inner" aria-selected="true">INNER</button><button type="button" role="tab" data-j="left" aria-selected="false">LEFT</button><button type="button" role="tab" data-j="right" aria-selected="false">RIGHT</button><button type="button" role="tab" data-j="full" aria-selected="false">FULL</button></div>
-          <div class="jw-head"><span class="jw-venn" aria-hidden="true"></span><p class="jw-sql"><code>FROM clients<br><b class="jw-kw">INNER JOIN</b> commandes<br>ON clients.id = commandes.client_id</code></p></div>
+          <p class="jw-lead">Change la jointure et observe quelles lignes sont conservées&nbsp;:</p>
+          <div class="jw-tabs" role="tablist" aria-label="Choisir une jointure"><button type="button" role="tab" data-j="inner" aria-selected="true">INNER</button><button type="button" role="tab" data-j="left" aria-selected="false">LEFT</button><button type="button" role="tab" data-j="right" aria-selected="false">RIGHT</button><button type="button" role="tab" data-j="full" aria-selected="false">FULL</button><button type="button" role="tab" data-j="self" aria-selected="false">SELF</button></div>
+          <div class="jw-head"><span class="jw-venn" aria-hidden="true"></span><p class="jw-sql"><code></code></p></div>
           <div class="jw-rows" aria-live="polite">
             <div class="jw-row" data-w="sophie"><span class="jw-who"><i aria-hidden="true">🔗</i>Client avec commande</span><span class="jw-cells"><code>client</code><code>commande</code></span><em></em></div>
             <div class="jw-row" data-w="ines"><span class="jw-who"><i aria-hidden="true">👤</i>Client sans commande</span><span class="jw-cells"><code>client</code><code class="is-nul">NULL</code></span><em></em></div>
+            <div class="jw-row is-self" data-w="jcap"><span class="jw-who"><i aria-hidden="true">🔗</i>Joueur avec capitaine</span><span class="jw-cells"><code>joueur</code><code>capitaine</code></span><em></em></div>
+            <div class="jw-row is-self" data-w="jnone"><span class="jw-who"><i aria-hidden="true">👤</i>Joueur sans capitaine</span><span class="jw-cells"><code>joueur</code><code class="is-nul">NULL</code></span><em></em></div>
             <div class="jw-row" data-w="c16"><span class="jw-who"><i aria-hidden="true">📦</i>Commande sans client</span><span class="jw-cells"><code class="is-nul">NULL</code><code>commande</code></span><em></em></div>
           </div>
         </div>`}},
@@ -23500,11 +23503,13 @@ const JC_RES={
   self:{t:'SELF JOIN',d:'Une table reliée à elle-même.',ex:'Chaque ligne est reliée à une autre ligne de la même table, grâce à deux alias.',sql:'FROM employes AS e\nJOIN employes AS m\n    ON e.manager_id = m.id'},
   cross:{t:'CROSS JOIN',d:'Toutes les combinaisons, sans ON.',ex:'Chaque ligne de la première table est associée à chaque ligne de la seconde.',sql:'FROM villes\nCROSS JOIN produits'}
 };
+const JW_CJ='<br>ON clients.id = commandes.client_id';
 const JW_STATE={
-  inner:{n:15,kw:'INNER JOIN',keep:{sophie:1,ines:0,c16:0},note:''},
-  left:{n:17,kw:'LEFT JOIN',keep:{sophie:1,ines:1,c16:0},note:' · dont 2 clients sans commande'},
-  right:{n:16,kw:'RIGHT JOIN',keep:{sophie:1,ines:0,c16:1},note:' · dont 1 commande sans client'},
-  full:{n:18,kw:'FULL OUTER JOIN',keep:{sophie:1,ines:1,c16:1},note:' · rien n’est écarté'}
+  inner:{sql:'FROM clients<br><b>INNER JOIN</b> commandes'+JW_CJ,keep:{sophie:1,ines:0,c16:0}},
+  left:{sql:'FROM clients<br><b>LEFT JOIN</b> commandes'+JW_CJ,keep:{sophie:1,ines:1,c16:0}},
+  right:{sql:'FROM clients<br><b>RIGHT JOIN</b> commandes'+JW_CJ,keep:{sophie:1,ines:0,c16:1}},
+  full:{sql:'FROM clients<br><b>FULL OUTER JOIN</b> commandes'+JW_CJ,keep:{sophie:1,ines:1,c16:1}},
+  self:{sql:'FROM joueurs AS j<br><b>JOIN joueurs AS c</b><br>ON j.capitaine_id = c.id',keep:{jcap:1,jnone:0}}
 };
 /* Feu d’artifice de fin de quiz : plusieurs gerbes successives dans le calque #burst. */
 function jcFireworks(n){
@@ -23552,8 +23557,8 @@ function initJoinChooser(){
       const s=JW_STATE[j];w.dataset.j=j;
       tabs.forEach(t=>t.setAttribute('aria-selected',t.dataset.j===j?'true':'false'));
       w.querySelector('.jw-venn').innerHTML=joinVennMini(j);
-      w.querySelector('.jw-kw').textContent=s.kw;
-      w.querySelectorAll('.jw-row').forEach(r=>{const k=!!s.keep[r.dataset.w];r.classList.toggle('is-out',!k);r.querySelector('em').textContent=k?'reste':(r.dataset.w==='c16'?'écartée':'écarté');});
+      w.querySelector('.jw-sql code').innerHTML=s.sql;
+      w.querySelectorAll('.jw-row').forEach(r=>{const k=!!s.keep[r.dataset.w];r.classList.toggle('is-out',!k);r.querySelector('em').textContent=k?'reste':(r.dataset.w==='c16'?'écartée':'écarté');r.hidden=!(r.dataset.w in s.keep);});
       if(user){w.classList.remove('is-flip');void w.offsetWidth;w.classList.add('is-flip');vib(5);}
     };
     tabs.forEach(t=>t.addEventListener('click',()=>set(t.dataset.j,true)));
