@@ -13930,7 +13930,7 @@ learningCheck:{
         <div class="jc-step" data-q="1"><p class="jc-q"><span aria-hidden="true">1</span>Cherches-tu des lignes qui correspondent&nbsp;?</p>
           <div class="jc-opts"><button type="button" data-a="match">Oui, grâce à un identifiant commun</button><button type="button" data-a="cross">Non, je veux toutes les combinaisons</button></div></div>
         <div class="jc-step" data-q="2" hidden><p class="jc-q"><span aria-hidden="true">2</span>Quelles lignes doivent rester, même sans correspondance&nbsp;?</p>
-          <div class="jc-opts"><button type="button" data-a="inner">Aucune&nbsp;: seulement les correspondances</button><button type="button" data-a="left">Toutes celles de gauche</button><button type="button" data-a="right">Toutes celles de droite</button><button type="button" data-a="full">Celles des deux côtés</button></div></div>
+          <div class="jc-opts"><button type="button" data-a="inner">Aucune&nbsp;: seulement les correspondances</button><button type="button" data-a="left">Toutes celles de gauche</button><button type="button" data-a="right">Toutes celles de droite</button><button type="button" data-a="full">Toutes les lignes des deux tables</button></div></div>
         <div class="jc-res" hidden></div>
         <button type="button" class="jc-reset" hidden>↺ Recommencer</button>
       </div>
@@ -23499,10 +23499,10 @@ function initAskSlots(){
 }
 /* « Quel JOIN choisir » : guide en deux questions, comparateur des trois cas, score du quiz. */
 const JC_RES={
-  inner:{t:'INNER JOIN',d:'Seulement les correspondances.',ex:'Les lignes sans correspondance disparaissent, des deux côtés.',sql:'FROM clients\nINNER JOIN commandes\n    ON clients.id = commandes.client_id'},
-  left:{t:'LEFT JOIN',d:'Toutes les lignes de gauche, plus les correspondances.',ex:'Les lignes seules à gauche restent, avec NULL. Celles de droite disparaissent.',sql:'FROM clients\nLEFT JOIN commandes\n    ON clients.id = commandes.client_id'},
-  right:{t:'RIGHT JOIN',d:'Toutes les lignes de droite, plus les correspondances.',ex:'Les lignes seules à droite restent, avec NULL. Celles de gauche disparaissent.',sql:'FROM clients\nRIGHT JOIN commandes\n    ON clients.id = commandes.client_id'},
-  full:{t:'FULL OUTER JOIN',d:'Toutes les lignes des deux tables.',ex:'Toutes les lignes restent, avec NULL du côté manquant.',sql:'FROM clients\nFULL OUTER JOIN commandes\n    ON clients.id = commandes.client_id'},
+  inner:{t:'INNER JOIN',d:'Seulement les correspondances.',ex:'Seules les lignes qui ont une correspondance dans les deux tables sont conservées.<br>👉 Les lignes sans correspondance ne sont pas conservées.',sql:'FROM clients\nINNER JOIN commandes\n    ON clients.id = commandes.client_id'},
+  left:{t:'LEFT JOIN',d:'Toutes les lignes de gauche, plus les correspondances.',ex:'Les lignes de gauche sans correspondance sont conservées&nbsp;: les informations de droite valent NULL.<br>Les lignes de droite sans correspondance ne sont pas conservées.',sql:'FROM clients\nLEFT JOIN commandes\n    ON clients.id = commandes.client_id'},
+  right:{t:'RIGHT JOIN',d:'Toutes les lignes de droite, plus les correspondances.',ex:'Les lignes de droite sans correspondance sont conservées&nbsp;: les informations de gauche valent NULL.<br>Les lignes de gauche sans correspondance ne sont pas conservées.',sql:'FROM clients\nRIGHT JOIN commandes\n    ON clients.id = commandes.client_id'},
+  full:{t:'FULL OUTER JOIN',d:'Toutes les lignes des deux tables sont conservées.',ex:'Lorsqu’une ligne n’a aucune correspondance, les informations de l’autre table valent NULL.',sql:'FROM clients\nFULL OUTER JOIN commandes\n    ON clients.id = commandes.client_id'},
   cross:{t:'CROSS JOIN',d:'Toutes les combinaisons, sans ON.',ex:'Chaque ligne de la première table est associée à chaque ligne de la seconde.',sql:'FROM villes\nCROSS JOIN produits'}
 };
 const JW_STATE={
