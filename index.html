@@ -9010,6 +9010,7 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 <link rel="stylesheet" href="viz-where.css?v=limit2">
 <link rel="stylesheet" href="viz-orderby.css">
 <link rel="stylesheet" href="anim-responsive.css?v=1">
+<link rel="stylesheet" href="ux-polish.css?v=1">
 <script src="viz-select.js?v=noloop" defer></script>
 <script src="viz-where.js?v=distinct3" defer></script>
 <script src="viz-orderby.js" defer></script>
@@ -21092,6 +21093,7 @@ function switchTab(name){
     tabScrollPositions[activeTab]=prevCur.scrollTop;
   }
   activeTab=name;
+  document.getElementById('fab')?.classList.remove('is-tucked');
   document.querySelectorAll('.tab').forEach(t=>{
     const on=t.dataset.tab===name;
     if(on&&!t.classList.contains('active')&&!restoringNav){
@@ -26762,7 +26764,7 @@ function nbSeancesDefaut(pool,perPref){
 }
 function libelleJour(iso){
   const d=parseD(iso),t=auj(),diff=Math.round((d-t)/86400000);
-  if(diff===0)return "Aujourd'hui";
+  if(diff===0)return "Aujourd’hui";
   if(diff===1)return "Demain";
   if(diff===-1)return "Hier";
   const s=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
@@ -27011,7 +27013,7 @@ function parcoursInsightHTML(st){
   }else if(info.today&&resteDe(info.today)){
     const left=resteDe(info.today);
     icon='🎯';tone='go';
-    body=`Aujourd'hui : ${plur(left,'activité')} · ~${left*MIN_PAR_ACTIVITE} min. ${sk>0?`Garde ta série de ${sk} jour${sk>1?'s':''} !`:'Lance ta première séance !'}`;
+    body=`Aujourd’hui : ${plur(left,'activité')} · ~${left*MIN_PAR_ACTIVITE} min. ${sk>0?`Garde ta série de ${sk} jour${sk>1?'s':''} !`:'Lance ta première séance !'}`;
   }else if(info.today){
     icon='✓';tone='ok';
     body=info.suivante?`Séance du jour terminée. Prochaine étape ${libelleJour(info.suivante.d).toLowerCase()}.`:'Séance du jour terminée.';
@@ -27344,17 +27346,17 @@ function renderTodayHero(){
   if(info.today){
     const s=info.today,tot=s.lessons.length,faites=tot-resteDe(s),pct=tot?Math.round(faites/tot*100):0;
     const left=tot-faites;
-    if(!resteDe(s))return retard+`<div class="today-hero done"><div class="th-tag">Aujourd'hui</div>
+    if(!resteDe(s))return retard+`<div class="today-hero done"><div class="th-tag">Aujourd’hui</div>
       <h3>Séance terminée ✓</h3><p>Tes ${plur(tot,'activité')} du jour sont terminées. Prochaine séance ${info.suivante?libelleJour(info.suivante.d).toLowerCase():'bientôt'}.</p>
       ${info.suivante?`<button class="th-go ghost" onclick="demarrerSeance('${info.suivante.d}')">Prendre de l'avance</button>`:''}</div>`;
-    return retard+`<div class="today-hero"><div class="th-tag">Aujourd'hui · Parcours progressif</div>
+    return retard+`<div class="today-hero"><div class="th-tag">Aujourd’hui · Parcours progressif</div>
       <h3>${left} à faire</h3>
       <p>Leçons + défis · ~${left*MIN_PAR_ACTIVITE} min.${faites?` Déjà ${faites}/${tot}.`:''}</p>
       <div class="th-bar"><i style="width:${pct}%"></i></div>
       <div class="hero-list">${heroRows(s)}</div>
       <button class="th-go" onclick="demarrerSeance('${s.d}')">${faites?'Continuer':'Commencer'} la séance</button></div>`;
   }
-  return retard+`<div class="today-hero rest"><div class="th-tag">Aujourd'hui</div>
+  return retard+`<div class="today-hero rest"><div class="th-tag">Aujourd’hui</div>
     <h3>Journée libre</h3><p>Aucune séance prévue.${info.suivante?` La prochaine est ${libelleJour(info.suivante.d).toLowerCase()} — ${plur(info.suivante.lessons.length,'activité')}.`:''}</p>
     ${info.suivante?`<button class="th-go ghost" onclick="demarrerSeance('${info.suivante.d}')">Prendre de l'avance</button>`:''}</div>`;
 }
@@ -28037,7 +28039,7 @@ let searchQ='', noteView='list', editingNote=null;
 function fmtDate(ts){
   const d=new Date(ts),n=new Date(),j=86400000;
   const sameDay=d.toDateString()===n.toDateString();
-  if(sameDay)return "Aujourd'hui, "+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  if(sameDay)return "Aujourd’hui, "+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
   if(Date.now()-ts<2*j)return "Hier, "+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
   return d.toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:d.getFullYear()!==n.getFullYear()?'numeric':undefined});
 }
@@ -28596,6 +28598,14 @@ function renderGreeting(){
   const hi=greetingForHour(new Date().getHours());
   const title=document.querySelector('#scr-learn>.lgtitle h1');
   if(title)title.textContent=name?`${hi}, ${name}`:hi;
+  /* « après-midi » ne se coupe jamais au trait d’union sur les petits écrans. */
+  if(title&&title.nodeType===1&&hi.includes('-')){
+    const keep=document.createElement('span');
+    keep.style.whiteSpace='nowrap';
+    keep.textContent=hi;
+    title.textContent='';
+    title.append(keep,name?`, ${name}`:'');
+  }
   const el=document.getElementById('greeting');
   if(!el)return;
   el.hidden=!!name;
@@ -29235,7 +29245,7 @@ function paintOb(){
     obSetFooter('Continuer',()=>obGoto('level'),'','','',!draft.goal);
   }else if(slide==='level'){
     const levels=[['debutant','Je débute en SQL','bulb'],['bases','Je connais les bases','chart'],['inter','Je pratique déjà','trophy']];
-    html=`<div class="ob-screen ob-profile ob-level">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Où en es-tu avec SQL ?</h1>
+    html=`<div class="ob-screen ob-profile ob-level">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Où en es-tu avec SQL&nbsp;?</h1>
       ${obMascotQuestion('Je te ferai commencer au bon endroit.')}
       ${obAnswers(levels,'niveau',draft.niveau)}
       ${obLevelHint()}
@@ -29254,7 +29264,7 @@ function paintOb(){
     obSetFooter(draft.practiceDone?'Continuer':'Exécute la requête pour continuer',()=>obGoto(obAfterPractice()),draft.practiceDone?'':'Passer l’essai',()=>obGoto(obAfterPractice()),draft.practiceDone?'':'Aucune erreur possible : cet essai est guidé.',!draft.practiceDone);
   }else if(slide==='rhythm'){
     const subtitles={calme:'Pour garder le rythme',regulier:'Le bon équilibre',intensif:'Pour progresser plus vite'};
-    html=`<div class="ob-screen ob-profile ob-rhythm">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Quel rythme te convient ?</h1>
+    html=`<div class="ob-screen ob-profile ob-rhythm">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Quel rythme te convient&nbsp;?</h1>
       ${obMascotQuestion('Même dix minutes suffisent pour avancer.')}
       <div class="ob-answer-list ob-rhythm-list" role="radiogroup" aria-label="Temps par séance">${RYTHMES.map((r,i)=>`<button type="button" role="radio" aria-checked="${draft.rythme===r.k?'true':'false'}" class="ob-answer ${draft.rythme===r.k?'on':''}" style="--d:${i*60}ms" onclick="obPick('rythme','${r.k}')"><span class="ob-radio" aria-hidden="true"></span><span><b>${obRythmeMinutes(r)} minutes</b><small>${subtitles[r.k]||''}</small></span><span class="ob-rhythm-min">${r.k==='regulier'?'Conseillé':''}</span></button>`).join('')}</div>
       ${obRhythmSummary()}</div>`;
@@ -31749,6 +31759,29 @@ if(learnScreen){
   syncLearnTitle();
 }
 
+/* Bouton ✎ : il se range quand on descend dans une page (il ne masque plus
+   les compteurs et les liens à droite) et revient dès qu’on remonte un peu,
+   ou quand on change d’écran. Aucun effet pendant une leçon. */
+(function initFabTuck(){
+  const fab=document.getElementById('fab');
+  if(!fab)return;
+  const last=new WeakMap();
+  const tuck=on=>fab.classList.toggle('is-tucked',on);
+  document.querySelectorAll('.screen').forEach(scr=>{
+    scr.addEventListener('scroll',()=>{
+      if(document.body.classList.contains('in-lesson')){tuck(false);return;}
+      const y=scr.scrollTop, prev=last.get(scr)??y;
+      const nearEnd=y+scr.clientHeight>=scr.scrollHeight-24;
+      if(y<80||nearEnd) tuck(false);
+      else if(y-prev>6) tuck(true);
+      else if(prev-y>6) tuck(false);
+      last.set(scr,y);
+    },{passive:true});
+  });
+  const tabbar=document.querySelector('.tabbar');
+  if(tabbar) tabbar.addEventListener('click',()=>tuck(false));
+})();
+
 boot();
 
 /* Service worker : met l'app en cache pour qu'elle démarre sans réseau.
@@ -31757,7 +31790,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-22-inner-cards-v1021';
+  const SW_CACHE='requete-2026-09-25-ux-polish-v1066';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
