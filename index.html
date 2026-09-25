@@ -2026,7 +2026,12 @@
   .gb-count-head span{min-width:0;font-size:14px;font-weight:700;line-height:1.3;color:var(--ink)}
   .gb-count-head small{display:block;margin-top:3px;font-size:12px;font-weight:500;line-height:1.4;color:var(--ink-3)}
   .gb-count-head small strong{font-weight:800;color:var(--accent-ink)}
-  .gb-count-chips{list-style:none;margin:12px 0 0;padding:12px 0 0;border-top:1px dashed var(--line);display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+  .gb-count-head small code{font-size:11.5px}
+  .gb-count-lab{margin:12px 0 0!important;padding-top:12px;border-top:1px dashed var(--line);font-size:12px!important;font-weight:600!important;line-height:1.3!important;color:var(--ink-3)!important}
+  .gb-count-lab code{font-size:11px}
+  .gb-count-note{margin:12px 0 0!important;font-size:12.5px!important;line-height:1.45!important;color:var(--ink-2)}
+  .gb-count-note code{font-size:11.5px}
+  .gb-count-chips{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
   .gb-count-chips li{margin:0;display:flex;flex-direction:column;align-items:stretch;gap:3px;min-width:0;text-align:center}
   .gb-count-chips code{display:block;padding:4px 0;border-radius:8px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:12px;font-weight:700}
   .gb-count-chips em{font-style:normal;font-family:var(--mono);font-size:11px;font-weight:800;color:var(--accent-ink)}
@@ -14187,10 +14192,10 @@ FROM clients
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Compter les commandes</p>
-          <p><code>COUNT()</code> est une <b>fonction d’agrégation</b> : elle compte les lignes d’un groupe. Pour compter les commandes, on l’applique à la colonne <code>id</code> de la <code>table commandes</code>&nbsp;:</p>
+          <p><code>COUNT()</code> est une <b>fonction d’agrégation</b> : dans chaque groupe, elle compte les valeurs <b>non NULL</b> de la colonne indiquée. Pour compter les commandes, on l’applique à la colonne <code>id</code> de la <code>table commandes</code>&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">COUNT(commandes.id)</span> AS nombre_commandes</pre></div>
-          <p>Le comptage est effectué <b>dans chaque groupe</b> créé par <code>GROUP BY</code>. Par exemple, pour Paris&nbsp;:</p>
-          <div class="gb-count" role="img" aria-label="Groupe Paris : COUNT ajoute 1 pour chacune des 7 commandes, soit 7"><div class="gb-count-head"><b class="gb-count-n" data-total="7">7</b><span>Paris<small>COUNT() ajoute <strong>+1</strong> pour chaque commande du groupe</small></span></div><ol class="gb-count-chips" aria-hidden="true"><li style="--i:0"><code>#1</code><em>+1</em></li><li style="--i:1"><code>#2</code><em>+1</em></li><li style="--i:2"><code>#5</code><em>+1</em></li><li style="--i:3"><code>#8</code><em>+1</em></li><li style="--i:4"><code>#9</code><em>+1</em></li><li style="--i:5"><code>#12</code><em>+1</em></li><li style="--i:6"><code>#13</code><em>+1</em></li></ol><button type="button" class="gb-count-replay" aria-label="Rejouer le comptage">↻ Rejouer</button></div>
+          <p>Le comptage est effectué <b>dans chaque groupe</b> créé par <code>GROUP BY</code>. Par exemple, pour Paris, SQL parcourt les valeurs de <code>commandes.id</code> du groupe et compte <b>1</b> pour chacune&nbsp;:</p>
+          <div class="gb-count" role="img" aria-label="Groupe Paris : COUNT(commandes.id) compte les 7 valeurs non NULL de commandes.id, soit 7"><div class="gb-count-head"><b class="gb-count-n" data-total="7">7</b><span>Groupe Paris<small><code>COUNT(commandes.id)</code> = <strong>7</strong></small></span></div><p class="gb-count-lab">Valeurs de <code>commandes.id</code> dans le groupe</p><ol class="gb-count-chips" aria-hidden="true"><li style="--i:0"><code>1</code><em>+1</em></li><li style="--i:1"><code>2</code><em>+1</em></li><li style="--i:2"><code>5</code><em>+1</em></li><li style="--i:3"><code>8</code><em>+1</em></li><li style="--i:4"><code>9</code><em>+1</em></li><li style="--i:5"><code>12</code><em>+1</em></li><li style="--i:6"><code>13</code><em>+1</em></li></ol><p class="gb-count-note">💡 Si une valeur était <code>NULL</code>, <code>COUNT(commandes.id)</code> ne la compterait pas.</p><button type="button" class="gb-count-replay" aria-label="Rejouer le comptage">↻ Rejouer</button></div>
           <p>On obtient alors&nbsp;:</p>
           <div class="pk-comp ij-t"><p class="ij-tlab">résultat</p><div class="pk-mini is-2"><span class="is-h">ville</span><span class="is-h">nombre_commandes</span><span>Bordeaux</span><span class="is-hit">2</span><span>Lyon</span><span class="is-hit">3</span><span>Marseille</span><span class="is-hit">2</span><span>Paris</span><span class="is-hit">7</span><span>Toulouse</span><span class="is-hit">1</span></div></div>
         </div>
