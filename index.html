@@ -1522,6 +1522,17 @@
   .jn-sides article.is-kept{background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent)}
   .jn-sides article.is-kept span{color:var(--accent)}
   .jn-sides > i{align-self:center;font-style:normal;font-weight:800;color:var(--ink-3)}
+  /* Plusieurs conditions dans ON */
+  /* :not(.is-3) pour passer devant « .pk-comp.ij-t .pk-mini:not(.is-3) », déclaré plus loin. */
+  .pk-comp.ij-t .pk-mini.on-4:not(.is-3){grid-template-columns:1.5fr repeat(3,minmax(0,1fr))}
+  .pk-comp.ij-t .pk-mini.on-4 span{padding-left:4px;padding-right:4px;white-space:normal;line-height:1.3}
+  .pk-comp.ij-t .pk-mini.on-4 span.is-h{font-size:10px}
+  .pk-mini.on-4 span.is-ko{background:var(--danger-soft);color:#B02A43}
+  .ij-match.on-and i{font-family:var(--mono);font-size:11px;font-weight:850;letter-spacing:.5px;color:var(--accent)}
+  .on-where{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:8px}
+  .on-where li{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:12px;background:#fff;border:1px solid var(--card-border)}
+  .on-where li code{width:max-content;max-width:100%;white-space:normal}
+  .on-where li span{font-size:13.5px;line-height:1.45;color:var(--ink-2)}
   /* SELF JOIN : la table clients dans ses deux rôles (À retenir) */
   .sj-tree{display:flex;flex-direction:column;align-items:center;gap:4px;margin:10px 0 12px;padding:14px 12px;border-radius:14px;background:var(--surface-2)}
   .sj-root,.sj-q{padding:4px 12px;border-radius:999px;font-family:var(--mono);font-size:12px;font-weight:800}
@@ -14191,12 +14202,6 @@ FROM clients
               <span>compter les commandes de chaque groupe</span>
             </article>
           </div>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.ville,
-       <span class="fk-syn-hit">COUNT(commandes.id)</span> AS nombre_commandes
-FROM clients
-<span class="fk-syn-hit">INNER JOIN commandes</span>
-    ON clients.id = commandes.client_id
-<span class="fk-syn-hit">GROUP BY clients.ville</span>;</pre></div>
           <p>👇 Exécute la requête pour découvrir les villes qui commandent le plus&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT clients.ville,&#10;       COUNT(commandes.id) AS nombre_commandes&#10;FROM clients&#10;INNER JOIN commandes&#10;    ON clients.id = commandes.client_id&#10;GROUP BY clients.ville;"></div>
           <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 15 commandes reliées à 5 villes"><li class="ij-fn-row"><b>15</b><span>commandes reliées à une ville<small><code>INNER JOIN</code> : une ligne par commande</small></span><i class="ij-fn-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></i></li><li class="ij-fn-step"><code>GROUP BY clients.ville</code><small>un groupe par ville, puis <code>COUNT</code></small></li><li class="ij-fn-row is-out"><b>5</b><span>villes, chacune avec son total<small>Paris&nbsp;7&nbsp;· Lyon&nbsp;3&nbsp;· Marseille&nbsp;2&nbsp;· Mobile&nbsp;2&nbsp;· Toulouse&nbsp;1</small></span></li></ol><p class="ij-done-p ij-done-win">🏆 Paris arrive en tête avec 7 commandes.</p><p class="ij-done-p">Nantes n’apparaît pas&nbsp;: Inès, la seule cliente de Nantes, n’a encore passé aucune commande.</p></div>
@@ -14318,13 +14323,6 @@ JOIN clients AS c2
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">La requête complète</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT c1.nom AS client_1,
-       c2.nom AS client_2,
-       c1.ville
-FROM clients AS c1
-JOIN clients AS c2
-    ON c1.ville = c2.ville
-    <span class="fk-syn-hit">AND c1.id &lt; c2.id</span>;</pre></div>
           <p>👇 Exécute la requête pour former les paires&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT c1.nom AS client_1,&#10;       c2.nom AS client_2,&#10;       c1.ville&#10;FROM clients AS c1&#10;JOIN clients AS c2&#10;    ON c1.ville = c2.ville&#10;    AND c1.id &lt; c2.id;"></div>
           <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 24 associations à 7 paires uniques"><li class="ij-fn-row"><b>24</b><span>associations de même ville<small>dont <em>10 clients avec eux-mêmes</em></small></span><i class="ij-fn-dots" aria-hidden="true"><i></i><i></i><i></i><i class="is-null"></i><i></i><i class="is-null"></i><i class="is-null"></i><i></i><i class="is-null"></i><i></i><i></i><i class="is-null"></i><i class="is-null"></i><i></i><i class="is-null"></i><i></i><i></i><i></i><i class="is-null"></i><i class="is-null"></i><i></i><i></i><i class="is-null"></i><i></i></i></li><li class="ij-fn-step"><code>AND c1.id &lt; c2.id</code><small>ni client seul, ni paire inversée</small></li><li class="ij-fn-row is-out"><b>7</b><span>paires uniques<small>6 à Paris · 1 à Lyon</small></span></li></ol><p class="ij-done-p">Nathan ↔ Nathan n’est pas une erreur&nbsp;: ce sont deux clients différents (n°4 et n°10) qui portent le même prénom. C’est pour cela qu’on compare les <code>id</code>, pas les noms.</p></div>
@@ -14439,112 +14437,106 @@ learningCheck:{
   "explanation": "ON limite les correspondances tout en conservant les clients. WHERE filtre ensuite les lignes, y compris celles complétées par NULL."
 }
 },
-{ id:49, titre:"Conditions multiples dans ON", résumé:"Ajouter plusieurs critères à une jointure",
-  situation:"Tu veux afficher <b>tous les clients</b>, mais seulement leurs commandes importantes.<br><br>Pour être considérée comme importante, une commande doit respecter <b>deux critères à la fois</b> : avoir une quantité supérieure à 2 et avoir été passée après le 15 juillet 2026.<br><br>Dans la table <code>clients</code>, tu as notamment :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td></tr><tr><td>5</td><td>Chloé</td></tr><tr><td>7</td><td>Léa</td></tr><tr><td>9</td><td>Inès</td></tr></tbody></table></div><br><br>Dans la table <code>commandes</code>, certaines commandes respectent ces deux critères :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>client_id</th><th>quantite</th><th>date_commande</th></tr></thead><tbody><tr><td>8</td><td>7</td><td>4</td><td>2026-07-18</td></tr><tr><td>15</td><td>5</td><td>3</td><td>2026-08-01</td></tr></tbody></table></div><br><br>Dans <code>ON</code>, tu peux ajouter des conditions avec <code>AND</code> pour préciser quelles lignes doivent être associées.<br><br>Ici, une commande est associée seulement si elle appartient au bon client ET si elle respecte le critère demandé.<br><br>Avec un <code>LEFT JOIN</code>, les clients dont aucune commande ne respecte ces conditions restent quand même affichés avec <code>NULL</code>.",
-    studio:{problem:{eye:"",title:"Plusieurs critères dans un seul ON.",
-      body:"Un <code>ON</code> peut contenir plusieurs conditions reliées par <code>AND</code>. Deux lignes ne sont associées que si <b>toutes</b> sont vraies.",
-      extra:`<div class="pt-syntax"><pre class="cw-syntax">LEFT JOIN commandes
-    ON clients.id = commandes.client_id
-   <span class="fk-syn-hit">AND commandes.quantite &gt; 2</span>
-   <span class="fk-syn-hit">AND commandes.date_commande &gt; '2026-07-15'</span></pre></div>`},
-    uses:{title:"Conditions multiples, étape par étape",
+{ id:49, titre:"Plusieurs conditions dans ON", résumé:"Relier seulement les produits encore en stock",
+  situation:`<p>L’équipe se demande <b>quels produits commandés ont encore assez de stock</b>.</p><p>Elle souhaite retrouver les produits présents dans les commandes, mais uniquement s’ils ont un <b>stock suffisant</b>&nbsp;: plus de 50 unités.</p><p>Pour qu’un produit soit relié à une commande, il faut donc vérifier <b>deux conditions</b>&nbsp;:</p><div class="ij-need" role="list" aria-label="Les deux conditions à vérifier"><div role="listitem"><b>① Le bon produit</b><span>produit_id = id</span></div><div role="listitem"><b>② Un stock suffisant</b><span class="is-b">stock &gt; 50</span></div></div><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Retrouve les commandes dont le produit a encore un stock suffisant (plus de 50 unités).</p></div>`,
+    studio:{problem:{eye:"",title:"Une première condition pour relier les tables",
+      body:"La <code>table&nbsp;commandes</code> contient <code>produit_id</code>&nbsp;:",
+      extra:`<div class="pk-comp ij-t"><p class="ij-tlab">table commandes</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">produit_id</span><span class="is-h">quantite</span><span>1</span><span class="is-hit">1</span><span>2</span><span>2</span><span class="is-hit">3</span><span>1</span><span>3</span><span class="is-hit">6</span><span>1</span></div><p class="ij-tmore">… et 13 autres commandes</p></div>
+        <p>👆 Chaque commande indique le produit commandé.</p>
+        <p>Les informations sur les produits se trouvent dans la <code>table&nbsp;produits</code>&nbsp;:</p>
+        <div class="pk-comp ij-t"><p class="ij-tlab">table produits</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">stock</span><span class="is-hit">1</span><span>Fibre Prébiotique</span><span>120</span><span class="is-hit">3</span><span>Magnésium</span><span>200</span><span class="is-hit">6</span><span>Protéine Végétale</span><span>45</span></div><p class="ij-tmore">… et 5 autres produits</p></div>
+        <p>👆 Chaque produit a son nom et son stock.</p>
+        <p>Pour retrouver le produit associé à chaque commande&nbsp;:</p>
+        <div class="pt-syntax"><pre class="cw-syntax">ON <span class="fk-syn-hit">commandes.produit_id = produits.id</span></pre></div>
+        <p class="ij-box">Cette condition répond à une première question&nbsp;: est-ce bien le produit de cette commande&nbsp;?</p>`},
+    uses:{title:"Écrire la requête",
       body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
-          <p class="pt-syntax-h">Chaque commande passe trois tests</p>
-          <p>Le bon client, une quantité supérieure à 2, une date après le 15 juillet&nbsp;:</p>
-          <div class="pk-comp"><div class="pk-mini is-3"><span class="is-h">commande</span><span class="is-h">quantité &gt; 2</span><span class="is-h">après le 15/07</span><span class="is-hit">#8 · Léa</span><span class="is-hit">4 ✅</span><span class="is-hit">18 juil. ✅</span><span>#4 · Emma</span><span>3 ✅</span><span>8 juil. ❌</span><span>#1 · Sophie</span><span>2 ❌</span><span>2 juil. ❌</span></div></div>
-          <div class="fk-verdict is-ok">
-            <p class="fk-verdict-lab">Résultat du ON</p>
-            <p class="fk-verdict-t">✅ Seules #8 et #15 sont associées</p>
-            <p>Une seule condition fausse suffit à refuser l’association.</p>
-          </div>
+          <p class="pt-syntax-h">Le produit doit aussi avoir assez de stock</p>
+          <p>Prenons la commande 3&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">commandes.produit_id = 6</pre></div>
+          <p>Elle correspond bien à la Protéine Végétale&nbsp;:</p>
+          <div class="ij-match" role="img" aria-label="commandes.produit_id vaut 6, produits.id vaut 6 : la correspondance est trouvée"><code>commandes.produit_id = 6</code><i aria-hidden="true">↕</i><code>produits.id = 6 ✅</code></div>
+          <p>Mais son stock ne vaut que <b>45</b>. Or, notre besoin demande uniquement les produits qui ont encore un stock suffisant.</p>
+          <p>Une deuxième condition est donc nécessaire&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">produits.stock &gt; 50</span></pre></div>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Les autres clients restent</p>
-          <p>C’est un <code>LEFT JOIN</code>&nbsp;: un client sans commande importante garde sa ligne, avec <code>NULL</code>.</p>
-          <div class="pk-comp"><div class="pk-mini is-3"><span class="is-h">nom</span><span class="is-h">quantite</span><span class="is-h">date</span><span class="is-hit">Léa</span><span>4</span><span>18 juil.</span><span class="is-hit">Chloé</span><span>3</span><span>1 août</span><span>Sophie</span><span class="is-null">NULL</span><span class="is-null">NULL</span></div></div>
-          <p>10 lignes&nbsp;: tous les clients, dont 2 avec une commande importante.</p>
+          <p class="pt-syntax-h">Ajouter plusieurs conditions dans ON</p>
+          <p>Plusieurs conditions peuvent être placées dans <code>ON</code> et reliées avec <code>AND</code>&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ON commandes.produit_id = produits.id
+<span class="fk-syn-hit">AND produits.stock &gt; 50</span></pre></div>
+          <p>Pour qu’une correspondance soit retenue, <b>les deux conditions doivent être vraies</b>&nbsp;:</p>
+          <div class="pk-comp ij-t"><p class="ij-tlab">deux tests par correspondance</p><div class="pk-mini on-4"><span class="is-h">produit</span><span class="is-h">bon produit&nbsp;?</span><span class="is-h">stock &gt; 50&nbsp;?</span><span class="is-h">retenue&nbsp;?</span><span>Fibre Prébiotique</span><span>✅</span><span>✅ 120</span><span class="is-hit">✅</span><span>Magnésium</span><span>✅</span><span>✅ 200</span><span class="is-hit">✅</span><span>Protéine Végétale</span><span>✅</span><span>❌ 45</span><span class="is-ko">❌</span></div></div>
+          <p class="ij-arrow">👉 Une correspondance peut donc être trouvée sur l’identifiant, puis écartée parce qu’une autre condition de <code>ON</code> n’est pas respectée.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Dans ON ou dans WHERE&nbsp;?</p>
-          <div class="fk-duo" aria-label="Critères dans ON contre critères dans WHERE">
-            <article class="is-ok">
-              <p class="fk-duo-lab">Critères dans ON</p>
-              <b>10 lignes</b>
-              
-              <small>tous les clients restent</small>
-            </article>
-            <article class="is-ko">
-              <p class="fk-duo-lab">Critères dans WHERE</p>
-              <b>2 lignes</b>
-              
-              <small>les autres clients disparaissent</small>
-            </article>
-          </div>
-          <div class="sit-memo">
-            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-            <p>Avec un <code>LEFT JOIN</code>, un critère dans <code>ON</code> choisit les commandes associées. Dans <code>WHERE</code>, il retire des lignes du résultat.</p>
-          </div>
+          <p class="pt-syntax-h">La requête complète</p>
+          <p>Il ne reste qu’à réunir les deux conditions dans le <code>ON</code>.</p>
+          <p>👇 Exécute la requête pour retrouver les produits commandés qui ont encore assez de stock&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT commandes.id AS commande_id,&#10;       produits.nom,&#10;       produits.stock&#10;FROM commandes&#10;INNER JOIN produits&#10;    ON commandes.produit_id = produits.id&#10;    AND produits.stock &gt; 50;"></div>
+          <p>Ici, <code>ON</code> ne vérifie donc pas une seule condition&nbsp;:</p>
+          <div class="ij-match on-and" role="img" aria-label="Le produit correspond et le produit a un stock suffisant : les deux doivent être vraies"><code>Le produit correspond&nbsp;?</code><i aria-hidden="true">ET</i><code>Le stock est suffisant&nbsp;?</code></div>
+          <p class="ij-arrow">👉 Les deux doivent être vraies.</p>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 16 commandes reliées à leur produit à 13 commandes retenues"><li class="ij-fn-row"><b>16</b><span>commandes reliées à leur produit<small>condition ① : le bon produit</small></span><i class="ij-fn-dots" aria-hidden="true"><i></i><i></i><i class="is-null"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="is-null"></i><i></i><i class="is-null"></i><i></i><i></i><i></i></i></li><li class="ij-fn-step"><code>AND produits.stock &gt; 50</code><small>condition ② : stock suffisant</small></li><li class="ij-fn-row is-out"><b>13</b><span>commandes retenues<small>Protéine Végétale (45) et Shaker Inox (30) sont écartés</small></span></li></ol><p class="ij-done-p">Les 3 commandes écartées avaient bien trouvé leur produit&nbsp;: c’est la deuxième condition du <code>ON</code> qui les a refusées.</p></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Pourquoi mettre plusieurs conditions dans ON&nbsp;?</p>
+          <p><code>ON</code> sert à définir <b>dans quelles conditions deux lignes peuvent être reliées</b>. Il peut donc contenir plusieurs critères&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ON condition_1
+AND condition_2</pre></div>
+          <p>Et même davantage&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ON condition_1
+AND condition_2
+AND condition_3</pre></div>
+          <p class="ij-box">Avec <code>AND</code>, toutes les conditions doivent être respectées pour que la correspondance soit retenue.</p>
         </div>
       </div>`},
-    reflex:{a:{k:"ON … AND …",t:"toutes les conditions doivent être vraies"}, b:{k:"LEFT JOIN",t:"les clients sans paire restent"}, extra:`<div class="sit-memo">
-            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-            <p>Ajoute dans <code>ON</code> les critères qui décident <b>quelles lignes s’associent</b>.</p>
-          </div>`},
-    viz:"onmultiple"},
+    reflexTitle:"À retenir",
+    reflex:{extra:`<p><code>ON</code> peut vérifier plusieurs conditions en même temps&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">ON commandes.produit_id = produits.id
+AND produits.stock &gt; 50</pre></div>
+          <p>Dans notre situation&nbsp;:</p>
+          <div class="ij-need" role="list" aria-label="Le rôle de chaque condition"><div role="listitem"><b>🔗 Retrouver le bon produit</b><span>condition 1</span></div><div role="listitem"><b>📦 Vérifier son stock</b><span class="is-b">condition 2</span></div></div>
+          <p class="agg-reflex">👉 Avec <code>AND</code>, la correspondance est retenue uniquement si toutes les conditions sont vraies.</p>`}},
   joinFn:true,
+  noTeste:true,
+  noAnat:true,
   anatomie:[
-    {tok:"FROM clients",txt:"On part des clients que l’on veut tous conserver."},
-    {tok:"LEFT JOIN commandes",txt:"On cherche les commandes qui peuvent leur être associées."},
-    {tok:"ON clients.id = commandes.client_id",txt:"Le critère qui relie : la commande doit appartenir au client."},
-    {tok:"AND commandes.quantite > 2",txt:"Critère supplémentaire : la quantité doit dépasser 2."},
-    {tok:"AND commandes.date_commande > '2026-07-15'",txt:"Critère supplémentaire : la commande doit être postérieure au 15 juillet 2026."}
+    {tok:"SELECT commandes.id AS commande_id, produits.nom, produits.stock",txt:"La commande, le produit et son stock."},
+    {tok:"FROM commandes",txt:"On part des commandes."},
+    {tok:"INNER JOIN produits",txt:"On leur associe un produit."},
+    {tok:"ON commandes.produit_id = produits.id",txt:"Condition ① : c’est bien le produit de cette commande."},
+    {tok:"AND produits.stock > 50",txt:"Condition ② : le produit a encore un stock suffisant."}
   ],
-  exemple:"SELECT clients.nom, commandes.quantite, commandes.date_commande\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2\nAND commandes.date_commande > '2026-07-15';",
-  attendu:"10 lignes : tous les clients restent affichés. Chloé affiche sa commande de quantité 3 du 2026-08-01 et Léa sa commande de quantité 4 du 2026-07-18. Les autres affichent NULL.",
-  retenir:"Un <code>ON</code> n’est pas limité à l’égalité des clés : tu peux y enchaîner autant de conditions que nécessaire avec <code>AND</code>.<br><br>Avec <code>AND</code>, une commande n’est associée que si <b>tous</b> les critères sont vrais. Une seule condition fausse suffit à l’écarter.<br><br>Comme les critères vivent dans le <code>ON</code> et non dans le <code>WHERE</code>, les clients restent tous affichés, avec <code>NULL</code> quand aucune de leurs commandes ne passe.",
-  piege:{t:"Oublier qu’AND exige tous les critères",
-    p:"Avec <code>AND</code>, une commande doit respecter <b>chaque</b> condition du <code>ON</code>. Retire-en une et des commandes que tu voulais écarter reviennent dans le résultat."},
-  consigne:"Affiche tous les clients et uniquement leurs commandes de quantité supérieure à 2 passées après le 15 juillet 2026.",
-  solution:"SELECT clients.nom, commandes.quantite, commandes.date_commande\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2\nAND commandes.date_commande > '2026-07-15';",
-  indice:"Commence par relier le client à sa commande, puis ajoute les deux autres critères avec <code>AND</code>.",
-  joinRecap:'left',
+  exemple:"SELECT commandes.id AS commande_id,\n       produits.nom,\n       produits.stock\nFROM commandes\nINNER JOIN produits\n    ON commandes.produit_id = produits.id\n    AND produits.stock > 50;",
+  attendu:"<b>13 lignes</b> : les 16 commandes sauf les 3 dont le produit a 50 unités ou moins (Protéine Végétale, 45, et Shaker Inox, 30).",
+  retenir:"<code>ON</code> peut vérifier plusieurs conditions en même temps : <code>ON commandes.produit_id = produits.id AND produits.stock &gt; 50</code>.<br><br>Condition 1 → retrouver le bon produit. Condition 2 → vérifier qu’il a encore assez de stock.<br><br>Avec <code>AND</code>, la correspondance est retenue uniquement si toutes les conditions sont vraies.",
+  piege:{lab:"À savoir", t:"ON ou WHERE&nbsp;?",
+    p:"Avec un <code>INNER JOIN</code>, on pourrait aussi écrire la deuxième condition dans <code>WHERE</code>&nbsp;:",
+    exec:true,
+    sql:"SELECT commandes.id AS commande_id,\n       produits.nom,\n       produits.stock\nFROM commandes\nINNER JOIN produits\n    ON commandes.produit_id = produits.id\nWHERE produits.stock > 50;",
+    tail:"Pour cette situation, le résultat est le même&nbsp;: 13 lignes. Mais la logique exprimée n’est pas exactement la même.<br><br><ul class=\"on-where\"><li><code>ON … AND produits.stock &gt; 50</code><span>définit quels produits peuvent correspondre pendant la jointure.</span></li><li><code>ON … WHERE produits.stock &gt; 50</code><span>réalise la correspondance, puis filtre le résultat.</span></li></ul><br><br>💡 Cette différence devient particulièrement importante avec <code>LEFT JOIN</code> et <code>RIGHT JOIN</code>&nbsp;: une condition placée dans <code>WHERE</code> peut alors retirer des lignes que la jointure voulait conserver."},
+  consigne:"Retrouve les commandes dont le produit a encore un stock suffisant (plus de 50 unités). Affiche <code>commande_id</code>, <code>nom</code> et <code>stock</code>.",
+  solution:"SELECT commandes.id AS commande_id,\n       produits.nom,\n       produits.stock\nFROM commandes\nINNER JOIN produits\n    ON commandes.produit_id = produits.id\n    AND produits.stock > 50;",
+  indice:"Relie la <code>table commandes</code> et la <code>table produits</code> avec <code>ON commandes.produit_id = produits.id</code>, puis ajoute la deuxième condition avec <code>AND produits.stock &gt; 50</code>.",
+  joinRecap:'inner',
   richLesson:true, earlyDemo:true,
-  testeSwitch:'cols2',
   testeVariants:[
-  {
-    "k": "cli",
-    "label": "clients",
-    "sql": "SELECT id, nom\nFROM clients;"
-  },
-  {
-    "k": "cmd",
-    "label": "commandes",
-    "sql": "SELECT id, client_id, quantite, date_commande\nFROM commandes;"
-  },
-  {
-    "k": "unseul",
-    "label": "un seul critère",
-    "sql": "SELECT clients.nom, commandes.quantite, commandes.date_commande\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2;",
-    "out": "Emma revient avec sa commande du 8 juillet : le critère de date manque.",
-    "tone": "bad"
-  },
-  {
-    "k": "onmultiple",
-    "label": "les deux critères",
-    "sql": "SELECT clients.nom, commandes.quantite, commandes.date_commande\nFROM clients\nLEFT JOIN commandes\nON clients.id = commandes.client_id\nAND commandes.quantite > 2\nAND commandes.date_commande > '2026-07-15';",
-    "tone": "good"
-  }
-] ,
+    {k:'cmd',label:'commandes',sql:"SELECT id, produit_id, quantite\nFROM commandes;"},
+    {k:'prod',label:'produits',sql:"SELECT id, nom, stock\nFROM produits;"},
+    {k:'unseul',label:'une seule condition',sql:"SELECT commandes.id AS commande_id, produits.nom, produits.stock\nFROM commandes\nINNER JOIN produits\n    ON commandes.produit_id = produits.id;",out:"16 lignes : Protéine Végétale et Shaker Inox reviennent.",tone:'bad'},
+    {k:'onmultiple',label:'les deux conditions',sql:"SELECT commandes.id AS commande_id, produits.nom, produits.stock\nFROM commandes\nINNER JOIN produits\n    ON commandes.produit_id = produits.id\n    AND produits.stock > 50;",tone:'good'}
+  ] ,
 learningCheck:{
-  "question": "Ajouter une condition dans ON d’un LEFT JOIN retire-t-il la ligne du client ?",
+  "question": "Avec ON condition_1 AND condition_2, quand une correspondance est-elle retenue ?",
   "options": [
-    "Oui, toujours",
-    "Oui si son nom est vide",
-    "Non : il peut rester avec NULL"
+    "Si au moins une condition est vraie",
+    "Si les deux conditions sont vraies",
+    "Seulement si la première est vraie"
   ],
-  "answer": 2,
-  "explanation": "Une commande doit satisfaire toutes les conditions de ON. Sans correspondance, le client reste néanmoins à gauche."
+  "answer": 1,
+  "explanation": "AND exige que toutes les conditions soient vraies. Une seule condition fausse suffit à écarter la correspondance."
 }
 }
 ]},
@@ -32039,7 +32031,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-25-self-join-v1080';
+  const SW_CACHE='requete-2026-09-25-on-multiple-v1081';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
