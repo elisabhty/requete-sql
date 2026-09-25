@@ -1,0 +1,126 @@
+/* ==========================================================================
+   Passe UI/UX — septembre 2026
+   Chargée après toutes les autres feuilles : elle ne fait que corriger.
+   1. Lisibilité : plancher typographique (plus rien sous 10,5 px, et le texte
+      courant à 11,5 px minimum, conformément aux recommandations iOS).
+   2. Dock et en-tête compact : fonds plus opaques pour que le contenu qui
+      défile dessous ne se lise plus au travers.
+   3. Cibles tactiles : 44 px minimum sur les liens « Accueil » et la barre
+      du planning.
+   4. Bouton ✎ : se range pendant le défilement vers le bas (géré en JS).
+   5. Filtres du catalogue : une seule ligne défilante au lieu de deux lignes.
+   ========================================================================== */
+
+/* ---------- 1. Plancher typographique ---------- */
+
+/* Étiquettes en capitales, compteurs et numéros : 10,5 px minimum */
+.pl-week-heading > div:first-child > span,
+.pl-overview-next small,
+.notes-overview-copy small,
+.coll-overview-copy small,
+.coll-overview-next small,
+.home-catalog-head > div > span,
+.home-section-head > div > span,
+.pl-overview-copy small,
+.account-settings-group-title,
+.def-focus-level,
+.cp-badge,
+.consigne .tag,
+.coll-module-num,
+.ent-topic-num,
+.tab .dot-n{font-size:10.5px}
+
+#scr-planning .wk-day .wd{font-size:10.5px}
+#scr-planning .wk-day .ld{font-size:10.5px}
+#scr-collection > .fbar .fchip small,
+#scr-defis .def-level small,
+.coll-module-side em,
+.ent-topic-side em,
+.sommaire-t .som-count,
+.ent-status-btn small{font-size:10.5px}
+#modules .catalog-lesson-state{font-size:10.5px}
+
+/* Libellés « Désactivé » des réglages : 8,5 px était illisible */
+.account-setting-end em{font-size:11px}
+
+/* Texte courant : 11,5 px minimum */
+.pl-week-heading p,
+.pl-week-legend,
+.pl-overview-next em,
+.pl-overview-stats small,
+.plan-module-row span,
+.ent-readiness-stats small,
+#scr-collection .coll-overview-stats small,
+.coll-module-copy small,
+.ent-topic-copy small,
+.console-project-copy em,
+.console-projects-note,
+.def-focus-total{font-size:11.5px}
+#scr-planning .wk-nav .wk-t small,
+#scr-planning .pl-chip .ct small{font-size:11.5px}
+
+/* Bouton « Sauvegarder mes données » : texte d'action, pas une note */
+.account-connect{font-size:12.5px}
+@media (max-width:410px){.account-connect{font-size:12.5px}}
+
+/* Dock : libellés un peu plus grands et actif plus marqué */
+.tabbar .tab{font-size:10.5px;color:#5B5E6B}
+.tabbar .tab.active{font-weight:700}
+@media (max-width:380px){
+  .tabbar .tab{font-size:10px;flex-basis:48px;min-width:48px}
+}
+
+/* ---------- 2. Surfaces qui recouvrent le contenu ---------- */
+
+/* Dock : le verre reste, mais le contenu dessous ne doit plus se lire */
+.tabbar{
+  background:rgba(255,255,255,.88);
+  -webkit-backdrop-filter:blur(24px) saturate(1.8);
+  backdrop-filter:blur(24px) saturate(1.8);
+}
+
+/* En-tête compact de l'accueil : opaque, flouté, avec un filet */
+#scr-learn.is-scrolled>.lgtitle{
+  background:rgba(250,250,253,.97);
+  -webkit-backdrop-filter:blur(18px) saturate(1.6);
+  backdrop-filter:blur(18px) saturate(1.6);
+  box-shadow:0 .5px 0 rgba(23,25,35,.08);
+}
+
+/* ---------- 3. Cibles tactiles ---------- */
+
+.home-back{min-height:44px}
+.planning-toolbar > button:first-child{flex:none;padding-inline:14px;white-space:nowrap}
+.planning-toolbar > button + button{min-width:0}
+
+/* ---------- 4. Bouton ✎ rangé pendant le défilement ---------- */
+
+.fab{transition:transform .28s var(--spring-ios,cubic-bezier(.2,.8,.2,1)),opacity .2s ease,box-shadow .22s}
+body:not(.in-lesson) .fab.is-tucked{
+  transform:translateY(18px) scale(.6);
+  opacity:0;
+  pointer-events:none;
+}
+@media (prefers-reduced-motion:reduce){
+  .fab{transition:opacity .15s linear}
+  body:not(.in-lesson) .fab.is-tucked{transform:none}
+}
+
+/* ---------- 5. Filtres du catalogue sur une ligne ---------- */
+
+.catalog-filters{
+  flex-wrap:nowrap;
+  overflow-x:auto;
+  overscroll-behavior-x:contain;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+  scroll-padding-inline:16px;
+  margin-inline:-16px;
+  padding-inline:16px;
+  padding-block:2px;
+}
+.catalog-filters::-webkit-scrollbar{display:none}
+.catalog-filters > button{flex:none;white-space:nowrap}
+@media (min-width:481px){
+  .catalog-filters{flex-wrap:wrap;overflow:visible;margin-inline:0;padding-inline:0}
+}
