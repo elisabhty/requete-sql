@@ -1522,6 +1522,17 @@
   .jn-sides article.is-kept{background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent)}
   .jn-sides article.is-kept span{color:var(--accent)}
   .jn-sides > i{align-self:center;font-style:normal;font-weight:800;color:var(--ink-3)}
+  /* SELF JOIN : la table clients dans ses deux rôles (À retenir) */
+  .sj-tree{display:flex;flex-direction:column;align-items:center;gap:4px;margin:10px 0 12px;padding:14px 12px;border-radius:14px;background:var(--surface-2)}
+  .sj-root,.sj-q{padding:4px 12px;border-radius:999px;font-family:var(--mono);font-size:12px;font-weight:800}
+  .sj-root{background:#fff;border:1px solid var(--card-border);color:var(--ink)}
+  .sj-q{background:var(--accent);color:#fff}
+  .sj-fork{display:flex;gap:64px;font-style:normal;font-weight:800;line-height:1;color:var(--ink-3)}
+  .sj-fork i{font-style:normal}
+  .sj-roles{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:300px}
+  .sj-roles article{display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 8px;border-radius:12px;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent)}
+  .sj-roles b{font-family:var(--mono);font-size:14px;font-weight:800;color:var(--ink)}
+  .sj-roles span{font-size:12.5px;font-weight:650;color:var(--accent-ink)}
   /* Jointures : deux lignes qui forment une ligne de résultat */
   .jn-merge{display:flex;flex-direction:column;align-items:stretch;gap:6px;margin:12px 0 14px;padding:12px;border-radius:16px;background:#fff;border:1px solid var(--card-border);animation:fkTreeIn .4s ease both}
   .jn-merge-src{display:grid;grid-template-columns:1fr 1fr;gap:6px}
@@ -14243,111 +14254,123 @@ learningCheck:{
   "explanation": "La ville se trouve dans clients, les commandes dans commandes. La jointure les réunit sur une même ligne, puis GROUP BY peut regrouper par ville."
 }
 },
-{ id:42, titre:"SELF JOIN", résumé:"Relier une table à elle-même",
-  situation:"Tu veux trouver les clients qui habitent dans la même ville, par exemple pour organiser des rencontres locales.<br><br>Dans la table <code>clients</code>, plusieurs clients partagent la même ville :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>nom</th><th>ville</th></tr></thead><tbody><tr data-ville=\"Paris\"><td>1</td><td>Sophie</td><td>Paris</td></tr><tr data-ville=\"Lyon\"><td>2</td><td>Lucas</td><td>Lyon</td></tr><tr data-ville=\"Marseille\"><td>3</td><td>Emma</td><td>Marseille</td></tr><tr data-ville=\"Paris\"><td>4</td><td>Nathan</td><td>Paris</td></tr><tr data-ville=\"Lyon\"><td>6</td><td>Hugo</td><td>Lyon</td></tr><tr data-ville=\"Paris\"><td>7</td><td>Léa</td><td>Paris</td></tr></tbody></table></div><br><br>Pour trouver les clients qui habitent dans la même ville, nous allons les associer deux par deux pour former des paires.<br><br><figure class=\"self-map\" aria-label=\"Chaque ligne est une paire de même ville : un client à gauche, un autre à droite\"><div class=\"pd-onids\"><div class=\"pd-onids-lab\"><span>clients c1</span><span>ville</span><span>clients c2</span></div><div class=\"pd-onids-row\"><b>Sophie</b><i><span class=\"sm-ville\">Paris</span></i><b>Nathan</b></div><div class=\"pd-onids-row\"><b>Sophie</b><i><span class=\"sm-ville\">Paris</span></i><b>Léa</b></div><div class=\"pd-onids-row\"><b>Nathan</b><i><span class=\"sm-ville\">Paris</span></i><b>Léa</b></div><div class=\"pd-onids-row\"><b>Lucas</b><i><span class=\"sm-ville\">Lyon</span></i><b>Hugo</b></div></div></figure><br><br>Pour former ces paires, il faut comparer les clients entre eux. Mais tous les clients sont dans la même table <code>clients</code>.<br><br>On va donc utiliser la table <code>clients</code> deux fois, avec un nom différent pour chaque côté de la comparaison.",
-    studio:{problem:{eye:"",title:"Relier une table à elle-même.",
-      body:"Pour comparer des clients entre eux, on lit la table <code>clients</code> deux fois, sous deux noms différents.",
-      extra:`<div class="jn-sides" role="img" aria-label="La table clients utilisée deux fois, sous les alias c1 et c2"><article class="is-kept"><small>clients</small><b>c1</b><span>le premier client</span></article><i aria-hidden="true">⟷</i><article class="is-kept"><small>clients</small><b>c2</b><span>le second client</span></article></div>`},
-    uses:{title:"SELF JOIN, étape par étape",
+{ id:42, titre:"SELF JOIN", résumé:"Retrouver les clients qui habitent dans la même ville",
+  situation:`<p>L’équipe souhaite identifier les clients qui <b>habitent dans la même ville</b>.</p><p>Par exemple, dans la <code>table&nbsp;clients</code>, plusieurs personnes habitent à Paris&nbsp;:</p><div class="pk-comp ij-t"><p class="ij-tlab">table clients · Paris</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">ville</span><span>1</span><span>Sophie</span><span class="is-hit">Paris</span><span>4</span><span>Nathan</span><span class="is-hit">Paris</span><span>7</span><span>Léa</span><span class="is-hit">Paris</span><span>10</span><span>Nathan</span><span class="is-hit">Paris</span></div></div><p>🎯 <b>Objectif&nbsp;:</b> former les <b>paires de clients</b> qui partagent la même ville. Par exemple&nbsp;:</p><figure class="self-map" aria-label="Exemples de paires : Sophie et Nathan, Sophie et Léa, Nathan et Léa, tous à Paris"><div class="pd-onids"><div class="pd-onids-lab"><span>client 1</span><span>ville</span><span>client 2</span></div><div class="pd-onids-row"><b>Sophie</b><i><span class="sm-ville">Paris</span></i><b>Nathan</b></div><div class="pd-onids-row"><b>Sophie</b><i><span class="sm-ville">Paris</span></i><b>Léa</b></div><div class="pd-onids-row"><b>Nathan</b><i><span class="sm-ville">Paris</span></i><b>Léa</b></div></div></figure><p>🤔 <b>Particularité&nbsp;:</b> les deux clients à comparer se trouvent dans la même <code>table&nbsp;clients</code>.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Forme toutes les paires de clients qui habitent dans la même ville, chaque paire une seule fois.</p></div>`,
+    studio:{problem:{eye:"",title:"Une seule table… mais deux clients à comparer",
+      body:"Habituellement, une jointure relie deux tables différentes&nbsp;:",
+      extra:`<div class="ij-match" role="img" aria-label="La table clients reliée à la table commandes"><code>clients</code><i aria-hidden="true">↕</i><code>commandes</code></div>
+        <p>Ici, ce n’est pas ce dont on a besoin. On veut comparer&nbsp;:</p>
+        <div class="ij-match" role="img" aria-label="La table clients reliée à elle-même"><code>clients</code><i aria-hidden="true">↕</i><code>clients</code></div>
+        <p class="ij-arrow">👉 Une ligne de la <code>table&nbsp;clients</code> doit être comparée aux autres lignes de cette même table.</p>
+        <p class="ij-box">C’est le principe du SELF JOIN&nbsp;: une table est jointe avec elle-même.</p>`},
+    uses:{title:"Écrire la requête",
       body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
-          <p class="pt-syntax-h">Une table, deux rôles</p>
-          <div class="pt-syntax"><pre class="cw-syntax">FROM <span class="fk-syn-hit">clients c1</span>
-JOIN <span class="fk-syn-hit">clients c2</span></pre></div>
-          <p><code>c1</code> et <code>c2</code> sont des <b>alias</b>&nbsp;: deux étiquettes pour la même table. <code>c1</code> joue le premier client de la paire, <code>c2</code> le second.</p>
+          <p class="pt-syntax-h">Joindre une table avec elle-même</p>
+          <p>On écrit deux fois <code>clients</code>&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">FROM clients
+JOIN clients</pre></div>
+          <p>Mais SQL rencontre alors un problème. Si on écrit <code>clients.nom</code>, de quelle <code>table&nbsp;clients</code> parle-t-on&nbsp;? De la première&nbsp;? De la deuxième&nbsp;?</p>
+          <p>👇 Exécute pour voir la réaction de SQL&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT clients.nom&#10;FROM clients&#10;JOIN clients&#10;    ON clients.ville = clients.ville;"></div>
+          <p>SQL ne sait pas choisir&nbsp;: le nom est <b>ambigu</b>. Il faut donc donner un <b>alias</b> différent à chaque utilisation de la table&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">FROM clients AS <span class="fk-syn-hit">c1</span>
+JOIN clients AS <span class="fk-syn-hit">c2</span></pre></div>
+          <p>On peut maintenant les distinguer&nbsp;:</p>
+          <div class="jn-sides" role="img" aria-label="La table clients utilisée deux fois : c1 pour le premier client, c2 pour le deuxième"><article class="is-kept"><small>clients</small><b>c1</b><span>premier client</span></article><i aria-hidden="true">⟷</i><article class="is-kept"><small>clients</small><b>c2</b><span>deuxième client</span></article></div>
+          <p class="ij-arrow">💡 Il n’y a toujours qu’une seule <code>table&nbsp;clients</code>. Les alias permettent simplement de l’utiliser deux fois dans la jointure.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Comparer les villes</p>
+          <p class="pt-syntax-h">Trouver les clients de la même ville</p>
+          <p>On cherche des clients dont la ville est identique. La condition devient donc&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax">ON <span class="fk-syn-hit">c1.ville = c2.ville</span></pre></div>
-          <p>Deux clients forment une paire quand ils habitent la même ville. Sophie et Léa, toutes deux à Paris, se retrouvent ensemble.</p>
+          <p>La requête commence ainsi&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT c1.nom AS client_1,
+       c2.nom AS client_2,
+       c1.ville
+FROM clients AS c1
+JOIN clients AS c2
+    ON c1.ville = c2.ville;</pre></div>
+          <p>Pour Paris, des correspondances apparaissent alors&nbsp;:</p>
+          <div class="pk-comp ij-t"><p class="ij-tlab">extrait du résultat</p><div class="pk-mini is-2"><span class="is-h">client_1</span><span class="is-h">client_2</span><span>Sophie</span><span>Nathan</span><span>Sophie</span><span>Léa</span><span>Nathan</span><span>Sophie</span><span>Nathan</span><span>Léa</span><span>Léa</span><span>Sophie</span></div><p class="ij-tmore">…</p></div>
+          <p class="ij-arrow">👉 Mais il y a un problème.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Éviter les doublons</p>
-          <div class="fk-duo" aria-label="Sans et avec la condition c1.id inférieur à c2.id">
-            <article class="is-ko">
-              <p class="fk-duo-lab">Sans filtre</p>
-              <b>24 lignes</b>
-              <code>ON c1.ville = c2.ville</code>
-              <small>Sophie · Sophie, Sophie · Léa, Léa · Sophie…</small>
-            </article>
-            <article class="is-ok">
-              <p class="fk-duo-lab">Avec c1.id &lt; c2.id</p>
-              <b>7 lignes</b>
-              <code>AND c1.id &lt; c2.id</code>
-              <small>chaque paire une seule fois</small>
-            </article>
-          </div>
-          <p><code>c1.id &lt; c2.id</code> interdit d’associer un client à lui-même et ne garde qu’un seul sens pour chaque paire.</p>
+          <p class="pt-syntax-h">Un client se retrouve avec lui-même</p>
+          <p>Sophie habite dans la même ville que… Sophie. La condition est donc vraie&nbsp;:</p>
+          <div class="ij-match" role="img" aria-label="Sophie comparée à Sophie : Paris égale Paris"><code>Sophie ↔ Sophie</code><i aria-hidden="true">↓</i><code>Paris = Paris ✅</code></div>
+          <p>Même chose pour Nathan, Léa, etc. Or, notre objectif est de former des paires de <b>deux clients différents</b>.</p>
+          <p>On pourrait ajouter&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">AND <span class="fk-syn-hit">c1.id &lt;&gt; c2.id</span></pre></div>
+          <p>Cela retire <b>Sophie ↔ Sophie</b> ❌</p>
+          <p class="ij-arrow">👉 Mais un deuxième problème reste présent.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Afficher les deux clients</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT c1.nom AS client1,
-       c2.nom AS client2,
-       c1.ville</pre></div>
-          <div class="pk-comp"><div class="pk-mini is-3"><span class="is-h">client1</span><span class="is-h">client2</span><span class="is-h">ville</span><span>Sophie</span><span>Léa</span><span>Paris</span><span>Sophie</span><span>Nathan</span><span>Paris</span><span>Lucas</span><span>Hugo</span><span>Lyon</span></div></div>
-          <p><code>AS</code> renomme les deux colonnes <code>nom</code> pour les distinguer.</p>
+          <p class="pt-syntax-h">Les mêmes paires apparaissent deux fois</p>
+          <p>Avec <code>&lt;&gt;</code>, SQL peut encore obtenir&nbsp;:</p>
+          <div class="pk-comp ij-t"><p class="ij-tlab">deux lignes du résultat</p><div class="pk-mini is-2"><span class="is-h">client_1</span><span class="is-h">client_2</span><span>Sophie</span><span>Nathan</span><span>Nathan</span><span>Sophie</span></div></div>
+          <p>Ce sont les mêmes deux clients, simplement présentés dans l’ordre inverse. On veut conserver <b>une seule version</b> de chaque paire.</p>
+          <p>Au lieu de <code>c1.id &lt;&gt; c2.id</code>, on utilise&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">AND <span class="fk-syn-hit">c1.id &lt; c2.id</span></pre></div>
+          <p>Une paire n’est conservée que lorsque l’identifiant du premier client est <b>inférieur</b> à celui du second&nbsp;:</p>
+          <div class="ij-cases" role="list"><div class="ij-case" role="listitem"><span class="ij-case-ico is-ok" aria-hidden="true">✓</span><div><p class="ij-case-t">Sophie (id 1) ↔ Nathan (id 4)</p><p><code>1 &lt; 4</code> est vrai.</p><p class="ij-case-v is-ok">Paire gardée</p></div></div><div class="ij-case" role="listitem"><span class="ij-case-ico is-ko" aria-hidden="true">✕</span><div><p class="ij-case-t">Nathan (id 4) ↔ Sophie (id 1)</p><p><code>4 &lt; 1</code> est faux.</p><p class="ij-case-v is-ko">Doublon écarté</p></div></div><div class="ij-case" role="listitem"><span class="ij-case-ico is-ko" aria-hidden="true">✕</span><div><p class="ij-case-t">Sophie (id 1) ↔ Sophie (id 1)</p><p><code>1 &lt; 1</code> est faux.</p><p class="ij-case-v is-ko">Écartée aussi</p></div></div></div>
+          <p class="ij-arrow">👉 Une seule des deux combinaisons reste, et <code>c1.id &lt; c2.id</code> élimine aussi automatiquement un client associé à lui-même.</p>
         </div>
-      </div>`},
-    reflex:{a:{k:"Deux alias",t:"une même table, deux rôles"}, b:{k:"c1.id &lt; c2.id",t:"chaque paire une seule fois"}, extra:`<div class="sit-memo">
+        <div class="fn-use">
+          <p class="pt-syntax-h">La requête complète</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT c1.nom AS client_1,
+       c2.nom AS client_2,
+       c1.ville
+FROM clients AS c1
+JOIN clients AS c2
+    ON c1.ville = c2.ville
+    <span class="fk-syn-hit">AND c1.id &lt; c2.id</span>;</pre></div>
+          <p>👇 Exécute la requête pour former les paires&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT c1.nom AS client_1,&#10;       c2.nom AS client_2,&#10;       c1.ville&#10;FROM clients AS c1&#10;JOIN clients AS c2&#10;    ON c1.ville = c2.ville&#10;    AND c1.id &lt; c2.id;"></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 24 associations à 7 paires uniques"><li class="ij-fn-row"><b>24</b><span>associations de même ville<small>dont <em>10 clients avec eux-mêmes</em></small></span><i class="ij-fn-dots" aria-hidden="true"><i></i><i></i><i></i><i class="is-null"></i><i></i><i class="is-null"></i><i class="is-null"></i><i></i><i class="is-null"></i><i></i><i></i><i class="is-null"></i><i class="is-null"></i><i></i><i class="is-null"></i><i></i><i></i><i></i><i class="is-null"></i><i class="is-null"></i><i></i><i></i><i class="is-null"></i><i></i></i></li><li class="ij-fn-step"><code>AND c1.id &lt; c2.id</code><small>ni client seul, ni paire inversée</small></li><li class="ij-fn-row is-out"><b>7</b><span>paires uniques<small>6 à Paris · 1 à Lyon</small></span></li></ol><p class="ij-done-p">Nathan ↔ Nathan n’est pas une erreur&nbsp;: ce sont deux clients différents (n°4 et n°10) qui portent le même prénom. C’est pour cela qu’on compare les <code>id</code>, pas les noms.</p></div>
+          <div class="sit-memo">
             <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-            <p>Un SELF JOIN est un <code>JOIN</code> ordinaire&nbsp;: la même table, lue deux fois sous deux alias.</p>
-          </div>`},
-    viz:"selfjoin"},
+            <p>Un <code>SELF JOIN</code> permet de mettre en relation des lignes d’une même table. Dans notre situation&nbsp;:</p>
+            <div class="sj-tree" role="img" aria-label="La table clients joue deux rôles : c1, le premier client, et c2, un autre client, comparés sur la ville"><span class="sj-root">table clients</span><span class="sj-fork" aria-hidden="true"><i>↙</i><i>↘</i></span><div class="sj-roles"><article><b>c1</b><span>premier client</span></article><article><b>c2</b><span>autre client</span></article></div><span class="sj-fork" aria-hidden="true"><i>↘</i><i>↙</i></span><span class="sj-q">même ville&nbsp;?</span></div>
+            <p>Les alias <code>c1</code> et <code>c2</code> permettent d’utiliser la table dans deux rôles différents.</p>
+            <p>👉 Ici, le SELF JOIN compare chaque client aux autres clients pour retrouver ceux qui habitent dans la même ville.</p>
+          </div>
+          <button type="button" class="coda-note" onclick="noteFromRetenir()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ajouter dans notes</button>
+        </div>
+      </div>`}},
   joinFn:true,
+  noReflex:true,
+  noTeste:true,
+  noAnat:true,
   anatomie:[
-    {tok:"FROM clients c1",txt:"La table clients, appelée ici c1."},
-    {tok:"JOIN clients c2",txt:"La même table, appelée ici c2."},
+    {tok:"SELECT c1.nom AS client_1, c2.nom AS client_2, c1.ville",txt:"Les deux clients de la paire et leur ville commune."},
+    {tok:"FROM clients AS c1",txt:"La table clients, dans le rôle du premier client."},
+    {tok:"JOIN clients AS c2",txt:"La même table, dans le rôle du deuxième client."},
     {tok:"ON c1.ville = c2.ville",txt:"Garder les clients qui ont la même ville."},
-    {tok:"AND c1.id < c2.id",txt:"Garder chaque paire une seule fois."},
-    {tok:"SELECT c1.nom, c2.nom, c1.ville",txt:"Affiche les deux clients et leur ville commune."}
+    {tok:"AND c1.id < c2.id",txt:"Garder chaque paire une seule fois, sans client associé à lui-même."}
   ],
-  exemple:"SELECT c1.nom AS client1, c2.nom AS client2, c1.ville\nFROM clients c1\nJOIN clients c2\nON c1.ville = c2.ville AND c1.id < c2.id;",
-  attendu:"7 lignes : 6 paires à Paris entre Sophie, Nathan n°4, Léa et Nathan n°10, plus Lucas/Hugo à Lyon.",
-  retenir:"Un <code>SELF JOIN</code> lit la même table deux fois sous deux alias : <code>FROM clients c1 JOIN clients c2</code>.<br><br>La table n’est pas dupliquée, elle joue deux rôles que la condition compare — ici <code>c1.ville = c2.ville</code>.<br><br><code>c1.id &lt; c2.id</code> évite les paires inversées et les clients associés à eux-mêmes.",
-  piege:{t:"Oublier d’exclure les paires avec le même client",
-    p:"Avec seulement <code>ON c1.ville = c2.ville</code>, chaque client apparaît avec lui-même et chaque paire apparaît en double — 24 lignes au lieu de 7. Ajoute <code>AND c1.id &lt; c2.id</code> pour ne garder qu’une fois chaque paire."},
-  consigne:"Affiche toutes les paires de clients qui habitent la même ville, sans doublons ni association d’un client avec lui-même.",
-  solution:"SELECT c1.nom AS client1, c2.nom AS client2, c1.ville\nFROM clients c1\nJOIN clients c2\nON c1.ville = c2.ville AND c1.id < c2.id;",
-  indice:"Utilise deux alias de la table <code>clients</code>, compare les villes, puis ajoute <code>c1.id &lt; c2.id</code>.",
+  exemple:"SELECT c1.nom AS client_1,\n       c2.nom AS client_2,\n       c1.ville\nFROM clients AS c1\nJOIN clients AS c2\n    ON c1.ville = c2.ville\n    AND c1.id < c2.id;",
+  attendu:"<b>7 lignes</b> : 6 paires à Paris entre Sophie, Nathan n°4, Léa et Nathan n°10, et 1 paire à Lyon (Lucas et Hugo).",
+  retenir:"Un <code>SELF JOIN</code> permet de mettre en relation des lignes d’une même table.<br><br>Les alias <code>c1</code> et <code>c2</code> permettent d’utiliser la table dans deux rôles différents : <code>FROM clients AS c1 JOIN clients AS c2</code>.<br><br><code>c1.id &lt; c2.id</code> garde chaque paire une seule fois et écarte un client associé à lui-même.",
+  consigne:"Forme toutes les paires de clients qui habitent dans la même ville, chaque paire une seule fois. Affiche <code>client_1</code>, <code>client_2</code> et <code>ville</code>.",
+  solution:"SELECT c1.nom AS client_1,\n       c2.nom AS client_2,\n       c1.ville\nFROM clients AS c1\nJOIN clients AS c2\n    ON c1.ville = c2.ville\n    AND c1.id < c2.id;",
+  indice:"Utilise deux alias de la <code>table&nbsp;clients</code> (<code>c1</code> et <code>c2</code>), compare leurs villes avec <code>ON c1.ville = c2.ville</code>, puis ajoute <code>AND c1.id &lt; c2.id</code>.",
   joinRecap:'self',
   richLesson:true, earlyDemo:true,
-  testeSwitch:'cols2',
   testeVariants:[
-  {
-    "k": "cli",
-    "label": "clients",
-    "sql": "SELECT id, nom, ville\nFROM clients;"
-  },
-  {
-    "k": "sansgarde",
-    "label": "sans c1.id < c2.id",
-    "sql": "SELECT c1.nom AS client1, c2.nom AS client2, c1.ville\nFROM clients c1\nJOIN clients c2\nON c1.ville = c2.ville;",
-    "out": "17 lignes : chaque client avec lui-même, et chaque paire en double",
-    "tone": "bad"
-  },
-  {
-    "k": "selfjoin",
-    "label": "SELF JOIN",
-    "sql": "SELECT c1.nom AS client1, c2.nom AS client2, c1.ville\nFROM clients c1\nJOIN clients c2\nON c1.ville = c2.ville AND c1.id < c2.id;",
-    "tone": "good"
-  },
-  {
-    "k": "rec_reverse",
-    "label": "Paires inversées",
-    "sql": "SELECT c1.id AS id1,c2.id AS id2,c1.nom,c2.nom FROM clients c1 JOIN clients c2 ON c1.ville=c2.ville AND c1.id<>c2.id ORDER BY c1.id,c2.id;",
-    "out": "Chaque paire apparaît deux fois : une fois dans chaque sens.",
-    "expectRows": 14
-  }
-] ,
+    {k:'cli',label:'clients',sql:"SELECT id, nom, ville\nFROM clients;"},
+    {k:'sansgarde',label:'sans c1.id < c2.id',sql:"SELECT c1.nom AS client_1, c2.nom AS client_2, c1.ville\nFROM clients AS c1\nJOIN clients AS c2\nON c1.ville = c2.ville;",out:"24 lignes : chaque client avec lui-même, et chaque paire en double",tone:'bad'},
+    {k:'selfjoin',label:'SELF JOIN',sql:"SELECT c1.nom AS client_1, c2.nom AS client_2, c1.ville\nFROM clients AS c1\nJOIN clients AS c2\nON c1.ville = c2.ville AND c1.id < c2.id;",tone:'good'}
+  ] ,
 learningCheck:{
   "question": "Pourquoi écrire c1.id < c2.id plutôt que c1.id <> c2.id ?",
   "options": [
-    "Pour éviter les paires inversées",
+    "Pour garder une seule version de chaque paire",
     "Pour trier les villes",
     "Pour inclure un client avec lui-même"
   ],
   "answer": 0,
-  "explanation": "<> conserve A-B et B-A. < n’en garde qu’une orientation et exclut A-A."
+  "explanation": "<> garde A-B et B-A. < n’en garde qu’une orientation, et exclut aussi A-A."
 }
 },
 { id:43, titre:"ON vs WHERE", résumé:"Filtrer au bon moment",
@@ -20398,7 +20421,9 @@ function errBox(msg){
   }
   else if(m.includes('syntax error')) aide="Requête mal formée — vérifie les mots-clés, les virgules et le point-virgule final.";
   else if(m.includes('misuse of aggregate')) aide="Une fonction d'agrégation (COUNT, SUM…) ne peut pas être utilisée dans un WHERE.";
-  else if(m.includes('ambiguous')) aide="Deux tables ont une colonne du même nom. Préfixe-la avec le nom de la table.";
+  else if(m.includes('ambiguous')) aide=/ambiguous column name: \S+\.\S+/.test(m)
+    ? "La même table apparaît deux fois dans la requête. Donne-lui un alias différent à chaque utilisation, par exemple <code>clients AS c1</code> et <code>clients AS c2</code>."
+    : "Deux tables ont une colonne du même nom. Préfixe-la avec le nom de la table.";
   else if(m.includes('values do not match')) aide="Le nombre de valeurs après VALUES doit être identique au nombre de colonnes citées.";
   return `<div class="feedback err"><div class="fi">!</div><div><b>Erreur SQL</b><p><code>${esc(msg)}</code></p>${aide?`<p style="margin-top:7px">${aide}</p>`:''}</div></div>`;
 }
@@ -22580,7 +22605,7 @@ function stripNoteHtml(s){
   if(!html) return '';
   /* Les schémas (fk-memo, arbres, cartes SVG…) ne sont pas du texte de note :
      les extraire produit « identifiefaitréférence » et des flèches orphelines. */
-  const skip='svg,[aria-hidden="true"],.fk-memo,.fk-tree,.fk-corr,.fk-ref,.fk-vs,.fk-check,.fk-gift,.fk-quiz-pair,.fk-roles,.fk-syn-map,.rel-link,.pk-rel,.sit-memo-lab';
+  const skip='svg,[aria-hidden="true"],.fk-memo,.fk-tree,.fk-corr,.fk-ref,.fk-vs,.fk-check,.fk-gift,.fk-quiz-pair,.fk-roles,.fk-syn-map,.rel-link,.pk-rel,.sj-tree,.sit-memo-lab';
   if(typeof document!=='undefined'){
     const box=document.createElement('div');
     box.innerHTML=html;
@@ -32014,7 +32039,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-25-glisse-v1079';
+  const SW_CACHE='requete-2026-09-25-self-join-v1080';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
