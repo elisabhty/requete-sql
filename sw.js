@@ -14,7 +14,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-09-27-onwhere2-v1129';
+const CACHE = 'requete-2026-09-27-mission49-v1130';
 
 const PRECACHE = [
   './',
