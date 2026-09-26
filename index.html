@@ -14007,7 +14007,7 @@ learningCheck:{
     uses:{title:"À toi de choisir",
       body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use jc-quiz">
-          <p>Voici 6 besoins métier. Pour chacun, choisis la jointure adaptée.</p>
+          <p>Voici 6 besoins métier. Pour chacun, choisis la jointure adaptée.</p><p>🎯 Obtiens au moins <b>5 bonnes réponses sur 6</b> pour débloquer l’exercice.</p>
           <div class="jc-score" aria-live="polite"><span class="jc-score-t"><b>0</b> / 6 bonnes réponses</span><span class="jc-score-bar"><i></i></span></div>
           <div class="ij-ask jc-ask" data-ok="4" data-yes="<b>✅ CROSS JOIN</b>On ne cherche aucune correspondance&nbsp;: chaque personnage est associé à chaque arène." data-no="<b>❌ C’est CROSS JOIN</b>Un personnage et une arène ne sont liés par aucun identifiant&nbsp;: on veut toutes les combinaisons personnage × arène."><p class="ij-ask-q"><span class="jc-ask-n">1</span><span>🎮 Associer chaque personnage à chaque arène pour créer tous les matchs possibles.</span></p><div class="ij-ask-opts"><button type="button">INNER</button><button type="button">LEFT</button><button type="button">RIGHT</button><button type="button">FULL</button><button type="button">CROSS</button><button type="button">SELF</button></div><p class="ij-ask-fb" hidden></p></div>
           <div class="ij-ask jc-ask" data-ok="1" data-yes="<b>✅ LEFT JOIN</b>Tous les films sont conservés. Un film sans séance apparaît avec <code>NULL</code> à la place des informations de séance." data-no="<b>❌ C’est LEFT JOIN</b>La table <code>films</code> est à gauche&nbsp;: toutes ses lignes doivent être conservées, même les films sans séance."><p class="ij-ask-q"><span class="jc-ask-n">2</span><span>🎬 Avec <code>FROM films</code>, afficher tous les films du catalogue, même ceux qui n’ont encore aucune séance programmée.</span></p><div class="ij-ask-opts"><button type="button">INNER</button><button type="button">LEFT</button><button type="button">RIGHT</button><button type="button">FULL</button><button type="button">CROSS</button><button type="button">SELF</button></div><p class="ij-ask-fb" hidden></p></div>
@@ -14032,6 +14032,7 @@ learningCheck:{
           </div>
         </div>`}},
   joinFn:true,
+  gateJcQuiz:true,
   whyFirst:true,
   noReflex:true,
   noTeste:true,
@@ -21877,13 +21878,31 @@ function openLesson(id, restoreStep){
   renderLessonFlow(); showScreen(); brancherCtaScroll();
   saveNav();
 }
+/* « Quel JOIN choisir ? » : l'exercice se débloque avec au moins 5/6 au quiz « À toi de choisir ». */
+const JC_PASS=new Set();
+function jcPassed(id){
+  if(JC_PASS.has(id))return true;
+  try{ return localStorage.getItem('rq-jc-pass-'+id)==='1'; }catch(e){ return false; }
+}
+function jcMarkPassed(id){
+  JC_PASS.add(id);
+  try{ localStorage.setItem('rq-jc-pass-'+id,'1'); }catch(e){}
+}
+function jcGateLocked(l){
+  return !!(l&&l.gateJcQuiz&&!etapesDe(l.id).exo&&!jcPassed(l.id));
+}
+function jcUnlockExo(){
+  const b=document.querySelector('#lesson-body .ls-next[data-jc-gate]');
+  if(b){ b.disabled=false; b.removeAttribute('data-jc-gate'); b.textContent='Passer à l’exercice'; b.onclick=()=>setLessonStep(1); if(typeof pulseCta==='function')pulseCta('#lesson-body .ls-next'); }
+  document.querySelectorAll('.ls-bar[aria-label="Exercice"][disabled]').forEach(x=>{ x.disabled=false; x.onclick=()=>setLessonStep(1); });
+}
 function lessonStepMeta(){
   const e=etapesDe(current.id);
   const exoOk=!!e.exo;
   const quizOk=lecCompletee(current.id);
   return [
     {i:0,l:'Leçon',s:'Cours',done:exoOk||quizOk,lock:false},
-    {i:1,l:'Exercice',s:'Pratique',done:exoOk,lock:false},
+    {i:1,l:'Exercice',s:'Pratique',done:exoOk,lock:jcGateLocked(current)},
     {i:2,l:'Quiz',s:'Valider',done:quizOk,lock:!exoOk}
   ];
 }
@@ -23710,7 +23729,7 @@ function initJoinChooser(){
       done.querySelector('.jc-end-btn').addEventListener('click',reset);
       countUp(done.querySelector('.jc-end-score b'),good);
       setTimeout(()=>done.scrollIntoView({behavior:reduce()?'auto':'smooth',block:'center'}),300);
-      if(win)setTimeout(()=>jcFireworks(good===total?6:4),450);
+      if(win){ if(current&&current.gateJcQuiz){ jcMarkPassed(current.id); jcUnlockExo(); } setTimeout(()=>jcFireworks(good===total?6:4),450); }
       else if(navigator.vibrate)navigator.vibrate([15,60,15]);
     };
     const paint=()=>{
@@ -26140,7 +26159,7 @@ function renderLessonFlow(){
       }
       slide=`
       <div class="ls-nav">
-        <button class="ls-next" type="button" onclick="setLessonStep(1)">Passer à l’exercice</button>
+        ${jcGateLocked(l)?'<button class="ls-next" type="button" disabled data-jc-gate>Obtiens 5/6 au quiz pour continuer</button>':'<button class="ls-next" type="button" onclick="setLessonStep(1)">Passer à l’exercice</button>'}
       </div>
       <div class="ls-main">
         <div class="lesson-rich${isJoinMicro(l)?' join-micro':''}">
@@ -32127,7 +32146,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-26-norecap41-v1109';
+  const SW_CACHE='requete-2026-09-26-jcgate-v1110';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
