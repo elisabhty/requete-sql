@@ -392,6 +392,26 @@
   .lesson-lead .situation-body .mini-grid + p,
   .lesson-lead .situation-body .table-wrap + p,
   .lesson-lead .situation-body .table-wrap + .self-map{margin-top:2px}
+  .self-pairs{margin:8px 0 14px;padding:12px;border-radius:18px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--card-shadow-sm)}
+  .sp-head{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:12.5px;font-weight:700;color:var(--ink-2)}
+  .sp-head span + span::before{content:'·';margin-right:8px;color:var(--ink-3)}
+  .sp-head b{margin-left:auto;padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:12px;font-weight:800}
+  .sp-rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0}
+  .sp-rows li{display:grid;grid-template-columns:minmax(0,1fr) 14px repeat(3,minmax(0,1fr)) 14px;align-items:center;column-gap:5px;margin:0;padding:9px 0}
+  .sp-rows li + li{border-top:1px dashed var(--line)}
+  .sp-left{grid-column:1}.sp-link{grid-column:2}.sp-n{grid-column:6}
+  .sp-left .sp-chip{width:100%}
+  .sp-link{font-style:normal;font-weight:800;color:var(--accent);text-align:center}
+  .sp-n{font-style:normal;font-family:var(--mono);font-size:11.5px;font-weight:800;color:var(--ink-3);min-width:16px;text-align:right}
+  .sp-chip{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;padding:5px 1px;border-radius:10px;line-height:1.15}
+  .sp-chip b{font-size:12px;font-weight:750}
+  .sp-chip small{font-family:var(--mono);font-size:10.5px;font-weight:700;opacity:.8}
+  .sp-chip.c1{background:#EEEDFB;color:#4845C4}
+  .sp-chip.c2{background:#E6F4EE;color:#1F7A55}
+  .sp-chip.c3{background:#FBF0E4;color:#A45A12}
+  .sp-chip.c4{background:#E7F0FA;color:#2B63A6}
+  .sp-sum{margin:8px 0 0!important;padding-top:9px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12px!important;color:var(--ink-3);text-align:right}
+  .sp-sum b{color:var(--accent-ink)}
   .self-map{margin:8px 0 14px;background:var(--surface);border:1px solid var(--card-border);border-radius:18px;padding:12px 12px 10px;box-shadow:var(--card-shadow-sm)}
   .self-map .pd-onids{margin:0}
   .self-map .pd-onids-row b small{display:block;margin-top:1px;font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--ink-3)}
@@ -14260,7 +14280,7 @@ learningCheck:{
 }
 },
 { id:42, titre:"SELF JOIN", résumé:"Retrouver les clients qui habitent dans la même ville",
-  situation:`<p>L’équipe marketing prépare des événements dans plusieurs villes et souhaite identifier les clients qui <b>habitent dans la même ville</b> pour leur envoyer les mêmes invitations.</p><p>Par exemple, dans la <code>table&nbsp;clients</code>, plusieurs personnes habitent à Paris&nbsp;:</p><div class="pk-comp ij-t"><p class="ij-tlab">table clients · Paris</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">ville</span><span>1</span><span>Sophie</span><span class="is-hit">Paris</span><span>4</span><span>Nathan</span><span class="is-hit">Paris</span><span>7</span><span>Léa</span><span class="is-hit">Paris</span><span>10</span><span>Nathan</span><span class="is-hit">Paris</span></div></div><p>🎯 <b>Objectif&nbsp;:</b> identifier quels clients habitent dans la même ville. Pour les comparer, nous allons les associer <b>deux par deux</b>.</p><p>Avec les 4 clients de Paris, on obtient 6 paires&nbsp;:</p><figure class="self-map" aria-label="Les 6 paires de Paris : Sophie et Nathan id 4, Sophie et Léa, Sophie et Nathan id 10, Nathan id 4 et Léa, Nathan id 4 et Nathan id 10, Léa et Nathan id 10"><div class="pd-onids"><div class="pd-onids-lab"><span>client 1</span><span>ville</span><span>client 2</span></div><div class="pd-onids-row"><b>Sophie<small>id 1</small></b><i><span class="sm-ville">Paris</span></i><b>Nathan<small>id 4</small></b></div><div class="pd-onids-row"><b>Sophie<small>id 1</small></b><i><span class="sm-ville">Paris</span></i><b>Léa<small>id 7</small></b></div><div class="pd-onids-row"><b>Sophie<small>id 1</small></b><i><span class="sm-ville">Paris</span></i><b>Nathan<small>id 10</small></b></div><div class="pd-onids-row"><b>Nathan<small>id 4</small></b><i><span class="sm-ville">Paris</span></i><b>Léa<small>id 7</small></b></div><div class="pd-onids-row"><b>Nathan<small>id 4</small></b><i><span class="sm-ville">Paris</span></i><b>Nathan<small>id 10</small></b></div><div class="pd-onids-row"><b>Léa<small>id 7</small></b><i><span class="sm-ville">Paris</span></i><b>Nathan<small>id 10</small></b></div></div></figure><p class="ij-arrow">👉 Les deux Nathan sont deux clients différents&nbsp;: on les distingue par leur <code>id</code>, pas par leur nom.</p><p>🤔 <b>Particularité&nbsp;:</b> les deux clients à comparer se trouvent dans la même <code>table&nbsp;clients</code>.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Retrouve toutes les paires de clients qui habitent dans la même ville, sans associer un client avec lui-même et sans afficher deux fois la même paire.</p></div>`,
+  situation:`<p>L’équipe marketing prépare des événements dans plusieurs villes et souhaite identifier les clients qui <b>habitent dans la même ville</b> pour leur envoyer les mêmes invitations.</p><p>Par exemple, dans la <code>table&nbsp;clients</code>, plusieurs personnes habitent à Paris&nbsp;:</p><div class="pk-comp ij-t"><p class="ij-tlab">table clients · Paris</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">ville</span><span>1</span><span>Sophie</span><span class="is-hit">Paris</span><span>4</span><span>Nathan</span><span class="is-hit">Paris</span><span>7</span><span>Léa</span><span class="is-hit">Paris</span><span>10</span><span>Nathan</span><span class="is-hit">Paris</span></div></div><p>🎯 <b>Objectif&nbsp;:</b> identifier quels clients habitent dans la même ville. Pour les comparer, nous allons les associer <b>deux par deux</b>.</p><p>Avec les 4 clients de Paris, on obtient 6 paires&nbsp;:</p><figure class="self-pairs" aria-label="Les 6 paires de Paris : Sophie avec Nathan id 4, Léa et Nathan id 10 ; Nathan id 4 avec Léa et Nathan id 10 ; Léa avec Nathan id 10"><figcaption class="sp-head"><span>📍 Paris</span><span>4 clients</span><b>6 paires</b></figcaption><ol class="sp-rows"><li><div class="sp-left"><span class="sp-chip c1"><b>Sophie</b><small>id 1</small></span></div><i class="sp-link" aria-hidden="true">↔</i><span class="sp-chip c2" style="grid-column:3"><b>Nathan</b><small>id 4</small></span><span class="sp-chip c3" style="grid-column:4"><b>Léa</b><small>id 7</small></span><span class="sp-chip c4" style="grid-column:5"><b>Nathan</b><small>id 10</small></span><em class="sp-n">3</em></li><li><div class="sp-left"><span class="sp-chip c2"><b>Nathan</b><small>id 4</small></span></div><i class="sp-link" aria-hidden="true">↔</i><span class="sp-chip c3" style="grid-column:4"><b>Léa</b><small>id 7</small></span><span class="sp-chip c4" style="grid-column:5"><b>Nathan</b><small>id 10</small></span><em class="sp-n">2</em></li><li><div class="sp-left"><span class="sp-chip c3"><b>Léa</b><small>id 7</small></span></div><i class="sp-link" aria-hidden="true">↔</i><span class="sp-chip c4" style="grid-column:5"><b>Nathan</b><small>id 10</small></span><em class="sp-n">1</em></li></ol><p class="sp-sum" aria-hidden="true">3 + 2 + 1 = <b>6 paires</b></p></figure><p class="ij-arrow">👉 Les deux Nathan sont deux clients différents&nbsp;: on les distingue par leur <code>id</code>, pas par leur nom.</p><p>🤔 <b>Particularité&nbsp;:</b> les deux clients à comparer se trouvent dans la même <code>table&nbsp;clients</code>.</p><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Retrouve toutes les paires de clients qui habitent dans la même ville, sans associer un client avec lui-même et sans afficher deux fois la même paire.</p></div>`,
     studio:{problem:{eye:"",title:"Une seule table… mais deux clients à comparer",
       body:"Habituellement, une jointure relie deux tables différentes&nbsp;:",
       extra:`<div class="ij-match" role="img" aria-label="La table clients reliée à la table commandes"><code>clients</code><i aria-hidden="true">↕</i><code>commandes</code></div>
@@ -32168,7 +32188,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-mission-v1116';
+  const SW_CACHE='requete-2026-09-27-pairs-v1117';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
