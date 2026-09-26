@@ -2175,6 +2175,20 @@
   @keyframes fkTreeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   .lesson-lead .situation-body .fk-tree{margin:4px 0 14px}
   .lesson-lead .situation-body .sit-memo{margin:4px 0 14px}
+  /* Animation : les deux conditions se valident, puis la correspondance est acceptée */
+  .cond-anim .fk-syn-map li{grid-template-columns:26px 1fr auto;animation:none}
+  .cond-anim .ca-ok{align-self:center;font-style:normal;font-size:12px;font-weight:800;color:var(--success);white-space:nowrap}
+  .cond-anim.is-armed .fk-syn-map li{opacity:.38;transition:opacity .3s ease}
+  .cond-anim.is-armed .ca-ok{opacity:0;transform:scale(.6)}
+  .cond-anim.is-armed li.is-on{opacity:1}
+  .cond-anim.is-armed li.is-on .ca-ok{opacity:1;transform:none;transition:opacity .25s ease .15s,transform .35s cubic-bezier(.3,1.6,.5,1) .15s}
+  .cond-anim li.is-on b{animation:caPop .4s cubic-bezier(.3,1.6,.5,1)}
+  .cond-anim li.ca-final.is-on b{background:var(--success-soft);color:var(--success)}
+  .cond-anim li.ca-final.is-on strong{color:var(--success)}
+  .cond-anim .ca-replay{display:none;margin:4px 0 0 auto}
+  .cond-anim.is-done .ca-replay{display:block}
+  @keyframes caPop{50%{transform:scale(1.18)}}
+  @media (prefers-reduced-motion:reduce){.cond-anim li.is-on b{animation:none}}
   .ow-cmp{display:grid;grid-template-columns:1fr;gap:10px;margin:10px 0 0}
   .ow-cmp article{padding:12px 14px;border-radius:14px;background:#FAFAFC;border:1px solid rgba(60,60,67,.07)}
   .ow-cmp .ow-k{margin:0 0 6px!important}
@@ -14485,7 +14499,7 @@ JOIN produits
 FROM commandes
 JOIN produits
     ON commandes.produit_id = produits.id
-    <span class="fk-syn-hit">AND produits.stock &gt; 0</span>;</pre></div><p>Les deux conditions sont maintenant vérifiées&nbsp;:</p><ol class="fk-syn-map" aria-label="Deux conditions pour une correspondance"><li><b aria-hidden="true">1</b><div><code>commandes.produit_id = produits.id</code><span>C’est le bon produit</span></div></li><li><b aria-hidden="true">2</b><div><code>produits.stock &gt; 0</code><span>Le produit est en stock</span></div></li><li><b aria-hidden="true">✓</b><div><strong>Correspondance acceptée</strong><span>seulement si les deux sont vraies</span></div></li></ol><p class="ij-arrow">👉 Les deux doivent être vraies.</p></div><div class="fn-use"><p class="pt-syntax-h">🔎 Prenons un exemple</p><p>Imaginons cette commande&nbsp;:</p><div class="pk-comp ij-t"><p class="ij-tlab">table commandes · exemple</p><div class="pk-mini is-2"><span class="is-h">id</span><span class="is-h">produit_id</span><span>6</span><span class="is-hit">3</span></div></div><p>Et le produit correspondant&nbsp;:</p><div class="pk-comp ij-t"><p class="ij-tlab">table produits · exemple</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">stock</span><span>3</span><span>Magnésium</span><span class="is-hit">12</span></div></div><div class="ow-cmp"><article><p class="ow-k"><b>Condition 1</b></p><div class="pt-syntax"><pre class="cw-syntax">3 = 3</pre></div><p>✅ C’est le bon produit.</p></article><article><p class="ow-k"><b>Condition 2</b></p><div class="pt-syntax"><pre class="cw-syntax">12 &gt; 0</pre></div><p>✅ Il est en stock.</p></article></div><p class="ij-arrow">✅ Les deux conditions sont vraies&nbsp;: Magnésium peut être relié à la commande 6.</p></div><div class="fn-use"><p class="pt-syntax-h">Et si une condition échoue&nbsp;?</p><p>Imaginons maintenant&nbsp;:</p><div class="pk-comp ij-t"><p class="ij-tlab">table produits · exemple</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">stock</span><span>3</span><span>Magnésium</span><span class="is-hit">0</span></div></div><div class="ow-cmp"><article><p class="ow-k"><code>produit_id = id</code></p><p>✅ C’est le bon produit.</p></article><article><p class="ow-k"><code>stock &gt; 0</code></p><p>❌ Le stock vaut 0.</p></article></div><p>Avec <code>AND</code>, toutes les conditions doivent être vraies.</p><p class="ij-arrow">👉 La correspondance n’est donc pas retenue.</p></div><div class="fn-use"><p class="pt-syntax-h">Plusieurs conditions sont possibles</p><p><code>ON</code> ne se limite pas à une seule condition. Tu peux en combiner plusieurs&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">ON condition_1
+    <span class="fk-syn-hit">AND produits.stock &gt; 0</span>;</pre></div><p>Les deux conditions sont maintenant vérifiées&nbsp;:</p><div class="cond-anim"><ol class="fk-syn-map" aria-label="Deux conditions pour une correspondance"><li><b aria-hidden="true">1</b><div><code>commandes.produit_id = produits.id</code><span>C’est le bon produit</span></div><em class="ca-ok" aria-hidden="true">✅ vrai</em></li><li><b aria-hidden="true">2</b><div><code>produits.stock &gt; 0</code><span>Le produit est en stock</span></div><em class="ca-ok" aria-hidden="true">✅ vrai</em></li><li class="ca-final"><b aria-hidden="true">✓</b><div><strong>Correspondance acceptée</strong><span>seulement si les deux sont vraies</span></div></li></ol><button type="button" class="gb-count-replay ca-replay" aria-label="Rejouer l’animation">↻ Rejouer</button></div><p class="ij-arrow">👉 Les deux doivent être vraies.</p></div><div class="fn-use"><p class="pt-syntax-h">🔎 Prenons un exemple</p><p>Imaginons cette commande&nbsp;:</p><div class="pk-comp ij-t"><p class="ij-tlab">table commandes · exemple</p><div class="pk-mini is-2"><span class="is-h">id</span><span class="is-h">produit_id</span><span>6</span><span class="is-hit">3</span></div></div><p>Et le produit correspondant&nbsp;:</p><div class="pk-comp ij-t"><p class="ij-tlab">table produits · exemple</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">stock</span><span>3</span><span>Magnésium</span><span class="is-hit">12</span></div></div><div class="ow-cmp"><article><p class="ow-k"><b>Condition 1</b></p><div class="pt-syntax"><pre class="cw-syntax">3 = 3</pre></div><p>✅ C’est le bon produit.</p></article><article><p class="ow-k"><b>Condition 2</b></p><div class="pt-syntax"><pre class="cw-syntax">12 &gt; 0</pre></div><p>✅ Il est en stock.</p></article></div><p class="ij-arrow">✅ Les deux conditions sont vraies&nbsp;: Magnésium peut être relié à la commande 6.</p></div><div class="fn-use"><p class="pt-syntax-h">Et si une condition échoue&nbsp;?</p><p>Imaginons maintenant&nbsp;:</p><div class="pk-comp ij-t"><p class="ij-tlab">table produits · exemple</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">stock</span><span>3</span><span>Magnésium</span><span class="is-hit">0</span></div></div><div class="ow-cmp"><article><p class="ow-k"><code>produit_id = id</code></p><p>✅ C’est le bon produit.</p></article><article><p class="ow-k"><code>stock &gt; 0</code></p><p>❌ Le stock vaut 0.</p></article></div><p>Avec <code>AND</code>, toutes les conditions doivent être vraies.</p><p class="ij-arrow">👉 La correspondance n’est donc pas retenue.</p></div><div class="fn-use"><p class="pt-syntax-h">Plusieurs conditions sont possibles</p><p><code>ON</code> ne se limite pas à une seule condition. Tu peux en combiner plusieurs&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">ON condition_1
 AND condition_2
 AND condition_3</pre></div><p>Par exemple&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">ON commandes.produit_id = produits.id
 <span class="fk-syn-hit">AND produits.stock &gt; 0</span>
@@ -26272,6 +26286,7 @@ function renderLessonFlow(){
     initInnerJoinLab();
     initRunSqlSlots();
     initGroupCount();
+    initCondAnim();
     initAskSlots();
     initJoinChooser();
     initJoinTree();
@@ -26331,6 +26346,31 @@ function whenSettled(el,scr,opts,cb){
   },{root:scr,threshold:(opts&&opts.threshold)||[ratio||0.01]});
   io.observe(el);
   return {disconnect(){ if(!done){done=true;detach();} }};
+}
+/* ---------- ON à plusieurs conditions : validation pas à pas ---------- */
+function initCondAnim(){
+  const scr=document.getElementById('scr-lesson');
+  document.querySelectorAll('#lesson-body .cond-anim').forEach(box=>{
+    const items=[...box.querySelectorAll('.fk-syn-map > li')];
+    let timers=[];
+    const play=()=>{
+      timers.forEach(clearTimeout);timers=[];
+      box.classList.add('is-armed');box.classList.remove('is-done');
+      items.forEach(li=>li.classList.remove('is-on'));
+      items.forEach((li,k)=>timers.push(setTimeout(()=>{li.classList.add('is-on');if(k===items.length-1)box.classList.add('is-done');},400+k*900)));
+    };
+    box.querySelector('.ca-replay').onclick=play;
+    if(prefersReduceMotion()){items.forEach(li=>li.classList.add('is-on'));box.classList.add('is-done');return;}
+    box.classList.add('is-armed');
+    if(!scr||typeof IntersectionObserver==='undefined'){play();return;}
+    let wait=0;
+    const io=new IntersectionObserver(es=>{
+      const on=es.some(e=>e.isIntersecting&&e.intersectionRatio>=.98);
+      clearTimeout(wait);
+      if(on) wait=setTimeout(()=>{ io.disconnect(); play(); },400);
+    },{root:scr,rootMargin:'-15% 0px -15% 0px',threshold:[0,.98,1]});
+    io.observe(box);
+  });
 }
 /* ---------- GROUP BY + COUNT : comptage +1 par commande ---------- */
 function initGroupCount(){
@@ -32170,7 +32210,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-ui-v1131';
+  const SW_CACHE='requete-2026-09-27-condanim-v1131';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
