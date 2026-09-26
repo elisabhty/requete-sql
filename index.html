@@ -14476,67 +14476,32 @@ learningCheck:{
 }
 },
 { id:49, titre:"Plusieurs conditions dans ON", résumé:"Relier seulement les produits encore en stock",
-  situation:`<p>L’équipe logistique se demande <b>quels produits commandés ont encore assez de stock</b>.</p><p>Elle souhaite retrouver les produits présents dans les commandes, mais uniquement s’ils ont un <b>stock suffisant</b>&nbsp;: plus de 50 unités.</p><p>Pour qu’un produit soit relié à une commande, il faut donc vérifier <b>deux conditions</b>&nbsp;:</p><div class="ij-need" role="list" aria-label="Les deux conditions à vérifier"><div role="listitem"><b>① Le bon produit</b><span>produit_id = id</span></div><div role="listitem"><b>② Un stock suffisant</b><span class="is-b">stock &gt; 50</span></div></div><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Retrouve les commandes dont le produit a encore un stock suffisant (plus de 50 unités).</p></div>`,
-    studio:{problem:{eye:"",title:"Une première condition pour relier les tables",
-      body:"La <code>table&nbsp;commandes</code> contient le <code>produit_id</code>&nbsp;:",
-      extra:`<div class="pk-comp ij-t"><p class="ij-tlab">table commandes</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">produit_id</span><span class="is-h">quantite</span><span>1</span><span class="is-hit">1</span><span>2</span><span>2</span><span class="is-hit">3</span><span>1</span><span>3</span><span class="is-hit">6</span><span>1</span></div><p class="ij-tmore">… et 13 autres commandes</p></div>
-        <p>👆 Chaque commande indique le produit commandé.</p>
-        <p>Les informations sur les produits se trouvent dans la <code>table&nbsp;produits</code>&nbsp;:</p>
-        <div class="pk-comp ij-t"><p class="ij-tlab">table produits</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">stock</span><span class="is-hit">1</span><span>Fibre Prébiotique</span><span>120</span><span class="is-hit">3</span><span>Magnésium</span><span>200</span><span class="is-hit">6</span><span>Protéine Végétale</span><span>45</span></div><p class="ij-tmore">… et 5 autres produits</p></div>
-        <p>👆 Chaque produit a son nom et son stock.</p>
-        <p>Pour retrouver le produit associé à chaque commande&nbsp;:</p>
-        <div class="pt-syntax"><pre class="cw-syntax">ON <span class="fk-syn-hit">commandes.produit_id = produits.id</span></pre></div>
-        <p class="ij-box">Cette condition répond à une première question&nbsp;: est-ce bien le produit de cette commande&nbsp;?</p>`},
-    uses:{title:"Écrire la requête",
-      body:`<div class="pt-lead fn-uses fk-course jn-course">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le produit doit aussi avoir assez de stock</p>
-          <p>Prenons la commande 3&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">commandes.produit_id = 6</pre></div>
-          <p>Elle correspond bien à la Protéine Végétale&nbsp;:</p>
-          <div class="ij-match" role="img" aria-label="commandes.produit_id vaut 6, produits.id vaut 6 : la correspondance est trouvée"><code>commandes.produit_id = 6</code><i aria-hidden="true">↕</i><code>produits.id = 6 ✅</code></div>
-          <p>Mais son stock ne vaut que <b>45</b>. Or, notre besoin demande uniquement les produits qui ont encore un stock suffisant.</p>
-          <p>Une deuxième condition est donc nécessaire&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">produits.stock &gt; 50</span></pre></div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Ajouter plusieurs conditions dans ON</p>
-          <p>Plusieurs conditions peuvent être placées dans <code>ON</code> et reliées avec <code>AND</code>&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ON commandes.produit_id = produits.id
-<span class="fk-syn-hit">AND produits.stock &gt; 50</span></pre></div>
-          <p>Pour qu’une correspondance soit retenue, <b>les deux conditions doivent être vraies</b>&nbsp;:</p>
-          <div class="pk-comp ij-t"><p class="ij-tlab">deux tests par correspondance</p><div class="pk-mini on-4"><span class="is-h">produit</span><span class="is-h">bon produit&nbsp;?</span><span class="is-h">stock &gt; 50&nbsp;?</span><span class="is-h">retenue&nbsp;?</span><span>Fibre Prébiotique</span><span>✅</span><span>✅ 120</span><span class="is-hit">✅</span><span>Magnésium</span><span>✅</span><span>✅ 200</span><span class="is-hit">✅</span><span>Protéine Végétale</span><span>✅</span><span>❌ 45</span><span class="is-ko">❌</span></div></div>
-          <p class="ij-arrow">👉 Une correspondance peut donc être trouvée sur l’identifiant, puis écartée parce qu’une autre condition de <code>ON</code> n’est pas respectée.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">La requête complète</p>
-          <p>Il ne reste qu’à réunir les deux conditions dans le <code>ON</code>.</p>
-          <p>👇 Exécute la requête pour retrouver les produits commandés qui ont encore assez de stock&nbsp;:</p>
-          <div class="ij-run" data-run-sql="SELECT commandes.id AS commande_id,&#10;       produits.nom,&#10;       produits.stock&#10;FROM commandes&#10;INNER JOIN produits&#10;    ON commandes.produit_id = produits.id&#10;    AND produits.stock &gt; 50;"></div>
-          <p>Ici, <code>ON</code> ne vérifie donc pas une seule condition&nbsp;:</p>
-          <div class="ij-match on-and" role="img" aria-label="Le produit correspond et le produit a un stock suffisant : les deux doivent être vraies"><code>Le produit correspond&nbsp;?</code><i aria-hidden="true">ET</i><code>Le stock est suffisant&nbsp;?</code></div>
-          <p class="ij-arrow">👉 Les deux doivent être vraies.</p>
-          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 16 commandes reliées à leur produit à 13 commandes retenues"><li class="ij-fn-row"><b>16</b><span>commandes reliées à leur produit<small>condition ① : le bon produit</small></span><i class="ij-fn-dots" aria-hidden="true"><i></i><i></i><i class="is-null"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="is-null"></i><i></i><i class="is-null"></i><i></i><i></i><i></i></i></li><li class="ij-fn-step"><code>AND produits.stock &gt; 50</code><small>condition ② : stock suffisant</small></li><li class="ij-fn-row is-out"><b>13</b><span>commandes retenues<small>Protéine Végétale (45) et Shaker Inox (30) sont écartés</small></span></li></ol><p class="ij-done-p">Les 3 commandes écartées avaient bien trouvé leur produit&nbsp;: c’est la deuxième condition du <code>ON</code> qui les a refusées.</p></div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Pourquoi mettre plusieurs conditions dans ON&nbsp;?</p>
-          <p><code>ON</code> sert à définir <b>dans quelles conditions deux lignes peuvent être reliées</b>. Il peut donc contenir plusieurs critères&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ON condition_1
-AND condition_2</pre></div>
-          <p>Et même davantage&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ON condition_1
+  situation:`<p>L’équipe logistique prépare les commandes à expédier.</p><p>Elle doit relier chaque commande au bon produit, mais souhaite récupérer uniquement les produits qui sont <b>encore disponibles en stock</b>.</p><p>Pour qu’un produit soit associé à une commande, il faut donc vérifier deux choses&nbsp;:</p><ol class="fk-syn-map" aria-label="Les deux vérifications"><li><b aria-hidden="true">1</b><div><strong>C’est bien le produit commandé</strong></div></li><li><b aria-hidden="true">2</b><div><strong>Son stock est supérieur à 0</strong></div></li></ol><p>📌 <b>Objectif&nbsp;:</b> relier une commande à son produit seulement si les deux conditions sont respectées.</p>`,
+    studio:{problem:{eye:"",title:"Une première condition pour trouver le bon produit",
+      body:"Habituellement, nous relions les deux tables grâce à leur identifiant&nbsp;:",
+      extra:`<div class="pt-syntax"><pre class="cw-syntax">SELECT
+    commandes.id,
+    produits.nom,
+    produits.stock
+FROM commandes
+JOIN produits
+    <span class="fk-syn-hit">ON commandes.produit_id = produits.id</span>;</pre></div><p>La condition <code>commandes.produit_id = produits.id</code> signifie&nbsp;:</p><p class="ij-box">🔗 Le produit de la commande doit correspondre au produit de la <code>table&nbsp;produits</code>.</p><p class="ij-arrow">👉 Mais ici, cela ne suffit pas.</p>`},
+    uses:{title:"Ajouter des conditions dans ON",
+      body:`<div class="pt-lead fn-uses fk-course jn-course"><div class="fn-use"><p class="pt-syntax-h">Il faut aussi vérifier le stock</p><p>Nous voulons que la correspondance soit acceptée <b>seulement si le produit est encore en stock</b>. Nous pouvons ajouter une deuxième condition dans <code>ON</code> avec <code>AND</code>&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">SELECT
+    commandes.id,
+    produits.nom,
+    produits.stock
+FROM commandes
+JOIN produits
+    ON commandes.produit_id = produits.id
+    <span class="fk-syn-hit">AND produits.stock &gt; 0</span>;</pre></div><p>Les deux conditions sont maintenant vérifiées&nbsp;:</p><ol class="fk-syn-map" aria-label="Deux conditions pour une correspondance"><li><b aria-hidden="true">1</b><div><code>commandes.produit_id = produits.id</code><span>C’est le bon produit</span></div></li><li><b aria-hidden="true">2</b><div><code>produits.stock &gt; 0</code><span>Le produit est en stock</span></div></li><li><b aria-hidden="true">✓</b><div><strong>Correspondance acceptée</strong><span>seulement si les deux sont vraies</span></div></li></ol><p class="ij-arrow">👉 Les deux doivent être vraies.</p></div><div class="fn-use"><p class="pt-syntax-h">🔎 Prenons un exemple</p><p>Imaginons cette commande&nbsp;:</p><div class="pk-comp ij-t"><p class="ij-tlab">table commandes · exemple</p><div class="pk-mini is-2"><span class="is-h">id</span><span class="is-h">produit_id</span><span>6</span><span class="is-hit">3</span></div></div><p>Et le produit correspondant&nbsp;:</p><div class="pk-comp ij-t"><p class="ij-tlab">table produits · exemple</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">stock</span><span>3</span><span>Magnésium</span><span class="is-hit">12</span></div></div><div class="ow-cmp"><article><p class="ow-k"><b>Condition 1</b></p><div class="pt-syntax"><pre class="cw-syntax">3 = 3</pre></div><p>✅ C’est le bon produit.</p></article><article><p class="ow-k"><b>Condition 2</b></p><div class="pt-syntax"><pre class="cw-syntax">12 &gt; 0</pre></div><p>✅ Il est en stock.</p></article></div><p class="ij-arrow">✅ Les deux conditions sont vraies&nbsp;: Magnésium peut être relié à la commande 6.</p></div><div class="fn-use"><p class="pt-syntax-h">Et si une condition échoue&nbsp;?</p><p>Imaginons maintenant&nbsp;:</p><div class="pk-comp ij-t"><p class="ij-tlab">table produits · exemple</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">stock</span><span>3</span><span>Magnésium</span><span class="is-hit">0</span></div></div><div class="ow-cmp"><article><p class="ow-k"><code>produit_id = id</code></p><p>✅ C’est le bon produit.</p></article><article><p class="ow-k"><code>stock &gt; 0</code></p><p>❌ Le stock vaut 0.</p></article></div><p>Avec <code>AND</code>, toutes les conditions doivent être vraies.</p><p class="ij-arrow">👉 La correspondance n’est donc pas retenue.</p></div><div class="fn-use"><p class="pt-syntax-h">Plusieurs conditions sont possibles</p><p><code>ON</code> ne se limite pas à une seule condition. Tu peux en combiner plusieurs&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">ON condition_1
 AND condition_2
-AND condition_3</pre></div>
-          <p class="ij-box">Avec <code>AND</code>, toutes les conditions doivent être respectées pour que la correspondance soit retenue.</p>
-        </div>
-      </div>`},
-    reflexTitle:"À retenir",
-    reflex:{extra:`<p><code>ON</code> peut vérifier plusieurs conditions en même temps&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ON commandes.produit_id = produits.id
-AND produits.stock &gt; 50</pre></div>
-          <p>Dans notre situation&nbsp;:</p>
-          <div class="ij-need" role="list" aria-label="Le rôle de chaque condition"><div role="listitem"><b>🔗 Retrouver le bon produit</b><span>condition 1</span></div><div role="listitem"><b>📦 Vérifier son stock</b><span class="is-b">condition 2</span></div></div>
-          <p class="agg-reflex">👉 Avec <code>AND</code>, la correspondance est retenue uniquement si toutes les conditions sont vraies.</p>`}},
+AND condition_3</pre></div><p>Par exemple&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">ON commandes.produit_id = produits.id
+<span class="fk-syn-hit">AND produits.stock &gt; 0</span>
+<span class="fk-syn-hit">AND produits.prix &lt; 30</span></pre></div><p class="ij-arrow">👉 Ici, les lignes ne sont reliées que si les trois conditions sont respectées.</p></div></div>`},
+    reflexTitle:"Le réflexe à retenir",
+    reflex:{extra:`<p><code>ON</code> indique quand deux lignes peuvent être reliées.</p><div class="ow-cmp"><article><p class="ow-k"><b>Une seule condition</b></p><div class="pt-syntax"><pre class="cw-syntax">ON condition_1</pre></div></article><article><p class="ow-k"><b>Plusieurs conditions</b></p><div class="pt-syntax"><pre class="cw-syntax">ON condition_1
+AND condition_2</pre></div></article></div><p class="agg-reflex" style="margin-top:14px">👉 Avec <code>AND</code>, toutes les conditions doivent être vraies pour que la correspondance soit acceptée.</p>`}},
   joinFn:true,
   noTeste:true,
   noAnat:true,
@@ -14550,12 +14515,7 @@ AND produits.stock &gt; 50</pre></div>
   exemple:"SELECT commandes.id AS commande_id,\n       produits.nom,\n       produits.stock\nFROM commandes\nINNER JOIN produits\n    ON commandes.produit_id = produits.id\n    AND produits.stock > 50;",
   attendu:"<b>13 lignes</b> : les 16 commandes sauf les 3 dont le produit a 50 unités ou moins (Protéine Végétale, 45, et Shaker Inox, 30).",
   retenir:"<code>ON</code> peut vérifier plusieurs conditions en même temps : <code>ON commandes.produit_id = produits.id AND produits.stock &gt; 50</code>.<br><br>Condition 1 → retrouver le bon produit. Condition 2 → vérifier qu’il a encore assez de stock.<br><br>Avec <code>AND</code>, la correspondance est retenue uniquement si toutes les conditions sont vraies.",
-  piege:{lab:"À savoir", t:"ON ou WHERE&nbsp;?",
-    p:"Avec un <code>INNER JOIN</code>, on pourrait aussi écrire la deuxième condition dans <code>WHERE</code>&nbsp;:",
-    exec:true,
-    sql:"SELECT commandes.id AS commande_id,\n       produits.nom,\n       produits.stock\nFROM commandes\nINNER JOIN produits\n    ON commandes.produit_id = produits.id\nWHERE produits.stock > 50;",
-    tail:"Pour cette situation, le résultat est le même&nbsp;: 13 lignes. Mais la logique exprimée n’est pas exactement la même.<br><br><ul class=\"on-where\"><li><code>ON … AND produits.stock &gt; 50</code><span>définit quels produits peuvent correspondre pendant la jointure.</span></li><li><code>ON … WHERE produits.stock &gt; 50</code><span>réalise la correspondance, puis filtre le résultat.</span></li></ul><br><br>💡 Cette différence devient particulièrement importante avec <code>LEFT JOIN</code> et <code>RIGHT JOIN</code>&nbsp;: une condition placée dans <code>WHERE</code> peut alors retirer des lignes que la jointure voulait conserver."},
-  consigne:"Retrouve les commandes dont le produit a encore un stock suffisant (plus de 50 unités). Affiche <code>commande_id</code>, <code>nom</code> et <code>stock</code>.",
+  consigne:"Cette fois, l’équipe logistique ne veut relier une commande à son produit que si ce produit a un stock supérieur à 50. Affiche <code>commande_id</code>, <code>nom</code> et <code>stock</code>.",
   solution:"SELECT commandes.id AS commande_id,\n       produits.nom,\n       produits.stock\nFROM commandes\nINNER JOIN produits\n    ON commandes.produit_id = produits.id\n    AND produits.stock > 50;",
   indice:"Relie la <code>table commandes</code> et la <code>table produits</code> avec <code>ON commandes.produit_id = produits.id</code>, puis ajoute la deuxième condition avec <code>AND produits.stock &gt; 50</code>.",
   joinRecap:'inner',
@@ -32205,7 +32165,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-onwhere-v1127';
+  const SW_CACHE='requete-2026-09-27-onmulti-v1128';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
