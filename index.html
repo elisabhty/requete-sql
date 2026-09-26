@@ -26320,12 +26320,14 @@ function initGroupCount(){
         c.classList.add('is-on');n.textContent=String(k+1);
         n.classList.remove('is-tick');void n.offsetWidth;n.classList.add('is-tick');
         if(k===chips.length-1){n.textContent=String(total);box.classList.add('is-done');}
-      },350+k*420)));
+      },150+k*300)));
     };
     box.querySelector('.gb-count-replay').onclick=play;
     if(prefersReduceMotion()){box.classList.add('is-done');return;}
     box.classList.add('is-armed');n.textContent='0';
-    whenSettled(box,scr,{ratio:.5,threshold:[.5]},play);
+    if(!scr||typeof IntersectionObserver==='undefined'){play();return;}
+    const io=new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)){ io.disconnect(); play(); } },{root:scr,threshold:[.6]});
+    io.observe(box);
   });
 }
 function initOrderRappelAnim(){
