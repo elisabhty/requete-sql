@@ -3753,7 +3753,17 @@
   .memory-rule span b{color:var(--ink);font-weight:700}
   .memory-rule .memory-where>b,.memory-rule .memory-a>b{color:var(--ink)}
   .memory-rule.is-trio{grid-template-columns:1fr;gap:10px}
-  .memory-rule.is-chain{gap:0}
+  .memory-rule.is-chain{display:flex;flex-direction:column;gap:0;padding:6px 14px;border-radius:16px;background:var(--surface);border:1px solid var(--card-border);box-shadow:var(--card-shadow-sm);counter-reset:mstep}
+  .memory-rule.is-chain > .hav-trio-arrow{display:none}
+  .memory-rule.is-chain > div{counter-increment:mstep;display:grid;grid-template-columns:26px 1fr;column-gap:12px;align-items:start;padding:14px 0;border:0;border-radius:0;background:none;box-shadow:none;text-align:left}
+  .memory-rule.is-chain > div + .hav-trio-arrow + div{border-top:1px dashed var(--line)}
+  .memory-rule.is-chain > div::before{content:counter(mstep);grid-column:1;grid-row:1 / span 3;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent-ink);font-size:12.5px;font-weight:800;line-height:1}
+  .memory-rule.is-chain > div > *{grid-column:2}
+  .memory-rule.is-chain > div > b{justify-self:start;margin:0 0 6px;padding:3px 9px;font-size:12.5px;border-radius:8px}
+  .memory-rule.is-chain > div > span{font-size:13.5px;line-height:1.45}
+  .memory-rule.is-chain .memory-sub{margin-top:4px}
+  .memory-rule.is-chain > div:hover{border-color:transparent}
+  .memory-rule.is-chain > div + .hav-trio-arrow + div:hover{border-top-color:var(--line)}
   .hav-trio-arrow{display:block;width:12px;height:16px;margin:6px auto;overflow:hidden;font-size:0;color:var(--accent);opacity:.5}
   .hav-trio-arrow::after{content:'';display:block;width:7px;height:7px;margin:3px auto 0;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg)}
   .memory-rule .memory-sub{display:block;margin-top:8px;font-size:11px;font-weight:650;letter-spacing:.02em;color:var(--ink-3);line-height:1.4}
@@ -12213,9 +12223,9 @@ HAVING COUNT(*) >= 2
           <p>Les deux villes comptent au moins 2 clients et affichent un âge moyen supérieur à 30&nbsp;ans : elles sont donc conservées.</p>
         </div>
       </div>`},
-    reflex:{a:{k:"WHERE",t:"→ filtre les <b>lignes</b> avant le regroupement"},
-      b:{k:"GROUP BY",t:"→ forme les <b>groupes</b>"},
-      c:{k:"HAVING",t:"→ filtre les <b>groupes</b> après le regroupement"},
+    reflex:{a:{k:"WHERE",t:"Filtre les <b>lignes</b> avant le regroupement"},
+      b:{k:"GROUP BY",t:"Forme les <b>groupes</b>"},
+      c:{k:"HAVING",t:"Filtre les <b>groupes</b> après le regroupement"},
       chain:true}},
   anatomie:[{tok:"SELECT categorie, COUNT(*)",txt:"Affiche la catégorie et le nombre de produits."},
     {tok:"FROM produits",txt:"Lit la table produits."},
@@ -14210,7 +14220,7 @@ FROM clients
       </div>`},
     reflexTitle:"Le réflexe à retenir",
     reflex:{extra:`<p>Quand l’information utilisée pour <b>regrouper</b> et l’information utilisée pour <b>compter</b> se trouvent dans des tables différentes&nbsp;:</p>
-          <div class="memory-rule is-trio is-chain"><div class="memory-a"><b>① JOIN</b><span>relier les informations</span><small class="memory-sub">client ↔ commande</small></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>② GROUP BY</b><span>former les groupes</span><small class="memory-sub">Paris | Lyon | Marseille | …</small></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>③ COUNT</b><span>calculer dans chaque groupe</span><small class="memory-sub">Paris → 7 commandes</small></div></div>
+          <div class="memory-rule is-trio is-chain"><div class="memory-a"><b>JOIN</b><span>Relier les informations</span><small class="memory-sub">client ↔ commande</small></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>GROUP BY</b><span>Former les groupes</span><small class="memory-sub">Paris | Lyon | Marseille | …</small></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>COUNT</b><span>Calculer dans chaque groupe</span><small class="memory-sub">Paris → 7 commandes</small></div></div>
           <p class="agg-reflex" style="margin-top:14px">👉 On relie d’abord les données, puis on les regroupe pour effectuer le calcul.</p>`}},
   joinFn:true,
   noTeste:true,
@@ -14625,7 +14635,7 @@ WHERE colonne IN (
     WHERE condition
 );</pre></div>
           <p>Dans notre exemple&nbsp;:</p>
-          <div class="memory-rule is-trio is-chain"><div class="memory-a"><b>Sous-requête</b><span>quels client_id ont commandé du Magnésium&nbsp;?</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>IN</b><span>l’id de ce client fait-il partie de cette liste&nbsp;?</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>Requête principale</b><span>afficher les clients concernés</span></div></div>
+          <div class="memory-rule is-trio is-chain"><div class="memory-a"><b>Sous-requête</b><span>Quels client_id ont commandé du Magnésium&nbsp;?</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>IN</b><span>L’id de ce client fait-il partie de cette liste&nbsp;?</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>Requête principale</b><span>Afficher les clients concernés</span></div></div>
           <p class="agg-reflex" style="margin-top:14px">👉 La sous-requête trouve les identifiants&nbsp;; <code>IN</code> permet de retrouver les lignes correspondantes dans la requête principale.</p>`}},
   noTeste:true,
   noAnat:true,
@@ -22425,9 +22435,9 @@ function retenirNoteBtn(){
 }
 function havingReflexHtml(){
   return renderReflex({
-    a:{k:"WHERE",t:"→ filtre les <b>lignes</b> avant le regroupement"},
-    b:{k:"GROUP BY",t:"→ forme les <b>groupes</b>"},
-    c:{k:"HAVING",t:"→ filtre les <b>groupes</b> après le regroupement"},
+    a:{k:"WHERE",t:"Filtre les <b>lignes</b> avant le regroupement"},
+    b:{k:"GROUP BY",t:"Forme les <b>groupes</b>"},
+    c:{k:"HAVING",t:"Filtre les <b>groupes</b> après le regroupement"},
     chain:true
   });
 }
@@ -32126,7 +32136,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-26-journey-v1103';
+  const SW_CACHE='requete-2026-09-26-chain-v1103';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
