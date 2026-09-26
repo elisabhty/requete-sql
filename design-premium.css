@@ -1,0 +1,483 @@
+/* ==========================================================================
+   Requête — système de design premium (v1114)
+   Chargée en tout dernier : elle unifie l'app sans toucher au contenu.
+
+   Principes
+   - Un seul fond neutre, des surfaces blanches, aucune bordure décorative :
+     la profondeur vient d'ombres très diffuses.
+   - Une seule couleur d'action (l'indigo de la marque), jamais en dégradé.
+   - Grands titres façon iOS sur chaque rubrique, sans sur-titre violet.
+   - Étiquettes de section discrètes (gris, petites capitales), chiffres en
+     police d'interface à chasse fixe plutôt qu'en police de code.
+   - Même rayon, même ombre, même bouton partout.
+   ========================================================================== */
+
+/* ---------- 1. Jetons ---------- */
+
+:root{
+  --bg:#F5F5F7;
+  --surface:#FFFFFF;
+  --surface-2:#F2F2F5;
+  --surface-elevated:#FFFFFF;
+  --ink:#111118;
+  --ink-2:#55555F;
+  --ink-3:#6E6E79;
+  --line:rgba(17,17,24,.08);
+  --line-2:rgba(17,17,24,.05);
+  --hairline:rgba(17,17,24,.08);
+  --card-border:transparent;
+
+  --accent:#5B5BD6;
+  --accent-2:#6D6BE0;
+  --accent-ink:#4845C4;
+  --accent-soft:#EFEFFC;
+  --accent-grad:var(--accent);
+
+  --success:#0E7A5F;
+  --success-soft:#E7F5F0;
+  --danger:#C8364F;
+  --danger-soft:#FCEBEE;
+  --warn:#A8520A;
+  --warn-soft:#FDF3E6;
+
+  --p-radius:20px;
+  --p-radius-sm:14px;
+  --p-shadow:0 1px 2px rgba(17,17,40,.04),0 10px 28px -16px rgba(17,17,40,.14);
+  --p-shadow-lift:0 2px 4px rgba(17,17,40,.05),0 18px 40px -20px rgba(17,17,40,.22);
+  --card-shadow:var(--p-shadow);
+  --card-shadow-sm:0 1px 2px rgba(17,17,40,.04),0 6px 16px -12px rgba(17,17,40,.12);
+  --lift-sm:var(--p-shadow);
+  --lift-md:var(--p-shadow-lift);
+
+  --fs-hero:34px;
+  --fs-title:22px;
+  --tracking-hero:-.9px;
+  --tracking-tight:-.4px;
+}
+
+/* ---------- 2. Fond unique ---------- */
+
+html,body{background:var(--bg)}
+body::before{display:none}
+#app .screen,
+#app #scr-learn{background:var(--bg)}
+
+/* ---------- 3. En-têtes de rubrique ---------- */
+
+/* Retour : libellé iOS, 17 px, sans fond */
+#app .home-back{
+  min-height:44px;
+  padding:calc(var(--safe-top) + 8px) 16px 0;
+  gap:4px;
+  font-size:17px;font-weight:500;letter-spacing:-.2px;
+  color:var(--accent);
+}
+#app .home-back svg{width:11px;height:19px}
+#app .home-back:active{opacity:.5}
+
+/* Parcours et Compte sont des onglets : pas de retour */
+#scr-planning>.root-home-back,
+#scr-compte>.root-home-back{display:none}
+#scr-planning>.lgtitle,
+#scr-compte>.lgtitle,
+#scr-practice>.lgtitle,
+#scr-library>.lgtitle{padding-top:calc(var(--safe-top) + 22px)}
+
+/* Grand titre */
+#app .lgtitle{padding-left:20px;padding-right:20px}
+#app .lgtitle h1{
+  font-size:34px;font-weight:750;letter-spacing:-.9px;line-height:1.1;color:var(--ink);
+}
+#app .lgtitle .sub{
+  margin-top:6px;font-size:15px;line-height:1.4;font-weight:450;color:var(--ink-2);letter-spacing:-.1px;
+}
+/* Sur-titres violets au-dessus des grands titres : retirés (le titre suffit) */
+#app .lgtitle .eyebrow:not(.journey-brand){display:none}
+
+/* ---------- 4. Étiquettes de section ---------- */
+
+/* Petites capitales grises, une seule graisse, un seul espacement */
+.journey-kicker,
+.def-focus-kicker,
+.ent-hero-kicker,
+.ent-list-kicker,
+.account-settings-group-title,
+.plan-next-session>small,
+.pl-week-heading>div:first-child>span,
+.home-section-head>div>span,
+.notes-overview-copy small,
+.coll-overview-copy small,
+.coll-overview-next small,
+.console-projects-head small{
+  font-size:12px!important;
+  font-weight:600!important;
+  letter-spacing:.06em!important;
+  text-transform:uppercase;
+  color:var(--ink-3)!important;
+}
+/* Pastille décorative devant certaines étiquettes : retirée */
+.ent-list-kicker::before,
+.def-list-kicker::before{display:none!important}
+
+/* ---------- 5. Cartes ---------- */
+
+.account-identity,
+.account-settings-list,
+.console-quick-actions,
+.console-project-list,
+.def-focus,
+.def-list,
+.ent-hero,
+.ent-group,
+.notes-overview,
+.notes-empty,
+.ncard,
+.coll-overview,
+.coll-module,
+.plan-next-session,
+.wk-chrome,
+.day-panel,
+.planning-progress,
+.pl-overview,
+.plan-modules,
+.consigne,
+.quiz-card,
+.qcard{
+  background:var(--surface)!important;
+  border:0!important;
+  border-radius:var(--p-radius)!important;
+  box-shadow:var(--p-shadow)!important;
+}
+.account-identity::before,.def-focus::before,.ent-hero::before,
+.notes-overview::before,.coll-overview::before,.plan-next-session::before{display:none!important}
+
+/* ---------- 6. Boutons ---------- */
+
+/* Action principale : aplat indigo, 52 px, rayon 14 */
+.journey-primary,
+.def-focus-cta,
+.ent-hero-cta,
+.notes-hub-new,
+.btn-run,
+.next-btn,
+.ob-cta,
+.plan-next-actions>button:first-child,
+.coll-overview-next button{
+  background:var(--accent)!important;
+  background-image:none!important;
+  color:#fff!important;
+  border:0!important;
+  border-radius:var(--p-radius-sm)!important;
+  min-height:52px;
+  font-weight:650!important;
+  letter-spacing:-.2px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 8px 18px -12px rgba(72,69,196,.7)!important;
+  transition:transform .18s var(--spring-ios),opacity .18s;
+}
+.journey-primary:active,.def-focus-cta:active,.ent-hero-cta:active,.notes-hub-new:active,
+.btn-run:active,.next-btn:active,.ob-cta:active,.plan-next-actions>button:first-child:active{
+  transform:scale(.98);opacity:.92;
+}
+.ob-cta:disabled,.next-btn:disabled,.btn-run:disabled{opacity:.4!important;box-shadow:none!important}
+
+/* Action secondaire : teinte douce, sans bordure */
+.plan-next-actions>button+button,
+.journey-planning button,
+.account-connect{
+  background:var(--accent-soft)!important;
+  color:var(--accent-ink)!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+
+/* ---------- 7. Chiffres ---------- */
+
+/* Compteurs et numéros : police d'interface à chasse fixe, pas de code */
+.def-levels small,.def-level small,
+.ent-status-btn small,
+.coll-module-num,.ent-topic-num,.def-num,.def-list-num,
+.def-list-count,.ent-group-count,.coll-module-side em,.ent-topic-side em{
+  font-family:var(--ui)!important;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:0!important;
+}
+
+/* ---------- 8. Contrôles segmentés ---------- */
+
+.def-levels,
+.ent-status,
+.account-sections{
+  background:rgba(118,118,128,.12)!important;
+  border:0!important;
+  border-radius:12px!important;
+  padding:2px!important;
+  box-shadow:none!important;
+}
+.def-levels>button,
+.ent-status>button,
+.account-sections>button{
+  border-radius:10px!important;
+  min-height:40px;
+  font-size:14px!important;
+  font-weight:600!important;
+  color:var(--ink-2)!important;
+  box-shadow:none!important;
+}
+.def-levels>button.on,.def-levels>button[aria-selected="true"],
+.ent-status>button.on,.ent-status>button[aria-selected="true"],
+.account-sections>button.on,.account-sections>button[aria-selected="true"]{
+  background:var(--surface)!important;
+  color:var(--ink)!important;
+  box-shadow:0 1px 1px rgba(17,17,40,.04),0 3px 8px rgba(17,17,40,.08)!important;
+}
+
+/* ---------- 9. Barre d'onglets ---------- */
+
+#app>.tabbar.tabbar{
+  left:0;right:0;bottom:0;
+  min-height:0;
+  padding:6px max(6px,var(--safe-left)) calc(6px + var(--safe-bottom)) max(6px,var(--safe-right));
+  border-radius:0;
+  border-top:.5px solid rgba(17,17,24,.12);
+  background:rgba(249,249,251,.86);
+  -webkit-backdrop-filter:blur(22px) saturate(1.8);
+  backdrop-filter:blur(22px) saturate(1.8);
+  box-shadow:none;
+}
+#app>.tabbar .tab{
+  min-height:50px;gap:3px;padding:4px 0;
+  background:none!important;border-radius:0;
+  color:#7C7C87;font-size:10.5px;font-weight:600;letter-spacing:-.1px;
+}
+#app>.tabbar .tab svg{
+  width:26px;height:26px;padding:0;
+  background:none!important;box-shadow:none!important;transform:none!important;
+}
+#app>.tabbar .tab.active{color:var(--accent)}
+#app>.tabbar .tab.active svg{stroke-width:2.1}
+#app>.tabbar .tab:active{opacity:.6}
+
+/* ---------- 10. Mouvement réduit ---------- */
+
+@media (prefers-reduced-motion:reduce){
+  .journey-primary,.def-focus-cta,.ent-hero-cta,.notes-hub-new,.btn-run,.next-btn,.ob-cta{transition:none}
+}
+
+/* ---------- 11. Rubriques Pratiquer et Bibliothèque : liste groupée ---------- */
+
+#app .journey-hub-list{
+  margin:18px 16px 0;
+  background:var(--surface);
+  border-radius:var(--p-radius);
+  box-shadow:var(--p-shadow);
+  overflow:hidden;
+}
+#app .journey-resource{
+  position:relative;
+  gap:14px;
+  min-height:76px;
+  padding:14px 16px;
+  border:0;
+  background:none;
+}
+#app .journey-resource+.journey-resource::before{
+  content:'';position:absolute;top:0;left:68px;right:0;height:.5px;background:var(--line);
+}
+#app .journey-resource:active{background:var(--surface-2)}
+#app .journey-resource b{font-size:16.5px;font-weight:650;letter-spacing:-.25px}
+#app .journey-resource small{margin-top:3px;font-size:13.5px;line-height:1.4;color:var(--ink-2)}
+#app .journey-resource>svg{width:16px;height:16px;color:#B4B4BE;flex:none}
+#app .journey-resource .journey-tool-icon{
+  width:38px;height:38px;border-radius:11px;color:#fff;background:var(--accent);
+}
+#app .journey-resource .journey-tool-icon svg{width:21px;height:21px;stroke-width:1.9}
+#app .journey-resource[data-kind="defis"] .journey-tool-icon{background:#12A37F}
+#app .journey-resource[data-kind="cards"] .journey-tool-icon{background:#F08A24}
+#app .journey-resource[data-kind="notes"] .journey-tool-icon{background:#2F80ED}
+#app .journey-resource[data-kind="interview"] .journey-tool-icon{background:#9B51E0}
+#app .journey-resource[data-kind="courses"] .journey-tool-icon{background:#3A3A46}
+
+/* ---------- 12. Chiffres et étiquettes d'interface ---------- */
+
+/* Police de code réservée au SQL : l'interface passe en police système
+   à chasse fixe pour les chiffres. */
+.title-pill,
+.ring span,
+.module-head span,.ent-head span,
+.lz-num,.niv,
+.l-kicker,
+.sommaire-t,.som-item .som-n,
+.sect-label,.sect-label i,
+.h2-eye,
+.def-list-head>span,
+.def-row-num,
+.consigne .tag{
+  font-family:var(--ui)!important;
+  font-variant-numeric:tabular-nums;
+}
+
+/* Étiquettes de liste : même traitement que les autres, sans pastille */
+.def-list-head p,
+.l-kicker,
+.sect-label,
+.h2-eye,
+.consigne .tag{
+  color:var(--ink-3)!important;
+  font-size:12px!important;
+  font-weight:600!important;
+  letter-spacing:.06em!important;
+  text-transform:uppercase;
+}
+.def-list-head p::before{display:none!important}
+.def-list-head h2{font-size:22px!important;font-weight:700!important;letter-spacing:-.5px!important}
+.def-list-head>span{
+  background:var(--surface)!important;color:var(--ink-2)!important;
+  box-shadow:var(--card-shadow-sm);font-size:13px!important;font-weight:600!important;
+}
+
+/* Numéros de défi : pastille neutre */
+.def-row-num{
+  background:var(--surface-2)!important;color:var(--ink-2)!important;
+  border:0!important;box-shadow:none!important;
+  font-size:14px!important;font-weight:650!important;
+}
+
+/* ---------- 13. Accueil ---------- */
+
+/* Marque discrète, un seul grand titre : « Un pas de plus en SQL » */
+#scr-learn>.lgtitle{min-height:0;padding:calc(var(--safe-top) + 14px) 20px 4px}
+#scr-learn>.lgtitle .journey-brand{
+  display:flex!important;align-items:center;gap:9px;
+  font-size:17px!important;font-weight:700!important;letter-spacing:-.3px!important;color:var(--ink)!important;
+}
+#scr-learn>.lgtitle .journey-brand::before{
+  content:'>_';display:grid;place-items:center;width:30px;height:30px;border-radius:9px;
+  background:var(--accent);color:#fff;font:700 12px/1 var(--mono);letter-spacing:-.5px;
+}
+#scr-learn .learn-avatar{width:36px!important;height:36px!important;font-size:15px!important;background:var(--accent-soft)!important}
+#home-hero{padding:0 20px}
+.journey-heading{margin:14px 0 18px}
+.journey-heading h2{font-size:30px!important;font-weight:750!important;letter-spacing:-.8px!important;line-height:1.12!important;margin-bottom:8px!important}
+.journey-session-meta{font-size:15px}
+.journey-session-meta>span{font-weight:500;color:var(--ink-2)}
+.journey-session-meta time{display:none}
+
+/* Étapes de la leçon */
+.journey-step-number{background:var(--surface)!important;box-shadow:var(--card-shadow-sm);font-weight:700!important}
+.journey-step.current .journey-step-number{background:var(--accent)!important;box-shadow:0 6px 14px -8px rgba(72,69,196,.8)}
+.journey-step:not(:last-child)::before{background:rgba(17,17,24,.08)!important}
+.journey-step.current .journey-step-body{background:var(--surface)!important;box-shadow:var(--p-shadow)}
+.journey-step-copy>b{font-size:17px!important;font-weight:650!important}
+.journey-arrow{background:var(--accent-soft)!important}
+
+/* Explorer + raccourcis : cartes blanches au lieu de filets */
+.journey-explore{
+  margin-top:18px;padding:14px 16px!important;min-height:64px!important;
+  border:0!important;border-radius:var(--p-radius);background:var(--surface)!important;box-shadow:var(--p-shadow);
+  color:var(--ink)!important;font-size:16px!important;font-weight:600!important;
+}
+.journey-explore .journey-tool-icon{background:var(--accent-soft)!important;border-radius:10px}
+.journey-explore>svg{color:#B4B4BE}
+.journey-shortcuts{gap:12px;padding:12px 0 8px!important}
+.journey-shortcuts button,
+.journey-shortcuts button+button{
+  padding:14px!important;border:0!important;border-radius:var(--p-radius);
+  background:var(--surface)!important;box-shadow:var(--p-shadow);min-height:72px!important;
+}
+.journey-shortcuts .journey-tool-icon{width:34px!important;height:34px!important;border-radius:10px;background:var(--accent-soft)!important}
+.journey-shortcuts b{font-size:14.5px!important;font-weight:650}
+.journey-shortcuts small{font-size:12.5px!important;margin-top:2px!important}
+
+/* ---------- 14. Parcours ---------- */
+
+@media (max-width:699px){
+  #scr-planning .planning-toolbar,
+  #scr-planning .plan-next-session,
+  #scr-planning .wk-chrome,
+  #scr-planning .day-panel,
+  #scr-planning .planning-progress,
+  #scr-planning .plan-modules,
+  #scr-planning .pl-overview,
+  #scr-planning .late-recovery,
+  #scr-planning .studio-today{margin-left:16px!important;margin-right:16px!important}
+}
+#scr-planning .planning-toolbar button{
+  border:0!important;border-radius:12px!important;background:var(--surface)!important;
+  box-shadow:var(--card-shadow-sm)!important;color:var(--accent-ink)!important;
+  min-height:44px;font-size:14px!important;font-weight:600!important;
+}
+#scr-planning .planning-progress>summary{min-height:56px}
+
+/* ---------- 15. Entretien, Cartes : pastilles de liste ---------- */
+
+.ent-topic,.coll-module{
+  border:0!important;border-radius:var(--p-radius)!important;
+  background:var(--surface)!important;box-shadow:var(--p-shadow)!important;
+}
+.ent-topic-num,.coll-module-num{
+  background:var(--surface-2)!important;color:var(--ink-2)!important;border:0!important;box-shadow:none!important;
+  font-family:var(--ui)!important;font-size:13px!important;font-weight:650!important;
+}
+.ent-topic-side em,.coll-module-side em{
+  background:var(--surface-2)!important;color:var(--ink-2)!important;border:0!important;
+  font-family:var(--ui)!important;font-size:12px!important;font-weight:600!important;font-style:normal;
+}
+
+/* ---------- 16. Leçons ---------- */
+
+/* Titre de leçon plus affirmé */
+#scr-lesson .l-kicker+h1{
+  font-size:30px!important;font-weight:750!important;letter-spacing:-.8px!important;line-height:1.12!important;
+  margin-top:4px!important;
+}
+
+/* Barre d'action du bas : action principale indigo, retour en pastille blanche */
+.ls-nav .ls-next{
+  background:var(--accent)!important;background-image:none!important;
+  border-radius:var(--p-radius-sm)!important;min-height:52px;
+  font-size:16px!important;font-weight:650!important;letter-spacing:-.2px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 8px 18px -12px rgba(72,69,196,.7)!important;
+}
+.ls-nav .ls-next:disabled,
+.ls-nav .ls-next[aria-disabled="true"],
+.ls-nav .ls-next.locked{
+  background:#D9D9E3!important;color:#6E6E79!important;box-shadow:none!important;opacity:1!important;
+}
+.ls-nav .ls-prev{
+  border-radius:var(--p-radius-sm)!important;min-height:52px;
+  background:var(--surface)!important;color:var(--ink)!important;
+  box-shadow:var(--card-shadow-sm)!important;font-weight:600!important;
+}
+
+/* Bouton ✎ pendant une leçon : icône discrète dans l'en-tête, pas un bloc violet */
+body.in-lesson .fab{
+  width:40px!important;height:40px!important;border-radius:12px!important;
+  background:var(--surface)!important;background-image:none!important;color:var(--accent)!important;
+  box-shadow:var(--card-shadow-sm)!important;font-size:18px!important;
+}
+/* Bouton ✎ hors leçon : même indigo plat que les autres actions */
+body:not(.in-lesson) .fab{
+  background:var(--accent)!important;background-image:none!important;border-radius:16px!important;
+  box-shadow:0 10px 24px -12px rgba(72,69,196,.75)!important;
+}
+
+/* Quiz : étiquette grise, options sans contour, lettre en police système */
+.qtag{
+  font-family:var(--ui)!important;font-size:12px!important;font-weight:600!important;
+  letter-spacing:.06em!important;background:var(--surface-2)!important;color:var(--ink-3)!important;
+}
+.qcm-card.ok .qtag{background:var(--success-soft)!important;color:var(--success)!important}
+.qopt{
+  border:0!important;border-radius:var(--p-radius-sm)!important;
+  background:var(--surface-2)!important;min-height:52px;font-size:15.5px!important;
+}
+.qopt.sel{background:var(--accent-soft)!important;box-shadow:inset 0 0 0 1.5px var(--accent)!important}
+.qopt.bon{background:var(--success-soft)!important;box-shadow:inset 0 0 0 1.5px var(--success)!important}
+.qopt.faux{background:var(--danger-soft)!important;box-shadow:inset 0 0 0 1.5px var(--danger)!important}
+.qopt .ql{
+  font-family:var(--ui)!important;font-size:13px!important;font-weight:650!important;
+  background:var(--surface)!important;border:0!important;
+}
+
+/* Éditeur et résultats : coins et ombres alignés sur les cartes */
+.exframe,.editor-shell,.result-card{border-radius:var(--p-radius)!important}
