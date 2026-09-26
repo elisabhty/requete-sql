@@ -14209,13 +14209,6 @@ FROM clients
           <p>👇 Exécute la requête pour découvrir les villes qui commandent le plus&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT clients.ville,&#10;       COUNT(commandes.id) AS nombre_commandes&#10;FROM clients&#10;INNER JOIN commandes&#10;    ON clients.id = commandes.client_id&#10;GROUP BY clients.ville;"></div>
           <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 15 commandes reliées à 5 villes"><li class="ij-fn-row"><b>15</b><span>commandes reliées à une ville<small><code>INNER JOIN</code> : une ligne par commande</small></span><i class="ij-fn-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></i></li><li class="ij-fn-step"><code>GROUP BY clients.ville</code><small>un groupe par ville, puis <code>COUNT</code></small></li><li class="ij-fn-row is-out"><b>5</b><span>villes, chacune avec son total<small>Paris&nbsp;7&nbsp;· Lyon&nbsp;3&nbsp;· Marseille&nbsp;2&nbsp;· Bordeaux&nbsp;2&nbsp;· Toulouse&nbsp;1</small></span></li></ol><p class="ij-done-p ij-done-win">🏆 Paris arrive en tête avec 7 commandes.</p><p class="ij-done-p">Nantes n’apparaît pas&nbsp;: Inès, la seule cliente de Nantes, n’a encore passé aucune commande.</p></div>
-          <div class="sit-memo">
-            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-            <p><code>JOIN</code> relie une commande à la ville de son client.</p>
-            <p><code>GROUP BY</code> réunit les commandes d’une même ville.</p>
-            <p><code>COUNT</code> compte les commandes de chaque groupe.</p>
-          </div>
-          <button type="button" class="coda-note" onclick="noteFromRetenir()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ajouter dans notes</button>
         </div>
       </div>`},
     reflexTitle:"Le réflexe à retenir",
@@ -14236,12 +14229,6 @@ FROM clients
   exemple:"SELECT clients.ville,\n       COUNT(commandes.id) AS nombre_commandes\nFROM clients\nINNER JOIN commandes\n    ON clients.id = commandes.client_id\nGROUP BY clients.ville;",
   attendu:"<b>5 lignes</b> : une par ville ayant au moins une commande. Paris : 7, Lyon : 3, Marseille : 2, Bordeaux : 2, Toulouse : 1.",
   retenir:"Quand l’information utilisée pour regrouper et celle utilisée pour compter se trouvent dans des tables différentes :<br><br>① <b>JOIN</b> relie les informations.<br>② <b>GROUP BY</b> forme les groupes.<br>③ <b>COUNT</b> calcule dans chaque groupe.<br><br>On relie d’abord les données, puis on les regroupe pour effectuer le calcul.",
-  piege:{t:"Pourquoi la jointure est-elle indispensable&nbsp;?",
-    p:"On pourrait être tenté de regrouper directement la <code>table commandes</code>&nbsp;:",
-    exec:true,
-    sql:"SELECT ville, COUNT(*)\nFROM commandes\nGROUP BY ville;",
-    mid:"❌ Cela ne fonctionne pas&nbsp;: la colonne <code>ville</code> n’existe pas dans la <code>table commandes</code>. Elle se trouve dans la <code>table clients</code>.<br><br>La jointure permet d’avoir, dans le même résultat intermédiaire, <b>la ville du client + sa commande</b>. <code>GROUP BY</code> peut ensuite effectuer le regroupement demandé&nbsp;:",
-    fixSql:"SELECT clients.ville,\n       COUNT(commandes.id) AS nombre_commandes\nFROM clients\nINNER JOIN commandes\n    ON clients.id = commandes.client_id\nGROUP BY clients.ville;"},
   consigne:"Compte le nombre de commandes passées dans chaque ville. Affiche <code>ville</code> et <code>nombre_commandes</code>.",
   solution:"SELECT clients.ville,\n       COUNT(commandes.id) AS nombre_commandes\nFROM clients\nINNER JOIN commandes\n    ON clients.id = commandes.client_id\nGROUP BY clients.ville;",
   indice:"Relie la <code>table clients</code> et la <code>table commandes</code> avec <code>INNER JOIN</code> sur <code>clients.id = commandes.client_id</code>, regroupe avec <code>GROUP BY clients.ville</code>, puis compte avec <code>COUNT(commandes.id)</code>.",
@@ -32136,7 +32123,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-26-jtypes-v1104';
+  const SW_CACHE='requete-2026-09-26-l41clean-v1105';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
