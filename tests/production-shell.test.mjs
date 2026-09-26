@@ -56,7 +56,9 @@ assert(defisRoot.includes('root-home-back') && planningRoot.includes('root-home-
 assert((html.match(/class="home-back root-home-back"/g)||[]).length===5, 'retour Accueil cohérent sur les cinq grandes pages concernées');
 assert(html.includes('function returnToHome()') && html.includes("title.focus({preventScroll:true})"), 'retour Accueil centralisé avec restitution accessible du focus');
 assert(html.includes("function lessonBackLabel(){return activeTab==='planning'?'Parcours':activeTab==='defis'?'Défis':'Accueil';}"), 'leçon renvoyée vers son écran d’origine avec un libellé clair');
-assert(html.includes("label.textContent=focused?'Questions':'Accueil'") && html.includes("focused?'Retour aux questions':'Retour à l’accueil'"), 'Entretien revient aux questions avant de revenir à l’accueil');
+assert(html.includes("label.textContent=focused?'Questions':'Bibliothèque'") && html.includes("focused?'Retour aux questions':'Retour à la bibliothèque'"), 'Entretien revient aux questions avant de revenir à la bibliothèque');
+assert(html.includes('function returnToParent()') && html.includes("if(!parent||parent===activeTab||parent==='learn'){returnToHome();return;}"), 'les sous-pages reviennent à leur rubrique (Pratiquer, Bibliothèque)');
+assert(html.includes('<link rel="stylesheet" href="design-premium.css') && serviceWorker.includes("'./design-premium.css'"), 'système de design chargé en dernier et disponible hors ligne');
 assert(html.includes('id="scr-notes"') && html.includes('function renderNotesScreen('), 'Mes notes possède un écran racine dédié');
 assert(html.includes('class="notes-overview"') && html.includes('data-notes-count') && html.includes('data-notes-pinned') && html.includes('data-notes-sql'), 'Mes notes présente un tableau de bord calculé depuis le carnet réel');
 assert(html.includes("latest?`Dernière modification · ${fmtDate(latest.ts)}`") && html.includes('Prêt pour ta première note'), 'carnet adapte son prochain repère à son contenu');
@@ -116,7 +118,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
 assert(html.includes('{ id:73, titre:"UNION et UNION ALL"') && html.includes('18 lignes : 10 + 8') && !html.includes('17 lignes : 9 + 8'), 'UNION ALL visible et cardinalité corrigée');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-09-26-prod-v1113') && html.includes('requete-2026-09-26-prod-v1113') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-09-27-premium-v1114') && html.includes('requete-2026-09-27-premium-v1114') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
