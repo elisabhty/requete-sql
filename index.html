@@ -29575,7 +29575,7 @@ function paintOb(){
     obSetFooter('Continuer sans compte',obChooseGuest,'','','');
   }else if(slide==='name'){
     const nameValue=esc(draft.name||'').replace(/"/g,'&quot;');
-    html=`<div class="ob-screen ob-profile ob-name">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Apprenons à mieux<br>te connaître.</h1>
+    html=`<div class="ob-screen ob-profile ob-name">${obFlowHeader(slide)}<h1 class="ob-title" id="ob-title">Apprenons à mieux<br> te connaître.</h1>
       <p class="ob-lead">Quelques étapes rapides pour personnaliser ton départ.</p>
       ${obMascotQuestion('Enchantée ! Comment dois-je t’appeler ?')}
       <label class="ob-field"><span>Prénom</span><input type="text" maxlength="32" value="${nameValue}" placeholder="Ton prénom" autocomplete="given-name" enterkeyhint="next" oninput="obInput('name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();obGoto('goal');}"></label>
@@ -30000,9 +30000,9 @@ function renderCompte(){
       <div class="account-section-head"><div><span>Ma progression</span><b>${progress.done} activité${progress.done>1?'s':''} terminée${progress.done>1?'s':''}</b></div><button type="button" onclick="switchTab('planning')">Parcours</button></div>
       <div class="account-stats-grid">
         <div class="account-stat"><span class="account-stat-mark progress" aria-hidden="true">${accountStatIcon('progress')}</span><b><span data-countup="${progress.percent}">${progress.percent}</span>%</b><small>Progression SQL</small></div>
-        <div class="account-stat"><span class="account-stat-mark streak" aria-hidden="true">${accountStatIcon('streak')}</span><b data-countup="${st.streak}">${st.streak}</b><small>Jours de série</small></div>
-        <div class="account-stat"><span class="account-stat-mark lessons" aria-hidden="true">${accountStatIcon('lessons')}</span><b data-countup="${st.lessons}">${st.lessons}</b><small>Leçons</small></div>
-        <div class="account-stat"><span class="account-stat-mark challenges" aria-hidden="true">${accountStatIcon('challenges')}</span><b data-countup="${st.defis}">${st.defis}</b><small>Défis</small></div>
+        <div class="account-stat"><span class="account-stat-mark streak" aria-hidden="true">${accountStatIcon('streak')}</span><b data-countup="${st.streak}">${st.streak}</b><small>Jour${st.streak>1?'s':''} de série</small></div>
+        <div class="account-stat"><span class="account-stat-mark lessons" aria-hidden="true">${accountStatIcon('lessons')}</span><b data-countup="${st.lessons}">${st.lessons}</b><small>Leçon${st.lessons>1?'s':''}</small></div>
+        <div class="account-stat"><span class="account-stat-mark challenges" aria-hidden="true">${accountStatIcon('challenges')}</span><b data-countup="${st.defis}">${st.defis}</b><small>Défi${st.defis>1?'s':''}</small></div>
       </div>
       <div class="account-level" aria-label="Niveau actuel : ${levelBand.label}, ${levelPct}% vers le prochain palier">
         <div class="account-level-head"><span><small>Niveau actuel</small><b>${levelBand.label}</b></span><em>${progress.percent}% du parcours</em></div>
@@ -32135,11 +32135,18 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-25-sousreq-in-v1083';
+  const SW_CACHE='requete-2026-09-26-prod-v1084';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE)).catch(e=>console.warn('Service worker non enregistré :',e));
+    navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE),{updateViaCache:'none'}).catch(e=>console.warn('Service worker non enregistré :',e));
+  });
+  /* Au retour sur l’app, on vérifie qu’une nouvelle version n’est pas
+     disponible : sans cela, un onglet longue durée peut rester des jours
+     sur un ancien cache sans jamais déclencher le rechargement ci-dessous. */
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState!=='visible')return;
+    navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{});
   });
   /* Quand une nouvelle version du worker prend le contrôle, la page courante
      tourne encore sur l’ancien code : on recharge une fois pour afficher les

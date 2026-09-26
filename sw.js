@@ -14,7 +14,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-09-25-sousreq-in-v1083';
+const CACHE = 'requete-2026-09-26-prod-v1084';
 
 const PRECACHE = [
   './',
@@ -28,9 +28,6 @@ const PRECACHE = [
   './viz-orderby.css',
   './anim-responsive.css',
   './ux-polish.css',
-  './lesson-cases.js',
-  './lesson-case-view.js',
-  './lesson-cases.css',
   './vendor/sqljs/sql-wasm.js',
   './vendor/sqljs/sql-wasm.wasm',
   './assets/mascotte-requete.png',
@@ -62,6 +59,11 @@ self.addEventListener('fetch', (e) => {
 
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;   // polices et CDN : non interceptés
+
+  /* Ne jamais intercepter le script du worker lui-même : une réponse en
+     cache (ou une erreur de repli) empêcherait toute mise à jour future —
+     constaté sur une ancienne version restée bloquée plusieurs jours. */
+  if (url.pathname.endsWith('/sw.js')) return;
 
   if (req.mode === 'navigate') {
     e.respondWith((async () => {
