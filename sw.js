@@ -14,11 +14,12 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-09-25-sousreq-in-v1083';
+const CACHE = 'requete-2026-09-25-journey-v1086';
 
 const PRECACHE = [
   './',
   './index.html',
+  './home-journey.css',
   './manifest.webmanifest',
   './viz-select.js',
   './viz-select.css',

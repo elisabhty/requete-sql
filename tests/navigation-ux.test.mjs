@@ -12,7 +12,7 @@ ctx.state={lessons:{}};ctx.isDue=id=>!!ctx.state.lessons[id]?.due;ctx.esc=text=>
 ctx.lessonListRow=l=>`<button>${l.titre}</button>`;
 vm.runInContext(html.slice(html.indexOf('let courseSearch='),html.indexOf('function syncTabUI(')),ctx);
 ctx.filterCourseCatalog('jointure');
-assert.equal(nodes['course-search-status'].textContent,'12 cours trouvés');
+assert.equal(nodes['course-search-status'].textContent,'11 cours trouvés');
 assert.ok(nodes['course-search-results'].innerHTML.includes('INNER JOIN'));
 assert.ok(modules.every(m=>m.hidden));
 ctx.filterCourseCatalog('numeriques');assert.ok(nodes['course-search-results'].innerHTML.includes('Fonctions numériques'),'recherche sans accents');
@@ -40,10 +40,10 @@ ctx.courseSearchKeydown({key:'Enter',preventDefault(){}});assert.equal(resultFoc
 ctx.courseSearchKeydown({key:'Escape',preventDefault(){}});assert.equal(nodes['course-search'].value,'');
 vm.runInContext(html.slice(html.indexOf('function navigateMainTabs('),html.indexOf('function jumpToSection(')),ctx);
 let chosen=-1,focused=-1,prevented=false;
-const tabs=Array.from({length:7},(_,i)=>({click(){chosen=i},focus(){focused=i}}));
+const tabs=Array.from({length:5},(_,i)=>({click(){chosen=i},focus(){focused=i}}));
 function key(index,k){ctx.navigateMainTabs({key:k,currentTarget:{querySelectorAll:()=>tabs},target:{closest:()=>tabs[index]},preventDefault(){prevented=true;}});}
-key(0,'ArrowLeft');assert.equal(chosen,6);assert.equal(focused,6);assert.equal(prevented,true);
-key(6,'ArrowRight');assert.equal(chosen,0);
-key(2,'End');assert.equal(chosen,6);
+key(0,'ArrowLeft');assert.equal(chosen,4);assert.equal(focused,4);assert.equal(prevented,true);
+key(4,'ArrowRight');assert.equal(chosen,0);
+key(2,'End');assert.equal(chosen,4);
 key(2,'Home');assert.equal(chosen,0);
 console.log('Recherche des cours, accents, état vide, effacement et navigation clavier : OK.');

@@ -12,7 +12,8 @@ const ctx=vm.createContext({
   majBadgePlanning(){},renderLearnAvatar(){},renderHomeStreak(){},renderGreeting(){},
   progressContinuer:()=>({percent:0,lessonTotal:3,challengeTotal:0}),
   infoJour:()=>({retard:[]}),homeToolsHTML:()=>'',homePathPreviewHTML:()=>'',moduleDeLecon:()=>null,
-  plur:(n,s)=>`${n} ${s}`
+  plur:(n,s)=>`${n} ${s}`,journeyIcon:()=>'',DEF_CHEV_SVG:'',ENT_OK_SVG:'',latePlanDetails:()=>null,
+  homeLessonSteps:()=>[{step:0,done:false,locked:false},{step:1,done:false,locked:false},{step:2,done:false,locked:true}]
 });
 ctx.itemDone=id=>!!ctx.state.lessons[id]?.done;
 for(const [start,end] of [
