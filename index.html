@@ -1545,7 +1545,7 @@
   .jn-sides article.is-kept span{color:var(--accent)}
   .jn-sides > i{align-self:center;font-style:normal;font-weight:800;color:var(--ink-3)}
   /* Plusieurs conditions dans ON */
-  /* :not(.is-3) pour passer devant « .pk-comp.ij-t .pk-mini:not(.is-3) », déclaré plus loin. */
+  /* :not(.is-3) pour passer devant « .pk-comp.ij-t .pk-mini:not(.is-3,.is-4) », déclaré plus loin. */
   .pk-comp.ij-t .pk-mini.on-4:not(.is-3){grid-template-columns:1.5fr repeat(3,minmax(0,1fr))}
   .pk-comp.ij-t .pk-mini.on-4 span{padding-left:4px;padding-right:4px;white-space:normal;line-height:1.3}
   .pk-comp.ij-t .pk-mini.on-4 span.is-h{font-size:10px}
@@ -1815,7 +1815,7 @@
   .pk-comp.ij-t .pk-mini span{padding:10px 6px;border-radius:0;background:transparent;border-top:1px solid var(--line-2);font-size:13px}
   .pk-comp.ij-t .pk-mini span.is-h{padding:7px 6px;border-top:1px solid var(--line);background:var(--surface-2);font-size:11px;font-weight:700;color:var(--ink-2)}
   .pk-comp.ij-t .pk-mini span.is-hit{background:var(--accent-soft);color:var(--accent-ink)}
-  .pk-comp.ij-t .pk-mini:not(.is-3){grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pk-comp.ij-t .pk-mini:not(.is-3,.is-4){grid-template-columns:repeat(2,minmax(0,1fr))}
   .pk-comp.ij-t .pk-mini span.is-null{border:0;border-top:1px solid var(--line-2);color:var(--ink-3)}
   .pk-comp.ij-t .pk-mini:is(.is-email,.is-email2) span{padding-left:4px;padding-right:4px;font-size:11.5px}
   .pk-comp.ij-t .ij-tmore{margin:0!important;padding:9px 12px;border-top:1px dashed var(--line);background:color-mix(in srgb,var(--surface-2) 55%,#fff);font-size:12px;font-weight:600}
@@ -2122,7 +2122,7 @@
   .pts-sum i{font-style:normal;color:var(--accent);font-size:13px;font-weight:600;line-height:1}
   .pts-sum span{font-family:var(--mono);font-size:15px;font-weight:800;color:var(--accent)}
   .rel-pair-row i{font-style:normal;text-align:center;color:var(--accent);font-size:14px;font-weight:800;line-height:1}
-  .pk-mini.is-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .pk-mini.is-3{grid-template-columns:repeat(3,minmax(0,1fr))}.pk-mini.is-4{grid-template-columns:repeat(4,minmax(0,1fr))}
   .pk-mini.is-3 span{text-align:center;padding:6px 6px}
   .pk-mini.is-3 span.is-h{text-transform:none;letter-spacing:0;font-size:10px;line-height:1.2}
   .pk-mini span.is-more{background:transparent;color:var(--ink-3);font-weight:800;letter-spacing:.18em}
@@ -14407,72 +14407,63 @@ learningCheck:{
   "explanation": "<> garde A-B et B-A. < n’en garde qu’une orientation, et exclut aussi A-A."
 }
 },
-{ id:43, titre:"ON vs WHERE", résumé:"Relier les lignes ou filtrer le résultat",
-  situation:`<p>L’équipe logistique veut préparer une opération spéciale sur les commandes.</p><p>Elle souhaite afficher <b>toutes les commandes</b>, mais récupérer les informations du produit <b>uniquement lorsqu’il est encore en stock</b>.</p><p>Nous avons besoin de deux tables&nbsp;: la <code>table&nbsp;commandes</code> et la <code>table&nbsp;produits</code>.</p><div class="pk-comp ij-t"><p class="ij-tlab">table commandes · exemple</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">produit_id</span><span class="is-h">quantite</span><span>1</span><span>2</span><span>1</span><span>2</span><span>5</span><span>2</span><span>3</span><span>8</span><span>1</span></div></div><div class="pk-comp ij-t"><p class="ij-tlab">table produits · exemple</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">stock</span><span>2</span><span>Collagène Marin</span><span>15</span><span>5</span><span>Tisane Détox</span><span class="is-hit">0</span><span>8</span><span>Shaker Inox</span><span>7</span></div></div><p>📌 <b>Objectif&nbsp;:</b> conserver toutes les commandes, même lorsque le produit n’est plus en stock.</p>`,
-    studio:{problem:{eye:"",title:"Deux endroits où écrire une condition",
-      body:"Dans une jointure, tu peux rencontrer des conditions dans <code>ON</code> et dans <code>WHERE</code>&nbsp;:",
-      extra:`<div class="pt-syntax"><pre class="cw-syntax">SELECT ...
-FROM commandes
-LEFT JOIN produits
-    <span class="fk-syn-hit">ON</span> ...
-<span class="fk-syn-hit">WHERE</span> ...;</pre></div><p class="ij-arrow">👉 Mais elles n’interviennent pas au même moment.</p>`},
-    uses:{title:"ON ou WHERE : la démonstration",
-      body:`<div class="pt-lead fn-uses fk-course jn-course"><div class="fn-use"><p class="pt-syntax-h">ON définit comment les lignes sont reliées</p><p>Commençons par relier chaque commande à son produit&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">SELECT
+{ id:43, titre:"ON vs WHERE", résumé:"Relier les lignes, puis filtrer le résultat",
+  situation:`<p>L’équipe logistique veut repérer les commandes contenant des <b>produits presque épuisés</b>.</p><p>Pour cela, elle doit&nbsp;:</p><ol class="fk-syn-map" aria-label="Les deux étapes"><li><b aria-hidden="true">1</b><div><strong>Retrouver le produit correspondant à chaque commande</strong></div></li><li><b aria-hidden="true">2</b><div><strong>Ne garder que les produits dont le stock est inférieur à 10 unités</strong></div></li></ol><p>Les informations sont réparties dans deux tables&nbsp;: la <code>table&nbsp;commandes</code> et la <code>table&nbsp;produits</code>.</p><div class="pk-comp ij-t"><p class="ij-tlab">table commandes · exemple</p><div class="pk-mini is-4"><span class="is-h">id</span><span class="is-h">client_id</span><span class="is-h">produit_id</span><span class="is-h">quantite</span><span>1</span><span>1</span><span class="is-hit">2</span><span>1</span><span>2</span><span>3</span><span class="is-hit">5</span><span>2</span><span>3</span><span>4</span><span class="is-hit">8</span><span>1</span></div></div><div class="pk-comp ij-t"><p class="ij-tlab">table produits · exemple</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">stock</span><span>2</span><span>Collagène Marin</span><span class="is-hit">18</span><span>5</span><span>Tisane Détox</span><span class="is-hit">6</span><span>8</span><span>Shaker Inox</span><span class="is-hit">4</span></div></div><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Relie chaque commande à son produit, puis affiche uniquement celles dont le produit a moins de 10 unités en stock.</p></div>`,
+    studio:{problem:{eye:"",title:"Deux conditions, mais deux rôles différents",
+      body:"Pour accomplir notre mission, nous avons besoin de deux conditions&nbsp;:",
+      extra:`<div class="pt-syntax"><pre class="cw-syntax">commandes.produit_id = produits.id</pre></div><p>et&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">produits.stock &lt; 10</pre></div><p>Mais elles ne servent pas à la même chose&nbsp;:</p><div class="ow-cmp"><article><p class="ow-k"><b>La première</b></p><p>🔗 Quel produit correspond à chaque commande&nbsp;?</p></article><article><p class="ow-k"><b>La seconde</b></p><p>🔎 Quelles commandes voulons-nous garder&nbsp;?</p></article></div><p class="ij-arrow">👉 C’est précisément la différence entre <code>ON</code> et <code>WHERE</code>.</p>`},
+    uses:{title:"ON ou WHERE : chacun son rôle",
+      body:`<div class="pt-lead fn-uses fk-course jn-course"><div class="fn-use"><p class="pt-syntax-h">ON : quelles lignes vont ensemble&nbsp;?</p><p>Commençons par relier les deux tables&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">SELECT
     commandes.id,
     produits.nom,
     produits.stock
 FROM commandes
-LEFT JOIN produits
-    <span class="fk-syn-hit">ON commandes.produit_id = produits.id</span>;</pre></div><p><code>ON</code> répond à la question&nbsp;:</p><p class="ij-box">🔗 Quelles lignes vont ensemble&nbsp;?</p><p>Ici, <code>commandes.produit_id = produits.id</code> permet de retrouver le produit correspondant à chaque commande.</p></div><div class="fn-use"><p class="pt-syntax-h">Ajouter une condition dans ON</p><p>Nous voulons maintenant relier le produit <b>seulement s’il est encore en stock</b>&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">SELECT
+JOIN produits
+    <span class="fk-syn-hit">ON commandes.produit_id = produits.id</span>;</pre></div><p>La condition <code>ON commandes.produit_id = produits.id</code> compare&nbsp;:</p><div class="ij-match" role="img" aria-label="commandes.produit_id comparé à produits.id"><code>commandes.produit_id</code><i aria-hidden="true">↕</i><code>produits.id</code></div><p>Lorsque les valeurs correspondent, les deux lignes sont réunies. Par exemple&nbsp;:</p><div class="ij-match" role="img" aria-label="La commande 2 a produit_id = 5, qui correspond au produit 5, Tisane Détox"><code>commande 2 · produit_id = 5</code><i aria-hidden="true">↕</i><code>produit 5 · Tisane Détox</code></div><p class="ij-arrow">💡 <code>ON</code> indique quelles lignes doivent être reliées.</p></div><div class="fn-use"><p class="pt-syntax-h">Mais nous ne voulons pas tout afficher</p><p>Après la jointure, nous obtenons par exemple&nbsp;:</p><div class="pk-comp ij-t"><p class="ij-tlab">résultat de la jointure</p><div class="pk-mini is-3"><span class="is-h">commande</span><span class="is-h">produit</span><span class="is-h">stock</span><span>1</span><span>Collagène Marin</span><span class="is-hit">18</span><span>2</span><span>Tisane Détox</span><span class="is-hit">6</span><span>3</span><span>Shaker Inox</span><span class="is-hit">4</span></div></div><p>Mais notre mission demande uniquement les produits dont <code>stock &lt; 10</code>.</p><p>Cette condition ne sert pas à trouver quel produit appartient à quelle commande&nbsp;: elle sert à choisir <b>quelles lignes conserver</b> dans le résultat.</p><p class="ij-arrow">👉 C’est donc le rôle de <code>WHERE</code>.</p></div><div class="fn-use"><p class="pt-syntax-h">WHERE : quelles lignes veut-on garder&nbsp;?</p><p>Ajoutons notre filtre&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">SELECT
     commandes.id,
     produits.nom,
     produits.stock
 FROM commandes
-LEFT JOIN produits
+JOIN produits
     ON commandes.produit_id = produits.id
-    <span class="fk-syn-hit">AND produits.stock &gt; 0</span>;</pre></div><p>Il y a maintenant deux conditions pour créer la correspondance&nbsp;:</p><ol class="fk-syn-map" aria-label="Deux conditions pour accepter la correspondance"><li><b aria-hidden="true">1</b><div><strong>Même produit</strong><span><code>commandes.produit_id = produits.id</code></span></div></li><li><b aria-hidden="true">2</b><div><strong>Produit en stock</strong><span><code>produits.stock &gt; 0</code></span></div></li><li><b aria-hidden="true">✓</b><div><strong>La correspondance est acceptée</strong><span>seulement si les deux conditions sont vraies</span></div></li></ol><p>Pour la commande de Tisane Détox, le produit existe bien, mais son stock vaut <code>0</code>&nbsp;: la condition du <code>ON</code> n’est pas respectée.</p><p>Comme nous utilisons un <code>LEFT JOIN</code>, la commande reste quand même présente&nbsp;:</p><div class="pk-comp ij-t"><p class="ij-tlab">résultat avec la condition dans ON</p><div class="pk-mini is-3"><span class="is-h">commande</span><span class="is-h">produit</span><span class="is-h">stock</span><span>1</span><span>Collagène Marin</span><span>15</span><span>2</span><span class="is-nul">NULL</span><span class="is-nul">NULL</span><span>3</span><span>Shaker Inox</span><span>7</span></div></div><p class="ij-arrow">💡 La commande 2 n’a pas disparu. C’est la correspondance avec le produit qui n’a pas été retenue.</p></div><div class="fn-use"><p class="pt-syntax-h">Et si on met la condition dans WHERE&nbsp;?</p><p>Regardons cette requête&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">SELECT
-    commandes.id,
-    produits.nom,
-    produits.stock
-FROM commandes
-LEFT JOIN produits
-    ON commandes.produit_id = produits.id
-<span class="fk-syn-hit">WHERE produits.stock &gt; 0</span>;</pre></div><p>Cette fois, la jointure est effectuée en premier. <code>WHERE</code> intervient ensuite sur le résultat obtenu&nbsp;:</p><p class="ij-box">🔎 Quelles lignes doit-on garder&nbsp;?</p><p>La commande liée à Tisane Détox a un stock de <code>0</code>. Elle ne respecte pas <code>WHERE produits.stock &gt; 0</code>&nbsp;: elle est donc retirée du résultat.</p><div class="pk-comp ij-t"><p class="ij-tlab">résultat avec la condition dans WHERE</p><div class="pk-mini is-3"><span class="is-h">commande</span><span class="is-h">produit</span><span class="is-h">stock</span><span>1</span><span>Collagène Marin</span><span>15</span><span>3</span><span>Shaker Inox</span><span>7</span></div></div><p class="ij-arrow">👉 Cette fois, la commande 2 a complètement disparu.</p></div><div class="fn-use"><p class="pt-syntax-h">La différence à retenir</p><div class="ow-cmp"><article><p class="ow-k"><code>ON</code></p><div class="pt-syntax"><pre class="cw-syntax">ON commandes.produit_id = produits.id
-AND produits.stock &gt; 0</pre></div><p><b>Conditionne la correspondance.</b> Avec un <code>LEFT JOIN</code>, une commande sans correspondance reste quand même dans le résultat.</p></article><article><p class="ow-k"><code>WHERE</code></p><div class="pt-syntax"><pre class="cw-syntax">WHERE produits.stock &gt; 0</pre></div><p><b>Filtre le résultat.</b> Si une ligne ne respecte pas la condition, elle disparaît.</p></article></div></div></div>`},
+<span class="fk-syn-hit">WHERE produits.stock &lt; 10</span>;</pre></div><p>La requête se lit maintenant en deux étapes&nbsp;:</p><ol class="fk-syn-map" aria-label="Les deux étapes de la requête"><li><b aria-hidden="true">1</b><div><code>ON commandes.produit_id = produits.id</code><span>🔗 Relier chaque commande au bon produit</span></div></li><li><b aria-hidden="true">2</b><div><code>WHERE produits.stock &lt; 10</code><span>🔎 Garder uniquement les produits presque épuisés</span></div></li></ol><p>Résultat&nbsp;:</p><div class="pk-comp ij-t"><p class="ij-tlab">résultat</p><div class="pk-mini is-3"><span class="is-h">commande</span><span class="is-h">produit</span><span class="is-h">stock</span><span>2</span><span>Tisane Détox</span><span class="is-hit">6</span><span>3</span><span>Shaker Inox</span><span class="is-hit">4</span></div></div><p>Le Collagène Marin était bien relié à sa commande, mais avec 18 unités en stock, il ne respecte pas le <code>WHERE</code>.</p><p class="ij-arrow">👉 Il est donc retiré du résultat.</p></div><div class="fn-use"><p class="pt-syntax-h">Pourquoi ne pas tout mettre dans ON&nbsp;?</p><p>On pourrait être tenté d’écrire&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">ON commandes.produit_id = produits.id
+<span class="fk-syn-hit">AND produits.stock &lt; 10</span></pre></div><p>Avec un <code>INNER JOIN</code>, cette requête peut ici donner le même résultat final. Mais les deux conditions n’expriment pas la même intention&nbsp;:</p><div class="ow-cmp"><article><p class="ow-k"><code>ON</code></p><p>Comment les tables se correspondent.</p></article><article><p class="ow-k"><code>WHERE</code></p><p>Quelles lignes du résultat on veut garder.</p></article></div><p>Pour notre mission, l’écriture la plus claire est donc&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">ON commandes.produit_id = produits.id
+WHERE produits.stock &lt; 10</pre></div><p class="ij-arrow">⚠️ Avec certains <code>JOIN</code>, notamment <code>LEFT JOIN</code>, déplacer une condition de <code>ON</code> vers <code>WHERE</code> peut même changer le résultat. Nous verrons ce comportement séparément.</p></div></div>`},
     reflexTitle:"Le réflexe à retenir",
-    reflex:{extra:`<p>Quand tu hésites entre <code>ON</code> et <code>WHERE</code>, pose-toi deux questions&nbsp;:</p><div class="memory-rule is-trio is-chain"><div class="memory-a"><b>ON</b><span><b>Quelles lignes vont ensemble&nbsp;?</b><br>La condition sert à savoir quelles lignes doivent être reliées.</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>JOIN</b><span><b>Les lignes sont reliées</b><br>Avec un <code>LEFT JOIN</code>, toutes les commandes restent.</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>WHERE</b><span><b>Quelles lignes restent&nbsp;?</b><br>La condition sert à choisir les lignes du résultat à conserver.</span></div></div><p class="agg-reflex" style="margin-top:14px">⚠️ Avec un <code>LEFT JOIN</code>, déplacer une condition de <code>ON</code> vers <code>WHERE</code> peut changer complètement le résultat. C’est avec les jointures externes que la différence entre <code>ON</code> et <code>WHERE</code> devient particulièrement importante.</p>`}},
+    reflex:{extra:`<p>Quand tu hésites entre <code>ON</code> et <code>WHERE</code>, pose-toi simplement deux questions&nbsp;:</p><div class="ow-cmp"><article><p class="ow-k"><code>ON</code></p><p>🔗 Ma condition sert-elle à savoir quelles lignes vont ensemble&nbsp;?</p></article><article><p class="ow-k"><code>WHERE</code></p><p>🔎 Ma condition sert-elle à filtrer ce que je veux afficher&nbsp;?</p></article></div><p style="margin-top:14px">Le chemin à retenir&nbsp;:</p><ol class="fk-syn-map" aria-label="Le chemin : ON, jointure, WHERE, résultat"><li><b aria-hidden="true">1</b><div><strong>Table commandes + table produits</strong></div></li><li><b aria-hidden="true">2</b><div><code>ON</code><span>Quelles lignes vont ensemble&nbsp;?</span></div></li><li><b aria-hidden="true">3</b><div><strong>Jointure</strong><span>Les lignes sont reliées</span></div></li><li><b aria-hidden="true">4</b><div><code>WHERE</code><span>Quelles lignes veut-on garder&nbsp;?</span></div></li><li><b aria-hidden="true">5</b><div><strong>Résultat</strong></div></li></ol><p class="agg-reflex" style="margin-top:14px">👉 <code>ON</code> construit la correspondance. <code>WHERE</code> filtre le résultat.</p>`}},
   joinFn:true,
   noTeste:true,
   noAnat:true,
   anatomie:[
     {tok:"SELECT commandes.id, produits.nom, produits.stock",txt:"Le numéro de la commande, le nom et le stock du produit."},
-    {tok:"FROM commandes",txt:"On part de la table commandes : ce sont les lignes que l’on veut toutes conserver."},
-    {tok:"LEFT JOIN produits",txt:"Ajoute les produits sans retirer aucune commande."},
-    {tok:"ON commandes.produit_id = produits.id",txt:"Relie chaque commande à son produit."},
-    {tok:"AND produits.stock > 50",txt:"Seconde condition de correspondance : le produit n’est relié que si son stock dépasse 50."}
+    {tok:"FROM commandes",txt:"On part de la table commandes."},
+    {tok:"JOIN produits",txt:"On ajoute la table produits."},
+    {tok:"ON commandes.produit_id = produits.id",txt:"ON : quelles lignes vont ensemble ? Chaque commande est reliée à son produit."},
+    {tok:"WHERE produits.stock < 50",txt:"WHERE : quelles lignes garder ? Seulement les produits dont le stock est inférieur à 50."}
   ],
-  exemple:"SELECT commandes.id,\n       produits.nom,\n       produits.stock\nFROM commandes\nLEFT JOIN produits\n    ON commandes.produit_id = produits.id\n    AND produits.stock > 50;",
-  attendu:"<b>16 lignes</b> : toutes les commandes restent. Les 3 commandes de Protéine Végétale (stock 45) et de Shaker Inox (stock 30) affichent <code>NULL</code> à la place du produit.",
-  retenir:"<code>ON</code> conditionne la correspondance : avec un <code>LEFT JOIN</code>, une commande sans correspondance reste dans le résultat, avec <code>NULL</code>.<br><br><code>WHERE</code> filtre le résultat après la jointure : une ligne qui ne respecte pas la condition disparaît.",
-  consigne:"L’équipe logistique veut afficher toutes les commandes, avec le nom et le stock du produit uniquement lorsque ce stock dépasse 50. Les commandes dont le produit a un stock plus faible doivent rester affichées.",
-  solution:"SELECT commandes.id,\n       produits.nom,\n       produits.stock\nFROM commandes\nLEFT JOIN produits\n    ON commandes.produit_id = produits.id\n    AND produits.stock > 50;",
-  indice:"Toutes les commandes doivent rester : pars de la <code>table commandes</code> avec un <code>LEFT JOIN produits</code>, et place <code>produits.stock &gt; 50</code> dans le <code>ON</code>, avec <code>AND</code>.",
+  exemple:"SELECT commandes.id,\n       produits.nom,\n       produits.stock\nFROM commandes\nJOIN produits\n    ON commandes.produit_id = produits.id\nWHERE produits.stock < 50;",
+  attendu:"<b>3 lignes</b> : les commandes 3 et 11 (Protéine Végétale, stock 45) et la commande 13 (Shaker Inox, stock 30).",
+  retenir:"<code>ON</code> construit la correspondance : quelles lignes vont ensemble ?<br><br><code>WHERE</code> filtre le résultat : quelles lignes veut-on garder ?",
+  consigne:"L’équipe logistique veut repérer les commandes dont le produit a un stock inférieur à 50 unités. Relie chaque commande à son produit, puis affiche uniquement ces commandes, avec le nom et le stock du produit.",
+  solution:"SELECT commandes.id,\n       produits.nom,\n       produits.stock\nFROM commandes\nJOIN produits\n    ON commandes.produit_id = produits.id\nWHERE produits.stock < 50;",
+  indice:"Relie les deux tables avec <code>ON commandes.produit_id = produits.id</code>, puis filtre le résultat avec <code>WHERE produits.stock &lt; 50</code>.",
+  joinRecap:'inner',
   richLesson:true, earlyDemo:true,
   testeVariants:[
     {k:'cmd',label:'commandes',sql:"SELECT id, produit_id, quantite\nFROM commandes;"},
     {k:'prd',label:'produits',sql:"SELECT id, nom, stock\nFROM produits;"},
-    {k:'where',label:'condition dans WHERE',sql:"SELECT commandes.id,\n       produits.nom,\n       produits.stock\nFROM commandes\nLEFT JOIN produits\n    ON commandes.produit_id = produits.id\nWHERE produits.stock > 50;",tone:'bad'},
-    {k:'on',label:'condition dans ON',sql:"SELECT commandes.id,\n       produits.nom,\n       produits.stock\nFROM commandes\nLEFT JOIN produits\n    ON commandes.produit_id = produits.id\n    AND produits.stock > 50;",tone:'good'}
+    {k:'on',label:'ON seul',sql:"SELECT commandes.id,\n       produits.nom,\n       produits.stock\nFROM commandes\nJOIN produits\n    ON commandes.produit_id = produits.id;"},
+    {k:'where',label:'ON + WHERE',sql:"SELECT commandes.id,\n       produits.nom,\n       produits.stock\nFROM commandes\nJOIN produits\n    ON commandes.produit_id = produits.id\nWHERE produits.stock < 50;",tone:'good'}
   ] ,
 learningCheck:{
-  "question": "Avec un LEFT JOIN, que se passe-t-il si l’on déplace produits.stock > 0 de ON vers WHERE ?",
+  "question": "Dans « ON commandes.produit_id = produits.id WHERE produits.stock < 10 », à quoi sert WHERE ?",
   "options": [
-    "Rien ne change",
-    "Les commandes dont le produit n’est plus en stock disparaissent du résultat",
-    "Les commandes sans produit sont dupliquées"
+    "À relier chaque commande à son produit",
+    "À garder uniquement les lignes dont le produit a moins de 10 unités",
+    "À créer la clé étrangère"
   ],
   "answer": 1,
-  "explanation": "Dans ON, la condition ne fait que refuser la correspondance : la commande reste, avec NULL. Dans WHERE, elle filtre le résultat : la ligne disparaît."
+  "explanation": "ON construit la correspondance entre les deux tables. WHERE filtre ensuite le résultat pour ne garder que les lignes voulues."
 }
 },
 { id:49, titre:"Plusieurs conditions dans ON", résumé:"Relier seulement les produits encore en stock",
@@ -32165,7 +32156,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-onmulti-v1128';
+  const SW_CACHE='requete-2026-09-27-onwhere2-v1129';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
