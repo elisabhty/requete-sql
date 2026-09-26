@@ -14294,17 +14294,19 @@ learningCheck:{
       body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
           <p class="pt-syntax-h">Joindre une table avec elle-même</p>
-          <p>On écrit deux fois <code>clients</code>&nbsp;:</p>
+          <p>On utilise donc deux fois la <code>table&nbsp;clients</code>&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax">FROM clients
 JOIN clients</pre></div>
-          <p>Mais SQL rencontre alors un problème. Si on écrit <code>clients.nom</code>, de quelle <code>table&nbsp;clients</code> parle-t-on&nbsp;? De la première&nbsp;? De la deuxième&nbsp;?</p>
+          <p>Mais maintenant, SQL voit deux fois la même table. Si on lui demande&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">clients.nom</pre></div>
+          <p>🤔 De quel <code>clients</code> parle-t-on&nbsp;? Du client que l’on place à gauche de la paire&nbsp;? Ou de celui que l’on place à droite&nbsp;?</p>
           <p>👇 Exécute pour voir la réaction de SQL&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT clients.nom&#10;FROM clients&#10;JOIN clients&#10;    ON clients.ville = clients.ville;"></div>
-          <p>SQL ne sait pas choisir&nbsp;: le nom est <b>ambigu</b>. Il faut donc donner un <b>alias</b> différent à chaque utilisation de la table&nbsp;:</p>
+          <p class="ij-arrow">👉 Il faut donc donner un nom différent à chaque utilisation de la table pour pouvoir les distinguer&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax">FROM clients AS <span class="fk-syn-hit">c1</span>
 JOIN clients AS <span class="fk-syn-hit">c2</span></pre></div>
-          <p>On peut maintenant les distinguer&nbsp;:</p>
-          <div class="jn-sides" role="img" aria-label="La table clients utilisée deux fois : c1 pour le premier client, c2 pour le deuxième"><article class="is-kept"><small>clients</small><b>c1</b><span>premier client</span></article><i aria-hidden="true">⟷</i><article class="is-kept"><small>clients</small><b>c2</b><span>deuxième client</span></article></div>
+          <p>Chaque alias correspond à un côté de la paire&nbsp;:</p>
+          <div class="jn-sides" role="img" aria-label="c1 correspond au client 1, c2 au client 2"><article class="is-kept"><small>clients</small><b>c1</b><span>client 1</span></article><i aria-hidden="true">⟷</i><article class="is-kept"><small>clients</small><b>c2</b><span>client 2</span></article></div>
           <p class="ij-arrow">💡 Il n’y a toujours qu’une seule <code>table&nbsp;clients</code>. Les alias permettent simplement de l’utiliser deux fois dans la jointure.</p>
         </div>
         <div class="fn-use">
@@ -32190,7 +32192,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-mission2-v1119';
+  const SW_CACHE='requete-2026-09-27-alias-v1120';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
