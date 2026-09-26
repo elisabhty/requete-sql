@@ -107,7 +107,7 @@ assert((studio.match(/<article class="df-trap">/g) || []).length === 4, 'quatre 
 assert(studio.includes('03/04/2026') && studio.includes('2026-04-03'), 'formats de date ambigus illustrés');
 assert(!studio.includes('peut empêcher un index d’aider'), 'index relégué en bonus, pas en titre');
 assert(!studio.includes('Avec <code>NULL</code>, utilise') && !studio.includes('Utilise un format de date clair'), 'notes de piège redondantes retirées');
-assert(/function lessonRichFooter\(l\)\{\s*if\(l\.id===53\)return '';/.test(html), 'playground Teste retiré de la leçon 53');
+assert(/function lessonRichFooter\(l[^)]*\)\{\s*if\(l\.id===53(\|\|l\.noTeste)?\)return '';/.test(html), 'playground Teste retiré de la leçon 53');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
