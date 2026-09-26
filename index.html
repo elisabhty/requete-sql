@@ -9260,8 +9260,8 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 <script src="viz-orderby.js" defer></script>
 <!-- Sonde de fluidité : chargée seulement avec ?perf=1, jamais pour les lecteurs. -->
 <script>if(/[?&]perf=1(&|$)/.test(location.search)){var pp=document.createElement("script");pp.src="perf-probe.js";pp.defer=true;document.head.appendChild(pp);}</script>
-<link rel="stylesheet" href="home-journey.css">
-<link rel="stylesheet" href="design-premium.css?v=1116">
+<link rel="stylesheet" href="home-journey.css?v=1130">
+<link rel="stylesheet" href="design-premium.css?v=1130">
 <script src="design-premium.js?v=1115" defer></script>
 </head>
 <body>
@@ -21561,7 +21561,19 @@ function renderJourneyHub(tab){
     ['interview','Entretien SQL','Prépare tes réponses et teste tes acquis.',"switchTab('entretien')"],
     ['courses','Tous les cours',`${MODULES.length} modules à explorer.`,"openCourseCatalog()"]
   ];
-  document.getElementById(tab==='practice'?'practice-tools':'library-tools').innerHTML=tools.map(([kind,title,detail,action])=>`<button type="button" class="journey-resource" data-kind="${kind}" onclick="${action}"><span class="journey-tool-icon">${journeyIcon(kind)}</span><span><b>${title}</b><small>${esc(detail)}</small></span>${DEF_CHEV_SVG}</button>`).join('');
+  const hostId=tab==='practice'?'practice-tools':'library-tools';
+  let lead='';
+  if(tab==='practice'&&typeof CHALLENGES!=='undefined'){
+    const challenges=defisParProgression();
+    const next=challenges.find(c=>!(state.defis&&state.defis[c.id]));
+    const nOk=challenges.filter(c=>state.defis&&state.defis[c.id]).length;
+    lead=next
+      ?`<section class="journey-spotlight"><p class="journey-kicker">Prochain défi · ${nOk} / ${challenges.length}</p><h2>${esc(next.titre)}</h2><p>${esc(next.q)}</p><button type="button" class="journey-primary" onclick="openChallenge('${next.id}')"><span>Relever le défi</span>${DEF_CHEV_SVG}</button></section>`
+      :(challenges.length?`<section class="journey-spotlight"><p class="journey-kicker">Défis</p><h2>Tout est réussi</h2><p>Rejoue un défi pour garder tes automatismes.</p><button type="button" class="journey-primary" onclick="switchTab('defis')"><span>Revoir les défis</span>${DEF_CHEV_SVG}</button></section>`:'');
+  }else if(stats.due){
+    lead=`<section class="journey-spotlight"><p class="journey-kicker">À réviser</p><h2>${stats.due} leçon${stats.due>1?'s':''} à revoir</h2><p>Quelques minutes pour fixer ce que tu as déjà vu.</p><button type="button" class="journey-primary" onclick="startReview()"><span>Commencer la révision</span>${DEF_CHEV_SVG}</button></section>`;
+  }
+  document.getElementById(hostId).innerHTML=lead+tools.map(([kind,title,detail,action])=>`<button type="button" class="journey-resource" data-kind="${kind}" onclick="${action}"><span class="journey-tool-icon">${journeyIcon(kind)}</span><span><b>${title}</b><small>${esc(detail)}</small></span>${DEF_CHEV_SVG}</button>`).join('');
 }
 function journeyIcon(kind){
   if(kind==='notes')return JOURNEY_NOTES_ICON;
@@ -21600,12 +21612,14 @@ function renderHomeHero(){
   const labels=[meta.titre,'Exercice pratique','Quiz'];
   const details=[lesson?.résumé||meta.sous||'Mets tes acquis à l’épreuve.','Mettre en pratique','Vérifier tes acquis'];
   const rows=steps.map(({step,done,locked})=>{
-    const action=`openItem(${arg},${step})`;
     const status=done?'Validé':locked?'Après l’exercice':step===0?`${mod?mod.titre+' · ':''}${MIN_PAR_ACTIVITE} min pour cette leçon`:step===1?'À toi d’écrire':'Dernière étape';
-    return `<li class="journey-step${step===currentStep?' current':''}${done?' done':''}"><span class="journey-step-number" aria-hidden="true">${done?ENT_OK_SVG:String(step+1).padStart(2,'0')}</span><button type="button" class="journey-step-body" onclick="${action}" ${locked?'disabled':''} ${step===currentStep?'aria-current="step"':''}>
+    return `<li class="journey-step${step===currentStep?' current':''}${done?' done':''}"><span class="journey-step-number" aria-hidden="true">${done?ENT_OK_SVG:String(step+1).padStart(2,'0')}</span><button type="button" class="journey-step-body" ${locked?'aria-disabled="true"':`onclick="openItem(${arg},${step})"`} ${step===currentStep?'aria-current="step"':''}>
       <span class="journey-step-copy">${step===0?`<small class="journey-kicker">${defi?'Défi SQL':index?`Leçon ${index} sur ${mod.lessons.length}`:'Ta prochaine leçon'}</small>`:''}<b>${esc(labels[step])}</b><span>${esc(details[step])}</span><small class="journey-step-status">${esc(status)}</small></span><span class="journey-arrow" aria-hidden="true">${DEF_CHEV_SVG}</span></button></li>`;
   }).join('');
-  host.innerHTML=`${heading}<section class="journey-session" aria-label="${defi?'Prochain défi':'Les étapes de ta prochaine leçon'}"><ol class="journey-timeline">${rows}</ol><button type="button" class="journey-primary" onclick="openItem(${arg},${currentStep})">${session.started?'Reprendre':'Commencer'} ${defi?'le défi':'la leçon'} ${DEF_CHEV_SVG}</button></section>${extras}`;
+  const ctaLabel=defi
+    ?(session.started?'Reprendre le défi':'Commencer le défi')
+    :(currentStep===2?'Passer au quiz':currentStep===1?(nbFaites(nxt)>0?"Reprendre l’exercice":"Faire l’exercice"):(session.started?'Reprendre la leçon':'Commencer la leçon'));
+  host.innerHTML=`${heading}<section class="journey-session" aria-label="${defi?'Prochain défi':'Les étapes de ta prochaine leçon'}"><ol class="journey-timeline">${rows}</ol><button type="button" class="journey-primary" aria-label="${escAttr(ctaLabel+' : '+meta.titre)}" onclick="openItem(${arg},${currentStep})"><span>${esc(ctaLabel)}</span>${DEF_CHEV_SVG}</button></section>${extras}`;
 }
 function lessonListRow(l){
   const st=state.lessons[l.id],ok=st&&st.done,due=isDue(l.id);
@@ -32156,7 +32170,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-mission49-v1130';
+  const SW_CACHE='requete-2026-09-27-ui-v1131';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
