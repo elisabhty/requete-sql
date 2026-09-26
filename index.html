@@ -9209,6 +9209,7 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 <script src="viz-orderby.js" defer></script>
 <!-- Sonde de fluidité : chargée seulement avec ?perf=1, jamais pour les lecteurs. -->
 <script>if(/[?&]perf=1(&|$)/.test(location.search)){var pp=document.createElement("script");pp.src="perf-probe.js";pp.defer=true;document.head.appendChild(pp);}</script>
+<link rel="stylesheet" href="home-journey.css">
 </head>
 <body>
 <div id="app">
@@ -9254,20 +9255,28 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
     <section id="scr-learn" class="screen active">
       <div class="lgtitle">
         <div>
-          <div class="eyebrow">Requête · SQL</div>
+          <div class="eyebrow journey-brand">Requête</div>
           <h1 tabindex="-1">Bonjour</h1>
           <p class="sub" id="learn-sub">Prêt·e pour ta prochaine requête ?</p>
         </div>
         <div class="learn-side">
           <button class="streak-pill" id="home-streak" type="button" onclick="switchTab('compte')" aria-label="Jours d'affilée — voir mes stats" hidden></button>
-          <div class="learn-avatar" id="learn-avatar" aria-hidden="true">R</div>
+          <button type="button" class="learn-avatar" id="learn-avatar" onclick="switchTab('compte')" aria-label="Ouvrir mon compte">R</button>
         </div>
       </div>
       <p class="greeting" id="greeting" hidden></p>
       <div class="home-progress" id="home-progress" hidden></div>
-      <button class="ux-shortcut" type="button" onclick="jumpToSection('#modules');document.getElementById('course-search').focus({preventScroll:true})">Rechercher un cours</button>
       <div id="home-hero"></div>
-      <div id="modules" class="group-stack"></div>
+      <div id="modules" class="group-stack" hidden></div>
+    </section>
+
+    <section id="scr-practice" class="screen journey-hub" aria-label="Pratiquer">
+      <div class="lgtitle"><div><div class="eyebrow">À ton rythme</div><h1>Pratiquer</h1><p class="sub">Du SQL concret, à chaque essai.</p></div></div>
+      <div id="practice-tools" class="journey-hub-list"></div>
+    </section>
+    <section id="scr-library" class="screen journey-hub" aria-label="Bibliothèque">
+      <div class="lgtitle"><div><div class="eyebrow">Tes ressources</div><h1>Bibliothèque</h1><p class="sub">Retrouve, révise et garde l’essentiel.</p></div></div>
+      <div id="library-tools" class="journey-hub-list"></div>
     </section>
 
     <!-- DÉFIS -->
@@ -9509,17 +9518,13 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
   <nav class="tabbar" onkeydown="navigateMainTabs(event)" role="tablist" aria-label="Navigation principale">
     <button class="tab active" role="tab" aria-selected="true" data-tab="learn" onclick="switchTab('learn')">
       <svg viewBox="0 0 24 24" fill="none"><path d="m3.5 10.5 8.5-7 8.5 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 9.5V20h13V9.5M9.5 20v-6h5v6" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="tab-label">Accueil</span></button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="planning" onclick="switchTab('planning')">
+<button class="tab" role="tab" aria-selected="false" data-tab="planning" onclick="switchTab('planning')">
       <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="15" rx="2.2" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="7" y="12.5" width="4" height="3" rx="1" fill="currentColor"/></svg><span class="tab-label">Parcours</span><span class="dot-n" id="badge-planning" style="display:none">0</span></button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="defis" onclick="switchTab('defis')">
-      <svg viewBox="0 0 24 24" fill="none"><path d="M5 4.5v15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M5 5.2h10.2l-1.8 3.5 1.8 3.5H5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span class="tab-label">Défis</span></button>
-    <button class="tab" role="tab" aria-label="Mes notes" aria-selected="false" data-tab="notes" onclick="switchTab('notes')">
-      <svg viewBox="0 0 24 24" fill="none"><path d="M5 3.5h10.5L19 7v13.5H5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M15 3.5V7h4M8.5 11.5h7M8.5 15.5h5.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span class="tab-label">Notes</span></button>
-    <button class="tab" role="tab" aria-label="Cartes mémo" aria-selected="false" data-tab="collection" onclick="switchTab('collection')">
-      <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="6" width="13" height="14" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M8 6V4h10a2 2 0 0 1 2 2v11h-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tab-label">Cartes</span></button>
-    <button class="tab" role="tab" aria-label="Entretien SQL" aria-selected="false" data-tab="entretien" onclick="switchTab('entretien')">
-      <svg viewBox="0 0 24 24" fill="none"><path d="M5 4.5h14A1.5 1.5 0 0 1 20.5 6v8A1.5 1.5 0 0 1 19 15.5H9l-4.5 4V6A1.5 1.5 0 0 1 5 4.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m9 9 2 2-2 2M13.5 13H17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tab-label">Entretien</span></button>
-    <button class="tab" role="tab" aria-label="Mon compte" aria-selected="false" data-tab="compte" onclick="switchTab('compte')">
+<button class="tab" role="tab" aria-selected="false" data-tab="practice" onclick="switchTab('practice')">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M5 4.5v15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M5 5.2h10.2l-1.8 3.5 1.8 3.5H5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span class="tab-label">Pratiquer</span></button>
+<button class="tab" role="tab" aria-selected="false" data-tab="library" onclick="switchTab('library')">
+      <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="6" width="13" height="14" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M8 6V4h10a2 2 0 0 1 2 2v11h-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tab-label">Bibliothèque</span></button>
+<button class="tab" role="tab" aria-label="Mon compte" aria-selected="false" data-tab="compte" onclick="switchTab('compte')">
       <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="1.7"/><path d="M5.5 19c1.6-3.2 4-4.8 6.5-4.8S17 15.8 18.5 19" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span class="tab-label">Compte</span></button>
   </nav>
 </div>
@@ -21248,24 +21253,31 @@ function courseSearchKeydown(event){
     if(first){event.preventDefault();first.focus();}
   }
 }
+function primaryTabFor(tab){
+  if(['console','defis','practice'].includes(tab))return 'practice';
+  if(['notes','collection','entretien','library'].includes(tab))return 'library';
+  return tab;
+}
 function syncTabUI(tab){
+  const primary=primaryTabFor(tab);
   document.querySelectorAll('.tab').forEach(t=>{
-    const on=t.dataset.tab===tab;
+    const on=t.dataset.tab===primary;
     t.classList.toggle('active',on);
     t.setAttribute('aria-selected',on?'true':'false');
     t.setAttribute('aria-controls','scr-'+t.dataset.tab);
-    t.tabIndex=on||(tab==='console'&&t.dataset.tab==='learn')?0:-1;
+    t.tabIndex=on?0:-1;
     if(on)requestAnimationFrame(()=>t.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'}));
   });
   const quickFab=document.getElementById('fab');
-  if(quickFab)quickFab.classList.toggle('context-hide',['defis','planning','console','notes','collection','entretien','compte'].includes(tab));
+  if(quickFab)quickFab.classList.toggle('context-hide',['learn','defis','planning','console','notes','collection','entretien','compte','practice','library'].includes(tab));
 }
 function screenForTab(tab){
-  const map={learn:'scr-learn',defis:'scr-defis',planning:'scr-planning',notes:'scr-notes',collection:'scr-collection',console:'scr-console',entretien:'scr-entretien',compte:'scr-compte'};
+  const map={practice:'scr-practice',library:'scr-library',learn:'scr-learn',defis:'scr-defis',planning:'scr-planning',notes:'scr-notes',collection:'scr-collection',console:'scr-console',entretien:'scr-entretien',compte:'scr-compte'};
   return document.getElementById(map[tab]||'scr-learn');
 }
 function refreshTabScreen(tab){
   if(tab==='learn'){renderHomeHero();renderModules();}
+  else if(tab==='practice'||tab==='library') renderJourneyHub(tab);
   else if(tab==='defis') renderDefis();
   else if(tab==='planning'){semaineOffset=0;jourSel=null;renderPlanning();}
   else if(tab==='notes') renderNotesScreen();
@@ -21283,7 +21295,7 @@ function switchTab(name){
     closeConsoleProject();
     return;
   }
-  const map={learn:'scr-learn',defis:'scr-defis',planning:'scr-planning',notes:'scr-notes',collection:'scr-collection',console:'scr-console',entretien:'scr-entretien',compte:'scr-compte'};
+  const map={practice:'scr-practice',library:'scr-library',learn:'scr-learn',defis:'scr-defis',planning:'scr-planning',notes:'scr-notes',collection:'scr-collection',console:'scr-console',entretien:'scr-entretien',compte:'scr-compte'};
   if(name==='schema') name='console';
   const prevCur=document.querySelector('.screen.active');
   if(prevCur&&activeTab){
@@ -21502,15 +21514,10 @@ function homeToolIcon(kind){
   return icons[kind]||icons.console;
 }
 function homeToolsHTML(){
-  const stats=compteStats();
-  const mastered=typeof entTotalOk==='function'?entTotalOk():0;
-  const tools=[
-    ['console','Console SQL','Écris et teste',"switchTab('console')"],
-    ['defis','Défis',`${stats.defis} réussi${stats.defis>1?'s':''}`,"switchTab('defis')"],
-    ['cards','Cartes mémo',`${stats.cards} débloquée${stats.cards>1?'s':''}`,"switchTab('collection')"],
-    ['interview','Entretien',`${mastered} maîtrisée${mastered>1?'s':''}`,"switchTab('entretien')"]
-  ];
-  return `<section class="home-tools-block" aria-labelledby="home-tools-title"><div class="home-section-head"><div><span>Pratique libre</span><h2 id="home-tools-title">Outils</h2></div></div><div class="home-tools">${tools.map(([kind,label,detail,action])=>`<button type="button" class="home-tool" onclick="${action}"><span class="home-tool-icon ${kind}">${homeToolIcon(kind)}</span><span><b>${label}</b><small>${detail}</small></span></button>`).join('')}</div></section>`;
+  return `<div class="journey-shortcuts" aria-label="Accès rapide">
+    <button type="button" onclick="switchTab('console')"><span class="journey-tool-icon">${homeToolIcon('console')}</span><span><b>Console SQL</b><small>Tester tes requêtes</small></span></button>
+    <button type="button" onclick="switchTab('collection')"><span class="journey-tool-icon">${homeToolIcon('cards')}</span><span><b>Cartes mémo</b><small>Réviser l’essentiel</small></span></button>
+  </div>`;
 }
 function homePathPreviewHTML(nxt,prog){
   const mod=moduleDeLecon(nxt)||MODULES.find(m=>m.lessons.some(l=>!itemDone(l.id)))||MODULES[0];
@@ -21519,97 +21526,79 @@ function homePathPreviewHTML(nxt,prog){
   const pct=total?Math.round(done/total*100):100;
   return `<section class="home-path-card"><div class="home-section-head"><div><span>Ton cap actuel</span><h2>${esc(mod?mod.titre:'Parcours terminé')}</h2></div><button type="button" onclick="switchTab('planning')">Planifier</button></div><div class="home-path-progress" role="progressbar" aria-label="Progression de ${esc(mod?mod.titre:'ton parcours')}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div><div class="home-path-meta"><span>${done} leçon${done>1?'s':''} sur ${total}</span><strong>${pct}% du module</strong></div></section>`;
 }
+const JOURNEY_NOTES_ICON='<svg viewBox="0 0 24 24" fill="none"><path d="M5 3.5h10.5L19 7v13.5H5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M15 3.5V7h4M8.5 11.5h7M8.5 15.5h5.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
+const JOURNEY_COURSES_ICON='<svg viewBox="0 0 24 24" fill="none"><rect x="4" y="6" width="13" height="14" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M8 6V4h10a2 2 0 0 1 2 2v11h-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function toggleCourseCatalog(){
+  const catalog=document.getElementById('modules');
+  if(catalog.hidden){openCourseCatalog();return;}
+  catalog.hidden=true;
+  const trigger=document.getElementById('journey-explore');
+  trigger?.setAttribute('aria-expanded','false');
+  trigger?.focus({preventScroll:true});
+}
+function openCourseCatalog(){
+  if(activeTab!=='learn')switchTab('learn');
+  const catalog=document.getElementById('modules');
+  catalog.hidden=false;
+  document.getElementById('journey-explore')?.setAttribute('aria-expanded','true');
+  jumpToSection('#modules');
+}
+function renderJourneyHub(tab){
+  const stats=compteStats();
+  const tools=tab==='practice'?[
+    ['console','Console SQL','Écris et exécute tes propres requêtes.',"switchTab('console')"],
+    ['defis','Défis',`${stats.defis} réussi${stats.defis>1?'s':''} · Mets tes acquis à l’épreuve.`,"switchTab('defis')"]
+  ]:[
+    ['cards','Cartes mémo',`${stats.cards} débloquée${stats.cards>1?'s':''} · Révise à ton rythme.`,"switchTab('collection')"],
+    ['notes','Mes notes','Ton carnet et tes requêtes à retenir.',"switchTab('notes')"],
+    ['interview','Entretien SQL','Prépare tes réponses et teste tes acquis.',"switchTab('entretien')"],
+    ['courses','Tous les cours',`${MODULES.length} modules à explorer.`,"openCourseCatalog()"]
+  ];
+  document.getElementById(tab==='practice'?'practice-tools':'library-tools').innerHTML=tools.map(([kind,title,detail,action])=>`<button type="button" class="journey-resource" onclick="${action}"><span class="journey-tool-icon">${journeyIcon(kind)}</span><span><b>${title}</b><small>${esc(detail)}</small></span>${DEF_CHEV_SVG}</button>`).join('');
+}
+function journeyIcon(kind){
+  if(kind==='notes')return JOURNEY_NOTES_ICON;
+  if(kind==='courses')return JOURNEY_COURSES_ICON;
+  return homeToolIcon(kind);
+}
+function homeLessonSteps(id){
+  const e=etapesDe(id),done=lecCompletee(id);
+  return [
+    {step:0,done:!!e.exo||done,locked:false},
+    {step:1,done:!!e.exo,locked:false},
+    {step:2,done,locked:!e.exo}
+  ];
+}
 function renderHomeHero(){
   const host=document.getElementById('home-hero'); if(!host)return;
-  majBadgePlanning();
-  renderLearnAvatar();
-  renderHomeStreak();
-  const nL=Object.values(state.lessons||{}).filter(l=>l.done).length;
-  const nD=Object.keys(state.defis||{}).length;
-  renderGreeting();
-  const sub=document.getElementById('learn-sub');
-  if(sub) sub.textContent=nL===0?'Prêt·e pour ta prochaine requête ?':`${nL}/${TOTAL} leçons · ${nD} défis relevés`;
-  const hp=document.getElementById('home-progress');
-  if(hp){ hp.hidden=true; hp.innerHTML=''; }
-
-  const CHEV='<span class="cp-chev" aria-hidden="true"><svg viewBox="0 0 9 15" fill="none"><path d="M1.5 1.5L7 7.5l-5.5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+  majBadgePlanning();renderLearnAvatar();renderHomeStreak();renderGreeting();
   const session=recommendedSession();
   const nxt=session?.id??null;
-  const prog=progressContinuer();
-  const info=state.plan?infoJour():null;
-  const focusLabel=session?session.label:'Parcours terminé';
-  const focusText=session?session.summary:'Parcours terminé — entretiens tes acquis.';
-
-  let lateHtml='';
-  if(info&&info.retard&&info.retard.length){
-    lateHtml=lateBannerHTML(info.retard.length,{cls:'late-banner--home'});
-  }
-
+  const late=state.plan?latePlanDetails():null;
+  const date=auj().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+  const dateISO=dstr(auj());
+  const lateHtml=late?`<div class="journey-planning"><span class="journey-tool-icon">${LATE_BANNER_ICO}</span><span><b>Planning à ajuster</b><small>${plur(late.count,'activité')} à replanifier</small></span><button type="button" onclick="openLateRecoveryFromHome(this)">Réorganiser</button></div>`:'';
+  const extras=`${lateHtml}<button type="button" id="journey-explore" class="journey-explore" onclick="toggleCourseCatalog()" aria-controls="modules" aria-expanded="${!document.getElementById('modules')?.hidden}"><span class="journey-tool-icon">${journeyIcon('courses')}</span><span>Explorer les cours</span>${DEF_CHEV_SVG}</button>${homeToolsHTML()}`;
+  const heading=`<div class="journey-heading"><h2>Un pas de plus en SQL</h2><div class="journey-session-meta"><span aria-label="${escAttr(session?.summary||'Toutes tes activités sont validées')}">${esc(session?session.label==='Ta séance du jour'?`Ta séance · ${session.minutes} min`:session.label:'Parcours terminé')}</span><time datetime="${dateISO}">${esc(date)}</time></div></div>`;
   if(nxt==null){
-    host.innerHTML=`${lateHtml}
-      <section class="cont-plan">
-        <div class="cp-head">
-          <div class="cp-head-copy">
-            <p class="cp-k">${focusLabel}</p>
-            <p class="cp-sub">${focusText}</p>
-          </div>
-        </div>
-        <div class="cp-bar" role="progressbar" aria-label="Progression du parcours" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><i style="width:100%"></i></div>
-        <button type="button" class="cp-done" onclick="switchTab('planning')">
-          <span class="cp-ico" aria-hidden="true">✓</span>
-          <span class="cp-copy">
-            <h3>Tout le parcours est validé</h3>
-            <span class="cp-meta">${plur(prog.lessonTotal,'leçon')}${prog.challengeTotal?` · ${plur(prog.challengeTotal,'défi')}`:''} · 100 %</span>
-          </span>
-          ${CHEV}
-        </button>
-      </section>${homeToolsHTML()}${homePathPreviewHTML(null,prog)}`;
+    host.innerHTML=`${heading}<section class="journey-complete"><span class="journey-tool-icon">${ENT_OK_SVG}</span><h3>Tu as terminé ton parcours</h3><p>Revois une notion ou relève un défi pour entretenir tes acquis.</p><button class="journey-primary" type="button" onclick="switchTab('practice')">Continuer à pratiquer ${DEF_CHEV_SVG}</button></section>${extras}`;
     return;
   }
-
-  const meta=itemMeta(nxt);
-  const defi=isDefiId(nxt);
-  const mod=moduleDeLecon(nxt);
-  const idxInMod=mod?mod.lessons.findIndex(l=>l.id===nxt)+1:0;
-  const phase=defi?'Défi':(mod?mod.titre:'Parcours');
-  const lessonLabel=defi?'Défi':(idxInMod?`Leçon ${idxInMod}`:`Leçon ${nxt}`);
-  const ico=defi?'⚑':(idxInMod||nxt);
-  const arg=defi?`'${nxt}'`:nxt;
+  const meta=itemMeta(nxt),defi=isDefiId(nxt),mod=moduleDeLecon(nxt);
   const lesson=defi?null:allLessons.find(l=>l.id===nxt);
-  const activityDetail=(lesson&&lesson.résumé)||meta.résumé||meta.q||(defi?'Mets tes acquis à l’épreuve.':'Comprends le concept puis écris la requête.');
-  const minutes=MIN_PAR_ACTIVITE;
-  const metaParts=[
-    {t:phase,cls:''},
-    idxInMod&&mod&&!defi?{t:`${idxInMod}/${mod.lessons.length}`,cls:'cp-meta-n'}:null
-  ].filter(Boolean);
-  const metaHtml=metaParts.map((p,i)=>
-    `${i?`<span class="cp-meta-sep" aria-hidden="true">·</span>`:''}<span class="${p.cls}">${esc(p.t)}</span>`
-  ).join('');
-
-  host.innerHTML=`${lateHtml}
-    <section class="cont-plan">
-      <div class="cp-head">
-        <div class="cp-head-copy">
-          <p class="cp-k">${focusLabel}</p>
-          <p class="cp-sub">${focusText}</p>
-        </div>
-        <button type="button" class="cp-all" onclick="event.stopPropagation();switchTab('planning')" aria-label="Voir tout le parcours">Tout voir</button>
-      </div>
-      <div class="cp-bar" role="progressbar" aria-label="Progression du parcours" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${prog.percent}"><i style="width:${prog.percent}%"></i></div>
-      <button type="button" class="cp-card" onclick="openItem(${arg})" aria-label="${defi?'Prochain défi':'Prochaine leçon'} : ${esc(meta.titre)}">
-        <span class="cp-ico" aria-hidden="true">${ico}</span>
-        <span class="cp-copy">
-          <span class="cp-badge-row">
-            <span class="cp-badge">${session.started?'En cours':'À suivre'}</span>
-            <span class="cp-idx">${esc(lessonLabel)}</span>
-          </span>
-          <h3>${esc(meta.titre)}</h3>
-          <span class="cp-desc">${esc(activityDetail)}</span>
-          <span class="cp-meta">${metaHtml}<span class="cp-meta-sep" aria-hidden="true">·</span><span>Cette activité · ${minutes} min</span></span>
-        </span>
-        <span class="cp-cta" aria-hidden="true">Continuer ${CHEV}</span>
-      </button>
-    </section>${homeToolsHTML()}${homePathPreviewHTML(nxt,prog)}`;
+  const index=mod?mod.lessons.findIndex(l=>l.id===nxt)+1:0;
+  const arg=escAttr(JSON.stringify(nxt));
+  const steps=defi?[{step:0,done:false,locked:false}]:homeLessonSteps(nxt);
+  const currentStep=defi?0:steps[1].done?2:nbFaites(nxt)>0?1:0;
+  const labels=[meta.titre,'Exercice pratique','Quiz'];
+  const details=[lesson?.résumé||meta.sous||'Mets tes acquis à l’épreuve.','Mettre en pratique','Vérifier tes acquis'];
+  const rows=steps.map(({step,done,locked})=>{
+    const action=`openItem(${arg},${step})`;
+    const status=done?'Validé':locked?'Après l’exercice':step===0?`${mod?mod.titre+' · ':''}${MIN_PAR_ACTIVITE} min pour cette leçon`:step===1?'À toi d’écrire':'Dernière étape';
+    return `<li class="journey-step${step===currentStep?' current':''}${done?' done':''}"><span class="journey-step-number" aria-hidden="true">${done?ENT_OK_SVG:String(step+1).padStart(2,'0')}</span><button type="button" class="journey-step-body" onclick="${action}" ${locked?'disabled':''} ${step===currentStep?'aria-current="step"':''}>
+      <span class="journey-step-copy">${step===0?`<small class="journey-kicker">${defi?'Défi SQL':index?`Leçon ${index} sur ${mod.lessons.length}`:'Ta prochaine leçon'}</small>`:''}<b>${esc(labels[step])}</b><span>${esc(details[step])}</span><small class="journey-step-status">${esc(status)}</small></span><span class="journey-arrow" aria-hidden="true">${DEF_CHEV_SVG}</span></button></li>`;
+  }).join('');
+  host.innerHTML=`${heading}<section class="journey-session" aria-label="${defi?'Prochain défi':'Les étapes de ta prochaine leçon'}"><ol class="journey-timeline">${rows}</ol><button type="button" class="journey-primary" onclick="openItem(${arg},${currentStep})">${session.started?'Reprendre':'Commencer'} ${esc(meta.titre)} ${DEF_CHEV_SVG}</button></section>${extras}`;
 }
 function lessonListRow(l){
   const st=state.lessons[l.id],ok=st&&st.done,due=isDue(l.id);
@@ -21706,6 +21695,7 @@ function showScreen(){
   const scr=document.getElementById('scr-lesson');
   const cur=document.querySelector('.screen.active');
   document.body.classList.add('in-lesson');
+  document.getElementById('fab')?.classList.remove('context-hide');
   if(restoringNav){
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active','leaving'));
     scr.classList.add('active');
@@ -27182,7 +27172,7 @@ function itemMeta(id){
   const l=allLessons.find(x=>x.id===id)||{titre:'Leçon '+id,résumé:''};
   return {titre:l.titre,badge:itemDone(id)?'✓':String(id),sous:l.résumé||'Leçon',defi:false};
 }
-function openItem(id){if(isDefiId(id))openChallenge(id);else openLesson(id);}
+function openItem(id,step){if(isDefiId(id))openChallenge(id);else openLesson(id,step);}
 /* Un plan sauvegardé par une version antérieure (ou une écriture interrompue)
    peut arriver sans `sessions`. Sans ce garde-fou, chaque rendu du parcours
    lève une exception et l'app reste bloquée sur l'écran de chargement. */
@@ -32136,7 +32126,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-25-sousreq-in-v1083';
+  const SW_CACHE='requete-2026-09-26-journey-v1103';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
