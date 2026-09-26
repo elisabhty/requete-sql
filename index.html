@@ -26312,7 +26312,13 @@ function initGroupCount(){
     if(prefersReduceMotion()){box.classList.add('is-done');return;}
     box.classList.add('is-armed');n.textContent='0';
     if(!scr||typeof IntersectionObserver==='undefined'){play();return;}
-    const io=new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)){ io.disconnect(); play(); } },{root:scr,threshold:[.6]});
+    /* Démarre seulement quand la carte est entièrement dans la zone centrale de l'écran. */
+    let wait=0;
+    const io=new IntersectionObserver(es=>{
+      const on=es.some(e=>e.isIntersecting&&e.intersectionRatio>=.98);
+      clearTimeout(wait);
+      if(on) wait=setTimeout(()=>{ io.disconnect(); play(); },450);
+    },{root:scr,rootMargin:'-18% 0px -18% 0px',threshold:[0,.98,1]});
     io.observe(box);
   });
 }
@@ -32122,7 +32128,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-26-tables-v1106';
+  const SW_CACHE='requete-2026-09-26-plus1view-v1107';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
