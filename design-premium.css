@@ -481,3 +481,140 @@ body:not(.in-lesson) .fab{
 
 /* Éditeur et résultats : coins et ombres alignés sur les cartes */
 .exframe,.editor-shell,.result-card{border-radius:var(--p-radius)!important}
+
+/* ---------- 17. Barre de titre compacte ---------- */
+
+/* Barre décorative ajoutée par design-premium.js en tête de chaque
+   rubrique. Elle occupe la place du bouton retour (marge négative) et
+   reste accrochée en haut ; le titre y apparaît quand le grand titre
+   est sorti de l'écran. */
+#app .p-bar{
+  position:sticky;top:0;z-index:25;
+  height:calc(var(--safe-top) + 44px);
+  margin-bottom:calc(-1 * (var(--safe-top) + 44px));
+  padding-top:var(--safe-top);
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;
+  background:transparent;
+  transition:background .22s ease,box-shadow .22s ease;
+}
+#app .p-bar-title{
+  max-width:40%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+  font-size:17px;font-weight:650;letter-spacing:-.3px;color:var(--ink);
+  opacity:0;transform:translateY(6px);
+  transition:opacity .2s ease,transform .24s var(--spring-ios);
+}
+#app .screen.p-scrolled>.p-bar{
+  background:rgba(245,245,247,.92);
+  -webkit-backdrop-filter:blur(20px) saturate(1.8);
+  backdrop-filter:blur(20px) saturate(1.8);
+  box-shadow:0 .5px 0 rgba(17,17,24,.12);
+}
+#app .screen.p-scrolled>.p-bar .p-bar-title{opacity:1;transform:none}
+
+/* Le bouton retour reste au-dessus de la barre, à la même hauteur */
+#app .screen>.home-back{
+  position:sticky;top:0;z-index:26;
+  height:calc(var(--safe-top) + 44px);min-height:0;
+  padding:var(--safe-top) 16px 0;
+  width:max-content;max-width:40%;
+}
+#app .screen>.home-back span{max-width:104px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Rubriques sans retour visible : le grand titre commence sous la barre */
+#scr-planning>.lgtitle,#scr-compte>.lgtitle,
+#scr-practice>.lgtitle,#scr-library>.lgtitle{padding-top:calc(var(--safe-top) + 22px)}
+
+/* ---------- 18. Transitions de navigation ---------- */
+
+/* Remplace l'ancienne entrée floutée (coûteuse sur iPhone) */
+#app .screen.active{animation:none}
+#app .screen.p-enter-fade{animation:pFade .2s ease-out both}
+#app .screen.p-enter-push{animation:pPush .34s var(--ease-ios) both}
+#app .screen.p-enter-back{animation:pBack .3s var(--ease-ios) both}
+@keyframes pFade{from{opacity:0}to{opacity:1}}
+@keyframes pPush{from{opacity:.4;transform:translate3d(36px,0,0)}to{opacity:1;transform:none}}
+@keyframes pBack{from{opacity:.4;transform:translate3d(-28px,0,0)}to{opacity:1;transform:none}}
+
+/* ---------- 19. Retour tactile ---------- */
+
+.journey-step-body:not(:disabled),
+.journey-explore,.journey-shortcuts button,
+.def-row,.ent-topic>summary,.coll-module>summary,
+.account-setting,.console-quick-actions>button,.console-project-list>button,
+.ncard,.qopt{
+  transition:transform .16s var(--spring-ios),background-color .16s ease;
+}
+.journey-step-body:not(:disabled):active,
+.journey-explore:active,.journey-shortcuts button:active,
+.ncard:active{transform:scale(.98)}
+.def-row:active,.ent-topic>summary:active,.coll-module>summary:active,
+.account-setting:active,.console-quick-actions>button:active,.console-project-list>button:active{
+  background-color:var(--surface-2)!important;
+}
+
+@media (prefers-reduced-motion:reduce){
+  #app .screen.p-enter-fade,#app .screen.p-enter-push,#app .screen.p-enter-back{animation:none}
+  #app .p-bar,#app .p-bar-title{transition:none}
+}
+html[data-motion="reduce"] #app .screen.p-enter-fade,
+html[data-motion="reduce"] #app .screen.p-enter-push,
+html[data-motion="reduce"] #app .screen.p-enter-back{animation:none}
+
+/* ---------- 20. Compte : carte d'identité ---------- */
+
+#scr-compte .account-identity{overflow:hidden}
+#scr-compte .account-identity-main{padding:18px 16px 16px!important;gap:14px!important}
+#scr-compte .account-identity-edit{gap:14px!important;align-items:center!important}
+#scr-compte .account-avatar{
+  width:56px!important;height:56px!important;border-radius:50%!important;flex:none;
+  background:var(--accent)!important;color:#fff!important;border:0!important;box-shadow:none!important;
+  font-size:23px!important;font-weight:700!important;
+}
+#scr-compte .account-identity-copy b{font-size:20px!important;font-weight:700!important;letter-spacing:-.4px!important}
+#scr-compte .account-identity-copy small{font-size:13.5px!important;font-weight:450!important;color:var(--ink-2)!important;line-height:1.4!important}
+#scr-compte .aie-hint{
+  align-self:center;padding:6px 11px;border-radius:999px;
+  background:var(--accent-soft);color:var(--accent-ink)!important;
+  font-size:13px!important;font-weight:600!important;font-style:normal;
+}
+#scr-compte .aie-hint::after{display:none!important}
+#scr-compte .account-connect{
+  width:100%!important;min-height:46px;border-radius:12px!important;
+  font-size:15px!important;font-weight:600!important;
+}
+#scr-compte .account-local-status{
+  background:transparent!important;border-top:.5px solid var(--line)!important;
+  padding:12px 16px!important;-webkit-backdrop-filter:none;backdrop-filter:none;
+}
+#scr-compte .account-local-status>span{color:var(--success)}
+
+/* Réglages : rangées façon iOS */
+#scr-compte .account-settings-list{overflow:hidden}
+#scr-compte .account-settings-group-title{margin:22px 20px 8px!important}
+/* « Réglages » répète le segment sélectionné : masqué à l'œil, gardé pour
+   les lecteurs d'écran. */
+#scr-compte .account-settings-title-block{
+  position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;
+}
+#scr-compte .account-settings-group:first-of-type .account-settings-group-title{margin-top:18px!important}
+
+/* ---------- 21. Contenu des leçons ---------- */
+
+/* Blocs de cours, sommaire, mémos : même carte blanche que le reste */
+#scr-lesson .concept-block,
+#scr-lesson .concept-block.lesson-lead,
+#scr-lesson .sommaire{
+  background:var(--surface)!important;background-image:none!important;
+  border:0!important;border-radius:var(--p-radius)!important;box-shadow:var(--p-shadow)!important;
+}
+#scr-lesson .concept-block{padding:22px 20px!important}
+#scr-lesson .sit-memo{
+  background:var(--surface-2)!important;background-image:none!important;border:0!important;border-radius:var(--p-radius-sm)!important;
+}
+/* Corps de texte des leçons : lecture confortable */
+#scr-lesson .concept-block>p:not([class]),
+#scr-lesson .concept-block>ul>li:not([class]){font-size:16px;line-height:1.6;color:#23232B}
+#scr-lesson .lesson-rich h2,#scr-lesson .lesson-rich h3{letter-spacing:-.4px}
+/* Sommaire : rangées plus aérées, numéros neutres */
+#scr-lesson .som-item{min-height:52px}
+#scr-lesson .som-item .som-n{background:var(--surface-2)!important;color:var(--ink-2)!important;border:0!important}

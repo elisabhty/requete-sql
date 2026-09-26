@@ -14,7 +14,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-09-27-premium-v1114';
+const CACHE = 'requete-2026-09-27-premium-v1115';
 
 const PRECACHE = [
   './',
@@ -30,6 +30,7 @@ const PRECACHE = [
   './anim-responsive.css',
   './ux-polish.css',
   './design-premium.css',
+  './design-premium.js',
   './vendor/sqljs/sql-wasm.js',
   './vendor/sqljs/sql-wasm.wasm',
   './assets/mascotte-requete.png',
