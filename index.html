@@ -2227,7 +2227,7 @@
   .qf-confetti > i{position:absolute}
   /* Le cadre d’exécution apparaît tout de suite, sans fondu depuis le blanc. */
   .qf-run .exframe{opacity:1!important;animation:none!important}
-  .qf.is-full .qf-bank,.qf.is-full .qf-bank-h,.qf.is-won .qf-actions{display:none}
+  .qf.is-full .qf-bank,.qf.is-full .qf-bank-h,.qf.is-won .qf-actions{visibility:hidden;opacity:0;pointer-events:none;transition:opacity .2s}
   .qf-ghost{position:fixed;z-index:9999;pointer-events:none;margin:0;transform:translate(-50%,-50%) rotate(-3deg) scale(1.08);box-shadow:0 18px 30px -12px rgba(60,40,140,.55);animation:none}
   .qf-fly{position:fixed;z-index:9999;pointer-events:none;margin:0;animation:none}
   .qf-msg{min-height:1.4em;margin:12px 0 0!important;font-size:14px;font-weight:600}
@@ -9355,7 +9355,7 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 <!-- Sonde de fluidité : chargée seulement avec ?perf=1, jamais pour les lecteurs. -->
 <script>if(/[?&]perf=1(&|$)/.test(location.search)){var pp=document.createElement("script");pp.src="perf-probe.js";pp.defer=true;document.head.appendChild(pp);}</script>
 <link rel="stylesheet" href="home-journey.css?v=1131">
-<link rel="stylesheet" href="design-premium.css?v=1131">
+<link rel="stylesheet" href="design-premium.css?v=1152">
 <script src="design-premium.js?v=1115" defer></script>
 </head>
 <body>
@@ -21870,7 +21870,7 @@ function jcMarkPassed(id){
   try{ localStorage.setItem('rq-jc-pass-'+id,'1'); }catch(e){}
 }
 function jcGateLocked(l){
-  return !!(l&&(l.gateJcQuiz||l.gateFill)&&!etapesDe(l.id).exo&&!jcPassed(l.id));
+  return !!(l&&(l.gateJcQuiz||lessonHasFill(l))&&!etapesDe(l.id).exo&&!jcPassed(l.id));
 }
 /* Bouton verrouillé : amène jusqu’à l’activité à terminer et la met en évidence. */
 function jcGoToActivity(){
@@ -25629,7 +25629,7 @@ function lessonDemoBlocks(l){
   const compactFunctionLesson=l.id===52||l.id===53||l.id===54;
   const hideLessonLab=l.id===52||l.id===54;
   const joinTesteAnat=!!l.anatFollowTeste;
-  return `${hideLessonLab?'':lessonRichFooter(l,joinTesteAnat?anat:'')}${hideLessonLab||joinTesteAnat||l.noAnat?'':anat}${order}${piegeBlock(l)}${learningCheckHtml(l)}${compactFunctionLesson?'':fnCmpBlock(l)}${compactFunctionLesson?'':reflexBlock(l)}${subqueryRecapBlock(l)}${joinRecapBlock(l)}`;
+  return `${missionFillBlock(l)}${hideLessonLab?'':lessonRichFooter(l,joinTesteAnat?anat:'')}${hideLessonLab||joinTesteAnat||l.noAnat?'':anat}${order}${piegeBlock(l)}${learningCheckHtml(l)}${compactFunctionLesson?'':fnCmpBlock(l)}${compactFunctionLesson?'':reflexBlock(l)}${subqueryRecapBlock(l)}${joinRecapBlock(l)}`;
 }
 function lessonMainTable(l){
   if(!l)return 'clients';
@@ -26153,7 +26153,7 @@ function renderLessonFlow(){
       }
       slide=`
       <div class="ls-nav">
-        ${jcGateLocked(l)?'<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="jcGoToActivity()">'+(l.gateFill?'Complète la requête pour continuer':'Obtiens 5/6 au quiz pour continuer')+'</button>':'<button class="ls-next" type="button" onclick="setLessonStep(1)">Passer à l’exercice</button>'}
+        ${jcGateLocked(l)?'<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="jcGoToActivity()">'+(lessonHasFill(l)&&!l.gateJcQuiz?'Complète la requête pour continuer':'Obtiens 5/6 au quiz pour continuer')+'</button>':'<button class="ls-next" type="button" onclick="setLessonStep(1)">Passer à l’exercice</button>'}
       </div>
       <div class="ls-main">
         <div class="lesson-rich${isJoinMicro(l)?' join-micro':''}">
@@ -26240,6 +26240,7 @@ function renderLessonFlow(){
     addJoinSampleRows(document.getElementById('lesson-body'),current.id);
     initJoinMicro();
     initInnerJoinLab();
+    applyMissionFills();
     initRunSqlSlots();
     initQueryFill();
     initGroupCount();
@@ -26326,6 +26327,89 @@ function qfConfetti(anchor){
   }
   setTimeout(()=>layer.remove(),2300);
 }
+/* ---------- Requête à trous de la mission (générée) ----------
+   Même mécanique que la requête à trous écrite à la main de « Plusieurs
+   conditions dans ON », générée à partir de la requête de la mission.
+   Chaque leçon liste les morceaux à retirer, dans leur ordre d’apparition.
+   - Leçons qui ont déjà « La requête complète » (requête exécutable +
+     « Mission accomplie ») : la requête exécutable devient la requête à trous.
+   - Autres leçons : un bloc « La requête de la mission » est ajouté en fin de
+     cours, sur la requête d’exemple (sql:'exemple').
+   Réussir la requête à trous déverrouille l’exercice, comme pour la leçon 49. */
+const MISSION_FILLS={
+  18:{t:['INNER JOIN','clients','commandes.client_id','clients.id']},
+  20:{t:['LEFT JOIN','clients.id','commandes.client_id','IS NULL']},
+  38:{t:['RIGHT JOIN','commandes','clients.id','commandes.client_id']},
+  39:{t:['FULL OUTER JOIN','commandes','clients.id','commandes.client_id']},
+  40:{t:['DISTINCT','AS villes','CROSS JOIN','produits']},
+  19:{t:['commandes.client_id','clients.id','commandes.produit_id','produits.id']},
+  41:{t:['COUNT','INNER JOIN','GROUP BY','clients.ville']},
+  42:{t:['c1','c2','c1.ville','c2.ville','c1.id < c2.id']},
+  45:{t:['IN','client_id','commandes','produit_id = 3']},
+  47:{sql:'exemple',t:['COUNT(*)','commandes.client_id','clients.id','AS nb_commandes']},
+  48:{sql:'exemple',t:['AVG','produits.prix * commandes.quantite','JOIN','AS commandes_montants']},
+  55:{sql:'exemple',t:['NOT EXISTS','SELECT 1','commandes.client_id','clients.id']},
+  59:{sql:'exemple',t:['WITH','AS','GROUP BY','totaux']},
+  77:{sql:'exemple',t:['RECURSIVE','UNION ALL','x + 1','x < 10']},
+  73:{sql:'exemple',t:['AS valeur','UNION','categorie','ORDER BY']}
+};
+function lessonHasFill(l){return !!(l&&(l.gateFill||MISSION_FILLS[l.id]));}
+function qfFindToken(sql,tok,from){
+  const re=new RegExp('(^|[^\\w.])('+tok.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')(?![\\w.])','g');
+  re.lastIndex=from;
+  const m=re.exec(sql);
+  return m?{i:m.index+m[1].length,len:m[2].length}:null;
+}
+function qfIntroHtml(n){
+  return `<p>🧩 À toi de compléter la requête&nbsp;: place les ${n} cartes dans les trous, dans le bon ordre.</p><p>Touche une carte pour la placer dans le premier trou libre, ou fais-la glisser jusqu’au trou voulu. Touche un trou rempli pour récupérer sa carte.</p>`;
+}
+function qfHtml(sql,tokens){
+  const found=[];let pos=0;
+  for(const t of tokens){const f=qfFindToken(sql,t,pos);if(!f)return '';found.push(f);pos=f.i+f.len;}
+  /* a = b : les deux côtés d’une égalité forment une paire interchangeable. */
+  const eq=found.map(()=>0);let g=0;
+  for(let k=0;k<found.length-1;k++){
+    if(!eq[k]&&/^\s*=\s*$/.test(sql.slice(found[k].i+found[k].len,found[k+1].i))){g++;eq[k]=eq[k+1]=g;}
+  }
+  let code='',last=0;
+  found.forEach((f,k)=>{
+    code+=highlight(sql.slice(last,f.i))+`<button type="button" class="qf-hole" data-want="${k+1}"${eq[k]?` data-eq="${eq[k]}"`:''} aria-label="Trou ${k+1}"></button>`;
+    last=f.i+f.len;
+  });
+  code+=highlight(sql.slice(last));
+  /* Cartes mélangées de façon stable (jamais dans l’ordre de la requête). */
+  const h=t=>[...t].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);
+  let order=tokens.map((_,k)=>k).sort((a,b)=>h(tokens[a])-h(tokens[b]));
+  if(order.every((v,k)=>v===k))order=order.slice(1).concat(order[0]);
+  const cards=order.map(k=>`<button type="button" class="qf-card" data-k="${k+1}">${esc(tokens[k])}</button>`).join('');
+  const n=tokens.length;
+  return `<div class="qf" data-lesson-fill><div class="qf-editor"><div class="qf-bar" aria-hidden="true"><i></i><i></i><i></i><span>requete.sql</span><b class="qf-count">0/${n}</b></div><pre class="qf-sql">${code}</pre><div class="qf-meter" aria-hidden="true"><i></i></div></div><div class="qf-bank-h">Cartes à placer</div><div class="qf-bank" aria-label="Cartes à placer">${cards}</div><p class="qf-msg" aria-live="polite"></p><div class="qf-actions"><button type="button" class="qf-check" disabled>Vérifier</button><button type="button" class="qf-reset">↺ Recommencer</button></div><div class="qf-run" hidden><div class="ij-run" data-run-sql="${escAttr(sql)}"></div></div></div>`;
+}
+/* Leçons qui ont déjà « La requête complète » : la requête exécutable de la
+   mission devient une requête à trous. */
+function applyMissionFills(){
+  const l=current,cfg=l&&MISSION_FILLS[l.id];
+  if(!cfg||cfg.sql||mode!=='lesson')return;
+  const body=document.getElementById('lesson-body');
+  if(!body||body.querySelector('.qf[data-lesson-fill]'))return;
+  const done=body.querySelector('.fn-use .ij-done.is-locked');
+  const run=done&&done.closest('.fn-use').querySelector('.ij-run[data-run-sql]');
+  if(!run)return;
+  const html=qfHtml(run.dataset.runSql,cfg.t);
+  if(!html)return;
+  const tmp=document.createElement('div');
+  tmp.innerHTML=qfIntroHtml(cfg.t.length)+html;
+  run.replaceWith(...tmp.childNodes);
+}
+/* Leçons sans « La requête complète » : bloc ajouté en fin de cours. */
+function missionFillBlock(l){
+  const cfg=l&&MISSION_FILLS[l.id];
+  if(!cfg||cfg.sql!=='exemple'||!l.exemple)return '';
+  const html=qfHtml(l.exemple,cfg.t);
+  if(!html)return '';
+  const mission=(String(l.situation||'').match(/is-mission">[\s\S]*?<\/p><p>([\s\S]*?)<\/p><\/div>/)||[])[1]||'';
+  return `<div class="concept-block mission-fill"><h2><span class="h2-txt">La requête de la mission</span></h2><div class="fn-use">${qfIntroHtml(cfg.t.length)}${html}<div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div>${mission?`<p class="ij-done-p">${mission}</p>`:''}</div></div></div>`;
+}
 function initQueryFill(){
   const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   document.querySelectorAll('#lesson-body .qf[data-lesson-fill]').forEach(box=>{
@@ -26401,9 +26485,9 @@ function initQueryFill(){
     check.addEventListener('click',()=>{
       let ok=true;
       /* Les deux côtés d’une égalité peuvent être inversés : a = b vaut b = a. */
-      const eq=holes.filter(h=>h.dataset.eq);
-      const swapped=eq.length===2&&eq[0].dataset.k===eq[1].dataset.want&&eq[1].dataset.k===eq[0].dataset.want;
-      const res=holes.map(h=>{const good=h.dataset.k===h.dataset.want||(swapped&&!!h.dataset.eq);if(!good)ok=false;return good;});
+      const swapped={};
+      holes.forEach(h=>{const g=h.dataset.eq;if(!g||g in swapped)return;const p=holes.filter(x=>x.dataset.eq===g);swapped[g]=p.length===2&&p[0].dataset.k===p[1].dataset.want&&p[1].dataset.k===p[0].dataset.want;});
+      const res=holes.map(h=>{const good=h.dataset.k===h.dataset.want||(!!h.dataset.eq&&swapped[h.dataset.eq]);if(!good)ok=false;return good;});
       if(!ok){
         holes.forEach((h,k)=>h.classList.add(res[k]?'is-ok':'is-ko'));
         msg.className='qf-msg is-ko';
@@ -26413,6 +26497,12 @@ function initQueryFill(){
       }
       check.disabled=true;box.classList.add('is-won');
       const step=reduce?0:140;
+      /* Pendant que les trous passent au vert, on ramène l’éditeur en haut de
+         l’écran : le résultat prendra ensuite sa place au même endroit, sans
+         saut ni défilement de rattrapage. */
+      const scr=document.getElementById('scr-lesson');
+      const anchor=()=>scr?scr.scrollTop+box.getBoundingClientRect().top-scr.getBoundingClientRect().top-76:0;
+      if(scr)scr.scrollTo({top:anchor(),behavior:reduce?'auto':'smooth'});
       holes.forEach((h,k)=>setTimeout(()=>h.classList.add('is-ok'),k*step));
       setTimeout(()=>{
         box.classList.add('is-solved');
@@ -26425,10 +26515,12 @@ function initQueryFill(){
           const code=runWrap.querySelector('.ex-code');if(code)code.innerHTML=highlight(mine);
         }
         if(run)run.click();
-        runWrap.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
+        /* Filet de sécurité : si l’utilisateur a défilé entre-temps, on recale
+           sans animation pour éviter un second mouvement. */
+        if(scr){const top=box.getBoundingClientRect().top-scr.getBoundingClientRect().top;if(top<0||top>scr.clientHeight*.6)scr.scrollTop=anchor();}
         setTimeout(()=>qfConfetti(runWrap),350);
         if(navigator.vibrate)navigator.vibrate([10,40,20]);
-        if(current&&current.gateFill){jcMarkPassed(current.id);jcUnlockExo();}
+        if(lessonHasFill(current)){jcMarkPassed(current.id);jcUnlockExo();}
       },reduce?0:holes.length*step+450);
     });
     box.querySelector('.qf-reset').addEventListener('click',()=>{holes.forEach(h=>{delete h.dataset.k;h.textContent='';});clearMarks();refresh();});
@@ -32298,7 +32390,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-roles-v1151';
+  const SW_CACHE='requete-2026-09-27-trous-v1152';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
