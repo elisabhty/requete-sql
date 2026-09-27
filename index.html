@@ -2225,9 +2225,6 @@
   @keyframes qfShine{0%{transform:translateX(-100%)}55%,100%{transform:translateX(100%)}}
   .qf-check:disabled{opacity:.4;cursor:default;box-shadow:none}
   .qf-reset{padding:13px 14px;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--ink-2);font:inherit;font-weight:700;cursor:pointer}
-  .qf-burst{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none;z-index:2}
-  .qf-burst > i{position:absolute;width:7px;height:7px;border-radius:2px;animation:qfBurst .9s cubic-bezier(.15,.7,.3,1) forwards}
-  @keyframes qfBurst{from{transform:translate(0,0) rotate(0);opacity:1}to{transform:translate(var(--dx),var(--dy)) rotate(260deg);opacity:0}}
   .qf.is-solved .qf-actions,.qf.is-solved .qf-bank,.qf.is-solved .qf-bank-h,.qf.is-solved .qf-editor{display:none}
   @media (prefers-reduced-motion:reduce){.qf-hole,.qf-card,.qf-check::after{animation:none!important}}
   .qf-run{margin-top:12px}
@@ -23825,14 +23822,15 @@ function initRunSqlSlots(){
       if(res.hidden||!res.querySelector('table'))return;
       /* Laisse le temps de lire le résultat avant d’afficher la carte et d’y descendre. */
       pending=true;
-      setTimeout(show,1800);
+      /* Après la requête à trous, 5 s pour regarder le résultat. */
+      setTimeout(show,wrap.closest('.qf-run')?5000:1800);
     };
     const show=()=>{
       done.classList.remove('is-locked');
       done.classList.add('is-in');
       if(navigator.vibrate)navigator.vibrate([8,40,14]);
       const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-      setTimeout(()=>done.scrollIntoView({behavior:reduce?'auto':'smooth',block:'nearest'}),reduce?0:420);
+      setTimeout(()=>done.scrollIntoView({behavior:reduce?'auto':'smooth',block:wrap.closest('.qf-run')?'center':'nearest'}),reduce?0:420);
     };
     new MutationObserver(reveal).observe(res,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
   });
@@ -26442,17 +26440,6 @@ function initQueryFill(){
         document.addEventListener('pointermove',move);document.addEventListener('pointerup',up);document.addEventListener('pointercancel',up);
       });
     });
-    const burst=()=>{
-      if(reduce||!editor)return;
-      const b=document.createElement('span');b.className='qf-burst';b.setAttribute('aria-hidden','true');
-      const cols=['#a78bfa','#c4b5fd','#4ade80','#fcd34d','#f9a8d4'];
-      for(let k=0;k<22;k++){
-        const i=document.createElement('i'),ang=k/22*Math.PI*2+Math.random()*.3,r=70+Math.random()*80;
-        i.style.cssText=`background:${cols[k%cols.length]};--dx:${Math.cos(ang)*r}px;--dy:${Math.sin(ang)*r}px;animation-delay:${Math.random()*.08}s`;
-        b.appendChild(i);
-      }
-      editor.appendChild(b);setTimeout(()=>b.remove(),1100);
-    };
     check.addEventListener('click',()=>{
       let ok=true;
       /* Les deux côtés d’une égalité peuvent être inversés : a = b vaut b = a. */
@@ -26470,11 +26457,6 @@ function initQueryFill(){
       const step=reduce?0:140;
       holes.forEach((h,k)=>setTimeout(()=>h.classList.add('is-ok'),k*step));
       setTimeout(()=>{
-        burst();
-        msg.className='qf-msg is-ok';msg.textContent='✅ Bravo, la requête est complète !';
-        if(navigator.vibrate)navigator.vibrate([10,40,20]);
-      },holes.length*step);
-      setTimeout(()=>{
         box.classList.add('is-solved');
         runWrap.hidden=false;
         const run=runWrap.querySelector('.xf-run');
@@ -26485,8 +26467,10 @@ function initQueryFill(){
           const code=runWrap.querySelector('.ex-code');if(code)code.innerHTML=highlight(mine);
         }
         if(run)run.click();
+        runWrap.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
+        if(typeof jcFireworks==='function')setTimeout(()=>jcFireworks(4),300);
         if(current&&current.gateFill){jcMarkPassed(current.id);jcUnlockExo();}
-      },reduce?0:holes.length*step+1000);
+      },reduce?0:holes.length*step+450);
     });
     box.querySelector('.qf-reset').addEventListener('click',()=>{holes.forEach(h=>{delete h.dataset.k;h.textContent='';});clearMarks();refresh();});
     refresh();
@@ -32355,7 +32339,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-fill-order-v1144';
+  const SW_CACHE='requete-2026-09-27-fill-fx-v1145';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
