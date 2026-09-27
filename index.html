@@ -14424,65 +14424,6 @@ learningCheck:{
   "explanation": "<> garde A-B et B-A. < n’en garde qu’une orientation, et exclut aussi A-A."
 }
 },
-{ id:43, titre:"ON vs WHERE", résumé:"Relier les lignes, puis filtrer le résultat",
-  situation:`<p>L’équipe logistique veut repérer les commandes contenant des <b>produits presque épuisés</b>.</p><p>Pour cela, elle doit&nbsp;:</p><ol class="fk-syn-map" aria-label="Les deux étapes"><li><b aria-hidden="true">1</b><div><strong>Retrouver le produit correspondant à chaque commande</strong></div></li><li><b aria-hidden="true">2</b><div><strong>Ne garder que les produits dont le stock est inférieur à 10 unités</strong></div></li></ol><p>Les informations sont réparties dans deux tables&nbsp;: la <code>table&nbsp;commandes</code> et la <code>table&nbsp;produits</code>.</p><div class="pk-comp ij-t"><p class="ij-tlab">table commandes · exemple</p><div class="pk-mini is-4"><span class="is-h">id</span><span class="is-h">client_id</span><span class="is-h">produit_id</span><span class="is-h">quantite</span><span>1</span><span>1</span><span class="is-hit">2</span><span>1</span><span>2</span><span>3</span><span class="is-hit">5</span><span>2</span><span>3</span><span>4</span><span class="is-hit">8</span><span>1</span></div></div><div class="pk-comp ij-t"><p class="ij-tlab">table produits · exemple</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">stock</span><span>2</span><span>Collagène Marin</span><span class="is-hit">18</span><span>5</span><span>Tisane Détox</span><span class="is-hit">6</span><span>8</span><span>Shaker Inox</span><span class="is-hit">4</span></div></div><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Relie chaque commande à son produit, puis affiche uniquement celles dont le produit a moins de 10 unités en stock.</p></div>`,
-    studio:{problem:{eye:"",title:"Deux conditions, mais deux rôles différents",
-      body:"Pour accomplir notre mission, nous avons besoin de deux conditions&nbsp;:",
-      extra:`<div class="pt-syntax"><pre class="cw-syntax">commandes.produit_id = produits.id</pre></div><p>et&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">produits.stock &lt; 10</pre></div><p>Mais elles ne servent pas à la même chose&nbsp;:</p><div class="ow-cmp"><article><p class="ow-k"><b>La première</b></p><p>🔗 Quel produit correspond à chaque commande&nbsp;?</p></article><article><p class="ow-k"><b>La seconde</b></p><p>🔎 Quelles commandes voulons-nous garder&nbsp;?</p></article></div><p class="ij-arrow">👉 C’est précisément la différence entre <code>ON</code> et <code>WHERE</code>.</p>`},
-    uses:{title:"ON ou WHERE : chacun son rôle",
-      body:`<div class="pt-lead fn-uses fk-course jn-course"><div class="fn-use"><p class="pt-syntax-h">ON : quelles lignes vont ensemble&nbsp;?</p><p>Commençons par relier les deux tables&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">SELECT
-    commandes.id,
-    produits.nom,
-    produits.stock
-FROM commandes
-JOIN produits
-    <span class="fk-syn-hit">ON commandes.produit_id = produits.id</span>;</pre></div><p>La condition <code>ON commandes.produit_id = produits.id</code> compare&nbsp;:</p><div class="ij-match" role="img" aria-label="commandes.produit_id comparé à produits.id"><code>commandes.produit_id</code><i aria-hidden="true">↕</i><code>produits.id</code></div><p>Lorsque les valeurs correspondent, les deux lignes sont réunies. Par exemple&nbsp;:</p><div class="ij-match" role="img" aria-label="La commande 2 a produit_id = 5, qui correspond au produit 5, Tisane Détox"><code>commande 2 · produit_id = 5</code><i aria-hidden="true">↕</i><code>produit 5 · Tisane Détox</code></div><p class="ij-arrow">💡 <code>ON</code> indique quelles lignes doivent être reliées.</p></div><div class="fn-use"><p class="pt-syntax-h">Mais nous ne voulons pas tout afficher</p><p>Après la jointure, nous obtenons par exemple&nbsp;:</p><div class="pk-comp ij-t"><p class="ij-tlab">résultat de la jointure</p><div class="pk-mini is-3"><span class="is-h">commande</span><span class="is-h">produit</span><span class="is-h">stock</span><span>1</span><span>Collagène Marin</span><span class="is-hit">18</span><span>2</span><span>Tisane Détox</span><span class="is-hit">6</span><span>3</span><span>Shaker Inox</span><span class="is-hit">4</span></div></div><p>Mais notre mission demande uniquement les produits dont <code>stock &lt; 10</code>.</p><p>Cette condition ne sert pas à trouver quel produit appartient à quelle commande&nbsp;: elle sert à choisir <b>quelles lignes conserver</b> dans le résultat.</p><p class="ij-arrow">👉 C’est donc le rôle de <code>WHERE</code>.</p></div><div class="fn-use"><p class="pt-syntax-h">WHERE : quelles lignes veut-on garder&nbsp;?</p><p>Ajoutons notre filtre&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">SELECT
-    commandes.id,
-    produits.nom,
-    produits.stock
-FROM commandes
-JOIN produits
-    ON commandes.produit_id = produits.id
-<span class="fk-syn-hit">WHERE produits.stock &lt; 10</span>;</pre></div><p>La requête se lit maintenant en deux étapes&nbsp;:</p><ol class="fk-syn-map" aria-label="Les deux étapes de la requête"><li><b aria-hidden="true">1</b><div><code>ON commandes.produit_id = produits.id</code><span>🔗 Relier chaque commande au bon produit</span></div></li><li><b aria-hidden="true">2</b><div><code>WHERE produits.stock &lt; 10</code><span>🔎 Garder uniquement les produits presque épuisés</span></div></li></ol><p>Résultat&nbsp;:</p><div class="pk-comp ij-t"><p class="ij-tlab">résultat</p><div class="pk-mini is-3"><span class="is-h">commande</span><span class="is-h">produit</span><span class="is-h">stock</span><span>2</span><span>Tisane Détox</span><span class="is-hit">6</span><span>3</span><span>Shaker Inox</span><span class="is-hit">4</span></div></div><p>Le Collagène Marin était bien relié à sa commande, mais avec 18 unités en stock, il ne respecte pas le <code>WHERE</code>.</p><p class="ij-arrow">👉 Il est donc retiré du résultat.</p></div><div class="fn-use"><p class="pt-syntax-h">Pourquoi ne pas tout mettre dans ON&nbsp;?</p><p>On pourrait être tenté d’écrire&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">ON commandes.produit_id = produits.id
-<span class="fk-syn-hit">AND produits.stock &lt; 10</span></pre></div><p>Avec un <code>INNER JOIN</code>, cette requête peut ici donner le même résultat final. Mais les deux conditions n’expriment pas la même intention&nbsp;:</p><div class="ow-cmp"><article><p class="ow-k"><code>ON</code></p><p>Comment les tables se correspondent.</p></article><article><p class="ow-k"><code>WHERE</code></p><p>Quelles lignes du résultat on veut garder.</p></article></div><p>Pour notre mission, l’écriture la plus claire est donc&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">ON commandes.produit_id = produits.id
-WHERE produits.stock &lt; 10</pre></div><p class="ij-arrow">⚠️ Avec certains <code>JOIN</code>, notamment <code>LEFT JOIN</code>, déplacer une condition de <code>ON</code> vers <code>WHERE</code> peut même changer le résultat. Nous verrons ce comportement séparément.</p></div></div>`},
-    reflexTitle:"Le réflexe à retenir",
-    reflex:{extra:`<p>Quand tu hésites entre <code>ON</code> et <code>WHERE</code>, pose-toi simplement deux questions&nbsp;:</p><div class="ow-cmp"><article><p class="ow-k"><code>ON</code></p><p>🔗 Ma condition sert-elle à savoir quelles lignes vont ensemble&nbsp;?</p></article><article><p class="ow-k"><code>WHERE</code></p><p>🔎 Ma condition sert-elle à filtrer ce que je veux afficher&nbsp;?</p></article></div><p style="margin-top:14px">Le chemin à retenir&nbsp;:</p><ol class="fk-syn-map" aria-label="Le chemin : ON, jointure, WHERE, résultat"><li><b aria-hidden="true">1</b><div><strong>Table commandes + table produits</strong></div></li><li><b aria-hidden="true">2</b><div><code>ON</code><span>Quelles lignes vont ensemble&nbsp;?</span></div></li><li><b aria-hidden="true">3</b><div><strong>Jointure</strong><span>Les lignes sont reliées</span></div></li><li><b aria-hidden="true">4</b><div><code>WHERE</code><span>Quelles lignes veut-on garder&nbsp;?</span></div></li><li><b aria-hidden="true">5</b><div><strong>Résultat</strong></div></li></ol><p class="agg-reflex" style="margin-top:14px">👉 <code>ON</code> construit la correspondance. <code>WHERE</code> filtre le résultat.</p>`}},
-  joinFn:true,
-  noTeste:true,
-  noAnat:true,
-  anatomie:[
-    {tok:"SELECT commandes.id, produits.nom, produits.stock",txt:"Le numéro de la commande, le nom et le stock du produit."},
-    {tok:"FROM commandes",txt:"On part de la table commandes."},
-    {tok:"JOIN produits",txt:"On ajoute la table produits."},
-    {tok:"ON commandes.produit_id = produits.id",txt:"ON : quelles lignes vont ensemble ? Chaque commande est reliée à son produit."},
-    {tok:"WHERE produits.stock < 50",txt:"WHERE : quelles lignes garder ? Seulement les produits dont le stock est inférieur à 50."}
-  ],
-  exemple:"SELECT commandes.id,\n       produits.nom,\n       produits.stock\nFROM commandes\nJOIN produits\n    ON commandes.produit_id = produits.id\nWHERE produits.stock < 50;",
-  attendu:"<b>3 lignes</b> : les commandes 3 et 11 (Protéine Végétale, stock 45) et la commande 13 (Shaker Inox, stock 30).",
-  retenir:"<code>ON</code> construit la correspondance : quelles lignes vont ensemble ?<br><br><code>WHERE</code> filtre le résultat : quelles lignes veut-on garder ?",
-  consigne:"L’équipe logistique veut repérer les commandes dont le produit a un stock inférieur à 50 unités. Relie chaque commande à son produit, puis affiche uniquement ces commandes, avec le nom et le stock du produit.",
-  solution:"SELECT commandes.id,\n       produits.nom,\n       produits.stock\nFROM commandes\nJOIN produits\n    ON commandes.produit_id = produits.id\nWHERE produits.stock < 50;",
-  indice:"Relie les deux tables avec <code>ON commandes.produit_id = produits.id</code>, puis filtre le résultat avec <code>WHERE produits.stock &lt; 50</code>.",
-  joinRecap:'inner',
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-    {k:'cmd',label:'commandes',sql:"SELECT id, produit_id, quantite\nFROM commandes;"},
-    {k:'prd',label:'produits',sql:"SELECT id, nom, stock\nFROM produits;"},
-    {k:'on',label:'ON seul',sql:"SELECT commandes.id,\n       produits.nom,\n       produits.stock\nFROM commandes\nJOIN produits\n    ON commandes.produit_id = produits.id;"},
-    {k:'where',label:'ON + WHERE',sql:"SELECT commandes.id,\n       produits.nom,\n       produits.stock\nFROM commandes\nJOIN produits\n    ON commandes.produit_id = produits.id\nWHERE produits.stock < 50;",tone:'good'}
-  ] ,
-learningCheck:{
-  "question": "Dans « ON commandes.produit_id = produits.id WHERE produits.stock < 10 », à quoi sert WHERE ?",
-  "options": [
-    "À relier chaque commande à son produit",
-    "À garder uniquement les lignes dont le produit a moins de 10 unités",
-    "À créer la clé étrangère"
-  ],
-  "answer": 1,
-  "explanation": "ON construit la correspondance entre les deux tables. WHERE filtre ensuite le résultat pour ne garder que les lignes voulues."
-}
-},
 { id:49, titre:"Plusieurs conditions dans ON", résumé:"Relier seulement les produits encore en stock",
   situation:`<p>L’équipe logistique prépare les commandes à expédier.</p><p>Elle doit relier chaque commande au bon produit, mais souhaite récupérer uniquement les produits qui sont <b>encore disponibles en stock</b>.</p><p>Pour préparer l’expédition, elle a besoin de trois informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>🛒 Produit commandé</b><span class="is-b">table commandes</span></div><div role="listitem"><b>📦 Nom du produit</b><span class="is-c">table produits</span></div><div role="listitem"><b>📊 Stock du produit</b><span class="is-c">table produits</span></div></div><p>🤔 <b>Problème&nbsp;:</b> la <code>table&nbsp;commandes</code> indique seulement l’id du produit, tandis que le nom et le stock se trouvent dans la <code>table&nbsp;produits</code>.</p><p>Pour qu’un produit soit associé à une commande, il faut donc vérifier deux choses&nbsp;:</p><ol class="fk-syn-map" aria-label="Les deux vérifications"><li><b aria-hidden="true">1</b><div><strong>C’est bien le produit commandé</strong></div></li><li><b aria-hidden="true">2</b><div><strong>Son stock est supérieur à 0</strong></div></li></ol><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Relie chaque commande à son produit seulement si c’est le bon produit et qu’il est encore en stock.</p></div>`,
     studio:{problem:{eye:"",title:"Une première condition pour trouver le bon produit",
@@ -32213,7 +32154,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-gapbox-v1137';
+  const SW_CACHE='requete-2026-09-27-no43-v1138';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
