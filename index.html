@@ -14738,7 +14738,6 @@ FROM clients;</pre></div>
           <p class="ij-arrow">👉 On parle de <b>sous-requête corrélée</b>&nbsp;: elle dépend de la ligne en cours de la requête principale.</p>
           <p>⚠️ Sans cette condition, la sous-requête compte toutes les commandes de la table, et chaque client reçoit le même total&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT clients.nom,&#10;  (SELECT COUNT(*)&#10;   FROM commandes) AS nb_commandes&#10;FROM clients;"></div>
-          <p>Tous les clients affichent 16, même Inès, qui n’a pourtant aucune commande.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Placer la sous-requête dans SELECT</p>
@@ -14840,8 +14839,7 @@ learningCheck:{
           <p>On relie chaque commande à son produit pour multiplier son prix par la quantité commandée&nbsp;:</p>
           <p>👇 Exécute cette requête&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT produits.prix * commandes.quantite AS montant&#10;FROM commandes&#10;JOIN produits&#10;    ON commandes.produit_id = produits.id;"></div>
-          <p class="ij-arrow">👉 On obtient un montant par commande, soit 16 lignes.</p>
-          <p>Mais on ne veut pas ces 16 montants&nbsp;: on veut leur moyenne. Il faut donc calculer à partir de ce résultat.</p>
+          <p>L’équipe ne veut pas ces montants un par un, mais leur moyenne&nbsp;: il faut donc calculer à partir de ce résultat.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Utiliser ce résultat comme une table</p>
@@ -14984,7 +14982,6 @@ WHERE <span class="fk-syn-hit">EXISTS</span> (
           <div class="pk-comp ij-t"><p class="ij-tlab">chaque client est testé</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">EXISTS</span><span>1</span><span>Sophie</span><span class="is-hit">✅</span><span>2</span><span>Lucas</span><span class="is-hit">✅</span><span>9</span><span>Inès</span><span>❌</span><span>10</span><span>Nathan</span><span>❌</span></div><p class="ij-tmore">… et 6 autres clients ✅</p></div>
           <p>👇 Exécute la requête&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT clients.nom&#10;FROM clients&#10;WHERE EXISTS (&#10;  SELECT 1&#10;  FROM commandes&#10;  WHERE commandes.client_id = clients.id&#10;);"></div>
-          <p class="ij-arrow">👉 8 clients ont au moins une commande&nbsp;: ce sont eux que l’équipe va relancer. Sophie n’apparaît qu’une fois, même avec 3 commandes.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">NOT EXISTS&nbsp;: aucune commande</p>
@@ -15016,7 +15013,6 @@ WHERE clients.id NOT IN (
           <p>Mais la commande n°16 n’a pas de client&nbsp;: l’id du client (<code>commandes.client_id</code>) y vaut <code>NULL</code>. Ce <code>NULL</code> se retrouve dans la liste, et <code>NOT IN</code> ne peut plus conclure qu’un id en est absent.</p>
           <p>👇 Exécute la requête&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT clients.nom&#10;FROM clients&#10;WHERE clients.id NOT IN (&#10;  SELECT commandes.client_id&#10;  FROM commandes&#10;);"></div>
-          <p>❌ Aucune ligne, alors qu’Inès et Nathan n°10 n’ont jamais commandé.</p>
           <p class="ij-arrow">👉 Pour vérifier qu’aucune ligne liée n’existe, préfère <code>NOT EXISTS</code>&nbsp;: un <code>NULL</code> ne change pas son résultat.</p>
         </div>
         <div class="fn-use">
@@ -15134,7 +15130,6 @@ WHERE nb_commandes >= 2;</pre></div>
           <p>On compte les commandes de la <code>table&nbsp;commandes</code>, regroupées par client&nbsp;:</p>
           <p>👇 Exécute cette requête&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT client_id, COUNT(*) AS nb_commandes&#10;FROM commandes&#10;WHERE client_id IS NOT NULL&#10;GROUP BY client_id;"></div>
-          <p class="ij-arrow">👉 On obtient 8 lignes&nbsp;: une par client qui a déjà commandé, avec son nombre de commandes.</p>
           <p><code>WHERE client_id IS NOT NULL</code> écarte la commande n°16, qui n’est rattachée à aucun client.</p>
         </div>
         <div class="fn-use">
@@ -15387,7 +15382,6 @@ SELECT categorie
 FROM produits;</pre></div>
           <p>👇 Exécute cette requête&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT ville&#10;FROM clients&#10;UNION ALL&#10;SELECT categorie&#10;FROM produits;"></div>
-          <p class="ij-arrow">👉 18 lignes&nbsp;: les 10 villes suivies des 8 catégories. Paris apparaît 4 fois, Bien-être 3 fois.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Écarter les doublons avec UNION</p>
@@ -32445,7 +32439,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-gap-v1158';
+  const SW_CACHE='requete-2026-09-27-nocomment-v1159';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
