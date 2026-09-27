@@ -14575,29 +14575,40 @@ learningCheck:{
 { titre:"Sous-requêtes et ensembles", sous:"IN, EXISTS, CTE et UNION", lessons:[
 { id:45, titre:"Sous-requête dans WHERE avec IN", résumé:"Quels clients ont déjà commandé du Magnésium ?",
   situation:`<p>L’équipe marketing prépare une offre sur le Magnésium.</p><p>Elle souhaite la proposer uniquement aux clients qui en ont <b>déjà commandé</b>.</p><p>Pour constituer la liste, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Nom du client</b><span>table clients</span></div><div role="listitem"><b>🛒 Produit commandé</b><span class="is-b">table commandes</span></div></div><p>🤔 <b>Problème&nbsp;:</b> on veut afficher des clients, mais le produit commandé se trouve dans la <code>table&nbsp;commandes</code>, qui ne contient que l’id du client.</p><p>Il faut donc procéder en deux temps&nbsp;:</p><ol class="fk-syn-map" aria-label="Les deux étapes"><li><b aria-hidden="true">1</b><div><strong>Trouver les id des clients qui ont commandé du Magnésium</strong></div></li><li><b aria-hidden="true">2</b><div><strong>Afficher les clients dont l’id fait partie de cette liste</strong></div></li></ol><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Retrouve les clients qui ont déjà commandé du Magnésium.</p></div>`,
-    studio:{problem:{eye:"",title:"Partir de la question principale",
-      body:"Le résultat final doit contenir des <b>clients</b>. On commence donc par&nbsp;:",
-      extra:`<div class="pt-syntax"><pre class="cw-syntax">SELECT nom
-FROM clients;</pre></div>
-        <p>Mais on ne veut pas tous les clients&nbsp;: seulement ceux dont l’<code>id</code> apparaît parmi les clients qui ont commandé du Magnésium. On arrive donc à&nbsp;:</p>
-        <div class="pt-syntax"><pre class="cw-syntax">SELECT nom
-FROM clients
-WHERE id <span class="fk-syn-hit">IN (...)</span>;</pre></div>
-        <p class="ij-box"><code>IN</code> signifie ici&nbsp;: «&nbsp;l’id du client fait-il partie de cette liste&nbsp;?&nbsp;»</p>
-        <p class="ij-arrow">👉 Reste à construire cette liste.</p>`},
+  studio:{problem:{eye:"",title:"Comment retrouver les acheteurs de Magnésium&nbsp;?",
+      body:"Regardons d’abord les commandes de Magnésium.",
+      extra:`<p>Le Magnésium a l’id 3 dans la <code>table&nbsp;produits</code>. Dans la <code>table&nbsp;commandes</code>, on repère les commandes de ce produit&nbsp;:</p>
+        <div class="pk-comp ij-t"><p class="ij-tlab">table commandes</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">client_id</span><span class="is-h">produit_id</span><span>2</span><span class="is-hit">1</span><span class="is-hit">3</span><span>10</span><span class="is-hit">2</span><span class="is-hit">3</span></div></div>
+        <p>Ces commandes indiquent seulement l’id du client&nbsp;: 1 et 2. Pour connaître leur nom, il faut regarder la <code>table&nbsp;clients</code>&nbsp;:</p>
+        <div class="pk-comp ij-t"><p class="ij-tlab">table clients</p><div class="pk-mini is-2"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-hit">1</span><span class="is-hit">Sophie</span><span class="is-hit">2</span><span class="is-hit">Lucas</span><span>3</span><span>Emma</span></div><p class="ij-tmore">… et 7 autres clients</p></div>
+        <p class="ij-arrow">👉 Le raisonnement se fait en deux temps&nbsp;: d’abord la liste des id, ensuite les clients dont l’id fait partie de cette liste.</p>
+        <p class="ij-arrow">👉 Une sous-requête permet d’écrire ces deux temps dans une seule requête.</p>`},
     uses:{title:"Écrire la requête",
       body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
-          <p class="pt-syntax-h">La sous-requête construit la liste</p>
-          <p>Dans la <code>table&nbsp;commandes</code>, l’id du client (<code>commandes.client_id</code>) indique quel client a passé chaque commande. Le Magnésium a l’identifiant <code>3</code> dans la <code>table&nbsp;produits</code>. On peut donc rechercher&nbsp;:</p>
+          <p class="pt-syntax-h">Partons des clients</p>
+          <p>Le résultat final doit contenir des clients. On part donc de la <code>table&nbsp;clients</code>&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT nom
+FROM clients;</pre></div>
+          <p>Mais on ne veut pas tous les clients&nbsp;: seulement ceux dont l’id fait partie de la liste des acheteurs de Magnésium. On ajoute donc&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT nom
+FROM clients
+WHERE id <span class="fk-syn-hit">IN (...)</span>;</pre></div>
+          <p class="ij-box"><code>IN</code> signifie ici&nbsp;: «&nbsp;l’id du client fait-il partie de cette liste&nbsp;?&nbsp;»</p>
+          <p class="ij-arrow">👉 Reste à construire cette liste.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Construire la liste avec une sous-requête</p>
+          <p>Dans la <code>table&nbsp;commandes</code>, l’id du client (<code>commandes.client_id</code>) indique qui a passé chaque commande. On garde les commandes de Magnésium&nbsp;:</p>
           <p>👇 Exécute cette requête&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT client_id&#10;FROM commandes&#10;WHERE produit_id = 3;"></div>
-          <p>Elle construit une liste d’identifiants de clients&nbsp;:</p>
+          <p>Elle renvoie la liste des id des clients concernés&nbsp;:</p>
           <p class="ij-box sq-list"><code>(1, 2)</code></p>
           <p class="ij-arrow">👉 C’est cette requête que l’on va placer à l’intérieur de la requête principale.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Placer la sous-requête dans WHERE</p>
+          <p>On remplace les points de suspension par la requête qui construit la liste&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax">SELECT nom
 FROM clients
 WHERE id IN (
@@ -14605,55 +14616,46 @@ WHERE id IN (
     <span class="fk-syn-hit">FROM commandes</span>
     <span class="fk-syn-hit">WHERE produit_id = 3</span>
 );</pre></div>
-          <p>La partie surlignée, entre parenthèses, est la <b>sous-requête</b>. Elle fournit les valeurs utilisées par <code>IN</code>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Comprendre le mécanisme</p>
-          <p>On peut lire la requête en deux temps.</p>
-          <p><b>① La sous-requête</b> renvoie les identifiants&nbsp;:</p>
-          <div class="pk-comp ij-t"><p class="ij-tlab">résultat de la sous-requête</p><div class="pk-mini is-1"><span class="is-h">client_id</span><span class="is-hit">1</span><span class="is-hit">2</span></div></div>
-          <p><b>② La requête principale</b>&nbsp;: le <code>WHERE</code> revient alors à vérifier&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">WHERE id IN (1, 2)</pre></div>
-          <p>Pour chaque client&nbsp;:</p>
+          <p>La partie surlignée, entre parenthèses, est la <b>sous-requête</b>. Elle s’exécute d’abord et renvoie <code>(1, 2)</code>&nbsp;; le <code>WHERE</code> revient alors à <code>id IN (1, 2)</code>.</p>
           <div class="pk-comp ij-t"><p class="ij-tlab">chaque client est testé</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">id IN (1, 2)</span><span>1</span><span>Sophie</span><span class="is-hit">✅</span><span>2</span><span>Lucas</span><span class="is-hit">✅</span><span>3</span><span>Emma</span><span>❌</span><span>4</span><span>Nathan</span><span>❌</span></div><p class="ij-tmore">… et 6 autres clients ❌</p></div>
-          <p class="ij-arrow">👉 Seuls les clients dont l’identifiant appartient au résultat de la sous-requête sont conservés.</p>
-          <p>👇 Exécute la requête complète pour le vérifier&nbsp;:</p>
-          <div class="ij-run" data-run-sql="SELECT nom&#10;FROM clients&#10;WHERE id IN (&#10;    SELECT client_id&#10;    FROM commandes&#10;    WHERE produit_id = 3&#10;);"></div>
-          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 10 clients à 2 clients qui ont commandé du Magnésium"><li class="ij-fn-row"><b>10</b><span>clients au départ<small>toute la table clients</small></span><i class="ij-fn-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></i></li><li class="ij-fn-step"><code>WHERE id IN (1, 2)</code><small>la liste vient de la sous-requête</small></li><li class="ij-fn-row is-out"><b>2</b><span>clients ont commandé du Magnésium<small>Sophie et Lucas</small></span><i class="ij-fn-dots" aria-hidden="true"><i class="is-null"></i><i class="is-null"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></i></li></ol></div>
+          <p class="ij-arrow">👉 Seuls les clients dont l’id appartient au résultat de la sous-requête sont gardés.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Pourquoi utiliser IN&nbsp;?</p>
+          <p class="pt-syntax-h">La requête complète</p>
+          <p>Il ne reste plus qu’à réunir toutes les étapes.</p>
+          <p>👇 Exécute la requête pour voir le résultat&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT nom&#10;FROM clients&#10;WHERE id IN (&#10;    SELECT client_id&#10;    FROM commandes&#10;    WHERE produit_id = 3&#10;);"></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 10 clients à 2 clients qui ont commandé du Magnésium"><li class="ij-fn-row"><b>10</b><span>clients au départ<small>toute la table clients</small></span></li><li class="ij-fn-step"><code>WHERE id IN (1, 2)</code><small>la liste vient de la sous-requête</small></li><li class="ij-fn-row is-out"><b>2</b><span>clients ont commandé du Magnésium<small>Sophie et Lucas</small></span></li></ol></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Pourquoi IN et pas =&nbsp;?</p>
           <p>Une sous-requête peut renvoyer <b>plusieurs valeurs</b>. Ici, deux clients ont commandé du Magnésium&nbsp;: 1 et 2.</p>
           <p>On ne peut donc pas écrire&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax">WHERE id <span class="fk-syn-hit">=</span> (
     SELECT client_id ...
 )</pre></div>
-          <p>car <code>=</code> attend ici <b>une seule valeur</b>.</p>
-          <p class="ij-arrow">⚠️ SQLite ne signale pas d’erreur&nbsp;: il garde seulement la première valeur de la liste. Le résultat ne contient alors que Sophie, et Lucas disparaît sans prévenir. D’autres bases, comme PostgreSQL, renvoient une erreur.</p>
-          <p>Avec <code>IN</code>, on vérifie l’appartenance à <b>tout un ensemble</b> de valeurs&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">WHERE id <span class="fk-syn-hit">IN</span> (
-    sous-requête
-);</pre></div>
-          <div class="sit-memo sq-notin">
-            <p class="sit-memo-lab"><i aria-hidden="true">🔄</i>Et l’inverse&nbsp;? NOT IN</p>
-            <p><code>IN</code> conserve les lignes dont la valeur apparaît dans le résultat de la sous-requête. <code>NOT IN</code> fait l’inverse&nbsp;: il conserve celles dont la valeur <b>n’apparaît pas</b>.</p>
-            <p>Avec la même situation, on peut rechercher les clients qui n’ont <b>jamais</b> commandé de Magnésium&nbsp;:</p>
-            <div class="pt-syntax"><pre class="cw-syntax">SELECT nom
+          <p>car <code>=</code> attend <b>une seule valeur</b>.</p>
+          <p>⚠️ SQLite ne signale pas d’erreur&nbsp;: il garde seulement la première valeur de la liste. Le résultat ne contient alors que Sophie, et Lucas disparaît sans prévenir. D’autres bases, comme PostgreSQL, renvoient une erreur.</p>
+          <p class="ij-arrow">👉 Avec <code>IN</code>, on vérifie l’appartenance à <b>toute la liste</b>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Et l’inverse&nbsp;? NOT IN</p>
+          <p><code>NOT IN</code> fait l’inverse de <code>IN</code>&nbsp;: il garde les lignes dont la valeur <b>n’apparaît pas</b> dans le résultat de la sous-requête.</p>
+          <p>Avec la même sous-requête, on obtient les clients qui n’ont <b>jamais</b> commandé de Magnésium&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT nom
 FROM clients
 WHERE id <span class="fk-syn-hit">NOT IN</span> (
     SELECT client_id
     FROM commandes
     WHERE produit_id = 3
 );</pre></div>
-            <p>La sous-requête renvoie <code>(1, 2)</code>, donc le <code>WHERE</code> revient à <code>id NOT IN (1, 2)</code>&nbsp;:</p>
-            <p>👉 Les clients 1 et 2 sont écartés.<br>👉 Les 8 autres sont conservés.</p>
-            <div class="ij-need" role="list" aria-label="IN et NOT IN"><div role="listitem"><b>IN</b><span>fait partie du résultat</span></div><div role="listitem"><b>NOT IN</b><span class="is-b">n’en fait pas partie</span></div></div>
-            <p>⚠️ <b>Attention aux <code>NULL</code>.</b> Si la sous-requête peut renvoyer <code>NULL</code>, <code>NOT IN</code> peut donner un résultat inattendu. Dans notre base, <code>commandes.client_id</code> vaut justement <code>NULL</code> pour la commande n°16 (Vitamine D)&nbsp;: pour ce produit, <code>NOT IN</code> ne renvoie <b>aucun</b> client. On verra que <code>NOT EXISTS</code> est souvent plus sûr dans ce cas.</p>
-          </div>
+          <div class="ij-need" role="list" aria-label="IN et NOT IN"><div role="listitem"><b>IN</b><span>fait partie du résultat</span></div><div role="listitem"><b>NOT IN</b><span class="is-b">n’en fait pas partie</span></div></div>
+          <p class="ij-arrow">👉 Les clients 1 et 2 sont écartés&nbsp;; les 8 autres sont gardés.</p>
+          <p>⚠️ <b>Attention aux <code>NULL</code>.</b> Si la sous-requête peut renvoyer <code>NULL</code>, <code>NOT IN</code> peut ne renvoyer aucune ligne. Dans notre base, l’id du client vaut justement <code>NULL</code> pour la commande n°16 (Vitamine D). Le cours <b>EXISTS et NOT EXISTS</b> montre comment éviter ce piège.</p>
         </div>
       </div>`},
-    reflexTitle:"À retenir",
-    reflex:{extra:`<p>Une sous-requête dans <code>WHERE</code> avec <code>IN</code> permet de répondre à une question en utilisant le résultat d’une autre requête comme <b>liste de valeurs</b>.</p>
+    reflexTitle:"Le réflexe à retenir",
+    reflex:{extra:`<p>Une sous-requête dans <code>WHERE</code> avec <code>IN</code> utilise le résultat d’une autre requête comme <b>liste de valeurs</b>.</p>
           <p>La structure à retenir&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax">SELECT colonne
 FROM table
@@ -14663,10 +14665,8 @@ WHERE colonne IN (
     WHERE condition
 );</pre></div>
           <p>Dans notre exemple&nbsp;:</p>
-          <div class="memory-rule is-trio is-chain"><div class="memory-a"><b>Sous-requête</b><span>Quels client_id ont commandé du Magnésium&nbsp;?</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>IN</b><span>L’id de ce client fait-il partie de cette liste&nbsp;?</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>Requête principale</b><span>Afficher les clients concernés</span></div></div>
-          <p class="agg-reflex" style="margin-top:14px">👉 La sous-requête trouve les identifiants&nbsp;; <code>IN</code> permet de retrouver les lignes correspondantes dans la requête principale.</p>`}},
-  noTeste:true,
-  noAnat:true,
+          <div class="memory-rule is-trio is-chain"><div class="memory-a"><b>Sous-requête</b><span>Trouve les id des clients qui ont commandé du Magnésium</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>IN</b><span>Vérifie si l’id du client fait partie de cette liste</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>Requête principale</b><span>Affiche les clients concernés</span></div></div>
+          <p class="agg-reflex" style="margin-top:14px">👉 La sous-requête trouve les id&nbsp;; <code>IN</code> retrouve les lignes correspondantes dans la requête principale.</p>`}},
   anatomie:[
     {tok:"SELECT nom",txt:"La colonne à afficher."},
     {tok:"FROM clients",txt:"La table principale : on veut des clients."},
@@ -14699,19 +14699,74 @@ learningCheck:{
 },
 { id:47, titre:"Sous-requête dans SELECT", résumé:"Calculer une valeur pour chaque ligne",
   situation:`<p>L’équipe service client prépare un récapitulatif de ses clients.</p><p>Pour chaque client, elle souhaite voir son nom et <b>le nombre de commandes qu’il a passées</b>.</p><p>Pour ce récapitulatif, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Nom du client</b><span>table clients</span></div><div role="listitem"><b>🔢 Nombre de commandes</b><span class="is-b">table commandes</span></div></div><p>🤔 <b>Problème&nbsp;:</b> le nombre de commandes n’est écrit nulle part. Il faut le compter dans la <code>table&nbsp;commandes</code>, séparément pour chaque client.</p><p>Pour chaque ligne du récapitulatif, il faut donc&nbsp;:</p><ol class="fk-syn-map" aria-label="Les deux étapes"><li><b aria-hidden="true">1</b><div><strong>Prendre un client de la table clients</strong></div></li><li><b aria-hidden="true">2</b><div><strong>Compter ses commandes dans la table commandes</strong></div></li></ol><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Affiche chaque client avec son nombre de commandes.</p></div>`,
-  studio:{pointCards:{
-      eye:"SELECT",title:"La sous-requête calcule une valeur.",
-      lead:"<p>Une sous-requête dans la clause <code>SELECT</code> (souvent appelée sous-requête scalaire) est une requête imbriquée à l’intérieur de la liste de sélection principale.</p><p>Elle permet de calculer une valeur spécifique pour chaque ligne du résultat principal, comme si c’était une colonne supplémentaire, sans avoir besoin d’utiliser un <code>JOIN</code>.</p><p><b>⚠️ Règle d’or à retenir</b><br>Cette sous-requête doit obligatoirement renvoyer une seule valeur (une seule colonne et une seule ligne). Si elle renvoie plusieurs lignes, SQL renverra une erreur.</p>",
-      rule:{lines:[
-          {tok:"SELECT",val:"clients.nom",tag:"une ligne de la requête principale",keep:1},
-          {tok:"(SELECT COUNT(*)",val:"FROM commandes",tag:"calcule une valeur pour cette ligne"},
-          {tok:"WHERE",val:"commandes.client_id = clients.id",tag:"relie au client courant"},
-          {tok:") AS",val:"nb_commandes",tag:"nomme le résultat"}
-        ]}},
-    reflex:{a:{k:"Sous-requête dans <code>SELECT</code>",t:"calcule une valeur pour chaque client"},
-      b:{k:"Sous-requête corrélée",t:"utilise l’<code>id</code> du client en cours"},
-      note:"Pense à la corrélation : sans <code>WHERE commandes.client_id = clients.id</code>, la sous-requête retourne toujours le même total pour tous."},
-    viz:"subquery_select"},
+  studio:{problem:{eye:"",title:"Comment compter les commandes d’un client&nbsp;?",
+      body:"Prenons un client au hasard&nbsp;:",
+      extra:`<div class="pk-comp ij-t"><p class="ij-tlab">table clients</p><div class="pk-mini is-2"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-hit">1</span><span>Sophie</span></div></div>
+        <p>Ses commandes se trouvent dans la <code>table&nbsp;commandes</code>&nbsp;: ce sont les lignes où l’id du client (<code>commandes.client_id</code>) vaut 1.</p>
+        <div class="pk-comp ij-t"><p class="ij-tlab">table commandes</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">client_id</span><span class="is-h">produit_id</span><span>1</span><span class="is-hit">1</span><span>1</span><span>2</span><span class="is-hit">1</span><span>3</span><span>13</span><span class="is-hit">1</span><span>8</span></div></div>
+        <p>On en compte 3&nbsp;:</p>
+        <div class="pt-syntax"><pre class="cw-syntax">SELECT COUNT(*)
+FROM commandes
+WHERE commandes.client_id = 1;</pre></div>
+        <p class="ij-arrow">👉 Il faut refaire ce calcul pour chaque client, avec son propre id.</p>
+        <p class="ij-arrow">👉 C’est le rôle d’une sous-requête placée dans <code>SELECT</code>&nbsp;: elle calcule une valeur pour chaque ligne du résultat.</p>`},
+    uses:{title:"Écrire la requête",
+      body:`<div class="pt-lead fn-uses fk-course jn-course">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Partons des clients</p>
+          <p>Le récapitulatif doit contenir une ligne par client. On part donc de la <code>table&nbsp;clients</code>&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom
+FROM clients;</pre></div>
+          <p class="ij-arrow">👉 On obtient les 10 clients.</p>
+          <p>Mais il manque le nombre de commandes de chacun&nbsp;: il faut le calculer dans la <code>table&nbsp;commandes</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Relier le calcul au client en cours</p>
+          <p>Pour Sophie, on a compté ses commandes avec <code>commandes.client_id = 1</code>. Mais cette valeur est écrite en dur&nbsp;: le calcul ne vaut que pour elle.</p>
+          <p>On remplace donc 1 par l’id du client en cours, <code>clients.id</code>&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">(SELECT COUNT(*)
+ FROM commandes
+ WHERE <span class="fk-syn-hit">commandes.client_id = clients.id</span>)</pre></div>
+          <div class="ij-match" role="img" aria-label="commandes.client_id comparé à clients.id"><code>commandes.client_id</code><i aria-hidden="true">↕</i><code>clients.id</code></div>
+          <p>La colonne <code>clients.id</code> vient de la requête principale. Pour chaque client, la condition utilise donc son propre id&nbsp;:</p>
+          <div class="pk-comp ij-t"><p class="ij-tlab">chaque client reçoit son calcul</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">nb_commandes</span><span>1</span><span>Sophie</span><span class="is-hit">3</span><span>2</span><span>Lucas</span><span class="is-hit">2</span><span>9</span><span>Inès</span><span class="is-hit">0</span></div><p class="ij-tmore">… et 7 autres clients</p></div>
+          <p class="ij-arrow">👉 On parle de <b>sous-requête corrélée</b>&nbsp;: elle dépend de la ligne en cours de la requête principale.</p>
+          <p>⚠️ Sans cette condition, la sous-requête compte toutes les commandes de la table, et chaque client reçoit le même total&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT clients.nom,&#10;  (SELECT COUNT(*)&#10;   FROM commandes) AS nb_commandes&#10;FROM clients;"></div>
+          <p>Tous les clients affichent 16, même Inès, qui n’a pourtant aucune commande.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Placer la sous-requête dans SELECT</p>
+          <p>Il reste à placer la sous-requête dans la liste des colonnes, entre parenthèses&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom,
+  <span class="fk-syn-hit">(SELECT COUNT(*)</span>
+   <span class="fk-syn-hit">FROM commandes</span>
+   <span class="fk-syn-hit">WHERE commandes.client_id = clients.id)</span> AS nb_commandes
+FROM clients;</pre></div>
+          <p class="ij-arrow">👉 <code>AS nb_commandes</code> donne un nom à la colonne calculée.</p>
+          <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>Bon à savoir</p><p>Dans <code>SELECT</code>, la sous-requête doit renvoyer <b>une seule valeur</b>&nbsp;: une ligne et une colonne. C’est le cas ici, car <code>COUNT(*)</code> renvoie toujours un seul nombre.</p></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">La requête complète</p>
+          <p>Il ne reste plus qu’à réunir toutes les étapes.</p>
+          <p>👇 Exécute la requête pour voir le résultat&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT clients.nom,&#10;  (SELECT COUNT(*)&#10;   FROM commandes&#10;   WHERE commandes.client_id = clients.id) AS nb_commandes&#10;FROM clients;"></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="10 clients, chacun avec son nombre de commandes"><li class="ij-fn-row"><b>10</b><span>clients<small>toute la table clients</small></span></li><li class="ij-fn-step"><code>(SELECT COUNT(*) …)</code><small>une valeur calculée pour chaque client</small></li><li class="ij-fn-row is-out"><b>10</b><span>lignes du récapitulatif<small>Inès et Nathan n°10 : 0 commande</small></span></li></ol></div>
+        </div>
+      </div>`},
+    reflexTitle:"Le réflexe à retenir",
+    reflex:{extra:`<p>Une sous-requête dans <code>SELECT</code> ajoute une colonne calculée à chaque ligne du résultat.</p>
+          <p>La structure à retenir&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT colonne,
+  (SELECT calcul
+   FROM autre_table
+   WHERE lien avec la ligne en cours) AS nom
+FROM table;</pre></div>
+          <p>Dans notre exemple&nbsp;:</p>
+          <div class="memory-rule is-trio is-chain"><div class="memory-a"><b>Requête principale</b><span>Une ligne par client</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>Sous-requête</b><span>Compte les commandes de ce client</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>Corrélation</b><span><code>commandes.client_id = clients.id</code></span></div></div>
+          <p class="agg-reflex" style="margin-top:14px">👉 La sous-requête calcule une seule valeur par ligne&nbsp;; la corrélation la relie à la ligne en cours.</p>`}},
+  noTeste:true,
+  noAnat:true,
   anatomie:[
     {tok:"SELECT clients.nom",txt:"Le nom du client."},
     {tok:"(SELECT COUNT(*) FROM commandes WHERE commandes.client_id = clients.id)",txt:"La sous-requête compte les commandes du client courant."},
@@ -14721,12 +14776,6 @@ learningCheck:{
   exemple:"SELECT clients.nom,\n  (SELECT COUNT(*)\n   FROM commandes\n   WHERE commandes.client_id = clients.id) AS nb_commandes\nFROM clients;",
   attendu:"10 lignes : chaque client avec son nombre de commandes. Sophie : 3, Lucas : 2, Inès : 0, Nathan n°10 : 0. La commande invitée #16 n’est comptée pour aucun client.",
   retenir:"Une sous-requête dans <code>SELECT</code> calcule <b>une valeur par ligne</b>.<br><br>Elle est souvent <b>corrélée</b> : elle utilise une colonne de la requête principale, ici <code>clients.id</code>.<br><br>Sans ce lien, elle compte toute la table. Pour Inès, <code>COUNT(*)</code> vaut 0. La commande invitée n’appartient à personne.",
-  piege:{t:"Oublier la corrélation",
-    p:"Si tu écris <code>SELECT COUNT(*) FROM commandes</code> sans la clause <code>WHERE</code>, la sous-requête retourne 16 pour chaque client. Le résultat est faux.<br><br>Pour obtenir le bon nombre pour chaque client, la sous-requête doit être corrélée à la ligne en cours :<br><code>WHERE commandes.client_id = clients.id</code>",
-    exec:true,
-    sql:"SELECT clients.nom,\n  (SELECT COUNT(*)\n   FROM commandes) AS nb_commandes\nFROM clients;",
-    out:"Tous les clients affichent 16, même Inès.",
-    fixSql:"SELECT clients.nom,\n  (SELECT COUNT(*)\n   FROM commandes\n   WHERE commandes.client_id = clients.id) AS nb_commandes\nFROM clients;"},
   consigne:"Affiche chaque client avec son nombre de commandes en utilisant une sous-requête dans le SELECT.",
   solution:"SELECT clients.nom,\n  (SELECT COUNT(*)\n   FROM commandes\n   WHERE commandes.client_id = clients.id) AS nb_commandes\nFROM clients;",
   indice:"Ajoute une condition dans la sous-requête : <code>WHERE commandes.client_id = clients.id</code>.",
@@ -14770,29 +14819,70 @@ learningCheck:{
 },
 { id:48, titre:"Sous-requête dans FROM", résumé:"Utiliser une sous-requête comme table",
   situation:`<p>L’équipe finance veut connaître <b>le montant moyen d’une commande</b>.</p><p>Pour ce calcul, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>🔢 Quantité commandée</b><span class="is-b">table commandes</span></div><div role="listitem"><b>💶 Prix du produit</b><span class="is-c">table produits</span></div></div><p>🤔 <b>Problème&nbsp;:</b> le montant d’une commande n’est enregistré nulle part. La <code>table&nbsp;commandes</code> contient seulement la quantité, tandis que le prix se trouve dans la <code>table&nbsp;produits</code>.</p><p>Il faut donc procéder en deux étapes&nbsp;:</p><ol class="fk-syn-map" aria-label="Les deux étapes"><li><b aria-hidden="true">1</b><div><strong>Calculer le montant de chaque commande (prix × quantité)</strong></div></li><li><b aria-hidden="true">2</b><div><strong>Calculer la moyenne de tous ces montants</strong></div></li></ol><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Calcule le montant moyen d’une commande.</p></div>`,
-  studio:{pointCards:{
-      eye:"FROM",title:"La sous-requête crée un résultat intermédiaire.",
-      lead:"<p>Une sous-requête dans la clause <code>FROM</code> (aussi appelée table dérivée ou derived table en anglais) est une requête <code>SELECT</code> placée à l’intérieur de la clause <code>FROM</code> d’une autre requête SQL. Elle est utilisée comme une table temporaire sur laquelle la requête principale peut effectuer des opérations (sélection, jointure, agrégation, etc.).</p><div class=\"pt-syntax\"><p class=\"pt-syntax-h\">Syntaxe générale</p><pre class=\"cw-syntax\">SELECT ...\nFROM (SELECT ... FROM ... WHERE ...) AS commandes_montants\nWHERE ...;</pre></div><p><b>Caractéristiques importantes</b></p><ul class=\"pt-lead-list\"><li>La sous-requête est toujours placée entre parenthèses.</li><li>Dans le <code>FROM</code>, son résultat se comporte comme une nouvelle table.</li><li>Cette table doit avoir un alias, c’est-à-dire un nom qui permet de la désigner dans la requête principale.<br>Exemple : <code>AS commandes_montants</code></li><li>La sous-requête peut elle-même contenir des calculs, des filtres ou des jointures.</li></ul>",
-      rule:{floors:`<div class="pt-floors" aria-label="Requête en deux étages">
-          <div class="pt-floor-out">
-            <span class="pt-floor-lab">Requête principale</span>
-            <pre class="pt-floor-code">SELECT AVG(montant)
-FROM (</pre>
-            <div class="pt-floor-in">
-              <span class="pt-floor-lab">Sous-requête</span>
-              <pre class="pt-floor-code">SELECT produits.prix * commandes.quantite AS montant
-FROM commandes
-JOIN produits
-    ON commandes.produit_id = produits.id</pre>
-            </div>
-            <pre class="pt-floor-code">) AS commandes_montants;</pre>
-          </div>
-        </div>`,
-        say:"<p>La sous-requête fabrique d’abord une nouvelle table de résultats → la requête principale travaille ensuite sur cette table.</p>"}},
-    reflex:{a:{k:"Sous-requête dans <code>FROM</code>",t:"construit d’abord<br>un résultat intermédiaire"},
-      b:{k:"<code>AS montants</code>",t:"donne un nom<br>à ce résultat"},
-      note:"Quand tu dois d’abord calculer un résultat, puis utiliser ce résultat dans un autre calcul, pense à une sous-requête dans <code>FROM</code>.<br><br>Une sous-requête placée dans <code>FROM</code> est appelée une table dérivée et doit avoir un alias."},
-    viz:"subquery_from"},
+  studio:{problem:{eye:"",title:"Comment calculer le montant d’une commande&nbsp;?",
+      body:"Prenons la première commande&nbsp;:",
+      extra:`<div class="pk-comp ij-t"><p class="ij-tlab">table commandes</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">produit_id</span><span class="is-h">quantite</span><span>1</span><span class="is-hit">1</span><span class="is-hit">2</span></div></div>
+        <p>La commande indique l’id du produit (1) et la quantité (2), mais pas le prix. Il se trouve dans la <code>table&nbsp;produits</code>&nbsp;:</p>
+        <div class="pk-comp ij-t"><p class="ij-tlab">table produits</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">prix</span><span class="is-hit">1</span><span>Fibre Prébiotique</span><span class="is-hit">29.9</span></div></div>
+        <p>Le montant de la commande vaut donc&nbsp;:</p>
+        <p class="ij-box">29,90&nbsp;€ × 2 = <b>59,80&nbsp;€</b></p>
+        <p class="ij-arrow">👉 En faisant ce calcul pour les 16 commandes, on obtient une liste de 16 montants.</p>
+        <p class="ij-arrow">👉 La moyenne se calcule ensuite sur cette liste&nbsp;: c’est un calcul sur le résultat d’un autre calcul.</p>`},
+    uses:{title:"Écrire la requête",
+      body:`<div class="pt-lead fn-uses fk-course jn-course">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Calculer le montant de chaque commande</p>
+          <p>On relie chaque commande à son produit pour multiplier son prix par la quantité commandée&nbsp;:</p>
+          <p>👇 Exécute cette requête&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT produits.prix * commandes.quantite AS montant&#10;FROM commandes&#10;JOIN produits&#10;    ON commandes.produit_id = produits.id;"></div>
+          <p class="ij-arrow">👉 On obtient un montant par commande, soit 16 lignes.</p>
+          <p>Mais on ne veut pas ces 16 montants&nbsp;: on veut leur moyenne. Il faut donc calculer à partir de ce résultat.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Utiliser ce résultat comme une table</p>
+          <p>On place la requête précédente entre parenthèses, dans <code>FROM</code>&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT ...
+FROM (
+  <span class="fk-syn-hit">SELECT produits.prix * commandes.quantite AS montant</span>
+  <span class="fk-syn-hit">FROM commandes</span>
+  <span class="fk-syn-hit">JOIN produits</span>
+    <span class="fk-syn-hit">ON commandes.produit_id = produits.id</span>
+) AS commandes_montants;</pre></div>
+          <p>La requête principale lit alors ce résultat comme s’il s’agissait d’une table&nbsp;:</p>
+          <div class="pk-comp ij-t"><p class="ij-tlab">résultat de la sous-requête · commandes_montants</p><div class="pk-mini is-1"><span class="is-h">montant</span><span>59.8</span><span>19.9</span><span>34.9</span></div><p class="ij-tmore">… et 13 autres montants</p></div>
+          <p class="ij-arrow">👉 Une sous-requête placée dans <code>FROM</code> s’appelle une <b>table dérivée</b>.</p>
+          <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>Bon à savoir</p><p><code>AS commandes_montants</code> donne un nom à ce résultat. Certaines bases, comme MySQL, refusent une sous-requête dans <code>FROM</code> sans alias&nbsp;: prends l’habitude d’en mettre un.</p></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Calculer la moyenne</p>
+          <p>La table dérivée contient une colonne <code>montant</code>. Il suffit maintenant d’en calculer la moyenne&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT <span class="fk-syn-hit">AVG(montant)</span>
+FROM (
+  ...
+) AS commandes_montants;</pre></div>
+          <p class="ij-arrow">👉 La sous-requête s’exécute d’abord&nbsp;; <code>AVG</code> travaille ensuite sur son résultat.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">La requête complète</p>
+          <p>Il ne reste plus qu’à réunir toutes les étapes.</p>
+          <p>👇 Exécute la requête pour voir le résultat&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT AVG(montant)&#10;FROM (&#10;  SELECT produits.prix * commandes.quantite AS montant&#10;  FROM commandes&#10;  JOIN produits&#10;    ON commandes.produit_id = produits.id&#10;) AS commandes_montants;"></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 16 commandes à un montant moyen"><li class="ij-fn-row"><b>16</b><span>commandes<small>toute la table commandes</small></span></li><li class="ij-fn-step"><code>prix × quantite</code><small>la sous-requête calcule chaque montant</small></li><li class="ij-fn-row"><b>16</b><span>montants<small>la table dérivée commandes_montants</small></span></li><li class="ij-fn-step"><code>AVG(montant)</code><small>la requête principale calcule la moyenne</small></li><li class="ij-fn-row is-out"><b>46,72&nbsp;€</b><span>montant moyen d’une commande<small>une seule valeur</small></span></li></ol></div>
+        </div>
+      </div>`},
+    reflexTitle:"Le réflexe à retenir",
+    reflex:{extra:`<p>Une sous-requête dans <code>FROM</code> prépare un résultat intermédiaire, que la requête principale utilise comme une table.</p>
+          <p>La structure à retenir&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT calcul
+FROM (
+    SELECT ...
+    FROM ...
+) AS alias;</pre></div>
+          <p>Dans notre exemple&nbsp;:</p>
+          <div class="memory-rule is-trio is-chain"><div class="memory-a"><b>Sous-requête</b><span>Calcule le montant de chaque commande</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>Alias</b><span>Nomme ce résultat <code>commandes_montants</code></span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>Requête principale</b><span>Calcule la moyenne des montants</span></div></div>
+          <p class="agg-reflex" style="margin-top:14px">👉 Quand un calcul porte sur le résultat d’un autre calcul, pense à une sous-requête dans <code>FROM</code>.</p>`}},
+  noTeste:true,
+  noAnat:true,
   anatomie:[
     {tok:"SELECT AVG(montant)",txt:"La moyenne calculée sur le résultat intermédiaire."},
     {tok:"FROM ( … ) AS commandes_montants",txt:"La sous-requête est utilisée comme une table, avec un alias."},
@@ -14802,10 +14892,6 @@ JOIN produits
   exemple:"SELECT AVG(montant)\nFROM (\n  SELECT produits.prix * commandes.quantite AS montant\n  FROM commandes\n  JOIN produits\n    ON commandes.produit_id = produits.id\n) AS commandes_montants;",
   attendu:"1 ligne : la moyenne des 16 montants de commande, environ 46,72.",
   retenir:"Une sous-requête dans <code>FROM</code> produit un <b>résultat intermédiaire</b> que la requête principale utilise comme une table.<br><br>Ici : d’abord <code>prix * quantite</code> pour chaque commande, puis <code>AVG(montant)</code> sur ce résultat.<br><br>On l’appelle une <b>table dérivée</b> : elle doit avoir un alias, comme <code>AS commandes_montants</code>.",
-  piege:{t:"Oublier l’alias",
-    p:"Une sous-requête dans le <code>FROM</code> doit avoir un alias, par exemple <code>AS commandes_montants</code>. Sans ce nom, SQL ne peut pas utiliser le résultat comme une table.",
-    mark:"AS commandes_montants",
-    sql:"SELECT AVG(montant)\nFROM (\n  SELECT produits.prix * commandes.quantite AS montant\n  FROM commandes\n  JOIN produits\n    ON commandes.produit_id = produits.id\n) AS commandes_montants;"},
   consigne:"Calcule le montant moyen des commandes en utilisant une sous-requête dans le <code>FROM</code>.",
   solution:"SELECT AVG(montant)\nFROM (\n  SELECT produits.prix * commandes.quantite AS montant\n  FROM commandes\n  JOIN produits\n    ON commandes.produit_id = produits.id\n) AS commandes_montants;",
   indice:"Dans la sous-requête, calcule <code>produits.prix * commandes.quantite AS montant</code>. Donne un alias au résultat, puis calcule <code>AVG(montant)</code>.",
@@ -14849,192 +14935,107 @@ learningCheck:{
 },
 { id:55, titre:"EXISTS et NOT EXISTS", résumé:"Tester la présence ou l’absence d’une ligne liée",
   situation:`<p>L’équipe commerciale prépare deux campagnes&nbsp;: une relance pour les clients qui ont déjà commandé, et une offre de bienvenue pour ceux qui n’ont encore rien acheté.</p><p>Pour répartir les clients, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Nom du client</b><span>table clients</span></div><div role="listitem"><b>🛒 Commandes du client</b><span class="is-b">table commandes</span></div></div><p>🤔 <b>Problème&nbsp;:</b> peu importe le nombre de commandes&nbsp;: pour chaque client, il suffit de savoir s’il en existe <b>au moins une</b>.</p><p>Chaque client va donc dans l’un des deux groupes&nbsp;:</p><ol class="fk-syn-map" aria-label="Les deux groupes"><li><b aria-hidden="true">1</b><div><strong>Au moins une commande → relance</strong></div></li><li><b aria-hidden="true">2</b><div><strong>Aucune commande → offre de bienvenue</strong></div></li></ol><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Retrouve les clients qui n’ont encore jamais commandé, pour leur envoyer l’offre de bienvenue.</p></div>`,
-    studio:{problem:{eye:"EXISTS",title:"Vérifier si une ligne liée existe.",
-      body:`<div class="pt-lead"><p><code>EXISTS</code> vérifie si une sous-requête trouve au moins une ligne.</p><p>Pour chaque ligne, SQL se pose simplement la question :</p><p>« Est-ce que je trouve au moins une correspondance ? »</p><p>Oui → la ligne est gardée.<br>Non → la ligne est écartée.</p><p><code>NOT EXISTS</code> fait l’inverse : il garde la ligne lorsqu’aucune correspondance n’existe.</p></div>`},
-    uses:{title:"Une existence, pas une liste.",
-      body:`<div class="pt-lead fn-uses">
+  studio:{problem:{eye:"",title:"Comment savoir si un client a déjà commandé&nbsp;?",
+      body:"Prenons deux clients&nbsp;:",
+      extra:`<p>Pour Sophie (id 1), on cherche dans la <code>table&nbsp;commandes</code> les lignes où l’id du client (<code>commandes.client_id</code>) vaut 1&nbsp;:</p>
+        <div class="pk-comp ij-t"><p class="ij-tlab">table commandes · client 1</p><div class="pk-mini is-2"><span class="is-h">id</span><span class="is-h">client_id</span><span>1</span><span class="is-hit">1</span><span>2</span><span class="is-hit">1</span><span>13</span><span class="is-hit">1</span></div></div>
+        <p>✅ On en trouve 3&nbsp;: Sophie a déjà commandé.</p>
+        <p>Pour Inès (id 9), on cherche les lignes où l’id du client vaut 9&nbsp;:</p>
+        <p class="ij-box">❌ Aucune ligne&nbsp;: Inès n’a jamais commandé.</p>
+        <p class="ij-arrow">👉 Le nombre de commandes n’a pas d’importance. La seule question est&nbsp;: <b>existe-t-il au moins une ligne&nbsp;?</b></p>
+        <p class="ij-arrow">👉 C’est exactement ce que teste <code>EXISTS</code>&nbsp;: la réponse est vraie ou fausse.</p>`},
+    uses:{title:"Écrire la requête",
+      body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
-          <p class="pt-syntax-h">EXISTS — au moins une commande</p>
-          <p>Pour chaque client, <code>EXISTS</code> vérifie s’il existe au moins une commande dont l’id du client (<code>commandes.client_id</code>) correspond à l’id de ce client (<code>clients.id</code>).</p>
-          <p>Dès qu’une correspondance est trouvée, <code>EXISTS</code> est vrai et le client est gardé.</p>
+          <p class="pt-syntax-h">Partons des clients</p>
+          <p>On veut afficher des clients. On part donc de la <code>table&nbsp;clients</code>&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom
+FROM clients;</pre></div>
+          <p class="ij-arrow">👉 On obtient les 10 clients.</p>
+          <p>Pour chacun, il faut vérifier s’il existe au moins une commande dans la <code>table&nbsp;commandes</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Chercher les commandes du client en cours</p>
+          <p>La sous-requête sélectionne les commandes du client en cours&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT 1
+FROM commandes
+WHERE <span class="fk-syn-hit">commandes.client_id = clients.id</span></pre></div>
+          <div class="ij-match" role="img" aria-label="commandes.client_id comparé à clients.id"><code>commandes.client_id</code><i aria-hidden="true">↕</i><code>clients.id</code></div>
+          <p>La colonne <code>clients.id</code> vient de la requête principale&nbsp;: pour chaque client, la condition utilise son propre id. C’est une <b>sous-requête corrélée</b>.</p>
+          <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>Pourquoi SELECT 1&nbsp;?</p><p><code>EXISTS</code> ne tient pas compte des valeurs renvoyées par la sous-requête&nbsp;: seule la présence d’une ligne compte. On écrit donc souvent <code>SELECT 1</code>. <code>SELECT *</code> donnerait le même résultat.</p></div>
+          <p>⚠️ Sans la condition <code>commandes.client_id = clients.id</code>, la sous-requête renvoie toujours des commandes, quel que soit le client&nbsp;: les 10 clients sont alors gardés, même Inès.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">EXISTS&nbsp;: au moins une commande</p>
+          <p>On place la sous-requête après <code>WHERE EXISTS</code>&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom
 FROM clients
-WHERE EXISTS (
+WHERE <span class="fk-syn-hit">EXISTS</span> (
   SELECT 1
   FROM commandes
   WHERE commandes.client_id = clients.id
 );</pre></div>
-          <p>Résultat : 8 clients à relancer.</p>
-          <p>Inès n’a aucune commande : elle est écartée.</p>
-          <p>Sophie en a 3 : elle est gardée une seule fois, car <code>EXISTS</code> vérifie seulement qu’au moins une commande existe.</p>
-          <p class="fn-tip"><b>Pourquoi <code>SELECT 1</code> ?</b> <code>EXISTS</code> ne regarde pas les valeurs retournées par la sous-requête. Il vérifie seulement si elle trouve au moins une ligne.<br><br>On écrit donc souvent <code>SELECT 1</code> pour montrer que le contenu de la ligne n’a pas d’importance. <code>SELECT *</code> fonctionnerait aussi.</p>
+          <p>Pour chaque client&nbsp;:</p>
+          <div class="pk-comp ij-t"><p class="ij-tlab">chaque client est testé</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">EXISTS</span><span>1</span><span>Sophie</span><span class="is-hit">✅</span><span>2</span><span>Lucas</span><span class="is-hit">✅</span><span>9</span><span>Inès</span><span>❌</span><span>10</span><span>Nathan</span><span>❌</span></div><p class="ij-tmore">… et 6 autres clients ✅</p></div>
+          <p>👇 Exécute la requête&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT clients.nom&#10;FROM clients&#10;WHERE EXISTS (&#10;  SELECT 1&#10;  FROM commandes&#10;  WHERE commandes.client_id = clients.id&#10;);"></div>
+          <p class="ij-arrow">👉 8 clients ont au moins une commande&nbsp;: ce sont eux que l’équipe va relancer. Sophie n’apparaît qu’une fois, même avec 3 commandes.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Une sous-requête corrélée</p>
-          <p>La sous-requête doit vérifier les commandes du client en cours.</p>
-          <p>C’est cette condition qui crée le lien :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">commandes.client_id = clients.id</pre></div>
-          <p>Pour chaque client, la valeur de <code>clients.id</code> change. La sous-requête est donc vérifiée à nouveau avec l’identifiant du client en cours.</p>
-          <p>C’est ce qu’on appelle une <b>sous-requête corrélée</b> : elle dépend d’une valeur provenant de la requête principale.</p>
-          <ol class="pt-chain" aria-label="Lecture d’EXISTS, client par client">
-            <li class="pt-hop">
-              <span class="pt-hop-n">1</span>
-              <span class="pt-hop-txt">
-                <b>Sophie</b>
-                <span class="pt-hop-k">id = 1</span>
-                <span class="pt-hop-out">On vérifie :</span>
-                <span class="pt-hop-v">Existe-t-il une commande avec <code>client_id = 1</code> ?</span>
-                <span class="pt-hop-ans ok">OUI → Sophie est gardée</span>
-              </span>
-            </li>
-            <li class="pt-hop">
-              <span class="pt-hop-n">2</span>
-              <span class="pt-hop-txt">
-                <b>Lucas</b>
-                <span class="pt-hop-k">id = 2</span>
-                <span class="pt-hop-out">On vérifie :</span>
-                <span class="pt-hop-v">Existe-t-il une commande avec <code>client_id = 2</code> ?</span>
-                <span class="pt-hop-ans ok">OUI → Lucas est gardé</span>
-              </span>
-            </li>
-            <li class="pt-hop pt-hop-more" aria-hidden="true">
-              <span class="pt-hop-n">…</span>
-              <span class="pt-hop-txt"><span class="pt-hop-out">les autres clients</span></span>
-            </li>
-            <li class="pt-hop is-no">
-              <span class="pt-hop-n">9</span>
-              <span class="pt-hop-txt">
-                <b>Inès</b>
-                <span class="pt-hop-k">id = 9</span>
-                <span class="pt-hop-out">On vérifie :</span>
-                <span class="pt-hop-v">Existe-t-il une commande avec <code>client_id = 9</code> ?</span>
-                <span class="pt-hop-ans no">NON → Inès est écartée</span>
-              </span>
-            </li>
-          </ol>
-          <p><code>EXISTS</code> n’a pas besoin de compter les commandes. Dès qu’une première correspondance est trouvée, le test est vrai.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">NOT EXISTS — aucune commande</p>
-          <p><code>NOT EXISTS</code> fait l’inverse de <code>EXISTS</code>.</p>
-          <p>Pour chaque client, SQL vérifie toujours s’il existe au moins une commande liée.</p>
-          <p>Cette fois :</p>
-          <ul class="fn-reflex-list">
-            <li>Une commande existe → client écarté</li>
-            <li>Aucune commande n’existe → client gardé</li>
-          </ul>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom
-FROM clients
-WHERE NOT EXISTS (
-  SELECT 1
-  FROM commandes
-  WHERE commandes.client_id = clients.id
-);</pre></div>
-          <p>Résultat : Inès et Nathan n°10 — les deux clients à qui proposer l’offre de bienvenue.</p>
-          <p>Pour Inès (<code>id = 9</code>), la sous-requête cherche une commande avec <code>client_id = 9</code>.</p>
-          <p>Elle n’en trouve aucune → <code>NOT EXISTS</code> est vrai → Inès est gardée.</p>
-          <p class="fn-tip"><b>Et la commande invitée ?</b> La commande #16 n’est liée à aucun client (<code>client_id = NULL</code>).<br><br>Elle ne compte donc comme commande d’aucun client et ne change pas le résultat.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">IN ou EXISTS ?</p>
-          <p>Les deux peuvent servir à filtrer, mais ils ne raisonnent pas de la même manière.</p>
-          <p><code>IN</code> demande :</p>
-          <p>« Cette valeur est-elle dans cette liste ? »</p>
-          <div class="pt-syntax"><pre class="cw-syntax">WHERE ville IN ('Paris', 'Lyon')</pre></div>
-          <p><code>EXISTS</code> demande :</p>
-          <p>« Existe-t-il au moins une ligne qui correspond ? »</p>
-          <div class="pt-syntax"><pre class="cw-syntax">WHERE EXISTS (
+          <p class="pt-syntax-h">NOT EXISTS&nbsp;: aucune commande</p>
+          <p><code>NOT EXISTS</code> fait l’inverse&nbsp;: il garde le client quand <b>aucune</b> commande ne correspond.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">WHERE <span class="fk-syn-hit">NOT EXISTS</span> (
   SELECT 1
   FROM commandes
   WHERE commandes.client_id = clients.id
 )</pre></div>
-          <div class="table-wrap"><table class="concept-table fit-2">
-            <thead><tr><th>Tu veux savoir…</th><th>Utilise</th></tr></thead>
-            <tbody>
-              <tr><td>Une valeur est dans une liste ?</td><td><code>IN</code></td></tr>
-              <tr><td>Une ligne liée existe ?</td><td><code>EXISTS</code></td></tr>
-              <tr><td>Une valeur n’est pas dans la liste ?</td><td><code>NOT IN</code></td></tr>
-              <tr><td>Aucune ligne liée n’existe ?</td><td><code>NOT EXISTS</code></td></tr>
-            </tbody>
-          </table></div>
-          <p class="fn-tip"><b>Réflexe</b> Liste de valeurs → <code>IN</code><br>Existence d’une correspondance → <code>EXISTS</code></p>
-          <p>Avec <code>IN</code>, tu cherches une valeur dans une liste. Avec <code>EXISTS</code>, tu vérifies qu’une correspondance existe.</p>
+          <div class="ij-need" role="list" aria-label="EXISTS et NOT EXISTS"><div role="listitem"><b>EXISTS</b><span>au moins une commande</span></div><div role="listitem"><b>NOT EXISTS</b><span class="is-b">aucune commande</span></div></div>
+          <p class="ij-arrow">👉 C’est ce dont l’équipe a besoin pour l’offre de bienvenue.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Le piège de NOT IN</p>
-          <p>Pour la commande #16, l’id du client (<code>commandes.client_id</code>) vaut <code>NULL</code>.</p>
-          <p>La sous-requête produit donc une liste qui contient aussi <code>NULL</code> :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">1, 2, 3, 4, 5, 6, 7, 8, NULL</pre></div>
-          <p>Avec <code>NOT IN</code>, ce <code>NULL</code> pose problème : SQL ne peut plus déterminer avec certitude qu’un identifiant est absent de la liste.</p>
+          <p class="pt-syntax-h">La requête complète</p>
+          <p>Il ne reste plus qu’à réunir toutes les étapes.</p>
+          <p>👇 Exécute la requête pour voir le résultat&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT clients.nom&#10;FROM clients&#10;WHERE NOT EXISTS (&#10;  SELECT 1&#10;  FROM commandes&#10;  WHERE commandes.client_id = clients.id&#10;);"></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 10 clients à 2 clients sans commande"><li class="ij-fn-row"><b>10</b><span>clients au départ<small>toute la table clients</small></span></li><li class="ij-fn-step"><code>WHERE NOT EXISTS (…)</code><small>aucune commande pour ce client</small></li><li class="ij-fn-row is-out"><b>2</b><span>clients pour l’offre de bienvenue<small>Inès et Nathan n°10</small></span></li></ol></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Pourquoi pas NOT IN&nbsp;?</p>
+          <p>On pourrait aussi chercher les clients dont l’id n’apparaît pas dans la liste des commandes&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom
 FROM clients
 WHERE clients.id NOT IN (
   SELECT commandes.client_id
   FROM commandes
 );</pre></div>
-          <p>Résultat : 0 ligne.</p>
-          <p>Même Inès (<code>id = 9</code>), qui n’a pourtant aucune commande, n’est pas retournée.</p>
-          <p class="fn-tip"><b>Le réflexe</b> Pour vérifier qu’aucune ligne liée n’existe, préfère <code>NOT EXISTS</code>.<br><br>Il évite le piège des <code>NULL</code> présents dans la sous-requête.</p>
-          <p class="fn-keep">À retenir : <code>NOT IN</code> + <code>NULL</code> dans la liste = résultat potentiellement inattendu.</p>
+          <p>Mais la commande n°16 n’a pas de client&nbsp;: l’id du client (<code>commandes.client_id</code>) y vaut <code>NULL</code>. Ce <code>NULL</code> se retrouve dans la liste, et <code>NOT IN</code> ne peut plus conclure qu’un id en est absent.</p>
+          <p>👇 Exécute la requête&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT clients.nom&#10;FROM clients&#10;WHERE clients.id NOT IN (&#10;  SELECT commandes.client_id&#10;  FROM commandes&#10;);"></div>
+          <p>❌ Aucune ligne, alors qu’Inès et Nathan n°10 n’ont jamais commandé.</p>
+          <p class="ij-arrow">👉 Pour vérifier qu’aucune ligne liée n’existe, préfère <code>NOT EXISTS</code>&nbsp;: un <code>NULL</code> ne change pas son résultat.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">EXISTS ou JOIN ?</p>
-          <p><code>JOIN</code> et <code>EXISTS</code> ne servent pas exactement au même besoin.</p>
-          <p>Avec un <code>JOIN</code>, tu peux récupérer les informations de la table liée. Si Sophie a 3 commandes, elle peut donc apparaître sur 3 lignes.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom, commandes.quantite
-FROM clients
-JOIN commandes
-  ON clients.id = commandes.client_id;</pre></div>
-          <p>Avec <code>EXISTS</code>, tu ne récupères pas les commandes. Tu vérifies seulement si au moins une commande existe pour chaque client.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom
-FROM clients
-WHERE EXISTS (
-  SELECT 1
-  FROM commandes
-  WHERE commandes.client_id = clients.id
-);</pre></div>
-          <p class="fn-tip"><b>Le réflexe</b> Tu as besoin des données de <code>commandes</code> ? → <code>JOIN</code><br><br>Tu veux seulement savoir si une commande existe ? → <code>EXISTS</code></p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Ajouter une condition</p>
-          <p><code>EXISTS</code> peut rechercher une correspondance plus précise.</p>
-          <p>Ici, on ne cherche plus simplement les clients qui ont commandé. On cherche ceux qui ont commandé le produit Fibre Prébiotique (<code>produit_id = 1</code>).</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom
-FROM clients
-WHERE EXISTS (
-  SELECT 1
-  FROM commandes
-  WHERE commandes.client_id = clients.id
-    AND commandes.produit_id = 1
-);</pre></div>
-          <p>La commande doit respecter les deux conditions :</p>
-          <ul class="fn-reflex-list">
-            <li><code>commandes.client_id = clients.id</code><br>→ elle appartient au client en cours</li>
-            <li><code>commandes.produit_id = 1</code><br>→ elle concerne le produit Fibre Prébiotique</li>
-          </ul>
-          <p>Si au moins une commande respecte les deux, le client est gardé.</p>
-          <p>Résultat : Sophie, Nathan, Chloé et Léa.</p>
+          <p class="pt-syntax-h">EXISTS ou JOIN&nbsp;?</p>
+          <p>Avec un <code>JOIN</code>, on récupère les informations de la <code>table&nbsp;commandes</code>&nbsp;: Sophie apparaît alors sur 3 lignes, une par commande.</p>
+          <p>Avec <code>EXISTS</code>, on ne récupère rien de la <code>table&nbsp;commandes</code>&nbsp;: on vérifie seulement qu’une commande existe, et chaque client apparaît une seule fois.</p>
+          <div class="ij-need" role="list" aria-label="JOIN ou EXISTS"><div role="listitem"><b>Besoin des colonnes de commandes</b><span>JOIN</span></div><div role="listitem"><b>Savoir si une commande existe</b><span class="is-b">EXISTS</span></div></div>
         </div>
       </div>`},
-    why:{eye:"",title:"Sans corrélation, EXISTS teste la même chose pour tous",
-      body:`<div class="pt-lead"><p>Si la sous-requête n’est pas reliée au client en cours, <code>EXISTS</code> vérifie simplement si la table <code>commandes</code> contient au moins une ligne.</p>
-      <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom
-FROM clients
-WHERE EXISTS (
-  SELECT 1
-  FROM commandes
+    reflexTitle:"Le réflexe à retenir",
+    reflex:{extra:`<p><code>EXISTS</code> vérifie si une sous-requête trouve au moins une ligne&nbsp;; <code>NOT EXISTS</code> vérifie qu’elle n’en trouve aucune.</p>
+          <p>La structure à retenir&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT colonne
+FROM table
+WHERE [NOT] EXISTS (
+    SELECT 1
+    FROM autre_table
+    WHERE lien avec la ligne en cours
 );</pre></div>
-      <p>Comme la table <code>commandes</code> n’est pas vide, <code>EXISTS</code> est vrai.</p>
-      <p>Résultat : les 10 clients sont gardés, même Inès et Nathan n°10.</p>
-      <p>Ce qui manque, c’est le lien avec chaque client :</p>
-      <div class="pt-syntax"><pre class="cw-syntax">WHERE commandes.client_id = clients.id</pre></div>
-      <p>Cette condition permet à la sous-requête de vérifier les commandes du client en cours.</p>
-      <p class="fn-tip"><b>Le réflexe</b> Avec <code>EXISTS</code>, vérifie toujours que la sous-requête est bien reliée à la ligne en cours.</p></div>`},
-    reflex:{note:"Avant de choisir, demande-toi : <b>est-ce une liste de valeurs, ou l’existence d’une ligne ?</b>",
-      extra:`<ul class="fn-reflex-list"><li>Présence d’une correspondance → <code>EXISTS</code></li><li>Absence d’une correspondance → <code>NOT EXISTS</code></li><li>Appartenance à une liste → <code>IN</code></li></ul>
-      <p>Avec <code>EXISTS</code>, relie la sous-requête à la ligne en cours.</p>
-      <p>Dans la sous-requête, on écrit souvent <code>SELECT 1</code> : seules l’existence ou l’absence d’une ligne comptent.</p>
-      <p>Pour vérifier l’absence d’une correspondance, <code>NOT EXISTS</code> évite notamment le piège des <code>NULL</code> que peut rencontrer <code>NOT IN</code>.</p>`}},
+          <p>Dans notre exemple&nbsp;:</p>
+          <div class="memory-rule is-trio is-chain"><div class="memory-a"><b>Requête principale</b><span>Une ligne par client</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>Sous-requête corrélée</b><span>Sélectionne les commandes de ce client</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>NOT EXISTS</b><span>Garde le client quand elle ne renvoie aucune ligne</span></div></div>
+          <p class="agg-reflex" style="margin-top:14px">👉 Liste de valeurs → <code>IN</code>. Existence d’une ligne liée → <code>EXISTS</code>. Absence d’une ligne liée → <code>NOT EXISTS</code>.</p>`}},
+  noTeste:true,
+  noAnat:true,
   anatomieList:[
     {label:'EXISTS',tone:'good',lines:[
       {tok:"SELECT clients.nom",txt:"Le nom du client."},
@@ -15050,17 +15051,8 @@ WHERE EXISTS (
     ]}
   ],
   exemple:"SELECT clients.nom\nFROM clients\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM commandes\n  WHERE commandes.client_id = clients.id\n);",
-  attendu:"1 ligne : Inès, pour l’offre de bienvenue. La commande invitée #16 ne la fait pas disparaître.",
+  attendu:"<b>2 lignes</b> : Inès et Nathan n°10, les deux clients qui n’ont jamais commandé. La commande n°16, sans client, ne change pas le résultat.",
   retenir:"<code>EXISTS</code> teste la <b>présence d’une ligne</b>, pas une valeur. La sous-requête est <b>corrélée</b> : <code>commandes.client_id = clients.id</code>. <code>NOT EXISTS</code> trouve les absents, même si un <code>client_id</code> vaut <code>NULL</code>. Un <code>JOIN</code> multiplie les lignes ; <code>EXISTS</code> n’en garde qu’une.",
-  pieges:[
-    {t:"Oublier de relier la sous-requête",
-      p:"Avec <code>EXISTS</code>, la sous-requête doit être reliée à la ligne en cours :<br><br><code>WHERE commandes.client_id = clients.id</code><br><br>Sans cette condition, SQL vérifie seulement si une commande quelconque existe.<br><br>Comme la table <code>commandes</code> contient des lignes, <code>EXISTS</code> est vrai pour tous les clients, même Inès."},
-    {lab:"Attention",t:"Préfère NOT EXISTS à NOT IN quand des NULL traînent",
-      p:"Pour la commande #16, l’id du client (<code>commandes.client_id</code>) vaut <code>NULL</code>.<br><br>Si ce <code>NULL</code> apparaît dans la liste produite par la sous-requête, <code>NOT IN</code> peut ne retourner aucune ligne, même pour un client sans commande.",
-      exec:true,
-      sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n);",
-      tail:"Résultat : 0 ligne.<br><br><b>Le bon réflexe</b><br>Pour chercher l’absence d’une ligne liée, préfère :<br><br><code>NOT EXISTS</code>"}
-  ],
   consigne:"Pour l’offre de bienvenue, affiche les noms des clients qui n’ont jamais commandé, avec <code>NOT EXISTS</code>.",
   solution:"SELECT clients.nom\nFROM clients\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM commandes\n  WHERE commandes.client_id = clients.id\n);",
   indice:"<code>WHERE NOT EXISTS (SELECT 1 FROM commandes WHERE commandes.client_id = clients.id)</code>.",
@@ -15114,137 +15106,96 @@ learningCheck:{
 },
 { id:59, titre:"WITH", résumé:"Nommer un résultat intermédiaire",
   situation:`<p>L’équipe marketing veut identifier les clients réguliers, c’est-à-dire ceux qui ont passé <b>au moins 2 commandes</b>, afin de mieux cibler ses prochaines actions.</p><p>Pour les repérer, elle a besoin d’une information&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>🛒 Commandes de chaque client</b><span class="is-b">table commandes</span></div></div><p>🤔 <b>Problème&nbsp;:</b> il faut d’abord compter les commandes de chaque client, puis filtrer ce résultat. Imbriquer une requête dans une autre fonctionne, mais les parenthèses deviennent vite difficiles à lire.</p><p>Il faut donc procéder en deux étapes&nbsp;:</p><ol class="fk-syn-map" aria-label="Les deux étapes"><li><b aria-hidden="true">1</b><div><strong>Compter les commandes de chaque client et donner un nom à ce résultat</strong></div></li><li><b aria-hidden="true">2</b><div><strong>Garder les clients qui ont au moins 2 commandes</strong></div></li></ol><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Retrouve les clients qui ont passé au moins 2 commandes, en préparant d’abord le résultat intermédiaire.</p></div>`,
-    studio:{pointCards:{
-      eye:"WITH",title:"Je prépare, je nomme, j’utilise.",
-      lead:"Une CTE est un résultat intermédiaire nommé que tu peux utiliser dans la requête qui suit. <code>WITH</code> le prépare, <code>AS</code> le nomme, le <code>SELECT</code> final s’en sert.",
-      chain:[
-        {k:"WITH",v:"je prépare"},
-        {k:"AS",v:"je nomme"},
-        {k:"SELECT",v:"j’utilise"}
-      ]},
-    uses:{title:"Une étape, un nom.",
-      body:`<div class="pt-lead fn-uses">
+  studio:{problem:{eye:"",title:"Comment repérer les clients réguliers&nbsp;?",
+      body:"Le calcul se fait en deux étapes.",
+      extra:`<p>D’abord, on compte les commandes de chaque client&nbsp;:</p>
+        <div class="pk-comp ij-t"><p class="ij-tlab">résultat intermédiaire</p><div class="pk-mini is-2"><span class="is-h">client_id</span><span class="is-h">nb_commandes</span><span>1</span><span class="is-hit">3</span><span>2</span><span class="is-hit">2</span><span>6</span><span>1</span><span>8</span><span>1</span></div><p class="ij-tmore">… et 4 autres clients</p></div>
+        <p>Ensuite, on garde les lignes où <code>nb_commandes</code> vaut au moins 2.</p>
+        <p class="ij-arrow">👉 La deuxième étape travaille sur le résultat de la première.</p>
+        <p>Une sous-requête dans <code>FROM</code> sait déjà le faire, mais la première étape se retrouve cachée au milieu de la requête, entre parenthèses&nbsp;:</p>
+        <div class="pt-syntax"><pre class="cw-syntax">SELECT *
+FROM (
+    SELECT client_id, COUNT(*) AS nb_commandes
+    FROM commandes
+    WHERE client_id IS NOT NULL
+    GROUP BY client_id
+) AS totaux
+WHERE nb_commandes >= 2;</pre></div>
+        <p class="ij-arrow">👉 <code>WITH</code> permet d’écrire la première étape au début de la requête et de lui donner un nom&nbsp;: la requête se lit alors de haut en bas.</p>`},
+    uses:{title:"Écrire la requête",
+      body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
-          <p class="pt-syntax-h">Qu’est-ce qu’une CTE ?</p>
-          <p>CTE signifie <i>Common Table Expression</i> : expression de table commune. Le nom complet importe peu.</p>
-          <p>Retiens : une CTE est un résultat intermédiaire nommé, utilisable dans la requête qui suit — comme une table, le temps de cette instruction.</p>
+          <p class="pt-syntax-h">Compter les commandes de chaque client</p>
+          <p>On compte les commandes de la <code>table&nbsp;commandes</code>, regroupées par client&nbsp;:</p>
+          <p>👇 Exécute cette requête&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT client_id, COUNT(*) AS nb_commandes&#10;FROM commandes&#10;WHERE client_id IS NOT NULL&#10;GROUP BY client_id;"></div>
+          <p class="ij-arrow">👉 On obtient 8 lignes&nbsp;: une par client qui a déjà commandé, avec son nombre de commandes.</p>
+          <p><code>WHERE client_id IS NOT NULL</code> écarte la commande n°16, qui n’est rattachée à aucun client.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">La syntaxe de WITH</p>
+          <p class="pt-syntax-h">Nommer ce résultat avec WITH</p>
+          <p>On place cette requête entre parenthèses, après <code>WITH</code>, et on lui donne un nom&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">WITH totaux AS (</span>
+    SELECT client_id, COUNT(*) AS nb_commandes
+    FROM commandes
+    WHERE client_id IS NOT NULL
+    GROUP BY client_id
+<span class="fk-syn-hit">)</span></pre></div>
+          <div class="ij-need" role="list" aria-label="Le rôle de chaque mot-clé"><div role="listitem"><b>WITH</b><span>prépare le résultat</span></div><div role="listitem"><b>totaux AS (…)</b><span class="is-b">lui donne un nom</span></div></div>
+          <p>Ce résultat nommé s’appelle une <b>CTE</b> (<i>Common Table Expression</i>).</p>
+          <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>Bon à savoir</p><p>Une CTE n’est pas une table enregistrée dans la base&nbsp;: elle existe uniquement le temps de la requête. Une nouvelle requête <code>SELECT * FROM totaux;</code> échoue.</p></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Utiliser le résultat nommé</p>
+          <p>Juste après la CTE, la requête principale utilise <code>totaux</code> comme une table&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
+FROM <span class="fk-syn-hit">totaux</span>
+WHERE nb_commandes &gt;= 2;</pre></div>
+          <p class="ij-arrow">👉 On ne garde que les clients qui ont au moins 2 commandes.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">La requête complète</p>
+          <p>Il ne reste plus qu’à réunir toutes les étapes.</p>
+          <p>👇 Exécute la requête pour voir le résultat&nbsp;:</p>
+          <div class="ij-run" data-run-sql="WITH totaux AS (&#10;    SELECT client_id, COUNT(*) AS nb_commandes&#10;    FROM commandes&#10;    WHERE client_id IS NOT NULL&#10;    GROUP BY client_id&#10;)&#10;SELECT *&#10;FROM totaux&#10;WHERE nb_commandes &gt;= 2;"></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 8 clients avec commandes à 6 clients réguliers"><li class="ij-fn-row"><b>8</b><span>clients ont déjà commandé<small>la CTE totaux</small></span></li><li class="ij-fn-step"><code>WHERE nb_commandes &gt;= 2</code><small>au moins 2 commandes</small></li><li class="ij-fn-row is-out"><b>6</b><span>clients réguliers<small>Hugo et Gabriel, 1 commande chacun, sont écartés</small></span></li></ol></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Afficher le nom des clients</p>
+          <p>La CTE contient seulement l’id du client. Pour afficher son nom, on la relie à la <code>table&nbsp;clients</code>, comme n’importe quelle table&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">WITH totaux AS (
+    SELECT client_id, COUNT(*) AS nb_commandes
+    FROM commandes
+    WHERE client_id IS NOT NULL
+    GROUP BY client_id
+)
+SELECT clients.nom, totaux.nb_commandes
+FROM clients
+<span class="fk-syn-hit">JOIN totaux</span>
+    <span class="fk-syn-hit">ON clients.id = totaux.client_id</span>
+WHERE totaux.nb_commandes &gt;= 2;</pre></div>
+          <p class="ij-arrow">👉 On obtient Sophie, Lucas, Emma, Nathan, Chloé et Léa, avec leur nombre de commandes.</p>
+          <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>Plusieurs CTE</p><p>Après un seul <code>WITH</code>, plusieurs CTE se séparent par des virgules. Chacune peut utiliser celles qui la précèdent&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">WITH
+etape_1 AS (...),
+etape_2 AS (
+    SELECT ... FROM etape_1
+)
+SELECT ... FROM etape_2;</pre></div></div>
+        </div>
+      </div>`},
+    reflexTitle:"Le réflexe à retenir",
+    reflex:{extra:`<p><code>WITH</code> découpe une requête en étapes&nbsp;: chaque étape reçoit un nom, puis la suivante l’utilise comme une table.</p>
+          <p>La structure à retenir&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax">WITH nom_cte AS (
     SELECT ...
 )
 SELECT ...
 FROM nom_cte;</pre></div>
-          <p>Quatre éléments : <code>WITH</code>, le nom, <code>AS (…)</code>, puis la requête principale.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">WITH clients_parisiens AS (
-    SELECT id, nom, ville
-    FROM clients
-    WHERE ville = 'Paris'
-)
-SELECT *
-FROM clients_parisiens;</pre></div>
-          <p><code>clients_parisiens</code> n’est pas une table enregistrée. C’est un résultat disponible pour cette instruction seulement.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">WITH ne crée pas une table</p>
-          <div class="memory-rule">
-            <div class="memory-a"><b>TABLE</b><span>reste dans la base</span></div>
-            <div class="memory-b"><b>CTE</b><span>existe dans l’instruction</span></div>
-          </div>
-          <p>Une fois l’instruction terminée, <code>SELECT * FROM clients_parisiens</code> échoue : la CTE n’existe plus.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Pourquoi une CTE ?</p>
-          <p>Le principal avantage est la lisibilité. Le calcul est séparé de la requête finale.</p>
-          <ol class="pt-lead-list">
-            <li>calculer le nombre de commandes ;</li>
-            <li>relier ce résultat à la table <code>clients</code> ;</li>
-            <li>garder ceux qui en ont au moins 2.</li>
-          </ol>
-          <p>Une CTE n’est pas automatiquement plus rapide. Elle rend un raisonnement complexe plus facile à lire.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Joindre une CTE à une table</p>
-          <p>Une CTE se joint comme un autre résultat tabulaire.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">WITH stats_commandes AS (
-    SELECT client_id, COUNT(*) AS nb_commandes
-    FROM commandes
-    WHERE client_id IS NOT NULL
-    GROUP BY client_id
-)
-SELECT clients.nom, stats_commandes.nb_commandes
-FROM clients
-JOIN stats_commandes
-    ON clients.id = stats_commandes.client_id;</pre></div>
-          <p>La CTE apporte l’id du client et le nombre. La table <code>clients</code> apporte le nom. Le <code>JOIN</code> rassemble les deux.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Plusieurs CTE</p>
-          <p>Après un seul <code>WITH</code>, plusieurs CTE se séparent par des virgules. Une CTE plus tard peut utiliser une CTE définie avant elle.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">WITH
-stats_commandes AS (
-    SELECT client_id, COUNT(*) AS nb_commandes
-    FROM commandes
-    WHERE client_id IS NOT NULL
-    GROUP BY client_id
-),
-clients_fideles AS (
-    SELECT client_id, nb_commandes
-    FROM stats_commandes
-    WHERE nb_commandes >= 2
-)
-SELECT *
-FROM clients_fideles;</pre></div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Plusieurs étapes de calcul</p>
-          <p>Tu veux la moyenne du nombre de commandes par client. D’abord le nombre par client, puis <code>AVG</code> sur ce résultat.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">WITH stats_clients AS (
-    SELECT client_id, COUNT(*) AS nb_commandes
-    FROM commandes
-    WHERE client_id IS NOT NULL
-    GROUP BY client_id
-)
-SELECT AVG(nb_commandes)
-FROM stats_clients;</pre></div>
-          <p>Sophie a 3 commandes, Lucas 2, Hugo 1… La CTE fabrique ces nombres ; le <code>SELECT</code> final calcule leur moyenne.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">CTE ou sous-requête ?</p>
-          <div class="memory-rule">
-            <div class="memory-a"><b>Sous-requête</b><span>calcul placé <b>dans</b> la requête</span></div>
-            <div class="memory-b"><b>CTE</b><span>calcul placé <b>au début</b>, et nommé</span></div>
-          </div>
-          <p>Les deux peuvent donner le même résultat. On choisit souvent <code>WITH</code> parce que le raisonnement se lit de haut en bas.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Réutiliser le même nom</p>
-          <p>Une CTE peut apparaître plusieurs fois dans l’instruction, sans recopier sa définition.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">WITH stats AS (
-    SELECT client_id, COUNT(*) AS nb_commandes
-    FROM commandes
-    WHERE client_id IS NOT NULL
-    GROUP BY client_id
-)
-SELECT *
-FROM stats
-WHERE nb_commandes = (
-    SELECT MAX(nb_commandes)
-    FROM stats
-);</pre></div>
-          <p>Cela ne garantit pas que le SGBD ne calcule qu’une fois. Pour ce cours : tu réutilises un résultat nommé, sans le recopier.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">À découvrir ensuite : WITH RECURSIVE</p>
-          <p>Certaines données forment un arbre : catégorie → sous-catégorie, ou responsable → employé. Quand on ne connaît pas le nombre de niveaux, une CTE peut s’appeler elle-même : <code>WITH RECURSIVE</code>.</p>
-          <p>Ancrage, récursion et condition d’arrêt méritent leur propre cours. Ici, on s’en tient aux CTE classiques.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La situation",t:"Ton calcul comporte plusieurs étapes."},
-      b:{k:"Le réflexe",t:"Donne un nom au résultat d’une étape avec WITH, puis utilise-le dans la suivante."},
-      extra:`<ol class="fk-syn-map" aria-hidden="true"><li><b aria-hidden="true">1</b><div><code>WITH</code><span>Commence la CTE</span></div></li><li><b aria-hidden="true">2</b><div><strong>Calcul intermédiaire</strong></div></li><li><b aria-hidden="true">3</b><div><strong>Nom de la CTE</strong></div></li><li><b aria-hidden="true">4</b><div><strong>Requête finale</strong></div></li></ol>`},
-    withSplit:true},
+          <p>Dans notre exemple&nbsp;:</p>
+          <div class="memory-rule is-trio is-chain"><div class="memory-a"><b>WITH</b><span>Prépare le nombre de commandes par client</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>AS</b><span>Nomme ce résultat <code>totaux</code></span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>SELECT</b><span>Garde les clients réguliers</span></div></div>
+          <p class="agg-reflex" style="margin-top:14px">👉 Quand un calcul comporte plusieurs étapes, nomme chaque étape avec <code>WITH</code>&nbsp;: la requête se lit de haut en bas.</p>`}},
+  noTeste:true,
+  noAnat:true,
   anatomie:[
     {tok:"WITH totaux AS (",txt:"Commence la CTE et lui donne un nom."},
     {tok:"SELECT client_id, COUNT(*) AS nb_commandes FROM commandes …",txt:"La requête qui construit le résultat intermédiaire."},
@@ -15254,18 +15205,10 @@ WHERE nb_commandes = (
   exemple:"WITH totaux AS (\n    SELECT client_id, COUNT(*) AS nb_commandes\n    FROM commandes\n    WHERE client_id IS NOT NULL\n    GROUP BY client_id\n)\nSELECT *\nFROM totaux\nWHERE nb_commandes >= 2;",
   attendu:"<b>6 lignes</b> : les clients qui ont au moins 2 commandes. Sophie en a 3 ; Hugo et Gabriel, 1, restent dehors. La commande invitée (#16) est exclue par <code>IS NOT NULL</code>.",
   retenir:"<code>WITH</code> crée un résultat intermédiaire nommé, utilisé par la requête qui suit.<br><br>Une CTE permet de découper une requête en étapes. Plusieurs CTE peuvent s’enchaîner dans la même instruction.<br><br><code>WITH</code> = je prépare. <code>AS</code> = je nomme. Le <code>SELECT</code> final = j’utilise.",
-  piege:{t:"Une CTE n’est pas une table permanente",
-    p:"<code>WITH parisiens AS (SELECT * FROM clients WHERE ville = 'Paris')</code> fonctionne dans cette instruction. Une nouvelle requête <code>SELECT * FROM parisiens;</code> échoue : <code>parisiens</code> n’existait que le temps du <code>WITH</code>."},
   consigne:"Avec une CTE nommée <code>totaux</code>, compte les commandes de chaque client (sans la commande invitée), puis garde ceux qui en ont au moins 2.",
   solution:"WITH totaux AS (\n    SELECT client_id, COUNT(*) AS nb_commandes\n    FROM commandes\n    WHERE client_id IS NOT NULL\n    GROUP BY client_id\n)\nSELECT *\nFROM totaux\nWHERE nb_commandes >= 2;",
   indice:"<code>WITH totaux AS ( … GROUP BY client_id )</code>, puis <code>SELECT * FROM totaux WHERE nb_commandes &gt;= 2</code>.",
   richLesson:true, earlyDemo:true,
-  petitDefi:[{
-    p:"La CTE <code>stats</code> calcule déjà le nombre de commandes. Complète le filtre pour ne garder que les clients qui en ont au moins deux.",
-    sql:"WITH stats AS (\n    SELECT client_id, COUNT(*) AS nb_commandes\n    FROM commandes\n    WHERE client_id IS NOT NULL\n    GROUP BY client_id\n)\nSELECT *\nFROM stats\nWHERE ____________;",
-    a:"nb_commandes >= 2",
-    answers:["nb_commandes >= 2","nb_commandes>=2"]
-  }],
   testeVariants:[
   {
     "k": "sub",
@@ -15306,15 +15249,76 @@ learningCheck:{
 },
 { id:77, titre:"WITH RECURSIVE", résumé:"Parcourir une suite ou une hiérarchie",
   situation:`<p>L’équipe produit prépare un programme sur 10 jours et veut générer automatiquement <b>les numéros de 1 à 10</b>.</p><p>🤔 <b>Problème&nbsp;:</b> aucune table ne contient ces nombres, et les écrire un par un ne fonctionne plus dès qu’il en faut 100 ou 1&nbsp;000.</p><p>Une CTE récursive construit la liste elle-même, à partir de trois éléments&nbsp;:</p><ol class="fk-syn-map" aria-label="Les trois éléments"><li><b aria-hidden="true">1</b><div><strong>Un point de départ&nbsp;: 1</strong></div></li><li><b aria-hidden="true">2</b><div><strong>Une règle pour passer au suivant&nbsp;: +&nbsp;1</strong></div></li><li><b aria-hidden="true">3</b><div><strong>Une condition d’arrêt&nbsp;: jusqu’à 10</strong></div></li></ol><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Génère les nombres de 1 à 10, sans les écrire un par un.</p></div>`,
-  studio:{pointCards:{eye:"Récursion",title:"Un départ, une répétition, un arrêt.",
-      lead:"Une CTE récursive combine une requête d’ancrage et une requête qui relit la CTE. Le moteur répète la seconde tant qu’elle produit de nouvelles lignes.",
-      chain:[{k:"Ancre",v:"crée les premières lignes"},{k:"UNION ALL",v:"relie les deux parties"},{k:"Récursion",v:"produit les suivantes"},{k:"Arrêt",v:"borne la répétition"}]},
-    uses:{title:"Construire sans boucle applicative.",body:`<div class="pt-lead fn-uses">
-      <div class="fn-use"><p class="pt-syntax-h">Les quatre pièces</p><ol class="pt-lead-list"><li>le mot-clé <code>WITH RECURSIVE</code> ;</li><li>une ancre indépendante de la CTE ;</li><li><code>UNION ALL</code> ;</li><li>une partie récursive qui relit la CTE et contient une condition d’arrêt.</li></ol></div>
-      <div class="fn-use"><p class="pt-syntax-h">Pourquoi UNION ALL ?</p><p>La récursion construit des étapes successives. <code>UNION ALL</code> évite le coût de dédoublonnage et conserve chaque étape. Il faut surtout empêcher les cycles par les données ou par une borne explicite.</p></div>
-      <div class="fn-use"><p class="pt-syntax-h">Le vrai usage : les arbres</p><p>Avec une table portant <code>parent_id</code>, l’ancre sélectionne la racine. La récursion joint ensuite les enfants à leurs parents déjà trouvés. La même technique parcourt un organigramme ou des dossiers imbriqués.</p></div>
-    </div>`},
-    reflex:{a:{k:"Je connais les niveaux",t:"plusieurs JOIN peuvent suffire"},b:{k:"Profondeur inconnue",t:"WITH RECURSIVE"},note:"Avant d’exécuter, identifie toujours la condition d’arrêt."}},
+  studio:{problem:{eye:"",title:"Comment fabriquer une suite de nombres&nbsp;?",
+      body:"Aucune table ne contient ces nombres&nbsp;: il faut les construire.",
+      extra:`<p>On part de 1, puis chaque nombre s’obtient en ajoutant 1 au précédent&nbsp;:</p>
+        <div class="pk-comp ij-t"><p class="ij-tlab">exemple</p><div class="pk-mini is-3"><span class="is-h">étape</span><span class="is-h">calcul</span><span class="is-h">x</span><span>1</span><span>départ</span><span class="is-hit">1</span><span>2</span><span>1 + 1</span><span class="is-hit">2</span><span>3</span><span>2 + 1</span><span class="is-hit">3</span><span>…</span><span>…</span><span>…</span><span>10</span><span>9 + 1</span><span class="is-hit">10</span></div></div>
+        <p>Arrivé à 10, on s’arrête.</p>
+        <p class="ij-arrow">👉 Chaque nouvelle ligne se calcule à partir de la ligne précédente&nbsp;: c’est le principe de la <b>récursion</b>.</p>
+        <p class="ij-arrow">👉 <code>WITH RECURSIVE</code> crée une CTE capable de relire ses propres lignes pour produire les suivantes.</p>`},
+    uses:{title:"Écrire la requête",
+      body:`<div class="pt-lead fn-uses fk-course jn-course">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Le point de départ</p>
+          <p>La première ligne ne dépend de rien&nbsp;: c’est le point de départ, appelé <b>ancre</b>.</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT 1</pre></div>
+          <p class="ij-arrow">👉 Cette requête produit une seule ligne, qui contient 1.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Nommer la CTE</p>
+          <p>On place l’ancre dans une CTE, précédée de <code>WITH RECURSIVE</code>&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">WITH RECURSIVE nombres(x) AS (</span>
+    SELECT 1
+    ...
+<span class="fk-syn-hit">)</span></pre></div>
+          <div class="ij-need" role="list" aria-label="Le nom et la colonne"><div role="listitem"><b>nombres</b><span>le nom de la CTE</span></div><div role="listitem"><b>(x)</b><span class="is-b">le nom de sa colonne</span></div></div>
+          <p class="ij-arrow">👉 La partie récursive pourra ainsi lire la colonne <code>x</code> de <code>nombres</code>.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Passer au nombre suivant</p>
+          <p>Pour obtenir le nombre suivant, on relit la CTE et on ajoute 1&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT 1
+<span class="fk-syn-hit">UNION ALL</span>
+<span class="fk-syn-hit">SELECT x + 1 FROM nombres</span></pre></div>
+          <p><code>SELECT x + 1 FROM nombres</code> lit la dernière ligne produite et calcule la suivante&nbsp;: 1 donne 2, puis 2 donne 3, et ainsi de suite.</p>
+          <p class="ij-arrow">👉 <code>UNION ALL</code> ajoute chaque nouvelle ligne à la suite des précédentes.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">La condition d’arrêt</p>
+          <p>Telle quelle, la partie récursive ne s’arrête jamais&nbsp;: elle produit toujours une ligne de plus. On ajoute donc une condition&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT x + 1 FROM nombres <span class="fk-syn-hit">WHERE x &lt; 10</span></pre></div>
+          <div class="pk-comp ij-t"><p class="ij-tlab">les dernières étapes</p><div class="pk-mini is-3"><span class="is-h">x lu</span><span class="is-h">x &lt; 10</span><span class="is-h">ligne produite</span><span>9</span><span class="is-hit">✅</span><span class="is-hit">10</span><span>10</span><span>❌</span><span>aucune</span></div></div>
+          <p class="ij-arrow">👉 Quand la partie récursive ne produit plus de ligne, la récursion s’arrête.</p>
+          <p>⚠️ Sans condition d’arrêt, la requête tourne jusqu’à épuiser les ressources du moteur. Vérifie toujours l’arrêt avant d’exécuter.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">La requête complète</p>
+          <p>Il ne reste plus qu’à réunir toutes les étapes.</p>
+          <p>👇 Exécute la requête pour voir le résultat&nbsp;:</p>
+          <div class="ij-run" data-run-sql="WITH RECURSIVE nombres(x) AS (&#10;    SELECT 1&#10;    UNION ALL&#10;    SELECT x + 1 FROM nombres WHERE x &lt; 10&#10;)&#10;SELECT x FROM nombres;"></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="D’un point de départ à 10 nombres"><li class="ij-fn-row"><b>1</b><span>ligne de départ<small>l’ancre SELECT 1</small></span></li><li class="ij-fn-step"><code>SELECT x + 1 … WHERE x &lt; 10</code><small>une ligne de plus, tant que x &lt; 10</small></li><li class="ij-fn-row is-out"><b>10</b><span>nombres<small>de 1 à 10</small></span></li></ol></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">À quoi ça sert&nbsp;?</p>
+          <p>Générer une suite de nombres sert, par exemple, à créer un calendrier jour par jour. Mais l’usage principal de <code>WITH RECURSIVE</code>, ce sont les <b>hiérarchies</b>&nbsp;: catégories et sous-catégories, organigrammes, dossiers imbriqués.</p>
+          <p>Dans une table où chaque ligne contient l’id de son parent, l’ancre sélectionne la racine, puis la partie récursive ajoute les enfants de chaque ligne déjà trouvée, niveau après niveau.</p>
+          <p class="ij-arrow">👉 C’est utile quand on ne connaît pas à l’avance le nombre de niveaux.</p>
+        </div>
+      </div>`},
+    reflexTitle:"Le réflexe à retenir",
+    reflex:{extra:`<p>Une CTE récursive construit ses lignes les unes à partir des autres, jusqu’à ce qu’une condition l’arrête.</p>
+          <p>La structure à retenir&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">WITH RECURSIVE nom(colonne) AS (
+    ancre
+    UNION ALL
+    partie récursive WHERE condition d’arrêt
+)
+SELECT ... FROM nom;</pre></div>
+          <p>Dans notre exemple&nbsp;:</p>
+          <div class="memory-rule is-trio is-chain"><div class="memory-a"><b>Ancre</b><span><code>SELECT 1</code>&nbsp;: la première ligne</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>Récursion</b><span><code>x + 1</code>&nbsp;: la ligne suivante</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>Arrêt</b><span><code>WHERE x &lt; 10</code>&nbsp;: la fin de la suite</span></div></div>
+          <p class="agg-reflex" style="margin-top:14px">👉 Avant d’exécuter une CTE récursive, identifie toujours sa condition d’arrêt.</p>`}},
+  noTeste:true,
+  noAnat:true,
   anatomie:[
     {tok:"SELECT 1",txt:"L’ancre crée la première ligne."},
     {tok:"UNION ALL",txt:"Ajoute chaque nouvelle génération à la précédente."},
@@ -15324,12 +15328,10 @@ learningCheck:{
   exemple:"WITH RECURSIVE nombres(x) AS (\n    SELECT 1\n    UNION ALL\n    SELECT x + 1 FROM nombres WHERE x < 10\n)\nSELECT x FROM nombres;",
   attendu:"10 lignes : les entiers de 1 à 10.",
   retenir:"Une CTE récursive contient une <b>ancre</b>, puis une partie qui relit la CTE, généralement reliées par <code>UNION ALL</code>.<br><br>La récursion continue tant qu’elle produit des lignes. Une condition d’arrêt correcte est donc indispensable.<br><br>Elle sert notamment aux suites, arbres, organigrammes et catégories imbriquées.",
-  piege:{t:"Oublier la condition d’arrêt",p:"Sans borne comme <code>WHERE x &lt; 10</code>, la partie récursive continue à produire des lignes jusqu’à la limite du moteur ou l’épuisement des ressources. Écris et vérifie l’arrêt avant d’exécuter."},
   consigne:"Avec une CTE récursive <code>n(x)</code>, génère les nombres pairs de 2 à 10 inclus, dans l’ordre.",
   solution:"WITH RECURSIVE n(x) AS (\n SELECT 2\n UNION ALL\n SELECT x + 2 FROM n WHERE x < 10\n LIMIT 5\n)\nSELECT x FROM n ORDER BY x LIMIT 5;",
   indice:"L’ancre vaut 2. À chaque étape, ajoute 2 et poursuis tant que la valeur courante est inférieure à 10.",
   richLesson:true, earlyDemo:true, ordered:true,
-  petitDefi:[{p:"Quel élément empêche cette suite de continuer indéfiniment ?",sql:"SELECT x + 1 FROM n ____________;",a:"WHERE x < 10",answers:["WHERE x < 10","where x < 10"]}],
   testeVariants:[
     {k:'five',label:'1 à 5',sql:"WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM n WHERE x < 5) SELECT x FROM n;",out:"1, 2, 3, 4, 5.",tone:'good'},
     {k:'even',label:'Nombres pairs',sql:"WITH RECURSIVE n(x) AS (SELECT 2 UNION ALL SELECT x + 2 FROM n WHERE x < 10) SELECT x FROM n;",out:"2, 4, 6, 8, 10."},
@@ -15348,71 +15350,104 @@ learningCheck:{
 },
 { id:73, titre:"UNION et UNION ALL", résumé:"Empiler deux résultats, avec ou sans doublons",
   situation:`<p>L’équipe marketing prépare les filtres de la boutique et veut la liste de <b>toutes les étiquettes</b> utilisées dans la base.</p><p>Pour cette liste, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>📍 Villes des clients</b><span>table clients</span></div><div role="listitem"><b>🏷️ Catégories des produits</b><span class="is-c">table produits</span></div></div><p>🤔 <b>Problème&nbsp;:</b> ces valeurs se trouvent dans deux tables sans lien entre elles. Une ville ne correspond à aucune catégorie&nbsp;: une jointure ne peut donc pas les rapprocher.</p><p>Il faut donc&nbsp;:</p><ol class="fk-syn-map" aria-label="Les trois étapes"><li><b aria-hidden="true">1</b><div><strong>Récupérer les villes des clients</strong></div></li><li><b aria-hidden="true">2</b><div><strong>Récupérer les catégories des produits</strong></div></li><li><b aria-hidden="true">3</b><div><strong>Empiler les deux résultats dans une seule colonne, sans doublon</strong></div></li></ol><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Rassemble les villes et les catégories dans une seule liste, sans doublon.</p></div>`,
-    studio:{pointCards:{
-      eye:"UNION",title:"Deux résultats, une seule liste.",
-      lead:"<code>UNION</code> met bout à bout les lignes de deux <code>SELECT</code>. Les colonnes ne se cumulent pas : ce sont les lignes qui s’ajoutent.",
-      chain:[
-        {k:"UNION",v:"empile et dédoublonne"},
-        {k:"UNION ALL",v:"empile tout"},
-        {k:"JOIN",v:"élargit, ne rallonge pas"}
-      ]},
-    uses:{title:"Empiler, plutôt que croiser.",
-      body:`<div class="pt-lead fn-uses">
+  studio:{problem:{eye:"",title:"Comment réunir deux listes&nbsp;?",
+      body:"Regardons les deux listes à rassembler.",
+      extra:`<p>La <code>table&nbsp;clients</code> fournit une liste de villes, et la <code>table&nbsp;produits</code> une liste de catégories&nbsp;:</p>
+        <div class="pk-comp ij-t"><p class="ij-tlab">table clients</p><div class="pk-mini is-1"><span class="is-h">ville</span><span>Paris</span><span>Lyon</span><span>Marseille</span></div><p class="ij-tmore">… et 7 autres villes</p></div>
+        <div class="pk-comp ij-t"><p class="ij-tlab">table produits</p><div class="pk-mini is-1"><span class="is-h">categorie</span><span>Bien-être</span><span>Beauté</span><span>Bien-être</span></div><p class="ij-tmore">… et 5 autres catégories</p></div>
+        <p>On ne cherche pas à relier une ville à une catégorie&nbsp;: on veut mettre les deux listes <b>l’une sous l’autre</b>, dans une seule colonne.</p>
+        <div class="ij-need" role="list" aria-label="JOIN ou UNION"><div role="listitem"><b>JOIN</b><span>ajoute des colonnes</span></div><div role="listitem"><b>UNION</b><span class="is-b">ajoute des lignes</span></div></div>
+        <p class="ij-arrow">👉 <code>UNION</code> empile les lignes de deux requêtes dans un même résultat.</p>`},
+    uses:{title:"Écrire la requête",
+      body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
-          <p class="pt-syntax-h">La forme</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville FROM clients
+          <p class="pt-syntax-h">Les deux listes</p>
+          <p>Chaque liste s’obtient avec son propre <code>SELECT</code>&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville
+FROM clients;</pre></div>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT categorie
+FROM produits;</pre></div>
+          <p class="ij-arrow">👉 La première renvoie 10 villes, la seconde 8 catégories.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Empiler avec UNION ALL</p>
+          <p>On place <code>UNION ALL</code> entre les deux requêtes&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville
+FROM clients
+<span class="fk-syn-hit">UNION ALL</span>
+SELECT categorie
+FROM produits;</pre></div>
+          <p>👇 Exécute cette requête&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT ville&#10;FROM clients&#10;UNION ALL&#10;SELECT categorie&#10;FROM produits;"></div>
+          <p class="ij-arrow">👉 18 lignes&nbsp;: les 10 villes suivies des 8 catégories. Paris apparaît 4 fois, Bien-être 3 fois.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Écarter les doublons avec UNION</p>
+          <p>L’équipe veut chaque étiquette une seule fois. On remplace donc <code>UNION ALL</code> par <code>UNION</code>&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville
+FROM clients
+<span class="fk-syn-hit">UNION</span>
+SELECT categorie
+FROM produits;</pre></div>
+          <div class="ij-need" role="list" aria-label="UNION ou UNION ALL"><div role="listitem"><b>UNION ALL</b><span>garde les doublons</span></div><div role="listitem"><b>UNION</b><span class="is-b">écarte les doublons</span></div></div>
+          <p class="ij-arrow">👉 Il reste 11 valeurs distinctes&nbsp;: 6 villes et 5 catégories.</p>
+          <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>Bon à savoir</p><p>Pour écarter les doublons, <code>UNION</code> doit comparer toutes les lignes entre elles. Quand tu sais qu’il n’y en a pas, <code>UNION ALL</code> évite ce travail.</p></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Deux règles à respecter</p>
+          <p>Pour empiler deux requêtes, elles doivent renvoyer le <b>même nombre de colonnes</b>, avec des types compatibles colonne par colonne.</p>
+          <p>❌ Une requête à une colonne ne peut pas s’empiler sur une requête à deux colonnes&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT ville&#10;FROM clients&#10;UNION&#10;SELECT categorie, prix&#10;FROM produits;"></div>
+          <p>Le nom de la colonne du résultat est celui de la <b>première</b> requête. Pour choisir un nom qui convient aux deux listes, on met un alias dans la première&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville <span class="fk-syn-hit">AS valeur</span>
+FROM clients
 UNION
-SELECT categorie FROM produits;</pre></div>
-          <p>Dix villes et huit catégories entrent ; onze valeurs sortent. Les doublons ont disparu, et Paris n’apparaît qu’une fois même si quatre clients y habitent.</p>
+SELECT categorie
+FROM produits;</pre></div>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">UNION ALL — garder les doublons</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville FROM clients
-UNION ALL
-SELECT categorie FROM produits;</pre></div>
-          <p>Dix-huit lignes : les dix plus les huit, sans le moindre tri. C’est la somme brute des deux résultats.</p>
-          <p class="fn-tip"><b>Le moins cher des deux</b> <code>UNION</code> doit comparer toutes les lignes pour écarter les doublons. Si tu sais qu’il n’y en a pas, <code>UNION ALL</code> évite ce travail.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Deux conditions à respecter</p>
-          <p>Les deux requêtes doivent renvoyer le <b>même nombre de colonnes</b>, et des types compatibles rang par rang.</p>
-          <div class="tx-fail">
-            <span class="is-ko">une colonne UNION deux colonnes<i>do not have the same number of result columns</i></span>
-          </div>
-          <p>Le nom des colonnes, lui, est libre : c’est celui de la <b>première</b> requête qui est retenu.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Trier l’ensemble</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville AS valeur FROM clients
+          <p class="pt-syntax-h">Trier le résultat</p>
+          <p>Pour trier le résultat, on ajoute un seul <code>ORDER BY</code>, à la toute fin&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville AS valeur
+FROM clients
 UNION
-SELECT categorie FROM produits
-ORDER BY valeur;</pre></div>
-          <p>Un seul <code>ORDER BY</code>, à la toute fin : il trie le résultat complet, pas chaque moitié. C’est pour cela qu’un alias sur la première requête est commode.</p>
+SELECT categorie
+FROM produits
+<span class="fk-syn-hit">ORDER BY valeur</span>;</pre></div>
+          <p class="ij-arrow">👉 <code>ORDER BY</code> trie le résultat complet, pas chaque liste séparément. Il utilise le nom de la première requête&nbsp;: <code>valeur</code>.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Deux voisins moins connus</p>
-          <p><code>INTERSECT</code> ne garde que les valeurs présentes des <b>deux</b> côtés. <code>EXCEPT</code> garde celles du premier résultat qui sont absentes du second.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville FROM clients
-EXCEPT
+          <p class="pt-syntax-h">La requête complète</p>
+          <p>Il ne reste plus qu’à réunir toutes les étapes.</p>
+          <p>👇 Exécute la requête pour voir le résultat&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT ville AS valeur&#10;FROM clients&#10;UNION&#10;SELECT categorie&#10;FROM produits&#10;ORDER BY valeur;"></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 18 lignes à 11 étiquettes distinctes"><li class="ij-fn-row"><b>18</b><span>lignes empilées<small>10 villes + 8 catégories</small></span></li><li class="ij-fn-step"><code>UNION</code><small>les doublons sont écartés</small></li><li class="ij-fn-row is-out"><b>11</b><span>étiquettes pour les filtres<small>triées par ordre alphabétique</small></span></li></ol></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">INTERSECT et EXCEPT</p>
+          <p><code>UNION</code> a deux voisins, qui suivent les mêmes règles de colonnes&nbsp;:</p>
+          <div class="ij-need" role="list" aria-label="INTERSECT et EXCEPT"><div role="listitem"><b>INTERSECT</b><span>présentes dans les deux résultats</span></div><div role="listitem"><b>EXCEPT</b><span class="is-b">présentes dans le premier, absentes du second</span></div></div>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville
+FROM clients
+<span class="fk-syn-hit">EXCEPT</span>
 SELECT 'Paris';</pre></div>
-          <p>Cinq villes : toutes sauf Paris. Les trois opérateurs suivent les mêmes règles de colonnes.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">UNION ou JOIN ?</p>
-          <div class="tx-flow" role="img" aria-label="JOIN ajoute des colonnes, UNION ajoute des lignes">
-            <span class="tx-step">deux tables<i>que veux-tu obtenir ?</i></span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <div class="tx-fork">
-              <div class="tx-branch"><b>JOIN</b><span>plus de colonnes</span></div>
-              <div class="tx-branch"><b>UNION</b><span>plus de lignes</span></div>
-            </div>
-          </div>
-          <p>Rapprocher un client de ses commandes : <code>JOIN</code>. Rassembler deux listes de même nature : <code>UNION</code>.</p>
+          <p class="ij-arrow">👉 Toutes les villes des clients, sauf Paris.</p>
         </div>
       </div>`},
-    reflex:{a:{k:"La question",t:"plus de colonnes, ou plus de lignes ?"},
-      b:{k:"La règle",t:"colonnes → JOIN · lignes → UNION"},
-      note:"Réflexe : <code>UNION</code> dédoublonne, <code>UNION ALL</code> non. Quand tu sais qu’il n’y a pas de doublon, prends <code>UNION ALL</code>."}},
+    reflexTitle:"Le réflexe à retenir",
+    reflex:{extra:`<p><code>UNION</code> empile les lignes de deux requêtes dans un seul résultat.</p>
+          <p>La structure à retenir&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT colonne AS nom
+FROM table_1
+UNION [ALL]
+SELECT colonne
+FROM table_2
+ORDER BY nom;</pre></div>
+          <p>Dans notre exemple&nbsp;:</p>
+          <div class="memory-rule is-trio is-chain"><div class="memory-a"><b>Deux SELECT</b><span>Même nombre de colonnes</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>UNION</b><span>Empile les lignes, sans doublon</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>ORDER BY</b><span>Trie l’ensemble, à la fin</span></div></div>
+          <p class="agg-reflex" style="margin-top:14px">👉 Plus de colonnes → <code>JOIN</code>. Plus de lignes → <code>UNION</code>. Doublons à garder → <code>UNION ALL</code>.</p>`}},
+  noTeste:true,
+  noAnat:true,
   anatomie:[
     {tok:"SELECT ville FROM clients",txt:"La première liste."},
     {tok:"UNION",txt:"Empile la seconde sous la première, sans doublon."},
@@ -15422,18 +15457,6 @@ SELECT 'Paris';</pre></div>
   exemple:"SELECT ville AS valeur\nFROM clients\nUNION\nSELECT categorie\nFROM produits\nORDER BY valeur;",
   attendu:"11 lignes. Dix villes et huit catégories entrent, mais Paris et Lyon se répétaient : UNION ne les garde qu’une fois.",
   retenir:"<code>UNION</code> empile les lignes de deux <code>SELECT</code> et écarte les doublons ; <code>UNION ALL</code> les garde tous.<br><br>Les deux requêtes doivent avoir le <b>même nombre de colonnes</b>. Le nom retenu est celui de la première, et l’unique <code>ORDER BY</code> se place à la fin.<br><br>Le mémo : <b>JOIN élargit, UNION rallonge</b>. <code>INTERSECT</code> et <code>EXCEPT</code> suivent les mêmes règles.",
-  piege:{t:"Croire que UNION garde tout",
-    p:"<code>UNION</code> dédoublonne, en silence. Compter les lignes d’un <code>UNION</code> pour connaître le total des deux tables donne un résultat trop petit — et rien ne le signale.<br><br>Pour additionner sans rien perdre, c’est <code>UNION ALL</code>.",
-    exec:true,
-    sql:"SELECT COUNT(*) AS total\nFROM (\n  SELECT ville FROM clients\n  UNION\n  SELECT categorie FROM produits\n);",
-    out:"11, alors que 10 villes et 8 catégories font 18. Sept valeurs se répétaient.",
-    fixSql:"SELECT COUNT(*) AS total\nFROM (\n  SELECT ville FROM clients\n  UNION ALL\n  SELECT categorie FROM produits\n);"},
-  petitDefi:[{
-    p:"Tu empiles deux listes dont tu sais qu’elles n’ont aucune valeur commune, et tu veux éviter le travail de dédoublonnage. Qu’écris-tu ?",
-    sql:"SELECT … FROM a\n__________\nSELECT … FROM b;",
-    a:"UNION ALL",
-    answers:["UNION ALL","union all","UNION ALL "]
-  }],
   consigne:"Le service marketing veut la liste des étiquettes de la base, sans répétition : toutes les villes des clients et toutes les catégories des produits, dans une seule colonne nommée <code>valeur</code>, triée par ordre alphabétique.",
   solution:"SELECT ville AS valeur\nFROM clients\nUNION\nSELECT categorie\nFROM produits\nORDER BY valeur;",
   indice:"Deux <code>SELECT</code> d’une colonne chacun, reliés par <code>UNION</code>, puis un seul <code>ORDER BY</code> tout à la fin.",
@@ -26346,12 +26369,12 @@ const MISSION_FILLS={
   41:{t:['COUNT','INNER JOIN','GROUP BY','clients.ville']},
   42:{t:['c1','c2','c1.ville','c2.ville','c1.id < c2.id']},
   45:{t:['IN','client_id','commandes','produit_id = 3']},
-  47:{sql:'exemple',t:['COUNT(*)','commandes.client_id','clients.id','AS nb_commandes']},
-  48:{sql:'exemple',t:['AVG','produits.prix * commandes.quantite','JOIN','AS commandes_montants']},
-  55:{sql:'exemple',t:['NOT EXISTS','SELECT 1','commandes.client_id','clients.id']},
-  59:{sql:'exemple',t:['WITH','AS','GROUP BY','totaux']},
-  77:{sql:'exemple',t:['RECURSIVE','UNION ALL','x + 1','x < 10']},
-  73:{sql:'exemple',t:['AS valeur','UNION','categorie','ORDER BY']}
+  47:{t:['COUNT(*)','commandes.client_id','clients.id','AS nb_commandes']},
+  48:{t:['AVG','produits.prix * commandes.quantite','JOIN','AS commandes_montants']},
+  55:{t:['NOT EXISTS','SELECT 1','commandes.client_id','clients.id']},
+  59:{t:['WITH','AS','GROUP BY','totaux']},
+  77:{t:['RECURSIVE','UNION ALL','x + 1','x < 10']},
+  73:{t:['AS valeur','UNION','categorie','ORDER BY']}
 };
 function lessonHasFill(l){return !!(l&&(l.gateFill||MISSION_FILLS[l.id]));}
 function qfFindToken(sql,tok,from){
@@ -32414,7 +32437,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-cte-sit-v1154';
+  const SW_CACHE='requete-2026-09-27-sq-refonte-v1155';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
