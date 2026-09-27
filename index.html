@@ -14665,7 +14665,14 @@ WHERE id <span class="fk-syn-hit">NOT IN</span> (
         </div>
       </div>`},
     reflexTitle:"Le réflexe à retenir",
-    reflex:{extra:`<p>Une sous-requête dans <code>WHERE</code> avec <code>IN</code> utilise le résultat d’une autre requête comme <b>liste de valeurs</b>.</p>
+    reflex:{extra:`<p class="agg-reflex">👉 Ici, où placer la sous-requête&nbsp;?</p>
+          <p>On veut garder uniquement les clients dont l’<code>id</code> appartient à une liste.</p>
+          <p>La sous-requête va donc être utilisée avec <code>IN</code>, dans le <code>WHERE</code>&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">WHERE id IN (
+    sous-requête
+)</pre></div>
+          <p class="ij-arrow">👉 La sous-requête construit la liste des <code>client_id</code>.</p>
+          <p><code>IN</code> vérifie si chaque <code>id</code> de la <code>table&nbsp;clients</code> appartient à cette liste.</p>
           <p>La structure à retenir&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax">SELECT colonne
 FROM table
@@ -14675,10 +14682,8 @@ WHERE colonne IN (
     WHERE condition
 );</pre></div>
           <p>Dans notre exemple&nbsp;:</p>
-          <div class="memory-rule is-trio is-chain"><div class="memory-a"><b>Sous-requête</b><span>Trouve les id des clients qui ont commandé du Magnésium</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>IN</b><span>Vérifie si l’id du client fait partie de cette liste</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>Requête principale</b><span>Affiche les clients concernés</span></div></div>
-          <p class="agg-reflex" style="margin-top:14px">👉 La sous-requête trouve les id&nbsp;; <code>IN</code> retrouve les lignes correspondantes dans la requête principale.</p>
-          <p class="agg-reflex" style="margin-top:14px">👉 Où placer la sous-requête&nbsp;?</p>
-          <div class="ij-need" role="list" aria-label="Où placer la sous-requête"><div role="listitem"><b>🔍 Garder les lignes dont la valeur est dans une liste</b><span>WHERE … IN</span></div><div role="listitem"><b>🧮 Ajouter une valeur calculée à chaque ligne</b><span class="is-b">SELECT</span></div><div role="listitem"><b>🗂️ Calculer à partir d’un résultat intermédiaire</b><span class="is-c">FROM</span></div></div>`}},
+          <div class="memory-rule is-trio is-chain"><div class="memory-a"><b>Requête principale</b><span>Affiche les clients que l’on cherche à filtrer</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>Sous-requête</b><span>Trouve les <code>client_id</code> des clients qui ont commandé du Magnésium</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>IN</b><span>Garde uniquement les clients dont l’<code>id</code> apparaît dans cette liste</span></div></div>
+          <p class="agg-reflex" style="margin-top:14px"><b>En résumé&nbsp;:</b> la sous-requête crée la liste, <code>IN</code> s’en sert pour filtrer.</p>`}},
   noTeste:true,
   noAnat:true,
   anatomie:[
@@ -32462,7 +32467,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-in-warn-txt-v1176';
+  const SW_CACHE='requete-2026-09-28-in-reflex-v1177';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
