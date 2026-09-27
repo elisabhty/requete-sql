@@ -26477,7 +26477,14 @@ function initQueryFill(){
       setTimeout(()=>{
         box.classList.add('is-solved');
         runWrap.hidden=false;
-        const run=runWrap.querySelector('.xf-run');if(run)run.click();
+        const run=runWrap.querySelector('.xf-run');
+        /* La requête exécutée reprend l’ordre choisi dans les trous (a = b ou b = a). */
+        const mine=box.querySelector('.qf-sql').textContent.trim();
+        if(run&&mine){
+          run.setAttribute('data-sql',mine);
+          const code=runWrap.querySelector('.ex-code');if(code)code.innerHTML=highlight(mine);
+        }
+        if(run)run.click();
         if(current&&current.gateFill){jcMarkPassed(current.id);jcUnlockExo();}
       },reduce?0:holes.length*step+1000);
     });
@@ -32348,7 +32355,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-gate-go-v1143';
+  const SW_CACHE='requete-2026-09-27-fill-order-v1144';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
