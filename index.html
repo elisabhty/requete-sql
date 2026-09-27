@@ -26466,7 +26466,7 @@ function initQueryFill(){
       check.disabled=!full;
       if(!box.classList.contains('is-won'))save();
     };
-    const clearMarks=()=>{holes.forEach(h=>h.classList.remove('is-ok','is-ko'));msg.textContent='';msg.className='qf-msg';};
+    const clearMarks=()=>{holes.forEach(h=>h.classList.remove('is-ok','is-ko'));msg.textContent='';msg.className='qf-msg';try{localStorage.removeItem(KEY+'-verifie');}catch(e){}};
     const fill=(card,hole)=>{
       clearMarks();
       hole.dataset.k=card.dataset.k;hole.textContent=card.textContent;
@@ -26520,16 +26520,24 @@ function initQueryFill(){
         document.addEventListener('pointermove',move);document.addEventListener('pointerup',up);document.addEventListener('pointercancel',up);
       });
     });
-    check.addEventListener('click',()=>{
-      let ok=true;
-      /* Les deux côtés d’une égalité peuvent être inversés : a = b vaut b = a. */
+    /* Les deux côtés d’une égalité peuvent être inversés : a = b vaut b = a. */
+    const grade=()=>{
       const swapped={};
       holes.forEach(h=>{const g=h.dataset.eq;if(!g||g in swapped)return;const p=holes.filter(x=>x.dataset.eq===g);swapped[g]=p.length===2&&p[0].dataset.k===p[1].dataset.want&&p[1].dataset.k===p[0].dataset.want;});
-      const res=holes.map(h=>{const good=h.dataset.k===h.dataset.want||(!!h.dataset.eq&&swapped[h.dataset.eq]);if(!good)ok=false;return good;});
+      const res=holes.map(h=>h.dataset.k===h.dataset.want||(!!h.dataset.eq&&swapped[h.dataset.eq]));
+      return {res,ok:res.every(Boolean)};
+    };
+    const CHK=KEY+'-verifie';
+    const showKo=res=>{
+      holes.forEach((h,k)=>h.classList.add(res[k]?'is-ok':'is-ko'));
+      msg.className='qf-msg is-ko';
+      msg.textContent='❌ Pas tout à fait : les cartes en rouge ne sont pas à la bonne place. Touche-les pour les retirer, puis réessaie.';
+    };
+    check.addEventListener('click',()=>{
+      const {res,ok}=grade();
       if(!ok){
-        holes.forEach((h,k)=>h.classList.add(res[k]?'is-ok':'is-ko'));
-        msg.className='qf-msg is-ko';
-        msg.textContent='❌ Pas tout à fait : les cartes en rouge ne sont pas à la bonne place. Touche-les pour les retirer, puis réessaie.';
+        showKo(res);
+        try{localStorage.setItem(CHK,'1');}catch(e){}
         if(navigator.vibrate)navigator.vibrate([15,60,15]);
         return;
       }
@@ -26565,11 +26573,12 @@ function initQueryFill(){
     const saved=load();
     if(saved)saved.forEach((k,i)=>{if(k&&cards.some(c=>c.dataset.k===k)){holes[i].dataset.k=k;holes[i].textContent=cardText(k);}});
     refresh();
+    /* Une vérification ratée reste affichée (cartes en rouge et message). */
+    let wasChecked=false;try{wasChecked=localStorage.getItem(CHK)==='1';}catch(e){}
+    if(wasChecked&&holes.every(h=>h.dataset.k)){const g=grade();if(!g.ok)showKo(g.res);}
     /* Déjà réussie : on réaffiche directement la requête exécutée, son résultat et la mission. */
     if(lid!=null&&(jcPassed(lid)||(typeof etapesDe==='function'&&etapesDe(lid).exo))){
-      const eq=holes.filter(h=>h.dataset.eq);
-      const swapped=eq.length===2&&eq[0].dataset.k===eq[1].dataset.want&&eq[1].dataset.k===eq[0].dataset.want;
-      const good=holes.every(h=>h.dataset.k===h.dataset.want||(swapped&&!!h.dataset.eq));
+      const good=grade().ok;
       if(!good)holes.forEach(h=>{h.dataset.k=h.dataset.want;h.textContent=cardText(h.dataset.want);});
       refresh();save();
       holes.forEach(h=>h.classList.add('is-ok'));
@@ -32446,7 +32455,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-exists-sit-v1166';
+  const SW_CACHE='requete-2026-09-27-qf-chk-v1167';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
