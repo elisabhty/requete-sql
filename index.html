@@ -2209,6 +2209,8 @@
   .qf-card.is-lifted{opacity:.35;transform:scale(.95)}
   @keyframes qfIn{from{opacity:0;transform:translateY(8px) scale(.96)}}
   .qf-card.is-used{display:none}
+  .is-called{animation:jcCalled 1.8s ease .35s}
+  @keyframes jcCalled{0%,100%{box-shadow:0 0 0 0 rgba(139,92,246,0)}20%,60%{box-shadow:0 0 0 5px rgba(139,92,246,.45)}40%,80%{box-shadow:0 0 0 2px rgba(139,92,246,.25)}}
   .qf.is-full .qf-bank,.qf.is-full .qf-bank-h,.qf.is-won .qf-actions{display:none}
   .qf-ghost{position:fixed;z-index:9999;pointer-events:none;margin:0;transform:translate(-50%,-50%) rotate(-3deg) scale(1.08);box-shadow:0 18px 30px -12px rgba(60,40,140,.55);animation:none}
   .qf-fly{position:fixed;z-index:9999;pointer-events:none;margin:0;animation:none}
@@ -6549,6 +6551,7 @@
   .ls-nav .ls-prev:active{transform:scale(.985);background:#fff;box-shadow:0 2px 10px -8px rgba(20,20,40,.25)}
   .ls-nav .ls-next{flex:1 1 auto;min-width:0;background:linear-gradient(180deg,#22222C,#14141B);color:#fff;border:none;border-radius:16px;padding:16px;font-family:var(--ui);font-size:15.5px;font-weight:700;cursor:pointer;box-shadow:0 8px 18px -10px rgba(20,20,40,.35);letter-spacing:-.2px}
   .ls-nav .ls-next:only-child{flex:1 1 100%;width:100%}
+  .ls-nav .ls-next[data-jc-gate]{cursor:pointer}
   .ls-nav .ls-next:disabled{opacity:.35;box-shadow:none;animation:none!important}
   .ls-nav:has(.ls-next:disabled:not([data-jc-gate])){position:relative;bottom:auto;margin-top:18px;z-index:1}
   /* Un bouton verrouillé par une activité du cours (data-jc-gate) reste collé en bas, comme le bouton actif. */
@@ -21938,9 +21941,19 @@ function jcMarkPassed(id){
 function jcGateLocked(l){
   return !!(l&&(l.gateJcQuiz||l.gateFill)&&!etapesDe(l.id).exo&&!jcPassed(l.id));
 }
+/* Bouton verrouillé : amène jusqu’à l’activité à terminer et la met en évidence. */
+function jcGoToActivity(){
+  const box=document.querySelector('#lesson-body .qf[data-lesson-fill]:not(.is-solved)')||document.querySelector('#lesson-body .jc-quiz');
+  if(!box)return;
+  const target=box.querySelector('.qf-editor')||box.querySelector('.jc-ask:not([data-done])')||box;
+  target.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});
+  target.classList.remove('is-called');void target.offsetWidth;target.classList.add('is-called');
+  setTimeout(()=>target.classList.remove('is-called'),1900);
+  if(navigator.vibrate)navigator.vibrate(12);
+}
 function jcUnlockExo(){
   const b=document.querySelector('#lesson-body .ls-next[data-jc-gate]');
-  if(b){ b.disabled=false; b.removeAttribute('data-jc-gate'); b.textContent='Passer à l’exercice'; b.onclick=()=>setLessonStep(1); if(typeof pulseCta==='function')pulseCta('#lesson-body .ls-next'); }
+  if(b){ b.disabled=false; b.removeAttribute('aria-disabled'); b.removeAttribute('data-jc-gate'); b.textContent='Passer à l’exercice'; b.onclick=()=>setLessonStep(1); if(typeof pulseCta==='function')pulseCta('#lesson-body .ls-next'); }
   document.querySelectorAll('.ls-bar[aria-label="Exercice"][disabled]').forEach(x=>{ x.disabled=false; x.onclick=()=>setLessonStep(1); });
 }
 function lessonStepMeta(){
@@ -26205,7 +26218,7 @@ function renderLessonFlow(){
       }
       slide=`
       <div class="ls-nav">
-        ${jcGateLocked(l)?'<button class="ls-next" type="button" disabled data-jc-gate>'+(l.gateFill?'Complète la requête pour continuer':'Obtiens 5/6 au quiz pour continuer')+'</button>':'<button class="ls-next" type="button" onclick="setLessonStep(1)">Passer à l’exercice</button>'}
+        ${jcGateLocked(l)?'<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="jcGoToActivity()">'+(l.gateFill?'Complète la requête pour continuer':'Obtiens 5/6 au quiz pour continuer')+'</button>':'<button class="ls-next" type="button" onclick="setLessonStep(1)">Passer à l’exercice</button>'}
       </div>
       <div class="ls-main">
         <div class="lesson-rich${isJoinMicro(l)?' join-micro':''}">
@@ -32335,7 +32348,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-fill-wow-v1142';
+  const SW_CACHE='requete-2026-09-27-gate-go-v1143';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
