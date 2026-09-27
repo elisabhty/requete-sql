@@ -2176,27 +2176,58 @@
   .lesson-lead .situation-body .fk-tree{margin:4px 0 14px}
   .lesson-lead .situation-body .sit-memo{margin:4px 0 14px}
   /* Requête à trous : cartes à placer dans le bon ordre */
-  .qf{margin:12px 0 0}
-  .qf-sql{margin:0;padding:16px 14px;border-radius:16px;background:#17171d;color:#e8e8ef;font-family:var(--mono);font-size:13px;line-height:2.1;white-space:pre-wrap;overflow-wrap:anywhere}
+  .qf{margin:12px 0 0;--qf-glow:#a78bfa}
+  .qf-editor{position:relative;border-radius:18px;background:linear-gradient(160deg,#1d1b2b 0%,#15141d 60%,#121118 100%);box-shadow:0 18px 40px -22px rgba(40,20,90,.55),inset 0 0 0 1px rgba(255,255,255,.06);overflow:hidden}
+  .qf-editor::before{content:"";position:absolute;inset:-40% -20% auto auto;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,.22),transparent 65%);pointer-events:none}
+  .qf-bar{display:flex;align-items:center;gap:6px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06);font-family:var(--mono);font-size:11.5px;color:rgba(232,232,239,.55)}
+  .qf-bar > i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.14)}
+  .qf-bar > span{margin-left:6px}
+  .qf-count{margin-left:auto;padding:3px 9px;border-radius:999px;background:rgba(167,139,250,.14);color:#d9ccff;font-weight:700;transition:background .3s,color .3s}
+  .qf-count.is-full{background:rgba(74,222,128,.16);color:#86efac}
+  .qf-meter{height:3px;background:rgba(255,255,255,.05)}
+  .qf-meter > i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8b5cf6,#c4b5fd);border-radius:0 3px 3px 0;transition:width .45s cubic-bezier(.2,.8,.2,1)}
+  .qf.is-full .qf-meter > i{background:linear-gradient(90deg,#8b5cf6,#4ade80)}
+  .qf-sql{position:relative;margin:0;padding:16px 14px 18px;background:transparent;color:#e8e8ef;font-family:var(--mono);font-size:13px;line-height:2.25;white-space:pre-wrap;overflow-wrap:anywhere}
   .qf-sql .kw{color:#c3a6ff}
-  .qf-hole{display:inline-flex;align-items:center;justify-content:center;min-width:92px;min-height:28px;margin:2px 0;padding:2px 8px;vertical-align:middle;border:1.5px dashed rgba(195,166,255,.6);border-radius:8px;background:rgba(195,166,255,.08);color:#fff;font:inherit;font-weight:700;cursor:pointer}
-  .qf-hole.is-filled{border-style:solid;border-color:rgba(195,166,255,.9);background:rgba(195,166,255,.2)}
-  .qf-hole.is-target{border-color:#fff;background:rgba(255,255,255,.18)}
-  .qf-hole.is-ok{border-color:#4ade80;background:rgba(74,222,128,.18)}
+  .qf-hole{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:96px;min-height:30px;margin:2px 0;padding:2px 10px;vertical-align:middle;border:1.5px dashed rgba(195,166,255,.45);border-radius:9px;background:rgba(195,166,255,.06);color:#fff;font:inherit;font-weight:700;cursor:pointer;transition:border-color .25s,background .25s,box-shadow .25s,transform .2s}
+  .qf-hole.is-next{border-color:rgba(196,181,253,.95);animation:qfBreath 1.8s ease-in-out infinite}
+  .qf-hole.is-filled{border-style:solid;border-color:rgba(196,181,253,.7);background:linear-gradient(180deg,rgba(167,139,250,.32),rgba(139,92,246,.22));box-shadow:0 4px 14px -6px rgba(139,92,246,.7);animation:qfPop .38s cubic-bezier(.3,1.6,.5,1)}
+  .qf-hole.is-target{border-color:#fff;background:rgba(255,255,255,.16);transform:scale(1.06);box-shadow:0 0 0 4px rgba(196,181,253,.25)}
+  .qf-hole.is-ok{border-color:#4ade80;background:linear-gradient(180deg,rgba(74,222,128,.28),rgba(34,197,94,.16));box-shadow:0 0 0 3px rgba(74,222,128,.18),0 6px 18px -8px rgba(74,222,128,.8);animation:qfOk .45s cubic-bezier(.3,1.6,.5,1)}
   .qf-hole.is-ko{border-color:#f87171;background:rgba(248,113,113,.18);animation:qfShake .4s ease}
-  .qf-bank{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
-  .qf-card{padding:9px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:13px;font-weight:800;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:0 2px 6px -3px rgba(20,20,40,.25)}
+  @keyframes qfBreath{0%,100%{box-shadow:0 0 0 0 rgba(167,139,250,.0)}50%{box-shadow:0 0 0 5px rgba(167,139,250,.22)}}
+  @keyframes qfPop{0%{transform:scale(.7)}100%{transform:scale(1)}}
+  @keyframes qfOk{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+  .qf-bank-h{display:flex;align-items:center;gap:10px;margin:16px 0 8px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9a98ad}
+  .qf-bank-h::after{content:"";flex:1;height:1px;background:var(--line)}
+  .qf-bank{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:10px;border-radius:16px;background:#FAFAFC;border:1px dashed color-mix(in srgb,var(--accent) 22%,transparent)}
+  .qf-card{position:relative;padding:9px 12px 9px 25px;border-radius:12px;border:1px solid color-mix(in srgb,var(--accent) 22%,transparent);background:#fff;color:var(--accent-ink);font-family:var(--mono);font-size:13px;font-weight:800;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:0 1px 0 rgba(20,20,40,.04),0 6px 14px -10px rgba(60,40,140,.45);transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s,opacity .2s;animation:qfIn .45s cubic-bezier(.2,.8,.2,1) backwards}
+  .qf-card::before{content:"";position:absolute;left:9px;top:50%;width:8px;height:12px;margin-top:-6px;background:radial-gradient(circle,color-mix(in srgb,var(--accent) 55%,transparent) 1.2px,transparent 1.6px) 0 0/4px 4px;opacity:.8}
+  .qf-card:nth-child(2){animation-delay:.06s}.qf-card:nth-child(3){animation-delay:.12s}.qf-card:nth-child(4){animation-delay:.18s}
+  @media (hover:hover){.qf-card:hover{transform:translateY(-2px);box-shadow:0 1px 0 rgba(20,20,40,.04),0 12px 20px -12px rgba(60,40,140,.55)}}
+  .qf-card:active{transform:scale(.96);cursor:grabbing}
+  .qf-card.is-lifted{opacity:.35;transform:scale(.95)}
+  @keyframes qfIn{from{opacity:0;transform:translateY(8px) scale(.96)}}
   .qf-card.is-used{display:none}
-  .qf-bank:not(:has(.qf-card:not(.is-used))){display:none}
-  .qf-ghost{position:fixed;z-index:9999;pointer-events:none;transform:translate(-50%,-50%) scale(1.05);box-shadow:0 12px 24px -10px rgba(20,20,40,.45)}
-  .qf-msg{min-height:1.4em;margin:10px 0 0!important;font-size:14px;font-weight:600}
+  .qf.is-full .qf-bank,.qf.is-full .qf-bank-h,.qf.is-won .qf-actions{display:none}
+  .qf-ghost{position:fixed;z-index:9999;pointer-events:none;margin:0;transform:translate(-50%,-50%) rotate(-3deg) scale(1.08);box-shadow:0 18px 30px -12px rgba(60,40,140,.55);animation:none}
+  .qf-fly{position:fixed;z-index:9999;pointer-events:none;margin:0;animation:none}
+  .qf-msg{min-height:1.4em;margin:12px 0 0!important;font-size:14px;font-weight:600}
+  .qf-msg:empty{min-height:0;margin:0!important}
   .qf-msg.is-ko{color:var(--danger,#c2410c)}
   .qf-msg.is-ok{color:var(--success)}
-  .qf-actions{display:flex;gap:8px;align-items:center;margin-top:6px}
-  .qf-check{flex:1;padding:13px 16px;border:0;border-radius:14px;background:var(--accent);color:#fff;font:inherit;font-weight:800;cursor:pointer}
-  .qf-check:disabled{opacity:.4;cursor:default}
-  .qf-reset{padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--ink-2);font:inherit;font-weight:700;cursor:pointer}
-  .qf.is-solved .qf-actions,.qf.is-solved .qf-bank,.qf.is-solved .qf-sql{display:none}
+  .qf-actions{display:flex;gap:8px;align-items:center;margin-top:12px}
+  .qf-check{position:relative;flex:1;padding:14px 16px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 70%,#c084fc));color:#fff;font:inherit;font-weight:800;cursor:pointer;overflow:hidden;box-shadow:0 10px 20px -12px color-mix(in srgb,var(--accent) 80%,transparent);transition:opacity .25s,transform .15s}
+  .qf-check:not(:disabled)::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);transform:translateX(-100%);animation:qfShine 2.4s ease-in-out .3s infinite}
+  .qf-check:not(:disabled):active{transform:scale(.98)}
+  @keyframes qfShine{0%{transform:translateX(-100%)}55%,100%{transform:translateX(100%)}}
+  .qf-check:disabled{opacity:.4;cursor:default;box-shadow:none}
+  .qf-reset{padding:13px 14px;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--ink-2);font:inherit;font-weight:700;cursor:pointer}
+  .qf-burst{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none;z-index:2}
+  .qf-burst > i{position:absolute;width:7px;height:7px;border-radius:2px;animation:qfBurst .9s cubic-bezier(.15,.7,.3,1) forwards}
+  @keyframes qfBurst{from{transform:translate(0,0) rotate(0);opacity:1}to{transform:translate(var(--dx),var(--dy)) rotate(260deg);opacity:0}}
+  .qf.is-solved .qf-actions,.qf.is-solved .qf-bank,.qf.is-solved .qf-bank-h,.qf.is-solved .qf-editor{display:none}
+  @media (prefers-reduced-motion:reduce){.qf-hole,.qf-card,.qf-check::after{animation:none!important}}
   .qf-run{margin-top:12px}
   @keyframes qfShake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
   /* Animation : les deux conditions se valident, puis la correspondance est acceptée */
@@ -14472,14 +14503,14 @@ JOIN produits
 AND condition_2
 AND condition_3</pre></div><p>Par exemple&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">ON commandes.produit_id = produits.id
 <span class="fk-syn-hit">AND produits.stock &gt; 0</span>
-<span class="fk-syn-hit">AND produits.prix &lt; 30</span></pre></div><p class="ij-arrow">👉 La correspondance est validée uniquement si les trois conditions sont vraies en même temps.</p></div><div class="fn-use"><p class="pt-syntax-h">La requête complète</p><p>🧩 À toi de compléter la requête&nbsp;: place les 4 cartes dans les trous, dans le bon ordre.</p><p>Touche une carte pour la placer dans le premier trou libre, ou fais-la glisser jusqu’au trou voulu. Touche un trou rempli pour récupérer sa carte.</p><div class="qf" data-lesson-fill><pre class="qf-sql"><span class="kw">SELECT</span> commandes.id,
+<span class="fk-syn-hit">AND produits.prix &lt; 30</span></pre></div><p class="ij-arrow">👉 La correspondance est validée uniquement si les trois conditions sont vraies en même temps.</p></div><div class="fn-use"><p class="pt-syntax-h">La requête complète</p><p>🧩 À toi de compléter la requête&nbsp;: place les 4 cartes dans les trous, dans le bon ordre.</p><p>Touche une carte pour la placer dans le premier trou libre, ou fais-la glisser jusqu’au trou voulu. Touche un trou rempli pour récupérer sa carte.</p><div class="qf" data-lesson-fill><div class="qf-editor"><div class="qf-bar" aria-hidden="true"><i></i><i></i><i></i><span>requete.sql</span><b class="qf-count">0/4</b></div><pre class="qf-sql"><span class="kw">SELECT</span> commandes.id,
        produits.nom,
        produits.stock
 <span class="kw">FROM</span> commandes
 <span class="kw">JOIN</span> <button type="button" class="qf-hole" data-want="1" aria-label="Trou 1"></button>
     <span class="kw">ON</span> <button type="button" class="qf-hole" data-want="2" data-eq="1" aria-label="Trou 2"></button> =
        <button type="button" class="qf-hole" data-want="3" data-eq="1" aria-label="Trou 3"></button>
-    <span class="kw">AND</span> <button type="button" class="qf-hole" data-want="4" aria-label="Trou 4"></button>;</pre><div class="qf-bank" aria-label="Cartes à placer"><button type="button" class="qf-card" data-k="3">produits.id</button><button type="button" class="qf-card" data-k="4">produits.stock &gt; 0</button><button type="button" class="qf-card" data-k="1">produits</button><button type="button" class="qf-card" data-k="2">commandes.produit_id</button></div><p class="qf-msg" aria-live="polite"></p><div class="qf-actions"><button type="button" class="qf-check" disabled>Vérifier</button><button type="button" class="qf-reset">↺ Recommencer</button></div><div class="qf-run" hidden><div class="ij-run" data-run-sql="SELECT commandes.id,&#10;       produits.nom,&#10;       produits.stock&#10;FROM commandes&#10;JOIN produits&#10;    ON commandes.produit_id = produits.id&#10;    AND produits.stock &gt; 0;"></div></div></div><div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="16 commandes, chacune reliée à son produit en stock"><li class="ij-fn-row"><b>16</b><span>commandes<small>dans la <code>table commandes</code></small></span><i class="ij-fn-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></i></li><li class="ij-fn-step"><code>ON … AND produits.stock &gt; 0</code><small>bon produit et produit en stock</small></li><li class="ij-fn-row is-out"><b>16</b><span>commandes prêtes à expédier<small>chacune reliée à son produit</small></span></li></ol></div></div></div>`},
+    <span class="kw">AND</span> <button type="button" class="qf-hole" data-want="4" aria-label="Trou 4"></button>;</pre><div class="qf-meter" aria-hidden="true"><i></i></div></div><div class="qf-bank-h">Cartes à placer</div><div class="qf-bank" aria-label="Cartes à placer"><button type="button" class="qf-card" data-k="3">produits.id</button><button type="button" class="qf-card" data-k="4">produits.stock &gt; 0</button><button type="button" class="qf-card" data-k="1">produits</button><button type="button" class="qf-card" data-k="2">commandes.produit_id</button></div><p class="qf-msg" aria-live="polite"></p><div class="qf-actions"><button type="button" class="qf-check" disabled>Vérifier</button><button type="button" class="qf-reset">↺ Recommencer</button></div><div class="qf-run" hidden><div class="ij-run" data-run-sql="SELECT commandes.id,&#10;       produits.nom,&#10;       produits.stock&#10;FROM commandes&#10;JOIN produits&#10;    ON commandes.produit_id = produits.id&#10;    AND produits.stock &gt; 0;"></div></div></div><div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="16 commandes, chacune reliée à son produit en stock"><li class="ij-fn-row"><b>16</b><span>commandes<small>dans la <code>table commandes</code></small></span><i class="ij-fn-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></i></li><li class="ij-fn-step"><code>ON … AND produits.stock &gt; 0</code><small>bon produit et produit en stock</small></li><li class="ij-fn-row is-out"><b>16</b><span>commandes prêtes à expédier<small>chacune reliée à son produit</small></span></li></ol></div></div></div>`},
     reflexTitle:"Le réflexe à retenir",
     reflex:{extra:`<p><code>ON</code> indique quand deux lignes peuvent être reliées.</p><div class="ow-cmp"><article><p class="ow-k"><b>Une seule condition</b></p><div class="pt-syntax"><pre class="cw-syntax">ON condition_1</pre></div></article><article><p class="ow-k"><b>Plusieurs conditions</b></p><div class="pt-syntax"><pre class="cw-syntax">ON condition_1
 AND condition_2</pre></div></article></div><p class="agg-reflex" style="margin-top:14px">👉 Avec <code>AND</code>, toutes les conditions doivent être vraies pour que la correspondance soit acceptée.</p>`}},
@@ -26327,25 +26358,49 @@ function whenSettled(el,scr,opts,cb){
 }
 /* ---------- Requête à trous : placer les cartes, puis exécuter ---------- */
 function initQueryFill(){
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   document.querySelectorAll('#lesson-body .qf[data-lesson-fill]').forEach(box=>{
     if(box._qf)return;box._qf=true;
     const holes=[...box.querySelectorAll('.qf-hole')],cards=[...box.querySelectorAll('.qf-card')];
     const msg=box.querySelector('.qf-msg'),check=box.querySelector('.qf-check'),runWrap=box.querySelector('.qf-run');
+    const count=box.querySelector('.qf-count'),meter=box.querySelector('.qf-meter > i'),editor=box.querySelector('.qf-editor');
     const refresh=()=>{
       holes.forEach(h=>h.classList.toggle('is-filled',!!h.dataset.k));
       cards.forEach(c=>c.classList.toggle('is-used',holes.some(h=>h.dataset.k===c.dataset.k)));
-      check.disabled=!holes.every(h=>h.dataset.k);
+      const n=holes.filter(h=>h.dataset.k).length,full=n===holes.length;
+      const next=holes.find(h=>!h.dataset.k);
+      holes.forEach(h=>h.classList.toggle('is-next',h===next));
+      if(count){count.textContent=n+'/'+holes.length;count.classList.toggle('is-full',full);}
+      if(meter)meter.style.width=(n/holes.length*100)+'%';
+      box.classList.toggle('is-full',full);
+      check.disabled=!full;
     };
     const clearMarks=()=>{holes.forEach(h=>h.classList.remove('is-ok','is-ko'));msg.textContent='';msg.className='qf-msg';};
-    const place=(card,hole)=>{
-      if(!hole)hole=holes.find(h=>!h.dataset.k);
-      if(!hole)return;
+    const fill=(card,hole)=>{
       clearMarks();
       hole.dataset.k=card.dataset.k;hole.textContent=card.textContent;
+      hole.classList.remove('is-filled');void hole.offsetWidth;
       refresh();
+      if(navigator.vibrate)navigator.vibrate(8);
+    };
+    const place=(card,hole,fly)=>{
+      if(!hole)hole=holes.find(h=>!h.dataset.k);
+      if(!hole||hole._busy)return;
+      if(!fly||reduce||!card.animate){fill(card,hole);return;}
+      /* La carte s’envole de la réserve jusqu’au trou. */
+      const from=card.getBoundingClientRect(),to=hole.getBoundingClientRect();
+      const f=card.cloneNode(true);f.classList.add('qf-fly');
+      Object.assign(f.style,{left:from.left+'px',top:from.top+'px',width:from.width+'px',height:from.height+'px'});
+      document.body.appendChild(f);hole._busy=true;card.classList.add('is-used');
+      const dx=to.left+to.width/2-(from.left+from.width/2),dy=to.top+to.height/2-(from.top+from.height/2);
+      f.animate([
+        {transform:'translate(0,0) scale(1)',opacity:1},
+        {transform:`translate(${dx*.5}px,${dy*.5-30}px) scale(1.08) rotate(-4deg)`,opacity:1,offset:.5},
+        {transform:`translate(${dx}px,${dy}px) scale(.85)`,opacity:.2}
+      ],{duration:480,easing:'cubic-bezier(.4,0,.2,1)'}).onfinish=()=>{f.remove();hole._busy=false;fill(card,hole);};
     };
     holes.forEach(h=>h.addEventListener('click',()=>{
-      if(box.classList.contains('is-solved')||!h.dataset.k)return;
+      if(box.classList.contains('is-solved')||!h.dataset.k||h._busy)return;
       clearMarks();delete h.dataset.k;h.textContent='';refresh();
     }));
     cards.forEach(card=>{
@@ -26355,7 +26410,7 @@ function initQueryFill(){
         const x0=e.clientX,y0=e.clientY;let ghost=null,over=null;
         const move=ev=>{
           if(!ghost&&Math.hypot(ev.clientX-x0,ev.clientY-y0)>6){
-            ghost=card.cloneNode(true);ghost.classList.add('qf-ghost');document.body.appendChild(ghost);
+            ghost=card.cloneNode(true);ghost.classList.add('qf-ghost');document.body.appendChild(ghost);card.classList.add('is-lifted');
           }
           if(!ghost)return;
           ghost.style.left=ev.clientX+'px';ghost.style.top=ev.clientY+'px';
@@ -26367,29 +26422,51 @@ function initQueryFill(){
         };
         const up=()=>{
           document.removeEventListener('pointermove',move);document.removeEventListener('pointerup',up);document.removeEventListener('pointercancel',up);
-          if(ghost){ghost.remove();if(over){over.classList.remove('is-target');place(card,over);}}
-          else place(card,null);
+          card.classList.remove('is-lifted');
+          if(ghost){ghost.remove();if(over){over.classList.remove('is-target');place(card,over,false);}}
+          else place(card,null,true);
         };
         document.addEventListener('pointermove',move);document.addEventListener('pointerup',up);document.addEventListener('pointercancel',up);
       });
     });
+    const burst=()=>{
+      if(reduce||!editor)return;
+      const b=document.createElement('span');b.className='qf-burst';b.setAttribute('aria-hidden','true');
+      const cols=['#a78bfa','#c4b5fd','#4ade80','#fcd34d','#f9a8d4'];
+      for(let k=0;k<22;k++){
+        const i=document.createElement('i'),ang=k/22*Math.PI*2+Math.random()*.3,r=70+Math.random()*80;
+        i.style.cssText=`background:${cols[k%cols.length]};--dx:${Math.cos(ang)*r}px;--dy:${Math.sin(ang)*r}px;animation-delay:${Math.random()*.08}s`;
+        b.appendChild(i);
+      }
+      editor.appendChild(b);setTimeout(()=>b.remove(),1100);
+    };
     check.addEventListener('click',()=>{
       let ok=true;
       /* Les deux côtés d’une égalité peuvent être inversés : a = b vaut b = a. */
       const eq=holes.filter(h=>h.dataset.eq);
       const swapped=eq.length===2&&eq[0].dataset.k===eq[1].dataset.want&&eq[1].dataset.k===eq[0].dataset.want;
-      holes.forEach(h=>{const good=h.dataset.k===h.dataset.want||(swapped&&h.dataset.eq);h.classList.add(good?'is-ok':'is-ko');if(!good)ok=false;});
+      const res=holes.map(h=>{const good=h.dataset.k===h.dataset.want||(swapped&&!!h.dataset.eq);if(!good)ok=false;return good;});
       if(!ok){
+        holes.forEach((h,k)=>h.classList.add(res[k]?'is-ok':'is-ko'));
         msg.className='qf-msg is-ko';
         msg.textContent='❌ Pas tout à fait : les cartes en rouge ne sont pas à la bonne place. Touche-les pour les retirer, puis réessaie.';
         if(navigator.vibrate)navigator.vibrate([15,60,15]);
         return;
       }
-      msg.className='qf-msg is-ok';msg.textContent='✅ Bravo, la requête est complète !';
-      box.classList.add('is-solved');
-      runWrap.hidden=false;
-      const run=runWrap.querySelector('.xf-run');if(run)run.click();
-      if(current&&current.gateFill){jcMarkPassed(current.id);jcUnlockExo();}
+      check.disabled=true;box.classList.add('is-won');
+      const step=reduce?0:140;
+      holes.forEach((h,k)=>setTimeout(()=>h.classList.add('is-ok'),k*step));
+      setTimeout(()=>{
+        burst();
+        msg.className='qf-msg is-ok';msg.textContent='✅ Bravo, la requête est complète !';
+        if(navigator.vibrate)navigator.vibrate([10,40,20]);
+      },holes.length*step);
+      setTimeout(()=>{
+        box.classList.add('is-solved');
+        runWrap.hidden=false;
+        const run=runWrap.querySelector('.xf-run');if(run)run.click();
+        if(current&&current.gateFill){jcMarkPassed(current.id);jcUnlockExo();}
+      },reduce?0:holes.length*step+1000);
     });
     box.querySelector('.qf-reset').addEventListener('click',()=>{holes.forEach(h=>{delete h.dataset.k;h.textContent='';});clearMarks();refresh();});
     refresh();
@@ -32258,7 +32335,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-sticky-v1141';
+  const SW_CACHE='requete-2026-09-27-fill-wow-v1142';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
