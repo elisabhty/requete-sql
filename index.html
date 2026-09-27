@@ -15248,59 +15248,62 @@ learningCheck:{
 }
 },
 { id:77, titre:"WITH RECURSIVE", résumé:"Parcourir une suite ou une hiérarchie",
-  situation:`<p>L’équipe produit prépare un programme sur 10 jours et veut générer automatiquement <b>les numéros de 1 à 10</b>.</p><p>🤔 <b>Problème&nbsp;:</b> aucune table ne contient ces nombres, et les écrire un par un ne fonctionne plus dès qu’il en faut 100 ou 1&nbsp;000.</p><p>Une CTE récursive construit la liste elle-même, à partir de trois éléments&nbsp;:</p><ol class="fk-syn-map" aria-label="Les trois éléments"><li><b aria-hidden="true">1</b><div><strong>Un point de départ&nbsp;: 1</strong></div></li><li><b aria-hidden="true">2</b><div><strong>Une règle pour passer au suivant&nbsp;: +&nbsp;1</strong></div></li><li><b aria-hidden="true">3</b><div><strong>Une condition d’arrêt&nbsp;: jusqu’à 10</strong></div></li></ol><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Génère les nombres de 1 à 10, sans les écrire un par un.</p></div>`,
-  studio:{problem:{eye:"",title:"Comment fabriquer une suite de nombres&nbsp;?",
-      body:"Aucune table ne contient ces nombres&nbsp;: il faut les construire.",
-      extra:`<p>On part de 1, puis chaque nombre s’obtient en ajoutant 1 au précédent&nbsp;:</p>
-        <div class="pk-comp ij-t"><p class="ij-tlab">exemple</p><div class="pk-mini is-3"><span class="is-h">étape</span><span class="is-h">calcul</span><span class="is-h">x</span><span>1</span><span>départ</span><span class="is-hit">1</span><span>2</span><span>1 + 1</span><span class="is-hit">2</span><span>3</span><span>2 + 1</span><span class="is-hit">3</span><span>…</span><span>…</span><span>…</span><span>10</span><span>9 + 1</span><span class="is-hit">10</span></div></div>
-        <p>Arrivé à 10, on s’arrête.</p>
+  situation:`<p>L’équipe marketing prépare une campagne qui doit durer <b>90 jours</b>.</p><p>Elle veut obtenir une ligne pour chaque jour de la campagne, du jour 1 au jour 90, afin de préparer son calendrier de suivi.</p><p>🤔 <b>Problème&nbsp;:</b> aucune table ne contient cette liste de jours. Écrire manuellement 90 lignes serait long et peu pratique.</p><p>💡 Avec une CTE récursive, SQL peut générer cette suite automatiquement.</p><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Génère une ligne pour chaque jour de la campagne, du jour 1 au jour 90, sans les écrire une par une.</p></div>`,
+  studio:{problem:{eye:"",title:"Comment fabriquer la liste des jours&nbsp;?",
+      body:"Aucune table ne contient ces jours&nbsp;: il faut les construire.",
+      extra:`<p>On part du jour 1, puis chaque jour s’obtient en ajoutant 1 au précédent&nbsp;:</p>
+        <div class="pk-comp ij-t"><p class="ij-tlab">exemple</p><div class="pk-mini is-3"><span class="is-h">étape</span><span class="is-h">calcul</span><span class="is-h">jour</span><span>1</span><span>départ</span><span class="is-hit">1</span><span>2</span><span>1 + 1</span><span class="is-hit">2</span><span>3</span><span>2 + 1</span><span class="is-hit">3</span><span>…</span><span>…</span><span>…</span><span>10</span><span>9 + 1</span><span class="is-hit">10</span></div></div>
+        <p>Arrivé au dernier jour, on s’arrête.</p>
         <p class="ij-arrow">👉 Chaque nouvelle ligne se calcule à partir de la ligne précédente&nbsp;: c’est le principe de la <b>récursion</b>.</p>
-        <p class="ij-arrow">👉 <code>WITH RECURSIVE</code> crée une CTE capable de relire ses propres lignes pour produire les suivantes.</p>`},
+        <p class="ij-arrow">👉 <code>WITH RECURSIVE</code> crée une CTE capable de relire ses propres lignes pour produire les suivantes.</p>
+        <p>Pour comprendre le principe simplement, nous allons d’abord le faire de 1 à 10.</p>`},
     uses:{title:"Écrire la requête",
       body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
           <p class="pt-syntax-h">Le point de départ</p>
           <p>La première ligne ne dépend de rien&nbsp;: c’est le point de départ, appelé <b>ancre</b>.</p>
           <div class="pt-syntax"><pre class="cw-syntax">SELECT 1</pre></div>
-          <p class="ij-arrow">👉 Cette requête produit une seule ligne, qui contient 1.</p>
+          <p class="ij-arrow">👉 Cette requête produit une seule ligne, qui contient 1&nbsp;: le jour 1.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Nommer la CTE</p>
           <p>On place l’ancre dans une CTE, précédée de <code>WITH RECURSIVE</code>&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">WITH RECURSIVE nombres(x) AS (</span>
+          <div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">WITH RECURSIVE jours(jour) AS (</span>
     SELECT 1
     ...
 <span class="fk-syn-hit">)</span></pre></div>
-          <div class="ij-need" role="list" aria-label="Le nom et la colonne"><div role="listitem"><b>nombres</b><span>le nom de la CTE</span></div><div role="listitem"><b>(x)</b><span class="is-b">le nom de sa colonne</span></div></div>
-          <p class="ij-arrow">👉 La partie récursive pourra ainsi lire la colonne <code>x</code> de <code>nombres</code>.</p>
+          <div class="ij-need" role="list" aria-label="Le nom et la colonne"><div role="listitem"><b>jours</b><span>le nom de la CTE</span></div><div role="listitem"><b>(jour)</b><span class="is-b">le nom de sa colonne</span></div></div>
+          <p class="ij-arrow">👉 La partie récursive pourra ainsi lire la colonne <code>jour</code> de <code>jours</code>.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Passer au nombre suivant</p>
-          <p>Pour obtenir le nombre suivant, on relit la CTE et on ajoute 1&nbsp;:</p>
+          <p class="pt-syntax-h">Passer au jour suivant</p>
+          <p>Pour obtenir le jour suivant, on relit la CTE et on ajoute 1&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax">SELECT 1
 <span class="fk-syn-hit">UNION ALL</span>
-<span class="fk-syn-hit">SELECT x + 1 FROM nombres</span></pre></div>
-          <p><code>SELECT x + 1 FROM nombres</code> lit la dernière ligne produite et calcule la suivante&nbsp;: 1 donne 2, puis 2 donne 3, et ainsi de suite.</p>
+<span class="fk-syn-hit">SELECT jour + 1 FROM jours</span></pre></div>
+          <p><code>SELECT jour + 1 FROM jours</code> relit la dernière ligne produite et calcule la suivante&nbsp;: 1 donne 2, puis 2 donne 3, et ainsi de suite.</p>
           <p class="ij-arrow">👉 <code>UNION ALL</code> ajoute chaque nouvelle ligne à la suite des précédentes.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">La condition d’arrêt</p>
-          <p>Telle quelle, la partie récursive ne s’arrête jamais&nbsp;: elle produit toujours une ligne de plus. On ajoute donc une condition&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT x + 1 FROM nombres <span class="fk-syn-hit">WHERE x &lt; 10</span></pre></div>
-          <div class="pk-comp ij-t"><p class="ij-tlab">les dernières étapes</p><div class="pk-mini is-3"><span class="is-h">x lu</span><span class="is-h">x &lt; 10</span><span class="is-h">ligne produite</span><span>9</span><span class="is-hit">✅</span><span class="is-hit">10</span><span>10</span><span>❌</span><span>aucune</span></div></div>
+          <p>Telle quelle, la partie récursive ne s’arrête jamais&nbsp;: elle produit toujours une ligne de plus. On ajoute donc une condition, ici pour s’arrêter au jour 10&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT jour + 1 FROM jours <span class="fk-syn-hit">WHERE jour &lt; 10</span></pre></div>
+          <div class="pk-comp ij-t"><p class="ij-tlab">les dernières étapes</p><div class="pk-mini is-3"><span class="is-h">jour lu</span><span class="is-h">jour &lt; 10</span><span class="is-h">ligne produite</span><span>9</span><span class="is-hit">✅</span><span class="is-hit">10</span><span>10</span><span>❌</span><span>aucune</span></div></div>
           <p class="ij-arrow">👉 Quand la partie récursive ne produit plus de ligne, la récursion s’arrête.</p>
+          <p>👇 Exécute la requête de 1 à 10&nbsp;:</p>
+          <div class="ij-run" data-run-sql="WITH RECURSIVE jours(jour) AS (&#10;    SELECT 1&#10;    UNION ALL&#10;    SELECT jour + 1 FROM jours WHERE jour &lt; 10&#10;)&#10;SELECT jour FROM jours;"></div>
           <p>⚠️ Sans condition d’arrêt, la requête tourne jusqu’à épuiser les ressources du moteur. Vérifie toujours l’arrêt avant d’exécuter.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">La requête complète</p>
-          <p>Il ne reste plus qu’à réunir toutes les étapes.</p>
+          <p>Le principe fonctionne de 1 à 10. Pour la campagne, il suffit de changer la condition d’arrêt&nbsp;: le jour 90 au lieu du jour 10.</p>
           <p>👇 Exécute la requête pour voir le résultat&nbsp;:</p>
-          <div class="ij-run" data-run-sql="WITH RECURSIVE nombres(x) AS (&#10;    SELECT 1&#10;    UNION ALL&#10;    SELECT x + 1 FROM nombres WHERE x &lt; 10&#10;)&#10;SELECT x FROM nombres;"></div>
-          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="D’un point de départ à 10 nombres"><li class="ij-fn-row"><b>1</b><span>ligne de départ<small>l’ancre SELECT 1</small></span></li><li class="ij-fn-step"><code>SELECT x + 1 … WHERE x &lt; 10</code><small>une ligne de plus, tant que x &lt; 10</small></li><li class="ij-fn-row is-out"><b>10</b><span>nombres<small>de 1 à 10</small></span></li></ol></div>
+          <div class="ij-run" data-run-sql="WITH RECURSIVE jours(jour) AS (&#10;    SELECT 1&#10;    UNION ALL&#10;    SELECT jour + 1 FROM jours WHERE jour &lt; 90&#10;)&#10;SELECT jour FROM jours;"></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="Du jour 1 aux 90 jours de la campagne"><li class="ij-fn-row"><b>1</b><span>ligne de départ<small>l’ancre SELECT 1</small></span></li><li class="ij-fn-step"><code>SELECT jour + 1 … WHERE jour &lt; 90</code><small>une ligne de plus, tant que jour &lt; 90</small></li><li class="ij-fn-row is-out"><b>90</b><span>jours de campagne<small>du jour 1 au jour 90</small></span></li></ol></div>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">À quoi ça sert&nbsp;?</p>
-          <p>Générer une suite de nombres sert, par exemple, à créer un calendrier jour par jour. Mais l’usage principal de <code>WITH RECURSIVE</code>, ce sont les <b>hiérarchies</b>&nbsp;: catégories et sous-catégories, organigrammes, dossiers imbriqués.</p>
+          <p>Générer une suite de jours sert, comme ici, à préparer un calendrier. Mais l’usage principal de <code>WITH RECURSIVE</code>, ce sont les <b>hiérarchies</b>&nbsp;: catégories et sous-catégories, organigrammes, dossiers imbriqués.</p>
           <p>Dans une table où chaque ligne contient l’id de son parent, l’ancre sélectionne la racine, puis la partie récursive ajoute les enfants de chaque ligne déjà trouvée, niveau après niveau.</p>
           <p class="ij-arrow">👉 C’est utile quand on ne connaît pas à l’avance le nombre de niveaux.</p>
         </div>
@@ -15315,22 +15318,22 @@ learningCheck:{
 )
 SELECT ... FROM nom;</pre></div>
           <p>Dans notre exemple&nbsp;:</p>
-          <div class="memory-rule is-trio is-chain"><div class="memory-a"><b>Ancre</b><span><code>SELECT 1</code>&nbsp;: la première ligne</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>Récursion</b><span><code>x + 1</code>&nbsp;: la ligne suivante</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>Arrêt</b><span><code>WHERE x &lt; 10</code>&nbsp;: la fin de la suite</span></div></div>
+          <div class="memory-rule is-trio is-chain"><div class="memory-a"><b>Ancre</b><span><code>SELECT 1</code>&nbsp;: le jour 1</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>Récursion</b><span><code>jour + 1</code>&nbsp;: le jour suivant</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>Arrêt</b><span><code>WHERE jour &lt; 90</code>&nbsp;: le dernier jour</span></div></div>
           <p class="agg-reflex" style="margin-top:14px">👉 Avant d’exécuter une CTE récursive, identifie toujours sa condition d’arrêt.</p>`}},
   noTeste:true,
   noAnat:true,
   anatomie:[
     {tok:"SELECT 1",txt:"L’ancre crée la première ligne."},
     {tok:"UNION ALL",txt:"Ajoute chaque nouvelle génération à la précédente."},
-    {tok:"SELECT x + 1 FROM nombres",txt:"La partie récursive relit le résultat déjà produit."},
-    {tok:"WHERE x < 10",txt:"La condition d’arrêt empêche une récursion infinie."}
+    {tok:"SELECT jour + 1 FROM jours",txt:"La partie récursive relit le résultat déjà produit."},
+    {tok:"WHERE jour < 90",txt:"La condition d’arrêt empêche une récursion infinie."}
   ],
-  exemple:"WITH RECURSIVE nombres(x) AS (\n    SELECT 1\n    UNION ALL\n    SELECT x + 1 FROM nombres WHERE x < 10\n)\nSELECT x FROM nombres;",
-  attendu:"10 lignes : les entiers de 1 à 10.",
+  exemple:"WITH RECURSIVE jours(jour) AS (\n    SELECT 1\n    UNION ALL\n    SELECT jour + 1 FROM jours WHERE jour < 90\n)\nSELECT jour FROM jours;",
+  attendu:"<b>90 lignes</b> : les jours de la campagne, du jour 1 au jour 90.",
   retenir:"Une CTE récursive contient une <b>ancre</b>, puis une partie qui relit la CTE, généralement reliées par <code>UNION ALL</code>.<br><br>La récursion continue tant qu’elle produit des lignes. Une condition d’arrêt correcte est donc indispensable.<br><br>Elle sert notamment aux suites, arbres, organigrammes et catégories imbriquées.",
-  consigne:"Avec une CTE récursive <code>n(x)</code>, génère les nombres pairs de 2 à 10 inclus, dans l’ordre.",
-  solution:"WITH RECURSIVE n(x) AS (\n SELECT 2\n UNION ALL\n SELECT x + 2 FROM n WHERE x < 10\n LIMIT 5\n)\nSELECT x FROM n ORDER BY x LIMIT 5;",
-  indice:"L’ancre vaut 2. À chaque étape, ajoute 2 et poursuis tant que la valeur courante est inférieure à 10.",
+  consigne:"L’équipe marketing fait un point de suivi tous les 10 jours. Avec une CTE récursive <code>points(jour)</code>, génère les jours 10, 20, 30… jusqu’au jour 90, dans l’ordre.",
+  solution:"WITH RECURSIVE points(jour) AS (\n    SELECT 10\n    UNION ALL\n    SELECT jour + 10 FROM points WHERE jour < 90\n)\nSELECT jour FROM points;",
+  indice:"L’ancre vaut 10. À chaque étape, ajoute 10 et continue tant que <code>jour &lt; 90</code>.",
   richLesson:true, earlyDemo:true, ordered:true,
   testeVariants:[
     {k:'five',label:'1 à 5',sql:"WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM n WHERE x < 5) SELECT x FROM n;",out:"1, 2, 3, 4, 5.",tone:'good'},
@@ -26373,7 +26376,7 @@ const MISSION_FILLS={
   48:{t:['AVG','produits.prix * commandes.quantite','JOIN','AS commandes_montants']},
   55:{t:['NOT EXISTS','SELECT 1','commandes.client_id','clients.id']},
   59:{t:['WITH','AS','GROUP BY','totaux']},
-  77:{t:['RECURSIVE','UNION ALL','x + 1','x < 10']},
+  77:{t:['RECURSIVE','UNION ALL','jour + 1','jour < 90']},
   73:{t:['AS valeur','UNION','categorie','ORDER BY']}
 };
 function lessonHasFill(l){return !!(l&&(l.gateFill||MISSION_FILLS[l.id]));}
@@ -32437,7 +32440,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-sq-refonte-v1155';
+  const SW_CACHE='requete-2026-09-27-recursive-90-v1156';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
