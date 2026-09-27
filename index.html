@@ -14707,50 +14707,51 @@ learningCheck:{
 }
 },
 { id:47, titre:"Sous-requête dans SELECT", résumé:"Calculer une valeur pour chaque ligne",
-  situation:`<p>L’équipe service client prépare un récapitulatif de ses clients.</p><p>Pour chaque client, elle souhaite voir son nom et <b>le nombre de commandes qu’il a passées</b>.</p><p>Pour ce récapitulatif, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Nom du client</b><span>table clients</span></div><div role="listitem"><b>🔢 Nombre de commandes</b><span class="is-b">table commandes</span></div></div><p>🤔 <b>Problème&nbsp;:</b> le nombre de commandes n’est écrit nulle part. Il faut donc compter les commandes de chaque client dans la <code>table&nbsp;commandes</code>.</p><p>Pour chaque ligne du récapitulatif, il faut donc&nbsp;:</p><ol class="fk-syn-map" aria-label="Les deux étapes"><li><b aria-hidden="true">1</b><div><strong>Prendre un client de la table clients</strong></div></li><li><b aria-hidden="true">2</b><div><strong>Compter ses commandes dans la table commandes</strong></div></li></ol><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Affiche chaque client avec son nombre de commandes.</p></div>`,
-  studio:{problem:{eye:"",title:"Comment compter les commandes d’un client&nbsp;?",
-      body:"Prenons un client au hasard&nbsp;:",
-      extra:`<div class="pk-comp ij-t"><p class="ij-tlab">table clients</p><div class="pk-mini is-2"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-hit">1</span><span>Sophie</span></div></div>
-        <p>Ses commandes se trouvent dans la <code>table&nbsp;commandes</code>&nbsp;: ce sont les lignes où l’id du client (<code>commandes.client_id</code>) vaut 1.</p>
-        <div class="pk-comp ij-t"><p class="ij-tlab">table commandes</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">client_id</span><span class="is-h">produit_id</span><span>1</span><span class="is-hit">1</span><span>1</span><span>2</span><span class="is-hit">1</span><span>3</span><span>13</span><span class="is-hit">1</span><span>8</span></div></div>
-        <p>On en compte 3&nbsp;:</p>
+  situation:`<p>📦 <b>Quel produit attire le plus de commandes&nbsp;?</b></p><p>On prépare une fiche pour chaque produit et on veut afficher, à côté de son nom, <b>le nombre de commandes dans lesquelles il apparaît</b>.</p><p>Pour cette fiche, on a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>📦 Nom du produit</b><span>table produits</span></div><div role="listitem"><b>🔢 Nombre de commandes</b><span class="is-b">table commandes</span></div></div><p>🤔 <b>Problème&nbsp;:</b> le nombre de commandes n’est écrit nulle part. Il faut donc compter les commandes de chaque produit dans la <code>table&nbsp;commandes</code>.</p><p class="ij-arrow">👉 La sous-requête compte les commandes correspondant au produit.</p><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Affiche chaque produit avec son nombre de commandes.</p></div>`,
+  studio:{problem:{eye:"",title:"Comment compter les commandes d’un produit&nbsp;?",
+      body:"Prenons un produit&nbsp;:",
+      extra:`<div class="pk-comp ij-t"><p class="ij-tlab">table produits</p><div class="pk-mini is-2"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-hit">1</span><span>Fibre Prébiotique</span></div></div>
+        <p>Ses commandes se trouvent dans la <code>table&nbsp;commandes</code>&nbsp;: ce sont les lignes où <code>commandes.produit_id</code> vaut 1.</p>
+        <div class="pk-comp ij-t"><p class="ij-tlab">table commandes</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">client_id</span><span class="is-h">produit_id</span><span>1</span><span>1</span><span class="is-hit">1</span><span>5</span><span>4</span><span class="is-hit">1</span><span>8</span><span>7</span><span class="is-hit">1</span><span>15</span><span>5</span><span class="is-hit">1</span></div></div>
+        <p>On en compte 4&nbsp;:</p>
         <div class="pt-syntax"><pre class="cw-syntax">SELECT COUNT(*)
 FROM commandes
-WHERE commandes.client_id = 1;</pre></div>
-        <p class="ij-arrow">👉 Il faut refaire ce calcul pour chaque client, avec son propre id.</p>
+WHERE commandes.produit_id = 1;</pre></div>
+        <p class="ij-arrow">👉 Il faut refaire ce calcul pour chaque produit, avec son propre id.</p>
         <p class="ij-arrow">👉 C’est le rôle d’une sous-requête placée dans <code>SELECT</code>&nbsp;: elle calcule une valeur pour chaque ligne du résultat.</p>`},
     uses:{title:"Écrire la requête",
       body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
-          <p class="pt-syntax-h">Partons des clients du récapitulatif</p>
-          <p>Pour afficher le nombre de commandes de chaque client, on commence par la liste des clients&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom
-FROM clients;</pre></div>
-          <p class="ij-arrow">👉 On obtient les 10 clients du récapitulatif.</p>
-          <p>Pour chacun, nous allons maintenant compter les commandes qui lui appartiennent dans la <code>table&nbsp;commandes</code>.</p>
+          <p class="pt-syntax-h">Écrivons la requête principale</p>
+          <p>Pour afficher le nombre de commandes de chaque produit, commençons par afficher les produits&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT produits.nom
+FROM produits;</pre></div>
+          <p class="ij-arrow">👉 Pour l’instant, SQL affiche les 8 produits.</p>
+          <p>Pour chacun, nous allons maintenant compter les commandes dans lesquelles il apparaît.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Relier le calcul au client en cours</p>
-          <p>Pour Sophie, on a compté ses commandes avec <code>commandes.client_id = 1</code>. Mais cette valeur est écrite en dur&nbsp;: le calcul ne vaut que pour elle.</p>
-          <p>On remplace donc 1 par l’id du client en cours, <code>clients.id</code>&nbsp;:</p>
+          <p class="pt-syntax-h">Relier le calcul au produit en cours</p>
+          <p>Pour la Fibre Prébiotique, on a compté ses commandes avec <code>commandes.produit_id = 1</code>. Mais cette valeur est écrite en dur&nbsp;: le calcul ne vaut que pour elle.</p>
+          <p>On remplace donc 1 par l’id du produit en cours, <code>produits.id</code>&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax">(SELECT COUNT(*)
  FROM commandes
- WHERE <span class="fk-syn-hit">commandes.client_id = clients.id</span>)</pre></div>
-          <div class="ij-match" role="img" aria-label="commandes.client_id comparé à clients.id"><code>commandes.client_id</code><i aria-hidden="true">↕</i><code>clients.id</code></div>
-          <p>La colonne <code>clients.id</code> vient de la requête principale. Pour chaque client, la condition utilise donc son propre id&nbsp;:</p>
-          <div class="pk-comp ij-t"><p class="ij-tlab">chaque client reçoit son calcul</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">nb_commandes</span><span>1</span><span>Sophie</span><span class="is-hit">3</span><span>2</span><span>Lucas</span><span class="is-hit">2</span><span>9</span><span>Inès</span><span class="is-hit">0</span></div><p class="ij-tmore">… et 7 autres clients</p></div>
+ WHERE <span class="fk-syn-hit">commandes.produit_id = produits.id</span>)</pre></div>
+          <div class="ij-match" role="img" aria-label="commandes.produit_id comparé à produits.id"><code>commandes.produit_id</code><i aria-hidden="true">↕</i><code>produits.id</code></div>
+          <p>La colonne <code>produits.id</code> vient de la requête principale. Pour chaque produit, la condition utilise donc son propre id&nbsp;:</p>
+          <div class="pk-comp ij-t"><p class="ij-tlab">chaque produit reçoit son calcul</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">nom</span><span class="is-h">nb_commandes</span><span>1</span><span>Fibre Prébiotique</span><span class="is-hit">4</span><span>2</span><span>Collagène Marin</span><span class="is-hit">2</span><span>5</span><span>Tisane Détox</span><span class="is-hit">1</span></div><p class="ij-tmore">… et 5 autres produits</p></div>
           <p class="ij-arrow">👉 On parle de <b>sous-requête corrélée</b>&nbsp;: elle dépend de la ligne en cours de la requête principale.</p>
-          <p>⚠️ Sans cette condition, la sous-requête compte toutes les commandes de la table, et chaque client reçoit le même total&nbsp;:</p>
-          <div class="ij-run" data-run-sql="SELECT clients.nom,&#10;  (SELECT COUNT(*)&#10;   FROM commandes) AS nb_commandes&#10;FROM clients;"></div>
+          <p>⚠️ Sans cette condition, la sous-requête compte toutes les commandes de la table, et chaque produit reçoit le même total&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT produits.nom,&#10;  (SELECT COUNT(*)&#10;   FROM commandes) AS nb_commandes&#10;FROM produits;"></div>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Placer la sous-requête dans SELECT</p>
           <p>Il reste à placer la sous-requête dans la liste des colonnes, entre parenthèses&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom,
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT produits.nom,
   <span class="fk-syn-hit">(SELECT COUNT(*)</span>
    <span class="fk-syn-hit">FROM commandes</span>
-   <span class="fk-syn-hit">WHERE commandes.client_id = clients.id)</span> AS nb_commandes
-FROM clients;</pre></div>
+   <span class="fk-syn-hit">WHERE commandes.produit_id = produits.id)</span>
+  AS nb_commandes
+FROM produits;</pre></div>
           <p class="ij-arrow">👉 <code>AS nb_commandes</code> donne un nom à la colonne calculée.</p>
           <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>Bon à savoir</p><p>Dans <code>SELECT</code>, la sous-requête doit renvoyer <b>une seule valeur</b>&nbsp;: une ligne et une colonne. C’est le cas ici, car <code>COUNT(*)</code> renvoie toujours un seul nombre.</p></div>
         </div>
@@ -14758,8 +14759,8 @@ FROM clients;</pre></div>
           <p class="pt-syntax-h">La requête complète</p>
           <p>Il ne reste plus qu’à réunir toutes les étapes.</p>
           <p>👇 Exécute la requête pour voir le résultat&nbsp;:</p>
-          <div class="ij-run" data-run-sql="SELECT clients.nom,&#10;  (SELECT COUNT(*)&#10;   FROM commandes&#10;   WHERE commandes.client_id = clients.id) AS nb_commandes&#10;FROM clients;"></div>
-          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="10 clients, chacun avec son nombre de commandes"><li class="ij-fn-row"><b>10</b><span>clients<small>toute la table clients</small></span></li><li class="ij-fn-step"><code>(SELECT COUNT(*) …)</code><small>une valeur calculée pour chaque client</small></li><li class="ij-fn-row is-out"><b>10</b><span>lignes du récapitulatif<small>Inès et Nathan n°10 : 0 commande</small></span></li></ol></div>
+          <div class="ij-run" data-run-sql="SELECT produits.nom,&#10;  (SELECT COUNT(*)&#10;   FROM commandes&#10;   WHERE commandes.produit_id = produits.id)&#10;  AS nb_commandes&#10;FROM produits;"></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="8 produits, chacun avec son nombre de commandes"><li class="ij-fn-row"><b>8</b><span>produits<small>toute la table produits</small></span></li><li class="ij-fn-step"><code>(SELECT COUNT(*) …)</code><small>une valeur calculée pour chaque produit</small></li><li class="ij-fn-row is-out"><b>8</b><span>fiches produit<small>Fibre Prébiotique : 4 commandes, le plus commandé</small></span></li></ol></div>
         </div>
       </div>`},
     reflexTitle:"Le réflexe à retenir",
@@ -14768,24 +14769,25 @@ FROM clients;</pre></div>
           <div class="pt-syntax"><pre class="cw-syntax">SELECT colonne,
   (SELECT calcul
    FROM autre_table
-   WHERE lien avec la ligne en cours) AS nom
+   WHERE lien avec la ligne en cours)
+  AS nom
 FROM table;</pre></div>
           <p>Dans notre exemple&nbsp;:</p>
-          <div class="memory-rule is-trio is-chain"><div class="memory-a"><b>Requête principale</b><span>Une ligne par client</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>Sous-requête</b><span>Compte les commandes de ce client</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>Corrélation</b><span><code>commandes.client_id = clients.id</code></span></div></div>
+          <div class="memory-rule is-trio is-chain"><div class="memory-a"><b>Requête principale</b><span>Une ligne par produit</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-b"><b>Sous-requête</b><span>Compte les commandes de ce produit</span></div><i class="hav-trio-arrow" aria-hidden="true">→</i><div class="memory-c"><b>Corrélation</b><span><code>commandes.produit_id = produits.id</code></span></div></div>
           <p class="agg-reflex" style="margin-top:14px">👉 La sous-requête calcule une seule valeur par ligne&nbsp;; la corrélation la relie à la ligne en cours.</p>
           <p class="agg-reflex" style="margin-top:14px">👉 Où placer la sous-requête&nbsp;?</p>
           <div class="ij-need" role="list" aria-label="Où placer la sous-requête"><div role="listitem"><b>🔍 Garder les lignes dont la valeur est dans une liste</b><span>WHERE … IN</span></div><div role="listitem"><b>🧮 Ajouter une valeur calculée à chaque ligne</b><span class="is-b">SELECT</span></div><div role="listitem"><b>🗂️ Calculer à partir d’un résultat intermédiaire</b><span class="is-c">FROM</span></div></div>`}},
   noTeste:true,
   noAnat:true,
   anatomie:[
-    {tok:"SELECT clients.nom",txt:"Le nom du client."},
-    {tok:"(SELECT COUNT(*) FROM commandes WHERE commandes.client_id = clients.id)",txt:"La sous-requête compte les commandes du client courant."},
+    {tok:"SELECT produits.nom",txt:"Le nom du produit."},
+    {tok:"(SELECT COUNT(*) FROM commandes WHERE commandes.produit_id = produits.id)",txt:"La sous-requête compte les commandes du produit courant."},
     {tok:"AS nb_commandes",txt:"Donne un nom à la valeur calculée."},
-    {tok:"FROM clients",txt:"La table principale."}
+    {tok:"FROM produits",txt:"La table principale."}
   ],
-  exemple:"SELECT clients.nom,\n  (SELECT COUNT(*)\n   FROM commandes\n   WHERE commandes.client_id = clients.id) AS nb_commandes\nFROM clients;",
+  exemple:"SELECT produits.nom,\n  (SELECT COUNT(*)\n   FROM commandes\n   WHERE commandes.produit_id = produits.id)\n  AS nb_commandes\nFROM produits;",
   attendu:"10 lignes : chaque client avec son nombre de commandes. Sophie : 3, Lucas : 2, Inès : 0, Nathan n°10 : 0. La commande invitée #16 n’est comptée pour aucun client.",
-  retenir:"Une sous-requête dans <code>SELECT</code> calcule <b>une valeur par ligne</b>.<br><br>Elle est souvent <b>corrélée</b> : elle utilise une colonne de la requête principale, ici <code>clients.id</code>.<br><br>Sans ce lien, elle compte toute la table. Pour Inès, <code>COUNT(*)</code> vaut 0. La commande invitée n’appartient à personne.",
+  retenir:"Une sous-requête dans <code>SELECT</code> calcule <b>une valeur par ligne</b>.<br><br>Elle est souvent <b>corrélée</b> : elle utilise une colonne de la requête principale, ici <code>produits.id</code>.<br><br>Sans ce lien, elle compte toute la table : 16 pour chaque produit.",
   consigne:"Affiche chaque client avec son nombre de commandes en utilisant une sous-requête dans le SELECT.",
   solution:"SELECT clients.nom,\n  (SELECT COUNT(*)\n   FROM commandes\n   WHERE commandes.client_id = clients.id) AS nb_commandes\nFROM clients;",
   indice:"Ajoute une condition dans la sous-requête : <code>WHERE commandes.client_id = clients.id</code>.",
@@ -18602,8 +18604,8 @@ const CARTES={
 
  45:{k:"IN + sous-requête",t:"Filtrer avec une liste",s:"WHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n)",
     m:"La sous-requête fabrique une <b>liste</b>. <code>IN</code> cherche ensuite si <code>clients.id</code> y figure. Une seule colonne dans la sous-requête. Pas <code>=</code> : plusieurs valeurs sont possibles."},
- 47:{k:"Sous-requête SELECT",t:"Une valeur par ligne",s:"SELECT nom, (SELECT COUNT(*)\n  FROM commandes\n  WHERE client_id = clients.id)\nFROM clients;",
-    m:"Dans <code>SELECT</code>, la sous-requête calcule une valeur pour chaque ligne. Elle est <b>corrélée</b> : elle utilise <code>clients.id</code>. Sans ce lien, tout le monde affiche le même total."},
+ 47:{k:"Sous-requête SELECT",t:"Une valeur par ligne",s:"SELECT nom, (SELECT COUNT(*)\n  FROM commandes\n  WHERE produit_id = produits.id)\nFROM produits;",
+    m:"Dans <code>SELECT</code>, la sous-requête calcule une valeur pour chaque ligne. Elle est <b>corrélée</b> : elle utilise <code>produits.id</code>. Sans ce lien, chaque ligne affiche le même total."},
  48:{k:"Sous-requête FROM",t:"Un résultat intermédiaire",s:"SELECT AVG(montant)\nFROM (\n  SELECT prix * quantite AS montant\n  FROM commandes\n  JOIN produits ON …\n) AS commandes_montants",
     m:"Dans <code>FROM</code>, la sous-requête produit un résultat que la requête principale utilise comme une table. On l’appelle <b>table dérivée</b> : elle doit avoir un alias."},
  55:{k:"EXISTS",t:"Présence ou absence d’une ligne",s:"WHERE EXISTS (\n  SELECT 1 FROM commandes\n  WHERE client_id = clients.id\n)",
@@ -18756,9 +18758,9 @@ const QCM={
  46:[{q:"Pourquoi <code>NOT IN (SELECT client_id FROM commandes)</code> renvoie 0 ligne ?",o:["Tous les clients ont commandé","La commande #16 met un NULL dans la liste","NOT IN est interdit avec une sous-requête"],b:1,e:"Un NULL dans la liste empêche SQL de conclure qu’un id est absent de toute la liste."},
   {q:"Comment sécuriser ce <code>NOT IN</code> ?",o:["Ajouter LIMIT 1","Retirer les NULL : WHERE client_id IS NOT NULL","Remplacer NOT IN par ="],b:1,e:"Sans le NULL de la commande invitée, Inès ressort bien."},
   {q:"Après correction, le résultat est :",o:["Aucun client","Inès et Nathan n°10","Tous les clients sauf Sophie"],b:1,e:"Inès et Nathan n°10 sont les deux clients sans commande."}],
- 47:[{q:"Une sous-requête dans <code>SELECT</code> sert à :",o:["Filtrer les lignes","Calculer une valeur pour chaque ligne","Créer une table intermédiaire"],b:1,e:"Ici, elle compte les commandes du client courant."},
-  {q:"Pourquoi écrire <code>WHERE commandes.client_id = clients.id</code> ?",o:["Pour trier le résultat","Pour relier la sous-requête à la ligne courante","Parce que JOIN l’exige"],b:1,e:"Sans ce lien, la sous-requête compte toute la table : 16 pour tout le monde."},
-  {q:"Combien de commandes Inès affiche-t-elle ? Et la commande invitée ?",o:["1, et #16 est comptée pour Inès","0, et #16 n’est comptée pour personne","NULL, comme un LEFT JOIN"],b:1,e:"Aucun client_id ne vaut 9. #16 a client_id NULL : elle n’appartient à personne."}],
+ 47:[{q:"Une sous-requête dans <code>SELECT</code> sert à :",o:["Filtrer les lignes","Calculer une valeur pour chaque ligne","Créer une table intermédiaire"],b:1,e:"Ici, elle compte les commandes du produit courant."},
+  {q:"Pourquoi écrire <code>WHERE commandes.produit_id = produits.id</code> ?",o:["Pour trier le résultat","Pour relier la sous-requête à la ligne courante","Parce que JOIN l’exige"],b:1,e:"Sans ce lien, la sous-requête compte toute la table : 16 pour chaque produit."},
+  {q:"Quel produit attire le plus de commandes ?",o:["Magnésium","Fibre Prébiotique","Shaker Inox"],b:1,e:"La Fibre Prébiotique apparaît dans 4 commandes : n°1, 5, 8 et 15."}],
  48:[{q:"Une sous-requête dans <code>FROM</code> produit :",o:["Une seule valeur","Une liste pour IN","Un résultat utilisé comme une table"],b:2,e:"On lui donne un alias, puis la requête principale calcule dessus."},
   {q:"Pourquoi écrire <code>AS commandes_montants</code> ?",o:["Pour trier le résultat","Parce que le résultat intermédiaire doit avoir un alias","Parce que AVG l’exige toujours"],b:1,e:"Une sous-requête dans FROM est une table dérivée : SQL exige un nom pour s’en servir."},
   {q:"Que calcule la requête principale ici ?",o:["Le nombre de commandes par client","La moyenne des montants déjà calculés","La somme des prix du catalogue"],b:1,e:"La sous-requête fabrique d’abord les montants. <code>AVG(montant)</code> agrège ensuite ce résultat."}],
@@ -26377,7 +26379,7 @@ const MISSION_FILLS={
   41:{t:['COUNT','INNER JOIN','GROUP BY','clients.ville']},
   42:{t:['c1','c2','c1.ville','c2.ville','c1.id < c2.id']},
   45:{t:['IN','client_id','commandes','produit_id = 3']},
-  47:{t:['COUNT(*)','commandes.client_id','clients.id','AS nb_commandes']},
+  47:{t:['COUNT(*)','commandes.produit_id','produits.id','AS nb_commandes']},
   48:{t:['AVG','produits.prix * commandes.quantite','JOIN','AS commandes_montants']},
   55:{t:['NOT EXISTS','SELECT 1','commandes.client_id','clients.id']},
   59:{t:['WITH','AS','GROUP BY','totaux']},
@@ -32458,7 +32460,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-28-probleme-cmd-v1181';
+  const SW_CACHE='requete-2026-09-28-select-produits-v1182';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
