@@ -14786,46 +14786,46 @@ FROM table;</pre></div>
     {tok:"FROM produits",txt:"La table principale."}
   ],
   exemple:"SELECT produits.nom,\n  (SELECT COUNT(*)\n   FROM commandes\n   WHERE commandes.produit_id = produits.id)\n  AS nb_commandes\nFROM produits;",
-  attendu:"10 lignes : chaque client avec son nombre de commandes. Sophie : 3, Lucas : 2, Inès : 0, Nathan n°10 : 0. La commande invitée #16 n’est comptée pour aucun client.",
+  attendu:"8 lignes : chaque produit avec son nombre de commandes. Fibre Prébiotique : 4 ; Tisane Détox et Shaker Inox : 1 ; les 5 autres produits : 2.",
   retenir:"Une sous-requête dans <code>SELECT</code> calcule <b>une valeur par ligne</b>.<br><br>Elle est souvent <b>corrélée</b> : elle utilise une colonne de la requête principale, ici <code>produits.id</code>.<br><br>Sans ce lien, elle compte toute la table : 16 pour chaque produit.",
-  consigne:"Affiche chaque client avec son nombre de commandes en utilisant une sous-requête dans le SELECT.",
-  solution:"SELECT clients.nom,\n  (SELECT COUNT(*)\n   FROM commandes\n   WHERE commandes.client_id = clients.id) AS nb_commandes\nFROM clients;",
-  indice:"Ajoute une condition dans la sous-requête : <code>WHERE commandes.client_id = clients.id</code>.",
+  consigne:"Affiche chaque produit avec son nombre de commandes en utilisant une sous-requête dans le SELECT.",
+  solution:"SELECT produits.nom,\n  (SELECT COUNT(*)\n   FROM commandes\n   WHERE commandes.produit_id = produits.id)\n  AS nb_commandes\nFROM produits;",
+  indice:"Ajoute une condition dans la sous-requête : <code>WHERE commandes.produit_id = produits.id</code>.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
   {
-    "k": "cli",
-    "label": "clients",
-    "sql": "SELECT id, nom\nFROM clients;"
+    "k": "prod",
+    "label": "produits",
+    "sql": "SELECT id, nom\nFROM produits;"
   },
   {
     "k": "cmd",
     "label": "commandes",
-    "sql": "SELECT id, client_id\nFROM commandes;"
+    "sql": "SELECT id, produit_id\nFROM commandes;"
   },
   {
     "k": "sub_select",
     "label": "Sous-requête SELECT",
-    "sql": "SELECT clients.nom,\n  (SELECT COUNT(*)\n   FROM commandes\n   WHERE commandes.client_id = clients.id) AS nb_commandes\nFROM clients;",
+    "sql": "SELECT produits.nom,\n  (SELECT COUNT(*)\n   FROM commandes\n   WHERE commandes.produit_id = produits.id)\n  AS nb_commandes\nFROM produits;",
     "tone": "good"
   },
   {
     "k": "rec_uncorrelated",
     "label": "Sans corrélation",
-    "sql": "SELECT nom,(SELECT COUNT(*) FROM commandes) AS nb_commandes FROM clients;",
-    "out": "16 pour tout le monde : le calcul n’est plus lié au client.",
-    "expectRows": 10
+    "sql": "SELECT nom,(SELECT COUNT(*) FROM commandes) AS nb_commandes FROM produits;",
+    "out": "16 pour chaque produit : le calcul n’est plus lié au produit.",
+    "expectRows": 8
   }
 ] ,
 learningCheck:{
-  "question": "Sans lien entre commandes.client_id et clients.id, que compte la sous-requête ?",
+  "question": "Sans lien entre commandes.produit_id et produits.id, que compte la sous-requête ?",
   "options": [
     "Aucune commande",
-    "Toutes les commandes, pour chaque client",
-    "Les commandes du client courant"
+    "Toutes les commandes, pour chaque produit",
+    "Les commandes du produit courant"
   ],
   "answer": 1,
-  "explanation": "La corrélation est ce qui rattache le calcul à la ligne extérieure ; sans elle, chaque client reçoit 16."
+  "explanation": "La corrélation rattache le calcul à la ligne en cours ; sans elle, chaque produit reçoit 16."
 }
 },
 { id:48, titre:"Sous-requête dans FROM", résumé:"Utiliser une sous-requête comme table",
@@ -31345,40 +31345,41 @@ const SQL_VIZ={
     </div>
     <p class="er-hint">👆 À l’étape 3, touche un client : l’identifiant recherché s’allume dans la liste.</p>
   </div>`},
-  subquery_select:{kind:'er',sample:'3 clients · 6 commandes',phases:[
-    {k:'Sophie d’abord',d:'La requête principale est sur Sophie. La sous-requête compte uniquement les commandes où <code>client_id = 1</code>.',sql:'WHERE commandes.client_id = clients.id',read:'Pour Sophie, <code>COUNT(*)</code> vaut 3. La sous-requête dépend de la ligne courante : elle est corrélée.'},
-    {k:'Puis chaque client',d:'SQL recommence pour Lucas, puis pour Inès. Chaque ligne obtient sa propre valeur.',sql:'(SELECT COUNT(*) FROM commandes …) AS nb_commandes',read:'Lucas : 2. Inès : 0, parce qu’aucune commande n’a <code>client_id = 9</code>.'},
-    {k:'L’invité n’est à personne',d:'La commande #16 a <code>client_id = NULL</code>. Elle ne correspond à aucun <code>clients.id</code>.',sql:'NULL = clients.id → jamais vrai',read:'Personne n’affiche 4 à cause de l’invité. Inès reste à 0.'}
+  subquery_select:{kind:'er',sample:'3 produits · 7 commandes',phases:[
+    {k:'Fibre Prébiotique d’abord',d:'La requête principale est sur la Fibre Prébiotique. La sous-requête compte uniquement les commandes où <code>produit_id = 1</code>.',sql:'WHERE commandes.produit_id = produits.id',read:'Pour la Fibre Prébiotique, <code>COUNT(*)</code> vaut 4. La sous-requête dépend de la ligne courante : elle est corrélée.'},
+    {k:'Puis chaque produit',d:'SQL recommence pour le Collagène Marin, puis pour la Tisane Détox. Chaque ligne obtient sa propre valeur.',sql:'(SELECT COUNT(*) FROM commandes …) AS nb_commandes',read:'Collagène Marin : 2. Tisane Détox : 1.'},
+    {k:'Le produit le plus commandé',d:'Chaque fiche produit affiche maintenant son propre total.',sql:'SELECT produits.nom, (…) AS nb_commandes',read:'La Fibre Prébiotique arrive en tête avec 4 commandes.'}
   ],html:`<div class="er-stage join-viz">
     <div class="join-sets">
-      <div class="join-side"><div class="join-side-h">clients</div>
+      <div class="join-side"><div class="join-side-h">produits</div>
         <div class="jchips">
-          <div class="jchip" data-k="A" data-er-id="1" role="button" tabindex="0"><span class="er-key">1</span>Sophie</div>
-          <div class="jchip" data-k="B" data-er-id="2" role="button" tabindex="0"><span class="er-key">2</span>Lucas</div>
-          <div class="jchip" data-k="C" data-er-id="9" role="button" tabindex="0"><span class="er-key">9</span>Inès</div>
+          <div class="jchip" data-k="A" data-er-id="1" role="button" tabindex="0"><span class="er-key">1</span>Fibre</div>
+          <div class="jchip" data-k="B" data-er-id="2" role="button" tabindex="0"><span class="er-key">2</span>Collagène</div>
+          <div class="jchip" data-k="C" data-er-id="5" role="button" tabindex="0"><span class="er-key">5</span>Tisane</div>
         </div>
       </div>
       <div class="join-side" data-side="r"><div class="join-side-h">commandes</div>
         <div class="jchips">
           <div class="jchip" data-k="A" data-er-fk="1" role="button" tabindex="0"><span class="er-key">#1</span>1</div>
-          <div class="jchip" data-k="A" data-er-fk="1" role="button" tabindex="0"><span class="er-key">#2</span>1</div>
-          <div class="jchip" data-k="A" data-er-fk="1" role="button" tabindex="0"><span class="er-key">#13</span>1</div>
-          <div class="jchip" data-k="B" data-er-fk="2" role="button" tabindex="0"><span class="er-key">#3</span>2</div>
-          <div class="jchip" data-k="B" data-er-fk="2" role="button" tabindex="0"><span class="er-key">#10</span>2</div>
-          <div class="jchip" data-k="ghost" data-er-id="16" role="button" tabindex="0"><span class="er-key">#16</span>NULL</div>
+          <div class="jchip" data-k="A" data-er-fk="1" role="button" tabindex="0"><span class="er-key">#5</span>1</div>
+          <div class="jchip" data-k="A" data-er-fk="1" role="button" tabindex="0"><span class="er-key">#8</span>1</div>
+          <div class="jchip" data-k="A" data-er-fk="1" role="button" tabindex="0"><span class="er-key">#15</span>1</div>
+          <div class="jchip" data-k="B" data-er-fk="2" role="button" tabindex="0"><span class="er-key">#4</span>2</div>
+          <div class="jchip" data-k="B" data-er-fk="2" role="button" tabindex="0"><span class="er-key">#12</span>2</div>
+          <div class="jchip" data-k="C" data-er-fk="5" role="button" tabindex="0"><span class="er-key">#9</span>5</div>
         </div>
       </div>
     </div>
     <div class="join-out" aria-hidden="true">
-      <div class="join-pill" data-when="s" data-er-id="1">Sophie<span class="jn">3</span></div>
-      <div class="join-pill" data-when="c" data-er-id="1">Sophie<span class="jn">3</span></div>
-      <div class="join-pill" data-when="c" data-er-id="2">Lucas<span class="jn">2</span></div>
-      <div class="join-pill" data-when="c" data-er-id="9">Inès<span class="jn">0</span></div>
-      <div class="join-pill" data-when="n" data-er-id="1">Sophie<span class="jn">3</span></div>
-      <div class="join-pill" data-when="n" data-er-id="2">Lucas<span class="jn">2</span></div>
-      <div class="join-pill" data-when="n" data-er-id="9">Inès<span class="jn">0</span></div>
+      <div class="join-pill" data-when="s" data-er-id="1">Fibre Prébiotique<span class="jn">4</span></div>
+      <div class="join-pill" data-when="c" data-er-id="1">Fibre Prébiotique<span class="jn">4</span></div>
+      <div class="join-pill" data-when="c" data-er-id="2">Collagène Marin<span class="jn">2</span></div>
+      <div class="join-pill" data-when="c" data-er-id="5">Tisane Détox<span class="jn">1</span></div>
+      <div class="join-pill" data-when="n" data-er-id="1">Fibre Prébiotique<span class="jn">4</span></div>
+      <div class="join-pill" data-when="n" data-er-id="2">Collagène Marin<span class="jn">2</span></div>
+      <div class="join-pill" data-when="n" data-er-id="5">Tisane Détox<span class="jn">1</span></div>
     </div>
-    <p class="er-hint">👆 Touche Sophie : ses 3 commandes s’allument. #16 reste à part.</p>
+    <p class="er-hint">👆 Touche la Fibre Prébiotique : ses 4 commandes s’allument.</p>
   </div>`},
   subquery_from:{kind:'er',sample:'16 commandes · 16 montants · 1 moyenne',stepMs:7800,phases:[
     {k:'Relier les données',d:'La sous-requête commence par relier chaque commande au produit qui porte son prix.',sql:'JOIN produits\nON commandes.produit_id = produits.id',read:'La quantité vient de <code>commandes</code>. Le prix vient de <code>produits</code>. La clé <code>produit_id</code> les met sur la même ligne.'},
@@ -32460,7 +32461,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-28-select-produits-v1182';
+  const SW_CACHE='requete-2026-09-28-select-produits2-v1183';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
