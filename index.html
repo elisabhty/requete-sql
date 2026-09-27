@@ -2223,6 +2223,10 @@
   .qf-card.is-used{display:none}
   .is-called{animation:jcCalled 1.8s ease .35s}
   @keyframes jcCalled{0%,100%{box-shadow:0 0 0 0 rgba(139,92,246,0)}20%,60%{box-shadow:0 0 0 5px rgba(139,92,246,.45)}40%,80%{box-shadow:0 0 0 2px rgba(139,92,246,.25)}}
+  .qf-confetti{position:fixed;inset:0;pointer-events:none;z-index:9998;overflow:hidden}
+  .qf-confetti > i{position:absolute}
+  /* Le cadre d’exécution apparaît tout de suite, sans fondu depuis le blanc. */
+  .qf-run .exframe{opacity:1!important;animation:none!important}
   .qf.is-full .qf-bank,.qf.is-full .qf-bank-h,.qf.is-won .qf-actions{display:none}
   .qf-ghost{position:fixed;z-index:9999;pointer-events:none;margin:0;transform:translate(-50%,-50%) rotate(-3deg) scale(1.08);box-shadow:0 18px 30px -12px rgba(60,40,140,.55);animation:none}
   .qf-fly{position:fixed;z-index:9999;pointer-events:none;margin:0;animation:none}
@@ -26088,19 +26092,23 @@ function runExemple(btn){
       }else{
         ({res,ms}=execQuery(runSql));
       }
+      /* 'on' est posé dans la même image que le tableau : sinon les lignes s’affichent
+         une image en entier, disparaissent puis réapparaissent (flash blanc). */
+      host.classList.remove('on','flash');
       host.innerHTML=renderTable(res,ms);
       host.hidden=false;
-      host.classList.remove('on','flash');
+      void host.offsetWidth;
+      host.classList.add('on','flash');
       requestAnimationFrame(()=>{
-        host.classList.add('on','flash');
         bindTableSwipe(host);
         buzz('light');
       });
     }catch(e){
+      host.classList.remove('on','flash');
       host.innerHTML=errBox(e.message);
       host.hidden=false;
-      host.classList.remove('on','flash');
-      requestAnimationFrame(()=>host.classList.add('on'));
+      void host.offsetWidth;
+      host.classList.add('on');
     }finally{
       btn.classList.remove('running');
       btn.disabled=false;
@@ -26380,6 +26388,27 @@ function whenSettled(el,scr,opts,cb){
   return {disconnect(){ if(!done){done=true;detach();} }};
 }
 /* ---------- Requête à trous : placer les cartes, puis exécuter ---------- */
+/* Confettis de réussite : une gerbe qui part du cadre puis retombe. */
+function qfConfetti(anchor){
+  if(prefersReduceMotion()||!anchor)return;
+  const r=anchor.getBoundingClientRect();
+  const ox=r.left+r.width/2,oy=Math.max(80,Math.min(r.top+90,innerHeight*.45));
+  const layer=document.createElement('div');layer.className='qf-confetti';layer.setAttribute('aria-hidden','true');
+  document.body.appendChild(layer);
+  const cols=['#a78bfa','#7A6FF0','#c4b5fd','#4ade80','#fcd34d','#f9a8d4','#7CC7FF'];
+  for(let k=0;k<46;k++){
+    const i=document.createElement('i'),ang=-Math.PI/2+(Math.random()-.5)*Math.PI*1.5,v=110+Math.random()*150;
+    const dx=Math.cos(ang)*v,dy=Math.sin(ang)*v,rot=(Math.random()-.5)*900,w=5+Math.random()*5;
+    i.style.cssText=`left:${ox}px;top:${oy}px;width:${w}px;height:${w*(Math.random()<.5?1:1.8)}px;background:${cols[k%cols.length]};border-radius:${Math.random()<.3?'50%':'2px'}`;
+    layer.appendChild(i);
+    i.animate([
+      {transform:'translate(-50%,-50%) rotate(0)',opacity:1},
+      {transform:`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) rotate(${rot*.6}deg)`,opacity:1,offset:.45},
+      {transform:`translate(calc(-50% + ${dx*1.25}px),calc(-50% + ${dy+220}px)) rotate(${rot}deg)`,opacity:0}
+    ],{duration:1400+Math.random()*500,delay:Math.random()*90,easing:'cubic-bezier(.2,.7,.4,1)',fill:'forwards'});
+  }
+  setTimeout(()=>layer.remove(),2300);
+}
 function initQueryFill(){
   const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   document.querySelectorAll('#lesson-body .qf[data-lesson-fill]').forEach(box=>{
@@ -26480,7 +26509,8 @@ function initQueryFill(){
         }
         if(run)run.click();
         runWrap.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
-        if(typeof jcFireworks==='function')setTimeout(()=>jcFireworks(4),300);
+        setTimeout(()=>qfConfetti(runWrap),350);
+        if(navigator.vibrate)navigator.vibrate([10,40,20]);
         if(current&&current.gateFill){jcMarkPassed(current.id);jcUnlockExo();}
       },reduce?0:holes.length*step+450);
     });
@@ -32351,7 +32381,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-dart-v1146';
+  const SW_CACHE='requete-2026-09-27-confetti-v1147';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
