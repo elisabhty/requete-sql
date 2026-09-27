@@ -26417,6 +26417,11 @@ function initQueryFill(){
     const holes=[...box.querySelectorAll('.qf-hole')],cards=[...box.querySelectorAll('.qf-card')];
     const msg=box.querySelector('.qf-msg'),check=box.querySelector('.qf-check'),runWrap=box.querySelector('.qf-run');
     const count=box.querySelector('.qf-count'),meter=box.querySelector('.qf-meter > i'),editor=box.querySelector('.qf-editor');
+    /* Progression gardée d’un rechargement à l’autre : cartes placées et réussite. */
+    const lid=current&&current.id,KEY='rq-qf-'+lid;
+    const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(holes.map(h=>h.dataset.k||'')));}catch(e){}};
+    const load=()=>{try{const v=JSON.parse(localStorage.getItem(KEY)||'null');return Array.isArray(v)&&v.length===holes.length?v:null;}catch(e){return null;}};
+    const cardText=k=>{const c=cards.find(c=>c.dataset.k===k);return c?c.textContent:'';};
     const refresh=()=>{
       holes.forEach(h=>h.classList.toggle('is-filled',!!h.dataset.k));
       cards.forEach(c=>c.classList.toggle('is-used',holes.some(h=>h.dataset.k===c.dataset.k)));
@@ -26427,6 +26432,7 @@ function initQueryFill(){
       if(meter)meter.style.width=(n/holes.length*100)+'%';
       box.classList.toggle('is-full',full);
       check.disabled=!full;
+      if(!box.classList.contains('is-won'))save();
     };
     const clearMarks=()=>{holes.forEach(h=>h.classList.remove('is-ok','is-ko'));msg.textContent='';msg.className='qf-msg';};
     const fill=(card,hole)=>{
@@ -26524,7 +26530,25 @@ function initQueryFill(){
       },reduce?0:holes.length*step+450);
     });
     box.querySelector('.qf-reset').addEventListener('click',()=>{holes.forEach(h=>{delete h.dataset.k;h.textContent='';});clearMarks();refresh();});
+    const saved=load();
+    if(saved)saved.forEach((k,i)=>{if(k&&cards.some(c=>c.dataset.k===k)){holes[i].dataset.k=k;holes[i].textContent=cardText(k);}});
     refresh();
+    /* Déjà réussie : on réaffiche directement la requête exécutée, son résultat et la mission. */
+    if(lid!=null&&(jcPassed(lid)||(typeof etapesDe==='function'&&etapesDe(lid).exo))){
+      const eq=holes.filter(h=>h.dataset.eq);
+      const swapped=eq.length===2&&eq[0].dataset.k===eq[1].dataset.want&&eq[1].dataset.k===eq[0].dataset.want;
+      const good=holes.every(h=>h.dataset.k===h.dataset.want||(swapped&&!!h.dataset.eq));
+      if(!good)holes.forEach(h=>{h.dataset.k=h.dataset.want;h.textContent=cardText(h.dataset.want);});
+      refresh();save();
+      holes.forEach(h=>h.classList.add('is-ok'));
+      box.classList.add('is-won','is-solved');
+      runWrap.hidden=false;
+      const done=box.closest('.fn-use')&&box.closest('.fn-use').querySelector('.ij-done.is-locked');
+      if(done){done.classList.remove('is-locked');done.classList.add('is-shown');}
+      const run=runWrap.querySelector('.xf-run'),mine=box.querySelector('.qf-sql').textContent.trim();
+      if(run&&mine){run.setAttribute('data-sql',mine);const code=runWrap.querySelector('.ex-code');if(code)code.innerHTML=highlight(mine);}
+      if(run)run.click();
+    }
   });
 }
 /* ---------- ON à plusieurs conditions : validation pas à pas ---------- */
@@ -32390,7 +32414,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-trous-v1152';
+  const SW_CACHE='requete-2026-09-27-qf-save-v1153';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
