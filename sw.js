@@ -14,7 +14,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-09-27-sousreq-v1149';
+const CACHE = 'requete-2026-09-27-no46-v1150';
 
 const PRECACHE = [
   './',

@@ -14697,83 +14697,6 @@ learningCheck:{
   "explanation": "= compare à une seule valeur. IN vérifie l’appartenance à toute la liste renvoyée par la sous-requête."
 }
 },
-{ id:46, titre:"Sous-requête dans WHERE avec NOT IN", résumé:"Exclure une liste issue d’une autre requête",
-  situation:`<p>L’équipe marketing prépare une offre de bienvenue.</p><p>Elle souhaite l’envoyer uniquement aux clients qui <b>n’ont encore passé aucune commande</b>.</p><p>Pour constituer la liste, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Nom du client</b><span>table clients</span></div><div role="listitem"><b>🛒 Clients ayant commandé</b><span class="is-b">table commandes</span></div></div><p>🤔 <b>Problème&nbsp;:</b> la <code>table&nbsp;clients</code> n’indique pas si un client a déjà commandé. Cette information se trouve dans la <code>table&nbsp;commandes</code>, sous la forme de l’id du client (<code>client_id</code>).</p><p>Il faut donc procéder en deux temps&nbsp;:</p><ol class="fk-syn-map" aria-label="Les deux étapes"><li><b aria-hidden="true">1</b><div><strong>Lister les id des clients qui ont déjà commandé</strong></div></li><li><b aria-hidden="true">2</b><div><strong>Garder les clients dont l’id n’est pas dans cette liste</strong></div></li></ol><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Retrouve les clients qui n’ont encore jamais commandé.</p></div>`,
-  studio:{pointCards:{
-      eye:"NOT IN",title:"La sous-requête crée une liste à exclure.",
-      lead:"<p>Une sous-requête est simplement une requête SQL imbriquée à l’intérieur d’une autre requête. Lorsqu’on l’utilise avec <code>WHERE ... NOT IN</code>, elle permet de filtrer les résultats de la requête principale en excluant une liste de valeurs dynamiques générées par la sous-requête.</p>",
-      syntaxTitle:"Syntaxe de base",
-      syntax:"SELECT colonne1, colonne2\nFROM table_principale\nWHERE colonne_x NOT IN (SELECT colonne_y FROM table_secondaire WHERE condition);",
-      chain:[
-        {k:"Créer la liste",v:"SELECT client_id … FROM commandes",out:"→ on obtient : 1, 2, 3, 4, 5, 6, 7, 8"},
-        {k:"Garder hors de la liste",v:"clients.id NOT IN (…)"}
-      ],
-      cards:[
-        {t:"Sous-requête entre parenthèses",
-         b:"<p>La sous-requête se place entre parenthèses après <code>NOT IN</code>. Elle retourne ici les id des clients (<code>commandes.client_id</code>) qui ont déjà commandé.</p>"},
-        {t:"Ordre d’exécution",draw:"repeat",src:"clients.id",outs:["9 Inès","10 Nathan"],
-         b:"<p>SQL exécute d’abord la sous-requête, puis utilise la liste obtenue pour filtrer la requête principale. <code>NOT IN</code> garde les clients dont l’<code>id</code> n’est pas dans cette liste.</p>"}
-      ]},
-    reflex:{a:{k:"Sous-requête",t:"crée la liste des id des clients (<code>commandes.client_id</code>) ayant commandé"},
-      b:{k:"NOT IN",t:"garde les clients dont l’<code>id</code> n’est pas dans cette liste"},
-      note:"Avec <code>NOT IN</code>, si la sous-requête peut contenir <code>NULL</code>, retire-le avec <code>IS NOT NULL</code>."},
-    viz:"subquery_notin"},
-  anatomie:[
-    {tok:"SELECT clients.nom",txt:"La colonne à afficher."},
-    {tok:"FROM clients",txt:"La table principale."},
-    {tok:"WHERE clients.id NOT IN (...)",txt:"Garde les clients dont l’id n’est pas dans la liste."},
-    {tok:"(SELECT commandes.client_id FROM commandes WHERE commandes.client_id IS NOT NULL)",txt:"Sous-requête qui liste les clients ayant commandé, sans NULL."}
-  ],
-  exemple:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);",
-  attendu:"2 lignes : Inès et Nathan n°10, les deux clients sans commande.",
-  retenir:"<code>NOT IN</code> cherche les valeurs <b>absentes</b> d’une liste.<br><br>Si la liste contient un <code>NULL</code>, SQL ne peut plus conclure qu’une valeur est absente de <b>toute</b> la liste. Le résultat devient vide.<br><br>La commande invitée #16 impose donc <code>WHERE client_id IS NOT NULL</code> dans la sous-requête.",
-  piege:{t:"Un NULL dans la liste",
-    p:"La commande invitée #16 a un <code>client_id = NULL</code>. La sous-requête peut donc produire une liste comme :<br><code>1, 2, 3, 4, ..., NULL</code><br><br>Avec <code>NOT IN</code>, la condition vérifie qu’un <code>id</code> n’est égal à aucune valeur de la liste. Mais face à <code>NULL</code>, la comparaison est inconnue.<br><br>Résultat : <code>NOT IN</code> ne retourne aucune ligne.<br><br>Il faut donc retirer les <code>NULL</code> de la sous-requête :<br><code>WHERE client_id IS NOT NULL</code>",
-    exec:true,
-    sql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n);",
-    out:"0 ligne : Inès et Nathan n°10 disparaissent à cause du NULL présent dans la liste.",
-    fixSql:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);"},
-  consigne:"Affiche les clients qui n’ont jamais commandé, en utilisant <code>NOT IN</code> et une sous-requête.",
-  solution:"SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);",
-  indice:"Ajoute <code>IS NOT NULL</code> dans la sous-requête pour éviter le piège du NULL.",
-  subqueryRecap:'notin',
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-  {
-    "k": "cli",
-    "label": "clients",
-    "sql": "SELECT id, nom\nFROM clients;"
-  },
-  {
-    "k": "cmd",
-    "label": "commandes",
-    "sql": "SELECT id, client_id\nFROM commandes;"
-  },
-  {
-    "k": "notin",
-    "label": "NOT IN",
-    "sql": "SELECT clients.nom\nFROM clients\nWHERE clients.id NOT IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.client_id IS NOT NULL\n);",
-    "tone": "good"
-  },
-  {
-    "k": "rec_unsafe",
-    "label": "Liste contenant NULL",
-    "sql": "SELECT nom FROM clients WHERE id NOT IN (SELECT client_id FROM commandes);",
-    "out": "Aucune ligne : le NULL de la commande invitée rend le test inconnu.",
-    "expectRows": 0
-  }
-] ,
-learningCheck:{
-  "question": "Un NULL dans la liste d’un NOT IN peut-il empêcher tous les résultats ?",
-  "options": [
-    "Non",
-    "Seulement avec ORDER BY",
-    "Oui"
-  ],
-  "answer": 2,
-  "explanation": "Si aucun élément ne correspond mais qu’un NULL reste, le test est inconnu. Écarte les NULL ou emploie NOT EXISTS."
-}
-},
 { id:47, titre:"Sous-requête dans SELECT", résumé:"Calculer une valeur pour chaque ligne",
   situation:`<p>L’équipe service client prépare un récapitulatif de ses clients.</p><p>Pour chaque client, elle souhaite voir son nom et <b>le nombre de commandes qu’il a passées</b>.</p><p>Pour ce récapitulatif, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Nom du client</b><span>table clients</span></div><div role="listitem"><b>🔢 Nombre de commandes</b><span class="is-b">table commandes</span></div></div><p>🤔 <b>Problème&nbsp;:</b> le nombre de commandes n’est écrit nulle part. Il faut le compter dans la <code>table&nbsp;commandes</code>, séparément pour chaque client.</p><p>Pour chaque ligne du récapitulatif, il faut donc&nbsp;:</p><ol class="fk-syn-map" aria-label="Les deux étapes"><li><b aria-hidden="true">1</b><div><strong>Prendre un client de la table clients</strong></div></li><li><b aria-hidden="true">2</b><div><strong>Compter ses commandes dans la table commandes</strong></div></li></ol><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Affiche chaque client avec son nombre de commandes.</p></div>`,
   studio:{pointCards:{
@@ -18648,8 +18571,6 @@ const CARTES={
 
  45:{k:"IN + sous-requête",t:"Filtrer avec une liste",s:"WHERE clients.id IN (\n  SELECT commandes.client_id\n  FROM commandes\n  WHERE commandes.produit_id = 1\n)",
     m:"La sous-requête fabrique une <b>liste</b>. <code>IN</code> cherche ensuite si <code>clients.id</code> y figure. Une seule colonne dans la sous-requête. Pas <code>=</code> : plusieurs valeurs sont possibles."},
- 46:{k:"NOT IN",t:"Exclure une liste, sans NULL",s:"WHERE clients.id NOT IN (\n  SELECT client_id FROM commandes\n  WHERE client_id IS NOT NULL\n)",
-    m:"<code>NOT IN</code> cherche les absents. Un <code>NULL</code> dans la liste (commande #16) vide le résultat. Retire-le d’abord : <code>client_id IS NOT NULL</code>."},
  47:{k:"Sous-requête SELECT",t:"Une valeur par ligne",s:"SELECT nom, (SELECT COUNT(*)\n  FROM commandes\n  WHERE client_id = clients.id)\nFROM clients;",
     m:"Dans <code>SELECT</code>, la sous-requête calcule une valeur pour chaque ligne. Elle est <b>corrélée</b> : elle utilise <code>clients.id</code>. Sans ce lien, tout le monde affiche le même total."},
  48:{k:"Sous-requête FROM",t:"Un résultat intermédiaire",s:"SELECT AVG(montant)\nFROM (\n  SELECT prix * quantite AS montant\n  FROM commandes\n  JOIN produits ON …\n) AS commandes_montants",
@@ -23460,7 +23381,6 @@ const JOIN_SAMPLE_TABLES={
   44:[['clients',9],['commandes',16]],
   21:[['clients',9]],
   23:[['clients',9]],
-  46:[['commandes',16]],
   49:[['clients',9],['commandes',16]],
   55:[['clients',9]]
 };
@@ -32378,7 +32298,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-sousreq-v1149';
+  const SW_CACHE='requete-2026-09-27-no46-v1150';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
