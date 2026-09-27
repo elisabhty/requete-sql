@@ -1807,8 +1807,8 @@
   @media (prefers-reduced-motion:reduce){.ij-done.is-in,.ij-done.is-in *{animation:none!important}}
   /* Carte « Mission accomplie » : une cible dessinée, puis une fléchette qui arrive et s’y plante. */
   .ij-done-ico{position:relative;font-size:0!important;color:transparent;overflow:visible}
-  .ij-done-ico::before{content:"";width:24px;height:24px;border-radius:50%;background:radial-gradient(circle,#E5484D 0 17%,#fff 17% 34%,#E5484D 34% 52%,#fff 52% 68%,#E5484D 68% 86%,#fff 86% 100%);box-shadow:0 1px 3px rgba(120,20,30,.25)}
-  .ij-done-ico::after{content:"";position:absolute;left:50%;bottom:50%;width:20px;height:20px;margin:0 0 -2px -2px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 21 L17 7' stroke='%233F3F9E' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M3 21 l1.2-4.4 3.2 3.2z' fill='%233F3F9E'/%3E%3Cpath d='M15.5 8.5 L17 3 L19 5 Z M15.5 8.5 L21 7 L19 5 Z' fill='%237A6FF0'/%3E%3C/svg%3E") center/contain no-repeat;transform-origin:2px 18px;pointer-events:none}
+  .ij-done-ico::before{content:"";width:24px;height:24px;border-radius:50%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='23' fill='%23E5484D'/%3E%3Ccircle cx='24' cy='24' r='18.5' fill='%23fff'/%3E%3Ccircle cx='24' cy='24' r='14' fill='%23E5484D'/%3E%3Ccircle cx='24' cy='24' r='9.5' fill='%23fff'/%3E%3Ccircle cx='24' cy='24' r='5' fill='%23E5484D'/%3E%3C/svg%3E") center/100% 100% no-repeat;box-shadow:0 1px 2px rgba(120,20,30,.22)}
+  .ij-done-ico::after{content:"";position:absolute;left:50%;bottom:50%;width:21px;height:21px;margin:0 0 -2px -2px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M4 36 L29 11' stroke='%233F3F9E' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M3 37 L5.5 29.5 L10.5 34.5 Z' fill='%233F3F9E' stroke='%233F3F9E' stroke-width='1' stroke-linejoin='round'/%3E%3Cpath d='M27 13 L29 4 L32 7 Z' fill='%237A6FF0' stroke='%237A6FF0' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpath d='M27 13 L36 11 L33 8 Z' fill='%239C92F5' stroke='%239C92F5' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") center/100% 100% no-repeat;transform-origin:2px 19px;pointer-events:none}
   .ij-done.is-in .ij-done-ico{animation:ijDonePop .55s cubic-bezier(.2,.9,.3,1.4) .1s both,dartRipple .7s ease-out .98s both}
   .ij-done.is-in .ij-done-ico::before{animation:dartTargetHit .45s ease-out .95s both}
   .ij-done.is-in .ij-done-ico::after{animation:dartFly .45s cubic-bezier(.5,0,.9,.6) .55s both,dartWobble .6s ease-out 1s both}
@@ -9338,6 +9338,11 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 }
 @media(max-width:400px){.planning-toolbar{margin-inline:14px}.planning-toolbar button{padding-inline:10px;font-size:12px}.planning-progress>summary{flex-wrap:wrap}.planning-progress>summary span{margin-left:0}.account-local-status{gap:8px;flex-wrap:wrap}}
 
+  /* Résultat d’une requête : pas de fondu depuis le blanc. Le tableau apparaît tout de suite,
+     avec un léger glissement, au lieu d’une zone vide qui se remplit ligne par ligne. */
+  .exframe .xf-result.on,.result-live .result-meta,.result-live .table-scroll,.result-live .table-wrap thead{animation:xfResIn .22s cubic-bezier(.2,.8,.2,1) both!important;opacity:1!important}
+  .exframe .xf-result.on .table-wrap tbody tr,.result-live .table-wrap tbody tr{animation:none!important;opacity:1!important}
+  @keyframes xfResIn{from{transform:translateY(6px)}to{transform:none}}
 </style>
 <link rel="stylesheet" href="viz-select.css?v=noloop">
 <link rel="stylesheet" href="viz-where.css?v=limit2">
@@ -32381,7 +32386,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-27-confetti-v1147';
+  const SW_CACHE='requete-2026-09-27-noflash-v1148';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
