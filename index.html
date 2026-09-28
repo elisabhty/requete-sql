@@ -15107,7 +15107,7 @@ learningCheck:{
 }
 },
 { id:59, titre:"WITH", résumé:"Nommer un résultat intermédiaire",
-  situation:`<p>L’équipe marketing veut identifier les clients réguliers, c’est-à-dire ceux qui ont passé <b>au moins 2 commandes</b>, pour leur donner accès en avant-première aux nouveautés.</p><p>Pour les repérer, elle a besoin d’une information&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>🛒 Commandes de chaque client</b><span class="is-b">table commandes</span></div></div><p>🤔 <b>Problème&nbsp;:</b> on veut retrouver les clients qui ont passé au moins 2 commandes. Mais avant de pouvoir les filtrer, il faut d’abord savoir combien de commandes chaque client a passées.</p><p>C’est justement là qu’un résultat intermédiaire devient utile.</p><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Aide l’équipe Marketing à retrouver les clients qui ont passé au moins 2 commandes, en préparant d’abord le nombre de commandes par client.</p></div>`,
+  situation:`<p>L’équipe marketing veut identifier les clients réguliers, c’est-à-dire ceux qui ont passé <b>au moins 2 commandes</b>, pour leur donner accès en avant-première aux nouveautés.</p><p>Pour les repérer et les contacter, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Nom et e-mail du client</b><span>table clients</span></div><div role="listitem"><b>🛒 Commandes de chaque client</b><span class="is-b">table commandes</span></div></div><p>🤔 <b>Problème&nbsp;:</b> on veut retrouver les clients qui ont passé au moins 2 commandes. Mais avant de pouvoir les filtrer, il faut d’abord savoir combien de commandes chaque client a passées.</p><p>C’est justement là qu’un résultat intermédiaire devient utile.</p><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Aide l’équipe Marketing à retrouver le nom et l’e-mail des clients qui ont passé au moins 2 commandes, en préparant d’abord le nombre de commandes par client.</p></div>`,
   studio:{problem:{eye:"",title:"Comment repérer les clients réguliers&nbsp;?",
       body:"Le calcul se fait en deux étapes.",
       extra:`<p>D’abord, on compte les commandes de chaque client&nbsp;:</p>
@@ -15155,36 +15155,19 @@ WHERE nb_commandes >= 2;</pre></div>
 FROM <span class="fk-syn-hit">totaux</span>
 WHERE nb_commandes &gt;= 2;</pre></div>
           <p class="ij-arrow">👉 On filtre le résultat préparé à l’étape précédente pour ne garder que les clients ayant au moins 2 commandes.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">La requête complète</p>
-          <p>Il ne reste plus qu’à réunir toutes les étapes.</p>
-          <p>👇 Exécute la requête pour voir le résultat&nbsp;:</p>
-          <div class="ij-run" data-run-sql="WITH totaux AS (&#10;    SELECT client_id,&#10;           COUNT(*) AS nb_commandes&#10;    FROM commandes&#10;    WHERE client_id IS NOT NULL&#10;    GROUP BY client_id&#10;)&#10;SELECT *&#10;FROM totaux&#10;WHERE nb_commandes &gt;= 2;"></div>
-          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 8 clients avec commandes à 6 clients réguliers"><li class="ij-fn-row"><b>8</b><span>clients comptés<small>dans <code>totaux</code>, avec leur nombre de commandes</small></span></li><li class="ij-fn-step"><code>WHERE nb_commandes &gt;= 2</code><small>au moins 2 commandes</small></li><li class="ij-fn-row is-out"><b>6</b><span>clients réguliers<small>Hugo et Gabriel sont écartés&nbsp;: 1&nbsp;commande chacun</small></span></li></ol></div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Afficher le nom des clients</p>
-          <p>La CTE contient seulement l’id du client. Pour afficher son nom, on la relie à la <code>table&nbsp;clients</code>, comme n’importe quelle table&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">WITH totaux AS (
-    SELECT client_id,
-           COUNT(*) AS nb_commandes
-    FROM commandes
-    WHERE client_id IS NOT NULL
-    GROUP BY client_id
-)
-SELECT clients.nom, totaux.nb_commandes
-FROM clients
-<span class="fk-syn-hit">JOIN totaux</span>
-    <span class="fk-syn-hit">ON clients.id = totaux.client_id</span>
-WHERE totaux.nb_commandes &gt;= 2;</pre></div>
-          <p class="ij-arrow">👉 On obtient Sophie, Lucas, Emma, Nathan, Chloé et Léa, avec leur nombre de commandes.</p>
           <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>Plusieurs CTE</p><p>Après un seul <code>WITH</code>, plusieurs CTE se séparent par des virgules. Chacune peut utiliser celles qui la précèdent&nbsp;:</p><div class="pt-syntax"><pre class="cw-syntax">WITH
 etape_1 AS (...),
 etape_2 AS (
     SELECT ... FROM etape_1
 )
 SELECT ... FROM etape_2;</pre></div></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">La requête complète</p>
+          <p>La CTE contient seulement l’id du client. Pour contacter les clients réguliers, on relie <code>totaux</code> à la <code>table&nbsp;clients</code>, comme n’importe quelle table, pour récupérer leur nom et leur e-mail.</p>
+          <p>👇 Exécute la requête pour voir le résultat&nbsp;:</p>
+          <div class="ij-run" data-run-sql="WITH totaux AS (&#10;    SELECT client_id,&#10;           COUNT(*) AS nb_commandes&#10;    FROM commandes&#10;    WHERE client_id IS NOT NULL&#10;    GROUP BY client_id&#10;)&#10;SELECT clients.nom,&#10;       clients.email,&#10;       totaux.nb_commandes&#10;FROM clients&#10;JOIN totaux&#10;    ON clients.id = totaux.client_id&#10;WHERE totaux.nb_commandes &gt;= 2;"></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 8 clients avec commandes à 6 clients réguliers"><li class="ij-fn-row"><b>8</b><span>clients comptés<small>dans <code>totaux</code>, avec leur nombre de commandes</small></span></li><li class="ij-fn-step"><code>WHERE nb_commandes &gt;= 2</code><small>au moins 2 commandes</small></li><li class="ij-fn-row is-out"><b>6</b><span>clients réguliers<small>avec leur nom et leur e-mail</small></span></li></ol></div>
         </div>
       </div>`},
     reflexTitle:"Le réflexe à retenir",
@@ -15206,12 +15189,12 @@ FROM nom_cte;</pre></div>
     {tok:")",txt:"Fin de la définition."},
     {tok:"SELECT * FROM totaux WHERE nb_commandes >= 2",txt:"La requête principale utilise ce résultat."}
   ],
-  exemple:"WITH totaux AS (\n    SELECT client_id, COUNT(*) AS nb_commandes\n    FROM commandes\n    WHERE client_id IS NOT NULL\n    GROUP BY client_id\n)\nSELECT *\nFROM totaux\nWHERE nb_commandes >= 2;",
-  attendu:"<b>6 lignes</b> : les clients qui ont au moins 2 commandes. Sophie en a 3 ; Hugo et Gabriel, 1, restent dehors. La commande invitée (#16) est exclue par <code>IS NOT NULL</code>.",
+  exemple:"WITH totaux AS (\n    SELECT client_id,\n           COUNT(*) AS nb_commandes\n    FROM commandes\n    WHERE client_id IS NOT NULL\n    GROUP BY client_id\n)\nSELECT clients.nom,\n       clients.email,\n       totaux.nb_commandes\nFROM clients\nJOIN totaux\n    ON clients.id = totaux.client_id\nWHERE totaux.nb_commandes >= 2;",
+  attendu:"<b>6 lignes</b> : le nom, l’e-mail et le nombre de commandes des clients réguliers. Sophie en a 3 ; Hugo et Gabriel, avec 1 commande, restent dehors. La commande invitée (#16) est exclue par <code>IS NOT NULL</code>.",
   retenir:"<code>WITH</code> crée un résultat intermédiaire nommé, utilisé par la requête qui suit.<br><br>Une CTE permet de découper une requête en étapes. Plusieurs CTE peuvent s’enchaîner dans la même instruction.<br><br><code>WITH</code> = je prépare. <code>AS</code> = je nomme. Le <code>SELECT</code> final = j’utilise.",
-  consigne:"Avec une CTE nommée <code>totaux</code>, compte les commandes de chaque client (sans la commande invitée), puis garde ceux qui en ont au moins 2.",
-  solution:"WITH totaux AS (\n    SELECT client_id, COUNT(*) AS nb_commandes\n    FROM commandes\n    WHERE client_id IS NOT NULL\n    GROUP BY client_id\n)\nSELECT *\nFROM totaux\nWHERE nb_commandes >= 2;",
-  indice:"<code>WITH totaux AS ( … GROUP BY client_id )</code>, puis <code>SELECT * FROM totaux WHERE nb_commandes &gt;= 2</code>.",
+  consigne:"Avec une CTE nommée <code>totaux</code>, compte les commandes de chaque client (sans la commande invitée), puis affiche le nom et l’e-mail des clients qui en ont au moins 2.",
+  solution:"WITH totaux AS (\n    SELECT client_id,\n           COUNT(*) AS nb_commandes\n    FROM commandes\n    WHERE client_id IS NOT NULL\n    GROUP BY client_id\n)\nSELECT clients.nom,\n       clients.email,\n       totaux.nb_commandes\nFROM clients\nJOIN totaux\n    ON clients.id = totaux.client_id\nWHERE totaux.nb_commandes >= 2;",
+  indice:"Prépare <code>WITH totaux AS ( … GROUP BY client_id )</code>, puis relie-la aux clients avec <code>JOIN totaux ON clients.id = totaux.client_id</code> et garde <code>totaux.nb_commandes &gt;= 2</code>.",
   richLesson:true, earlyDemo:true,
   testeVariants:[
   {
@@ -32457,7 +32440,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-28-with-mission2-v1217';
+  const SW_CACHE='requete-2026-09-28-with-contact-v1218';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
