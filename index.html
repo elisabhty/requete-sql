@@ -9366,7 +9366,7 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 <!-- Sonde de fluidité : chargée seulement avec ?perf=1, jamais pour les lecteurs. -->
 <script>if(/[?&]perf=1(&|$)/.test(location.search)){var pp=document.createElement("script");pp.src="perf-probe.js";pp.defer=true;document.head.appendChild(pp);}</script>
 <link rel="stylesheet" href="home-journey.css?v=1131">
-<link rel="stylesheet" href="design-premium.css?v=1228">
+<link rel="stylesheet" href="design-premium.css?v=1229">
 <script src="design-premium.js?v=1115" defer></script>
 </head>
 <body>
@@ -20356,7 +20356,7 @@ function fmtCell(v){
 /* Indication « Glisse » : posée à droite de la ligne « 15 lignes · 3 ms »
    (ou du bandeau ✓ Correct), jamais sur les données. syncTableSwipe l’allume
    tant que le tableau déborde et qu’on n’a pas encore fait glisser. */
-const TABLE_SWIPE_HINT='<span class="table-swipe-hint" aria-hidden="true">Glisse<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h13M13 7l5 5-5 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+const TABLE_SWIPE_HINT='<span class="table-swipe-hint" aria-hidden="true"><span class="tsh-t">Glisse</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h13M13 7l5 5-5 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
 function renderTable(result,ms,opts){
   if(!result||result.length===0)
     return `<div class="feedback ok"><div class="fi">✓</div><div><b>Requête exécutée</b><p>Aucune ligne à afficher${ms!=null?` (${ms.toFixed(1)} ms)`:''}.</p></div></div>`;
@@ -20369,16 +20369,64 @@ function renderTable(result,ms,opts){
   <tbody>${values.map((r,i)=>`<tr style="--i:${Math.min(i,28)}"><th class="rn" scope="row">${i+1}</th>`+r.map(fmtCell).join('')+'</tr>').join('')}</tbody></table></div>
   <div class="table-swipe" aria-hidden="true"></div></div>`;
 }
+/* Colonnes encore masquées à droite du tableau visible. */
+function tableHiddenCols(wrap){
+  const edge=wrap.scrollLeft+wrap.clientWidth-8;
+  return [...wrap.querySelectorAll('thead th:not(.rn)')].filter(th=>th.offsetLeft+th.offsetWidth*0.5>edge).length;
+}
+/* Fait défiler le tableau d’environ une page, sans masquer la colonne #. */
+function tableSwipeNext(shell){
+  const wrap=shell&&shell.querySelector('.table-wrap');
+  if(!wrap)return;
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const atEnd=wrap.scrollLeft+wrap.clientWidth>=wrap.scrollWidth-4;
+  const rn=wrap.querySelector('th.rn');
+  const step=Math.max(80,wrap.clientWidth-(rn?rn.offsetWidth:0)-24);
+  wrap.scrollTo({left:atEnd?0:wrap.scrollLeft+step,behavior:reduce?'auto':'smooth'});
+}
 function syncTableSwipe(shell){
   const wrap=shell&&shell.querySelector('.table-wrap');
   if(!wrap)return;
   const overflow=wrap.scrollWidth>wrap.clientWidth+2;
+  const atEnd=!overflow||wrap.scrollLeft+wrap.clientWidth>=wrap.scrollWidth-4;
   shell.classList.toggle('can-swipe',overflow);
-  shell.classList.toggle('at-end',!overflow||wrap.scrollLeft+wrap.clientWidth>=wrap.scrollWidth-4);
+  shell.classList.toggle('at-end',atEnd);
   shell.classList.toggle('is-scrolled',wrap.scrollLeft>2);
+  /* Barre de position sous le tableau : part visible et emplacement. */
+  const bar=shell.querySelector('.table-pos > i');
+  if(bar&&overflow){
+    const ratio=wrap.clientWidth/wrap.scrollWidth;
+    const max=wrap.scrollWidth-wrap.clientWidth;
+    bar.style.width=(ratio*100)+'%';
+    bar.style.transform=`translateX(${max>0?(wrap.scrollLeft/max)*((1-ratio)/ratio)*100:0}%)`;
+  }
   const prev=shell.previousElementSibling;
   const hint=prev&&prev.querySelector('.table-swipe-hint');
-  if(hint) hint.classList.toggle('is-on',overflow&&wrap.scrollLeft<=2);
+  if(hint){
+    const n=overflow&&!atEnd?tableHiddenCols(wrap):0;
+    hint.classList.toggle('is-on',n>0);
+    const t=hint.querySelector('.tsh-t');
+    if(t&&n>0){
+      const txt=wrap.scrollLeft<=2?`Glisse · ${n} colonne${n>1?'s':''}`:`Encore ${n} colonne${n>1?'s':''}`;
+      if(t.textContent!==txt)t.textContent=txt;
+    }
+  }
+}
+/* Démonstration unique par session : le premier tableau qui déborde glisse
+   légèrement puis revient, pour montrer qu’on peut le faire défiler. */
+let tableSwipePeeked=false;
+function tableSwipePeek(shell){
+  if(tableSwipePeeked)return;
+  const wrap=shell.querySelector('.table-wrap');
+  if(!wrap||!shell.classList.contains('can-swipe')||wrap.scrollLeft>2)return;
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  if(document.documentElement.dataset.motion==='reduce')return;
+  tableSwipePeeked=true;
+  setTimeout(()=>{
+    if(wrap.scrollLeft>2||!wrap.isConnected)return;
+    wrap.scrollTo({left:56,behavior:'smooth'});
+    setTimeout(()=>{if(wrap.scrollLeft<=60)wrap.scrollTo({left:0,behavior:'smooth'});},620);
+  },700);
 }
 function bindTableSwipe(root){
   const scope=root&&root.querySelectorAll?root:document;
@@ -20388,6 +20436,25 @@ function bindTableSwipe(root){
     if(!wrap)return;
     if(!shell.dataset.swipeBound){
       shell.dataset.swipeBound='1';
+      /* Barre de position + flèche « suivant » sur le bord droit. */
+      if(!shell.querySelector('.table-pos')){
+        const pos=document.createElement('div');pos.className='table-pos';pos.setAttribute('aria-hidden','true');pos.innerHTML='<i></i>';
+        shell.appendChild(pos);
+      }
+      const overlay=shell.querySelector('.table-swipe');
+      if(overlay&&!overlay.querySelector('.table-next')){
+        const nx=document.createElement('button');
+        nx.type='button';nx.className='table-next';nx.setAttribute('aria-label','Voir les colonnes suivantes');
+        nx.innerHTML='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        nx.addEventListener('click',e=>{e.stopPropagation();tableSwipeNext(shell);});
+        overlay.appendChild(nx);
+      }
+      const prevEl=shell.previousElementSibling;
+      const hint=prevEl&&prevEl.querySelector('.table-swipe-hint');
+      if(hint&&!hint.dataset.bound){
+        hint.dataset.bound='1';
+        hint.addEventListener('click',()=>tableSwipeNext(shell));
+      }
       wrap.addEventListener('scroll',()=>syncTableSwipe(shell),{passive:true});
       if(typeof ResizeObserver!=='undefined'){
         const ro=new ResizeObserver(()=>syncTableSwipe(shell));
@@ -20401,7 +20468,7 @@ function bindTableSwipe(root){
     syncTableSwipe(shell);
     requestAnimationFrame(()=>{
       syncTableSwipe(shell);
-      requestAnimationFrame(()=>syncTableSwipe(shell));
+      requestAnimationFrame(()=>{syncTableSwipe(shell);tableSwipePeek(shell);});
     });
   });
 }
@@ -32443,7 +32510,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-28-centre-v1228';
+  const SW_CACHE='requete-2026-09-28-glisse-v1229';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

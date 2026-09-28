@@ -733,3 +733,43 @@ html[data-motion="reduce"] #app .screen.p-enter-back{animation:none}
 /* Les nombres étaient alignés à droite alors que leur titre est centré :
    toutes les valeurs sont maintenant centrées, comme les en-têtes. */
 tbody td.num{text-align:center!important}
+
+/* ---------- 26. « Glisse » : tableaux plus larges que l'écran ---------- */
+
+/* Pastille explicite, en casse normale, et qu'on peut toucher */
+.table-swipe-hint{
+  font-size:12px!important;font-weight:650!important;letter-spacing:0!important;text-transform:none!important;
+  padding:5px 10px 5px 12px!important;gap:5px!important;
+  background:var(--accent-soft)!important;color:var(--accent-ink)!important;
+  cursor:pointer;pointer-events:auto;touch-action:manipulation;
+}
+.table-swipe-hint:active{transform:scale(.96)}
+.table-swipe-hint svg{width:13px!important;height:13px!important}
+
+/* Bord droit : fondu plus net et flèche ronde qu'on peut toucher */
+.table-swipe::after{width:56px!important;background:linear-gradient(90deg,transparent,var(--surface) 78%)!important}
+.table-next{
+  position:absolute;top:min(50%,150px);right:8px;z-index:3;
+  width:34px;height:34px;margin-top:-17px;padding:0;border:0;border-radius:50%;
+  display:grid;place-items:center;
+  background:var(--surface);color:var(--accent);
+  box-shadow:0 1px 2px rgba(17,17,40,.08),0 6px 16px -6px rgba(17,17,40,.28);
+  pointer-events:auto;cursor:pointer;touch-action:manipulation;
+  animation:tableNextNudge 1.6s ease-in-out infinite;
+}
+.table-next svg{width:18px;height:18px}
+.table-next:active{transform:scale(.92)}
+@keyframes tableNextNudge{0%,100%{translate:0 0}50%{translate:3px 0}}
+/* Tableau court (moins de 3 lignes) : la flèche reste en haut */
+.table-scroll:has(tbody tr:nth-child(-n+2):last-child) .table-next{top:22px;margin-top:0}
+
+/* Barre de position sous le tableau */
+.table-pos{display:none;height:3px;margin:8px auto 2px;width:64px;border-radius:99px;background:rgba(118,118,128,.18);overflow:hidden}
+.table-pos>i{display:block;height:100%;border-radius:99px;background:var(--accent);transition:transform .08s linear}
+.table-scroll.can-swipe .table-pos{display:block}
+
+@media (prefers-reduced-motion:reduce){.table-next{animation:none}}
+html[data-motion="reduce"] .table-next{animation:none}
+.table-scroll:not(.can-swipe) .table-next,
+.table-scroll.at-end .table-next{pointer-events:none}
+.table-scroll.can-swipe .table-swipe{bottom:13px}
