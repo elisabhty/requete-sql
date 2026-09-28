@@ -15164,7 +15164,7 @@ SELECT ... FROM etape_2;</pre></div></div>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">La requête complète</p>
-          <p>La CTE contient seulement l’id du client. Pour contacter les clients réguliers, on relie <code>totaux</code> à la <code>table&nbsp;clients</code>, comme n’importe quelle table, pour récupérer leur nom et leur e-mail.</p>
+          <p>La CTE contient l’identifiant de chaque client et son nombre de commandes. Pour contacter les clients réguliers, on relie <code>totaux</code> à la <code>table&nbsp;clients</code> afin de récupérer leur nom et leur e-mail.</p>
           <p>👇 Exécute la requête pour voir le résultat&nbsp;:</p>
           <div class="ij-run" data-run-sql="WITH totaux AS (&#10;    SELECT client_id,&#10;           COUNT(*) AS nb_commandes&#10;    FROM commandes&#10;    WHERE client_id IS NOT NULL&#10;    GROUP BY client_id&#10;)&#10;SELECT clients.nom,&#10;       clients.email,&#10;       totaux.nb_commandes&#10;FROM clients&#10;JOIN totaux&#10;    ON clients.id = totaux.client_id&#10;WHERE totaux.nb_commandes &gt;= 2;"></div>
           <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 8 clients avec commandes à 6 clients réguliers"><li class="ij-fn-row"><b>8</b><span>clients comptés<small>dans <code>totaux</code>, avec leur nombre de commandes</small></span></li><li class="ij-fn-step"><code>WHERE nb_commandes &gt;= 2</code><small>au moins 2 commandes</small></li><li class="ij-fn-row is-out"><b>6</b><span>clients réguliers<small>avec leur nom et leur e-mail</small></span></li></ol></div>
@@ -32440,7 +32440,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-28-with-isoler-v1221';
+  const SW_CACHE='requete-2026-09-28-with-cte-contenu-v1222';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
