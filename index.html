@@ -15114,16 +15114,18 @@ learningCheck:{
         <div class="pk-comp ij-t"><p class="ij-tlab">résultat intermédiaire</p><div class="pk-mini is-2"><span class="is-h">client_id</span><span class="is-h">nb_commandes</span><span>1</span><span class="is-hit">3</span><span>2</span><span class="is-hit">2</span><span>6</span><span>1</span><span>8</span><span>1</span></div><p class="ij-tmore">… et 4 autres clients</p></div>
         <p>Ensuite, on garde les lignes où <code>nb_commandes</code> vaut au moins 2.</p>
         <p class="ij-arrow">👉 La deuxième étape travaille sur le résultat de la première.</p>
-        <p>Une sous-requête dans <code>FROM</code> sait déjà le faire, mais la première étape se retrouve cachée au milieu de la requête, entre parenthèses&nbsp;:</p>
+        <p>Une sous-requête dans <code>FROM</code> fonctionne, mais le calcul du nombre de commandes se retrouve imbriqué dans la requête, ce qui peut la rendre plus difficile à lire&nbsp;:</p>
         <div class="pt-syntax"><pre class="cw-syntax">SELECT *
 FROM (
-    SELECT client_id, COUNT(*) AS nb_commandes
+    SELECT client_id,
+           COUNT(*) AS nb_commandes
     FROM commandes
     WHERE client_id IS NOT NULL
     GROUP BY client_id
 ) AS totaux
 WHERE nb_commandes >= 2;</pre></div>
-        <p class="ij-arrow">👉 <code>WITH</code> permet d’écrire la première étape au début de la requête et de lui donner un nom&nbsp;: la requête se lit alors de haut en bas.</p>`},
+        <p class="ij-arrow">👉 Avec <code>WITH</code>, on peut sortir cette première étape, lui donner un nom, puis utiliser son résultat dans la suite de la requête.</p>
+        <p>La lecture devient naturelle&nbsp;: on prépare d’abord les totaux, puis on les filtre.</p>`},
     uses:{title:"Écrire la requête",
       body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
@@ -32454,7 +32456,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-28-with-probleme-v1208';
+  const SW_CACHE='requete-2026-09-28-with-intro-v1209';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
