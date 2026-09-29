@@ -2230,6 +2230,7 @@
   .qf-card.is-lifted{opacity:.35;transform:scale(.95)}
   @keyframes qfIn{from{opacity:0;transform:translateY(8px) scale(.96)}}
   .qf-card.is-used{display:none}
+  .qf-card.is-flying{visibility:hidden;pointer-events:none}
   .is-called{animation:jcCalled 1.8s ease .35s}
   @keyframes jcCalled{0%,100%{box-shadow:0 0 0 0 rgba(139,92,246,0)}20%,60%{box-shadow:0 0 0 5px rgba(139,92,246,.45)}40%,80%{box-shadow:0 0 0 2px rgba(139,92,246,.25)}}
   .qf-confetti{position:fixed;inset:0;pointer-events:none;z-index:9998;overflow:hidden}
@@ -26688,7 +26689,23 @@ function initQueryFill(){
     const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(holes.map(h=>h.dataset.k||'')));}catch(e){}};
     const load=()=>{try{const v=JSON.parse(localStorage.getItem(KEY)||'null');return Array.isArray(v)&&v.length===holes.length?v:null;}catch(e){return null;}};
     const cardText=k=>{const c=cards.find(c=>c.dataset.k===k);return c?c.textContent:'';};
-    const refresh=()=>{
+    /* Réserve de cartes : elle se replie en douceur quand la dernière carte
+       est posée, se rouvre de même quand on en retire une, et les cartes
+       restantes glissent à leur nouvelle place au lieu de sauter. */
+    const bank=box.querySelector('.qf-bank'),bankH=box.querySelector('.qf-bank-h');
+    const EASE='cubic-bezier(.4,0,.2,1)',FOLD={height:'0px',opacity:0,marginTop:'0px',marginBottom:'0px',paddingTop:'0px',paddingBottom:'0px',borderTopWidth:'0px',borderBottomWidth:'0px'};
+    const boxOf=el=>{const cs=getComputedStyle(el);return {height:el.offsetHeight+'px',opacity:1,marginTop:cs.marginTop,marginBottom:cs.marginBottom,paddingTop:cs.paddingTop,paddingBottom:cs.paddingBottom,borderTopWidth:cs.borderTopWidth,borderBottomWidth:cs.borderBottomWidth};};
+    let isFull=false,foldAnims=[];
+    const stopFold=()=>{foldAnims.forEach(a=>a.cancel());foldAnims=[];[bank,bankH].forEach(el=>el&&(el.style.overflow=''));};
+    const refresh=(anim)=>{
+      anim=anim===true&&!reduce&&!!(bank&&bank.animate);
+      const wasFull=isFull;
+      const before=new Map(),shut=[];
+      if(anim){
+        cards.forEach(c=>{if(c.offsetParent)before.set(c,c.getBoundingClientRect());});
+        before.bankH=bank.offsetHeight;
+        if(!wasFull)[bankH,bank].forEach(el=>el&&shut.push([el,boxOf(el)]));
+      }
       holes.forEach(h=>h.classList.toggle('is-filled',!!h.dataset.k));
       cards.forEach(c=>c.classList.toggle('is-used',holes.some(h=>h.dataset.k===c.dataset.k)));
       const n=holes.filter(h=>h.dataset.k).length,full=n===holes.length;
@@ -26696,7 +26713,31 @@ function initQueryFill(){
       holes.forEach(h=>h.classList.toggle('is-next',h===next));
       if(count){count.textContent=n+'/'+holes.length;count.classList.toggle('is-full',full);}
       if(meter)meter.style.width=(n/holes.length*100)+'%';
-      box.classList.toggle('is-full',full);
+      isFull=full;
+      cards.forEach(c=>{if(c.classList.contains('is-used'))c.classList.remove('is-flying');});
+      if(!anim){stopFold();box.classList.toggle('is-full',full);}
+      else if(full&&!wasFull){
+        stopFold();
+        shut.forEach(([el,k])=>{el.style.overflow='hidden';foldAnims.push(el.animate([k,FOLD],{duration:360,easing:EASE,fill:'forwards'}));});
+        const mine=foldAnims.slice();
+        Promise.all(mine.map(a=>a.finished)).then(()=>{if(foldAnims[0]!==mine[0])return;box.classList.add('is-full');stopFold();}).catch(()=>{});
+      }else if(!full&&wasFull){
+        stopFold();box.classList.remove('is-full');
+        [bankH,bank].forEach(el=>{if(!el)return;el.style.overflow='hidden';foldAnims.push(el.animate([FOLD,boxOf(el)],{duration:320,easing:EASE}));});
+        const mine=foldAnims.slice();
+        Promise.all(mine.map(a=>a.finished)).then(()=>{if(foldAnims[0]===mine[0])stopFold();}).catch(()=>{});
+      }
+      if(anim&&!full&&!wasFull&&before.bankH!==bank.offsetHeight){
+        const h1=bank.offsetHeight;bank.style.overflow='hidden';
+        bank.animate([{height:before.bankH+'px'},{height:h1+'px'}],{duration:280,easing:EASE}).onfinish=()=>{if(!foldAnims.length)bank.style.overflow='';};
+      }
+      if(anim)cards.forEach(c=>{
+        if(!c.offsetParent)return;
+        const a=before.get(c),b=c.getBoundingClientRect();
+        if(!a){c.animate([{opacity:0,transform:'scale(.9)'},{opacity:1,transform:'none'}],{duration:240,easing:EASE});return;}
+        const dx=a.left-b.left,dy=a.top-b.top;
+        if(dx||dy)c.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:'none'}],{duration:280,easing:EASE});
+      });
       check.disabled=!full;
       if(!box.classList.contains('is-won'))save();
     };
@@ -26705,7 +26746,7 @@ function initQueryFill(){
       clearMarks();
       hole.dataset.k=card.dataset.k;hole.textContent=card.textContent;
       hole.classList.remove('is-filled');void hole.offsetWidth;
-      refresh();
+      refresh(true);
       if(navigator.vibrate)navigator.vibrate(8);
     };
     const place=(card,hole,fly)=>{
@@ -26716,7 +26757,7 @@ function initQueryFill(){
       const from=card.getBoundingClientRect(),to=hole.getBoundingClientRect();
       const f=card.cloneNode(true);f.classList.add('qf-fly');
       Object.assign(f.style,{left:from.left+'px',top:from.top+'px',width:from.width+'px',height:from.height+'px'});
-      document.body.appendChild(f);hole._busy=true;card.classList.add('is-used');
+      document.body.appendChild(f);hole._busy=true;card.classList.add('is-flying');
       const dx=to.left+to.width/2-(from.left+from.width/2),dy=to.top+to.height/2-(from.top+from.height/2);
       f.animate([
         {transform:'translate(0,0) scale(1)',opacity:1},
@@ -26726,7 +26767,7 @@ function initQueryFill(){
     };
     holes.forEach(h=>h.addEventListener('click',()=>{
       if(box.classList.contains('is-solved')||!h.dataset.k||h._busy)return;
-      clearMarks();delete h.dataset.k;h.textContent='';refresh();
+      clearMarks();delete h.dataset.k;h.textContent='';refresh(true);
     }));
     cards.forEach(card=>{
       card.addEventListener('pointerdown',e=>{
@@ -26803,7 +26844,7 @@ function initQueryFill(){
         if(lessonHasFill(current)){jcMarkPassed(current.id);jcUnlockExo();}
       },reduce?0:holes.length*step+450);
     });
-    box.querySelector('.qf-reset').addEventListener('click',()=>{holes.forEach(h=>{delete h.dataset.k;h.textContent='';});clearMarks();refresh();});
+    box.querySelector('.qf-reset').addEventListener('click',()=>{holes.forEach(h=>{delete h.dataset.k;h.textContent='';});clearMarks();refresh(true);});
     const saved=load();
     if(saved)saved.forEach((k,i)=>{if(k&&cards.some(c=>c.dataset.k===k)){holes[i].dataset.k=k;holes[i].textContent=cardText(k);}});
     refresh();
@@ -32691,7 +32732,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-29-except-probleme-v1259';
+  const SW_CACHE='requete-2026-09-29-cartes-fluides-v1260';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
