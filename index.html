@@ -15425,12 +15425,8 @@ FROM produits
         <div class="fn-use">
           <p class="pt-syntax-h">INTERSECT et EXCEPT</p>
           <p><code>UNION</code> a deux voisins, qui suivent les mêmes règles de colonnes&nbsp;:</p>
-          <div class="ij-need" role="list" aria-label="INTERSECT et EXCEPT"><div role="listitem"><b>INTERSECT</b><span>présentes dans les deux résultats</span></div><div role="listitem"><b>EXCEPT</b><span class="is-b">présentes dans le premier, absentes du second</span></div></div>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville
-FROM clients
-<span class="fk-syn-hit">EXCEPT</span>
-SELECT 'Paris';</pre></div>
-          <p class="ij-arrow">👉 Toutes les villes des clients, sauf Paris.</p>
+          <div class="ij-need" role="list" aria-label="INTERSECT et EXCEPT"><div role="listitem"><b>INTERSECT</b><span>garder le commun</span></div><div role="listitem"><b>EXCEPT</b><span class="is-b">retirer la seconde</span></div></div>
+          <p class="ij-arrow">👉 Tu les découvriras dans la prochaine leçon.</p>
         </div>
       </div>`},
     reflexTitle:"Le réflexe à retenir",
@@ -15504,6 +15500,133 @@ learningCheck:{
   ],
   "answer": 2,
   "explanation": "UNION retire les doublons du résultat combiné ; UNION ALL conserve toutes les lignes."
+}
+},
+{ id:80, titre:"INTERSECT et EXCEPT", résumé:"Comparer deux résultats",
+  situation:`<p>L’équipe marketing lance son <b>programme de fidélité</b>. Elle veut inviter les clients qui ont déjà commandé, mais qui n’y sont pas encore inscrits.</p><p>Pour les retrouver, elle dispose de deux listes&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque liste"><div role="listitem"><b>🛒 Clients qui ont commandé</b><span class="is-b">table commandes</span></div><div role="listitem"><b>⭐ Clients inscrits au programme</b><span class="is-c">table fidelite</span></div></div><div class="sit-memo is-problem"><p class="sit-memo-lab"><i aria-hidden="true">🤔</i>Problème</p><p>Ces deux listes se recoupent en partie&nbsp;: certains clients figurent dans les deux.</p><p>On ne veut pas les réunir&nbsp;: on veut garder les clients de la première liste qui n’apparaissent pas dans la seconde.</p></div><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Aide l’équipe Marketing à retrouver le nom et le téléphone des clients qui ont déjà commandé, mais qui ne sont pas encore inscrits au programme de fidélité.</p></div>`,
+  studio:{problem:{eye:"",title:"Comment comparer deux listes&nbsp;?",
+      body:"Regardons les deux listes de clients.",
+      extra:`<div class="pk-comp ij-t"><p class="ij-tlab">clients qui ont commandé</p><div class="pk-mini is-1"><span class="is-h">nom</span><span class="is-hit">Sophie</span><span class="is-hit">Lucas</span><span>Emma</span><span class="is-hit">Nathan</span><span>Chloé</span></div><p class="ij-tmore">… et 3 autres clients</p></div>
+        <div class="pk-comp ij-t"><p class="ij-tlab">clients inscrits au programme</p><div class="pk-mini is-1"><span class="is-h">nom</span><span class="is-hit">Sophie</span><span class="is-hit">Lucas</span><span class="is-hit">Nathan</span><span class="is-hit">Léa</span></div></div>
+        <p>Certains clients sont dans les deux listes, d’autres dans une seule.</p>
+        <p>Selon ce que l’on cherche, on compare les deux listes de trois façons&nbsp;:</p>
+        <div class="ij-need" role="list" aria-label="UNION, INTERSECT ou EXCEPT"><div role="listitem"><b>UNION</b><span>tout réunir</span></div><div role="listitem"><b>INTERSECT</b><span class="is-b">garder le commun</span></div><div role="listitem"><b>EXCEPT</b><span class="is-c">retirer la seconde</span></div></div>
+        <p class="ij-arrow">👉 Ici, on cherche les clients de la première liste qui ne sont pas dans la seconde&nbsp;: c’est le rôle d’<code>EXCEPT</code>.</p>`},
+    uses:{title:"Écrire la requête",
+      body:`<div class="pt-lead fn-uses fk-course jn-course">
+        <div class="fn-use">
+          <p class="pt-syntax-h">Les deux listes</p>
+          <p>Chaque liste s’obtient avec une jointure vers la <code>table&nbsp;clients</code>&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom,
+       clients.telephone
+FROM clients
+JOIN commandes
+    ON commandes.client_id = clients.id;</pre></div>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom,
+       clients.telephone
+FROM clients
+JOIN fidelite
+    ON fidelite.client_id = clients.id;</pre></div>
+          <p class="ij-arrow">👉 La première liste contient 15 lignes, une par commande&nbsp;: Sophie y apparaît trois fois. La seconde contient les 4 inscrits.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Garder le commun avec INTERSECT</p>
+          <p>Pour voir les clients présents dans les deux listes, on place <code>INTERSECT</code> entre les deux requêtes&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom,
+       clients.telephone
+FROM clients
+JOIN commandes
+    ON commandes.client_id = clients.id
+<span class="fk-syn-hit">INTERSECT</span>
+SELECT clients.nom,
+       clients.telephone
+FROM clients
+JOIN fidelite
+    ON fidelite.client_id = clients.id;</pre></div>
+          <p>👇 Exécute cette requête&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT clients.nom,&#10;       clients.telephone&#10;FROM clients&#10;JOIN commandes&#10;    ON commandes.client_id&#10;       = clients.id&#10;INTERSECT&#10;SELECT clients.nom,&#10;       clients.telephone&#10;FROM clients&#10;JOIN fidelite&#10;    ON fidelite.client_id&#10;       = clients.id;"></div>
+          <p class="ij-arrow">👉 Sophie, Lucas, Nathan et Léa ont commandé et sont déjà inscrits.</p>
+          <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>Bon à savoir</p><p>Comme <code>UNION</code>, <code>INTERSECT</code> et <code>EXCEPT</code> écartent les doublons&nbsp;: Sophie n’apparaît qu’une fois.</p></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Retirer une liste avec EXCEPT</p>
+          <p><code>EXCEPT</code> garde les lignes de la première requête qui ne se trouvent pas dans la seconde&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT ... -- clients qui ont commandé
+<span class="fk-syn-hit">EXCEPT</span>
+SELECT ... -- clients inscrits</pre></div>
+          <p class="ij-arrow">👉 On retire de la première liste tous les clients déjà inscrits.</p>
+          <div class="sit-memo is-warn"><p class="sit-memo-lab"><i aria-hidden="true">⚠️</i>Attention&nbsp;: l’ordre compte</p><p>Si on inverse les deux requêtes, on cherche les inscrits qui n’ont jamais commandé. Ici, il n’y en a aucun&nbsp;: le résultat est vide.</p><p>👇 Teste par toi-même&nbsp;:</p><div class="ij-run" data-run-sql="SELECT clients.nom,&#10;       clients.telephone&#10;FROM clients&#10;JOIN fidelite&#10;    ON fidelite.client_id&#10;       = clients.id&#10;EXCEPT&#10;SELECT clients.nom,&#10;       clients.telephone&#10;FROM clients&#10;JOIN commandes&#10;    ON commandes.client_id&#10;       = clients.id;"></div></div>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">Les mêmes règles que UNION</p>
+          <p>Les deux requêtes doivent renvoyer le <b>même nombre de colonnes</b>, avec des types compatibles colonne par colonne.</p>
+          <p class="ij-arrow">👉 Ici, chaque requête renvoie deux colonnes&nbsp;: le nom et le téléphone.</p>
+        </div>
+        <div class="fn-use">
+          <p class="pt-syntax-h">La requête complète</p>
+          <p>Il ne reste plus qu’à réunir toutes les étapes.</p>
+          <p>👇 Exécute la requête pour voir le résultat&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT clients.nom,&#10;       clients.telephone&#10;FROM clients&#10;JOIN commandes&#10;    ON commandes.client_id&#10;       = clients.id&#10;EXCEPT&#10;SELECT clients.nom,&#10;       clients.telephone&#10;FROM clients&#10;JOIN fidelite&#10;    ON fidelite.client_id&#10;       = clients.id;"></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 8 clients qui ont commandé à 4 clients à inviter"><li class="ij-fn-row"><b>8</b><span>clients ont commandé<small>sans les doublons</small></span></li><li class="ij-fn-step"><code>EXCEPT</code><small>on retire les 4 clients déjà inscrits</small></li><li class="ij-fn-row is-out"><b>4</b><span>clients à inviter<small>Emma, Chloé, Hugo et Gabriel</small></span></li></ol></div>
+        </div>
+      </div>`},
+    reflexTitle:"Le réflexe à retenir",
+    reflex:{extra:`<p><code>INTERSECT</code> et <code>EXCEPT</code> comparent les lignes de deux requêtes, avec les mêmes règles que <code>UNION</code>.</p>
+          <p>La structure à retenir&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT colonnes
+FROM table_1
+INTERSECT | EXCEPT
+SELECT colonnes
+FROM table_2;</pre></div>
+          <p>Dans notre exemple&nbsp;:</p>
+          <div class="ij-need" role="list" aria-label="Les trois opérateurs"><div role="listitem"><b>UNION</b><span>tous les clients</span></div><div role="listitem"><b>INTERSECT</b><span class="is-b">déjà inscrits</span></div><div role="listitem"><b>EXCEPT</b><span class="is-c">à inviter</span></div></div>`}},
+  noTeste:true,
+  noAnat:true,
+  anatomie:[
+    {tok:"SELECT clients.nom, clients.telephone FROM clients JOIN commandes …",txt:"La première liste : les clients qui ont commandé."},
+    {tok:"EXCEPT",txt:"Retire de la première liste les lignes présentes dans la seconde."},
+    {tok:"SELECT clients.nom, clients.telephone FROM clients JOIN fidelite …",txt:"La seconde liste : les clients inscrits, avec les mêmes colonnes."}
+  ],
+  exemple:"SELECT clients.nom,\n       clients.telephone\nFROM clients\nJOIN commandes\n    ON commandes.client_id\n       = clients.id\nEXCEPT\nSELECT clients.nom,\n       clients.telephone\nFROM clients\nJOIN fidelite\n    ON fidelite.client_id\n       = clients.id;",
+  attendu:"<b>4 lignes</b> : Emma, Chloé, Hugo et Gabriel ont commandé mais ne sont pas inscrits. Les doublons des commandes sont écartés.",
+  retenir:"<code>INTERSECT</code> garde les lignes présentes dans les deux requêtes ; <code>EXCEPT</code> garde celles de la première qui ne sont pas dans la seconde.<br><br>Comme <code>UNION</code>, ils demandent le même nombre de colonnes et écartent les doublons.<br><br>Avec <code>EXCEPT</code>, l’ordre des deux requêtes compte.",
+  consigne:"Affiche le nom et le téléphone des clients qui ont déjà commandé mais qui ne sont pas inscrits au programme de fidélité, avec <code>EXCEPT</code>.",
+  solution:"SELECT clients.nom,\n       clients.telephone\nFROM clients\nJOIN commandes\n    ON commandes.client_id\n       = clients.id\nEXCEPT\nSELECT clients.nom,\n       clients.telephone\nFROM clients\nJOIN fidelite\n    ON fidelite.client_id\n       = clients.id;",
+  indice:"Écris la liste des clients qui ont commandé (<code>JOIN commandes</code>), puis <code>EXCEPT</code>, puis la liste des inscrits (<code>JOIN fidelite</code>), avec les mêmes colonnes.",
+  richLesson:true, earlyDemo:true,
+  testeVariants:[
+  {
+    "k": "except",
+    "label": "EXCEPT",
+    "sql": "SELECT clients.nom, clients.telephone FROM clients JOIN commandes ON commandes.client_id = clients.id\nEXCEPT\nSELECT clients.nom, clients.telephone FROM clients JOIN fidelite ON fidelite.client_id = clients.id;",
+    "out": "4 clients à inviter.",
+    "tone": "good",
+    "expectRows": 4
+  },
+  {
+    "k": "intersect",
+    "label": "INTERSECT",
+    "sql": "SELECT clients.nom, clients.telephone FROM clients JOIN commandes ON commandes.client_id = clients.id\nINTERSECT\nSELECT clients.nom, clients.telephone FROM clients JOIN fidelite ON fidelite.client_id = clients.id;",
+    "out": "4 clients déjà inscrits.",
+    "expectRows": 4
+  },
+  {
+    "k": "rec_reverse",
+    "label": "Ordre inversé",
+    "sql": "SELECT clients.nom, clients.telephone FROM clients JOIN fidelite ON fidelite.client_id = clients.id\nEXCEPT\nSELECT clients.nom, clients.telephone FROM clients JOIN commandes ON commandes.client_id = clients.id;",
+    "out": "Aucun inscrit sans commande.",
+    "expectRows": 0
+  }
+] ,
+learningCheck:{
+  "question": "Tous les inscrits ont déjà commandé. Que renvoie « inscrits EXCEPT clients qui ont commandé » ?",
+  "options": [
+    "Les 4 inscrits",
+    "Aucune ligne",
+    "Les 8 clients qui ont commandé"
+  ],
+  "answer": 1,
+  "explanation": "EXCEPT garde les lignes de la première requête absentes de la seconde. Ici, chaque inscrit se trouve aussi dans la seconde liste."
 }
 }
 ]},
@@ -18459,7 +18582,7 @@ const CHALLENGES=[
  {id:'c18',apres:20,titre:"Multi-catégories",niv:'d',q:"Quels clients ont commandé des produits d’au moins 2 catégories ? Affiche leur nom.",
   sol:"SELECT clients.nom FROM clients JOIN commandes ON clients.id=commandes.client_id JOIN produits ON commandes.produit_id=produits.id GROUP BY clients.id, clients.nom HAVING COUNT(DISTINCT produits.categorie) >= 2;",
   indice:"JOIN jusqu’à produits, puis <code>HAVING COUNT(DISTINCT produits.categorie) &gt;= 2</code>."},
- {id:'c19',apres:73,titre:"Intersection des villes",niv:'m',q:"Quelles villes ont à la fois un client de moins de 35 ans et un de 45 ans ou plus ? Affiche la ville (INTERSECT).",
+ {id:'c19',apres:80,titre:"Intersection des villes",niv:'m',q:"Quelles villes ont à la fois un client de moins de 35 ans et un de 45 ans ou plus ? Affiche la ville (INTERSECT).",
   sol:"SELECT ville FROM clients WHERE age < 35 INTERSECT SELECT ville FROM clients WHERE age >= 45;",
   indice:"Deux SELECT sur ville avec filtres d’âge, reliés par INTERSECT."},
  {id:'c20',apres:77,titre:"Compte jusqu’à 10",niv:'f',q:"Avec WITH RECURSIVE, génère les entiers de 1 à 10 (colonne x), dans l’ordre.",
@@ -18611,6 +18734,8 @@ const CARTES={
     m:"<code>GROUP BY</code> regroupe. <code>OVER()</code> calcule sur plusieurs lignes sans les faire disparaître. <code>PARTITION BY</code> découpe le calcul, pas le résultat."},
  77:{k:"WITH RECURSIVE (CTE RECURSIVE)",t:"Créer une suite automatiquement",s:"WITH RECURSIVE n(x) AS (\n  SELECT 1\n  UNION ALL\n  SELECT x + 1 FROM n WHERE x < 10\n)",
    m:"Une CTE récursive combine une ancre et une partie qui relit la CTE. La condition d’arrêt est obligatoire pour borner la répétition."},
+ 80:{k:"INTERSECT / EXCEPT",t:"Comparer deux résultats",s:"SELECT nom FROM liste_1\nEXCEPT\nSELECT nom FROM liste_2;",
+   m:"<code>INTERSECT</code> garde le commun, <code>EXCEPT</code> retire la seconde liste de la première. Mêmes règles que <code>UNION</code> : même nombre de colonnes, doublons écartés."},
  78:{k:"LAG / LEAD",t:"Comparer aux lignes voisines",s:"LAG(quantite) OVER (\n  PARTITION BY client_id\n  ORDER BY date_commande\n)",
    m:"<code>LAG</code> regarde avant, <code>LEAD</code> après. <code>PARTITION BY</code> sépare les groupes ; l’ordre dans <code>OVER</code> définit précédent et suivant."},
  79:{k:"Cadres de fenêtre",t:"Délimiter les lignes visibles",s:"ROWS BETWEEN 1 PRECEDING\nAND CURRENT ROW",
@@ -18827,6 +18952,9 @@ const QCM={
  73:[{q:"Quelle différence entre <code>UNION</code> et <code>UNION ALL</code> ?",o:["UNION trie, UNION ALL non","UNION écarte les doublons, UNION ALL les garde","UNION ne marche que sur deux tables identiques"],b:1,e:"Dix villes et huit catégories donnent 18 lignes avec ALL, mais 11 sans : sept valeurs se répétaient."},
    {q:"Que doivent avoir en commun les deux <code>SELECT</code> d’un <code>UNION</code> ?",o:["Le même nombre de colonnes","Les mêmes noms de colonnes","La même table de départ"],b:0,e:"Le nombre de colonnes doit correspondre ; les noms sont libres, c’est celui de la première requête qui est retenu."},
    {q:"Tu veux plus de <b>lignes</b>, pas plus de colonnes. Quel outil ?",o:["JOIN","UNION","GROUP BY"],b:1,e:"<code>JOIN</code> élargit le résultat en ajoutant des colonnes ; <code>UNION</code> le rallonge en empilant des lignes."}],
+ 80:[{q:"Quel opérateur garde uniquement les lignes présentes dans les deux résultats ?",o:["UNION","INTERSECT","EXCEPT"],b:1,e:"<code>INTERSECT</code> garde le commun : ici, les clients qui ont commandé et sont déjà inscrits."},
+   {q:"Que renvoie <code>A EXCEPT B</code> ?",o:["Les lignes de A absentes de B","Les lignes de B absentes de A","Les lignes communes à A et B"],b:0,e:"<code>EXCEPT</code> part de la première requête et retire ce qui se trouve dans la seconde. L’ordre compte."},
+   {q:"Sophie apparaît trois fois dans la première liste. Combien de fois apparaît-elle avec <code>INTERSECT</code> ?",o:["Trois","Une","Zéro"],b:1,e:"Comme <code>UNION</code>, <code>INTERSECT</code> et <code>EXCEPT</code> écartent les doublons."}],
  74:[{q:"Deux produits sont ex aequo au rang 2. Quelle fonction donne 3 au suivant ?",o:["ROW_NUMBER()","RANK()","DENSE_RANK()"],b:2,e:"<code>RANK</code> sauterait à 4. <code>DENSE_RANK</code> compte les valeurs distinctes, sans trou."},
    {q:"À quoi sert <code>PARTITION BY</code> dans une fonction de rang ?",o:["À filtrer les lignes classées","À relancer le classement à chaque groupe","À trier le résultat final"],b:1,e:"Le compteur repart à 1 à chaque changement de groupe : chaque catégorie a son propre classement."},
    {q:"Pourquoi <code>WHERE rang &lt;= 3</code> échoue-t-il ?",o:["Le rang est calculé après le filtrage","RANK ne renvoie pas un nombre","Il manque un GROUP BY"],b:0,e:"Même ordre d’exécution que pour les agrégats : il faut calculer dans une sous-requête ou un WITH, puis filtrer à l’extérieur."}],
@@ -26473,7 +26601,8 @@ const MISSION_FILLS={
   55:{t:['NOT EXISTS','SELECT 1','commandes.client_id','clients.id']},
   59:{t:['WITH','AS','GROUP BY','totaux']},
   77:{t:['RECURSIVE','UNION ALL','jour + 1','jour < 90']},
-  73:{t:['AS valeur','UNION','categorie','ORDER BY']}
+  73:{t:['AS valeur','UNION','categorie','ORDER BY']},
+  80:{t:['commandes','EXCEPT','fidelite','fidelite.client_id']}
 };
 function lessonHasFill(l){return !!(l&&(l.gateFill||MISSION_FILLS[l.id]));}
 function qfFindToken(sql,tok,from){
@@ -26978,6 +27107,7 @@ function checkExerciseConcept(sql,l){
   const u=exerciseSqlStructure(sql),parts=u.split(';').map(s=>s.trim()).filter(Boolean);
   const fail=diag=>({ok:false,diag});
   if(l.id===54&&!/\bCAST\s*\([^)]*\bAS\s+INTEGER\s*\)/.test(u))return fail('Utilise CAST(… AS INTEGER) pour rendre la conversion explicite.');
+  if(l.id===80&&!/\bEXCEPT\b/.test(u))return fail('Utilise EXCEPT pour retirer les clients déjà inscrits de la liste.');
   if(l.id===79&&(!/\bAVG\s*\(/.test(u)||!/\bROWS\s+BETWEEN\s+1\s+PRECEDING\s+AND\s+CURRENT\s+ROW\b/.test(u)))return fail('Calcule une moyenne mobile avec AVG et une fenêtre de deux lignes.');
   if([62,63,71].includes(l.id)){
     if(!/^BEGIN(?:\s+(?:DEFERRED|IMMEDIATE|EXCLUSIVE))?(?:\s+TRANSACTION)?$/.test(parts[0]||'')||! /^(?:COMMIT|END)(?:\s+TRANSACTION)?$/.test(parts.at(-1)||''))return fail('Encadre les modifications par BEGIN et COMMIT pour valider une seule transaction.');
@@ -32550,7 +32680,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-29-union-bas-v1247';
+  const SW_CACHE='requete-2026-09-29-intersect-except-v1248';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
