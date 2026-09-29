@@ -15932,10 +15932,16 @@ FROM produits;</pre></div>
           <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>Bon à savoir</p><p><code>PARTITION BY</code> ressemble à <code>GROUP BY</code>&nbsp;: il forme des groupes.</p><p>Mais contrairement à <code>GROUP BY</code>, il ne rassemble pas les lignes. Chaque ligne reste affichée.</p><ul class="win-look is-cmp"><li><b><code>GROUP BY</code></b><span>plusieurs produits deviennent une ligne par catégorie</span></li><li><b><code>PARTITION BY</code></b><span>tous les produits restent affichés, mais le calcul se fait par catégorie</span></li></ul></div>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">On ne filtre pas une fenêtre dans WHERE</p>
-          <p>On pourrait vouloir garder directement les produits au-dessus de la moyenne.</p>
-          <div class="sit-memo is-warn"><p class="sit-memo-lab"><i aria-hidden="true">⚠️</i>Attention</p><p>Une fonction de fenêtre ne peut pas s’écrire dans <code>WHERE</code>&nbsp;: au moment du filtrage, elle n’est pas encore calculée.</p><p>👇 Teste par toi-même&nbsp;:</p><div class="ij-run" data-run-sql="SELECT nom,&#10;       categorie,&#10;       prix,&#10;       AVG(prix) OVER (&#10;         PARTITION BY categorie&#10;       ) AS prix_moyen&#10;FROM produits&#10;WHERE prix &gt; AVG(prix) OVER (&#10;  PARTITION BY categorie&#10;);"></div></div>
-          <p class="ij-arrow">👉 Pour filtrer sur ce calcul, on le prépare d’abord dans un <code>WITH</code>, puis on filtre à l’extérieur.</p>
+          <p class="pt-syntax-h">Filtrer le résultat d’une fonction de fenêtre</p>
+          <p>On veut maintenant garder uniquement les produits dont le prix est supérieur à la moyenne de leur catégorie.</p>
+          <div class="sit-memo is-warn"><p class="sit-memo-lab"><i aria-hidden="true">⚠️</i>Pourquoi pas directement WHERE&nbsp;?</p><p>Une fonction de fenêtre ne peut pas être utilisée directement dans <code>WHERE</code>&nbsp;: le filtrage avec <code>WHERE</code> a lieu <b>avant</b> son calcul.</p><p>👇 Teste par toi-même&nbsp;:</p><div class="ij-run" data-run-sql="SELECT nom,&#10;       categorie,&#10;       prix,&#10;       AVG(prix) OVER (&#10;         PARTITION BY categorie&#10;       ) AS prix_moyen&#10;FROM produits&#10;WHERE prix &gt; AVG(prix) OVER (&#10;  PARTITION BY categorie&#10;);"></div></div>
+          <p>👉 Il faut donc procéder en deux temps&nbsp;:</p>
+          <ol class="fk-syn-map is-step" aria-label="Les deux temps"><li><b aria-hidden="true">1</b><div><strong>Calculer la moyenne avec <code>OVER()</code></strong></div></li><li><b aria-hidden="true">2</b><div><strong>Filtrer le résultat obtenu</strong></div></li></ol>
+          <p><code>ROUND(…, 2)</code> arrondit la moyenne au centime, comme les prix.</p>
+          <p>👇 Exécute cette requête&nbsp;:</p>
+          <div class="ij-run" data-run-sql="WITH comparaison AS (&#10;  SELECT nom,&#10;         categorie,&#10;         prix,&#10;         ROUND(AVG(prix) OVER (&#10;           PARTITION BY categorie&#10;         ), 2) AS prix_moyen&#10;  FROM produits&#10;)&#10;SELECT *&#10;FROM comparaison&#10;WHERE prix &gt; prix_moyen;"></div>
+          <p class="ij-arrow">👉 On calcule donc d’abord la moyenne dans un <code>WITH</code>, puis on peut utiliser <code>WHERE</code> sur le résultat obtenu.</p>
+          <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>Bon à savoir</p><p><code>WITH</code> n’est pas la seule solution&nbsp;: une sous-requête dans <code>FROM</code> fonctionne aussi. Certains systèmes proposent même <code>QUALIFY</code>, qui filtre directement une fonction de fenêtre.</p></div>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">La requête complète</p>
@@ -33110,7 +33116,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-partition-by-v1284';
+  const SW_CACHE='requete-2026-09-30-filtrer-fenetre-v1285';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
