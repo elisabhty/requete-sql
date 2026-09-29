@@ -9366,7 +9366,7 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 <!-- Sonde de fluidité : chargée seulement avec ?perf=1, jamais pour les lecteurs. -->
 <script>if(/[?&]perf=1(&|$)/.test(location.search)){var pp=document.createElement("script");pp.src="perf-probe.js";pp.defer=true;document.head.appendChild(pp);}</script>
 <link rel="stylesheet" href="home-journey.css?v=1131">
-<link rel="stylesheet" href="design-premium.css?v=1233">
+<link rel="stylesheet" href="design-premium.css?v=1234">
 <script src="design-premium.js?v=1115" defer></script>
 </head>
 <body>
@@ -21626,7 +21626,40 @@ function homeLessonSteps(id){
     {step:2,done,locked:!e.exo}
   ];
 }
+/* ---------- Mascotte animée (coucou) ----------
+   Vidéo courte (5 s, 480 px, sans son, ~100 Ko) : sur l’accueil, elle fait
+   coucou une fois par ouverture de l’app ; un toucher la relance. Avec
+   « réduire les animations », seule l’image fixe s’affiche. */
+const MASCOT_VIDEO='assets/mascotte-coucou.mp4',MASCOT_POSTER='assets/mascotte-coucou.jpg';
+let mascotWavedThisSession=false;
+/* Écran de bienvenue : la vidéo tourne en boucle, sauf si les animations
+   sont réduites (on garde alors l’image fixe). */
+if(typeof document!=='undefined')document.addEventListener('play',e=>{
+  const v=e.target;
+  if(v&&v.classList&&v.classList.contains('mascot-vid-hello')&&mascotReduced()){v.pause();try{v.currentTime=0;}catch(err){}}
+},true);
+function mascotMedalHtml(){
+  return `<button type="button" class="mascot-medal" onclick="mascotWave(this)" aria-label="La mascotte Requête te fait coucou"><video class="mascot-vid" src="${MASCOT_VIDEO}" poster="${MASCOT_POSTER}" muted playsinline preload="metadata" disablepictureinpicture aria-hidden="true"></video></button>`;
+}
+function mascotReduced(){
+  return (window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||document.documentElement.dataset.motion==='reduce';
+}
+function mascotWave(btn){
+  const v=btn&&btn.querySelector('video');
+  if(!v)return;
+  try{v.currentTime=0;}catch(e){}
+  const p=v.play();
+  if(p&&p.catch)p.catch(()=>{});
+}
+function mascotGreetOnce(){
+  if(mascotWavedThisSession||mascotReduced())return;
+  const btn=document.querySelector('#scr-learn.active .mascot-medal');
+  if(!btn)return;
+  mascotWavedThisSession=true;
+  setTimeout(()=>mascotWave(btn),500);
+}
 function renderHomeHero(){
+  if(typeof setTimeout==='function'&&typeof mascotGreetOnce==='function')setTimeout(mascotGreetOnce,0);
   const host=document.getElementById('home-hero'); if(!host)return;
   majBadgePlanning();renderLearnAvatar();renderHomeStreak();renderGreeting();
   const session=recommendedSession();
@@ -21636,7 +21669,7 @@ function renderHomeHero(){
   const dateISO=dstr(auj());
   const lateHtml=late?`<div class="journey-planning"><span class="journey-tool-icon">${LATE_BANNER_ICO}</span><span><b>Planning à ajuster</b><small>${plur(late.count,'activité')} à replanifier</small></span><button type="button" onclick="openLateRecoveryFromHome(this)">Réorganiser</button></div>`:'';
   const extras=`${lateHtml}<button type="button" id="journey-explore" class="journey-explore" onclick="toggleCourseCatalog()" aria-controls="modules" aria-expanded="${!document.getElementById('modules')?.hidden}"><span class="journey-tool-icon">${journeyIcon('courses')}</span><span>Explorer les cours</span>${DEF_CHEV_SVG}</button>${homeToolsHTML()}`;
-  const heading=`<div class="journey-heading"><h2>Un pas de plus en SQL</h2><div class="journey-session-meta"><span aria-label="${escAttr(session?.summary||'Toutes tes activités sont validées')}">${esc(session?session.label==='Ta séance du jour'?`Ta séance · ${session.minutes} min`:session.label:'Parcours terminé')}</span><time datetime="${dateISO}">${esc(date)}</time></div></div>`;
+  const heading=`<div class="journey-heading has-mascot"><div class="jh-copy"><h2>Un pas de plus en SQL</h2><div class="journey-session-meta"><span aria-label="${escAttr(session?.summary||'Toutes tes activités sont validées')}">${esc(session?session.label==='Ta séance du jour'?`Ta séance · ${session.minutes} min`:session.label:'Parcours terminé')}</span><time datetime="${dateISO}">${esc(date)}</time></div></div>${typeof mascotMedalHtml==='function'?mascotMedalHtml():''}</div>`;
   if(nxt==null){
     host.innerHTML=`${heading}<section class="journey-complete"><span class="journey-tool-icon">${ENT_OK_SVG}</span><h3>Tu as terminé ton parcours</h3><p>Revois une notion ou relève un défi pour entretenir tes acquis.</p><button class="journey-primary" type="button" onclick="switchTab('practice')">Continuer à pratiquer ${DEF_CHEV_SVG}</button></section>${extras}`;
     return;
@@ -29931,7 +29964,7 @@ function paintOb(){
     try{nParis=db.exec("SELECT COUNT(*) FROM clients WHERE ville = 'Paris';")[0].values[0][0];}catch(e){}
     const nDefis=(typeof CHALLENGES!=='undefined'&&CHALLENGES.length)||25;
     html=`<div class="ob-screen welcome"><div class="ob-brand"><code>&gt;_</code><span>Requête</span></div>
-      <img class="mascot" src="assets/mascotte-onboarding.png" alt="La mascotte Requête avec son ordinateur">
+      <video class="mascot mascot-vid-hello" src="assets/mascotte-coucou.mp4" poster="assets/mascotte-coucou.jpg" autoplay loop muted playsinline disablepictureinpicture aria-label="La mascotte Requête te fait coucou"></video>
       <h1 class="ob-title" id="ob-title">Le SQL s’apprend<br>en le pratiquant.</h1>
       <p class="ob-lead">Écris de vraies requêtes sur une base SQLite, sans rien installer. Ton départ personnalisé prend moins de deux minutes.</p>
       <div class="ob-welcome-demo" aria-hidden="true"><div class="ob-code"><div class="oc-bar"><i></i><i></i><i></i><em>requete.sql</em></div><pre class="oc-code" id="ob-demo-code"></pre><div class="oc-res" id="ob-demo-res" hidden><i>✓</i> ${plur(nParis,'client')} à Paris</div></div></div>
@@ -32510,7 +32543,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-28-encadre-v1233';
+  const SW_CACHE='requete-2026-09-29-mascotte-v1234';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

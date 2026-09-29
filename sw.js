@@ -14,7 +14,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-09-28-encadre-v1233';
+const CACHE = 'requete-2026-09-29-mascotte-v1234';
 
 const PRECACHE = [
   './',
@@ -34,6 +34,7 @@ const PRECACHE = [
   './vendor/sqljs/sql-wasm.js',
   './vendor/sqljs/sql-wasm.wasm',
   './assets/mascotte-requete.png',
+  './assets/mascotte-coucou.jpg',
   './assets/apple-touch-icon.png',
   './assets/icon-192.png',
   './assets/nutriboost-accueil.png',
@@ -69,6 +70,11 @@ self.addEventListener('fetch', (e) => {
      cache (ou une erreur de repli) empêcherait toute mise à jour future —
      constaté sur une ancienne version restée bloquée plusieurs jours. */
   if (url.pathname.endsWith('/sw.js')) return;
+
+  /* Vidéos : Safari iOS les demande par morceaux (en-tête Range) et refuse
+     une réponse complète servie depuis le cache. On laisse le navigateur
+     les charger lui-même ; hors ligne, l’image fixe (poster) s’affiche. */
+  if (url.pathname.endsWith('.mp4')) return;
 
   if (req.mode === 'navigate') {
     e.respondWith((async () => {
