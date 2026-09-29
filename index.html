@@ -26898,14 +26898,11 @@ function initQueryFill(){
     if(foot)foot.addEventListener('animationend',e=>{if(e.target===foot)finish();});
     const play=()=>{el.classList.remove('is-done','is-static');el.classList.remove('is-play');void el.offsetWidth;el.classList.add('is-play');actCountUp(el);if(rm)finish();};
     const rb=el.querySelector('.act-replay');if(rb)rb.addEventListener('click',play);
-    /* Laisse la requête à trous restaurer son état avant de décider. */
-    setTimeout(()=>{
-      /* Mission déjà réussie : on montre directement l’état final. */
-      if(el.closest('.ij-done.is-shown')&&!el.closest('.ij-done.is-in')){el.classList.add('is-play','is-static','is-done');actCountUp(el,true);return;}
-      if(!('IntersectionObserver' in window)){play();return;}
-      const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting&&e.intersectionRatio>0.2){play();io.disconnect();}});},{threshold:[0,0.2,0.5]});
-      io.observe(el);
-    },0);
+    /* L’animation démarre quand on arrive dessus : dès que le haut du bloc
+       atteint le tiers inférieur de l’écran (aussi au retour sur une leçon réussie). */
+    if(!('IntersectionObserver' in window)){play();return;}
+    const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){play();io.disconnect();}});},{rootMargin:'0px 0px -30% 0px',threshold:0});
+    io.observe(el);
   });
   const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   document.querySelectorAll('#lesson-body .qf[data-lesson-fill]').forEach(box=>{
@@ -32974,7 +32971,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-29-animations-ux-v1270';
+  const SW_CACHE='requete-2026-09-30-animations-au-passage-v1271';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
