@@ -67,6 +67,8 @@ assert(html.includes('<script src="design-premium.js') && serviceWorker.includes
   assert(html.includes('applyMissionFills();\n    initRunSqlSlots();') && html.includes('${missionFillBlock(l)}'), 'requête à trous générée avant les emplacements exécutables, ou ajoutée en fin de cours');
   assert(html.includes("return !!(l&&(l.gateJcQuiz||lessonHasFill(l))&&!etapesDe(l.id).exo&&!jcPassed(l.id));"), 'l’exercice reste verrouillé tant que la requête à trous n’est pas réussie');
   assert(html.includes('swapped[g]=p.length===2') , 'chaque égalité a = b accepte les deux sens, même avec plusieurs égalités');
+  assert(html.includes("const MASCOT_VIDEO='assets/mascotte-coucou.mp4'") && html.includes('mascotMedalHtml():') && html.includes('class="mascot mascot-vid-hello"'), 'mascotte animée sur l’accueil et l’écran de bienvenue');
+  assert(serviceWorker.includes("url.pathname.endsWith('.mp4')") && serviceWorker.includes("'./assets/mascotte-coucou.jpg'"), 'vidéo laissée au navigateur (lecture par morceaux sur iOS), image fixe disponible hors ligne');
   assert(html.includes('.qf.is-won .qf-actions{visibility:hidden') && !html.includes('runWrap.scrollIntoView(') && html.includes('scr.scrollTo({top:anchor()'), 'résultat affiché à la place de l’éditeur, sans saut de mise en page');
 }
 assert(html.includes('id="scr-notes"') && html.includes('function renderNotesScreen('), 'Mes notes possède un écran racine dédié');
@@ -128,7 +130,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
 assert(html.includes('{ id:73, titre:"UNION et UNION ALL"') && html.includes('18 lignes : 10 + 8') && !html.includes('17 lignes : 9 + 8'), 'UNION ALL visible et cardinalité corrigée');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-09-28-encadre-v1233') && html.includes('requete-2026-09-28-encadre-v1233') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-09-29-mascotte-v1234') && html.includes('requete-2026-09-29-mascotte-v1234') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
