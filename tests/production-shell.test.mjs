@@ -63,7 +63,7 @@ assert(html.includes('<script src="design-premium.js') && serviceWorker.includes
 {
   const cfg=html.slice(html.indexOf('const MISSION_FILLS={'),html.indexOf('function lessonHasFill('));
   const ids=(cfg.match(/^\s*(\d+):\{/gm)||[]).map(x=>+x.trim().replace(/:\{$/,''));
-  assert(ids.length===15 && [18,20,38,39,40,19,41,42,45,47,48,55,59,77,73].every(id=>ids.includes(id)), 'requête à trous de la mission sur les 15 leçons avec mission (en plus de la leçon 49)');
+  assert(ids.length===16 && [18,20,38,39,40,19,41,42,45,47,48,55,59,77,73,80].every(id=>ids.includes(id)), 'requête à trous de la mission sur les 16 leçons avec mission (en plus de la leçon 49)');
   assert(html.includes('applyMissionFills();\n    initRunSqlSlots();') && html.includes('${missionFillBlock(l)}'), 'requête à trous générée avant les emplacements exécutables, ou ajoutée en fin de cours');
   assert(html.includes("return !!(l&&(l.gateJcQuiz||lessonHasFill(l))&&!etapesDe(l.id).exo&&!jcPassed(l.id));"), 'l’exercice reste verrouillé tant que la requête à trous n’est pas réussie');
   assert(html.includes('swapped[g]=p.length===2') , 'chaque égalité a = b accepte les deux sens, même avec plusieurs égalités');
@@ -130,7 +130,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
 assert(html.includes('{ id:73, titre:"UNION et UNION ALL"') && html.includes('18 lignes : 10 + 8') && !html.includes('17 lignes : 9 + 8'), 'UNION ALL visible et cardinalité corrigée');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-09-29-union-bas-v1247') && html.includes('requete-2026-09-29-union-bas-v1247') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-09-29-intersect-except-v1248') && html.includes('requete-2026-09-29-intersect-except-v1248') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
