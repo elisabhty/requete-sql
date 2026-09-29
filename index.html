@@ -2193,6 +2193,31 @@
   #scr-lesson .set-demo > div span{padding:4px 9px!important;border-radius:9px;background:var(--surface-2,#f3f3f6)!important;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink)}
   #scr-lesson .set-demo > div.is-res span{background:var(--accent-soft)!important;color:var(--accent-ink)}
   .set-demo > i{grid-column:1/-1;height:0;border-top:1px dashed var(--line);margin:2px 0}
+  /* Mission INTERSECT/EXCEPT : les invitations partent par SMS une à une. */
+  .ij-sms{--d0:1.1s;margin:14px 0 0;padding:14px;border-radius:18px;background:var(--surface-2,#f4f4f7);border:1px solid var(--card-border)}
+  #scr-lesson .ij-sms-h{display:flex;align-items:center;gap:8px;margin:0 0 10px!important;font-size:12px!important;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)!important}
+  #scr-lesson .ij-sms-bubble{position:relative;max-width:86%;width:fit-content;margin:0 0 12px auto!important;padding:10px 13px!important;border-radius:18px 18px 4px 18px;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 70%,#c084fc));color:#fff!important;font-size:14px!important;font-weight:500!important;line-height:1.4!important;box-shadow:0 10px 18px -12px color-mix(in srgb,var(--accent) 80%,transparent)}
+  .ij-sms-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+  .ij-sms-list li{display:grid;grid-template-columns:32px 1fr auto;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:#fff;border:1px solid var(--card-border)}
+  .ij-sms-list b{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:var(--accent-soft);color:var(--accent-ink);font-size:13px;font-weight:800}
+  .ij-sms-list span{display:flex;flex-direction:column;font-size:14px;font-weight:700;color:var(--ink);min-width:0}
+  .ij-sms-list small{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--ink-3)}
+  .ij-sms-list em{position:relative;display:grid;font-style:normal;font-size:12px;font-weight:800;white-space:nowrap}
+  .ij-sms-list em i{grid-area:1/1;justify-self:end;font-style:normal;padding:4px 9px;border-radius:999px}
+  .ij-sms-list .is-wait{color:var(--ink-3);background:var(--surface-2,#f1f1f4)}
+  .ij-sms-list .is-sent{color:var(--success,#15803d);background:color-mix(in srgb,var(--success,#15803d) 12%,#fff)}
+  #scr-lesson .ij-sms-done{margin:10px 0 0!important;text-align:center;font-size:13px!important;font-weight:800;color:var(--success,#15803d)!important}
+  .ij-done:not(.is-locked) .ij-sms{animation:smsIn .45s ease both var(--d0)}
+  .ij-done:not(.is-locked) .ij-sms-bubble{animation:smsBubble .5s cubic-bezier(.2,.9,.3,1.3) both calc(var(--d0) + .35s)}
+  .ij-done:not(.is-locked) .ij-sms-list li{animation:smsIn .35s ease both calc(var(--d0) + .9s + var(--i)*.55s)}
+  .ij-done:not(.is-locked) .ij-sms-list .is-wait{animation:smsWait .55s ease both calc(var(--d0) + .9s + var(--i)*.55s)}
+  .ij-done:not(.is-locked) .ij-sms-list .is-sent{animation:smsSent .35s cubic-bezier(.2,.9,.3,1.4) both calc(var(--d0) + 1.4s + var(--i)*.55s)}
+  .ij-done:not(.is-locked) .ij-sms-done{animation:smsIn .4s ease both calc(var(--d0) + 3.4s)}
+  @keyframes smsIn{from{opacity:0;transform:translateY(8px)}}
+  @keyframes smsBubble{from{opacity:0;transform:translateY(10px) scale(.85);transform-origin:right bottom}}
+  @keyframes smsWait{0%{opacity:0}20%,80%{opacity:1}100%{opacity:0}}
+  @keyframes smsSent{from{opacity:0;transform:scale(.6)}}
+  @media (prefers-reduced-motion:reduce){.ij-sms,.ij-sms *{animation:none!important}.ij-sms-list .is-wait{opacity:0}}
   .sit-fn-ref{font-size:.68em;font-weight:700;color:var(--muted,#6b6b76);margin-left:1px}
   .situation-body p.sit-footnote,.sit-footnote{margin:16px 0 0!important;font-size:12px!important;line-height:1.45!important;color:var(--muted,#6b6b76)!important;padding-top:10px;border-top:1px solid var(--card-border,rgba(0,0,0,.08));font-size:12px;line-height:1.45;color:var(--muted,#6b6b76)}
   .sit-footnote sup{font-size:.8em;font-weight:700;margin-right:2px}
@@ -15581,7 +15606,7 @@ SELECT ... -- clients inscrits</pre></div>
           <p>Il ne reste plus qu’à réunir toutes les étapes.</p>
           <p>👇 Exécute la requête pour voir le résultat&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT clients.nom,&#10;       clients.telephone&#10;FROM clients&#10;JOIN commandes&#10;    ON commandes.client_id&#10;       = clients.id&#10;EXCEPT&#10;SELECT clients.nom,&#10;       clients.telephone&#10;FROM clients&#10;JOIN fidelite&#10;    ON fidelite.client_id&#10;       = clients.id;"></div>
-          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 8 clients qui ont commandé à 4 clients à inviter"><li class="ij-fn-row"><b>8</b><span>clients ont commandé<small>sans les doublons</small></span></li><li class="ij-fn-step"><code>EXCEPT</code><small>on retire les 4 clients déjà inscrits</small></li><li class="ij-fn-row is-out"><b>4</b><span>clients à inviter<small>Emma, Chloé, Hugo et Gabriel</small></span></li></ol></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="De 8 clients qui ont commandé à 4 clients à inviter"><li class="ij-fn-row"><b>8</b><span>clients ont commandé<small>sans les doublons</small></span></li><li class="ij-fn-step"><code>EXCEPT</code><small>on retire les 4 clients déjà inscrits</small></li><li class="ij-fn-row is-out"><b>4</b><span>clients à inviter<small>Emma, Chloé, Hugo et Gabriel</small></span></li></ol><div class="ij-sms" role="group" aria-label="Invitations envoyées par SMS aux 4 clients"><p class="ij-sms-h"><i aria-hidden="true">💬</i>Invitations par SMS</p><p class="ij-sms-bubble">Bonjour&nbsp;! Rejoins notre programme de fidélité ⭐ et cumule des points à chaque commande.</p><ul class="ij-sms-list"><li style="--i:0"><b aria-hidden="true">E</b><span>Emma<small>06 39 98 33 08</small></span><em><i class="is-wait">Envoi…</i><i class="is-sent">✓ Envoyé</i></em></li><li style="--i:1"><b aria-hidden="true">C</b><span>Chloé<small>06 39 98 51 62</small></span><em><i class="is-wait">Envoi…</i><i class="is-sent">✓ Envoyé</i></em></li><li style="--i:2"><b aria-hidden="true">H</b><span>Hugo<small>06 39 98 68 03</small></span><em><i class="is-wait">Envoi…</i><i class="is-sent">✓ Envoyé</i></em></li><li style="--i:3"><b aria-hidden="true">G</b><span>Gabriel<small>06 39 98 85 16</small></span><em><i class="is-wait">Envoi…</i><i class="is-sent">✓ Envoyé</i></em></li></ul><p class="ij-sms-done">✓ 4 invitations envoyées</p></div></div>
         </div>
       </div>`},
     reflexTitle:"Le réflexe à retenir",
@@ -32734,7 +32759,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-29-qf-espace-v1261';
+  const SW_CACHE='requete-2026-09-29-sms-invitations-v1262';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
