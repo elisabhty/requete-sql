@@ -30,7 +30,7 @@ const onboardingEnd = html.indexOf('function finishOnboard(', onboardingStart);
 const onboarding = html.slice(onboardingStart, onboardingEnd);
 
 assert((nav.match(/class="tab(?: active)?"/g) || []).length === 5, 'navigation principale à 5 onglets, Compte compris, libellés lisibles');
-assert(!nav.includes('data-tab="jeu"') && html.includes("['jeu','Duel entre amis'") && html.includes('id="jeu-back"') && html.includes("['console','defis','jeu','practice'].includes(tab)"), 'Duel entre amis rangé dans Pratiquer, avec un retour vers Pratiquer');
+assert(!nav.includes('data-tab="jeu"') && !html.includes("['jeu','Duel entre amis'") && !html.includes('id="scr-jeu"') && html.includes('id="defis-modes"') && html.includes('id="defis-duel"') && html.includes("['console','defis','jeu','practice'].includes(tab)"), 'Duel entre amis fusionné avec les Défis, dans Pratiquer');
 assert(nav.includes('data-tab="learn"') && nav.includes('<span class="tab-label">Accueil</span>'), 'Accueil reste la première destination');
 assert(nav.includes('data-tab="planning"') && nav.includes('<span class="tab-label">Planning</span>') && html.includes('<h1>Planning</h1>'), 'Planning est accessible directement, sous un nom distinct de « Ton parcours »');
 assert(nav.includes('data-tab="practice"') && nav.includes('>Pratiquer</span>'), 'Pratiquer est accessible directement');
@@ -57,7 +57,7 @@ const planningRoot = html.slice(html.indexOf('id="scr-planning"'), html.indexOf(
 assert(defisRoot.includes('root-home-back') && planningRoot.includes('root-home-back'), 'Défis et Planning proposent un retour Accueil explicite');
 assert((html.match(/class="home-back root-home-back"/g)||[]).length===4, 'retour Accueil cohérent sur les quatre grandes pages concernées (Mon compte est un onglet)');
 assert(html.includes('function returnToHome()') && html.includes("title.focus({preventScroll:true})"), 'retour Accueil centralisé avec restitution accessible du focus');
-assert(html.includes("function lessonBackLabel(){return ({planning:'Planning',defis:'Défis',practice:'Pratiquer',library:'Bibliothèque',jeu:'Duel'"), 'leçon renvoyée vers son écran d’origine avec un libellé clair');
+assert(html.includes("function lessonBackLabel(){return ({planning:'Planning',defis:'Défis',practice:'Pratiquer',library:'Bibliothèque',jeu:'Défis'"), 'leçon renvoyée vers son écran d’origine avec un libellé clair');
 assert(html.includes("label.textContent=focused?'Questions':'Bibliothèque'") && html.includes("focused?'Retour aux questions':'Retour à la bibliothèque'"), 'Entretien revient aux questions avant de revenir à la bibliothèque');
 assert(html.includes('function returnToParent()') && html.includes("if(!parent||parent===activeTab||parent==='learn'){returnToHome();return;}"), 'les sous-pages reviennent à leur rubrique (Pratiquer, Bibliothèque)');
 assert(html.includes('<link rel="stylesheet" href="design-premium.css') && serviceWorker.includes("'./design-premium.css'"), 'système de design chargé en dernier et disponible hors ligne');
@@ -132,7 +132,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
 assert(html.includes('{ id:73, titre:"UNION et UNION ALL"') && html.includes('18 lignes : 10 + 8') && !html.includes('17 lignes : 9 + 8'), 'UNION ALL visible et cardinalité corrigée');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-09-30-ludique-v1415') && html.includes('requete-2026-09-30-ludique-v1415') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-09-30-ludique-v1416') && html.includes('requete-2026-09-30-ludique-v1416') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
