@@ -5,7 +5,7 @@ const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const ctx=vm.createContext({});
 const extract=(start,end)=>html.slice(html.indexOf(start),html.indexOf(end,html.indexOf(start)));
 vm.runInContext(extract('function primaryTabFor(','function syncTabUI('),ctx);
-for(const name of ['console','defis','practice'])assert.equal(ctx.primaryTabFor(name),'practice');
+for(const name of ['console','defis','jeu','practice'])assert.equal(ctx.primaryTabFor(name),'practice');
 for(const name of ['notes','collection','entretien','library'])assert.equal(ctx.primaryTabFor(name),'library');
 for(const name of ['learn','planning'])assert.equal(ctx.primaryTabFor(name),name);
 assert.equal(ctx.primaryTabFor('compte'),'learn','Mon compte s’ouvre au-dessus de l’onglet d’origine');
@@ -24,14 +24,14 @@ ctx.openItem(0,1);assert.deepEqual(opened,[0,1],'leçon zéro et étape exercice
 ctx.openItem(38,2);assert.deepEqual(opened,[38,2],'accès à l’étape quiz');
 ctx.openItem('d1',0);assert.deepEqual(opened,['d1'],'les défis gardent leur parcours propre');
 const nav=html.slice(html.indexOf('<nav class="tabbar"'),html.indexOf('</nav>',html.indexOf('<nav class="tabbar"')));
-assert.deepEqual([...nav.matchAll(/data-tab="([^"]+)"/g)].map(m=>m[1]),['learn','planning','practice','jeu','library']);
+assert.deepEqual([...nav.matchAll(/data-tab="([^"]+)"/g)].map(m=>m[1]),['learn','planning','practice','library']);
 const states={};let active='';
-for(const name of ['learn','planning','practice','jeu','library'])states[name]={dataset:{tab:name},classList:{toggle(){}},setAttribute(k,v){this[k]=v;},scrollIntoView(){}};
+for(const name of ['learn','planning','practice','library'])states[name]={dataset:{tab:name},classList:{toggle(){}},setAttribute(k,v){this[k]=v;},scrollIntoView(){}};
 ctx.document={querySelectorAll:()=>Object.values(states),getElementById:()=>null};ctx.requestAnimationFrame=cb=>cb();
 vm.runInContext(extract('function syncTabUI(','function screenForTab('),ctx);
-for(const [route,parent] of [['notes','library'],['console','practice'],['planning','planning'],['learn','learn']]){
+for(const [route,parent] of [['notes','library'],['console','practice'],['jeu','practice'],['planning','planning'],['learn','learn']]){
  ctx.syncTabUI(route);
  assert.deepEqual(Object.entries(states).filter(([,v])=>v.tabIndex===0).map(([key])=>key),[parent]);
  assert.equal(states[parent]['aria-selected'],'true');
 }
-console.log('Parcours lisible : 5 destinations, regroupement, focus clavier, états et reprise d’étapes : OK.');
+console.log('Parcours lisible : 4 destinations, Duel dans Pratiquer, regroupement, focus clavier, états et reprise d’étapes : OK.');
