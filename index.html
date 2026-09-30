@@ -9835,20 +9835,15 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 #app .pl-chip-valid{font-size:0!important;gap:0!important;width:24px;height:24px;padding:0!important;justify-content:center;border-radius:50%!important}
 #app .pl-chip-valid i{font-size:12px!important;font-style:normal}
 /* ---------- Navigation à 5 onglets (recommandation Apple) ----------
-   Mon compte s’ouvre depuis l’avatar en haut à droite de chaque onglet. */
-#app .lgtitle:has(>.lg-avatar){position:relative}
-#app .lgtitle>.lg-avatar{position:absolute;top:calc(var(--safe-top) + 20px);right:16px;z-index:2}
-#app .lgtitle:has(>.lg-avatar) h1{padding-right:52px}
-/* Mon compte devient un écran poussé : bouton retour visible, titre dessous. */
-#app #scr-compte>.root-home-back{display:flex!important}
-#app #scr-compte>.lgtitle{padding-top:6px}
+   Accueil, Planning, Pratiquer, Bibliothèque et Compte : Mon compte est une
+   destination de la barre du bas, avec l’initiale de la personne pour icône. */
 /* Glissement du bord gauche : l’écran d’origine apparaît dessous. */
 .screen.swipe-under{display:block;z-index:1;pointer-events:none}
 .screen.swipe-under::after{content:"";position:fixed;inset:0;background:rgba(0,0,0,.06);pointer-events:none}
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=4">
+<link rel="stylesheet" href="ludique.css?v=5">
 </head>
 <body>
 <div id="app">
@@ -9899,8 +9894,7 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
           <p class="sub" id="learn-sub">Prêt·e pour ta prochaine requête ?</p>
         </div>
         <div class="learn-side">
-          <button class="streak-pill" id="home-streak" type="button" onclick="switchTab('compte')" aria-label="Jours d'affilée — voir mes stats" hidden></button>
-          <button type="button" class="learn-avatar" id="learn-avatar" onclick="switchTab('compte')" aria-label="Ouvrir mon compte">R</button>
+          <button class="streak-pill" id="home-streak" type="button" onclick="openAccountProgress()" aria-label="Jours d'affilée — voir mes stats" hidden></button>
         </div>
       </div>
       <p class="greeting" id="greeting" hidden></p>
@@ -9910,11 +9904,11 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
     </section>
 
     <section id="scr-practice" class="screen journey-hub" aria-label="Pratiquer">
-      <div class="lgtitle"><button type="button" class="learn-avatar lg-avatar" data-account-avatar onclick="openAccount()" aria-label="Ouvrir mon compte">R</button><div><div class="eyebrow">À ton rythme</div><h1>Pratiquer</h1><p class="sub">Du SQL concret, à chaque essai.</p></div></div>
+      <div class="lgtitle"><div><div class="eyebrow">À ton rythme</div><h1>Pratiquer</h1><p class="sub">Du SQL concret, à chaque essai.</p></div></div>
       <div id="practice-tools" class="journey-hub-list"></div>
     </section>
     <section id="scr-library" class="screen journey-hub" aria-label="Bibliothèque">
-      <div class="lgtitle"><button type="button" class="learn-avatar lg-avatar" data-account-avatar onclick="openAccount()" aria-label="Ouvrir mon compte">R</button><div><div class="eyebrow">Tes ressources</div><h1>Bibliothèque</h1><p class="sub">Retrouve, révise et garde l’essentiel.</p></div></div>
+      <div class="lgtitle"><div><div class="eyebrow">Tes ressources</div><h1>Bibliothèque</h1><p class="sub">Retrouve, révise et garde l’essentiel.</p></div></div>
       <div id="library-tools" class="journey-hub-list"></div>
     </section>
 
@@ -9957,7 +9951,7 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
     <!-- PLANNING -->
     <section id="scr-planning" class="screen">
       <button type="button" class="home-back root-home-back" onclick="returnToHome()" aria-label="Retour à l’accueil"><svg viewBox="0 0 12 20" fill="none" aria-hidden="true"><path d="M10 2L3 10l7 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Accueil</span></button>
-      <div class="lgtitle"><button type="button" class="learn-avatar lg-avatar" data-account-avatar onclick="openAccount()" aria-label="Ouvrir mon compte">R</button><div class="eyebrow">Ton rythme</div><h1>Planning</h1>
+      <div class="lgtitle"><div class="eyebrow">Ton rythme</div><h1>Planning</h1>
         <p class="sub" id="pl-sub">Ta semaine SQL, organisée pour toi.</p></div>
       <button class="ux-shortcut" id="planning-session-shortcut" type="button" onclick="focusPlanningToday()">Aller à la séance</button>
       <div id="planning-body"></div>
@@ -10073,9 +10067,8 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 
     <!-- MON COMPTE -->
     <section id="scr-compte" class="screen">
-      <button type="button" class="home-back root-home-back" onclick="closeAccount()" aria-label="Retour à Accueil"><svg viewBox="0 0 12 20" fill="none" aria-hidden="true"><path d="M10 2L3 10l7 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="compte-back-label">Accueil</span></button>
       <div class="lgtitle account-title"><div><h1>Mon compte</h1>
-        <p class="sub">Tes préférences, tes données et ta progression.</p></div></div>
+        <p class="sub">Ta progression et tes réglages.</p></div></div>
       <div id="compte-body" class="acc-stack"></div>
     </section>
   </div>
@@ -10173,6 +10166,8 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
       <svg viewBox="0 0 24 24" fill="none"><path d="M5 4.5v15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M5 5.2h10.2l-1.8 3.5 1.8 3.5H5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span class="tab-label">Pratiquer</span></button>
 <button class="tab" role="tab" aria-selected="false" data-tab="library" onclick="switchTab('library')">
       <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="6" width="13" height="14" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M8 6V4h10a2 2 0 0 1 2 2v11h-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tab-label">Bibliothèque</span></button>
+<button class="tab" role="tab" aria-selected="false" data-tab="compte" onclick="switchTab('compte')">
+      <span class="tab-avatar" data-account-avatar aria-hidden="true">R</span><span class="tab-label">Compte</span></button>
   </nav>
 </div>
 
@@ -21990,12 +21985,8 @@ function courseSearchKeydown(event){
     if(first){event.preventDefault();first.focus();}
   }
 }
-/* Mon compte n’est plus un onglet : il s’ouvre depuis l’avatar, au-dessus de
-   l’onglet en cours, qui reste sélectionné dans la barre du bas. */
-let accountFrom='learn';
-const ACCOUNT_FROM_LABELS={learn:'Accueil',planning:'Planning',practice:'Pratiquer',library:'Bibliothèque'};
+/* Mon compte est une destination de la barre du bas (onglet « Compte »). */
 function primaryTabFor(tab){
-  if(tab==='compte')return (typeof accountFrom!=='undefined'&&accountFrom)||'learn';
   if(['console','defis','jeu','practice'].includes(tab))return 'practice';
   if(['notes','collection','entretien','library'].includes(tab))return 'library';
   return tab;
@@ -22034,19 +22025,13 @@ function switchTab(name){
   annulerBilanAuto();
   closeSchemaSheet();
   if(activeTab==='console'&&name!=='console') persistEditor('ed-console');
+  if(activeTab==='compte'&&name!=='compte')document.querySelectorAll('#scr-compte .plus-details[open]').forEach(d=>{d.open=false;});
   if(name==='console'&&activeTab==='console'&&consoleView==='work'){
     closeConsoleProject();
     return;
   }
   const map={practice:'scr-practice',library:'scr-library',jeu:'scr-jeu',learn:'scr-learn',defis:'scr-defis',planning:'scr-planning',notes:'scr-notes',collection:'scr-collection',console:'scr-console',entretien:'scr-entretien',compte:'scr-compte'};
   if(name==='schema') name='console';
-  if(name==='compte'&&activeTab!=='compte'){
-    const from=primaryTabFor(activeTab||'learn');
-    accountFrom=ACCOUNT_FROM_LABELS[from]?from:'learn';
-    const lab=document.getElementById('compte-back-label'),btn=lab&&lab.closest('button');
-    if(lab)lab.textContent=ACCOUNT_FROM_LABELS[accountFrom];
-    if(btn)btn.setAttribute('aria-label','Retour à '+ACCOUNT_FROM_LABELS[accountFrom]);
-  }
   const prevCur=document.querySelector('.screen.active');
   if(prevCur&&activeTab){
     tabScrollPositions[activeTab]=prevCur.scrollTop;
@@ -22167,7 +22152,6 @@ function returnToParent(){
   });
 }
 function openAccount(){switchTab('compte');}
-function closeAccount(){window.pNavBack?.();switchTab(accountFrom||'learn');}
 function returnToHome(){
   window.pNavBack?.();
   entOpen=null;
@@ -22186,6 +22170,7 @@ function setReadingPreference(key,enabled){
   if(!['largeText','reduceMotion'].includes(key))return;
   state.preferences={...state.preferences,[key]:!!enabled};
   save();applyReadingPreferences();
+  if(typeof renderCompte==='function')renderCompte();
   const status=document.getElementById('reading-preferences-status');
   if(status)status.textContent='Préférence enregistrée sur cet appareil.';
 }
@@ -29766,8 +29751,11 @@ function homeStreakHTML(){
   </button>`;
 }
 function openAccountProgress(){
-  if(typeof accountSection!=='undefined')accountSection='progress';
   openAccount();
+  requestAnimationFrame(()=>{
+    const el=document.getElementById('acct-progress');
+    if(el)try{el.scrollIntoView({block:'start',behavior:'instant'});}catch(e){el.scrollIntoView();}
+  });
 }
 const FLAME_SVG='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.3 1.8c.5 2.4 1.6 4 3 5.6 1.7 2 3.7 4.4 3.7 8a7.5 7.5 0 0 1-15 0c0-2.5 1.2-4.5 2.6-6.1.2 1.1.8 2 1.8 2.6-.1-3.6.9-7.5 3.9-10.1ZM12 21.5a3.9 3.9 0 0 0 3.9-3.9c0-2.1-1.3-3.6-3.9-6.1-2.6 2.5-3.9 4-3.9 6.1a3.9 3.9 0 0 0 3.9 3.9Z"/></svg>';
 function streakChipHTML(){
@@ -31945,7 +31933,10 @@ function plusIcon(kind){
     bell:'<path d="M6 16.5h12l-1.5-2V10a4.5 4.5 0 0 0-9 0v4.5zM10 19h4"/>',
     export:'<path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M5 13v7h14v-7"/>',
     privacy:'<path d="M12 3 5 6v5c0 4.8 2.8 8.1 7 10 4.2-1.9 7-5.2 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/>',
-    help:'<circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.4 2.4 0 1 1 3.5 2.1c-.9.5-1.3 1-1.3 2M12 17h.01"/>'
+    help:'<circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.4 2.4 0 1 1 3.5 2.1c-.9.5-1.3 1-1.3 2M12 17h.01"/>',
+    reading:'<path d="M3.5 18 8.5 5.5 13.5 18M5.5 13.5h6"/><path d="M14.5 18l3.2-7.5 3.3 7.5M15.6 15.5h4.2"/>',
+    trash:'<path d="M4.5 7h15"/><path d="M9.5 7V4.5h5V7"/><path d="M6.5 7l1 12.5h9l1-12.5"/><path d="M10 11v5.5M14 11v5.5"/>',
+    replay:'<path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4h4"/>'
   };
   return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">${paths[kind]||paths.account}</svg>`;
 }
@@ -31971,61 +31962,44 @@ function closePlusDetails(){
   el.open=false;
   document.querySelector(`[onclick="openPlusDetails('${id}')"]`)?.focus({preventScroll:true});
 }
-/* Mise en vie du tableau de bord : compteurs, anneau, niveau et barres de la
-   semaine partent de zéro une fois la page peinte. En mouvement réduit, les
-   valeurs finales s'appliquent immédiatement, sans transition. */
-function motionReduce(){return !!window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches}
-function animateCompteStats(){
-  if(motionReduce())return;
-  document.querySelectorAll('#compte-body [data-countup]').forEach(el=>{
-    const target=parseInt(el.dataset.countup,10)||0;
-    if(!target){el.textContent='0';return;}
-    const t0=performance.now(),dur=Math.min(900,380+target*14);
-    const step=now=>{if(!el.isConnected)return;
-      const p=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-p,3);
-      el.textContent=String(Math.round(target*e));
-      if(p<1)requestAnimationFrame(step);};
-    requestAnimationFrame(step);
-  });
+/* Niveau SQL de Mon compte : un palier selon la part du parcours validée,
+   et l’avancée jusqu’au palier suivant. */
+const ACCOUNT_LEVELS=[
+  {limit:15,label:'Explorateur SQL',next:'Filtres et tris'},
+  {limit:40,label:'Constructeur de requêtes',next:'Calculs et regroupements'},
+  {limit:70,label:'Analyste relationnel',next:'Jointures avancées'},
+  {limit:99,label:'Analyste SQL',next:'Expertise du parcours'},
+  {limit:100,label:'Parcours maîtrisé',next:'Entretenir tes acquis'}
+];
+function accountLevel(percent){
+  const p=Math.max(0,Math.min(100,Number(percent)||0));
+  let i=ACCOUNT_LEVELS.findIndex(b=>p<=b.limit);
+  if(i<0)i=ACCOUNT_LEVELS.length-1;
+  const band=ACCOUNT_LEVELS[i],prev=i>0?ACCOUNT_LEVELS[i-1].limit:0;
+  const pct=p>=100?100:Math.max(0,Math.min(100,Math.round((p-prev)/Math.max(1,band.limit-prev)*100)));
+  return {label:band.label,next:band.next,pct,rank:i+1};
 }
-function growCompteMetrics(){
-  const host=document.getElementById('compte-body');if(!host)return;
-  const apply=el=>{
-    if(el.dataset.growP!==undefined)el.style.setProperty('--p',el.dataset.growP+'%');
-    if(el.dataset.growW!==undefined)el.style.width=el.dataset.growW+'%';
-    if(el.dataset.growH!==undefined)el.style.setProperty('--h',el.dataset.growH+'%');
-  };
-  const targets=host.querySelectorAll('[data-grow-p],[data-grow-w],[data-grow-h]');
-  if(!targets.length)return;
-  if(motionReduce()){targets.forEach(el=>{el.style.transition='none';apply(el);});return;}
-  requestAnimationFrame(()=>requestAnimationFrame(()=>targets.forEach(apply)));
-}
-let accountSection='settings';
-function setAccountSection(section){
-  if(!['settings','progress'].includes(section))return;
-  accountSection=section;
-  for(const name of ['settings','progress']){
-    const selected=name===section;
-    const tab=document.getElementById('account-tab-'+name);
-    const panel=document.getElementById('account-panel-'+name);
-    if(tab){tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;}
-    if(panel)panel.hidden=!selected;
-  }
-}
-function accountSectionKeydown(event){
-  if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
-  event.preventDefault();
-  const section=event.key==='Home'?'settings':event.key==='End'?'progress':accountSection==='settings'?'progress':'settings';
-  setAccountSection(section);document.getElementById('account-tab-'+section)?.focus();
-}
+const ACCT_OK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const ACCT_PEN_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10.5-10.5a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg>';
+const ACCT_CHEV='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
+/* Mon compte : une seule page, sans onglets internes. Profil et niveau en
+   tête, puis la progression, les accomplissements, les données et les
+   réglages. Chaque réglage s’ouvre dans une feuille. */
 function renderCompte(){
   const host=document.getElementById('compte-body');
   if(!host)return;
+  /* Un réglage changé dans une feuille redessine la page : la feuille reste
+     ouverte, au même endroit, sans rejouer son apparition, et le focus
+     revient sur le bouton touché. */
+  const keptSheet=host.querySelector('.plus-details[open]');
+  const keptId=keptSheet?keptSheet.id:'',keptScroll=keptSheet?keptSheet.scrollTop:0;
+  const focused=document.activeElement&&host.contains(document.activeElement)?document.activeElement:null;
+  const keyOf=el=>el.getAttribute('onclick')||el.getAttribute('onchange')||el.id||'';
+  const focusKey=focused?keyOf(focused):'';
   const name=(state.name||'').trim();
   const initial=(name?name[0]:'R').toUpperCase();
   const st=compteStats();
   const progress=progressContinuer();
-  const ryt=state.plan?(RYTHMES.find(r=>r.k===state.plan.rythme)||RYTHMES[1]):null;
   const nivLab={debutant:'Niveau débutant',bases:'Quelques bases',inter:'Niveau analyste'}[state.plan&&state.plan.niveau]||null;
   const remind=rappelOn();
   const hour=rappelHeure();
@@ -32036,125 +32010,112 @@ function renderCompte(){
   const profileGoal=(OB_GOALS.find(g=>g[0]===profile.goal)||[])[1]||'';
   const profileJob=(OB_JOBS.find(j=>j[0]===profile.job)||[])[1]||'';
   const profileSummary=[profileGoal,profileJob,nivLab].filter(Boolean).join(' · ')||'Prénom, objectif et niveau';
-  const CHEV='<span class="chev" aria-hidden="true">›</span>';
-  const accountTitle=connected?(name||'Mon profil'):(name||'Ton espace Requête');
-  const accountSub=connected
-    ? esc(state.accountLabel||'Progression prête à être synchronisée')
-    : 'Mode sans compte · progression sur cet appareil';
-  const levelBands=[
-    {limit:15,label:'Explorateur SQL',next:'Filtres et tris'},
-    {limit:40,label:'Constructeur de requêtes',next:'Calculs et regroupements'},
-    {limit:70,label:'Analyste relationnel',next:'Jointures avancées'},
-    {limit:99,label:'Analyste SQL',next:'Expertise du parcours'},
-    {limit:100,label:'Parcours maîtrisé',next:'Entretenir tes acquis'}
-  ];
-  const levelBand=levelBands.find(b=>progress.percent<=b.limit)||levelBands[levelBands.length-1];
-  const previousLimit=levelBands.indexOf(levelBand)>0?levelBands[levelBands.indexOf(levelBand)-1].limit:0;
-  const levelSpan=Math.max(1,levelBand.limit-previousLimit);
-  const levelPct=progress.percent>=100?100:Math.max(0,Math.round((progress.percent-previousLimit)/levelSpan*100));
+  const CHEV=ACCT_CHEV;
+  const plural=(n,word)=>`${n} ${word}${n>1?'s':''}`;
+  const accountTitle=name||(connected?'Mon profil':'Ton espace Requête');
+  const level=accountLevel(progress.percent);
+  /* Cette semaine : les séances du planning, jour par jour. */
   const monday=addJ(auj(),-((auj().getDay()+6)%7));
+  const DAY_NAMES=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
   const weekDays=Array.from({length:7},(_,i)=>{
     const date=addJ(monday,i),iso=dstr(date),session=state.plan&&(state.plan.sessions||[]).find(s=>s.d===iso);
     const total=session&&session.lessons?session.lessons.length:0;
     const done=total?total-resteDe(session):0;
-    return {label:['L','M','M','J','V','S','D'][i],iso,total,done,today:iso===dstr(auj()),complete:total>0&&done===total};
+    return {label:DAY_NAMES[i][0],name:DAY_NAMES[i],iso,total,done,today:iso===dstr(auj()),complete:total>0&&done===total};
   });
   const weekPlanned=weekDays.filter(d=>d.total>0).length;
   const weekComplete=weekDays.filter(d=>d.complete).length;
+  const weekLeft=Math.max(0,weekPlanned-weekComplete);
   const weekHTML=weekDays.map(d=>{
-    const h=d.complete?100:d.done?Math.max(35,Math.round(d.done/d.total*100)):d.total?24:8;
-    return `<div role="listitem" class="account-week-day ${d.today?'today ':''}${d.complete?'complete':d.done?'started':d.total?'planned':'rest'}" aria-label="${d.iso} : ${d.complete?'séance terminée':d.done?`${d.done} activité${d.done>1?'s':''} terminée${d.done>1?'s':''}`:d.total?`${d.total} activité${d.total>1?'s':''} prévue${d.total>1?'s':''}`:'repos'}"><span><i style="--h:0%" data-grow-h="${h}"></i></span><b>${d.label}</b></div>`;
+    const kind=d.complete?'done':d.done?'started':d.total?'planned':'rest';
+    const said=d.complete?'séance terminée':d.done?`${d.done} activité${d.done>1?'s':''} sur ${d.total}`:d.total?'séance prévue':'repos';
+    const inner=kind==='done'?ACCT_OK_SVG:kind==='started'?`<span>${d.done}/${d.total}</span>`:kind==='rest'?LQ_MOON_SVG:'';
+    return `<li class="acct-day is-${kind}${d.today?' is-today':''}"><i aria-hidden="true">${inner}</i><small aria-hidden="true">${d.label}</small><span class="acct-sr">${d.name}${d.today?', aujourd’hui':''} : ${said}</span></li>`;
   }).join('');
+  const weekFoot=!state.plan
+    ?`<button type="button" class="acct-card-go" onclick="switchTab('planning')">Créer mon parcours</button>`
+    :`<p class="acct-card-foot">${!weekPlanned?'Pas de séance prévue cette semaine.':weekLeft?`Encore ${plural(weekLeft,'séance')} cette semaine.`:'Semaine accomplie. Bravo !'}</p>`;
+  /* Accomplissements : le pictogramme de chaque étape, pas d’emoji. */
+  const BADGE_ICONS={query:'<b class="acct-badge-code">&gt;_</b>',lessons:accountStatIcon('lessons'),streak:accountStatIcon('streak')};
   const badges=[
-    {icon:'>_',label:'Première requête',unlocked:progress.done>0,hint:'Écris ta 1ʳᵉ requête'},
-    {icon:'10',label:'10 leçons',unlocked:st.lessons>=10,hint:`${st.lessons}/10 leçons`},
-    {icon:'🔥',label:'Série de 3 jours',unlocked:st.streak>=3,hint:`${Math.min(st.streak,3)}/3 jours`}
-  ];
-  const badgesHTML=badges.map(b=>`<div class="account-badge ${b.unlocked?'unlocked':'locked'}"><span aria-hidden="true">${b.unlocked?'✓':b.icon}</span><small>${b.label}</small><em class="${b.unlocked?'':'hint'}">${b.unlocked?'Débloqué':b.hint}</em></div>`).join('');
-  let goalTitle='Créer mon parcours',goalCopy='Choisis un rythme réaliste et laisse l’app organiser tes séances.',goalMeta='Commencer',goalPct=0;
-  if(state.plan){
-    const day=infoJour();
-    const today=day&&day.today;
-    const total=today&&today.lessons?today.lessons.length:0;
-    const left=today?resteDe(today):0;
-    const done=Math.max(0,total-left);
-    if(total&&left){
-      goalTitle='Objectif du jour'; goalCopy=`Encore ${left} activité${left>1?'s':''} pour terminer ta séance.`; goalMeta=`${done}/${total}`; goalPct=Math.round(done/total*100);
-    }else if(total){
-      goalTitle='Objectif atteint'; goalCopy='Ta séance du jour est terminée. Beau travail.'; goalMeta='Terminé'; goalPct=100;
-    }else if(day&&day.reste){
-      goalTitle='Prochaine séance'; goalCopy='Aujourd’hui est une journée libre. Ton parcours reprend bientôt.'; goalMeta=`${day.reste} à faire`; goalPct=progress.percent;
-    }else{
-      goalTitle='Parcours terminé'; goalCopy='Toutes les activités prévues sont terminées.'; goalMeta='100%'; goalPct=100;
-    }
-  }
+    {icon:'query',label:'Première requête',now:Math.min(progress.done,1),goal:1},
+    {icon:'lessons',label:'10 leçons',now:Math.min(st.lessons,10),goal:10},
+    {icon:'streak',label:'Série de 3 jours',now:Math.min(st.streak,3),goal:3}
+  ].map(b=>({...b,unlocked:b.now>=b.goal}));
+  const unlockedN=badges.filter(b=>b.unlocked).length;
+  const badgesHTML=badges.map(b=>{
+    const status=b.unlocked?'Débloqué':b.goal===1?'À débloquer':`${b.now} sur ${b.goal}`;
+    const bar=b.unlocked||b.goal===1?'':`<i class="acct-badge-bar" aria-hidden="true"><i style="width:${Math.round(b.now/b.goal*100)}%"></i></i>`;
+    return `<li class="acct-badge${b.unlocked?' is-on':''}"><span class="acct-badge-ico" aria-hidden="true">${BADGE_ICONS[b.icon]}</span><b>${b.label}</b><small>${status}</small>${bar}</li>`;
+  }).join('');
   const readingSummary=[state.preferences?.largeText?'Texte agrandi':null,state.preferences?.reduceMotion?'Animations réduites':null].filter(Boolean).join(' · ')||'Texte et animations par défaut';
+  /* Tes données : l’état du stockage et l’action utile tout de suite. */
+  const data=connected
+    ?{title:'Compte connecté',copy:esc(state.accountLabel||'Ta progression est liée à ton compte.'),btn:'Gérer mes données',action:"openPlusDetails('plus-data')"}
+    :obAuthReady()
+      ?{title:'Mode local actif',copy:'Connecte-toi pour retrouver ta progression sur tous tes appareils. Connexion optionnelle.',btn:'Se connecter',action:"startOnboarding('account')"}
+      :{title:'Mode local actif',copy:'Ta progression est enregistrée sur cet appareil.',btn:'Exporter ma progression',icon:plusIcon('export'),action:'exportProgress()'};
+  const planSummary=state.plan?`${plural(state.plan.freq||7,'séance')} par semaine · ${plural(state.plan.per||3,'activité')}`:'Créer un parcours sur mesure';
   host.innerHTML=`
-    <section class="account-identity">
-      <div class="account-identity-main">
-        <button type="button" class="account-identity-edit" onclick="openPlusDetails('plus-profile-settings')" aria-label="Modifier mon prénom et mon objectif">
-          <span class="account-avatar" aria-hidden="true">${esc(initial)}</span>
-          <span class="account-identity-copy"><b>${esc(accountTitle)}</b><small>${accountSub}</small></span>
-          <i class="aie-hint" aria-hidden="true">Modifier</i>
-        </button>
-        ${connected?'':obAuthReady()?`<button type="button" class="account-connect" onclick="startOnboarding('account')">Se connecter</button>`:`<button type="button" class="account-connect" onclick="openPlusDetails('plus-data')">Sauvegarder mes données</button>`}
-      </div>
-      <div class="account-local-status"><span>${plusIcon('privacy')}</span><b>${connected?'Compte actif':'Mode local actif'}</b><small>${connected?'Export et contrôle disponibles':obAuthReady()?'Connexion optionnelle':'Sauvegarde par export disponible'}</small></div>
-    </section>
-    <div class="account-sections" role="tablist" aria-label="Sections du compte" onkeydown="accountSectionKeydown(event)">
-      <button type="button" role="tab" id="account-tab-settings" aria-controls="account-panel-settings" aria-selected="${accountSection==='settings'}" tabindex="${accountSection==='settings'?0:-1}" onclick="setAccountSection('settings')">Réglages</button>
-      <button type="button" role="tab" id="account-tab-progress" aria-controls="account-panel-progress" aria-selected="${accountSection==='progress'}" tabindex="${accountSection==='progress'?0:-1}" onclick="setAccountSection('progress')">Ma progression</button>
-    </div>
-    <section class="account-panel account-progress-hub" id="account-panel-progress" role="tabpanel" aria-labelledby="account-tab-progress" ${accountSection==='progress'?'':'hidden'}>
-      <button type="button" class="account-goal account-hub-goal" onclick="switchTab('planning')">
-        <span class="account-goal-ring" style="--p:0" data-grow-p="${goalPct}" aria-hidden="true"><i>${goalPct===100?'✓':goalPct+'%'}</i></span>
-        <span class="account-goal-copy"><small>${state.plan?'Ton rythme':'Ton prochain pas'}</small><b>${goalTitle}</b><span>${goalCopy}</span></span>
-        <span class="account-goal-meta">${goalMeta}${CHEV}</span>
+    <section class="acct-hero" aria-label="Ton profil">
+      <button type="button" class="acct-id" onclick="openPlusDetails('plus-profile-settings')" aria-label="${escAttr(`Modifier mon profil. ${accountTitle}, niveau ${level.rank} : ${level.label}`)}">
+        <span class="acct-avatar" aria-hidden="true">${esc(initial)}<i>${ACCT_PEN_SVG}</i></span>
+        <span class="acct-id-copy"><b>${esc(accountTitle)}</b><small>Niveau ${level.rank} · ${esc(level.label)}</small></span>
       </button>
-      <div class="account-section-head"><div><span>Ma progression</span><b>${progress.done} activité${progress.done>1?'s':''} terminée${progress.done>1?'s':''}</b></div><button type="button" onclick="switchTab('planning')">Planning</button></div>
-      <div class="account-stats-grid">
-        <div class="account-stat"><span class="account-stat-mark progress" aria-hidden="true">${accountStatIcon('progress')}</span><b><span data-countup="${progress.percent}">${progress.percent}</span>%</b><small>Progression SQL</small></div>
-        <div class="account-stat"><span class="account-stat-mark streak" aria-hidden="true">${accountStatIcon('streak')}</span><b data-countup="${st.streak}">${st.streak}</b><small>Jour${st.streak>1?'s':''} de série</small></div>
-        <div class="account-stat"><span class="account-stat-mark lessons" aria-hidden="true">${accountStatIcon('lessons')}</span><b data-countup="${st.lessons}">${st.lessons}</b><small>Leçon${st.lessons>1?'s':''}</small></div>
-        <div class="account-stat"><span class="account-stat-mark challenges" aria-hidden="true">${accountStatIcon('challenges')}</span><b data-countup="${st.defis}">${st.defis}</b><small>Défi${st.defis>1?'s':''}</small></div>
-      </div>
-      <div class="account-level" aria-label="Niveau actuel : ${levelBand.label}, ${levelPct}% vers le prochain palier">
-        <div class="account-level-head"><span><small>Niveau actuel</small><b>${levelBand.label}</b></span><em>${progress.percent}% du parcours</em></div>
-        <div class="account-level-track"><i style="width:0" data-grow-w="${levelPct}"></i></div>
-        <div class="account-level-next"><span>Prochain cap</span><b>${levelBand.next}</b></div>
-      </div>
-      <div class="account-subsections">
-        <div class="account-subsection account-week-panel">
-          <div class="account-subsection-head"><div><span>Cette semaine</span><b>${weekComplete}/${weekPlanned||0} séance${weekPlanned>1?'s':''}</b></div><button type="button" onclick="switchTab('planning')">Planning</button></div>
-          <div class="account-week" role="list" aria-label="Activité des sept jours de la semaine">${weekHTML}</div>
-          ${weekPlanned?`<p class="account-week-tip">${weekComplete===weekPlanned&&weekPlanned>0?'Semaine accomplie.':`${Math.max(0,weekPlanned-weekComplete)} séance${weekPlanned-weekComplete>1?'s':''} restante${weekPlanned-weekComplete>1?'s':''}.`}</p>`:''}
-        </div>
-        <details class="account-subsection account-badges-panel">
-          <summary class="account-subsection-head"><div><span>Accomplissements</span><b>${badges.filter(b=>b.unlocked).length}/${badges.length}</b></div><i class="account-subsection-chev" aria-hidden="true">›</i></summary>
-          <div class="account-badges">${badgesHTML}</div>
-        </details>
+      <div class="acct-level" role="group" aria-label="${escAttr(`Prochain cap : ${level.next}, atteint à ${level.pct} %. ${progress.percent} % du parcours validé.`)}">
+        <div class="acct-level-head" aria-hidden="true"><small>Prochain cap</small><em>${progress.percent} % du parcours</em></div>
+        <b class="acct-level-next" aria-hidden="true">${esc(level.next)}</b>
+        <div class="acct-level-track" aria-hidden="true"><i style="width:${level.pct}%"></i></div>
       </div>
     </section>
-    <section class="account-settings-block" id="account-panel-settings" role="tabpanel" aria-labelledby="account-tab-settings" ${accountSection==='settings'?'':'hidden'}>
-      <h2 class="account-settings-title-block">Réglages</h2>
-      <div class="account-settings-group">
-        <p class="account-settings-group-title">Apprentissage</p>
-        <div class="account-settings-list">
-          <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-profile-settings')"><span class="plus-row-icon account">${plusIcon('account')}</span><span><b>Profil et objectif</b><small>${esc(profileSummary)}</small></span><span class="account-setting-end">${CHEV}</span></button>
-          <button class="account-setting-row" type="button" onclick="openAccountPlanSettings()"><span class="plus-row-icon route">${plusIcon('route')}</span><span><b>Parcours et rythme</b><small>${state.plan?`${state.plan.freq||7} séances / semaine · ${state.plan.per||3} activités / séance`:'Créer un parcours sur mesure'}</small></span><span class="account-setting-end">${CHEV}</span></button>
-          <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reminders')"><span class="plus-row-icon bell">${plusIcon('bell')}</span><span><b>Rappel quotidien</b><small>${remind?`Chaque jour à ${hour}`:'Une notification à l’heure de ton choix'}</small></span><span class="account-setting-end"><em class="${remind?'on':''}">${remind?'Activé':'Désactivé'}</em>${CHEV}</span></button>
-          <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reading')"><span class="plus-row-icon help">${plusIcon('help')}</span><span><b>Confort de lecture</b><small>${readingSummary}</small></span><span class="account-setting-end">${CHEV}</span></button>
+    <div class="acct-col acct-col-main">
+      <section class="acct-block" id="acct-progress" aria-labelledby="acct-progress-t">
+        <div class="acct-head"><h2 id="acct-progress-t">Ma progression</h2><span>${progress.done} activité${progress.done>1?'s':''} terminée${progress.done>1?'s':''}</span></div>
+        <div class="acct-stats">
+          <div class="acct-stat is-streak${st.streak?' is-on':''}"><span class="acct-stat-ico" aria-hidden="true">${LQ_FLAME_SVG}</span><b>${st.streak}</b><small>jour${st.streak>1?'s':''} de série</small></div>
+          <div class="acct-stat"><span class="acct-stat-ico" aria-hidden="true">${accountStatIcon('lessons')}</span><b>${st.lessons}</b><small>leçon${st.lessons>1?'s':''}</small></div>
+          <div class="acct-stat"><span class="acct-stat-ico" aria-hidden="true">${accountStatIcon('challenges')}</span><b>${st.defis}</b><small>défi${st.defis>1?'s':''}</small></div>
         </div>
-      </div>
-      <div class="account-settings-group">
-        <p class="account-settings-group-title">Compte et assistance</p>
-        <div class="account-settings-list">
-          <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-data')"><span class="plus-row-icon privacy">${plusIcon('privacy')}</span><span><b>Données et confidentialité</b><small>Export, effacement et stockage local</small></span><span class="account-setting-end">${CHEV}</span></button>
-          <button class="account-setting-row" type="button" onclick="openLegal('help')"><span class="plus-row-icon help">${plusIcon('help')}</span><span><b>Aide et prise en main</b><small>Introduction et repères essentiels</small></span><span class="account-setting-end">${CHEV}</span></button>
-          ${connected?`<button class="account-setting-row" type="button" onclick="startOnboarding('account')"><span class="plus-row-icon account">${plusIcon('account')}</span><span><b>Compte connecté</b><small>${esc(state.accountLabel||'Progression synchronisable')}</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
+        <div class="acct-card acct-week-card">
+          <div class="acct-card-head"><b>Cette semaine</b>${weekPlanned?`<span>${weekComplete} / ${plural(weekPlanned,'séance')}</span>`:''}</div>
+          <ol class="acct-week" aria-label="Séances de la semaine">${weekHTML}</ol>
+          ${weekFoot}
         </div>
-      </div>
-    </section>
+      </section>
+      <section class="acct-block" aria-labelledby="acct-badges-t">
+        <div class="acct-head"><h2 id="acct-badges-t">Accomplissements</h2><span>${unlockedN} sur ${badges.length}</span></div>
+        <ul class="acct-badges">${badgesHTML}</ul>
+      </section>
+    </div>
+    <div class="acct-col acct-col-side">
+      <section class="acct-block" aria-labelledby="acct-data-t">
+        <div class="acct-head"><h2 id="acct-data-t">Tes données</h2></div>
+        <div class="acct-card acct-data">
+          <div class="acct-data-top"><span class="acct-data-ico" aria-hidden="true">${plusIcon('privacy')}</span><div class="acct-data-copy"><b>${data.title}</b><small>${data.copy}</small></div></div>
+          <button type="button" class="acct-data-go" onclick="${data.action}">${data.icon||''}<span>${data.btn}</span></button>
+        </div>
+      </section>
+      <section class="acct-block account-settings-block" aria-labelledby="acct-settings-t">
+        <div class="acct-head"><h2 id="acct-settings-t">Réglages</h2></div>
+        <div class="account-settings-group">
+          <p class="account-settings-group-title">Apprentissage</p>
+          <div class="account-settings-list">
+            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-profile-settings')"><span class="plus-row-icon account">${plusIcon('account')}</span><span><b>Profil et objectif</b><small>${esc(profileSummary)}</small></span><span class="account-setting-end">${CHEV}</span></button>
+            <button class="account-setting-row" type="button" onclick="openAccountPlanSettings()"><span class="plus-row-icon route">${plusIcon('route')}</span><span><b>Parcours et rythme</b><small>${planSummary}</small></span><span class="account-setting-end">${CHEV}</span></button>
+            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reminders')"><span class="plus-row-icon bell">${plusIcon('bell')}</span><span><b>Rappel quotidien</b><small>${remind?`Chaque jour à ${hour}`:'Désactivé'}</small></span><span class="account-setting-end">${CHEV}</span></button>
+            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reading')"><span class="plus-row-icon reading">${plusIcon('reading')}</span><span><b>Confort de lecture</b><small>${readingSummary}</small></span><span class="account-setting-end">${CHEV}</span></button>
+          </div>
+        </div>
+        <div class="account-settings-group">
+          <p class="account-settings-group-title">Compte et assistance</p>
+          <div class="account-settings-list">
+            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-data')"><span class="plus-row-icon privacy">${plusIcon('privacy')}</span><span><b>Données et confidentialité</b><small>Export, effacement, stockage local</small></span><span class="account-setting-end">${CHEV}</span></button>
+            <button class="account-setting-row" type="button" onclick="openLegal('help')"><span class="plus-row-icon help">${plusIcon('help')}</span><span><b>Aide et prise en main</b><small>Introduction et repères essentiels</small></span><span class="account-setting-end">${CHEV}</span></button>
+            ${connected?`<button class="account-setting-row" type="button" onclick="startOnboarding('account')"><span class="plus-row-icon account">${plusIcon('account')}</span><span><b>Compte connecté</b><small>${esc(state.accountLabel||'Progression synchronisable')}</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
+          </div>
+        </div>
+      </section>
+    </div>
     <details class="plus-details" id="plus-profile-settings">
       <summary><span>Profil et objectif</span><small>Adapte le parcours à tes besoins</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body">
@@ -32164,9 +32125,11 @@ function renderCompte(){
           <button class="acc-save" type="button" onclick="saveAccountName()">Enregistrer</button>
         </div>
         <button class="acc-row" type="button" onclick="startOnboarding('name')">
+          <span class="acc-row-ico" aria-hidden="true">${plusIcon('target')}</span>
           <div class="at"><b>Personnalisation</b><small>${esc(profileSummary)}</small></div>
           ${CHEV}</button>
         <button class="acc-row" type="button" onclick="replayOnboarding()">
+          <span class="acc-row-ico" aria-hidden="true">${plusIcon('replay')}</span>
           <div class="at"><b>Revoir l’intro</b><small>Accueil et choix de connexion</small></div>
           ${CHEV}</button>
         ${st.due?`<p class="acc-note">${st.due} leçon${st.due>1?'s':''} à réviser aujourd’hui.</p>`:''}
@@ -32194,27 +32157,41 @@ function renderCompte(){
       </div>
     </details>
     <details class="plus-details" id="plus-data">
-      <summary><span>Données et confidentialité</span><small>Tu gardes le contrôle de tes informations</small><i aria-hidden="true">×</i></summary>
+      <summary><span>Données et confidentialité</span><small>Tu gardes le contrôle de tes informations.</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body">
         <p class="account-data-note">Tes données d’apprentissage restent sur cet appareil tant que tu utilises le mode sans compte. Seul le Duel entre amis partage ton pseudo et tes temps avec les autres joueurs.</p>
         <button class="acc-row" type="button" onclick="exportProgress()">
+          <span class="acc-row-ico" aria-hidden="true">${plusIcon('export')}</span>
           <div class="at"><b>Exporter ma progression</b><small>Fichier JSON, à garder de ton côté</small></div>
           ${CHEV}</button>
         <button class="acc-row danger" type="button" onclick="resetAllProgress()">
+          <span class="acc-row-ico danger" aria-hidden="true">${plusIcon('trash')}</span>
           <div class="at"><b>Effacer la progression</b><small>Leçons, défis, notes et planning</small></div>
           ${CHEV}</button>
         <button class="acc-row" type="button" onclick="openLegal('privacy')">
+          <span class="acc-row-ico" aria-hidden="true">${plusIcon('privacy')}</span>
           <div class="at"><b>Politique de confidentialité</b><small>Compte optionnel et données locales</small></div>
           ${CHEV}</button>
         <button class="acc-row" type="button" onclick="openLegal('terms')">
+          <span class="acc-row-ico" aria-hidden="true">${plusIcon('notes')}</span>
           <div class="at"><b>Conditions d’utilisation</b></div>
           ${CHEV}</button>
       </div>
     </details>
     <p class="app-version-note">${esc(appVersionLabel())}</p>
     <button type="button" class="account-sheet-backdrop" onclick="closePlusDetails()" aria-label="Fermer les réglages ouverts"></button>`;
-  animateCompteStats();
-  growCompteMetrics();
+  if(keptId){
+    const again=document.getElementById(keptId);
+    if(again){
+      again.classList.add('is-kept');again.open=true;again.scrollTop=keptScroll;
+      host.querySelector('.account-sheet-backdrop')?.classList.add('is-kept');
+    }
+  }
+  if(focusKey){
+    const back=[...host.querySelectorAll('[onclick],[onchange],[id]')].find(el=>keyOf(el)===focusKey);
+    if(back)try{back.focus({preventScroll:true});}catch(e){}
+  }  /* L’initiale de l’onglet Compte suit le prénom. */
+  if(typeof renderLearnAvatar==='function')renderLearnAvatar();
 }
 function appVersionLabel(){
   const v=window.APP_VERSION||'';
@@ -32259,21 +32236,38 @@ function openLegal(kind){
 function saveAccountName(){
   const inp=document.getElementById('acc-name');
   state.name=((inp&&inp.value)||'').trim().slice(0,32);
+  closePlusDetails();
   save(); renderGreeting(); renderCompte();
+  toast('Prénom enregistré');
   if(navigator.vibrate)navigator.vibrate(10);
 }
 function replayOnboarding(){
   state.onboarded=false; save();
   startOnboarding();
 }
-function exportProgress(){
+async function exportProgress(){
   const payload={v:1,exportedAt:new Date().toISOString(),state};
+  const fileName='requete-sql-progression.json';
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  /* Sur téléphone, la feuille de partage permet d’enregistrer le fichier
+     (Fichiers, iCloud, mail…) ; ailleurs, un simple téléchargement. */
+  const touch=document.documentElement.classList.contains('is-native')||!!(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
+  if(touch&&typeof File==='function'&&navigator.canShare&&navigator.share){
+    try{
+      const file=new File([blob],fileName,{type:'application/json'});
+      if(navigator.canShare({files:[file]})){
+        await navigator.share({files:[file],title:'Ma progression Requête'});
+        toast('Progression exportée','Garde ce fichier de ton côté.');
+        return;
+      }
+    }catch(e){if(e&&e.name==='AbortError')return;}
+  }
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download='requete-sql-progression.json';
-  a.click();
+  a.download=fileName;
+  document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  toast('Progression exportée',fileName);
 }
 async function resetAllProgress(){
   if(!confirm('Effacer toute ta progression ? Cette action est définitive (sauf si tu as exporté avant).'))return;
@@ -34250,7 +34244,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1403';
+  const SW_CACHE='requete-2026-09-30-ludique-v1404';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
