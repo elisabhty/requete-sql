@@ -27032,6 +27032,25 @@ function actCountUp(root,instant){
     b._cu=setTimeout(()=>{const t0=performance.now();const tick=t=>{const p=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-p,3);b.textContent=fmt(to*e);if(p<1)requestAnimationFrame(tick);};requestAnimationFrame(tick);},delay);
   });
 }
+/* Garde le bloc à sa hauteur d’avant pendant que le résultat se construit,
+   puis l’amène en une seule fois à sa hauteur finale (ni repli ni saut). */
+function qfSettleHeight(el,from){
+  if(!el.animate)return;
+  el.style.height=from+'px';el.style.overflow='hidden';
+  const t0=performance.now();let last=-1,same=0;
+  const tick=()=>{
+    const h=el.scrollHeight,dt=performance.now()-t0;
+    same=(Math.abs(h-last)<1)?same+1:0;last=h;
+    if((same>=8&&dt>150)||dt>1500){
+      const a=el.animate([{height:from+'px'},{height:h+'px'}],{duration:420,easing:'cubic-bezier(.4,0,.2,1)'});
+      el.style.height='';
+      a.onfinish=a.oncancel=()=>{el.style.overflow='';};
+      return;
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
 function qfSmoothHeight(el,from,ms){
   if(!el.animate)return;
   let last=from,stopAt=performance.now()+(ms||2500),ro=null,anim=null;
@@ -27218,7 +27237,7 @@ function initQueryFill(){
       setTimeout(()=>{
         /* L’éditeur s’efface en douceur, puis le bloc change de hauteur
            progressivement pendant que la requête exécutée apparaît. */
-        const h0=box.offsetHeight,fadeEls=[editor,box.querySelector('.qf-actions'),box.querySelector('.qf-bank'),box.querySelector('.qf-bank-h')].filter(Boolean);
+        const h0=box.offsetHeight,fadeEls=[box.querySelector('.qf-actions'),box.querySelector('.qf-bank'),box.querySelector('.qf-bank-h')].filter(Boolean);
         const go=()=>{
         box.classList.add('is-solved');
         fadeEls.forEach(e=>e.getAnimations&&e.getAnimations().forEach(a=>{if(a.id==='qfOut')a.cancel();}));
@@ -27232,8 +27251,10 @@ function initQueryFill(){
         }
         if(run)run.click();
         if(!reduce&&box.animate){
-          qfSmoothHeight(box,h0,3200);
-          runWrap.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:420,easing:'cubic-bezier(.2,.8,.3,1)'});
+          qfSettleHeight(box,h0);
+          /* Pas de fondu à zéro : l’éditeur sombre est remplacé directement par
+             le bloc de code sombre, sans image blanche entre les deux. */
+          runWrap.animate([{opacity:.85,transform:'translateY(4px)'},{opacity:1,transform:'none'}],{duration:320,easing:'cubic-bezier(.2,.8,.3,1)'});
         }
         /* Filet de sécurité : si l’utilisateur a défilé entre-temps, on recale
            sans animation pour éviter un second mouvement. */
@@ -33138,7 +33159,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-lag-jours-v1318';
+  const SW_CACHE='requete-2026-09-30-qf-sans-flash-v1319';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
