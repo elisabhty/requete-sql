@@ -29,7 +29,8 @@ const onboardingStart = html.indexOf('function obFlowHeader(');
 const onboardingEnd = html.indexOf('function finishOnboard(', onboardingStart);
 const onboarding = html.slice(onboardingStart, onboardingEnd);
 
-assert((nav.match(/class="tab(?: active)?"/g) || []).length === 5, 'navigation principale contient les 5 destinations de la maquette');
+assert((nav.match(/class="tab(?: active)?"/g) || []).length === 6, 'navigation principale contient les 6 destinations');
+assert(nav.includes('data-tab="jeu"') && nav.includes('>Jouer</span>'), 'Jouer est accessible directement');
 assert(nav.includes('data-tab="learn"') && nav.includes('<span class="tab-label">Accueil</span>'), 'Accueil reste la première destination');
 assert(nav.includes('data-tab="planning"') && nav.includes('<span class="tab-label">Parcours</span>'), 'Parcours est accessible directement');
 assert(nav.includes('data-tab="practice"') && nav.includes('>Pratiquer</span>'), 'Pratiquer est accessible directement');
@@ -130,7 +131,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
 assert(html.includes('{ id:73, titre:"UNION et UNION ALL"') && html.includes('18 lignes : 10 + 8') && !html.includes('17 lignes : 9 + 8'), 'UNION ALL visible et cardinalité corrigée');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-09-30-jeu-amis-v1322') && html.includes('requete-2026-09-30-jeu-amis-v1322') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-09-30-onglet-jouer-v1323') && html.includes('requete-2026-09-30-onglet-jouer-v1323') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
