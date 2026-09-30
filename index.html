@@ -9778,8 +9778,6 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 #lesson-body .ls-nav:has(.ls-next:disabled:not([data-jc-gate]))::before,#lesson-body .ls-nav.cta-away::before{display:none}
 /* Jouer : les messages rapides restent au-dessus du bord bas en plein écran. */
 body.in-lesson .jeu-toasts{bottom:calc(var(--safe-bottom) + 24px)}
-/* Onglet Jouer : même hauteur de grand titre que les autres onglets. */
-#scr-jeu>.lgtitle{padding-top:calc(var(--safe-top) + 22px)}
 /* Parcours : « Avancement global » et « Ma progression par module » se
    déplient de la même façon, le + reste sur la ligne du titre. */
 #app .planning-progress>summary,#app .plan-modules>summary{list-style:none;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:12px;row-gap:2px;flex-wrap:nowrap}
@@ -9850,7 +9848,7 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=3">
+<link rel="stylesheet" href="ludique.css?v=4">
 </head>
 <body>
 <div id="app">
@@ -9920,8 +9918,9 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
       <div id="library-tools" class="journey-hub-list"></div>
     </section>
 
-    <section id="scr-jeu" class="screen" aria-label="Jouer">
-      <div class="lgtitle"><button type="button" class="learn-avatar lg-avatar" data-account-avatar onclick="openAccount()" aria-label="Ouvrir mon compte">R</button><div><div class="eyebrow">En direct</div><h1>Jouer</h1><p class="sub">Le même défi SQL, au même moment. Le premier qui trouve gagne la manche.</p></div></div>
+    <section id="scr-jeu" class="screen" aria-label="Duel entre amis">
+      <button type="button" class="home-back" id="jeu-back" onclick="returnToParent()" aria-label="Retour à Pratiquer"><svg viewBox="0 0 12 20" fill="none" aria-hidden="true"><path d="M10 2L3 10l7 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> <span>Pratiquer</span></button>
+      <div class="lgtitle"><div><div class="eyebrow">En direct</div><h1>Duel entre amis</h1><p class="sub">Le même défi SQL, au même moment. Le premier qui trouve gagne la manche.</p></div></div>
       <div id="jeu-home" class="jeu jeu-home"></div>
     </section>
 
@@ -9948,14 +9947,17 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
           <svg width="12" height="20" viewBox="0 0 12 20" fill="none"><path d="M10 2L3 10l7 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span id="back-label">Leçons</span></button>
         <div class="nav-title" id="nav-title"></div>
+        <button type="button" class="ls-where" id="ls-where" onclick="toggleLessonWhere()" aria-expanded="false" aria-controls="ls-where-panel" hidden><small id="ls-where-k"></small><span class="ls-where-t"><b id="ls-where-t"></b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></button>
+        <i class="ls-where-bar" aria-hidden="true"><i id="ls-where-fill"></i></i>
       </div>
+      <div class="ls-where-panel" id="ls-where-panel" hidden><div class="ls-where-scrim" onclick="closeLessonWhere()"></div><div class="ls-where-sheet" role="dialog" aria-modal="true" aria-label="Sommaire du cours"><div class="ls-where-list" id="ls-where-list"></div></div></div>
       <div class="lesson-wrap" id="lesson-body"></div>
     </section>
 
     <!-- PLANNING -->
     <section id="scr-planning" class="screen">
       <button type="button" class="home-back root-home-back" onclick="returnToHome()" aria-label="Retour à l’accueil"><svg viewBox="0 0 12 20" fill="none" aria-hidden="true"><path d="M10 2L3 10l7 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Accueil</span></button>
-      <div class="lgtitle"><button type="button" class="learn-avatar lg-avatar" data-account-avatar onclick="openAccount()" aria-label="Ouvrir mon compte">R</button><div class="eyebrow">Ton rythme</div><h1>Parcours</h1>
+      <div class="lgtitle"><button type="button" class="learn-avatar lg-avatar" data-account-avatar onclick="openAccount()" aria-label="Ouvrir mon compte">R</button><div class="eyebrow">Ton rythme</div><h1>Planning</h1>
         <p class="sub" id="pl-sub">Ta semaine SQL, organisée pour toi.</p></div>
       <button class="ux-shortcut" id="planning-session-shortcut" type="button" onclick="focusPlanningToday()">Aller à la séance</button>
       <div id="planning-body"></div>
@@ -10166,11 +10168,9 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
     <button class="tab active" role="tab" aria-selected="true" data-tab="learn" onclick="switchTab('learn')">
       <svg viewBox="0 0 24 24" fill="none"><path d="m3.5 10.5 8.5-7 8.5 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 9.5V20h13V9.5M9.5 20v-6h5v6" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="tab-label">Accueil</span></button>
 <button class="tab" role="tab" aria-selected="false" data-tab="planning" onclick="switchTab('planning')">
-      <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="15" rx="2.2" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="7" y="12.5" width="4" height="3" rx="1" fill="currentColor"/></svg><span class="tab-label">Parcours</span><span class="dot-n" id="badge-planning" style="display:none">0</span></button>
+      <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="15" rx="2.2" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="7" y="12.5" width="4" height="3" rx="1" fill="currentColor"/></svg><span class="tab-label">Planning</span><span class="dot-n" id="badge-planning" style="display:none">0</span></button>
 <button class="tab" role="tab" aria-selected="false" data-tab="practice" onclick="switchTab('practice')">
       <svg viewBox="0 0 24 24" fill="none"><path d="M5 4.5v15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M5 5.2h10.2l-1.8 3.5 1.8 3.5H5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span class="tab-label">Pratiquer</span></button>
-<button class="tab" role="tab" aria-selected="false" data-tab="jeu" onclick="switchTab('jeu')">
-      <svg viewBox="0 0 24 24" fill="none"><path d="M7.5 7.5h9a4.5 4.5 0 0 1 4.4 5.6l-.8 3.2a2.2 2.2 0 0 1-3.8 1L14.6 15.5H9.4l-1.7 1.8a2.2 2.2 0 0 1-3.8-1l-.8-3.2A4.5 4.5 0 0 1 7.5 7.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 10.2v3M6.5 11.7h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="15.4" cy="11" r=".9" fill="currentColor"/><circle cx="17.2" cy="12.9" r=".9" fill="currentColor"/></svg><span class="tab-label">Jouer</span></button>
 <button class="tab" role="tab" aria-selected="false" data-tab="library" onclick="switchTab('library')">
       <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="6" width="13" height="14" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M8 6V4h10a2 2 0 0 1 2 2v11h-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tab-label">Bibliothèque</span></button>
   </nav>
@@ -21993,10 +21993,10 @@ function courseSearchKeydown(event){
 /* Mon compte n’est plus un onglet : il s’ouvre depuis l’avatar, au-dessus de
    l’onglet en cours, qui reste sélectionné dans la barre du bas. */
 let accountFrom='learn';
-const ACCOUNT_FROM_LABELS={learn:'Accueil',planning:'Parcours',practice:'Pratiquer',jeu:'Jouer',library:'Bibliothèque'};
+const ACCOUNT_FROM_LABELS={learn:'Accueil',planning:'Planning',practice:'Pratiquer',library:'Bibliothèque'};
 function primaryTabFor(tab){
   if(tab==='compte')return (typeof accountFrom!=='undefined'&&accountFrom)||'learn';
-  if(['console','defis','practice'].includes(tab))return 'practice';
+  if(['console','defis','jeu','practice'].includes(tab))return 'practice';
   if(['notes','collection','entretien','library'].includes(tab))return 'library';
   return tab;
 }
@@ -22221,12 +22221,6 @@ function recommendedSession(){
   return {...session,id,started,label,minutes:count*MIN_PAR_ACTIVITE,
     summary:`${count} activité${count>1?'s':''} restante${count>1?'s':''} · environ ${count*MIN_PAR_ACTIVITE} min`};
 }
-function nextSessionHtml(){
-  const session=recommendedSession();
-  if(!session)return `<section class="plan-next-session"><small>Ton prochain pas</small><h2>Parcours terminé</h2><p>Toutes les activités de ton parcours sont validées. Tu peux reprendre un module à ton choix.</p><div class="plan-next-actions"><button type="button" onclick="showModuleProgress()">Revoir les modules</button></div></section>`;
-  const meta=itemMeta(session.id);
-  return `<section class="plan-next-session" data-mc="${typeof mcOf==='function'?mcOf(session.id):0}" aria-labelledby="plan-next-title"><small>${esc(session.label)}</small><h2 id="plan-next-title">${esc(meta.titre)}</h2><p>${esc(session.summary)}</p><div class="plan-next-actions"><button type="button" onclick="openItem(${escAttr(JSON.stringify(session.id))})">${session.started?'Continuer':'Commencer'} la séance</button><button type="button" onclick="showModuleProgress()">Voir les modules</button></div></section>`;
-}
 function moduleProgressData(modules,lessons){
   return modules.map((module,index)=>{const done=module.lessons.filter(l=>lessons[l.id]?.done).length;return {index,title:module.titre,total:module.lessons.length,done,next:module.lessons.find(l=>!lessons[l.id]?.done)?.id,first:module.lessons[0]?.id};});
 }
@@ -22356,12 +22350,6 @@ function homeToolIcon(kind){
   };
   return icons[kind]||icons.console;
 }
-function homeToolsHTML(){
-  return `<div class="journey-shortcuts" aria-label="Accès rapide">
-    <button type="button" onclick="switchTab('console')"><span class="journey-tool-icon">${homeToolIcon('console')}</span><span><b>Console SQL</b><small>Tester tes requêtes</small></span></button>
-    <button type="button" onclick="switchTab('collection')"><span class="journey-tool-icon">${homeToolIcon('cards')}</span><span><b>Cartes mémo</b><small>Réviser l’essentiel</small></span></button>
-  </div>`;
-}
 function homePathPreviewHTML(nxt,prog){
   const mod=moduleDeLecon(nxt)||MODULES.find(m=>m.lessons.some(l=>!itemDone(l.id)))||MODULES[0];
   const done=mod?mod.lessons.filter(l=>itemDone(l.id)).length:prog.done;
@@ -22388,9 +22376,11 @@ function openCourseCatalog(){
 }
 function renderJourneyHub(tab){
   const stats=compteStats();
+  const nDefis=typeof CHALLENGES!=='undefined'?CHALLENGES.length:0;
   const tools=tab==='practice'?[
-    ['console','Console SQL','Écris et exécute tes propres requêtes.',"switchTab('console')"],
-    ['defis','Défis',`${stats.defis} réussi${stats.defis>1?'s':''} · Mets tes acquis à l’épreuve.`,"switchTab('defis')"]
+    ['defis','Défis',nDefis?`${stats.defis} réussi${stats.defis>1?'s':''} sur ${nDefis}`:`${stats.defis} réussi${stats.defis>1?'s':''} · Mets tes acquis à l’épreuve.`,"switchTab('defis')",nDefis?Math.round(stats.defis/nDefis*100):null],
+    ['jeu','Duel entre amis','Le même défi SQL, au même moment. Le premier qui trouve gagne la manche.',"openJeu()"],
+    ['console','Console SQL','Écris et exécute tes propres requêtes.',"switchTab('console')"]
   ]:[
     ['cards','Cartes mémo',`${stats.cards} débloquée${stats.cards>1?'s':''} · Révise à ton rythme.`,"switchTab('collection')"],
     ['notes','Mes notes','Ton carnet et tes requêtes à retenir.',"switchTab('notes')"],
@@ -22409,7 +22399,8 @@ function renderJourneyHub(tab){
   }else if(stats.due){
     lead=`<section class="journey-spotlight"><p class="journey-kicker">À réviser</p><h2>${stats.due} leçon${stats.due>1?'s':''} à revoir</h2><p>Quelques minutes pour fixer ce que tu as déjà vu.</p><button type="button" class="journey-primary" onclick="startReview()"><span>Commencer la révision</span>${DEF_CHEV_SVG}</button></section>`;
   }
-  document.getElementById(hostId).innerHTML=lead+tools.map(([kind,title,detail,action])=>`<button type="button" class="journey-resource" data-kind="${kind}" onclick="${action}"><span class="journey-tool-icon">${journeyIcon(kind)}</span><span><b>${title}</b><small>${esc(detail)}</small></span>${DEF_CHEV_SVG}</button>`).join('');
+  /* Un cinquième élément optionnel : un pourcentage, dessiné en barre de progression. */
+  document.getElementById(hostId).innerHTML=lead+tools.map(([kind,title,detail,action,pct])=>`<button type="button" class="journey-resource" data-kind="${kind}" onclick="${action}"><span class="journey-tool-icon">${journeyIcon(kind)}</span><span><b>${title}</b><small>${esc(detail)}</small>${pct!=null?`<i class="journey-resource-bar" aria-hidden="true"><i style="width:${Math.max(0,Math.min(100,pct))}%"></i></i>`:''}</span>${DEF_CHEV_SVG}</button>`).join('');
 }
 function journeyIcon(kind){
   if(kind==='notes')return JOURNEY_NOTES_ICON;
@@ -22467,11 +22458,13 @@ function renderHomeHero(){
   const dateISO=dstr(auj());
   const lateHtml=late?`<div class="journey-planning"><span class="journey-tool-icon">${LATE_BANNER_ICO}</span><span><b>Planning à ajuster</b><small>${plur(late.count,'activité')} à replanifier</small></span><button type="button" onclick="openLateRecoveryFromHome(this)">Réorganiser</button></div>`:'';
   const streak=typeof homeStreakHTML==='function'?homeStreakHTML():'';
-  const extras=`${lateHtml}${homeToolsHTML()}`;
+  const extras=lateHtml;
   const name=(state.name||'').trim();
-  const hi=(typeof greetingForHour==='function'?greetingForHour(new Date().getHours()):'Bonjour')+(name?`, ${name}`:'');
+  const hiWord=typeof greetingForHour==='function'?greetingForHour(new Date().getHours()):'Bonjour';
+  /* Le salut sert de titre visible ; le h1 masqué de l’écran le lit déjà. */
+  const hiHtml=`<span class="lq-nw">${esc(hiWord)}</span>${name?`, ${esc(name)}`:''}`;
   const sessionLine=session?(session.label==='Ta séance du jour'?`Ta séance · ${session.minutes} min`:session.label):'Parcours terminé';
-  const heading=`<div class="journey-heading lq-heading"><div class="jh-copy"><p class="lq-hi" aria-hidden="true">${esc(hi)}</p><h2>Un pas de plus en SQL</h2><div class="journey-session-meta"><span aria-label="${escAttr(session?.summary||'Toutes tes activités sont validées')}">${esc(sessionLine)}</span><time datetime="${dateISO}">${esc(date)}</time></div></div></div>`;
+  const heading=`<div class="journey-heading lq-heading"><div class="jh-copy"><p class="lq-hi-title" aria-hidden="true">${hiHtml}</p><div class="journey-session-meta"><span aria-label="${escAttr(session?.summary||'Toutes tes activités sont validées')}">${esc(sessionLine)}</span><time datetime="${dateISO}">${esc(date)}</time></div></div></div>`;
   const mascot=typeof mascotMedalHtml==='function'?mascotMedalHtml():'';
   if(nxt==null){
     const keep=lqKeepMascot(host);
@@ -22708,7 +22701,7 @@ function renderDefis(catalogOnly=false){
     </section>`;
   }
   const jeuSlot=document.getElementById('defis-jeu');
-  if(jeuSlot&&!jeuSlot.firstChild)jeuSlot.innerHTML=`<button type="button" class="journey-resource def-jeu" data-kind="jeu" onclick="openJeu()"><span class="journey-tool-icon">${homeToolIcon('jeu')}</span><span><b>Défi entre amis</b><small>Invite tes amis et résolvez le même défi en direct.</small></span>${DEF_CHEV_SVG}</button>`;
+  if(jeuSlot&&!jeuSlot.firstChild)jeuSlot.innerHTML=`<button type="button" class="journey-resource def-jeu" data-kind="jeu" onclick="openJeu()"><span class="journey-tool-icon">${homeToolIcon('jeu')}</span><span><b>Duel entre amis</b><small>Invite tes amis et résolvez le même défi en direct.</small></span>${DEF_CHEV_SVG}</button>`;
   const levels=[['f','Faciles'],['m','Moyens'],['d','Difficiles']];
   const tabs=document.getElementById('defis-levels');
   if(tabs)tabs.innerHTML=levels.map(([k,l])=>`<button type="button" role="tab" aria-selected="${defisLevel===k?'true':'false'}" class="def-level${defisLevel===k?' on':''}${doneByNiv[k]===byNiv[k].length?' done':''}" onclick="setDefisLevel('${k}')"><span>${l}</span><small>${doneByNiv[k]}/${byNiv[k].length}</small></button>`).join('');
@@ -22777,6 +22770,7 @@ function exitLessonToTab(tab){
 }
 function goBack(){
   closeSchemaSheet();
+  if(typeof closeLessonWhere==='function')closeLessonWhere(true);
   // Le bouton supérieur annonce l’écran d’origine ; les boutons Cours/Exercice
   // assurent séparément la navigation entre les étapes de la leçon.
   leaveLessonScreen();
@@ -22898,7 +22892,7 @@ let lessonStepDir=1; // 1 forward · -1 back
 let exoFails=0; // défis : 1→aide · 2→solution
 let somScrollUntil=0; // fenêtre où les layouts SQL ne doivent pas écraser le scroll du sommaire
 /* Le bouton retour annonce l’écran d’où l’on vient, quel qu’il soit. */
-function lessonBackLabel(){return ({planning:'Parcours',defis:'Défis',practice:'Pratiquer',library:'Bibliothèque',jeu:'Jouer',compte:'Compte',notes:'Mes notes',collection:'Cartes mémo',console:'Console',entretien:'Entretien'})[activeTab]||'Accueil';}
+function lessonBackLabel(){return ({planning:'Planning',defis:'Défis',practice:'Pratiquer',library:'Bibliothèque',jeu:'Duel',compte:'Compte',notes:'Mes notes',collection:'Cartes mémo',console:'Console',entretien:'Entretien'})[activeTab]||'Accueil';}
 function openLesson(id, restoreStep){
   const l=allLessons.find(x=>x.id===id); if(!l)return;
   annulerBilanAuto();
@@ -22974,6 +22968,7 @@ function brancherCtaScroll(){
       const entete=scr.querySelector('.navbar');
       const y=scr.scrollTop, d=y-dernier;
       dernier=y;
+      lessonWhereUpdate();
       if(prefersReduceMotion())return;
       /* On ne masque qu'en descente franche, et jamais tout en bas de page. */
       const versLeBas=d>4;
@@ -23002,6 +22997,7 @@ function scrollLessonTop(){
   const entete=wrap.querySelector('.navbar');
   if(entete)entete.classList.remove('nav-away');
   wrap.scrollTop=0;
+  requestAnimationFrame(lessonWhereUpdate);
   requestAnimationFrame(()=>{
     wrap.scrollTop=0;
     requestAnimationFrame(()=>{ wrap.scrollTop=0; });
@@ -27192,6 +27188,7 @@ function revealLessonContent(instant){
 }
 function renderLessonFlow(){
   if(!current||mode!=='lesson')return;
+  lessonWhereReset();
   const ae=document.activeElement;
   if(ae&&typeof ae.blur==='function'&&document.getElementById('scr-lesson')&&document.getElementById('scr-lesson').contains(ae)) ae.blur();
   const l=current, meta=lessonStepMeta();
@@ -27853,6 +27850,90 @@ function somRevealTo(el){
     node=node.parentElement;
   }
 }
+/* ---------- Repère de lecture dans une leçon ----------
+   Quand on descend dans un cours, l’en-tête ne disparaît plus : il devient une
+   barre fine qui indique la partie en cours (n / total) avec un fil de
+   progression. Le toucher ouvre le sommaire, pour sauter à une autre partie. */
+let lessonWhere=null;
+function lessonWhereReset(){
+  lessonWhere=null;
+  const nav=document.querySelector('#scr-lesson .navbar');
+  if(nav)nav.classList.remove('has-where','where-on');
+  const b=document.getElementById('ls-where');
+  if(b){b.hidden=true;b.setAttribute('aria-expanded','false');}
+  closeLessonWhere(true);
+}
+function lessonWhereSetup(marks,titre){
+  const nav=document.querySelector('#scr-lesson .navbar');
+  if(!nav||!Array.isArray(marks)||marks.length<2)return;
+  lessonWhere={marks,titre,idx:-2};
+  nav.classList.add('has-where');
+  const b=document.getElementById('ls-where');if(b)b.hidden=false;
+  const k=document.getElementById('ls-where-k');if(k)k.textContent=titre;
+  const list=document.getElementById('ls-where-list');
+  if(list)list.innerHTML=marks.map((m,i)=>`<button type="button" class="ls-where-item" onclick="lessonGoToSection('${m.id}')"><span class="som-n">${i+1}</span><span class="som-t">${esc(m.t)}</span></button>`).join('');
+  lessonWhereUpdate();
+}
+function lessonWhereUpdate(){
+  if(!lessonWhere)return;
+  const scr=document.getElementById('scr-lesson'),nav=scr&&scr.querySelector('.navbar');
+  if(!scr||!nav)return;
+  const y=scr.scrollTop;
+  nav.classList.toggle('where-on',y>140);
+  const limit=nav.getBoundingClientRect().bottom+16;
+  let idx=-1;
+  lessonWhere.marks.forEach((m,i)=>{const el=document.getElementById(m.id);if(el&&el.getBoundingClientRect().top<=limit)idx=i;});
+  if(idx!==lessonWhere.idx){
+    lessonWhere.idx=idx;
+    const n=lessonWhere.marks.length,cur=idx>=0?lessonWhere.marks[idx]:null;
+    const t=document.getElementById('ls-where-t');
+    if(t)t.textContent=cur?`${idx+1} / ${n} · ${cur.t}`:`Sommaire · ${n} parties`;
+    const b=document.getElementById('ls-where');
+    if(b)b.setAttribute('aria-label',(cur?`Partie ${idx+1} sur ${n} : ${cur.t}. `:`${n} parties. `)+'Ouvrir le sommaire');
+    document.querySelectorAll('#ls-where-list .ls-where-item').forEach((it,i)=>{
+      it.classList.toggle('is-on',i===idx);
+      if(i===idx)it.setAttribute('aria-current','true');else it.removeAttribute('aria-current');
+    });
+  }
+  const max=scr.scrollHeight-scr.clientHeight;
+  const fill=document.getElementById('ls-where-fill');
+  if(fill)fill.style.transform=`scaleX(${max>0?Math.min(1,Math.max(0,y/max)).toFixed(3):0})`;
+}
+function toggleLessonWhere(){
+  const p=document.getElementById('ls-where-panel');
+  if(!p)return;
+  if(p.hidden)openLessonWhere();else closeLessonWhere();
+}
+function openLessonWhere(){
+  const p=document.getElementById('ls-where-panel'),b=document.getElementById('ls-where');
+  if(!p||!lessonWhere)return;
+  lessonWhereUpdate();
+  p.hidden=false;
+  if(b)b.setAttribute('aria-expanded','true');
+  const cur=p.querySelector('.ls-where-item.is-on')||p.querySelector('.ls-where-item');
+  if(cur){try{cur.focus({preventScroll:true});}catch(e){cur.focus();}cur.scrollIntoView({block:'nearest'});}
+  document.addEventListener('keydown',lessonWhereKey);
+  /* Au clavier, sortir du panneau le referme (pas de focus perdu derrière le voile). */
+  const sheet=p.querySelector('.ls-where-sheet');
+  if(sheet&&!sheet.dataset.trap){
+    sheet.dataset.trap='1';
+    sheet.addEventListener('focusout',e=>{if(e.relatedTarget&&!sheet.contains(e.relatedTarget))closeLessonWhere(true);});
+  }
+  if(navigator.vibrate)navigator.vibrate(5);
+}
+function closeLessonWhere(silent){
+  const p=document.getElementById('ls-where-panel'),b=document.getElementById('ls-where');
+  document.removeEventListener('keydown',lessonWhereKey);
+  if(!p||p.hidden)return;
+  p.hidden=true;
+  if(b){b.setAttribute('aria-expanded','false');if(!silent)try{b.focus({preventScroll:true});}catch(e){}}
+}
+function lessonWhereKey(e){if(e.key==='Escape'){e.preventDefault();closeLessonWhere();}}
+function lessonGoToSection(id){
+  closeLessonWhere(true);
+  const scr=document.getElementById('scr-lesson'),target=document.getElementById(id);
+  if(scr&&target)scrollSommaireTo(target,scr);
+}
 function scrollSommaireTo(target,scr){
   if(!target||!scr)return;
   stopHavingGrpViz();
@@ -27897,6 +27978,7 @@ function buildSommaire(){
     <div class="sommaire-list">${items}</div></div>`;
   if(anchor) anchor.insertAdjacentHTML('afterend',html);
   else wrap.insertAdjacentHTML('afterbegin',html);
+  lessonWhereSetup(marks.map((m,i)=>({id:'som-sec-'+i,t:m.t})),current&&current.titre||'');
   const scr=document.getElementById('scr-lesson');
   const list=wrap.querySelector('.sommaire-list');
   if(!list||!scr)return;
@@ -28037,8 +28119,8 @@ function jeuStart(code,host){
   annulerBilanAuto();
   current=null;mode='jeu';exoFails=0;
   {const scr=document.getElementById('scr-lesson');if(scr)scr.dataset.mc='6';}
-  document.getElementById('back-label').textContent='Jouer';
-  document.getElementById('nav-title').textContent='Défi entre amis';
+  document.getElementById('back-label').textContent='Duel';
+  document.getElementById('nav-title').textContent='Duel entre amis';
   document.getElementById('lesson-body').innerHTML='<div class="jeu" id="jeu-root"></div>';
   showScreen();
   JEU.tick=setInterval(jeuTick,500);
@@ -28286,8 +28368,8 @@ function openChallenge(cid){
   setupEditor('ed-lesson','hl-lesson'); showScreen();
   saveNav();
 }
-function startReview(){
-  reviewQueue=dueList().map(l=>l.id);
+function startReview(ids){
+  reviewQueue=Array.isArray(ids)&&ids.length?ids.slice():dueList().map(l=>l.id);
   if(!reviewQueue.length)return;
   openReview(reviewQueue[0]);
 }
@@ -28686,16 +28768,29 @@ function renderCollection(){
   const modulesWithCards=MODULES.filter(mod=>mod.lessons.some(l=>CARTES[l.id]));
   const completedModules=modulesWithCards.filter(mod=>{const cards=mod.lessons.filter(l=>CARTES[l.id]);return cards.length&&cards.every(l=>isUnlocked(l.id));}).length;
   const nextLesson=allLessons.find(l=>CARTES[l.id]&&!isUnlocked(l.id));
-  const recent=allLessons.slice().reverse().find(l=>CARTES[l.id]&&isUnlocked(l.id));
+  /* Révision espacée : une carte est « à revoir » quand sa leçon arrive à
+     échéance (même calendrier que les révisions de leçons). */
+  const dueCards=allLessons.filter(l=>CARTES[l.id]&&isUnlocked(l.id)&&isDue(l.id));
   const overview=document.getElementById('coll-overview');
-  if(overview)overview.innerHTML=`<section class="coll-overview"><div class="coll-overview-main"><span class="coll-overview-ring" style="--p:${pct}" role="img" aria-label="${pct}% des cartes débloquées"><b>${pct}%</b></span><div class="coll-overview-copy"><small>Ta collection</small><strong>${n} carte${n>1?'s':''} débloquée${n>1?'s':''}</strong><span>${recent?`Carte la plus avancée · ${esc(CARTES[recent.id].k)}`:'Termine une leçon pour obtenir sa carte.'}</span></div></div><div class="coll-overview-stats"><div><b>${n}</b><small>Débloquées</small></div><div><b>${locked}</b><small>À obtenir</small></div><div><b>${completedModules}</b><small>Modules complets</small></div></div><div class="coll-overview-next"><span><small>${nextLesson?'Prochaine carte':'Collection complète'}</small><b>${nextLesson?esc(CARTES[nextLesson.id].k):'Toutes les cartes sont disponibles'}</b></span>${nextLesson?`<button type="button" onclick="openLesson(${nextLesson.id})">Voir la leçon</button>`:''}</div>${recent?`<button type="button" class="ux-card-review" onclick="openCard(${recent.id})">Réviser ${esc(CARTES[recent.id].k)}</button>`:''}</section>`;
+  if(overview){
+    const names=dueCards.slice(0,3).map(l=>CARTES[l.id].k).join(', ')+(dueCards.length>3?'…':'');
+    let review;
+    if(dueCards.length){
+      review=`<div class="coll-review is-due"><div class="coll-review-copy"><small>À revoir aujourd’hui</small><b>${dueCards.length} carte${dueCards.length>1?'s':''}</b><span>${esc(names)}</span></div><button type="button" class="coll-review-go" onclick="startCardReview()">Réviser</button></div>`;
+    }else if(n){
+      const next=allLessons.filter(l=>CARTES[l.id]&&isUnlocked(l.id)&&state.lessons[l.id]&&state.lessons[l.id].due).map(l=>state.lessons[l.id].due).sort((x,y)=>x-y)[0];
+      review=`<div class="coll-review"><div class="coll-review-copy"><small>Révision</small><b>Rien à revoir aujourd’hui</b><span>${next?`Prochaine révision ${esc(collNextReviewLabel(next))}.`:'Tes cartes reviennent au bon moment.'}</span></div></div>`;
+    }else review='';
+    const nextRow=!dueCards.length?`<div class="coll-overview-next"><span><small>${nextLesson?'Prochaine carte':'Collection complète'}</small><b>${nextLesson?esc(CARTES[nextLesson.id].k):'Toutes les cartes sont disponibles'}</b></span>${nextLesson?`<button type="button" onclick="openLesson(${nextLesson.id})">Voir la leçon</button>`:''}</div>`:'';
+    overview.innerHTML=`<section class="coll-overview"><div class="coll-overview-main"><span class="coll-overview-ring" style="--p:${pct}" role="img" aria-label="${pct}% des cartes débloquées"><b>${pct}%</b></span><div class="coll-overview-copy"><small>Ta collection</small><strong>${n} carte${n>1?'s':''} débloquée${n>1?'s':''}</strong><span>${n} sur ${TOTAL_CARTES} · ${completedModules} module${completedModules>1?'s':''} complet${completedModules>1?'s':''} · ${locked} à obtenir</span></div></div>${review}${nextRow}</section>`;
+  }
   const t=document.getElementById('coll-t');
   if(t) t.innerHTML='';
   const filterCounts={all:TOTAL_CARTES,open:n,lock:locked};
   document.getElementById('coll-filters').innerHTML=FILTERS.map(([k,l])=>
     `<button type="button" class="fchip ${collFilter===k?'on':''}" aria-pressed="${collFilter===k?'true':'false'}" onclick="setFilter('${k}')">${l}<small>${filterCounts[k]}</small></button>`).join('');
   const host=document.getElementById('cards-grid');
-  const CHEV=`<svg class="chev" aria-hidden="true" width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M1.5 1.5L7 7.5l-5.5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const LOCK=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>`;
   const groups=MODULES.map((mod,moduleIndex)=>{
     const avecCarte=mod.lessons.filter(l=>CARTES[l.id]);
     const items=avecCarte.filter(l=>{
@@ -28708,22 +28803,18 @@ function renderCollection(){
     const openN=avecCarte.filter(l=>isUnlocked(l.id)).length;
     const complete=openN===avecCarte.length;
     const count=collFilter==='all'?`${openN}/${avecCarte.length}`:String(items.length);
-    const rows=items.map(l=>{
+    /* De vraies cartes : la syntaxe en grand, deux par ligne, avec leur état. */
+    const cards=items.map(l=>{
       const u=isUnlocked(l.id);
       const c=CARTES[l.id];
       const num=String(l.id).padStart(2,'0');
-      if(!u) return `<div class="row lock" aria-disabled="true">
-        <span class="coll-swatch lock" aria-hidden="true"></span>
-        <span class="lz-body"><b>Carte ${num}</b><small>Termine la leçon pour débloquer</small></span>
-      </div>`;
+      if(!u) return `<div class="coll-card lock"><span class="coll-card-top"><small>Carte ${num}</small></span><span class="coll-card-lock">${LOCK}</span><small class="coll-card-t">Termine la leçon pour la débloquer</small></div>`;
+      const due=isDue(l.id),level=(state.lessons[l.id]&&state.lessons[l.id].level)||0;
+      const badge=due?'<em class="coll-badge is-due">À revoir</em>':level>=2?'<em class="coll-badge is-ok">Acquise</em>':'';
       const unlock=lastUnlockedId===l.id?' unlocking':'';
-      return `<button type="button" class="row${unlock}" onclick="openCard(${l.id})">
-        <span class="coll-swatch" style="background:${gradOf(l.id)}" aria-hidden="true"></span>
-        <span class="lz-body"><b>${esc(c.k)}</b><small>${esc(c.t)}</small></span>
-        ${CHEV}
-      </button>`;
+      return `<button type="button" class="coll-card${unlock}${due?' is-due':''}" onclick="openCard(${l.id})" aria-label="${escAttr(`${c.k} : ${c.t}${due?'. À revoir':level>=2?'. Acquise':''}`)}"><span class="coll-card-top"><small>Requête</small>${badge}</span><span class="coll-card-body"><b class="coll-card-k">${esc(c.k)}</b><small class="coll-card-t">${esc(c.t)}</small></span></button>`;
     }).join('');
-    return `<details class="coll-module ${complete?'complete':''}"${collFilter==='open'?' open':''}><summary><span class="coll-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1).padStart(2,'0')}</span><span class="coll-module-copy"><b>${esc(mod.titre)}</b><small>${complete?'Toutes les cartes sont débloquées':collFilter==='open'?`${openN} carte${openN>1?'s':''} disponible${openN>1?'s':''}`:`${avecCarte.length-openN} carte${avecCarte.length-openN>1?'s':''} à obtenir`}</small></span><span class="coll-module-side"><em>${complete?'Validé':count}</em><i aria-hidden="true">⌄</i></span></summary><div class="list">${rows}</div></details>`;
+    return `<details class="coll-module ${complete?'complete':''}"${collFilter==='open'?' open':''}><summary><span class="coll-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1).padStart(2,'0')}</span><span class="coll-module-copy"><b>${esc(mod.titre)}</b><small>${complete?'Toutes les cartes sont débloquées':collFilter==='open'?`${openN} carte${openN>1?'s':''} disponible${openN>1?'s':''}`:`${avecCarte.length-openN} carte${avecCarte.length-openN>1?'s':''} à obtenir`}</small></span><span class="coll-module-side"><em>${complete?'Validé':count}</em><i aria-hidden="true">⌄</i></span></summary><div class="coll-grid">${cards}</div></details>`;
   }).filter(Boolean);
   if(!groups.length){
     host.innerHTML=`<div class="coll-empty">Aucune carte dans ce filtre. Termine une leçon pour débloquer sa fiche mémo.</div>`;
@@ -28734,10 +28825,21 @@ function renderCollection(){
     const id=lastUnlockedId;
     setTimeout(()=>{
       if(lastUnlockedId===id) lastUnlockedId=null;
-      const el=document.querySelector('.row.unlocking');
+      const el=document.querySelector('.coll-card.unlocking');
       if(el) el.classList.remove('unlocking');
     },700);
   }
+}
+/* « Prochaine révision demain », « … jeudi 2 oct. » */
+function collNextReviewLabel(ts){
+  const d=new Date(ts),t=auj(),diff=Math.round((jour0(d)-t)/86400000);
+  if(diff<=1)return 'demain';
+  return d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'short'});
+}
+/* Réviser seulement les cartes à échéance (la leçon est réécrite de mémoire). */
+function startCardReview(){
+  const ids=allLessons.filter(l=>CARTES[l.id]&&isUnlocked(l.id)&&isDue(l.id)).map(l=>l.id);
+  if(ids.length)startReview(ids);
 }
 let openCardId=null;
 let lastUnlockedId=null;
@@ -29655,10 +29757,12 @@ function homeStreakHTML(){
   const title=n?`${n} jour${n>1?'s':''} de série`:'Allume ta série';
   const sub=n?(todayDone?'Flamme du jour allumée. À demain !':`Une activité aujourd’hui et tu passes à ${n+1}.`):'Une activité aujourd’hui allume ta première flamme.';
   const kindLabel={done:'fait',today:'à faire aujourd’hui',rest:'repos',missed:'pas fait',future:'à venir'};
-  const aria=`${title}. ${sub} Cette semaine : ${weekDone} jour${weekDone>1?'s':''} fait${weekDone>1?'s':''}. Voir ma progression.`;
+  const aria=`${title}. ${sub}${best>n?` Record : ${best} jours.`:''} Cette semaine : ${weekDone} jour${weekDone>1?'s':''} fait${weekDone>1?'s':''}. Voir ma progression.`;
+  /* Une seule ligne : la flamme, le compte, puis les 7 jours de la semaine. */
   return `<button type="button" class="lq-streak${n?' is-on':''}${todayDone?' is-today':''}${up?' is-up':''}" onclick="openAccountProgress()" aria-label="${escAttr(aria)}">
-    <span class="lq-streak-top"><span class="lq-streak-flame" aria-hidden="true">${LQ_FLAME_SVG}</span><span class="lq-streak-copy"><b>${n?`<span class="lq-count" data-count="${n}">${n}</span> jour${n>1?'s':''} de série`:'Allume ta série'}</b><small>${esc(sub)}</small></span>${best>n?`<span class="lq-streak-best" aria-hidden="true">Record ${best}&nbsp;j</span>`:''}</span>
-    <span class="lq-week" aria-hidden="true">${days.map((d,i)=>`<span class="lq-day is-${d.kind}${d.today?' is-now':''}" style="--d:${i}" title="${escAttr(d.name+' : '+kindLabel[d.kind])}"><i>${d.kind==='rest'?LQ_MOON_SVG:LQ_FLAME_SVG}</i><small>${d.letter}</small></span>`).join('')}</span>
+    <span class="lq-streak-flame" aria-hidden="true">${LQ_FLAME_SVG}</span>
+    <span class="lq-streak-copy" aria-hidden="true"><b>${n?`<span class="lq-count" data-count="${n}">${n}</span> jour${n>1?'s':''}`:'Allume'}</b><small>${n?'de série':'ta série'}</small></span>
+    <span class="lq-week" aria-hidden="true">${days.map((d,i)=>`<span class="lq-day is-${d.kind}${d.today?' is-now':''}" style="--d:${i}"><i>${d.kind==='rest'?LQ_MOON_SVG:LQ_FLAME_SVG}</i><small>${d.letter}</small></span>`).join('')}</span>
   </button>`;
 }
 function openAccountProgress(){
@@ -29716,7 +29820,7 @@ function renderSemaine(){
     const arg=isDefiId(id)?`'${id}'`:id;
     const isToday=jourSel===t;
     return `<div class="pl-chip ${ok?'ok':''} ${m.defi?'defi':''} ${isToday?'today':''}" data-lesson="${id}" data-pos="${i}" onclick="chipTap(event,${arg})">
-      <span class="hdl" data-drag="${id}" aria-label="Réordonner"><svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true"><path d="M1 2h12M1 5h12M1 8h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span class="cn">${i+1}</span>
+      <span class="hdl" data-drag="${id}" aria-hidden="true"><svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true"><path d="M1 2h12M1 5h12M1 8h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span class="cn" aria-hidden="true">${ok?PL_OK_SVG:i+1}</span>
       <span class="ct"><span>${esc(m.titre)}</span><small>${esc(m.sous)}</small></span>
       ${ok?'<span class="pl-chip-valid"><i aria-hidden="true">✓</i>Validé</span>':isToday?'<span class="cgo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>':''}
       <button type="button" class="nx" onclick="event.stopPropagation();openMoveSheet(${arg})" aria-label="Déplacer vers un autre jour : ${esc(m.titre)}"><svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1.7" y="3.3" width="12.6" height="11" rx="2.6" stroke="currentColor" stroke-width="1.5"/><path d="M4.9 1.7v2.6M11.1 1.7v2.6M1.7 6.9h12.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>`;
@@ -29724,7 +29828,7 @@ function renderSemaine(){
   const nL=sess?sess.lessons.filter(id=>!isDefiId(id)).length:0;
   const nD=sess?sess.lessons.length-nL:0;
   return `
-    <div class="pl-week-heading"><div><span>Planning</span><h2>Les 7 prochains jours</h2><p>${weekComplete} séance${weekComplete>1?'s':''} validée${weekComplete>1?'s':''} sur ${weekPlanned}</p></div><div class="pl-week-legend"><span><i class="done"></i>Validée</span><span><i class="planned"></i>Prévue</span></div></div>
+    <div class="pl-week-heading"><div><span>Ta semaine</span><h2>Les 7 prochains jours</h2><p>${weekComplete} séance${weekComplete>1?'s':''} validée${weekComplete>1?'s':''} sur ${weekPlanned}</p></div><div class="pl-week-legend"><span><i class="done"></i>Validée</span><span><i class="planned"></i>Prévue</span></div></div>
     <div class="wk-chrome">
       <div class="wk-nav">${navHTML()}</div>
       <div class="wk-strip">${stripHTML()}</div>
@@ -29739,8 +29843,29 @@ function renderSemaine(){
       ${sess?`<div class="dp-prog" aria-hidden="true"><i style="width:${pctSess}%"></i></div>`:''}
       <div class="pl-chips">${chips||`<div class="dp-pause"><div class="dp-pi">☕</div><b>Journée libre</b><small>Pas de séance prévue. Glisse une leçon ou un défi ici si tu veux avancer.</small></div>`}</div>
     </div>
+    ${nextDayPreviewHTML()}
     ${p.archive&&p.archive.length?`<p class="pl-hint" style="text-align:left">${plur(p.archive.length,'activité')} déjà terminée${p.archive.length>1?'s':''} ${p.archive.length>1?'ont':'a'} été retirée${p.archive.length>1?'s':''} du calendrier.</p>`:''}
     <p class="pl-hint">Appuie longuement sur une activité pour la réordonner, ou utilise son calendrier pour la déplacer.</p>`;
+}
+const PL_OK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+/* Sous la journée d’aujourd’hui : la prochaine séance prévue (demain, ou le
+   prochain jour qui en a une), pour voir ce qui arrive sans changer de jour. */
+function nextDayPreviewHTML(){
+  const t=dstr(auj());
+  if(!state.plan||jourSel!==t)return '';
+  for(let k=1;k<=14;k++){
+    const iso=dstr(addJ(auj(),k)),sess=sessionDe(iso);
+    if(!sess||!Array.isArray(sess.lessons)||!sess.lessons.length)continue;
+    const n=sess.lessons.length;
+    const date=parseD(iso).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+    const title=k===1?`Demain · ${date}`:`Prochaine séance · ${date}`;
+    const rows=sess.lessons.map((id,i)=>{
+      const m=itemMeta(id),ok=itemDone(id),arg=isDefiId(id)?`'${id}'`:id;
+      return `<button type="button" class="pl-next-row${ok?' ok':''}" onclick="openItem(${arg})"><span class="cn" aria-hidden="true">${ok?PL_OK_SVG:i+1}</span><span class="ct"><span>${esc(m.titre)}</span><small>${esc(m.sous)}</small></span>${ok?'<span class="pl-chip-valid"><i aria-hidden="true">✓</i>Validé</span>':''}</button>`;
+    }).join('');
+    return `<section class="pl-next-day" aria-label="${escAttr(title)}"><div class="pl-next-head"><h3>${esc(title)}</h3><small>${plur(n,'activité')} · ~${n*MIN_PAR_ACTIVITE} min</small></div><div class="pl-next-list">${rows}</div></section>`;
+  }
+  return '';
 }
 function allerAuJour(iso){
   if(iso!==jourSel)buzz('selection');
@@ -29882,10 +30007,9 @@ function renderPlanning(){
   const sub=document.getElementById('pl-sub');
   if(sub)sub.textContent='Ta semaine SQL, organisée pour toi.';
   const h1=document.querySelector('#scr-planning .lgtitle h1');
-  if(h1) h1.textContent='Parcours';
+  if(h1) h1.textContent='Planning';
   host.innerHTML=`
     <div class="planning-toolbar" aria-label="Actions du planning"><button type="button" onclick="focusPlanningToday()">Aujourd’hui</button><button type="button" class="pl-manage-toggle" aria-haspopup="dialog" aria-controls="plan-adjust-sheet" aria-expanded="false" onclick="openPlanAdjust(this)">${PLAN_SLIDERS_SVG}Modifier mon rythme</button></div>
-    ${nextSessionHtml()}
     ${studioTodayList()}
     <section class="pl-week" aria-label="Calendrier et activités de la semaine">${renderSemaine()}</section>
     <details class="planning-progress"><summary>Avancement global<span>${st.done}/${st.total} activités validées</span></summary>${planOverviewHTML(st)}</details>
@@ -31053,7 +31177,7 @@ function paintOb(){
   }else if(slide==='rythme'){
     html=`${back}<div class="ob-kicker">Question 2 / 2</div>
       <h2>Combien de minutes<br>par séance ?</h2>
-      <p>Une activité — leçon ou défi — prend environ ${MIN_PAR_ACTIVITE} minutes. Les jours se règlent ensuite dans Parcours.</p>
+      <p>Une activité — leçon ou défi — prend environ ${MIN_PAR_ACTIVITE} minutes. Les jours se règlent ensuite dans Planning.</p>
       ${obOptsHtml('rythme',RYTHMES,o=>o.k)}`;
   }else if(slide==='build'){
     html=`<div class="ob-kicker">Personnalisation</div>
@@ -31083,7 +31207,7 @@ function paintOb(){
     html=`<div class="ob-seal" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5.2 5.2L20 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <div class="ob-kicker">C’est prêt</div>
       <h2>${name?esc(name)+', ton':'Ton'} parcours<br>est prêt.</h2>
-      <p>Départ « ${esc(niv.t)} », ${ryt.min} min par séance. Tout reste ajustable dans Parcours.</p>
+      <p>Départ « ${esc(niv.t)} », ${ryt.min} min par séance. Tout reste ajustable dans Planning.</p>
       <div class="ob-summary">
         <div class="pt">Parcours · ${esc(niv.t)}</div>
         <h3>${ryt.min} min · tous les jours</h3>
@@ -31471,7 +31595,7 @@ function paintOb(){
     const privacy=obLegalMode==='privacy';
     html=`<div class="ob-screen ob-legal-screen">${obBackButton()}<h1 class="ob-title" id="ob-title">${privacy?'Politique de confidentialité':'Conditions d’utilisation'}</h1>
       <div class="legal-copy">${privacy
-        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>Le mode <b>Jouer</b>, facultatif, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le service public ntfy.sh. Ces messages s’effacent au bout de 12&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées et permettra de supprimer ton compte.</p>`
+        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>Le <b>Duel entre amis</b>, facultatif, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le service public ntfy.sh. Ces messages s’effacent au bout de 12&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées et permettra de supprimer ton compte.</p>`
         : `<p>Requête est une application d’apprentissage du SQL. Le contenu est fourni à des fins pédagogiques.</p><p>Tu peux commencer sans compte, exporter ta progression et l’effacer depuis Mon compte.</p><p>Les options de connexion ne deviennent actives que lorsqu’un fournisseur d’authentification sécurisé est configuré.</p>`}</div></div>`;
     obSetFooter('','','','','');
   }else if(slide==='welcome'){
@@ -31987,7 +32111,7 @@ function renderCompte(){
         <span class="account-goal-copy"><small>${state.plan?'Ton rythme':'Ton prochain pas'}</small><b>${goalTitle}</b><span>${goalCopy}</span></span>
         <span class="account-goal-meta">${goalMeta}${CHEV}</span>
       </button>
-      <div class="account-section-head"><div><span>Ma progression</span><b>${progress.done} activité${progress.done>1?'s':''} terminée${progress.done>1?'s':''}</b></div><button type="button" onclick="switchTab('planning')">Parcours</button></div>
+      <div class="account-section-head"><div><span>Ma progression</span><b>${progress.done} activité${progress.done>1?'s':''} terminée${progress.done>1?'s':''}</b></div><button type="button" onclick="switchTab('planning')">Planning</button></div>
       <div class="account-stats-grid">
         <div class="account-stat"><span class="account-stat-mark progress" aria-hidden="true">${accountStatIcon('progress')}</span><b><span data-countup="${progress.percent}">${progress.percent}</span>%</b><small>Progression SQL</small></div>
         <div class="account-stat"><span class="account-stat-mark streak" aria-hidden="true">${accountStatIcon('streak')}</span><b data-countup="${st.streak}">${st.streak}</b><small>Jour${st.streak>1?'s':''} de série</small></div>
@@ -32072,7 +32196,7 @@ function renderCompte(){
     <details class="plus-details" id="plus-data">
       <summary><span>Données et confidentialité</span><small>Tu gardes le contrôle de tes informations</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body">
-        <p class="account-data-note">Tes données d’apprentissage restent sur cet appareil tant que tu utilises le mode sans compte. Seul le mode Jouer partage ton pseudo et tes temps avec les autres joueurs.</p>
+        <p class="account-data-note">Tes données d’apprentissage restent sur cet appareil tant que tu utilises le mode sans compte. Seul le Duel entre amis partage ton pseudo et tes temps avec les autres joueurs.</p>
         <button class="acc-row" type="button" onclick="exportProgress()">
           <div class="at"><b>Exporter ma progression</b><small>Fichier JSON, à garder de ton côté</small></div>
           ${CHEV}</button>
@@ -32104,7 +32228,7 @@ function openLegal(kind){
       <p>Requête est une app d’apprentissage SQL. Tu peux l’utiliser <b>sans compte</b> : ta progression reste alors sur cet appareil.</p>
       <ul>
         <li>Prénom, leçons, défis, notes et planning : stockés en local dans le navigateur.</li>
-        <li>Le mode <b>Jouer</b>, facultatif, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le service public ntfy.sh. Ces messages s’effacent au bout de 12&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
+        <li>Le <b>Duel entre amis</b>, facultatif, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le service public ntfy.sh. Ces messages s’effacent au bout de 12&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
         <li>Le moteur SQL tourne dans le navigateur.</li>
         <li>Le rappel quotidien n’envoie une notification que si tu l’actives (permission du navigateur), à l’heure choisie.</li>
       </ul>
@@ -34126,7 +34250,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1402';
+  const SW_CACHE='requete-2026-09-30-ludique-v1403';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
