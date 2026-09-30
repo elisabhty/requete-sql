@@ -29,7 +29,7 @@ const onboardingStart = html.indexOf('function obFlowHeader(');
 const onboardingEnd = html.indexOf('function finishOnboard(', onboardingStart);
 const onboarding = html.slice(onboardingStart, onboardingEnd);
 
-assert((nav.match(/class="tab(?: active)?"/g) || []).length === 4, 'navigation principale limitée à 4 onglets, libellés lisibles');
+assert((nav.match(/class="tab(?: active)?"/g) || []).length === 5, 'navigation principale à 5 onglets, Compte compris, libellés lisibles');
 assert(!nav.includes('data-tab="jeu"') && html.includes("['jeu','Duel entre amis'") && html.includes('id="jeu-back"') && html.includes("['console','defis','jeu','practice'].includes(tab)"), 'Duel entre amis rangé dans Pratiquer, avec un retour vers Pratiquer');
 assert(nav.includes('data-tab="learn"') && nav.includes('<span class="tab-label">Accueil</span>'), 'Accueil reste la première destination');
 assert(nav.includes('data-tab="planning"') && nav.includes('<span class="tab-label">Planning</span>') && html.includes('<h1>Planning</h1>'), 'Planning est accessible directement, sous un nom distinct de « Ton parcours »');
@@ -47,7 +47,7 @@ assert(html.includes('ent-readiness-stats') && html.includes('masteredTopics') &
 assert(html.includes('class="ent-group ent-topic${complete?\' complete\':\'\'}"') && html.includes("complete?'Validé'"), 'thèmes d’entretien compacts et explicitement validés');
 assert(html.includes('class="ent-mastered-label">Maîtrisée</span>'), 'question maîtrisée porte un statut textuel explicite');
 assert(html.includes("classList.add('entretien-static')") && html.includes('.entretien-static>.ent-status'), 'filtres d’entretien changés sans rejouer les animations de page');
-assert(!nav.includes('data-tab="compte"') && html.includes('data-account-avatar') && html.includes("function openAccount(){switchTab('compte');}") && html.includes('function closeAccount()'), 'Mon compte s’ouvre depuis l’avatar et revient à l’onglet d’origine');
+assert(nav.includes('data-tab="compte"') && nav.includes('<span class="tab-label">Compte</span>') && nav.includes('class="tab-avatar" data-account-avatar') && html.includes("function openAccount(){switchTab('compte');}") && !html.includes('function closeAccount()') && !html.includes('class="learn-avatar') && !html.includes('lg-avatar" data-account-avatar'), 'Mon compte est le 5e onglet, avec l’initiale pour icône ; plus d’avatar en haut des écrans');
 assert(!nav.includes('data-tab="console"'), 'Console reste accessible depuis l’accueil sans surcharger davantage le dock');
 assert(nav.indexOf('data-tab="learn"') < nav.indexOf('data-tab="planning"') && nav.indexOf('data-tab="planning"') < nav.indexOf('data-tab="practice"'), 'ordre Accueil, Planning, Pratiquer conservé');
 assert(html.includes('.tab{font-size:9.5px') && html.includes('.tab{font-size:9.1px'), 'libellés du dock agrandis aux deux tailles mobiles');
@@ -55,7 +55,7 @@ assert(html.includes('@media (min-width:481px)') && html.includes('.tab-label{he
 const defisRoot = html.slice(html.indexOf('id="scr-defis"'), html.indexOf('id="scr-lesson"'));
 const planningRoot = html.slice(html.indexOf('id="scr-planning"'), html.indexOf('id="scr-notes"'));
 assert(defisRoot.includes('root-home-back') && planningRoot.includes('root-home-back'), 'Défis et Planning proposent un retour Accueil explicite');
-assert((html.match(/class="home-back root-home-back"/g)||[]).length===5, 'retour Accueil cohérent sur les cinq grandes pages concernées');
+assert((html.match(/class="home-back root-home-back"/g)||[]).length===4, 'retour Accueil cohérent sur les quatre grandes pages concernées (Mon compte est un onglet)');
 assert(html.includes('function returnToHome()') && html.includes("title.focus({preventScroll:true})"), 'retour Accueil centralisé avec restitution accessible du focus');
 assert(html.includes("function lessonBackLabel(){return ({planning:'Planning',defis:'Défis',practice:'Pratiquer',library:'Bibliothèque',jeu:'Duel'"), 'leçon renvoyée vers son écran d’origine avec un libellé clair');
 assert(html.includes("label.textContent=focused?'Questions':'Bibliothèque'") && html.includes("focused?'Retour aux questions':'Retour à la bibliothèque'"), 'Entretien revient aux questions avant de revenir à la bibliothèque');
@@ -99,17 +99,17 @@ assert(html.includes('Les 7 prochains jours') && html.includes('pl-week-legend')
 assert(html.includes('class="pl-chip-valid"') && html.includes("<i aria-hidden=\"true\">✓</i>Validé"), 'activités terminées explicitement marquées Validé dans le planning');
 assert(html.includes('Séance validée') && html.includes('dp-session-valid'), 'séance complète explicitement marquée validée');
 assert(!html.includes('${planManageHTML(p)}'), 'réglage de rythme redondant retiré du bas du parcours');
-assert(account.includes('account-identity') && account.includes('Mode sans compte'), 'identité et mode invité sont explicites');
-assert(account.includes('Ma progression') && account.includes('account-stats-grid') && account.includes('account-progress-hub'), 'progression réelle regroupée dans un tableau de bord unique');
-assert(account.includes('Niveau actuel') && account.includes('account-level-track') && account.includes('Prochain cap'), 'niveau SQL et prochain palier calculés depuis la progression réelle');
-assert(account.includes('Cette semaine') && account.includes('account-week') && account.includes('weekComplete'), 'activité hebdomadaire reliée aux séances du planning');
-assert(account.includes('Accomplissements') && account.includes('account-badges') && account.includes('Première requête'), 'badges pédagogiques débloqués par des actions réelles');
-assert(account.includes("accountStatIcon('progress')") && account.includes("accountStatIcon('streak')") && account.includes("accountStatIcon('lessons')") && account.includes("accountStatIcon('challenges')"), 'les quatre indicateurs utilisent des pictogrammes dédiés et distincts');
-assert(!account.includes("?'🔥':'○'") && html.includes('.account-stat-mark{width:36px;height:36px'), 'emoji remplacé par un système SVG homogène et plus lisible');
-assert(account.includes('Objectif du jour') && account.includes('account-goal-ring') && account.includes('account-hub-goal'), 'objectif du jour intégré en tête du tableau de bord');
+assert(account.includes('acct-hero') && account.includes('class="acct-id"') && account.includes('Modifier mon profil') && account.includes('Mode local actif'), 'profil, niveau et mode de stockage explicites');
+assert(account.includes('Ma progression') && account.includes('acct-stats') && account.includes('id="acct-progress"'), 'progression réelle regroupée dans une seule carte, atteignable depuis la série de l’accueil');
+assert(html.includes('function accountLevel(percent)') && account.includes('acct-level-track') && account.includes('Prochain cap') && account.includes('Niveau ${level.rank}'), 'niveau SQL et prochain palier calculés depuis la progression réelle');
+assert(account.includes('Cette semaine') && account.includes('acct-week') && account.includes('weekComplete') && account.includes('LQ_MOON_SVG'), 'semaine reliée aux séances du planning, repos en lune comme à l’accueil');
+assert(account.includes('Accomplissements') && account.includes('acct-badges') && account.includes('Première requête') && !account.includes('<details class="account-subsection'), 'accomplissements visibles d’emblée, débloqués par des actions réelles');
+assert(account.includes('LQ_FLAME_SVG') && account.includes("accountStatIcon('lessons')") && account.includes("accountStatIcon('challenges')"), 'les trois chiffres utilisent des pictogrammes dédiés, la flamme de la série comme à l’accueil');
+assert(!account.includes('🔥') && !account.includes("?'🔥':'○'"), 'aucun emoji dans Mon compte : pictogrammes SVG uniquement');
+assert(!account.includes('account-goal-ring') && !account.includes('role="tablist"') && !html.includes('function setAccountSection('), 'une seule page : plus d’onglets internes ni d’anneau d’objectif en double avec l’accueil');
 assert(account.includes('Apprentissage') && account.includes('Compte et assistance') && account.includes('Profil et objectif') && account.includes('Données et confidentialité') && account.includes('Aide et prise en main'), 'réglages essentiels regroupés en catégories explicites');
 assert(html.includes('function closePlusDetails()') && account.includes('account-sheet-backdrop') && html.includes("querySelectorAll('#scr-compte .plus-details[open]')"), 'réglages détaillés ouverts dans un seul panneau focalisé et refermable');
-assert(account.includes('Mode local actif') && account.includes('Connexion optionnelle'), 'stockage local expliqué clairement');
+assert(account.includes('Mode local actif') && account.includes('Connexion optionnelle') && account.includes("action:'exportProgress()'"), 'stockage local expliqué clairement, export de la progression en un appui');
 assert(!account.includes('acc-premium') && !account.includes('4,99 €'), 'fausse offre Premium retirée du parcours de production');
 assert(html.includes("const OB_PROFILE_SLIDES=['name','goal','level','rhythm','practice']") && html.includes("function obFlowSteps(){return obAuthReady()?[...OB_PROFILE_SLIDES,'account']:[...OB_PROFILE_SLIDES];}"), 'onboarding : 6 étapes, personnalisation d’abord puis sauvegarde du succès (compte sauté sans fournisseur branché)');
 assert(html.includes("const OB_SLIDES = ['welcome','name','goal','level','rhythm','practice','account','ready']"), 'parcours cohérent : prouver, personnaliser, pratiquer, sauvegarder');
@@ -132,7 +132,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
 assert(html.includes('{ id:73, titre:"UNION et UNION ALL"') && html.includes('18 lignes : 10 + 8') && !html.includes('17 lignes : 9 + 8'), 'UNION ALL visible et cardinalité corrigée');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-09-30-ludique-v1403') && html.includes('requete-2026-09-30-ludique-v1403') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-09-30-ludique-v1404') && html.includes('requete-2026-09-30-ludique-v1404') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
