@@ -12,7 +12,7 @@
 (function(){
   'use strict';
   var SKIP={'scr-learn':1,'scr-lesson':1};
-  var SUB={'scr-defis':1,'scr-console':1,'scr-notes':1,'scr-collection':1,'scr-entretien':1};
+  var SUB={'scr-defis':1,'scr-console':1,'scr-notes':1,'scr-collection':1,'scr-entretien':1,'scr-compte':1};
   var THRESHOLD=52;
 
   function titleOf(screen){
