@@ -29392,8 +29392,8 @@ function initialPlanAdjustDraft(p){
   const freq=[2,3,5,7].includes(+p.freq)?+p.freq:7;
   return {per:nearestPlanLoad(p.per),freq};
 }
-function planAdjustPreview(p){
-  const choice=planAdjustDraft||initialPlanAdjustDraft(p);
+function planAdjustPreview(p,forced){
+  const choice=forced||planAdjustDraft||initialPlanAdjustDraft(p);
   const data=collectPlanItems(p),count=data.remaining.length;
   const n=count?Math.ceil(count/choice.per):0;
   const dates=n?datesMotif(auj(),choice.freq,n):[];
@@ -29941,7 +29941,22 @@ function planAdjustCopy(v){
   const impact=v.lateCount
     ? `${v.lateCount===1?'L’activité':`Les ${v.lateCount} activités`} en retard ${v.lateCount===1?'sera répartie':'seront réparties'} automatiquement.`
     : `${plur(v.count,'activité')} restante${v.count>1?'s':''} ${v.count===1?'sera répartie':'seront réparties'} à partir d’aujourd’hui.`;
-  return {summary:`${plur(v.n,'séance')} · fin estimée le ${end}`,impact};
+  return {summary:`${plur(v.n,'séance')} · fin estimée le ${end}`,impact,delta:planAdjustDelta(v)};
+}
+/* Ce qui change par rapport au rythme en cours : le chiffre utile avant de valider. */
+function planAdjustDelta(v){
+  const p=state.plan;if(!p||!v.count||!v.end)return null;
+  const base=planAdjustPreview(p,initialPlanAdjustDraft(p));
+  if(!base.end)return null;
+  const ds=base.n-v.n,dd=Math.round((parseD(base.end)-parseD(v.end))/86400000);
+  if(!ds&&!dd)return {text:'Identique à ton rythme actuel',tone:'same'};
+  const parts=[];
+  if(ds)parts.push(ds>0?`${plur(ds,'séance')} de moins`:`${plur(-ds,'séance')} de plus`);
+  if(dd)parts.push(dd>0?`${dd} jour${dd>1?'s':''} plus tôt`:`${-dd} jour${-dd>1?'s':''} plus tard`);
+  return {text:parts.join(' · '),tone:dd>0?'good':(dd<0?'warn':'same')};
+}
+function planAdjustDeltaHTML(d){
+  return d?`<span class="pl-impact-delta is-${d.tone}">${d.text}</span>`:'';
 }
 function planAdjustSheetHTML(p){
   const v=planAdjustPreview(p),choice=v.choice;
@@ -29951,7 +29966,7 @@ function planAdjustSheetHTML(p){
     {n:5,name:'Intensif',min:30}
   ];
   const copy=planAdjustCopy(v);
-  return `<p class="pl-adjust-lead">Choisis un rythme confortable. Tu vois l’impact avant de valider.</p>
+  return `<p class="pl-adjust-lead">Choisis un rythme confortable.</p>
     <fieldset class="pl-adjust-group">
       <legend class="pl-adjust-label">Activités par séance</legend>
       <div class="pl-load-options" role="radiogroup" aria-label="Activités par séance">
@@ -29961,12 +29976,12 @@ function planAdjustSheetHTML(p){
     <fieldset class="pl-adjust-group compact">
       <legend class="pl-adjust-label">Jours d’étude par semaine</legend>
       <div class="pl-freq-options" role="radiogroup" aria-label="Jours d’étude par semaine">
-        ${[2,3,5,7].map(n=>`<button type="button" class="pl-freq-option${choice.freq===n?' on':''}" role="radio" aria-checked="${choice.freq===n?'true':'false'}" data-plan-field="freq" data-plan-value="${n}" onclick="setPlanAdjust('freq',${n})">${n}</button>`).join('')}
+        ${[2,3,5,7].map(n=>`<button type="button" class="pl-freq-option${choice.freq===n?' on':''}" role="radio" aria-checked="${choice.freq===n?'true':'false'}" data-plan-field="freq" data-plan-value="${n}" aria-label="${n} jours par semaine" onclick="setPlanAdjust('freq',${n})"><b>${n}</b><small>jours</small></button>`).join('')}
       </div>
     </fieldset>
     <div class="pl-adjust-impact" aria-live="polite">
       <span class="pl-impact-icon" aria-hidden="true">${IMPACT_CHART_ICO}</span>
-      <div><b>Ton nouveau parcours</b><strong>${copy.summary}</strong><p>${copy.impact}</p></div>
+      <div><b>Ton nouveau parcours</b><strong>${copy.summary}</strong>${planAdjustDeltaHTML(copy.delta)}<p>${copy.impact}</p></div>
     </div>
     <p class="pl-adjust-safe">Aucun changement avant ta validation.</p>`;
 }
@@ -29984,7 +29999,11 @@ function updatePlanAdjustSheet(field,value){
   const summary=body.querySelector('.pl-adjust-impact strong');
   const impact=body.querySelector('.pl-adjust-impact p');
   const apply=footer.querySelector('.pl-adjust-apply');
-  if(summary)summary.textContent=copy.summary;
+  if(summary){
+    summary.textContent=copy.summary;
+    summary.parentNode.querySelector('.pl-impact-delta')?.remove();
+    summary.insertAdjacentHTML('afterend',planAdjustDeltaHTML(copy.delta));
+  }
   if(impact)impact.textContent=copy.impact;
   if(apply)apply.disabled=!v.count;
   return true;
@@ -34290,7 +34309,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1413';
+  const SW_CACHE='requete-2026-09-30-ludique-v1414';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
