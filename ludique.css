@@ -9,16 +9,23 @@
    - Une police de titre avec du caractère (Bricolage Grotesque, embarquée),
      la police système pour lire les leçons.
    - Pas de sur-titres en capitales : des étiquettes en casse normale.
-   - Une couleur par module (chemin, carte « Reprendre ») et, dans le code,
-     une couleur par clause SQL : on voit la structure d'une requête.
+   - Une seule couleur de marque, le violet, y compris pour « fait » et
+     « validé ». Le vert ne sert qu'à « bonne réponse », l'orange qu'à la
+     série et aux retards, le rouge qu'aux erreurs.
    - Le fond lilas porte des surfaces blanches bordées, sans ombres grises.
+   - Aucune animation d'entrée rejouée à chaque rendu : on n'anime que ce
+     que la personne déclenche (appui, ouverture, réussite).
 
    Tout est limité à html.lq : retirer cette classe rend l'ancien thème.
    ========================================================================== */
 
-/* ---------- 0. Police de titre (OFL, sous-ensemble latin) ---------- */
-@font-face{font-family:'Bricolage Grotesque';src:url(assets/fonts/bricolage-grotesque-regular.woff2) format('woff2');font-weight:300 550;font-style:normal;font-display:swap}
-@font-face{font-family:'Bricolage Grotesque';src:url(assets/fonts/bricolage-grotesque-bold.woff2) format('woff2');font-weight:551 900;font-style:normal;font-display:swap}
+/* ---------- 0. Police de titre (OFL, sous-ensemble latin) ----------
+   « optional » : la police est préchargée et mise en cache ; si elle n'est
+   pas prête au tout premier affichage, la police système reste en place pour
+   cette visite, sans permutation en cours de route (pas de titres qui
+   sautent ni de clignotement). */
+@font-face{font-family:'Bricolage Grotesque';src:url(assets/fonts/bricolage-grotesque-regular.woff2) format('woff2');font-weight:300 550;font-style:normal;font-display:optional}
+@font-face{font-family:'Bricolage Grotesque';src:url(assets/fonts/bricolage-grotesque-bold.woff2) format('woff2');font-weight:551 900;font-style:normal;font-display:optional}
 
 /* ---------- 1. Jetons ---------- */
 html.lq{
@@ -62,20 +69,12 @@ html.lq{
   --code-bg:#1E1A3B;
   --code-bg-2:#28234D;
   --code-ink:#EFEBFF;
+  /* Code : deux teintes seulement. Mots SQL en lilas, valeurs en jaune. */
   --t-kw:#C9BCFF;
-  --t-fn:#8FD3FF;
-  --t-str:#A5EBC3;
-  --t-num:#FFC38A;
+  --t-fn:#C9BCFF;
+  --t-str:#FFE08A;
+  --t-num:#FFE08A;
   --t-com:#9C96C4;
-  /* Couleurs de clause dans le code */
-  --c-select:#B9A6FF;
-  --c-from:#7CC4FF;
-  --c-where:#FFB36B;
-  --c-group:#6EE7A8;
-  --c-order:#FF93C7;
-  --c-join:#5FE3D3;
-  --c-with:#FFE071;
-  --c-write:#FF9B9B;
 
   --p-radius:22px;
   --p-radius-sm:16px;
@@ -95,15 +94,8 @@ html.lq{
   --pop:cubic-bezier(.34,1.56,.64,1);
 }
 
-/* Couleurs de module (data-mc, posé par le rendu) */
-html.lq [data-mc="0"]{--m:#6A4DF4;--m-lip:#4B30CC;--m-soft:#EFEAFF;--m-mid:#B8A6FF;--m-ink:#5335E0}
-html.lq [data-mc="1"]{--m:#2563EB;--m-lip:#1846B8;--m-soft:#E7F0FF;--m-mid:#9DBEFF;--m-ink:#1D4FC4}
-html.lq [data-mc="2"]{--m:#A35F00;--m-lip:#7A4700;--m-soft:#FFF3DA;--m-mid:#F5C46B;--m-ink:#8F5500}
-html.lq [data-mc="3"]{--m:#118452;--m-lip:#0B6038;--m-soft:#E1F5EA;--m-mid:#7FD3A7;--m-ink:#0E7447}
-html.lq [data-mc="4"]{--m:#C8480D;--m-lip:#983406;--m-soft:#FFEDE3;--m-mid:#FFAA7A;--m-ink:#B03E09}
-html.lq [data-mc="5"]{--m:#0A7F7A;--m-lip:#065B57;--m-soft:#DFF4F2;--m-mid:#79D2CC;--m-ink:#08716C}
-html.lq [data-mc="6"]{--m:#C8316F;--m-lip:#9B2253;--m-soft:#FDE8F0;--m-mid:#F59DC0;--m-ink:#B12A62}
-html.lq [data-mc="7"]{--m:#8B3FD1;--m-lip:#6A2BA6;--m-soft:#F4EAFF;--m-mid:#CFA6F4;--m-ink:#7A33BD}
+/* Couleur de module (data-mc) : le violet partout, pour rester sobre. */
+html.lq,html.lq [data-mc]{--m:#6A4DF4;--m-lip:#4B30CC;--m-soft:#EFEAFF;--m-mid:#B8A6FF;--m-ink:#5335E0}
 
 /* ---------- 2. Fond et texte ---------- */
 html.lq,html.lq body{background:var(--bg)}
@@ -117,10 +109,22 @@ html.lq #app .lgtitle h1{
 }
 html.lq #app .lgtitle .sub{font-size:15.5px;line-height:1.45;color:var(--ink-2);font-weight:450;letter-spacing:0}
 html.lq #app .p-bar-title{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:-.01em}
+/* Barre compacte opaque : pas de texte fantôme dessous, et pas de flou à
+   recalculer à chaque image du défilement (plus fluide sur iPhone). */
 html.lq #app .screen.p-scrolled>.p-bar{
-  background:rgba(244,242,252,.9);
+  background:var(--bg);
+  -webkit-backdrop-filter:none;backdrop-filter:none;
   box-shadow:0 2px 0 var(--line);
 }
+/* Barre compacte : quand le titre y apparaît, le libellé du retour s'efface
+   (la pastille reste) pour que les deux ne se chevauchent jamais, même avec
+   un libellé long comme « Bibliothèque ». */
+html.lq #app .p-bar-title{max-width:calc(100% - 136px)}
+html.lq #app .screen>.home-back span{transition:opacity .16s ease}
+html.lq #app .screen.p-scrolled>.home-back span{opacity:0}
+/* Bande sous l'heure et la batterie (iPhone, app installée) : le contenu qui
+   défile ne passe plus sous la barre d'état. Hauteur nulle dans Safari. */
+html.lq #app::before{content:'';position:absolute;left:0;right:0;top:0;height:var(--safe-top);background:var(--bg);z-index:28;pointer-events:none}
 /* Retour : pastille ronde en relief + libellé */
 html.lq #app .home-back{color:var(--accent-ink);font-weight:650;font-size:16px;letter-spacing:-.01em;gap:8px}
 html.lq #app .home-back svg{
@@ -309,13 +313,14 @@ html.lq .qcm-card{
 
 /* ---------- 7. Barre d'onglets : gardée telle quelle, juste accordée ---------- */
 html.lq #app>.tabbar.tabbar{
-  background:rgba(255,255,255,.94);
+  background:#fff;
+  -webkit-backdrop-filter:none;backdrop-filter:none;
   border-top:2px solid var(--line);
 }
 html.lq #app>.tabbar .tab{color:#77729A}
 html.lq #app>.tabbar .tab.active{color:var(--accent)}
-html.lq #app>.tabbar .tab.active svg{animation:lqTabPop .5s var(--pop)}
-@keyframes lqTabPop{0%{transform:scale(1)}35%{transform:scale(1.22) translateY(-2px)}65%{transform:scale(.94)}100%{transform:scale(1)}}
+html.lq #app>.tabbar .tab.active svg{animation:lqTabPop .32s ease-out}
+@keyframes lqTabPop{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
 
 /* ---------- 8. Bouton ✎ flottant ---------- */
 html.lq body:not(.in-lesson) .fab{
@@ -334,10 +339,6 @@ html.lq #scr-learn>.lgtitle{padding:calc(var(--safe-top) + 12px) 20px 0;min-heig
 html.lq #scr-learn>.lgtitle .journey-brand{font-family:var(--display)!important;font-size:19px!important;font-weight:700!important;letter-spacing:-.01em!important;gap:10px}
 html.lq #scr-learn>.lgtitle .journey-brand::before{width:34px;height:34px;border-radius:11px;background:var(--accent);box-shadow:0 3px 0 var(--accent-lip);font:700 13px/1 var(--mono)}
 html.lq #home-hero{padding:0 20px}
-html.lq #scr-learn.active>#home-hero>*{animation:lqRise .5s var(--pop) both}
-html.lq #scr-learn.active>#home-hero>*:nth-child(2){animation-delay:.05s}
-html.lq #scr-learn.active>#home-hero>*:nth-child(3){animation-delay:.1s}
-html.lq #scr-learn.active>#home-hero>*:nth-child(n+4){animation-delay:.15s}
 
 /* En-tête : salut + grand titre */
 html.lq .lq-heading{margin:14px 0 16px}
@@ -357,7 +358,7 @@ html.lq .lq-streak:active{transform:translateY(4px);box-shadow:0 0 0 var(--lip)}
 html.lq .lq-streak:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 html.lq .lq-streak-top{display:flex;align-items:center;gap:12px}
 html.lq .lq-streak-flame{flex:none;width:46px;height:46px;display:grid;place-items:center;border-radius:15px;background:#FFF0DC}
-html.lq .lq-streak-flame svg{width:32px;height:32px;transform-origin:50% 90%;animation:lqFlicker 2.6s ease-in-out infinite}
+html.lq .lq-streak-flame svg{width:32px;height:32px;transform-origin:50% 90%;animation:lqFlicker 3.4s ease-in-out infinite}
 html.lq .lq-streak:not(.is-on) .lq-streak-flame{background:var(--surface-2)}
 html.lq .lq-streak:not(.is-on) .lq-streak-flame svg{animation:none}
 html.lq .lq-streak svg .f-o{fill:var(--flame-b)}
@@ -374,11 +375,9 @@ html.lq .lq-day i{position:relative;width:38px;height:38px;border-radius:50%;dis
 html.lq .lq-day i svg{width:22px;height:22px;transform-origin:50% 90%}
 html.lq .lq-day small{font:700 12px/1 var(--display);color:var(--ink-3)}
 html.lq .lq-day.is-done i{background:#FFEAD1}
-html.lq .lq-day.is-done svg{animation:lqFlameIn .6s var(--pop) both;animation-delay:calc(.25s + var(--d)*70ms)}
-html.lq .lq-day.is-done.is-now svg{animation:lqFlameIn .6s var(--pop) both .25s,lqFlicker 2.6s ease-in-out 1s infinite}
 html.lq .lq-day.is-missed .f-o{fill:#D9D3EC}
 html.lq .lq-day.is-missed .f-i{fill:#ECE8F7}
-html.lq .lq-day.is-today i{background:#fff;border:2px dashed #FF9A3D;animation:lqTodayPulse 2.2s ease-in-out infinite}
+html.lq .lq-day.is-today i{background:#fff;border:2px dashed #FF9A3D}
 html.lq .lq-day.is-today .f-o{fill:#FFD5AE}
 html.lq .lq-day.is-today .f-i{fill:#FFF0DF}
 html.lq .lq-day.is-now small{color:var(--ink)}
@@ -397,16 +396,15 @@ html.lq .lq-hero{
     var(--m);
   box-shadow:0 6px 0 var(--m-lip);
 }
+html.lq .lq-hero-main{display:flex;align-items:center;gap:12px;margin-top:12px}
+html.lq .lq-hero-body{flex:1;min-width:0}
 html.lq .lq-hero .mascot-medal{
-  position:absolute;top:56px;right:16px;width:80px;height:80px;
+  position:relative;flex:none;width:80px;height:80px;margin:0;
   box-shadow:0 0 0 4px rgba(255,255,255,.92),0 7px 0 1px var(--m-lip);
-  animation:lqFloat 4s ease-in-out infinite;
 }
-html.lq .lq-hero-body{min-height:132px}
-html.lq .lq-hero-kicker,html.lq .lq-hero-title,html.lq .lq-hero-sub{padding-right:92px}
-html.lq .lq-hero-mod{display:inline-flex;align-items:center;gap:8px;max-width:100%;padding:4px 11px 4px 4px;border-radius:999px;background:rgba(255,255,255,.2);font:600 13px/1.25 var(--display);color:#fff}
-html.lq .lq-hero-mod b{flex:none;padding:3px 9px;border-radius:999px;background:#fff;color:var(--m-ink);font-weight:700}
-html.lq .lq-hero-kicker{margin:12px 0 2px;font:600 14px/1.3 var(--display);color:#fff}
+html.lq .lq-hero-mod{display:inline-flex;align-items:center;gap:8px;max-width:100%;padding:4px 11px 4px 4px;border-radius:14px;background:rgba(255,255,255,.2);font:600 13px/1.25 var(--display);color:#fff}
+html.lq .lq-hero-mod b{flex:none;align-self:flex-start;padding:3px 9px;border-radius:10px;background:#fff;color:var(--m-ink);font-weight:700}
+html.lq .lq-hero-kicker{margin:0 0 2px;font:600 14px/1.3 var(--display);color:#fff}
 html.lq .lq-hero-title{margin:0;font:700 34px/1.02 var(--display);letter-spacing:-.025em;color:#fff;overflow-wrap:anywhere}
 html.lq .lq-hero-sub{margin:6px 0 0;font-size:15px;line-height:1.4;color:#fff;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 html.lq .lq-hero.is-complete .lq-hero-title{font-size:27px}
@@ -423,7 +421,7 @@ html.lq .lq-step i{width:40px;height:40px;border-radius:50%;display:grid;place-i
 html.lq .lq-step i svg{width:20px;height:20px}
 html.lq .lq-step span{font:600 12.5px/1.2 var(--display);color:#fff}
 html.lq .lq-step.is-done i{background:#fff;color:var(--m-ink)}
-html.lq .lq-step.is-current i{background:#fff;color:var(--m-ink);animation:lqHalo 2.2s ease-in-out infinite}
+html.lq .lq-step.is-current i{background:#fff;color:var(--m-ink);box-shadow:0 0 0 5px rgba(255,255,255,.3),0 3px 0 rgba(20,10,60,.16)}
 html.lq .lq-step.is-current span{color:#fff;font-weight:700}
 html.lq .lq-step.is-locked button{cursor:default}
 html.lq .lq-step.is-locked i{background:rgba(255,255,255,.14);color:#fff;box-shadow:none}
@@ -435,7 +433,7 @@ html.lq .lq-hero .lq-hero-cta{
   box-shadow:0 5px 0 rgba(20,10,60,.24)!important;
 }
 html.lq .lq-hero .lq-hero-cta:active{transform:translateY(5px)!important;box-shadow:0 0 0 rgba(20,10,60,.24)!important}
-html.lq .lq-hero-body+.lq-hero-cta{margin-top:18px}
+html.lq .lq-hero-main+.lq-hero-cta{margin-top:18px}
 html.lq .lq-play{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--m);color:#fff}
 html.lq .lq-play svg{width:14px;height:14px;margin-left:2px}
 
@@ -450,10 +448,8 @@ html.lq .journey-shortcuts button,html.lq .journey-shortcuts button+button{
   text-align:left;transition:transform .12s var(--press),box-shadow .12s var(--press)!important;
 }
 html.lq .journey-shortcuts button:active{transform:translateY(4px)!important;box-shadow:0 0 0 var(--lip)!important}
-html.lq .journey-shortcuts .journey-tool-icon{width:46px!important;height:46px!important;border-radius:15px!important;display:grid!important;place-items:center;color:#fff!important;margin:0!important}
-html.lq .journey-shortcuts button:nth-child(1) .journey-tool-icon{background:#2563EB!important;box-shadow:0 4px 0 #1846B8}
-html.lq .journey-shortcuts button:nth-child(2) .journey-tool-icon{background:#E8590C!important;box-shadow:0 4px 0 #B8430A}
-html.lq .journey-shortcuts .journey-tool-icon svg{width:25px!important;height:25px!important;stroke:#fff;stroke-width:2.1;fill:none;stroke-linecap:round;stroke-linejoin:round}
+html.lq .journey-shortcuts .journey-tool-icon{width:46px!important;height:46px!important;border-radius:15px!important;display:grid!important;place-items:center;color:var(--accent-ink)!important;background:var(--accent-soft)!important;box-shadow:none;margin:0!important}
+html.lq .journey-shortcuts .journey-tool-icon svg{width:25px!important;height:25px!important;stroke:currentColor;stroke-width:2.1;fill:none;stroke-linecap:round;stroke-linejoin:round}
 html.lq .journey-shortcuts b{display:block;font:700 16px/1.2 var(--display)!important;letter-spacing:-.01em;color:var(--ink)}
 html.lq .journey-shortcuts small{display:block;margin-top:3px!important;font-size:13px!important;line-height:1.35;color:var(--ink-2)}
 
@@ -472,7 +468,7 @@ html.lq #scr-learn .home-catalog-head .lq-search-toggle{
 html.lq #scr-learn .home-catalog-head .lq-search-toggle svg{width:18px;height:18px}
 html.lq #scr-learn .home-catalog-head .lq-search-toggle:active{transform:translateY(3px);box-shadow:0 0 0 var(--lip)}
 html.lq #scr-learn .home-catalog-head .lq-search-toggle[aria-expanded="true"]{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 3px 0 var(--accent-lip)}
-html.lq .catalog-tools{margin:0 0 16px;padding:14px;border:2px solid var(--line);border-radius:22px;background:#fff;animation:lqRise .35s var(--pop) both}
+html.lq .catalog-tools{margin:0 0 16px;padding:14px;border:2px solid var(--line);border-radius:22px;background:#fff}
 html.lq .catalog-tools .catalog-search{margin:0 0 12px}
 html.lq .catalog-search label{font:700 14px/1.3 var(--display)!important;color:var(--ink)!important}
 html.lq .catalog-search>div{border:2px solid var(--line)!important;border-radius:16px!important;background:var(--surface-2)!important;padding:4px 12px!important}
@@ -486,7 +482,7 @@ html.lq .catalog-filters button span{font:700 12px/1 var(--display)!important;op
 /* Un module = une bannière en relief + son chemin de leçons */
 html.lq #scr-learn #modules>.home-module{
   margin:0 0 14px!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;overflow:visible!important;
-  animation:lqRise .5s var(--pop) both;animation-delay:calc(min(var(--i,0),10) * 35ms + .1s);
+  animation:none!important;
 }
 html.lq #scr-learn #modules>.home-module:hover{transform:none}
 html.lq .home-module-summary{
@@ -500,20 +496,27 @@ html.lq .home-module-summary:active{transform:translateY(4px);box-shadow:0 0 0 v
 html.lq .home-module-summary:focus-visible{outline:3px solid var(--accent)!important;outline-offset:3px!important;border-radius:24px!important}
 html.lq .home-module[open]>.home-module-summary{border-bottom:2px solid var(--line)!important}
 html.lq .home-module-num{
-  width:54px!important;height:54px!important;border-radius:17px!important;background:var(--m)!important;color:#fff!important;
-  font:700 22px/1 var(--display)!important;box-shadow:0 4px 0 var(--m-lip)!important;display:grid!important;place-items:center;
+  width:54px!important;height:54px!important;border-radius:17px!important;background:var(--accent-soft)!important;color:var(--accent-ink)!important;
+  font:700 22px/1 var(--display)!important;box-shadow:none!important;display:grid!important;place-items:center;
 }
+html.lq .home-module.validated .home-module-num{background:var(--m)!important;color:#fff!important}
 html.lq .home-module-num svg{width:26px!important;height:26px!important;stroke:#fff!important;stroke-width:3!important}
 html.lq #scr-learn .home-module-copy small.lq-unit-k{display:block;margin:0 0 2px;font:700 12.5px/1.2 var(--display)!important;color:var(--m-ink)!important}
 html.lq #scr-learn .home-module-copy b{font:700 17px/1.2 var(--display)!important;letter-spacing:-.012em!important;color:var(--ink)!important}
 html.lq #scr-learn .home-module-copy small:not(.lq-unit-k){display:block;margin-top:3px;font-size:13px!important;line-height:1.35!important;color:var(--ink-2)!important}
-html.lq .home-module-side{gap:8px!important}
+/* Compteur (6/17) ou « Validé » au bout de la barre de progression : le
+   titre garde toute la largeur, sans retour à la ligne sur petit écran. */
+html.lq .home-module-side{display:contents!important}
+html.lq .home-module-num{grid-row:1;grid-column:1}
+html.lq .home-module-copy{grid-row:1;grid-column:2;min-width:0}
+html.lq .home-module-chev{grid-row:1;grid-column:3;justify-self:end}
+html.lq .home-module-count,html.lq .home-module-valid{grid-row:2;grid-column:3;justify-self:end;white-space:nowrap}
 html.lq .home-module-count{padding:5px 9px!important;border-radius:999px!important;background:var(--m-soft)!important;color:var(--m-ink)!important;font:700 13px/1 var(--display)!important}
 html.lq .home-module-valid{padding:5px 9px!important;border-radius:999px!important;background:var(--success-soft)!important;color:var(--success)!important;font:700 12.5px/1 var(--display)!important}
 html.lq .home-module-chev{width:30px!important;height:30px!important;border-radius:50%!important;background:var(--surface-2)!important;color:var(--ink-2)!important;transition:transform .3s var(--pop)!important}
 html.lq .home-module[open] .home-module-chev{transform:rotate(90deg)!important;background:var(--m-soft)!important;color:var(--m-ink)!important}
-html.lq .home-module-progress{grid-column:1/-1!important;height:12px!important;border-radius:99px!important;background:var(--m-soft)!important;overflow:hidden}
-html.lq .home-module-progress>i{position:relative;background:var(--m)!important;border-radius:99px!important;min-width:0;animation:lqGrow .9s cubic-bezier(.5,0,.2,1) both .25s;transform-origin:left}
+html.lq .home-module-progress{grid-row:2;grid-column:1/3!important;height:12px!important;border-radius:99px!important;background:var(--m-soft)!important;overflow:hidden}
+html.lq .home-module-progress>i{position:relative;background:var(--m)!important;border-radius:99px!important;min-width:0;animation:none!important}
 html.lq .home-module-progress>i::after{content:'';position:absolute;left:7px;right:7px;top:3px;height:3px;border-radius:3px;background:rgba(255,255,255,.4)}
 /* Module en cours : bannière pleine */
 html.lq .home-module.is-current>.home-module-summary{background:var(--m)!important;border-color:var(--m)!important;box-shadow:0 5px 0 var(--m-lip)}
@@ -538,20 +541,22 @@ html.lq #scr-learn #modules .home-module>.list{
 html.lq .lq-path{position:absolute;left:0;top:0;z-index:0;overflow:visible;pointer-events:none}
 html.lq .lq-path-base{fill:none;stroke:#DCD5F2;stroke-width:5;stroke-linecap:round;stroke-dasharray:.1 12}
 html.lq .lq-path-done{fill:none;stroke:var(--m);stroke-width:6;stroke-linecap:round;opacity:.85}
+/* Seules les pastilles ondulent ; les titres restent alignés sur une même
+   colonne, pour une lecture droite sur téléphone. */
 html.lq #scr-learn #modules .home-module .row{
-  position:relative;z-index:1;display:grid!important;grid-template-columns:62px minmax(0,1fr);grid-template-areas:"n k" "n b";
-  column-gap:14px;align-items:center;align-content:center;min-height:86px;margin-left:var(--zz,0px);padding:6px 4px!important;
-  background:none!important;border:0!important;box-shadow:none!important;flex-wrap:nowrap;width:calc(100% - var(--zz,0px));
+  position:relative;z-index:1;display:grid!important;grid-template-columns:90px minmax(0,1fr);grid-template-areas:"n k" "n b";
+  column-gap:12px;align-items:center;align-content:center;min-height:86px;margin:0!important;padding:6px 4px!important;
+  background:none!important;border:0!important;box-shadow:none!important;flex-wrap:nowrap;width:auto;
 }
-html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+2){--zz:22px}
-html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+3){--zz:38px}
-html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+4){--zz:44px}
-html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+5){--zz:38px}
-html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+6){--zz:22px}
+html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+2){--zz:14px}
+html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+3){--zz:24px}
+html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+4){--zz:28px}
+html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+5){--zz:24px}
+html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+6){--zz:14px}
 html.lq #scr-learn #modules .home-module .row::after,html.lq #scr-learn #modules .home-module .row::before{display:none!important}
 html.lq #scr-learn #modules .home-module .row:hover{background:none!important}
 html.lq #scr-learn #modules .home-module .row .lz-num{
-  --lipc:var(--lip);grid-area:n;position:relative;width:62px!important;height:62px!important;border-radius:50%!important;
+  --lipc:var(--lip);grid-area:n;justify-self:start;margin:0 0 0 var(--zz,0px)!important;position:relative;width:62px!important;height:62px!important;border-radius:50%!important;
   background:#fff!important;color:var(--ink-3)!important;border:2px solid var(--line)!important;
   font:700 21px/1 var(--display)!important;box-shadow:0 5px 0 var(--lipc)!important;animation:none!important;
   transition:transform .12s var(--press),box-shadow .12s var(--press)!important;
@@ -566,7 +571,7 @@ html.lq #scr-learn #modules .home-module .row.done-row .lz-num::after{
 html.lq #scr-learn #modules .home-module .row.current .lz-num{--lipc:var(--m-lip);border:4px solid var(--m)!important;color:var(--m-ink)!important}
 html.lq #scr-learn #modules .home-module .row.current .lz-num::before{
   content:'';position:absolute;inset:-10px;border-radius:50%;border:3px solid var(--m);opacity:0;
-  animation:lqPulse 1.9s ease-out infinite;pointer-events:none;
+  animation:lqPulse 2.4s ease-out infinite;pointer-events:none;
 }
 html.lq #scr-learn #modules .home-module .row .lz-num.due{--lipc:#C98200;background:var(--warn-fill)!important;border-color:var(--warn-fill)!important;color:#fff!important}
 html.lq #scr-learn #modules .home-module .row .lz-body{grid-area:b;min-width:0}
@@ -574,26 +579,19 @@ html.lq #scr-learn #modules .home-module .row .lz-body b{display:block;font:700 
 html.lq #scr-learn #modules .home-module .row .lz-body small{display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden!important;margin-top:2px;font-size:13px!important;line-height:1.38!important;color:var(--ink-2)!important}
 html.lq #scr-learn #modules .home-module .row.done-row .lz-body b{color:var(--ink-2)!important}
 html.lq #scr-learn #modules .home-module .row .catalog-lesson-state{grid-area:k;justify-self:start;margin:0 0 5px;padding:4px 10px;border-radius:999px;font:700 12px/1.2 var(--display)}
-html.lq #scr-learn #modules .home-module .row .catalog-lesson-state.next{background:var(--m);color:#fff;box-shadow:0 2px 0 var(--m-lip);animation:lqBob 2.2s ease-in-out infinite}
+html.lq #scr-learn #modules .home-module .row .catalog-lesson-state.next{background:var(--m);color:#fff;box-shadow:0 2px 0 var(--m-lip)}
 html.lq #scr-learn #modules .home-module .row .catalog-lesson-state.review{background:var(--warn-soft);color:var(--warn)}
 html.lq #scr-learn #modules .home-module .row .lesson-validation{position:absolute!important;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 html.lq #scr-learn #modules .home-module .row>svg.chev{display:none}
 /* Apparition du chemin à l'ouverture */
-html.lq #scr-learn #modules .home-module>.list.lq-in>.row .lz-num{animation:lqNodeIn .55s var(--pop) both!important;animation-delay:calc(var(--k,0) * 55ms)!important}
+html.lq #scr-learn #modules .home-module>.list.lq-in>.row .lz-num{animation:lqNodeIn .45s var(--pop) both!important;animation-delay:calc(min(var(--k,0),12) * 35ms)!important}
 html.lq #scr-learn #modules .home-module>.list.lq-in>.row .lz-body,
-html.lq #scr-learn #modules .home-module>.list.lq-in>.row .catalog-lesson-state{animation:lqSlideIn .4s ease both;animation-delay:calc(var(--k,0) * 55ms + 90ms)}
-html.lq #scr-learn #modules .home-module>.list.lq-in>.row .catalog-lesson-state.next{animation:lqSlideIn .4s ease both calc(var(--k,0) * 55ms + 90ms),lqBob 2.2s ease-in-out 1.2s infinite}
+html.lq #scr-learn #modules .home-module>.list.lq-in>.row .catalog-lesson-state{animation:lqSlideIn .3s ease both;animation-delay:calc(min(var(--k,0),12) * 35ms + 60ms)}
 /* Résultats de recherche */
 html.lq .catalog-result-group h3{font:700 16px/1.3 var(--display)!important;color:var(--ink)!important}
 html.lq .catalog-result-group .list{border:2px solid var(--line)!important;border-radius:20px!important}
 
 /* ---------- 12. Pièces communes des rubriques ---------- */
-/* Couleur propre à chaque rubrique (cartes d'en-tête pleines) */
-html.lq .def-focus,html.lq #scr-practice .journey-spotlight{--m:#118452;--m-lip:#0B6038;--m-soft:#E1F5EA;--m-mid:#7FD3A7;--m-ink:#0E7447}
-html.lq .coll-overview,html.lq #scr-library .journey-spotlight{--m:#C8480D;--m-lip:#983406;--m-soft:#FFEDE3;--m-mid:#FFAA7A;--m-ink:#B03E09}
-html.lq .notes-overview{--m:#0A7F7A;--m-lip:#065B57;--m-soft:#DFF4F2;--m-mid:#79D2CC;--m-ink:#08716C}
-html.lq .ent-hero{--m:#8B3FD1;--m-lip:#6A2BA6;--m-soft:#F4EAFF;--m-mid:#CFA6F4;--m-ink:#7A33BD}
-html.lq .pl-overview{--m:#6A4DF4;--m-lip:#4B30CC;--m-soft:#EFEAFF;--m-mid:#B8A6FF;--m-ink:#5335E0}
 
 /* Carte d'en-tête pleine (même famille que « Reprendre ») */
 html.lq .def-focus,
@@ -608,7 +606,7 @@ html.lq .plan-next-session{
     radial-gradient(180px 140px at -4% 110%,rgba(255,255,255,.12),transparent 70%),
     var(--m,var(--accent))!important;
   box-shadow:0 6px 0 var(--m-lip,var(--accent-lip))!important;
-  animation:lqRise .5s var(--pop) both;
+  animation:none!important;
 }
 html.lq .def-focus *,html.lq .journey-spotlight *,html.lq .coll-overview *,html.lq .notes-overview *,html.lq .ent-hero *,html.lq .plan-next-session *{color:inherit}
 html.lq .def-focus .def-focus-kicker,
@@ -674,7 +672,7 @@ html.lq .ent-status>button.on,html.lq .ent-status>button[aria-selected="true"],
 html.lq .account-sections>button.on,html.lq .account-sections>button[aria-selected="true"],
 html.lq .jeu-seg button.on{
   background:#fff!important;color:var(--accent-ink)!important;border-color:#fff!important;
-  box-shadow:0 3px 0 var(--lip)!important;animation:lqSegIn .35s var(--pop);
+  box-shadow:0 3px 0 var(--lip)!important;
 }
 html.lq .def-levels>button:active,html.lq .ent-status>button:active,html.lq .account-sections>button:active,html.lq .jeu-seg button:active{transform:scale(.96)}
 html.lq .def-levels small,html.lq .ent-status-btn small{font-family:var(--display)!important;font-weight:700!important;opacity:.75}
@@ -687,7 +685,20 @@ html.lq .fbar .fchip,html.lq .fchip{
   box-shadow:0 3px 0 var(--lip)!important;transition:transform .12s var(--press),box-shadow .12s var(--press),background .15s!important;
 }
 html.lq .fchip:active{transform:translateY(3px)!important;box-shadow:0 0 0 var(--lip)!important}
-html.lq .fchip.on{background:var(--ink)!important;border-color:var(--ink)!important;color:#fff!important;box-shadow:0 3px 0 #0E0A26!important}
+html.lq .fchip.on{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;box-shadow:0 3px 0 var(--accent-lip)!important}
+/* Filtres des cartes : même contrôle segmenté que Défis, sur une ligne */
+html.lq #coll-filters{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px!important;padding:4px!important;margin:14px 16px 12px!important;
+  background:#E9E5F8!important;border-radius:18px!important;box-shadow:inset 0 2px 0 rgba(34,28,70,.05)!important;overflow:visible!important;
+}
+html.lq #coll-filters .fchip{
+  min-width:0;min-height:44px;margin:0;padding:0 6px!important;gap:4px;justify-content:center;white-space:nowrap;
+  border:2px solid transparent!important;border-radius:14px!important;background:transparent!important;box-shadow:none!important;
+  color:var(--ink-2)!important;font-size:14px!important;
+}
+html.lq #coll-filters .fchip.on{background:#fff!important;border-color:#fff!important;color:var(--accent-ink)!important;box-shadow:0 3px 0 var(--lip)!important}
+html.lq #coll-filters .fchip:active{transform:scale(.96)!important}
+html.lq #coll-filters .fchip small{font-size:11.5px!important;color:inherit!important;opacity:.7!important}
 html.lq .fchip small{font-family:var(--display)!important;font-weight:700!important;opacity:.75}
 
 /* Champs de saisie */
@@ -711,24 +722,14 @@ html.lq #app .journey-hub-list{margin:18px 20px 0;background:none!important;bord
 html.lq #app .journey-resource{
   gap:14px;min-height:84px;padding:14px 14px 14px 14px;border:2px solid var(--line)!important;border-radius:22px!important;
   background:#fff!important;box-shadow:0 4px 0 var(--lip)!important;
-  transition:transform .12s var(--press),box-shadow .12s var(--press)!important;animation:lqRise .45s var(--pop) both;
+  transition:transform .12s var(--press),box-shadow .12s var(--press)!important;animation:none!important;
 }
-html.lq #app .journey-resource:nth-child(2){animation-delay:.05s}
-html.lq #app .journey-resource:nth-child(3){animation-delay:.1s}
-html.lq #app .journey-resource:nth-child(n+4){animation-delay:.15s}
 html.lq #app .journey-resource+.journey-resource::before{display:none}
 html.lq #app .journey-resource:active{background:#fff!important;transform:translateY(4px);box-shadow:0 0 0 var(--lip)!important}
 html.lq #app .journey-resource b{font-family:var(--display);font-size:18px;font-weight:700;letter-spacing:-.012em;color:var(--ink)}
 html.lq #app .journey-resource small{font-size:13.5px;color:var(--ink-2)}
-html.lq #app .journey-resource .journey-tool-icon{width:52px;height:52px;border-radius:17px;box-shadow:0 4px 0 rgba(20,10,60,.2)}
-html.lq #app .journey-resource .journey-tool-icon svg{width:26px;height:26px;stroke:#fff;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
-html.lq #app .journey-resource[data-kind="console"] .journey-tool-icon{background:#2563EB;box-shadow:0 4px 0 #1846B8}
-html.lq #app .journey-resource[data-kind="defis"] .journey-tool-icon{background:#118452;box-shadow:0 4px 0 #0B6038}
-html.lq #app .journey-resource[data-kind="cards"] .journey-tool-icon{background:#E8590C;box-shadow:0 4px 0 #B8430A}
-html.lq #app .journey-resource[data-kind="notes"] .journey-tool-icon{background:#0A7F7A;box-shadow:0 4px 0 #065B57}
-html.lq #app .journey-resource[data-kind="interview"] .journey-tool-icon{background:#8B3FD1;box-shadow:0 4px 0 #6A2BA6}
-html.lq #app .journey-resource[data-kind="courses"] .journey-tool-icon{background:var(--accent);box-shadow:0 4px 0 var(--accent-lip)}
-html.lq #app .journey-resource.def-jeu .journey-tool-icon{background:#C8316F;box-shadow:0 4px 0 #9B2253}
+html.lq #app .journey-resource .journey-tool-icon{width:52px;height:52px;border-radius:17px;background:var(--accent-soft)!important;color:var(--accent-ink)!important;box-shadow:none!important}
+html.lq #app .journey-resource .journey-tool-icon svg{width:26px;height:26px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
 html.lq #app .journey-resource>svg{width:18px;height:18px;color:#B3ACD4}
 html.lq .journey-spotlight{margin:0 0 4px!important;padding:18px!important}
 html.lq .journey-spotlight h2{font-size:25px!important;line-height:1.1!important;margin:4px 0 6px!important}
@@ -760,7 +761,7 @@ html.lq .wk-day .wd{font-family:var(--display);font-weight:700}
 html.lq .wk-day:active{transform:translateY(3px)!important;box-shadow:0 0 0 var(--lip)!important}
 html.lq .wk-day.pause{background:var(--surface-2)!important;border-color:var(--surface-2)!important;box-shadow:none!important}
 html.lq .wk-day.auj:not(.sel){border-color:var(--accent)!important;box-shadow:0 3px 0 var(--accent-lip)!important}
-html.lq .wk-day.sel{background:var(--accent)!important;border-color:var(--accent)!important;box-shadow:0 3px 0 var(--accent-lip)!important;animation:lqSegIn .35s var(--pop)}
+html.lq .wk-day.sel{background:var(--accent)!important;border-color:var(--accent)!important;box-shadow:0 3px 0 var(--accent-lip)!important;animation:none!important}
 html.lq .wk-day.fait:not(.sel) .ld{color:var(--success)!important;font-weight:800}
 html.lq .day-panel{padding-bottom:12px!important}
 html.lq .dp-head b{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.01em}
@@ -771,7 +772,7 @@ html.lq .dp-session-valid{background:var(--success-soft)!important;color:var(--s
 html.lq .pl-chip{
   border:2px solid var(--line)!important;border-radius:18px!important;background:#fff!important;box-shadow:0 3px 0 var(--lip)!important;min-height:58px!important;
 }
-html.lq .pl-chip.ok{background:#fff!important;border-color:#CDEEDB!important;box-shadow:0 3px 0 #BFE6CF!important}
+html.lq .pl-chip.ok{background:#fff!important;border-color:var(--line)!important;box-shadow:0 3px 0 var(--lip)!important}
 html.lq .pl-chip .cn{width:30px;height:30px;min-width:30px!important;border-radius:10px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-ink)!important;font-family:var(--display)!important;font-weight:700!important;font-size:14px!important}
 html.lq .pl-chip.ok .cn{background:var(--success-fill);color:#fff!important}
 html.lq .pl-chip .ct>span{font-family:var(--display);font-weight:700;font-size:15px;color:var(--ink)}
@@ -805,7 +806,7 @@ html.lq .jeu-lab{color:var(--ink-2)!important;font-size:13.5px!important}
 html.lq .jeu-card.is-join{background:#fff!important}
 html.lq .jeu-code{font-family:var(--display)!important;font-size:40px!important;letter-spacing:.14em!important;color:var(--accent-ink)!important}
 html.lq .jeu-players li,html.lq .jeu-rank li{border:2px solid var(--line)!important;border-radius:16px!important;background:#fff!important}
-html.lq .jeu-players li.is-found{border-color:#BFE6CF!important;background:var(--success-soft)!important}
+html.lq .jeu-players li.is-found{border-color:#D9CFFF!important;background:var(--success-soft)!important}
 html.lq .jeu-av{background:var(--accent)!important;color:#fff!important;font-family:var(--display);box-shadow:0 2px 0 var(--accent-lip)}
 html.lq .jeu-timer{font-family:var(--display)!important;font-size:16px!important;padding:6px 12px!important;background:var(--ink)!important;color:#fff!important}
 html.lq .jeu-timer.is-low{background:var(--danger-fill)!important}
@@ -823,12 +824,8 @@ html.lq #scr-compte .account-settings-list{border-radius:22px!important;overflow
 html.lq #scr-compte .account-setting-row{min-height:66px}
 html.lq #scr-compte .account-setting-row+.account-setting-row{border-top:2px solid var(--line-2)}
 html.lq #scr-compte .account-setting-row b{font-family:var(--display);font-weight:700;font-size:16px;color:var(--ink)}
-html.lq #scr-compte .plus-row-icon{width:40px!important;height:40px!important;border-radius:13px!important;color:#fff!important;background:var(--accent)!important;box-shadow:0 3px 0 var(--accent-lip)}
-html.lq #scr-compte .plus-row-icon svg{stroke:#fff!important}
-html.lq #scr-compte .plus-row-icon.route{background:#118452!important;box-shadow:0 3px 0 #0B6038}
-html.lq #scr-compte .plus-row-icon.bell{background:#E8590C!important;box-shadow:0 3px 0 #B8430A}
-html.lq #scr-compte .plus-row-icon.help{background:#2563EB!important;box-shadow:0 3px 0 #1846B8}
-html.lq #scr-compte .plus-row-icon.privacy{background:#0A7F7A!important;box-shadow:0 3px 0 #065B57}
+html.lq #scr-compte .plus-row-icon{width:40px!important;height:40px!important;border-radius:13px!important;color:var(--accent-ink)!important;background:var(--accent-soft)!important;box-shadow:none!important}
+html.lq #scr-compte .plus-row-icon svg{stroke:currentColor!important}
 html.lq #scr-compte .account-setting-end em{font-family:var(--display);font-style:normal;font-weight:700;border-radius:999px!important}
 html.lq .account-stat-mark{border-radius:14px!important}
 html.lq .account-stats-grid b,html.lq .acc-stat b{font-family:var(--display)!important;font-weight:700!important}
@@ -862,9 +859,8 @@ html.lq .console-quick-actions{border-radius:22px!important;overflow:hidden}
 html.lq .console-quick-action+.console-quick-action{border-top:2px solid var(--line-2)!important}
 html.lq .console-quick-action b,html.lq .console-project-copy b{font-family:var(--display);font-weight:700;font-size:16.5px;color:var(--ink)}
 html.lq .console-quick-action.primary b{color:var(--accent-ink)}
-html.lq .console-quick-icon,html.lq .console-project-icon{border-radius:14px!important;background:var(--accent)!important;color:#fff!important;box-shadow:0 3px 0 var(--accent-lip)!important}
-html.lq .console-quick-icon svg,html.lq .console-project-icon svg{stroke:#fff!important;color:#fff}
-html.lq .console-quick-action:not(.primary) .console-quick-icon{background:#2563EB!important;box-shadow:0 3px 0 #1846B8!important}
+html.lq .console-quick-icon,html.lq .console-project-icon{border-radius:14px!important;background:var(--accent-soft)!important;color:var(--accent-ink)!important;box-shadow:none!important}
+html.lq .console-quick-icon svg,html.lq .console-project-icon svg{stroke:currentColor!important}
 html.lq .console-project-list{border-radius:22px!important;overflow:hidden}
 html.lq .console-project-copy em{font-family:var(--display);font-style:normal;font-weight:700;color:var(--accent-ink)}
 html.lq .notes-overview{padding:18px!important}
@@ -899,8 +895,8 @@ html.lq .ecard{border-radius:18px!important}
 /* ---------- 20. Leçons : cadre, étapes, titres ---------- */
 html.lq #scr-lesson:not([data-mc]){--m:#6A4DF4;--m-lip:#4B30CC;--m-soft:#EFEAFF;--m-mid:#B8A6FF;--m-ink:#5335E0}
 html.lq #scr-lesson .navbar{
-  background:rgba(244,242,252,.92)!important;border-bottom:2px solid var(--line)!important;box-shadow:none!important;
-  -webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);
+  background:var(--bg)!important;border-bottom:2px solid var(--line)!important;box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
 }
 html.lq #scr-lesson .navbar .back{gap:8px;color:var(--accent-ink);font-family:var(--display);font-weight:700;font-size:16px}
 html.lq #scr-lesson .navbar .back svg{
@@ -922,7 +918,7 @@ html.lq #scr-lesson .ls-node{
 }
 html.lq #app .ls-bar:not(.on):not(.done) .ls-node{color:var(--ink-3)!important}
 html.lq #scr-lesson .ls-bar.done .ls-node{background:var(--m)!important;border-color:var(--m)!important;color:#fff!important;box-shadow:0 3px 0 var(--m-lip)!important}
-html.lq #scr-lesson .ls-bar.on .ls-node{background:var(--m)!important;border-color:var(--m)!important;color:#fff!important;box-shadow:0 3px 0 var(--m-lip),0 0 0 6px var(--m-soft)!important;transform:none!important;animation:lqNodeIn .5s var(--pop)!important}
+html.lq #scr-lesson .ls-bar.on .ls-node{background:var(--m)!important;border-color:var(--m)!important;color:#fff!important;box-shadow:0 3px 0 var(--m-lip),0 0 0 6px var(--m-soft)!important;transform:none!important;animation:none!important}
 html.lq #scr-lesson .ls-bar:active .ls-node{transform:translateY(3px)!important;box-shadow:0 0 0 var(--lip)!important}
 html.lq #scr-lesson .ls-bar small{font-family:var(--display)!important;font-size:12.5px!important;font-weight:700!important}
 html.lq #scr-lesson .ls-bar.on,html.lq #scr-lesson .ls-bar.done{color:var(--m-ink)!important}
@@ -977,16 +973,19 @@ html.lq .exframe .sql-copy,html.lq .editor-bar .sql-copy{color:#C9C3EE!important
 html.lq .editor-shell{border-radius:22px!important;background:var(--code-bg)!important;box-shadow:0 5px 0 #151130!important;border:0!important}
 html.lq .editor-bar{background:var(--code-bg-2)!important;border-bottom:1px solid rgba(255,255,255,.07)!important}
 html.lq .editor-bar .fname{color:#ABA4D8!important}
-/* Exécuter : le vert de l'action « lancer », en relief */
+/* Exécuter : même violet en relief que les autres actions principales */
 html.lq .btn-run,html.lq .exframe .xf-run,html.lq #scr-lesson .xf-run{
-  background:var(--success-fill)!important;background-image:none!important;color:#fff!important;border:0!important;border-radius:16px!important;
+  background:var(--accent)!important;background-image:none!important;color:#fff!important;border:0!important;border-radius:16px!important;
   min-height:54px;font-family:var(--display)!important;font-weight:700!important;font-size:17px!important;letter-spacing:0!important;
-  box-shadow:0 4px 0 var(--success-lip)!important;transform:translateY(0);
-  transition:transform .12s var(--press),box-shadow .12s var(--press),filter .15s!important;
+  box-shadow:0 4px 0 var(--accent-lip)!important;transform:translateY(0);
+  transition:transform .12s var(--press),box-shadow .12s var(--press)!important;
 }
-html.lq .btn-run:active,html.lq .exframe .xf-run:active,html.lq #scr-lesson .xf-run:active{transform:translateY(4px)!important;box-shadow:0 0 0 var(--success-lip)!important}
+html.lq .exframe .xf-run,html.lq #scr-lesson .exframe .xf-run{box-shadow:0 4px 0 #120E2A!important;background:#7C5CFF!important}
+html.lq .btn-run:active,html.lq #scr-lesson .xf-run:active{transform:translateY(4px)!important;box-shadow:0 0 0 var(--accent-lip)!important}
+html.lq .exframe .xf-run:active{transform:translateY(4px)!important;box-shadow:0 0 0 #120E2A!important}
+html.lq .exframe .xf-run::after{display:none!important}
 html.lq .btn-run:disabled,html.lq .exframe .xf-run:disabled{background:#3A345F!important;color:#A9A3D6!important;box-shadow:0 4px 0 #262047!important}
-html.lq .exframe .xf-run.running,html.lq .btn-run.running{filter:brightness(1.08);animation:lqRunPulse .8s ease-in-out infinite}
+html.lq .exframe .xf-run.running,html.lq .btn-run.running{opacity:.9}
 html.lq .xf-run-ico .ring,html.lq .btn-run svg .ring{stroke:#fff!important;opacity:.55}
 html.lq .xf-run-ico .tri,html.lq .btn-run svg .tri{fill:#fff!important}
 /* Boutons discrets sous l'éditeur */
@@ -1011,17 +1010,6 @@ html.lq #scr-lesson .consigne .tag{margin-bottom:8px!important;color:var(--m-ink
 html.lq #scr-lesson .consigne>p:not(.tip){font-family:var(--display);font-size:19px!important;font-weight:700!important;letter-spacing:-.012em;line-height:1.3!important;color:var(--ink)!important}
 html.lq #scr-lesson .consigne .tip{font-size:14px!important;line-height:1.5!important;color:var(--ink-2)!important}
 
-/* Une couleur par clause SQL dans les blocs de code sombres */
-html.lq :is(.ex-code,.editor-area,.qf-sql,.ob-practice-code) [data-clause]:not([data-clause="x"]){font-weight:700}
-html.lq :is(.ex-code,.editor-area,.qf-sql,.ob-practice-code) [data-clause="select"]{color:var(--c-select)!important}
-html.lq :is(.ex-code,.editor-area,.qf-sql,.ob-practice-code) [data-clause="from"]{color:var(--c-from)!important}
-html.lq :is(.ex-code,.editor-area,.qf-sql,.ob-practice-code) [data-clause="where"]{color:var(--c-where)!important}
-html.lq :is(.ex-code,.editor-area,.qf-sql,.ob-practice-code) [data-clause="group"]{color:var(--c-group)!important}
-html.lq :is(.ex-code,.editor-area,.qf-sql,.ob-practice-code) [data-clause="order"]{color:var(--c-order)!important}
-html.lq :is(.ex-code,.editor-area,.qf-sql,.ob-practice-code) [data-clause="join"]{color:var(--c-join)!important}
-html.lq :is(.ex-code,.editor-area,.qf-sql,.ob-practice-code) [data-clause="with"]{color:var(--c-with)!important}
-html.lq :is(.ex-code,.editor-area,.qf-sql,.ob-practice-code) [data-clause="write"]{color:var(--c-write)!important}
-html.lq .ex-code .sql-mark [data-clause]{color:inherit!important}
 html.lq :is(.ex-code,.editor-area,.qf-sql,.ob-practice-code) .t-str,html.lq .ob-practice-code .str{color:var(--t-str)!important}
 html.lq :is(.ex-code,.editor-area,.qf-sql) .t-num{color:var(--t-num)!important}
 html.lq :is(.ex-code,.editor-area,.qf-sql) .t-fn{color:var(--t-fn)!important}
@@ -1031,9 +1019,9 @@ html.lq .ob-practice-card{background:var(--code-bg)!important;border-radius:22px
 
 /* ---------- 22. Barre d'action du bas ---------- */
 html.lq #scr-lesson .ls-nav{
-  background:rgba(255,255,255,.94)!important;border:2px solid var(--line)!important;border-radius:26px!important;
+  background:#fff!important;border:2px solid var(--line)!important;border-radius:26px!important;
   box-shadow:0 14px 30px -18px rgba(34,28,70,.45)!important;padding:8px!important;gap:8px!important;
-  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
 }
 html.lq #scr-lesson .ls-nav .ls-prev{min-height:54px;padding:0 16px!important;color:var(--ink-2)!important}
 html.lq #scr-lesson .ls-nav .ls-next{min-height:54px}
@@ -1083,7 +1071,7 @@ html.lq #scr-lesson .bravo-next-btn:active{transform:translateY(5px)!important;b
 html.lq #scr-lesson .bravo-next-lab{text-transform:none!important;letter-spacing:0!important;color:#fff!important}
 html.lq #scr-lesson .bravo-next-btn .bn-copy b{font-family:var(--display)!important;font-weight:700!important;font-size:18px!important}
 html.lq #scr-lesson .bravo-sec{border:2px solid var(--line)!important;box-shadow:0 4px 0 var(--lip)!important;border-radius:18px!important}
-html.lq #scr-lesson .valid-done{background:var(--success-soft)!important;border:2px solid #BFE6CF!important}
+html.lq #scr-lesson .valid-done{background:var(--success-soft)!important;border:2px solid var(--line)!important}
 html.lq #scr-lesson .valid-done-ico{background:var(--success-fill)!important;box-shadow:0 3px 0 var(--success-lip)!important}
 
 /* ---------- 26. Moments de réussite ---------- */
@@ -1125,7 +1113,7 @@ html.lq #onboarding .ob-lead{color:var(--ink-2)!important}
 html.lq #onboarding .ob-brand{font-family:var(--display);font-weight:700;letter-spacing:-.01em}
 html.lq #onboarding .ob-brand code{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:11px;background:var(--accent);color:#fff;box-shadow:0 3px 0 var(--accent-lip);font:700 13px/1 var(--mono)}
 html.lq #onboarding .ob-code{background:var(--code-bg)!important;border-radius:22px!important;box-shadow:0 5px 0 #151130!important;border:0!important}
-html.lq #onboarding .oc-code .k{color:var(--c-select)!important;font-weight:700}
+html.lq #onboarding .oc-code .k{color:var(--t-kw)!important;font-weight:700}
 html.lq #onboarding .ob-proof-stats{border:0!important;background:none!important;gap:10px;overflow:visible!important}
 html.lq #onboarding .ob-proof-stats div{border:2px solid var(--line)!important;border-radius:18px;background:#fff;box-shadow:0 3px 0 var(--lip);padding:10px 6px!important}
 html.lq #onboarding .ob-proof-stats div+div{border-left:2px solid var(--line)!important}
@@ -1151,7 +1139,7 @@ html.lq #onboarding .ob-answer{
 html.lq #onboarding .ob-answer:active{transform:translateY(4px)!important;box-shadow:0 0 0 var(--lip)}
 html.lq #onboarding .ob-answer .ob-radio{display:none}
 html.lq #onboarding .ob-answer-icon{width:40px!important;height:40px!important;border-radius:13px!important;background:var(--surface-2)!important;color:var(--accent-ink)!important}
-html.lq #onboarding .ob-answer.on{border-color:var(--accent)!important;background:var(--accent-soft)!important;color:var(--accent-ink)!important;box-shadow:0 4px 0 var(--accent)!important;animation:lqSegIn .35s var(--pop)}
+html.lq #onboarding .ob-answer.on{border-color:var(--accent)!important;background:var(--accent-soft)!important;color:var(--accent-ink)!important;box-shadow:0 4px 0 var(--accent)!important}
 html.lq #onboarding .ob-answer.on .ob-answer-icon{background:var(--accent)!important;color:#fff!important;box-shadow:0 3px 0 var(--accent-lip)}
 html.lq #onboarding .ob-answer::after{content:'';width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:#fff;transition:all .2s var(--pop)}
 html.lq #onboarding .ob-answer.on::after{border-color:var(--accent);background:var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/16px no-repeat}
@@ -1202,7 +1190,7 @@ html.lq #card-sheet .viz-body,html.lq #schema-sheet .viz-body{background:var(--b
 /* Réglage du rythme, carte mémo, fin de leçon : derniers boutons */
 html.lq .pl-freq-option{border:2px solid var(--line)!important;border-radius:14px!important;box-shadow:0 3px 0 var(--lip)!important;font-family:var(--display)!important;font-weight:700!important;font-size:15px!important;transition:transform .12s var(--press),box-shadow .12s var(--press)!important}
 html.lq .pl-freq-option:active{transform:translateY(3px)!important;box-shadow:0 0 0 var(--lip)!important}
-html.lq .pl-freq-option.on{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;box-shadow:0 3px 0 var(--accent-lip)!important;animation:lqSegIn .35s var(--pop)}
+html.lq .pl-freq-option.on{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;box-shadow:0 3px 0 var(--accent-lip)!important}
 html.lq .pl-rhythm-option,html.lq .pl-pace-option{border:2px solid var(--line)!important;border-radius:18px!important;box-shadow:0 3px 0 var(--lip)!important}
 html.lq .cd-actions button{border-radius:16px!important;font-family:var(--display)!important;font-weight:700!important;font-size:16px!important;min-height:54px;transition:transform .12s var(--press),box-shadow .12s var(--press)!important}
 html.lq .cd-share-btn{background:#fff!important;color:var(--accent-ink)!important;border:2px solid var(--line)!important;box-shadow:0 4px 0 var(--lip)!important}
@@ -1494,14 +1482,88 @@ html.lq .sql-viz :is(.subq-clients-head,.subq-command.is-head,.subq-list-head>sp
 @keyframes lqRunPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.12)}}
 @keyframes lqHalo{0%,100%{box-shadow:0 0 0 4px rgba(255,255,255,.34),0 3px 0 rgba(20,10,60,.16)}50%{box-shadow:0 0 0 9px rgba(255,255,255,.1),0 3px 0 rgba(20,10,60,.16)}}
 
+/* ---------- 96. Moins de couleurs ----------
+   « Fait », « validé », « terminé » prennent le violet de la marque, partout
+   dans l'interface. Le vert ne sert plus qu'à « bonne réponse » (quiz,
+   exercice, console), le rouge à « erreur », l'orange à la série et aux
+   retards. On redirige les jetons du vert vers le violet sur les écrans et
+   les pièces concernés ; les retours de réponse gardent leur vert. */
+html.lq :is(#scr-learn,#scr-planning,#scr-defis,#scr-collection,#scr-entretien,#scr-compte,#scr-practice,#scr-library,#scr-notes,#scr-jeu,.toast),
+html.lq #scr-lesson :is(.ls-steps,.lq-steps,.bravo-hero,.bravo-steps,.bravo-done-note,.valid-done,.vsteps,.lesson-status),
+html.lq #onboarding :is(.ob-rhythm-min,.ob-practice-run),
+html.lq :is(.cd-try-btn,.pl-week-legend){
+  --success:var(--accent-ink);--success-soft:var(--accent-soft);--success-fill:var(--accent);--success-lip:var(--accent-lip);
+}
+/* Fin de leçon : la carte « Bravo » est violette ; le bouton suivant passe en
+   blanc pour ne pas faire deux blocs violets collés. */
+html.lq #scr-lesson .bravo-next-btn{background:#fff!important;border:2px solid var(--line)!important;box-shadow:0 5px 0 var(--lip)!important}
+html.lq #scr-lesson .bravo-next-btn:active{box-shadow:0 0 0 var(--lip)!important}
+html.lq #scr-lesson .bravo-next-btn .bravo-next-lab{color:var(--accent-ink)!important}
+html.lq #scr-lesson .bravo-next-btn .bn-copy b{color:var(--ink)!important}
+html.lq #scr-lesson .bravo-next-btn .bn-copy small{color:var(--ink-2)!important}
+html.lq #scr-lesson .bravo-next-btn .bn-num{background:var(--accent)!important;color:#fff!important;box-shadow:0 3px 0 var(--accent-lip)!important;border:0!important}
+html.lq #scr-lesson .bravo-next-btn .bn-arrow{color:var(--accent-ink)!important}
+/* Étincelles de la carte Bravo : jaune et blanc sur le violet */
+html.lq #scr-lesson .bravo-spark:nth-child(odd){background:var(--flame-a)!important}
+html.lq #scr-lesson .bravo-spark:nth-child(even){background:#fff!important}
+html.lq #scr-lesson .bravo-sec .bi,html.lq #scr-lesson .bravo-sec.restart .bi{background:var(--accent-soft)!important;color:var(--accent-ink)!important}
+/* Planning : pastille « Validé » ; Mon compte : icônes des chiffres */
+html.lq #app .pl-chip-valid{background:var(--accent-soft)!important;color:var(--accent-ink)!important}
+html.lq .account-stat-mark,html.lq .account-stat-mark.lessons,html.lq .account-stat-mark.challenges,html.lq .account-stat-mark.progress{
+  border:0!important;background:var(--accent-soft)!important;color:var(--accent-ink)!important;box-shadow:none!important;
+}
+html.lq .account-stat-mark.streak{background:#FFF0DC!important;color:#E05E00!important}
+
+/* ---------- 97. Fluidité : pas de clignotement ----------
+   L'ancien thème faisait apparaître en fondu (depuis l'invisible) les cartes,
+   listes et puces à chaque fois qu'elles étaient redessinées : au retour sur
+   l'accueil, après chaque action, au changement de filtre… L'écran semblait
+   clignoter. Ces animations d'entrée sont neutralisées ici (même nom, sans
+   effet) ; seules restent celles que la personne déclenche. */
+@keyframes iosSurfaceIn{from{opacity:1}to{opacity:1}}
+@keyframes iosItemIn{from{opacity:1}to{opacity:1}}
+@keyframes iosPopIn{from{opacity:1}to{opacity:1}}
+@keyframes softPanelIn{from{opacity:1}to{opacity:1}}
+@keyframes panelIn{from{opacity:1}to{opacity:1}}
+@keyframes chipIn{from{opacity:1}to{opacity:1}}
+@keyframes entGroupIn{from{opacity:1}to{opacity:1}}
+@keyframes rowIn{from{opacity:1}to{opacity:1}}
+@keyframes riseIn{from{opacity:1}to{opacity:1}}
+@keyframes plusReveal{from{opacity:1}to{opacity:1}}
+@keyframes microItemIn{from{opacity:1}to{opacity:1}}
+@keyframes completionBadgeIn{from{opacity:1}to{opacity:1}}
+@keyframes chipPop{from{opacity:1}to{opacity:1}}
+@keyframes iosSelectedPop{from{opacity:1}to{opacity:1}}
+@keyframes ringIn{from{opacity:1}to{opacity:1}}
+@keyframes consoleCreateIn{from{opacity:1}to{opacity:1}}
+@keyframes consoleLibraryIn{from{opacity:1}to{opacity:1}}
+@keyframes lateRecoveryIn{from{opacity:1}to{opacity:1}}
+@keyframes planToolsIn{from{opacity:1}to{opacity:1}}
+@keyframes emptyFloat{from{transform:none}to{transform:none}}
+@keyframes flameWob{from{transform:none}to{transform:none}}
+@keyframes lsNavIn{from{opacity:1}to{opacity:1}}
+@keyframes iosChromeIn{from{opacity:1}to{opacity:1}}
+@keyframes lqRise{from{opacity:1}to{opacity:1}}
+/* Coches « Validé » : affichées d'emblée, sans tracé rejoué */
+html.lq .def-row-status svg path,html.lq .lesson-status svg path{stroke-dashoffset:0!important;animation:none!important}
+html.lq .def-row-status::after,html.lq .lesson-status::after{animation:none!important;opacity:0!important}
+/* Changement d'onglet : instantané, comme une barre d'onglets iOS.
+   Sous-pages : glissement court, sans passer par le transparent. */
+html.lq #app .screen.p-enter-fade{animation:none!important}
+html.lq #app .screen.p-enter-push{animation:lqPush .26s cubic-bezier(.25,.8,.25,1) both!important}
+html.lq #app .screen.p-enter-back{animation:lqBack .24s cubic-bezier(.25,.8,.25,1) both!important}
+@keyframes lqPush{from{transform:translate3d(28px,0,0)}to{transform:none}}
+@keyframes lqBack{from{transform:translate3d(-22px,0,0)}to{transform:none}}
+/* iOS : pas d'agrandissement automatique du texte, boutons sans style natif */
+html.lq{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html.lq .lq-streak,html.lq .lq-step button,html.lq .lq-search-toggle,html.lq .lq-hero-cta{-webkit-appearance:none;appearance:none}
+
 /* ---------- 98. Petits écrans ---------- */
 @media (max-width:360px){
   html.lq #home-hero,html.lq #scr-learn #modules{padding-left:16px;padding-right:16px}
   html.lq .lq-heading h2{font-size:27px!important}
   html.lq .lq-hero{padding:16px}
-  html.lq .lq-hero .mascot-medal{width:64px;height:64px;right:12px}
-  html.lq .lq-hero-kicker,html.lq .lq-hero-title,html.lq .lq-hero-sub{padding-right:72px}
-  html.lq .lq-hero-body{min-height:118px}
+  html.lq .lq-hero .mascot-medal{width:64px;height:64px}
   html.lq .lq-hero-title{font-size:29px}
   html.lq .lq-day i{width:34px;height:34px}
   html.lq .lq-day i svg{width:20px;height:20px}
@@ -1510,13 +1572,24 @@ html.lq .sql-viz :is(.subq-clients-head,.subq-command.is-head,.subq-list-head>sp
   html.lq #scr-learn .home-catalog-head .lq-search-toggle{width:44px;height:44px;padding:0;justify-content:center}
   html.lq .home-module-summary{grid-template-columns:46px minmax(0,1fr) auto!important;padding:12px!important}
   html.lq .home-module-num{width:46px!important;height:46px!important;font-size:19px!important;border-radius:15px!important}
-  html.lq #scr-learn #modules .home-module .row{grid-template-columns:54px minmax(0,1fr);column-gap:12px}
+  html.lq #scr-learn #modules .home-module .row{grid-template-columns:76px minmax(0,1fr);column-gap:10px}
   html.lq #scr-learn #modules .home-module .row .lz-num{width:54px!important;height:54px!important;font-size:19px!important}
-  html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+3){--zz:30px}
-  html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+4){--zz:36px}
-  html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+5){--zz:30px}
-  html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+2),html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+6){--zz:16px}
+  html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+3){--zz:19px}
+  html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+4){--zz:22px}
+  html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+5){--zz:19px}
+  html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+2),html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+6){--zz:11px}
   html.lq #scr-lesson .lesson-rich>h1,html.lq #scr-lesson .l-kicker+h1{font-size:32px!important}
+}
+
+/* Contrôles segmentés avec compteur (Défis, Entretien, Cartes) : sous 375 px,
+   le compteur passe sous le libellé au lieu de déborder sur la case voisine. */
+html.lq :is(.def-levels,.ent-status,#coll-filters)>button{min-width:0;overflow:hidden}
+@media (max-width:374px){
+  html.lq :is(.def-levels,.ent-status,#coll-filters)>button{
+    display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+    gap:1px!important;padding:4px 2px!important;font-size:13.5px!important;line-height:1.15!important;white-space:nowrap;
+  }
+  html.lq :is(.def-levels,.ent-status,#coll-filters)>button small{margin:0!important;font-size:11px!important;line-height:1.1!important}
 }
 
 /* ---------- 99. Mouvement réduit ---------- */

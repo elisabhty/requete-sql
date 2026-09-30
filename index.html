@@ -9850,7 +9850,7 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=2">
+<link rel="stylesheet" href="ludique.css?v=3">
 </head>
 <body>
 <div id="app">
@@ -19305,7 +19305,11 @@ const CARTES={
 };
 const CARD_GRAD=[['#5B5BD6','#7A6FF0'],['#0E9BC4','#22B8D6'],['#0EA5A0','#2DD4BF'],['#B45309','#E0A040'],['#9333EA','#B45CF0'],['#E5484D','#F0736F'],['#0F766E','#14A89A'],['#B45309','#D97F2B'],['#1E40AF','#3B6FE0'],['#86198F','#B32BAF']];
 function moduleOf(id){ for(let i=0;i<MODULES.length;i++) if(MODULES[i].lessons.some(l=>l.id===id)) return i; return 0; }
-function gradOf(id){ const g=CARD_GRAD[moduleOf(id)%CARD_GRAD.length]; return `linear-gradient(145deg,${g[0]},${g[1]})`; }
+/* Thème Ludique : une seule couleur de marque, toutes les cartes en violet. */
+function gradOf(id){
+  if(typeof document!=='undefined'&&document.documentElement&&document.documentElement.classList.contains('lq'))return 'linear-gradient(145deg,#7C5CFF,#5335E0)';
+  const g=CARD_GRAD[moduleOf(id)%CARD_GRAD.length]; return `linear-gradient(145deg,${g[0]},${g[1]})`;
+}
 function isUnlocked(id){ const s=state.lessons[id]; return !!(s&&s.done); }
 
 const QCM={
@@ -20920,40 +20924,6 @@ function highlightMark(sql,mark){
   if(i<0) return html;
   return html.slice(0,i)+'<mark class="sql-mark">'+needle+'</mark>'+html.slice(i+needle.length);
 }
-/* ---------- Une couleur par clause dans le code (thème Ludique) ----------
-   SELECT, FROM, WHERE, GROUP BY, ORDER BY, JOIN… gardent chacun leur couleur
-   dans tous les blocs de code sombres : la structure d’une requête se lit
-   d’un coup d’œil. Les mots-clés sont marqués après coup (data-clause), sans
-   toucher au coloriage lui-même (highlightMark compare des chaînes). */
-const LQ_CLAUSE={SELECT:'select',FROM:'from',WHERE:'where',HAVING:'where',GROUP:'group',ORDER:'order',LIMIT:'order',OFFSET:'order',
-  JOIN:'join',INNER:'join',LEFT:'join',RIGHT:'join',FULL:'join',OUTER:'join',CROSS:'join',NATURAL:'join',ON:'join',USING:'join',
-  WITH:'with',RECURSIVE:'with',OVER:'with',PARTITION:'with',WINDOW:'with',
-  INSERT:'write',INTO:'write',VALUES:'write',UPDATE:'write',SET:'write',DELETE:'write',CREATE:'write',ALTER:'write',DROP:'write'};
-function lqTagClauses(root){
-  if(!root||!root.querySelectorAll)return;
-  const els=[];
-  if(root.matches&&root.matches('.t-kw,.kw'))els.push(root);
-  root.querySelectorAll('.t-kw:not([data-clause]),.kw:not([data-clause])').forEach(e=>els.push(e));
-  for(const el of els){
-    if(el.dataset.clause)continue;
-    const first=(el.textContent||'').trim().toUpperCase().split(/\s+/)[0];
-    let c=LQ_CLAUSE[first];
-    if(!c&&first==='BY'){
-      const p=el.previousElementSibling;
-      const pw=p&&p.matches('.t-kw,.kw')?(p.textContent||'').trim().toUpperCase():'';
-      c=pw==='GROUP'?'group':pw==='ORDER'?'order':pw==='PARTITION'?'with':'';
-    }
-    el.dataset.clause=c||'x';
-  }
-}
-(function(){
-  if(typeof document==='undefined'||typeof MutationObserver==='undefined')return;
-  const mo=new MutationObserver(list=>{
-    for(const m of list)for(const n of m.addedNodes)if(n.nodeType===1)lqTagClauses(n);
-  });
-  const start=()=>{lqTagClauses(document.body);mo.observe(document.body,{childList:true,subtree:true});};
-  if(document.body)start();else document.addEventListener('DOMContentLoaded',start);
-})();
 function fitSqlEditor(ta){
   if(typeof ta==='string') ta=document.getElementById(ta);
   if(!ta) return;
@@ -22314,13 +22284,14 @@ function nextOpenLessonId(){
   for(const l of allLessons){ if(!lecCompletee(l.id)) return l.id; }
   return null;
 }
-/* Couleur de la leçon ouverte : chaque leçon prend la couleur de son module
-   (étiquettes, étapes, sommaire), les défis le vert de la rubrique Défis. */
+/* Repère de module de la leçon ouverte (attribut data-mc). Le thème Ludique
+   donne le même violet à tous les modules ; l'attribut reste un simple
+   crochet de style. */
 function lqSetLessonColor(id){
   const scr=document.getElementById('scr-lesson');
   if(scr)scr.dataset.mc=String(isDefiId(id)?3:mcOf(id));
 }
-/* Couleur (0-7) du module d’une activité : chemin, cartes « Reprendre ». */
+/* Repère (0-7) du module d’une activité : chemin, carte « Reprendre ». */
 function mcOf(id){
   if(id==null)return 0;
   if(isDefiId(id))return 4;
@@ -22503,7 +22474,9 @@ function renderHomeHero(){
   const heading=`<div class="journey-heading lq-heading"><div class="jh-copy"><p class="lq-hi" aria-hidden="true">${esc(hi)}</p><h2>Un pas de plus en SQL</h2><div class="journey-session-meta"><span aria-label="${escAttr(session?.summary||'Toutes tes activités sont validées')}">${esc(sessionLine)}</span><time datetime="${dateISO}">${esc(date)}</time></div></div></div>`;
   const mascot=typeof mascotMedalHtml==='function'?mascotMedalHtml():'';
   if(nxt==null){
-    host.innerHTML=`${heading}${streak}<section class="journey-complete lq-hero is-complete" data-mc="3">${mascot}<div class="lq-hero-body"><span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div><button class="journey-primary lq-hero-cta" type="button" onclick="switchTab('practice')"><span>Continuer à pratiquer</span></button></section>${extras}`;
+    const keep=lqKeepMascot(host);
+    host.innerHTML=`${heading}${streak}<section class="journey-complete lq-hero is-complete" data-mc="0"><span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><div class="lq-hero-main"><div class="lq-hero-body"><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div>${mascot}</div><button class="journey-primary lq-hero-cta" type="button" onclick="switchTab('practice')"><span>Continuer à pratiquer</span></button></section>${extras}`;
+    lqKeepMascot(host,keep);
     return;
   }
   const meta=itemMeta(nxt),defi=isDefiId(nxt),mod=moduleDeLecon(nxt);
@@ -22530,7 +22503,18 @@ function renderHomeHero(){
   const kicker=defi?'Ton prochain défi':index?`Leçon ${index} sur ${mod.lessons.length}`:'Ta prochaine leçon';
   const chip=mod?`<span class="lq-hero-mod"><b>Module ${modIndex+1}</b>${esc(mod.titre)}</span>`:defi?`<span class="lq-hero-mod"><b>Défi</b>${esc(niv||'SQL')}</span>`:`<span class="lq-hero-mod"><b>Leçon</b>${esc(meta.sous||'')}</span>`;
   const sub=defi?(ch?.q||'Mets tes acquis à l’épreuve.'):(lesson?.résumé||meta.sous||'Mets tes acquis à l’épreuve.');
-  host.innerHTML=`${heading}${streak}<section class="lq-hero journey-session" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${mascot}<div class="lq-hero-body">${chip}<p class="lq-hero-kicker">${esc(kicker)}</p><h3 class="lq-hero-title">${esc(meta.titre)}</h3><p class="lq-hero-sub">${esc(sub)}</p></div>${pips}<button type="button" class="journey-primary lq-hero-cta" aria-label="${escAttr(ctaLabel+' : '+meta.titre)}" onclick="openItem(${arg},${currentStep})"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span>${esc(ctaLabel)}</span></button></section>${extras}`;
+  const keep=lqKeepMascot(host);
+  host.innerHTML=`${heading}${streak}<section class="lq-hero journey-session" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${chip}<div class="lq-hero-main"><div class="lq-hero-body"><p class="lq-hero-kicker">${esc(kicker)}</p><h3 class="lq-hero-title">${esc(meta.titre)}</h3><p class="lq-hero-sub">${esc(sub)}</p></div>${mascot}</div>${pips}<button type="button" class="journey-primary lq-hero-cta" aria-label="${escAttr(ctaLabel+' : '+meta.titre)}" onclick="openItem(${arg},${currentStep})"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span>${esc(ctaLabel)}</span></button></section>${extras}`;
+  lqKeepMascot(host,keep);
+}
+/* La vidéo de la mascotte est gardée d'un rendu de l'accueil à l'autre :
+   la recréer faisait clignoter le médaillon (image rechargée). */
+function lqKeepMascot(host,old){
+  if(!host||typeof host.querySelector!=='function')return null;
+  if(old===undefined)return host.querySelector('.mascot-medal');
+  const fresh=host.querySelector('.mascot-medal');
+  if(old&&fresh&&old!==fresh)fresh.replaceWith(old);
+  return null;
 }
 const HOME_STEP_OK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const HOME_STEP_LOCK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>';
@@ -22569,7 +22553,13 @@ function pathCurrentLessonId(){
   if(lqPathCurrent!==undefined)return lqPathCurrent;
   let id=null;
   try{const s=recommendedSession();if(s&&!isDefiId(s.id))id=s.id;}catch(e){}
-  if(id==null||state.lessons[id]?.done)id=nextOpenLessonId();
+  /* Sinon : la première leçon pas encore validée, avec la même règle que les
+     compteurs des modules (sinon un module « validé » pourrait être marqué
+     « en cours »). */
+  if(id==null||state.lessons[id]?.done){
+    const l=allLessons.find(x=>!state.lessons[x.id]?.done);
+    id=l?l.id:null;
+  }
   lqPathCurrent=id;
   setTimeout(()=>{lqPathCurrent=undefined;},0);
   return id;
@@ -22632,6 +22622,7 @@ function lqModuleToggle(det){
 function lqAfterModules(host){
   if(typeof requestAnimationFrame!=='function')return;
   const run=()=>host.querySelectorAll('.home-module[open]').forEach(d=>lqDrawPath(d,false));
+  run();
   requestAnimationFrame(run);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>requestAnimationFrame(run)).catch(()=>{});
 }
@@ -31650,12 +31641,12 @@ function celebrate(){
      s’affiche en grand un court instant.
    - Petit retour haptique au toucher des boutons en relief (dans l’app
      iPhone, il passe par le moteur haptique d’iOS). */
-const LQ_CONFETTI=['#6A4DF4','#8B6CFF','#2563EB','#22B35E','#FFD23F','#FF7A00','#EC5B9E','#13B3AC'];
+const LQ_CONFETTI=['#6A4DF4','#8B6CFF','#B8A6FF','#5335E0','#FFD23F','#FF9A3D'];
 function lqConfetti(opts){
   if(prefersReduceMotion()||typeof document==='undefined')return;
   const layer=document.createElement('div');layer.className='lq-confetti';layer.setAttribute('aria-hidden','true');
   document.body.appendChild(layer);
-  const W=innerWidth,H=innerHeight,n=(opts&&opts.n)||70;
+  const W=innerWidth,H=innerHeight,n=(opts&&opts.n)||44;
   for(let k=0;k<n;k++){
     const left=k%2===0,i=document.createElement('i');
     const ox=left?-10:W+10,oy=H*.82;
@@ -34135,7 +34126,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1401';
+  const SW_CACHE='requete-2026-09-30-ludique-v1402';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
