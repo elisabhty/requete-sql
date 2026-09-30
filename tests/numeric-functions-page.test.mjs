@@ -46,14 +46,14 @@ assert(html.includes('function renderNumericFunctionsStudio'), 'rendu dédié à
 assert(html.includes('if(l.id===52)return renderNumericFunctionsStudio(l)'), 'ancienne pile de texte remplacée');
 assert(html.includes('.nf-lead{') && html.includes('.nf-lead{margin:0 0 15px!important;color:var(--ink)!important'), 'textes d’introduction en noir');
 assert(studio.includes('Dans ta base, plusieurs colonnes contiennent des nombres') && studio.includes('toutes sortes de calculs'), 'introduction numérique simplifiée');
-assert(studio.includes('Ton équipe veut maintenant exploiter ces nombres pour répondre à des besoins concrets :') && studio.includes('Quel est le prix moyen des produits de la boutique ?') && studio.includes('Quelle quantité moyenne est commandée par commande ?'), 'questions d’ouverture concrètes');
-assert(studio.includes('Comment demander à SQL d’effectuer ces calculs directement à partir des données ?'), 'question d’ouverture recentrée sur SQL');
+assert(studio.includes('Ton équipe veut maintenant exploiter ces nombres pour répondre à des besoins concrets :') && studio.includes('Quel est le prix moyen des produits de la boutique ?') && studio.includes('Quelle quantité moyenne est commandée par commande ?'), 'questions d’ouverture concrètes');
+assert(studio.includes('Comment demander à SQL d’effectuer ces calculs directement à partir des données ?'), 'question d’ouverture recentrée sur SQL');
 assert(studio.includes('nf-machine') && studio.includes('ROUND()'), 'fonction montrée par un schéma plutôt qu’un bloc exécutable');
 assert(studio.includes('nf-apply-more') && studio.includes('et 5 autres produits'), 'schéma ROUND indique les autres produits non affichés');
 assert(stage.includes('nf-visual') && stage.includes('piegeSqlRunBlock(g.sql)'), 'mini-laboratoire encore exécutable');
 assert(studio.includes("piegeSqlRunBlock('SELECT nom, prix,\\n       ROUND(prix) AS prix_arrondi\\nFROM produits;')"), 'exemple sur toute la colonne produits conservé');
 assert(html.includes("k:'avg'") && html.includes('SELECT AVG(prix) AS prix_moyen') && html.includes("k:'sum'") && html.includes('SELECT SUM(stock) AS stock_total'), 'AVG et SUM ont chacun une requête dédiée');
-assert(studio.includes('Exemple :') && studio.includes('nf-agg-tabs') && studio.includes('numericAggStageHtml(NUMERIC_AGG_GUIDES[0])'), 'moyenne et somme présentées dans deux onglets');
+assert(studio.includes('Exemple :') && studio.includes('nf-agg-tabs') && studio.includes('numericAggStageHtml(NUMERIC_AGG_GUIDES[0])'), 'moyenne et somme présentées dans deux onglets');
 assert(html.includes('.lesson-rich .nf-agg-stage .exframe') && html.includes('.lesson-rich .cf-stage .exframe'), 'cadres SQL des onglets visibles sans attendre .in');
 assert(html.includes('function swapLessonStage') && !html.includes('@keyframes nfStageSwap{from{opacity:.45'), 'changement d’onglet sans flash d’opacité');
 assert(studio.includes('D’autres fonctions également ne calculent pas ligne par ligne'), 'autres agrégats introduits après AVG et SUM');

@@ -71,7 +71,7 @@ assert(onboarding.includes("classList.add('ob-selection-update')") && html.inclu
 assert(onboarding.includes('function obNamePreview()') && onboarding.includes('ob-name-preview'), 'le prénom saisi est renvoyé en aperçu immédiat');
 assert(onboarding.includes('function obLevelHint()') && onboarding.includes('Tu commenceras par'), 'le niveau choisi révèle la vraie première leçon du plan');
 assert(html.includes('.ob-practice-table span:not(.head){animation:'), 'les lignes du résultat SQL arrivent une par une');
-assert(onboarding.includes('Ta séance type :') && html.includes('.ob-rhythm-summary'), 'le rythme choisi résume la séance type réelle');
+assert(onboarding.includes('Ta séance type :') && html.includes('.ob-rhythm-summary'), 'le rythme choisi résume la séance type réelle');
 assert(html.includes("if(obRoot&&obRoot.classList.contains('on')){"), 'l\'onboarding capte le clavier dès qu\'il est ouvert');
 assert(html.includes("e.target.tagName==='INPUT'") && onboarding.includes('function brancherObSwipeV2()'), 'Entrée valide depuis le champ et le balayage tactile navigue entre les étapes');
 
