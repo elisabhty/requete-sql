@@ -9843,7 +9843,7 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=6">
+<link rel="stylesheet" href="ludique.css?v=7">
 </head>
 <body>
 <div id="app">
@@ -28998,6 +28998,8 @@ let semaineOffset=0,jourSel=null;
 let planToolsOpen=false;
 let planAdjustDraft=null;
 let lateRecoveryCollapsed=true;
+/* Jour dont la liste complète est dépliée (longues journées seulement). */
+let planDayOpen=null;
 
 /* ---------- Dates ---------- */
 function jour0(d){const x=new Date(d);x.setHours(0,0,0,0);return x;}
@@ -29475,7 +29477,8 @@ function refreshChipOrder(chipsEl){
   chipsEl.querySelectorAll('.pl-chip').forEach((chip,i)=>{
     chip.dataset.pos=i;
     const cn=chip.querySelector('.cn');
-    if(cn) cn.textContent=String(i+1);
+    /* Une activité validée garde sa coche pendant le glisser. */
+    if(cn&&!chip.classList.contains('ok')) cn.textContent=String(i+1);
   });
 }
 function reorderChipInList(chipsEl,dragChip,overChip,clientY){
@@ -29810,18 +29813,25 @@ function renderSemaine(){
   const visibleSessions=visibleDays.map(d=>sessionDe(dstr(d))).filter(Boolean);
   const weekComplete=visibleSessions.filter(sessionFaite).length;
   const weekPlanned=visibleSessions.length;
+  /* Longue journée (après un rattrapage) : seules les prochaines activités à
+     faire sont affichées, le reste s'ouvre sur demande. Toutes les lignes
+     restent dans la page (masquées) pour que le réordonnancement garde tout. */
+  const vis=sess?planDayVisible(sess.lessons.map(itemDone)):null;
+  const listOpen=!!vis&&planDayOpen===jourSel;
+  const hiddenN=vis?sess.lessons.length-vis.size:0;
   const chips=sess?sess.lessons.map((id,i)=>{
     const m=itemMeta(id),ok=itemDone(id);
     const arg=isDefiId(id)?`'${id}'`:id;
     const isToday=jourSel===t;
-    return `<div class="pl-chip ${ok?'ok':''} ${m.defi?'defi':''} ${isToday?'today':''}" data-lesson="${id}" data-pos="${i}" onclick="chipTap(event,${arg})">
+    return `<div class="pl-chip ${ok?'ok':''} ${m.defi?'defi':''} ${isToday?'today':''}${vis&&!vis.has(i)?' is-extra':''}" data-lesson="${id}" data-pos="${i}" onclick="chipTap(event,${arg})">
       <span class="hdl" data-drag="${id}" aria-hidden="true"><svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true"><path d="M1 2h12M1 5h12M1 8h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span class="cn" aria-hidden="true">${ok?PL_OK_SVG:i+1}</span>
       <span class="ct"><span>${esc(m.titre)}</span><small>${esc(m.sous)}</small></span>
-      ${ok?'<span class="pl-chip-valid"><i aria-hidden="true">✓</i>Validé</span>':isToday?'<span class="cgo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>':''}
+      ${ok?'<span class="pl-chip-valid"><i aria-hidden="true">✓</i>Validé</span>':''}
       <button type="button" class="nx" onclick="event.stopPropagation();openMoveSheet(${arg})" aria-label="Déplacer vers un autre jour : ${esc(m.titre)}"><svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1.7" y="3.3" width="12.6" height="11" rx="2.6" stroke="currentColor" stroke-width="1.5"/><path d="M4.9 1.7v2.6M11.1 1.7v2.6M1.7 6.9h12.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>`;
   }).join(''):'';
   const nL=sess?sess.lessons.filter(id=>!isDefiId(id)).length:0;
   const nD=sess?sess.lessons.length-nL:0;
+  const started=!!sess&&faitN>0&&!fait;
   return `
     <div class="pl-week-heading"><div><span>Ta semaine</span><h2>Les 7 prochains jours</h2><p>${weekComplete} séance${weekComplete>1?'s':''} validée${weekComplete>1?'s':''} sur ${weekPlanned}</p></div><div class="pl-week-legend"><span><i class="done"></i>Validée</span><span><i class="planned"></i>Prévue</span></div></div>
     <div class="wk-chrome">
@@ -29834,15 +29844,42 @@ function renderSemaine(){
         <small>${sess?`${nL} leçon${nL>1?'s':''}${nD?` · ${nD} défi${nD>1?'s':''}`:''} · ~${sess.lessons.length*MIN_PAR_ACTIVITE} min${ret?' · en retard':(faitN&&!fait?` · ${faitN}/${sess.lessons.length}`:'')}`:'Pause — rien de prévu'}</small></div>
         ${fait?'<span class="dp-session-valid"><i aria-hidden="true">✓</i>Séance validée</span>':''}
       </div>
+      ${started?`<div class="dp-prog" aria-hidden="true"><i style="width:${pctSess}%"></i></div>`:''}
       ${sess&&!fait?`<button type="button" class="dp-go" onclick="demarrerSeance('${jourSel}')">${faitN?'Continuer la séance':'Démarrer la séance'}</button>`:''}
-      ${sess?`<div class="dp-prog" aria-hidden="true"><i style="width:${pctSess}%"></i></div>`:''}
-      <div class="pl-chips">${chips||`<div class="dp-pause"><div class="dp-pi">☕</div><b>Journée libre</b><small>Pas de séance prévue. Glisse une leçon ou un défi ici si tu veux avancer.</small></div>`}</div>
+      <div class="pl-chips${vis&&!listOpen?' is-collapsed':''}" id="pl-day-list">${chips||`<div class="dp-pause"><div class="dp-pi">☕</div><b>Journée libre</b><small>Pas de séance prévue. Glisse une leçon ou un défi ici si tu veux avancer.</small></div>`}</div>
+      ${vis?`<button type="button" class="pl-chips-more" aria-controls="pl-day-list" aria-expanded="${listOpen?'true':'false'}" data-more="${hiddenN}" onclick="togglePlanDayList(this)">${planDayMoreLabel(listOpen,hiddenN)}</button>`:''}
     </div>
     ${nextDayPreviewHTML()}
     ${p.archive&&p.archive.length?`<p class="pl-hint" style="text-align:left">${plur(p.archive.length,'activité')} déjà terminée${p.archive.length>1?'s':''} ${p.archive.length>1?'ont':'a'} été retirée${p.archive.length>1?'s':''} du calendrier.</p>`:''}
     <p class="pl-hint">Appuie longuement sur une activité pour la réordonner, ou utilise son calendrier pour la déplacer.</p>`;
 }
 const PL_OK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+/* Liste du jour : au-delà de 8 activités, on n'affiche que les 6 prochaines
+   à faire (ou les 6 premières si tout est fait). Renvoie null quand tout
+   tient, sinon l'ensemble des positions visibles. */
+const PL_DAY_PREVIEW=6;
+function planDayVisible(doneFlags){
+  const n=doneFlags.length;
+  if(n<=PL_DAY_PREVIEW+2)return null;
+  const keep=[];
+  doneFlags.forEach((done,i)=>{if(!done&&keep.length<PL_DAY_PREVIEW)keep.push(i);});
+  if(!keep.length)for(let i=0;i<PL_DAY_PREVIEW;i++)keep.push(i);
+  return new Set(keep);
+}
+const PL_MORE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+function planDayMoreLabel(open,hidden){
+  return `<span>${open?'Réduire la liste':`Voir les ${hidden} autres activités`}</span>${PL_MORE_SVG}`;
+}
+function togglePlanDayList(btn){
+  const list=document.getElementById('pl-day-list');if(!list||!btn)return;
+  const open=list.classList.contains('is-collapsed');
+  list.classList.toggle('is-collapsed',!open);
+  planDayOpen=open?(list.closest('.day-panel')?.dataset.date||null):null;
+  btn.setAttribute('aria-expanded',open?'true':'false');
+  btn.innerHTML=planDayMoreLabel(open,+btn.dataset.more||0);
+  /* Repli : la liste raccourcit, on garde le bouton sous les yeux. */
+  if(!open){const r=btn.getBoundingClientRect();if(r.top<90||r.bottom>innerHeight-110)btn.scrollIntoView({block:'center'});}
+}
 /* Sous la journée d’aujourd’hui : la prochaine séance prévue (demain, ou le
    prochain jour qui en a une), pour voir ce qui arrive sans changer de jour. */
 function nextDayPreviewHTML(){
@@ -34251,7 +34288,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1405';
+  const SW_CACHE='requete-2026-09-30-ludique-v1406';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
