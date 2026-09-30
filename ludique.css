@@ -137,15 +137,6 @@ html.lq #app .home-back:active{opacity:1}
 html.lq #app .home-back:active svg{transform:translateY(3px);box-shadow:0 0 0 var(--lip)}
 html.lq #app .home-back span{font-family:var(--display);font-weight:700}
 
-/* Avatar du compte */
-html.lq #app .learn-avatar,html.lq #app .lg-avatar{
-  width:40px!important;height:40px!important;border-radius:50%!important;
-  background:var(--accent)!important;color:#fff!important;border:0!important;
-  font-family:var(--display)!important;font-size:17px!important;font-weight:700!important;
-  box-shadow:0 3px 0 var(--accent-lip),0 0 0 3px #fff!important;
-  transition:transform .14s var(--press),box-shadow .14s!important;
-}
-html.lq #app .learn-avatar:active,html.lq #app .lg-avatar:active{transform:translateY(3px) scale(.96)!important;box-shadow:0 0 0 var(--accent-lip),0 0 0 3px #fff!important}
 
 /* ---------- 4. Étiquettes : casse normale, police de titre ---------- */
 html.lq .journey-kicker,
@@ -320,10 +311,23 @@ html.lq #app>.tabbar.tabbar{
 html.lq #app>.tabbar .tab{color:#77729A}
 html.lq #app>.tabbar .tab.active{color:var(--accent)}
 html.lq #app>.tabbar .tab.active svg{animation:lqTabPop .32s ease-out}
-/* Quatre destinations : libellés plus grands, toujours sur une ligne */
+/* Cinq destinations : libellés lisibles, toujours sur une ligne */
 html.lq #app>.tabbar .tab{font-family:var(--display);font-size:11px!important;font-weight:700;letter-spacing:0!important}
 html.lq #app>.tabbar .tab-label{max-width:none!important;white-space:nowrap!important;min-height:0!important;height:auto!important;overflow:visible!important}
 @keyframes lqTabPop{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+/* Onglet Compte : l'initiale de la personne en guise d'icône, pleine quand
+   l'onglet est ouvert. */
+html.lq #app>.tabbar .tab-avatar{
+  flex:none;width:24px;height:24px;margin:1px;box-sizing:border-box;border-radius:50%;
+  display:grid;place-items:center;border:2px solid currentColor;
+  font:700 11px/1 var(--display);letter-spacing:0;
+}
+html.lq #app>.tabbar .tab.active .tab-avatar{background:var(--accent);border-color:var(--accent);color:#fff;font-size:12px;animation:lqTabPop .32s ease-out}
+/* Cinq onglets sur un petit écran : chacun prend la largeur de son libellé,
+   pour que « Bibliothèque » ne déborde jamais sur ses voisins. */
+@media (max-width:379px){
+  html.lq #app>.tabbar .tab{flex:1 1 auto!important;min-width:0!important}
+}
 
 /* ---------- 8. Bouton ✎ flottant ---------- */
 html.lq body:not(.in-lesson) .fab{
@@ -855,28 +859,228 @@ html.lq .jeu-reacts button{border:2px solid var(--line)!important;box-shadow:0 3
 html.lq .jeu-reacts button:active{transform:translateY(3px) scale(.9);box-shadow:0 0 0 var(--lip)}
 html.lq .jeu-step-n{font-family:var(--display)!important}
 
-/* ---------- 16. Mon compte ---------- */
-html.lq #scr-compte .account-identity{border-radius:26px!important}
-html.lq #scr-compte .account-avatar{background:var(--accent)!important;box-shadow:0 4px 0 var(--accent-lip)!important;font-family:var(--display)!important}
-html.lq #scr-compte .account-identity-copy b{font-family:var(--display)!important;font-size:22px!important}
-html.lq #scr-compte .aie-hint{border:2px solid var(--line);background:#fff!important;box-shadow:0 2px 0 var(--lip);font-family:var(--display)!important;font-weight:700!important}
-html.lq #scr-compte .account-local-status{border-top:2px solid var(--line-2)!important}
-html.lq #scr-compte .account-settings-list{border-radius:22px!important;overflow:hidden}
-html.lq #scr-compte .account-setting-row{min-height:66px}
+/* ---------- 16. Mon compte ----------
+   Une seule page, sans onglets internes : le profil et le niveau dans la
+   carte violette, puis la progression, les accomplissements, les données et
+   les réglages. Chaque réglage s'ouvre dans une feuille (bas de section). */
+html.lq #scr-compte>.account-title{padding-bottom:0!important}
+html.lq #scr-compte .acc-stack{display:flex!important;flex-direction:column;align-items:stretch!important;gap:28px!important;padding:18px 20px 32px!important}
+html.lq #scr-compte .acct-col{display:flex;flex-direction:column;gap:28px;min-width:0}
+html.lq #scr-compte .acct-block{min-width:0}
+/* Depuis la série de l'accueil : « Ma progression » s'arrête sous la barre de titre compacte */
+html.lq #acct-progress{scroll-margin-top:calc(var(--safe-top) + 60px)}
+html.lq .acct-sr{position:absolute!important;width:1px!important;height:1px!important;margin:-1px!important;padding:0!important;overflow:hidden!important;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0!important}
+
+/* Carte violette : initiale (touchée = modifier le profil), niveau, prochain cap */
+html.lq .acct-hero{
+  position:relative;padding:18px;border-radius:26px;color:#fff;
+  background:
+    radial-gradient(120px 120px at 96% 4%,rgba(255,255,255,.18),transparent 70%),
+    radial-gradient(180px 140px at -4% 110%,rgba(255,255,255,.12),transparent 70%),
+    var(--accent);
+  box-shadow:0 6px 0 var(--accent-lip);
+}
+html.lq .acct-id{
+  display:flex;align-items:center;gap:14px;width:100%;margin:0;padding:0;border:0;border-radius:18px;
+  background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;
+  -webkit-appearance:none;appearance:none;-webkit-tap-highlight-color:transparent;
+}
+html.lq .acct-id:focus-visible{outline:3px solid #fff;outline-offset:4px}
+html.lq .acct-avatar{
+  position:relative;flex:none;width:60px;height:60px;border-radius:50%;
+  display:grid;place-items:center;background:#fff;color:var(--accent-ink);
+  font:700 27px/1 var(--display);box-shadow:0 4px 0 rgba(20,10,60,.24);
+  transition:transform .12s var(--press),box-shadow .12s var(--press);
+}
+html.lq .acct-avatar i{
+  position:absolute;right:-5px;bottom:-5px;width:26px;height:26px;box-sizing:border-box;border-radius:50%;
+  display:grid;place-items:center;background:var(--accent-ink);border:2px solid #fff;color:#fff;
+}
+html.lq .acct-avatar i svg{width:13px;height:13px}
+html.lq .acct-id:active .acct-avatar{transform:translateY(4px);box-shadow:0 0 0 rgba(20,10,60,.24)}
+html.lq .acct-id-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+html.lq .acct-id-copy b{font:700 24px/1.15 var(--display);letter-spacing:-.015em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.lq .acct-id-copy small{font-size:15px;line-height:1.3;font-weight:600;color:#fff}
+html.lq .acct-level{margin-top:16px;padding:14px 14px 15px;border-radius:18px;background:rgba(20,10,60,.18)}
+html.lq .acct-level-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13.5px;line-height:1.3;font-weight:600}
+html.lq .acct-level-head small,html.lq .acct-level-head em{font:inherit;font-style:normal;color:#fff;text-transform:none;letter-spacing:0}
+html.lq .acct-level-next{display:block;margin:4px 0 10px;font:700 19px/1.2 var(--display);letter-spacing:-.01em;color:#fff}
+html.lq .acct-level-track{height:10px;border-radius:99px;background:rgba(255,255,255,.24);overflow:hidden}
+html.lq .acct-level-track i{display:block;height:100%;min-width:10px;border-radius:99px;background:#fff}
+
+/* Titres de section */
+html.lq .acct-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 12px;margin:0 0 12px;padding:0 2px}
+html.lq .acct-head h2{margin:0;font:700 22px/1.2 var(--display);letter-spacing:-.015em;color:var(--ink)}
+html.lq .acct-head span{font-size:14px;line-height:1.3;color:var(--ink-2);white-space:nowrap}
+
+/* Ma progression : trois chiffres dans une seule carte */
+html.lq .acct-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:14px 0;border:2px solid var(--line);border-radius:22px;background:#fff}
+html.lq .acct-stat{display:flex;flex-direction:column;align-items:center;min-width:0;padding:0 6px;text-align:center}
+html.lq .acct-stat+.acct-stat{border-left:2px solid var(--line-2)}
+html.lq .acct-stat-ico{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-ink)}
+html.lq .acct-stat-ico svg{width:21px;height:21px;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+html.lq .acct-stat.is-streak .acct-stat-ico{background:#FFF0DC}
+html.lq .acct-stat.is-streak .acct-stat-ico svg{width:22px;height:22px;stroke:none}
+html.lq .acct-stat.is-streak .f-o{fill:var(--flame-b)}
+html.lq .acct-stat.is-streak .f-i{fill:var(--flame-a)}
+html.lq .acct-stat.is-streak:not(.is-on) .acct-stat-ico{background:var(--surface-2)}
+html.lq .acct-stat.is-streak:not(.is-on) .f-o{fill:#D5CFEA}
+html.lq .acct-stat.is-streak:not(.is-on) .f-i{fill:#EAE6F6}
+html.lq .acct-stat b{margin-top:8px;font:700 28px/1 var(--display);color:var(--ink)}
+html.lq .acct-stat small{margin-top:4px;font-size:13.5px;line-height:1.25;color:var(--ink-2)}
+
+/* Cartes d'information : blanches, bordées, à plat */
+html.lq .acct-card{margin-top:12px;padding:16px;border:2px solid var(--line);border-radius:22px;background:#fff}
+html.lq .acct-head+.acct-card{margin-top:0}
+html.lq .acct-card-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+html.lq .acct-card-head b{font:700 17px/1.25 var(--display);color:var(--ink)}
+html.lq .acct-card-head span{font:700 14px/1.2 var(--display);color:var(--accent-ink);white-space:nowrap}
+html.lq .acct-card-foot{margin:14px 0 0;font-size:14px;line-height:1.4;color:var(--ink-2)}
+
+/* Cette semaine : repos (lune), séance prévue (anneau), en cours, faite (coche) */
+html.lq .acct-week{margin:14px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+html.lq .acct-day{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+html.lq .acct-day i{width:36px;max-width:100%;height:auto;aspect-ratio:1/1;box-sizing:border-box;border-radius:50%;display:grid;place-items:center;font-style:normal;background:var(--surface-2)}
+html.lq .acct-day i svg{width:16px;height:16px}
+html.lq .acct-day .f-m{fill:#B9B1DC}
+html.lq .acct-day.is-planned i{background:#fff;border:2px solid var(--lip)}
+html.lq .acct-day.is-started i{background:var(--accent-soft);border:2px solid var(--accent)}
+html.lq .acct-day.is-started i span{font:700 11px/1 var(--display);color:var(--accent-ink)}
+html.lq .acct-day.is-done i{background:var(--accent);color:#fff}
+html.lq .acct-day.is-done i svg{width:18px;height:18px}
+html.lq .acct-day.is-today i{box-shadow:0 0 0 3px #fff,0 0 0 5px #C9BCFF}
+html.lq .acct-day small{font:700 12px/1.2 var(--display);color:var(--ink-3)}
+html.lq .acct-day.is-today small{color:var(--ink)}
+
+/* Accomplissements : médaille violette une fois débloquée */
+html.lq .acct-badges{margin:0;padding:16px 10px;list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;border:2px solid var(--line);border-radius:22px;background:#fff}
+html.lq .acct-badge{display:flex;flex-direction:column;align-items:center;min-width:0;text-align:center}
+html.lq .acct-badge-ico{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);color:#7A739F}
+html.lq .acct-badge-ico svg{width:26px;height:26px;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+html.lq .acct-badge-code{font:700 18px/1 var(--mono);letter-spacing:-.02em}
+html.lq .acct-badge.is-on .acct-badge-ico{background:var(--accent);color:#fff;box-shadow:0 4px 0 var(--accent-lip)}
+html.lq .acct-badge>b{margin-top:12px;font:700 14px/1.2 var(--display);color:var(--ink);overflow-wrap:anywhere}
+html.lq .acct-badge>small{margin-top:4px;font-size:13px;font-weight:600;color:var(--ink-2)}
+html.lq .acct-badge.is-on>small{color:var(--accent-ink)}
+html.lq .acct-badge-bar{display:block;width:56px;max-width:100%;height:6px;margin-top:6px;border-radius:99px;background:var(--line-2);overflow:hidden}
+html.lq .acct-badge-bar i{display:block;height:100%;border-radius:99px;background:var(--accent)}
+
+/* Tes données : l'état du stockage et l'action utile tout de suite */
+html.lq .acct-data-top{display:flex;align-items:flex-start;gap:12px}
+html.lq .acct-data-ico{flex:none;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-ink)}
+html.lq .acct-data-ico svg{width:22px;height:22px;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+html.lq .acct-data-copy{min-width:0;display:flex;flex-direction:column;gap:3px}
+html.lq .acct-data-copy b{font:700 17px/1.25 var(--display);color:var(--ink)}
+html.lq .acct-data-copy small{font-size:14.5px;line-height:1.4;color:var(--ink-2);overflow-wrap:anywhere}
+html.lq .acct-data-go,html.lq .acct-card-go{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:50px;margin-top:14px;box-sizing:border-box;
+  border:2px solid var(--line);border-radius:16px;background:#fff;color:var(--accent-ink);
+  font:700 16px/1.2 var(--display);box-shadow:0 4px 0 var(--lip);cursor:pointer;
+  -webkit-appearance:none;appearance:none;transition:transform .12s var(--press),box-shadow .12s var(--press);
+}
+html.lq .acct-data-go svg{width:19px;height:19px;stroke:currentColor;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+html.lq .acct-data-go:active,html.lq .acct-card-go:active{transform:translateY(4px);box-shadow:0 0 0 var(--lip)}
+html.lq .acct-id:focus-visible .acct-avatar,html.lq .acct-data-go:focus-visible,html.lq .acct-card-go:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+html.lq .acct-id:focus-visible .acct-avatar{outline-color:#fff}
+
+/* Réglages : listes blanches bordées, une icône lilas par ligne */
+html.lq #scr-compte .account-settings-block{display:flex!important;flex-direction:column;gap:0!important}
+html.lq #scr-compte .account-settings-group{display:block!important;margin:0!important}
+html.lq #scr-compte .account-settings-group+.account-settings-group{margin-top:20px!important}
+html.lq #scr-compte .account-settings-group-title{margin:0 4px 8px!important;font-size:14px!important;line-height:1.2!important}
+html.lq #scr-compte .account-settings-list{border:2px solid var(--line)!important;border-radius:22px!important;background:#fff!important;overflow:hidden}
+html.lq #scr-compte .account-setting-row{min-height:68px!important;padding:12px 14px!important;grid-template-columns:40px minmax(0,1fr) auto!important;gap:12px!important}
 html.lq #scr-compte .account-setting-row+.account-setting-row{border-top:2px solid var(--line-2)}
-html.lq #scr-compte .account-setting-row b{font-family:var(--display);font-weight:700;font-size:16px;color:var(--ink)}
+html.lq #scr-compte .account-setting-row::after{display:none!important}
+html.lq #scr-compte .account-setting-row:active{background:var(--surface-2)!important;transform:none!important}
+html.lq #scr-compte .account-setting-row b{font:700 16px/1.2 var(--display)!important;color:var(--ink)}
+html.lq #scr-compte .account-setting-row small{margin-top:2px!important;font-size:13.5px!important;line-height:1.35!important;color:var(--ink-2)!important}
 html.lq #scr-compte .plus-row-icon{width:40px!important;height:40px!important;border-radius:13px!important;color:var(--accent-ink)!important;background:var(--accent-soft)!important;box-shadow:none!important}
 html.lq #scr-compte .plus-row-icon svg{stroke:currentColor!important}
-html.lq #scr-compte .account-setting-end em{font-family:var(--display);font-style:normal;font-weight:700;border-radius:999px!important}
-html.lq .account-stat-mark{border-radius:14px!important}
-html.lq .account-stats-grid b,html.lq .acc-stat b{font-family:var(--display)!important;font-weight:700!important}
-html.lq .account-level-track{height:12px!important;border-radius:99px!important;background:var(--surface-2)!important}
-html.lq .account-level-track i{background:var(--accent)!important;border-radius:99px!important}
-html.lq .account-week-day>span{border-radius:12px!important}
-html.lq .account-week-day.complete>span i{background:linear-gradient(180deg,var(--flame-a),var(--flame-b))!important}
-html.lq .account-week-day.started>span i{background:#FFC98F!important}
-html.lq .account-badge{border-radius:18px!important}
-html.lq .account-panel{border:2px solid var(--line)!important;border-radius:24px!important;box-shadow:none!important;background:#fff!important}
+html.lq #scr-compte svg.chev{flex:none;width:18px!important;height:18px!important;color:#8E88B5!important;stroke:currentColor;transform:none}
+html.lq #scr-compte .app-version-note{margin:0!important;text-align:center;font-size:13px!important;font-weight:500!important;letter-spacing:0!important;color:var(--ink-3)!important}
+
+/* Feuilles de réglages : en-tête blanc avec poignée, fermeture en relief */
+html.lq #scr-compte .plus-details[open]{
+  width:min(520px,100%)!important;border:0!important;border-radius:28px 28px 0 0!important;
+  background:#fff!important;box-shadow:0 -12px 40px rgba(34,28,70,.25)!important;
+}
+html.lq #scr-compte .plus-details[open]>summary{
+  position:sticky;top:0;z-index:2;min-height:0!important;padding:26px 18px 16px!important;
+  display:grid!important;grid-template-columns:minmax(0,1fr) 40px!important;column-gap:12px!important;row-gap:4px;align-items:start!important;
+  background:#fff!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+  border-bottom:2px solid var(--line-2)!important;box-shadow:none!important;
+}
+html.lq #scr-compte .plus-details[open]>summary::before{content:'';position:absolute;top:8px;left:50%;width:44px;height:5px;margin-left:-22px;border-radius:99px;background:#D9D3EE}
+html.lq #scr-compte .plus-details[open]>summary>span{grid-column:1;font:700 21px/1.2 var(--display)!important;letter-spacing:-.012em!important;color:var(--ink)}
+html.lq #scr-compte .plus-details[open]>summary>small{grid-column:1;margin:0!important;font-size:14.5px!important;line-height:1.35!important;color:var(--ink-2)!important}
+html.lq #scr-compte .plus-details[open]>summary>i{
+  grid-column:2;grid-row:1 / span 2;align-self:start;width:40px!important;height:40px!important;box-sizing:border-box;
+  display:grid!important;place-items:center;border:2px solid var(--line);border-radius:50%;
+  background:#fff!important;color:var(--ink-2)!important;box-shadow:0 3px 0 var(--lip);
+  font:400 24px/1 var(--ui)!important;font-style:normal;transform:none!important;
+}
+html.lq #scr-compte .plus-details-body{border-top:0!important;background:#fff!important;padding-bottom:calc(var(--safe-bottom) + 12px)!important}
+html.lq #scr-compte .plus-details-body>.acc-row{min-height:66px;padding:12px 18px!important;gap:12px!important;background:#fff!important}
+html.lq #scr-compte .plus-details-body>.acc-row+.acc-row{border-top:2px solid var(--line-2)}
+html.lq #scr-compte .plus-details-body>.acc-row::after{display:none!important}
+html.lq #scr-compte .acc-row:active{background:var(--surface-2)!important;transform:none!important}
+html.lq #scr-compte .acc-row .at b{font:700 16px/1.2 var(--display)!important;color:var(--ink)}
+html.lq #scr-compte .acc-row .at small{margin-top:2px!important;font-size:13.5px!important;line-height:1.35!important;color:var(--ink-2)!important}
+html.lq #scr-compte .acc-row.danger .at b{color:var(--danger)!important}
+html.lq #scr-compte .acc-row-ico{flex:none;width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-ink)}
+html.lq #scr-compte .acc-row-ico svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+html.lq #scr-compte .acc-row-ico.danger{background:var(--danger-soft);color:var(--danger)}
+html.lq #scr-compte .account-data-note{margin:16px 18px 8px!important;padding:13px 14px!important;border-radius:16px!important;background:var(--accent-soft)!important;color:var(--accent-lip)!important;font-size:14.5px!important;line-height:1.45!important;font-weight:600!important}
+html.lq #scr-compte .acc-note{margin:14px 18px 4px!important;padding:12px 14px!important;border-radius:16px;background:var(--accent-soft);color:var(--accent-lip)!important;font-size:14px!important;font-weight:600}
+html.lq #scr-compte .acc-field{padding:16px 18px 18px!important;border-bottom:2px solid var(--line-2)!important;background:#fff!important}
+html.lq #scr-compte .acc-field label{margin-bottom:8px;font:700 15px/1.2 var(--display)!important;color:var(--ink)!important}
+html.lq #scr-compte .acc-field input{min-height:50px;box-sizing:border-box;border:2px solid var(--line)!important;border-radius:16px!important;background:#fff!important;font-size:16px!important}
+html.lq #scr-compte .acc-field input:focus{border-color:var(--accent)!important;box-shadow:0 0 0 4px var(--accent-soft)!important}
+html.lq #scr-compte .acc-save{min-height:52px;margin-top:12px!important;border:0!important;border-radius:16px!important;background:var(--accent)!important;color:#fff!important;font:700 16px/1.2 var(--display)!important;box-shadow:0 4px 0 var(--accent-lip)!important;transition:transform .12s var(--press),box-shadow .12s var(--press)!important}
+html.lq #scr-compte .acc-save:active{transform:translateY(4px)!important;box-shadow:0 0 0 var(--accent-lip)!important}
+/* Rappel : interrupteur violet, créneaux en relief */
+html.lq #scr-compte .acc-toggle{background:var(--lip)!important;box-shadow:none!important}
+html.lq #scr-compte .acc-toggle.on{background:var(--accent)!important}
+html.lq #scr-compte .acc-remind-now{font-family:var(--mono);color:var(--accent-ink)!important}
+html.lq #scr-compte .acc-remind{padding:6px 18px 16px!important}
+html.lq #scr-compte .acc-remind-slot,html.lq #scr-compte .acc-remind-hour{
+  min-height:44px!important;padding:0 14px!important;border:2px solid var(--line)!important;border-radius:14px!important;
+  background:#fff!important;color:var(--ink-2)!important;font:700 14.5px/1 var(--display)!important;
+  box-shadow:0 3px 0 var(--lip)!important;transition:transform .12s var(--press),box-shadow .12s var(--press)!important;
+}
+html.lq #scr-compte .acc-remind-slot:active,html.lq #scr-compte .acc-remind-hour:active{transform:translateY(3px)!important;box-shadow:0 0 0 var(--lip)!important}
+html.lq #scr-compte .acc-remind-slot.on{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;box-shadow:0 3px 0 var(--accent-lip)!important}
+html.lq #scr-compte .acc-remind-hour.on{background:var(--accent-soft)!important;border-color:var(--accent)!important;color:var(--accent-ink)!important;box-shadow:0 3px 0 #C9BCFF!important}
+html.lq .screen:has(.plus-details[open]) .account-sheet-backdrop{background:rgba(34,28,70,.4)!important}
+/* Confort de lecture : de vrais interrupteurs (comme le rappel), pas des cases */
+html.lq .reading-option{gap:16px!important;border-top:2px solid var(--line-2)!important}
+html.lq .reading-option b{font:700 16px/1.25 var(--display)!important;color:var(--ink)}
+html.lq .reading-option small{font-size:13.5px!important;line-height:1.4!important;color:var(--ink-2)!important}
+html.lq .reading-option input[type=checkbox]{
+  -webkit-appearance:none;appearance:none;flex:none;position:relative;width:51px!important;height:31px!important;margin:0;
+  border-radius:999px;background:var(--lip);cursor:pointer;transition:background-color .2s ease;
+}
+html.lq .reading-option input[type=checkbox]::before{
+  content:'';position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;
+  box-shadow:0 2px 6px rgba(34,28,70,.22);transition:transform .2s var(--press);
+}
+html.lq .reading-option input[type=checkbox]:checked{background:var(--accent)}
+html.lq .reading-option input[type=checkbox]:checked::before{transform:translateX(20px)}
+html.lq #scr-compte .reading-preferences-sheet{padding:4px 18px 8px!important}
+html.lq .reading-preferences-sheet .reading-option:first-of-type{border-top:0!important}
+html.lq #reading-preferences-status{margin:8px 0 0;font-size:13px;line-height:1.4;font-weight:600;color:var(--accent-ink)}
+html.lq #reading-preferences-status:empty{display:none}
+html.lq #scr-compte .reading-preferences-sheet .reading-system-note{font-size:13px!important;color:var(--ink-3)!important}
+/* Feuille gardée ouverte pendant un changement de réglage : pas de nouvelle apparition */
+html.lq #scr-compte .plus-details.is-kept[open],html.lq .account-sheet-backdrop.is-kept{animation:none!important}
+
+/* Écran large (l'app reste une colonne) : dans la carte violette, le
+   profil à gauche et le prochain cap à droite. */
+@media (min-width:600px){
+  html.lq .acct-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);align-items:center;gap:20px;padding:20px}
+  html.lq .acct-level{margin-top:0}
+}
 
 /* ---------- 17. Défis ---------- */
 html.lq #scr-defis .def-focus{padding:18px!important}
