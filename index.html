@@ -27723,7 +27723,9 @@ function jeuTick(){
   if(jeuView()!==JEU.view)jeuPaint();
 }
 let jeuPaintRaf=0;
-function jeuPaint(){if(jeuPaintRaf)return;jeuPaintRaf=requestAnimationFrame(()=>{jeuPaintRaf=0;jeuRender();});}
+/* requestAnimationFrame est suspendu quand l’onglet est en arrière-plan :
+   un minuteur prend le relais pour que la partie reste à jour. */
+function jeuPaint(){if(jeuPaintRaf)return;const go=()=>{if(!jeuPaintRaf)return;cancelAnimationFrame(jeuPaintRaf.r);clearTimeout(jeuPaintRaf.t);jeuPaintRaf=0;jeuRender();};jeuPaintRaf={r:requestAnimationFrame(go),t:setTimeout(go,150)};}
 function jeuPlayersHTML(withFound){
   const J=JEU,n=jeuCur(),r=withFound&&n>=0?J.rounds[n]:null;
   return J.order.map(pid=>{
@@ -33582,7 +33584,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-jeu-amis-v1321';
+  const SW_CACHE='requete-2026-09-30-jeu-amis-v1322';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
