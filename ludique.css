@@ -1,0 +1,1525 @@
+/* ==========================================================================
+   Requête — thème « Ludique » (redesign complet)
+   Chargé en tout dernier, après design-premium.css et les finitions iOS.
+
+   Idées directrices
+   - Des objets qu'on a envie de toucher : les boutons et les cartes
+     cliquables ont un relief (une lèvre sous le bord) et s'enfoncent à
+     l'appui. Les blocs d'information, eux, restent à plat.
+   - Une police de titre avec du caractère (Bricolage Grotesque, embarquée),
+     la police système pour lire les leçons.
+   - Pas de sur-titres en capitales : des étiquettes en casse normale.
+   - Une couleur par module (chemin, carte « Reprendre ») et, dans le code,
+     une couleur par clause SQL : on voit la structure d'une requête.
+   - Le fond lilas porte des surfaces blanches bordées, sans ombres grises.
+
+   Tout est limité à html.lq : retirer cette classe rend l'ancien thème.
+   ========================================================================== */
+
+/* ---------- 0. Police de titre (OFL, sous-ensemble latin) ---------- */
+@font-face{font-family:'Bricolage Grotesque';src:url(assets/fonts/bricolage-grotesque-regular.woff2) format('woff2');font-weight:300 550;font-style:normal;font-display:swap}
+@font-face{font-family:'Bricolage Grotesque';src:url(assets/fonts/bricolage-grotesque-bold.woff2) format('woff2');font-weight:551 900;font-style:normal;font-display:swap}
+
+/* ---------- 1. Jetons ---------- */
+html.lq{
+  --display:'Bricolage Grotesque',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+
+  --bg:#F4F2FC;
+  --surface:#FFFFFF;
+  --surface-2:#F1EEFC;
+  --surface-elevated:#FFFFFF;
+  --ink:#221C46;
+  --ink-2:#4E4872;
+  --ink-3:#6A6490;
+  --line:#E6E1F6;
+  --line-2:#EFECFA;
+  --hairline:#E6E1F6;
+  --card-border:#E6E1F6;
+  --lip:#DCD5F2;
+
+  --accent:#6A4DF4;
+  --accent-2:#8B6CFF;
+  --accent-soft:#EEE9FF;
+  --accent-ink:#5335E0;
+  --accent-lip:#4B30CC;
+  --accent-grad:linear-gradient(135deg,#7C5CFF,#6A4DF4);
+
+  --success:#0F7A3A;
+  --success-fill:#169447;
+  --success-lip:#0F7337;
+  --success-soft:#E2F6EA;
+  --danger:#C2323A;
+  --danger-fill:#EF4F55;
+  --danger-lip:#C4363B;
+  --danger-soft:#FDEBEC;
+  --warn:#B45309;
+  --warn-fill:#FFB020;
+  --warn-soft:#FFF3DC;
+  --flame-a:#FFD23F;
+  --flame-b:#FF7A00;
+  --flame-lip:#E05E00;
+
+  --code-bg:#1E1A3B;
+  --code-bg-2:#28234D;
+  --code-ink:#EFEBFF;
+  --t-kw:#C9BCFF;
+  --t-fn:#8FD3FF;
+  --t-str:#A5EBC3;
+  --t-num:#FFC38A;
+  --t-com:#9C96C4;
+  /* Couleurs de clause dans le code */
+  --c-select:#B9A6FF;
+  --c-from:#7CC4FF;
+  --c-where:#FFB36B;
+  --c-group:#6EE7A8;
+  --c-order:#FF93C7;
+  --c-join:#5FE3D3;
+  --c-with:#FFE071;
+  --c-write:#FF9B9B;
+
+  --p-radius:22px;
+  --p-radius-sm:16px;
+  --p-shadow:none;
+  --p-shadow-lift:none;
+  --card-shadow:none;
+  --card-shadow-sm:none;
+  --lift-sm:none;
+  --lift-md:none;
+
+  --fs-hero:34px;
+  --fs-title:22px;
+  --tracking-hero:-.025em;
+  --tracking-tight:-.012em;
+
+  --press:cubic-bezier(.3,.7,.4,1.5);
+  --pop:cubic-bezier(.34,1.56,.64,1);
+}
+
+/* Couleurs de module (data-mc, posé par le rendu) */
+html.lq [data-mc="0"]{--m:#6A4DF4;--m-lip:#4B30CC;--m-soft:#EFEAFF;--m-mid:#B8A6FF;--m-ink:#5335E0}
+html.lq [data-mc="1"]{--m:#2563EB;--m-lip:#1846B8;--m-soft:#E7F0FF;--m-mid:#9DBEFF;--m-ink:#1D4FC4}
+html.lq [data-mc="2"]{--m:#A35F00;--m-lip:#7A4700;--m-soft:#FFF3DA;--m-mid:#F5C46B;--m-ink:#8F5500}
+html.lq [data-mc="3"]{--m:#118452;--m-lip:#0B6038;--m-soft:#E1F5EA;--m-mid:#7FD3A7;--m-ink:#0E7447}
+html.lq [data-mc="4"]{--m:#C8480D;--m-lip:#983406;--m-soft:#FFEDE3;--m-mid:#FFAA7A;--m-ink:#B03E09}
+html.lq [data-mc="5"]{--m:#0A7F7A;--m-lip:#065B57;--m-soft:#DFF4F2;--m-mid:#79D2CC;--m-ink:#08716C}
+html.lq [data-mc="6"]{--m:#C8316F;--m-lip:#9B2253;--m-soft:#FDE8F0;--m-mid:#F59DC0;--m-ink:#B12A62}
+html.lq [data-mc="7"]{--m:#8B3FD1;--m-lip:#6A2BA6;--m-soft:#F4EAFF;--m-mid:#CFA6F4;--m-ink:#7A33BD}
+
+/* ---------- 2. Fond et texte ---------- */
+html.lq,html.lq body{background:var(--bg)}
+html.lq body{color:var(--ink)}
+html.lq #app,html.lq #app .screen,html.lq #app #scr-learn{background:var(--bg)}
+
+/* ---------- 3. Grands titres et en-têtes ---------- */
+html.lq #app .lgtitle h1{
+  font-family:var(--display);font-weight:700;font-size:34px;line-height:1.04;
+  letter-spacing:-.025em;color:var(--ink);
+}
+html.lq #app .lgtitle .sub{font-size:15.5px;line-height:1.45;color:var(--ink-2);font-weight:450;letter-spacing:0}
+html.lq #app .p-bar-title{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:-.01em}
+html.lq #app .screen.p-scrolled>.p-bar{
+  background:rgba(244,242,252,.9);
+  box-shadow:0 2px 0 var(--line);
+}
+/* Retour : pastille ronde en relief + libellé */
+html.lq #app .home-back{color:var(--accent-ink);font-weight:650;font-size:16px;letter-spacing:-.01em;gap:8px}
+html.lq #app .home-back svg{
+  box-sizing:content-box;width:9px;height:15px;padding:7px 10px 7px 9px;
+  border-radius:50%;background:#fff;border:2px solid var(--line);
+  box-shadow:0 3px 0 var(--lip);
+  transition:transform .12s var(--press),box-shadow .12s;
+}
+html.lq #app .home-back:active{opacity:1}
+html.lq #app .home-back:active svg{transform:translateY(3px);box-shadow:0 0 0 var(--lip)}
+html.lq #app .home-back span{font-family:var(--display);font-weight:700}
+
+/* Avatar du compte */
+html.lq #app .learn-avatar,html.lq #app .lg-avatar{
+  width:40px!important;height:40px!important;border-radius:50%!important;
+  background:var(--accent)!important;color:#fff!important;border:0!important;
+  font-family:var(--display)!important;font-size:17px!important;font-weight:700!important;
+  box-shadow:0 3px 0 var(--accent-lip),0 0 0 3px #fff!important;
+  transition:transform .14s var(--press),box-shadow .14s!important;
+}
+html.lq #app .learn-avatar:active,html.lq #app .lg-avatar:active{transform:translateY(3px) scale(.96)!important;box-shadow:0 0 0 var(--accent-lip),0 0 0 3px #fff!important}
+
+/* ---------- 4. Étiquettes : casse normale, police de titre ---------- */
+html.lq .journey-kicker,
+html.lq .def-focus-kicker,
+html.lq .ent-hero-kicker,
+html.lq .ent-list-kicker,
+html.lq .account-settings-group-title,
+html.lq .plan-next-session>small,
+html.lq .pl-week-heading>div:first-child>span,
+html.lq .home-section-head>div>span,
+html.lq .notes-overview-copy small,
+html.lq .coll-overview-copy small,
+html.lq .coll-overview-next small,
+html.lq .console-projects-head small,
+html.lq .def-list-head p,
+html.lq .l-kicker,
+html.lq .sect-label,
+html.lq .h2-eye,
+html.lq .consigne .tag,
+html.lq .qtag,
+html.lq .sommaire-t,
+html.lq .jeu-lab,
+html.lq .qf-bank-h,
+html.lq .sit-memo-lab,
+html.lq .pl-overview-copy>small,
+html.lq .def-focus-level,
+html.lq .bravo-next-lab,
+html.lq .bravo-gcard-lab,
+html.lq .journey-step-copy .journey-kicker{
+  font-family:var(--display)!important;
+  text-transform:none!important;
+  letter-spacing:-.005em!important;
+  font-size:14px!important;
+  font-weight:700!important;
+  color:var(--accent-ink)!important;
+}
+
+/* ---------- 5. Boutons ---------- */
+/* Principal : violet plein, lèvre sombre, s'enfonce à l'appui */
+html.lq .journey-primary,
+html.lq .def-focus-cta,
+html.lq .ent-hero-cta,
+html.lq .notes-hub-new,
+html.lq .btn-run,
+html.lq .next-btn,
+html.lq .ob-cta,
+html.lq .plan-next-actions>button:first-child,
+html.lq .coll-overview-next button,
+html.lq .ls-nav .ls-next,
+html.lq .ijl-next,
+html.lq .pdefi-check,
+html.lq #scr-lesson .bravo-go,
+html.lq .ent-reveal-primary,
+html.lq .pl-adjust-apply,
+html.lq .lq-btn{
+  position:relative;
+  background:var(--accent)!important;background-image:none!important;
+  color:#fff!important;border:0!important;border-radius:16px!important;
+  min-height:54px;
+  font-family:var(--display)!important;font-weight:700!important;font-size:17px!important;letter-spacing:0!important;
+  box-shadow:0 4px 0 var(--accent-lip)!important;
+  transform:translateY(0);
+  transition:transform .12s var(--press),box-shadow .12s var(--press),filter .15s,background-color .2s!important;
+  -webkit-tap-highlight-color:transparent;
+}
+html.lq .journey-primary:active,
+html.lq .def-focus-cta:active,
+html.lq .ent-hero-cta:active,
+html.lq .notes-hub-new:active,
+html.lq .btn-run:active,
+html.lq .next-btn:active,
+html.lq .ob-cta:active,
+html.lq .plan-next-actions>button:first-child:active,
+html.lq .coll-overview-next button:active,
+html.lq .ls-nav .ls-next:active,
+html.lq .ijl-next:active,
+html.lq .pdefi-check:active,
+html.lq #scr-lesson .bravo-go:active,
+html.lq .ent-reveal-primary:active,
+html.lq .pl-adjust-apply:active:not(:disabled),
+html.lq .lq-btn:active{
+  transform:translateY(4px)!important;opacity:1!important;
+  box-shadow:0 0 0 var(--accent-lip)!important;
+}
+/* Les flèches « › » ne servent plus dans un bouton en relief */
+html.lq .journey-primary>svg:last-child,
+html.lq .def-focus-cta>svg:last-child,
+html.lq .ent-hero-cta>svg:last-child{display:none}
+
+/* Secondaire : blanc bordé, lèvre lilas */
+html.lq .plan-next-actions>button+button,
+html.lq .journey-planning button,
+html.lq .account-connect,
+html.lq .jeu-btn,
+html.lq .ux-card-review,
+html.lq .ls-nav .ls-prev,
+html.lq .qf-reset,
+html.lq .lq-btn-2{
+  background:#fff!important;background-image:none!important;
+  color:var(--accent-ink)!important;
+  border:2px solid var(--line)!important;border-radius:16px!important;
+  font-family:var(--display)!important;font-weight:700!important;letter-spacing:0!important;
+  box-shadow:0 4px 0 var(--lip)!important;
+  transform:translateY(0);
+  transition:transform .12s var(--press),box-shadow .12s var(--press),background-color .2s!important;
+}
+html.lq .plan-next-actions>button+button:active,
+html.lq .journey-planning button:active,
+html.lq .account-connect:active,
+html.lq .jeu-btn:active,
+html.lq .ux-card-review:active,
+html.lq .ls-nav .ls-prev:active,
+html.lq .qf-reset:active,
+html.lq .lq-btn-2:active{
+  transform:translateY(4px)!important;box-shadow:0 0 0 var(--lip)!important;
+}
+
+/* Désactivé : gris plat, sans relief */
+html.lq .ob-cta:disabled,
+html.lq .next-btn:disabled,
+html.lq .btn-run:disabled,
+html.lq .ls-nav .ls-next:disabled,
+html.lq .ls-nav .ls-next[aria-disabled="true"],
+html.lq .ls-nav .ls-next.locked{
+  background:#E4E0F0!important;color:#6F6A8C!important;
+  box-shadow:0 4px 0 #D3CEE4!important;opacity:1!important;
+}
+
+/* ---------- 6. Cartes ---------- */
+/* Information : blanc bordé, à plat */
+html.lq .account-identity,
+html.lq .account-settings-list,
+html.lq .console-quick-actions,
+html.lq .console-project-list,
+html.lq .def-focus,
+html.lq .def-list,
+html.lq .ent-hero,
+html.lq .ent-group,
+html.lq .notes-overview,
+html.lq .notes-empty,
+html.lq .coll-overview,
+html.lq .coll-module,
+html.lq .plan-next-session,
+html.lq .wk-chrome,
+html.lq .day-panel,
+html.lq .planning-progress,
+html.lq .pl-overview,
+html.lq .plan-modules,
+html.lq .consigne,
+html.lq .quiz-card,
+html.lq .qcard,
+html.lq .jeu-card,
+html.lq .journey-spotlight,
+html.lq #scr-lesson .concept-block,
+html.lq #scr-lesson .concept-block.lesson-lead,
+html.lq #scr-lesson .sommaire,
+html.lq #scr-lesson .bravo-recap,
+html.lq #scr-lesson .bravo-hero,
+html.lq .qcm-card{
+  background:var(--surface)!important;background-image:none!important;
+  border:2px solid var(--line)!important;
+  border-radius:var(--p-radius)!important;
+  box-shadow:none!important;
+}
+
+/* ---------- 7. Barre d'onglets : gardée telle quelle, juste accordée ---------- */
+html.lq #app>.tabbar.tabbar{
+  background:rgba(255,255,255,.94);
+  border-top:2px solid var(--line);
+}
+html.lq #app>.tabbar .tab{color:#77729A}
+html.lq #app>.tabbar .tab.active{color:var(--accent)}
+html.lq #app>.tabbar .tab.active svg{animation:lqTabPop .5s var(--pop)}
+@keyframes lqTabPop{0%{transform:scale(1)}35%{transform:scale(1.22) translateY(-2px)}65%{transform:scale(.94)}100%{transform:scale(1)}}
+
+/* ---------- 8. Bouton ✎ flottant ---------- */
+html.lq body:not(.in-lesson) .fab{
+  background:var(--accent)!important;border-radius:18px!important;
+  box-shadow:0 4px 0 var(--accent-lip),0 12px 24px -12px rgba(75,48,204,.6)!important;
+  transition:transform .12s var(--press),box-shadow .12s!important;
+}
+html.lq body:not(.in-lesson) .fab:active{transform:translateY(4px)!important;box-shadow:0 0 0 var(--accent-lip),0 6px 14px -10px rgba(75,48,204,.6)!important}
+html.lq body.in-lesson .fab{
+  background:#fff!important;color:var(--accent)!important;border:2px solid var(--line)!important;
+  border-radius:14px!important;box-shadow:0 3px 0 var(--lip)!important;
+}
+
+/* ---------- 10. Accueil ---------- */
+html.lq #scr-learn>.lgtitle{padding:calc(var(--safe-top) + 12px) 20px 0;min-height:0}
+html.lq #scr-learn>.lgtitle .journey-brand{font-family:var(--display)!important;font-size:19px!important;font-weight:700!important;letter-spacing:-.01em!important;gap:10px}
+html.lq #scr-learn>.lgtitle .journey-brand::before{width:34px;height:34px;border-radius:11px;background:var(--accent);box-shadow:0 3px 0 var(--accent-lip);font:700 13px/1 var(--mono)}
+html.lq #home-hero{padding:0 20px}
+html.lq #scr-learn.active>#home-hero>*{animation:lqRise .5s var(--pop) both}
+html.lq #scr-learn.active>#home-hero>*:nth-child(2){animation-delay:.05s}
+html.lq #scr-learn.active>#home-hero>*:nth-child(3){animation-delay:.1s}
+html.lq #scr-learn.active>#home-hero>*:nth-child(n+4){animation-delay:.15s}
+
+/* En-tête : salut + grand titre */
+html.lq .lq-heading{margin:14px 0 16px}
+html.lq .lq-hi{margin:0 0 4px;font-family:var(--display);font-size:16px;font-weight:600;letter-spacing:-.005em;color:var(--ink-2)}
+html.lq .lq-heading h2{margin:0 0 6px!important;font-family:var(--display)!important;font-size:31px!important;font-weight:700!important;letter-spacing:-.025em!important;line-height:1.04!important;color:var(--ink)}
+html.lq .lq-heading .journey-session-meta{font-size:14.5px;color:var(--ink-2)}
+html.lq .lq-heading .journey-session-meta>span{font-weight:550}
+
+/* Carte de série : flammes de la semaine */
+html.lq .lq-streak{
+  display:block;width:100%;margin:0 0 16px;padding:14px 14px 12px;
+  border:2px solid var(--line);border-radius:24px;background:#fff;
+  box-shadow:0 4px 0 var(--lip);text-align:left;font:inherit;color:inherit;cursor:pointer;
+  transition:transform .12s var(--press),box-shadow .12s var(--press);
+}
+html.lq .lq-streak:active{transform:translateY(4px);box-shadow:0 0 0 var(--lip)}
+html.lq .lq-streak:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+html.lq .lq-streak-top{display:flex;align-items:center;gap:12px}
+html.lq .lq-streak-flame{flex:none;width:46px;height:46px;display:grid;place-items:center;border-radius:15px;background:#FFF0DC}
+html.lq .lq-streak-flame svg{width:32px;height:32px;transform-origin:50% 90%;animation:lqFlicker 2.6s ease-in-out infinite}
+html.lq .lq-streak:not(.is-on) .lq-streak-flame{background:var(--surface-2)}
+html.lq .lq-streak:not(.is-on) .lq-streak-flame svg{animation:none}
+html.lq .lq-streak svg .f-o{fill:var(--flame-b)}
+html.lq .lq-streak svg .f-i{fill:var(--flame-a)}
+html.lq .lq-streak:not(.is-on) .lq-streak-flame .f-o{fill:#D5CFEA}
+html.lq .lq-streak:not(.is-on) .lq-streak-flame .f-i{fill:#EAE6F6}
+html.lq .lq-streak-copy{flex:1;min-width:0;display:flex;flex-direction:column}
+html.lq .lq-streak-copy b{font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:-.01em;line-height:1.2;color:var(--ink)}
+html.lq .lq-streak-copy small{margin-top:2px;font-size:13px;line-height:1.35;color:var(--ink-2)}
+html.lq .lq-streak-best{flex:none;align-self:flex-start;padding:4px 9px;border-radius:999px;background:#FFF0DC;color:#9A4300;font:700 12px/1.3 var(--display);white-space:nowrap}
+html.lq .lq-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;margin-top:12px}
+html.lq .lq-day{display:flex;flex-direction:column;align-items:center;gap:5px}
+html.lq .lq-day i{position:relative;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);font-style:normal}
+html.lq .lq-day i svg{width:22px;height:22px;transform-origin:50% 90%}
+html.lq .lq-day small{font:700 12px/1 var(--display);color:var(--ink-3)}
+html.lq .lq-day.is-done i{background:#FFEAD1}
+html.lq .lq-day.is-done svg{animation:lqFlameIn .6s var(--pop) both;animation-delay:calc(.25s + var(--d)*70ms)}
+html.lq .lq-day.is-done.is-now svg{animation:lqFlameIn .6s var(--pop) both .25s,lqFlicker 2.6s ease-in-out 1s infinite}
+html.lq .lq-day.is-missed .f-o{fill:#D9D3EC}
+html.lq .lq-day.is-missed .f-i{fill:#ECE8F7}
+html.lq .lq-day.is-today i{background:#fff;border:2px dashed #FF9A3D;animation:lqTodayPulse 2.2s ease-in-out infinite}
+html.lq .lq-day.is-today .f-o{fill:#FFD5AE}
+html.lq .lq-day.is-today .f-i{fill:#FFF0DF}
+html.lq .lq-day.is-now small{color:var(--ink)}
+html.lq .lq-day.is-rest .f-m{fill:#B9B1DC}
+html.lq .lq-day.is-future i{background:transparent;border:2px solid var(--line-2)}
+html.lq .lq-day.is-future .f-o{fill:#E9E5F6}
+html.lq .lq-day.is-future .f-i{fill:#F4F2FB}
+html.lq .lq-streak:active .lq-day.is-done svg{animation:lqWiggle .5s ease both}
+
+/* Carte « Reprendre » à la couleur du module */
+html.lq .lq-hero{
+  position:relative;margin:0 0 20px;padding:18px;border:0!important;border-radius:28px;color:#fff;
+  background:
+    radial-gradient(130px 130px at 94% 6%,rgba(255,255,255,.2),transparent 70%),
+    radial-gradient(200px 150px at -4% 108%,rgba(255,255,255,.14),transparent 70%),
+    var(--m);
+  box-shadow:0 6px 0 var(--m-lip);
+}
+html.lq .lq-hero .mascot-medal{
+  position:absolute;top:56px;right:16px;width:80px;height:80px;
+  box-shadow:0 0 0 4px rgba(255,255,255,.92),0 7px 0 1px var(--m-lip);
+  animation:lqFloat 4s ease-in-out infinite;
+}
+html.lq .lq-hero-body{min-height:132px}
+html.lq .lq-hero-kicker,html.lq .lq-hero-title,html.lq .lq-hero-sub{padding-right:92px}
+html.lq .lq-hero-mod{display:inline-flex;align-items:center;gap:8px;max-width:100%;padding:4px 11px 4px 4px;border-radius:999px;background:rgba(255,255,255,.2);font:600 13px/1.25 var(--display);color:#fff}
+html.lq .lq-hero-mod b{flex:none;padding:3px 9px;border-radius:999px;background:#fff;color:var(--m-ink);font-weight:700}
+html.lq .lq-hero-kicker{margin:12px 0 2px;font:600 14px/1.3 var(--display);color:#fff}
+html.lq .lq-hero-title{margin:0;font:700 34px/1.02 var(--display);letter-spacing:-.025em;color:#fff;overflow-wrap:anywhere}
+html.lq .lq-hero-sub{margin:6px 0 0;font-size:15px;line-height:1.4;color:#fff}
+html.lq .lq-hero.is-complete .lq-hero-title{font-size:27px}
+/* Étapes Leçon · Exercice · Quiz */
+html.lq .lq-steps{position:relative;list-style:none;margin:18px 0 18px;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+html.lq .lq-steps::before,html.lq .lq-steps::after{content:'';position:absolute;top:18px;left:16.667%;height:4px;border-radius:4px}
+html.lq .lq-steps::before{right:16.667%;background:rgba(255,255,255,.26)}
+html.lq .lq-steps::after{width:0;background:#fff;transition:width .7s cubic-bezier(.5,0,.2,1) .3s}
+html.lq .lq-steps:has(>.lq-step:nth-child(1).is-done)::after{width:33.333%}
+html.lq .lq-steps:has(>.lq-step:nth-child(2).is-done)::after{width:66.667%}
+html.lq .lq-step{position:relative;z-index:1;display:flex;justify-content:center}
+html.lq .lq-step button{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:64px;padding:0;border:0;background:none;color:inherit;font:inherit;cursor:pointer}
+html.lq .lq-step i{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font:700 16px/1 var(--display);font-style:normal;background:rgba(255,255,255,.24);color:#fff;box-shadow:0 3px 0 rgba(20,10,60,.16);transition:transform .12s var(--press),box-shadow .12s var(--press)}
+html.lq .lq-step i svg{width:20px;height:20px}
+html.lq .lq-step span{font:600 12.5px/1.2 var(--display);color:#fff}
+html.lq .lq-step.is-done i{background:#fff;color:var(--m-ink)}
+html.lq .lq-step.is-current i{background:#fff;color:var(--m-ink);animation:lqHalo 2.2s ease-in-out infinite}
+html.lq .lq-step.is-current span{color:#fff;font-weight:700}
+html.lq .lq-step.is-locked button{cursor:default}
+html.lq .lq-step.is-locked i{background:rgba(255,255,255,.14);color:#fff;box-shadow:none}
+html.lq .lq-step button:not([aria-disabled]):active i{transform:translateY(3px);box-shadow:0 0 0 rgba(20,10,60,.16)}
+/* Bouton blanc en relief */
+html.lq .lq-hero .lq-hero-cta{
+  gap:10px;min-height:58px;border-radius:18px!important;
+  background:#fff!important;color:var(--m-ink)!important;font-size:18px!important;
+  box-shadow:0 5px 0 rgba(20,10,60,.24)!important;
+}
+html.lq .lq-hero .lq-hero-cta:active{transform:translateY(5px)!important;box-shadow:0 0 0 rgba(20,10,60,.24)!important}
+html.lq .lq-play{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--m);color:#fff}
+html.lq .lq-play svg{width:14px;height:14px;margin-left:2px}
+
+/* Planning à ajuster */
+html.lq #home-hero .journey-planning{margin:0 0 16px;padding:12px 12px 12px 14px;border:2px solid #FFD9A6;border-radius:20px;background:#FFF6E8;box-shadow:0 4px 0 #FFD9A6}
+
+/* Raccourcis : deux tuiles en relief */
+html.lq .journey-shortcuts{display:grid!important;grid-template-columns:1fr 1fr;gap:12px;padding:0!important;margin:0 0 6px}
+html.lq .journey-shortcuts button,html.lq .journey-shortcuts button+button{
+  display:flex!important;flex-direction:column;align-items:flex-start;gap:10px;min-height:0!important;padding:14px!important;
+  border:2px solid var(--line)!important;border-radius:22px!important;background:#fff!important;box-shadow:0 4px 0 var(--lip)!important;
+  text-align:left;transition:transform .12s var(--press),box-shadow .12s var(--press)!important;
+}
+html.lq .journey-shortcuts button:active{transform:translateY(4px)!important;box-shadow:0 0 0 var(--lip)!important}
+html.lq .journey-shortcuts .journey-tool-icon{width:46px!important;height:46px!important;border-radius:15px!important;display:grid!important;place-items:center;color:#fff!important;margin:0!important}
+html.lq .journey-shortcuts button:nth-child(1) .journey-tool-icon{background:#2563EB!important;box-shadow:0 4px 0 #1846B8}
+html.lq .journey-shortcuts button:nth-child(2) .journey-tool-icon{background:#E8590C!important;box-shadow:0 4px 0 #B8430A}
+html.lq .journey-shortcuts .journey-tool-icon svg{width:25px!important;height:25px!important;stroke:#fff;stroke-width:2.1;fill:none;stroke-linecap:round;stroke-linejoin:round}
+html.lq .journey-shortcuts b{display:block;font:700 16px/1.2 var(--display)!important;letter-spacing:-.01em;color:var(--ink)}
+html.lq .journey-shortcuts small{display:block;margin-top:3px!important;font-size:13px!important;line-height:1.35;color:var(--ink-2)}
+
+/* ---------- 11. Chemin des modules ---------- */
+html.lq #scr-learn #modules{display:block;padding:18px 20px 28px;gap:0}
+html.lq .home-catalog-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:0 0 14px}
+html.lq .home-catalog-head>div>span{display:block;font:700 14px/1.2 var(--display)!important;letter-spacing:0!important;text-transform:none!important;color:var(--accent-ink)!important}
+html.lq .home-catalog-head h2{margin:2px 0 2px!important;font:700 27px/1.08 var(--display)!important;letter-spacing:-.022em!important;color:var(--ink)!important}
+html.lq #scr-learn .home-catalog-head p{margin:0;font-size:14px;line-height:1.4;color:var(--ink-2)}
+html.lq #scr-learn .home-catalog-head .lq-search-toggle{
+  flex:none;display:inline-flex;align-items:center;gap:6px;min-height:42px;padding:0 14px;
+  border:2px solid var(--line);border-radius:999px;background:#fff;color:var(--accent-ink);
+  font:700 14px/1 var(--display);box-shadow:0 3px 0 var(--lip);
+  transition:transform .12s var(--press),box-shadow .12s var(--press);
+}
+html.lq #scr-learn .home-catalog-head .lq-search-toggle svg{width:18px;height:18px}
+html.lq #scr-learn .home-catalog-head .lq-search-toggle:active{transform:translateY(3px);box-shadow:0 0 0 var(--lip)}
+html.lq #scr-learn .home-catalog-head .lq-search-toggle[aria-expanded="true"]{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 3px 0 var(--accent-lip)}
+html.lq .catalog-tools{margin:0 0 16px;padding:14px;border:2px solid var(--line);border-radius:22px;background:#fff;animation:lqRise .35s var(--pop) both}
+html.lq .catalog-tools .catalog-search{margin:0 0 12px}
+html.lq .catalog-search label{font:700 14px/1.3 var(--display)!important;color:var(--ink)!important}
+html.lq .catalog-search>div{border:2px solid var(--line)!important;border-radius:16px!important;background:var(--surface-2)!important;padding:4px 12px!important}
+html.lq .catalog-search>div:focus-within{outline:0!important;border-color:var(--accent)!important;background:#fff!important;box-shadow:0 0 0 4px var(--accent-soft)}
+html.lq .catalog-filters{margin:0!important;gap:8px}
+html.lq .catalog-filters button{min-height:40px;padding:8px 12px;border:2px solid var(--line)!important;border-radius:999px!important;background:#fff!important;color:var(--ink-2)!important;font:700 13.5px/1 var(--display)!important;box-shadow:0 3px 0 var(--lip);transition:transform .12s var(--press),box-shadow .12s var(--press),background .15s}
+html.lq .catalog-filters button:active{transform:translateY(3px);box-shadow:0 0 0 var(--lip)}
+html.lq .catalog-filters button[aria-pressed="true"]{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;box-shadow:0 3px 0 var(--accent-lip)}
+html.lq .catalog-filters button span{font:700 12px/1 var(--display)!important;opacity:.8}
+
+/* Un module = une bannière en relief + son chemin de leçons */
+html.lq #scr-learn #modules>.home-module{
+  margin:0 0 14px!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;overflow:visible!important;
+  animation:lqRise .5s var(--pop) both;animation-delay:calc(min(var(--i,0),10) * 35ms + .1s);
+}
+html.lq #scr-learn #modules>.home-module:hover{transform:none}
+html.lq .home-module-summary{
+  display:grid!important;grid-template-columns:54px minmax(0,1fr) auto!important;grid-template-rows:auto auto!important;
+  column-gap:12px!important;row-gap:12px!important;align-items:center;min-height:0!important;padding:14px!important;
+  border:2px solid var(--line);border-radius:24px;background:#fff!important;box-shadow:0 4px 0 var(--lip);
+  transition:transform .12s var(--press),box-shadow .12s var(--press)!important;
+}
+html.lq .home-module-summary:hover{background:#fff!important}
+html.lq .home-module-summary:active{transform:translateY(4px);box-shadow:0 0 0 var(--lip);background:#fff!important}
+html.lq .home-module-summary:focus-visible{outline:3px solid var(--accent)!important;outline-offset:3px!important;border-radius:24px!important}
+html.lq .home-module[open]>.home-module-summary{border-bottom:2px solid var(--line)!important}
+html.lq .home-module-num{
+  width:54px!important;height:54px!important;border-radius:17px!important;background:var(--m)!important;color:#fff!important;
+  font:700 22px/1 var(--display)!important;box-shadow:0 4px 0 var(--m-lip)!important;display:grid!important;place-items:center;
+}
+html.lq .home-module-num svg{width:26px!important;height:26px!important;stroke:#fff!important;stroke-width:3!important}
+html.lq #scr-learn .home-module-copy small.lq-unit-k{display:block;margin:0 0 2px;font:700 12.5px/1.2 var(--display)!important;color:var(--m-ink)!important}
+html.lq #scr-learn .home-module-copy b{font:700 17px/1.2 var(--display)!important;letter-spacing:-.012em!important;color:var(--ink)!important}
+html.lq #scr-learn .home-module-copy small:not(.lq-unit-k){display:block;margin-top:3px;font-size:13px!important;line-height:1.35!important;color:var(--ink-2)!important}
+html.lq .home-module-side{gap:8px!important}
+html.lq .home-module-count{padding:5px 9px!important;border-radius:999px!important;background:var(--m-soft)!important;color:var(--m-ink)!important;font:700 13px/1 var(--display)!important}
+html.lq .home-module-valid{padding:5px 9px!important;border-radius:999px!important;background:var(--success-soft)!important;color:var(--success)!important;font:700 12.5px/1 var(--display)!important}
+html.lq .home-module-chev{width:30px!important;height:30px!important;border-radius:50%!important;background:var(--surface-2)!important;color:var(--ink-2)!important;transition:transform .3s var(--pop)!important}
+html.lq .home-module[open] .home-module-chev{transform:rotate(90deg)!important;background:var(--m-soft)!important;color:var(--m-ink)!important}
+html.lq .home-module-progress{grid-column:1/-1!important;height:12px!important;border-radius:99px!important;background:var(--m-soft)!important;overflow:hidden}
+html.lq .home-module-progress>i{position:relative;background:var(--m)!important;border-radius:99px!important;min-width:0;animation:lqGrow .9s cubic-bezier(.5,0,.2,1) both .25s;transform-origin:left}
+html.lq .home-module-progress>i::after{content:'';position:absolute;left:7px;right:7px;top:3px;height:3px;border-radius:3px;background:rgba(255,255,255,.4)}
+/* Module en cours : bannière pleine */
+html.lq .home-module.is-current>.home-module-summary{background:var(--m)!important;border-color:var(--m)!important;box-shadow:0 5px 0 var(--m-lip)}
+html.lq .home-module.is-current>.home-module-summary:active{box-shadow:0 0 0 var(--m-lip)}
+html.lq .home-module.is-current[open]>.home-module-summary{border-bottom-color:var(--m)!important}
+html.lq .home-module.is-current .home-module-num{background:#fff!important;color:var(--m-ink)!important;box-shadow:0 4px 0 rgba(20,10,60,.2)!important}
+html.lq .home-module.is-current .home-module-num svg{stroke:var(--m-ink)!important}
+html.lq #scr-learn .home-module.is-current .home-module-copy small.lq-unit-k{color:#fff!important}
+html.lq #scr-learn .home-module.is-current .home-module-copy b{color:#fff!important}
+html.lq #scr-learn .home-module.is-current .home-module-copy small:not(.lq-unit-k){color:#fff!important}
+html.lq .home-module.is-current .home-module-count{background:rgba(255,255,255,.22)!important;color:#fff!important}
+html.lq .home-module.is-current .home-module-chev{background:rgba(255,255,255,.22)!important;color:#fff!important}
+html.lq .home-module.is-current .home-module-progress{background:rgba(255,255,255,.26)!important}
+html.lq .home-module.is-current .home-module-progress>i{background:#fff!important}
+html.lq .home-module.is-current .home-module-progress>i::after{background:var(--m-mid)}
+
+/* Leçons : pastilles sur un chemin sinueux */
+html.lq #scr-learn #modules .home-module>.list{
+  position:relative;margin:0;padding:22px 4px 6px 6px;background:none!important;border:0!important;
+  border-radius:0!important;box-shadow:none!important;overflow:visible!important;animation:none!important;
+}
+html.lq .lq-path{position:absolute;left:0;top:0;z-index:0;overflow:visible;pointer-events:none}
+html.lq .lq-path-base{fill:none;stroke:#DCD5F2;stroke-width:5;stroke-linecap:round;stroke-dasharray:.1 12}
+html.lq .lq-path-done{fill:none;stroke:var(--m);stroke-width:6;stroke-linecap:round;opacity:.85}
+html.lq #scr-learn #modules .home-module .row{
+  position:relative;z-index:1;display:grid!important;grid-template-columns:62px minmax(0,1fr);grid-template-areas:"n k" "n b";
+  column-gap:14px;align-items:center;align-content:center;min-height:86px;margin-left:var(--zz,0px);padding:6px 4px!important;
+  background:none!important;border:0!important;box-shadow:none!important;flex-wrap:nowrap;width:calc(100% - var(--zz,0px));
+}
+html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+2){--zz:22px}
+html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+3){--zz:38px}
+html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+4){--zz:44px}
+html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+5){--zz:38px}
+html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+6){--zz:22px}
+html.lq #scr-learn #modules .home-module .row::after,html.lq #scr-learn #modules .home-module .row::before{display:none!important}
+html.lq #scr-learn #modules .home-module .row:hover{background:none!important}
+html.lq #scr-learn #modules .home-module .row .lz-num{
+  --lipc:var(--lip);grid-area:n;position:relative;width:62px!important;height:62px!important;border-radius:50%!important;
+  background:#fff!important;color:var(--ink-3)!important;border:2px solid var(--line)!important;
+  font:700 21px/1 var(--display)!important;box-shadow:0 5px 0 var(--lipc)!important;animation:none!important;
+  transition:transform .12s var(--press),box-shadow .12s var(--press)!important;
+}
+html.lq #scr-learn #modules .home-module .row:active .lz-num{transform:translateY(5px)!important;box-shadow:0 0 0 var(--lipc)!important}
+html.lq #scr-learn #modules .home-module .row.done-row .lz-num{--lipc:var(--m-lip);background:var(--m)!important;border-color:var(--m)!important;color:transparent!important}
+html.lq #scr-learn #modules .home-module .row.done-row .lz-num::after{
+  content:'';position:absolute;inset:0;margin:auto;width:28px;height:28px;background:#fff;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/contain no-repeat;
+          mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+html.lq #scr-learn #modules .home-module .row.current .lz-num{--lipc:var(--m-lip);border:4px solid var(--m)!important;color:var(--m-ink)!important}
+html.lq #scr-learn #modules .home-module .row.current .lz-num::before{
+  content:'';position:absolute;inset:-10px;border-radius:50%;border:3px solid var(--m);opacity:0;
+  animation:lqPulse 1.9s ease-out infinite;pointer-events:none;
+}
+html.lq #scr-learn #modules .home-module .row .lz-num.due{--lipc:#C98200;background:var(--warn-fill)!important;border-color:var(--warn-fill)!important;color:#fff!important}
+html.lq #scr-learn #modules .home-module .row .lz-body{grid-area:b;min-width:0}
+html.lq #scr-learn #modules .home-module .row .lz-body b{display:block;font:700 16px/1.25 var(--display)!important;letter-spacing:-.01em!important;color:var(--ink)!important}
+html.lq #scr-learn #modules .home-module .row .lz-body small{display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden!important;margin-top:2px;font-size:13px!important;line-height:1.38!important;color:var(--ink-2)!important}
+html.lq #scr-learn #modules .home-module .row.done-row .lz-body b{color:var(--ink-2)!important}
+html.lq #scr-learn #modules .home-module .row .catalog-lesson-state{grid-area:k;justify-self:start;margin:0 0 5px;padding:4px 10px;border-radius:999px;font:700 12px/1.2 var(--display)}
+html.lq #scr-learn #modules .home-module .row .catalog-lesson-state.next{background:var(--m);color:#fff;box-shadow:0 2px 0 var(--m-lip);animation:lqBob 2.2s ease-in-out infinite}
+html.lq #scr-learn #modules .home-module .row .catalog-lesson-state.review{background:var(--warn-soft);color:var(--warn)}
+html.lq #scr-learn #modules .home-module .row .lesson-validation{position:absolute!important;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+html.lq #scr-learn #modules .home-module .row>svg.chev{display:none}
+/* Apparition du chemin à l'ouverture */
+html.lq #scr-learn #modules .home-module>.list.lq-in>.row .lz-num{animation:lqNodeIn .55s var(--pop) both!important;animation-delay:calc(var(--k,0) * 55ms)!important}
+html.lq #scr-learn #modules .home-module>.list.lq-in>.row .lz-body,
+html.lq #scr-learn #modules .home-module>.list.lq-in>.row .catalog-lesson-state{animation:lqSlideIn .4s ease both;animation-delay:calc(var(--k,0) * 55ms + 90ms)}
+html.lq #scr-learn #modules .home-module>.list.lq-in>.row .catalog-lesson-state.next{animation:lqSlideIn .4s ease both calc(var(--k,0) * 55ms + 90ms),lqBob 2.2s ease-in-out 1.2s infinite}
+/* Résultats de recherche */
+html.lq .catalog-result-group h3{font:700 16px/1.3 var(--display)!important;color:var(--ink)!important}
+html.lq .catalog-result-group .list{border:2px solid var(--line)!important;border-radius:20px!important}
+
+/* ---------- 12. Pièces communes des rubriques ---------- */
+/* Couleur propre à chaque rubrique (cartes d'en-tête pleines) */
+html.lq .def-focus,html.lq #scr-practice .journey-spotlight{--m:#118452;--m-lip:#0B6038;--m-soft:#E1F5EA;--m-mid:#7FD3A7;--m-ink:#0E7447}
+html.lq .coll-overview,html.lq #scr-library .journey-spotlight{--m:#C8480D;--m-lip:#983406;--m-soft:#FFEDE3;--m-mid:#FFAA7A;--m-ink:#B03E09}
+html.lq .notes-overview{--m:#0A7F7A;--m-lip:#065B57;--m-soft:#DFF4F2;--m-mid:#79D2CC;--m-ink:#08716C}
+html.lq .ent-hero{--m:#8B3FD1;--m-lip:#6A2BA6;--m-soft:#F4EAFF;--m-mid:#CFA6F4;--m-ink:#7A33BD}
+html.lq .pl-overview{--m:#6A4DF4;--m-lip:#4B30CC;--m-soft:#EFEAFF;--m-mid:#B8A6FF;--m-ink:#5335E0}
+
+/* Carte d'en-tête pleine (même famille que « Reprendre ») */
+html.lq .def-focus,
+html.lq .journey-spotlight,
+html.lq .coll-overview,
+html.lq .notes-overview,
+html.lq .ent-hero,
+html.lq .plan-next-session{
+  position:relative;color:#fff!important;border:0!important;border-radius:26px!important;
+  background:
+    radial-gradient(120px 120px at 96% 4%,rgba(255,255,255,.18),transparent 70%),
+    radial-gradient(180px 140px at -4% 110%,rgba(255,255,255,.12),transparent 70%),
+    var(--m,var(--accent))!important;
+  box-shadow:0 6px 0 var(--m-lip,var(--accent-lip))!important;
+  animation:lqRise .5s var(--pop) both;
+}
+html.lq .def-focus *,html.lq .journey-spotlight *,html.lq .coll-overview *,html.lq .notes-overview *,html.lq .ent-hero *,html.lq .plan-next-session *{color:inherit}
+html.lq .def-focus .def-focus-kicker,
+html.lq .journey-spotlight .journey-kicker,
+html.lq .coll-overview-copy small,
+html.lq .coll-overview-next small,
+html.lq .notes-overview-copy small,
+html.lq .ent-hero-kicker,
+html.lq .plan-next-session>small{color:#fff!important}
+html.lq .journey-spotlight h2,html.lq .def-focus-copy h2,html.lq .plan-next-session h2,html.lq .ent-hero-txt b,html.lq .coll-overview-copy strong,html.lq .notes-overview-copy b{
+  font-family:var(--display)!important;font-weight:700!important;letter-spacing:-.02em!important;color:#fff!important;
+}
+html.lq .journey-spotlight>p:not(.journey-kicker),html.lq .def-focus-copy p,html.lq .plan-next-session>p,html.lq .ent-hero-txt>span:not(.ent-hero-kicker),html.lq .coll-overview-copy span,html.lq .notes-overview-copy span{color:#fff!important}
+/* Textes secondaires des cartes pleines (l'ancien thème les forçait en gris) */
+html.lq #app .notes-overview-copy span,html.lq #app .coll-overview-copy span,
+html.lq #app .ent-readiness-stats small,html.lq #app .coll-overview-stats small,html.lq #app .def-focus-stats small,
+html.lq #app .ent-hero-stats span,html.lq #app .ent-hero-stats strong,html.lq #app .ent-hero-txt>span,
+html.lq #app .journey-spotlight>p:not(.journey-kicker),html.lq #app .def-focus-copy p,html.lq #app .plan-next-session>p,
+html.lq #app .pl-overview-copy span,html.lq #app .pl-overview-copy small,html.lq #app .pl-overview-stats small,
+html.lq #app .pl-overview-next small,html.lq #app .pl-overview-next em,html.lq #app .coll-overview-next small,
+html.lq #app .def-focus-progress strong,html.lq #app .def-focus-total{color:#fff!important}
+/* Bouton blanc dans une carte pleine */
+html.lq .journey-spotlight .journey-primary,
+html.lq .def-focus .def-focus-cta,
+html.lq .ent-hero .ent-hero-cta,
+html.lq .coll-overview-next button,
+html.lq .plan-next-actions>button:first-child{
+  background:#fff!important;color:var(--m-ink,var(--accent-ink))!important;box-shadow:0 5px 0 rgba(20,10,60,.24)!important;
+}
+html.lq .journey-spotlight .journey-primary:active,
+html.lq .def-focus .def-focus-cta:active,
+html.lq .ent-hero .ent-hero-cta:active,
+html.lq .coll-overview-next button:active,
+html.lq .plan-next-actions>button:first-child:active{box-shadow:0 0 0 rgba(20,10,60,.24)!important;transform:translateY(5px)!important}
+html.lq .plan-next-actions>button+button,
+html.lq .coll-overview .ux-card-review{
+  background:rgba(255,255,255,.18)!important;color:#fff!important;border:2px solid rgba(255,255,255,.4)!important;box-shadow:0 4px 0 rgba(20,10,60,.18)!important;
+}
+html.lq .plan-next-actions>button+button:active,html.lq .coll-overview .ux-card-review:active{box-shadow:0 0 0 rgba(20,10,60,.18)!important}
+/* Anneaux de progression sur fond plein */
+html.lq .def-focus-icon,html.lq .coll-overview-ring,html.lq .ent-hero .ring,html.lq .pl-overview-ring{
+  background:conic-gradient(#fff calc(var(--p)*1%),rgba(255,255,255,.26) 0)!important;box-shadow:none!important;
+}
+html.lq .def-focus-icon::after,html.lq .coll-overview-ring::after,html.lq .ent-hero .ring::after,html.lq .pl-overview-ring::after{background:var(--m)!important}
+html.lq .def-focus-icon b,html.lq .coll-overview-ring b,html.lq .ent-hero .ring span,html.lq .pl-overview-ring i{color:#fff!important;font-family:var(--display)!important;font-weight:700!important;font-style:normal}
+/* Chiffres des cartes pleines */
+html.lq .coll-overview-stats,html.lq .ent-readiness-stats,html.lq .def-focus-stats{border-color:rgba(255,255,255,.22)!important}
+html.lq .coll-overview-stats div+div,html.lq .ent-readiness-stats div+div,html.lq .def-focus-stats div+div{border-color:rgba(255,255,255,.22)!important}
+html.lq .coll-overview-stats b,html.lq .ent-readiness-stats b,html.lq .def-focus-stats b{font-family:var(--display)!important;font-size:22px!important;font-weight:700!important;color:#fff!important}
+html.lq .coll-overview-stats small,html.lq .ent-readiness-stats small,html.lq .def-focus-stats small{color:#fff!important}
+
+/* Contrôles segmentés : piste lilas, pastille blanche en relief */
+html.lq .def-levels,html.lq .ent-status,html.lq .account-sections,html.lq .jeu-seg{
+  background:#E9E5F8!important;border:0!important;border-radius:18px!important;padding:4px!important;box-shadow:inset 0 2px 0 rgba(34,28,70,.05)!important;gap:4px!important;
+}
+html.lq .def-levels>button,html.lq .ent-status>button,html.lq .account-sections>button,html.lq .jeu-seg button{
+  border-radius:14px!important;min-height:44px;border:2px solid transparent!important;background:transparent!important;
+  color:var(--ink-2)!important;font-family:var(--display)!important;font-size:14.5px!important;font-weight:700!important;box-shadow:none!important;
+  transition:background .2s,color .2s,transform .12s var(--press),box-shadow .2s!important;
+}
+html.lq .def-levels>button.on,html.lq .def-levels>button[aria-selected="true"],
+html.lq .ent-status>button.on,html.lq .ent-status>button[aria-selected="true"],
+html.lq .account-sections>button.on,html.lq .account-sections>button[aria-selected="true"],
+html.lq .jeu-seg button.on{
+  background:#fff!important;color:var(--accent-ink)!important;border-color:#fff!important;
+  box-shadow:0 3px 0 var(--lip)!important;animation:lqSegIn .35s var(--pop);
+}
+html.lq .def-levels>button:active,html.lq .ent-status>button:active,html.lq .account-sections>button:active,html.lq .jeu-seg button:active{transform:scale(.96)}
+html.lq .def-levels small,html.lq .ent-status-btn small{font-family:var(--display)!important;font-weight:700!important;opacity:.75}
+
+/* Pastilles de filtre */
+html.lq .fbar{gap:8px}
+html.lq .fbar .fchip,html.lq .fchip{
+  min-height:40px;padding:8px 13px!important;border:2px solid var(--line)!important;border-radius:999px!important;
+  background:#fff!important;color:var(--ink-2)!important;font-family:var(--display)!important;font-weight:700!important;font-size:13.5px!important;
+  box-shadow:0 3px 0 var(--lip)!important;transition:transform .12s var(--press),box-shadow .12s var(--press),background .15s!important;
+}
+html.lq .fchip:active{transform:translateY(3px)!important;box-shadow:0 0 0 var(--lip)!important}
+html.lq .fchip.on{background:var(--ink)!important;border-color:var(--ink)!important;color:#fff!important;box-shadow:0 3px 0 #0E0A26!important}
+html.lq .fchip small{font-family:var(--display)!important;font-weight:700!important;opacity:.75}
+
+/* Champs de saisie */
+html.lq .jeu-input,html.lq #scr-compte input[type="text"],html.lq .searchbar input,html.lq .notes-hub input[type="search"]{
+  border:2px solid var(--line)!important;border-radius:16px!important;background:var(--surface-2)!important;font-size:16px;
+  transition:border-color .15s,background .15s,box-shadow .15s!important;
+}
+html.lq .jeu-input:focus,html.lq .searchbar input:focus{border-color:var(--accent)!important;background:#fff!important;box-shadow:0 0 0 4px var(--accent-soft)!important}
+
+/* Titres de section dans les rubriques */
+html.lq .def-list-head h2,html.lq .ent-list-title h2,html.lq .console-projects-head h2,html.lq .pl-week-heading h2,html.lq .home-section-head h2{
+  font-family:var(--display)!important;font-weight:700!important;font-size:23px!important;letter-spacing:-.02em!important;color:var(--ink)!important;
+}
+html.lq .def-list-head>span,html.lq .ent-list-count{
+  background:#fff!important;border:2px solid var(--line)!important;color:var(--ink-2)!important;box-shadow:none!important;
+  font-family:var(--display)!important;font-weight:700!important;font-size:13px!important;border-radius:999px!important;padding:4px 10px!important;
+}
+
+/* ---------- 13. Pratiquer et Bibliothèque : tuiles ---------- */
+html.lq #app .journey-hub-list{margin:18px 20px 0;background:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible!important;display:flex;flex-direction:column;gap:12px}
+html.lq #app .journey-resource{
+  gap:14px;min-height:84px;padding:14px 14px 14px 14px;border:2px solid var(--line)!important;border-radius:22px!important;
+  background:#fff!important;box-shadow:0 4px 0 var(--lip)!important;
+  transition:transform .12s var(--press),box-shadow .12s var(--press)!important;animation:lqRise .45s var(--pop) both;
+}
+html.lq #app .journey-resource:nth-child(2){animation-delay:.05s}
+html.lq #app .journey-resource:nth-child(3){animation-delay:.1s}
+html.lq #app .journey-resource:nth-child(n+4){animation-delay:.15s}
+html.lq #app .journey-resource+.journey-resource::before{display:none}
+html.lq #app .journey-resource:active{background:#fff!important;transform:translateY(4px);box-shadow:0 0 0 var(--lip)!important}
+html.lq #app .journey-resource b{font-family:var(--display);font-size:18px;font-weight:700;letter-spacing:-.012em;color:var(--ink)}
+html.lq #app .journey-resource small{font-size:13.5px;color:var(--ink-2)}
+html.lq #app .journey-resource .journey-tool-icon{width:52px;height:52px;border-radius:17px;box-shadow:0 4px 0 rgba(20,10,60,.2)}
+html.lq #app .journey-resource .journey-tool-icon svg{width:26px;height:26px;stroke:#fff;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+html.lq #app .journey-resource[data-kind="console"] .journey-tool-icon{background:#2563EB;box-shadow:0 4px 0 #1846B8}
+html.lq #app .journey-resource[data-kind="defis"] .journey-tool-icon{background:#118452;box-shadow:0 4px 0 #0B6038}
+html.lq #app .journey-resource[data-kind="cards"] .journey-tool-icon{background:#E8590C;box-shadow:0 4px 0 #B8430A}
+html.lq #app .journey-resource[data-kind="notes"] .journey-tool-icon{background:#0A7F7A;box-shadow:0 4px 0 #065B57}
+html.lq #app .journey-resource[data-kind="interview"] .journey-tool-icon{background:#8B3FD1;box-shadow:0 4px 0 #6A2BA6}
+html.lq #app .journey-resource[data-kind="courses"] .journey-tool-icon{background:var(--accent);box-shadow:0 4px 0 var(--accent-lip)}
+html.lq #app .journey-resource.def-jeu .journey-tool-icon{background:#C8316F;box-shadow:0 4px 0 #9B2253}
+html.lq #app .journey-resource>svg{width:18px;height:18px;color:#B3ACD4}
+html.lq .journey-spotlight{margin:0 0 4px!important;padding:18px!important}
+html.lq .journey-spotlight h2{font-size:25px!important;line-height:1.1!important;margin:4px 0 6px!important}
+html.lq .journey-spotlight .journey-primary{margin-top:4px}
+
+/* ---------- 14. Parcours ---------- */
+html.lq #scr-planning .planning-toolbar{gap:10px}
+html.lq #scr-planning .planning-toolbar button{
+  border:2px solid var(--line)!important;border-radius:999px!important;background:#fff!important;color:var(--accent-ink)!important;
+  box-shadow:0 3px 0 var(--lip)!important;font-family:var(--display)!important;font-weight:700!important;font-size:14.5px!important;
+  transition:transform .12s var(--press),box-shadow .12s var(--press)!important;
+}
+html.lq #scr-planning .planning-toolbar button:active{transform:translateY(3px);box-shadow:0 0 0 var(--lip)!important}
+html.lq .plan-next-session{padding:18px!important}
+html.lq .plan-next-session h2{font-size:30px!important;line-height:1.05!important;margin:4px 0 6px!important}
+html.lq .plan-next-actions{gap:10px!important;margin-top:16px!important}
+html.lq .pl-week-heading>div:first-child>span{color:var(--accent-ink)!important}
+html.lq .pl-week-heading p{color:var(--ink-2)!important}
+html.lq .wk-chrome{padding:12px 0 14px!important}
+html.lq .wk-nav>button{border:2px solid var(--line)!important;border-radius:14px!important;background:#fff!important;box-shadow:0 3px 0 var(--lip)!important;transition:transform .12s var(--press),box-shadow .12s var(--press)!important}
+html.lq .wk-nav>button:active{transform:translateY(3px)!important;box-shadow:0 0 0 var(--lip)!important}
+html.lq .wk-nav .wk-t b{font-family:var(--display);font-weight:700;font-size:17px}
+html.lq .wk-day{
+  border:2px solid var(--line)!important;border-radius:16px!important;background:#fff!important;box-shadow:0 3px 0 var(--lip)!important;
+  transition:transform .12s var(--press),box-shadow .12s var(--press),background .2s!important;
+}
+html.lq .wk-day .dn{font-family:var(--display);font-weight:700;font-size:17px}
+html.lq .wk-day .wd{font-family:var(--display);font-weight:700}
+html.lq .wk-day:active{transform:translateY(3px)!important;box-shadow:0 0 0 var(--lip)!important}
+html.lq .wk-day.pause{background:var(--surface-2)!important;border-color:var(--surface-2)!important;box-shadow:none!important}
+html.lq .wk-day.auj:not(.sel){border-color:var(--accent)!important;box-shadow:0 3px 0 var(--accent-lip)!important}
+html.lq .wk-day.sel{background:var(--accent)!important;border-color:var(--accent)!important;box-shadow:0 3px 0 var(--accent-lip)!important;animation:lqSegIn .35s var(--pop)}
+html.lq .wk-day.fait:not(.sel) .ld{color:var(--success)!important;font-weight:800}
+html.lq .day-panel{padding-bottom:12px!important}
+html.lq .dp-head b{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.01em}
+html.lq .dp-prog{height:12px!important;border-radius:99px!important;background:var(--surface-2)!important}
+html.lq .dp-prog i{background:var(--success-fill)!important;position:relative}
+html.lq .dp-prog i::after{content:'';position:absolute;left:6px;right:6px;top:3px;height:3px;border-radius:3px;background:rgba(255,255,255,.4)}
+html.lq .dp-session-valid{background:var(--success-soft)!important;color:var(--success)!important;border-radius:999px!important;font-family:var(--display)!important;font-weight:700!important}
+html.lq .pl-chip{
+  border:2px solid var(--line)!important;border-radius:18px!important;background:#fff!important;box-shadow:0 3px 0 var(--lip)!important;min-height:58px!important;
+}
+html.lq .pl-chip.ok{background:#fff!important;border-color:#CDEEDB!important;box-shadow:0 3px 0 #BFE6CF!important}
+html.lq .pl-chip .cn{width:30px;height:30px;min-width:30px!important;border-radius:10px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-ink)!important;font-family:var(--display)!important;font-weight:700!important;font-size:14px!important}
+html.lq .pl-chip.ok .cn{background:var(--success-fill);color:#fff!important}
+html.lq .pl-chip .ct>span{font-family:var(--display);font-weight:700;font-size:15px;color:var(--ink)}
+html.lq .pl-chip .nx{border:2px solid var(--line)!important;border-radius:12px!important;box-shadow:0 2px 0 var(--lip)!important}
+html.lq .planning-progress>summary,html.lq .plan-modules>summary{font-family:var(--display)!important;font-weight:700!important;font-size:17px!important;color:var(--ink)!important}
+html.lq .pl-overview{padding:18px!important}
+html.lq .pl-overview-copy strong{font-family:var(--display)!important;font-weight:700!important;color:#fff!important;font-size:20px!important}
+html.lq .pl-overview-copy small,html.lq .pl-overview-copy span{color:#fff!important}
+html.lq .pl-overview-adjust{background:rgba(255,255,255,.2)!important;color:#fff!important;border:2px solid rgba(255,255,255,.35)!important}
+html.lq .pl-overview-stats b{font-family:var(--display)!important;color:#fff!important;font-size:22px!important}
+html.lq .pl-overview-stats small{color:#fff!important}
+html.lq .pl-overview-track{background:rgba(255,255,255,.26)!important;height:10px!important;border-radius:99px!important}
+html.lq .pl-overview-track i{background:#fff!important;border-radius:99px!important}
+html.lq .pl-overview-next{border-color:rgba(255,255,255,.22)!important}
+html.lq .pl-overview-next small,html.lq .pl-overview-next em{color:#fff!important}
+html.lq .pl-overview-next b{color:#fff!important;font-family:var(--display)!important}
+html.lq .plan-module-row{border-bottom:2px solid var(--line-2)!important}
+html.lq .plan-module-row h3{font-family:var(--display)!important;font-weight:700!important;font-size:16px!important}
+html.lq .plan-module-row span{color:var(--accent-ink)!important;font-family:var(--display)!important;font-weight:700!important;text-transform:none!important;letter-spacing:0!important}
+html.lq .plan-module-row progress{height:10px;border-radius:99px;overflow:hidden;appearance:none;-webkit-appearance:none;border:0;background:var(--surface-2)}
+html.lq .plan-module-row progress::-webkit-progress-bar{background:var(--surface-2);border-radius:99px}
+html.lq .plan-module-row progress::-webkit-progress-value{background:var(--accent);border-radius:99px}
+html.lq .plan-module-row progress::-moz-progress-bar{background:var(--accent);border-radius:99px}
+html.lq .plan-module-row>button{border:2px solid var(--line)!important;border-radius:14px!important;background:#fff!important;color:var(--accent-ink)!important;box-shadow:0 3px 0 var(--lip)!important;font-family:var(--display)!important;font-weight:700!important;font-size:13.5px!important}
+html.lq .plan-module-row>button:active{transform:translateY(3px);box-shadow:0 0 0 var(--lip)!important}
+
+/* ---------- 15. Jouer ---------- */
+html.lq .jeu-card{padding:18px!important;border-radius:24px!important}
+html.lq .jeu-card-h{font-family:var(--display)!important;font-weight:700!important;font-size:19px!important;letter-spacing:-.01em!important}
+html.lq .jeu-lab{color:var(--ink-2)!important;font-size:13.5px!important}
+html.lq .jeu-card.is-join{background:#fff!important}
+html.lq .jeu-code{font-family:var(--display)!important;font-size:40px!important;letter-spacing:.14em!important;color:var(--accent-ink)!important}
+html.lq .jeu-players li,html.lq .jeu-rank li{border:2px solid var(--line)!important;border-radius:16px!important;background:#fff!important}
+html.lq .jeu-players li.is-found{border-color:#BFE6CF!important;background:var(--success-soft)!important}
+html.lq .jeu-av{background:var(--accent)!important;color:#fff!important;font-family:var(--display);box-shadow:0 2px 0 var(--accent-lip)}
+html.lq .jeu-timer{font-family:var(--display)!important;font-size:16px!important;padding:6px 12px!important;background:var(--ink)!important;color:#fff!important}
+html.lq .jeu-timer.is-low{background:var(--danger-fill)!important}
+html.lq .jeu-reacts button{border:2px solid var(--line)!important;box-shadow:0 3px 0 var(--lip);transition:transform .12s var(--press),box-shadow .12s var(--press)}
+html.lq .jeu-reacts button:active{transform:translateY(3px) scale(.9);box-shadow:0 0 0 var(--lip)}
+html.lq .jeu-step-n{font-family:var(--display)!important}
+
+/* ---------- 16. Mon compte ---------- */
+html.lq #scr-compte .account-identity{border-radius:26px!important}
+html.lq #scr-compte .account-avatar{background:var(--accent)!important;box-shadow:0 4px 0 var(--accent-lip)!important;font-family:var(--display)!important}
+html.lq #scr-compte .account-identity-copy b{font-family:var(--display)!important;font-size:22px!important}
+html.lq #scr-compte .aie-hint{border:2px solid var(--line);background:#fff!important;box-shadow:0 2px 0 var(--lip);font-family:var(--display)!important;font-weight:700!important}
+html.lq #scr-compte .account-local-status{border-top:2px solid var(--line-2)!important}
+html.lq #scr-compte .account-settings-list{border-radius:22px!important;overflow:hidden}
+html.lq #scr-compte .account-setting-row{min-height:66px}
+html.lq #scr-compte .account-setting-row+.account-setting-row{border-top:2px solid var(--line-2)}
+html.lq #scr-compte .account-setting-row b{font-family:var(--display);font-weight:700;font-size:16px;color:var(--ink)}
+html.lq #scr-compte .plus-row-icon{width:40px!important;height:40px!important;border-radius:13px!important;color:#fff!important;background:var(--accent)!important;box-shadow:0 3px 0 var(--accent-lip)}
+html.lq #scr-compte .plus-row-icon svg{stroke:#fff!important}
+html.lq #scr-compte .plus-row-icon.route{background:#118452!important;box-shadow:0 3px 0 #0B6038}
+html.lq #scr-compte .plus-row-icon.bell{background:#E8590C!important;box-shadow:0 3px 0 #B8430A}
+html.lq #scr-compte .plus-row-icon.help{background:#2563EB!important;box-shadow:0 3px 0 #1846B8}
+html.lq #scr-compte .plus-row-icon.privacy{background:#0A7F7A!important;box-shadow:0 3px 0 #065B57}
+html.lq #scr-compte .account-setting-end em{font-family:var(--display);font-style:normal;font-weight:700;border-radius:999px!important}
+html.lq .account-stat-mark{border-radius:14px!important}
+html.lq .account-stats-grid b,html.lq .acc-stat b{font-family:var(--display)!important;font-weight:700!important}
+html.lq .account-level-track{height:12px!important;border-radius:99px!important;background:var(--surface-2)!important}
+html.lq .account-level-track i{background:var(--accent)!important;border-radius:99px!important}
+html.lq .account-week-day>span{border-radius:12px!important}
+html.lq .account-week-day.complete>span i{background:linear-gradient(180deg,var(--flame-a),var(--flame-b))!important}
+html.lq .account-week-day.started>span i{background:#FFC98F!important}
+html.lq .account-badge{border-radius:18px!important}
+html.lq .account-panel{border:2px solid var(--line)!important;border-radius:24px!important;box-shadow:none!important;background:#fff!important}
+
+/* ---------- 17. Défis ---------- */
+html.lq #scr-defis .def-focus{padding:18px!important}
+html.lq .def-focus-total{color:#fff!important}
+html.lq .def-focus-total b{color:#fff!important;font-family:var(--display)!important}
+html.lq .def-focus-level{background:#fff!important;color:var(--m-ink)!important;font-family:var(--display)!important;text-transform:none!important;letter-spacing:0!important;font-size:12.5px!important;border-radius:999px!important;padding:4px 10px!important}
+html.lq .def-focus-copy h2{font-size:24px!important;line-height:1.12!important}
+html.lq .def-focus-progress strong{color:#fff!important}
+html.lq .def-progress-ring{background:conic-gradient(#fff calc(var(--p)*1%),rgba(255,255,255,.26) 0)!important}
+html.lq .def-progress-ring::after{background:var(--m)!important}
+html.lq #scr-defis .def-list{border-radius:22px!important;overflow:hidden}
+html.lq .def-row{min-height:74px}
+html.lq .def-row+.def-row{border-top:2px solid var(--line-2)!important}
+html.lq .def-row-num{width:40px!important;height:40px!important;border-radius:13px!important;background:var(--surface-2)!important;color:var(--ink-2)!important;font-family:var(--display)!important;font-weight:700!important;font-size:15px!important;box-shadow:0 3px 0 var(--lip)!important}
+html.lq .def-row.done .def-row-num{background:var(--success-fill)!important;color:#fff!important;box-shadow:0 3px 0 var(--success-lip)!important}
+html.lq .def-row-copy b{font-family:var(--display);font-weight:700;font-size:16px;color:var(--ink)}
+html.lq .def-row-valid em{font-family:var(--display);font-style:normal;font-weight:700;color:var(--success)}
+
+/* ---------- 18. Console, Notes ---------- */
+html.lq .console-quick-actions{border-radius:22px!important;overflow:hidden}
+html.lq .console-quick-action+.console-quick-action{border-top:2px solid var(--line-2)!important}
+html.lq .console-quick-action b,html.lq .console-project-copy b{font-family:var(--display);font-weight:700;font-size:16.5px;color:var(--ink)}
+html.lq .console-quick-action.primary b{color:var(--accent-ink)}
+html.lq .console-quick-icon,html.lq .console-project-icon{border-radius:14px!important;background:var(--accent)!important;color:#fff!important;box-shadow:0 3px 0 var(--accent-lip)!important}
+html.lq .console-quick-icon svg,html.lq .console-project-icon svg{stroke:#fff!important;color:#fff}
+html.lq .console-quick-action:not(.primary) .console-quick-icon{background:#2563EB!important;box-shadow:0 3px 0 #1846B8!important}
+html.lq .console-project-list{border-radius:22px!important;overflow:hidden}
+html.lq .console-project-copy em{font-family:var(--display);font-style:normal;font-weight:700;color:var(--accent-ink)}
+html.lq .notes-overview{padding:18px!important}
+html.lq .notes-overview-icon{background:rgba(255,255,255,.2)!important;color:#fff!important;border-radius:16px!important}
+html.lq .notes-overview-icon svg{stroke:#fff!important}
+html.lq .notes-overview-copy b{font-size:21px!important}
+html.lq .notes-empty{padding:22px 18px!important}
+html.lq .notes-empty>b{font-family:var(--display);font-weight:700;font-size:19px}
+html.lq .notes-starters button{border:2px solid var(--line)!important;background:#fff!important;color:var(--accent-ink)!important;border-radius:999px!important;box-shadow:0 3px 0 var(--lip)!important;font-family:var(--display)!important;font-weight:700!important;transition:transform .12s var(--press),box-shadow .12s var(--press)}
+html.lq .notes-starters button:active{transform:translateY(3px);box-shadow:0 0 0 var(--lip)!important}
+html.lq .ncard{border:2px solid var(--line)!important;border-radius:20px!important;box-shadow:0 3px 0 var(--lip)!important;background:#fff!important}
+
+/* ---------- 19. Cartes mémo, Entretien ---------- */
+html.lq .coll-overview{padding:18px!important}
+html.lq .coll-overview-copy strong{font-size:21px!important}
+html.lq .coll-overview-next{border-color:rgba(255,255,255,.22)!important}
+html.lq .coll-overview-next b{color:#fff!important;font-family:var(--display)!important}
+html.lq .coll-module,html.lq .ent-topic{border:2px solid var(--line)!important;border-radius:22px!important;box-shadow:0 4px 0 var(--lip)!important;background:#fff!important}
+html.lq .coll-module>summary,html.lq .ent-topic>summary{transition:transform .12s var(--press)}
+html.lq .coll-module-num,html.lq .ent-topic-num{width:42px!important;height:42px!important;border-radius:14px!important;background:var(--accent)!important;color:#fff!important;font-family:var(--display)!important;font-size:16px!important;font-weight:700!important;box-shadow:0 3px 0 var(--accent-lip)!important}
+html.lq .coll-module.complete .coll-module-num,html.lq .ent-topic.complete .ent-topic-num{background:var(--success-fill)!important;box-shadow:0 3px 0 var(--success-lip)!important}
+html.lq .coll-module-num svg,html.lq .ent-topic-num svg{stroke:#fff!important}
+html.lq .coll-module-copy b,html.lq .ent-topic-copy b{font-family:var(--display);font-weight:700;font-size:17px;color:var(--ink)}
+html.lq .coll-module-side em,html.lq .ent-topic-side em{border-radius:999px!important;font-family:var(--display)!important;font-weight:700!important;background:var(--surface-2)!important}
+html.lq .ent-hero{padding:18px!important}
+html.lq .ent-hero-txt b{font-size:22px!important}
+html.lq .ent-hero-stats strong,html.lq .ent-hero-stats span{color:#fff!important}
+html.lq .ent-progress-line{background:rgba(255,255,255,.26)!important;height:10px!important;border-radius:99px!important}
+html.lq .ent-progress-line i{background:#fff!important;border-radius:99px!important}
+html.lq .ecard{border-radius:18px!important}
+
+/* ---------- 20. Leçons : cadre, étapes, titres ---------- */
+html.lq #scr-lesson:not([data-mc]){--m:#6A4DF4;--m-lip:#4B30CC;--m-soft:#EFEAFF;--m-mid:#B8A6FF;--m-ink:#5335E0}
+html.lq #scr-lesson .navbar{
+  background:rgba(244,242,252,.92)!important;border-bottom:2px solid var(--line)!important;box-shadow:none!important;
+  -webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);
+}
+html.lq #scr-lesson .navbar .back{gap:8px;color:var(--accent-ink);font-family:var(--display);font-weight:700;font-size:16px}
+html.lq #scr-lesson .navbar .back svg{
+  box-sizing:content-box;width:9px;height:15px;padding:7px 10px 7px 9px;border-radius:50%;
+  background:#fff;border:2px solid var(--line);box-shadow:0 3px 0 var(--lip);
+  transition:transform .12s var(--press),box-shadow .12s var(--press);
+}
+html.lq #scr-lesson .navbar .back:active svg{transform:translateY(3px);box-shadow:0 0 0 var(--lip)}
+html.lq #scr-lesson .nav-title{font-family:var(--display);font-weight:700}
+/* Étapes Leçon · Exercice · Quiz */
+html.lq #scr-lesson .ls-bars{margin:6px 0 20px!important;padding:0 2px!important}
+html.lq #scr-lesson .ls-bar{gap:7px!important;color:var(--ink-3)!important}
+html.lq #scr-lesson .ls-bar:not(:last-child)::after{top:17px!important;left:calc(50% + 22px)!important;width:calc(100% - 44px)!important;height:5px!important;border-radius:5px!important;background:var(--line)!important}
+html.lq #scr-lesson .ls-bar.done:not(:last-child)::after{background:var(--m)!important}
+html.lq #scr-lesson .ls-node{
+  width:38px!important;height:38px!important;border-radius:50%!important;background:#fff!important;border:2px solid var(--line)!important;
+  font-family:var(--display)!important;font-size:15px!important;font-weight:700!important;box-shadow:0 3px 0 var(--lip)!important;
+  transition:transform .12s var(--press),box-shadow .12s var(--press),background .2s!important;
+}
+html.lq #app .ls-bar:not(.on):not(.done) .ls-node{color:var(--ink-3)!important}
+html.lq #scr-lesson .ls-bar.done .ls-node{background:var(--m)!important;border-color:var(--m)!important;color:#fff!important;box-shadow:0 3px 0 var(--m-lip)!important}
+html.lq #scr-lesson .ls-bar.on .ls-node{background:var(--m)!important;border-color:var(--m)!important;color:#fff!important;box-shadow:0 3px 0 var(--m-lip),0 0 0 6px var(--m-soft)!important;transform:none!important;animation:lqNodeIn .5s var(--pop)!important}
+html.lq #scr-lesson .ls-bar:active .ls-node{transform:translateY(3px)!important;box-shadow:0 0 0 var(--lip)!important}
+html.lq #scr-lesson .ls-bar small{font-family:var(--display)!important;font-size:12.5px!important;font-weight:700!important}
+html.lq #scr-lesson .ls-bar.on,html.lq #scr-lesson .ls-bar.done{color:var(--m-ink)!important}
+html.lq #scr-lesson .ls-bar.lock{opacity:.55!important}
+/* Titre de la leçon */
+html.lq #scr-lesson .l-kicker{
+  display:inline-flex;align-items:center;gap:5px;width:max-content;max-width:100%;margin:4px 0 8px!important;padding:5px 12px;border-radius:999px;
+  background:var(--m-soft);color:var(--m-ink)!important;font-size:13.5px!important;
+}
+html.lq #scr-lesson .l-kicker-mod{color:inherit!important;font:inherit!important;text-transform:none!important;letter-spacing:0!important;opacity:.85}
+html.lq #scr-lesson .lesson-rich>h1,html.lq #scr-lesson .l-kicker+h1,html.lq #scr-lesson .ls-main>h1{
+  font-family:var(--display)!important;font-size:37px!important;font-weight:700!important;letter-spacing:-.026em!important;line-height:1.02!important;color:var(--ink)!important;margin-top:0!important;
+}
+html.lq #scr-lesson .l-sub{font-family:var(--display);font-size:18px!important;font-weight:600;color:var(--ink-2)!important}
+/* Problématique */
+html.lq #scr-lesson .sit-prob{background:var(--m-soft)!important;border:2px solid color-mix(in srgb,var(--m) 20%,transparent);border-radius:22px!important;padding:16px 18px!important}
+html.lq #scr-lesson .sit-prob-ico{width:32px!important;height:32px!important;border-radius:11px!important;background:var(--m)!important;color:#fff!important;box-shadow:0 3px 0 var(--m-lip)}
+html.lq #scr-lesson .sit-prob-lab{font-family:var(--display);font-size:15.5px!important;font-weight:700!important;color:var(--m-ink)!important}
+html.lq #scr-lesson .lesson-rich .sit-prob-body{font-size:16px!important;line-height:1.55!important;color:var(--ink)!important}
+/* Blocs de cours */
+html.lq #scr-lesson .concept-block{padding:22px 20px!important;border-radius:26px!important}
+html.lq #scr-lesson .concept-block h2,html.lq #scr-lesson .lesson-rich h2{font-family:var(--display)!important;font-weight:700!important;letter-spacing:-.018em!important;color:var(--ink)}
+html.lq #scr-lesson .h2-eye{display:flex!important;align-items:center;gap:8px;margin:0 0 8px!important;color:var(--m-ink)!important;font-size:14.5px!important}
+html.lq #scr-lesson .h2-eye::before{content:'';flex:none;width:11px;height:11px;border-radius:4px;background:var(--m);box-shadow:0 2px 0 var(--m-lip)}
+html.lq #scr-lesson .h2-eye::after{display:none!important}
+html.lq #scr-lesson .h2-txt{font-family:var(--display)!important;font-size:22px!important;font-weight:700!important;letter-spacing:-.018em!important;line-height:1.2!important}
+html.lq #scr-lesson .concept-block>p:not([class]),html.lq #scr-lesson .concept-block>ul>li:not([class]),html.lq #scr-lesson .lesson-lead .situation-body{color:#2A2550!important}
+html.lq #scr-lesson .pt-syntax-h{font-family:var(--display)!important;font-weight:700!important;font-size:17px!important;color:var(--ink)!important}
+html.lq #scr-lesson .concept-block code,html.lq #scr-lesson .lesson-lead code,html.lq #scr-lesson .consigne code,html.lq #scr-lesson .card code,html.lq #scr-lesson .hint-box code,html.lq #scr-lesson .piege code{
+  background:var(--m-soft)!important;color:var(--m-ink)!important;border-radius:7px!important;font-weight:650!important;
+}
+/* Sommaire */
+html.lq #scr-lesson .sommaire{border-radius:24px!important;overflow:hidden}
+html.lq #scr-lesson .sommaire-t{color:var(--m-ink)!important;border-bottom:2px solid var(--line-2)!important;padding:15px 18px 12px!important}
+html.lq #scr-lesson .som-count{background:var(--m-soft)!important;color:var(--m-ink)!important;font-family:var(--display)!important;font-weight:700!important;border-radius:999px!important}
+html.lq #scr-lesson .som-item+.som-item{border-top:2px solid var(--line-2)!important}
+html.lq #scr-lesson .som-item .som-n{width:30px!important;height:30px!important;border-radius:10px!important;background:var(--m-soft)!important;color:var(--m-ink)!important;font-family:var(--display)!important;font-weight:700!important;font-size:13.5px!important}
+html.lq #scr-lesson .som-item:active .som-n{background:var(--m)!important;color:#fff!important;transform:scale(1.1)}
+html.lq #scr-lesson .som-t{font-family:var(--display);font-weight:700;font-size:15.5px;letter-spacing:-.005em;color:var(--ink)}
+
+/* ---------- 21. Code : cadres, éditeur, résultats ---------- */
+html.lq .exframe{
+  border:0!important;border-radius:22px!important;background:var(--code-bg)!important;
+  box-shadow:0 5px 0 #151130!important;overflow:hidden;
+}
+html.lq .exframe .xf-head{background:var(--code-bg-2)!important;border-bottom:1px solid rgba(255,255,255,.07)!important;padding:10px 12px 10px 16px!important}
+html.lq .exframe .xf-name{color:#ABA4D8!important}
+html.lq .exframe .ex-code,html.lq .ex-code{background:var(--code-bg)!important;color:var(--code-ink)!important}
+html.lq .exframe .xf-actions{background:var(--code-bg)!important;border-top:1px solid rgba(255,255,255,.07)!important;padding:12px 14px 16px!important}
+html.lq .exframe .xf-result{background:#fff!important;border-top:0!important}
+html.lq .exframe .sql-copy,html.lq .editor-bar .sql-copy{color:#C9C3EE!important}
+html.lq .editor-shell{border-radius:22px!important;background:var(--code-bg)!important;box-shadow:0 5px 0 #151130!important;border:0!important}
+html.lq .editor-bar{background:var(--code-bg-2)!important;border-bottom:1px solid rgba(255,255,255,.07)!important}
+html.lq .editor-bar .fname{color:#ABA4D8!important}
+/* Exécuter : le vert de l'action « lancer », en relief */
+html.lq .btn-run,html.lq .exframe .xf-run,html.lq #scr-lesson .xf-run{
+  background:var(--success-fill)!important;background-image:none!important;color:#fff!important;border:0!important;border-radius:16px!important;
+  min-height:54px;font-family:var(--display)!important;font-weight:700!important;font-size:17px!important;letter-spacing:0!important;
+  box-shadow:0 4px 0 var(--success-lip)!important;transform:translateY(0);
+  transition:transform .12s var(--press),box-shadow .12s var(--press),filter .15s!important;
+}
+html.lq .btn-run:active,html.lq .exframe .xf-run:active,html.lq #scr-lesson .xf-run:active{transform:translateY(4px)!important;box-shadow:0 0 0 var(--success-lip)!important}
+html.lq .btn-run:disabled,html.lq .exframe .xf-run:disabled{background:#3A345F!important;color:#A9A3D6!important;box-shadow:0 4px 0 #262047!important}
+html.lq .exframe .xf-run.running,html.lq .btn-run.running{filter:brightness(1.08);animation:lqRunPulse .8s ease-in-out infinite}
+html.lq .xf-run-ico .ring,html.lq .btn-run svg .ring{stroke:#fff!important;opacity:.55}
+html.lq .xf-run-ico .tri,html.lq .btn-run svg .tri{fill:#fff!important}
+/* Boutons discrets sous l'éditeur */
+html.lq .btn-ghost{
+  background:#fff!important;color:var(--ink-2)!important;border:2px solid var(--line)!important;border-radius:16px!important;
+  font-family:var(--display)!important;font-weight:700!important;box-shadow:0 4px 0 var(--lip)!important;
+  transition:transform .12s var(--press),box-shadow .12s var(--press)!important;
+}
+html.lq .btn-ghost:active{transform:translateY(4px)!important;box-shadow:0 0 0 var(--lip)!important}
+/* Tableaux de résultats */
+html.lq .table-wrap{border:2px solid var(--line)!important;border-radius:18px!important;box-shadow:none!important}
+html.lq thead th{
+  font-family:var(--display)!important;text-transform:none!important;letter-spacing:0!important;font-size:13px!important;font-weight:700!important;
+  color:var(--ink)!important;background:var(--m-soft,var(--surface-2))!important;border-bottom:2px solid var(--line)!important;
+}
+html.lq tbody td{border-bottom:2px solid var(--line-2)!important}
+html.lq tbody tr:last-child td{border-bottom:0!important}
+html.lq .result-meta{font-family:var(--display)!important;font-weight:600!important;color:var(--ink-2)!important}
+/* Consigne d'exercice */
+html.lq #scr-lesson .consigne{padding:18px!important;border-radius:24px!important}
+html.lq #scr-lesson .consigne .tag{margin-bottom:8px!important;color:var(--m-ink)!important}
+html.lq #scr-lesson .consigne>p:not(.tip){font-family:var(--display);font-size:19px!important;font-weight:700!important;letter-spacing:-.012em;line-height:1.3!important;color:var(--ink)!important}
+html.lq #scr-lesson .consigne .tip{font-size:14px!important;line-height:1.5!important;color:var(--ink-2)!important}
+
+/* Une couleur par clause SQL dans les blocs de code sombres */
+html.lq :is(.ex-code,.editor-area,.qf-sql,.ob-practice-code) [data-clause]:not([data-clause="x"]){font-weight:700}
+html.lq :is(.ex-code,.editor-area,.qf-sql,.ob-practice-code) [data-clause="select"]{color:var(--c-select)!important}
+html.lq :is(.ex-code,.editor-area,.qf-sql,.ob-practice-code) [data-clause="from"]{color:var(--c-from)!important}
+html.lq :is(.ex-code,.editor-area,.qf-sql,.ob-practice-code) [data-clause="where"]{color:var(--c-where)!important}
+html.lq :is(.ex-code,.editor-area,.qf-sql,.ob-practice-code) [data-clause="group"]{color:var(--c-group)!important}
+html.lq :is(.ex-code,.editor-area,.qf-sql,.ob-practice-code) [data-clause="order"]{color:var(--c-order)!important}
+html.lq :is(.ex-code,.editor-area,.qf-sql,.ob-practice-code) [data-clause="join"]{color:var(--c-join)!important}
+html.lq :is(.ex-code,.editor-area,.qf-sql,.ob-practice-code) [data-clause="with"]{color:var(--c-with)!important}
+html.lq :is(.ex-code,.editor-area,.qf-sql,.ob-practice-code) [data-clause="write"]{color:var(--c-write)!important}
+html.lq .ex-code .sql-mark [data-clause]{color:inherit!important}
+html.lq :is(.ex-code,.editor-area,.qf-sql,.ob-practice-code) .t-str,html.lq .ob-practice-code .str{color:var(--t-str)!important}
+html.lq :is(.ex-code,.editor-area,.qf-sql) .t-num{color:var(--t-num)!important}
+html.lq :is(.ex-code,.editor-area,.qf-sql) .t-fn{color:var(--t-fn)!important}
+html.lq :is(.ex-code,.editor-area,.qf-sql) .t-com{color:var(--t-com)!important}
+html.lq .qf-editor{background:var(--code-bg)!important;box-shadow:0 5px 0 #151130!important;border-radius:22px!important}
+html.lq .ob-practice-card{background:var(--code-bg)!important;border-radius:22px!important;box-shadow:0 5px 0 #151130!important;border:0!important}
+
+/* ---------- 22. Barre d'action du bas ---------- */
+html.lq #scr-lesson .ls-nav{
+  background:rgba(255,255,255,.94)!important;border:2px solid var(--line)!important;border-radius:26px!important;
+  box-shadow:0 14px 30px -18px rgba(34,28,70,.45)!important;padding:8px!important;gap:8px!important;
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+}
+html.lq #scr-lesson .ls-nav .ls-prev{min-height:54px;padding:0 16px!important;color:var(--ink-2)!important}
+html.lq #scr-lesson .ls-nav .ls-next{min-height:54px}
+
+/* ---------- 23. Quiz ---------- */
+html.lq .qcm-card{padding:20px 18px 18px!important;border-radius:26px!important}
+html.lq .qtag{background:var(--m-soft,var(--accent-soft))!important;color:var(--m-ink,var(--accent-ink))!important;border-radius:999px!important;padding:5px 11px!important;font-size:13px!important}
+html.lq .qcm-card.ok .qtag{background:var(--success-soft)!important;color:var(--success)!important}
+html.lq .qcm-card .qq,html.lq .qcm-card h3,html.lq .qcm-card .q-text{font-family:var(--display)!important;font-weight:700!important;letter-spacing:-.012em!important}
+html.lq .qopts{gap:12px!important}
+html.lq .qopt{
+  min-height:58px;padding:13px 14px!important;border:2px solid var(--line)!important;border-radius:18px!important;background:#fff!important;
+  box-shadow:0 4px 0 var(--lip)!important;font-size:15.5px!important;color:var(--ink)!important;
+  transition:transform .12s var(--press),box-shadow .12s var(--press),border-color .15s,background .15s!important;
+}
+html.lq .qopt:active{transform:translateY(4px)!important;box-shadow:0 0 0 var(--lip)!important}
+html.lq .qopt .ql{width:32px!important;height:32px!important;border-radius:11px!important;background:var(--surface-2)!important;border:2px solid var(--line)!important;color:var(--ink-2)!important;font-family:var(--display)!important;font-size:14px!important;font-weight:700!important}
+html.lq .qopt.sel{border-color:var(--accent)!important;background:var(--accent-soft)!important;box-shadow:0 4px 0 var(--accent)!important}
+html.lq .qopt.sel .ql{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important}
+html.lq .qopt.bon{border-color:var(--success-fill)!important;background:var(--success-soft)!important;box-shadow:0 4px 0 var(--success-fill)!important;animation:lqCorrect .5s var(--pop)}
+html.lq .qopt.bon .ql{background:var(--success-fill)!important;border-color:var(--success-fill)!important;color:#fff!important}
+html.lq .qopt.faux{border-color:var(--danger-fill)!important;background:var(--danger-soft)!important;box-shadow:0 4px 0 var(--danger-fill)!important;animation:lqShake .45s ease}
+html.lq .qopt.faux .ql{background:var(--danger-fill)!important;border-color:var(--danger-fill)!important;color:#fff!important}
+
+/* ---------- 24. Retours : réussi / à corriger ---------- */
+html.lq .feedback{border:2px solid transparent!important;border-radius:22px!important;box-shadow:none!important;background-image:none!important}
+html.lq .feedback.ok{background:var(--success-soft)!important;border-color:#BFE6CF!important;animation:lqCorrect .5s var(--pop)!important}
+html.lq .feedback.err{background:var(--danger-soft)!important;border-color:#F6C9CC!important;animation:lqShake .45s ease!important}
+html.lq .feedback .fi{border-radius:12px!important;box-shadow:0 3px 0 rgba(0,0,0,.14)!important}
+html.lq .feedback.ok .fi{background:var(--success-fill)!important}
+html.lq .feedback.err .fi{background:var(--danger-fill)!important}
+html.lq .feedback b{font-family:var(--display)!important;font-weight:700!important;font-size:17px!important}
+html.lq #scr-lesson .feedback.ok b{color:var(--success)!important}
+
+/* ---------- 25. Fin de leçon ---------- */
+html.lq #scr-lesson .bravo-hero{background:var(--success-fill)!important;border:0!important;color:#fff!important;box-shadow:0 6px 0 var(--success-lip)!important;border-radius:28px!important}
+html.lq #scr-lesson .bravo-hero::before{background:radial-gradient(60% 90% at 50% 0%,rgba(255,255,255,.25),transparent 72%)!important}
+html.lq #scr-lesson .bravo-hero *{color:inherit}
+html.lq #scr-lesson .bravo-ring{background:conic-gradient(#fff calc(var(--p)*1%),rgba(255,255,255,.28) 0)!important;box-shadow:0 0 0 10px rgba(255,255,255,.12)!important;animation:lqNodeIn .7s var(--pop) both}
+html.lq #scr-lesson .bravo-kicker{color:#fff!important;font-family:var(--display)!important;font-weight:700!important}
+html.lq #scr-lesson .bravo-hero h1{font-family:var(--display)!important;font-size:40px!important;font-weight:700!important;color:#fff!important}
+html.lq #scr-lesson .bravo-lesson{color:#fff!important;font-family:var(--display)!important}
+html.lq #scr-lesson .bravo-lesson small{color:#fff!important}
+html.lq #scr-lesson .bravo-step{background:rgba(255,255,255,.2)!important;color:#fff!important;font-family:var(--display)!important;border-radius:999px!important}
+html.lq #scr-lesson .bravo-next-btn{background:var(--accent)!important;border-radius:22px!important;box-shadow:0 5px 0 var(--accent-lip)!important;transition:transform .12s var(--press),box-shadow .12s var(--press)!important}
+html.lq #scr-lesson .bravo-next-btn:active{transform:translateY(5px)!important;box-shadow:0 0 0 var(--accent-lip)!important}
+html.lq #scr-lesson .bravo-next-lab{text-transform:none!important;letter-spacing:0!important;color:#fff!important}
+html.lq #scr-lesson .bravo-next-btn .bn-copy b{font-family:var(--display)!important;font-weight:700!important;font-size:18px!important}
+html.lq #scr-lesson .bravo-sec{border:2px solid var(--line)!important;box-shadow:0 4px 0 var(--lip)!important;border-radius:18px!important}
+html.lq #scr-lesson .valid-done{background:var(--success-soft)!important;border:2px solid #BFE6CF!important}
+html.lq #scr-lesson .valid-done-ico{background:var(--success-fill)!important;box-shadow:0 3px 0 var(--success-lip)!important}
+
+/* ---------- 26. Moments de réussite ---------- */
+html.lq .lq-confetti{position:fixed;inset:0;z-index:9999;pointer-events:none;overflow:hidden}
+html.lq .lq-confetti>i{position:absolute;display:block}
+#lq-streak-toast{
+  position:fixed;left:50%;top:calc(var(--safe-top) + 14px);z-index:9990;display:flex;align-items:center;gap:12px;
+  padding:10px 18px 10px 10px;border-radius:22px;background:#fff;border:2px solid #FFD9A6;box-shadow:0 5px 0 #FFD0A0,0 18px 40px -18px rgba(34,28,70,.45);
+  transform:translate(-50%,-140%);opacity:0;pointer-events:none;transition:transform .5s var(--pop),opacity .25s;
+  font-family:var(--display);color:var(--ink);width:max-content;max-width:calc(100vw - 32px);
+}
+#lq-streak-toast.on{transform:translate(-50%,0);opacity:1}
+#lq-streak-toast b{display:block;font-size:17px;font-weight:700;letter-spacing:-.01em}
+#lq-streak-toast small{display:block;font-size:13px;font-weight:600;color:#9A4300}
+#lq-streak-toast .lq-st-flame{flex:none;width:46px;height:46px;display:grid;place-items:center;border-radius:15px;background:#FFF0DC}
+#lq-streak-toast .lq-st-flame svg{width:32px;height:32px;transform-origin:50% 90%}
+#lq-streak-toast.on .lq-st-flame svg{animation:lqFlameIn .7s var(--pop) .15s both,lqFlicker 2.4s ease-in-out .9s infinite}
+#lq-streak-toast .f-o{fill:var(--flame-b)}
+#lq-streak-toast .f-i{fill:var(--flame-a)}
+html.lq .lq-streak.is-up{animation:lqCorrect .7s var(--pop) .35s both}
+html.lq .lq-streak.is-up .lq-streak-flame svg{animation:lqFlameIn .8s var(--pop) .3s both,lqFlicker 2.6s ease-in-out 1.2s infinite}
+html.lq .lq-streak.is-up .lq-day.is-now svg{animation:lqFlameIn .8s var(--pop) .5s both}
+html.lq #scr-learn #modules .home-module .row.lq-just-done .lz-num{animation:lqJustDone .9s var(--pop) .45s both!important}
+html.lq #scr-learn #modules .home-module .row.lq-just-done .lz-num::after{animation:lqCheckIn .5s var(--pop) .8s both}
+@keyframes lqJustDone{0%{transform:scale(1);background:#fff;border-color:var(--line)}40%{transform:scale(1.28)}70%{transform:scale(.94)}100%{transform:scale(1)}}
+@keyframes lqCheckIn{from{transform:scale(0) rotate(-30deg)}to{transform:scale(1) rotate(0)}}
+
+/* Notifications (toast) : pastille blanche bordée, en relief */
+html.lq .toast{background:#fff!important;border:2px solid var(--line)!important;border-radius:22px!important;box-shadow:0 5px 0 var(--lip),0 18px 36px -20px rgba(34,28,70,.45)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.lq .toast .t-kicker{font-family:var(--display)!important;text-transform:none!important;letter-spacing:0!important;font-size:12.5px!important;font-weight:700!important;color:var(--accent-ink)!important}
+html.lq .toast .tmini{border-radius:13px!important;font-family:var(--display)!important;font-size:13px!important;box-shadow:0 3px 0 rgba(20,10,60,.14)}
+html.lq .toast #toast-t{font-family:var(--display);font-weight:700}
+html.lq .toast .tgo,html.lq .toast #toast-go{background:var(--accent)!important;color:#fff!important;border-radius:14px!important;box-shadow:0 3px 0 var(--accent-lip)!important;font-family:var(--display)!important;font-weight:700!important}
+
+/* ---------- 27. Premiers pas (onboarding) ---------- */
+html.lq #onboarding{background:var(--bg)!important}
+html.lq #onboarding .ob-title{font-family:var(--display)!important;font-weight:700!important;letter-spacing:-.025em!important;line-height:1.05!important;color:var(--ink)!important}
+html.lq #onboarding .ob-lead{color:var(--ink-2)!important}
+html.lq #onboarding .ob-brand{font-family:var(--display);font-weight:700;letter-spacing:-.01em}
+html.lq #onboarding .ob-brand code{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:11px;background:var(--accent);color:#fff;box-shadow:0 3px 0 var(--accent-lip);font:700 13px/1 var(--mono)}
+html.lq #onboarding .ob-code{background:var(--code-bg)!important;border-radius:22px!important;box-shadow:0 5px 0 #151130!important;border:0!important}
+html.lq #onboarding .oc-code .k{color:var(--c-select)!important;font-weight:700}
+html.lq #onboarding .ob-proof-stats{border:0!important;background:none!important;gap:10px;overflow:visible!important}
+html.lq #onboarding .ob-proof-stats div{border:2px solid var(--line)!important;border-radius:18px;background:#fff;box-shadow:0 3px 0 var(--lip);padding:10px 6px!important}
+html.lq #onboarding .ob-proof-stats div+div{border-left:2px solid var(--line)!important}
+html.lq #onboarding .ob-proof-stats strong{font-family:var(--display);font-weight:700;font-size:22px;color:var(--accent-ink)}
+html.lq #onboarding .ob-proof-stats span{color:var(--ink-2)!important;font-size:11.5px!important;font-weight:600!important}
+/* En-tête des étapes : retour + progression épaisse */
+html.lq #onboarding .ob-back{font-family:var(--display);font-weight:700;color:var(--accent-ink)}
+html.lq #onboarding .ob-flow-status span{font-family:var(--display);font-weight:700;color:var(--ink-2)}
+html.lq #onboarding .ob-mini-progress{gap:6px}
+html.lq #onboarding .ob-mini-progress i{height:12px!important;border-radius:99px!important;background:#E3DEF4!important;box-shadow:none!important;transform:none!important;position:relative;overflow:hidden}
+html.lq #onboarding .ob-mini-progress i.done{background:var(--accent)!important}
+html.lq #onboarding .ob-mini-progress i.on{background:var(--accent)!important;animation:lqGrow .6s cubic-bezier(.5,0,.2,1) both!important;transform-origin:left}
+html.lq #onboarding .ob-mini-progress i.done::after,html.lq #onboarding .ob-mini-progress i.on::after{content:'';position:absolute;left:5px;right:5px;top:3px;height:3px;border-radius:3px;background:rgba(255,255,255,.4)}
+/* Bulle de la mascotte */
+html.lq #onboarding .ob-bubble{border:2px solid var(--line)!important;border-radius:20px!important;box-shadow:0 4px 0 var(--lip)!important;font-family:var(--display);font-weight:700!important;font-size:16px!important;color:var(--ink)!important}
+/* Réponses : tuiles en relief */
+html.lq #onboarding .ob-answer-list{border:0!important;background:none!important;box-shadow:none!important;overflow:visible!important;display:flex;flex-direction:column;gap:10px}
+html.lq #onboarding .ob-answer{
+  grid-template-columns:40px 1fr auto!important;min-height:60px;padding:10px 14px!important;border:2px solid var(--line)!important;border-radius:18px!important;
+  background:#fff!important;color:var(--ink)!important;font:700 15.5px/1.25 var(--display)!important;box-shadow:0 4px 0 var(--lip);
+  transition:transform .12s var(--press),box-shadow .12s var(--press),border-color .15s,background .15s!important;
+}
+html.lq #onboarding .ob-answer:active{transform:translateY(4px)!important;box-shadow:0 0 0 var(--lip)}
+html.lq #onboarding .ob-answer .ob-radio{display:none}
+html.lq #onboarding .ob-answer-icon{width:40px!important;height:40px!important;border-radius:13px!important;background:var(--surface-2)!important;color:var(--accent-ink)!important}
+html.lq #onboarding .ob-answer.on{border-color:var(--accent)!important;background:var(--accent-soft)!important;color:var(--accent-ink)!important;box-shadow:0 4px 0 var(--accent)!important;animation:lqSegIn .35s var(--pop)}
+html.lq #onboarding .ob-answer.on .ob-answer-icon{background:var(--accent)!important;color:#fff!important;box-shadow:0 3px 0 var(--accent-lip)}
+html.lq #onboarding .ob-answer::after{content:'';width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:#fff;transition:all .2s var(--pop)}
+html.lq #onboarding .ob-answer.on::after{border-color:var(--accent);background:var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/16px no-repeat}
+html.lq #onboarding .ob-rhythm-list .ob-answer{grid-template-columns:1fr auto auto!important}
+html.lq #onboarding .ob-rhythm-list .ob-answer b{font-size:17px}
+html.lq #onboarding .ob-rhythm-list .ob-answer small{font-family:var(--ui);font-weight:500;color:var(--ink-2)}
+html.lq #onboarding .ob-rhythm-min{font-family:var(--display);font-weight:700;color:var(--success)!important;background:var(--success-soft);border-radius:999px;padding:3px 9px}
+html.lq #onboarding .ob-rhythm-min:empty{display:none}
+html.lq #onboarding .ob-field input{border:2px solid var(--line)!important;border-radius:16px!important;background:#fff!important;font-size:17px!important}
+html.lq #onboarding .ob-field input:focus{border-color:var(--accent)!important;box-shadow:0 0 0 4px var(--accent-soft)!important}
+html.lq #onboarding .ob-name-preview{border:2px solid var(--line)!important;border-radius:18px!important;box-shadow:0 3px 0 var(--lip)}
+html.lq #onboarding .ob-name-initial{background:var(--accent)!important;box-shadow:0 3px 0 var(--accent-lip)}
+html.lq #onboarding .ob-practice-run{background:var(--success-fill)!important;box-shadow:0 4px 0 var(--success-lip)!important;border-radius:16px!important;font-family:var(--display)!important;font-weight:700!important;font-size:16px!important;min-height:52px}
+html.lq #onboarding .ob-practice-run:active{transform:translateY(4px)!important;box-shadow:0 0 0 var(--success-lip)!important}
+html.lq #onboarding .ob-provider{border:2px solid var(--line)!important;border-radius:18px!important;box-shadow:0 4px 0 var(--lip);font-family:var(--display)!important;font-weight:700!important}
+html.lq #onboarding .ob-ready-summary{border:2px solid var(--line)!important;border-radius:22px!important;box-shadow:none!important;background:#fff!important}
+html.lq #onboarding .ob-ready-row+.ob-ready-row{border-top:2px solid var(--line-2)!important}
+html.lq #onboarding .ob-ready-row b{font-family:var(--display);font-weight:700;font-size:15px}
+html.lq #onboarding .ob-ready-ico{border-radius:12px!important;background:var(--accent-soft)!important;color:var(--accent-ink)!important;font-family:var(--display)!important}
+html.lq #onboarding .ob-ready-days i{height:10px!important}
+html.lq #onboarding .ob-ready-days i.on{background:var(--accent)!important}
+html.lq #onboarding .ob-foot{background:linear-gradient(180deg,rgba(244,242,252,0),var(--bg) 30%)!important}
+html.lq #onboarding .ob-skip,html.lq #onboarding .ob-secondary{font-family:var(--display);font-weight:700;color:var(--accent-ink)}
+/* Écran de chargement */
+html.lq #loader .logo-badge{border-radius:24px;background:var(--accent)!important;box-shadow:0 6px 0 var(--accent-lip)!important;font-family:var(--mono)}
+html.lq #loader .spinner{height:10px!important;width:140px!important;background:#E3DEF4!important}
+html.lq #loader .spinner::after{background:var(--accent)!important}
+
+/* ---------- 29. Feuilles (notes, schéma, cartes, réglages) ---------- */
+html.lq .viz{background:var(--bg)!important;border-radius:30px 30px 0 0!important}
+html.lq .viz-head{background:#fff!important;border-bottom:2px solid var(--line)!important}
+html.lq .viz-head b{font-family:var(--display);font-size:19px!important;font-weight:700!important;letter-spacing:-.012em!important}
+html.lq .viz-head .grab{background:#D9D3EE!important;height:5px!important;width:44px!important;border-radius:99px!important}
+html.lq .viz-head button{background:#fff!important;border:2px solid var(--line)!important;box-shadow:0 3px 0 var(--lip);width:36px!important;height:36px!important;color:var(--ink-2)!important;transition:transform .12s var(--press),box-shadow .12s var(--press)!important}
+html.lq .viz-head button:active{transform:translateY(3px)!important;box-shadow:0 0 0 var(--lip)!important}
+html.lq .ne-ta{border:2px solid var(--line)!important;border-radius:20px!important;font-size:16px!important}
+html.lq .ne-ta:focus{border-color:var(--accent)!important;box-shadow:0 0 0 4px var(--accent-soft)!important}
+html.lq .ne-row{gap:10px!important}
+html.lq .ne-row button{border-radius:16px!important;font-family:var(--display)!important;font-weight:700!important;font-size:16px!important;min-height:54px;transition:transform .12s var(--press),box-shadow .12s var(--press)!important}
+html.lq .ne-row .prim{background:var(--accent)!important;box-shadow:0 4px 0 var(--accent-lip)!important}
+html.lq .ne-row .prim:active{transform:translateY(4px)!important;box-shadow:0 0 0 var(--accent-lip)!important}
+html.lq .ne-row .sec{background:#fff!important;border:2px solid var(--line)!important;color:var(--accent-ink)!important;box-shadow:0 4px 0 var(--lip)!important}
+html.lq .ne-row .sec:active{transform:translateY(4px)!important;box-shadow:0 0 0 var(--lip)!important}
+html.lq .note-back-list{font-family:var(--display);font-weight:700;color:var(--accent-ink)}
+html.lq .sch-head,html.lq .sch-table-h,html.lq #schema-sheet .sch-t{font-family:var(--display)}
+html.lq #card-sheet .viz-body,html.lq #schema-sheet .viz-body{background:var(--bg)}
+
+/* Réglage du rythme, carte mémo, fin de leçon : derniers boutons */
+html.lq .pl-freq-option{border:2px solid var(--line)!important;border-radius:14px!important;box-shadow:0 3px 0 var(--lip)!important;font-family:var(--display)!important;font-weight:700!important;font-size:15px!important;transition:transform .12s var(--press),box-shadow .12s var(--press)!important}
+html.lq .pl-freq-option:active{transform:translateY(3px)!important;box-shadow:0 0 0 var(--lip)!important}
+html.lq .pl-freq-option.on{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;box-shadow:0 3px 0 var(--accent-lip)!important;animation:lqSegIn .35s var(--pop)}
+html.lq .pl-rhythm-option,html.lq .pl-pace-option{border:2px solid var(--line)!important;border-radius:18px!important;box-shadow:0 3px 0 var(--lip)!important}
+html.lq .cd-actions button{border-radius:16px!important;font-family:var(--display)!important;font-weight:700!important;font-size:16px!important;min-height:54px;transition:transform .12s var(--press),box-shadow .12s var(--press)!important}
+html.lq .cd-share-btn{background:#fff!important;color:var(--accent-ink)!important;border:2px solid var(--line)!important;box-shadow:0 4px 0 var(--lip)!important}
+html.lq .cd-share-btn:active{transform:translateY(4px)!important;box-shadow:0 0 0 var(--lip)!important}
+html.lq .cd-try-btn{background:var(--success-fill)!important;color:#fff!important;border:0!important;box-shadow:0 4px 0 var(--success-lip)!important}
+html.lq .cd-try-btn:active{transform:translateY(4px)!important;box-shadow:0 0 0 var(--success-lip)!important}
+html.lq .coda-note{border:2px solid var(--line)!important;background:#fff!important;color:var(--accent-ink)!important;border-radius:16px!important;box-shadow:0 3px 0 var(--lip)!important;font-family:var(--display)!important;font-weight:700!important}
+html.lq .coda-note:active{transform:translateY(3px);box-shadow:0 0 0 var(--lip)!important}
+html.lq .cd-memo{border:2px solid var(--line)!important;border-radius:20px!important;box-shadow:none!important}
+html.lq #scr-lesson .bravo-ring::after{background:var(--success-fill)!important;box-shadow:none!important}
+html.lq #scr-lesson .bravo-ring i{color:#fff!important;font-family:var(--display)}
+html.lq #scr-lesson .bravo-recap{border:2px solid var(--line)!important}
+
+/* ---------- 28. Plus de capitales forcées : étiquettes en casse normale ---------- */
+html.lq #scr-learn .cp-k,
+html.lq #scr-lesson .ij-sms-h,
+html.lq .acc-field label,
+html.lq .acc-h,
+html.lq .account-goal-copy>small,
+html.lq .account-level-head small,
+html.lq .account-section-head span,
+html.lq .account-settings-group-title,
+html.lq .account-settings-title,
+html.lq .account-subsection-head span,
+html.lq .anat-sub span,
+html.lq .anat-zoom-root,
+html.lq .bravo-gcard-lab,
+html.lq .bravo-kicker,
+html.lq .bravo-next-lab,
+html.lq .card h4,
+html.lq .cd-lab,
+html.lq .cf-attn b,
+html.lq .cf-imp-prix-cast small,
+html.lq .cf-iso small,
+html.lq .cf-kind>small,
+html.lq .cf-trap-sql small,
+html.lq .cf-value small,
+html.lq .cfs-label,
+html.lq .cmp-tag,
+html.lq .coll-overview-copy small,
+html.lq .coll-overview-next small,
+html.lq .concept-block .table-wrap table.concept-table th,
+html.lq .consigne .tag,
+html.lq .console-projects-head small,
+html.lq .cp-badge,
+html.lq .cw-case-lab,
+html.lq .cw-end,
+html.lq .cw-tbl-h,
+html.lq .date-functions-page .df-keep-lab,
+html.lq .date-span-title,
+html.lq .db-lab > span,
+html.lq .db-trow .tk,
+html.lq .def-focus-kicker,
+html.lq .def-focus-level,
+html.lq .def-list-head p,
+html.lq .df-anatomy-kicker,
+html.lq .df-idea small,
+html.lq .df-month-node small,
+html.lq .df-part small,
+html.lq .df-period-cmp-head span:first-child,
+html.lq .df-period-cmp-who small,
+html.lq .df-period-rows small,
+html.lq .df-pick-to small,
+html.lq .df-stage-head small,
+html.lq .df-step i,
+html.lq .df-trap-sql .df-sql-cap,
+html.lq .df-tz-city.is-zone small,
+html.lq .df-tz-utc small,
+html.lq .df-unit small,
+html.lq .eans-lab,
+html.lq .ecom-node.is-end,
+html.lq .ecom-node.is-hero,
+html.lq .ecom-trio b,
+html.lq .ent-focus .esql .esql-lab,
+html.lq .ent-head h2,
+html.lq .ent-hero-txt .ent-hero-kicker,
+html.lq .ent-list-title .ent-list-kicker,
+html.lq .er-card-h,
+html.lq .er-pk-head,
+html.lq .er-th,
+html.lq .esql-lab,
+html.lq .ex-label span,
+html.lq .fk-course .ij-t .ij-tlab,
+html.lq .fk-duo .fk-duo-lab,
+html.lq .fk-memo-labs,
+html.lq .fk-memo-pair b,
+html.lq .fk-ok > b,
+html.lq .fk-quiz-pair b,
+html.lq .fk-ref small,
+html.lq .fk-tree-root b,
+html.lq .fk-verdict .fk-verdict-lab,
+html.lq .fn-nest-lab,
+html.lq .fn-tip b,
+html.lq .fn-use .duo-k,
+html.lq .gc-cell b,
+html.lq .gc-null p.gc-null-lab,
+html.lq .gc-order b,
+html.lq .gc-sep p.gc-sep-lab,
+html.lq .gc-steps .gc-step-lab,
+html.lq .grp-bucket-lbl,
+html.lq .grp-paused-badge,
+html.lq .h2-eye,
+html.lq .hc-tag,
+html.lq .hint-box b,
+html.lq .home-catalog-head>div>span,
+html.lq .home-section-head>div>span,
+html.lq .ij-t .ij-tlab,
+html.lq .ijl .ijl-col-h,
+html.lq .ijl .ijl-out-h,
+html.lq .ijl-count,
+html.lq .ijl-grid span.is-h,
+html.lq .imp-field label,
+html.lq .j3-card .j3-card-h,
+html.lq .jc-res .jc-res-k,
+html.lq .jd-card .jd-ex span,
+html.lq .jd-coach-step,
+html.lq .jd-result-head small,
+html.lq .jeu-lab,
+html.lq .jn-course .fn-use > .pt-syntax-h::before,
+html.lq .jn-merge-out small,
+html.lq .jn-merge-src small,
+html.lq .jn-sides article small,
+html.lq .join-bridge small,
+html.lq .join-drop-lab,
+html.lq .join-guide-kicker,
+html.lq .join-mini-table .head,
+html.lq .join-output-label,
+html.lq .join-phase-label,
+html.lq .join-question span,
+html.lq .join-recap th,
+html.lq .join-side-h,
+html.lq .journey-spotlight .journey-kicker,
+html.lq .journey-step-copy .journey-kicker,
+html.lq .jr-ici,
+html.lq .key-flow-arr,
+html.lq .l-kicker,
+html.lq .learning-check-eyebrow,
+html.lq .lesson-rich .sit-memo .sit-memo-lab,
+html.lq .lesson-rich .sit-sql p.rel-card-why b,
+html.lq .lesson-rich .sit-vue-step .sit-vue-tag,
+html.lq .lgtitle .eyebrow,
+html.lq .memory-kicker,
+html.lq .module-head h2,
+html.lq .mv-tag,
+html.lq .ncard .nctx,
+html.lq .ne-ctx .cchip,
+html.lq .ne-lab,
+html.lq .nf-adv-card small,
+html.lq .nf-agg small,
+html.lq .nf-division small,
+html.lq .nf-hero-val small,
+html.lq .nf-inorder-card small,
+html.lq .nf-machine-in small,
+html.lq .nf-machine-out small,
+html.lq .nf-mm-col small,
+html.lq .nf-modulo-result small,
+html.lq .nf-order-step small,
+html.lq .nf-read>b,
+html.lq .nf-sign-item small,
+html.lq .nf-stage-head small,
+html.lq .nm-badge,
+html.lq .nm-tbl-h,
+html.lq .notes-overview-copy small,
+html.lq .ob-kicker,
+html.lq .ob-metrics small,
+html.lq .ob-name label,
+html.lq .ob-summary .pt,
+html.lq .offset-branch-tag,
+html.lq .offset-demo-badge,
+html.lq .offset-demo-row small,
+html.lq .offset-diff-row small,
+html.lq .offset-scan-keep small,
+html.lq .offset-scan-skip small,
+html.lq .offset-shift-label,
+html.lq .order-hint-chip,
+html.lq .pd-key small,
+html.lq .pd-sieve-end,
+html.lq .piege-tail table.concept-table th,
+html.lq .pipe-table td.ok,
+html.lq .pipe-table th,
+html.lq .pk-bad > b,
+html.lq .pk-mail-meta span,
+html.lq .pk-mini span.is-h,
+html.lq .pl-badge-jour,
+html.lq .pl-metrics small,
+html.lq .pl-overview-copy small,
+html.lq .pl-overview-next small,
+html.lq .pl-q .qlab,
+html.lq .pl-summary .pt,
+html.lq .pl-week-heading>div:first-child>span,
+html.lq .plan-next-session>small,
+html.lq .pt-floor-lab,
+html.lq .pt-hop-k,
+html.lq .pts-cmd b,
+html.lq .qf-bank-h,
+html.lq .qtag,
+html.lq .rel-card h3,
+html.lq .rel-pair-h,
+html.lq .result-label,
+html.lq .rv-h,
+html.lq .sect-label span,
+html.lq .set-demo > b,
+html.lq .sit-mail-fields span,
+html.lq .sommaire-t,
+html.lq .sql-viz:is([data-viz="subquery_in"],[data-viz="subquery_notin"]) .subq-clients-head,
+html.lq .sql-viz:is([data-viz="subquery_in"],[data-viz="subquery_notin"]) .subq-command.is-head,
+html.lq .sql-viz:is([data-viz="subquery_in"],[data-viz="subquery_notin"]) .subq-list-head>span,
+html.lq .sql-viz:is([data-viz="subquery_in"],[data-viz="subquery_notin"]) .subq-source-head>span,
+html.lq .sql-viz[data-kind="cols"] .sel-head .sel-c,
+html.lq .sql-viz[data-viz="coalesce"] .coal-cell.is-head,
+html.lq .sql-viz[data-viz="coalesce"] .coal-head>span,
+html.lq .sql-viz[data-viz="selfjoin"] .self-audit-head span,
+html.lq .sql-viz[data-viz="selfjoin"] .self-audit-row em,
+html.lq .sql-viz[data-viz="selfjoin"] .self-source-head>span,
+html.lq .sql-viz[data-viz="subquery_from"] .from-amount-cell.is-head,
+html.lq .sql-viz[data-viz="subquery_from"] .from-cell.is-head,
+html.lq .sql-viz[data-viz="subquery_from"] .from-head>span,
+html.lq .studio-today .st-lab,
+html.lq .table-swipe-hint,
+html.lq .tbl-tree-branch b,
+html.lq .toast .t-kicker,
+html.lq .today-hero .th-tag,
+html.lq .tx-branch small,
+html.lq .txt-lab-top small,
+html.lq .txt-transform-box small,
+html.lq .valid-card-chip small,
+html.lq .viz-stepnum,
+html.lq .vs-tag,
+html.lq thead th{text-transform:none!important;letter-spacing:normal!important}
+html.lq .acc-field label,
+html.lq .acc-h,
+html.lq .account-goal-copy>small,
+html.lq .account-level-head small,
+html.lq .account-section-head span,
+html.lq .account-settings-title,
+html.lq .account-subsection-head span,
+html.lq .ob-kicker,
+html.lq .ob-name label,
+html.lq .ob-metrics small,
+html.lq .pl-metrics small,
+html.lq .pl-badge-jour,
+html.lq .studio-today .st-lab,
+html.lq .today-hero .th-tag,
+html.lq .ne-lab,
+html.lq .ncard .nctx,
+html.lq .ne-ctx .cchip,
+html.lq .imp-field label,
+html.lq .esql-lab,
+html.lq .ent-focus .esql .esql-lab,
+html.lq .eans-lab,
+html.lq .rv-h,
+html.lq .result-label,
+html.lq .ex-label span,
+html.lq .hc-tag,
+html.lq .card h4,
+html.lq .cp-badge,
+html.lq .learning-check-eyebrow,
+html.lq .memory-kicker,
+html.lq .join-guide-kicker,
+html.lq .module-head h2,
+html.lq .ent-head h2,
+html.lq .valid-card-chip small,
+html.lq .hint-box b,
+html.lq .fn-tip b,
+html.lq .cd-lab,
+html.lq .er-card-h,
+html.lq .pl-q .qlab,
+html.lq .ob-summary .pt,
+html.lq .pl-summary .pt,
+html.lq #scr-learn .cp-k,
+html.lq .bravo-kicker{font-family:var(--display)!important;font-weight:700!important}
+html.lq .sql-viz :is(.subq-clients-head,.subq-command.is-head,.subq-list-head>span,.subq-source-head>span){text-transform:none!important;letter-spacing:normal!important}
+
+/* ---------- Animations partagées ---------- */
+@keyframes lqRise{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes lqNodeIn{0%{opacity:0;transform:scale(.3)}60%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}
+@keyframes lqSlideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+@keyframes lqPulse{0%{transform:scale(.86);opacity:.6}100%{transform:scale(1.32);opacity:0}}
+@keyframes lqBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes lqFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-4px) rotate(-2deg)}}
+@keyframes lqGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes lqFlameIn{0%{opacity:0;transform:scale(0) rotate(-25deg)}60%{opacity:1;transform:scale(1.25) rotate(8deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes lqFlicker{0%,100%{transform:scale(1) rotate(0)}25%{transform:scale(1.06,.95) rotate(-2.5deg)}50%{transform:scale(.96,1.06) rotate(2deg)}75%{transform:scale(1.03,.98) rotate(-1deg)}}
+@keyframes lqWiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-14deg) scale(1.1)}60%{transform:rotate(10deg) scale(1.08)}}
+@keyframes lqTodayPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,154,61,0)}50%{box-shadow:0 0 0 5px rgba(255,154,61,.18)}}
+@keyframes lqSegIn{0%{transform:scale(.92)}60%{transform:scale(1.04)}100%{transform:scale(1)}}
+@keyframes lqCorrect{0%{transform:scale(1)}35%{transform:scale(1.04)}70%{transform:scale(.99)}100%{transform:scale(1)}}
+@keyframes lqShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+@keyframes lqRunPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.12)}}
+@keyframes lqHalo{0%,100%{box-shadow:0 0 0 4px rgba(255,255,255,.34),0 3px 0 rgba(20,10,60,.16)}50%{box-shadow:0 0 0 9px rgba(255,255,255,.1),0 3px 0 rgba(20,10,60,.16)}}
+
+/* ---------- 98. Petits écrans ---------- */
+@media (max-width:360px){
+  html.lq #home-hero,html.lq #scr-learn #modules{padding-left:16px;padding-right:16px}
+  html.lq .lq-heading h2{font-size:27px!important}
+  html.lq .lq-hero{padding:16px}
+  html.lq .lq-hero .mascot-medal{width:64px;height:64px;right:12px}
+  html.lq .lq-hero-kicker,html.lq .lq-hero-title,html.lq .lq-hero-sub{padding-right:72px}
+  html.lq .lq-hero-body{min-height:118px}
+  html.lq .lq-hero-title{font-size:29px}
+  html.lq .lq-day i{width:34px;height:34px}
+  html.lq .lq-day i svg{width:20px;height:20px}
+  html.lq .home-catalog-head h2{font-size:23px!important}
+  html.lq #scr-learn .home-catalog-head .lq-search-toggle span{display:none}
+  html.lq #scr-learn .home-catalog-head .lq-search-toggle{width:44px;height:44px;padding:0;justify-content:center}
+  html.lq .home-module-summary{grid-template-columns:46px minmax(0,1fr) auto!important;padding:12px!important}
+  html.lq .home-module-num{width:46px!important;height:46px!important;font-size:19px!important;border-radius:15px!important}
+  html.lq #scr-learn #modules .home-module .row{grid-template-columns:54px minmax(0,1fr);column-gap:12px}
+  html.lq #scr-learn #modules .home-module .row .lz-num{width:54px!important;height:54px!important;font-size:19px!important}
+  html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+3){--zz:30px}
+  html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+4){--zz:36px}
+  html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+5){--zz:30px}
+  html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+2),html.lq #scr-learn #modules .home-module .row:nth-of-type(6n+6){--zz:16px}
+  html.lq #scr-lesson .lesson-rich>h1,html.lq #scr-lesson .l-kicker+h1{font-size:32px!important}
+}
+
+/* ---------- 99. Mouvement réduit ---------- */
+@media (prefers-reduced-motion:reduce){
+  html.lq *,html.lq *::before,html.lq *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+html.lq[data-motion="reduce"] *,html.lq[data-motion="reduce"] *::before,html.lq[data-motion="reduce"] *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
