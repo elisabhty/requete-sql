@@ -9725,6 +9725,65 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 <link rel="stylesheet" href="home-journey.css?v=1131">
 <link rel="stylesheet" href="design-premium.css?v=1236">
 <script src="design-premium.js?v=1115" defer></script>
+<script>
+/* ---------- App iOS (Capacitor) ----------
+   Dans l’app native, window.Capacitor est présent dès le chargement.
+   - navigator.vibrate n’existe pas sur iPhone : on le branche sur le
+     moteur haptique d’iOS (plugin Haptics), sans toucher aux 70 appels.
+   - Barre de statut en texte sombre, pas de zoom à deux doigts, écran de
+     lancement retiré quand l’app est prête (voir hideLoader).
+   Dans Safari, rien ne change. */
+(function(){
+  var C=window.Capacitor;
+  if(!C||!C.isNativePlatform||!C.isNativePlatform())return;
+  var P=C.Plugins||{};
+  document.documentElement.classList.add('is-native','is-'+(C.getPlatform?C.getPlatform():'native'));
+  var vp=document.querySelector('meta[name=viewport]');
+  if(vp)vp.setAttribute('content','width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+  try{P.StatusBar&&P.StatusBar.setStyle({style:'LIGHT'});}catch(e){}
+  var H=P.Haptics;
+  if(H){
+    var tap=function(ms){
+      try{
+        if(ms>=25)H.impact({style:'MEDIUM'});
+        else if(ms>=10)H.impact({style:'LIGHT'});
+        else H.selectionChanged?H.selectionChanged():H.impact({style:'LIGHT'});
+      }catch(e){}
+    };
+    try{
+      navigator.vibrate=function(p){
+        if(Array.isArray(p)){
+          /* Motif « tap, pause, tap » : un vrai retour de réussite ou d’erreur. */
+          if(p.length===3&&p[1]>=40&&H.notification){try{H.notification({type:p[0]>=15&&p[2]>=15&&p[0]===p[2]?'ERROR':'SUCCESS'});}catch(e){}return true;}
+          var t=0;p.forEach(function(d,i){if(i%2===0&&d>0)setTimeout(function(){tap(d);},t);t+=d;});
+        }else if(p>0)tap(p);
+        return true;
+      };
+    }catch(e){}
+  }
+  window.nativeAppReady=function(){try{P.SplashScreen&&P.SplashScreen.hide({fadeOutDuration:250});}catch(e){}};
+})();
+</script>
+<style id="ios-finish">
+/* ---------- Finitions iOS (mise en production) ---------- */
+/* Retour : le libellé entier (« Bibliothèque ») tient sans être coupé. */
+#app .screen>.home-back{max-width:60%}
+#app .screen>.home-back span{max-width:150px}
+/* Zones tactiles d’au moins 44 pt (recommandation Apple), sans changer le dessin. */
+.learn-avatar,.fchip{position:relative}
+.learn-avatar::after{content:"";position:absolute;inset:-4px}
+.fchip::after{content:"";position:absolute;inset:-3px 0}
+.jeu-seg button{min-height:44px}
+/* Bouton flottant des leçons : un voile dégradé l’isole du texte qui défile dessous. */
+#lesson-body .ls-nav{isolation:isolate}
+#lesson-body .ls-nav::before{content:"";display:block;position:absolute;z-index:-1;left:-20px;right:-20px;top:-26px;bottom:calc(-14px - var(--safe-bottom));background:linear-gradient(180deg,rgba(245,245,247,0),var(--bg) 26px);pointer-events:none}
+#lesson-body .ls-nav:has(.ls-next:disabled:not([data-jc-gate]))::before,#lesson-body .ls-nav.cta-away::before{display:none}
+/* Jouer : les messages rapides restent au-dessus du bord bas en plein écran. */
+body.in-lesson .jeu-toasts{bottom:calc(var(--safe-bottom) + 24px)}
+/* Glissement du bord gauche : l’écran d’origine apparaît dessous. */
+.screen.swipe-under{display:block;z-index:1;pointer-events:none}
+.screen.swipe-under::after{content:"";position:fixed;inset:0;background:rgba(0,0,0,.06);pointer-events:none}
+</style>
 </head>
 <body>
 <div id="app">
@@ -19563,6 +19622,7 @@ function bootFatal(){
     <p><b>Impossible de charger le moteur SQL.</b><br>Vérifie ta connexion, puis recharge la page.</p>`;
 }
 function hideLoader(){
+  if(window.nativeAppReady)window.nativeAppReady();
   const loader=document.getElementById('loader');
   if(!loader)return;
   loader.classList.add('fade-out');
@@ -21942,6 +22002,68 @@ function switchTab(name){
   refreshTabScreen(name);
   saveNav({view:'tab',tab:name});
 }
+/* ---------- Retour par glissement depuis le bord gauche (comme sur iOS) ----------
+   Le doigt part des 24 px de gauche : l’écran suit le doigt et l’écran
+   d’origine apparaît dessous. Au-delà d’un tiers (ou d’un geste rapide),
+   on revient en arrière ; sinon l’écran reprend sa place. */
+(function(){
+  const EDGE=24;let g=null;
+  const blocked=()=>!!document.querySelector('#onboarding.on,#viz.on,#schema-sheet.on,[id$="-back"].on,.plus-details[open]');
+  const target=()=>{
+    if(blocked())return null;
+    const cur=document.querySelector('.screen.active');if(!cur)return null;
+    if(cur.id==='scr-lesson'){
+      /* Pendant une manche de Jouer, un glissement ne doit pas quitter la partie. */
+      if(mode==='jeu'&&JEU&&/^play/.test(JEU.view||''))return null;
+      const under=screenForTab(activeTab);
+      return{cur,under:under!==cur?under:null,go:()=>goBack()};
+    }
+    const btn=cur.querySelector(':scope > .home-back');
+    if(!btn||btn.offsetParent===null||getComputedStyle(btn).display==='none')return null;
+    const parent=primaryTabFor(activeTab);
+    const under=screenForTab(parent&&parent!==activeTab?parent:'learn');
+    return{cur,under:under!==cur?under:null,go:()=>btn.click()};
+  };
+  const ease='cubic-bezier(.2,.8,.2,1)';
+  const clean=G=>[G.cur,G.under].forEach(s=>{if(!s)return;s.style.transform='';s.style.transition='';s.style.zIndex='';s.style.boxShadow='';s.classList.remove('swipe-under');});
+  addEventListener('touchstart',e=>{
+    if(g||e.touches.length!==1)return;
+    const t=e.touches[0];if(t.clientX>EDGE)return;
+    const tg=target();if(!tg)return;
+    g=Object.assign(tg,{x0:t.clientX,y0:t.clientY,t0:performance.now(),dx:0,lock:null,w:innerWidth});
+  },{passive:true});
+  addEventListener('touchmove',e=>{
+    if(!g)return;
+    const t=e.touches[0],dx=t.clientX-g.x0,dy=t.clientY-g.y0;
+    if(g.lock===null){
+      if(Math.abs(dx)<8&&Math.abs(dy)<8)return;
+      g.lock=(dx>0&&Math.abs(dx)>Math.abs(dy)*1.2)?'x':'y';
+      if(g.lock==='y'){g=null;return;}
+      g.cur.style.transition='none';g.cur.style.zIndex='3';g.cur.style.boxShadow='-10px 0 28px rgba(20,20,40,.14)';
+      if(g.under){g.under.classList.add('swipe-under');g.under.style.transition='none';}
+      document.activeElement&&document.activeElement.blur&&document.activeElement.blur();
+    }
+    if(e.cancelable)e.preventDefault();
+    g.dx=Math.max(0,dx);
+    g.cur.style.transform=`translate3d(${g.dx}px,0,0)`;
+    if(g.under)g.under.style.transform=`translate3d(${-30+30*g.dx/g.w}%,0,0)`;
+  },{passive:false});
+  const end=()=>{
+    if(!g)return;const G=g;g=null;
+    if(G.lock!=='x'){return;}
+    const v=G.dx/Math.max(1,performance.now()-G.t0),commit=G.dx>G.w*.33||(v>.5&&G.dx>40),d=200;
+    G.cur.style.transition=`transform ${d}ms ${ease}`;if(G.under)G.under.style.transition=`transform ${d}ms ${ease}`;
+    if(commit){
+      G.cur.style.transform=`translate3d(${G.w}px,0,0)`;if(G.under)G.under.style.transform='translate3d(0,0,0)';
+      setTimeout(()=>{window.__noNavAnim=true;try{G.go();}catch(e){}clean(G);setTimeout(()=>{window.__noNavAnim=false;},80);if(navigator.vibrate)navigator.vibrate(8);},d);
+    }else{
+      G.cur.style.transform='translate3d(0,0,0)';if(G.under)G.under.style.transform='translate3d(-30%,0,0)';
+      setTimeout(()=>clean(G),d);
+    }
+  };
+  addEventListener('touchend',end,{passive:true});
+  addEventListener('touchcancel',end,{passive:true});
+})();
 function returnToParent(){
   window.pNavBack?.();
   const parent=primaryTabFor(activeTab);
@@ -22037,7 +22159,7 @@ function showModuleProgress(){
 }
 
 function prefersReduceMotion(){
-  return !!state.preferences?.reduceMotion||!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  return !!window.__noNavAnim||!!state.preferences?.reduceMotion||!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 }
 function pulseCta(sel){
   const el=typeof sel==='string'?document.querySelector(sel):sel;
@@ -22525,7 +22647,8 @@ let lessonStep=0; // 0 leçon · 1 exercice · 2 quiz
 let lessonStepDir=1; // 1 forward · -1 back
 let exoFails=0; // défis : 1→aide · 2→solution
 let somScrollUntil=0; // fenêtre où les layouts SQL ne doivent pas écraser le scroll du sommaire
-function lessonBackLabel(){return activeTab==='planning'?'Parcours':activeTab==='defis'?'Défis':'Accueil';}
+/* Le bouton retour annonce l’écran d’où l’on vient, quel qu’il soit. */
+function lessonBackLabel(){return ({planning:'Parcours',defis:'Défis',practice:'Pratiquer',library:'Bibliothèque',jeu:'Jouer',compte:'Compte',notes:'Mes notes',collection:'Cartes mémo',console:'Console',entretien:'Entretien'})[activeTab]||'Accueil';}
 function openLesson(id, restoreStep){
   const l=allLessons.find(x=>x.id===id); if(!l)return;
   annulerBilanAuto();
@@ -26830,7 +26953,7 @@ function renderLessonFlow(){
   let slide='';
   if(lessonStep===3){
     slide=renderBravoSlide(l);
-    document.getElementById('back-label').textContent=activeTab==='planning'?'Parcours':'Accueil';
+    document.getElementById('back-label').textContent=lessonBackLabel();
   }else if(lessonStep===0){
     document.getElementById('back-label').textContent=lessonBackLabel();
     const rich=l.richLesson||l.studio||(Array.isArray(l.pipeline)&&l.pipeline.length);
@@ -27845,7 +27968,10 @@ function jeuToast(txt){
 }
 async function jeuShare(){
   const J=JEU;if(!J)return;
-  const url=location.origin+location.pathname+'?partie='+J.code+(/[?&]jeu=local\b/.test(location.search)?'&jeu=local':'');
+  /* Dans l’app iOS, l’adresse locale (capacitor://) ne s’ouvre pas chez les amis :
+     on partage toujours le site public. */
+  const base=location.protocol.startsWith('http')?location.origin+location.pathname:'https://elisabhty.github.io/requete-sql/';
+  const url=base+'?partie='+J.code+(/[?&]jeu=local\b/.test(location.search)?'&jeu=local':'');
   const text=`Viens me défier en SQL sur Requête ! Code de la partie : ${J.code}`;
   const out=document.getElementById('jeu-copied');
   if(navigator.share){try{await navigator.share({title:'Défi SQL entre amis',text,url});return;}catch(e){if(e&&e.name==='AbortError')return;}}
@@ -27897,7 +28023,7 @@ function openChallenge(cid){
   annulerBilanAuto();
   current=c; mode='defi';
   exoFails=0;
-  document.getElementById('back-label').textContent=({defis:'Défis',planning:'Parcours',learn:'Accueil'}[activeTab]||'Accueil');
+  document.getElementById('back-label').textContent=lessonBackLabel();
   document.getElementById('nav-title').textContent='Défi';
   document.getElementById('lesson-body').innerHTML=`
     <div class="l-kicker">Défi · ${NIV[c.niv].l}</div><h1>${c.titre}</h1>
@@ -31016,7 +31142,7 @@ function paintOb(){
     const privacy=obLegalMode==='privacy';
     html=`<div class="ob-screen ob-legal-screen">${obBackButton()}<h1 class="ob-title" id="ob-title">${privacy?'Politique de confidentialité':'Conditions d’utilisation'}</h1>
       <div class="legal-copy">${privacy
-        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>Aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées et permettra de supprimer ton compte.</p>`
+        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>Le mode <b>Jouer</b>, facultatif, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le service public ntfy.sh. Ces messages s’effacent au bout de 12&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées et permettra de supprimer ton compte.</p>`
         : `<p>Requête est une application d’apprentissage du SQL. Le contenu est fourni à des fins pédagogiques.</p><p>Tu peux commencer sans compte, exporter ta progression et l’effacer depuis Mon compte.</p><p>Les options de connexion ne deviennent actives que lorsqu’un fournisseur d’authentification sécurisé est configuré.</p>`}</div></div>`;
     obSetFooter('','','','','');
   }else if(slide==='welcome'){
@@ -31259,8 +31385,23 @@ function rappelSlotId(h){
   if(n<18) return 'afternoon';
   return 'evening';
 }
+/* App iOS : le rappel passe par une notification locale programmée chaque
+   jour (plugin LocalNotifications), car les notifications web n’y existent pas. */
+function rappelNativeSync(){
+  const C=window.Capacitor,LN=C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.LocalNotifications;
+  if(!LN)return;
+  const go=async()=>{
+    try{await LN.cancel({notifications:[{id:1}]});}catch(e){}
+    if(!rappelOn())return;
+    try{const p=await LN.requestPermissions();if(p&&p.display&&p.display!=='granted')return;}catch(e){return;}
+    const [h,m]=String(rappelHeure()).split(':').map(Number);
+    try{await LN.schedule({notifications:[{id:1,title:'Requête',body:'C’est l’heure de ta séance SQL.',schedule:{on:{hour:h||0,minute:m||0},repeats:true,allowWhileIdle:true}}]});}catch(e){}
+  };
+  go();
+}
 function setRappelHeure(h){
   try{ localStorage.setItem('requete-rappel-heure',h); }catch(e){}
+  rappelNativeSync();
   renderCompte();
   if(navigator.vibrate)navigator.vibrate(8);
 }
@@ -31275,6 +31416,7 @@ function toggleRappel(){
   if(on && 'Notification' in window && Notification.permission==='default'){
     try{ Notification.requestPermission(); }catch(e){}
   }
+  rappelNativeSync();
   renderCompte();
   if(navigator.vibrate)navigator.vibrate(8);
 }
@@ -31551,7 +31693,7 @@ function renderCompte(){
     <details class="plus-details" id="plus-data">
       <summary><span>Données et confidentialité</span><small>Tu gardes le contrôle de tes informations</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body">
-        <p class="account-data-note">Tes données d’apprentissage restent sur cet appareil tant que tu utilises le mode sans compte.</p>
+        <p class="account-data-note">Tes données d’apprentissage restent sur cet appareil tant que tu utilises le mode sans compte. Seul le mode Jouer partage ton pseudo et tes temps avec les autres joueurs.</p>
         <button class="acc-row" type="button" onclick="exportProgress()">
           <div class="at"><b>Exporter ma progression</b><small>Fichier JSON, à garder de ton côté</small></div>
           ${CHEV}</button>
@@ -31583,7 +31725,7 @@ function openLegal(kind){
       <p>Requête est une app d’apprentissage SQL. Tu peux l’utiliser <b>sans compte</b> : ta progression reste alors sur cet appareil.</p>
       <ul>
         <li>Prénom, leçons, défis, notes et planning : stockés en local dans le navigateur.</li>
-        <li>Aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
+        <li>Le mode <b>Jouer</b>, facultatif, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le service public ntfy.sh. Ces messages s’effacent au bout de 12&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
         <li>Le moteur SQL tourne dans le navigateur.</li>
         <li>Le rappel quotidien n’envoie une notification que si tu l’actives (permission du navigateur), à l’heure choisie.</li>
       </ul>
@@ -33605,7 +33747,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-onglet-jouer-v1323';
+  const SW_CACHE='requete-2026-09-30-ios-finitions-v1324';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
