@@ -23,9 +23,9 @@ ctx.openItem(0,1);assert.deepEqual(opened,[0,1],'leçon zéro et étape exercice
 ctx.openItem(38,2);assert.deepEqual(opened,[38,2],'accès à l’étape quiz');
 ctx.openItem('d1',0);assert.deepEqual(opened,['d1'],'les défis gardent leur parcours propre');
 const nav=html.slice(html.indexOf('<nav class="tabbar"'),html.indexOf('</nav>',html.indexOf('<nav class="tabbar"')));
-assert.deepEqual([...nav.matchAll(/data-tab="([^"]+)"/g)].map(m=>m[1]),['learn','planning','practice','library','compte']);
+assert.deepEqual([...nav.matchAll(/data-tab="([^"]+)"/g)].map(m=>m[1]),['learn','planning','practice','jeu','library','compte']);
 const states={};let active='';
-for(const name of ['learn','planning','practice','library','compte'])states[name]={dataset:{tab:name},classList:{toggle(){}},setAttribute(k,v){this[k]=v;},scrollIntoView(){}};
+for(const name of ['learn','planning','practice','jeu','library','compte'])states[name]={dataset:{tab:name},classList:{toggle(){}},setAttribute(k,v){this[k]=v;},scrollIntoView(){}};
 ctx.document={querySelectorAll:()=>Object.values(states),getElementById:()=>null};ctx.requestAnimationFrame=cb=>cb();
 vm.runInContext(extract('function syncTabUI(','function screenForTab('),ctx);
 for(const [route,parent] of [['notes','library'],['console','practice'],['planning','planning'],['learn','learn']]){
@@ -33,4 +33,4 @@ for(const [route,parent] of [['notes','library'],['console','practice'],['planni
  assert.deepEqual(Object.entries(states).filter(([,v])=>v.tabIndex===0).map(([key])=>key),[parent]);
  assert.equal(states[parent]['aria-selected'],'true');
 }
-console.log('Parcours lisible : 5 destinations, regroupement, focus clavier, états et reprise d’étapes : OK.');
+console.log('Parcours lisible : 6 destinations, regroupement, focus clavier, états et reprise d’étapes : OK.');
