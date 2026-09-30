@@ -39,7 +39,7 @@ assert(!html.includes('const CONVERSION_DECISIONS='), 'ancien laboratoire de dé
 assert(html.includes('function renderConversionFunctionsStudio'), 'rendu dédié à la leçon 54');
 assert(html.includes('if(l.id===54)return renderConversionFunctionsStudio(l)'), 'ancienne pile de texte remplacée');
 assert(studio.includes('La donnée n’a pas toujours le bon type') && studio.includes('cf-types') && studio.includes('<code>age</code>') && studio.includes("'34'"), 'situation recentrée sur le type reçu');
-assert(studio.includes('Comment demander à SQL de transformer une valeur d’un type vers un autre ?'), 'question d’ouverture recentrée sur CAST');
+assert(studio.includes('Comment demander à SQL de transformer une valeur d’un type vers un autre ?'), 'question d’ouverture recentrée sur CAST');
 assert(studio.includes('CAST(expression AS type)') && studio.includes('CAST(valeur AS type)') && studio.includes("SELECT CAST('34' AS INTEGER);"), 'CAST présenté comme cœur de la leçon, puis comme structure du laboratoire');
 assert(html.includes('Ce qui se passe') && html.includes('function conversionMachineHtml'), 'chaque conversion montre le passage de type');
 assert(studio.includes('TRY_CAST()') && studio.includes('strftime()') && !studio.includes('Même principe, syntaxe parfois différente') && !studio.includes('C’est notamment utile lorsque des nombres provenant d’un import'), 'encadrés redondants du mini-laboratoire retirés');
@@ -61,7 +61,7 @@ assert(html.includes('initConversionFunctions();'), 'laboratoire activé au rend
 assert(html.includes("const compactFunctionLesson=l.id===52||l.id===53||l.id===54"), 'récapitulatifs redondants retirés de cette page');
 assert(html.includes('const hideLessonLab=l.id===52||l.id===54'), 'console Teste redondante masquée');
 assert(!html.slice(html.indexOf('function conversionFunctionStageHtml'), html.indexOf('function renderConversionFunctionsStudio')).includes('g.note'), 'notes sous les requêtes du mini-laboratoire retirées');
-assert(serviceWorker.includes('requete-2026-09-30-ios-finitions-v1324'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-09-30-passe-ios-v1325'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
