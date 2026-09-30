@@ -29,7 +29,7 @@ const onboardingStart = html.indexOf('function obFlowHeader(');
 const onboardingEnd = html.indexOf('function finishOnboard(', onboardingStart);
 const onboarding = html.slice(onboardingStart, onboardingEnd);
 
-assert((nav.match(/class="tab(?: active)?"/g) || []).length === 6, 'navigation principale contient les 6 destinations');
+assert((nav.match(/class="tab(?: active)?"/g) || []).length === 5, 'navigation principale limitée à 5 onglets, comme le recommande Apple');
 assert(nav.includes('data-tab="jeu"') && nav.includes('>Jouer</span>'), 'Jouer est accessible directement');
 assert(nav.includes('data-tab="learn"') && nav.includes('<span class="tab-label">Accueil</span>'), 'Accueil reste la première destination');
 assert(nav.includes('data-tab="planning"') && nav.includes('<span class="tab-label">Parcours</span>'), 'Parcours est accessible directement');
@@ -46,7 +46,7 @@ assert(html.includes('ent-readiness-stats') && html.includes('masteredTopics') &
 assert(html.includes('class="ent-group ent-topic${complete?\' complete\':\'\'}"') && html.includes("complete?'Validé'"), 'thèmes d’entretien compacts et explicitement validés');
 assert(html.includes('class="ent-mastered-label">Maîtrisée</span>'), 'question maîtrisée porte un statut textuel explicite');
 assert(html.includes("classList.add('entretien-static')") && html.includes('.entretien-static>.ent-status'), 'filtres d’entretien changés sans rejouer les animations de page');
-assert(nav.includes('data-tab="compte"') && nav.includes('<span class="tab-label">Compte</span>'), 'Mon compte remplace le menu Plus avec un libellé compact');
+assert(!nav.includes('data-tab="compte"') && html.includes('data-account-avatar') && html.includes("function openAccount(){switchTab('compte');}") && html.includes('function closeAccount()'), 'Mon compte s’ouvre depuis l’avatar et revient à l’onglet d’origine');
 assert(!nav.includes('data-tab="console"'), 'Console reste accessible depuis l’accueil sans surcharger davantage le dock');
 assert(nav.indexOf('data-tab="learn"') < nav.indexOf('data-tab="planning"') && nav.indexOf('data-tab="planning"') < nav.indexOf('data-tab="practice"'), 'ordre Accueil, Parcours, Pratiquer conservé');
 assert(html.includes('.tab{font-size:9.5px') && html.includes('.tab{font-size:9.1px'), 'libellés du dock agrandis aux deux tailles mobiles');
@@ -131,7 +131,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
 assert(html.includes('{ id:73, titre:"UNION et UNION ALL"') && html.includes('18 lignes : 10 + 8') && !html.includes('17 lignes : 9 + 8'), 'UNION ALL visible et cardinalité corrigée');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-09-30-design-v1326') && html.includes('requete-2026-09-30-design-v1326') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-09-30-cinq-onglets-v1327') && html.includes('requete-2026-09-30-cinq-onglets-v1327') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
