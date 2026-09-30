@@ -2465,6 +2465,8 @@
   .jeu-seg button.on{background:#fff;color:var(--accent-ink);box-shadow:0 1px 3px rgba(24,24,48,.12)}
   .jeu-card .journey-primary,.jeu > .journey-primary{margin-top:16px}
   .jeu-step.is-empty{opacity:.35}
+  .jeu-home{padding:0 16px 28px}
+  .jeu-home > .jeu-card:first-child{margin-top:6px}
   #defis-jeu{padding:0 14px}
   #defis-jeu .journey-resource{width:100%;margin:14px 0 4px;border-radius:20px;background:#fff;border:1px solid var(--card-border);box-shadow:var(--card-shadow-sm)}
   .jeu-msg{min-height:1.2em;margin:10px 4px 0!important;font-size:14px!important;font-weight:600;color:var(--danger)!important}
@@ -9460,6 +9462,9 @@
  #scr-entretien .ent-readiness-stats{display:none}
 }
 @media(prefers-reduced-motion:reduce){.tabbar .tab{transition:none}.ux-shortcut{scroll-behavior:auto}}
+/* Six onglets : on resserre les libellés sur les petits écrans. */
+@media (max-width:400px){#app > nav.tabbar .tab{font-size:9.4px;letter-spacing:-.3px;flex-basis:44px;min-width:44px}}
+@media (max-width:365px){#app > nav.tabbar .tab{font-size:8.7px;letter-spacing:-.35px}}
 .plan-next-session{padding:22px;margin:12px 14px 18px;border-radius:24px;background:linear-gradient(140deg,#f3f0ff,#fff);border:1px solid #dedaf4;box-shadow:0 10px 28px -22px #514dd1}
 .plan-next-session>small{display:block;font:700 11px/1.6 var(--ui);color:var(--accent-ink);text-transform:uppercase;letter-spacing:.06em}
 .plan-next-session h2{font-size:23px;line-height:1.25;margin:10px 0;color:var(--ink)}
@@ -9789,6 +9794,11 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
       <div id="library-tools" class="journey-hub-list"></div>
     </section>
 
+    <section id="scr-jeu" class="screen" aria-label="Jouer">
+      <div class="lgtitle"><div><div class="eyebrow">En direct</div><h1>Jouer</h1><p class="sub">Le même défi SQL, au même moment. Le premier qui trouve gagne la manche.</p></div></div>
+      <div id="jeu-home" class="jeu jeu-home"></div>
+    </section>
+
     <!-- DÉFIS -->
     <section id="scr-defis" class="screen">
       <button type="button" class="home-back root-home-back" onclick="returnToParent()" aria-label="Retour à Pratiquer"><svg viewBox="0 0 12 20" fill="none" aria-hidden="true"><path d="M10 2L3 10l7 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Pratiquer</span></button>
@@ -10033,6 +10043,8 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
       <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="15" rx="2.2" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="7" y="12.5" width="4" height="3" rx="1" fill="currentColor"/></svg><span class="tab-label">Parcours</span><span class="dot-n" id="badge-planning" style="display:none">0</span></button>
 <button class="tab" role="tab" aria-selected="false" data-tab="practice" onclick="switchTab('practice')">
       <svg viewBox="0 0 24 24" fill="none"><path d="M5 4.5v15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M5 5.2h10.2l-1.8 3.5 1.8 3.5H5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span class="tab-label">Pratiquer</span></button>
+<button class="tab" role="tab" aria-selected="false" data-tab="jeu" onclick="switchTab('jeu')">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M7.5 7.5h9a4.5 4.5 0 0 1 4.4 5.6l-.8 3.2a2.2 2.2 0 0 1-3.8 1L14.6 15.5H9.4l-1.7 1.8a2.2 2.2 0 0 1-3.8-1l-.8-3.2A4.5 4.5 0 0 1 7.5 7.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 10.2v3M6.5 11.7h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="15.4" cy="11" r=".9" fill="currentColor"/><circle cx="17.2" cy="12.9" r=".9" fill="currentColor"/></svg><span class="tab-label">Jouer</span></button>
 <button class="tab" role="tab" aria-selected="false" data-tab="library" onclick="switchTab('library')">
       <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="6" width="13" height="14" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M8 6V4h10a2 2 0 0 1 2 2v11h-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tab-label">Bibliothèque</span></button>
 <button class="tab" role="tab" aria-label="Mon compte" aria-selected="false" data-tab="compte" onclick="switchTab('compte')">
@@ -21857,15 +21869,16 @@ function syncTabUI(tab){
     if(on)requestAnimationFrame(()=>t.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'}));
   });
   const quickFab=document.getElementById('fab');
-  if(quickFab)quickFab.classList.toggle('context-hide',['learn','defis','planning','console','notes','collection','entretien','compte','practice','library'].includes(tab));
+  if(quickFab)quickFab.classList.toggle('context-hide',['learn','defis','planning','console','notes','collection','entretien','compte','practice','library','jeu'].includes(tab));
 }
 function screenForTab(tab){
-  const map={practice:'scr-practice',library:'scr-library',learn:'scr-learn',defis:'scr-defis',planning:'scr-planning',notes:'scr-notes',collection:'scr-collection',console:'scr-console',entretien:'scr-entretien',compte:'scr-compte'};
+  const map={practice:'scr-practice',library:'scr-library',jeu:'scr-jeu',learn:'scr-learn',defis:'scr-defis',planning:'scr-planning',notes:'scr-notes',collection:'scr-collection',console:'scr-console',entretien:'scr-entretien',compte:'scr-compte'};
   return document.getElementById(map[tab]||'scr-learn');
 }
 function refreshTabScreen(tab){
   if(tab==='learn'){renderHomeHero();renderModules();}
   else if(tab==='practice'||tab==='library') renderJourneyHub(tab);
+  else if(tab==='jeu') renderJeuHome();
   else if(tab==='defis') renderDefis();
   else if(tab==='planning'){semaineOffset=0;jourSel=null;renderPlanning();}
   else if(tab==='notes') renderNotesScreen();
@@ -21883,7 +21896,7 @@ function switchTab(name){
     closeConsoleProject();
     return;
   }
-  const map={practice:'scr-practice',library:'scr-library',learn:'scr-learn',defis:'scr-defis',planning:'scr-planning',notes:'scr-notes',collection:'scr-collection',console:'scr-console',entretien:'scr-entretien',compte:'scr-compte'};
+  const map={practice:'scr-practice',library:'scr-library',jeu:'scr-jeu',learn:'scr-learn',defis:'scr-defis',planning:'scr-planning',notes:'scr-notes',collection:'scr-collection',console:'scr-console',entretien:'scr-entretien',compte:'scr-compte'};
   if(name==='schema') name='console';
   const prevCur=document.querySelector('.screen.active');
   if(prevCur&&activeTab){
@@ -22148,8 +22161,7 @@ function renderJourneyHub(tab){
   const stats=compteStats();
   const tools=tab==='practice'?[
     ['console','Console SQL','Écris et exécute tes propres requêtes.',"switchTab('console')"],
-    ['defis','Défis',`${stats.defis} réussi${stats.defis>1?'s':''} · Mets tes acquis à l’épreuve.`,"switchTab('defis')"],
-    ['jeu','Défi entre amis','Le même défi en direct : le premier qui trouve gagne.',"openJeu()"]
+    ['defis','Défis',`${stats.defis} réussi${stats.defis>1?'s':''} · Mets tes acquis à l’épreuve.`,"switchTab('defis')"]
   ]:[
     ['cards','Cartes mémo',`${stats.cards} débloquée${stats.cards>1?'s':''} · Révise à ton rythme.`,"switchTab('collection')"],
     ['notes','Mes notes','Ton carnet et tes requêtes à retenir.',"switchTab('notes')"],
@@ -27584,17 +27596,21 @@ function jeuTransport(code,onMsg,onNet){
   };
 }
 
+/* Onglet « Jouer » : choix du pseudo, création ou invitation. La partie
+   elle-même s’ouvre en plein écran (comme une leçon). */
+let jeuInvite='';
 function openJeu(code){
+  jeuInvite=jeuCleanCode(code)||'';
+  if(document.body.classList.contains('in-lesson'))leaveLessonScreen('jeu');
+  else if(activeTab==='jeu')renderJeuHome();
+  else switchTab('jeu');
+}
+function renderJeuHome(){
   if(JEU)jeuStop();
-  annulerBilanAuto();
-  current=null;mode='jeu';exoFails=0;
-  document.getElementById('back-label').textContent=activeTab==='defis'?'Défis':'Pratiquer';
-  document.getElementById('nav-title').textContent='Défi entre amis';
-  const nom=jeuSavedNom(),c=jeuCleanCode(code);
+  const host=document.getElementById('jeu-home');if(!host)return;
+  const nom=jeuSavedNom(),c=jeuInvite;
   const lv=[['f','Faciles'],['m','Moyens'],['d','Difficiles']];
-  document.getElementById('lesson-body').innerHTML=`<div class="jeu" id="jeu-root">
-    <div class="l-kicker">Pratiquer · <span class="l-kicker-mod">En direct</span></div><h1>Défi entre amis</h1>
-    <p class="l-sub">Le même défi SQL, au même moment. Le premier qui trouve gagne la manche.</p>
+  host.innerHTML=`
     <div class="jeu-card">
       <label class="jeu-lab" for="jeu-nom">Ton pseudo</label>
       <input id="jeu-nom" class="jeu-input" maxlength="16" autocomplete="nickname" placeholder="Ex. Léa" value="${escAttr(nom)}">
@@ -27618,9 +27634,7 @@ function openJeu(code){
       <button type="button" class="jeu-btn" onclick="jeuJoin(document.getElementById('jeu-code').value)">Rejoindre</button></div>
     </div>`}
     <p class="jeu-msg" id="jeu-msg" role="status" aria-live="polite"></p>
-    <p class="jeu-note">🔒 Seuls ton pseudo, tes temps et tes réactions sont partagés, jamais tes requêtes. Ils passent par ntfy.sh, un service public, et s’effacent au bout de 12&nbsp;h. Il faut une connexion internet.</p>
-  </div>`;
-  showScreen();
+    <p class="jeu-note">🔒 Seuls ton pseudo, tes temps et tes réactions sont partagés, jamais tes requêtes. Ils passent par ntfy.sh, un service public, et s’effacent au bout de 12&nbsp;h. Il faut une connexion internet.</p>`;
 }
 function jeuSetOpt(k,v,btn){
   if(k==='niv')jeuNiv=v;else jeuNb=v;
@@ -27645,6 +27659,13 @@ function jeuStart(code,host){
     jeuSend({t:'cfg',niv:jeuNiv,n:JEU.nb});
   }
   jeuSend({t:'hello'});
+  jeuInvite='';
+  annulerBilanAuto();
+  current=null;mode='jeu';exoFails=0;
+  document.getElementById('back-label').textContent='Jouer';
+  document.getElementById('nav-title').textContent='Défi entre amis';
+  document.getElementById('lesson-body').innerHTML='<div class="jeu" id="jeu-root"></div>';
+  showScreen();
   JEU.tick=setInterval(jeuTick,500);
   if(!host)JEU.waitCfg=setTimeout(()=>{if(JEU&&!JEU.hostPid){JEU.view='';JEU.lost=true;jeuPaint();}},7000);
   jeuPaint();
@@ -33584,7 +33605,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-jeu-amis-v1322';
+  const SW_CACHE='requete-2026-09-30-onglet-jouer-v1323';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
