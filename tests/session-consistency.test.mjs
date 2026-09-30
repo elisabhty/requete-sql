@@ -30,7 +30,9 @@ function check(id,count,label){
  assert.equal(ctx.prochaineActiviteParcours(),id);
  assert.equal(ctx.prochaineEtapeParcours()?.id??null,id);
  ctx.renderHomeHero();
- const surfaces=[host.innerHTML,ctx.nextSessionHtml(),ctx.bravoNextHtml()];
+ /* Le planning n’affiche plus de carte « Prochaine séance » : l’accueil et le bilan la portent. */
+ assert.equal(typeof ctx.nextSessionHtml,'undefined');
+ const surfaces=[host.innerHTML,ctx.bravoNextHtml()];
  for(const surface of surfaces){
    if(id!==null){
      assert.ok(surface.includes('Activité '+id));
@@ -51,4 +53,4 @@ ctx.state.lessons[0]={done:true};check(null); // Pas de repli vers un autre cour
 ctx.state.plan={sessions:[{d:'2026-09-17',lessons:[2]}]};delete ctx.state.lessons[0];check(null); // Plan terminé, même si catalogue différent.
 ctx.state.plan=null;ctx.state.lessons={};ctx.nbFaites=id=>id===0?1:0;
 check(0,1,'jour');assert.equal(ctx.recommendedSession().started,true);
-console.log('Séance commune : accueil, planning et bilan cohérents sur 8 scénarios.');
+console.log('Séance commune : accueil et bilan cohérents sur 8 scénarios.');
