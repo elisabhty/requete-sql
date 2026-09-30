@@ -2467,6 +2467,14 @@
   .def-mode{min-height:46px;padding:0 8px;border:0;border-radius:12px;background:transparent;color:var(--ink-2);font:inherit;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   .def-mode.on{background:var(--accent);color:#fff}
   .def-mode:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .def-mode{display:flex;align-items:center;justify-content:center;gap:8px}
+  .def-mode svg{width:19px;height:19px;flex:none}
+  #defis-friends.jeu-home{padding:0 14px 4px}
+  #defis-friends .jeu-card:first-child{margin-top:12px}
+  #defis-friends .jeu-card.is-compact{padding:10px 12px}
+  #defis-friends .jeu-msg:empty{display:none}
+  .def-row.is-solo-only{opacity:.55}
+  .def-row-friends svg{width:20px;height:20px}
   .jeu-card .journey-primary,.jeu > .journey-primary{margin-top:16px}
   .jeu-step.is-empty{opacity:.35}
   .jeu-home{padding:0 16px 28px}
@@ -9926,15 +9934,11 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
           <p class="sub" id="defis-sub">Tous les défis, du plus simple au grand bain.</p>
         </div>
       </div>
-      <div class="def-modes" id="defis-modes" role="tablist" aria-label="Défis en solo ou duel entre amis"></div>
-      <div id="defis-solo" role="tabpanel" aria-labelledby="defis-tab-solo">
-        <div id="defis-hero"></div>
-        <div class="def-levels" id="defis-levels" role="tablist" aria-label="Filtrer les défis par difficulté"></div>
-        <div id="defis-list" class="group-stack"></div>
-      </div>
-      <div id="defis-duel" role="tabpanel" aria-labelledby="defis-tab-duel" hidden>
-        <div id="jeu-home" class="jeu jeu-home"></div>
-      </div>
+      <div class="def-modes" id="defis-modes" role="tablist" aria-label="Faire les défis seul ou entre amis"></div>
+      <div id="defis-hero"></div>
+      <div id="defis-friends" class="jeu jeu-home" hidden></div>
+      <div class="def-levels" id="defis-levels" role="tablist" aria-label="Filtrer les défis par difficulté"></div>
+      <div id="defis-list" class="group-stack"></div>
     </section>
 
     <!-- DÉTAIL (leçon / défi / révision) -->
@@ -22367,7 +22371,7 @@ function renderJourneyHub(tab){
   const stats=compteStats();
   const nDefis=typeof CHALLENGES!=='undefined'?CHALLENGES.length:0;
   const tools=tab==='practice'?[
-    ['defis','Défis',nDefis?`${stats.defis} réussi${stats.defis>1?'s':''} sur ${nDefis} · Duel entre amis inclus`:`${stats.defis} réussi${stats.defis>1?'s':''} · Mets tes acquis à l’épreuve.`,"openDefis()",nDefis?Math.round(stats.defis/nDefis*100):null],
+    ['defis','Défis',nDefis?`${stats.defis} réussi${stats.defis>1?'s':''} sur ${nDefis} · Seul ou entre amis`:`${stats.defis} réussi${stats.defis>1?'s':''} · Mets tes acquis à l’épreuve.`,"openDefis()",nDefis?Math.round(stats.defis/nDefis*100):null],
     ['console','Console SQL','Écris et exécute tes propres requêtes.',"switchTab('console')"]
   ]:[
     ['cards','Cartes mémo',`${stats.cards} débloquée${stats.cards>1?'s':''} · Révise à ton rythme.`,"switchTab('collection')"],
@@ -22513,12 +22517,13 @@ function lessonListRow(l){
 let defisLevel='f';
 const DEF_FLAG_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4.5"/><path d="M5 5c4-2.6 7 2.2 14-.4v10c-7 2.6-10-2.2-14 .4"/></svg>';
 const DEF_CHEV_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
-function defiListRow(c,i){
+function defiListRow(c,i,friends){
   const ok=!!(state.defis&&state.defis[c.id]);
-  return `<button type="button" class="def-row${ok?' done':''}" onclick="openChallenge('${c.id}')">
+  const solo=friends&&!jeuEligible(c);
+  return `<button type="button" class="def-row${ok?' done':''}${friends?' is-friends':''}${solo?' is-solo-only':''}" onclick="defiTap('${c.id}')"${solo?' aria-disabled="true"':''}>
     <span class="def-row-num" aria-hidden="true">${String(i+1).padStart(2,'0')}</span>
     <span class="def-row-copy"><b>${esc(c.titre)}</b><small>${esc(c.q)}</small></span>
-    ${ok?`<span class="def-row-valid"><span class="def-row-status" aria-hidden="true">${ENT_OK_SVG}</span><em>Validé</em></span>`:`<span class="def-row-chev" aria-hidden="true">${DEF_CHEV_SVG}</span>`}
+    ${solo?`<span class="def-row-valid"><em>Seul</em></span>`:(friends?`<span class="def-row-chev def-row-friends" aria-hidden="true">${JEU_FRIENDS_SVG}</span>`:(ok?`<span class="def-row-valid"><span class="def-row-status" aria-hidden="true">${ENT_OK_SVG}</span><em>Validé</em></span>`:`<span class="def-row-chev" aria-hidden="true">${DEF_CHEV_SVG}</span>`))}
   </button>`;
 }
 /* Place d’une leçon dans son module (numéro 1…n affiché sur le chemin). */
@@ -22664,35 +22669,63 @@ function setDefisView(v){
   renderDefis();
   if(navigator.vibrate)navigator.vibrate(6);
 }
+const JEU_FRIENDS_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.4-3 2.6-4.8 5.5-4.8s5.1 1.8 5.5 4.8"/><path d="M16 5.2a3 3 0 0 1 0 5.6M17.5 14.4c1.8.5 3 2 3.3 4.6"/></svg>';
+function jeuEligible(c){return !!c&&!/^\s*EXPLAIN/i.test(c.sol)&&!c.noExec;}
 function renderDefisModes(){
   const bar=document.getElementById('defis-modes');if(!bar)return;
-  const duel=defisView==='duel';
-  bar.innerHTML=[['solo','Défis'],['duel','Duel entre amis']].map(([k,l])=>{
-    const on=(k==='duel')===duel;
-    return `<button type="button" role="tab" id="defis-tab-${k}" aria-selected="${on}" aria-controls="defis-${k==='duel'?'duel':'solo'}" tabindex="${on?0:-1}" class="def-mode${on?' on':''}" onclick="setDefisView('${k}')">${l}</button>`;
+  const friends=defisView==='duel';
+  bar.innerHTML=[['solo','Seul'],['duel','Entre amis']].map(([k,l])=>{
+    const on=(k==='duel')===friends;
+    return `<button type="button" role="tab" id="defis-tab-${k}" aria-selected="${on}" tabindex="${on?0:-1}" class="def-mode${on?' on':''}" onclick="setDefisView('${k}')">${k==='duel'?JEU_FRIENDS_SVG:''}${l}</button>`;
   }).join('');
-  document.getElementById('defis-solo').hidden=duel;
-  document.getElementById('defis-duel').hidden=!duel;
+  const panel=document.getElementById('defis-friends');
+  if(panel){panel.hidden=!friends;if(friends)panel.innerHTML=defisFriendsHTML();else panel.innerHTML='';}
+}
+/* Entre amis : mêmes défis, mais on choisit un défi pour ouvrir une partie et obtenir un code à partager. */
+function defisFriendsHTML(){
+  const nom=jeuSavedNom(),c=jeuInvite;
+  return `${c?`<div class="jeu-card is-join">
+      <p class="jeu-card-h">Tu es invité·e à la partie <b class="jeu-code-inline">${c}</b></p>
+      <button type="button" class="journey-primary" onclick="jeuJoin('${c}')"><span>Rejoindre la partie</span>${DEF_CHEV_SVG}</button>
+    </div>`:''}
+    <div class="jeu-card">
+      <p class="jeu-card-h">Défier des amis</p>
+      <p class="jeu-hint">Choisis un défi dans la liste : tu reçois un code à partager, et tout le monde le résout au même moment.</p>
+      <label class="jeu-lab" for="jeu-nom">Ton pseudo</label>
+      <input id="jeu-nom" class="jeu-input" maxlength="16" autocomplete="nickname" placeholder="Ex. Léa" value="${escAttr(nom)}">
+      <p class="jeu-lab">Nombre de manches</p>
+      <div class="jeu-seg" role="radiogroup" aria-label="Nombre de manches">${[[1,'Ce défi'],[3,'3 manches'],[5,'5 manches']].map(([n,l])=>`<button type="button" role="radio" aria-checked="${jeuNb===n}" class="${jeuNb===n?'on':''}" onclick="jeuSetOpt('nb',${n},this)">${l}</button>`).join('')}</div>
+      <p class="jeu-hint">Les manches en plus sont des défis du même niveau.</p>
+    </div>
+    ${c?'':`<div class="jeu-card is-compact">
+      <div class="jeu-row"><input id="jeu-code" class="jeu-input is-code" maxlength="6" autocapitalize="characters" autocomplete="off" placeholder="Un code reçu ? ABC123" aria-label="Code de partie reçu" oninput="this.value=jeuCleanCode(this.value)">
+      <button type="button" class="jeu-btn" onclick="jeuJoin(document.getElementById('jeu-code').value)">Rejoindre</button></div>
+    </div>`}
+    <p class="jeu-msg" id="jeu-msg" role="status" aria-live="polite"></p>`;
+}
+const JEU_NOTE_HTML='<p class="jeu-note">🔒 Seuls ton pseudo, tes temps et tes réactions sont partagés, jamais tes requêtes. Ils passent par ntfy.sh, un service public, et s’effacent au bout de 12&nbsp;h. Il faut une connexion internet.</p>';
+function defiTap(cid){
+  if(defisView!=='duel'){openChallenge(cid);return;}
+  if(!jeuEligible(CHALLENGES.find(x=>x.id===cid))){toast('Ce défi se joue seul');return;}
+  jeuStart(jeuRand(6),true,cid);
 }
 function renderDefis(catalogOnly=false){
   const host=document.getElementById('defis-list');
   if(!host)return;
-  renderDefisModes();
-  if(defisView==='duel'){
-    const dsub=document.getElementById('defis-sub');
-    if(dsub)dsub.textContent='Le même défi SQL, au même moment. Le premier qui trouve gagne la manche.';
-    renderJeuHome();
-    return;
-  }
   if(JEU)jeuStop();
+  if(!catalogOnly)renderDefisModes();
+  const friends=defisView==='duel';
   const challenges=defisParProgression();
   const nOk=challenges.filter(c=>state.defis&&state.defis[c.id]).length;
   const sub=document.getElementById('defis-sub');
-  if(sub) sub.textContent=nOk===0
-    ? `${challenges.length} défis pour mettre tes acquis à l’épreuve.`
-    : `${nOk} défi${nOk>1?'s':''} réussi${nOk>1?'s':''} sur ${challenges.length}.`;
+  if(sub) sub.textContent=friends
+    ? 'Les mêmes défis, au même moment : le premier qui trouve gagne la manche.'
+    : (nOk===0
+      ? `${challenges.length} défis pour mettre tes acquis à l’épreuve.`
+      : `${nOk} défi${nOk>1?'s':''} réussi${nOk>1?'s':''} sur ${challenges.length}.`);
   const hero=document.getElementById('defis-hero');
-  const next=challenges.find(c=>!(state.defis&&state.defis[c.id]))||challenges[0];
+  const playable=friends?challenges.filter(jeuEligible):challenges;
+  const next=playable.find(c=>!(state.defis&&state.defis[c.id]))||playable[0];
   const pct=challenges.length?Math.round(nOk/challenges.length*100):0;
   const byNiv={f:[],m:[],d:[]};
   challenges.forEach(c=>byNiv[c.niv].push(c));
@@ -22700,7 +22733,7 @@ function renderDefis(catalogOnly=false){
   if(hero&&next&&!catalogOnly){
     const allDone=nOk===challenges.length;
     hero.innerHTML=`<section class="def-focus">
-      <div class="def-focus-top"><span class="def-focus-kicker">${allDone?'Collection complète':'Prochain défi'}</span><span class="def-focus-total"><b>${challenges.length-nOk}</b> restant${challenges.length-nOk>1?'s':''}</span></div>
+      <div class="def-focus-top"><span class="def-focus-kicker">${allDone?'Collection complète':(friends?'Prochain défi à partager':'Prochain défi')}</span><span class="def-focus-total"><b>${challenges.length-nOk}</b> restant${challenges.length-nOk>1?'s':''}</span></div>
       <div class="def-focus-main">
         <span class="def-focus-icon" style="--p:${pct}" role="img" aria-label="${pct}% des défis réussis"><b>${pct}%</b></span>
         <div class="def-focus-copy">
@@ -22712,7 +22745,7 @@ function renderDefis(catalogOnly=false){
       <div class="def-focus-stats"><div><b>${doneByNiv.f}/${byNiv.f.length}</b><small>Faciles</small></div><div><b>${doneByNiv.m}/${byNiv.m.length}</b><small>Moyens</small></div><div><b>${doneByNiv.d}/${byNiv.d.length}</b><small>Difficiles</small></div></div>
       <div class="def-focus-foot">
         <div class="def-focus-progress"><strong>${nOk} / ${challenges.length} réussis</strong></div>
-        <button type="button" class="def-focus-cta" onclick="openChallenge('${next.id}')"><span>${allDone?'Rejouer un défi':'Relever le défi'}</span>${DEF_CHEV_SVG}</button>
+        <button type="button" class="def-focus-cta" onclick="defiTap('${next.id}')"><span>${friends?'Défier mes amis':(allDone?'Rejouer un défi':'Relever le défi')}</span>${DEF_CHEV_SVG}</button>
       </div>
     </section>`;
   }
@@ -22722,8 +22755,8 @@ function renderDefis(catalogOnly=false){
   const selected=byNiv[defisLevel]||byNiv.f;
   const selectedLabel=(levels.find(x=>x[0]===defisLevel)||levels[0])[1].toLowerCase();
   const selectedDone=selected.filter(c=>state.defis&&state.defis[c.id]).length;
-  host.innerHTML=`<div class="def-list-head"><div><p>${selectedDone===selected.length?'Niveau validé':'Choisis ton défi'}</p><h2>Défis ${selectedLabel}</h2></div><span>${selectedDone}/${selected.length}</span></div>
-    <div class="def-list">${selected.map(defiListRow).join('')}</div>`;
+  host.innerHTML=`<div class="def-list-head"><div><p>${friends?'Choisis le défi à partager':(selectedDone===selected.length?'Niveau validé':'Choisis ton défi')}</p><h2>Défis ${selectedLabel}</h2></div><span>${selectedDone}/${selected.length}</span></div>
+    <div class="def-list">${selected.map((c,i)=>defiListRow(c,i,friends)).join('')}</div>${friends?`<div class="jeu jeu-home" style="padding-bottom:0">${JEU_NOTE_HTML}</div>`:''}`;
 }
 function setDefisLevel(level){
   if(!['f','m','d'].includes(level))return;
@@ -28026,7 +28059,7 @@ const JEU_ROUND_MS=180000;
 const JEU_REACTS=['👏','🔥','😅','🤯'];
 const JEU_ALPH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const JEU_POINTS=[3,2,1];
-let JEU=null,jeuNiv='f',jeuNb=3;
+let JEU=null,jeuNiv='f',jeuNb=1;
 function jeuRand(n){const a=new Uint32Array(n);crypto.getRandomValues(a);return [...a].map(x=>JEU_ALPH[x%JEU_ALPH.length]).join('');}
 function jeuPid(){let p='';try{p=sessionStorage.getItem('rq-jeu-pid')||'';}catch(e){}if(!p){p=jeuRand(10);try{sessionStorage.setItem('rq-jeu-pid',p);}catch(e){}}return p;}
 function jeuNom(v){return String(v||'').replace(/[\u0000-\u001f<>]/g,'').replace(/\s+/g,' ').trim().slice(0,16);}
@@ -28076,37 +28109,6 @@ function openJeu(code){
   else if(activeTab==='defis')renderDefis();
   else switchTab('defis');
 }
-function renderJeuHome(){
-  if(JEU)jeuStop();
-  const host=document.getElementById('jeu-home');if(!host)return;
-  const nom=jeuSavedNom(),c=jeuInvite;
-  const lv=[['f','Faciles'],['m','Moyens'],['d','Difficiles']];
-  host.innerHTML=`
-    <div class="jeu-card">
-      <label class="jeu-lab" for="jeu-nom">Ton pseudo</label>
-      <input id="jeu-nom" class="jeu-input" maxlength="16" autocomplete="nickname" placeholder="Ex. Léa" value="${escAttr(nom)}">
-    </div>
-    ${c?`<div class="jeu-card is-join">
-      <p class="jeu-card-h">Tu es invité·e à la partie <b class="jeu-code-inline">${c}</b></p>
-      <button type="button" class="journey-primary" onclick="jeuJoin('${c}')"><span>Rejoindre la partie</span>${DEF_CHEV_SVG}</button>
-    </div>`:''}
-    <div class="jeu-card">
-      <p class="jeu-card-h">Créer une partie</p>
-      <p class="jeu-lab">Niveau des défis</p>
-      <div class="jeu-seg" role="radiogroup" aria-label="Niveau des défis">${lv.map(([k,l])=>`<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="${jeuNiv===k?'on':''}" onclick="jeuSetOpt('niv','${k}',this)">${l}</button>`).join('')}</div>
-      <p class="jeu-lab">Nombre de manches</p>
-      <div class="jeu-seg" role="radiogroup" aria-label="Nombre de manches">${[3,5].map(n=>`<button type="button" role="radio" aria-checked="${jeuNb===n}" class="${jeuNb===n?'on':''}" onclick="jeuSetOpt('nb',${n},this)">${n} manches</button>`).join('')}</div>
-      <button type="button" class="journey-primary" onclick="jeuCreate()"><span>Créer la partie</span>${DEF_CHEV_SVG}</button>
-    </div>
-    ${c?'':`<div class="jeu-card">
-      <p class="jeu-card-h">Rejoindre une partie</p>
-      <label class="jeu-lab" for="jeu-code">Code reçu</label>
-      <div class="jeu-row"><input id="jeu-code" class="jeu-input is-code" maxlength="6" autocapitalize="characters" autocomplete="off" placeholder="ABC123" oninput="this.value=jeuCleanCode(this.value)">
-      <button type="button" class="jeu-btn" onclick="jeuJoin(document.getElementById('jeu-code').value)">Rejoindre</button></div>
-    </div>`}
-    <p class="jeu-msg" id="jeu-msg" role="status" aria-live="polite"></p>
-    <p class="jeu-note">🔒 Seuls ton pseudo, tes temps et tes réactions sont partagés, jamais tes requêtes. Ils passent par ntfy.sh, un service public, et s’effacent au bout de 12&nbsp;h. Il faut une connexion internet.</p>`;
-}
 function jeuSetOpt(k,v,btn){
   if(k==='niv')jeuNiv=v;else jeuNb=v;
   btn.parentElement.querySelectorAll('button').forEach(b=>{const on=b===btn;b.classList.toggle('on',on);b.setAttribute('aria-checked',on);});
@@ -28118,16 +28120,18 @@ function jeuAskNom(){
   try{localStorage.setItem('rq-jeu-nom',n);}catch(e){}
   return n;
 }
-function jeuStart(code,host){
+function jeuStart(code,host,cid){
   const nom=jeuAskNom();if(!nom)return;
   if(typeof CHALLENGES==='undefined'||!SQL){document.getElementById('jeu-msg').textContent='Le moteur SQL se charge encore, réessaie dans un instant.';return;}
-  JEU={code,host,me:jeuPid(),nom,hostPid:host?jeuPid():null,niv:jeuNiv,nb:jeuNb,players:{},order:[],rounds:[],over:false,net:null,view:'',seenU:new Set(),found:{},tick:null,t:null,lastReact:0,plan:[]};
+  const picked=host&&cid?CHALLENGES.find(x=>x.id===cid):null;
+  const niv=picked?picked.niv:jeuNiv;
+  JEU={code,host,me:jeuPid(),nom,hostPid:host?jeuPid():null,niv,nb:jeuNb,players:{},order:[],rounds:[],over:false,net:null,view:'',seenU:new Set(),found:{},tick:null,t:null,lastReact:0,plan:[]};
   JEU.players[JEU.me]={name:nom,at:Date.now()};JEU.order.push(JEU.me);
   JEU.t=jeuTransport(code,jeuOnMsg,ok=>{if(!JEU)return;JEU.net=ok;jeuPaint();});
   if(host){
-    const pool=jeuChallenges(jeuNiv).map(c=>c.id).sort(()=>Math.random()-.5);
-    JEU.plan=pool.slice(0,Math.min(jeuNb,pool.length));JEU.nb=JEU.plan.length;
-    jeuSend({t:'cfg',niv:jeuNiv,n:JEU.nb});
+    const pool=jeuChallenges(niv).map(c=>c.id).filter(id=>!picked||id!==picked.id).sort(()=>Math.random()-.5);
+    JEU.plan=(picked?[picked.id].concat(pool):pool).slice(0,Math.max(1,Math.min(jeuNb,pool.length+(picked?1:0))));JEU.nb=JEU.plan.length;
+    jeuSend({t:'cfg',niv,n:JEU.nb});
   }
   jeuSend({t:'hello'});
   jeuInvite='';
@@ -28142,7 +28146,6 @@ function jeuStart(code,host){
   if(!host)JEU.waitCfg=setTimeout(()=>{if(JEU&&!JEU.hostPid){JEU.view='';JEU.lost=true;jeuPaint();}},7000);
   jeuPaint();
 }
-function jeuCreate(){jeuStart(jeuRand(6),true);}
 function jeuJoin(code){
   const c=jeuCleanCode(code),msg=document.getElementById('jeu-msg');
   if(c.length!==6){if(msg)msg.textContent='Le code fait 6 caractères.';return;}
@@ -34337,7 +34340,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1417';
+  const SW_CACHE='requete-2026-09-30-ludique-v1419';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
