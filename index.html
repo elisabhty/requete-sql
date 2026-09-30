@@ -20022,7 +20022,12 @@ function renderConsoleScreen(){
     back.onclick=inWork?closeConsoleProject:returnToParent;
     back.setAttribute('aria-label',inWork?'Retour aux projets':'Retour à Pratiquer');
   }
-  if(title) title.textContent=inWork?projectName(activeDbId):'Console';
+  if(title){
+    const name=inWork?projectName(activeDbId):'Console';
+    /* Les noms importés (Mon_Fichier_Final) peuvent passer à la ligne après chaque « _ », jamais au milieu d’un mot. */
+    title.innerHTML=esc(name).replace(/_/g,'_<wbr>');
+    title.classList.toggle('is-long',name.length>18);
+  }
   if(sub){
     if(inWork){
       const st=projectStats(activeDbId);
@@ -34343,7 +34348,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1422';
+  const SW_CACHE='requete-2026-09-30-ludique-v1425';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
