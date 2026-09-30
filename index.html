@@ -15915,7 +15915,6 @@ FROM produits;</pre></div>
           <p>👇 Exécute cette requête&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT nom,&#10;       prix,&#10;       AVG(prix) OVER () AS prix_moyen&#10;FROM produits;"></div>
           <p class="ij-arrow">👉 Les 8 produits sont toujours là. Chacun affiche la même valeur&nbsp;: 23,99&nbsp;€, la moyenne de <b>tous</b> les produits.</p>
-          <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>Ce que change OVER()</p><p><code>AVG(prix)</code> calcule la moyenne.</p><p><code>OVER()</code> indique à SQL de faire ce calcul sur l’ensemble des lignes, <b>sans les regrouper</b>.</p></div>
           <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>Pourquoi « fenêtre »&nbsp;?</p><p>Pour chaque ligne, SQL ouvre une <b>fenêtre</b> sur d’autres lignes et utilise leurs valeurs pour faire le calcul.</p><p>Quand il n’y a rien entre les parenthèses de <code>OVER()</code>, aucune ligne n’est mise à part&nbsp;: le calcul utilise toutes les lignes du résultat.</p><ul class="win-look"><li><b>Fibre Prébiotique</b><span>regarde les 8 produits</span><em>23,99&nbsp;€</em></li><li><b>Collagène Marin</b><span>regarde les 8 produits</span><em>23,99&nbsp;€</em></li><li><b>Magnésium</b><span>regarde les 8 produits</span><em>23,99&nbsp;€</em></li><li class="is-more"><b>…</b></li></ul><p>C’est pour cela que chaque produit reste affiché, mais reçoit la même moyenne.</p></div>
         </div>
         <div class="fn-use">
@@ -15939,7 +15938,6 @@ FROM produits;</pre></div>
           <div class="sit-memo is-warn"><p class="sit-memo-lab"><i aria-hidden="true">⚠️</i>Pourquoi pas directement WHERE&nbsp;?</p><p>Une fonction de fenêtre ne peut pas être utilisée directement dans <code>WHERE</code>&nbsp;: le filtrage avec <code>WHERE</code> a lieu <b>avant</b> son calcul.</p><p>👇 Teste par toi-même&nbsp;:</p><div class="ij-run" data-run-sql="SELECT nom,&#10;       categorie,&#10;       prix,&#10;       AVG(prix) OVER (&#10;         PARTITION BY categorie&#10;       ) AS prix_moyen&#10;FROM produits&#10;WHERE prix &gt; AVG(prix) OVER (&#10;  PARTITION BY categorie&#10;);"></div></div>
           <p>👉 Il faut donc procéder en deux temps&nbsp;:</p>
           <ol class="fk-syn-map is-step" aria-label="Les deux temps"><li><b aria-hidden="true">1</b><div><strong>Calculer la moyenne avec <code>OVER()</code></strong></div></li><li><b aria-hidden="true">2</b><div><strong>Filtrer le résultat obtenu</strong></div></li></ol>
-          <p><code>ROUND(…, 2)</code> arrondit la moyenne au centime, comme les prix.</p>
           <p>👇 Exécute cette requête&nbsp;:</p>
           <div class="ij-run" data-run-sql="WITH comparaison AS (&#10;  SELECT nom,&#10;         categorie,&#10;         prix,&#10;         ROUND(AVG(prix) OVER (&#10;           PARTITION BY categorie&#10;         ), 2) AS prix_moyen&#10;  FROM produits&#10;)&#10;SELECT *&#10;FROM comparaison&#10;WHERE prix &gt; prix_moyen;"></div>
           <p class="ij-arrow">👉 On calcule donc d’abord la moyenne dans un <code>WITH</code>, puis on peut utiliser <code>WHERE</code> sur le résultat obtenu.</p>
@@ -33119,7 +33117,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-over-reflexe-v1291';
+  const SW_CACHE='requete-2026-09-30-over-allege-v1292';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
