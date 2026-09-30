@@ -34,4 +34,4 @@ for(const [route,parent] of [['notes','library'],['console','practice'],['jeu','
  assert.deepEqual(Object.entries(states).filter(([,v])=>v.tabIndex===0).map(([key])=>key),[parent]);
  assert.equal(states[parent]['aria-selected'],'true');
 }
-console.log('Parcours lisible : 5 destinations dont Compte, Duel dans Pratiquer, regroupement, focus clavier, états et reprise d’étapes : OK.');
+console.log('Parcours lisible : 5 destinations dont Compte, Duel fusionné aux Défis dans Pratiquer, regroupement, focus clavier, états et reprise d’étapes : OK.');
