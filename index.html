@@ -9843,7 +9843,7 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=5">
+<link rel="stylesheet" href="ludique.css?v=6">
 </head>
 <body>
 <div id="app">
@@ -22441,7 +22441,7 @@ function renderHomeHero(){
   const late=state.plan?latePlanDetails():null;
   const date=auj().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
   const dateISO=dstr(auj());
-  const lateHtml=late?`<div class="journey-planning"><span class="journey-tool-icon">${LATE_BANNER_ICO}</span><span><b>Planning à ajuster</b><small>${plur(late.count,'activité')} à replanifier</small></span><button type="button" onclick="openLateRecoveryFromHome(this)">Réorganiser</button></div>`:'';
+  const lateHtml=late?`<button type="button" class="journey-planning" onclick="openLateRecoveryFromHome(this)"><span class="journey-tool-icon" aria-hidden="true">${LATE_BANNER_ICO}</span><span class="jp-copy"><b>${plur(late.count,'activité')} à replacer</b><small>${plur(late.sessions,'séance')} passée${late.sessions>1?'s':''}</small></span><span class="jp-chev" aria-hidden="true">${LATE_CHEV_RIGHT_SVG}</span></button>`:'';
   const streak=typeof homeStreakHTML==='function'?homeStreakHTML():'';
   const extras=lateHtml;
   const name=(state.name||'').trim();
@@ -29161,10 +29161,16 @@ function infoJour(){
   const reste=p.sessions.reduce((a,s)=>a+resteDe(s),0);
   return {t,today,retard,suivante,reste};
 }
-const LATE_BANNER_ICO='<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="6.5" width="20" height="18" rx="4"/><path d="M9 4.5v4M20 4.5v4M4.5 11.5h20M9 16h4M9 20h2"/><path class="late-rewind" d="M25.6 18.3a6.3 6.3 0 1 1-3.9-2.4M21.7 12.8v3.1h3.1"/></svg>';
-const LATE_SAFE_ICO='<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5.5 10 2.7 2.7 6.3-6.3"/><circle cx="10" cy="10" r="8"/></svg>';
-const LATE_FLOW_ICO='<svg viewBox="0 0 30 18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h22M20.5 4.5 25 9l-4.5 4.5"/><circle cx="3" cy="9" r="1.2" fill="currentColor" stroke="none"/></svg>';
-const LATE_SPLIT_ICO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4c4 0 4-5 8-5h5M7 12c4 0 4 5 8 5h5M17 4l3 3-3 3M17 14l3 3-3 3"/></svg>';
+/* Activités à replacer : icônes pleines, de la famille de la flamme de la
+   série. Orange pour le retard (calendrier et flèche de retour), violet pour
+   les actions (décaler, répartir, aujourd’hui). */
+const LATE_BANNER_ICO='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4" width="19" height="17.5" rx="4.5" fill="#F26B00"/><path d="M2.5 8.5A4.5 4.5 0 0 1 7 4h10a4.5 4.5 0 0 1 4.5 4.5V9.8h-19Z" fill="#D45400"/><rect x="6.4" y="1.8" width="2.8" height="5.2" rx="1.4" fill="#A14100"/><rect x="14.8" y="1.8" width="2.8" height="5.2" rx="1.4" fill="#A14100"/><path d="M8 15.9a4 4 0 1 0 4-4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/><path d="M9.2 11.9 12.5 9.7v4.4Z" fill="#fff" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/></svg>';
+const LATE_CAL_BASE='<rect x="2.5" y="4" width="19" height="17.5" rx="4.5" fill="#8B6CFF"/><path d="M2.5 8.5A4.5 4.5 0 0 1 7 4h10a4.5 4.5 0 0 1 4.5 4.5V9.8h-19Z" fill="#6A4DF4"/><rect x="6.4" y="1.8" width="2.8" height="5.2" rx="1.4" fill="#4B30CC"/><rect x="14.8" y="1.8" width="2.8" height="5.2" rx="1.4" fill="#4B30CC"/>';
+const LATE_SHIFT_ICO='<svg viewBox="0 0 24 24" aria-hidden="true">'+LATE_CAL_BASE+'<path d="M7.8 15.6h7.6M12.6 12.8l2.8 2.8-2.8 2.8" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const LATE_TODAY_ICO='<svg viewBox="0 0 24 24" aria-hidden="true">'+LATE_CAL_BASE+'<circle cx="12" cy="15.6" r="3.3" fill="#fff"/><circle cx="12" cy="15.6" r="1.5" fill="#6A4DF4"/></svg>';
+const LATE_SPLIT_ICO='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="6" width="6.2" height="14" rx="2.4" fill="#8B6CFF"/><path d="M1.5 8.4A2.4 2.4 0 0 1 3.9 6h1.4a2.4 2.4 0 0 1 2.4 2.4v1.4H1.5Z" fill="#6A4DF4"/><rect x="8.9" y="6" width="6.2" height="14" rx="2.4" fill="#8B6CFF"/><path d="M8.9 8.4A2.4 2.4 0 0 1 11.3 6h1.4a2.4 2.4 0 0 1 2.4 2.4v1.4H8.9Z" fill="#6A4DF4"/><rect x="16.3" y="6" width="6.2" height="14" rx="2.4" fill="#8B6CFF"/><path d="M16.3 8.4A2.4 2.4 0 0 1 18.7 6h1.4a2.4 2.4 0 0 1 2.4 2.4v1.4h-6.2Z" fill="#6A4DF4"/><path d="M4.6 12.6v3.8M2.7 14.5h3.8M12 12.6v3.8M10.1 14.5h3.8M19.4 12.6v3.8M17.5 14.5h3.8" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></svg>';
+const LATE_CHEV_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+const LATE_CHEV_RIGHT_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
 const IMPACT_CHART_ICO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V12h4v8M10 20V7h4v13M16 20V3h4v17M3 20h18"/></svg>';
 function plur(n,mot,pl){return n+' '+(Math.abs(n)>1?(pl||mot+'s'):mot);}
 function latePlanDetails(){
@@ -29181,30 +29187,32 @@ function latePlanDetails(){
   const todayCount=info.today?resteDe(info.today):0;
   return {info,ids,count:ids.length,sessions:info.retard.length,wasYesterday,todayCount,todayAfter:todayCount+ids.length};
 }
-function lateItemsLabel(ids){
-  const names=(ids||[]).map(id=>itemMeta(id).titre);
-  if(!names.length)return '';
-  if(names.length===1)return names[0];
-  if(names.length===2)return `${names[0]} et ${names[1]}`;
-  return `${names[0]}, ${names[1]} et ${names.length-2} autre${names.length>3?'s':''}`;
+/* Durée courte : « 45 min », « 2 h 06 ». */
+function dureeCourte(min){
+  const m=Math.max(0,Math.round(+min||0));
+  if(m<60)return `${m} min`;
+  const h=Math.floor(m/60),r=m%60;
+  return r?`${h} h ${String(r).padStart(2,'0')}`:`${h} h`;
 }
-function lateBannerHTML(n,opts){
-  opts=opts||{};
-  const d=latePlanDetails();
-  if(!n||!d)return '';
-  const cls='late-banner'+(opts.cls?' '+opts.cls:'');
-  const title=`${plur(d.count,'activité')} à replacer`;
-  const timing=d.wasYesterday?(d.count>1?'Prévues hier':'Prévue hier'):'À replanifier';
-  const missed=`${timing} · ${plur(d.sessions,'séance')}`;
-  return `<button type="button" class="${cls}" onclick="openLateRecoveryFromHome(this)" aria-label="${esc(`${title}. ${missed}. Fais ton choix. Voir les options de replanification.`)}">
-    <span class="lb-ico" aria-hidden="true">${LATE_BANNER_ICO}</span>
-    <span class="lb-copy">
-      <b>${title}</b>
-      <small>${missed}</small>
-      <span class="lb-safe">${LATE_SAFE_ICO}<span>Fais ton choix.</span></span>
-    </span>
-    <span class="lb-action" aria-hidden="true"><span class="lb-chev">${DEF_CHEV_SVG}</span></span>
-  </button>`;
+function dateCourte(iso){return parseD(iso).toLocaleDateString('fr-FR',{day:'numeric',month:'long'});}
+/* Décaler : tout ce qui reste reprend à partir d’aujourd’hui, au même rythme
+   (même mécanique que « Modifier mon rythme », sans changer le rythme). */
+function latePlanShiftPreview(){
+  const p=state.plan;if(!p)return null;
+  const data=collectPlanItems(p),count=data.remaining.length;
+  if(!count)return null;
+  const per=Math.max(1,Math.round(+p.per||3));
+  const freq=[2,3,5,7].includes(+p.freq)?+p.freq:7;
+  const dates=datesMotif(auj(),freq,Math.ceil(count/per));
+  return {data,count,per,freq,dates,end:dates[dates.length-1]};
+}
+function decalerPlanning(){
+  const p=state.plan,prev=latePlanShiftPreview();
+  if(!p||!prev){toast('Tout est déjà terminé');return;}
+  p.archive=prev.data.done.slice();
+  p.sessions=distribuerSessions(prev.data.remaining,prev.dates);
+  trierSessions();semaineOffset=0;jourSel=dstr(auj());lateRecoveryCollapsed=false;save();renderPlanning();
+  toast('Planning décalé',`Tout reprend aujourd’hui · fin le ${dateCourte(prev.end)}`);
 }
 function openLateRecoveryFromHome(el){
   lateRecoveryCollapsed=false;
@@ -29222,58 +29230,57 @@ function setLateRecoveryCollapsed(collapsed,source){
   const card=source?.closest?.('.late-recovery')||document.getElementById('late-recovery');
   if(!card)return;
   const details=card.querySelector('.lr-details');
-  const toggle=card.querySelector('.lr-toggle');
+  const head=card.querySelector('.lr-head');
   lateRecoveryCollapsed=!!collapsed;
-  if(!details||!toggle)return;
-  if(collapsed&&document.activeElement!==toggle)toggle.focus({preventScroll:true});
+  if(!details||!head)return;
+  if(collapsed&&document.activeElement!==head)head.focus({preventScroll:true});
   details.inert=!!collapsed;
   details.setAttribute('aria-hidden',collapsed?'true':'false');
-  toggle.setAttribute('aria-expanded',collapsed?'false':'true');
-  toggle.setAttribute('aria-label',collapsed?'Déplier les options':'Réduire les options');
+  head.setAttribute('aria-expanded',collapsed?'false':'true');
   card.classList.toggle('is-collapsed',!!collapsed);
   if(navigator.vibrate)navigator.vibrate(4);
 }
 function toggleLateRecovery(button){
   setLateRecoveryCollapsed(!button.closest('.late-recovery')?.classList.contains('is-collapsed'),button);
 }
+/* Le choix conseillé dépend du retard : peu → aujourd’hui, quelques-unes →
+   réparties, beaucoup → tout le planning décalé. */
+function lateRecommendation(count){return count<=3?'today':count<=9?'spread':'shift';}
 function lateRecoveryHTML(){
   const d=latePlanDetails(); if(!d)return '';
-  const itemNames=lateItemsLabel(d.ids);
-  const source=d.wasYesterday?`${d.count>1?'Prévues hier':'Prévue hier'} · ${itemNames}`:`À reprendre · ${itemNames}`;
+  const names=d.ids.slice(0,3).map(id=>itemMeta(id).titre);
+  const more=d.count-names.length;
+  const chips=names.map(t=>`<li>${esc(t)}</li>`).join('')+(more>0?`<li class="more">+ ${more} autre${more>1?'s':''}</li>`:'');
+  const passed=`${plur(d.sessions,'séance')} passée${d.sessions>1?'s':''}`;
   const spreadN=Math.min(d.count,3);
-  const spreadTitle=spreadN===1?'Placer sur la prochaine séance':`Répartir sur ${spreadN} séances`;
-  const spreadCopy=spreadN===1
-    ? 'Sans alourdir aujourd’hui'
-    : d.count===spreadN?'1 activité par prochaine séance':`${plur(d.count,'activité')} réparties automatiquement`;
-  const beforeLabel=plur(d.todayCount,'activité');
-  const afterLabel=`${plur(d.todayAfter,'activité')} · ~${d.todayAfter*MIN_PAR_ACTIVITE} min`;
+  const perSession=Math.ceil(d.count/spreadN);
+  const shift=latePlanShiftPreview();
+  const options={
+    shift:shift?{icon:LATE_SHIFT_ICO,title:'Décaler mon planning',copy:`Tout reprend aujourd’hui, au même rythme. Fin le ${dateCourte(shift.end)}.`,action:'decalerPlanning()'}:null,
+    spread:{icon:LATE_SPLIT_ICO,title:spreadN===1?'Placer sur la prochaine séance':`Répartir sur ${spreadN} séances`,copy:spreadN===1?'Sans alourdir aujourd’hui':`${plur(perSession,'activité')} de plus par séance`,action:'etalerRetard()'},
+    today:{icon:LATE_TODAY_ICO,title:'Tout faire aujourd’hui',copy:`${plur(d.todayAfter,'activité')} au total · ~${dureeCourte(d.todayAfter*MIN_PAR_ACTIVITE)}`,action:'rattraper()'}
+  };
+  const rec=options[lateRecommendation(d.count)]?lateRecommendation(d.count):'spread';
+  const order=[rec,...['shift','spread','today'].filter(k=>k!==rec)].filter(k=>options[k]);
+  const optionsHTML=order.map((k,i)=>{
+    const o=options[k],primary=i===0;
+    return `<button type="button" class="lr-option${primary?' is-primary':''}" data-option="${k}" onclick="${o.action}">
+          <span class="lr-option-icon" aria-hidden="true">${o.icon}</span>
+          <span class="lr-option-copy"><span class="lr-option-title"><b>${o.title}</b>${primary?'<em>Conseillé</em>':''}</span><small>${esc(o.copy)}</small></span>
+        </button>`;
+  }).join('');
   return `<section class="late-recovery${lateRecoveryCollapsed?' is-collapsed':''}" id="late-recovery" aria-labelledby="late-recovery-title">
-    <div class="lr-head">
+    <h2 class="lr-heading"><button type="button" class="lr-head" aria-expanded="${lateRecoveryCollapsed?'false':'true'}" aria-controls="late-recovery-details" onclick="toggleLateRecovery(this)">
       <span class="lr-icon" aria-hidden="true">${LATE_BANNER_ICO}</span>
-      <div class="lr-copy">
-        <h2 id="late-recovery-title">${plur(d.count,'activité')} à replacer</h2>
-        <p>${esc(source)}</p>
-        <span class="lr-meta">${plur(d.sessions,'séance')}</span>
-      </div>
-      <button type="button" class="lr-toggle" aria-expanded="${lateRecoveryCollapsed?'false':'true'}" aria-controls="late-recovery-details" aria-label="${lateRecoveryCollapsed?'Déplier les options':'Réduire les options'}" onclick="toggleLateRecovery(this)">${DEF_CHEV_SVG}</button>
-    </div>
+      <span class="lr-copy"><span class="lr-title" id="late-recovery-title">${plur(d.count,'activité')} à replacer</span><span class="lr-meta">${passed}</span></span>
+      <span class="lr-toggle" aria-hidden="true">${LATE_CHEV_SVG}</span>
+    </button></h2>
     <div class="lr-details" id="late-recovery-details" aria-hidden="${lateRecoveryCollapsed?'true':'false'}" ${lateRecoveryCollapsed?'inert':''}>
       <div class="lr-details-inner">
-        <div class="lr-impact" role="img" aria-label="Aujourd’hui, ${beforeLabel}. Avec le retard, ${afterLabel}.">
-          <span class="lr-impact-side"><small>Aujourd’hui</small><b>${beforeLabel}</b></span>
-          <span class="lr-impact-flow" aria-hidden="true">${LATE_FLOW_ICO}</span>
-          <span class="lr-impact-side after"><small>Avec le retard</small><b>${afterLabel}</b></span>
-        </div>
-        <div class="lr-safe">${LATE_SAFE_ICO}<span>Fais ton choix.</span></div>
-        <div class="lr-actions">
-          <button type="button" class="lr-option primary" onclick="rattraper()"><b>Ajouter à aujourd’hui</b></button>
-          <button type="button" class="lr-option secondary" onclick="etalerRetard()">
-            <span class="lr-option-icon" aria-hidden="true">${LATE_SPLIT_ICO}</span>
-            <span class="lr-option-copy"><b>${spreadTitle}</b><small>${spreadCopy}</small></span>
-            <span class="lr-option-chev" aria-hidden="true">${DEF_CHEV_SVG}</span>
-          </button>
-          <button type="button" class="lr-later" onclick="setLateRecoveryCollapsed(true,this)">Plus tard</button>
-        </div>
+        <ul class="lr-chips" aria-label="Activités à replacer">${chips}</ul>
+        <p class="lr-lead">Rien n’est perdu. Choisis comment les rattraper :</p>
+        <div class="lr-actions">${optionsHTML}</div>
+        <button type="button" class="lr-later" onclick="setLateRecoveryCollapsed(true,this)">Plus tard</button>
       </div>
     </div>
   </section>`;
@@ -34244,7 +34251,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1404';
+  const SW_CACHE='requete-2026-09-30-ludique-v1405';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
