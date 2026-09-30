@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="lq">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Requête — Apprends le SQL</title>
 <meta name="description" content="Apprends le SQL en pratiquant sur une vraie base SQLite. Leçons, défis, révision espacée et console interactive.">
-<meta name="theme-color" content="#F5F6FA">
+<meta name="theme-color" content="#F4F2FC">
 <meta name="color-scheme" content="light">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Requête">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%235B5BD6'/%3E%3Ctext x='50%25' y='54%25' text-anchor='middle' font-family='monospace' font-size='28' font-weight='700' fill='white'%3E%3E_%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%236A4DF4'/%3E%3Ctext x='50%25' y='54%25' text-anchor='middle' font-family='monospace' font-size='28' font-weight='700' fill='white'%3E%3E_%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Polices d'appoint : chargées sans bloquer le rendu. Sur iOS et macOS la pile
@@ -9722,7 +9722,7 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
 <script>if(/[?&]perf=1(&|$)/.test(location.search)){var pp=document.createElement("script");pp.src="perf-probe.js";pp.defer=true;document.head.appendChild(pp);}</script>
 <link rel="stylesheet" href="home-journey.css?v=1131">
 <link rel="stylesheet" href="design-premium.css?v=1236">
-<script src="design-premium.js?v=1326" defer></script>
+<script src="design-premium.js?v=1400" defer></script>
 <script>
 /* ---------- App iOS (Capacitor) ----------
    Dans l’app native, window.Capacitor est présent dès le chargement.
@@ -9848,6 +9848,9 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .screen.swipe-under{display:block;z-index:1;pointer-events:none}
 .screen.swipe-under::after{content:"";position:fixed;inset:0;background:rgba(0,0,0,.06);pointer-events:none}
 </style>
+<link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="ludique.css?v=1">
 </head>
 <body>
 <div id="app">
@@ -9905,7 +9908,7 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
       <p class="greeting" id="greeting" hidden></p>
       <div class="home-progress" id="home-progress" hidden></div>
       <div id="home-hero"></div>
-      <div id="modules" class="group-stack" hidden></div>
+      <div id="modules" class="group-stack lq-units"></div>
     </section>
 
     <section id="scr-practice" class="screen journey-hub" aria-label="Pratiquer">
@@ -19179,7 +19182,7 @@ const CHALLENGE_GUIDES={
  c24:{notion:"FIRST_VALUE + PARTITION BY",raisonnement:"Crée une fenêtre par ville, l’ordonne par âge décroissant et reporte le nom de la première ligne sur chaque client.",piege:"PARTITION BY conserve les lignes ; GROUP BY les regrouperait en une seule ligne par ville."},
  c25:{notion:"EXISTS corrélé",raisonnement:"Pour chaque client, teste s’il existe au moins une commande dont le client_id correspond. EXISTS s’arrête à la première ligne trouvée.",piege:"Sans la corrélation commandes.client_id = clients.id, tous les clients passent dès qu’il existe une commande."}
 };
-const NIV={f:{l:'FACILE',c:'f'},m:{l:'MOYEN',c:'m'},d:{l:'DIFFICILE',c:'d'}};
+const NIV={f:{l:'Facile',c:'f'},m:{l:'Moyen',c:'m'},d:{l:'Difficile',c:'d'}};
 
 /* ============================================================
    3bis. LES CARTES
@@ -19587,7 +19590,7 @@ function markDone(id,review){
   if(review) cur.level=Math.min(cur.level+1,INTERVALS.length-1);
   else if(cur.done) {} else cur.level=0;
   cur.done=true; cur.due=Date.now()+INTERVALS[cur.level]*DAY;
-  state.lessons[id]=cur; save();
+  state.lessons[id]=cur; noteActivityDay(); save();
 }
 
 /* ============================================================
@@ -20917,6 +20920,40 @@ function highlightMark(sql,mark){
   if(i<0) return html;
   return html.slice(0,i)+'<mark class="sql-mark">'+needle+'</mark>'+html.slice(i+needle.length);
 }
+/* ---------- Une couleur par clause dans le code (thème Ludique) ----------
+   SELECT, FROM, WHERE, GROUP BY, ORDER BY, JOIN… gardent chacun leur couleur
+   dans tous les blocs de code sombres : la structure d’une requête se lit
+   d’un coup d’œil. Les mots-clés sont marqués après coup (data-clause), sans
+   toucher au coloriage lui-même (highlightMark compare des chaînes). */
+const LQ_CLAUSE={SELECT:'select',FROM:'from',WHERE:'where',HAVING:'where',GROUP:'group',ORDER:'order',LIMIT:'order',OFFSET:'order',
+  JOIN:'join',INNER:'join',LEFT:'join',RIGHT:'join',FULL:'join',OUTER:'join',CROSS:'join',NATURAL:'join',ON:'join',USING:'join',
+  WITH:'with',RECURSIVE:'with',OVER:'with',PARTITION:'with',WINDOW:'with',
+  INSERT:'write',INTO:'write',VALUES:'write',UPDATE:'write',SET:'write',DELETE:'write',CREATE:'write',ALTER:'write',DROP:'write'};
+function lqTagClauses(root){
+  if(!root||!root.querySelectorAll)return;
+  const els=[];
+  if(root.matches&&root.matches('.t-kw,.kw'))els.push(root);
+  root.querySelectorAll('.t-kw:not([data-clause]),.kw:not([data-clause])').forEach(e=>els.push(e));
+  for(const el of els){
+    if(el.dataset.clause)continue;
+    const first=(el.textContent||'').trim().toUpperCase().split(/\s+/)[0];
+    let c=LQ_CLAUSE[first];
+    if(!c&&first==='BY'){
+      const p=el.previousElementSibling;
+      const pw=p&&p.matches('.t-kw,.kw')?(p.textContent||'').trim().toUpperCase():'';
+      c=pw==='GROUP'?'group':pw==='ORDER'?'order':pw==='PARTITION'?'with':'';
+    }
+    el.dataset.clause=c||'x';
+  }
+}
+(function(){
+  if(typeof document==='undefined'||typeof MutationObserver==='undefined')return;
+  const mo=new MutationObserver(list=>{
+    for(const m of list)for(const n of m.addedNodes)if(n.nodeType===1)lqTagClauses(n);
+  });
+  const start=()=>{lqTagClauses(document.body);mo.observe(document.body,{childList:true,subtree:true});};
+  if(document.body)start();else document.addEventListener('DOMContentLoaded',start);
+})();
 function fitSqlEditor(ta){
   if(typeof ta==='string') ta=document.getElementById(ta);
   if(!ta) return;
@@ -21265,7 +21302,15 @@ function normalizeState(raw){
   const accountMode=typeof source.accountMode==='string'?source.accountMode:null;
   const entretien=source.entretien&&typeof source.entretien==='object'&&!Array.isArray(source.entretien)?source.entretien:{};
   const preferences={largeText:source.preferences?.largeText===true,reduceMotion:source.preferences?.reduceMotion===true};
-  return {lessons,defis,notes,plan,onboarded,name,profile,accountMode,entretien,preferences};
+  /* Jours d'activité (série) : AAAA-MM-JJ → nombre de validations ce jour-là. */
+  const actDays={};
+  if(source.actDays&&typeof source.actDays==='object'&&!Array.isArray(source.actDays)){
+    Object.keys(source.actDays).filter(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)).sort().slice(-400).forEach(k=>{
+      const n=Math.floor(Number(source.actDays[k]));if(n>0)actDays[k]=Math.min(n,999);
+    });
+  }
+  const actSince=typeof source.actSince==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(source.actSince)?source.actSince:null;
+  return {lessons,defis,notes,plan,onboarded,name,profile,accountMode,entretien,preferences,actDays,actSince};
 }
 function normalize(result,ordered){
   if(!result||result.length===0)return "∅";
@@ -22210,7 +22255,7 @@ function nextSessionHtml(){
   const session=recommendedSession();
   if(!session)return `<section class="plan-next-session"><small>Ton prochain pas</small><h2>Parcours terminé</h2><p>Toutes les activités de ton parcours sont validées. Tu peux reprendre un module à ton choix.</p><div class="plan-next-actions"><button type="button" onclick="showModuleProgress()">Revoir les modules</button></div></section>`;
   const meta=itemMeta(session.id);
-  return `<section class="plan-next-session" aria-labelledby="plan-next-title"><small>${esc(session.label)}</small><h2 id="plan-next-title">${esc(meta.titre)}</h2><p>${esc(session.summary)}</p><div class="plan-next-actions"><button type="button" onclick="openItem(${escAttr(JSON.stringify(session.id))})">${session.started?'Continuer':'Commencer'} la séance</button><button type="button" onclick="showModuleProgress()">Voir les modules</button></div></section>`;
+  return `<section class="plan-next-session" data-mc="${typeof mcOf==='function'?mcOf(session.id):0}" aria-labelledby="plan-next-title"><small>${esc(session.label)}</small><h2 id="plan-next-title">${esc(meta.titre)}</h2><p>${esc(session.summary)}</p><div class="plan-next-actions"><button type="button" onclick="openItem(${escAttr(JSON.stringify(session.id))})">${session.started?'Continuer':'Commencer'} la séance</button><button type="button" onclick="showModuleProgress()">Voir les modules</button></div></section>`;
 }
 function moduleProgressData(modules,lessons){
   return modules.map((module,index)=>{const done=module.lessons.filter(l=>lessons[l.id]?.done).length;return {index,title:module.titre,total:module.lessons.length,done,next:module.lessons.find(l=>!lessons[l.id]?.done)?.id,first:module.lessons[0]?.id};});
@@ -22269,6 +22314,19 @@ function nextOpenLessonId(){
   for(const l of allLessons){ if(!lecCompletee(l.id)) return l.id; }
   return null;
 }
+/* Couleur de la leçon ouverte : chaque leçon prend la couleur de son module
+   (étiquettes, étapes, sommaire), les défis le vert de la rubrique Défis. */
+function lqSetLessonColor(id){
+  const scr=document.getElementById('scr-lesson');
+  if(scr)scr.dataset.mc=String(isDefiId(id)?3:mcOf(id));
+}
+/* Couleur (0-7) du module d’une activité : chemin, cartes « Reprendre ». */
+function mcOf(id){
+  if(id==null)return 0;
+  if(isDefiId(id))return 4;
+  const m=moduleDeLecon(id);
+  return m?MODULES.indexOf(m)%8:0;
+}
 function moduleDeLecon(id){
   if(id==null||isDefiId(id)) return null;
   return MODULES.find(m=>m.lessons.some(l=>l.id===id))||null;
@@ -22296,7 +22354,8 @@ function renderLearnAvatar(){
 }
 function renderHomeStreak(){
   const el=document.getElementById('home-streak'); if(!el)return;
-  if(!state.plan){ el.hidden=true; return; }
+  /* La série s’affiche désormais dans sa carte (flammes de la semaine). */
+  if(!state.plan||document.documentElement.classList.contains('lq')){ el.hidden=true; return; }
   const n=streakJours();
   el.hidden=false;
   el.classList.toggle('zero',n===0);
@@ -22436,38 +22495,52 @@ function renderHomeHero(){
   const date=auj().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
   const dateISO=dstr(auj());
   const lateHtml=late?`<div class="journey-planning"><span class="journey-tool-icon">${LATE_BANNER_ICO}</span><span><b>Planning à ajuster</b><small>${plur(late.count,'activité')} à replanifier</small></span><button type="button" onclick="openLateRecoveryFromHome(this)">Réorganiser</button></div>`:'';
-  const extras=`${lateHtml}<button type="button" id="journey-explore" class="journey-explore" onclick="toggleCourseCatalog()" aria-controls="modules" aria-expanded="${!document.getElementById('modules')?.hidden}"><span class="journey-tool-icon">${journeyIcon('courses')}</span><span>Explorer les cours</span>${DEF_CHEV_SVG}</button>${homeToolsHTML()}`;
-  const heading=`<div class="journey-heading has-mascot"><div class="jh-copy"><h2>Un pas de plus en SQL</h2><div class="journey-session-meta"><span aria-label="${escAttr(session?.summary||'Toutes tes activités sont validées')}">${esc(session?session.label==='Ta séance du jour'?`Ta séance · ${session.minutes} min`:session.label:'Parcours terminé')}</span><time datetime="${dateISO}">${esc(date)}</time></div></div>${typeof mascotMedalHtml==='function'?mascotMedalHtml():''}</div>`;
+  const streak=typeof homeStreakHTML==='function'?homeStreakHTML():'';
+  const extras=`${lateHtml}${homeToolsHTML()}`;
+  const name=(state.name||'').trim();
+  const hi=(typeof greetingForHour==='function'?greetingForHour(new Date().getHours()):'Bonjour')+(name?`, ${name}`:'');
+  const sessionLine=session?(session.label==='Ta séance du jour'?`Ta séance · ${session.minutes} min`:session.label):'Parcours terminé';
+  const heading=`<div class="journey-heading lq-heading"><div class="jh-copy"><p class="lq-hi" aria-hidden="true">${esc(hi)}</p><h2>Un pas de plus en SQL</h2><div class="journey-session-meta"><span aria-label="${escAttr(session?.summary||'Toutes tes activités sont validées')}">${esc(sessionLine)}</span><time datetime="${dateISO}">${esc(date)}</time></div></div></div>`;
+  const mascot=typeof mascotMedalHtml==='function'?mascotMedalHtml():'';
   if(nxt==null){
-    host.innerHTML=`${heading}<section class="journey-complete"><span class="journey-tool-icon">${ENT_OK_SVG}</span><h3>Tu as terminé ton parcours</h3><p>Revois une notion ou relève un défi pour entretenir tes acquis.</p><button class="journey-primary" type="button" onclick="switchTab('practice')">Continuer à pratiquer ${DEF_CHEV_SVG}</button></section>${extras}`;
+    host.innerHTML=`${heading}${streak}<section class="journey-complete lq-hero is-complete" data-mc="3">${mascot}<div class="lq-hero-body"><span class="lq-hero-mod"><b>Bravo</b>Parcours complet</span><h3 class="lq-hero-title">Tu as terminé ton parcours</h3><p class="lq-hero-sub">Revois une notion ou relève un défi pour entretenir tes acquis.</p></div><button class="journey-primary lq-hero-cta" type="button" onclick="switchTab('practice')"><span>Continuer à pratiquer</span></button></section>${extras}`;
     return;
   }
   const meta=itemMeta(nxt),defi=isDefiId(nxt),mod=moduleDeLecon(nxt);
   const lesson=defi?null:allLessons.find(l=>l.id===nxt);
+  const modIndex=mod&&typeof MODULES!=='undefined'?MODULES.indexOf(mod):-1;
+  const mc=defi?4:modIndex>=0?modIndex%8:0;
   const index=mod?mod.lessons.findIndex(l=>l.id===nxt)+1:0;
   const arg=escAttr(JSON.stringify(nxt));
   const steps=defi?[{step:0,done:false,locked:false}]:homeLessonSteps(nxt);
   const currentStep=defi?0:steps[1].done?2:nbFaites(nxt)>0?1:0;
-  const labels=[meta.titre,'Exercice pratique','Quiz'];
-  const details=[lesson?.résumé||meta.sous||'Mets tes acquis à l’épreuve.','Mettre en pratique','Vérifier tes acquis'];
-  const rows=steps.map(({step,done,locked})=>{
-    const status=done?'Validé':locked?'Après l’exercice':step===0?`${mod?mod.titre+' · ':''}${MIN_PAR_ACTIVITE} min pour cette leçon`:step===1?'À toi d’écrire':'Dernière étape';
-    return `<li class="journey-step${step===currentStep?' current':''}${done?' done':''}"><span class="journey-step-number" aria-hidden="true">${done?ENT_OK_SVG:String(step+1).padStart(2,'0')}</span><button type="button" class="journey-step-body" ${locked?'aria-disabled="true"':`onclick="openItem(${arg},${step})"`} ${step===currentStep?'aria-current="step"':''}>
-      <span class="journey-step-copy">${step===0?`<small class="journey-kicker">${defi?'Défi SQL':index?`Leçon ${index} sur ${mod.lessons.length}`:'Ta prochaine leçon'}</small>`:''}<b>${esc(labels[step])}</b><span>${esc(details[step])}</span><small class="journey-step-status">${esc(status)}</small></span><span class="journey-arrow" aria-hidden="true">${DEF_CHEV_SVG}</span></button></li>`;
-  }).join('');
+  const stepNames=['Leçon','Exercice','Quiz'];
+  const pips=defi?'':`<ol class="lq-steps" aria-label="Les étapes de ta prochaine leçon">${steps.map(({step,done,locked})=>{
+    const cur=step===currentStep;
+    const kind=done?'done':cur?'current':locked?'locked':'todo';
+    const label=`${stepNames[step]} : ${done?'validé':locked?'après l’exercice':cur?'à faire maintenant':'à faire'}`;
+    const ico=done?HOME_STEP_OK:locked?HOME_STEP_LOCK:String(step+1);
+    return `<li class="lq-step is-${kind}"><button type="button" ${locked?'aria-disabled="true"':`onclick="openItem(${arg},${step})"`} aria-label="${escAttr(label)}"${cur?' aria-current="step"':''}><i aria-hidden="true">${ico}</i><span>${stepNames[step]}</span></button></li>`;
+  }).join('')}</ol>`;
   const ctaLabel=defi
     ?(session.started?'Reprendre le défi':'Commencer le défi')
     :(currentStep===2?'Passer au quiz':currentStep===1?(nbFaites(nxt)>0?"Reprendre l’exercice":"Faire l’exercice"):(session.started?'Reprendre la leçon':'Commencer la leçon'));
-  host.innerHTML=`${heading}<section class="journey-session" aria-label="${defi?'Prochain défi':'Les étapes de ta prochaine leçon'}"><ol class="journey-timeline">${rows}</ol><button type="button" class="journey-primary" aria-label="${escAttr(ctaLabel+' : '+meta.titre)}" onclick="openItem(${arg},${currentStep})"><span>${esc(ctaLabel)}</span>${DEF_CHEV_SVG}</button></section>${extras}`;
+  const kicker=defi?'Défi SQL':index?`Leçon ${index} sur ${mod.lessons.length}`:'Ta prochaine leçon';
+  const chip=mod?`<span class="lq-hero-mod"><b>Module ${modIndex+1}</b>${esc(mod.titre)}</span>`:`<span class="lq-hero-mod"><b>${defi?'Défi':'Leçon'}</b>${esc(meta.sous||'')}</span>`;
+  const sub=lesson?.résumé||meta.sous||'Mets tes acquis à l’épreuve.';
+  host.innerHTML=`${heading}${streak}<section class="lq-hero journey-session" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${mascot}<div class="lq-hero-body">${chip}<p class="lq-hero-kicker">${esc(kicker)}</p><h3 class="lq-hero-title">${esc(meta.titre)}</h3><p class="lq-hero-sub">${esc(sub)}</p></div>${pips}<button type="button" class="journey-primary lq-hero-cta" aria-label="${escAttr(ctaLabel+' : '+meta.titre)}" onclick="openItem(${arg},${currentStep})"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span>${esc(ctaLabel)}</span></button></section>${extras}`;
 }
+const HOME_STEP_OK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const HOME_STEP_LOCK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>';
+const HOME_PLAY_SVG='<svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5.6v12.8c0 .9 1 1.4 1.7.9l9.4-6.4c.6-.4.6-1.4 0-1.8L9.7 4.7C9 4.2 8 4.7 8 5.6Z"/></svg>';
 function lessonListRow(l){
   const st=state.lessons[l.id],ok=st&&st.done,due=isDue(l.id);
-  const cur=!ok&&!due&&nextOpenLessonId()===l.id;
+  const cur=!ok&&!due&&pathCurrentLessonId()===l.id;
   const numCls=due?'due':(cur?'now':'');
-  return `<button type="button" class="row ${ok?'done-row':''} ${cur?'current':''}" onclick="openLesson(${l.id})" aria-current="${cur?'step':'false'}">
-    <div class="lz-num ${numCls}">${due?'↻':l.id}</div>
+  return `<button type="button" class="row ${ok?'done-row':''} ${cur?'current':''}" data-lid="${l.id}" onclick="openLesson(${l.id})" aria-current="${cur?'step':'false'}">
+    <div class="lz-num ${numCls}">${due?'↻':(lessonPos(l.id)?.li??l.id)}</div>
     <span class="lz-body"><b>${l.titre}</b><small>${ok?l.résumé:(nbFaites(l.id)?`${l.résumé} · ${nbFaites(l.id)}/${nbEtapes(l.id)} étapes`:l.résumé)}</small></span>
-    ${due?'<span class="catalog-lesson-state review">À réviser</span>':cur?'<span class="catalog-lesson-state next">À suivre</span>':''}
+    ${due?'<span class="catalog-lesson-state review">À réviser</span>':cur?'<span class="catalog-lesson-state next">Tu es ici</span>':''}
     ${ok?`<span class="lesson-validation"><span class="lesson-status" aria-hidden="true">${ENT_OK_SVG}</span><em>Validé</em></span>`:`<svg class="chev" aria-hidden="true" width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M1.5 1.5L7 7.5l-5.5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`}</button>`;
 }
 let defisLevel='f';
@@ -22481,10 +22554,35 @@ function defiListRow(c,i){
     ${ok?`<span class="def-row-valid"><span class="def-row-status" aria-hidden="true">${ENT_OK_SVG}</span><em>Validé</em></span>`:`<span class="def-row-chev" aria-hidden="true">${DEF_CHEV_SVG}</span>`}
   </button>`;
 }
+/* Place d’une leçon dans son module (numéro 1…n affiché sur le chemin). */
+const LESSON_POS=new Map();
+function lessonPos(id){
+  if(!LESSON_POS.size)MODULES.forEach((m,mi)=>m.lessons.forEach((l,li)=>LESSON_POS.set(l.id,{mi,li:li+1,n:m.lessons.length})));
+  return LESSON_POS.get(id);
+}
+let lqAutoOpenModule=null,catalogToolsOpen=false,lqPathCurrent,lqDoneSnapshot=null;
+/* Leçon « Tu es ici » du chemin : la même que la carte « Reprendre » de
+   l’accueil (séance recommandée), sinon la première leçon pas terminée. */
+function pathCurrentLessonId(){
+  if(lqPathCurrent!==undefined)return lqPathCurrent;
+  let id=null;
+  try{const s=recommendedSession();if(s&&!isDefiId(s.id))id=s.id;}catch(e){}
+  if(id==null||state.lessons[id]?.done)id=nextOpenLessonId();
+  lqPathCurrent=id;
+  setTimeout(()=>{lqPathCurrent=undefined;},0);
+  return id;
+}
+const LQ_SEARCH_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>';
 function renderModules(){
   const host=document.getElementById('modules');
   if(!host)return;
   const openModules=new Set([...host.querySelectorAll('.home-module[open]')].map(node=>node.dataset.moduleIndex));
+  /* Le module en cours s’ouvre tout seul (une fois : si on le referme, il le reste). */
+  lqPathCurrent=undefined;
+  const curId=pathCurrentLessonId();
+  const curMod=curId==null?-1:MODULES.findIndex(m=>m.lessons.some(l=>l.id===curId));
+  if(curMod>=0&&lqAutoOpenModule!==curMod){openModules.add(String(curMod));lqAutoOpenModule=curMod;}
+  let allDone=0;
   const modulesHTML=MODULES.map((mod,moduleIndex)=>{
     let rows='',done=0,tot=0;
     mod.lessons.forEach(l=>{
@@ -22492,13 +22590,95 @@ function renderModules(){
       if(state.lessons[l.id]&&state.lessons[l.id].done) done++;
     });
     if(!tot) return '';
+    allDone+=done;
     const pct=Math.round(done/tot*100);
     const complete=done===tot;
     const status=complete?'Toutes les leçons sont validées':done?`${tot-done} leçon${tot-done>1?'s':''} restante${tot-done>1?'s':''}`:(mod.sous||'À découvrir');
-    return `<details class="module home-module ${complete?'validated':''}" data-module-index="${moduleIndex}"${openModules.has(String(moduleIndex))?' open':''}><summary class="home-module-summary"><span class="home-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1).padStart(2,'0')}</span><span class="home-module-copy"><b>${esc(mod.titre)}</b><small>${esc(status)}</small></span><span class="home-module-side">${complete?`<em class="home-module-valid">Validé</em>`:`<span class="home-module-count">${done}/${tot}</span>`}<span class="home-module-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></span><span class="home-module-progress" role="progressbar" aria-label="Progression du module ${esc(mod.titre)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></span></summary><div class="list">${rows}</div></details>`;
+    return `<details class="module home-module ${complete?'validated':''}${moduleIndex===curMod?' is-current':''}" data-module-index="${moduleIndex}" data-mc="${moduleIndex%8}" style="--i:${moduleIndex}"${openModules.has(String(moduleIndex))?' open':''} ontoggle="lqModuleToggle(this)"><summary class="home-module-summary"><span class="home-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1)}</span><span class="home-module-copy"><small class="lq-unit-k">Module ${moduleIndex+1}${moduleIndex===curMod?' · en cours':''}</small><b>${esc(mod.titre)}</b><small>${esc(status)}</small></span><span class="home-module-side">${complete?`<em class="home-module-valid">Validé</em>`:`<span class="home-module-count">${done}/${tot}</span>`}<span class="home-module-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></span><span class="home-module-progress" role="progressbar" aria-label="Progression du module ${esc(mod.titre)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></span></summary><div class="list">${rows}</div></details>`;
   }).join('');
-  host.innerHTML=`<div class="home-catalog-head"><div><span>Catalogue</span><h2>Tous les cours</h2><p>Ouvre un module pour parcourir ses leçons.</p></div><button type="button" onclick="switchTab('planning')">Voir mon plan</button></div><div class="catalog-search"><label for="course-search">Trouver une notion</label><div><input id="course-search" type="search" placeholder="SELECT, jointure, dates…" value="${escAttr(courseSearch)}" oninput="filterCourseCatalog(this.value)" onkeydown="courseSearchKeydown(event)" aria-controls="course-search-results"><button id="clear-course-search" type="button" onclick="clearCourseSearch()" aria-label="Effacer la recherche de cours" hidden>Effacer</button></div><p id="course-search-status" role="status" aria-live="polite" aria-atomic="true"></p></div>${courseCatalogFiltersHTML()}<div id="course-search-results" hidden></div>${modulesHTML}`;
+  const toolsOpen=catalogToolsOpen||!!courseSearch||courseFilter!=='all';
+  host.innerHTML=`<div class="home-catalog-head"><div><span>Tous les cours</span><h2>Ton parcours</h2><p>${allDone} leçon${allDone>1?'s':''} validée${allDone>1?'s':''} sur ${TOTAL}</p></div><button type="button" class="lq-search-toggle" onclick="toggleCatalogTools(this)" aria-expanded="${toolsOpen}" aria-controls="catalog-tools">${LQ_SEARCH_SVG}<span>Chercher</span></button></div><div id="catalog-tools" class="catalog-tools"${toolsOpen?'':' hidden'}><div class="catalog-search"><label for="course-search">Trouver une notion</label><div><input id="course-search" type="search" placeholder="SELECT, jointure, dates…" value="${escAttr(courseSearch)}" oninput="filterCourseCatalog(this.value)" onkeydown="courseSearchKeydown(event)" aria-controls="course-search-results"><button id="clear-course-search" type="button" onclick="clearCourseSearch()" aria-label="Effacer la recherche de cours" hidden>Effacer</button></div><p id="course-search-status" role="status" aria-live="polite" aria-atomic="true"></p></div>${courseCatalogFiltersHTML()}</div><div id="course-search-results" hidden></div>${modulesHTML}`;
   filterCourseCatalog(courseSearch);
+  /* Leçons validées depuis la dernière visite de l’accueil : leur pastille
+     se remplit sous les yeux (seulement quand l’accueil est affiché). */
+  if(document.querySelector('#scr-learn.active')){
+    const doneNow=new Set(allLessons.filter(l=>state.lessons[l.id]?.done).map(l=>String(l.id)));
+    if(lqDoneSnapshot)doneNow.forEach(id=>{if(!lqDoneSnapshot.has(id))host.querySelector(`.row[data-lid="${id}"]`)?.classList.add('lq-just-done');});
+    lqDoneSnapshot=doneNow;
+  }
+  lqAfterModules(host);
+}
+function toggleCatalogTools(btn){
+  const tools=document.getElementById('catalog-tools');if(!tools)return;
+  const open=tools.hidden;
+  tools.hidden=!open;catalogToolsOpen=open;
+  btn?.setAttribute('aria-expanded',String(open));
+  if(open){document.getElementById('course-search')?.focus({preventScroll:true});return;}
+  if(courseSearch||courseFilter!=='all'){
+    courseFilter='all';
+    const input=document.getElementById('course-search');if(input)input.value='';
+    filterCourseCatalog('');
+  }
+}
+/* ---------- Chemin des modules (accueil) ----------
+   Dans un module ouvert, les leçons forment un chemin : un tracé relie leurs
+   pastilles, plein jusqu’à la leçon en cours, en pointillés ensuite. */
+function lqModuleToggle(det){
+  if(!det||!det.open)return;
+  lqDrawPath(det,true);
+}
+function lqAfterModules(host){
+  if(typeof requestAnimationFrame!=='function')return;
+  const run=()=>host.querySelectorAll('.home-module[open]').forEach(d=>lqDrawPath(d,false));
+  requestAnimationFrame(run);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>requestAnimationFrame(run)).catch(()=>{});
+}
+function lqCurve(pts,upto){
+  let d=`M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+  for(let i=1;i<=upto;i++){
+    const [x0,y0]=pts[i-1],[x1,y1]=pts[i],my=((y0+y1)/2).toFixed(1);
+    d+=` C${x0.toFixed(1)} ${my} ${x1.toFixed(1)} ${my} ${x1.toFixed(1)} ${y1.toFixed(1)}`;
+  }
+  return d;
+}
+function lqDrawPath(det,animate){
+  const list=det.querySelector(':scope>.list');
+  if(!list||det.hidden)return;
+  const rows=[...list.querySelectorAll(':scope>.row')];
+  const lb=list.getBoundingClientRect();
+  if(!rows.length||!lb.width||!lb.height)return;
+  const pts=rows.map((r,k)=>{
+    r.style.setProperty('--k',k);
+    const b=(r.querySelector('.lz-num')||r).getBoundingClientRect();
+    return [b.left-lb.left+b.width/2,b.top-lb.top+b.height/2];
+  });
+  let last=-1;
+  rows.forEach((r,k)=>{if(r.classList.contains('done-row')||r.classList.contains('current'))last=k;});
+  let svg=list.querySelector(':scope>.lq-path');
+  if(!svg){
+    svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('class','lq-path');svg.setAttribute('aria-hidden','true');
+    list.prepend(svg);
+  }
+  svg.setAttribute('viewBox',`0 0 ${lb.width.toFixed(1)} ${lb.height.toFixed(1)}`);
+  svg.setAttribute('width',lb.width.toFixed(1));svg.setAttribute('height',lb.height.toFixed(1));
+  svg.innerHTML=`<path class="lq-path-base" d="${lqCurve(pts,pts.length-1)}"/>${last>0?`<path class="lq-path-done" d="${lqCurve(pts,last)}"/>`:''}`;
+  if(!animate||prefersReduceMotion())return;
+  list.classList.remove('lq-in');void list.offsetWidth;list.classList.add('lq-in');
+  const done=svg.querySelector('.lq-path-done');
+  if(done&&done.getTotalLength){
+    const L=done.getTotalLength();
+    done.style.strokeDasharray=L;done.style.strokeDashoffset=L;
+    done.getBoundingClientRect();
+    done.style.transition='stroke-dashoffset .9s cubic-bezier(.5,0,.2,1) .2s';
+    done.style.strokeDashoffset='0';
+  }
+}
+if(typeof window!=='undefined'){
+  let lqResizeT=null;
+  window.addEventListener('resize',()=>{clearTimeout(lqResizeT);lqResizeT=setTimeout(()=>{
+    document.querySelectorAll('#modules .home-module[open]').forEach(d=>lqDrawPath(d,false));
+  },120);});
 }
 function renderDefis(catalogOnly=false){
   const host=document.getElementById('defis-list');
@@ -22730,6 +22910,7 @@ function openLesson(id, restoreStep){
   const l=allLessons.find(x=>x.id===id); if(!l)return;
   annulerBilanAuto();
   current=l; mode='lesson';
+  lqSetLessonColor(id);
   lessonStepDir=1;
   exoFails=0;
   document.getElementById('back-label').textContent=lessonBackLabel();
@@ -27862,6 +28043,7 @@ function jeuStart(code,host){
   jeuInvite='';
   annulerBilanAuto();
   current=null;mode='jeu';exoFails=0;
+  {const scr=document.getElementById('scr-lesson');if(scr)scr.dataset.mc='6';}
   document.getElementById('back-label').textContent='Jouer';
   document.getElementById('nav-title').textContent='Défi entre amis';
   document.getElementById('lesson-body').innerHTML='<div class="jeu" id="jeu-root"></div>';
@@ -28099,6 +28281,7 @@ function openChallenge(cid){
   const c=CHALLENGES.find(x=>x.id===cid); const g=CHALLENGE_GUIDES[cid]||{};
   annulerBilanAuto();
   current=c; mode='defi';
+  lqSetLessonColor(cid);
   exoFails=0;
   document.getElementById('back-label').textContent=lessonBackLabel();
   document.getElementById('nav-title').textContent='Défi';
@@ -28117,6 +28300,7 @@ function startReview(){
 }
 function openReview(id){
   const l=allLessons.find(x=>x.id===id); current=l; mode='review';
+  lqSetLessonColor(id);
   exoFails=0;
   document.getElementById('back-label').textContent=lessonBackLabel();
   document.getElementById('nav-title').textContent='Révision';
@@ -28381,7 +28565,7 @@ function runLesson(){
     let head;
     if(isDefi){
       const premier=!state.defis[current.id];
-      state.defis[current.id]=true; save(); renderDefis(); renderProgress(); renderPlanning();
+      state.defis[current.id]=true; noteActivityDay(); save(); renderDefis(); renderProgress(); renderPlanning();
       if(premier) celebrate();
       head=`<div class="feedback ok"><div class="fi">✓</div><div><b>Défi résolu</b><p>Ta requête donne exactement le bon résultat.</p></div></div>`;
       const nxtPlan=state.plan&&infoJour()&&infoJour().today&&infoJour().today.lessons.find(id=>!itemDone(id));
@@ -28591,7 +28775,7 @@ function cardSyntaxHtml(c){
   return cardIsPattern(c)?cardPatternHtml(c,'cd-syntax pattern'):`<div class="ex-code">${highlight(c.s)}</div>`;
 }
 function openCard(id){
-  if(!isUnlocked(id))return;
+  if(!isUnlocked(id)||!CARTES[id])return;
   openCardId=id;
   const c=CARTES[id];
   document.getElementById('card-back').classList.add('on');
@@ -29399,19 +29583,94 @@ function stripHTML(){
       <span class="ld ${pause?'pause':''}">${pause?'—':(fait?'✓':(ret?'!':n))}</span></button>`;
   }).join('');
 }
+/* ---------- Série (jours d’affilée) ----------
+   Un jour compte quand on y valide quelque chose : étape de leçon, exercice,
+   question de quiz ou défi (state.actDays). Avant le suivi jour par jour
+   (state.actSince), une séance du planning terminée compte pour son jour.
+   Un jour sans séance prévue dans le planning est un jour de repos : il ne
+   casse pas la série et ne la prolonge pas. Tant que la journée n’est pas
+   finie, la série reste en vie : sans activité aujourd’hui, on compte
+   jusqu’à hier. */
+function noteActivityDay(){
+  try{
+    const iso=dstr(auj());
+    if(!state.actDays||typeof state.actDays!=='object')state.actDays={};
+    const first=!state.actDays[iso];
+    state.actDays[iso]=(state.actDays[iso]||0)+1;
+    if(!state.actSince)state.actSince=iso;
+    if(first&&typeof lqStreakToast==='function')setTimeout(lqStreakToast,900);
+  }catch(e){}
+}
+function jourActif(iso){
+  if(state.actDays&&state.actDays[iso])return true;
+  if(state.plan&&(!state.actSince||iso<state.actSince)){const s=sessionDe(iso);return !!(s&&sessionFaite(s));}
+  return false;
+}
+function debutPlan(){
+  const ss=state.plan&&Array.isArray(state.plan.sessions)?state.plan.sessions:[];
+  let min=null;ss.forEach(s=>{if(s&&s.d&&(!min||s.d<min))min=s.d;});
+  return min;
+}
+function jourRepos(iso,start){
+  if(!state.plan)return false;
+  const s0=start===undefined?debutPlan():start;
+  if(!s0||iso<s0)return false;
+  const s=sessionDe(iso);
+  return !s||!Array.isArray(s.lessons)||!s.lessons.length;
+}
 function streakJours(){
-  if(!state.plan) return 0;
-  let n=0, d=auj();
-  const todayS=sessionDe(dstr(d));
-  if(!todayS || !sessionFaite(todayS)) d=addJ(d,-1);
+  let n=0,d=auj();
+  const start=debutPlan();
+  if(!jourActif(dstr(d)))d=addJ(d,-1);
   for(let i=0;i<400;i++){
     const iso=dstr(addJ(d,-i));
-    const sess=sessionDe(iso);
-    if(!sess){ if(i===0) continue; break; }
-    if(sessionFaite(sess)) n++;
+    if(jourActif(iso))n++;
+    else if(jourRepos(iso,start))continue;
     else break;
   }
   return n;
+}
+function streakRecord(){
+  const start=debutPlan(),t=auj();
+  let best=0,cur=0;
+  for(let i=399;i>=0;i--){
+    const iso=dstr(addJ(t,-i));
+    if(jourActif(iso)){cur++;if(cur>best)best=cur;}
+    else if(!jourRepos(iso,start)&&i>0)cur=0;
+  }
+  return best;
+}
+function semaineSerie(){
+  const today=dstr(auj()),lun=lundiDe(auj()),start=debutPlan();
+  return Array.from({length:7},(_,i)=>{
+    const iso=dstr(addJ(lun,i)),done=jourActif(iso),rest=!done&&jourRepos(iso,start);
+    return {iso,letter:['L','M','M','J','V','S','D'][i],name:['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'][i],today:iso===today,
+      kind:done?'done':iso===today?'today':rest?'rest':iso<today?'missed':'future'};
+  });
+}
+const LQ_FLAME_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path class="f-o" d="M12.9 1.9c.5 2.6 2 4.3 3.6 6.1 1.8 2 3.6 4.2 3.6 7.6a8.1 8.1 0 0 1-16.2 0c0-2.8 1.3-5 2.9-6.7.3 1.4 1 2.5 2.1 3.1-.2-4 1-7.6 4-10.1Z"/><path class="f-i" d="M12 22.2a4.1 4.1 0 0 0 4.1-4.1c0-2.1-1.3-3.7-4.1-6.3-2.8 2.6-4.1 4.2-4.1 6.3a4.1 4.1 0 0 0 4.1 4.1Z"/></svg>';
+const LQ_MOON_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path class="f-m" d="M19.6 14.9A8.2 8.2 0 0 1 9.1 4.4a8.2 8.2 0 1 0 10.5 10.5Z"/></svg>';
+let lqLastStreak=null;
+function homeStreakHTML(){
+  const n=streakJours(),days=semaineSerie(),best=streakRecord();
+  /* La série a grandi depuis la dernière visite de l’accueil : la carte bondit. */
+  const onHome=!!document.querySelector('#scr-learn.active');
+  const up=onHome&&lqLastStreak!=null&&n>lqLastStreak;
+  if(onHome)lqLastStreak=n;
+  const todayDone=days.some(d=>d.today&&d.kind==='done');
+  const weekDone=days.filter(d=>d.kind==='done').length;
+  const title=n?`${n} jour${n>1?'s':''} de série`:'Allume ta série';
+  const sub=n?(todayDone?'Flamme du jour allumée. À demain !':`Une activité aujourd’hui et tu passes à ${n+1}.`):'Une activité aujourd’hui allume ta première flamme.';
+  const kindLabel={done:'fait',today:'à faire aujourd’hui',rest:'repos',missed:'pas fait',future:'à venir'};
+  const aria=`${title}. ${sub} Cette semaine : ${weekDone} jour${weekDone>1?'s':''} fait${weekDone>1?'s':''}. Voir ma progression.`;
+  return `<button type="button" class="lq-streak${n?' is-on':''}${todayDone?' is-today':''}${up?' is-up':''}" onclick="openAccountProgress()" aria-label="${escAttr(aria)}">
+    <span class="lq-streak-top"><span class="lq-streak-flame" aria-hidden="true">${LQ_FLAME_SVG}</span><span class="lq-streak-copy"><b>${n?`<span class="lq-count" data-count="${n}">${n}</span> jour${n>1?'s':''} de série`:'Allume ta série'}</b><small>${esc(sub)}</small></span>${best>n?`<span class="lq-streak-best" aria-hidden="true">Record ${best}&nbsp;j</span>`:''}</span>
+    <span class="lq-week" aria-hidden="true">${days.map((d,i)=>`<span class="lq-day is-${d.kind}${d.today?' is-now':''}" style="--d:${i}" title="${escAttr(d.name+' : '+kindLabel[d.kind])}"><i>${d.kind==='rest'?LQ_MOON_SVG:LQ_FLAME_SVG}</i><small>${d.letter}</small></span>`).join('')}</span>
+  </button>`;
+}
+function openAccountProgress(){
+  if(typeof accountSection!=='undefined')accountSection='progress';
+  openAccount();
 }
 const FLAME_SVG='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.3 1.8c.5 2.4 1.6 4 3 5.6 1.7 2 3.7 4.4 3.7 8a7.5 7.5 0 0 1-15 0c0-2.5 1.2-4.5 2.6-6.1.2 1.1.8 2 1.8 2.6-.1-3.6.9-7.5 3.9-10.1ZM12 21.5a3.9 3.9 0 0 0 3.9-3.9c0-2.1-1.3-3.6-3.9-6.1-2.6 2.5-3.9 4-3.9 6.1a3.9 3.9 0 0 0 3.9 3.9Z"/></svg>';
 function streakChipHTML(){
@@ -29921,7 +30180,7 @@ function etapesDe(id){const s=state.lessons[id]||{};return s.etapes||{};}
 function setEtape(id,cle){
   const s=state.lessons[id]||{level:0};
   s.etapes=s.etapes||{};s.etapes[cle]=1;
-  state.lessons[id]=s;save();
+  state.lessons[id]=s;noteActivityDay();save();
 }
 function lecCompletee(id){
   const e=etapesDe(id);
@@ -31356,6 +31615,7 @@ function finishOnboard(action){
 function celebrate(){
   if(navigator.vibrate)navigator.vibrate([12,40,12]);
   if(prefersReduceMotion())return;
+  if(document.documentElement.classList.contains('lq')){lqConfetti();return;}
   const host=document.getElementById('burst');
   if(!host)return;
   const colors=['#5B5BD6','#7A6FF0','#0F766E','#FFB877','#7CC7FF','#E5484D','#FFD66E'];
@@ -31381,6 +31641,55 @@ function celebrate(){
     }
   }
   setTimeout(()=>{host.innerHTML='';},1500);
+}
+/* ---------- Micro-interactions du thème Ludique ----------
+   - Confettis : deux gerbes qui partent des coins bas de l’écran.
+   - Flamme du jour : à la première activité de la journée, la série
+     s’affiche en grand un court instant.
+   - Petit retour haptique au toucher des boutons en relief (dans l’app
+     iPhone, il passe par le moteur haptique d’iOS). */
+const LQ_CONFETTI=['#6A4DF4','#8B6CFF','#2563EB','#22B35E','#FFD23F','#FF7A00','#EC5B9E','#13B3AC'];
+function lqConfetti(opts){
+  if(prefersReduceMotion()||typeof document==='undefined')return;
+  const layer=document.createElement('div');layer.className='lq-confetti';layer.setAttribute('aria-hidden','true');
+  document.body.appendChild(layer);
+  const W=innerWidth,H=innerHeight,n=(opts&&opts.n)||70;
+  for(let k=0;k<n;k++){
+    const left=k%2===0,i=document.createElement('i');
+    const ox=left?-10:W+10,oy=H*.82;
+    const ang=(left?-1:-1)*(Math.PI/2)+(left?1:-1)*(0.25+Math.random()*0.55);
+    const v=H*(0.55+Math.random()*0.45);
+    const dx=Math.cos(ang)*v*(left?1:1),dy=Math.sin(ang)*v;
+    const w=6+Math.random()*6,rot=(Math.random()-.5)*1080,shape=Math.random();
+    i.style.cssText=`left:${ox}px;top:${oy}px;width:${w}px;height:${shape<.35?w:w*1.9}px;background:${LQ_CONFETTI[k%LQ_CONFETTI.length]};border-radius:${shape<.35?'50%':'2px'}`;
+    layer.appendChild(i);
+    i.animate([
+      {transform:'translate(-50%,-50%) rotate(0)',opacity:1},
+      {transform:`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) rotate(${rot*.5}deg)`,opacity:1,offset:.42},
+      {transform:`translate(calc(-50% + ${dx*1.35}px),calc(-50% + ${dy+H*.75}px)) rotate(${rot}deg)`,opacity:0}
+    ],{duration:1700+Math.random()*700,delay:Math.random()*160,easing:'cubic-bezier(.15,.75,.35,1)',fill:'forwards'});
+  }
+  setTimeout(()=>layer.remove(),2800);
+}
+function lqStreakToast(){
+  if(typeof document==='undefined'||!document.documentElement.classList.contains('lq'))return;
+  const n=typeof streakJours==='function'?streakJours():0;
+  if(!n)return;
+  let t=document.getElementById('lq-streak-toast');
+  if(!t){t=document.createElement('div');t.id='lq-streak-toast';t.setAttribute('role','status');t.setAttribute('aria-live','polite');document.body.appendChild(t);}
+  t.innerHTML=`<span class="lq-st-flame" aria-hidden="true">${LQ_FLAME_SVG}</span><span><b>${n} jour${n>1?'s':''} de série</b><small>Flamme du jour allumée !</small></span>`;
+  t.classList.remove('on');void t.offsetWidth;t.classList.add('on');
+  if(navigator.vibrate)navigator.vibrate([10,50,18]);
+  clearTimeout(lqStreakToast.t);lqStreakToast.t=setTimeout(()=>t.classList.remove('on'),2800);
+}
+const LQ_PRESS='.journey-primary,.lq-hero-cta,.btn-run,.xf-run,.qopt,.lq-step button,.home-module-summary,#modules .row,.lq-streak,.journey-resource,.journey-shortcuts button,.fchip,.def-levels>button,.ent-status>button,.jeu-seg button,.account-sections>button,.wk-day,.ls-next,.ls-prev,.tabbar .tab,.catalog-filters button,.plan-next-actions>button';
+if(typeof document!=='undefined'){
+  document.addEventListener('pointerdown',e=>{
+    if(!document.documentElement.classList.contains('lq'))return;
+    const el=e.target&&e.target.closest&&e.target.closest(LQ_PRESS);
+    if(!el||el.disabled||el.getAttribute('aria-disabled')==='true')return;
+    try{if(navigator.vibrate&&navigator.userActivation?.hasBeenActive)navigator.vibrate(5);}catch(err){}
+  },{passive:true});
 }
 function buzz(type='light'){
   try{
@@ -33824,7 +34133,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-cinq-onglets-v1327';
+  const SW_CACHE='requete-2026-09-30-ludique-v1400';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
