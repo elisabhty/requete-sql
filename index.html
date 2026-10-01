@@ -2189,10 +2189,10 @@
   .pr-h{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px;margin:0 0 8px;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)}
   .pr-replay{display:inline-flex;align-items:center;justify-content:center;flex:none;width:30px;height:30px;padding:0;border:1px solid var(--card-border);border-radius:50%;background:#fff;color:var(--ink-2);cursor:pointer;opacity:0;pointer-events:none;transition:opacity .3s,color .2s;-webkit-tap-highlight-color:transparent}
   .pr-scene.is-done .pr-replay{opacity:1;pointer-events:auto}
-  .pr-lane{max-height:260px;margin-top:8px;transition:opacity .35s,transform .35s,max-height .45s,margin .45s}
-  .pr-lane.is-fold{max-height:0;margin-top:0;overflow:hidden;opacity:0}
+  .pr-lane{max-height:260px;margin-top:8px;transition:opacity .35s,transform .35s,max-height .45s,margin .45s,padding .45s}
   .pr-lane:first-child{margin-top:0}
   .pr-lane.is-goal{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+  .pr-lane.is-fold,.pr-lane.is-goal.is-fold{max-height:0;margin-top:0;padding-top:0;padding-bottom:0;border-top-width:0;overflow:hidden;opacity:0}
   .pr-ll{display:block;margin:0 0 4px 2px;font-size:10.5px;font-weight:800;letter-spacing:.04em;line-height:1.2;text-transform:uppercase;color:var(--ink-3)}
   .pr-cells{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
   .pr-scene.has-cols .pr-cells{display:grid;grid-template-columns:var(--cols)}
@@ -25102,13 +25102,13 @@ const PROB_SCENES={
     caps:['Dans <b>clients</b>&nbsp;: le nom et l’e-mail.','Dans <b>commandes</b>&nbsp;: la date… mais pas le nom.','On veut tout <b>sur la même ligne</b>.'],
     steps:[{cap:0,on:['A'],d:1900},{cap:1,off:['A'],on:['B'],d:1900},{cap:2,off:['B'],fly:[['a2','g1'],['a3','g2'],['b2','g3']],d:2600}]},
   19:{h:'🔎 Trois tables, une fiche',
-    lanes:[{k:'A',l:'clients',c:[['a1','Sophie'],['a2','sophie@mail.fr']]},{k:'B',l:'produits',c:[['b1','Fibre Prébiotique']]},{k:'C',l:'commandes',c:[['c1','02/07']]},{k:'G',l:'fiche',c:[['g1','?','q'],['g2','?','q'],['g3','?','q'],['g4','?','q']],cls:'is-goal'}],
+    lanes:[{k:'A',l:'clients',c:[['a1','Sophie'],['a2','sophie@mail.fr']]},{k:'B',l:'produits',c:[['b1','Fibre Prébiotique']]},{k:'C',l:'commandes',c:[['c1','02/07']]},{k:'G',l:'fiche',c:[['g1','?','q',66],['g2','?','q',118],['g3','?','q',142],['g4','?','q',58]],cls:'is-goal'}],
     caps:['Le nom et l’e-mail sont dans <b>clients</b>.','Le produit est dans <b>produits</b>, la date dans <b>commandes</b>.','Une fiche réunit les <b>quatre informations</b> sur une même ligne.'],
     steps:[{cap:0,on:['A'],d:1800},{cap:1,off:['A'],on:['B','C'],d:1900},{cap:2,off:['B','C'],fly:[['a1','g1'],['a2','g2'],['b1','g3'],['c1','g4']],d:2800}]},
   20:{h:'🔎 Qui reste dans le résultat&nbsp;?',
     lanes:[{k:'L1',c:[['n1','Sophie'],['o1','3 commandes']]},{k:'L2',c:[['n2','Lucas'],['o2','2 commandes']]},{k:'L3',c:[['n3','Inès'],['o3','aucune','n']]},{k:'L4',c:[['n4','Nathan n°10'],['o4','aucune','n']]}],
     caps:['Voici 4 clients de la table <b>clients</b>.','Avec <code>INNER JOIN</code>, seuls ceux qui ont une commande restent…','…mais ce sont justement <b>Inès et Nathan n°10</b> qu’on cherche.'],
-    steps:[{cap:0,d:2000},{cap:1,on:['L1','L2'],gone:['L3','L4'],d:2300},{cap:2,off:['L1','L2'],dim:['L1','L2'],back:['L3','L4'],mark:{L3:'is-miss',L4:'is-miss'},d:2500}]},
+    steps:[{cap:0,d:2000},{cap:1,on:['L1','L2'],dim:['L3','L4'],d:2300},{cap:2,off:['L1','L2'],dim:['L1','L2'],undim:['L3','L4'],mark:{L3:'is-miss',L4:'is-miss'},d:2500}]},
   38:{h:'🔎 À qui appartient chaque commande&nbsp;?',
     lanes:[{k:'L1',c:[['a1','commande #1'],['a2','Sophie']]},{k:'L2',c:[['b1','commande #3'],['b2','Lucas']]},{k:'L3',c:[['c1','commande #16'],['c2','NULL','n']]}],
     caps:['Chaque commande est reliée à son client…','…sauf la <b>#16</b>&nbsp;: son client est <b>NULL</b>.','Elle risque de <b>disparaître</b> du résultat.'],
@@ -25118,9 +25118,9 @@ const PROB_SCENES={
     caps:['Sophie et la commande #1 <b>se correspondent</b>.','Inès n’a <b>aucune commande</b>.','La commande #16 n’a <b>aucun client</b>.'],
     steps:[{cap:0,on:['L1'],d:1900},{cap:1,off:['L1'],on:['L2'],d:1900},{cap:2,off:['L2'],on:['L3'],d:2300}]},
   40:{h:'🔎 Aucun lien entre une ville et un produit',
-    lanes:[{k:'V',l:'villes',c:[['v1','Paris'],['v2','Lyon']]},{k:'P',l:'produits',c:[['p1','Fibre Prébiotique'],['p2','Collagène Marin']]},{k:'G',l:'offres',c:[['g1','Fibre → Paris','h'],['g2','Fibre → Lyon','h'],['g3','Collagène → Paris','h'],['g4','Collagène → Lyon','h']],cls:'is-goal'}],
+    lanes:[{k:'V',l:'villes',c:[['v1','Paris'],['v2','Lyon']]},{k:'P',l:'produits',c:[['p1','Fibre Prébiotique'],['p2','Collagène Marin']]},{k:'G',l:'offres',fold:true,c:[['g1','Fibre → Paris','h'],['g2','Fibre → Lyon','h'],['g3','Collagène → Paris','h'],['g4','Collagène → Lyon','h']],cls:'is-goal'}],
     caps:['Une ville, un produit&nbsp;: <b>aucune colonne</b> ne les relie.','On ne cherche pas de correspondance&nbsp;: on veut <b>toutes les combinaisons</b>.'],
-    steps:[{cap:0,on:['V','P'],d:2000},{cap:1,off:['V','P'],show:['g1','g2','g3','g4'],stagger:350,d:3000}]},
+    steps:[{cap:0,on:['V','P'],d:2000},{cap:1,off:['V','P'],unfold:['G'],show:['g1','g2','g3','g4'],stagger:350,d:3000}]},
   41:{h:'🔎 De la commande à la ville',
     lanes:[{k:'A',l:'commandes',c:[['a1','commande #1'],['a2','client 1']]},{k:'B',l:'clients',c:[['b1','id 1'],['b2','Paris']]},{k:'G',l:'voulu',c:[['g1','commande #1'],['g2','?','q']],cls:'is-goal'}],
     caps:['La commande #1 ne connaît que l’<b>id de son client</b>&nbsp;: 1.','La <b>ville</b> se trouve dans la table clients.','Pour compter par ville, chaque commande doit connaître la sienne.'],
@@ -25138,7 +25138,7 @@ const PROB_SCENES={
     caps:['La table <b>commandes</b> donne la quantité&nbsp;: 2.','La table <b>produits</b> donne le prix&nbsp;: 29,90 €.','Le montant n’existe nulle part&nbsp;: il faut le <b>calculer</b> (2 × 29,90 = 59,80 €).'],
     steps:[{cap:0,on:['A'],d:1800},{cap:1,off:['A'],on:['B'],d:1800},{cap:2,off:['B'],text:{g1:'59,80 €'},d:2800}]},
   49:{h:'🔎 De la commande au produit',
-    lanes:[{k:'A',l:'commandes',c:[['a1','commande #3'],['a2','produit 6']]},{k:'B',l:'produits',c:[['b0','6'],['b1','Protéine Végétale'],['b2','stock 45']]},{k:'G',l:'voulu',c:[['g1','commande #3'],['g2','?','q'],['g3','?','q']],cls:'is-goal'}],
+    lanes:[{k:'A',l:'commandes',c:[['a1','commande #3'],['a2','produit 6']]},{k:'B',l:'produits',c:[['b0','6'],['b1','Protéine Végétale'],['b2','stock 45']]},{k:'G',l:'voulu',c:[['g1','commande #3'],['g2','?','q',142],['g3','?','q',84]],cls:'is-goal'}],
     caps:['La commande #3 ne connaît que l’<b>id du produit</b>&nbsp;: 6.','Le nom et le stock sont dans <b>produits</b>.','On veut les voir <b>à côté de la commande</b>.'],
     steps:[{cap:0,on:['A'],d:1900},{cap:1,off:['A'],on:['B'],d:1900},{cap:2,off:['B'],fly:[['b1','g2'],['b2','g3']],d:2700}]},
   55:{h:'🔎 Au moins une commande&nbsp;?',
@@ -25154,9 +25154,9 @@ const PROB_SCENES={
     caps:['Chaque produit a son <b>prix</b>.','Avec <code>GROUP BY</code>, la catégorie devient <b>une seule ligne</b>…','…on a la moyenne, mais la colonne <b>produit</b> a disparu.'],
     steps:[{cap:0,on:['P1','P2','P3'],d:1900},{cap:1,off:['P1','P2','P3'],fold:['P1','P2','P3'],unfold:['R'],on:['r2','r3'],d:2500},{cap:2,d:2400}]},
   73:{h:'🔎 Deux listes sans lien',
-    lanes:[{k:'V',l:'villes',c:[['v1','Paris'],['v2','Lyon']]},{k:'C',l:'catégories',c:[['c1','Bien-être'],['c2','Beauté']]},{k:'G',l:'liste',c:[['g1','Paris','h'],['g2','Lyon','h'],['g3','Bien-être','h'],['g4','Beauté','h']],cls:'is-goal'}],
+    lanes:[{k:'V',l:'villes',c:[['v1','Paris'],['v2','Lyon']]},{k:'C',l:'catégories',c:[['c1','Bien-être'],['c2','Beauté']]},{k:'G',l:'liste',fold:true,c:[['g1','Paris','h'],['g2','Lyon','h'],['g3','Bien-être','h'],['g4','Beauté','h']],cls:'is-goal'}],
     caps:['Deux tables, <b>aucun lien</b> entre une ville et une catégorie.','On ne veut pas les relier&nbsp;: on veut les mettre <b>l’une à la suite de l’autre</b>.'],
-    steps:[{cap:0,on:['V','C'],d:2000},{cap:1,off:['V','C'],show:['g1','g2','g3','g4'],stagger:320,d:3000}]},
+    steps:[{cap:0,on:['V','C'],d:2000},{cap:1,off:['V','C'],unfold:['G'],show:['g1','g2','g3','g4'],stagger:320,d:3000}]},
   74:{h:'🔎 Trier ne donne pas de rang',cols:'1fr 46px 46px',
     lanes:[{c:[['','produit','t'],['','ventes','t'],['','rang','t']]},{k:'R1',c:[['p1','Fibre Prébiotique'],['q1','10'],['r1','?','q']]},{k:'R2',c:[['p2','Collagène Marin'],['q2','4'],['r2','?','q']]},{k:'R3',c:[['p3','Magnésium'],['q3','3'],['r3','?','q']]},{k:'R4',c:[['p4','Vitamine D'],['q4','3'],['r4','?','q']]}],
     caps:['<code>ORDER BY</code> classe les produits du <b>plus vendu</b> au moins vendu…','…mais aucune colonne ne donne leur <b>place</b>.','Et deux produits à égalité doivent <b>partager la même place</b>.'],
@@ -25180,7 +25180,7 @@ function prCell(c){
   if(f.includes('h'))cls.push('pr-hid');
   if(f.includes('n'))cls.push('pr-n');
   if(f.includes('t'))cls.push('pr-th');
-  return `<span class="${cls.join(' ')}" data-k="${c[0]}">${c[1]}</span>`;
+  return `<span class="${cls.join(' ')}" data-k="${c[0]}"${c[3]?` style="min-width:${c[3]}px"`:''}>${c[1]}</span>`;
 }
 function prStage(sc){
   return sc.lanes.map(L=>`<div class="pr-lane${L.cls?' '+L.cls:''}${L.fold?' is-fold':''}"${L.k?` data-k="${L.k}"`:''}>${L.l?`<span class="pr-ll">${L.l}</span>`:''}<div class="pr-cells">${L.c.map(prCell).join('')}</div></div>`).join('');
@@ -25210,9 +25210,6 @@ function initProbScenes(){
     stage.innerHTML=prStage(cfg);
     caps.forEach(c=>c.classList.remove('is-on'));
     root.classList.remove('is-done');
-    /* Hauteur fixée à celle de l’état de départ : rien ne saute quand des lignes se replient. */
-    stage.style.minHeight='';
-    if(stage.offsetHeight)stage.style.minHeight=stage.offsetHeight+'px';
   };
   const fly=(a,b,now)=>{
     const f=q(a),t=q(b);if(!f||!t)return;
@@ -34793,7 +34790,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1481';
+  const SW_CACHE='requete-2026-09-30-ludique-v1483';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
