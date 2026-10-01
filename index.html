@@ -16461,15 +16461,15 @@ ORDER BY client_id,
           <p class="pt-syntax-h">Le délai moyen de chaque client</p>
           <p>Le rappel sera personnalisé&nbsp;: l’équipe a besoin d’un <b>délai moyen pour chaque client</b>, calculé à partir des délais de ses commandes.</p>
           <p class="st-lab"><i aria-hidden="true">1</i>Faire la moyenne</p>
-          <p><code>AVG()</code> calcule la <b>moyenne des délais</b> et <b>ignore les <code>NULL</code></b>.</p>
-          <p>La première commande de chaque client n’ayant pas de commande précédente, son délai est <code>NULL</code>&nbsp;: elle n’entre donc pas dans la moyenne.</p>
-          <p><code>GROUP BY client_id</code> permet de calculer une <b>moyenne différente pour chaque client</b>.</p>
-          <p>Sur le tableau <code>delais</code>, qui contient un délai par commande&nbsp;:</p>
+          <p>La requête précédente donne <b>un délai par commande</b>. Imaginons pour l’instant qu’il soit rangé dans un tableau nommé <code>delais</code> (l’étape 2 montre comment le créer)&nbsp;:</p>
+          <div class="pk-comp ij-t"><p class="ij-tlab">tableau delais</p><div class="pk-mini is-2"><span class="is-h">client_id</span><span class="is-h">jours_depuis</span><span>1</span><span class="is-null">NULL</span><span>1</span><span class="is-hit">0</span><span>1</span><span class="is-hit">26</span><span>2</span><span class="is-null">NULL</span><span>2</span><span class="is-hit">15</span></div></div>
+          <p>On veut <b>une moyenne par client</b>. <code>AVG(jours_depuis)</code> fait la moyenne des délais, <b>sans compter les <code>NULL</code></b>&nbsp;; <code>GROUP BY client_id</code> refait ce calcul <b>séparément pour chaque client</b>&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax">SELECT client_id,
   <span class="fk-syn-hit">AVG(jours_depuis)</span>
 FROM delais
 <span class="fk-syn-hit">GROUP BY client_id</span>;</pre></div>
-          <p class="ij-arrow">👉 Résultat&nbsp;: une ligne par client, avec son <b>délai moyen entre deux commandes</b>.</p>
+          <div class="pk-comp ij-t"><p class="ij-tlab">résultat</p><div class="pk-mini is-2"><span class="is-h">client_id</span><span class="is-h">AVG(jours_depuis)</span><span>1</span><span class="is-hit">13</span><span>2</span><span class="is-hit">15</span></div></div>
+          <p class="ij-arrow">👉 Client 1&nbsp;: (0 + 26) ÷ 2 = <b>13 jours</b>, le <code>NULL</code> de sa première commande n’est pas compté. Client 2&nbsp;: <b>15 jours</b>. On obtient <b>une ligne par client</b>.</p>
           <p class="st-lab"><i aria-hidden="true">2</i>Calculer d’abord les délais</p>
           <div class="sit-memo is-warn"><p class="sit-memo-lab"><i aria-hidden="true">⚠️</i>Pourquoi deux étapes&nbsp;?</p><p><code>LAG()</code> calcule le délai <b>commande par commande</b>, tandis que <code>AVG()</code> doit ensuite calculer la <b>moyenne de ces délais</b>.</p><p>On crée donc d’abord un <b>tableau temporaire</b> <code>delais</code> avec <code>WITH</code>, puis on calcule la moyenne pour chaque client.</p></div>
           <div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">WITH delais AS (</span>
@@ -34442,7 +34442,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1461';
+  const SW_CACHE='requete-2026-09-30-ludique-v1462';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
