@@ -2148,9 +2148,26 @@
   #scr-lesson .ij-done.md .md-panel[hidden]{display:none}
   #scr-lesson .ij-done.md .md-panel > :first-child{margin-top:0!important}
   #scr-lesson .ij-done.md .md-panel > .ij-sms{margin-top:0}
-  #scr-lesson .ij-done.md .md-par .ij-funnel{margin:0;padding:0;background:none}
-  html #scr-lesson .ij-done.md .md-par .ij-fn-step code{padding:7px 11px!important;border-color:transparent;border-radius:12px;background:#1E1A3B!important;box-shadow:none;color:#EFEBFF!important;font-weight:600;line-height:1.5;white-space:normal;max-width:100%}
-  #scr-lesson .ij-done.md .md-par .ij-fn-row:not(.is-out){box-shadow:none}
+  /* Parcours : rail à gauche (une seule ligne continue derrière les pastilles), clauses SQL alignées à gauche. */
+  #scr-lesson .ij-done.md .md-par{padding-left:12px;padding-right:12px}
+  #scr-lesson .ij-done.md .md-par .ij-funnel{position:relative;margin:0;padding:0;background:none;gap:0}
+  #scr-lesson .ij-done.md .md-par .ij-funnel::before{content:"";position:absolute;left:25px;top:26px;bottom:26px;width:2px;border-radius:2px;background:#D9D0FA}
+  #scr-lesson .ij-done.md .md-par .ij-fn-row,#scr-lesson .ij-done.md .md-par .ij-fn-row.is-out{grid-template-columns:52px minmax(0,1fr);column-gap:12px;align-items:start;padding:0;border:0;border-radius:0;background:none;box-shadow:none}
+  #scr-lesson .ij-done.md .md-par .ij-fn-row b{position:relative;z-index:1;width:52px;min-width:52px;height:52px;box-sizing:border-box;padding:0;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--display,var(--mono));font-size:22px;font-weight:800;letter-spacing:-.01em;white-space:nowrap}
+  #scr-lesson .ij-done.md .md-par .ij-fn-row b[data-len="3"]{font-size:19px}
+  #scr-lesson .ij-done.md .md-par .ij-fn-row b[data-len="4"],#scr-lesson .ij-done.md .md-par .ij-fn-row b[data-len="5"]{font-size:15px}
+  #scr-lesson .ij-done.md .md-par .ij-fn-row b[data-len="6"]{font-size:12px}
+  #scr-lesson .ij-done.md .md-par .ij-fn-row span{padding-top:5px;font-size:15px;font-weight:800;line-height:1.25;color:var(--ink)}
+  #scr-lesson .ij-done.md .md-par .ij-fn-row small{margin-top:2px;font-size:12.5px;font-weight:500;line-height:1.4;color:var(--ink-3)}
+  #scr-lesson .ij-done.md .md-par .ij-fn-row.is-out b{background:var(--accent-grad,linear-gradient(135deg,#7C5CFF,#6A4DF4));color:#fff;box-shadow:0 3px 0 var(--accent-lip,#4B30CC)}
+  #scr-lesson .ij-done.md .md-par .ij-fn-row.is-out span{color:#2E1F8C}
+  #scr-lesson .ij-done.md .md-par .ij-fn-row.is-out small{color:var(--ink-3)}
+  #scr-lesson .ij-done.md .md-par .ij-fn-step{align-items:flex-start;gap:0;margin-left:64px;padding:12px 0 16px;text-align:left}
+  #scr-lesson .ij-done.md .md-par .ij-fn-step::before,#scr-lesson .ij-done.md .md-par .ij-fn-step::after{display:none}
+  html #scr-lesson .ij-done.md .md-par .ij-fn-step code{display:inline-block;max-width:100%;box-sizing:border-box;margin:0;padding:8px 9px!important;border:0;border-radius:12px;background:#1E1A3B!important;box-shadow:none;color:#EFEBFF!important;font-size:11px;font-weight:600;line-height:1.55;text-align:left;white-space:normal;overflow-wrap:anywhere}
+  #scr-lesson .ij-done.md .md-par .ij-fn-step code .md-kw{color:#C9BCFF}
+  #scr-lesson .ij-done.md .md-par .ij-fn-step small{margin-top:6px;padding:0;border-radius:0;background:none;font-size:12.5px;font-weight:500;line-height:1.4;color:var(--ink-2)}
+  #scr-lesson .ij-done.md .md-par .ij-fn-step small::before{content:"→ "}
   #scr-lesson .ij-done.md .md-par .ij-done-flow{margin:0}
   #scr-lesson .ij-done.md .md-call{display:flex;align-items:center;gap:12px;margin-top:14px;padding:12px 14px;border-radius:16px;background:var(--accent-soft);color:var(--accent-ink)}
   #scr-lesson .ij-done.md .md-call svg{flex:none}
@@ -25031,8 +25048,16 @@ function initMissionDone(){
       p[1].forEach(n=>body.append(n));
       bodies.push(body);card.append(body);
     });
+    card.querySelectorAll('.md-par .ij-fn-row b').forEach(b=>{b.dataset.len=Math.min(6,b.textContent.trim().length);});
+    card.querySelectorAll('.md-par .ij-fn-step code').forEach(c=>{c.innerHTML=mdSql(c.textContent);});
     if(panels.length>1)select(0);
   });
+}
+/* Clause SQL d’une étape : coupée aux bons endroits, mots-clés en lilas (comme l’éditeur). */
+function mdSql(t){
+  let h=String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  if(h.length>26)h=h.replace(/ … (GROUP BY|ORDER BY|WHERE)/g,'\u0001$1').replace(/ (OVER \(|GROUP BY|ORDER BY|ROWS BETWEEN)/g,'<br>$1').replace(/\u0001/g,'<br>… ');
+  return h.replace(/\b(OVER|PARTITION BY|ORDER BY|GROUP BY|ROWS BETWEEN|UNBOUNDED PRECEDING|CURRENT ROW|WHERE|AND|ON|JOIN|INNER JOIN|LEFT JOIN|RIGHT JOIN|FULL OUTER JOIN|CROSS JOIN|IN|NOT EXISTS|EXISTS|SELECT|UNION|EXCEPT|DISTINCT|WITH|CASE|DESC|LAG|COALESCE|AVG|COUNT|RANK)\b/g,'<span class="md-kw">$1</span>');
 }
 /* Emplacements de requête exécutable dans le texte d’un cours. */
 function initRunSqlSlots(){
@@ -34566,7 +34591,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1474';
+  const SW_CACHE='requete-2026-09-30-ludique-v1476';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
