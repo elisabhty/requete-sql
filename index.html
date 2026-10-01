@@ -1696,6 +1696,10 @@
   .concept-block p.win-ex{margin:18px 0 6px;font-weight:800;line-height:1.4;color:var(--ink)}
   .concept-block p.win-ex-note{margin:8px 0 16px;padding-left:1.3em;text-indent:-1.3em;font-size:14px;line-height:1.5;color:var(--ink-2)}
   .concept-block p.win-ex-note::before{content:"→ "}
+  .concept-block ul.win-calc{list-style:none;margin:4px 0 16px!important;padding:10px 14px!important;display:flex;flex-direction:column;gap:2px;border-radius:12px;background:var(--surface-2,#F1EEFC);font-family:var(--mono);font-size:13px;font-weight:700;line-height:1.6;color:var(--ink)}
+  .concept-block ul.win-calc li{margin:0;padding:0}
+  .concept-block ul.win-calc li::before{content:none}
+  .concept-block ul.win-calc b{color:var(--accent-ink)}
   /* Tous les cours : le texte remplit ses lignes, les pastilles de code peuvent passer à la ligne */
   #lesson-body :is(p,li) code{white-space:normal;-webkit-box-decoration-break:clone;box-decoration-break:clone}
   #lesson-body :is(p,li){text-wrap:wrap}
@@ -16678,10 +16682,12 @@ learningCheck:{
 },
 { id:79, titre:"Fenêtres glissantes", résumé:"Suivre l’évolution des commandes",
   situation:`<p>L’équipe Finance veut analyser l’<b>évolution des ventes</b> au fil des commandes.</p><p>Pour chaque commande, elle souhaite connaître son <b>montant</b> (<code>prix × quantité</code>), tout en effectuant différents calculs <b>sans perdre le détail de chaque commande</b>&nbsp;:</p><ul class="win-look is-cmp" aria-label="Ce que l’équipe veut observer"><li><b>💰 Total cumulé</b><span>Quel chiffre d’affaires a été réalisé jusqu’à cette commande&nbsp;?</span></li><li><b>📊 Moyenne mobile</b><span>Quel est le montant moyen de cette commande et des 2 précédentes&nbsp;?</span></li><li><b>🪟 Cadre de fenêtre</b><span>Quelles commandes doivent être incluses dans le calcul&nbsp;?</span></li></ul><div class="sit-memo is-problem"><p class="sit-memo-lab"><i aria-hidden="true">🤔</i>Problème</p><p>Un <code>SUM()</code> ou un <code>AVG()</code> avec <code>GROUP BY</code> regrouperait plusieurs commandes en une seule ligne.</p><p>Or, ici, on veut conserver <b>chaque commande affichée</b> et calculer une valeur à partir des commandes qui l’entourent.</p></div><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Aide l’équipe Finance à afficher, pour chaque commande, son <b>montant</b> et le <b>chiffre d’affaires cumulé</b>, afin de savoir à quelle date le palier de 700&nbsp;€ est atteint.</p></div>`,
-  studio:{problem:{eye:"",title:"Comment additionner au fil des commandes&nbsp;?",
-      body:"Regardons les premières commandes.",
+  studio:{problem:{eye:"",title:"Comment le total évolue-t-il à chaque commande&nbsp;?",
+      body:"Regardons les premières commandes&nbsp;:",
       extra:`<div class="pk-comp ij-t"><p class="ij-tlab">les premières commandes</p><div class="pk-mini "><span class="is-h">montant</span><span class="is-h">cumul</span><span>59,80</span><span>59,80</span><span>19,90</span><span class="is-hit">79,70</span><span>34,90</span><span class="is-hit">114,60</span></div><p class="ij-tmore">… et 13 autres commandes</p></div>
-        <p>C’est là qu’intervient le <b>cadre de fenêtre</b>&nbsp;:</p>
+        <p>À chaque nouvelle commande, <b>son montant s’ajoute au total précédent</b>.</p>
+        <ul class="win-calc" aria-label="Le total évolue à chaque commande"><li>59,80&nbsp;€</li><li>→ 59,80 + 19,90 = <b>79,70&nbsp;€</b></li><li>→ 79,70 + 34,90 = <b>114,60&nbsp;€</b></li></ul>
+        <p>Pour indiquer à SQL quelles commandes inclure dans le calcul, on utilise le <b>cadre de fenêtre</b>&nbsp;:</p>
         <div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">ROWS BETWEEN</span> … <span class="fk-syn-hit">AND</span> …</pre></div>
         <p>Il permet de définir <b>quelles lignes</b>, autour de la ligne actuelle, doivent être incluses dans le calcul.</p>
         <p class="win-ex">💰 Cumul depuis la première commande</p>
@@ -34940,7 +34946,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1514';
+  const SW_CACHE='requete-2026-09-30-ludique-v1515';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
