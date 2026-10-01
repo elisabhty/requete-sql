@@ -16457,13 +16457,15 @@ ORDER BY client_id,
           <p class="pt-syntax-h">Le délai moyen de chaque client</p>
           <p>Le rappel sera personnalisé&nbsp;: l’équipe a besoin d’un <b>délai moyen pour chaque client</b>, calculé à partir des délais de ses commandes.</p>
           <p class="st-lab"><i aria-hidden="true">1</i>Faire la moyenne</p>
-          <p><code>AVG()</code> calcule une moyenne et <b>ignore les <code>NULL</code></b>&nbsp;: la première commande de chaque client, qui n’a pas de précédente, ne fausse donc pas le résultat.</p>
-          <p><code>GROUP BY client_id</code> en calcule une <b>par client</b>.</p>
-          <p>Sur un tableau <code>delais</code> (un délai par commande), cela donne&nbsp;:</p>
+          <p><code>AVG()</code> calcule la <b>moyenne des délais</b> et <b>ignore les <code>NULL</code></b>.</p>
+          <p>La première commande de chaque client n’ayant pas de commande précédente, son délai est <code>NULL</code>&nbsp;: elle n’entre donc pas dans la moyenne.</p>
+          <p><code>GROUP BY client_id</code> permet de calculer une <b>moyenne différente pour chaque client</b>.</p>
+          <p>Sur le tableau <code>delais</code>, qui contient un délai par commande&nbsp;:</p>
           <div class="pt-syntax"><pre class="cw-syntax">SELECT client_id,
   <span class="fk-syn-hit">AVG(jours_depuis)</span>
 FROM delais
 <span class="fk-syn-hit">GROUP BY client_id</span>;</pre></div>
+          <p class="ij-arrow">👉 Résultat&nbsp;: une ligne par client, avec son <b>délai moyen entre deux commandes</b>.</p>
           <p class="st-lab"><i aria-hidden="true">2</i>Calculer d’abord les délais</p>
           <div class="sit-memo is-warn"><p class="sit-memo-lab"><i aria-hidden="true">⚠️</i>Attention</p><p>SQL refuse de placer <code>LAG()</code> directement dans <code>AVG()</code>.</p><p>On calcule donc d’abord les délais dans un <code>WITH</code>, puis on en fait la moyenne pour chaque client.</p></div>
           <div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">WITH delais AS (</span>
@@ -34433,7 +34435,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1453';
+  const SW_CACHE='requete-2026-09-30-ludique-v1454';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
