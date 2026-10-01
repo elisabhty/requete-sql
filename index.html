@@ -16365,7 +16365,7 @@ ORDER BY client_id,
           <ul class="win-look is-cmp"><li><b><code>PARTITION BY client_id</code></b><span>recommence la recherche pour chaque client</span></li><li><b><code>ORDER BY date_commande, id</code></b><span>indique dans quel ordre lire ses commandes</span></li></ul>
           <p>👇 Exécute cette requête pour voir, sur chaque ligne, la date de la commande précédente&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT client_id,&#10;       date_commande,&#10;       LAG(date_commande) OVER (&#10;         PARTITION BY client_id&#10;         ORDER BY date_commande, id&#10;       ) AS precedente&#10;FROM commandes&#10;WHERE client_id IS NOT NULL&#10;ORDER BY client_id,&#10;         date_commande, id;"></div>
-          <p class="ij-arrow">👉 La première commande de chaque client n’a rien avant elle&nbsp;: <code>LAG()</code> renvoie donc <code>NULL</code>.</p>
+          <p class="ij-arrow">👉 Pour la première commande d’un client, il n’existe aucune commande précédente&nbsp;: <code>LAG()</code> renvoie donc <code>NULL</code>.</p>
           <div class="sit-memo is-warn"><p class="sit-memo-lab"><i aria-hidden="true">⚠️</i>Attention</p><p>Sans <code>PARTITION BY client_id</code>, SQL considérerait toutes les commandes comme une seule suite.</p><p>La première commande d’un client pourrait alors récupérer la dernière commande du client précédent.</p><p>👇 Teste par toi-même&nbsp;:</p><div class="ij-run" data-run-sql="SELECT client_id,&#10;       date_commande,&#10;       LAG(date_commande) OVER (&#10;         ORDER BY client_id,&#10;           date_commande, id&#10;       ) AS precedente&#10;FROM commandes&#10;WHERE client_id IS NOT NULL&#10;ORDER BY client_id,&#10;         date_commande, id;"></div></div>
         </div>
         <div class="fn-use">
@@ -34348,7 +34348,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1426';
+  const SW_CACHE='requete-2026-09-30-ludique-v1427';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
