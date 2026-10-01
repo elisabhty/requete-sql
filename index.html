@@ -16479,8 +16479,8 @@ FROM delais …;</pre></div>
           <div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">COALESCE(AVG(jours_depuis), 10)</span></pre></div>
           <p class="ij-arrow">👉 Pas de délai calculable → on utilise <b>10 jours par défaut</b>.</p>
           <p class="st-lab"><i aria-hidden="true">4</i>En résumé</p>
-          <ul class="win-look is-cmp"><li><b><code>WITH delais AS (…)</code></b><span>calcule d’abord le délai de chaque commande</span></li><li><b><code>AVG(jours_depuis)</code></b><span>fait la moyenne des délais, sans les <code>NULL</code></span></li><li><b><code>GROUP BY client_id</code></b><span>une moyenne par client</span></li><li><b><code>COALESCE(…, 10)</code></b><span>10 jours par défaut si le client n’a qu’une commande</span></li></ul>
-          <p class="ij-arrow">👉 <code>PARTITION BY</code> permet à <code>LAG()</code> de comparer les commandes d’un même client&nbsp;; <code>GROUP BY</code> regroupe ensuite les délais de chaque client en une seule ligne.</p>
+          <ul class="win-look is-cmp"><li><b><code>WITH delais AS (…)</code></b><span>calcule d’abord le délai de chaque commande</span></li><li><b><code>AVG(jours_depuis)</code></b><span>calcule la moyenne des délais en ignorant les <code>NULL</code></span></li><li><b><code>GROUP BY client_id</code></b><span>calcule une moyenne pour chaque client</span></li><li><b><code>COALESCE(…, 10)</code></b><span>utilise 10 jours par défaut si aucune moyenne n’est calculable</span></li></ul>
+          <p class="ij-arrow">👉 <code>PARTITION BY</code> sépare les commandes par client pour que <code>LAG()</code> cherche la commande précédente du <b>même client</b>&nbsp;; <code>GROUP BY</code> produit ensuite <b>une ligne par client</b> avec son délai moyen.</p>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">La requête complète</p>
@@ -34438,7 +34438,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1456';
+  const SW_CACHE='requete-2026-09-30-ludique-v1457';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
