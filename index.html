@@ -2213,9 +2213,31 @@
   #scr-lesson .ij-done.md .md-res .act-avgs li{position:relative;gap:4px;min-height:84px;box-sizing:border-box;padding:10px 6px 20px;border:1.5px solid var(--line);border-radius:14px;background:#fff}
   #scr-lesson .ij-done.md .md-res .act-avgs li small{font-size:12.5px;line-height:16px}
   #scr-lesson .ij-done.md .md-res .act-avgs li b{font-size:20px;line-height:26px}
-  #scr-lesson .ij-done.md .md-res .act-avgs li::after{content:"";position:absolute;left:12%;right:12%;bottom:10px;height:4px;border-radius:3px;background:linear-gradient(var(--accent),var(--accent)) left center/calc(var(--v,0)*100%) 100% no-repeat,var(--accent-soft)}
   #scr-lesson .ij-done.md .md-res .act-avgs li.is-default{border:1.5px dashed #B9AEE8;background:#F8F6FF}
-  #scr-lesson .ij-done.md .md-res .act-avgs li.is-default::after{background:linear-gradient(#B9AEE8,#B9AEE8) left center/calc(var(--v,0)*100%) 100% no-repeat,var(--accent-soft)}
+  #scr-lesson .ij-done.md .md-res .act-avgs li::after{content:"";position:absolute;left:12%;right:12%;bottom:10px;height:4px;border-radius:3px;background:var(--accent-soft)}
+  #scr-lesson .ij-done.md .md-res .act-avgs li::before{content:"";position:absolute;z-index:1;left:12%;bottom:10px;width:calc(var(--v,0)*76%);height:4px;border-radius:3px;background:var(--accent);transform-origin:left center}
+  #scr-lesson .ij-done.md .md-res .act-avgs li.is-default::before{background:#B9AEE8}
+  /* Simulation de l’envoi des rappels */
+  #scr-lesson .ij-done.md .me-strip{margin:0 0 12px}
+  #scr-lesson .ij-done.md .me-row{display:flex;align-items:center;gap:8px;min-height:32px}
+  #scr-lesson .ij-done.md .me-bell{flex:none;color:var(--accent-ink)}
+  #scr-lesson .ij-done.md .me-txt{flex:1;min-width:0;font-size:12.5px;font-weight:600;line-height:1.3;color:var(--ink-2)}
+  #scr-lesson .ij-done.md .me-txt b{font-family:var(--mono);font-size:inherit;font-weight:800;line-height:inherit;color:var(--accent-ink);font-variant-numeric:tabular-nums}
+  #scr-lesson .ij-done.md .me-prog{display:block;height:4px;margin-top:6px;border-radius:2px;background:var(--accent-soft);overflow:hidden}
+  #scr-lesson .ij-done.md .me-prog i{display:block;height:100%;border-radius:2px;background:var(--accent);transform-origin:left center}
+  #scr-lesson .ij-done.md .md-res .act-avgs li .me-ok{position:absolute;z-index:2;top:-6px;right:-6px;display:grid;place-items:center;width:18px;height:18px;border:2px solid #fff;border-radius:50%;background:var(--accent);box-sizing:border-box;opacity:0}
+  #scr-lesson .ij-done.md .act-big.is-send .me-prog i{animation:meProg var(--T,6s) linear both}
+  #scr-lesson .ij-done.md .act-big.is-send .act-avgs li::before{animation:meFill calc(var(--v)*var(--T,6s)) linear both}
+  #scr-lesson .ij-done.md .act-big.is-send .act-avgs li{animation:meSent .7s ease both calc(var(--v)*var(--T,6s))}
+  #scr-lesson .ij-done.md .act-big.is-send .act-avgs li .me-ok{animation:mePop .35s cubic-bezier(.2,.8,.3,1.4) both calc(var(--v)*var(--T,6s))}
+  #scr-lesson .ij-done.md .act-big.is-final .act-avgs li{border-color:var(--accent)}
+  #scr-lesson .ij-done.md .act-big.is-final .act-avgs li .me-ok{opacity:1}
+  @keyframes meFill{from{transform:scaleX(0)}to{transform:none}}
+  @keyframes meProg{from{transform:scaleX(0)}to{transform:none}}
+  @keyframes meSent{0%{box-shadow:0 0 0 0 transparent}35%{box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 16%,transparent)}100%{border-color:var(--accent);box-shadow:0 0 0 0 transparent}}
+  @keyframes mePop{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){#scr-lesson .ij-done.md .act-big .act-avgs li,#scr-lesson .ij-done.md .act-big .act-avgs li::before,#scr-lesson .ij-done.md .act-big .act-avgs li .me-ok,#scr-lesson .ij-done.md .act-big .me-prog i{animation:none!important}}
+  html[data-motion="reduce"] #scr-lesson .ij-done.md .act-big .act-avgs li,html[data-motion="reduce"] #scr-lesson .ij-done.md .act-big .act-avgs li::before,html[data-motion="reduce"] #scr-lesson .ij-done.md .act-big .act-avgs li .me-ok,html[data-motion="reduce"] #scr-lesson .ij-done.md .act-big .me-prog i{animation:none!important}
   @media (prefers-reduced-motion:reduce){#scr-lesson .ij-done.md .md-tab{transition:none}}
   /* Bloc « Problème » : scène animée (lignes de cellules + légendes), pilotée par initProbScenes(). */
   .pr-scene{position:relative;margin:12px 0 2px;padding:12px;border:1px solid var(--card-border);border-radius:18px;background:var(--surface-2,#F1EEFC);overflow:hidden}
@@ -16602,7 +16624,7 @@ FROM delais …;</pre></div>
           <p>Il ne reste plus qu’à tout assembler&nbsp;: calculer la <b>moyenne par client</b>, prévoir <b>10 jours par défaut</b>, puis récupérer le <b>prénom</b> du client grâce à un <code>JOIN</code> avec la table <code>clients</code>.</p>
           <p>👇 Exécute la requête pour obtenir le délai moyen de chaque client&nbsp;:</p>
           <div class="ij-run" data-run-sql="WITH delais AS (&#10;  SELECT client_id,&#10;    julianday(date_commande)&#10;    - julianday(&#10;      LAG(date_commande) OVER (&#10;        PARTITION BY client_id&#10;        ORDER BY date_commande, id&#10;      )&#10;    ) AS jours_depuis&#10;  FROM commandes&#10;  WHERE client_id IS NOT NULL&#10;)&#10;SELECT clients.nom,&#10;  COALESCE(AVG(jours_depuis), 10)&#10;    AS delai_moyen&#10;FROM delais&#10;JOIN clients&#10;  ON clients.id = delais.client_id&#10;GROUP BY clients.id, clients.nom&#10;ORDER BY clients.id;"></div>
-          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="15 commandes réparties entre 8 clients, 7 délais calculables, 8 moyennes obtenues, puis 8 clients avec leur délai moyen"><li class="ij-fn-row"><b>15</b><span>commandes<small>réparties entre 8 clients et classées par date</small></span></li><li class="ij-fn-step"><code>LAG(date_commande) OVER (PARTITION BY client_id …)</code><small>retrouve la commande précédente de chaque client</small></li><li class="ij-fn-row"><b>7</b><span>délais calculables<small>la première commande de chaque client n’a pas de commande précédente</small></span></li><li class="ij-fn-step"><code>AVG(jours_depuis) … GROUP BY client_id</code><small>calcule le délai moyen de chaque client</small></li><li class="ij-fn-row"><b>8</b><span>moyennes obtenues<small>si aucun délai n’est calculable pour un client, <code>COALESCE</code> utilise 10 jours par défaut</small></span></li><li class="ij-fn-step"><code>JOIN clients</code><small>ajoute le prénom de chaque client</small></li><li class="ij-fn-row is-out"><b>8</b><span>clients avec leur délai moyen<small>2 clients n’ont qu’une commande → 10 jours par défaut</small></span></li></ol><div class="act-big"><small>délai moyen de chaque client</small><ul class="act-avgs"><li style="--v:.59"><small>Sophie</small><b>13 j</b></li><li style="--v:.68"><small>Lucas</small><b>15 j</b></li><li style="--v:1"><small>Emma</small><b>22 j</b></li><li style="--v:.64"><small>Nathan</small><b>14 j</b></li><li style="--v:.91"><small>Chloé</small><b>20 j</b></li><li style="--v:.03"><small>Léa</small><b>0 j</b></li><li class="is-default" style="--v:.45"><small>Hugo</small><b>10 j</b></li><li class="is-default" style="--v:.45"><small>Gabriel</small><b>10 j</b></li></ul><p class="act-avg-note">En pointillés&nbsp;: 10 jours par défaut (une seule commande)</p><p class="act-avg-note">Inès et un second Nathan n’ont jamais commandé&nbsp;: pas de rappel à programmer.</p></div></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="15 commandes réparties entre 8 clients, 7 délais calculables, 8 moyennes obtenues, puis 8 clients avec leur délai moyen"><li class="ij-fn-row"><b>15</b><span>commandes<small>réparties entre 8 clients et classées par date</small></span></li><li class="ij-fn-step"><code>LAG(date_commande) OVER (PARTITION BY client_id …)</code><small>retrouve la commande précédente de chaque client</small></li><li class="ij-fn-row"><b>7</b><span>délais calculables<small>la première commande de chaque client n’a pas de commande précédente</small></span></li><li class="ij-fn-step"><code>AVG(jours_depuis) … GROUP BY client_id</code><small>calcule le délai moyen de chaque client</small></li><li class="ij-fn-row"><b>8</b><span>moyennes obtenues<small>si aucun délai n’est calculable pour un client, <code>COALESCE</code> utilise 10 jours par défaut</small></span></li><li class="ij-fn-step"><code>JOIN clients</code><small>ajoute le prénom de chaque client</small></li><li class="ij-fn-row is-out"><b>8</b><span>clients avec leur délai moyen<small>2 clients n’ont qu’une commande → 10 jours par défaut</small></span></li></ol><div class="act-big"><small>délai moyen de chaque client</small><ul class="act-avgs"><li style="--v:.59" data-d="13"><small>Sophie</small><b>13 j</b></li><li style="--v:.68" data-d="15"><small>Lucas</small><b>15 j</b></li><li style="--v:1" data-d="22"><small>Emma</small><b>22 j</b></li><li style="--v:.64" data-d="14"><small>Nathan</small><b>14 j</b></li><li style="--v:.91" data-d="20"><small>Chloé</small><b>20 j</b></li><li style="--v:.03" data-d="0"><small>Léa</small><b>0 j</b></li><li class="is-default" style="--v:.45" data-d="10"><small>Hugo</small><b>10 j</b></li><li class="is-default" style="--v:.45" data-d="10"><small>Gabriel</small><b>10 j</b></li></ul><p class="act-avg-note">En pointillés&nbsp;: 10 jours par défaut (une seule commande)</p><p class="act-avg-note">Inès et un second Nathan n’ont jamais commandé&nbsp;: pas de rappel à programmer.</p></div></div>
         </div>
       </div>`},
     reflexTitle:"Le réflexe à retenir",
@@ -25072,6 +25094,8 @@ function initMissionDone(){
     let chrono=[];
     if(cfg.split){
       chrono=[mdFrise()];
+      const big=resultat.find(n=>n.matches('.act-big'));
+      if(big)mdEnvoi(big);
     }
     const mk=h=>{const d=document.createElement('div');d.innerHTML=h;return d.firstElementChild;};
     const hero=mk(`<div class="md-hero"><div class="md-top"><span class="md-pill"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Mission accomplie</span></div><div class="md-title" role="heading" aria-level="3">${cfg.t}</div><div class="md-sub">${cfg.s}</div></div>`);
@@ -25115,6 +25139,46 @@ function initMissionDone(){
     card.querySelectorAll('.md-par .ij-fn-step code').forEach(c=>{c.innerHTML=mdSql(c.textContent);});
     if(panels.length>1)select(0);
   });
+}
+/* Envoi des rappels (leçon LAG et LEAD, onglet Résultat) : un compteur de jours défile ; la barre de chaque
+   client se remplit jusqu’à son délai, puis la tuile passe à « rappel envoyé ». Les barres et les coches sont
+   animées en CSS (durée = délai/22 × 6 s) ; le compteur suit en JS. */
+function mdEnvoi(big){
+  const lis=[...big.querySelectorAll('.act-avgs li')];
+  if(!lis.length)return;
+  const days=lis.map(li=>+li.dataset.d||0),MAXD=Math.max(...days),T=6000;
+  big.style.setProperty('--T',T/1000+'s');
+  lis.forEach(li=>li.insertAdjacentHTML('beforeend','<i class="me-ok" aria-hidden="true"><svg viewBox="0 0 16 16" width="10" height="10"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></i>'));
+  const strip=document.createElement('div');
+  strip.className='me-strip';
+  strip.innerHTML=`<div class="me-row"><svg class="me-bell" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="me-txt">Jour <b class="me-day">0</b> · <b class="me-n">0</b>&nbsp;/&nbsp;${lis.length} rappels envoyés</span><button type="button" class="mf-replay" aria-label="Rejouer la simulation" title="Rejouer"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button></div><span class="me-prog" aria-hidden="true"><i></i></span>`;
+  const heading=big.querySelector(':scope > small');
+  big.insertBefore(strip,big.querySelector('.act-avgs'));
+  const dayEl=strip.querySelector('.me-day'),nEl=strip.querySelector('.me-n');
+  let raf=0;
+  const show=d=>{dayEl.textContent=d;nEl.textContent=days.filter(x=>x<=d).length;};
+  const reduce=()=>(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||document.documentElement.dataset.motion==='reduce';
+  const final=()=>{cancelAnimationFrame(raf);big.classList.remove('is-send');big.classList.add('is-final');show(MAXD);};
+  const play=()=>{
+    cancelAnimationFrame(raf);
+    if(reduce()){final();return;}
+    big.classList.remove('is-final','is-send');
+    void big.offsetWidth;
+    big.classList.add('is-send');
+    show(0);
+    const t0=performance.now();
+    const tick=now=>{
+      const p=Math.min(1,(now-t0)/T);
+      show(Math.round(p*MAXD));
+      if(p<1)raf=requestAnimationFrame(tick);
+    };
+    raf=requestAnimationFrame(tick);
+  };
+  strip.querySelector('.mf-replay').addEventListener('click',play);
+  if(reduce()){final();return;}
+  if(!('IntersectionObserver' in window)){play();return;}
+  const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){play();io.disconnect();}},{rootMargin:'0px 0px -25% 0px',threshold:0.2});
+  io.observe(big);
 }
 /* Frise « Délai entre deux commandes » (leçon LAG et LEAD) : une ligne par client, les commandes
    placées à l’échelle des dates (du 02/07 au 01/08). Positions en proportion de la largeur :
@@ -34864,7 +34928,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1497';
+  const SW_CACHE='requete-2026-09-30-ludique-v1499';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
