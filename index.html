@@ -16732,11 +16732,11 @@ ORDER BY commandes.date_commande,
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">Une moyenne mobile</p>
-          <p>En changeant les bornes, on change le calcul. Avec <code>2 PRECEDING</code>, chaque moyenne porte sur la commande en cours et les deux précédentes&nbsp;:</p>
-          <p>👇 Exécute cette requête pour voir la moyenne mobile sur 3 commandes&nbsp;:</p>
+          <p>Cette fois, on <b>réduit le cadre</b>. Avec <code>2 PRECEDING</code>, chaque moyenne utilise la commande actuelle et les 2 précédentes.</p>
+          <p>👇 Exécute cette requête pour calculer la moyenne des 3 dernières commandes&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT commandes.date_commande,&#10;       produits.prix&#10;       * commandes.quantite&#10;         AS montant,&#10;       AVG(produits.prix&#10;           * commandes.quantite)&#10;       OVER (&#10;         ORDER BY&#10;           commandes.date_commande,&#10;           commandes.id&#10;         ROWS BETWEEN&#10;           2 PRECEDING&#10;           AND CURRENT ROW&#10;       ) AS moyenne_3&#10;FROM commandes&#10;JOIN produits&#10;    ON produits.id&#10;       = commandes.produit_id&#10;ORDER BY commandes.date_commande,&#10;         commandes.id;"></div>
-          <p class="ij-arrow">👉 Les deux premières lignes n’ont pas encore deux voisines&nbsp;: leur moyenne porte sur moins de 3 commandes.</p>
-          <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>Pour aller plus loin</p><p><code>NTILE(4)</code> répartit les lignes en 4 groupes de même taille, par exemple pour classer les produits en quarts selon leur stock.</p><p>👇 Teste par toi-même&nbsp;:</p><div class="ij-run" data-run-sql="SELECT nom,&#10;       stock,&#10;       NTILE(4) OVER (&#10;         ORDER BY stock, id&#10;       ) AS quart&#10;FROM produits&#10;ORDER BY stock, id;"></div></div>
+          <p class="ij-arrow">👉 Pour les deux premières commandes, il n’y a pas encore 2 commandes précédentes&nbsp;: la moyenne est donc calculée sur <b>moins de 3 commandes</b>.</p>
+          <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>Pour aller plus loin</p><p><code>NTILE(4)</code> permet de répartir des lignes en 4 groupes de taille similaire selon un ordre défini.</p><p>Par exemple, on peut répartir les produits en 4 groupes selon leur niveau de stock.</p><p>👇 Teste par toi-même&nbsp;:</p><div class="ij-run" data-run-sql="SELECT nom,&#10;       stock,&#10;       NTILE(4) OVER (&#10;         ORDER BY stock, id&#10;       ) AS quart&#10;FROM produits&#10;ORDER BY stock, id;"></div></div>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">La requête complète</p>
@@ -34940,7 +34940,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1513';
+  const SW_CACHE='requete-2026-09-30-ludique-v1514';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
