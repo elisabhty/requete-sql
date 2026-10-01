@@ -16467,11 +16467,12 @@ FROM delais
 <span class="fk-syn-hit">GROUP BY client_id</span>;</pre></div>
           <p class="ij-arrow">👉 Résultat&nbsp;: une ligne par client, avec son <b>délai moyen entre deux commandes</b>.</p>
           <p class="st-lab"><i aria-hidden="true">2</i>Calculer d’abord les délais</p>
-          <div class="sit-memo is-warn"><p class="sit-memo-lab"><i aria-hidden="true">⚠️</i>Attention</p><p>SQL refuse de placer <code>LAG()</code> directement dans <code>AVG()</code>.</p><p>On calcule donc d’abord les délais dans un <code>WITH</code>, puis on en fait la moyenne pour chaque client.</p></div>
+          <div class="sit-memo is-warn"><p class="sit-memo-lab"><i aria-hidden="true">⚠️</i>Pourquoi deux étapes&nbsp;?</p><p><code>LAG()</code> calcule le délai <b>commande par commande</b>, tandis que <code>AVG()</code> doit ensuite calculer la <b>moyenne de ces délais</b>.</p><p>On crée donc d’abord un <b>tableau temporaire</b> <code>delais</code> avec <code>WITH</code>, puis on calcule la moyenne pour chaque client.</p></div>
           <div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">WITH delais AS (</span>
   … un délai par commande …
 <span class="fk-syn-hit">)</span>
-SELECT … FROM delais …;</pre></div>
+SELECT …
+FROM delais …;</pre></div>
           <p class="st-lab"><i aria-hidden="true">3</i>Un client qui n’a commandé qu’une fois</p>
           <p>Il n’a aucun délai à moyenner&nbsp;: son <code>AVG()</code> vaut <code>NULL</code>. <code>COALESCE()</code> le remplace alors par les <b>10 jours</b> prévus par défaut.</p>
           <div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">COALESCE(AVG(jours_depuis), 10)</span></pre></div>
@@ -34435,7 +34436,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1454';
+  const SW_CACHE='requete-2026-09-30-ludique-v1455';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
