@@ -2435,6 +2435,8 @@
   .ij-act.is-avg.is-play .avg-val{animation:smsPop .45s cubic-bezier(.2,.8,.3,1.2) both calc(var(--t0) + 1.45s + var(--i)*var(--st))}
   .ij-act.is-avg.is-play .avg-val.is-default{animation:smsPop .45s cubic-bezier(.2,.8,.3,1.2) both calc(var(--t0) + 2.1s + var(--i)*var(--st))}
   .ij-act.is-avg.is-play .avg-null{animation:actIn .35s ease both calc(var(--t0) + 1.3s + var(--i)*var(--st)),actOut .3s ease forwards calc(var(--t0) + 1.95s + var(--i)*var(--st))}
+  .avg-val.is-empty{background:color-mix(in srgb,#f59e0b 16%,#fff);color:#b45309}
+  .ij-act.is-avg.is-coal.is-play .avg-val.is-default{animation:smsPop .45s cubic-bezier(.2,.8,.3,1.2) both calc(var(--t0) + 1.45s + var(--i)*var(--st))}
   @keyframes avgIgnore{to{opacity:.4}}
   @media (prefers-reduced-motion:reduce){.ij-act.is-avg .avg-chip,.ij-act.is-avg .avg-val,.ij-act.is-avg .avg-how{opacity:1!important}.ij-act.is-avg .avg-chip.is-null{opacity:.45!important}.ij-act.is-avg .avg-chip.is-null::after{transform:none!important}.ij-act.is-avg .avg-null{display:none}}
   #scr-lesson .avg-sub{margin:20px 0 6px!important;font-size:11.5px!important;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)!important}
@@ -16460,23 +16462,22 @@ ORDER BY client_id,
           <p class="ij-arrow">👉 Cette fois, c’est la dernière commande de chaque client qui affiche <code>NULL</code>.</p>
         </div>
         <div class="fn-use">
-          <p class="pt-syntax-h">Le délai moyen de chaque client</p>
-          <p>L’équipe a besoin d’un <b>délai moyen pour chaque client</b>&nbsp;: on regroupe les délais d’un même client, puis on en fait la moyenne.</p>
-          <div class="ij-sms ij-act is-avg" style="--st:.55s;--n:5" role="group" aria-label="Sophie : délais de 0 et 26 jours, moyenne de 13 jours. Lucas : un délai de 15 jours, moyenne de 15 jours. Hugo : aucun délai, 10 jours par défaut.">
+          <p class="pt-syntax-h">Une moyenne par client</p>
+          <p>L’équipe veut un <b>délai moyen par client</b>. Tu as déjà le délai de chaque commande&nbsp;: il faut maintenant les <b>regrouper par client</b>, puis en faire la <b>moyenne</b>.</p>
+          <div class="ij-sms ij-act is-avg" style="--st:.55s;--n:4" role="group" aria-label="Sophie : délais de 0 et 26 jours, moyenne de 13 jours. Lucas : un délai de 15 jours, moyenne de 15 jours. Hugo : aucun délai, résultat NULL.">
             <p class="ij-sms-h"><i aria-hidden="true">🧮</i>Des délais à une moyenne par client</p>
-            <p class="act-legend"><i class="is-c">NULL&nbsp;: ignoré</i><i class="is-b">AVG()&nbsp;: la moyenne</i><i class="is-a">10 j&nbsp;: par défaut</i></p>
+            <p class="act-legend"><i class="is-c">NULL&nbsp;: ignoré</i><i class="is-b">AVG()&nbsp;: la moyenne</i></p>
             <ul class="avg-rows">
               <li class="act-item" style="--i:0"><span class="avg-name">Sophie</span><span class="avg-chips"><b class="avg-chip is-null" style="--k:0">NULL</b><b class="avg-chip" style="--k:1">0 j</b><b class="avg-chip" style="--k:2">26 j</b></span><span class="avg-res"><b class="avg-val">13 j</b></span><small class="avg-how">(0 + 26) ÷ 2 = 13</small></li>
               <li class="act-item" style="--i:1"><span class="avg-name">Lucas</span><span class="avg-chips"><b class="avg-chip is-null" style="--k:0">NULL</b><b class="avg-chip" style="--k:1">15 j</b></span><span class="avg-res"><b class="avg-val">15 j</b></span><small class="avg-how">un seul délai&nbsp;: 15</small></li>
-              <li class="act-item" style="--i:2"><span class="avg-name">Hugo</span><span class="avg-chips"><b class="avg-chip is-null" style="--k:0">NULL</b></span><span class="avg-res"><b class="avg-null">NULL</b><b class="avg-val is-default">10 j</b></span><small class="avg-how">aucun délai&nbsp;: <code>COALESCE</code> met 10 j</small></li>
+              <li class="act-item" style="--i:2"><span class="avg-name">Hugo</span><span class="avg-chips"><b class="avg-chip is-null" style="--k:0">NULL</b></span><span class="avg-res"><b class="avg-val is-empty">NULL</b></span><small class="avg-how">aucun délai à moyenner</small></li>
             </ul>
             <p class="ij-sms-done act-foot">👥 <code>GROUP BY</code> regroupe les délais de chaque client, <code>AVG()</code> en fait la moyenne</p>
           </div>
-          <p class="avg-sub">Les trois outils</p>
+          <p class="avg-sub">Les deux outils</p>
           <div class="avg-tools" role="list">
             <div role="listitem" style="--c:var(--accent);--cs:var(--accent-soft)"><i aria-hidden="true">📊</i><span><b><code>AVG()</code></b><small>la moyenne des délais, <u>sans</u> les <code>NULL</code></small></span></div>
-            <div role="listitem" style="--c:#2563EB;--cs:#EAF0FF"><i aria-hidden="true">👥</i><span><b><code>GROUP BY clients.id</code></b><small>une moyenne <b>par client</b></small></span></div>
-            <div role="listitem" style="--c:var(--success,#15803d);--cs:#E6F4EA"><i aria-hidden="true">🛟</i><span><b><code>COALESCE(…, 10)</code></b><small>10 jours si le client n’a commandé qu’une fois</small></span></div>
+            <div role="listitem" style="--c:#2563EB;--cs:#EAF0FF"><i aria-hidden="true">👥</i><span><b><code>GROUP BY client_id</code></b><small>une moyenne <b>par client</b></small></span></div>
           </div>
           <p class="avg-sub">Comment l’écrire</p>
           <div class="avg-split">
@@ -16497,17 +16498,18 @@ ORDER BY client_id,
             </section>
             <div class="avg-link"><i aria-hidden="true">↓</i><span>⚠️ SQL refuse <code>AVG(LAG(…))</code>&nbsp;: on passe par ce tableau temporaire</span></div>
             <section class="avg-panel is-2" aria-label="Partie 2 : faire la moyenne par client">
-              <header><i aria-hidden="true">2</i><b>Faire la moyenne par client</b><small><code>JOIN</code> ajoute le prénom, <code>GROUP BY</code> regroupe, <code>AVG()</code> calcule, <code>COALESCE()</code> complète.</small></header>
-              <div class="pt-syntax"><pre class="cw-syntax">SELECT clients.nom,
-  <span class="fk-syn-hit">COALESCE(AVG(jours_depuis), 10)</span>
-    AS delai_moyen
+              <header><i aria-hidden="true">2</i><b>Faire la moyenne par client</b><small><code>GROUP BY</code> regroupe les délais de chaque client, <code>AVG()</code> en fait la moyenne.</small></header>
+              <div class="pt-syntax"><pre class="cw-syntax">SELECT client_id,
+  <span class="fk-syn-hit">AVG(jours_depuis)</span> AS delai_moyen
 FROM delais
-JOIN clients
-  ON clients.id = delais.client_id
-<span class="fk-syn-hit">GROUP BY clients.id, clients.nom</span>
-ORDER BY clients.id;</pre></div>
+<span class="fk-syn-hit">GROUP BY client_id</span>
+ORDER BY client_id;</pre></div>
             </section>
           </div>
+          <p>👇 Exécute la requête pour obtenir le délai moyen de chaque client&nbsp;:</p>
+          <div class="ij-run" data-run-sql="WITH delais AS (&#10;  SELECT client_id,&#10;    julianday(date_commande)&#10;    - julianday(&#10;      LAG(date_commande) OVER (&#10;        PARTITION BY client_id&#10;        ORDER BY date_commande, id&#10;      )&#10;    ) AS jours_depuis&#10;  FROM commandes&#10;  WHERE client_id IS NOT NULL&#10;)&#10;SELECT client_id,&#10;  AVG(jours_depuis) AS delai_moyen&#10;FROM delais&#10;GROUP BY client_id&#10;ORDER BY client_id;"></div>
+          <p class="ij-arrow">👉 Chaque client a sa moyenne&nbsp;: <code>AVG()</code> a ignoré les <code>NULL</code> des premières commandes.</p>
+          <p class="ij-arrow">👉 Hugo et Gabriel n’ont commandé qu’une fois&nbsp;: aucun délai à moyenner, leur résultat reste <code>NULL</code>.</p>
           <p class="avg-sub">À ne pas confondre</p>
           <div class="avg-vs" role="group" aria-label="PARTITION BY garde toutes les lignes, GROUP BY n’en garde qu’une par client">
             <div class="is-keep"><b><code>PARTITION BY</code></b><small>garde toutes les lignes</small><ul><li>Sophie · 02/07</li><li>Sophie · 02/07</li><li>Sophie · 28/07</li></ul></div>
@@ -16516,8 +16518,37 @@ ORDER BY clients.id;</pre></div>
           <p class="avg-cap">👉 <code>PARTITION BY</code> sert à <code>LAG()</code>&nbsp;; <code>GROUP BY</code> sert à la moyenne.</p>
         </div>
         <div class="fn-use">
+          <p class="pt-syntax-h">Un délai par défaut : COALESCE()</p>
+          <p>Pour Hugo et Gabriel, le résultat est <code>NULL</code>&nbsp;: l’équipe ne sait pas quand les relancer. Elle prévoit <b>10 jours par défaut</b>.</p>
+          <div class="ij-sms ij-act is-avg is-coal" style="--st:.55s;--n:4" role="group" aria-label="Sophie : la moyenne de 13 jours est conservée. Hugo et Gabriel : NULL remplacé par 10 jours.">
+            <p class="ij-sms-h"><i aria-hidden="true">🛟</i>Une valeur de secours</p>
+            <p class="act-legend"><i class="is-b">valeur&nbsp;: conservée</i><i class="is-c">NULL&nbsp;: remplacé</i><i class="is-a">10 j&nbsp;: par défaut</i></p>
+            <ul class="avg-rows">
+              <li class="act-item" style="--i:0"><span class="avg-name">Sophie</span><span class="avg-chips"><b class="avg-chip" style="--k:0">13 j</b></span><span class="avg-res"><b class="avg-val">13 j</b></span><small class="avg-how">une vraie valeur&nbsp;: elle est conservée</small></li>
+              <li class="act-item" style="--i:1"><span class="avg-name">Hugo</span><span class="avg-chips"><b class="avg-chip is-null" style="--k:0">NULL</b></span><span class="avg-res"><b class="avg-val is-default">10 j</b></span><small class="avg-how"><code>NULL</code>&nbsp;: remplacé par 10</small></li>
+              <li class="act-item" style="--i:2"><span class="avg-name">Gabriel</span><span class="avg-chips"><b class="avg-chip is-null" style="--k:0">NULL</b></span><span class="avg-res"><b class="avg-val is-default">10 j</b></span><small class="avg-how"><code>NULL</code>&nbsp;: remplacé par 10</small></li>
+            </ul>
+            <p class="ij-sms-done act-foot">🛟 <code>COALESCE(…, 10)</code> garde la moyenne, ou prend 10 si elle est <code>NULL</code></p>
+          </div>
+          <p class="avg-sub">L’outil</p>
+          <div class="avg-tools" role="list">
+            <div role="listitem" style="--c:var(--success,#15803d);--cs:#E6F4EA"><i aria-hidden="true">🛟</i><span><b><code>COALESCE(a, 10)</code></b><small>renvoie <code>a</code>, ou 10 si <code>a</code> est <code>NULL</code></small></span></div>
+          </div>
+          <p class="avg-sub">Comment l’écrire</p>
+          <p>On entoure la moyenne avec <code>COALESCE()</code>&nbsp;:</p>
+          <div class="pt-syntax"><pre class="cw-syntax">SELECT client_id,
+  <span class="fk-syn-hit">COALESCE(AVG(jours_depuis), 10)</span>
+    AS delai_moyen
+FROM delais
+GROUP BY client_id
+ORDER BY client_id;</pre></div>
+          <p>👇 Exécute la requête pour appliquer les 10 jours par défaut&nbsp;:</p>
+          <div class="ij-run" data-run-sql="WITH delais AS (&#10;  SELECT client_id,&#10;    julianday(date_commande)&#10;    - julianday(&#10;      LAG(date_commande) OVER (&#10;        PARTITION BY client_id&#10;        ORDER BY date_commande, id&#10;      )&#10;    ) AS jours_depuis&#10;  FROM commandes&#10;  WHERE client_id IS NOT NULL&#10;)&#10;SELECT client_id,&#10;  COALESCE(AVG(jours_depuis), 10)&#10;    AS delai_moyen&#10;FROM delais&#10;GROUP BY client_id&#10;ORDER BY client_id;"></div>
+          <p class="ij-arrow">👉 Hugo et Gabriel ont maintenant 10 jours&nbsp;; les autres moyennes ne changent pas.</p>
+        </div>
+        <div class="fn-use">
           <p class="pt-syntax-h">La requête complète</p>
-          <p>Il ne reste plus qu’à calculer le délai moyen de chaque client, avec 10 jours par défaut.</p>
+          <p>Il ne reste plus qu’à afficher le <b>prénom</b> de chaque client&nbsp;: on ajoute un <code>JOIN</code> avec la table <code>clients</code>.</p>
           <p>👇 Exécute la requête pour obtenir le délai moyen de chaque client&nbsp;:</p>
           <div class="ij-run" data-run-sql="WITH delais AS (&#10;  SELECT client_id,&#10;    julianday(date_commande)&#10;    - julianday(&#10;      LAG(date_commande) OVER (&#10;        PARTITION BY client_id&#10;        ORDER BY date_commande, id&#10;      )&#10;    ) AS jours_depuis&#10;  FROM commandes&#10;  WHERE client_id IS NOT NULL&#10;)&#10;SELECT clients.nom,&#10;  COALESCE(AVG(jours_depuis), 10)&#10;    AS delai_moyen&#10;FROM delais&#10;JOIN clients&#10;  ON clients.id = delais.client_id&#10;GROUP BY clients.id, clients.nom&#10;ORDER BY clients.id;"></div>
           <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="15 commandes, 7 délais mesurés, puis un délai moyen par client"><li class="ij-fn-row"><b>15</b><span>commandes de clients<small>rangées par client et par date</small></span></li><li class="ij-fn-step"><code>LAG(date_commande) OVER (PARTITION BY client_id …)</code><small>la date de la commande précédente</small></li><li class="ij-fn-row"><b>7</b><span>délais mesurés<small>les 8 premières commandes affichent NULL</small></span></li><li class="ij-fn-step"><code>COALESCE(AVG(jours_depuis), 10) … GROUP BY</code><small>une moyenne par client, 10 jours par défaut</small></li><li class="ij-fn-step"><code>JOIN clients</code><small>le prénom de chaque client</small></li><li class="ij-fn-row is-out"><b>8</b><span>clients, un délai moyen chacun<small>dont 2 clients à 10 jours par défaut (une seule commande)</small></span></li></ol><div class="ij-sms ij-act is-timeline" style="--st:0.3s;--n:6" role="group" aria-label="Nombre de jours entre deux commandes de chaque client"><p class="ij-sms-h"><i aria-hidden="true">⏱️</i>Délai entre deux commandes</p><ul class="act-tls"><li class="act-item" style="--i:0"><span class="act-tl-n">Sophie</span><span class="act-tl"><b class="act-dot">02/07</b><i class="act-gap">0 j</i><b class="act-dot">02/07</b><i class="act-gap">26 j</i><b class="act-dot">28/07</b></span></li><li class="act-item" style="--i:1"><span class="act-tl-n">Lucas</span><span class="act-tl"><b class="act-dot">05/07</b><i class="act-gap">15 j</i><b class="act-dot">20/07</b></span></li><li class="act-item" style="--i:2"><span class="act-tl-n">Emma</span><span class="act-tl"><b class="act-dot">08/07</b><i class="act-gap">22 j</i><b class="act-dot">30/07</b></span></li><li class="act-item" style="--i:3"><span class="act-tl-n">Nathan</span><span class="act-tl"><b class="act-dot">11/07</b><i class="act-gap">14 j</i><b class="act-dot">25/07</b></span></li><li class="act-item" style="--i:4"><span class="act-tl-n">Chloé</span><span class="act-tl"><b class="act-dot">12/07</b><i class="act-gap">20 j</i><b class="act-dot">01/08</b></span></li><li class="act-item" style="--i:5"><span class="act-tl-n">Léa</span><span class="act-tl"><b class="act-dot">18/07</b><i class="act-gap">0 j</i><b class="act-dot">18/07</b></span></li></ul><div class="act-big"><small>délai moyen de chaque client</small><ul class="act-avgs"><li><small>Sophie</small><b>13 j</b></li><li><small>Lucas</small><b>15 j</b></li><li><small>Emma</small><b>22 j</b></li><li><small>Nathan</small><b>14 j</b></li><li><small>Chloé</small><b>20 j</b></li><li><small>Léa</small><b>0 j</b></li><li class="is-default"><small>Hugo</small><b>10 j</b></li><li class="is-default"><small>Gabriel</small><b>10 j</b></li></ul><p class="act-avg-note">En pointillés&nbsp;: 10 jours par défaut (une seule commande)</p></div><p class="ij-sms-done act-foot">🔔 Chaque client est relancé après son propre délai</p></div></div>
@@ -34470,7 +34501,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1445';
+  const SW_CACHE='requete-2026-09-30-ludique-v1446';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
