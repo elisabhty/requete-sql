@@ -2243,6 +2243,8 @@
   .pr-scene{position:relative;margin:12px 0 2px;padding:12px;border:1px solid var(--card-border);border-radius:18px;background:var(--surface-2,#F1EEFC);overflow:hidden}
   #scr-lesson .sit-memo .pr-scene{margin:12px 0 2px}
   .pr-h{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px;margin:0 0 8px;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)}
+  .pr-h>span{display:inline-flex;align-items:center;gap:7px;min-width:0}
+  .pr-ico{flex:none;font-style:normal;font-size:14px;line-height:1}
   .pr-replay{display:inline-flex;align-items:center;justify-content:center;flex:none;width:30px;height:30px;padding:0;border:1px solid var(--card-border);border-radius:50%;background:#fff;color:var(--ink-2);cursor:pointer;opacity:0;pointer-events:none;transition:opacity .3s,color .2s;-webkit-tap-highlight-color:transparent}
   .pr-scene.is-done .pr-replay{opacity:1;pointer-events:auto}
   .pr-lane{max-height:260px;margin-top:8px;transition:opacity .35s,transform .35s,max-height .45s,margin .45s,padding .45s}
@@ -2253,7 +2255,7 @@
   .pr-cells{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
   .pr-scene.has-cols .pr-cells{display:grid;grid-template-columns:var(--cols)}
   .pr-scene.has-cols .pr-cells{gap:4px}
-  .pr-scene.has-cols .pr-c:not(.pr-th){padding-left:4px;padding-right:4px;font-size:11px}
+  .pr-scene.has-cols .pr-c:not(.pr-th){padding-left:4px;padding-right:4px;font-size:11px;white-space:nowrap}
   .pr-c{display:inline-flex;align-items:center;justify-content:center;min-width:0;min-height:32px;max-width:260px;box-sizing:border-box;padding:5px 8px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font-family:var(--mono);font-size:12px;font-weight:700;line-height:1.2;color:var(--ink);text-align:center;transition:opacity .35s,transform .35s,max-width .4s,margin .4s,padding .4s,background .25s,border-color .25s,box-shadow .25s,color .25s}
   .pr-c.pr-th{min-height:0;padding:0 2px;border:0;background:none;font-family:var(--ui);font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)}
   .pr-lane.is-on .pr-c:not(.pr-th),.pr-c.is-on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent)}
@@ -16377,7 +16379,7 @@ FROM produits;</pre></div>
           <p>Le <code>CASE</code> peut ensuite utiliser ces résultats pour appliquer la condition voulue.</p>
           <p>👇 Exécute la requête pour voir la position de chaque produit par rapport à la moyenne de sa catégorie&nbsp;:</p>
           <div class="ij-run" data-run-sql="WITH comparaison AS (&#10;  SELECT nom,&#10;         categorie,&#10;         prix,&#10;         ROUND(AVG(prix) OVER (&#10;           PARTITION BY categorie&#10;         ), 2) AS prix_moyen,&#10;         COUNT(*) OVER (&#10;           PARTITION BY categorie&#10;         ) AS nb_produits&#10;  FROM produits&#10;)&#10;SELECT nom,&#10;       categorie,&#10;       prix,&#10;       prix_moyen,&#10;       CASE&#10;         WHEN nb_produits = 1&#10;           THEN &#x27;seul&#x27;&#10;         WHEN prix &gt; prix_moyen&#10;           THEN &#x27;au-dessus&#x27;&#10;         WHEN prix &lt; prix_moyen&#10;           THEN &#x27;en dessous&#x27;&#10;         ELSE &#x27;=&#x27;&#10;       END AS position&#10;FROM comparaison;"></div>
-          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="8 produits comparés à la moyenne de leur catégorie"><li class="ij-fn-row"><b>8</b><span>produits<small>toute la <code>table&nbsp;produits</code></small></span></li><li class="ij-fn-step"><code>AVG(prix) OVER (PARTITION BY categorie)</code><small>calcule la moyenne par catégorie</small></li><li class="ij-fn-row"><b>8</b><span>produits<small>avec la moyenne de leur catégorie</small></span></li><li class="ij-fn-step"><code>CASE</code><small>au-dessus, en dessous, =, seul</small></li><li class="ij-fn-row is-out"><b>8</b><span>produits situés<small>aucune ligne n’a disparu</small></span></li></ol><div class="ij-sms ij-act is-cmp" style="--st:0.14s;--n:8" role="group" aria-label="Chaque produit comparé au prix moyen de sa catégorie"><p class="ij-sms-h"><i aria-hidden="true">🏷️</i>Prix comparés à leur catégorie</p><ul class="act-cmp"><li class="act-item is-up" style="--i:0"><span class="act-cmp-n">Fibre Prébiotique<small>29,90 € · moy. 24,90 €</small></span><em class="act-badge">▲ au-dessus</em></li><li class="act-item is-down" style="--i:1"><span class="act-cmp-n">Magnésium<small>19,90 € · moy. 24,90 €</small></span><em class="act-badge">▼ en dessous</em></li><li class="act-item is-eq" style="--i:2"><span class="act-cmp-n">Oméga 3<small>24,90 € · moy. 24,90 €</small></span><em class="act-badge">=</em></li><li class="act-item is-up" style="--i:3"><span class="act-cmp-n">Protéine Végétale<small>34,90 € · moy. 24,90 €</small></span><em class="act-badge">▲ au-dessus</em></li><li class="act-item is-down" style="--i:4"><span class="act-cmp-n">Vitamine D<small>14,90 € · moy. 24,90 €</small></span><em class="act-badge">▼ en dessous</em></li><li class="act-item is-solo" style="--i:5"><span class="act-cmp-n">Collagène Marin<small>39,90 € · moy. 39,90 €</small></span><em class="act-badge">seul</em></li><li class="act-item is-solo" style="--i:6"><span class="act-cmp-n">Tisane Détox<small>12,50 € · moy. 12,50 €</small></span><em class="act-badge">seul</em></li><li class="act-item is-solo" style="--i:7"><span class="act-cmp-n">Shaker Inox<small>15,00 € · moy. 15,00 €</small></span><em class="act-badge">seul</em></li></ul><p class="ij-sms-done act-foot">🔎 2 produits au-dessus de leur moyenne&nbsp;: Fibre Prébiotique et Protéine Végétale</p></div></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="8 produits comparés à la moyenne de leur catégorie"><li class="ij-fn-row"><b>8</b><span>produits<small>toute la <code>table&nbsp;produits</code></small></span></li><li class="ij-fn-step"><code>AVG(prix) OVER (PARTITION BY categorie)</code><small>calcule la moyenne par catégorie</small></li><li class="ij-fn-row"><b>8</b><span>produits<small>avec la moyenne de leur catégorie</small></span></li><li class="ij-fn-step"><code>CASE</code><small>au-dessus, en dessous, =, seul</small></li><li class="ij-fn-row is-out"><b>8</b><span>produits comparés<small>à leur catégorie, sans qu’aucune ligne disparaisse</small></span></li></ol><div class="ij-sms ij-act is-cmp" style="--st:0.14s;--n:8" role="group" aria-label="Chaque produit comparé au prix moyen de sa catégorie"><p class="ij-sms-h"><i aria-hidden="true">🏷️</i>Prix comparés à leur catégorie</p><ul class="act-cmp"><li class="act-item is-up" style="--i:0"><span class="act-cmp-n">Fibre Prébiotique<small>29,90 € · moy. 24,90 €</small></span><em class="act-badge">▲ au-dessus</em></li><li class="act-item is-down" style="--i:1"><span class="act-cmp-n">Magnésium<small>19,90 € · moy. 24,90 €</small></span><em class="act-badge">▼ en dessous</em></li><li class="act-item is-eq" style="--i:2"><span class="act-cmp-n">Oméga 3<small>24,90 € · moy. 24,90 €</small></span><em class="act-badge">=</em></li><li class="act-item is-up" style="--i:3"><span class="act-cmp-n">Protéine Végétale<small>34,90 € · moy. 24,90 €</small></span><em class="act-badge">▲ au-dessus</em></li><li class="act-item is-down" style="--i:4"><span class="act-cmp-n">Vitamine D<small>14,90 € · moy. 24,90 €</small></span><em class="act-badge">▼ en dessous</em></li><li class="act-item is-solo" style="--i:5"><span class="act-cmp-n">Collagène Marin<small>39,90 € · moy. 39,90 €</small></span><em class="act-badge">seul</em></li><li class="act-item is-solo" style="--i:6"><span class="act-cmp-n">Tisane Détox<small>12,50 € · moy. 12,50 €</small></span><em class="act-badge">seul</em></li><li class="act-item is-solo" style="--i:7"><span class="act-cmp-n">Shaker Inox<small>15,00 € · moy. 15,00 €</small></span><em class="act-badge">seul</em></li></ul><p class="ij-sms-done act-foot">🔎 2 produits au-dessus de leur moyenne&nbsp;: Fibre Prébiotique et Protéine Végétale</p></div></div>
         </div>
       </div>`},
     reflexTitle:"Le réflexe à retenir",
@@ -25247,7 +25249,7 @@ const PROB_SCENES={
     lanes:[{k:'L1',c:[['n1','Sophie'],['o1','3 commandes']]},{k:'L2',c:[['n2','Lucas'],['o2','2 commandes']]},{k:'L3',c:[['n3','Inès'],['o3','aucune','n']]},{k:'L4',c:[['n4','Nathan n°10'],['o4','aucune','n']]}],
     caps:['<b>Données</b> · Quatre clients sont affichés, avec leur nombre de commandes.','<b>Avec <code>INNER JOIN</code></b> · Seuls les clients ayant une commande sont conservés.','<b>Conséquence</b> · Inès et Nathan n°10, pourtant recherchés, disparaissent.'],
     steps:[{cap:0,d:2000},{cap:1,on:['L1','L2'],dim:['L3','L4'],d:2300},{cap:2,off:['L1','L2'],dim:['L1','L2'],undim:['L3','L4'],mark:{L3:'is-miss',L4:'is-miss'},d:2500}]},
-  38:{h:'🔎 Client de chaque commande',
+  38:{h:'🔎 Client par commande',
     lanes:[{k:'L1',c:[['a1','commande #1'],['a2','Sophie']]},{k:'L2',c:[['b1','commande #3'],['b2','Lucas']]},{k:'L3',c:[['c1','commande #16'],['c2','NULL','n']]}],
     caps:['<b>Cas général</b> · Chaque commande est rattachée à un client.','<b>Cas particulier</b> · La commande #16 n’a pas de client&nbsp;: la valeur est <b>NULL</b>.','<b>Risque</b> · Avec <code>INNER JOIN</code>, la commande #16 serait écartée du résultat.'],
     steps:[{cap:0,on:['L1','L2'],d:1900},{cap:1,off:['L1','L2'],on:['L3'],d:2000},{cap:2,off:['L3'],dim:['L3'],mark:{L3:'is-miss'},d:2500}]},
@@ -25265,7 +25267,7 @@ const PROB_SCENES={
     steps:[{cap:0,on:['A'],d:1900},{cap:1,off:['A'],on:['B'],d:1900},{cap:2,off:['B'],fly:[['b2','g2']],d:2600}]},
   45:{h:'🔎 Commandes de Magnésium',
     lanes:[{k:'A',l:'commandes',c:[['a1','Magnésium'],['a2','client 1']]},{k:'A2',l:'',c:[['a3','Magnésium'],['a4','client 2']]},{k:'B',l:'clients',c:[['b0','1'],['b1','Sophie'],['b2','2'],['b3','Lucas']]},{k:'G',l:'à contacter',c:[['g1','?','q'],['g2','?','q']],cls:'is-goal'}],
-    caps:['<b>Table commandes</b> · Les commandes de Magnésium sont enregistrées ici.','<b>Limite</b> · Seul l’<b>id du client</b> y figure&nbsp;: 1 et 2.','<b>Table clients</b> · Les noms correspondants sont Sophie et Lucas.'],
+    caps:['<b>Table commandes</b> · Les commandes de Magnésium sont enregistrées ici.','<b>Limite</b> · Seul l’<b>id du client</b> y figure&nbsp;: 1&nbsp;et&nbsp;2.','<b>Table clients</b> · Les noms correspondants sont Sophie et Lucas.'],
     steps:[{cap:0,on:['a1','a3'],d:1900},{cap:1,on:['a2','a4'],d:1900},{cap:2,off:['a1','a2','a3','a4'],on:['B'],fly:[['b1','g1'],['b3','g2']],d:2800}]},
   47:{h:'🔎 Commandes par produit',
     lanes:[{k:'P1',c:[['p1','Fibre Prébiotique'],['n1','?','q']]},{k:'P2',c:[['p2','Collagène Marin'],['n2','?','q']]},{k:'C1',l:'commandes de Fibre Prébiotique',c:[['c1','#1'],['c2','#5'],['c3','#8'],['c4','#15']],cls:'is-goal'},{k:'C2',l:'commandes de Collagène Marin',c:[['c5','#4'],['c6','#12']]}],
@@ -25275,7 +25277,7 @@ const PROB_SCENES={
     lanes:[{k:'A',l:'commandes',c:[['a1','commande #1'],['a2','quantité 2']]},{k:'B',l:'produits',c:[['b1','Fibre Prébiotique'],['b2','29,90\u00a0€']]},{k:'G',l:'montant',c:[['g1','?','q']],cls:'is-goal'}],
     caps:['<b>Table commandes</b> · La quantité commandée est de 2.','<b>Table produits</b> · Le prix unitaire est de 29,90&nbsp;€.','<b>Calcul</b> · Montant = quantité × prix, soit 2&nbsp;×&nbsp;29,90&nbsp;€ = 59,80&nbsp;€.'],
     steps:[{cap:0,on:['A'],d:1800},{cap:1,off:['A'],on:['B'],d:1800},{cap:2,off:['B'],text:{g1:'59,80\u00a0€'},d:2800}]},
-  49:{h:'🔎 De la commande au produit',
+  49:{h:'🔎 Commande et produit',
     lanes:[{k:'A',l:'commandes',c:[['a1','commande #1'],['a2','produit 1']]},{k:'B',l:'produits',c:[['b0','1'],['b1','Fibre Prébiotique'],['b2','stock 120']]},{k:'G',l:'résultat attendu',c:[['g1','commande #1'],['g2','?','q',142],['g3','?','q',92]],cls:'is-goal'}],
     caps:['<b>Table commandes</b> · La commande #1 ne mentionne que l’<b>id du produit</b>&nbsp;: 1.','<b>Table produits</b> · Le nom et le stock du produit figurent dans cette table.','<b>Objectif</b> · Relier la commande à son produit, seulement s’il est encore en stock.'],
     steps:[{cap:0,on:['A'],d:1900},{cap:1,off:['A'],on:['B'],d:1900},{cap:2,off:['B'],fly:[['b1','g2'],['b2','g3']],d:2700}]},
@@ -25287,7 +25289,7 @@ const PROB_SCENES={
     lanes:[{c:[['','client','t'],['','commandes','t']]},{k:'S',c:[['s0','Sophie'],['sn','?','q']]},{k:'L',c:[['l0','Lucas'],['ln','?','q']]},{k:'H',c:[['h0','Hugo'],['hn','?','q']]}],
     caps:['<b>Objectif</b> · Retenir les clients ayant passé <b>au moins 2 commandes</b>.','<b>Limite</b> · Le nombre de commandes n’est pas enregistré&nbsp;: il faut le <b>calculer</b>.','<b>Filtrage</b> · Sur cet extrait, Sophie et Lucas sont retenus, Hugo est écarté.'],
     steps:[{cap:0,on:['sn','ln','hn'],d:1900},{cap:1,off:['sn','ln','hn'],text:{sn:'3',ln:'2',hn:'1'},stagger:350,d:2400},{cap:2,dim:['H'],on:['S','L'],d:2500}]},
-  60:{h:'🔎 Moyenne par catégorie',cols:'1fr 66px 42px',
+  60:{h:'🔎 Moyenne par catégorie',cols:'1fr 76px 46px',
     lanes:[{c:[['','produit','t'],['','catégorie','t'],['','prix','t']]},{k:'R',fold:true,c:[['r1','—','n'],['r2','Bien-être'],['r3','24,90']]},{k:'P1',c:[['a1','Magnésium'],['a2','Bien-être'],['a3','19,90']]},{k:'P2',c:[['b1','Oméga 3'],['b2','Bien-être'],['b3','24,90']]},{k:'P3',c:[['c1','Fibre Préb.'],['c2','Bien-être'],['c3','29,90']]}],
     caps:['<b>Données</b> · Chaque produit a son <b>prix</b>.','<b>Avec <code>GROUP BY</code></b> · La catégorie devient <b>une seule ligne</b>, avec le prix moyen&nbsp;: 24,90.','<b>Conséquence</b> · Le prix moyen est disponible, mais la colonne <b>produit</b> disparaît.'],
     steps:[{cap:0,on:['P1','P2','P3'],d:1900},{cap:1,off:['P1','P2','P3'],fold:['P1','P2','P3'],unfold:['R'],on:['r2','r3'],d:2500},{cap:2,mark:{r1:'is-miss'},d:2400}]},
@@ -25305,7 +25307,7 @@ const PROB_SCENES={
     steps:[{cap:0,on:['d1','d2','d3','d9'],d:1900},{cap:1,off:['d1','d2','d3','d9'],dim:['d1','d2','d3','d9'],d:2000},{cap:2,undim:['d1','d2','d3','d9'],text:{d1:'1',d2:'2',d3:'3',d9:'90'},stagger:380,d:2800}]},
   79:{h:'🔎 Cumul par commande',cols:'52px 1fr 1fr',
     lanes:[{c:[['','date','t'],['','montant','t'],['','cumul','t']]},{k:'R1',c:[['d1','18/07'],['m1','119,60\u00a0€'],['c1','?','q']]},{k:'R2',c:[['d2','18/07'],['m2','25,00\u00a0€'],['c2','?','q']]},{k:'R3',c:[['d3','20/07'],['m3','39,80\u00a0€'],['c3','?','q']]}],
-    caps:['<b>Données</b> · Chaque commande a son <b>montant</b>.','<b>Objectif</b> · Afficher le <b>total cumulé</b> des montants jusqu’à chaque commande.','<b>Limite</b> · Un total unique supprimerait le détail de chaque commande.'],
+    caps:['<b>Données</b> · Chaque commande a son <b>montant</b>.','<b>Objectif</b> · Afficher le <b>total cumulé</b>, commandes précédentes comprises.','<b>Détail conservé</b> · Chaque ligne garde son montant et affiche le total jusqu’à elle.'],
     steps:[{cap:0,on:['m1','m2','m3'],d:1800},{cap:1,off:['m1','m2','m3'],text:{c1:'438,50\u00a0€',c2:'463,50\u00a0€',c3:'503,30\u00a0€'},stagger:500,d:2800},{cap:2,on:['R1','R2','R3'],d:2800}]},
   80:{h:'🔎 Clients à écarter',
     lanes:[{k:'A',l:'ont commandé',c:[['a1','Sophie'],['a2','Lucas'],['a3','Emma'],['a4','Chloé']]},{k:'B',l:'déjà inscrits',c:[['b1','Sophie'],['b2','Lucas']]}],
@@ -25335,7 +25337,8 @@ function initProbScenes(){
   root.setAttribute('aria-label','Animation : '+cfg.caps.map(c=>c.replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ')).join(' '));
   if(cfg.cols)root.style.setProperty('--cols',cfg.cols);
   root.classList.toggle('has-cols',!!cfg.cols);
-  root.innerHTML=`<div class="pr-h"><span>${cfg.h}</span><button type="button" class="pr-replay" aria-label="Rejouer l’animation" title="Rejouer"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button></div><div class="pr-stage" aria-hidden="true"></div><div class="pr-caps" aria-hidden="true">${cfg.caps.map(c=>`<span class="pr-cap">${c}</span>`).join('')}</div>`;
+  const hm=/^(\S+)\s+(.*)$/.exec(cfg.h);
+  root.innerHTML=`<div class="pr-h"><span>${hm?`<i class="pr-ico" aria-hidden="true">${hm[1]}</i><span>${hm[2]}</span>`:cfg.h}</span><button type="button" class="pr-replay" aria-label="Rejouer l’animation" title="Rejouer"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button></div><div class="pr-stage" aria-hidden="true"></div><div class="pr-caps" aria-hidden="true">${cfg.caps.map(c=>`<span class="pr-cap">${c}</span>`).join('')}</div>`;
   memo.append(root);
   const stage=root.querySelector('.pr-stage'),caps=[...root.querySelectorAll('.pr-cap')];
   let tok=0,timers=[];
@@ -34928,7 +34931,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1499';
+  const SW_CACHE='requete-2026-09-30-ludique-v1500';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
