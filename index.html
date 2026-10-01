@@ -16626,14 +16626,21 @@ learningCheck:{
   "explanation": "Il n’y a pas de ligne précédente dans la partition de ce client. PARTITION BY empêche de lire la commande d’un autre client."
 }
 },
-{ id:79, titre:"Fenêtres glissantes", résumé:"Cumuls, moyennes mobiles et cadres de fenêtre",
-  situation:`<p>L’équipe Finance s’est fixé un objectif&nbsp;: atteindre <b>500&nbsp;€ de ventes</b>. Elle veut suivre le total qui grossit commande après commande, pour savoir <b>quel jour</b> l’objectif a été atteint.</p><p>Pour cela, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>📅 Date de chaque commande</b><span>table commandes</span></div><div role="listitem"><b>💶 Montant de chaque commande</b><span class="is-b">prix × quantité</span></div></div><div class="sit-memo is-problem"><p class="sit-memo-lab"><i aria-hidden="true">🤔</i>Problème</p><p>Pour chaque commande, il faut additionner son montant et <b>tous les montants des commandes précédentes</b>. <code>SUM</code> avec <code>GROUP BY</code> donnerait un seul total, et on perdrait le jour où le cap est franchi.</p></div><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Aide l’équipe Finance à suivre le chiffre d’affaires cumulé commande après commande, pour savoir quel jour l’objectif de 500&nbsp;€ a été atteint.</p></div>`,
+{ id:79, titre:"Fenêtres glissantes", résumé:"Suivre l’évolution des commandes",
+  situation:`<p>L’équipe Finance veut analyser l’<b>évolution des ventes</b> au fil des commandes.</p><p>Pour chaque commande, elle souhaite connaître son <b>montant</b> (<code>prix × quantité</code>), mais aussi observer ce qui se passe <b>autour de cette commande</b>&nbsp;:</p><ul class="win-look is-cmp" aria-label="Ce que l’équipe veut observer"><li><b>💰 Total cumulé</b><span>combien de chiffre d’affaires a été réalisé jusqu’à cette commande&nbsp;?</span></li><li><b>📊 Moyenne mobile</b><span>quel est le montant moyen des 3 dernières commandes&nbsp;?</span></li><li><b>🪟 Cadre de fenêtre</b><span>quelles commandes doivent être prises en compte dans chaque calcul&nbsp;?</span></li></ul><div class="sit-memo is-problem"><p class="sit-memo-lab"><i aria-hidden="true">🤔</i>Problème</p><p>Un simple <code>SUM()</code> ou <code>AVG()</code> avec <code>GROUP BY</code> regrouperait plusieurs commandes et ferait perdre le détail de chaque ligne.</p><p>Ici, on veut garder <b>chaque commande affichée</b>, tout en effectuant un calcul sur une partie des commandes qui l’entourent.</p></div><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Aide l’équipe Finance à afficher, pour chaque commande, son <b>montant</b> et le <b>chiffre d’affaires cumulé</b>, afin de repérer le jour où l’objectif de 500&nbsp;€ est atteint.</p></div>`,
   studio:{problem:{eye:"",title:"Comment additionner au fil des commandes&nbsp;?",
       body:"Regardons les premières commandes.",
       extra:`<div class="pk-comp ij-t"><p class="ij-tlab">les premières commandes</p><div class="pk-mini "><span class="is-h">montant</span><span class="is-h">cumul</span><span>59,80</span><span>59,80</span><span>19,90</span><span class="is-hit">79,70</span><span>34,90</span><span class="is-hit">114,60</span></div><p class="ij-tmore">… et 13 autres commandes</p></div>
-        <p>Sur chaque ligne, le calcul doit porter sur un morceau précis de la fenêtre&nbsp;: toutes les lignes <b>depuis le début jusqu’à la ligne en cours</b>. Ce morceau s’appelle le <b>cadre</b>&nbsp;:</p>
-        <div class="ij-need" role="list" aria-label="Les bornes du cadre"><div role="listitem"><b>UNBOUNDED PRECEDING</b><span>depuis la 1<sup>re</sup> ligne</span></div><div role="listitem"><b>CURRENT ROW</b><span class="is-b">jusqu’à la ligne en cours</span></div></div>
-        <p class="ij-arrow">👉 Ici, on veut un total qui grossit&nbsp;: c’est le rôle de <code>ROWS BETWEEN</code>.</p>`},
+        <p>C’est là qu’intervient le <b>cadre de fenêtre</b>&nbsp;:</p>
+        <div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">ROWS BETWEEN</span> … <span class="fk-syn-hit">AND</span> …</pre></div>
+        <p>Il permet de choisir <b>jusqu’où le calcul doit regarder</b> par rapport à la commande actuelle. Par exemple&nbsp;:</p>
+        <div class="pt-syntax"><pre class="cw-syntax">-- Cumul depuis la première commande
+ROWS BETWEEN UNBOUNDED PRECEDING
+         AND CURRENT ROW</pre></div>
+        <div class="pt-syntax"><pre class="cw-syntax">-- Moyenne des 3 dernières commandes
+ROWS BETWEEN 2 PRECEDING
+         AND CURRENT ROW</pre></div>
+        <p class="ij-arrow">👉 Ici, on veut un total qui grossit&nbsp;: le cadre s’agrandit à chaque commande.</p>`},
     uses:{title:"Écrire la requête",
       body:`<div class="pt-lead fn-uses fk-course jn-course">
         <div class="fn-use">
@@ -16706,7 +16713,7 @@ ORDER BY commandes.date_commande,
   ],
   exemple:"SELECT commandes.date_commande,\n       produits.prix\n       * commandes.quantite\n         AS montant,\n       SUM(produits.prix\n           * commandes.quantite)\n       OVER (\n         ORDER BY\n           commandes.date_commande,\n           commandes.id\n         ROWS BETWEEN\n           UNBOUNDED PRECEDING\n           AND CURRENT ROW\n       ) AS cumul\nFROM commandes\nJOIN produits\n    ON produits.id\n       = commandes.produit_id\nORDER BY commandes.date_commande,\n         commandes.id;",
   attendu:"<b>16 lignes</b> : le cumul dépasse 500 € le 20 juillet (503,30 €) et finit à 747,50 €.",
-  retenir:"Le cadre <code>ROWS BETWEEN … AND …</code> délimite les lignes utilisées pour le calcul de chaque ligne.<br><br><code>UNBOUNDED PRECEDING AND CURRENT ROW</code> donne un cumul ; <code>2 PRECEDING AND CURRENT ROW</code> une moyenne mobile ; <code>UNBOUNDED FOLLOWING</code> va jusqu’à la dernière ligne.<br><br><code>NTILE(n)</code> répartit les lignes en n groupes équilibrés.",
+  retenir:"Le <b>cadre de fenêtre</b> définit les lignes utilisées pour le calcul.<br><br>Il peut s’agrandir pour obtenir un <b>cumul</b>, ou se déplacer sur quelques lignes pour obtenir une <b>moyenne mobile</b>.<br><br><code>ROWS BETWEEN … AND …</code> : <code>UNBOUNDED PRECEDING AND CURRENT ROW</code> donne un cumul ; <code>2 PRECEDING AND CURRENT ROW</code> une moyenne mobile ; <code>UNBOUNDED FOLLOWING</code> va jusqu’à la dernière ligne.<br><br><code>NTILE(n)</code> répartit les lignes en n groupes équilibrés.",
   consigne:"Pour chaque commande, affiche la date, le montant (<code>montant</code>) et le chiffre d’affaires cumulé (<code>cumul</code>) avec <code>SUM() OVER</code> et <code>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>. Trie par date puis par id.",
   solution:"SELECT commandes.date_commande,\n       produits.prix\n       * commandes.quantite\n         AS montant,\n       SUM(produits.prix\n           * commandes.quantite)\n       OVER (\n         ORDER BY\n           commandes.date_commande,\n           commandes.id\n         ROWS BETWEEN\n           UNBOUNDED PRECEDING\n           AND CURRENT ROW\n       ) AS cumul\nFROM commandes\nJOIN produits\n    ON produits.id\n       = commandes.produit_id\nORDER BY commandes.date_commande,\n         commandes.id;",
   indice:"<code>SUM(produits.prix * commandes.quantite) OVER (ORDER BY commandes.date_commande, commandes.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)</code>.",
@@ -25165,10 +25172,10 @@ const PROB_SCENES={
     lanes:[{l:'jours',c:[['d1','?','q'],['d2','?','q'],['d3','?','q'],['dx','…','t'],['d9','?','q']]}],
     caps:['Les jours 1 à 90 n’existent <b>dans aucune table</b>.','Les écrire un par un serait <b>long et pénible</b>.','On voudrait qu’ils <b>se créent tout seuls</b>.'],
     steps:[{cap:0,on:['d1','d2','d3','d9'],d:1900},{cap:1,off:['d1','d2','d3','d9'],dim:['d1','d2','d3','d9'],d:2000},{cap:2,undim:['d1','d2','d3','d9'],text:{d1:'1',d2:'2',d3:'3',d9:'90'},stagger:380,d:2800}]},
-  79:{h:'🔎 Un total qui grossit',cols:'64px 1fr 1fr',
+  79:{h:'🔎 Un calcul sur les commandes précédentes',cols:'64px 1fr 1fr',
     lanes:[{c:[['','date','t'],['','montant','t'],['','cumul','t']]},{k:'R1',c:[['d1','18/07'],['m1','119,60 €'],['c1','?','q']]},{k:'R2',c:[['d2','18/07'],['m2','25,00 €'],['c2','?','q']]},{k:'R3',c:[['d3','20/07'],['m3','39,80 €'],['c3','?','q']]}],
-    caps:['Chaque commande a son <b>montant</b>.','On veut le <b>total qui grossit</b>, commande après commande…','…pour voir le jour où l’on franchit <b>500&nbsp;€</b>. Un seul total le cacherait.'],
-    steps:[{cap:0,on:['m1','m2','m3'],d:1800},{cap:1,off:['m1','m2','m3'],text:{c1:'438,50 €',c2:'463,50 €',c3:'503,30 €'},stagger:500,d:2800},{cap:2,mark:{c3:'is-win'},d:2800}]},
+    caps:['Chaque commande a son <b>montant</b>.','On veut, sur chaque ligne, le <b>total des commandes jusque-là</b>…','…tout en gardant <b>chaque commande affichée</b>. Un seul total la ferait disparaître.'],
+    steps:[{cap:0,on:['m1','m2','m3'],d:1800},{cap:1,off:['m1','m2','m3'],text:{c1:'438,50 €',c2:'463,50 €',c3:'503,30 €'},stagger:500,d:2800},{cap:2,on:['R1','R2','R3'],d:2800}]},
   80:{h:'🔎 Qui écarter&nbsp;?',
     lanes:[{k:'A',l:'ont commandé',c:[['a1','Sophie'],['a2','Lucas'],['a3','Emma'],['a4','Chloé']]},{k:'B',l:'déjà inscrits',c:[['b1','Sophie'],['b2','Lucas']]}],
     caps:['Voici des clients qui <b>ont commandé</b>…','…et parmi eux, certains sont <b>déjà inscrits</b>.','On les écarte&nbsp;: il reste ceux à <b>inviter</b>.'],
@@ -34790,7 +34797,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1483';
+  const SW_CACHE='requete-2026-09-30-ludique-v1484';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
