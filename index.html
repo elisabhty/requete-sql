@@ -2375,6 +2375,48 @@
   /* Mission déjà réussie : état final, sans rejouer toute l’animation. */
   .ij-sms.is-static,.ij-sms.is-static *,.ij-sms.is-static *::after,.ij-sms.is-static *::before{animation-duration:0s!important;animation-delay:0s!important;transition:none!important}
   .ij-sms.is-static .act-replay{animation:none}
+  /* Problème (LAG et LEAD) : SQL lit une seule ligne à la fois.
+     Ligne 1 → rien avant ; ligne 2 → la date d’avant est hors de vue ; puis elle vient se placer à côté. */
+  #scr-lesson .sit-memo .ij-sms.is-prob{--rg:6px;margin:10px 0;padding:12px}
+  .is-prob .pb-t{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--rg)}
+  .is-prob .pb-h{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--ink-3);text-align:center;line-height:1.2;padding:0 2px 1px;align-self:end}
+  .is-prob .pb-c{position:relative;display:flex;align-items:center;justify-content:center;min-height:38px;border-radius:11px;background:#fff;border:1px solid var(--card-border);font-family:var(--mono);font-size:14px;font-weight:700;color:var(--ink)}
+  .is-prob .pb-c i{font-style:normal}
+  .is-prob .pb-none{color:var(--ink-3);opacity:0}
+  .is-prob .pb-q{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent-ink);font-weight:800;font-size:13px}
+  .is-prob .pb-val{position:absolute;inset:-1px;display:flex;align-items:center;justify-content:center;border-radius:11px;background:var(--gs);border:1px solid var(--g);color:var(--g);opacity:0;z-index:2;transform:translate(calc(-100% - var(--rg)),calc(-100% - var(--rg)))}
+  .is-prob .pb-caps{display:grid;margin-top:10px}
+  .is-prob .pb-cap{grid-area:1/1;align-self:center;text-align:center;font-size:13px;line-height:1.4;color:var(--ink-2);opacity:0}
+  .is-prob .pb-cap b{color:var(--ink);font-weight:800}
+  .is-prob .ij-sms-done{margin:0!important;height:0;overflow:hidden}
+  .ij-act.is-prob.is-play .act-foot{animation:smsPop .2s both 8s}
+  .ij-sms.is-prob.is-play .pb-cap1{animation:pbCap1 8s both}
+  .ij-sms.is-prob.is-play .pb-cap2{animation:pbCap2 8s both}
+  .ij-sms.is-prob.is-play .pb-cap3{animation:pbCap3 8s both}
+  .ij-sms.is-prob.is-play .pb-r1{animation:pbR1 8s both}
+  .ij-sms.is-prob.is-play .pb-r2{animation:pbR2 8s both}
+  .ij-sms.is-prob.is-play .pb-none{animation:pbNone 8s both}
+  .ij-sms.is-prob.is-play .pb-q{animation:pbQ 8s both}
+  .ij-sms.is-prob.is-play .pb-val{animation:pbVal 8s both cubic-bezier(.4,0,.2,1)}
+  @keyframes pbCap1{0%,4%{opacity:0;transform:translateY(4px)}8%,34%{opacity:1;transform:none}38%,100%{opacity:0;transform:translateY(-4px)}}
+  @keyframes pbCap2{0%,40%{opacity:0;transform:translateY(4px)}44%,70%{opacity:1;transform:none}74%,100%{opacity:0;transform:translateY(-4px)}}
+  @keyframes pbCap3{0%,78%{opacity:0;transform:translateY(4px)}83%,100%{opacity:1;transform:none}}
+  @keyframes pbR1{
+    0%,4%{opacity:1;background:#fff;border-color:var(--card-border);box-shadow:0 0 0 0 transparent}
+    8%,34%{opacity:1;background:var(--accent-soft);border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+    38%{opacity:1;background:#fff;border-color:var(--card-border);box-shadow:0 0 0 0 transparent}
+    42%,72%{opacity:.35;background:#fff;border-color:var(--card-border);box-shadow:0 0 0 0 transparent}
+    77%,100%{opacity:1;background:#fff;border-color:var(--card-border);box-shadow:0 0 0 0 transparent}}
+  @keyframes pbR2{
+    0%,40%{background:#fff;border-color:var(--card-border);box-shadow:0 0 0 0 transparent}
+    44%,72%{background:var(--accent-soft);border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+    77%{background:#fff;border-color:var(--card-border);box-shadow:0 0 0 0 transparent}
+    94%,100%{background:var(--gs);border-color:var(--g);box-shadow:0 0 0 3px color-mix(in srgb,var(--g) 18%,transparent)}}
+  @keyframes pbNone{0%,12%{opacity:0;transform:scale(.7)}17%,100%{opacity:1;transform:none}}
+  @keyframes pbQ{0%,48%{opacity:1;transform:none}54%{transform:scale(1.25)}60%{transform:none}66%{transform:scale(1.25)}72%,78%{opacity:1;transform:none}84%,100%{opacity:0;transform:scale(.5)}}
+  @keyframes pbVal{0%,77%{opacity:0;transform:translate(calc(-100% - var(--rg)),calc(-100% - var(--rg)))}79%{opacity:1;transform:translate(calc(-100% - var(--rg)),calc(-100% - var(--rg)))}94%,100%{opacity:1;transform:none}}
+  /* Sans animation : on montre directement le résultat attendu. */
+  @media (prefers-reduced-motion:reduce){.is-prob .pb-cap1,.is-prob .pb-cap2,.is-prob .pb-q{display:none!important}.is-prob .pb-cap3,.is-prob .pb-none,.is-prob .pb-val{opacity:1!important}.is-prob .pb-val{transform:none!important}}
   /* Compteur : le calcul apparaît avant le résultat. */
   .act-calc{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--ink-2);margin-top:2px}
   .ij-act.is-counter:not(.is-play) .act-calc{opacity:0}
@@ -16343,7 +16385,7 @@ learningCheck:{
 }
 },
 { id:78, titre:"LAG et LEAD", résumé:"Comparer une ligne à la précédente ou à la suivante",
-  situation:`<p>L’équipe Marketing veut envoyer un <b>rappel</b> au bon moment, lorsque le client est susceptible d’avoir envie de commander à nouveau.</p><p>Pour choisir le bon moment, elle cherche à connaître le <b>délai moyen entre deux commandes pour chaque client</b>.</p><p>Pour chaque commande, elle doit donc retrouver la <b>commande précédente</b> afin de calculer le nombre de jours qui les sépare.</p><p>Pour cela, elle a besoin de trois informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Identifiant du client</b><span>table commandes</span></div><div role="listitem"><b>📅 Date de chaque commande</b><span class="is-b">table commandes</span></div><div role="listitem"><b>🏷️ Prénom du client</b><span class="is-c">table clients</span></div></div><p>Si un client n’a passé qu’une seule commande, elle n’a pas encore de rythme à analyser&nbsp;: elle prévoit alors <b>10 jours par défaut</b>.</p><div class="sit-memo is-problem"><p class="sit-memo-lab"><i aria-hidden="true">🤔</i>Problème</p><p>Pour calculer ce délai, chaque commande doit être comparée à la <b>précédente du même client</b>.</p><p>Mais cette commande précédente se trouve sur une <b>autre ligne</b> que la commande en cours.</p><p>👉 Il faut donc pouvoir retrouver la valeur de la ligne précédente, sans perdre la ligne actuelle.</p></div><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Aide l’équipe Marketing à afficher, <b>pour chaque client</b>, son <b>prénom</b> et le <b>délai moyen</b> entre ses commandes, avec <b>10 jours par défaut</b> pour un client qui n’a commandé qu’une fois.</p></div>`,
+  situation:`<p>L’équipe Marketing veut envoyer un <b>rappel</b> au bon moment, lorsque le client est susceptible d’avoir envie de commander à nouveau.</p><p>Pour choisir le bon moment, elle cherche à connaître le <b>délai moyen entre deux commandes pour chaque client</b>.</p><p>Pour chaque commande, elle doit donc retrouver la <b>commande précédente</b> afin de calculer le nombre de jours qui les sépare.</p><p>Pour cela, elle a besoin de trois informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Identifiant du client</b><span>table commandes</span></div><div role="listitem"><b>📅 Date de chaque commande</b><span class="is-b">table commandes</span></div><div role="listitem"><b>🏷️ Prénom du client</b><span class="is-c">table clients</span></div></div><p>Si un client n’a passé qu’une seule commande, elle n’a pas encore de rythme à analyser&nbsp;: elle prévoit alors <b>10 jours par défaut</b>.</p><div class="sit-memo is-problem"><p class="sit-memo-lab"><i aria-hidden="true">🤔</i>Problème</p><p>Pour calculer ce délai, chaque commande doit être comparée à la <b>précédente du même client</b>.</p><p>Mais cette commande précédente se trouve sur une <b>autre ligne</b> que la commande en cours.</p><div class="ij-sms ij-act is-prob" role="img" aria-label="Animation : SQL lit les commandes de Lucas une ligne à la fois. Sur la ligne du 20/07, la date de la commande précédente, le 05/07, se trouve sur une autre ligne."><div class="ij-sms-h">🔎 SQL lit une ligne à la fois</div><div class="pb-t" aria-hidden="true"><span class="pb-h">date_commande</span><span class="pb-h">commande précédente</span><span class="pb-c pb-r1">05/07</span><span class="pb-c pb-r1"><i class="pb-none">—</i></span><span class="pb-c pb-r2">20/07</span><span class="pb-c pb-r2"><i class="pb-q">?</i><i class="pb-val">05/07</i></span></div><div class="pb-caps" aria-hidden="true"><span class="pb-cap pb-cap1"><b>Ligne 1</b> : SQL lit <b>05/07</b>. Et avant&nbsp;? <b>Rien</b>, c’est la première commande.</span><span class="pb-cap pb-cap2"><b>Ligne 2</b> : SQL lit <b>20/07</b>… mais la commande d’avant est sur <b>une autre ligne</b>, qu’il ne voit plus.</span><span class="pb-cap pb-cap3">🎯 Ce qu’on veut&nbsp;: <b>20/07</b> et <b>05/07</b> sur la <b>même ligne</b>.</span></div><div class="ij-sms-done act-foot" aria-hidden="true"></div></div><p>👉 Il faut donc pouvoir retrouver la valeur de la ligne précédente, sans perdre la ligne actuelle.</p></div><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Aide l’équipe Marketing à afficher, <b>pour chaque client</b>, son <b>prénom</b> et le <b>délai moyen</b> entre ses commandes, avec <b>10 jours par défaut</b> pour un client qui n’a commandé qu’une fois.</p></div>`,
   studio:{problem:{eye:"",title:"Comment récupérer la commande précédente&nbsp;?",
       body:"Regardons les deux commandes de Lucas.",
       extra:`<div class="pk-comp ij-t"><p class="ij-tlab">commandes de Lucas</p><div class="pk-mini "><span class="is-h">date_commande</span><span class="is-h">précédente</span><span>05/07</span><span>—</span><span class="is-hit">20/07</span><span class="is-hit">05/07</span></div></div>
@@ -34391,7 +34433,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1452';
+  const SW_CACHE='requete-2026-09-30-ludique-v1453';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
