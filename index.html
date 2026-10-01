@@ -2638,17 +2638,24 @@
   .act-avgs li.is-default{background:transparent;border:1.5px dashed color-mix(in srgb,var(--ink-3) 55%,transparent)}
   .act-avgs li.is-default b{color:var(--ink-2)}
   #scr-lesson .act-big .act-avg-note{margin:8px 0 0!important;font-size:11.5px!important;line-height:1.35!important;font-weight:600!important;color:var(--ink-3)!important;text-align:center}
-  .ij-act.is-gauge .act-big{margin-top:10px!important}
+  .ij-act.is-gauge .act-big{margin-top:2px!important}
   .act-g-bar{position:relative;height:16px;margin:30px 0 6px;border-radius:999px;background:color-mix(in srgb,var(--ink-3) 14%,transparent)}
   .act-g-fill{position:absolute;inset:0;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--g));transform:scaleX(0);transform-origin:left}
   .act-g-goal{position:absolute;top:-6px;bottom:-6px;left:calc(var(--at)*100%);width:2px;background:#f59e0b;font-style:normal}
+  .act-g-goal.is-end b{left:auto;right:-8px;transform:none;transform-origin:100% 100%}
   .act-g-goal b{position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);white-space:nowrap;font-size:11px;font-weight:800;color:#b45309;padding:1px 6px;border-radius:999px;background:color-mix(in srgb,#f59e0b 16%,#fff)}
-  .act-g-days{display:flex;justify-content:space-between;gap:2px}
+  .act-g-days{display:flex;justify-content:space-between;gap:8px}
+  #scr-lesson .ij-act.is-gauge .act-big{align-items:flex-start;gap:0;padding:0!important;border:0;background:none}
+  #scr-lesson .ij-act.is-gauge .act-big > small,#scr-lesson .ij-done.md .md-res .ij-act.is-gauge .act-big > small{margin:0 0 1px;font-family:var(--ui);font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;line-height:1.3;color:var(--ink-3);text-align:left}
+  #scr-lesson .ij-act.is-gauge .act-big > b{font-size:clamp(28px,9vw,38px);line-height:1.1;letter-spacing:-.01em}
+  .ij-act.is-gauge .act-g-bar{margin:34px 0 8px}
   .act-g-days i{font-style:normal;font-family:var(--mono);font-size:10px;font-weight:700;color:var(--ink-3)}
   #scr-lesson .act-g-hit{margin:10px 0 0!important;text-align:center;font-size:13px!important;font-weight:800;color:#b45309!important;opacity:0}
   .ij-act.is-gauge:not(.is-play) .act-big{opacity:0}
   .ij-act.is-play .act-g-fill{--v:1;animation:actBar 2.4s cubic-bezier(.4,0,.2,1) both calc(var(--t0) + .5s)}
   .ij-act.is-play .act-g-goal b{animation:actGoalHit .6s cubic-bezier(.2,.8,.3,1.3) both calc(var(--t0) + 2.6s)}
+  .ij-act.is-play .act-g-goal.is-end b{animation-name:actGoalHitEnd}
+  @keyframes actGoalHitEnd{0%,100%{transform:scale(1)}50%{transform:scale(1.25);box-shadow:0 0 0 4px color-mix(in srgb,#f59e0b 30%,transparent)}}
   .ij-act.is-gauge.is-play .act-big{animation:actIn .35s ease both calc(var(--t0) + .3s)}
   .ij-act.is-play .act-g-hit{animation:smsPop .45s cubic-bezier(.2,.8,.3,1.2) both calc(var(--t0) + 2.75s)}
   .ij-act.is-gauge.is-play .act-foot{animation-delay:calc(var(--t0) + 3.4s)}
@@ -16760,7 +16767,7 @@ ORDER BY commandes.date_commande,
           <p>Il ne reste plus qu’à calculer le cumul, commande après commande.</p>
           <p>👇 Exécute la requête pour suivre le chiffre d’affaires cumulé et trouver la date à laquelle le palier est atteint&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT commandes.date_commande,&#10;       produits.prix&#10;       * commandes.quantite&#10;         AS montant,&#10;       SUM(produits.prix&#10;           * commandes.quantite)&#10;       OVER (&#10;         ORDER BY&#10;           commandes.date_commande,&#10;           commandes.id&#10;         ROWS BETWEEN&#10;           UNBOUNDED PRECEDING&#10;           AND CURRENT ROW&#10;       ) AS cumul&#10;FROM commandes&#10;JOIN produits&#10;    ON produits.id&#10;       = commandes.produit_id&#10;ORDER BY commandes.date_commande,&#10;         commandes.id;"></div>
-          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="16 commandes et leur chiffre d’affaires cumulé"><li class="ij-fn-row"><b>16</b><span>commandes<small>de la plus ancienne à la plus récente</small></span></li><li class="ij-fn-step"><code>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code><small>chaque ligne additionne toutes les précédentes</small></li><li class="ij-fn-row is-out"><b>01/08</b><span>palier de 700 € atteint<small>732,60 € cumulés ce jour-là</small></span></li></ol><div class="ij-sms ij-act is-gauge" style="--st:0.4s;--n:6" role="group" aria-label="Le cumul atteint le palier de 700 euros le 1er août et finit à 747,50 euros"><p class="ij-sms-h"><i aria-hidden="true">📈</i>Palier de ventes</p><div class="act-gauge"><div class="act-g-bar"><i class="act-g-fill"></i><i class="act-g-goal" style="--at:.9365"><b>🎯 700 €</b></i></div><div class="act-g-days"><i class="act-item" style="--i:0">02/07</i><i class="act-item" style="--i:1">08/07</i><i class="act-item" style="--i:2">15/07</i><i class="act-item" style="--i:3">22/07</i><i class="act-item" style="--i:4">01/08</i><i class="act-item" style="--i:5">03/08</i></div><p class="act-big"><small>chiffre d’affaires cumulé</small><b data-count-to="747.5" data-dec="2" data-suffix=" €" data-delay=".5" data-dur="2.4">0,00 €</b></p><p class="act-g-hit">🎉 Palier atteint le <b>1er août</b> · 732,60 €</p></div><p class="ij-sms-done act-foot">✓ Palier de 700 € atteint le 1er août</p></div></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="16 commandes et leur chiffre d’affaires cumulé"><li class="ij-fn-row"><b>16</b><span>commandes<small>de la plus ancienne à la plus récente</small></span></li><li class="ij-fn-step"><code>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code><small>chaque ligne additionne toutes les précédentes</small></li><li class="ij-fn-row is-out"><b>01/08</b><span>palier de 700 € atteint<small>732,60 € cumulés ce jour-là</small></span></li></ol><div class="ij-sms ij-act is-gauge" style="--st:0.4s;--n:6" role="group" aria-label="Le cumul atteint le palier de 700 euros le 1er août et finit à 747,50 euros"><p class="ij-sms-h"><i aria-hidden="true">📈</i>Palier de ventes</p><div class="act-gauge"><p class="act-big"><small>chiffre d’affaires cumulé</small><b data-count-to="747.5" data-dec="2" data-suffix=" €" data-delay=".5" data-dur="2.4">0,00 €</b></p><div class="act-g-bar"><i class="act-g-fill"></i><i class="act-g-goal is-end" style="--at:.9365"><b>🎯 700 €</b></i></div><div class="act-g-days"><i class="act-item" style="--i:0">02/07</i><i class="act-item" style="--i:1">03/08</i></div><p class="act-g-hit">🎉 Palier de 700 € atteint le <b>1er août</b></p></div><p class="ij-sms-done act-foot">✓ 732,60 € cumulés <span style="white-space:nowrap">ce jour-là</span></p></div></div>
         </div>
       </div>`},
     reflexTitle:"Le réflexe à retenir",
@@ -34962,7 +34969,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1523';
+  const SW_CACHE='requete-2026-09-30-ludique-v1526';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
