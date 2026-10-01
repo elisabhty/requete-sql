@@ -16333,7 +16333,7 @@ learningCheck:{
 }
 },
 { id:78, titre:"LAG et LEAD", résumé:"Comparer une ligne à la précédente ou à la suivante",
-  situation:`<p>L’équipe Relation client veut programmer un <b>rappel automatique</b>, envoyé aux clients quelques jours après leur commande.</p><p>Pour choisir ce délai, elle cherche combien de jours s’écoulent <b>en moyenne</b> entre deux commandes d’un même client, tous clients confondus.</p><p>Pour le calculer, elle doit retrouver&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Identifiant du client</b><span>table commandes</span></div><div role="listitem"><b>📅 Date de chaque commande</b><span class="is-b">table commandes</span></div></div><div class="sit-memo is-problem"><p class="sit-memo-lab"><i aria-hidden="true">🤔</i>Problème</p><p>Pour calculer le délai entre deux commandes, il faut comparer chaque commande à <b>la précédente du même client</b>.</p><p>Mais cette commande précédente se trouve sur une autre ligne.</p></div><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Aide l’équipe Relation client à calculer, pour chaque commande, le nombre de jours écoulés depuis la commande précédente du même client. Leur moyenne donnera le délai du rappel.</p></div>`,
+  situation:`<p>L’équipe Relation client veut programmer un <b>rappel automatique</b>, envoyé aux clients quelques jours après leur commande.</p><p>Pour choisir ce délai, elle cherche combien de jours s’écoulent <b>en moyenne</b> entre deux commandes d’un même client, tous clients confondus.</p><p>Pour le calculer, elle doit retrouver&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Identifiant du client</b><span>table commandes</span></div><div role="listitem"><b>📅 Date de chaque commande</b><span class="is-b">table commandes</span></div></div><div class="sit-memo is-problem"><p class="sit-memo-lab"><i aria-hidden="true">🤔</i>Problème</p><p>Pour calculer le délai entre deux commandes, il faut comparer chaque commande à <b>la précédente du même client</b>.</p><p>Mais cette commande précédente se trouve sur une autre ligne.</p></div><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Aide l’équipe Relation client à trouver le <b>délai moyen</b> entre deux commandes d’un même client, tous clients confondus.</p><p>Tu vas d’abord mesurer le délai de chaque commande, puis en faire la moyenne.</p></div>`,
   studio:{problem:{eye:"",title:"Comment récupérer la commande précédente&nbsp;?",
       body:"Regardons les deux commandes de Lucas.",
       extra:`<div class="pk-comp ij-t"><p class="ij-tlab">commandes de Lucas</p><div class="pk-mini "><span class="is-h">date_commande</span><span class="is-h">précédente</span><span>05/07</span><span>—</span><span class="is-hit">20/07</span><span class="is-hit">05/07</span></div></div>
@@ -16389,6 +16389,9 @@ FROM commandes
 WHERE client_id IS NOT NULL
 ORDER BY client_id,
          date_commande, id;</pre></div>
+          <p>👇 Exécute cette requête pour voir le délai de chaque commande&nbsp;:</p>
+          <div class="ij-run" data-run-sql="SELECT client_id,&#10;       date_commande,&#10;       julianday(date_commande)&#10;       - julianday(&#10;           LAG(date_commande) OVER (&#10;             PARTITION BY client_id&#10;             ORDER BY date_commande, id&#10;           )&#10;         ) AS jours_depuis&#10;FROM commandes&#10;WHERE client_id IS NOT NULL&#10;ORDER BY client_id,&#10;         date_commande, id;"></div>
+          <p class="ij-arrow">👉 Chaque commande a maintenant son délai. Les premières commandes de chaque client restent à <code>NULL</code>&nbsp;: il n’y a rien à comparer.</p>
           <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>Bon à savoir</p><p>Si deux commandes d’un même client sont passées le même jour, le délai est de 0 jour.</p></div>
         </div>
         <div class="fn-use">
@@ -16399,11 +16402,32 @@ ORDER BY client_id,
           <p class="ij-arrow">👉 Cette fois, c’est la dernière commande de chaque client qui affiche <code>NULL</code>.</p>
         </div>
         <div class="fn-use">
+          <p class="pt-syntax-h">Un seul délai pour tous les clients</p>
+          <p>Le rappel sera le même pour tous les clients&nbsp;: l’équipe a besoin d’<b>un seul délai</b>&nbsp;: la moyenne des délais de toutes les commandes.</p>
+          <p><code>AVG()</code> calcule cette moyenne et <b>ignore les <code>NULL</code></b>&nbsp;: les premières commandes, qui n’ont pas de commande précédente, ne faussent donc pas le résultat.</p>
+          <div class="sit-memo is-warn"><p class="sit-memo-lab"><i aria-hidden="true">⚠️</i>Attention</p><p>SQL refuse de placer <code>LAG()</code> directement dans <code>AVG()</code>.</p><p>On calcule donc d’abord les délais dans un <code>WITH</code>, puis on en fait la moyenne.</p></div>
+          <div class="pt-syntax"><pre class="cw-syntax"><span class="fk-syn-hit">WITH delais AS (</span>
+  SELECT julianday(date_commande)
+    - julianday(
+      LAG(date_commande) OVER (
+        PARTITION BY client_id
+        ORDER BY date_commande, id
+      )
+    ) AS jours_depuis
+  FROM commandes
+  WHERE client_id IS NOT NULL
+<span class="fk-syn-hit">)</span>
+SELECT <span class="fk-syn-hit">ROUND(AVG(jours_depuis))</span>
+  AS delai_moyen
+FROM delais;</pre></div>
+          <ul class="win-look is-cmp"><li><b><code>WITH delais AS (…)</code></b><span>calcule d’abord le délai de chaque commande</span></li><li><b><code>AVG(jours_depuis)</code></b><span>fait la moyenne des délais, sans les <code>NULL</code></span></li><li><b><code>ROUND()</code></b><span>arrondit la moyenne à l’entier</span></li></ul>
+        </div>
+        <div class="fn-use">
           <p class="pt-syntax-h">La requête complète</p>
-          <p>Il ne reste plus qu’à calculer le nombre de jours depuis la commande précédente.</p>
-          <p>👇 Exécute la requête pour obtenir, pour chaque commande, le nombre de jours depuis la précédente&nbsp;:</p>
-          <div class="ij-run" data-run-sql="SELECT client_id,&#10;       date_commande,&#10;       julianday(date_commande)&#10;       - julianday(&#10;           LAG(date_commande) OVER (&#10;             PARTITION BY client_id&#10;             ORDER BY date_commande, id&#10;           )&#10;         ) AS jours_depuis&#10;FROM commandes&#10;WHERE client_id IS NOT NULL&#10;ORDER BY client_id,&#10;         date_commande, id;"></div>
-          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="15 commandes, chacune avec le délai depuis la précédente"><li class="ij-fn-row"><b>15</b><span>commandes de clients<small>rangées par client et par date</small></span></li><li class="ij-fn-step"><code>LAG(date_commande) OVER (PARTITION BY client_id …)</code><small>la date de la commande précédente</small></li><li class="ij-fn-row is-out"><b>7</b><span>délais mesurés<small>les 8 premières commandes affichent NULL</small></span></li></ol><div class="ij-sms ij-act is-timeline" style="--st:0.3s;--n:6" role="group" aria-label="Nombre de jours entre deux commandes de chaque client"><p class="ij-sms-h"><i aria-hidden="true">⏱️</i>Délai entre deux commandes</p><ul class="act-tls"><li class="act-item" style="--i:0"><span class="act-tl-n">Sophie</span><span class="act-tl"><b class="act-dot">02/07</b><i class="act-gap">0 j</i><b class="act-dot">02/07</b><i class="act-gap">26 j</i><b class="act-dot">28/07</b></span></li><li class="act-item" style="--i:1"><span class="act-tl-n">Lucas</span><span class="act-tl"><b class="act-dot">05/07</b><i class="act-gap">15 j</i><b class="act-dot">20/07</b></span></li><li class="act-item" style="--i:2"><span class="act-tl-n">Emma</span><span class="act-tl"><b class="act-dot">08/07</b><i class="act-gap">22 j</i><b class="act-dot">30/07</b></span></li><li class="act-item" style="--i:3"><span class="act-tl-n">Nathan</span><span class="act-tl"><b class="act-dot">11/07</b><i class="act-gap">14 j</i><b class="act-dot">25/07</b></span></li><li class="act-item" style="--i:4"><span class="act-tl-n">Chloé</span><span class="act-tl"><b class="act-dot">12/07</b><i class="act-gap">20 j</i><b class="act-dot">01/08</b></span></li><li class="act-item" style="--i:5"><span class="act-tl-n">Léa</span><span class="act-tl"><b class="act-dot">18/07</b><i class="act-gap">0 j</i><b class="act-dot">18/07</b></span></li></ul><p class="act-big"><small>moyenne de ces délais, tous clients confondus</small><b data-count-to="14" data-dec="0" data-suffix=" jours" data-delay="2.4">0 jours</b></p><p class="ij-sms-done act-foot">🔔 Rappel programmé 14 jours après chaque commande</p></div></div>
+          <p>Il ne reste plus qu’à calculer le délai moyen entre deux commandes.</p>
+          <p>👇 Exécute la requête pour obtenir le délai moyen, tous clients confondus&nbsp;:</p>
+          <div class="ij-run" data-run-sql="WITH delais AS (&#10;  SELECT julianday(date_commande)&#10;    - julianday(&#10;      LAG(date_commande) OVER (&#10;        PARTITION BY client_id&#10;        ORDER BY date_commande, id&#10;      )&#10;    ) AS jours_depuis&#10;  FROM commandes&#10;  WHERE client_id IS NOT NULL&#10;)&#10;SELECT ROUND(AVG(jours_depuis))&#10;  AS delai_moyen&#10;FROM delais;"></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="15 commandes, 7 délais mesurés, puis leur moyenne"><li class="ij-fn-row"><b>15</b><span>commandes de clients<small>rangées par client et par date</small></span></li><li class="ij-fn-step"><code>LAG(date_commande) OVER (PARTITION BY client_id …)</code><small>la date de la commande précédente</small></li><li class="ij-fn-row"><b>7</b><span>délais mesurés<small>les 8 premières commandes affichent NULL</small></span></li><li class="ij-fn-step"><code>AVG(jours_depuis)</code><small>la moyenne des délais, NULL ignorés</small></li><li class="ij-fn-row is-out"><b>14</b><span>jours de délai moyen<small>une seule valeur pour tous les clients</small></span></li></ol><div class="ij-sms ij-act is-timeline" style="--st:0.3s;--n:6" role="group" aria-label="Nombre de jours entre deux commandes de chaque client"><p class="ij-sms-h"><i aria-hidden="true">⏱️</i>Délai entre deux commandes</p><ul class="act-tls"><li class="act-item" style="--i:0"><span class="act-tl-n">Sophie</span><span class="act-tl"><b class="act-dot">02/07</b><i class="act-gap">0 j</i><b class="act-dot">02/07</b><i class="act-gap">26 j</i><b class="act-dot">28/07</b></span></li><li class="act-item" style="--i:1"><span class="act-tl-n">Lucas</span><span class="act-tl"><b class="act-dot">05/07</b><i class="act-gap">15 j</i><b class="act-dot">20/07</b></span></li><li class="act-item" style="--i:2"><span class="act-tl-n">Emma</span><span class="act-tl"><b class="act-dot">08/07</b><i class="act-gap">22 j</i><b class="act-dot">30/07</b></span></li><li class="act-item" style="--i:3"><span class="act-tl-n">Nathan</span><span class="act-tl"><b class="act-dot">11/07</b><i class="act-gap">14 j</i><b class="act-dot">25/07</b></span></li><li class="act-item" style="--i:4"><span class="act-tl-n">Chloé</span><span class="act-tl"><b class="act-dot">12/07</b><i class="act-gap">20 j</i><b class="act-dot">01/08</b></span></li><li class="act-item" style="--i:5"><span class="act-tl-n">Léa</span><span class="act-tl"><b class="act-dot">18/07</b><i class="act-gap">0 j</i><b class="act-dot">18/07</b></span></li></ul><p class="act-big"><small>délai moyen, tous clients confondus</small><b data-count-to="14" data-dec="0" data-suffix=" jours" data-delay="2.4">0 jours</b></p><p class="ij-sms-done act-foot">🔔 Rappel programmé 14 jours après chaque commande</p></div></div>
         </div>
       </div>`},
     reflexTitle:"Le réflexe à retenir",
@@ -16414,24 +16438,28 @@ ORDER BY client_id,
   ORDER BY ordre
 ) AS precedente</pre></div>
           <p>Dans notre exemple&nbsp;:</p>
-          <div class="ij-need" role="list" aria-label="LAG, LEAD, PARTITION BY"><div role="listitem"><b>LAG()</b><span>commande précédente</span></div><div role="listitem"><b>LEAD()</b><span class="is-b">commande suivante</span></div><div role="listitem"><b>PARTITION BY</b><span class="is-c">comparaison par client</span></div></div>`}},
+          <div class="ij-need" role="list" aria-label="LAG, LEAD, PARTITION BY"><div role="listitem"><b>LAG()</b><span>commande précédente</span></div><div role="listitem"><b>LEAD()</b><span class="is-b">commande suivante</span></div><div role="listitem"><b>PARTITION BY</b><span class="is-c">comparaison par client</span></div></div>
+          <p>Pour en faire la moyenne, on calcule d’abord les délais dans un <code>WITH</code>, puis on applique <code>AVG()</code>&nbsp;: les <code>NULL</code> sont ignorés.</p>`}},
   noTeste:true,
   noAnat:true,
   anatomie:[
+    {tok:"WITH delais AS (…)",txt:"Calcule d’abord le délai de chaque commande."},
     {tok:"LAG(date_commande)",txt:"Lit la date de la ligne précédente."},
     {tok:"PARTITION BY client_id",txt:"Compare seulement les commandes d’un même client."},
     {tok:"ORDER BY date_commande, id",txt:"Définit ce qui vient avant."},
-    {tok:"AS jours_depuis",txt:"Le nombre de jours écoulés."}
+    {tok:"ROUND(AVG(jours_depuis))",txt:"La moyenne des délais, arrondie à l’entier : les NULL sont ignorés."},
+    {tok:"AS delai_moyen",txt:"Le délai moyen, en jours."}
   ],
   exemple:"SELECT client_id,\n       date_commande,\n       julianday(date_commande)\n       - julianday(\n           LAG(date_commande) OVER (\n             PARTITION BY client_id\n             ORDER BY date_commande, id\n           )\n         ) AS jours_depuis\nFROM commandes\nWHERE client_id IS NOT NULL\nORDER BY client_id,\n         date_commande, id;",
   attendu:"<b>15 lignes</b> : la première commande de chaque client affiche NULL, les autres le nombre de jours depuis la précédente.",
-  retenir:"<code>LAG</code> récupère la valeur de la ligne précédente ; <code>LEAD</code> celle de la ligne suivante.<br><br><code>PARTITION BY</code> sépare les groupes et l’<code>ORDER BY</code> dans <code>OVER</code> définit ce qui vient avant ou après.<br><br>Au bord de la fenêtre, il n’y a pas de voisine : le résultat vaut <code>NULL</code>.",
-  consigne:"Pour chaque commande rattachée à un client, affiche <code>client_id</code>, <code>date_commande</code> et le nombre de jours depuis la commande précédente du même client, sous le nom <code>jours_depuis</code>. Trie par client, date puis id.",
-  solution:"SELECT client_id,\n       date_commande,\n       julianday(date_commande)\n       - julianday(\n           LAG(date_commande) OVER (\n             PARTITION BY client_id\n             ORDER BY date_commande, id\n           )\n         ) AS jours_depuis\nFROM commandes\nWHERE client_id IS NOT NULL\nORDER BY client_id,\n         date_commande, id;",
-  indice:"<code>julianday(date_commande) - julianday(LAG(date_commande) OVER (PARTITION BY client_id ORDER BY date_commande, id))</code>.",
+  retenir:"<code>LAG</code> récupère la valeur de la ligne précédente ; <code>LEAD</code> celle de la ligne suivante.<br><br><code>PARTITION BY</code> sépare les groupes et l’<code>ORDER BY</code> dans <code>OVER</code> définit ce qui vient avant ou après.<br><br>Au bord de la fenêtre, il n’y a pas de voisine : le résultat vaut <code>NULL</code>.<br><br><code>AVG()</code> ignore les <code>NULL</code> : pour moyenner ces délais, on les calcule d’abord dans un <code>WITH</code>.",
+  consigne:"Parmi les commandes rattachées à un client, calcule le <b>délai moyen</b>, en jours, entre deux commandes successives d’un même client. Arrondis-le à l’entier et nomme-le <code>delai_moyen</code>.",
+  solution:"WITH delais AS (\n  SELECT julianday(date_commande)\n    - julianday(\n      LAG(date_commande) OVER (\n        PARTITION BY client_id\n        ORDER BY date_commande, id\n      )\n    ) AS jours_depuis\n  FROM commandes\n  WHERE client_id IS NOT NULL\n)\nSELECT ROUND(AVG(jours_depuis))\n  AS delai_moyen\nFROM delais;",
+  indice:"Calcule d’abord le délai de chaque commande dans un <code>WITH</code> (avec <code>LAG()</code>), puis fais-en la moyenne avec <code>ROUND(AVG(…))</code>.",
   richLesson:true, earlyDemo:true, ordered:true,
   testeVariants:[
-    {k:'jours',label:'Jours',sql:"SELECT client_id,\n       date_commande,\n       julianday(date_commande)\n       - julianday(\n           LAG(date_commande) OVER (\n             PARTITION BY client_id\n             ORDER BY date_commande, id\n           )\n         ) AS jours_depuis\nFROM commandes\nWHERE client_id IS NOT NULL\nORDER BY client_id,\n         date_commande, id;",out:"Le délai depuis la commande précédente.",tone:'good',expectRows:15},
+    {k:'moyenne',label:'Moyenne',sql:"WITH delais AS (\n  SELECT julianday(date_commande)\n    - julianday(\n      LAG(date_commande) OVER (\n        PARTITION BY client_id\n        ORDER BY date_commande, id\n      )\n    ) AS jours_depuis\n  FROM commandes\n  WHERE client_id IS NOT NULL\n)\nSELECT ROUND(AVG(jours_depuis))\n  AS delai_moyen\nFROM delais;",out:"Le délai moyen entre deux commandes, tous clients confondus : 14 jours.",tone:'good',expectRows:1},
+    {k:'jours',label:'Jours',sql:"SELECT client_id,\n       date_commande,\n       julianday(date_commande)\n       - julianday(\n           LAG(date_commande) OVER (\n             PARTITION BY client_id\n             ORDER BY date_commande, id\n           )\n         ) AS jours_depuis\nFROM commandes\nWHERE client_id IS NOT NULL\nORDER BY client_id,\n         date_commande, id;",out:"Le délai depuis la commande précédente.",expectRows:15},
     {k:'lag',label:'LAG',sql:"SELECT client_id,\n       date_commande,\n       LAG(date_commande) OVER (\n         PARTITION BY client_id\n         ORDER BY date_commande, id\n       ) AS precedente\nFROM commandes\nWHERE client_id IS NOT NULL\nORDER BY client_id,\n         date_commande, id;",out:"La date de la commande précédente.",expectRows:15},
     {k:'lead',label:'LEAD',sql:"SELECT client_id,\n       date_commande,\n       LEAD(date_commande) OVER (\n         PARTITION BY client_id\n         ORDER BY date_commande, id\n       ) AS suivante\nFROM commandes\nWHERE client_id IS NOT NULL\nORDER BY client_id,\n         date_commande, id;",out:"La date de la commande suivante.",expectRows:15}
   ],
@@ -21300,7 +21328,7 @@ function normalize(result,ordered){
   return JSON.stringify(ordered?rows:rows.slice().sort());
 }
 // Order matters only when the exercise explicitly asks for an ordered result.
-const ORDERED_LESSONS=new Set([11,24,12,75,76,77,73,74,78,79]);
+const ORDERED_LESSONS=new Set([11,24,12,75,76,77,73,74,79]);
 function exerciseRequiresOrder(lesson,isChallenge=false){
   return isChallenge?!!lesson.ordered:ORDERED_LESSONS.has(lesson.id);
 }
@@ -27440,7 +27468,7 @@ const MISSION_FILLS={
   80:{t:['commandes','EXCEPT','fidelite','fidelite.client_id']},
   60:{t:['AVG(prix)','OVER','PARTITION BY','categorie']},
   74:{t:['RANK()','OVER','ORDER BY','DESC']},
-  78:{t:['LAG','PARTITION BY','client_id','ORDER BY']},
+  78:{t:['WITH','LAG','PARTITION BY','AVG']},
   79:{t:['SUM','ROWS BETWEEN','UNBOUNDED PRECEDING','CURRENT ROW']}
 };
 function lessonHasFill(l){return !!(l&&(l.gateFill||MISSION_FILLS[l.id]));}
@@ -34348,7 +34376,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1431';
+  const SW_CACHE='requete-2026-09-30-ludique-v1434';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
