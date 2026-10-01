@@ -2183,6 +2183,38 @@
   #scr-lesson .ij-done.md .md-res .act-avgs li.is-default{border:1.5px dashed #B9AEE8;background:#F8F6FF}
   #scr-lesson .ij-done.md .md-res .act-avgs li.is-default::after{background:linear-gradient(#B9AEE8,#B9AEE8) left center/calc(var(--v,0)*100%) 100% no-repeat,var(--accent-soft)}
   @media (prefers-reduced-motion:reduce){#scr-lesson .ij-done.md .md-tab{transition:none}}
+  /* Bloc « Problème » : scène animée (lignes de cellules + légendes), pilotée par initProbScenes(). */
+  .pr-scene{position:relative;margin:12px 0 2px;padding:12px;border:1px solid var(--card-border);border-radius:18px;background:var(--surface-2,#F1EEFC);overflow:hidden}
+  #scr-lesson .sit-memo .pr-scene{margin:12px 0 2px}
+  .pr-h{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px;margin:0 0 8px;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)}
+  .pr-replay{display:inline-flex;align-items:center;justify-content:center;flex:none;width:30px;height:30px;padding:0;border:1px solid var(--card-border);border-radius:50%;background:#fff;color:var(--ink-2);cursor:pointer;opacity:0;pointer-events:none;transition:opacity .3s,color .2s;-webkit-tap-highlight-color:transparent}
+  .pr-scene.is-done .pr-replay{opacity:1;pointer-events:auto}
+  .pr-lane{max-height:260px;margin-top:8px;transition:opacity .35s,transform .35s,max-height .45s,margin .45s}
+  .pr-lane.is-fold{max-height:0;margin-top:0;overflow:hidden;opacity:0}
+  .pr-lane:first-child{margin-top:0}
+  .pr-lane.is-goal{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+  .pr-ll{display:block;margin:0 0 4px 2px;font-size:10.5px;font-weight:800;letter-spacing:.04em;line-height:1.2;text-transform:uppercase;color:var(--ink-3)}
+  .pr-cells{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
+  .pr-scene.has-cols .pr-cells{display:grid;grid-template-columns:var(--cols)}
+  .pr-c{display:inline-flex;align-items:center;justify-content:center;min-width:0;min-height:32px;max-width:260px;box-sizing:border-box;padding:5px 8px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font-family:var(--mono);font-size:12px;font-weight:700;line-height:1.2;color:var(--ink);text-align:center;transition:opacity .35s,transform .35s,max-width .4s,margin .4s,padding .4s,background .25s,border-color .25s,box-shadow .25s,color .25s}
+  .pr-c.pr-th{min-height:0;padding:0 2px;border:0;background:none;font-family:var(--ui);font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)}
+  .pr-lane.is-on .pr-c:not(.pr-th),.pr-c.is-on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent)}
+  .pr-lane.is-dim,.pr-c.is-dim{opacity:.35}
+  .pr-lane.is-gone{opacity:0;transform:scale(.94)}
+  .pr-c.is-gone{max-width:0;margin-right:-6px;padding-left:0;padding-right:0;border-width:0;overflow:hidden;opacity:0}
+  .pr-c.pr-hid{opacity:0}
+  .pr-c.pr-hid.is-show{opacity:1}
+  .pr-c.pr-q{border-style:dashed;border-color:#B9AEE8;background:#F8F6FF;color:var(--accent-ink)}
+  .pr-c.pr-n{border-style:dashed;border-color:#B9AEE8;background:#F8F6FF;color:var(--ink-3);font-style:italic}
+  .pr-c.is-got,.pr-lane .pr-c.is-got{border-style:solid;border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink)}
+  .pr-lane.is-miss .pr-c:not(.pr-th),.pr-c.is-miss{border-style:dashed;border-color:var(--danger,#C2323A);background:var(--danger-soft,#FDEBEC);color:var(--danger,#C2323A);box-shadow:none}
+  .pr-c.is-win{border-color:transparent;background:var(--accent-grad,linear-gradient(135deg,#7C5CFF,#6A4DF4));color:#fff}
+  .pr-fly{position:absolute;z-index:3;margin:0;pointer-events:none}
+  .pr-caps{display:grid;margin-top:12px}
+  .pr-cap{grid-area:1/1;align-self:center;text-align:center;font-size:13px;line-height:1.4;color:var(--ink-2);opacity:0;transform:translateY(4px);transition:opacity .3s,transform .3s}
+  .pr-cap.is-on{opacity:1;transform:none}
+  .pr-cap b{color:var(--ink);font-weight:800}
+  @media (prefers-reduced-motion:reduce){.pr-scene *{transition:none!important}}
   .ij-need b{min-width:0;line-height:1.3}
   .ij-need span{font-family:var(--mono)}
   .fk-course .pt-syntax .cw-syntax{background:#fafafc;border:1px solid rgba(39,42,54,.16);border-radius:12px}
@@ -25059,6 +25091,175 @@ function mdSql(t){
   if(h.length>26)h=h.replace(/ … (GROUP BY|ORDER BY|WHERE)/g,'\u0001$1').replace(/ (OVER \(|GROUP BY|ORDER BY|ROWS BETWEEN)/g,'<br>$1').replace(/\u0001/g,'<br>… ');
   return h.replace(/\b(OVER|PARTITION BY|ORDER BY|GROUP BY|ROWS BETWEEN|UNBOUNDED PRECEDING|CURRENT ROW|WHERE|AND|ON|JOIN|INNER JOIN|LEFT JOIN|RIGHT JOIN|FULL OUTER JOIN|CROSS JOIN|IN|NOT EXISTS|EXISTS|SELECT|UNION|EXCEPT|DISTINCT|WITH|CASE|DESC|LAG|COALESCE|AVG|COUNT|RANK)\b/g,'<span class="md-kw">$1</span>');
 }
+/* Bloc « Problème » : une courte animation qui montre pourquoi la requête est difficile
+   (même esprit que celle de LAG et LEAD). Chaque scène est décrite par des lignes (lanes)
+   de cellules [clé, texte, options] et par des étapes : une légende + des effets
+   (on/off, dim/undim, gone/back, show, mark, text, fly). Options d’une cellule :
+   q = point d’interrogation, h = cachée au départ, n = valeur absente (NULL), t = en-tête. */
+const PROB_SCENES={
+  18:{h:'🔎 Qui sait quoi ?',
+    lanes:[{k:'A',l:'clients',c:[['a1','1'],['a2','Sophie'],['a3','sophie@mail.fr']]},{k:'B',l:'commandes',c:[['b1','client 1'],['b2','02/07']]},{k:'G',l:'résultat',c:[['g1','?','q'],['g2','?','q'],['g3','?','q']],cls:'is-goal'}],
+    caps:['Dans <b>clients</b>&nbsp;: le nom et l’e-mail.','Dans <b>commandes</b>&nbsp;: la date… mais pas le nom.','On veut tout <b>sur la même ligne</b>.'],
+    steps:[{cap:0,on:['A'],d:1900},{cap:1,off:['A'],on:['B'],d:1900},{cap:2,off:['B'],fly:[['a2','g1'],['a3','g2'],['b2','g3']],d:2600}]},
+  19:{h:'🔎 Trois tables, une fiche',
+    lanes:[{k:'A',l:'clients',c:[['a1','Sophie'],['a2','sophie@mail.fr']]},{k:'B',l:'produits',c:[['b1','Fibre Prébiotique']]},{k:'C',l:'commandes',c:[['c1','02/07']]},{k:'G',l:'fiche',c:[['g1','?','q'],['g2','?','q'],['g3','?','q'],['g4','?','q']],cls:'is-goal'}],
+    caps:['Le nom et l’e-mail sont dans <b>clients</b>.','Le produit est dans <b>produits</b>, la date dans <b>commandes</b>.','Une fiche réunit les <b>quatre informations</b> sur une même ligne.'],
+    steps:[{cap:0,on:['A'],d:1800},{cap:1,off:['A'],on:['B','C'],d:1900},{cap:2,off:['B','C'],fly:[['a1','g1'],['a2','g2'],['b1','g3'],['c1','g4']],d:2800}]},
+  20:{h:'🔎 Qui reste dans le résultat&nbsp;?',
+    lanes:[{k:'L1',c:[['n1','Sophie'],['o1','3 commandes']]},{k:'L2',c:[['n2','Lucas'],['o2','2 commandes']]},{k:'L3',c:[['n3','Inès'],['o3','aucune','n']]},{k:'L4',c:[['n4','Nathan n°10'],['o4','aucune','n']]}],
+    caps:['Voici 4 clients de la table <b>clients</b>.','Avec <code>INNER JOIN</code>, seuls ceux qui ont une commande restent…','…mais ce sont justement <b>Inès et Nathan n°10</b> qu’on cherche.'],
+    steps:[{cap:0,d:2000},{cap:1,on:['L1','L2'],gone:['L3','L4'],d:2300},{cap:2,off:['L1','L2'],dim:['L1','L2'],back:['L3','L4'],mark:{L3:'is-miss',L4:'is-miss'},d:2500}]},
+  38:{h:'🔎 À qui appartient chaque commande&nbsp;?',
+    lanes:[{k:'L1',c:[['a1','commande #1'],['a2','Sophie']]},{k:'L2',c:[['b1','commande #3'],['b2','Lucas']]},{k:'L3',c:[['c1','commande #16'],['c2','NULL','n']]}],
+    caps:['Chaque commande est reliée à son client…','…sauf la <b>#16</b>&nbsp;: son client est <b>NULL</b>.','Elle risque de <b>disparaître</b> du résultat.'],
+    steps:[{cap:0,on:['L1','L2'],d:1900},{cap:1,off:['L1','L2'],on:['L3'],d:2000},{cap:2,off:['L3'],dim:['L3'],mark:{L3:'is-miss'},d:2500}]},
+  39:{h:'🔎 Les deux côtés ne se répondent pas toujours',cols:'1fr 1fr',
+    lanes:[{c:[['','clients','t'],['','commandes','t']]},{k:'L1',c:[['a1','Sophie'],['a2','commande #1']]},{k:'L2',c:[['b1','Inès'],['b2','aucune','n']]},{k:'L3',c:[['c1','aucun client','n'],['c2','commande #16']]}],
+    caps:['Sophie et la commande #1 <b>se correspondent</b>.','Inès n’a <b>aucune commande</b>.','La commande #16 n’a <b>aucun client</b>.'],
+    steps:[{cap:0,on:['L1'],d:1900},{cap:1,off:['L1'],on:['L2'],d:1900},{cap:2,off:['L2'],on:['L3'],d:2300}]},
+  40:{h:'🔎 Aucun lien entre une ville et un produit',
+    lanes:[{k:'V',l:'villes',c:[['v1','Paris'],['v2','Lyon']]},{k:'P',l:'produits',c:[['p1','Fibre Prébiotique'],['p2','Collagène Marin']]},{k:'G',l:'offres',c:[['g1','Fibre → Paris','h'],['g2','Fibre → Lyon','h'],['g3','Collagène → Paris','h'],['g4','Collagène → Lyon','h']],cls:'is-goal'}],
+    caps:['Une ville, un produit&nbsp;: <b>aucune colonne</b> ne les relie.','On ne cherche pas de correspondance&nbsp;: on veut <b>toutes les combinaisons</b>.'],
+    steps:[{cap:0,on:['V','P'],d:2000},{cap:1,off:['V','P'],show:['g1','g2','g3','g4'],stagger:350,d:3000}]},
+  41:{h:'🔎 De la commande à la ville',
+    lanes:[{k:'A',l:'commandes',c:[['a1','commande #1'],['a2','client 1']]},{k:'B',l:'clients',c:[['b1','id 1'],['b2','Paris']]},{k:'G',l:'voulu',c:[['g1','commande #1'],['g2','?','q']],cls:'is-goal'}],
+    caps:['La commande #1 ne connaît que l’<b>id de son client</b>&nbsp;: 1.','La <b>ville</b> se trouve dans la table clients.','Pour compter par ville, chaque commande doit connaître la sienne.'],
+    steps:[{cap:0,on:['A'],d:1900},{cap:1,off:['A'],on:['B'],d:1900},{cap:2,off:['B'],fly:[['b2','g2']],d:2600}]},
+  45:{h:'🔎 Qui a commandé du Magnésium&nbsp;?',
+    lanes:[{k:'A',l:'commandes',c:[['a1','Magnésium'],['a2','client 1']]},{k:'A2',l:'',c:[['a3','Magnésium'],['a4','client 2']]},{k:'B',l:'clients',c:[['b0','1'],['b1','Sophie'],['b2','2'],['b3','Lucas']]},{k:'G',l:'à contacter',c:[['g1','?','q'],['g2','?','q']],cls:'is-goal'}],
+    caps:['Le Magnésium se trouve dans <b>commandes</b>…','…mais on n’y voit que des <b>ids de clients</b>&nbsp;: 1 et 2.','Leurs noms sont dans <b>clients</b>&nbsp;: Sophie et Lucas.'],
+    steps:[{cap:0,on:['A','A2'],d:1900},{cap:1,on:['a2','a4'],d:1900},{cap:2,off:['A','A2','a2','a4'],on:['B'],fly:[['b1','g1'],['b3','g2']],d:2800}]},
+  47:{h:'🔎 Combien de commandes par produit&nbsp;?',
+    lanes:[{k:'P1',c:[['p1','Fibre Prébiotique'],['n1','?','q']]},{k:'P2',c:[['p2','Collagène Marin'],['n2','?','q']]},{k:'C1',l:'Fibre',c:[['c1','#1'],['c2','#5'],['c3','#8'],['c4','#15']],cls:'is-goal'},{k:'C2',l:'Collagène',c:[['c5','#4'],['c6','#12']]}],
+    caps:['Le produit est dans <b>produits</b>… mais pas son nombre de commandes.','Il faut <b>compter</b> ses commandes dans la table commandes…','…et faire ce calcul <b>pour chaque produit</b>.'],
+    steps:[{cap:0,on:['n1','n2'],d:1900},{cap:1,off:['n1','n2'],on:['C1','C2'],d:2100},{cap:2,off:['C1','C2'],text:{n1:'4',n2:'2'},stagger:400,d:2600}]},
+  48:{h:'🔎 Le montant d’une commande',
+    lanes:[{k:'A',l:'commandes',c:[['a1','commande #1'],['a2','quantité 2']]},{k:'B',l:'produits',c:[['b1','Fibre Prébiotique'],['b2','29,90 €']]},{k:'G',l:'montant',c:[['g1','?','q']],cls:'is-goal'}],
+    caps:['La table <b>commandes</b> donne la quantité&nbsp;: 2.','La table <b>produits</b> donne le prix&nbsp;: 29,90 €.','Le montant n’existe nulle part&nbsp;: il faut le <b>calculer</b> (2 × 29,90 = 59,80 €).'],
+    steps:[{cap:0,on:['A'],d:1800},{cap:1,off:['A'],on:['B'],d:1800},{cap:2,off:['B'],text:{g1:'59,80 €'},d:2800}]},
+  49:{h:'🔎 De la commande au produit',
+    lanes:[{k:'A',l:'commandes',c:[['a1','commande #3'],['a2','produit 6']]},{k:'B',l:'produits',c:[['b0','6'],['b1','Protéine Végétale'],['b2','stock 45']]},{k:'G',l:'voulu',c:[['g1','commande #3'],['g2','?','q'],['g3','?','q']],cls:'is-goal'}],
+    caps:['La commande #3 ne connaît que l’<b>id du produit</b>&nbsp;: 6.','Le nom et le stock sont dans <b>produits</b>.','On veut les voir <b>à côté de la commande</b>.'],
+    steps:[{cap:0,on:['A'],d:1900},{cap:1,off:['A'],on:['B'],d:1900},{cap:2,off:['B'],fly:[['b1','g2'],['b2','g3']],d:2700}]},
+  55:{h:'🔎 Au moins une commande&nbsp;?',
+    lanes:[{k:'S',c:[['s0','Sophie'],['s1','#1'],['s2','#2'],['s3','#13']]},{k:'I',c:[['i0','Inès'],['i1','aucune commande','n']]}],
+    caps:['Sophie a 3 commandes…','…mais <b>une seule</b> suffit pour savoir qu’elle a déjà commandé.','Inès n’en a aucune&nbsp;: c’est elle qu’on cherche.'],
+    steps:[{cap:0,on:['s1','s2','s3'],d:1900},{cap:1,off:['s2','s3'],dim:['s2','s3'],d:2200},{cap:2,off:['s1'],on:['I'],d:2500}]},
+  59:{h:'🔎 Combien de commandes par client&nbsp;?',cols:'1fr 96px',
+    lanes:[{c:[['','client','t'],['','commandes','t']]},{k:'S',c:[['s0','Sophie'],['sn','?','q']]},{k:'L',c:[['l0','Lucas'],['ln','?','q']]},{k:'H',c:[['h0','Hugo'],['hn','?','q']]}],
+    caps:['On veut les clients qui ont <b>au moins 2 commandes</b>…','…mais ce nombre n’est écrit nulle part&nbsp;: il faut d’abord le <b>calculer</b>.','Ensuite seulement, on peut <b>filtrer</b>.'],
+    steps:[{cap:0,on:['sn','ln','hn'],d:1900},{cap:1,off:['sn','ln','hn'],text:{sn:'3',ln:'2',hn:'1'},stagger:350,d:2400},{cap:2,dim:['H'],on:['S','L'],d:2500}]},
+  60:{h:'🔎 La moyenne… sans le détail',cols:'1fr 84px 52px',
+    lanes:[{c:[['','produit','t'],['','catégorie','t'],['','prix','t']]},{k:'R',fold:true,c:[['r1','—','n'],['r2','Bien-être'],['r3','24,90']]},{k:'P1',c:[['a1','Magnésium'],['a2','Bien-être'],['a3','19,90']]},{k:'P2',c:[['b1','Oméga 3'],['b2','Bien-être'],['b3','24,90']]},{k:'P3',c:[['c1','Fibre Préb.'],['c2','Bien-être'],['c3','29,90']]}],
+    caps:['Chaque produit a son <b>prix</b>.','Avec <code>GROUP BY</code>, la catégorie devient <b>une seule ligne</b>…','…on a la moyenne, mais la colonne <b>produit</b> a disparu.'],
+    steps:[{cap:0,on:['P1','P2','P3'],d:1900},{cap:1,off:['P1','P2','P3'],fold:['P1','P2','P3'],unfold:['R'],on:['r2','r3'],d:2500},{cap:2,d:2400}]},
+  73:{h:'🔎 Deux listes sans lien',
+    lanes:[{k:'V',l:'villes',c:[['v1','Paris'],['v2','Lyon']]},{k:'C',l:'catégories',c:[['c1','Bien-être'],['c2','Beauté']]},{k:'G',l:'liste',c:[['g1','Paris','h'],['g2','Lyon','h'],['g3','Bien-être','h'],['g4','Beauté','h']],cls:'is-goal'}],
+    caps:['Deux tables, <b>aucun lien</b> entre une ville et une catégorie.','On ne veut pas les relier&nbsp;: on veut les mettre <b>l’une à la suite de l’autre</b>.'],
+    steps:[{cap:0,on:['V','C'],d:2000},{cap:1,off:['V','C'],show:['g1','g2','g3','g4'],stagger:320,d:3000}]},
+  74:{h:'🔎 Trier ne donne pas de rang',cols:'1fr 46px 46px',
+    lanes:[{c:[['','produit','t'],['','ventes','t'],['','rang','t']]},{k:'R1',c:[['p1','Fibre Prébiotique'],['q1','10'],['r1','?','q']]},{k:'R2',c:[['p2','Collagène Marin'],['q2','4'],['r2','?','q']]},{k:'R3',c:[['p3','Magnésium'],['q3','3'],['r3','?','q']]},{k:'R4',c:[['p4','Vitamine D'],['q4','3'],['r4','?','q']]}],
+    caps:['<code>ORDER BY</code> classe les produits du <b>plus vendu</b> au moins vendu…','…mais aucune colonne ne donne leur <b>place</b>.','Et deux produits à égalité doivent <b>partager la même place</b>.'],
+    steps:[{cap:0,on:['R1','R2','R3','R4'],d:1900},{cap:1,off:['R1','R2','R3','R4'],on:['r1','r2','r3','r4'],d:1900},{cap:2,off:['r1','r2','r3','r4'],text:{r1:'1',r2:'2',r3:'3',r4:'3'},stagger:300,d:2900}]},
+  77:{h:'🔎 Une ligne par jour',
+    lanes:[{l:'jours',c:[['d1','?','q'],['d2','?','q'],['d3','?','q'],['dx','…','t'],['d9','?','q']]}],
+    caps:['Les jours 1 à 90 n’existent <b>dans aucune table</b>.','Les écrire un par un serait <b>long et pénible</b>.','On voudrait qu’ils <b>se créent tout seuls</b>.'],
+    steps:[{cap:0,on:['d1','d2','d3','d9'],d:1900},{cap:1,off:['d1','d2','d3','d9'],dim:['d1','d2','d3','d9'],d:2000},{cap:2,undim:['d1','d2','d3','d9'],text:{d1:'1',d2:'2',d3:'3',d9:'90'},stagger:380,d:2800}]},
+  79:{h:'🔎 Un total qui grossit',cols:'64px 1fr 1fr',
+    lanes:[{c:[['','date','t'],['','montant','t'],['','cumul','t']]},{k:'R1',c:[['d1','18/07'],['m1','119,60 €'],['c1','?','q']]},{k:'R2',c:[['d2','18/07'],['m2','25,00 €'],['c2','?','q']]},{k:'R3',c:[['d3','20/07'],['m3','39,80 €'],['c3','?','q']]}],
+    caps:['Chaque commande a son <b>montant</b>.','On veut le <b>total qui grossit</b>, commande après commande…','…pour voir le jour où l’on franchit <b>500&nbsp;€</b>. Un seul total le cacherait.'],
+    steps:[{cap:0,on:['m1','m2','m3'],d:1800},{cap:1,off:['m1','m2','m3'],text:{c1:'438,50 €',c2:'463,50 €',c3:'503,30 €'},stagger:500,d:2800},{cap:2,mark:{c3:'is-win'},d:2800}]},
+  80:{h:'🔎 Qui écarter&nbsp;?',
+    lanes:[{k:'A',l:'ont commandé',c:[['a1','Sophie'],['a2','Lucas'],['a3','Emma'],['a4','Chloé']]},{k:'B',l:'déjà inscrits',c:[['b1','Sophie'],['b2','Lucas']]}],
+    caps:['Voici des clients qui <b>ont commandé</b>…','…et parmi eux, certains sont <b>déjà inscrits</b>.','On les écarte&nbsp;: il reste ceux à <b>inviter</b>.'],
+    steps:[{cap:0,on:['a1','a2','a3','a4'],d:1900},{cap:1,off:['a3','a4'],on:['b1','b2'],d:2100},{cap:2,off:['b1','b2'],dim:['B'],gone:['a1','a2'],on:['a3','a4'],d:2700}]}
+};
+function prCell(c){
+  const f=c[2]||'',cls=['pr-c'];
+  if(f.includes('q'))cls.push('pr-q');
+  if(f.includes('h'))cls.push('pr-hid');
+  if(f.includes('n'))cls.push('pr-n');
+  if(f.includes('t'))cls.push('pr-th');
+  return `<span class="${cls.join(' ')}" data-k="${c[0]}">${c[1]}</span>`;
+}
+function prStage(sc){
+  return sc.lanes.map(L=>`<div class="pr-lane${L.cls?' '+L.cls:''}${L.fold?' is-fold':''}"${L.k?` data-k="${L.k}"`:''}>${L.l?`<span class="pr-ll">${L.l}</span>`:''}<div class="pr-cells">${L.c.map(prCell).join('')}</div></div>`).join('');
+}
+function initProbScenes(){
+  const cfg=current&&PROB_SCENES[current.id];
+  if(!cfg)return;
+  const memo=document.querySelector('#lesson-body .sit-memo.is-problem');
+  if(!memo||memo.querySelector('.pr-scene'))return;
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const root=document.createElement('div');
+  root.className='pr-scene';
+  root.setAttribute('role','img');
+  root.setAttribute('aria-label','Animation : '+cfg.caps.map(c=>c.replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ')).join(' '));
+  if(cfg.cols)root.style.setProperty('--cols',cfg.cols);
+  root.classList.toggle('has-cols',!!cfg.cols);
+  root.innerHTML=`<div class="pr-h"><span>${cfg.h}</span><button type="button" class="pr-replay" aria-label="Rejouer l’animation" title="Rejouer"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button></div><div class="pr-stage" aria-hidden="true"></div><div class="pr-caps" aria-hidden="true">${cfg.caps.map(c=>`<span class="pr-cap">${c}</span>`).join('')}</div>`;
+  memo.append(root);
+  const stage=root.querySelector('.pr-stage'),caps=[...root.querySelectorAll('.pr-cap')];
+  let tok=0,timers=[];
+  const q=k=>stage.querySelector(`[data-k="${k}"]`);
+  const each=(v,f)=>(v||[]).forEach(f);
+  const later=(f,ms,now)=>{if(now||!ms){f();return;}timers.push(setTimeout(f,ms));};
+  const reset=()=>{
+    timers.forEach(clearTimeout);timers=[];
+    root.querySelectorAll('.pr-fly').forEach(n=>n.remove());
+    stage.innerHTML=prStage(cfg);
+    caps.forEach(c=>c.classList.remove('is-on'));
+    root.classList.remove('is-done');
+    /* Hauteur fixée à celle de l’état de départ : rien ne saute quand des lignes se replient. */
+    stage.style.minHeight='';
+    if(stage.offsetHeight)stage.style.minHeight=stage.offsetHeight+'px';
+  };
+  const fly=(a,b,now)=>{
+    const f=q(a),t=q(b);if(!f||!t)return;
+    const land=()=>{t.textContent=f.textContent;t.classList.remove('pr-q','pr-hid');t.classList.add('is-got');};
+    if(now||!t.animate){land();return;}
+    const r1=f.getBoundingClientRect(),r2=t.getBoundingClientRect(),sr=root.getBoundingClientRect();
+    const p=document.createElement('span');
+    p.className='pr-c pr-fly is-got';p.textContent=f.textContent;
+    p.style.cssText=`left:${r1.left-sr.left}px;top:${r1.top-sr.top}px;width:${r1.width}px;height:${r1.height}px`;
+    root.append(p);
+    p.animate([{transform:'translate(0,0)',width:r1.width+'px'},{transform:`translate(${r2.left-r1.left}px,${r2.top-r1.top}px)`,width:r2.width+'px'}],{duration:750,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'}).onfinish=()=>{land();p.remove();};
+  };
+  const apply=(s,now)=>{
+    caps.forEach((c,i)=>c.classList.toggle('is-on',i===s.cap));
+    each(s.off,k=>q(k).classList.remove('is-on'));
+    each(s.undim,k=>q(k).classList.remove('is-dim'));
+    each(s.back,k=>q(k).classList.remove('is-gone'));
+    each(s.unfold,k=>q(k).classList.remove('is-fold'));
+    if(s.unmark)Object.keys(s.unmark).forEach(k=>q(k).classList.remove(s.unmark[k]));
+    each(s.on,k=>q(k).classList.add('is-on'));
+    each(s.dim,k=>q(k).classList.add('is-dim'));
+    each(s.gone,k=>q(k).classList.add('is-gone'));
+    each(s.fold,k=>q(k).classList.add('is-fold'));
+    const st=s.stagger||0;
+    each(s.show,(k,i)=>later(()=>q(k).classList.add('is-show'),i*st,now));
+    if(s.mark)Object.keys(s.mark).forEach(k=>q(k).classList.add(s.mark[k]));
+    if(s.text)Object.keys(s.text).forEach((k,i)=>later(()=>{const e=q(k);e.textContent=s.text[k];e.classList.remove('pr-q');e.classList.add('is-got');},i*st,now));
+    each(s.fly,(pr,i)=>later(()=>fly(pr[0],pr[1],now),i*(st||150),now));
+  };
+  const finish=()=>{reset();cfg.steps.forEach(s=>apply(s,true));root.classList.add('is-done');};
+  const play=async()=>{
+    if(reduce){finish();return;}
+    const my=++tok;reset();
+    for(const s of cfg.steps){
+      if(my!==tok)return;
+      apply(s);
+      await new Promise(r=>timers.push(setTimeout(r,s.d||2000)));
+    }
+    if(my===tok)root.classList.add('is-done');
+  };
+  root._pr={reset,apply,finish,cfg};
+  reset();
+  root.querySelector('.pr-replay').addEventListener('click',play);
+  if(!('IntersectionObserver' in window)){play();return;}
+  const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){play();io.disconnect();}},{rootMargin:'0px 0px -30% 0px',threshold:0});
+  io.observe(root);
+}
 /* Emplacements de requête exécutable dans le texte d’un cours. */
 function initRunSqlSlots(){
   document.querySelectorAll('#lesson-body .ij-run[data-run-sql]').forEach(el=>{
@@ -27570,6 +27771,7 @@ function renderLessonFlow(){
     applyMissionFills();
     initRunSqlSlots();
     initMissionDone();
+    initProbScenes();
     initQueryFill();
     initGroupCount();
     initCondAnim();
@@ -34591,7 +34793,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1477';
+  const SW_CACHE='requete-2026-09-30-ludique-v1481';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
