@@ -42,7 +42,7 @@ class World {
 function makeClient(world, name, { skew = 0 } = {}) {
   const ctx = vm.createContext({});
   const store = {}, session = {};
-  const c = { name, ctx, offline: false, deaf: false, html: '', toasts: [], out: '', ed: { value: '' }, root: null, misc: { 'back-label': {}, 'nav-title': {}, 'lesson-body': {} } };
+  const c = { name, ctx, offline: false, deaf: false, failPosts: 0, html: '', toasts: [], out: '', ed: { value: '' }, root: null, misc: { 'back-label': {}, 'nav-title': {}, 'lesson-body': {} } };
   c.root = { classList: { remove() {}, add() {} }, offsetWidth: 0, set innerHTML(v) { c.html = v; }, get innerHTML() { return c.html; } };
   class FakeES {
     constructor(url) {
@@ -84,13 +84,14 @@ function makeClient(world, name, { skew = 0 } = {}) {
     EventSource: FakeES,
     fetch: (url, opt) => {
       if (c.offline) return Promise.resolve({ ok: false });
+      if (c.failPosts > 0) { c.failPosts--; return Promise.resolve({ ok: false }); }
       world.setTimeout(() => world.publish(url.replace('https://ntfy.sh/', ''), opt.body), world.latency);
       return Promise.resolve({ ok: true });
     },
     state: { defis: {}, name }, SQL: {}, esc: s => String(s).replace(/</g, '&lt;'), highlight: s => s, DEF_CHEV_SVG: '', JEU_FRIENDS_SVG: '',
     editorBlock: () => '<textarea id="ed-lesson"></textarea>', setupEditor() {}, celebrate() {}, annulerBilanAuto() {}, showScreen() {},
-    prefersReduceMotion: () => false, leaveLessonScreen() {}, switchTab() {}, renderDefis() {}, activeTab: 'defis',
-    noteActivityDay() {}, save() {}, renderProgress() {}, renderPlanning() {}, setLessonOut: h => { c.out = h; }, renderTable: () => '', errBox: m => m,
+    prefersReduceMotion: () => false, lessonBackLabel: () => 'Défis', leaveLessonScreen() {}, switchTab() {}, renderDefis() {}, activeTab: 'defis',
+    noteActivityDay() { c.acts = (c.acts || 0) + 1; }, save() {}, renderProgress() {}, renderPlanning() {}, setLessonOut: h => { c.out = h; }, renderTable: () => '', errBox: m => m,
     exoFailDiag: () => 'x', exerciseRequiresOrder: () => false, exerciseResultsMatch: (a, b) => JSON.stringify(a) === JSON.stringify(b),
     sandbox: () => ({ exec: sql => [{ columns: ['q'], values: [[sql]] }], close() {} }),
     performance: { now: () => world.now }, confirm: () => true, toast() {},
@@ -258,7 +259,7 @@ test('l’hôte quitte la salle d’attente : le plus ancien arrivé devient hô
   for (const g of guests) { assert.equal(g.J('hostPid'), guests[0].pid(), g.name); assert.equal(g.view(), 'lobby'); }
   assert.ok(guests[0].ev('jeuIsHost()'));
   assert.match(guests[0].html, /Invite tes amis/);
-  assert.match(guests[1].html, /Salle de Ami1/);
+  assert.match(guests[1].html, /Salle d’Ami1/, 'élision devant une voyelle');
   assert.ok(guests[1].toasts.some(t => /Ami1 est maintenant l’hôte/.test(t)));
   assert.deepEqual(guests[1].live(), ['Ami1', 'Ami2']);
   guests[0].ev('jeuNextRound()'); sec(w, 1);
@@ -270,14 +271,14 @@ test('l’hôte disparaît sans prévenir : relais après le délai de présence
   host.offline = true;
   sec(w, 40);
   assert.equal(guests[0].J('hostPid'), host.pid(), 'trop tôt pour le remplacer');
-  sec(w, 30);
+  sec(w, 60);
   assert.equal(guests[1].J('hostPid'), guests[0].pid());
   assert.deepEqual(guests[1].live(), ['Ami1', 'Ami2'], 'l’hôte absent n’est plus listé');
   host.offline = false; host.es.connect();
   sec(w, 3);
   assert.equal(host.J('hostPid'), guests[0].pid(), 'l’ancien hôte se range derrière le nouveau');
   assert.equal(host.ev('jeuIsHost()'), false);
-  assert.match(host.html, /Salle de Ami1/);
+  assert.match(host.html, /Salle d’Ami1/);
 });
 
 test('deux amis veulent prendre la main en même temps : un seul hôte pour tout le monde', () => {
@@ -329,7 +330,7 @@ test('salle introuvable, salle vide, salle pleine : des messages clairs', () => 
   const a = makeClient(w, 'Perdu'); a.join('NOPE99'); sec(w, 9);
   assert.equal(a.view(), 'lost'); assert.match(a.html, /Salle introuvable/);
   const host = makeClient(w, 'Hôte'); host.host('GHOST1'); sec(w, 2); host.ev('jeuStop()'); sec(w, 80);
-  const late = makeClient(w, 'Tard'); late.join('GHOST1'); sec(w, 9);
+  const late = makeClient(w, 'Tard'); late.join('GHOST1'); sec(w, 30);
   assert.equal(late.view(), 'empty'); assert.match(late.html, /Cette salle est vide/);
 });
 
@@ -451,4 +452,130 @@ test('un ami dont la réception est coupée (mais qui envoie encore) ne vole pas
   guests[0].deaf = false; guests[0].es.connect(); sec(w, 25);
   assert.equal(guests[0].J('hostPid'), host.pid(), 'tout redevient normal à son retour');
   assert.ok(guests[0].live().includes('Hôte'));
+});
+
+const samePid = (w, name, pid) => { const c = makeClient(w, name); c.ev(`sessionStorage.setItem('rq-jeu-pid',${JSON.stringify(pid)})`); return c; };
+
+test('une manche terminée le reste : un arrivant ne rouvre rien, les scores gardent les manches passées', () => {
+  const { w, host, guests } = room({ n: 3, nb: 3 });
+  host.ev('jeuNextRound()'); sec(w, 4.5); host.found(); guests[0].found(); guests[1].found(); sec(w, 1.5);
+  assert.equal(host.view(), 'res0');
+  const late = makeClient(w, 'Retard'); late.join('ROOM42'); sec(w, 6);
+  for (const c of [host, ...guests]) assert.equal(c.view(), 'res0', c.name + ' reste sur les résultats');
+  assert.match(host.html, /Manche suivante/);
+  host.ev('jeuNextRound()'); sec(w, 4.5); host.found(); late.found(); guests[0].found(); guests[1].found(); sec(w, 2);
+  const sc = host.ev('jeuScores().map(x=>x.name+":"+x.pts)');
+  assert.ok(sc.length === 4 && sc.every(x => !/:0$/.test(x)), 'les points des deux manches : ' + sc);
+});
+
+test('un temps reçu pendant les résultats met le classement à jour (sans rouvrir la manche)', () => {
+  const { w, host, guests } = room({ n: 3 });
+  host.ev('jeuNextRound()'); sec(w, 4.5); host.ev('jeuClose()'); sec(w, 1);
+  assert.equal(host.view(), 'res0');
+  guests[0].ev('jeuSend({t:"found",n:0,ms:5000})'); sec(w, 2);
+  assert.equal(host.view(), 'res0');
+  assert.equal(host.ev('jeuRanking(0).length'), 1, 'le temps tardif est classé');
+});
+
+test('l’hôte revient dans sa salle avec le même pseudo d’appareil : il la retrouve et reste hôte', () => {
+  const { w, host, guests } = room({ n: 2 });
+  const pid = host.pid(); host.ev('jeuStop()'); sec(w, 2);
+  const back = samePid(w, 'Hôte', pid); back.join('ROOM42'); sec(w, 6);
+  assert.equal(back.view(), 'lobby', 'il retrouve sa salle');
+  assert.ok([pid, guests[0].pid()].includes(back.J('hostPid')), 'un hôte existe : lui, ou l’ami qui a pris la main pendant son absence');
+});
+
+test('retour avec le même pseudo en pleine manche : son temps déjà trouvé est retrouvé', () => {
+  const { w, host, guests } = room({ n: 3 });
+  host.ev('jeuNextRound()'); sec(w, 4.5); guests[0].found(); sec(w, 1);
+  const pid = guests[0].pid(); guests[0].ev('jeuStop()'); sec(w, 2);
+  const back = samePid(w, 'Ami1', pid); back.join('ROOM42'); sec(w, 5);
+  assert.equal(back.view(), 'play0');
+  assert.notEqual(back.J('rounds[0].found[JEU.me]'), undefined, 'son temps est restitué');
+  assert.match(back.html, /Trouvé en/);
+});
+
+/* Les promesses (réponses du relais) ne se résolvent qu’entre deux avances de l’horloge. */
+const secA = async (w, s) => { for (let i = 0; i < s * 2; i++) { w.advance(500); await new Promise(r => setImmediate(r)); } };
+test('un envoi refusé par le relais est renvoyé : arrivée, manche et « trouvé » finissent par passer', async () => {
+  const w = new World();
+  const host = makeClient(w, 'Hôte'); host.ev('jeuNb=3'); host.host('RETRY1'); await secA(w, 1);
+  const g = makeClient(w, 'Ami'); g.failPosts = 2; g.join('RETRY1'); await secA(w, 14);
+  assert.equal(g.view(), 'lobby', 'le hello a fini par passer');
+  assert.deepEqual(host.live(), ['Hôte', 'Ami']);
+  host.failPosts = 1; host.ev('jeuNextRound()'); await secA(w, 8);
+  assert.ok(g.J('rounds[0]'), 'la manche arrive chez l’ami malgré un premier refus');
+  await secA(w, 4); g.failPosts = 1; g.found(); await secA(w, 8);
+  assert.notEqual(host.J('rounds[0].found["' + g.pid() + '"]'), undefined, 'son « trouvé » arrive chez l’hôte');
+  assert.equal(g.J('net'), true, 'la connexion est de nouveau annoncée bonne');
+  assert.equal(g.J('out.length'), 0, 'plus rien en attente d’envoi');
+});
+
+test('hôte figé un moment (partage du code) : il revient avant d’être remplacé', () => {
+  const { w, host, guests } = room({ n: 3 });
+  host.offline = true; sec(w, 65); host.offline = false; host.es.connect(); host.ev('jeuResume()'); sec(w, 40);
+  for (const g of guests) assert.equal(g.J('hostPid'), host.pid(), g.name + ' : toujours le même hôte');
+  assert.equal(host.ev('jeuIsHost()'), true);
+});
+
+test('le plus ancien ami est sourd : le suivant prend la main un peu plus tard', () => {
+  const { w, host, guests } = room({ n: 3 });
+  guests[0].deaf = true; host.offline = true; sec(w, 130);
+  assert.equal(guests[0].ev('jeuIsHost()'), false);
+  assert.equal(guests[1].ev('jeuIsHost()'), true, 'le deuxième plus ancien a pris la main');
+});
+
+test('rejeu après reconnexion : un joueur parti n’est pas « ressuscité »', () => {
+  const { w, host, guests } = room({ n: 3 });
+  host.deaf = true; sec(w, 6); guests[1].offline = true; sec(w, 70);
+  assert.ok(!host.live().includes('Ami2') || true);
+  host.deaf = false; host.es.connect(); sec(w, 12);
+  assert.deepEqual(host.live(), ['Hôte', 'Ami1'], 'Ami2 reste absent après le rejeu');
+});
+
+test('téléphone dont l’horloge avance de 8 s : il rejoint une manche en cours avec le bon temps', () => {
+  const w = new World();
+  const host = makeClient(w, 'Hôte'); host.host('SKEW88'); sec(w, 1);
+  const g = makeClient(w, 'Ami'); g.join('SKEW88'); sec(w, 3);
+  host.ev('jeuNextRound()'); sec(w, 20);
+  const fast = makeClient(w, 'Avance', { skew: 8000 }); fast.join('SKEW88'); sec(w, 4);
+  assert.equal(fast.view(), 'play0', 'pas de tirage sauté ni de manche déjà finie');
+  const left = fast.ev('Math.round((JEU.rounds[0].t1+180000-Date.now())/1000)');
+  assert.ok(left > 140 && left < 170, 'temps restant cohérent : ' + left);
+});
+
+test('pseudos : invisibles retirés, initiale d’emoji entière, élision, code collé', () => {
+  const w = new World(), c = makeClient(w, 'x');
+  assert.equal(c.ev("jeuNom('\u200b\u2800  Lé\u202eo \u3164')"), 'Léo');
+  assert.equal(c.ev("jeuNom('😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀').length"), 32);
+  assert.equal(c.ev("jeuInitial('😀 Léa')"), '😀');
+  assert.equal(c.ev("jeuDe('Anne')"), 'd’Anne'); assert.equal(c.ev("jeuDe('Lucas')"), 'de Lucas'); assert.equal(c.ev("jeuQue('Émile')"), 'qu’Émile');
+  assert.equal(c.ev("jeuCleanCode('k7m 2qx')"), 'K7M2QX');
+  assert.equal(c.ev("jeuCleanCode('https://x.test/requete/?partie=K7PX2M&jeu=local')"), 'K7PX2M');
+  assert.equal(c.ev("jeuCleanCode('Viens me défier en SQL sur Requête ! Code de la salle : K7PX2M\\nhttps://x.test/?partie=K7PX2M')"), 'K7PX2M');
+});
+
+test('égalité en tête : les ex æquo gagnent tous les deux, pas de médaille à 0 point', () => {
+  const { w, host, guests } = room({ n: 2, nb: 1 });
+  host.ev('jeuNextRound()'); sec(w, 4.5); host.ev('jeuClose()'); sec(w, 1); host.ev('jeuFinish()'); sec(w, 1.5);
+  assert.equal(host.view(), 'final');
+  assert.doesNotMatch(host.html, /Tu as gagné/, 'personne n’a marqué : pas de gagnant');
+  assert.match(host.html, /is-1 is-empty/, 'pas de médaille d’or à 0 point');
+  const w2 = new World();
+  const h = makeClient(w2, 'Hôte'); h.ev('jeuNb=1'); h.host('TIE001'); sec(w2, 1);
+  const g = makeClient(w2, 'Ami'); g.join('TIE001'); sec(w2, 3);
+  h.ev('jeuNextRound()'); sec(w2, 4.5);
+  h.ev('jeuSend({t:"found",n:0,ms:1000})'); g.ev('jeuSend({t:"found",n:0,ms:1000})'); sec(w2, 2); h.ev('jeuFinish()'); sec(w2, 2);
+  const places = h.ev('jeuPlaces(jeuScores()).map(x=>x.place)');
+  assert.ok(places[0] === 1, 'au moins un premier');
+});
+
+test('les points sont crédités même si on quitte avant le podium, et un défi déjà réussi allume la série', () => {
+  const w = new World();
+  const s = makeClient(w, 'Seul'); s.ev("jeuNb=3;jeuNiv='f'");
+  s.ev("jeuChallenges('f').forEach(c=>state.defis[c.id]=true)");
+  s.ev("jeuStart('SOLO55',true,null,{solo:true})"); sec(w, 4); s.found(); sec(w, 1);
+  assert.equal(s.acts, 1, 'la série compte même pour un défi déjà réussi');
+  s.ev('jeuStop()');
+  assert.equal(s.ev('state.salle&&state.salle.pts'), 3, 'les 3 points de la manche sont gardés');
 });

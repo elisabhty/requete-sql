@@ -23557,7 +23557,7 @@ function renderDefisJoin(){
       <label class="jeu-lab" for="jeu-nom-join">Ton pseudo</label>
       <input id="jeu-nom-join" class="jeu-input" maxlength="16" autocomplete="nickname" placeholder="Ex. Léa" value="${escAttr(nom)}">
       ${c?'':`<label class="jeu-lab" for="jeu-code">Code de la salle</label>
-      <input id="jeu-code" class="jeu-input is-code" maxlength="6" autocapitalize="characters" autocomplete="off" placeholder="ABC123" oninput="this.value=jeuCleanCode(this.value)">`}
+      <input id="jeu-code" class="jeu-input is-code" autocapitalize="characters" autocomplete="off" placeholder="ABC123" oninput="this.value=jeuCleanCode(this.value)">`}
       <button type="button" class="journey-primary" onclick="jeuJoin(${c?`'${c}'`:`document.getElementById('jeu-code').value`})"><span>Rejoindre la salle</span>${DEF_CHEV_SVG}</button>
       <p class="jeu-msg" role="status" aria-live="polite"></p>
     </div>
@@ -29384,7 +29384,8 @@ const JEU_DRAW_MS=3300;
 const JEU_MAX=6;
 const JEU_PING_MS=20000;
 const JEU_AWAY_MS=55000;
-const JEU_EMPTY_MS=5000;
+const JEU_HOST_WAIT=25000;
+const JEU_HOST_FAST=1500;
 const JEU_REACTS=['👏','🔥','😅','🤯'];
 const JEU_ALPH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const JEU_POINTS=[3,2,1];
@@ -29401,9 +29402,19 @@ let JEU=null,jeuNiv='f',jeuNb=1,jeuMode='solo';
 function jeuSavePrefs(){try{localStorage.setItem('rq-jeu-prefs',JSON.stringify({niv:jeuNiv,nb:jeuNb,mode:jeuMode}));}catch(e){}}
 function jeuRand(n){const a=new Uint32Array(n);crypto.getRandomValues(a);return [...a].map(x=>JEU_ALPH[x%JEU_ALPH.length]).join('');}
 function jeuPid(){let p='';try{p=sessionStorage.getItem('rq-jeu-pid')||'';}catch(e){}if(!p){p=jeuRand(10);try{sessionStorage.setItem('rq-jeu-pid',p);}catch(e){}}return p;}
-function jeuNom(v){return String(v||'').replace(/[\u0000-\u001f<>]/g,'').replace(/\s+/g,' ').trim().slice(0,16);}
+function jeuNom(v){return Array.from(String(v||'').replace(/[\u0000-\u001f<>\u200b-\u200f\u202a-\u202e\u2060-\u206f\u2800\u3164\ufeff]/g,'').replace(/\s+/g,' ').trim()).slice(0,16).join('');}
 function jeuSavedNom(){let n='';try{n=localStorage.getItem('rq-jeu-nom')||'';}catch(e){}return jeuNom(n||state.name||'');}
-function jeuCleanCode(v){return String(v||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);}
+function jeuCleanCode(v){
+  v=String(v||'');
+  /* Un lien ou une invitation collée : le code est dans « ?partie=XXXXXX ». */
+  const m=/[?&]partie=([A-Za-z0-9]{6})/.exec(v);
+  if(m)v=m[1];
+  return v.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
+}
+/* « Salle d’Anne », « Salle de Lucas » ; « attend qu’Anne lance », « que Lucas lance ». */
+function jeuVoy(n){return /^[aeiouyàâäéèêëîïôöùûüœæ]/i.test(String(n||''));}
+function jeuDe(n){return (jeuVoy(n)?'d’':'de ')+esc(n);}
+function jeuQue(n){return (jeuVoy(n)?'qu’':'que ')+esc(n);}
 function jeuFmt(ms){const s=Math.max(0,Math.round(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
 function jeuFmtLong(ms){const s=Math.max(0,Math.round(ms/1000));return s<60?`${s} s`:`${Math.floor(s/60)} min ${String(s%60).padStart(2,'0')}`;}
 function jeuChallenges(niv){return CHALLENGES.filter(c=>c.niv===niv&&!/^\s*EXPLAIN/i.test(c.sol)&&!c.noExec);}
@@ -29511,19 +29522,22 @@ function jeuStart(code,host,cid,opts){
   JEU={code,solo,created:!!host,me,nom,hostPid:host?me:null,niv,nb,max:solo?1:JEU_MAX,g:0,
     players:{},order:[],rounds:[],over:false,net:solo?true:null,view:'',sig:'',
     seenU:new Set(),seenR:new Set(),seq:[],seen:{},ready:{},left:{},denied:{},helloOf:{},
-    synced:!!host,syncAt:host?Date.now():0,echoAt:Date.now(),helloU:'',full:false,lost:false,claimAt:0,
+    synced:!!host,syncAt:host?Date.now():0,echoAt:Date.now(),helloU:'',helloAt:0,skew:0,full:false,lost:false,claimAt:0,
+    sid:jeuRand(6),opens:0,graceUntil:0,claimGrace:0,cfgCv:0,cfgSaved:null,readyCv:{},early:[],claimBest:null,replaying:false,replayEnd:0,resumeU:'',goneAt:0,lastTick:Date.now(),out:[],flushAt:0,flushing:false,keep:null,
     tick:null,ping:null,t:null,lastReact:0,plan:picked?[picked.id]:[],
     recent:new Set(),shown:new Set(),announced:new Set(),scored:false,played:false,drawT:[]};
   JEU.players[me]={name:nom,at:Date.now()};JEU.order.push(me);JEU.seen[me]=Date.now();
-  JEU.t=jeuTransport(code,jeuOnMsg,ok=>{if(!JEU)return;JEU.net=ok;jeuPaint();},solo);
+  const G=JEU;
+  JEU.t=jeuTransport(code,m=>{if(JEU===G)jeuOnMsg(m);},ok=>{const J=JEU;if(!J||J!==G)return;J.net=ok;if(ok){J.opens++;if(J.opens>1)jeuResume();}jeuPaint();},solo);
   if(host){JEU.ready[me]=true;jeuSend({t:'cfg',niv,n:nb,max:JEU.max});}
+  JEU.helloAt=Date.now();
   const hu=jeuSend({t:'hello'});
   if(!host)JEU.helloU=hu;
   jeuInvite='';
   annulerBilanAuto();
   current=null;mode='jeu';exoFails=0;
   {const scr=document.getElementById('scr-lesson');if(scr)scr.dataset.mc='6';}
-  document.getElementById('back-label').textContent='Défis';
+  document.getElementById('back-label').textContent=lessonBackLabel();
   document.getElementById('nav-title').textContent=solo?'Défi':'Salle de défi';
   document.getElementById('lesson-body').innerHTML='<div class="jeu" id="jeu-root"></div>';
   showScreen();
@@ -29543,20 +29557,59 @@ function jeuJoin(code){
 }
 function jeuSend(m){
   if(!JEU)return '';
-  m.v=1;m.pid=JEU.me;m.name=JEU.nom;m.u=jeuRand(8);
+  m.v=1;m.pid=JEU.me;m.s=JEU.sid;m.name=JEU.nom;m.u=jeuRand(8);
+  /* Le relais rejoue un historique dont l’ordre, à la seconde près, n’est pas garanti : un horodatage
+     d’émetteur départage les réglages, les « prêt » et les prises de main. */
+  if(m.t==='cfg'||m.t==='ready'||m.t==='host')m.cv=Date.now();
   if(m.g===undefined)m.g=JEU.g;
-  const local=Object.assign({},m,{at:Date.now()});
-  jeuOnMsg(local);
   const J=JEU;
-  if(J)J.t.send(m).then(ok=>{if(!ok&&JEU===J){J.net=false;jeuPaint();}});
+  jeuOnMsg(Object.assign({},m,{at:Date.now()}));
+  if(JEU===J)jeuPost(m);
   return m.u;
 }
-function jeuIsHost(){return !!JEU&&JEU.hostPid===JEU.me;}
+const JEU_VOLATILE=['ping','react'];
+function jeuPost(m){
+  const J=JEU;if(!J||J.solo)return;
+  J.t.send(m).then(ok=>{
+    if(JEU!==J)return;
+    if(ok){J.out=J.out.filter(e=>e.m!==m);if(J.net===false){J.net=true;jeuPaint();}}
+    else{
+      J.net=false;
+      if(!JEU_VOLATILE.includes(m.t)&&!J.out.some(e=>e.m===m))J.out.push({m,at:Date.now()});
+      jeuPaint();
+    }
+  });
+}
+/* Un message important qui n’est pas parti (coupure brève, refus du relais) est renvoyé, dans l’ordre,
+   jusqu’à ce qu’il passe ; les autres l’ignorent en double grâce à son identifiant. */
+function jeuFlush(){
+  const J=JEU;if(!J||J.solo||J.flushing||!J.out.length||Date.now()-J.flushAt<2500)return;
+  J.out=J.out.filter(e=>Date.now()-e.at<600000);
+  const e=J.out[0];if(!e)return;
+  J.flushAt=Date.now();J.flushing=true;
+  J.t.send(e.m).then(ok=>{
+    if(JEU!==J)return;
+    J.flushing=false;
+    if(ok){J.out=J.out.filter(x=>x!==e);J.flushAt=0;if(J.net===false){J.net=true;jeuPaint();}}
+  },()=>{if(JEU===J)J.flushing=false;});
+}
+/* Retour au premier plan, réveil du téléphone ou reconnexion : on se signale (les autres répondent) et on
+   laisse un délai avant de juger quiconque absent. */
+function jeuResume(){
+  const J=JEU;if(!J||J.solo||!J.synced||J.full)return;
+  J.claimGrace=Date.now()+8000;J.goneAt=0;J.echoAt=Date.now();
+  /* Jusqu’au retour de ce « hello » par le relais, ce qui arrive est du rejeu (messages manqués) : il
+     informe, mais ne prouve pas que son auteur est là maintenant. */
+  J.replaying=true;J.replayEnd=Date.now()+6000;
+  J.resumeU=jeuSend({t:'hello'});
+}
+function jeuIsHost(){const J=JEU;return !!J&&J.hostPid===J.me&&!(J.replaying&&Date.now()<J.replayEnd);}
 function jeuPresent(pid){
   const J=JEU;if(!J)return false;
   if(pid===J.me)return true;
   if(J.solo||J.left[pid]||J.denied[pid])return false;
-  return Date.now()-(J.seen[pid]||0)<JEU_AWAY_MS;
+  const t=J.seen[pid]||0,now=Date.now();
+  return now-t<JEU_AWAY_MS||(!!t&&now<J.graceUntil);
 }
 /* Joueurs de la salle, hôte en premier puis dans l’ordre d’arrivée du relais. */
 function jeuOrder(){
@@ -29571,31 +29624,39 @@ function jeuMaybeDeny(pid,hu){
 }
 function jeuOnMsg(m){
   const J=JEU;if(!J||!m||m.v!==1||!m.pid)return;
-  const mine=m.pid===J.me;
+  /* « Moi » = ce démarrage (même pseudo d’appareil + même session). Mes messages d’un démarrage
+     précédent sont de l’historique comme les autres : je retrouve ainsi ma salle et mes temps. */
+  const mine=m.pid===J.me&&m.s===J.sid;
+  const replay=J.replaying&&Date.now()<J.replayEnd;
   const name=jeuNom(m.name)||'Joueur';
-  /* Ordre du relais (une seule fois par message) : mon propre « hello » revenu
-     du relais sépare l’historique (avant) du direct (après) ; l’ordre d’arrivée
-     sert à désigner le nouvel hôte ; un « host » n’agit que dans cet ordre. */
+  /* Ordre du relais (une seule fois par message) : mon propre « hello » revenu du relais sépare
+     l’historique (avant) du direct (après) ; l’ordre d’arrivée désigne le nouvel hôte ; un « host »
+     n’agit que dans cet ordre. */
   if(m.fromRelay&&m.u&&!J.seenR.has(m.u)){
     J.seenR.add(m.u);
-    if(mine)J.echoAt=Date.now();
-    if(mine&&m.t==='hello'&&m.u===J.helloU&&!J.synced){J.synced=true;J.syncAt=Date.now();}
+    if(mine){
+      J.echoAt=Date.now();
+      if(m.t==='hello'&&m.u===J.helloU&&!J.synced)jeuSynced(m);
+      if(m.t==='hello'&&m.u===J.resumeU)J.replaying=false;
+      if(m.t==='round'){const r=J.rounds[+m.n];if(r&&r.u===m.u)r.conf=true;}
+    }
     if(m.t==='bye'){const i=J.seq.indexOf(m.pid);if(i>=0)J.seq.splice(i,1);}
     else if(!J.seq.includes(m.pid)&&!J.denied[m.pid])J.seq.push(m.pid);
-    if(m.t==='host'&&m.from===J.hostPid&&m.pid!==J.hostPid&&!J.denied[m.pid]&&!J.left[m.pid]){
-      J.hostPid=m.pid;J.view='';
-      jeuToast(mine?'Tu es maintenant l’hôte de la salle':`${name} est maintenant l’hôte`);
+    const cl=m.t==='host'&&!J.denied[m.pid]&&!J.left[m.pid]&&m.pid!==J.hostPid,cb=J.claimBest,cvv=+m.cv||0;
+    /* Deux prises de main presque en même temps : la plus ancienne (horodatage, puis pseudo) l’emporte, quel que soit l’ordre où on les reçoit. */
+    if(cl&&(m.from===J.hostPid||(cb&&cb.from===m.from&&(cvv<cb.cv||(cvv===cb.cv&&m.pid<cb.pid))))){
+      const was=J.hostPid;
+      J.claimBest={from:m.from,pid:m.pid,cv:cvv};
+      J.hostPid=m.pid;
+      /* L’ancien hôte revenu : ses manches jamais confirmées par le relais ne comptent pas. */
+      if(was===J.me)J.rounds.forEach((r,i)=>{if(r&&r.by===J.me&&!r.conf)delete J.rounds[i];});
+      jeuRedraw();
+      if(J.synced&&!replay)jeuToast(mine?'Tu es maintenant l’hôte de la salle':`${name} est maintenant l’hôte`);
     }
   }
-  /* En direct (après mon « hello »), tout message prouve que son auteur est là. */
-  if(!mine&&J.synced&&m.t!=='bye'&&!J.denied[m.pid])J.seen[m.pid]=Date.now();
-  if(m.u){
-    if(J.seenU.has(m.u))return;
-    /* Un message à moi qui n’est pas passé par jeuSend : il vient d’une partie précédente
-       (même appareil, même pseudo) ; il ne doit rien changer à celle-ci. */
-    if(mine&&m.fromRelay)return;
-    J.seenU.add(m.u);
-  }
+  /* En direct (après mon « hello », hors rejeu), tout message prouve que son auteur est là. */
+  if(m.pid!==J.me&&J.synced&&m.t!=='bye'&&!J.denied[m.pid]&&!replay)J.seen[m.pid]=Date.now();
+  if(m.u){if(J.seenU.has(m.u))return;J.seenU.add(m.u);}
   const gOk=(m.g|0)===J.g;
   const addP=()=>{
     if(J.denied[m.pid])return false;
@@ -29606,66 +29667,89 @@ function jeuOnMsg(m){
     case 'cfg':{
       if(J.hostPid&&J.hostPid!==m.pid)return;
       J.hostPid=m.pid;
-      if(!J.rounds.length&&!J.over){
-        const niv=['f','m','d'].includes(m.niv)?m.niv:'f',nb=Math.max(1,Math.min(5,+m.n||3)),max=Math.max(1,Math.min(JEU_MAX,+m.max||JEU_MAX));
-        if(niv!==J.niv||nb!==J.nb||max!==J.max){J.niv=niv;J.nb=nb;J.max=max;J.view='';}
+      const cv=+m.cv||0;
+      if(cv>=J.cfgCv){
+        J.cfgCv=cv;
+        J.cfgSaved={niv:['f','m','d'].includes(m.niv)?m.niv:'f',nb:Math.max(1,Math.min(5,+m.n||3)),max:Math.max(1,Math.min(JEU_MAX,+m.max||JEU_MAX))};
       }
+      jeuApplyCfg();
       addP();break;}
     case 'hello':{
       if(J.denied[m.pid]&&J.denied[m.pid]!==m.u)delete J.denied[m.pid];
-      J.helloOf[m.pid]=m.u;
+      if(m.pid!==J.me||mine)J.helloOf[m.pid]=m.u;
       if(!addP())return;
       delete J.left[m.pid];
       /* Un arrivant en direct : on se signale tout de suite, pour qu’il nous voie. */
-      if(!mine&&J.synced&&!J.solo)setTimeout(()=>{if(JEU===J&&!J.full)jeuSend({t:'ping'});},Math.random()*600);
-      jeuMaybeDeny(m.pid,m.u);
+      if(m.pid!==J.me&&J.synced&&!J.solo&&!replay)setTimeout(()=>{if(JEU===J&&!J.full)jeuSend({t:'ping'});},Math.random()*600);
+      if(m.pid!==J.me)jeuMaybeDeny(m.pid,m.u);
       break;}
     case 'deny':{
       if(m.pid!==J.hostPid||!m.who)return;
+      if(m.who===J.me){if(m.hu!==J.helloU)return;J.full=true;J.view='';}
       /* Un refus ne vaut que pour l’arrivée qu’il vise (pas pour un nouvel essai). */
-      if(m.hu&&J.helloOf[m.who]&&J.helloOf[m.who]!==m.hu)return;
+      else if(m.hu&&J.helloOf[m.who]&&J.helloOf[m.who]!==m.hu)return;
       J.denied[m.who]=m.hu||true;
       J.order=J.order.filter(p=>p!==m.who);delete J.players[m.who];
-      if(m.who===J.me){J.full=true;J.view='';}
       break;}
     case 'ping':if(!addP())return;break;
-    case 'ready':if(!addP())return;if(gOk)J.ready[m.pid]=!!m.on;break;
+    case 'ready':{
+      if(!addP())return;
+      if((m.g|0)>J.g)return jeuLater(m);
+      const cv=+m.cv||0;
+      if(gOk&&cv>=(J.readyCv[m.pid]||0)){J.readyCv[m.pid]=cv;J.ready[m.pid]=!!m.on;}
+      break;}
     case 'round':{
-      if(m.pid!==J.hostPid||!gOk)return;
+      if(m.pid!==J.hostPid)return;
+      if((m.g|0)>J.g)return jeuLater(m);
+      if(!gOk)return;
       const n=+m.n;if(!(n>=0&&n<J.nb)||J.rounds[n])return;
       if(!CHALLENGES.some(c=>c.id===m.cid))return;
-      /* Chrono : l’heure de réception quand le message arrive en direct,
-         l’heure du serveur quand on rejoint une manche déjà commencée.
+      /* Chrono : l’heure de réception quand le message arrive en direct. Pour une manche déjà commencée
+         (historique), l’heure du relais, ramenée à l’horloge de ce téléphone dès que la salle est connue.
          Le tirage au sort dure JEU_DRAW_MS ; la manche (3 min) commence après. */
-      const late=m.at&&Date.now()-m.at>4000,t0=late?m.at:Date.now();
-      J.rounds[n]={cid:m.cid,t0,t1:t0+JEU_DRAW_MS,found:{}};
+      const hist=!J.synced;
+      let t0=Date.now();
+      if(hist)t0=m.at||t0;
+      else if(replay&&m.at)t0=Math.min(t0,m.at-J.skew);
+      J.rounds[n]={cid:m.cid,t0,t1:t0+JEU_DRAW_MS,found:{},hist,relayAt:m.at||0,by:m.pid,u:m.u,conf:!!m.fromRelay};
       if(J.synced)J.played=true;
-      addP();break;}
+      addP();jeuDrain();break;}
     case 'found':{
+      if((m.g|0)>J.g)return jeuLater(m);
       if(!gOk)return;
-      const r=J.rounds[+m.n];if(!r||r.found[m.pid]!=null)return;
+      const r=J.rounds[+m.n];
+      if(!r)return jeuLater(m);
+      if(r.found[m.pid]!=null)return;
       if(!addP())return;
       r.found[m.pid]=Math.max(0,Math.min(JEU_ROUND_MS,+m.ms||0));
-      if(!mine&&!J.solo&&m.at&&Date.now()-m.at<8000)jeuToast(`${name} a trouvé ✓`);
+      if(m.pid===J.me)J.played=true;
+      if(m.pid!==J.me&&!J.solo&&J.synced&&!replay)jeuToast(`${name} a trouvé ✓`);
+      /* Un temps qui arrive pendant l’écran de résultats : le classement se met à jour. */
+      if(J.view==='res'+(+m.n))jeuRedraw();
       break;}
     case 'react':
-      if(JEU_REACTS.includes(m.e)&&m.at&&Date.now()-m.at<8000)jeuToast(`${name} ${m.e}`);
+      if(JEU_REACTS.includes(m.e)&&J.synced&&!replay&&!mine)jeuToast(`${name} ${m.e}`);
       return;
     case 'close':{
-      if(m.pid!==J.hostPid||!gOk)return;
-      const r=J.rounds[+m.n];if(r)r.closed=true;
+      if(m.pid!==J.hostPid)return;
+      if((m.g|0)>J.g)return jeuLater(m);
+      if(!gOk)return;
+      const r=J.rounds[+m.n];if(!r)return jeuLater(m);
+      r.closed=true;
       break;}
     case 'end':
-      if(m.pid!==J.hostPid||!gOk)return;
+      if(m.pid!==J.hostPid)return;
+      if((m.g|0)>J.g)return jeuLater(m);
+      if(!gOk)return;
       J.over=true;break;
     case 'again':{
       if(m.pid!==J.hostPid||(m.g|0)<=J.g)return;
       J.rounds.forEach(r=>{if(r)J.recent.add(r.cid);});
-      if(J.recent.size>=jeuChallenges(J.niv).length)J.recent.clear();
       J.g=m.g|0;J.rounds=[];J.over=false;J.ready={};J.plan=[];J.scored=false;J.played=false;J.view='';
+      jeuApplyCfg();jeuDrain();
       break;}
     case 'bye':
-      if(mine)return;
+      if(m.pid===J.me)return;
       J.left[m.pid]=true;delete J.seen[m.pid];
       break;
     case 'host':break;
@@ -29673,39 +29757,80 @@ function jeuOnMsg(m){
   }
   jeuPaint();
 }
+/* La salle est connue (mon « hello » est revenu du relais) : les manches de l’historique passent
+   de l’horloge du relais à celle de ce téléphone. */
+/* Un message qui arrive avant celui qu’il suppose (manche avant « rejouer », temps avant la manche…) :
+   on le garde un moment et on le rejoue dès que le précédent est là. */
+function jeuLater(m){
+  const J=JEU;
+  J.seenU.delete(m.u);
+  if(!m.__t)m.__t=Date.now();
+  if(Date.now()-m.__t<30000&&J.early.length<60)J.early.push(m);
+}
+function jeuDrain(){
+  const J=JEU;if(!J||!J.early.length)return;
+  const e=J.early;J.early=[];
+  e.forEach(x=>jeuOnMsg(x));
+}
+/* Les derniers réglages de l’hôte s’appliquent en salle d’attente (et au retour dans la salle après « Rejouer »). */
+function jeuApplyCfg(){
+  const J=JEU,c=J.cfgSaved;if(!c||J.rounds.length||J.over)return;
+  if(c.niv!==J.niv||c.nb!==J.nb||c.max!==J.max){J.niv=c.niv;J.nb=c.nb;J.max=c.max;jeuRedraw();}
+}
+function jeuSynced(m){
+  const J=JEU;
+  J.synced=true;J.syncAt=Date.now();
+  J.skew=(m.at||Date.now())-J.helloAt;
+  J.rounds.forEach(r=>{if(r&&r.hist){r.t0=Math.min(Date.now(),(r.relayAt||Date.now())-J.skew);r.t1=r.t0+JEU_DRAW_MS;r.hist=false;}});
+}
 /* Tirage au sort du défi d’une manche (hôte) : pas deux fois le même dans une
    partie, de préférence pas déjà joué dans cette salle, ni déjà réussi par l’hôte. */
 function jeuPick(){
   const J=JEU,all=jeuChallenges(J.niv).map(c=>c.id);
   const inGame=new Set(J.rounds.filter(Boolean).map(r=>r.cid));
   let pool=all.filter(id=>!inGame.has(id));
-  const fresh=pool.filter(id=>!J.recent.has(id));if(fresh.length)pool=fresh;
+  /* Pas un défi déjà joué dans cette salle ; quand tout a été joué, on repart de zéro (sauf le dernier). */
+  let fresh=pool.filter(id=>!J.recent.has(id));
+  if(!fresh.length){
+    const last=J.rounds.filter(Boolean).map(r=>r.cid).pop()||[...J.recent].pop();
+    all.forEach(id=>J.recent.delete(id));
+    fresh=pool.filter(id=>id!==last);
+    if(!fresh.length)fresh=pool;
+  }
+  pool=fresh;
   const todo=pool.filter(id=>!(state.defis&&state.defis[id]));if(todo.length)pool=todo;
   return pool[Math.floor(Math.random()*pool.length)]||all[0];
 }
 function jeuCur(){const J=JEU;for(let i=J.rounds.length-1;i>=0;i--)if(J.rounds[i])return i;return -1;}
 function jeuRoundDone(n){
   const J=JEU,r=J.rounds[n];if(!r)return false;
-  if(r.closed||Date.now()-r.t1>=JEU_ROUND_MS)return true;
-  return jeuLive().every(p=>r.found[p]!=null);
+  if(r.done||r.closed||Date.now()-r.t1>=JEU_ROUND_MS)return true;
+  if(!jeuLive().every(p=>r.found[p]!=null))return false;
+  /* Une manche terminée le reste (un arrivant tardif ne la rouvre pas) ; mais seulement si notre propre
+     réception est saine : un téléphone devenu sourd croit sinon que tout le monde est parti. */
+  if(J.solo||(J.synced&&Date.now()-J.syncAt>4000&&Date.now()-J.echoAt<=JEU_PING_MS*1.6))r.done=true;
+  return true;
 }
 /* Seul : 3 points si trouvé en moins d’1 min, 2 en moins de 2 min, 1 ensuite. */
-function jeuSoloPts(ms){return ms<=JEU_ROUND_MS/3?3:ms<=JEU_ROUND_MS*2/3?2:1;}
+function jeuSoloPts(ms){return ms<JEU_ROUND_MS/3?3:ms<JEU_ROUND_MS*2/3?2:1;}
 function jeuRanking(n){
   const J=JEU,r=J.rounds[n];if(!r)return[];
-  const rows=Object.entries(r.found).sort((a,b)=>a[1]-b[1]);
+  /* À temps égal, l’ordre des pseudos départage : le même classement chez tout le monde. */
+  const rows=Object.entries(r.found).sort((a,b)=>a[1]-b[1]||(a[0]<b[0]?-1:a[0]>b[0]?1:0));
   return rows.map(([pid,ms],i)=>({pid,ms,pts:J.solo?jeuSoloPts(ms):(JEU_POINTS[i]||1)}));
 }
 function jeuScores(){
-  const J=JEU,s={};J.order.forEach(p=>s[p]=0);
-  J.rounds.forEach((r,n)=>{if(r&&(jeuRoundDone(n)||J.over))jeuRanking(n).forEach(x=>{s[x.pid]=(s[x.pid]||0)+x.pts;});});
+  const J=JEU,s={},cur=jeuCur();J.order.forEach(p=>s[p]=0);
+  J.rounds.forEach((r,n)=>{if(r&&(n<cur||jeuRoundDone(n)||J.over))jeuRanking(n).forEach(x=>{s[x.pid]=(s[x.pid]||0)+x.pts;});});
   return jeuOrder().filter(p=>jeuPresent(p)||s[p]>0)
     .map(pid=>({pid,name:(J.players[pid]||{}).name||'Joueur',pts:s[pid]||0}))
     .sort((a,b)=>b.pts-a.pts||a.name.localeCompare(b.name));
 }
+/* Même score = même place, comme RANK(). */
+function jeuPlaces(sc){let place=0;sc.forEach((x,i)=>{if(i===0||x.pts<sc[i-1].pts)place=i+1;x.place=place;});return sc;}
 function jeuRoomEmpty(){
   const J=JEU;
-  return !J.solo&&!J.created&&J.synced&&Date.now()-J.syncAt>JEU_EMPTY_MS&&jeuLive().length<2;
+  return !J.solo&&!J.created&&J.synced&&Date.now()-J.syncAt>JEU_HOST_WAIT&&Date.now()>=J.claimGrace&&jeuLive().length<2;
 }
 function jeuView(){
   const J=JEU;
@@ -29722,34 +29847,53 @@ function jeuView(){
 function jeuHostWatch(){
   const J=JEU;
   if(!J||J.solo||!J.synced||J.full||!J.hostPid||J.hostPid===J.me)return;
-  if(Date.now()-J.syncAt<JEU_EMPTY_MS||jeuPresent(J.hostPid))return;
-  /* Ne pas se croire seul quand c’est notre propre réception qui est coupée :
-     nos signes de vie nous reviennent du relais, sinon on ne prend pas la main. */
-  if(J.net===false||Date.now()-J.echoAt>JEU_PING_MS*1.6)return;
+  const now=Date.now();
+  if(jeuPresent(J.hostPid)){J.goneAt=0;return;}
+  if(!J.goneAt)J.goneAt=now;
+  /* Un hôte qui dit « bye » passe la main vite ; un hôte seulement silencieux (app figée le temps de
+     partager le code…) a 25 s pour revenir. */
+  const wait=J.left[J.hostPid]?JEU_HOST_FAST:JEU_HOST_WAIT;
+  if(now-J.goneAt<wait||now<J.claimGrace)return;
+  /* Ne pas se croire seul quand c’est notre propre réception qui est coupée : nos signes de vie nous
+     reviennent du relais, sinon on ne prend pas la main. */
+  if(now-J.echoAt>JEU_PING_MS*1.6)return;
   const live=J.seq.filter(p=>p!==J.hostPid&&!J.denied[p]&&jeuPresent(p));
-  if(live[0]!==J.me)return;
-  if(Date.now()-J.claimAt<8000)return;
-  J.claimAt=Date.now();
+  const rank=live.indexOf(J.me);
+  /* Le plus ancien d’abord ; le suivant seulement s’il n’a rien fait 12 s plus tard (il est peut-être sourd). */
+  if(rank<0||now-J.goneAt<wait+rank*12000||now-J.claimAt<8000)return;
+  J.claimAt=now;
   jeuSend({t:'host',from:J.hostPid});
 }
 function jeuPing(){const J=JEU;if(!J||J.solo||!J.synced||J.full)return;jeuSend({t:'ping'});}
 /* Ce qui change à l’écran sans nouveau message : arrivées, départs, prêts. */
 function jeuSig(){
   const J=JEU,n=jeuCur(),r=n>=0?J.rounds[n]:null;
-  return jeuOrder().map(p=>p+(jeuPresent(p)?'+':'-')+(jeuIsReady(p)?'r':'')+(r&&r.found[p]!=null?'f':'')).join(',')+'|'+J.hostPid+'|'+J.net+'|'+J.nb+J.niv+'|'+(r&&r.closed?'c':'');
+  return jeuOrder().map(p=>p+(jeuPresent(p)?'+':'-')+(jeuIsReady(p)?'r':'')+(r&&r.found[p]!=null?'f':'')).join(',')+'|'+J.hostPid+'|'+J.net+'|'+J.nb+J.niv+(J.replaying&&Date.now()<J.replayEnd?'r':'')+'|'+(r&&r.closed?'c':'');
 }
 function jeuTick(){
   const J=JEU;if(!J)return;
+  const now=Date.now(),gap=now-J.lastTick;J.lastTick=now;
+  if(gap>8000)jeuResume();
+  jeuFlush();
   jeuHostWatch();
   const n=jeuCur(),el=document.getElementById('jeu-timer');
   if(el&&n>=0){const left=JEU_ROUND_MS-(Date.now()-J.rounds[n].t1);el.textContent=jeuFmt(left);el.classList.toggle('is-low',left<30000);}
   if(jeuView()!==J.view||jeuSig()!==J.sig)jeuPaint();
 }
+/* Redessiner la même vue (réglage changé, nouvel hôte, temps reçu…) sans perdre la page, le focus
+   ni la requête en cours de frappe. */
+function jeuHostBarHTML(){return jeuIsHost()?`<button type="button" class="jeu-close" onclick="jeuClose()">${JEU.solo?'Voir la solution':'Clore la manche maintenant'}</button>`:'';}
+function jeuRedraw(){
+  const J=JEU;if(!J)return;
+  /* En manche : seul le bouton de l’hôte change, l’éditeur n’est pas touché. */
+  if(/^play/.test(J.view||'')){const bar=document.getElementById('jeu-hostbar');if(bar){bar.innerHTML=jeuHostBarHTML();return;}}
+  if(J.view)J.keep=J.view;J.view='';jeuPaint();
+}
 let jeuPaintRaf=0;
 /* requestAnimationFrame est suspendu quand l’onglet est en arrière-plan :
    un minuteur prend le relais pour que la partie reste à jour. */
 function jeuPaint(){if(jeuPaintRaf)return;const go=()=>{if(!jeuPaintRaf)return;cancelAnimationFrame(jeuPaintRaf.r);clearTimeout(jeuPaintRaf.t);jeuPaintRaf=0;jeuRender();};jeuPaintRaf={r:requestAnimationFrame(go),t:setTimeout(go,150)};}
-function jeuInitial(name){return esc((String(name||'?').trim()[0]||'?').toUpperCase());}
+function jeuInitial(name){return esc((Array.from(String(name||'?').trim())[0]||'?').toUpperCase());}
 /* Liste des joueurs : salle d’attente (prêt), manche (qui a trouvé), résultats. */
 function jeuPlayersHTML(kind){
   const J=JEU,n=jeuCur(),r=kind!=='lobby'&&n>=0?J.rounds[n]:null;
@@ -29770,7 +29914,7 @@ function jeuPlayersHTML(kind){
 function jeuNetHTML(){
   const J=JEU;
   if(J.net===false)return '<p class="jeu-net">📡 Connexion perdue : la partie reprendra dès que le réseau revient.</p>';
-  if(!J.solo&&J.synced&&J.hostPid&&(J.rounds.length||J.over)&&jeuLive().length<2&&Date.now()-J.syncAt>JEU_EMPTY_MS)return '<p class="jeu-net is-soft">Les autres joueurs ont quitté la salle.</p>';
+  if(!J.solo&&J.synced&&J.hostPid&&(J.rounds.length||J.over)&&jeuLive().length<2&&Date.now()-J.syncAt>JEU_HOST_WAIT&&Date.now()>=J.claimGrace)return '<p class="jeu-net is-soft">Les autres joueurs ont quitté la salle.</p>';
   return '';
 }
 function jeuLobbyLabel(){
@@ -29786,7 +29930,7 @@ function jeuLobbyHint(){
 /* Annonces : « Léa a rejoint la salle » / « Léa est partie », sans bruit au premier affichage. */
 function jeuAnnounce(){
   const J=JEU;if(!J||J.solo||!J.synced)return;
-  const live=new Set(jeuLive()),quiet=!J.created&&Date.now()-J.syncAt<3000;
+  const live=new Set(jeuLive()),quiet=(!J.created&&Date.now()-J.syncAt<3000)||Date.now()<J.claimGrace;
   live.forEach(p=>{if(!J.announced.has(p)){J.announced.add(p);if(!quiet&&p!==J.me)jeuToast(`${(J.players[p]||{}).name||'Joueur'} a rejoint la salle`);}});
   [...J.announced].forEach(p=>{if(!live.has(p)){J.announced.delete(p);if(!quiet&&p!==J.me&&!J.over)jeuToast(`${(J.players[p]||{}).name||'Joueur'} a quitté la salle`);}});
 }
@@ -29818,6 +29962,9 @@ function jeuRender(){
   const v=jeuView();
   const sig=jeuSig();
   if(v===J.view){J.sig=sig;jeuPatch(v);return;}
+  const keep=J.keep===v;J.keep=null;
+  const prevEd=keep&&document.getElementById('ed-lesson'),typed=prevEd?prevEd.value:null;
+  const focusKey=keep&&document.activeElement&&document.activeElement.dataset?document.activeElement.dataset.fk:null;
   J.view=v;J.sig=sig;
   J.drawT.forEach(clearTimeout);J.drawT=[];
   const head=(k,t,s)=>`<div class="l-kicker">${k}</div><h1>${t}</h1>${s?`<p class="l-sub" id="jeu-sub">${s}</p>`:''}`;
@@ -29838,17 +29985,17 @@ function jeuRender(){
   }else if(v==='lobby'){
     const hostName=(J.players[J.hostPid]||{}).name||'l’hôte';
     const set=host?`<div class="jeu-card jeu-set"><p class="jeu-lab" id="jeu-set-niv">Niveau</p>
-        <div class="jeu-seg" role="radiogroup" aria-labelledby="jeu-set-niv">${['f','m','d'].map(k=>`<button type="button" role="radio" aria-checked="${J.niv===k}" class="${J.niv===k?'on':''}" onclick="jeuLobbySet('niv','${k}')">${JEU_NIVL[k]}</button>`).join('')}</div>
+        <div class="jeu-seg" role="radiogroup" aria-labelledby="jeu-set-niv">${['f','m','d'].map(k=>`<button type="button" role="radio" aria-checked="${J.niv===k}" class="${J.niv===k?'on':''}" data-fk="niv-${k}" onclick="jeuLobbySet('niv','${k}')">${JEU_NIVL[k]}</button>`).join('')}</div>
         <p class="jeu-lab" id="jeu-set-nb">Nombre de manches</p>
-        <div class="jeu-seg" role="radiogroup" aria-labelledby="jeu-set-nb">${[1,3,5].map(n=>`<button type="button" role="radio" aria-checked="${J.nb===n}" class="${J.nb===n?'on':''}"${n>jeuChallenges(J.niv).length?' disabled':''} onclick="jeuLobbySet('nb',${n})">${n}</button>`).join('')}</div></div>`:'';
+        <div class="jeu-seg" role="radiogroup" aria-labelledby="jeu-set-nb">${[1,3,5].map(n=>`<button type="button" role="radio" aria-checked="${J.nb===n}" class="${J.nb===n?'on':''}"${n>jeuChallenges(J.niv).length?' disabled':''} data-fk="nb-${n}" onclick="jeuLobbySet('nb',${n})">${n}</button>`).join('')}</div></div>`:'';
     const invite=`<div class="jeu-card jeu-invite"><p class="jeu-lab">Code de la salle</p><p class="jeu-code">${J.code}</p>
         <button type="button" class="jeu-btn is-wide" onclick="jeuShare()">Partager l’invitation</button><p class="jeu-copied" id="jeu-copied" aria-live="polite"></p></div>`;
     const players=`<div class="jeu-card"><p class="jeu-card-h">Joueurs <span class="jeu-n" id="jeu-n">${jeuLive().length}/${J.max}</span></p><ul class="jeu-players" id="jeu-players">${jeuPlayersHTML('lobby')}</ul>
       ${host?`<button type="button" class="journey-primary" id="jeu-go" onclick="jeuNextRound()"><span id="jeu-go-label">${jeuLobbyLabel()}</span>${DEF_CHEV_SVG}</button><p class="jeu-hint" id="jeu-lobby-hint">${jeuLobbyHint()}</p>`
         :`<button type="button" class="jeu-ready${J.ready[J.me]?' on':''}" id="jeu-ready" aria-pressed="${!!J.ready[J.me]}" onclick="jeuToggleReady()"><span>${J.ready[J.me]?'Je suis prêt ✓':'Je suis prêt'}</span></button>
-        <p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>En attente que ${esc(hostName)} lance la partie…</p>`}</div>`;
+        <p class="jeu-wait"><i class="jeu-dot" aria-hidden="true"></i>En attente ${jeuQue(hostName)} lance la partie…</p>`}</div>`;
     /* Hôte : le code d’abord (pour inviter), puis les joueurs, puis les réglages. Ami : les joueurs d’abord. */
-    html=head(`Salle d’attente · ${JEU_NIVL[J.niv]}`,host?'Invite tes amis':`Salle de ${esc(hostName)}`,'')+chips()+(host?invite+players+set:players+invite)+`<div id="jeu-netslot">${jeuNetHTML()}</div>`;
+    html=head(`Salle d’attente · ${JEU_NIVL[J.niv]}`,host?'Invite tes amis':`Salle ${jeuDe(hostName)}`,'')+chips()+(host?invite+players+set:players+invite)+`<div id="jeu-netslot">${jeuNetHTML()}</div>`;
   }else if(v.startsWith('draw')){
     const n=+v.slice(4),r=J.rounds[n],c=CHALLENGES.find(x=>x.id===r.cid);
     html=`<div class="jeu-draw" id="jeu-draw" data-step="3">
@@ -29871,7 +30018,7 @@ function jeuRender(){
       ${J.solo?'':`<ul class="jeu-players is-live" id="jeu-players" aria-label="Qui a trouvé">${jeuPlayersHTML('play')}</ul>`}
       ${mine?`<div class="feedback ok"><div class="fi">✓</div><div><b>Trouvé en ${jeuFmtLong(r.found[J.me])}</b><p>${J.solo?'Voici ton résultat dans un instant.':'Attends la fin de la manche pour voir le classement.'}</p></div></div>`:editorBlock(true,'defi-entre-amis.sql')}
       ${J.solo?'':`<div class="jeu-reacts" aria-label="Réagir">${JEU_REACTS.map(e=>`<button type="button" onclick="jeuReact('${e}')" aria-label="Réagir ${e}">${e}</button>`).join('')}</div>`}
-      ${host?`<button type="button" class="jeu-close" onclick="jeuClose()">${J.solo?'Voir la solution':'Clore la manche maintenant'}</button>`:''}
+      <div id="jeu-hostbar">${jeuHostBarHTML()}</div>
       <div id="jeu-netslot">${jeuNetHTML()}</div>`;
   }else if(v.startsWith('res')){
     const n=+v.slice(3),r=J.rounds[n],c=CHALLENGES.find(x=>x.id===r.cid),rk=jeuRanking(n),last=n>=J.nb-1;
@@ -29884,7 +30031,7 @@ function jeuRender(){
     html=head(`Manche ${n+1}/${J.nb} terminée`,esc(c.titre),sub)+
       `<div class="jeu-card"><p class="jeu-card-h">${J.solo?'Ton résultat':'Classement de la manche'}</p><ol class="jeu-rank">${lines}</ol></div>
       <div class="jeu-card"><p class="jeu-card-h">Une solution</p><div class="ex-code">${highlight(c.sol)}</div></div>
-      ${J.solo&&J.nb<2?'':`<div class="jeu-card"><p class="jeu-card-h">Scores</p><ol class="jeu-rank is-score">${sc.map((x,i)=>`<li><span class="jeu-rk">${i+1}</span><b>${esc(x.name)}</b><em>${x.pts} pt${x.pts>1?'s':''}</em></li>`).join('')}</ol></div>`}
+      ${J.solo&&J.nb<2?'':`<div class="jeu-card"><p class="jeu-card-h">Scores</p><ol class="jeu-rank is-score">${jeuPlaces(sc).map(x=>`<li><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em></li>`).join('')}</ol></div>`}
       ${next}
       <div id="jeu-netslot">${jeuNetHTML()}</div>`;
   }else if(v==='final'){
@@ -29902,10 +30049,9 @@ function jeuRender(){
         <button type="button" class="jeu-close" onclick="openJeu()">Changer de niveau</button>`;
       if(all)setTimeout(celebrate,300);
     }else{
-      /* Même score = même place, comme RANK(). */
-      let place=0;sc.forEach((x,i)=>{if(i===0||x.pts<sc[i-1].pts)place=i+1;x.place=place;});
-      const top=[2,1,3].map(pl=>sc.filter(x=>x.place===pl));
-      const winner=sc[0]&&sc[0].pid===J.me&&sc[0].pts>0;
+      jeuPlaces(sc);
+      const top=[2,1,3].map(pl=>sc.filter(x=>x.place===pl&&x.pts>0));
+      const winner=sc.some(x=>x.pid===J.me&&x.place===1&&x.pts>0);
       html=head('Salle de défi · Fin de partie',winner?'Tu as gagné ! 🏆':'Le podium',`${J.nb} manche${J.nb>1?'s':''} jouée${J.nb>1?'s':''}.`)+
         `<div class="jeu-podium">${top.map((g,i)=>{const pl=[2,1,3][i];return `<div class="jeu-step is-${pl}${g.length?'':' is-empty'}"><span class="jeu-medal">${['🥇','🥈','🥉'][pl-1]}</span><span class="jeu-step-n">${g.length?g.map(x=>esc(x.name)).join('<br>'):'—'}</span><small>${g.length?g[0].pts+' pt'+(g[0].pts>1?'s':''):''}</small><i></i></div>`;}).join('')}</div>
         <div class="jeu-card"><p class="jeu-card-h">Classement final</p><ol class="jeu-rank is-score">${sc.map(x=>`<li><span class="jeu-rk">${x.place}</span><b>${esc(x.name)}${x.pid===J.me?' <small>(toi)</small>':''}</b><em>${x.pts} pt${x.pts>1?'s':''}</em></li>`).join('')}</ol></div>
@@ -29916,11 +30062,15 @@ function jeuRender(){
     }
   }
   root.innerHTML=html;
-  root.classList.remove('jeu-in');void root.offsetWidth;root.classList.add('jeu-in');
-  if(v.startsWith('play')&&document.getElementById('ed-lesson')){setupEditor('ed-lesson','hl-lesson');}
+  if(!keep){root.classList.remove('jeu-in');void root.offsetWidth;root.classList.add('jeu-in');}
+  if(v.startsWith('play')&&document.getElementById('ed-lesson')){
+    setupEditor('ed-lesson','hl-lesson');
+    if(typed){const ed=document.getElementById('ed-lesson');ed.value=typed;ed.dispatchEvent(new Event('input'));}
+  }
   if(v.startsWith('draw'))jeuDrawStep(+v.slice(4));
   jeuAnnounce();
-  const scr=document.getElementById('scr-lesson');if(scr)scr.scrollTop=0;
+  if(focusKey){const f=root.querySelector(`[data-fk="${focusKey}"]`);if(f&&f.focus)f.focus({preventScroll:true});}
+  const scr=document.getElementById('scr-lesson');if(scr&&!keep)scr.scrollTop=0;
 }
 function jeuNextRound(){
   const J=JEU;if(!J||!jeuIsHost())return;
@@ -29946,7 +30096,9 @@ function jeuLobbySet(k,v){
   else if(k==='nb'&&[1,3,5].includes(v))J.nb=v;
   else return;
   J.nb=Math.min(J.nb,jeuChallenges(J.niv).length||1);
-  J.view='';
+  /* Un défi imposé au départ ne reste que s’il est du niveau choisi. */
+  J.plan=J.plan.filter(id=>{const c=CHALLENGES.find(x=>x.id===id);return c&&c.niv===J.niv;});
+  jeuRedraw();
   jeuSend({t:'cfg',niv:J.niv,n:J.nb,max:J.max});
   if(navigator.vibrate)navigator.vibrate(6);
 }
@@ -29982,7 +30134,6 @@ async function jeuShare(){
 function jeuCredit(cid){
   try{
     if(!state.defis)state.defis={};
-    if(state.defis[cid])return;
     state.defis[cid]=true;noteActivityDay();save();renderProgress();renderPlanning();
   }catch(e){}
 }
@@ -30022,6 +30173,8 @@ function jeuRun(){
 }
 function jeuStop(){
   const J=JEU;if(!J)return;
+  /* On quitte avant le podium : les points déjà gagnés ne sont pas perdus. */
+  try{if(!J.scored&&J.played){const me=jeuScores().find(x=>x.pid===J.me);if(me&&me.pts>0)jeuCreditGame();}}catch(e){}
   /* Prévenir les autres tout de suite : l’hôte qui part passe la main sans attendre. */
   if(!J.solo&&J.synced&&!J.full){try{J.t.beacon({v:1,t:'bye',pid:J.me,name:J.nom,u:jeuRand(8),g:J.g});}catch(e){}}
   clearInterval(J.tick);clearInterval(J.ping);clearTimeout(J.waitCfg);J.drawT.forEach(clearTimeout);
@@ -30037,6 +30190,7 @@ function jeuLeaveOk(){
   if(!J.solo&&jeuIsHost()&&v!=='final'&&jeuLive().length>1)return confirm('Quitter la salle ? Un autre joueur deviendra l’hôte.');
   return true;
 }
+if(typeof document!=='undefined'&&typeof document.addEventListener==='function')document.addEventListener('visibilitychange',()=>{if(!document.hidden&&JEU)jeuResume();});
 if(typeof window!=='undefined'&&window.addEventListener)window.addEventListener('pagehide',()=>{const J=JEU;if(J&&!J.solo&&J.synced&&!J.full){try{J.t.beacon({v:1,t:'bye',pid:J.me,name:J.nom,u:jeuRand(8),g:J.g});}catch(e){}}});
 /* Lien d’invitation : ?partie=CODE ouvre directement l’écran pour rejoindre. */
 function jeuFromUrl(){
@@ -33521,7 +33675,7 @@ function paintOb(){
     const privacy=obLegalMode==='privacy';
     html=`<div class="ob-screen ob-legal-screen">${obBackButton()}<h1 class="ob-title" id="ob-title">${privacy?'Politique de confidentialité':'Conditions d’utilisation'}</h1>
       <div class="legal-copy">${privacy
-        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>Le <b>Duel entre amis</b>, facultatif, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le service public ntfy.sh. Ces messages s’effacent au bout de 12&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées et permettra de supprimer ton compte.</p>`
+        ? `<p>Tu peux utiliser Requête <b>sans compte</b>. Dans ce mode, ta progression reste uniquement sur cet appareil.</p><ul><li>Leçons, défis, notes, planning et bases importées sont enregistrés localement.</li><li>Le moteur SQL tourne dans ton navigateur.</li><li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le service public ntfy.sh. Ces messages s’effacent au bout de 12&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li></ul><p>Si tu choisis plus tard de te connecter, Requête indiquera clairement quelles données seront synchronisées et permettra de supprimer ton compte.</p>`
         : `<p>Requête est une application d’apprentissage du SQL. Le contenu est fourni à des fins pédagogiques.</p><p>Tu peux commencer sans compte, exporter ta progression et l’effacer depuis Mon compte.</p><p>Les options de connexion ne deviennent actives que lorsqu’un fournisseur d’authentification sécurisé est configuré.</p>`}</div></div>`;
     obSetFooter('','','','','');
   }else if(slide==='welcome'){
@@ -34097,7 +34251,7 @@ function renderCompte(){
     <details class="plus-details" id="plus-data">
       <summary><span>Données et confidentialité</span><small>Tu gardes le contrôle de tes informations.</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body">
-        <p class="account-data-note">Tes données d’apprentissage restent sur cet appareil tant que tu utilises le mode sans compte. Seul le Duel entre amis partage ton pseudo et tes temps avec les autres joueurs.</p>
+        <p class="account-data-note">Tes données d’apprentissage restent sur cet appareil tant que tu utilises le mode sans compte. Seule la salle de défi entre amis partage ton pseudo et tes temps avec les autres joueurs.</p>
         <button class="acc-row" type="button" onclick="exportProgress()">
           <span class="acc-row-ico" aria-hidden="true">${plusIcon('export')}</span>
           <div class="at"><b>Exporter ma progression</b><small>Fichier JSON, à garder de ton côté</small></div>
@@ -34143,7 +34297,7 @@ function openLegal(kind){
       <p>Requête est une app d’apprentissage SQL. Tu peux l’utiliser <b>sans compte</b> : ta progression reste alors sur cet appareil.</p>
       <ul>
         <li>Prénom, leçons, défis, notes et planning : stockés en local dans le navigateur.</li>
-        <li>Le <b>Duel entre amis</b>, facultatif, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le service public ntfy.sh. Ces messages s’effacent au bout de 12&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
+        <li>La <b>salle de défi entre amis</b>, facultative, partage seulement ton pseudo, tes temps et tes réactions avec les autres joueurs, via le service public ntfy.sh. Ces messages s’effacent au bout de 12&nbsp;h. Tes requêtes ne quittent jamais l’appareil.</li><li>En dehors de ce mode, aucune donnée n’est envoyée tant qu’aucun service de connexion n’est configuré.</li>
         <li>Le moteur SQL tourne dans le navigateur.</li>
         <li>Le rappel quotidien n’envoie une notification que si tu l’actives (permission du navigateur), à l’heure choisie.</li>
       </ul>
@@ -36182,7 +36336,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-03-ludique-v1547';
+  const SW_CACHE='requete-2026-10-03-ludique-v1548';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
