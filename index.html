@@ -16721,10 +16721,6 @@ learningCheck:{
         <div class="pt-syntax"><pre class="cw-syntax">ROWS BETWEEN UNBOUNDED PRECEDING
          AND CURRENT ROW</pre></div>
         <p class="win-ex-note">de la première commande jusqu’à la commande actuelle</p>
-        <p class="win-ex">📊 Moyenne des 3 dernières commandes</p>
-        <div class="pt-syntax"><pre class="cw-syntax">ROWS BETWEEN 2 PRECEDING
-         AND CURRENT ROW</pre></div>
-        <p class="win-ex-note">les 2 commandes précédentes + la commande actuelle</p>
         <p class="ij-arrow">👉 Pour le total cumulé, le cadre commence à la première commande et s’agrandit à chaque nouvelle commande.</p>`},
     uses:{title:"Écrire la requête",
       body:`<div class="pt-lead fn-uses fk-course jn-course">
@@ -16768,16 +16764,16 @@ ORDER BY commandes.date_commande,
           <p>Cette fois, on <b>réduit le cadre</b>. Avec <code>2&nbsp;PRECEDING</code>, chaque moyenne utilise la commande actuelle et les 2 précédentes.</p>
           <p>👇 Exécute cette requête pour calculer la moyenne des 3 dernières commandes&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT commandes.date_commande,&#10;       produits.prix&#10;       * commandes.quantite&#10;         AS montant,&#10;       AVG(produits.prix&#10;           * commandes.quantite)&#10;       OVER (&#10;         ORDER BY&#10;           commandes.date_commande,&#10;           commandes.id&#10;         ROWS BETWEEN&#10;           2 PRECEDING&#10;           AND CURRENT ROW&#10;       ) AS moyenne_3&#10;FROM commandes&#10;JOIN produits&#10;    ON produits.id&#10;       = commandes.produit_id&#10;ORDER BY commandes.date_commande,&#10;         commandes.id;"></div>
-          <p class="ij-arrow">👉 Le cadre se déplace avec chaque commande&nbsp;: il prend la commande actuelle et les 2 précédentes.<span class="ij-ln">Par exemple, sur la&nbsp;3<sup>e</sup>&nbsp;commande&nbsp;→ commandes&nbsp;1, 2 et&nbsp;3.</span><span class="ij-ln">Sur la&nbsp;4<sup>e</sup>&nbsp;commande&nbsp;→ commandes&nbsp;2, 3 et&nbsp;4.</span></p>
+          <p class="ij-arrow">👉 Le cadre se déplace avec chaque commande.<span class="ij-ln">Par exemple, sur la&nbsp;3<sup>e</sup>&nbsp;commande&nbsp;→ commandes&nbsp;1, 2 et&nbsp;3.</span><span class="ij-ln">Sur la&nbsp;4<sup>e</sup>&nbsp;commande&nbsp;→ commandes&nbsp;2, 3 et&nbsp;4.</span></p>
           <p class="ij-arrow">👉 Pour les deux premières commandes, il n’y a pas encore 2 commandes précédentes&nbsp;: la moyenne est donc calculée sur <b>moins de 3 commandes</b>.</p>
           <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>Pour aller plus loin</p><p><code>NTILE(4)</code> permet de répartir des lignes en 4 groupes de taille similaire selon un ordre défini.</p><p>Par exemple, on peut répartir les produits en 4 groupes selon leur niveau de stock.</p><p>👇 Teste par toi-même&nbsp;:</p><div class="ij-run" data-run-sql="SELECT nom,&#10;       stock,&#10;       NTILE(4) OVER (&#10;         ORDER BY stock, id&#10;       ) AS quart&#10;FROM produits&#10;ORDER BY stock, id;"></div></div>
         </div>
         <div class="fn-use">
           <p class="pt-syntax-h">La requête complète</p>
-          <p>Il ne reste plus qu’à calculer le cumul, commande après commande.</p>
+          <p>Il ne reste plus qu’à assembler la requête du cumul.</p>
           <p>👇 Exécute la requête pour suivre le chiffre d’affaires cumulé et trouver la date à laquelle le palier est franchi&nbsp;:</p>
           <div class="ij-run" data-run-sql="SELECT commandes.date_commande,&#10;       produits.prix&#10;       * commandes.quantite&#10;         AS montant,&#10;       SUM(produits.prix&#10;           * commandes.quantite)&#10;       OVER (&#10;         ORDER BY&#10;           commandes.date_commande,&#10;           commandes.id&#10;         ROWS BETWEEN&#10;           UNBOUNDED PRECEDING&#10;           AND CURRENT ROW&#10;       ) AS cumul&#10;FROM commandes&#10;JOIN produits&#10;    ON produits.id&#10;       = commandes.produit_id&#10;ORDER BY commandes.date_commande,&#10;         commandes.id;"></div>
-          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="16 commandes et leur chiffre d’affaires cumulé"><li class="ij-fn-row"><b>16</b><span>commandes<small>de la plus ancienne à la plus récente</small></span></li><li class="ij-fn-step"><code>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code><small>à chaque commande, le cumul reprend toutes les commandes depuis la première</small></li><li class="ij-fn-row is-out"><b>01/08</b><span>palier de 700 € franchi<small>732,60 € cumulés à cette date</small></span></li></ol><div class="ij-sms ij-act is-gauge" style="--st:0.4s;--n:6" role="group" aria-label="Le cumul franchit le palier de 700 euros le 1er août et finit à 747,50 euros"><p class="ij-sms-h"><i aria-hidden="true">📈</i>Palier de ventes</p><div class="act-gauge"><p class="act-big"><small>chiffre d’affaires cumulé au 03/08</small><b data-count-to="747.5" data-dec="2" data-suffix=" €" data-delay=".5" data-dur="2.4">0,00 €</b></p><div class="act-g-bar"><i class="act-g-fill"></i><i class="act-g-goal is-end" style="--at:.9365"><b>🎯 700 €</b></i></div><div class="act-g-days"><i class="act-item" style="--i:0">02/07</i><i class="act-item" style="--i:1">03/08</i></div><p class="act-g-hit">🎉 Palier de 700 € franchi le <b>1er août</b></p></div><p class="ij-sms-done act-foot">✓ 732,60 € de chiffre d’affaires cumulé à cette date</p></div></div>
+          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><ol class="ij-funnel" aria-label="16 commandes et leur chiffre d’affaires cumulé"><li class="ij-fn-row"><b>16</b><span>commandes<small>de la plus ancienne à la plus récente</small></span></li><li class="ij-fn-step"><code>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code><small>à chaque commande, le cumul reprend toutes les commandes depuis la première</small></li><li class="ij-fn-row is-out"><b>01/08</b><span>palier de 700 € franchi<small>732,60 € cumulés à cette date</small></span></li></ol><div class="ij-sms ij-act is-gauge" style="--st:0.4s;--n:6" role="group" aria-label="Le cumul franchit le palier de 700 euros le 1er août et finit à 747,50 euros"><p class="ij-sms-h"><i aria-hidden="true">📈</i>Palier de ventes</p><div class="act-gauge"><p class="act-big"><small>chiffre d’affaires cumulé au 03/08</small><b data-count-to="747.5" data-dec="2" data-suffix=" €" data-delay=".5" data-dur="2.4">0,00 €</b></p><div class="act-g-bar"><i class="act-g-fill"></i><i class="act-g-goal is-end" style="--at:.9365"><b>🎯 700 €</b></i></div><div class="act-g-days"><i class="act-item" style="--i:0">02/07</i><i class="act-item" style="--i:1">03/08</i></div><p class="act-g-hit">🎉 Palier de 700 € franchi le <b>1er août</b></p></div><p class="ij-sms-done act-foot">✓ 732,60 € de chiffre d’affaires cumulé au 1er août</p></div></div>
         </div>
       </div>`},
     reflexTitle:"Le réflexe à retenir",
@@ -25127,7 +25123,7 @@ const MISSION_DONE_UI={
   74:{t:'8 produits classés, 5 sur le podium',s:'Magnésium, Oméga 3 et Vitamine D sont ex æquo à la 3ᵉ place.',n:['RANK()','OVER()','ORDER BY','SUM()']},
   78:{t:'8 clients, un délai moyen chacun',s:'Tu sais maintenant combien de temps chaque client attend en moyenne avant de commander à nouveau.',n:['LAG()','PARTITION BY','AVG()','GROUP BY','WITH','COALESCE()','JOIN'],split:true,
       call:['Chaque client est relancé après son propre délai']},
-  79:{t:'Palier franchi le 01/08',s:'732,60\u00a0€ cumulés à cette date, pour un palier de 700\u00a0€.',n:['SUM()','OVER','ORDER BY','ROWS BETWEEN','UNBOUNDED PRECEDING','CURRENT ROW']}
+  79:{t:'Palier franchi le 01/08',s:'Le cumul passe de 642,90\u00a0€ (30/07) à 732,60\u00a0€ (01/08)\u00a0: il franchit les 700\u00a0€.',n:['SUM()','OVER','ORDER BY','ROWS BETWEEN','UNBOUNDED PRECEDING','CURRENT ROW']}
 };
 let mdUid=0;
 function initMissionDone(){
@@ -25354,9 +25350,9 @@ const PROB_SCENES={
     caps:['<b>Constat</b> · Les jours 1 à 90 n’existent <b>dans aucune table</b>.','<b>Limite</b> · Les saisir un par un serait <b>long et sujet à erreur</b>.','<b>Objectif</b> · Générer ces lignes <b>automatiquement</b>.'],
     steps:[{cap:0,on:['d1','d2','d3','d9'],d:1900},{cap:1,off:['d1','d2','d3','d9'],dim:['d1','d2','d3','d9'],d:2000},{cap:2,undim:['d1','d2','d3','d9'],text:{d1:'1',d2:'2',d3:'3',d9:'90'},stagger:380,d:2800}]},
   79:{h:'🔎 Cumul par commande',cols:'52px 1fr 1fr',
-    lanes:[{c:[['','date','t'],['','montant','t'],['','cumul','t']]},{k:'R1',c:[['d1','02/07'],['m1','59,80\u00a0€'],['c1','?','q']]},{k:'R2',c:[['d2','02/07'],['m2','19,90\u00a0€'],['c2','?','q']]},{k:'R3',c:[['d3','05/07'],['m3','34,90\u00a0€'],['c3','?','q']]}],
-    caps:['<b>Données</b> · Chaque commande a son <b>montant</b>.','<b>Objectif</b> · Afficher le <b>total cumulé</b>, commandes précédentes comprises.','<b>Détail conservé</b> · Chaque ligne garde son montant et affiche le total jusqu’à elle.'],
-    steps:[{cap:0,on:['m1','m2','m3'],d:1800},{cap:1,off:['m1','m2','m3'],text:{c1:'59,80\u00a0€',c2:'79,70\u00a0€',c3:'114,60\u00a0€'},stagger:500,d:2800},{cap:2,on:['R1','R2','R3'],d:2800}]},
+    lanes:[{c:[['','date','t'],['','montant','t'],['','cumul','t']]},{k:'R1',c:[['d1','02/07'],['m1','59,80\u00a0€'],['c1','?','q']]},{k:'R2',c:[['d2','02/07'],['m2','19,90\u00a0€'],['c2','?','q']]},{k:'R3',c:[['d3','05/07'],['m3','34,90\u00a0€'],['c3','?','q']]},{k:'R',fold:true,c:[['r1','—','n'],['r2','114,60\u00a0€'],['r3','—','n']]}],
+    caps:['<b>Données</b> · Chaque commande a son <b>montant</b>.','<b>Avec <code>GROUP BY</code></b> · Les commandes sont regroupées en <b>une seule ligne</b>&nbsp;: 114,60&nbsp;€ au total, mais le détail de chaque commande disparaît.','<b>Objectif</b> · Garder <b>chaque commande</b> et afficher, à côté, le <b>total cumulé</b>, commandes précédentes comprises.'],
+    steps:[{cap:0,on:['m1','m2','m3'],d:1800},{cap:1,off:['m1','m2','m3'],fold:['R1','R2','R3'],unfold:['R'],on:['r2'],d:2800},{cap:2,off:['r2'],fold:['R'],unfold:['R1','R2','R3'],on:['R1','R2','R3'],text:{c1:'59,80\u00a0€',c2:'79,70\u00a0€',c3:'114,60\u00a0€'},stagger:500,d:3000}]},
   80:{h:'🔎 Clients à écarter',
     lanes:[{k:'A',l:'ont commandé',c:[['a1','Sophie'],['a2','Lucas'],['a3','Emma'],['a4','Chloé']]},{k:'B',l:'déjà inscrits',c:[['b1','Sophie'],['b2','Lucas']]}],
     caps:['<b>Données</b> · Ces clients ont passé au moins une commande.','<b>Recoupement</b> · Certains sont <b>déjà inscrits</b> au programme.','<b>Objectif</b> · Écarter les clients déjà inscrits pour ne garder que ceux à <b>inviter</b>.'],
@@ -34982,7 +34978,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1534';
+  const SW_CACHE='requete-2026-09-30-ludique-v1535';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
