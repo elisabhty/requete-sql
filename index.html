@@ -2264,6 +2264,7 @@
   /* Bloc « Problème » : scène animée (lignes de cellules + légendes), pilotée par initProbScenes(). */
   .pr-scene{position:relative;margin:12px 0 2px;padding:12px;border:1px solid var(--card-border);border-radius:18px;background:var(--surface-2,#F1EEFC);overflow:hidden}
   #scr-lesson .sit-memo .pr-scene{margin:12px 0 2px}
+  #scr-lesson .sit-memo .pr-scene+p{margin-top:12px}
   .pr-h{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px;margin:0 0 8px;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)}
   .pr-h>span{display:inline-flex;align-items:center;gap:7px;min-width:0}
   .pr-ico{flex:none;font-style:normal;font-size:14px;line-height:1}
@@ -10657,6 +10658,60 @@ function fnSpot(body){
   return `<div class="fn-spot"><span class="fn-spot-ico" aria-hidden="true">${FN_SPOT_ICO}</span><div class="fn-spot-copy">${inner}</div></div>`;
 }
 /* ============================================================
+   COURS « GUIDE » : un cours décrit en données, rendu comme LAG et LEAD
+   (situation → problème animé → étapes avec requêtes à exécuter → réflexe).
+   guide({id,titre,résumé,sit,concept,steps,reflex,…}) renvoie un cours au format
+   habituel ; la typographie française (espaces insécables) est appliquée ici.
+   ============================================================ */
+const GUIDE_SCENES={};
+function guideFr(h){
+  /* Espace insécable avant : ? ! ; et dans « … », hors balises et hors <code>. */
+  let code=0;
+  return String(h).split(/(<[^>]+>)/).map(t=>{
+    if(/^<code[\s>]/.test(t)){code++;return t;}
+    if(/^<\/code>/.test(t)){code=Math.max(0,code-1);return t;}
+    if(t[0]==='<'||code)return t;
+    return t.replace(/ ([:?!;»])/g,' $1').replace(/« /g,'« ');
+  }).join('');
+}
+function guideEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function guideSyntax(s){return `<div class="pt-syntax"><pre class="cw-syntax">${guideEsc(s).replace(/⟦/g,'<span class="fk-syn-hit">').replace(/⟧/g,'</span>')}</pre></div>`;}
+function guideBlock(b){
+  if(typeof b==='string')return `<p>${guideFr(b)}</p>`;
+  const lab=x=>x?` aria-label="${guideEsc(x).replace(/"/g,'&quot;')}"`:'';
+  if(b.p!==undefined)return `<p>${guideFr(b.p)}</p>`;
+  if(b.run)return `${b.say?`<p>${guideFr(b.say)}</p>`:''}<div class="ij-run"${b.warn?' data-warn="1"':''} data-run-sql="${guideEsc(b.run).replace(/"/g,'&quot;').replace(/\n/g,'&#10;')}"></div>`;
+  if(b.syntax)return guideSyntax(b.syntax);
+  if(b.looks)return `<ul class="win-look is-cmp"${lab(b.label)}>${b.looks.map(([k,v])=>`<li><b>${/</.test(k)?k:`<code>${guideEsc(k)}</code>`}</b><span>${guideFr(v)}</span></li>`).join('')}</ul>`;
+  if(b.arrow)return `<p class="ij-arrow">👉 ${guideFr(b.arrow)}</p>`;
+  if(b.sub)return `<p class="st-lab"><i aria-hidden="true">${b.sub[0]}</i>${guideFr(b.sub[1])}</p>`;
+  if(b.need)return `<div class="ij-need" role="list"${lab(b.label)}>${b.need.map(([i,t,w,c])=>`<div role="listitem"><b>${i?i+' ':''}${guideFr(t)}</b><span${c?` class="is-${c}"`:''}>${guideFr(w)}</span></div>`).join('')}</div>`;
+  if(b.warn||b.tip){
+    const m=b.warn||b.tip,warn=!!b.warn;
+    return `<div class="sit-memo${warn?' is-warn':''}"><p class="sit-memo-lab"><i aria-hidden="true">${warn?'⚠️':'💡'}</i>${guideFr(m.t||(warn?'Attention':'Bon à savoir'))}</p>${(m.p||[]).map(x=>`<p>${guideFr(x)}</p>`).join('')}${m.run?guideBlock({run:m.run,say:m.say,warn}):''}</div>`;
+  }
+  if(b.table){
+    const t=b.table,n=t.head.length,hit=new Set((t.hit||[]).map(([r,c])=>r+','+c));
+    const cells=t.head.map(h=>`<span class="is-h">${guideFr(h)}</span>`).join('')+t.rows.map((r,i)=>r.map((c,j)=>`<span${c==='NULL'?' class="is-null"':hit.has(i+','+j)?' class="is-hit"':''}>${guideFr(c)}</span>`).join('')).join('');
+    return `<div class="pk-comp ij-t"><p class="ij-tlab">${guideFr(t.label)}</p><div class="pk-mini${n>2?' is-'+n:' is-2'}">${cells}</div>${t.more?`<p class="ij-tmore">${guideFr(t.more)}</p>`:''}</div>`;
+  }
+  throw new Error('bloc de cours inconnu : '+JSON.stringify(b).slice(0,80));
+}
+function guideBlocks(a){return (a||[]).map(guideBlock).join('\n');}
+function guide(spec){
+  const {id,titre,sit,concept,steps,reflex}=spec;
+  const memoP=sit&&sit.problem;
+  const situation=(sit.blocks?guideBlocks(sit.blocks):'')+(memoP?`<div class="sit-memo is-problem"><p class="sit-memo-lab"><i aria-hidden="true">🤔</i>Problème</p>${(memoP.p||[]).map(x=>`<p>${guideFr(x)}</p>`).join('')}${memoP.scene?'<div class="pr-slot"></div>':''}${memoP.then?`<p>👉 ${guideFr(memoP.then)}</p>`:''}</div>`:'');
+  if(memoP&&memoP.scene)GUIDE_SCENES[id]=memoP.scene;
+  const lesson={id,titre,résumé:spec.résumé,situation,
+    studio:{problem:{eye:'',title:guideFr(concept.title),body:guideFr(concept.body||''),extra:guideBlocks(concept.blocks)},
+      uses:{title:spec.usesTitle||'Écrire la requête',body:`<div class="pt-lead fn-uses fk-course jn-course">${steps.map(st=>`<div class="fn-use"><p class="pt-syntax-h">${guideFr(st.h)}</p>${guideBlocks(st.blocks)}</div>`).join('\n')}</div>`}},
+    reflexTitle:'Le réflexe à retenir',reflex:{extra:guideBlocks(reflex)},
+    noTeste:true,noAnat:true,richLesson:true,earlyDemo:true,guided:true};
+  ['anatomie','exemple','attendu','retenir','consigne','solution','indice','learningCheck','testeVariants','ordered','write','verif','noExec','noExecWhy','apres'].forEach(k=>{if(spec[k]!==undefined)lesson[k]=spec[k];});
+  return lesson;
+}
+/* ============================================================
    2. PROGRAMME
    ============================================================ */
 const MODULES = [
@@ -11064,79 +11119,74 @@ learningCheck:{
   "explanation": "DISTINCT porte sur toute la combinaison des colonnes sélectionnées, pas sur ville seulement."
 }
 },
-{ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
-  situation:"L’e-commerce souhaite contacter ses clients qui habitent à Paris. Dans la table clients, 10 clients sont enregistrés, mais tu veux afficher uniquement ceux qui habitent à Paris.<br><br>Avec ce que tu connais déjà, tu peux choisir les colonnes à afficher :",
-  situationSql:"SELECT nom, ville\nFROM clients;",
-  situationTail:"Tu obtiens bien le nom et la ville des 10 clients. Mais tu n’as besoin que des clients qui habitent à Paris : il faut maintenant indiquer à SQL quelles lignes conserver.",
-  problematique:"L’équipe prépare une campagne réservée aux clients parisiens. Comment afficher uniquement les clients qui habitent à Paris ?",
-    studio:{problem:{title:"WHERE filtre les lignes selon une condition.",
-      body:"Sans <code>WHERE</code>, la requête affiche les 10 clients. Avec <code>WHERE ville = 'Paris'</code>, SQL vérifie chaque ligne : si la valeur de <code>ville</code> est <code>'Paris'</code>, la ligne est conservée. Sinon, elle n’apparaît pas dans le résultat. Dans la table clients, Sophie, les deux Nathan et Léa habitent à Paris : le résultat passe donc de 10 lignes à 4 lignes.",
-      extra:`<div class="sit-sql">
-        <p><code>WHERE</code> est une clause qui sert à filtrer les lignes d’une table. Elle permet de ne récupérer que les enregistrements qui répondent à une ou plusieurs conditions précises.</p>
-        <div class="pt-syntax"><pre class="cw-syntax">SELECT colonne1, colonne2
-FROM nom_table
-WHERE condition;</pre></div>
-      </div>`},
-    vs:{bad:{tag:"✕ Sans filtre",sql:"SELECT nom, ville FROM clients;",out:"10 lignes : Sophie, Lucas, Emma, Nathan, Chloé, Hugo, Léa, Gabriel, Inès, Nathan",
-            code:"SELECT nom, ville\nFROM clients;"},
-        good:{tag:"✓ Avec WHERE",sql:"SELECT nom, ville FROM clients\nWHERE ville = 'Paris';",out:"4 lignes : Sophie, Nathan (×2), Léa",
-            code:"SELECT nom, ville\nFROM clients\n<span class=\"vs-line good\">WHERE ville = 'Paris'</span>;"}},
-    point:"<code>WHERE</code> agit sur les <b>lignes</b> : il conserve uniquement celles qui respectent la condition.<br><br>Ici, <code>ville = 'Paris'</code> signifie : garder uniquement les clients dont la ville est Paris.",
-    why:{title:"Suis ce qui arrive aux lignes.",
-      body:"<code>WHERE ville = 'Paris'</code> teste la valeur de <code>ville</code> pour chacune. À la fin, seules les lignes qui respectent la condition apparaissent dans le résultat."},
-    viz:"where",
-    reflex:{a:{k:"WHERE",t:"filtre les <b>lignes</b> selon une condition"},
-      b:{k:"=",t:"signifie ici « <b>est égal à</b> »"},
-      note:"Pour comparer une colonne à une valeur texte, entoure la valeur de guillemets simples : <code>ville = 'Paris'</code>."}},
-  anatomie:[{tok:"SELECT nom, ville",txt:"Les colonnes déjà choisies pour l’affichage."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"ville",plain:1,txt:"La colonne dont la valeur est vérifiée."},{tok:"=",plain:1,txt:"Vérifie que les deux valeurs sont égales."},{tok:"'Paris'",plain:1,txt:"La valeur recherchée dans la colonne ville."}],
-  anatomieVariants:[
-    {k:'avant',label:'SELECT',lines:[
-      {tok:"SELECT nom, ville",txt:"Les colonnes choisies pour l’affichage."},
-      {tok:"FROM clients",txt:"La table clients est utilisée comme source."}
+guide({ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
+  sit:{
+    blocks:[
+      "L’e-commerce prépare une <b>campagne réservée aux clients parisiens</b>.",
+      "La table <code>clients</code> en contient <b>10</b>. Pour cibler la campagne, deux informations suffisent :",
+      {need:[["👤","Nom du client","table clients"],["📍","Ville du client","table clients","b"]],label:"Les informations utiles"}
+    ],
+    problem:{
+      p:["Un <code>SELECT</code> renvoie <b>toutes les lignes</b> de la table : les 10 clients, quelle que soit leur ville.","Or, la campagne ne concerne que ceux qui habitent à <b>Paris</b>."],
+      scene:{h:"🔎 Clients conservés",cols:"1fr 1fr",
+        lanes:[{c:[["","nom","t"],["","ville","t"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","Paris"]]},
+          {k:"R2",c:[["b1","Lucas"],["b2","Lyon"]]},
+          {k:"R3",c:[["c1","Emma"],["c2","Marseille"]]},
+          {k:"R4",c:[["d1","Nathan"],["d2","Paris"]]},
+          {k:"R5",c:[["e1","Chloé"],["e2","Bordeaux"]]}],
+        caps:["<b>Sans filtre</b> · Un <code>SELECT</code> affiche toutes les lignes de la table.","<b>Condition</b> · Pour chaque ligne, SQL vérifie si la ville est <b>Paris</b>.","<b>Résultat</b> · Seules les lignes qui respectent la condition sont conservées."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R2","R3","R5"],dim:["R2","R3","R5"],d:2300},{cap:2,fold:["R2","R3","R5"],d:2600}]},
+      then:"Il faut donc dire à SQL <b>quelles lignes garder</b>."
+    }
+  },
+  concept:{
+    title:"Comment garder seulement certaines lignes ?",
+    body:"Regardons quelques clients :",
+    blocks:[
+      {table:{label:"clients",head:["nom","ville","ville = 'Paris' ?"],rows:[["Sophie","Paris","vrai"],["Lucas","Lyon","faux"],["Emma","Marseille","faux"],["Nathan","Paris","vrai"]],hit:[[0,2],[3,2]],more:"… et 6 autres clients"}},
+      "Pour chaque ligne, SQL pose une question : <b>la condition est-elle vraie ?</b>",
+      {looks:[["vraie","la ligne est conservée dans le résultat"],["fausse","la ligne est écartée du résultat"]],label:"Vrai ou faux"},
+      {arrow:"Cette condition s’écrit dans la clause <code>WHERE</code>."}
+    ]
+  },
+  steps:[
+    {h:"Tous les clients, sans filtre",blocks:[
+      "Sans <code>WHERE</code>, un <code>SELECT</code> affiche toutes les lignes.",
+      {say:"👇 Exécute cette requête pour voir les 10 clients :",run:"SELECT nom, ville\nFROM clients;"},
+      {arrow:"Les clients de toutes les villes sont là : il reste à ne garder que ceux de Paris."}
     ]},
-    {k:'avec',label:'WHERE',tone:'good',lines:[
-      {tok:"SELECT nom, ville",txt:"Les colonnes déjà choisies pour l’affichage."},
-      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
-      {tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},
-      {tok:"ville",plain:1,txt:"La colonne dont la valeur est vérifiée."},
-      {tok:"=",plain:1,txt:"Vérifie que les deux valeurs sont égales."},
-      {tok:"'Paris'",plain:1,txt:"La valeur recherchée dans la colonne ville."}
+    {h:"Ajouter une condition avec WHERE",blocks:[
+      "<code>WHERE</code> se place <b>après</b> <code>FROM</code> et contient la condition :",
+      {syntax:"SELECT nom, ville\nFROM clients\n⟦WHERE ville = 'Paris'⟧;"},
+      {looks:[["WHERE","introduit la condition"],["ville = 'Paris'","garde les lignes dont la ville est Paris"]]},
+      {say:"👇 Exécute cette requête pour voir les clients parisiens :",run:"SELECT nom, ville\nFROM clients\nWHERE ville = 'Paris';"},
+      {arrow:"4 lignes : Sophie, les deux Nathan et Léa. Les 6 autres clients sont <b>écartés du résultat</b>."},
+      {tip:{t:"WHERE ne supprime rien",p:["Le filtre agit sur le <b>résultat</b>, pas sur la table : elle contient toujours ses 10 clients."],say:"👇 Compte les clients de la table :",run:"SELECT COUNT(*)\nFROM clients;"}}
+    ]},
+    {h:"Écrire la valeur correctement",blocks:[
+      "Un texte s’écrit entre <b>guillemets simples</b>, et SQL fait la différence entre majuscules et minuscules.",
+      {warn:{t:"Sans guillemets",p:["SQL cherche alors une <b>colonne</b> nommée <code>Paris</code> et affiche une erreur."],say:"👇 Teste par toi-même :",run:"SELECT nom, ville\nFROM clients\nWHERE ville = Paris;"}},
+      {warn:{t:"La casse compte",p:["<code>'paris'</code> n’est pas <code>'Paris'</code> : aucune ligne ne correspond."],say:"👇 Teste par toi-même :",run:"SELECT nom, ville\nFROM clients\nWHERE ville = 'paris';"}}
     ]}
   ],
+  reflex:[
+    "<code>WHERE</code> garde les lignes qui respectent une condition.",
+    "La structure à retenir :",
+    {syntax:"SELECT colonnes\nFROM table\nWHERE condition;"},
+    "Dans notre exemple :",
+    {need:[["","WHERE","filtre les lignes"],["","=","est égal à","b"],["","'Paris'","texte entre guillemets simples","c"]],label:"WHERE, égal, valeur texte"}
+  ],
+  anatomie:[{tok:"SELECT nom, ville",txt:"Les colonnes déjà choisies pour l’affichage."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"ville",plain:1,txt:"La colonne dont la valeur est vérifiée."},{tok:"=",plain:1,txt:"Vérifie que les deux valeurs sont égales."},{tok:"'Paris'",plain:1,txt:"La valeur recherchée dans la colonne ville."}],
   exemple:"SELECT nom, ville FROM clients WHERE ville = 'Paris';",
   attendu:"<b>4 lignes</b> : Sophie, les deux Nathan et Léa, car ce sont les quatre clients dont <code>ville</code> vaut <code>'Paris'</code>.",
-  retenir:"<code>WHERE</code> filtre les lignes selon une condition : seules celles qui la respectent apparaissent dans le résultat. Dans <code>SELECT * FROM clients WHERE ville = 'Paris'</code>, la table contient 10 clients, mais seules les 4 lignes de Sophie, des deux Nathan et de Léa apparaissent. Les autres lignes ne sont pas supprimées : elles sont simplement écartées du résultat.",
-  piege:{t:"Oublier les guillemets simples autour du texte",p:"<code>'Paris'</code> est une valeur texte. En SQL, une valeur texte s’écrit entre guillemets simples : <code>WHERE ville = 'Paris'</code>.<br><br>Sans les guillemets simples, SQL peut interpréter <code>Paris</code> comme le nom d’une colonne et provoquer une erreur."},
+  retenir:"<code>WHERE</code> garde les lignes qui respectent une condition et écarte les autres <b>du résultat</b> : la table n’est pas modifiée.<br><br>Elle se place après <code>FROM</code> : <code>WHERE ville = 'Paris'</code>.<br><br>Un texte s’écrit entre guillemets simples, et la casse compte : <code>'Paris'</code> n’est pas <code>'paris'</code>.",
   consigne:"Affiche toutes les colonnes des clients qui habitent à Paris.",
   solution:"SELECT * FROM clients WHERE ville = 'Paris';",
   indice:"Ajoute un filtre après <code>FROM clients</code> pour garder uniquement les lignes où <code>ville</code> vaut <code>'Paris'</code>.",
-  richLesson:true, earlyDemo:true ,
-testeVariants:[
-  {
-    "k": "base",
-    "label": "Exemple",
-    "sql": "SELECT * FROM clients WHERE ville = 'Paris';"
-  },
-  {
-    "k": "rec_truth",
-    "label": "Tester chaque ligne",
-    "sql": "SELECT nom, ville, ville = 'Paris' AS conservee FROM clients;",
-    "out": "1 signifie vrai ; 0 signifie faux. Le SELECT ne supprime rien.",
-    "expectRows": 10
-  }
-]
-,
-learningCheck:{
-  "question": "WHERE ville = 'Paris' supprime-t-il les autres clients de la table ?",
-  "options": [
-    "Oui, définitivement",
-    "Seulement si on valide",
-    "Non, il les écarte du résultat"
-  ],
-  "answer": 2,
-  "explanation": "Le SELECT lit les données. Une ligne figure dans le résultat si la condition est vraie ; la table reste intacte."
-}
-},
+  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT * FROM clients WHERE ville = 'Paris';"},{k:"rec_truth",label:"Tester chaque ligne",sql:"SELECT nom, ville, ville = 'Paris' AS conservee FROM clients;",out:"1 signifie vrai ; 0 signifie faux. Le SELECT ne supprime rien.",expectRows:10}],
+  learningCheck:{question:"WHERE ville = 'Paris' supprime-t-il les autres clients de la table ?",options:["Oui, définitivement","Seulement si on valide","Non, il les écarte du résultat"],answer:2,explanation:"Le SELECT lit les données. Une ligne figure dans le résultat si la condition est vraie ; la table reste intacte."}
+}),
 { id:5, titre:"Comparer des valeurs", résumé:"Filtrer avec =, !=, >, <, >=, <=",
   situation:"Ton équipe marketing prépare une sélection de produits à mettre en avant dans une campagne.<br><br>Elle souhaite récupérer tous les produits qui coûtent plus de 25 €.<br><br>Jusqu’ici, tu as utilisé <code>=</code> pour rechercher une valeur précise :",
   situationSql:"WHERE prix = 24.90",
@@ -26011,7 +26061,7 @@ function prStage(sc){
   return sc.lanes.map(L=>`<div class="pr-lane${L.cls?' '+L.cls:''}${L.fold?' is-fold':''}"${L.k?` data-k="${L.k}"`:''}>${L.l?`<span class="pr-ll">${L.l}</span>`:''}<div class="pr-cells">${L.c.map(prCell).join('')}</div></div>`).join('');
 }
 function initProbScenes(){
-  const cfg=current&&PROB_SCENES[current.id];
+  const cfg=current&&(PROB_SCENES[current.id]||GUIDE_SCENES[current.id]);
   if(!cfg)return;
   const memo=document.querySelector('#lesson-body .sit-memo.is-problem');
   if(!memo||memo.querySelector('.pr-scene'))return;
@@ -26024,7 +26074,8 @@ function initProbScenes(){
   root.classList.toggle('has-cols',!!cfg.cols);
   const hm=/^(\S+)\s+(.*)$/.exec(cfg.h);
   root.innerHTML=`<div class="pr-h"><span>${hm?`<i class="pr-ico" aria-hidden="true">${hm[1]}</i><span>${hm[2]}</span>`:cfg.h}</span><button type="button" class="pr-replay" aria-label="Rejouer l’animation" title="Rejouer"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button></div><div class="pr-stage" aria-hidden="true"></div><div class="pr-caps" aria-hidden="true">${cfg.caps.map(c=>`<span class="pr-cap">${c}</span>`).join('')}</div>`;
-  memo.append(root);
+  const slot=memo.querySelector('.pr-slot');
+  if(slot)slot.replaceWith(root);else memo.append(root);
   const stage=root.querySelector('.pr-stage'),caps=[...root.querySelectorAll('.pr-cap')];
   let tok=0,timers=[];
   const q=k=>stage.querySelector(`[data-k="${k}"]`);
@@ -36110,7 +36161,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1542';
+  const SW_CACHE='requete-2026-09-30-ludique-v1543';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
