@@ -10707,7 +10707,7 @@ function guideBlocks(a){return (a||[]).map(guideBlock).join('\n');}
 function guide(spec){
   const {id,titre,sit,concept,steps,reflex}=spec;
   const memoP=sit&&sit.problem;
-  const situation=(sit.blocks?guideBlocks(sit.blocks):'')+(memoP?`<div class="sit-memo is-problem"><p class="sit-memo-lab"><i aria-hidden="true">🤔</i>Problème</p>${(memoP.p||[]).map(x=>`<p>${guideFr(x)}</p>`).join('')}${memoP.scene?'<div class="pr-slot"></div>':''}${memoP.then?`<p>👉 ${guideFr(memoP.then)}</p>`:''}</div>`:'');
+  const situation=(sit.blocks?guideBlocks(sit.blocks):'')+(memoP?`<div class="sit-memo is-problem"><p class="sit-memo-lab"><i aria-hidden="true">🤔</i>Problème</p>${(memoP.p||[]).map(x=>`<p>${guideFr(x)}</p>`).join('')}${memoP.scene?'<div class="pr-slot"></div>':''}${[].concat(memoP.then||[]).map((x,i)=>`<p>${i?'':'👉 '}${guideFr(x)}</p>`).join('')}</div>`:'');
   if(memoP&&memoP.scene)GUIDE_SCENES[id]=memoP.scene;
   const lesson={id,titre,résumé:spec.résumé,situation,
     studio:{problem:{eye:'',title:guideFr(concept.title),body:guideFr(concept.body||''),extra:guideBlocks(concept.blocks)},
@@ -11128,22 +11128,23 @@ learningCheck:{
 guide({ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
   sit:{
     blocks:[
-      "L’e-commerce prépare une <b>campagne réservée aux clients parisiens</b>.",
-      "La table <code>clients</code> en contient <b>10</b>. Pour cibler la campagne, deux informations suffisent :",
-      {need:[["👤","Nom du client","table clients"],["📍","Ville du client","table clients","b"]],label:"Les informations utiles"}
+      "L’équipe marketing prépare une <b>invitation à un événement organisé à Paris</b>.",
+      "La table <code>clients</code> contient <b>10 clients</b>, répartis dans plusieurs villes. Pour envoyer les invitations, l’équipe souhaite récupérer uniquement :",
+      {need:[["👤","Le nom du client","colonne nom"],["📍","Sa ville","colonne ville","b"]],label:"Les informations à récupérer"},
+      "Mais seuls les clients qui habitent à <b>Paris</b> doivent apparaître dans la liste."
     ],
     problem:{
-      p:["Un <code>SELECT</code> renvoie <b>toutes les lignes</b> de la table : les 10 clients, quelle que soit leur ville.","Or, la campagne ne concerne que ceux qui habitent à <b>Paris</b>."],
+      p:["Avec <code>SELECT</code>, SQL sait quelles <b>colonnes</b> afficher, mais il récupère encore les clients de <b>toutes les villes</b>.","Or, Lyon, Bordeaux ou Toulouse ne nous intéressent pas ici."],
       scene:{h:"🔎 Clients conservés",cols:"1fr 1fr",
         lanes:[{c:[["","nom","t"],["","ville","t"]]},
           {k:"R1",c:[["a1","Sophie"],["a2","Paris"]]},
           {k:"R2",c:[["b1","Lucas"],["b2","Lyon"]]},
-          {k:"R3",c:[["c1","Emma"],["c2","Marseille"]]},
+          {k:"R3",c:[["c1","Gabriel"],["c2","Toulouse"]]},
           {k:"R4",c:[["d1","Nathan"],["d2","Paris"]]},
           {k:"R5",c:[["e1","Chloé"],["e2","Bordeaux"]]}],
         caps:["<b>Sans filtre</b> · Un <code>SELECT</code> affiche toutes les lignes de la table.","<b>Condition</b> · Pour chaque ligne, SQL vérifie si la ville est <b>Paris</b>.","<b>Résultat</b> · Seules les lignes qui respectent la condition sont conservées."],
         steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R2","R3","R5"],dim:["R2","R3","R5"],d:2300},{cap:2,fold:["R2","R3","R5"],d:2600}]},
-      then:"Il faut donc dire à SQL <b>quelles lignes garder</b>."
+      then:["Il faut donc indiquer à SQL <b>quelles lignes conserver</b> : uniquement celles où la ville est <b>Paris</b>.","C’est exactement le rôle de <code>WHERE</code>."]
     }
   },
   concept:{
@@ -36180,7 +36181,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-02-palier-v1544';
+  const SW_CACHE='requete-2026-10-03-ludique-v1545';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
