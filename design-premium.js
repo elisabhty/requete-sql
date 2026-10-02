@@ -36,6 +36,10 @@
     if(!screen||SKIP[screen.id])return;
     var bar=ensureBar(screen);
     var on=screen.scrollTop>THRESHOLD;
+    /* Dès que le contenu commence à passer sous le bouton retour, la barre
+       devient opaque : le grand titre ne se chevauche jamais avec le bouton. */
+    var lift=screen.scrollTop>2;
+    if(screen.classList.contains('p-lift')!==lift)screen.classList.toggle('p-lift',lift);
     if(on){
       var t=titleOf(screen);
       var span=bar.firstChild;
