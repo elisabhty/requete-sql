@@ -38,7 +38,8 @@ npm run ios
 ## Points App Store
 
 - **Confidentialité (App Store Connect)** : l’app ne collecte rien sans compte.
-  Seul le mode *Jouer* envoie un pseudo, des temps et des réactions via ntfy.sh, un service tiers.
+  Seule la *Salle de défi* en mode « Entre amis » envoie un pseudo, des temps, un signe de vie et des réactions via ntfy.sh, un service tiers.
+  Le mode « Seul » reste entièrement sur l’appareil (aucun réseau).
   Déclare-les comme « Contenu utilisateur – Autre », non liés à l’identité et sans pistage.
   Pour une vraie mise en production, il vaut mieux un service temps réel à ton nom (Supabase, Firebase…).
 - **Politique de confidentialité** : Apple demande une URL publique. Le texte existe dans l’app

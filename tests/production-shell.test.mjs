@@ -93,8 +93,8 @@ assert(html.includes('aria-label="${pct}% des défis réussis"') && html.include
 assert(html.includes('class="def-row-valid"') && html.includes('<em>Validé</em>'), 'chaque défi réussi porte un libellé Validé explicite');
 assert(html.includes("selectedDone===selected.length?'Niveau validé':'Choisis ton défi'"), 'niveau entier explicitement validé lorsque tous ses défis sont réussis');
 assert(html.includes('renderDefis(catalogOnly=false)') && html.includes('renderDefis(true)') && html.includes('def-list-static'), 'changement de difficulté sans reconstruction du bandeau ni animation blanche');
-assert(html.includes('function planOverviewHTML(st)') && html.includes('pl-overview-ring') && html.includes('Avancement global') && html.includes('Prochain cap'), 'Parcours présente un résumé global, un pourcentage et la prochaine activité');
-assert(html.includes('pl-overview-stats') && html.includes('doneLessons') && html.includes('doneChallenges'), 'statistiques du parcours calculées depuis les leçons et défis réellement validés');
+assert(html.includes('function planOverviewHTML(st)') && html.includes('class="pgr-donut"') && html.includes('Avancement global') && html.includes('Prochain cap'), 'Parcours présente un résumé global, un pourcentage et la prochaine activité');
+assert(html.includes('class="pgr-stats"') && html.includes('doneLessons') && html.includes('doneChallenges') && html.includes('class="pgr-bars"'), 'statistiques et graphique d’activité du parcours calculés depuis les leçons et défis réellement validés');
 assert(html.includes('Les 7 prochains jours') && html.includes('pl-week-legend') && html.includes('weekComplete'), 'planning hebdomadaire annonce les séances prévues et validées');
 assert(html.includes('class="pl-chip-valid"') && html.includes("<i aria-hidden=\"true\">✓</i>Validé"), 'activités terminées explicitement marquées Validé dans le planning');
 assert(html.includes('Séance validée') && html.includes('dp-session-valid'), 'séance complète explicitement marquée validée');
@@ -132,7 +132,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
 assert(html.includes('{ id:73, titre:"UNION et UNION ALL"') && html.includes('18 lignes : 10 + 8') && !html.includes('17 lignes : 9 + 8'), 'UNION ALL visible et cardinalité corrigée');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-09-30-ludique-v1541') && html.includes('requete-2026-09-30-ludique-v1541') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-09-30-ludique-v1542') && html.includes('requete-2026-09-30-ludique-v1542') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
