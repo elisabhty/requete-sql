@@ -10699,7 +10699,7 @@ function guideBlock(b){
   if(b.table){
     const t=b.table,n=t.head.length,hit=new Set((t.hit||[]).map(([r,c])=>r+','+c));
     const cells=t.head.map(h=>`<span class="is-h">${guideFr(h)}</span>`).join('')+t.rows.map((r,i)=>r.map((c,j)=>`<span${c==='NULL'?' class="is-null"':hit.has(i+','+j)?' class="is-hit"':''}>${guideFr(c)}</span>`).join('')).join('');
-    return `<div class="pk-comp ij-t"><p class="ij-tlab">${guideFr(t.label)}</p><div class="pk-mini${n>2?' is-'+n:' is-2'}">${cells}</div>${t.more?`<p class="ij-tmore">${guideFr(t.more)}</p>`:''}</div>`;
+    return `<div class="pk-comp ij-t"><p class="ij-tlab">${guideFr(t.label)}</p><div class="pk-mini${n>2?' is-'+n:' is-2'}"${t.cols?` style="grid-template-columns:${t.cols}"`:''}>${cells}</div>${t.more?`<p class="ij-tmore">${guideFr(t.more)}</p>`:''}</div>`;
   }
   throw new Error('bloc de cours inconnu : '+JSON.stringify(b).slice(0,80));
 }
@@ -11149,12 +11149,13 @@ guide({ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
   },
   concept:{
     title:"Comment garder seulement certaines lignes ?",
-    body:"Regardons quelques clients :",
+    body:"SQL teste chaque ligne <b>une par une</b> avec une condition. Dans notre cas, il vérifie :",
     blocks:[
-      {table:{label:"clients",head:["nom","ville","ville = 'Paris' ?"],rows:[["Sophie","Paris","vrai"],["Lucas","Lyon","faux"],["Emma","Marseille","faux"],["Nathan","Paris","vrai"]],hit:[[0,2],[3,2]],more:"… et 6 autres clients"}},
-      "Pour chaque ligne, SQL pose une question : <b>la condition est-elle vraie ?</b>",
-      {looks:[["vraie","la ligne est conservée dans le résultat"],["fausse","la ligne est écartée du résultat"]],label:"Vrai ou faux"},
-      {arrow:"Cette condition s’écrit dans la clause <code>WHERE</code>."}
+      {syntax:"⟦ville = 'Paris'⟧ ?"},
+      {table:{label:"clients",cols:"minmax(0,.9fr) minmax(0,1fr) minmax(0,1.8fr)",head:["nom","ville","La condition est-elle vraie ?"],rows:[["Sophie","Paris","✅ vraie → gardée"],["Lucas","Lyon","❌ fausse → écartée"],["Emma","Marseille","❌ fausse → écartée"],["Nathan","Paris","✅ vraie → gardée"]],hit:[[0,2],[3,2]],more:"… et 6 autres clients"}},
+      "SQL ne garde que les lignes pour lesquelles la condition est <b>vraie</b>.",
+      {looks:[["vraie","la ligne apparaît dans le résultat"],["fausse","la ligne n’apparaît pas"]],label:"Vrai ou faux"},
+      {arrow:"Pour écrire cette condition dans une requête, on utilise <code>WHERE</code>."}
     ]
   },
   steps:[
@@ -36181,7 +36182,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-03-ludique-v1545';
+  const SW_CACHE='requete-2026-10-03-ludique-v1547';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
