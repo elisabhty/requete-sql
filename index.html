@@ -9708,6 +9708,39 @@
 .catalog-search p{margin:8px 2px 0;font-size:12px;color:var(--ink-2)}
 .catalog-search p:empty{display:none}
 .catalog-no-results{padding:20px;background:var(--surface);border-radius:16px;font-size:14px;line-height:1.7;color:var(--ink-2)}
+.catalog-no-results{text-align:center}
+.sq-empty-ico{font-size:30px;line-height:1;margin:2px 0 8px}
+.sq-chips-row{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.sq-chips-row[hidden]{display:none}
+.sq-chips-row .sq-chip{display:inline-flex;align-items:center;gap:7px;min-height:40px}
+.sq-chip em{font:650 11px var(--mono);font-style:normal;opacity:.8}
+.sq-chip.on,.sq-chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink)}
+.sq-status{margin:8px 2px 0;font:600 12px/1.5 var(--ui);color:var(--ink-2)}
+.sq-status:empty{display:none}
+.sq-reset{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:14px;padding:0 18px;border:0;border-radius:12px;background:var(--accent-soft);color:var(--accent-ink);font:650 13px var(--ui);cursor:pointer;transition:transform .16s var(--spring-ios)}
+.sq-reset:active{transform:scale(.96)}
+.console-query-search{position:relative}
+.console-query-clear{flex:none;min-width:44px;min-height:44px;margin-right:-10px;border:0;background:none;color:var(--ink-3);font-size:16px;cursor:pointer}
+.console-query-clear[hidden]{display:none}
+.notes-hub .sq-chips-row{margin:12px 2px 2px}
+.notes-hub .sq-status{margin-left:6px}
+mark.sq-hit{background:color-mix(in srgb,var(--accent) 17%,transparent);color:inherit;border-radius:4px;padding:0 1px;box-shadow:inset 0 -2px 0 color-mix(in srgb,var(--accent) 45%,transparent)}
+.catalog-search>.sq-suggest{margin:10px 0 2px;padding:0;border:0;background:none;border-radius:0;display:flex;flex-direction:column;align-items:stretch;gap:8px}
+.catalog-search>.sq-suggest[hidden]{display:none}
+.sq-suggest-row{display:flex;flex-wrap:wrap;align-items:center;gap:7px}
+.sq-suggest-row>span{flex:none;min-width:56px;font:650 11px var(--ui);letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)}
+.sq-chip{min-height:36px;padding:0 13px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--accent-ink);font:650 13px var(--ui);cursor:pointer;transition:transform .16s var(--spring-ios),background .15s,border-color .15s;-webkit-tap-highlight-color:transparent}
+.sq-chip.recent{border-style:dashed}
+.sq-chip:active{transform:scale(.94);background:var(--accent-soft)}
+.sq-chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sq-mod,.sq-why{display:block;flex-basis:100%;margin:2px 0 0;font:600 11px/1.45 var(--ui);font-style:normal;color:var(--ink-3)}
+.sq-why{color:var(--accent-ink)}
+@keyframes sqRowIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.sq-list .sq-row{animation:sqRowIn .34s var(--spring-ios) both;animation-delay:calc(var(--i,0)*28ms)}
+.sq-sep{padding:9px 14px 7px;border-top:1px solid var(--line);background:var(--surface-2);font:650 11px var(--ui);letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)}
+.catalog-search>div:has(input:not(:placeholder-shown)){border-color:var(--accent)}
+@media (prefers-reduced-motion:reduce){.sq-list .sq-row{animation:none}}
+html[data-motion="reduce"] .sq-list .sq-row{animation:none}
 #modules>.home-module[hidden],#course-search-results[hidden]{display:none}
 #course-search-results .row{min-height:64px}
 #defis-hero .def-focus-stats{display:none}
@@ -10305,7 +10338,9 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
         </section>
 
         <div class="console-library-tools" id="console-library-tools" hidden>
-          <label class="console-query-search" for="console-query-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><input id="console-query-search" type="search" aria-label="Rechercher dans les requêtes" placeholder="Rechercher une requête" autocomplete="off" oninput="filterConsoleQueries(this.value)"></label>
+          <label class="console-query-search" for="console-query-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><input id="console-query-search" type="search" aria-label="Rechercher dans les requêtes" placeholder="Rechercher une requête" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" inputmode="search" onkeydown="consoleQueryKey(event)" oninput="filterConsoleQueries(this.value)"><button type="button" class="console-query-clear" id="console-query-clear" aria-label="Effacer la recherche" onclick="clearConsoleQuerySearch()" hidden>✕</button></label>
+          <div class="sq-chips-row" id="console-hist-filter" role="group" aria-label="Filtrer l’historique" hidden></div>
+          <p class="sq-status" id="console-query-status" role="status" aria-live="polite" aria-atomic="true"></p>
         </div>
 
         <section class="console-project-panel console-library-panel" id="console-panel-pins" role="tabpanel" aria-labelledby="console-tab-pins" hidden>
@@ -20085,7 +20120,7 @@ const COURS_DEFAULT_SQL="SELECT ville, COUNT(*) AS nb\nFROM clients\nGROUP BY vi
 let projState={};
 let consoleProjectPanel='editor';
 let consoleSchemaOpen=false;
-let consoleQuerySearch='';
+let consoleQuerySearch='',consoleHistFilter='all';
 let consoleCreateOpen=false;
 const CONSOLE_DB_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M5 5v7c0 1.7 3.1 3 7 3s7-1.3 7-3V5M5 12v7c0 1.7 3.1 3 7 3s7-1.3 7-3v-7"/></svg>';
 const CONSOLE_CHEV_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
@@ -20488,6 +20523,7 @@ function syncConsoleProjectPanels(){
   if(hc)hc.textContent=p.hist.length>99?'99+':p.hist.length;
   const search=document.getElementById('console-query-search');
   if(search&&search.value!==consoleQuerySearch)search.value=consoleQuerySearch;
+  const cclear=document.getElementById('console-query-clear');if(cclear)cclear.hidden=!consoleQuerySearch;
   const clear=document.getElementById('console-clear-history');
   if(clear)clear.disabled=!p.hist.length;
 }
@@ -20513,6 +20549,21 @@ function onConsoleTabsKey(event){
 function filterConsoleQueries(value){
   consoleQuerySearch=String(value||'');
   renderConsoleSide();
+}
+function clearConsoleQuerySearch(){
+  consoleQuerySearch='';
+  const input=document.getElementById('console-query-search');if(input){input.value='';input.focus({preventScroll:true});}
+  renderConsoleSide();
+}
+function setConsoleHistFilter(k){
+  if(!['all','ok','err'].includes(k))return;
+  consoleHistFilter=consoleHistFilter===k&&k!=='all'?'all':k;
+  renderConsoleSide();
+  if(navigator.vibrate)navigator.vibrate(6);
+}
+function consoleQueryKey(e){
+  if(e.key==='Escape'){e.preventDefault();if(e.target.value)clearConsoleQuerySearch();else e.target.blur();}
+  else if(e.key==='Enter')e.target.blur();
 }
 function consoleSqlKey(sql){
   const src=String(sql||'').trim();
@@ -20576,9 +20627,13 @@ function renderConsoleSide(){
   const p=projOf(activeDbId);
   const pins=document.getElementById('console-pins');
   const hist=document.getElementById('console-hist');
-  const q=consoleQuerySearch.trim().toLowerCase();
-  const pinRows=p.pins.map((it,i)=>({it,i})).filter(({it})=>!q||String(it.sql||'').toLowerCase().includes(q));
-  const histRows=p.hist.map((it,i)=>({it,i})).filter(({it})=>!q||String(it.sql||'').toLowerCase().includes(q)||(it.err&&String(it.err).toLowerCase().includes(q)));
+  const q=consoleQuerySearch.trim();
+  const qTok=SQ.fold(q).split(' ').filter(Boolean);
+  const pinRows=p.pins.map((it,i)=>({it,i})).filter(({it})=>SQ.matches(qTok,it.sql));
+  const searched=p.hist.map((it,i)=>({it,i})).filter(({it})=>SQ.matches(qTok,it.sql,it.err));
+  const hc={all:searched.length,ok:searched.filter(({it})=>it.ok).length,err:searched.filter(({it})=>!it.ok).length};
+  if(consoleHistFilter!=='all'&&!hc[consoleHistFilter])consoleHistFilter='all';
+  const histRows=consoleHistFilter==='ok'?searched.filter(({it})=>it.ok):consoleHistFilter==='err'?searched.filter(({it})=>!it.ok):searched;
   const pinnedSql=new Set(p.pins.map(it=>consoleSqlKey(it.sql)));
   if(pins){
     pins.innerHTML=pinRows.length
@@ -20589,7 +20644,8 @@ function renderConsoleSide(){
           </button>
           <button type="button" class="console-query-pin on" onclick="unpinConsoleQuery(${i})" aria-label="Désépingler cette requête" aria-pressed="true">${CONSOLE_UNPIN_SVG}</button>
         </div>`).join('')
-      : `<p class="console-query-empty"><b>${q?'Aucun résultat':'Aucune requête épinglée'}</b>${q?'Essaie un autre mot-clé.':'Épingle une requête utile pour la retrouver ici.'}</p>`;
+      : `<p class="console-query-empty"><b>${q?'Aucun résultat':'Aucune requête épinglée'}</b>${q?'Essaie un autre mot-clé.':'Épingle une requête utile pour la retrouver ici.'}${q?'<button type="button" class="sq-reset" onclick="clearConsoleQuerySearch()">Effacer la recherche</button>':''}</p>`;
+    if(qTok.length)SQ.mark(pins.querySelectorAll('code'),qTok);
   }
   if(hist){
     hist.innerHTML=histRows.length
@@ -20606,8 +20662,16 @@ function renderConsoleSide(){
             <button type="button" class="console-query-pin ${on?'on':''}" onclick="toggleHistoryPin(${i})" aria-label="${on?'Désépingler':'Épingler'} cette requête" aria-pressed="${on?'true':'false'}">${on?CONSOLE_UNPIN_SVG:CONSOLE_PIN_SVG}</button>
           </div>`;
         }).join('')
-      : `<p class="console-query-empty"><b>${q?'Aucun résultat':'Historique vide'}</b>${q?'Essaie un autre mot-clé.':'Chaque exécution apparaîtra ici avec son résultat.'}</p>`;
+      : `<p class="console-query-empty"><b>${q?'Aucun résultat':consoleHistFilter==='err'?'Aucune erreur':consoleHistFilter==='ok'?'Aucune exécution réussie':'Historique vide'}</b>${q?'Essaie un autre mot-clé.':'Chaque exécution apparaîtra ici avec son résultat.'}${q?'<button type="button" class="sq-reset" onclick="clearConsoleQuerySearch()">Effacer la recherche</button>':''}</p>`;
+    if(qTok.length)SQ.mark(hist.querySelectorAll('code'),qTok);
   }
+  const hf=document.getElementById('console-hist-filter');
+  if(hf){
+    hf.hidden=consoleProjectPanel!=='history'||(p.hist.length<2&&consoleHistFilter==='all');
+    hf.innerHTML=[['all','Toutes'],['ok','Réussies'],['err','Erreurs']].map(([k,l])=>`<button type="button" class="sq-chip${consoleHistFilter===k?' on':''}" aria-pressed="${consoleHistFilter===k}" onclick="setConsoleHistFilter('${k}')">${l}<em>${hc[k]}</em></button>`).join('');
+  }
+  const cs=document.getElementById('console-query-status');
+  if(cs)cs.textContent=(qTok.length||consoleHistFilter!=='all')?(consoleProjectPanel==='pins'?plur(pinRows.length,'requête'):plur(histRows.length,'exécution'))+' affichée'+((consoleProjectPanel==='pins'?pinRows.length:histRows.length)>1?'s':''):'';
   syncConsoleProjectPanels();
   updateConsolePinButton();
 }
@@ -22264,6 +22328,260 @@ function jumpToSection(selector){
 }
 let courseSearch='';
 let courseFilter='all';
+/* ============================================================
+   RECHERCHE — moteur commun (cours, notes, requêtes de la console)
+   • insensible aux accents, à la casse, aux apostrophes et aux tirets
+   • plusieurs mots = tous doivent être trouvés (ET)
+   • mots entiers > début de mot > fragment ; une faute de frappe est tolérée
+   • classement : titre > synonymes > mots-clés SQL du cours > résumé > texte
+   • surlignage des mots trouvés (accents ignorés)
+   ============================================================ */
+const SQ_STOP=new Set(['le','la','les','l','de','du','des','d','un','une','et','ou','en','dans','avec','sur','par','pour','au','aux','a','je','veux','comment','faire','cours','lecon','chapitre','lesson']);
+const SQ_ALIASES={
+  0:'base de donnees relationnelle table colonne ligne enregistrement champ cle schema sgbd',
+  1:'choisir colonnes afficher lister projection select requete de base',
+  2:'alias renommer nom colonne as intitule libelle',
+  3:'toutes les colonnes etoile tout afficher select *',
+  13:'doublons doublon unique valeurs distinctes dedoublonner distinct sans doublon supprimer les doublons enlever doublons',
+  4:'filtrer filtre condition critere clause where lignes selectionner',
+  5:'comparer comparaison egal different superieur inferieur plus grand plus petit = != <> > < >= <= operateurs',
+  6:'et conditions multiples deux conditions cumuler and',
+  29:'ou alternative une des conditions or',
+  22:'pas negation exclure sauf different de not',
+  7:'null vide absent manquant valeur inconnue is null is not null sans valeur',
+  8:'like motif recherche texte commence par finit par contient joker pourcentage % _ wildcard',
+  9:'in liste plusieurs valeurs appartient parmi not in',
+  10:'between entre intervalle plage bornes dates',
+  11:'order by trier tri classer ordre croissant decroissant asc desc',
+  24:'order by trier plusieurs colonnes departager egalite second critere tri multiple',
+  12:'limit limiter nombre lignes top premiers premieres n premieres',
+  75:'offset pagination pages decalage page suivante limit offset',
+  51:'texte chaine upper lower trim length substr concat remplacer majuscule minuscule longueur sous chaine nettoyer replace instr',
+  52:'nombres round arrondir abs ceil floor modulo calcul numerique mathematiques',
+  53:'dates heures date now strftime annee mois jour extraire difference jours age calendrier',
+  54:'conversion cast type convertir entier texte nombre texte en nombre nombre en texte decimal',
+  21:'case when then else condition si sinon etiquette categorie conditionnel',
+  23:'coalesce ifnull nullif remplacer null valeur par defaut',
+  14:'count compter nombre de lignes comptage count(*) count distinct',
+  16:'group by regrouper grouper groupe par agregat calcul par groupe avg sum min max moyenne somme total maximum minimum fonctions d agregation agregats',
+  17:'having filtrer groupes apres regroupement condition sur agregat',
+  76:'group concat rassembler concatener liste texte groupe string agg',
+  34:'cle primaire pk primary key identifiant unique id',
+  35:'cle etrangere fk foreign key reference lien integrite referentielle',
+  36:'relations 1-1 1-n n-n un a plusieurs plusieurs a plusieurs cardinalite liens tables table de liaison',
+  18:'inner join jointure interne relier tables correspondance on',
+  20:'left join jointure gauche garder lignes sans correspondance null clients sans commande sans commande',
+  38:'right join jointure droite',
+  39:'full outer join full join jointure complete tout garder',
+  40:'cross join produit cartesien combinaisons',
+  44:'quel join choisir comparer jointures inner left right',
+  19:'jointure trois tables plusieurs jointures chainer 3 tables',
+  41:'join group by compter par ville jointure et regroupement',
+  42:'self join auto jointure meme table alias deux fois',
+  49:'on conditions multiples and dans on jointure filtre',
+  45:'sous requete subquery in where imbriquee not in',
+  47:'sous requete dans select subquery scalaire valeur par ligne',
+  48:'sous requete dans from table derivee subquery from',
+  55:'exists not exists existence absence correlee clients sans commande jamais commande not in',
+  59:'with cte common table expression requete intermediaire nommee',
+  77:'with recursive cte recursive suite serie recursion generer',
+  73:'union union all empiler fusionner resultats concatener requetes',
+  80:'intersect except difference intersection comparer resultats minus',
+  60:'over fonction de fenetre window partition by sans regrouper',
+  74:'rank dense rank row number classement rang ex aequo podium top',
+  78:'lag lead precedente suivante valeur precedente comparer ligne precedente decalage evolution',
+  79:'fenetres glissantes cumul moyenne mobile rows between unbounded preceding following cadre running total ntile',
+  56:'normalisation formes normales 1fn 2fn 3fn redondance modelisation',
+  72:'relations 1-1 1-n n-n modelisation cardinalite association table de liaison',
+  61:'create table creer table structure types colonnes contraintes',
+  65:'alter table ajouter colonne modifier structure renommer add column',
+  66:'drop supprimer table structure drop table vue index vider table',
+  26:'insert into ajouter ligne insertion values nouvelle ligne',
+  27:'update modifier mettre a jour set lignes valeurs changer',
+  28:'delete supprimer lignes effacer from where vider une table vider table supprimer toutes les lignes',
+  69:'insert multiple on conflict upsert doublons or ignore replace inserer plusieurs lignes',
+  67:'contraintes not null unique check default refuser regles integrite',
+  68:'on delete cascade set null restrict supprimer lignes liees',
+  62:'transaction begin commit rollback valider annuler acid atomicite',
+  63:'savepoint point de sauvegarde rollback to partiel transaction',
+  70:'trigger declencheur reagir automatiquement before after evenement',
+  71:'concurrence isolation verrou lock deadlock lectures ecritures simultanees',
+  64:'create view vue requete enregistree nommer virtual table',
+  57:'index create index performance rapide optimiser recherche accelerer',
+  58:'explain query plan plan d execution lenteur optimisation requete lente',
+  50:'securite droits grant revoke permissions acces utilisateurs roles'
+};
+const SQ={
+  /* texte « plié » : minuscules, sans accents, séparateurs → espace (1 caractère → 1 caractère) */
+  foldChar(c){
+    if(c==='œ')return 'o';if(c==='æ')return 'a';
+    const n=c.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+    if(!n)return '';
+    return /[-_.,;:()«»"'’‘`´\/\\  \[\]{}|?¿¡]/.test(n)?' ':n.charAt(0);
+  },
+  fold(s){
+    let out='';
+    const src=String(s==null?'':s);
+    for(let i=0;i<src.length;i++){
+      const f=SQ.foldChar(src[i]);
+      out+=f===''?'':f;
+    }
+    return out.replace(/\s+/g,' ').trim();
+  },
+  tokens(q){
+    const all=SQ.fold(q).split(' ').filter(Boolean);
+    const kept=all.filter(t=>!SQ_STOP.has(t));
+    return kept.length?kept:(all.length===1&&!SQ_STOP.has(all[0])?all:[]);
+  },
+  near(a,b){
+    if(a===b)return true;
+    const la=a.length,lb=b.length;
+    if(Math.abs(la-lb)>1)return false;
+    let i=0;while(i<la&&i<lb&&a[i]===b[i])i++;
+    if(la===lb)return a.slice(i+1)===b.slice(i+1)||(a[i]===b[i+1]&&a[i+1]===b[i]&&a.slice(i+2)===b.slice(i+2));
+    const s=la<lb?a:b,l=la<lb?b:a;
+    return s.slice(i)===l.slice(i+1);
+  },
+  /* force du lien entre un mot saisi et un mot du texte (0 = aucun) ;
+     strict = texte courant : mot entier ou début de mot seulement */
+  wordScore(t,w,strict,last){
+    if(w===t)return 4;
+    if(t.length>=(strict?(last?4:5):(last?2:4))&&w.startsWith(t))return 3;
+    if(t.length>=4&&w.length>=4&&t.startsWith(w)&&t.length-w.length<=2)return 3;
+    if(strict)return 0;
+    if(t.length>=4&&w.includes(t))return 2;
+    if(t.length>=6&&w.length>=6&&t.slice(0,6)===w.slice(0,6))return 2;
+    if(t.length>=5&&w.length>=4&&SQ.near(t,w))return 1.5;
+    if(t.length===4&&w.length>=4&&w.length<=6&&t.slice(0,2)===w.slice(0,2)&&SQ.near(t,w))return 1.2;
+    return 0;
+  },
+  _idx:null,
+  index(){
+    if(SQ._idx)return SQ._idx;
+    const strip=h=>SQ.fold(String(h).replace(/<[^>]+>/g,' ').replace(/&nbsp;|&#10;/g,' ').replace(/&[a-z]+;/g,' '));
+    const rows=[];
+    MODULES.forEach((module,mi)=>module.lessons.forEach(l=>{
+      const parts=[];
+      const walk=(v,d)=>{
+        if(d>7||v==null)return;
+        if(typeof v==='string'){parts.push(v);return;}
+        if(Array.isArray(v)){v.forEach(x=>walk(x,d+1));return;}
+        if(typeof v==='object')Object.keys(v).forEach(k=>{if(!/^(icon|svg|color)$/i.test(k))walk(v[k],d+1);});
+      };
+      walk(l,0);
+      const raw=parts.join(' ');
+      const kw=new Set();
+      const codeSrc=[l.solution,l.exemple,l.retenir,...(l.anatomie||[]).map(a=>a.tok),...(l.testeVariants||[]).map(v=>v.sql)].filter(Boolean).join(' ');
+      (codeSrc.match(/\b[A-Z][A-Z_]{1,}\b/g)||[]).forEach(w=>SQ.fold(w).split(' ').forEach(x=>x&&kw.add(x)));
+      (codeSrc.match(/\b[A-Za-z_]{2,}(?=\()/g)||[]).forEach(w=>SQ.fold(w).split(' ').forEach(x=>x&&kw.add(x)));
+      const words=s=>[...new Set(SQ.fold(s).split(' ').filter(Boolean))];
+      const bodyFold=strip(raw);
+      rows.push({lesson:l,module,mi,
+        titre:words(l.titre),titreFold:SQ.fold(l.titre),
+        resume:words(l.résumé||''),resumeFold:SQ.fold(l.résumé||''),
+        mod:words(module.titre),
+        alias:words(SQ_ALIASES[l.id]||''),aliasFold:SQ.fold(SQ_ALIASES[l.id]||''),
+        kw:[...kw],
+        bodyFold:bodyFold,
+        body:[...new Set(bodyFold.split(' ').filter(w=>w.length>2))],
+        id:String(l.id)});
+    }));
+    SQ._idx=rows;return rows;
+  },
+  /* classe les leçons ; retourne {tokens,hits:[{row,score,why,partial}]}.
+     Tous les mots doivent être trouvés (les nombres sont facultatifs s’il y a d’autres mots) ;
+     s’il y a trop peu de résultats, on ajoute les leçons qui contiennent une partie des mots. */
+  searchLessons(query){
+    const tokens=SQ.tokens(query);
+    if(!tokens.length)return {tokens,hits:[]};
+    const W={titre:6,alias:5,kw:4,resume:3,mod:1.5,body:1};
+    const strictHits=[],partial=[];
+    const words=tokens.filter(t=>!/^\d+$/.test(t));
+    SQ.index().forEach((row,order)=>{
+      let total=0,found=0,missing=0;const why={};
+      for(const t of tokens){
+        const lastTok=t===tokens[tokens.length-1];
+        const numeric=/^\d+$/.test(t);
+        let best=0,bf='',bw=t;
+        if(numeric&&row.id===t){best=40;bf='id';}
+        else if(!/[a-z0-9]/.test(t)){
+          if(row.titreFold.includes(t)||row.resumeFold.includes(t)||row.aliasFold.includes(t)){best=12;bf='titre';}
+        }
+        else for(const f of ['titre','alias','kw','resume','mod','body']){
+          for(const w of row[f]){
+            const s=SQ.wordScore(t,w,f==='body',lastTok);
+            if(s&&s*W[f]>best){best=s*W[f];bf=f;bw=w;}
+          }
+          if(best>=24)break;
+        }
+        if(best){total+=best;found++;(why[bf]||(why[bf]=[])).push(bw);}
+        else if(!(numeric&&words.length))missing++;
+      }
+      if(found&&words.length>1&&Object.keys(why).every(f=>f==='body'||f==='id')){
+        const re=new RegExp(words.map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('(?: [a-z0-9]+){0,2} '));
+        if(!re.test(row.bodyFold))return;
+      }
+      if(!found)return;
+      const joined=tokens.join(' ');
+      if(row.titreFold===joined)total+=40;
+      else if(row.titreFold.startsWith(joined))total+=26;
+      else if(row.titreFold.includes(joined))total+=14;
+      if(tokens.length>1&&row.aliasFold.includes(joined))total+=8;
+      if(!missing)strictHits.push({row,score:total,why,order,partial:false});
+      else if(words.length>1&&found>=Math.ceil(tokens.length/2)&&Object.keys(why).some(f=>f!=='body'&&f!=='mod'))partial.push({row,score:total/3,why,order,partial:true});
+    });
+    const byScore=(a,b)=>b.score-a.score||a.order-b.order;
+    strictHits.sort(byScore);partial.sort(byScore);
+    const hits=strictHits.length>=4?strictHits:strictHits.concat(partial.slice(0,8));
+    return {tokens,hits,strict:strictHits.length};
+  },
+  /* texte libre (notes, requêtes) : tous les mots doivent y figurer (sans accents) */
+  matches(tokens,...texts){
+    if(!tokens.length)return true;
+    const hay=SQ.fold(texts.filter(Boolean).join(' '));
+    return tokens.every(t=>hay.includes(t));
+  },
+  /* surligne les mots trouvés dans les textes d'un conteneur */
+  mark(root,tokens){
+    if(!root||!tokens||!tokens.length)return;
+    const nodes=root.nodeType===1?[root]:[...root];
+    nodes.forEach(host=>{
+      if(!host||!host.nodeType)return;
+      const walker=document.createTreeWalker(host,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentNode&&/^(SCRIPT|STYLE|MARK|TEXTAREA)$/.test(n.parentNode.nodeName)?NodeFilter.FILTER_REJECT:(n.nodeValue.trim()?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT)});
+      const list=[];while(walker.nextNode())list.push(walker.currentNode);
+      list.forEach(node=>{
+        const text=node.nodeValue;
+        let ns='';const map=[];
+        for(let i=0;i<text.length;i++){const f=SQ.foldChar(text[i]);if(f===''||f==null)continue;ns+=f;map.push(i);}
+        const ranges=[];
+        tokens.forEach(t=>{
+          if(!t)return;
+          let from=0,at;
+          while((at=ns.indexOf(t,from))>=0){ranges.push([map[at],map[at+t.length-1]+1]);from=at+t.length;}
+        });
+        if(!ranges.length)return;
+        ranges.sort((a,b)=>a[0]-b[0]);
+        const merged=[];
+        ranges.forEach(r=>{const last=merged[merged.length-1];if(last&&r[0]<=last[1])last[1]=Math.max(last[1],r[1]);else merged.push(r.slice());});
+        const frag=document.createDocumentFragment();
+        let pos=0;
+        merged.forEach(([a,b])=>{
+          if(a>pos)frag.append(text.slice(pos,a));
+          const m=document.createElement('mark');m.className='sq-hit';m.textContent=text.slice(a,b);frag.append(m);pos=b;
+        });
+        if(pos<text.length)frag.append(text.slice(pos));
+        node.parentNode.replaceChild(frag,node);
+      });
+    });
+  },
+  warm(){try{SQ.index();}catch(e){}},
+  recents(){try{return JSON.parse(localStorage.getItem('rq-recent-search')||'[]').filter(x=>typeof x==='string').slice(0,5);}catch(e){return[];}},
+  remember(q){
+    q=String(q||'').trim();if(q.length<2)return;
+    try{const l=SQ.recents().filter(x=>SQ.fold(x)!==SQ.fold(q));l.unshift(q);localStorage.setItem('rq-recent-search',JSON.stringify(l.slice(0,5)));}catch(e){}
+  }
+};
+
 const courseFilterLabels={all:'Tous',todo:'À apprendre',due:'À réviser',done:'Validés'};
 function courseMatchesFilter(lesson,filter=courseFilter){
   const done=!!state.lessons[lesson.id]?.done;
@@ -22277,39 +22595,96 @@ function setCourseFilter(filter){
   courseFilter=filter;
   filterCourseCatalog(courseSearch);
 }
+const COURSE_SUGGEST=['jointure','trier','NULL','regrouper','fenêtre','transaction'];
+if(typeof window!=='undefined'&&typeof window.addEventListener==='function')window.addEventListener('load',()=>setTimeout(()=>SQ.warm(),2500));
+function courseSuggestHTML(){
+  const rec=SQ.recents();
+  const chip=(q,cls)=>`<button type="button" class="sq-chip${cls?' '+cls:''}" data-q="${escAttr(q)}" onclick="setCourseQuery(this.dataset.q)">${esc(q)}</button>`;
+  return (rec.length?`<div class="sq-suggest-row"><span>Récent</span>${rec.map(q=>chip(q,'recent')).join('')}</div>`:'')+`<div class="sq-suggest-row"><span>Essaie</span>${COURSE_SUGGEST.map(q=>chip(q)).join('')}</div>`;
+}
+function setCourseQuery(q){
+  const input=document.getElementById('course-search');
+  if(input){input.value=q;input.focus({preventScroll:true});}
+  filterCourseCatalog(q);
+}
+function courseWhyLabel(why){
+  if(why.titre||why.resume||why.id||why.mod)return '';
+  const uniq=a=>[...new Set(a)].slice(0,3).join(', ');
+  if(why.kw)return 'Mot-clé du cours : '+uniq(why.kw).toUpperCase();
+  if(why.alias)return 'Aussi : '+uniq(why.alias);
+  if(why.body)return 'Cité dans le cours';
+  return '';
+}
 function filterCourseCatalog(value){
   courseSearch=value;
-  const normalize=text=>String(text).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-  const query=normalize(value.trim());
+  const q=String(value||'').trim();
+  const {tokens,hits}=SQ.searchLessons(q);
+  const searching=tokens.length>0;
   const host=document.getElementById('course-search-results');
   if(!host)return;
-  const filtered=!!query||courseFilter!=='all';
+  const filtered=searching||courseFilter!=='all';
   document.querySelectorAll('#modules>.home-module').forEach(m=>m.hidden=filtered);
   document.querySelectorAll('[data-course-filter]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.courseFilter===courseFilter)));
   const clear=document.getElementById('clear-course-search');if(clear)clear.hidden=!value;
-  const groups=MODULES.map(module=>({module,lessons:module.lessons.filter(l=>{
-    const text=normalize(l.titre+' '+l.résumé+' '+module.titre);
-    return courseMatchesFilter(l)&&(!query||query.split(/\s+/).every(word=>text.includes(word)));
-  })})).filter(group=>group.lessons.length);
-  const count=groups.reduce((n,group)=>n+group.lessons.length,0);
+  const suggest=document.getElementById('course-search-suggest');
+  if(suggest){suggest.hidden=!!value||courseFilter!=='all';if(!suggest.hidden&&!suggest.dataset.ready){suggest.innerHTML=courseSuggestHTML();suggest.dataset.ready='1';}}
   const status=document.getElementById('course-search-status');
-  status.textContent=filtered?`${count} cours trouvé${count>1?'s':''}${courseFilter!=='all'?' · '+courseFilterLabels[courseFilter]:''}`:'';
+  let count=0,html='';
+  const emptyTitle=searching?'Aucun cours ne correspond':courseFilter==='due'?'Tu es à jour':courseFilter==='done'?'Tes réussites apparaîtront ici':'Tout est validé !';
+  const emptyDetail=searching?'Vérifie l’orthographe, essaie un mot plus court ou un terme SQL (JOIN, WHERE, NULL…).':courseFilter==='due'?'Les cours à réviser apparaîtront ici au bon moment.':courseFilter==='done'?'Termine une leçon pour la retrouver dans cette liste.':'Tu peux retrouver tes cours et les revoir à tout moment.';
+  if(searching){
+    const rows=hits.filter(h=>courseMatchesFilter(h.row.lesson));
+    count=rows.length;
+    if(count){
+      const rowHtml=(h,i)=>{
+        const why=courseWhyLabel(h.why);
+        const extra=`<em class="sq-mod">${esc(h.row.module.titre)}</em>${why?`<em class="sq-why">${esc(why)}</em>`:''}`;
+        return lessonListRow(h.row.lesson).replace('</small></span>','</small>'+extra+'</span>').replace('<button type="button" class="row','<button type="button" style="--i:'+Math.min(i,10)+'" class="row sq-row');
+      };
+      const exact=rows.filter(h=>!h.partial),near=rows.filter(h=>h.partial);
+      html=`<section class="catalog-result-group" aria-labelledby="catalog-result-0"><h3 id="catalog-result-0">${near.length&&!exact.length?'Résultats proches':'Résultats'}<span>${count}</span></h3><div class="list sq-list">${exact.map(rowHtml).join('')}${near.length&&exact.length?`<div class="sq-sep" role="separator">Résultats proches</div>`:''}${near.map((h,i)=>rowHtml(h,exact.length+i)).join('')}</div></section>`;
+    }
+  }else if(filtered){
+    const groups=MODULES.map(module=>({module,lessons:module.lessons.filter(l=>courseMatchesFilter(l))})).filter(group=>group.lessons.length);
+    count=groups.reduce((n,group)=>n+group.lessons.length,0);
+    html=groups.map(({module,lessons},index)=>`<section class="catalog-result-group" aria-labelledby="catalog-result-${index}"><h3 id="catalog-result-${index}">${esc(module.titre)}<span>${lessons.length}</span></h3><div class="list">${lessons.map(lessonListRow).join('')}</div></section>`).join('');
+  }
+  status.textContent=!filtered?'':count?`${count} cours trouvé${count>1?'s':''}${courseFilter!=='all'?' · '+courseFilterLabels[courseFilter]:''}`:'';
   host.hidden=!filtered;
-  const emptyTitle=query?'Aucun cours ne correspond':courseFilter==='due'?'Tu es à jour':courseFilter==='done'?'Tes réussites apparaîtront ici':'Tout est validé !';
-  const emptyDetail=query?'Essaie un autre mot ou élargis le filtre.':courseFilter==='due'?'Les cours à réviser apparaîtront ici au bon moment.':courseFilter==='done'?'Termine une leçon pour la retrouver dans cette liste.':'Tu peux retrouver tes cours et les revoir à tout moment.';
-  host.innerHTML=!filtered?'':count?groups.map(({module,lessons},index)=>`<section class="catalog-result-group" aria-labelledby="catalog-result-${index}"><h3 id="catalog-result-${index}">${esc(module.titre)}<span>${lessons.length}</span></h3><div class="list">${lessons.map(lessonListRow).join('')}</div></section>`).join(''):`<div class="catalog-no-results"><h3>${emptyTitle}</h3><p>${emptyDetail}</p><button type="button" onclick="resetCourseCatalog()">Voir tous les cours</button></div>`;
+  host.innerHTML=!filtered?'':count?html:`<div class="catalog-no-results"><div class="sq-empty-ico" aria-hidden="true">🔎</div><h3>${emptyTitle}</h3><p>${emptyDetail}</p><button type="button" onclick="resetCourseCatalog()">${searching&&courseFilter==='all'?'Effacer la recherche':'Voir tous les cours'}</button></div>`;
+  if(searching&&count&&typeof host.querySelectorAll==='function'){
+    SQ.mark(host.querySelectorAll('.lz-body b,.lz-body small'),tokens);
+    host.querySelectorAll('.sq-mod,.sq-why').forEach(el=>{if(el.classList.contains('sq-mod'))SQ.mark(el,tokens);});
+  }
+  host.onclick=e=>{if(e.target.closest('.row'))SQ.remember(courseSearch);};
 }
 function clearCourseSearch(){
-  const input=document.getElementById('course-search');input.value='';filterCourseCatalog('');input.focus({preventScroll:true});
+  const input=document.getElementById('course-search');input.value='';
+  const sg=document.getElementById('course-search-suggest');if(sg)delete sg.dataset.ready;
+  filterCourseCatalog('');input.focus({preventScroll:true});
 }
 function resetCourseCatalog(){courseFilter='all';clearCourseSearch();}
 function courseSearchKeydown(event){
-  if(event.key==='Escape'){event.preventDefault();clearCourseSearch();}
-  if(event.key==='Enter'){
+  if(event.key==='Escape'){
+    event.preventDefault();
+    const input=document.getElementById('course-search');
+    if(input&&input.value)clearCourseSearch();else if(input&&typeof input.blur==='function')input.blur();
+  }
+  if(event.key==='Enter'||event.key==='ArrowDown'){
     const first=document.querySelector('#course-search-results:not([hidden]) .row');
-    if(first){event.preventDefault();first.focus();}
+    if(first){event.preventDefault();first.focus();if(event.key==='Enter')SQ.remember(courseSearch);}
   }
 }
+/* « / » ouvre la recherche de cours (clavier physique). */
+if(typeof document!=='undefined'&&typeof document.addEventListener==='function')document.addEventListener('keydown',e=>{
+  if(e.key!=='/'||e.ctrlKey||e.metaKey||e.altKey)return;
+  const t=e.target;if(t&&(/^(INPUT|TEXTAREA|SELECT)$/.test(t.nodeName)||t.isContentEditable))return;
+  if(!document.querySelector('#scr-learn.active'))return;
+  e.preventDefault();
+  const tools=document.getElementById('catalog-tools');
+  if(tools&&tools.hidden){const btn=document.querySelector('.lq-search-toggle');if(btn)toggleCatalogTools(btn);}
+  const input=document.getElementById('course-search');if(input){input.focus();input.select();}
+});
 /* Mon compte est une destination de la barre du bas (onglet « Compte »). */
 function primaryTabFor(tab){
   if(['console','defis','jeu','practice'].includes(tab))return 'practice';
@@ -22892,7 +23267,7 @@ function renderModules(){
     return `<details class="module home-module ${complete?'validated':''}${moduleIndex===curMod?' is-current':''}" data-module-index="${moduleIndex}" data-mc="${moduleIndex%8}" style="--i:${moduleIndex}"${openModules.has(String(moduleIndex))?' open':''} ontoggle="lqModuleToggle(this)"><summary class="home-module-summary"><span class="home-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1)}</span><span class="home-module-copy"><small class="lq-unit-k">Module ${moduleIndex+1}${moduleIndex===curMod?' · en cours':''}</small><b>${esc(mod.titre)}</b><small>${esc(status)}</small></span><span class="home-module-side">${complete?`<em class="home-module-valid">Validé</em>`:`<span class="home-module-count">${done}/${tot}</span>`}<span class="home-module-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></span><span class="home-module-progress" role="progressbar" aria-label="Progression du module ${esc(mod.titre)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></span></summary><div class="list">${rows}</div></details>`;
   }).join('');
   const toolsOpen=catalogToolsOpen||!!courseSearch||courseFilter!=='all';
-  host.innerHTML=`<div class="home-catalog-head"><div><span>Tous les cours</span><h2>Ton parcours</h2><p>${allDone} leçon${allDone>1?'s':''} validée${allDone>1?'s':''} sur ${TOTAL}</p></div><button type="button" class="lq-search-toggle" onclick="toggleCatalogTools(this)" aria-expanded="${toolsOpen}" aria-controls="catalog-tools">${LQ_SEARCH_SVG}<span>Chercher</span></button></div><div id="catalog-tools" class="catalog-tools"${toolsOpen?'':' hidden'}><div class="catalog-search"><label for="course-search">Trouver une notion</label><div><input id="course-search" type="search" placeholder="SELECT, jointure, dates…" value="${escAttr(courseSearch)}" oninput="filterCourseCatalog(this.value)" onkeydown="courseSearchKeydown(event)" aria-controls="course-search-results"><button id="clear-course-search" type="button" onclick="clearCourseSearch()" aria-label="Effacer la recherche de cours" hidden>Effacer</button></div><p id="course-search-status" role="status" aria-live="polite" aria-atomic="true"></p></div>${courseCatalogFiltersHTML()}</div><div id="course-search-results" hidden></div>${modulesHTML}`;
+  host.innerHTML=`<div class="home-catalog-head"><div><span>Tous les cours</span><h2>Ton parcours</h2><p>${allDone} leçon${allDone>1?'s':''} validée${allDone>1?'s':''} sur ${TOTAL}</p></div><button type="button" class="lq-search-toggle" onclick="toggleCatalogTools(this)" aria-expanded="${toolsOpen}" aria-controls="catalog-tools">${LQ_SEARCH_SVG}<span>Chercher</span></button></div><div id="catalog-tools" class="catalog-tools"${toolsOpen?'':' hidden'}><div class="catalog-search"><label for="course-search">Trouver une notion</label><div><input id="course-search" type="search" placeholder="SELECT, jointure, dates…" value="${escAttr(courseSearch)}" oninput="filterCourseCatalog(this.value)" onkeydown="courseSearchKeydown(event)" aria-controls="course-search-results" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" inputmode="search"><button id="clear-course-search" type="button" onclick="clearCourseSearch()" aria-label="Effacer la recherche de cours" hidden>Effacer</button></div><p id="course-search-status" role="status" aria-live="polite" aria-atomic="true"></p><div id="course-search-suggest" class="sq-suggest"></div></div>${courseCatalogFiltersHTML()}</div><div id="course-search-results" hidden></div>${modulesHTML}`;
   filterCourseCatalog(courseSearch);
   /* Leçons validées depuis la dernière visite de l’accueil : leur pastille
      se remplit sous les yeux (seulement quand l’accueil est affiché). */
@@ -31255,7 +31630,7 @@ function finaliserLecon(lid){
 /* ---------- Notes globales (stylo ✎ partout) ---------- */
 const PIN_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17v5M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>';
 const PEN_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
-let searchQ='', noteView='list', editingNote=null, noteFreshId=null, notesEnter=false;
+let searchQ='', noteView='list', editingNote=null, noteFreshId=null, notesEnter=false, notesFilter='all';
 function fmtDate(ts){
   const d=new Date(ts),n=new Date(),j=86400000;
   const sameDay=d.toDateString()===n.toDateString();
@@ -31586,6 +31961,23 @@ function noteDupGroups(){
   (state.notes||[]).forEach(n=>{ if(!String(n.txt||'').trim()&&!String(n.sql||'').trim())return; const k=key(n); (map.get(k)||map.set(k,[]).get(k)).push(n); });
   return [...map.values()].filter(g=>g.length>1);
 }
+function notesFilterChips(c){
+  if(!c||(c.all<2&&notesFilter==='all'))return '';
+  const chip=(k,label)=>`<button type="button" class="sq-chip${notesFilter===k?' on':''}" aria-pressed="${notesFilter===k}" onclick="setNotesFilter('${k}')">${label}<em>${c[k]}</em></button>`;
+  return `<div class="sq-chips-row" role="group" aria-label="Filtrer les notes">${chip('all','Toutes')}${chip('pin','Épinglées')}${chip('sql','Avec requête')}</div>`;
+}
+function setNotesFilter(k){
+  if(!['all','pin','sql'].includes(k))return;
+  notesFilter=notesFilter===k&&k!=='all'?'all':k;
+  notesEnter=false;renderNotes();
+  if(navigator.vibrate)navigator.vibrate(6);
+}
+function notesSearchKey(e,surface){
+  if(e.key==='Escape'){
+    e.preventDefault();
+    if(e.target.value)clearSearch(surface);else e.target.blur();
+  }else if(e.key==='Enter')e.target.blur();
+}
 function noteDupsHtml(){
   const extra=noteDupGroups().reduce((a,g)=>a+g.length-1,0);
   if(!extra)return '';
@@ -31632,7 +32024,12 @@ function notesSectionHtml(title,items){
 function renderNotesSurface(wrap,prefix,opts){
   if(!wrap)return;
   const all=sortedNotes();
-  const list=searchQ?all.filter(n=>((n.txt||'')+' '+(n.sql||'')+' '+(n.ctx||'')).toLowerCase().includes(searchQ)):all;
+  const nTok=SQ.fold(searchQ).split(' ').filter(Boolean);
+  const plain=n=>String(n.txt||'').replace(/```[a-z]*/g,' ');
+  const matched=nTok.length?all.filter(n=>SQ.matches(nTok,n.ctx,plain(n),n.sql)):all;
+  const fCount={all:matched.length,pin:matched.filter(n=>n.pin).length,sql:matched.filter(n=>n.sql&&n.sql.trim()).length};
+  if(notesFilter!=='all'&&!fCount[notesFilter])notesFilter='all';
+  const list=notesFilter==='pin'?matched.filter(n=>n.pin):notesFilter==='sql'?matched.filter(n=>n.sql&&n.sql.trim()):matched;
   const listId=`${prefix}-notes-hub-list`;
   const isScreen=prefix==='screen';
   const pinned=all.filter(n=>n.pin).length,withSql=all.filter(n=>n.sql&&n.sql.trim()).length;
@@ -31643,9 +32040,10 @@ function renderNotesSurface(wrap,prefix,opts){
       <button class="notes-hub-new" type="button" onclick="startNewNote()">${PEN_SVG} Nouvelle note</button>
       <div class="searchbar ${searchQ?'has':''}" id="${prefix}-notes-searchbar">
         <span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></span>
-        <input id="${prefix}-note-search" type="search" aria-label="Rechercher dans mes notes" placeholder="Rechercher dans mes notes" oninput="onSearch('${prefix==='screen'?'screen':'sheet'}')" value="${esc(searchQ).replace(/"/g,'&quot;')}" autocapitalize="off">
+        <input id="${prefix}-note-search" type="search" aria-label="Rechercher dans mes notes" placeholder="Rechercher dans mes notes" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" inputmode="search" onkeydown="notesSearchKey(event,'${prefix==='screen'?'screen':'sheet'}')" oninput="onSearch('${prefix==='screen'?'screen':'sheet'}')" value="${esc(searchQ).replace(/"/g,'&quot;')}" autocapitalize="off">
         <button class="sx" type="button" aria-label="Effacer la recherche" onclick="clearSearch('${prefix==='screen'?'screen':'sheet'}')">✕</button>
       </div>
+      <p class="sq-status" id="${prefix}-notes-status" role="status" aria-live="polite" aria-atomic="true"></p>
       <div id="${listId}"></div>
     </div>`;
   }else{
@@ -31664,20 +32062,25 @@ function renderNotesSurface(wrap,prefix,opts){
     html=`<div class="notes-empty"><div class="ne-i">✎</div><b>Aucune note</b>
       <span>Commence par une idée, une requête à revoir ou une question.</span>${isScreen?`<div class="notes-starters"><button type="button" onclick="startNotePrompt('Ce que je retiens : ')">Ce que je retiens</button><button type="button" onclick="startNotePrompt('Requête à revoir : ')">Requête à revoir</button><button type="button" onclick="startNotePrompt('Question : ')">Une question</button></div>`:''}</div>`;
   }else if(!list.length){
-    html=`<div class="notes-empty"><div class="ne-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></div><b>Aucun résultat</b>
-      <span>Rien pour « ${esc(searchQ)} » dans tes ${all.length} notes.</span></div>`;
+    html=notesFilterChips(fCount)+`<div class="notes-empty"><div class="ne-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></div><b>Aucun résultat</b>
+      <span>Rien pour « ${esc(searchQ)} » dans tes ${plur(all.length,'note')}. Les accents et les majuscules ne comptent pas.</span><button type="button" class="sq-reset" onclick="clearSearch('${isScreen?'screen':'sheet'}')">Effacer la recherche</button></div>`;
   }else if(searchQ){
-    html=notesSectionHtml('Résultats',list);
+    html=notesFilterChips(fCount)+notesSectionHtml('Résultats',list);
+  }else if(notesFilter!=='all'){
+    html=notesFilterChips(fCount)+notesSectionHtml(notesFilter==='pin'?'Épinglées':'Avec une requête',list);
   }else{
     const pinned=list.filter(n=>n.pin);
     const rest=list.filter(n=>!n.pin);
-    html=noteDupsHtml()+(pinned.length?notesSectionHtml('Épinglées',pinned):'')+(rest.length?notesSectionHtml(pinned.length?'Autres':'Notes',rest):'');
+    html=noteDupsHtml()+notesFilterChips(fCount)+(pinned.length?notesSectionHtml('Épinglées',pinned):'')+(rest.length?notesSectionHtml(pinned.length?'Autres':'Notes',rest):'');
   }
   const listHost=document.getElementById(listId);
   if(listHost){
     listHost.innerHTML=html;
     if(notesEnter){ listHost.querySelectorAll('.notes-list').forEach(l=>l.setAttribute('data-enter','')); notesEnter=false; }
+    if(nTok.length)SQ.mark(listHost.querySelectorAll('.nctx,.ntxt,.nsql'),nTok);
     listHost.querySelectorAll('.ntxt').forEach(el=>el.classList.toggle('is-clip',el.scrollHeight>el.clientHeight+2));
+    const st=document.getElementById(`${prefix}-notes-status`);
+    if(st)st.textContent=(nTok.length||notesFilter!=='all')&&all.length?(list.length?`${plur(list.length,'note')} trouvée${list.length>1?'s':''}`:'Aucune note trouvée'):'';
     const fresh=listHost.querySelector('.ncard.is-fresh');
     if(fresh){
       requestAnimationFrame(()=>{ try{ fresh.scrollIntoView({block:'nearest'}); }catch(e){} });
@@ -35154,7 +35557,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1538';
+  const SW_CACHE='requete-2026-09-30-ludique-v1541';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
