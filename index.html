@@ -6791,6 +6791,34 @@
   .ncard .npin-btn{margin-left:auto;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;border:1px solid transparent;background:none;cursor:pointer;color:var(--ink-3);touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background .15s,transform .16s var(--spring-ios),color .15s}
   .ncard .npin-btn:active{background:var(--surface-2);transform:scale(.9)}
   .ncard .npin-btn svg{width:16px;height:16px;display:block}
+  .ncard{transition:background .18s ease,transform .22s var(--spring-ios)}
+  .ncard:active{transform:scale(.985)}
+  .ncard .ntxt{display:block;-webkit-line-clamp:unset;white-space:normal;max-height:15em;overflow:hidden}
+  .ncard .ntxt.is-clip{-webkit-mask-image:linear-gradient(#000 calc(100% - 3.2em),transparent);mask-image:linear-gradient(#000 calc(100% - 3.2em),transparent)}
+  .ncard .ntxt p{margin:0 0 .65em;white-space:normal}
+  .ncard .ntxt p:last-child{margin-bottom:0}
+  .ncard .ntxt p b{font-weight:800}
+  .ncard .ntxt .nlead{margin-bottom:.4em;font-weight:700;color:var(--ink-2)}
+  .ncard .ntxt pre.ncode{margin:.1em 0 .7em;padding:9px 11px;border-radius:11px;background:var(--code-bg);color:var(--code-ink);font:12px/1.5 var(--mono);white-space:pre-wrap;word-break:break-word;overflow:hidden}
+  .ncard .ntxt pre.ncode:last-child{margin-bottom:0}
+  .ncard .npin-btn svg{transition:transform .28s var(--spring-ios)}
+  .ncard.pin .npin-btn svg{transform:rotate(-16deg)}
+  @keyframes ncardIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+  .notes-list[data-enter] .ncard{animation:ncardIn .5s var(--spring-ios) both;animation-delay:calc(var(--i,0)*55ms)}
+  @keyframes ncardFresh{0%{opacity:0}16%{opacity:1}100%{opacity:0}}
+  .ncard.is-fresh::after{content:"";position:absolute;inset:0;border:2.5px solid var(--accent);border-radius:inherit;pointer-events:none;animation:ncardFresh 1.8s ease-out both}
+  @keyframes statBump{0%{transform:scale(1)}40%{transform:scale(1.3)}100%{transform:none}}
+  .notes-overview-stats b.bump{display:inline-block;animation:statBump .5s var(--spring-ios)}
+  .notes-dups{display:flex;align-items:center;gap:10px;margin:0 0 12px;padding:10px 12px 10px 14px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-size:13px;font-weight:600;animation:ncardIn .45s var(--spring-ios) both}
+  .notes-dups span{flex:1;min-width:0}
+  .notes-dups button{flex:none;min-height:36px;padding:0 14px;border:0;border-radius:10px;background:var(--accent);color:#fff;font:700 13px var(--ui);cursor:pointer;transition:transform .16s var(--spring-ios)}
+  .notes-dups button:active{transform:scale(.94)}
+  @keyframes savePop{0%{transform:scale(1)}45%{transform:scale(1.06)}100%{transform:scale(1)}}
+  .ne-row .prim.is-saved{animation:savePop .38s var(--spring-ios)}
+  .coda-note svg{transition:transform .3s var(--spring-ios)}
+  .coda-note:active svg{transform:rotate(-18deg) translateY(-1px)}
+  @media (prefers-reduced-motion:reduce){.notes-list[data-enter] .ncard,.ncard.is-fresh::after,.notes-overview-stats b.bump,.notes-dups,.ne-row .prim.is-saved{animation:none!important}.ncard,.ncard:active{transform:none}}
+  html[data-motion="reduce"] .notes-list[data-enter] .ncard,html[data-motion="reduce"] .ncard.is-fresh::after,html[data-motion="reduce"] .notes-overview-stats b.bump,html[data-motion="reduce"] .notes-dups,html[data-motion="reduce"] .ne-row .prim.is-saved{animation:none!important}
   .ncard.pin .npin-btn{color:var(--accent);background:var(--accent-soft)}
   .notes-empty{text-align:center;padding:44px 28px;color:var(--ink-3);background:var(--surface);border:1px solid var(--card-border);border-radius:20px;box-shadow:var(--card-shadow)}
   .notes-empty .ne-i{width:58px;height:58px;border-radius:18px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 14px;box-shadow:0 8px 20px -8px rgba(91,91,214,.35);animation:emptyFloat 3.2s ease-in-out infinite}
@@ -22311,7 +22339,7 @@ function refreshTabScreen(tab){
   else if(tab==='jeu')renderDefis();
   else if(tab==='defis') renderDefis();
   else if(tab==='planning'){semaineOffset=0;jourSel=null;renderPlanning();}
-  else if(tab==='notes') renderNotesScreen();
+  else if(tab==='notes'){ notesEnter=true; renderNotesScreen(); }
   else if(tab==='compte') renderCompte();
   else if(tab==='collection') renderCollection();
   else if(tab==='console') renderConsoleScreen();
@@ -24065,6 +24093,85 @@ function stripNoteHtml(s){
     .replace(/\n{3,}/g,'\n\n')
     .trim();
 }
+/* Texte d’une note à partir d’un fragment HTML de cours : les paragraphes sont séparés
+   par une ligne vide, les blocs de code gardent leurs retours à la ligne et leur retrait
+   (entourés de ```), les listes « mot-clé + sens » deviennent « MOT → sens ». */
+function noteTextFromHtml(s){
+  const html=String(s||'');
+  if(!html) return '';
+  if(typeof document==='undefined') return stripNoteHtml(html);
+  const skip='svg,[aria-hidden="true"],.fk-memo,.fk-tree,.fk-corr,.fk-ref,.fk-vs,.fk-check,.fk-gift,.fk-quiz-pair,.fk-roles,.fk-syn-map,.rel-link,.pk-rel,.sj-tree,.sit-memo-lab';
+  const box=document.createElement('div');
+  box.innerHTML=html;
+  box.querySelectorAll(skip).forEach(el=>el.remove());
+  const blocks=[];
+  let cur='';
+  const flush=()=>{
+    const t=cur.replace(/[ \t\u00a0]+/g,' ').replace(/ ?\n ?/g,'\n').trim();
+    if(t) blocks.push({k:'p',s:t});
+    cur='';
+  };
+  const BLOCK=/^(P|DIV|UL|OL|LI|H[1-6]|ARTICLE|SECTION|TABLE|TR|HEADER|FIGURE|FIGCAPTION|BLOCKQUOTE)$/;
+  const walk=node=>{
+    if(node.nodeType===3){ cur+=String(node.textContent||'').replace(/\s+/g,' '); return; }
+    if(node.nodeType!==1) return;
+    const tag=node.tagName;
+    if(tag==='PRE'){
+      flush();
+      const code=String(node.textContent||'').replace(/^\n+/,'').replace(/\s+$/,'');
+      if(code.trim()) blocks.push({k:'code',s:code});
+      return;
+    }
+    if(tag==='BR'||tag==='HR'){ cur+='\n'; return; }
+    if(node.matches&&node.matches('[role="listitem"]')){
+      flush();
+      const parts=[...node.children].map(c=>String(c.textContent||'').replace(/\s+/g,' ').trim()).filter(Boolean);
+      const t=parts.length?parts.join(' → '):String(node.textContent||'').replace(/\s+/g,' ').trim();
+      if(t) blocks.push({k:'li',s:t});
+      return;
+    }
+    const arrow=node.classList&&node.classList.contains('win-ex-note');
+    const own=BLOCK.test(tag)||arrow;
+    if(own){ flush(); if(arrow) cur='→ '; }
+    if(node.classList&&node.classList.contains('ij-ln')) cur+='\n';
+    [...node.childNodes].forEach(walk);
+    if(own) flush();
+  };
+  walk(box);
+  flush();
+  const out=[];
+  blocks.forEach((b,i)=>{
+    const prev=blocks[i-1];
+    if(b.k==='code') out.push('```\n'+b.s+'\n```');
+    else if(b.k==='li'&&prev&&prev.k==='li') out[out.length-1]+='\n'+b.s;
+    else out.push(b.s);
+  });
+  return out.join('\n\n').replace(/\n{3,}/g,'\n\n').trim();
+}
+/* Affichage d’une note : paragraphes, listes « MOT → sens » et blocs de code colorés. */
+function noteBlocksHtml(txt){
+  const src=String(txt||'');
+  const parts=src.split('```');
+  const html=[];
+  parts.forEach((seg,i)=>{
+    if(i%2===1){
+      const code=seg.replace(/^[a-z]*\n/,'').replace(/^\n+/,'').replace(/\s+$/,'');
+      if(code.trim()) html.push(`<pre class="ncode">${highlight(code)}</pre>`);
+      return;
+    }
+    seg.split(/\n{2,}/).forEach(par=>{
+      const t=par.replace(/^\n+|\s+$/g,'');
+      if(!t) return;
+      const lines=t.split('\n').map(line=>{
+        const e=esc(line);
+        return e.replace(/^([^→:]{1,46}?)( → )/,'<b>$1</b>$2');
+      });
+      const lead=/ :$/.test(t)||/:$/.test(t);
+      html.push(`<p${lead?' class="nlead"':''}>${lines.join('<br>')}</p>`);
+    });
+  });
+  return html.join('');
+}
 function lessonReflexText(l){
   if(!l) return '';
   const r=l.studio&&l.studio.reflex;
@@ -24074,8 +24181,8 @@ function lessonReflexText(l){
       line(r.a),
       line(r.b),
       line(r.c),
-      r.note?stripNoteHtml(r.note):'',
-      r.extra?stripNoteHtml(r.extra):''
+      r.note?noteTextFromHtml(r.note):'',
+      r.extra?noteTextFromHtml(r.extra):''
     ].filter(Boolean).join('\n\n');
   }
   if(l.orderRappel){
@@ -24088,7 +24195,7 @@ function lessonReflexText(l){
   if(l.id===17){
     return 'WHERE choisit les lignes à regrouper. HAVING choisit les groupes à garder.';
   }
-  return stripNoteHtml(l.retenir||'');
+  return noteTextFromHtml(l.retenir||'');
 }
 function noteFromRetenir(){
   const l=current;
@@ -31148,7 +31255,7 @@ function finaliserLecon(lid){
 /* ---------- Notes globales (stylo ✎ partout) ---------- */
 const PIN_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17v5M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>';
 const PEN_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
-let searchQ='', noteView='list', editingNote=null;
+let searchQ='', noteView='list', editingNote=null, noteFreshId=null, notesEnter=false;
 function fmtDate(ts){
   const d=new Date(ts),n=new Date(),j=86400000;
   const sameDay=d.toDateString()===n.toDateString();
@@ -31179,6 +31286,7 @@ function openNotesHub(){
   document.getElementById('note-back').classList.add('on');
   document.getElementById('note-sheet').classList.add('on');
   document.getElementById('fab').classList.add('hide');
+  notesEnter=true;
   renderNotesHub({resetScroll:true});
 }
 function onSearch(surface='sheet'){
@@ -31460,21 +31568,65 @@ function revealEntretien(id){
   entRevealed[id]=1;
   renderEntretien({animate:false});
 }
-function noteCardHtml(n){
-  return `<div class="ncard ${n.pin?'pin':''}" role="button" tabindex="0" aria-label="Ouvrir la note ${esc(n.txt?n.txt.slice(0,60):'sans titre')}" onclick="openNote('${n.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openNote('${n.id}')}">
+function noteCardHtml(n,i){
+  const label=String(n.txt||'').replace(/```[a-z]*/g,' ').replace(/\s+/g,' ').trim().slice(0,60);
+  return `<div class="ncard ${n.pin?'pin':''}${n.id===noteFreshId?' is-fresh':''}" data-id="${n.id}" style="--i:${Math.min(i||0,8)}" role="button" tabindex="0" aria-label="Ouvrir la note ${esc(label||'sans titre')}" onclick="openNote('${n.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openNote('${n.id}')}">
         ${n.ctx?`<div class="nctx">${esc(n.ctx)}</div>`:''}
-        ${n.txt?`<div class="ntxt">${esc(n.txt)}</div>`:''}
+        ${n.txt?`<div class="ntxt">${noteBlocksHtml(n.txt)}</div>`:''}
         ${n.sql?`<div class="nsql">${highlight(n.sql)}</div>`:''}
         <div class="nfoot"><span class="ndate">${fmtDate(n.ts)}</span>
           <button class="npin-btn" type="button" aria-label="${n.pin?'Désépingler':'Épingler'}" aria-pressed="${n.pin?'true':'false'}" onclick="event.stopPropagation();togglePinFromList('${n.id}')">${PIN_SVG}</button>
         </div>
       </div>`;
 }
+/* Notes strictement identiques (même contexte, même texte, même requête). */
+function noteDupGroups(){
+  const key=x=>[x.ctx,String(x.txt||'').replace(/\s+/g,' ').trim(),String(x.sql||'').replace(/\s+/g,' ').trim()].join('\u0001');
+  const map=new Map();
+  (state.notes||[]).forEach(n=>{ if(!String(n.txt||'').trim()&&!String(n.sql||'').trim())return; const k=key(n); (map.get(k)||map.set(k,[]).get(k)).push(n); });
+  return [...map.values()].filter(g=>g.length>1);
+}
+function noteDupsHtml(){
+  const extra=noteDupGroups().reduce((a,g)=>a+g.length-1,0);
+  if(!extra)return '';
+  return `<div class="notes-dups" role="status"><span><b>${extra}</b> note${extra>1?'s':''} en double</span><button type="button" onclick="mergeDuplicateNotes()">Fusionner</button></div>`;
+}
+function mergeDuplicateNotes(){
+  const groups=noteDupGroups();
+  if(!groups.length)return;
+  const drop=new Set();
+  groups.forEach(g=>{
+    const keep=g.slice().sort((a,b)=>(b.pin?1:0)-(a.pin?1:0)||a.ts-b.ts)[0];
+    g.forEach(n=>{ if(n!==keep)drop.add(n.id); });
+  });
+  state.notes=(state.notes||[]).filter(n=>!drop.has(n.id));
+  save(); notesEnter=false; renderNotes();
+  toast('Doublons fusionnés',drop.size+(drop.size>1?' notes retirées':' note retirée'));
+}
+/* Le classement change quand on épingle : les cartes glissent à leur nouvelle place. */
+function notesRoot(){
+  const sheet=document.getElementById('note-sheet');
+  return sheet&&sheet.classList.contains('on')?document.getElementById('note-body'):document.getElementById('notes-screen-body');
+}
+function notesFlip(before,popId){
+  if(typeof motionOff==='function'&&motionOff())return;
+  const root=notesRoot(); if(!root)return;
+  root.querySelectorAll('.ncard[data-id]').forEach(el=>{
+    const id=el.dataset.id,t0=before.get(id);
+    if(t0==null||!el.animate)return;
+    const dy=t0-el.getBoundingClientRect().top;
+    if(Math.abs(dy)>2)el.animate([{transform:`translateY(${dy}px)`},{transform:'none'}],{duration:420,easing:'cubic-bezier(.2,.9,.3,1)'});
+    if(id===popId){
+      const ic=el.querySelector('.npin-btn svg');
+      if(ic&&ic.animate)ic.animate([{transform:'scale(.55) rotate(-30deg)'},{transform:'scale(1.3) rotate(10deg)',offset:.55},{transform:'rotate(-16deg)'}],{duration:460,easing:'cubic-bezier(.2,.9,.3,1)'});
+    }
+  });
+}
 function notesSectionHtml(title,items){
   if(!items.length)return '';
   return `<div class="module">
       <div class="module-head"><h2>${title}</h2><span>${items.length}</span></div>
-      <div class="notes-list">${items.map(noteCardHtml).join('')}</div>
+      <div class="notes-list">${items.map((n,i)=>noteCardHtml(n,i)).join('')}</div>
     </div>`;
 }
 function renderNotesSurface(wrap,prefix,opts){
@@ -31504,7 +31656,7 @@ function renderNotesSurface(wrap,prefix,opts){
       const total=wrap.querySelector('[data-notes-total]'),latestEl=wrap.querySelector('[data-notes-latest]');
       if(total)total.textContent=all.length?`${all.length} note${all.length>1?'s':''} enregistrée${all.length>1?'s':''}`:'Prêt pour ta première note';
       if(latestEl)latestEl.textContent=latest?`Dernière modification · ${fmtDate(latest.ts)}`:'Garde ici ce que tu veux réutiliser.';
-      const values={'[data-notes-count]':all.length,'[data-notes-pinned]':pinned,'[data-notes-sql]':withSql};Object.entries(values).forEach(([sel,val])=>{const el=wrap.querySelector(sel);if(el)el.textContent=val});
+      const values={'[data-notes-count]':all.length,'[data-notes-pinned]':pinned,'[data-notes-sql]':withSql};Object.entries(values).forEach(([sel,val])=>{const el=wrap.querySelector(sel);if(el&&el.textContent!==String(val)){el.textContent=val;el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');}});
     }
   }
   let html='';
@@ -31519,10 +31671,20 @@ function renderNotesSurface(wrap,prefix,opts){
   }else{
     const pinned=list.filter(n=>n.pin);
     const rest=list.filter(n=>!n.pin);
-    html=(pinned.length?notesSectionHtml('Épinglées',pinned):'')+(rest.length?notesSectionHtml(pinned.length?'Autres':'Notes',rest):'');
+    html=noteDupsHtml()+(pinned.length?notesSectionHtml('Épinglées',pinned):'')+(rest.length?notesSectionHtml(pinned.length?'Autres':'Notes',rest):'');
   }
   const listHost=document.getElementById(listId);
-  if(listHost)listHost.innerHTML=html;
+  if(listHost){
+    listHost.innerHTML=html;
+    if(notesEnter){ listHost.querySelectorAll('.notes-list').forEach(l=>l.setAttribute('data-enter','')); notesEnter=false; }
+    listHost.querySelectorAll('.ntxt').forEach(el=>el.classList.toggle('is-clip',el.scrollHeight>el.clientHeight+2));
+    const fresh=listHost.querySelector('.ncard.is-fresh');
+    if(fresh){
+      requestAnimationFrame(()=>{ try{ fresh.scrollIntoView({block:'nearest'}); }catch(e){} });
+      const fid=noteFreshId;
+      setTimeout(()=>{ if(noteFreshId===fid)noteFreshId=null; fresh.classList.remove('is-fresh'); },1900);
+    }
+  }
   if(opts&&opts.resetScroll) wrap.scrollTop=0;
 }
 function renderNotesHub(opts){
@@ -31546,7 +31708,7 @@ function startNewNote(){
 function startNotePrompt(txt){ openNote(null,{txt:txt||''}); }
 function noteFromCard(id){
   const c=CARTES[id]; closeCard();
-  openNote(null,{ctx:`Carte ${id} · ${c.k}`,sql:c.s,txt:stripNoteHtml(c.m)});
+  openNote(null,{ctx:`Carte ${id} · ${c.k}`,sql:c.s,txt:noteTextFromHtml(c.m)});
 }
 function saveConsoleQuery(){
   const sql=document.getElementById('ed-console').value.trim();
@@ -31555,6 +31717,11 @@ function saveConsoleQuery(){
   openNote(null,{ctx:'Console',sql});
 }
 function openNote(id,pre){
+  if(!id&&pre&&pre.ctx&&pre.txt){
+    const norm=x=>String(x||'').replace(/\s+/g,' ').trim();
+    const same=(state.notes||[]).find(x=>x.ctx===pre.ctx&&norm(x.txt)===norm(pre.txt)&&norm(x.sql)===norm(pre.sql));
+    if(same){ setTimeout(()=>toast('Déjà dans tes notes','Tu peux la modifier ici.','info'),340); return openNote(same.id); }
+  }
   const n=id?(state.notes||[]).find(x=>x.id===id):null;
   noteView='edit';
   editingNote=n?{...n,isNew:false}:{id:'n'+Date.now()+Math.random().toString(36).slice(2,6),txt:(pre&&pre.txt)||'',sql:(pre&&pre.sql)||'',ctx:(pre&&pre.ctx)||'',ts:Date.now(),pin:false,isNew:true};
@@ -31608,12 +31775,18 @@ function persistEditingNote(){
   const i=state.notes.findIndex(x=>x.id===e.id);
   const rec={id:e.id,txt:e.txt,sql:e.sql,ctx:e.ctx,ts:e.isNew?Date.now():e.ts,pin:!!e.pin};
   if(i>=0)state.notes[i]=rec; else state.notes.unshift(rec);
+  noteFreshId=rec.id;
   save();
   return true;
 }
 function saveNote(){
-  persistEditingNote();
-  backToNotesList();
+  const ok=persistEditingNote();
+  const b=document.querySelector('#note-body .ne-row .prim');
+  if(ok&&b&&!b.disabled&&!(typeof motionOff==='function'&&motionOff())){
+    b.disabled=true; b.classList.add('is-saved'); b.textContent='✓ Enregistré';
+    if(navigator.vibrate)navigator.vibrate(8);
+    setTimeout(backToNotesList,380);
+  }else backToNotesList();
 }
 function togglePin(){
   const e=collectNote(); if(!e)return;
@@ -31628,7 +31801,10 @@ function togglePin(){
 }
 function togglePinFromList(id){
   const n=(state.notes||[]).find(x=>x.id===id); if(!n)return;
-  n.pin=!n.pin; save(); renderNotes();
+  const root=notesRoot(),before=new Map();
+  if(root)root.querySelectorAll('.ncard[data-id]').forEach(el=>before.set(el.dataset.id,el.getBoundingClientRect().top));
+  n.pin=!n.pin; save(); notesEnter=false; renderNotes();
+  notesFlip(before,id);
   if(navigator.vibrate)navigator.vibrate(8);
 }
 function deleteNote(id){
@@ -34978,7 +35154,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-09-30-ludique-v1535';
+  const SW_CACHE='requete-2026-09-30-ludique-v1536';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
