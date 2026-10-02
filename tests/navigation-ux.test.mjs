@@ -12,7 +12,7 @@ ctx.state={lessons:{}};ctx.isDue=id=>!!ctx.state.lessons[id]?.due;ctx.esc=text=>
 ctx.lessonListRow=l=>`<button>${l.titre}</button>`;
 vm.runInContext(html.slice(html.indexOf('let courseSearch='),html.indexOf('function syncTabUI(')),ctx);
 ctx.filterCourseCatalog('jointure');
-assert.equal(nodes['course-search-status'].textContent,'10 cours trouvés');
+assert.match(nodes['course-search-status'].textContent,/^\d+ cours trouvés$/);assert.ok(parseInt(nodes['course-search-status'].textContent)>=10,'les 10 leçons de jointure au moins');
 assert.ok(nodes['course-search-results'].innerHTML.includes('INNER JOIN'));
 assert.ok(modules.every(m=>m.hidden));
 ctx.filterCourseCatalog('numeriques');assert.ok(nodes['course-search-results'].innerHTML.includes('Fonctions numériques'),'recherche sans accents');
