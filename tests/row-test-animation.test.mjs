@@ -209,5 +209,6 @@ test('mise en forme : le CSS gère l’état « ? », le balayage, les cartes et
     assert.ok(html.includes(sel), `règle CSS « ${sel} »`);
   assert.ok(html.includes('@media (prefers-reduced-motion:reduce){.rt-bar'), 'mouvement réduit du système');
   assert.ok(html.includes('html[data-motion="reduce"] .rt-bar'), 'mouvement réduit choisi dans l’app');
-  assert.ok(/initCondAnim\(\);\s*initRowTest\(\);/.test(html), 'initRowTest est lancé au rendu du cours');
+  const initList = html.slice(html.indexOf('buildSommaire();'), html.indexOf('initConversionFunctions();'));
+  assert.ok(initList.includes('initRowTest();'), 'initRowTest est lancé au rendu du cours');
 });
