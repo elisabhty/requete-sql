@@ -17,7 +17,7 @@ const decode = s => s.replace(/&#10;/g, '\n').replace(/&quot;/g, '"').replace(/&
 assert.ok(lessons.length >= 1, 'au moins un cours guide');
 let runs = 0;
 for (const l of lessons) {
-  const body = [l.situation, l.studio.problem.extra, l.studio.uses.body, l.reflex.extra].join('\n');
+  const body = [l.situation, l.studio.problem.extra, l.studio.uses.body, (l.studio.reflex || {}).extra].join('\n');
   /* Requêtes à exécuter : elles marchent, sauf celles d'un encadré « Attention » (qui montrent un piège). */
   const re = /<div class="ij-run"( data-warn="1")? data-run-sql="([^"]*)"><\/div>/g;
   let m, n = 0;
@@ -31,6 +31,8 @@ for (const l of lessons) {
   assert.ok(n >= 3, `${l.titre} : au moins 3 requêtes à exécuter`);
   assert.equal(((body.match(/<div[\s>]/g) || []).length), ((body.match(/<\/div>/g) || []).length), `${l.titre} : div équilibrés`);
   assert.equal(((body.match(/<ul[\s>]/g) || []).length), ((body.match(/<\/ul>/g) || []).length), `${l.titre} : ul équilibrés`);
+  assert.equal(((body.match(/<ol[\s>]/g) || []).length), ((body.match(/<\/ol>/g) || []).length), `${l.titre} : ol équilibrés`);
+  assert.ok((l.studio.reflex || {}).extra, `${l.titre} : le réflexe est bien lu par le rendu (studio.reflex)`);
   /* Typographie : pas d'espace ordinaire avant : ? ! ; hors code. */
   const text = body.replace(/<code>[\s\S]*?<\/code>|<pre[\s\S]*?<\/pre>|<[^>]+>/g, '|').replace(/data-run-sql="[^"]*"/g, '');
   assert.ok(!/ [:?!;]/.test(text.replace(/&nbsp;/g, ' ')), `${l.titre} : espace insécable avant la ponctuation haute : ${(text.match(/.{12} [:?!;]/) || [''])[0]}`);
