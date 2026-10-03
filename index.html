@@ -3041,6 +3041,14 @@
   .fk-syn-map span{font-size:13.5px;font-weight:500;line-height:1.4;color:var(--ink-2)}
   .fk-syn-map strong{font-size:14px;font-weight:750;line-height:1.35;color:var(--ink)}
   .fk-syn-map span code{font-size:11.5px;font-weight:700}
+  .fk-syn-map.is-recap{margin:14px 0 6px;padding:2px 14px}
+  .fk-syn-map.is-recap li{grid-template-columns:44px 1fr;column-gap:14px;align-items:center;padding:14px 0}
+  .fk-syn-map.is-recap b{width:44px;height:44px;border-radius:14px;font-size:25px}
+  .fk-syn-map.is-recap div{gap:5px;padding-top:0}
+  .fk-syn-map.is-recap strong{font-size:15px;line-height:1.35}
+  .fk-syn-map.is-recap strong b{display:inline;width:auto;height:auto;border-radius:0;background:none;color:var(--accent-ink);font-size:inherit;font-weight:800}
+  .fk-syn-map.is-recap span{font-size:13.5px;line-height:1.4}
+  .fk-syn-map.is-recap code.fk-rc{display:inline-block;max-width:100%;margin-top:1px;padding:5px 10px;border-radius:10px;background:var(--accent-soft);color:var(--accent-ink);font-size:13px;font-weight:800}
   .fk-syn-map li:nth-child(4){animation-delay:.36s}
   .fk-syn-map li:nth-child(n+5){animation-delay:.48s}
   .fk-syn-map div:not(:has(span)){padding-top:3px;justify-content:center;min-height:26px}
@@ -10691,6 +10699,8 @@ function guideBlock(b){
   if(b.looks)return `<ul class="win-look is-cmp"${lab(b.label)}>${b.looks.map(([k,v])=>`<li><b>${/</.test(k)?k:`<code>${guideEsc(k)}</code>`}</b><span>${guideFr(v)}</span></li>`).join('')}</ul>`;
   if(b.arrow)return `<p class="ij-arrow">${b.ico||'👉'} ${guideFr(b.arrow)}</p>`;
   if(b.sub)return `<p class="st-lab"><i aria-hidden="true">${b.sub[0]}</i>${guideFr(b.sub[1])}</p>`;
+  /* Récapitulatif en cartes : [emoji, phrase, précision, exemple de code]. */
+  if(b.recap)return `<ol class="fk-syn-map is-recap"${lab(b.label)}>${b.recap.map(([i,t,sub,code])=>`<li><b aria-hidden="true">${i}</b><div><strong>${guideFr(t)}</strong>${sub?`<span>${guideFr(sub)}</span>`:''}${code?`<code class="fk-rc">${guideEsc(code)}</code>`:''}</div></li>`).join('')}</ol>`;
   if(b.need)return `<div class="ij-need" role="list"${lab(b.label)}>${b.need.map(([i,t,w,c])=>`<div role="listitem"><b>${i?i+' ':''}${guideFr(t)}</b><span${c?` class="is-${c}"`:''}>${guideFr(w)}</span></div>`).join('')}</div>`;
   if(b.warn||b.tip){
     const m=b.warn||b.tip,warn=!!b.warn;
@@ -10712,8 +10722,9 @@ function guide(spec){
   const lesson={id,titre,résumé:spec.résumé,situation,
     /* Le texte d’introduction passe dans « extra », en premier : le rendu de certains cours (WHERE, OR) range le corps du problème après le reste. */
     studio:{problem:{eye:'',title:guideFr(concept.title),body:'',extra:guideBlocks([].concat(concept.body?[concept.body]:[],concept.blocks||[]))},
-      uses:{title:spec.usesTitle||'Écrire la requête',body:`<div class="pt-lead fn-uses fk-course jn-course">${steps.map(st=>`<div class="fn-use"><p class="pt-syntax-h">${guideFr(st.h)}</p>${guideBlocks(st.blocks)}</div>`).join('\n')}</div>`}},
-    reflexTitle:'Le réflexe à retenir',reflex:{extra:guideBlocks(reflex)},
+      uses:{title:spec.usesTitle||'Écrire la requête',body:`<div class="pt-lead fn-uses fk-course jn-course">${steps.map(st=>`<div class="fn-use"><p class="pt-syntax-h">${guideFr(st.h)}</p>${guideBlocks(st.blocks)}</div>`).join('\n')}</div>`},
+      reflexTitle:'Le réflexe à retenir',reflex:{extra:guideBlocks(reflex)}},
+    reflexTitle:'Le réflexe à retenir',
     noTeste:true,noAnat:true,richLesson:true,earlyDemo:true,guided:true};
   ['anatomie','exemple','attendu','retenir','consigne','solution','indice','learningCheck','testeVariants','ordered','write','verif','noExec','noExecWhy','apres'].forEach(k=>{if(spec[k]!==undefined)lesson[k]=spec[k];});
   return lesson;
@@ -11192,16 +11203,16 @@ guide({ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
     ]}
   ],
   reflex:[
-    "<code>WHERE</code> garde les lignes qui respectent une condition.",
-    "La structure à retenir :",
-    {syntax:"SELECT colonnes\nFROM table\nWHERE condition;"},
-    "Dans notre exemple :",
-    {need:[["","WHERE","filtre les lignes"],["","=","est égal à","b"],["","'Paris'","texte entre guillemets simples","c"]],label:"WHERE, égal, valeur texte"}
+    {recap:[
+      ["🔎","<code>WHERE</code> sert à <b>filtrer les lignes</b> selon une condition.","Il agit sur le résultat, sans modifier la table."],
+      ["📍","Il se place <b>après <code>FROM</code></b> :",null,"WHERE ville = 'Paris'"],
+      ["💬","Pour une valeur en texte, utilise des <b>guillemets simples</b> :",null,"'Paris'"]
+    ],label:"Les trois idées à retenir"}
   ],
   anatomie:[{tok:"SELECT nom, ville",txt:"Les colonnes déjà choisies pour l’affichage."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"ville",plain:1,txt:"La colonne dont la valeur est vérifiée."},{tok:"=",plain:1,txt:"Vérifie que les deux valeurs sont égales."},{tok:"'Paris'",plain:1,txt:"La valeur recherchée dans la colonne ville."}],
   exemple:"SELECT nom, ville FROM clients WHERE ville = 'Paris';",
   attendu:"<b>4 lignes</b> : Sophie, les deux Nathan et Léa, car ce sont les quatre clients dont <code>ville</code> vaut <code>'Paris'</code>.",
-  retenir:"<code>WHERE</code> garde les lignes qui respectent une condition et écarte les autres <b>du résultat</b> : la table n’est pas modifiée.<br><br>Elle se place après <code>FROM</code> : <code>WHERE ville = 'Paris'</code>.<br><br>Une valeur texte s’écrit entre guillemets simples : <code>'Paris'</code>.",
+  retenir:"<code>WHERE</code> sert à filtrer les lignes selon une condition.<br>Il agit sur le résultat, sans modifier la table.<br><br>Il se place après <code>FROM</code> : <code>WHERE ville = 'Paris'</code><br><br>Pour une valeur en texte, utilise des guillemets simples : <code>'Paris'</code>.",
   consigne:"Affiche toutes les colonnes des clients qui habitent à Paris.",
   solution:"SELECT * FROM clients WHERE ville = 'Paris';",
   indice:"Ajoute un filtre après <code>FROM clients</code> pour garder uniquement les lignes où <code>ville</code> vaut <code>'Paris'</code>.",
@@ -36349,7 +36360,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-03-ludique-v1558';
+  const SW_CACHE='requete-2026-10-03-ludique-v1559';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
