@@ -2949,6 +2949,48 @@
   .cond-anim.is-done .ca-replay{display:block}
   @keyframes caPop{50%{transform:scale(1.18)}}
   @media (prefers-reduced-motion:reduce){.cond-anim li.is-on b{animation:none}}
+  /* WHERE : chaque ligne est testée à son tour, puis gardée ou écartée (initRowTest) */
+  .rt-wrap{margin:12px 0 14px}
+  .rt-wrap > .pk-comp.ij-t{margin:0}
+  .rt .pk-mini{position:relative}
+  .rt .pk-mini span{transition:opacity .3s ease,background-color .3s ease,color .2s ease}
+  .rt .pk-mini span:not(.is-h){display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .pk-comp.ij-t .ij-tlab .rt-cond{margin-left:auto;padding:3px 8px;border-radius:8px;background:var(--accent-soft);color:var(--accent-ink);font:800 11.5px/1.25 var(--mono);letter-spacing:0;text-transform:none}
+  .rt.is-pinging .rt-cond{animation:rtPing .55s ease-out}
+  .rt-b{appearance:none;display:inline-block;margin:0;padding:0;border:0;background:none;font:inherit;color:inherit;text-align:inherit;cursor:pointer}
+  .rt-b:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+  .rt-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .rt .pk-mini span.rt-v{position:relative}
+  .rt .pk-mini span.rt-v.is-pending{background:transparent;color:transparent}
+  .rt .pk-mini span.rt-v.is-pending .rt-b{color:transparent}
+  .rt .pk-mini span.rt-v.is-pending::after{content:"?";position:absolute;inset:0;display:grid;place-items:center;font-size:15px;font-weight:800;color:var(--ink-3)}
+  .rt .pk-mini span.rt-v.is-testing::after{content:"•••";letter-spacing:3px;color:var(--accent-ink);animation:rtDots .7s ease-in-out infinite}
+  .rt .pk-mini span.rt-v.is-new .rt-b{animation:rtPop .45s cubic-bezier(.3,1.5,.5,1) both}
+  .rt .pk-mini span.is-cmp{color:var(--accent-ink);font-weight:800}
+  .rt .pk-mini span.is-dim{opacity:.5}
+  .rt-bar{position:absolute;left:5px;right:5px;top:0;height:40px;z-index:2;border:2px solid var(--accent);border-radius:11px;box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 14%,transparent);opacity:0;pointer-events:none;transition:transform .32s cubic-bezier(.3,.9,.3,1),height .2s ease,opacity .2s ease,border-color .2s ease,box-shadow .2s ease}
+  .rt-bar.is-on{opacity:1}
+  .rt-bar.is-ok{border-color:var(--success-fill);box-shadow:0 0 0 4px color-mix(in srgb,var(--success-fill) 16%,transparent)}
+  .rt-bar.is-ko{border-color:var(--danger-fill);box-shadow:0 0 0 4px color-mix(in srgb,var(--danger-fill) 14%,transparent)}
+  .rt .ij-tmore{transition:color .25s ease}
+  .rt .ij-tmore.is-scan{color:var(--accent-ink)}
+  .rt-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:32px;margin:8px 2px 0}
+  .rt-hint{font-size:12px;font-weight:600;line-height:1.35;color:var(--ink-3)}
+  .rt-replay{display:none;flex:none;padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;font:inherit;font-size:12px;font-weight:700;line-height:1.3;color:var(--ink-2);cursor:pointer}
+  .rt-wrap.is-done .rt-replay{display:inline-block}
+  .win-look.rt-legend li{position:relative;transition:background-color .25s ease,box-shadow .25s ease,transform .3s cubic-bezier(.3,1.4,.5,1)}
+  .win-look.rt-legend li::after{content:"✅";grid-column:2;grid-row:1/3;align-self:center;font-size:16px;line-height:1;opacity:0;transform:scale(.4);transition:opacity .2s ease,transform .3s cubic-bezier(.3,1.6,.5,1)}
+  .win-look.rt-legend li.is-no::after{content:"❌"}
+  .win-look.rt-legend li.is-lit{transform:scale(1.015)}
+  .win-look.rt-legend li.is-lit::after{opacity:1;transform:none}
+  .win-look.rt-legend li.is-yes.is-lit{background:var(--success-soft);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--success-fill) 55%,transparent)}
+  .win-look.rt-legend li.is-no.is-lit{background:var(--danger-soft);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--danger-fill) 50%,transparent)}
+  @keyframes rtPop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.08);opacity:1}100%{transform:none;opacity:1}}
+  @keyframes rtDots{0%,100%{opacity:.3}50%{opacity:1}}
+  @keyframes rtPing{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 40%,transparent)}100%{box-shadow:0 0 0 9px transparent}}
+  @media (prefers-reduced-motion:reduce){.rt-bar,.rt .pk-mini span,.win-look.rt-legend li,.win-look.rt-legend li::after{transition:none}.rt .pk-mini span.rt-v.is-new .rt-b,.rt.is-pinging .rt-cond,.rt .pk-mini span.rt-v.is-testing::after{animation:none}}
+  html[data-motion="reduce"] .rt-bar,html[data-motion="reduce"] .rt .pk-mini span,html[data-motion="reduce"] .win-look.rt-legend li,html[data-motion="reduce"] .win-look.rt-legend li::after{transition:none}
+  html[data-motion="reduce"] .rt .pk-mini span.rt-v.is-new .rt-b,html[data-motion="reduce"] .rt.is-pinging .rt-cond,html[data-motion="reduce"] .rt .pk-mini span.rt-v.is-testing::after{animation:none}
   .ow-cmp{display:grid;grid-template-columns:1fr;gap:10px;margin:10px 0 0}
   .ow-cmp article{padding:12px 14px;border-radius:14px;background:#FAFAFC;border:1px solid rgba(60,60,67,.07)}
   .ow-cmp .ow-k{margin:0 0 6px!important}
@@ -10717,9 +10759,15 @@ function guideBlock(b){
   }
   if(b.done)return guideDoneCard(b.done);
   if(b.table){
-    const t=b.table,n=t.head.length,hit=new Set((t.hit||[]).map(([r,c])=>r+','+c));
-    const cells=t.head.map(h=>`<span class="is-h">${guideFr(h)}</span>`).join('')+t.rows.map((r,i)=>r.map((c,j)=>`<span${c==='NULL'?' class="is-null"':hit.has(i+','+j)?' class="is-hit"':''}>${guideFr(c)}</span>`).join('')).join('');
-    return `<div class="pk-comp ij-t"><p class="ij-tlab">${guideFr(t.label)}</p><div class="pk-mini${n>2?' is-'+n:' is-2'}"${t.cols?` style="grid-template-columns:${t.cols}"`:''}>${cells}</div>${t.more?`<p class="ij-tmore">${guideFr(t.more)}</p>`:''}</div>`;
+    const t=b.table,n=t.head.length,hit=new Set((t.hit||[]).map(([r,c])=>r+','+c)),test=t.test;
+    /* Tableau « à tester » (test:{cond,val,who}) : la dernière colonne porte le verdict de chaque ligne ;
+       initRowTest le révèle ligne par ligne et laisse l’apprenant retester une ligne en la touchant. */
+    const cell=(c,i,j)=>test&&j===n-1
+      ?`<span class="rt-v${hit.has(i+','+j)?' is-hit':''}"><button type="button" class="rt-b"><i class="rt-sr">Tester ${guideEsc(t.rows[i][test.who||0])}&nbsp;: </i>${guideFr(c)}</button></span>`
+      :`<span${c==='NULL'?' class="is-null"':hit.has(i+','+j)?' class="is-hit"':''}>${guideFr(c)}</span>`;
+    const cells=t.head.map(h=>`<span class="is-h">${guideFr(h)}</span>`).join('')+t.rows.map((r,i)=>r.map((c,j)=>cell(c,i,j)).join('')).join('')+(test?'<i class="rt-bar" aria-hidden="true"></i>':'');
+    const card=`<div class="pk-comp ij-t${test?' rt':''}"><p class="ij-tlab">${guideFr(t.label)}${test?`<code class="rt-cond">${guideEsc(test.cond)}</code>`:''}</p><div class="pk-mini${n>2?' is-'+n:' is-2'}"${t.cols?` style="grid-template-columns:${t.cols}"`:''}>${cells}</div>${t.more?`<p class="ij-tmore">${guideFr(t.more)}</p>`:''}</div>`;
+    return test?`<div class="rt-wrap" data-rt-n="${n}" data-rt-val="${test.val}">${card}<div class="rt-foot"><span class="rt-hint">👆 Touche une ligne pour la tester</span><button type="button" class="rt-replay">↻ Rejouer</button></div></div>`:card;
   }
   throw new Error('bloc de cours inconnu : '+JSON.stringify(b).slice(0,80));
 }
@@ -11194,7 +11242,7 @@ guide({ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
       "<b>Est-ce que sa ville est Paris ?</b>",
       "En SQL, cette condition s’écrit :",
       {syntax:"⟦ville = 'Paris'⟧"},
-      {table:{label:"clients",cols:"minmax(0,.9fr) minmax(0,1fr) minmax(0,1.8fr)",head:["nom","ville","La condition est-elle vraie ?"],rows:[["Sophie","Paris","✅ vraie → gardée"],["Lucas","Lyon","❌ fausse → écartée"],["Emma","Marseille","❌ fausse → écartée"],["Nathan","Paris","✅ vraie → gardée"]],hit:[[0,2],[3,2]],more:"… et 6 autres clients"}},
+      {table:{label:"clients",cols:"minmax(0,.9fr) minmax(0,1fr) minmax(0,1.8fr)",head:["nom","ville","La condition est-elle vraie ?"],rows:[["Sophie","Paris","✅ vraie → gardée"],["Lucas","Lyon","❌ fausse → écartée"],["Emma","Marseille","❌ fausse → écartée"],["Nathan","Paris","✅ vraie → gardée"]],hit:[[0,2],[3,2]],more:"… et 6 autres clients",test:{cond:"ville = 'Paris'",val:1}}},
       {looks:[["vraie","la ligne apparaît dans le résultat"],["fausse","la ligne n’apparaît pas"]],label:"Vrai ou faux"},
       {arrow:"Pour chaque client, SQL vérifie la condition <code>ville = 'Paris'</code>. Seuls ceux pour lesquels elle est vraie sont gardés."}
     ]
@@ -28729,6 +28777,7 @@ function renderLessonFlow(){
     initQueryFill();
     initGroupCount();
     initCondAnim();
+    initRowTest();
     initAskSlots();
     initJoinChooser();
     initJoinTree();
@@ -29218,6 +29267,98 @@ function initCondAnim(){
       if(on) wait=setTimeout(()=>{ io.disconnect(); play(); },400);
     },{root:scr,rootMargin:'-15% 0px -15% 0px',threshold:[0,.98,1]});
     io.observe(box);
+  });
+}
+/* ---------- WHERE : chaque ligne est testée à son tour, puis gardée ou écartée ----------
+   Une barre passe de ligne en ligne : la ville est comparée à la condition, le verdict apparaît,
+   et la carte « vraie » ou « fausse » s’allume dessous. Toucher une ligne la teste à nouveau. */
+const RT_TIME={test:480,hold:520,tail:700};
+function initRowTest(){
+  const scr=document.getElementById('scr-lesson');
+  document.querySelectorAll('#lesson-body .rt-wrap').forEach(wrap=>{
+    const card=wrap.querySelector('.rt'),grid=card.querySelector('.pk-mini'),bar=grid.querySelector('.rt-bar'),more=card.querySelector('.ij-tmore');
+    const n=+wrap.dataset.rtN||3,val=+wrap.dataset.rtVal||0;
+    const cells=[...grid.children].filter(c=>c.tagName==='SPAN');
+    const rows=[];
+    for(let i=n;i+n<=cells.length;i+=n){const c=cells.slice(i,i+n);rows.push({c,v:c[n-1],ok:c[n-1].classList.contains('is-hit')});}
+    /* Les deux cartes qui suivent (vraie / fausse) réagissent au verdict. */
+    const next=wrap.nextElementSibling,legend=next&&next.matches('.win-look')?next:null,lis=legend?[...legend.children]:[];
+    if(lis.length===2){legend.classList.add('rt-legend');lis[0].classList.add('is-yes');lis[1].classList.add('is-no');}
+    const lit=ok=>lis.forEach((li,k)=>li.classList.toggle('is-lit',ok!==null&&(k===0)===ok));
+    let timers=[],io=null,t0=0;
+    const later=(fn,ms)=>timers.push(setTimeout(fn,ms));
+    const stop=()=>{timers.forEach(clearTimeout);timers=[];};
+    /* Un toucher (ou « Rejouer ») prend la main : plus de balayage automatique, même s’il était sur le point de partir. */
+    const unwatch=()=>{clearTimeout(t0);if(io){io.disconnect();io=null;}};
+    /* États d’une ligne : « ? » (à tester), « ••• » (en cours), verdict affiché. */
+    const wait=r=>{const o=rows[r];o.v.classList.add('is-pending');o.v.classList.remove('is-testing','is-new');o.c.forEach(x=>x.classList.remove('is-dim','is-cmp'));};
+    const probe=r=>{const o=rows[r];o.v.classList.add('is-pending','is-testing');o.c[val].classList.add('is-cmp');};
+    const show=(r,pop)=>{
+      const o=rows[r];
+      o.v.classList.remove('is-pending','is-testing');o.c[val].classList.remove('is-cmp');
+      if(pop){o.v.classList.remove('is-new');void o.v.offsetWidth;o.v.classList.add('is-new');}
+      if(!o.ok)o.c.forEach(x=>x.classList.add('is-dim'));
+    };
+    /* La barre : posée sans glisser quand elle apparaît, puis elle glisse d’une ligne à l’autre. */
+    const aim=(y,h)=>{
+      if(!bar)return;
+      const fresh=!bar.classList.contains('is-on');
+      if(fresh)bar.style.transition='none';
+      bar.style.transform=`translateY(${y}px)`;bar.style.height=h+'px';
+      if(fresh){void bar.offsetWidth;bar.style.transition='';}
+      bar.classList.add('is-on');
+    };
+    const idle=()=>{if(bar)bar.classList.remove('is-on','is-ok','is-ko');if(more)more.classList.remove('is-scan');lit(null);};
+    const done=()=>{idle();wrap.classList.add('is-done');};
+    /* touch : le test vient d’un toucher de l’apprenant, donc un léger retour haptique à la clé (jamais pendant le balayage automatique). */
+    const runRow=(r,then,touch)=>{
+      probe(r);lit(null);
+      card.classList.remove('is-pinging');void card.offsetWidth;card.classList.add('is-pinging');
+      if(bar){bar.classList.remove('is-ok','is-ko');aim(rows[r].c[0].offsetTop,rows[r].c[0].offsetHeight);}
+      later(()=>{
+        show(r,true);if(bar)bar.classList.add(rows[r].ok?'is-ok':'is-ko');lit(rows[r].ok);
+        if(touch&&rows[r].ok&&navigator.vibrate)navigator.vibrate(8);
+      },RT_TIME.test);
+      later(then,RT_TIME.test+RT_TIME.hold);
+    };
+    const play=()=>{
+      stop();idle();wrap.classList.remove('is-done');
+      rows.forEach((_,r)=>wait(r));
+      let r=0;
+      const step=()=>{
+        if(r<rows.length){runRow(r++,step);return;}
+        /* Les autres clients passent le même test : la barre continue vers « … et 6 autres clients ». */
+        lit(null);
+        if(more&&bar){bar.classList.remove('is-ok','is-ko');more.classList.add('is-scan');aim(grid.offsetHeight,more.offsetHeight);}
+        later(done,RT_TIME.tail);
+      };
+      later(step,300);
+    };
+    /* Toucher une ligne : seule cette ligne est testée (les autres gardent leur état). */
+    const retest=r=>{
+      stop();
+      rows.forEach((o,k)=>{if(o.v.classList.contains('is-testing'))wait(k);});
+      idle();wait(r);
+      if(navigator.vibrate)navigator.vibrate(6);
+      runRow(r,done,true);
+    };
+    grid.addEventListener('click',e=>{
+      const i=cells.indexOf(e.target.closest('.pk-mini > span'));
+      if(i<n)return;
+      unwatch();retest(Math.floor((i-n)/n));
+    });
+    const replay=wrap.querySelector('.rt-replay');
+    if(replay)replay.addEventListener('click',()=>{unwatch();play();});
+    if(prefersReduceMotion()){rows.forEach((_,r)=>show(r,false));wrap.classList.add('is-done');return;}
+    wrap.classList.add('is-armed');
+    rows.forEach((_,r)=>wait(r));
+    if(!scr||typeof IntersectionObserver==='undefined'){play();return;}
+    io=new IntersectionObserver(es=>{
+      const on=es.some(e=>e.isIntersecting&&e.intersectionRatio>=.8);
+      clearTimeout(t0);
+      if(on)t0=setTimeout(()=>{unwatch();play();},400);
+    },{root:scr,rootMargin:'-10% 0px -10% 0px',threshold:[0,.8,1]});
+    io.observe(wrap);
   });
 }
 /* ---------- GROUP BY + COUNT : comptage +1 par commande ---------- */
@@ -36408,7 +36549,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-03-ludique-v1567';
+  const SW_CACHE='requete-2026-10-03-ludique-v1568';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
