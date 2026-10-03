@@ -24813,11 +24813,23 @@ function stripNoteHtml(s){
     .replace(/\n{3,}/g,'\n\n')
     .trim();
 }
+/* Récapitulatif en cartes d’un cours guide (« Le réflexe à retenir ») : chaque carte devient un
+   paragraphe « phrase / précision / exemple de code ». Sans cela, la liste de cartes (une carte
+   d’emoji par idée) était ignorée comme un schéma et la note restait vide. */
+function noteRecapHtml(s){
+  return String(s||'').replace(/<ol class="fk-syn-map is-recap"[^>]*>([\s\S]*?)<\/ol>/g,(_,inner)=>{
+    const cards=[...inner.matchAll(/<li>([\s\S]*?)<\/li>/g)].map(m=>{
+      const part=re=>{const x=re.exec(m[1]);return x?x[1].replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim():'';};
+      return [part(/<strong>([\s\S]*?)<\/strong>/),part(/<\/strong><span>([\s\S]*?)<\/span>/),part(/<code class="fk-rc">([\s\S]*?)<\/code>/)].filter(Boolean);
+    }).filter(lines=>lines.length);
+    return cards.map(lines=>`<p>${lines.join('<br>')}</p>`).join('');
+  });
+}
 /* Texte d’une note à partir d’un fragment HTML de cours : les paragraphes sont séparés
    par une ligne vide, les blocs de code gardent leurs retours à la ligne et leur retrait
    (entourés de ```), les listes « mot-clé + sens » deviennent « MOT → sens ». */
 function noteTextFromHtml(s){
-  const html=String(s||'');
+  const html=noteRecapHtml(s);
   if(!html) return '';
   if(typeof document==='undefined') return stripNoteHtml(html);
   const skip='svg,[aria-hidden="true"],.fk-memo,.fk-tree,.fk-corr,.fk-ref,.fk-vs,.fk-check,.fk-gift,.fk-quiz-pair,.fk-roles,.fk-syn-map,.rel-link,.pk-rel,.sj-tree,.sit-memo-lab';
@@ -24897,13 +24909,15 @@ function lessonReflexText(l){
   const r=l.studio&&l.studio.reflex;
   if(r){
     const line=item=>item?`${item.k} — ${stripNoteHtml(item.t)}${item.s?'\n'+stripNoteHtml(item.s):''}`:'';
-    return [
+    const txt=[
       line(r.a),
       line(r.b),
       line(r.c),
       r.note?noteTextFromHtml(r.note):'',
       r.extra?noteTextFromHtml(r.extra):''
     ].filter(Boolean).join('\n\n');
+    /* Jamais de note vide : à défaut, le texte « à retenir » du cours. */
+    return txt||noteTextFromHtml(l.retenir||'');
   }
   if(l.orderRappel){
     return [
@@ -36569,7 +36583,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-03-ludique-v1581';
+  const SW_CACHE='requete-2026-10-03-ludique-v1582';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
