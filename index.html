@@ -10694,7 +10694,7 @@ function guideBlock(b){
   if(b.need)return `<div class="ij-need" role="list"${lab(b.label)}>${b.need.map(([i,t,w,c])=>`<div role="listitem"><b>${i?i+' ':''}${guideFr(t)}</b><span${c?` class="is-${c}"`:''}>${guideFr(w)}</span></div>`).join('')}</div>`;
   if(b.warn||b.tip){
     const m=b.warn||b.tip,warn=!!b.warn;
-    return `<div class="sit-memo${warn?' is-warn':''}"><p class="sit-memo-lab"><i aria-hidden="true">${warn?'⚠️':'💡'}</i>${guideFr(m.t||(warn?'Attention':'Bon à savoir'))}</p>${(m.p||[]).map(x=>`<p>${guideFr(x)}</p>`).join('')}${m.run?guideBlock({run:m.run,say:m.say,warn}):''}</div>`;
+    return `<div class="sit-memo${warn?' is-warn':''}"><p class="sit-memo-lab"><i aria-hidden="true">${warn?'⚠️':'💡'}</i>${guideFr(m.t||(warn?'Attention':'Bon à savoir'))}</p>${(m.p||[]).map(x=>`<p>${guideFr(x)}</p>`).join('')}${(m.blocks||[]).map(x=>guideBlock(x&&x.run?Object.assign({},x,{warn}):x)).join('')}${m.run?guideBlock({run:m.run,say:m.say,warn}):''}</div>`;
   }
   if(b.table){
     const t=b.table,n=t.head.length,hit=new Set((t.hit||[]).map(([r,c])=>r+','+c));
@@ -11175,10 +11175,15 @@ guide({ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
       {say:"👇 Exécute cette requête pour voir les clients parisiens :",run:"SELECT nom, ville\nFROM clients\nWHERE ville = 'Paris';"},
       {tip:{t:"<code>WHERE</code> ne supprime rien",p:["<code>WHERE</code> choisit simplement les lignes à afficher.","Les autres lignes restent dans la table.","👉 La table <code>clients</code> contient donc toujours ses 10 clients."],say:"Pour le vérifier, compte tous les clients de la table :",run:"SELECT COUNT(*)\nFROM clients;"}}
     ]},
-    {h:"Écrire la valeur correctement",blocks:[
-      "Un texte s’écrit entre <b>guillemets simples</b>, et SQL fait la différence entre majuscules et minuscules.",
-      {warn:{t:"Sans guillemets",p:["SQL cherche alors une <b>colonne</b> nommée <code>Paris</code> et affiche une erreur."],say:"👇 Teste par toi-même :",run:"SELECT nom, ville\nFROM clients\nWHERE ville = Paris;"}},
-      {warn:{t:"La casse compte",p:["<code>'paris'</code> n’est pas <code>'Paris'</code> : aucune ligne ne correspond."],say:"👇 Teste par toi-même :",run:"SELECT nom, ville\nFROM clients\nWHERE ville = 'paris';"}}
+    {h:"Écrire une valeur texte",blocks:[
+      "Une valeur en texte s’écrit entre <b>guillemets simples</b> <code>' '</code> :",
+      {syntax:"ville = ⟦'Paris'⟧"},
+      {warn:{t:"Sans guillemets",blocks:[
+        "Si tu écris :",
+        {syntax:"ville = Paris"},
+        "SQL peut interpréter <code>Paris</code> comme le nom d’une <b>colonne</b>, et la requête provoque alors une erreur.",
+        {say:"👇 Teste par toi-même :",run:"SELECT nom, ville\nFROM clients\nWHERE ville = Paris;"}
+      ]}}
     ]}
   ],
   reflex:[
@@ -11191,7 +11196,7 @@ guide({ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
   anatomie:[{tok:"SELECT nom, ville",txt:"Les colonnes déjà choisies pour l’affichage."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"ville",plain:1,txt:"La colonne dont la valeur est vérifiée."},{tok:"=",plain:1,txt:"Vérifie que les deux valeurs sont égales."},{tok:"'Paris'",plain:1,txt:"La valeur recherchée dans la colonne ville."}],
   exemple:"SELECT nom, ville FROM clients WHERE ville = 'Paris';",
   attendu:"<b>4 lignes</b> : Sophie, les deux Nathan et Léa, car ce sont les quatre clients dont <code>ville</code> vaut <code>'Paris'</code>.",
-  retenir:"<code>WHERE</code> garde les lignes qui respectent une condition et écarte les autres <b>du résultat</b> : la table n’est pas modifiée.<br><br>Elle se place après <code>FROM</code> : <code>WHERE ville = 'Paris'</code>.<br><br>Un texte s’écrit entre guillemets simples, et la casse compte : <code>'Paris'</code> n’est pas <code>'paris'</code>.",
+  retenir:"<code>WHERE</code> garde les lignes qui respectent une condition et écarte les autres <b>du résultat</b> : la table n’est pas modifiée.<br><br>Elle se place après <code>FROM</code> : <code>WHERE ville = 'Paris'</code>.<br><br>Une valeur texte s’écrit entre guillemets simples : <code>'Paris'</code>.",
   consigne:"Affiche toutes les colonnes des clients qui habitent à Paris.",
   solution:"SELECT * FROM clients WHERE ville = 'Paris';",
   indice:"Ajoute un filtre après <code>FROM clients</code> pour garder uniquement les lignes où <code>ville</code> vaut <code>'Paris'</code>.",
@@ -36339,7 +36344,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-03-ludique-v1556';
+  const SW_CACHE='requete-2026-10-03-ludique-v1557';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
