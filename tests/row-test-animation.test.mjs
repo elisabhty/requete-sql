@@ -86,8 +86,8 @@ function setup({ reduce = false } = {}) {
 
 test('le tableau du cours WHERE est branché : colonnes, 4 lignes, cartes vraie / fausse', () => {
   const t = setup();
-  assert.equal(t.n, 3); assert.equal(t.rows.length, 4);
-  assert.deepEqual(t.rows.map(r => r[2].cls.has('is-hit')), [true, false, false, true], 'Sophie et Nathan (Paris) sont vraies');
+  assert.equal(t.n, 4, 'prénom, nom, ville, verdict'); assert.equal(+t.wrap.dataset.rtVal, 2, 'la condition porte sur la colonne ville'); assert.equal(t.rows.length, 4);
+  assert.deepEqual(t.rows.map(r => r[t.n - 1].cls.has('is-hit')), [true, false, false, true], 'Sophie et Nathan (Paris) sont vraies');
   assert.ok(t.legend.cls.has('win-look') && t.legend.cls.has('rt-legend') && t.legend.children[0].cls.has('is-yes') && t.legend.children[1].cls.has('is-no'));
 });
 
@@ -105,7 +105,7 @@ test('visible : le balayage teste une ligne après l’autre, la barre et la car
   t.clock.tick(1 + 300);                                  // ligne 1 : en cours de test
   assert.deepEqual(t.states(), ['testing', 'pending', 'pending', 'pending']);
   assert.ok(t.bar.cls.has('is-on')); assert.equal(t.bar.style.transform, 'translateY(30px)'); assert.equal(t.bar.style.height, '40px');
-  assert.ok(t.rows[0][1].cls.has('is-cmp'), 'la ville comparée est mise en avant');
+  assert.ok(t.rows[0][+t.wrap.dataset.rtVal].cls.has('is-cmp'), 'la ville comparée est mise en avant');
   assert.deepEqual(t.lit(), [false, false]);
   t.clock.tick(480);                                      // verdict de la ligne 1 : vraie
   assert.deepEqual(t.states(), ['shown', 'pending', 'pending', 'pending']);
@@ -151,7 +151,7 @@ test('toucher une ligne la teste à nouveau, sans toucher aux autres', () => {
 });
 
 test('toucher une ligne avant même le balayage : seule cette ligne est testée, le balayage automatique est annulé', () => {
-  const t = setup(); t.tap(3, 0);                         // on touche le nom (n’importe quelle cellule de la ligne)
+  const t = setup(); t.tap(3, 0);                         // on touche le prénom (n’importe quelle cellule de la ligne)
   assert.deepEqual(t.states(), ['pending', 'pending', 'pending', 'testing']);
   assert.ok(t.ios[0].off, 'le tableau n’est plus surveillé');
   t.clock.tick(1000); assert.deepEqual(t.states(), ['pending', 'pending', 'pending', 'shown']);
