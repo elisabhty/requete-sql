@@ -10689,7 +10689,7 @@ function guideBlock(b){
   if(b.run)return `${b.say?`<p>${guideFr(b.say)}</p>`:''}<div class="ij-run"${b.warn?' data-warn="1"':''} data-run-sql="${guideEsc(b.run).replace(/"/g,'&quot;').replace(/\n/g,'&#10;')}"></div>`;
   if(b.syntax)return guideSyntax(b.syntax);
   if(b.looks)return `<ul class="win-look is-cmp"${lab(b.label)}>${b.looks.map(([k,v])=>`<li><b>${/</.test(k)?k:`<code>${guideEsc(k)}</code>`}</b><span>${guideFr(v)}</span></li>`).join('')}</ul>`;
-  if(b.arrow)return `<p class="ij-arrow">👉 ${guideFr(b.arrow)}</p>`;
+  if(b.arrow)return `<p class="ij-arrow">${b.ico||'👉'} ${guideFr(b.arrow)}</p>`;
   if(b.sub)return `<p class="st-lab"><i aria-hidden="true">${b.sub[0]}</i>${guideFr(b.sub[1])}</p>`;
   if(b.need)return `<div class="ij-need" role="list"${lab(b.label)}>${b.need.map(([i,t,w,c])=>`<div role="listitem"><b>${i?i+' ':''}${guideFr(t)}</b><span${c?` class="is-${c}"`:''}>${guideFr(w)}</span></div>`).join('')}</div>`;
   if(b.warn||b.tip){
@@ -11163,7 +11163,10 @@ guide({ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
     {h:"Tous les clients, sans filtre",blocks:[
       "Sans <code>WHERE</code>, un <code>SELECT</code> affiche toutes les lignes.",
       {say:"👇 Exécute cette requête pour voir les 10 clients :",run:"SELECT nom, ville\nFROM clients;"},
-      {arrow:"Les clients de toutes les villes sont là : il reste à ne garder que ceux de Paris."}
+      {arrow:"La liste contient encore les clients de toutes les villes : il faut maintenant ne garder que ceux qui habitent à Paris."},
+      "<b>Comment indiquer à SQL quels clients garder ?</b>",
+      {arrow:"Il faut lui donner une condition :",ico:"➡️"},
+      {syntax:"⟦ville = 'Paris'⟧"}
     ]},
     {h:"Ajouter une condition avec WHERE",blocks:[
       "<code>WHERE</code> se place <b>après</b> <code>FROM</code> et contient la condition :",
@@ -36337,7 +36340,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-03-ludique-v1552';
+  const SW_CACHE='requete-2026-10-03-ludique-v1553';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
