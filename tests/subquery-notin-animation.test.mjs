@@ -50,7 +50,7 @@ FROM commandes
 WHERE commandes.client_id IS NOT NULL
 ''')})
 rows = conn.execute('''
-SELECT clients.nom
+SELECT clients.prenom
 FROM clients
 WHERE clients.id NOT IN (
   SELECT commandes.client_id

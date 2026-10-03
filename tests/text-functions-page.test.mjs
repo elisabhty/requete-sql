@@ -29,7 +29,7 @@ assert(guides.includes("k:'clean'") && guides.includes('TRIM'), 'nettoyage dispo
 assert(guides.includes("k:'measure'") && guides.includes('LENGTH'), 'mesure disponible');
 assert(guides.includes("k:'extract'") && guides.includes('INSTR + SUBSTR'), 'extraction disponible');
 assert(guides.includes("k:'replace'") && guides.includes('REPLACE'), 'remplacement disponible');
-assert(guides.includes("k:'join'") && guides.includes("LOWER(nom) || '-' || LOWER(ville)"), 'assemblage et exercice reliés');
+assert(guides.includes("k:'join'") && guides.includes("LOWER(prenom) || '-' || LOWER(ville)"), 'assemblage et exercice reliés');
 assert(html.includes('function renderTextFunctionsStudio'), 'rendu dédié à la leçon 51');
 assert(html.includes("if(l.id===51)return renderTextFunctionsStudio(l)"), 'ancienne pile de texte remplacée dans la page');
 assert(html.includes('Manipuler du texte avec SQL'), 'principe montré avant la syntaxe');

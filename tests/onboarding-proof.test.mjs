@@ -17,7 +17,7 @@ const script = `
 import sqlite3, sys
 conn = sqlite3.connect(':memory:')
 conn.executescript(sys.stdin.read())
-query = "SELECT id, nom, ville FROM clients WHERE ville = 'Paris' ORDER BY id;"
+query = "SELECT id, prenom, ville FROM clients WHERE ville = 'Paris' ORDER BY id;"
 for _ in range(${executions}):
   rows = conn.execute(query).fetchall()
   if [row[0] for row in rows] != [1, 4, 7, 10] or any(row[2] != 'Paris' for row in rows):

@@ -119,12 +119,12 @@ assert(onboarding.includes('Étape ${active+1} sur ${steps.length}') && onboardi
 assert(onboarding.includes('Garde ta progression.') && onboarding.includes('Continuer sans compte'), 'choix du compte clair et mode invité prioritaire');
 assert(onboarding.includes('authReady') && onboarding.includes('<small>Bientôt</small>'), 'fournisseurs indisponibles présentés honnêtement');
 assert(onboarding.includes('Mode local et privé') && onboarding.includes('Progression sauvegardée sur cet appareil.'), 'bénéfice du mode local explicité');
-assert(html.includes('function obRunPractice()') && onboarding.includes('Ta première requête.') && html.includes('db.exec("SELECT id, nom, ville FROM clients WHERE ville = \'Paris\' ORDER BY id;")'), 'premier succès SQL exécuté sur la vraie base pendant l’onboarding');
+assert(html.includes('function obRunPractice()') && onboarding.includes('Ta première requête.') && html.includes('db.exec("SELECT id, prenom, ville FROM clients WHERE ville = \'Paris\' ORDER BY id;")'), 'premier succès SQL exécuté sur la vraie base pendant l’onboarding');
 assert(onboarding.includes('Tes 7 prochains jours') && onboarding.includes('Première leçon') && onboarding.includes('ob-ready-days'), 'écran final enrichi avec un plan de départ concret, calculé depuis le plan réellement généré');
 assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes('.plus-details-body'), 'nouvelles micro-interactions respectent la réduction des mouvements');
 const primaryKeyLesson = html.slice(html.indexOf('{ id:34, titre:"Clé primaire"'), html.indexOf('{ id:35, titre:"Clé étrangère"'));
-assert(primaryKeyLesson.includes("WHERE nom = 'Nathan';") && primaryKeyLesson.includes('SQL renvoie <b>2 lignes'), 'la leçon Clé primaire exécute et annonce les deux Nathan réels');
-assert(html.includes("(4,'Nathan','Paris'") && html.includes("(10,'Nathan','Paris'"), 'les deux Nathan de Paris existent dans les données SQLite');
+assert(primaryKeyLesson.includes("WHERE prenom = 'Nathan';") && primaryKeyLesson.includes('SQL renvoie <b>2 lignes'), 'la leçon Clé primaire exécute et annonce les deux Nathan réels');
+assert(html.includes("(4,'Nathan','Petit','Paris'") && html.includes("(10,'Nathan','Dupont','Paris'"), 'les deux Nathan de Paris existent dans les données SQLite');
 assert(html.includes('{ id:75, titre:"OFFSET et pagination"') && html.includes('LIMIT 3 OFFSET 3'), 'pagination stable couverte par une leçon complète');
 assert(html.includes('{ id:76, titre:"GROUP_CONCAT"') && html.includes('STRING_AGG'), 'agrégation de texte couverte avec ouverture multi-SGBD');
 assert(html.includes('{ id:77, titre:"WITH RECURSIVE (CTE RECURSIVE)"') && html.includes('condition d’arrêt'), 'CTE récursives expliquées avec leur garde-fou');
@@ -132,7 +132,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
 assert(html.includes('{ id:73, titre:"UNION et UNION ALL"') && html.includes('18 lignes : 10 + 8') && !html.includes('17 lignes : 9 + 8'), 'UNION ALL visible et cardinalité corrigée');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-10-03-ludique-v1580') && html.includes('requete-2026-10-03-ludique-v1580') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-10-03-ludique-v1581') && html.includes('requete-2026-10-03-ludique-v1581') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);

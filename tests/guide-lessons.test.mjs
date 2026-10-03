@@ -60,8 +60,20 @@ for (const l of lessons) {
   /* Le parcours annonce le bon nombre de lignes. */
   const outN = +/is-out"><b>(\d+)<\/b>/.exec(lastUse)[1];
   const dbm = new SQL.Database(); dbm.run(schema); ctx.attachDateFns && ctx.attachDateFns(dbm);
-  const nRows = dbm.exec(full)[0].values.length; dbm.close();
+  const resMission = dbm.exec(full)[0]; dbm.close();
+  const nRows = resMission.values.length;
   assert.equal(outN, nRows, `${l.titre} : la requête de la mission renvoie ${nRows} lignes, le parcours en annonce ${outN}`);
+  /* Les personnes citées (liste d'envois et parcours) sont celles que renvoie la requête : « prénom nom », et leur contact. */
+  const col = c => resMission.columns.indexOf(c);
+  const whoOf = row => (col('prenom') >= 0 && col('nom') >= 0 ? `${row[col('prenom')]} ${row[col('nom')]}` : String(row[col('prenom') >= 0 ? col('prenom') : 0]));
+  const contactCol = col('email') >= 0 ? col('email') : col('telephone');
+  const peopleHtml = [...lastUse.matchAll(/<span class="ij-sms-who">([^<]*)<small>([^<]*)<\/small>/g)].map(m => [decode(m[1]), decode(m[2])]);
+  if (peopleHtml.length) {
+    assert.deepEqual(peopleHtml.map(p => p[0]), resMission.values.map(whoOf), `${l.titre} : les personnes de la liste d'envois sont celles de la requête de la mission`);
+    if (contactCol >= 0) assert.deepEqual(peopleHtml.map(p => p[1]), resMission.values.map(r => String(r[contactCol])), `${l.titre} : chaque personne a le contact renvoyé par la requête`);
+    const funnelWho = /is-out"><b>\d+<\/b><span>[^<]*<small>([^<]*)<\/small>/.exec(lastUse)[1].replace(/ et /g, ', ').split(', ');
+    assert.deepEqual(funnelWho, resMission.values.map(whoOf), `${l.titre} : le parcours cite les mêmes personnes, dans le même ordre`);
+  }
   const lit = (/is-out">[\s\S]*?<\/li>/.exec(lastUse)[0].match(/class="is-null"/g) || []).length;
   assert.equal(lit, outN, `${l.titre} : autant de points allumés que de lignes gardées`);
   const sms = /ij-sms(?: is-mail)?" style="--n:(\d+)"/.exec(lastUse);
