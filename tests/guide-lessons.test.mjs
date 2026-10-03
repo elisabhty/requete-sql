@@ -15,7 +15,7 @@ const scenes = vm.runInContext('GUIDE_SCENES', ctx), fills = vm.runInContext('GU
 const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(root, 'vendor/sqljs', f)});
 const decode = s => s.replace(/&#10;/g, '\n').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 assert.ok(lessons.length >= 1, 'au moins un cours guide');
-let runs = 0;
+let runs = 0, testedTables = 0;
 for (const l of lessons) {
   const body = [l.situation, l.studio.problem.extra, l.studio.uses.body, (l.studio.reflex || {}).extra].join('\n');
   /* Requêtes à exécuter : elles marchent, sauf celles d'un encadré « Attention » (qui montrent un piège). */
@@ -64,7 +64,30 @@ for (const l of lessons) {
   assert.equal(outN, nRows, `${l.titre} : la requête de la mission renvoie ${nRows} lignes, le parcours en annonce ${outN}`);
   const lit = (/is-out">[\s\S]*?<\/li>/.exec(lastUse)[0].match(/class="is-null"/g) || []).length;
   assert.equal(lit, outN, `${l.titre} : autant de points allumés que de lignes gardées`);
-  const sms = /ij-sms" style="--n:(\d+)"/.exec(lastUse);
-  if (sms) assert.equal(+sms[1], (lastUse.match(/<li style="--i:/g) || []).length, `${l.titre} : nombre de SMS`);
+  const sms = /ij-sms(?: is-mail)?" style="--n:(\d+)"/.exec(lastUse);
+  if (sms) assert.equal(+sms[1], (lastUse.match(/<li style="--i:/g) || []).length, `${l.titre} : nombre d'envois`);
+  /* Tableaux « à tester » (balayage ligne par ligne) : chaque verdict est celui de la condition, sur de vraies lignes de la table. */
+  for (const blk of body.match(/<div class="rt-wrap"[\s\S]*?<span class="rt-hint">/g) || []) {
+    const n = +/data-rt-n="(\d+)"/.exec(blk)[1], val = +/data-rt-val="(\d+)"/.exec(blk)[1];
+    const cond = decode(/<code class="rt-cond">([^<]*)<\/code>/.exec(blk)[1]), table = /<p class="ij-tlab">([^<]*)</.exec(blk)[1];
+    const grid = /<div class="pk-mini[^>]*>([\s\S]*?)<i class="rt-bar"/.exec(blk)[1];
+    const cells = [...grid.matchAll(/<span(?: class="([^"]*)")?>([\s\S]*?)<\/span>/g)].map(c => ({ cls: c[1] || '', text: decode(c[2].replace(/<i class="rt-sr">[^<]*<\/i>/g, '').replace(/<[^>]+>/g, '')) }));
+    assert.equal(cells.length % n, 0, `${l.titre} : le tableau à tester a ${n} colonnes`);
+    const head = cells.slice(0, n).map(c => c.text), rows = []; for (let i = n; i < cells.length; i += n) rows.push(cells.slice(i, i + n));
+    assert.ok(rows.length >= 2 && cells.slice(0, n).every(c => c.cls === 'is-h'), `${l.titre} : en-têtes et lignes du tableau à tester`);
+    assert.ok(rows.every(r => r[n - 1].cls.startsWith('rt-v')), `${l.titre} : une colonne de verdicts, une cellule par ligne`);
+    assert.ok(rows.some(r => /is-hit/.test(r[n - 1].cls)) && rows.some(r => !/is-hit/.test(r[n - 1].cls)), `${l.titre} : au moins une ligne vraie et une fausse`);
+    const dbt = new SQL.Database(); dbt.run(schema);
+    const cols = dbt.exec(`PRAGMA table_info(${table})`)[0].values.map(v => v[1]);
+    for (const r of rows) {
+      const where = head.slice(0, val + 1).map((h, i) => cols.includes(h) ? `${h}=${JSON.stringify(r[i].text).replace(/^"|"$/g, "'")}` : null).filter(Boolean).join(' AND ');
+      assert.ok(dbt.exec(`SELECT COUNT(*) FROM ${table} WHERE ${where}`)[0].values[0][0] >= 1, `${l.titre} : ${r[0].text} (${r[val].text}) existe dans la table ${table}`);
+      const truth = dbt.exec(`SELECT ${cond.replace(new RegExp(`\\b${head[val]}\\b`), `'${r[val].text}'`)}`)[0].values[0][0] === 1;
+      assert.equal(/is-hit/.test(r[n - 1].cls), truth, `${l.titre} : le verdict de ${r[0].text} doit être « ${truth ? 'vraie' : 'fausse'} » pour ${cond}`);
+    }
+    dbt.close(); testedTables++;
+    assert.match(body.slice(body.indexOf(blk) + blk.length), /^[^<]*<\/span><button type="button" class="rt-replay">[^<]*<\/button><\/div><\/div>\s*<ul class="win-look is-cmp"[^>]*><li>[\s\S]*?<\/li><li>[\s\S]*?<\/li><\/ul>/, `${l.titre} : les deux cartes vraie / fausse suivent le tableau à tester`);
+  }
 }
-console.log(`${lessons.length} cours guide, ${runs} requêtes exécutées : OK`);
+assert.ok(testedTables >= 1, 'au moins un tableau à tester (cours WHERE)');
+console.log(`${lessons.length} cours guide, ${runs} requêtes exécutées, ${testedTables} tableau(x) à tester : OK`);
