@@ -47,7 +47,7 @@ FROM commandes
 WHERE commandes.produit_id = 1
 ''')]
 rows = conn.execute('''
-SELECT clients.nom
+SELECT clients.prenom
 FROM clients
 WHERE clients.id IN (
   SELECT commandes.client_id

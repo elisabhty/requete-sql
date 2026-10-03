@@ -40,7 +40,7 @@ assert(html.includes("coalesce:'Résultat final · 10 contacts'"), 'le résultat
 assert(html.includes('function syncCoalesceA11y'), 'les scènes masquées sont retirées de l’arbre accessible');
 assert(html.includes('viz:"coalesce"'), 'la visualisation est reliée à la leçon COALESCE');
 assert(!source.includes('Regarder → vérifier'), 'la légende sous l’animation est retirée');
-assert(source.includes("sql:\"SELECT nom, email FROM\\u00a0clients\""), 'FROM clients reste collé si la ligne se coupe');
+assert(source.includes("sql:\"SELECT prenom, email FROM\\u00a0clients\""), 'FROM clients reste collé si la ligne se coupe');
 assert(source.includes("COALESCE(email, 'Non\\u00a0renseigné')"), 'le texte de secours reste collé, même si la ligne est étroite');
 assert(!source.includes("COALESCE(\\n  email") && !source.includes("COALESCE(email,\\n'Non"), 'plus de retours à la ligne forcés au milieu de COALESCE');
 assert(source.includes('<code>email.</code>') && !source.includes('<code>email</code>.'), 'le point n’est plus orphelin après la pastille email');
@@ -53,13 +53,13 @@ const py = String.raw`
 import json, sqlite3, sys
 conn = sqlite3.connect(':memory:')
 conn.executescript(sys.stdin.read())
-before = conn.execute('SELECT nom, email FROM clients ORDER BY id').fetchall()
+before = conn.execute('SELECT prenom, email FROM clients ORDER BY id').fetchall()
 rows = conn.execute('''
-SELECT nom, COALESCE(email, 'Non renseigné') AS contact
+SELECT prenom, COALESCE(email, 'Non renseigné') AS contact
 FROM clients
 ORDER BY id
 ''').fetchall()
-after = conn.execute('SELECT nom, email FROM clients ORDER BY id').fetchall()
+after = conn.execute('SELECT prenom, email FROM clients ORDER BY id').fetchall()
 print(json.dumps({'before': before, 'rows': rows, 'after': after}, ensure_ascii=False))
 `;
 const sql = spawnSync('python3', ['-c', py], { input: schema, encoding: 'utf8' });

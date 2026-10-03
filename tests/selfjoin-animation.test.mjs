@@ -41,12 +41,12 @@ import json, sqlite3, sys
 conn = sqlite3.connect(':memory:')
 conn.executescript(sys.stdin.read())
 candidate = conn.execute('''
-SELECT c1.id, c2.id, c1.nom, c2.nom, c1.ville
+SELECT c1.id, c2.id, c1.prenom, c2.prenom, c1.ville
 FROM clients c1 JOIN clients c2
 ON c1.ville = c2.ville
 ''').fetchall()
 final = conn.execute('''
-SELECT c1.id, c2.id, c1.nom, c2.nom, c1.ville
+SELECT c1.id, c2.id, c1.prenom, c2.prenom, c1.ville
 FROM clients c1 JOIN clients c2
 ON c1.ville = c2.ville AND c1.id < c2.id
 ''').fetchall()
