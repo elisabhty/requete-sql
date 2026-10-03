@@ -11,7 +11,7 @@ const ctx = vm.createContext({});
 const a = html.indexOf('const SCHEMA_SQL ='), b = html.indexOf('let state=');
 vm.runInContext(html.slice(a, b), ctx);
 const lessons = vm.runInContext('MODULES.flatMap(m=>m.lessons)', ctx).filter(l => l.guided);
-const scenes = vm.runInContext('GUIDE_SCENES', ctx), schema = vm.runInContext('SCHEMA_SQL', ctx);
+const scenes = vm.runInContext('GUIDE_SCENES', ctx), fills = vm.runInContext('GUIDE_FILLS', ctx), dones = vm.runInContext('GUIDE_DONE', ctx), schema = vm.runInContext('SCHEMA_SQL', ctx);
 const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(root, 'vendor/sqljs', f)});
 const decode = s => s.replace(/&#10;/g, '\n').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 assert.ok(lessons.length >= 1, 'au moins un cours guide');
@@ -47,6 +47,24 @@ for (const l of lessons) {
     });
     assert.equal(sc.steps.length, sc.caps.length, `${l.titre} : une légende par étape`);
   }
-  assert.ok(!/Mission accomplie|Ta mission/.test(body), `${l.titre} : pas de mission dans un cours sans mission`);
+  /* Mission : un « Ta mission » dans la situation, une carte « Mission accomplie » après la requête complète. */
+  assert.match(l.situation, /is-mission/, `${l.titre} : « Ta mission » dans la situation`);
+  const card = /<div class="ij-done is-locked"[\s\S]*?<\/ol>/.exec(l.studio.uses.body);
+  assert.ok(card, `${l.titre} : carte Mission accomplie après la requête complète`);
+  assert.ok(fills[l.id] && dones[l.id], `${l.titre} : requête à trous et résumé de la mission enregistrés`);
+  const lastUse = l.studio.uses.body.slice(l.studio.uses.body.lastIndexOf('<div class="fn-use">'));
+  const full = decode(/data-run-sql="([^"]*)"/.exec(lastUse)[1]);
+  /* Les morceaux à placer apparaissent, dans l'ordre, dans la requête complète. */
+  let pos = 0;
+  for (const tok of fills[l.id].t) { const i = full.indexOf(tok, pos); assert.ok(i >= 0, `${l.titre} : « ${tok} » introuvable (dans l'ordre) dans la requête de la mission`); pos = i + tok.length; }
+  /* Le parcours annonce le bon nombre de lignes. */
+  const outN = +/is-out"><b>(\d+)<\/b>/.exec(lastUse)[1];
+  const dbm = new SQL.Database(); dbm.run(schema); ctx.attachDateFns && ctx.attachDateFns(dbm);
+  const nRows = dbm.exec(full)[0].values.length; dbm.close();
+  assert.equal(outN, nRows, `${l.titre} : la requête de la mission renvoie ${nRows} lignes, le parcours en annonce ${outN}`);
+  const lit = (/is-out">[\s\S]*?<\/li>/.exec(lastUse)[0].match(/class="is-null"/g) || []).length;
+  assert.equal(lit, outN, `${l.titre} : autant de points allumés que de lignes gardées`);
+  const sms = /ij-sms" style="--n:(\d+)"/.exec(lastUse);
+  if (sms) assert.equal(+sms[1], (lastUse.match(/<li style="--i:/g) || []).length, `${l.titre} : nombre de SMS`);
 }
 console.log(`${lessons.length} cours guide, ${runs} requêtes exécutées : OK`);

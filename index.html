@@ -10677,7 +10677,7 @@ function fnSpot(body){
    guide({id,titre,résumé,sit,concept,steps,reflex,…}) renvoie un cours au format
    habituel ; la typographie française (espaces insécables) est appliquée ici.
    ============================================================ */
-const GUIDE_SCENES={};
+const GUIDE_SCENES={},GUIDE_FILLS={},GUIDE_DONE={};
 function guideFr(h){
   /* Espace insécable avant : ? ! ; et dans « … », hors balises et hors <code>. */
   let code=0;
@@ -10706,6 +10706,7 @@ function guideBlock(b){
     const m=b.warn||b.tip,warn=!!b.warn;
     return `<div class="sit-memo${warn?' is-warn':''}"><p class="sit-memo-lab"><i aria-hidden="true">${warn?'⚠️':'💡'}</i>${guideFr(m.t||(warn?'Attention':'Bon à savoir'))}</p>${(m.p||[]).map(x=>`<p>${guideFr(x)}</p>`).join('')}${(m.blocks||[]).map(x=>guideBlock(x&&x.run?Object.assign({},x,{warn}):x)).join('')}${m.run?guideBlock({run:m.run,say:m.say,warn}):''}</div>`;
   }
+  if(b.done)return guideDoneCard(b.done);
   if(b.table){
     const t=b.table,n=t.head.length,hit=new Set((t.hit||[]).map(([r,c])=>r+','+c));
     const cells=t.head.map(h=>`<span class="is-h">${guideFr(h)}</span>`).join('')+t.rows.map((r,i)=>r.map((c,j)=>`<span${c==='NULL'?' class="is-null"':hit.has(i+','+j)?' class="is-hit"':''}>${guideFr(c)}</span>`).join('')).join('');
@@ -10713,12 +10714,30 @@ function guideBlock(b){
   }
   throw new Error('bloc de cours inconnu : '+JSON.stringify(b).slice(0,80));
 }
+/* Carte « Mission accomplie » : parcours (de combien de lignes à combien), puis une animation d’envoi (SMS). */
+const GUIDE_PLANE='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>';
+function guideFunnel(d){
+  const dots=f=>`<i class="ij-fn-dots" aria-hidden="true">${[...f].map(c=>`<i${c==='1'?' class="is-null"':''}></i>`).join('')}</i>`;
+  const lis=d.funnel.map(r=>r.step!==undefined
+    ?`<li class="ij-fn-step"><code>${guideEsc(r.step)}</code><small>${guideFr(r.s||'')}</small></li>`
+    :`<li class="ij-fn-row${r.out?' is-out':''}"><b>${r.n}</b><span>${guideFr(r.t)}<small>${guideFr(r.s||'')}</small></span>${r.dots?dots(r.dots):''}</li>`).join('');
+  return `<ol class="ij-funnel" aria-label="${guideEsc(d.label).replace(/"/g,'&quot;')}">${lis}</ol>`;
+}
+function guideSms(m){
+  const n=m.people.length;
+  return `<div class="ij-sms" style="--n:${n}" role="group" aria-label="${guideEsc(m.aria||m.h).replace(/"/g,'&quot;')}"><p class="ij-sms-h"><i aria-hidden="true">💬</i>${guideFr(m.h)}</p><div class="ij-sms-thread"><p class="ij-sms-typing" aria-hidden="true"><i></i><i></i><i></i></p><p class="ij-sms-bubble">${guideFr(m.msg)}</p></div><ul class="ij-sms-list">${m.people.map(([av,who,tel],i)=>`<li style="--i:${i}"><b class="ij-sms-av" aria-hidden="true">${guideEsc(av)}</b><span class="ij-sms-who">${guideEsc(who)}<small>${guideEsc(tel)}</small></span><em class="ij-sms-st"><i class="is-idle">En attente</i><i class="is-wait">Envoi<u>.</u><u>.</u><u>.</u></i><i class="is-sent">✓ Envoyé</i></em><i class="ij-sms-plane is-send" aria-hidden="true">${GUIDE_PLANE}</i></li>`).join('')}</ul><div class="ij-sms-meter" aria-hidden="true">${m.people.map((_,i)=>`<i style="--i:${i}"></i>`).join('')}</div><p class="ij-sms-done">${guideFr(m.done)}</p></div>`;
+}
+function guideDoneCard(d){
+  return `<div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div>${guideFunnel(d)}${d.sms?guideSms(d.sms):''}</div>`;
+}
 function guideBlocks(a){return (a||[]).map(guideBlock).join('\n');}
 function guide(spec){
   const {id,titre,sit,concept,steps,reflex}=spec;
   const memoP=sit&&sit.problem;
-  const situation=(sit.blocks?guideBlocks(sit.blocks):'')+(memoP?`<div class="sit-memo is-problem"><p class="sit-memo-lab"><i aria-hidden="true">🤔</i>Problème</p>${(memoP.p||[]).map(x=>`<p>${guideFr(x)}</p>`).join('')}${memoP.scene?'<div class="pr-slot"></div>':''}${[].concat(memoP.then||[]).map((x,i)=>`<p>${i?'':'👉 '}${guideFr(x)}</p>`).join('')}</div>`:'');
+  const situation=(sit.blocks?guideBlocks(sit.blocks):'')+(memoP?`<div class="sit-memo is-problem"><p class="sit-memo-lab"><i aria-hidden="true">🤔</i>Problème</p>${(memoP.p||[]).map(x=>`<p>${guideFr(x)}</p>`).join('')}${memoP.scene?'<div class="pr-slot"></div>':''}${[].concat(memoP.then||[]).map((x,i)=>`<p>${i?'':'👉 '}${guideFr(x)}</p>`).join('')}</div>`:'')+(sit.mission?`<div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>${guideFr(sit.mission)}</p></div>`:'');
   if(memoP&&memoP.scene)GUIDE_SCENES[id]=memoP.scene;
+  /* Mission : la requête à trous reprend la requête de la dernière étape ; le résumé de la carte vient de done.ui. */
+  steps.forEach(st=>(st.blocks||[]).forEach(b=>{if(b&&b.done){if(b.done.fill)GUIDE_FILLS[id]={t:b.done.fill};if(b.done.ui)GUIDE_DONE[id]=Object.assign({},b.done.ui,{t:guideFr(b.done.ui.t),s:guideFr(b.done.ui.s||'')});}}));
   const lesson={id,titre,résumé:spec.résumé,situation,
     /* Le texte d’introduction passe dans « extra », en premier : le rendu de certains cours (WHERE, OR) range le corps du problème après le reste. */
     studio:{problem:{eye:'',title:guideFr(concept.title),body:'',extra:guideBlocks([].concat(concept.body?[concept.body]:[],concept.blocks||[]))},
@@ -11156,7 +11175,8 @@ guide({ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
         caps:["<b>Sans filtre</b> · Un <code>SELECT</code> affiche toutes les lignes de la table.","<b>Condition</b> · Pour chaque ligne, SQL vérifie si la ville est <b>Paris</b>.","<b>Résultat</b> · Seules les lignes qui respectent la condition sont conservées."],
         steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R2","R3","R5"],dim:["R2","R3","R5"],d:2300},{cap:2,fold:["R2","R3","R5"],d:2600}]},
       then:["Il faut donc indiquer à SQL <b>quelles lignes conserver</b> : uniquement celles où la ville est <b>Paris</b>.","C’est exactement le rôle de <code>WHERE</code>."]
-    }
+    },
+    mission:"Aide l’équipe Marketing à afficher le <b>nom</b> et la <b>ville</b> des clients qui habitent à <b>Paris</b>, pour leur envoyer l’invitation à l’événement."
   },
   concept:{
     title:"Comment SQL peut-il savoir quels clients garder ?",
@@ -11200,6 +11220,22 @@ guide({ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
         {syntax:"'paris' ≠ 'Paris'"},
         {arrow:"Pour retrouver la valeur attendue, écris-la comme elle est enregistrée dans la table."}
       ]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à assembler la requête de la mission : choisir les colonnes, indiquer la table, puis ne garder que les clients de Paris.",
+      {say:"👇 Exécute la requête pour découvrir les clients à inviter :",run:"SELECT nom, ville\nFROM clients\nWHERE ville = 'Paris';"},
+      {done:{
+        label:"De tous les clients aux clients parisiens à inviter",
+        funnel:[
+          {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
+          {step:"WHERE ville = 'Paris'",s:"ne garde que les clients de Paris"},
+          {n:4,t:"⭐ clients à inviter",s:"Sophie, Nathan, Léa et Nathan n°10",dots:"1001001001",out:true}
+        ],
+        sms:{h:"Invitations par SMS",aria:"Invitation à l’événement envoyée par SMS aux 4 clients parisiens",msg:"Bonjour ! 🎉 Nous t’invitons à notre événement à Paris. Réponds OUI pour réserver ta place.",people:[["S","Sophie","06 39 98 12 04"],["N","Nathan","06 39 98 40 15"],["L","Léa","06 39 98 74 29"],["N","Nathan n°10","06 39 98 10 26"]],done:"✓ 4 invitations envoyées"},
+        fill:["clients","WHERE","ville","'Paris'"],
+        ui:{t:"4 clients à inviter",s:"Sophie, les deux Nathan et Léa habitent à Paris : ils reçoivent l’invitation.",n:["SELECT","FROM","WHERE"]},
+        rows:4
+      }}
     ]}
   ],
   reflex:[
@@ -25848,6 +25884,7 @@ const MISSION_DONE_UI={
       call:['Chaque client est relancé après son propre délai']},
   79:{t:'Palier franchi le 01/08',s:'Le cumul passe de 642,90\u00a0€ (30/07) à 732,60\u00a0€ (01/08)\u00a0: il franchit les 700\u00a0€.',n:['SUM()','OVER','ORDER BY','ROWS BETWEEN','UNBOUNDED PRECEDING','CURRENT ROW']}
 };
+Object.assign(MISSION_DONE_UI,GUIDE_DONE);
 let mdUid=0;
 function initMissionDone(){
   const cfg=current&&MISSION_DONE_UI[current.id];
@@ -28795,6 +28832,7 @@ const MISSION_FILLS={
   78:{t:['LAG','PARTITION BY','COALESCE','AVG','GROUP BY']},
   79:{t:['SUM','ROWS BETWEEN','UNBOUNDED PRECEDING','CURRENT ROW']}
 };
+Object.assign(MISSION_FILLS,GUIDE_FILLS);
 function lessonHasFill(l){return !!(l&&(l.gateFill||MISSION_FILLS[l.id]));}
 function qfFindToken(sql,tok,from){
   const re=new RegExp('(^|[^\\w.])('+tok.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')(?![\\w.])','g');
@@ -36360,7 +36398,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-03-ludique-v1559';
+  const SW_CACHE='requete-2026-10-03-ludique-v1560';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
