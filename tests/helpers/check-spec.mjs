@@ -24,10 +24,14 @@ for (const f of files) {
 
     /* Exercice : la solution s'exécute et renvoie des lignes (ou modifie la base, pour les cours d'écriture) ; quiz à 3 réponses. */
     for (const k of ['consigne', 'solution', 'indice', 'retenir', 'exemple', 'attendu']) assert.ok(l[k], `champ « ${k} » manquant`);
-    const db = openDb(env);
-    const res = db.exec(l.solution);
-    if (!l.write && !l.noExec) assert.ok(res.length && res[0].values.length >= 1, 'la solution de l\'exercice doit renvoyer au moins une ligne');
-    db.close();
+    /* Cours « noExec » : la solution ne s'exécute pas dans SQLite (notion de serveur ou tables déjà existantes). */
+    if (!l.noExec) {
+      const db = openDb(env);
+      const res = db.exec(l.solution);
+      if (!l.write) assert.ok(res.length && res[0].values.length >= 1, 'la solution de l\'exercice doit renvoyer au moins une ligne');
+      if (l.write && l.verif) assert.ok(db.exec(l.verif).length, 'la requête de vérification (verif) doit renvoyer un résultat après la solution');
+      db.close();
+    }
     const q = l.learningCheck;
     assert.ok(q && q.question && q.options.length === 3 && q.answer >= 0 && q.answer < 3 && q.explanation, 'learningCheck : question, 3 options, answer (0-2), explanation');
     for (const v of l.testeVariants || []) {
