@@ -7429,33 +7429,33 @@ guide({ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
 guide({ id:5, titre:"Comparer des valeurs", résumé:"Filtrer avec =, !=, >, <, >=, <=",
   sit:{
     blocks:[
-      "L’équipe marketing prépare <b>une sélection de produits premium</b> à mettre en avant dans une campagne. Elle ne veut présenter que les produits qui coûtent <b>plus de 25 €</b>.",
-      "La table <code>produits</code> contient au total <b>8 produits</b>, avec des prix très différents. Pour construire la sélection, l’équipe souhaite récupérer uniquement :",
-      {need:[["🏷️","Le nom du produit","table produits"],["💶","Son prix","table produits"]],label:"Les informations à récupérer"}
+      "L’équipe logistique prépare <b>le réassort</b> de la boutique. Elle doit recommander tous les produits dont le stock est de <b>60 unités ou moins</b>.",
+      "La table <code>produits</code> contient au total <b>8 produits</b>, avec des stocks très différents. Pour passer la commande au fournisseur, l’équipe souhaite récupérer uniquement :",
+      {need:[["🏷️","Le nom du produit","table produits"],["📦","Son stock","table produits"]],label:"Les informations à récupérer"}
     ],
     problem:{
-      p:["Avec <code>WHERE</code>, SQL sait garder les lignes qui correspondent à <b>une valeur précise</b>, comme <code>ville = 'Paris'</code>.","Or, l’équipe ne connaît pas les prix à l’avance : elle veut tous les produits <b>au-dessus de 25 €</b>, quel que soit leur prix exact."],
-      scene:{h:"🏷️ Produits conservés",cols:"1.7fr 1fr",
-        lanes:[{c:[["h1","nom","t"],["h2","prix","t"]]},
-          {k:"R1",c:[["a1","Fibre Prébiotique"],["a2","29.9"]]},
-          {k:"R2",c:[["b1","Magnésium"],["b2","19.9"]]},
-          {k:"R3",c:[["c1","Collagène Marin"],["c2","39.9"]]},
-          {k:"R4",c:[["d1","Oméga 3"],["d2","24.9"]]},
-          {k:"R5",c:[["e1","Protéine Végétale"],["e2","34.9"]]}],
-        caps:["<b>Notre liste</b> · Elle contient des produits de tous les prix.","<b>Condition</b> · Un produit nous intéresse seulement s’il coûte <b>plus de 25 €</b>.","<b>Résultat</b> · Seuls les produits qui respectent la condition doivent être conservés."],
-        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R2","R4"],dim:["R2","R4"],d:2300},{cap:2,fold:["R2","R4"],d:2600}]},
-      then:["Il faut donc <b>comparer chaque prix</b> à 25 : ne garder que les produits dont le prix est supérieur à ce seuil.","C’est exactement le rôle des <b>opérateurs de comparaison</b>, comme <code>&gt;</code>."]
+      p:["Avec <code>WHERE</code>, SQL sait garder les lignes qui correspondent à <b>une valeur précise</b>, comme <code>ville = 'Paris'</code>.","Or, l’équipe ne connaît pas les stocks à l’avance : elle veut tous les produits <b>à 60 unités ou moins</b>, quel que soit leur stock exact."],
+      scene:{h:"📦 Produits à recommander",cols:"1.7fr 1fr",
+        lanes:[{c:[["h1","nom","t"],["h2","stock","t"]]},
+          {k:"R1",c:[["a1","Fibre Prébiotique"],["a2","120"]]},
+          {k:"R2",c:[["b1","Tisane Détox"],["b2","60"]]},
+          {k:"R3",c:[["c1","Magnésium"],["c2","200"]]},
+          {k:"R4",c:[["d1","Protéine Végétale"],["d2","45"]]},
+          {k:"R5",c:[["e1","Shaker Inox"],["e2","30"]]}],
+        caps:["<b>Notre liste</b> · Elle contient des produits de tous les stocks.","<b>Condition</b> · Un produit nous intéresse seulement si son stock est de <b>60 unités ou moins</b>.","<b>Résultat</b> · Seuls les produits qui respectent la condition doivent être conservés."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R3"],dim:["R1","R3"],d:2300},{cap:2,fold:["R1","R3"],d:2600}]},
+      then:["Il faut donc <b>comparer chaque stock</b> à 60 : ne garder que les produits dont le stock est inférieur ou égal à ce seuil.","C’est exactement le rôle des <b>opérateurs de comparaison</b>, comme <code>&lt;=</code>."]
     },
-    mission:"Aide l’équipe marketing à retrouver le <b>nom</b> et le <b>prix</b> des produits qui coûtent <b>plus de 25 €</b>, afin de préparer la sélection de la campagne."
+    mission:"Aide l’équipe logistique à retrouver le <b>nom</b> et le <b>stock</b> des produits dont le stock est de <b>60 unités ou moins</b>, afin de préparer la commande de réassort."
   },
   concept:{
-    title:"Comment SQL peut-il savoir quels produits dépassent 25 € ?",
+    title:"Comment SQL peut-il savoir quels produits ont un stock bas ?",
     blocks:[
-      "Pour chaque produit, SQL doit comparer son prix à un seuil :",
-      {ask:"Est-ce que son prix est supérieur à 25 ?"},
+      "Pour chaque produit, SQL doit comparer son stock à un seuil :",
+      {ask:"Est-ce que son stock est inférieur ou égal à 60 ?"},
       "En SQL, cette comparaison s’écrit :",
-      {syntax:"⟦prix > 25⟧"},
-      {table:{label:"produits",cols:"minmax(0,1.5fr) minmax(0,.9fr) minmax(0,1.7fr)",head:["nom","prix","La condition est-elle vraie ?"],rows:[["Fibre Prébiotique","29.9","✅ vraie → gardée"],["Magnésium","19.9","❌ fausse → écartée"],["Collagène Marin","39.9","✅ vraie → gardée"],["Oméga 3","24.9","❌ fausse → écartée"]],hit:[[0,2],[2,2]],more:"… et 4 autres produits",test:{cond:"prix > 25",val:1}}},
+      {syntax:"⟦stock <= 60⟧"},
+      {table:{label:"produits",cols:"minmax(0,1.5fr) minmax(0,.8fr) minmax(0,1.7fr)",head:["nom","stock","La condition est-elle vraie ?"],rows:[["Fibre Prébiotique","120","❌ fausse → écartée"],["Tisane Détox","60","✅ vraie → gardée"],["Magnésium","200","❌ fausse → écartée"],["Protéine Végétale","45","✅ vraie → gardée"]],hit:[[1,2],[3,2]],more:"… et 4 autres produits",test:{cond:"stock <= 60",val:1}}},
       {looks:[["vraie","la ligne apparaît dans le résultat"],["fausse","la ligne n’apparaît pas"]],label:"Vrai ou faux"}
     ]
   },
@@ -7482,18 +7482,19 @@ guide({ id:5, titre:"Comparer des valeurs", résumé:"Filtrer avec =, !=, >, <, 
       {arrow:"Les 6 produits qui ne sont pas dans la catégorie « Nutrition » sont conservés."}
     ]},
     {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis comparer le prix au seuil de 25 €.",
-      {say:"👇 Exécute la requête pour découvrir les produits à mettre en avant :",run:"SELECT nom, prix\nFROM produits\nWHERE prix > 25;"},
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis comparer le stock au seuil de 60 unités.",
+      {say:"👇 Exécute la requête pour découvrir les produits à recommander :",run:"SELECT nom, stock\nFROM produits\nWHERE stock <= 60;"},
+      {arrow:"La Tisane Détox, qui a exactement 60 unités en stock, est bien conservée : <code>&lt;=</code> inclut la limite."},
       {done:{
-        label:"De tous les produits aux produits premium",
+        label:"De tous les produits aux produits à recommander",
         funnel:[
           {n:8,t:"produits au départ",s:"toute la <code>table produits</code>",dots:"00000000"},
-          {step:"WHERE prix > 25",s:"ne garde que les produits à plus de 25 €"},
-          {n:3,t:"⭐ produits à mettre en avant",s:"Fibre Prébiotique, Collagène Marin et Protéine Végétale",dots:"11000100",out:true}
+          {step:"WHERE stock <= 60",s:"ne garde que les produits à 60 unités ou moins"},
+          {n:3,t:"⭐ produits à recommander",s:"Tisane Détox, Protéine Végétale et Shaker Inox",dots:"00001101",out:true}
         ],
-        sms:{ico:"🛍️",h:"Vitrine de la campagne",aria:"Les trois produits premium sont mis en avant dans la vitrine",msg:"<b>Sélection premium</b><br>Les produits à plus de 25 €",people:[["F","Fibre Prébiotique","29.9"],["C","Collagène Marin","39.9"],["P","Protéine Végétale","34.9"]],st:["En attente","Mise en avant","✓ En vitrine"],plane:"star",done:"✓ 3 produits mis en avant"},
-        fill:["WHERE","prix",">","25"],
-        ui:{t:"3 produits à mettre en avant",s:"Tous coûtent plus de 25 € : la sélection de la campagne est prête.",n:["SELECT","FROM","WHERE",">"]},
+        sms:{ico:"📦",h:"Commande de réassort",aria:"Les trois produits sont ajoutés à la commande de réassort",msg:"<b>Commande de réassort</b><br>Les produits à 60 unités ou moins",people:[["T","Tisane Détox","60 en stock"],["P","Protéine Végétale","45 en stock"],["S","Shaker Inox","30 en stock"]],st:["À commander","Commande","✓ Commandé"],plane:"doc",done:"✓ 3 produits commandés"},
+        fill:["WHERE","stock","<=","60"],
+        ui:{t:"3 produits à recommander",s:"Leur stock est de 60 unités ou moins : la commande de réassort est prête.",n:["SELECT","FROM","WHERE","<="]},
         rows:3
       }}
     ]}
@@ -7501,17 +7502,17 @@ guide({ id:5, titre:"Comparer des valeurs", résumé:"Filtrer avec =, !=, >, <, 
   reflex:[
     {recap:[
       ["⚖️","Les <b>opérateurs de comparaison</b> comparent une colonne à une valeur :",null,"= != > < >= <="],
-      ["📏","<code>&gt;</code> et <code>&lt;</code> <b>excluent</b> la limite ; <code>&gt;=</code> et <code>&lt;=</code> l’incluent :",null,"prix >= 15"],
+      ["📏","<code>&gt;</code> et <code>&lt;</code> <b>excluent</b> la limite ; <code>&gt;=</code> et <code>&lt;=</code> l’incluent :",null,"stock <= 60"],
       ["💬","Un nombre s’écrit tel quel, un texte entre <b>guillemets simples</b> :",null,"categorie != 'Nutrition'"]
     ],label:"Les trois idées à retenir"}
   ],
-  anatomie:[{tok:"SELECT nom, prix",txt:"affiche le nom et le prix"},{tok:"FROM produits",txt:"utilise la table produits"},{tok:"WHERE",txt:"filtre les lignes"},{tok:"prix",plain:1,txt:"la colonne comparée"},{tok:">",plain:1,txt:"signifie « strictement supérieur à »"},{tok:"25",plain:1,txt:"le seuil de comparaison"}],
+  anatomie:[{tok:"SELECT nom, stock",txt:"affiche le nom et le stock"},{tok:"FROM produits",txt:"utilise la table produits"},{tok:"WHERE",txt:"filtre les lignes"},{tok:"stock",plain:1,txt:"la colonne comparée"},{tok:">=",plain:1,txt:"signifie « supérieur ou égal à »"},{tok:"100",plain:1,txt:"le seuil de comparaison"}],
   exemple:"SELECT nom, stock FROM produits WHERE stock >= 100;",
   attendu:"<b>3 lignes</b> : Fibre Prébiotique (120), Magnésium (200) et Vitamine D (150), car leur stock est supérieur ou égal à 100.",
   retenir:"Les opérateurs de comparaison comparent une colonne à une valeur : <code>=</code>, <code>!=</code>, <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code>.<br><br><code>&gt;</code> et <code>&lt;</code> excluent la limite ; <code>&gt;=</code> et <code>&lt;=</code> l’incluent.<br><br>Un nombre s’écrit tel quel, un texte entre guillemets simples.",
-  consigne:"Affiche le nom et le stock des produits dont le stock est inférieur ou égal à 60.",
-  solution:"SELECT nom, stock FROM produits WHERE stock <= 60;",
-  indice:"Compare la colonne <code>stock</code> à 60 avec l’opérateur « inférieur ou égal à » : la valeur limite doit être incluse.",
+  consigne:"Affiche le nom et le prix des produits qui coûtent plus de 25 €.",
+  solution:"SELECT nom, prix FROM produits WHERE prix > 25;",
+  indice:"Compare la colonne <code>prix</code> à 25 avec l’opérateur « strictement supérieur à ».",
   testeVariants:[{k:"base",label:"Exemple",sql:"SELECT nom, stock FROM produits WHERE stock >= 100;"},{k:"rec_gt",label:">",sql:"SELECT nom, prix FROM produits WHERE prix > 25;"},{k:"rec_ge",label:">=",sql:"SELECT nom, prix FROM produits WHERE prix >= 29.90;"}],
   learningCheck:{question:"prix > 29.90 garde-t-il le produit à exactement 29,90 € ?",options:["Cela dépend du tri","Non","Oui"],answer:1,explanation:"> exclut l’égalité ; >= l’inclut."}
 }),
@@ -7689,34 +7690,34 @@ guide({ id:29, titre:"OR", résumé:"Combiner avec OR",
 guide({ id:22, titre:"NOT", résumé:"Exclure ce qui correspond",
   sit:{
     blocks:[
-      "L’équipe marketing prépare <b>une offre réservée à la province</b> : elle veut contacter tous les clients <b>sauf ceux qui habitent à Paris</b>.",
-      "La table <code>clients</code> contient au total <b>10 clients</b>, répartis dans plusieurs villes. Pour envoyer l’offre, l’équipe souhaite récupérer uniquement :",
-      {need:[["👤","Le prénom du client","table clients"],["👪","Son nom de famille","table clients"],["📍","Sa ville","table clients"]],label:"Les informations à récupérer"}
+      "L’équipe marketing a déjà envoyé <b>une première offre</b> aux clients parisiens de plus de 30 ans. Elle prépare maintenant <b>une seconde offre</b> pour <b>tous les autres clients</b>.",
+      "La table <code>clients</code> contient au total <b>10 clients</b>. Pour envoyer la seconde offre, l’équipe souhaite récupérer uniquement :",
+      {need:[["👤","Le prénom du client","table clients"],["👪","Son nom de famille","table clients"],["📍","Sa ville","table clients"],["🎂","Son âge","table clients"]],label:"Les informations à récupérer"}
     ],
     problem:{
-      p:["Avec <code>WHERE</code>, SQL sait garder les clients qui <b>correspondent</b> à une condition, comme <code>ville = 'Paris'</code>.","Or, ici, c’est l’<b>inverse</b> : l’équipe veut les clients qui <b>ne correspondent pas</b> à cette condition."],
-      scene:{h:"🗺️ Clients de province",cols:"1fr 1.3fr",
-        lanes:[{c:[["h1","prenom","t"],["h2","ville","t"]]},
-          {k:"R1",c:[["a1","Sophie"],["a2","Paris"]]},
-          {k:"R2",c:[["b1","Lucas"],["b2","Lyon"]]},
-          {k:"R3",c:[["c1","Emma"],["c2","Marseille"]]},
-          {k:"R4",c:[["d1","Nathan"],["d2","Paris"]]},
-          {k:"R5",c:[["e1","Chloé"],["e2","Bordeaux"]]}],
-        caps:["<b>Notre liste</b> · Elle contient les clients de toutes les villes.","<b>Condition</b> · Ces clients habitent à <b>Paris</b>.","<b>Inversion</b> · Mais ce sont justement eux qu’il ne faut <b>pas</b> garder.","<b>Résultat</b> · Seuls les clients qui n’habitent pas à Paris doivent être conservés."],
-        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5"],on:["R1","R4"],d:2300},{cap:2,off:["R1","R4"],mark:{R1:"is-miss",R4:"is-miss"},d:2300},{cap:3,unmark:{R1:"is-miss",R4:"is-miss"},dim:["R1","R4"],fold:["R1","R4"],on:["R2","R3","R5"],d:2600}]},
-      then:["Il faut donc indiquer à SQL de garder <b>l’inverse</b> d’une condition : les clients dont la ville n’est <b>pas</b> Paris.","C’est exactement le rôle de <code>NOT</code>."]
+      p:["Avec <code>WHERE</code> et <code>AND</code>, SQL sait garder les clients qui <b>correspondent</b> à des conditions : ceux de Paris qui ont plus de 30 ans.","Or, ici, c’est l’<b>inverse</b> : l’équipe veut les clients qui <b>ne correspondent pas</b> à cette sélection."],
+      scene:{h:"🎁 Clients de la seconde offre",cols:"1fr 1.2fr .6fr",
+        lanes:[{c:[["h1","prenom","t"],["h2","ville","t"],["h3","age","t"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","Paris"],["a3","34"]]},
+          {k:"R2",c:[["b1","Lucas"],["b2","Lyon"],["b3","28"]]},
+          {k:"R3",c:[["c1","Emma"],["c2","Marseille"],["c3","45"]]},
+          {k:"R4",c:[["d1","Nathan"],["d2","Paris"],["d3","30"]]},
+          {k:"R5",c:[["e1","Léa"],["e2","Paris"],["e3","38"]]}],
+        caps:["<b>Notre liste</b> · Elle contient tous les clients.","<b>Première offre</b> · Elle est partie aux clients de <b>Paris</b> qui ont <b>plus de 30 ans</b>.","<b>Inversion</b> · Ce sont justement eux qu’il ne faut <b>pas</b> recontacter.","<b>Résultat</b> · Seuls les clients qui n’ont pas reçu la première offre doivent être conservés."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5"],on:["R1","R5"],d:2300},{cap:2,off:["R1","R5"],mark:{R1:"is-miss",R5:"is-miss"},d:2300},{cap:3,unmark:{R1:"is-miss",R5:"is-miss"},dim:["R1","R5"],fold:["R1","R5"],on:["R2","R3","R4"],d:2600}]},
+      then:["Il faut donc indiquer à SQL de garder <b>l’inverse</b> d’une sélection : les clients qui ne sont <b>pas</b> à la fois parisiens et âgés de plus de 30 ans.","C’est exactement le rôle de <code>NOT</code>."]
     },
-    mission:"Aide l’équipe marketing à retrouver le <b>prénom</b>, le <b>nom de famille</b> et la <b>ville</b> des clients qui <b>n’habitent pas à Paris</b>, afin de préparer la liste des personnes à contacter."
+    mission:"Aide l’équipe marketing à retrouver le <b>prénom</b>, le <b>nom de famille</b>, la <b>ville</b> et l’<b>âge</b> des clients qui <b>n’ont pas reçu la première offre</b> (ceux qui ne sont pas des Parisiens de plus de 30 ans), afin de préparer la liste de la seconde offre."
   },
   concept:{
     title:"Comment SQL peut-il savoir qu’il faut inverser une condition ?",
     blocks:[
-      "Pour chaque client, SQL vérifie la condition, puis <b>inverse</b> la réponse :",
-      {ask:"Sa ville est-elle autre chose que Paris ?"},
-      "En SQL, on place <code>NOT</code> devant la condition :",
-      {syntax:"⟦NOT ville = 'Paris'⟧"},
-      {table:{label:"clients",cols:"minmax(0,.9fr) minmax(0,1fr) minmax(0,.8fr) minmax(0,1.1fr)",head:["prenom","ville","Avant","Après NOT"],rows:[["Sophie","Paris","vraie","❌ écartée"],["Lucas","Lyon","fausse","✅ gardée"],["Emma","Marseille","fausse","✅ gardée"],["Nathan","Paris","vraie","❌ écartée"]],hit:[[1,3],[2,3]],more:"… et 6 autres clients",test:{cond:"NOT ville = 'Paris'",val:1}}},
-      {looks:[["gardée","NOT donne vrai : la ligne apparaît"],["écartée","NOT donne faux : la ligne n’apparaît pas"]],label:"Gardée ou écartée"}
+      "Pour chaque client, SQL vérifie la condition de la première offre, puis <b>inverse</b> la réponse :",
+      {ask:"N’est-il pas à la fois parisien et âgé de plus de 30 ans ?"},
+      "En SQL, on place <code>NOT</code> devant la condition, entre parenthèses :",
+      {syntax:"⟦NOT (ville = 'Paris' AND age > 30)⟧"},
+      {table:{label:"clients",cols:"minmax(0,.9fr) minmax(0,1fr) minmax(0,.55fr) minmax(0,1.2fr)",head:["prenom","ville","age","Après NOT"],rows:[["Sophie","Paris","34","❌ écartée"],["Lucas","Lyon","28","✅ gardée"],["Nathan","Paris","30","✅ gardée"],["Léa","Paris","38","❌ écartée"]],hit:[[1,3],[2,3]],more:"… et 6 autres clients",test:{cond:"NOT (ville = 'Paris' AND age > 30)",val:[1,2]}}},
+      {looks:[["gardée","la condition d’origine est fausse : NOT la rend vraie, la ligne apparaît"],["écartée","la condition d’origine est vraie : NOT la rend fausse, la ligne n’apparaît pas"]],label:"Gardée ou écartée"}
     ]
   },
   steps:[
@@ -7726,7 +7727,7 @@ guide({ id:22, titre:"NOT", résumé:"Exclure ce qui correspond",
       {looks:[["NOT","inverse la condition qui suit"],["age > 40","est la condition d’origine"]]},
       {say:"👇 Exécute cette requête pour voir les clients qui n’ont pas plus de 40 ans :",run:"SELECT prenom, age\nFROM clients\nWHERE NOT age > 40;"},
       {arrow:"7 clients sont conservés : ceux dont l’âge est de 40 ans ou moins."},
-      {tip:{t:"Et avec !=",blocks:["Pour une simple égalité, <code>ville != 'Paris'</code> donne le même résultat. <code>NOT</code> devient précieux quand la condition est plus riche : <code>LIKE</code>, <code>IN</code>, <code>BETWEEN</code>, groupe de conditions…"]}}
+      {tip:{t:"Et avec !=",blocks:["Pour une simple égalité, <code>ville != 'Paris'</code> donne le même résultat. <code>NOT</code> devient précieux quand la condition est plus riche : un groupe de conditions, <code>LIKE</code>, <code>IN</code>, <code>BETWEEN</code>…"]}}
     ]},
     {h:"Inverser un groupe de conditions",blocks:[
       "<code>NOT</code> ne s’applique qu’à la condition qui le <b>suit</b>. Pour inverser un groupe, mets-le entre <b>parenthèses</b> :",
@@ -7738,36 +7739,38 @@ guide({ id:22, titre:"NOT", résumé:"Exclure ce qui correspond",
         {syntax:"WHERE NOT ville = 'Paris'\n  AND age > 35"},
         "<code>NOT</code> ne porte que sur <code>ville = 'Paris'</code>. La condition <code>age &gt; 35</code> reste normale : le résultat n’est plus le même.",
         {say:"👇 Teste par toi-même :",run:"SELECT prenom, ville, age\nFROM clients\nWHERE NOT ville = 'Paris'\n  AND age > 35;"}
-      ]}}
+      ]}},
+      {tip:{t:"Pourquoi pas l’inverse à la main ?",blocks:["Sans <code>NOT</code>, il faudrait inverser chaque comparaison <b>et</b> remplacer <code>AND</code> par <code>OR</code> : <code>ville != 'Paris' OR age &lt;= 35</code>. Facile de se tromper : avec <code>NOT</code>, on garde la condition d’origine."]}}
     ]},
     {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis inverser la condition sur la ville.",
-      {say:"👇 Exécute la requête pour découvrir les clients de province :",run:"SELECT prenom, nom, ville\nFROM clients\nWHERE NOT ville = 'Paris';"},
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis inverser la condition de la première offre.",
+      {say:"👇 Exécute la requête pour découvrir les clients de la seconde offre :",run:"SELECT prenom, nom, ville, age\nFROM clients\nWHERE NOT (ville = 'Paris' AND age > 30);"},
+      {arrow:"Sophie, Nathan Petit et Léa, qui ont reçu la première offre, disparaissent : il reste 7 clients. Nathan Dupont, qui a exactement 30 ans, est conservé."},
       {done:{
-        label:"De tous les clients aux clients de province",
+        label:"De tous les clients à ceux de la seconde offre",
         funnel:[
           {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
-          {step:"WHERE NOT ville = 'Paris'",s:"écarte les clients de Paris"},
-          {n:6,t:"⭐ clients à contacter",s:"Lucas Bernard, Emma Dubois, Chloé Moreau, Hugo Laurent, Gabriel Michel et Inès Lefebvre",dots:"0110110110",out:true}
+          {step:"WHERE NOT (ville = 'Paris' AND age > 30)",s:"écarte les clients de la première offre"},
+          {n:7,t:"⭐ clients à contacter",s:"Lucas Bernard, Emma Dubois, Chloé Moreau, Hugo Laurent, Gabriel Michel, Inès Lefebvre et Nathan Dupont",dots:"0110110111",out:true}
         ],
-        sms:{ico:"🎁",h:"Offre réservée à la province",aria:"L’offre est envoyée aux six clients qui n’habitent pas à Paris",msg:"Bonjour ! 🎁 Une offre spéciale vous est réservée, en dehors de Paris.",people:[["L","Lucas Bernard","Lyon"],["E","Emma Dubois","Marseille"],["C","Chloé Moreau","Bordeaux"],["H","Hugo Laurent","Lyon"],["G","Gabriel Michel","Toulouse"],["I","Inès Lefebvre","Nantes"]],done:"✓ 6 offres envoyées"},
-        fill:["WHERE","NOT","ville","'Paris'"],
-        ui:{t:"6 clients hors de Paris",s:"Aucun n’habite à Paris : la liste de l’offre « province » est prête.",n:["SELECT","FROM","WHERE","NOT"]},
-        rows:6
+        sms:{ico:"🎁",h:"Seconde offre",aria:"La seconde offre est envoyée aux sept clients qui n’avaient pas reçu la première",msg:"Bonjour ! 🎁 Une seconde offre vous est réservée : profitez-en dès maintenant.",people:[["L","Lucas Bernard","Lyon · 28 ans"],["E","Emma Dubois","Marseille · 45 ans"],["C","Chloé Moreau","Bordeaux · 26 ans"],["H","Hugo Laurent","Lyon · 52 ans"],["G","Gabriel Michel","Toulouse · 29 ans"]],more:2,moreT:"… et 2 autres",moreS:"clients de la seconde offre",done:"✓ 7 offres envoyées"},
+        fill:["WHERE","NOT","AND","30"],
+        ui:{t:"7 clients pour la seconde offre",s:"Aucun n’a reçu la première offre : la liste de la seconde offre est prête.",n:["SELECT","FROM","WHERE","NOT","AND"]},
+        rows:7
       }}
     ]}
   ],
   reflex:[
     {recap:[
-      ["↩️","<code>NOT</code> <b>inverse</b> une condition : une ligne est gardée si la condition est fausse.",null,"WHERE NOT ville = 'Paris'"],
+      ["↩️","<code>NOT</code> <b>inverse</b> une condition : une ligne est gardée si la condition est fausse.",null,"WHERE NOT age > 40"],
       ["🧩","Pour inverser un groupe de conditions, mets-le entre <b>parenthèses</b> :",null,"NOT (a AND b)"],
       ["⚖️","Pour une simple égalité, <code>!=</code> fait la même chose : <code>NOT</code> sert surtout aux conditions plus riches."]
     ],label:"Les trois idées à retenir"}
   ],
-  anatomie:[{tok:"SELECT prenom, ville",txt:"Les colonnes affichées."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"NOT",txt:"Inverse la condition qui suit."},{tok:"ville = 'Paris'",plain:1,txt:"La condition d’origine : le client habite à Paris."}],
+  anatomie:[{tok:"SELECT prenom, age",txt:"Les colonnes affichées."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"NOT",txt:"Inverse la condition qui suit."},{tok:"age > 40",plain:1,txt:"La condition d’origine : le client a plus de 40 ans."}],
   exemple:"SELECT prenom, age FROM clients WHERE NOT age > 40;",
   attendu:"<b>7 lignes</b> : tous les clients qui n’ont pas plus de 40 ans.",
-  retenir:"<code>NOT</code> inverse une condition : <code>WHERE NOT ville = 'Paris'</code> garde les clients qui n’habitent pas à Paris.<br><br>Pour inverser un groupe, mets-le entre parenthèses : <code>NOT (a AND b)</code>.<br><br>Pour une simple égalité, <code>!=</code> donne le même résultat.",
+  retenir:"<code>NOT</code> inverse une condition : <code>WHERE NOT age &gt; 40</code> garde les clients qui n’ont pas plus de 40 ans.<br><br>Pour inverser un groupe, mets-le entre parenthèses : <code>NOT (a AND b)</code>.<br><br>Pour une simple égalité, <code>!=</code> donne le même résultat.",
   consigne:"Affiche le nom et la catégorie des produits qui ne sont pas de la catégorie « Bien-être ».",
   solution:"SELECT nom, categorie FROM produits WHERE NOT categorie = 'Bien-être';",
   indice:"Place <code>NOT</code> devant la condition qui compare la colonne <code>categorie</code> à <code>'Bien-être'</code>.",
@@ -8326,41 +8329,44 @@ guide({ id:24, titre:"ORDER BY plusieurs colonnes", résumé:"Départager les é
 guide({ id:12, titre:"LIMIT", résumé:"Limiter le nombre de lignes",
   sit:{
     blocks:[
-      "L’équipe marketing prépare une sélection « produits premium » pour une nouvelle campagne. Elle veut mettre en avant <b>les 3 produits les plus chers</b> de la boutique.",
-      "La table <code>produits</code> contient au total <b>8 produits</b>. Pour construire la sélection, l’équipe souhaite récupérer uniquement :",
-      {need:[["🏷️","Le nom du produit","table produits"],["💶","Son prix","table produits"]],label:"Les informations à récupérer"}
+      "L’équipe e-commerce met à jour <b>le tableau de bord</b> de la boutique. Il doit afficher <b>les 5 dernières commandes</b> reçues.",
+      "La table <code>commandes</code> contient au total <b>16 commandes</b>. Pour remplir le tableau de bord, l’équipe souhaite récupérer uniquement :",
+      {need:[["📅","Sa date","table commandes"],["🧾","Le numéro de la commande","table commandes"]],label:"Les informations à récupérer"}
     ],
     problem:{
-      p:["Avec <code>ORDER BY</code>, SQL sait classer les produits du plus cher au moins cher, mais il affiche encore <b>les 8 produits</b>.","Or, l’équipe n’a besoin que des <b>3 premiers</b> de ce classement."],
-      scene:{h:"🏆 Produits premium",cols:"1.7fr 1fr",
-        lanes:[{c:[["h1","nom","t"],["h2","prix","t"]]},
-          {k:"R1",c:[["a1","Collagène Marin"],["a2","39.9"]]},
-          {k:"R2",c:[["b1","Protéine Végétale"],["b2","34.9"]]},
-          {k:"R3",c:[["c1","Fibre Prébiotique"],["c2","29.9"]]},
-          {k:"R4",c:[["d1","Oméga 3"],["d2","24.9"]]},
-          {k:"R5",c:[["e1","Magnésium"],["e2","19.9"]]}],
-        caps:["<b>Notre classement</b> · Les produits sont rangés du plus cher au moins cher.","<b>Besoin</b> · L’équipe ne veut que les <b>3 premiers</b> produits du classement.","<b>Résultat</b> · Seules les 3 premières lignes doivent être conservées."],
-        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R4","R5"],dim:["R4","R5"],d:2300},{cap:2,fold:["R4","R5"],d:2600}]},
-      then:["Il faut donc indiquer à SQL de <b>s’arrêter après 3 lignes</b> : ne garder que les premières lignes du classement.","C’est exactement le rôle de <code>LIMIT</code>."]
+      p:["Avec <code>ORDER BY</code>, SQL sait classer les commandes <b>de la plus récente à la plus ancienne</b>, mais il affiche encore <b>les 16 commandes</b>.","Or, le tableau de bord n’a de place que pour les <b>5 premières</b> de ce classement."],
+      scene:{h:"🧾 Dernières commandes",cols:"1fr 1.3fr",
+        lanes:[{c:[["h1","date","t"],["h2","commande","t"]]},
+          {k:"R1",c:[["a1","2026-08-03"],["a2","CMD-2026-1134085"]]},
+          {k:"R2",c:[["b1","2026-08-01"],["b2","CMD-2026-1128760"]]},
+          {k:"R3",c:[["c1","2026-07-30"],["c2","CMD-2026-1847392"]]},
+          {k:"R4",c:[["d1","2026-07-28"],["d2","CMD-2026-1106294"]]},
+          {k:"R5",c:[["e1","2026-07-25"],["e2","CMD-2026-1093528"]]},
+          {k:"R6",c:[["f1","2026-07-22"],["f2","CMD-2026-1085073"]]}],
+        caps:["<b>Notre classement</b> · Les commandes sont rangées de la plus récente à la plus ancienne.","<b>Besoin</b> · Le tableau de bord n’a de place que pour les <b>5 premières</b> commandes.","<b>Résultat</b> · Seules les 5 premières lignes doivent être conservées."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5","R6"],d:1900},{cap:1,off:["R6"],dim:["R6"],d:2300},{cap:2,fold:["R6"],d:2600}]},
+      then:["Il faut donc indiquer à SQL de <b>s’arrêter après 5 lignes</b> : ne garder que les premières lignes du classement.","C’est exactement le rôle de <code>LIMIT</code>."]
     },
-    mission:"Aide l’équipe marketing à retrouver le <b>nom</b> et le <b>prix</b> des <b>3 produits les plus chers</b>, afin de préparer la sélection premium."
+    mission:"Aide l’équipe e-commerce à retrouver la <b>date</b> et le <b>numéro</b> des <b>5 dernières commandes</b>, afin de mettre à jour le tableau de bord."
   },
   concept:{
     title:"Comment SQL peut-il savoir combien de lignes garder ?",
     blocks:[
       "Une fois les lignes triées, SQL les compte de haut en bas :",
-      {ask:"Cette ligne fait-elle partie des 3 premières ?"},
+      {ask:"Cette ligne fait-elle partie des 5 premières ?"},
       "En SQL, on donne ce nombre après <code>LIMIT</code>, tout à la fin de la requête :",
-      {syntax:"ORDER BY prix DESC\n⟦LIMIT 3⟧"},
-      {scene:{h:"🔢 SQL compte les lignes",cols:".5fr 1.7fr 1fr",
-        lanes:[{c:[["h0","rang","t"],["h1","nom","t"],["h2","prix","t"]]},
-          {k:"R1",c:[["n1","1","h"],["a1","Collagène Marin"],["a2","39.9"]]},
-          {k:"R2",c:[["n2","2","h"],["b1","Protéine Végétale"],["b2","34.9"]]},
-          {k:"R3",c:[["n3","3","h"],["c1","Fibre Prébiotique"],["c2","29.9"]]},
-          {k:"R4",c:[["n4","4","h"],["d1","Oméga 3"],["d2","24.9"]]},
-          {k:"R5",c:[["n5","5","h"],["e1","Magnésium"],["e2","19.9"]]}],
-        caps:["<b>Après ORDER BY</b> · Les produits sont rangés du plus cher au moins cher.","<b>LIMIT 3</b> · SQL compte les lignes, de haut en bas : 1, 2, 3.","<b>Résultat</b> · Une fois la 3ᵉ ligne atteinte, SQL s’arrête : les autres lignes sont écartées."],
-        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R4","R5"],show:["n1","n2","n3"],stagger:500,d:2900},{cap:2,dim:["R4","R5"],fold:["R4","R5"],d:2600}]}}
+      {syntax:"ORDER BY date_commande DESC\n⟦LIMIT 5⟧"},
+      {scene:{h:"🔢 SQL compte les lignes",cols:".5fr 1.6fr",
+        lanes:[{c:[["h0","rang","t"],["h1","date_commande","t"]]},
+          {k:"R1",c:[["n1","1","h"],["a1","2026-08-03"]]},
+          {k:"R2",c:[["n2","2","h"],["b1","2026-08-01"]]},
+          {k:"R3",c:[["n3","3","h"],["c1","2026-07-30"]]},
+          {k:"R4",c:[["n4","4","h"],["d1","2026-07-28"]]},
+          {k:"R5",c:[["n5","5","h"],["e1","2026-07-25"]]},
+          {k:"R6",c:[["n6","6","h"],["f1","2026-07-22"]]},
+          {k:"R7",c:[["n7","7","h"],["g1","2026-07-20"]]}],
+        caps:["<b>Après ORDER BY</b> · Les commandes sont rangées de la plus récente à la plus ancienne.","<b>LIMIT 5</b> · SQL compte les lignes, de haut en bas : 1, 2, 3, 4, 5.","<b>Résultat</b> · Une fois la 5ᵉ ligne atteinte, SQL s’arrête : les autres lignes sont écartées."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5","R6","R7"],d:1900},{cap:1,off:["R6","R7"],show:["n1","n2","n3","n4","n5"],stagger:420,d:3000},{cap:2,dim:["R6","R7"],fold:["R6","R7"],d:2600}]}}
     ]
   },
   steps:[
@@ -8375,9 +8381,9 @@ guide({ id:12, titre:"LIMIT", résumé:"Limiter le nombre de lignes",
       "<code>LIMIT</code> coupe le résultat après un certain nombre de lignes. Pour que ce soient les bonnes, le résultat doit d’abord être <b>classé</b>.",
       {warn:{t:"LIMIT seul",blocks:[
         "Si tu écris :",
-        {syntax:"SELECT nom, prix\nFROM produits\nLIMIT 3;"},
-        "SQL garde les 3 premières lignes dans l’ordre où il lit la table : ce ne sont pas forcément les plus chères.",
-        {say:"👇 Teste par toi-même :",run:"SELECT nom, prix\nFROM produits\nLIMIT 3;"}
+        {syntax:"SELECT date_commande, numero_commande\nFROM commandes\nLIMIT 5;"},
+        "SQL garde les 5 premières lignes dans l’ordre où il lit la table : ce sont les commandes les plus <b>anciennes</b>, pas les dernières.",
+        {say:"👇 Teste par toi-même :",run:"SELECT date_commande, numero_commande\nFROM commandes\nLIMIT 5;"}
       ]}}
     ]},
     {h:"Garder une seule ligne",blocks:[
@@ -8386,33 +8392,33 @@ guide({ id:12, titre:"LIMIT", résumé:"Limiter le nombre de lignes",
       {arrow:"Le Collagène Marin, à 39,90 €, arrive en tête du classement."}
     ]},
     {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, classer du plus cher au moins cher, puis ne garder que 3 lignes.",
-      {say:"👇 Exécute la requête pour découvrir les produits premium :",run:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 3;"},
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, classer de la plus récente à la plus ancienne, puis ne garder que 5 lignes.",
+      {say:"👇 Exécute la requête pour obtenir les dernières commandes :",run:"SELECT date_commande, numero_commande\nFROM commandes\nORDER BY date_commande DESC\nLIMIT 5;"},
       {done:{
-        label:"De 8 produits aux 3 plus chers",
+        label:"De 16 commandes aux 5 dernières",
         funnel:[
-          {n:8,t:"produits au départ",s:"toute la <code>table produits</code>",dots:"00000000"},
-          {step:"ORDER BY prix DESC LIMIT 3",s:"classe du plus cher au moins cher, puis ne garde que 3 lignes"},
-          {n:3,t:"⭐ produits premium",s:"Collagène Marin, Protéine Végétale et Fibre Prébiotique",dots:"11000100",out:true}
+          {n:16,t:"commandes au départ",s:"toute la <code>table commandes</code>",dots:"0000000000000000"},
+          {step:"ORDER BY date_commande DESC LIMIT 5",s:"classe de la plus récente à la plus ancienne, puis ne garde que 5 lignes"},
+          {n:5,t:"⭐ commandes affichées",s:"les commandes passées du 25 juillet au 3 août",dots:"0000000000011111",out:true}
         ],
-        sms:{ico:"🏆",h:"Podium premium",aria:"Les trois produits les plus chers montent sur le podium de la campagne",msg:"<b>Produits premium</b><br>Les 3 plus chers de la boutique",people:[["C","Collagène Marin","39.9"],["P","Protéine Végétale","34.9"],["F","Fibre Prébiotique","29.9"]],st:["En attente","Mise en avant","✓ Sur le podium"],plane:"star",done:"✓ 3 produits premium"},
-        fill:["ORDER BY","DESC","LIMIT","3"],
-        ui:{t:"Les 3 produits les plus chers",s:"La sélection premium est prête : un classement, puis seulement les 3 premières lignes.",n:["SELECT","FROM","ORDER BY","DESC","LIMIT"]},
-        rows:3
+        sms:{ico:"🧾",h:"Tableau de bord",aria:"Les cinq dernières commandes s’affichent sur le tableau de bord",msg:"<b>Dernières commandes</b><br>Les 5 plus récentes",people:[["1","2026-08-03","CMD-2026-1134085"],["2","2026-08-01","CMD-2026-1128760"],["3","2026-07-30","CMD-2026-1847392"]],more:2,moreT:"… et 2 autres",moreS:"commandes récentes",st:["En attente","Affichage","✓ Affichée"],plane:"doc",icons:true,done:"✓ 5 commandes affichées"},
+        fill:["ORDER BY","DESC","LIMIT","5"],
+        ui:{t:"Les 5 dernières commandes",s:"Un classement, puis seulement les 5 premières lignes : le tableau de bord est à jour.",n:["SELECT","FROM","ORDER BY","DESC","LIMIT"]},
+        rows:5
       }}
     ]}
   ],
   reflex:[
     {recap:[
-      ["✂️","<code>LIMIT n</code> garde seulement les <b>n premières lignes</b> du résultat.",null,"LIMIT 3"],
-      ["🥇","Associe-le à <code>ORDER BY</code> : il garde alors les premières lignes <b>du classement</b>.",null,"ORDER BY prix DESC LIMIT 3"],
+      ["✂️","<code>LIMIT n</code> garde seulement les <b>n premières lignes</b> du résultat.",null,"LIMIT 5"],
+      ["🥇","Associe-le à <code>ORDER BY</code> : il garde alors les premières lignes <b>du classement</b>.",null,"ORDER BY date_commande DESC LIMIT 5"],
       ["📍","Il se place <b>tout à la fin</b> de la requête."]
     ],label:"Les trois idées à retenir"}
   ],
-  anatomie:[{tok:"SELECT nom, prix",txt:"Affiche le nom et le prix."},{tok:"FROM produits",txt:"Les données viennent de la table <code>produits</code>."},{tok:"ORDER BY prix DESC",txt:"Classe les produits du plus cher au moins cher."},{tok:"LIMIT 3",txt:"Garde uniquement les 3 premières lignes après le tri."}],
+  anatomie:[{tok:"SELECT date_commande, numero_commande",txt:"Affiche la date et le numéro de chaque commande."},{tok:"FROM commandes",txt:"Les données viennent de la table <code>commandes</code>."},{tok:"ORDER BY date_commande DESC",txt:"Classe les commandes de la plus récente à la plus ancienne."},{tok:"LIMIT 5",txt:"Garde uniquement les 5 premières lignes après le tri."}],
   exemple:"SELECT prenom, age FROM clients ORDER BY age DESC LIMIT 2;",
   attendu:"<b>2 lignes</b> : Hugo (52 ans) et Emma (45 ans), les deux clients les plus âgés.",
-  retenir:"<code>LIMIT n</code> garde seulement les n premières lignes du résultat. Dans <code>ORDER BY prix DESC LIMIT 3</code>, les produits sont d’abord classés du plus cher au moins cher, puis seuls les 3 premiers sont affichés.",
+  retenir:"<code>LIMIT n</code> garde seulement les n premières lignes du résultat. Dans <code>ORDER BY date_commande DESC LIMIT 5</code>, les commandes sont d’abord classées de la plus récente à la plus ancienne, puis seules les 5 premières sont affichées.",
   consigne:"Affiche le prénom et l’âge des 3 clients les plus jeunes.",
   solution:"SELECT prenom, age FROM clients ORDER BY age ASC LIMIT 3;",
   indice:"Classe d’abord les clients du plus jeune au plus âgé avec <code>ORDER BY</code>, puis garde seulement 3 lignes avec <code>LIMIT</code>.",
@@ -14644,7 +14650,7 @@ const QCM={
    {q:"<code>ORDER BY categorie, prix DESC</code> met en décroissant :",o:["categorie et prix","seulement prix","seulement categorie"],b:1,e:"<code>DESC</code> ne porte que sur la colonne juste avant lui. <code>categorie</code> reste croissante."}],
  4:[{q:"<code>WHERE</code> filtre :",o:["Les colonnes affichées","Les lignes retenues","Les tables interrogées"],b:1,e:"<code>SELECT</code> choisit les colonnes. <code>WHERE</code> choisit quelles lignes restent dans le résultat."},
    {q:"Comment comparer une colonne à du texte ?",o:['ville = "Paris"',"ville = 'Paris'","ville = Paris"],b:1,e:"Guillemets simples : <code>ville = 'Paris'</code>. Sans eux, SQL peut croire que Paris est une colonne."}],
- 5:[{q:"Avec <code>WHERE prix &gt;= 25</code>, un produit à exactement 25 € est-il gardé ?",o:["Oui, car &gt;= inclut 25","Non, car il faut dépasser 25","Non, car 25 doit être entre guillemets"],b:0,e:"<code>&gt;=</code> signifie supérieur ou égal à. Un prix de 25 € est donc inclus."},
+ 5:[{q:"Avec <code>WHERE stock &lt;= 60</code>, un produit qui a exactement 60 unités en stock est-il gardé ?",o:["Oui, car &lt;= inclut 60","Non, car il faut être sous 60","Non, car 60 doit être entre guillemets"],b:0,e:"<code>&lt;=</code> signifie inférieur ou égal à. Un stock de 60 unités est donc inclus."},
    {q:"Quelle écriture est correcte pour garder les prix strictement supérieurs à 25 € ?",o:["WHERE prix > 25","WHERE prix > '25'","WHERE prix = 25"],b:0,e:"25 est un nombre : il s'écrit sans guillemets. <code>&gt;</code> signifie strictement supérieur à."}],
  6:[{q:"<code>WHERE ville='Paris' AND ville='Lyon'</code> renvoie :",o:["Les Parisiens et les Lyonnais","Aucune ligne","Une erreur de syntaxe"],b:1,e:"<code>AND</code> exige les deux à la fois. Une ville ne peut pas être Paris et Lyon."},
    {q:"Avec <code>WHERE ville = 'Paris' AND age &gt; 35</code>, combien de lignes ?",o:["3","1","0"],b:1,e:"Seule Léa habite à Paris et a plus de 35 ans."}],
@@ -26770,7 +26776,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1602';
+  const SW_CACHE='requete-2026-10-04-ludique-v1603';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
