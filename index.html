@@ -6996,19 +6996,15 @@ guide({ id:1, titre:"SELECT", résumé:"Choisir les colonnes du résultat",
     ]
   },
   steps:[
-    {h:"Afficher une colonne",blocks:[
+    {h:"Afficher une ou plusieurs colonnes",blocks:[
       "Une requête <code>SELECT</code> interroge la base de données et renvoie un tableau de résultats. Pour obtenir le prénom des clients, on écrit :",
       {syntax:"SELECT ⟦prenom⟧\nFROM clients;"},
       {looks:[["SELECT","indique la colonne à afficher"],["FROM clients","indique la table dans laquelle la lire"]]},
       {say:"👇 Exécute cette requête pour voir le prénom des clients :",run:"SELECT prenom\nFROM clients;"},
-      {arrow:"Le résultat contient une seule colonne, mais tous les clients sont là."}
-    ]},
-    {h:"Afficher plusieurs colonnes",blocks:[
-      "Pour afficher plusieurs colonnes, écris-les à la suite, <b>séparées par une virgule</b> :",
+      {arrow:"Le résultat contient une seule colonne, mais tous les clients sont là."},
+      "Pour afficher plusieurs colonnes, écris-les à la suite, <b>séparées par une virgule</b>. Elles s’affichent <b>dans l’ordre où tu les écris</b> :",
       {syntax:"SELECT ⟦prenom,⟧ ville\nFROM clients;"},
-      {say:"👇 Exécute cette requête pour voir le prénom et la ville des clients :",run:"SELECT prenom, ville\nFROM clients;"},
-      "Les colonnes s’affichent <b>dans l’ordre où tu les écris</b>.",
-      {say:"👇 Essaie en inversant l’ordre :",run:"SELECT ville, prenom\nFROM clients;"}
+      {say:"👇 Exécute cette requête pour voir le prénom et la ville des clients :",run:"SELECT prenom, ville\nFROM clients;"}
     ]},
     {h:"Bien placer les virgules",blocks:[
       "Une virgule sépare chaque colonne, mais il n’en faut <b>pas</b> après la dernière.",
@@ -7023,6 +7019,19 @@ guide({ id:1, titre:"SELECT", résumé:"Choisir les colonnes du résultat",
         {syntax:"SELECT prenom, ville,\nFROM clients;"},
         "SQL attend une autre colonne après la virgule, et la requête provoque une erreur.",
         {say:"👇 Teste par toi-même :",run:"SELECT prenom, ville,\nFROM clients;"}
+      ]}}
+    ]},
+    {h:"Afficher toutes les colonnes avec *",blocks:[
+      "Pour afficher <b>toutes</b> les colonnes d’une table sans les nommer, écris une étoile à la place de leurs noms :",
+      {syntax:"SELECT ⟦*⟧\nFROM clients;"},
+      {looks:[["*","signifie « toutes les colonnes »"],["FROM clients","indique la table à afficher"]]},
+      {say:"👇 Exécute cette requête pour voir toute la table clients :",run:"SELECT *\nFROM clients;"},
+      {arrow:"Le résultat contient les 8 colonnes de la table, pour les 10 clients."},
+      "L’étoile suit la table : si une colonne est ajoutée plus tard, elle apparaît automatiquement dans le résultat.",
+      {say:"👇 Ajoute une colonne <code>pays</code>, puis affiche de nouveau toute la table :",run:"ALTER TABLE clients ADD COLUMN pays TEXT DEFAULT 'France';\nSELECT *\nFROM clients;"},
+      {arrow:"Le résultat compte maintenant 9 colonnes, sans avoir modifié la requête."},
+      {tip:{t:"Quand l’utiliser ?",blocks:[
+        "L’étoile est idéale pour <b>découvrir</b> une table. Pour une application ou un rapport, mieux vaut nommer les colonnes utiles : le résultat ne change pas quand la table évolue."
       ]}}
     ]},
     {h:"La requête complète",blocks:[
@@ -7047,17 +7056,18 @@ guide({ id:1, titre:"SELECT", résumé:"Choisir les colonnes du résultat",
     {recap:[
       ["📋","<code>SELECT</code> sert à choisir les <b>colonnes</b> à afficher.","Il agit sur le résultat, sans modifier la table."],
       ["📍","<code>FROM</code> indique la <b>table</b> où lire les données :",null,"FROM clients"],
-      ["➕","Sépare les colonnes par une <b>virgule</b>, sauf après la dernière :",null,"SELECT prenom, telephone"]
+      ["➕","Sépare les colonnes par une <b>virgule</b>, sauf après la dernière. L’étoile <code>*</code> les affiche <b>toutes</b>.",null,"SELECT prenom, telephone"]
     ],label:"Les trois idées à retenir"}
   ],
   anatomie:[{tok:"SELECT",txt:"Introduit les colonnes à afficher."},{tok:"prenom, telephone",plain:1,txt:"Les deux colonnes retenues, séparées par une virgule."},{tok:"FROM",txt:"Introduit la table à lire."},{tok:"clients",plain:1,txt:"La table clients : les données des 10 personnes."}],
   exemple:"SELECT prenom, ville FROM clients;",
   attendu:"<b>10 lignes</b> et <b>2 colonnes</b> : <code>prenom</code> et <code>ville</code>. Chaque client apparaît avec seulement ces deux informations.",
-  retenir:"<code>SELECT</code> sert à choisir les colonnes à afficher.<br>Il agit sur le résultat, sans modifier la table.<br><br><code>FROM</code> indique la table à lire : <code>FROM clients</code><br><br>Sépare les colonnes par une virgule, sauf après la dernière : <code>SELECT prenom, telephone</code>.",
+  retenir:"<code>SELECT</code> sert à choisir les colonnes à afficher.<br>Il agit sur le résultat, sans modifier la table.<br><br><code>FROM</code> indique la table à lire : <code>FROM clients</code><br><br>Sépare les colonnes par une virgule, sauf après la dernière : <code>SELECT prenom, telephone</code>.<br><br>L’étoile <code>*</code> affiche toutes les colonnes : idéale pour découvrir une table, mais dans une application, nomme les colonnes utiles.",
   consigne:"Affiche le nom et le prix de chaque produit, dans cet ordre.",
   solution:"SELECT nom, prix FROM produits;",
   indice:"Après <code>SELECT</code>, écris <code>nom, prix</code> ; après <code>FROM</code>, indique la table <code>produits</code>.",
-  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT prenom, ville FROM clients;"}],
+  petitDefi:[{p:"Complète pour afficher toutes les colonnes de la table commandes.",sql:"SELECT __________\nFROM commandes;",a:"*",answers:["*"]}],
+  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT prenom, ville FROM clients;"},{k:"star",label:"Toutes les colonnes",sql:"SELECT * FROM clients;",out:"Huit colonnes pour les dix clients.",expectRows:10},{k:"rec_explicit",label:"Colonnes explicites",sql:"ALTER TABLE clients ADD COLUMN pays TEXT DEFAULT 'France'; SELECT prenom, ville FROM clients;",out:"Toujours deux colonnes après ajout de pays.",expectRows:10},{k:"rec_star",label:"Étoile après ajout",sql:"ALTER TABLE clients ADD COLUMN pays TEXT DEFAULT 'France'; SELECT * FROM clients;",out:"Neuf colonnes : pays est inclus automatiquement.",expectRows:10}],
   learningCheck:{question:"SELECT prenom, telephone FROM clients affiche combien de colonnes et de lignes ?",options:["10 colonnes et 2 lignes","2 colonnes et 2 lignes","2 colonnes et 10 lignes"],answer:2,explanation:"SELECT choisit deux colonnes. Sans filtre, les dix clients restent."}
 }),
 guide({ id:2, titre:"Renommer avec AS", résumé:"Donner un nom lisible à une colonne du résultat",
@@ -7161,95 +7171,6 @@ guide({ id:2, titre:"Renommer avec AS", résumé:"Donner un nom lisible à une c
   indice:"Après chaque colonne, ajoute <code>AS</code> suivi du nouveau nom : <code>stock AS en_stock</code>.",
   testeVariants:[{k:"base",label:"Exemple",sql:"SELECT categorie AS rayon, stock AS quantite FROM produits;"},{k:"rec_space",label:"Alias avec espaces",sql:"SELECT nom AS \"Nom du produit\", prix AS \"Prix en euros\" FROM produits;",out:"Deux noms d’affichage contenant des espaces.",expectRows:8}],
   learningCheck:{question:"Avec prix AS \"Prix en euros\", quel nom garde la colonne dans la table ?",options:["Les deux noms","prix","Prix en euros"],answer:1,explanation:"L’alias change uniquement l’en-tête du résultat. Les guillemets doubles permettent les espaces."}
-}),
-guide({ id:3, titre:"SELECT *", résumé:"Voir toute la table",
-  sit:{
-    blocks:[
-      "L’équipe catalogue reprend la gestion des produits de la boutique. Avant de commencer, elle veut <b>découvrir tout le contenu</b> de la table <code>produits</code>.",
-      "La table <code>produits</code> contient au total <b>8 produits</b>, mais l’équipe ne sait pas encore quelles informations elle enregistre sur chacun. Elle souhaite donc récupérer :",
-      {need:[["📋","Toutes les informations de chaque produit","table produits"]],label:"Les informations à récupérer"}
-    ],
-    problem:{
-      p:["Avec <code>SELECT</code>, SQL affiche les colonnes qu’on lui <b>nomme</b> : ici, l’équipe ne les connaît pas encore.","Or, pour découvrir la table, elle a besoin de voir <b>toutes les colonnes</b>, sans en oublier."],
-      scene:{h:"🗂️ Table produits",
-        lanes:[{k:"A",l:"Les colonnes",c:[["c1","?","q"],["c2","?","q"],["c3","?","q"],["c4","?","q"],["c5","?","q"]]},
-          {k:"B",l:"Les lignes",c:[["l1","?","q"]]}],
-        caps:["<b>Table produits</b> · L’équipe ne sait pas encore quelles informations elle contient.","<b>Besoin</b> · Elle veut tout voir : toutes les colonnes et tous les produits.","<b>Résultat</b> · Le contenu complet de la table apparaît : 5 colonnes et 8 produits."],
-        steps:[{cap:0,d:1900},{cap:1,on:["A","B"],d:2300},{cap:2,text:{c1:"id",c2:"nom",c3:"categorie",c4:"prix",c5:"stock",l1:"8 produits"},stagger:260,d:3200}]},
-      then:["Il faut donc indiquer à SQL d’afficher <b>toutes les colonnes</b> de la table, sans les nommer.","C’est exactement le rôle de l’étoile <code>*</code>."]
-    },
-    mission:"Aide l’équipe catalogue à afficher <b>toutes les informations</b> de la table produits, afin de faire l’inventaire du catalogue."
-  },
-  concept:{
-    title:"Comment SQL peut-il savoir qu’on veut tout voir ?",
-    blocks:[
-      "Pour afficher toute la table, SQL doit seulement savoir si l’on veut <b>toutes</b> les colonnes :",
-      {ask:"Veut-on toutes les colonnes ?"},
-      "Si oui, on remplace la liste des colonnes par une <b>étoile</b> :",
-      {syntax:"SELECT ⟦*⟧\nFROM produits;"},
-      {scene:{h:"⭐ L’étoile se déplie",
-        lanes:[{k:"S",c:[["s1","SELECT *"]]},
-          {k:"C",l:"Les colonnes de la table produits",c:[["c1","id","h"],["c2","nom","h"],["c3","categorie","h"],["c4","prix","h"],["c5","stock","h"]]}],
-        caps:["<b>SELECT *</b> · L’étoile demande toutes les colonnes d’un coup.","<b>FROM produits</b> · SQL cherche la liste des colonnes de cette table.","<b>Résultat</b> · Il les affiche toutes, dans l’ordre de la table."],
-        steps:[{cap:0,on:["S"],d:1900},{cap:1,show:["c1","c2","c3","c4","c5"],stagger:260,d:2800},{cap:2,off:["S"],on:["C"],d:2600}]}}
-    ]
-  },
-  steps:[
-    {h:"Afficher toutes les colonnes",blocks:[
-      "Pour afficher toutes les colonnes d’une table, écris une étoile à la place de leurs noms :",
-      {syntax:"SELECT ⟦*⟧\nFROM clients;"},
-      {looks:[["*","signifie « toutes les colonnes »"],["FROM clients","indique la table à afficher"]]},
-      {say:"👇 Exécute cette requête pour voir toute la table clients :",run:"SELECT *\nFROM clients;"},
-      {arrow:"Le résultat contient les 8 colonnes de la table, pour les 10 clients."},
-      {warn:{t:"Étoile et colonne",blocks:[
-        "Si tu écris :",
-        {syntax:"SELECT *, nom\nFROM produits;"},
-        "La colonne <code>nom</code> est déjà comprise dans <code>*</code> : SQL l’affiche donc deux fois.",
-        {say:"👇 Teste par toi-même :",run:"SELECT *, nom\nFROM produits;"}
-      ]}}
-    ]},
-    {h:"Une étoile qui s’adapte",blocks:[
-      "L’étoile suit la table : si une colonne est ajoutée plus tard, elle apparaît automatiquement dans le résultat.",
-      {say:"👇 Ajoute une colonne <code>pays</code>, puis affiche de nouveau toute la table :",run:"ALTER TABLE clients ADD COLUMN pays TEXT DEFAULT 'France';\nSELECT *\nFROM clients;"},
-      {arrow:"Le résultat compte maintenant 9 colonnes, sans avoir modifié la requête."},
-      {tip:{t:"Quand l’utiliser ?",blocks:[
-        "L’étoile est idéale pour <b>découvrir</b> une table. Pour une application ou un rapport, mieux vaut nommer les colonnes utiles : le résultat ne change pas quand la table évolue."
-      ]}}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à demander toute la table, pour que l’équipe voie son contenu.",
-      {say:"👇 Exécute la requête pour obtenir l’inventaire du catalogue :",run:"SELECT *\nFROM produits;"},
-      {done:{
-        label:"De la table produits à son contenu complet",
-        unit:"cols",
-        funnel:[
-          {n:5,t:"colonnes dans la table",s:"toute la <code>table produits</code>",dots:"00000"},
-          {step:"SELECT *",s:"garde toutes les colonnes"},
-          {n:5,t:"⭐ colonnes dans l’inventaire",s:"<code>id</code>, <code>nom</code>, <code>categorie</code>, <code>prix</code> et <code>stock</code>",dots:"11111",out:true}
-        ],
-        sms:{ico:"📋",h:"Inventaire du catalogue",aria:"L’équipe catalogue contrôle les produits un par un",msg:"Inventaire en cours : <b>8 produits</b>, 5 informations pour chacun.",people:[["F","Fibre Prébiotique","Bien-être"],["C","Collagène Marin","Beauté"],["M","Magnésium","Bien-être"],["V","Vitamine D","Nutrition"],["T","Tisane Détox","Boisson"]],more:3,moreT:"… et 3 autres",moreS:"produits du catalogue",st:["À contrôler","Contrôle","✓ Contrôlé"],plane:"doc",done:"✓ 8 produits contrôlés"},
-        fill:["SELECT","*","FROM","produits"],
-        ui:{t:"Toute la table, d’un coup",s:"L’inventaire contient les 8 produits, avec leurs 5 informations.",n:["SELECT","*","FROM"]},
-        rows:8
-      }}
-    ]}
-  ],
-  reflex:[
-    {recap:[
-      ["⭐","L’étoile <code>*</code> remplace la liste des colonnes : elle les affiche <b>toutes</b>.",null,"SELECT * FROM produits"],
-      ["🔍","Idéale pour <b>découvrir une table</b> sans connaître ses colonnes."],
-      ["⚠️","Dans une application, <b>nomme les colonnes utiles</b> : l’étoile affiche aussi celles qu’on ajoutera plus tard."]
-    ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"SELECT",txt:"Commence la lecture des données."},{tok:"*",punc:1,txt:"Représente toutes les colonnes de la table."},{tok:"FROM produits",txt:"Précise que les données viennent de la table produits."}],
-  exemple:"SELECT * FROM clients;",
-  attendu:"<b>10 lignes</b> et <b>8 colonnes</b> : <code>id</code>, <code>prenom</code>, <code>nom</code>, <code>ville</code>, <code>age</code>, <code>email</code>, <code>telephone</code> et <code>date_inscription</code>.",
-  retenir:"L’étoile <code>*</code> remplace la liste des colonnes : elle les affiche toutes.<br>Idéale pour découvrir une table : <code>SELECT * FROM produits</code>.<br><br>Dans une application, nomme les colonnes utiles : l’étoile affiche aussi celles qu’on ajoutera plus tard.",
-  consigne:"Affiche toutes les informations de la table commandes.",
-  solution:"SELECT * FROM commandes;",
-  indice:"Utilise <code>*</code> après <code>SELECT</code> pour représenter toutes les colonnes, puis indique la table <code>commandes</code>.",
-  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT * FROM clients;"},{k:"rec_explicit",label:"Colonnes explicites",sql:"ALTER TABLE clients ADD COLUMN pays TEXT DEFAULT 'France'; SELECT prenom, ville FROM clients;",out:"Toujours deux colonnes après ajout de pays.",expectRows:10},{k:"rec_star",label:"Étoile après ajout",sql:"ALTER TABLE clients ADD COLUMN pays TEXT DEFAULT 'France'; SELECT * FROM clients;",out:"Neuf colonnes : pays est inclus automatiquement.",expectRows:10}],
-  learningCheck:{question:"Après ajout de la colonne pays, quelle requête change de nombre de colonnes ?",options:["SELECT *","SELECT prenom, ville","Les deux"],answer:0,explanation:"L’étoile inclut la nouvelle colonne ; une liste explicite conserve la même structure, utile pour une application."}
 }),
 guide({ id:13, titre:"DISTINCT", résumé:"Valeurs uniques",
   sit:{
@@ -7516,176 +7437,107 @@ guide({ id:5, titre:"Comparer des valeurs", résumé:"Filtrer avec =, !=, >, <, 
   testeVariants:[{k:"base",label:"Exemple",sql:"SELECT nom, stock FROM produits WHERE stock >= 100;"},{k:"rec_gt",label:">",sql:"SELECT nom, prix FROM produits WHERE prix > 25;"},{k:"rec_ge",label:">=",sql:"SELECT nom, prix FROM produits WHERE prix >= 29.90;"}],
   learningCheck:{question:"prix > 29.90 garde-t-il le produit à exactement 29,90 € ?",options:["Cela dépend du tri","Non","Oui"],answer:1,explanation:"> exclut l’égalité ; >= l’inclut."}
 }),
-guide({ id:6, titre:"AND", résumé:"Combiner avec AND",
+guide({ id:6, titre:"AND et OR", résumé:"Combiner plusieurs conditions",
   sit:{
     blocks:[
-      "L’équipe marketing prépare <b>une campagne ciblée</b> : elle veut ne contacter que les clients qui remplissent <b>deux critères à la fois</b>. Ils doivent habiter à Paris <b>et</b> avoir plus de 30 ans.",
-      "La table <code>clients</code> contient au total <b>10 clients</b>. Pour préparer la campagne, l’équipe souhaite récupérer uniquement :",
+      "La boutique a <b>deux agences</b> : l’une à Paris, l’autre à Lyon. L’équipe marketing y organise <b>une conférence sur la nutrition</b>, réservée aux clients de <b>plus de 30 ans</b>.",
+      "La table <code>clients</code> contient au total <b>10 clients</b>. Pour envoyer les invitations, l’équipe souhaite récupérer uniquement :",
       {need:[["👤","Le prénom du client","table clients"],["👪","Son nom de famille","table clients"],["📍","Sa ville","table clients"],["🎂","Son âge","table clients"]],label:"Les informations à récupérer"}
     ],
     problem:{
-      p:["Avec <code>WHERE</code>, SQL sait vérifier <b>une</b> condition : par exemple, ne garder que les clients de Paris.","Or, ici, un client n’est ciblé que si <b>deux conditions sont vraies en même temps</b> : il habite à Paris <b>et</b> il a plus de 30 ans."],
-      scene:{h:"🎯 Clients ciblés",cols:"1fr 1.2fr .6fr",
+      p:["Avec <code>WHERE</code>, SQL sait vérifier <b>une</b> condition : par exemple, ne garder que les clients de Paris.","Or, ici, il faut combiner <b>plusieurs conditions</b> : le client habite à <b>Paris ou à Lyon</b> (l’une ou l’autre), <b>et</b> il a plus de 30 ans."],
+      scene:{h:"🎟️ Clients invités",cols:"1fr 1.2fr .6fr",
         lanes:[{c:[["h1","prenom","t"],["h2","ville","t"],["h3","age","t"]]},
           {k:"R1",c:[["a1","Sophie"],["a2","Paris"],["a3","34"]]},
           {k:"R2",c:[["b1","Lucas"],["b2","Lyon"],["b3","28"]]},
           {k:"R3",c:[["c1","Emma"],["c2","Marseille"],["c3","45"]]},
-          {k:"R4",c:[["d1","Nathan"],["d2","Paris"],["d3","30"]]},
-          {k:"R5",c:[["e1","Léa"],["e2","Paris"],["e3","38"]]}],
-        caps:["<b>Notre liste</b> · Elle contient des clients de toutes les villes et de tous les âges.","<b>Première condition</b> · Le client doit habiter à <b>Paris</b>.","<b>Deuxième condition</b> · Il doit aussi avoir <b>plus de 30 ans</b>.","<b>Résultat</b> · Seules les lignes qui respectent les deux conditions doivent être conservées."],
-        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R2","R3"],dim:["R2","R3"],d:2300},{cap:2,off:["R4"],dim:["R4"],d:2300},{cap:3,fold:["R2","R3","R4"],d:2600}]},
-      then:["Il faut donc indiquer à SQL de vérifier <b>les deux conditions à la fois</b> : un client n’est conservé que si les deux sont vraies.","C’est exactement le rôle de <code>AND</code>."]
+          {k:"R4",c:[["d1","Hugo"],["d2","Lyon"],["d3","52"]]},
+          {k:"R5",c:[["e1","Léa"],["e2","Paris"],["e3","38"]]},
+          {k:"R6",c:[["f1","Nathan"],["f2","Paris"],["f3","30"]]}],
+        caps:["<b>Notre liste</b> · Elle contient des clients de toutes les villes et de tous les âges.","<b>Première condition</b> · Le client habite à <b>Paris</b> ou à <b>Lyon</b> : l’une ou l’autre suffit.","<b>Deuxième condition</b> · Il doit aussi avoir <b>plus de 30 ans</b>.","<b>Résultat</b> · Seules les lignes qui respectent les deux conditions doivent être conservées."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5","R6"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5","R6"],on:["R1","R2","R4","R5","R6"],dim:["R3"],d:2300},{cap:2,off:["R2","R6"],dim:["R2","R6"],d:2300},{cap:3,fold:["R2","R3","R6"],d:2600}]},
+      then:["Il faut donc indiquer à SQL comment <b>combiner</b> les conditions : <b>l’une ou l’autre</b> ville, <b>et</b> en plus l’âge.","C’est exactement le rôle de <code>OR</code> et de <code>AND</code>, avec des parenthèses pour les regrouper."]
     },
-    mission:"Aide l’équipe marketing à retrouver le <b>prénom</b>, le <b>nom de famille</b>, la <b>ville</b> et l’<b>âge</b> des clients qui habitent à <b>Paris</b> <b>et</b> qui ont <b>plus de 30 ans</b>, afin de préparer la liste des personnes à contacter."
+    mission:"Aide l’équipe marketing à retrouver le <b>prénom</b>, le <b>nom de famille</b>, la <b>ville</b> et l’<b>âge</b> des clients qui habitent à <b>Paris ou à Lyon</b> et qui ont <b>plus de 30 ans</b>, afin de préparer la liste des invités."
   },
   concept:{
-    title:"Comment SQL peut-il savoir si les deux conditions sont vraies ?",
+    title:"Comment SQL peut-il combiner plusieurs conditions ?",
     blocks:[
-      "Pour chaque client, SQL doit vérifier les deux conditions :",
-      {ask:"Habite-t-il à Paris et a-t-il plus de 30 ans ?"},
-      "En SQL, on les relie avec <code>AND</code> :",
-      {syntax:"⟦ville = 'Paris' AND age > 30⟧"},
-      {table:{label:"clients",cols:"minmax(0,.9fr) minmax(0,1fr) minmax(0,.6fr) minmax(0,1.5fr)",head:["prenom","ville","age","Les deux sont-elles vraies ?"],rows:[["Sophie","Paris","34","✅ oui → gardée"],["Lucas","Lyon","28","❌ non → écartée"],["Nathan","Paris","30","❌ non → écartée"],["Léa","Paris","38","✅ oui → gardée"]],hit:[[0,3],[3,3]],more:"… et 6 autres clients",test:{cond:"ville = 'Paris' AND age > 30",val:[1,2]}}},
-      {looks:[["vraie","les deux conditions sont vraies : la ligne apparaît"],["fausse","au moins une est fausse : la ligne n’apparaît pas"]],label:"Vrai ou faux"}
+      "Pour chaque client, SQL vérifie les conditions, puis combine les réponses :",
+      {ask:"Habite-t-il à Paris ou à Lyon, et a-t-il plus de 30 ans ?"},
+      "En SQL, <code>AND</code> exige que les deux conditions soient vraies, <code>OR</code> accepte l’une ou l’autre, et les parenthèses regroupent les possibilités :",
+      {syntax:"⟦(ville = 'Paris' OR ville = 'Lyon') AND age > 30⟧"},
+      {table:{label:"clients",cols:"minmax(0,.9fr) minmax(0,1fr) minmax(0,.6fr) minmax(0,1.5fr)",head:["prenom","ville","age","La condition est-elle vraie ?"],rows:[["Sophie","Paris","34","✅ oui → gardée"],["Lucas","Lyon","28","❌ non → écartée"],["Emma","Marseille","45","❌ non → écartée"],["Hugo","Lyon","52","✅ oui → gardée"]],hit:[[0,3],[3,3]],more:"… et 6 autres clients",test:{cond:"(ville = 'Paris' OR ville = 'Lyon') AND age > 30",val:[1,2]}}},
+      {looks:[["vraie","la ville est Paris ou Lyon, et l’âge dépasse 30 : la ligne apparaît"],["fausse","il manque la bonne ville ou le bon âge : la ligne n’apparaît pas"]],label:"Vrai ou faux"}
     ]
   },
   steps:[
-    {h:"Une première condition",blocks:[
-      "Tu sais déjà garder les lignes qui respectent <b>une</b> condition :",
-      {say:"👇 Exécute cette requête pour voir les clients parisiens :",run:"SELECT prenom, ville, age\nFROM clients\nWHERE ville = 'Paris';"},
-      {arrow:"4 clients habitent à Paris, mais leurs âges sont très différents."}
+    {h:"Exiger deux conditions avec AND",blocks:[
+      "Pour exiger une <b>deuxième</b> condition, ajoute <code>AND</code> : une ligne n’est gardée que si <b>toutes</b> les conditions sont vraies.",
+      {syntax:"SELECT prenom, ville, age\nFROM clients\nWHERE ville = 'Paris'\n  ⟦AND age > 30⟧;"},
+      {looks:[["AND","relie deux conditions : les deux doivent être vraies"],["age > 30","est la deuxième condition à respecter"]]},
+      {say:"👇 Exécute cette requête pour voir les clients parisiens de plus de 30 ans :",run:"SELECT prenom, ville, age\nFROM clients\nWHERE ville = 'Paris'\n  AND age > 30;"},
+      {arrow:"3 clients respectent les deux conditions. Nathan Dupont, qui a exactement 30 ans, n’est pas conservé : « plus de 30 » exclut 30."}
     ]},
-    {h:"Ajouter une condition avec AND",blocks:[
-      "Pour exiger une <b>deuxième</b> condition, ajoute <code>AND</code> suivi de cette condition :",
-      {syntax:"SELECT prenom, ville, age\nFROM clients\nWHERE ville = 'Paris'\n  ⟦AND age > 35⟧;"},
-      {looks:[["AND","relie deux conditions : les deux doivent être vraies"],["age > 35","est la deuxième condition à respecter"]]},
-      {say:"👇 Exécute cette requête pour voir les clients parisiens de plus de 35 ans :",run:"SELECT prenom, ville, age\nFROM clients\nWHERE ville = 'Paris'\n  AND age > 35;"},
-      {arrow:"Un seul client respecte les deux conditions : Léa."}
-    ]},
-    {h:"Combiner plus de deux conditions",blocks:[
-      "Tu peux enchaîner autant de conditions que nécessaire avec <code>AND</code>. Une ligne n’est conservée que si <b>toutes</b> sont vraies :",
-      {syntax:"WHERE ville = 'Paris'\n  AND age >= 30\n  ⟦AND age <= 35⟧"},
-      {say:"👇 Exécute cette requête pour voir les clients parisiens de 30 à 35 ans :",run:"SELECT prenom, nom, age\nFROM clients\nWHERE ville = 'Paris'\n  AND age >= 30\n  AND age <= 35;"},
-      {arrow:"Trois clients sont conservés : Sophie et les deux Nathan."}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis relier les deux conditions avec <code>AND</code>.",
-      {say:"👇 Exécute la requête pour découvrir les clients à contacter :",run:"SELECT prenom, nom, ville, age\nFROM clients\nWHERE ville = 'Paris'\n  AND age > 30;"},
-      {done:{
-        label:"De tous les clients aux clients ciblés",
-        funnel:[
-          {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
-          {step:"WHERE ville = 'Paris' AND age > 30",s:"ne garde que les clients qui respectent les deux conditions"},
-          {n:3,t:"⭐ clients à contacter",s:"Sophie Martin, Nathan Petit et Léa Simon",dots:"1001001000",out:true}
-        ],
-        sms:{ico:"🎯",h:"Campagne ciblée",aria:"L’offre est envoyée aux trois clients ciblés",msg:"Bonjour ! 🎁 Une offre exclusive vous attend : elle est réservée à nos clients parisiens.",people:[["S","Sophie Martin","Paris · 34 ans"],["N","Nathan Petit","Paris · 31 ans"],["L","Léa Simon","Paris · 38 ans"]],done:"✓ 3 offres envoyées"},
-        fill:["WHERE","ville","AND","age"],
-        ui:{t:"3 clients à contacter",s:"Tous habitent à Paris et ont plus de 30 ans : la campagne ciblée est prête.",n:["SELECT","FROM","WHERE","AND"]},
-        rows:3
-      }}
-    ]}
-  ],
-  reflex:[
-    {recap:[
-      ["🔗","<code>AND</code> relie des conditions : une ligne est gardée si <b>toutes</b> sont vraies.","Si une seule est fausse, la ligne est écartée."],
-      ["📍","Il se place entre deux conditions du <code>WHERE</code> :",null,"WHERE ville = 'Paris' AND age > 30"],
-      ["➕","On peut enchaîner <b>autant de conditions</b> qu’il en faut :",null,"AND age >= 30 AND age <= 35"]
-    ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"SELECT prenom, ville, age",txt:"Les colonnes affichées."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"ville = 'Paris'",plain:1,txt:"Première condition : le client habite à Paris."},{tok:"AND",txt:"Relie les deux conditions : elles doivent être vraies ensemble."},{tok:"age > 35",plain:1,txt:"Deuxième condition : le client a plus de 35 ans."}],
-  exemple:"SELECT prenom, ville, age FROM clients WHERE ville = 'Paris' AND age > 35;",
-  attendu:"<b>1 ligne</b> : Léa, 38 ans, car elle habite à Paris et a plus de 35 ans.",
-  retenir:"<code>AND</code> garde une ligne si toutes les conditions sont vraies.<br>Si une seule est fausse, la ligne est écartée.<br><br>Il se place entre deux conditions du <code>WHERE</code> : <code>WHERE ville = 'Paris' AND age &gt; 30</code>.<br><br>On peut enchaîner autant de conditions qu’il en faut.",
-  consigne:"Affiche le nom et le prix des produits de la catégorie « Nutrition » dont le prix est supérieur à 20.",
-  solution:"SELECT nom, prix FROM produits WHERE categorie = 'Nutrition' AND prix > 20;",
-  indice:"Écris les deux conditions dans le <code>WHERE</code> et relie-les avec <code>AND</code> : une pour la catégorie, une pour le prix.",
-  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT prenom, ville, age FROM clients WHERE ville = 'Paris' AND age > 35;"},{k:"rec_two",label:"Deux conditions",sql:"SELECT prenom, ville, age, ville = 'Paris' AS paris, age > 35 AS plus_de_35, (ville = 'Paris' AND age > 35) AS conserve FROM clients;",out:"1 signifie vrai ; 0 signifie faux. La ligne n’est conservée que si les deux conditions valent 1.",expectRows:10}],
-  learningCheck:{question:"Sophie est à Paris et a 34 ans. Passe-t-elle ville = 'Paris' AND age > 35 ?",options:["Non : la seconde condition échoue","Oui : Paris suffit","Oui : 34 est proche de 35"],answer:0,explanation:"AND demande que toutes les conditions soient vraies. Ici, 34 n’est pas supérieur à 35."}
-}),
-guide({ id:29, titre:"OR", résumé:"Combiner avec OR",
-  sit:{
-    blocks:[
-      "La boutique a <b>deux agences</b> : l’une à Paris, l’autre à Lyon. Pour préparer un événement commun, l’équipe marketing veut inviter les clients qui habitent <b>dans l’une ou l’autre de ces deux villes</b>.",
-      "La table <code>clients</code> contient au total <b>10 clients</b>, répartis dans plusieurs villes. Pour envoyer les invitations, l’équipe souhaite récupérer uniquement :",
-      {need:[["👤","Le prénom du client","table clients"],["👪","Son nom de famille","table clients"],["📍","Sa ville","table clients"]],label:"Les informations à récupérer"}
-    ],
-    problem:{
-      p:["Avec <code>AND</code>, SQL exige que <b>toutes</b> les conditions soient vraies : un client devrait donc habiter à Paris <b>et</b> à Lyon en même temps.","Or, ici, <b>une seule</b> des deux conditions suffit : le client peut habiter à Paris <b>ou</b> à Lyon."],
-      scene:{h:"🏢 Clients invités",cols:"1fr 1.3fr",
-        lanes:[{c:[["h1","prenom","t"],["h2","ville","t"]]},
-          {k:"R1",c:[["a1","Sophie"],["a2","Paris"]]},
-          {k:"R2",c:[["b1","Lucas"],["b2","Lyon"]]},
-          {k:"R3",c:[["c1","Emma"],["c2","Marseille"]]},
-          {k:"R4",c:[["d1","Chloé"],["d2","Bordeaux"]]},
-          {k:"R5",c:[["e1","Hugo"],["e2","Lyon"]]}],
-        caps:["<b>Notre liste</b> · Elle contient les clients de toutes les villes.","<b>Première possibilité</b> · Le client habite à <b>Paris</b>.","<b>Deuxième possibilité</b> · Ou il habite à <b>Lyon</b>.","<b>Résultat</b> · Il suffit qu’<b>une</b> des deux possibilités soit vraie : les autres lignes sont écartées."],
-        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5"],on:["R1"],d:2300},{cap:2,on:["R2","R5"],d:2300},{cap:3,dim:["R3","R4"],fold:["R3","R4"],d:2600}]},
-      then:["Il faut donc indiquer à SQL de garder un client dès que <b>l’une</b> des deux conditions est vraie.","C’est exactement le rôle de <code>OR</code>."]
-    },
-    mission:"Aide l’équipe marketing à retrouver le <b>prénom</b>, le <b>nom de famille</b> et la <b>ville</b> des clients qui habitent à <b>Paris</b> <b>ou</b> à <b>Lyon</b>, afin de préparer la liste des invités."
-  },
-  concept:{
-    title:"Comment SQL peut-il savoir si l’une des deux conditions est vraie ?",
-    blocks:[
-      "Pour chaque client, SQL vérifie les deux possibilités :",
-      {ask:"Habite-t-il à Paris ou à Lyon ?"},
-      "En SQL, on les relie avec <code>OR</code> :",
-      {syntax:"⟦ville = 'Paris' OR ville = 'Lyon'⟧"},
-      {table:{label:"clients",cols:"minmax(0,.9fr) minmax(0,1fr) minmax(0,1.8fr)",head:["prenom","ville","Au moins une est-elle vraie ?"],rows:[["Sophie","Paris","✅ oui → gardée"],["Lucas","Lyon","✅ oui → gardée"],["Emma","Marseille","❌ non → écartée"],["Chloé","Bordeaux","❌ non → écartée"]],hit:[[0,2],[1,2]],more:"… et 6 autres clients",test:{cond:"ville = 'Paris' OR ville = 'Lyon'",val:1}}},
-      {looks:[["vraie","au moins une condition est vraie : la ligne apparaît"],["fausse","aucune n’est vraie : la ligne n’apparaît pas"]],label:"Vrai ou faux"}
-    ]
-  },
-  steps:[
-    {h:"Pourquoi pas AND ?",blocks:[
-      "Essayons d’abord avec <code>AND</code> : le client devrait habiter dans les deux villes à la fois.",
-      {say:"👇 Exécute cette requête :",run:"SELECT prenom, ville\nFROM clients\nWHERE ville = 'Paris'\n  AND ville = 'Lyon';"},
-      {arrow:"Aucune ligne : un client n’habite qu’une seule ville."}
-    ]},
-    {h:"Relier deux possibilités avec OR",blocks:[
+    {h:"Accepter l’une ou l’autre avec OR",blocks:[
+      "Pour accepter <b>deux villes</b>, <code>AND</code> ne convient pas : un client n’habite qu’à un seul endroit.",
+      {warn:{t:"Deux villes avec AND",blocks:[
+        "Si tu écris :",
+        {syntax:"WHERE ville = 'Paris'\n  AND ville = 'Lyon'"},
+        "Aucun client ne peut habiter à Paris <b>et</b> à Lyon : le résultat est vide.",
+        {say:"👇 Teste par toi-même :",run:"SELECT prenom, ville\nFROM clients\nWHERE ville = 'Paris'\n  AND ville = 'Lyon';"}
+      ]}},
       "Pour garder une ligne dès que <b>l’une</b> des conditions est vraie, relie-les avec <code>OR</code> :",
-      {syntax:"SELECT prenom, ville\nFROM clients\nWHERE ville = 'Marseille'\n   ⟦OR ville = 'Bordeaux'⟧;"},
-      {looks:[["OR","relie deux conditions : une seule suffit"],["ville = 'Bordeaux'","est la deuxième possibilité"]]},
-      {say:"👇 Exécute cette requête pour voir les clients de Marseille ou de Bordeaux :",run:"SELECT prenom, ville\nFROM clients\nWHERE ville = 'Marseille'\n   OR ville = 'Bordeaux';"},
-      {arrow:"Emma habite à Marseille, Chloé à Bordeaux : chacune respecte une des deux conditions."}
+      {syntax:"SELECT prenom, ville\nFROM clients\nWHERE ville = 'Paris'\n   ⟦OR ville = 'Lyon'⟧;"},
+      {looks:[["OR","relie deux conditions : une seule suffit"],["ville = 'Lyon'","est la deuxième possibilité"]]},
+      {say:"👇 Exécute cette requête pour voir les clients de Paris ou de Lyon :",run:"SELECT prenom, ville\nFROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';"},
+      {arrow:"6 clients sont conservés : ceux de Paris et ceux de Lyon. Une ligne qui respecte plusieurs conditions n’apparaît qu’une seule fois."}
     ]},
-    {h:"Une ligne vraie deux fois",blocks:[
-      "Si un client respecte <b>les deux</b> conditions, sa ligne n’est pas répétée : <code>OR</code> décide seulement de la <b>garder</b>.",
-      {say:"👇 Exécute cette requête : Sophie habite à Paris <b>et</b> a plus de 30 ans.",run:"SELECT prenom, ville, age\nFROM clients\nWHERE ville = 'Paris'\n   OR age > 30;"},
-      {arrow:"Sophie remplit les deux conditions, mais elle n’apparaît qu’une seule fois."}
+    {h:"Mélanger AND et OR : les parenthèses",blocks:[
+      "Quand <code>AND</code> et <code>OR</code> se trouvent dans la même condition, SQL calcule d’abord les <code>AND</code>. Pour regrouper les possibilités, mets-les entre <b>parenthèses</b> :",
+      {syntax:"WHERE ⟦(ville = 'Paris' OR ville = 'Lyon')⟧\n  AND age > 35"},
+      {say:"👇 Exécute cette requête pour voir les clients de Paris ou de Lyon de plus de 35 ans :",run:"SELECT prenom, ville, age\nFROM clients\nWHERE (ville = 'Paris' OR ville = 'Lyon')\n  AND age > 35;"},
+      {arrow:"2 clients respectent les deux exigences : Hugo (Lyon) et Léa (Paris)."},
+      {warn:{t:"Sans parenthèses",blocks:[
+        "Si tu écris :",
+        {syntax:"WHERE ville = 'Paris'\n   OR ville = 'Lyon'\n  AND age > 35"},
+        "SQL lit alors : <code>ville = 'Paris'</code> <b>ou</b> (<code>ville = 'Lyon'</code> <b>et</b> <code>age &gt; 35</code>). Tous les Parisiens sont gardés, quel que soit leur âge.",
+        {say:"👇 Teste par toi-même :",run:"SELECT prenom, ville, age\nFROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon'\n  AND age > 35;"}
+      ]}}
     ]},
     {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis relier les deux villes avec <code>OR</code>.",
-      {say:"👇 Exécute la requête pour découvrir les clients à inviter :",run:"SELECT prenom, nom, ville\nFROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';"},
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis regrouper les deux villes entre parenthèses avant d’ajouter l’âge avec <code>AND</code>.",
+      {say:"👇 Exécute la requête pour découvrir les clients à inviter :",run:"SELECT prenom, nom, ville, age\nFROM clients\nWHERE (ville = 'Paris' OR ville = 'Lyon')\n  AND age > 30;"},
       {done:{
-        label:"De tous les clients aux invités des deux agences",
+        label:"De tous les clients aux invités de la conférence",
         funnel:[
           {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
-          {step:"WHERE ville = 'Paris' OR ville = 'Lyon'",s:"garde les clients de Paris et ceux de Lyon"},
-          {n:6,t:"⭐ clients à inviter",s:"Sophie Martin, Lucas Bernard, Nathan Petit, Hugo Laurent, Léa Simon et Nathan Dupont",dots:"1101011001",out:true}
+          {step:"WHERE (ville = 'Paris' OR ville = 'Lyon') AND age > 30",s:"ne garde que les clients de Paris ou de Lyon qui ont plus de 30 ans"},
+          {n:4,t:"⭐ clients à inviter",s:"Sophie Martin, Nathan Petit, Hugo Laurent et Léa Simon",dots:"1001011000",out:true}
         ],
-        sms:{ico:"🎟️",h:"Invitations à l’événement",aria:"Les six clients de Paris et de Lyon reçoivent leur invitation",msg:"Bonjour ! 🎉 Les agences de Paris et de Lyon vous invitent à leur événement commun.",people:[["S","Sophie Martin","Paris"],["L","Lucas Bernard","Lyon"],["N","Nathan Petit","Paris"],["H","Hugo Laurent","Lyon"],["L","Léa Simon","Paris"],["N","Nathan Dupont","Paris"]],done:"✓ 6 invitations envoyées"},
-        fill:["WHERE","'Paris'","OR","ville"],
-        ui:{t:"6 clients à inviter",s:"Ils habitent à Paris ou à Lyon : la liste des invités est prête.",n:["SELECT","FROM","WHERE","OR"]},
-        rows:6
+        sms:{ico:"🎟️",h:"Invitations à la conférence",aria:"Les quatre clients reçoivent leur invitation à la conférence sur la nutrition",msg:"Bonjour ! 🎉 Les agences de Paris et de Lyon vous invitent à une conférence sur la nutrition. Réservez votre place.",people:[["S","Sophie Martin","Paris · 34 ans"],["N","Nathan Petit","Paris · 31 ans"],["H","Hugo Laurent","Lyon · 52 ans"],["L","Léa Simon","Paris · 38 ans"]],done:"✓ 4 invitations envoyées"},
+        fill:["WHERE","OR","AND","30"],
+        ui:{t:"4 clients à inviter",s:"Ils habitent à Paris ou à Lyon et ont plus de 30 ans : la liste des invités est prête.",n:["SELECT","FROM","WHERE","OR","AND"]},
+        rows:4
       }}
     ]}
   ],
   reflex:[
     {recap:[
-      ["🔀","<code>OR</code> relie des conditions : une ligne est gardée si <b>au moins une</b> est vraie.","Elle n’apparaît qu’une seule fois, même si plusieurs conditions sont vraies."],
-      ["📍","Il se place entre deux conditions du <code>WHERE</code> :",null,"WHERE ville = 'Paris' OR ville = 'Lyon'"],
-      ["⚖️","Avec <code>AND</code>, <b>toutes</b> les conditions doivent être vraies ; avec <code>OR</code>, <b>une seule</b> suffit."]
+      ["🔗","<code>AND</code> relie des conditions : une ligne est gardée si <b>toutes</b> sont vraies.","Si une seule est fausse, la ligne est écartée.","WHERE ville = 'Paris' AND age > 30"],
+      ["🔀","<code>OR</code> relie des conditions : une ligne est gardée si <b>au moins une</b> est vraie.","Elle n’apparaît qu’une seule fois, même si plusieurs conditions sont vraies.","WHERE ville = 'Paris' OR ville = 'Lyon'"],
+      ["🧩","Avec <code>AND</code> et <code>OR</code> ensemble, <b>mets les parenthèses</b> : SQL calcule d’abord les <code>AND</code>.",null,"(a OR b) AND c"]
     ],label:"Les trois idées à retenir"}
   ],
-  anatomie:[{tok:"SELECT prenom, ville",txt:"Les colonnes affichées."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"ville = 'Paris'",plain:1,txt:"Première possibilité : le client habite à Paris."},{tok:"OR",txt:"Relie les possibilités : une seule suffit pour garder la ligne."},{tok:"ville = 'Lyon'",plain:1,txt:"Deuxième possibilité : le client habite à Lyon."}],
-  exemple:"SELECT prenom, ville FROM clients WHERE ville = 'Marseille' OR ville = 'Bordeaux';",
-  attendu:"<b>2 lignes</b> : Emma (Marseille) et Chloé (Bordeaux). Chacune respecte l’une des deux conditions.",
-  retenir:"<code>OR</code> garde une ligne si au moins une condition est vraie.<br>Elle n’apparaît qu’une seule fois, même si plusieurs conditions sont vraies.<br><br>Il se place entre deux conditions du <code>WHERE</code> : <code>WHERE ville = 'Paris' OR ville = 'Lyon'</code>.<br><br>Avec <code>AND</code>, toutes les conditions doivent être vraies ; avec <code>OR</code>, une seule suffit.",
-  consigne:"Affiche le nom et la catégorie des produits de la catégorie « Boisson » ou « Accessoire ».",
-  solution:"SELECT nom, categorie FROM produits WHERE categorie = 'Boisson' OR categorie = 'Accessoire';",
-  indice:"Écris deux conditions sur la colonne <code>categorie</code> et relie-les avec <code>OR</code> : une seule doit être vraie pour garder la ligne.",
-  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT prenom, ville FROM clients WHERE ville = 'Marseille' OR ville = 'Bordeaux';"},{k:"rec_both",label:"Deux fois vrai",sql:"SELECT id, prenom, ville, age FROM clients WHERE ville = 'Paris' OR age > 30;",out:"Sophie remplit les deux conditions, mais sa ligne n’apparaît qu’une fois.",expectRows:7}],
-  learningCheck:{question:"Un client satisfait les deux conditions d’un OR. Combien de fois apparaît sa ligne ?",options:["Aucune fois","Une fois","Deux fois"],answer:1,explanation:"OR décide de conserver la ligne ; il ne la duplique pas quand plusieurs conditions sont vraies."}
+  anatomie:[{tok:"SELECT prenom, ville, age",txt:"Les colonnes affichées."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"(ville = 'Paris' OR ville = 'Toulouse')",plain:1,txt:"Première exigence : le client habite à Paris ou à Toulouse."},{tok:"AND",txt:"Relie les deux exigences : elles doivent être vraies ensemble."},{tok:"age < 35",plain:1,txt:"Deuxième exigence : le client a moins de 35 ans."}],
+  exemple:"SELECT prenom, ville, age FROM clients WHERE (ville = 'Paris' OR ville = 'Toulouse') AND age < 35;",
+  attendu:"<b>4 lignes</b> : Sophie, les deux Nathan et Gabriel, qui habitent à Paris ou à Toulouse et ont moins de 35 ans.",
+  retenir:"<code>AND</code> garde une ligne si toutes les conditions sont vraies ; <code>OR</code> la garde si au moins une est vraie, sans la répéter.<br><br>Ils se placent entre deux conditions du <code>WHERE</code> : <code>WHERE ville = 'Paris' OR ville = 'Lyon'</code>.<br><br>Avec les deux ensemble, SQL calcule d’abord les <code>AND</code> : regroupe les possibilités entre parenthèses, <code>(a OR b) AND c</code>.",
+  consigne:"Affiche le nom et le prix des produits des catégories « Nutrition » ou « Boisson » dont le prix est inférieur à 20.",
+  solution:"SELECT nom, prix FROM produits WHERE (categorie = 'Nutrition' OR categorie = 'Boisson') AND prix < 20;",
+  indice:"Regroupe d’abord les deux catégories entre parenthèses avec <code>OR</code>, puis ajoute la condition sur le prix avec <code>AND</code>.",
+  testeVariants:[{k:"base",label:"Avec parenthèses",sql:"SELECT prenom, ville, age FROM clients WHERE (ville = 'Paris' OR ville = 'Toulouse') AND age < 35;",expectRows:4},{k:"rec_sans",label:"Sans parenthèses",sql:"SELECT prenom, ville, age FROM clients WHERE ville = 'Paris' OR ville = 'Toulouse' AND age < 35;",out:"AND passe avant OR : tous les Parisiens sont gardés, quel que soit leur âge.",expectRows:5},{k:"rec_both",label:"Deux fois vrai",sql:"SELECT id, prenom, ville, age FROM clients WHERE ville = 'Paris' OR age > 30;",out:"Sophie remplit les deux conditions, mais sa ligne n’apparaît qu’une fois.",expectRows:7}],
+  learningCheck:{question:"Dans WHERE ville = 'Paris' OR ville = 'Lyon' AND age > 35, quelle partie SQL calcule-t-il en premier ?",options:["ville = 'Paris' OR ville = 'Lyon'","ville = 'Lyon' AND age > 35","Tout, de gauche à droite, sans priorité"],answer:1,explanation:"AND passe avant OR : sans parenthèses, la ligne est gardée si la ville est Paris, ou si elle est Lyon avec un âge supérieur à 35."}
 }),
 guide({ id:22, titre:"NOT", résumé:"Exclure ce qui correspond",
   sit:{
@@ -8139,40 +7991,41 @@ guide({ id:10, titre:"BETWEEN", résumé:"Filtrer un intervalle",
 guide({ id:11, titre:"ORDER BY", résumé:"Ordonner le résultat",
   sit:{
     blocks:[
-      "L’équipe marketing prépare une nouvelle campagne. Elle veut contacter les clients <b>en commençant par les plus récemment inscrits</b>.",
-      "La table <code>clients</code> contient au total <b>10 clients</b>, mais leur ordre dans la table ne suit pas leur date d’inscription. Pour organiser la campagne, l’équipe souhaite récupérer uniquement :",
-      {need:[["👤","Le prénom du client","table clients"],["📅","Sa date d’inscription","table clients"]],label:"Les informations à récupérer"}
+      "L’équipe e-commerce prépare <b>le catalogue</b> de la boutique. Elle veut afficher les produits <b>par catégorie</b> puis, dans chaque catégorie, <b>du moins cher au plus cher</b>.",
+      "La table <code>produits</code> contient au total <b>8 produits</b>. Pour construire le catalogue, l’équipe souhaite récupérer uniquement :",
+      {need:[["🏷️","Le nom du produit","table produits"],["🗂️","Sa catégorie","table produits"],["💶","Son prix","table produits"]],label:"Les informations à récupérer"}
     ],
     problem:{
-      p:["Avec <code>SELECT</code>, SQL affiche les clients <b>dans l’ordre où il les lit</b> : cet ordre ne suit pas leur date d’inscription.","Or, pour organiser la campagne, l’équipe a besoin que les clients soient <b>classés</b>, du plus récent au plus ancien."],
-      scene:{h:"📅 Clients classés",cols:"1fr 1.3fr",
-        lanes:[{c:[["h1","prenom","t"],["h2","date_inscription","t"]]},
-          {k:"R1",c:[["a1","Sophie"],["a2","2023-01-15"]]},
-          {k:"R2",c:[["b1","Emma"],["b2","2022-11-05"]]},
-          {k:"R3",c:[["c1","Léa"],["c2","2023-05-12"]]},
-          {k:"R4",c:[["d1","Chloé"],["d2","2023-02-18"]]},
-          {k:"R5",c:[["e1","Nathan"],["e2","2023-08-03"]]}],
-        caps:["<b>Notre liste</b> · Les clients apparaissent dans un ordre qui ne suit pas leur date d’inscription.","<b>Besoin</b> · L’équipe veut les voir du plus récemment inscrit au plus ancien.","<b>Résultat</b> · Ce sont les mêmes clients, rangés du plus récent au plus ancien."],
-        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,d:2000},{cap:2,order:["R5","R3","R4","R1","R2"],d:3000}]},
-      then:["Il faut donc indiquer à SQL <b>dans quel ordre classer</b> les lignes : par date d’inscription, de la plus récente à la plus ancienne.","C’est exactement le rôle de <code>ORDER BY</code>."]
+      p:["Avec <code>SELECT</code>, SQL affiche les produits <b>dans l’ordre où il les lit</b> : ni par catégorie, ni par prix.","Or, le catalogue doit être <b>classé</b> : d’abord par catégorie, puis, dans chaque catégorie, par prix."],
+      scene:{h:"🛒 Catalogue classé",cols:"1.6fr 1.1fr .7fr",
+        lanes:[{c:[["h1","nom","t"],["h2","categorie","t"],["h3","prix","t"]]},
+          {k:"R1",c:[["a1","Oméga 3"],["a2","Bien-être"],["a3","24.9"]]},
+          {k:"R2",c:[["b1","Vitamine D"],["b2","Nutrition"],["b3","14.9"]]},
+          {k:"R3",c:[["c1","Magnésium"],["c2","Bien-être"],["c3","19.9"]]},
+          {k:"R4",c:[["d1","Shaker Inox"],["d2","Accessoire"],["d3","15"]]},
+          {k:"R5",c:[["e1","Tisane Détox"],["e2","Boisson"],["e3","12.5"]]}],
+        caps:["<b>Notre liste</b> · Les produits apparaissent dans l’ordre de la table.","<b>Premier critère</b> · Les produits sont regroupés par catégorie, mais pas encore classés par prix.","<b>Second critère</b> · Dans chaque catégorie, les produits sont aussi rangés du moins cher au plus cher."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,order:["R4","R1","R3","R5","R2"],d:3000},{cap:2,order:["R4","R3","R1","R5","R2"],d:3000}]},
+      then:["Il faut donc indiquer à SQL <b>dans quel ordre classer</b> les lignes : par catégorie, puis par prix.","C’est exactement le rôle de <code>ORDER BY</code>."]
     },
-    mission:"Aide l’équipe marketing à afficher le <b>prénom</b> et la <b>date d’inscription</b> de chaque client, du <b>plus récemment inscrit au plus ancien</b>, afin d’organiser l’ordre de la campagne."
+    mission:"Aide l’équipe e-commerce à afficher le <b>nom</b>, la <b>catégorie</b> et le <b>prix</b> de chaque produit, classés <b>par catégorie</b> puis, dans chaque catégorie, <b>du moins cher au plus cher</b>, afin de préparer le catalogue."
   },
   concept:{
     title:"Comment SQL peut-il savoir dans quel ordre classer ?",
     blocks:[
-      "Pour classer les lignes, SQL doit savoir deux choses :",
-      {ask:"Sur quelle colonne trier, et dans quel sens ?"},
-      "En SQL, on l’écrit avec <code>ORDER BY</code>, suivi de la colonne et du sens du tri :",
-      {syntax:"⟦ORDER BY age DESC⟧"},
-      {scene:{h:"↕️ Deux sens de tri",cols:"1fr .6fr",
-        lanes:[{c:[["h1","prenom","t"],["h2","age","t"]]},
-          {k:"R1",c:[["a1","Sophie"],["a2","34"]]},
-          {k:"R2",c:[["b1","Chloé"],["b2","26"]]},
-          {k:"R3",c:[["c1","Léa"],["c2","38"]]},
-          {k:"R4",c:[["d1","Lucas"],["d2","28"]]}],
-        caps:["<b>Table clients</b> · Les lignes sont dans l’ordre de la table.","<b>ORDER BY age ASC</b> · Du plus petit âge au plus grand.","<b>ORDER BY age DESC</b> · Du plus grand âge au plus petit."],
-        steps:[{cap:0,on:["R1","R2","R3","R4"],d:1900},{cap:1,order:["R2","R4","R1","R3"],d:3000},{cap:2,order:["R3","R1","R4","R2"],d:3000}]}},
+      "Pour classer les lignes, SQL doit savoir sur quelle colonne trier, et que faire quand deux lignes sont à égalité :",
+      {ask:"Sur quelle colonne trier ? Et si deux produits sont à égalité ?"},
+      "En SQL, on liste les critères après <code>ORDER BY</code>, du plus important au moins important, séparés par une virgule :",
+      {syntax:"ORDER BY ⟦categorie, prix⟧"},
+      {scene:{h:"🔀 Le sens de chaque critère",cols:"1.6fr 1.1fr .7fr",
+        lanes:[{c:[["h1","nom","t"],["h2","categorie","t"],["h3","prix","t"]]},
+          {k:"R1",c:[["a1","Oméga 3"],["a2","Bien-être"],["a3","24.9"]]},
+          {k:"R2",c:[["b1","Vitamine D"],["b2","Nutrition"],["b3","14.9"]]},
+          {k:"R3",c:[["c1","Magnésium"],["c2","Bien-être"],["c3","19.9"]]},
+          {k:"R4",c:[["d1","Shaker Inox"],["d2","Accessoire"],["d3","15"]]},
+          {k:"R5",c:[["e1","Tisane Détox"],["e2","Boisson"],["e3","12.5"]]}],
+        caps:["<b>Table produits</b> · Les lignes sont dans l’ordre de la table.","<b>ORDER BY categorie, prix</b> · Par catégorie, puis du moins cher au plus cher.","<b>ORDER BY categorie, prix DESC</b> · Toujours par catégorie, mais du plus cher au moins cher."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,order:["R4","R3","R1","R5","R2"],d:3000},{cap:2,order:["R4","R1","R3","R5","R2"],d:3000}]}},
       {looks:[["ASC","du plus petit au plus grand (sens par défaut)"],["DESC","du plus grand au plus petit"]],label:"Le sens du tri"}
     ]
   },
@@ -8189,107 +8042,19 @@ guide({ id:11, titre:"ORDER BY", résumé:"Ordonner le résultat",
       "<code>ASC</code> trie du plus petit au plus grand (c’est le sens par défaut). <code>DESC</code> trie du plus grand au plus petit :",
       {syntax:"ORDER BY age ⟦DESC⟧"},
       {say:"👇 Exécute cette requête pour voir les clients du plus âgé au plus jeune :",run:"SELECT prenom, age\nFROM clients\nORDER BY age DESC;"},
-      {arrow:"Cette fois, le client le plus âgé arrive en premier."}
+      {arrow:"Cette fois, le client le plus âgé arrive en premier. Le tri fonctionne aussi sur du texte, dans l’ordre alphabétique."}
     ]},
-    {h:"Trier du texte",blocks:[
-      "Le tri fonctionne aussi sur du texte : <code>ORDER BY</code> range alors les valeurs dans l’ordre alphabétique.",
-      {say:"👇 Exécute cette requête pour voir les clients classés par ville :",run:"SELECT prenom, ville\nFROM clients\nORDER BY ville;"},
-      {arrow:"Les villes sont rangées de A à Z. Pour deux clients de la même ville, l’ordre n’est pas garanti : un second critère pourra les départager."}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis trier par date d’inscription, de la plus récente à la plus ancienne.",
-      {say:"👇 Exécute la requête pour obtenir l’ordre de la campagne :",run:"SELECT prenom, date_inscription\nFROM clients\nORDER BY date_inscription DESC;"},
-      {done:{
-        label:"Des clients en vrac aux clients classés",
-        funnel:[
-          {n:10,t:"clients au départ",s:"dans l’ordre de la <code>table clients</code>",dots:"0000000000"},
-          {step:"ORDER BY date_inscription DESC",s:"classe du plus récent au plus ancien, sans retirer aucune ligne"},
-          {n:10,t:"⭐ clients classés",s:"Nathan, Inès, Nathan, Léa, Gabriel, Lucas, Chloé, Sophie, Emma et Hugo",dots:"1111111111",out:true}
-        ],
-        sms:{ico:"🎯",h:"Ordre de la campagne",aria:"Les clients sont contactés du plus récemment inscrit au plus ancien",msg:"Bonjour ! 🎉 Merci d’avoir rejoint NutriBoost : voici une offre de bienvenue.",people:[["N","Nathan","2023-08-03"],["I","Inès","2023-07-26"],["N","Nathan","2023-06-10"],["L","Léa","2023-05-12"],["G","Gabriel","2023-04-08"]],more:5,moreT:"… et 5 autres",moreS:"inscrits plus tôt",st:["En file","Contact","✓ Contacté"],done:"✓ 10 clients contactés"},
-        fill:["FROM","ORDER BY","date_inscription","DESC"],
-        ui:{t:"10 clients, du plus récent au plus ancien",s:"Aucune ligne n’a disparu : la campagne peut commencer par les derniers inscrits.",n:["SELECT","FROM","ORDER BY","DESC"]},
-        rows:10
-      }}
-    ]}
-  ],
-  reflex:[
-    {recap:[
-      ["↕️","<code>ORDER BY</code> <b>range</b> le résultat selon une colonne.","Il ne supprime aucune ligne et ne modifie pas la table."],
-      ["📍","Il se place <b>à la fin</b> de la requête :",null,"ORDER BY date_inscription DESC"],
-      ["🔼","<code>ASC</code> : du plus petit au plus grand (par défaut). <code>DESC</code> : du plus grand au plus petit."]
-    ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"SELECT prenom, date_inscription",txt:"Les colonnes affichées."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"ORDER BY",txt:"Range le résultat selon une colonne."},{tok:"date_inscription",plain:1,txt:"La colonne utilisée pour le tri."},{tok:"DESC",txt:"Du plus récent au plus ancien."}],
-  exemple:"SELECT prenom, age FROM clients ORDER BY age DESC;",
-  attendu:"<b>10 lignes</b>, du plus âgé au plus jeune : Hugo (52), Emma (45), Inès (41)… jusqu’à Chloé (26).",
-  retenir:"<code>ORDER BY</code> range le résultat, il ne filtre aucune ligne. <code>ASC</code> croissant, <code>DESC</code> décroissant.<br><br>Il se place à la fin de la requête : <code>ORDER BY date_inscription DESC</code>.<br><br>Sans <code>ORDER BY</code>, aucun ordre n’est garanti.",
-  consigne:"Affiche le nom et le stock de chaque produit, du stock le plus élevé au plus faible.",
-  solution:"SELECT nom, stock FROM produits ORDER BY stock DESC;",
-  indice:"Ajoute <code>ORDER BY</code> à la fin de la requête, suivi de la colonne <code>stock</code> et du sens qui va du plus grand au plus petit.",
-  ordered:true,
-  testeVariants:[{k:"base",label:"↑ Plus ancien (ASC)",sql:"SELECT * FROM clients ORDER BY date_inscription ASC;"},{k:"rec_desc",label:"↓ Plus récent (DESC)",sql:"SELECT * FROM clients ORDER BY date_inscription DESC;"}],
-  learningCheck:{question:"Quel âge passe en premier avec ORDER BY age DESC : 28 ou 52 ?",options:["Le premier inséré","52","28"],answer:1,explanation:"DESC va du plus grand au plus petit ; ASC fait l’inverse. Sans ORDER BY, aucun ordre n’est garanti."}
-}),
-guide({ id:24, titre:"ORDER BY plusieurs colonnes", résumé:"Départager les égalités par un second critère",
-  sit:{
-    blocks:[
-      "L’équipe e-commerce prépare <b>le catalogue</b> de la boutique. Elle veut afficher les produits <b>par catégorie</b> puis, dans chaque catégorie, <b>du moins cher au plus cher</b>.",
-      "La table <code>produits</code> contient au total <b>8 produits</b>. Pour construire le catalogue, l’équipe souhaite récupérer uniquement :",
-      {need:[["🏷️","Le nom du produit","table produits"],["🗂️","Sa catégorie","table produits"],["💶","Son prix","table produits"]],label:"Les informations à récupérer"}
-    ],
-    problem:{
-      p:["Avec un seul critère de tri, SQL regroupe les produits d’une même catégorie, mais <b>à l’intérieur de cette catégorie</b>, leur ordre n’est pas garanti.","Or, l’équipe veut aussi les classer par prix dans chaque catégorie : un seul critère ne suffit plus."],
-      scene:{h:"🛒 Catalogue classé",cols:"1.6fr 1.1fr .7fr",
-        lanes:[{c:[["h1","nom","t"],["h2","categorie","t"],["h3","prix","t"]]},
-          {k:"R1",c:[["a1","Oméga 3"],["a2","Bien-être"],["a3","24.9"]]},
-          {k:"R2",c:[["b1","Vitamine D"],["b2","Nutrition"],["b3","14.9"]]},
-          {k:"R3",c:[["c1","Magnésium"],["c2","Bien-être"],["c3","19.9"]]},
-          {k:"R4",c:[["d1","Shaker Inox"],["d2","Accessoire"],["d3","15"]]},
-          {k:"R5",c:[["e1","Tisane Détox"],["e2","Boisson"],["e3","12.5"]]}],
-        caps:["<b>Notre liste</b> · Les produits apparaissent dans l’ordre de la table.","<b>Premier critère</b> · Les produits sont regroupés par catégorie, mais pas encore classés par prix.","<b>Second critère</b> · Dans chaque catégorie, les produits sont aussi rangés du moins cher au plus cher."],
-        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,order:["R4","R1","R3","R5","R2"],d:3000},{cap:2,order:["R4","R3","R1","R5","R2"],d:3000}]},
-      then:["Il faut donc indiquer à SQL <b>plusieurs critères de tri</b>, dans l’ordre de priorité : d’abord la catégorie, puis le prix.","C’est toujours le rôle de <code>ORDER BY</code>, avec plusieurs colonnes."]
-    },
-    mission:"Aide l’équipe e-commerce à afficher le <b>nom</b>, la <b>catégorie</b> et le <b>prix</b> de chaque produit, classés <b>par catégorie</b> puis, dans chaque catégorie, <b>du moins cher au plus cher</b>, afin de préparer le catalogue."
-  },
-  concept:{
-    title:"Comment SQL peut-il départager deux produits de la même catégorie ?",
-    blocks:[
-      "Quand deux lignes ont la même valeur pour le premier critère, SQL regarde le <b>second critère</b> :",
-      {ask:"Même catégorie ? Alors lequel est le moins cher ?"},
-      "En SQL, on liste les critères après <code>ORDER BY</code>, séparés par une virgule :",
-      {syntax:"ORDER BY ⟦categorie, prix⟧"},
-      {scene:{h:"🔀 Le sens de chaque critère",cols:"1.6fr 1.1fr .7fr",
-        lanes:[{c:[["h1","nom","t"],["h2","categorie","t"],["h3","prix","t"]]},
-          {k:"R1",c:[["a1","Oméga 3"],["a2","Bien-être"],["a3","24.9"]]},
-          {k:"R2",c:[["b1","Vitamine D"],["b2","Nutrition"],["b3","14.9"]]},
-          {k:"R3",c:[["c1","Magnésium"],["c2","Bien-être"],["c3","19.9"]]},
-          {k:"R4",c:[["d1","Shaker Inox"],["d2","Accessoire"],["d3","15"]]},
-          {k:"R5",c:[["e1","Tisane Détox"],["e2","Boisson"],["e3","12.5"]]}],
-        caps:["<b>Table produits</b> · Les lignes sont dans l’ordre de la table.","<b>ORDER BY categorie, prix</b> · Par catégorie, puis du moins cher au plus cher.","<b>ORDER BY categorie, prix DESC</b> · Toujours par catégorie, mais du plus cher au moins cher."],
-        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,order:["R4","R3","R1","R5","R2"],d:3000},{cap:2,order:["R4","R1","R3","R5","R2"],d:3000}]}}
-    ]
-  },
-  steps:[
-    {h:"Ajouter un second critère",blocks:[
-      "Pour départager les égalités, ajoute une virgule puis un <b>second critère</b> après <code>ORDER BY</code> :",
+    {h:"Départager avec un second critère",blocks:[
+      "Quand deux lignes ont la même valeur pour le premier critère, ajoute une virgule puis un <b>second critère</b> :",
       {syntax:"SELECT prenom, ville, age\nFROM clients\nORDER BY ville⟦, age⟧;"},
       {looks:[["ville","est le premier critère : les clients sont rangés par ville"],["age","départage les clients d’une même ville"]]},
       {say:"👇 Exécute cette requête pour voir les clients par ville, puis par âge :",run:"SELECT prenom, ville, age\nFROM clients\nORDER BY ville, age;"},
-      {arrow:"Les villes vont de A à Z ; à Paris, les quatre clients sont rangés du plus jeune au plus âgé."}
-    ]},
-    {h:"Choisir le sens de chaque critère",blocks:[
+      {arrow:"Les villes vont de A à Z ; à Paris, les quatre clients sont rangés du plus jeune au plus âgé."},
       "Le sens du tri se précise <b>pour chaque colonne</b> : <code>DESC</code> ne s’applique qu’à la colonne qui le précède.",
       {syntax:"ORDER BY ville, age ⟦DESC⟧"},
       {say:"👇 Exécute cette requête : seul l’âge est classé en ordre décroissant.",run:"SELECT prenom, ville, age\nFROM clients\nORDER BY ville, age DESC;"},
-      {arrow:"Les villes restent de A à Z ; à Paris, les clients vont maintenant du plus âgé au plus jeune."}
-    ]},
-    {h:"Garantir un ordre stable",blocks:[
-      "Si deux lignes sont identiques sur <b>tous</b> les critères, leur ordre reste incertain. Pour le fixer, termine par une colonne unique, comme <code>id</code> :",
-      {syntax:"ORDER BY categorie, prix, ⟦id⟧"},
-      {say:"👇 Exécute cette requête pour un classement toujours identique :",run:"SELECT id, nom, categorie, prix\nFROM produits\nORDER BY categorie, prix, id;"},
-      {arrow:"Chaque produit a un <code>id</code> unique : plus aucune égalité n’est possible."}
+      {arrow:"Les villes restent de A à Z ; à Paris, les clients vont maintenant du plus âgé au plus jeune."},
+      {tip:{t:"Un ordre toujours identique",blocks:["Si deux lignes sont identiques sur <b>tous</b> les critères, leur ordre reste incertain. Pour le fixer, termine par une colonne unique, comme <code>id</code> : <code>ORDER BY categorie, prix, id</code>."]}}
     ]},
     {h:"La requête complète",blocks:[
       "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis trier par catégorie et par prix.",
@@ -8310,124 +8075,23 @@ guide({ id:24, titre:"ORDER BY plusieurs colonnes", résumé:"Départager les é
   ],
   reflex:[
     {recap:[
-      ["🥇","<code>ORDER BY a, b</code> trie d’abord par <code>a</code>, puis départage les égalités avec <code>b</code> :",null,"ORDER BY categorie, prix"],
-      ["↕️","Le sens se précise <b>pour chaque colonne</b> : <code>DESC</code> ne s’applique qu’à celle qui le précède :",null,"ORDER BY categorie, prix DESC"],
-      ["🔑","Pour un ordre toujours identique, termine par une colonne unique comme <code>id</code>."]
+      ["↕️","<code>ORDER BY</code> <b>range</b> le résultat selon une colonne.","Il ne supprime aucune ligne et se place à la fin de la requête."],
+      ["🔼","<code>ASC</code> : du plus petit au plus grand (par défaut). <code>DESC</code> : du plus grand au plus petit.",null,"ORDER BY age DESC"],
+      ["🥇","<code>ORDER BY a, b</code> trie par <code>a</code>, puis départage les égalités avec <code>b</code>.","Pour un ordre toujours identique, termine par une colonne unique comme <code>id</code>.","ORDER BY categorie, prix"]
     ],label:"Les trois idées à retenir"}
   ],
-  anatomie:[{tok:"SELECT nom, categorie, prix",txt:"Les colonnes affichées."},{tok:"FROM produits",txt:"La table produits est utilisée comme source."},{tok:"ORDER BY",txt:"Range le résultat selon un ou plusieurs critères."},{tok:"categorie",plain:1,txt:"Premier critère : les produits sont regroupés par catégorie."},{tok:"prix",plain:1,txt:"Second critère : à catégorie égale, du moins cher au plus cher."}],
+  anatomie:[{tok:"SELECT prenom, ville, age",txt:"Les colonnes affichées."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"ORDER BY",txt:"Range le résultat selon un ou plusieurs critères."},{tok:"ville",plain:1,txt:"Premier critère : les clients sont regroupés par ville."},{tok:"age DESC",plain:1,txt:"Second critère : à ville égale, du plus âgé au plus jeune."}],
   exemple:"SELECT prenom, ville, age FROM clients ORDER BY ville, age DESC;",
   attendu:"<b>10 lignes</b> classées par ville de A à Z ; à Paris, du plus âgé (Léa, 38 ans) au plus jeune (Nathan, 30 ans).",
-  retenir:"<code>ORDER BY a, b</code> trie par <code>a</code> puis départage les égalités avec <code>b</code>. Le sens <code>ASC</code> ou <code>DESC</code> se précise pour chaque colonne.<br><br>Pour un ordre toujours identique, termine par une colonne unique comme <code>id</code>.",
+  retenir:"<code>ORDER BY</code> range le résultat, il ne filtre aucune ligne. <code>ASC</code> croissant (par défaut), <code>DESC</code> décroissant.<br><br>Il se place à la fin de la requête. Sans lui, aucun ordre n’est garanti.<br><br><code>ORDER BY a, b</code> trie par <code>a</code> puis départage les égalités avec <code>b</code> ; le sens se précise pour chaque colonne. Pour un ordre toujours identique, termine par une colonne unique comme <code>id</code>.",
   consigne:"Affiche le nom, la catégorie et le stock des produits, triés par catégorie (A→Z) puis, à catégorie égale, du stock le plus élevé au plus faible.",
   solution:"SELECT nom, categorie, stock FROM produits ORDER BY categorie, stock DESC;",
   indice:"Écris deux critères après <code>ORDER BY</code>, séparés par une virgule : <code>categorie</code>, puis <code>stock</code> avec le sens décroissant.",
   ordered:true,
-  testeVariants:[{k:"base",label:"Deux critères",sql:"SELECT nom, categorie, prix\nFROM produits\nORDER BY categorie, prix;"},{k:"rec_sens",label:"Sens différents",sql:"SELECT nom, categorie, prix\nFROM produits\nORDER BY categorie ASC, prix DESC;"}],
+  testeVariants:[{k:"base",label:"Deux critères",sql:"SELECT nom, categorie, prix\nFROM produits\nORDER BY categorie, prix;"},{k:"rec_sens",label:"Sens différents",sql:"SELECT nom, categorie, prix\nFROM produits\nORDER BY categorie ASC, prix DESC;"},{k:"rec_asc",label:"↑ Plus ancien (ASC)",sql:"SELECT * FROM clients ORDER BY date_inscription ASC;"},{k:"rec_desc",label:"↓ Plus récent (DESC)",sql:"SELECT * FROM clients ORDER BY date_inscription DESC;"}],
   learningCheck:{question:"Deux produits ont la même catégorie et le même prix. Comment garantir leur ordre ?",options:["Ajouter id comme troisième critère","Écrire ASC deux fois","Ajouter DISTINCT"],answer:0,explanation:"categorie, prix, id départage les ex æquo grâce à l’identifiant unique."}
 }),
-guide({ id:12, titre:"LIMIT", résumé:"Limiter le nombre de lignes",
-  sit:{
-    blocks:[
-      "L’équipe e-commerce met à jour <b>le tableau de bord</b> de la boutique. Il doit afficher <b>les 5 dernières commandes</b> reçues.",
-      "La table <code>commandes</code> contient au total <b>16 commandes</b>. Pour remplir le tableau de bord, l’équipe souhaite récupérer uniquement :",
-      {need:[["📅","Sa date","table commandes"],["🧾","Le numéro de la commande","table commandes"]],label:"Les informations à récupérer"}
-    ],
-    problem:{
-      p:["Avec <code>ORDER BY</code>, SQL sait classer les commandes <b>de la plus récente à la plus ancienne</b>, mais il affiche encore <b>les 16 commandes</b>.","Or, le tableau de bord n’a de place que pour les <b>5 premières</b> de ce classement."],
-      scene:{h:"🧾 Dernières commandes",cols:"1fr 1.3fr",
-        lanes:[{c:[["h1","date","t"],["h2","commande","t"]]},
-          {k:"R1",c:[["a1","2026-08-03"],["a2","CMD-2026-1134085"]]},
-          {k:"R2",c:[["b1","2026-08-01"],["b2","CMD-2026-1128760"]]},
-          {k:"R3",c:[["c1","2026-07-30"],["c2","CMD-2026-1847392"]]},
-          {k:"R4",c:[["d1","2026-07-28"],["d2","CMD-2026-1106294"]]},
-          {k:"R5",c:[["e1","2026-07-25"],["e2","CMD-2026-1093528"]]},
-          {k:"R6",c:[["f1","2026-07-22"],["f2","CMD-2026-1085073"]]}],
-        caps:["<b>Notre classement</b> · Les commandes sont rangées de la plus récente à la plus ancienne.","<b>Besoin</b> · Le tableau de bord n’a de place que pour les <b>5 premières</b> commandes.","<b>Résultat</b> · Seules les 5 premières lignes doivent être conservées."],
-        steps:[{cap:0,on:["R1","R2","R3","R4","R5","R6"],d:1900},{cap:1,off:["R6"],dim:["R6"],d:2300},{cap:2,fold:["R6"],d:2600}]},
-      then:["Il faut donc indiquer à SQL de <b>s’arrêter après 5 lignes</b> : ne garder que les premières lignes du classement.","C’est exactement le rôle de <code>LIMIT</code>."]
-    },
-    mission:"Aide l’équipe e-commerce à retrouver la <b>date</b> et le <b>numéro</b> des <b>5 dernières commandes</b>, afin de mettre à jour le tableau de bord."
-  },
-  concept:{
-    title:"Comment SQL peut-il savoir combien de lignes garder ?",
-    blocks:[
-      "Une fois les lignes triées, SQL les compte de haut en bas :",
-      {ask:"Cette ligne fait-elle partie des 5 premières ?"},
-      "En SQL, on donne ce nombre après <code>LIMIT</code>, tout à la fin de la requête :",
-      {syntax:"ORDER BY date_commande DESC\n⟦LIMIT 5⟧"},
-      {scene:{h:"🔢 SQL compte les lignes",cols:".5fr 1.6fr",
-        lanes:[{c:[["h0","rang","t"],["h1","date_commande","t"]]},
-          {k:"R1",c:[["n1","1","h"],["a1","2026-08-03"]]},
-          {k:"R2",c:[["n2","2","h"],["b1","2026-08-01"]]},
-          {k:"R3",c:[["n3","3","h"],["c1","2026-07-30"]]},
-          {k:"R4",c:[["n4","4","h"],["d1","2026-07-28"]]},
-          {k:"R5",c:[["n5","5","h"],["e1","2026-07-25"]]},
-          {k:"R6",c:[["n6","6","h"],["f1","2026-07-22"]]},
-          {k:"R7",c:[["n7","7","h"],["g1","2026-07-20"]]}],
-        caps:["<b>Après ORDER BY</b> · Les commandes sont rangées de la plus récente à la plus ancienne.","<b>LIMIT 5</b> · SQL compte les lignes, de haut en bas : 1, 2, 3, 4, 5.","<b>Résultat</b> · Une fois la 5ᵉ ligne atteinte, SQL s’arrête : les autres lignes sont écartées."],
-        steps:[{cap:0,on:["R1","R2","R3","R4","R5","R6","R7"],d:1900},{cap:1,off:["R6","R7"],show:["n1","n2","n3","n4","n5"],stagger:420,d:3000},{cap:2,dim:["R6","R7"],fold:["R6","R7"],d:2600}]}}
-    ]
-  },
-  steps:[
-    {h:"Limiter le nombre de lignes",blocks:[
-      "<code>LIMIT</code> se place tout à la fin de la requête, suivi du nombre de lignes à garder :",
-      {syntax:"SELECT prenom, age\nFROM clients\nORDER BY age DESC\n⟦LIMIT 2⟧;"},
-      {looks:[["ORDER BY age DESC","classe les clients du plus âgé au plus jeune"],["LIMIT 2","ne garde que les 2 premières lignes du classement"]]},
-      {say:"👇 Exécute cette requête pour voir les 2 clients les plus âgés :",run:"SELECT prenom, age\nFROM clients\nORDER BY age DESC\nLIMIT 2;"},
-      {arrow:"Seules les 2 premières lignes du classement sont conservées : Hugo et Emma."}
-    ]},
-    {h:"LIMIT sans ORDER BY",blocks:[
-      "<code>LIMIT</code> coupe le résultat après un certain nombre de lignes. Pour que ce soient les bonnes, le résultat doit d’abord être <b>classé</b>.",
-      {warn:{t:"LIMIT seul",blocks:[
-        "Si tu écris :",
-        {syntax:"SELECT date_commande, numero_commande\nFROM commandes\nLIMIT 5;"},
-        "SQL garde les 5 premières lignes dans l’ordre où il lit la table : ce sont les commandes les plus <b>anciennes</b>, pas les dernières.",
-        {say:"👇 Teste par toi-même :",run:"SELECT date_commande, numero_commande\nFROM commandes\nLIMIT 5;"}
-      ]}}
-    ]},
-    {h:"Garder une seule ligne",blocks:[
-      "Avec <code>LIMIT 1</code>, on obtient la <b>première</b> ligne du classement : par exemple le produit le plus cher.",
-      {say:"👇 Exécute cette requête pour voir le produit le plus cher :",run:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 1;"},
-      {arrow:"Le Collagène Marin, à 39,90 €, arrive en tête du classement."}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, classer de la plus récente à la plus ancienne, puis ne garder que 5 lignes.",
-      {say:"👇 Exécute la requête pour obtenir les dernières commandes :",run:"SELECT date_commande, numero_commande\nFROM commandes\nORDER BY date_commande DESC\nLIMIT 5;"},
-      {done:{
-        label:"De 16 commandes aux 5 dernières",
-        funnel:[
-          {n:16,t:"commandes au départ",s:"toute la <code>table commandes</code>",dots:"0000000000000000"},
-          {step:"ORDER BY date_commande DESC LIMIT 5",s:"classe de la plus récente à la plus ancienne, puis ne garde que 5 lignes"},
-          {n:5,t:"⭐ commandes affichées",s:"les commandes passées du 25 juillet au 3 août",dots:"0000000000011111",out:true}
-        ],
-        sms:{ico:"🧾",h:"Tableau de bord",aria:"Les cinq dernières commandes s’affichent sur le tableau de bord",msg:"<b>Dernières commandes</b><br>Les 5 plus récentes",people:[["1","2026-08-03","CMD-2026-1134085"],["2","2026-08-01","CMD-2026-1128760"],["3","2026-07-30","CMD-2026-1847392"]],more:2,moreT:"… et 2 autres",moreS:"commandes récentes",st:["En attente","Affichage","✓ Affichée"],plane:"doc",icons:true,done:"✓ 5 commandes affichées"},
-        fill:["ORDER BY","DESC","LIMIT","5"],
-        ui:{t:"Les 5 dernières commandes",s:"Un classement, puis seulement les 5 premières lignes : le tableau de bord est à jour.",n:["SELECT","FROM","ORDER BY","DESC","LIMIT"]},
-        rows:5
-      }}
-    ]}
-  ],
-  reflex:[
-    {recap:[
-      ["✂️","<code>LIMIT n</code> garde seulement les <b>n premières lignes</b> du résultat.",null,"LIMIT 5"],
-      ["🥇","Associe-le à <code>ORDER BY</code> : il garde alors les premières lignes <b>du classement</b>.",null,"ORDER BY date_commande DESC LIMIT 5"],
-      ["📍","Il se place <b>tout à la fin</b> de la requête."]
-    ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"SELECT date_commande, numero_commande",txt:"Affiche la date et le numéro de chaque commande."},{tok:"FROM commandes",txt:"Les données viennent de la table <code>commandes</code>."},{tok:"ORDER BY date_commande DESC",txt:"Classe les commandes de la plus récente à la plus ancienne."},{tok:"LIMIT 5",txt:"Garde uniquement les 5 premières lignes après le tri."}],
-  exemple:"SELECT prenom, age FROM clients ORDER BY age DESC LIMIT 2;",
-  attendu:"<b>2 lignes</b> : Hugo (52 ans) et Emma (45 ans), les deux clients les plus âgés.",
-  retenir:"<code>LIMIT n</code> garde seulement les n premières lignes du résultat. Dans <code>ORDER BY date_commande DESC LIMIT 5</code>, les commandes sont d’abord classées de la plus récente à la plus ancienne, puis seules les 5 premières sont affichées.",
-  consigne:"Affiche le prénom et l’âge des 3 clients les plus jeunes.",
-  solution:"SELECT prenom, age FROM clients ORDER BY age ASC LIMIT 3;",
-  indice:"Classe d’abord les clients du plus jeune au plus âgé avec <code>ORDER BY</code>, puis garde seulement 3 lignes avec <code>LIMIT</code>.",
-  ordered:true,
-  petitDefi:[{p:"Complète pour ne garder que les 3 produits les plus chers.",sql:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\n__________ 3;",a:"LIMIT",answers:["LIMIT","limit"]}],
-  testeVariants:[{k:"base",label:"LIMIT seul",sql:"SELECT nom, prix\nFROM produits\nLIMIT 3;"},{k:"rec_order",label:"ORDER BY + LIMIT",sql:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 3;"}],
-  learningCheck:{question:"LIMIT 3 seul garantit-il les trois produits les plus chers ?",options:["Non : il faut aussi ORDER BY prix DESC","Oui","Oui si la table est petite"],answer:0,explanation:"LIMIT coupe le résultat. ORDER BY prix DESC place d’abord les plus chers : le Collagène Marin, la Protéine Végétale, la Fibre Prébiotique."}
-}),
-guide({ id:75, titre:"OFFSET et pagination", résumé:"Découper un résultat en pages stables",
+guide({ id:12, titre:"LIMIT et OFFSET", résumé:"Limiter le résultat et le découper en pages",
   sit:{
     blocks:[
       "Le site de la boutique affiche son catalogue <b>par pages de 3 produits</b>, du plus cher au moins cher. Quand un visiteur clique sur « Page suivante », il doit voir les 3 produits suivants.",
@@ -8435,7 +8099,7 @@ guide({ id:75, titre:"OFFSET et pagination", résumé:"Découper un résultat en
       {need:[["🔢","L’identifiant du produit","table produits"],["🏷️","Son nom","table produits"],["💶","Son prix","table produits"]],label:"Les informations à récupérer"}
     ],
     problem:{
-      p:["Avec <code>LIMIT 3</code>, SQL renvoie toujours <b>les 3 premiers produits</b> : c’est parfait pour la page 1.","Mais pour la page 2, le site doit <b>ignorer les 3 produits déjà affichés</b> avant de récupérer les 3 suivants."],
+      p:["Avec <code>ORDER BY</code>, SQL sait classer les produits du plus cher au moins cher, mais il affiche encore <b>les 8 produits</b> d’un coup.","Or, le site n’en montre que <b>3 par page</b> : pour la page 2, il doit <b>ignorer les 3 premiers</b> avant d’en garder 3."],
       scene:{h:"📄 Pages du catalogue",cols:"1.7fr 1fr",
         lanes:[{c:[["h1","nom","t"],["h2","prix","t"]]},
           {k:"R1",c:[["a1","Collagène Marin"],["a2","39.9"]]},
@@ -8446,17 +8110,17 @@ guide({ id:75, titre:"OFFSET et pagination", résumé:"Découper un résultat en
           {k:"R6",c:[["f1","Shaker Inox"],["f2","15"]]}],
         caps:["<b>Le catalogue</b> · Les produits sont classés du plus cher au moins cher.","<b>Page 1</b> · Les 3 premiers produits du classement.","<b>Page 2</b> · Il faut passer ces 3 produits et afficher les 3 suivants.","<b>Résultat</b> · La page 2 ne contient que les produits classés 4ᵉ, 5ᵉ et 6ᵉ."],
         steps:[{cap:0,on:["R1","R2","R3","R4","R5","R6"],d:1900},{cap:1,off:["R4","R5","R6"],dim:["R4","R5","R6"],d:2300},{cap:2,off:["R1","R2","R3"],undim:["R4","R5","R6"],dim:["R1","R2","R3"],on:["R4","R5","R6"],d:2600},{cap:3,fold:["R1","R2","R3"],d:2600}]},
-      then:["Il faut donc indiquer à SQL combien de lignes <b>sauter</b> avant de commencer à en garder 3.","C’est exactement le rôle de <code>OFFSET</code>."]
+      then:["Il faut donc indiquer à SQL combien de lignes <b>garder</b> (3) et combien de lignes <b>sauter</b> avant (3).","C’est exactement le rôle de <code>LIMIT</code> et de <code>OFFSET</code>."]
     },
     mission:"Aide le site à afficher la <b>page 2</b> du catalogue : l’<b>identifiant</b>, le <b>nom</b> et le <b>prix</b> des produits classés de la 4ᵉ à la 6ᵉ place, du plus cher au moins cher."
   },
   concept:{
-    title:"Comment SQL peut-il savoir combien de lignes sauter ?",
+    title:"Comment SQL peut-il savoir quelle page afficher ?",
     blocks:[
-      "Pour afficher la page <b>n</b>, SQL doit d’abord passer les pages précédentes :",
-      {ask:"Combien de lignes faut-il ignorer avant cette page ?"},
-      "En SQL, on l’indique avec <code>OFFSET</code>, juste après <code>LIMIT</code> :",
-      {syntax:"LIMIT 3 ⟦OFFSET 3⟧"},
+      "Pour afficher la page <b>n</b>, SQL doit savoir deux choses :",
+      {ask:"Combien de lignes garder, et combien en sauter avant ?"},
+      "En SQL, on donne le nombre de lignes à garder après <code>LIMIT</code>, puis le nombre de lignes à sauter après <code>OFFSET</code> :",
+      {syntax:"⟦LIMIT 3 OFFSET 3⟧"},
       {scene:{h:"🪟 Une page à la fois",cols:"1.7fr 1fr",
         lanes:[{c:[["h1","nom","t"],["h2","prix","t"]]},
           {k:"R1",c:[["a1","Collagène Marin"],["a2","39.9"]]},
@@ -8472,28 +8136,35 @@ guide({ id:75, titre:"OFFSET et pagination", résumé:"Découper un résultat en
     ]
   },
   steps:[
+    {h:"Garder les premières lignes avec LIMIT",blocks:[
+      "<code>LIMIT</code> se place tout à la fin de la requête, suivi du nombre de lignes à garder. Associé à <code>ORDER BY</code>, il garde les premières lignes <b>du classement</b> :",
+      {syntax:"SELECT date_commande, numero_commande\nFROM commandes\nORDER BY date_commande DESC\n⟦LIMIT 5⟧;"},
+      {looks:[["ORDER BY date_commande DESC","classe les commandes de la plus récente à la plus ancienne"],["LIMIT 5","ne garde que les 5 premières lignes du classement"]]},
+      {say:"👇 Exécute cette requête pour voir les 5 dernières commandes :",run:"SELECT date_commande, numero_commande\nFROM commandes\nORDER BY date_commande DESC\nLIMIT 5;"},
+      {arrow:"Seules les 5 premières lignes du classement sont conservées : les 5 commandes les plus récentes."},
+      {warn:{t:"LIMIT sans ORDER BY",blocks:[
+        "Si tu écris :",
+        {syntax:"SELECT date_commande, numero_commande\nFROM commandes\nLIMIT 5;"},
+        "SQL garde les 5 premières lignes dans l’ordre où il lit la table : ce sont les commandes les plus <b>anciennes</b>, pas les dernières.",
+        {say:"👇 Teste par toi-même :",run:"SELECT date_commande, numero_commande\nFROM commandes\nLIMIT 5;"}
+      ]}}
+    ]},
     {h:"Sauter des lignes avec OFFSET",blocks:[
       "<code>OFFSET</code> indique combien de lignes <b>ignorer</b> avant de commencer à en garder :",
       {syntax:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 2 ⟦OFFSET 4⟧;"},
       {looks:[["LIMIT 2","garde 2 lignes"],["OFFSET 4","après avoir sauté les 4 premières"]]},
       {say:"👇 Exécute cette requête pour voir les produits classés 5ᵉ et 6ᵉ :",run:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 2 OFFSET 4;"},
-      {arrow:"Les 4 premiers produits sont sautés : il reste Magnésium et Shaker Inox."}
-    ]},
-    {h:"Calculer le décalage d’une page",blocks:[
+      {arrow:"Les 4 premiers produits sont sautés : il reste Magnésium et Shaker Inox."},
       "Pour la page <b>n</b>, avec <b>t</b> lignes par page : <code>OFFSET = (n − 1) × t</code>. Avec 3 lignes par page, la page 3 commence donc après 6 lignes :",
       {syntax:"LIMIT 3 OFFSET ⟦6⟧"},
       {say:"👇 Exécute cette requête pour afficher la page 3 :",run:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 3 OFFSET 6;"},
       {arrow:"La dernière page n’a que 2 produits : il n’en restait plus que 2."}
     ]},
     {h:"Un classement stable",blocks:[
-      "Pour que les pages s’enchaînent sans oubli ni répétition, le classement doit être <b>toujours le même</b>.",
-      {warn:{t:"Sans ORDER BY",blocks:[
-        "Si tu écris :",
-        {syntax:"SELECT id, nom, prix\nFROM produits\nLIMIT 3 OFFSET 3;"},
-        "SQL saute 3 lignes, mais sans classement, l’ordre dépend de la façon dont il lit la table : une page peut contenir un produit déjà vu ou en manquer un autre.",
-        {say:"👇 Teste par toi-même :",run:"SELECT id, nom, prix\nFROM produits\nLIMIT 3 OFFSET 3;"}
-      ]}},
-      {tip:{t:"Un critère unique",blocks:["Termine le tri par une colonne unique, comme <code>id</code> : <code>ORDER BY prix DESC, id ASC</code>. Deux produits au même prix gardent alors toujours le même ordre."]}},
+      "Pour que les pages s’enchaînent sans oubli ni répétition, le classement doit être <b>toujours le même</b>. Deux produits au même prix pourraient échanger leur place d’une page à l’autre : termine donc le tri par une colonne unique, comme <code>id</code>.",
+      {syntax:"ORDER BY prix DESC, ⟦id ASC⟧"},
+      {say:"👇 Exécute cette requête pour afficher la page 1 avec un classement stable :",run:"SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC, id ASC\nLIMIT 3;"},
+      {arrow:"Chaque produit a un <code>id</code> unique : plus aucune égalité n’est possible."},
       {tip:{t:"Très grands volumes",blocks:["Un <code>OFFSET</code> très élevé est coûteux : SQL doit quand même parcourir toutes les lignes sautées. Pour un catalogue de milliers de produits, on utilise plutôt une pagination « par curseur », qui repart du <b>dernier produit affiché</b>."]}}
     ]},
     {h:"La requête complète",blocks:[
@@ -8515,24 +8186,23 @@ guide({ id:75, titre:"OFFSET et pagination", résumé:"Découper un résultat en
   ],
   reflex:[
     {recap:[
-      ["⏭️","<code>OFFSET n</code> <b>saute</b> les n premières lignes du classement ; <code>LIMIT</code> garde ensuite les suivantes :",null,"LIMIT 3 OFFSET 3"],
-      ["🧮","Pour la page <code>n</code> : <code>OFFSET = (n − 1) × taille de la page</code>."],
+      ["✂️","<code>LIMIT n</code> garde seulement les <b>n premières lignes</b> du résultat ; associe-le à <code>ORDER BY</code> pour garder celles du classement.",null,"ORDER BY date_commande DESC LIMIT 5"],
+      ["⏭️","<code>OFFSET n</code> <b>saute</b> les n premières lignes. Page <code>n</code> : <code>OFFSET = (n − 1) × taille</code>.",null,"LIMIT 3 OFFSET 3"],
       ["🔒","Une pagination demande un <b>classement stable</b> : termine <code>ORDER BY</code> par une colonne unique comme <code>id</code>."]
     ],label:"Les trois idées à retenir"}
   ],
   anatomie:[{tok:"ORDER BY prix DESC, id ASC",txt:"Définit un ordre complet et reproductible."},{tok:"LIMIT 3",txt:"Conserve trois lignes pour cette page."},{tok:"OFFSET 3",txt:"Ignore les trois lignes de la page précédente."}],
   exemple:"SELECT nom, prix FROM produits ORDER BY prix DESC LIMIT 2 OFFSET 4;",
   attendu:"<b>2 lignes</b> : Magnésium (19,90 €) et Shaker Inox (15 €), classés 5ᵉ et 6ᵉ.",
-  retenir:"<code>LIMIT</code> fixe la taille d’une page. <code>OFFSET</code> indique combien de lignes triées ignorer.<br><br>Pour la page n : <code>OFFSET = (n − 1) × taille</code>.<br><br>Une pagination doit toujours utiliser un <code>ORDER BY</code> stable, idéalement terminé par une clé unique.",
+  retenir:"<code>LIMIT n</code> garde seulement les n premières lignes du résultat ; avec <code>ORDER BY</code>, ce sont celles du classement. <code>OFFSET n</code> indique combien de lignes triées ignorer avant.<br><br>Pour la page n : <code>OFFSET = (n − 1) × taille</code>.<br><br>Une pagination doit toujours utiliser un <code>ORDER BY</code> stable, idéalement terminé par une clé unique.",
   consigne:"Affiche la troisième page de produits, à raison de 3 produits par page, du moins cher au plus cher. Utilise l’identifiant pour départager les prix égaux.",
   solution:"SELECT id, nom, prix\nFROM produits\nORDER BY prix ASC, id ASC\nLIMIT 3 OFFSET 6;",
   indice:"Classe les produits du moins cher au plus cher, puis saute les 6 premiers produits (2 pages de 3) avant d’en garder 3.",
   ordered:true,
-  petitDefi:[{p:"Avec 5 lignes par page, quel décalage faut-il pour ouvrir la page 4 ?",sql:"LIMIT 5 OFFSET __________;",a:"15",answers:["15"]}],
+  petitDefi:[{p:"Complète pour ne garder que les 3 produits les plus chers.",sql:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\n__________ 3;",a:"LIMIT",answers:["LIMIT","limit"]},{p:"Avec 5 lignes par page, quel décalage faut-il pour ouvrir la page 4 ?",sql:"LIMIT 5 OFFSET __________;",a:"15",answers:["15"]}],
   testeVariants:[{k:"p1",label:"OFFSET 0",sql:"SELECT id, nom, prix FROM produits ORDER BY prix DESC, id ASC LIMIT 3 OFFSET 0;"},{k:"p2",label:"OFFSET 3",sql:"SELECT id, nom, prix FROM produits ORDER BY prix DESC, id ASC LIMIT 3 OFFSET 3;"},{k:"p3",label:"OFFSET 6",sql:"SELECT id, nom, prix FROM produits ORDER BY prix DESC, id ASC LIMIT 3 OFFSET 6;"},{k:"curseur",label:"Curseur",sql:"SELECT id, nom, prix FROM produits WHERE (prix < 29.90) OR (prix = 29.90 AND id > 1) ORDER BY prix DESC, id ASC LIMIT 3;"},{k:"sans",label:"Sans ORDER BY",sql:"SELECT id, nom, prix FROM produits LIMIT 3 OFFSET 3;"}],
   learningCheck:{question:"Pourquoi faut-il un ORDER BY stable avec LIMIT et OFFSET ?",options:["Pour que les pages s’enchaînent sans oubli ni répétition","Pour aller plus vite","Pour supprimer les doublons"],answer:0,explanation:"Sans classement stable, SQL peut lire les lignes dans un ordre différent d’une page à l’autre."}
-})
-]},
+})]},
 { titre:"Fonctions et expressions", sous:"Transformer les valeurs ligne par ligne", lessons:[
 guide({ id:51, titre:"Fonctions de texte", résumé:"Transformer, nettoyer et découper du texte",
   sit:{
@@ -14512,17 +14182,13 @@ const CARTES={
  0:{k:"Modèle relationnel",t:"Tables, colonnes, lignes et liens",s:"SELECT * FROM clients;",
     m:"Une base relationnelle range l’information en <b>tables</b> : <b>colonnes</b> = caractéristiques, <b>lignes</b> = éléments enregistrés. Une table en désigne une autre par une clé étrangère — <code>commandes.client_id</code> renvoie à <code>clients.id</code>. Formellement : relation, attribut, tuple."},
  1:{k:"SELECT",t:"Choisir les colonnes",s:"SELECT prenom, telephone FROM clients;",
-    m:"<code>SELECT</code> dresse la liste des <b>colonnes</b>. Une virgule sépare chaque nom. Toutes les lignes sortent : ce n’est pas un filtre. La table d’origine ne change pas."},
- 3:{k:"SELECT *",t:"Voir toute la table",s:"SELECT * FROM produits;",
-    m:"<code>*</code> = toutes les colonnes. Pratique pour découvrir une table. <code>SELECT *</code> suffit : inutile d’ajouter une colonne déjà comprise dans l’étoile."},
+    m:"<code>SELECT</code> dresse la liste des <b>colonnes</b>. Une virgule sépare chaque nom ; <code>*</code> les prend toutes, pratique pour découvrir une table. Toutes les lignes sortent : ce n’est pas un filtre. La table d’origine ne change pas."},
  4:{k:"WHERE",t:"Filtrer les lignes",s:"WHERE ville = 'Paris'",
     m:"<code>WHERE</code> choisit les <b>lignes</b> qui restent dans le résultat. Texte entre guillemets simples : <code>'Paris'</code>. Rien n’est effacé de la table."},
  5:{k:"> < >= <=",t:"Seuils numériques",s:"WHERE prix > 25",
     m:"Pas de guillemets sur les nombres. <code>&gt;</code> exclut la borne ; <code>&gt;=</code> l’inclut."},
- 6:{k:"AND",t:"Combiner avec AND",s:"WHERE ville = 'Paris' AND age > 35",
-    m:"<code>AND</code> : toutes les conditions doivent être vraies. Chaque critère est une condition complète."},
- 29:{k:"OR",t:"Combiner avec OR",s:"WHERE ville = 'Paris' OR ville = 'Lyon'",
-    m:"<code>OR</code> : au moins une condition vraie suffit. Répète la colonne : <code>ville = 'Paris' OR ville = 'Lyon'</code>."},
+ 6:{k:"AND · OR",t:"Combiner des conditions",s:"WHERE (ville = 'Paris' OR ville = 'Lyon')\n  AND age > 30",
+    m:"<code>AND</code> : toutes les conditions doivent être vraies. <code>OR</code> : une seule suffit. <code>AND</code> passe avant <code>OR</code> : regroupe avec des parenthèses."},
   7:{k:"NULL",t:"La valeur absente",s:"WHERE email IS NULL",
     m:"<code>NULL</code> = valeur absente, pas 0 ni <code>''</code>. Jamais <code>=</code> : <code>IS NULL</code> / <code>IS NOT NULL</code>."},
  8:{k:"LIKE",t:"Chercher un motif",s:"WHERE prenom LIKE 'L%'",
@@ -14531,12 +14197,10 @@ const CARTES={
     m:"<code>IN</code> = la valeur est <b>dans la liste</b>. Même résultat que des <code>OR</code> sur la même colonne, plus lisible. Pas pour des colonnes différentes."},
  10:{k:"BETWEEN",t:"Filtrer un intervalle",s:"WHERE prix BETWEEN 15 AND 30",
     m:"<code>BETWEEN 15 AND 30</code> = <code>&gt;= 15 AND &lt;= 30</code>. Les deux bornes sont incluses. Plus lisible, pas plus rapide."},
- 11:{k:"ORDER BY",t:"Ordonner le résultat",s:"ORDER BY age DESC",
-    m:"Range les lignes, n’en retire aucune. <code>ASC</code> (croissant) est le défaut. <code>DESC</code> inverse. Sans lui, aucun ordre n’est garanti."},
- 12:{k:"LIMIT",t:"Limiter le résultat",s:"ORDER BY prix DESC LIMIT 3",
-    m:"<code>ORDER BY</code> classe les lignes ; <code>LIMIT</code> garde seulement les premières."},
- 75:{k:"OFFSET",t:"Paginer dans un ordre stable",s:"ORDER BY prix DESC, id\nLIMIT 3 OFFSET 3",
-    m:"<code>LIMIT</code> fixe la taille. <code>OFFSET</code> saute les lignes déjà vues. Page n : décalage = (n − 1) × taille. Termine le tri par une clé unique pour stabiliser les pages."},
+ 11:{k:"ORDER BY",t:"Ordonner le résultat",s:"ORDER BY categorie, prix DESC",
+    m:"Range les lignes, n’en retire aucune. <code>ASC</code> (croissant) est le défaut. <code>DESC</code> inverse. Avec plusieurs colonnes, la suivante départage les égalités. Sans lui, aucun ordre n’est garanti."},
+ 12:{k:"LIMIT · OFFSET",t:"Limiter et paginer",s:"ORDER BY prix DESC, id\nLIMIT 3 OFFSET 3",
+    m:"<code>ORDER BY</code> classe les lignes ; <code>LIMIT</code> garde seulement les premières ; <code>OFFSET</code> saute celles déjà vues. Page n : décalage = (n − 1) × taille. Termine le tri par une clé unique pour stabiliser les pages."},
  13:{k:"DISTINCT",t:"Valeurs uniques",s:"SELECT DISTINCT ville FROM clients;",
     m:"<code>DISTINCT</code> retire les doublons du résultat. Avec plusieurs colonnes, il compare leur combinaison."},
  51:{k:"Fonctions de texte",t:"Transformer, nettoyer, découper",s:"LOWER(prenom) || '-' || LOWER(ville)",
@@ -14639,23 +14303,21 @@ const QCM={
    {q:"Le mot « relationnel » désigne un lien entre :",o:["Les lignes d’une même table","Les tables entre elles","Les colonnes et leurs types"],b:1,e:"<code>commandes.client_id</code> désigne <code>clients.id</code> : ce sont les tables qui sont mises en relation."},
    {q:"Dans le vocabulaire formel, une <b>colonne</b> s’appelle :",o:["Un tuple","Un attribut","Une relation"],b:1,e:"Table = relation, colonne = attribut, ligne = tuple. « Relation » désigne la table elle-même."}],
  1:[{q:"Que renvoie <code>SELECT prenom, telephone FROM clients;</code> ?",o:["La première ligne seulement","Les 10 clients, avec seulement prenom et telephone","Toutes les colonnes de tous les clients"],b:1,e:"Ce n’est pas un filtre de personnes. SELECT copie les colonnes demandées : les 10 clients sont toujours là, en plus étroit."},
-   {q:"<code>SELECT prenom telephone FROM clients;</code> sans virgule :",o:["Fonctionne, l’espace suffit","Échoue : il manque la virgule entre les colonnes","N’affiche que prenom"],b:1,e:"Après SELECT, les colonnes forment une liste : <code>prenom, telephone</code>."}],
- 3:[{q:"L’étoile <code>*</code> signifie :",o:["Toutes les lignes","Toutes les colonnes","Toutes les tables"],b:1,e:"Elle remplace la liste des colonnes. Le nombre de lignes ne change pas."},
-   {q:"<code>SELECT *, nom FROM produits;</code> :",o:["N’affiche que nom","Demande nom une deuxième fois, alors que * l’inclut déjà","Ignore l’étoile"],b:1,e:"<code>*</code> représente déjà toutes les colonnes. <code>SELECT *</code> suffit."}],
+   {q:"<code>SELECT prenom telephone FROM clients;</code> sans virgule :",o:["Fonctionne, l’espace suffit","Échoue : il manque la virgule entre les colonnes","N’affiche que prenom"],b:1,e:"Après SELECT, les colonnes forment une liste : <code>prenom, telephone</code>."},
+   {q:"L’étoile <code>*</code> signifie :",o:["Toutes les lignes","Toutes les colonnes","Toutes les tables"],b:1,e:"Elle remplace la liste des colonnes. Le nombre de lignes ne change pas."},
+   {q:"Après l’ajout d’une colonne <code>pays</code> à la table <code>clients</code>, <code>SELECT * FROM clients;</code> :",o:["Affiche aussi pays","N’affiche pas pays","Provoque une erreur"],b:0,e:"L’étoile suit la table : toutes les colonnes apparaissent, y compris celles qu’on ajoute plus tard."}],
  2:[{q:"<code>SELECT prix AS prix_euros FROM produits;</code> affiche :",o:["Une colonne renommée prix_euros dans le résultat","La colonne prix renommée aussi dans la table","Une erreur, AS est interdit"],b:0,e:"<code>AS</code> ne change que l'en-tête affiché. La table garde le nom <code>prix</code>."},
    {q:"Pour un alias avec un espace, il faut :",o:["Des guillemets simples","Des guillemets doubles","Un underscore obligatoire"],b:1,e:"<code>prix AS \"Prix €\"</code>. Sans guillemets doubles, l'espace casse la syntaxe."}],
  22:[{q:"<code>WHERE NOT ville = 'Paris'</code> garde :",o:["Seulement les Parisiens","Tous les clients sauf les Parisiens","Aucune ligne"],b:1,e:"<code>NOT</code> inverse la condition : sont gardées les lignes qui ne sont <b>pas</b> à Paris."},
    {q:"<code>NOT (ville='Paris' AND age>30)</code> inverse :",o:["Seulement ville='Paris'","Seulement age>30","Toute la condition entre parenthèses"],b:2,e:"Les parenthèses délimitent ce qui est inversé. Sans elles, <code>NOT</code> ne porterait que sur la première condition."}],
- 24:[{q:"<code>ORDER BY categorie, prix</code> trie d'abord par :",o:["prix","categorie","les deux en même temps"],b:1,e:"La première colonne trie. <code>prix</code> ne sert qu'à départager les produits d'une même catégorie."},
-   {q:"<code>ORDER BY categorie, prix DESC</code> met en décroissant :",o:["categorie et prix","seulement prix","seulement categorie"],b:1,e:"<code>DESC</code> ne porte que sur la colonne juste avant lui. <code>categorie</code> reste croissante."}],
  4:[{q:"<code>WHERE</code> filtre :",o:["Les colonnes affichées","Les lignes retenues","Les tables interrogées"],b:1,e:"<code>SELECT</code> choisit les colonnes. <code>WHERE</code> choisit quelles lignes restent dans le résultat."},
    {q:"Comment comparer une colonne à du texte ?",o:['ville = "Paris"',"ville = 'Paris'","ville = Paris"],b:1,e:"Guillemets simples : <code>ville = 'Paris'</code>. Sans eux, SQL peut croire que Paris est une colonne."}],
  5:[{q:"Avec <code>WHERE stock &lt;= 60</code>, un produit qui a exactement 60 unités en stock est-il gardé ?",o:["Oui, car &lt;= inclut 60","Non, car il faut être sous 60","Non, car 60 doit être entre guillemets"],b:0,e:"<code>&lt;=</code> signifie inférieur ou égal à. Un stock de 60 unités est donc inclus."},
    {q:"Quelle écriture est correcte pour garder les prix strictement supérieurs à 25 € ?",o:["WHERE prix > 25","WHERE prix > '25'","WHERE prix = 25"],b:0,e:"25 est un nombre : il s'écrit sans guillemets. <code>&gt;</code> signifie strictement supérieur à."}],
- 6:[{q:"<code>WHERE ville='Paris' AND ville='Lyon'</code> renvoie :",o:["Les Parisiens et les Lyonnais","Aucune ligne","Une erreur de syntaxe"],b:1,e:"<code>AND</code> exige les deux à la fois. Une ville ne peut pas être Paris et Lyon."},
-   {q:"Avec <code>WHERE ville = 'Paris' AND age &gt; 35</code>, combien de lignes ?",o:["3","1","0"],b:1,e:"Seule Léa habite à Paris et a plus de 35 ans."}],
- 29:[{q:"<code>WHERE ville = 'Lyon' OR 'Paris'</code> :",o:["Fonctionne comme attendu","Ne filtre pas correctement : il faut répéter la colonne","Provoque une erreur claire"],b:1,e:"Chaque côté doit être une condition complète : <code>ville = 'Lyon' OR ville = 'Paris'</code>."},
-   {q:"<code>WHERE ville = 'Paris' OR ville = 'Lyon'</code> garde :",o:["Seulement les Parisiens","Les clients de Paris ou de Lyon","Tous les clients"],b:1,e:"Une seule condition vraie suffit avec <code>OR</code>."}],
+ 6:[{q:"<code>WHERE ville='Paris' AND ville='Lyon'</code> renvoie :",o:["Les Parisiens et les Lyonnais","Aucune ligne","Une erreur de syntaxe"],b:1,e:"<code>AND</code> exige les deux à la fois. Une ville ne peut pas être Paris et Lyon."},
+   {q:"Avec <code>WHERE ville = 'Paris' AND age &gt; 35</code>, combien de lignes ?",o:["3","1","0"],b:1,e:"Seule Léa habite à Paris et a plus de 35 ans."},
+   {q:"<code>WHERE ville = 'Lyon' OR 'Paris'</code> :",o:["Fonctionne comme attendu","Ne filtre pas correctement : il faut répéter la colonne","Provoque une erreur claire"],b:1,e:"Chaque côté doit être une condition complète : <code>ville = 'Lyon' OR ville = 'Paris'</code>."},
+   {q:"Pour garder les clients de Paris ou de Lyon qui ont plus de 35 ans, il faut écrire :",o:["WHERE ville = 'Paris' OR ville = 'Lyon' AND age &gt; 35","WHERE (ville = 'Paris' OR ville = 'Lyon') AND age &gt; 35","WHERE ville = 'Paris' AND ville = 'Lyon' AND age &gt; 35"],b:1,e:"<code>AND</code> passe avant <code>OR</code> : sans parenthèses, tous les Parisiens seraient gardés, quel que soit leur âge. Les parenthèses regroupent les deux villes."}],
   7:[{q:"<code>WHERE email = NULL</code> renvoie :",o:["Les clients sans email","Aucune ligne, quelles que soient les données","Tous les clients"],b:1,e:"<code>NULL</code> n’est égal à rien, pas même à lui-même. Il faut <code>IS NULL</code>."},
    {q:"<code>NULL</code> signifie :",o:["Zéro","Chaîne vide","Valeur inconnue"],b:2,e:"Ce n’est ni 0 ni <code>''</code> : c’est l’absence d’information."}],
  8:[{q:"Le motif <code>'L%'</code> désigne :",o:["Contient un L","Commence par L","Finit par L"],b:1,e:"<code>%</code> = n’importe quelle suite. À droite : commence par L. Lucas et Léa."},
@@ -14664,10 +14326,14 @@ const QCM={
    {q:"<code>NOT IN ('Paris','Lyon')</code> garde :",o:["Seulement Paris et Lyon","Toutes les villes sauf Paris et Lyon","Aucune ville"],b:1,e:"<code>NOT IN</code> inverse le test : la valeur n’est pas dans la liste."}],
  10:[{q:"<code>BETWEEN 15 AND 30</code> inclut :",o:["Ni 15 ni 30","15 et 30","Seulement 15"],b:1,e:"Équivalent à <code>&gt;= 15 AND &lt;= 30</code>. Shaker à 15,00 € est gardé."},
    {q:"<code>prix BETWEEN 15 AND 30</code> équivaut à :",o:["prix > 15 AND prix < 30","prix >= 15 AND prix <= 30","prix IN (15,30)"],b:1,e:"Les deux bornes sont incluses, comme <code>&gt;=</code> et <code>&lt;=</code>."}],
- 11:[{q:"Sans <code>ORDER BY</code>, l’ordre des lignes est :",o:["Alphabétique","Celui des identifiants","Non garanti"],b:2,e:"Même si les lignes semblent suivre les id, rien n’est promis. Si l’ordre compte, écris <code>ORDER BY</code>."},
-  {q:"<code>ORDER BY age DESC</code> range :",o:["Du plus jeune au plus âgé","Du plus âgé au plus jeune","Seulement les plus de 35 ans"],b:1,e:"<code>DESC</code> = décroissant. Les 10 personnes restent : seul l’ordre change."}],
- 12:[{q:"Que fait <code>LIMIT 3</code> ?",o:["Il garde les 3 premières lignes du résultat","Il garde toujours les 3 valeurs les plus élevées","Il trie automatiquement les lignes"],b:0,e:"<code>LIMIT</code> limite le nombre de lignes. Il ne réalise aucun tri."},
-   {q:"Comment obtenir les 3 produits les plus chers ?",o:["LIMIT 3","ORDER BY prix DESC LIMIT 3","ORDER BY prix ASC LIMIT 3"],b:1,e:"<code>DESC</code> place les prix les plus élevés en premier, puis <code>LIMIT 3</code> garde les trois premières lignes."}],
+ 11:[{q:"Sans <code>ORDER BY</code>, l’ordre des lignes est :",o:["Alphabétique","Celui des identifiants","Non garanti"],b:2,e:"Même si les lignes semblent suivre les id, rien n’est promis. Si l’ordre compte, écris <code>ORDER BY</code>."},
+  {q:"<code>ORDER BY age DESC</code> range :",o:["Du plus jeune au plus âgé","Du plus âgé au plus jeune","Seulement les plus de 35 ans"],b:1,e:"<code>DESC</code> = décroissant. Les 10 personnes restent : seul l’ordre change."},
+  {q:"<code>ORDER BY categorie, prix</code> trie d’abord par :",o:["prix","categorie","les deux en même temps"],b:1,e:"La première colonne trie. <code>prix</code> ne sert qu’à départager les produits d’une même catégorie."},
+  {q:"<code>ORDER BY categorie, prix DESC</code> met en décroissant :",o:["categorie et prix","seulement prix","seulement categorie"],b:1,e:"<code>DESC</code> ne porte que sur la colonne juste avant lui. <code>categorie</code> reste croissante."}],
+ 12:[{q:"Que fait <code>LIMIT 3</code> ?",o:["Il garde les 3 premières lignes du résultat","Il garde toujours les 3 valeurs les plus élevées","Il trie automatiquement les lignes"],b:0,e:"<code>LIMIT</code> limite le nombre de lignes. Il ne réalise aucun tri."},
+   {q:"Comment obtenir les 3 produits les plus chers ?",o:["LIMIT 3","ORDER BY prix DESC LIMIT 3","ORDER BY prix ASC LIMIT 3"],b:1,e:"<code>DESC</code> place les prix les plus élevés en premier, puis <code>LIMIT 3</code> garde les trois premières lignes."},
+   {q:"Avec des pages de 5 lignes, quel OFFSET ouvre la page 4 ?",o:["5","15","20"],b:1,e:"(4 − 1) × 5 = 15 lignes à ignorer."},
+   {q:"Pourquoi terminer un tri de pagination par une clé unique ?",o:["Pour supprimer les doublons","Pour stabiliser l’ordre des ex æquo","Pour accélérer LIMIT automatiquement"],b:1,e:"Un identifiant départage les valeurs égales et empêche les lignes de changer arbitrairement de page."}],
  13:[{q:"La table contient 10 clients mais seulement 6 villes différentes. Que renvoie <code>SELECT DISTINCT ville FROM clients;</code> ?",o:["10 lignes","6 lignes","4 lignes"],b:1,e:"<code>DISTINCT</code> n’affiche chaque ville qu’une seule fois."},
    {q:"Dans <code>SELECT DISTINCT ville, age FROM clients</code>, <code>DISTINCT</code> compare :",o:["Uniquement les villes","Uniquement les âges","Les combinaisons ville + âge"],b:2,e:"Avec plusieurs colonnes, l’unicité porte sur la combinaison complète des valeurs sélectionnées."}],
  51:[{q:"Quelle fonction transforme Sophie en SOPHIE ?",o:["LOWER()","UPPER()","LENGTH()"],b:1,e:"<code>UPPER()</code> passe les lettres en majuscules."},
@@ -14836,8 +14502,6 @@ const QCM={
  74:[{q:"Trois produits sont ex æquo au rang 3. Avec <code>DENSE_RANK()</code>, le suivant est :",o:["6","4","3"],b:1,e:"DENSE_RANK ne laisse pas de trou : 3, 3, 3, puis 4. RANK donnerait 6."},
   {q:"Quelle fonction donne un numéro différent à chaque ligne, même aux ex æquo ?",o:["ROW_NUMBER()","RANK()","DENSE_RANK()"],b:0,e:"ROW_NUMBER départage toujours, dans un ordre arbitraire pour les ex æquo."},
   {q:"Que fait <code>PARTITION BY categorie</code> dans un <code>RANK()</code> ?",o:["Il supprime les ex æquo","Il relance le classement dans chaque catégorie","Il trie le résultat final"],b:1,e:"Le classement repart à 1 dans chaque catégorie."}],
- 75:[{q:"Avec des pages de 5 lignes, quel OFFSET ouvre la page 4 ?",o:["5","15","20"],b:1,e:"(4 − 1) × 5 = 15 lignes à ignorer."},
-   {q:"Pourquoi terminer un tri de pagination par une clé unique ?",o:["Pour supprimer les doublons","Pour stabiliser l’ordre des ex æquo","Pour accélérer LIMIT automatiquement"],b:1,e:"Un identifiant départage les valeurs égales et empêche les lignes de changer arbitrairement de page."}],
  76:[{q:"Que fait <code>GROUP_CONCAT(nom, ', ')</code> dans SQLite ?",o:["Il compte les noms","Il assemble les noms non nuls","Il crée une nouvelle table"],b:1,e:"Chaque groupe produit une seule chaîne, avec le séparateur demandé."},
    {q:"Quel nom rencontre-t-on notamment dans PostgreSQL pour le même besoin ?",o:["TEXT_SUM","STRING_AGG","CONCAT_ROWS"],b:1,e:"Le besoin est similaire, mais la syntaxe varie selon le SGBD."}],
  77:[{q:"Quelles sont les deux parties d’une CTE récursive ?",o:["Ancre et récursion","SELECT et DELETE","Vue et index"],b:0,e:"L’ancre produit le départ ; la partie récursive produit les générations suivantes."},
@@ -15041,6 +14705,8 @@ async function boot(){
     if(!state.entretien||typeof state.entretien!=='object') state.entretien={};
     migrerEtapes();
     normaliserPlan();
+    /* Un cours fusionné ou retiré ne doit pas rester dans le parcours enregistré : l'accueil s'en sert avant l'affichage du planning. */
+    nettoyerPlan();
     if(!Array.isArray(state.notes)){
       const old=state.notes&&typeof state.notes==='object'?state.notes:{};
       state.notes=Object.keys(old).filter(k=>old[k]&&String(old[k]).trim()).map(k=>({
@@ -16648,7 +16314,7 @@ function normalize(result,ordered){
   return JSON.stringify(ordered?rows:rows.slice().sort());
 }
 // Order matters only when the exercise explicitly asks for an ordered result.
-const ORDERED_LESSONS=new Set([11,24,12,75,76,77,73,74,79]);
+const ORDERED_LESSONS=new Set([11,12,76,77,73,74,79]);
 function exerciseRequiresOrder(lesson,isChallenge=false){
   return isChallenge?!!lesson.ordered:ORDERED_LESSONS.has(lesson.id);
 }
@@ -17315,23 +16981,19 @@ let courseFilter='all';
 const SQ_STOP=new Set(['le','la','les','l','de','du','des','d','un','une','et','ou','en','dans','avec','sur','par','pour','au','aux','a','je','veux','comment','faire','cours','lecon','chapitre','lesson']);
 const SQ_ALIASES={
   0:'base de donnees relationnelle table colonne ligne enregistrement champ cle schema sgbd',
-  1:'choisir colonnes afficher lister projection select requete de base',
+  1:'choisir colonnes afficher lister projection select requete de base toutes les colonnes etoile tout afficher select *',
   2:'alias renommer nom colonne as intitule libelle',
-  3:'toutes les colonnes etoile tout afficher select *',
   13:'doublons doublon unique valeurs distinctes dedoublonner distinct sans doublon supprimer les doublons enlever doublons',
   4:'filtrer filtre condition critere clause where lignes selectionner',
   5:'comparer comparaison egal different superieur inferieur plus grand plus petit = != <> > < >= <= operateurs',
-  6:'et conditions multiples deux conditions cumuler and',
-  29:'ou alternative une des conditions or',
+  6:'et ou conditions multiples cumuler and or alternative une des conditions parentheses priorite',
   22:'pas negation exclure sauf different de not',
   7:'null vide absent manquant valeur inconnue is null is not null sans valeur',
   8:'like motif recherche texte commence par finit par contient joker pourcentage % _ wildcard',
   9:'in liste plusieurs valeurs appartient parmi not in',
   10:'between entre intervalle plage bornes dates',
-  11:'order by trier tri classer ordre croissant decroissant asc desc',
-  24:'order by trier plusieurs colonnes departager egalite second critere tri multiple',
-  12:'limit limiter nombre lignes top premiers premieres n premieres',
-  75:'offset pagination pages decalage page suivante limit offset',
+  11:'order by trier tri classer ordre croissant decroissant asc desc plusieurs colonnes departager egalite second critere tri multiple',
+  12:'limit limiter nombre lignes top premiers premieres n premieres offset pagination pages decalage page suivante limit offset',
   51:'texte chaine upper lower trim length substr concat remplacer majuscule minuscule longueur sous chaine nettoyer replace instr',
   52:'nombres round arrondir abs ceil floor modulo calcul numerique mathematiques',
   53:'dates heures date now strftime annee mois jour extraire difference jours age calendrier',
@@ -24574,14 +24236,17 @@ function nbFaites(id){
   const e=etapesDe(id);
   return (e.exo?1:0)+qcmDe(id).filter((_,i)=>e['q'+i]).length;
 }
-/* Les leçons validées avant l'arrivée des QCM restent acquises */
+/* Les leçons validées restent acquises, même si leur quiz s'est enrichi depuis
+   (arrivée des QCM, fusion de deux cours en un) : les étapes qui manquent sont
+   comptées comme faites. */
 function migrerEtapes(){
   let touche=false;
   allLessons.forEach(l=>{
     const s=state.lessons[l.id];
-    if(s&&s.done&&!s.etapes){
-      s.etapes={exo:1};qcmDe(l.id).forEach((_,i)=>s.etapes['q'+i]=1);touche=true;
-    }
+    if(!s||!s.done)return;
+    if(!s.etapes){s.etapes={};touche=true;}
+    if(!s.etapes.exo){s.etapes.exo=1;touche=true;}
+    qcmDe(l.id).forEach((_,i)=>{ if(!s.etapes['q'+i]){s.etapes['q'+i]=1;touche=true;} });
   });
   if(touche)save();
 }
@@ -26776,7 +26441,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1603';
+  const SW_CACHE='requete-2026-10-04-ludique-v1604';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
