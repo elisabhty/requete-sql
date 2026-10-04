@@ -17334,837 +17334,642 @@ guide({ id:69, titre:"INSERT multiple et gestion de conflit", résumé:"Insérer
 })
 ]},
 { titre:"Contraintes et intégrité", sous:"Ce que la base refuse ou impose", lessons:[
-{ id:67, titre:"Les contraintes en action", résumé:"NOT NULL, UNIQUE, CHECK : ce que la base refuse d’écrire",
-  situation:"Le cours <code>CREATE TABLE</code> a posé des règles sur les colonnes de cette base : une clé primaire, des valeurs obligatoires, un e-mail unique, des quantités positives, des clés étrangères.<br><br>Ces règles ne sont pas des commentaires. À chaque écriture, la base les vérifie une par une.<br><br>Tu ajoutes un client avec l’<code>id</code> 1 — déjà pris par Sophie. La ligne n’est pas ajoutée, et la base dit pourquoi.",
-  situationTail:"<div class=\"sit-sql\"><p>Que se passe-t-il exactement quand une règle est enfreinte ?</p><p>L’écriture est <b>annulée</b>, et le message nomme la règle.</p></div>",
-    studio:{pointCards:{
-      eye:"Contraintes",title:"Une règle enfreinte annule l’écriture.",
-      lead:"La base ne corrige pas une ligne fautive et ne l’écrit pas à moitié. Elle refuse l’écriture entière et renvoie un message qui nomme la règle.",
-      chain:[
-        {k:"Écriture",v:"INSERT, UPDATE ou DELETE"},
-        {k:"Vérification",v:"la base contrôle les règles"},
-        {k:"Refus",v:"rien n’est écrit"}
-      ]},
-    uses:{title:"Cinq règles, cinq refus.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Deux issues, jamais trois</p>
-          <div class="tx-flow" role="img" aria-label="Une écriture est acceptée ou refusée en entier">
-            <span class="tx-step tx-key">INSERT</span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step">la base vérifie<i>les règles de la table</i></span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <div class="tx-fork">
-              <div class="tx-branch is-ok"><b>conforme</b><span>la ligne est écrite</span></div>
-              <div class="tx-branch is-ko"><b>enfreinte</b><span>rien n’est écrit</span></div>
-            </div>
-          </div>
-          <p>Il n’existe pas de troisième issue : pas de ligne à moitié écrite, pas de valeur silencieusement remplacée.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">PRIMARY KEY — l’identifiant est déjà pris</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO clients
-    (id, prenom, ville)
-VALUES (1, 'Doublon', 'Nice');</pre></div>
-          <div class="tx-fail">
-            <span class="is-ko">UNIQUE constraint failed<i>clients.id</i></span>
-          </div>
-          <p class="fn-tip"><b>Le mot peut surprendre</b> La base parle d’<code>UNIQUE</code>, pas de <code>PRIMARY KEY</code>. C’est logique : une clé primaire est avant tout une valeur qui ne peut pas se répéter.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">NOT NULL — la valeur manque</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO commandes
-    (id, client_id, produit_id)
-VALUES (17, 1, 3);</pre></div>
-          <div class="tx-fail">
-            <span class="is-ko">NOT NULL constraint failed<i>commandes.quantite</i></span>
-          </div>
-          <p>La colonne <code>quantite</code> est déclarée <code>NOT NULL</code>. Ne pas la citer revient à y mettre <code>NULL</code> — ce que la règle interdit.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">UNIQUE — la valeur est déjà prise</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO clients
-    (id, prenom, email)
-VALUES (20, 'Sophie B.',
-        'sophie@mail.fr');</pre></div>
-          <div class="tx-fail">
-            <span class="is-ko">UNIQUE constraint failed<i>clients.email</i></span>
-          </div>
-          <p>La colonne <code>email</code> est déclarée <code>UNIQUE</code>. Cette adresse est celle de Sophie : aucune autre ligne ne peut la reprendre.</p>
-          <p class="fn-tip"><b>NULL y échappe</b> Hugo et Inès n’ont pas d’e-mail. <code>UNIQUE</code> compare des valeurs, et <code>NULL</code> n’en est pas une : plusieurs lignes peuvent rester sans adresse.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">CHECK — la condition n’est pas remplie</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO commandes
-    (id, client_id,
-     produit_id, quantite)
-VALUES (17, 1, 3, 0);</pre></div>
-          <div class="tx-fail">
-            <span class="is-ko">CHECK constraint failed<i>quantite &gt; 0</i></span>
-          </div>
-          <p>Commander zéro unité n’aurait aucun sens. Le message reprend la condition telle qu’elle a été écrite dans <code>CREATE TABLE</code>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">FOREIGN KEY — la référence n’existe pas</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO commandes
-    (id, client_id,
-     produit_id, quantite)
-VALUES (17, 5000, 3, 2);</pre></div>
-          <div class="tx-fail">
-            <span class="is-ko">FOREIGN KEY constraint failed<i>aucun client 5000</i></span>
-          </div>
-          <p>Aucun client ne porte l’identifiant 5000. La commande n’aurait désigné personne : la base la refuse.</p>
-          <p class="fn-tip"><b>Le contrôle marche dans les deux sens</b> Il empêche aussi de supprimer un client qui a des commandes. C’est l’objet du cours suivant.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">NULL échappe à la clé étrangère</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO commandes
-    (id, client_id,
-     produit_id, quantite)
-VALUES (17, NULL, 3, 2);</pre></div>
-          <p>Acceptée. <code>NULL</code> ne désigne aucun client, donc il n’y a pas de référence à vérifier — c’est le cas de la commande 16, passée sans compte.</p>
-          <p>Pour rendre le client obligatoire, il faudrait ajouter <code>NOT NULL</code> à côté de la clé étrangère. Les deux règles sont indépendantes.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Lire le message</p>
-          <p>Le message nomme la règle, et le plus souvent la colonne : <code>NOT NULL constraint failed: commandes.quantite</code> désigne <code>quantite</code>, dans <b>la table</b> <code>commandes</code>.</p>
-          <p>Seule la clé étrangère reste muette : <code>FOREIGN KEY constraint failed</code>, sans préciser laquelle. Quand une table en déclare plusieurs, c’est à toi de chercher.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Rien n’est écrit à moitié</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO produits
-    (id, nom, prix, stock)
-VALUES (20, 'Zinc', 17.90, 70),
-       (1, 'Doublon', 9.90, 10);</pre></div>
-          <p>La première ligne est valide, la seconde reprend l’<code>id</code> 1. Le refus porte sur l’instruction entière : <code>produits</code> compte toujours huit lignes, et Zinc n’a pas été écrit.</p>
-          <p class="fn-tip"><b>Le même principe qu’une transaction</b> Une instruction est indivisible : tout passe, ou rien ne passe.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La question",t:"pourquoi cette ligne est-elle refusée ?"},
-      b:{k:"La règle",t:"le message nomme la contrainte enfreinte"},
-      note:"Réflexe : une écriture refusée n’écrit rien. Lis la règle citée dans le message plutôt que de retenter au hasard."}},
-  anatomie:[
-    {tok:"INSERT INTO commandes",txt:"L’écriture visée : une nouvelle ligne dans commandes."},
-    {tok:"(id, client_id, produit_id)",txt:"Les colonnes renseignées. quantite manque à l’appel."},
-    {tok:"VALUES (17, 1, 3)",txt:"Les valeurs, dans l’ordre des colonnes ci-dessus."},
-    {tok:"quantite",txt:"Déclarée NOT NULL : sans valeur, la base refuse toute la ligne."}
+guide({ id:67, titre:"Les contraintes en action", résumé:"NOT NULL, UNIQUE, CHECK : ce que la base refuse d’écrire",
+  sit:{
+    blocks:[
+      "L’équipe accueil tient <b>un stand de la boutique</b> lors d’un salon. Elle ajoute à la main chaque nouvelle inscription dans la base, mais certaines fiches contiennent des erreurs.",
+      "La table <code>clients</code> contient au total <b>10 clients</b>. Pour enregistrer une inscription, l’équipe souhaite saisir :",
+      {need:[["👤","Le prénom du client","table clients"],["🎂","Son âge","table clients"],["✉️","Son email","table clients"]],label:"Les informations à saisir"}
+    ],
+    problem:{
+      p:["Avec <code>INSERT</code>, SQL sait <b>ajouter une ligne</b> dans une table, mais cette instruction ne dit pas ce qui est permis ou non.","Or, une fiche sans prénom, avec un âge négatif ou avec l’email d’un autre client ne doit jamais entrer dans notre table."],
+      scene:{h:"📝 Fiches du salon",cols:"1fr .55fr 1.8fr",
+        lanes:[{c:[["h1","prenom","t"],["h2","age","t"],["h3","email","t"]]},
+          {k:"R1",c:[["a1","Zoé"],["a2","27"],["a3","zoe@mail.fr"]]},
+          {k:"R2",c:[["b1","vide","n"],["b2","31"],["b3","karim@mail.fr"]]},
+          {k:"R3",c:[["c1","Tom"],["c2","-3"],["c3","tom@mail.fr"]]},
+          {k:"R4",c:[["d1","Jade"],["d2","29"],["d3","sophie@mail.fr"]]}],
+        caps:["<b>Notre liste</b> · Quatre fiches remplies au salon, prêtes à être ajoutées à la table clients.","<b>Règles</b> · Une fiche n’a de sens que si elle a un prénom, un âge qui n’est pas négatif et un email que personne d’autre n’utilise.","<b>Résultat</b> · Seule la fiche correcte doit être ajoutée : les trois autres doivent être refusées."],
+        steps:[{cap:0,on:["R1","R2","R3","R4"],d:1900},{cap:1,off:["R2","R3","R4"],mark:{b1:"is-miss",c2:"is-miss",d3:"is-miss"},d:2600},{cap:2,unmark:{b1:"is-miss",c2:"is-miss",d3:"is-miss"},dim:["R2","R3","R4"],fold:["R2","R3","R4"],d:2600}]},
+      then:["Il faut donc que la table <b>contrôle chaque fiche</b> avant de l’écrire, et refuse celles qui ne respectent pas ses règles.","C’est exactement le rôle des <b>contraintes</b> : <code>NOT NULL</code>, <code>UNIQUE</code>, <code>CHECK</code> et <code>FOREIGN KEY</code>."]
+    },
+    mission:"Aide l’équipe accueil à enregistrer l’inscription de <b>Zoé</b> (<b>27 ans</b>, <b>zoe@mail.fr</b>), afin que la fiche respecte toutes les règles de la table et soit acceptée par la base."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir qu’une fiche doit être refusée ?",
+    blocks:[
+      "Pour chaque ligne à écrire, la base vérifie les règles de la table, l’une après l’autre :",
+      {ask:"Cette ligne respecte-t-elle toutes les règles ?"},
+      "Ces règles se déclarent à côté des colonnes, dans <code>CREATE TABLE</code> (extrait de la table clients) :",
+      {syntax:"CREATE TABLE clients (\n  id INTEGER PRIMARY KEY,\n  prenom TEXT ⟦NOT NULL⟧,\n  age INTEGER ⟦CHECK (age >= 0)⟧,\n  email TEXT ⟦UNIQUE⟧\n);"},
+      {scene:{h:"🛡️ Une règle après l’autre",cols:"1fr .8fr 1.4fr",
+        lanes:[{c:[["h1","prenom","t"],["h2","age","t"],["h3","email","t"]]},
+          {k:"R",c:[["r1","Tom"],["r2","-3"],["r3","tom@mail.fr"]]},
+          {k:"K",cls:"is-goal",l:"Les règles de la table",c:[["k1","NOT NULL","h"],["k2","CHECK","h"],["k3","UNIQUE","h"]]}],
+        caps:["<b>La fiche de Tom</b> · Avant de l’écrire, la base la compare aux règles de la table.","<b>NOT NULL</b> · Le prénom est bien renseigné : cette règle est respectée.","<b>CHECK</b> · L’âge vaut −3, alors que la règle exige un âge positif ou nul : elle est enfreinte.","<b>Résultat</b> · Une seule règle enfreinte suffit : toute la ligne est refusée."],
+        steps:[{cap:0,on:["R"],d:1900},{cap:1,off:["R"],on:["r1","k1"],show:["k1"],d:2300},{cap:2,off:["r1","k1"],mark:{r2:"is-miss",k2:"is-miss"},show:["k2"],d:2600},{cap:3,mark:{R:"is-miss"},dim:["R"],d:2600}]}},
+      {looks:[["NOT NULL","une valeur absente"],["UNIQUE","une valeur déjà prise"],["CHECK","une valeur qui ne respecte pas la condition"],["FOREIGN KEY","une référence à une ligne qui n’existe pas"]],label:"Ce que chaque règle interdit"}
+    ]
+  },
+  steps:[
+    {h:"Une fiche conforme",blocks:[
+      "Quand une fiche respecte toutes les règles, la base l’écrit sans rien dire. Ici, seul le <b>prénom</b> est obligatoire : les autres colonnes peuvent rester vides.",
+      {syntax:"INSERT INTO clients (⟦prenom⟧, ville)\nVALUES ('Samir', 'Lille');"},
+      {say:"👇 Exécute cette requête pour ajouter une première fiche :",run:"INSERT INTO clients (prenom, ville)\nVALUES ('Samir', 'Lille');\nSELECT id, prenom, ville, age\nFROM clients\nWHERE prenom = 'Samir';"},
+      {arrow:"La fiche est écrite avec l’identifiant 11. Son âge, laissé vide, vaut <code>NULL</code>."},
+      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux ajouter des fiches sans rien abîmer. À chaque essai, Samir n’existe plus et le prochain client reçoit de nouveau l’identifiant 11."]}}
+    ]},
+    {h:"Une règle enfreinte",blocks:[
+      "Dès qu’une règle est enfreinte, la base <b>refuse l’écriture</b> et nomme la règle dans son message.",
+      {warn:{t:"Un prénom absent",blocks:[
+        "Si tu écris :",
+        {syntax:"INSERT INTO clients (age, email)\nVALUES (31, 'karim@mail.fr');"},
+        "La colonne <code>prenom</code> est déclarée <code>NOT NULL</code> : sans valeur pour elle, la base refuse la ligne.",
+        {say:"👇 Teste par toi-même :",run:"INSERT INTO clients (age, email)\nVALUES (31, 'karim@mail.fr');"}
+      ]}},
+      {warn:{t:"Une seule fiche fautive",blocks:[
+        "Si tu écris deux fiches dans la même instruction :",
+        {syntax:"INSERT INTO clients (prenom, age)\nVALUES ('Zoé', 27),\n       ('Tom', -3);"},
+        "La règle <code>CHECK (age &gt;= 0)</code> refuse la fiche de Tom, et avec elle l’instruction tout entière : celle de Zoé, pourtant correcte, n’est pas écrite non plus.",
+        {say:"👇 Teste par toi-même :",run:"INSERT INTO clients (prenom, age)\nVALUES ('Zoé', 27),\n       ('Tom', -3);"}
+      ]}}
+    ]},
+    {h:"Une valeur déjà prise, un client inconnu",blocks:[
+      "Deux autres règles comparent la fiche aux lignes déjà écrites : <code>UNIQUE</code> et <code>FOREIGN KEY</code>.",
+      {warn:{t:"Un email ou un identifiant déjà pris",blocks:[
+        "Si tu écris :",
+        {syntax:"INSERT INTO clients (prenom, email)\nVALUES ('Jade', 'sophie@mail.fr');"},
+        "Cette adresse est déjà celle de Sophie, et la colonne <code>email</code> est déclarée <code>UNIQUE</code> : la base refuse la fiche.",
+        {say:"👇 Teste par toi-même :",run:"INSERT INTO clients (prenom, email)\nVALUES ('Jade', 'sophie@mail.fr');"},
+        "Un identifiant déjà pris est refusé de la même façon, et le message parle bien d’<code>UNIQUE</code> : une clé primaire est avant tout une colonne dont les valeurs ne peuvent pas se répéter.",
+        {say:"👇 Teste aussi avec l’identifiant de Sophie :",run:"INSERT INTO clients (id, prenom)\nVALUES (1, 'Jade');"}
+      ]}},
+      {warn:{t:"Un client qui n’existe pas",blocks:[
+        "Si tu écris :",
+        {syntax:"INSERT INTO commandes (client_id, produit_id, quantite)\nVALUES (5000, 3, 2);"},
+        "Aucun client ne porte l’identifiant 5000 : la clé étrangère <code>client_id</code> refuse une commande qui ne désignerait personne. Son message ne nomme pas la colonne. SQLite ne contrôle les clés étrangères que si <code>PRAGMA foreign_keys = ON</code> est activé : c’est déjà le cas ici.",
+        {say:"👇 Teste par toi-même :",run:"INSERT INTO commandes (client_id, produit_id, quantite)\nVALUES (5000, 3, 2);"}
+      ]}},
+      {tip:{t:"Et NULL ?",blocks:[
+        "<code>NULL</code> n’est pas une valeur : <code>UNIQUE</code> et <code>FOREIGN KEY</code> n’ont rien à comparer. Deux clients peuvent donc rester sans email, et une commande peut exister sans client.",
+        {say:"👇 Exécute cette requête pour voir la commande sans client :",run:"SELECT numero_commande, client_id\nFROM commandes\nWHERE client_id IS NULL;"},
+        {arrow:"La commande 16 existe sans client : son <code>client_id</code> vaut <code>NULL</code>."}
+      ]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à écrire la fiche de Zoé en respectant chaque règle.",
+      {say:"👇 Exécute la requête pour enregistrer l’inscription :",run:"INSERT INTO clients (prenom, age, email)\nVALUES ('Zoé', 27, 'zoe@mail.fr');\nSELECT id, prenom, age, email\nFROM clients\nWHERE prenom = 'Zoé';"},
+      {done:{
+        label:"De la fiche de Zoé à une ligne enregistrée",
+        unit:"free",
+        funnel:[
+          {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
+          {step:"INSERT INTO clients",s:"contrôle chaque règle, puis écrit la fiche"},
+          {n:11,t:"⭐ clients après l’inscription",s:"Zoé est la nouvelle cliente, avec l’identifiant 11",dots:"00000000001",out:true}
+        ],
+        sms:{ico:"🛡️",h:"Contrôle des règles",aria:"La base vérifie chaque règle avant d’écrire la fiche de Zoé",msg:"Fiche de <b>Zoé</b> : la base vérifie chaque règle de la table avant d’écrire la ligne.",people:[["P","Prénom","NOT NULL"],["A","Âge","CHECK"],["E","Email","UNIQUE"],["I","Identifiant","PRIMARY KEY"]],st:["À contrôler","Contrôle","✓ Respectée"],plane:"doc",done:"✓ Fiche enregistrée"},
+        fill:["INSERT INTO","clients","VALUES","27"],
+        ui:{t:"Une fiche conforme, une ligne de plus",s:"Prénom, âge et email respectent les règles : la base a écrit la fiche de Zoé.",n:["INSERT INTO","VALUES","NOT NULL","CHECK","UNIQUE"]},
+        rows:11
+      }}
+    ]}
   ],
-  exemple:"INSERT INTO commandes\n    (id, client_id, produit_id)\nVALUES (17, 1, 3);",
-  attendu:"Refusé : NOT NULL constraint failed: commandes.quantite. La colonne quantite est obligatoire et aucune valeur ne lui a été donnée. Aucune ligne n’est ajoutée.",
-  retenir:"Une contrainte n’est pas un commentaire : la base la vérifie à chaque écriture et <b>annule l’instruction entière</b> si elle est enfreinte.<br><br>Cinq refus, cinq messages : <code>UNIQUE</code> (clé primaire ou valeur déjà prise), <code>NOT NULL</code>, <code>CHECK</code>, <code>FOREIGN KEY</code>.<br><br>Le mémo : <b>tout passe, ou rien ne passe</b>.",
-  piege:{t:"Croire qu’une ligne valide passe quand même",
-    p:"Dans un <code>INSERT</code> à plusieurs lignes, une seule ligne fautive suffit à tout annuler. La ligne valide qui la précède n’est pas conservée.<br><br>La base ne trie pas le bon du mauvais : elle refuse l’instruction.",
-    exec:true,
-    sql:"INSERT INTO produits\n    (id, nom, prix, stock)\nVALUES (20, 'Zinc', 17.90, 70),\n       (1, 'Doublon', 9.90, 10);",
-    out:"UNIQUE constraint failed: produits.id — et Zinc n’a pas été écrit non plus.",
-    fixSql:"INSERT INTO produits\n    (id, nom, prix, stock)\nVALUES (20, 'Zinc', 17.90, 70),\n       (21, 'Fer', 19.90, 55);\n\nSELECT COUNT(*) AS produits\nFROM produits;"},
-  petitDefi:[{
-    p:"La table <code>commandes</code> déclare <code>quantite INTEGER NOT NULL CHECK (quantite > 0)</code>. Tu tentes d’y insérer une quantité de 0. Quel mot la base cite-t-elle dans son message de refus ?",
-    sql:"__________ constraint failed: quantite > 0",
-    a:"CHECK",
-    answers:["CHECK","check","CHECK constraint","contrainte CHECK"]
-  }],
-  consigne:"Cet <code>INSERT</code> est refusé : <code>INSERT INTO commandes (id, client_id, produit_id) VALUES (17, 1, 3);</code> — la base répond <code>NOT NULL constraint failed: commandes.quantite</code>. Corrige-le pour que la commande soit enregistrée avec 2 unités, à la date <code>2026-08-31</code>.",
+  reflex:[
+    {recap:[
+      ["🛡️","Une <b>contrainte</b> est une règle de la table : la base la vérifie à chaque écriture.",null,"NOT NULL · UNIQUE · CHECK · FOREIGN KEY"],
+      ["🚫","Une seule règle enfreinte suffit : l’instruction est refusée <b>en entier</b>. Tout passe, ou rien ne passe."],
+      ["🔎","Le message nomme la règle, et le plus souvent la colonne : lis-le avant de réessayer.",null,"NOT NULL constraint failed: commandes.quantite"]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"INSERT INTO commandes",txt:"L’écriture visée : une nouvelle ligne dans la table commandes."},{tok:"(id, client_id, produit_id)",plain:1,txt:"Les colonnes renseignées. La colonne quantite manque à l’appel."},{tok:"VALUES (17, 1, 3)",txt:"Les valeurs, dans l’ordre des colonnes ci-dessus."},{tok:"quantite",plain:1,txt:"Déclarée NOT NULL : sans valeur, la base refuse toute la ligne."}],
+  exemple:"INSERT INTO clients (prenom, ville)\nVALUES ('Samir', 'Lille');\n\nSELECT id, prenom, ville\nFROM clients\nWHERE prenom = 'Samir';",
+  attendu:"<b>1 ligne</b> : Samir, de Lille, avec l’identifiant 11. La fiche respecte toutes les règles ; si l’une était enfreinte, la base refuserait l’écriture et nommerait la règle dans son message.",
+  retenir:"Une contrainte n’est pas un commentaire : la base la vérifie à chaque écriture et <b>refuse l’instruction entière</b> si elle est enfreinte.<br><br>Quatre règles : <code>NOT NULL</code> (valeur obligatoire), <code>UNIQUE</code> (valeur jamais répétée, clé primaire comprise), <code>CHECK</code> (condition à respecter), <code>FOREIGN KEY</code> (la ligne désignée doit exister). <code>NULL</code> échappe à <code>UNIQUE</code> et à <code>FOREIGN KEY</code>.<br><br>Le message nomme la règle enfreinte : lis-le avant de réessayer.",
+  consigne:"Cette commande est refusée par la base : <code>INSERT INTO commandes (id, client_id, produit_id) VALUES (17, 1, 3);</code> répond <code>NOT NULL constraint failed: commandes.quantite</code>. Corrige-la pour qu’elle soit enregistrée avec 2 unités, à la date <code>2026-08-31</code>.",
   solution:"INSERT INTO commandes\n    (id, client_id, produit_id,\n     quantite, date_commande)\nVALUES (17, 1, 3, 2,\n        '2026-08-31');",
   verif:"SELECT id, client_id, produit_id, quantite, date_commande FROM commandes WHERE id = 17;",
-  indice:"La colonne manquante est <code>quantite</code>. Ajoute-la à la liste des colonnes, et sa valeur au même rang dans <code>VALUES</code>.",
+  indice:"Le message cite la colonne <code>quantite</code> : elle est obligatoire. Ajoute-la à la liste des colonnes, puis sa valeur au même rang dans <code>VALUES</code> ; fais de même pour la date.",
   write:true,
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-    {k:'pk',label:'PRIMARY KEY',sql:"INSERT INTO clients\n    (id, prenom, ville)\nVALUES (1, 'Doublon', 'Nice');",out:"Refus\u00e9 : l\u2019identifiant 1 est celui de Sophie.",tone:'bad'},
-    {k:'un',label:'UNIQUE',sql:"INSERT INTO clients\n    (id, prenom, email)\nVALUES (20, 'Sophie B.',\n        'sophie@mail.fr');",out:"Refus\u00e9 : cette adresse est d\u00e9j\u00e0 celle de Sophie.",tone:'bad'},
-    {k:'ck',label:'CHECK',sql:"INSERT INTO commandes\n    (id, client_id,\n     produit_id, quantite)\nVALUES (17, 1, 3, 0);",out:"Refus\u00e9 : la quantit\u00e9 doit \u00eatre strictement positive.",tone:'bad'},
-    {k:'fk',label:'FOREIGN KEY',sql:"INSERT INTO commandes\n    (id, client_id,\n     produit_id, quantite)\nVALUES (17, 5000, 3, 2);",out:"Refus\u00e9 : aucun client ne porte l\u2019identifiant 5000.",tone:'bad'},
-    {k:'ok',label:'Accepté',sql:"INSERT INTO commandes\n    (id, client_id,\n     produit_id, quantite)\nVALUES (17, 1, 3, 2);\n\nSELECT id, client_id, produit_id\nFROM commandes\nWHERE id = 17;",out:"Toutes les r\u00e8gles sont respect\u00e9es : la ligne est \u00e9crite.",tone:'good'}
-  ] ,
-learningCheck:{
-  "question": "Une clé étrangère valide suffit-elle à autoriser une quantité de zéro ?",
-  "options": [
-    "Oui",
-    "Oui avec un id neuf",
-    "Non"
+  petitDefi:[{p:"La table <code>commandes</code> déclare <code>quantite INTEGER NOT NULL CHECK (quantite &gt; 0)</code>. Tu essaies d’y enregistrer une quantité de 0. Quel mot-clé la base cite-t-elle dans son message de refus ?",sql:"__________ constraint failed: quantite > 0",a:"CHECK",answers:["CHECK","check","CHECK constraint","contrainte CHECK"]}],
+  testeVariants:[{k:"pk",label:"PRIMARY KEY",sql:"INSERT INTO clients\n    (id, prenom, ville)\nVALUES (1, 'Doublon', 'Nice');",out:"Refusé : l’identifiant 1 est celui de Sophie.",tone:"bad"},{k:"un",label:"UNIQUE",sql:"INSERT INTO clients\n    (id, prenom, email)\nVALUES (20, 'Sophie B.',\n        'sophie@mail.fr');",out:"Refusé : cette adresse est déjà celle de Sophie.",tone:"bad"},{k:"ck",label:"CHECK",sql:"INSERT INTO commandes\n    (id, client_id,\n     produit_id, quantite)\nVALUES (17, 1, 3, 0);",out:"Refusé : la quantité doit être strictement positive.",tone:"bad"},{k:"fk",label:"FOREIGN KEY",sql:"INSERT INTO commandes\n    (id, client_id,\n     produit_id, quantite)\nVALUES (17, 5000, 3, 2);",out:"Refusé : aucun client ne porte l’identifiant 5000.",tone:"bad"},{k:"ok",label:"Accepté",sql:"INSERT INTO commandes\n    (id, client_id,\n     produit_id, quantite)\nVALUES (17, 1, 3, 2);\n\nSELECT id, client_id, produit_id\nFROM commandes\nWHERE id = 17;",out:"Toutes les règles sont respectées : la ligne est écrite.",tone:"good"}],
+  learningCheck:{question:"Une commande a un client valide, mais une quantité de 0. La base l’accepte-t-elle ?",options:["Oui : le client existe, cela suffit","Oui, si l’identifiant de la commande est neuf","Non : la règle CHECK sur la quantité est enfreinte"],answer:2,explanation:"Toutes les règles doivent être respectées en même temps : une seule règle enfreinte suffit à refuser la ligne."}
+}),
+guide({ id:68, titre:"ON DELETE", résumé:"Décider du sort des lignes liées",
+  sit:{
+    blocks:[
+      "L’équipe service client prépare une nouvelle table pour la <b>satisfaction</b> des clients : après un achat, chacun peut donner une note. Quand un client demande la suppression de son compte, ses notes comptent encore dans la satisfaction moyenne de la boutique : l’équipe veut les <b>conserver</b>.",
+      "La table <code>clients</code> contient au total <b>10 clients</b>, et chaque note doit désigner celui qui l’a donnée. Pour créer la table <code>satisfaction</code>, l’équipe souhaite définir :",
+      {need:[["🔢","L’identifiant de la note","colonne id"],["👤","Le client qui l’a donnée","colonne client_id"],["⭐","La note donnée","colonne note"],["🧹","Le sort de la note si le client est supprimé","règle ON DELETE"]],label:"Les informations à définir"}
+    ],
+    problem:{
+      p:["Avec une <b>clé étrangère</b>, SQL sait relier chaque note à son client, et il protège ce lien : un client encore désigné par une note ne peut pas être supprimé.","Or, l’équipe ne veut ni bloquer la suppression d’un compte, ni perdre les notes : elles doivent <b>rester</b>, sans client."],
+      scene:{h:"⭐ Notes de satisfaction",cols:"1fr 1fr .8fr",
+        lanes:[{c:[["h1","id","t"],["h2","client_id","t"],["h3","note","t"]]},
+          {k:"R1",c:[["a1","1"],["a2","9"],["a3","5"]]},
+          {k:"R2",c:[["b1","2"],["b2","9"],["b3","4"]]},
+          {k:"R3",c:[["c1","3"],["c2","4"],["c3","5"]]}],
+        caps:["<b>Notre table</b> · Chaque note garde l’identifiant du client qui l’a donnée : Inès, cliente 9, en a donné deux.","<b>Besoin</b> · Inès demande la suppression de son compte : ses deux notes désigneraient alors un client qui n’existe plus.","<b>Résultat</b> · Ses notes doivent rester dans la table, mais sans client : le lien avec Inès est coupé."],
+        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R1","R2","R3"],mark:{a2:"is-miss",b2:"is-miss"},d:2600},{cap:2,unmark:{a2:"is-miss",b2:"is-miss"},text:{a2:"NULL",b2:"NULL"},on:["R1","R2"],d:2600}]},
+      then:["Il faut donc indiquer à SQL <b>ce que deviennent les notes</b> quand leur client est supprimé : ici, elles doivent rester, sans client.","C’est exactement le rôle de <code>ON DELETE</code>."]
+    },
+    mission:"Aide l’équipe service client à créer la table <b>satisfaction</b> de façon que les notes d’un client supprimé soient <b>conservées, mais détachées de lui</b>, afin de garder la satisfaction moyenne de la boutique."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir ce que deviennent les lignes liées ?",
+    blocks:[
+      "Quand on supprime une ligne, la base cherche les lignes qui la désignent, puis applique la règle prévue :",
+      {ask:"Que deviennent les lignes qui désignent ce client ?"},
+      "Cette règle se déclare à la création de la table, juste après la clé étrangère, avec <code>ON DELETE</code> :",
+      {syntax:"REFERENCES clients(id)\n⟦ON DELETE …⟧"},
+      {scene:{h:"🔗 Trois réponses possibles",cols:"1fr 1fr .7fr",
+        lanes:[{k:"P",cols:"1fr",c:[["p1","Inès · client 9"]]},
+          {c:[["h1","id","t"],["h2","client_id","t"],["h3","note","t"]]},
+          {k:"R1",c:[["a1","1"],["a2","9"],["a3","5"]]},
+          {k:"R2",c:[["b1","2"],["b2","9"],["b3","4"]]}],
+        caps:["<b>DELETE FROM clients WHERE id = 9</b> · Inès va être supprimée, mais deux notes désignent encore le client 9.","<b>ON DELETE CASCADE</b> · Les notes disparaissent avec elle.","<b>ON DELETE SET NULL</b> · Les notes restent, mais ne désignent plus personne.","<b>ON DELETE RESTRICT</b> · La suppression est refusée tant que ces notes existent : rien ne change."],
+        steps:[{cap:0,on:["P","R1","R2"],d:2200},{cap:1,fold:["P","R1","R2"],d:2600},{cap:2,unfold:["R1","R2"],text:{a2:"NULL",b2:"NULL"},d:2800},{cap:3,unfold:["P"],off:["P"],mark:{P:"is-miss"},text:{a2:"9",b2:"9"},d:2800}]}},
+      {looks:[["CASCADE","la ligne liée n’a aucun sens seule : une alerte, un panier"],["SET NULL","la ligne liée garde une valeur propre : une note, une commande"],["RESTRICT","les lignes liées doivent être traitées à la main"]],label:"Laquelle choisir ?"}
+    ]
+  },
+  steps:[
+    {h:"Sans règle, la base refuse",blocks:[
+      "La table <code>commandes</code> ne précise aucune règle : voici ce que donne la suppression d’un client qui a déjà des commandes.",
+      {warn:{t:"Supprimer un client qui a des commandes",blocks:[
+        "Si tu écris :",
+        {syntax:"DELETE FROM clients\nWHERE id = 1;"},
+        "Sophie a trois commandes : la suppression est refusée.",
+        {say:"👇 Teste par toi-même :",run:"DELETE FROM clients\nWHERE id = 1;"}
+      ]}},
+      {warn:{t:"Chercher la règle dans le DELETE",blocks:[
+        "Si tu écris :",
+        {syntax:"DELETE FROM clients\nWHERE id = 9 ON DELETE CASCADE;"},
+        "<code>ON DELETE</code> n’est pas une option du <code>DELETE</code> : la base ne comprend pas cette suite, et la requête provoque une erreur.",
+        {say:"👇 Teste par toi-même :",run:"DELETE FROM clients\nWHERE id = 9 ON DELETE CASCADE;"}
+      ]}},
+      {tip:{t:"Le refus par défaut",blocks:["Par défaut (<code>NO ACTION</code>), la suppression est refusée de la même façon : <code>ON DELETE RESTRICT</code> demande ce refus par écrit. SQLite ne contrôle les clés étrangères que si <code>PRAGMA foreign_keys = ON</code> est activé : c’est déjà le cas ici."]}}
+    ]},
+    {h:"Supprimer en chaîne : CASCADE",blocks:[
+      "Avec <code>CASCADE</code>, supprimer une ligne supprime aussi toutes les lignes qui la désignent :",
+      {syntax:"client_id INTEGER\n  REFERENCES clients(id)\n  ⟦ON DELETE CASCADE⟧"},
+      {say:"👇 Exécute cette requête pour voir ce que deviennent les deux alertes de retour en stock d’Inès quand son compte est supprimé :",run:"CREATE TABLE alertes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER\n    REFERENCES clients(id)\n    ON DELETE CASCADE,\n  produit_id INTEGER\n);\nINSERT INTO alertes (client_id, produit_id)\nVALUES (9, 3), (9, 5);\nDELETE FROM clients\nWHERE id = 9;\nSELECT COUNT(*) AS alertes_restantes\nFROM alertes;"},
+      {arrow:"Les deux alertes d’Inès ont disparu avec elle, sans être citées dans le <code>DELETE</code>."},
+      {tip:{t:"À manier avec précaution",blocks:["La suppression se propage sans confirmation, et de proche en proche si les lignes supprimées sont elles-mêmes désignées par d’autres : vérifie bien tout ce qu’elle emporte."]}}
+    ]},
+    {h:"Détacher sans supprimer : SET NULL",blocks:[
+      "Avec <code>SET NULL</code>, les lignes liées restent, mais la valeur qui désignait la ligne supprimée devient <code>NULL</code> :",
+      {syntax:"client_id INTEGER\n  REFERENCES clients(id)\n  ⟦ON DELETE SET NULL⟧"},
+      {say:"👇 Exécute cette requête pour refaire la même suppression, avec <code>SET NULL</code> :",run:"CREATE TABLE alertes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER\n    REFERENCES clients(id)\n    ON DELETE SET NULL,\n  produit_id INTEGER\n);\nINSERT INTO alertes (client_id, produit_id)\nVALUES (9, 3), (9, 5);\nDELETE FROM clients\nWHERE id = 9;\nSELECT id, client_id, produit_id\nFROM alertes;"},
+      {arrow:"Les deux alertes sont toujours là, avec un <code>client_id</code> vide (<code>NULL</code>)."},
+      {warn:{t:"Une colonne NOT NULL",blocks:[
+        "Si tu déclares :",
+        {syntax:"client_id INTEGER NOT NULL\n  REFERENCES clients(id)\n  ON DELETE SET NULL"},
+        "La colonne ne peut pas recevoir <code>NULL</code> : détacher les lignes devient impossible, et la suppression du client est refusée.",
+        {say:"👇 Teste par toi-même :",run:"CREATE TABLE alertes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER NOT NULL\n    REFERENCES clients(id)\n    ON DELETE SET NULL,\n  produit_id INTEGER\n);\nINSERT INTO alertes (client_id, produit_id)\nVALUES (9, 3), (9, 5);\nDELETE FROM clients\nWHERE id = 9;"}
+      ]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : créer la table <code>satisfaction</code> avec la bonne règle, puis supprimer Inès pour vérifier que ses notes sont conservées, et que celles des autres clients ne bougent pas. SQLite ne permet pas de modifier la règle d’une clé étrangère déjà créée : elle se décide dès la création de la table.",
+      {say:"👇 Exécute la requête pour créer la table des notes et tester la suppression :",run:"CREATE TABLE satisfaction (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER\n    REFERENCES clients(id)\n    ON DELETE SET NULL,\n  note INTEGER\n);\nINSERT INTO satisfaction (client_id, note)\nVALUES (9, 5), (9, 4), (4, 5);\nDELETE FROM clients\nWHERE id = 9;\nSELECT id, client_id, note\nFROM satisfaction;"},
+      {done:{
+        label:"Des notes d’Inès aux notes conservées sans client",
+        unit:"free",
+        funnel:[
+          {n:3,t:"notes dans la table",s:"dont deux données par Inès",dots:"111"},
+          {step:"DELETE FROM clients WHERE id = 9",s:"supprime Inès, et la règle détache ses notes"},
+          {n:3,t:"⭐ notes conservées",s:"les deux notes d’Inès n’ont plus de client",dots:"111",out:true}
+        ],
+        sms:{ico:"🗑️",h:"Compte supprimé",aria:"Le compte d’Inès est supprimé, ses notes restent sans client",msg:"Le compte d’<b>Inès</b> est supprimé : ses notes restent dans la table, <b>sans client</b>.",people:[["1","Première note","5 sur 5"],["2","Seconde note","4 sur 5"]],st:["Rattachée","Détachement","✓ Détachée"],plane:"doc",done:"✓ 2 notes détachées"},
+        fill:["REFERENCES","clients","ON DELETE","SET NULL"],
+        ui:{t:"Les notes sont conservées",s:"Les trois notes restent dans la table : seules celles d’Inès ont perdu leur client.",n:["CREATE TABLE","REFERENCES","ON DELETE","SET NULL"]},
+        rows:3
+      }}
+    ]}
   ],
-  "answer": 2,
-  "explanation": "Toutes les contraintes doivent être respectées : ici, CHECK exige une quantité strictement positive."
-}
-},
-{ id:68, titre:"ON DELETE", résumé:"Décider du sort des lignes liées",
-  situation:"Sophie quitte le site et demande la suppression de son compte. Tu écris <code>DELETE FROM clients WHERE id = 1;</code> — et la base refuse : <code>FOREIGN KEY constraint failed</code>.<br><br>Sophie a trois commandes. Les supprimer avec elle ? Les garder, sans client ? Interdire la suppression tant qu’elles existent ?<br><br>Les trois réponses sont défendables, et la base ne peut pas deviner laquelle tu veux.",
-  situationTail:"<div class=\"sit-sql\"><p>La réponse ne se donne pas au moment du <code>DELETE</code>. Elle se décide à la création de la table, avec <b><code>ON DELETE</code></b>.</p></div>",
-    studio:{pointCards:{
-      eye:"ON DELETE",title:"Ce qui arrive aux lignes reliées.",
-      lead:"Une clé étrangère dit quelle ligne est reliée à quelle autre. <code>ON DELETE</code> dit ce qu’il advient des lignes reliées quand la ligne référencée disparaît.",
-      chain:[
-        {k:"CASCADE",v:"supprime avec"},
-        {k:"SET NULL",v:"détache"},
-        {k:"RESTRICT",v:"bloque"}
-      ]},
-    uses:{title:"Trois réponses, une seule à choisir.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Sans rien préciser, la base bloque</p>
-          <div class="pt-syntax"><pre class="cw-syntax">client_id INTEGER
-    REFERENCES clients(id)</pre></div>
-          <p>C’est la déclaration de <b>la table</b> <code>commandes</code> dans cette base. Aucune action n’est indiquée : la suppression d’un client encore référencé est simplement refusée.</p>
-          <div class="tx-fail">
-            <span class="is-ko">DELETE FROM clients WHERE id = 1;<i>refusé</i></span>
-          </div>
-          <p>C’est le comportement le plus prudent, et c’est pour cela qu’il est celui par défaut.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Les trois chemins</p>
-          <div class="tx-flow" role="img" aria-label="CASCADE supprime, SET NULL détache, RESTRICT bloque">
-            <span class="tx-step tx-key">DELETE le client</span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step">ses commandes existent<i>que deviennent-elles ?</i></span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <div class="tx-fork tx-fork-3">
-              <div class="tx-branch is-ko"><b>CASCADE</b><span>supprimées</span></div>
-              <div class="tx-branch"><b>SET NULL</b><span>détachées</span></div>
-              <div class="tx-branch is-ok"><b>RESTRICT</b><span>rien ne bouge</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">CASCADE — supprimer en chaîne</p>
-          <div class="pt-syntax"><pre class="cw-syntax">client_id INTEGER
-    REFERENCES clients(id)
-    ON DELETE CASCADE</pre></div>
-          <p>Supprimer Sophie supprime ses trois commandes dans le même mouvement. Une seule instruction, deux tables touchées.</p>
-          <p class="fn-tip"><b>À manier avec précaution</b> La suppression se propage sans confirmation, et de proche en proche si les tables enfants ont elles-mêmes des <code>CASCADE</code>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">SET NULL — détacher sans supprimer</p>
-          <div class="pt-syntax"><pre class="cw-syntax">client_id INTEGER
-    REFERENCES clients(id)
-    ON DELETE SET NULL</pre></div>
-          <p>Sophie disparaît, ses trois commandes restent, avec <code>client_id = NULL</code>. Le chiffre d’affaires est préservé, le lien vers la personne est coupé.</p>
-          <p>C’est exactement l’état de la commande 16 de cette base : une commande sans client.</p>
-          <p class="fn-tip"><b>Une condition</b> La colonne doit pouvoir accueillir <code>NULL</code>. Déclarée <code>NOT NULL</code>, elle rendrait la suppression impossible.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">RESTRICT — interdire tant qu’il reste des liens</p>
-          <div class="pt-syntax"><pre class="cw-syntax">client_id INTEGER
-    REFERENCES clients(id)
-    ON DELETE RESTRICT</pre></div>
-          <p>La suppression est refusée tant que Sophie a des commandes. Pour la supprimer, il faut d’abord traiter ses commandes soi-même — les supprimer, ou les rattacher ailleurs.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le refus annule tout</p>
-          <p>Si une seule table liée bloque, l’ensemble du <code>DELETE</code> est annulé — y compris les effets déjà calculés sur les tables en <code>CASCADE</code>.</p>
-          <p>Comme pour une contrainte enfreinte : tout passe, ou rien ne passe.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Où la règle se déclare</p>
-          <p><code>ON DELETE</code> s’écrit dans <code>CREATE TABLE</code>, à côté de la clé étrangère — jamais dans le <code>DELETE</code>. C’est une propriété de la table, pas de la commande.</p>
-          <div class="tx-fail">
-            <span class="is-ko">ALTER TABLE … ADD CONSTRAINT …<i>syntax error</i></span>
-          </div>
-          <p>Et SQLite ne sait pas l’ajouter après coup : pour changer la règle d’une table existante, il faut la recréer avec la nouvelle définition et y recopier les données.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">ON UPDATE, le pendant</p>
-          <p>Les mêmes actions existent pour le cas où la valeur référencée <b>change</b> au lieu de disparaître. <code>ON UPDATE CASCADE</code> reporte le nouvel identifiant dans les lignes liées.</p>
-          <p>Une clé primaire bien choisie ne changeant jamais, on l’emploie beaucoup moins souvent.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Laquelle choisir</p>
-          <p>Une commande a une valeur propre : elle survit à son client, donc <code>SET NULL</code>. Une ligne de panier n’a aucun sens sans son panier : <code>CASCADE</code>.</p>
-          <p>Et quand la donnée liée doit être traitée à la main plutôt qu’effacée par surprise, on garde le refus.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La question",t:"ces lignes gardent-elles un sens sans leur parent ?"},
-      b:{k:"La règle",t:"oui → SET NULL · non → CASCADE · à traiter → RESTRICT"},
-      note:"Réflexe : <code>ON DELETE</code> se décide en créant la table, pas en supprimant la ligne."}},
-  anatomie:[
-    {tok:"client_id INTEGER",txt:"La colonne qui porte le lien."},
-    {tok:"REFERENCES clients(id)",txt:"La colonne pointée dans l’autre table."},
-    {tok:"ON DELETE",txt:"Ce qui suit s’applique quand le client est supprimé."},
-    {tok:"CASCADE",txt:"L’action retenue : supprimer aussi les lignes liées."}
+  reflex:[
+    {recap:[
+      ["🛑","Sans règle, une clé étrangère <b>bloque</b> la suppression d’une ligne encore désignée.",null,"FOREIGN KEY constraint failed"],
+      ["🔀","<code>ON DELETE</code> choisit le sort des lignes liées : <code>CASCADE</code> les supprime, <code>SET NULL</code> les détache, <code>RESTRICT</code> refuse."],
+      ["📍","La règle se déclare dans <code>CREATE TABLE</code>, à côté de la clé étrangère, jamais dans le <code>DELETE</code> :",null,"REFERENCES clients(id) ON DELETE SET NULL"]
+    ],label:"Les trois idées à retenir"}
   ],
-  exemple:"CREATE TABLE paniers (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER\n        REFERENCES clients(id)\n        ON DELETE CASCADE\n);\n\nINSERT INTO paniers (id, client_id) VALUES (1, 9);\n\nDELETE FROM clients WHERE id = 9;\n\nSELECT COUNT(*) AS paniers_restants\nFROM paniers;",
-  attendu:"Zéro. Le panier d’Inès a été supprimé en même temps qu’elle, sans être nommé dans le DELETE.",
-  retenir:"Une clé étrangère seule <b>bloque</b> la suppression d’une ligne encore référencée. <code>ON DELETE</code> choisit un autre comportement.<br><br>Trois actions : <code>CASCADE</code> supprime les lignes liées, <code>SET NULL</code> les détache, <code>RESTRICT</code> refuse la suppression.<br><br>La règle s’écrit dans <code>CREATE TABLE</code>, à côté de la clé étrangère — et SQLite ne sait pas l’ajouter après coup.",
-  piege:{t:"Chercher ON DELETE du côté du DELETE",
-    p:"<code>ON DELETE CASCADE</code> ne s’écrit pas dans la commande de suppression. C’est une règle de la table, posée une fois pour toutes à sa création.<br><br>Au moment du <code>DELETE</code>, il n’y a rien à préciser : la base applique la règle déjà déclarée.",
-    exec:true,
-    sql:"DELETE FROM clients WHERE id = 1;",
-    out:"FOREIGN KEY constraint failed — Sophie a trois commandes, et la table commandes ne déclare aucune action.",
-    fixSql:"DELETE FROM commandes\nWHERE client_id = 1;\n\nDELETE FROM clients\nWHERE id = 1;\n\nSELECT COUNT(*) AS clients_restants\nFROM clients;"},
-  petitDefi:[{
-    p:"Une ligne de panier n’a aucun sens sans son panier : elle doit disparaître avec lui. Quels mots-clés remplacent les tirets ?",
-    sql:"panier_id INTEGER\n    REFERENCES paniers(id) __________ __________;",
-    a:"ON DELETE CASCADE",
-    answers:["ON DELETE CASCADE","on delete cascade","ON DELETE / CASCADE","ON DELETE, CASCADE"]
-  }],
-  consigne:"Crée la table <code>paniers</code> : un <code>id</code> comme clé primaire, et un <code>client_id</code> qui référence <code>clients(id)</code>. La suppression d’un client doit emporter ses paniers avec elle.",
+  anatomie:[{tok:"client_id INTEGER",txt:"La colonne qui porte le lien."},{tok:"REFERENCES clients(id)",txt:"La colonne désignée dans l’autre table."},{tok:"ON DELETE",txt:"Ce qui suit s’applique quand le client est supprimé."},{tok:"CASCADE",plain:1,txt:"L’action retenue : supprimer aussi les lignes liées."}],
+  exemple:"CREATE TABLE alertes (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER\n        REFERENCES clients(id)\n        ON DELETE SET NULL,\n    produit_id INTEGER\n);\n\nINSERT INTO alertes (client_id, produit_id)\nVALUES (9, 3);\n\nDELETE FROM clients WHERE id = 9;\n\nSELECT id, client_id, produit_id\nFROM alertes;",
+  attendu:"<b>1 ligne</b> : l’alerte reste dans la table, mais son <code>client_id</code> vaut <code>NULL</code>. Avec <code>CASCADE</code>, elle aurait disparu avec le client.",
+  retenir:"Une clé étrangère seule <b>bloque</b> la suppression d’une ligne encore désignée. <code>ON DELETE</code> choisit un autre comportement.<br><br>Trois actions : <code>CASCADE</code> supprime les lignes liées, <code>SET NULL</code> les détache, <code>RESTRICT</code> refuse la suppression.<br><br>La règle s’écrit dans <code>CREATE TABLE</code>, à côté de la clé étrangère : SQLite ne permet pas de la modifier ensuite.",
+  consigne:"Crée la table <code>paniers</code> : un <code>id</code> comme clé primaire et un <code>client_id</code> qui référence <code>clients(id)</code>. Quand un client est supprimé, ses paniers doivent disparaître avec lui.",
   solution:"CREATE TABLE paniers (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER\n        REFERENCES clients(id)\n        ON DELETE CASCADE\n);",
   verif:"INSERT INTO paniers (id, client_id) VALUES (1, 9);\nDELETE FROM clients WHERE id = 9;\nSELECT COUNT(*) AS paniers_restants FROM paniers;",
-  indice:"La règle se place après <code>REFERENCES clients(id)</code>. Pour supprimer en chaîne : <code>ON DELETE CASCADE</code>.",
+  indice:"La règle se place après <code>REFERENCES clients(id)</code>. Pour supprimer les paniers avec leur client, écris <code>ON DELETE CASCADE</code>.",
   write:true,
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-    {k:'defaut',label:'Sans action',sql:"DELETE FROM clients WHERE id = 1;",out:"Refus\u00e9 : Sophie a trois commandes et la table ne d\u00e9clare aucune action.",tone:'bad'},
-    {k:'cascade',label:'CASCADE',sql:"CREATE TABLE paniers (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER\n        REFERENCES clients(id)\n        ON DELETE CASCADE\n);\n\nINSERT INTO paniers (id, client_id) VALUES (1, 9);\n\nDELETE FROM clients WHERE id = 9;\n\nSELECT COUNT(*) AS paniers_restants FROM paniers;",out:"Z\u00e9ro : le panier est parti avec In\u00e8s.",tone:'good'},
-    {k:'setnull',label:'SET NULL',sql:"CREATE TABLE paniers (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER\n        REFERENCES clients(id)\n        ON DELETE SET NULL\n);\n\nINSERT INTO paniers (id, client_id) VALUES (1, 9);\n\nDELETE FROM clients WHERE id = 9;\n\nSELECT id, client_id FROM paniers;",out:"Le panier reste, d\u00e9tach\u00e9 : client_id vaut NULL."},
-    {k:'restrict',label:'RESTRICT',sql:"CREATE TABLE paniers (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER\n        REFERENCES clients(id)\n        ON DELETE RESTRICT\n);\n\nINSERT INTO paniers (id, client_id) VALUES (1, 9);\n\nDELETE FROM clients WHERE id = 9;",out:"Refus\u00e9 : In\u00e8s a un panier, la suppression est bloqu\u00e9e.",tone:'bad'}
-  ] ,
-learningCheck:{
-  "question": "Avec ON DELETE SET NULL, que devient le panier après suppression du client ?",
-  "options": [
-    "La suppression est toujours refusée",
-    "Il reste avec client_id NULL",
-    "Il disparaît"
-  ],
-  "answer": 1,
-  "explanation": "CASCADE supprime l’enfant ; SET NULL le détache ; RESTRICT empêche la suppression du parent."
-}
-}
+  petitDefi:[{p:"Une ligne de panier n’a aucun sens sans son panier : elle doit disparaître avec lui. Quels mots-clés remplacent les tirets ?",sql:"panier_id INTEGER\n    REFERENCES paniers(id) __________ __________;",a:"ON DELETE CASCADE",answers:["ON DELETE CASCADE","on delete cascade","ON DELETE / CASCADE","ON DELETE, CASCADE"]}],
+  testeVariants:[{k:"defaut",label:"Sans action",sql:"DELETE FROM clients WHERE id = 1;",out:"Refusé : Sophie a trois commandes et la table ne déclare aucune action.",tone:"bad"},{k:"cascade",label:"CASCADE",sql:"CREATE TABLE paniers (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER\n        REFERENCES clients(id)\n        ON DELETE CASCADE\n);\n\nINSERT INTO paniers (id, client_id) VALUES (1, 9);\n\nDELETE FROM clients WHERE id = 9;\n\nSELECT COUNT(*) AS paniers_restants FROM paniers;",out:"Zéro : le panier est parti avec Inès.",tone:"good"},{k:"setnull",label:"SET NULL",sql:"CREATE TABLE paniers (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER\n        REFERENCES clients(id)\n        ON DELETE SET NULL\n);\n\nINSERT INTO paniers (id, client_id) VALUES (1, 9);\n\nDELETE FROM clients WHERE id = 9;\n\nSELECT id, client_id FROM paniers;",out:"Le panier reste, détaché : client_id vaut NULL."},{k:"restrict",label:"RESTRICT",sql:"CREATE TABLE paniers (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER\n        REFERENCES clients(id)\n        ON DELETE RESTRICT\n);\n\nINSERT INTO paniers (id, client_id) VALUES (1, 9);\n\nDELETE FROM clients WHERE id = 9;",out:"Refusé : Inès a un panier, la suppression est bloquée.",tone:"bad"}],
+  learningCheck:{question:"Avec ON DELETE SET NULL, que devient un panier dont le client est supprimé ?",options:["La suppression est toujours refusée","Il reste, avec client_id à NULL","Il disparaît"],answer:1,explanation:"CASCADE supprime les lignes liées ; SET NULL les détache ; RESTRICT empêche la suppression du client."}
+})
 ]},
 { titre:"Transactions", sous:"Tout valider ou tout annuler", lessons:[
-{ id:62, titre:"Transactions", résumé:"Tout valider ou tout annuler",
-  situation:"Un client commande 2 unités d’un produit sur ton site e-commerce.<br><br>Deux modifications doivent être effectuées dans la base : ajouter la commande dans la table <code>commandes</code>, et retirer 2 unités du <code>stock</code> dans la table <code>produits</code>.",
-  situationSql:"INSERT INTO commandes\n    (client_id, produit_id, quantite, date_commande)\nVALUES\n    (1, 3, 2, '2026-08-30');\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;",
-  situationTail:"Mais imagine qu’un problème survienne entre les deux opérations :<br><br><div class=\"tx-fail\"><span class=\"is-ok\">Commande ajoutée<i>✓</i></span><span class=\"is-ko\">Stock mis à jour<i>✕</i></span></div><br>La commande existe maintenant dans la base, mais le stock n’a pas été diminué. Les données ne sont plus cohérentes.<br><br><div class=\"sit-sql\"><p>Comment faire pour que ces deux opérations soient validées ensemble, ou annulées ensemble ?</p><p>C’est le rôle d’une <b>transaction</b>.</p></div>",
-    studio:{pointCards:{
-      eye:"Transaction",title:"Un seul ensemble, un seul sort.",
-      lead:"Une transaction regroupe plusieurs opérations SQL pour qu’elles forment une seule unité de travail. Soit tout est validé, soit tout est annulé.",
-      chain:[
-        {k:"BEGIN",v:"je commence"},
-        {k:"COMMIT",v:"je valide"},
-        {k:"ROLLBACK",v:"j’annule"}
-      ]},
-    uses:{title:"Trois mots, un ensemble.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le parcours d’une commande</p>
-          <div class="tx-flow" role="img" aria-label="De BEGIN à COMMIT ou ROLLBACK">
-            <span class="tx-step tx-key">BEGIN</span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step">INSERT commande</span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step">UPDATE stock</span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-q">Tout va bien ?</span>
-            <div class="tx-fork">
-              <div class="tx-branch is-ok"><small>oui</small><b>COMMIT</b><span>valider</span></div>
-              <div class="tx-branch is-ko"><small>non</small><b>ROLLBACK</b><span>annuler</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">BEGIN — commencer</p>
-          <div class="pt-syntax"><pre class="cw-syntax">BEGIN;</pre></div>
-          <p>À partir de là, les modifications suivantes font partie de la transaction. Il reste à décider si on veut les conserver ou les annuler.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">COMMIT — valider</p>
-          <div class="pt-syntax"><pre class="cw-syntax">BEGIN;
-
-INSERT INTO commandes
-    (client_id, produit_id, quantite, date_commande)
-VALUES
-    (1, 3, 2, '2026-08-30');
-
-UPDATE produits
-SET stock = stock - 2
-WHERE id = 3;
-
-COMMIT;</pre></div>
-          <p>La commande est ajoutée <b>et</b> le stock diminué. Les deux ensemble.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">ROLLBACK — annuler</p>
-          <p>Si un problème survient, on ne veut surtout pas conserver seulement une partie des modifications.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">BEGIN;
-
-INSERT INTO commandes (...);
-
-UPDATE produits
-SET stock = stock - 2
-WHERE id = 3;
-
-ROLLBACK;</pre></div>
-          <p><code>ROLLBACK</code> annule les modifications effectuées depuis le début de cette transaction. La commande ajoutée disparaît donc elle aussi : on revient à l’état d’avant.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Avant et après COMMIT</p>
-          <p>Tant que <code>COMMIT</code> n’a pas été exécuté, la transaction peut encore être annulée par <code>ROLLBACK</code>.</p>
-          <p>Une fois le <code>COMMIT</code> effectué, les modifications sont validées : un <code>ROLLBACK</code> lancé ensuite ne revient pas dessus.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Autant d’opérations que nécessaire</p>
-          <p>Une transaction n’est pas limitée à deux requêtes. Elle peut en contenir trois, dix, sur autant de tables qu’il faut — l’idée reste la même : elles appartiennent à une même unité de travail.</p>
-          <p class="fn-tip"><b>Une réserve</b> Mieux vaut ne pas garder une transaction ouverte longtemps : tant qu’elle l’est, ses modifications ne sont visibles de personne d’autre.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La situation",t:"plusieurs opérations doivent réussir ensemble"},
-      b:{k:"La question",t:"que se passe-t-il si l’une d’elles échoue ?"},
-      note:"Réflexe : regroupe les opérations dans une transaction pour pouvoir tout valider ou tout annuler."}},
-  anatomie:[
-    {tok:"BEGIN",txt:"Commence la transaction."},
-    {tok:"INSERT INTO commandes (...)",txt:"Première opération de l’ensemble."},
-    {tok:"UPDATE produits SET stock = stock - 2",txt:"Seconde opération, regroupée avec la première."},
-    {tok:"COMMIT",txt:"Valide les modifications. Ou <code>ROLLBACK</code> pour les annuler."}
+guide({ id:62, titre:"Transactions", résumé:"Tout valider ou tout annuler",
+  sit:{
+    blocks:[
+      "L’équipe fidélité propose à ses clients d’<b>offrir des points</b> à un autre client. Sophie veut donner <b>50 points</b> à Lucas.",
+      "La table <code>fidelite</code> contient au total <b>4 comptes</b>. Pour réaliser ce transfert, l’équipe doit effectuer :",
+      {need:[["➖","Retirer 50 points à Sophie","table fidelite"],["➕","Ajouter 50 points à Lucas","table fidelite"]],label:"Les opérations à effectuer"}
+    ],
+    problem:{
+      p:["Avec <code>UPDATE</code>, SQL sait modifier une ligne, mais <b>chaque modification est enregistrée seule</b>, sans lien avec la suivante.","Or, si un incident interrompt le transfert entre les deux opérations, Sophie perd ses 50 points sans que Lucas les reçoive : les points <b>disparaissent</b>."],
+      scene:{h:"🎁 Transfert de points",cols:"1fr .8fr",
+        lanes:[{c:[["h1","client_id","t"],["h2","points","t"]]},
+          {k:"R1",c:[["a1","1 · Sophie"],["a2","120"]]},
+          {k:"R2",c:[["b1","2 · Lucas"],["b2","80"]]},
+          {k:"T",cls:"is-goal",c:[["t1","Total"],["t2","200"]]}],
+        caps:["<b>Avant le transfert</b> · Sophie a 120 points et Lucas 80 : cela fait 200 points en tout.","<b>Première opération</b> · 50 points sont retirés à Sophie, qui passe à 70.","<b>Incident</b> · Une panne empêche la seconde opération : Lucas reste à 80.","<b>Résultat</b> · Il ne reste que 150 points en tout : 50 points ont disparu."],
+        steps:[{cap:0,on:["R1","R2"],d:1900},{cap:1,off:["R2"],text:{a2:"70"},d:2300},{cap:2,off:["R1"],mark:{R2:"is-miss"},d:2300},{cap:3,text:{t2:"150"},mark:{T:"is-miss"},d:2600}]},
+      then:["Il faut donc que les deux opérations forment <b>un seul ensemble</b> : validées toutes les deux, ou annulées toutes les deux.","C’est exactement le rôle d’une <code>transaction</code>."]
+    },
+    mission:"Aide l’équipe fidélité à transférer <b>50 points</b> du compte de <b>Sophie</b> vers celui de <b>Lucas</b>, afin que les deux opérations soient validées ensemble."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir que des opérations vont ensemble ?",
+    blocks:[
+      "Pour regrouper des opérations, SQL doit savoir où l’ensemble commence et comment il se termine :",
+      {ask:"Valider tout, ou tout annuler ?"},
+      "En SQL, on ouvre l’ensemble avec <code>BEGIN</code>, puis on le termine avec <code>COMMIT</code> ou <code>ROLLBACK</code> :",
+      {syntax:"⟦BEGIN;⟧\n  UPDATE …;\n  UPDATE …;\n⟦COMMIT;⟧   -- ou ROLLBACK;"},
+      {scene:{h:"↔️ Valider ou annuler",cols:"1.2fr 1fr 1fr",
+        lanes:[{c:[["h1","opération","t"],["h2","COMMIT","t"],["h3","ROLLBACK","t"]]},
+          {k:"R1",c:[["a1","Sophie −50"],["a2","en cours"],["a3","en cours"]]},
+          {k:"R2",c:[["b1","Lucas +50"],["b2","en cours"],["b3","en cours"]]}],
+        caps:["<b>BEGIN</b> · La transaction s’ouvre : les deux opérations sont exécutées, mais restent provisoires.","<b>COMMIT</b> · Tout est validé d’un coup : les deux opérations deviennent définitives.","<b>ROLLBACK</b> · Ou bien tout est annulé d’un coup : on revient à l’état d’avant le <b>BEGIN</b>."],
+        steps:[{cap:0,on:["R1","R2"],d:2200},{cap:1,off:["R1","R2"],text:{a2:"validée",b2:"validée"},d:2600},{cap:2,text:{a3:"annulée",b3:"annulée"},dim:["a3","b3"],d:2800}]}}
+    ]
+  },
+  steps:[
+    {h:"Valider avec COMMIT",blocks:[
+      "Voici une transaction complète : deux opérations encadrées par <code>BEGIN</code> et <code>COMMIT</code>. Elles ne deviennent définitives qu’au moment du <code>COMMIT</code>.",
+      {say:"👇 Exécute cette requête pour ajouter 10 unités au stock de deux produits, en une seule transaction :",run:"BEGIN;\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 2;\nCOMMIT;\nSELECT id, nom, stock\nFROM produits\nWHERE id IN (1, 2);"},
+      {arrow:"Les deux stocks ont changé ensemble : 130 et 90."},
+      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux modifier des stocks sans rien abîmer. À chaque essai, les produits 1 et 2 retrouvent leurs stocks d’origine, 120 et 80."]}}
+    ]},
+    {h:"Annuler avec ROLLBACK",blocks:[
+      "Pour tout annuler, termine par <code>ROLLBACK</code> à la place de <code>COMMIT</code> : les opérations faites depuis le <code>BEGIN</code> sont effacées.",
+      {say:"👇 Exécute la même transaction, terminée par ROLLBACK :",run:"BEGIN;\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 2;\nROLLBACK;\nSELECT id, nom, stock\nFROM produits\nWHERE id IN (1, 2);"},
+      {arrow:"Rien n’a changé : les deux stocks valent toujours 120 et 80."},
+      {tip:{t:"Garde les transactions courtes",blocks:["Tant qu’une transaction qui écrit est ouverte, ses modifications restent invisibles pour les autres, et les autres écritures doivent attendre. Mieux vaut la terminer vite, par <code>COMMIT</code> ou par <code>ROLLBACK</code>."]}}
+    ]},
+    {h:"Conclure la transaction",blocks:[
+      {warn:{t:"Un ROLLBACK après le COMMIT",blocks:[
+        "Si tu écris :",
+        {syntax:"BEGIN;\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\nCOMMIT;\nROLLBACK;"},
+        "Le <code>COMMIT</code> a déjà terminé la transaction : il n’y a plus rien à annuler. Le <code>ROLLBACK</code> provoque une erreur, et la modification reste en place.",
+        {say:"👇 Teste par toi-même :",run:"BEGIN;\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\nCOMMIT;\nROLLBACK;"}
+      ]}},
+      {warn:{t:"Une erreur ne remplace pas ROLLBACK",blocks:[
+        "Quand une instruction est refusée au milieu d’une transaction (contrainte enfreinte, erreur de syntaxe), SQLite annule seulement cette instruction : les précédentes restent en attente, et la transaction reste ouverte.",
+        "C’est donc à toi de conclure : <code>COMMIT</code> pour garder ce qui a réussi, <code>ROLLBACK</code> pour tout annuler."
+      ]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : ouvrir la transaction, retirer les points à Sophie, les ajouter à Lucas, puis valider l’ensemble.",
+      {say:"👇 Exécute la requête pour réaliser le transfert :",run:"BEGIN;\nUPDATE fidelite\nSET points = points - 50\nWHERE client_id = 1;\nUPDATE fidelite\nSET points = points + 50\nWHERE client_id = 2;\nCOMMIT;\nSELECT client_id, points\nFROM fidelite\nORDER BY client_id;"},
+      {done:{
+        label:"De deux opérations séparées à un transfert validé",
+        unit:"free",
+        funnel:[
+          {n:2,t:"opérations à effectuer",s:"retirer 50 points à Sophie, en ajouter 50 à Lucas",dots:"00"},
+          {step:"BEGIN … COMMIT",s:"regroupe les deux opérations et les valide ensemble"},
+          {n:2,t:"⭐ opérations validées ensemble",s:"Sophie passe à 70 points et Lucas à 130 : il y en a toujours 200 en tout",dots:"11",out:true}
+        ],
+        sms:{ico:"🎁",h:"Transfert de points",aria:"Les 50 points passent du compte de Sophie à celui de Lucas",msg:"Sophie offre <b>50 points</b> à Lucas : les deux comptes sont mis à jour <b>ensemble</b>.",people:[["S","Sophie","− 50 points"],["L","Lucas","+ 50 points"]],st:["En cours","Transfert","✓ Validé"],plane:"star",done:"✓ Transfert validé"},
+        fill:["BEGIN","points - 50","points + 50","COMMIT"],
+        ui:{t:"Un transfert, une seule transaction",s:"Les deux comptes ont été mis à jour ensemble : aucun point n’a disparu.",n:["BEGIN","UPDATE","COMMIT"]},
+        rows:2
+      }}
+    ]}
   ],
-  exemple:"BEGIN;\n\nINSERT INTO commandes\n    (client_id, produit_id, quantite, date_commande)\nVALUES\n    (1, 3, 2, '2026-08-30');\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nCOMMIT;",
-  attendu:"La commande est enregistrée et le stock du produit 3 passe de 200 à 198. Avec ROLLBACK à la place de COMMIT, rien ne change : ni commande, ni stock.",
-  retenir:"Une transaction regroupe plusieurs opérations SQL qui doivent être traitées comme un même ensemble.<br><br><b>BEGIN</b> commence, <b>COMMIT</b> valide, <b>ROLLBACK</b> annule les modifications non validées.<br><br>Tant que le <code>COMMIT</code> n’a pas eu lieu, tout est encore annulable. Après, non.",
-  piege:{t:"Croire qu’une erreur annule toujours toute la transaction",
-    p:"On lit souvent que SQL annule automatiquement la transaction dès qu’une requête échoue. Le comportement dépend en réalité du moteur et du type d’erreur.<br><br>Retiens plutôt la règle qui, elle, est toujours vraie : si les opérations ne doivent pas être conservées, c’est <code>ROLLBACK</code> qui les annule.",
-    exec:true,
-    sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nROLLBACK;\n\nSELECT nom, stock\nFROM produits\nWHERE id = 3;",
-    out:"Le stock est inchangé : le ROLLBACK a annulé la modification.",
-    fixSql:"BEGIN;\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nCOMMIT;\n\nSELECT nom, stock\nFROM produits\nWHERE id = 3;"},
-  petitDefi:[{
-    p:"Tu modifies le stock de deux produits, puis tu décides finalement de ne rien conserver. Quel mot-clé termine cette transaction ?",
-    sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 2;\n\n________;",
-    a:"ROLLBACK",
-    answers:["ROLLBACK","rollback","ROLLBACK;"]
-  }],
-  consigne:"Dans une seule transaction validée, ajoute la commande du client 1 pour 2 unités du produit 3 le <code>2026-08-30</code>, puis retire ces 2 unités du stock du produit 3.",
+  reflex:[
+    {recap:[
+      ["🧩","Une <b>transaction</b> regroupe des opérations qui réussissent ou échouent <b>ensemble</b>."],
+      ["🔑","<code>BEGIN</code> commence, <code>COMMIT</code> valide, <code>ROLLBACK</code> annule :",null,"BEGIN; … COMMIT;"],
+      ["🔒","Après un <code>COMMIT</code>, il n’y a plus de retour en arrière : <b>décide avant</b> de valider."]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"BEGIN",txt:"Commence la transaction."},{tok:"INSERT INTO commandes (…)",txt:"Première opération de l’ensemble."},{tok:"UPDATE produits SET stock = stock - 2",txt:"Seconde opération, regroupée avec la première."},{tok:"COMMIT",txt:"Valide les modifications. Ou <code>ROLLBACK</code> pour les annuler."}],
+  exemple:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 2;\n\nCOMMIT;\n\nSELECT id, nom, stock\nFROM produits\nWHERE id IN (1, 2);",
+  attendu:"Les deux stocks sont modifiés ensemble : <b>130</b> pour le produit 1 et <b>90</b> pour le produit 2. Avec <code>ROLLBACK</code> à la place de <code>COMMIT</code>, ils vaudraient toujours 120 et 80.",
+  retenir:"Une transaction regroupe plusieurs opérations qui doivent réussir ou échouer ensemble.<br><br><b>BEGIN</b> commence, <b>COMMIT</b> valide, <b>ROLLBACK</b> annule les modifications non validées.<br><br>Tant que le <code>COMMIT</code> n’a pas eu lieu, tout est encore annulable. Après, non.",
+  consigne:"Un client commande 2 unités du produit 3 : enregistre la commande du client 1, passée le <code>2026-08-30</code>, puis retire ces 2 unités du stock du produit 3. Les deux écritures doivent être validées ensemble, dans une seule transaction.",
   solution:"BEGIN;\n\nINSERT INTO commandes\n    (client_id, produit_id, quantite, date_commande)\nVALUES\n    (1, 3, 2, '2026-08-30');\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nCOMMIT;",
   verif:"SELECT (SELECT COUNT(*) FROM commandes WHERE produit_id = 3 AND quantite = 2 AND date_commande = '2026-08-30') AS commandes_ajoutees, (SELECT stock FROM produits WHERE id = 3) AS stock;",
-  indice:"Ouvre avec <code>BEGIN;</code>, écris les deux requêtes, puis referme avec <code>COMMIT;</code>.",
+  indice:"Écris <code>BEGIN;</code>, puis l’<code>INSERT</code> et l’<code>UPDATE</code>, puis <code>COMMIT;</code> pour tout valider d’un coup.",
   write:true,
-  richLesson:true, earlyDemo:true ,
-learningCheck:{
-  "question": "L’état final correct suffit-il à prouver qu’une transaction a été utilisée ?",
-  "options": [
-    "Seulement pour UPDATE",
-    "Non",
-    "Oui"
+  petitDefi:[{p:"Tu modifies le stock de deux produits, puis tu décides finalement de ne rien conserver. Quel mot-clé termine cette transaction ?",sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 2;\n\n________;",a:"ROLLBACK",answers:["ROLLBACK","rollback","ROLLBACK;"]}],
+  testeVariants:[{k:"commit",label:"COMMIT",sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nCOMMIT;\n\nSELECT nom, stock\nFROM produits\nWHERE id = 3;",out:"Le stock du produit 3 passe de 200 à 198 : la modification est validée.",tone:"good"},{k:"rollback",label:"ROLLBACK",sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3;\n\nROLLBACK;\n\nSELECT nom, stock\nFROM produits\nWHERE id = 3;",out:"Le stock est inchangé : le ROLLBACK a annulé la modification."}],
+  learningCheck:{question:"Après un ROLLBACK, que devient une commande ajoutée plus tôt dans la même transaction ?",options:["Elle est conservée","Elle est annulée avec le reste","Elle est validée automatiquement"],answer:1,explanation:"ROLLBACK annule toutes les modifications faites depuis le BEGIN : la commande disparaît avec le reste, et la base revient à son état d’avant."}
+}),
+guide({ id:63, titre:"SAVEPOINT", résumé:"Annuler seulement une partie d’une transaction",
+  sit:{
+    blocks:[
+      "L’équipe logistique marque <b>les commandes du jour comme expédiées</b>, en une seule transaction. Au dernier moment, le transporteur refuse l’un des colis.",
+      "La table <code>commandes</code> contient au total <b>16 commandes</b>, dont plusieurs sont encore en préparation. Pour préparer l’expédition, l’équipe souhaite faire passer à « expédiée » :",
+      {need:[["📦","La commande 12","table commandes"],["📦","La commande 13","table commandes"],["📦","La commande 14","table commandes"]],label:"Les commandes à expédier"}
+    ],
+    problem:{
+      p:["Avec <code>ROLLBACK</code>, SQL sait annuler une transaction, mais il l’annule <b>en entier</b> : les trois expéditions seraient annulées avec la dernière.","Or, l’équipe veut garder les deux premières expéditions et annuler <b>seulement la dernière</b>."],
+      scene:{h:"📦 Expéditions du jour",cols:"1fr 1.7fr",
+        lanes:[{c:[["h1","id","t"],["h2","statut","t"]]},
+          {k:"R1",c:[["a1","12"],["a2","en_preparation"]]},
+          {k:"R2",c:[["b1","13"],["b2","en_preparation"]]},
+          {k:"R3",c:[["c1","14"],["c2","en_preparation"]]}],
+        caps:["<b>Notre lot</b> · Trois commandes du jour sont encore en préparation.","<b>Expédition</b> · Les trois commandes passent à « expédiée » dans la même transaction.","<b>Incident</b> · Le transporteur refuse le colis de la commande 14.","<b>Résultat</b> · Seule la commande 14 doit revenir en préparation : les deux autres restent expédiées."],
+        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,text:{a2:"expédiée",b2:"expédiée",c2:"expédiée"},stagger:300,d:2800},{cap:2,off:["R1","R2","R3"],mark:{R3:"is-miss"},d:2300},{cap:3,unmark:{R3:"is-miss"},text:{c2:"en_preparation"},on:["R1","R2"],d:2600}]},
+      then:["Il faut donc pouvoir revenir <b>jusqu’à un point précis</b> de la transaction, et non jusqu’à son début.","C’est exactement le rôle de <code>SAVEPOINT</code>."]
+    },
+    mission:"Aide l’équipe logistique à expédier les commandes <b>12</b> et <b>13</b> en annulant seulement l’expédition de la commande <b>14</b>, afin de valider le lot sans le colis refusé."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir jusqu’où revenir en arrière ?",
+    blocks:[
+      "Pour revenir à un endroit précis, SQL a besoin d’un repère posé en chemin :",
+      {ask:"Jusqu’à quel point faut-il annuler ?"},
+      "En SQL, on pose ce repère avec <code>SAVEPOINT</code>, suivi d’un nom, puis on y revient avec <code>ROLLBACK TO</code> :",
+      {syntax:"SAVEPOINT ⟦avant_13⟧;\n  …\nROLLBACK TO ⟦avant_13⟧;"},
+      {scene:{h:"📍 Un point de retour",cols:"1fr",
+        lanes:[{k:"P1",c:[["a","Commande 12 → expédiée"]]},
+          {k:"SP",fold:true,c:[["b","🚩 SAVEPOINT avant_13"]]},
+          {k:"P2",fold:true,c:[["c","Commande 13 → expédiée"]]}],
+        caps:["<b>BEGIN</b> · La transaction s’ouvre : la commande 12 passe à « expédiée », sans être validée.","<b>SAVEPOINT</b> · Un point de retour est posé : il marque l’état à cet instant.","<b>Seconde opération</b> · La commande 13 passe à son tour à « expédiée », après le point de retour.","<b>ROLLBACK TO</b> · On revient au point de retour : l’expédition de la commande 13 est annulée, celle de la commande 12 est conservée."],
+        steps:[{cap:0,on:["P1"],d:2200},{cap:1,unfold:["SP"],on:["SP"],d:2300},{cap:2,off:["SP"],unfold:["P2"],on:["P2"],d:2300},{cap:3,off:["P2"],mark:{P2:"is-miss"},dim:["P2"],d:2800}]}}
+    ]
+  },
+  steps:[
+    {h:"Revenir à un point de retour",blocks:[
+      "Un <code>SAVEPOINT</code> marque un point de retour dans la transaction : ce qui précède reste en attente, et ce qui suit peut être annulé seul.",
+      {looks:[["SAVEPOINT avant_16","pose le point de retour"],["ROLLBACK TO avant_16","annule tout ce qui a été fait depuis ce point"]]},
+      {say:"👇 Exécute cette requête pour expédier deux commandes, puis annuler la seconde :",run:"BEGIN;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 15;\nSAVEPOINT avant_16;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 16;\nROLLBACK TO avant_16;\nCOMMIT;\nSELECT id, statut\nFROM commandes\nWHERE id IN (15, 16);"},
+      {arrow:"La commande 15 est expédiée. La commande 16, dont l’expédition a été annulée, est toujours en préparation."}
+    ]},
+    {h:"La transaction continue",blocks:[
+      "Après un <code>ROLLBACK TO</code>, la transaction reste ouverte : tu peux écrire autre chose, puis valider l’ensemble avec <code>COMMIT</code>.",
+      {say:"👇 Exécute cette requête pour marquer comme bloquée la commande 16, dont l’expédition a été annulée :",run:"BEGIN;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 15;\nSAVEPOINT avant_16;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 16;\nROLLBACK TO avant_16;\nUPDATE commandes\nSET statut = 'bloquée'\nWHERE id = 16;\nCOMMIT;\nSELECT id, statut\nFROM commandes\nWHERE id IN (15, 16);"},
+      {arrow:"La commande 15 est expédiée et la 16 est bloquée : après le retour au point, la transaction a pu écrire autre chose."}
+    ]},
+    {h:"Ce qu’un SAVEPOINT ne fait pas",blocks:[
+      "Un <code>SAVEPOINT</code> n’est qu’un repère : il ne valide rien, et le supprimer n’annule rien.",
+      {warn:{t:"Un ROLLBACK sans TO",blocks:[
+        "Si tu écris :",
+        {syntax:"BEGIN;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 15;\nSAVEPOINT etape_1;\nROLLBACK;"},
+        "<code>ROLLBACK</code> sans <code>TO</code> annule toute la transaction, même ce qui précède le <code>SAVEPOINT</code> : l’expédition de la commande 15 disparaît, bien qu’elle soit avant le point.",
+        {say:"👇 Teste par toi-même :",run:"BEGIN;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 15;\nSAVEPOINT etape_1;\nROLLBACK;\nSELECT id, statut\nFROM commandes\nWHERE id = 15;"}
+      ]}},
+      {tip:{t:"RELEASE n’annule rien",blocks:[
+        "<code>RELEASE</code> supprime le point de retour, parce qu’on n’en a plus besoin : les modifications faites depuis ce point sont conservées.",
+        {say:"👇 Exécute cette requête pour libérer le point sans rien annuler :",run:"BEGIN;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 15;\nSAVEPOINT avant_16;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 16;\nRELEASE avant_16;\nCOMMIT;\nSELECT id, statut\nFROM commandes\nWHERE id IN (15, 16);"},
+        {arrow:"Les deux expéditions sont conservées : les commandes 15 et 16 sont expédiées."}
+      ]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : expédier les commandes 12 et 13, poser le point de retour, expédier la commande 14, y revenir, puis valider.",
+      {say:"👇 Exécute la requête pour valider le lot sans le colis refusé :",run:"BEGIN;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id IN (12, 13);\nSAVEPOINT avant_14;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 14;\nROLLBACK TO avant_14;\nCOMMIT;\nSELECT id, statut\nFROM commandes\nWHERE id IN (12, 13, 14);"},
+      {done:{
+        label:"De trois expéditions à deux expéditions validées",
+        unit:"free",
+        funnel:[
+          {n:3,t:"commandes expédiées dans la transaction",s:"les commandes 12, 13 et 14",dots:"111"},
+          {step:"ROLLBACK TO avant_14",s:"annule seulement la dernière expédition"},
+          {n:2,t:"⭐ expéditions validées",s:"les commandes 12 et 13 ; la commande 14 reste en préparation",dots:"110",out:true}
+        ],
+        sms:{ico:"📦",h:"Expéditions du jour",aria:"Les commandes 12 et 13 partent, la commande 14 reste en préparation",msg:"Deux colis partent, le colis refusé reste en préparation.",people:[["C","Commande 12","Collagène Marin"],["C","Commande 13","Shaker Inox"]],st:["À expédier","Expédition","✓ Expédiée"],plane:"pin",done:"✓ 2 commandes expédiées"},
+        fill:["SAVEPOINT","avant_14","ROLLBACK TO","COMMIT"],
+        ui:{t:"Deux expéditions validées, une annulée",s:"Les commandes 12 et 13 sont expédiées : seule la commande 14 est revenue en arrière.",n:["BEGIN","SAVEPOINT","ROLLBACK TO","COMMIT"]},
+        rows:2
+      }}
+    ]}
   ],
-  "answer": 1,
-  "explanation": "L’exercice doit aussi vérifier BEGIN et COMMIT. La transaction groupe les écritures pour les valider ensemble."
-}
-},
-{ id:63, titre:"SAVEPOINT", résumé:"Annuler seulement une partie d’une transaction",
-  situation:"Tu sais maintenant qu’une transaction regroupe plusieurs opérations, et qu’un <code>ROLLBACK</code> les annule toutes.<br><br>Mais imagine une transaction à plusieurs étapes :<br><br><div class=\"tx-fail\"><span class=\"is-ok\">Ajouter une commande<i>✓</i></span><span class=\"is-ok\">Modifier le stock<i>✓</i></span><span class=\"is-ko\">Appliquer une modification<i>✕</i></span></div><br>Tu veux annuler la troisième étape, sans perdre les deux premières. Avec un simple <code>ROLLBACK</code>, tu annulerais toute la transaction.",
-  situationTail:"<div class=\"sit-sql\"><p>Comment revenir seulement à un point précis ?</p><p>C’est le rôle d’un <b><code>SAVEPOINT</code></b>.</p></div>",
-    studio:{pointCards:{
-      eye:"SAVEPOINT",title:"Un marque-page dans la transaction.",
-      lead:"Un <code>SAVEPOINT</code> crée un point de retour à l’intérieur d’une transaction. Au lieu de revenir jusqu’au <code>BEGIN</code>, tu reviens à ce point.",
-      chain:[
-        {k:"SAVEPOINT",v:"je marque un point"},
-        {k:"ROLLBACK TO",v:"je reviens à ce point"},
-        {k:"COMMIT",v:"je valide ce que j’ai conservé"}
-      ]},
-    uses:{title:"Revenir à un point, pas au départ.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le parcours avec un point de retour</p>
-          <div class="tx-flow" role="img" aria-label="De BEGIN au COMMIT en passant par un retour au savepoint">
-            <span class="tx-step tx-key">BEGIN</span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step tx-ok">opération 1<i>✓ conservée</i></span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step tx-ok">opération 2<i>✓ conservée</i></span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step tx-key">SAVEPOINT</span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step tx-ko">opération 3<i>✕ annulée</i></span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step tx-back">ROLLBACK TO<i>↑ retour au point</i></span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step tx-key">COMMIT</span>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Créer le point de retour</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SAVEPOINT avant_produit_2;</pre></div>
-          <p>Le nom permet de retrouver ce point plus tard. Une transaction peut en contenir plusieurs, et tu choisis alors jusqu’où revenir.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">ROLLBACK TO — revenir au point</p>
-          <div class="pt-syntax"><pre class="cw-syntax">BEGIN;
-
-UPDATE produits
-SET stock = stock + 10
-WHERE id = 1;
-
-SAVEPOINT avant_produit_2;
-
-UPDATE produits
-SET stock = stock + 50
-WHERE id = 2;
-
-ROLLBACK TO avant_produit_2;</pre></div>
-          <p>La modification du produit 1 est conservée. Celle du produit 2 est annulée : on est revenu à l’état du <code>SAVEPOINT</code>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">ROLLBACK ou ROLLBACK TO</p>
-          <div class="duo">
-            <div class="duo-row"><p class="duo-k">Je veux tout annuler</p>
-              <p class="duo-v"><b>ROLLBACK</b><span>retour jusqu’au <code>BEGIN</code>, la transaction se termine</span></p></div>
-            <div class="duo-row"><p class="duo-k">Je veux annuler une partie</p>
-              <p class="duo-v"><b>ROLLBACK TO</b><span>retour au point choisi, la transaction continue</span></p></div>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">La transaction continue</p>
-          <p>Après un <code>ROLLBACK TO</code>, rien n’est terminé : tu peux corriger, puis valider.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ROLLBACK TO avant_produit_2;
-
-UPDATE produits
-SET stock = stock + 5
-WHERE id = 2;
-
-COMMIT;</pre></div>
-          <p>Au final, <code>+10</code> sur le produit 1 et <code>+5</code> sur le produit 2 sont validés. Le <code>+50</code> a disparu.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">RELEASE — supprimer le point</p>
-          <div class="pt-syntax"><pre class="cw-syntax">RELEASE SAVEPOINT avant_produit_2;</pre></div>
-          <p><code>RELEASE</code> ne veut pas dire « annuler » : il signifie que tu n’auras plus besoin de revenir à ce point.</p>
-          <p class="fn-tip"><b>À ne pas confondre</b> <code>ROLLBACK TO</code> revient au point. <code>RELEASE</code> supprime le point.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La question",t:"tout annuler, ou seulement une partie ?"},
-      b:{k:"La règle",t:"tout → ROLLBACK · une partie → SAVEPOINT puis ROLLBACK TO"},
-      note:"Réflexe : quand une transaction comporte plusieurs étapes et que tu veux pouvoir revenir à l’une d’elles, pose un <code>SAVEPOINT</code>."}},
-  anatomie:[
-    {tok:"BEGIN",txt:"Commence la transaction."},
-    {tok:"SAVEPOINT avant_produit_2",txt:"Crée un point de retour, sans rien valider."},
-    {tok:"ROLLBACK TO avant_produit_2",txt:"Annule ce qui a été fait depuis ce point. La transaction continue."},
-    {tok:"COMMIT",txt:"Valide finalement les modifications conservées."}
+  reflex:[
+    {recap:[
+      ["📍","Un <code>SAVEPOINT</code> pose un point de retour <b>à l’intérieur</b> d’une transaction : il ne valide rien.",null,"SAVEPOINT avant_14"],
+      ["↩️","<code>ROLLBACK TO</code> revient au point et la transaction continue ; <code>ROLLBACK</code> annule tout et la termine."],
+      ["✅","Seul <code>COMMIT</code> valide ce qui a été conservé."]
+    ],label:"Les trois idées à retenir"}
   ],
-  exemple:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT avant_produit_2;\n\nUPDATE produits\nSET stock = stock + 50\nWHERE id = 2;\n\nROLLBACK TO avant_produit_2;\n\nCOMMIT;",
-  attendu:"Le stock du produit 1 passe de 120 à 130. Celui du produit 2 reste à 80 : le +50 a été annulé par le retour au point de sauvegarde.",
-  retenir:"Un <code>SAVEPOINT</code> crée un point de retour <b>à l’intérieur</b> d’une transaction.<br><br><code>ROLLBACK</code> annule toute la transaction et la termine. <code>ROLLBACK TO</code> revient au point choisi, et la transaction continue.<br><br>Le mémo : <b>SAVEPOINT</b> je marque un point, <b>ROLLBACK TO</b> j’y reviens, <b>COMMIT</b> je valide ce que j’ai conservé.",
-  piege:{t:"Croire qu’un SAVEPOINT valide les modifications",
-    p:"Poser un <code>SAVEPOINT</code> ne valide rien. Il crée seulement un point de retour : tant que le <code>COMMIT</code> n’a pas eu lieu, tout reste annulable, y compris ce qui précède le point.<br><br><code>SAVEPOINT</code> ≠ validation. Seul <code>COMMIT</code> valide.",
-    exec:true,
-    sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT etape_1;\n\nROLLBACK;\n\nSELECT nom, stock\nFROM produits\nWHERE id = 1;",
-    out:"Le stock est inchangé : le SAVEPOINT n’a rien protégé du ROLLBACK.",
-    fixSql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT etape_1;\n\nCOMMIT;\n\nSELECT nom, stock\nFROM produits\nWHERE id = 1;"},
-  petitDefi:[{
-    p:"Tu veux conserver la première modification et annuler la seconde. Quel mot-clé crée le point de retour, à la place des tirets ?",
-    sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\n__________ avant_modification;\n\nUPDATE produits\nSET stock = stock + 50\nWHERE id = 2;\n\nROLLBACK TO avant_modification;\n\nCOMMIT;",
-    a:"SAVEPOINT",
-    answers:["SAVEPOINT","savepoint"]
-  }],
-  consigne:"Dans une transaction, ajoute 10 au stock du produit 1, pose un point de retour nommé <code>avant_modification</code>, ajoute 50 au stock du produit 2, puis annule cette seconde modification avant de valider.",
+  anatomie:[{tok:"BEGIN",txt:"Commence la transaction."},{tok:"SAVEPOINT avant_16",txt:"Crée un point de retour, sans rien valider."},{tok:"ROLLBACK TO avant_16",txt:"Annule ce qui a été fait depuis ce point. La transaction continue."},{tok:"COMMIT",txt:"Valide finalement les modifications conservées."}],
+  exemple:"BEGIN;\n\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 15;\n\nSAVEPOINT avant_16;\n\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 16;\n\nROLLBACK TO avant_16;\n\nCOMMIT;\n\nSELECT id, statut\nFROM commandes\nWHERE id IN (15, 16);",
+  attendu:"<b>2 lignes</b> : la commande 15 est « expédiée », la commande 16 est toujours « en_preparation ». Le <code>ROLLBACK TO</code> n’a annulé que la seconde expédition.",
+  retenir:"Un <code>SAVEPOINT</code> crée un point de retour <b>à l’intérieur</b> d’une transaction.<br><br><code>ROLLBACK</code> annule toute la transaction et la termine. <code>ROLLBACK TO</code> revient au point choisi, et la transaction continue.<br><br>Seul <code>COMMIT</code> valide ce qui a été conservé : un <code>SAVEPOINT</code> ne valide rien.",
+  consigne:"Une livraison de fournisseur est enregistrée en une seule transaction : ajoute 10 unités au stock du produit 1, pose un point de retour nommé <code>avant_modification</code>, ajoute 50 unités au stock du produit 2, puis annule uniquement cette seconde modification avant de valider la transaction.",
   solution:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT avant_modification;\n\nUPDATE produits\nSET stock = stock + 50\nWHERE id = 2;\n\nROLLBACK TO avant_modification;\n\nCOMMIT;",
   verif:"SELECT id, stock FROM produits WHERE id IN (1, 2) ORDER BY id;",
   indice:"<code>SAVEPOINT nom;</code> pose le point, <code>ROLLBACK TO nom;</code> y revient. Le <code>COMMIT</code> vient à la fin.",
   write:true,
-  richLesson:true, earlyDemo:true ,
-learningCheck:{
-  "question": "ROLLBACK TO annule-t-il les écritures placées avant le SAVEPOINT ?",
-  "options": [
-    "Non",
-    "Oui, toute la transaction",
-    "Il valide la transaction"
-  ],
-  "answer": 0,
-  "explanation": "Le retour est partiel : les écritures antérieures au point restent en attente jusqu’au COMMIT."
-}
-}
+  petitDefi:[{p:"Tu veux conserver la première modification et annuler la seconde. Quel mot-clé crée le point de retour, à la place des tirets ?",sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\n__________ avant_modification;\n\nUPDATE produits\nSET stock = stock + 50\nWHERE id = 2;\n\nROLLBACK TO avant_modification;\n\nCOMMIT;",a:"SAVEPOINT",answers:["SAVEPOINT","savepoint"]}],
+  testeVariants:[{k:"partiel",label:"ROLLBACK TO",sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT avant_modification;\n\nUPDATE produits\nSET stock = stock + 50\nWHERE id = 2;\n\nROLLBACK TO avant_modification;\n\nCOMMIT;\n\nSELECT id, stock\nFROM produits\nWHERE id IN (1, 2)\nORDER BY id;",out:"Le produit 1 passe à 130, le produit 2 reste à 80.",tone:"good"},{k:"total",label:"ROLLBACK",sql:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT avant_modification;\n\nROLLBACK;\n\nSELECT id, stock\nFROM produits\nWHERE id = 1;",out:"Le stock est inchangé : ROLLBACK annule toute la transaction, point de retour compris."}],
+  learningCheck:{question:"ROLLBACK TO annule-t-il les écritures placées avant le SAVEPOINT ?",options:["Non : elles restent en attente jusqu’au COMMIT","Oui : il annule toute la transaction","Il valide la transaction"],answer:0,explanation:"Le retour est partiel : les écritures antérieures au point restent en attente, et la transaction continue jusqu’au COMMIT."}
+})
 ]},
 { titre:"Triggers et concurrence", sous:"Automatiser et isoler les écritures", lessons:[
-{ id:70, titre:"Les triggers", résumé:"Faire réagir la base toute seule",
-  situation:"Dans le cours sur les transactions, enregistrer une commande demandait deux écritures : ajouter la ligne dans <code>commandes</code>, puis retirer la quantité du <code>stock</code> du produit.<br><br>Deux écritures qu’il ne faut jamais oublier d’enchaîner. Un import, un script tiers, une correction faite à la main — et le stock ne correspond plus aux commandes.<br><br>Compter sur la discipline de celui qui écrit la requête est fragile.",
-  situationTail:"<div class=\"sit-sql\"><p>Un <b><code>TRIGGER</code></b> est une suite d’instructions que la base exécute d’elle-même, à chaque écriture sur une table.</p></div>",
-    studio:{pointCards:{
-      eye:"TRIGGER",title:"Une réaction automatique à une écriture.",
-      lead:"Un trigger relie un événement — un <code>INSERT</code>, un <code>UPDATE</code> ou un <code>DELETE</code> sur une table — à des instructions que la base exécute sans qu’on les lui demande.",
-      chain:[
-        {k:"L’événement",v:"INSERT, UPDATE ou DELETE"},
-        {k:"Le moment",v:"BEFORE ou AFTER"},
-        {k:"Le corps",v:"ce que la base exécute"}
-      ]},
-    uses:{title:"Trois usages, une mécanique.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">La forme</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE TRIGGER nom
-AFTER INSERT ON commandes
-BEGIN
-  -- instructions
-END;</pre></div>
-          <p>Le nom, le moment, l’événement, la table — puis le corps entre <code>BEGIN</code> et <code>END</code>. Chaque instruction du corps se termine par un point-virgule, et le <code>END;</code> ferme l’ensemble.</p>
-          <p class="fn-tip"><b>Une fois par ligne</b> Le corps s’exécute pour <b>chaque ligne</b> touchée. Un <code>DELETE</code> qui retire cinq lignes déclenche le trigger cinq fois.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">OLD et NEW</p>
-          <p>Dans le corps, deux noms désignent la ligne concernée : <code>NEW</code> pour sa version qui arrive, <code>OLD</code> pour celle qui s’en va.</p>
-          <div class="table-wrap"><table class="concept-table fit-2">
-            <thead><tr><th>Événement</th><th>Disponible</th></tr></thead>
-            <tbody>
-              <tr><td><code>INSERT</code></td><td><code>NEW</code></td></tr>
-              <tr><td><code>UPDATE</code></td><td><code>OLD</code> et <code>NEW</code></td></tr>
-              <tr><td><code>DELETE</code></td><td><code>OLD</code></td></tr>
-            </tbody>
-          </table></div>
-          <p>On les emploie comme des colonnes : <code>NEW.quantite</code>, <code>OLD.prenom</code>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Tenir le stock à jour</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE TRIGGER baisser_stock
-AFTER INSERT ON commandes
-BEGIN
-  UPDATE produits
-  SET stock = stock - NEW.quantite
-  WHERE id = NEW.produit_id;
-END;</pre></div>
-          <p>À partir de là, un simple <code>INSERT INTO commandes</code> suffit. Une commande de 5 unités du produit 1 fait passer son stock de 120 à 115, sans qu’aucun <code>UPDATE</code> ait été écrit.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Journaliser les suppressions</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE TRIGGER journal_suppression
-AFTER DELETE ON clients
-BEGIN
-  INSERT INTO clients_supprimes
-    (id, prenom, le)
-  VALUES (OLD.id, OLD.prenom,
-          date('now'));
-END;</pre></div>
-          <p>La ligne est bien supprimée de <code>clients</code>, mais son passage laisse une trace. C’est le principe d’une table d’audit : la donnée disparaît, l’historique reste.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Refuser une écriture</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE TRIGGER stock_positif
-BEFORE UPDATE ON produits
-WHEN NEW.stock &lt; 0
-BEGIN
-  SELECT RAISE(ABORT,
-    'Stock négatif interdit');
-END;</pre></div>
-          <p><code>WHEN</code> limite le déclenchement aux cas qui posent problème. <code>RAISE(ABORT, …)</code> annule l’écriture avec ton propre message :</p>
-          <div class="tx-fail">
-            <span class="is-ko">UPDATE produits SET stock = -5;<i>Stock négatif interdit</i></span>
-          </div>
-          <p>C’est une règle métier là où <code>CHECK</code> ne suffit plus : elle peut consulter d’autres tables, comparer <code>OLD</code> et <code>NEW</code>, ou ne s’appliquer que dans certains cas.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">BEFORE ou AFTER</p>
-          <p><code>BEFORE</code> s’exécute avant l’écriture : c’est le moment de la refuser. <code>AFTER</code> s’exécute une fois la ligne écrite : c’est le moment d’en tirer les conséquences.</p>
-          <p>Mettre à jour un stock ou journaliser demande de savoir que l’écriture a réussi : <code>AFTER</code>. Contrôler une valeur avant qu’elle n’entre : <code>BEFORE</code>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Ce que SQLite ne fait pas</p>
-          <p>Dans un trigger <code>BEFORE</code>, on ne peut pas corriger la valeur qui arrive : <code>SET NEW.stock = 0</code> est une erreur de syntaxe. Un trigger observe et réagit, il ne réécrit pas la ligne en vol.</p>
-          <p>Il n’existe pas non plus de trigger déclenché une fois par instruction : SQLite ne connaît que le déclenchement ligne par ligne.</p>
-          <p class="fn-tip"><b>Sur une vue</b> Une vue n’a pas de lignes à écrire : seul un trigger <code>INSTEAD OF</code> y est accepté. Un <code>AFTER</code> renvoie <code>cannot create AFTER trigger on view</code>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Voir et supprimer</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT name, tbl_name
-FROM sqlite_master
-WHERE type = 'trigger';
-
-DROP TRIGGER baisser_stock;</pre></div>
-          <p>Un trigger est un objet de la base, au même titre qu’une table ou une vue — et <code>DROP</code> le retire comme les autres.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Un trigger qui se rappelle lui-même</p>
-          <p>Le corps d’un trigger écrit dans une table — et cette écriture pourrait déclencher un trigger à son tour, y compris celui-ci. La boucle serait sans fin.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE TRIGGER inc
-AFTER UPDATE ON t
-BEGIN
-  UPDATE t SET v = v + 1
-  WHERE v &lt; 5;
-END;</pre></div>
-          <p>SQLite s’en protège : <b>par défaut, un trigger n’en déclenche pas un autre</b>. Ici, l’<code>UPDATE</code> du corps ne relance rien, et <code>v</code> s’arrête à 2.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">PRAGMA recursive_triggers = ON;</pre></div>
-          <p>Ce réglage lève la protection : le trigger se rappelle jusqu’à ce que son <code>WHERE</code> l’arrête, et <code>v</code> monte à 5. Sans cette condition d’arrêt, la base se bloquerait.</p>
-          <p class="fn-tip"><b>La règle de prudence</b> Un <code>WHEN</code> ou un <code>WHERE</code> qui borne le déclenchement, et de préférence un trigger qui n’écrit pas dans sa propre table.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le revers</p>
-          <p>Un trigger agit sans apparaître dans la requête. Quand un <code>INSERT</code> de trois lignes en modifie douze, rien dans le texte de la requête ne l’explique.</p>
-          <p>C’est le prix de l’automatisme : une règle qui doit valoir <b>quoi qu’il arrive</b> mérite un trigger, une logique propre à un écran est mieux placée dans l’application.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La question",t:"cette réaction doit-elle valoir pour toute écriture ?"},
-      b:{k:"La règle",t:"oui → trigger · seulement ici → l’application"},
-      note:"Réflexe : <code>BEFORE</code> pour refuser une écriture, <code>AFTER</code> pour en tirer les conséquences."}},
-  anatomie:[
-    {tok:"CREATE TRIGGER baisser_stock",txt:"Le nom du trigger, libre."},
-    {tok:"AFTER INSERT ON commandes",txt:"Le moment et l’événement qui le déclenchent."},
-    {tok:"BEGIN … END;",txt:"Le corps : les instructions exécutées à chaque ligne."},
-    {tok:"NEW.quantite",txt:"Une colonne de la ligne qui vient d’être insérée."},
-    {tok:"NEW.produit_id",txt:"Sert à retrouver le produit à mettre à jour."}
+guide({ id:70, titre:"Les triggers", résumé:"Faire réagir la base toute seule",
+  sit:{
+    blocks:[
+      "L’équipe catalogue modifie régulièrement les prix de la boutique. Pour les audits et les litiges, elle veut pouvoir <b>retrouver l’historique</b> de chaque changement de prix.",
+      "La table <code>produits</code> contient au total <b>8 produits</b>. Pour garder l’historique, l’équipe souhaite conserver à chaque changement :",
+      {need:[["🏷️","Le produit concerné","table historique_prix"],["💶","Son ancien prix","table historique_prix"],["🆕","Son nouveau prix","table historique_prix"]],label:"Les informations à conserver"}
+    ],
+    problem:{
+      p:["Avec <code>UPDATE</code>, SQL remplace l’ancienne valeur par la nouvelle : l’ancien prix n’est conservé <b>nulle part</b>.","Or, l’équipe veut une trace de <b>chaque</b> changement, même s’il vient d’un import, d’un script ou d’une correction faite à la main : aucun changement ne doit échapper à l’historique."],
+      scene:{h:"🏷️ Prix du catalogue",cols:"1.3fr .8fr .8fr",
+        lanes:[{c:[["h1","nom","t"],["h2","prix","t"],["h3","ancien","t"]]},
+          {k:"R1",c:[["a1","Magnésium"],["a2","19.9"],["a3","perdu","hn"]]},
+          {k:"R2",c:[["b1","Vitamine D"],["b2","14.9"]]},
+          {k:"R3",c:[["c1","Oméga 3"],["c2","24.9"]]}],
+        caps:["<b>Notre catalogue</b> · Chaque produit a un seul prix enregistré : le prix actuel.","<b>Changement</b> · Le prix du Magnésium passe de 19.9 à 22.9.","<b>Résultat</b> · Le prix de 19.9 a disparu : personne ne pourra plus le retrouver."],
+        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R2","R3"],text:{a2:"22.9"},d:2300},{cap:2,off:["R1"],show:["a3"],d:2600}]},
+      then:["Il faut donc que la base <b>réagisse toute seule</b> à chaque changement de prix, sans que personne n’ait à y penser.","C’est exactement le rôle d’un <code>TRIGGER</code>."]
+    },
+    mission:"Aide l’équipe catalogue à garder une trace de chaque changement de prix, afin de retrouver à tout moment l’ancien prix d’un produit."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir quand réagir ?",
+    blocks:[
+      "Un trigger relie un événement à des instructions que la base exécute d’elle-même :",
+      {ask:"Que faire quand une ligne de la table produits change ?"},
+      "En SQL, on décrit le moment, l’événement et la table, puis les instructions à exécuter :",
+      {syntax:"CREATE TRIGGER garder_prix\n⟦AFTER UPDATE ON produits⟧\nBEGIN\n  …instructions…\nEND;"},
+      {scene:{h:"⚡ Le trigger se déclenche",cols:"1fr",
+        lanes:[{k:"E",c:[["e","Magnésium passe à 22.9"]]},
+          {k:"T",fold:true,c:[["t","⚡ garder_prix se déclenche"]]},
+          {k:"H",fold:true,c:[["h","Historique : 19.9 → 22.9"]]}],
+        caps:["<b>Une écriture</b> · Le prix du Magnésium est modifié par un <b>UPDATE</b> sur la table produits.","<b>Le trigger</b> · La base remarque l’événement et lance les instructions du trigger.","<b>Le corps</b> · Le trigger exécute ses instructions : il ajoute une ligne à l’historique, avec l’ancien prix (<b>OLD.prix</b>) et le nouveau (<b>NEW.prix</b>)."],
+        steps:[{cap:0,on:["E"],d:2200},{cap:1,off:["E"],unfold:["T"],on:["T"],d:2400},{cap:2,off:["T"],unfold:["H"],on:["H"],d:2800}]}}
+    ]
+  },
+  steps:[
+    {h:"Réagir à une suppression",blocks:[
+      "Dans le corps d’un trigger, <code>OLD</code> désigne la ligne qui s’en va et <code>NEW</code> celle qui arrive. Selon l’événement, l’un des deux peut manquer :",
+      {table:{label:"Quelle ligne le trigger peut-il lire ?",head:["Événement","Disponible"],rows:[["INSERT","NEW"],["UPDATE","OLD et NEW"],["DELETE","OLD"]]}},
+      {say:"👇 Exécute cette requête pour supprimer deux clients et lire le journal rempli par le trigger :",run:"CREATE TABLE clients_supprimes (\n  id INTEGER,\n  prenom TEXT,\n  nom TEXT\n);\nCREATE TRIGGER journal_suppression\nAFTER DELETE ON clients\nBEGIN\n  INSERT INTO clients_supprimes\n    (id, prenom, nom)\n  VALUES (OLD.id, OLD.prenom, OLD.nom);\nEND;\nDELETE FROM clients\nWHERE id IN (9, 10);\nSELECT id, prenom, nom\nFROM clients_supprimes;"},
+      {arrow:"Le trigger se déclenche <b>une fois par ligne</b> touchée : deux clients supprimés, deux lignes dans le journal."},
+      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux créer des tables et des triggers sans rien encombrer. À chaque essai, le journal et le trigger n’existent plus : voilà pourquoi chaque exemple les recrée."]}}
+    ]},
+    {h:"Refuser une écriture avec BEFORE",blocks:[
+      "Un trigger <code>BEFORE</code> s’exécute <b>avant</b> l’écriture : c’est le moment de la contrôler, et de la refuser si besoin. Un trigger <code>AFTER</code> réagit une fois la ligne écrite.",
+      {syntax:"CREATE TRIGGER prix_stable\nBEFORE UPDATE ON produits\n⟦WHEN NEW.prix < OLD.prix * 0.7⟧\nBEGIN\n  SELECT ⟦RAISE(ABORT,\n    'Baisse de prix supérieure à 30 %')⟧;\nEND;"},
+      {looks:[["WHEN","limite le trigger aux écritures à surveiller"],["RAISE(ABORT, …)","annule l’écriture avec le message de ton choix"]]},
+      {warn:{t:"Une baisse de prix trop forte",blocks:[
+        "Ce trigger refuse toute baisse de prix de plus de 30 % : une règle que <code>CHECK</code> ne sait pas écrire, car elle compare <code>OLD</code> et <code>NEW</code>.",
+        {say:"👇 Teste par toi-même :",run:"CREATE TRIGGER prix_stable\nBEFORE UPDATE ON produits\nWHEN NEW.prix < OLD.prix * 0.7\nBEGIN\n  SELECT RAISE(ABORT,\n    'Baisse de prix supérieure à 30 %');\nEND;\nUPDATE produits\nSET prix = 9\nWHERE id = 1;"}
+      ]}}
+    ]},
+    {h:"Ce qu’un trigger ne fait pas",blocks:[
+      "Un trigger observe et réagit, mais il ne réécrit pas la ligne en cours d’écriture.",
+      {warn:{t:"Corriger la valeur dans un BEFORE",blocks:[
+        "Si tu écris :",
+        {syntax:"CREATE TRIGGER stock_plancher\nBEFORE UPDATE ON produits\nBEGIN\n  SET NEW.stock = 0;\nEND;"},
+        "Dans d’autres moteurs, un trigger <code>BEFORE</code> peut modifier <code>NEW</code>. Pas en SQLite : un trigger <code>BEFORE</code> peut contrôler la ligne et la refuser avec <code>RAISE</code>, mais l’affectation est une erreur de syntaxe.",
+        {say:"👇 Teste par toi-même :",run:"CREATE TRIGGER stock_plancher\nBEFORE UPDATE ON produits\nBEGIN\n  SET NEW.stock = 0;\nEND;"}
+      ]}},
+      {tip:{t:"Un trigger agit sans se montrer",blocks:["Rien dans le texte d’une requête ne signale qu’un trigger va réagir. Réserve-le aux règles qui doivent valoir <b>quoi qu’il arrive</b>, et garde dans l’application la logique propre à un écran."]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : créer la table d’historique, puis le trigger. Son <code>WHEN</code> le limite aux vrais changements de prix : une ligne n’est ajoutée que si le prix a changé.",
+      {say:"👇 Exécute la requête pour changer un prix et lire l’historique :",run:"CREATE TABLE historique_prix (\n  produit_id INTEGER,\n  ancien_prix REAL,\n  nouveau_prix REAL\n);\nCREATE TRIGGER garder_prix\nAFTER UPDATE ON produits\nWHEN NEW.prix <> OLD.prix\nBEGIN\n  INSERT INTO historique_prix\n    (produit_id, ancien_prix, nouveau_prix)\n  VALUES (OLD.id, OLD.prix, NEW.prix);\nEND;\nUPDATE produits\nSET prix = 22.9\nWHERE id = 3;\nSELECT produit_id, ancien_prix, nouveau_prix\nFROM historique_prix;"},
+      {done:{
+        label:"D’un prix sans mémoire à un changement tracé",
+        unit:"free",
+        funnel:[
+          {n:8,t:"produits au catalogue",s:"toute la <code>table produits</code>",dots:"00000000"},
+          {step:"CREATE TRIGGER … AFTER UPDATE",s:"note l’ancien et le nouveau prix à chaque changement"},
+          {n:1,t:"⭐ changement tracé",s:"Magnésium : de 19.9 à 22.9",dots:"00100000",out:true}
+        ],
+        sms:{ico:"🗂️",h:"Historique des prix",aria:"Le changement de prix du Magnésium est noté dans l’historique",msg:"Chaque changement de prix est noté automatiquement.",people:[["M","Magnésium","19.9 → 22.9"]],st:["À noter","Écriture","✓ Noté"],plane:"doc",done:"✓ 1 changement noté"},
+        fill:["AFTER UPDATE","WHEN","OLD.prix","NEW.prix"],
+        ui:{t:"Chaque changement laisse une trace",s:"L’historique garde l’ancien et le nouveau prix : rien ne se perd, sans aucune intervention.",n:["CREATE TRIGGER","AFTER UPDATE","WHEN","OLD","NEW"]},
+        rows:1
+      }}
+    ]}
   ],
-  exemple:"CREATE TRIGGER baisser_stock\nAFTER INSERT ON commandes\nBEGIN\n  UPDATE produits\n  SET stock = stock - NEW.quantite\n  WHERE id = NEW.produit_id;\nEND;\n\nINSERT INTO commandes (id, client_id, produit_id, quantite, date_commande)\nVALUES (17, 1, 1, 5, '2026-08-31');\n\nSELECT id, nom, stock\nFROM produits\nWHERE id = 1;",
-  attendu:"Le stock du produit 1 passe de 120 à 115. Aucun UPDATE n’a été écrit : le trigger s’en est chargé au moment de l’INSERT.",
-  retenir:"Un <code>TRIGGER</code> exécute des instructions à chaque écriture sur une table, sans qu’on les demande. Il se déclenche <b>une fois par ligne</b>.<br><br><code>BEFORE</code> contrôle avant l’écriture — <code>RAISE(ABORT, …)</code> la refuse avec ton message. <code>AFTER</code> réagit une fois la ligne écrite.<br><br>Dans le corps, <code>NEW</code> désigne la ligne qui arrive et <code>OLD</code> celle qui part. Selon l’événement, l’un des deux peut manquer.",
-  piege:{t:"Croire qu’un trigger BEFORE peut corriger la valeur",
-    p:"Dans d’autres moteurs, un trigger <code>BEFORE</code> peut modifier <code>NEW</code> avant l’écriture. Pas en SQLite : <code>SET NEW.colonne = …</code> est une erreur de syntaxe.<br><br>Un trigger <code>BEFORE</code> ne connaît que deux réponses : laisser passer, ou refuser avec <code>RAISE</code>.",
-    exec:true,
-    sql:"CREATE TRIGGER stock_plancher\nBEFORE UPDATE ON produits\nBEGIN\n  SET NEW.stock = 0;\nEND;",
-    out:"near \"SET\": syntax error — SQLite n’accepte pas l’affectation de NEW.",
-    fixSql:"CREATE TRIGGER stock_positif\nBEFORE UPDATE ON produits\nWHEN NEW.stock < 0\nBEGIN\n  SELECT RAISE(ABORT,\n    'Stock négatif interdit');\nEND;\n\nUPDATE produits\nSET stock = stock - 5\nWHERE id = 8;\n\nSELECT id, nom, stock\nFROM produits\nWHERE id = 8;"},
-  petitDefi:[{
-    p:"Dans un trigger <code>AFTER DELETE</code>, quel nom désigne la ligne qui vient d’être supprimée ?",
-    sql:"VALUES (__________.id, __________.prenom);",
-    a:"OLD",
-    answers:["OLD","old","OLD.id","old.id"]
-  }],
-  consigne:"Écris un trigger nommé <code>baisser_stock</code> qui, après chaque ajout dans <code>commandes</code>, retire du <code>stock</code> du produit concerné la quantité commandée.",
+  reflex:[
+    {recap:[
+      ["⚡","Un <code>TRIGGER</code> exécute des instructions tout seul à chaque <code>INSERT</code>, <code>UPDATE</code> ou <code>DELETE</code> : une fois par ligne touchée."],
+      ["🔀","<code>NEW</code> désigne la ligne qui arrive, <code>OLD</code> celle qui s’en va :",null,"OLD.prix → NEW.prix"],
+      ["⏱️","<code>BEFORE</code> contrôle ou refuse l’écriture avec <code>RAISE</code> ; <code>AFTER</code> en tire les conséquences."]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"CREATE TRIGGER journal_suppression",txt:"Le nom du trigger, libre."},{tok:"AFTER DELETE ON clients",txt:"Le moment et l’événement qui le déclenchent."},{tok:"BEGIN … END;",txt:"Le corps : les instructions exécutées à chaque ligne."},{tok:"OLD.prenom",plain:1,txt:"Une colonne de la ligne qui vient d’être supprimée."}],
+  exemple:"CREATE TABLE clients_supprimes (id INTEGER, prenom TEXT, nom TEXT);\n\nCREATE TRIGGER journal_suppression\nAFTER DELETE ON clients\nBEGIN\n  INSERT INTO clients_supprimes (id, prenom, nom)\n  VALUES (OLD.id, OLD.prenom, OLD.nom);\nEND;\n\nDELETE FROM clients WHERE id IN (9, 10);\n\nSELECT id, prenom, nom FROM clients_supprimes;",
+  attendu:"<b>2 lignes</b> : Inès Lefebvre et Nathan Dupont. Le trigger s’est déclenché une fois par client supprimé, sans qu’aucun <code>INSERT</code> ne soit écrit à la main.",
+  retenir:"Un <code>TRIGGER</code> exécute des instructions à chaque écriture sur une table, sans qu’on les demande. Il se déclenche <b>une fois par ligne</b>.<br><br><code>BEFORE</code> contrôle avant l’écriture : <code>RAISE(ABORT, …)</code> la refuse avec ton message. <code>AFTER</code> réagit une fois la ligne écrite.<br><br>Dans le corps, <code>NEW</code> désigne la ligne qui arrive et <code>OLD</code> celle qui part. Selon l’événement, l’un des deux peut manquer.",
+  consigne:"Chaque commande enregistrée doit faire baisser le stock du produit commandé. Écris un trigger nommé <code>baisser_stock</code> qui, après chaque ajout dans <code>commandes</code>, retire du <code>stock</code> du produit concerné la quantité commandée.",
   solution:"CREATE TRIGGER baisser_stock\nAFTER INSERT ON commandes\nBEGIN\n  UPDATE produits\n  SET stock = stock - NEW.quantite\n  WHERE id = NEW.produit_id;\nEND;",
   verif:"INSERT INTO commandes (client_id, produit_id, quantite, date_commande) VALUES (1, 1, 5, '2026-08-31'), (2, 3, 2, '2026-08-31'); SELECT id, nom, stock FROM produits ORDER BY id;",
-  indice:"<code>AFTER INSERT ON commandes</code>, puis dans le corps un <code>UPDATE produits SET stock = stock - NEW.quantite WHERE id = NEW.produit_id;</code>.",
+  indice:"Le trigger se déclenche <b>après</b> un <code>INSERT</code> sur <code>commandes</code>. Dans son corps, un <code>UPDATE</code> retire <code>NEW.quantite</code> au stock du produit désigné par <code>NEW.produit_id</code>.",
   write:true,
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-    {k:'stock',label:'Stock',sql:"CREATE TRIGGER baisser_stock\nAFTER INSERT ON commandes\nBEGIN\n  UPDATE produits\n  SET stock = stock - NEW.quantite\n  WHERE id = NEW.produit_id;\nEND;\n\nINSERT INTO commandes (id, client_id, produit_id, quantite, date_commande)\nVALUES (17, 1, 1, 5, '2026-08-31');\n\nSELECT id, nom, stock FROM produits WHERE id = 1;",out:"120 moins 5 : le trigger a fait l\u2019UPDATE tout seul.",tone:'good'},
-    {k:'journal',label:'Journal',sql:"CREATE TABLE clients_supprimes (id INTEGER, prenom TEXT, le TEXT);\n\nCREATE TRIGGER journal_suppression\nAFTER DELETE ON clients\nBEGIN\n  INSERT INTO clients_supprimes\n    (id, prenom, le)\n  VALUES (OLD.id, OLD.prenom,\n          date('now'));\nEND;\n\nDELETE FROM clients WHERE id = 9;\n\nSELECT id, prenom, le FROM clients_supprimes;",out:"In\u00e8s a disparu de clients, mais son passage est trac\u00e9."},
-    {k:'raise',label:'RAISE',sql:"CREATE TRIGGER stock_positif\nBEFORE UPDATE ON produits\nWHEN NEW.stock < 0\nBEGIN\n  SELECT RAISE(ABORT,\n    'Stock négatif interdit');\nEND;\n\nUPDATE produits\nSET stock = stock - 500\nWHERE id = 8;",out:"Le trigger refuse l\u2019\u00e9criture avec son propre message.",tone:'bad'}
-  ] ,
-learningCheck:{
-  "question": "Un trigger qui met toujours à jour le produit 1 est-il correct pour toutes les commandes ?",
-  "options": [
-    "Oui",
-    "Oui si le produit existe",
-    "Non"
+  petitDefi:[{p:"Dans un trigger <code>AFTER DELETE</code>, quel nom désigne la ligne qui vient d’être supprimée ?",sql:"VALUES (__________.id, __________.prenom);",a:"OLD",answers:["OLD","old","OLD.id","old.id"]}],
+  testeVariants:[{k:"stock",label:"Stock",sql:"CREATE TRIGGER baisser_stock\nAFTER INSERT ON commandes\nBEGIN\n  UPDATE produits\n  SET stock = stock - NEW.quantite\n  WHERE id = NEW.produit_id;\nEND;\n\nINSERT INTO commandes (id, client_id, produit_id, quantite, date_commande)\nVALUES (17, 1, 1, 5, '2026-08-31');\n\nSELECT id, nom, stock FROM produits WHERE id = 1;",out:"120 moins 5 : le trigger a fait l’UPDATE tout seul.",tone:"good"},{k:"journal",label:"Journal",sql:"CREATE TABLE clients_supprimes (id INTEGER, prenom TEXT, date_suppression TEXT);\n\nCREATE TRIGGER journal_suppression\nAFTER DELETE ON clients\nBEGIN\n  INSERT INTO clients_supprimes\n    (id, prenom, date_suppression)\n  VALUES (OLD.id, OLD.prenom,\n          date('now'));\nEND;\n\nDELETE FROM clients WHERE id = 9;\n\nSELECT id, prenom, date_suppression FROM clients_supprimes;",out:"Inès a disparu de clients, mais son passage est tracé."},{k:"raise",label:"RAISE",sql:"CREATE TRIGGER prix_stable\nBEFORE UPDATE ON produits\nWHEN NEW.prix < OLD.prix * 0.7\nBEGIN\n  SELECT RAISE(ABORT,\n    'Baisse de prix supérieure à 30 %');\nEND;\n\nUPDATE produits\nSET prix = 9\nWHERE id = 1;",out:"Le trigger refuse l’écriture avec son propre message.",tone:"bad"}],
+  learningCheck:{question:"Pour retirer du stock le produit commandé, que doit contenir le trigger AFTER INSERT ON commandes ?",options:["WHERE id = 1","WHERE id = NEW.produit_id","WHERE id = OLD.produit_id"],answer:1,explanation:"NEW désigne la ligne qui vient d’être insérée : NEW.produit_id donne le produit de chaque nouvelle commande. OLD n’existe pas pour un INSERT."}
+}),
+guide({ id:71, titre:"Concurrence et isolation", résumé:"Quand deux écritures arrivent en même temps",
+  sit:{
+    blocks:[
+      "L’équipe boutique encaisse les ventes sur <b>deux caisses</b>. Pendant une promotion, deux clients achètent une <b>Protéine Végétale</b> au même instant, un à chaque caisse.",
+      "La table <code>produits</code> contient au total <b>8 produits</b>, et il reste <b>45 Protéines Végétales</b> en stock. Pour enregistrer les deux ventes, l’équipe doit modifier :",
+      {need:[["🥤","Le produit vendu","table produits"],["📦","Son stock restant","table produits"]],label:"Les informations à modifier"}
+    ],
+    problem:{
+      p:["Avec <code>UPDATE</code>, SQL sait modifier le stock, mais chaque caisse peut <b>lire</b> le stock, calculer la nouvelle valeur de son côté, puis <b>écrire</b> le résultat.","Or, si les deux caisses lisent avant que l’autre n’ait écrit, elles écrivent <b>la même valeur</b> : une des deux ventes est perdue."],
+      scene:{h:"🧾 Deux caisses, un stock",cols:"1fr 1fr 1fr",
+        lanes:[{c:[["h1","caisse","t"],["h2","lit","t"],["h3","écrit","t"]]},
+          {k:"R1",c:[["a1","A"],["a2","45","h"],["a3","44","h"]]},
+          {k:"R2",c:[["b1","B"],["b2","45","h"],["b3","44","h"]]},
+          {k:"T",cls:"is-goal",cols:"1fr 2fr",c:[["t1","stock"],["t2","44 au lieu de 43","h"]]}],
+        caps:["<b>Le stock</b> · Il reste 45 Protéines Végétales, et deux caisses vendent chacune un exemplaire au même instant.","<b>Lecture</b> · Les deux caisses lisent le stock : elles voient toutes deux 45.","<b>Écriture</b> · Chacune calcule 45 − 1 de son côté et écrit 44.","<b>Résultat</b> · Le stock vaut 44 au lieu de 43 : une des deux ventes a été perdue."],
+        steps:[{cap:0,on:["R1","R2"],d:1900},{cap:1,show:["a2","b2"],d:2300},{cap:2,show:["a3","b3"],d:2300},{cap:3,show:["t2"],mark:{T:"is-miss"},d:2600}]},
+      then:["Il faut donc que la base <b>fasse elle-même le calcul</b>, à partir de la valeur courante, et que les caisses écrivent <b>l’une après l’autre</b>.","C’est exactement le rôle de l’<b>isolation</b> : chaque écriture se déroule comme si elle était seule."]
+    },
+    mission:"Aide l’équipe boutique à enregistrer les deux ventes de <b>Protéine Végétale</b> sans en perdre aucune, afin que le stock affiche <b>43</b>."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir qui a le droit d’écrire ?",
+    blocks:[
+      "Pour que deux écritures ne se marchent pas dessus, SQLite ne laisse écrire <b>qu’une transaction à la fois</b> :",
+      {ask:"Qui a le droit d’écrire en ce moment ?"},
+      "En SQL, une transaction prend ce droit dès son ouverture avec <code>BEGIN IMMEDIATE</code>, et le garde jusqu’à son <code>COMMIT</code> :",
+      {syntax:"⟦BEGIN IMMEDIATE;⟧\n  …\nCOMMIT;"},
+      {scene:{h:"🔒 Une caisse à la fois",cols:"1fr 1fr",
+        lanes:[{c:[["h1","caisse","t"],["h2","état","t"]]},
+          {k:"A",c:[["a1","caisse A"],["a2","écrit"]]},
+          {k:"B",c:[["b1","caisse B"],["b2","attend"]]},
+          {k:"S",cls:"is-goal",c:[["s1","stock"],["s2","45"]]}],
+        caps:["<b>BEGIN IMMEDIATE</b> · La caisse A prend le droit d’écrire dès l’ouverture. La caisse B doit attendre son tour, ou échoue si l’attente dure trop.","<b>Caisse A</b> · Elle retire une unité à la valeur courante, puis valide : le stock passe à 44.","<b>Caisse B</b> · Le droit d’écrire se libère : elle part de la valeur courante, 44, et le stock passe à 43."],
+        steps:[{cap:0,on:["A"],dim:["B"],d:2400},{cap:1,text:{a2:"validé",s2:"44"},d:2600},{cap:2,off:["A"],dim:["A"],undim:["B"],on:["B"],text:{b2:"écrit",s2:"43"},d:2800}]}}
+    ]
+  },
+  steps:[
+    {h:"Laisser la base calculer",blocks:[
+      "La parade la plus simple : ne pas recalculer le stock hors de la base. <code>SET stock = stock - 1</code> lit et écrit dans <b>la même instruction</b>, qui est indivisible.",
+      {syntax:"UPDATE produits\nSET stock = ⟦stock - 1⟧\nWHERE id = 6;"},
+      {say:"👇 Exécute cette requête pour enregistrer les deux ventes, l’une après l’autre :",run:"UPDATE produits\nSET stock = stock - 1\nWHERE id = 6;\nUPDATE produits\nSET stock = stock - 1\nWHERE id = 6;\nSELECT id, nom, stock\nFROM produits\nWHERE id = 6;"},
+      {arrow:"Chaque vente part de la valeur courante : le stock passe de 45 à 44, puis à 43."},
+      {warn:{t:"Écrire la valeur calculée",blocks:[
+        "Si chaque caisse écrit le résultat de son propre calcul :",
+        {syntax:"UPDATE produits\nSET stock = 44\nWHERE id = 6;"},
+        "Les deux caisses écrivent 44 : la seconde vente écrase la première au lieu de s’y ajouter.",
+        {say:"👇 Teste par toi-même, avec les deux caisses :",run:"UPDATE produits\nSET stock = 44\nWHERE id = 6;\nUPDATE produits\nSET stock = 44\nWHERE id = 6;\nSELECT id, nom, stock\nFROM produits\nWHERE id = 6;"}
+      ]}}
+    ]},
+    {h:"Vérifier et écrire d’un seul geste",blocks:[
+      "Quand la vente dépend d’une condition, mets-la dans le même <code>UPDATE</code> : la base vérifie le stock et l’écrit sans que rien ne puisse s’intercaler.",
+      {syntax:"UPDATE produits\nSET stock = stock - 50\nWHERE id = 8\n  ⟦AND stock >= 50⟧;"},
+      {say:"👇 Exécute cette requête pour tenter de vendre 50 Shakers Inox alors qu’il n’en reste que 30 :",run:"UPDATE produits\nSET stock = stock - 50\nWHERE id = 8\n  AND stock >= 50;\nSELECT id, nom, stock\nFROM produits\nWHERE id = 8;"},
+      {arrow:"Aucune ligne n’est modifiée : le stock reste à 30, et il ne devient jamais négatif."}
+    ]},
+    {h:"Prendre le droit d’écrire d’avance",blocks:[
+      "Avec un <code>BEGIN</code> simple (<code>BEGIN DEFERRED</code>), la transaction ne réclame le droit d’écrire qu’à sa première écriture : si un autre l’a pris entre-temps, elle échoue en cours de route. <code>BEGIN IMMEDIATE</code> le réclame dès l’ouverture : si le droit est déjà pris, elle attend ou échoue dès le départ, jamais au milieu.",
+      {table:{label:"Les trois façons d’ouvrir une transaction",head:["Ouverture","Droit d’écrire"],rows:[["BEGIN DEFERRED","pris à la première écriture"],["BEGIN IMMEDIATE","pris dès l’ouverture"],["BEGIN EXCLUSIVE","pris dès l’ouverture, lectures bloquées aussi"]]}},
+      {say:"👇 Exécute cette requête pour vendre 2 Magnésium, avec le droit d’écrire pris dès le départ :",run:"BEGIN IMMEDIATE;\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3\n  AND stock >= 2;\nCOMMIT;\nSELECT id, nom, stock\nFROM produits\nWHERE id = 3;"},
+      {arrow:"La vente est faite et le droit d’écrire est libéré au <code>COMMIT</code> : le stock du Magnésium passe de 200 à 198."},
+      {tip:{t:"Et les niveaux d’isolation ?",blocks:[
+        "L’isolation est le <b>I</b> d’ACID : une transaction ne doit ni voir les états intermédiaires d’une autre, ni être écrasée par elle. En plus de la mise à jour perdue vue plus haut, le standard SQL décrit trois anomalies :",
+        {looks:[["Lecture sale","lire une valeur pas encore validée par une autre transaction"],["Lecture non répétable","relire une ligne et obtenir une autre valeur"],["Lignes fantômes","relancer une requête et voir des lignes en plus"]]},
+        "PostgreSQL ou MySQL laissent choisir un niveau d’isolation, de <code>READ UNCOMMITTED</code> à <code>SERIALIZABLE</code>. SQLite n’a pas de réglage <code>SET TRANSACTION ISOLATION LEVEL</code> : avec un seul écrivain à la fois, il se comporte comme <code>SERIALIZABLE</code>."
+      ]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : chaque caisse ouvre sa transaction avec <code>BEGIN IMMEDIATE</code>, retire une unité à partir de la valeur courante si le stock le permet, puis valide. Ce laboratoire n’a qu’une seule connexion : la caisse B passe donc après la caisse A, comme l’impose <code>BEGIN IMMEDIATE</code>.",
+      {say:"👇 Exécute la requête pour enregistrer les deux ventes :",run:"BEGIN IMMEDIATE;\nUPDATE produits\nSET stock = stock - 1\nWHERE id = 6\n  AND stock >= 1;\nCOMMIT;\nBEGIN IMMEDIATE;\nUPDATE produits\nSET stock = stock - 1\nWHERE id = 6\n  AND stock >= 1;\nCOMMIT;\nSELECT id, nom, stock\nFROM produits\nWHERE id = 6;"},
+      {done:{
+        label:"De deux ventes simultanées à deux ventes comptées",
+        unit:"free",
+        funnel:[
+          {n:2,t:"ventes à enregistrer",s:"une à chaque caisse, pour 45 Protéines Végétales en stock",dots:"00"},
+          {step:"BEGIN IMMEDIATE … COMMIT",s:"chaque caisse vérifie le stock et écrit à son tour"},
+          {n:2,t:"⭐ ventes comptées",s:"le stock passe de 45 à 43 : aucune vente n’est perdue",dots:"11",out:true}
+        ],
+        sms:{ico:"🧾",h:"Caisses de la boutique",aria:"Les deux ventes sont comptées dans le stock",msg:"<b>Deux ventes</b>, une à chaque caisse : le stock descend de 45 à 43.",people:[["A","Caisse A","− 1 unité"],["B","Caisse B","− 1 unité"]],st:["En attente","Vente","✓ Comptée"],plane:"doc",done:"✓ 2 ventes comptées"},
+        fill:["BEGIN IMMEDIATE","stock - 1","stock >= 1","COMMIT"],
+        ui:{t:"Aucune vente perdue",s:"Chaque caisse est repartie de la valeur courante : le stock affiche 43.",n:["BEGIN IMMEDIATE","UPDATE","COMMIT"]},
+        rows:2
+      }}
+    ]}
   ],
-  "answer": 2,
-  "explanation": "NEW.produit_id désigne le produit de la nouvelle commande. Les tests utilisent plusieurs produits pour le vérifier."
-}
-},
-{ id:71, titre:"Concurrence et isolation", résumé:"Quand deux écritures arrivent en même temps",
-  situation:"Il reste 30 Shakers Inox. Deux caisses enregistrent une vente au même instant.<br><br>Chacune lit le stock — 30 — calcule 30 − 1 dans son application, et écrit 29. Deux ventes ont eu lieu, une seule unité a été retirée.<br><br>Aucune des deux requêtes n’est fautive. C’est leur entrelacement qui l’est.",
-  situationTail:"<div class=\"sit-sql\"><p>Comment une base empêche-t-elle deux écritures simultanées de se marcher dessus ?</p><p>C’est la question de l’<b>isolation</b>.</p></div>",
-    studio:{pointCards:{
-      eye:"Isolation",title:"Chaque transaction travaille comme si elle était seule.",
-      lead:"L’isolation est le <b>I</b> de <b>ACID</b> : une transaction ne doit pas voir les états intermédiaires d’une autre, ni se faire écraser par elle.",
-      chain:[
-        {k:"Le risque",v:"deux écritures s’entrelacent"},
-        {k:"Le niveau",v:"ce qu’une transaction peut voir"},
-        {k:"Le verrou",v:"ce que la base empêche"}
-      ]},
-    uses:{title:"Le problème, puis les réponses.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">La mise à jour perdue</p>
-          <div class="tx-flow" role="img" aria-label="Deux caisses lisent 30 et écrivent toutes deux 29">
-            <span class="tx-step">stock = <b>30</b></span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <div class="tx-fork">
-              <div class="tx-branch is-ko"><b>caisse A</b><span>lit 30, écrit 29</span></div>
-              <div class="tx-branch is-ko"><b>caisse B</b><span>lit 30, écrit 29</span></div>
-            </div>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step">stock = <b>29</b><i>deux ventes, une unité</i></span>
-          </div>
-          <p>Le calcul a été fait <b>hors de la base</b>, sur une valeur devenue périmée entre la lecture et l’écriture.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">La parade la plus simple</p>
-          <div class="pt-syntax"><pre class="cw-syntax">UPDATE produits
-SET stock = stock - 1
-WHERE id = 8;</pre></div>
-          <p>Ici, la base lit et écrit dans la même instruction — et une instruction est indivisible. Les deux caisses passent l’une après l’autre : 30, puis 29, puis 28.</p>
-          <p class="fn-tip"><b>La règle d’or</b> Ne rapatrie pas une valeur pour la recalculer et la renvoyer. Exprime la modification à partir de la valeur courante.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Quand il faut vraiment lire, puis écrire</p>
-          <p>Certaines décisions ne s’expriment pas en une instruction : lire le stock, refuser la vente s’il est à zéro, écrire sinon. Il faut alors que la lecture et l’écriture forment un bloc.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">BEGIN IMMEDIATE;
-
-UPDATE produits
-SET stock = stock - 1
-WHERE id = 8;
-
-COMMIT;</pre></div>
-          <p><code>IMMEDIATE</code> prend le droit d’écrire dès l’ouverture, au lieu d’attendre la première écriture. Aucune autre transaction ne peut s’intercaler entre la lecture et l’écriture.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Trois façons d’ouvrir</p>
-          <div class="table-wrap"><table class="concept-table fit-2">
-            <thead><tr><th>Ouverture</th><th>Verrou</th></tr></thead>
-            <tbody>
-              <tr><td><code>BEGIN DEFERRED</code></td><td>au besoin</td></tr>
-              <tr><td><code>BEGIN IMMEDIATE</code></td><td>tout de suite</td></tr>
-              <tr><td><code>BEGIN EXCLUSIVE</code></td><td>total</td></tr>
-            </tbody>
-          </table></div>
-          <p><code>BEGIN</code> seul vaut <code>DEFERRED</code> : rien n’est verrouillé tant qu’on ne fait que lire. Pratique, mais la transaction peut échouer plus tard si une autre a pris la main entre-temps.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Les trois anomalies classiques</p>
-          <p><b>1 · La lecture sale</b> — lire une valeur qu’une autre transaction a écrite mais pas encore validée. Si elle annule, tu as lu quelque chose qui n’a jamais existé.</p>
-          <p><b>2 · La lecture non répétable</b> — lire deux fois la même ligne dans une transaction et obtenir deux valeurs différentes, parce qu’une autre est passée entre les deux.</p>
-          <p><b>3 · Les lignes fantômes</b> — relancer la même requête et voir apparaître des lignes qu’une autre transaction vient d’ajouter.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Les quatre niveaux du standard</p>
-          <div class="table-wrap"><table class="concept-table fit-2">
-            <thead><tr><th>Niveau</th><th>Empêche</th></tr></thead>
-            <tbody>
-              <tr><td><code>READ UNCOMMITTED</code></td><td>rien</td></tr>
-              <tr><td><code>READ COMMITTED</code></td><td>1</td></tr>
-              <tr><td><code>REPEATABLE READ</code></td><td>1 et 2</td></tr>
-              <tr><td><code>SERIALIZABLE</code></td><td>1, 2 et 3</td></tr>
-            </tbody>
-          </table></div>
-          <p>Plus le niveau est élevé, plus les garanties sont fortes — et plus les transactions s’attendent. PostgreSQL et MySQL laissent choisir ; leur défaut se situe au milieu du tableau.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Ce que fait SQLite</p>
-          <p>SQLite ne propose pas ce réglage : il n’existe pas de <code>SET TRANSACTION ISOLATION LEVEL</code>. Le moteur verrouille la base entière et n’autorise <b>qu’un seul écrivain à la fois</b>.</p>
-          <p>Les transactions sont donc sérialisées d’office : le comportement correspond à <code>SERIALIZABLE</code>, sans avoir à le demander. La contrepartie est qu’une écriture concurrente attend, ou échoue si l’attente est trop longue.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le mode WAL</p>
-          <div class="pt-syntax"><pre class="cw-syntax">PRAGMA journal_mode = WAL;</pre></div>
-          <p>Les écritures sont d’abord consignées dans un journal séparé. Les lecteurs ne bloquent plus l’écrivain, et l’écrivain ne bloque plus les lecteurs — mais il n’y a toujours qu’un écrivain à la fois.</p>
-          <p class="fn-tip"><b>Le bon usage de SQLite</b> Une application embarquée, un site à faible trafic d’écriture, un fichier de travail : parfait. Des milliers d’écritures concurrentes : c’est le terrain des moteurs serveur.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">À retenir pour le travail réel</p>
-          <p>Quel que soit le moteur, deux réflexes évitent la majorité des accidents : faire calculer la base plutôt que l’application, et enfermer dans une transaction toute suite d’écritures qui doit rester cohérente.</p>
-          <p>Le réglage du niveau d’isolation vient après, et seulement quand la mesure montre qu’il le faut.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La question",t:"cette valeur peut-elle changer entre ma lecture et mon écriture ?"},
-      b:{k:"La règle",t:"oui → calcule dans la base, ou enferme dans une transaction"},
-      note:"Réflexe : <code>SET stock = stock - 1</code> plutôt que <code>SET stock = 29</code>."}},
-  anatomie:[
-    {tok:"BEGIN IMMEDIATE",txt:"Ouvre la transaction en prenant tout de suite le droit d’écrire."},
-    {tok:"UPDATE produits",txt:"L’écriture protégée par la transaction."},
-    {tok:"stock = stock - 1",txt:"Le calcul est fait par la base, à partir de la valeur courante."},
-    {tok:"COMMIT",txt:"Valide et libère le verrou pour la transaction suivante."}
+  reflex:[
+    {recap:[
+      ["🧮","Laisse la base calculer plutôt que d’écrire une valeur lue plus tôt :",null,"SET stock = stock - 1"],
+      ["🔒","SQLite n’autorise qu’<b>un écrivain à la fois</b> : les autres écritures attendent leur tour."],
+      ["⏩","<code>BEGIN IMMEDIATE</code> prend le droit d’écrire dès l’ouverture de la transaction :",null,"BEGIN IMMEDIATE; … COMMIT;"]
+    ],label:"Les trois idées à retenir"}
   ],
-  exemple:"BEGIN IMMEDIATE;\n\nUPDATE produits\nSET stock = stock - 1\nWHERE id = 8;\n\nCOMMIT;\n\nSELECT id, nom, stock\nFROM produits\nWHERE id = 8;",
-  attendu:"Le stock du Shaker Inox passe de 30 à 29. Une seconde caisse qui exécuterait la même transaction obtiendrait 28, et non 29 : le calcul repart de la valeur en base.",
-  retenir:"L’isolation, le <b>I</b> d’ACID, décide de ce qu’une transaction voit des autres. Le standard définit quatre niveaux, de <code>READ UNCOMMITTED</code> à <code>SERIALIZABLE</code>.<br><br>SQLite ne les expose pas : il n’autorise <b>qu’un écrivain à la fois</b> et se comporte comme <code>SERIALIZABLE</code>. <code>BEGIN IMMEDIATE</code> prend le verrou dès l’ouverture, le mode <code>WAL</code> laisse lire pendant qu’on écrit.<br><br>Le réflexe qui vaut partout : <code>SET stock = stock - 1</code> plutôt que relire, calculer et réécrire.",
-  piege:{t:"Calculer la nouvelle valeur dans l’application",
-    p:"Lire le stock, soustraire dans le code, puis écrire le résultat : entre la lecture et l’écriture, une autre transaction a pu passer. Sa modification est écrasée sans bruit — c’est la <b>mise à jour perdue</b>.<br><br>Le remède ne coûte rien : exprimer la modification à partir de la valeur courante, et laisser la base faire l’opération.",
-    exec:true,
-    sql:"UPDATE produits\nSET stock = 29\nWHERE id = 8;\n\nSELECT id, nom, stock\nFROM produits\nWHERE id = 8;",
-    out:"29 — quelle que soit la valeur d’avant, et quelles que soient les ventes enregistrées entre-temps.",
-    fixSql:"UPDATE produits\nSET stock = stock - 1\nWHERE id = 8;\n\nSELECT id, nom, stock\nFROM produits\nWHERE id = 8;"},
-  petitDefi:[{
-    p:"Tu veux que la transaction prenne le droit d’écrire dès son ouverture, sans attendre la première écriture. Quel mot ajoutes-tu ?",
-    sql:"BEGIN __________;",
-    a:"IMMEDIATE",
-    answers:["IMMEDIATE","immediate","BEGIN IMMEDIATE"]
-  }],
-  consigne:"Une vente du produit 8 doit retirer une unité du stock. Écris-la dans une transaction qui prend le verrou d’écriture dès son ouverture, et laisse la base calculer la soustraction plutôt que d’écrire la valeur finale.",
+  anatomie:[{tok:"BEGIN IMMEDIATE",txt:"Ouvre la transaction en prenant tout de suite le droit d’écrire."},{tok:"UPDATE produits",txt:"L’écriture protégée par la transaction."},{tok:"stock = stock - 1",plain:1,txt:"Le calcul est fait par la base, à partir de la valeur courante."},{tok:"COMMIT",txt:"Valide et libère le droit d’écrire pour la transaction suivante."}],
+  exemple:"BEGIN IMMEDIATE;\n\nUPDATE produits\nSET stock = stock - 2\nWHERE id = 3\n  AND stock >= 2;\n\nCOMMIT;\n\nSELECT id, nom, stock\nFROM produits\nWHERE id = 3;",
+  attendu:"Le stock du Magnésium passe de 200 à 198. Une seconde caisse qui exécuterait la même transaction obtiendrait 196, et non 198 : le calcul repart de la valeur en base.",
+  retenir:"L’isolation, le <b>I</b> d’ACID, décide de ce qu’une transaction voit des autres. Le standard définit quatre niveaux, de <code>READ UNCOMMITTED</code> à <code>SERIALIZABLE</code>.<br><br>SQLite ne les expose pas : il n’autorise <b>qu’un écrivain à la fois</b> et se comporte comme <code>SERIALIZABLE</code>. <code>BEGIN IMMEDIATE</code> prend le droit d’écrire dès l’ouverture.<br><br>Le réflexe qui vaut partout : <code>SET stock = stock - 1</code> plutôt que relire, calculer et réécrire.",
+  consigne:"Une caisse vend un Shaker Inox (produit 8). Enregistre la vente dans une transaction qui prend le droit d’écrire dès son ouverture, et laisse la base calculer le nouveau stock plutôt que d’écrire la valeur finale.",
   solution:"BEGIN IMMEDIATE;\n\nUPDATE produits\nSET stock = stock - 1\nWHERE id = 8;\n\nCOMMIT;",
   verif:"SELECT id, nom, stock FROM produits WHERE id = 8;",
-  indice:"<code>BEGIN IMMEDIATE;</code>, puis <code>UPDATE produits SET stock = stock - 1 WHERE id = 8;</code>, puis <code>COMMIT;</code>.",
+  indice:"Ouvre la transaction avec <code>BEGIN IMMEDIATE</code>, soustrais 1 au stock du produit 8 en partant de la valeur courante, puis termine par <code>COMMIT</code>.",
   write:true,
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-    {k:'fige',label:'Valeur figée',sql:"UPDATE produits\nSET stock = 29\nWHERE id = 8;\n\nSELECT id, nom, stock FROM produits WHERE id = 8;",out:"29, quoi qu\u2019il se soit pass\u00e9 entre-temps : une vente concurrente serait effac\u00e9e.",tone:'bad'},
-    {k:'relatif',label:'Calcul en base',sql:"UPDATE produits\nSET stock = stock - 1\nWHERE id = 8;\n\nSELECT id, nom, stock FROM produits WHERE id = 8;",out:"29 aussi — mais obtenu \u00e0 partir de la valeur courante, donc juste dans tous les cas.",tone:'good'},
-    {k:'transaction',label:'BEGIN IMMEDIATE',sql:"BEGIN IMMEDIATE;\n\nUPDATE produits\nSET stock = stock - 1\nWHERE id = 8;\n\nCOMMIT;\n\nSELECT id, nom, stock FROM produits WHERE id = 8;",out:"Le verrou d\u2019\u00e9criture est pris d\u00e8s l\u2019ouverture : rien ne peut s\u2019intercaler.",tone:'good'}
-  ] ,
-learningCheck:{
-  "question": "Un exemple exécuté sur une seule connexion démontre-t-il une vraie concurrence ?",
-  "options": [
-    "Seulement avec BEGIN",
-    "Non",
-    "Oui"
-  ],
-  "answer": 1,
-  "explanation": "Il illustre la syntaxe. Observer un verrou concurrent exige deux connexions sur la même base ; ce n’est pas ce que ce laboratoire simule."
-}
-}
+  petitDefi:[{p:"Tu veux que la transaction prenne le droit d’écrire dès son ouverture, sans attendre la première écriture. Quel mot ajoutes-tu ?",sql:"BEGIN __________;",a:"IMMEDIATE",answers:["IMMEDIATE","immediate","BEGIN IMMEDIATE"]}],
+  testeVariants:[{k:"fige",label:"Valeur figée",sql:"UPDATE produits\nSET stock = 29\nWHERE id = 8;\n\nSELECT id, nom, stock FROM produits WHERE id = 8;",out:"29, quoi qu’il se soit passé entre-temps : une vente concurrente serait effacée.",tone:"bad"},{k:"relatif",label:"Calcul en base",sql:"UPDATE produits\nSET stock = stock - 1\nWHERE id = 8;\n\nSELECT id, nom, stock FROM produits WHERE id = 8;",out:"29 aussi, mais obtenu à partir de la valeur courante : juste dans tous les cas.",tone:"good"},{k:"transaction",label:"BEGIN IMMEDIATE",sql:"BEGIN IMMEDIATE;\n\nUPDATE produits\nSET stock = stock - 1\nWHERE id = 8;\n\nCOMMIT;\n\nSELECT id, nom, stock FROM produits WHERE id = 8;",out:"Le droit d’écrire est pris dès l’ouverture : rien ne peut s’intercaler.",tone:"good"}],
+  learningCheck:{question:"Deux caisses lisent un stock de 30, calculent chacune 29 de leur côté et l’écrivent. Quel est le stock final ?",options:["28","29","30"],answer:1,explanation:"Les deux caisses écrivent la même valeur : une vente est perdue. Avec SET stock = stock - 1, le calcul part de la valeur courante et le stock vaut 28."}
+})
 ]},
 { titre:"Vues, index et optimisation", sous:"Structurer et accélérer", lessons:[
 guide({ id:64, titre:"CREATE VIEW", résumé:"Enregistrer une requête sous un nom",
@@ -35445,7 +35250,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1599';
+  const SW_CACHE='requete-2026-10-04-ludique-v1600';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
