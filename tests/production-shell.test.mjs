@@ -125,14 +125,14 @@ assert(html.includes('@media (prefers-reduced-motion:reduce)') && html.includes(
 const primaryKeyLesson = html.slice(html.indexOf('{ id:34, titre:"Clé primaire"'), html.indexOf('{ id:35, titre:"Clé étrangère"'));
 assert(primaryKeyLesson.includes("WHERE prenom = 'Nathan';") && primaryKeyLesson.includes('SQL renvoie <b>2 lignes'), 'la leçon Clé primaire exécute et annonce les deux Nathan réels');
 assert(html.includes("(4,'Nathan','Petit','Paris'") && html.includes("(10,'Nathan','Dupont','Paris'"), 'les deux Nathan de Paris existent dans les données SQLite');
-assert(html.includes('{ id:75, titre:"OFFSET et pagination"') && html.includes('LIMIT 3 OFFSET 3'), 'pagination stable couverte par une leçon complète');
+assert(html.includes('{ id:12, titre:"LIMIT et OFFSET"') && html.includes('LIMIT 3 OFFSET 3'), 'pagination stable couverte par une leçon complète');
 assert(html.includes('{ id:76, titre:"GROUP_CONCAT"') && html.includes('STRING_AGG'), 'agrégation de texte couverte avec ouverture multi-SGBD');
 assert(html.includes('{ id:77, titre:"WITH RECURSIVE (CTE RECURSIVE)"') && html.includes('condition d’arrêt'), 'CTE récursives expliquées avec leur garde-fou');
 assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION BY client_id'), 'comparaison aux lignes voisines couverte');
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
 assert(html.includes('{ id:73, titre:"UNION et UNION ALL"') && html.includes('18 lignes : 10 + 8') && !html.includes('17 lignes : 9 + 8'), 'UNION ALL visible et cardinalité corrigée');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-10-04-ludique-v1603') && html.includes('requete-2026-10-04-ludique-v1603') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-10-04-ludique-v1604') && html.includes('requete-2026-10-04-ludique-v1604') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);

@@ -29,7 +29,7 @@ assert(html.includes('{ id:44, titre:"Quel JOIN choisir\u00a0?"'), 'le cours 44 
 assert(Boolean(guide) && Boolean(init), 'guide visuel et interactions du choix de JOIN localisés');
 assert(!init.includes('setTimeout(()=>setBranch(branches[0])'), 'aucun JOIN n’est choisi automatiquement');
 assert(!init.includes('setNode(nodes[0])'), 'la table A n’est plus choisie automatiquement');
-assert(serviceWorker.includes('requete-2026-10-04-ludique-v1603'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-10-04-ludique-v1604'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
