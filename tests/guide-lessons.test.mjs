@@ -11,7 +11,7 @@ const ctx = vm.createContext({});
 const a = html.indexOf('const SCHEMA_SQL ='), b = html.indexOf('let state=');
 vm.runInContext(html.slice(a, b), ctx);
 const lessons = vm.runInContext('MODULES.flatMap(m=>m.lessons)', ctx).filter(l => l.guided);
-const scenes = vm.runInContext('GUIDE_SCENES', ctx), fills = vm.runInContext('GUIDE_FILLS', ctx), dones = vm.runInContext('GUIDE_DONE', ctx), schema = vm.runInContext('SCHEMA_SQL', ctx);
+const scenes = vm.runInContext('GUIDE_SCENES', ctx), xscenes = vm.runInContext('GUIDE_XSCENES', ctx), fills = vm.runInContext('GUIDE_FILLS', ctx), dones = vm.runInContext('GUIDE_DONE', ctx), schema = vm.runInContext('SCHEMA_SQL', ctx);
 const SQL = await createRequire(import.meta.url)(path.join(root, 'vendor/sqljs/sql-wasm.js'))({locateFile: f => path.join(root, 'vendor/sqljs', f)});
 const decode = s => s.replace(/&#10;/g, '\n').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 assert.ok(lessons.length >= 1, 'au moins un cours guide');
@@ -36,17 +36,26 @@ for (const l of lessons) {
   /* Typographie : pas d'espace ordinaire avant : ? ! ; hors code. */
   const text = body.replace(/<code>[\s\S]*?<\/code>|<pre[\s\S]*?<\/pre>|<[^>]+>/g, '|').replace(/data-run-sql="[^"]*"/g, '');
   assert.ok(!/ [:?!;]/.test(text.replace(/&nbsp;/g, ' ')), `${l.titre} : espace insécable avant la ponctuation haute : ${(text.match(/.{12} [:?!;]/) || [''])[0]}`);
-  /* Scène animée : légendes, étapes et cellules cohérentes. */
-  const sc = scenes[l.id];
-  if (sc) {
+  /* Scènes animées (celle du Problème, puis celles placées dans le cours) : légendes, étapes et cellules cohérentes. */
+  const allScenes = [scenes[l.id], ...(xscenes[l.id] || [])].filter(Boolean);
+  assert.ok(scenes[l.id], `${l.titre} : une scène animée dans le Problème`);
+  for (const sc of allScenes) {
     const keys = new Set(sc.lanes.flatMap(x => [x.k, ...x.c.map(c => c[0])].filter(Boolean)));
+    const tracks = t => String(t).trim().split(/\s+/).length;
     sc.steps.forEach((st, i) => {
       assert.ok(st.cap >= 0 && st.cap < sc.caps.length, `${l.titre} : légende de l'étape ${i}`);
       for (const f of ['on', 'off', 'dim', 'undim', 'gone', 'back', 'fold', 'unfold', 'show']) for (const k of st[f] || []) assert.ok(keys.has(k), `${l.titre} : « ${k} » inconnu (${f}, étape ${i})`);
       for (const k of Object.keys(st.text || {})) assert.ok(keys.has(k), `${l.titre} : texte sur « ${k} » inconnu`);
+      for (const [a, b] of st.fly || []) assert.ok(keys.has(a) && keys.has(b), `${l.titre} : vol « ${a} » → « ${b} » inconnu (étape ${i})`);
+      if (st.cols) assert.equal(tracks(st.cols), tracks(sc.cols), `${l.titre} : la nouvelle grille de l'étape ${i} garde le même nombre de colonnes`);
     });
     assert.equal(sc.steps.length, sc.caps.length, `${l.titre} : une légende par étape`);
+    /* Les cellules de chaque ligne tiennent dans la grille. */
+    if (sc.cols) for (const lane of sc.lanes) assert.ok(lane.c.length <= tracks(sc.cols), `${l.titre} : trop de cellules pour la grille (${lane.k || 'en-tête'})`);
   }
+  /* Chaque emplacement d'animation du cours a sa scène. */
+  const slots = (body.match(/data-xscene="(\d+)"/g) || []).length;
+  assert.equal(slots, (xscenes[l.id] || []).length, `${l.titre} : autant d'emplacements que de scènes dans le cours`);
   /* Mission : un « Ta mission » dans la situation, une carte « Mission accomplie » après la requête complète. */
   assert.match(l.situation, /is-mission/, `${l.titre} : « Ta mission » dans la situation`);
   const card = /<div class="ij-done is-locked"[\s\S]*?<\/ol>/.exec(l.studio.uses.body);
@@ -62,22 +71,31 @@ for (const l of lessons) {
   const dbm = new SQL.Database(); dbm.run(schema); ctx.attachDateFns && ctx.attachDateFns(dbm);
   const resMission = dbm.exec(full)[0]; dbm.close();
   const nRows = resMission.values.length;
-  assert.equal(outN, nRows, `${l.titre} : la requête de la mission renvoie ${nRows} lignes, le parcours en annonce ${outN}`);
+  /* Parcours en lignes (par défaut) ou en colonnes (data-unit="cols", ex. SELECT). */
+  const unitCols = /<ol class="ij-funnel" data-unit="cols"/.test(lastUse);
+  if (unitCols) assert.equal(outN, resMission.columns.length, `${l.titre} : la requête de la mission renvoie ${resMission.columns.length} colonnes, le parcours en annonce ${outN}`);
+  else assert.equal(outN, nRows, `${l.titre} : la requête de la mission renvoie ${nRows} lignes, le parcours en annonce ${outN}`);
   /* Les personnes citées (liste d'envois et parcours) sont celles que renvoie la requête : « prénom nom », et leur contact. */
   const col = c => resMission.columns.indexOf(c);
   const whoOf = row => (col('prenom') >= 0 && col('nom') >= 0 ? `${row[col('prenom')]} ${row[col('nom')]}` : String(row[col('prenom') >= 0 ? col('prenom') : 0]));
   const contactCol = col('email') >= 0 ? col('email') : col('telephone');
   const peopleHtml = [...lastUse.matchAll(/<span class="ij-sms-who">([^<]*)<small>([^<]*)<\/small>/g)].map(m => [decode(m[1]), decode(m[2])]);
   if (peopleHtml.length) {
-    assert.deepEqual(peopleHtml.map(p => p[0]), resMission.values.map(whoOf), `${l.titre} : les personnes de la liste d'envois sont celles de la requête de la mission`);
-    if (contactCol >= 0) assert.deepEqual(peopleHtml.map(p => p[1]), resMission.values.map(r => String(r[contactCol])), `${l.titre} : chaque personne a le contact renvoyé par la requête`);
-    const funnelWho = /is-out"><b>\d+<\/b><span>[^<]*<small>([^<]*)<\/small>/.exec(lastUse)[1].replace(/ et /g, ', ').split(', ');
-    assert.deepEqual(funnelWho, resMission.values.map(whoOf), `${l.titre} : le parcours cite les mêmes personnes, dans le même ordre`);
+    /* Liste d'envois : toutes les personnes du résultat, ou les premières puis une ligne « … et N autres » (class="is-more"). */
+    const more = /<li class="is-more" style="--i:\d+"><b class="ij-sms-av" aria-hidden="true">\+(\d+)<\/b>/.exec(lastUse);
+    const want = resMission.values.slice(0, peopleHtml.length);
+    assert.equal(peopleHtml.length + (more ? +more[1] : 0), nRows, `${l.titre} : la liste d'envois montre ${peopleHtml.length} personnes${more ? ` et annonce ${more[1]} autres` : ''}, la requête en renvoie ${nRows}`);
+    assert.deepEqual(peopleHtml.map(p => p[0]), want.map(whoOf), `${l.titre} : les personnes de la liste d'envois sont celles de la requête de la mission`);
+    if (contactCol >= 0) assert.deepEqual(peopleHtml.map(p => p[1]), want.map(r => String(r[contactCol])), `${l.titre} : chaque personne a le contact renvoyé par la requête`);
+    if (!more && !unitCols) {
+      const funnelWho = /is-out"><b>\d+<\/b><span>[^<]*<small>([^<]*)<\/small>/.exec(lastUse)[1].replace(/ et /g, ', ').split(', ');
+      assert.deepEqual(funnelWho, resMission.values.map(whoOf), `${l.titre} : le parcours cite les mêmes personnes, dans le même ordre`);
+    }
   }
   const lit = (/is-out">[\s\S]*?<\/li>/.exec(lastUse)[0].match(/class="is-null"/g) || []).length;
   assert.equal(lit, outN, `${l.titre} : autant de points allumés que de lignes gardées`);
-  const sms = /ij-sms(?: is-mail)?" style="--n:(\d+)"/.exec(lastUse);
-  if (sms) assert.equal(+sms[1], (lastUse.match(/<li style="--i:/g) || []).length, `${l.titre} : nombre d'envois`);
+  const sms = /ij-sms(?: is-mail)?(?: is-phone)?" style="--n:(\d+);--sg:[\d.]+s"/.exec(lastUse);
+  if (sms) assert.equal(+sms[1], (lastUse.match(/<li(?: class="is-more")? style="--i:/g) || []).length, `${l.titre} : nombre d'envois`);
   /* Tableaux « à tester » (balayage ligne par ligne) : chaque verdict est celui de la condition, sur de vraies lignes de la table. */
   for (const blk of body.match(/<div class="rt-wrap"[\s\S]*?<span class="rt-hint">/g) || []) {
     const n = +/data-rt-n="(\d+)"/.exec(blk)[1], val = +/data-rt-val="(\d+)"/.exec(blk)[1];
@@ -102,4 +120,7 @@ for (const l of lessons) {
   }
 }
 assert.ok(testedTables >= 1, 'au moins un tableau à tester (cours WHERE)');
+/* Moteur des scènes : plusieurs animations par cours, grille de colonnes qui se referme, mise en forme « fiche ». */
+for (const frag of ['function mountProbScene(cfg,slot,memo)', "if(s.cols)root.style.setProperty('--cols',s.cols)", ".pr-slot[data-xscene]", '.pr-scene.has-cols .pr-cells{gap:4px;transition:grid-template-columns', '.pr-scene.is-form .pr-c.pr-th', '.pr-c.is-gone{max-width:0!important', '.ij-sms.is-phone .ij-sms-plane svg'])
+  assert.ok(html.includes(frag), `moteur : « ${frag} » présent`);
 console.log(`${lessons.length} cours guide, ${runs} requêtes exécutées, ${testedTables} tableau(x) à tester : OK`);
