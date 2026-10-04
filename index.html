@@ -6055,10 +6055,7 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 const SCHEMA_SQL = `
 PRAGMA foreign_keys = ON;
 /* Schema pedagogique : clients, produits, commandes, et fidelite
-   (relation 1-1, lecon relations entre les tables).
-   Regle pedagogique : 1 commande = 120 points, +5 si le produit > 30 e.
-   Nathan (client_id = 4) : Fibre 29,90 (120) + Collagene 39,90 (125) = 245
-   attendus, 250 affiches dans fidelite. */
+   (une fiche de points par client : relation 1-1, lecon relations 1-1, 1-N et N-N). */
 CREATE TABLE clients (
   id INTEGER PRIMARY KEY,
   prenom TEXT NOT NULL,
@@ -6238,7 +6235,7 @@ function guide(spec){
       uses:{title:'Écrire la requête',body:`<div class="pt-lead fn-uses fk-course jn-course">${steps.map(st=>`<div class="fn-use"><p class="pt-syntax-h">${guideFr(st.h)}</p>${guideBlocks(st.blocks)}</div>`).join('\n')}</div>`},
       reflex:{extra:guideBlocks(reflex)}},
     noTeste:true,noAnat:true,richLesson:true,earlyDemo:true,guided:true};
-  ['anatomie','exemple','attendu','retenir','consigne','solution','indice','learningCheck','testeVariants','petitDefi','ordered','write','verif','noExec','noExecWhy','noExecOk','noExecNote','normExo','explainExo','createExo','serverConcept','apres','joinRecap','exoNeeds'].forEach(k=>{if(spec[k]!==undefined)lesson[k]=spec[k];});
+  ['anatomie','exemple','attendu','retenir','consigne','solution','indice','learningCheck','testeVariants','petitDefi','ordered','write','verif','noExec','noExecWhy','noExecOk','noExecNote','normExo','createExo','serverConcept','apres','joinRecap','exoNeeds'].forEach(k=>{if(spec[k]!==undefined)lesson[k]=spec[k];});
   return lesson;
 }
 /* ============================================================
@@ -8759,108 +8756,6 @@ guide({ id:35, titre:"Clé étrangère", résumé:"Relier une ligne à la bonne 
   indice:"Filtre sur la clé étrangère : <code>client_id</code> doit valoir 7.",
   testeVariants:[{k:"cmd4",label:"Commandes du client 4",sql:"SELECT id, client_id, produit_id, statut\nFROM commandes\nWHERE client_id = 4;",out:"2 lignes : les commandes de Nathan",expectRows:2},{k:"cmd10",label:"Client sans commande",sql:"SELECT id, client_id\nFROM commandes\nWHERE client_id = 10;",out:"0 ligne : la référence est valide, mais ce client n’a pas commandé",expectRows:0},{k:"invite",label:"Commande sans client",sql:"SELECT id, client_id, produit_id\nFROM commandes\nWHERE client_id IS NULL;",out:"1 ligne : la commande 16, sans client enregistré",expectRows:1},{k:"colis",label:"Avec le prénom du client",sql:"SELECT clients.id, clients.prenom, commandes.id, commandes.produit_id, commandes.statut\nFROM commandes\nJOIN clients\n    ON commandes.client_id = clients.id\nWHERE clients.id = 4\n  AND commandes.statut = 'en_preparation';",out:"1 ligne : la commande 12, avec le prénom de Nathan (la jointure est vue plus loin)",tone:"good",expectRows:1}],
   learningCheck:{question:"Quelle colonne permet de savoir à quel client appartient chaque commande ?",options:["commandes.id","commandes.client_id","clients.prenom"],answer:1,explanation:"La clé étrangère client_id renvoie à clients.id : elle désigne le client qui a passé la commande."}
-}),
-guide({ id:36, titre:"Les relations entre les tables", résumé:"Découvrir 1-1, 1-N et N-N à travers Nathan",
-  sit:{
-    blocks:[
-      "L’équipe fidélité reçoit <b>un email de Nathan</b> : sa carte affiche <b>250 points</b>, mais il doute que ce solde soit juste. Dans le programme, <b>chaque commande rapporte 120 points</b>, plus <b>5 points bonus</b> si le produit coûte plus de 30 €.",
-      "Les informations de Nathan sont réparties dans <b>quatre tables</b> : <code>clients</code>, <code>fidelite</code>, <code>commandes</code> et <code>produits</code>. Pour vérifier son solde, l’équipe souhaite récupérer uniquement :",
-      {need:[["⭐","Les points affichés sur sa carte","table fidelite"],["🧾","Ses commandes","table commandes"],["💶","Le prix des produits commandés","table produits"]],label:"Les informations à récupérer"}
-    ],
-    problem:{
-      p:["Avec <code>WHERE</code>, SQL sait retrouver les lignes d’<b>une</b> table : par exemple la carte de fidélité d’un client.","Or, pour vérifier les points de Nathan, il faut <b>passer d’une table à l’autre</b> et savoir, à chaque fois, <b>combien de lignes</b> lui correspondent."],
-      scene:{h:"🗂️ Les tables de Nathan",cols:"1fr 1.5fr",
-        lanes:[{c:[["","table","t"],["","pour Nathan","t"]]},
-          {k:"R1",c:[["a1","clients"],["a2","Nathan"]]},
-          {k:"R2",c:[["b1","fidelite"],["b2","250 points"]]},
-          {k:"R3",c:[["c1","commandes"],["c2","?","q"]]},
-          {k:"R4",c:[["d1","produits"],["d2","?","q"]]}],
-        caps:["<b>Notre enquête</b> · Les informations de Nathan sont rangées dans quatre tables différentes.","<b>Limite</b> · Combien de commandes, combien de produits ? Les tables ne le disent pas encore.","<b>Résultat</b> · Les commandes et les produits de Nathan doivent être retrouvés."],
-        steps:[{cap:0,on:["R1","R2","R3","R4"],d:1900},{cap:1,off:["R1","R2","R3","R4"],on:["c2","d2"],d:2300},{cap:2,on:["R1","R2","R3","R4"],d:2400}]},
-      then:["Il faut donc comprendre <b>comment les tables sont reliées</b> entre elles.","C’est exactement ce que décrit une <b>relation</b> entre deux tables."]
-    },
-    mission:"Aide l’équipe fidélité à retrouver le <b>nom</b>, le <b>prix</b> et les <b>points</b> de chaque produit commandé par Nathan, afin de vérifier si ses <b>250 points</b> sont justes."
-  },
-  concept:{
-    title:"Comment SQL peut-il savoir combien de lignes sont reliées ?",
-    blocks:[
-      "Pour décrire le lien entre deux tables, on pose deux fois la même question, une fois dans chaque sens :",
-      {ask:"Combien de lignes de l’autre table peuvent correspondre à une ligne de celle-ci ?"},
-      "La réponse est <b>1</b> (une seule) ou <b>N</b> (plusieurs). On note la relation avec ces deux nombres :",
-      {syntax:"clients ⟦1 → N⟧ commandes"},
-      {scene:{h:"🔗 Trois façons d’être reliées",cols:"1fr .8fr 1fr",
-        lanes:[{k:"R1",c:[["a1","clients"],["a2","1 ↔ 1","h"],["a3","fidelite"]]},
-          {k:"R2",c:[["b1","clients"],["b2","1 → N","h"],["b3","commandes"]]},
-          {k:"R3",c:[["c1","clients"],["c2","N ↔ N","h"],["c3","produits"]]}],
-        caps:["<b>Les tables</b> · Trois couples de tables à comparer.","<b>clients et fidelite</b> · Un client n’a qu’une fiche, et une fiche n’appartient qu’à un client : c’est un à un.","<b>clients et commandes</b> · Un client a plusieurs commandes, mais une commande n’a qu’un client : c’est un à plusieurs.","<b>clients et produits</b> · Un client commande plusieurs produits, et un produit est commandé par plusieurs clients : c’est plusieurs à plusieurs."],
-        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R1","R2","R3"],on:["R1"],show:["a2"],d:2800},{cap:2,off:["R1"],on:["R2"],show:["b2"],d:2800},{cap:3,off:["R2"],on:["R3"],show:["c2"],d:2800}]}}
-    ]
-  },
-  steps:[
-    {h:"1 ↔ 1 : les points de Nathan",blocks:[
-      "Commence par les points affichés sur la carte de Nathan. Ils ne sont pas dans la table <code>clients</code> mais dans <code>fidelite</code>, dont chaque fiche garde le <code>client_id</code> de son propriétaire.",
-      {say:"👇 Exécute cette requête pour retrouver la fiche de fidélité de Nathan :",run:"SELECT client_id, points\nFROM fidelite\nWHERE client_id = 4;"},
-      {arrow:"Une seule fiche : la carte de Nathan affiche <b>250 points</b>. C’est bien une relation <b>1 ↔ 1</b>."}
-    ]},
-    {h:"1 → N : les commandes de Nathan",blocks:[
-      "Ses commandes sont dans la table <code>commandes</code>, qui garde elle aussi le <code>client_id</code> du client.",
-      {say:"👇 Exécute cette requête pour retrouver les commandes de Nathan :",run:"SELECT id, client_id, produit_id\nFROM commandes\nWHERE client_id = 4;"},
-      {arrow:"Deux commandes : le numéro 4 revient sur deux lignes. C’est bien une relation <b>1 → N</b> : la clé étrangère se place du côté N, ici dans <code>commandes</code>."},
-      {warn:{t:"Ne retire pas ces répétitions",blocks:[
-        "Ces deux 4 ne sont pas des doublons : chaque ligne est une commande différente. Si tu écris :",
-        {syntax:"SELECT DISTINCT client_id\nFROM commandes\nWHERE client_id = 4;"},
-        "<code>DISTINCT</code> n’en garde qu’une : on ne voit plus qu’une ligne, alors que Nathan a passé deux commandes.",
-        {say:"👇 Teste par toi-même :",run:"SELECT DISTINCT client_id\nFROM commandes\nWHERE client_id = 4;"}
-      ]}}
-    ]},
-    {h:"N ↔ N : les produits de Nathan",blocks:[
-      "Nathan a commandé les produits 1 et 2. Mais un produit peut aussi être commandé par plusieurs clients : regarde qui a commandé la Fibre Prébiotique, le produit 1.",
-      {say:"👇 Exécute cette requête pour voir les commandes de la Fibre Prébiotique :",run:"SELECT id, client_id\nFROM commandes\nWHERE produit_id = 1;"},
-      {arrow:"Quatre commandes, passées par quatre clients différents : les clients 1, 4, 7 et 5."},
-      {scene:{h:"🛒 Qui a commandé quoi ?",cols:"1fr 1.2fr",
-        lanes:[{k:"H",l:"table commandes",c:[["","🔗 client_id","t"],["","🔗 produit_id","t"]]},
-          {k:"R1",c:[["a1","1 · Sophie"],["a2","1 · Fibre"]]},
-          {k:"R2",c:[["b1","4 · Nathan"],["b2","1 · Fibre"]]},
-          {k:"R3",c:[["c1","7 · Léa"],["c2","1 · Fibre"]]},
-          {k:"R4",c:[["d1","4 · Nathan"],["d2","2 · Collagène"]]},
-          {k:"R5",c:[["e1","5 · Chloé"],["e2","1 · Fibre"]]}],
-        caps:["<b>La table commandes</b> · Chaque ligne relie un client à un produit.","<b>Côté client</b> · Nathan apparaît sur deux lignes.","<b>Côté produit</b> · La Fibre Prébiotique apparaît sur quatre lignes.","<b>Résultat</b> · Ni clients ni produits ne portent ce lien : c’est la table commandes, avec ses deux clés étrangères. La relation est N ↔ N."],
-        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5"],on:["R2","R4"],dim:["R1","R3","R5"],d:2600},{cap:2,off:["R2","R4"],undim:["R1","R3","R5"],on:["R1","R2","R3","R5"],dim:["R4"],d:2800},{cap:3,off:["R1","R2","R3","R5"],undim:["R4"],on:["R1","R2","R3","R4","R5"],d:2600}]}}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à retrouver les produits commandés par Nathan, les numéros 1 et 2, et à calculer les points de chaque commande. Ici, on recopie ces numéros à la main : plus tard, une jointure reliera les tables en une seule requête.",
-      {say:"👇 Exécute la requête pour vérifier les points de Nathan :",run:"SELECT nom, prix,\n       120 + CASE WHEN prix > 30 THEN 5 ELSE 0 END AS points\nFROM produits\nWHERE id IN (1, 2);"},
-      {done:{
-        label:"Des 8 produits aux 2 produits de Nathan",
-        funnel:[
-          {n:8,t:"produits au départ",s:"toute la <code>table produits</code>",dots:"00000000"},
-          {step:"WHERE id IN (1, 2)",s:"ne garde que les produits commandés par Nathan"},
-          {n:2,t:"⭐ produits commandés",s:"Fibre Prébiotique et Collagène Marin",dots:"11000000",out:true}
-        ],
-        sms:{ico:"⭐",h:"Vérification du solde",aria:"Les points de chaque commande de Nathan sont recalculés",msg:"<b>Solde de Nathan</b><br>120 points par commande, plus 5 points si le produit dépasse 30 €.",people:[["F","Fibre Prébiotique","120 points"],["C","Collagène Marin","125 points"]],st:["À calculer","Calcul","✓ Calculé"],plane:"star",done:"✓ 120 + 125 = 245 points attendus, contre 250 affichés"},
-        fill:["FROM","produits","IN","(1, 2)"],
-        ui:{t:"245 points attendus, 250 affichés",s:"Nathan avait raison de douter : ses deux commandes ne justifient pas le solde de sa carte.",n:["SELECT","FROM","WHERE","IN","CASE"]},
-        rows:2
-      }}
-    ]}
-  ],
-  reflex:[
-    {recap:[
-      ["🔢","Une <b>relation</b> indique combien de lignes d’une table peuvent correspondre à une ligne d’une autre : <b>1</b> ou <b>N</b>."],
-      ["↔️","Pose la question dans les <b>deux sens</b> : la réponse donne le type de relation.",null,"1 ↔ 1 · 1 → N · N ↔ N"],
-      ["🧩","Quand les deux côtés sont « plusieurs », une table intermédiaire porte le lien : ici, <code>commandes</code> relie clients et produits."]
-    ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"SELECT id, client_id, produit_id",txt:"Affiche chaque commande, son client et son produit."},{tok:"FROM commandes",txt:"C’est ici que les commandes de Nathan se répètent."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"client_id",plain:1,txt:"La clé étrangère, du côté N de la relation."},{tok:"=",plain:1,txt:"Compare ce numéro à celui du client cherché."},{tok:"4",plain:1,txt:"L’id de Nathan : garde uniquement ses commandes."}],
-  exemple:"SELECT id, client_id, produit_id FROM commandes WHERE client_id = 4;",
-  attendu:"<b>2 lignes</b> : les commandes 5 et 12, chacune avec <code>client_id = 4</code>. Pour calculer les points, il faudra aussi les produits.",
-  retenir:"Une <b>relation</b> indique combien de lignes d’une table peuvent correspondre à une ligne d’une autre : <b>1</b> (une seule) ou <b>N</b> (plusieurs).<br><br>Il existe trois relations : <b>1 ↔ 1</b> (un à un), <b>1 → N</b> (un à plusieurs) et <b>N ↔ N</b> (plusieurs à plusieurs).<br><br>Pose la question dans les deux sens. Quand les deux côtés sont « plusieurs », une table intermédiaire, ici <code>commandes</code>, porte le lien.",
-  consigne:"Sophie, la cliente numéro 1, a passé plusieurs commandes. Combien en a-t-elle passé ? Affiche uniquement ce nombre.",
-  solution:"SELECT COUNT(*) FROM commandes WHERE client_id = 1;",
-  indice:"Compte les lignes de <code>commandes</code> dont la clé étrangère <code>client_id</code> vaut 1, avec <code>COUNT(*)</code>.",
-  petitDefi:[{p:"Un client a au maximum une fiche de fidélité, et une fiche appartient à un seul client. Quelle relation entre <code>clients</code> et <code>fidelite</code> ?",sql:"clients ←→ fidelite : __________",a:"1-1",answers:["1-1","1 ↔ 1","1<->1","1 à 1","1 a 1","1:1","un à un"]},{p:"Un client peut passer plusieurs commandes, et une commande appartient à un seul client. Quelle relation entre <code>clients</code> et <code>commandes</code> ?",sql:"clients ←→ commandes : __________",a:"1-N",answers:["1-N","1 → N","1->N","1 à N","1 a N","1:N","un à plusieurs"]},{p:"Un client commande plusieurs produits, et un produit est commandé par plusieurs clients. Quelle relation entre <code>clients</code> et <code>produits</code> ?",sql:"clients ←→ produits : __________",a:"N-N",answers:["N-N","N ↔ N","N<->N","N:N","plusieurs à plusieurs"]},{p:"Quelle table permet de relier les clients aux produits ?",sql:"clients ←→ __________ ←→ produits",a:"commandes",answers:["commandes","COMMANDES"]}],
-  testeVariants:[{k:"fidnathan",label:"Carte fidélité",sql:"SELECT client_id, points\nFROM fidelite\nWHERE client_id = 4;",out:"1 ligne : 250 points affichés pour Nathan.",expectRows:1},{k:"cmdnathan",label:"Ses commandes",sql:"SELECT id, client_id, produit_id\nFROM commandes\nWHERE client_id = 4;",out:"2 lignes : Nathan a 2 commandes, avec produit_id 1 et 2.",expectRows:2},{k:"prodsnathan",label:"Ses produits",sql:"SELECT id, nom, prix\nFROM produits\nWHERE id IN (1, 2);",out:"2 lignes : Fibre Prébiotique 29,90 € (pas de bonus) et Collagène Marin 39,90 € (+5 points).",expectRows:2}],
-  learningCheck:{question:"Nathan a deux commandes. Quelle relation existe entre clients et commandes ?",options:["1 ↔ 1","1 → N","N ↔ N"],answer:1,explanation:"Un client peut avoir plusieurs commandes, mais une commande n’a qu’un client : c’est 1 → N."}
 })
 ]},
 { titre:"Jointures", sous:"Interroger plusieurs tables à la fois", lessons:[
@@ -11317,11 +11212,61 @@ guide({ id:72, titre:"Relations 1-1, 1-N et N-N", résumé:"Les trois formes de 
     mission:"Aide l’équipe marketing à créer la table <code>echantillons</code>, qui relie chaque <b>client</b> au <b>produit</b> qu’il reçoit, avec la <b>date d’envoi</b>, afin de ne jamais offrir deux fois le même échantillon au même client."
   },
   concept:{
-    title:"Comment SQL peut-il savoir qu’un échantillon a déjà été envoyé ?",
+    title:"Comment SQL peut-il savoir combien de lignes sont reliées ?",
     blocks:[
-      "Dans la table <code>echantillons</code>, un même envoi ne doit exister qu’une fois. Avant d’en enregistrer un nouveau, SQL doit vérifier une chose :",
-      {ask:"Ce couple client + produit est-il déjà enregistré ?"},
-      "En SQL, on déclare une <b>clé primaire sur les deux colonnes</b> : c’est le couple, et non chaque colonne, qui doit rester unique :",
+      "Pour décrire le lien entre deux tables, on pose deux fois la même question, une fois dans chaque sens :",
+      {ask:"Combien de lignes de l’autre table peuvent correspondre à une ligne de celle-ci ?"},
+      "La réponse est <b>1</b> (une seule) ou <b>N</b> (plusieurs). On note la relation avec ces deux nombres :",
+      {syntax:"clients ⟦1 → N⟧ commandes"},
+      {scene:{h:"🔗 Trois façons d’être reliées",cols:"1fr .8fr 1fr",
+        lanes:[{k:"R1",c:[["a1","clients"],["a2","1 ↔ 1","h"],["a3","fidelite"]]},
+          {k:"R2",c:[["b1","clients"],["b2","1 → N","h"],["b3","commandes"]]},
+          {k:"R3",c:[["c1","clients"],["c2","N ↔ N","h"],["c3","produits"]]}],
+        caps:["<b>Les tables</b> · Trois couples de tables à comparer.","<b>clients et fidelite</b> · Un client n’a qu’une fiche, et une fiche n’appartient qu’à un client : c’est un à un.","<b>clients et commandes</b> · Un client a plusieurs commandes, mais une commande n’a qu’un client : c’est un à plusieurs.","<b>clients et produits</b> · Un client commande plusieurs produits, et un produit est commandé par plusieurs clients : c’est plusieurs à plusieurs."],
+        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R1","R2","R3"],on:["R1"],show:["a2"],d:2800},{cap:2,off:["R1"],on:["R2"],show:["b2"],d:2800},{cap:3,off:["R2"],on:["R3"],show:["c2"],d:2800}]}}
+    ]
+  },
+  steps:[
+    {h:"1 → N : une clé étrangère du côté « plusieurs »",blocks:[
+      "Dans une relation <b>1 → N</b>, la clé étrangère se place du côté <b>N</b> : dans <code>commandes</code>, pas dans <code>clients</code>. On peut la déclarer directement sur la colonne :",
+      {syntax:"client_id INTEGER ⟦REFERENCES clients(id)⟧"},
+      {say:"👇 Exécute cette requête pour retrouver les commandes de Nathan, le client 4 :",run:"SELECT id, client_id, produit_id\nFROM commandes\nWHERE client_id = 4;"},
+      {arrow:"Deux commandes : le numéro 4 revient sur deux lignes, et rien n’empêche d’en ajouter d’autres. C’est bien une relation <b>1 → N</b>."},
+      {tip:{t:"Pourquoi pas dans clients ?",blocks:["Mettre la clé dans <code>clients</code> obligerait à y ranger plusieurs numéros de commande dans une seule colonne."]}}
+    ]},
+    {h:"1 ↔ 1 : une clé étrangère UNIQUE",blocks:[
+      "Dans une relation <b>1 ↔ 1</b>, on ajoute <code>UNIQUE</code> à la clé étrangère : un client ne peut avoir qu’<b>une seule</b> fiche. C’est le cas de la table <code>fidelite</code> :",
+      {syntax:"CREATE TABLE fidelite (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER ⟦UNIQUE⟧,\n  points INTEGER,\n  FOREIGN KEY (client_id)\n    REFERENCES clients(id)\n);"},
+      {say:"👇 Exécute cette requête pour retrouver la fiche de fidélité de Nathan :",run:"SELECT client_id, points\nFROM fidelite\nWHERE client_id = 4;"},
+      {arrow:"Une seule fiche : la carte de Nathan affiche <b>250 points</b>. C’est bien une relation <b>1 ↔ 1</b>."},
+      {warn:{t:"Une deuxième fiche",blocks:[
+        "Si tu essaies d’ajouter une seconde fiche pour Nathan, qui en a déjà une :",
+        {syntax:"INSERT INTO fidelite (client_id, points)\nVALUES (4, 10);"},
+        "La base refuse : <code>UNIQUE</code> interdit qu’un même client apparaisse deux fois.",
+        {say:"👇 Teste par toi-même :",run:"INSERT INTO fidelite (client_id, points)\nVALUES (4, 10);"}
+      ]}}
+    ]},
+    {h:"N ↔ N : une table de jointure",blocks:[
+      "Les commandes de Nathan portent sur les produits 1 et 2. Mais un produit peut aussi être commandé par plusieurs clients : regarde qui a commandé la Fibre Prébiotique, le produit 1.",
+      {say:"👇 Exécute cette requête pour voir les commandes de la Fibre Prébiotique :",run:"SELECT id, client_id\nFROM commandes\nWHERE produit_id = 1;"},
+      {arrow:"Quatre commandes, passées par quatre clients différents : les clients 1, 4, 7 et 5."},
+      {scene:{h:"🛒 Qui a commandé quoi ?",cols:"1fr 1.2fr",
+        lanes:[{k:"H",l:"table commandes",c:[["","🔗 client_id","t"],["","🔗 produit_id","t"]]},
+          {k:"R1",c:[["a1","1 · Sophie"],["a2","1 · Fibre"]]},
+          {k:"R2",c:[["b1","4 · Nathan"],["b2","1 · Fibre"]]},
+          {k:"R3",c:[["c1","7 · Léa"],["c2","1 · Fibre"]]},
+          {k:"R4",c:[["d1","4 · Nathan"],["d2","2 · Collagène"]]},
+          {k:"R5",c:[["e1","5 · Chloé"],["e2","1 · Fibre"]]}],
+        caps:["<b>La table commandes</b> · Chaque ligne désigne un client et un produit.","<b>Côté client</b> · Nathan apparaît sur deux lignes.","<b>Côté produit</b> · La Fibre Prébiotique apparaît sur quatre lignes.","<b>Résultat</b> · Ni clients ni produits ne portent ce lien : c’est la table commandes, avec ses deux clés étrangères. La relation est N ↔ N."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5"],on:["R2","R4"],dim:["R1","R3","R5"],d:2600},{cap:2,off:["R2","R4"],undim:["R1","R3","R5"],on:["R1","R2","R3","R5"],dim:["R4"],d:2800},{cap:3,off:["R1","R2","R3","R5"],undim:["R4"],on:["R1","R2","R3","R4","R5"],d:2600}]}},
+      {warn:{t:"Une liste dans une colonne",blocks:[
+        "Une idée tentante serait de ranger tous les produits offerts à un client dans une seule colonne de texte, séparés par des virgules. Si tu cherches ensuite qui a reçu le produit 3 :",
+        {say:"👇 Teste par toi-même :",run:"CREATE TABLE echantillons_texte (\n  client_id INTEGER,\n  produits TEXT\n);\nINSERT INTO echantillons_texte\nVALUES (1, '1, 3'), (2, '13');\nSELECT client_id, produits\nFROM echantillons_texte\nWHERE produits LIKE '%3%';"},
+        {arrow:"Le client 2 remonte aussi, alors qu’il a reçu le produit 13, pas le 3. Et rien n’empêche d’y écrire un produit qui n’existe pas."}
+      ]}}
+    ]},
+    {h:"Une clé primaire sur le couple",blocks:[
+      "Dans la table de jointure, un même envoi ne doit exister qu’une fois : c’est le couple client + produit, et non chaque colonne, qui doit rester unique. On déclare donc une <b>clé primaire sur les deux colonnes</b> :",
       {syntax:"PRIMARY KEY ⟦(client_id, produit_id)⟧"},
       {scene:{h:"🔒 Un couple, une seule fois",cols:"1fr 1.1fr 1.4fr",
         lanes:[{c:[["h1","client_id","t"],["h2","produit_id","t"],["h3","date_envoi","t"]]},
@@ -11330,34 +11275,10 @@ guide({ id:72, titre:"Relations 1-1, 1-N et N-N", résumé:"Les trois formes de 
           {k:"N1",l:"nouvel envoi",fold:true,cls:"is-goal",c:[["n1","1","h"],["n2","1","h"],["n3","2026-09-05","h"]]},
           {k:"N2",l:"nouvel envoi",fold:true,cls:"is-goal",c:[["m1","2","h"],["m2","1","h"],["m3","2026-09-05","h"]]}],
         caps:["<b>Table echantillons</b> · Chaque ligne est un couple client + produit : deux envois sont déjà enregistrés.","<b>VALUES (1, 1, …)</b> · Un nouvel envoi arrive : le client 1 et le produit 1.","<b>PRIMARY KEY (client_id, produit_id)</b> · Ce couple existe déjà : la base refuse la ligne.","<b>VALUES (2, 1, …)</b> · Le couple (2, 1) est nouveau : la ligne est acceptée, même si le produit 1 apparaît déjà."],
-        steps:[{cap:0,on:["R1","R2"],d:1900},{cap:1,off:["R1","R2"],unfold:["N1"],show:["n1","n2","n3"],on:["N1"],stagger:220,d:2500},{cap:2,off:["N1"],mark:{N1:"is-miss"},on:["R1"],d:2600},{cap:3,off:["R1"],unmark:{N1:"is-miss"},fold:["N1"],unfold:["N2"],show:["m1","m2","m3"],on:["N2"],stagger:220,d:3000}]}}
-    ]
-  },
-  steps:[
-    {h:"1-N : une clé étrangère du côté « plusieurs »",blocks:[
-      "Un client passe plusieurs commandes, mais chaque commande n’a qu’un client. La clé étrangère se place donc du côté <b>N</b> : dans <code>commandes</code>, pas dans <code>clients</code>. On peut la déclarer directement sur la colonne :",
-      {syntax:"client_id INTEGER ⟦REFERENCES clients(id)⟧"},
-      {say:"👇 Exécute cette requête pour donner une troisième commande au client 4 :",run:"INSERT INTO commandes (client_id, produit_id, quantite)\nVALUES (4, 3, 1);\nSELECT id, client_id, produit_id\nFROM commandes\nWHERE client_id = 4;"},
-      {arrow:"Le client 4 apparaît maintenant sur trois lignes : une clé étrangère seule n’impose aucune limite."},
-      {tip:{t:"Pourquoi pas dans clients ?",blocks:["Mettre la clé dans <code>clients</code> obligerait à y ranger plusieurs numéros de commande dans une seule colonne."]}}
-    ]},
-    {h:"1-1 : une clé étrangère UNIQUE",blocks:[
-      "Pour qu’un client n’ait qu’<b>une seule</b> fiche, on ajoute <code>UNIQUE</code> à la clé étrangère. C’est le cas de la table <code>fidelite</code> :",
-      {syntax:"CREATE TABLE fidelite (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER ⟦UNIQUE⟧,\n  points INTEGER,\n  FOREIGN KEY (client_id)\n    REFERENCES clients(id)\n);"},
-      {say:"👇 Exécute cette requête pour donner une première fiche à Gabriel, qui n’en a pas encore :",run:"INSERT INTO fidelite (client_id, points)\nVALUES (8, 20);\nSELECT client_id, points\nFROM fidelite\nWHERE client_id = 8;"},
-      {warn:{t:"Une deuxième fiche",blocks:[
-        "Si tu essaies d’ajouter une seconde fiche pour Nathan, qui en a déjà une :",
-        {syntax:"INSERT INTO fidelite (client_id, points)\nVALUES (4, 10);"},
-        "La base refuse : <code>UNIQUE</code> interdit qu’un même client apparaisse deux fois.",
-        {say:"👇 Teste par toi-même :",run:"INSERT INTO fidelite (client_id, points)\nVALUES (4, 10);"}
-      ]}}
-    ]},
-    {h:"N-N : pourquoi pas une colonne ?",blocks:[
-      "Une idée tentante serait de ranger tous les produits offerts à un client dans une seule colonne de texte.",
-      {warn:{t:"Une liste dans une colonne",blocks:[
-        "Si tu écris les produits de chaque client sous forme de liste, séparés par des virgules, puis que tu cherches qui a reçu le produit 3 :",
-        {say:"👇 Teste par toi-même :",run:"CREATE TABLE echantillons_texte (\n  client_id INTEGER,\n  produits TEXT\n);\nINSERT INTO echantillons_texte\nVALUES (1, '1, 3'), (2, '13');\nSELECT client_id, produits\nFROM echantillons_texte\nWHERE produits LIKE '%3%';"},
-        {arrow:"Le client 2 remonte aussi, alors qu’il a reçu le produit 13, pas le 3. Et rien n’empêche d’y écrire un produit qui n’existe pas."}
+        steps:[{cap:0,on:["R1","R2"],d:1900},{cap:1,off:["R1","R2"],unfold:["N1"],show:["n1","n2","n3"],on:["N1"],stagger:220,d:2500},{cap:2,off:["N1"],mark:{N1:"is-miss"},on:["R1"],d:2600},{cap:3,off:["R1"],unmark:{N1:"is-miss"},fold:["N1"],unfold:["N2"],show:["m1","m2","m3"],on:["N2"],stagger:220,d:3000}]}},
+      {warn:{t:"Deux fois le même couple",blocks:[
+        "Si tu enregistres deux fois le même couple, la base refuse la seconde ligne :",
+        {say:"👇 Teste par toi-même :",run:"CREATE TABLE essai (\n  client_id INTEGER,\n  produit_id INTEGER,\n  PRIMARY KEY (client_id, produit_id)\n);\nINSERT INTO essai\nVALUES (1, 1);\nINSERT INTO essai\nVALUES (1, 1);"}
       ]}}
     ]},
     {h:"La requête complète",blocks:[
@@ -11381,8 +11302,8 @@ guide({ id:72, titre:"Relations 1-1, 1-N et N-N", résumé:"Les trois formes de 
   reflex:[
     {recap:[
       ["🔢","Pour trouver la forme d’une relation, demande de chaque côté : <b>combien de lignes en face ?</b>"],
-      ["🔗","<b>1-N</b> : une clé étrangère, du côté « plusieurs ». <b>1-1</b> : la même clé, avec <code>UNIQUE</code>."],
-      ["🧩","<b>N-N</b> : une table de jointure, avec les deux clés et une clé primaire sur le couple :",null,"PRIMARY KEY (client_id, produit_id)"]
+      ["🔗","<b>1 → N</b> : une clé étrangère, du côté « plusieurs ». <b>1 ↔ 1</b> : la même clé, avec <code>UNIQUE</code>."],
+      ["🧩","<b>N ↔ N</b> : une table de jointure, avec les deux clés et une clé primaire sur le couple :",null,"PRIMARY KEY (client_id, produit_id)"]
     ],label:"Les trois idées à retenir"}
   ],
   anatomie:[{tok:"CREATE TABLE echantillons",txt:"La table qui porte le lien, et rien d’autre."},{tok:"client_id INTEGER REFERENCES clients(id)",txt:"Le premier côté de la relation : le client."},{tok:"produit_id INTEGER REFERENCES produits(id)",txt:"Le second côté : le produit."},{tok:"date_envoi TEXT",txt:"Une information qui décrit le lien lui-même."},{tok:"PRIMARY KEY (client_id, produit_id)",txt:"Le couple est unique : un seul envoi par client et par produit."}],
@@ -12916,7 +12837,7 @@ guide({ id:64, titre:"CREATE VIEW", résumé:"Enregistrer une requête sous un n
   testeVariants:[{k:"base",label:"Créer la vue",sql:"CREATE VIEW produits_stock_faible AS\nSELECT id, nom, stock\nFROM produits\nWHERE stock < 50;\n\nSELECT *\nFROM produits_stock_faible;",expectRows:2},{k:"rec_source",label:"La source évolue",sql:"CREATE VIEW produits_stock_faible AS SELECT id, nom, stock FROM produits WHERE stock < 50; UPDATE produits SET stock = 45 WHERE id = 5; SELECT * FROM produits_stock_faible ORDER BY id;",out:"La Tisane Détox entre dans la vue sans recréer celle-ci.",expectRows:3}],
   learningCheck:{question:"Un produit passe sous 50 unités de stock. Faut-il recréer la vue produits_stock_faible pour qu’il y apparaisse ?",options:["Oui, la vue garde une copie figée des données","Oui, il faut la supprimer puis la recréer","Non, la vue relance sa requête à chaque consultation"],answer:2,explanation:"Une vue retient une requête, pas une copie des données : chaque consultation lit l’état actuel de la table."}
 }),
-guide({ id:57, titre:"Les index", résumé:"Retrouver plus vite certaines lignes",
+guide({ id:57, titre:"Les index et EXPLAIN", résumé:"Accélérer une recherche et lire son plan",
   sit:{
     blocks:[
       "L’équipe commerciale répond chaque jour à des clients qui veulent connaître l’état de leur commande. Pour la retrouver, elle n’a qu’une information : <b>son numéro</b>.",
@@ -12958,10 +12879,15 @@ guide({ id:57, titre:"Les index", résumé:"Retrouver plus vite certaines lignes
   },
   steps:[
     {h:"Voir comment SQL cherche",blocks:[
-      "Pour voir comment SQL s’y prend, on place <code>EXPLAIN QUERY PLAN</code> devant une requête : SQL affiche alors son <b>plan</b> au lieu des lignes. Le cours suivant lui est consacré ; ici, il sert à constater l’effet d’un index.",
+      "Pour voir comment SQL s’y prend, on place <code>EXPLAIN QUERY PLAN</code> devant une requête : SQL affiche alors son <b>plan</b> au lieu des lignes. Dans SQLite, il faut l’écrire en entier : <code>EXPLAIN</code> seul affiche le programme interne, bien moins lisible, et <code>EXPLAIN ANALYZE</code> n’existe pas.",
       {syntax:"⟦EXPLAIN QUERY PLAN⟧\nSELECT *\nFROM produits\nWHERE nom = 'Magnésium';"},
       {say:"👇 Exécute cette requête pour voir comment SQL cherche un produit à partir de son nom :",run:"EXPLAIN QUERY PLAN\nSELECT *\nFROM produits\nWHERE nom = 'Magnésium';"},
-      {arrow:"La colonne <code>detail</code> décrit le plan : <b>SCAN produits</b> signifie que SQL parcourt toute la table, car aucun index ne porte sur <code>nom</code>."}
+      {arrow:"La colonne <code>detail</code> décrit le plan : <b>SCAN produits</b> signifie que SQL parcourt toute la table, car aucun index ne porte sur <code>nom</code>."},
+      {warn:{t:"SCAN ne veut pas dire « faux »",blocks:[
+        "Un <code>SCAN</code> est logique quand on demande toutes les lignes, ou presque :",
+        {say:"👇 Teste par toi-même :",run:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients;"},
+        "Pour tout afficher, lire toute la table est la seule solution : le plan sert à <b>comprendre</b> le choix de SQL, pas à traquer le mot <code>SCAN</code>."
+      ]}}
     ]},
     {h:"Créer un index",blocks:[
       "Un index sur la colonne <code>nom</code> peut accélérer cette recherche :",
@@ -12970,7 +12896,13 @@ guide({ id:57, titre:"Les index", résumé:"Retrouver plus vite certaines lignes
       {say:"👇 Exécute ces instructions pour créer l’index, puis refaire le plan :",run:"CREATE INDEX idx_produits_nom\nON produits(nom);\n\nEXPLAIN QUERY PLAN\nSELECT *\nFROM produits\nWHERE nom = 'Magnésium';"},
       {arrow:"Le plan annonce maintenant <b>SEARCH … USING INDEX idx_produits_nom</b> : SQL passe par l’index. La requête n’a pas changé, c’est SQL qui choisit de s’en servir."},
       {tip:{t:"Un index a un coût",blocks:["Un index occupe de la place, et SQL doit le mettre à jour à chaque <code>INSERT</code>, <code>UPDATE</code> ou <code>DELETE</code>. On n’indexe donc que les colonnes souvent recherchées, pas toutes « au cas où »."]}},
+      {tip:{t:"Des index déjà là",blocks:["Une colonne <code>PRIMARY KEY</code> ou <code>UNIQUE</code>, comme <code>email</code> dans <code>clients</code>, reçoit un index automatique : inutile d’en créer un."]}},
       {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux créer des index sans rien abîmer. À chaque essai, l’index <code>idx_produits_nom</code> n’existe plus."]}}
+    ]},
+    {h:"Vérifier que SQL s’en sert",blocks:[
+      "Créer un index ne suffit pas : encore faut-il que SQL puisse s’en servir, et seul le plan le montre. Ici, l’index existe sur <code>nom</code>, mais la recherche applique une fonction à la colonne :",
+      {say:"👇 Exécute ces instructions pour créer l’index, puis voir si SQL l’utilise :",run:"CREATE INDEX idx_produits_nom\nON produits(nom);\n\nEXPLAIN QUERY PLAN\nSELECT *\nFROM produits\nWHERE LOWER(nom) = 'magnésium';"},
+      {arrow:"Malgré l’index, le plan annonce <b>SCAN produits</b> : en transformant la colonne avec <code>LOWER</code>, la recherche empêche SQL de s’appuyer sur l’index. Avec <code>WHERE nom = 'Magnésium'</code>, comme à l’étape précédente, il l’utilise."}
     ]},
     {h:"Indexer plusieurs colonnes",blocks:[
       "Quand une recherche porte sur deux colonnes, un seul index peut les couvrir : c’est un <b>index composite</b>. Les colonnes se listent entre parenthèses, dans l’ordre voulu :",
@@ -13012,15 +12944,15 @@ guide({ id:57, titre:"Les index", résumé:"Retrouver plus vite certaines lignes
   ],
   reflex:[
     {recap:[
-      ["📖","Un <b>index</b> fonctionne comme celui d’un livre : il range les valeurs d’une colonne et indique la ligne de chacune."],
-      ["📍","On le crée avec <code>CREATE INDEX</code>, sur une colonne souvent recherchée :",null,"ON commandes(numero_commande)"],
-      ["⚖️","Un index <b>accélère les recherches</b>, mais il alourdit les écritures : on n’indexe pas tout."]
+      ["📖","Un <b>index</b> range les valeurs d’une colonne, comme celui d’un livre. On le crée avec <code>CREATE INDEX</code> :",null,"ON commandes(numero_commande)"],
+      ["🧭","<code>EXPLAIN QUERY PLAN</code> montre la méthode de SQL : <b>SCAN</b> lit toute la table, <b>SEARCH</b> passe par un index.",null,"EXPLAIN QUERY PLAN SELECT …"],
+      ["⚖️","Un index <b>accélère les recherches</b> mais alourdit les écritures : on n’indexe pas tout, puis on relance le plan pour vérifier qu’il sert."]
     ],label:"Les trois idées à retenir"}
   ],
   anatomie:[{tok:"CREATE INDEX idx_commandes_numero",txt:"Crée un index et lui donne un nom."},{tok:"ON commandes",txt:"La table concernée."},{tok:"(numero_commande)",plain:1,txt:"La colonne qui sert à retrouver les lignes."}],
   exemple:"CREATE INDEX idx_produits_nom ON produits(nom);",
   attendu:"L’index est créé. La table <code>produits</code> garde les mêmes colonnes, et SQL dispose d’un chemin plus direct pour chercher par <code>nom</code>.",
-  retenir:"Un <b>index</b> fonctionne comme celui d’un livre : il range les valeurs d’une colonne et indique où trouver chaque ligne. Il est créé à côté de la table, qui ne change pas.<br><br>On le crée avec <code>CREATE INDEX nom ON table(colonne)</code>. SQL décide seul de l’utiliser : la requête ne change pas.<br><br>Un index accélère les recherches mais alourdit les écritures : on n’indexe que les colonnes souvent recherchées.",
+  retenir:"Un <b>index</b> fonctionne comme celui d’un livre : il range les valeurs d’une colonne et indique où trouver chaque ligne. Il est créé à côté de la table, qui ne change pas.<br><br>On le crée avec <code>CREATE INDEX nom ON table(colonne)</code>. SQL décide seul de l’utiliser : la requête ne change pas. <code>EXPLAIN QUERY PLAN</code> montre son choix : <code>SCAN</code> lit toute la table, <code>SEARCH … USING INDEX</code> passe par un index.<br><br>Un index accélère les recherches mais alourdit les écritures : on n’indexe que les colonnes souvent recherchées, puis on relance le plan pour vérifier qu’il est utilisé.",
   consigne:"Crée un index nommé <code>idx_clients_ville</code> sur la colonne <code>ville</code> de la table <code>clients</code>.",
   solution:"CREATE INDEX idx_clients_ville ON clients(ville);",
   verif:"SELECT name AS colonne FROM pragma_index_info('idx_clients_ville');",
@@ -13028,104 +12960,6 @@ guide({ id:57, titre:"Les index", résumé:"Retrouver plus vite certaines lignes
   indice:"Écris <code>CREATE INDEX</code>, le nom de l’index, puis <code>ON</code> suivi de la table et de la colonne entre parenthèses.",
   testeVariants:[{k:"scan",label:"Sans index",sql:"EXPLAIN QUERY PLAN SELECT * FROM clients WHERE ville = 'Paris';",out:"SCAN clients : SQL parcourt les lignes. La colonne ville n’a pas encore d’index."},{k:"search",label:"Avec index",sql:"CREATE INDEX idx_clients_ville ON clients(ville);\nEXPLAIN QUERY PLAN SELECT * FROM clients WHERE ville = 'Paris';",out:"SEARCH clients USING INDEX idx_clients_ville : SQL utilise l’index. Le résultat de la requête reste identique.",tone:"good"}],
   learningCheck:{question:"Quel est l’effet d’un index sur la requête WHERE numero_commande = 'CMD-2026-1847392' ?",options:["Le résultat change : d’autres lignes sont renvoyées","SQL retrouve la même ligne sans parcourir toute la table","La table commandes reçoit une nouvelle colonne"],answer:1,explanation:"Un index ne change ni le résultat ni les colonnes de la table : il donne à SQL un chemin plus direct vers les lignes cherchées."}
-}),
-guide({ id:58, titre:"EXPLAIN", résumé:"Comprendre une requête lente",
-  sit:{
-    blocks:[
-      "L’équipe technique reçoit une alerte : la page « Mes commandes » du site met du temps à s’afficher. Pour la construire, le site recherche <b>toutes les commandes d’un client</b>.",
-      "La table <code>commandes</code> contient ici <b>16 commandes</b>, mais celle du site en compte des millions. Pour comprendre la lenteur, l’équipe souhaite récupérer uniquement :",
-      {need:[["🧭","La façon dont SQL lit la table","plan d’exécution"],["🗂️","L’index utilisé, s’il y en a un","plan d’exécution"]],label:"Les informations à récupérer"}
-    ],
-    problem:{
-      p:["Avec <code>WHERE</code>, SQL retrouve bien les commandes du client : le <b>résultat</b> est correct.","Mais ce résultat ne dit rien de la <b>méthode</b> que SQL a suivie pour le trouver."],
-      scene:{h:"🔍 Un résultat sans méthode",
-        lanes:[{k:"Q",l:"La requête",c:[["q1","commandes du client 1"]]},
-          {k:"R",l:"Les commandes trouvées",c:[["r1","commande 1"],["r2","commande 2"],["r3","commande 13"]]},
-          {k:"M",l:"La méthode",cls:"is-goal",c:[["m1","?","q"]]}],
-        caps:["<b>Notre requête</b> · Elle cherche les commandes du client 1 : le site reçoit les commandes 1, 2 et 13.","<b>Question</b> · Quelle méthode SQL a-t-il suivie ?","<b>Objectif</b> · Le plan d’exécution montre comment SQL a retrouvé les lignes."],
-        steps:[{cap:0,on:["Q","R"],d:2000},{cap:1,off:["Q","R"],on:["M"],d:2300},{cap:2,text:{m1:"visible dans le plan d’exécution"},d:2800}]},
-      then:["Il faut donc demander à SQL de <b>montrer son plan</b>.","C’est exactement le rôle de <code>EXPLAIN</code>."]
-    },
-    mission:"Aide l’équipe technique à afficher le <b>plan d’exécution</b> de la recherche des commandes du client 1, afin de comprendre pourquoi la page « Mes commandes » est lente."
-  },
-  concept:{
-    title:"Comment SQL peut-il montrer sa méthode ?",
-    blocks:[
-      "Avant d’exécuter une requête, SQL choisit une <b>méthode</b> pour retrouver les lignes :",
-      {ask:"Faut-il lire toute la table, ou passer par un index ?"},
-      "Pour voir ce choix, on place <code>EXPLAIN QUERY PLAN</code> devant la requête. SQL affiche alors son <b>plan</b> au lieu des lignes :",
-      {syntax:"⟦EXPLAIN QUERY PLAN⟧\nSELECT …\nFROM …\nWHERE …;"},
-      {scene:{h:"🧭 Lire une ligne de plan",
-        lanes:[{k:"P",c:[["p1","SEARCH"],["p2","commandes"],["p3","USING INDEX idx_commandes_client"],["p4","(client_id=?)"]]}],
-        caps:["<b>Une ligne de plan</b> · SQL résume sa méthode en une courte phrase.","<b>SEARCH commandes</b> · SQL cherche directement des lignes dans la table. Avec <b>SCAN</b>, il lirait toute la table.","<b>USING INDEX idx_commandes_client</b> · C’est l’index qui lui sert à chercher.","<b>(client_id=?)</b> · C’est la colonne sur laquelle porte la recherche."],
-        steps:[{cap:0,on:["P"],d:2000},{cap:1,off:["P"],on:["p1","p2"],d:2600},{cap:2,off:["p1","p2"],on:["p3"],d:2600},{cap:3,off:["p3"],on:["p4"],d:2600}]}},
-      {looks:[["EXPLAIN QUERY PLAN","montre la méthode que SQLite prévoit, sans exécuter la requête"],["EXPLAIN ANALYZE","exécute la requête et la mesure (PostgreSQL, MySQL) ; absent de SQLite"]],label:"Prévoir ou mesurer"}
-    ]
-  },
-  steps:[
-    {h:"Demander le plan d’une requête",blocks:[
-      "Dans SQLite, on écrit <code>EXPLAIN QUERY PLAN</code> en entier : <code>EXPLAIN</code> seul afficherait le programme interne de SQLite, bien moins lisible.",
-      {say:"👇 Exécute cette requête pour voir comment SQL cherche les clients d’une ville :",run:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE ville = 'Paris';"},
-      {arrow:"Seule la colonne <code>detail</code> compte. Elle annonce <b>SCAN clients</b> : aucun index ne porte sur <code>ville</code>, SQL doit donc lire toute la table."},
-      {warn:{t:"SCAN ne veut pas dire « faux »",blocks:[
-        "Un <code>SCAN</code> est logique quand on demande toutes les lignes, ou presque :",
-        {say:"👇 Teste par toi-même :",run:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients;"},
-        "Pour tout afficher, lire toute la table est la seule solution : le plan sert à <b>comprendre</b> le choix de SQL, pas à traquer le mot <code>SCAN</code>."
-      ]}}
-    ]},
-    {h:"Lire le plan d’une jointure",blocks:[
-      "Avec une jointure, le plan compte une ligne par table : SQL lit d’abord une table, puis cherche les correspondances dans l’autre.",
-      {say:"👇 Exécute cette requête pour voir le plan d’une jointure :",run:"EXPLAIN QUERY PLAN\nSELECT clients.prenom, commandes.id\nFROM clients\nJOIN commandes\n  ON clients.id = commandes.client_id;"},
-      {arrow:"Première ligne : <b>SCAN commandes</b>, SQL parcourt les commandes. Deuxième ligne : pour chacune, il <b>cherche</b> son client grâce à la clé primaire <code>id</code>, qui sert d’index."},
-      {tip:{t:"Les colonnes UNIQUE ont aussi un index",blocks:[
-        "Une colonne déclarée <code>UNIQUE</code>, comme <code>email</code> dans <code>clients</code>, reçoit un index automatique, sans qu’on ait à le créer. Le plan le montre avec <code>client_id</code>, unique dans la table <code>fidelite</code> :",
-        {say:"👇 Exécute cette requête :",run:"EXPLAIN QUERY PLAN\nSELECT *\nFROM fidelite\nWHERE client_id = 4;"},
-        {arrow:"Le plan cite un index créé par SQLite lui-même : <b>sqlite_autoindex_fidelite_1</b>."}
-      ]}}
-    ]},
-    {h:"Vérifier qu’un index est utilisé",blocks:[
-      "Créer un index ne suffit pas : encore faut-il que SQL puisse s’en servir, et seul le plan le montre. Ici, un index existe sur <code>ville</code>, mais la recherche applique une fonction à la colonne :",
-      {say:"👇 Exécute ces instructions pour créer l’index, puis voir si SQL l’utilise :",run:"CREATE INDEX idx_clients_ville\nON clients(ville);\n\nEXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE UPPER(ville) = 'PARIS';"},
-      {arrow:"Malgré l’index, le plan annonce <b>SCAN clients</b> : en transformant la colonne avec <code>UPPER</code>, la recherche empêche SQL de s’appuyer sur l’index."},
-      {say:"👇 Compare avec la recherche directe sur la colonne :",run:"CREATE INDEX idx_clients_ville\nON clients(ville);\n\nEXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE ville = 'Paris';"},
-      {arrow:"Cette fois, le plan annonce <b>SEARCH … USING INDEX idx_clients_ville</b> : l’index est utilisé."},
-      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : l’index créé n’existe plus à l’essai suivant."]}}
-    ]},
-    {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à demander le plan de la recherche des commandes d’un client, pour savoir si SQL passe par un index.",
-      {say:"👇 Exécute la requête pour afficher le plan de la page « Mes commandes » :",run:"EXPLAIN QUERY PLAN\nSELECT *\nFROM commandes\nWHERE client_id = 1;"},
-      {done:{
-        label:"Du résultat au plan d’exécution",
-        unit:"free",
-        funnel:[
-          {n:16,t:"commandes dans la table",s:"toute la <code>table commandes</code>",dots:"0000000000000000"},
-          {step:"EXPLAIN QUERY PLAN",s:"révèle comment SQL cherche les commandes du client 1"},
-          {n:16,t:"⭐ commandes lues par SQL",s:"<code>SCAN commandes</code> : pour en garder 3, SQL les parcourt toutes",dots:"1111111111111111",out:true}
-        ],
-        sms:{ico:"🧭",h:"Diagnostic du site",aria:"Le plan montre que SQL lit toute la table commandes pour afficher la page Mes commandes",msg:"<b>Page « Mes commandes »</b><br>Cause de la lenteur identifiée",people:[["S","SCAN commandes","toute la table est lue"]],st:["À analyser","Analyse","✓ Analysé"],plane:"doc",done:"✓ Cause identifiée"},
-        fill:["EXPLAIN QUERY PLAN","FROM","commandes","client_id"],
-        ui:{t:"La cause de la lenteur est identifiée",s:"Piste à tester : un index sur client_id, puis un nouveau plan pour comparer.",n:["EXPLAIN QUERY PLAN","SELECT","FROM","WHERE"]},
-        rows:1
-      }}
-    ]}
-  ],
-  reflex:[
-    {recap:[
-      ["🧭","<code>EXPLAIN QUERY PLAN</code> montre la <b>méthode</b> choisie par SQL, sans afficher les lignes.",null,"EXPLAIN QUERY PLAN SELECT …"],
-      ["🔎","Dans le plan, <b>SCAN</b> lit toute la table et <b>SEARCH</b> passe par un index.","Un SCAN n’est pas une erreur quand on demande presque toutes les lignes."],
-      ["🔁","Après une optimisation, <b>relance le plan</b> pour vérifier que l’index est vraiment utilisé.","On observe, on corrige, puis on compare."]
-    ],label:"Les trois idées à retenir"}
-  ],
-  anatomie:[{tok:"EXPLAIN QUERY PLAN",txt:"Demande le plan, pas les lignes du résultat."},{tok:"SELECT * FROM clients",txt:"La requête à observer."},{tok:"WHERE ville = 'Paris'",plain:1,txt:"La recherche dont on veut voir le chemin."}],
-  exemple:"EXPLAIN QUERY PLAN SELECT * FROM clients WHERE ville = 'Paris';",
-  attendu:"<b>1 ligne</b> de plan : <code>SCAN clients</code>. SQL lit toute la table, car aucun index ne porte sur <code>ville</code>.",
-  retenir:"<code>EXPLAIN QUERY PLAN</code> montre la méthode choisie par SQL : <code>SCAN</code> lit toute la table, <code>SEARCH … USING INDEX</code> passe par un index.<br><br>Un <code>SCAN</code> n’est pas une erreur : il est logique quand on demande presque toutes les lignes.<br><br>Une requête lente n’appelle pas toujours un index : on observe d’abord le plan, on optimise, puis on relance le plan pour comparer. Un index existant peut rester inutilisé, par exemple si la recherche applique une fonction à la colonne.<br><br>Le vocabulaire change selon le SGBD : PostgreSQL parle de <code>Seq Scan</code> et d’<code>Index Scan</code>, et son <code>EXPLAIN ANALYZE</code> exécute vraiment la requête pour la mesurer ; SQLite ne le propose pas.",
-  consigne:"Place <code>EXPLAIN QUERY PLAN</code> devant la recherche du client dont l’email est <code>sophie@mail.fr</code>, pour afficher son plan d’exécution.",
-  solution:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",
-  indice:"Écris <code>EXPLAIN QUERY PLAN</code>, puis un <code>SELECT</code> sur la table <code>clients</code> avec un filtre sur la colonne <code>email</code>.",
-  explainExo:true,
-  testeVariants:[{k:"scan",label:"SCAN",sql:"EXPLAIN QUERY PLAN SELECT * FROM clients WHERE ville = 'Paris';",out:"Sans index sur ville : SCAN clients."},{k:"search",label:"SEARCH",sql:"CREATE INDEX idx_clients_ville ON clients(ville);\nEXPLAIN QUERY PLAN SELECT * FROM clients WHERE ville = 'Paris';",out:"Après création : SEARCH clients USING INDEX idx_clients_ville. On compare le chemin d’accès, pas un temps garanti.",tone:"good"},{k:"email",label:"Index automatique",sql:"EXPLAIN QUERY PLAN SELECT * FROM clients WHERE email = 'sophie@mail.fr';",out:"email est UNIQUE dans cette base : SQLite possède déjà un index automatique."}],
-  learningCheck:{question:"Un plan SEARCH garantit-il à lui seul que la requête sera rapide, sur n’importe quelle base ?",options:["Oui : SEARCH veut toujours dire rapide","Oui, si la requête ne renvoie qu’une ligne","Non : le plan décrit une méthode, pas une durée"],answer:2,explanation:"Le plan indique la stratégie choisie. La durée dépend aussi du volume et des données : dix lignes ne constituent pas un test de performance."}
 })
 ]},
 { titre:"Sécurité et droits", sous:"Contrôler les accès", lessons:[
@@ -13434,10 +13268,8 @@ const CARTES={
     m:"Avec <code>IN</code>, tu cherches une valeur dans une liste. Avec <code>EXISTS</code>, tu vérifies qu’une correspondance existe. Vérifie toujours que la sous-requête est bien reliée à la ligne en cours."},
  56:{k:"Normalisation",t:"Répartir les données",s:"clients · produits · commandes",
     m:"Ranger chaque information dans la table qui correspond à ce qu’elle décrit. <b>1NF</b> une seule valeur, <b>2NF</b> toute la clé, <b>3NF</b> directement de la clé."},
- 57:{k:"INDEX",t:"Retrouver plus vite certaines lignes",s:"CREATE INDEX idx_clients_email\nON clients(email);",
-    m:"Un index est un chemin d’accès supplémentaire. Il n’ajoute pas de colonne. Utile sur les colonnes souvent cherchées ou reliées — pas partout, car il occupe de l’espace et doit être maintenu."},
- 58:{k:"EXPLAIN",t:"Comprendre le plan d’une requête",s:"EXPLAIN QUERY PLAN\nSELECT * FROM clients\nWHERE email = 'sophie@mail.fr';",
-    m:"<code>EXPLAIN</code> montre comment le SGBD prévoit d’exécuter la requête. <code>ANALYZE</code> l’exécute vraiment. Une requête lente n’appelle pas automatiquement un index : on observe d’abord."},
+ 57:{k:"INDEX · EXPLAIN",t:"Retrouver plus vite, et vérifier",s:"CREATE INDEX idx_clients_ville\nON clients(ville);\n\nEXPLAIN QUERY PLAN\nSELECT * FROM clients\nWHERE ville = 'Paris';",
+    m:"Un index est un chemin d’accès supplémentaire. Il n’ajoute pas de colonne. Utile sur les colonnes souvent cherchées ou reliées — pas partout, car il occupe de l’espace et doit être maintenu. <code>EXPLAIN QUERY PLAN</code> montre la méthode choisie : <code>SCAN</code> lit toute la table, <code>SEARCH … USING INDEX</code> passe par l’index. On observe d’abord, on optimise, puis on relance le plan."},
  59:{k:"WITH (CTE)",t:"Créer et réutiliser un résultat intermédiaire",s:"WITH totaux AS (\n  SELECT client_id, COUNT(*) AS nb_commandes\n  FROM commandes\n  GROUP BY client_id\n)\nSELECT * FROM totaux;",
     m:"<code>WITH</code> prépare, <code>AS</code> nomme, le <code>SELECT</code> final utilise. Une CTE n’est pas une table : elle n’existe que dans l’instruction."},
  60:{k:"OVER()",t:"Calculer sans regrouper",s:"AVG(prix) OVER (\n  PARTITION BY categorie\n)",
@@ -13541,12 +13373,6 @@ const QCM={
  35:[{q:"Dans la commande n°5, <code>client_id = 4</code> signifie :",o:["La commande porte le numéro 4","La commande appartient au client dont clients.id vaut 4","Le produit porte le numéro 4"],b:1,e:"commandes.client_id est une clé étrangère vers clients.id : 4 désigne donc Nathan."},
    {q:"Pourquoi <code>client_id = 4</code> apparaît-il sur les commandes n°5 et n°12 ?",o:["Une clé étrangère peut se répéter pour relier plusieurs commandes au même client","La clé primaire de Nathan est en double","Les deux commandes sont identiques"],b:0,e:"La clé primaire 4 n’existe qu’une fois dans clients. Elle peut être référencée par plusieurs lignes de commandes."},
    {q:"On enregistre une commande n°20 avec <code>client_id = 50</code>. Aucun client n’a <code>id = 50</code>. Que se passe-t-il&nbsp;?",o:["Le client 50 est créé automatiquement","La référence est acceptée quand même","Le SGBD refuse la référence si la contrainte de clé étrangère est appliquée"],b:2,e:"La clé étrangère ne peut pas faire référence à une valeur inexistante dans la table référencée."}],
- 36:[{q:"Que signifie <b>N</b> dans une relation&nbsp;?",o:["NULL","Plusieurs","Une clé étrangère"],b:1,e:"1 signifie un seul. N signifie plusieurs."},
- {q:"Nathan peut avoir plusieurs commandes. Quelle relation existe entre <code>clients</code> et <code>commandes</code>&nbsp;?",o:["1 ↔ 1","1 → N","N ↔ N"],b:1,e:"Un client a plusieurs commandes, mais une commande n’a qu’un client : c’est 1 → N."},
- {q:"Pourquoi <code>client_id</code> est-il <code>UNIQUE</code> dans <code>fidelite</code>&nbsp;?",o:["Pour empêcher un client d’avoir plusieurs fiches fidélité","Pour empêcher plusieurs clients d’exister","Pour supprimer la clé étrangère"],b:0,e:"La clé étrangère crée le lien. UNIQUE empêche le même client_id d’apparaître deux fois."},
- {q:"Quelle table permet de savoir quel client a commandé quel produit&nbsp;?",o:["clients","fidelite","commandes"],b:2,e:"commandes porte client_id et produit_id : c’est elle qui relie les deux."},
- {q:"Un client peut commander plusieurs produits, et un produit peut être commandé par plusieurs clients. Quelle relation obtient-on&nbsp;?",o:["1 ↔ 1","1 → N","N ↔ N"],b:2,e:"Plusieurs possibilités des deux côtés : c’est N ↔ N, via la table commandes."},
- {q:"Nathan a commandé la Fibre à 29,90&nbsp;€ et le Collagène à 39,90&nbsp;€. Chaque commande rapporte 120 points, plus 5 si le produit coûte plus de 30&nbsp;€. Combien devrait-il avoir&nbsp;?",o:["250 points","240 points","245 points"],b:2,e:"120 + 125 = 245. Seul le Collagène dépasse 30 €. Sa fiche affiche 250 : 5 points de trop."}],
  18:[{q:"À quoi sert la clause <code>ON</code> ?",o:["À trier le résultat","À dire quelles lignes de deux tables correspondent","À filtrer les lignes"],b:1,e:"ON indique quelles lignes des deux tables vont ensemble. Ici : commandes.client_id = clients.id."},
    {q:"Dans l’enquête de juillet, à quoi sert <code>WHERE</code> ?",o:["À relier commandes et clients","À garder uniquement les commandes de juillet","À créer la clé étrangère"],b:1,e:"ON crée la correspondance. WHERE filtre le résultat : ici, les commandes de juillet 2026."},
    {q:"Pourquoi la commande 16 disparaît-elle avec <code>INNER JOIN</code> ?",o:["Parce qu’elle est trop récente","Parce qu’aucune ligne de clients ne lui correspond","Parce que INNER JOIN ignore les emails vides"],b:1,e:"INNER JOIN ne garde que les lignes qui trouvent une correspondance des deux côtés. Sans client_id, aucune paire ne se forme."},
@@ -13599,12 +13425,10 @@ const QCM={
  56:[{q:"Pourquoi répartir les données dans plusieurs tables ?",o:["Pour que les requêtes soient plus courtes","Pour qu’une information ne soit écrite qu’à un seul endroit","Pour économiser des noms de colonnes"],b:1,e:"Écrite une seule fois, elle se corrige une seule fois : la base ne peut plus se contredire."},
   {q:"Dans la grande table, la ville de Sophie est répétée à chaque commande. Que se passe-t-il si elle déménage ?",o:["SQL met à jour les autres lignes tout seul","Il faut corriger chaque ligne, et un oubli rend la base incohérente","La ville devient NULL"],b:1,e:"C’est l’anomalie de mise à jour, et c’est ce que la normalisation évite."},
   {q:"Le prix appartient à quelle table après normalisation ?",o:["commandes, puisqu’on l’y consulte","produits, puisqu’il décrit le produit","clients, puisque le client paie"],b:1,e:"Chaque colonne va dans la table dont elle décrit le sujet."}],
- 57:[{q:"Sans index sur <code>email</code>, pour retrouver Sophie, SQL peut :",o:["Lire uniquement la première ligne","Parcourir beaucoup de lignes de la table","Modifier la table <code>clients</code>"],b:1,e:"Sans chemin d’accès organisé, le SGBD peut devoir examiner les lignes une par une."},
-  {q:"<code>CREATE INDEX idx_clients_email ON clients(email)</code> :",o:["Ajoute une colonne email","Crée une structure en plus : la table ne change pas","Change l’écriture du SELECT"],b:1,e:"L’index est à côté de la table. Tu continues d’écrire le même <code>WHERE email = …</code>."},
+ 57:[{q:"Dans un plan, un parcours de table (<code>SCAN</code>) :",o:["Est toujours une erreur à corriger","Peut être le bon choix, par exemple si tu demandes toutes les lignes","Signifie que la table n’existe pas"],b:1,e:"<code>SELECT * FROM clients</code> doit parcourir la table. EXPLAIN sert à comprendre, pas à colorier le plan."},
+  {q:"<code>CREATE INDEX idx_clients_ville ON clients(ville)</code> :",o:["Ajoute une colonne ville","Crée une structure en plus : la table ne change pas","Change l’écriture du SELECT"],b:1,e:"L’index est à côté de la table. Tu continues d’écrire le même <code>WHERE ville = …</code>."},
+  {q:"Un index existe sur <code>nom</code>. La recherche <code>WHERE LOWER(nom) = 'magnésium'</code> passe-t-elle par lui ?",o:["Oui : l’index sert à toute recherche sur cette colonne","Non : la fonction appliquée à la colonne l’empêche de servir","Oui, mais seulement si la table est petite"],b:1,e:"Quand la colonne est transformée par une fonction, SQL ne peut plus s’appuyer sur l’index : le plan annonce un SCAN."},
   {q:"Pourquoi ne pas indexer toutes les colonnes ?",o:["Parce qu’un index est interdit sur le texte","Parce qu’un index occupe de l’espace et doit être maintenu","Parce que les index ne sont pas utilisés"],b:1,e:"On indexe les colonnes vraiment utilisées pour chercher ou relier, pas toutes « au cas où »."}],
- 58:[{q:"<code>EXPLAIN</code> sert à :",o:["Modifier le résultat du SELECT","Montrer le plan d’exécution prévu par le SGBD","Créer automatiquement un index"],b:1,e:"La requête décrit le résultat. Le plan montre la stratégie choisie pour l’obtenir."},
-  {q:"Un parcours de table (<code>SCAN</code>, <code>Seq Scan</code>) :",o:["Est toujours une erreur à corriger","Peut être le bon choix, par exemple si tu demandes toutes les lignes","Signifie que la table n’existe pas"],b:1,e:"<code>SELECT * FROM clients</code> doit parcourir la table. EXPLAIN sert à comprendre, pas à colorier le plan."},
-  {q:"Face à une requête lente, le premier réflexe :",o:["Ajouter un index sur chaque colonne","Observer le plan avec EXPLAIN, puis optimiser","Réécrire la requête en majuscules"],b:1,e:"Une requête lente n’appelle pas automatiquement un index. On observe d’abord."}],
  65:[{q:"À quoi sert <code>ALTER TABLE</code> ?",o:["À modifier la structure d’une table existante","À filtrer des lignes","À trier les résultats"],b:0,e:"Elle ajoute, renomme ou supprime des colonnes — sans recréer la table."},
   {q:"Comment ajouter une colonne <code>pays</code> ?",o:["<code>UPDATE clients ADD pays;</code>","<code>ALTER TABLE clients ADD COLUMN pays TEXT;</code>","<code>CREATE COLUMN pays;</code>"],b:1,e:"<code>UPDATE</code> ne crée pas de colonne, et <code>CREATE COLUMN</code> n’existe pas."},
   {q:"Quelle commande renomme une colonne en SQLite ?",o:["<code>CHANGE COLUMN</code>","<code>RENAME COLUMN … TO …</code>","<code>UPDATE COLUMN</code>"],b:1,e:"Les données restent : seul le nom change."},
@@ -13664,9 +13488,10 @@ const QCM={
  71:[{q:"Deux caisses lisent un stock de 30, calculent 30 − 1 chacune et écrivent 29. Comment l’éviter ?",o:["En écrivant SET stock = stock - 1, calcul fait par la base","En relisant le stock juste avant d’écrire","En augmentant le niveau d’isolation à READ COMMITTED"],b:0,e:"Une instruction est indivisible : les deux caisses passent l’une après l’autre, 30 puis 29 puis 28. C’est la mise à jour perdue."},
    {q:"Que fait <code>BEGIN IMMEDIATE</code> de plus que <code>BEGIN</code> ?",o:["Il valide la transaction sans COMMIT","Il prend le verrou d’écriture dès l’ouverture","Il empêche toute lecture concurrente"],b:1,e:"<code>BEGIN</code> seul vaut <code>DEFERRED</code> : rien n’est verrouillé tant qu’on ne fait que lire, et la transaction peut échouer plus tard."},
    {q:"Quel niveau d’isolation SQLite applique-t-il ?",o:["READ COMMITTED, comme PostgreSQL par défaut","Le comportement de SERIALIZABLE, sans réglage possible","Aucun : les transactions ne sont pas isolées"],b:1,e:"Le moteur verrouille la base entière et n’autorise qu’un seul écrivain à la fois. Il n’existe pas de <code>SET TRANSACTION ISOLATION LEVEL</code>."}],
- 72:[{q:"Un client peut suivre plusieurs produits, et un produit être suivi par plusieurs clients. Comment écrire ce lien ?",o:["Une clé étrangère dans clients","Une clé étrangère dans produits","Une troisième table qui porte les deux clés"],b:2,e:"Les deux côtés sont « plusieurs » : aucune colonne ne peut retenir plusieurs valeurs. Il faut une table de jointure."},
-   {q:"Dans une table de jointure, à quoi sert <code>PRIMARY KEY (client_id, produit_id)</code> ?",o:["À interdire deux fois le même couple","À rendre chaque colonne unique","À accélérer les jointures"],b:0,e:"Chaque colonne se répète librement ; c’est la paire qui doit être unique."},
-   {q:"Comment transformer une relation 1-N en 1-1 ?",o:["En ajoutant UNIQUE sur la clé étrangère","En déplaçant la clé dans l’autre table","En ajoutant une table de jointure"],b:0,e:"Sans <code>UNIQUE</code>, un client pourrait recevoir deux cartes. Avec, la seconde est refusée."}],
+ 72:[{q:"Nathan peut avoir plusieurs commandes. Quelle relation existe entre <code>clients</code> et <code>commandes</code>&nbsp;?",o:["1 ↔ 1","1 → N","N ↔ N"],b:1,e:"Un client a plusieurs commandes, mais une commande n’a qu’un client : c’est 1 → N."},
+   {q:"Comment transformer une relation 1-N en 1-1 ?",o:["En ajoutant UNIQUE sur la clé étrangère","En déplaçant la clé dans l’autre table","En ajoutant une table de jointure"],b:0,e:"Sans <code>UNIQUE</code>, un client pourrait recevoir deux cartes. Avec, la seconde est refusée."},
+   {q:"Un client peut suivre plusieurs produits, et un produit être suivi par plusieurs clients. Comment écrire ce lien ?",o:["Une clé étrangère dans clients","Une clé étrangère dans produits","Une troisième table qui porte les deux clés"],b:2,e:"Les deux côtés sont « plusieurs » : aucune colonne ne peut retenir plusieurs valeurs. Il faut une table de jointure."},
+   {q:"Dans une table de jointure, à quoi sert <code>PRIMARY KEY (client_id, produit_id)</code> ?",o:["À interdire deux fois le même couple","À rendre chaque colonne unique","À accélérer les jointures"],b:0,e:"Chaque colonne se répète librement ; c’est la paire qui doit être unique."}],
  73:[{q:"Quelle différence entre <code>UNION</code> et <code>UNION ALL</code> ?",o:["UNION trie, UNION ALL non","UNION écarte les doublons, UNION ALL les garde","UNION ne marche que sur deux tables identiques"],b:1,e:"Dix villes (une par client) et huit catégories donnent 18 lignes avec ALL, mais 11 sans : sept valeurs se répétaient."},
    {q:"Que doivent avoir en commun les deux <code>SELECT</code> d’un <code>UNION</code> ?",o:["Le même nombre de colonnes","Les mêmes noms de colonnes","La même table de départ"],b:0,e:"Le nombre de colonnes doit correspondre ; les noms sont libres, c’est celui de la première requête qui est retenu."},
    {q:"Tu veux plus de <b>lignes</b>, pas plus de colonnes. Quel outil ?",o:["JOIN","UNION","GROUP BY"],b:1,e:"<code>JOIN</code> élargit le résultat en ajoutant des colonnes ; <code>UNION</code> le rallonge en empilant des lignes."}],
@@ -16180,7 +16005,6 @@ const SQ_ALIASES={
   76:'group concat rassembler concatener liste texte groupe string agg',
   34:'cle primaire pk primary key identifiant unique id',
   35:'cle etrangere fk foreign key reference lien integrite referentielle',
-  36:'relations 1-1 1-n n-n un a plusieurs plusieurs a plusieurs cardinalite liens tables table de liaison',
   18:'inner join jointure interne relier tables correspondance on',
   20:'left join jointure gauche garder lignes sans correspondance null clients sans commande sans commande fidelite points carte bilan',
   38:'right join jointure droite',
@@ -16204,7 +16028,7 @@ const SQ_ALIASES={
   78:'lag lead precedente suivante valeur precedente comparer ligne precedente decalage evolution',
   79:'fenetres glissantes cumul moyenne mobile rows between unbounded preceding following cadre running total ntile',
   56:'normalisation formes normales 1fn 2fn 3fn redondance modelisation',
-  72:'relations 1-1 1-n n-n modelisation cardinalite association table de liaison',
+  72:'relations 1-1 1-n n-n modelisation cardinalite association table de liaison un a plusieurs plusieurs a plusieurs liens tables',
   61:'create table creer table structure types colonnes contraintes',
   65:'alter table ajouter colonne modifier structure renommer add column',
   66:'drop supprimer table structure drop table vue index vider table',
@@ -16219,8 +16043,7 @@ const SQ_ALIASES={
   70:'trigger declencheur reagir automatiquement before after evenement',
   71:'concurrence isolation verrou lock deadlock lectures ecritures simultanees',
   64:'create view vue requete enregistree nommer virtual table',
-  57:'index create index performance rapide optimiser recherche accelerer',
-  58:'explain query plan plan d execution lenteur optimisation requete lente',
+  57:'index create index performance rapide optimiser recherche accelerer explain query plan plan d execution lenteur optimisation requete lente scan search',
   50:'securite droits grant revoke permissions acces utilisateurs roles'
 };
 const SQ={
@@ -20803,19 +20626,6 @@ function checkNoExecExo(sql,l){
     return {ok:false,diag:'Le droit doit porter sur la table '+table.toLowerCase()+'.'};
   return {ok:false,diag:(grant?'Accorde':'Retire')+' uniquement SELECT sur '+table.toLowerCase()+' à '+account.toLowerCase()+' : '+l.solution};
 }
-function checkExplainExo(sql){
-  const u=normNoExecSql(sql);
-  if(!u) return {ok:false,diag:'Écris d’abord la commande.'};
-  if(/\bEXPLAIN\s+ANALYZE\b/.test(u))
-    return {ok:false,diag:'EXPLAIN ANALYZE n’existe pas dans SQLite. Ici, on écrit EXPLAIN QUERY PLAN.'};
-  if(!/\bEXPLAIN\s+QUERY\s+PLAN\b/.test(u))
-    return {ok:false,diag:'Commence par EXPLAIN QUERY PLAN, puis la requête à observer.'};
-  if(!/\bCLIENTS\b/.test(u))
-    return {ok:false,diag:'Le plan doit porter sur la table clients.'};
-  if(!/\bEMAIL\b/.test(u))
-    return {ok:false,diag:'Garde le filtre sur email : c’est cette recherche qu’on observe.'};
-  return {ok:true};
-}
 function markExoPassed(){
   const dejaExo=etapesDe(current.id).exo;
   setEtape(current.id,'exo');
@@ -20863,14 +20673,6 @@ function runLesson(){
     setLessonOut(`<div class="feedback warn"><div class="fi">≈</div><div><b>Pas encore</b><p>${esc(check.diag)}</p></div></div>`);
     registerExoFail();
     return;
-  }
-  if(!isDefi&&current&&current.explainExo){
-    const check=checkExplainExo(sql);
-    if(!check.ok){
-      setLessonOut(`<div class="feedback warn"><div class="fi">≈</div><div><b>Pas encore</b><p>${esc(check.diag)}</p></div></div>`);
-      registerExoFail();
-      return;
-    }
   }
   if(!isDefi){
     const concept=checkExerciseConcept(sql,current);
@@ -24816,7 +24618,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1612';
+  const SW_CACHE='requete-2026-10-04-ludique-v1613';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
