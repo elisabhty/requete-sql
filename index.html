@@ -6833,7 +6833,7 @@ function guide(spec){
       uses:{title:'Écrire la requête',body:`<div class="pt-lead fn-uses fk-course jn-course">${steps.map(st=>`<div class="fn-use"><p class="pt-syntax-h">${guideFr(st.h)}</p>${guideBlocks(st.blocks)}</div>`).join('\n')}</div>`},
       reflex:{extra:guideBlocks(reflex)}},
     noTeste:true,noAnat:true,richLesson:true,earlyDemo:true,guided:true};
-  ['anatomie','exemple','attendu','retenir','consigne','solution','indice','learningCheck','testeVariants','petitDefi','ordered','write','verif','noExec','noExecWhy','noExecOk','noExecNote','normExo','explainExo','createExo','serverConcept','apres','joinRecap'].forEach(k=>{if(spec[k]!==undefined)lesson[k]=spec[k];});
+  ['anatomie','exemple','attendu','retenir','consigne','solution','indice','learningCheck','testeVariants','petitDefi','ordered','write','verif','noExec','noExecWhy','noExecOk','noExecNote','normExo','explainExo','createExo','serverConcept','apres','joinRecap','exoNeeds'].forEach(k=>{if(spec[k]!==undefined)lesson[k]=spec[k];});
   return lesson;
 }
 /* ============================================================
@@ -9578,6 +9578,7 @@ guide({ id:18, titre:"INNER JOIN", résumé:"Relier uniquement ce qui correspond
   solution:"SELECT commandes.id, produits.nom, commandes.quantite FROM commandes INNER JOIN produits ON commandes.produit_id = produits.id WHERE commandes.quantite > 2;",
   indice:"Relie <code>commandes</code> à <code>produits</code> avec <code>ON commandes.produit_id = produits.id</code>, puis garde les commandes dont la quantité dépasse 2 avec <code>WHERE</code>.",
   joinRecap:"inner",
+  exoNeeds:[{re:"\\bJOIN\\b",msg:"Relie les deux tables avec INNER JOIN … ON …."}],
   testeVariants:[{k:"cli",label:"table clients",sql:"SELECT id, prenom, email\nFROM clients;"},{k:"cmd",label:"table commandes",sql:"SELECT id, client_id, date_commande\nFROM commandes;"},{k:"join",label:"INNER JOIN",sql:"SELECT clients.prenom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id;",out:"15 lignes : chaque commande rattachée à un client. La commande sans client disparaît."},{k:"juillet",label:"Juillet",sql:"SELECT clients.prenom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31';",out:"14 lignes : prénom, email et date, uniquement pour juillet 2026.",tone:"good"}],
   learningCheck:{question:"Sophie a trois commandes en juillet. Combien de lignes la jointure produit-elle pour elle ?",options:["Trois","Une","Deux"],answer:0,explanation:"INNER JOIN produit une ligne par correspondance. Trois commandes, trois lignes : les tables, elles, ne changent pas."}
 }),
@@ -10499,6 +10500,7 @@ guide({ id:44, titre:"Quel JOIN choisir ?", résumé:"Choisir la bonne jointure
   solution:"SELECT commandes.numero_commande, clients.prenom FROM commandes LEFT JOIN clients ON commandes.client_id = clients.id;",
   indice:"Quelle table doit garder toutes ses lignes ? Ici, les commandes : place-les à gauche, après <code>FROM</code>, avec <code>LEFT JOIN</code>.",
   joinRecap:true,
+  exoNeeds:[{re:"\\b(LEFT|RIGHT)\\s+JOIN\\b",msg:"Garde toutes les commandes : choisis LEFT JOIN (commandes à gauche) ou RIGHT JOIN (commandes à droite)."}],
   testeVariants:[{k:"inner",label:"INNER JOIN",sql:"SELECT clients.prenom, commandes.id AS commande_id\nFROM clients\nINNER JOIN commandes\n    ON clients.id = commandes.client_id;"},{k:"left",label:"LEFT JOIN",sql:"SELECT clients.prenom, commandes.id AS commande_id\nFROM clients\nLEFT JOIN commandes\n    ON clients.id = commandes.client_id;",tone:"good"},{k:"right",label:"RIGHT JOIN",sql:"SELECT clients.prenom, commandes.id AS commande_id\nFROM clients\nRIGHT JOIN commandes\n    ON clients.id = commandes.client_id;"},{k:"full",label:"FULL OUTER JOIN",sql:"SELECT clients.prenom, commandes.id AS commande_id\nFROM clients\nFULL OUTER JOIN commandes\n    ON clients.id = commandes.client_id;"}],
   learningCheck:{question:"Pour lister tous les clients, même ceux qui n’ont rien commandé, quelle jointure choisir ?",options:["INNER JOIN","LEFT JOIN, avec clients à gauche","CROSS JOIN"],answer:1,explanation:"Tous les clients doivent apparaître, même sans commande : avec LEFT JOIN, toutes les lignes de la table clients, à gauche, sont conservées."}
 })
@@ -17860,6 +17862,54 @@ function pathCurrentLessonId(){
   return id;
 }
 const LQ_SEARCH_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>';
+/* Le chaton de la mascotte sur la ligne « Tu es ici » du parcours : il se tient à droite, au-dessus du titre, et montre la leçon du doigt.
+   Image fixe par défaut ; l'animation de 5 s (il tape sur son ordinateur, saute de joie, puis montre la leçon) se joue une fois quand la ligne
+   apparaît à l'écran, et de nouveau quand « Tu es ici » change de leçon. Aucune animation si l'utilisateur a demandé de les réduire. */
+const ICI_ANIM='assets/mascotte-ici.webp',ICI_FIXE='assets/mascotte-ici-fixe.webp',ICI_MS=5400;
+let iciEl=null,iciPlayed=false,iciIO=null,iciWarm=false;
+function iciCalm(){return (typeof prefersReduceMotion==='function'&&prefersReduceMotion())||(typeof motionOff==='function'&&motionOff());}
+function iciImg(src){const i=new Image();i.alt='';i.decoding='async';i.width=234;i.height=319;i.src=src;return i;}
+function iciCatMount(host){
+  const row=host&&host.querySelector?host.querySelector('.home-module .row.current'):null;
+  if(!row)return;
+  const lid=row.dataset.lid;
+  /* Le même élément est repris d'un rendu à l'autre : une animation en cours n'est pas coupée. */
+  if(!iciEl||iciEl.dataset.lid!==lid){
+    iciEl=document.createElement('span');
+    iciEl.className='ici-cat';iciEl.dataset.lid=lid;iciEl.setAttribute('aria-hidden','true');
+    iciEl.append(iciImg(ICI_FIXE));
+    iciPlayed=false;
+  }
+  row.classList.add('has-ici');
+  row.append(iciEl);
+  iciWatch();
+}
+function iciWatch(){
+  if(iciPlayed||!iciEl||iciCalm()||typeof IntersectionObserver==='undefined')return;
+  if(!iciIO)iciIO=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting))iciPlay();},{threshold:.7});
+  iciIO.disconnect();iciIO.observe(iciEl);
+  /* L'animation (500 Ko) est chargée en avance pour démarrer sans attente, sauf en mode économie de données. */
+  if(!iciWarm){iciWarm=true;const c=navigator.connection;if(!(c&&c.saveData))setTimeout(()=>{iciImg(ICI_ANIM);},1200);}
+}
+function iciPlay(){
+  const el=iciEl;
+  if(iciPlayed||!el||iciCalm())return;
+  iciPlayed=true;if(iciIO)iciIO.disconnect();
+  const anim=iciImg(ICI_ANIM);
+  const go=()=>{
+    const cur=el.querySelector('img');
+    if(!cur||iciEl!==el)return;
+    cur.replaceWith(anim);
+    el.classList.remove('is-pop');void el.offsetWidth;el.classList.add('is-pop');
+    /* L'image animée ne tourne qu'une fois (boucle = 1) ; on remet de toute façon l'image fixe à la fin, quel que soit le navigateur. */
+    setTimeout(()=>{
+      if(iciEl!==el||el.querySelector('img')!==anim)return;
+      const fixe=iciImg(ICI_FIXE),swap=()=>{if(iciEl===el&&el.querySelector('img')===anim)anim.replaceWith(fixe);};
+      (fixe.decode?fixe.decode():Promise.resolve()).then(swap,swap);
+    },ICI_MS);
+  };
+  (anim.decode?anim.decode():Promise.resolve()).then(go,go);
+}
 function renderModules(){
   const host=document.getElementById('modules');
   if(!host)return;
@@ -17893,6 +17943,7 @@ function renderModules(){
     if(lqDoneSnapshot)doneNow.forEach(id=>{if(!lqDoneSnapshot.has(id))host.querySelector(`.row[data-lid="${id}"]`)?.classList.add('lq-just-done');});
     lqDoneSnapshot=doneNow;
   }
+  iciCatMount(host);
   lqAfterModules(host);
 }
 function toggleCatalogTools(btn){
@@ -22233,6 +22284,8 @@ function exerciseSqlStructure(sql){
 function checkExerciseConcept(sql,l){
   const u=exerciseSqlStructure(sql),parts=u.split(';').map(s=>s.trim()).filter(Boolean);
   const fail=diag=>({ok:false,diag});
+  /* exoNeeds : notions que la réponse doit employer ({re:'motif sur le SQL en majuscules, sans chaînes ni commentaires', msg:'aide'}), déclarées par le cours. */
+  for(const n of (l.exoNeeds||[]))if(!new RegExp(n.re).test(u))return fail(n.msg);
   if(l.id===54&&!/\bCAST\s*\([^)]*\bAS\s+INTEGER\s*\)/.test(u))return fail('Utilise CAST(… AS INTEGER) pour rendre la conversion explicite.');
   if(l.id===80&&!/\bEXCEPT\b/.test(u))return fail('Utilise EXCEPT pour retirer les clients déjà inscrits de la liste.');
   if(l.id===79&&(!/\bSUM\s*\(/.test(u)||!/\bROWS\s+BETWEEN\s+UNBOUNDED\s+PRECEDING\s+AND\s+CURRENT\s+ROW\b/.test(u)))return fail('Calcule le cumul avec SUM() OVER et ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW.');
@@ -26363,7 +26416,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1606';
+  const SW_CACHE='requete-2026-10-04-ludique-v1607';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
