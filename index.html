@@ -16353,66 +16353,102 @@ learningCheck:{
 }
 ]},
 { titre:"Modéliser", sous:"Normalisation et cardinalités", lessons:[
-{ id:56, titre:"Normalisation", résumé:"Répartir les données dans des tables reliées",
-  situation:"Tu dois créer un tableau de bord Power BI pour analyser les ventes : nombre de commandes, produits vendus et répartition des clients par ville.<br><br>Pour alimenter le tableau de bord, toutes les informations ont d’abord été regroupées dans une seule grande table :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>client_id</th><th>prenom</th><th>ville</th><th>commande_id</th><th>produit</th><th>prix</th><th>quantite</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td>Paris</td><td>1</td><td>Fibre Prébiotique</td><td>29,90</td><td>2</td></tr><tr><td>1</td><td>Sophie</td><td>Paris</td><td>2</td><td>Magnésium</td><td>19,90</td><td>1</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>3</td><td>Protéine Végétale</td><td>34,90</td><td>1</td></tr><tr><td>2</td><td>Lucas</td><td>Lyon</td><td>10</td><td>Magnésium</td><td>19,90</td><td>2</td></tr></tbody></table></div><p class=\"nm-glide\">👉 Glisse pour voir le produit, le prix et la quantité.</p>Le tableau de bord fonctionne, mais la table contient beaucoup d’informations répétées.<br><br>À chaque nouvelle commande de Sophie, son prénom et sa ville sont enregistrés à nouveau. De la même manière, les informations d’un produit peuvent apparaître dans de nombreuses lignes.<br><br>Cela pose un problème : plus les ventes augmentent, plus les données sont dupliquées et difficiles à maintenir sans incohérence.",
-  situationTail:"<div class=\"sit-sql\"><p>Comment mieux organiser la base de données qui alimente Power BI ?</p><p>C’est là qu’intervient la normalisation : elle permet de répartir les informations dans plusieurs tables reliées, chacune ayant un rôle précis.</p><p>Pour apprendre à organiser ces tables correctement, nous allons avancer étape par étape avec les formes normales : <b>1NF</b>, <b>2NF</b> et <b>3NF</b>.</p></div>",
-    studio:{pointCards:{
-      eye:"Normalisation",title:"Une information, un seul endroit.",
-      lead:"Normaliser, c’est ranger chaque information dans la table qui correspond à ce qu’elle décrit. La ville décrit le client, le prix décrit le produit, la quantité décrit la commande.",
-      chain:[
-        {k:"1NF",v:"une seule valeur par cellule"},
-        {k:"2NF",v:"chaque information dépend de toute la clé"},
-        {k:"3NF",v:"chaque information dépend directement de la clé"}
-      ],
-      cards:[
-        {t:"Le coût de la répétition",
-         b:"<p>Dans la grande table, la ville de Sophie est écrite à chaque commande. Si Sophie déménage, il faut la corriger partout.</p><p>Une seule ligne oubliée, et la base se contredit : c’est une <b>anomalie de mise à jour</b>.</p>"},
-        {t:"1NF — une valeur par case",
-         b:"<p>Chaque case contient une seule valeur, jamais une liste.</p><p><code>produits : \'Magnésium, Shaker\'</code> devient deux lignes. Sans cela, aucune requête ne peut filtrer ou compter proprement.</p>"},
-        {t:"2NF — dépendre de toute la clé",
-         b:"<p>Chaque colonne dépend de toute la clé, pas d’une partie seulement.</p><p>Ici, une ligne est identifiée par la commande et son produit. Or le prénom du client ne dépend que du client : il part dans la table <code>clients</code>.</p>"},
-        {t:"3NF — pas de dépendance indirecte",
-         b:"<p>Aucune colonne ne dépend d’une autre colonne qui n’est pas la clé.</p><p>Le prix ne dépend pas de la commande : il dépend du produit. Il part dans <code>produits</code>. Il ne reste dans <code>commandes</code> que ce qui décrit vraiment la commande.</p>"}
-      ]},
-    reflex:{a:{k:"La question",t:"Cette information décrit-elle vraiment cette table ?"},
-      b:{k:"La règle",t:"Chaque information à sa place."},
-      note:"Si une information décrit une autre entité, ne la répète pas dans cette table : place-la dans la table qui lui correspond. Demande-toi toujours ce que décrit chaque information.<br><br>Une information sur le client va dans la table <code>clients</code>, une information sur le produit dans la table <code>produits</code>, une information sur la commande dans la table <code>commandes</code>."},
-    normSplit:true},
-  anatomie:[
-    {tok:"clients (id, prenom, ville)",txt:"Tout ce qui décrit le client, écrit une seule fois."},
-    {tok:"produits (id, nom, prix)",txt:"Tout ce qui décrit le produit, écrit une seule fois."},
-    {tok:"commandes (id, client_id, produit_id, quantite)",txt:"Ce qui décrit la commande, plus deux clés étrangères vers les tables voisines."}
+guide({ id:56, titre:"Normalisation", résumé:"Répartir les données dans des tables reliées",
+  sit:{
+    blocks:[
+      "L’équipe data construit <b>un tableau de bord Power BI</b> pour analyser les ventes : nombre de commandes, produits vendus et répartition des clients par ville.",
+      "Pour l’alimenter, l’équipe a d’abord regroupé toutes les informations dans <b>une seule grande table</b>. Pour chaque commande, le tableau de bord y lit :",
+      {need:[["👤","Le prénom du client","grande table"],["📍","Sa ville","grande table"],["🏷️","Le produit commandé","grande table"],["💶","Son prix","grande table"],["🔢","La quantité commandée","grande table"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["La grande table <b>fonctionne</b> : chaque ligne contient tout ce dont le tableau de bord a besoin.","Or, les mêmes informations y sont <b>recopiées à chaque commande</b> : la ville de Sophie, le prix du Magnésium… Si l’une d’elles change, il faut la corriger partout."],
+      scene:{h:"🧾 La grande table",cols:"1.05fr .9fr 1.9fr .75fr",
+        lanes:[{c:[["h1","prenom","t"],["h2","ville","t"],["h3","produit","t"],["h4","prix","t"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","Paris"],["a3","Magnésium"],["a4","19.9"]]},
+          {k:"R2",c:[["b1","Sophie"],["b2","Paris"],["b3","Shaker Inox"],["b4","15"]]},
+          {k:"R3",c:[["c1","Lucas"],["c2","Lyon"],["c3","Magnésium"],["c4","19.9"]]}],
+        caps:["<b>La grande table</b> · Chaque ligne regroupe, pour une commande, le client, sa ville, le produit et son prix.","<b>Répétitions</b> · Sophie, Paris, le Magnésium et son prix sont recopiés à chaque commande concernée.","<b>Anomalie de mise à jour</b> · Sophie déménage à Lyon : si une seule ligne est oubliée, la table se contredit."],
+        steps:[{cap:0,on:["R1","R2","R3"],d:2000},{cap:1,off:["R1","R2","R3"],mark:{a1:"is-miss",a2:"is-miss",b1:"is-miss",b2:"is-miss",a3:"is-miss",a4:"is-miss",c3:"is-miss",c4:"is-miss"},d:2800},{cap:2,unmark:{a1:"is-miss",a2:"is-miss",b1:"is-miss",b2:"is-miss",a3:"is-miss",a4:"is-miss",c3:"is-miss",c4:"is-miss"},text:{a2:"Lyon"},mark:{b2:"is-miss"},d:3000}]},
+      then:["Il faut donc <b>ranger chaque information une seule fois</b>, dans la table qui correspond à ce qu’elle décrit.","C’est exactement le principe de la <b>normalisation</b>."]
+    },
+    mission:"Aide l’équipe data à retrouver le <b>prénom</b>, la <b>ville</b>, le <b>produit</b>, son <b>prix</b> et la <b>quantité</b> de chaque commande rattachée à un client, en reliant les tables <code>clients</code>, <code>produits</code> et <code>commandes</code>, afin d’alimenter le tableau de bord sans rien recopier."
+  },
+  concept:{
+    title:"Comment savoir dans quelle table ranger une information ?",
+    blocks:[
+      "Pour chaque information, une seule question suffit :",
+      {ask:"Qu’est-ce que cette information décrit ?"},
+      "La ville décrit un <b>client</b>, le prix décrit un <b>produit</b>, la quantité décrit une <b>commande</b> : chaque sujet a sa propre table, et les tables se relient par des identifiants :",
+      {syntax:"clients (id, prenom, ville)\nproduits (id, nom, prix)\ncommandes (id, ⟦client_id, produit_id⟧, quantite)"},
+      {scene:{h:"🗂️ Chaque information à sa place",
+        lanes:[{k:"B",l:"La grande table",c:[["b1","prenom"],["b2","ville"],["b3","produit"],["b4","prix"],["b5","quantite"]]},
+          {k:"C",l:"clients",cls:"is-goal",c:[["c0","id"],["c1","?","q"],["c2","?","q"]]},
+          {k:"P",l:"produits",cls:"is-goal",c:[["p0","id"],["p1","?","q"],["p2","?","q"]]},
+          {k:"M",l:"commandes",cls:"is-goal",c:[["m0","id"],["m2","client_id","h"],["m3","produit_id","h"],["m1","?","q"]]}],
+        caps:["<b>La grande table</b> · Toutes les colonnes sont mélangées : client, produit et commande ensemble.","<b>Le client</b> · <b>prenom</b> et <b>ville</b> décrivent le client : elles vont dans la table <b>clients</b>.","<b>Le produit</b> · <b>produit</b> et <b>prix</b> décrivent le produit : elles vont dans la table <b>produits</b>.","<b>La commande</b> · <b>quantite</b> décrit la commande, qui garde aussi deux liens : <b>client_id</b> et <b>produit_id</b>."],
+        steps:[{cap:0,on:["B"],d:2000},{cap:1,off:["B"],fly:[["b1","c1"],["b2","c2"]],dim:["b1","b2"],stagger:500,d:2800},{cap:2,fly:[["b3","p1"],["b4","p2"]],dim:["b3","b4"],stagger:500,d:2800},{cap:3,fly:[["b5","m1"]],dim:["b5"],show:["m2","m3"],stagger:500,d:3000}]}},
+      "Ce rangement respecte trois règles, les <b>formes normales</b> :",
+      {looks:[["1NF","une seule valeur par case : « Magnésium, Shaker » devient deux lignes"],["2NF","chaque colonne dépend de toute la clé, pas d’une partie seulement"],["3NF","chaque colonne dépend directement de la clé, pas d’une autre colonne"]],label:"Les formes normales"}
+    ]
+  },
+  steps:[
+    {h:"Relier les tables avec des identifiants",blocks:[
+      "Voyons ce que la table <code>commandes</code> enregistre pour Sophie, le client 1 :",
+      {say:"👇 Exécute cette requête pour lire ses commandes, sans aucune jointure :",run:"SELECT id, client_id, produit_id, quantite\nFROM commandes\nWHERE client_id = 1;"},
+      {arrow:"Chaque commande ne contient que des numéros : <code>client_id</code> vaut 1 sur les trois lignes et renvoie à Sophie. Pour retrouver son prénom ou le prix d’un produit, il faut relier les tables avec une jointure."}
+    ]},
+    {h:"Corriger une information une seule fois",blocks:[
+      "Une fois les données réparties en trois tables, la ville de Sophie n’est écrite qu’<b>une seule fois</b>, dans <code>clients</code>. Si elle déménage, une seule modification suffit. <code>UPDATE</code> modifie une valeur : il a son propre cours plus loin.",
+      {say:"👇 Exécute ces instructions pour déménager Sophie à Lyon, puis relire ses commandes grâce à une jointure :",run:"UPDATE clients\nSET ville = 'Lyon'\nWHERE id = 1;\n\nSELECT commandes.id, clients.prenom, clients.ville\nFROM commandes\nJOIN clients\n  ON commandes.client_id = clients.id\nWHERE clients.id = 1;"},
+      {arrow:"Les trois commandes de Sophie affichent Lyon : une seule ligne a été modifiée, et la ville de Sophie ne peut plus se contredire."},
+      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux modifier une ville sans rien abîmer. À chaque essai, Sophie est de nouveau à Paris."]}}
+    ]},
+    {h:"Savoir s’arrêter",blocks:[
+      "Normaliser ne veut pas dire découper à l’infini : on sépare ce qui décrit un sujet à part entière.",
+      {warn:{t:"Une table pour chaque ville ?",blocks:[
+        "Dans <code>clients</code>, <b>Paris</b> est écrit quatre fois, mais chaque Paris concerne un client différent : si Sophie déménage, les trois autres restent à Paris. Faut-il créer une table <code>villes</code> ?",
+        {say:"👇 Teste par toi-même :",run:"SELECT ville, COUNT(*) AS clients\nFROM clients\nGROUP BY ville\nORDER BY clients DESC;"},
+        "Seulement si la ville porte ses propres informations, comme un département ou une région : elles dépendent de la ville et non du client, et la 3NF demande de les ranger à part. Sinon, chaque lecture paie une jointure de plus, juste pour retrouver un simple nom."
+      ]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : relier les trois tables pour retrouver, pour chaque commande, les informations dont le tableau de bord a besoin.",
+      {say:"👇 Exécute la requête pour alimenter le tableau de bord :",run:"SELECT clients.prenom,\n       clients.ville,\n       produits.nom AS produit,\n       produits.prix,\n       commandes.quantite\nFROM commandes\nJOIN clients\n  ON commandes.client_id = clients.id\nJOIN produits\n  ON commandes.produit_id = produits.id\nORDER BY commandes.id;"},
+      {done:{
+        label:"De trois tables au tableau de bord",
+        funnel:[
+          {n:16,t:"commandes au départ",s:"enregistrées dans la <code>table commandes</code>",dots:"0000000000000000"},
+          {step:"JOIN clients, JOIN produits",s:"relie chaque commande à son client et à son produit"},
+          {n:15,t:"⭐ commandes pour le tableau de bord",s:"une ligne par commande, sauf la commande 16 qui n’a pas de client",dots:"1111111111111110",out:true}
+        ],
+        sms:{ico:"📊",h:"Tableau de bord des ventes",aria:"Les commandes sont chargées dans le tableau de bord, sans aucune grande table",msg:"<b>Commandes à analyser</b><br>prénom · ville · produit · prix · quantité",people:[["S","Sophie","Paris · Fibre Prébiotique"],["S","Sophie","Paris · Magnésium"],["L","Lucas","Lyon · Protéine Végétale"],["E","Emma","Marseille · Collagène Marin"],["N","Nathan","Paris · Fibre Prébiotique"]],more:10,moreT:"… et 10 autres",moreS:"commandes du tableau de bord",st:["À charger","Chargement","✓ Chargée"],plane:"doc",done:"✓ 15 commandes chargées"},
+        fill:["JOIN","commandes.client_id","JOIN","commandes.produit_id"],
+        ui:{t:"15 commandes pour le tableau de bord",s:"Rien n’est recopié : les jointures retrouvent les informations de la grande table, à partir de trois tables.",n:["SELECT","FROM","JOIN","ON","ORDER BY"]},
+        rows:15
+      }}
+    ]}
   ],
+  reflex:[
+    {recap:[
+      ["🗂️","Chaque information est rangée <b>dans la table de ce qu’elle décrit</b>.","Elle n’est écrite qu’une fois : la corriger une fois suffit."],
+      ["🔗","Les tables se relient par des <b>identifiants</b> ; une jointure les rassemble au moment de lire :",null,"commandes.client_id = clients.id"],
+      ["⚖️","Normaliser n’est pas <b>découper à l’infini</b> : on ne crée une table que pour un sujet qui a ses propres informations."]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"clients (id, prenom, ville)",txt:"Tout ce qui décrit le client, écrit une seule fois."},{tok:"produits (id, nom, prix)",txt:"Tout ce qui décrit le produit, écrit une seule fois."},{tok:"commandes (id, client_id, produit_id, quantite)",txt:"Ce qui décrit la commande, plus deux clés étrangères vers les tables voisines."}],
   exemple:"CREATE TABLE clients (\n  id INTEGER PRIMARY KEY,\n  prenom TEXT,\n  ville TEXT\n);\n\nCREATE TABLE produits (\n  id INTEGER PRIMARY KEY,\n  nom TEXT,\n  prix REAL\n);\n\nCREATE TABLE commandes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER REFERENCES clients(id),\n  produit_id INTEGER REFERENCES produits(id),\n  quantite INTEGER\n);",
-  attendu:"Trois tables au lieu d’une. La ville de Sophie n’est plus écrite qu’une fois, le prix du Magnésium aussi. Le tableau de bord retrouve les mêmes chiffres avec des jointures.",
-  retenir:"Normaliser, c’est ranger chaque information dans la table qui correspond à ce qu’elle décrit.<br><br>Une information n’est alors écrite qu’à un seul endroit. La corriger une fois suffit, et la base ne peut plus se contredire.<br><br>Les formes normales : <b>1NF</b> une seule valeur, <b>2NF</b> toute la clé, <b>3NF</b> directement de la clé.",
-  piege:{t:"Tout séparer, jusqu’à l’excès",
-    p:"Normaliser n’est pas découper à l’infini. Sortir la ville dans une table <code>villes</code> n’a de sens que si la ville porte ses propres informations — un département, une région. Sinon, chaque lecture paie une jointure de plus pour rien.",
-    exec:false,
-    sql:"SELECT clients.prenom, villes.prenom\nFROM clients\nJOIN villes ON clients.ville_id = villes.id;",
-    out:"Une jointure de plus à chaque requête, pour retrouver une simple chaîne de caractères.",
-    fixSql:"SELECT prenom, ville\nFROM clients;"},
+  attendu:"Trois tables au lieu d’une. La ville de Sophie n’est écrite qu’une fois, le prix du Magnésium aussi. Le tableau de bord retrouve les mêmes informations grâce à des jointures.",
+  retenir:"Normaliser, c’est ranger chaque information dans la table qui correspond à ce qu’elle décrit.<br><br>Une information n’est alors écrite qu’à un seul endroit : la corriger une fois suffit, et elle ne peut plus se contredire d’une ligne à l’autre.<br><br>Les formes normales : <b>1NF</b> une seule valeur par case, <b>2NF</b> toute la clé, <b>3NF</b> directement la clé.",
   consigne:"La grande table mélange trois sujets. Écris la table <code>commandes</code> normalisée : son identifiant, ses deux clés étrangères, et la quantité.",
   solution:"CREATE TABLE commandes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER REFERENCES clients(id),\n  produit_id INTEGER REFERENCES produits(id),\n  quantite INTEGER\n);",
+  indice:"Une commande ne garde que ce qui la décrit. Le prénom du client et le prix du produit vivent ailleurs : elle ne garde que leurs identifiants.",
+  noExec:true,
   normExo:true,
   noExecOk:{b:"✓ Correct — chaque information à sa place",t:"La table <code>commandes</code> ne garde que ce qui décrit la commande : ses deux clés étrangères et la quantité. Le prénom du client reste dans <code>clients</code>, le prix dans <code>produits</code>."},
   noExecNote:"Cette table existe déjà dans la base : la recréer déclencherait une erreur. Écris-la pour toi, on compare la structure.",
   noExecWhy:"La table <code>commandes</code> existe déjà : SQLite refuserait de la recréer.",
-  indice:"Une commande ne garde que ce qui la décrit. Le prénom du client et le prix du produit vivent ailleurs : elle ne garde que leurs identifiants.",
-  noExec:true,
-  noDemo:true,
-  richLesson:true, earlyDemo:true ,
-learningCheck:{
-  "question": "Dans quelle table ranger la ville du client pour éviter de la recopier à chaque commande ?",
-  "options": [
-    "produits",
-    "clients",
-    "commandes"
-  ],
-  "answer": 1,
-  "explanation": "La ville décrit le client. Le prix décrit le produit. La quantité achetée décrit la commande : chaque information a son sujet."
-}
-},
+  learningCheck:{question:"Dans quelle table ranger la ville du client pour éviter de la recopier à chaque commande ?",options:["produits","clients","commandes"],answer:1,explanation:"La ville décrit le client. Le prix décrit le produit. La quantité achetée décrit la commande : chaque information a son sujet."}
+}),
 guide({ id:72, titre:"Relations 1-1, 1-N et N-N", résumé:"Les trois formes de lien entre deux tables",
   sit:{
     blocks:[
@@ -18131,470 +18167,313 @@ learningCheck:{
 }
 ]},
 { titre:"Vues, index et optimisation", sous:"Structurer et accélérer", lessons:[
-{ id:64, titre:"CREATE VIEW", résumé:"Enregistrer une requête sous un nom",
-  situation:"Sur ton site e-commerce, tu veux régulièrement afficher les produits dont le stock devient faible — disons ceux qui ont moins de 50 unités.",
-  situationSql:"SELECT\n    id,\n    nom,\n    stock\nFROM produits\nWHERE stock < 50;",
-  situationTail:"Cette requête fonctionne. Mais si tu dois t’en servir régulièrement, tu vas devoir la réécrire à chaque fois.<br><br><div class=\"sit-sql\"><p>Comment enregistrer cette requête sous un nom, pour pouvoir la réutiliser sans la réécrire ?</p><p>SQL permet d’enregistrer une requête sous un nom avec <code>CREATE VIEW</code> : c’est une <b>vue</b>.</p><p>Une vue est une requête enregistrée, que tu interroges ensuite comme une table.</p></div><div class=\"sit-vue\"><div class=\"sit-vue-step\"><p class=\"sit-vue-tag\">Avant</p><pre class=\"cw-syntax\">SELECT id, nom, stock\nFROM produits\nWHERE stock &lt; 50;</pre><p>Tu dois réécrire la requête à chaque fois.</p></div><i class=\"sit-vue-arrow\" aria-hidden=\"true\">↓</i><div class=\"sit-vue-step is-vue\"><p class=\"sit-vue-tag\">Avec une vue</p><pre class=\"cw-syntax\">CREATE VIEW produits_stock_faible AS\nSELECT id, nom, stock\nFROM produits\nWHERE stock &lt; 50;</pre><p>La même requête, sous le nom <code>produits_stock_faible</code>. À partir de maintenant, il te suffit d’écrire :</p><pre class=\"cw-syntax\">SELECT *\nFROM produits_stock_faible;</pre></div></div><div class=\"sit-memo\"><p class=\"sit-memo-lab\"><i aria-hidden=\"true\">💡</i>À retenir</p><p><code>CREATE VIEW</code> ne crée pas une nouvelle copie des produits : il enregistre la requête. Quand tu consultes la vue, SQL exécute cette requête sur les données <b>actuelles</b>.</p></div>",
-    studio:{pointCards:{
-      eye:"CREATE VIEW",title:"Une requête, un nom.",
-      lead:"Une vue est une requête enregistrée sous un nom. Tu peux ensuite l’interroger avec <code>SELECT</code>, presque comme une table.",
-      chain:[
-        {k:"Une requête",v:"celle que tu réécris souvent"},
-        {k:"CREATE VIEW",v:"l’enregistre sous un nom"},
-        {k:"SELECT",v:"interroge ensuite la vue"}
-      ]},
-    uses:{title:"Une requête que l’on garde.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">De la requête à la vue</p>
-          <ol class="fk-syn-map" aria-label="La table, la requête, la vue, puis son interrogation"><li><b aria-hidden="true">1</b><div><strong>Table produits</strong><span>Les données de départ</span></div></li><li><b aria-hidden="true">2</b><div><code>SELECT id, nom, stock … WHERE stock &lt; 50</code><span>La requête à enregistrer</span></div></li><li><b aria-hidden="true">3</b><div><code>CREATE VIEW</code><span>Enregistre la requête sous un nom</span></div></li><li><b aria-hidden="true">4</b><div><code>produits_stock_faible</code><span>La vue créée</span></div></li><li><b aria-hidden="true">5</b><div><code>SELECT * FROM produits_stock_faible</code><span>On interroge la vue comme une table</span></div></li></ol>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Créer la vue</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE VIEW produits_stock_faible AS
-SELECT
-    id,
-    nom,
-    stock
-FROM produits
-WHERE stock &lt; 50;</pre></div>
-          <p>La vue correspond à la requête placée après <code>AS</code>. On l’interroge ensuite comme une source de données :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
-FROM produits_stock_faible;</pre></div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Une vue ne copie pas les données</p>
-          <p>C’est le point le plus important. SQLite ne crée pas une seconde table contenant une copie des produits : la vue conserve la <b>requête</b>, et présente les données de la table source.</p>
-          <div class="duo">
-            <div class="duo-row"><p class="duo-k">Une table</p>
-              <p class="duo-v"><b>produits</b><span>contient les données</span></p></div>
-            <div class="duo-row"><p class="duo-k">Une vue</p>
-              <p class="duo-v"><b>produits_stock_faible</b><span>enregistre une manière de les consulter</span></p></div>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Quand les données changent</p>
-          <p>La Tisane Détox a 60 unités : elle ne respecte pas <code>stock &lt; 50</code>, donc elle n’apparaît pas dans la vue.</p>
-          <p>Si son stock tombe à 45, elle apparaîtra à la prochaine interrogation de la vue — sans qu’il faille recréer quoi que ce soit. La vue s’appuie sur les données <b>actuelles</b>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Simplifier une requête longue</p>
-          <p>L’intérêt grandit avec la complexité. Cette requête relie trois tables :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE VIEW detail_commandes AS
-SELECT
-    commandes.id,
-    clients.prenom AS client,
-    produits.nom AS produit,
-    commandes.quantite
-FROM commandes
-JOIN clients
-    ON commandes.client_id = clients.id
-JOIN produits
-    ON commandes.produit_id = produits.id;</pre></div>
-          <p>Deux jointures, quatre colonnes, deux alias — tout cela devient <code>SELECT * FROM detail_commandes;</code>. La logique est centralisée dans la définition de la vue.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Une vue s’interroge comme une table</p>
-          <p>Le résultat n’est pas figé : tu peux continuer à filtrer, trier, limiter.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
-FROM produits_stock_faible
-WHERE stock &lt; 35
-ORDER BY stock;</pre></div>
-          <p>La vue fournit les produits sous 50 unités, ta requête resserre sous 35.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Supprimer une vue</p>
-          <div class="pt-syntax"><pre class="cw-syntax">DROP VIEW produits_stock_faible;</pre></div>
-          <p>La vue disparaît, la table <code>produits</code> reste intacte. C’est logique : la vue n’était qu’une manière de consulter ses données.</p>
-          <p class="fn-tip"><b>En lecture</b> Dans SQLite, une vue se consulte mais ne se modifie pas directement. Pour ce cours, retiens qu’une vue sert à <b>consulter</b> plus simplement.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La situation",t:"tu réécris souvent la même requête"},
-      b:{k:"La règle",t:"enregistre-la sous un nom, puis interroge ce nom"},
-      note:"Réflexe : une requête que tu réécris régulièrement mérite un nom. <code>CREATE VIEW</code> le lui donne."}},
-  anatomie:[
-    {tok:"CREATE VIEW",txt:"Crée une vue."},
-    {tok:"produits_stock_faible",txt:"Le nom donné à la vue."},
-    {tok:"AS",txt:"Introduit la requête enregistrée."},
-    {tok:"SELECT id, nom, stock FROM produits WHERE stock < 50",txt:"Définit les données que la vue présente."}
-  ],
-  exemple:"CREATE VIEW produits_stock_faible AS\nSELECT\n    id,\n    nom,\n    stock\nFROM produits\nWHERE stock < 50;\n\nSELECT *\nFROM produits_stock_faible;",
-  attendu:"2 lignes : la Protéine Végétale à 45 et le Shaker Inox à 30. Les six autres produits ont un stock supérieur ou égal à 50.",
-  retenir:"Une vue est une <b>requête enregistrée sous un nom</b>, que tu interroges ensuite comme une source de données.<br><br>Elle ne copie rien : elle s’appuie sur les données actuelles de ses tables sources. Si elles changent, son résultat change.<br><br>Le mémo : une <b>table</b> contient les données, une <b>vue</b> enregistre une requête sur ces données.",
-  piege:{t:"Confondre CREATE VIEW et CREATE TABLE … AS",
-    p:"<code>CREATE VIEW … AS SELECT</code> enregistre la requête : le résultat suit les données.<br><br><code>CREATE TABLE … AS SELECT</code> crée une vraie table et <b>copie</b> les lignes au moment de sa création. Si la table source change ensuite, la copie ne bouge pas.",
-    exec:true,
-    sql:"CREATE TABLE copie_stock AS\nSELECT id, nom, stock\nFROM produits\nWHERE stock < 50;\n\nUPDATE produits\nSET stock = 10\nWHERE id = 3;\n\nSELECT * FROM copie_stock;",
-    out:"Le Magnésium passé à 10 n’apparaît pas : la copie date de sa création.",
-    fixSql:"CREATE VIEW vue_stock AS\nSELECT id, nom, stock\nFROM produits\nWHERE stock < 50;\n\nUPDATE produits\nSET stock = 10\nWHERE id = 3;\n\nSELECT * FROM vue_stock;"},
-  petitDefi:[{
-    p:"Tu utilises souvent cette requête. Quels mots-clés l’enregistrent sous le nom <code>produits_premium</code> ?",
-    sql:"____________ produits_premium AS\nSELECT\n    nom,\n    prix\nFROM produits\nWHERE prix > 30;",
-    a:"CREATE VIEW",
-    answers:["CREATE VIEW","create view"]
-  }],
-  consigne:"Enregistre sous le nom <code>produits_stock_faible</code> la requête qui affiche l’<code>id</code>, le <code>nom</code> et le <code>stock</code> des produits ayant moins de 50 unités.",
-  solution:"CREATE VIEW produits_stock_faible AS\nSELECT\n    id,\n    nom,\n    stock\nFROM produits\nWHERE stock < 50;",
-  verif:"SELECT id, nom, stock FROM produits_stock_faible ORDER BY id;",
-  indice:"<code>CREATE VIEW nom AS</code>, puis la requête telle quelle.",
-  write:true,
-  richLesson:true, earlyDemo:true ,
-testeVariants:[
-  {
-    "k": "base",
-    "label": "Exemple",
-    "sql": "CREATE VIEW produits_stock_faible AS\nSELECT\n    id,\n    nom,\n    stock\nFROM produits\nWHERE stock < 50;"
+guide({ id:64, titre:"CREATE VIEW", résumé:"Enregistrer une requête sous un nom",
+  sit:{
+    blocks:[
+      "L’équipe logistique prépare le réassort : chaque matin, elle consulte <b>les produits dont le stock est faible</b>, c’est-à-dire ceux qui comptent <b>moins de 50 unités</b>.",
+      "La table <code>produits</code> contient au total <b>8 produits</b>. Pour préparer le réassort, l’équipe souhaite récupérer uniquement :",
+      {need:[["🔢","L’identifiant du produit","table produits"],["🏷️","Son nom","table produits"],["📦","Son stock","table produits"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>WHERE</code>, SQL sait déjà retrouver les produits dont le stock est inférieur à 50.","Or, la requête qui les retrouve n’est conservée nulle part : l’équipe doit la <b>réécrire à chaque consultation</b>."],
+      scene:{h:"📝 Requête du matin",
+        lanes:[{k:"L1",l:"Lundi",c:[["a1","SELECT id, nom, stock FROM produits WHERE stock &lt; 50;"]]},
+          {k:"L2",l:"Mardi",c:[["b1","SELECT id, nom, stock FROM produits WHERE stock &lt; 50;"]]},
+          {k:"L3",l:"Mercredi",c:[["c1","SELECT id, nom, stock FROM produits WHERE stock &lt; 50;"]]}],
+        caps:["<b>Notre pratique</b> · Chaque matin, l’équipe écrit la requête qui affiche les produits à stock faible.","<b>Besoin</b> · Retaper trois fois la même requête fait perdre du temps et expose aux fautes de frappe.","<b>Résultat</b> · La requête est conservée sous un nom : il suffit de le rappeler."],
+        steps:[{cap:0,on:["L1","L2","L3"],d:2000},{cap:1,off:["L1","L2","L3"],mark:{a1:"is-miss",b1:"is-miss",c1:"is-miss"},d:2400},{cap:2,unmark:{a1:"is-miss",b1:"is-miss",c1:"is-miss"},text:{a1:"produits_stock_faible",b1:"produits_stock_faible",c1:"produits_stock_faible"},on:["L1","L2","L3"],stagger:350,d:2800}]},
+      then:["Il faut donc indiquer à SQL de <b>conserver cette requête sous un nom</b>, pour la rappeler sans la réécrire.","C’est exactement le rôle de <code>CREATE VIEW</code>."]
+    },
+    mission:"Aide l’équipe logistique à enregistrer, sous le nom <b>produits_stock_faible</b>, la requête qui affiche l’<b>identifiant</b>, le <b>nom</b> et le <b>stock</b> des produits de <b>moins de 50 unités</b>, afin de la consulter chaque matin sans la réécrire."
   },
-  {
-    "k": "rec_source",
-    "label": "La source évolue",
-    "sql": "CREATE VIEW produits_stock_faible AS SELECT id,nom,stock FROM produits WHERE stock<50; UPDATE produits SET stock=45 WHERE id=5; SELECT * FROM produits_stock_faible ORDER BY id;",
-    "out": "La Tisane Détox entre dans la vue sans recréer celle-ci.",
-    "expectRows": 3
-  }
-]
-,
-learningCheck:{
-  "question": "Une nouvelle ligne qui satisfait le filtre apparaît-elle dans la vue sans recréer celle-ci ?",
-  "options": [
-    "Non",
-    "Seulement après un INSERT dans la vue",
-    "Oui"
+  concept:{
+    title:"Comment SQL peut-il savoir quelle requête conserver ?",
+    blocks:[
+      "Pour conserver une requête, SQL doit connaître deux choses :",
+      {ask:"Quel nom lui donner, et quelle requête enregistrer ?"},
+      "En SQL, on écrit le nom après <code>CREATE VIEW</code>, puis la requête après <code>AS</code>. La requête ainsi conservée s’appelle une <b>vue</b> :",
+      {syntax:"⟦CREATE VIEW produits_premium AS⟧\nSELECT nom, prix\nFROM produits\nWHERE prix > 30;"},
+      {scene:{h:"🔖 De la requête à la vue",
+        lanes:[{k:"Q",l:"La requête",c:[["q1","SELECT nom, prix FROM produits WHERE prix &gt; 30"]]},
+          {k:"V",l:"La vue enregistrée",fold:true,c:[["v1","produits_premium"]]},
+          {k:"R",l:"Quand on la consulte",fold:true,cls:"is-goal",c:[["r1","Collagène Marin · 39.9"],["r2","Protéine Végétale · 34.9"]]}],
+        caps:["<b>La requête</b> · Elle retrouve les produits à plus de 30 €.","<b>CREATE VIEW</b> · SQL l’enregistre sous un nom : il retient la requête, pas son résultat.","<b>SELECT * FROM produits_premium</b> · Consulter la vue exécute la requête enregistrée et affiche son résultat."],
+        steps:[{cap:0,on:["Q"],d:2000},{cap:1,off:["Q"],unfold:["V"],on:["V"],d:2500},{cap:2,off:["V"],unfold:["R"],on:["R"],d:2800}]}}
+    ]
+  },
+  steps:[
+    {h:"Créer puis consulter une vue",blocks:[
+      "<code>CREATE VIEW</code> enregistre la requête sans rien afficher. La vue se consulte ensuite avec un <code>SELECT</code>, comme une table :",
+      {syntax:"⟦SELECT *\nFROM produits_premium;⟧"},
+      {say:"👇 Exécute ces instructions pour créer la vue, puis la consulter :",run:"CREATE VIEW produits_premium AS\nSELECT nom, prix\nFROM produits\nWHERE prix > 30;\n\nSELECT *\nFROM produits_premium;"},
+      {arrow:"La vue renvoie les 2 produits à plus de 30 € : le Collagène Marin et la Protéine Végétale."},
+      {tip:{t:"Supprimer une vue",blocks:["<code>DROP VIEW produits_premium;</code> supprime la vue, jamais les données de la table qu’elle consultait."]}},
+      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux créer des vues sans rien encombrer. À chaque essai, la vue <code>produits_premium</code> n’existe plus : voilà pourquoi chaque exemple la recrée avant de la consulter."]}}
+    ]},
+    {h:"Filtrer et trier une vue",blocks:[
+      "Une vue se filtre et se trie comme une table. Elle est surtout précieuse avec une requête longue : ici, deux jointures relient chaque commande à son client et à son produit.",
+      {say:"👇 Exécute ces instructions pour créer la vue <code>detail_commandes</code>, puis la filtrer et la trier :",run:"CREATE VIEW detail_commandes AS\nSELECT commandes.id,\n       clients.prenom AS client,\n       produits.nom AS produit,\n       commandes.quantite\nFROM commandes\nJOIN clients\n  ON commandes.client_id = clients.id\nJOIN produits\n  ON commandes.produit_id = produits.id;\n\nSELECT client, produit\nFROM detail_commandes\nWHERE quantite >= 3\nORDER BY client;"},
+      {arrow:"Les deux jointures restent cachées dans la vue. Trois commandes comptent au moins 3 unités."}
+    ]},
+    {h:"Une vue suit les données",blocks:[
+      "Et si les données changent après la création de la vue ? La Fibre Prébiotique passe à 31 € : elle dépasse maintenant le seuil des 30 €.",
+      {say:"👇 Exécute ces instructions pour voir si la vue en tient compte :",run:"CREATE VIEW produits_premium AS\nSELECT nom, prix\nFROM produits\nWHERE prix > 30;\n\nUPDATE produits\nSET prix = 31\nWHERE id = 1;\n\nSELECT *\nFROM produits_premium;"},
+      {arrow:"La Fibre Prébiotique est entrée dans la vue sans aucune recréation : une vue ne copie rien, elle <b>relance sa requête</b> à chaque consultation."},
+      {warn:{t:"Une copie ne suit pas",blocks:[
+        "<code>CREATE TABLE … AS SELECT</code> ressemble à une vue, mais il <b>copie</b> les lignes au moment où il s’exécute.",
+        {say:"👇 Teste par toi-même :",run:"CREATE TABLE copie_premium AS\nSELECT nom, prix\nFROM produits\nWHERE prix > 30;\n\nUPDATE produits\nSET prix = 31\nWHERE id = 1;\n\nSELECT *\nFROM copie_premium;"},
+        "La copie date de sa création : la Fibre Prébiotique n’y figure pas."
+      ]}},
+      {tip:{t:"Une vue se consulte, elle ne se modifie pas",blocks:["Dans SQLite, une vue ne se modifie pas directement : un <code>INSERT</code>, un <code>UPDATE</code> ou un <code>DELETE</code> adressé à une vue provoque une erreur. Les modifications se font sur la table d’origine."]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : donner un nom à la vue, puis y enregistrer la requête qui retrouve les produits de moins de 50 unités.",
+      {say:"👇 Exécute les instructions pour créer la vue et consulter les produits à réapprovisionner :",run:"CREATE VIEW produits_stock_faible AS\nSELECT id, nom, stock\nFROM produits\nWHERE stock < 50;\n\nSELECT *\nFROM produits_stock_faible;"},
+      {done:{
+        label:"De 8 produits aux produits à réapprovisionner",
+        funnel:[
+          {n:8,t:"produits au départ",s:"toute la <code>table produits</code>",dots:"00000000"},
+          {step:"CREATE VIEW produits_stock_faible",s:"enregistre la requête : la vue ne présente que les produits de moins de 50 unités"},
+          {n:2,t:"⭐ produits à réapprovisionner",s:"Protéine Végétale et Shaker Inox",dots:"00000101",out:true}
+        ],
+        sms:{ico:"📦",h:"Réassort du matin",aria:"Les deux produits à stock faible partent en commande de réassort",msg:"<b>À réapprovisionner</b><br>Produits de moins de 50 unités",people:[["P","Protéine Végétale","45 unités en stock"],["S","Shaker Inox","30 unités en stock"]],st:["À commander","Commande","✓ Commandé"],plane:"doc",done:"✓ 2 produits commandés"},
+        fill:["CREATE VIEW","produits_stock_faible","AS","50"],
+        ui:{t:"2 produits à réapprovisionner",s:"La requête est enregistrée : chaque matin, il suffit de consulter la vue.",n:["CREATE VIEW","AS","SELECT","FROM","WHERE"]},
+        rows:2
+      }}
+    ]}
   ],
-  "answer": 2,
-  "explanation": "Une vue conserve une requête, pas une copie des données. Chaque consultation lit l’état actuel de la source."
-}
-},
-{ id:57, titre:"Les index", résumé:"Retrouver plus vite certaines lignes",
-  situation:"Ton équipe commerciale doit régulièrement retrouver une commande précise à partir de son numéro.<br><br>Par exemple, un client appelle pour connaître l’état de sa commande :",
-  situationSql:"SELECT *\nFROM commandes\nWHERE numero_commande = 'CMD-2026-1847392';",
-  situationTail:"<div class=\"sit-sql\"><p>Avec peu de commandes, la recherche est rapide.</p><p>Mais ton activité grandit : la table contient désormais des millions de commandes, et la requête doit en retrouver une seule parmi toutes ces lignes.</p><p>Comment accélérer cette recherche ?</p><p>C’est là qu’interviennent les <b>index en SQL</b>.</p></div>",
-    studio:{pointCards:{
-      eye:"Index",title:"Un chemin d’accès vers les données.",
-      lead:"<p>Un index est une structure qui aide SQL à retrouver plus rapidement certaines lignes d’une table, un peu comme le sommaire d’un livre indique où chercher au lieu de tout parcourir.</p><p>Il ne modifie pas les colonnes de la table : il est créé à côté.</p>",
-      chain:[
-        {k:"Sans index",v:"SQL peut devoir parcourir <b>de nombreuses lignes</b> pour trouver le résultat."},
-        {k:"Avec index",v:"SQL peut utiliser l’index pour <b>accéder plus directement aux lignes recherchées</b>."},
-        {k:"À retenir",v:"Un index est surtout utile sur les <b>colonnes souvent utilisées pour rechercher ou filtrer des données</b>."}
-      ]},
-    uses:{title:"Un index, une idée à la fois.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Sans index : la recherche parcourt la table</p>
-          <p>Tu recherches la commande <code>CMD-2026-1847392</code> dans une table devenue immense.</p>
-          <div class="table-wrap"><table class="concept-table"><thead><tr><th>id</th><th>numero_commande</th><th>client_id</th><th>date_commande</th></tr></thead><tbody><tr><td>1</td><td>CMD-2026-1002481</td><td>1</td><td>2026-07-02</td></tr><tr><td>2</td><td>CMD-2026-1003912</td><td>1</td><td>2026-07-02</td></tr><tr><td>3</td><td>CMD-2026-1015630</td><td>2</td><td>2026-07-05</td></tr><tr class="sample-more"><td colspan="4">… jusqu’à 2&nbsp;000&nbsp;000 de lignes</td></tr></tbody></table></div>
-          <p>Sans index adapté, le SGBD peut devoir parcourir la table et examiner les lignes une par une. On appelle cela un <b>parcours de table</b> (<code>table scan</code>).</p>
-          <p>Plus la table grandit, plus ce type de recherche peut devenir coûteux.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">L’index : un raccourci vers les données</p>
-          <p>Pour éviter de parcourir inutilement un grand nombre de lignes, on peut créer un index sur une colonne souvent utilisée dans les recherches.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE INDEX idx_commandes_numero
-ON commandes(numero_commande);</pre></div>
-          <p>L’index est construit à partir des valeurs de la colonne <code>numero_commande</code>. SQL peut alors l’utiliser pour retrouver plus rapidement où se trouve la ligne recherchée.</p>
-          <p>Comme dans un livre : au lieu de parcourir toutes les pages une par une, tu consultes le sommaire pour savoir où chercher.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">L’index ne modifie pas la table</p>
-          <p><code>CREATE INDEX</code> n’ajoute pas de colonne dans la table <code>commandes</code>.</p>
-          <div class="idx-side" aria-hidden="true">
-            <span><b>Données</b><i>stockées dans la table</i></span>
-            <span><b>Index numero_commande</b><i>structure de recherche séparée</i></span>
-          </div>
-          <p>Les données restent dans la table. L’index est une structure créée <b>en plus</b> pour aider SQL à les retrouver plus rapidement.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Créer un index</p>
-          <p>La syntaxe est :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE INDEX nom_index
-ON nom_table(colonne);</pre></div>
-          <p>Dans notre cas :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE INDEX idx_commandes_numero
-ON commandes(numero_commande);</pre></div>
-          <p><code>CREATE INDEX</code> → crée l’index.<br>
-          <code>idx_commandes_numero</code> → est le nom donné à l’index.<br>
-          <code>commandes</code> → est la table concernée.<br>
-          <code>numero_commande</code> → est la colonne sur laquelle l’index est créé.</p>
-          <p>💡 Par convention, le nom de l’index indique souvent la table et la colonne concernées : <code>idx_commandes_numero</code>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">La requête ne change pas</p>
-          <p>Une fois l’index créé, tu écris exactement la même requête :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
-FROM commandes
-WHERE numero_commande = 'CMD-2026-1847392';</pre></div>
-          <p>Tu n’as pas besoin d’indiquer à SQL d’utiliser <code>idx_commandes_numero</code>. Le SGBD analyse la requête et décide lui-même s’il est plus efficace :</p>
-          <ul class="pt-lead-list">
-            <li>d’utiliser l’index ;</li>
-            <li>ou de parcourir directement la table.</li>
-          </ul>
-          <p>Créer un index donne donc au SGBD une <b>nouvelle façon d’accéder aux données</b>, mais il ne l’utilisera que s’il estime que c’est avantageux.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Pourquoi ne pas tout indexer ?</p>
-          <p>Un index occupe de l’espace. Et lorsque les données changent avec un <code>INSERT</code>, un <code>UPDATE</code> ou un <code>DELETE</code>, le SGBD doit aussi mettre à jour les index concernés.</p>
-          <p>Les index peuvent donc accélérer certaines recherches, mais ils peuvent aussi rendre certaines modifications plus coûteuses.</p>
-          <div class="idx-side" aria-hidden="true">
-            <span><b>Lectures</b><i>⚡ recherches potentiellement plus rapides</i></span>
-            <span><b>Écritures</b><i>↻ index à mettre à jour</i></span>
-          </div>
-          <p>Plus d’index ne signifie pas forcément une base plus rapide. L’objectif est de créer des index sur les colonnes où ils sont réellement utiles.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Index sur plusieurs colonnes</p>
-          <p>Si tu recherches souvent les commandes d’un client à partir d’une certaine date :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE INDEX
-  idx_commandes_client_date
-ON commandes(client_id,
-             date_commande);</pre></div>
-          <p>C’est un <b>index composite</b> : un seul index construit à partir de plusieurs colonnes. Ici, l’index est organisé :</p>
-          <ol class="pt-lead-list">
-            <li>d’abord par <code>client_id</code> ;</li>
-            <li>puis par <code>date_commande</code> pour chaque client.</li>
-          </ol>
-          <div class="idx-comp" aria-hidden="true">
-            <div class="idx-comp-g">
-              <b>client 1 · Sophie</b>
-              <span>2026-07-02</span>
-              <span>2026-07-02</span>
-              <span class="on">2026-07-28 ✓</span>
-            </div>
-            <div class="idx-comp-g">
-              <b>client 2 · Lucas</b>
-              <span>2026-07-05</span>
-              <span>2026-07-20</span>
-            </div>
-          </div>
-          <p>Cette organisation sert par exemple à cette recherche :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
-FROM commandes
-WHERE client_id = 1
-  AND date_commande &gt;= '2026-07-15';</pre></div>
-          <p>SQL peut d’abord retrouver les commandes du client 1, puis rechercher les dates correspondantes dans ce groupe.</p>
-          <div class="sit-sql">
-            <p><b>L’ordre est important.</b></p>
-            <p>Un index <code>(client_id, date_commande)</code> est particulièrement adapté aux recherches qui commencent par <code>client_id</code>. Il n’est pas équivalent à un index <code>(date_commande, client_id)</code>.</p>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Comment savoir si l’index est utilisé ?</p>
-          <p>Créer un index ne signifie pas que le SGBD va forcément l’utiliser. Pour savoir comment une requête sera exécutée, on peut consulter son <b>plan d’exécution</b>.</p>
-          <p>Il permet notamment de voir si le SGBD prévoit :</p>
-          <ul class="pt-lead-list">
-            <li>de parcourir la table ;</li>
-            <li>ou d’utiliser un index.</li>
-          </ul>
-          <p>Avec SQLite, avant de créer l’index :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">EXPLAIN QUERY PLAN
-SELECT *
-FROM commandes
-WHERE numero_commande = 'CMD-2026-1847392';</pre></div>
-          <div class="tx-fail">
-            <span>SCAN commandes</span>
-          </div>
-          <p><code>SCAN</code> annonce un parcours de la table. Une fois l’index créé, le même <code>EXPLAIN QUERY PLAN</code> répond :</p>
-          <div class="tx-fail">
-            <span class="is-ok">SEARCH commandes USING INDEX
-idx_commandes_numero (numero_commande=?)</span>
-          </div>
-          <p>Ici, <code>USING INDEX</code> indique que SQLite prévoit d’utiliser l’index pour la recherche, au lieu de parcourir la table.</p>
-          <p>💡 La commande et le vocabulaire varient selon le SGBD. PostgreSQL, MySQL, SQLite et SQL Server proposent chacun leurs outils pour consulter le plan d’exécution.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La question",t:"Cette colonne sert-elle souvent à retrouver des lignes dans une grande table ?"},
-      b:{k:"La règle",t:"Un index peut accélérer l’accès à ces lignes."},
-      note:"Pense aux index lorsqu’une grande table est régulièrement recherchée, filtrée ou reliée à partir des mêmes colonnes."},
-    idxSplit:true},
-  anatomie:[
-    {tok:"CREATE INDEX idx_commandes_numero",txt:"Crée un index et lui donne un nom."},
-    {tok:"ON commandes",txt:"La table concernée."},
-    {tok:"(numero_commande)",txt:"La colonne qui sert à retrouver les lignes."}
+  reflex:[
+    {recap:[
+      ["🔖","<code>CREATE VIEW</code> <b>enregistre une requête</b> sous un nom.","La vue ne copie aucune donnée : elle suit toujours celles de la table."],
+      ["📍","Le nom se place après <code>CREATE VIEW</code>, la requête après <code>AS</code> :",null,"CREATE VIEW nom AS SELECT …"],
+      ["🔎","On <b>consulte la vue comme une table</b> :",null,"SELECT * FROM produits_stock_faible"]
+    ],label:"Les trois idées à retenir"}
   ],
-  exemple:"CREATE INDEX idx_commandes_numero ON commandes(numero_commande);",
-  attendu:"L’index est créé. La table <code>commandes</code> n’a pas de nouvelle colonne.",
-  retenir:"Un index est un chemin d’accès supplémentaire qui aide SQL à retrouver plus rapidement certaines données.<br><br>Sans index, SQL peut parcourir une grande partie de la table. Avec un index, il dispose d’un chemin organisé.<br><br>Un index prend de la place et doit être maintenu. Il ne faut donc pas en créer partout.",
-  piege:{t:"Indexer toutes les colonnes",
-    p:"Un index n’est pas gratuit : il occupe de l’espace et doit être mis à jour à chaque <code>INSERT</code>, <code>UPDATE</code> ou <code>DELETE</code>. On indexe les colonnes vraiment utilisées pour chercher ou relier, pas toutes les colonnes « au cas où »."},
+  anatomie:[{tok:"CREATE VIEW",txt:"Crée une vue."},{tok:"produits_premium",plain:1,txt:"Le nom donné à la vue."},{tok:"AS",txt:"Introduit la requête enregistrée."},{tok:"SELECT nom, prix FROM produits WHERE prix > 30",plain:1,txt:"La requête que la vue retient et relance à chaque consultation."}],
+  exemple:"CREATE VIEW produits_premium AS SELECT nom, prix FROM produits WHERE prix > 30; SELECT * FROM produits_premium;",
+  attendu:"<b>2 lignes</b> : le Collagène Marin (39,90 €) et la Protéine Végétale (34,90 €), les deux produits à plus de 30 €. La vue ne contient aucune copie : elle retient la requête.",
+  retenir:"<code>CREATE VIEW</code> enregistre une requête sous un nom : c’est une vue.<br>Elle ne copie rien : à chaque consultation, SQL relance la requête sur les données actuelles.<br><br>Le nom se place après <code>CREATE VIEW</code>, la requête après <code>AS</code> : <code>CREATE VIEW nom AS SELECT …</code><br><br>On consulte la vue comme une table. <code>DROP VIEW</code> la supprime, sans toucher aux données.",
+  consigne:"Enregistre sous le nom <code>clients_paris</code> la requête qui affiche le <code>prenom</code>, le <code>nom</code> et l’<code>email</code> des clients qui habitent à Paris.",
+  solution:"CREATE VIEW clients_paris AS\nSELECT prenom, nom, email\nFROM clients\nWHERE ville = 'Paris';",
+  verif:"SELECT prenom, nom, email FROM clients_paris ORDER BY prenom, nom;",
+  write:true,
+  indice:"Écris <code>CREATE VIEW clients_paris AS</code>, puis la requête <code>SELECT</code> avec son filtre sur la colonne <code>ville</code>.",
+  petitDefi:[{p:"Quel mot-clé introduit la requête que la vue doit enregistrer ?",sql:"CREATE VIEW commandes_en_cours __________\nSELECT id, numero_commande\nFROM commandes\nWHERE statut = 'en_preparation';",a:"AS",answers:["AS","as"]}],
+  testeVariants:[{k:"base",label:"Créer la vue",sql:"CREATE VIEW produits_stock_faible AS\nSELECT id, nom, stock\nFROM produits\nWHERE stock < 50;\n\nSELECT *\nFROM produits_stock_faible;",expectRows:2},{k:"rec_source",label:"La source évolue",sql:"CREATE VIEW produits_stock_faible AS SELECT id, nom, stock FROM produits WHERE stock < 50; UPDATE produits SET stock = 45 WHERE id = 5; SELECT * FROM produits_stock_faible ORDER BY id;",out:"La Tisane Détox entre dans la vue sans recréer celle-ci.",expectRows:3}],
+  learningCheck:{question:"Un produit passe sous 50 unités de stock. Faut-il recréer la vue produits_stock_faible pour qu’il y apparaisse ?",options:["Oui, la vue garde une copie figée des données","Oui, il faut la supprimer puis la recréer","Non, la vue relance sa requête à chaque consultation"],answer:2,explanation:"Une vue retient une requête, pas une copie des données : chaque consultation lit l’état actuel de la table."}
+}),
+guide({ id:57, titre:"Les index", résumé:"Retrouver plus vite certaines lignes",
+  sit:{
+    blocks:[
+      "L’équipe commerciale répond chaque jour à des clients qui veulent connaître l’état de leur commande. Pour la retrouver, elle n’a qu’une information : <b>son numéro</b>.",
+      "La table <code>commandes</code> contient aujourd’hui <b>16 commandes</b>, mais la boutique en comptera bientôt des millions. Pour répondre à un client, l’équipe souhaite récupérer uniquement :",
+      {need:[["📅","La date de la commande","table commandes"],["🚚","Son statut","table commandes"],["🔢","La quantité commandée","table commandes"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>WHERE</code>, SQL sait déjà retrouver la commande qui porte un numéro donné.","Or, rien n’indique à SQL <b>où</b> se trouve ce numéro : il doit <b>lire les commandes une par une</b>."],
+      scene:{h:"🔎 Recherche d’un numéro",cols:".4fr 1.6fr .6fr",
+        lanes:[{c:[["h1","id","t"],["h2","numero_commande","t"],["h3","égal ?","t"]]},
+          {k:"R1",c:[["a1","1"],["a2","CMD-2026-1002481"],["a3","?","q"]]},
+          {k:"R2",c:[["b1","2"],["b2","CMD-2026-1003912"],["b3","?","q"]]},
+          {k:"R3",c:[["c1","3"],["c2","CMD-2026-1015630"],["c3","?","q"]]},
+          {k:"R4",c:[["d1","…"],["d2","…"],["d3","?","q"]]},
+          {k:"R5",c:[["e1","14"],["e2","CMD-2026-1847392"],["e3","?","q"]]}],
+        caps:["<b>Notre table</b> · Les commandes sont rangées dans l’ordre d’arrivée : rien n’indique où se trouve un numéro.","<b>Recherche</b> · Pour trouver <b>CMD-2026-1847392</b>, SQL compare le numéro de chaque ligne, l’une après l’autre.","<b>Trouvée</b> · SQL a dû comparer chaque ligne pour la repérer : avec des millions de commandes, la recherche serait très longue.","<b>Besoin</b> · Il faudrait aller directement à la bonne ligne, sans lire les autres."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5"],text:{a3:"non",b3:"non",c3:"non",d3:"non"},stagger:450,d:2800},{cap:2,text:{e3:"oui"},on:["R5"],dim:["R1","R2","R3","R4"],d:2600},{cap:3,fold:["R1","R2","R3","R4"],d:2600}]},
+      then:["Il faut donc donner à SQL un moyen d’aller <b>directement</b> à la ligne cherchée, sans lire toute la table.","C’est exactement le rôle d’un <code>INDEX</code>."]
+    },
+    mission:"Aide l’équipe commerciale à retrouver plus vite la <b>date</b>, le <b>statut</b> et la <b>quantité</b> d’une commande à partir de son <b>numéro</b>, en créant l’index <b>idx_commandes_numero</b> sur la colonne <b>numero_commande</b>, afin que SQL n’ait plus à parcourir toute la table."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir où se trouve une commande ?",
+    blocks:[
+      "Pour aller droit à la bonne ligne, SQL a besoin de ce que le lecteur d’un livre trouve à la fin : un <b>index</b>, une liste rangée qui indique où trouver chaque élément.",
+      {ask:"À quelle ligne se trouve ce numéro ?"},
+      "Dans une base, l’index range les valeurs d’une colonne et note, en face de chacune, la ligne qui la contient. Il est stocké à côté de la table, qui ne change pas. On le crée avec <code>CREATE INDEX</code> :",
+      {syntax:"⟦CREATE INDEX idx_commandes_numero⟧\nON commandes(numero_commande);"},
+      {scene:{h:"📖 Un index pour la table",cols:"1.7fr .8fr",
+        lanes:[{c:[["h1","numero_commande","t"],["h2","ligne","t"]]},
+          {k:"I1",c:[["a1","CMD-2026-1002481"],["a2","1"]]},
+          {k:"I2",c:[["b1","CMD-2026-1015630"],["b2","3"]]},
+          {k:"I3",c:[["c1","CMD-2026-1134085"],["c2","16"]]},
+          {k:"I4",c:[["d1","CMD-2026-1847392"],["d2","14"]]},
+          {k:"G",l:"Ligne 14 de la table commandes",cls:"is-goal",fold:true,cols:"1fr",c:[["g1","14 · 2026-07-30 · en_preparation"]]}],
+        caps:["<b>L’index</b> · Les numéros sont rangés dans l’ordre, chacun avec la ligne de la table qui le contient.","<b>Recherche</b> · SQL repère CMD-2026-1847392 dans cette liste rangée, sans regarder les autres lignes de la table.","<b>Accès direct</b> · L’index indique la ligne 14 : SQL va la lire directement dans la table."],
+        steps:[{cap:0,on:["I1","I2","I3","I4"],d:2000},{cap:1,off:["I1","I2","I3"],dim:["I1","I2","I3"],d:2400},{cap:2,unfold:["G"],on:["G"],d:2800}]}}
+    ]
+  },
+  steps:[
+    {h:"Voir comment SQL cherche",blocks:[
+      "Pour voir comment SQL s’y prend, on place <code>EXPLAIN QUERY PLAN</code> devant une requête : SQL affiche alors son <b>plan</b> au lieu des lignes. Le cours suivant lui est consacré ; ici, il sert à constater l’effet d’un index.",
+      {syntax:"⟦EXPLAIN QUERY PLAN⟧\nSELECT *\nFROM produits\nWHERE nom = 'Magnésium';"},
+      {say:"👇 Exécute cette requête pour voir comment SQL cherche un produit à partir de son nom :",run:"EXPLAIN QUERY PLAN\nSELECT *\nFROM produits\nWHERE nom = 'Magnésium';"},
+      {arrow:"La colonne <code>detail</code> décrit le plan : <b>SCAN produits</b> signifie que SQL parcourt toute la table, car aucun index ne porte sur <code>nom</code>."}
+    ]},
+    {h:"Créer un index",blocks:[
+      "La recherche par nom parcourt toute la table : un index sur la colonne <code>nom</code> peut l’accélérer :",
+      {syntax:"CREATE INDEX ⟦idx_produits_nom⟧\nON ⟦produits(nom)⟧;"},
+      {looks:[["idx_produits_nom","est le nom donné à l’index"],["produits(nom)","désigne la table et la colonne à indexer"]]},
+      {say:"👇 Exécute ces instructions pour créer l’index, puis refaire le plan :",run:"CREATE INDEX idx_produits_nom\nON produits(nom);\n\nEXPLAIN QUERY PLAN\nSELECT *\nFROM produits\nWHERE nom = 'Magnésium';"},
+      {arrow:"Le plan annonce maintenant <b>SEARCH … USING INDEX idx_produits_nom</b> : SQL passe par l’index. La requête n’a pas changé, c’est SQL qui choisit de s’en servir."},
+      {tip:{t:"Un index a un coût",blocks:["Un index occupe de la place, et SQL doit le mettre à jour à chaque <code>INSERT</code>, <code>UPDATE</code> ou <code>DELETE</code>. On n’indexe donc que les colonnes souvent recherchées, pas toutes « au cas où »."]}},
+      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux créer des index sans rien abîmer. À chaque essai, l’index <code>idx_produits_nom</code> n’existe plus."]}}
+    ]},
+    {h:"Indexer plusieurs colonnes",blocks:[
+      "Quand une recherche porte sur deux colonnes, un seul index peut les couvrir : c’est un <b>index composite</b>. Les colonnes se listent entre parenthèses, dans l’ordre voulu :",
+      {syntax:"CREATE INDEX idx_commandes_client_date\nON commandes(⟦client_id, date_commande⟧);"},
+      {scene:{h:"🗂️ Un index sur deux colonnes",cols:"1fr 1.4fr .6fr",
+        lanes:[{c:[["h1","client_id","t"],["h2","date_commande","t"],["h3","ligne","t"]]},
+          {k:"I1",c:[["a1","1"],["a2","2026-07-02"],["a3","1"]]},
+          {k:"I2",c:[["b1","1"],["b2","2026-07-02"],["b3","2"]]},
+          {k:"I3",c:[["c1","1"],["c2","2026-07-28"],["c3","13"]]},
+          {k:"I4",c:[["d1","2"],["d2","2026-07-05"],["d3","3"]]},
+          {k:"I5",c:[["e1","2"],["e2","2026-07-20"],["e3","10"]]}],
+        caps:["<b>L’index</b> · Les entrées sont rangées d’abord par client, puis par date à l’intérieur de chaque client.","<b>client_id = 1</b> · SQL va directement au groupe du client 1 : les autres clients sont ignorés.","<b>date_commande ≥ 2026-07-15</b> · Dans ce groupe, les dates sont rangées : il ne reste que la ligne 13."],
+        steps:[{cap:0,on:["I1","I2","I3","I4","I5"],d:2000},{cap:1,off:["I4","I5"],dim:["I4","I5"],d:2400},{cap:2,off:["I1","I2"],dim:["I1","I2"],d:2600}]}},
+      {say:"👇 Exécute ces instructions pour voir le plan de la recherche des commandes d’un client à partir d’une date :",run:"CREATE INDEX idx_commandes_client_date\nON commandes(client_id, date_commande);\n\nEXPLAIN QUERY PLAN\nSELECT *\nFROM commandes\nWHERE client_id = 1\n  AND date_commande >= '2026-07-15';"},
+      {arrow:"Le plan utilise les deux colonnes de l’index : <b>client_id=? AND date_commande&gt;?</b> (le <code>?</code> remplace la valeur cherchée)."},
+      {warn:{t:"L’ordre des colonnes compte",blocks:[
+        "Une recherche qui ne porte que sur la date ne peut pas profiter de ce rangement : les dates ne sont rangées qu’<b>à l’intérieur</b> de chaque client.",
+        {say:"👇 Teste par toi-même :",run:"CREATE INDEX idx_commandes_client_date\nON commandes(client_id, date_commande);\n\nEXPLAIN QUERY PLAN\nSELECT *\nFROM commandes\nWHERE date_commande >= '2026-07-15';"},
+        "SQL revient à un <b>SCAN</b> : pour cette recherche, il faudrait un index qui commence par <code>date_commande</code>."
+      ]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : créer l’index sur le numéro de commande, puis vérifier que SQL l’utilise pour retrouver la commande cherchée.",
+      {say:"👇 Exécute les instructions pour créer l’index et vérifier le plan de la recherche :",run:"CREATE INDEX idx_commandes_numero\nON commandes(numero_commande);\n\nEXPLAIN QUERY PLAN\nSELECT date_commande, statut, quantite\nFROM commandes\nWHERE numero_commande = 'CMD-2026-1847392';"},
+      {done:{
+        label:"De 16 commandes à parcourir à une commande lue directement",
+        unit:"free",
+        funnel:[
+          {n:16,t:"commandes à parcourir",s:"sans index, SQL lit la <code>table commandes</code> ligne par ligne",dots:"0000000000000000"},
+          {step:"CREATE INDEX idx_commandes_numero",s:"range les numéros dans un index, à côté de la table"},
+          {n:1,t:"⭐ commande lue directement",s:"CMD-2026-1847392, sans lire les 15 autres",dots:"0000000000000100",out:true}
+        ],
+        sms:{ico:"🔎",h:"Recherche par numéro",aria:"La commande demandée est retrouvée directement grâce à l’index",msg:"<b>Numéro demandé</b><br>CMD-2026-1847392",people:[["14","CMD-2026-1847392","2026-07-30 · en préparation · 2 unités"]],st:["En attente","Recherche","✓ Retrouvée"],plane:"pin",done:"✓ Commande retrouvée"},
+        fill:["CREATE INDEX","idx_commandes_numero","commandes","numero_commande"],
+        ui:{t:"Une commande retrouvée directement",s:"Le plan annonce SEARCH et non plus SCAN : SQL passe par l’index sans parcourir toute la table.",n:["CREATE INDEX","ON","EXPLAIN QUERY PLAN"]},
+        rows:1
+      }}
+    ]}
+  ],
+  reflex:[
+    {recap:[
+      ["📖","Un <b>index</b> fonctionne comme celui d’un livre : il range les valeurs d’une colonne et indique la ligne de chacune.","Il est stocké à côté de la table, qui ne change pas."],
+      ["📍","On le crée avec <code>CREATE INDEX</code>, sur une colonne souvent recherchée :",null,"ON commandes(numero_commande)"],
+      ["⚖️","Un index <b>accélère les recherches</b>, mais il alourdit les écritures : on n’indexe pas tout."]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"CREATE INDEX idx_commandes_numero",txt:"Crée un index et lui donne un nom."},{tok:"ON commandes",txt:"La table concernée."},{tok:"(numero_commande)",plain:1,txt:"La colonne qui sert à retrouver les lignes."}],
+  exemple:"CREATE INDEX idx_produits_nom ON produits(nom);",
+  attendu:"L’index est créé. La table <code>produits</code> garde les mêmes colonnes, et SQL dispose d’un chemin plus direct pour chercher par <code>nom</code>.",
+  retenir:"Un <b>index</b> fonctionne comme celui d’un livre : il range les valeurs d’une colonne et indique où trouver chaque ligne. Il est créé à côté de la table, qui ne change pas.<br><br>On le crée avec <code>CREATE INDEX nom ON table(colonne)</code>. SQL décide seul de l’utiliser : la requête ne change pas.<br><br>Un index accélère les recherches mais alourdit les écritures : on n’indexe que les colonnes souvent recherchées.",
   consigne:"Crée un index nommé <code>idx_clients_ville</code> sur la colonne <code>ville</code> de la table <code>clients</code>.",
   solution:"CREATE INDEX idx_clients_ville ON clients(ville);",
-  indice:"<code>CREATE INDEX idx_commandes_numero ON commandes(numero_commande);</code>",
-  richLesson:true, earlyDemo:true,
-  write:true,
   verif:"SELECT name AS colonne FROM pragma_index_info('idx_clients_ville');",
-  testeVariants:[
-  {
-    "k": "scan",
-    "label": "Sans index",
-    "sql": "EXPLAIN QUERY PLAN SELECT * FROM clients WHERE ville = 'Paris';",
-    "out": "SCAN clients : SQLite parcourt les lignes. La colonne ville n’a pas encore d’index."
+  write:true,
+  indice:"Écris <code>CREATE INDEX</code>, le nom de l’index, puis <code>ON</code> suivi de la table et de la colonne entre parenthèses.",
+  testeVariants:[{k:"scan",label:"Sans index",sql:"EXPLAIN QUERY PLAN SELECT * FROM clients WHERE ville = 'Paris';",out:"SCAN clients : SQL parcourt les lignes. La colonne ville n’a pas encore d’index."},{k:"search",label:"Avec index",sql:"CREATE INDEX idx_clients_ville ON clients(ville);\nEXPLAIN QUERY PLAN SELECT * FROM clients WHERE ville = 'Paris';",out:"SEARCH clients USING INDEX idx_clients_ville : SQL utilise l’index. Le résultat de la requête reste identique.",tone:"good"}],
+  learningCheck:{question:"Quel est l’effet d’un index sur la requête WHERE numero_commande = 'CMD-2026-1847392' ?",options:["Le résultat change : d’autres lignes sont renvoyées","SQL retrouve la même ligne sans parcourir toute la table","La table commandes reçoit une nouvelle colonne"],answer:1,explanation:"Un index ne change ni le résultat ni les colonnes de la table : il donne à SQL un chemin plus direct vers les lignes cherchées."}
+}),
+guide({ id:58, titre:"EXPLAIN", résumé:"Comprendre une requête lente",
+  sit:{
+    blocks:[
+      "L’équipe technique reçoit une alerte : la page « Mes commandes » du site met du temps à s’afficher. Pour la construire, le site recherche <b>toutes les commandes d’un client</b>.",
+      "La table <code>commandes</code> contient ici <b>16 commandes</b>, mais celle du site en compte des millions. Pour comprendre la lenteur, l’équipe souhaite récupérer uniquement :",
+      {need:[["🧭","La façon dont SQL lit la table","plan d’exécution"],["🗂️","L’index utilisé, s’il y en a un","plan d’exécution"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>WHERE</code>, SQL retrouve bien les commandes du client : le <b>résultat</b> est correct.","Mais ce résultat ne dit rien de la <b>méthode</b> que SQL a suivie pour le trouver."],
+      scene:{h:"🔍 Un résultat sans méthode",
+        lanes:[{k:"Q",l:"La requête",c:[["q1","commandes du client 1"]]},
+          {k:"R",l:"Les commandes trouvées",c:[["r1","commande 1"],["r2","commande 2"],["r3","commande 13"]]},
+          {k:"M",l:"La méthode",cls:"is-goal",c:[["m1","?","q"]]}],
+        caps:["<b>Notre requête</b> · Elle cherche les commandes du client 1 : le site reçoit les commandes 1, 2 et 13.","<b>Question</b> · Le résultat est correct, mais SQL a-t-il lu toute la table ou visé les bonnes lignes ?","<b>Objectif</b> · Le plan d’exécution montre comment SQL a retrouvé les lignes."],
+        steps:[{cap:0,on:["Q","R"],d:2000},{cap:1,off:["Q","R"],on:["M"],d:2300},{cap:2,text:{m1:"visible dans le plan d’exécution"},d:2800}]},
+      then:["Il faut donc demander à SQL de <b>montrer son plan</b> : la méthode qu’il emploie pour retrouver les lignes.","C’est exactement le rôle de <code>EXPLAIN</code>."]
+    },
+    mission:"Aide l’équipe technique à afficher le <b>plan d’exécution</b> de la recherche des commandes du client 1, afin de comprendre pourquoi la page « Mes commandes » est lente."
   },
-  {
-    "k": "search",
-    "label": "Avec index",
-    "sql": "CREATE INDEX idx_clients_ville ON clients(ville);\nEXPLAIN QUERY PLAN SELECT * FROM clients WHERE ville = 'Paris';",
-    "out": "SEARCH clients USING INDEX idx_clients_ville : SQLite utilise l’index. Le résultat métier reste identique.",
-    "tone": "good"
-  }
-] ,
-learningCheck:{
-  "question": "Pourquoi créer l’index du cours sur ville plutôt que sur email ?",
-  "options": [
-    "email est déjà indexé par UNIQUE",
-    "ville est unique",
-    "email ne peut pas être indexé"
+  concept:{
+    title:"Comment SQL peut-il montrer sa méthode ?",
+    blocks:[
+      "Avant d’exécuter une requête, SQL choisit une <b>méthode</b> pour retrouver les lignes :",
+      {ask:"Faut-il lire toute la table, ou passer par un index ?"},
+      "Pour voir ce choix, on place <code>EXPLAIN QUERY PLAN</code> devant la requête. SQL affiche alors son <b>plan</b> au lieu des lignes :",
+      {syntax:"⟦EXPLAIN QUERY PLAN⟧\nSELECT …\nFROM …\nWHERE …;"},
+      {scene:{h:"🧭 Lire une ligne de plan",
+        lanes:[{k:"P",c:[["p1","SEARCH"],["p2","commandes"],["p3","USING INDEX idx_commandes_client"],["p4","(client_id=?)"]]}],
+        caps:["<b>Une ligne de plan</b> · SQL résume sa méthode en une courte phrase.","<b>SEARCH commandes</b> · SQL cherche directement des lignes dans la table. Avec <b>SCAN</b>, il lirait toute la table.","<b>USING INDEX idx_commandes_client</b> · C’est l’index qui lui sert à chercher.","<b>(client_id=?)</b> · C’est la colonne sur laquelle porte la recherche."],
+        steps:[{cap:0,on:["P"],d:2000},{cap:1,off:["P"],on:["p1","p2"],d:2600},{cap:2,off:["p1","p2"],on:["p3"],d:2600},{cap:3,off:["p3"],on:["p4"],d:2600}]}},
+      {looks:[["EXPLAIN QUERY PLAN","montre la méthode que SQLite prévoit, sans exécuter la requête"],["EXPLAIN ANALYZE","exécute la requête et la mesure (PostgreSQL, MySQL) ; absent de SQLite"]],label:"Prévoir ou mesurer"}
+    ]
+  },
+  steps:[
+    {h:"Demander le plan d’une requête",blocks:[
+      "Dans SQLite, on écrit <code>EXPLAIN QUERY PLAN</code> en entier : <code>EXPLAIN</code> seul afficherait le programme interne de SQLite, bien moins lisible.",
+      {say:"👇 Exécute cette requête pour voir comment SQL cherche les clients d’une ville :",run:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE ville = 'Paris';"},
+      {arrow:"Seule la colonne <code>detail</code> compte. Elle annonce <b>SCAN clients</b> : aucun index ne porte sur <code>ville</code>, SQL doit donc lire toute la table."},
+      {warn:{t:"SCAN ne veut pas dire « faux »",blocks:[
+        "Un <code>SCAN</code> est logique quand on demande toutes les lignes, ou presque :",
+        {say:"👇 Teste par toi-même :",run:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients;"},
+        "Pour tout afficher, lire toute la table est la seule solution : le plan sert à <b>comprendre</b> le choix de SQL, pas à traquer le mot <code>SCAN</code>."
+      ]}}
+    ]},
+    {h:"Lire le plan d’une jointure",blocks:[
+      "Avec une jointure, le plan compte une ligne par table : SQL lit d’abord une table, puis cherche les correspondances dans l’autre.",
+      {say:"👇 Exécute cette requête pour voir le plan d’une jointure :",run:"EXPLAIN QUERY PLAN\nSELECT clients.prenom, commandes.id\nFROM clients\nJOIN commandes\n  ON clients.id = commandes.client_id;"},
+      {arrow:"Première ligne : <b>SCAN commandes</b>, SQL parcourt les commandes. Deuxième ligne : pour chacune, il <b>cherche</b> son client grâce à la clé primaire <code>id</code>, qui sert d’index."},
+      {tip:{t:"Les colonnes UNIQUE ont aussi un index",blocks:[
+        "Une colonne déclarée <code>UNIQUE</code>, comme <code>email</code> dans <code>clients</code>, reçoit un index automatique, sans qu’on ait à le créer. Le plan le montre avec <code>client_id</code>, unique dans la table <code>fidelite</code> :",
+        {say:"👇 Exécute cette requête :",run:"EXPLAIN QUERY PLAN\nSELECT *\nFROM fidelite\nWHERE client_id = 4;"},
+        {arrow:"Le plan cite un index créé par SQLite lui-même : <b>sqlite_autoindex_fidelite_1</b>."}
+      ]}}
+    ]},
+    {h:"Vérifier qu’un index est utilisé",blocks:[
+      "Créer un index ne suffit pas : encore faut-il que SQL puisse s’en servir, et seul le plan le montre. Ici, un index existe sur <code>ville</code>, mais la recherche applique une fonction à la colonne :",
+      {say:"👇 Exécute ces instructions pour créer l’index, puis voir si SQL l’utilise :",run:"CREATE INDEX idx_clients_ville\nON clients(ville);\n\nEXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE UPPER(ville) = 'PARIS';"},
+      {arrow:"Malgré l’index, le plan annonce <b>SCAN clients</b> : en transformant la colonne avec <code>UPPER</code>, la recherche empêche SQL de s’appuyer sur l’index."},
+      {say:"👇 Compare avec la recherche directe sur la colonne :",run:"CREATE INDEX idx_clients_ville\nON clients(ville);\n\nEXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE ville = 'Paris';"},
+      {arrow:"Cette fois, le plan annonce <b>SEARCH … USING INDEX idx_clients_ville</b> : l’index est utilisé."},
+      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : l’index créé n’existe plus à l’essai suivant."]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à demander le plan de la recherche des commandes d’un client, pour savoir si SQL passe par un index.",
+      {say:"👇 Exécute la requête pour afficher le plan de la page « Mes commandes » :",run:"EXPLAIN QUERY PLAN\nSELECT *\nFROM commandes\nWHERE client_id = 1;"},
+      {done:{
+        label:"Du résultat au plan d’exécution",
+        unit:"free",
+        funnel:[
+          {n:16,t:"commandes dans la table",s:"toute la <code>table commandes</code>",dots:"0000000000000000"},
+          {step:"EXPLAIN QUERY PLAN",s:"révèle comment SQL cherche les commandes du client 1"},
+          {n:16,t:"⭐ commandes lues par SQL",s:"<code>SCAN commandes</code> : pour en garder 3, SQL les parcourt toutes",dots:"1111111111111111",out:true}
+        ],
+        sms:{ico:"🧭",h:"Diagnostic du site",aria:"Le plan montre que SQL lit toute la table commandes pour afficher la page Mes commandes",msg:"<b>Page « Mes commandes »</b><br>Cause de la lenteur identifiée",people:[["S","SCAN commandes","toute la table est lue"]],st:["À analyser","Analyse","✓ Analysé"],plane:"doc",done:"✓ Cause identifiée"},
+        fill:["EXPLAIN QUERY PLAN","FROM","commandes","client_id"],
+        ui:{t:"La cause de la lenteur est identifiée",s:"Le plan annonce un SCAN : SQL lit toute la table. Piste à tester : un index sur client_id, puis un nouveau plan pour comparer.",n:["EXPLAIN QUERY PLAN","SELECT","FROM","WHERE"]},
+        rows:1
+      }}
+    ]}
   ],
-  "answer": 0,
-  "explanation": "La base contient déjà un index automatique sur email. ville permet de comparer un vrai avant et après sans index redondant."
-}
-},
-{ id:58, titre:"EXPLAIN", résumé:"Comprendre une requête lente",
-  situation:"Ta base de clients continue de grandir.<br><br>La colonne <code>email</code> est UNIQUE et possède déjà un index automatique. Un index explicite peut aussi être créé, mais il serait redondant ici :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">CREATE INDEX idx_clients_email\nON clients(email);</pre></div><br><br>Puis ton application exécute régulièrement :",
-  situationSql:"SELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",
-  situationTail:"<div class=\"sit-sql\"><p>Mais une question se pose maintenant :</p><p>Comment savoir si SQL utilise réellement l’index ?</p><p>Et si une requête devient lente, comment comprendre ce qui ralentit ?</p><p>C’est le rôle de <b>EXPLAIN</b>.</p></div>",
-    studio:{pointCards:{
-      eye:"EXPLAIN",title:"Voir la stratégie, pas seulement le résultat.",
-      lead:"Une requête décrit ce que tu veux. <code>EXPLAIN</code> montre comment le SGBD prévoit de l’obtenir. On observe d’abord le plan, puis on optimise.",
-      chain:[
-        {k:"Observer",v:"lire le plan"},
-        {k:"Comprendre",v:"parcours, index, jointure"},
-        {k:"Comparer",v:"après une optimisation"}
-      ]},
-    uses:{title:"Un plan, une idée à la fois.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">EXPLAIN montre comment SQL compte travailler</p>
-          <p>Quand tu écris un <code>SELECT</code>, tu précises le résultat. Le SGBD doit encore décider <b>comment</b> l’obtenir : parcourir la table, ou suivre un index.</p>
-          <p>Le résultat de <code>EXPLAIN</code> s’appelle un <b>plan d’exécution</b>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Utiliser EXPLAIN</p>
-          <p>On place <code>EXPLAIN</code> devant la requête. Dans cette application (SQLite), on écrit <code>EXPLAIN QUERY PLAN</code> :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">EXPLAIN QUERY PLAN
-SELECT *
-FROM clients
-WHERE email = 'sophie@mail.fr';</pre></div>
-          <p>Tu ne demandes plus seulement « donne-moi Sophie ». Tu demandes aussi au SGBD de montrer comment il prévoit de la retrouver.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Premier diagnostic : parcours de table</p>
-          <p>Sans index adapté, le plan peut indiquer un <b>parcours de table</b>. PostgreSQL dit souvent <code>Seq Scan</code>. SQLite affiche <code>SCAN</code>.</p>
-          <p>La base parcourt les lignes pour appliquer <code>email = 'sophie@mail.fr'</code>. Sur une petite table, c’est acceptable. Sur une table immense, pour une recherche ciblée, cela peut devenir coûteux.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Deuxième diagnostic : un index</p>
-          <p>Après <code>CREATE INDEX idx_clients_email ON clients(email)</code>, le SGBD <b>peut</b> décider d’utiliser l’index. PostgreSQL parlera parfois d’<code>Index Scan</code>.</p>
-          <p>On passe d’un parcours de toute la table à un chemin organisé vers la ligne de Sophie. C’est ce que le cours sur les index préparait.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Un parcours n’est pas forcément mauvais</p>
-          <p>Il ne faut pas lire <code>SCAN</code> ou <code>Seq Scan</code> comme une erreur.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
-FROM clients;</pre></div>
-          <p>Tu demandes tous les clients : parcourir la table est logique. Même avec un <code>WHERE</code>, si presque toutes les lignes restent, le SGBD peut juger le parcours plus simple qu’un index.</p>
-          <p><code>EXPLAIN</code> sert à comprendre le choix, pas à chercher des mots rouges ou verts.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">EXPLAIN et EXPLAIN ANALYZE</p>
-          <div class="memory-rule">
-            <div class="memory-a"><b>EXPLAIN</b><span>ce que SQL <b>prévoit</b></span></div>
-            <div class="memory-b"><b>ANALYZE</b><span>ce qui s’est <b>réellement</b> passé</span></div>
-          </div>
-          <p><code>EXPLAIN ANALYZE</code>, sur les SGBD qui le proposent, exécute vraiment la requête et ajoute des mesures : temps, nombre de lignes.</p>
-          <p>Attention : la requête est exécutée. Prudence avec un <code>UPDATE</code> ou un <code>DELETE</code>. Cette commande n’existe pas dans SQLite.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Observer les lignes</p>
-          <p>Tu recherches souvent les commandes d’un client :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
-FROM commandes
-WHERE client_id = 1;</pre></div>
-          <p>Le plan permet de voir si le SGBD pense devoir traiter beaucoup de lignes pour n’en rendre que quelques-unes. Un index sur <code>commandes.client_id</code> peut alors fournir un chemin adapté.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">EXPLAIN avec une jointure</p>
-          <p>Avec plusieurs tables, le SGBD décide quelle table traiter en premier, et comment retrouver les correspondances.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">EXPLAIN QUERY PLAN
-SELECT clients.prenom, commandes.id
-FROM clients
-JOIN commandes
-    ON clients.id = commandes.client_id;</pre></div>
-          <p>Tu n’as pas à maîtriser tout de suite <code>Nested Loop</code> ou <code>Hash Join</code>. Retiens : la requête dit ce que tu veux ; le plan montre la stratégie.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Une méthode pour une requête lente</p>
-          <ol class="pt-lead-list">
-            <li><b>Observer</b> — <code>EXPLAIN</code> devant la requête.</li>
-            <li><b>Repérer</b> — traite-t-il énormément de lignes pour en renvoyer très peu ?</li>
-            <li><b>Comprendre</b> — parcours, tri, jointure…</li>
-            <li><b>Optimiser</b> — un index, une condition, moins de colonnes, une jointure revue.</li>
-            <li><b>Vérifier</b> — relancer <code>EXPLAIN</code>. Une optimisation se mesure, elle ne se suppose pas.</li>
-          </ol>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Avant / après</p>
-          <p>Avant : <code>WHERE client_id = 1</code> sur une immense table <code>commandes</code>, sans index adapté.</p>
-          <p>Optimisation : <code>CREATE INDEX idx_commandes_client ON commandes(client_id);</code></p>
-          <p>Après : le même <code>EXPLAIN</code> peut maintenant montrer l’index. La boucle à retenir :</p>
-          <ol class="fk-syn-map" aria-hidden="true"><li><b aria-hidden="true">1</b><div><strong>Requête lente</strong></div></li><li><b aria-hidden="true">2</b><div><code>EXPLAIN</code></div></li><li><b aria-hidden="true">3</b><div><strong>Comprendre</strong></div></li><li><b aria-hidden="true">4</b><div><strong>Optimiser</strong></div></li><li><b aria-hidden="true">5</b><div><code>EXPLAIN</code></div></li><li><b aria-hidden="true">6</b><div><strong>Comparer</strong></div></li></ol>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Une requête lente n’appelle pas automatiquement un index</p>
-          <p>Elle peut aussi ramener trop de données (<code>SELECT *</code> sur toute la table), trier beaucoup, ou joindre énormément de lignes. Une condition peut aussi rendre un index existant moins exploitable.</p>
-          <p>L’index est une solution possible, pas une solution universelle.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La question",t:"Comment SQL exécute-t-il ma requête ?"},
-      b:{k:"La règle",t:"EXPLAIN montre le plan d’exécution."},
-      note:"Lorsqu’une requête devient lente, observe d’abord son plan d’exécution avant de chercher à l’optimiser.",
-      extra:`<ol class="fk-syn-map" aria-hidden="true"><li><b aria-hidden="true">1</b><div><code>EXPLAIN</code></div></li><li><b aria-hidden="true">2</b><div><strong>Observer</strong></div></li><li><b aria-hidden="true">3</b><div><strong>Comprendre</strong></div></li><li><b aria-hidden="true">4</b><div><strong>Optimiser</strong></div></li><li><b aria-hidden="true">5</b><div><strong>Comparer</strong></div></li></ol>`},
-    expSplit:true},
-  anatomie:[
-    {tok:"EXPLAIN QUERY PLAN",txt:"Demande le plan, pas les lignes du résultat."},
-    {tok:"SELECT * FROM clients",txt:"La requête à observer."},
-    {tok:"WHERE email = …",txt:"La recherche ciblée dont on veut voir le chemin."}
+  reflex:[
+    {recap:[
+      ["🧭","<code>EXPLAIN QUERY PLAN</code> montre la <b>méthode</b> choisie par SQL, sans afficher les lignes.",null,"EXPLAIN QUERY PLAN SELECT …"],
+      ["🔎","Dans le plan, <b>SCAN</b> lit toute la table et <b>SEARCH</b> passe par un index.","Un SCAN n’est pas une erreur quand on demande presque toutes les lignes."],
+      ["🔁","Après une optimisation, <b>relance le plan</b> pour vérifier que l’index est vraiment utilisé.","On observe, on corrige, puis on compare."]
+    ],label:"Les trois idées à retenir"}
   ],
-  exemple:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",
-  attendu:"Un plan d’exécution : ici, SQLite indique souvent <code>SCAN clients</code> — la table est encore petite.",
-  retenir:"<code>EXPLAIN</code> montre la stratégie prévue par le SGBD. <code>EXPLAIN ANALYZE</code> exécute vraiment la requête pour la mesurer.<br><br>Une requête lente n’appelle pas automatiquement un index : on observe d’abord, puis on optimise.",
-  piege:{t:"Croire que SCAN veut dire « faux »",
-    p:"Un parcours de table est logique si tu demandes presque toutes les lignes. <code>EXPLAIN</code> sert à comprendre le choix du SGBD, pas à colorier le plan en rouge ou en vert."},
-  consigne:"Place <code>EXPLAIN QUERY PLAN</code> devant la recherche de Sophie par e-mail, pour observer le plan d’exécution.",
+  anatomie:[{tok:"EXPLAIN QUERY PLAN",txt:"Demande le plan, pas les lignes du résultat."},{tok:"SELECT * FROM clients",txt:"La requête à observer."},{tok:"WHERE ville = 'Paris'",plain:1,txt:"La recherche dont on veut voir le chemin."}],
+  exemple:"EXPLAIN QUERY PLAN SELECT * FROM clients WHERE ville = 'Paris';",
+  attendu:"<b>1 ligne</b> de plan : <code>SCAN clients</code>. SQL lit toute la table, car aucun index ne porte sur <code>ville</code>.",
+  retenir:"<code>EXPLAIN QUERY PLAN</code> montre la méthode choisie par SQL : <code>SCAN</code> lit toute la table, <code>SEARCH … USING INDEX</code> passe par un index.<br><br>Un <code>SCAN</code> n’est pas une erreur : il est logique quand on demande presque toutes les lignes.<br><br>Une requête lente n’appelle pas toujours un index : on observe d’abord le plan, on optimise, puis on relance le plan pour comparer. Un index existant peut rester inutilisé, par exemple si la recherche applique une fonction à la colonne.<br><br>Le vocabulaire change selon le SGBD : PostgreSQL parle de <code>Seq Scan</code> et d’<code>Index Scan</code>, et son <code>EXPLAIN ANALYZE</code> exécute vraiment la requête pour la mesurer ; SQLite ne le propose pas.",
+  consigne:"Place <code>EXPLAIN QUERY PLAN</code> devant la recherche du client dont l’email est <code>sophie@mail.fr</code>, pour afficher son plan d’exécution.",
   solution:"EXPLAIN QUERY PLAN\nSELECT *\nFROM clients\nWHERE email = 'sophie@mail.fr';",
-  indice:"<code>EXPLAIN QUERY PLAN</code>, puis le même <code>SELECT</code> que dans la situation, avec <code>WHERE email</code>.",
-  richLesson:true, earlyDemo:true,
+  indice:"Écris <code>EXPLAIN QUERY PLAN</code>, puis un <code>SELECT</code> sur la table <code>clients</code> avec un filtre sur la colonne <code>email</code>.",
   explainExo:true,
-  testeVariants:[
-  {
-    "k": "scan",
-    "label": "SCAN",
-    "sql": "EXPLAIN QUERY PLAN SELECT * FROM clients WHERE ville = 'Paris';",
-    "out": "Sans index sur ville : SCAN clients."
-  },
-  {
-    "k": "search",
-    "label": "SEARCH",
-    "sql": "CREATE INDEX idx_clients_ville ON clients(ville);\nEXPLAIN QUERY PLAN SELECT * FROM clients WHERE ville = 'Paris';",
-    "out": "Après création : SEARCH clients USING INDEX idx_clients_ville. On compare le chemin d’accès, pas un temps garanti.",
-    "tone": "good"
-  },
-  {
-    "k": "email",
-    "label": "Index automatique",
-    "sql": "EXPLAIN QUERY PLAN SELECT * FROM clients WHERE email = 'sophie@mail.fr';",
-    "out": "email est UNIQUE dans cette base : SQLite possède déjà un index automatique."
-  }
-] ,
-learningCheck:{
-  "question": "Un plan SEARCH prouve-t-il à lui seul que la requête sera rapide sur toute base ?",
-  "options": [
-    "Oui",
-    "Oui si elle renvoie Sophie",
-    "Non"
-  ],
-  "answer": 2,
-  "explanation": "Le plan indique une stratégie. La durée dépend notamment du volume et des données ; dix lignes ne constituent pas un benchmark."
-}
-}
+  testeVariants:[{k:"scan",label:"SCAN",sql:"EXPLAIN QUERY PLAN SELECT * FROM clients WHERE ville = 'Paris';",out:"Sans index sur ville : SCAN clients."},{k:"search",label:"SEARCH",sql:"CREATE INDEX idx_clients_ville ON clients(ville);\nEXPLAIN QUERY PLAN SELECT * FROM clients WHERE ville = 'Paris';",out:"Après création : SEARCH clients USING INDEX idx_clients_ville. On compare le chemin d’accès, pas un temps garanti.",tone:"good"},{k:"email",label:"Index automatique",sql:"EXPLAIN QUERY PLAN SELECT * FROM clients WHERE email = 'sophie@mail.fr';",out:"email est UNIQUE dans cette base : SQLite possède déjà un index automatique."}],
+  learningCheck:{question:"Un plan SEARCH garantit-il à lui seul que la requête sera rapide, sur n’importe quelle base ?",options:["Oui : SEARCH veut toujours dire rapide","Oui, si la requête ne renvoie qu’une ligne","Non : le plan décrit une méthode, pas une durée"],answer:2,explanation:"Le plan indique la stratégie choisie. La durée dépend aussi du volume et des données : dix lignes ne constituent pas un test de performance."}
+})
 ]},
 { titre:"Sécurité et droits", sous:"Contrôler les accès", lessons:[
 { id:50, titre:"Sécurité et droits", résumé:"Contrôler les accès avec GRANT et REVOKE",
@@ -35566,7 +35445,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1598';
+  const SW_CACHE='requete-2026-10-04-ludique-v1599';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
