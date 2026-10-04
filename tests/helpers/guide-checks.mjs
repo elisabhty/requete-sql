@@ -92,13 +92,16 @@ export function checkGuideLesson(env, l) {
   const nRows = resMission.values.length;
   /* Parcours en lignes (par défaut) ou en colonnes (data-unit="cols", ex. SELECT). */
   const unitCols = /<ol class="ij-funnel" data-unit="cols"/.test(lastUse);
-  if (unitCols) assert.equal(outN, resMission.columns.length, `${l.titre} : la requête de la mission renvoie ${resMission.columns.length} colonnes, le parcours en annonce ${outN}`);
+  /* data-unit="free" : cours d'écriture (INSERT, UPDATE…) ou parcours qui ne se mesure pas en lignes du résultat : aucun contrôle des nombres. */
+  const unitFree = /<ol class="ij-funnel" data-unit="free"/.test(lastUse);
+  if (unitFree) { /* rien à comparer avec le résultat */ }
+  else if (unitCols) assert.equal(outN, resMission.columns.length, `${l.titre} : la requête de la mission renvoie ${resMission.columns.length} colonnes, le parcours en annonce ${outN}`);
   else assert.equal(outN, nRows, `${l.titre} : la requête de la mission renvoie ${nRows} lignes, le parcours en annonce ${outN}`);
   /* Les personnes citées (liste d'envois et parcours) sont celles que renvoie la requête : « prénom nom », et leur contact. */
   const col = c => resMission.columns.indexOf(c);
   const whoOf = row => (col('prenom') >= 0 && col('nom') >= 0 ? `${row[col('prenom')]} ${row[col('nom')]}` : String(row[col('prenom') >= 0 ? col('prenom') : col('nom') >= 0 ? col('nom') : 0]));
   const contactCol = col('email') >= 0 ? col('email') : col('telephone');
-  const peopleHtml = [...lastUse.matchAll(/<span class="ij-sms-who">([^<]*)<small>([^<]*)<\/small>/g)].map(m => [decode(m[1]), decode(m[2])]);
+  const peopleHtml = unitFree ? [] : [...lastUse.matchAll(/<span class="ij-sms-who">([^<]*)<small>([^<]*)<\/small>/g)].map(m => [decode(m[1]), decode(m[2])]);
   if (peopleHtml.length) {
     /* Liste d'envois : toutes les personnes du résultat, ou les premières puis une ligne « … et N autres » (class="is-more"). */
     const more = /<li class="is-more" style="--i:\d+"><b class="ij-sms-av" aria-hidden="true">\+(\d+)<\/b>/.exec(lastUse);
@@ -112,8 +115,8 @@ export function checkGuideLesson(env, l) {
     }
   }
   const lit = (/is-out">[\s\S]*?<\/li>/.exec(lastUse)[0].match(/class="is-null"/g) || []).length;
-  assert.equal(lit, outN, `${l.titre} : autant de points allumés que de lignes gardées`);
-  const sms = /ij-sms(?: is-mail)?(?: is-flat)?" style="--n:(\d+);--sg:[\d.]+s"/.exec(lastUse);
+  if (!unitFree) assert.equal(lit, outN, `${l.titre} : autant de points allumés que de lignes gardées`);
+  const sms = /ij-sms(?: is-mail)?(?: is-flat)?(?: is-icons)?" style="--n:(\d+);--sg:[\d.]+s"/.exec(lastUse);
   if (sms) assert.equal(+sms[1], (lastUse.match(/<li(?: class="is-more")? style="--i:/g) || []).length, `${l.titre} : nombre d'envois`);
   /* Tableaux « à tester » (balayage ligne par ligne) : chaque verdict est celui de la condition, sur de vraies lignes de la table. */
   for (const blk of body.match(/<div class="rt-wrap"[\s\S]*?<span class="rt-hint">/g) || []) {
@@ -127,7 +130,8 @@ export function checkGuideLesson(env, l) {
     assert.ok(rows.every(r => r[n - 1].cls.startsWith('rt-v')), `${l.titre} : une colonne de verdicts, une cellule par ligne`);
     assert.ok(rows.some(r => /is-hit/.test(r[n - 1].cls)) && rows.some(r => !/is-hit/.test(r[n - 1].cls)), `${l.titre} : au moins une ligne vraie et une fausse`);
     const dbt = openDb(env);
-    const cols = dbt.exec(`PRAGMA table_info(${table})`)[0].values.map(v => v[1]);
+    /* L'étiquette du tableau est une vraie table (ses lignes sont alors vérifiées) ou un nom libre comme « groupes » (seuls les verdicts sont vérifiés). */
+    const info = dbt.exec(`PRAGMA table_info(${table})`)[0], realTable = !!info, cols = realTable ? info.values.map(v => v[1]) : [];
     /* Tableau « première apparition » (DISTINCT) : une ligne est gardée si sa valeur n'a pas déjà paru plus haut, et ces lignes sont les premières de la table. */
     const firstSeen = /^DISTINCT\b/.test(cond);
     if (firstSeen) {
@@ -136,7 +140,7 @@ export function checkGuideLesson(env, l) {
     }
     rows.forEach((r, i) => {
       const where = head.slice(0, last + 1).map((h, k) => cols.includes(h) ? (r[k].text === 'NULL' ? `${h} IS NULL` : `${h}=${JSON.stringify(r[k].text).replace(/^"|"$/g, "'")}`) : null).filter(Boolean).join(' AND ');
-      assert.ok(dbt.exec(`SELECT COUNT(*) FROM ${table} WHERE ${where}`)[0].values[0][0] >= 1, `${l.titre} : ${r[0].text} (${r[val].text}) existe dans la table ${table}`);
+      if (realTable) assert.ok(dbt.exec(`SELECT COUNT(*) FROM ${table} WHERE ${where}`)[0].values[0][0] >= 1, `${l.titre} : ${r[0].text} (${r[val].text}) existe dans la table ${table}`);
       const truth = firstSeen ? !rows.slice(0, i).some(p => p[val].text === r[val].text) : dbt.exec(`SELECT ${vals.reduce((c, v) => c.replace(new RegExp(`\\b${head[v]}\\b`, 'g'), /^-?\d+(\.\d+)?$/.test(r[v].text) ? r[v].text : /^NULL$/i.test(r[v].text) ? 'NULL' : `'${r[v].text}'`), cond)}`)[0].values[0][0] === 1;
       assert.equal(/is-hit/.test(r[n - 1].cls), truth, `${l.titre} : le verdict de ${r[0].text} doit être « ${truth ? 'vraie' : 'fausse'} » pour ${cond}`);
     });

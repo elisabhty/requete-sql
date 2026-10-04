@@ -2462,6 +2462,12 @@
   .ij-sms-subj{display:block;margin:0 0 4px;font-weight:800;font-size:13.5px;color:var(--accent-ink)}
   /* Variantes d’icône (téléphone, document : sans l’inclinaison de l’avion en papier) et ligne finale « … et N autres ». */
   .ij-sms.is-flat .ij-sms-plane svg{transform:none}
+  /* États en pastilles (·, …, ✓) : la place revient au nom, utile pour de longs identifiants. */
+  .ij-sms.is-icons .ij-sms-st i{display:grid;place-items:center;min-width:28px;height:28px;padding:0;border-radius:50%;font-size:0}
+  .ij-sms.is-icons .ij-sms-st i::before{font-size:13px;font-weight:800}
+  .ij-sms.is-icons .ij-sms-st .is-idle::before{content:"·"}
+  .ij-sms.is-icons .ij-sms-st .is-wait::before{content:"…"}
+  .ij-sms.is-icons .ij-sms-st .is-sent::before{content:"✓"}
   .ij-sms-list li.is-more{border-style:dashed;background:transparent}
   .ij-sms-list li.is-more .ij-sms-av{font-size:11px;letter-spacing:-.3px}
   .ij-sms-list li.is-more .ij-sms-who{color:var(--ink-2)}
@@ -10820,14 +10826,14 @@ const GUIDE_ICONS={
   star:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>'
 };
 /* Animation d’envoi : SMS par défaut ; mail:true pour un e-mail ; st = les trois états d’une ligne (ex. appels) ;
-   plane = icône qui glisse sur la ligne (plane, phone, doc, pin, star) ; more = nombre de personnes non listées (dernière ligne « … et N autres »). */
+   plane = icône qui glisse sur la ligne (plane, phone, doc, pin, star) ; icons:true = états en pastilles ✓ (pour de longs libellés) ; more = nombre de personnes non listées (dernière ligne « … et N autres »). */
 function guideSms(m){
   const rows=m.people.length+(m.more?1:0);
   const st=m.st||['En attente','Envoi','✓ Envoyé'];
   const sg=m.sg||(rows>6?0.34:0.62);
   const kind=m.plane||'plane',icon=GUIDE_ICONS[kind]||GUIDE_PLANE;
-  const row=(av,who,tel,i,more)=>`<li${more?' class="is-more"':''} style="--i:${i}"><b class="ij-sms-av" aria-hidden="true">${guideEsc(av)}</b><span class="ij-sms-who${more?' is-more-t':''}">${guideEsc(who)}<small>${guideEsc(tel)}</small></span><em class="ij-sms-st"><i class="is-idle">${guideFr(st[0])}</i><i class="is-wait">${guideFr(st[1])}<u>.</u><u>.</u><u>.</u></i><i class="is-sent">${guideFr(st[2])}</i></em><i class="ij-sms-plane is-send" aria-hidden="true">${icon}</i></li>`;
-  return `<div class="ij-sms${m.mail?' is-mail':''}${kind!=='plane'?' is-flat':''}" style="--n:${rows};--sg:${sg}s" role="group" aria-label="${guideEsc(m.aria||m.h).replace(/"/g,'&quot;')}"><p class="ij-sms-h"><i aria-hidden="true">${m.ico||'💬'}</i>${guideFr(m.h)}</p><div class="ij-sms-thread"><p class="ij-sms-typing" aria-hidden="true"><i></i><i></i><i></i></p><p class="ij-sms-bubble">${guideFr(m.msg)}</p></div><ul class="ij-sms-list">${m.people.map(([av,who,tel],i)=>row(av,who,tel,i)).join('')}${m.more?row('+'+m.more,m.moreT||`… et ${m.more} autres`,m.moreS||'',m.people.length,true):''}</ul><div class="ij-sms-meter" aria-hidden="true">${Array.from({length:rows},(_,i)=>`<i style="--i:${i}"></i>`).join('')}</div><p class="ij-sms-done">${guideFr(m.done)}</p></div>`;
+  const row=(av,who,tel,i,more)=>`<li${more?' class="is-more"':''} style="--i:${i}"><b class="ij-sms-av" aria-hidden="true">${guideEsc(av)}</b><span class="ij-sms-who${more?' is-more-t':''}">${guideFr(guideEsc(who))}<small>${guideFr(guideEsc(tel))}</small></span><em class="ij-sms-st"><i class="is-idle">${guideFr(st[0])}</i><i class="is-wait">${guideFr(st[1])}<u>.</u><u>.</u><u>.</u></i><i class="is-sent">${guideFr(st[2])}</i></em><i class="ij-sms-plane is-send" aria-hidden="true">${icon}</i></li>`;
+  return `<div class="ij-sms${m.mail?' is-mail':''}${kind!=='plane'?' is-flat':''}${m.icons?' is-icons':''}" style="--n:${rows};--sg:${sg}s" role="group" aria-label="${guideEsc(m.aria||m.h).replace(/"/g,'&quot;')}"><p class="ij-sms-h"><i aria-hidden="true">${m.ico||'💬'}</i>${guideFr(m.h)}</p><div class="ij-sms-thread"><p class="ij-sms-typing" aria-hidden="true"><i></i><i></i><i></i></p><p class="ij-sms-bubble">${guideFr(m.msg)}</p></div><ul class="ij-sms-list">${m.people.map(([av,who,tel],i)=>row(av,who,tel,i)).join('')}${m.more?row('+'+m.more,m.moreT||`… et ${m.more} autres`,m.moreS||'',m.people.length,true):''}</ul><div class="ij-sms-meter" aria-hidden="true">${Array.from({length:rows},(_,i)=>`<i style="--i:${i}"></i>`).join('')}</div><p class="ij-sms-done">${guideFr(m.done)}</p></div>`;
 }
 function guideDoneCard(d){
   return `<div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div>${guideFunnel(d)}${d.sms?guideSms(d.sms):''}</div>`;
@@ -12578,830 +12584,550 @@ guide({ id:75, titre:"OFFSET et pagination", résumé:"Découper un résultat en
 })
 ]},
 { titre:"Fonctions et expressions", sous:"Transformer les valeurs ligne par ligne", lessons:[
-{ id:51, titre:"Fonctions de texte", résumé:"Transformer, nettoyer et découper du texte",
-    studio:{problem:{eye:"Fonctions de texte",title:"Transformer, nettoyer et découper du texte.",
-      body:`<div class="pt-lead"><p>Dans la table <code>clients</code>, plusieurs colonnes contiennent du texte : <code>prenom</code>, <code>ville</code>, <code>email</code>, <code>telephone</code>…</p><p>SQL ne sert pas seulement à afficher ces valeurs telles quelles.</p><p>Tu peux aussi les transformer, les nettoyer, les assembler ou n’en récupérer qu’une partie.</p><p>Prenons plusieurs situations concrètes.</p></div>`},
-    uses:{title:"Les fonctions, une par une.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">UPPER et LOWER — Changer la casse</p>
-          <p>Dans la table <code>clients</code>, tu veux afficher les prénoms en majuscules et les adresses e-mail en minuscules pour obtenir un affichage uniforme.</p>
-          <p>Tu peux utiliser deux fonctions :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">UPPER(texte)
-LOWER(texte)</pre></div>
-          <p><code>UPPER()</code> transforme les lettres en majuscules.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT prenom, UPPER(prenom) AS prenom_majuscule
-FROM clients;</pre></div>
-          <div class="table-wrap"><table class="concept-table"><thead><tr><th>prenom</th><th>prenom_majuscule</th></tr></thead><tbody><tr><td>Sophie</td><td>SOPHIE</td></tr><tr><td>Lucas</td><td>LUCAS</td></tr><tr><td>Emma</td><td>EMMA</td></tr></tbody></table></div>
-          <p><code>LOWER()</code> fait l’inverse : il transforme les lettres en minuscules.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT email, LOWER(email) AS email_minuscule
-FROM clients;</pre></div>
-          <p class="fn-tip"><b>Le réflexe</b> Mettre en majuscules → <code>UPPER()</code>. Mettre en minuscules → <code>LOWER()</code>.</p>
-          <p>À retenir : ces fonctions changent uniquement le résultat affiché. Elles ne modifient pas les données enregistrées dans la table.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">LENGTH — Compter les caractères</p>
-          <p>Tu veux connaître la longueur du prénom de chaque client.</p>
-          <p>La fonction <code>LENGTH()</code> permet de compter la longueur d’un texte.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT prenom, LENGTH(prenom) AS longueur
-FROM clients;</pre></div>
-          <div class="table-wrap"><table class="concept-table"><thead><tr><th>prenom</th><th>longueur</th></tr></thead><tbody><tr><td>Sophie</td><td>6</td></tr><tr><td>Lucas</td><td>5</td></tr><tr><td>Emma</td><td>4</td></tr><tr><td>Nathan</td><td>6</td></tr></tbody></table></div>
-          <p>La syntaxe est simple :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">LENGTH(texte)</pre></div>
-          <p class="fn-tip"><b>Le réflexe</b> « Combien de caractères contient cette valeur ? » → pense à <code>LENGTH()</code>.</p>
-          <p>SQLite : <code>LENGTH()</code> compte les caractères d’une valeur texte, et non les octets de sa représentation UTF-8.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">TRIM — Supprimer les caractères inutiles aux extrémités</p>
-          <p>Imagine qu’une adresse e-mail ait été enregistrée ainsi : <code>"   sophie@mail.fr   "</code></p>
-          <p>Ces espaces peuvent poser problème.</p>
-          <p><code>TRIM()</code> permet de les retirer :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT TRIM('   sophie@mail.fr   ');</pre></div>
-          <p>Résultat : <code>sophie@mail.fr</code></p>
-          <p>Tu peux donc écrire :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT prenom, TRIM(email) AS email_propre
-FROM clients;</pre></div>
-          <p>SQLite propose également :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">LTRIM(texte)
-RTRIM(texte)</pre></div>
-          <p><code>LTRIM()</code> → retire à gauche. <code>RTRIM()</code> → retire à droite. <code>TRIM()</code> → retire des deux côtés.</p>
-          <p class="fn-tip"><b>Attention</b> <code>TRIM()</code> ne supprime pas les espaces au milieu d’un texte.</p>
-          <p><code>'   Fibre Prébiotique   '</code> devient <code>'Fibre Prébiotique'</code>, et non <code>'FibrePrébiotique'</code>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">SUBSTR — Extraire une partie d’un texte</p>
-          <p>Dans la table <code>clients</code>, les numéros de téléphone commencent par deux chiffres correspondant au début du numéro : <code>06 39 98 12 04</code></p>
-          <p>Tu veux récupérer uniquement : <code>06</code></p>
-          <p>Avec SQLite :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT prenom, SUBSTR(telephone, 1, 2) AS debut
-FROM clients;</pre></div>
-          <p>La fonction fonctionne ainsi :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SUBSTR(texte, position, longueur)</pre></div>
-          <p>Dans <code>SUBSTR(telephone, 1, 2)</code> :</p>
-          <ul class="pt-lead-list"><li><code>telephone</code> → le texte à découper</li><li><code>1</code> → commencer au premier caractère</li><li><code>2</code> → récupérer deux caractères</li></ul>
-          <p class="fn-tip"><b>Le réflexe</b> « Je veux seulement une partie de ce texte. » → <code>SUBSTR()</code></p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">INSTR — Trouver où se trouve un texte</p>
-          <p>Dans une adresse e-mail : <code>sophie@mail.fr</code></p>
-          <p>tu veux savoir où se trouve le caractère <code>@</code>.</p>
-          <p>SQLite possède <code>INSTR()</code> :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT INSTR('sophie@mail.fr', '@');</pre></div>
-          <p>La syntaxe est :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSTR(texte, texte_recherché)</pre></div>
-          <p>Tu peux aussi l’utiliser sur une colonne :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT
-    email,
-    INSTR(email, '@') AS position_arobase
-FROM clients;</pre></div>
-          <p class="fn-tip"><b>Le réflexe</b> <code>SUBSTR()</code> → récupérer une partie du texte. <code>INSTR()</code> → trouver la position d’une partie du texte.</p>
-          <p>Ces deux fonctions deviennent particulièrement utiles lorsqu’elles sont combinées.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Combiner SUBSTR et INSTR</p>
-          <p>Tu ne veux maintenant plus seulement connaître la position du <code>@</code>.</p>
-          <p>Tu veux récupérer le domaine de chaque adresse e-mail.</p>
-          <p>Pour <code>sophie@mail.fr</code>, tu veux obtenir : <code>mail.fr</code></p>
-          <p>Tu sais déjà trouver <code>@</code> : <code>INSTR(email, '@')</code></p>
-          <p>Il suffit ensuite de commencer juste après :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT
-    email,
-    SUBSTR(email, INSTR(email, '@') + 1) AS domaine
-FROM clients;</pre></div>
-          <p>SQL effectue donc deux opérations :</p>
-          <ul class="pt-lead-list"><li><code>INSTR()</code> trouve <code>@</code>.</li><li><code>SUBSTR()</code> récupère tout ce qui vient après.</li></ul>
-          <figure class="txt-split">
-            <div class="txt-split-mail"><span>sophie</span><span class="at">@</span><span class="dom">mail.fr</span></div>
-            <div class="txt-split-marks" aria-hidden="true"><span class="m-instr">↑</span><span class="m-sub">└─────┘</span></div>
-            <div class="txt-split-ann"><span><code>INSTR</code></span><span><code>SUBSTR</code></span></div>
-          </figure>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">REPLACE — Remplacer une partie d’un texte</p>
-          <p>Les numéros de téléphone de la table <code>clients</code> sont affichés avec des espaces : <code>06 39 98 12 04</code></p>
-          <p>Tu veux obtenir : <code>0639981204</code></p>
-          <p><code>REPLACE()</code> permet de remplacer une partie d’un texte par une autre.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT
-    telephone,
-    REPLACE(telephone, ' ', '') AS telephone_compact
-FROM clients;</pre></div>
-          <p>Sa structure est :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">REPLACE(texte, ancien, nouveau)</pre></div>
-          <p>Ici, <code>REPLACE(telephone, ' ', '')</code> signifie : dans <code>telephone</code>, remplace chaque espace par une chaîne vide.</p>
-          <p>Autre exemple :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT REPLACE('Fibre Prébiotique', 'Fibre', 'Poudre');</pre></div>
-          <p>Résultat : <code>Poudre Prébiotique</code></p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">|| — Assembler plusieurs textes</p>
-          <p>Tu veux créer une phrase à partir du prénom et de la ville du client.</p>
-          <p>Par exemple : <code>Sophie - Paris</code></p>
-          <p>En SQLite, tu peux utiliser l’opérateur <code>||</code> :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT prenom || ' - ' || ville AS client
-FROM clients;</pre></div>
-          <div class="table-wrap"><table class="concept-table"><thead><tr><th>client</th></tr></thead><tbody><tr><td>Sophie - Paris</td></tr><tr><td>Lucas - Lyon</td></tr><tr><td>Emma - Marseille</td></tr></tbody></table></div>
-          <p><code>||</code> signifie ici : assembler les textes.</p>
-          <p class="fn-tip"><b>Attention à NULL</b> Hugo et Inès ont un <code>email</code> à <code>NULL</code>. Avec SQLite, une concaténation avec <code>NULL</code> utilisant <code>||</code> produit <code>NULL</code>.</p>
-          <p>C’est justement là que <code>COALESCE</code> devient utile :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT
-    prenom || ' - ' || COALESCE(email, 'Non renseigné')
-FROM clients;</pre></div>
-          <p>Tu obtiens alors : <code>Hugo - Non renseigné</code></p>
-        </div>
-      </div>`},
-    why:{eye:"Fonctions imbriquées",title:"Combine-les de l’intérieur vers l’extérieur.",
-      body:`<div class="pt-lead"><p>SQL termine une transformation, puis transmet son résultat à la suivante.</p><p>Tu veux afficher les adresses e-mail sans espaces inutiles, en minuscules, avec <code>Non renseigné</code> lorsque l’e-mail est <code>NULL</code>. Tu peux combiner les fonctions :</p><div class="pt-syntax"><pre class="cw-syntax">SELECT
-    prenom,
-    LOWER(TRIM(COALESCE(email, 'Non renseigné'))) AS email_propre
-FROM clients;</pre></div>
-      <div class="fn-nest" aria-label="Fonctions imbriquées, de l’intérieur vers l’extérieur">
-        <div class="fn-nest-io">
-          <span class="fn-nest-lab">Valeur reçue</span>
-          <code class="fn-nest-val" data-fn-nest-in>···SOPHIE@MAIL.FR···</code>
-        </div>
-        <div class="fn-nest-steps" role="tablist" aria-label="Étapes de transformation">
-          <button type="button" class="fn-nest-step on" role="tab" data-step="0" aria-selected="true"><span class="fn-nest-n">1.</span><span class="fn-nest-fn">COALESCE</span><small>gérer NULL</small></button>
-          <button type="button" class="fn-nest-step" role="tab" data-step="1" aria-selected="false"><span class="fn-nest-n">2.</span><span class="fn-nest-fn">TRIM</span><small>retirer autour</small></button>
-          <button type="button" class="fn-nest-step" role="tab" data-step="2" aria-selected="false"><span class="fn-nest-n">3.</span><span class="fn-nest-fn">LOWER</span><small>passer en minuscules</small></button>
-        </div>
-        <div class="fn-nest-io out">
-          <span class="fn-nest-lab">Après cette étape</span>
-          <code class="fn-nest-val" data-fn-nest-out>SOPHIE@MAIL.FR</code>
-        </div>
-        <p class="fn-nest-say" data-fn-nest-say><span class="fn-nest-say-n" aria-hidden="true">1</span><span data-fn-nest-say-txt>COALESCE garantit une valeur. Ici, l’e-mail existe déjà : il est conservé.</span></p>
-        <button type="button" class="fn-nest-replay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>Rejouer les 3 étapes</button>
-      </div></div>`}},
-  anatomieList:[
-    {label:'Identifiant client',tone:'good',lines:[
-      {tok:"SELECT",txt:"Ce que tu affiches."},
-      {tok:"LOWER(prenom) || '-' || LOWER(ville)",txt:"Le prénom et la ville en minuscules, collés avec un tiret."},
-      {tok:"AS identifiant",txt:"Le nom de la nouvelle colonne."},
-      {tok:"FROM clients",txt:"La table clients est utilisée comme source."}
+guide({ id:51, titre:"Fonctions de texte", résumé:"Transformer, nettoyer et découper du texte",
+  sit:{
+    blocks:[
+      "L’équipe support prépare <b>les comptes de l’espace client</b>. Chaque client doit recevoir un identifiant de connexion <b>en minuscules</b> : son prénom, un tiret, puis sa ville, par exemple <b>sophie-paris</b>.",
+      "La table <code>clients</code> contient au total <b>10 clients</b>, avec leur prénom et leur ville dans deux colonnes séparées. Pour créer les comptes, l’équipe souhaite récupérer uniquement :",
+      {need:[["🔐","L’identifiant du client","à calculer"]],label:"L’information à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>SELECT</code>, SQL affiche les textes tels qu’ils sont enregistrés : le prénom et la ville commencent par une <b>majuscule</b> et sont dans <b>deux colonnes</b> différentes.","Or, l’identifiant doit être <b>un seul texte</b>, en <b>minuscules</b>, avec un tiret entre le prénom et la ville."],
+      scene:{h:"🔐 Identifiants des clients",cols:"1fr 1fr 1.7fr",
+        lanes:[{c:[["h1","prenom","t"],["h2","ville","t"],["h3","identifiant","t"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","Paris"],["a3","?","q"]]},
+          {k:"R2",c:[["b1","Lucas"],["b2","Lyon"],["b3","?","q"]]},
+          {k:"R3",c:[["c1","Emma"],["c2","Marseille"],["c3","?","q"]]}],
+        caps:["<b>Notre liste</b> · Le prénom et la ville sont enregistrés séparément, avec une majuscule.","<b>Besoin</b> · L’identifiant doit réunir les deux, en minuscules, avec un tiret.","<b>Résultat</b> · Chaque client reçoit son identifiant, sans que la table change."],
+        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,d:2200},{cap:2,text:{a3:"sophie-paris",b3:"lucas-lyon",c3:"emma-marseille"},stagger:450,d:3000}]},
+      then:["Il faut donc <b>transformer</b> chaque texte, puis les <b>assembler</b> en un seul.","C’est exactement le rôle des <b>fonctions de texte</b>, comme <code>LOWER</code>, et de l’opérateur <code>||</code>."]
+    },
+    mission:"Aide l’équipe support à créer, pour chaque client, un <b>identifiant</b> en minuscules : son <b>prénom</b>, un <b>tiret</b>, puis sa <b>ville</b>, afin de préparer les comptes de l’espace client."
+  },
+  concept:{
+    title:"Comment SQL peut-il transformer un texte ?",
+    blocks:[
+      "Une fonction prend une valeur, la <b>transforme</b>, puis renvoie le résultat :",
+      {ask:"Que veut-on faire de ce texte ?"},
+      "En SQL, on écrit le nom de la fonction, puis la valeur entre parenthèses :",
+      {syntax:"⟦LOWER(prenom)⟧"},
+      {scene:{h:"⚙️ Une fonction de texte",
+        lanes:[{k:"IN",l:"Valeur enregistrée",c:[["i1","Sophie"]]},
+          {k:"F",l:"Fonction",c:[["f1","LOWER( )"]]},
+          {k:"OUT",cls:"is-goal",l:"Valeur affichée",c:[["o1","?","q"]]}],
+        caps:["<b>La table</b> · Le prénom est enregistré avec une majuscule.","<b>LOWER</b> · La fonction transforme le texte en minuscules.","<b>Résultat</b> · La requête affiche « sophie » ; le prénom enregistré ne change pas."],
+        steps:[{cap:0,on:["IN"],d:1900},{cap:1,off:["IN"],on:["F"],d:2000},{cap:2,off:["F"],on:["OUT"],text:{o1:"sophie"},d:2800}]}},
+      {table:{label:"Les fonctions de texte",cols:"minmax(0,1.5fr) minmax(0,1.5fr)",head:["fonction","effet"],rows:[["UPPER / LOWER","majuscules / minuscules"],["TRIM","retire les espaces autour"],["LENGTH","compte les caractères"],["SUBSTR","extrait un morceau"],["REPLACE","remplace un morceau"],["||","assemble des textes"]]}}
+    ]
+  },
+  steps:[
+    {h:"Changer la casse",blocks:[
+      "<code>UPPER</code> passe un texte en <b>majuscules</b>, <code>LOWER</code> en <b>minuscules</b> :",
+      {syntax:"SELECT ville,\n       ⟦UPPER(ville)⟧ AS majuscules,\n       ⟦LOWER(ville)⟧ AS minuscules\nFROM clients;"},
+      {say:"👇 Exécute cette requête pour voir les villes transformées :",run:"SELECT ville,\n       UPPER(ville) AS majuscules,\n       LOWER(ville) AS minuscules\nFROM clients;"},
+      {arrow:"Les colonnes calculées montrent le texte transformé ; la colonne <code>ville</code> n’a pas changé."}
     ]},
-    {label:'Fonctions imbriquées',lines:[
-      {tok:"SELECT prenom,",txt:"Le prénom du client."},
-      {tok:"LOWER(TRIM(COALESCE(email, 'Non renseigné')))",txt:"De l’intérieur : <code>COALESCE</code> gère le <code>NULL</code>, <code>TRIM</code> retire les espaces, <code>LOWER</code> passe en minuscules."},
-      {tok:"AS email_propre",txt:"Le nom de la colonne transformée."},
-      {tok:"FROM clients",txt:"La table clients est utilisée comme source."}
+    {h:"Mesurer et extraire",blocks:[
+      "<code>LENGTH</code> compte les caractères, <code>SUBSTR</code> extrait un morceau : <code>SUBSTR(texte, début, nombre)</code>.",
+      {syntax:"SELECT nom,\n       ⟦LENGTH(nom)⟧ AS longueur,\n       ⟦SUBSTR(nom, 1, 3)⟧ AS debut\nFROM produits;"},
+      {say:"👇 Exécute cette requête pour voir la longueur et le début de chaque nom :",run:"SELECT nom,\n       LENGTH(nom) AS longueur,\n       SUBSTR(nom, 1, 3) AS debut\nFROM produits;"},
+      {arrow:"<code>SUBSTR(nom, 1, 3)</code> garde 3 caractères, à partir du premier."}
+    ]},
+    {h:"Nettoyer et remplacer",blocks:[
+      "<code>TRIM</code> retire les espaces autour d’un texte, <code>REPLACE</code> remplace un morceau par un autre :",
+      {say:"👇 Exécute cette requête : les crochets montrent où s’arrête le texte.",run:"SELECT '[' || TRIM('  Paris  ') || ']' AS texte_propre;"},
+      {say:"👇 Exécute celle-ci pour retirer les espaces des numéros de téléphone :",run:"SELECT telephone,\n       REPLACE(telephone, ' ', '') AS telephone_compact\nFROM clients;"},
+      {arrow:"Chaque espace du numéro est remplacé par « rien » : le numéro devient compact."}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à assembler les textes : l’opérateur <code>||</code> les met bout à bout, et on peut y placer des fonctions.",
+      {syntax:"⟦LOWER(prenom)⟧ || '-' || ⟦LOWER(ville)⟧"},
+      {say:"👇 Exécute la requête pour créer les identifiants :",run:"SELECT LOWER(prenom) || '-' || LOWER(ville) AS identifiant\nFROM clients;"},
+      {done:{
+        label:"Des prénoms et des villes aux identifiants",
+        funnel:[
+          {n:10,t:"clients au départ",s:"un prénom et une ville, séparés",dots:"0000000000"},
+          {step:"LOWER(prenom) || '-' || LOWER(ville)",s:"transforme les textes, puis les assemble"},
+          {n:10,t:"⭐ identifiants créés",s:"par exemple sophie-paris, lucas-lyon, emma-marseille",dots:"1111111111",out:true}
+        ],
+        sms:{ico:"🔐",h:"Comptes de l’espace client",aria:"Les comptes clients sont créés avec leur identifiant",msg:"<b>Espace client</b><br>Création des comptes",people:[["S","sophie-paris","espace client"],["L","lucas-lyon","espace client"],["E","emma-marseille","espace client"],["N","nathan-paris","espace client"],["C","chloé-bordeaux","espace client"]],more:5,moreT:"… et 5 autres",moreS:"comptes à créer",st:["À créer","Création","✓ Créé"],plane:"star",done:"✓ 10 comptes créés"},
+        fill:["LOWER","'-'","LOWER","identifiant"],
+        ui:{t:"10 identifiants créés",s:"Chaque client a son identifiant en minuscules : les comptes peuvent être créés.",n:["SELECT","LOWER()","||","AS","FROM"]},
+        rows:10
+      }}
     ]}
   ],
-  exemple:"SELECT LOWER(prenom) || '-' || LOWER(ville) AS identifiant\nFROM clients;",
-  attendu:"10 lignes. Sophie → sophie-paris. Lucas → lucas-lyon.",
-  retenir:"Avant de choisir une fonction, demande-toi ce que tu veux faire au texte. Mettre en forme → <code>UPPER</code>, <code>LOWER</code>. Nettoyer → <code>TRIM</code>, <code>REPLACE</code>. Découper → <code>SUBSTR</code>. Chercher → <code>INSTR</code>. Assembler → <code>||</code>. Gérer un <code>NULL</code> → <code>COALESCE</code>. Ces fonctions changent le résultat affiché, pas la table.",
-  consigne:"Crée un identifiant pour chaque client : le prénom en minuscules, un tiret, puis la ville en minuscules. Pour Sophie : <code>sophie-paris</code>.",
-  solution:"SELECT LOWER(prenom) || '-' || LOWER(ville) AS identifiant FROM clients;",
-  indice:"<code>LOWER(prenom) || '-' || LOWER(ville)</code>.",
-  richLesson:true, earlyDemo:true, noReflex:true,
-  testeVariants:[
-    {k:'upper',label:'UPPER',sql:"SELECT prenom, UPPER(prenom) AS prenom_majuscule\nFROM clients;",out:"Sophie → SOPHIE. La table, elle, ne change pas."},
-    {k:'length',label:'LENGTH',sql:"SELECT prenom, LENGTH(prenom) AS longueur\nFROM clients;",out:"Sophie → 6. Lucas → 5. Emma → 4."},
-    {k:'substr',label:'SUBSTR',sql:"SELECT prenom, SUBSTR(telephone, 1, 2) AS debut\nFROM clients;",out:"Le début du numéro : 06."},
-    {k:'domaine',label:'INSTR + SUBSTR',sql:"SELECT email, SUBSTR(email, INSTR(email, '@') + 1) AS domaine\nFROM clients;",out:"sophie@mail.fr → mail.fr"},
-    {k:'replace',label:'REPLACE',sql:"SELECT telephone, REPLACE(telephone, ' ', '') AS telephone_compact\nFROM clients;",out:"06 39 98 12 04 → 0639981204"},
-    {k:'identifiant',label:'||',sql:"SELECT LOWER(prenom) || '-' || LOWER(ville) AS identifiant\nFROM clients;",out:"Sophie → sophie-paris.",tone:'good'}
+  reflex:[
+    {recap:[
+      ["🔤","Une <b>fonction de texte</b> transforme une valeur dans le résultat, sans modifier la table :",null,"LOWER(prenom)"],
+      ["🧰","Une fonction par besoin : <code>UPPER</code> et <code>LOWER</code>, <code>TRIM</code>, <code>LENGTH</code>, <code>SUBSTR</code>, <code>REPLACE</code>."],
+      ["🔗","<code>||</code> assemble des textes, et on peut y placer des fonctions :",null,"LOWER(prenom) || '-' || LOWER(ville)"]
+    ],label:"Les trois idées à retenir"}
   ],
-  fnCmp:{title:"Le tableau réflexe",want:1,h1:"Je veux…",h2:"J’utilise",
-    say:`<div class="fn-sgbd"><p>Les fonctions présentées dans ce cours sont écrites avec la syntaxe de SQLite. Dans d’autres systèmes SQL, le principe reste le même, mais le nom de certaines fonctions ou leur écriture peut varier.</p></div>`,
-    rows:[
-      {fn:"Mettre en majuscules",d:"<code>UPPER()</code>"},
-      {fn:"Mettre en minuscules",d:"<code>LOWER()</code>"},
-      {fn:"Compter les caractères",d:"<code>LENGTH()</code>"},
-      {fn:"Nettoyer les deux extrémités",d:"<code>TRIM()</code>"},
-      {fn:"Nettoyer un seul côté",d:"<code>LTRIM()</code> (gauche) · <code>RTRIM()</code> (droite)"},
-      {fn:"Extraire une partie",d:"<code>SUBSTR()</code> ou <code>SUBSTRING()</code>"},
-      {fn:"Trouver une position",d:"<code>INSTR()</code>"},
-      {fn:"Remplacer du texte",d:"<code>REPLACE()</code>"},
-      {fn:"Assembler des textes",d:"<code>||</code>"},
-      {fn:"Remplacer un NULL",d:"<code>COALESCE()</code>"}
-    ]} ,
-learningCheck:{
-  "question": "Pour nettoyer une adresse avec espaces et majuscules, quel enchaînement convient ?",
-  "options": [
-    "LOWER(TRIM(email))",
-    "LENGTH(email)",
-    "SUBSTR(email, 1, 2)"
+  anatomie:[{tok:"SELECT",txt:"Commence la lecture des données."},{tok:"LOWER(prenom)",txt:"Le prénom, en minuscules."},{tok:"||",punc:1,txt:"Assemble deux textes."},{tok:"'-'",plain:1,txt:"Un tiret, écrit entre guillemets simples."},{tok:"LOWER(ville)",txt:"La ville, en minuscules."},{tok:"AS identifiant",txt:"Nomme la colonne obtenue."}],
+  exemple:"SELECT nom, LENGTH(nom) AS longueur FROM produits;",
+  attendu:"<b>8 lignes</b>, avec le nombre de caractères de chaque nom : par exemple Magnésium → 9.",
+  retenir:"Une fonction de texte transforme une valeur dans le résultat, sans modifier la table : <code>UPPER</code>, <code>LOWER</code>, <code>TRIM</code>, <code>LENGTH</code>, <code>SUBSTR</code>, <code>REPLACE</code>.<br><br><code>||</code> assemble des textes ; on peut y placer des fonctions : <code>LOWER(prenom) || '-' || LOWER(ville)</code>.",
+  consigne:"Affiche le prénom de chaque client et le nombre de caractères de ce prénom. Nomme la colonne calculée longueur.",
+  solution:"SELECT prenom, LENGTH(prenom) AS longueur FROM clients;",
+  indice:"<code>LENGTH(prenom)</code> compte les caractères du prénom. Donne un alias à la colonne calculée avec <code>AS</code>.",
+  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT nom, LENGTH(nom) AS longueur FROM produits;"},{k:"ident",label:"Identifiant",sql:"SELECT LOWER(prenom) || '-' || LOWER(ville) AS identifiant FROM clients;",expectRows:10}],
+  learningCheck:{question:"UPPER(ville) modifie-t-il la ville enregistrée dans la table ?",options:["Oui, définitivement","Non, seul le résultat est transformé","Seulement avec ORDER BY"],answer:1,explanation:"Une fonction calcule une nouvelle valeur dans le résultat. La table reste intacte."}
+}),
+guide({ id:52, titre:"Fonctions numériques", résumé:"Calculer, arrondir et manipuler des nombres",
+  sit:{
+    blocks:[
+      "L’équipe commerciale prépare <b>une promotion de −10 %</b> sur tout le catalogue. Elle veut afficher, pour chaque produit, son <b>prix promotionnel</b>, arrondi au centime.",
+      "La table <code>produits</code> contient au total <b>8 produits</b>, avec leur prix. Pour préparer les étiquettes, l’équipe souhaite récupérer uniquement :",
+      {need:[["🏷️","Le nom du produit","table produits"],["💸","Son prix promotionnel","à calculer"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>SELECT</code>, SQL affiche les prix <b>tels qu’ils sont enregistrés</b> : la promotion n’y figure nulle part.","Or, l’équipe veut un <b>nouveau prix</b>, calculé pour chaque produit à partir de l’ancien, sans modifier la table."],
+      scene:{h:"💸 Prix promotionnels",cols:"1.5fr .8fr 1fr",
+        lanes:[{c:[["h1","nom","t"],["h2","prix","t"],["h3","promo","t"]]},
+          {k:"R1",c:[["a1","Magnésium"],["a2","19.9"],["a3","?","q"]]},
+          {k:"R2",c:[["b1","Oméga 3"],["b2","24.9"],["b3","?","q"]]},
+          {k:"R3",c:[["c1","Vitamine D"],["c2","14.9"],["c3","?","q"]]},
+          {k:"R4",c:[["d1","Tisane Détox"],["d2","12.5"],["d3","?","q"]]}],
+        caps:["<b>Notre liste</b> · Chaque produit a un prix, mais aucun prix promotionnel.","<b>Besoin</b> · Le prix promotionnel est le prix moins 10 %, arrondi au centime.","<b>Résultat</b> · Chaque produit reçoit son nouveau prix, sans que la table change."],
+        steps:[{cap:0,on:["R1","R2","R3","R4"],d:1900},{cap:1,d:2300},{cap:2,text:{a3:"17.91",b3:"22.41",c3:"13.41",d3:"11.25"},stagger:420,d:3000}]},
+      then:["Il faut donc <b>calculer</b> une nouvelle valeur à partir de chaque prix, puis l’<b>arrondir</b>.","C’est exactement le rôle des <b>fonctions numériques</b>, comme <code>ROUND</code>."]
+    },
+    mission:"Aide l’équipe commerciale à afficher le <b>nom</b> et le <b>prix promotionnel</b> (prix moins 10 %, arrondi au centime) de chaque produit, afin de préparer les étiquettes de la promotion."
+  },
+  concept:{
+    title:"Comment SQL peut-il calculer une nouvelle valeur ?",
+    blocks:[
+      "Une fonction numérique prend un nombre, le <b>transforme</b>, puis renvoie le résultat :",
+      {ask:"Comment arrondir ce nombre ?"},
+      "En SQL, <code>ROUND</code> reçoit le nombre à arrondir et, au besoin, le nombre de décimales à garder :",
+      {syntax:"ROUND(prix)\n⟦ROUND(prix * 0.9, 2)⟧"},
+      {scene:{h:"🔢 Arrondir de plusieurs façons",cols:"1.3fr 1fr 1fr",
+        lanes:[{c:[["h1","fonction","t"],["h2","24.2","t"],["h3","24.9","t"]]},
+          {k:"R1",c:[["a1","ROUND(x)"],["a2","?","q"],["a3","?","q"]]},
+          {k:"R2",c:[["b1","CEILING(x)"],["b2","?","q"],["b3","?","q"]]},
+          {k:"R3",c:[["c1","FLOOR(x)"],["c2","?","q"],["c3","?","q"]]}],
+        caps:["<b>ROUND</b> · Arrondit au nombre entier le plus proche.","<b>CEILING</b> · Arrondit toujours vers le haut.","<b>FLOOR</b> · Arrondit toujours vers le bas."],
+        steps:[{cap:0,on:["R1"],text:{a2:"24",a3:"25"},stagger:400,d:2400},{cap:1,off:["R1"],on:["R2"],text:{b2:"25",b3:"25"},stagger:400,d:2400},{cap:2,off:["R2"],on:["R3"],text:{c2:"24",c3:"24"},stagger:400,d:2400}]}}
+    ]
+  },
+  steps:[
+    {h:"Arrondir avec ROUND",blocks:[
+      "<code>ROUND(prix)</code> arrondit le prix au nombre <b>entier</b> le plus proche :",
+      {syntax:"SELECT nom, prix,\n       ⟦ROUND(prix)⟧ AS prix_arrondi\nFROM produits;"},
+      {say:"👇 Exécute cette requête pour voir les prix arrondis :",run:"SELECT nom, prix,\n       ROUND(prix) AS prix_arrondi\nFROM produits;"},
+      {arrow:"La Tisane Détox passe de 12,5 à 13 : à égalité, <code>ROUND</code> arrondit vers le haut."}
+    ]},
+    {h:"Arrondir vers le haut ou vers le bas",blocks:[
+      "<code>CEILING</code> arrondit toujours <b>vers le haut</b>, <code>FLOOR</code> toujours <b>vers le bas</b>, quelle que soit la décimale :",
+      {say:"👇 Exécute cette requête pour comparer les trois arrondis :",run:"SELECT nom, prix,\n       ROUND(prix) AS arrondi,\n       CEILING(prix) AS plafond,\n       FLOOR(prix) AS plancher\nFROM produits;"},
+      {arrow:"Le Magnésium (19,90 €) donne 20 avec <code>ROUND</code> et <code>CEILING</code>, mais 19 avec <code>FLOOR</code>."}
+    ]},
+    {h:"Calculer avec les opérateurs",blocks:[
+      "On peut faire des calculs directement dans le <code>SELECT</code> avec <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code> et <code>%</code> (le reste d’une division), puis les arrondir :",
+      {syntax:"ROUND(prix * ⟦1.2⟧, 2)"},
+      {say:"👇 Exécute cette requête pour voir le prix avec 20 % de TVA :",run:"SELECT nom, prix,\n       ROUND(prix * 1.2, 2) AS prix_ttc\nFROM produits;"},
+      {arrow:"Chaque prix est multiplié par 1,2, puis arrondi à 2 décimales."}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : calculer le prix moins 10 % (prix × 0,9) et l’arrondir au centime.",
+      {say:"👇 Exécute la requête pour obtenir les prix promotionnels :",run:"SELECT nom,\n       ROUND(prix * 0.9, 2) AS prix_promo\nFROM produits;"},
+      {done:{
+        label:"Des prix d’origine aux prix promotionnels",
+        funnel:[
+          {n:8,t:"produits au départ",s:"avec leur prix d’origine",dots:"00000000"},
+          {step:"ROUND(prix * 0.9, 2)",s:"calcule le prix moins 10 %, arrondi au centime"},
+          {n:8,t:"⭐ prix promotionnels",s:"par exemple 26,91 € au lieu de 29,90 €",dots:"11111111",out:true}
+        ],
+        sms:{ico:"🏷️",h:"Étiquettes de la promotion",aria:"Les étiquettes promotionnelles sont imprimées pour chaque produit",msg:"<b>Promotion −10 %</b><br>Nouveaux prix du catalogue",people:[["F","Fibre Prébiotique","26.91"],["C","Collagène Marin","35.91"],["M","Magnésium","17.91"],["V","Vitamine D","13.41"],["T","Tisane Détox","11.25"]],more:3,moreT:"… et 3 autres",moreS:"produits du catalogue",st:["À imprimer","Impression","✓ Imprimée"],plane:"doc",done:"✓ 8 étiquettes imprimées"},
+        fill:["ROUND","*","0.9","2"],
+        ui:{t:"8 prix promotionnels",s:"Chaque produit a son prix moins 10 %, arrondi au centime : les étiquettes sont prêtes.",n:["SELECT","ROUND()","*","AS","FROM"]},
+        rows:8
+      }}
+    ]}
   ],
-  "answer": 0,
-  "explanation": "Nettoyer retire les espaces ; transformer change la casse ; extraire prend une partie. Choisis d’abord la famille de tâche."
-}
-},
-{ id:52, titre:"Fonctions numériques", résumé:"Calculer, arrondir et manipuler des nombres",
-    studio:{problem:{eye:"Fonctions numériques",title:"Calculer sans modifier la table.",
-      body:`<div class="pt-lead"><p>Dans tes tables, plusieurs colonnes contiennent des nombres :</p><ul class="pt-lead-list"><li><code>produits.prix</code></li><li><code>produits.stock</code></li><li><code>commandes.quantite</code></li><li><code>clients.age</code></li></ul><p>SQL peut utiliser ces valeurs pour effectuer des calculs et les transformer.</p></div>`},
-    reflex:{note:"Avant de choisir une fonction, demande-toi : <b>quel calcul veux-tu obtenir ?</b>",
-      extra:`<ul class="fn-reflex-list"><li>Arrondir ? → <code>ROUND()</code></li><li>Arrondir vers le haut ? → <code>CEIL()</code> / <code>CEILING()</code></li><li>Arrondir vers le bas ? → <code>FLOOR()</code></li><li>Tronquer les décimales ? → <code>TRUNC()</code> / <code>TRUNCATE()</code></li><li>Obtenir la valeur absolue ? → <code>ABS()</code></li><li>Connaître le signe ? → <code>SIGN()</code></li><li>Obtenir le reste d’une division ? → <code>MOD()</code> / <code>%</code></li><li>Calculer une puissance ? → <code>POWER()</code> / <code>POW()</code></li><li>Calculer une racine carrée ? → <code>SQRT()</code></li><li>Garder la plus petite valeur ? → <code>LEAST()</code></li><li>Garder la plus grande valeur ? → <code>GREATEST()</code></li><li>Générer une valeur aléatoire ? → <code>RANDOM()</code> / <code>RAND()</code></li><li>Additionner plusieurs lignes ? → <code>SUM()</code></li><li>Calculer une moyenne ? → <code>AVG()</code></li><li>Trouver le minimum parmi plusieurs lignes ? → <code>MIN()</code></li><li>Trouver le maximum parmi plusieurs lignes ? → <code>MAX()</code></li></ul>`}},
-  exemple:"SELECT nom,\n       ROUND(prix) AS prix_arrondi\nFROM produits;",
-  attendu:"8 lignes. La Fibre Prébiotique passe de 29,90 à 30, le Collagène Marin de 39,90 à 40, le Magnésium de 19,90 à 20.",
-  retenir:"Une fonction numérique calcule une nouvelle valeur dans le résultat, sans modifier la table. <code>ROUND</code>, <code>CEIL</code> et <code>FLOOR</code> gèrent les arrondis. <code>ABS</code> et <code>SIGN</code> travaillent sur le signe. <code>%</code> donne le reste. <code>MAX</code> parcourt plusieurs lignes ; <code>GREATEST</code> compare des valeurs sur une même ligne. Le nom exact peut changer selon le SGBD.",
-  pieges:[],
-  consigne:"Ton équipe veut afficher le prix de chaque produit arrondi à l’entier le plus proche. Affiche le nom et le prix arrondi sous le nom <code>prix_arrondi</code>.",
-  solution:"SELECT nom, ROUND(prix) AS prix_arrondi\nFROM produits;",
-  indice:"<code>ROUND(prix)</code> arrondit à l’entier le plus proche. Donne un alias à la colonne calculée : <code>AS prix_arrondi</code>.",
-  richLesson:true, earlyDemo:true,
-learningCheck:{
-  "question": "Quelle est la différence entre ROUND(prix) et AVG(prix) ?",
-  "options": [
-    "Aucune : les deux arrondissent le prix",
-    "ROUND calcule une ligne à la fois, AVG rassemble plusieurs lignes",
-    "AVG arrondit, ROUND fait la moyenne"
+  reflex:[
+    {recap:[
+      ["🧮","Une <b>fonction numérique</b> calcule une nouvelle valeur dans le résultat, sans modifier la table :",null,"ROUND(prix * 0.9, 2)"],
+      ["🎯","<code>ROUND</code> arrondit au plus proche, <code>CEILING</code> vers le haut, <code>FLOOR</code> vers le bas."],
+      ["➗","On peut calculer avec <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code> et <code>%</code> (reste de la division), puis arrondir."]
+    ],label:"Les trois idées à retenir"}
   ],
-  "answer": 1,
-  "explanation": "ROUND(prix) produit un résultat pour chaque produit. AVG(prix) prend tous les prix et renvoie une seule moyenne."
-}
-},
-{ id:53, titre:"Fonctions de dates et heures", résumé:"Obtenir, extraire et calculer avec une date",
-    studio:{problem:{eye:"Fonctions de dates et heures",title:"Obtenir, extraire et calculer avec une date.",
-      body:`<div class="pt-lead"><p>Dans une base de données, de nombreuses informations sont enregistrées sous forme de dates :</p><ul class="pt-lead-list"><li><code>date_commande</code></li><li><code>date_inscription</code></li><li><code>date_naissance</code></li><li><code>date_paiement</code></li></ul><p>Par exemple, dans la table <code>commandes</code>, chaque ligne possède une <code>date_commande</code>.</p><p>Tu peux vouloir :</p><ul class="pt-lead-list"><li>connaître la date actuelle ;</li><li>récupérer uniquement l’année ou le mois ;</li><li>afficher une date dans un autre format ;</li><li>ajouter ou retirer quelques jours ;</li><li>calculer le nombre de jours entre deux dates ;</li><li>filtrer les lignes d’une période précise.</li></ul><p>Pour cela, SQL propose différentes fonctions de dates et d’heures.</p></div>`},
-    uses:{title:"Les dates, une opération à la fois.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Reconnaître une date</p>
-          <p>Une date est généralement écrite sous la forme <code>AAAA-MM-JJ</code>.</p>
-          <p>Par exemple, <code>2025-03-14</code> se lit :</p>
-          <ul class="pt-lead-list"><li><code>2025</code> → année</li><li><code>03</code> → mois</li><li><code>14</code> → jour</li></ul>
-          <p>Une date avec une heure peut être écrite ainsi : <code>2025-03-14 15:30:00</code></p>
-          <p>Elle contient alors : date + heure.</p>
-          <p class="fn-tip"><b>À retenir</b> Une valeur temporelle peut contenir seulement une date, seulement une heure, ou les deux.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Obtenir la date actuelle</p>
-          <p>SQL permet d’obtenir la date ou l’heure actuelle.</p>
-          <p>Selon le SGBD, on rencontre par exemple <code>CURRENT_DATE</code>, ou <code>NOW()</code>, ou encore <code>GETDATE()</code>.</p>
-          <p>Exemple :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT CURRENT_DATE;</pre></div>
-          <p>Résultat possible : <code>2026-08-29</code></p>
-          <p>Le principe est donc : fonction de date actuelle → date du jour.</p>
-          <div class="fn-sgbd"><p class="pt-syntax-h">Selon le SGBD</p>
-          <div class="table-wrap"><table class="concept-table"><thead><tr><th>SGBD</th><th>Exemple</th></tr></thead><tbody>
-            <tr><td>MySQL</td><td><code>CURDATE()</code></td></tr>
-            <tr><td>PostgreSQL</td><td><code>CURRENT_DATE</code></td></tr>
-            <tr><td>SQL Server</td><td><code>GETDATE()</code></td></tr>
-            <tr><td>Oracle</td><td><code>SYSDATE</code></td></tr>
-            <tr><td>SQLite</td><td><code>date('now')</code></td></tr>
-          </tbody></table></div>
-          <p style="margin-top:10px">Le besoin reste le même, mais la fonction peut changer selon le SGBD.</p></div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Obtenir la date et l’heure</p>
-          <p>On peut aussi récupérer la date avec l’heure.</p>
-          <p>Par exemple :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT CURRENT_TIMESTAMP;</pre></div>
-          <p>Résultat possible : <code>2026-08-29 13:30:00</code></p>
-          <p>On obtient alors :</p>
-          <figure class="date-hms">
-            <div class="date-hms-row"><span>2026-08-29</span><span>13:30:00</span></div>
-            <div class="date-hms-ann"><span>date</span><span>heure</span></div>
-          </figure>
-          <p><code>CURRENT_TIMESTAMP</code> est une syntaxe très courante en SQL.</p>
-          <p>D’autres fonctions existent également selon le SGBD : <code>NOW()</code>, <code>GETDATE()</code>, <code>SYSDATETIME()</code>, <code>datetime('now')</code>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Extraire une partie d’une date</p>
-          <p>Parfois, tu ne veux pas toute la date.</p>
-          <p>Tu veux seulement : l’année, le mois, le jour, l’heure.</p>
-          <p>Prenons <code>2025-03-14</code>.</p>
-          <p>Tu peux vouloir obtenir : année → 2025, mois → 03, jour → 14.</p>
-          <p>SQL propose plusieurs fonctions pour cela.</p>
-          <p>Une syntaxe très courante est <code>EXTRACT()</code>.</p>
-          <p>Par exemple :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT EXTRACT(YEAR FROM date_commande)
-FROM commandes;</pre></div>
-          <p>Cette expression signifie :</p>
-          <figure class="extract-call">
-            <div class="extract-sql"><code>EXTRACT(YEAR FROM date_commande)</code></div>
-            <div class="extract-marks"><span>↑</span><span>↑</span></div>
-            <div class="extract-ann"><span>partie voulue</span><span>date utilisée</span></div>
-          </figure>
-          <p>Résultat sur la table commandes : 2026.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Extraire l’année, le mois ou le jour</p>
-          <p>Selon le SGBD, tu peux également rencontrer des fonctions plus courtes.</p>
-          <p>Par exemple :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">YEAR(date_commande)
-MONTH(date_commande)
-DAY(date_commande)</pre></div>
-          <p>On pourrait donc écrire :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT
-    date_commande,
-    YEAR(date_commande) AS annee
-FROM commandes;</pre></div>
-          <p>Résultat possible :</p>
-          <div class="table-wrap"><table class="concept-table"><thead><tr><th>date_commande</th><th>annee</th></tr></thead><tbody>
-            <tr><td>2026-08-03</td><td>2026</td></tr>
-            <tr><td>2024-02-10</td><td>2024</td></tr>
-          </tbody></table></div>
-          <p>Le principe est toujours le même :</p>
-          <div class="pt-floors" aria-label="Extraire l’année d’une date">
-            <div class="pt-floor-out">
-              <span class="pt-floor-lab">3. Année</span>
-              <pre class="pt-floor-code">2026</pre>
-              <div class="pt-floor-in">
-                <span class="pt-floor-lab">2. YEAR</span>
-                <pre class="pt-floor-code">YEAR(…)</pre>
-                <div class="pt-floor-in">
-                  <span class="pt-floor-lab">1. Date</span>
-                  <pre class="pt-floor-code">2026-08-03</pre>
-                </div>
-              </div>
-            </div>
-          </div>
-          <p class="fn-tip"><b>Attention</b> Toutes les fonctions ne sont pas disponibles avec tous les SGBD.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Formater une date</p>
-          <p>Une date peut être stockée ainsi : <code>2025-03-14</code></p>
-          <p>mais tu peux vouloir l’afficher ainsi : <code>14/03/2025</code></p>
-          <p>On parle alors de formatage.</p>
-          <p>Selon le SGBD, différentes fonctions existent : <code>DATE_FORMAT()</code>, <code>TO_CHAR()</code>, <code>FORMAT()</code>, <code>strftime()</code>.</p>
-          <p>Par exemple :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT DATE_FORMAT(date_commande, '%d/%m/%Y')
-FROM commandes;</pre></div>
-          <p>On transforme alors l’affichage : <code>2025-03-14</code> → <code>14/03/2025</code>.</p>
-          <p class="fn-tip"><b>Important</b> Formater une date ne signifie pas forcément modifier la valeur enregistrée dans la table. On change surtout la manière dont elle est affichée.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Ajouter du temps à une date</p>
-          <p>Tu peux aussi effectuer des calculs avec les dates.</p>
-          <p>Une commande doit être livrée 7 jours après sa création.</p>
-          <p>Si elle a été passée le <code>2025-03-14</code>, tu veux obtenir <code>2025-03-21</code>.</p>
-          <p>Selon le SGBD, différentes syntaxes existent.</p>
-          <p>Par exemple :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">DATE_ADD(date_commande, INTERVAL 7 DAY)</pre></div>
-          <p>ou :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">date_commande + INTERVAL '7 days'</pre></div>
-          <p>ou encore :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">DATEADD(day, 7, date_commande)</pre></div>
-          <p>Le principe reste : date de départ → + 7 jours → nouvelle date.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Retirer du temps</p>
-          <p>Le même principe fonctionne pour revenir en arrière.</p>
-          <p>Par exemple : <code>2025-03-14</code> → − 7 jours → <code>2025-03-07</code>.</p>
-          <p>Selon le SGBD :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">DATE_SUB(date_commande, INTERVAL 7 DAY)</pre></div>
-          <p>ou :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">date_commande - INTERVAL '7 days'</pre></div>
-          <p>ou :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">DATEADD(day, -7, date_commande)</pre></div>
-          <p class="fn-tip"><b>À retenir</b> Les fonctions de dates permettent d’avancer ou de reculer dans le temps.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Calculer la différence entre deux dates</p>
-          <p>Tu veux savoir combien de jours séparent deux dates.</p>
-          <p>Par exemple : 14 mars ─────────────→ 20 mars, soit 6 jours.</p>
-          <p>Selon le SGBD, différentes fonctions existent : <code>DATEDIFF()</code>, <code>AGE()</code>, <code>julianday()</code>.</p>
-          <p>Par exemple :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT DATEDIFF('2025-03-20', '2025-03-14');</pre></div>
-          <p>Résultat : 6.</p>
-          <p>Autre syntaxe possible, selon le SGBD :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT date_fin - date_debut;</pre></div>
-          <p>Le principe est : date de fin − date de début → durée.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Calculer le temps écoulé depuis une date</p>
-          <p>Tu peux combiner une date enregistrée avec la date actuelle.</p>
-          <p>Tu veux savoir depuis combien de jours une commande a été passée.</p>
-          <p>Le raisonnement est : date actuelle − <code>date_commande</code> → jours écoulés.</p>
-          <p>Selon le SGBD, on pourrait écrire par exemple :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">DATEDIFF(CURRENT_DATE, date_commande)</pre></div>
-          <p>ou une syntaxe équivalente.</p>
-          <p class="fn-tip"><b>À retenir</b> Une fonction de différence permet de mesurer la durée entre deux dates.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Filtrer avec une date</p>
-          <p>Les dates peuvent aussi être utilisées dans <code>WHERE</code>.</p>
-          <p>Par exemple :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
-FROM commandes
-WHERE date_commande >= '2025-01-01';</pre></div>
-          <p>Cette condition signifie : garder les commandes passées à partir du 1er janvier 2025.</p>
-          <p>Avec les dates, les comparateurs habituels fonctionnent :</p>
-          <ul class="pt-lead-list"><li><code>=</code> exactement cette date</li><li><code>&gt;</code> après</li><li><code>&gt;=</code> à partir de</li><li><code>&lt;</code> avant</li><li><code>&lt;=</code> jusqu’à</li></ul>
-          <p>Par exemple, <code>WHERE date_commande &lt; '2025-06-01'</code> signifie : commandes passées avant le 1er juin 2025.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Filtrer une période</p>
-          <p>Tu veux retrouver les commandes du mois de mars 2025.</p>
-          <p>Tu peux encadrer la période :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT *
-FROM commandes
-WHERE date_commande >= '2025-03-01'
-  AND date_commande < '2025-04-01';</pre></div>
-          <p>Visualisons :</p>
-          <figure class="date-span" aria-label="Période de mars 2025">
-            <span class="date-span-title">MARS 2025</span>
-            <div class="date-span-bar"><span>01/03</span><i></i><span>01/04</span></div>
-            <div class="date-span-ann"><span>inclus</span><span>exclu</span></div>
-          </figure>
-          <p>La requête signifie donc : à partir du 1er mars, et avant le 1er avril.</p>
-          <p>C’est une manière très pratique de sélectionner un mois entier.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Regrouper par année ou par mois</p>
-          <p>Une fonction de date peut aussi être utilisée avec <code>GROUP BY</code>.</p>
-          <p>Tu veux compter le nombre de commandes par année.</p>
-          <p>Par exemple :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT
-    YEAR(date_commande) AS annee,
-    COUNT(*) AS nombre_commandes
-FROM commandes
-GROUP BY YEAR(date_commande);</pre></div>
-          <p>Résultat possible :</p>
-          <div class="table-wrap"><table class="concept-table"><thead><tr><th>annee</th><th>nombre_commandes</th></tr></thead><tbody>
-            <tr><td>2026</td><td>10</td></tr>
-            <tr><td>2024</td><td>6</td></tr>
-          </tbody></table></div>
-          <p>Le raisonnement est : <code>date_commande</code> → extraire l’année → regrouper → compter.</p>
-        </div>
-      </div>`},
-    why:{eye:"",title:"Une même idée, plusieurs syntaxes.",
-      body:`<div class="pt-lead"><p>C’est particulièrement important avec les dates.</p><p>Prenons une question simple : ajouter 7 jours à une date.</p><p>Selon le SGBD :</p>
-      <div class="fn-sgbd"><p class="pt-syntax-h">MySQL</p><div class="pt-syntax"><pre class="cw-syntax">DATE_ADD(date_commande, INTERVAL 7 DAY)</pre></div>
-      <p class="pt-syntax-h" style="margin-top:12px">PostgreSQL</p><div class="pt-syntax"><pre class="cw-syntax">date_commande + INTERVAL '7 days'</pre></div>
-      <p class="pt-syntax-h" style="margin-top:12px">SQL Server</p><div class="pt-syntax"><pre class="cw-syntax">DATEADD(day, 7, date_commande)</pre></div>
-      <p class="pt-syntax-h" style="margin-top:12px">SQLite</p><div class="pt-syntax"><pre class="cw-syntax">date(date_commande, '+7 days')</pre></div></div>
-      <p>Quatre syntaxes différentes, mais un seul raisonnement :</p>
-      <div class="pt-floors" aria-label="Ajouter 7 jours à une date">
-        <div class="pt-floor-out">
-          <span class="pt-floor-lab">3. Nouvelle date</span>
-          <pre class="pt-floor-code">date_commande + 7 jours</pre>
-          <div class="pt-floor-in">
-            <span class="pt-floor-lab">2. + 7 jours</span>
-            <pre class="pt-floor-code">+ 7 jours</pre>
-            <div class="pt-floor-in">
-              <span class="pt-floor-lab">1. Date de départ</span>
-              <pre class="pt-floor-code">date_commande</pre>
-            </div>
-          </div>
-        </div>
-      </div>
-      <p>C’est ce raisonnement qu’il faut retenir.</p></div>`},
-    or:{title:"À retenir.",
-      body:`<div class="pt-lead"><p>SQL permet de travailler avec le temps de plusieurs façons :</p>
-      <ol class="pt-chain" aria-label="Opérations possibles sur une date">
-        <li class="pt-hop"><span class="pt-hop-n">1</span><span class="pt-hop-txt"><b>Obtenir une date</b></span></li>
-        <li class="pt-hop"><span class="pt-hop-n">2</span><span class="pt-hop-txt"><b>Extraire une partie</b></span></li>
-        <li class="pt-hop"><span class="pt-hop-n">3</span><span class="pt-hop-txt"><b>Formater</b></span></li>
-        <li class="pt-hop"><span class="pt-hop-n">4</span><span class="pt-hop-txt"><b>Ajouter ou retirer du temps</b></span></li>
-        <li class="pt-hop"><span class="pt-hop-n">5</span><span class="pt-hop-txt"><b>Calculer une durée</b></span></li>
-        <li class="pt-hop"><span class="pt-hop-n">6</span><span class="pt-hop-txt"><b>Filtrer une période</b></span></li>
-      </ol>
-      <p>La syntaxe peut varier entre les SGBD, mais le raisonnement reste le même.</p>
-      <p>La bonne question à se poser est donc : <b>qu’est-ce que je veux faire avec ma date ?</b></p>
-      <p>Puis tu choisis la fonction adaptée à ton SGBD.</p></div>`},
-    reflex:{note:"Avant de choisir une fonction, demande-toi : <b>qu’est-ce que je veux faire avec ma date ?</b>",
-      extra:`<ul class="fn-reflex-list"><li>Obtenir la date actuelle → <code>CURRENT_DATE</code>, <code>NOW()</code></li><li>Extraire une partie → <code>YEAR()</code>, <code>EXTRACT()</code></li><li>Formater → <code>DATE_FORMAT()</code>, <code>strftime()</code></li><li>Ajouter ou retirer du temps → <code>DATE_ADD()</code>, <code>DATE_SUB()</code></li><li>Calculer une durée → <code>DATEDIFF()</code></li><li>Filtrer une période → <code>WHERE</code> + comparateurs</li></ul>`}},
-  exemple:"SELECT date_commande, YEAR(date_commande) AS annee\nFROM commandes;",
-  attendu:"16 lignes. 2026-07-02 → 2026.",
-  retenir:"La bonne question : qu’est-ce que je veux faire avec ma date ? Obtenir, extraire, formater, décaler, mesurer une durée, filtrer. La syntaxe change selon le SGBD ; le raisonnement reste le même.",
-  consigne:"Affiche chaque commande avec sa <code>date_commande</code> et son année.",
-  solution:"SELECT date_commande, YEAR(date_commande) AS annee FROM commandes;",
-  indice:"<code>YEAR(date_commande) AS annee</code>. Selon le SGBD, on peut aussi écrire <code>EXTRACT(YEAR FROM date_commande)</code>.",
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-  {
-    "k": "now",
-    "label": "Aujourd’hui",
-    "sql": "SELECT CURRENT_DATE AS aujourd_hui;",
-    "out": "La date du jour, selon le moment de l’exécution."
+  anatomie:[{tok:"SELECT nom,",txt:"Affiche le nom du produit."},{tok:"ROUND(",txt:"Arrondit le nombre qui suit."},{tok:"prix * 0.9",plain:1,txt:"Le calcul : le prix moins 10 %."},{tok:", 2)",plain:1,txt:"Garde 2 décimales."},{tok:"AS prix_promo",txt:"Nomme la colonne obtenue."}],
+  exemple:"SELECT nom, ROUND(prix) AS prix_arrondi FROM produits;",
+  attendu:"<b>8 lignes</b>. La Fibre Prébiotique passe de 29,90 à 30, le Collagène Marin de 39,90 à 40, le Magnésium de 19,90 à 20.",
+  retenir:"Une fonction numérique calcule une nouvelle valeur dans le résultat, sans modifier la table. <code>ROUND</code>, <code>CEILING</code> et <code>FLOOR</code> gèrent les arrondis. <code>%</code> donne le reste d’une division.<br><br><code>ROUND(prix * 0.9, 2)</code> calcule puis arrondit à 2 décimales. Le nom exact des fonctions peut changer selon le SGBD.",
+  consigne:"Affiche le nom et le stock de chaque produit, ainsi que le reste de la division du stock par 6. Nomme cette colonne reste.",
+  solution:"SELECT nom, stock, stock % 6 AS reste FROM produits;",
+  indice:"L’opérateur <code>%</code> donne le reste d’une division : <code>stock % 6</code>. Donne un alias à la colonne calculée.",
+  testeVariants:[{k:"base",label:"ROUND",sql:"SELECT nom, ROUND(prix) AS prix_arrondi FROM produits;"},{k:"abs",label:"ABS et SIGN",sql:"SELECT nom, prix - 25 AS ecart, ABS(prix - 25) AS distance, SIGN(prix - 25) AS sens FROM produits;"}],
+  learningCheck:{question:"Quelle est la différence entre ROUND(prix) et AVG(prix) ?",options:["Aucune : les deux arrondissent le prix","ROUND calcule une ligne à la fois, AVG rassemble plusieurs lignes","AVG arrondit, ROUND fait la moyenne"],answer:1,explanation:"ROUND(prix) produit un résultat pour chaque produit. AVG(prix) prend tous les prix et renvoie une seule moyenne."}
+}),
+guide({ id:53, titre:"Fonctions de dates et heures", résumé:"Obtenir, extraire et calculer avec une date",
+  sit:{
+    blocks:[
+      "L’équipe logistique veut planifier <b>un message de suivi</b>, envoyé <b>7 jours après chaque commande</b>, pour demander au client s’il est satisfait.",
+      "La table <code>commandes</code> contient au total <b>16 commandes</b>, avec leur date. Pour planifier les messages, l’équipe souhaite récupérer uniquement :",
+      {need:[["🧾","Le numéro de la commande","table commandes"],["📅","Sa date","table commandes"],["⏰","La date du message de suivi","à calculer"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>SELECT</code>, SQL affiche les dates telles qu’elles sont enregistrées, par exemple <code>2026-07-02</code>.","Or, l’équipe veut <b>calculer</b> une nouvelle date : celle de la commande, <b>plus 7 jours</b>."],
+      scene:{h:"⏰ Dates de suivi",cols:".8fr 1.1fr 1.1fr",
+        lanes:[{c:[["h1","commande","t"],["h2","date","t"],["h3","suivi","t"]]},
+          {k:"R1",c:[["a1","n° 1"],["a2","2026-07-02"],["a3","?","q"]]},
+          {k:"R2",c:[["b1","n° 3"],["b2","2026-07-05"],["b3","?","q"]]},
+          {k:"R3",c:[["c1","n° 4"],["c2","2026-07-08"],["c3","?","q"]]}],
+        caps:["<b>Nos commandes</b> · Chacune a une date, mais pas de date de suivi.","<b>Besoin</b> · Le suivi doit avoir lieu 7 jours après la date de la commande.","<b>Résultat</b> · Chaque commande reçoit sa date de suivi, sans que la table change."],
+        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,d:2300},{cap:2,text:{a3:"2026-07-09",b3:"2026-07-12",c3:"2026-07-15"},stagger:450,d:3000}]},
+      then:["Il faut donc <b>calculer une date à partir d’une autre</b> : ajouter 7 jours.","C’est exactement le rôle des <b>fonctions de dates</b>, comme <code>DATE</code>."]
+    },
+    mission:"Aide l’équipe logistique à afficher le <b>numéro</b> et la <b>date</b> de chaque commande, avec la <b>date du message de suivi</b> (7 jours plus tard), afin de planifier les envois."
   },
-  {
-    "k": "year",
-    "label": "YEAR",
-    "sql": "SELECT date_commande, YEAR(date_commande) AS annee\nFROM commandes;",
-    "out": "2026-07-02 → 2026."
+  concept:{
+    title:"Comment SQL peut-il calculer une date ?",
+    blocks:[
+      "Une date s’écrit <code>AAAA-MM-JJ</code>. SQL peut y ajouter une durée, en tenant compte du calendrier :",
+      {ask:"Quelle date obtient-on 7 jours plus tard ?"},
+      "En SQL, <code>DATE</code> reçoit la date d’origine, puis la durée à ajouter, entre guillemets :",
+      {syntax:"⟦DATE(date_commande, '+7 days')⟧"},
+      {scene:{h:"📆 Ajouter des jours",cols:"1.1fr .8fr 1.1fr",
+        lanes:[{c:[["h1","date","t"],["h2","durée","t"],["h3","résultat","t"]]},
+          {k:"R1",c:[["a1","2026-07-02"],["a2","+7 days"],["a3","?","q"]]},
+          {k:"R2",c:[["b1","2026-07-28"],["b2","+7 days"],["b3","?","q"]]}],
+        caps:["<b>Les dates de départ</b> · Deux commandes, chacune avec sa date.","<b>DATE(date, '+7 days')</b> · SQL ajoute 7 jours à chaque date.","<b>Le calendrier</b> · Il gère aussi le changement de mois : le 28 juillet plus 7 jours donne le 4 août."],
+        steps:[{cap:0,on:["R1","R2"],d:1900},{cap:1,off:["R2"],text:{a3:"2026-07-09"},d:2300},{cap:2,off:["R1"],on:["R2"],text:{b3:"2026-08-04"},d:2800}]}}
+    ]
   },
-  {
-    "k": "add",
-    "label": "+ 5 jours",
-    "sql": "SELECT date_commande, date(date_commande, '+5 days') AS date_expedition\nFROM commandes;",
-    "out": "2026-07-02 → 2026-07-07."
-  },
-  {
-    "k": "where",
-    "label": "Filtrer",
-    "sql": "SELECT *\nFROM commandes\nWHERE date_commande >= '2026-07-15';",
-    "out": "Les commandes à partir du 15 juillet 2026."
-  },
-  {
-    "k": "periode",
-    "label": "Période",
-    "sql": "SELECT *\nFROM commandes\nWHERE date_commande >= '2026-07-01'\n  AND date_commande < '2026-08-01';",
-    "out": "Le mois de juillet 2026, borné à droite."
-  }
-],
-  fnCmp:{title:"Le tableau réflexe",want:1,h1:"Je veux…",h2:"J’utilise",
-    say:`<div class="fn-sgbd"><p>Les fonctions présentées dans ce cours sont écrites avec la syntaxe de SQLite. Dans d’autres systèmes SQL, le principe reste le même, mais le nom de certaines fonctions ou leur écriture peut varier.</p></div>`,
-    rows:[
-      {fn:"Obtenir la date du jour",d:"<code>CURRENT_DATE</code>, <code>date('now')</code>"},
-      {fn:"Obtenir la date et l’heure",d:"<code>CURRENT_TIMESTAMP</code>, <code>datetime('now')</code>"},
-      {fn:"Extraire l’année",d:"<code>YEAR()</code>, <code>EXTRACT()</code>"},
-      {fn:"Extraire le mois",d:"<code>MONTH()</code>, <code>EXTRACT()</code>"},
-      {fn:"Formater une date",d:"<code>strftime()</code>, <code>DATE_FORMAT()</code>"},
-      {fn:"Ajouter du temps",d:"<code>date(…, '+7 days')</code>, <code>DATE_ADD()</code>"},
-      {fn:"Retirer du temps",d:"<code>date(…, '-7 days')</code>, <code>DATE_SUB()</code>"},
-      {fn:"Calculer une durée",d:"<code>julianday()</code>, <code>DATEDIFF()</code>"},
-      {fn:"Filtrer une période",d:"<code>WHERE</code> + comparateurs"}
-    ]} ,
-learningCheck:{
-  "question": "YEAR(date_commande) est-il natif de SQLite dans ce cours ?",
-  "options": [
-    "C’est un alias de colonne",
-    "Non, l’application ajoute YEAR",
-    "Oui, partout en SQLite"
+  steps:[
+    {h:"Extraire une partie d’une date",blocks:[
+      "<code>YEAR</code>, <code>MONTH</code> et <code>DAY</code> extraient l’année, le mois et le jour d’une date :",
+      {syntax:"SELECT date_commande,\n       ⟦YEAR(date_commande)⟧ AS annee,\n       ⟦MONTH(date_commande)⟧ AS mois,\n       ⟦DAY(date_commande)⟧ AS jour\nFROM commandes;"},
+      {say:"👇 Exécute cette requête pour décomposer les dates des commandes :",run:"SELECT date_commande,\n       YEAR(date_commande) AS annee,\n       MONTH(date_commande) AS mois,\n       DAY(date_commande) AS jour\nFROM commandes;"},
+      {arrow:"La date 2026-07-02 donne l’année 2026, le mois 7 et le jour 2."}
+    ]},
+    {h:"Compter les jours entre deux dates",blocks:[
+      "Pour mesurer la durée qui sépare deux dates, SQLite utilise <code>julianday</code> : la différence entre deux de ces valeurs est un nombre de <b>jours</b> :",
+      {syntax:"⟦julianday('2026-08-03') - julianday(date_commande)⟧"},
+      {say:"👇 Exécute cette requête pour voir depuis combien de jours chaque commande a été passée (au 3 août 2026) :",run:"SELECT numero_commande,\n       date_commande,\n       julianday('2026-08-03') - julianday(date_commande) AS jours_ecoules\nFROM commandes;"},
+      {arrow:"La première commande date du 2 juillet : 32 jours se sont écoulés."}
+    ]},
+    {h:"Ajouter d’autres durées",blocks:[
+      "La durée de <code>DATE</code> peut compter en jours, en mois ou en années, avec un signe <code>+</code> ou <code>-</code> :",
+      {say:"👇 Exécute cette requête pour décaler les dates d’un mois, ou les ramener au début du mois :",run:"SELECT date_commande,\n       DATE(date_commande, '+1 month') AS un_mois_plus_tard,\n       DATE(date_commande, 'start of month') AS debut_du_mois\nFROM commandes;"},
+      {arrow:"Le 2 juillet devient le 2 août avec <code>'+1 month'</code>, et le 1ᵉʳ juillet avec <code>'start of month'</code>."}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : afficher le numéro et la date de la commande, puis calculer la date du suivi, 7 jours plus tard.",
+      {say:"👇 Exécute la requête pour planifier les messages de suivi :",run:"SELECT numero_commande,\n       date_commande,\n       DATE(date_commande, '+7 days') AS suivi\nFROM commandes;"},
+      {done:{
+        label:"Des dates de commande aux dates de suivi",
+        funnel:[
+          {n:16,t:"commandes au départ",s:"avec leur date de commande",dots:"0000000000000000"},
+          {step:"DATE(date_commande, '+7 days')",s:"ajoute 7 jours à chaque date"},
+          {n:16,t:"⭐ messages de suivi à planifier",s:"une date de suivi pour chaque commande",dots:"1111111111111111",out:true}
+        ],
+        sms:{ico:"📨",h:"Messages de suivi",aria:"Les messages de suivi sont planifiés, une semaine après chaque commande",msg:"Bonjour ! Votre commande est arrivée il y a une semaine : êtes-vous satisfait de vos produits ?",people:[["C","CMD-2026-1002481","2026-07-09"],["C","CMD-2026-1003912","2026-07-09"],["C","CMD-2026-1015630","2026-07-12"],["C","CMD-2026-1024057","2026-07-15"],["C","CMD-2026-1038264","2026-07-18"]],more:11,moreT:"… et 11 autres",moreS:"commandes à suivre",st:["À planifier","Planification","✓ Planifié"],icons:true,done:"✓ 16 messages planifiés"},
+        fill:["DATE","date_commande","'+7 days'","suivi"],
+        ui:{t:"16 suivis planifiés",s:"Chaque commande a sa date de suivi, 7 jours après son achat : les messages peuvent être envoyés.",n:["SELECT","DATE()","AS","FROM"]},
+        rows:16
+      }}
+    ]}
   ],
-  "answer": 1,
-  "explanation": "L’application ajoute YEAR, MONTH et DAY. La version SQLite native utilise strftime, puis CAST si un entier est voulu."
-}
-},
-{ id:54, titre:"Fonctions de conversion de types", résumé:"Passer d’un type à un autre",
-    studio:{problem:{eye:"Convertir un type",title:"Passer d’un type à un autre.",
-      body:`<div class="pt-lead"><p>Dans ta base, chaque valeur possède un type. Mais les données ne sont pas toujours reçues sous le type dont tu as besoin.</p></div>`}},
-  exemple:"SELECT CAST('34' AS INTEGER);",
-  attendu:"1 ligne. 34.",
-  retenir:"<code>CAST(expression AS type)</code> convertit explicitement une valeur vers un autre type. Convertir change le type ; formater change la présentation. Une conversion peut échouer si la valeur n’est pas compatible. La syntaxe peut varier selon le SGBD.",
-  pieges:[],
+  reflex:[
+    {recap:[
+      ["📅","Une <b>fonction de date</b> extrait ou calcule une valeur dans le résultat, sans modifier la table :",null,"DATE(date_commande, '+7 days')"],
+      ["✂️","<code>YEAR</code>, <code>MONTH</code> et <code>DAY</code> extraient une partie de la date ; <code>julianday</code> mesure un écart en jours."],
+      ["⏩","<code>DATE(date, '+7 days')</code> ajoute une durée, en suivant le calendrier : jours, mois ou années."]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"SELECT numero_commande, date_commande,",txt:"Les colonnes déjà présentes."},{tok:"DATE(",txt:"Calcule une nouvelle date."},{tok:"date_commande",plain:1,txt:"La date d’origine."},{tok:"'+7 days'",plain:1,txt:"La durée ajoutée : 7 jours."},{tok:"AS suivi",txt:"Nomme la colonne obtenue."}],
+  exemple:"SELECT date_commande, YEAR(date_commande) AS annee FROM commandes;",
+  attendu:"<b>16 lignes</b>, avec la date de chaque commande et son année (2026).",
+  retenir:"Une fonction de date extrait ou calcule une valeur dans le résultat, sans modifier la table. <code>YEAR</code>, <code>MONTH</code> et <code>DAY</code> extraient une partie de la date.<br><br><code>DATE(date, '+7 days')</code> ajoute une durée en suivant le calendrier ; <code>julianday</code> mesure un écart en jours. Le nom exact des fonctions peut changer selon le SGBD.",
+  consigne:"Affiche le numéro de chaque commande et le mois de sa date. Nomme la colonne mois.",
+  solution:"SELECT numero_commande, MONTH(date_commande) AS mois FROM commandes;",
+  indice:"<code>MONTH(date_commande)</code> extrait le mois de la date. Donne un alias à la colonne calculée avec <code>AS</code>.",
+  testeVariants:[{k:"base",label:"Extraire",sql:"SELECT date_commande, YEAR(date_commande) AS annee FROM commandes;"},{k:"ajout",label:"Ajouter 7 jours",sql:"SELECT date_commande, DATE(date_commande, '+7 days') AS suivi FROM commandes;"}],
+  learningCheck:{question:"DATE('2026-07-28', '+7 days') donne quelle date ?",options:["2026-07-35","2026-08-04","2026-07-28"],answer:1,explanation:"SQL suit le calendrier : après le 31 juillet, on passe au mois d’août."}
+}),
+guide({ id:54, titre:"Fonctions de conversion de types", résumé:"Passer d’un type à un autre",
+  sit:{
+    blocks:[
+      "L’équipe e-commerce prépare <b>une bannière « Dès … € »</b> pour la page d’accueil. Les prix doivent s’afficher <b>sans décimales</b> : 29 € plutôt que 29,90 €.",
+      "La table <code>produits</code> contient au total <b>8 produits</b>, avec leur prix. Pour préparer la bannière, l’équipe souhaite récupérer uniquement :",
+      {need:[["🏷️","Le nom du produit","table produits"],["🔢","Son prix sans décimales","à convertir"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Dans la base, chaque valeur a un <b>type</b> : le prix est un nombre <b>décimal</b> (<code>29.9</code>), le nom est un <b>texte</b>.","Or, la bannière doit afficher des prix <b>entiers</b> : il faut convertir chaque décimal en entier."],
+      scene:{h:"🪧 Bannière de prix",cols:"1.7fr .8fr 1fr",
+        lanes:[{c:[["h1","nom","t"],["h2","prix","t"],["h3","affiché","t"]]},
+          {k:"R1",c:[["a1","Fibre Prébiotique"],["a2","29.9"],["a3","?","q"]]},
+          {k:"R2",c:[["b1","Collagène Marin"],["b2","39.9"],["b3","?","q"]]},
+          {k:"R3",c:[["c1","Magnésium"],["c2","19.9"],["c3","?","q"]]},
+          {k:"R4",c:[["d1","Shaker Inox"],["d2","15"],["d3","?","q"]]}],
+        caps:["<b>Notre liste</b> · Les prix sont enregistrés avec leurs décimales.","<b>Besoin</b> · La bannière doit afficher des nombres entiers.","<b>Résultat</b> · Chaque prix s’affiche sans décimales, sans que la table change."],
+        steps:[{cap:0,on:["R1","R2","R3","R4"],d:1900},{cap:1,d:2300},{cap:2,text:{a3:"29",b3:"39",c3:"19",d3:"15"},stagger:420,d:3000}]},
+      then:["Il faut donc <b>convertir</b> la valeur d’un type à un autre : du décimal à l’entier.","C’est exactement le rôle de <code>CAST</code>."]
+    },
+    mission:"Aide l’équipe e-commerce à afficher le <b>nom</b> de chaque produit et son <b>prix sans décimales</b>, afin de préparer la bannière « Dès … € »."
+  },
+  concept:{
+    title:"Comment SQL peut-il changer le type d’une valeur ?",
+    blocks:[
+      "Chaque valeur a un <b>type</b> : entier, décimal ou texte. <code>CAST</code> la convertit dans le type demandé :",
+      {ask:"Dans quel type veut-on cette valeur ?"},
+      "En SQL, on écrit la valeur, puis le type voulu après <code>AS</code> :",
+      {syntax:"⟦CAST(prix AS INTEGER)⟧"},
+      {scene:{h:"🔄 Un changement de type",
+        lanes:[{k:"IN",l:"Valeur enregistrée · décimal",c:[["i1","29.9"]]},
+          {k:"F",l:"Conversion",c:[["f1","CAST( AS INTEGER)"]]},
+          {k:"OUT",cls:"is-goal",l:"Valeur obtenue · entier",c:[["o1","?","q"]]}],
+        caps:["<b>La table</b> · Le prix est un nombre décimal : 29.9.","<b>CAST … AS INTEGER</b> · La valeur est convertie en nombre entier.","<b>Résultat</b> · La requête affiche 29 : les décimales sont supprimées, la table ne change pas."],
+        steps:[{cap:0,on:["IN"],d:1900},{cap:1,off:["IN"],on:["F"],d:2000},{cap:2,off:["F"],on:["OUT"],text:{o1:"29"},d:2800}]}},
+      {table:{label:"Les types",cols:"minmax(0,1fr) minmax(0,1fr)",head:["type","exemple"],rows:[["INTEGER","34"],["REAL","29.9"],["TEXT","'Paris'"]]}}
+    ]
+  },
+  steps:[
+    {h:"Connaître le type d’une valeur",blocks:[
+      "Avant de convertir, on peut demander à SQLite le type d’une valeur avec <code>typeof</code> :",
+      {say:"👇 Exécute cette requête pour voir le type de chaque colonne :",run:"SELECT nom, typeof(nom) AS type_nom,\n       typeof(prix) AS type_prix,\n       typeof(stock) AS type_stock\nFROM produits;"},
+      {arrow:"Le nom est un <code>text</code>, le prix un <code>real</code> (décimal), le stock un <code>integer</code> (entier)."}
+    ]},
+    {h:"Convertir un texte en nombre",blocks:[
+      "Une valeur écrite comme un texte, par exemple <code>'34'</code>, n’est pas encore un nombre. <code>CAST</code> la convertit :",
+      {say:"👇 Exécute cette requête pour convertir deux textes :",run:"SELECT CAST('34' AS INTEGER) AS entier,\n       CAST('3.5' AS REAL) AS decimal;"},
+      {arrow:"Le texte <code>'34'</code> devient l’entier 34, et <code>'3.5'</code> le décimal 3,5."},
+      {warn:{t:"Une valeur incompatible",blocks:[
+        "Si tu écris :",
+        {syntax:"CAST('abc' AS INTEGER)"},
+        "Un texte qui ne ressemble pas à un nombre ne peut pas être converti correctement : SQLite renvoie <code>0</code>, sans signaler d’erreur.",
+        {say:"👇 Teste par toi-même :",run:"SELECT CAST('abc' AS INTEGER) AS resultat;"}
+      ]}}
+    ]},
+    {h:"Convertir un nombre en texte",blocks:[
+      "On peut aussi convertir un nombre en <b>texte</b> pour l’assembler à d’autres textes avec <code>||</code> :",
+      {syntax:"nom || ' : ' || ⟦CAST(prix AS TEXT)⟧ || ' €'"},
+      {say:"👇 Exécute cette requête pour fabriquer une étiquette de prix :",run:"SELECT nom || ' : ' || CAST(prix AS TEXT) || ' €' AS etiquette\nFROM produits;"},
+      {arrow:"Chaque ligne devient un seul texte, par exemple « Magnésium : 19.9 € »."}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : afficher le nom, puis convertir le prix décimal en entier.",
+      {say:"👇 Exécute la requête pour obtenir les prix de la bannière :",run:"SELECT nom, CAST(prix AS INTEGER) AS prix_entier\nFROM produits;"},
+      {done:{
+        label:"Des prix décimaux aux prix entiers",
+        funnel:[
+          {n:8,t:"produits au départ",s:"avec leur prix décimal",dots:"00000000"},
+          {step:"CAST(prix AS INTEGER)",s:"convertit chaque prix en nombre entier"},
+          {n:8,t:"⭐ prix entiers",s:"par exemple 29 pour 29,90 €",dots:"11111111",out:true}
+        ],
+        sms:{ico:"🪧",h:"Bannière « Dès … € »",aria:"Les prix entiers s’affichent sur la bannière de la page d’accueil",msg:"<b>Bannière d’accueil</b><br>Prix affichés sans décimales",people:[["F","Fibre Prébiotique","29"],["C","Collagène Marin","39"],["M","Magnésium","19"],["V","Vitamine D","14"],["T","Tisane Détox","12"]],more:3,moreT:"… et 3 autres",moreS:"produits du catalogue",st:["À afficher","Affichage","✓ Affiché"],plane:"star",done:"✓ 8 prix affichés"},
+        fill:["CAST","prix","AS","INTEGER"],
+        ui:{t:"8 prix sans décimales",s:"Chaque prix est converti en entier : la bannière peut s’afficher.",n:["SELECT","CAST()","AS","FROM"]},
+        rows:8
+      }}
+    ]}
+  ],
+  reflex:[
+    {recap:[
+      ["🔄","<code>CAST(valeur AS type)</code> convertit explicitement une valeur vers un autre type :",null,"CAST(prix AS INTEGER)"],
+      ["✂️","Convertir un décimal en entier <b>supprime</b> les décimales : 29.9 devient 29 (sans arrondir)."],
+      ["⚠️","Convertir change le <b>type</b>, pas la présentation. Une valeur incompatible donne un résultat inattendu."]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"CAST(",txt:"Convertit la valeur qui suit."},{tok:"prix",plain:1,txt:"La valeur à convertir."},{tok:"AS INTEGER",txt:"Le type voulu : un nombre entier."},{tok:")",punc:1,txt:"Ferme la conversion."}],
+  exemple:"SELECT CAST('3.5' AS REAL) AS decimal;",
+  attendu:"<b>1 ligne</b> : 3.5, converti du texte vers un nombre décimal.",
+  retenir:"<code>CAST(expression AS type)</code> convertit explicitement une valeur vers un autre type. Convertir change le type ; formater change la présentation.<br><br>Convertir un décimal en entier supprime les décimales. Une conversion peut échouer si la valeur n’est pas compatible. La syntaxe peut varier selon le SGBD.",
   consigne:"Convertis explicitement <code>'34'</code> en entier avec <code>CAST</code>.",
   solution:"SELECT CAST('34' AS INTEGER);",
   indice:"<code>CAST('34' AS INTEGER)</code>.",
-  richLesson:true, earlyDemo:true,
-learningCheck:{
-  "question": "Quelle est la différence entre convertir et formater ?",
-  "options": [
-    "Aucune : les deux changent le type",
-    "Convertir change le type, formater change la présentation",
-    "Formater change le type, convertir change seulement l’affichage"
-  ],
-  "answer": 1,
-  "explanation": "CAST change le type de la valeur. Formater, avec TO_CHAR() ou DATE_FORMAT() par exemple, change surtout sa représentation textuelle."
-}
-},
-{ id:21, titre:"CASE", résumé:"Afficher une valeur selon une condition",
-  situation:"Tu prépares une campagne marketing et tu veux adapter le message selon l’âge de chaque client.<br><br>Tu veux donc classer les clients en trois catégories, sans modifier la table <code>clients</code> :<br>– <b>Jeune</b> : moins de 30 ans<br>– <b>Adulte</b> : de 30 à 50 ans<br>– <b>Senior</b> : plus de 50 ans<br><br>Dans la table <code>clients</code>, tu as notamment :<br><br><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>prenom</th><th>age</th></tr></thead><tbody><tr><td>2</td><td>Lucas</td><td>28</td></tr><tr><td>1</td><td>Sophie</td><td>34</td></tr><tr><td>6</td><td>Hugo</td><td>52</td></tr></tbody></table></div>",
-  situationTail:"Pour faire cette classification, nous pouvons utiliser <code>CASE</code>, une expression SQL qui permet d’attribuer une valeur selon une ou plusieurs conditions. Ici, elle permet d’attribuer à chaque client une catégorie en fonction de son âge.",
-    studio:{pointCards:{
-      eye:"CASE",title:"Afficher une valeur selon une condition.",
-      walk:1,
-      lead:"<p>L’expression <code>CASE</code> permet d’introduire une logique conditionnelle directement dans une requête SQL.</p><div class=\"pt-syntax\"><pre class=\"cw-syntax\">SELECT\n  CASE\n    WHEN condition_1 THEN valeur_1\n    WHEN condition_2 THEN valeur_2\n    ELSE valeur_par_defaut\n  END\nFROM clients;</pre></div><p>Elle fonctionne comme une logique :</p><div class=\"cw-if\" role=\"list\"><div class=\"cw-if-row\" role=\"listitem\"><b>SI</b><span>une condition est vraie → retourne une valeur</span></div><div class=\"cw-if-row\" role=\"listitem\"><b>SINON SI</b><span>une autre condition est vraie → retourne une autre valeur</span></div><div class=\"cw-if-row\" role=\"listitem\"><b>SINON</b><span>→ retourne la valeur prévue par <code>ELSE</code></span></div></div>",
-      forms:1,
-      cards:[
-        {t:"Le premier WHEN vrai est retenu",
-         b:"<p>SQL teste les <code>WHEN</code> de haut en bas.</p><p>Dès qu’une condition est vraie, il retourne la valeur associée et ne teste pas les suivantes.</p><div class=\"cw-order\" role=\"img\" aria-label=\"WHEN 1 faux, WHEN 2 vrai donc résultat, WHEN 3 non testé\"><div class=\"cw-order-row is-fail\"><span class=\"cw-tok\">WHEN 1</span><span class=\"cw-order-eval\">→ faux</span><span class=\"cw-order-mark\">✕</span></div><i class=\"cw-order-arrow\" aria-hidden=\"true\">↓</i><div class=\"cw-order-row is-win\"><span class=\"cw-tok\">WHEN 2</span><span class=\"cw-order-eval\">→ vrai</span><span class=\"cw-order-mark\">✓</span><span class=\"cw-order-out\">→ résultat</span></div><i class=\"cw-order-arrow is-off\" aria-hidden=\"true\">↓</i><div class=\"cw-order-row is-skip\"><span class=\"cw-tok\">WHEN 3</span><span class=\"cw-order-eval\">non testé</span></div></div>"},
-        {t:"ELSE est optionnel",
-         b:"<p><code>ELSE</code> indique la valeur à retourner si aucun <code>WHEN</code> n’est vrai.</p><pre class=\"cw-syntax\">ELSE 'Autre'</pre><p>S’il n’y a pas de <code>ELSE</code> et qu’aucune condition n’est vraie, <code>CASE</code> retourne :</p><p class=\"cw-nullout\"><code>NULL</code></p>"},
-        {t:"Où utiliser CASE ?",
-         b:"<p>👉 <code>CASE</code> peut être utilisé à différents endroits d’une requête.</p><ul class=\"fn-reflex-list\"><li><code>SELECT</code> → créer une valeur ou une colonne calculée selon une condition.</li><li><code>ORDER BY</code> → définir un ordre de tri personnalisé selon des conditions.</li><li><code>GROUP BY</code> → créer des catégories conditionnelles puis regrouper les lignes.</li><li><code>WHERE</code> → construire une logique de filtrage conditionnelle, même si on peut souvent écrire la condition plus simplement sans CASE.</li><li>Avec les fonctions d’agrégation → faire des calculs conditionnels, par exemple compter seulement certains clients : <code>COUNT(CASE WHEN age &lt; 30 THEN 1 END)</code></li></ul>"}
-      ]},
-    reflex:{a:{k:"CASE simple",t:"une valeur comparée à plusieurs valeurs"},
-      b:{k:"CASE recherché",t:"plusieurs conditions à tester"}},
+  testeVariants:[{k:"base",label:"Texte vers entier",sql:"SELECT CAST('34' AS INTEGER) AS entier;"},{k:"rec_real",label:"Décimal vers entier",sql:"SELECT nom, prix, CAST(prix AS INTEGER) AS prix_entier FROM produits;",expectRows:8}],
+  learningCheck:{question:"Quelle est la différence entre convertir et formater ?",options:["Aucune : les deux changent le type","Convertir change le type, formater change la présentation","Formater change le type, convertir change seulement l’affichage"],answer:1,explanation:"CAST change le type de la valeur. Formater, avec TO_CHAR() ou DATE_FORMAT() par exemple, change surtout sa représentation textuelle."}
+}),
+guide({ id:21, titre:"CASE", résumé:"Afficher une valeur selon une condition",
+  sit:{
+    blocks:[
+      "L’équipe marketing prépare une campagne et veut <b>adapter son message à l’âge</b> de chaque client. Elle les classe en trois catégories : <b>Jeune</b> (moins de 30 ans), <b>Adulte</b> (de 30 à 50 ans) et <b>Senior</b> (plus de 50 ans).",
+      "La table <code>clients</code> contient l’âge de chaque client, mais <b>pas</b> cette catégorie. Pour adapter les messages, l’équipe souhaite récupérer uniquement :",
+      {need:[["👤","Le prénom du client","table clients"],["🎂","Son âge","table clients"],["🏷️","Sa catégorie","à calculer"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>SELECT</code> et <code>WHERE</code>, SQL sait <b>afficher</b> ou <b>filtrer</b> les clients, mais pas créer une nouvelle information qui <b>dépend de leur âge</b>.","Or, l’équipe veut une colonne <b>catégorie</b>, calculée pour chaque client, sans modifier la table."],
+      scene:{h:"🏷️ Catégories d’âge",cols:"1fr .6fr 1.1fr",
+        lanes:[{c:[["h1","prenom","t"],["h2","age","t"],["h3","categorie","t"]]},
+          {k:"R1",c:[["a1","Lucas"],["a2","28"],["a3","?","q"]]},
+          {k:"R2",c:[["b1","Sophie"],["b2","34"],["b3","?","q"]]},
+          {k:"R3",c:[["c1","Hugo"],["c2","52"],["c3","?","q"]]},
+          {k:"R4",c:[["d1","Chloé"],["d2","26"],["d3","?","q"]]}],
+        caps:["<b>Notre liste</b> · Chaque client a un âge, mais aucune catégorie.","<b>Règle</b> · Moins de 30 ans : Jeune. De 30 à 50 ans : Adulte. Plus de 50 ans : Senior.","<b>Résultat</b> · Chaque client reçoit sa catégorie, sans que la table change."],
+        steps:[{cap:0,on:["R1","R2","R3","R4"],d:1900},{cap:1,d:2600},{cap:2,text:{a3:"Jeune",b3:"Adulte",c3:"Senior",d3:"Jeune"},stagger:420,d:3000}]},
+      then:["Il faut donc indiquer à SQL <b>quelle valeur afficher selon une condition</b> : une catégorie différente selon l’âge.","C’est exactement le rôle de <code>CASE</code>."]
     },
-  anatomie:[
-    {tok:"SELECT prenom, age,",txt:"On choisit les informations à afficher : le prénom et l’âge du client."},
-    {tok:"CASE",txt:"On commence un CASE recherché : chaque WHEN testera une condition."},
-    {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Si age est inférieur à 30, CASE retourne 'Jeune'."},
-    {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Si age est compris entre 30 et 50, CASE retourne 'Adulte'."},
-    {tok:"ELSE 'Senior'",txt:"Si aucune condition précédente n’est vraie, CASE retourne 'Senior'."},
-    {tok:"END AS categorie",txt:"END termine le CASE et AS categorie donne un nom au résultat calculé."},
-    {tok:"FROM clients",txt:"On récupère les données dans la table clients."}
-  ],
-  anatFollowTeste:true,
-  anatomieVariants:[
-    {k:'simple',label:'Simple',lines:[
-      {tok:"SELECT prenom, ville,",txt:"On choisit les informations à afficher : le prénom et la ville du client."},
-      {tok:"CASE ville",txt:"On indique la valeur que CASE va tester : ici, la ville."},
-      {tok:"WHEN 'Paris' THEN 'Île-de-France'",txt:"Si ville vaut 'Paris', CASE retourne 'Île-de-France'."},
-      {tok:"WHEN 'Lyon' THEN 'Auvergne-Rhône-Alpes'",txt:"Si ville vaut 'Lyon', CASE retourne 'Auvergne-Rhône-Alpes'."},
-      {tok:"WHEN 'Marseille' THEN 'PACA'",txt:"Si ville vaut 'Marseille', CASE retourne 'PACA'."},
-      {tok:"ELSE 'Autre'",txt:"Si aucune valeur précédente ne correspond, CASE retourne 'Autre'."},
-      {tok:"END AS region",txt:"END termine le CASE et AS region donne un nom au résultat calculé."},
-      {tok:"FROM clients",txt:"On récupère les données dans la table clients."}
+    mission:"Aide l’équipe marketing à afficher le <b>prénom</b>, l’<b>âge</b> et la <b>catégorie</b> (Jeune, Adulte ou Senior) de chaque client, afin d’adapter le message de la campagne."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir quelle catégorie choisir ?",
+    blocks:[
+      "Pour chaque client, SQL lit les conditions <b>de haut en bas</b> et retient la <b>première qui est vraie</b> :",
+      {ask:"Quelle est la première condition vraie ?"},
+      "En SQL, chaque condition s’écrit avec <code>WHEN … THEN …</code>, à l’intérieur d’un <code>CASE</code> qui se termine par <code>END</code> :",
+      {syntax:"CASE\n  ⟦WHEN age < 30 THEN 'Jeune'⟧\n  WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n  ELSE 'Senior'\nEND"},
+      {scene:{h:"🧭 Les conditions de haut en bas",cols:"1.8fr 1fr",
+        lanes:[{k:"C",l:"Le client",c:[["c1","Nathan"],["c2","30 ans"]]},
+          {k:"W1",l:"Première condition",c:[["w1","age < 30"],["r1","Jeune"]]},
+          {k:"W2",l:"Deuxième condition",c:[["w2","age BETWEEN 30 AND 50"],["r2","Adulte"]]},
+          {k:"W3",l:"Sinon",c:[["w3","ELSE"],["r3","Senior"]]},
+          {k:"G",cls:"is-goal",l:"Catégorie retenue",c:[["g1","?","q"]]}],
+        caps:["<b>Le client</b> · Nathan a 30 ans : SQL cherche sa catégorie.","<b>Première condition</b> · 30 est-il inférieur à 30 ? Non : on passe à la suivante.","<b>Deuxième condition</b> · 30 est-il entre 30 et 50 ? Oui : SQL retient Adulte.","<b>Fin du CASE</b> · Les conditions suivantes ne sont plus testées."],
+        steps:[{cap:0,on:["C"],d:1900},{cap:1,off:["C"],mark:{W1:"is-miss"},d:2300},{cap:2,on:["W2"],fly:[["r2","g1"]],d:2600},{cap:3,dim:["W3"],on:["G"],d:2600}]}}
+    ]
+  },
+  steps:[
+    {h:"Écrire un CASE",blocks:[
+      "Un <code>CASE</code> s’écrit dans le <code>SELECT</code>, comme une colonne de plus. Il se termine par <code>END</code>, et <code>AS</code> lui donne un nom :",
+      {syntax:"SELECT nom, prix,\n  ⟦CASE\n    WHEN prix < 20 THEN 'Petit prix'\n    ELSE 'Premium'\n  END AS gamme⟧\nFROM produits;"},
+      {looks:[["WHEN … THEN …","si la condition est vraie, affiche cette valeur"],["ELSE","la valeur de repli, quand aucune condition n’est vraie"]]},
+      {say:"👇 Exécute cette requête pour voir la gamme de chaque produit :",run:"SELECT nom, prix,\n  CASE\n    WHEN prix < 20 THEN 'Petit prix'\n    ELSE 'Premium'\n  END AS gamme\nFROM produits;"},
+      {arrow:"Une colonne <b>gamme</b> apparaît : 4 produits sont « Petit prix », 4 sont « Premium »."}
     ]},
-    {k:'search',label:'Recherché',tone:'good',lines:[
-      {tok:"SELECT prenom, age,",txt:"On choisit les informations à afficher : le prénom et l’âge du client."},
-      {tok:"CASE",txt:"On commence un CASE recherché : chaque WHEN testera une condition."},
-      {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Si age est inférieur à 30, CASE retourne 'Jeune'."},
-      {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Si age est compris entre 30 et 50, CASE retourne 'Adulte'."},
-      {tok:"ELSE 'Senior'",txt:"Si aucune condition précédente n’est vraie, CASE retourne 'Senior'."},
-      {tok:"END AS categorie",txt:"END termine le CASE et AS categorie donne un nom au résultat calculé."},
-      {tok:"FROM clients",txt:"On récupère les données dans la table clients."}
+    {h:"L’ordre des conditions",blocks:[
+      "SQL s’arrête à la <b>première</b> condition vraie : l’ordre des <code>WHEN</code> compte. Il faut donc écrire le cas le plus précis en premier.",
+      {warn:{t:"Conditions dans le mauvais ordre",blocks:[
+        "Si tu écris :",
+        {syntax:"CASE\n  WHEN age < 50 THEN 'Adulte'\n  WHEN age < 30 THEN 'Jeune'\n  ELSE 'Senior'\nEND"},
+        "Un client de 26 ans est déjà « moins de 50 ans » : SQL s’arrête sur la première condition, et la seconde n’est jamais lue.",
+        {say:"👇 Teste par toi-même :",run:"SELECT prenom, age,\n  CASE\n    WHEN age < 50 THEN 'Adulte'\n    WHEN age < 30 THEN 'Jeune'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;"}
+      ]}}
     ]},
-    {k:'orderby',label:'ORDER BY',lines:[
-      {tok:"SELECT prenom, age,",txt:"On choisit les informations à afficher : le prénom, l’âge et la catégorie calculée."},
-      {tok:"CASE … END AS categorie",txt:"Ce CASE crée la catégorie affichée : 'Jeune', 'Adulte' ou 'Senior'."},
-      {tok:"FROM clients",txt:"On récupère les données dans la table clients."},
-      {tok:"ORDER BY CASE",txt:"On trie selon une valeur calculée par un second CASE, pas selon le prénom."},
-      {tok:"WHEN age < 30 THEN 1",txt:"Si age est inférieur à 30, le CASE de tri retourne 1 : ces lignes passent en premier."},
-      {tok:"WHEN age BETWEEN 30 AND 50 THEN 2",txt:"Si age est compris entre 30 et 50, le CASE de tri retourne 2."},
-      {tok:"ELSE 3",txt:"Si aucune condition précédente n’est vraie, le CASE de tri retourne 3 : ces lignes passent en dernier."},
-      {tok:"END",txt:"END termine le CASE de tri."}
+    {h:"Prévoir un ELSE",blocks:[
+      "<code>ELSE</code> est optionnel. Sans lui, une ligne pour laquelle aucune condition n’est vraie reçoit <code>NULL</code> :",
+      {syntax:"CASE\n  WHEN age < 30 THEN 'Jeune'\n  WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n  ⟦-- pas de ELSE⟧\nEND"},
+      {say:"👇 Exécute cette requête : aucune condition n’est vraie pour Hugo, 52 ans.",run:"SELECT prenom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n  END AS categorie\nFROM clients;"},
+      {arrow:"La catégorie de Hugo vaut <code>NULL</code> : sans <code>ELSE</code>, rien ne rattrape les plus de 50 ans."}
     ]},
-    {k:'groupby',label:'GROUP BY',lines:[
-      {tok:"SELECT",txt:"On choisit les informations à afficher : la catégorie d’âge et le nombre de clients."},
-      {tok:"CASE … END AS categorie",txt:"CASE attribue à chaque client une catégorie selon son âge : 'Jeune', 'Adulte' ou 'Senior'."},
-      {tok:"COUNT(*) AS nb",txt:"On compte combien de clients se trouvent dans chaque catégorie."},
-      {tok:"FROM clients",txt:"On utilise les données de la table clients."},
-      {tok:"GROUP BY categorie",txt:"On regroupe les clients qui appartiennent à la même catégorie."}
-    ]},
-    {k:'where',label:'WHERE',lines:[
-      {tok:"SELECT prenom, age",txt:"On choisit les informations à afficher : le prénom et l’âge du client."},
-      {tok:"FROM clients",txt:"On récupère les données dans la table clients."},
-      {tok:"WHERE CASE",txt:"Le filtre utilise le résultat du CASE : on ne garde que certaines catégories."},
-      {tok:"WHEN age < 30 THEN 'Jeune'",txt:"Si age est inférieur à 30, CASE retourne 'Jeune'."},
-      {tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",txt:"Si age est compris entre 30 et 50, CASE retourne 'Adulte'."},
-      {tok:"ELSE 'Senior'",txt:"Si aucune condition précédente n’est vraie, CASE retourne 'Senior'."},
-      {tok:"END = 'Jeune'",txt:"On ne conserve que les lignes dont le CASE a retourné 'Jeune'."}
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : afficher le prénom et l’âge, puis calculer la catégorie avec un <code>CASE</code> qui couvre tous les clients.",
+      {say:"👇 Exécute la requête pour classer les clients :",run:"SELECT prenom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;"},
+      {done:{
+        label:"Des âges aux catégories",
+        funnel:[
+          {n:10,t:"clients au départ",s:"un âge, mais aucune catégorie",dots:"0000000000"},
+          {step:"CASE WHEN … ELSE … END",s:"calcule la catégorie de chaque client"},
+          {n:10,t:"⭐ clients classés",s:"3 Jeune, 6 Adulte et 1 Senior",dots:"1111111111",out:true}
+        ],
+        sms:{ico:"🎯",h:"Messages adaptés",aria:"Chaque client reçoit un message adapté à sa catégorie d’âge",msg:"Bonjour ! 🎯 Un message adapté à votre profil vous attend.",people:[["S","Sophie","34 ans · Adulte"],["L","Lucas","28 ans · Jeune"],["E","Emma","45 ans · Adulte"],["N","Nathan","31 ans · Adulte"],["C","Chloé","26 ans · Jeune"]],more:5,moreT:"… et 5 autres",moreS:"dont Hugo : Senior",done:"✓ 10 messages adaptés"},
+        fill:["CASE","WHEN","ELSE","END"],
+        ui:{t:"10 clients classés",s:"Chaque client a sa catégorie : le message de la campagne peut être adapté.",n:["SELECT","CASE","WHEN","ELSE","END","AS"]},
+        rows:10
+      }}
     ]}
   ],
-  exemple:"SELECT prenom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",
-  attendu:"10 lignes. Lucas, Chloé, Gabriel → Jeune. Sophie, Emma, les deux Nathan, Léa, Inès → Adulte. Hugo → Senior.",
-  retenir:"L’expression <code>CASE</code> permet d’effectuer des tests conditionnels et de retourner une valeur selon le résultat. C’est l’équivalent du if / else if / else, intégré dans les requêtes SQL.<br><br><b>CASE simple</b> : Compare une colonne à plusieurs valeurs précises. <b>CASE recherché</b> : Teste plusieurs conditions, l’une après l’autre.<br><br><code>ELSE</code> est optionnel. S’il est omis et qu’aucune condition n’est vraie, le résultat est <code>NULL</code>.",
-  piege:{t:"Oublier le ELSE ou mal ordonner les WHEN",
-    p:"Si tu écris <code>WHEN age &lt; 50 THEN 'Adulte'</code> avant <code>WHEN age &lt; 30 THEN 'Jeune'</code>, tous les moins de 50 ans (y compris les moins de 30) seront classés 'Adulte'. De même, sans <code>ELSE</code>, les plus de 50 ans auront <code>NULL</code>.",
-    exec:true,
-    sql:"SELECT prenom, age,\n  CASE\n    WHEN age < 50 THEN 'Adulte'\n    WHEN age < 30 THEN 'Jeune'\n  END AS categorie\nFROM clients;",
-    fixSql:"SELECT prenom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;"},
-  consigne:"Affiche le prénom, l’âge et une catégorie pour chaque client : 'Jeune' si moins de 30 ans, 'Adulte' si entre 30 et 50 ans, 'Senior' sinon.",
-  solution:"SELECT prenom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",
-  indice:"Utilise <code>CASE WHEN</code> avec trois branches et un <code>ELSE</code> final.",
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-  {
-    "k": "simple",
-    "label": "Simple",
-    "sql": "SELECT prenom, ville,\n  CASE ville\n    WHEN 'Paris' THEN 'Île-de-France'\n    WHEN 'Lyon' THEN 'Auvergne-Rhône-Alpes'\n    WHEN 'Marseille' THEN 'PACA'\n    ELSE 'Autre'\n  END AS region\nFROM clients;",
-    "out": "Sophie, Nathan, Léa → Île-de-France. Lucas, Hugo → Auvergne-Rhône-Alpes. Emma → PACA. Chloé, Gabriel, Inès → Autre."
-  },
-  {
-    "k": "search",
-    "label": "Recherché",
-    "sql": "SELECT prenom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;",
-    "out": "10 lignes. Lucas, Chloé, Gabriel → Jeune. Hugo → Senior. Les autres → Adulte.",
-    "tone": "good"
-  },
-  {
-    "k": "orderby",
-    "label": "ORDER BY",
-    "sql": "SELECT prenom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients\nORDER BY CASE\n    WHEN age < 30 THEN 1\n    WHEN age BETWEEN 30 AND 50 THEN 2\n    ELSE 3\n  END;",
-    "out": "10 lignes. Jeune d’abord, puis Adulte, puis Senior."
-  },
-  {
-    "k": "groupby",
-    "label": "GROUP BY",
-    "sql": "SELECT\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie,\n  COUNT(*) AS nb\nFROM clients\nGROUP BY categorie;",
-    "out": "3 groupes : Jeune 3, Adulte 6, Senior 1."
-  },
-  {
-    "k": "where",
-    "label": "WHERE",
-    "sql": "SELECT prenom, age\nFROM clients\nWHERE CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END = 'Jeune';",
-    "out": "3 lignes : Lucas, Chloé, Gabriel."
-  }
-] ,
-learningCheck:{
-  "question": "Si age < 50 est testé avant age < 30, quelle branche gagne pour 26 ans ?",
-  "options": [
-    "La branche age < 50",
-    "La branche age < 30",
-    "Les deux"
+  reflex:[
+    {recap:[
+      ["🔀","<code>CASE</code> choisit une valeur selon des conditions : c’est le « si… sinon si… sinon » du SQL.","Il se termine par <code>END</code>."],
+      ["⬇️","SQL lit les <code>WHEN</code> <b>de haut en bas</b> et s’arrête au premier vrai : l’ordre compte."],
+      ["🛟","Sans <code>ELSE</code>, une ligne qui ne correspond à rien reçoit <code>NULL</code>."]
+    ],label:"Les trois idées à retenir"}
   ],
-  "answer": 0,
-  "explanation": "CASE s’arrête à la première condition vraie. Tester d’abord le cas le plus précis évite de le masquer."
-}
-},
-{ id:23, titre:"COALESCE", résumé:"Remplacer les valeurs absentes",
-  situation:"Dans la table <code>clients</code>, certains clients ont renseigné leur adresse e-mail, tandis que pour d’autres, cette information est absente : leur <code>email</code> contient <code>NULL</code>.<br><br>Pour afficher la liste des clients dans un outil interne, tu veux éviter de laisser une case vide lorsqu’aucune adresse e-mail n’est disponible.<br><br><div class=\"coal-sit\"><div class=\"table-wrap\"><table class=\"concept-table\"><thead><tr><th>id</th><th>prenom</th><th class=\"col-hl\">email</th></tr></thead><tbody><tr><td>1</td><td>Sophie</td><td class=\"col-hl\"><span class=\"coal-mail\">sophie@mail.fr</span></td></tr><tr><td>2</td><td>Lucas</td><td class=\"col-hl\"><span class=\"coal-mail\">lucas@mail.fr</span></td></tr><tr><td>6</td><td>Hugo</td><td class=\"col-hl null\"><span class=\"coal-null\">NULL</span></td></tr><tr><td>9</td><td>Inès</td><td class=\"col-hl null\"><span class=\"coal-null\">NULL</span></td></tr><tr class=\"sample-more\"><td colspan=\"3\">… et 6 autres clients</td></tr></tbody></table></div><div class=\"coal-data-summary\" role=\"note\" aria-label=\"Résumé des adresses e-mail\"><span class=\"is-ok\"><i aria-hidden=\"true\"></i><b>8</b><em>adresses renseignées</em></span><span class=\"is-null\"><i aria-hidden=\"true\"></i><b>2</b><em>adresses absentes (NULL)</em></span></div></div><br><br><div class=\"nf-hero-note is-ask\" role=\"note\"><i aria-hidden=\"true\">?</i><span>Comment afficher l’e-mail lorsqu’il existe, et « Non renseigné » lorsqu’il est absent, sans modifier les données de la table ?</span></div>",
-    studio:{problem:{eye:"COALESCE",title:"COALESCE garde la première valeur disponible",
-      body:`<div class="coal-primer">
-        <p class="coal-primer-lead"><code>COALESCE</code> examine les valeurs de gauche à droite et renvoie la première qui n’est pas <code>NULL</code>.</p>
-        <div class="coal-route" role="img" aria-label="De gauche à droite : email, puis Non renseigné si email est NULL. La première valeur non NULL arrête la lecture.">
-          <div class="coal-route-choice"><small>1re valeur</small><code>email</code></div>
-          <div class="coal-route-link" aria-hidden="true"><span>si NULL</span></div>
-          <div class="coal-route-choice"><small>2e valeur</small><code>'Non renseigné'</code></div>
-        </div>
-        <div class="coal-outcomes">
-          <div class="coal-outcome"><i aria-hidden="true">✓</i><p><b>L’e-mail existe</b><span><code>COALESCE</code> renvoie l’e-mail et <em class="coal-stop">s’arrête là</em>.</span></p></div>
-          <div class="coal-outcome is-null"><i aria-hidden="true">→</i><p><b>L’e-mail est NULL</b><span><code>COALESCE</code> passe à la valeur suivante et renvoie <code>'Non renseigné'</code>.</span></p></div>
-        </div>
-        <div class="pt-syntax coal-syntax"><pre class="cw-syntax">COALESCE(valeur1, valeur2, …)</pre></div>
-        <p class="coal-syntax-hint">Une valeur peut être une colonne, une expression ou une fonction.</p>
-        <p class="coal-edge"><span>Si toutes les valeurs sont <code>NULL</code>, le résultat est <code>NULL</code>.</span></p>
-      </div>`},
-    uses:{title:"4 usages courants de COALESCE",
-      body:`<div class="coal-uses-list">
-        <article class="coal-use-row">
-          <span class="coal-use-n">01</span><div class="coal-use-copy">
-            <h3>Afficher une valeur de remplacement</h3><p>Remplacer un <code>NULL</code> dans le résultat affiché par une valeur plus claire.</p>
-            <div class="pt-syntax"><pre class="cw-syntax">COALESCE(email, 'Non renseigné')</pre></div>
-            <p class="coal-use-result">Hugo → Non renseigné</p>
-          </div>
-        </article>
-        <article class="coal-use-row">
-          <span class="coal-use-n">02</span><div class="coal-use-copy">
-            <h3>Choisir la première information disponible</h3><p>Tester plusieurs valeurs dans l’ordre et garder la première qui n’est pas <code>NULL</code>.</p>
-            <div class="pt-syntax"><pre class="cw-syntax">COALESCE(email, telephone, 'Aucun contact')</pre></div>
-            <p class="coal-use-result">e-mail → sinon téléphone → sinon 'Aucun contact'</p>
-          </div>
-        </article>
-        <article class="coal-use-row">
-          <span class="coal-use-n">03</span><div class="coal-use-copy">
-            <h3>Éviter qu’un calcul retourne NULL</h3><p>Dans un calcul, une valeur <code>NULL</code> peut rendre le résultat <code>NULL</code>. <code>COALESCE</code> permet de prévoir une valeur de remplacement.</p>
-            <div class="pt-syntax"><pre class="cw-syntax">prix * COALESCE(quantite, 0)</pre></div>
-            <p class="coal-use-result">quantité absente → 0 pour ce calcul</p>
-            <ul class="coal-use-math">
-              <li class="is-null"><code>29,90 × NULL</code><b>NULL</b></li>
-              <li class="is-ok"><code>29,90 × 0</code><b>0</b></li>
-            </ul>
-          </div>
-        </article>
-        <article class="coal-use-row">
-          <span class="coal-use-n">04</span><div class="coal-use-copy">
-            <h3>Prévoir une valeur si aucun résultat n’est trouvé</h3><p>Certaines expressions ou fonctions d’agrégation peuvent renvoyer <code>NULL</code>. <code>COALESCE</code> permet alors de prévoir une valeur par défaut.</p>
-            <div class="pt-syntax"><pre class="cw-syntax">COALESCE(
-  (SELECT MAX(prix)
-   FROM produits
-   WHERE categorie = 'Inconnue'),
-  0
-)</pre></div>
-            <p class="coal-use-result">aucun prix trouvé → 0</p>
-          </div>
-        </article>
-      </div>`},
-    why:{title:"Suis ce qui arrive à tes données.",
-      body:"Pour chaque email : s’il est NULL, le résultat affiche « Non renseigné ». L’email de Hugo dans la table, lui, reste NULL. Pour le modifier, il faut un UPDATE."},
-    reflex:{extra:`<div class="coal-reflex">
-        <div class="pt-syntax coal-syntax"><pre class="cw-syntax">COALESCE(a, b, c)</pre></div>
-        <p class="coal-reflex-lead"><code>COALESCE</code> renvoie la première valeur disponible :</p>
-        <p class="coal-reflex-path"><code>a</code> <span>→ si <code>NULL</code> →</span> <code>b</code> <span>→ si <code>NULL</code> →</span> <code>c</code></p>
-        <p class="coal-reflex-stop">Dès qu’une valeur n’est pas <code>NULL</code>, <code>COALESCE</code> la renvoie et s’arrête.</p>
-      </div>`},
-    viz:"coalesce"},
-  anatomie:[{tok:"SELECT prenom,",txt:"Le prénom affiché."},{tok:"COALESCE(email, 'Non renseigné') AS contact",txt:"L’email, ou « Non renseigné » si absent."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."}],
-  anatFollowTeste:true,
-  anatomieVariants:[
-    {k:"select",label:"SELECT",lines:[
-      {tok:"SELECT prenom, email",txt:"Le prénom et l’email, tels quels : un email <code>NULL</code> reste vide."},
-      {tok:"FROM clients",txt:"La table clients est utilisée comme source."}
+  anatomie:[{tok:"CASE",txt:"Ouvre le test conditionnel."},{tok:"WHEN age < 30 THEN 'Jeune'",plain:1,txt:"Si l’âge est inférieur à 30, la valeur est « Jeune »."},{tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",plain:1,txt:"Sinon, si l’âge est entre 30 et 50, la valeur est « Adulte »."},{tok:"ELSE 'Senior'",plain:1,txt:"Dans tous les autres cas, la valeur est « Senior »."},{tok:"END AS categorie",txt:"Termine le CASE et nomme la colonne obtenue."}],
+  exemple:"SELECT nom, prix, CASE WHEN prix < 20 THEN 'Petit prix' ELSE 'Premium' END AS gamme FROM produits;",
+  attendu:"<b>8 lignes</b>. Magnésium, Vitamine D, Tisane Détox et Shaker Inox sont « Petit prix » ; les quatre autres produits sont « Premium ».",
+  retenir:"<code>CASE</code> teste des conditions et renvoie une valeur selon le résultat : c’est le « si / sinon si / sinon » du SQL.<br>SQL lit les <code>WHEN</code> de haut en bas et s’arrête au premier vrai.<br><br><code>ELSE</code> est optionnel : sans lui, une ligne qui ne correspond à rien reçoit <code>NULL</code>. Le <code>CASE</code> se termine par <code>END</code>.",
+  consigne:"Affiche le nom, le prix et une gamme pour chaque produit : « Petit prix » si le prix est inférieur à 20, « Standard » s’il est inférieur à 30, « Premium » sinon. Nomme la colonne gamme.",
+  solution:"SELECT nom, prix,\n  CASE\n    WHEN prix < 20 THEN 'Petit prix'\n    WHEN prix < 30 THEN 'Standard'\n    ELSE 'Premium'\n  END AS gamme\nFROM produits;",
+  indice:"Écris les conditions du plus précis au plus large : d’abord <code>prix &lt; 20</code>, puis <code>prix &lt; 30</code>, et <code>ELSE</code> pour le reste.",
+  testeVariants:[{k:"simple",label:"Simple",sql:"SELECT prenom, ville,\n  CASE ville\n    WHEN 'Paris' THEN 'Île-de-France'\n    WHEN 'Lyon' THEN 'Auvergne-Rhône-Alpes'\n    WHEN 'Marseille' THEN 'PACA'\n    ELSE 'Autre'\n  END AS region\nFROM clients;"},{k:"recherche",label:"Recherché",sql:"SELECT prenom, age,\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie\nFROM clients;"},{k:"order",label:"ORDER BY",sql:"SELECT prenom, age\nFROM clients\nORDER BY CASE\n    WHEN age < 30 THEN 1\n    WHEN age BETWEEN 30 AND 50 THEN 2\n    ELSE 3\n  END;"},{k:"group",label:"GROUP BY",sql:"SELECT\n  CASE\n    WHEN age < 30 THEN 'Jeune'\n    WHEN age BETWEEN 30 AND 50 THEN 'Adulte'\n    ELSE 'Senior'\n  END AS categorie,\n  COUNT(*) AS nb\nFROM clients\nGROUP BY categorie;"}],
+  learningCheck:{question:"Si age < 50 est testé avant age < 30, quelle branche gagne pour 26 ans ?",options:["La branche age < 50","La branche age < 30","Les deux"],answer:0,explanation:"CASE s’arrête à la première condition vraie. Tester d’abord le cas le plus précis évite de le masquer."}
+}),
+guide({ id:23, titre:"COALESCE", résumé:"Remplacer les valeurs absentes",
+  sit:{
+    blocks:[
+      "L’équipe support prépare <b>un outil interne</b> qui affiche la liste des clients. Certains clients n’ont <b>aucune adresse email</b> : leur case reste vide, et l’outil doit afficher un texte clair à la place.",
+      "La table <code>clients</code> contient au total <b>10 clients</b> : 8 ont un email, 2 n’en ont pas (<code>NULL</code>). Pour alimenter l’outil, l’équipe souhaite récupérer uniquement :",
+      {need:[["👤","Le prénom du client","table clients"],["✉️","Son email ou, à défaut, « Non renseigné »","à calculer"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>SELECT</code>, SQL affiche l’email tel qu’il est enregistré : pour Hugo et Inès, la case reste <b>vide</b> (<code>NULL</code>).","Or, l’outil doit afficher « Non renseigné » à la place, <b>sans modifier les données</b> de la table."],
+      scene:{h:"✉️ Contacts des clients",cols:"1fr 1.7fr",
+        lanes:[{c:[["h1","prenom","t"],["h2","email","t"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","sophie@mail.fr"]]},
+          {k:"R2",c:[["b1","Hugo"],["b2","vide","n"]]},
+          {k:"R3",c:[["c1","Lucas"],["c2","lucas@mail.fr"]]},
+          {k:"R4",c:[["d1","Inès"],["d2","vide","n"]]}],
+        caps:["<b>Notre liste</b> · Deux clients n’ont aucun email enregistré.","<b>Besoin</b> · Ces cases vides ne doivent pas rester vides dans l’outil.","<b>Résultat</b> · Les emails existants restent affichés ; les cases vides montrent « Non renseigné »."],
+        steps:[{cap:0,on:["R1","R2","R3","R4"],d:1900},{cap:1,off:["R1","R3"],mark:{R2:"is-miss",R4:"is-miss"},d:2300},{cap:2,unmark:{R2:"is-miss",R4:"is-miss"},on:["R1","R3"],text:{b2:"Non renseigné",d2:"Non renseigné"},stagger:500,d:2800}]},
+      then:["Il faut donc indiquer à SQL <b>une valeur de remplacement</b> à afficher quand l’email est absent.","C’est exactement le rôle de <code>COALESCE</code>."]
+    },
+    mission:"Aide l’équipe support à afficher le <b>prénom</b> de chaque client avec son <b>email</b> ou, à défaut, le texte <b>« Non renseigné »</b>, afin d’alimenter l’outil interne."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir quelle valeur afficher ?",
+    blocks:[
+      "Pour chaque client, SQL examine les valeurs <b>de gauche à droite</b> et garde la <b>première qui n’est pas NULL</b> :",
+      {ask:"La première valeur est-elle disponible ?"},
+      "En SQL, on liste les valeurs possibles dans <code>COALESCE</code> :",
+      {syntax:"⟦COALESCE(email, 'Non renseigné')⟧"},
+      {scene:{h:"🧭 De gauche à droite",cols:"1.3fr 1.3fr",
+        lanes:[{c:[["h1","1re valeur : email","t"],["h2","affiché","t"]]},
+          {k:"R1",l:"Sophie",c:[["a1","sophie@mail.fr"],["a2","?","q"]]},
+          {k:"R2",l:"Hugo",c:[["b1","NULL","n"],["b2","?","q"]]}],
+        caps:["<b>COALESCE(email, 'Non renseigné')</b> · SQL regarde d’abord l’email de chaque client.","<b>Sophie</b> · L’email existe : COALESCE le garde et s’arrête là.","<b>Hugo</b> · L’email est NULL : COALESCE passe à la valeur suivante.","<b>Hugo</b> · La valeur suivante, « Non renseigné », est affichée."],
+        steps:[{cap:0,on:["R1","R2"],d:1900},{cap:1,off:["R2"],fly:[["a1","a2"]],d:2600},{cap:2,off:["R1"],on:["R2"],mark:{b1:"is-miss"},d:2300},{cap:3,text:{b2:"Non renseigné"},d:2600}]}}
+    ]
+  },
+  steps:[
+    {h:"Garder la première valeur disponible",blocks:[
+      "<code>COALESCE</code> accepte autant de valeurs que tu veux : il renvoie la première qui n’est pas <code>NULL</code>.",
+      {syntax:"SELECT prenom,\n       ⟦COALESCE(email, telephone)⟧ AS contact\nFROM clients;"},
+      {looks:[["email","est essayé en premier"],["telephone","est utilisé si l’email est NULL"]]},
+      {say:"👇 Exécute cette requête pour voir l’email ou, à défaut, le téléphone :",run:"SELECT prenom,\n       COALESCE(email, telephone) AS contact\nFROM clients;"},
+      {arrow:"Hugo et Inès, sans email, affichent leur téléphone."}
     ]},
-    {k:"coalesce",label:"COALESCE",tone:"good",lines:[
-      {tok:"SELECT prenom,",txt:"Le prénom affiché."},
-      {tok:"COALESCE(email, 'Non renseigné') AS contact",txt:"L’email, ou « Non renseigné » si absent."},
-      {tok:"FROM clients",txt:"La table clients est utilisée comme source."}
+    {h:"Ajouter une valeur par défaut",blocks:[
+      "La dernière valeur peut être un texte ou un nombre fixe : c’est la valeur de <b>dernier recours</b>.",
+      {say:"👇 Exécute cette requête : la commande n°16 n’a aucun client.",run:"SELECT numero_commande,\n       COALESCE(client_id, 'inconnu') AS client\nFROM commandes;"},
+      {arrow:"La commande n°16 affiche « inconnu » à la place de son client absent."},
+      {tip:{t:"La table ne change pas",blocks:["<code>COALESCE</code> change seulement ce que la requête <b>affiche</b>. Dans la table, la commande n°16 garde bien un <code>client_id</code> à <code>NULL</code> ; pour le modifier réellement, il faudrait un <code>UPDATE</code>."]}}
     ]},
-    {k:"rec_empty",label:"Chaîne vide",lines:[
-      {tok:"COALESCE(NULL, 'Non renseigné') AS absence",txt:"<code>NULL</code> n’est pas une valeur : COALESCE prend le secours."},
-      {tok:"COALESCE('', 'Non renseigné') AS vide",txt:"Une chaîne vide n’est pas <code>NULL</code> : elle reste vide."}
+    {h:"Un texte vide n’est pas NULL",blocks:[
+      "<code>COALESCE</code> ne saute que les valeurs <code>NULL</code>. Un texte vide <code>''</code> est une valeur : il n’est pas remplacé.",
+      {say:"👇 Exécute cette requête pour comparer une valeur absente et un texte vide :",run:"SELECT COALESCE(NULL, 'Non renseigné') AS absence,\n       COALESCE('', 'Non renseigné') AS vide;"},
+      {arrow:"La valeur absente est remplacée, le texte vide reste vide."}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : afficher le prénom, puis l’email avec « Non renseigné » comme valeur de remplacement.",
+      {say:"👇 Exécute la requête pour alimenter l’outil interne :",run:"SELECT prenom,\n       COALESCE(email, 'Non renseigné') AS contact\nFROM clients;"},
+      {done:{
+        label:"Des emails parfois absents aux contacts toujours affichés",
+        funnel:[
+          {n:10,t:"clients au départ",s:"8 emails renseignés, 2 absents (<code>NULL</code>)",dots:"0000000000"},
+          {step:"COALESCE(email, 'Non renseigné')",s:"remplace les emails absents par un texte"},
+          {n:10,t:"⭐ contacts affichés",s:"aucune case vide : Hugo et Inès affichent « Non renseigné »",dots:"1111111111",out:true}
+        ],
+        sms:{ico:"🖥️",h:"Outil interne",aria:"La liste des clients s’affiche dans l’outil interne, sans case vide",msg:"<b>Liste des clients</b><br>Chaque client avec son contact",people:[["S","Sophie","sophie@mail.fr"],["L","Lucas","lucas@mail.fr"],["E","Emma","emma@mail.fr"],["N","Nathan","nathan@mail.fr"],["C","Chloé","chloe@mail.fr"]],more:5,moreT:"… et 5 autres",moreS:"dont Hugo et Inès : Non renseigné",st:["À afficher","Affichage","✓ Affiché"],plane:"doc",done:"✓ 10 contacts affichés"},
+        fill:["COALESCE","email","'Non renseigné'","contact"],
+        ui:{t:"10 contacts affichés",s:"Aucune case vide : l’outil interne affiche « Non renseigné » quand l’email manque.",n:["SELECT","COALESCE()","AS","FROM"]},
+        rows:10
+      }}
     ]}
   ],
-  exemple:"SELECT prenom, COALESCE(email, 'Non renseigné') AS contact FROM clients;",
-  attendu:"10 lignes. Hugo et Inès affichent « Non renseigné ».",
-  retenir:"<code>COALESCE</code> renvoie la première valeur disponible. Dès qu’une valeur n’est pas <code>NULL</code>, <code>COALESCE</code> la renvoie et s’arrête.",
-  piege:{lab:"À ne pas confondre",t:"COALESCE ne modifie pas la donnée",p:"<code>COALESCE</code> change uniquement la valeur renvoyée par la requête. La valeur enregistrée dans la table reste inchangée.<br><br>Par exemple, Hugo peut afficher « Non renseigné », alors que son <code>email</code> reste <code>NULL</code> dans la table <code>clients</code>.<br><br>Pour modifier réellement une valeur enregistrée dans la table, il faut utiliser <code>UPDATE</code>."},
-  consigne:"Affiche le <code>prenom</code> et l’email, en remplaçant les valeurs <code>NULL</code> par <code>'Non renseigné'</code> (colonne <code>contact</code>).",
-  solution:"SELECT prenom, COALESCE(email, 'Non renseigné') AS contact FROM clients;",
-  indice:"<code>COALESCE(email, 'Non renseigné') AS contact</code>.",
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-  {
-    "k": "select",
-    "label": "SELECT",
-    "sql": "SELECT prenom, email FROM clients;",
-    "out": "Hugo et Inès ont un email vide"
-  },
-  {
-    "k": "coalesce",
-    "label": "COALESCE",
-    "sql": "SELECT prenom, COALESCE(email, 'Non renseigné') AS contact\nFROM clients;",
-    "out": "10 lignes. Hugo et Inès affichent « Non renseigné ».",
-    "tone": "good"
-  },
-  {
-    "k": "rec_empty",
-    "label": "Chaîne vide",
-    "sql": "SELECT COALESCE(NULL,'Non renseigné') AS absence, COALESCE('','Non renseigné') AS vide;",
-    "out": "NULL utilise le secours ; le texte vide reste vide.",
-    "expectRows": 1
-  }
-],
-  fnCmp:{title:"Les alternatives selon le SGBD",sgbd:1,h2:"SGBD",
-    say:"<p class=\"fn-cmp-say coal-cmp-note\"><i aria-hidden=\"true\">💡</i><span>Le réflexe : privilégie <code>COALESCE</code> lorsque c’est possible. Elle fait partie du standard SQL, fonctionne avec plusieurs arguments et rend la requête plus facilement portable entre différents SGBD.</span></p>",
-    rows:[
-      {fn:"COALESCE",std:1,moteur:"Standard SQL",on:1},
-      {fn:"ISNULL",moteur:"SQL Server"},
-      {fn:"IFNULL",moteur:"MySQL"},
-      {fn:"NVL",moteur:"Oracle"}
-    ]} ,
-learningCheck:{
-  "question": "COALESCE('', 'Non renseigné') renvoie quoi ?",
-  "options": [
-    "NULL",
-    "Une chaîne vide",
-    "Non renseigné"
+  reflex:[
+    {recap:[
+      ["🥇","<code>COALESCE</code> renvoie la <b>première valeur qui n’est pas NULL</b>.",null,"COALESCE(email, 'Non renseigné')"],
+      ["🪞","Il change ce que la requête <b>affiche</b>, pas la table : l’email de Hugo reste <code>NULL</code> dans <code>clients</code>."],
+      ["⚠️","Un texte vide <code>''</code> n’est pas <code>NULL</code> : <code>COALESCE</code> ne le remplace pas."]
+    ],label:"Les trois idées à retenir"}
   ],
-  "answer": 1,
-  "explanation": "Une chaîne vide est une valeur présente. COALESCE ne la remplace pas : il ne saute que les NULL."
-}
-}
+  anatomie:[{tok:"SELECT prenom,",txt:"Affiche le prénom du client."},{tok:"COALESCE(",txt:"Examine les valeurs de gauche à droite."},{tok:"email",plain:1,txt:"La première valeur essayée."},{tok:"'Non renseigné'",plain:1,txt:"La valeur de remplacement, utilisée si l’email est NULL."},{tok:") AS contact",txt:"Nomme la colonne obtenue."}],
+  exemple:"SELECT prenom, COALESCE(email, telephone) AS contact FROM clients;",
+  attendu:"<b>10 lignes</b>. Hugo et Inès, sans email, affichent leur numéro de téléphone.",
+  retenir:"<code>COALESCE</code> renvoie la première valeur disponible. Dès qu’une valeur n’est pas <code>NULL</code>, il la renvoie et s’arrête.<br><br>Il change ce que la requête affiche, pas la table. Un texte vide n’est pas <code>NULL</code> : il n’est pas remplacé.",
+  consigne:"Affiche le numéro de chaque commande et l’identifiant de son client, en affichant 0 quand la commande n’a pas de client. Nomme la colonne client.",
+  solution:"SELECT numero_commande, COALESCE(client_id, 0) AS client FROM commandes;",
+  indice:"Donne à <code>COALESCE</code> la colonne <code>client_id</code> en première valeur, puis <code>0</code> comme valeur de remplacement.",
+  testeVariants:[{k:"base",label:"SELECT",sql:"SELECT prenom, email FROM clients;"},{k:"coalesce",label:"COALESCE",sql:"SELECT prenom, COALESCE(email, 'Non renseigné') AS contact FROM clients;"},{k:"vide",label:"Chaîne vide",sql:"SELECT COALESCE(NULL,'Non renseigné') AS absence, COALESCE('','Non renseigné') AS vide;"}],
+  learningCheck:{question:"COALESCE('', 'Non renseigné') renvoie quoi ?",options:["NULL","Une chaîne vide","Non renseigné"],answer:1,explanation:"Une chaîne vide est une valeur présente. COALESCE ne la remplace pas : il ne saute que les NULL."}
+})
 ]},
 { titre:"Agrégats et regroupements", sous:"Calculer, regrouper et agréger", lessons:[
 { id:14, titre:"COUNT", résumé:"Compter les lignes",
@@ -13638,237 +13364,99 @@ learningCheck:{
   "explanation": "Dix clients deviennent six groupes de villes. Les colonnes non groupées doivent avoir un sens défini, généralement via un agrégat."
 }
 },
-{ id:17, titre:"HAVING", résumé:"Filtrer après regroupement",
-  situation:"Tu veux savoir quelles catégories contiennent au moins 2 produits.<br><br>Avec ce que tu connais déjà, tu peux compter le nombre de produits dans chaque catégorie :",
-  situationSql:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie;",
-  situationTail:"Tu obtiens une ligne par catégorie avec son nombre de produits.<br><br>Mais il reste un problème : SQL affiche aussi les catégories qui ne contiennent qu’un seul produit.<br><br>Cette fois, tu veux garder uniquement les groupes dont le total est supérieur ou égal à 2.<br><br>"+fnSpot("C’est le rôle de <code>HAVING</code> : une clause SQL qui permet de filtrer les groupes créés par <code>GROUP BY</code>. C’est l’équivalent de <code>WHERE</code>, mais pour les résultats agrégés."),
-    studio:{problem:{title:"<code>HAVING</code> filtre les groupes créés par <code>GROUP BY</code>.",
-      body:`<div class="pt-lead">
-        <p>Lorsque tu utilises <code>GROUP BY</code>, SQL regroupe les lignes qui partagent les mêmes valeurs dans les colonnes spécifiées. Tu peux ensuite appliquer des fonctions d’agrégation (comme des sommes ou des moyennes) sur chaque groupe :</p>
-        <div class="gb-formula" role="list">
-          <div><code>COUNT()</code> <span>→ compter</span></div>
-          <div><code>SUM()</code> <span>→ additionner</span></div>
-          <div><code>AVG()</code> <span>→ calculer une moyenne</span></div>
-          <div><code>MIN()</code> <span>→ trouver la plus petite valeur</span></div>
-          <div><code>MAX()</code> <span>→ trouver la plus grande valeur</span></div>
-        </div>
-        <p>Ensuite, la clause <code>HAVING</code> s’applique après <code>GROUP BY</code> pour ne retenir que les groupes qui vérifient une condition.</p>
-        <p>Par exemple : après avoir regroupé les clients par ville, tu peux garder uniquement les villes qui comptent au moins 2 clients.</p>
-        <div class="pt-syntax"><pre class="cw-syntax">SELECT ville, COUNT(*)
-FROM clients
-GROUP BY ville
-HAVING COUNT(*) >= 2;</pre></div>
-        <p>On peut lire la requête ainsi :</p>
-        <div class="gb-formula" role="list">
-          <div><code>GROUP BY ville</code> <span>→ forme un groupe pour chaque ville</span></div>
-          <div><code>COUNT(*)</code> <span>→ compte les clients de chaque groupe</span></div>
-          <div><code>HAVING COUNT(*) >= 2</code> <span>→ garde les groupes d’au moins 2 clients</span></div>
-        </div>
-        <div class="sit-memo">
-          <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-          <p>Dans une requête SQL, <code>HAVING</code> s’écrit après <code>GROUP BY</code> :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT colonne, fonction_agregation
-FROM table
-GROUP BY colonne
-HAVING condition;</pre></div>
-        </div>
-      </div>`},
-    uses:{title:"La distinction indispensable",
-      body:`<div class="pt-lead">
-        <p>Les deux clauses servent à filtrer, mais elles n’interviennent pas au même moment.</p>
-        <div class="memory-rule hav-vs">
-          <div class="memory-where">
-            <b>WHERE</b>
-            <span>filtre les <b>lignes</b></span>
-            <small class="memory-sub">avant <code>GROUP BY</code></small>
-            <code class="hav-vs-ex">WHERE age &gt;= 30</code>
-          </div>
-          <div class="memory-having">
-            <b>HAVING</b>
-            <span>filtre les <b>groupes</b></span>
-            <small class="memory-sub">après <code>GROUP BY</code></small>
-            <code class="hav-vs-ex">HAVING COUNT(*) &gt;= 2</code>
-          </div>
-        </div>
-      </div>`},
-    why:{title:"Comment HAVING filtre les groupes ?"},
-    viz:"having",
-    or:{title:"Comment l’utiliser.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Filtrer selon le nombre de clients</p>
-          <p>Garder uniquement les villes qui comptent au moins 2 clients :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville, COUNT(*)
-FROM clients
-GROUP BY ville
-HAVING COUNT(*) >= 2;</pre></div>
-          <p>Résultat :</p>
-          <div class="tx-fail"><span class="is-ok">Paris<i>4</i></span><span class="is-ok">Lyon<i>2</i></span></div>
-          <p><code>GROUP BY</code> forme les groupes par ville, puis <code>HAVING</code> garde uniquement ceux dont <code>COUNT(*)</code> est supérieur ou égal à 2.</p>
-          <div class="gb-formula" role="list">
-            <div><code>= 2</code> <span>→ exactement 2 lignes</span></div>
-            <div><code>&gt; 2</code> <span>→ plus de 2 lignes</span></div>
-            <div><code>&gt;= 2</code> <span>→ au moins 2 lignes</span></div>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">HAVING avec d’autres calculs</p>
-          <p><code>HAVING</code> peut aussi filtrer un groupe selon le résultat d’une autre fonction d’agrégation.</p>
-          <p>Garder les catégories dont le prix moyen dépasse 25&nbsp;€ :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT categorie, AVG(prix)
-FROM produits
-GROUP BY categorie
-HAVING AVG(prix) &gt; 25;</pre></div>
-          <p>Résultat :</p>
-          <div class="tx-fail"><span class="is-ok">Beauté<i>39,90</i></span></div>
-          <p>Garder les produits dont la quantité totale commandée dépasse 5 :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT produit_id, SUM(quantite)
-FROM commandes
-GROUP BY produit_id
-HAVING SUM(quantite) &gt; 5;</pre></div>
-          <p>Résultat :</p>
-          <div class="tx-fail"><span class="is-ok">1<i>10</i></span></div>
-          <p>Le produit 1 a été commandé 10 fois au total.</p>
-          <div class="gb-formula" role="list">
-            <div><code>COUNT()</code> <span>→ selon un nombre</span></div>
-            <div><code>SUM()</code> <span>→ selon un total</span></div>
-            <div><code>AVG()</code> <span>→ selon une moyenne</span></div>
-            <div><code>MIN()</code> <span>→ selon un minimum</span></div>
-            <div><code>MAX()</code> <span>→ selon un maximum</span></div>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Combiner WHERE et HAVING</p>
-          <p><code>WHERE</code> et <code>HAVING</code> peuvent être utilisés dans la même requête : <code>WHERE</code> filtre les lignes avant le regroupement, puis <code>HAVING</code> filtre les groupes ainsi obtenus.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville, COUNT(*)
-FROM clients
-WHERE age >= 30
-GROUP BY ville
-HAVING COUNT(*) >= 2;</pre></div>
-          <ol class="hav-steps">
-            <li><code>WHERE age >= 30</code><span>→ garde uniquement les clients de 30 ans ou plus</span></li>
-            <li><code>GROUP BY ville</code><span>→ regroupe les clients restants par ville</span></li>
-            <li><code>HAVING COUNT(*) >= 2</code><span>→ garde uniquement les villes qui comptent au moins 2 clients</span></li>
-          </ol>
-          <div class="sit-memo">
-            <p>Exemple : le groupe «&nbsp;Lyon&nbsp;» contient Lucas (28&nbsp;ans) et Hugo (52&nbsp;ans).</p>
-            <p>Après <code>WHERE age >= 30</code>, Lucas est retiré. Il ne reste donc qu’Hugo dans le groupe Lyon.</p>
-            <p>Comme <code>HAVING</code> demande au moins 2 clients, Lyon n’apparaît pas dans le résultat final.</p>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Plusieurs conditions</p>
-          <p>Comme avec <code>WHERE</code>, plusieurs conditions peuvent être combinées avec <code>AND</code> ou <code>OR</code>.</p>
-          <p>Garder les villes qui ont au moins 2 clients <b>et</b> un âge moyen supérieur à 30&nbsp;ans :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT ville, COUNT(*), AVG(age)
-FROM clients
-GROUP BY ville
-HAVING COUNT(*) >= 2
-   AND AVG(age) &gt; 30;</pre></div>
-          <p>Résultat :</p>
-          <div class="hav-res">
-            <article>
-              <b>Paris</b>
-              <div><code>COUNT(*)</code><span>4 clients</span></div>
-              <div><code>AVG(age)</code><span>33,25 ans</span></div>
-            </article>
-            <article>
-              <b>Lyon</b>
-              <div><code>COUNT(*)</code><span>2 clients</span></div>
-              <div><code>AVG(age)</code><span>40 ans</span></div>
-            </article>
-          </div>
-          <p>Les deux villes comptent au moins 2 clients et affichent un âge moyen supérieur à 30&nbsp;ans : elles sont donc conservées.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"WHERE",t:"Filtre les <b>lignes</b> avant le regroupement"},
-      b:{k:"GROUP BY",t:"Forme les <b>groupes</b>"},
-      c:{k:"HAVING",t:"Filtre les <b>groupes</b> après le regroupement"},
-      chain:true}},
-  anatomie:[{tok:"SELECT categorie, COUNT(*)",txt:"Affiche la catégorie et le nombre de produits."},
-    {tok:"FROM produits",txt:"Lit la table produits."},
-    {tok:"GROUP BY categorie",txt:"Regroupe les lignes par catégorie."},
-    {tok:"HAVING COUNT(*) >= 2",txt:"<b>Ne garde que</b> les catégories ayant au moins deux produits."}],
-  anatFollowTeste:true,
-  anatomieVariants:[
-    {k:"count",label:"COUNT()",lines:[
-      {tok:"SELECT ville, COUNT(*)",txt:"Affiche la ville et le nombre de clients de son groupe."},
-      {tok:"FROM clients",txt:"Les données viennent de la table <code>clients</code>."},
-      {tok:"GROUP BY ville",txt:"Forme un groupe par ville."},
-      {tok:"HAVING COUNT(*) >= 2",txt:"<b>Ne garde que</b> les villes d’au moins 2 clients."}
+guide({ id:17, titre:"HAVING", résumé:"Filtrer après regroupement",
+  sit:{
+    blocks:[
+      "L’équipe catalogue veut repérer les <b>catégories bien fournies</b> de la boutique : celles qui contiennent <b>au moins 2 produits</b>. Elle pourra ainsi les mettre en avant sur le site.",
+      "La table <code>produits</code> contient au total <b>8 produits</b>, répartis dans plusieurs catégories. L’équipe souhaite récupérer uniquement :",
+      {need:[["🗂️","Chaque catégorie","table produits"],["🔢","Son nombre de produits","à calculer"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>GROUP BY</code>, SQL regroupe les produits par catégorie et sait <b>compter</b> ceux de chaque groupe, mais il affiche encore <b>toutes</b> les catégories.","Or, l’équipe ne veut garder que celles qui comptent <b>au moins 2 produits</b> : il faut filtrer les groupes eux-mêmes."],
+      scene:{h:"🗂️ Catégories",cols:"1.4fr 1fr",
+        lanes:[{c:[["h1","categorie","t"],["h2","produits","t"]]},
+          {k:"R1",c:[["a1","Bien-être"],["a2","3"]]},
+          {k:"R2",c:[["b1","Beauté"],["b2","1"]]},
+          {k:"R3",c:[["c1","Nutrition"],["c2","2"]]},
+          {k:"R4",c:[["d1","Boisson"],["d2","1"]]},
+          {k:"R5",c:[["e1","Accessoire"],["e2","1"]]}],
+        caps:["<b>Nos groupes</b> · Chaque catégorie forme un groupe, avec son nombre de produits.","<b>Condition</b> · L’équipe veut les groupes qui contiennent <b>au moins 2 produits</b>.","<b>Résultat</b> · Seuls les groupes qui respectent la condition doivent être conservés."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R2","R4","R5"],dim:["R2","R4","R5"],d:2300},{cap:2,fold:["R2","R4","R5"],d:2600}]},
+      then:["Il faut donc indiquer à SQL de <b>filtrer les groupes</b> une fois le regroupement fait, selon leur nombre de produits.","C’est exactement le rôle de <code>HAVING</code>."]
+    },
+    mission:"Aide l’équipe catalogue à retrouver les <b>catégories</b> qui contiennent <b>au moins 2 produits</b>, avec leur <b>nombre de produits</b>, afin de choisir celles à mettre en avant."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir quels groupes garder ?",
+    blocks:[
+      "Une fois les groupes formés, SQL vérifie une condition sur <b>chaque groupe</b> :",
+      {ask:"Ce groupe contient-il au moins 2 produits ?"},
+      "En SQL, cette condition s’écrit après <code>HAVING</code> :",
+      {syntax:"⟦HAVING COUNT(*) >= 2⟧"},
+      {table:{label:"groupes",cols:"minmax(0,1.3fr) minmax(0,.9fr) minmax(0,1.6fr)",head:["categorie","nombre","Le groupe est-il gardé ?"],rows:[["Bien-être","3","✅ vrai → gardé"],["Beauté","1","❌ faux → écarté"],["Nutrition","2","✅ vrai → gardé"],["Boisson","1","❌ faux → écarté"]],hit:[[0,2],[2,2]],more:"… et 1 autre groupe",test:{cond:"nombre >= 2",val:1}}},
+      {looks:[["vrai","la condition est vraie pour le groupe : il apparaît"],["faux","elle est fausse : le groupe n’apparaît pas"]],label:"Vrai ou faux"}
+    ]
+  },
+  steps:[
+    {h:"Compter par groupe",blocks:[
+      "<code>GROUP BY</code> forme un groupe par catégorie, et <code>COUNT(*)</code> compte les produits de chaque groupe :",
+      {say:"👇 Exécute cette requête pour voir le nombre de produits par catégorie :",run:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie;"},
+      {arrow:"Une ligne par catégorie : Bien-être en compte 3, Nutrition 2, les trois autres 1."}
     ]},
-    {k:"avg",label:"AVG()",lines:[
-      {tok:"SELECT categorie, AVG(prix)",txt:"Affiche la catégorie et le prix moyen de ses produits."},
-      {tok:"FROM produits",txt:"Les données viennent de la table <code>produits</code>."},
-      {tok:"GROUP BY categorie",txt:"Forme un groupe par catégorie."},
-      {tok:"HAVING AVG(prix) > 25",txt:"<b>Ne garde que</b> les groupes dont la moyenne dépasse 25&nbsp;€."}
+    {h:"Filtrer les groupes avec HAVING",blocks:[
+      "Pour ne garder que certains groupes, ajoute <code>HAVING</code> <b>après</b> <code>GROUP BY</code>, suivi de la condition :",
+      {syntax:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville\n⟦HAVING COUNT(*) >= 2⟧;"},
+      {looks:[["GROUP BY ville","forme un groupe pour chaque ville"],["HAVING COUNT(*) >= 2","garde les groupes d’au moins 2 clients"]]},
+      {say:"👇 Exécute cette requête pour voir les villes qui comptent au moins 2 clients :",run:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville\nHAVING COUNT(*) >= 2;"},
+      {arrow:"Seules 2 villes sur 6 sont conservées : Lyon (2 clients) et Paris (4 clients)."}
     ]},
-    {k:"sum",label:"SUM()",lines:[
-      {tok:"SELECT produit_id, SUM(quantite)",txt:"Affiche le produit et la quantité totale commandée."},
-      {tok:"FROM commandes",txt:"Les données viennent de la table <code>commandes</code>."},
-      {tok:"GROUP BY produit_id",txt:"Forme un groupe par produit."},
-      {tok:"HAVING SUM(quantite) > 5",txt:"<b>Ne garde que</b> les produits commandés plus de 5 fois."}
+    {h:"WHERE ou HAVING ?",blocks:[
+      "<code>WHERE</code> filtre les <b>lignes</b> avant le regroupement ; <code>HAVING</code> filtre les <b>groupes</b> après. Les deux peuvent travailler ensemble :",
+      {say:"👇 Exécute cette requête : seuls les clients de 30 ans ou plus sont comptés, puis on filtre les villes.",run:"SELECT ville, COUNT(*)\nFROM clients\nWHERE age >= 30\nGROUP BY ville\nHAVING COUNT(*) >= 2;"},
+      {arrow:"Il ne reste que Paris : c’est la seule ville qui compte encore 2 clients ou plus après le premier filtre."},
+      {warn:{t:"COUNT dans un WHERE",blocks:[
+        "Si tu écris :",
+        {syntax:"WHERE COUNT(*) >= 2\nGROUP BY ville"},
+        "<code>WHERE</code> agit avant le regroupement : <code>COUNT(*)</code> n’existe pas encore, et SQL refuse la requête.",
+        {say:"👇 Teste par toi-même :",run:"SELECT ville, COUNT(*)\nFROM clients\nWHERE COUNT(*) >= 2\nGROUP BY ville;"}
+      ]}}
     ]},
-    {k:"combo",label:"WHERE + HAVING",lines:[
-      {tok:"SELECT ville, COUNT(*)",txt:"Affiche la ville et le nombre de clients restants."},
-      {tok:"FROM clients",txt:"Les données viennent de la table <code>clients</code>."},
-      {tok:"WHERE age >= 30",txt:"Filtre d’abord les lignes : seuls les clients de 30 ans et plus restent."},
-      {tok:"GROUP BY ville",txt:"Regroupe ensuite ce qui reste par ville."},
-      {tok:"HAVING COUNT(*) >= 2",txt:"Garde les villes qui ont encore au moins 2 clients."}
-    ]},
-    {k:"and",label:"AND",lines:[
-      {tok:"SELECT ville, COUNT(*), AVG(age)",txt:"Affiche la ville, le nombre de clients et l’âge moyen."},
-      {tok:"FROM clients",txt:"Les données viennent de la table <code>clients</code>."},
-      {tok:"GROUP BY ville",txt:"Forme un groupe par ville."},
-      {tok:"HAVING COUNT(*) >= 2 AND AVG(age) > 30",txt:"Garde les villes qui respectent <b>les deux</b> conditions."}
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : regrouper les produits par catégorie, les compter, puis ne garder que les groupes d’au moins 2 produits.",
+      {say:"👇 Exécute la requête pour découvrir les catégories à mettre en avant :",run:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;"},
+      {done:{
+        label:"Des produits aux catégories bien fournies",
+        funnel:[
+          {n:8,t:"produits au départ",s:"toute la <code>table produits</code>",dots:"00000000"},
+          {step:"GROUP BY categorie",s:"regroupe les produits par catégorie"},
+          {n:5,t:"catégories formées",s:"Accessoire, Beauté, Bien-être, Boisson et Nutrition",dots:"00000"},
+          {step:"HAVING COUNT(*) >= 2",s:"ne garde que les groupes d’au moins 2 produits"},
+          {n:2,t:"⭐ catégories à mettre en avant",s:"Bien-être et Nutrition",dots:"00101",out:true}
+        ],
+        sms:{ico:"🏪",h:"Vitrine du site",aria:"Les deux catégories bien fournies passent en vitrine",msg:"<b>Catégories à l’honneur</b><br>Au moins 2 produits chacune",people:[["B","Bien-être","3 produits"],["N","Nutrition","2 produits"]],st:["En attente","Mise en avant","✓ En vitrine"],plane:"star",done:"✓ 2 catégories à l’honneur"},
+        fill:["GROUP BY","HAVING",">=","2"],
+        ui:{t:"2 catégories bien fournies",s:"Bien-être et Nutrition comptent au moins 2 produits : elles seront mises en avant.",n:["SELECT","FROM","GROUP BY","COUNT()","HAVING"]},
+        rows:2
+      }}
     ]}
   ],
-  pipeline:[],
-  richLesson:true,
-  earlyDemo:true,
-  exemple:"SELECT categorie, COUNT(*)\nFROM produits\nGROUP BY categorie\nHAVING COUNT(*) >= 2;",
-  testeVariants:[
-    {k:'count',label:'COUNT()',
-     sql:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville\nHAVING COUNT(*) >= 2;",
-     out:"Paris 4, Lyon 2."},
-    {k:'avg',label:'AVG()',
-     sql:"SELECT categorie, AVG(prix)\nFROM produits\nGROUP BY categorie\nHAVING AVG(prix) > 25;",
-     out:"1 ligne : Beauté (39,90)."},
-    {k:'sum',label:'SUM()',
-     sql:"SELECT produit_id, SUM(quantite)\nFROM commandes\nGROUP BY produit_id\nHAVING SUM(quantite) > 5;",
-     out:"1 ligne : le produit 1, commandé 10 fois."},
-    {k:'combo',label:'WHERE + HAVING',
-     sql:"SELECT ville, COUNT(*)\nFROM clients\nWHERE age >= 30\nGROUP BY ville\nHAVING COUNT(*) >= 2;",
-     out:"Paris reste : 4 clients de 30 ans ou plus."},
-    {k:'and',label:'AND',
-     sql:"SELECT ville, COUNT(*), AVG(age)\nFROM clients\nGROUP BY ville\nHAVING COUNT(*) >= 2\n   AND AVG(age) > 30;",
-     out:"Paris et Lyon : au moins 2 clients et un âge moyen supérieur à 30."}
+  reflex:[
+    {recap:[
+      ["🧮","<code>HAVING</code> filtre les <b>groupes</b> après le regroupement :",null,"HAVING COUNT(*) >= 2"],
+      ["🔀","<code>WHERE</code> filtre les <b>lignes</b> avant le regroupement ; <code>HAVING</code> filtre les <b>groupes</b> après."],
+      ["🚫","On ne peut pas utiliser <code>COUNT(*)</code> dans un <code>WHERE</code> : le groupe n’existe pas encore."]
+    ],label:"Les trois idées à retenir"}
   ],
-  retenir:"WHERE → filtre les lignes avant le regroupement. GROUP BY → forme les groupes. HAVING → filtre les groupes après le regroupement.",
-  piege:{t:"Filtrer un <code>COUNT()</code> avec <code>WHERE</code>",
-    p:"<b>❌ Incorrect</b>",
-    sql:"SELECT ville, COUNT(*)\nFROM clients\nWHERE COUNT(*) >= 2\nGROUP BY ville;",
-    mid:`<p>Le problème vient de l’ordre des opérations.</p>
-<p>Lorsque <code>WHERE</code> intervient, les clients n’ont pas encore été regroupés par ville. SQL ne dispose donc pas encore du résultat de <code>COUNT(*)</code> par ville.</p>
-<p>Il faut d’abord créer les groupes avec <code>GROUP BY</code>, puis filtrer ces groupes avec <code>HAVING</code>.</p>
-<p class="piege-ok"><b>✅ Correct</b></p>`,
-    fixSql:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville\nHAVING COUNT(*) >= 2;",
-    tail:"<code>HAVING</code> peut filtrer selon le résultat du calcul effectué sur chaque groupe."},
-  attendu:"<b>2 lignes</b> : Bien-être (3 produits) et Nutrition (2 produits).",
-  consigne:"Trouve les catégories qui contiennent <b>au moins 2 produits</b> et affiche, pour chacune, son nom et le nombre de produits.",
-  solution:"SELECT categorie, COUNT(*) FROM produits GROUP BY categorie HAVING COUNT(*) >= 2;",
-  indice:"<code>… GROUP BY categorie HAVING COUNT(*) >= 2</code>" ,
-learningCheck:{
-  "question": "Pourquoi l’exemple WHERE COUNT(*) >= 2 échoue-t-il ?",
-  "options": [
-    "Le seuil est trop petit",
-    "Le regroupement n’a pas encore eu lieu",
-    "COUNT est interdit dans SQLite"
-  ],
-  "answer": 1,
-  "explanation": "WHERE filtre les lignes avant qu’elles soient regroupées : COUNT(*) n’existe pas encore. HAVING filtre ensuite les groupes."
-}
-},
+  anatomie:[{tok:"SELECT categorie, COUNT(*)",txt:"La catégorie et le nombre de produits de chaque groupe."},{tok:"FROM produits",txt:"La table produits est utilisée comme source."},{tok:"GROUP BY categorie",txt:"Forme un groupe pour chaque catégorie."},{tok:"HAVING COUNT(*) >= 2",txt:"Ne garde que les groupes d’au moins 2 produits."}],
+  exemple:"SELECT ville, COUNT(*) FROM clients GROUP BY ville HAVING COUNT(*) >= 2;",
+  attendu:"<b>2 lignes</b> : Lyon (2 clients) et Paris (4 clients).",
+  retenir:"<code>WHERE</code> filtre les lignes avant le regroupement. <code>GROUP BY</code> forme les groupes. <code>HAVING</code> filtre les groupes après le regroupement.",
+  consigne:"Affiche l’identifiant des produits commandés plus de 3 fois au total (somme des quantités), avec cette quantité totale.",
+  solution:"SELECT produit_id, SUM(quantite) FROM commandes GROUP BY produit_id HAVING SUM(quantite) > 3;",
+  indice:"Regroupe les commandes par produit, additionne les quantités avec <code>SUM</code>, puis garde les groupes dont la somme dépasse 3 avec <code>HAVING</code>.",
+  testeVariants:[{k:"base",label:"COUNT()",sql:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville\nHAVING COUNT(*) >= 2;"},{k:"rec_avg",label:"AVG()",sql:"SELECT categorie, AVG(prix)\nFROM produits\nGROUP BY categorie\nHAVING AVG(prix) > 25;"},{k:"rec_where",label:"WHERE + HAVING",sql:"SELECT ville, COUNT(*)\nFROM clients\nWHERE age >= 30\nGROUP BY ville\nHAVING COUNT(*) >= 2;"},{k:"rec_and",label:"AND",sql:"SELECT ville, COUNT(*), AVG(age)\nFROM clients\nGROUP BY ville\nHAVING COUNT(*) >= 2\n   AND AVG(age) > 30;"}],
+  learningCheck:{question:"Pourquoi l’exemple WHERE COUNT(*) >= 2 échoue-t-il ?",options:["Le seuil est trop petit","Le regroupement n’a pas encore eu lieu","COUNT est interdit dans SQLite"],answer:1,explanation:"WHERE filtre les lignes avant qu’elles soient regroupées : COUNT(*) n’existe pas encore. HAVING filtre ensuite les groupes."}
+}),
 { id:76, titre:"GROUP_CONCAT", résumé:"Rassembler les textes d’un groupe",
   situation:"Ton équipe e-commerce prépare le catalogue des produits. Elle veut afficher une ligne par catégorie, avec la liste de tous les produits appartenant à cette catégorie.<br><br>Avec ce que tu connais déjà, tu peux obtenir une ligne par catégorie :",
   situationSql:"SELECT categorie\nFROM produits\nGROUP BY categorie;",
@@ -28427,10 +28015,13 @@ function initConversionFunctions(){
   bindTableSwipe(page);
 }
 function renderStudio(l){
-  if(l.id===51)return renderTextFunctionsStudio(l);
-  if(l.id===52)return renderNumericFunctionsStudio(l);
-  if(l.id===53)return renderDateFunctionsStudio(l);
-  if(l.id===54)return renderConversionFunctionsStudio(l);
+  /* Les pages de fonctions sur mesure ne servent plus aux cours refaits au format « guide ». */
+  if(!l.guided){
+    if(l.id===51)return renderTextFunctionsStudio(l);
+    if(l.id===52)return renderNumericFunctionsStudio(l);
+    if(l.id===53)return renderDateFunctionsStudio(l);
+    if(l.id===54)return renderConversionFunctionsStudio(l);
+  }
   if(!l.joinFn){
     if(hasJoinPointCards(l)) return renderJoinIntroStudio(l);
     if(JOIN_COURSES[l.id])return renderJoinCourse(l);
@@ -28537,8 +28128,8 @@ function lessonDemoBlocks(l){
       </div>
       <p class="coda-sub">En résumé : <code>SELECT</code> s’écrit en premier, mais s’exécute <b>presque en dernier</b>.</p>`}
     </div>`:'';
-  const compactFunctionLesson=l.id===52||l.id===53||l.id===54;
-  const hideLessonLab=l.id===52||l.id===54;
+  const compactFunctionLesson=!l.guided&&(l.id===52||l.id===53||l.id===54);
+  const hideLessonLab=!l.guided&&(l.id===52||l.id===54);
   const joinTesteAnat=!!l.anatFollowTeste;
   return `${missionFillBlock(l)}${hideLessonLab?'':lessonRichFooter(l,joinTesteAnat?anat:'')}${hideLessonLab||joinTesteAnat||l.noAnat?'':anat}${order}${piegeBlock(l)}${learningCheckHtml(l)}${compactFunctionLesson?'':fnCmpBlock(l)}${compactFunctionLesson?'':reflexBlock(l)}${subqueryRecapBlock(l)}${joinRecapBlock(l)}`;
 }
@@ -36944,7 +36535,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1592';
+  const SW_CACHE='requete-2026-10-04-ludique-v1593';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
