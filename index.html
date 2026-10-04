@@ -10815,10 +10815,11 @@ function guideFunnel(d){
 const GUIDE_ICONS={
   plane:GUIDE_PLANE,
   phone:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>',
-  doc:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>'
+  doc:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>',
+  pin:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>'
 };
 /* Animation d’envoi : SMS par défaut ; mail:true pour un e-mail ; st = les trois états d’une ligne (ex. appels) ;
-   plane = icône qui glisse sur la ligne (plane, phone, doc) ; more = nombre de personnes non listées (dernière ligne « … et N autres »). */
+   plane = icône qui glisse sur la ligne (plane, phone, doc, pin) ; more = nombre de personnes non listées (dernière ligne « … et N autres »). */
 function guideSms(m){
   const rows=m.people.length+(m.more?1:0);
   const st=m.st||['En attente','Envoi','✓ Envoyé'];
@@ -11299,79 +11300,86 @@ guide({ id:3, titre:"SELECT *", résumé:"Voir toute la table",
   testeVariants:[{k:"base",label:"Exemple",sql:"SELECT * FROM clients;"},{k:"rec_explicit",label:"Colonnes explicites",sql:"ALTER TABLE clients ADD COLUMN pays TEXT DEFAULT 'France'; SELECT prenom, ville FROM clients;",out:"Toujours deux colonnes après ajout de pays.",expectRows:10},{k:"rec_star",label:"Étoile après ajout",sql:"ALTER TABLE clients ADD COLUMN pays TEXT DEFAULT 'France'; SELECT * FROM clients;",out:"Neuf colonnes : pays est inclus automatiquement.",expectRows:10}],
   learningCheck:{question:"Après ajout de la colonne pays, quelle requête change de nombre de colonnes ?",options:["SELECT *","SELECT prenom, ville","Les deux"],answer:0,explanation:"L’étoile inclut la nouvelle colonne ; une liste explicite conserve la même structure, utile pour une application."}
 }),
-{ id:13, titre:"DISTINCT", résumé:"Valeurs uniques",
-  situation:"Dans la table clients, plusieurs personnes habitent dans la même ville. Tu veux la liste des villes différentes, sans afficher plusieurs fois la même ville.<br><br>Avec ce que tu connais déjà, tu peux afficher la ville de chaque client :",
-  situationSql:"SELECT ville\nFROM clients;",
-  situationTail:"Tu obtiens 10 lignes, car SQL affiche la ville de chaque client.<br><br>Certaines villes apparaissent donc plusieurs fois : Paris apparaît 4 fois et Lyon 2 fois.<br><br>Mais ici, tu veux connaître les villes différentes, sans doublons.",
-  problematique:"L’équipe commerciale veut connaître les villes dans lesquelles elle possède des clients. Comment obtenir la liste des villes sans afficher plusieurs fois la même ville ?",
-    studio:{problem:{title:"DISTINCT retire les doublons du résultat.",
-      body:"👉 <code>DISTINCT</code> se place juste après <code>SELECT</code>. Il retire les répétitions du résultat : les 10 lignes deviennent 6 villes différentes.",
-      extra:`<div class="sit-sql">
-        <p><code>DISTINCT</code> est un mot-clé que l’on place juste après <code>SELECT</code>. Il sert à éliminer les lignes en double dans les résultats d’une requête, pour ne garder que des valeurs uniques (distinctes).</p>
-        <div class="pt-syntax"><pre class="cw-syntax">SELECT DISTINCT colonne1, colonne2, ...
-FROM nom_table;</pre></div>
-      </div>`},
-    vs:{bad:{tag:"✕ Avec doublons",sql:"SELECT ville FROM clients;",out:"10 lignes : Paris apparaît 4 fois, Lyon 2 fois",
-            code:"SELECT <span class=\"vs-line bad\">ville</span>\nFROM clients;"},
-        good:{tag:"✓ Sans doublons",sql:"SELECT DISTINCT ville FROM clients;",out:"6 villes : Paris, Lyon, Marseille, Bordeaux, Toulouse, Nantes",
-            code:"SELECT <span class=\"vs-line good\">DISTINCT ville</span>\nFROM clients;"}},
-    point:"<code>DISTINCT</code> ne modifie pas les données de la table clients. Les 10 clients restent enregistrés : seuls les doublons sont retirés du résultat affiché.",
-    why:{title:"Comment DISTINCT passe de 10 à 6 lignes ?"},
-    viz:"distinct",
-    reflex:{a:{k:"SELECT",t:"affiche <b>toutes</b> les lignes correspondantes"},
-      b:{k:"SELECT DISTINCT",t:"affiche uniquement les valeurs ou combinaisons <b>différentes</b>"},
-      note:"Avec plusieurs colonnes, <code>DISTINCT</code> considère l’ensemble des colonnes sélectionnées. Deux lignes sont considérées comme des doublons uniquement si toutes les valeurs sélectionnées sont identiques."}},
-  anatomie:[{tok:"SELECT",txt:"Définit ce qui apparaît dans le résultat."},{tok:"DISTINCT",txt:"Retire les doublons du résultat."},{tok:"ville",plain:1,txt:"La colonne dont tu veux obtenir les valeurs différentes."},{tok:"FROM clients",txt:"Les données viennent de la table clients."}],
-  anatomieVariants:[
-    {k:'avant',label:'SELECT',lines:[
-      {tok:"SELECT",txt:"Définit ce qui apparaît dans le résultat."},
-      {tok:"ville",plain:1,txt:"La colonne demandée : la ville de chaque client."},
-      {tok:"FROM clients",txt:"Les données viennent de la table clients."}
+guide({ id:13, titre:"DISTINCT", résumé:"Valeurs uniques",
+  sit:{
+    blocks:[
+      "L’équipe commerciale veut organiser <b>des rencontres avec ses clients</b>. Avant de choisir les lieux, elle doit savoir <b>dans quelles villes</b> la boutique compte des clients.",
+      "La table <code>clients</code> contient au total <b>10 clients</b>, mais plusieurs d’entre eux habitent dans la même ville. Pour préparer les rencontres, l’équipe souhaite récupérer uniquement :",
+      {need:[["📍","Les villes où habitent les clients","table clients"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>SELECT</code>, SQL affiche la ville de <b>chaque client</b> : une ligne par client.","Or, plusieurs clients habitent au même endroit : <b>Paris</b> apparaît 4 fois et <b>Lyon</b> 2 fois. Ces répétitions alourdissent notre liste."],
+      scene:{h:"📍 Villes des clients",
+        lanes:[{k:"A",l:"Une ville par client",c:[["c1","Paris"],["c2","Lyon"],["c3","Marseille"],["c4","Paris"],["c5","Bordeaux"],["c6","Lyon"],["c7","Paris"],["c8","Toulouse"],["c9","Nantes"],["c10","Paris"]]}],
+        caps:["<b>Notre liste</b> · Elle contient la ville de chacun des 10 clients.","<b>Doublons</b> · Paris et Lyon reviennent plusieurs fois : ces répétitions sont inutiles.","<b>Résultat</b> · Chaque ville ne doit apparaître qu’une seule fois : 6 villes différentes."],
+        steps:[{cap:0,on:["A"],d:1900},{cap:1,off:["A"],mark:{c4:"is-miss",c6:"is-miss",c7:"is-miss",c10:"is-miss"},d:2300},{cap:2,gone:["c4","c6","c7","c10"],d:2600}]},
+      then:["Il faut donc indiquer à SQL de <b>ne garder qu’une fois</b> chaque ville.","C’est exactement le rôle de <code>DISTINCT</code>."]
+    },
+    mission:"Aide l’équipe commerciale à retrouver les <b>villes</b> où habitent ses clients, <b>sans répétition</b>, afin de choisir les lieux des prochaines rencontres."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir qu’une ville est déjà dans la liste ?",
+    blocks:[
+      "Pour chaque client, SQL doit se poser une question :",
+      {ask:"Cette ville est-elle déjà dans la liste ?"},
+      "Si oui, il ne la répète pas. En SQL, on le demande avec <code>DISTINCT</code>, placé juste après <code>SELECT</code> :",
+      {syntax:"SELECT ⟦DISTINCT⟧ ville\nFROM clients;"},
+      {table:{label:"clients",cols:"minmax(0,.9fr) minmax(0,1fr) minmax(0,1.8fr)",head:["prenom","ville","La ville est-elle nouvelle ?"],rows:[["Sophie","Paris","✅ nouvelle → gardée"],["Lucas","Lyon","✅ nouvelle → gardée"],["Emma","Marseille","✅ nouvelle → gardée"],["Nathan","Paris","❌ déjà vue → ignorée"]],hit:[[0,2],[1,2],[2,2]],more:"… et 6 autres clients",test:{cond:"DISTINCT ville",val:1}}},
+      {looks:[["nouvelle","la ville est ajoutée au résultat"],["déjà vue","la ville n’est pas répétée"]],label:"Nouvelle ou déjà vue"}
+    ]
+  },
+  steps:[
+    {h:"Afficher une colonne, avec ses répétitions",blocks:[
+      "Sans <code>DISTINCT</code>, un <code>SELECT</code> affiche une ligne pour chaque ligne de la table, même si la valeur se répète.",
+      {say:"👇 Exécute cette requête pour voir la catégorie de chaque produit :",run:"SELECT categorie\nFROM produits;"},
+      {arrow:"Le résultat contient 8 lignes : <b>Bien-être</b> apparaît 3 fois et <b>Nutrition</b> 2 fois."}
     ]},
-    {k:'avec',label:'DISTINCT',tone:'good',lines:[
-      {tok:"SELECT",txt:"Définit ce qui apparaît dans le résultat."},
-      {tok:"DISTINCT",txt:"Retire les doublons du résultat."},
-      {tok:"ville",plain:1,txt:"La colonne dont tu veux obtenir les valeurs différentes."},
-      {tok:"FROM clients",txt:"Les données viennent de la table clients."}
+    {h:"Retirer les doublons avec DISTINCT",blocks:[
+      "Pour ne garder qu’une fois chaque valeur, ajoute <code>DISTINCT</code> <b>juste après</b> <code>SELECT</code> :",
+      {syntax:"SELECT ⟦DISTINCT⟧ categorie\nFROM produits;"},
+      {looks:[["DISTINCT","retire les doublons du résultat"],["categorie","est la colonne dont on veut les valeurs différentes"]]},
+      {say:"👇 Exécute cette requête pour voir les catégories différentes :",run:"SELECT DISTINCT categorie\nFROM produits;"},
+      {arrow:"Le résultat ne contient plus que 5 lignes : une par catégorie."}
+    ]},
+    {h:"DISTINCT avec plusieurs colonnes",blocks:[
+      "Avec plusieurs colonnes, <code>DISTINCT</code> compare la <b>combinaison</b> des valeurs : une ligne n’est retirée que si elle est identique à une autre sur <b>toutes</b> les colonnes affichées.",
+      {say:"👇 Exécute cette requête pour voir chaque combinaison ville + prénom :",run:"SELECT DISTINCT ville, prenom\nFROM clients;"},
+      {arrow:"Le résultat contient 9 lignes : les deux Nathan de Paris ont la même ville et le même prénom, ils ne forment plus qu’une seule ligne."}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à demander les villes des clients, en retirant les doublons.",
+      {say:"👇 Exécute la requête pour obtenir la liste des villes :",run:"SELECT DISTINCT ville\nFROM clients;"},
+      {done:{
+        label:"De 10 clients à 6 villes différentes",
+        funnel:[
+          {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
+          {step:"DISTINCT ville",s:"ne garde qu’une fois chaque ville"},
+          {n:6,t:"⭐ villes différentes",s:"Paris, Lyon, Marseille, Bordeaux, Toulouse et Nantes",dots:"1110100110",out:true}
+        ],
+        sms:{ico:"📍",h:"Rencontres clients",aria:"Une rencontre est planifiée dans chacune des villes",msg:"Prochaines rencontres : <b>une date par ville</b>, là où vivent nos clients.",people:[["P","Paris","4 clients"],["L","Lyon","2 clients"],["M","Marseille","1 client"],["B","Bordeaux","1 client"],["T","Toulouse","1 client"],["N","Nantes","1 client"]],st:["À planifier","Planification","✓ Planifiée"],plane:"pin",done:"✓ 6 rencontres planifiées"},
+        fill:["DISTINCT","ville","FROM","clients"],
+        ui:{t:"6 villes pour les rencontres",s:"Chaque ville n’apparaît qu’une fois : l’équipe peut planifier les lieux.",n:["SELECT","DISTINCT","FROM"]},
+        rows:6
+      }}
     ]}
   ],
-  exemple:"SELECT DISTINCT ville FROM clients;",
-  attendu:"<b>6 lignes</b> : Paris, Lyon, Marseille, Bordeaux, Toulouse et Nantes. Chaque ville apparaît une seule fois.",
-  retenir:"<code>DISTINCT</code> sert à afficher des valeurs uniques. Dans <code>SELECT DISTINCT ville FROM clients</code>, les 10 clients donnent seulement 6 villes différentes, car Paris et Lyon apparaissent plusieurs fois dans la table. Les doublons sont retirés du résultat, pas de la table.",
-  piege:{lab:"À retenir",t:"DISTINCT avec plusieurs colonnes",
-    p:"<code>DISTINCT</code> ne s’applique pas seulement à <code>ville</code>. Il porte sur la combinaison <code>ville</code> + <code>age</code>, et ne retire une ligne que si les deux valeurs sont identiques à celles d’une autre ligne.",
-    sql:"SELECT DISTINCT ville, age\nFROM clients;",
-    tail:"<div class=\"table-wrap\"><table class=\"concept-table fit-2\"><thead><tr><th>ville</th><th>age</th></tr></thead><tbody><tr><td>Paris</td><td>34</td></tr><tr><td>Paris</td><td>31</td></tr><tr><td>Paris</td><td>38</td></tr><tr><td>Paris</td><td>30</td></tr></tbody></table></div><p>👉 Ces quatre lignes sont conservées : la ville est la même à chaque fois, mais l’âge est différent.</p>"},
-  consigne:"Affiche chaque ville différente où habite au moins un client.",
-  solution:"SELECT DISTINCT ville FROM clients;",
-  indice:"Tu veux afficher la colonne <code>ville</code> sans répétition. Ajoute le mot-clé qui retire les doublons juste après <code>SELECT</code>.",
-  richLesson:true, earlyDemo:true ,
-testeVariants:[
-  {
-    "k": "base",
-    "label": "Exemple",
-    "sql": "SELECT DISTINCT ville FROM clients;"
-  },
-  {
-    "k": "rec_tuple",
-    "label": "Ville + prénom",
-    "sql": "SELECT DISTINCT ville, prenom FROM clients ORDER BY ville, prenom;",
-    "out": "Les prénoms distincts de la même ville restent séparés ; les deux Nathan de Paris forment une seule combinaison.",
-    "expectRows": 9
-  }
-]
-,
-learningCheck:{
-  "question": "Deux clients ont la même ville, mais des prénoms différents. DISTINCT ville, prenom les fusionne-t-il ?",
-  "options": [
-    "Oui",
-    "Seulement avec ORDER BY",
-    "Non"
+  reflex:[
+    {recap:[
+      ["🧹","<code>DISTINCT</code> retire les <b>doublons</b> du résultat.","Il agit sur le résultat, sans modifier la table."],
+      ["📍","Il se place <b>juste après <code>SELECT</code></b> :",null,"SELECT DISTINCT ville"],
+      ["🧩","Avec plusieurs colonnes, il compare la <b>combinaison entière</b> des valeurs :",null,"SELECT DISTINCT ville, prenom"]
+    ],label:"Les trois idées à retenir"}
   ],
-  "answer": 2,
-  "explanation": "DISTINCT porte sur toute la combinaison des colonnes sélectionnées, pas sur ville seulement."
-}
-},
+  anatomie:[{tok:"SELECT",txt:"Définit ce qui apparaît dans le résultat."},{tok:"DISTINCT",txt:"Retire les doublons du résultat."},{tok:"ville",plain:1,txt:"La colonne dont tu veux obtenir les valeurs différentes."},{tok:"FROM clients",txt:"Les données viennent de la table clients."}],
+  exemple:"SELECT DISTINCT categorie FROM produits;",
+  attendu:"<b>5 lignes</b> : Bien-être, Beauté, Nutrition, Boisson et Accessoire. Chaque catégorie apparaît une seule fois.",
+  retenir:"<code>DISTINCT</code> retire les doublons du résultat, pas de la table.<br>Il se place juste après <code>SELECT</code> : <code>SELECT DISTINCT ville FROM clients</code>.<br><br>Avec plusieurs colonnes, il compare la combinaison entière des valeurs.",
+  consigne:"Affiche chaque statut de commande différent.",
+  solution:"SELECT DISTINCT statut FROM commandes;",
+  indice:"Tu veux afficher la colonne <code>statut</code> sans répétition. Ajoute le mot-clé qui retire les doublons juste après <code>SELECT</code>.",
+  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT DISTINCT categorie FROM produits;"},{k:"rec_tuple",label:"Ville + prénom",sql:"SELECT DISTINCT ville, prenom FROM clients ORDER BY ville, prenom;",out:"Les prénoms distincts de la même ville restent séparés ; les deux Nathan de Paris forment une seule combinaison.",expectRows:9}],
+  learningCheck:{question:"Deux clients ont la même ville, mais des prénoms différents. DISTINCT ville, prenom les fusionne-t-il ?",options:["Oui","Seulement avec ORDER BY","Non"],answer:2,explanation:"DISTINCT porte sur toute la combinaison des colonnes sélectionnées, pas sur ville seulement."}
+}),
 guide({ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
   sit:{
     blocks:[
@@ -36737,7 +36745,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1588';
+  const SW_CACHE='requete-2026-10-04-ludique-v1589';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

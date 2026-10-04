@@ -110,12 +110,18 @@ for (const l of lessons) {
     assert.ok(rows.some(r => /is-hit/.test(r[n - 1].cls)) && rows.some(r => !/is-hit/.test(r[n - 1].cls)), `${l.titre} : au moins une ligne vraie et une fausse`);
     const dbt = new SQL.Database(); dbt.run(schema);
     const cols = dbt.exec(`PRAGMA table_info(${table})`)[0].values.map(v => v[1]);
-    for (const r of rows) {
-      const where = head.slice(0, val + 1).map((h, i) => cols.includes(h) ? `${h}=${JSON.stringify(r[i].text).replace(/^"|"$/g, "'")}` : null).filter(Boolean).join(' AND ');
-      assert.ok(dbt.exec(`SELECT COUNT(*) FROM ${table} WHERE ${where}`)[0].values[0][0] >= 1, `${l.titre} : ${r[0].text} (${r[val].text}) existe dans la table ${table}`);
-      const truth = dbt.exec(`SELECT ${cond.replace(new RegExp(`\\b${head[val]}\\b`), `'${r[val].text}'`)}`)[0].values[0][0] === 1;
-      assert.equal(/is-hit/.test(r[n - 1].cls), truth, `${l.titre} : le verdict de ${r[0].text} doit être « ${truth ? 'vraie' : 'fausse'} » pour ${cond}`);
+    /* Tableau « première apparition » (DISTINCT) : une ligne est gardée si sa valeur n'a pas déjà paru plus haut, et ces lignes sont les premières de la table. */
+    const firstSeen = /^DISTINCT\b/.test(cond);
+    if (firstSeen) {
+      const tableRows = dbt.exec(`SELECT ${head.slice(0, val + 1).filter(h => cols.includes(h)).join(', ')} FROM ${table} ORDER BY id`)[0].values.map(v => v.map(String));
+      rows.forEach((r, i) => assert.deepEqual(tableRows[i], r.slice(0, val + 1).map(c => c.text), `${l.titre} : la ligne ${i + 1} du tableau est la ligne ${i + 1} de la table ${table}`));
     }
+    rows.forEach((r, i) => {
+      const where = head.slice(0, val + 1).map((h, k) => cols.includes(h) ? `${h}=${JSON.stringify(r[k].text).replace(/^"|"$/g, "'")}` : null).filter(Boolean).join(' AND ');
+      assert.ok(dbt.exec(`SELECT COUNT(*) FROM ${table} WHERE ${where}`)[0].values[0][0] >= 1, `${l.titre} : ${r[0].text} (${r[val].text}) existe dans la table ${table}`);
+      const truth = firstSeen ? !rows.slice(0, i).some(p => p[val].text === r[val].text) : dbt.exec(`SELECT ${cond.replace(new RegExp(`\\b${head[val]}\\b`), `'${r[val].text}'`)}`)[0].values[0][0] === 1;
+      assert.equal(/is-hit/.test(r[n - 1].cls), truth, `${l.titre} : le verdict de ${r[0].text} doit être « ${truth ? 'vraie' : 'fausse'} » pour ${cond}`);
+    });
     dbt.close(); testedTables++;
     assert.match(body.slice(body.indexOf(blk) + blk.length), /^[^<]*<\/span><button type="button" class="rt-replay">[^<]*<\/button><\/div><\/div>\s*<ul class="win-look is-cmp"[^>]*><li>[\s\S]*?<\/li><li>[\s\S]*?<\/li><\/ul>/, `${l.titre} : les deux cartes vraie / fausse suivent le tableau à tester`);
   }
