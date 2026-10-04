@@ -10799,7 +10799,7 @@ function guideBlock(b){
       :`<span${c==='NULL'?' class="is-null"':hit.has(i+','+j)?' class="is-hit"':''}>${guideFr(c)}</span>`;
     const cells=t.head.map(h=>`<span class="is-h">${guideFr(h)}</span>`).join('')+t.rows.map((r,i)=>r.map((c,j)=>cell(c,i,j)).join('')).join('')+(test?'<i class="rt-bar" aria-hidden="true"></i>':'');
     const card=`<div class="pk-comp ij-t${test?' rt':''}"><p class="ij-tlab">${guideFr(t.label)}${test?`<code class="rt-cond">${guideEsc(test.cond)}</code>`:''}</p><div class="pk-mini${n>2?' is-'+n:' is-2'}"${t.cols?` style="grid-template-columns:${t.cols}"`:''}>${cells}</div>${t.more?`<p class="ij-tmore">${guideFr(t.more)}</p>`:''}</div>`;
-    return test?`<div class="rt-wrap" data-rt-n="${n}" data-rt-val="${test.val}">${card}<div class="rt-foot"><span class="rt-hint">👆 Touche une ligne pour la tester</span><button type="button" class="rt-replay">↻ Rejouer</button></div></div>`:card;
+    return test?`<div class="rt-wrap" data-rt-n="${n}" data-rt-val="${[].concat(test.val).join(',')}">${card}<div class="rt-foot"><span class="rt-hint">👆 Touche une ligne pour la tester</span><button type="button" class="rt-replay">↻ Rejouer</button></div></div>`:card;
   }
   throw new Error('bloc de cours inconnu : '+JSON.stringify(b).slice(0,80));
 }
@@ -10816,10 +10816,11 @@ const GUIDE_ICONS={
   plane:GUIDE_PLANE,
   phone:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>',
   doc:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>',
-  pin:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>'
+  pin:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+  star:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>'
 };
 /* Animation d’envoi : SMS par défaut ; mail:true pour un e-mail ; st = les trois états d’une ligne (ex. appels) ;
-   plane = icône qui glisse sur la ligne (plane, phone, doc, pin) ; more = nombre de personnes non listées (dernière ligne « … et N autres »). */
+   plane = icône qui glisse sur la ligne (plane, phone, doc, pin, star) ; more = nombre de personnes non listées (dernière ligne « … et N autres »). */
 function guideSms(m){
   const rows=m.people.length+(m.more?1:0);
   const st=m.st||['En attente','Envoi','✓ Envoyé'];
@@ -11475,149 +11476,181 @@ guide({ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
   testeVariants:[{k:"base",label:"Exemple",sql:"SELECT * FROM clients WHERE ville = 'Paris';"},{k:"rec_truth",label:"Tester chaque ligne",sql:"SELECT prenom, ville, ville = 'Paris' AS conservee FROM clients;",out:"1 signifie vrai ; 0 signifie faux. Le SELECT ne supprime rien.",expectRows:10}],
   learningCheck:{question:"WHERE ville = 'Paris' supprime-t-il les autres clients de la table ?",options:["Oui, définitivement","Seulement si on valide","Non, il les écarte du résultat"],answer:2,explanation:"Le SELECT lit les données. Une ligne figure dans le résultat si la condition est vraie ; la table reste intacte."}
 }),
-{ id:5, titre:"Comparer des valeurs", résumé:"Filtrer avec =, !=, >, <, >=, <=",
-  situation:"Ton équipe marketing prépare une sélection de produits à mettre en avant dans une campagne.<br><br>Elle souhaite récupérer tous les produits qui coûtent plus de 25 €.<br><br>Jusqu’ici, tu as utilisé <code>=</code> pour rechercher une valeur précise :",
-  situationSql:"WHERE prix = 24.90",
-  situationTail:"Cette condition ne récupère que les produits dont le prix est exactement égal à 24,90 € : Oméga 3.<br><br>Mais cette fois, tu ne connais pas tous les prix à l’avance.<br><br>Tu veux obtenir : « Tous les produits dont le prix dépasse 25 €. »<br><br>Pour cela, <code>=</code> ne suffit plus. Tu dois comparer la valeur de <code>prix</code> avec 25 à l’aide d’un opérateur de comparaison.",
-  problematique:"L’équipe veut identifier tous les produits qui coûtent plus de 25 €. Comment demander à SQL de comparer chaque prix à ce seuil ?",
-    studio:{problem:{eye:"",title:"Les opérateurs de comparaison",
-      body:"<div class=\"pt-syntax\"><pre class=\"cw-syntax\">WHERE prix > 25</pre></div><br><br>Ici, <code>&gt;</code> signifie strictement supérieur à.<br><br>SQL vérifie alors le prix de chaque produit et conserve uniquement ceux pour lesquels la condition <code>prix &gt; 25</code> est vraie.<br><br>SQL propose plusieurs opérateurs de comparaison :",
-      extra:`<div class="agg-reflex"><ul class="agg-list"><li><code>=</code> → égal à</li><li><code>!=</code> → différent de</li><li><code>&gt;</code> → strictement supérieur à</li><li><code>&lt;</code> → strictement inférieur à</li><li><code>&gt;=</code> → supérieur ou égal à</li><li><code>&lt;=</code> → inférieur ou égal à</li></ul></div>`,
-      demo:"SELECT nom, prix\nFROM produits\nWHERE prix > 25;"},
-    why:{eye:"",title:"Comprendre la limite",
-      body:"La condition <code>WHERE prix &gt; 25</code> signifie : garder uniquement les produits dont le prix est supérieur à 25 €. SQL vérifie cette condition pour chaque ligne de la table."},
-    viz:"compare",
-    reflex:{a:{k:"&gt; et &lt;",t:"la valeur limite est <b>exclue</b>"},
-      b:{k:"&gt;= et &lt;=",t:"la valeur limite est <b>incluse</b>"},
-      note:"Le symbole contient <code>=</code> ? Alors la limite est incluse.<br><br>Exemple avec 25 :<br><code>prix &gt; 25</code> → 25 est exclu<br><code>prix &gt;= 25</code> → 25 est inclus"}},
+guide({ id:5, titre:"Comparer des valeurs", résumé:"Filtrer avec =, !=, >, <, >=, <=",
+  sit:{
+    blocks:[
+      "L’équipe marketing prépare <b>une sélection de produits premium</b> à mettre en avant dans une campagne. Elle ne veut présenter que les produits qui coûtent <b>plus de 25 €</b>.",
+      "La table <code>produits</code> contient au total <b>8 produits</b>, avec des prix très différents. Pour construire la sélection, l’équipe souhaite récupérer uniquement :",
+      {need:[["🏷️","Le nom du produit","table produits"],["💶","Son prix","table produits"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>WHERE</code>, SQL sait garder les lignes qui correspondent à <b>une valeur précise</b>, comme <code>ville = 'Paris'</code>.","Or, l’équipe ne connaît pas les prix à l’avance : elle veut tous les produits <b>au-dessus de 25 €</b>, quel que soit leur prix exact."],
+      scene:{h:"🏷️ Produits conservés",cols:"1.7fr 1fr",
+        lanes:[{c:[["h1","nom","t"],["h2","prix","t"]]},
+          {k:"R1",c:[["a1","Fibre Prébiotique"],["a2","29.9"]]},
+          {k:"R2",c:[["b1","Magnésium"],["b2","19.9"]]},
+          {k:"R3",c:[["c1","Collagène Marin"],["c2","39.9"]]},
+          {k:"R4",c:[["d1","Oméga 3"],["d2","24.9"]]},
+          {k:"R5",c:[["e1","Protéine Végétale"],["e2","34.9"]]}],
+        caps:["<b>Notre liste</b> · Elle contient des produits de tous les prix.","<b>Condition</b> · Un produit nous intéresse seulement s’il coûte <b>plus de 25 €</b>.","<b>Résultat</b> · Seuls les produits qui respectent la condition doivent être conservés."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R2","R4"],dim:["R2","R4"],d:2300},{cap:2,fold:["R2","R4"],d:2600}]},
+      then:["Il faut donc <b>comparer chaque prix</b> à 25 : ne garder que les produits dont le prix est supérieur à ce seuil.","C’est exactement le rôle des <b>opérateurs de comparaison</b>, comme <code>&gt;</code>."]
+    },
+    mission:"Aide l’équipe marketing à retrouver le <b>nom</b> et le <b>prix</b> des produits qui coûtent <b>plus de 25 €</b>, afin de préparer la sélection de la campagne."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir quels produits dépassent 25 € ?",
+    blocks:[
+      "Pour chaque produit, SQL doit comparer son prix à un seuil :",
+      {ask:"Est-ce que son prix est supérieur à 25 ?"},
+      "En SQL, cette comparaison s’écrit :",
+      {syntax:"⟦prix > 25⟧"},
+      {table:{label:"produits",cols:"minmax(0,1.5fr) minmax(0,.9fr) minmax(0,1.7fr)",head:["nom","prix","La condition est-elle vraie ?"],rows:[["Fibre Prébiotique","29.9","✅ vraie → gardée"],["Magnésium","19.9","❌ fausse → écartée"],["Collagène Marin","39.9","✅ vraie → gardée"],["Oméga 3","24.9","❌ fausse → écartée"]],hit:[[0,2],[2,2]],more:"… et 4 autres produits",test:{cond:"prix > 25",val:1}}},
+      {looks:[["vraie","la ligne apparaît dans le résultat"],["fausse","la ligne n’apparaît pas"]],label:"Vrai ou faux"}
+    ]
+  },
+  steps:[
+    {h:"Comparer avec >",blocks:[
+      "L’opérateur <code>&gt;</code> compare chaque valeur à un seuil, et ne garde que les lignes <b>strictement supérieures</b> :",
+      {syntax:"SELECT nom, prix\nFROM produits\n⟦WHERE prix > 30⟧;"},
+      {looks:[["WHERE","garde seulement les lignes qui respectent la condition"],["prix > 30","compare le prix de chaque produit à 30"]]},
+      {say:"👇 Exécute cette requête pour voir les produits à plus de 30 € :",run:"SELECT nom, prix\nFROM produits\nWHERE prix > 30;"},
+      {arrow:"Seuls 2 produits sur 8 coûtent plus de 30 €."}
+    ]},
+    {h:"Inclure ou exclure la limite",blocks:[
+      "SQL propose six opérateurs de comparaison :",
+      {table:{label:"Les opérateurs",cols:"minmax(0,.6fr) minmax(0,2fr)",head:["opérateur","signifie"],rows:[["=","égal à"],["!=","différent de"],["&gt;","strictement supérieur à"],["&lt;","strictement inférieur à"],["&gt;=","supérieur ou égal à"],["&lt;=","inférieur ou égal à"]]}},
+      "Avec <code>&gt;</code> et <code>&lt;</code>, la valeur limite est <b>exclue</b>. Avec <code>&gt;=</code> et <code>&lt;=</code>, elle est <b>incluse</b>.",
+      {say:"👇 Exécute cette requête : le Shaker Inox coûte exactement 15 €.",run:"SELECT nom, prix\nFROM produits\nWHERE prix > 15;"},
+      {say:"👇 Exécute-la maintenant avec <code>&gt;=</code> :",run:"SELECT nom, prix\nFROM produits\nWHERE prix >= 15;"},
+      {arrow:"Le Shaker Inox n’apparaît qu’avec <code>&gt;=</code>, car son prix est égal à la limite."}
+    ]},
+    {h:"Comparer un texte",blocks:[
+      "Les opérateurs <code>=</code> et <code>!=</code> comparent aussi du texte. Un <b>nombre</b> s’écrit tel quel, un <b>texte</b> entre guillemets simples :",
+      {syntax:"WHERE prix > ⟦25⟧\nWHERE categorie != ⟦'Nutrition'⟧"},
+      {say:"👇 Exécute cette requête pour exclure une catégorie :",run:"SELECT nom, categorie\nFROM produits\nWHERE categorie != 'Nutrition';"},
+      {arrow:"Les 6 produits qui ne sont pas dans la catégorie « Nutrition » sont conservés."}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis comparer le prix au seuil de 25 €.",
+      {say:"👇 Exécute la requête pour découvrir les produits à mettre en avant :",run:"SELECT nom, prix\nFROM produits\nWHERE prix > 25;"},
+      {done:{
+        label:"De tous les produits aux produits premium",
+        funnel:[
+          {n:8,t:"produits au départ",s:"toute la <code>table produits</code>",dots:"00000000"},
+          {step:"WHERE prix > 25",s:"ne garde que les produits à plus de 25 €"},
+          {n:3,t:"⭐ produits à mettre en avant",s:"Fibre Prébiotique, Collagène Marin et Protéine Végétale",dots:"11000100",out:true}
+        ],
+        sms:{ico:"🛍️",h:"Vitrine de la campagne",aria:"Les trois produits premium sont mis en avant dans la vitrine",msg:"<b>Sélection premium</b><br>Les produits à plus de 25 €",people:[["F","Fibre Prébiotique","29.9"],["C","Collagène Marin","39.9"],["P","Protéine Végétale","34.9"]],st:["En attente","Mise en avant","✓ En vitrine"],plane:"star",done:"✓ 3 produits mis en avant"},
+        fill:["WHERE","prix",">","25"],
+        ui:{t:"3 produits à mettre en avant",s:"Tous coûtent plus de 25 € : la sélection de la campagne est prête.",n:["SELECT","FROM","WHERE",">"]},
+        rows:3
+      }}
+    ]}
+  ],
+  reflex:[
+    {recap:[
+      ["⚖️","Les <b>opérateurs de comparaison</b> comparent une colonne à une valeur :",null,"= != > < >= <="],
+      ["📏","<code>&gt;</code> et <code>&lt;</code> <b>excluent</b> la limite ; <code>&gt;=</code> et <code>&lt;=</code> l’incluent :",null,"prix >= 15"],
+      ["💬","Un nombre s’écrit tel quel, un texte entre <b>guillemets simples</b> :",null,"categorie != 'Nutrition'"]
+    ],label:"Les trois idées à retenir"}
+  ],
   anatomie:[{tok:"SELECT nom, prix",txt:"affiche le nom et le prix"},{tok:"FROM produits",txt:"utilise la table produits"},{tok:"WHERE",txt:"filtre les lignes"},{tok:"prix",plain:1,txt:"la colonne comparée"},{tok:">",plain:1,txt:"signifie « strictement supérieur à »"},{tok:"25",plain:1,txt:"le seuil de comparaison"}],
-  anatFollowTeste:true,
-  anatomieVariants:[
-    {k:'egal',label:'=',lines:[
-      {tok:"SELECT nom, prix",txt:"affiche le nom et le prix"},
-      {tok:"FROM produits",txt:"utilise la table produits"},
-      {tok:"WHERE",txt:"filtre les lignes"},
-      {tok:"categorie",plain:1,txt:"la colonne comparée"},
-      {tok:"=",plain:1,txt:"signifie « exactement égal à »"},
-      {tok:"'Nutrition'",plain:1,txt:"la valeur recherchée, entre guillemets car c’est du texte"}
+  exemple:"SELECT nom, stock FROM produits WHERE stock >= 100;",
+  attendu:"<b>3 lignes</b> : Fibre Prébiotique (120), Magnésium (200) et Vitamine D (150), car leur stock est supérieur ou égal à 100.",
+  retenir:"Les opérateurs de comparaison comparent une colonne à une valeur : <code>=</code>, <code>!=</code>, <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code>.<br><br><code>&gt;</code> et <code>&lt;</code> excluent la limite ; <code>&gt;=</code> et <code>&lt;=</code> l’incluent.<br><br>Un nombre s’écrit tel quel, un texte entre guillemets simples.",
+  consigne:"Affiche le nom et le stock des produits dont le stock est inférieur ou égal à 60.",
+  solution:"SELECT nom, stock FROM produits WHERE stock <= 60;",
+  indice:"Compare la colonne <code>stock</code> à 60 avec l’opérateur « inférieur ou égal à » : la valeur limite doit être incluse.",
+  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT nom, stock FROM produits WHERE stock >= 100;"},{k:"rec_gt",label:">",sql:"SELECT nom, prix FROM produits WHERE prix > 25;"},{k:"rec_ge",label:">=",sql:"SELECT nom, prix FROM produits WHERE prix >= 29.90;"}],
+  learningCheck:{question:"prix > 29.90 garde-t-il le produit à exactement 29,90 € ?",options:["Cela dépend du tri","Non","Oui"],answer:1,explanation:"> exclut l’égalité ; >= l’inclut."}
+}),
+guide({ id:6, titre:"AND", résumé:"Combiner avec AND",
+  sit:{
+    blocks:[
+      "L’équipe marketing prépare <b>une campagne ciblée</b> : elle veut ne contacter que les clients qui remplissent <b>deux critères à la fois</b>. Ils doivent habiter à Paris <b>et</b> avoir plus de 30 ans.",
+      "La table <code>clients</code> contient au total <b>10 clients</b>. Pour préparer la campagne, l’équipe souhaite récupérer uniquement :",
+      {need:[["👤","Le prénom du client","table clients"],["👪","Son nom de famille","table clients"],["📍","Sa ville","table clients"],["🎂","Son âge","table clients"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>WHERE</code>, SQL sait vérifier <b>une</b> condition : par exemple, ne garder que les clients de Paris.","Or, ici, un client n’est ciblé que si <b>deux conditions sont vraies en même temps</b> : il habite à Paris <b>et</b> il a plus de 30 ans."],
+      scene:{h:"🎯 Clients ciblés",cols:"1fr 1.2fr .6fr",
+        lanes:[{c:[["h1","prenom","t"],["h2","ville","t"],["h3","age","t"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","Paris"],["a3","34"]]},
+          {k:"R2",c:[["b1","Lucas"],["b2","Lyon"],["b3","28"]]},
+          {k:"R3",c:[["c1","Emma"],["c2","Marseille"],["c3","45"]]},
+          {k:"R4",c:[["d1","Nathan"],["d2","Paris"],["d3","30"]]},
+          {k:"R5",c:[["e1","Léa"],["e2","Paris"],["e3","38"]]}],
+        caps:["<b>Notre liste</b> · Elle contient des clients de toutes les villes et de tous les âges.","<b>Première condition</b> · Le client doit habiter à <b>Paris</b>.","<b>Deuxième condition</b> · Il doit aussi avoir <b>plus de 30 ans</b>.","<b>Résultat</b> · Seules les lignes qui respectent les deux conditions doivent être conservées."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R2","R3"],dim:["R2","R3"],d:2300},{cap:2,off:["R4"],dim:["R4"],d:2300},{cap:3,fold:["R2","R3","R4"],d:2600}]},
+      then:["Il faut donc indiquer à SQL de vérifier <b>les deux conditions à la fois</b> : un client n’est conservé que si les deux sont vraies.","C’est exactement le rôle de <code>AND</code>."]
+    },
+    mission:"Aide l’équipe marketing à retrouver le <b>prénom</b>, le <b>nom de famille</b>, la <b>ville</b> et l’<b>âge</b> des clients qui habitent à <b>Paris</b> <b>et</b> qui ont <b>plus de 30 ans</b>, afin de préparer la liste des personnes à contacter."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir si les deux conditions sont vraies ?",
+    blocks:[
+      "Pour chaque client, SQL doit vérifier les deux conditions :",
+      {ask:"Habite-t-il à Paris et a-t-il plus de 30 ans ?"},
+      "En SQL, on les relie avec <code>AND</code> :",
+      {syntax:"⟦ville = 'Paris' AND age > 30⟧"},
+      {table:{label:"clients",cols:"minmax(0,.9fr) minmax(0,1fr) minmax(0,.6fr) minmax(0,1.5fr)",head:["prenom","ville","age","Les deux sont-elles vraies ?"],rows:[["Sophie","Paris","34","✅ oui → gardée"],["Lucas","Lyon","28","❌ non → écartée"],["Nathan","Paris","30","❌ non → écartée"],["Léa","Paris","38","✅ oui → gardée"]],hit:[[0,3],[3,3]],more:"… et 6 autres clients",test:{cond:"ville = 'Paris' AND age > 30",val:[1,2]}}},
+      {looks:[["vraie","les deux conditions sont vraies : la ligne apparaît"],["fausse","au moins une est fausse : la ligne n’apparaît pas"]],label:"Vrai ou faux"}
+    ]
+  },
+  steps:[
+    {h:"Une première condition",blocks:[
+      "Tu sais déjà garder les lignes qui respectent <b>une</b> condition :",
+      {say:"👇 Exécute cette requête pour voir les clients parisiens :",run:"SELECT prenom, ville, age\nFROM clients\nWHERE ville = 'Paris';"},
+      {arrow:"4 clients habitent à Paris, mais leurs âges sont très différents."}
     ]},
-    {k:'sup',label:'>',tone:'good',lines:[
-      {tok:"SELECT nom, prix",txt:"affiche le nom et le prix"},
-      {tok:"FROM produits",txt:"utilise la table produits"},
-      {tok:"WHERE",txt:"filtre les lignes"},
-      {tok:"prix",plain:1,txt:"la colonne comparée"},
-      {tok:">",plain:1,txt:"signifie « strictement supérieur à »"},
-      {tok:"25",plain:1,txt:"le seuil de comparaison"}
+    {h:"Ajouter une condition avec AND",blocks:[
+      "Pour exiger une <b>deuxième</b> condition, ajoute <code>AND</code> suivi de cette condition :",
+      {syntax:"SELECT prenom, ville, age\nFROM clients\nWHERE ville = 'Paris'\n  ⟦AND age > 35⟧;"},
+      {looks:[["AND","relie deux conditions : les deux doivent être vraies"],["age > 35","est la deuxième condition à respecter"]]},
+      {say:"👇 Exécute cette requête pour voir les clients parisiens de plus de 35 ans :",run:"SELECT prenom, ville, age\nFROM clients\nWHERE ville = 'Paris'\n  AND age > 35;"},
+      {arrow:"Un seul client respecte les deux conditions : Léa."}
     ]},
-    {k:'supegal',label:'>=',lines:[
-      {tok:"SELECT nom, prix",txt:"affiche le nom et le prix"},
-      {tok:"FROM produits",txt:"utilise la table produits"},
-      {tok:"WHERE",txt:"filtre les lignes"},
-      {tok:"prix",plain:1,txt:"la colonne comparée"},
-      {tok:">=",plain:1,txt:"inclut la valeur exacte du seuil, contrairement à >"},
-      {tok:"29.90",plain:1,txt:"le seuil de comparaison"}
+    {h:"Combiner plus de deux conditions",blocks:[
+      "Tu peux enchaîner autant de conditions que nécessaire avec <code>AND</code>. Une ligne n’est conservée que si <b>toutes</b> sont vraies :",
+      {syntax:"WHERE ville = 'Paris'\n  AND age >= 30\n  ⟦AND age <= 35⟧"},
+      {say:"👇 Exécute cette requête pour voir les clients parisiens de 30 à 35 ans :",run:"SELECT prenom, nom, age\nFROM clients\nWHERE ville = 'Paris'\n  AND age >= 30\n  AND age <= 35;"},
+      {arrow:"Trois clients sont conservés : Sophie et les deux Nathan."}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis relier les deux conditions avec <code>AND</code>.",
+      {say:"👇 Exécute la requête pour découvrir les clients à contacter :",run:"SELECT prenom, nom, ville, age\nFROM clients\nWHERE ville = 'Paris'\n  AND age > 30;"},
+      {done:{
+        label:"De tous les clients aux clients ciblés",
+        funnel:[
+          {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
+          {step:"WHERE ville = 'Paris' AND age > 30",s:"ne garde que les clients qui respectent les deux conditions"},
+          {n:3,t:"⭐ clients à contacter",s:"Sophie Martin, Nathan Petit et Léa Simon",dots:"1001001000",out:true}
+        ],
+        sms:{ico:"🎯",h:"Campagne ciblée",aria:"L’offre est envoyée aux trois clients ciblés",msg:"Bonjour ! 🎁 Une offre exclusive vous attend : elle est réservée à nos clients parisiens.",people:[["S","Sophie Martin","Paris · 34 ans"],["N","Nathan Petit","Paris · 31 ans"],["L","Léa Simon","Paris · 38 ans"]],done:"✓ 3 offres envoyées"},
+        fill:["WHERE","ville","AND","age"],
+        ui:{t:"3 clients à contacter",s:"Tous habitent à Paris et ont plus de 30 ans : la campagne ciblée est prête.",n:["SELECT","FROM","WHERE","AND"]},
+        rows:3
+      }}
     ]}
   ],
-  exemple:"SELECT nom, prix FROM produits WHERE prix > 25;",
-  attendu:"<b>3 lignes sur 8</b> : Fibre Prébiotique à 29,90 €, Collagène Marin à 39,90 € et Protéine Végétale à 34,90 €.",
-  retenir:"<code>&gt;</code> → strictement supérieur à<br><code>&lt;</code> → strictement inférieur à<br><code>&gt;=</code> → supérieur ou égal à<br><code>&lt;=</code> → inférieur ou égal à<br><br>Dans <code>SELECT * FROM produits WHERE prix > 25</code>, seules les 3 lignes dont le prix dépasse 25 € apparaissent.<br><br><code>&gt; 25</code> exclut exactement 25 €, tandis que <code>&gt;= 25</code> l’inclut.",
-  piege:{t:"Écrire un nombre comme du texte",p:"Un nombre s’écrit sans guillemets. Écris <code>prix &gt; 25</code>, et non <code>prix &gt; '25'</code>. Les guillemets sont utilisés pour les valeurs textuelles, comme <code>ville = 'Paris'</code>."},
-  consigne:"Affiche toutes les colonnes des produits dont le prix est strictement supérieur à 25.",
-  solution:"SELECT * FROM produits WHERE prix > 25;",
-  indice:"Filtre sur la colonne <code>prix</code>. Comme la consigne dit strictement supérieur à 25, choisis l'opérateur qui exclut 25 et écris le nombre sans guillemets.",
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-    {k:'egal',label:'= catégorie',sql:"SELECT nom, prix\nFROM produits\nWHERE categorie = 'Nutrition';",out:"L\u2019\u00e9galit\u00e9 teste une valeur pr\u00e9cise : deux produits de cette cat\u00e9gorie."},
-    {k:'sup',label:'>',sql:"SELECT nom, prix\nFROM produits\nWHERE prix > 25;",out:"Trois produits d\u00e9passent 25 \u20ac.",tone:'good'},
-    {k:'supegal',label:'>=',sql:"SELECT nom, prix\nFROM produits\nWHERE prix >= 29.90;",out:"Trois produits : Collag\u00e8ne Marin, Prot\u00e9ine V\u00e9g\u00e9tale et Fibre Pr\u00e9biotique \u2014 29,90 \u20ac est inclus."}
-  ] ,
-learningCheck:{
-  "question": "prix > 29.90 garde-t-il le produit à exactement 29,90 € ?",
-  "options": [
-    "Cela dépend du tri",
-    "Non",
-    "Oui"
+  reflex:[
+    {recap:[
+      ["🔗","<code>AND</code> relie des conditions : une ligne est gardée si <b>toutes</b> sont vraies.","Si une seule est fausse, la ligne est écartée."],
+      ["📍","Il se place entre deux conditions du <code>WHERE</code> :",null,"WHERE ville = 'Paris' AND age > 30"],
+      ["➕","On peut enchaîner <b>autant de conditions</b> qu’il en faut :",null,"AND age >= 30 AND age <= 35"]
+    ],label:"Les trois idées à retenir"}
   ],
-  "answer": 1,
-  "explanation": "> exclut l’égalité ; >= l’inclut. L’onglet « = catégorie » compare une catégorie, pas un prix."
-}
-},
-{ id:6, titre:"AND", résumé:"Combiner avec AND",
-  situation:"Tu prépares une campagne marketing destinée aux clients qui remplissent deux critères : habiter à Paris <b>et</b> avoir plus de 35 ans.<br><br>Tu sais déjà filtrer les clients qui habitent à Paris :",
-  situationSql:"SELECT prenom, ville, age\nFROM clients\nWHERE ville = 'Paris';",
-  situationTail:"Cette condition retourne les 4 clients parisiens : Sophie, les deux Nathan et Léa.<br><br>Mais tous ne correspondent pas à ta cible : tu veux aussi qu’ils aient plus de 35 ans.<br><br>Il faut donc demander à SQL de vérifier deux conditions en même temps.",
-  problematique:"Pour une campagne ciblée, l’équipe cherche les clients qui habitent à Paris et ont plus de 35 ans. Comment imposer ces deux critères en même temps ?",
-    studio:{problem:{eye:"",title:"Combiner deux conditions",
-      body:"<code>AND</code> permet de demander à SQL de vérifier plusieurs conditions en même temps.<br><br>Tu cherches les clients qui habitent à Paris → <code>ville = 'Paris'</code><br>et qui ont plus de 35 ans → <code>age &gt; 35</code><br><br>👉 Pour qu’une ligne soit conservée, les deux conditions doivent être vraies.",
-      extra:`<div class="sit-sql">
-        <p><code>AND</code> est un opérateur logique qui permet de combiner plusieurs conditions, notamment dans une clause <code>WHERE</code>.</p>
-        <p>La règle est simple : toutes les conditions reliées par <code>AND</code> doivent être respectées pour que la ligne soit conservée.</p>
-      </div>`,
-      tail:"Parmi les 4 clients parisiens — Sophie, les deux Nathan et Léa — seule Léa, 38 ans, respecte aussi la condition <code>age &gt; 35</code>."},
-    vs:{bad:{tag:"✕ Avec une seule condition",sql:"SELECT prenom, ville, age FROM clients\nWHERE ville = 'Paris';",out:"4 lignes : Sophie, les deux Nathan et Léa sont retournés, quel que soit leur âge",
-            code:"SELECT prenom, ville, age\nFROM clients\n<span class=\"vs-line bad\">WHERE ville = 'Paris'</span>;"},
-        good:{tag:"✓ Avec AND",sql:"SELECT prenom, ville, age FROM clients\nWHERE ville = 'Paris' AND age > 35;",out:"1 ligne : seule Léa est retournée, car elle respecte les deux conditions",
-            code:"SELECT prenom, ville, age\nFROM clients\n<span class=\"vs-line good\">WHERE ville = 'Paris' AND age &gt; 35</span>;"}},
-    why:{eye:"",title:"Pourquoi une seule ligne ?",
-      body:"Avec <code>AND</code>, chaque ligne doit respecter les deux conditions."},
-    viz:"andor",
-    reflex:{a:{k:"AND",t:"toutes les conditions doivent être vraies"},
-      b:{k:"Effet",t:"chaque <code>AND</code> <b>resserre</b> le résultat"},
-      note:"Avec <code>ville = 'Paris' AND age &gt; 35</code>, SQL conserve uniquement les lignes qui respectent les deux conditions.<br><br>Paris ✓ + plus de 35 ans ✓ → ligne conservée<br>Une seule condition respectée → ligne écartée"}},
-  anatomie:[{tok:"SELECT prenom, ville, age",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE ville = 'Paris'",txt:"première condition"},{tok:"AND",txt:"exige que les deux conditions soient vraies"},{tok:"age > 35",plain:1,txt:"deuxième condition"}],
-  anatomieVariants:[
-    {k:'avant',label:'WHERE',lines:[
-      {tok:"SELECT prenom, ville, age",txt:"Les colonnes affichées dans le résultat."},
-      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
-      {tok:"WHERE ville = 'Paris'",txt:"une seule condition : la ville."}
-    ]},
-    {k:'avec',label:'AND',tone:'good',lines:[
-      {tok:"SELECT prenom, ville, age",txt:"Les colonnes affichées dans le résultat."},
-      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
-      {tok:"WHERE ville = 'Paris'",txt:"première condition"},
-      {tok:"AND",txt:"exige que les deux conditions soient vraies"},
-      {tok:"age > 35",plain:1,txt:"deuxième condition"}
-    ]}
-  ],
-  testeVariants:[
-    {k:'avant',label:'WHERE',sql:"SELECT prenom, ville, age FROM clients\nWHERE ville = 'Paris';",out:"4 lignes : Sophie, Nathan (×2) et Léa"},
-    {k:'avec',label:'AND',sql:"SELECT prenom, ville, age FROM clients\nWHERE ville = 'Paris' AND age > 35;",out:"1 ligne : Léa, 38 ans",tone:'good'}
-  ],
+  anatomie:[{tok:"SELECT prenom, ville, age",txt:"Les colonnes affichées."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"ville = 'Paris'",plain:1,txt:"Première condition : le client habite à Paris."},{tok:"AND",txt:"Relie les deux conditions : elles doivent être vraies ensemble."},{tok:"age > 35",plain:1,txt:"Deuxième condition : le client a plus de 35 ans."}],
   exemple:"SELECT prenom, ville, age FROM clients WHERE ville = 'Paris' AND age > 35;",
   attendu:"<b>1 ligne</b> : Léa, 38 ans, car elle habite à Paris et a plus de 35 ans.",
-  retenir:"<code>AND</code> garde une ligne si toutes les conditions sont vraies.<br><br>Avec <code>ville = 'Paris' AND age &gt; 35</code>, seule Léa respecte les deux conditions.",
-  piege:{t:"Croire qu’on est limité à deux conditions",p:"Tu peux combiner plusieurs conditions avec <code>AND</code>. Une ligne est conservée uniquement si toutes les conditions sont vraies.<br><br>Par exemple, tu veux cibler les clients qui habitent à Paris, ont plus de 35 ans et se sont inscrits après le 1ᵉʳ janvier 2023 :",
-    sql:"SELECT prenom, ville, age\nFROM clients\nWHERE ville = 'Paris'\n  AND age > 35\n  AND date_inscription > '2023-01-01';"},
-  consigne:"Affiche toutes les colonnes des clients qui habitent à Paris et ont plus de 35 ans.",
-  solution:"SELECT * FROM clients WHERE ville = 'Paris' AND age > 35;",
-  indice:"Écris les deux conditions de part et d’autre de <code>AND</code> : <code>ville = 'Paris' AND age &gt; 35</code>.",
-  richLesson:true, earlyDemo:true ,
-testeVariants:[
-  {
-    "k": "base",
-    "label": "Exemple",
-    "sql": "SELECT * FROM clients WHERE ville = 'Paris' AND age > 35;"
-  },
-  {
-    "k": "rec_terms",
-    "label": "Deux conditions",
-    "sql": "SELECT prenom, ville, age, ville = 'Paris' AS paris, age > 35 AS plus_de_35, (ville = 'Paris' AND age > 35) AS conserve FROM clients;",
-    "out": "Lis les deux conditions avant leur combinaison.",
-    "expectRows": 10
-  }
-]
-,
-learningCheck:{
-  "question": "Sophie est à Paris et a 34 ans. Passe-t-elle ville = 'Paris' AND age > 35 ?",
-  "options": [
-    "Non : la seconde condition échoue",
-    "Oui : Paris suffit",
-    "Oui : 34 est proche de 35"
-  ],
-  "answer": 0,
-  "explanation": "AND demande que toutes les conditions soient vraies. Le tableau de contrôle permet de les lire séparément."
-}
-},
+  retenir:"<code>AND</code> garde une ligne si toutes les conditions sont vraies.<br>Si une seule est fausse, la ligne est écartée.<br><br>Il se place entre deux conditions du <code>WHERE</code> : <code>WHERE ville = 'Paris' AND age &gt; 30</code>.<br><br>On peut enchaîner autant de conditions qu’il en faut.",
+  consigne:"Affiche le nom et le prix des produits de la catégorie « Nutrition » dont le prix est supérieur à 20.",
+  solution:"SELECT nom, prix FROM produits WHERE categorie = 'Nutrition' AND prix > 20;",
+  indice:"Écris les deux conditions dans le <code>WHERE</code> et relie-les avec <code>AND</code> : une pour la catégorie, une pour le prix.",
+  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT prenom, ville, age FROM clients WHERE ville = 'Paris' AND age > 35;"},{k:"rec_two",label:"Deux conditions",sql:"SELECT prenom, ville, age, ville = 'Paris' AS paris, age > 35 AS plus_de_35, (ville = 'Paris' AND age > 35) AS conserve FROM clients;",out:"1 signifie vrai ; 0 signifie faux. La ligne n’est conservée que si les deux conditions valent 1.",expectRows:10}],
+  learningCheck:{question:"Sophie est à Paris et a 34 ans. Passe-t-elle ville = 'Paris' AND age > 35 ?",options:["Non : la seconde condition échoue","Oui : Paris suffit","Oui : 34 est proche de 35"],answer:0,explanation:"AND demande que toutes les conditions soient vraies. Ici, 34 n’est pas supérieur à 35."}
+}),
 { id:29, titre:"OR", résumé:"Combiner avec OR",
   situation:"Deux agences — Paris et Lyon — utilisent la même base clients.<br><br>Tu veux récupérer les clients qui habitent à Paris ou à Lyon.<br><br>Tu connais déjà <code>AND</code>, qui exige que toutes les conditions soient respectées. Mais regarde ce qui se passerait ici :",
   situationSql:"SELECT prenom, ville\nFROM clients\nWHERE ville = 'Paris'\n  AND ville = 'Lyon';",
@@ -29473,7 +29506,8 @@ function initRowTest(){
   const scr=document.getElementById('scr-lesson');
   document.querySelectorAll('#lesson-body .rt-wrap').forEach(wrap=>{
     const card=wrap.querySelector('.rt'),grid=card.querySelector('.pk-mini'),bar=grid.querySelector('.rt-bar'),more=card.querySelector('.ij-tmore');
-    const n=+wrap.dataset.rtN||3,val=+wrap.dataset.rtVal||0;
+    /* rtVal : numéro de la colonne comparée, ou plusieurs séparés par des virgules (ex. ville et âge). */
+    const n=+wrap.dataset.rtN||3,vals=String(wrap.dataset.rtVal||'0').split(',').map(Number);
     const cells=[...grid.children].filter(c=>c.tagName==='SPAN');
     const rows=[];
     for(let i=n;i+n<=cells.length;i+=n){const c=cells.slice(i,i+n);rows.push({c,v:c[n-1],ok:c[n-1].classList.contains('is-hit')});}
@@ -29488,10 +29522,10 @@ function initRowTest(){
     const unwatch=()=>{clearTimeout(t0);if(io){io.disconnect();io=null;}};
     /* États d’une ligne : « ? » (à tester), « ••• » (en cours), verdict affiché. */
     const wait=r=>{const o=rows[r];o.v.classList.add('is-pending');o.v.classList.remove('is-testing','is-new');o.c.forEach(x=>x.classList.remove('is-dim','is-cmp'));};
-    const probe=r=>{const o=rows[r];o.v.classList.add('is-pending','is-testing');o.c[val].classList.add('is-cmp');};
+    const probe=r=>{const o=rows[r];o.v.classList.add('is-pending','is-testing');vals.forEach(k=>o.c[k].classList.add('is-cmp'));};
     const show=(r,pop)=>{
       const o=rows[r];
-      o.v.classList.remove('is-pending','is-testing');o.c[val].classList.remove('is-cmp');
+      o.v.classList.remove('is-pending','is-testing');vals.forEach(k=>o.c[k].classList.remove('is-cmp'));
       if(pop){o.v.classList.remove('is-new');void o.v.offsetWidth;o.v.classList.add('is-new');}
       if(!o.ok)o.c.forEach(x=>x.classList.add('is-dim'));
     };
@@ -36745,7 +36779,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1589';
+  const SW_CACHE='requete-2026-10-04-ludique-v1590';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
