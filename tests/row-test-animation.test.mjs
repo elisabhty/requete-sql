@@ -57,8 +57,8 @@ function layout(wrap) {
   grid.offsetHeight = 30 + (cells.length / n - 1) * 40; wrap.find('ij-tmore').offsetHeight = 30;
 }
 
-function setup({ reduce = false } = {}) {
-  const root = parse(markup), wrap = root.find('rt-wrap'); layout(wrap);
+function setup({ reduce = false, val } = {}) {
+  const root = parse(val ? markup.replace(/data-rt-val="[\d,]+"/, `data-rt-val="${val}"`) : markup), wrap = root.find('rt-wrap'); layout(wrap);
   let now = 0, seq = 0, q = [];
   const clock = {
     setT: (f, ms) => { const id = ++seq; q.push({ id, t: now + (ms || 0), f }); return id; },
@@ -116,6 +116,14 @@ test('visible : le balayage teste une ligne après l’autre, la barre et la car
   assert.equal(t.bar.style.transform, 'translateY(70px)'); assert.deepEqual(t.lit(), [false, false]); assert.ok(!t.bar.cls.has('is-ok'));
   t.clock.tick(480);                                      // ligne 2 : fausse
   assert.ok(t.bar.cls.has('is-ko')); assert.deepEqual(t.lit(), [false, true]); assert.ok(t.dim(1), 'une ligne fausse est estompée');
+});
+
+test('plusieurs colonnes comparées (ex. ville et âge) : toutes sont mises en avant pendant le test, puis relâchées', () => {
+  const t = setup({ val: '0,2' }); t.visible();
+  t.clock.tick(400 + 300);
+  assert.ok(t.rows[0][0].cls.has('is-cmp') && t.rows[0][2].cls.has('is-cmp') && !t.rows[0][1].cls.has('is-cmp'), 'les colonnes 0 et 2 sont comparées, pas la colonne 1');
+  t.clock.tick(480);
+  assert.ok(!t.rows[0][0].cls.has('is-cmp') && !t.rows[0][2].cls.has('is-cmp'), 'une fois le verdict affiché, plus rien n’est mis en avant');
 });
 
 test('fin du balayage : la barre passe sur « … et 6 autres clients », puis tout se calme et « Rejouer » apparaît', () => {
