@@ -13076,240 +13076,226 @@ guide({ id:23, titre:"COALESCE", résumé:"Remplacer les valeurs absentes",
 })
 ]},
 { titre:"Agrégats et regroupements", sous:"Calculer, regrouper et agréger", lessons:[
-{ id:14, titre:"COUNT", résumé:"Compter les lignes",
-  situation:"Tu veux savoir combien de clients sont enregistrés dans ta base de données.<br><br>Avec ce que tu connais déjà, tu pourrais afficher tous leurs prénoms :",
-  situationSql:"SELECT prenom\nFROM clients;",
-  situationTail:"Tu obtiens les prénoms des clients enregistrés. Mais ici, ce qui t’intéresse n’est pas de voir la liste : tu veux obtenir directement le nombre total de clients.<br><br>"+fnSpot("Plutôt que de compter les lignes une par une, tu peux utiliser <code>COUNT(*)</code>, une fonction d’agrégation qui permet de connaître directement le nombre de lignes d’une table."),
-    studio:{problem:{title:"",
-      body:"<p><code>COUNT()</code> est une fonction d’agrégation SQL qui permet de compter des lignes ou des valeurs non NULL.</p><p>Son écriture change selon ce que tu veux compter :</p><div class=\"pt-syntax\"><pre class=\"cw-syntax\">COUNT(*)\nCOUNT(expression)\nCOUNT(DISTINCT expression)</pre></div>"},
-    uses:{title:"Les façons de compter.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Compter toutes les lignes</p>
-          <p>Si tu veux savoir combien de clients sont enregistrés au total :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT COUNT(*)
-FROM clients;</pre></div>
-          <p>Résultat : <b>10</b></p>
-          <p><code>*</code> signifie ici que tu comptes toutes les lignes, même si certaines colonnes contiennent <code>NULL</code>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Compter les valeurs renseignées</p>
-          <p>Tu peux aussi demander à SQL de compter les valeurs présentes dans une colonne précise.</p>
-          <p>Par exemple, certains clients n’ont pas renseigné leur e-mail :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT COUNT(email)
-FROM clients;</pre></div>
-          <p><code>COUNT(email)</code> compte uniquement les lignes où <code>email</code> contient une valeur.</p>
-          <p>👉 Les <code>NULL</code> ne sont pas comptés.</p>
-          <p>C’est une différence importante :</p>
-          <div class="table-wrap"><table class="concept-table fit-2 is-stack"><thead><tr><th>Écriture</th><th>SQL compte</th></tr></thead><tbody>
-            <tr><td><code>COUNT(*)</code></td><td>Toutes les lignes</td></tr>
-            <tr><td><code>COUNT(email)</code></td><td>Les e-mails renseignés</td></tr>
-            <tr><td><code>COUNT(DISTINCT ville)</code></td><td>Les villes différentes, sans doublons ni NULL</td></tr>
-          </tbody></table></div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Compter sans les doublons</p>
-          <p>Imaginons maintenant que tu ne veuilles pas connaître le nombre de clients, mais combien de villes différentes sont représentées :</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT COUNT(DISTINCT ville)
-FROM clients;</pre></div>
-          <p>Résultat : <b>6</b></p>
-          <p>Même si plusieurs clients habitent à Paris, Paris n’est compté qu’une seule fois.</p>
-        </div>
-      </div>`},
-    why:{title:"Comment COUNT(*) arrive à 10 ?"},
-    viz:"count",
-    viz2:"countemail",
-    viz2Lead:"Même idée avec <code>COUNT(email)</code> : les valeurs <code>NULL</code> ne sont pas comptées.",
-    reflex:{a:{k:"COUNT(*)",t:"toutes les <b>lignes</b>",s:"→ <code>NULL</code> compris"},
-      b:{k:"COUNT(colonne)",t:"les valeurs <b>renseignées</b>",s:"→ <code>NULL</code> ignorés"},
-      c:{k:"COUNT(DISTINCT colonne)",t:"les valeurs <b>différentes</b>",s:"→ doublons et <code>NULL</code> ignorés"}}},
-  anatomie:[{tok:"SELECT",txt:"Indique ce que le résultat doit afficher."},{tok:"COUNT(*)",txt:"Compte toutes les lignes, même si une colonne est NULL."},{tok:"FROM clients",txt:"Le comptage porte sur la table clients."}],
-  anatFollowTeste:true,
-  anatomieVariants:[
-    {k:"count_star",label:"COUNT(*)",lines:[
-      {tok:"SELECT COUNT(*)",txt:"Compte toutes les lignes, même si une colonne est <code>NULL</code>."},
-      {tok:"FROM clients",txt:"Le comptage porte sur la table clients."}
+guide({ id:14, titre:"COUNT", résumé:"Compter les lignes",
+  sit:{
+    blocks:[
+      "L’équipe relation client prépare <b>le bilan de la base clients</b>. Elle veut en mesurer la taille, vérifier combien de clients ont laissé leur email et savoir dans combien de villes ils habitent.",
+      "La table <code>clients</code> contient une ligne par client, avec notamment son email et sa ville. Pour préparer le bilan, l’équipe souhaite récupérer uniquement :",
+      {need:[["👥","Le nombre de clients","à calculer"],["✉️","Le nombre d’emails renseignés","à calculer"],["📍","Le nombre de villes différentes","à calculer"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>SELECT</code>, SQL sait afficher les clients, avec les colonnes demandées : le résultat contient <b>autant de lignes que de clients</b>.","Or, l’équipe ne veut pas lire cette liste : elle veut en tirer <b>trois nombres</b>. Compter à la main serait long, et la table s’agrandit à chaque nouvelle inscription."],
+      scene:{h:"📋 Extrait de la base clients",cols:"1fr 1.7fr 1fr",
+        lanes:[{k:"H",c:[["","prenom","t"],["","email","t"],["","ville","t"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","sophie@mail.fr"],["a3","Paris"]]},
+          {k:"R2",c:[["b1","Hugo"],["b2","vide","n"],["b3","Lyon"]]},
+          {k:"R3",c:[["c1","Lucas"],["c2","lucas@mail.fr"],["c3","Lyon"]]},
+          {k:"R4",c:[["d1","Inès"],["d2","vide","n"],["d3","Nantes"]]},
+          {k:"R5",c:[["e1","Léa"],["e2","lea@mail.fr"],["e3","Paris"]]},
+          {k:"G",cls:"is-goal",cols:"1fr 1fr 1fr",c:[["","nb_clients","t"],["","nb_emails","t"],["","nb_villes","t"]]},
+          {k:"V",cols:"1fr 1fr 1fr",c:[["g1","?","q"],["g2","?","q"],["g3","?","q"]]}],
+        caps:["<b>Notre liste</b> · Elle contient les clients, avec leur email et leur ville.","<b>Besoin</b> · L’équipe ne veut pas la liste elle-même, mais trois nombres qui la résument.","<b>Résultat</b> · Toutes les lignes se résument en une seule : un nombre de clients, d’emails et de villes."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5"],dim:["H","R1","R2","R3","R4","R5"],on:["V"],d:2300},{cap:2,fold:["H","R1","R2","R3","R4","R5"],text:{g1:"10",g2:"8",g3:"6"},stagger:450,d:3000}]},
+      then:["Il faut donc demander à SQL de <b>compter</b> les lignes lui-même, au lieu de les afficher une à une.","C’est exactement le rôle de <code>COUNT</code>."]
+    },
+    mission:"Aide l’équipe relation client à calculer le <b>nombre de clients</b>, le <b>nombre d’emails renseignés</b> et le <b>nombre de villes différentes</b>, afin de préparer le bilan de la base clients."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir combien il y a de clients ?",
+    blocks:[
+      "Pour compter les clients, SQL n’a pas besoin de lire leurs informations : il lui suffit de savoir <b>combien de lignes</b> il rencontre.",
+      {ask:"Combien de lignes la table contient-elle ?"},
+      "En SQL, on le demande avec la fonction <code>COUNT</code>. L’étoile <code>*</code> signifie « toutes les lignes » :",
+      {syntax:"⟦COUNT(*)⟧"},
+      {scene:{h:"🔢 Un compteur qui avance",cols:"1fr .45fr 1fr .45fr",
+        lanes:[{k:"H",c:[["","prenom","t"],["","","t"],["","prenom","t"],["","","t"]]},
+          {k:"R1",c:[["a1","Sophie"],["n1","1","h"],["a2","Lucas"],["n2","2","h"]]},
+          {k:"R2",c:[["b1","Emma"],["n3","3","h"],["b2","Nathan"],["n4","4","h"]]},
+          {k:"R3",c:[["c1","Chloé"],["n5","5","h"],["c2","Hugo"],["n6","6","h"]]},
+          {k:"R4",c:[["d1","Léa"],["n7","7","h"],["d2","Gabriel"],["n8","8","h"]]},
+          {k:"R5",c:[["e1","Inès"],["n9","9","h"],["e2","Nathan"],["n10","10","h"]]},
+          {k:"G",cls:"is-goal",cols:"1fr 1fr",c:[["","COUNT(*)","t"],["g1","?","q"]]}],
+        caps:["<b>Table clients</b> · SQL parcourt la table, une ligne après l’autre.","<b>COUNT(*)</b> · À chaque ligne rencontrée, il ajoute 1 à son compteur.","<b>Résultat</b> · Après la dernière ligne, le compteur vaut 10 : c’est la valeur affichée."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5"],on:["n1","n2","n3","n4","n5","n6","n7","n8","n9","n10"],show:["n1","n2","n3","n4","n5","n6","n7","n8","n9","n10"],stagger:300,d:3800},{cap:2,off:["n1","n2","n3","n4","n5","n6","n7","n8","n9"],text:{g1:"10"},d:2600}]}}
+    ]
+  },
+  steps:[
+    {h:"Compter toutes les lignes",blocks:[
+      "<code>COUNT</code> est une <b>fonction d’agrégation</b> : elle résume plusieurs lignes en une seule valeur. Avec <code>*</code>, elle prend en compte toutes les lignes de la table :",
+      {syntax:"SELECT ⟦COUNT(*)⟧\nFROM produits;"},
+      {looks:[["COUNT(*)","renvoie le nombre de lignes"],["FROM produits","indique la table dont on compte les lignes"]]},
+      {say:"👇 Exécute cette requête pour compter les produits :",run:"SELECT COUNT(*)\nFROM produits;"},
+      {arrow:"Le résultat tient en une seule ligne : la table compte 8 produits."},
+      {tip:{t:"Compter une partie des lignes",blocks:[
+        "Un <code>WHERE</code> se place comme d’habitude : SQL filtre d’abord les lignes, puis <code>COUNT</code> compte celles qui restent.",
+        {say:"👇 Exécute cette requête pour compter les produits de la catégorie Bien-être :",run:"SELECT COUNT(*)\nFROM produits\nWHERE categorie = 'Bien-être';"},
+        {arrow:"3 produits respectent la condition : <code>COUNT</code> renvoie 3."}
+      ]}}
     ]},
-    {k:"count_email",label:"COUNT(email)",lines:[
-      {tok:"SELECT COUNT(email)",txt:"Compte uniquement les emails renseignés. Les <code>NULL</code> sont ignorés."},
-      {tok:"FROM clients",txt:"Le comptage porte sur la table clients."}
+    {h:"Compter les valeurs renseignées",blocks:[
+      "Pour ne compter que les lignes où une colonne contient une <b>valeur</b>, place cette colonne entre les parenthèses. SQL regarde alors, pour chaque ligne, si cette valeur existe :",
+      {syntax:"SELECT COUNT(⟦email⟧)\nFROM clients;"},
+      {table:{label:"clients",cols:"minmax(0,.9fr) minmax(0,1.5fr) minmax(0,1.3fr)",head:["prenom","email","La ligne est-elle comptée ?"],rows:[["Sophie","sophie@mail.fr","✅ oui → comptée"],["Hugo","NULL","❌ non → ignorée"],["Lucas","lucas@mail.fr","✅ oui → comptée"],["Inès","NULL","❌ non → ignorée"]],hit:[[0,2],[2,2]],more:"… et 6 autres clients",test:{cond:"email IS NOT NULL",val:1}}},
+      {looks:[["oui","l’email existe : la ligne est comptée"],["non","l’email est NULL : la ligne est ignorée"]],label:"Comptée ou ignorée"},
+      {say:"👇 Exécute cette requête pour compter les emails renseignés :",run:"SELECT COUNT(email)\nFROM clients;"},
+      {arrow:"Le résultat est 8 : les deux clients dont l’email est <code>NULL</code> sont ignorés."},
+      {warn:{t:"COUNT(*) ou COUNT(colonne) ?",blocks:[
+        "Pour savoir combien de clients existent, <code>COUNT(email)</code> est donc un mauvais choix : <code>COUNT(*)</code> compte une ligne même si son email est absent.",
+        {say:"👇 Teste par toi-même :",run:"SELECT COUNT(*), COUNT(email)\nFROM clients;"}
+      ]}}
     ]},
-    {k:"count_distinct",label:"DISTINCT",lines:[
-      {tok:"SELECT COUNT(DISTINCT ville)",txt:"Chaque ville n’est comptée qu’une seule fois."},
-      {tok:"FROM clients",txt:"Le comptage porte sur la table clients."}
+    {h:"Compter les valeurs différentes",blocks:[
+      "Pour que chaque valeur ne soit comptée qu’<b>une seule fois</b>, ajoute <code>DISTINCT</code> à l’intérieur de <code>COUNT</code> :",
+      {syntax:"SELECT COUNT(categorie),\n       COUNT(⟦DISTINCT categorie⟧)\nFROM produits;"},
+      {looks:[["COUNT(categorie)","compte la catégorie de chaque produit"],["COUNT(DISTINCT categorie)","compte chaque catégorie une seule fois"]]},
+      {say:"👇 Exécute cette requête pour comparer les deux comptages :",run:"SELECT COUNT(categorie),\n       COUNT(DISTINCT categorie)\nFROM produits;"},
+      {arrow:"Les 8 produits appartiennent à 5 catégories différentes."}
     ]},
-    {k:"count_where",label:"WHERE",lines:[
-      {tok:"SELECT COUNT(*)",txt:"Compte les lignes."},
-      {tok:"FROM clients",txt:"Le comptage porte sur la table clients."},
-      {tok:"WHERE ville = 'Paris'",txt:"Seuls les clients de Paris sont conservés, puis comptés."}
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : placer les trois comptages dans le même <code>SELECT</code>, avec un nom clair pour chacun.",
+      {say:"👇 Exécute la requête pour obtenir le bilan de la base clients :",run:"SELECT COUNT(*) AS nb_clients,\n       COUNT(email) AS nb_emails,\n       COUNT(DISTINCT ville) AS nb_villes\nFROM clients;"},
+      {done:{
+        label:"Des lignes de la table aux trois chiffres du bilan",
+        unit:"free",
+        funnel:[
+          {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
+          {step:"COUNT(*), COUNT(email), COUNT(DISTINCT ville)",s:"résume toutes les lignes en trois nombres"},
+          {n:1,t:"⭐ ligne de résultat",s:"10 clients, 8 emails renseignés et 6 villes",dots:"1",out:true}
+        ],
+        sms:{ico:"📊",h:"Tableau de bord",aria:"Les trois chiffres sont ajoutés au tableau de bord de la base clients",msg:"<b>Bilan de la base clients</b><br>Taille, emails et villes",people:[["C","Clients","10"],["E","Emails renseignés","8"],["V","Villes différentes","6"]],st:["À ajouter","Ajout","✓ Ajouté"],plane:"doc",done:"✓ Bilan complété"},
+        fill:["COUNT(*)","email","DISTINCT","ville"],
+        ui:{t:"3 chiffres pour le bilan",s:"10 clients, dont 8 ont laissé leur email, répartis dans 6 villes : le bilan de la base est prêt.",n:["SELECT","FROM","COUNT()","DISTINCT","AS"]},
+        rows:1
+      }}
     ]}
   ],
-  exemple:"SELECT COUNT(*) FROM clients;",
-  attendu:"<b>1 ligne</b>, 1 valeur : 10. C’est le nombre total de clients.",
-  retenir:"<code>COUNT(*)</code> → toutes les lignes, <code>NULL</code> compris.<br><code>COUNT(colonne)</code> → les valeurs renseignées, <code>NULL</code> ignorés.<br><code>COUNT(DISTINCT colonne)</code> → les valeurs différentes, doublons et <code>NULL</code> ignorés.",
-  piege:{t:"Oublier que COUNT(colonne) ignore les NULL",p:"Dans une table <code>clients</code>, imaginons 10 lignes (10 clients au total). Parmi ces 10 clients, 2 n’ont pas renseigné leur adresse e-mail : la valeur est <code>NULL</code>.<br><br><code>COUNT(*)</code> compte le nombre total de lignes. Il ne se soucie pas du contenu. Résultat : <b>10</b>.<br><br><code>COUNT(email)</code> compte les valeurs non <code>NULL</code> dans la colonne <code>email</code>. Il ignore les 2 clients sans e-mail. Résultat : <b>8</b>."},
-  consigne:"Compte le nombre total de clients dans la table clients.",
-  solution:"SELECT COUNT(*) FROM clients;",
-  indice:"Tu veux compter toutes les lignes : utilise la fonction <code>COUNT</code> avec <code>*</code>.",
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-  {
-    "k": "count_star",
-    "label": "COUNT(*)",
-    "sql": "SELECT COUNT(*)\nFROM clients;",
-    "out": "Combien de clients sont enregistrés au total ?",
-    "expectRows": 1
-  },
-  {
-    "k": "count_email",
-    "label": "COUNT(email)",
-    "sql": "SELECT COUNT(email)\nFROM clients;",
-    "out": "Combien de clients ont renseigné leur e-mail ?",
-    "expectRows": 1
-  },
-  {
-    "k": "count_distinct",
-    "label": "DISTINCT",
-    "sql": "SELECT COUNT(DISTINCT ville)\nFROM clients;",
-    "out": "Combien de villes différentes sont représentées ?",
-    "expectRows": 1
-  },
-  {
-    "k": "count_where",
-    "label": "WHERE",
-    "sql": "SELECT COUNT(*)\nFROM clients\nWHERE ville = 'Paris';",
-    "out": "Combien de clients habitent à Paris ?",
-    "expectRows": 1
-  }
-] ,
-learningCheck:{
-  "question": "Avec dix clients dont deux emails NULL, COUNT(email) vaut combien ?",
-  "options": [
-    "2",
-    "8",
-    "10"
+  reflex:[
+    {recap:[
+      ["🔢","<code>COUNT(*)</code> compte <b>toutes les lignes</b>, même si certaines colonnes contiennent <code>NULL</code>.",null,"COUNT(*)"],
+      ["✉️","<code>COUNT(colonne)</code> ne compte que les valeurs <b>renseignées</b> : les <code>NULL</code> sont ignorés.",null,"COUNT(email)"],
+      ["🧹","<code>COUNT(DISTINCT colonne)</code> compte chaque valeur <b>une seule fois</b>.","Les doublons et les <code>NULL</code> sont ignorés.","COUNT(DISTINCT ville)"]
+    ],label:"Les trois idées à retenir"}
   ],
-  "answer": 1,
-  "explanation": "COUNT(*) compte les dix lignes ; COUNT(email) ignore les deux NULL."
-}
-},
-{ id:16, titre:"GROUP BY", résumé:"Un calcul par groupe",
-  situation:"Tu veux savoir combien de clients habitent dans chaque ville.<br><br>Avec <code>COUNT(*)</code>, tu sais déjà compter tous les clients :",
-  situationSql:"SELECT COUNT(*)\nFROM clients;",
-  situationTail:"Tu obtiens un seul total : <b>10</b>.<br><br>Cette fois, tu ne veux pas un total général. Tu veux un total pour chaque ville : combien de clients à Paris, combien à Lyon, combien à Marseille…<br><br>Pour cela, il faut d’abord regrouper les clients qui habitent dans la même ville, puis les compter.<br><br>"+fnSpot("C’est le rôle de <code>GROUP BY</code> : une clause qui permet de regrouper les lignes ayant la même valeur dans une ou plusieurs colonnes."),
-    studio:{problem:{title:"<code>GROUP BY</code> regroupe les lignes qui ont la même valeur.",
-      body:`<div class="pt-lead">
-        <p>Le rôle principal de <code>GROUP BY</code> est de créer des groupes de lignes qui partagent les mêmes valeurs dans les colonnes spécifiées.</p>
-        <p>Par exemple :</p>
-        <div class="pt-syntax"><pre class="cw-syntax">GROUP BY ville</pre></div>
-        <p>SQL rassemble les lignes qui ont la même ville : Paris ensemble, Lyon ensemble, Marseille ensemble…</p>
-        <p>Une fois les groupes formés, tu peux effectuer un calcul sur chaque groupe avec une fonction d’agrégation :</p>
-        <div class="gb-formula" role="list">
-          <div><code>COUNT()</code> <span>→ compter</span></div>
-          <div><code>SUM()</code> <span>→ additionner</span></div>
-          <div><code>AVG()</code> <span>→ calculer la moyenne</span></div>
-          <div><code>MIN()</code> <span>→ trouver le minimum</span></div>
-          <div><code>MAX()</code> <span>→ trouver le maximum</span></div>
-        </div>
-        <div class="gb-confuse">
-          <p class="pt-syntax-h">À ne pas confondre</p>
-          <div class="memory-rule">
-            <div class="memory-b"><b>GROUP BY</b><span>regroupe les lignes</span></div>
-            <div class="memory-a"><b>ORDER BY</b><span>trie les lignes</span></div>
-          </div>
-        </div>
-      </div>`},
-    why:{title:"Comment <code>GROUP BY</code> transforme les données ?"},
-    viz:"groupby",
-    reflex:{a:{k:"COUNT(*)",t:"un total pour toute la table"},
-      b:{k:"GROUP BY colonne",t:"un groupe par valeur"},
-      c:{k:"COUNT(*) + GROUP BY",t:"un total pour chaque groupe"},
-      extra:`<div class="nf-read gb-savoir">
-        <b>À savoir</b>
-        <p><code>GROUP BY</code> peut s’utiliser avec <code>COUNT()</code> pour compter chaque groupe, mais aussi avec d’autres fonctions d’agrégation comme <code>SUM()</code>, <code>AVG()</code>, <code>MIN()</code> ou <code>MAX()</code>.</p>
-      </div>`}},
-  anatomie:[{tok:"SELECT ville, COUNT(*)",txt:"Affiche la ville et le nombre de clients dans son groupe."},{tok:"FROM clients",txt:"Les données viennent de la table <code>clients</code>."},{tok:"GROUP BY ville",txt:"Rassemble les lignes qui ont la même ville."}],
-  anatFollowTeste:true,
-  anatomieVariants:[
-    {k:"count",label:"COUNT()",lines:[
-      {tok:"SELECT ville, COUNT(*)",txt:"Affiche la ville et le nombre de clients de son groupe."},
-      {tok:"FROM clients",txt:"Les données viennent de la table <code>clients</code>."},
-      {tok:"GROUP BY ville",txt:"Une ville = un groupe = une ligne de résultat."}
+  anatomie:[{tok:"SELECT",txt:"Introduit ce que le résultat doit afficher."},{tok:"COUNT(*)",txt:"Compte toutes les lignes, même si une colonne est NULL."},{tok:"FROM clients",txt:"Le comptage porte sur la table clients."},{tok:"WHERE ville = 'Paris'",plain:1,txt:"Seuls les clients de Paris sont conservés, puis comptés."}],
+  exemple:"SELECT COUNT(*) FROM clients WHERE ville = 'Paris';",
+  attendu:"<b>1 ligne</b>, 1 valeur : 4. Quatre clients habitent à Paris.",
+  retenir:"<code>COUNT(*)</code> compte toutes les lignes, <code>NULL</code> compris.<br><code>COUNT(colonne)</code> compte les valeurs renseignées : les <code>NULL</code> sont ignorés.<br><code>COUNT(DISTINCT colonne)</code> compte les valeurs différentes : doublons et <code>NULL</code> sont ignorés.",
+  consigne:"Affiche le nombre de commandes qui sont rattachées à un client.",
+  solution:"SELECT COUNT(client_id) FROM commandes;",
+  indice:"Une commande sans client a un <code>client_id</code> à <code>NULL</code>. Choisis le comptage qui ignore les valeurs absentes, et place cette colonne entre les parenthèses.",
+  testeVariants:[{k:"count_star",label:"COUNT(*)",sql:"SELECT COUNT(*)\nFROM clients;",out:"Combien de clients sont enregistrés au total ?",expectRows:1},{k:"count_email",label:"COUNT(email)",sql:"SELECT COUNT(email)\nFROM clients;",out:"Combien de clients ont renseigné leur email ?",expectRows:1},{k:"count_distinct",label:"DISTINCT",sql:"SELECT COUNT(DISTINCT ville)\nFROM clients;",out:"Combien de villes différentes sont représentées ?",expectRows:1},{k:"count_where",label:"WHERE",sql:"SELECT COUNT(*)\nFROM clients\nWHERE ville = 'Paris';",out:"Combien de clients habitent à Paris ?",expectRows:1}],
+  learningCheck:{question:"Sur 10 clients, 2 n’ont pas d’email (NULL). Que renvoie COUNT(email) ?",options:["10","8","2"],answer:1,explanation:"COUNT(email) ignore les valeurs NULL : seuls les 8 clients qui ont un email sont comptés. COUNT(*) renverrait 10."}
+}),
+guide({ id:16, titre:"GROUP BY", résumé:"Un calcul par groupe",
+  sit:{
+    blocks:[
+      "L’équipe commerciale veut <b>répartir ses conseillers</b> entre les villes. Plus une ville compte de clients, plus elle doit recevoir de conseillers.",
+      "La table <code>clients</code> contient au total <b>10 clients</b>, répartis dans plusieurs villes. Pour répartir les conseillers, l’équipe souhaite récupérer uniquement :",
+      {need:[["📍","Chaque ville","table clients"],["👥","Son nombre de clients","à calculer"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>COUNT(*)</code>, SQL sait compter les clients, mais il renvoie <b>un seul total</b> pour toute la table.","Or, l’équipe veut <b>un nombre pour chaque ville</b> : combien de clients à Paris, combien à Lyon, combien à Marseille…"],
+      scene:{h:"🏙️ Clients par ville",cols:"1fr 1fr",
+        lanes:[{k:"H",c:[["","prenom","t"],["","ville","t"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","Paris"]]},
+          {k:"R2",c:[["b1","Nathan"],["b2","Paris"]]},
+          {k:"R3",c:[["c1","Léa"],["c2","Paris"]]},
+          {k:"R4",c:[["d1","Inès"],["d2","Nantes"]]},
+          {k:"R5",c:[["e1","Nathan"],["e2","Paris"]]},
+          {k:"G",cls:"is-goal",c:[["g1","Paris : ?","q"],["g2","Nantes : ?","q"]]}],
+        caps:["<b>Notre liste</b> · Elle contient des clients de plusieurs villes, un client par ligne.","<b>Besoin</b> · Il faut un total pour Paris, un autre pour Nantes, et ainsi de suite.","<b>Résultat</b> · Chaque ville affiche le nombre de clients qui y habitent."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5"],dim:["H","R1","R2","R3","R4","R5"],on:["G"],d:2300},{cap:2,fold:["H","R1","R2","R3","R4","R5"],text:{g1:"Paris : 4",g2:"Nantes : 1"},stagger:450,d:3000}]},
+      then:["Il faut donc indiquer à SQL de <b>regrouper les clients par ville</b>, puis de compter chaque groupe.","C’est exactement le rôle de <code>GROUP BY</code>."]
+    },
+    mission:"Aide l’équipe commerciale à calculer le <b>nombre de clients</b> de chaque <b>ville</b>, afin de répartir ses conseillers."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir quelles lignes regrouper ?",
+    blocks:[
+      "Pour former les groupes, SQL compare les lignes entre elles sur une colonne :",
+      {ask:"Quels clients habitent dans la même ville ?"},
+      "En SQL, on indique cette colonne après <code>GROUP BY</code> :",
+      {syntax:"⟦GROUP BY ville⟧"},
+      {scene:{h:"🧺 Des lignes aux groupes",cols:"1fr 1fr",
+        lanes:[{k:"H",c:[["","prenom","t"],["","ville","t"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","Paris"]]},
+          {k:"R2",c:[["b1","Lucas"],["b2","Lyon"]]},
+          {k:"R3",c:[["c1","Nathan"],["c2","Paris"]]},
+          {k:"R4",c:[["d1","Hugo"],["d2","Lyon"]]},
+          {k:"R5",c:[["e1","Léa"],["e2","Paris"]]},
+          {k:"R6",c:[["f1","Nathan"],["f2","Paris"]]},
+          {k:"G",cls:"is-goal",fold:true,c:[["","ville","t"],["","nb_clients","t"]]},
+          {k:"P",fold:true,c:[["p1","Paris"],["p2","?","q"]]},
+          {k:"L",fold:true,c:[["p3","Lyon"],["p4","?","q"]]}],
+        caps:["<b>Table clients</b> · Les clients sont dans l’ordre de la table : les villes sont mélangées.","<b>GROUP BY ville</b> · SQL rassemble les clients qui ont la même ville : un groupe par ville.","<b>COUNT(*)</b> · Il compte ensuite les clients de chaque groupe : 4 à Paris, 2 à Lyon.","<b>Résultat</b> · Chaque groupe devient une seule ligne : une ville et son nombre de clients."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5","R6"],d:1900},{cap:1,order:["R1","R3","R5","R6","R2","R4","G","P","L"],d:3000},{cap:2,off:["R1","R2","R3","R4","R5","R6"],dim:["H","R1","R2","R3","R4","R5","R6"],unfold:["G","P","L"],text:{p2:"4",p4:"2"},stagger:500,d:3000},{cap:3,fold:["H","R1","R2","R3","R4","R5","R6"],d:2600}]}}
+    ]
+  },
+  steps:[
+    {h:"Former un groupe par valeur",blocks:[
+      "<code>GROUP BY</code> se place <b>après</b> <code>FROM</code>, suivi de la colonne qui sert à former les groupes. Chaque groupe devient <b>une seule ligne</b> du résultat :",
+      {syntax:"SELECT statut, COUNT(*)\nFROM commandes\n⟦GROUP BY statut⟧;"},
+      {looks:[["GROUP BY statut","forme un groupe pour chaque statut"],["COUNT(*)","compte les commandes de chaque groupe"]]},
+      {say:"👇 Exécute cette requête pour compter les commandes de chaque statut :",run:"SELECT statut, COUNT(*)\nFROM commandes\nGROUP BY statut;"},
+      {arrow:"Deux statuts, donc deux lignes : 5 commandes en préparation et 11 expédiées."},
+      {tip:{t:"À ne pas confondre avec ORDER BY",blocks:["<code>ORDER BY</code> range les lignes, mais les garde toutes ; <code>GROUP BY</code> les rassemble en une seule ligne par groupe."]}}
     ]},
-    {k:"where",label:"WHERE + GROUP BY",lines:[
-      {tok:"SELECT ville, COUNT(*)",txt:"Affiche la ville et le nombre de clients restants dans son groupe."},
-      {tok:"FROM clients",txt:"Les données viennent de la table <code>clients</code>."},
-      {tok:"WHERE age >= 30",txt:"SQL filtre d’abord les lignes : seuls les clients de 30 ans et plus restent."},
-      {tok:"GROUP BY ville",txt:"Ensuite seulement, il regroupe ce qui reste par ville."}
+    {h:"Calculer autre chose qu’un nombre de lignes",blocks:[
+      "<code>COUNT</code> n’est pas la seule fonction d’agrégation : chacune calcule une valeur pour chaque groupe.",
+      {table:{label:"Les fonctions d’agrégation",cols:"minmax(0,.7fr) minmax(0,1.6fr)",head:["fonction","calcule"],rows:[["COUNT","le nombre de lignes"],["SUM","la somme des valeurs"],["AVG","la moyenne des valeurs"],["MIN","la plus petite valeur"],["MAX","la plus grande valeur"]]}},
+      {say:"👇 Exécute cette requête pour additionner les quantités commandées de chaque produit :",run:"SELECT produit_id, SUM(quantite)\nFROM commandes\nGROUP BY produit_id;"},
+      {arrow:"Une ligne par produit : le produit 1 totalise 10 unités commandées."},
+      {say:"👇 Exécute cette requête pour obtenir plusieurs calculs à la fois :",run:"SELECT ville, MIN(age), MAX(age), AVG(age)\nFROM clients\nGROUP BY ville;"},
+      {arrow:"Pour chaque ville : l’âge du plus jeune client, celui du plus âgé, et l’âge moyen."}
     ]},
-    {k:"multi",label:"GROUP BY ville, age",lines:[
-      {tok:"SELECT ville, age, COUNT(*)",txt:"Affiche la ville, l’âge et le nombre de clients de cette combinaison."},
-      {tok:"FROM clients",txt:"Les données viennent de la table <code>clients</code>."},
-      {tok:"GROUP BY ville, age",txt:"Chaque couple ville + âge forme son propre groupe."}
+    {h:"Afficher les bonnes colonnes",blocks:[
+      "Chaque ligne du résultat représente un <b>groupe</b>. On ne peut donc afficher que deux choses : la colonne qui forme les groupes, ou un calcul sur chaque groupe.",
+      {looks:[["ville","vient du <code>GROUP BY</code> : elle est la même pour tout le groupe"],["COUNT(*)","est un calcul : il donne une valeur par groupe"]]},
+      {warn:{t:"Une colonne ni regroupée ni calculée",blocks:[
+        "Si tu écris :",
+        {syntax:"SELECT prenom, ville, COUNT(*)\nFROM clients\nGROUP BY ville;"},
+        "Les 4 clients de Paris forment un seul groupe, mais ils ne portent pas tous le même prénom : une seule ligne ne peut en afficher qu’un. SQLite en choisit un à ta place, alors que la plupart des autres SGBD refusent la requête.",
+        {say:"👇 Teste par toi-même :",run:"SELECT prenom, ville, COUNT(*)\nFROM clients\nGROUP BY ville;"},
+        {arrow:"Sophie s’affiche pour Paris, comme si elle représentait les 4 clients de la ville."}
+      ]}},
+      {tip:{t:"Et pour voir tous les prénoms ?",blocks:["Il faut une fonction qui les <b>rassemble</b> dans une seule cellule : <code>GROUP_CONCAT</code>, que tu découvriras plus loin dans ce module."]}}
     ]},
-    {k:"sum",label:"SUM()",lines:[
-      {tok:"SELECT produit_id, SUM(quantite)",txt:"Affiche le produit et la quantité totale commandée."},
-      {tok:"FROM commandes",txt:"Cette fois, on lit la table <code>commandes</code>."},
-      {tok:"GROUP BY produit_id",txt:"Un groupe par produit, puis <code>SUM()</code> additionne les quantités."}
-    ]},
-    {k:"avg",label:"AVG()",lines:[
-      {tok:"SELECT ville, AVG(age)",txt:"Affiche la ville et l’âge moyen de ses clients."},
-      {tok:"FROM clients",txt:"Les données viennent de la table <code>clients</code>."},
-      {tok:"GROUP BY ville",txt:"Un groupe par ville, puis <code>AVG()</code> calcule la moyenne."}
-    ]},
-    {k:"order",label:"ORDER BY",lines:[
-      {tok:"SELECT ville, COUNT(*) AS total",txt:"Compte les clients par ville, sous le nom <code>total</code>."},
-      {tok:"FROM clients",txt:"Les données viennent de la table <code>clients</code>."},
-      {tok:"GROUP BY ville",txt:"Forme d’abord les groupes."},
-      {tok:"ORDER BY total DESC",txt:"Trie ensuite le résultat : les villes les plus nombreuses en premier."}
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : choisir la colonne qui forme les groupes et le calcul à faire, indiquer la table, puis regrouper les clients par ville.",
+      {say:"👇 Exécute la requête pour découvrir la répartition des clients :",run:"SELECT ville, COUNT(*) AS nb_clients\nFROM clients\nGROUP BY ville;"},
+      {done:{
+        label:"Des clients aux villes avec leur nombre de clients",
+        funnel:[
+          {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
+          {step:"GROUP BY ville",s:"rassemble les clients qui habitent dans la même ville"},
+          {n:6,t:"groupes formés",s:"un par ville",dots:"000000"},
+          {step:"COUNT(*)",s:"compte les clients de chaque groupe"},
+          {n:6,t:"⭐ villes avec leur nombre de clients",s:"Bordeaux, Lyon, Marseille, Nantes, Paris et Toulouse",dots:"111111",out:true}
+        ],
+        sms:{ico:"🗺️",h:"Répartition des conseillers",aria:"Les conseillers sont répartis entre les six villes selon leur nombre de clients",msg:"<b>Conseillers par ville</b><br>Selon le nombre de clients",people:[["B","Bordeaux","1 client"],["L","Lyon","2 clients"],["M","Marseille","1 client"],["N","Nantes","1 client"],["P","Paris","4 clients"],["T","Toulouse","1 client"]],st:["À affecter","Affectation","✓ Affecté"],plane:"pin",done:"✓ 6 villes couvertes"},
+        fill:["ville","COUNT(*)","GROUP BY","ville"],
+        ui:{t:"6 villes, chacune avec son nombre de clients",s:"Paris en compte 4, Lyon 2 et les quatre autres 1 : l’équipe peut répartir ses conseillers.",n:["SELECT","FROM","GROUP BY","COUNT()","AS"]},
+        rows:6
+      }}
     ]}
   ],
+  reflex:[
+    {recap:[
+      ["🧺","<code>GROUP BY</code> rassemble les lignes qui ont la <b>même valeur</b> : il reste ensuite une ligne par groupe.",null,"GROUP BY ville"],
+      ["🧮","Chaque groupe reçoit un <b>calcul</b> : <code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>MIN</code> ou <code>MAX</code>.",null,"SUM(quantite)"],
+      ["🚫","Dans le <code>SELECT</code>, on n’affiche que la colonne du <code>GROUP BY</code> ou un calcul : pas une colonne quelconque.",null,"SELECT ville, COUNT(*)"]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"SELECT ville, COUNT(*)",txt:"Affiche la ville et le nombre de clients de son groupe."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"GROUP BY",txt:"Rassemble les lignes qui ont la même valeur."},{tok:"ville",plain:1,txt:"La colonne qui forme les groupes : une ville, un groupe, une ligne de résultat."}],
   exemple:"SELECT ville, COUNT(*) FROM clients GROUP BY ville;",
-  attendu:"6 lignes : Paris — 4, Lyon — 2, Marseille — 1, Bordeaux — 1, Toulouse — 1, Nantes — 1.",
-  retenir:"<code>GROUP BY</code> sert à effectuer un calcul par groupe. Dans <code>SELECT ville, COUNT(*) FROM clients GROUP BY ville</code>, SQL rassemble les clients qui habitent dans la même ville, puis les compte. Résultat : une ligne par ville, avec le nombre de clients correspondant.",
-  piege:{t:"Afficher une colonne qui n’est pas dans le <code>GROUP BY</code>",
-    p:"Avec :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">GROUP BY ville</pre></div><br><br>SQL regroupe tous les clients qui habitent dans la même ville.<br><br>Pour Paris, il forme donc un groupe avec :<br><br><div class=\"gb-paris-names\">Sophie · Nathan · Léa · Nathan</div><br><br>Le résultat affiche ensuite une seule ligne pour ce groupe.<br><br>Il peut afficher :<br><br><ul class=\"pt-lead-list\"><li><code>ville</code> → Paris : tous les clients du groupe ont la même ville.</li><li><code>COUNT(*)</code> → 4 : il peut compter les 4 clients du groupe.</li></ul><br><br>Mais il ne peut pas afficher simplement <code>prenom</code> :<br>quel prénom choisir parmi Sophie, Nathan et Léa ?<br><br>👉 C’est pour cela que <code>prenom</code> ne doit pas être dans le <code>SELECT</code> si tu regroupes uniquement par ville.<br><br><b>❌ Incorrect</b>",
-    sql:"SELECT prenom, ville, COUNT(*)\nFROM clients\nGROUP BY ville;",
-    mid:"<b>✅ Correct</b>",
-    fixSql:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville;",
-    tail:`<div class="gb-piege-reflex">
-        <p class="pt-syntax-h">La règle à retenir</p>
-        <p>Quand tu utilises <code>GROUP BY</code>, les éléments affichés dans <code>SELECT</code> doivent correspondre&nbsp;:</p>
-        <ul class="gb-sel-cases">
-          <li><span>→</span> soit à ce qui sert à former les groupes</li>
-          <li><span>→</span> soit à un calcul effectué sur chaque groupe</li>
-        </ul>
-        <p class="gb-sel-caption">Par exemple :</p>
-        <figure class="gb-sel-map" aria-label="ville vient du GROUP BY, COUNT(*) est un calcul">
-          <span class="gb-sel-kw">SELECT</span>
-          <span class="gb-sel-item"><code>ville</code><i aria-hidden="true">└──</i><small>GROUP BY</small></span>
-          <span class="gb-sel-comma">,</span>
-          <span class="gb-sel-item"><code>COUNT(*)</code><i aria-hidden="true">└──</i><small>calcul</small></span>
-        </figure>
-      </div>`},
-  consigne:"Compte le nombre de clients par ville. Affiche la ville et le nombre de clients correspondant.",
-  solution:"SELECT ville, COUNT(*) FROM clients GROUP BY ville;",
-  indice:"Tu connais déjà <code>COUNT(*)</code>. Cette fois, forme un groupe pour chaque valeur de la colonne <code>ville</code>.",
-  richLesson:true, earlyDemo:true, testeSwitch:'cols2',
-  testeVariants:[
-    {k:"count",label:"COUNT()",sql:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville;",out:"1 ville = 1 groupe = 1 résultat."},
-    {k:"where",label:"WHERE + GROUP BY",sql:"SELECT ville, COUNT(*)\nFROM clients\nWHERE age >= 30\nGROUP BY ville;",out:"SQL filtre d’abord les clients, puis les regroupe par ville."},
-    {k:"multi",label:"GROUP BY ville, age",sql:"SELECT ville, age, COUNT(*)\nFROM clients\nGROUP BY ville, age;",out:"Chaque combinaison ville + âge forme son propre groupe."},
-    {k:"sum",label:"SUM()",sql:"SELECT produit_id, SUM(quantite)\nFROM commandes\nGROUP BY produit_id;",out:"La quantité totale commandée pour chaque produit."},
-    {k:"avg",label:"AVG()",sql:"SELECT ville, AVG(age)\nFROM clients\nGROUP BY ville;",out:"L’âge moyen des clients dans chaque ville."},
-    {k:"order",label:"ORDER BY",sql:"SELECT ville, COUNT(*) AS total\nFROM clients\nGROUP BY ville\nORDER BY total DESC;",out:"Les villes avec le plus de clients en premier."}
-  ],
-learningCheck:{
-  "question": "Après GROUP BY ville, que représente chaque ligne du résultat ?",
-  "options": [
-    "Un client inchangé",
-    "Une commande",
-    "Une ville et son agrégat"
-  ],
-  "answer": 2,
-  "explanation": "Dix clients deviennent six groupes de villes. Les colonnes non groupées doivent avoir un sens défini, généralement via un agrégat."
-}
-},
+  attendu:"<b>6 lignes</b> : Bordeaux (1), Lyon (2), Marseille (1), Nantes (1), Paris (4) et Toulouse (1).",
+  retenir:"<code>GROUP BY</code> sert à effectuer un calcul par groupe. Dans <code>SELECT ville, COUNT(*) FROM clients GROUP BY ville</code>, SQL rassemble les clients qui habitent dans la même ville, puis les compte.<br><br>Résultat : une ligne par ville, avec le nombre de clients correspondant. Pour ne garder que certains groupes, on utilise ensuite <code>HAVING</code>.",
+  consigne:"Affiche, pour chaque catégorie, le stock total des produits.",
+  solution:"SELECT categorie, SUM(stock) FROM produits GROUP BY categorie;",
+  indice:"Regroupe les produits par <code>categorie</code>, puis additionne la colonne <code>stock</code> avec la fonction qui calcule une somme.",
+  testeVariants:[{k:"count",label:"COUNT()",sql:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville;",out:"1 ville = 1 groupe = 1 résultat."},{k:"where",label:"WHERE + GROUP BY",sql:"SELECT ville, COUNT(*)\nFROM clients\nWHERE age >= 30\nGROUP BY ville;",out:"SQL filtre d’abord les clients, puis les regroupe par ville."},{k:"multi",label:"GROUP BY ville, age",sql:"SELECT ville, age, COUNT(*)\nFROM clients\nGROUP BY ville, age;",out:"Chaque combinaison ville + âge forme son propre groupe."},{k:"sum",label:"SUM()",sql:"SELECT produit_id, SUM(quantite)\nFROM commandes\nGROUP BY produit_id;",out:"La quantité totale commandée pour chaque produit."},{k:"avg",label:"AVG()",sql:"SELECT ville, AVG(age)\nFROM clients\nGROUP BY ville;",out:"L’âge moyen des clients dans chaque ville."},{k:"order",label:"ORDER BY",sql:"SELECT ville, COUNT(*) AS total\nFROM clients\nGROUP BY ville\nORDER BY total DESC;",out:"Les villes qui comptent le plus de clients en premier."}],
+  learningCheck:{question:"Après GROUP BY ville, que représente chaque ligne du résultat ?",options:["Un client, inchangé","Une commande","Un groupe : une ville et son calcul"],answer:2,explanation:"Les 10 clients deviennent 6 groupes, un par ville. Chaque ligne du résultat représente un groupe, avec le calcul demandé : ici, le nombre de clients."}
+}),
 guide({ id:17, titre:"HAVING", résumé:"Filtrer après regroupement",
   sit:{
     blocks:[
@@ -13403,242 +13389,110 @@ guide({ id:17, titre:"HAVING", résumé:"Filtrer après regroupement",
   testeVariants:[{k:"base",label:"COUNT()",sql:"SELECT ville, COUNT(*)\nFROM clients\nGROUP BY ville\nHAVING COUNT(*) >= 2;"},{k:"rec_avg",label:"AVG()",sql:"SELECT categorie, AVG(prix)\nFROM produits\nGROUP BY categorie\nHAVING AVG(prix) > 25;"},{k:"rec_where",label:"WHERE + HAVING",sql:"SELECT ville, COUNT(*)\nFROM clients\nWHERE age >= 30\nGROUP BY ville\nHAVING COUNT(*) >= 2;"},{k:"rec_and",label:"AND",sql:"SELECT ville, COUNT(*), AVG(age)\nFROM clients\nGROUP BY ville\nHAVING COUNT(*) >= 2\n   AND AVG(age) > 30;"}],
   learningCheck:{question:"Pourquoi l’exemple WHERE COUNT(*) >= 2 échoue-t-il ?",options:["Le seuil est trop petit","Le regroupement n’a pas encore eu lieu","COUNT est interdit dans SQLite"],answer:1,explanation:"WHERE filtre les lignes avant qu’elles soient regroupées : COUNT(*) n’existe pas encore. HAVING filtre ensuite les groupes."}
 }),
-{ id:76, titre:"GROUP_CONCAT", résumé:"Rassembler les textes d’un groupe",
-  situation:"Ton équipe e-commerce prépare le catalogue des produits. Elle veut afficher une ligne par catégorie, avec la liste de tous les produits appartenant à cette catégorie.<br><br>Avec ce que tu connais déjà, tu peux obtenir une ligne par catégorie :",
-  situationSql:"SELECT categorie\nFROM produits\nGROUP BY categorie;",
-  situationTail:"Mais elle n’affiche pas les noms des produits associés à chaque catégorie.<br><br>"+fnSpot(`<p><code>GROUP_CONCAT</code> répond exactement à ce besoin.</p><p>Cette <b>fonction d’agrégation dédiée au texte</b> rassemble plusieurs valeurs d’un même groupe en une seule chaîne de caractères.</p>`),
-  studio:{pointCards:{eye:"GROUP_CONCAT",title:"Regrouper plusieurs textes dans une seule cellule.",
-      lead:"Après avoir formé les groupes avec <code>GROUP BY</code>, <code>GROUP_CONCAT</code> rassemble les valeurs de chaque groupe dans une seule cellule.",
-      chain:[{k:"GROUP BY",v:"forme un groupe par catégorie"},{k:"GROUP_CONCAT",v:"rassemble les noms du groupe"},{k:"Séparateur",v:"sépare les noms dans la cellule"}],
-      after:`<div class="gc-merge" aria-hidden="true">
-        <div class="gc-merge-src">
-          <b>catégorie Bien-être</b>
-          <div class="gc-merge-chips">
-            <span>Fibre Prébiotique</span>
-            <span>Magnésium</span>
-            <span>Oméga 3</span>
-          </div>
-        </div>
-        <div class="gc-merge-arrow" aria-hidden="true">↓</div>
-        <div class="gc-merge-out">
-          <b>une seule cellule</b>
-          <p><i>Fibre Prébiotique</i><em>, </em><i>Magnésium</i><em>, </em><i>Oméga 3</i></p>
-        </div>
-      </div>`},
-    viz:"groupconcat",
-    vizTitle:"Comment GROUP_CONCAT rassemble les noms.",
-    uses:{title:"Agréger du texte.",body:`<div class="pt-lead fn-uses">
-      <div class="fn-use">
-        <p class="pt-syntax-h">La syntaxe</p>
-        <div class="pt-syntax"><pre class="cw-syntax">GROUP_CONCAT(colonne, séparateur)</pre></div>
-        <div class="gc-args">
-          <article>
-            <b>colonne</b>
-            <p>Les valeurs que l’on souhaite regrouper dans une même cellule.</p>
-          </article>
-          <article>
-            <b>séparateur</b>
-            <p>Le caractère ou le texte placé entre chaque valeur regroupée.</p>
-            <p>Ex.&nbsp;: <code>', '</code> pour séparer les valeurs par une virgule et un espace.</p>
-          </article>
-        </div>
-        <p>Par exemple, <code>GROUP_CONCAT(nom, ', ')</code> renvoie, pour la catégorie «&nbsp;Bien-être&nbsp;»&nbsp;:</p>
-        <div class="gc-cell">
-          <b>Bien-être</b>
-          <p><i>Fibre Prébiotique</i><em>, </em><i>Magnésium</i><em>, </em><i>Oméga 3</i></p>
-        </div>
-      </div>
-      <div class="fn-use">
-        <p class="pt-syntax-h">Si une valeur est <code>NULL</code></p>
-        <p>Si une valeur est <code>NULL</code>, elle est simplement ignorée par <code>GROUP_CONCAT</code>.</p>
-        <p>Exemple&nbsp;:</p>
-        <div class="gc-null">
-          <p class="gc-null-lab">Avant</p>
-          <div class="gc-null-row">
-            <span>sophie@mail.fr</span>
-            <span class="is-null">NULL</span>
-            <span>lea@mail.fr</span>
-          </div>
-          <div class="gc-null-arrow" aria-hidden="true">↓</div>
-          <p class="gc-null-lab">Après GROUP_CONCAT</p>
-          <p class="gc-null-out">sophie@mail.fr, lea@mail.fr</p>
-        </div>
-        <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p><p><code>NULL</code> n’apparaît donc pas dans le résultat et n’ajoute pas de séparateur.</p></div>
-      </div>
-      <div class="fn-use">
-        <p class="pt-syntax-h">Le séparateur est optionnel</p>
-        <p>Si tu ne précises rien, les valeurs sont séparées par une virgule, sans espace. Tu peux également définir un séparateur personnalisé. Touche les boutons pour comparer&nbsp;:</p>
-        <div class="gc-sep" data-sep="sp">
-          <div class="gc-sep-tabs" role="tablist" aria-label="Séparateur">
-            <button type="button" class="gc-sep-tab on" role="tab" aria-selected="true" data-sep="sp" onclick="setGcSep(this)"><b>', '</b><span>Avec espace</span></button>
-            <button type="button" class="gc-sep-tab" role="tab" aria-selected="false" data-sep="ns" onclick="setGcSep(this)"><b>','</b><span>Par défaut</span></button>
-            <button type="button" class="gc-sep-tab" role="tab" aria-selected="false" data-sep="sl" onclick="setGcSep(this)"><b>' / '</b><span>Personnalisé</span></button>
-          </div>
-          <div class="gc-sep-pane">
-            <p class="gc-sep-lab">Requête</p>
-            <pre class="gc-sep-sql" data-show="sp">GROUP_CONCAT(nom, ', ')</pre>
-            <pre class="gc-sep-sql" data-show="ns">GROUP_CONCAT(nom)</pre>
-            <pre class="gc-sep-sql" data-show="sl">GROUP_CONCAT(nom, ' / ')</pre>
-            <p class="gc-sep-lab">Résultat</p>
-            <p class="gc-sep-out" data-show="sp"><i>Fibre Prébiotique</i><em>, </em><i>Magnésium</i><em>, </em><i>Oméga 3</i></p>
-            <p class="gc-sep-out" data-show="ns"><i>Fibre Prébiotique</i><em>,</em><i>Magnésium</i><em>,</em><i>Oméga 3</i></p>
-            <p class="gc-sep-out" data-show="sl"><i>Fibre Prébiotique</i><em> / </em><i>Magnésium</i><em> / </em><i>Oméga 3</i></p>
-          </div>
-        </div>
-      </div>
-      <div class="fn-use">
-        <p class="pt-syntax-h">La syntaxe varie selon le SGBD</p>
-        <p>Le nom et la syntaxe de la fonction d’agrégation de texte ne sont pas universels&nbsp;; ils dépendent du SGBD utilisé.</p>
-        <div class="gc-sgbd">
-          <div class="gc-sgbd-fam">
-            <b>GROUP_CONCAT</b>
-            <article class="is-here">
-              <header>SQLite <span class="jr-ici">ce cours</span></header>
-              <pre>GROUP_CONCAT(nom, ', ')</pre>
-            </article>
-            <article>
-              <header>MySQL</header>
-              <pre>GROUP_CONCAT(nom
-<b>SEPARATOR</b> ', ')</pre>
-            </article>
-          </div>
-          <div class="gc-sgbd-fam">
-            <b>STRING_AGG</b>
-            <article>
-              <header>PostgreSQL</header>
-              <pre>STRING_AGG(nom, ', ')</pre>
-            </article>
-            <article>
-              <header>SQL Server</header>
-              <pre>STRING_AGG(nom, ', ')</pre>
-            </article>
-          </div>
-        </div>
-        <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p><p>Le principe reste le même : regrouper plusieurs valeurs d’un groupe dans une seule cellule, mais la fonction utilisée dépend du SGBD.</p></div>
-      </div>
-      <div class="fn-use">
-        <p class="pt-syntax-h">Pour aller plus loin : l’ordre des noms</p>
-        <p>La clause <code>ORDER BY</code> placée en fin de requête trie les catégories (les lignes), mais pas nécessairement les noms à l’intérieur de chaque cellule. Si cet ordre alphabétique interne a son importance, il faut le demander explicitement — et la syntaxe varie selon le SGBD.</p>
-        <div class="gc-order is-split">
-          <article class="is-rows">
-            <b>ORDER BY categorie</b>
-            <div class="gc-order-path" aria-hidden="true">
-              <span>Accessoire</span><i>→</i><span>Beauté</span><i>→</i><span>Bien-être</span><i>→</i><span>…</span>
-            </div>
-          </article>
-          <article class="is-messy">
-            <b>dans la cellule Nutrition</b>
-            <div class="gc-order-chips">
-              <span>Vitamine D</span>
-              <span>Protéine Végétale</span>
-            </div>
-            <p class="gc-order-note">Notez que ce n’est pas trié alphabétiquement.</p>
-          </article>
-        </div>
-        <div class="gc-order-more">
-          <p class="pt-syntax-h">Trier les noms à l’intérieur de chaque cellule</p>
-          <p>On procède en deux étapes&nbsp;: on trie d’abord les noms, puis on les regroupe dans chaque catégorie.</p>
-          <div class="gc-steps">
-            <article>
-              <b><i>1</i> Trier les noms</b>
-              <p>On commence par récupérer les produits et les trier par nom&nbsp;:</p>
-              <pre>SELECT categorie, nom
-FROM produits
-<b>ORDER BY nom</b></pre>
-              <p class="gc-step-lab">On obtient par exemple</p>
-              <div class="gc-step-tbl">
-                <div><span class="is-cat">Nutrition</span><span>Protéine Végétale</span></div>
-                <div><span class="is-cat">Nutrition</span><span>Vitamine D</span></div>
-              </div>
-              <p>Les noms sont maintenant dans le bon ordre. Ils ne sont pas encore regroupés.</p>
-            </article>
-            <article>
-              <b><i>2</i> Regrouper les noms</b>
-              <p>On utilise ensuite ce résultat déjà trié pour regrouper les noms de chaque catégorie avec <code>GROUP_CONCAT</code>&nbsp;:</p>
-              <pre>SELECT categorie,
-  GROUP_CONCAT(nom, ', ')
-    AS produits
-FROM (
-  SELECT categorie, nom
-  FROM produits
-  <b>ORDER BY nom</b>
-)
-GROUP BY categorie
-<b>ORDER BY categorie</b>;</pre>
-              <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p><p>La requête entre parenthèses s’exécute d’abord&nbsp;: elle trie les noms. La requête extérieure les regroupe ensuite.</p></div>
-              <p>Elle transforme donc&nbsp;:</p>
-              <div class="gc-step-tbl">
-                <div><span class="is-cat">Nutrition</span><span>Protéine Végétale</span></div>
-                <div><span class="is-cat">Nutrition</span><span>Vitamine D</span></div>
-              </div>
-              <p class="gc-order-arrow" aria-hidden="true">↓</p>
-              <p class="gc-step-lab">en</p>
-              <div class="gc-cell">
-                <b>Nutrition</b>
-                <p>Protéine Végétale, Vitamine D</p>
-              </div>
-            </article>
-          </div>
-          <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p><p>Le premier <code>ORDER BY nom</code> trie les produits avant leur concaténation, tandis que le dernier <code>ORDER BY categorie</code> trie les lignes du résultat final.</p></div>
-        </div>
-      </div>
-    </div>`},
-    reflex:{extra:`<div class="gc-reflex">
-      <p>Quand tu veux afficher plusieurs valeurs d’un même groupe dans une seule cellule&nbsp;:</p>
-      <ol class="fk-syn-map" aria-label="Plusieurs lignes, une seule cellule, GROUP_CONCAT"><li><b aria-hidden="true">1</b><div><strong>Plusieurs lignes</strong></div></li><li><b aria-hidden="true">2</b><div><strong>Une seule cellule</strong></div></li><li><b aria-hidden="true">3</b><div><code>GROUP_CONCAT</code><span>La fonction qui rassemble les valeurs</span></div></li></ol>
-    </div>`}},
-  anatomie:[
-    {tok:"categorie",txt:"La valeur qui définit chaque groupe."},
-    {tok:"GROUP_CONCAT(nom, ', ')",txt:"Assemble les noms non nuls, séparés par une virgule et une espace."},
-    {tok:"GROUP BY categorie",txt:"Produit une ligne par catégorie."}
+guide({ id:76, titre:"GROUP_CONCAT", résumé:"Rassembler les textes d’un groupe",
+  sit:{
+    blocks:[
+      "L’équipe e-commerce prépare <b>la page des catégories</b> du site. Pour chaque catégorie, elle veut afficher, sur une seule ligne, la liste des produits qu’elle contient.",
+      "La table <code>produits</code> contient au total <b>8 produits</b>, répartis en 5 catégories. Pour construire la page, l’équipe souhaite récupérer uniquement :",
+      {need:[["🗂️","La catégorie","table produits"],["🏷️","La liste de ses produits","à calculer"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>GROUP BY</code>, SQL sait former un groupe par catégorie et calculer <b>un nombre</b> pour chacun : un total, une moyenne…","Or, l’équipe veut afficher les <b>noms</b> des produits de chaque catégorie : ce sont des textes, pas des nombres, et il y en a plusieurs par catégorie."],
+      scene:{h:"🏷️ Produits par catégorie",
+        lanes:[{k:"B",l:"Bien-être",c:[["b1","Fibre Prébiotique"],["b2","Magnésium"],["b3","Oméga 3"]]},
+          {k:"N",l:"Nutrition",c:[["n1","Vitamine D"],["n2","Protéine Végétale"]]},
+          {k:"GB",cls:"is-goal",l:"Bien-être",c:[["g1","?","q"]]},
+          {k:"GN",l:"Nutrition",c:[["g2","?","q"]]}],
+        caps:["<b>Notre liste</b> · Chaque produit occupe sa propre cellule, rangé dans sa catégorie.","<b>Besoin</b> · L’équipe veut une seule ligne par catégorie, avec tous ses produits.","<b>Résultat</b> · Les produits d’une catégorie sont réunis dans une même cellule."],
+        steps:[{cap:0,on:["B","N"],d:1900},{cap:1,off:["B","N"],dim:["B","N"],on:["GB","GN"],d:2300},{cap:2,fold:["B","N"],text:{g1:"Fibre Prébiotique, Magnésium, Oméga 3",g2:"Vitamine D, Protéine Végétale"},stagger:500,d:3000}]},
+      then:["Il faut donc indiquer à SQL de <b>rassembler les noms</b> de chaque groupe en un seul texte.","C’est exactement le rôle de <code>GROUP_CONCAT</code>."]
+    },
+    mission:"Aide l’équipe e-commerce à afficher chaque <b>catégorie</b> avec la <b>liste de ses produits</b>, afin de préparer la page des catégories du site."
+  },
+  concept:{
+    title:"Comment SQL peut-il rassembler plusieurs noms dans une seule cellule ?",
+    blocks:[
+      "Une fois les groupes formés, SQL peut assembler les valeurs de chaque groupe, l’une derrière l’autre, avec un <b>séparateur</b> entre elles :",
+      {ask:"Quel texte placer entre deux noms ?"},
+      "En SQL, on donne à <code>GROUP_CONCAT</code> la colonne à rassembler, puis le séparateur :",
+      {syntax:"⟦GROUP_CONCAT(nom, ', ')⟧"},
+      {scene:{h:"🧵 Un séparateur entre chaque nom",
+        lanes:[{k:"A",l:"Catégorie Bien-être",c:[["a1","Fibre Prébiotique"],["s1",",","h"],["a2","Magnésium"],["s2",",","h"],["a3","Oméga 3"]]},
+          {k:"M",cls:"is-goal",fold:true,l:"Une seule cellule",c:[["m1","Fibre Prébiotique, Magnésium, Oméga 3"]]}],
+        caps:["<b>Groupe Bien-être</b> · SQL a trois noms à rassembler.","<b>GROUP_CONCAT(nom, ', ')</b> · Il place le séparateur entre chaque nom.","<b>Résultat</b> · Les noms et leurs séparateurs forment un seul texte, dans une seule cellule."],
+        steps:[{cap:0,on:["A"],d:1900},{cap:1,off:["A"],show:["s1","s2"],on:["s1","s2"],stagger:500,d:2800},{cap:2,fold:["A"],unfold:["M"],on:["M"],d:2800}]}}
+    ]
+  },
+  steps:[
+    {h:"Rassembler les valeurs d’un groupe",blocks:[
+      "<code>GROUP_CONCAT</code> reçoit la colonne à rassembler, puis le séparateur à placer entre les valeurs. Comme <code>COUNT</code>, c’est une fonction d’agrégation : elle renvoie <b>une valeur par groupe</b>.",
+      {syntax:"SELECT statut,\n       ⟦GROUP_CONCAT(id, ', ')⟧ AS commandes\nFROM commandes\nGROUP BY statut;"},
+      {looks:[["id","la colonne dont on rassemble les valeurs"],["', '","le séparateur placé entre deux valeurs"]]},
+      {say:"👇 Exécute cette requête pour lister les commandes de chaque statut :",run:"SELECT statut,\n       GROUP_CONCAT(id, ', ') AS commandes\nFROM commandes\nGROUP BY statut;"},
+      {arrow:"Une ligne par statut : les numéros des commandes sont réunis dans une seule cellule."},
+      {tip:{t:"Les valeurs NULL",blocks:[
+        "Une valeur <code>NULL</code> est simplement ignorée : elle n’ajoute ni texte, ni séparateur.",
+        {say:"👇 Exécute cette requête pour rassembler les emails des clients de Lyon :",run:"SELECT GROUP_CONCAT(email, ', ') AS emails\nFROM clients\nWHERE ville = 'Lyon';"},
+        {arrow:"Lucas a un email, Hugo n’en a pas : un seul email est rassemblé, sans séparateur en trop."}
+      ]}}
+    ]},
+    {h:"Choisir le séparateur",blocks:[
+      "Le séparateur est <b>facultatif</b>. Sans lui, SQLite place une simple virgule, sans espace, entre les valeurs. Avec lui, tu choisis n’importe quel texte : <code>' / '</code>, <code>' · '</code>…",
+      {syntax:"SELECT statut,\n       GROUP_CONCAT(⟦id⟧) AS commandes\nFROM commandes\nGROUP BY statut;"},
+      {say:"👇 Exécute cette requête pour voir le séparateur par défaut :",run:"SELECT statut,\n       GROUP_CONCAT(id) AS commandes\nFROM commandes\nGROUP BY statut;"},
+      {arrow:"Les numéros sont collés par une virgule, sans espace : <code>12,13,14,15,16</code>."},
+      {tip:{t:"Selon le SGBD",blocks:["Le nom de la fonction change selon le SGBD. PostgreSQL et SQL Server utilisent <code>STRING_AGG(colonne, séparateur)</code> ; MySQL garde <code>GROUP_CONCAT</code>, mais écrit le séparateur après le mot <code>SEPARATOR</code>. Le principe reste le même."]}}
+    ]},
+    {h:"Trier les valeurs dans la cellule",blocks:[
+      "Dans une cellule, les valeurs suivent l’ordre où SQL lit les lignes : rien ne garantit qu’elles soient triées. Pour les ranger, place un <code>ORDER BY</code> <b>à l’intérieur</b> de <code>GROUP_CONCAT</code> (possible depuis SQLite 3.44) :",
+      {syntax:"SELECT categorie,\n       GROUP_CONCAT(nom, ', ' ⟦ORDER BY prix DESC⟧) AS produits\nFROM produits\nGROUP BY categorie;"},
+      {say:"👇 Exécute cette requête pour classer les produits du plus cher au moins cher :",run:"SELECT categorie,\n       GROUP_CONCAT(nom, ', ' ORDER BY prix DESC) AS produits\nFROM produits\nGROUP BY categorie;"},
+      {arrow:"Dans chaque cellule, les produits vont du plus cher au moins cher : en Nutrition, Protéine Végétale arrive avant Vitamine D."},
+      {warn:{t:"ORDER BY à la fin de la requête",blocks:[
+        "Si tu écris :",
+        {syntax:"SELECT categorie,\n       GROUP_CONCAT(nom, ', ') AS produits\nFROM produits\nGROUP BY categorie\nORDER BY categorie DESC;"},
+        "Ce <code>ORDER BY</code> trie les <b>lignes</b> du résultat, c’est-à-dire les catégories. Il ne change pas l’ordre des noms à l’intérieur de chaque cellule.",
+        {say:"👇 Teste par toi-même :",run:"SELECT categorie,\n       GROUP_CONCAT(nom, ', ') AS produits\nFROM produits\nGROUP BY categorie\nORDER BY categorie DESC;"}
+      ]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : former un groupe par catégorie, puis rassembler les noms de ses produits dans une seule cellule.",
+      {say:"👇 Exécute la requête pour obtenir la liste des produits de chaque catégorie :",run:"SELECT categorie,\n       GROUP_CONCAT(nom, ', ') AS produits\nFROM produits\nGROUP BY categorie;"},
+      {done:{
+        label:"Des produits aux catégories avec leur liste de produits",
+        funnel:[
+          {n:8,t:"produits au départ",s:"toute la <code>table produits</code>",dots:"00000000"},
+          {step:"GROUP BY categorie",s:"rassemble les produits d’une même catégorie"},
+          {n:5,t:"groupes formés",s:"un par catégorie",dots:"00000"},
+          {step:"GROUP_CONCAT(nom, ', ')",s:"réunit les noms de chaque groupe dans une cellule"},
+          {n:5,t:"⭐ catégories avec leurs produits",s:"Accessoire, Beauté, Bien-être, Boisson et Nutrition",dots:"11111",out:true}
+        ],
+        sms:{ico:"🏷️",h:"Page des catégories",aria:"Les cinq catégories sont publiées avec la liste de leurs produits",msg:"<b>Nos catégories</b><br>Chacune avec ses produits",people:[["A","Accessoire","1 produit"],["B","Beauté","1 produit"],["B","Bien-être","3 produits"],["B","Boisson","1 produit"],["N","Nutrition","2 produits"]],st:["À publier","Publication","✓ Publiée"],plane:"doc",done:"✓ 5 catégories publiées"},
+        fill:["GROUP_CONCAT","', '","GROUP BY","categorie"],
+        ui:{t:"5 catégories avec leurs produits",s:"Chaque catégorie affiche la liste de ses produits dans une seule cellule : la page peut être publiée.",n:["SELECT","FROM","GROUP BY","GROUP_CONCAT()","AS"]},
+        rows:5
+      }}
+    ]}
   ],
+  reflex:[
+    {recap:[
+      ["🧵","<code>GROUP_CONCAT</code> rassemble les valeurs d’un groupe dans <b>une seule cellule</b>.",null,"GROUP_CONCAT(nom, ', ')"],
+      ["✂️","Le <b>séparateur</b> se place après la colonne : sans lui, SQLite utilise une virgule seule.","Les valeurs <code>NULL</code> sont ignorées.","GROUP_CONCAT(nom)"],
+      ["↕️","L’ordre des valeurs n’est pas garanti : pour les trier, place un <code>ORDER BY</code> <b>dans</b> la fonction.",null,"GROUP_CONCAT(nom, ', ' ORDER BY nom)"]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"SELECT categorie,",txt:"Affiche la colonne qui forme les groupes."},{tok:"GROUP_CONCAT(",txt:"Rassemble les valeurs d’un groupe en un seul texte."},{tok:"nom",plain:1,txt:"La colonne dont on réunit les valeurs."},{tok:"', '",plain:1,txt:"Le séparateur placé entre deux valeurs."},{tok:") AS produits",txt:"Nomme la colonne obtenue."},{tok:"FROM produits",txt:"Les données viennent de la table produits."},{tok:"GROUP BY categorie",txt:"Produit une ligne par catégorie."},{tok:"ORDER BY categorie",txt:"Trie les lignes du résultat, c’est-à-dire les catégories."}],
   exemple:"SELECT categorie,\n       GROUP_CONCAT(nom, ', ') AS produits\nFROM produits\nGROUP BY categorie\nORDER BY categorie;",
-  attendu:"5 lignes : une par catégorie, avec les produits correspondants réunis dans la colonne produits.",
-  retenir:"<code>GROUP_CONCAT(expression, séparateur)</code> assemble les textes non nuls de chaque groupe dans SQLite.<br><br>Il s’utilise souvent avec <code>GROUP BY</code>. PostgreSQL et SQL Server emploient notamment <code>STRING_AGG</code>.<br><br>L’ordre des éléments concaténés n’est pas garanti par l’<code>ORDER BY</code> final : pour les trier, il faut les ordonner avant de les regrouper.",
-  consigne:"Affiche une ligne par ville, avec les prénoms des clients de cette ville réunis dans une colonne <code>clients</code> et séparés par <code>' · '</code>. Trie les villes.",
+  attendu:"<b>5 lignes</b> : une par catégorie, avec les produits correspondants réunis dans la colonne <code>produits</code>.",
+  retenir:"<code>GROUP_CONCAT(expression, séparateur)</code> assemble les textes non nuls de chaque groupe dans SQLite.<br><br>Il s’utilise avec <code>GROUP BY</code>. PostgreSQL et SQL Server emploient <code>STRING_AGG</code> à la place.<br><br>L’ordre des valeurs n’est pas garanti : le <code>ORDER BY</code> final trie les lignes, pas le contenu d’une cellule. Pour trier les valeurs, place un <code>ORDER BY</code> à l’intérieur de la fonction.",
+  consigne:"Affiche une ligne par ville, avec les prénoms de ses clients réunis dans une colonne <code>clients</code>, séparés par <code>' · '</code>. Trie les villes par ordre alphabétique.",
   solution:"SELECT ville,\n       GROUP_CONCAT(prenom, ' · ') AS clients\nFROM clients\nGROUP BY ville\nORDER BY ville;",
-  indice:"Regroupe par <code>ville</code>, puis applique <code>GROUP_CONCAT</code> à <code>nom</code> avec le séparateur demandé.",
-  richLesson:true, earlyDemo:true,
-  petitDefi:[{p:"Quelle fonction SQLite rassemble plusieurs textes d’un groupe ?",sql:"SELECT __________(prenom, ', ') FROM clients;",a:"GROUP_CONCAT",answers:["GROUP_CONCAT","group_concat","GROUP_CONCAT()"]}],
-  testeVariants:[
-  {
-    "k": "count",
-    "label": "COUNT",
-    "sql": "SELECT categorie, COUNT(*) FROM produits GROUP BY categorie;",
-    "out": "Une quantité par catégorie."
-  },
-  {
-    "k": "concat",
-    "label": "GROUP_CONCAT",
-    "sql": "SELECT categorie,\n       GROUP_CONCAT(nom, ', ') AS produits\nFROM produits\nGROUP BY categorie\nORDER BY categorie;",
-    "out": "Une liste de noms par catégorie.",
-    "tone": "good"
-  },
-  {
-    "k": "null",
-    "label": "NULL ignoré",
-    "sql": "SELECT GROUP_CONCAT(email, ', ') AS emails FROM clients;",
-    "out": "Les adresses absentes ne produisent pas le texte NULL."
-  },
-  {
-    "k": "rec_names",
-    "label": "Noms ordonnés",
-    "sql": "SELECT categorie,\n       GROUP_CONCAT(nom, ', ')\n         AS produits\nFROM (\n    SELECT categorie, nom\n    FROM produits\n    ORDER BY nom\n)\nGROUP BY categorie\nORDER BY categorie;",
-    "out": "Les noms sont triés avant d’être rassemblés.",
-    "expectRows": 5
-  }
-] ,
-learningCheck:{
-  "question": "ORDER BY ville trie-t-il aussi les noms à l’intérieur de GROUP_CONCAT ?",
-  "options": [
-    "Oui",
-    "Seulement par ordre inverse",
-    "Non"
-  ],
-  "answer": 2,
-  "explanation": "Le tri des lignes finales et celui des valeurs concaténées sont deux choix différents. Pour trier les noms à l’intérieur, il faut les ordonner avant de les regrouper."
-}
-}
+  indice:"Regroupe les clients par <code>ville</code>, puis applique <code>GROUP_CONCAT</code> à <code>prenom</code> avec le séparateur demandé. Termine par un <code>ORDER BY</code> sur la ville.",
+  ordered:true,
+  petitDefi:[{p:"Complète pour rassembler les prénoms des clients dans une seule cellule.",sql:"SELECT __________(prenom, ', ') FROM clients;",a:"GROUP_CONCAT",answers:["GROUP_CONCAT","group_concat","GROUP_CONCAT()"]}],
+  testeVariants:[{k:"count",label:"COUNT",sql:"SELECT categorie, COUNT(*) FROM produits GROUP BY categorie;",out:"Une quantité par catégorie."},{k:"concat",label:"GROUP_CONCAT",sql:"SELECT categorie,\n       GROUP_CONCAT(nom, ', ') AS produits\nFROM produits\nGROUP BY categorie\nORDER BY categorie;",out:"Une liste de noms par catégorie.",tone:"good"},{k:"null",label:"NULL ignoré",sql:"SELECT GROUP_CONCAT(email, ', ') AS emails FROM clients;",out:"Les adresses absentes ne produisent pas le texte NULL."},{k:"rec_inline",label:"Tri dans la fonction",sql:"SELECT categorie,\n       GROUP_CONCAT(nom, ', ' ORDER BY nom) AS produits\nFROM produits\nGROUP BY categorie;",out:"Les noms sont triés à l’intérieur de chaque cellule.",expectRows:5},{k:"rec_names",label:"Noms ordonnés",sql:"SELECT categorie,\n       GROUP_CONCAT(nom, ', ')\n         AS produits\nFROM (\n    SELECT categorie, nom\n    FROM produits\n    ORDER BY nom\n)\nGROUP BY categorie\nORDER BY categorie;",out:"Les noms sont triés avant d’être rassemblés.",expectRows:5}],
+  learningCheck:{question:"Un ORDER BY placé à la fin de la requête trie-t-il aussi les noms à l’intérieur de chaque cellule GROUP_CONCAT ?",options:["Oui, toujours","Seulement dans l’ordre inverse","Non : il ne trie que les lignes"],answer:2,explanation:"Le ORDER BY final range les lignes du résultat. Pour trier les valeurs d’une cellule, il faut placer un ORDER BY à l’intérieur de GROUP_CONCAT."}
+})
 ]},
 { titre:"Clés et relations", sous:"Identifier une ligne, relier deux tables", lessons:[
 { id:34, titre:"Clé primaire", résumé:"Identifier une ligne sans ambiguïté",
@@ -36481,7 +36335,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1595';
+  const SW_CACHE='requete-2026-10-04-ludique-v1596';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
