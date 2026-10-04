@@ -10862,152 +10862,98 @@ function guide(spec){
    ============================================================ */
 const MODULES = [
 { titre:"Introduction", sous:"Bases de données, tables et relations", lessons:[
-{ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, colonnes, lignes et liens",
-  situation:"Tu gères <b>NutriBoost</b>, une boutique en ligne de compléments alimentaires et de nutrition sportive.<br><br>Chaque jour, des clients s’inscrivent, consultent ton catalogue et passent des commandes.<br><br>Pour piloter ton activité sans mélanger les données, tu organises l’information en trois tables dédiées :<br><br><figure class=\"ecom-shot\"><img src=\"assets/nutriboost-accueil.png\" alt=\"La page d’accueil de NutriBoost : recherche, catégories et meilleures ventes\" loading=\"lazy\"><figcaption>NutriBoost, la boutique dont tu vas lire la base de données.</figcaption></figure><br><br><ul class=\"sit-roles\"><li><code>clients</code><span>Qui sont tes acheteurs ?</span></li><li><code>produits</code><span>Quels produits vends-tu ?</span></li><li><code>commandes</code><span>Qui a commandé quel produit, et en quelle quantité ?</span></li></ul>Ces tables sont ensuite <b>reliées entre elles par des identifiants</b> : c’est le principe même d’une <b>base de données relationnelle</b>.",
-  situationTail:"<figure class=\"rel-link\" aria-label=\"Schéma relationnel de la boutique NutriBoost\"><div class=\"rel-link-row\"><section class=\"rel-card\" data-rel=\"clients\"><h3>clients</h3><ul><li class=\"is-key\"><span class=\"key-pill\">PK</span>id</li><li>prenom</li><li>ville</li></ul></section><span class=\"rel-arrow\" aria-hidden=\"true\">→</span><section class=\"rel-card is-hub\"><h3>commandes</h3><ul><li class=\"is-key\"><span class=\"key-pill\">PK</span>id</li><li class=\"is-fk\" data-fk=\"clients\"><span class=\"key-pill\">FK</span>client_id</li><li class=\"is-fk\" data-fk=\"produits\"><span class=\"key-pill\">FK</span>produit_id</li><li>quantite</li></ul></section><span class=\"rel-arrow\" aria-hidden=\"true\">←</span><section class=\"rel-card\" data-rel=\"produits\"><h3>produits</h3><ul><li class=\"is-key\"><span class=\"key-pill\">PK</span>id</li><li>nom</li><li>prix</li></ul></section></div><figcaption>Les clés étrangères (<code>FK</code>) relient chaque commande à un client et à un produit. Touche une clé <code>FK</code> : la clé primaire qu’elle désigne s’illumine.</figcaption></figure>",
-  problematique:"Comment organiser les informations de la boutique — clients, produits et commandes — sans tout mélanger, tout en conservant les liens entre elles ?",
-    studio:{pointCards:{
-      eye:"Modèle relationnel",title:"3 piliers : Tables, Colonnes, Lignes",
-      lead:"<p>Une base de données relationnelle stocke chaque sujet dans une <b>table</b> distincte.</p><p>Les tables sont découpées en <b>colonnes</b> (caractéristiques) et composées de <b>lignes</b> (enregistrements).</p><p>Elles sont ensuite <b>reliées entre elles</b> grâce à des identifiants communs (les clés).</p>",
-      chain:[
-        {k:"Table",v:"Le sujet métier",ex:"<b>clients</b>, <b>produits</b>, <b>commandes</b>"},
-        {k:"Colonne",v:"Une caractéristique typée",ex:"<b>nom (TEXT)</b>, <b>prix (REAL)</b>"},
-        {k:"Ligne",v:"Un enregistrement concret",ex:"<b>1 · Sophie · Paris · 34 ans</b>"}
-      ],
-      after:`<figure class="anat-zoom" aria-label="Anatomie animée d'une table SQL : la surbrillance balaie les colonnes, puis une ligne, puis une cellule">
-        <div class="anat-zoom-root"><b>TABLE</b> <code>clients</code> <i>(sujet : tes acheteurs)</i></div>
-        <div class="anat-grid">
-          <div class="anat-row anat-head">
-            <span class="anat-c">id<i class="type-pill t-int">INTEGER</i></span>
-            <span class="anat-c">prenom<i class="type-pill t-text">TEXT</i></span>
-            <span class="anat-c">ville<i class="type-pill t-text">TEXT</i></span>
-          </div>
-          <div class="anat-row anat-r1">
-            <span class="anat-c">1</span><span class="anat-c anat-cell-star">Sophie</span><span class="anat-c">Paris</span>
-          </div>
-          <div class="anat-row">
-            <span class="anat-c">2</span><span class="anat-c">Lucas</span><span class="anat-c">Lyon</span>
-          </div>
-        </div>
-        <div class="anat-legend">
-          <span class="anat-leg leg-col"><i aria-hidden="true">▮</i>Colonnes<small>verticales · typées</small></span>
-          <span class="anat-leg leg-row"><i aria-hidden="true">▬</i>Ligne<small>horizontale · un client</small></span>
-          <span class="anat-leg leg-cell"><i aria-hidden="true">●</i>Cellule<small>une valeur : « Sophie »</small></span>
-        </div>
-      </figure>`},
-    uses:{title:"Aller plus loin en 4 schémas",
-      body:`<div class="rel-tabs"><div class="rel-tabs-list" role="tablist" aria-label="Les quatre schémas"><button type="button" role="tab" id="rel-tab-0" aria-controls="rel-pane-0" aria-selected="true"><b aria-hidden="true">1</b><span>Table</span></button><button type="button" role="tab" id="rel-tab-1" aria-controls="rel-pane-1" aria-selected="false" tabindex="-1"><b aria-hidden="true">2</b><span>Clés</span></button><button type="button" role="tab" id="rel-tab-2" aria-controls="rel-pane-2" aria-selected="false" tabindex="-1"><b aria-hidden="true">3</b><span>Vocabulaire</span></button><button type="button" role="tab" id="rel-tab-3" aria-controls="rel-pane-3" aria-selected="false" tabindex="-1"><b aria-hidden="true">4</b><span>SGBD</span></button></div>
-        <div class="rel-pane" role="tabpanel" id="rel-pane-0" aria-labelledby="rel-tab-0"><div class="fn-use-body">
-          <p>Une table est une grille structurée : les <b>colonnes</b> définissent les caractéristiques, les <b>lignes</b> contiennent les éléments enregistrés.</p>
-          <div class="mini-grid"><div class="h"><span>id</span><span>prenom</span><span>ville</span></div>
-            <div><span>1</span><span>Sophie</span><span>Paris</span></div>
-            <div><span>2</span><span>Lucas</span><span>Lyon</span></div>
-            <div class="more" aria-hidden="true"><span>…</span></div></div>
-          <div class="rel-lab">
-            <i><b>Colonnes</b><span>Les champs définis avec leur type (<code>id</code> INTEGER, <code>prenom</code> TEXT, <code>ville</code> TEXT)</span></i>
-            <i><b>Lignes</b><span>Chaque client unique de la boutique (Sophie, Lucas…)</span></i>
-            <i><b>Cellule</b><span>La valeur située à l’intersection d’une ligne et d’une colonne</span></i>
-          </div>
-        </div></div>
-        <div class="rel-pane" role="tabpanel" id="rel-pane-1" aria-labelledby="rel-tab-1" hidden><div class="fn-use-body">
-          <p>Pour faire le lien entre les tables sans recopier de texte, on utilise des <b>identifiants numériques</b> :</p>
-          <div class="key-flow" role="img" aria-label="Liaison entre commandes, clients et produits">
-            <div class="key-flow-row">
-              <span class="key-chip"><b>commandes.client_id</b><i>vaut 1</i></span>
-              <span class="key-flow-arr">pointe vers</span>
-              <span class="key-chip is-pk"><b>clients.id</b><i>1 → Sophie (Paris)</i></span>
-            </div>
-            <div class="key-flow-row">
-              <span class="key-chip"><b>commandes.produit_id</b><i>vaut 3</i></span>
-              <span class="key-flow-arr">pointe vers</span>
-              <span class="key-chip is-pk"><b>produits.id</b><i>3 → Magnésium (19,90 €)</i></span>
-            </div>
-          </div>
-          <div class="rel-lab">
-            <i><b>Clé primaire (PK)</b><span>L’identifiant unique d’une ligne dans sa propre table (ex : <code>clients.id</code>).</span></i>
-            <i><b>Clé étrangère (FK)</b><span>Une colonne qui référence la clé primaire d’une autre table (ex : <code>commandes.client_id</code>).</span></i>
-          </div>
-        </div></div>
-        <div class="rel-pane" role="tabpanel" id="rel-pane-2" aria-labelledby="rel-tab-2" hidden><div class="fn-use-body">
-          <p>Le langage SQL et la théorie relationnelle emploient des termes équivalents :</p>
-          <div class="table-wrap"><table class="concept-table vocab-table">
-            <thead><tr><th>Terme courant</th><th>Terme formel</th><th>Dans notre boutique</th></tr></thead>
-            <tbody>
-              <tr><td><b>Table</b></td><td>Relation</td><td><code>clients</code>, <code>produits</code></td></tr>
-              <tr><td><b>Colonne</b></td><td>Attribut / Champ</td><td><code>nom</code>, <code>prix</code>, <code>ville</code></td></tr>
-              <tr><td><b>Ligne</b></td><td>Tuple / Enregistrement</td><td>Sophie, 34 ans, Paris</td></tr>
-              <tr><td><b>Clé primaire</b></td><td>Identifiant unique (PK)</td><td><code>clients.id = 1</code></td></tr>
-              <tr><td><b>Clé étrangère</b></td><td>Référence externe (FK)</td><td><code>commandes.client_id</code></td></tr>
-            </tbody>
-          </table></div>
-        </div></div>
-        <div class="rel-pane" role="tabpanel" id="rel-pane-3" aria-labelledby="rel-tab-3" hidden><div class="fn-use-body">
-          <p>Pour interroger ces tables, tu écris des requêtes en langage <b>SQL</b> transmises à un moteur appelé <b>SGBD</b> (Système de Gestion de Base de Données) :</p>
-          <ol class="fk-syn-map" aria-label="Flux du SQL au stockage SGBD"><li><b aria-hidden="true">1</b><div><strong>Ta requête SQL</strong><span>ex : <code>SELECT * FROM clients;</code></span></div></li><li><b aria-hidden="true">2</b><div><strong>Le SGBD (moteur)</strong><span>SQLite (dans cette appli), PostgreSQL, MySQL…</span></div></li><li><b aria-hidden="true">3</b><div><strong>La base relationnelle</strong><span>Données organisées et stockées de façon cohérente</span></div></li></ol>
-          <p style="margin-top:12px">L’instruction <code>SELECT</code> sert uniquement à <b>lire</b> les données. Elle ne modifie jamais le contenu de la base.</p>
-        </div></div></div>`},
-    reflex:{a:{k:"1 table",t:"= <b>1 type d’information</b><br><code>clients</code>, <code>produits</code>, <code>commandes</code>"},
-      b:{k:"1 clé primaire",t:"= <b>1 ligne identifiée</b><br>ex. <code>clients.id</code> identifie un client"},
-      c:{k:"1 clé étrangère",t:"= <b>1 lien vers une autre table</b><br>ex. <code>commandes.client_id</code> → <code>clients.id</code>"},
-      note:"Chaque table organise ses propres informations. Pour relier deux tables, on utilise leurs identifiants (clés)."}},
-  anatomie:[
-    {tok:"SELECT",txt:"Lit des données. Il ne modifie jamais rien."},
-    {tok:"*",plain:1,txt:"Toutes les colonnes de la table."},
-    {tok:"FROM clients",txt:"La table interrogée."},
-    {tok:";",punc:1,txt:"Termine la requête."}
-  ],
-  anatFollowTeste:true,
-  anatomieVariants:[
-    {k:'cli',label:'clients',lines:[
-      {tok:"SELECT",txt:"Lit des données. Il ne modifie jamais rien."},
-      {tok:"*",plain:1,txt:"Toutes les colonnes de la table."},
-      {tok:"FROM clients",txt:"La table interrogée : tes acheteurs."},
-      {tok:";",punc:1,txt:"Termine la requête."}
+guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, colonnes, lignes et liens",
+  sit:{
+    blocks:[
+      "<b>NutriBoost</b> est une boutique en ligne de compléments alimentaires et de nutrition sportive. Chaque jour, des clients s’inscrivent, consultent le catalogue et passent des commandes.",
+      "Pour ne pas tout mélanger, l’équipe range l’information en <b>trois tables</b>. Avant de lire la moindre donnée, elle veut comprendre comment ces tables sont organisées :",
+      {need:[["👥","Les clients : qui sont les acheteurs ?","table clients"],["📦","Les produits : que vend-on ?","table produits"],["🧾","Les commandes : qui a commandé quoi ?","table commandes"]],label:"Les trois tables de la boutique"}
+    ],
+    problem:{
+      p:["Si toutes ces informations étaient notées dans <b>un seul grand tableau</b>, chaque commande recopierait le client, sa ville et le produit commandé.","Le tableau deviendrait vite <b>lourd, répétitif et difficile à tenir à jour</b>."],
+      scene:{h:"🗂️ Un seul tableau ?",cols:"1fr 1fr 1.3fr",
+        lanes:[{k:"H",c:[["h1","client","t"],["h2","ville","t"],["h3","produit","t"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","Paris"],["a3","Magnésium"]]},
+          {k:"R2",c:[["b1","Sophie"],["b2","Paris"],["b3","Oméga 3"]]},
+          {k:"R3",c:[["c1","Lucas"],["c2","Lyon"],["c3","Magnésium"]]},
+          {k:"T1",fold:true,l:"Table clients",c:[["t1","1"],["t2","Sophie"],["t3","Paris"]]},
+          {k:"T2",fold:true,l:"Table produits",c:[["u1","3"],["u2","Magnésium"],["u3","19.9"]]},
+          {k:"T3",fold:true,l:"Table commandes",c:[["v1","commande 1"],["v2","client 1"],["v3","produit 3"]]}],
+        caps:["<b>Un seul tableau</b> · Chaque commande recopie le client et le produit.","<b>Problème</b> · Sophie et Paris sont recopiés à chaque commande : le tableau devient lourd et difficile à tenir à jour.","<b>Solution</b> · Chaque sujet a sa propre table, et les tables sont reliées par des numéros."],
+        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R1","R2","R3"],mark:{b1:"is-miss",b2:"is-miss"},d:2600},{cap:2,fold:["H","R1","R2","R3"],unfold:["T1","T2","T3"],on:["T1","T2","T3"],d:3000}]},
+      then:["Il faut donc ranger chaque sujet dans <b>sa propre table</b>, puis <b>relier les tables</b> entre elles.","C’est exactement le principe d’une <b>base de données relationnelle</b>."]
+    },
+    mission:"Aide l’équipe à <b>découvrir la table clients</b> : affiche toutes ses lignes et toutes ses colonnes, pour comprendre comment une table est organisée."
+  },
+  concept:{
+    title:"Comment une base de données range-t-elle l’information ?",
+    blocks:[
+      "Une base de données relationnelle range chaque sujet dans une <b>table</b>. Une table est une grille :",
+      {ask:"Où se range chaque information ?"},
+      {scene:{h:"📋 Anatomie d’une table",cols:".6fr 1fr 1fr",
+        lanes:[{c:[["h1","id","t"],["h2","prenom","t"],["h3","ville","t"]]},
+          {k:"R1",c:[["a1","1"],["a2","Sophie"],["a3","Paris"]]},
+          {k:"R2",c:[["b1","2"],["b2","Lucas"],["b3","Lyon"]]},
+          {k:"R3",c:[["c1","3"],["c2","Emma"],["c3","Marseille"]]}],
+        caps:["<b>Une table</b> · Une grille qui rassemble un sujet : ici, les clients.","<b>Les colonnes</b> · Chaque colonne est une caractéristique : l’identifiant, le prénom, la ville.","<b>Les lignes</b> · Chaque ligne est un enregistrement : un client.","<b>Une cellule</b> · À l’intersection d’une ligne et d’une colonne : la ville de Sophie, Paris."],
+        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R1","R2","R3"],on:["h1","h2","h3"],d:2300},{cap:2,off:["h1","h2","h3"],on:["R1"],d:2300},{cap:3,off:["R1"],on:["a3"],d:2600}]}},
+      "Pour relier deux tables sans recopier d’informations, on utilise des <b>clés</b> :",
+      {scene:{h:"🔗 Des tables reliées",cols:".8fr 1fr 1.2fr",
+        lanes:[{k:"P",l:"Table clients · clé primaire id",c:[["p1","id 1"],["p2","Sophie"],["p3","Paris"]]},
+          {k:"F",l:"Table commandes · clé étrangère client_id",c:[["f1","commande 1"],["f2","client_id 1"],["f3","→ Sophie","h"]]}],
+        caps:["<b>Clé primaire</b> · <b>clients.id</b> identifie chaque client de façon unique : le 1, c’est Sophie.","<b>Clé étrangère</b> · <b>commandes.client_id</b> contient le numéro du client qui a passé la commande.","<b>Le lien</b> · Le numéro 1 renvoie à la ligne 1 de clients : cette commande est celle de Sophie."],
+        steps:[{cap:0,on:["P"],d:2100},{cap:1,off:["P"],on:["F"],d:2300},{cap:2,on:["P"],show:["f3"],d:2800}]}},
+      {looks:[["Clé primaire (PK)","identifie une ligne dans sa propre table"],["Clé étrangère (FK)","renvoie vers la clé primaire d’une autre table"]],label:"Les deux clés"}
+    ]
+  },
+  steps:[
+    {h:"Chaque sujet a sa table",blocks:[
+      "Pour lire une table, on écrit <code>SELECT * FROM</code> suivi de son nom. L’étoile <code>*</code> signifie « toutes les colonnes » :",
+      {syntax:"SELECT ⟦*⟧\nFROM ⟦produits⟧;"},
+      {say:"👇 Exécute cette requête pour ouvrir la table des produits :",run:"SELECT *\nFROM produits;"},
+      {arrow:"8 lignes et 5 colonnes : un produit par ligne, une caractéristique par colonne."}
     ]},
-    {k:'prd',label:'produits',lines:[
-      {tok:"SELECT",txt:"Lit des données. Il ne modifie jamais rien."},
-      {tok:"*",plain:1,txt:"Toutes les colonnes de la table."},
-      {tok:"FROM produits",txt:"La table interrogée : les produits du catalogue."},
-      {tok:";",punc:1,txt:"Termine la requête."}
+    {h:"Des tables reliées par des numéros",blocks:[
+      "La table <code>commandes</code> ne contient ni nom de client, ni nom de produit : seulement des <b>numéros</b> qui renvoient vers les autres tables.",
+      {say:"👇 Exécute cette requête pour ouvrir la table des commandes :",run:"SELECT *\nFROM commandes;"},
+      {arrow:"16 lignes, avec des <code>client_id</code> et des <code>produit_id</code> : chaque numéro désigne la bonne ligne dans <code>clients</code> ou dans <code>produits</code>."},
+      {tip:{t:"Pourquoi « relationnel » ?",blocks:["Le mot ne parle pas de liens entre les lignes, mais de la capacité à mettre des <b>tables entières</b> en relation : <code>commandes</code> désigne <code>clients</code> grâce à <code>client_id</code>, et <code>produits</code> grâce à <code>produit_id</code>."]}}
     ]},
-    {k:'cmd',label:'commandes',lines:[
-      {tok:"SELECT",txt:"Lit des données. Il ne modifie jamais rien."},
-      {tok:"*",plain:1,txt:"Toutes les colonnes de la table."},
-      {tok:"FROM commandes",txt:"La table interrogée : les commandes passées, sans les noms — seulement des identifiants."},
-      {tok:";",punc:1,txt:"Termine la requête."}
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à ouvrir la table <code>clients</code>. <code>SELECT</code> la lit, sans jamais la modifier.",
+      {say:"👇 Exécute la requête pour découvrir la table clients :",run:"SELECT *\nFROM clients;"},
+      {done:{
+        label:"De la table clients à son contenu",
+        funnel:[
+          {n:10,t:"clients dans la table",s:"une ligne par client",dots:"0000000000"},
+          {step:"SELECT * FROM clients",s:"lit toute la table, sans rien modifier"},
+          {n:10,t:"⭐ lignes affichées",s:"avec leurs 8 colonnes : id, prenom, nom, ville, age, email, telephone et date_inscription",dots:"1111111111",out:true}
+        ],
+        sms:{ico:"📖",h:"Lecture de la table clients",aria:"Les lignes de la table clients sont lues une à une",msg:"<b>Table clients</b><br>10 lignes · 8 colonnes",people:[["S","Sophie Martin","sophie@mail.fr"],["L","Lucas Bernard","lucas@mail.fr"],["E","Emma Dubois","emma@mail.fr"],["N","Nathan Petit","nathan@mail.fr"],["C","Chloé Moreau","chloe@mail.fr"]],more:5,moreT:"… et 5 autres",moreS:"clients de la table",st:["À lire","Lecture","✓ Lue"],plane:"doc",done:"✓ 10 lignes lues"},
+        fill:["SELECT","*","FROM","clients"],
+        ui:{t:"La table clients est ouverte",s:"10 lignes, 8 colonnes : une ligne par client, une colonne par caractéristique.",n:["SELECT","*","FROM"]},
+        rows:10
+      }}
     ]}
   ],
-  exemple:"SELECT * FROM clients;",
-  attendu:"<b>10 lignes</b> et 7 colonnes : une ligne par client, chaque colonne décrivant une caractéristique.",
-  retenir:"Une <b>base relationnelle</b> organise les données dans des <b>tables</b> spécialisées (<code>clients</code>, <code>produits</code>, <code>commandes</code>).<br><br>• <b>Colonnes</b> : caractéristiques typées (<code>TEXT</code>, <code>INTEGER</code>, <code>REAL</code>).<br>• <b>Lignes</b> : enregistrements individuels (Sophie, Lucas…).<br>• <b>Clés</b> : identifient chaque ligne (clé primaire <code>PK</code>) et relient les tables entre elles (clé étrangère <code>FK</code>) sans recopie de données.<br><br><code>SELECT</code> permet d’interroger et de lire les tables sans jamais modifier la base.",
-  piege:{t:"« Relationnel » ne désigne pas un lien entre les lignes",
-    p:"Le terme <b>relationnel</b> ne parle pas des lignes entre elles, mais de la capacité à mettre des <b>tables entières en relation</b>.<br><br>Dans notre boutique, <code>commandes</code> désigne <code>clients</code> grâce à la colonne <code>client_id</code>, et <code>produits</code> grâce à <code>produit_id</code>."},
-  petitDefi:[{
-    p:"Dans le vocabulaire formel du modèle relationnel, comment appelle-t-on une <b>ligne</b> ?",
-    sql:"ligne → __________",
-    a:"tuple",
-    answers:["tuple","un tuple","Tuple","enregistrement"]
-  }],
-  consigne:"Ouvre la table <code>clients</code> en affichant <b>toutes</b> ses colonnes, pour voir de tes yeux ses dix lignes et ses sept caractéristiques.",
-  solution:"SELECT * FROM clients;",
-  indice:"<code>SELECT * FROM clients;</code> — l’étoile signifie « toutes les colonnes ».",
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-    {k:'cli',label:'clients',sql:"SELECT * FROM clients;",out:"Dix lignes, sept colonnes : un client par ligne."},
-    {k:'prd',label:'produits',sql:"SELECT * FROM produits;",out:"Huit lignes. Un autre sujet, donc une autre table."},
-    {k:'cmd',label:'commandes',sql:"SELECT * FROM commandes;",out:"Seize lignes — et aucun nom : seulement des client_id et des produit_id."}
-  ] ,
-learningCheck:{
-  "question": "Dans clients, que représente la valeur Paris pour Sophie ?",
-  "options": [
-    "Une cellule",
-    "Une colonne entière",
-    "Une table"
+  reflex:[
+    {recap:[
+      ["🗂️","Une <b>table</b> range un sujet : <code>clients</code>, <code>produits</code>, <code>commandes</code>.","Ses colonnes sont des caractéristiques, ses lignes des enregistrements."],
+      ["🔑","Une <b>clé primaire</b> identifie une ligne ; une <b>clé étrangère</b> renvoie vers la clé primaire d’une autre table."],
+      ["👀","<code>SELECT</code> lit les données, sans jamais les modifier :",null,"SELECT * FROM clients;"]
+    ],label:"Les trois idées à retenir"}
   ],
-  "answer": 0,
-  "explanation": "La ligne décrit Sophie ; la colonne ville décrit la caractéristique ; leur intersection contient Paris."
-}
-}
+  anatomie:[{tok:"SELECT",txt:"Lit des données. Il ne modifie jamais rien."},{tok:"*",plain:1,txt:"Toutes les colonnes de la table."},{tok:"FROM clients",txt:"La table interrogée."},{tok:";",punc:1,txt:"Termine la requête."}],
+  exemple:"SELECT * FROM produits;",
+  attendu:"<b>8 lignes</b> et <b>5 colonnes</b> : une ligne par produit, chaque colonne décrivant une caractéristique.",
+  retenir:"Une base relationnelle organise les données dans des tables spécialisées (<code>clients</code>, <code>produits</code>, <code>commandes</code>).<br><br>• Colonnes : caractéristiques typées (<code>TEXT</code>, <code>INTEGER</code>, <code>REAL</code>).<br>• Lignes : enregistrements individuels (Sophie, Lucas…).<br>• Clés : identifient chaque ligne (clé primaire <code>PK</code>) et relient les tables entre elles (clé étrangère <code>FK</code>) sans recopie de données.<br><br><code>SELECT</code> permet d’interroger et de lire les tables sans jamais modifier la base.",
+  consigne:"Ouvre la table fidelite en affichant toutes ses colonnes : elle contient les points de fidélité des clients.",
+  solution:"SELECT * FROM fidelite;",
+  indice:"<code>SELECT * FROM fidelite;</code> — l’étoile signifie « toutes les colonnes ».",
+  petitDefi:[{p:"Dans le vocabulaire formel du modèle relationnel, comment appelle-t-on une <b>ligne</b> ?",sql:"ligne → __________",a:"tuple",answers:["tuple","un tuple","Tuple","enregistrement"]}],
+  testeVariants:[{k:"cli",label:"clients",sql:"SELECT * FROM clients;",out:"Dix lignes, huit colonnes : un client par ligne."},{k:"prd",label:"produits",sql:"SELECT * FROM produits;",out:"Huit lignes. Un autre sujet, donc une autre table."},{k:"cmd",label:"commandes",sql:"SELECT * FROM commandes;",out:"Seize lignes — et aucun nom : seulement des client_id et des produit_id."}],
+  learningCheck:{question:"Dans clients, que représente la valeur Paris pour Sophie ?",options:["Une cellule","Une colonne entière","Une table"],answer:0,explanation:"La ligne décrit Sophie ; la colonne ville décrit la caractéristique ; leur intersection contient Paris."}
+})
 ]},
 { titre:"Lire une table", sous:"SELECT, filtres, tri et pagination", lessons:[
 guide({ id:1, titre:"SELECT", résumé:"Choisir les colonnes du résultat",
@@ -36535,7 +36481,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1594';
+  const SW_CACHE='requete-2026-10-04-ludique-v1595';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
