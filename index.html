@@ -11210,82 +11210,95 @@ guide({ id:2, titre:"Renommer avec AS", résumé:"Donner un nom lisible à une c
   testeVariants:[{k:"base",label:"Exemple",sql:"SELECT categorie AS rayon, stock AS quantite FROM produits;"},{k:"rec_space",label:"Alias avec espaces",sql:"SELECT nom AS \"Nom du produit\", prix AS \"Prix en euros\" FROM produits;",out:"Deux noms d’affichage contenant des espaces.",expectRows:8}],
   learningCheck:{question:"Avec prix AS \"Prix en euros\", quel nom garde la colonne dans la table ?",options:["Les deux noms","prix","Prix en euros"],answer:1,explanation:"L’alias change uniquement l’en-tête du résultat. Les guillemets doubles permettent les espaces."}
 }),
-{ id:3, titre:"SELECT *", résumé:"Voir toute la table",
-  situation:"Tu découvres la table produits. Elle contient 8 produits et plusieurs informations sur chacun : <code>id</code>, <code>nom</code>, <code>categorie</code>, <code>prix</code> et <code>stock</code>.<br><br>Avec ce que tu connais déjà, tu pourrais lister les colonnes une par une :",
-  situationSql:"SELECT nom, categorie, prix\nFROM produits;",
-  situationTail:"Ça fonctionne, mais écrire chaque colonne devient vite long.",
-  problematique:"Tu veux maintenant consulter toutes les informations enregistrées sur les produits. Comment afficher toutes les colonnes sans les écrire une par une ?",
-    studio:{problem:{title:"L’étoile <code>*</code> représente toutes les colonnes.",
-      body:"Quand tu explores une table, tu peux vouloir afficher tout son contenu sans écrire le nom de chaque colonne. Dans <code>SELECT *</code>, l’étoile <code>*</code> signifie simplement : toutes les colonnes. Avec la table produits, le résultat contient donc les 5 colonnes disponibles : <code>id</code>, <code>nom</code>, <code>categorie</code>, <code>prix</code> et <code>stock</code>."},
-    vs:{bad:{tag:"✕ Étoile + colonne",sql:"SELECT *, nom\nFROM produits;",out:"nom est demandé en plus alors que * l’inclut déjà",
-            code:"SELECT <span class=\"vs-line bad\">*, nom</span>\nFROM produits;"},
-        good:{tag:"✓ Toutes les colonnes",sql:"SELECT *\nFROM produits;",out:"8 lignes, 5 colonnes : id, nom, categorie, prix, stock",
-            code:"SELECT <span class=\"vs-line good\">*</span>\nFROM produits;"}},
-    point:"Avec <code>SELECT * FROM produits;</code>, le résultat reprend toute la table produits :<br><br><code>id | nom | categorie | prix | stock</code><br>1 | Fibre Prébiotique | … | 29,90 | …<br>2 | Collagène Marin | … | 39,90 | …<br>3 | Magnésium | … | 19,90 | …<br><br>Et ainsi de suite pour les <b>8 produits</b>.<br><br>L’étoile évite simplement d’écrire les 5 noms de colonnes un par un.",
-    why:{title:"Que récupère SELECT * ?",
-      body:"<code>FROM produits</code> désigne la table produits.<br><br>L’étoile <code>*</code> prend <b>toutes ses colonnes</b>. Comme rien ne limite les lignes, les 8 produits apparaissent également.<br><br>Résultat : <b>8 lignes × 5 colonnes</b>. C’est une façon pratique d’observer rapidement le contenu d’une table."},
-    reflex:{a:{k:"*",t:"représente <b>toutes les colonnes</b>"},
-      b:{k:"SELECT *",t:"pratique pour <b>découvrir et inspecter</b> une table"},
-      note:"<code>*</code> signifie « toutes les colonnes ». Dans la prochaine leçon, tu verras comment n’afficher que les informations dont tu as besoin."}},
-  anatomie:[{tok:"SELECT",txt:"Commence la lecture des données."},{tok:"*",punc:1,txt:"Représente toutes les colonnes de la table."},{tok:"FROM produits",txt:"Précise que les données viennent de la table produits."}],
-  anatomieVariants:[
-    {k:'avant',label:'Étoile + colonne',tone:'bad',lines:[
-      {tok:"SELECT",txt:"Commence la lecture des données."},
-      {tok:"*",punc:1,txt:"Représente toutes les colonnes de la table."},
-      {tok:", nom",plain:1,txt:"Redondant : nom fait déjà partie des colonnes de *."},
-      {tok:"FROM produits",txt:"Précise que les données viennent de la table produits."}
+guide({ id:3, titre:"SELECT *", résumé:"Voir toute la table",
+  sit:{
+    blocks:[
+      "L’équipe catalogue reprend la gestion des produits de la boutique. Avant de commencer, elle veut <b>découvrir tout le contenu</b> de la table <code>produits</code>.",
+      "La table <code>produits</code> contient au total <b>8 produits</b>, mais l’équipe ne sait pas encore quelles informations elle enregistre sur chacun. Elle souhaite donc récupérer :",
+      {need:[["📋","Toutes les informations de chaque produit","table produits"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>SELECT</code>, SQL affiche les colonnes qu’on lui <b>nomme</b> : ici, l’équipe ne les connaît pas encore.","Or, pour découvrir la table, elle a besoin de voir <b>toutes les colonnes</b>, sans en oublier."],
+      scene:{h:"🗂️ Table produits",
+        lanes:[{k:"A",l:"Les colonnes",c:[["c1","?","q"],["c2","?","q"],["c3","?","q"],["c4","?","q"],["c5","?","q"]]},
+          {k:"B",l:"Les lignes",c:[["l1","?","q"]]}],
+        caps:["<b>Table produits</b> · L’équipe ne sait pas encore quelles informations elle contient.","<b>Besoin</b> · Elle veut tout voir : toutes les colonnes et tous les produits.","<b>Résultat</b> · Le contenu complet de la table apparaît : 5 colonnes et 8 produits."],
+        steps:[{cap:0,d:1900},{cap:1,on:["A","B"],d:2300},{cap:2,text:{c1:"id",c2:"nom",c3:"categorie",c4:"prix",c5:"stock",l1:"8 produits"},stagger:260,d:3200}]},
+      then:["Il faut donc indiquer à SQL d’afficher <b>toutes les colonnes</b> de la table, sans les nommer.","C’est exactement le rôle de l’étoile <code>*</code>."]
+    },
+    mission:"Aide l’équipe catalogue à afficher <b>toutes les informations</b> de la table produits, afin de faire l’inventaire du catalogue."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir qu’on veut tout voir ?",
+    blocks:[
+      "Pour afficher toute la table, SQL doit seulement savoir si l’on veut <b>toutes</b> les colonnes :",
+      {ask:"Veut-on toutes les colonnes ?"},
+      "Si oui, on remplace la liste des colonnes par une <b>étoile</b> :",
+      {syntax:"SELECT ⟦*⟧\nFROM produits;"},
+      {scene:{h:"⭐ L’étoile se déplie",
+        lanes:[{k:"S",c:[["s1","SELECT *"]]},
+          {k:"C",l:"Les colonnes de la table produits",c:[["c1","id","h"],["c2","nom","h"],["c3","categorie","h"],["c4","prix","h"],["c5","stock","h"]]}],
+        caps:["<b>SELECT *</b> · L’étoile demande toutes les colonnes d’un coup.","<b>FROM produits</b> · SQL cherche la liste des colonnes de cette table.","<b>Résultat</b> · Il les affiche toutes, dans l’ordre de la table."],
+        steps:[{cap:0,on:["S"],d:1900},{cap:1,show:["c1","c2","c3","c4","c5"],stagger:260,d:2800},{cap:2,off:["S"],on:["C"],d:2600}]}}
+    ]
+  },
+  steps:[
+    {h:"Afficher toutes les colonnes",blocks:[
+      "Pour afficher toutes les colonnes d’une table, écris une étoile à la place de leurs noms :",
+      {syntax:"SELECT ⟦*⟧\nFROM clients;"},
+      {looks:[["*","signifie « toutes les colonnes »"],["FROM clients","indique la table à afficher"]]},
+      {say:"👇 Exécute cette requête pour voir toute la table clients :",run:"SELECT *\nFROM clients;"},
+      {arrow:"Le résultat contient les 8 colonnes de la table, pour les 10 clients."},
+      {warn:{t:"Étoile et colonne",blocks:[
+        "Si tu écris :",
+        {syntax:"SELECT *, nom\nFROM produits;"},
+        "La colonne <code>nom</code> est déjà comprise dans <code>*</code> : SQL l’affiche donc deux fois.",
+        {say:"👇 Teste par toi-même :",run:"SELECT *, nom\nFROM produits;"}
+      ]}}
     ]},
-    {k:'avec',label:'SELECT *',tone:'good',lines:[
-      {tok:"SELECT",txt:"Commence la lecture des données."},
-      {tok:"*",punc:1,txt:"Représente toutes les colonnes de la table."},
-      {tok:"FROM produits",txt:"Précise que les données viennent de la table produits."}
+    {h:"Une étoile qui s’adapte",blocks:[
+      "L’étoile suit la table : si une colonne est ajoutée plus tard, elle apparaît automatiquement dans le résultat.",
+      {say:"👇 Ajoute une colonne <code>pays</code>, puis affiche de nouveau toute la table :",run:"ALTER TABLE clients ADD COLUMN pays TEXT DEFAULT 'France';\nSELECT *\nFROM clients;"},
+      {arrow:"Le résultat compte maintenant 9 colonnes, sans avoir modifié la requête."},
+      {tip:{t:"Quand l’utiliser ?",blocks:[
+        "L’étoile est idéale pour <b>découvrir</b> une table. Pour une application ou un rapport, mieux vaut nommer les colonnes utiles : le résultat ne change pas quand la table évolue."
+      ]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à demander toute la table, pour que l’équipe voie son contenu.",
+      {say:"👇 Exécute la requête pour obtenir l’inventaire du catalogue :",run:"SELECT *\nFROM produits;"},
+      {done:{
+        label:"De la table produits à son contenu complet",
+        unit:"cols",
+        funnel:[
+          {n:5,t:"colonnes dans la table",s:"toute la <code>table produits</code>",dots:"00000"},
+          {step:"SELECT *",s:"garde toutes les colonnes"},
+          {n:5,t:"⭐ colonnes dans l’inventaire",s:"<code>id</code>, <code>nom</code>, <code>categorie</code>, <code>prix</code> et <code>stock</code>",dots:"11111",out:true}
+        ],
+        sms:{ico:"📋",h:"Inventaire du catalogue",aria:"L’équipe catalogue contrôle les produits un par un",msg:"Inventaire en cours : <b>8 produits</b>, 5 informations pour chacun.",people:[["F","Fibre Prébiotique","Bien-être"],["C","Collagène Marin","Beauté"],["M","Magnésium","Bien-être"],["V","Vitamine D","Nutrition"],["T","Tisane Détox","Boisson"]],more:3,moreT:"… et 3 autres",moreS:"produits du catalogue",st:["À contrôler","Contrôle","✓ Contrôlé"],plane:"doc",done:"✓ 8 produits contrôlés"},
+        fill:["SELECT","*","FROM","produits"],
+        ui:{t:"Toute la table, d’un coup",s:"L’inventaire contient les 8 produits, avec leurs 5 informations.",n:["SELECT","*","FROM"]},
+        rows:8
+      }}
     ]}
   ],
-  testeVariants:[
-    {k:'avant',label:'Étoile + colonne',sql:"SELECT *, nom\nFROM produits;",out:"nom est demandé en plus alors que * l’inclut déjà",tone:'bad'},
-    {k:'avec',label:'SELECT *',sql:"SELECT *\nFROM produits;",out:"8 lignes, 5 colonnes : id, nom, categorie, prix, stock",tone:'good'}
+  reflex:[
+    {recap:[
+      ["⭐","L’étoile <code>*</code> remplace la liste des colonnes : elle les affiche <b>toutes</b>.",null,"SELECT * FROM produits"],
+      ["🔍","Idéale pour <b>découvrir une table</b> sans connaître ses colonnes."],
+      ["⚠️","Dans une application, <b>nomme les colonnes utiles</b> : l’étoile affiche aussi celles qu’on ajoutera plus tard."]
+    ],label:"Les trois idées à retenir"}
   ],
-  exemple:"SELECT * FROM produits;",
-  attendu:"<b>8 lignes</b> et <b>5 colonnes</b> : <code>id</code>, <code>nom</code>, <code>categorie</code>, <code>prix</code> et <code>stock</code>.",
-  retenir:"L’étoile <code>*</code> signifie « toutes les colonnes ». <code>SELECT *</code> affiche toute la table pour la découvrir. Les lignes restent.",
-  piege:{t:"Ajouter une colonne déjà comprise dans *",p:"L’étoile représente déjà toutes les colonnes. Écrire <code>SELECT *, nom FROM produits;</code> demande donc <code>nom</code> une deuxième fois. Pour afficher toute la table, <code>SELECT * FROM produits;</code> suffit."},
-  consigne:"Affiche toutes les colonnes de la table produits pour voir son contenu.",
-  solution:"SELECT * FROM produits;",
-  indice:"Utilise <code>*</code> après <code>SELECT</code> pour représenter toutes les colonnes.",
-  richLesson:true, earlyDemo:true ,
-testeVariants:[
-  {
-    "k": "base",
-    "label": "Exemple",
-    "sql": "SELECT * FROM produits;"
-  },
-  {
-    "k": "rec_explicit",
-    "label": "Colonnes explicites",
-    "sql": "ALTER TABLE clients ADD COLUMN pays TEXT DEFAULT 'France'; SELECT prenom, ville FROM clients;",
-    "out": "Toujours deux colonnes après ajout de pays.",
-    "expectRows": 10
-  },
-  {
-    "k": "rec_star",
-    "label": "Étoile après ajout",
-    "sql": "ALTER TABLE clients ADD COLUMN pays TEXT DEFAULT 'France'; SELECT * FROM clients;",
-    "out": "Huit colonnes : pays est inclus automatiquement.",
-    "expectRows": 10
-  }
-]
-,
-learningCheck:{
-  "question": "Après ajout de la colonne pays, quelle requête change de nombre de colonnes ?",
-  "options": [
-    "SELECT *",
-    "SELECT prenom, ville",
-    "Les deux"
-  ],
-  "answer": 0,
-  "explanation": "L’étoile inclut la nouvelle colonne ; une liste explicite conserve la même structure, utile pour une application."
-}
-},
+  anatomie:[{tok:"SELECT",txt:"Commence la lecture des données."},{tok:"*",punc:1,txt:"Représente toutes les colonnes de la table."},{tok:"FROM produits",txt:"Précise que les données viennent de la table produits."}],
+  exemple:"SELECT * FROM clients;",
+  attendu:"<b>10 lignes</b> et <b>8 colonnes</b> : <code>id</code>, <code>prenom</code>, <code>nom</code>, <code>ville</code>, <code>age</code>, <code>email</code>, <code>telephone</code> et <code>date_inscription</code>.",
+  retenir:"L’étoile <code>*</code> remplace la liste des colonnes : elle les affiche toutes.<br>Idéale pour découvrir une table : <code>SELECT * FROM produits</code>.<br><br>Dans une application, nomme les colonnes utiles : l’étoile affiche aussi celles qu’on ajoutera plus tard.",
+  consigne:"Affiche toutes les informations de la table commandes.",
+  solution:"SELECT * FROM commandes;",
+  indice:"Utilise <code>*</code> après <code>SELECT</code> pour représenter toutes les colonnes, puis indique la table <code>commandes</code>.",
+  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT * FROM clients;"},{k:"rec_explicit",label:"Colonnes explicites",sql:"ALTER TABLE clients ADD COLUMN pays TEXT DEFAULT 'France'; SELECT prenom, ville FROM clients;",out:"Toujours deux colonnes après ajout de pays.",expectRows:10},{k:"rec_star",label:"Étoile après ajout",sql:"ALTER TABLE clients ADD COLUMN pays TEXT DEFAULT 'France'; SELECT * FROM clients;",out:"Neuf colonnes : pays est inclus automatiquement.",expectRows:10}],
+  learningCheck:{question:"Après ajout de la colonne pays, quelle requête change de nombre de colonnes ?",options:["SELECT *","SELECT prenom, ville","Les deux"],answer:0,explanation:"L’étoile inclut la nouvelle colonne ; une liste explicite conserve la même structure, utile pour une application."}
+}),
 { id:13, titre:"DISTINCT", résumé:"Valeurs uniques",
   situation:"Dans la table clients, plusieurs personnes habitent dans la même ville. Tu veux la liste des villes différentes, sans afficher plusieurs fois la même ville.<br><br>Avec ce que tu connais déjà, tu peux afficher la ville de chaque client :",
   situationSql:"SELECT ville\nFROM clients;",
@@ -36724,7 +36737,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1587';
+  const SW_CACHE='requete-2026-10-04-ludique-v1588';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
