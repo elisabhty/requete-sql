@@ -13495,866 +13495,325 @@ guide({ id:76, titre:"GROUP_CONCAT", résumé:"Rassembler les textes d’un grou
 })
 ]},
 { titre:"Clés et relations", sous:"Identifier une ligne, relier deux tables", lessons:[
-{ id:34, titre:"Clé primaire", résumé:"Identifier une ligne sans ambiguïté",
-  situation:`<div class="sit-prob"><div class="sit-prob-head"><span class="sit-prob-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M8.5 14.5A6 6 0 1 1 15.5 14.5c-1 .8-1.5 1.5-1.5 2.5h-4c0-1-.5-1.7-1.5-2.5Z"/></svg></span><span class="sit-prob-lab">Problématique</span></div><p class="sit-prob-body">Pourquoi attribuer un numéro unique à chaque client&nbsp;?</p></div><br><br>Le service client reçoit ce mail :<br><br><div class="pk-mail"><article><p class="pk-mail-meta"><span>De</span> <b>Nathan</b></p><p>Je m’appelle Nathan, j’habite à Paris et je souhaite modifier mon numéro de téléphone.</p></article></div><br><br>Aucun numéro client n’est indiqué. L’agent recherche donc Nathan dans la base :`,
-  situationSql:"SELECT prenom, ville\nFROM clients\nWHERE prenom = 'Nathan';",
-  situationTail:"SQL renvoie <b>2 lignes</b> distinctes : deux clients nommés Nathan, tous les deux à Paris. Le prénom et la ville ne suffisent donc pas pour savoir de quel Nathan il s’agit.<br><br><div class=\"pk-mail\"><article class=\"is-out\"><p class=\"pk-mail-meta\"><span>Réponse</span> <b>Service client</b></p><p>Nous vous confirmons que nous avons bien reçu votre demande. Pouvez-vous nous indiquer votre numéro client&nbsp;?</p></article></div><br><br>Nathan répond alors : <code>4</code>.<br><br>Cette valeur permet d’identifier une seule fiche. Dans la table <code>clients</code>, la colonne <code>id</code> joue ce rôle : c’est la <b>clé primaire</b>.<br><br><div class=\"sit-memo\"><p class=\"sit-memo-lab\"><i aria-hidden=\"true\">💡</i>À retenir</p><p>Une clé primaire permet d’identifier chaque client de manière unique.</p></div>",
-    studio:{problem:{eye:"",title:"Qu’est-ce qu’une clé primaire&nbsp;?",
-      body:"Une clé primaire (<code>PRIMARY KEY</code>) est une colonne, ou parfois plusieurs colonnes, qui permet d’identifier chaque ligne d’une table de manière unique.",
-      extra:`<p>Dans notre table&nbsp;:</p>
-        <ol class="fk-syn-map" aria-label="clients, id, PRIMARY KEY"><li><b aria-hidden="true">1</b><div><code>clients</code><span>La table</span></div></li><li><b aria-hidden="true">2</b><div><code>id</code><span>Une colonne de la table</span></div></li><li><b aria-hidden="true">3</b><div><code>PRIMARY KEY</code><span>Identifie chaque ligne de manière unique</span></div></li></ol>
-        <p>Chaque client possède donc son propre <code>id</code>.</p>
-        <div class="pk-ids">
-          <div><b>Sophie</b><span>id 1</span></div>
-          <div><b>Lucas</b><span>id 2</span></div>
-          <div><b>Nathan</b><span>id 4</span></div>
-          <div><b>Nathan</b><span>id 10</span></div>
-        </div>
-        <div class="pk-repeat">
-          <div><b>prenom</b><span>peut se répéter</span></div>
-          <div><b>ville</b><span>peut se répéter</span></div>
-          <div class="is-key"><b>🔑 id</b><span>distingue toujours chaque ligne, car sa valeur est unique</span></div>
-        </div>`},
-    uses:{title:"Les règles d’une clé primaire.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Les deux propriétés essentielles</p>
-          <p>Une clé primaire doit respecter deux propriétés essentielles.</p>
-          <div class="pk-rule">
-            <p class="pk-rule-h">🔐 Elle est unique</p>
-            <p>Deux lignes ne peuvent pas avoir la même valeur de clé primaire.</p>
-            <div class="pk-bad">
-              <b>❌ Impossible</b>
-              <div class="pk-mini"><span class="is-h">id</span><span class="is-h">prenom</span><span class="is-ko">4</span><span>Nathan</span><span class="is-ko">4</span><span>Sophie</span></div>
-              <p>Les deux lignes utilisent <code>id = 4</code>.</p>
-            </div>
-            <div class="sit-memo is-warn"><p class="sit-memo-lab"><i aria-hidden="true">⚠️</i>Attention</p><p>Le SGBD refuse l’enregistrement de la deuxième ligne, car <code>id = 4</code> existe déjà. Si <code>id</code> est défini comme clé primaire (<code>PRIMARY KEY</code>), le SGBD contrôle automatiquement son unicité. Il renvoie alors une erreur de contrainte d’unicité.</p></div>
-          </div>
-          <div class="pk-rule">
-            <p class="pk-rule-h">🚫 Elle ne peut pas être NULL</p>
-            <p>Chaque ligne doit pouvoir être identifiée.</p>
-            <div class="pk-bad">
-              <b>❌ Impossible</b>
-              <div class="pk-mini"><span class="is-h">id</span><span class="is-h">prenom</span><span>4</span><span>Nathan</span><span class="is-ko">NULL</span><span>Sophie</span></div>
-              <p><code>NULL</code> est impossible pour une clé primaire&nbsp;: le SGBD doit pouvoir identifier chaque ligne avec une valeur définie.</p>
-            </div>
-          </div>
-          <div class="pk-rule">
-            <p class="pk-rule-h">Et doit-elle rester stable&nbsp;?</p>
-            <p>En pratique, on choisit une clé primaire dont la valeur a vocation à rester stable.</p>
-            <p>Par exemple, un numéro de téléphone serait un mauvais choix&nbsp;: le client peut changer de numéro.</p>
-            <p>Pour distinguer chaque ligne sans ambiguïté, on utilise généralement un identifiant unique, comme un numéro de client. Par exemple, <code>id = 4</code> permet d’identifier précisément un seul client.</p>
-          </div>
-          <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p><p>Unique et non <code>NULL</code> sont des propriétés imposées par <code>PRIMARY KEY</code>. La stabilité est une bonne règle de conception.</p></div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Comment définir une clé primaire</p>
-          <p>Lorsqu’on crée une table, on utilise <code>PRIMARY KEY</code>.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE clients (
-    id INTEGER PRIMARY KEY,
-    prenom TEXT,
-    ville TEXT,
-    age INTEGER,
-    email TEXT,
-    telephone TEXT
-);</pre></div>
-          <p>Regardons cette ligne&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">id INTEGER PRIMARY KEY</pre></div>
-          <div class="pk-parts">
-            <article>
-              <b>id</b>
-              <p>Le nom de la colonne qui sert d’identifiant unique.</p>
-              <p>Exemple&nbsp;: la colonne <code>id_client</code> dans la table <code>clients</code>.</p>
-            </article>
-            <article>
-              <b>INTEGER</b>
-              <p>Le type de donnée&nbsp;: elle ne peut contenir que des nombres entiers.</p>
-              <p>Exemple&nbsp;: <code>4</code> est valide, mais <code>'Nathan'</code> ou <code>4.5</code> provoqueront une erreur.</p>
-            </article>
-            <article>
-              <b>PRIMARY KEY</b>
-              <p>La contrainte&nbsp;: elle est définie comme clé primaire, ce qui garantit l’unicité de chaque ligne.</p>
-              <p>Exemple&nbsp;: impossible d’insérer un deuxième client avec <code>id = 4</code>. SQL rejettera la requête.</p>
-            </article>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Pour aller plus loin&nbsp;: une clé composée</p>
-          <p>Une table ne peut posséder qu’une seule clé primaire. Cependant, cette clé peut être constituée de plusieurs colonnes. On parle alors de clé primaire composée.</p>
-          <p>Par exemple, imaginons une table qui indique quels produits sont présents dans chaque commande&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE lignes_commande (
-    commande_id INTEGER,
-    produit_id INTEGER,
-    quantite INTEGER,
-    PRIMARY KEY (commande_id, produit_id)
-);</pre></div>
-          <div class="pk-comp">
-            <div class="pk-mini is-3">
-              <span class="is-h">commande_id</span><span class="is-h">produit_id</span><span class="is-h">quantité</span>
-              <span>1</span><span>2</span><span>1</span>
-              <span>1</span><span>5</span><span>2</span>
-              <span>2</span><span>2</span><span>3</span>
-              <span>2</span><span>7</span><span>1</span>
-            </div>
-          </div>
-          <p>Une commande peut contenir plusieurs produits&nbsp;: <code>commande_id</code> peut donc apparaître plusieurs fois.</p>
-          <p>Et un même produit peut être présent dans plusieurs commandes&nbsp;: l’id du produit peut lui aussi apparaître plusieurs fois.</p>
-          <p>🔑 C’est la combinaison <code>commande_id</code> + <code>produit_id</code> qui est unique.</p>
-          <p>C’est cette combinaison de plusieurs colonnes qui forme une clé primaire composée.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">La clé primaire prépare les relations</p>
-          <p>L’<code>id</code> ne sert pas uniquement à retrouver un client. Il permet également à d’autres tables de faire référence à ce client.</p>
-          <div class="pk-rel">
-            <article><b>clients</b><span>id 4</span></article>
-            <i aria-hidden="true">↓</i>
-            <article><b>commandes</b><span>client_id 4</span></article>
-          </div>
-          <p>La commande peut ainsi indiquer quel client l’a passée, même si plusieurs clients portent le même prénom.</p>
-          <p>🔗 C’est ici qu’interviendra ensuite la notion de clé étrangère (<code>FOREIGN KEY</code>).</p>
-        </div>
-      </div>`},
-    reflex:{extra:`<div class="pk-reflex">
-      <p>Quand plusieurs lignes peuvent avoir des informations identiques, ne cherche pas à les distinguer uniquement avec leur prénom ou leur ville.</p>
-      <div class="pk-reflex-pair">
-        <div><b>Nathan · Paris</b><span>id 4</span></div>
-        <div><b>Nathan · Paris</b><span>id 10</span></div>
-      </div>
-      <p>🔑 Cherche leur clé primaire.</p>
-      <div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p><p>Une clé primaire identifie chaque ligne de manière unique. Elle peut être constituée d’une seule colonne ou de plusieurs colonnes.</p></div>
-    </div>`}},
-  anatomie:[{tok:"SELECT id, prenom, ville",txt:"Affiche les informations utiles pour distinguer les fiches."},{tok:"FROM clients",txt:"La recherche porte sur la table des clients."},{tok:"WHERE id = 4",txt:"Utilise la clé primaire : une seule ligne peut posséder cet identifiant."}],
-  exemple:"SELECT id, prenom, ville FROM clients WHERE id = 4;",
-  attendu:"<b>1 ligne</b> : Nathan, <code>id = 4</code>, Paris. Nathan <code>id = 10</code> ne correspond pas au filtre.",
-  retenir:"Une clé primaire identifie chaque ligne de manière unique. Elle peut être constituée d’une seule colonne ou de plusieurs colonnes.",
-  consigne:"Retrouve uniquement la fiche de Nathan dont le numéro client est <code>4</code>. Affiche son <code>id</code>, son <code>prenom</code>, sa <code>ville</code> et son <code>telephone</code>.",
-  solution:"SELECT id, prenom, ville, telephone FROM clients WHERE id = 4;",
-  indice:"Le numéro client correspond à la clé primaire <code>id</code>. Ajoute le filtre <code>WHERE id = 4</code>.",
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-  {
-    "k": "nom",
-    "label": "Recherche par prénom",
-    "sql": "SELECT id, prenom, ville\nFROM clients\nWHERE prenom = 'Nathan';",
-    "out": "2 lignes : les deux Nathan"
+guide({ id:34, titre:"Clé primaire", résumé:"Identifier une ligne sans ambiguïté",
+  sit:{
+    blocks:[
+      "Le service client reçoit <b>un email de Nathan</b> : il habite à Paris et souhaite <b>modifier son numéro de téléphone</b>. Avant de toucher à sa fiche, l’équipe veut être certaine de retrouver <b>la bonne personne</b>.",
+      "La table <code>clients</code> contient au total <b>10 clients</b>. Pour vérifier la fiche, l’équipe souhaite récupérer uniquement :",
+      {need:[["👤","Le prénom du client","table clients"],["👪","Son nom de famille","table clients"],["📞","Son téléphone","table clients"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>WHERE</code>, SQL sait retrouver les clients qui s’appellent <b>Nathan</b>, mais il en trouve <b>deux</b> : tous les deux habitent à Paris.","Or, l’email ne donne ni nom de famille ni numéro : <b>le prénom et la ville ne suffisent pas</b> pour savoir lequel des deux a écrit."],
+      scene:{h:"👥 Fiches des clients",cols:"1fr 1fr .6fr",
+        lanes:[{c:[["h1","prenom","t"],["h2","ville","t"],["h3","🔑 id","th"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","Paris"],["a3","1","h"]]},
+          {k:"R2",c:[["b1","Lucas"],["b2","Lyon"],["b3","2","h"]]},
+          {k:"R3",c:[["c1","Nathan"],["c2","Paris"],["c3","4","h"]]},
+          {k:"R4",c:[["d1","Nathan"],["d2","Paris"],["d3","10","h"]]}],
+        caps:["<b>Notre liste</b> · Deux clients s’appellent Nathan et habitent à Paris : l’email correspond aux deux fiches.","<b>Constat</b> · Même prénom, même ville : rien ne permet de savoir lequel des deux a écrit.","<b>Résultat</b> · Chaque client reçoit un numéro bien à lui : les deux Nathan ne peuvent plus être confondus."],
+        steps:[{cap:0,on:["R3","R4"],d:2000},{cap:1,off:["R3","R4"],mark:{R3:"is-miss",R4:"is-miss"},d:2400},{cap:2,unmark:{R3:"is-miss",R4:"is-miss"},on:["a3","b3","c3","d3"],show:["h3","a3","b3","c3","d3"],stagger:260,d:3000}]},
+      then:["Il faut donc donner à chaque client <b>un numéro bien à lui</b>, qui ne se répète jamais.","C’est exactement le rôle de la <b>clé primaire</b> (<code>PRIMARY KEY</code>)."]
+    },
+    mission:"Aide le service client à retrouver le <b>prénom</b>, le <b>nom de famille</b> et le <b>téléphone</b> du client <b>numéro 4</b>, le numéro que Nathan a donné en réponse, afin de modifier la bonne fiche."
   },
-  {
-    "k": "nomville",
-    "label": "Prénom + ville",
-    "sql": "SELECT id, prenom, ville\nFROM clients\nWHERE prenom = 'Nathan' AND ville = 'Paris';",
-    "out": "Toujours 2 lignes : le doute reste"
+  concept:{
+    title:"Comment SQL peut-il savoir de quel client il s’agit ?",
+    blocks:[
+      "Pour retrouver une seule ligne, SQL a besoin d’une valeur qui n’appartient qu’à elle :",
+      {ask:"Quelle colonne ne se répète jamais ?"},
+      "Dans la table <code>clients</code>, c’est la colonne <code>id</code> : le numéro de chaque client. On l’appelle la <b>clé primaire</b>, et on la compare à une valeur dans le <code>WHERE</code> :",
+      {syntax:"WHERE ⟦id = 4⟧"},
+      {scene:{h:"🔑 Du filtre à la bonne ligne",cols:".6fr 1fr 1fr",
+        lanes:[{c:[["h1","🔑 id","t"],["h2","prenom","t"],["h3","ville","t"]]},
+          {k:"R1",c:[["a1","1"],["a2","Sophie"],["a3","Paris"]]},
+          {k:"R2",c:[["b1","4"],["b2","Nathan"],["b3","Paris"]]},
+          {k:"R3",c:[["c1","7"],["c2","Léa"],["c3","Paris"]]},
+          {k:"R4",c:[["d1","10"],["d2","Nathan"],["d3","Paris"]]}],
+        caps:["<b>Table clients</b> · Quatre clients habitent à Paris, chacun avec son id.","<b>WHERE prenom = 'Nathan'</b> · Le prénom se répète : deux lignes correspondent.","<b>WHERE id = 4</b> · L’id ne se répète jamais : une seule ligne correspond."],
+        steps:[{cap:0,on:["R1","R2","R3","R4"],d:1900},{cap:1,off:["R1","R3"],dim:["R1","R3"],d:2400},{cap:2,off:["R4"],dim:["R4"],d:2600}]}},
+      {looks:[["unique","aucune valeur ne revient deux fois"],["jamais vide","chaque ligne a toujours son id"]],label:"Une clé primaire est…"}
+    ]
   },
-  {
-    "k": "id",
-    "label": "Rechercher par clé primaire",
-    "sql": "SELECT id, prenom, ville, telephone\nFROM clients\nWHERE id = 4;",
-    "out": "1 ligne : le bon Nathan, sans ambiguïté",
-    "tone": "good"
-  }
-] ,
-learningCheck:{
-  "question": "Deux clients s’appellent Nathan. Quelle condition identifie une seule personne ?",
-  "options": [
-    "prenom = 'Nathan'",
-    "ville IS NOT NULL",
-    "id = 4"
+  steps:[
+    {h:"Retrouver une ligne avec sa clé primaire",blocks:[
+      "Pour voir la différence, cherche d’abord les Nathan par leur prénom, puis par leur clé primaire.",
+      {say:"👇 Exécute cette requête pour retrouver les clients prénommés Nathan :",run:"SELECT id, prenom, nom, ville\nFROM clients\nWHERE prenom = 'Nathan';"},
+      {arrow:"SQL renvoie <b>2 lignes</b> : deux clients nommés Nathan, tous les deux à Paris, mais chacun avec son propre id."},
+      {say:"👇 Exécute cette requête pour retrouver le Nathan dont l’id est 10 :",run:"SELECT id, prenom, nom, ville\nFROM clients\nWHERE id = 10;"},
+      {arrow:"Une seule ligne revient : Nathan Dupont, le client numéro 10."},
+      {tip:{t:"Pourquoi pas le nom de famille ?",blocks:["Deux clients pourraient un jour s’appeler « Nathan Dupont ». Un nom, un téléphone ou un email peuvent se répéter ou changer : pour une clé, on préfère un numéro attribué une fois pour toutes."]}}
+    ]},
+    {h:"Une valeur unique, jamais vide",blocks:[
+      "Une clé primaire est <b>unique</b> et <b>jamais vide</b> : ce n’est pas une simple habitude, la base impose ces deux règles.",
+      {warn:{t:"Un id déjà pris",blocks:[
+        "Si tu écris :",
+        {syntax:"INSERT INTO clients (id, prenom)\nVALUES (4, 'Yanis');"},
+        "La base refuse la ligne : le client <code>4</code> existe déjà, et une clé primaire ne peut pas se répéter.",
+        {say:"👇 Teste par toi-même :",run:"INSERT INTO clients (id, prenom)\nVALUES (4, 'Yanis');"}
+      ]}},
+      "De même, une clé primaire n’est jamais vide : si tu n’indiques aucun <code>id</code>, SQLite choisit lui-même le numéro suivant.",
+      {say:"👇 Exécute cette requête pour ajouter une cliente sans lui donner d’id :",run:"INSERT INTO clients (prenom, nom, ville)\nVALUES ('Lina', 'Garnier', 'Paris');\nSELECT id, prenom, nom\nFROM clients\nWHERE prenom = 'Lina';"},
+      {arrow:"Lina reçoit automatiquement le numéro 11 : le suivant dans la table."}
+    ]},
+    {h:"Déclarer une clé primaire",blocks:[
+      "Une clé primaire se déclare à la création de la table, avec <code>PRIMARY KEY</code> placé après le type de la colonne :",
+      {syntax:"CREATE TABLE prospects (\n  id INTEGER ⟦PRIMARY KEY⟧,\n  prenom TEXT,\n  ville TEXT\n);"},
+      {looks:[["id","est le nom de la colonne"],["INTEGER","est son type : un nombre entier"],["PRIMARY KEY","en fait la clé primaire de la table"]]},
+      {say:"👇 Exécute cette requête pour créer la table <code>prospects</code> et voir sa clé primaire :",run:"CREATE TABLE prospects (\n  id INTEGER PRIMARY KEY,\n  prenom TEXT,\n  ville TEXT\n);\nSELECT name, type, pk\nFROM pragma_table_info('prospects');"},
+      {arrow:"La colonne <code>id</code> porte <code>pk = 1</code> : c’est la clé primaire de la table."},
+      {tip:{t:"Une clé sur plusieurs colonnes",blocks:[
+        "Une clé primaire peut regrouper plusieurs colonnes : c’est alors la <b>combinaison</b> qui doit être unique.",
+        {say:"👇 Exécute cette requête :",run:"CREATE TABLE lignes_commande (\n  commande_id INTEGER,\n  produit_id INTEGER,\n  quantite INTEGER,\n  PRIMARY KEY (commande_id, produit_id)\n);\nINSERT INTO lignes_commande\nVALUES (1, 2, 1), (1, 5, 2), (2, 2, 3);\nSELECT *\nFROM lignes_commande;"},
+        {arrow:"<code>commande_id</code> et <code>produit_id</code> se répètent chacun, mais jamais le couple."}
+      ]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes à afficher, indiquer la table, puis filtrer sur la clé primaire pour ne garder que le client numéro 4.",
+      {say:"👇 Exécute la requête pour retrouver la bonne fiche :",run:"SELECT prenom, nom, telephone\nFROM clients\nWHERE id = 4;"},
+      {done:{
+        label:"De 10 clients à la bonne fiche",
+        funnel:[
+          {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
+          {step:"WHERE id = 4",s:"ne garde que le client dont l’id vaut 4"},
+          {n:1,t:"⭐ fiche à modifier",s:"Nathan Petit",dots:"0001000000",out:true}
+        ],
+        sms:{ico:"✏️",h:"Mise à jour de la fiche",aria:"Le numéro de téléphone est modifié sur la fiche de Nathan Petit",msg:"<b>Fiche client</b><br>Le nouveau numéro est enregistré sur la bonne fiche.",people:[["N","Nathan Petit","06 39 98 40 15"]],st:["À modifier","Modification","✓ Modifiée"],plane:"doc",done:"✓ Fiche de Nathan Petit modifiée"},
+        fill:["clients","WHERE","id","4"],
+        ui:{t:"La bonne fiche, sans ambiguïté",s:"L’id 4 désigne un seul client : le service client peut modifier le bon numéro de téléphone.",n:["SELECT","FROM","WHERE","PRIMARY KEY"]},
+        rows:1
+      }}
+    ]}
   ],
-  "answer": 2,
-  "explanation": "Un prénom peut être partagé. La clé primaire identifie une ligne sans ambiguïté."
-}
-},
-{ id:35, titre:"Clé étrangère", résumé:"Relier une ligne à la bonne personne",
-  situation:`<div class="sit-prob"><div class="sit-prob-head"><span class="sit-prob-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M8.5 14.5A6 6 0 1 1 15.5 14.5c-1 .8-1.5 1.5-1.5 2.5h-4c0-1-.5-1.7-1.5-2.5Z"/></svg></span><span class="sit-prob-lab">Problématique</span></div><p class="sit-prob-body">Comment retrouver le prochain colis d’un client à partir de son numéro client&nbsp;?</p></div><br><br>Nathan a gagné un jeu concours sur le site e-commerce. Son numéro client est le <code>4</code> et son cadeau 🎁 doit être glissé dans son prochain colis.<br><br>Dans la table <code>clients</code>, on retrouve Nathan grâce à son identifiant&nbsp;:<br><br><div class="table-wrap"><table class="concept-table"><thead><tr><th>id</th><th>prenom</th></tr></thead><tbody><tr><td>2</td><td>Lucas</td></tr><tr><td>4</td><td>Nathan 🎁</td></tr><tr><td>7</td><td>Léa</td></tr></tbody></table></div><br><br>Mais Nathan peut avoir passé plusieurs commandes.<br><br>Regardons donc les commandes associées au client n°<code>4</code> <span aria-hidden="true">👇</span>&nbsp;:`,
-  situationSql:"SELECT id, client_id\nFROM commandes\nWHERE client_id = 4;",
-  situationTail:"Nous avons retrouvé deux commandes associées au numéro client <code>4</code>.<br><br><div class=\"sit-sql\"><p>Dans ce cas, comment retrouver la bonne commande où glisser le cadeau&nbsp;? <span aria-hidden=\"true\">👇</span></p></div>",
-    studio:{problem:{eye:"",title:"Le jeu des correspondances",
-      body:"Regardons le numéro client&nbsp;: <code>4</code> dans les deux tables.",
-      extra:`<div class="fk-corr-demo"><p>Dans <code>clients</code>&nbsp;:</p>
-        <div class="pk-comp is-a"><div class="pk-mini"><span class="is-h">id</span><span class="is-h">prenom</span><span>2</span><span>Lucas</span><span class="is-hit">4</span><span class="is-hit">Nathan 🎁</span><span>7</span><span>Léa</span></div></div>
-        <p><code>id = 4</code> identifie Nathan de manière unique. C’est la <b>clé primaire</b>.</p>
-        <p>Dans <code>commandes</code>&nbsp;:</p>
-        <div class="pk-comp is-b"><div class="pk-mini"><span class="is-h">id</span><span class="is-h">client_id</span><span>5</span><span class="is-hit">4</span><span>12</span><span class="is-hit">4</span></div></div>
-        <p>Les deux commandes possèdent un <code>client_id = 4</code>.</p>
-        <p>Ces valeurs correspondent&nbsp;:</p>
-        <div class="fk-corr" aria-label="Le 4 de commandes correspond au 4 de clients">
-          <div class="fk-corr-dest">
-            <span class="is-hit">🔑 id = 4</span>
-          </div>
-          <div class="fk-corr-link">
-            <svg viewBox="0 0 30 84" aria-hidden="true">
-              <path d="M 30,18 L 15,18 L 15,66 L 30,66 M 15,42 L 4,42" class="fk-corr-path"/>
-              <path d="M 10,37 L 4,42 L 10,47" class="fk-corr-head"/>
-              <circle cx="30" cy="18" r="2.5" class="fk-corr-dot is-top"/>
-              <circle cx="30" cy="66" r="2.5" class="fk-corr-dot is-bot"/>
-            </svg>
-          </div>
-          <div class="fk-corr-srcs">
-            <span>commande 5</span>
-            <span>commande 12</span>
-          </div>
-        </div>
-        <p><code>client_id = 4</code> renvoie à la ligne de la table <code>clients</code> dont l’<code>id</code> vaut <code>4</code>.</p>
-        <p>Cette association permet de rattacher la commande à toutes les informations disponibles sur ce client&nbsp;: prénom, nom, ville, âge, e-mail, etc., lorsqu’elles sont renseignées.</p>
-        <p>Ainsi, un simple identifiant suffit à relier deux tables et à enrichir une commande avec de nombreuses informations.</p>
-        <div class="sit-memo">
-          <p class="sit-memo-lab"><i aria-hidden="true">💡</i>Le rôle</p>
-          <p>C’est précisément le rôle d’une clé étrangère.</p>
-        </div></div>`},
-    uses:{title:"Qu’est-ce qu’une clé étrangère&nbsp;?",
-      body:`<div class="pt-lead fn-uses fk-course">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Une colonne qui fait référence</p>
-          <p>🔗 Une clé étrangère est une colonne qui fait référence à une clé d’une autre table.</p>
-          <p>Elle permet ainsi d’établir une relation entre les données de deux tables.</p>
-          <p>Dans notre exemple&nbsp;:</p>
-          <div class="fk-ref" aria-label="La colonne client_id de la table commandes fait référence à la colonne id de la table clients">
-            <article>
-              <header>
-                <small>table</small>
-                <code><svg class="fk-ref-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>commandes</code>
-              </header>
-              <div>
-                <small>colonne</small>
-                <span class="is-fk"><svg class="fk-ref-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>client_id<i>FK</i></span>
-              </div>
-            </article>
-            <div class="fk-ref-link">
-              <svg viewBox="0 0 20 22" aria-hidden="true"><path d="M10 1 V15"/><path d="M5 11 L10 17 L15 11"/></svg>
-              <em>fait référence à</em>
-              <svg viewBox="0 0 20 22" aria-hidden="true"><path d="M10 1 V15"/><path d="M5 11 L10 17 L15 11"/></svg>
-            </div>
-            <article>
-              <header>
-                <small>table</small>
-                <code><svg class="fk-ref-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>clients</code>
-              </header>
-              <div>
-                <small>colonne</small>
-                <span class="is-pk"><svg class="fk-ref-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6M15.5 7.5l3 3L22 7l-3-3"/></svg>id<i>PK</i></span>
-              </div>
-            </article>
-          </div>
-          <div class="fk-roles">
-            <div><b><svg class="fk-ref-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6M15.5 7.5l3 3L22 7l-3-3"/></svg>clients.id</b><span>clé primaire</span></div>
-            <div><b><svg class="fk-ref-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>commandes.client_id</b><span>clé étrangère</span></div>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Clé primaire ≠ clé étrangère</p>
-          <p>Les deux contiennent ici la même valeur <code>4</code>, mais elles n’ont pas le même rôle.</p>
-          <div class="fk-vs">
-            <article>
-              <b>🔑 La clé primaire</b>
-              <p>Dans la table <code>clients</code>, <code>id = 4</code> sert à <b>identifier</b> Nathan de manière unique.</p>
-            </article>
-            <article>
-              <b>🔗 La clé étrangère</b>
-              <p>Dans la table <code>commandes</code>, <code>client_id = 4</code> sert à <b>faire référence</b> au client qui a le numéro <code>4</code>.</p>
-            </article>
-          </div>
-          <div class="sit-memo">
-            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>On peut retenir</p>
-            <p>🔑 Clé primaire → identifie.</p>
-            <p>🔗 Clé étrangère → fait référence.</p>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Une clé étrangère peut se répéter</p>
-          <p>Dans le cours précédent, nous avons vu qu’une clé primaire doit être unique.</p>
-          <p>Mais regarde la colonne <code>client_id</code>&nbsp;:</p>
-          <div class="pk-comp"><div class="pk-mini"><span class="is-h">id</span><span class="is-h">client_id</span><span>5</span><span class="is-hit">4</span><span>12</span><span class="is-hit">4</span></div></div>
-          <p>Le <code>4</code> apparaît plusieurs fois. Et c’est parfaitement normal.</p>
-          <p>Parce qu’un même client peut avoir plusieurs commandes&nbsp;:</p>
-          <div class="fk-tree" aria-label="Nathan a deux commandes">
-            <div class="fk-tree-root"><b>Nathan</b><span>🔑 id = 4</span></div>
-            <i class="fk-tree-stem" aria-hidden="true">↓</i>
-            <div class="fk-tree-fork">
-              <article><i aria-hidden="true">↓</i><b>commande 5</b><span>client_id = 4</span></article>
-              <article><i aria-hidden="true">↓</i><b>commande 12</b><span>client_id = 4</span></article>
-            </div>
-          </div>
-          <div class="sit-memo">
-            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-            <p>Contrairement à une clé primaire, une valeur de clé étrangère peut apparaître plusieurs fois.</p>
-            <p>Chaque occurrence fait simplement référence au même client.</p>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Retour au cadeau de Nathan</p>
-          <p>Nous savons maintenant pourquoi les commandes n°5 et n°12 sont associées à Nathan&nbsp;:</p>
-          <div class="fk-check is-ok">
-            <b>clients.id = 4</b>
-            <i aria-hidden="true">↕</i>
-            <b>commandes.client_id = 4</b>
-          </div>
-          <p>La clé étrangère nous permet donc de retrouver les commandes de Nathan.</p>
-          <p>Du coup, nous pouvons croiser cette information avec d’autres colonnes. En regardant le schéma, nous avons le <code>statut</code> de la commande, qui pourrait nous être utile&nbsp;: si une commande est encore <code>en_preparation</code>, c’est qu’elle vient d’être passée.</p>
-          <div class="fk-gift">
-            <article class="is-ko">
-              <b>Commande 5</b>
-              <span>expédiée ❌</span>
-            </article>
-            <article class="is-ok">
-              <b>Commande 12</b>
-              <span>en_preparation 🎁</span>
-            </article>
-          </div>
-          <p>La commande n°5 est déjà partie. La commande n°12 est encore en préparation.</p>
-          <p>📦 Le cadeau peut donc être glissé dans le colis de la commande n°12.</p>
-          <div class="sit-sql">
-            <p>🔗 La clé permet de relier les informations</p>
-            <p><code>client_id</code> permet de rattacher chaque commande au bon client.</p>
-            <p>Ce lien pourra ensuite être utilisé pour croiser les informations de plusieurs tables&nbsp;: le prénom du client, ses commandes, leur date, leur statut, etc.</p>
-            <p>Par exemple, si Nathan a passé deux commandes, on pourra déterminer laquelle est encore en préparation grâce à la colonne <code>statut</code>.</p>
-          </div>
-          <div class="sit-memo">
-            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>Pour aller plus loin</p>
-            <p>Pour croiser réellement ces informations en SQL, on utilise une jointure. Nous verrons comment elle fonctionne dans un prochain cours.</p>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le SGBD vérifie le lien</p>
-          <p>La clé étrangère ne sert pas seulement à créer une correspondance&nbsp;: elle demande aussi au SGBD de <b>vérifier</b> que la référence est valide.</p>
-          <p>Quand une commande indique <code>client_id = 4</code>, le SGBD se pose une seule question&nbsp;:</p>
-          <p class="fk-ask">«&nbsp;Existe-t-il une ligne dans <code>clients</code> dont l’<code>id</code> vaut <code>4</code>&nbsp;?&nbsp;»</p>
-          <div class="fk-look" role="img" aria-label="Recherche de l’id 4 dans clients : Nathan trouvé">
-            <p class="fk-look-q"><span aria-hidden="true">🔎</span><b>clients.id = 4</b><em class="is-ok">trouvé</em></p>
-            <div class="pk-mini"><span class="is-h">id</span><span class="is-h">prenom</span><span class="is-dim">2</span><span class="is-dim">Lucas</span><span class="is-hit">4</span><span class="is-hit">Nathan</span><span class="is-dim">7</span><span class="is-dim">Léa</span></div>
-          </div>
-          <div class="fk-verdict is-ok">
-            <p class="fk-verdict-lab">Référence vérifiée</p>
-            <p class="fk-verdict-t">✅ Le client n°4 existe</p>
-            <p>La commande peut être rattachée au client <code>4</code>.</p>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Et si le client n’existe pas&nbsp;?</p>
-          <p>Imaginons maintenant une commande avec <code>client_id = 99</code>. Le SGBD cherche ce client dans <code>clients</code>&nbsp;:</p>
-          <div class="fk-look" role="img" aria-label="Recherche de l’id 99 dans clients : aucun résultat">
-            <p class="fk-look-q"><span aria-hidden="true">🔎</span><b>clients.id = 99</b><em>introuvable</em></p>
-            <div class="pk-mini"><span class="is-h">id</span><span class="is-h">prenom</span><span class="is-dim">2</span><span class="is-dim">Lucas</span><span class="is-dim">4</span><span class="is-dim">Nathan</span><span class="is-dim">7</span><span class="is-dim">Léa</span><span class="fk-miss-row">99</span><span class="fk-miss-row">aucun client</span></div>
-          </div>
-          <div class="fk-verdict">
-            <p class="fk-verdict-lab">Avec la contrainte FOREIGN KEY</p>
-            <p class="fk-verdict-t">❌ Enregistrement refusé</p>
-            <p><code>client_id = 99</code> fait référence à un client qui n’existe pas.</p>
-          </div>
-          <div class="sit-memo">
-            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-            <p>La clé étrangère empêche de créer une référence vers une ligne qui n’existe pas.</p>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Pourquoi ce contrôle est-il utile&nbsp;?</p>
-          <p>Sans ce contrôle, une commande pourrait être enregistrée avec un id de client (<code>commandes.client_id</code>) qui ne correspond à aucun client. Comparons la même commande dans les deux cas&nbsp;:</p>
-          <div class="fk-duo" aria-label="La commande 20 avec client_id 99, sans puis avec clé étrangère">
-            <article class="is-ko">
-              <p class="fk-duo-lab">Sans contrainte</p>
-              <b>commande 20</b>
-              <code>client_id = 99</code>
-              <small>Enregistrée, mais orpheline 🤷</small>
-            </article>
-            <article class="is-ok">
-              <p class="fk-duo-lab">Avec contrainte</p>
-              <b>commande 20</b>
-              <code>client_id = 99</code>
-              <small>Refusée à l’enregistrement 🛡️</small>
-            </article>
-          </div>
-          <p>La clé étrangère empêche ce type d’incohérence en vérifiant que chaque référence pointe bien vers une ligne existante.</p>
-          <div class="sit-memo">
-            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>Le nom de cette règle</p>
-            <p>On appelle cela l’<b>intégrité référentielle</b>&nbsp;: les liens entre les tables restent valides et cohérents.</p>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Une clé étrangère peut-elle être NULL&nbsp;?</p>
-          <p>Oui, si la colonne l’autorise.</p>
-          <p>Dans ta base, la commande n°16 est une commande invitée&nbsp;:</p>
-          <div class="pk-comp"><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">client_id</span><span class="is-h">produit_id</span><span>16</span><span class="is-null">NULL</span><span>4</span></div></div>
-          <p>Ici, <code>client_id = NULL</code> signifie qu’aucun client enregistré n’est associé à cette commande. Il n’y a donc aucune ligne de <code>clients</code> à référencer.</p>
-          <div class="fk-check is-null">
-            <b>commandes.client_id = NULL</b>
-            <i aria-hidden="true">✕</i>
-            <small>○ aucun lien</small>
-          </div>
-          <div class="sit-memo">
-            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-            <p>Une clé étrangère peut être <code>NULL</code> si la colonne autorise l’absence de référence.</p>
-            <p>Si on veut rendre le client obligatoire, il faut ajouter une contrainte comme <code>NOT NULL</code>.</p>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Comment déclarer une clé étrangère&nbsp;?</p>
-          <p>Lors de la création de <code>commandes</code>, on peut écrire&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE commandes (
-  id INTEGER PRIMARY KEY,
-  client_id INTEGER,
-  produit_id INTEGER,
-  quantite INTEGER,
-  date_commande TEXT,
-  <span class="fk-syn-hit">FOREIGN KEY (client_id)
-    REFERENCES clients(id)</span>
-);</pre></div>
-          <p>Concentrons-nous sur ces deux lignes. On peut les lire presque comme une phrase&nbsp;:</p>
-          <ol class="fk-syn-map" aria-label="Lecture de FOREIGN KEY et REFERENCES">
-            <li><b aria-hidden="true">1</b><div><code>FOREIGN KEY (client_id)</code><span>client_id est une clé étrangère</span></div></li>
-            <li><b aria-hidden="true">2</b><div><code>REFERENCES clients(id)</code><span>qui fait référence à clients.id</span></div></li>
-          </ol>
-          <p>Donc&nbsp;: «&nbsp;<code>client_id</code> est une clé étrangère qui fait référence à <code>id</code> de la table <code>clients</code>.&nbsp;»</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Une table peut avoir plusieurs clés étrangères</p>
-          <p>Dans <code>commandes</code>, nous avons également l’id du produit.</p>
-          <p>Une commande est liée à un client grâce à l’id du client (<code>commandes.client_id</code>), et à un produit grâce à l’id du produit.</p>
-          <div class="fk-tree" aria-label="Deux clés étrangères depuis commandes">
-            <div class="fk-tree-root"><b>commandes</b><span>🔑 id</span></div>
-            <i class="fk-tree-stem" aria-hidden="true">↓</i>
-            <div class="fk-tree-fork">
-              <article>
-                <span>🔗 client_id</span>
-                <i aria-hidden="true">↓</i>
-                <b>clients</b>
-                <small>🔑 id</small>
-              </article>
-              <article>
-                <span>🔗 produit_id</span>
-                <i aria-hidden="true">↓</i>
-                <b>produits</b>
-                <small>🔑 id</small>
-              </article>
-            </div>
-          </div>
-          <p>On pourrait donc déclarer&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">FOREIGN KEY (client_id)
-  REFERENCES clients(id),
-FOREIGN KEY (produit_id)
-  REFERENCES produits(id)</pre></div>
-          <p>Une table peut contenir plusieurs clés étrangères. Chaque clé étrangère crée une référence vers les données d’une autre table.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Comment reconnaître une clé étrangère&nbsp;?</p>
-          <div class="sit-memo is-warn">
-            <p class="sit-memo-lab"><i aria-hidden="true">⚠️</i>Attention&nbsp;: le prénom ne suffit pas</p>
-            <p>Une colonne appelée <code>client_id</code> n’est pas automatiquement une clé étrangère simplement parce qu’elle se termine par <code>_id</code>.</p>
-          </div>
-          <p>C’est la contrainte définie dans le schéma qui établit officiellement la référence&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">FOREIGN KEY (client_id)
-  REFERENCES clients(id)</pre></div>
-        </div>
-      </div>`},
-    reflex:{extra:`<div class="pk-reflex">
-      <div class="sit-memo">
-        <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-        <p>🔑 Une clé primaire identifie de manière unique chaque ligne d’une table. Sa valeur ne peut pas se répéter.</p>
-        <p>🔗 Une clé étrangère fait référence à la clé d’une autre table pour relier leurs données. Sa valeur peut se répéter&nbsp;: plusieurs commandes peuvent appartenir au même client.</p>
-        <p class="memo-ex">Exemple&nbsp;: l’id 4 n’apparaît qu’une fois dans la <code>table&nbsp;clients</code>, mais peut revenir plusieurs fois comme id du client dans la <code>table&nbsp;commandes</code>.</p>
-      </div>
-      <div class="fk-memo" aria-label="Identifie contre fait référence">
-        <div class="fk-memo-pair">
-          <article>
-            <b>clients</b>
-            <span>🔑 id = 4</span>
-            <em>Nathan</em>
-          </article>
-          <i aria-hidden="true">←</i>
-          <article>
-            <b>commandes</b>
-            <span>🔗 client_id = 4</span>
-          </article>
-        </div>
-        <div class="fk-memo-labs"><span>identifie</span><span>fait référence</span></div>
-      </div>
-    </div>`}},
-  anatomie:[{tok:"SELECT id, client_id, produit_id, quantite, statut",txt:"Affiche la commande, le client lié, et l’état du colis."},{tok:"FROM commandes",txt:"Les lignes étudiées sont les achats."},{tok:"WHERE client_id = 4 AND statut = 'en_preparation'",txt:"Garde le colis de Nathan qui n’est pas encore parti."}],
-  exemple:"SELECT id, client_id, produit_id, quantite, statut\nFROM commandes\nWHERE client_id = 4\n  AND statut = 'en_preparation';",
-  attendu:"<b>1 ligne</b> : commande n°12, encore <code>en_preparation</code>. La n°5 est déjà expédiée : ce n’est plus le prochain colis.",
-  retenir:"Une clé primaire identifie de manière unique chaque ligne d’une table. Sa valeur ne peut pas se répéter.<br><br>Une clé étrangère fait référence à la clé d’une autre table pour relier leurs données. Sa valeur peut se répéter : plusieurs commandes peuvent appartenir au même client.<br><br><p class='memo-ex'>Exemple : l’id 4 n’apparaît qu’une fois dans la <code>table&nbsp;clients</code>, mais peut revenir plusieurs fois comme id du client dans la <code>table&nbsp;commandes</code>.</p>",
-  consigne:"Retrouve le colis dans lequel glisser le cadeau de Nathan&nbsp;: sa commande encore en préparation. Affiche <code>id</code>, <code>client_id</code>, <code>produit_id</code>, <code>quantite</code> et <code>statut</code>.",
-  solution:"SELECT id, client_id, produit_id, quantite, statut\nFROM commandes\nWHERE client_id = 4\n  AND statut = 'en_preparation';",
-  indice:"Filtre à la fois sur la clé étrangère <code>client_id = 4</code> et sur <code>statut = 'en_preparation'</code>.",
-  richLesson:true, earlyDemo:true,
-  testeSwitch:'cols2',
-  testeVariants:[
-  {
-    "k": "cmd4",
-    "label": "Commandes du client n°4",
-    "sql": "SELECT clients.id, clients.prenom, commandes.id, commandes.produit_id, commandes.statut\nFROM commandes\nJOIN clients\n    ON commandes.client_id = clients.id\nWHERE clients.id = 4;",
-    "out": "2 lignes : les commandes de Nathan"
-  },
-  {
-    "k": "cmd10",
-    "label": "Client sans commande",
-    "sql": "SELECT id, client_id\nFROM commandes\nWHERE client_id = 10;",
-    "out": "0 ligne : la référence est valide, mais ce client n’a pas commandé"
-  },
-  {
-    "k": "invite",
-    "label": "Commande sans client",
-    "sql": "SELECT id, client_id, produit_id\nFROM commandes\nWHERE client_id IS NULL;",
-    "out": "1 ligne : commande n°16, sans client enregistré"
-  },
-  {
-    "k": "colis",
-    "label": "Commande en préparation",
-    "sql": "SELECT clients.id, clients.prenom, commandes.id, commandes.produit_id, commandes.statut\nFROM commandes\nJOIN clients\n    ON commandes.client_id = clients.id\nWHERE clients.id = 4\n  AND commandes.statut = 'en_preparation';",
-    "out": "1 ligne : commande n°12",
-    "tone": "good"
-  }
-] ,
-learningCheck:{
-  "question": "Quelle colonne permet de savoir à quel client appartient chaque commande ?",
-  "options": [
-    "commandes.id",
-    "commandes.client_id",
-    "clients.prenom"
+  reflex:[
+    {recap:[
+      ["🔑","Une <b>clé primaire</b> identifie chaque ligne : sa valeur est <b>unique</b> et jamais vide.","Un prénom ou une ville peuvent se répéter, pas un id."],
+      ["🎯","Pour retrouver une seule ligne, filtre sur sa clé primaire :",null,"WHERE id = 4"],
+      ["🛠️","On la déclare à la création de la table :",null,"id INTEGER PRIMARY KEY"]
+    ],label:"Les trois idées à retenir"}
   ],
-  "answer": 1,
-  "explanation": "C’est la clé étrangère commandes.client_id qui fait référence à clients.id."
-}
-},
-{ id:36, titre:"Les relations entre les tables", résumé:"Découvrir 1-1, 1-N et N-N à travers Nathan",
-  situation:`<div class="sit-inbox"><p>Tu viens de recevoir un mail de Nathan, avec comme objet&nbsp;: «&nbsp;Mes points de fidélité ne semblent pas à jour&nbsp;».</p><p class="sit-mail-hint">Touche le mail ci-dessous pour le découvrir. <b aria-hidden="true">👇</b></p><details class="sit-mail"><summary><span class="sit-mail-new"><i aria-hidden="true">📩</i>Nouveau message</span><span class="sit-mail-preview">De Nathan</span><span class="sit-mail-cta">Touche pour ouvrir le mail <i class="sit-mail-chev" aria-hidden="true">&gt;</i></span></summary><div class="sit-mail-open"><div class="sit-mail-fields"><div><span>De</span><b>Nathan</b></div><div class="sit-mail-id"><span>N° client</span><b>4</b></div><div><span>Objet</span><b>Mes points de fidélité ne semblent pas à jour</b></div></div><div class="sit-mail-body"><p>Bonjour,</p><p>Mon compte affiche actuellement 250 points, mais j’ai passé plusieurs commandes et je pense que certaines n’ont pas été prises en compte.</p><p>Pouvez-vous vérifier mon solde&nbsp;?</p><p>Merci,<br>Nathan</p></div></div></details><div class="sit-memo"><p class="sit-memo-lab"><i aria-hidden="true">💡</i>Problématique</p><p>Dans notre programme&nbsp;: <b>chaque commande rapporte 120 points</b>. S’y ajoutent <b>5 points bonus</b> si le produit commandé coûte plus de 30&nbsp;€.</p><p>Pour vérifier les points de Nathan, comment retrouver et relier ses points de fidélité, ses commandes et les produits qu’il a achetés&nbsp;?</p></div></div>`,
-    studio:{problem:{eye:"",title:"Comment les tables sont-elles reliées&nbsp;?",
-      body:"Les informations liées à Nathan ne sont pas toutes stockées au même endroit. Son identité se trouve dans la table <code>clients</code>, ses points dans la table <code>fidelite</code>, ses achats dans la table <code>commandes</code> et les produits dans la table <code>produits</code>.",
-      extra:`<div class="pk-rel" aria-label="Quatre tables, quatre informations">
-          <article><b>clients</b><span>Nathan</span></article>
-          <article><b>fidelite</b><span>250 points</span></article>
-          <article><b>commandes</b><span>?</span></article>
-          <article><b>produits</b><span>?</span></article>
-        </div>
-        <p>Pour passer d’une table à une autre, nous devons comprendre leurs relations.</p>
-        <p>Une relation indique comment les lignes de deux tables sont liées. Elle permet surtout de répondre à une question&nbsp;: <b>combien</b> de lignes d’une table peuvent être associées à une ligne de l’autre table&nbsp;?</p>
-        <div class="sit-sql">
-          <p>On utilise <b>1</b> = un seul, et <b>N</b> = plusieurs.</p>
-          <p><b>1 ↔ 1</b> — un à un</p>
-          <p><b>1 → N</b> — un à plusieurs</p>
-          <p><b>N ↔ N</b> — plusieurs à plusieurs</p>
-        </div>
-        <p>Nous allons les découvrir en enquêtant sur les points de Nathan.</p>`},
-    uses:{title:"Vérifier les points de Nathan",
-      sql:"SELECT id, client_id, produit_id\nFROM commandes\nWHERE client_id = 4;",
-      sql2:"SELECT id, nom, prix\nFROM produits\nWHERE id IN (1, 2);",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">1 ↔ 1 — Retrouver ses points</p>
-          <p>Commençons par Nathan. Dans la table <code>clients</code>, il n’apparaît qu’une fois&nbsp;:</p>
-          <div class="pk-comp"><div class="pk-mini"><span class="is-h">id</span><span class="is-h">prenom</span><span class="is-hit">4</span><span class="is-hit">Nathan</span></div></div>
-          <p>Mais ses points ne sont pas dans la table <code>clients</code>. Ils se trouvent dans la table <code>fidelite</code>&nbsp;:</p>
-          <div class="pk-comp"><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">client_id</span><span class="is-h">points</span><span class="is-hit">3</span><span class="is-hit">4</span><span class="is-hit">250</span></div></div>
-          <p>Mais comment savoir que ces 250 points appartiennent bien à Nathan&nbsp;?</p>
-          <p>Dans la table <code>clients</code>, <code>id = 4</code> identifie Nathan.</p>
-          <p>Dans la table <code>fidelite</code>, <code>client_id = 4</code> fait référence à ce même client.</p>
-          <p><code>clients.id = 4</code> ↔ <code>fidelite.client_id = 4</code></p>
-          <p>Les deux lignes sont donc reliées&nbsp;:</p>
-          <div class="fk-check is-ok">
-            <b>Nathan</b>
-            <small>1 client</small>
-            <i aria-hidden="true">↕</i>
-            <b>250 points</b>
-            <small>1 fiche fidélité</small>
-          </div>
-          <div class="sit-sql">
-            <p class="rel-card-ttl">C’est une relation <b>1 ↔ 1</b><span>un à un</span></p>
-            <div class="rel-card-map" aria-label="clients un à un fidelite">
-              <code class="rel-l">clients</code>
-              <code class="rel-r">fidelite</code>
-              <span class="rel-card-n rel-l">1</span>
-              <i class="rel-card-line" aria-hidden="true"></i>
-              <span class="rel-card-n rel-r">1</span>
-              <small class="rel-l">1 client</small>
-              <small class="rel-r">1 fiche max.</small>
-            </div>
-            <p class="rel-card-why"><b>Pourquoi 1 ↔ 1&nbsp;?</b><span>Un client a au maximum une fiche fidélité.</span><span>Une fiche n’appartient qu’à un seul client.</span></p>
-          </div>
-          <p>Dans la table <code>fidelite</code>, le <code>client_id</code> est une clé étrangère vers <code>clients.id</code>. <code>UNIQUE</code> empêche le même client d’avoir plusieurs fiches.</p>
-          <div class="sit-memo">
-            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>Première information</p>
-            <p>Nathan affiche <b>250 points</b>. Nous ne savons pas encore si c’est le bon nombre. Pour le vérifier, il faut retrouver ses commandes.</p>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">1 → N — Combien de commandes&nbsp;?</p>
-          <p>Nous savons que Nathan correspond au client <code>id = 4</code>. Dans la table <code>commandes</code>, l’id du client (<code>commandes.client_id</code>) indique à quel client la ligne est rattachée.</p>
-          <div class="pk-comp"><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">client_id</span><span class="is-h">produit_id</span><span>…</span><span>…</span><span>…</span></div></div>
-          <p class="pt-syntax-h">À toi de vérifier</p>
-          <p>Combien de commandes appartiennent au client n°<code>4</code>&nbsp;? Cherche les lignes dont <code>client_id = 4</code>.</p>
-          <!--SITSQL-->
-          <p>La requête renvoie <b>2 lignes</b>. Nathan a donc passé 2 commandes.</p>
-          <p>Il n’apparaît qu’une fois dans la table <code>clients</code>. Mais son identifiant apparaît <b>plusieurs fois</b> dans la table <code>commandes</code>&nbsp;:</p>
-          <div class="pk-comp"><div class="pk-mini"><span class="is-h">client_id</span><span class="is-h">produit_id</span><span class="is-hit">4</span><span>1</span><span class="is-hit">4</span><span>2</span></div></div>
-          <div class="fk-tree" aria-label="Nathan a deux commandes">
-            <div class="fk-tree-root"><b>Nathan</b><span>🔑 id = 4</span></div>
-            <i class="fk-tree-stem" aria-hidden="true">↓</i>
-            <div class="fk-tree-fork">
-              <article><i aria-hidden="true">↓</i><b>commande 5</b><span>client_id = 4</span></article>
-              <article><i aria-hidden="true">↓</i><b>commande 12</b><span>client_id = 4</span></article>
-            </div>
-          </div>
-          <div class="sit-sql">
-            <p class="rel-card-ttl">C’est une relation <b>1 → N</b><span>un à plusieurs</span></p>
-            <div class="rel-card-map" aria-label="clients un à plusieurs commandes">
-              <code class="rel-l">clients</code>
-              <code class="rel-r">commandes</code>
-              <span class="rel-card-n rel-l">1</span>
-              <i class="rel-card-line" aria-hidden="true"></i>
-              <span class="rel-card-n rel-r">N</span>
-              <small class="rel-l">1 client</small>
-              <small class="rel-r">plusieurs commandes</small>
-            </div>
-            <p class="rel-card-why"><b>Pourquoi 1 → N&nbsp;?</b><span>Un client passe plusieurs commandes.</span><span>Une commande n’a qu’un seul client.</span></p>
-          </div>
-          <p>La clé étrangère se trouve du côté N&nbsp;: <code>commandes.client_id</code> → <code>clients.id</code>. Contrairement à une clé primaire, elle <b>peut se répéter</b>.</p>
-          <div class="sit-memo is-warn">
-            <p class="sit-memo-lab"><i aria-hidden="true">⚠️</i>Attention</p>
-            <p>Les deux valeurs <code>4</code> ne sont pas des doublons à supprimer. Elles signifient&nbsp;: ces deux commandes appartiennent toutes les deux à Nathan.</p>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Les points ne sont pas encore calculables</p>
-          <p>Nathan a passé <b>2 commandes</b>. Chaque commande rapporte <b>120 points</b>.</p>
-          <p>Mais un bonus de <b>5 points</b> s’ajoute si le produit coûte plus de 30&nbsp;€.</p>
-          <p>Sans savoir quels produits il a commandés, nous ne pouvons pas encore dire si les 250 points affichés sont justes.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Retrouver les produits commandés</p>
-          <p>Nous avons retrouvé les 2 commandes de Nathan. Mais quels produits a-t-il commandés&nbsp;?</p>
-          <p>Chaque commande contient l’id du produit.</p>
-          <p>L’id du client (<code>commandes.client_id</code>) indique qui a commandé.</p>
-          <p>L’id du produit indique quel produit a été commandé.</p>
-          <div class="rel-pair" aria-label="Chaque produit_id correspond à un produit">
-            <div class="rel-pair-h"><span>commandes</span><i aria-hidden="true">→</i><span>produits</span></div>
-            <div class="rel-pair-row">
-              <b>produit_id = 1</b>
-              <i aria-hidden="true">→</i>
-              <small>id = 1<em>Fibre Prébiotique</em><em>29,90&nbsp;€</em></small>
-            </div>
-            <div class="rel-pair-row">
-              <b>produit_id = 2</b>
-              <i aria-hidden="true">→</i>
-              <small>id = 2<em>Collagène Marin</em><em>39,90&nbsp;€</em></small>
-            </div>
-          </div>
-          <p class="pt-syntax-h is-sub">🔎 Retrouve les produits de Nathan</p>
-          <p>Nous connaissons les id des produits de ses deux commandes. Utilisons-les pour retrouver les produits correspondants.</p>
-          <!--SITSQL2-->
-          <p>Nous avons retrouvé les deux produits commandés par Nathan.</p>
-          <p>Maintenant, regarde leurs prix&nbsp;: lequel dépasse 30&nbsp;€&nbsp;?</p>
-          <p>⭐ Une commande rapporte <b>120 points</b>.</p>
-          <p>Si le produit coûte plus de 30&nbsp;€, elle rapporte <b>5 points bonus</b>.</p>
-          <div class="pts-check">
-            <article>
-              <b>Fibre Prébiotique</b>
-              <span>29,90&nbsp;€ → pas de bonus</span>
-              <small>120 points</small>
-            </article>
-            <article>
-              <b>Collagène Marin</b>
-              <span>39,90&nbsp;€ → +5 points</span>
-              <small>125 points</small>
-            </article>
-          </div>
-          <p>Mais un même produit peut-il apparaître dans plusieurs commandes&nbsp;?</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Un produit, plusieurs commandes</p>
-          <p>Prenons le produit&nbsp;: «&nbsp;Fibre Prébiotique&nbsp;».</p>
-          <div class="pk-comp"><div class="pk-mini"><span class="is-h">id</span><span class="is-h">prenom</span><span class="is-hit">1</span><span class="is-hit">Fibre Prébiotique</span></div></div>
-          <p>Ce produit n’est enregistré qu’une seule fois dans la table <code>produits</code>.</p>
-          <p>Pourtant, son <code>id = 1</code> peut être utilisé dans plusieurs lignes de <code>commandes</code>&nbsp;:</p>
-          <div class="fk-tree" aria-label="Fibre Prébiotique apparaît dans plusieurs commandes">
-            <div class="fk-tree-root"><b>Fibre Prébiotique</b><span>🔑 id = 1</span></div>
-            <i class="fk-tree-stem" aria-hidden="true">↓</i>
-            <div class="fk-tree-fork">
-              <article><i aria-hidden="true">↓</i><b>commande n°1</b></article>
-              <article><i aria-hidden="true">↓</i><b>commande n°5</b></article>
-              <article><i aria-hidden="true">↓</i><b>commande n°8</b></article>
-              <article><i aria-hidden="true">↓</i><b>commande n°15</b></article>
-            </div>
-          </div>
-          <p>Combien de produits une commande peut-elle référencer&nbsp;? <b>Un seul</b> dans notre modèle.</p>
-          <p>Dans combien de commandes un produit peut-il apparaître&nbsp;? <b>Plusieurs</b>.</p>
-          <div class="sit-sql">
-            <p class="rel-card-ttl">On retrouve donc une relation <b>1 → N</b><span>un à plusieurs</span></p>
-            <div class="rel-card-map" aria-label="produits un à plusieurs commandes">
-              <code class="rel-l">produits</code>
-              <code class="rel-r">commandes</code>
-              <span class="rel-card-n rel-l">1</span>
-              <i class="rel-card-line" aria-hidden="true"></i>
-              <span class="rel-card-n rel-r">N</span>
-              <small class="rel-l">1 produit</small>
-              <small class="rel-r">plusieurs commandes</small>
-            </div>
-            <p class="rel-card-why"><span>Le 1 représente un produit.</span><span>Le N représente plusieurs commandes.</span></p>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">N ↔ N — Clients et produits</p>
-          <p>Nous savons maintenant qu’un client peut avoir plusieurs commandes et qu’un produit peut apparaître dans plusieurs commandes. Mais quelle relation obtient-on directement entre les clients et les produits&nbsp;?</p>
-          <p>D’abord, les produits de Nathan&nbsp;:</p>
-          <div class="fk-tree" aria-label="Nathan a commandé deux produits">
-            <div class="fk-tree-root"><b>Nathan</b></div>
-            <i class="fk-tree-stem" aria-hidden="true">↓</i>
-            <div class="fk-tree-fork">
-              <article><i aria-hidden="true">↓</i><b>Fibre Prébiotique</b></article>
-              <article><i aria-hidden="true">↓</i><b>Collagène Marin</b></article>
-            </div>
-          </div>
-          <p>Un client peut-il commander plusieurs produits&nbsp;? Oui.</p>
-          <p>Inversons. La Fibre Prébiotique peut être commandée par plusieurs clients&nbsp;: Sophie, Nathan, Léa, Chloé.</p>
-          <p>Un produit peut-il être commandé par plusieurs clients&nbsp;? Oui.</p>
-          <div class="sit-sql">
-            <p class="rel-card-ttl">C’est une relation <b>N ↔ N</b><span>plusieurs à plusieurs</span></p>
-            <div class="rel-card-map" aria-label="clients plusieurs à plusieurs produits">
-              <code class="rel-l">clients</code>
-              <code class="rel-r">produits</code>
-              <span class="rel-card-n rel-l">N</span>
-              <i class="rel-card-line" aria-hidden="true"></i>
-              <span class="rel-card-n rel-r">N</span>
-              <small class="rel-l">plusieurs clients</small>
-              <small class="rel-r">plusieurs produits</small>
-            </div>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Mais où est le lien entre clients et produits&nbsp;?</p>
-          <p>La table <code>clients</code> ne contient pas l’id du produit. La table <code>produits</code> ne contient pas l’id du client.</p>
-          <p>Pourtant, on sait quels produits Nathan a commandés. Grâce à la table <code>commandes</code>, qui porte les deux clés&nbsp;:</p>
-          <div class="pk-comp"><div class="pk-mini"><span class="is-h">client_id</span><span class="is-h">produit_id</span><span>4</span><span>1</span><span>4</span><span>2</span></div></div>
-          <div class="fk-tree" aria-label="commandes relie clients et produits">
-            <div class="fk-tree-root"><b>commandes</b><span>🔗 client_id + 🔗 produit_id</span></div>
-            <i class="fk-tree-stem" aria-hidden="true">↓</i>
-            <div class="fk-tree-fork">
-              <article><i aria-hidden="true">↓</i><b>clients</b><span>qui a commandé</span></article>
-              <article><i aria-hidden="true">↓</i><b>produits</b><span>quoi</span></article>
-            </div>
-          </div>
-          <p>La relation entre <code>clients</code> et <code>produits</code> passe donc par <code>commandes</code>&nbsp;:</p>
-          <div class="sit-sql">
-            <div class="rel-card-map" aria-label="clients un à plusieurs commandes">
-              <code class="rel-l">clients</code>
-              <code class="rel-r">commandes</code>
-              <span class="rel-card-n rel-l">1</span>
-              <i class="rel-card-line" aria-hidden="true"></i>
-              <span class="rel-card-n rel-r">N</span>
-              <small class="rel-l">1 client</small>
-              <small class="rel-r">plusieurs commandes</small>
-            </div>
-            <div class="rel-card-map" aria-label="commandes plusieurs à un produits">
-              <code class="rel-l">commandes</code>
-              <code class="rel-r">produits</code>
-              <span class="rel-card-n rel-l">N</span>
-              <i class="rel-card-line" aria-hidden="true"></i>
-              <span class="rel-card-n rel-r">1</span>
-              <small class="rel-l">plusieurs commandes</small>
-              <small class="rel-r">1 produit</small>
-            </div>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">🔎 Fin de l’enquête — Nathan avait-il raison&nbsp;?</p>
-          <p>Nous avons maintenant toutes les informations nécessaires pour vérifier les 250 points affichés sur la carte de fidélité de Nathan.</p>
-          <p>Nathan a passé <b>2 commandes</b>.</p>
-          <p>Pour chacune, nous avons retrouvé le produit correspondant et calculé les points obtenus.</p>
-          <div class="pts-cmd">
-            <article>
-              <b>Commande 1</b>
-              <span>Fibre Prébiotique</span>
-              <em>29,90&nbsp;€</em>
-              <small>→ 120 points</small>
-            </article>
-            <article>
-              <b>Commande 2</b>
-              <span>Collagène Marin</span>
-              <em>39,90&nbsp;€</em>
-              <small>→ 125 points</small>
-            </article>
-          </div>
-          <p>Il ne reste plus qu’à additionner les points de ses deux commandes&nbsp;:</p>
-          <div class="pts-sum" aria-label="120 plus 125 égale 245 points">
-            <b>120 + 125</b>
-            <i aria-hidden="true">↓</i>
-            <span>245 points</span>
-          </div>
-          <p>Nathan devrait donc avoir&nbsp;:</p>
-          <div class="fk-check is-ok">
-            <b>⭐ 245 points</b>
-          </div>
-          <p>Mais sa carte de fidélité affiche actuellement&nbsp;:</p>
-          <div class="fk-check is-ko">
-            <b>250 points</b>
-          </div>
-          <p>Son intuition était bonne&nbsp;: son solde ne correspond pas à ses commandes.</p>
-          <p class="pt-syntax-h is-sub">Et maintenant&nbsp;?</p>
-          <div class="sit-memo">
-            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À suivre</p>
-            <p>Dans un prochain cours, nous verrons comment mettre à jour le nombre de points de la carte de fidélité de Nathan.</p>
-          </div>
-        </div>
-      </div>`},
-    reflexTitle:"Comment reconnaître une relation",
-    reflex:{extra:`<div class="pk-reflex">
-      <div class="sit-memo">
-        <p class="sit-memo-lab"><i aria-hidden="true">💡</i>À retenir</p>
-        <p>Une relation indique comment les lignes de deux tables sont liées.</p>
-        <p>Selon le nombre de lignes qui peuvent être associées de chaque côté, il existe trois grands types de relations&nbsp;:</p>
-        <p><b>1 ↔ 1</b> — un à un</p>
-        <p><b>1 → N</b> — un à plusieurs</p>
-        <p><b>N ↔ N</b> — plusieurs à plusieurs</p>
-      </div>
-      <div class="sit-memo">
-        <p class="sit-memo-lab">Le réflexe</p>
-        <p>Pose la question dans les <b>deux</b> sens.</p>
-        <p><b>Clients ↔ fidélité</b> — Un client a une seule carte de fidélité, et une carte de fidélité appartient à un seul client. Donc <b>1 ↔ 1</b>.</p>
-        <p><b>Clients ↔ commandes</b> — Combien de commandes un client peut-il avoir&nbsp;? Plusieurs. À combien de clients une commande peut-elle appartenir&nbsp;? Un seul. Donc <b>1 → N</b>.</p>
-        <p><b>Clients ↔ produits</b> — Combien de produits un client peut-il commander&nbsp;? Plusieurs. Combien de clients peuvent commander un même produit&nbsp;? Plusieurs. Donc <b>N ↔ N</b>.</p>
-      </div>
-    </div>`}},
-  anatomie:[{tok:"SELECT id, client_id, produit_id",txt:"Affiche chaque achat, le client, et le produit qui a pu générer des points."},{tok:"FROM commandes",txt:"C’est ici que les achats de Nathan se répètent."},{tok:"WHERE client_id = 4",txt:"Garde uniquement les commandes de Nathan."}],
-  exemple:"SELECT id, client_id, produit_id\nFROM commandes\nWHERE client_id = 4;",
-  attendu:"<b>2 lignes</b> : les commandes n°5 et n°12, chacune avec <code>client_id = 4</code>. Pour calculer les points, il faudra aussi les produits.",
-  retenir:"Une relation indique comment les lignes de deux tables sont liées.<br><br>Selon le nombre de lignes qui peuvent être associées de chaque côté, il existe trois grands types de relations :<br><br>1 ↔ 1 — un à un<br>1 → N — un à plusieurs<br>N ↔ N — plusieurs à plusieurs<br><br>Pose la question dans les deux sens.",
-  consigne:"Combien de commandes appartiennent au client n°<code>4</code>&nbsp;? Affiche <code>id</code>, <code>client_id</code> et <code>produit_id</code>.",
-  solution:"SELECT id, client_id, produit_id\nFROM commandes\nWHERE client_id = 4;",
-  indice:"Filtre sur la clé étrangère <code>client_id = 4</code>.",
-  petitDefi:[
-    {p:"Un client a au maximum une fiche fidélité, et une fiche appartient à un seul client. Quelle relation entre <code>clients</code> et <code>fidelite</code> ?",a:"1-1",answers:["1-1","1 ↔ 1","1<->1","1 a 1","1-1"]},
-    {p:"Un client peut passer plusieurs commandes, une commande appartient à un seul client. Quelle relation entre <code>clients</code> et <code>commandes</code> ?",a:"1-N",answers:["1-N","1 → N","1->N","1 a N"]},
-    {p:"Un client commande plusieurs produits, un produit est commandé par plusieurs clients. Quelle relation entre <code>clients</code> et <code>produits</code> ?",a:"N-N",answers:["N-N","N ↔ N","N<->N"]},
-    {p:"Quelle table permet de relier les clients aux produits ?",a:"commandes",answers:["commandes","COMMANDES"]}
-  ],
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-  {
-    "k": "fidnathan",
-    "label": "Carte fidélité",
-    "sql": "SELECT client_id, points\nFROM fidelite\nWHERE client_id = 4;",
-    "out": "1 ligne : 250 points affichés pour Nathan."
+  anatomie:[{tok:"SELECT id, prenom, nom, ville",txt:"Les colonnes affichées, dont la clé primaire."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"id",plain:1,txt:"La clé primaire : une valeur différente pour chaque client."},{tok:"=",plain:1,txt:"Compare l’id au numéro cherché."},{tok:"10",plain:1,txt:"Le numéro du client recherché : une seule ligne correspond."}],
+  exemple:"SELECT id, prenom, nom, ville FROM clients WHERE id = 10;",
+  attendu:"<b>1 ligne</b> : Nathan Dupont, le client numéro 10, qui habite à Paris. L’autre Nathan, Nathan Petit, ne correspond pas au filtre.",
+  retenir:"Une <b>clé primaire</b> identifie chaque ligne de façon unique : sa valeur ne se répète jamais et n’est jamais vide.<br><br>Pour retrouver une seule ligne, filtre sur elle : <code>WHERE id = 4</code>.<br><br>On la déclare à la création de la table : <code>id INTEGER PRIMARY KEY</code>. Elle peut aussi regrouper plusieurs colonnes.",
+  consigne:"Affiche le numéro de commande (<code>numero_commande</code>) et le statut de la commande dont l’<code>id</code> vaut 12.",
+  solution:"SELECT numero_commande, statut FROM commandes WHERE id = 12;",
+  indice:"Chaque commande a sa propre clé primaire <code>id</code> : filtre dessus avec <code>WHERE id = 12</code>.",
+  testeVariants:[{k:"nom",label:"Recherche par prénom",sql:"SELECT id, prenom, ville\nFROM clients\nWHERE prenom = 'Nathan';",out:"2 lignes : les deux Nathan",expectRows:2},{k:"nomville",label:"Prénom + ville",sql:"SELECT id, prenom, ville\nFROM clients\nWHERE prenom = 'Nathan' AND ville = 'Paris';",out:"Toujours 2 lignes : le doute reste",expectRows:2},{k:"id",label:"Recherche par clé primaire",sql:"SELECT id, prenom, ville, telephone\nFROM clients\nWHERE id = 4;",out:"1 ligne : le bon Nathan, sans ambiguïté",tone:"good",expectRows:1}],
+  learningCheck:{question:"Deux clients s’appellent Nathan. Quelle condition identifie une seule personne ?",options:["prenom = 'Nathan'","ville IS NOT NULL","id = 4"],answer:2,explanation:"Un prénom peut être partagé par plusieurs clients. La clé primaire identifie une ligne sans ambiguïté."}
+}),
+guide({ id:35, titre:"Clé étrangère", résumé:"Relier une ligne à la bonne personne",
+  sit:{
+    blocks:[
+      "L’équipe logistique prépare <b>un cadeau pour Nathan</b>, gagnant d’un jeu concours : il doit être glissé dans <b>son prochain colis</b>, c’est-à-dire dans sa commande qui n’est pas encore partie.",
+      "La table <code>commandes</code> contient au total <b>16 commandes</b>, passées par différents clients. Pour retrouver le bon colis, l’équipe souhaite récupérer uniquement :",
+      {need:[["🧾","Le numéro de la commande","table commandes"],["🏷️","Le produit commandé","table commandes"],["📦","Son statut","table commandes"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>WHERE</code>, SQL sait retrouver un client grâce à sa clé primaire : Nathan est le client <b>4</b> de la table <code>clients</code>.","Or, ses commandes sont rangées dans <b>une autre table</b> : pour savoir lesquelles lui appartiennent, chaque commande doit pouvoir <b>désigner son client</b>."],
+      scene:{h:"📦 Fiche d’une commande",cols:"96px 1fr",form:true,
+        lanes:[
+          {k:"L1",c:[["","id","t"],["a1","12"]]},
+          {k:"L2",c:[["","produit_id","t"],["a2","2"]]},
+          {k:"L3",c:[["","quantite","t"],["a3","1"]]},
+          {k:"L4",c:[["","statut","t"],["a4","en_preparation"]]},
+          {k:"L5",c:[["","client_id","t"],["a5","?","q"]]}],
+        caps:["<b>Une commande</b> · Elle indique son produit, sa quantité et son statut.","<b>Le lien manquant</b> · Mais à quel client appartient-elle ? La fiche ne le dit pas.","<b>Résultat</b> · La commande doit garder le numéro de son client : ici le 4, celui de Nathan."],
+        steps:[{cap:0,on:["L1","L2","L3","L4"],d:1900},{cap:1,off:["L1","L2","L3","L4"],on:["a5"],d:2300},{cap:2,off:["a5"],text:{a5:"4"},d:2600}]},
+      then:["Il faut donc que chaque commande <b>garde le numéro de son client</b>, pour renvoyer à sa fiche.","C’est exactement le rôle d’une <b>clé étrangère</b> (<code>FOREIGN KEY</code>)."]
+    },
+    mission:"Aide l’équipe logistique à retrouver le <b>numéro</b>, le <b>produit</b> et le <b>statut</b> de la commande de Nathan qui est <b>encore en préparation</b>, afin de glisser le cadeau dans le bon colis."
   },
-  {
-    "k": "cmdnathan",
-    "label": "Ses commandes",
-    "sql": "SELECT id, client_id, produit_id\nFROM commandes\nWHERE client_id = 4;",
-    "out": "2 lignes : Nathan a 2 commandes, avec produit_id 1 et 2."
+  concept:{
+    title:"Comment SQL peut-il savoir à quel client appartient une commande ?",
+    blocks:[
+      "Pour retrouver le client d’une commande, SQL part du numéro qu’elle porte et le cherche dans l’autre table :",
+      {ask:"Quelle ligne de la table clients porte ce numéro ?"},
+      "La colonne qui renvoie ainsi à une autre table est une <b>clé étrangère</b>. On la déclare avec <code>FOREIGN KEY</code> et <code>REFERENCES</code> :",
+      {syntax:"FOREIGN KEY (client_id)\n  ⟦REFERENCES clients(id)⟧"},
+      {scene:{h:"🔗 De la commande au client",cols:".6fr 1fr",
+        lanes:[{k:"HO",l:"commandes",c:[["","🔑 id","t"],["","🔗 client_id","t"]]},
+          {k:"O1",c:[["a1","5"],["a3","4"]]},
+          {k:"O2",c:[["b1","8"],["b3","7"]]},
+          {k:"O3",c:[["c1","12"],["c3","4"]]},
+          {k:"HC",l:"clients",c:[["","🔑 id","t"],["","prenom","t"]]},
+          {k:"C1",c:[["d1","4"],["d2","Nathan"]]},
+          {k:"C2",c:[["e1","7"],["e2","Léa"]]}],
+        caps:["<b>commandes.client_id</b> · Chaque commande porte le numéro de son client.","<b>REFERENCES clients(id)</b> · SQL cherche ce numéro dans la colonne id de la table clients.","<b>Résultat</b> · Les commandes 5 et 12 renvoient à la même ligne : Nathan."],
+        steps:[{cap:0,on:["a3","b3","c3"],d:1900},{cap:1,off:["b3"],dim:["O2"],fly:[["a3","d1"],["c3","d1"]],stagger:500,d:3200},{cap:2,on:["C1"],d:2400}]}},
+      {looks:[["clients.id","la clé primaire : elle identifie un client"],["commandes.client_id","la clé étrangère : elle renvoie à un client"]],label:"Identifier ou renvoyer"}
+    ]
   },
-  {
-    "k": "prodsnathan",
-    "label": "Ses produits",
-    "sql": "SELECT id, nom, prix\nFROM produits\nWHERE id IN (1, 2);",
-    "out": "2 lignes : Fibre Prébiotique 29,90 € (pas de bonus) et Collagène Marin 39,90 € (+5 points)."
-  }
-] ,
-learningCheck:{
-  "question": "Nathan a deux commandes. Quelle relation existe entre clients et commandes ?",
-  "options": [
-    "1 ↔ 1",
-    "1 → N",
-    "N ↔ N"
+  steps:[
+    {h:"Retrouver les commandes d’un client",blocks:[
+      "Pour retrouver les commandes d’un client, il suffit de comparer la clé étrangère <code>client_id</code> à son numéro.",
+      {say:"👇 Exécute cette requête pour voir les commandes de Nathan, le client 4 :",run:"SELECT id, produit_id, statut\nFROM commandes\nWHERE client_id = 4;"},
+      {arrow:"Deux commandes portent le numéro 4 : contrairement à une clé primaire, une clé étrangère peut se répéter, car un client peut commander plusieurs fois."}
+    ]},
+    {h:"La base vérifie le lien",blocks:[
+      "Une clé étrangère ne se contente pas de relier : la base <b>vérifie</b> que la ligne désignée existe. On appelle cette règle l’<b>intégrité référentielle</b>.",
+      {warn:{t:"Un client qui n’existe pas",blocks:[
+        "Si tu ajoutes une commande pour le client 99 :",
+        {syntax:"INSERT INTO commandes (client_id, produit_id, quantite)\nVALUES (99, 1, 1);"},
+        "La base refuse l’ajout : aucune ligne de <code>clients</code> n’a l’id 99.",
+        {say:"👇 Teste par toi-même :",run:"INSERT INTO commandes (client_id, produit_id, quantite)\nVALUES (99, 1, 1);"}
+      ]}},
+      {warn:{t:"Sans FOREIGN KEY",blocks:[
+        "Un nom qui finit par <code>_id</code> ne suffit pas : c’est la déclaration <code>FOREIGN KEY</code> qui déclenche la vérification. Sans elle, la base accepte même un client qui n’existe pas :",
+        {say:"👇 Teste par toi-même :",run:"CREATE TABLE colis (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER\n);\nINSERT INTO colis VALUES (1, 99);\nSELECT id, client_id\nFROM colis;"},
+        {arrow:"Le colis 1 est rattaché à un client qui n’existe pas : il est orphelin."}
+      ]}},
+      {tip:{t:"Une clé étrangère peut rester vide",blocks:[
+        "Si la colonne l’autorise, une clé étrangère peut valoir <code>NULL</code> : la commande 16 n’est liée à aucun client, et la base l’accepte.",
+        {say:"👇 Exécute cette requête pour la retrouver :",run:"SELECT id, client_id, statut\nFROM commandes\nWHERE client_id IS NULL;"}
+      ]}}
+    ]},
+    {h:"Plusieurs clés étrangères",blocks:[
+      "Une table peut avoir plusieurs clés étrangères. La table <code>commandes</code> en a deux : l’une vers le client, l’autre vers le produit.",
+      {scene:{h:"🔀 Une commande, deux liens",cols:"1fr 1.2fr",
+        lanes:[{k:"A",l:"commande 12 → clients",c:[["a1","client_id 4"],["a2","?","q"]]},
+          {k:"B",l:"commande 12 → produits",c:[["b1","produit_id 2"],["b2","?","q"]]}],
+        caps:["<b>La commande 12</b> · Elle porte deux clés étrangères : <code>client_id</code> et <code>produit_id</code>.","<b>client_id</b> · Le numéro 4 renvoie à une ligne de la table clients.","<b>produit_id</b> · Le numéro 2 renvoie à une ligne de la table produits."],
+        steps:[{cap:0,on:["a1","b1"],d:2000},{cap:1,off:["b1"],text:{a2:"Nathan"},d:2400},{cap:2,off:["a1"],on:["b1"],text:{b2:"Collagène Marin"},d:2600}]}},
+      "SQLite garde ces déclarations dans le schéma de la table : on peut les lister.",
+      {say:"👇 Exécute cette requête pour voir les clés étrangères de <code>commandes</code> :",run:"SELECT \"from\" AS colonne, \"table\" AS renvoie_vers, \"to\" AS cle_cible\nFROM pragma_foreign_key_list('commandes')\nORDER BY \"from\";"},
+      {arrow:"<code>client_id</code> renvoie à <code>clients(id)</code>, et <code>produit_id</code> à <code>produits(id)</code>."}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis garder les commandes du client 4 qui sont encore en préparation.",
+      {say:"👇 Exécute la requête pour retrouver le colis du cadeau :",run:"SELECT numero_commande, produit_id, statut\nFROM commandes\nWHERE client_id = 4\n  AND statut = 'en_preparation';"},
+      {done:{
+        label:"De 16 commandes au colis du cadeau",
+        funnel:[
+          {n:16,t:"commandes au départ",s:"toute la <code>table commandes</code>",dots:"0000000000000000"},
+          {step:"WHERE client_id = 4 AND statut = 'en_preparation'",s:"ne garde que les commandes de Nathan encore en préparation"},
+          {n:1,t:"⭐ colis à préparer",s:"CMD-2026-1093528",dots:"0000000000010000",out:true}
+        ],
+        sms:{ico:"🎁",h:"Cadeau dans le colis",aria:"Le cadeau est glissé dans le colis de la commande de Nathan",msg:"<b>Cadeau du jeu concours</b><br>À glisser dans le colis avant l’expédition.",people:[["C","CMD-2026-1093528","Collagène Marin"]],st:["À préparer","Emballage","✓ Glissé"],plane:"star",done:"✓ Cadeau glissé dans le colis"},
+        fill:["WHERE","client_id","AND","statut"],
+        ui:{t:"Le bon colis est retrouvé",s:"La commande est bien celle de Nathan, et elle n’est pas encore partie : le cadeau peut y être glissé.",n:["SELECT","FROM","WHERE","AND"]},
+        rows:1
+      }}
+    ]}
   ],
-  "answer": 1,
-  "explanation": "Un client peut avoir plusieurs commandes, mais une commande n’a qu’un client : c’est 1 → N."
-}
-}
+  reflex:[
+    {recap:[
+      ["🔗","Une <b>clé étrangère</b> est une colonne qui renvoie à la clé primaire d’une autre table :",null,"commandes.client_id → clients.id"],
+      ["🔁","Sa valeur <b>peut se répéter</b> : plusieurs commandes peuvent renvoyer au même client."],
+      ["🛡️","La base <b>vérifie le lien</b> : un client qui n’existe pas est refusé, sauf si la colonne reste vide (<code>NULL</code>)."]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"SELECT id, produit_id, statut",txt:"Les colonnes affichées : la commande, son produit et son statut."},{tok:"FROM commandes",txt:"Les lignes lues sont les commandes."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"client_id",plain:1,txt:"La clé étrangère : elle contient l’id du client."},{tok:"=",plain:1,txt:"Compare ce numéro à celui du client cherché."},{tok:"4",plain:1,txt:"L’id de Nathan dans la table clients."}],
+  exemple:"SELECT id, produit_id, statut FROM commandes WHERE client_id = 4;",
+  attendu:"<b>2 lignes</b> : la commande 5 (<code>expédiée</code>) et la commande 12 (<code>en_preparation</code>), les deux commandes dont <code>client_id</code> vaut 4.",
+  retenir:"Une <b>clé étrangère</b> est une colonne qui renvoie à la clé primaire d’une autre table : <code>commandes.client_id</code> renvoie à <code>clients.id</code>.<br><br>Sa valeur peut se répéter : plusieurs commandes peuvent appartenir au même client.<br><br>La base vérifie le lien : un client qui n’existe pas est refusé, sauf si la colonne reste vide (<code>NULL</code>).",
+  consigne:"Léa, la cliente numéro 7, veut suivre ses commandes. Affiche l’<code>id</code>, le <code>produit_id</code> et la <code>quantite</code> de chacune d’elles.",
+  solution:"SELECT id, produit_id, quantite FROM commandes WHERE client_id = 7;",
+  indice:"Filtre sur la clé étrangère : <code>client_id</code> doit valoir 7.",
+  testeVariants:[{k:"cmd4",label:"Commandes du client 4",sql:"SELECT id, client_id, produit_id, statut\nFROM commandes\nWHERE client_id = 4;",out:"2 lignes : les commandes de Nathan",expectRows:2},{k:"cmd10",label:"Client sans commande",sql:"SELECT id, client_id\nFROM commandes\nWHERE client_id = 10;",out:"0 ligne : la référence est valide, mais ce client n’a pas commandé",expectRows:0},{k:"invite",label:"Commande sans client",sql:"SELECT id, client_id, produit_id\nFROM commandes\nWHERE client_id IS NULL;",out:"1 ligne : la commande 16, sans client enregistré",expectRows:1},{k:"colis",label:"Avec le prénom du client",sql:"SELECT clients.id, clients.prenom, commandes.id, commandes.produit_id, commandes.statut\nFROM commandes\nJOIN clients\n    ON commandes.client_id = clients.id\nWHERE clients.id = 4\n  AND commandes.statut = 'en_preparation';",out:"1 ligne : la commande 12, avec le prénom de Nathan (la jointure est vue plus loin)",tone:"good",expectRows:1}],
+  learningCheck:{question:"Quelle colonne permet de savoir à quel client appartient chaque commande ?",options:["commandes.id","commandes.client_id","clients.prenom"],answer:1,explanation:"La clé étrangère client_id renvoie à clients.id : elle désigne le client qui a passé la commande."}
+}),
+guide({ id:36, titre:"Les relations entre les tables", résumé:"Découvrir 1-1, 1-N et N-N à travers Nathan",
+  sit:{
+    blocks:[
+      "L’équipe fidélité reçoit <b>un email de Nathan</b> : sa carte affiche <b>250 points</b>, mais il doute que ce solde soit juste. Dans le programme, <b>chaque commande rapporte 120 points</b>, plus <b>5 points bonus</b> si le produit coûte plus de 30 €.",
+      "Les informations de Nathan sont réparties dans <b>quatre tables</b> : <code>clients</code>, <code>fidelite</code>, <code>commandes</code> et <code>produits</code>. Pour vérifier son solde, l’équipe souhaite récupérer uniquement :",
+      {need:[["⭐","Les points affichés sur sa carte","table fidelite"],["🧾","Ses commandes","table commandes"],["💶","Le prix des produits commandés","table produits"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>WHERE</code>, SQL sait retrouver les lignes d’<b>une</b> table : par exemple la carte de fidélité d’un client.","Or, pour vérifier les points de Nathan, il faut <b>passer d’une table à l’autre</b> et savoir, à chaque fois, <b>combien de lignes</b> lui correspondent."],
+      scene:{h:"🗂️ Les tables de Nathan",cols:"1fr 1.5fr",
+        lanes:[{c:[["","table","t"],["","pour Nathan","t"]]},
+          {k:"R1",c:[["a1","clients"],["a2","Nathan"]]},
+          {k:"R2",c:[["b1","fidelite"],["b2","250 points"]]},
+          {k:"R3",c:[["c1","commandes"],["c2","?","q"]]},
+          {k:"R4",c:[["d1","produits"],["d2","?","q"]]}],
+        caps:["<b>Notre enquête</b> · Les informations de Nathan sont rangées dans quatre tables différentes.","<b>Limite</b> · Combien de commandes, combien de produits ? Les tables ne le disent pas encore.","<b>Résultat</b> · Une fois les tables reliées : 2 commandes, qui renvoient à 2 produits."],
+        steps:[{cap:0,on:["R1","R2","R3","R4"],d:1900},{cap:1,off:["R1","R2","R3","R4"],on:["c2","d2"],d:2300},{cap:2,off:["c2","d2"],text:{c2:"2 commandes",d2:"2 produits"},stagger:450,d:3000}]},
+      then:["Il faut donc comprendre <b>combien de lignes d’une table</b> peuvent correspondre à <b>une ligne d’une autre</b> : une seule, ou plusieurs.","C’est exactement ce que décrit une <b>relation</b> entre deux tables."]
+    },
+    mission:"Aide l’équipe fidélité à retrouver le <b>nom</b>, le <b>prix</b> et les <b>points</b> de chaque produit commandé par Nathan, afin de vérifier si ses <b>250 points</b> sont justes."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir combien de lignes sont reliées ?",
+    blocks:[
+      "Pour décrire le lien entre deux tables, on pose deux fois la même question, une fois dans chaque sens :",
+      {ask:"Combien de lignes de l’autre table peuvent correspondre à une ligne de celle-ci ?"},
+      "La réponse est <b>1</b> (une seule) ou <b>N</b> (plusieurs). On note la relation avec ces deux nombres :",
+      {syntax:"clients ⟦1 → N⟧ commandes"},
+      {scene:{h:"🔗 Trois façons d’être reliées",cols:"1fr .8fr 1fr",
+        lanes:[{k:"R1",c:[["a1","clients"],["a2","1 ↔ 1","h"],["a3","fidelite"]]},
+          {k:"R2",c:[["b1","clients"],["b2","1 → N","h"],["b3","commandes"]]},
+          {k:"R3",c:[["c1","clients"],["c2","N ↔ N","h"],["c3","produits"]]}],
+        caps:["<b>Les tables</b> · Pour chaque couple de tables, on compare les lignes dans les deux sens.","<b>clients et fidelite</b> · Un client n’a qu’une fiche, et une fiche n’appartient qu’à un client : c’est un à un.","<b>clients et commandes</b> · Un client a plusieurs commandes, mais une commande n’a qu’un client : c’est un à plusieurs.","<b>clients et produits</b> · Un client commande plusieurs produits, et un produit est commandé par plusieurs clients : c’est plusieurs à plusieurs."],
+        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R1","R2","R3"],on:["R1"],show:["a2"],d:2800},{cap:2,off:["R1"],on:["R2"],show:["b2"],d:2800},{cap:3,off:["R2"],on:["R3"],show:["c2"],d:2800}]}}
+    ]
+  },
+  steps:[
+    {h:"1 ↔ 1 : les points de Nathan",blocks:[
+      "Commence par les points affichés sur la carte de Nathan. Ils ne sont pas dans la table <code>clients</code> mais dans <code>fidelite</code>, dont chaque fiche garde le <code>client_id</code> de son propriétaire.",
+      {say:"👇 Exécute cette requête pour retrouver la fiche de fidélité de Nathan :",run:"SELECT client_id, points\nFROM fidelite\nWHERE client_id = 4;"},
+      {arrow:"Une seule fiche : la carte de Nathan affiche <b>250 points</b>. C’est bien une relation <b>1 ↔ 1</b>."}
+    ]},
+    {h:"1 → N : les commandes de Nathan",blocks:[
+      "Ses commandes sont dans la table <code>commandes</code>, qui garde elle aussi le <code>client_id</code> du client.",
+      {say:"👇 Exécute cette requête pour retrouver les commandes de Nathan :",run:"SELECT id, client_id, produit_id\nFROM commandes\nWHERE client_id = 4;"},
+      {arrow:"Deux commandes : le numéro 4 revient sur deux lignes. C’est bien une relation <b>1 → N</b> : la clé étrangère se place du côté N, ici dans <code>commandes</code>."},
+      {warn:{t:"Ne retire pas ces répétitions",blocks:[
+        "Ces deux 4 ne sont pas des doublons : chaque ligne est une commande différente. Si tu écris :",
+        {syntax:"SELECT DISTINCT client_id\nFROM commandes\nWHERE client_id = 4;"},
+        "<code>DISTINCT</code> n’en garde qu’une : on ne voit plus qu’une ligne, alors que Nathan a passé deux commandes.",
+        {say:"👇 Teste par toi-même :",run:"SELECT DISTINCT client_id\nFROM commandes\nWHERE client_id = 4;"}
+      ]}}
+    ]},
+    {h:"N ↔ N : les produits de Nathan",blocks:[
+      "Nathan a commandé les produits 1 et 2. Mais un produit peut aussi être commandé par plusieurs clients : regarde qui a commandé la Fibre Prébiotique, le produit 1.",
+      {say:"👇 Exécute cette requête pour voir les commandes de la Fibre Prébiotique :",run:"SELECT id, client_id\nFROM commandes\nWHERE produit_id = 1;"},
+      {arrow:"Quatre commandes, passées par quatre clients différents : les clients 1, 4, 7 et 5."},
+      {scene:{h:"🛒 Qui a commandé quoi ?",cols:"1fr 1.2fr",
+        lanes:[{k:"H",l:"table commandes",c:[["","🔗 client_id","t"],["","🔗 produit_id","t"]]},
+          {k:"R1",c:[["a1","1 · Sophie"],["a2","1 · Fibre"]]},
+          {k:"R2",c:[["b1","4 · Nathan"],["b2","1 · Fibre"]]},
+          {k:"R3",c:[["c1","7 · Léa"],["c2","1 · Fibre"]]},
+          {k:"R4",c:[["d1","4 · Nathan"],["d2","2 · Collagène"]]},
+          {k:"R5",c:[["e1","5 · Chloé"],["e2","1 · Fibre"]]}],
+        caps:["<b>La table commandes</b> · Chaque ligne relie un client à un produit.","<b>Côté client</b> · Nathan apparaît sur deux lignes : un client peut commander plusieurs produits.","<b>Côté produit</b> · La Fibre Prébiotique apparaît sur quatre lignes : un produit peut être commandé par plusieurs clients.","<b>Résultat</b> · Ni clients ni produits ne portent ce lien : c’est la table commandes, avec ses deux clés étrangères. La relation est N ↔ N."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5"],on:["R2","R4"],dim:["R1","R3","R5"],d:2600},{cap:2,off:["R2","R4"],undim:["R1","R3","R5"],on:["R1","R2","R3","R5"],dim:["R4"],d:2800},{cap:3,off:["R1","R2","R3","R5"],undim:["R4"],on:["R1","R2","R3","R4","R5"],d:2600}]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à retrouver les produits commandés par Nathan, les numéros 1 et 2, et à calculer les points de chaque commande. Ici, on recopie ces numéros à la main : plus tard, une jointure reliera les tables en une seule requête.",
+      {say:"👇 Exécute la requête pour vérifier les points de Nathan :",run:"SELECT nom, prix,\n       120 + CASE WHEN prix > 30 THEN 5 ELSE 0 END AS points\nFROM produits\nWHERE id IN (1, 2);"},
+      {done:{
+        label:"Des 8 produits aux 2 produits de Nathan",
+        funnel:[
+          {n:8,t:"produits au départ",s:"toute la <code>table produits</code>",dots:"00000000"},
+          {step:"WHERE id IN (1, 2)",s:"ne garde que les produits commandés par Nathan"},
+          {n:2,t:"⭐ produits commandés",s:"Fibre Prébiotique et Collagène Marin",dots:"11000000",out:true}
+        ],
+        sms:{ico:"⭐",h:"Vérification du solde",aria:"Les points de chaque commande de Nathan sont recalculés",msg:"<b>Solde de Nathan</b><br>120 points par commande, plus 5 points si le produit dépasse 30 €.",people:[["F","Fibre Prébiotique","120 points"],["C","Collagène Marin","125 points"]],st:["À calculer","Calcul","✓ Calculé"],plane:"star",done:"✓ 120 + 125 = 245 points attendus, contre 250 affichés"},
+        fill:["FROM","produits","IN","(1, 2)"],
+        ui:{t:"245 points attendus, 250 affichés",s:"Nathan avait raison de douter : ses deux commandes ne justifient pas le solde de sa carte.",n:["SELECT","FROM","WHERE","IN","CASE"]},
+        rows:2
+      }}
+    ]}
+  ],
+  reflex:[
+    {recap:[
+      ["🔢","Une <b>relation</b> indique combien de lignes d’une table peuvent correspondre à une ligne d’une autre : <b>1</b> ou <b>N</b>."],
+      ["↔️","Pose la question dans les <b>deux sens</b> : la réponse donne le type de relation.",null,"1 ↔ 1 · 1 → N · N ↔ N"],
+      ["🧩","Quand les deux côtés sont « plusieurs », une table intermédiaire porte le lien : ici, <code>commandes</code> relie clients et produits."]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"SELECT id, client_id, produit_id",txt:"Affiche chaque commande, son client et son produit."},{tok:"FROM commandes",txt:"C’est ici que les commandes de Nathan se répètent."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"client_id",plain:1,txt:"La clé étrangère, du côté N de la relation."},{tok:"=",plain:1,txt:"Compare ce numéro à celui du client cherché."},{tok:"4",plain:1,txt:"L’id de Nathan : garde uniquement ses commandes."}],
+  exemple:"SELECT id, client_id, produit_id FROM commandes WHERE client_id = 4;",
+  attendu:"<b>2 lignes</b> : les commandes 5 et 12, chacune avec <code>client_id = 4</code>. Pour calculer les points, il faudra aussi les produits.",
+  retenir:"Une <b>relation</b> indique combien de lignes d’une table peuvent correspondre à une ligne d’une autre : <b>1</b> (une seule) ou <b>N</b> (plusieurs).<br><br>Il existe trois relations : <b>1 ↔ 1</b> (un à un), <b>1 → N</b> (un à plusieurs) et <b>N ↔ N</b> (plusieurs à plusieurs).<br><br>Pose la question dans les deux sens. Quand les deux côtés sont « plusieurs », une table intermédiaire, ici <code>commandes</code>, porte le lien.",
+  consigne:"Sophie, la cliente numéro 1, a passé plusieurs commandes. Combien en a-t-elle passé ? Affiche uniquement ce nombre.",
+  solution:"SELECT COUNT(*) FROM commandes WHERE client_id = 1;",
+  indice:"Compte les lignes de <code>commandes</code> dont la clé étrangère <code>client_id</code> vaut 1, avec <code>COUNT(*)</code>.",
+  petitDefi:[{p:"Un client a au maximum une fiche de fidélité, et une fiche appartient à un seul client. Quelle relation entre <code>clients</code> et <code>fidelite</code> ?",sql:"clients ←→ fidelite : __________",a:"1-1",answers:["1-1","1 ↔ 1","1<->1","1 à 1","1 a 1","1:1","un à un"]},{p:"Un client peut passer plusieurs commandes, et une commande appartient à un seul client. Quelle relation entre <code>clients</code> et <code>commandes</code> ?",sql:"clients ←→ commandes : __________",a:"1-N",answers:["1-N","1 → N","1->N","1 à N","1 a N","1:N","un à plusieurs"]},{p:"Un client commande plusieurs produits, et un produit est commandé par plusieurs clients. Quelle relation entre <code>clients</code> et <code>produits</code> ?",sql:"clients ←→ produits : __________",a:"N-N",answers:["N-N","N ↔ N","N<->N","N:N","plusieurs à plusieurs"]},{p:"Quelle table permet de relier les clients aux produits ?",sql:"clients ←→ __________ ←→ produits",a:"commandes",answers:["commandes","COMMANDES"]}],
+  testeVariants:[{k:"fidnathan",label:"Carte fidélité",sql:"SELECT client_id, points\nFROM fidelite\nWHERE client_id = 4;",out:"1 ligne : 250 points affichés pour Nathan.",expectRows:1},{k:"cmdnathan",label:"Ses commandes",sql:"SELECT id, client_id, produit_id\nFROM commandes\nWHERE client_id = 4;",out:"2 lignes : Nathan a 2 commandes, avec produit_id 1 et 2.",expectRows:2},{k:"prodsnathan",label:"Ses produits",sql:"SELECT id, nom, prix\nFROM produits\nWHERE id IN (1, 2);",out:"2 lignes : Fibre Prébiotique 29,90 € (pas de bonus) et Collagène Marin 39,90 € (+5 points).",expectRows:2}],
+  learningCheck:{question:"Nathan a deux commandes. Quelle relation existe entre clients et commandes ?",options:["1 ↔ 1","1 → N","N ↔ N"],answer:1,explanation:"Un client peut avoir plusieurs commandes, mais une commande n’a qu’un client : c’est 1 → N."}
+})
 ]},
 { titre:"Jointures", sous:"Interroger plusieurs tables à la fois", lessons:[
 { id:18, titre:"INNER JOIN", résumé:"Relier uniquement ce qui correspond",
@@ -16954,130 +16413,107 @@ learningCheck:{
   "explanation": "La ville décrit le client. Le prix décrit le produit. La quantité achetée décrit la commande : chaque information a son sujet."
 }
 },
-{ id:72, titre:"Relations 1-1, 1-N et N-N", résumé:"Les trois formes de lien entre deux tables",
-  situation:"Un client passe plusieurs commandes, une commande appartient à un seul client. C’est la seule forme de lien que notre base connaît.<br><br>Deux autres existent. Un client et sa carte de fidélité : chacun n’en a qu’une, et chaque carte n’appartient qu’à un client. Un client et les produits qui l’intéressent : il peut en suivre plusieurs, et chaque produit intéresse plusieurs clients.<br><br>Cette dernière forme ne tient dans aucune des deux tables.",
-  situationTail:"<div class=\"sit-sql\"><p>Trois formes de lien, trois façons de les écrire.</p><p>La troisième réclame une <b>table de plus</b>.</p></div>",
-    studio:{pointCards:{
-      eye:"Cardinalité",title:"Combien de lignes en face ?",
-      lead:"La forme d’une relation se lit dans une seule question : combien de lignes de l’autre table peuvent correspondre à celle-ci, et réciproquement ?",
-      chain:[
-        {k:"1-N",v:"une clé étrangère"},
-        {k:"1-1",v:"une clé étrangère UNIQUE"},
-        {k:"N-N",v:"une table entre les deux"}
-      ]},
-    uses:{title:"Trois formes, trois écritures.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">1-N — la forme la plus courante</p>
-          <div class="pt-syntax"><pre class="cw-syntax">client_id INTEGER
-  REFERENCES clients(id)</pre></div>
-          <p>La clé étrangère se place du côté <b>N</b> — dans <code>commandes</code>, pas dans <code>clients</code>. Elle s’y répète : Sophie porte le numéro 1 sur ses trois commandes.</p>
-          <p class="fn-tip"><b>Le bon côté</b> Mettre la clé dans <code>clients</code> obligerait à y stocker plusieurs numéros de commande dans une seule colonne — ce qu’une colonne ne sait pas faire.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">1-1 — la même chose, en plus strict</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE cartes (
-  id INTEGER PRIMARY KEY,
-  numero TEXT UNIQUE,
-  client_id INTEGER UNIQUE
-    REFERENCES clients(id)
-);</pre></div>
-          <p>Une clé étrangère, plus <code>UNIQUE</code>. Le mot fait toute la différence : sans lui, un client pourrait recevoir deux cartes.</p>
-          <div class="tx-fail">
-            <span class="is-ko">deuxième carte pour le client 1<i>UNIQUE constraint failed</i></span>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">N-N — pourquoi une clé ne suffit pas</p>
-          <p>Un client suit plusieurs produits ; un produit est suivi par plusieurs clients. Où mettre la clé étrangère ?</p>
-          <div class="tx-flow" role="img" aria-label="Aucune des deux tables ne peut porter le lien">
-            <div class="tx-fork">
-              <div class="tx-branch is-ko"><b>dans clients</b><span>plusieurs produits</span></div>
-              <div class="tx-branch is-ko"><b>dans produits</b><span>plusieurs clients</span></div>
-            </div>
-          </div>
-          <p>Les deux côtés sont « plusieurs ». Une colonne ne retient qu’une valeur : aucune des deux tables ne peut porter le lien.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">La table de jointure</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE favoris (
-  client_id INTEGER
-    REFERENCES clients(id),
-  produit_id INTEGER
-    REFERENCES produits(id),
-  PRIMARY KEY (client_id,
-               produit_id)
-);</pre></div>
-          <p>Une troisième table, qui ne contient que les deux clés. Chaque ligne dit « ce client suit ce produit ». Un client sur plusieurs lignes, un produit sur plusieurs lignes : les deux « plusieurs » tiennent enfin.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Pourquoi la clé primaire porte sur les deux</p>
-          <p><code>PRIMARY KEY (client_id, produit_id)</code> interdit d’enregistrer deux fois le même couple. Sans elle, rien n’empêcherait le client 1 de suivre trois fois le produit 1.</p>
-          <p>Chaque colonne, prise seule, se répète autant qu’il le faut. C’est leur <b>paire</b> qui doit être unique.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le lien peut porter ses propres informations</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE favoris (
-  client_id INTEGER,
-  produit_id INTEGER,
-  ajoute_le TEXT,
-  PRIMARY KEY (client_id,
-               produit_id)
-);</pre></div>
-          <p>La date d’ajout ne décrit ni le client ni le produit : elle décrit le <b>lien</b>. Sa place est donc dans la table de jointure — et nulle part ailleurs.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Reconnaître la forme</p>
-          <p>Prends une ligne de chaque table et pose deux fois la même question : <i>combien puis-je en avoir en face ?</i></p>
-          <p>Une seule des deux côtés : <b>1-1</b>. Plusieurs d’un seul côté : <b>1-N</b>, la clé va du côté « plusieurs ». Plusieurs des deux côtés : <b>N-N</b>, et il faut une table de plus.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La question",t:"combien de lignes en face, de chaque côté ?"},
-      b:{k:"La règle",t:"plusieurs des deux côtés → une table de jointure"},
-      note:"Réflexe : la clé étrangère se place toujours du côté « plusieurs ». Quand les deux côtés le sont, aucune table ne convient — il en faut une troisième."}},
-  anatomie:[
-    {tok:"CREATE TABLE favoris",txt:"La table qui porte le lien, et rien d’autre."},
-    {tok:"client_id INTEGER REFERENCES clients(id)",txt:"Le premier côté de la relation."},
-    {tok:"produit_id INTEGER REFERENCES produits(id)",txt:"Le second côté."},
-    {tok:"PRIMARY KEY (client_id, produit_id)",txt:"Le couple est unique : pas deux fois le même lien."}
+guide({ id:72, titre:"Relations 1-1, 1-N et N-N", résumé:"Les trois formes de lien entre deux tables",
+  sit:{
+    blocks:[
+      "L’équipe marketing prépare <b>une opération d’échantillons gratuits</b> : chaque client pourra recevoir des échantillons de plusieurs produits, et un même produit pourra être offert à plusieurs clients.",
+      "La base compte <b>10 clients</b> et <b>8 produits</b>, mais aucune table pour suivre les envois. Pour chaque envoi, l’équipe souhaite enregistrer uniquement :",
+      {need:[["👤","Le client destinataire","table clients"],["🏷️","Le produit offert","table produits"],["📅","La date d’envoi","nouvelle table echantillons"]],label:"Les informations à enregistrer"}
+    ],
+    problem:{
+      p:["Avec une clé étrangère, SQL sait relier chaque ligne à <b>une seule</b> ligne d’une autre table : par exemple une commande à son client.","Or, ici, les deux côtés sont « plusieurs » : <b>aucune des deux tables</b> ne peut ranger ce lien dans une simple colonne."],
+      scene:{h:"🎁 Qui reçoit quoi ?",
+        lanes:[{k:"C",l:"clients",c:[["c1","Sophie"],["c2","Lucas"]]},
+          {k:"P",l:"produits",c:[["p1","Fibre Prébiotique"],["p2","Magnésium"]]},
+          {k:"G",l:"un envoi = un client + un produit",fold:true,cls:"is-goal",c:[["g1","Sophie → Fibre Prébiotique","h"],["g2","Sophie → Magnésium","h"],["g3","Lucas → Fibre Prébiotique","h"]]}],
+        caps:["<b>Nos tables</b> · Les clients d’un côté, les produits de l’autre.","<b>Un client, plusieurs produits</b> · Sophie reçoit des échantillons de la Fibre Prébiotique et du Magnésium.","<b>Un produit, plusieurs clients</b> · La Fibre Prébiotique est offerte à Sophie et à Lucas.","<b>Résultat</b> · Chaque envoi relie un client à un produit : il lui faut sa propre ligne."],
+        steps:[{cap:0,on:["C","P"],d:1900},{cap:1,off:["C","P"],on:["c1","p1","p2"],d:2400},{cap:2,off:["p2"],on:["c2"],d:2400},{cap:3,off:["c1","c2","p1"],unfold:["G"],show:["g1","g2","g3"],stagger:350,d:3000}]},
+      then:["Il faut donc <b>une table de plus</b>, où chaque ligne relie un client à un produit.","C’est exactement le rôle d’une <b>table de jointure</b>."]
+    },
+    mission:"Aide l’équipe marketing à créer la table <code>echantillons</code>, qui relie chaque <b>client</b> au <b>produit</b> qu’il reçoit, avec la <b>date d’envoi</b>, afin de ne jamais offrir deux fois le même échantillon au même client."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir qu’un échantillon a déjà été envoyé ?",
+    blocks:[
+      "Dans la table <code>echantillons</code>, un même envoi ne doit exister qu’une fois. Avant d’en enregistrer un nouveau, SQL doit vérifier une chose :",
+      {ask:"Ce couple client + produit est-il déjà enregistré ?"},
+      "En SQL, on déclare une <b>clé primaire sur les deux colonnes</b> : c’est le couple, et non chaque colonne, qui doit rester unique :",
+      {syntax:"PRIMARY KEY ⟦(client_id, produit_id)⟧"},
+      {scene:{h:"🔒 Un couple, une seule fois",cols:"1fr 1.1fr 1.4fr",
+        lanes:[{c:[["h1","client_id","t"],["h2","produit_id","t"],["h3","date_envoi","t"]]},
+          {k:"R1",c:[["a1","1"],["a2","1"],["a3","2026-09-01"]]},
+          {k:"R2",c:[["b1","1"],["b2","3"],["b3","2026-09-01"]]},
+          {k:"N1",l:"nouvel envoi",fold:true,cls:"is-goal",c:[["n1","1","h"],["n2","1","h"],["n3","2026-09-05","h"]]},
+          {k:"N2",l:"nouvel envoi",fold:true,cls:"is-goal",c:[["m1","2","h"],["m2","1","h"],["m3","2026-09-05","h"]]}],
+        caps:["<b>Table echantillons</b> · Chaque ligne est un couple client + produit : deux envois sont déjà enregistrés.","<b>VALUES (1, 1, …)</b> · Un nouvel envoi arrive : le client 1 et le produit 1.","<b>PRIMARY KEY (client_id, produit_id)</b> · Ce couple existe déjà : la base refuse la ligne.","<b>VALUES (2, 1, …)</b> · Le couple (2, 1) est nouveau : la ligne est acceptée, même si le produit 1 apparaît déjà."],
+        steps:[{cap:0,on:["R1","R2"],d:1900},{cap:1,off:["R1","R2"],unfold:["N1"],show:["n1","n2","n3"],on:["N1"],stagger:220,d:2500},{cap:2,off:["N1"],mark:{N1:"is-miss"},on:["R1"],d:2600},{cap:3,off:["R1"],unmark:{N1:"is-miss"},fold:["N1"],unfold:["N2"],show:["m1","m2","m3"],on:["N2"],stagger:220,d:3000}]}}
+    ]
+  },
+  steps:[
+    {h:"1-N : une clé étrangère du côté « plusieurs »",blocks:[
+      "Un client passe plusieurs commandes, mais chaque commande n’a qu’un client. La clé étrangère se place donc du côté <b>N</b> : dans <code>commandes</code>, pas dans <code>clients</code>. On peut la déclarer directement sur la colonne :",
+      {syntax:"client_id INTEGER ⟦REFERENCES clients(id)⟧"},
+      {say:"👇 Exécute cette requête pour donner une troisième commande au client 4 :",run:"INSERT INTO commandes (client_id, produit_id, quantite)\nVALUES (4, 3, 1);\nSELECT id, client_id, produit_id\nFROM commandes\nWHERE client_id = 4;"},
+      {arrow:"Le client 4 apparaît maintenant sur trois lignes : une clé étrangère seule n’impose aucune limite."},
+      {tip:{t:"Pourquoi pas dans clients ?",blocks:["Mettre la clé dans <code>clients</code> obligerait à y ranger plusieurs numéros de commande dans une seule colonne, ce qu’une colonne ne sait pas faire."]}}
+    ]},
+    {h:"1-1 : une clé étrangère UNIQUE",blocks:[
+      "Pour qu’un client n’ait qu’<b>une seule</b> fiche, on ajoute <code>UNIQUE</code> à la clé étrangère. C’est le cas de la table <code>fidelite</code> :",
+      {syntax:"CREATE TABLE fidelite (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER ⟦UNIQUE⟧,\n  points INTEGER,\n  FOREIGN KEY (client_id)\n    REFERENCES clients(id)\n);"},
+      {say:"👇 Exécute cette requête pour donner une première fiche à Gabriel, qui n’en a pas encore :",run:"INSERT INTO fidelite (client_id, points)\nVALUES (8, 20);\nSELECT client_id, points\nFROM fidelite\nWHERE client_id = 8;"},
+      {warn:{t:"Une deuxième fiche",blocks:[
+        "Si tu essaies d’ajouter une seconde fiche pour Nathan, qui en a déjà une :",
+        {syntax:"INSERT INTO fidelite (client_id, points)\nVALUES (4, 10);"},
+        "La base refuse : <code>UNIQUE</code> interdit qu’un même client apparaisse deux fois.",
+        {say:"👇 Teste par toi-même :",run:"INSERT INTO fidelite (client_id, points)\nVALUES (4, 10);"}
+      ]}}
+    ]},
+    {h:"N-N : pourquoi pas une colonne ?",blocks:[
+      "Une idée tentante serait de ranger tous les produits offerts à un client dans une seule colonne de texte.",
+      {warn:{t:"Une liste dans une colonne",blocks:[
+        "Si tu écris les produits de chaque client sous forme de liste, séparés par des virgules, puis que tu cherches qui a reçu le produit 3 :",
+        {say:"👇 Teste par toi-même :",run:"CREATE TABLE echantillons_texte (\n  client_id INTEGER,\n  produits TEXT\n);\nINSERT INTO echantillons_texte\nVALUES (1, '1, 3'), (2, '13');\nSELECT client_id, produits\nFROM echantillons_texte\nWHERE produits LIKE '%3%';"},
+        {arrow:"Le client 2 remonte aussi, alors qu’il a reçu le produit 13, pas le 3. Et rien n’empêche d’y écrire un produit qui n’existe pas."}
+      ]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à créer la table de jointure : une colonne pour chaque clé étrangère, une clé primaire sur le couple, et la date d’envoi. Elle décrit le lien lui-même, ni le client ni le produit : sa place est donc dans cette table.",
+      {say:"👇 Exécute la requête pour créer la table <code>echantillons</code> et y enregistrer trois envois :",run:"CREATE TABLE echantillons (\n  client_id INTEGER REFERENCES clients(id),\n  produit_id INTEGER REFERENCES produits(id),\n  date_envoi TEXT,\n  PRIMARY KEY (client_id, produit_id)\n);\nINSERT INTO echantillons\nVALUES (1, 1, '2026-09-01'),\n       (1, 3, '2026-09-01'),\n       (2, 1, '2026-09-02');\nSELECT client_id, produit_id, date_envoi\nFROM echantillons;"},
+      {done:{
+        label:"De trois envois à une table qui les relie",
+        unit:"free",
+        funnel:[
+          {n:3,t:"envois à enregistrer",s:"deux pour Sophie, un pour Lucas",dots:"000"},
+          {step:"CREATE TABLE echantillons, INSERT",s:"crée la table de jointure, puis y range les envois"},
+          {n:3,t:"⭐ envois dans la table",s:"un seul par couple client + produit",dots:"111",out:true}
+        ],
+        sms:{ico:"🎁",h:"Envoi des échantillons",aria:"Les trois échantillons partent chez les clients",msg:"<b>Échantillons gratuits</b><br>Un envoi par couple client + produit.",people:[["S","Sophie → Fibre Prébiotique","1ᵉʳ septembre"],["S","Sophie → Magnésium","1ᵉʳ septembre"],["L","Lucas → Fibre Prébiotique","2 septembre"]],st:["À envoyer","Expédition","✓ Envoyé"],done:"✓ 3 échantillons envoyés"},
+        fill:["REFERENCES","PRIMARY KEY","client_id","produit_id"],
+        ui:{t:"Un envoi par client et par produit",s:"Un client reçoit plusieurs échantillons, un produit est offert à plusieurs clients : chaque couple n’existe qu’une fois.",n:["CREATE TABLE","REFERENCES","PRIMARY KEY"]},
+        rows:3
+      }}
+    ]}
   ],
-  exemple:"CREATE TABLE favoris (\n  client_id INTEGER\n    REFERENCES clients(id),\n  produit_id INTEGER\n    REFERENCES produits(id),\n  PRIMARY KEY (client_id,\n               produit_id)\n);\n\nINSERT INTO favoris VALUES (1, 1);\nINSERT INTO favoris VALUES (1, 3);\nINSERT INTO favoris VALUES (2, 1);\n\nSELECT client_id, produit_id\nFROM favoris;",
-  attendu:"Trois liens : Sophie suit deux produits, Lucas en suit un, et le produit 1 est suivi par deux clients. Les deux « plusieurs » coexistent.",
+  reflex:[
+    {recap:[
+      ["🔢","Pour trouver la forme d’une relation, demande de chaque côté : <b>combien de lignes en face ?</b>"],
+      ["🔗","<b>1-N</b> : une clé étrangère, du côté « plusieurs ». <b>1-1</b> : la même clé, avec <code>UNIQUE</code>."],
+      ["🧩","<b>N-N</b> : une table de jointure, avec les deux clés et une clé primaire sur le couple :",null,"PRIMARY KEY (client_id, produit_id)"]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"CREATE TABLE echantillons",txt:"La table qui porte le lien, et rien d’autre."},{tok:"client_id INTEGER REFERENCES clients(id)",txt:"Le premier côté de la relation : le client."},{tok:"produit_id INTEGER REFERENCES produits(id)",txt:"Le second côté : le produit."},{tok:"date_envoi TEXT",txt:"Une information qui décrit le lien lui-même."},{tok:"PRIMARY KEY (client_id, produit_id)",txt:"Le couple est unique : un seul envoi par client et par produit."}],
+  exemple:"CREATE TABLE echantillons (\n  client_id INTEGER REFERENCES clients(id),\n  produit_id INTEGER REFERENCES produits(id),\n  date_envoi TEXT,\n  PRIMARY KEY (client_id, produit_id)\n);\n\nINSERT INTO echantillons\nVALUES (1, 1, '2026-09-01'),\n       (1, 3, '2026-09-01'),\n       (2, 1, '2026-09-02');\n\nSELECT client_id, produit_id, date_envoi\nFROM echantillons;",
+  attendu:"<b>3 envois</b> : Sophie reçoit deux produits, Lucas en reçoit un, et le produit 1 est offert à deux clients. Les deux « plusieurs » coexistent.",
   retenir:"La <b>cardinalité</b> se lit en demandant, de chaque côté, combien de lignes peuvent correspondre.<br><br><b>1-N</b> : une clé étrangère, du côté « plusieurs ». <b>1-1</b> : la même, avec <code>UNIQUE</code>. <b>N-N</b> : une <b>table de jointure</b> qui porte les deux clés.<br><br>Sa clé primaire porte sur les deux colonnes : c’est le couple qui doit être unique, pas chaque colonne.",
-  piege:{t:"Vouloir loger un N-N dans une colonne",
-    p:"Mettre <code>produits_suivis</code> dans <code>clients</code> et y écrire « 1,3,5 » semble marcher — jusqu’à la première requête.<br><br>Une colonne contient une valeur, pas une liste. Chercher qui suit le produit 3 devient une recherche de texte, et plus aucune clé étrangère ne protège quoi que ce soit. La table de jointure existe pour éviter exactement cela.",
-    exec:true,
-    sql:"CREATE TABLE favoris (\n  client_id INTEGER,\n  produits_suivis TEXT\n);\n\nINSERT INTO favoris VALUES (1, '1,3');\n\nSELECT * FROM favoris\nWHERE produits_suivis LIKE '%3%';",
-    out:"La ligne remonte — mais un jour le produit 13 la fera remonter aussi.",
-    fixSql:"CREATE TABLE favoris (\n  client_id INTEGER,\n  produit_id INTEGER,\n  PRIMARY KEY (client_id,\n               produit_id)\n);\n\nINSERT INTO favoris VALUES (1, 1);\nINSERT INTO favoris VALUES (1, 3);\n\nSELECT client_id\nFROM favoris\nWHERE produit_id = 3;"},
-  petitDefi:[{
-    p:"Un auteur écrit plusieurs livres, et un livre peut être écrit par plusieurs auteurs. Quelle est la forme de cette relation ?",
-    sql:"auteurs ←→ livres : __________",
-    a:"N-N",
-    answers:["N-N","n-n","NN","plusieurs-à-plusieurs","many-to-many","N,N"]
-  }],
-  consigne:"Les clients veulent pouvoir suivre des produits : chacun en suit plusieurs, et chaque produit est suivi par plusieurs clients. Crée la table <code>favoris</code> qui porte ce lien — les deux clés étrangères, et une clé primaire qui interdit d’enregistrer deux fois le même couple.",
+  consigne:"Les clients veulent pouvoir suivre des produits : chacun en suit plusieurs, et chaque produit est suivi par plusieurs clients. Crée la table <code>favoris</code> avec les colonnes <code>client_id</code> (qui renvoie à <code>clients</code>) puis <code>produit_id</code> (qui renvoie à <code>produits</code>), et une clé primaire qui interdit d’enregistrer deux fois le même couple.",
   solution:"CREATE TABLE favoris (\n  client_id INTEGER\n    REFERENCES clients(id),\n  produit_id INTEGER\n    REFERENCES produits(id),\n  PRIMARY KEY (client_id,\n               produit_id)\n);",
   verif:"SELECT name, pk FROM pragma_table_info('favoris') ORDER BY cid; SELECT \"from\", \"table\", \"to\" FROM pragma_foreign_key_list('favoris') ORDER BY \"from\";",
   indice:"Deux colonnes <code>REFERENCES</code>, puis <code>PRIMARY KEY (client_id, produit_id)</code> sur une ligne à part.",
   write:true,
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-    {k:'nn',label:'Table de jointure',sql:"CREATE TABLE favoris (\n  client_id INTEGER,\n  produit_id INTEGER,\n  PRIMARY KEY (client_id,\n               produit_id)\n);\n\nINSERT INTO favoris VALUES (1, 1);\nINSERT INTO favoris VALUES (1, 3);\nINSERT INTO favoris VALUES (2, 1);\n\nSELECT client_id, produit_id FROM favoris;",out:"Sophie suit deux produits, et le produit 1 int\u00e9resse deux clients.",tone:'good'},
-    {k:'doublon',label:'Deux fois le même lien',sql:"CREATE TABLE favoris (\n  client_id INTEGER,\n  produit_id INTEGER,\n  PRIMARY KEY (client_id,\n               produit_id)\n);\n\nINSERT INTO favoris VALUES (1, 1);\nINSERT INTO favoris VALUES (1, 1);",out:"Refus\u00e9 : la cl\u00e9 primaire porte sur le couple.",tone:'bad'},
-    {k:'unun',label:'1-1',sql:"CREATE TABLE cartes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER UNIQUE\n    REFERENCES clients(id)\n);\n\nINSERT INTO cartes VALUES (1, 1);\nINSERT INTO cartes VALUES (2, 1);",out:"Refus\u00e9 : UNIQUE interdit une deuxi\u00e8me carte au m\u00eame client.",tone:'bad'}
-  ] ,
-learningCheck:{
-  "question": "La clé primaire composée de favoris remplace-t-elle les deux clés étrangères ?",
-  "options": [
-    "Non",
-    "Oui",
-    "Seulement pour les clients"
-  ],
-  "answer": 0,
-  "explanation": "La clé composée interdit un lien en double. Les clés étrangères imposent que le client et le produit existent."
-}
-}
+  petitDefi:[{p:"Un auteur écrit plusieurs livres, et un livre peut être écrit par plusieurs auteurs. Quelle est la forme de cette relation ?",sql:"auteurs ←→ livres : __________",a:"N-N",answers:["N-N","n-n","NN","plusieurs-à-plusieurs","many-to-many","N,N"]}],
+  testeVariants:[{k:"nn",label:"Table de jointure",sql:"CREATE TABLE echantillons (\n  client_id INTEGER,\n  produit_id INTEGER,\n  date_envoi TEXT,\n  PRIMARY KEY (client_id, produit_id)\n);\n\nINSERT INTO echantillons VALUES (1, 1, '2026-09-01');\nINSERT INTO echantillons VALUES (1, 3, '2026-09-01');\nINSERT INTO echantillons VALUES (2, 1, '2026-09-02');\n\nSELECT client_id, produit_id, date_envoi FROM echantillons;",out:"Sophie reçoit deux produits, et le produit 1 est offert à deux clients.",tone:"good"},{k:"doublon",label:"Deux fois le même couple",sql:"CREATE TABLE echantillons (\n  client_id INTEGER,\n  produit_id INTEGER,\n  date_envoi TEXT,\n  PRIMARY KEY (client_id, produit_id)\n);\n\nINSERT INTO echantillons VALUES (1, 1, '2026-09-01');\nINSERT INTO echantillons VALUES (1, 1, '2026-09-05');",out:"Refusé : la clé primaire porte sur le couple.",tone:"bad"},{k:"unun",label:"1-1",sql:"CREATE TABLE cartes (\n  id INTEGER PRIMARY KEY,\n  client_id INTEGER UNIQUE\n    REFERENCES clients(id)\n);\n\nINSERT INTO cartes VALUES (1, 1);\nINSERT INTO cartes VALUES (2, 1);",out:"Refusé : UNIQUE interdit une deuxième carte au même client.",tone:"bad"}],
+  learningCheck:{question:"La clé primaire composée d’une table de jointure remplace-t-elle les deux clés étrangères ?",options:["Non","Oui","Seulement pour les clients"],answer:0,explanation:"La clé composée interdit un lien en double. Les clés étrangères imposent que le client et le produit existent."}
+})
 ]},
 { titre:"Créer et faire évoluer les tables", sous:"CREATE, ALTER et DROP TABLE", lessons:[
 { id:61, titre:"CREATE TABLE", résumé:"Créer la structure d’une table",
@@ -36335,7 +35771,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1596';
+  const SW_CACHE='requete-2026-10-04-ludique-v1597';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
