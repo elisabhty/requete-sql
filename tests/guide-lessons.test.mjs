@@ -47,6 +47,7 @@ for (const l of lessons) {
       for (const f of ['on', 'off', 'dim', 'undim', 'gone', 'back', 'fold', 'unfold', 'show']) for (const k of st[f] || []) assert.ok(keys.has(k), `${l.titre} : « ${k} » inconnu (${f}, étape ${i})`);
       for (const k of Object.keys(st.text || {})) assert.ok(keys.has(k), `${l.titre} : texte sur « ${k} » inconnu`);
       for (const [a, b] of st.fly || []) assert.ok(keys.has(a) && keys.has(b), `${l.titre} : vol « ${a} » → « ${b} » inconnu (étape ${i})`);
+      for (const f of ['mark', 'unmark']) for (const k of Object.keys(st[f] || {})) assert.ok(keys.has(k), `${l.titre} : « ${k} » inconnu (${f}, étape ${i})`);
       if (st.cols) assert.equal(tracks(st.cols), tracks(sc.cols), `${l.titre} : la nouvelle grille de l'étape ${i} garde le même nombre de colonnes`);
     });
     assert.equal(sc.steps.length, sc.caps.length, `${l.titre} : une légende par étape`);
@@ -94,7 +95,7 @@ for (const l of lessons) {
   }
   const lit = (/is-out">[\s\S]*?<\/li>/.exec(lastUse)[0].match(/class="is-null"/g) || []).length;
   assert.equal(lit, outN, `${l.titre} : autant de points allumés que de lignes gardées`);
-  const sms = /ij-sms(?: is-mail)?(?: is-phone)?" style="--n:(\d+);--sg:[\d.]+s"/.exec(lastUse);
+  const sms = /ij-sms(?: is-mail)?(?: is-flat)?" style="--n:(\d+);--sg:[\d.]+s"/.exec(lastUse);
   if (sms) assert.equal(+sms[1], (lastUse.match(/<li(?: class="is-more")? style="--i:/g) || []).length, `${l.titre} : nombre d'envois`);
   /* Tableaux « à tester » (balayage ligne par ligne) : chaque verdict est celui de la condition, sur de vraies lignes de la table. */
   for (const blk of body.match(/<div class="rt-wrap"[\s\S]*?<span class="rt-hint">/g) || []) {
@@ -121,6 +122,6 @@ for (const l of lessons) {
 }
 assert.ok(testedTables >= 1, 'au moins un tableau à tester (cours WHERE)');
 /* Moteur des scènes : plusieurs animations par cours, grille de colonnes qui se referme, mise en forme « fiche ». */
-for (const frag of ['function mountProbScene(cfg,slot,memo)', "if(s.cols)root.style.setProperty('--cols',s.cols)", ".pr-slot[data-xscene]", '.pr-scene.has-cols .pr-cells{gap:4px;transition:grid-template-columns', '.pr-scene.is-form .pr-c.pr-th', '.pr-c.is-gone{max-width:0!important', '.ij-sms.is-phone .ij-sms-plane svg'])
+for (const frag of ['function mountProbScene(cfg,slot,memo)', "if(s.cols)root.style.setProperty('--cols',s.cols)", ".pr-slot[data-xscene]", '.pr-scene.has-cols .pr-cells{gap:4px;transition:grid-template-columns', '.pr-scene.is-form .pr-c.pr-th', '.pr-c.is-gone{max-width:0!important', '.ij-sms.is-flat .ij-sms-plane svg', 'cardText(a)===cardText(b)'])
   assert.ok(html.includes(frag), `moteur : « ${frag} » présent`);
 console.log(`${lessons.length} cours guide, ${runs} requêtes exécutées, ${testedTables} tableau(x) à tester : OK`);
