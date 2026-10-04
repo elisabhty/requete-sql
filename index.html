@@ -2460,8 +2460,8 @@
   /* Variante e-mail : la bulle devient un aperçu de message. */
   #scr-lesson .ij-sms.is-mail .ij-sms-bubble{max-width:100%;width:100%;border-radius:14px;background:#fff;color:var(--ink)!important;border:1px solid var(--card-border);box-shadow:0 10px 20px -16px rgba(40,30,90,.45);transform-origin:center bottom}
   .ij-sms-subj{display:block;margin:0 0 4px;font-weight:800;font-size:13.5px;color:var(--accent-ink)}
-  /* Variante appels : icône de téléphone (sans l’inclinaison de l’avion en papier) et ligne finale « … et N autres ». */
-  .ij-sms.is-phone .ij-sms-plane svg{transform:none}
+  /* Variantes d’icône (téléphone, document : sans l’inclinaison de l’avion en papier) et ligne finale « … et N autres ». */
+  .ij-sms.is-flat .ij-sms-plane svg{transform:none}
   .ij-sms-list li.is-more{border-style:dashed;background:transparent}
   .ij-sms-list li.is-more .ij-sms-av{font-size:11px;letter-spacing:-.3px}
   .ij-sms-list li.is-more .ij-sms-who{color:var(--ink-2)}
@@ -10812,16 +10812,20 @@ function guideFunnel(d){
     :`<li class="ij-fn-row${r.out?' is-out':''}"><b>${r.n}</b><span>${guideFr(r.t)}<small>${guideFr(r.s||'')}</small></span>${r.dots?dots(r.dots):''}</li>`).join('');
   return `<ol class="ij-funnel"${d.unit?` data-unit="${d.unit}"`:''} aria-label="${guideEsc(d.label).replace(/"/g,'&quot;')}">${lis}</ol>`;
 }
-const GUIDE_PHONE='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>';
+const GUIDE_ICONS={
+  plane:GUIDE_PLANE,
+  phone:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>',
+  doc:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>'
+};
 /* Animation d’envoi : SMS par défaut ; mail:true pour un e-mail ; st = les trois états d’une ligne (ex. appels) ;
-   plane:'phone' pour une icône de téléphone ; more = nombre de personnes non listées (une dernière ligne « … et N autres »). */
+   plane = icône qui glisse sur la ligne (plane, phone, doc) ; more = nombre de personnes non listées (dernière ligne « … et N autres »). */
 function guideSms(m){
   const rows=m.people.length+(m.more?1:0);
   const st=m.st||['En attente','Envoi','✓ Envoyé'];
   const sg=m.sg||(rows>6?0.34:0.62);
-  const icon=m.plane==='phone'?GUIDE_PHONE:GUIDE_PLANE;
+  const kind=m.plane||'plane',icon=GUIDE_ICONS[kind]||GUIDE_PLANE;
   const row=(av,who,tel,i,more)=>`<li${more?' class="is-more"':''} style="--i:${i}"><b class="ij-sms-av" aria-hidden="true">${guideEsc(av)}</b><span class="ij-sms-who${more?' is-more-t':''}">${guideEsc(who)}<small>${guideEsc(tel)}</small></span><em class="ij-sms-st"><i class="is-idle">${guideFr(st[0])}</i><i class="is-wait">${guideFr(st[1])}<u>.</u><u>.</u><u>.</u></i><i class="is-sent">${guideFr(st[2])}</i></em><i class="ij-sms-plane is-send" aria-hidden="true">${icon}</i></li>`;
-  return `<div class="ij-sms${m.mail?' is-mail':''}${m.plane==='phone'?' is-phone':''}" style="--n:${rows};--sg:${sg}s" role="group" aria-label="${guideEsc(m.aria||m.h).replace(/"/g,'&quot;')}"><p class="ij-sms-h"><i aria-hidden="true">${m.ico||'💬'}</i>${guideFr(m.h)}</p><div class="ij-sms-thread"><p class="ij-sms-typing" aria-hidden="true"><i></i><i></i><i></i></p><p class="ij-sms-bubble">${guideFr(m.msg)}</p></div><ul class="ij-sms-list">${m.people.map(([av,who,tel],i)=>row(av,who,tel,i)).join('')}${m.more?row('+'+m.more,m.moreT||`… et ${m.more} autres`,m.moreS||'',m.people.length,true):''}</ul><div class="ij-sms-meter" aria-hidden="true">${Array.from({length:rows},(_,i)=>`<i style="--i:${i}"></i>`).join('')}</div><p class="ij-sms-done">${guideFr(m.done)}</p></div>`;
+  return `<div class="ij-sms${m.mail?' is-mail':''}${kind!=='plane'?' is-flat':''}" style="--n:${rows};--sg:${sg}s" role="group" aria-label="${guideEsc(m.aria||m.h).replace(/"/g,'&quot;')}"><p class="ij-sms-h"><i aria-hidden="true">${m.ico||'💬'}</i>${guideFr(m.h)}</p><div class="ij-sms-thread"><p class="ij-sms-typing" aria-hidden="true"><i></i><i></i><i></i></p><p class="ij-sms-bubble">${guideFr(m.msg)}</p></div><ul class="ij-sms-list">${m.people.map(([av,who,tel],i)=>row(av,who,tel,i)).join('')}${m.more?row('+'+m.more,m.moreT||`… et ${m.more} autres`,m.moreS||'',m.people.length,true):''}</ul><div class="ij-sms-meter" aria-hidden="true">${Array.from({length:rows},(_,i)=>`<i style="--i:${i}"></i>`).join('')}</div><p class="ij-sms-done">${guideFr(m.done)}</p></div>`;
 }
 function guideDoneCard(d){
   return `<div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div>${guideFunnel(d)}${d.sms?guideSms(d.sms):''}</div>`;
@@ -11104,51 +11108,108 @@ guide({ id:1, titre:"SELECT", résumé:"Choisir les colonnes du résultat",
   testeVariants:[{k:"base",label:"Exemple",sql:"SELECT prenom, ville FROM clients;"}],
   learningCheck:{question:"SELECT prenom, telephone FROM clients affiche combien de colonnes et de lignes ?",options:["10 colonnes et 2 lignes","2 colonnes et 2 lignes","2 colonnes et 10 lignes"],answer:2,explanation:"SELECT choisit deux colonnes. Sans filtre, les dix clients restent."}
 }),
-{ id:2, titre:"Renommer avec AS", résumé:"Donner un nom lisible à une colonne du résultat",
-  situation:"Tu affiches le nom et le prix des produits :",
-  situationSql:"SELECT nom, prix FROM produits;",
-  situationTail:"SQL utilise les noms des colonnes comme en-têtes : <code>nom</code> et <code>prix</code>.<br><br>Mais ces noms sont surtout pensés pour la base de données. Pour les équipes métier, qui vont consulter les résultats dans un rapport ou un tableau de bord, tu veux des intitulés plus clairs et compréhensibles.<br><br>Tu souhaites donc afficher <code>produit</code> à la place de <code>nom</code>, et <code>prix_euros</code> à la place de <code>prix</code>.",
-  problematique:"L’équipe commerciale trouve les noms des colonnes trop techniques. Comment afficher des intitulés plus clairs dans le résultat sans modifier la base de données ?",
-    studio:{problem:{title:"AS donne un alias : un nom d'affichage pour le résultat.",
-      body:"Après une colonne, <code>AS</code> introduit le nom qui apparaîtra dans le résultat : <code>prix AS prix_euros</code>. La table n'est pas modifiée, seul l'en-tête change. L'alias peut contenir un espace s'il est entre guillemets doubles : <code>prix AS \"Prix €\"</code>."},
-    reflex:{a:{k:"AS",t:"renomme une colonne <b>dans le résultat seulement</b>"},
-      b:{k:"Sans effet",t:"la table d'origine garde ses vrais noms de colonnes"},
-      note:"L'alias sert aussi à nommer un calcul : <code>prix * quantite AS total</code>."}},
-  anatomie:[{tok:"SELECT nom AS produit,",txt:"« nom » s’affiche sous l’en-tête « produit »."},{tok:"prix AS prix_euros",txt:"« prix » s’affiche sous l’en-tête « prix_euros ». Les valeurs ne changent pas."},{tok:"FROM produits",txt:"La table lue reste produits."}],
-  exemple:"SELECT nom AS produit, prix AS prix_euros FROM produits;",
-  attendu:"<b>8 lignes</b>, avec des en-têtes renommés « produit » et « prix_euros » au lieu de « nom » et « prix ».",
-  retenir:"<code>AS</code> donne un <b>alias d'affichage</b> à une colonne : <code>prix AS prix_euros</code>. La table n'est pas modifiée. Avec un espace ou un accent, entoure l'alias de guillemets doubles.",
-  piege:{t:"Croire qu'AS renomme la colonne dans la table",p:"<code>AS</code> ne change que l'en-tête du résultat. Renommer définitivement une colonne relève d'<code>ALTER TABLE</code>, une tout autre opération."},
-  consigne:"Affiche le nom et le prix de chaque produit, en renommant les colonnes « produit » et « prix_euros ».",
-  solution:"SELECT nom AS produit, prix AS prix_euros FROM produits;",
-  indice:"Après chaque colonne, ajoute <code>AS</code> suivi du nouveau nom : <code>nom AS produit</code>.",
-  richLesson:true ,
-testeVariants:[
-  {
-    "k": "base",
-    "label": "Exemple",
-    "sql": "SELECT nom AS produit, prix AS prix_euros FROM produits;"
+guide({ id:2, titre:"Renommer avec AS", résumé:"Donner un nom lisible à une colonne du résultat",
+  sit:{
+    blocks:[
+      "L’équipe commerciale prépare <b>un rapport sur les prix</b> du catalogue, destiné à des collègues qui ne connaissent pas la base de données.",
+      "La table <code>produits</code> contient au total <b>8 produits</b>. Pour construire le rapport, l’équipe souhaite récupérer uniquement :",
+      {need:[["🏷️","Le nom du produit","table produits"],["💶","Son prix","table produits"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>SELECT</code>, SQL sait quelles <b>colonnes</b> afficher, mais il les présente sous <b>leur nom dans la base de données</b> : <code>nom</code> et <code>prix</code>.","Or, dans notre rapport, ces intitulés manquent de clarté : on ne sait pas de quoi parle <b>nom</b>, ni en quelle monnaie est exprimé <b>prix</b>."],
+      scene:{h:"📊 Rapport des prix",cols:"1.6fr 1fr",
+        lanes:[{c:[["h1","nom","t"],["h2","prix","t"]]},
+          {k:"R1",c:[["a1","Fibre Prébiotique"],["a2","29.9"]]},
+          {k:"R2",c:[["b1","Collagène Marin"],["b2","39.9"]]},
+          {k:"R3",c:[["c1","Magnésium"],["c2","19.9"]]}],
+        caps:["<b>Rapport actuel</b> · Les colonnes portent les noms utilisés dans la base de données.","<b>Besoin</b> · Ces intitulés ne sont pas assez clairs pour des lecteurs qui ne connaissent pas la base.","<b>Résultat</b> · Le rapport doit afficher des intitulés plus clairs, avec les mêmes produits et les mêmes prix."],
+        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R1","R2","R3"],mark:{h1:"is-miss",h2:"is-miss"},d:2300},{cap:2,unmark:{h1:"is-miss",h2:"is-miss"},text:{h1:"produit",h2:"prix_euros"},on:["R1","R2","R3"],d:2600}]},
+      then:["Il faut donc indiquer à SQL <b>quel nom afficher</b> pour chaque colonne : <code>produit</code> et <code>prix_euros</code>.","C’est exactement le rôle de <code>AS</code>."]
+    },
+    mission:"Aide l’équipe commerciale à retrouver le <b>nom</b> et le <b>prix</b> de chaque produit, sous les intitulés <b>produit</b> et <b>prix_euros</b>, afin de préparer le rapport."
   },
-  {
-    "k": "rec_space",
-    "label": "Alias avec espaces",
-    "sql": "SELECT nom AS \"Nom du produit\", prix AS \"Prix en euros\" FROM produits;",
-    "out": "Deux noms d’affichage contenant des espaces.",
-    "expectRows": 8
-  }
-]
-,
-learningCheck:{
-  "question": "Avec prix AS \"Prix en euros\", quel nom garde la colonne dans la table ?",
-  "options": [
-    "Les deux noms",
-    "prix",
-    "Prix en euros"
+  concept:{
+    title:"Comment SQL peut-il savoir quel nom afficher ?",
+    blocks:[
+      "Pour chaque colonne affichée, SQL doit savoir quel intitulé utiliser :",
+      {ask:"Sous quel nom veut-on la voir ?"},
+      "Ce nom d’affichage s’appelle un <b>alias</b>. En SQL, on l’écrit juste après la colonne, précédé de <code>AS</code> :",
+      {syntax:"⟦prix AS prix_euros⟧"},
+      {scene:{h:"🔄 De la table au résultat",cols:"1.6fr 1fr",
+        lanes:[{c:[["h1","nom","t"],["h2","prix","t"]]},
+          {k:"R1",c:[["a1","Fibre Prébiotique"],["a2","29.9"]]},
+          {k:"R2",c:[["b1","Collagène Marin"],["b2","39.9"]]},
+          {k:"G0",cls:"is-goal",c:[["g1","produit","th"],["g2","prix_euros","th"]]},
+          {k:"G1",c:[["r1","","h"],["r2","","h"]]},
+          {k:"G2",c:[["r3","","h"],["r4","","h"]]}],
+        caps:["<b>Table produits</b> · Ses colonnes s’appellent <b>nom</b> et <b>prix</b>.","<b>nom AS produit · prix AS prix_euros</b> · SQL lit chaque colonne et l’affiche sous le nom demandé.","<b>Résultat</b> · Les valeurs sont les mêmes : seul l’en-tête change."],
+        steps:[{cap:0,on:["R1","R2"],d:1900},{cap:1,off:["R1","R2"],show:["g1","g2"],fly:[["a1","r1"],["a2","r2"],["b1","r3"],["b2","r4"]],stagger:220,d:3400},{cap:2,on:["G1","G2"],d:2600}]}}
+    ]
+  },
+  steps:[
+    {h:"Renommer une colonne",blocks:[
+      "Pour renommer une colonne dans le résultat, écris <code>AS</code> après la colonne, puis le nouveau nom :",
+      {syntax:"SELECT nom ⟦AS produit⟧\nFROM produits;"},
+      {looks:[["AS","introduit le nom à afficher"],["produit","est le nom affiché dans le résultat"]]},
+      {say:"👇 Exécute cette requête pour voir la colonne renommée :",run:"SELECT nom AS produit\nFROM produits;"},
+      {arrow:"L’en-tête de la colonne est maintenant « produit »."}
+    ]},
+    {h:"Renommer plusieurs colonnes",blocks:[
+      "Chaque colonne peut avoir son propre alias. Les colonnes restent séparées par une virgule :",
+      {syntax:"SELECT categorie AS ⟦rayon⟧,\n       stock AS ⟦quantite⟧\nFROM produits;"},
+      {say:"👇 Exécute cette requête pour voir les deux colonnes renommées :",run:"SELECT categorie AS rayon, stock AS quantite\nFROM produits;"},
+      {tip:{t:"La table ne change pas",blocks:[
+        "<code>AS</code> change seulement l’en-tête du <b>résultat</b>.",
+        {say:"👇 Vérifie avec les noms d’origine :",run:"SELECT categorie, stock\nFROM produits;"},
+        {arrow:"Dans la table, les colonnes s’appellent toujours « categorie » et « stock »."}
+      ]}}
+    ]},
+    {h:"Écrire un alias avec des espaces",blocks:[
+      "Un alias qui contient des espaces ou des accents s’écrit entre <b>guillemets doubles</b> :",
+      {syntax:"prix AS ⟦\"Prix en euros\"⟧"},
+      {say:"👇 Exécute cette requête pour voir un alias avec des espaces :",run:"SELECT prix AS \"Prix en euros\"\nFROM produits;"},
+      {warn:{t:"Sans guillemets",blocks:[
+        "Si tu écris :",
+        {syntax:"prix AS Prix en euros"},
+        "SQL ne comprend pas ce qui suit <code>Prix</code>, et la requête provoque une erreur.",
+        {say:"👇 Teste par toi-même :",run:"SELECT prix AS Prix en euros\nFROM produits;"}
+      ]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, leur donner un alias, puis indiquer dans quelle table les lire.",
+      {say:"👇 Exécute la requête pour obtenir les données du rapport :",run:"SELECT nom AS produit, prix AS prix_euros\nFROM produits;"},
+      {done:{
+        label:"Des noms de la base aux intitulés du rapport",
+        unit:"cols",
+        funnel:[
+          {n:2,t:"colonnes avec leur nom d’origine",s:"<code>nom</code> et <code>prix</code>",dots:"00"},
+          {step:"AS",s:"donne un nom d’affichage à chaque colonne"},
+          {n:2,t:"⭐ colonnes avec des intitulés clairs",s:"<code>produit</code> et <code>prix_euros</code>",dots:"11",out:true}
+        ],
+        sms:{ico:"📊",h:"Rapport des prix",aria:"Les produits s’ajoutent au rapport sous leurs nouveaux intitulés",msg:"<b>Rapport des prix</b><br>produit · prix_euros",people:[["F","Fibre Prébiotique","29.9"],["C","Collagène Marin","39.9"],["M","Magnésium","19.9"],["V","Vitamine D","14.9"],["T","Tisane Détox","12.5"]],more:3,moreT:"… et 3 autres",moreS:"produits du catalogue",st:["À ajouter","Ajout","✓ Ajouté"],plane:"doc",done:"✓ 8 produits dans le rapport"},
+        fill:["AS","produit","AS","prix_euros"],
+        ui:{t:"8 produits, des intitulés clairs",s:"Le rapport affiche « produit » et « prix_euros » : les données, elles, n’ont pas changé.",n:["SELECT","AS","FROM"]},
+        rows:8
+      }}
+    ]}
   ],
-  "answer": 1,
-  "explanation": "L’alias change uniquement l’en-tête du résultat. Les guillemets doubles permettent les espaces."
-}
-},
+  reflex:[
+    {recap:[
+      ["🏷️","<code>AS</code> donne un <b>nom d’affichage</b> (un alias) à une colonne.","Il agit sur le résultat, sans modifier la table."],
+      ["📍","Il se place <b>juste après la colonne</b> :",null,"prix AS prix_euros"],
+      ["💬","Un alias avec des espaces s’écrit entre <b>guillemets doubles</b> :",null,"\"Prix en euros\""]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"SELECT nom AS produit,",txt:"« nom » s’affiche sous l’en-tête « produit »."},{tok:"prix AS prix_euros",txt:"« prix » s’affiche sous l’en-tête « prix_euros ». Les valeurs ne changent pas."},{tok:"FROM produits",txt:"La table lue reste produits."}],
+  exemple:"SELECT categorie AS rayon, stock AS quantite FROM produits;",
+  attendu:"<b>8 lignes</b>, avec les en-têtes « rayon » et « quantite » au lieu de « categorie » et « stock ».",
+  retenir:"<code>AS</code> donne un nom d’affichage (un alias) à une colonne.<br>Il agit sur le résultat, sans modifier la table.<br><br>Il se place juste après la colonne : <code>prix AS prix_euros</code><br><br>Un alias avec des espaces s’écrit entre guillemets doubles : <code>\"Prix en euros\"</code>.",
+  consigne:"Affiche le nom et le stock de chaque produit, en renommant les colonnes « produit » et « en_stock ».",
+  solution:"SELECT nom AS produit, stock AS en_stock FROM produits;",
+  indice:"Après chaque colonne, ajoute <code>AS</code> suivi du nouveau nom : <code>stock AS en_stock</code>.",
+  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT categorie AS rayon, stock AS quantite FROM produits;"},{k:"rec_space",label:"Alias avec espaces",sql:"SELECT nom AS \"Nom du produit\", prix AS \"Prix en euros\" FROM produits;",out:"Deux noms d’affichage contenant des espaces.",expectRows:8}],
+  learningCheck:{question:"Avec prix AS \"Prix en euros\", quel nom garde la colonne dans la table ?",options:["Les deux noms","prix","Prix en euros"],answer:1,explanation:"L’alias change uniquement l’en-tête du résultat. Les guillemets doubles permettent les espaces."}
+}),
 { id:3, titre:"SELECT *", résumé:"Voir toute la table",
   situation:"Tu découvres la table produits. Elle contient 8 produits et plusieurs informations sur chacun : <code>id</code>, <code>nom</code>, <code>categorie</code>, <code>prix</code> et <code>stock</code>.<br><br>Avec ce que tu connais déjà, tu pourrais lister les colonnes une par une :",
   situationSql:"SELECT nom, categorie, prix\nFROM produits;",
@@ -29264,7 +29325,9 @@ function initQueryFill(){
     const grade=()=>{
       const swapped={};
       holes.forEach(h=>{const g=h.dataset.eq;if(!g||g in swapped)return;const p=holes.filter(x=>x.dataset.eq===g);swapped[g]=p.length===2&&p[0].dataset.k===p[1].dataset.want&&p[1].dataset.k===p[0].dataset.want;});
-      const res=holes.map(h=>h.dataset.k===h.dataset.want||(!!h.dataset.eq&&swapped[h.dataset.eq]));
+      /* Deux cartes qui portent le même texte (ex. deux « AS ») sont interchangeables. */
+      const same=(a,b)=>a===b||(!!a&&!!b&&cardText(a)===cardText(b));
+      const res=holes.map(h=>same(h.dataset.k,h.dataset.want)||(!!h.dataset.eq&&swapped[h.dataset.eq]));
       return {res,ok:res.every(Boolean)};
     };
     const CHK=KEY+'-verifie';
@@ -36661,7 +36724,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1586';
+  const SW_CACHE='requete-2026-10-04-ludique-v1587';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
