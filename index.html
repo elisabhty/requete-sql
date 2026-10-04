@@ -8978,114 +8978,107 @@ guide({ id:18, titre:"INNER JOIN", résumé:"Relier uniquement ce qui correspond
 guide({ id:20, titre:"LEFT JOIN", résumé:"Garder même sans correspondance",
   sit:{
     blocks:[
-      "L’équipe développement produit prépare le lancement d’un nouveau produit. Avant sa sortie, elle crée un <b>club de testeurs</b> et veut inviter en priorité les clients qui n’ont <b>jamais commandé</b>.",
-      "Pour savoir qui n’a jamais commandé, l’équipe doit croiser la table <code>clients</code> (10 clients) avec la table <code>commandes</code> (16 commandes). Pour préparer les invitations, elle souhaite récupérer uniquement :",
-      {need:[["👤","Le prénom du client","table clients"],["👪","Son nom de famille","table clients"],["📞","Son téléphone","table clients"]],label:"Les informations à récupérer"}
+      "L’équipe fidélité prépare le <b>bilan de son programme de points</b>, afin de mesurer l’adhésion des clients de la boutique.",
+      "Les informations utiles sont réparties entre la table <code>clients</code> (10 clients) et la table <code>fidelite</code> (4 cartes). Pour préparer le bilan, l’équipe souhaite récupérer uniquement :",
+      {need:[["👤","Le prénom du client","table clients"],["👪","Son nom de famille","table clients"],["🏅","Ses points de fidélité","table fidelite"]],label:"Les informations à récupérer"}
     ],
     problem:{
-      p:["Avec <code>INNER JOIN</code>, SQL sait relier les clients à leurs commandes.","Or, cette fois, l’équipe cherche justement les clients qui n’ont <b>aucune commande</b>."],
-      scene:{h:"🛒 Clients conservés",cols:"1fr 1fr",
-        lanes:[{c:[["","prenom","t"],["","nom","t"]]},
-          {k:"R1",c:[["a1","Sophie"],["a2","Martin"]]},
-          {k:"R2",c:[["b1","Lucas"],["b2","Bernard"]]},
-          {k:"R3",c:[["c1","Inès"],["c2","Lefebvre"]]},
-          {k:"R4",c:[["d1","Emma"],["d2","Dubois"]]},
-          {k:"R5",c:[["e1","Hugo"],["e2","Laurent"]]}],
-        caps:["<b>Notre liste</b> · Elle contient tous les clients, qu’ils aient déjà commandé ou non.","<b>Besoin</b> · Un client nous intéresse seulement s’il n’a <b>jamais commandé</b>.","<b>Résultat</b> · Seuls les clients sans commande doivent être conservés."],
-        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R4","R5"],dim:["R1","R2","R4","R5"],d:2300},{cap:2,fold:["R1","R2","R4","R5"],d:2600}]},
-      then:["Il faut donc une jointure qui <b>garde tous les clients</b>, même quand aucune commande ne leur correspond.","C’est exactement le rôle de <code>LEFT JOIN</code>."]
+      p:["Avec <code>INNER JOIN</code>, SQL sait relier chaque client à sa carte de fidélité, mais il écarte ceux qui n’en ont pas.","Or, ici, le bilan doit contenir <b>tous les clients</b>, même ceux qui n’ont <b>aucune carte</b>."],
+      scene:{h:"🏅 Clients et points",
+        lanes:[{k:"A",l:"clients",c:[["a1","Sophie"],["a2","Emma"],["a3","Hugo"]]},
+          {k:"B",l:"fidelite",c:[["b1","120 points"],["b2","80 points"]]},
+          {k:"G",cls:"is-goal",l:"bilan attendu",c:[["g1","prenom","q"],["g2","points","q"]]}],
+        caps:["<b>Table clients</b> · Elle contient tous les clients.","<b>Table fidelite</b> · Elle contient les points, mais seulement pour les clients qui ont une carte.","<b>Objectif</b> · Afficher chaque client avec ses points, quand il en a."],
+        steps:[{cap:0,on:["A"],d:1900},{cap:1,off:["A"],on:["B"],d:1900},{cap:2,off:["B"],on:["G"],d:2400}]},
+      then:["Il faut donc une jointure qui <b>garde tous les clients</b>, avec ou sans carte.","C’est exactement le rôle de <code>LEFT JOIN</code>."]
     },
-    mission:"Aide l’équipe développement produit à retrouver le <b>prénom</b>, le <b>nom</b> et le <b>téléphone</b> des clients qui n’ont <b>jamais commandé</b>, afin de les inviter au club de testeurs."
+    mission:"Aide l’équipe fidélité à retrouver le <b>prénom</b>, le <b>nom</b> et les <b>points</b> de chaque client, même ceux qui n’ont pas de carte, afin de préparer le bilan du programme."
   },
   concept:{
-    title:"Comment SQL peut-il garder un client qui n’a aucune commande ?",
+    title:"Comment SQL peut-il garder un client qui n’a aucune carte ?",
     blocks:[
-      "Pour chaque client, SQL cherche les commandes qui portent son <code>id</code> :",
-      {ask:"Que devient un client dont aucune commande ne correspond ?"},
+      "Pour chaque client, SQL cherche la carte qui porte son <code>id</code> :",
+      {ask:"Que devient un client dont aucune carte ne correspond ?"},
       "Avec <code>LEFT JOIN</code>, la table écrite après <code>FROM</code>, celle de <b>gauche</b>, est gardée en entier :",
-      {syntax:"FROM clients\n⟦LEFT JOIN commandes⟧\n    ON clients.id = commandes.client_id"},
-      {scene:{h:"🛒 Des clients à leurs commandes",cols:".6fr 1fr",
+      {syntax:"FROM clients\n⟦LEFT JOIN fidelite⟧\n    ON clients.id = fidelite.client_id"},
+      {scene:{h:"🏅 Des clients à leurs cartes",cols:".6fr 1fr",
         lanes:[{k:"HC",l:"clients",c:[["","id","t"],["","prenom","t"]]},
           {k:"C1",c:[["a1","1"],["a2","Sophie"]]},
           {k:"C2",c:[["b1","9"],["b2","Inès"]]},
-          {k:"HO",l:"commandes",c:[["","id","t"],["","client_id","t"]]},
-          {k:"O1",c:[["c1","1"],["c2","1"]]},
-          {k:"O2",c:[["d1","2"],["d2","1"]]},
-          {k:"HG",fold:true,cls:"is-goal",l:"résultat",c:[["","prenom","t"],["","commande","t"]]},
+          {k:"HF",l:"fidelite",c:[["","client_id","t"],["","points","t"]]},
+          {k:"F1",c:[["c1","1"],["c2","120"]]},
+          {k:"HG",fold:true,cls:"is-goal",l:"résultat",c:[["","prenom","t"],["","points","t"]]},
           {k:"G1",fold:true,cls:"is-goal",c:[["g1","?","q"],["g2","?","q"]]},
-          {k:"G2",fold:true,cls:"is-goal",c:[["g3","?","q"],["g4","?","q"]]},
-          {k:"G3",fold:true,cls:"is-goal",c:[["g5","?","q"],["g6","NULL","n"]]}],
-        caps:["<b>Deux tables</b> · Les clients et les commandes.","<b>ON</b> · Sophie retrouve ses commandes, la 1 et la 2 ; aucune commande ne porte le numéro 9 : Inès n’en retrouve aucune.","<b>LEFT JOIN</b> · Tous les clients sont gardés : Inès reste, même sans commande.","<b>Résultat</b> · Sophie apparaît avec chacune de ses commandes ; Inès apparaît avec <code>NULL</code> à la place de la commande."],
-        steps:[{cap:0,on:["C1","C2","O1","O2"],d:2000},{cap:1,off:["C2"],dim:["C2"],mark:{C2:"is-miss"},d:2800},{cap:2,undim:["C2"],unmark:{C2:"is-miss"},on:["C2"],d:2400},{cap:3,off:["C1","C2","O1","O2"],unfold:["HG","G1","G2","G3"],fly:[["a2","g1"],["c1","g2"],["a2","g3"],["d1","g4"],["b2","g5"]],stagger:300,d:3600}]}}
+          {k:"G2",fold:true,cls:"is-goal",c:[["g3","?","q"],["g4","NULL","n"]]}],
+        caps:["<b>Deux tables</b> · Les clients et les cartes de fidélité.","<b>ON</b> · La carte de Sophie porte son numéro, le 1 ; aucune carte ne porte le numéro 9 : Inès n’en retrouve aucune.","<b>LEFT JOIN</b> · Tous les clients sont gardés : Inès reste, même sans carte.","<b>Résultat</b> · Sophie apparaît avec ses points ; Inès apparaît avec <code>NULL</code> à la place des points."],
+        steps:[{cap:0,on:["C1","C2","F1"],d:2000},{cap:1,off:["C2"],dim:["C2"],mark:{C2:"is-miss"},d:2800},{cap:2,undim:["C2"],unmark:{C2:"is-miss"},on:["C2"],d:2400},{cap:3,off:["C1","C2","F1"],unfold:["HG","G1","G2"],fly:[["a2","g1"],["c2","g2"],["b2","g3"]],stagger:300,d:3400}]}}
     ]
   },
   steps:[
     {h:"Garder tous les clients",blocks:[
       "<code>LEFT JOIN</code> s’écrit comme <code>INNER JOIN</code>, avec son <code>ON</code> : seul le premier mot change.",
-      {syntax:"SELECT clients.prenom, clients.nom, commandes.id AS commande_id\nFROM clients\n⟦LEFT JOIN commandes\n    ON clients.id = commandes.client_id⟧;"},
-      {looks:[["LEFT JOIN commandes","garde tous les clients et ajoute leurs commandes, quand ils en ont"],["ON clients.id = commandes.client_id","relie chaque client aux commandes qui portent son id"]]},
-      {say:"👇 Exécute cette requête pour voir chaque client avec ses commandes :",run:"SELECT clients.prenom, clients.nom, commandes.id AS commande_id\nFROM clients\nLEFT JOIN commandes\n    ON clients.id = commandes.client_id;"},
-      {arrow:"Inès Lefebvre et Nathan Dupont sont bien là, tout en bas : leur <code>commande_id</code> vaut <code>NULL</code>."}
+      {syntax:"SELECT clients.id, clients.prenom, fidelite.points\nFROM clients\n⟦LEFT JOIN fidelite\n    ON clients.id = fidelite.client_id⟧;"},
+      {looks:[["LEFT JOIN fidelite","garde tous les clients et ajoute leur carte, quand ils en ont"],["ON clients.id = fidelite.client_id","relie chaque client à la carte qui porte son id"]]},
+      {say:"👇 Exécute cette requête pour voir chaque client avec ses points :",run:"SELECT clients.id, clients.prenom, fidelite.points\nFROM clients\nLEFT JOIN fidelite\n    ON clients.id = fidelite.client_id;"},
+      {arrow:"Les 10 clients sont là : 6 d’entre eux ont <code>NULL</code> à la place des points, faute de carte."}
     ]},
     {h:"Compter ce que la jointure garde",blocks:[
-      "Comparons avec <code>INNER JOIN</code>, qui ne garde que les clients ayant une commande. Comptons les lignes de chaque jointure :",
-      {say:"👇 Exécute cette requête avec <code>INNER JOIN</code> :",run:"SELECT COUNT(*) AS lignes\nFROM clients\nINNER JOIN commandes\n    ON clients.id = commandes.client_id;"},
-      {say:"👇 Puis la même avec <code>LEFT JOIN</code> :",run:"SELECT COUNT(*) AS lignes\nFROM clients\nLEFT JOIN commandes\n    ON clients.id = commandes.client_id;"},
-      {arrow:"15 lignes contre 17 : les 2 lignes en plus sont les clients sans commande, que <code>INNER JOIN</code> avait écartés."},
+      "Comparons avec <code>INNER JOIN</code>, qui ne garde que les clients ayant une carte. Comptons les lignes de chaque jointure :",
+      {say:"👇 Exécute cette requête avec <code>INNER JOIN</code> :",run:"SELECT COUNT(*) AS lignes\nFROM clients\nINNER JOIN fidelite\n    ON clients.id = fidelite.client_id;"},
+      {say:"👇 Puis la même avec <code>LEFT JOIN</code> :",run:"SELECT COUNT(*) AS lignes\nFROM clients\nLEFT JOIN fidelite\n    ON clients.id = fidelite.client_id;"},
+      {arrow:"4 lignes contre 10 : les 6 lignes en plus sont les clients sans carte, que <code>INNER JOIN</code> avait écartés."},
       {warn:{t:"Les tables dans l’autre ordre",blocks:[
-        "<code>LEFT JOIN</code> garde la table de <b>gauche</b>, celle qui suit <code>FROM</code>. Si tu écris les tables à l’envers, ce sont les commandes qui sont gardées en entier :",
-        {say:"👇 Teste par toi-même :",run:"SELECT clients.prenom, commandes.id AS commande_id\nFROM commandes\nLEFT JOIN clients\n    ON clients.id = commandes.client_id;"},
-        {arrow:"16 lignes : toutes les commandes sont là, mais Inès et Nathan Dupont ont disparu."}
+        "<code>LEFT JOIN</code> garde la table de <b>gauche</b>, celle qui suit <code>FROM</code>. Si tu écris les tables à l’envers, ce sont les cartes qui sont gardées en entier :",
+        {say:"👇 Teste par toi-même :",run:"SELECT clients.prenom, fidelite.points\nFROM fidelite\nLEFT JOIN clients\n    ON clients.id = fidelite.client_id;"},
+        {arrow:"4 lignes : toutes les cartes sont là, mais les 6 clients sans carte ont disparu."}
       ]}}
     ]},
-    {h:"Repérer les clients sans commande",blocks:[
-      "Un client sans commande se reconnaît à son <code>commande_id</code> vide. <code>IS NULL</code>, déjà vu avec <code>WHERE</code>, retrouve ces lignes :",
-      {syntax:"SELECT clients.prenom, clients.nom, commandes.id AS commande_id\nFROM clients\nLEFT JOIN commandes\n    ON clients.id = commandes.client_id\n⟦WHERE commandes.id IS NULL⟧;"},
-      {say:"👇 Exécute cette requête pour ne garder que les clients sans commande :",run:"SELECT clients.prenom, clients.nom, commandes.id AS commande_id\nFROM clients\nLEFT JOIN commandes\n    ON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;"},
-      {arrow:"Il ne reste que les 2 clients sans commande."},
+    {h:"Repérer les clients sans carte",blocks:[
+      "Un client sans carte se reconnaît à l’identifiant de carte vide. <code>IS NULL</code>, déjà vu avec <code>WHERE</code>, retrouve ces lignes :",
+      {syntax:"SELECT clients.prenom, clients.nom, fidelite.id AS carte_id\nFROM clients\nLEFT JOIN fidelite\n    ON clients.id = fidelite.client_id\n⟦WHERE fidelite.id IS NULL⟧;"},
+      {say:"👇 Exécute cette requête pour ne garder que les clients sans carte :",run:"SELECT clients.prenom, clients.nom, fidelite.id AS carte_id\nFROM clients\nLEFT JOIN fidelite\n    ON clients.id = fidelite.client_id\nWHERE fidelite.id IS NULL;"},
+      {arrow:"Il ne reste que les 6 clients sans carte."},
       {warn:{t:"Avec = NULL",blocks:[
         "Comme toujours, <code>= NULL</code> n’est jamais vrai : aucune ligne n’est conservée.",
-        {say:"👇 Teste par toi-même :",run:"SELECT clients.prenom, clients.nom, commandes.id AS commande_id\nFROM clients\nLEFT JOIN commandes\n    ON clients.id = commandes.client_id\nWHERE commandes.id = NULL;"}
+        {say:"👇 Teste par toi-même :",run:"SELECT clients.prenom, clients.nom, fidelite.id AS carte_id\nFROM clients\nLEFT JOIN fidelite\n    ON clients.id = fidelite.client_id\nWHERE fidelite.id = NULL;"}
       ]}},
-      {tip:{t:"Quelle colonne tester ?",blocks:["On teste <code>commandes.id</code>, la clé de la table de droite : une commande qui existe a toujours un <code>id</code>, donc un <code>NULL</code> ne peut venir que d’une absence de commande."]}}
+      {tip:{t:"Quelle colonne tester ?",blocks:["On teste <code>fidelite.id</code>, la clé de la table de droite : une carte qui existe a toujours un <code>id</code>, donc un <code>NULL</code> ne peut venir que d’une absence de carte."]}}
     ]},
     {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes utiles à l’invitation, garder tous les clients avec <code>LEFT JOIN</code>, puis ne conserver que ceux qui n’ont aucune commande.",
-      {say:"👇 Exécute la requête pour obtenir la liste des futurs testeurs :",run:"SELECT clients.prenom,\n       clients.nom,\n       clients.telephone\nFROM clients\nLEFT JOIN commandes\n    ON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;"},
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes utiles au bilan, puis garder tous les clients avec <code>LEFT JOIN</code>.",
+      {say:"👇 Exécute la requête pour obtenir le bilan du programme :",run:"SELECT clients.prenom,\n       clients.nom,\n       fidelite.points\nFROM clients\nLEFT JOIN fidelite\n    ON clients.id = fidelite.client_id;"},
       {done:{
-        label:"De 10 clients aux 2 futurs testeurs",
+        label:"Des 10 clients au bilan du programme",
         funnel:[
           {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
-          {step:"LEFT JOIN commandes",s:"ajoute les commandes de chaque client, sans en écarter aucun"},
-          {n:17,t:"lignes après la jointure",s:"15 commandes avec leur client, plus 2 clients sans commande",dots:"00000000000000000"},
-          {step:"WHERE commandes.id IS NULL",s:"ne garde que les clients sans commande"},
-          {n:2,t:"⭐ clients à inviter",s:"Inès Lefebvre et Nathan Dupont",dots:"00000000000000011",out:true}
+          {step:"LEFT JOIN fidelite",s:"ajoute la carte de chaque client, sans en écarter aucun"},
+          {n:10,t:"⭐ clients dans le bilan",s:"dont 6 sans carte, avec des points à NULL",dots:"1111111111",out:true}
         ],
-        sms:{ico:"💬",h:"Club de testeurs",aria:"Les deux invitations au club de testeurs sont envoyées par SMS",msg:"Bonjour ! 🧪 Rejoins notre club de testeurs et essaie nos nouveautés avant tout le monde.",people:[["I","Inès Lefebvre","06 39 98 97 50"],["N","Nathan Dupont","06 39 98 10 26"]],done:"✓ 2 invitations envoyées"},
-        fill:["LEFT JOIN","clients.id","commandes.client_id","commandes.id","IS NULL"],
-        ui:{t:"2 futurs membres du club de testeurs",s:"Ils n’ont jamais commandé : ils sont invités.",n:["LEFT JOIN","ON","WHERE","IS NULL"]},
-        rows:2
+        sms:{ico:"🏅",h:"Bilan du programme",aria:"Les points de chaque client, y compris ceux sans carte, sont reportés dans le bilan du programme de fidélité",msg:"<b>Points par client</b><br>Pour mesurer l’adhésion au programme.",people:[["S","Sophie Martin","120 points"],["L","Lucas Bernard","80 points"],["E","Emma Dubois","aucune carte"],["N","Nathan Petit","250 points"],["C","Chloé Moreau","aucune carte"]],more:5,moreT:"… et 5 autres",moreS:"clients",icons:true,plane:"doc",done:"✓ 10 clients dans le bilan"},
+        fill:["LEFT JOIN","fidelite","clients.id","fidelite.client_id"],
+        ui:{t:"10 clients dans le bilan",s:"Le bilan du programme de fidélité est prêt.",n:["LEFT JOIN","ON"]},
+        rows:10
       }}
     ]}
   ],
   reflex:[
     {recap:[
       ["⬅️","<code>LEFT JOIN</code> garde <b>toutes les lignes de la table de gauche</b>, même sans correspondance.","Sans ligne de droite correspondante, les informations manquantes valent <code>NULL</code>."],
-      ["🔗","<code>ON</code> indique comment les deux tables sont reliées :",null,"ON clients.id = commandes.client_id"],
-      ["🔍","<code>WHERE … IS NULL</code> retrouve les lignes <b>sans correspondance</b>.","Ici, les clients qui n’ont aucune commande.","WHERE commandes.id IS NULL"]
+      ["🔗","<code>ON</code> indique comment les deux tables sont reliées :",null,"ON clients.id = fidelite.client_id"],
+      ["🔍","<code>WHERE … IS NULL</code> retrouve les lignes <b>sans correspondance</b>.","Ici, les clients qui n’ont aucune carte.","WHERE fidelite.id IS NULL"]
     ],label:"Les trois idées à retenir"}
   ],
   anatomie:[{tok:"SELECT produits.nom, commandes.id AS commande_id",txt:"Le nom du produit et le numéro de sa commande."},{tok:"FROM produits",txt:"La table de gauche : tous ses produits sont gardés."},{tok:"LEFT JOIN commandes",txt:"On ajoute les commandes de chaque produit, quand il en a."},{tok:"ON produits.id = commandes.produit_id",txt:"Le lien : l’id du produit et le produit_id de la commande. Sans commande, le numéro vaudrait NULL."}],
   exemple:"SELECT produits.nom, commandes.id AS commande_id FROM produits LEFT JOIN commandes ON produits.id = commandes.produit_id;",
   attendu:"<b>16 lignes</b> : chaque produit avec le numéro de ses commandes. Tous les produits ont été commandés au moins une fois : aucune ligne ne contient <code>NULL</code>.",
-  retenir:"<code>LEFT JOIN</code> garde toutes les lignes de la table de gauche, même sans correspondance.<br><br>Sans ligne de droite correspondante, les informations manquantes valent <code>NULL</code>.<br><br><code>WHERE … IS NULL</code> retrouve les lignes sans correspondance : ici, les clients qui n’ont aucune commande.",
+  retenir:"<code>LEFT JOIN</code> garde toutes les lignes de la table de gauche, même sans correspondance.<br><br>Sans ligne de droite correspondante, les informations manquantes valent <code>NULL</code>.<br><br><code>WHERE … IS NULL</code> retrouve les lignes sans correspondance : ici, les clients qui n’ont aucune carte.",
   consigne:"Affiche le prénom (<code>prenom</code>), le nom (<code>nom</code>) et l’<code>email</code> des clients qui n’ont jamais commandé et dont l’email est renseigné.",
   solution:"SELECT clients.prenom, clients.nom, clients.email FROM clients LEFT JOIN commandes ON clients.id = commandes.client_id WHERE commandes.id IS NULL AND clients.email IS NOT NULL;",
   indice:"Garde les clients sans commande avec <code>LEFT JOIN</code> et <code>commandes.id IS NULL</code>, puis ajoute une seconde condition avec <code>AND</code> pour ne garder que ceux dont l’<code>email</code> existe.",
   exoNeeds:[{re:"\\b(?:LEFT|RIGHT)\\s+(?:OUTER\\s+)?JOIN\\b",msg:"Garde tous les clients avec un LEFT JOIN, même ceux qui n’ont aucune commande."},{re:"\\bIS\\s+NULL\\b",msg:"Repère les clients sans commande avec IS NULL."}],
   joinRecap:"left",
   testeVariants:[{k:"cli",label:"clients",sql:"SELECT id, prenom\nFROM clients;"},{k:"cmd",label:"commandes",sql:"SELECT id, client_id, produit_id, quantite\nFROM commandes;"},{k:"inner",label:"INNER JOIN",sql:"SELECT clients.prenom, commandes.produit_id, commandes.quantite\nFROM clients\nINNER JOIN commandes\n    ON clients.id = commandes.client_id;",out:"15 lignes : les deux clients sans commande ont disparu.",expectRows:15},{k:"leftjoin",label:"LEFT JOIN",sql:"SELECT clients.prenom, commandes.produit_id, commandes.quantite\nFROM clients\nLEFT JOIN commandes\n    ON clients.id = commandes.client_id;",out:"17 lignes : les 15 commandes, plus Inès et Nathan Dupont avec des valeurs NULL.",tone:"good",expectRows:17}],
-  learningCheck:{question:"Avec clients LEFT JOIN commandes, que devient un client qui n’a aucune commande ?",options:["Il disparaît du résultat","Il reste, avec NULL côté commandes","Il reste, avec 0 commande"],answer:1,explanation:"La table clients, à gauche, est conservée en entier : sans commande correspondante, les colonnes de commandes valent NULL."}
+  learningCheck:{question:"Avec clients LEFT JOIN fidelite, que devient un client qui n’a aucune carte ?",options:["Il disparaît du résultat","Il reste, avec NULL côté carte","Il reste, avec 0 point"],answer:1,explanation:"La table clients, à gauche, est conservée en entier : sans carte correspondante, les colonnes de fidelite valent NULL."}
 }),
 guide({ id:38, titre:"RIGHT JOIN", résumé:"Tout garder à droite",
   sit:{
@@ -13560,8 +13553,8 @@ const QCM={
    {q:"Inès n’a passé aucune commande. Apparaît-elle dans le résultat de la jointure ?",o:["Oui, avec une date vide","Non, aucune commande ne lui correspond","Oui, une seule fois"],b:1,e:"INNER JOIN ne garde que les lignes qui correspondent des deux côtés. Sans commande, Inès ne forme aucune paire : elle est écartée."}],
  19:[{q:"Pour relier clients, commandes et produits, il faut :",o:["Un JOIN avec deux conditions ON","Deux JOIN, chacun avec son ON","Relier clients.id = produits.id"],b:1,e:"Chaque lien (client↔commande, commande↔produit) a son propre JOIN."},
    {q:"Pourquoi la table <code>commandes</code> est au centre ?",o:["Elle contient le client_id et le produit_id","Elle a le plus de lignes","C’est la première table dans l’ordre alphabétique"],b:0,e:"C’est la table pont entre clients et produits."}],
- 20:[{q:"<code>LEFT JOIN</code> conserve :",o:["Seulement les lignes qui correspondent des deux côtés","Toutes les lignes de la table de gauche","Toutes les lignes des deux tables"],b:1,e:"Sans correspondance à droite, les colonnes de commandes valent NULL."},
-  {q:"Tous les clients + leurs commandes (dont 2 sans commande) :",o:["15 lignes avec INNER JOIN","17 lignes avec LEFT JOIN","10 lignes (un par client)"],b:1,e:"15 correspondances + 2 lignes sans commande avec NULL = 17 lignes."}],
+ 20:[{q:"<code>LEFT JOIN</code> conserve :",o:["Seulement les lignes qui correspondent des deux côtés","Toutes les lignes de la table de gauche","Toutes les lignes des deux tables"],b:1,e:"Sans correspondance à droite, les colonnes de la table de droite valent NULL."},
+  {q:"Tous les clients + leurs cartes de fidélité (dont 6 sans carte) :",o:["4 lignes avec INNER JOIN","10 lignes avec LEFT JOIN","6 lignes (les clients sans carte)"],b:1,e:"Les 4 clients qui ont une carte, plus les 6 clients sans carte (avec NULL) : 10 lignes."}],
  38:[{q:"<code>RIGHT JOIN</code> conserve :",o:["Seulement les lignes qui correspondent des deux côtés","Toutes les lignes de la table de droite","Toutes les lignes des deux tables"],b:1,e:"Sans correspondance à gauche, les colonnes de clients valent NULL."},
   {q:"Toutes les commandes + leurs clients (y compris la commande sans client) :",o:["15 lignes avec INNER JOIN","16 lignes avec RIGHT JOIN","10 lignes (un par client)"],b:1,e:"15 correspondances + 1 commande sans client (avec NULL) = 16 lignes."}],
  49:[{q:"Combien de conditions un <code>ON</code> peut-il contenir ?",o:["Une seule, l’égalité des clés","Autant que nécessaire, reliées par AND","Deux au maximum"],b:1,e:"La première relie les tables ; les suivantes ajoutent des critères."},
@@ -16189,7 +16182,7 @@ const SQ_ALIASES={
   35:'cle etrangere fk foreign key reference lien integrite referentielle',
   36:'relations 1-1 1-n n-n un a plusieurs plusieurs a plusieurs cardinalite liens tables table de liaison',
   18:'inner join jointure interne relier tables correspondance on',
-  20:'left join jointure gauche garder lignes sans correspondance null clients sans commande sans commande',
+  20:'left join jointure gauche garder lignes sans correspondance null clients sans commande sans commande fidelite points carte bilan',
   38:'right join jointure droite',
   39:'full outer join full join jointure complete tout garder',
   40:'cross join produit cartesien combinaisons',
@@ -24823,7 +24816,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1611';
+  const SW_CACHE='requete-2026-10-04-ludique-v1612';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
