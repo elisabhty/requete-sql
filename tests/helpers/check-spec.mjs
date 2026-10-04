@@ -35,6 +35,7 @@ for (const f of files) {
     const q = l.learningCheck;
     assert.ok(q && q.question && q.options.length === 3 && q.answer >= 0 && q.answer < 3 && q.explanation, 'learningCheck : question, 3 options, answer (0-2), explanation');
     for (const v of l.testeVariants || []) {
+      if (v.exec === false) continue; /* commande de SQL serveur : présentée sans exécution */
       const d = openDb(env);
       try { d.exec(v.sql); } catch (e) { assert.equal(v.tone, 'bad', `variante « ${v.label} » : ${e.message}`); }
       d.close();

@@ -55,8 +55,10 @@ for(const id of [62,63,71])assert.equal(ctx.checkExerciseConcept(lesson(id).solu
 assert.equal(ctx.checkExerciseConcept('SELECT 50; -- CAST(45 AS INTEGER)',lesson(54)).ok,false);
 assert.equal(ctx.checkExerciseConcept('BEGIN; UPDATE produits SET stock=stock+10 WHERE id=1; COMMIT;',lesson(63)).ok,false);
 assert.equal(ctx.checkExerciseConcept('BEGIN IMMEDIATE; UPDATE produits SET stock=29 WHERE id=8; COMMIT;',lesson(71)).ok,false);
-for(const sql of ['GRANT SELECT ON produits TO app_user; -- clients','GRANT SELECT ON clients TO autre;','GRANT SELECT ON clients TO app_user; GRANT UPDATE ON clients TO app_user;'])assert.equal(ctx.checkNoExecExo(sql,lesson(50)).ok,false,'GRANT exact');
-assert.equal(ctx.checkNoExecExo('GRANT SELECT ON "clients" TO "app_user";',lesson(50)).ok,true);
+for(const sql of ['REVOKE SELECT ON produits FROM stagiaire; -- commandes','REVOKE SELECT ON commandes FROM autre;','REVOKE SELECT ON commandes FROM stagiaire; REVOKE UPDATE ON commandes FROM stagiaire;','GRANT SELECT ON commandes TO stagiaire;','REVOKE ALL PRIVILEGES ON commandes FROM stagiaire;'])assert.equal(ctx.checkNoExecExo(sql,lesson(50)).ok,false,'REVOKE exact');
+assert.equal(ctx.checkNoExecExo('REVOKE SELECT ON "commandes" FROM "stagiaire";',lesson(50)).ok,true);
+assert.equal(ctx.checkNoExecExo(lesson(50).solution,lesson(50)).ok,true);
+assert.match(ctx.checkNoExecExo('GRANT SELECT ON commandes TO stagiaire;',lesson(50)).diag,/GRANT accorde un droit/);
 assert.equal(ctx.checkNoExecExo(lesson(61).solution.replace('stock >= 0','stock > 0'),lesson(61)).ok,false,'stock zéro autorisé');
 assert.equal(ctx.checkNoExecExo(lesson(56).solution.replace('REFERENCES clients(id)','REFERENCES produits(id)'),lesson(56)).ok,false,'cible de clé étrangère');
 for(const [id,wrong]of [[72,lesson(72).solution.replace(/REFERENCES \w+\(id\)/g,'')],[70,lesson(70).solution.replace('NEW.produit_id','1')],[26,lesson(26).solution+' UPDATE produits SET stock=0 WHERE id=1;']])assert.equal(ctx.exerciseResultsMatch(query(wrong,lesson(id).verif),query(lesson(id).solution,lesson(id).verif),lesson(id)),false,'solution incomplète '+id);
