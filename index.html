@@ -11651,444 +11651,538 @@ guide({ id:6, titre:"AND", résumé:"Combiner avec AND",
   testeVariants:[{k:"base",label:"Exemple",sql:"SELECT prenom, ville, age FROM clients WHERE ville = 'Paris' AND age > 35;"},{k:"rec_two",label:"Deux conditions",sql:"SELECT prenom, ville, age, ville = 'Paris' AS paris, age > 35 AS plus_de_35, (ville = 'Paris' AND age > 35) AS conserve FROM clients;",out:"1 signifie vrai ; 0 signifie faux. La ligne n’est conservée que si les deux conditions valent 1.",expectRows:10}],
   learningCheck:{question:"Sophie est à Paris et a 34 ans. Passe-t-elle ville = 'Paris' AND age > 35 ?",options:["Non : la seconde condition échoue","Oui : Paris suffit","Oui : 34 est proche de 35"],answer:0,explanation:"AND demande que toutes les conditions soient vraies. Ici, 34 n’est pas supérieur à 35."}
 }),
-{ id:29, titre:"OR", résumé:"Combiner avec OR",
-  situation:"Deux agences — Paris et Lyon — utilisent la même base clients.<br><br>Tu veux récupérer les clients qui habitent à Paris ou à Lyon.<br><br>Tu connais déjà <code>AND</code>, qui exige que toutes les conditions soient respectées. Mais regarde ce qui se passerait ici :",
-  situationSql:"SELECT prenom, ville\nFROM clients\nWHERE ville = 'Paris'\n  AND ville = 'Lyon';",
-  situationTail:"Cette condition demanderait à un même client d’habiter à Paris <b>et</b> à Lyon en même temps. Aucun client ne peut respecter les deux conditions.<br><br>Or, ici, une seule des deux villes suffit : le client peut habiter à Paris <b>ou</b> à Lyon.",
-  problematique:"La campagne est maintenant ouverte aux clients de Paris ou de Lyon. Comment garder un client dès qu’il correspond à l’une de ces deux possibilités ?",
-    studio:{problem:{eye:"",title:"Choisir entre plusieurs possibilités",
-      body:"Tu cherches les clients qui habitent à Paris ou à Lyon :<br><br><code>ville = 'Paris' OR ville = 'Lyon'</code><br><br>👉 Pour chaque client, SQL vérifie les deux possibilités. Il suffit qu’une seule soit vraie pour conserver la ligne.",
-      extra:`<div class="sit-sql">
-        <p><code>OR</code> est un opérateur logique qui permet de combiner plusieurs conditions. Contrairement à <code>AND</code>, toutes les conditions n’ont pas besoin d’être vraies.</p>
-        <p>La règle est simple : il suffit qu’au moins une condition soit vraie pour que la ligne soit conservée. La ligne est écartée uniquement si toutes les conditions sont fausses.</p>
-      </div>`},
-    vs:{bad:{tag:"✕ Avec AND",sql:"SELECT prenom, ville FROM clients\nWHERE ville = 'Paris'\n  AND ville = 'Lyon';",
-            code:"SELECT prenom, ville\nFROM clients\n<span class=\"vs-line bad\">WHERE ville = 'Paris'\n  AND ville = 'Lyon'</span>;",
-            out:"Aucun client n’habite à Paris et à Lyon en même temps : 0 ligne. AND exige que les deux conditions soient vraies pour la même ligne."},
-        good:{tag:"✓ Avec OR",sql:"SELECT prenom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",
-            code:"SELECT prenom, ville\nFROM clients\n<span class=\"vs-line good\">WHERE ville = 'Paris'\n   OR ville = 'Lyon'</span>;",
-            out:"6 lignes : Sophie, Lucas, Nathan (×2), Hugo et Léa"}},
-    why:{eye:"",title:"Comment OR élargit le résultat",
-      body:"Avec <code>OR</code>, une ligne est gardée si au moins une des conditions est vraie."},
-    viz:"or",
-    reflex:{a:{k:"OR",t:"au moins une condition doit être vraie"},
-      b:{k:"Effet",t:"le client est gardé si une condition est vraie"},
-      note:"Avec <code>ville = 'Paris' OR ville = 'Lyon'</code>, SQL garde le client s'il habite à Paris ou à Lyon. Une seule des deux conditions suffit."}},
-  anatomie:[{tok:"SELECT prenom, ville",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE ville = 'Paris'",txt:"première condition"},{tok:"OR",txt:"exige qu’au moins une des conditions soit vraie"},{tok:"ville = 'Lyon'",plain:1,txt:"deuxième condition"}],
-  anatomieVariants:[
-    {k:'avant',label:'AND',tone:'bad',lines:[
-      {tok:"SELECT prenom, ville",txt:"Les colonnes affichées dans le résultat."},
-      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
-      {tok:"WHERE ville = 'Paris'",txt:"première condition"},
-      {tok:"AND",txt:"exige que les deux conditions soient vraies pour la même ligne"},
-      {tok:"ville = 'Lyon'",plain:1,txt:"deuxième condition : impossible à respecter en même temps que la première"}
+guide({ id:29, titre:"OR", résumé:"Combiner avec OR",
+  sit:{
+    blocks:[
+      "La boutique a <b>deux agences</b> : l’une à Paris, l’autre à Lyon. Pour préparer un événement commun, l’équipe marketing veut inviter les clients qui habitent <b>dans l’une ou l’autre de ces deux villes</b>.",
+      "La table <code>clients</code> contient au total <b>10 clients</b>, répartis dans plusieurs villes. Pour envoyer les invitations, l’équipe souhaite récupérer uniquement :",
+      {need:[["👤","Le prénom du client","table clients"],["👪","Son nom de famille","table clients"],["📍","Sa ville","table clients"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>AND</code>, SQL exige que <b>toutes</b> les conditions soient vraies : un client devrait donc habiter à Paris <b>et</b> à Lyon en même temps.","Or, ici, <b>une seule</b> des deux conditions suffit : le client peut habiter à Paris <b>ou</b> à Lyon."],
+      scene:{h:"🏢 Clients invités",cols:"1fr 1.3fr",
+        lanes:[{c:[["h1","prenom","t"],["h2","ville","t"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","Paris"]]},
+          {k:"R2",c:[["b1","Lucas"],["b2","Lyon"]]},
+          {k:"R3",c:[["c1","Emma"],["c2","Marseille"]]},
+          {k:"R4",c:[["d1","Chloé"],["d2","Bordeaux"]]},
+          {k:"R5",c:[["e1","Hugo"],["e2","Lyon"]]}],
+        caps:["<b>Notre liste</b> · Elle contient les clients de toutes les villes.","<b>Première possibilité</b> · Le client habite à <b>Paris</b>.","<b>Deuxième possibilité</b> · Ou il habite à <b>Lyon</b>.","<b>Résultat</b> · Il suffit qu’<b>une</b> des deux possibilités soit vraie : les autres lignes sont écartées."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5"],on:["R1"],d:2300},{cap:2,on:["R2","R5"],d:2300},{cap:3,dim:["R3","R4"],fold:["R3","R4"],d:2600}]},
+      then:["Il faut donc indiquer à SQL de garder un client dès que <b>l’une</b> des deux conditions est vraie.","C’est exactement le rôle de <code>OR</code>."]
+    },
+    mission:"Aide l’équipe marketing à retrouver le <b>prénom</b>, le <b>nom de famille</b> et la <b>ville</b> des clients qui habitent à <b>Paris</b> <b>ou</b> à <b>Lyon</b>, afin de préparer la liste des invités."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir si l’une des deux conditions est vraie ?",
+    blocks:[
+      "Pour chaque client, SQL vérifie les deux possibilités :",
+      {ask:"Habite-t-il à Paris ou à Lyon ?"},
+      "En SQL, on les relie avec <code>OR</code> :",
+      {syntax:"⟦ville = 'Paris' OR ville = 'Lyon'⟧"},
+      {table:{label:"clients",cols:"minmax(0,.9fr) minmax(0,1fr) minmax(0,1.8fr)",head:["prenom","ville","Au moins une est-elle vraie ?"],rows:[["Sophie","Paris","✅ oui → gardée"],["Lucas","Lyon","✅ oui → gardée"],["Emma","Marseille","❌ non → écartée"],["Chloé","Bordeaux","❌ non → écartée"]],hit:[[0,2],[1,2]],more:"… et 6 autres clients",test:{cond:"ville = 'Paris' OR ville = 'Lyon'",val:1}}},
+      {looks:[["vraie","au moins une condition est vraie : la ligne apparaît"],["fausse","aucune n’est vraie : la ligne n’apparaît pas"]],label:"Vrai ou faux"}
+    ]
+  },
+  steps:[
+    {h:"Pourquoi pas AND ?",blocks:[
+      "Essayons d’abord avec <code>AND</code> : le client devrait habiter dans les deux villes à la fois.",
+      {say:"👇 Exécute cette requête :",run:"SELECT prenom, ville\nFROM clients\nWHERE ville = 'Paris'\n  AND ville = 'Lyon';"},
+      {arrow:"Aucune ligne : un client n’habite qu’une seule ville."}
     ]},
-    {k:'avec',label:'OR',tone:'good',lines:[
-      {tok:"SELECT prenom, ville",txt:"Affiche le prénom et la ville des clients."},
-      {tok:"FROM clients",txt:"Les données sont récupérées dans la table clients."},
-      {tok:"WHERE ville = 'Paris'",txt:"Première possibilité : le client habite à Paris."},
-      {tok:"OR",txt:"Une ligne est conservée si au moins une des deux conditions est vraie. 6 lignes correspondent : 4 clients de Paris et 2 clients de Lyon."},
-      {tok:"ville = 'Lyon'",plain:1,txt:"Deuxième possibilité : le client habite à Lyon."}
+    {h:"Relier deux possibilités avec OR",blocks:[
+      "Pour garder une ligne dès que <b>l’une</b> des conditions est vraie, relie-les avec <code>OR</code> :",
+      {syntax:"SELECT prenom, ville\nFROM clients\nWHERE ville = 'Marseille'\n   ⟦OR ville = 'Bordeaux'⟧;"},
+      {looks:[["OR","relie deux conditions : une seule suffit"],["ville = 'Bordeaux'","est la deuxième possibilité"]]},
+      {say:"👇 Exécute cette requête pour voir les clients de Marseille ou de Bordeaux :",run:"SELECT prenom, ville\nFROM clients\nWHERE ville = 'Marseille'\n   OR ville = 'Bordeaux';"},
+      {arrow:"Emma habite à Marseille, Chloé à Bordeaux : chacune respecte une des deux conditions."}
+    ]},
+    {h:"Une ligne vraie deux fois",blocks:[
+      "Si un client respecte <b>les deux</b> conditions, sa ligne n’est pas répétée : <code>OR</code> décide seulement de la <b>garder</b>.",
+      {say:"👇 Exécute cette requête : Sophie habite à Paris <b>et</b> a plus de 30 ans.",run:"SELECT prenom, ville, age\nFROM clients\nWHERE ville = 'Paris'\n   OR age > 30;"},
+      {arrow:"Sophie remplit les deux conditions, mais elle n’apparaît qu’une seule fois."}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis relier les deux villes avec <code>OR</code>.",
+      {say:"👇 Exécute la requête pour découvrir les clients à inviter :",run:"SELECT prenom, nom, ville\nFROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';"},
+      {done:{
+        label:"De tous les clients aux invités des deux agences",
+        funnel:[
+          {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
+          {step:"WHERE ville = 'Paris' OR ville = 'Lyon'",s:"garde les clients de Paris et ceux de Lyon"},
+          {n:6,t:"⭐ clients à inviter",s:"Sophie Martin, Lucas Bernard, Nathan Petit, Hugo Laurent, Léa Simon et Nathan Dupont",dots:"1101011001",out:true}
+        ],
+        sms:{ico:"🎟️",h:"Invitations à l’événement",aria:"Les six clients de Paris et de Lyon reçoivent leur invitation",msg:"Bonjour ! 🎉 Les agences de Paris et de Lyon vous invitent à leur événement commun.",people:[["S","Sophie Martin","Paris"],["L","Lucas Bernard","Lyon"],["N","Nathan Petit","Paris"],["H","Hugo Laurent","Lyon"],["L","Léa Simon","Paris"],["N","Nathan Dupont","Paris"]],done:"✓ 6 invitations envoyées"},
+        fill:["WHERE","'Paris'","OR","ville"],
+        ui:{t:"6 clients à inviter",s:"Ils habitent à Paris ou à Lyon : la liste des invités est prête.",n:["SELECT","FROM","WHERE","OR"]},
+        rows:6
+      }}
     ]}
   ],
-  testeVariants:[
-    {k:'avant',label:'AND',sql:"SELECT prenom, ville FROM clients\nWHERE ville = 'Paris'\n  AND ville = 'Lyon';",out:"Aucun client n’habite à Paris et à Lyon en même temps : 0 ligne. AND exige que les deux conditions soient vraies pour la même ligne.",tone:'bad'},
-    {k:'avec',label:'OR',sql:"SELECT prenom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",out:"6 lignes : Sophie, Lucas, Nathan (×2), Hugo et Léa",tone:'good'}
+  reflex:[
+    {recap:[
+      ["🔀","<code>OR</code> relie des conditions : une ligne est gardée si <b>au moins une</b> est vraie.","Elle n’apparaît qu’une seule fois, même si plusieurs conditions sont vraies."],
+      ["📍","Il se place entre deux conditions du <code>WHERE</code> :",null,"WHERE ville = 'Paris' OR ville = 'Lyon'"],
+      ["⚖️","Avec <code>AND</code>, <b>toutes</b> les conditions doivent être vraies ; avec <code>OR</code>, <b>une seule</b> suffit."]
+    ],label:"Les trois idées à retenir"}
   ],
-  exemple:"SELECT prenom, ville FROM clients WHERE ville = 'Paris' OR ville = 'Lyon';",
-  attendu:"<b>6 lignes</b> : Sophie, Lucas, les deux Nathan, Hugo et Léa. Leur ville est Paris ou Lyon.",
-  retenir:"<code>OR</code> garde une ligne si au moins une condition est vraie.<br><br>Avec <code>ville = 'Paris' OR ville = 'Lyon'</code>, 6 clients sont gardés.",
-  pieges:[
-    {t:"Chaque côté de OR doit être une condition complète",p:"<code>OR</code> relie deux conditions. Il ne suffit donc pas d’écrire une deuxième valeur après <code>OR</code>.<br><br><b>❌ Incorrect</b>",
-      sql:"SELECT prenom, ville\nFROM clients\nWHERE ville = 'Paris'\n   OR 'Lyon';",
-      mid:"Ici, la première partie est une condition : <code>ville = 'Paris'</code> → la condition est complète.<br><br>Mais <code>'Lyon'</code> est seulement une valeur.<br><br>Aucune colonne n’est indiquée : on ne sait pas quelle colonne doit être égale à <code>'Lyon'</code>.<br><br>Il faut écrire la deuxième condition en entier :<br><br><b>✅ Correct</b>",
-      fixSql:"SELECT prenom, ville\nFROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",
-      tail:"<b>À retenir</b> — avec <code>OR</code>, pense : <code>condition 1 OR condition 2</code>, et non <code>condition OR valeur</code>."},
-    {t:"Croire qu’OR ne combine que deux conditions",p:"Tu peux enchaîner <b>3 conditions ou plus</b> avec <code>OR</code> :",
-      sql:"SELECT prenom, ville\nFROM clients\nWHERE ville = 'Paris'\n  OR ville = 'Lyon'\n  OR ville = 'Marseille';"}
-  ],
-  consigne:"Affiche toutes les colonnes des clients qui habitent à Paris ou à Lyon.",
-  solution:"SELECT * FROM clients WHERE ville = 'Paris' OR ville = 'Lyon';",
-  indice:"Écris les deux conditions de part et d’autre de <code>OR</code> : <code>ville = 'Paris' OR ville = 'Lyon'</code>.",
-  richLesson:true, earlyDemo:true ,
-testeVariants:[
-  {
-    "k": "base",
-    "label": "Exemple",
-    "sql": "SELECT * FROM clients WHERE ville = 'Paris' OR ville = 'Lyon';"
+  anatomie:[{tok:"SELECT prenom, ville",txt:"Les colonnes affichées."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"ville = 'Paris'",plain:1,txt:"Première possibilité : le client habite à Paris."},{tok:"OR",txt:"Relie les possibilités : une seule suffit pour garder la ligne."},{tok:"ville = 'Lyon'",plain:1,txt:"Deuxième possibilité : le client habite à Lyon."}],
+  exemple:"SELECT prenom, ville FROM clients WHERE ville = 'Marseille' OR ville = 'Bordeaux';",
+  attendu:"<b>2 lignes</b> : Emma (Marseille) et Chloé (Bordeaux). Chacune respecte l’une des deux conditions.",
+  retenir:"<code>OR</code> garde une ligne si au moins une condition est vraie.<br>Elle n’apparaît qu’une seule fois, même si plusieurs conditions sont vraies.<br><br>Il se place entre deux conditions du <code>WHERE</code> : <code>WHERE ville = 'Paris' OR ville = 'Lyon'</code>.<br><br>Avec <code>AND</code>, toutes les conditions doivent être vraies ; avec <code>OR</code>, une seule suffit.",
+  consigne:"Affiche le nom et la catégorie des produits de la catégorie « Boisson » ou « Accessoire ».",
+  solution:"SELECT nom, categorie FROM produits WHERE categorie = 'Boisson' OR categorie = 'Accessoire';",
+  indice:"Écris deux conditions sur la colonne <code>categorie</code> et relie-les avec <code>OR</code> : une seule doit être vraie pour garder la ligne.",
+  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT prenom, ville FROM clients WHERE ville = 'Marseille' OR ville = 'Bordeaux';"},{k:"rec_both",label:"Deux fois vrai",sql:"SELECT id, prenom, ville, age FROM clients WHERE ville = 'Paris' OR age > 30;",out:"Sophie remplit les deux conditions, mais sa ligne n’apparaît qu’une fois.",expectRows:7}],
+  learningCheck:{question:"Un client satisfait les deux conditions d’un OR. Combien de fois apparaît sa ligne ?",options:["Aucune fois","Une fois","Deux fois"],answer:1,explanation:"OR décide de conserver la ligne ; il ne la duplique pas quand plusieurs conditions sont vraies."}
+}),
+guide({ id:22, titre:"NOT", résumé:"Exclure ce qui correspond",
+  sit:{
+    blocks:[
+      "L’équipe marketing prépare <b>une offre réservée à la province</b> : elle veut contacter tous les clients <b>sauf ceux qui habitent à Paris</b>.",
+      "La table <code>clients</code> contient au total <b>10 clients</b>, répartis dans plusieurs villes. Pour envoyer l’offre, l’équipe souhaite récupérer uniquement :",
+      {need:[["👤","Le prénom du client","table clients"],["👪","Son nom de famille","table clients"],["📍","Sa ville","table clients"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>WHERE</code>, SQL sait garder les clients qui <b>correspondent</b> à une condition, comme <code>ville = 'Paris'</code>.","Or, ici, c’est l’<b>inverse</b> : l’équipe veut les clients qui <b>ne correspondent pas</b> à cette condition."],
+      scene:{h:"🗺️ Clients de province",cols:"1fr 1.3fr",
+        lanes:[{c:[["h1","prenom","t"],["h2","ville","t"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","Paris"]]},
+          {k:"R2",c:[["b1","Lucas"],["b2","Lyon"]]},
+          {k:"R3",c:[["c1","Emma"],["c2","Marseille"]]},
+          {k:"R4",c:[["d1","Nathan"],["d2","Paris"]]},
+          {k:"R5",c:[["e1","Chloé"],["e2","Bordeaux"]]}],
+        caps:["<b>Notre liste</b> · Elle contient les clients de toutes les villes.","<b>Condition</b> · Ces clients habitent à <b>Paris</b>.","<b>Inversion</b> · Mais ce sont justement eux qu’il ne faut <b>pas</b> garder.","<b>Résultat</b> · Seuls les clients qui n’habitent pas à Paris doivent être conservés."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5"],on:["R1","R4"],d:2300},{cap:2,off:["R1","R4"],mark:{R1:"is-miss",R4:"is-miss"},d:2300},{cap:3,unmark:{R1:"is-miss",R4:"is-miss"},dim:["R1","R4"],fold:["R1","R4"],on:["R2","R3","R5"],d:2600}]},
+      then:["Il faut donc indiquer à SQL de garder <b>l’inverse</b> d’une condition : les clients dont la ville n’est <b>pas</b> Paris.","C’est exactement le rôle de <code>NOT</code>."]
+    },
+    mission:"Aide l’équipe marketing à retrouver le <b>prénom</b>, le <b>nom de famille</b> et la <b>ville</b> des clients qui <b>n’habitent pas à Paris</b>, afin de préparer la liste des personnes à contacter."
   },
-  {
-    "k": "rec_both",
-    "label": "Deux fois vrai",
-    "sql": "SELECT id, prenom, ville, age FROM clients WHERE ville = 'Paris' OR age > 30;",
-    "out": "Sophie satisfait les deux conditions, mais sa ligne n’apparaît qu’une fois."
-  }
-]
-,
-learningCheck:{
-  "question": "Un client satisfait les deux conditions d’un OR. Combien de fois apparaît sa ligne ?",
-  "options": [
-    "Aucune fois",
-    "Une fois",
-    "Deux fois"
-  ],
-  "answer": 1,
-  "explanation": "OR décide de conserver la ligne ; il ne la duplique pas quand plusieurs conditions sont vraies."
-}
-},
-{ id:22, titre:"NOT", résumé:"Exclure ce qui correspond",
-  situation:"Tu veux contacter tous les clients <b>sauf</b> ceux de Paris, pour une offre réservée à la province.<br><br>Tu sais déjà garder les clients qui habitent à Paris :",
-  situationSql:"SELECT prenom, ville\nFROM clients\nWHERE ville = 'Paris';",
-  situationTail:"Cette fois, tu veux l'inverse : tous les clients qui n'habitent <b>pas</b> à Paris.",
-  problematique:"Tu sais rechercher les clients qui correspondent à une condition. Mais comment demander à SQL de garder, au contraire, ceux qui ne correspondent pas à une condition ?",
-    studio:{problem:{eye:"Le principe",title:"NOT inverse une condition entière.",
-      body:"<code>NOT</code> permet d’exclure ce qui correspond à une condition.<br><br><code>NOT</code> signifie simplement « ne pas ».<br><br>Par exemple, tu veux afficher tous les clients qui n’habitent pas à Paris :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">SELECT prenom, ville\nFROM clients\nWHERE NOT ville = 'Paris';</pre></div><br><br>SQL vérifie <code>ville = 'Paris'</code>, puis <code>NOT</code> fait l’inverse :<br>Paris → exclu<br>Une autre ville → gardé<br><br><code>NOT</code> peut aussi s’appliquer à plusieurs conditions regroupées entre parenthèses :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">WHERE NOT (ville = 'Paris' AND age > 30);</pre></div><br><br>Ici, SQL exclut les clients qui sont à la fois à Paris et âgés de plus de 30 ans.",
-      extra:`<div class="sit-sql">
-        <p><code>NOT</code> est un opérateur logique unaire (il ne s’applique qu’à une seule condition). Il sert à inverser le résultat d’une condition :</p>
-        <p>Si la condition est <b>vraie</b> → <code>NOT</code> la rend <b>fausse</b>.<br>Si la condition est <b>fausse</b> → <code>NOT</code> la rend <b>vraie</b>.<br>Si la condition est <code>NULL</code> (inconnue) → <code>NOT</code> la rend <code>NULL</code> (l’inverse de l’inconnu reste inconnu).</p>
-      </div>`},
-    reflex:{a:{k:"NOT",t:"permet de dire « <b>ne correspond pas à</b> »"},
-      b:{k:"Parenthèses",t:"regroupent les conditions que <code>NOT</code> doit inverser"},
-      note:"<code>NOT ville = 'Paris'</code> signifie « le client n'habite pas à Paris ».<br><br>Pour appliquer <code>NOT</code> à plusieurs conditions, regroupe-les entre parenthèses."}},
-  anatomie:[{tok:"SELECT prenom, ville",txt:"Les colonnes affichées."},{tok:"FROM clients",txt:"La table lue."},{tok:"WHERE NOT ville = 'Paris'",txt:"On exclut les clients de Paris."}],
-  exemple:"SELECT prenom, ville FROM clients WHERE NOT ville = 'Paris';",
-  attendu:"<b>6 lignes</b> : tous les clients sauf ceux de Paris.",
-  retenir:"<code>NOT</code> <b>inverse</b> une condition : <code>WHERE NOT ville = 'Paris'</code>. Pour inverser un groupe, mets-le entre parenthèses : <code>NOT (a AND b)</code>.",
-  piege:{t:"Oublier les parenthèses avec NOT",p:"Si <code>NOT</code> doit s’appliquer à plusieurs conditions, regroupe-les entre parenthèses.<br><br><b>❌ Sans parenthèses</b>",
-    sql:"WHERE NOT ville = 'Paris' AND age > 30",
-    mid:"<code>NOT</code> s’applique seulement à <code>ville = 'Paris'</code>.<br><br><b>✅ Avec parenthèses</b>",
-    fixSql:"WHERE NOT (ville = 'Paris' AND age > 30)",
-    tail:"Cette fois, <code>NOT</code> s’applique à tout ce qui est entre parenthèses."},
-  consigne:"Affiche le prénom et la ville de tous les clients qui n'habitent pas à Paris.",
-  solution:"SELECT prenom, ville FROM clients WHERE NOT ville = 'Paris';",
-  indice:"Place <code>NOT</code> devant la condition à inverser : <code>WHERE NOT ville = 'Paris'</code>.",
-  richLesson:true ,
-testeVariants:[
-  {
-    "k": "base",
-    "label": "Exemple",
-    "sql": "SELECT prenom, ville FROM clients WHERE NOT ville = 'Paris';"
+  concept:{
+    title:"Comment SQL peut-il savoir qu’il faut inverser une condition ?",
+    blocks:[
+      "Pour chaque client, SQL vérifie la condition, puis <b>inverse</b> la réponse :",
+      {ask:"Sa ville est-elle autre chose que Paris ?"},
+      "En SQL, on place <code>NOT</code> devant la condition :",
+      {syntax:"⟦NOT ville = 'Paris'⟧"},
+      {table:{label:"clients",cols:"minmax(0,.9fr) minmax(0,1fr) minmax(0,.8fr) minmax(0,1.1fr)",head:["prenom","ville","Avant","Après NOT"],rows:[["Sophie","Paris","vraie","❌ écartée"],["Lucas","Lyon","fausse","✅ gardée"],["Emma","Marseille","fausse","✅ gardée"],["Nathan","Paris","vraie","❌ écartée"]],hit:[[1,3],[2,3]],more:"… et 6 autres clients",test:{cond:"NOT ville = 'Paris'",val:1}}},
+      {looks:[["gardée","NOT donne vrai : la ligne apparaît"],["écartée","NOT donne faux : la ligne n’apparaît pas"]],label:"Gardée ou écartée"}
+    ]
   },
-  {
-    "k": "rec_null",
-    "label": "NOT et NULL",
-    "sql": "SELECT prenom, email, NOT (email = 'x') AS test FROM clients;",
-    "out": "Le test reste NULL pour Hugo et Inès.",
-    "expectRows": 10
-  }
-]
-,
-learningCheck:{
-  "question": "NOT (email = 'x') garde-t-il un email NULL ?",
-  "options": [
-    "Oui",
-    "Seulement si x est vide",
-    "Non"
-  ],
-  "answer": 2,
-  "explanation": "La comparaison à NULL est inconnue ; NOT conserve cet état inconnu. WHERE ne garde que vrai."
-}
-},
-{ id:7, titre:"NULL", résumé:"La valeur absente",
-  situation:"L’équipe commerciale prépare une campagne de relance pour présenter une nouvelle offre aux clients.<br><br>Mais il y a un problème : certains clients n’ont aucune adresse email renseignée.<br><br>L’équipe veut donc retrouver ces clients afin de pouvoir les contacter par téléphone.<br><br>Jusqu’ici, tu as utilisé <code>=</code> pour rechercher une valeur précise :",
-  situationSql:"SELECT prenom, email\nFROM clients\nWHERE email = 'sophie@mail.fr';",
-  situationTail:"Cette requête fonctionne lorsqu’on connaît l’email recherché.<br><br>Mais ici, l’équipe cherche justement les clients pour lesquels aucun email n’a été renseigné.<br><br>Il n’y a donc aucune valeur à comparer avec <code>=</code>.",
-  problematique:"Certains clients n’ont pas renseigné leur email. Comment les retrouver pour que l’équipe commerciale puisse les contacter autrement ?",
-    studio:{problem:{eye:"Le principe",title:"NULL représente l’absence de valeur.",
-      body:"👉 <code>NULL</code> signifie « Inconnu », « Non renseigné », « Non applicable » ou « Absent ». C’est un marqueur d’absence d’information.<br><br>Par exemple, si un client n’a pas d’email renseigné, son email vaut <code>NULL</code>.<br><br><div class=\"pt-notlist\"><p class=\"pt-notlist-lab\">Attention, <code>NULL</code> n’est pas :</p><div class=\"pt-notlist-items\"><span class=\"pt-notlist-item\"><i aria-hidden=\"true\">✕</i><code>0</code><b>le nombre zéro</b></span><span class=\"pt-notlist-item\"><i aria-hidden=\"true\">✕</i><code>''</code><b>un texte vide</b></span><span class=\"pt-notlist-item\"><i aria-hidden=\"true\">✕</i><code>\"NULL\"</code><b>le mot écrit en texte</b></span></div></div><br><br>👉 C’est l’absence de valeur. C’est pour cette raison qu’on ne peut pas la tester avec <code>=</code> : pour demander à SQL « l’email est-il absent ? », on utilise <code>IS NULL</code>."},
-    vs:{bad:{tag:"✕ = NULL — Incorrect",sql:"SELECT prenom, email FROM clients\nWHERE email = NULL;",out:"0 ligne : NULL ne se teste pas avec =",
-            code:"SELECT prenom, email\nFROM clients\n<span class=\"vs-line bad\">WHERE email = NULL</span>;"},
-        good:{tag:"✓ IS NULL — Correct",sql:"SELECT prenom, email FROM clients\nWHERE email IS NULL;",out:"2 lignes : Hugo et Inès",
-            code:"SELECT prenom, email\nFROM clients\n<span class=\"vs-line good\">WHERE email IS NULL</span>;"}},
-    why:{title:"Pourquoi = NULL ne fonctionne pas ?",
-      body:"SQL utilise donc un test spécifique : <code>IS NULL</code> pour une valeur absente et <code>IS NOT NULL</code> pour une valeur renseignée."},
-    viz:"nulls",
-    reflex:{a:{k:"IS NULL",t:"garde les lignes où la valeur est <b>absente</b>"},
-      b:{k:"IS NOT NULL",t:"garde les lignes où la valeur est <b>renseignée</b>"},
-      note:"Pour tester <code>NULL</code>, utilise toujours <code>IS</code> ou <code>IS NOT</code>.<br><br><code>email IS NULL</code> → email absent<br><code>email IS NOT NULL</code> → email renseigné"}},
-  anatomie:[{tok:"SELECT prenom, email",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre sur les lignes."},{tok:"email IS NULL",txt:"Teste si la valeur de email est absente."}],
-  anatFollowTeste:true,
-  anatomieVariants:[
-    {k:'isnull',label:'IS NULL',tone:'neutral',lines:[
-      {tok:"SELECT prenom, email",txt:"Les colonnes affichées dans le résultat."},
-      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
-      {tok:"WHERE",txt:"Introduit le filtre sur les lignes."},
-      {tok:"email IS NULL",txt:"Teste si la valeur de email est absente."}
+  steps:[
+    {h:"Inverser une condition",blocks:[
+      "Pour garder les lignes qui <b>ne respectent pas</b> une condition, place <code>NOT</code> juste devant :",
+      {syntax:"SELECT prenom, age\nFROM clients\nWHERE ⟦NOT⟧ age > 40;"},
+      {looks:[["NOT","inverse la condition qui suit"],["age > 40","est la condition d’origine"]]},
+      {say:"👇 Exécute cette requête pour voir les clients qui n’ont pas plus de 40 ans :",run:"SELECT prenom, age\nFROM clients\nWHERE NOT age > 40;"},
+      {arrow:"7 clients sont conservés : ceux dont l’âge est de 40 ans ou moins."},
+      {tip:{t:"Et avec !=",blocks:["Pour une simple égalité, <code>ville != 'Paris'</code> donne le même résultat. <code>NOT</code> devient précieux quand la condition est plus riche : <code>LIKE</code>, <code>IN</code>, <code>BETWEEN</code>, groupe de conditions…"]}}
     ]},
-    {k:'isnotnull',label:'IS NOT NULL',tone:'neutral',lines:[
-      {tok:"SELECT prenom, email",txt:"Les colonnes affichées dans le résultat."},
-      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
-      {tok:"WHERE",txt:"Introduit le filtre sur les lignes."},
-      {tok:"email IS NOT NULL",txt:"Teste si la valeur de email est renseignée."}
+    {h:"Inverser un groupe de conditions",blocks:[
+      "<code>NOT</code> ne s’applique qu’à la condition qui le <b>suit</b>. Pour inverser un groupe, mets-le entre <b>parenthèses</b> :",
+      {syntax:"WHERE NOT ⟦(ville = 'Paris' AND age > 35)⟧"},
+      {say:"👇 Exécute cette requête : seule Léa (Paris, 38 ans) est écartée.",run:"SELECT prenom, ville, age\nFROM clients\nWHERE NOT (ville = 'Paris' AND age > 35);"},
+      {arrow:"9 clients sont conservés : tous, sauf Léa."},
+      {warn:{t:"Sans parenthèses",blocks:[
+        "Si tu écris :",
+        {syntax:"WHERE NOT ville = 'Paris'\n  AND age > 35"},
+        "<code>NOT</code> ne porte que sur <code>ville = 'Paris'</code>. La condition <code>age &gt; 35</code> reste normale : le résultat n’est plus le même.",
+        {say:"👇 Teste par toi-même :",run:"SELECT prenom, ville, age\nFROM clients\nWHERE NOT ville = 'Paris'\n  AND age > 35;"}
+      ]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis inverser la condition sur la ville.",
+      {say:"👇 Exécute la requête pour découvrir les clients de province :",run:"SELECT prenom, nom, ville\nFROM clients\nWHERE NOT ville = 'Paris';"},
+      {done:{
+        label:"De tous les clients aux clients de province",
+        funnel:[
+          {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
+          {step:"WHERE NOT ville = 'Paris'",s:"écarte les clients de Paris"},
+          {n:6,t:"⭐ clients à contacter",s:"Lucas Bernard, Emma Dubois, Chloé Moreau, Hugo Laurent, Gabriel Michel et Inès Lefebvre",dots:"0110110110",out:true}
+        ],
+        sms:{ico:"🎁",h:"Offre réservée à la province",aria:"L’offre est envoyée aux six clients qui n’habitent pas à Paris",msg:"Bonjour ! 🎁 Une offre spéciale vous est réservée, en dehors de Paris.",people:[["L","Lucas Bernard","Lyon"],["E","Emma Dubois","Marseille"],["C","Chloé Moreau","Bordeaux"],["H","Hugo Laurent","Lyon"],["G","Gabriel Michel","Toulouse"],["I","Inès Lefebvre","Nantes"]],done:"✓ 6 offres envoyées"},
+        fill:["WHERE","NOT","ville","'Paris'"],
+        ui:{t:"6 clients hors de Paris",s:"Aucun n’habite à Paris : la liste de l’offre « province » est prête.",n:["SELECT","FROM","WHERE","NOT"]},
+        rows:6
+      }}
     ]}
   ],
-  testeVariants:[
-    {k:'isnull',label:'IS NULL',sql:"SELECT prenom, email FROM clients\nWHERE email IS NULL;",out:"2 lignes : Hugo et Inès",tone:'neutral'},
-    {k:'isnotnull',label:'IS NOT NULL',sql:"SELECT prenom, email FROM clients\nWHERE email IS NOT NULL;",out:"8 lignes : tous les clients sauf Hugo et Inès",tone:'neutral'}
+  reflex:[
+    {recap:[
+      ["↩️","<code>NOT</code> <b>inverse</b> une condition : une ligne est gardée si la condition est fausse.",null,"WHERE NOT ville = 'Paris'"],
+      ["🧩","Pour inverser un groupe de conditions, mets-le entre <b>parenthèses</b> :",null,"NOT (a AND b)"],
+      ["⚖️","Pour une simple égalité, <code>!=</code> fait la même chose : <code>NOT</code> sert surtout aux conditions plus riches."]
+    ],label:"Les trois idées à retenir"}
   ],
+  anatomie:[{tok:"SELECT prenom, ville",txt:"Les colonnes affichées."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"NOT",txt:"Inverse la condition qui suit."},{tok:"ville = 'Paris'",plain:1,txt:"La condition d’origine : le client habite à Paris."}],
+  exemple:"SELECT prenom, age FROM clients WHERE NOT age > 40;",
+  attendu:"<b>7 lignes</b> : tous les clients qui n’ont pas plus de 40 ans.",
+  retenir:"<code>NOT</code> inverse une condition : <code>WHERE NOT ville = 'Paris'</code> garde les clients qui n’habitent pas à Paris.<br><br>Pour inverser un groupe, mets-le entre parenthèses : <code>NOT (a AND b)</code>.<br><br>Pour une simple égalité, <code>!=</code> donne le même résultat.",
+  consigne:"Affiche le nom et la catégorie des produits qui ne sont pas de la catégorie « Bien-être ».",
+  solution:"SELECT nom, categorie FROM produits WHERE NOT categorie = 'Bien-être';",
+  indice:"Place <code>NOT</code> devant la condition qui compare la colonne <code>categorie</code> à <code>'Bien-être'</code>.",
+  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT prenom, age FROM clients WHERE NOT age > 40;"},{k:"rec_group",label:"Un groupe de conditions",sql:"SELECT prenom, ville, age FROM clients WHERE NOT (ville = 'Paris' AND age > 35);",out:"NOT inverse tout le groupe : seule Léa est écartée.",expectRows:9}],
+  learningCheck:{question:"Avec WHERE NOT (ville = 'Paris' AND age > 35), Léa (Paris, 38 ans) est-elle gardée ?",options:["Oui : elle habite à Paris","Non : la condition entre parenthèses est vraie pour elle, NOT l’inverse","Oui : 38 est supérieur à 35"],answer:1,explanation:"La condition entre parenthèses est vraie pour Léa ; NOT l’inverse en faux, donc sa ligne est écartée."}
+}),
+guide({ id:7, titre:"NULL", résumé:"La valeur absente",
+  sit:{
+    blocks:[
+      "L’équipe commerciale prépare <b>une campagne de relance par email</b>. Mais certains clients n’ont <b>aucune adresse email</b> renseignée : l’équipe veut les retrouver pour les contacter autrement, <b>par téléphone</b>.",
+      "La table <code>clients</code> contient au total <b>10 clients</b>. Pour les appeler, l’équipe souhaite récupérer uniquement :",
+      {need:[["👤","Le prénom du client","table clients"],["👪","Son nom de famille","table clients"],["📞","Son téléphone","table clients"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>WHERE</code>, SQL sait comparer une colonne à une <b>valeur</b> connue : <code>email = 'sophie@mail.fr'</code>.","Or, ici, l’équipe cherche les clients pour lesquels <b>aucun email n’est enregistré</b> : il n’y a <b>aucune valeur</b> à comparer."],
+      scene:{h:"✉️ Emails des clients",cols:"1fr 1.7fr",
+        lanes:[{c:[["h1","prenom","t"],["h2","email","t"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","sophie@mail.fr"]]},
+          {k:"R2",c:[["b1","Lucas"],["b2","lucas@mail.fr"]]},
+          {k:"R3",c:[["c1","Hugo"],["c2","vide","n"]]},
+          {k:"R4",c:[["d1","Chloé"],["d2","chloe@mail.fr"]]},
+          {k:"R5",c:[["e1","Inès"],["e2","vide","n"]]}],
+        caps:["<b>Notre liste</b> · Certains clients n’ont aucun email enregistré.","<b>Besoin</b> · L’équipe cherche les clients dont l’email est <b>absent</b>.","<b>Résultat</b> · Seuls ces clients doivent être conservés : on pourra les appeler."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R4"],dim:["R1","R2","R4"],d:2300},{cap:2,fold:["R1","R2","R4"],d:2600}]},
+      then:["Il faut donc indiquer à SQL de repérer les lignes où <b>la valeur est absente</b>.","C’est exactement le rôle de <code>IS NULL</code>."]
+    },
+    mission:"Aide l’équipe commerciale à retrouver le <b>prénom</b>, le <b>nom de famille</b> et le <b>téléphone</b> des clients dont l’<b>email est absent</b>, afin de pouvoir les contacter par téléphone."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir qu’une valeur est absente ?",
+    blocks:[
+      "Quand une information n’a pas été renseignée, SQL la stocke comme <code>NULL</code> : ni un texte vide, ni zéro, simplement <b>l’absence de valeur</b>.",
+      "Pour chaque client, SQL doit se poser une question :",
+      {ask:"Son email est-il absent ?"},
+      "En SQL, ce test s’écrit :",
+      {syntax:"⟦email IS NULL⟧"},
+      {table:{label:"clients",cols:"minmax(0,.9fr) minmax(0,1.5fr) minmax(0,1.3fr)",head:["prenom","email","L’email est-il absent ?"],rows:[["Sophie","sophie@mail.fr","❌ non → écartée"],["Hugo","NULL","✅ oui → gardée"],["Lucas","lucas@mail.fr","❌ non → écartée"],["Inès","NULL","✅ oui → gardée"]],hit:[[1,2],[3,2]],more:"… et 6 autres clients",test:{cond:"email IS NULL",val:1}}},
+      {looks:[["oui","l’email est absent : la ligne apparaît"],["non","un email existe : la ligne n’apparaît pas"]],label:"Absent ou présent"}
+    ]
+  },
+  steps:[
+    {h:"Chercher une valeur absente",blocks:[
+      "Pour repérer une valeur absente, on ne compare pas : on utilise <code>IS NULL</code> :",
+      {syntax:"SELECT prenom, email\nFROM clients\n⟦WHERE email IS NULL⟧;"},
+      {looks:[["WHERE","garde seulement les lignes qui respectent la condition"],["email IS NULL","est vrai quand aucun email n’est enregistré"]]},
+      {say:"👇 Exécute cette requête pour voir les clients sans email :",run:"SELECT prenom, email\nFROM clients\nWHERE email IS NULL;"},
+      {arrow:"2 clients n’ont pas d’email : leur case contient <code>NULL</code>."},
+      {warn:{t:"Avec = NULL",blocks:[
+        "Si tu écris :",
+        {syntax:"WHERE email = NULL"},
+        "<code>NULL</code> n’est égal à rien, pas même à lui-même : la comparaison n’est <b>jamais vraie</b>, et aucune ligne n’est conservée.",
+        {say:"👇 Teste par toi-même :",run:"SELECT prenom, email\nFROM clients\nWHERE email = NULL;"}
+      ]}}
+    ]},
+    {h:"Garder les valeurs présentes",blocks:[
+      "Pour garder, au contraire, les lignes dont la valeur <b>existe</b>, utilise <code>IS NOT NULL</code> :",
+      {syntax:"WHERE email ⟦IS NOT NULL⟧"},
+      {say:"👇 Exécute cette requête pour voir les clients qui ont un email :",run:"SELECT prenom, email\nFROM clients\nWHERE email IS NOT NULL;"},
+      {arrow:"8 clients ont un email : avec les 2 autres, on retrouve les 10 clients."}
+    ]},
+    {h:"NULL n’est pas un texte vide",blocks:[
+      "Un <b>texte vide</b> <code>''</code> est une valeur, alors que <code>NULL</code> est l’<b>absence</b> de valeur. Les deux ne se confondent pas :",
+      {syntax:"WHERE email = ⟦''⟧   -- un texte vide\nWHERE email ⟦IS NULL⟧   -- aucune valeur"},
+      {say:"👇 Exécute cette requête pour chercher les emails vides :",run:"SELECT prenom, email\nFROM clients\nWHERE email = '';"},
+      {arrow:"Aucune ligne : aucun email n’est un texte vide, ils sont tous soit renseignés, soit absents."}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis repérer les emails absents.",
+      {say:"👇 Exécute la requête pour découvrir les clients à appeler :",run:"SELECT prenom, nom, telephone\nFROM clients\nWHERE email IS NULL;"},
+      {done:{
+        label:"De tous les clients aux clients sans email",
+        funnel:[
+          {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
+          {step:"WHERE email IS NULL",s:"ne garde que les clients dont l’email est absent"},
+          {n:2,t:"⭐ clients à appeler",s:"Hugo Laurent et Inès Lefebvre",dots:"0000010010",out:true}
+        ],
+        sms:{ico:"📞",h:"Relance par téléphone",aria:"L’équipe appelle les deux clients sans email",msg:"Bonjour ! Ici l’équipe NutriBoost. Nous n’avons pas votre email : pouvez-vous nous le communiquer ?",people:[["H","Hugo Laurent","06 39 98 68 03"],["I","Inès Lefebvre","06 39 98 97 50"]],st:["À appeler","Appel","✓ Appelé"],plane:"phone",done:"✓ 2 clients appelés"},
+        fill:["WHERE","email","IS","NULL"],
+        ui:{t:"2 clients à appeler",s:"Leur email est absent : l’équipe peut les contacter par téléphone.",n:["SELECT","FROM","WHERE","IS NULL"]},
+        rows:2
+      }}
+    ]}
+  ],
+  reflex:[
+    {recap:[
+      ["🕳️","<code>NULL</code> signifie <b>valeur absente</b> : ni zéro, ni texte vide."],
+      ["🔎","On le teste avec <code>IS NULL</code> ou <code>IS NOT NULL</code> :",null,"WHERE email IS NULL"],
+      ["🚫","Jamais avec <code>=</code> : une comparaison avec <code>NULL</code> n’est jamais vraie."]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"SELECT prenom, email",txt:"Les colonnes affichées."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"email",plain:1,txt:"La colonne testée."},{tok:"IS NULL",txt:"Vrai quand aucune valeur n’est enregistrée."}],
   exemple:"SELECT prenom, email FROM clients WHERE email IS NULL;",
   attendu:"<b>2 lignes</b> : Hugo et Inès, les deux clients dont l’email est absent.",
-  retenir:"<code>NULL</code> = valeur absente, ni 0 ni <code>''</code>. On teste avec <code>IS NULL</code> / <code>IS NOT NULL</code>, jamais avec <code>=</code>.",
-  piege:{t:"Confondre NULL et un texte vide",p:"<code>NULL</code> et <code>''</code> ne veulent pas dire la même chose :<br><code>NULL</code> → aucune valeur n’a été renseignée<br><code>''</code> → une valeur existe, mais le texte est vide<br><br>Par exemple :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">WHERE email = ''</pre></div><br><br>recherche les emails enregistrés comme texte vide. Alors que :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">WHERE email IS NULL</pre></div><br><br>recherche les clients pour lesquels aucun email n’est renseigné."},
-  consigne:"Affiche le prénom des clients qui ont un email renseigné.",
-  solution:"SELECT prenom FROM clients WHERE email IS NOT NULL;",
-  indice:"Pour garder les lignes où l’email n’est pas absent, utilise l’inverse de <code>IS NULL</code> : <code>IS NOT NULL</code>.",
-  richLesson:true, earlyDemo:true ,
-learningCheck:{
-  "question": "Parmi NULL, une chaîne vide et zéro, quelle valeur satisfait IS NULL ?",
-  "options": [
-    "Les trois",
-    "NULL et la chaîne vide",
-    "NULL seulement"
-  ],
-  "answer": 2,
-  "explanation": "Une absence de valeur, un texte vide et un nombre zéro sont trois choses différentes."
-}
-},
-{ id:8, titre:"LIKE", résumé:"Chercher un motif",
-  situation:"Un client a contacté le service client au sujet d’une commande, et ton équipe doit maintenant le rappeler.<br><br>👉 Problème : elle ne se souvient plus de son prénom complet. La seule chose dont elle se souvient, c’est que son prénom commence par L.<br><br>Avec ce que tu connais déjà, tu peux rechercher un prénom exact :",
-  situationSql:"SELECT prenom, telephone\nFROM clients\nWHERE prenom = 'Lucas';",
-  situationTail:"Mais cette requête suppose de connaître le prénom exact du client.<br><br>Pour cela, nous pouvons utiliser <code>LIKE</code>.",
-  problematique:"Comment retrouver les clients dont le prénom commence par L, sans connaître leur prénom complet ?",
-    studio:{problem:{title:"LIKE compare du texte à un modèle, pas à une valeur exacte.",
-      body:"<code>LIKE</code> est un opérateur de comparaison utilisé avec <code>WHERE</code>.<br><br>Contrairement au signe <code>=</code> qui cherche une correspondance exacte, <code>LIKE</code> permet de chercher des <b>motifs</b> (patterns) dans une chaîne de caractères. C’est le moteur de recherche basique de SQL.<br><br><div class=\"situation-sql exframe\" style=\"margin-bottom:16px\">\n    <div class=\"xf-head\"><span class=\"xf-name\">SQL</span><div class=\"xf-tools\"><button type=\"button\" class=\"sql-copy\" onclick=\"copySqlFrom(this)\" aria-label=\"Copier la requête\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"9\" y=\"9\" width=\"11\" height=\"11\" rx=\"2\"/><path d=\"M5 15V5a2 2 0 0 1 2-2h10\"/></svg></button></div></div>\n    <div class=\"ex-code\"><span class=\"t-kw\">SELECT</span> prenom\n<span class=\"t-kw\">FROM</span> clients\n<span class=\"t-kw\">WHERE</span> prenom <span class=\"t-kw\">LIKE</span> <span class=\"t-str\">'L%'</span>;</div>\n    <div class=\"xf-actions\">\n      <button type=\"button\" class=\"xf-run\" data-sql=\"SELECT prenom\nFROM clients\nWHERE prenom LIKE &#39;L%&#39;;\" onclick=\"runExemple(this)\"><svg class=\"xf-run-ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle class=\"ring\" cx=\"12\" cy=\"12\" r=\"9\"/><path class=\"tri\" d=\"M10.4 8.2v7.6l6.4-3.8z\"/></svg>Exécuter</button>\n    </div>\n    <div class=\"xf-result\" hidden aria-live=\"polite\"></div>\n  </div><br><br>Ici, la condition retient tous les prénoms qui commencent par L.<br>👉 Exécute la requête pour voir le résultat.",
-      extra:`<p class="pt-syntax-h" style="margin-top:20px">Le joker %</p>
-        <p>Le symbole <code>%</code> représente zéro, un ou plusieurs caractères. Sa position change donc la recherche :</p>
-        <div class="table-wrap"><table class="concept-table"><thead><tr><th>Modèle</th><th>Signification</th></tr></thead><tbody>
-          <tr><td><code>'L%'</code></td><td>commence par L</td></tr>
-          <tr><td><code>'%a'</code></td><td>se termine par a</td></tr>
-          <tr><td><code>'%ph%'</code></td><td>contient ph</td></tr>
-        </tbody></table></div>
-        <p class="pt-syntax-h">Le joker _</p>
-        <p><code>_</code> représente exactement un caractère.</p>
-        <div class="situation-sql exframe" style="margin-bottom:16px">
-    <div class="xf-head"><span class="xf-name">SQL</span><div class="xf-tools"><button type="button" class="sql-copy" onclick="copySqlFrom(this)" aria-label="Copier la requête"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div></div>
-    <div class="ex-code"><span class="t-kw">SELECT</span> prenom
-<span class="t-kw">FROM</span> clients
-<span class="t-kw">WHERE</span> prenom <span class="t-kw">LIKE</span> <span class="t-str">'L__'</span>;</div>
-    <div class="xf-actions">
-      <button type="button" class="xf-run" data-sql="SELECT prenom
-FROM clients
-WHERE prenom LIKE &#39;L__&#39;;" onclick="runExemple(this)"><svg class="xf-run-ico" viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="9"/><path class="tri" d="M10.4 8.2v7.6l6.4-3.8z"/></svg>Exécuter</button>
-    </div>
-    <div class="xf-result" hidden aria-live="polite"></div>
-  </div>
-        <p>Ici, chaque <code>_</code> remplace exactement un caractère.<br>Dans <code>'L__'</code> :</p>
-        <ul class="pt-lead-list">
-          <li><code>L</code> doit être la première lettre ;</li>
-          <li>le premier <code>_</code> accepte n’importe quel caractère ;</li>
-          <li>le second <code>_</code> accepte encore n’importe quel caractère.</li>
-        </ul>
-        <p>La condition retient donc les prénoms de 3 caractères qui commencent par L.<br>👉 Exécute la requête pour voir le résultat.</p>
-        <p>C’est la différence essentielle :<br><code>%</code> → 0, 1 ou plusieurs caractères<br><code>_</code> → exactement 1 caractère</p>
-        <p class="pt-syntax-h">Combiner les jokers</p>
-        <p>Les jokers peuvent être combinés.</p>
-        <div class="situation-sql exframe" style="margin-bottom:16px">
-    <div class="xf-head"><span class="xf-name">SQL</span><div class="xf-tools"><button type="button" class="sql-copy" onclick="copySqlFrom(this)" aria-label="Copier la requête"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div></div>
-    <div class="ex-code"><span class="t-kw">SELECT</span> prenom
-<span class="t-kw">FROM</span> clients
-<span class="t-kw">WHERE</span> prenom <span class="t-kw">LIKE</span> <span class="t-str">'_a%'</span>;</div>
-    <div class="xf-actions">
-      <button type="button" class="xf-run" data-sql="SELECT prenom
-FROM clients
-WHERE prenom LIKE &#39;_a%&#39;;" onclick="runExemple(this)"><svg class="xf-run-ico" viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="9"/><path class="tri" d="M10.4 8.2v7.6l6.4-3.8z"/></svg>Exécuter</button>
-    </div>
-    <div class="xf-result" hidden aria-live="polite"></div>
-  </div>
-        <div class="agg-reflex"><ul class="agg-list">
-          <li><code>_</code> (1er caractère) → <b>n’importe quel caractère</b></li>
-          <li><code>a</code> (2e caractère) → <b>doit être « a »</b></li>
-          <li><code>%</code> (après) → <b>n’importe quelle suite de caractères</b></li>
-        </ul></div>
-        <p>La condition retient donc les prénoms dont le deuxième caractère est a.<br>👉 Exécute la requête pour voir le résultat.</p>
-        <p class="pt-syntax-h" style="margin-top:20px">NOT LIKE</p>
-        <p>Tu peux aussi rechercher ce qui ne correspond <b>pas</b> à un modèle :</p>
-        <div class="situation-sql exframe" style="margin-bottom:16px">
-    <div class="xf-head"><span class="xf-name">SQL</span><div class="xf-tools"><button type="button" class="sql-copy" onclick="copySqlFrom(this)" aria-label="Copier la requête"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div></div>
-    <div class="ex-code"><span class="t-kw">SELECT</span> prenom
-<span class="t-kw">FROM</span> clients
-<span class="t-kw">WHERE</span> prenom <span class="t-kw">NOT</span> <span class="t-kw">LIKE</span> <span class="t-str">'L%'</span>;</div>
-    <div class="xf-actions">
-      <button type="button" class="xf-run" data-sql="SELECT prenom
-FROM clients
-WHERE prenom NOT LIKE &#39;L%&#39;;" onclick="runExemple(this)"><svg class="xf-run-ico" viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="9"/><path class="tri" d="M10.4 8.2v7.6l6.4-3.8z"/></svg>Exécuter</button>
-    </div>
-    <div class="xf-result" hidden aria-live="polite"></div>
-  </div>
-        <p>SQL conserve alors les clients dont le prénom ne commence pas par L.<br>👉 Exécute la requête pour voir le résultat.</p>`},
-    why:{title:"Voir le filtre en action",
-      body:"SQL teste chaque prénom un par un. Avec <code>LIKE 'L%'</code>, le joker <code>%</code> accepte tout ce qui suit le L."},
-    viz:"like",
-    reflex:{extra:`<div class="agg-reflex"><p class="agg-cta">👉 <code>%</code> = zéro, un ou plusieurs caractères.<br>👉 <code>_</code> = exactement un caractère.</p><ul class="agg-list">
-<li><code>LIKE 'L%'</code> → <b>commence par L</b></li>
-<li><code>LIKE '%a'</code> → <b>finit par a</b></li>
-<li><code>LIKE '%ph%'</code> → <b>contient ph</b></li>
-<li><code>LIKE 'L__'</code> → <b>commence par L et fait 3 caractères</b></li>
-<li><code>NOT LIKE</code> → <b>ne correspond pas au modèle</b></li>
-</ul></div>`}},
-  anatomie:[{tok:"SELECT prenom",txt:"La colonne affichée dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE prenom LIKE 'L%'",txt:"Le prénom doit commencer par L. Le % accepte n’importe quelle suite après."}],
-  anatFollowTeste:true,
-  anatomieVariants:[
-    {k:'pct',label:'L%',tone:'neutral',lines:[
-      {tok:"SELECT prenom",txt:"La colonne affichée dans le résultat."},
-      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
-      {tok:"WHERE prenom LIKE 'L%'",txt:"Le prénom doit commencer par L. Le % accepte n’importe quelle suite après."}
+  retenir:"<code>NULL</code> signifie valeur absente : ni zéro, ni texte vide.<br>On le teste avec <code>IS NULL</code> ou <code>IS NOT NULL</code>, jamais avec <code>=</code>.<br><br><code>WHERE email IS NULL</code> garde les clients sans email ; <code>WHERE email IS NOT NULL</code> garde ceux qui en ont un.",
+  consigne:"Affiche le numéro des commandes qui ne sont reliées à aucun client.",
+  solution:"SELECT numero_commande FROM commandes WHERE client_id IS NULL;",
+  indice:"Une commande sans client a une valeur absente dans la colonne <code>client_id</code> : utilise <code>IS NULL</code>.",
+  testeVariants:[{k:"base",label:"IS NULL",sql:"SELECT prenom, email FROM clients WHERE email IS NULL;",expectRows:2},{k:"rec_not",label:"IS NOT NULL",sql:"SELECT prenom, email FROM clients WHERE email IS NOT NULL;",expectRows:8}],
+  learningCheck:{question:"Parmi NULL, une chaîne vide et zéro, quelle valeur satisfait IS NULL ?",options:["Les trois","NULL et la chaîne vide","NULL seulement"],answer:2,explanation:"Une absence de valeur, un texte vide et un nombre zéro sont trois choses différentes."}
+}),
+guide({ id:8, titre:"LIKE", résumé:"Chercher un motif",
+  sit:{
+    blocks:[
+      "Un client a contacté le service client au sujet d’une commande, et l’équipe doit maintenant le rappeler. <b>Problème</b> : elle ne se souvient plus de son prénom complet, seulement qu’il <b>commence par L</b>.",
+      "La table <code>clients</code> contient au total <b>10 clients</b>. Pour retrouver le bon client, l’équipe souhaite récupérer uniquement :",
+      {need:[["👤","Le prénom du client","table clients"],["👪","Son nom de famille","table clients"],["📞","Son téléphone","table clients"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>WHERE</code> et <code>=</code>, SQL retrouve une valeur <b>exacte</b> : <code>prenom = 'Lucas'</code>.","Or, ici, l’équipe ne connaît qu’<b>un début de prénom</b> : elle cherche tous ceux qui <b>commencent par L</b>."],
+      scene:{h:"🔎 Prénoms des clients",cols:"1fr 1fr",
+        lanes:[{c:[["h1","prenom","t"],["h2","nom","t"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","Martin"]]},
+          {k:"R2",c:[["b1","Lucas"],["b2","Bernard"]]},
+          {k:"R3",c:[["c1","Emma"],["c2","Dubois"]]},
+          {k:"R4",c:[["d1","Léa"],["d2","Simon"]]},
+          {k:"R5",c:[["e1","Gabriel"],["e2","Michel"]]}],
+        caps:["<b>Notre liste</b> · Elle contient les prénoms de tous les clients.","<b>Besoin</b> · L’équipe cherche les prénoms qui <b>commencent par L</b>.","<b>Résultat</b> · Seuls ces clients doivent être conservés."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R3","R5"],dim:["R1","R3","R5"],d:2300},{cap:2,fold:["R1","R3","R5"],d:2600}]},
+      then:["Il faut donc indiquer à SQL de chercher un <b>motif</b> : un prénom qui commence par L, quelles que soient les lettres qui suivent.","C’est exactement le rôle de <code>LIKE</code>."]
+    },
+    mission:"Aide l’équipe du service client à retrouver le <b>prénom</b>, le <b>nom de famille</b> et le <b>téléphone</b> des clients dont le prénom <b>commence par L</b>, afin de rappeler le bon client."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir qu’un prénom correspond au motif ?",
+    blocks:[
+      "Pour chaque client, SQL compare son prénom à un <b>motif</b> :",
+      {ask:"Son prénom commence-t-il par L ?"},
+      "En SQL, on écrit le motif après <code>LIKE</code>. Le symbole <code>%</code> remplace <b>n’importe quelle suite de lettres</b> :",
+      {syntax:"⟦prenom LIKE 'L%'⟧"},
+      {table:{label:"clients",cols:"minmax(0,1fr) minmax(0,1.4fr)",head:["prenom","Le motif correspond-il ?"],rows:[["Sophie","❌ non → écartée"],["Lucas","✅ oui → gardée"],["Emma","❌ non → écartée"],["Léa","✅ oui → gardée"]],hit:[[1,1],[3,1]],more:"… et 6 autres clients",test:{cond:"prenom LIKE 'L%'",val:0}}},
+      {looks:[["oui","le prénom correspond : la ligne apparaît"],["non","le prénom ne correspond pas : la ligne n’apparaît pas"]],label:"Correspond ou non"}
+    ]
+  },
+  steps:[
+    {h:"Chercher un début avec %",blocks:[
+      "Le symbole <code>%</code> placé <b>après</b> les premières lettres cherche tout ce qui <b>commence</b> par elles :",
+      {syntax:"SELECT prenom, nom\nFROM clients\n⟦WHERE nom LIKE 'D%'⟧;"},
+      {looks:[["LIKE","compare la colonne à un motif"],["'D%'","un nom qui commence par D, suivi de n’importe quoi"]]},
+      {say:"👇 Exécute cette requête pour voir les noms de famille qui commencent par D :",run:"SELECT prenom, nom\nFROM clients\nWHERE nom LIKE 'D%';"},
+      {arrow:"Emma Dubois et Nathan Dupont ont un nom qui commence par D."}
     ]},
-    {k:'underscore',label:'L__',tone:'neutral',lines:[
-      {tok:"SELECT prenom",txt:"La colonne affichée dans le résultat."},
-      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
-      {tok:"WHERE prenom LIKE 'L__'",txt:"Le prénom doit commencer par L, suivi d’exactement deux caractères : un prénom de 3 caractères au total."}
+    {h:"Chercher à l’intérieur",blocks:[
+      "Avec un <code>%</code> de <b>chaque côté</b>, on cherche un morceau placé n’importe où dans le texte :",
+      {syntax:"WHERE prenom LIKE ⟦'%ie%'⟧"},
+      {say:"👇 Exécute cette requête pour voir les prénoms qui contiennent « ie » :",run:"SELECT prenom\nFROM clients\nWHERE prenom LIKE '%ie%';"},
+      {arrow:"Sophie et Gabriel contiennent « ie »."},
+      {tip:{t:"Majuscules ou minuscules ?",blocks:["Dans cette base, <code>LIKE</code> ne fait pas la différence : <code>'l%'</code> et <code>'L%'</code> trouvent les mêmes prénoms."]}}
     ]},
-    {k:'combo',label:'_a%',tone:'neutral',lines:[
-      {tok:"SELECT prenom",txt:"La colonne affichée dans le résultat."},
-      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
-      {tok:"WHERE prenom LIKE '_a%'",txt:"Le deuxième caractère doit être a ; le premier et la suite peuvent être n’importe quoi."}
+    {h:"Remplacer un seul caractère",blocks:[
+      "Le symbole <code>_</code> remplace <b>exactement un caractère</b>. <code>'_a%'</code> cherche donc un prénom dont la <b>deuxième</b> lettre est un a :",
+      {syntax:"WHERE prenom LIKE ⟦'_a%'⟧"},
+      {say:"👇 Exécute cette requête pour voir les prénoms dont la deuxième lettre est un a :",run:"SELECT prenom\nFROM clients\nWHERE prenom LIKE '_a%';"},
+      {arrow:"Les deux Nathan et Gabriel ont un a en deuxième lettre."}
     ]},
-    {k:'not',label:'NOT LIKE',tone:'neutral',lines:[
-      {tok:"SELECT prenom",txt:"La colonne affichée dans le résultat."},
-      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
-      {tok:"WHERE prenom NOT LIKE 'L%'",txt:"Garde les prénoms qui ne commencent pas par L."}
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis chercher les prénoms qui commencent par L.",
+      {say:"👇 Exécute la requête pour retrouver les clients à rappeler :",run:"SELECT prenom, nom, telephone\nFROM clients\nWHERE prenom LIKE 'L%';"},
+      {done:{
+        label:"De tous les clients aux prénoms qui commencent par L",
+        funnel:[
+          {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
+          {step:"WHERE prenom LIKE 'L%'",s:"ne garde que les prénoms qui commencent par L"},
+          {n:2,t:"⭐ clients à rappeler",s:"Lucas Bernard et Léa Simon",dots:"0100001000",out:true}
+        ],
+        sms:{ico:"📞",h:"Rappel du client",aria:"Le service client appelle les deux clients dont le prénom commence par L",msg:"Bonjour ! Ici le service client NutriBoost. Vous nous avez contactés à propos d’une commande : nous vous rappelons.",people:[["L","Lucas Bernard","06 39 98 21 47"],["L","Léa Simon","06 39 98 74 29"]],st:["À appeler","Appel","✓ Appelé"],plane:"phone",done:"✓ 2 clients appelés"},
+        fill:["WHERE","prenom","LIKE","'L%'"],
+        ui:{t:"2 clients à rappeler",s:"Leur prénom commence par L : l’équipe peut retrouver le bon client.",n:["SELECT","FROM","WHERE","LIKE","%"]},
+        rows:2
+      }}
     ]}
   ],
-  testeVariants:[
-    {k:'pct',label:'L%',sql:"SELECT prenom FROM clients\nWHERE prenom LIKE 'L%';",out:"2 lignes : Lucas et Léa",tone:'neutral'},
-    {k:'underscore',label:'L__',sql:"SELECT prenom FROM clients\nWHERE prenom LIKE 'L__';",out:"1 ligne : Léa",tone:'neutral'},
-    {k:'combo',label:'_a%',sql:"SELECT prenom FROM clients\nWHERE prenom LIKE '_a%';",out:"3 lignes : Nathan, Gabriel et Nathan",tone:'neutral'},
-    {k:'not',label:'NOT LIKE',sql:"SELECT prenom FROM clients\nWHERE prenom NOT LIKE 'L%';",out:"8 lignes : tous les clients sauf Lucas et Léa",tone:'neutral'}
+  reflex:[
+    {recap:[
+      ["🔎","<code>LIKE</code> cherche un <b>motif</b> plutôt qu’une valeur exacte :",null,"WHERE prenom LIKE 'L%'"],
+      ["🧵","<code>%</code> remplace <b>n’importe quelle suite</b> de caractères : <code>'L%'</code> commence par L, <code>'%ie%'</code> contient « ie »."],
+      ["🔹","<code>_</code> remplace <b>exactement un caractère</b> :",null,"LIKE '_a%'"]
+    ],label:"Les trois idées à retenir"}
   ],
-  exemple:"SELECT prenom FROM clients WHERE prenom LIKE 'L%';",
-  attendu:"<b>2 lignes</b> : Lucas et Léa.",
-  retenir:"<code>LIKE</code> cherche un motif. <code>%</code> remplace une suite de caractères : <code>'L%'</code> commence par L, <code>'%mot%'</code> contient mot. <code>_</code> remplace exactement un caractère.",
-  piege:{t:"Confondre = et LIKE",p:"Ne confonds pas :",
-    sql:"WHERE prenom = 'L'",
-    mid:"Avec <code>=</code>, la condition compare le prénom à la valeur exacte <code>L</code>. Le résultat ne contient donc ni <code>Lucas</code>, ni <code>Léa</code>.<br><br>Avec :",
-    fixSql:"WHERE prenom LIKE 'L%'",
-    tail:"Avec <code>LIKE</code> et <code>%</code>, la condition retient les prénoms qui commencent par <code>L</code>, quelle que soit la suite."},
-  consigne:"Affiche toutes les colonnes des clients dont le prénom commence par L.",
-  solution:"SELECT * FROM clients WHERE prenom LIKE 'L%';",
-  indice:"Pour signifier « commence par L », place L au début du motif et <code>%</code> après : <code>'L%'</code>.",
-  richLesson:true, earlyDemo:true ,
-learningCheck:{
-  "question": "Quelle différence entre L% et _a% ?",
-  "options": [
-    "_ signifie n’importe quel nombre de lettres",
-    "L% commence par L ; _a% a un a en deuxième position",
-    "Les deux commencent par L"
-  ],
-  "answer": 1,
-  "explanation": "% accepte zéro ou plusieurs caractères. _ correspond exactement à un caractère."
-}
-},
-{ id:9, titre:"IN", résumé:"Filtrer avec une liste",
-  situation:"Ton équipe marketing organise un événement privé à Paris et souhaite inviter les clients qui habitent à Paris ou à Lyon.<br><br>Dans la table <code>clients</code>, tu veux donc retrouver les clients de ces deux villes.<br><br>Avec ce que tu connais déjà, tu pourrais utiliser <code>OR</code> :",
-  situationSql:"SELECT prenom, ville\nFROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",
-  situationTail:"Ça fonctionne. Mais si tu dois ajouter plusieurs villes, tu vas devoir répéter <code>ville =</code> à chaque nouvelle condition.<br><br><code>IN</code> en SQL sert justement à éviter ces répétitions.",
-  problematique:"Existe-t-il une façon plus simple d’indiquer à SQL une liste de valeurs possibles ?",
-    studio:{problem:{title:"IN vérifie si une valeur appartient à une liste.",
-      body:"<code>IN</code> vérifie si une valeur se trouve dans une liste.<br><br>Tu connais déjà <code>OR</code>. Pour rechercher les clients de Paris ou de Lyon, tu peux écrire :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">WHERE ville = 'Paris'\n   OR ville = 'Lyon'</pre></div><br><br>Ça fonctionne, mais tu dois répéter la colonne <code>ville</code> pour chaque valeur.<br><br>Avec <code>IN</code>, tu regroupes directement les valeurs recherchées dans une liste :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">WHERE ville IN ('Paris', 'Lyon')</pre></div><br><br>SQL vérifie alors si la valeur de <code>ville</code> est Paris ou Lyon.<br><br>Les deux écritures donnent le même résultat, mais <code>IN</code> est plus court, plus lisible et plus facile à maintenir lorsque plusieurs valeurs sont possibles."},
-    vs:{bad:{tag:"AVEC OR",tone:"neutral",sql:"SELECT prenom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon';",out:"6 lignes : correct, mais la colonne ville est répétée",
-            code:"SELECT prenom, ville\nFROM clients\n<span class=\"vs-line\">WHERE ville = 'Paris'\n   OR ville = 'Lyon'</span>;"},
-        good:{tag:"✓ Avec IN",sql:"SELECT prenom, ville FROM clients\nWHERE ville IN ('Paris', 'Lyon');",out:"6 lignes : Sophie, Lucas, Nathan (×2), Hugo, Léa",
-            code:"SELECT prenom, ville\nFROM clients\n<span class=\"vs-line good\">WHERE ville IN ('Paris', 'Lyon')</span>;"}},
-    why:{title:"Pourquoi utiliser IN plutôt que plusieurs OR ?"},
-    viz:"inbetween",
-    reflex:{a:{k:"IN (...)",t:"garde les lignes dont la valeur est <b>dans la liste</b>"},
-      b:{k:"NOT IN (...)",t:"garde les lignes dont la valeur <b>n’est pas dans la liste</b>"},
-      note:"Plusieurs valeurs possibles pour une même colonne ? Pense à <code>IN</code>.<br><br><code>ville IN ('Paris', 'Lyon')</code>"}},
-  anatomie:[{tok:"SELECT prenom, ville",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE ville IN ('Paris', 'Lyon')",txt:"La ville doit figurer dans la liste, entre parenthèses."}],
-  anatFollowTeste:true,
-  anatomieVariants:[
-    {k:'in',label:'Avec IN',tone:'neutral',lines:[
-      {tok:"SELECT prenom, ville",txt:"Les colonnes affichées dans le résultat."},
-      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
-      {tok:"WHERE ville IN ('Paris', 'Lyon', 'Nantes')",txt:"La ville doit figurer dans la liste, entre parenthèses."}
+  anatomie:[{tok:"SELECT prenom, telephone",txt:"Les colonnes affichées."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"prenom",plain:1,txt:"La colonne comparée."},{tok:"LIKE",txt:"Compare la colonne à un motif."},{tok:"'L%'",plain:1,txt:"Le motif : commence par L, suivi de n’importe quelles lettres."}],
+  exemple:"SELECT prenom FROM clients WHERE prenom LIKE '%ie%';",
+  attendu:"<b>2 lignes</b> : Sophie et Gabriel, dont le prénom contient « ie ».",
+  retenir:"<code>LIKE</code> cherche un motif. <code>%</code> remplace une suite de caractères : <code>'L%'</code> commence par L, <code>'%mot%'</code> contient mot. <code>_</code> remplace exactement un caractère.",
+  consigne:"Affiche le nom des produits dont le nom contient « in ».",
+  solution:"SELECT nom FROM produits WHERE nom LIKE '%in%';",
+  indice:"Place un <code>%</code> de chaque côté de « in » pour chercher ce morceau n’importe où dans le nom : <code>'%in%'</code>.",
+  testeVariants:[{k:"base",label:"L%",sql:"SELECT prenom FROM clients WHERE prenom LIKE 'L%';"},{k:"rec_l3",label:"L__",sql:"SELECT prenom FROM clients WHERE prenom LIKE 'L__';"},{k:"rec_a",label:"_a%",sql:"SELECT prenom FROM clients WHERE prenom LIKE '_a%';"},{k:"rec_not",label:"NOT LIKE",sql:"SELECT prenom FROM clients WHERE prenom NOT LIKE 'L%';"}],
+  learningCheck:{question:"Quelle différence entre L% et _a% ?",options:["_ signifie n’importe quel nombre de lettres","L% commence par L ; _a% a un a en deuxième position","Les deux commencent par L"],answer:1,explanation:"% accepte zéro ou plusieurs caractères. _ correspond exactement à un caractère."}
+}),
+guide({ id:9, titre:"IN", résumé:"Filtrer avec une liste",
+  sit:{
+    blocks:[
+      "L’équipe commerciale organise <b>une tournée de démonstrations</b> dans quatre villes : <b>Lyon, Marseille, Bordeaux et Toulouse</b>. Elle veut inviter les clients qui habitent dans l’une de ces villes.",
+      "La table <code>clients</code> contient au total <b>10 clients</b>. Pour envoyer les invitations, l’équipe souhaite récupérer uniquement :",
+      {need:[["👤","Le prénom du client","table clients"],["👪","Son nom de famille","table clients"],["📍","Sa ville","table clients"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>OR</code>, SQL peut garder plusieurs possibilités, mais il faut <b>répéter la condition</b> pour chaque ville.","Avec quatre villes, la requête devient longue et difficile à relire : on risque d’en oublier une ou de se tromper en la recopiant."],
+      scene:{h:"🚐 Clients invités",cols:"1fr 1.3fr",
+        lanes:[{k:"V",l:"Villes de la tournée",cols:"1fr 1fr",c:[["v1","Lyon"],["v2","Marseille"],["v3","Bordeaux"],["v4","Toulouse"]]},
+          {k:"H",c:[["h1","prenom","t"],["h2","ville","t"]]},
+          {k:"R1",c:[["a1","Lucas"],["a2","Lyon"]]},
+          {k:"R2",c:[["b1","Sophie"],["b2","Paris"]]},
+          {k:"R3",c:[["c1","Emma"],["c2","Marseille"]]},
+          {k:"R4",c:[["d1","Léa"],["d2","Paris"]]},
+          {k:"R5",c:[["e1","Gabriel"],["e2","Toulouse"]]}],
+        caps:["<b>Notre liste de villes</b> · L’équipe veut inviter les clients de ces quatre villes.","<b>Condition</b> · Un client nous intéresse seulement si sa ville est <b>l’une de ces quatre</b>.","<b>Résultat</b> · Seuls les clients de ces villes doivent être conservés."],
+        steps:[{cap:0,on:["V"],d:1900},{cap:1,off:["V"],on:["R1","R2","R3","R4","R5"],d:2300},{cap:2,off:["R2","R4"],dim:["R2","R4"],fold:["R2","R4"],d:2600}]},
+      then:["Il faut donc donner à SQL <b>une liste de valeurs possibles</b> pour la ville, au lieu de répéter la condition.","C’est exactement le rôle de <code>IN</code>."]
+    },
+    mission:"Aide l’équipe commerciale à retrouver le <b>prénom</b>, le <b>nom de famille</b> et la <b>ville</b> des clients qui habitent à <b>Lyon, Marseille, Bordeaux ou Toulouse</b>, afin de préparer la liste des invités."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir si une ville est dans la liste ?",
+    blocks:[
+      "Pour chaque client, SQL cherche sa ville dans une liste :",
+      {ask:"Sa ville figure-t-elle dans la liste ?"},
+      "En SQL, on écrit la liste entre parenthèses, après <code>IN</code> :",
+      {syntax:"⟦ville IN ('Paris', 'Lyon')⟧"},
+      {table:{label:"clients",cols:"minmax(0,.9fr) minmax(0,1fr) minmax(0,1.8fr)",head:["prenom","ville","Est-elle dans la liste ?"],rows:[["Sophie","Paris","✅ oui → gardée"],["Lucas","Lyon","✅ oui → gardée"],["Emma","Marseille","❌ non → écartée"],["Chloé","Bordeaux","❌ non → écartée"]],hit:[[0,2],[1,2]],more:"… et 6 autres clients",test:{cond:"ville IN ('Paris', 'Lyon')",val:1}}},
+      {looks:[["oui","la ville est dans la liste : la ligne apparaît"],["non","la ville n’est pas dans la liste : la ligne n’apparaît pas"]],label:"Dans la liste ou non"}
+    ]
+  },
+  steps:[
+    {h:"Avec OR, la condition se répète",blocks:[
+      "Avec ce que tu connais déjà, tu peux écrire une condition par ville, reliées par <code>OR</code> :",
+      {say:"👇 Exécute cette requête pour voir les clients des quatre villes :",run:"SELECT prenom, ville\nFROM clients\nWHERE ville = 'Lyon'\n   OR ville = 'Marseille'\n   OR ville = 'Bordeaux'\n   OR ville = 'Toulouse';"},
+      {arrow:"Ça fonctionne, mais <code>ville =</code> est écrit quatre fois."}
     ]},
-    {k:'or',label:'Avec OR',tone:'neutral',lines:[
-      {tok:"SELECT prenom, ville",txt:"Les colonnes affichées dans le résultat."},
-      {tok:"FROM clients",txt:"La table clients est utilisée comme source."},
-      {tok:"WHERE ville = 'Paris' OR ville = 'Lyon' OR ville = 'Nantes'",txt:"Même résultat, mais la colonne ville est répétée trois fois."}
+    {h:"Donner une liste avec IN",blocks:[
+      "<code>IN</code> compare une colonne à une <b>liste de valeurs</b>, écrites entre parenthèses et séparées par des virgules :",
+      {syntax:"SELECT prenom, ville\nFROM clients\nWHERE ville ⟦IN ('Paris', 'Nantes')⟧;"},
+      {looks:[["IN","garde la ligne si la valeur est dans la liste"],["('Paris', 'Nantes')","est la liste des valeurs possibles"]]},
+      {say:"👇 Exécute cette requête pour voir les clients de Paris ou de Nantes :",run:"SELECT prenom, ville\nFROM clients\nWHERE ville IN ('Paris', 'Nantes');"},
+      {arrow:"5 clients sont conservés : 4 à Paris et 1 à Nantes."}
+    ]},
+    {h:"Combiner IN avec une autre condition",blocks:[
+      "<code>IN</code> compare <b>une seule colonne</b> à plusieurs valeurs. Pour une autre colonne, on ajoute une condition avec <code>AND</code> :",
+      {syntax:"WHERE ville IN ('Paris', 'Lyon')\n  ⟦AND age > 35⟧"},
+      {say:"👇 Exécute cette requête pour voir les clients de Paris ou de Lyon de plus de 35 ans :",run:"SELECT prenom, ville, age\nFROM clients\nWHERE ville IN ('Paris', 'Lyon')\n  AND age > 35;"},
+      {arrow:"2 clients respectent les deux conditions : Léa (Paris) et Hugo (Lyon)."}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis donner la liste des quatre villes avec <code>IN</code>.",
+      {say:"👇 Exécute la requête pour découvrir les clients à inviter :",run:"SELECT prenom, nom, ville\nFROM clients\nWHERE ville IN ('Lyon', 'Marseille',\n                'Bordeaux', 'Toulouse');"},
+      {done:{
+        label:"De tous les clients aux invités de la tournée",
+        funnel:[
+          {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
+          {step:"WHERE ville IN (…)",s:"ne garde que les clients des quatre villes"},
+          {n:5,t:"⭐ clients à inviter",s:"Lucas Bernard, Emma Dubois, Chloé Moreau, Hugo Laurent et Gabriel Michel",dots:"0110110100",out:true}
+        ],
+        sms:{ico:"🚐",h:"Invitations à la tournée",aria:"Les cinq clients des villes de la tournée reçoivent leur invitation",msg:"Bonjour ! 🚐 Notre tournée de démonstrations passe près de chez vous : venez essayer nos produits.",people:[["L","Lucas Bernard","Lyon"],["E","Emma Dubois","Marseille"],["C","Chloé Moreau","Bordeaux"],["H","Hugo Laurent","Lyon"],["G","Gabriel Michel","Toulouse"]],done:"✓ 5 invitations envoyées"},
+        fill:["WHERE","ville","IN","'Bordeaux'"],
+        ui:{t:"5 clients à inviter",s:"Ils habitent dans l’une des quatre villes : la liste des invités est prête.",n:["SELECT","FROM","WHERE","IN"]},
+        rows:5
+      }}
     ]}
   ],
-  testeVariants:[
-    {k:'in',label:'Avec IN',sql:"SELECT prenom, ville FROM clients\nWHERE ville IN ('Paris', 'Lyon', 'Nantes');",out:"7 lignes : Sophie, Lucas, Nathan (×2), Hugo, Léa, Inès",tone:'neutral'},
-    {k:'or',label:'Avec OR',sql:"SELECT prenom, ville FROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon'\n   OR ville = 'Nantes';",out:"7 lignes : mêmes clients qu’avec IN",tone:'neutral'}
+  reflex:[
+    {recap:[
+      ["📋","<code>IN</code> compare une colonne à une <b>liste de valeurs</b> :",null,"ville IN ('Lyon', 'Marseille')"],
+      ["✂️","Il remplace plusieurs <code>OR</code> sur la même colonne : c’est plus court et plus lisible."],
+      ["☝️","Un seul nom de colonne, plusieurs valeurs : pour une autre colonne, ajoute une condition avec <code>AND</code> ou <code>OR</code>."]
+    ],label:"Les trois idées à retenir"}
   ],
-  exemple:"SELECT prenom, ville FROM clients WHERE ville IN ('Paris', 'Lyon');",
-  attendu:"<b>6 lignes</b> : Sophie, Lucas, les deux Nathan, Hugo et Léa. Leur ville est soit <code>'Paris'</code>, soit <code>'Lyon'</code>.",
-  retenir:"<code>IN</code> compare <b>une même colonne</b> à une liste : <code>ville IN ('Paris', 'Lyon')</code>. Plus lisible que plusieurs <code>OR</code>.",
-  piege:{t:"Utiliser IN pour mélanger plusieurs colonnes",p:"<code>IN</code> sert à comparer une seule colonne à plusieurs valeurs.<br><br>✅ Par exemple :",
-    sql:"WHERE ville IN ('Paris', 'Lyon')",
-    mid:"SQL vérifie plusieurs valeurs possibles pour la même colonne <code>ville</code>.<br><br>Mais si tu veux vérifier la ville ET l’âge, tu changes de colonne :",
-    fixSql:"WHERE ville = 'Paris'\n  AND age > 30",
-    tail:"Ici, <code>IN</code> ne remplace pas <code>AND</code>, car les deux conditions portent sur des colonnes différentes."},
-  consigne:"Affiche toutes les colonnes des clients qui habitent à Paris ou à Lyon en utilisant <code>IN</code>.",
-  solution:"SELECT * FROM clients WHERE ville IN ('Paris', 'Lyon');",
-  indice:"Place les deux villes dans une liste entre parenthèses après <code>IN</code> : <code>ville IN ('Paris', 'Lyon')</code>.",
-  richLesson:true, earlyDemo:true ,
-learningCheck:{
-  "question": "ville IN ('Paris', 'Lyon') équivaut à quelle combinaison ?",
-  "options": [
-    "Paris OR Lyon",
-    "Paris AND Lyon",
-    "Paris puis Lyon deux fois"
-  ],
-  "answer": 0,
-  "explanation": "Pour ces deux valeurs non NULL, IN est l’écriture compacte de deux égalités reliées par OR."
-}
-},
-{ id:10, titre:"BETWEEN", résumé:"Filtrer un intervalle",
-  situation:"Ton équipe marketing prépare une sélection « petits prix » pour une campagne promotionnelle.<br><br>Pour cette sélection, elle veut mettre en avant les produits dont le prix est compris entre 15 € et 30 €.<br><br>Avec ce que tu connais déjà, tu peux écrire deux conditions :",
-  situationSql:"SELECT nom, prix\nFROM produits\nWHERE prix >= 15\n   AND prix <= 30;",
-  situationTail:"Ça fonctionne. Mais SQL propose un opérateur de comparaison spécialement conçu pour vérifier si une valeur se trouve entre deux limites : <code>BETWEEN</code>.",
-    studio:{problem:{title:"BETWEEN vérifie si une valeur se trouve entre deux limites.",
-      body:"Tu sais déjà écrire :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">prix &gt;= 15 AND prix &lt;= 30</pre></div><br><br>Avec <code>BETWEEN</code>, tu peux exprimer la même chose plus simplement :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">prix BETWEEN 15 AND 30</pre></div><br><br>SQL vérifie alors si le prix se trouve entre 15 € et 30 €, limites comprises.<br><br>Donc :<br>15 € → inclus ✓<br>22 € → inclus ✓<br>30 € → inclus ✓<br>31 € → exclu ✕"},
-    vs:{bad:{tag:"AVEC DEUX COMPARAISONS",tone:"neutral",sql:"SELECT nom, prix FROM produits\nWHERE prix >= 15 AND prix <= 30;",out:"4 lignes : Shaker Inox, Magnésium, Oméga 3, Fibre Prébiotique",
-            code:"SELECT nom, prix\nFROM produits\n<span class=\"vs-line\">WHERE prix &gt;= 15 AND prix &lt;= 30</span>;"},
-        good:{tag:"AVEC BETWEEN",sql:"SELECT nom, prix FROM produits\nWHERE prix BETWEEN 15 AND 30;",out:"4 lignes : Shaker Inox, Magnésium, Oméga 3, Fibre Prébiotique",
-            code:"SELECT nom, prix\nFROM produits\n<span class=\"vs-line good\">WHERE prix BETWEEN 15 AND 30</span>;"}},
-    why:{title:"Pourquoi utiliser BETWEEN plutôt que deux comparaisons ?"},
-    viz:"between",
-    reflex:{a:{k:"BETWEEN",t:"vérifie si une valeur se trouve <b>dans un intervalle</b>"},
-      b:{k:"Bornes",t:"la valeur minimale et la valeur maximale sont <b>incluses</b>"},
-      note:"Le réflexe : quand tu veux vérifier qu’une valeur se trouve entre deux limites, pense à <code>BETWEEN</code>.<br><br><code>prix BETWEEN 15 AND 30</code> équivaut à <code>prix &gt;= 15 AND prix &lt;= 30</code>."}},
-  anatomie:[{tok:"SELECT nom, prix",txt:"Les colonnes affichées dans le résultat."},{tok:"FROM produits",txt:"La table produits est utilisée comme source."},{tok:"WHERE prix BETWEEN 15 AND 30",txt:"Le prix doit être compris entre 15 et 30, bornes incluses."}],
-  anatFollowTeste:true,
-  anatomieVariants:[
-    {k:'between',label:'BETWEEN',tone:'neutral',lines:[
-      {tok:"SELECT nom, prix",txt:"Les colonnes affichées dans le résultat."},
-      {tok:"FROM produits",txt:"La table produits est utilisée comme source."},
-      {tok:"WHERE prix BETWEEN 20 AND 40",txt:"Cette condition garde les prix supérieurs ou égaux à 20 ET inférieurs ou égaux à 40."}
+  anatomie:[{tok:"SELECT prenom, ville",txt:"Les colonnes affichées."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"ville",plain:1,txt:"La colonne comparée."},{tok:"IN",txt:"Garde la ligne si la valeur est dans la liste."},{tok:"('Paris', 'Lyon')",plain:1,txt:"La liste des valeurs possibles, entre parenthèses."}],
+  exemple:"SELECT prenom, ville FROM clients WHERE ville IN ('Paris', 'Nantes');",
+  attendu:"<b>5 lignes</b> : les 4 clients de Paris (Sophie, les deux Nathan et Léa) et Inès, qui habite à Nantes.",
+  retenir:"<code>IN</code> compare une colonne à une liste de valeurs : <code>ville IN ('Paris', 'Lyon')</code>. C’est plus lisible que plusieurs <code>OR</code>.<br><br>Un seul nom de colonne, plusieurs valeurs : pour une autre colonne, ajoute une condition avec <code>AND</code> ou <code>OR</code>.",
+  consigne:"Affiche le nom et la catégorie des produits des catégories « Beauté » et « Boisson », en utilisant IN.",
+  solution:"SELECT nom, categorie FROM produits WHERE categorie IN ('Beauté', 'Boisson');",
+  indice:"Écris la colonne <code>categorie</code>, puis <code>IN</code> suivi de la liste des deux catégories entre parenthèses.",
+  testeVariants:[{k:"base",label:"Avec IN",sql:"SELECT prenom, ville FROM clients WHERE ville IN ('Paris', 'Lyon', 'Nantes');"},{k:"rec_or",label:"Avec OR",sql:"SELECT prenom, ville FROM clients WHERE ville = 'Paris' OR ville = 'Lyon' OR ville = 'Nantes';"}],
+  learningCheck:{question:"ville IN ('Paris', 'Lyon') équivaut à quelle combinaison ?",options:["Paris OR Lyon","Paris AND Lyon","Paris puis Lyon deux fois"],answer:0,explanation:"Pour ces deux valeurs non NULL, IN est l’écriture compacte de deux égalités reliées par OR."}
+}),
+guide({ id:10, titre:"BETWEEN", résumé:"Filtrer un intervalle",
+  sit:{
+    blocks:[
+      "L’équipe marketing prépare <b>une sélection « petits prix »</b> pour une campagne promotionnelle. Elle veut mettre en avant les produits dont le prix est <b>compris entre 15 € et 30 €</b>.",
+      "La table <code>produits</code> contient au total <b>8 produits</b>. Pour construire la sélection, l’équipe souhaite récupérer uniquement :",
+      {need:[["🏷️","Le nom du produit","table produits"],["💶","Son prix","table produits"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec ce que tu connais déjà, il faut écrire <b>deux comparaisons</b> sur le même prix, une pour chaque limite, reliées par <code>AND</code>.","Or, l’équipe veut simplement dire : un prix <b>entre</b> 15 € et 30 €, limites comprises."],
+      scene:{h:"💶 Petits prix",cols:"1.7fr 1fr",
+        lanes:[{c:[["h1","nom","t"],["h2","prix","t"]]},
+          {k:"R1",c:[["a1","Tisane Détox"],["a2","12.5"]]},
+          {k:"R2",c:[["b1","Shaker Inox"],["b2","15"]]},
+          {k:"R3",c:[["c1","Magnésium"],["c2","19.9"]]},
+          {k:"R4",c:[["d1","Oméga 3"],["d2","24.9"]]},
+          {k:"R5",c:[["e1","Fibre Prébiotique"],["e2","29.9"]]},
+          {k:"R6",c:[["f1","Collagène Marin"],["f2","39.9"]]}],
+        caps:["<b>Notre liste</b> · Elle contient des produits de tous les prix.","<b>Intervalle</b> · Le prix doit être compris entre <b>15 €</b> et <b>30 €</b>, limites comprises.","<b>Résultat</b> · Seuls les produits dont le prix est dans l’intervalle doivent être conservés."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5","R6"],d:1900},{cap:1,off:["R1","R6"],dim:["R1","R6"],d:2300},{cap:2,fold:["R1","R6"],d:2600}]},
+      then:["Il faut donc indiquer à SQL un <b>intervalle</b> : une valeur minimale et une valeur maximale.","C’est exactement le rôle de <code>BETWEEN</code>."]
+    },
+    mission:"Aide l’équipe marketing à retrouver le <b>nom</b> et le <b>prix</b> des produits dont le prix est <b>compris entre 15 € et 30 €</b>, afin de préparer la sélection « petits prix »."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir si un prix est dans l’intervalle ?",
+    blocks:[
+      "Pour chaque produit, SQL vérifie si son prix se situe entre deux limites :",
+      {ask:"Son prix est-il compris entre 15 et 30 ?"},
+      "En SQL, on écrit les deux limites après <code>BETWEEN</code>, reliées par <code>AND</code> :",
+      {syntax:"⟦prix BETWEEN 15 AND 30⟧"},
+      {table:{label:"produits",cols:"minmax(0,1.5fr) minmax(0,.9fr) minmax(0,1.7fr)",head:["nom","prix","Est-il dans l’intervalle ?"],rows:[["Tisane Détox","12.5","❌ non → écartée"],["Shaker Inox","15","✅ oui → gardée"],["Oméga 3","24.9","✅ oui → gardée"],["Collagène Marin","39.9","❌ non → écartée"]],hit:[[1,2],[2,2]],more:"… et 4 autres produits",test:{cond:"prix BETWEEN 15 AND 30",val:1}}},
+      {looks:[["oui","le prix est dans l’intervalle, limites comprises : la ligne apparaît"],["non","le prix est en dehors : la ligne n’apparaît pas"]],label:"Dans l’intervalle ou non"}
+    ]
+  },
+  steps:[
+    {h:"Écrire un intervalle avec BETWEEN",blocks:[
+      "<code>BETWEEN</code> garde les valeurs comprises entre deux limites : d’abord la limite <b>basse</b>, puis la limite <b>haute</b>, reliées par <code>AND</code> :",
+      {syntax:"SELECT nom, prix\nFROM produits\nWHERE prix ⟦BETWEEN 20 AND 35⟧;"},
+      {looks:[["BETWEEN","garde les valeurs comprises entre deux limites"],["20 AND 35","la limite basse, puis la limite haute"]]},
+      {say:"👇 Exécute cette requête pour voir les produits entre 20 € et 35 € :",run:"SELECT nom, prix\nFROM produits\nWHERE prix BETWEEN 20 AND 35;"},
+      {arrow:"3 produits sont compris entre 20 € et 35 €."}
+    ]},
+    {h:"Les limites sont incluses",blocks:[
+      "Avec <code>BETWEEN</code>, les <b>deux limites sont incluses</b> : <code>prix BETWEEN 14.9 AND 15</code> équivaut à <code>prix &gt;= 14.9 AND prix &lt;= 15</code>.",
+      {say:"👇 Exécute cette requête : Vitamine D coûte 14,90 € et Shaker Inox 15 €.",run:"SELECT nom, prix\nFROM produits\nWHERE prix BETWEEN 14.9 AND 15;"},
+      {arrow:"Les deux produits qui valent exactement une limite sont conservés."}
+    ]},
+    {h:"L’ordre des limites",blocks:[
+      "La limite <b>basse</b> vient toujours en premier.",
+      {warn:{t:"Limites à l’envers",blocks:[
+        "Si tu écris :",
+        {syntax:"WHERE prix BETWEEN 30 AND 15"},
+        "SQL cherche un prix à la fois supérieur ou égal à 30 <b>et</b> inférieur ou égal à 15 : aucun prix ne peut respecter cela.",
+        {say:"👇 Teste par toi-même :",run:"SELECT nom, prix\nFROM produits\nWHERE prix BETWEEN 30 AND 15;"}
+      ]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis donner l’intervalle de prix avec <code>BETWEEN</code>.",
+      {say:"👇 Exécute la requête pour découvrir les produits « petits prix » :",run:"SELECT nom, prix\nFROM produits\nWHERE prix BETWEEN 15 AND 30;"},
+      {done:{
+        label:"De tous les produits aux produits « petits prix »",
+        funnel:[
+          {n:8,t:"produits au départ",s:"toute la <code>table produits</code>",dots:"00000000"},
+          {step:"WHERE prix BETWEEN 15 AND 30",s:"ne garde que les prix compris entre 15 € et 30 €"},
+          {n:4,t:"⭐ produits à mettre en avant",s:"Fibre Prébiotique, Magnésium, Oméga 3 et Shaker Inox",dots:"10100011",out:true}
+        ],
+        sms:{ico:"🏷️",h:"Opération petits prix",aria:"Les quatre produits sélectionnés reçoivent leur étiquette promotionnelle",msg:"<b>Petits prix</b><br>Tous les produits entre 15 € et 30 €",people:[["F","Fibre Prébiotique","29.9"],["M","Magnésium","19.9"],["O","Oméga 3","24.9"],["S","Shaker Inox","15"]],st:["En attente","Étiquetage","✓ Étiqueté"],plane:"star",done:"✓ 4 produits en promotion"},
+        fill:["BETWEEN","15","AND","30"],
+        ui:{t:"4 produits « petits prix »",s:"Leur prix est compris entre 15 € et 30 € : la sélection de la campagne est prête.",n:["SELECT","FROM","WHERE","BETWEEN","AND"]},
+        rows:4
+      }}
     ]}
   ],
-  exemple:"SELECT nom, prix FROM produits WHERE prix BETWEEN 15 AND 30;",
-  attendu:"<b>4 lignes</b> : Shaker Inox à 15,00 €, Magnésium à 19,90 €, Oméga 3 à 24,90 € et Fibre Prébiotique à 29,90 €.",
-  retenir:"<code>BETWEEN</code> encadre un intervalle, <b>bornes incluses</b>. <code>prix BETWEEN 15 AND 30</code> = <code>prix &gt;= 15 AND prix &lt;= 30</code>.",
-  piege:{t:"Croire que les bornes sont exclues",p:"Avec <code>BETWEEN 15 AND 30</code>, 15 et 30 sont inclus. Un produit à exactement 15,00 € est donc conservé, tout comme un produit à exactement 30,00 €."},
-  consigne:"Affiche toutes les colonnes des produits dont le prix est compris entre 15 et 30 euros, bornes incluses.",
-  solution:"SELECT * FROM produits WHERE prix BETWEEN 15 AND 30;",
-  indice:"Utilise <code>BETWEEN</code> suivi de la borne minimale, puis <code>AND</code> et de la borne maximale : <code>prix BETWEEN 15 AND 30</code>.",
-  richLesson:true, earlyDemo:true ,
-testeVariants:[
-  {
-    "k": "between",
-    "label": "BETWEEN",
-    "sql": "SELECT nom, prix FROM produits WHERE prix BETWEEN 20 AND 40;",
-    "out": "4 lignes : Fibre Prébiotique à 29,90 €, Collagène Marin à 39,90 €, Protéine Végétale à 34,90 € et Oméga 3 à 24,90 €.",
-    "expectRows": 4
-  }
-]
-,
-learningCheck:{
-  "question": "prix BETWEEN 15 AND 30 accepte quelles bornes ?",
-  "options": [
-    "15 seulement",
-    "Aucune des deux",
-    "15 et 30"
+  reflex:[
+    {recap:[
+      ["↔️","<code>BETWEEN</code> garde les valeurs <b>comprises entre deux limites</b> :",null,"prix BETWEEN 15 AND 30"],
+      ["✅","Les <b>deux limites sont incluses</b> : c’est l’équivalent de <code>&gt;=</code> et <code>&lt;=</code>."],
+      ["⚠️","La limite <b>basse</b> vient toujours en premier : <code>BETWEEN 30 AND 15</code> ne donne aucune ligne."]
+    ],label:"Les trois idées à retenir"}
   ],
-  "answer": 2,
-  "explanation": "BETWEEN inclut les deux bornes : prix >= 15 AND prix <= 30."
-}
-},
+  anatomie:[{tok:"SELECT nom, prix",txt:"Les colonnes affichées."},{tok:"FROM produits",txt:"La table produits est utilisée comme source."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"prix",plain:1,txt:"La colonne comparée."},{tok:"BETWEEN",txt:"Garde les valeurs comprises entre deux limites, limites comprises."},{tok:"15 AND 30",plain:1,txt:"La limite basse, puis la limite haute."}],
+  exemple:"SELECT nom, prix FROM produits WHERE prix BETWEEN 20 AND 35;",
+  attendu:"<b>3 lignes</b> : Oméga 3 (24,90 €), Fibre Prébiotique (29,90 €) et Protéine Végétale (34,90 €).",
+  retenir:"<code>BETWEEN</code> encadre un intervalle, limites incluses : <code>prix BETWEEN 15 AND 30</code> équivaut à <code>prix &gt;= 15 AND prix &lt;= 30</code>.<br><br>La limite basse vient toujours en premier.",
+  consigne:"Affiche le prénom et l’âge des clients qui ont entre 30 et 40 ans, limites comprises.",
+  solution:"SELECT prenom, age FROM clients WHERE age BETWEEN 30 AND 40;",
+  indice:"Compare la colonne <code>age</code> à un intervalle avec <code>BETWEEN</code> : la limite basse, puis <code>AND</code>, puis la limite haute.",
+  testeVariants:[{k:"base",label:"BETWEEN",sql:"SELECT nom, prix FROM produits WHERE prix BETWEEN 20 AND 40;"},{k:"rec_and",label:"Avec AND",sql:"SELECT nom, prix FROM produits WHERE prix >= 20 AND prix <= 40;"}],
+  learningCheck:{question:"prix BETWEEN 15 AND 30 accepte quelles limites ?",options:["15 seulement","Aucune des deux","15 et 30"],answer:2,explanation:"BETWEEN inclut les deux limites : prix >= 15 AND prix <= 30."}
+}),
 { id:11, titre:"ORDER BY", résumé:"Ordonner le résultat",
   situation:"Ton équipe marketing prépare une nouvelle campagne et souhaite organiser la liste des clients en commençant par les plus récemment inscrits.<br><br>Avec ce que tu connais déjà, tu peux afficher leur prénom et leur date d’inscription :",
   situationSql:"SELECT prenom, date_inscription\nFROM clients;",
@@ -26394,7 +26488,8 @@ function prCell(c){
   return `<span class="${cls.join(' ')}" data-k="${c[0]}"${c[3]?` style="min-width:${c[3]}px"`:''}>${c[1]}</span>`;
 }
 function prStage(sc){
-  return sc.lanes.map(L=>`<div class="pr-lane${L.cls?' '+L.cls:''}${L.fold?' is-fold':''}"${L.k?` data-k="${L.k}"`:''}>${L.l?`<span class="pr-ll">${L.l}</span>`:''}<div class="pr-cells">${L.c.map(prCell).join('')}</div></div>`).join('');
+  /* cols sur une ligne : sa propre grille de colonnes (ex. une liste de valeurs au-dessus d’un tableau). */
+  return sc.lanes.map(L=>`<div class="pr-lane${L.cls?' '+L.cls:''}${L.fold?' is-fold':''}"${L.k?` data-k="${L.k}"`:''}${L.cols?` style="--cols:${L.cols}"`:''}>${L.l?`<span class="pr-ll">${L.l}</span>`:''}<div class="pr-cells">${L.c.map(prCell).join('')}</div></div>`).join('');
 }
 function initProbScenes(){
   if(!current)return;
@@ -36779,7 +36874,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1590';
+  const SW_CACHE='requete-2026-10-04-ludique-v1591';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
