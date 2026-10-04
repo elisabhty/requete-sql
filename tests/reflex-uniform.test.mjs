@@ -1,4 +1,4 @@
-/* « Le réflexe à retenir » est identique dans les 68 cours (modèle du cours Clé primaire) : trois cartes
+/* « Le réflexe à retenir » est identique dans les 66 cours (modèle du cours Clé primaire) : trois cartes
    (emoji, phrase, précision facultative, code facultatif sur une ligne), un seul titre, un seul bouton
    « Ajouter dans notes ». Les 22 anciens cours ne gardent ni leur résumé libre, ni leurs règles en
    colonnes, ni l'encadré « À retenir » de fin de cours. */
@@ -20,8 +20,8 @@ const text = s => decode(s.replace(/<[^>]+>/g, ''));
 /* <li><b aria-hidden="true">🔗</b><div><strong>…</strong>[<span>…</span>][<code class="fk-rc">…</code>]</div></li> */
 const CARD = /^<li><b aria-hidden="true">([^<]+)<\/b><div><strong>([\s\S]+?)<\/strong>(?:<span>([\s\S]+?)<\/span>)?(?:<code class="fk-rc">([^<\n]+)<\/code>)?<\/div><\/li>$/;
 
-test('68 cours, tous dans le même format', () => {
-  assert.equal(lessons.length, 68);
+test('66 cours, tous dans le même format', () => {
+  assert.equal(lessons.length, 66);
 });
 
 test('chaque cours a un réflexe de trois cartes bien formées', () => {
