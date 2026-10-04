@@ -10854,7 +10854,7 @@ function guide(spec){
       reflexTitle:'Le réflexe à retenir',reflex:{extra:guideBlocks(reflex)}},
     reflexTitle:'Le réflexe à retenir',
     noTeste:true,noAnat:true,richLesson:true,earlyDemo:true,guided:true};
-  ['anatomie','exemple','attendu','retenir','consigne','solution','indice','learningCheck','testeVariants','petitDefi','ordered','write','verif','noExec','noExecWhy','apres'].forEach(k=>{if(spec[k]!==undefined)lesson[k]=spec[k];});
+  ['anatomie','exemple','attendu','retenir','consigne','solution','indice','learningCheck','testeVariants','petitDefi','ordered','write','verif','noExec','noExecWhy','noExecOk','noExecNote','normExo','explainExo','createExo','apres'].forEach(k=>{if(spec[k]!==undefined)lesson[k]=spec[k];});
   return lesson;
 }
 /* ============================================================
@@ -16516,991 +16516,786 @@ guide({ id:72, titre:"Relations 1-1, 1-N et N-N", résumé:"Les trois formes de 
 })
 ]},
 { titre:"Créer et faire évoluer les tables", sous:"CREATE, ALTER et DROP TABLE", lessons:[
-{ id:61, titre:"CREATE TABLE", résumé:"Créer la structure d’une table",
-  situation:"Ton site e-commerce a besoin d’enregistrer ses clients.<br><br>Pour l’instant, la table <code>clients</code> n’existe pas encore. Tu sais simplement quelles informations tu veux conserver : un identifiant, le prénom, le nom, la ville, l’âge, l’e-mail, le téléphone et la date d’inscription.<br><br>Avant d’ajouter des clients, il faut donc définir la structure de la table qui va les accueillir.",
-  situationTail:"<div class=\"sit-sql\"><p>C’est le rôle de <code>CREATE TABLE</code> : elle construit la table, colonne par colonne, avec le type de chacune et les règles à respecter.</p></div>",
-    studio:{pointCards:{
-      eye:"CREATE TABLE",title:"Définir la structure avant les données.",
-      lead:"Pour créer une table, on indique son nom, ses colonnes, le type de chaque colonne, et éventuellement des règles à respecter.",
-      chain:[
-        {k:"CREATE TABLE",v:"construit la table"},
-        {k:"Colonne",v:"un nom, un type"},
-        {k:"Contrainte",v:"une règle que les données respectent"}
-      ]},
-    uses:{title:"Une contrainte à la fois.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">La structure, pas les données</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE clients (
-    id INTEGER,
-    prenom TEXT,
-    ville TEXT,
-    age INTEGER
-);</pre></div>
-          <p>La table <code>clients</code> existe maintenant, avec quatre colonnes. Elle est vide : aucune ligne n’a encore été ajoutée.</p>
-          <p class="fn-tip"><b>Deux rôles distincts</b> <code>CREATE TABLE</code> construit la table. <code>INSERT</code> y ajoute des lignes.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le type de chaque colonne</p>
-          <p>Une colonne ne contient pas n’importe quelle information. Le type l’annonce.</p>
-          <div class="table-wrap"><table class="concept-table fit-2">
-            <thead><tr><th>Type</th><th>Exemple</th></tr></thead>
-            <tbody>
-              <tr><td><code>INTEGER</code></td><td>34</td></tr>
-              <tr><td><code>REAL</code></td><td>29.90</td></tr>
-              <tr><td><code>TEXT</code></td><td>'Sophie'</td></tr>
-              <tr><td><code>BLOB</code></td><td>X'89504E47'</td></tr>
-              <tr><td><code>NULL</code></td><td>absence de valeur</td></tr>
-            </tbody>
-          </table></div>
-          <p>Dans cette base, les dates sont enregistrées en <code>TEXT</code>, au format <code>AAAA-MM-JJ</code> — par exemple <code>2023-01-15</code>.</p>
-          <p><code>BLOB</code> sert aux données binaires : une image, un PDF, un fichier audio. On les écrit en hexadécimal, <code>X'89504E47'</code>, ou on les confie au langage qui pilote la base. Aucune colonne de cette base n’en utilise.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Sans contrainte, la table accepte presque tout</p>
-          <p>Rien n’empêcherait deux clients de porter le même <code>id</code>. Or <code>id</code> est censé identifier un seul client.</p>
-          <p>Une <b>contrainte</b> est une règle que les données doivent respecter.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">PRIMARY KEY — identifier chaque ligne</p>
-          <div class="pt-syntax"><pre class="cw-syntax">id INTEGER PRIMARY KEY</pre></div>
-          <p>Deux clients ne peuvent pas partager la même clé primaire.</p>
-          <p class="fn-tip"><b>Le réflexe</b> La clé primaire répond à la question : comment identifier exactement cette ligne ?</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">NOT NULL — rendre une valeur obligatoire</p>
-          <div class="pt-syntax"><pre class="cw-syntax">nom TEXT NOT NULL</pre></div>
-          <p>Une ligne dont le <code>nom</code> vaudrait <code>NULL</code> serait refusée.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">UNIQUE — empêcher les doublons</p>
-          <div class="pt-syntax"><pre class="cw-syntax">email TEXT UNIQUE</pre></div>
-          <p>C’est la règle que porte <code>email</code> dans cette base : <code>sophie@mail.fr</code> étant déjà enregistré, aucune autre ligne ne peut reprendre cette adresse.</p>
-          <p class="fn-tip"><b>NULL y échappe</b> Hugo et Inès n’ont pas d’e-mail. <code>UNIQUE</code> compare des valeurs, et <code>NULL</code> n’en est pas une : plusieurs lignes peuvent rester sans adresse.</p>
-          <p class="fn-tip"><b>À distinguer</b> <code>PRIMARY KEY</code> identifie la ligne. <code>UNIQUE</code> interdit seulement les valeurs répétées.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">CHECK — imposer une condition</p>
-          <div class="pt-syntax"><pre class="cw-syntax">age INTEGER CHECK (age >= 0)</pre></div>
-          <p>Un âge de <code>-12</code> serait refusé. <code>CHECK</code> exprime une condition que les données doivent respecter.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">DEFAULT — prévoir une valeur</p>
-          <div class="pt-syntax"><pre class="cw-syntax">CREATE TABLE comptes (
-    id INTEGER PRIMARY KEY,
-    nom TEXT,
-    statut TEXT DEFAULT 'actif'
-);</pre></div>
-          <p>Un <code>INSERT</code> qui ne précise pas de statut enregistre <code>actif</code>. <code>DEFAULT</code> fournit une valeur lorsqu’aucune n’est indiquée.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">FOREIGN KEY — relier les tables</p>
-          <p>Dans <code>commandes</code>, le <code>client_id</code> correspond à <code>clients.id</code> et <code>produit_id</code> à <code>produits.id</code>.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">FOREIGN KEY (client_id)
-    REFERENCES clients(id)</pre></div>
-          <p>Sans ce contrôle, une commande pourrait porter <code>client_id = 5000</code> alors qu’aucun client ne porte cet identifiant. La clé étrangère protège les relations entre les tables.</p>
-          <p class="fn-tip"><b>NULL reste possible</b> Une commande sans client enregistré porte <code>client_id = NULL</code>, ce qui est différent d’un identifiant qui n’existe pas. C’est pourquoi cette colonne n’est pas <code>NOT NULL</code>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">L’ordre de création compte</p>
-          <p>Une clé étrangère désigne une table qui doit déjà exister. On crée donc les tables indépendantes d’abord, puis celle qui les référence : <code>clients</code>, <code>produits</code>, enfin <code>commandes</code>.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La question",t:"quelles informations cette table doit-elle contenir ?"},
-      b:{k:"La règle",t:"chaque colonne a un nom, un type, parfois une contrainte"},
-      note:"Réflexe : avant d’ajouter des données, définis leur structure et les règles qu’elles doivent respecter."}},
-  anatomie:[
-    {tok:"CREATE TABLE clients",txt:"Crée une table appelée clients."},
-    {tok:"id",txt:"Le nom de la colonne."},
-    {tok:"INTEGER",txt:"Le type accepté par cette colonne."},
-    {tok:"PRIMARY KEY",txt:"Une règle sur la colonne : cette valeur identifie la ligne."},
-    {tok:",",txt:"La virgule passe à la colonne suivante. Toute la définition tient entre parenthèses."}
+guide({ id:61, titre:"CREATE TABLE", résumé:"Créer la structure d’une table",
+  sit:{
+    blocks:[
+      "L’équipe e-commerce lance les <b>avis clients</b> : après un achat, chaque client pourra noter un produit et laisser un commentaire.",
+      "La base contient <b>4 tables</b>, mais aucune ne peut accueillir ces avis. Pour les enregistrer, l’équipe doit d’abord créer une table et décrire ses colonnes :",
+      {need:[["🆔","L’identifiant de l’avis","id"],["🏷️","Le produit noté","produit_id"],["⭐","Une note de 1 à 5","note"],["💬","Un commentaire","commentaire"]],label:"Les informations de chaque avis"}
+    ],
+    problem:{
+      p:["Avec <code>SELECT</code>, SQL sait lire les tables de la base, mais seulement celles qui <b>existent déjà</b>.","Or, ici, aucune table ne peut accueillir les avis : il faut en <b>créer une nouvelle</b>, en décrivant chacune de ses colonnes."],
+      scene:{h:"📝 Des avis à enregistrer",
+        lanes:[{k:"A",l:"Un avis à enregistrer",c:[["a1","produit : Magnésium"],["a2","note : 5"],["a3","« Très efficace »"]]},
+          {k:"B",l:"La table qui doit l’accueillir",c:[["b1","?","q"],["b2","?","q"],["b3","?","q"],["b4","?","q"]]}],
+        caps:["<b>Un avis</b> · Un client note le Magnésium et laisse un commentaire.","<b>Besoin</b> · Aucune table de la base n’a de place pour ces informations.","<b>Résultat</b> · Une nouvelle table avis, avec une colonne par information."],
+        steps:[{cap:0,on:["A"],d:1900},{cap:1,off:["A"],mark:{B:"is-miss"},d:2300},{cap:2,unmark:{B:"is-miss"},text:{b1:"id",b2:"produit_id",b3:"note",b4:"commentaire"},stagger:260,d:3000}]},
+      then:["Il faut donc indiquer à SQL <b>la structure</b> de la nouvelle table : son nom, puis chaque colonne avec son type et ses règles.","C’est exactement le rôle de <code>CREATE TABLE</code>."]
+    },
+    mission:"Aide l’équipe e-commerce à créer la table <b>avis</b>, avec un <b>identifiant</b>, le <b>produit noté</b>, une <b>note de 1 à 5</b> et un <b>commentaire</b>, afin d’enregistrer les avis des clients."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir ce que contient la table ?",
+    blocks:[
+      "Pour chaque colonne, SQL a besoin d’un <b>nom</b>, d’un <b>type</b> et, souvent, d’une <b>règle</b> :",
+      {ask:"Quel nom, quel type, quelle règle ?"},
+      "En SQL, on écrit ces trois informations à la suite, dans cet ordre :",
+      {syntax:"⟦note INTEGER CHECK (note BETWEEN 1 AND 5)⟧"},
+      {scene:{h:"🧱 Une colonne, trois informations",
+        lanes:[{k:"D",l:"Définition de la colonne",c:[["d1","note","h"],["d2","INTEGER","h"],["d3","CHECK (note BETWEEN 1 AND 5)","h"]]},
+          {k:"V",l:"Valeurs proposées",c:[["v1","5","h"],["v2","3","h"],["v3","9","h"],["v4","0","h"]]}],
+        caps:["<b>Le nom</b> · « note » dit quelle information la colonne contient.","<b>Le type</b> · INTEGER dit qu’elle contient des nombres entiers.","<b>La règle</b> · CHECK impose que la note reste entre 1 et 5.","<b>Résultat</b> · Les notes 5 et 3 sont acceptées ; 9 et 0 sont refusées."],
+        steps:[{cap:0,show:["d1"],on:["d1"],d:2200},{cap:1,off:["d1"],show:["d2"],on:["d2"],d:2200},{cap:2,off:["d2"],show:["d3"],on:["d3"],d:2400},{cap:3,off:["d3"],show:["v1","v2","v3","v4"],on:["v1","v2"],mark:{v3:"is-miss",v4:"is-miss"},stagger:250,d:3200}]}}
+    ]
+  },
+  steps:[
+    {h:"Créer une table",blocks:[
+      "<code>CREATE TABLE</code> est suivi du nom de la table, puis de la liste de ses colonnes entre parenthèses : chacune avec son nom et son type, séparées par des virgules :",
+      {syntax:"⟦CREATE TABLE marques⟧ (\n    ⟦id INTEGER,\n    nom TEXT⟧\n);"},
+      {looks:[["CREATE TABLE marques","crée une table nommée marques"],["id INTEGER, nom TEXT","décrit deux colonnes : un nom et un type pour chacune"]]},
+      {say:"👇 Exécute cette requête pour créer la table, puis lire sa structure avec <code>pragma_table_info</code> :",run:"CREATE TABLE marques (\n    id INTEGER,\n    nom TEXT\n);\nSELECT name, type\nFROM pragma_table_info('marques');"},
+      {arrow:"La table existe, avec ses deux colonnes. Elle est vide : aucune ligne n’y a encore été ajoutée."},
+      {tip:{t:"Deux rôles distincts",blocks:["<code>CREATE TABLE</code> construit la table. C’est <code>INSERT</code> qui y ajoute ensuite des lignes."]}},
+      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux créer des tables sans rien encombrer. À chaque essai, la table <code>marques</code> n’existe plus."]}}
+    ]},
+    {h:"Choisir le type de chaque colonne",blocks:[
+      "Le type annonce quelle sorte de valeur la colonne accepte :",
+      {table:{label:"Les types de SQLite",cols:"minmax(0,1fr) minmax(0,1.4fr)",head:["Type","Exemple de valeur"],rows:[["INTEGER","34"],["REAL","29.90"],["TEXT","'Sophie'"],["BLOB","X'89504E47'"]]}},
+      "Dans cette base, les dates sont enregistrées en <code>TEXT</code>, au format <code>AAAA-MM-JJ</code>, par exemple <code>2023-01-15</code>. <code>BLOB</code> sert aux données binaires, comme une image : aucune colonne de cette base n’en utilise.",
+      {say:"👇 Exécute cette requête pour créer une table qui mélange les types :",run:"CREATE TABLE livraisons (\n    id INTEGER,\n    ville TEXT,\n    poids REAL,\n    expediee_le TEXT\n);\nSELECT name, type\nFROM pragma_table_info('livraisons');"},
+      {arrow:"Chaque colonne a son type : un entier, du texte, un nombre décimal, puis une date écrite en texte."}
+    ]},
+    {h:"Poser des règles avec les contraintes",blocks:[
+      "Sans règle, une colonne accepte presque n’importe quelle valeur. Une <b>contrainte</b> impose ce que les données doivent respecter ; elle se place après le type de la colonne :",
+      {table:{label:"Les contraintes",cols:"minmax(0,1fr) minmax(0,1.4fr)",head:["Contrainte","Rôle"],rows:[["PRIMARY KEY","identifie chaque ligne"],["NOT NULL","interdit l’absence de valeur"],["UNIQUE","interdit les doublons"],["CHECK (…)","impose une condition"],["DEFAULT …","prévoit une valeur de départ"],["FOREIGN KEY","relie à une autre table"]]}},
+      {syntax:"CREATE TABLE marques (\n    id INTEGER ⟦PRIMARY KEY⟧,\n    nom TEXT ⟦NOT NULL⟧,\n    creation INTEGER ⟦CHECK (creation >= 1900)⟧\n);"},
+      {say:"👇 Exécute cette requête : la table est créée, puis une première marque y est ajoutée avec <code>INSERT</code>.",run:"CREATE TABLE marques (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    creation INTEGER CHECK (creation >= 1900)\n);\nINSERT INTO marques (nom, creation)\nVALUES ('NutriBoost', 2019);\nSELECT *\nFROM marques;"},
+      {arrow:"La ligne respecte les règles : elle est acceptée, et la base attribue elle-même l’identifiant 1."},
+      {warn:{t:"Une règle enfreinte",blocks:[
+        "Si on essaie d’ajouter une marque créée en 1800 :",
+        {syntax:"INSERT INTO marques (nom, creation)\nVALUES ('NutriBoost', 1800);"},
+        "L’année ne respecte pas la règle <code>CHECK</code> : la base refuse la ligne, et rien n’est écrit.",
+        {say:"👇 Teste par toi-même :",run:"CREATE TABLE marques (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    creation INTEGER CHECK (creation >= 1900)\n);\nINSERT INTO marques (nom, creation)\nVALUES ('NutriBoost', 1800);"}
+      ]}},
+      {tip:{t:"L’ordre de création compte",blocks:["Une clé étrangère désigne une table qui doit déjà exister. On crée donc d’abord les tables indépendantes (<code>clients</code>, <code>produits</code>), puis celles qui s’y réfèrent (<code>commandes</code>, <code>avis</code>)."]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : nommer la table, décrire chaque colonne avec son type, puis poser les règles. Le produit est obligatoire et relié à la table <code>produits</code>, la note reste entre 1 et 5.",
+      {say:"👇 Exécute la requête pour créer la table des avis :",run:"CREATE TABLE avis (\n    id INTEGER PRIMARY KEY,\n    produit_id INTEGER NOT NULL,\n    note INTEGER CHECK (note BETWEEN 1 AND 5),\n    commentaire TEXT,\n    FOREIGN KEY (produit_id) REFERENCES produits(id)\n);\nSELECT name, type\nFROM pragma_table_info('avis');"},
+      {done:{
+        label:"De 4 tables à 5 tables",
+        unit:"free",
+        funnel:[
+          {n:4,t:"tables au départ",s:"<code>clients</code>, <code>produits</code>, <code>commandes</code> et <code>fidelite</code>",dots:"0000"},
+          {step:"CREATE TABLE avis (…)",s:"construit une nouvelle table, colonne par colonne"},
+          {n:5,t:"⭐ tables dans la base",s:"les 4 d’origine et <code>avis</code>, avec ses 4 colonnes",dots:"00001",out:true}
+        ],
+        sms:{ico:"💬",h:"Table des avis",aria:"Les quatre colonnes de la table avis sont créées avec leurs règles",msg:"<b>Table avis</b><br>Prête à recevoir les avis clients",people:[["I","id","clé primaire"],["P","produit_id","obligatoire, relié à produits"],["N","note","entre 1 et 5"],["C","commentaire","texte libre"]],st:["À créer","Création","✓ Créée"],plane:"doc",done:"✓ Table avis créée : 4 colonnes"},
+        fill:["CREATE TABLE","PRIMARY KEY","NOT NULL","CHECK"],
+        ui:{t:"Une table prête pour les avis",s:"La table avis existe, avec ses 4 colonnes et ses règles : elle peut recevoir les premiers avis.",n:["CREATE TABLE","PRIMARY KEY","NOT NULL","CHECK"]},
+        rows:4
+      }}
+    ]}
   ],
-  exemple:"CREATE TABLE clients (\n    id INTEGER PRIMARY KEY,\n    prenom TEXT NOT NULL,\n    nom TEXT,\n    ville TEXT,\n    age INTEGER CHECK (age >= 0),\n    email TEXT UNIQUE,\n    telephone TEXT,\n    date_inscription TEXT\n);\n\nCREATE TABLE produits (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    categorie TEXT,\n    prix REAL,\n    stock INTEGER CHECK (stock >= 0)\n);\n\nCREATE TABLE commandes (\n    id INTEGER PRIMARY KEY,\n    client_id INTEGER,\n    produit_id INTEGER NOT NULL,\n    quantite INTEGER NOT NULL\n        CHECK (quantite > 0),\n    date_commande TEXT,\n    FOREIGN KEY (client_id)\n        REFERENCES clients(id),\n    FOREIGN KEY (produit_id)\n        REFERENCES produits(id)\n);",
-  attendu:"Trois tables vides, reliées : commandes pointe vers clients et vers produits. C’est exactement la structure de la base sur laquelle tu travailles depuis le début. Les INSERT viendront ensuite la remplir.",
-  retenir:"<code>CREATE TABLE</code> définit la structure d’une nouvelle table. Une colonne possède au minimum un <b>nom</b> et un <b>type</b>.<br><br>Elle peut aussi porter une contrainte : <code>PRIMARY KEY</code>, <code>NOT NULL</code>, <code>UNIQUE</code>, <code>CHECK</code>, <code>DEFAULT</code>, <code>FOREIGN KEY</code>.<br><br>Le mémo : <b>CREATE TABLE → colonnes → types → contraintes</b>.",
-  piege:{t:"Croire que CREATE TABLE remplit la table",
-    p:"<code>CREATE TABLE clients (...)</code> ne crée ni Sophie, ni Lucas, ni Emma. Elle crée les colonnes, leurs types et leurs règles — rien d’autre. C’est <code>INSERT</code> qui ajoute ensuite les données.",
-    exec:false,
-    sql:"CREATE TABLE clients (\n    id INTEGER PRIMARY KEY,\n    prenom TEXT NOT NULL\n);",
-    out:"La table existe, et ne contient aucune ligne.",
-    fixSql:"INSERT INTO clients (id, prenom)\nVALUES (1, 'Sophie');"},
-  petitDefi:[{
-    p:"Complète la création de cette table pour que le <code>nom</code> soit obligatoire.",
-    sql:"CREATE TABLE categories (\n    id INTEGER PRIMARY KEY,\n    nom TEXT __________\n);",
-    a:"NOT NULL",
-    answers:["NOT NULL","not null"]
-  }],
+  reflex:[
+    {recap:[
+      ["🏗️","<code>CREATE TABLE</code> construit la <b>structure</b> d’une table : son nom, puis ses colonnes.","Elle ne crée aucune ligne : c’est <code>INSERT</code> qui en ajoute."],
+      ["🔤","Chaque colonne a un <b>nom</b> et un <b>type</b> :",null,"note INTEGER"],
+      ["🛡️","Les <b>contraintes</b> posent les règles que les données doivent respecter :",null,"PRIMARY KEY · NOT NULL · CHECK"]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"CREATE TABLE marques",txt:"Crée une table appelée marques."},{tok:"id",plain:1,txt:"Le nom de la première colonne."},{tok:"INTEGER",txt:"Le type accepté par cette colonne."},{tok:",",punc:1,txt:"La virgule passe à la colonne suivante. Toute la définition tient entre parenthèses."},{tok:"nom",plain:1,txt:"Le nom de la seconde colonne."},{tok:"TEXT",txt:"Son type : du texte."}],
+  exemple:"CREATE TABLE marques (\n    id INTEGER,\n    nom TEXT\n);",
+  attendu:"La table <code>marques</code> existe, avec deux colonnes : <code>id</code> et <code>nom</code>. Elle est vide : aucune ligne n’a encore été ajoutée.",
+  retenir:"<code>CREATE TABLE</code> définit la structure d’une nouvelle table. Une colonne possède au minimum un <b>nom</b> et un <b>type</b>.<br><br>Elle peut aussi porter une contrainte : <code>PRIMARY KEY</code>, <code>NOT NULL</code>, <code>UNIQUE</code>, <code>CHECK</code>, <code>DEFAULT</code>, <code>FOREIGN KEY</code>.<br><br>Le mémo : <b>CREATE TABLE → colonnes → types → contraintes</b>.",
   consigne:"Crée la table <code>produits</code> telle qu’elle existe dans cette base : un identifiant qui identifie chaque ligne, un nom obligatoire, une catégorie en texte, un prix décimal, et un stock entier qui ne peut jamais devenir négatif.",
   solution:"CREATE TABLE produits (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    categorie TEXT,\n    prix REAL,\n    stock INTEGER CHECK (stock >= 0)\n);",
-  indice:"Chaque colonne s’écrit <code>nom type</code>, séparée par une virgule. <code>PRIMARY KEY</code> sur l’identifiant, <code>NOT NULL</code> sur le nom, et <code>CHECK (stock >= 0)</code> sur le stock.",
+  indice:"Chaque colonne s’écrit <code>nom type</code>, séparée par une virgule. <code>PRIMARY KEY</code> sur l’identifiant, <code>NOT NULL</code> sur le nom, et <code>CHECK (stock &gt;= 0)</code> sur le stock.",
   noExec:true,
   createExo:true,
-  noExecNote:"Ces trois tables existent déjà dans la base : les recréer déclencherait une erreur. Lis leur structure — c’est exactement celle que tu interroges depuis le début.",
-  noExecWhy:"Les tables <code>clients</code>, <code>produits</code> et <code>commandes</code> existent déjà : SQLite refuserait de les recréer.",
+  noExecNote:"Cette table existe déjà dans la base : la recréer déclencherait une erreur. Écris-la pour toi, on compare la structure.",
+  noExecWhy:"La table <code>produits</code> existe déjà : SQLite refuserait de la recréer.",
   noExecOk:{b:"✓ Correct — la structure est complète",t:"Les cinq colonnes sont là, avec leurs types et leurs trois contraintes. C’est mot pour mot la table <code>produits</code> de cette base."},
-  richLesson:true, earlyDemo:true ,
-learningCheck:{
-  "question": "CHECK(stock >= 0) doit-il accepter un stock nul ?",
-  "options": [
-    "Non",
-    "Seulement avec un prix nul",
-    "Oui"
+  petitDefi:[{p:"Complète la création de cette table pour que le <code>nom</code> soit obligatoire.",sql:"CREATE TABLE categories (\n    id INTEGER PRIMARY KEY,\n    nom TEXT __________\n);",a:"NOT NULL",answers:["NOT NULL","not null"]}],
+  testeVariants:[{k:"base",label:"Structure simple",sql:"CREATE TABLE marques (\n    id INTEGER,\n    nom TEXT\n);\nSELECT name, type\nFROM pragma_table_info('marques');",expectRows:2},{k:"regles",label:"Avec des règles",sql:"CREATE TABLE marques (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    creation INTEGER CHECK (creation >= 1900)\n);\nINSERT INTO marques (nom, creation)\nVALUES ('NutriBoost', 2019);\nSELECT *\nFROM marques;",out:"La ligne respecte les règles : elle est acceptée.",expectRows:1},{k:"check",label:"Règle enfreinte",sql:"CREATE TABLE marques (\n    id INTEGER PRIMARY KEY,\n    nom TEXT NOT NULL,\n    creation INTEGER CHECK (creation >= 1900)\n);\nINSERT INTO marques (nom, creation)\nVALUES ('NutriBoost', 1800);",out:"Refusé : l’année 1800 enfreint la règle CHECK.",tone:"bad"}],
+  learningCheck:{question:"CHECK(stock >= 0) doit-il accepter un stock nul ?",options:["Non","Seulement avec un prix nul","Oui"],answer:2,explanation:"Zéro est une valeur autorisée. Le contrôle rejette un stock négatif, pas une rupture de stock."}
+}),
+guide({ id:65, titre:"ALTER TABLE", résumé:"Faire évoluer la structure d’une table",
+  sit:{
+    blocks:[
+      "L’équipe e-commerce ouvre la boutique à <b>l’international</b> : elle veut maintenant enregistrer le <b>pays</b> de chaque client.",
+      "La table <code>clients</code> contient déjà <b>10 clients</b> et <b>8 colonnes</b>, mais aucune n’indique leur pays. Tous les clients actuels vivent en France. Pour accueillir cette nouvelle information sans perdre les données existantes, l’équipe souhaite ajouter :",
+      {need:[["🌍","Une colonne pays","table clients"],["📍","Une valeur de départ","France"]],label:"Ce qu’il faut ajouter"}
+    ],
+    problem:{
+      p:["Avec <code>CREATE TABLE</code>, SQL sait construire une table, mais ici la table <code>clients</code> existe déjà, remplie de données.","Or, il faut lui ajouter une <b>colonne</b> : la recréer avec une colonne de plus ferait perdre les clients déjà enregistrés."],
+      scene:{h:"🌍 Table clients",cols:"1fr 1.2fr 0fr",
+        lanes:[{c:[["h1","prenom","t"],["h2","ville","t"],["h3","pays","th"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","Paris"],["a3","?","qh"]]},
+          {k:"R2",c:[["b1","Lucas"],["b2","Lyon"],["b3","?","qh"]]},
+          {k:"R3",c:[["c1","Emma"],["c2","Marseille"],["c3","?","qh"]]},
+          {k:"R4",c:[["d1","Nathan"],["d2","Paris"],["d3","?","qh"]]},
+          {k:"R5",c:[["e1","Chloé"],["e2","Bordeaux"],["e3","?","qh"]]}],
+        caps:["<b>Notre table</b> · Chaque client a un prénom et une ville, mais aucun pays.","<b>Besoin</b> · Il faut une colonne de plus, sans effacer aucun client.","<b>Résultat</b> · La colonne existe, et chaque client déjà enregistré a un pays : France."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5"],cols:"1fr 1.2fr 1fr",show:["h3","a3","b3","c3","d3","e3"],stagger:120,d:2800},{cap:2,text:{a3:"France",b3:"France",c3:"France",d3:"France",e3:"France"},stagger:200,d:3000}]},
+      then:["Il faut donc indiquer à SQL de <b>modifier la structure</b> de la table, sans la recréer : lui ajouter une colonne.","C’est exactement le rôle de <code>ALTER TABLE</code>."]
+    },
+    mission:"Aide l’équipe e-commerce à ajouter à la table clients une colonne <b>pays</b>, avec <b>France</b> comme valeur de départ pour les clients déjà enregistrés, afin de préparer l’ouverture à l’international."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir quelle modification apporter à la table ?",
+    blocks:[
+      "Pour changer la structure d’une table, SQL doit savoir quelle <b>opération</b> effectuer :",
+      {ask:"Ajouter, renommer ou supprimer une colonne ?"},
+      "En SQL, on écrit <code>ALTER TABLE</code> et le nom de la table, puis l’opération :",
+      {syntax:"ALTER TABLE produits ⟦ADD COLUMN …⟧\nALTER TABLE produits ⟦RENAME COLUMN … TO …⟧\nALTER TABLE produits ⟦DROP COLUMN …⟧"},
+      {scene:{h:"🏗️ Trois façons de changer la structure",cols:"1.35fr .8fr .8fr 0fr",
+        lanes:[{c:[["h1","nom","t"],["h2","prix","t"],["h3","stock","t"],["h4","marque","th"]]},
+          {k:"R1",c:[["a1","Magnésium"],["a2","19.9"],["a3","200"],["a4","vide","nh"]]},
+          {k:"R2",c:[["b1","Vitamine D"],["b2","14.9"],["b3","150"],["b4","vide","nh"]]},
+          {k:"R3",c:[["c1","Oméga 3"],["c2","24.9"],["c3","90"],["c4","vide","nh"]]}],
+        caps:["<b>Table produits</b> · Trois colonnes : nom, prix et stock.","<b>ADD COLUMN marque</b> · Une colonne apparaît. Les produits existants n’ont pas encore de valeur : NULL.","<b>RENAME COLUMN nom TO produit</b> · La colonne change de nom ; ses valeurs restent.","<b>DROP COLUMN stock</b> · La colonne disparaît, avec toutes ses valeurs."],
+        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R1","R2","R3"],cols:"1.35fr .8fr .8fr 1fr",show:["h4","a4","b4","c4"],stagger:120,d:3300},{cap:2,text:{h1:"produit"},d:2600},{cap:3,gone:["h3","a3","b3","c3"],cols:"1.35fr .8fr 0fr 1fr",d:2800}]}}
+    ]
+  },
+  steps:[
+    {h:"Ajouter une colonne",blocks:[
+      "<code>ADD COLUMN</code> ajoute une colonne à la table, avec son nom et son type :",
+      {syntax:"ALTER TABLE produits\n⟦ADD COLUMN marque TEXT⟧;"},
+      {looks:[["ALTER TABLE produits","désigne la table à modifier"],["ADD COLUMN marque TEXT","ajoute une colonne nommée marque, de type texte"]]},
+      {say:"👇 Exécute cette requête pour ajouter la colonne, puis afficher les produits :",run:"ALTER TABLE produits\nADD COLUMN marque TEXT;\nSELECT id, nom, marque\nFROM produits;"},
+      {arrow:"La colonne <code>marque</code> existe, mais les 8 produits n’ont aucune valeur : <code>NULL</code>."},
+      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : la colonne ajoutée n’existe plus à l’essai suivant."]}}
+    ]},
+    {h:"Donner une valeur de départ",blocks:[
+      "Avec <code>DEFAULT</code>, les lignes déjà présentes reçoivent la valeur par défaut au lieu de <code>NULL</code>. Les prochaines lignes l’auront aussi, tant qu’aucune autre valeur n’est donnée :",
+      {syntax:"ALTER TABLE produits\nADD COLUMN origine TEXT ⟦DEFAULT 'France'⟧;"},
+      {say:"👇 Exécute cette requête pour voir la valeur par défaut :",run:"ALTER TABLE produits\nADD COLUMN origine TEXT DEFAULT 'France';\nSELECT id, nom, origine\nFROM produits;"},
+      {arrow:"Les 8 produits ont reçu la valeur <code>France</code>."},
+      {warn:{t:"Écrire dans une colonne qui n’existe pas",blocks:[
+        "<code>UPDATE</code> modifie les <b>valeurs</b> des lignes, mais il ne sait pas créer de colonne : c’est le travail d’<code>ALTER TABLE</code>. Tant que la colonne <code>origine</code> n’existe pas, elle ne peut pas recevoir de valeur : la colonne d’abord, les valeurs ensuite.",
+        {say:"👇 Teste par toi-même :",run:"UPDATE produits\nSET origine = 'France';"}
+      ]}}
+    ]},
+    {h:"Renommer ou supprimer",blocks:[
+      "<code>RENAME COLUMN</code> change le nom d’une colonne, sans toucher à ses valeurs :",
+      {syntax:"ALTER TABLE produits\n⟦RENAME COLUMN categorie TO rayon⟧;"},
+      {say:"👇 Exécute cette requête pour renommer la colonne, puis afficher les produits :",run:"ALTER TABLE produits\nRENAME COLUMN categorie TO rayon;\nSELECT id, nom, rayon\nFROM produits;"},
+      {arrow:"Seul le nom change : les catégories sont toujours là, sous le nom <code>rayon</code>."},
+      {tip:{t:"Renommer la table",blocks:["<code>ALTER TABLE clients RENAME TO utilisateurs</code> renomme la table elle-même : toutes les requêtes suivantes doivent alors employer le nouveau nom."]}},
+      {warn:{t:"Supprimer une colonne",blocks:[
+        "Contrairement au renommage, <code>DROP COLUMN</code> supprime aussi les données que la colonne contenait.",
+        {say:"👇 Teste par toi-même :",run:"ALTER TABLE clients\nDROP COLUMN date_inscription;\nSELECT *\nFROM clients;"},
+        {arrow:"La colonne <code>date_inscription</code> a disparu, avec les dix dates."}
+      ]}},
+      {tip:{t:"Ce que SQLite ne fait pas",blocks:["D’autres moteurs proposent <code>ALTER COLUMN</code> (PostgreSQL) ou <code>MODIFY COLUMN</code> (MySQL) pour changer le type d’une colonne ; SQLite ne les connaît pas. Pour une transformation plus profonde, il faut recréer la table avec la nouvelle structure et y recopier les données."]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : désigner la table, ajouter la colonne, puis donner la valeur de départ des clients déjà enregistrés.",
+      {say:"👇 Exécute la requête pour ajouter la colonne pays :",run:"ALTER TABLE clients\nADD COLUMN pays TEXT DEFAULT 'France';\nSELECT id, prenom, ville, pays\nFROM clients;"},
+      {done:{
+        label:"De 8 colonnes à 9 colonnes",
+        unit:"free",
+        funnel:[
+          {n:8,t:"colonnes au départ",s:"toute la <code>table clients</code>",dots:"00000000"},
+          {step:"ALTER TABLE … ADD COLUMN pays",s:"ajoute une colonne, sans effacer aucun client"},
+          {n:9,t:"⭐ colonnes dans la table",s:"les 8 d’origine et <code>pays</code>",dots:"000000001",out:true}
+        ],
+        sms:{ico:"🌍",h:"Fiches clients complétées",aria:"Le pays France est enregistré pour les dix clients",msg:"<b>Nouvelle colonne</b> · pays<br>Valeur de départ : France",people:[["S","Sophie Martin","France"],["L","Lucas Bernard","France"],["E","Emma Dubois","France"],["N","Nathan Petit","France"],["C","Chloé Moreau","France"]],more:5,moreT:"… et 5 autres",moreS:"clients de la table",st:["Sans pays","Mise à jour","✓ France"],plane:"pin",done:"✓ 10 clients avec un pays"},
+        fill:["ALTER TABLE","ADD COLUMN","TEXT","'France'"],
+        ui:{t:"9 colonnes, 10 clients conservés",s:"La colonne pays est ajoutée, et aucun client n’a été perdu.",n:["ALTER TABLE","ADD COLUMN","DEFAULT"]},
+        rows:10
+      }}
+    ]}
   ],
-  "answer": 2,
-  "explanation": "Zéro est une valeur autorisée. Le contrôle rejette un stock négatif, pas une rupture de stock."
-}
-},
-{ id:65, titre:"ALTER TABLE", résumé:"Faire évoluer la structure d’une table",
-  situation:"La table <code>clients</code> existe déjà et contient des données : <code>id</code>, <code>prenom</code>, <code>nom</code>, <code>ville</code>, <code>age</code>, <code>email</code>, <code>telephone</code>, <code>date_inscription</code>.<br><br>Quelques mois plus tard, ton site e-commerce évolue : tu veux maintenant enregistrer le <b>pays</b> de chaque client.<br><br>Tu pourrais supprimer la table et la recréer avec une colonne de plus — mais tu perdrais les données déjà présentes.",
-  situationTail:"<div class=\"sit-sql\"><p>Comment modifier la structure d’une table sans la recréer entièrement ?</p><p>C’est le rôle d’<b><code>ALTER TABLE</code></b>.</p></div>",
-    studio:{pointCards:{
-      eye:"ALTER TABLE",title:"Faire évoluer une table qui existe.",
-      lead:"<code>CREATE TABLE</code> crée la structure. <code>ALTER TABLE</code> la fait évoluer, sans toucher aux données déjà enregistrées.",
-      chain:[
-        {k:"ADD COLUMN",v:"ajouter une colonne"},
-        {k:"RENAME",v:"renommer une colonne ou la table"},
-        {k:"DROP COLUMN",v:"supprimer une colonne"}
-      ]},
-    uses:{title:"Quatre opérations, une structure.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Les trois chemins</p>
-          <div class="tx-flow" role="img" aria-label="ALTER TABLE et ses trois opérations">
-            <span class="tx-step">table <b>clients</b><i>existe déjà</i></span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <span class="tx-step tx-key">ALTER TABLE</span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <div class="tx-fork tx-fork-3">
-              <div class="tx-branch is-ok"><b>ADD COLUMN</b><span>ajouter</span></div>
-              <div class="tx-branch"><b>RENAME</b><span>renommer</span></div>
-              <div class="tx-branch is-ko"><b>DROP COLUMN</b><span>supprimer</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Ajouter une colonne</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
-ADD COLUMN pays TEXT;</pre></div>
-          <p>La table reste <code>clients</code> : seule sa structure a changé. Les lignes déjà présentes n’ont aucune valeur pour cette information — elles prennent donc <code>NULL</code>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Avec une valeur par défaut</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
-ADD COLUMN pays TEXT DEFAULT 'France';</pre></div>
-          <p>Cette fois, les dix clients déjà enregistrés reçoivent <code>France</code> au lieu de <code>NULL</code>, et les prochains l’auront aussi tant qu’aucune autre valeur n’est fournie.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Renommer une colonne</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
-RENAME COLUMN telephone TO numero_telephone;</pre></div>
-          <p>Les numéros restent là : c’est le nom de la colonne qui change, pas son contenu.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Renommer la table</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
-RENAME TO utilisateurs;</pre></div>
-          <p>Attention : toutes les requêtes suivantes devront employer le nouveau nom. <code>SELECT * FROM clients</code> ne trouvera plus rien.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Supprimer une colonne</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ALTER TABLE clients
-DROP COLUMN telephone;</pre></div>
-          <p class="fn-tip"><b>Sans retour</b> Contrairement au renommage, supprimer une colonne supprime aussi les données qu’elle contenait.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Ce que SQLite ne fait pas</p>
-          <p>D’autres moteurs proposent <code>ALTER COLUMN</code> (PostgreSQL) ou <code>MODIFY COLUMN</code> (MySQL) pour changer le type d’une colonne. SQLite s’en tient volontairement aux quatre opérations ci-dessus.</p>
-          <p>Pour une transformation plus profonde — changer un type, revoir une contrainte — il faut recréer la table avec la nouvelle structure et y recopier les données.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La question",t:"les valeurs, ou la structure ?"},
-      b:{k:"La règle",t:"les valeurs → UPDATE · la structure → ALTER TABLE"},
-      note:"Réflexe : quand une table existe déjà et que sa structure doit évoluer, pense à <code>ALTER TABLE</code>."}},
-  anatomie:[
-    {tok:"ALTER TABLE",txt:"Annonce la modification d’une table existante."},
-    {tok:"clients",txt:"La table à modifier."},
-    {tok:"ADD COLUMN",txt:"L’opération à effectuer."},
-    {tok:"pays",txt:"Le nom de la nouvelle colonne."},
-    {tok:"TEXT",txt:"Son type."}
+  reflex:[
+    {recap:[
+      ["🏗️","<code>ALTER TABLE</code> fait évoluer la <b>structure</b> d’une table qui existe déjà, sans la recréer ni perdre ses données."],
+      ["➕","<code>ADD COLUMN</code> ajoute une colonne : les lignes existantes reçoivent <code>NULL</code>, ou la valeur de <code>DEFAULT</code> :",null,"ADD COLUMN pays TEXT DEFAULT 'France'"],
+      ["🔀","<code>ALTER TABLE</code> change les colonnes, <code>UPDATE</code> change les valeurs. Renommer garde les données ; <b>supprimer</b> une colonne les efface."]
+    ],label:"Les trois idées à retenir"}
   ],
-  exemple:"ALTER TABLE clients\nADD COLUMN pays TEXT DEFAULT 'France';\n\nSELECT id, prenom, pays\nFROM clients\nORDER BY id\nLIMIT 3;",
-  attendu:"La colonne pays existe désormais, et les clients déjà enregistrés portent France. Sans le DEFAULT, ils porteraient NULL.",
-  retenir:"<code>ALTER TABLE</code> fait évoluer la structure d’une table existante, sans la recréer ni perdre ses données.<br><br>Quatre opérations en SQLite : <b>ADD COLUMN</b> ajouter, <b>RENAME COLUMN</b> renommer une colonne, <b>RENAME TO</b> renommer la table, <b>DROP COLUMN</b> supprimer.<br><br>Le mémo : <code>CREATE TABLE</code> crée, <code>ALTER TABLE</code> fait évoluer, <code>UPDATE</code> modifie les données.",
-  piege:{t:"Confondre ALTER TABLE et UPDATE",
-    p:"Les deux modifient quelque chose, mais pas au même niveau.<br><br><code>ALTER TABLE</code> touche la <b>structure</b> : ajouter la colonne <code>pays</code>. <code>UPDATE</code> touche les <b>données</b> : écrire <code>France</code> dans le <code>pays</code> de Sophie.<br><br>Il faut souvent les deux, dans cet ordre : la colonne d’abord, la valeur ensuite.",
-    exec:true,
-    sql:"UPDATE clients\nSET pays = 'France'\nWHERE id = 1;",
-    out:"Erreur : la colonne pays n’existe pas encore. UPDATE ne peut pas la créer.",
-    fixSql:"ALTER TABLE clients\nADD COLUMN pays TEXT;\n\nUPDATE clients\nSET pays = 'France'\nWHERE id = 1;\n\nSELECT id, prenom, pays\nFROM clients\nWHERE id = 1;"},
-  petitDefi:[{
-    p:"La table <code>produits</code> existe déjà. Tu veux lui ajouter une colonne <code>marque</code> de type <code>TEXT</code>. Quels mots-clés remplacent les tirets ?",
-    sql:"__________ produits\n__________ marque TEXT;",
-    a:"ALTER TABLE / ADD COLUMN",
-    answers:["ALTER TABLE / ADD COLUMN","ALTER TABLE ADD COLUMN","ALTER TABLE, ADD COLUMN","alter table / add column","ALTER TABLE et ADD COLUMN"]
-  }],
-  consigne:"La table <code>clients</code> doit maintenant enregistrer le pays. Ajoute une colonne <code>pays</code> de type <code>TEXT</code>, avec <code>France</code> comme valeur par défaut.",
-  solution:"ALTER TABLE clients\nADD COLUMN pays TEXT DEFAULT 'France';",
-  verif:"SELECT id, prenom, pays FROM clients ORDER BY id;",
-  indice:"<code>ALTER TABLE nom_table</code>, puis <code>ADD COLUMN nom type DEFAULT valeur;</code>.",
+  anatomie:[{tok:"ALTER TABLE produits",txt:"La table à modifier."},{tok:"RENAME COLUMN",txt:"L’opération à effectuer : renommer une colonne."},{tok:"categorie",plain:1,txt:"L’ancien nom de la colonne."},{tok:"TO",txt:"Sépare l’ancien nom du nouveau."},{tok:"rayon",plain:1,txt:"Le nouveau nom de la colonne."}],
+  exemple:"ALTER TABLE produits\nRENAME COLUMN categorie TO rayon;",
+  attendu:"La colonne <code>categorie</code> s’appelle désormais <code>rayon</code> : les 8 produits gardent leurs valeurs.",
+  retenir:"<code>ALTER TABLE</code> fait évoluer la structure d’une table existante, sans la recréer ni perdre ses données.<br><br><code>ADD COLUMN</code> ajoute une colonne (les lignes existantes reçoivent <code>NULL</code> ou la valeur de <code>DEFAULT</code>), <code>RENAME COLUMN</code> la renomme, <code>RENAME TO</code> renomme la table, <code>DROP COLUMN</code> la supprime avec ses données.<br><br><code>ALTER TABLE</code> change les colonnes, <code>UPDATE</code> change les valeurs.",
+  consigne:"Dans la table <code>clients</code>, la colonne <code>telephone</code> doit désormais s’appeler <code>mobile</code>. Renomme-la, sans toucher aux valeurs.",
+  solution:"ALTER TABLE clients\nRENAME COLUMN telephone TO mobile;",
+  verif:"SELECT id, prenom, mobile FROM clients ORDER BY id;",
+  indice:"Écris <code>ALTER TABLE clients</code>, puis <code>RENAME COLUMN</code> suivi de l’ancien nom, du mot <code>TO</code> et du nouveau nom.",
   write:true,
-  richLesson:true, earlyDemo:true ,
-testeVariants:[
-  {
-    "k": "base",
-    "label": "Exemple",
-    "sql": "ALTER TABLE clients\nADD COLUMN pays TEXT DEFAULT 'France';"
+  petitDefi:[{p:"La table <code>produits</code> existe déjà. Quel mot-clé remplace les tirets pour lui ajouter une colonne <code>marque</code> de type <code>TEXT</code> ?",sql:"ALTER TABLE produits\n__________ marque TEXT;",a:"ADD COLUMN",answers:["ADD COLUMN","add column","ADD"]}],
+  testeVariants:[{k:"avant",label:"Avant ALTER",sql:"SELECT id, prenom\nFROM clients\nORDER BY id;",out:"La colonne pays n’existe pas encore.",expectRows:10},{k:"apres",label:"Après ALTER",sql:"ALTER TABLE clients\nADD COLUMN pays TEXT DEFAULT 'France';\nSELECT id, prenom, pays\nFROM clients\nORDER BY id;",out:"Les dix clients existants affichent France.",expectRows:10},{k:"rename",label:"Renommer",sql:"ALTER TABLE clients\nRENAME COLUMN telephone TO mobile;\nSELECT id, prenom, mobile\nFROM clients\nORDER BY id;",out:"Les numéros sont toujours là, sous le nom mobile.",expectRows:10}],
+  learningCheck:{question:"Avec ADD COLUMN pays TEXT DEFAULT 'France', quelle valeur reçoivent les clients déjà enregistrés ?",options:["NULL","France","Aucune : la base refuse d’ajouter la colonne"],answer:1,explanation:"La valeur par défaut s’applique aux lignes déjà présentes, puis aux prochaines tant qu’aucune autre valeur n’est donnée."}
+}),
+guide({ id:66, titre:"DROP", résumé:"Supprimer une structure de la base",
+  sit:{
+    blocks:[
+      "La boutique abandonne son <b>programme de fidélité</b>. L’équipe technique veut faire le ménage dans la base de données, pour qu’elle ne garde que ce qui sert encore.",
+      "La base contient au total <b>4 tables</b> : <code>clients</code>, <code>produits</code>, <code>commandes</code> et <code>fidelite</code>. Pour terminer le ménage, l’équipe souhaite retirer uniquement :",
+      {need:[["🗑️","La table fidelite","4 lignes"]],label:"Ce qu’il faut retirer"}
+    ],
+    problem:{
+      p:["Retirer les <b>lignes</b> d’une table (c’est le rôle de <code>DELETE</code>) ne suffit pas : la table reste dans la base, vide, avec ses colonnes et ses règles.","Or, ici, c’est la <b>table entière</b> qui ne sert plus : elle doit disparaître de la base."],
+      scene:{h:"🗄️ Tables de la base",
+        lanes:[{k:"A",l:"Les tables de la base",c:[["t1","clients"],["t2","produits"],["t3","commandes"],["t4","fidelite"]]}],
+        caps:["<b>Notre base</b> · Elle contient 4 tables.","<b>Besoin</b> · La table fidelite ne sert plus : le programme de fidélité est arrêté.","<b>Résultat</b> · Elle disparaît de la base, avec tout son contenu : il reste 3 tables."],
+        steps:[{cap:0,on:["A"],d:1900},{cap:1,off:["A"],mark:{t4:"is-miss"},d:2300},{cap:2,unmark:{t4:"is-miss"},gone:["t4"],d:2600}]},
+      then:["Il faut donc indiquer à SQL de <b>supprimer la table elle-même</b>, et non plus seulement son contenu.","C’est exactement le rôle de <code>DROP</code>."]
+    },
+    mission:"Aide l’équipe technique à supprimer la table <b>fidelite</b> de la base de données, afin de terminer le ménage après l’arrêt du programme de fidélité."
   },
-  {
-    "k": "rec_before",
-    "label": "Avant ALTER",
-    "sql": "SELECT id,prenom FROM clients ORDER BY id;",
-    "out": "La colonne pays n’existe pas encore.",
-    "expectRows": 10
+  concept:{
+    title:"Comment SQL peut-il savoir ce qu’il faut supprimer ?",
+    blocks:[
+      "Pour supprimer, SQL doit savoir quel est l’<b>objet</b> visé :",
+      {ask:"Veut-on retirer les lignes, ou la table elle-même ?"},
+      "En SQL, <code>DELETE FROM</code> retire les lignes, et <code>DROP TABLE</code> supprime la table :",
+      {syntax:"DELETE FROM fidelite;\n⟦DROP TABLE fidelite;⟧"},
+      {scene:{h:"🗄️ Vider ou supprimer",cols:"1fr 1fr 1fr",
+        lanes:[{k:"H",l:"Table fidelite",c:[["h1","id","t"],["h2","client_id","t"],["h3","points","t"]]},
+          {k:"R1",c:[["a1","1"],["a2","1"],["a3","120"]]},
+          {k:"R2",c:[["b1","2"],["b2","2"],["b3","80"]]},
+          {k:"R3",c:[["c1","3"],["c2","4"],["c3","250"]]},
+          {k:"R4",c:[["d1","4"],["d2","7"],["d3","160"]]},
+          {k:"X",fold:true,cols:"1fr",c:[["x1","la table n’existe plus","n"]]}],
+        caps:["<b>Table fidelite</b> · Elle contient ses colonnes et 4 lignes.","<b>DELETE FROM fidelite</b> · Les 4 lignes disparaissent, mais la table et ses colonnes restent.","<b>DROP TABLE fidelite</b> · La table disparaît à son tour, avec ses colonnes."],
+        steps:[{cap:0,on:["R1","R2","R3","R4"],d:1900},{cap:1,fold:["R1","R2","R3","R4"],d:3000},{cap:2,fold:["H"],unfold:["X"],d:3000}]}}
+    ]
   },
-  {
-    "k": "rec_after",
-    "label": "Après ALTER",
-    "sql": "ALTER TABLE clients ADD COLUMN pays TEXT DEFAULT 'France'; SELECT id,prenom,pays FROM clients ORDER BY id;",
-    "out": "Les dix clients existants affichent France.",
-    "expectRows": 10
-  }
-]
-,
-learningCheck:{
-  "question": "ADD COLUMN pays TEXT DEFAULT 'France' donne quoi aux anciens clients ?",
-  "options": [
-    "Un pays toujours NULL",
-    "France dans pays",
-    "Une nouvelle ligne par client"
+  steps:[
+    {h:"Vider une table, ce n’est pas la supprimer",blocks:[
+      "Retirer toutes les lignes d’une table avec <code>DELETE FROM</code> la laisse en place, vide :",
+      {say:"👇 Exécute cette requête : les lignes sont retirées, puis on les compte.",run:"DELETE FROM fidelite;\nSELECT COUNT(*) AS lignes\nFROM fidelite;"},
+      {arrow:"Zéro ligne, mais SQL a pu interroger <code>fidelite</code> : la table existe toujours, avec ses colonnes et ses règles."},
+      {tip:{t:"Et TRUNCATE ?",blocks:["PostgreSQL et MySQL proposent <code>TRUNCATE TABLE</code> pour vider une table plus vite. SQLite ne la connaît pas : on y écrit <code>DELETE FROM</code>."]}},
+      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux supprimer des tables sans rien casser. À chaque essai, <code>fidelite</code> retrouve ses 4 lignes."]}}
+    ]},
+    {h:"Supprimer une table avec DROP TABLE",blocks:[
+      "<code>DROP TABLE</code> retire la table de la base, avec ses lignes, ses colonnes et ses règles :",
+      {syntax:"⟦DROP TABLE⟧ essai;"},
+      "Pour s’entraîner, on crée d’abord une table d’essai. Pour vérifier qu’elle a disparu, on interroge <code>sqlite_master</code>, la table interne où SQLite note toutes les tables de la base :",
+      {say:"👇 Exécute cette requête pour créer la table d’essai, la supprimer, puis la chercher :",run:"CREATE TABLE essai (id INTEGER);\nDROP TABLE essai;\nSELECT COUNT(*) AS tables_essai\nFROM sqlite_master\nWHERE name = 'essai';"},
+      {arrow:"Zéro : la base ne connaît plus la table <code>essai</code>."},
+      {tip:{t:"Tables, vues et index",blocks:["<code>DROP TABLE</code> supprime une table, <code>DROP VIEW</code> une vue, <code>DROP INDEX</code> un index. Seul <code>DROP TABLE</code> emporte des lignes : supprimer une vue ou un index ne retire aucune donnée."]}}
+    ]},
+    {h:"Quand la suppression pose problème",blocks:[
+      "<code>DROP TABLE</code> peut aussi échouer, ou n’avoir rien à supprimer.",
+      {warn:{t:"Une table encore utilisée",blocks:[
+        "Des lignes de <code>commandes</code> et de <code>fidelite</code> pointent encore vers <code>clients</code> par une clé étrangère. Supprimer cette table les laisserait sans repère : la base refuse.",
+        {say:"👇 Teste par toi-même :",run:"DROP TABLE clients;"}
+      ]}},
+      {warn:{t:"Une table qui n’existe pas",blocks:[
+        "Si aucune table ne porte le nom demandé, la requête échoue.",
+        {say:"👇 Teste par toi-même :",run:"DROP TABLE paniers;"}
+      ]}},
+      {tip:{t:"Éviter l’erreur avec IF EXISTS",blocks:[
+        "Avec <code>IF EXISTS</code>, la table est supprimée si elle est là, et rien ne se passe si elle n’y est pas : aucune erreur dans les deux cas.",
+        {say:"👇 Teste par toi-même :",run:"DROP TABLE IF EXISTS paniers;\nSELECT name\nFROM sqlite_master\nWHERE type = 'table'\nORDER BY name;"}
+      ]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : supprimer la table <code>fidelite</code>, puis vérifier qu’elle a disparu de la liste des tables.",
+      {say:"👇 Exécute la requête pour terminer le ménage :",run:"DROP TABLE fidelite;\nSELECT name\nFROM sqlite_master\nWHERE type = 'table'\nORDER BY name;"},
+      {done:{
+        label:"De 4 tables à 3 tables",
+        unit:"free",
+        funnel:[
+          {n:4,t:"tables au départ",s:"<code>clients</code>, <code>produits</code>, <code>commandes</code> et <code>fidelite</code>",dots:"0000"},
+          {step:"DROP TABLE fidelite",s:"supprime la table, avec ses lignes et ses colonnes"},
+          {n:3,t:"⭐ tables dans la base",s:"<code>clients</code>, <code>produits</code> et <code>commandes</code>",dots:"111",out:true}
+        ],
+        sms:{ico:"🧹",h:"Nettoyage de la base",aria:"La table fidelite est retirée de la base de données",msg:"<b>Ménage dans la base</b><br>Programme de fidélité arrêté",people:[["F","fidelite","4 lignes · 3 colonnes"]],st:["Inutile","Suppression","✓ Supprimée"],plane:"doc",done:"✓ Table fidelite supprimée"},
+        fill:["DROP TABLE","fidelite","FROM","sqlite_master"],
+        ui:{t:"3 tables dans la base",s:"La table fidelite a disparu avec ses lignes : il reste clients, produits et commandes.",n:["DROP TABLE","SELECT","WHERE"]},
+        rows:3
+      }}
+    ]}
   ],
-  "answer": 1,
-  "explanation": "La nouvelle colonne apparaît aussi sur les lignes préexistantes avec sa valeur par défaut."
-}
-},
-{ id:66, titre:"DROP", résumé:"Supprimer une structure de la base",
-  situation:"Pour un essai, tu as créé une table <code>commandes_test</code> et tu l’as remplie de fausses lignes.<br><br>L’essai est terminé. Tu écris <code>DELETE FROM commandes_test;</code> : les lignes disparaissent bien, mais la table, elle, est toujours là — vide, avec ses colonnes et ses règles.<br><br><code>DELETE</code> ne sait retirer que des lignes. La structure qui les contenait ne le concerne pas.",
-  situationTail:"<div class=\"sit-sql\"><p>Comment supprimer la structure elle-même, et pas seulement son contenu ?</p><p>C’est le rôle de <b><code>DROP</code></b>.</p></div>",
-    studio:{pointCards:{
-      eye:"DROP",title:"Supprimer l’objet, pas seulement les lignes.",
-      lead:"<code>DELETE</code> retire des lignes d’une table. <code>DROP</code> retire la table de la base : ses lignes, ses colonnes, ses contraintes et ses index partent ensemble.",
-      chain:[
-        {k:"DROP TABLE",v:"supprime une table"},
-        {k:"DROP VIEW",v:"supprime une vue"},
-        {k:"DROP INDEX",v:"supprime un index"}
-      ]},
-    uses:{title:"Vider, ou faire disparaître.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Deux niveaux de suppression</p>
-          <div class="tx-flow" role="img" aria-label="DELETE vide la table, DROP la supprime">
-            <span class="tx-step">table <b>commandes_test</b><i>structure + 2 lignes</i></span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <div class="tx-fork">
-              <div class="tx-branch is-ok"><b>DELETE FROM</b><span>la table reste, vide</span></div>
-              <div class="tx-branch is-ko"><b>DROP TABLE</b><span>la table n’existe plus</span></div>
-            </div>
-          </div>
-          <p>Les deux suppriment quelque chose. <code>DELETE</code> agit sur le <b>contenu</b>, <code>DROP</code> sur l’<b>objet</b>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Vider une table</p>
-          <div class="pt-syntax"><pre class="cw-syntax">DELETE FROM commandes_test;</pre></div>
-          <p>Zéro ligne — mais <code>commandes_test</code> figure toujours dans la base, avec ses colonnes <code>id</code> et <code>quantite</code>. Un <code>INSERT</code> peut la remplir de nouveau dans la seconde qui suit.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Supprimer la table</p>
-          <div class="pt-syntax"><pre class="cw-syntax">DROP TABLE commandes_test;</pre></div>
-          <p>Cette fois la table n’est plus dans la base. La requête suivante n’a plus rien à interroger :</p>
-          <div class="tx-fail">
-            <span class="is-ko">SELECT * FROM commandes_test;<i>no such table</i></span>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Quand l’objet n’existe pas</p>
-          <p><code>DROP TABLE paniers;</code> échoue si aucune table ne porte ce nom : <code>no such table: paniers</code>.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">DROP TABLE IF EXISTS paniers;</pre></div>
-          <p><code>IF EXISTS</code> supprime la table si elle est là, et ne fait rien si elle n’y est pas. Aucune erreur dans les deux cas.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Trois objets, trois commandes</p>
-          <div class="table-wrap"><table class="concept-table fit-2">
-            <thead><tr><th>Commande</th><th>Supprime</th></tr></thead>
-            <tbody>
-              <tr><td><code>DROP TABLE</code></td><td>la table</td></tr>
-              <tr><td><code>DROP VIEW</code></td><td>la vue</td></tr>
-              <tr><td><code>DROP INDEX</code></td><td>l’index</td></tr>
-            </tbody>
-          </table></div>
-          <p>Seul <code>DROP TABLE</code> emporte des lignes. Supprimer la vue <code>produits_stock_faible</code> ne retire aucun produit : la vue n’était qu’une requête enregistrée sous un nom, et les huit produits restent.</p>
-          <p>Supprimer un index ne retire rien non plus. Les lignes sont simplement retrouvées plus lentement, comme avant sa création.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Ce que DROP TABLE emporte avec lui</p>
-          <p>La table part avec tout ce qui lui appartient : ses lignes, ses colonnes, ses contraintes, et les index construits sur elle. Inutile de les supprimer un par un.</p>
-          <p class="fn-tip"><b>Une vue ne suit pas</b> Une vue bâtie sur une table supprimée reste enregistrée dans la base, mais devient illisible : la lire renvoie <code>no such table</code>. C’est à toi de la supprimer.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Revenir en arrière</p>
-          <p>En SQLite, <code>DROP</code> obéit aux transactions comme <code>DELETE</code>. À l’intérieur d’un <code>BEGIN</code>, un <code>ROLLBACK</code> ramène la table et ses lignes.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">BEGIN;
-DROP TABLE commandes;
-ROLLBACK;</pre></div>
-          <p>La table <code>commandes</code> est de retour, avec ses seize lignes.</p>
-          <p class="fn-tip"><b>Le filet a une limite</b> Après le <code>COMMIT</code>, ou en dehors de toute transaction, la suppression est définitive.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Et TRUNCATE ?</p>
-          <p>PostgreSQL et MySQL proposent une troisième commande, <code>TRUNCATE TABLE</code> : elle vide la table entièrement, plus vite que <code>DELETE</code>, mais garde la structure comme lui.</p>
-          <div class="tx-fail">
-            <span class="is-ko">TRUNCATE TABLE commandes;<i>syntax error</i></span>
-          </div>
-          <p>SQLite ne la connaît pas. Pour vider une table, on écrit <code>DELETE FROM commandes;</code>.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La question",t:"les lignes, ou la table ?"},
-      b:{k:"La règle",t:"les lignes → DELETE · la table → DROP"},
-      note:"Réflexe : <code>DELETE</code> laisse la table en place, vide. <code>DROP</code> la retire de la base."}},
-  anatomie:[
-    {tok:"DROP",txt:"Annonce la suppression d’un objet de la base."},
-    {tok:"TABLE",txt:"Le type d’objet supprimé : TABLE, VIEW ou INDEX."},
-    {tok:"IF EXISTS",txt:"Facultatif : évite l’erreur si l’objet n’existe pas."},
-    {tok:"commandes_test",txt:"Le nom de l’objet à supprimer."}
+  reflex:[
+    {recap:[
+      ["🗄️","<code>DROP TABLE</code> supprime la <b>table elle-même</b> : ses lignes, ses colonnes et ses règles."],
+      ["🧹","<code>DELETE</code> vide la table, <code>DROP TABLE</code> la fait disparaître.","Une table supprimée ne se récupère pas."],
+      ["🛟","<code>IF EXISTS</code> évite l’erreur quand la table n’existe pas :",null,"DROP TABLE IF EXISTS paniers"]
+    ],label:"Les trois idées à retenir"}
   ],
-  exemple:"CREATE TABLE commandes_test (\n  id INTEGER PRIMARY KEY,\n  quantite INTEGER\n);\n\nINSERT INTO commandes_test\n  (id, quantite)\nVALUES (1, 3), (2, 5);\n\nDELETE FROM commandes_test;\n\nDROP TABLE IF EXISTS commandes_test;\n\nSELECT COUNT(*) AS table_restante\nFROM sqlite_master\nWHERE name = 'commandes_test';",
-  attendu:"Zéro. DELETE avait vidé la table sans la faire disparaître ; DROP la retire de la base — sqlite_master ne la connaît plus.",
-  retenir:"<code>DELETE</code> supprime des <b>lignes</b>. <code>DROP</code> supprime l’<b>objet</b> lui-même : la table, avec ses colonnes, ses contraintes et ses index.<br><br>Trois objets, trois commandes : <code>DROP TABLE</code>, <code>DROP VIEW</code>, <code>DROP INDEX</code>. <code>IF EXISTS</code> évite l’erreur quand l’objet n’existe pas.<br><br>Le mémo : <b>DELETE vide, DROP fait disparaître</b>.",
-  piege:{t:"Croire que DELETE supprime la table",
-    p:"<code>DELETE FROM commandes</code> retire les seize lignes, et s’arrête là. La table reste dans la base, avec ses cinq colonnes et ses clés étrangères — prête à recevoir de nouvelles lignes.<br><br>Pour qu’elle ne soit plus dans la base du tout, il faut <code>DROP TABLE</code>.",
-    exec:true,
-    sql:"DELETE FROM commandes;\n\nSELECT COUNT(*) AS lignes\nFROM commandes;",
-    out:"0 ligne — mais la table commandes répond encore : elle est vide, pas supprimée.",
-    fixSql:"DROP TABLE commandes;\n\nSELECT type, name\nFROM sqlite_master\nWHERE type = 'table'\nORDER BY name;"},
-  petitDefi:[{
-    p:"La vue <code>ventes_2026</code> ne sert plus. Quels mots-clés remplacent les tirets pour la retirer de la base ?",
-    sql:"__________ ventes_2026;",
-    a:"DROP VIEW",
-    answers:["DROP VIEW","drop view","DROP VIEW ventes_2026","drop view ventes_2026"]
-  }],
+  anatomie:[{tok:"DROP",txt:"Annonce la suppression d’un objet de la base."},{tok:"TABLE",txt:"Le type d’objet supprimé : TABLE, VIEW ou INDEX."},{tok:"IF EXISTS",txt:"Facultatif : évite l’erreur si l’objet n’existe pas."},{tok:"paniers",plain:1,txt:"Le nom de l’objet à supprimer."}],
+  exemple:"DROP TABLE IF EXISTS paniers;",
+  attendu:"Aucune erreur, même si la table <code>paniers</code> n’existe pas : <code>IF EXISTS</code> rend la suppression silencieuse.",
+  retenir:"<code>DELETE</code> supprime des <b>lignes</b>. <code>DROP</code> supprime l’<b>objet</b> lui-même : la table, avec ses colonnes, ses contraintes et ses index.<br><br>Trois objets, trois commandes : <code>DROP TABLE</code>, <code>DROP VIEW</code>, <code>DROP INDEX</code>. <code>IF EXISTS</code> évite l’erreur quand l’objet n’existe pas.<br><br>Le mémo : <b>DELETE vide, DROP fait disparaître</b>.",
   consigne:"Cette base de travail est une copie : tu peux y supprimer ce que tu veux. Fais disparaître la table <code>commandes</code> de la base — pas seulement ses lignes — sans provoquer d’erreur si elle en est déjà absente.",
   solution:"DROP TABLE IF EXISTS commandes;",
   verif:"SELECT type, name FROM sqlite_master WHERE type = 'table' ORDER BY name;",
-  indice:"<code>DROP TABLE nom_table;</code> — et <code>IF EXISTS</code> se place entre <code>TABLE</code> et le nom.",
+  indice:"Écris <code>DROP TABLE</code> suivi du nom de la table, et place <code>IF EXISTS</code> entre <code>TABLE</code> et le nom.",
   write:true,
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-  {
-    "k": "objets",
-    "label": "Les objets",
-    "sql": "SELECT type, name\nFROM sqlite_master\nORDER BY type, name;",
-    "out": "Les tables de la base. C’est cette liste que DROP raccourcit."
-  },
-  {
-    "k": "lignes",
-    "label": "Les lignes",
-    "sql": "SELECT COUNT(*) AS lignes\nFROM commandes;",
-    "out": "Seize lignes. DELETE les ramènerait à zéro sans retirer commandes de la liste ci-dessus."
-  },
-  {
-    "k": "rec_delete",
-    "label": "Vider sans supprimer",
-    "sql": "DELETE FROM commandes; SELECT name FROM sqlite_master WHERE type='table' AND name='commandes';",
-    "out": "La table existe toujours après DELETE.",
-    "expectRows": 1
-  }
-] ,
-learningCheck:{
-  "question": "Quelle différence entre DELETE FROM commandes et DROP TABLE commandes ?",
-  "options": [
-    "DELETE vide ; DROP retire la table",
-    "Aucune",
-    "DROP conserve les lignes"
-  ],
-  "answer": 0,
-  "explanation": "DELETE conserve la structure. DROP supprime aussi la table elle-même. Les démonstrations se font sur une copie jetable."
-}
-}
+  petitDefi:[{p:"La vue <code>ventes_2026</code> ne sert plus. Quels mots-clés remplacent les tirets pour la retirer de la base ?",sql:"__________ ventes_2026;",a:"DROP VIEW",answers:["DROP VIEW","drop view","DROP VIEW ventes_2026","drop view ventes_2026"]}],
+  testeVariants:[{k:"tables",label:"Les tables",sql:"SELECT type, name\nFROM sqlite_master\nWHERE type = 'table'\nORDER BY name;",out:"Les tables de la base : c’est cette liste que DROP TABLE raccourcit.",expectRows:4},{k:"vider",label:"Vider sans supprimer",sql:"DELETE FROM commandes;\nSELECT name\nFROM sqlite_master\nWHERE type = 'table' AND name = 'commandes';",out:"La table existe toujours après DELETE : elle est seulement vide.",expectRows:1},{k:"fk",label:"Table encore utilisée",sql:"DROP TABLE clients;",out:"Refusé : des lignes de commandes et de fidelite pointent encore vers clients.",tone:"bad"}],
+  learningCheck:{question:"Quelle différence entre DELETE FROM commandes et DROP TABLE commandes ?",options:["DELETE vide la table ; DROP la supprime","Aucune : les deux font la même chose","DROP conserve les lignes"],answer:0,explanation:"DELETE retire les lignes mais conserve la structure. DROP supprime aussi la table elle-même. Ici, chaque essai se fait sur une copie jetable de la base."}
+})
 ]},
 { titre:"Écrire et modifier les données", sous:"INSERT, UPDATE, DELETE", lessons:[
-{ id:26, titre:"INSERT", résumé:"Ajouter une ligne",
-  situation:"Un produit arrive au catalogue : Zinc, catégorie Bien-être, 17,90 €, 70 en stock.<br><br>La table <code>produits</code> a cinq colonnes. Tu dois dire à la base laquelle reçoit quoi — et c’est là que tout se joue : le lien entre les colonnes et les valeurs est <b>positionnel</b>.<br><br>Inverser deux valeurs du même type ne déclenche aucune erreur. La ligne est écrite, et elle est fausse.",
-  situationTail:"<div class=\"sit-sql\"><p><code>SELECT</code> lit, <b><code>INSERT</code></b> écrit.</p><p>Nommer les colonnes est le seul moyen de savoir ce qui va où.</p></div>",
-    studio:{pointCards:{
-      eye:"INSERT",title:"Écrire une ligne, colonne par colonne.",
-      lead:"On indique la table, les colonnes visées, puis les valeurs — dans le même ordre que les colonnes.",
-      chain:[
-        {k:"INTO produits",v:"où écrire"},
-        {k:"(colonnes)",v:"lesquelles"},
-        {k:"VALUES (…)",v:"dans le même ordre"}
-      ]},
-    uses:{title:"Nommer, plutôt que compter sur l’ordre.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">La forme à retenir</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO produits
-    (nom, categorie, prix, stock)
-VALUES ('Zinc', 'Bien-être',
-        17.90, 70);</pre></div>
-          <p>Chaque valeur rejoint la colonne de même rang : <code>'Zinc'</code> dans <code>nom</code>, <code>17.90</code> dans <code>prix</code>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Une valeur au mauvais rang ne déclenche rien</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO clients (prenom, ville)
-VALUES ('Lille', 'Théo');</pre></div>
-          <p>Les deux colonnes attendent du texte. La base accepte : Lille devient un prénom de client, Théo une ville. Aucun message, une ligne fausse.</p>
-          <p class="fn-tip"><b>Le seul garde-fou</b> Relire l’<code>INSERT</code> en associant chaque valeur à sa colonne, dans l’ordre.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Sans la liste des colonnes</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO produits
-VALUES (20, 'Zinc', 'Bien-être',
-        17.90, 70);</pre></div>
-          <p>C’est permis, à condition de fournir <b>toutes</b> les valeurs, dans l’ordre exact de la table. Le jour où une colonne est ajoutée par <code>ALTER TABLE</code>, cet <code>INSERT</code> cesse de fonctionner.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Les colonnes qu’on ne cite pas</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO produits (id, nom)
-VALUES (20, 'Zinc');</pre></div>
-          <p>Elles reçoivent <code>NULL</code> — ou la valeur prévue par <code>DEFAULT</code> si la table en déclare une. Ici, <code>categorie</code>, <code>prix</code> et <code>stock</code> restent vides.</p>
-          <p class="fn-tip"><b>Sauf si la colonne est obligatoire</b> Omettre une colonne <code>NOT NULL</code> revient à y mettre <code>NULL</code> : la ligne est refusée.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">L’identifiant peut s’écrire tout seul</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO produits
-    (nom, categorie, prix, stock)
-VALUES ('Zinc', 'Bien-être',
-        17.90, 70);</pre></div>
-          <p>Aucun <code>id</code> n’est fourni. Comme la colonne est <code>INTEGER PRIMARY KEY</code>, SQLite en attribue un : le neuvième produit reçoit l’identifiant 9.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Voir la ligne qui vient d’être écrite</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO produits
-    (nom, prix, stock)
-VALUES ('Zinc', 17.90, 70)
-RETURNING id, nom;</pre></div>
-          <p><code>RETURNING</code> renvoie la ligne telle qu’elle a été enregistrée, identifiant compris. Pratique quand la base a rempli des valeurs à ta place.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Ce que la base vérifie au passage</p>
-          <p>Chaque <code>INSERT</code> est contrôlé : identifiant déjà pris, colonne obligatoire vide, valeur hors des clous, référence inexistante. La ligne fautive n’est pas écrite.</p>
-          <p>C’est le sujet du cours <b>Les contraintes à l’épreuve</b>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Au-delà d’une ligne</p>
-          <p>Une même instruction peut écrire plusieurs lignes, recopier le résultat d’un <code>SELECT</code>, ou mettre à jour la ligne quand elle existe déjà.</p>
-          <p>Ces trois formes sont détaillées dans le cours <b>INSERT avancé</b>.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"INSERT INTO t (a, b)",t:"les colonnes, dans l’ordre"},
-      b:{k:"VALUES (…, …)",t:"les valeurs, <b>dans le même ordre</b>"},
-      note:"Réflexe : nomme toujours les colonnes. Une inversion entre deux colonnes du même type ne provoque aucune erreur."}},
-  anatomie:[
-    {tok:"INSERT INTO produits",txt:"La table qui reçoit la ligne."},
-    {tok:"(nom, categorie, prix, stock)",txt:"Les colonnes renseignées."},
-    {tok:"VALUES",txt:"Annonce les valeurs."},
-    {tok:"('Zinc', 'Bien-être', 17.90, 70)",txt:"Une valeur par colonne, dans le même ordre."}
+guide({ id:26, titre:"INSERT", résumé:"Ajouter une ligne",
+  sit:{
+    blocks:[
+      "L’équipe catalogue reçoit <b>un nouveau produit</b> de son fournisseur : le <b>Zinc</b>. Il doit rejoindre le catalogue de la boutique.",
+      "La table <code>produits</code> contient au total <b>8 produits</b>. Pour enregistrer le Zinc, l’équipe dispose de ces informations :",
+      {need:[["🏷️","Son nom","Zinc"],["🗂️","Sa catégorie","Bien-être"],["💶","Son prix","17,90 €"],["📦","Son stock","70 unités"]],label:"Les informations à enregistrer"}
+    ],
+    problem:{
+      p:["Avec <code>SELECT</code>, SQL sait <b>lire</b> les lignes d’une table, mais il ne modifie jamais son contenu.","Or, ici, l’équipe doit <b>ajouter une ligne</b> : le catalogue doit passer de 8 à 9 produits."],
+      scene:{h:"📦 Catalogue des produits",cols:"1.5fr 1.3fr .8fr",
+        lanes:[{c:[["h1","nom","t"],["h2","categorie","t"],["h3","prix","t"]]},
+          {k:"R1",c:[["a1","Magnésium"],["a2","Bien-être"],["a3","19.9"]]},
+          {k:"R2",c:[["b1","Vitamine D"],["b2","Nutrition"],["b3","14.9"]]},
+          {k:"R3",c:[["c1","Oméga 3"],["c2","Bien-être"],["c3","24.9"]]},
+          {k:"N",fold:true,c:[["n1","?","q"],["n2","?","q"],["n3","?","q"]]}],
+        caps:["<b>Notre catalogue</b> · La table contient 8 produits : le Zinc n’en fait pas encore partie.","<b>Besoin</b> · Le Zinc doit être enregistré sur une <b>nouvelle ligne</b>.","<b>Résultat</b> · La table compte une ligne de plus : 9 produits."],
+        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R1","R2","R3"],unfold:["N"],d:2300},{cap:2,text:{n1:"Zinc",n2:"Bien-être",n3:"17.9"},stagger:260,d:3000}]},
+      then:["Il faut donc indiquer à SQL <b>dans quelle table</b> ajouter la ligne, et <b>quelles valeurs</b> y écrire.","C’est exactement le rôle de <code>INSERT</code>."]
+    },
+    mission:"Aide l’équipe catalogue à ajouter le <b>Zinc</b> à la table produits, avec son <b>nom</b>, sa <b>catégorie</b>, son <b>prix</b> et son <b>stock</b>, afin de compléter le catalogue de la boutique."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir dans quelle colonne ranger chaque valeur ?",
+    blocks:[
+      "Pour écrire une ligne, SQL doit relier chaque valeur à une colonne :",
+      {ask:"À quelle colonne appartient cette valeur ?"},
+      "En SQL, on cite d’abord les colonnes, puis on donne les valeurs <b>dans le même ordre</b> :",
+      {syntax:"⟦(nom, categorie, prix, stock)⟧\n⟦VALUES ('Zinc', 'Bien-être', 17.90, 70)⟧"},
+      {scene:{h:"🧩 Une valeur pour chaque colonne",cols:"1.2fr 1.3fr .8fr .7fr",
+        lanes:[{k:"V",l:"Les valeurs",c:[["v1","Zinc"],["v2","Bien-être"],["v3","17.9"],["v4","70"]]},
+          {k:"H",c:[["h1","nom","t"],["h2","categorie","t"],["h3","prix","t"],["h4","stock","t"]]},
+          {k:"N",c:[["n1","?","q"],["n2","?","q"],["n3","?","q"],["n4","?","q"]]}],
+        caps:["<b>(nom, categorie, prix, stock)</b> · SQL prépare une ligne avec ces quatre colonnes.","<b>VALUES (…)</b> · La 1ʳᵉ valeur va dans la 1ʳᵉ colonne, la 2ᵉ dans la 2ᵉ, et ainsi de suite.","<b>Résultat</b> · Chaque valeur est rangée dans la colonne de même rang."],
+        steps:[{cap:0,on:["N"],d:1900},{cap:1,off:["N"],on:["V"],fly:[["v1","n1"],["v2","n2"],["v3","n3"],["v4","n4"]],stagger:380,d:3600},{cap:2,off:["V"],on:["N"],d:2400}]}}
+    ]
+  },
+  steps:[
+    {h:"Ajouter une ligne",blocks:[
+      "Pour ajouter une ligne, on écrit <code>INSERT INTO</code>, suivi de la <b>table</b> et de la liste de ses colonnes, puis <code>VALUES</code> et les valeurs :",
+      {syntax:"⟦INSERT INTO clients (prenom, nom, ville)⟧\n⟦VALUES ('Camille', 'Roux', 'Lille')⟧;"},
+      {looks:[["INSERT INTO clients (…)","désigne la table qui reçoit la ligne et les colonnes à remplir"],["VALUES (…)","donne les valeurs, dans le même ordre"]]},
+      {say:"👇 Exécute cette requête pour ajouter Camille, puis afficher les clients :",run:"INSERT INTO clients (prenom, nom, ville)\nVALUES ('Camille', 'Roux', 'Lille');\nSELECT id, prenom, nom, ville\nFROM clients;"},
+      {arrow:"La table compte maintenant 11 clients : Camille arrive en dernier."},
+      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux ajouter des lignes sans rien abîmer. À chaque essai, tu retrouves les 10 clients d’origine."]}}
+    ]},
+    {h:"Les colonnes qu’on ne cite pas",blocks:[
+      "Une colonne qu’on ne cite pas reçoit <code>NULL</code>, ou sa valeur par défaut si la table en prévoit une. L’<code>id</code>, lui, se remplit tout seul : la base attribue le numéro suivant.",
+      {say:"👇 Exécute cette requête : seul le nom du produit est donné.",run:"INSERT INTO produits (nom)\nVALUES ('Vitamine C');\nSELECT *\nFROM produits\nWHERE nom = 'Vitamine C';"},
+      {arrow:"Le produit a reçu l’identifiant 9 ; sa catégorie, son prix et son stock valent <code>NULL</code>."},
+      {tip:{t:"Voir la ligne écrite",blocks:[
+        "Ajoute <code>RETURNING</code> à la fin de l’<code>INSERT</code> : la base renvoie la ligne telle qu’elle vient d’être enregistrée, identifiant compris.",
+        {say:"👇 Teste par toi-même :",run:"INSERT INTO produits (nom, prix)\nVALUES ('Spiruline', 18.50)\nRETURNING id, nom, prix;"}
+      ]}},
+      {warn:{t:"Une colonne obligatoire",blocks:[
+        "Si tu écris :",
+        {syntax:"INSERT INTO produits (categorie, prix)"},
+        "La colonne <code>nom</code> est obligatoire (<code>NOT NULL</code>). Comme elle n’est pas citée, elle recevrait <code>NULL</code> : la base refuse la ligne. Avant d’écrire, elle contrôle toujours les règles de la table.",
+        {say:"👇 Teste par toi-même :",run:"INSERT INTO produits (categorie, prix)\nVALUES ('Nutrition', 9.90);"}
+      ]}}
+    ]},
+    {h:"Respecter l’ordre des valeurs",blocks:[
+      "La base associe chaque valeur à une colonne <b>par sa position</b>, sans jamais en vérifier le sens.",
+      {warn:{t:"Valeurs inversées",blocks:[
+        "Si tu écris :",
+        {syntax:"VALUES ('Bien-être', 'Zinc', 17.90, 70)"},
+        "<code>nom</code> et <code>categorie</code> attendent tous deux du texte : la base accepte la ligne, mais elle est fausse.",
+        {say:"👇 Teste par toi-même :",run:"INSERT INTO produits (nom, categorie, prix, stock)\nVALUES ('Bien-être', 'Zinc', 17.90, 70);\nSELECT *\nFROM produits\nWHERE id = 9;"},
+        {arrow:"Aucune erreur, mais le produit s’appelle « Bien-être » et sa catégorie est « Zinc »."}
+      ]}},
+      {tip:{t:"Sans liste de colonnes",blocks:["<code>INSERT INTO produits VALUES (…)</code> est permis, mais il faut alors donner <b>toutes</b> les valeurs, dans l’ordre exact des colonnes de la table. La requête casse dès qu’une colonne est ajoutée : mieux vaut toujours nommer les colonnes."]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : indiquer la table, nommer les colonnes, puis donner les valeurs du Zinc dans le même ordre.",
+      {say:"👇 Exécute la requête pour ajouter le Zinc au catalogue :",run:"INSERT INTO produits (nom, categorie, prix, stock)\nVALUES ('Zinc', 'Bien-être', 17.90, 70);\nSELECT *\nFROM produits;"},
+      {done:{
+        label:"Du catalogue de 8 produits à 9 produits",
+        unit:"free",
+        funnel:[
+          {n:8,t:"produits au départ",s:"toute la <code>table produits</code>",dots:"00000000"},
+          {step:"INSERT INTO produits … VALUES …",s:"ajoute une ligne, sans toucher aux autres"},
+          {n:9,t:"⭐ produits dans le catalogue",s:"les 8 d’origine et le Zinc",dots:"000000001",out:true}
+        ],
+        sms:{ico:"🛒",h:"Mise en ligne du produit",aria:"La fiche du Zinc est publiée dans le catalogue de la boutique",msg:"<b>Nouveau produit</b><br>Zinc · Bien-être · 17,90 €",people:[["Z","Zinc","Bien-être · 17.9 €"]],st:["Brouillon","Publication","✓ En ligne"],done:"✓ Le Zinc est en ligne"},
+        fill:["INSERT INTO","nom","VALUES","'Zinc'"],
+        ui:{t:"9 produits dans le catalogue",s:"Le Zinc rejoint le catalogue : les 8 autres produits n’ont pas changé.",n:["INSERT INTO","VALUES"]},
+        rows:9
+      }}
+    ]}
   ],
-  exemple:"INSERT INTO produits\n    (nom, categorie, prix, stock)\nVALUES ('Zinc', 'Bien-être',\n        17.90, 70);\n\nSELECT id, nom, categorie, prix, stock\nFROM produits\nORDER BY id DESC\nLIMIT 1;",
-  attendu:"Une ligne de plus, avec l’identifiant 9 attribué par la base : Zinc, Bien-être, 17.90, stock 70.",
-  retenir:"<code>INSERT INTO table (colonnes) VALUES (valeurs)</code> ajoute une ligne. Le lien colonnes ↔ valeurs est <b>positionnel</b>.<br><br>Sans liste de colonnes, il faut les fournir toutes, dans l’ordre de la table — une déclaration fragile.<br><br>Les colonnes non citées prennent <code>NULL</code> ou leur <code>DEFAULT</code>, et une colonne <code>INTEGER PRIMARY KEY</code> se remplit toute seule.",
-  piege:{t:"Se fier à l’ordre des colonnes de la table",
-    p:"Un <code>INSERT</code> sans liste de colonnes dépend de l’ordre exact de la table. Le jour où <code>ALTER TABLE</code> ajoute une colonne, la requête casse — ou pire, écrit les valeurs de travers.<br><br>Nommer les colonnes rend l’instruction indépendante de la structure.",
-    exec:true,
-    sql:"INSERT INTO clients (prenom, ville)\nVALUES ('Lille', 'Théo');\n\nSELECT id, prenom, ville\nFROM clients\nORDER BY id DESC\nLIMIT 1;",
-    out:"Aucune erreur — mais Lille est enregistré comme prénom, et Théo comme ville.",
-    fixSql:"INSERT INTO clients (prenom, ville)\nVALUES ('Théo', 'Lille');\n\nSELECT id, prenom, ville\nFROM clients\nORDER BY id DESC\nLIMIT 1;"},
-  petitDefi:[{
-    p:"Tu écris <code>INSERT INTO produits (id, nom) VALUES (20, 'Zinc');</code>. Que contient la colonne <code>prix</code> de cette nouvelle ligne ?",
-    sql:"SELECT prix FROM produits WHERE id = 20;\n→ __________",
-    a:"NULL",
-    answers:["NULL","null","Null","rien","vide"]
-  }],
-  consigne:"Ajoute au catalogue un produit <code>'Zinc'</code>, de catégorie <code>'Bien-être'</code>, au prix de <code>17.90</code>, avec <code>70</code> en stock. Laisse la base attribuer l’identifiant.",
-  solution:"INSERT INTO produits\n    (nom, categorie, prix, stock)\nVALUES ('Zinc', 'Bien-être',\n        17.90, 70);",
+  reflex:[
+    {recap:[
+      ["➕","<code>INSERT INTO</code> <b>ajoute une ligne</b> à une table.","Contrairement à <code>SELECT</code>, il modifie la table."],
+      ["🧩","Les valeurs se rangent <b>dans l’ordre des colonnes</b> citées :",null,"(nom, prix) VALUES ('Zinc', 17.90)"],
+      ["📝","Nomme toujours les colonnes : celles qu’on ne cite pas reçoivent <code>NULL</code> ou leur valeur par défaut."]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"INSERT INTO clients",txt:"La table qui reçoit la nouvelle ligne."},{tok:"(prenom, nom, ville)",plain:1,txt:"Les colonnes à remplir. L’id n’est pas cité : la base l’attribue."},{tok:"VALUES",txt:"Annonce les valeurs à écrire."},{tok:"('Camille', 'Roux', 'Lille')",plain:1,txt:"Une valeur par colonne, dans le même ordre."}],
+  exemple:"INSERT INTO clients (prenom, nom, ville)\nVALUES ('Camille', 'Roux', 'Lille');",
+  attendu:"<b>1 ligne ajoutée</b> : Camille Roux arrive dans la table <code>clients</code>, avec l’identifiant 11 attribué par la base.",
+  retenir:"<code>INSERT INTO</code> ajoute une ligne à une table : contrairement à <code>SELECT</code>, il modifie la table.<br><br>Les valeurs se rangent dans l’ordre des colonnes citées : <code>(nom, prix) VALUES ('Zinc', 17.90)</code>.<br><br>Nomme toujours les colonnes : celles qu’on ne cite pas reçoivent <code>NULL</code> ou leur valeur par défaut.",
+  consigne:"Le fournisseur annonce le <b>Fer</b> au prix de <code>19.90</code>, mais ne donne pas encore sa catégorie ni son stock. Enregistre-le dans la table <code>produits</code> avec son nom et son prix seulement, en laissant la base attribuer l’identifiant.",
+  solution:"INSERT INTO produits (nom, prix)\nVALUES ('Fer', 19.90);",
   verif:"SELECT id, nom, categorie, prix, stock FROM produits ORDER BY id;",
-  indice:"Nomme les quatre colonnes entre parenthèses, puis <code>VALUES</code> avec les quatre valeurs dans le même ordre. Ne cite pas <code>id</code>.",
-  richLesson:true, earlyDemo:true,
+  indice:"Cite seulement les colonnes <code>nom</code> et <code>prix</code>, puis donne leurs deux valeurs dans le même ordre. Les colonnes oubliées recevront <code>NULL</code>.",
   write:true,
-  testeVariants:[
-    {k:'ordre',label:'Ordre inversé',sql:"INSERT INTO clients (prenom, ville)\nVALUES ('Lille', 'Théo');\n\nSELECT id, prenom, ville\nFROM clients\nORDER BY id DESC\nLIMIT 1;",out:"Accept\u00e9 sans broncher : Lille est devenu un prénom de client.",tone:'bad'},
-    {k:'nomme',label:'Colonnes nommées',sql:"INSERT INTO produits\n    (nom, categorie, prix, stock)\nVALUES ('Zinc', 'Bien-être',\n        17.90, 70);\n\nSELECT id, nom, categorie, prix, stock\nFROM produits\nORDER BY id DESC\nLIMIT 1;",out:"La ligne est juste, et l\u2019identifiant 9 a \u00e9t\u00e9 attribu\u00e9 par la base.",tone:'good'},
-    {k:'partiel',label:'Colonnes omises',sql:"INSERT INTO produits (id, nom)\nVALUES (20, 'Zinc');\n\nSELECT id, nom, categorie, prix, stock\nFROM produits\nWHERE id = 20;",out:"categorie, prix et stock valent NULL : rien ne les a renseign\u00e9s."}
-  ] ,
-learningCheck:{
-  "question": "Après l’insertion de Zinc, les huit produits existants doivent-ils changer ?",
-  "options": [
-    "Seuls leurs noms changent",
-    "Non",
-    "Oui, leur prix change"
+  petitDefi:[{p:"Complète la requête pour donner les valeurs de la nouvelle ligne.",sql:"INSERT INTO produits (nom, prix)\n__________ ('Zinc', 17.90);",a:"VALUES",answers:["VALUES","values","Values"]}],
+  testeVariants:[{k:"nomme",label:"Colonnes nommées",sql:"INSERT INTO produits (nom, categorie, prix, stock)\nVALUES ('Zinc', 'Bien-être', 17.90, 70);\nSELECT *\nFROM produits\nWHERE id = 9;",out:"La ligne est juste : l’identifiant 9 a été attribué par la base.",tone:"good"},{k:"ordre",label:"Valeurs inversées",sql:"INSERT INTO produits (nom, categorie, prix, stock)\nVALUES ('Bien-être', 'Zinc', 17.90, 70);\nSELECT *\nFROM produits\nWHERE id = 9;",out:"Accepté sans erreur : « Bien-être » est devenu le nom du produit.",tone:"bad"},{k:"partiel",label:"Colonnes omises",sql:"INSERT INTO produits (id, nom)\nVALUES (20, 'Zinc');\nSELECT *\nFROM produits\nWHERE id = 20;",out:"categorie, prix et stock valent NULL : rien ne les a renseignés."}],
+  learningCheck:{question:"On écrit INSERT INTO produits (nom, categorie, prix, stock) VALUES ('Bien-être', 'Zinc', 17.90, 70). Que se passe-t-il ?",options:["La base refuse la ligne","La ligne est écrite, avec le nom et la catégorie inversés","SQL remet les valeurs dans le bon ordre"],answer:1,explanation:"La base associe les valeurs aux colonnes par leur position et ne vérifie pas leur sens : deux textes inversés ne déclenchent aucune erreur."}
+}),
+guide({ id:27, titre:"UPDATE", résumé:"Modifier des lignes",
+  sit:{
+    blocks:[
+      "Le fournisseur augmente de <b>10 %</b> le tarif de sa <b>gamme Bien-être</b>. L’équipe catalogue doit répercuter cette hausse sur les prix de la boutique.",
+      "La table <code>produits</code> contient au total <b>8 produits</b>, dont <b>3</b> de la catégorie Bien-être. Pour mettre le catalogue à jour, l’équipe souhaite modifier uniquement :",
+      {need:[["🗂️","Les produits Bien-être","3 produits"],["💶","Leur prix","+ 10 %"]],label:"Ce qu’il faut modifier"}
+    ],
+    problem:{
+      p:["Avec <code>INSERT</code>, SQL sait <b>ajouter</b> des lignes, mais il ne peut pas changer celles qui existent déjà.","Or, ici, l’équipe doit <b>modifier une valeur</b> : le prix de trois produits précis, sans toucher aux cinq autres."],
+      scene:{h:"🏷️ Prix du catalogue",cols:"2.05fr 1.2fr .75fr",
+        lanes:[{c:[["h1","nom","t"],["h2","categorie","t"],["h3","prix","t"]]},
+          {k:"R1",c:[["a1","Fibre Prébiotique"],["a2","Bien-être"],["a3","29.9"]]},
+          {k:"R2",c:[["b1","Collagène Marin"],["b2","Beauté"],["b3","39.9"]]},
+          {k:"R3",c:[["c1","Magnésium"],["c2","Bien-être"],["c3","19.9"]]},
+          {k:"R4",c:[["d1","Vitamine D"],["d2","Nutrition"],["d3","14.9"]]},
+          {k:"R5",c:[["e1","Oméga 3"],["e2","Bien-être"],["e3","24.9"]]}],
+        caps:["<b>Notre catalogue</b> · Chaque produit a son prix actuel.","<b>Besoin</b> · Seuls les produits de la catégorie <b>Bien-être</b> sont concernés.","<b>Résultat</b> · Leur prix augmente de 10 % ; les autres lignes restent telles quelles."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R2","R4"],dim:["R2","R4"],d:2300},{cap:2,undim:["R2","R4"],text:{a3:"32.89",c3:"21.89",e3:"27.39"},stagger:300,d:3000}]},
+      then:["Il faut donc indiquer à SQL <b>quelle nouvelle valeur</b> écrire, et dans <b>quelles lignes</b> : uniquement les produits Bien-être.","C’est exactement le rôle de <code>UPDATE</code>."]
+    },
+    mission:"Aide l’équipe catalogue à augmenter de <b>10 %</b> le <b>prix</b> des produits de la catégorie <b>Bien-être</b>, afin de mettre à jour le catalogue de la boutique."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir quelle valeur modifier, et dans quelle ligne ?",
+    blocks:[
+      "Pour modifier une ligne, SQL a besoin de deux informations :",
+      {ask:"Quelle ligne change, et quelle est sa nouvelle valeur ?"},
+      "En SQL, <code>SET</code> donne la nouvelle valeur, et <code>WHERE</code> désigne la ligne :",
+      {syntax:"⟦SET prix = 36.90⟧\n⟦WHERE id = 2⟧"},
+      {scene:{h:"✏️ Une valeur remplacée",cols:".5fr 1.9fr .9fr",
+        lanes:[{c:[["h1","id","t"],["h2","nom","t"],["h3","prix","t"]]},
+          {k:"R1",c:[["a1","1"],["a2","Fibre Prébiotique"],["a3","29.9"]]},
+          {k:"R2",c:[["b1","2"],["b2","Collagène Marin"],["b3","39.9"]]},
+          {k:"R3",c:[["c1","3"],["c2","Magnésium"],["c3","19.9"]]}],
+        caps:["<b>Table produits</b> · Les produits et leurs prix actuels.","<b>WHERE id = 2</b> · SQL repère la ligne concernée : le Collagène Marin.","<b>SET prix = 36.90</b> · Il remplace l’ancienne valeur par la nouvelle, dans cette ligne seulement."],
+        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R1","R3"],dim:["R1","R3"],d:2300},{cap:2,undim:["R1","R3"],text:{b3:"36.9"},d:2800}]}}
+    ]
+  },
+  steps:[
+    {h:"Modifier une valeur avec SET",blocks:[
+      "Une requête <code>UPDATE</code> commence par la <b>table</b> à modifier, puis enchaîne <code>SET</code> et <code>WHERE</code> :",
+      {syntax:"⟦UPDATE clients⟧\nSET ville = 'Nice'\nWHERE id = 1;"},
+      {looks:[["UPDATE clients","désigne la table à modifier"],["SET ville = 'Nice'","donne la nouvelle valeur"],["WHERE id = 1","choisit la ligne concernée"]]},
+      {say:"👇 Exécute cette requête pour changer la ville de Sophie, puis afficher les clients :",run:"UPDATE clients\nSET ville = 'Nice'\nWHERE id = 1;\nSELECT id, prenom, ville\nFROM clients;"},
+      {arrow:"Sophie habite maintenant à Nice ; les neuf autres clients n’ont pas changé."},
+      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux modifier des valeurs sans rien abîmer. À chaque essai, Sophie est de nouveau à Paris."]}},
+      {tip:{t:"Plusieurs colonnes à la fois",blocks:[
+        "Sépare les affectations par une virgule : elles s’appliquent aux mêmes lignes.",
+        {say:"👇 Teste par toi-même :",run:"UPDATE clients\nSET ville = 'Nice', age = 35\nWHERE id = 1;\nSELECT id, prenom, ville, age\nFROM clients\nWHERE id = 1;"}
+      ]}}
+    ]},
+    {h:"Cibler les bonnes lignes",blocks:[
+      "<code>WHERE</code> décide quelles lignes sont modifiées. Avant d’écrire, le bon réflexe est de lancer un <code>SELECT</code> avec le <b>même</b> <code>WHERE</code> : les lignes affichées sont exactement celles que l’<code>UPDATE</code> va modifier.",
+      {say:"👇 Exécute cette requête pour voir les produits Bien-être :",run:"SELECT id, nom, prix\nFROM produits\nWHERE categorie = 'Bien-être';"},
+      {arrow:"Trois produits sont concernés : les cinq autres ne seront pas touchés."},
+      {tip:{t:"Compter après coup",blocks:[
+        "<code>SELECT changes()</code> indique combien de lignes la dernière instruction a réellement modifiées.",
+        {say:"👇 Teste par toi-même :",run:"UPDATE clients\nSET ville = 'Nice'\nWHERE ville = 'Paris';\nSELECT changes() AS lignes_modifiees;"}
+      ]}},
+      {tip:{t:"Choisir les lignes avec une sous-requête",blocks:[
+        "Le <code>WHERE</code> accepte tout ce qu’un <code>SELECT</code> accepte, sous-requête comprise. Ici, les commandes encore en préparation des clients parisiens passent en priorité :",
+        {say:"👇 Teste par toi-même :",run:"UPDATE commandes\nSET statut = 'prioritaire'\nWHERE client_id IN (\n    SELECT id\n    FROM clients\n    WHERE ville = 'Paris'\n)\n  AND statut = 'en_preparation';\nSELECT id, client_id, statut\nFROM commandes\nWHERE statut = 'prioritaire';"},
+        {arrow:"Deux commandes sont concernées : celles de Sophie et de Nathan Petit."}
+      ]}},
+      {warn:{t:"Sans WHERE",blocks:[
+        "La base n’impose pas de <code>WHERE</code>. Si tu l’oublies, la condition manque : toutes les lignes sont modifiées, sans avertissement ni confirmation.",
+        {say:"👇 Teste par toi-même :",run:"UPDATE clients\nSET ville = 'Nice';\nSELECT id, prenom, ville\nFROM clients;"},
+        {arrow:"Les dix clients habitent maintenant à Nice."}
+      ]}}
+    ]},
+    {h:"Calculer la nouvelle valeur",blocks:[
+      "La nouvelle valeur peut être un calcul. À droite du signe <code>=</code>, le nom d’une colonne désigne la valeur <b>actuelle</b> de la ligne :",
+      {syntax:"UPDATE produits\nSET stock = ⟦stock - 1⟧\nWHERE id = 8;"},
+      {say:"👇 Exécute cette requête : une unité du Shaker Inox vient d’être vendue.",run:"UPDATE produits\nSET stock = stock - 1\nWHERE id = 8;\nSELECT id, nom, stock\nFROM produits\nWHERE id = 8;"},
+      {arrow:"Le stock passe de 30 à 29 : la base a calculé la nouvelle valeur à partir de l’ancienne."},
+      {tip:{t:"Une valeur différente selon la ligne",blocks:[
+        "Avec <code>CASE</code>, une seule instruction applique un traitement différent selon la ligne : ici, les produits dont le stock dépasse 100 baissent de 10 %, les autres ne bougent pas.",
+        {say:"👇 Teste par toi-même :",run:"UPDATE produits\nSET prix = CASE\n  WHEN stock > 100 THEN ROUND(prix * 0.9, 2)\n  ELSE prix\nEND;\nSELECT id, nom, stock, prix\nFROM produits;"}
+      ]}},
+      {tip:{t:"Une valeur venue d’une autre table",blocks:[
+        "Le <code>SET</code> peut aussi contenir une sous-requête : elle est évaluée <b>pour chaque ligne</b> et voit la ligne en cours. Ici, chaque produit perd les unités déjà commandées :",
+        {say:"👇 Teste par toi-même :",run:"UPDATE produits\nSET stock = stock - (\n    SELECT COALESCE(SUM(quantite), 0)\n    FROM commandes\n    WHERE commandes.produit_id = produits.id\n);\nSELECT id, nom, stock\nFROM produits;"},
+        {arrow:"Le stock du produit 1 passe de 120 à 110 : 10 unités ont été commandées."},
+        "Depuis la version 3.33 de SQLite, <code>UPDATE … FROM</code> calcule ce résultat une seule fois, puis le rapproche des lignes à modifier :",
+        {say:"👇 Teste aussi cette version :",run:"UPDATE produits\nSET stock = stock - v.total\nFROM (\n    SELECT produit_id, SUM(quantite) AS total\n    FROM commandes\n    GROUP BY produit_id\n) AS v\nWHERE produits.id = v.produit_id;\nSELECT id, nom, stock\nFROM produits;"}
+      ]}},
+      {warn:{t:"Une règle de la table",blocks:[
+        "Comme pour un <code>INSERT</code>, la base contrôle les règles de la table avant d’écrire. Donner à Lucas l’adresse de Sophie se heurte à la règle <code>UNIQUE</code> de la colonne <code>email</code>.",
+        {say:"👇 Teste par toi-même :",run:"UPDATE clients\nSET email = 'sophie@mail.fr'\nWHERE id = 2;"},
+        {arrow:"La modification est refusée : aucune ligne n’est changée."}
+      ]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : indiquer la table, calculer le nouveau prix, puis limiter la modification aux produits Bien-être.",
+      {say:"👇 Exécute la requête pour mettre le catalogue à jour :",run:"UPDATE produits\nSET prix = ROUND(prix * 1.1, 2)\nWHERE categorie = 'Bien-être';\nSELECT id, nom, categorie, prix\nFROM produits;"},
+      {done:{
+        label:"Des anciens prix aux prix à jour",
+        unit:"free",
+        funnel:[
+          {n:8,t:"produits au départ",s:"toute la <code>table produits</code>",dots:"00000000"},
+          {step:"UPDATE … WHERE categorie = 'Bien-être'",s:"recalcule le prix des produits Bien-être, sans toucher aux autres"},
+          {n:8,t:"⭐ produits dans le catalogue",s:"dont 3 avec un prix à jour",dots:"10100010",out:true}
+        ],
+        sms:{ico:"🏷️",h:"Mise à jour des étiquettes",aria:"Les trois nouveaux prix s’affichent en boutique",msg:"<b>Nouveaux prix</b><br>Gamme Bien-être : + 10 %",people:[["F","Fibre Prébiotique","29.9 → 32.89"],["M","Magnésium","19.9 → 21.89"],["O","Oméga 3","24.9 → 27.39"]],st:["Ancien prix","Mise à jour","✓ Prix à jour"],plane:"doc",done:"✓ 3 prix mis à jour"},
+        fill:["SET","prix * 1.1","WHERE","'Bien-être'"],
+        ui:{t:"3 prix à jour",s:"Les produits Bien-être coûtent 10 % de plus ; les cinq autres n’ont pas bougé.",n:["UPDATE","SET","WHERE"]},
+        rows:8
+      }}
+    ]}
   ],
-  "answer": 1,
-  "explanation": "L’insertion ajoute une ligne. La vérification compare désormais aussi les produits déjà présents."
-}
-},
-{ id:27, titre:"UPDATE", résumé:"Modifier des lignes",
-  situation:"Le fournisseur augmente ses tarifs de 5 %. Les huit produits du catalogue sont concernés.<br><br>Tu pourrais recalculer chaque prix à la main et écrire huit instructions. Mais <code>UPDATE</code> sait le faire en une seule — à condition de lui dire <b>quelles lignes</b> modifier.<br><br>Oublier cette précision, c’est modifier toute la table. Sans avertissement, sans confirmation.",
-  situationTail:"<div class=\"sit-sql\"><p><b><code>SET</code></b> dit quelle nouvelle valeur écrire.</p><p><b><code>WHERE</code></b> dit sur quelles lignes.</p></div>",
-    studio:{pointCards:{
-      eye:"UPDATE",title:"Changer des valeurs, pas des lignes.",
-      lead:"<code>UPDATE</code> réécrit des colonnes dans des lignes qui existent déjà. Il n’en ajoute ni n’en supprime aucune.",
-      chain:[
-        {k:"UPDATE produits",v:"la table"},
-        {k:"SET colonne = …",v:"la nouvelle valeur"},
-        {k:"WHERE …",v:"quelles lignes"}
-      ]},
-    uses:{title:"La valeur, puis la portée.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Sans WHERE, toute la table</p>
-          <div class="tx-flow" role="img" aria-label="Sans WHERE toutes les lignes changent, avec WHERE une seule">
-            <span class="tx-step tx-key">UPDATE produits</span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <div class="tx-fork">
-              <div class="tx-branch is-ko"><b>sans WHERE</b><span>les 8 lignes</span></div>
-              <div class="tx-branch is-ok"><b>avec WHERE</b><span>celles visées</span></div>
-            </div>
-          </div>
-          <p><code>WHERE</code> est facultatif pour la base, jamais pour toi. <code>UPDATE produits SET stock = 100;</code> met les huit stocks à 100.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le réflexe : voir avant d’écrire</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT id, nom, stock
-FROM produits
-WHERE id = 5;</pre></div>
-          <p>Le même <code>WHERE</code>, d’abord en lecture. Tu vois exactement les lignes que l’<code>UPDATE</code> va toucher, avant qu’il ne les touche.</p>
-          <p class="fn-tip"><b>Après coup</b> <code>SELECT changes();</code> indique le nombre de lignes réellement modifiées par la dernière instruction.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Plusieurs colonnes d’un coup</p>
-          <div class="pt-syntax"><pre class="cw-syntax">UPDATE produits
-SET prix = 21.90,
-    stock = 150
-WHERE id = 3;</pre></div>
-          <p>Une virgule entre les affectations. Les deux colonnes changent dans le même mouvement, pour les mêmes lignes.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">La nouvelle valeur peut être un calcul</p>
-          <div class="pt-syntax"><pre class="cw-syntax">UPDATE produits
-SET prix = ROUND(prix * 1.05, 2);</pre></div>
-          <p>À droite du <code>=</code>, <code>prix</code> désigne la valeur <b>actuelle</b> de la ligne. Chaque produit est augmenté de 5 % à partir de son propre prix.</p>
-          <p class="fn-tip"><b>Toujours préférable</b> <code>SET stock = stock - 1</code> plutôt que relire la valeur, calculer ailleurs et réécrire le résultat.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Une valeur venue d’une autre table</p>
-          <div class="pt-syntax"><pre class="cw-syntax">UPDATE produits
-SET stock = stock - (
-  SELECT COALESCE(
-           SUM(quantite), 0)
-  FROM commandes
-  WHERE commandes.produit_id
-      = produits.id
-);</pre></div>
-          <p>La sous-requête est évaluée <b>pour chaque ligne</b> : elle voit <code>produits.id</code> de la ligne en cours. Le stock du produit 1 perd les 10 unités commandées et passe de 120 à 110.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Choisir les lignes par une sous-requête</p>
-          <div class="pt-syntax"><pre class="cw-syntax">UPDATE produits
-SET categorie = 'Vendu'
-WHERE id IN (
-    SELECT DISTINCT produit_id
-    FROM commandes
-);</pre></div>
-          <p>Le <code>WHERE</code> accepte tout ce qu’un <code>SELECT</code> accepte. Ici, seuls les produits qui apparaissent au moins une fois dans <code>commandes</code> sont marqués.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Une valeur différente selon la ligne</p>
-          <div class="pt-syntax"><pre class="cw-syntax">UPDATE produits
-SET prix = CASE
-  WHEN stock > 100 THEN prix * 0.9
-  WHEN stock > 50 THEN prix * 0.95
-  ELSE prix
-END;</pre></div>
-          <p>Une seule instruction, trois traitements. Les produits en surstock baissent de 10 %, les moyens de 5 %, les autres ne bougent pas.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">UPDATE … FROM</p>
-          <div class="pt-syntax"><pre class="cw-syntax">UPDATE produits
-SET stock = stock - v.total
-FROM (
-    SELECT produit_id,
-           SUM(quantite) AS total
-    FROM commandes
-    GROUP BY produit_id
-) AS v
-WHERE produits.id = v.produit_id;</pre></div>
-          <p>Le résultat d’une requête est calculé une seule fois, puis rapproché des lignes à modifier. Plus lisible qu’une sous-requête répétée, et souvent plus rapide.</p>
-          <p class="fn-tip"><b>Une addition récente</b> Cette forme n’existe dans SQLite que depuis la version 3.33. Les cours plus anciens affirment encore qu’elle est impossible.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Les règles s’appliquent aussi ici</p>
-          <p>Un <code>UPDATE</code> est vérifié comme un <code>INSERT</code>. Donner à Lucas l’adresse de Sophie se heurte au <code>UNIQUE</code> de la colonne <code>email</code> :</p>
-          <div class="tx-fail">
-            <span class="is-ko">UPDATE clients SET email = …<i>UNIQUE constraint failed</i></span>
-          </div>
-          <p>Et comme pour un <code>INSERT</code>, le refus annule l’instruction entière : aucune des lignes visées n’est modifiée.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"SET",t:"la nouvelle valeur"},
-      b:{k:"WHERE",t:"<b>quelles</b> lignes — jamais optionnel dans ta tête"},
-      note:"Réflexe : écris d’abord le <code>SELECT</code> avec le même <code>WHERE</code>. Ce que tu vois est ce que tu vas modifier."}},
-  anatomie:[
-    {tok:"UPDATE produits",txt:"La table à modifier."},
-    {tok:"SET prix = ROUND(prix * 1.05, 2)",txt:"La nouvelle valeur, calculée à partir de l’ancienne."},
-    {tok:"WHERE categorie = 'Bien-être'",txt:"Les lignes concernées. Sans cette ligne, toute la table."}
+  reflex:[
+    {recap:[
+      ["✏️","<code>UPDATE … SET</code> <b>modifie des valeurs</b> dans des lignes qui existent déjà.","Il n’ajoute ni ne supprime aucune ligne."],
+      ["🎯","<code>WHERE</code> choisit les lignes à modifier : sans lui, <b>toute la table change</b>.",null,"UPDATE … SET … WHERE …"],
+      ["🔎","Avant d’écrire, lis : un <code>SELECT</code> avec le même <code>WHERE</code> montre les lignes qui seront touchées."]
+    ],label:"Les trois idées à retenir"}
   ],
-  exemple:"UPDATE produits\nSET prix = ROUND(prix * 1.05, 2)\nWHERE categorie = 'Bien-être';\n\nSELECT id, nom, categorie, prix\nFROM produits\nORDER BY id;",
-  attendu:"Seuls les trois produits Bien-être voient leur prix augmenter de 5 %. Les cinq autres gardent le leur.",
-  retenir:"<code>UPDATE … SET</code> réécrit des colonnes dans des lignes existantes. <code>WHERE</code> décide lesquelles — sans lui, <b>toute la table</b>.<br><br>La nouvelle valeur peut être un calcul (<code>prix * 1.05</code>), une sous-requête, ou un <code>CASE</code> qui traite les lignes différemment.<br><br>Le réflexe : le même <code>WHERE</code> en <code>SELECT</code> d’abord.",
-  piege:{t:"UPDATE sans WHERE",
-    p:"L’accident le plus classique du SQL. <code>UPDATE produits SET stock = 100;</code> ne modifie pas un produit : il en modifie huit.<br><br>Rien ne demande confirmation, et rien ne signale que la portée est plus large que prévu. Seul le <code>SELECT</code> préalable protège.",
-    exec:true,
-    sql:"UPDATE produits SET stock = 100;\n\nSELECT id, nom, stock\nFROM produits\nORDER BY id;",
-    out:"Les huit stocks valent 100 : ceux de 200, de 45 et de 30 ont été écrasés.",
-    fixSql:"UPDATE produits\nSET stock = 100\nWHERE id = 5;\n\nSELECT id, nom, stock\nFROM produits\nORDER BY id;"},
-  petitDefi:[{
-    p:"Tu veux retirer une unité au stock du produit 8, sans écrire la valeur finale toi-même. Que mets-tu à droite du signe égal ?",
-    sql:"UPDATE produits\nSET stock = __________\nWHERE id = 8;",
-    a:"stock - 1",
-    answers:["stock - 1","stock-1","stock -1","stock- 1"]
-  }],
-  consigne:"Le fournisseur augmente de 5 % le tarif de sa gamme Bien-être. Applique cette hausse aux seuls produits de catégorie <code>'Bien-être'</code>, en arrondissant à deux décimales avec <code>ROUND</code>.",
-  solution:"UPDATE produits\nSET prix = ROUND(prix * 1.05, 2)\nWHERE categorie = 'Bien-être';",
-  verif:"SELECT id, nom, categorie, prix FROM produits ORDER BY id;",
-  indice:"<code>SET prix = ROUND(prix * 1.05, 2)</code>, puis <code>WHERE categorie = 'Bien-être'</code>.",
-  richLesson:true, earlyDemo:true,
+  anatomie:[{tok:"UPDATE clients",txt:"La table à modifier."},{tok:"SET",txt:"Introduit la nouvelle valeur."},{tok:"ville = 'Nice'",plain:1,txt:"La colonne modifiée et sa nouvelle valeur."},{tok:"WHERE",txt:"Introduit le filtre : seules les lignes concernées changent."},{tok:"id = 1",plain:1,txt:"La condition : la ligne dont l’identifiant est 1."}],
+  exemple:"UPDATE clients\nSET ville = 'Nice'\nWHERE id = 1;",
+  attendu:"<b>1 ligne modifiée</b> : Sophie habite à Nice. Les neuf autres clients gardent leur ville.",
+  retenir:"<code>UPDATE … SET</code> modifie des valeurs dans des lignes qui existent déjà, sans en ajouter ni en supprimer.<br><br><code>WHERE</code> choisit les lignes concernées : sans lui, toute la table change.<br><br>La nouvelle valeur peut être un calcul : <code>SET stock = stock - 1</code>. Avant d’écrire, un <code>SELECT</code> avec le même <code>WHERE</code> montre les lignes touchées.",
+  consigne:"La commande dont l’identifiant est 12 vient d’être expédiée. Passe son <code>statut</code> à <code>'expédiée'</code>, sans toucher aux autres commandes.",
+  solution:"UPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 12;",
+  verif:"SELECT id, numero_commande, statut FROM commandes ORDER BY id;",
+  indice:"Écris <code>UPDATE commandes</code>, puis <code>SET statut = …</code> avec la nouvelle valeur entre guillemets simples, et un <code>WHERE</code> sur l’identifiant de la commande.",
   write:true,
-  testeVariants:[
-  {
-    "k": "sans",
-    "label": "Sans WHERE",
-    "sql": "UPDATE produits SET stock = 100;\n\nSELECT id, nom, stock\nFROM produits\nORDER BY id;",
-    "out": "Les huit stocks à 100 : l’instruction a touché toute la table.",
-    "tone": "bad"
+  petitDefi:[{p:"Vingt unités viennent d’arriver pour le produit 3. Complète la requête pour <b>ajouter</b> 20 au stock actuel, sans écrire la valeur finale.",sql:"UPDATE produits\nSET stock = __________\nWHERE id = 3;",a:"stock + 20",answers:["stock + 20","stock+20","stock +20","stock+ 20"]}],
+  testeVariants:[{k:"sans",label:"Sans WHERE",sql:"UPDATE produits\nSET stock = 100;\nSELECT id, nom, stock\nFROM produits;",out:"Les huit stocks valent 100 : l’instruction a touché toute la table.",tone:"bad"},{k:"avec",label:"Avec WHERE",sql:"UPDATE produits\nSET stock = 100\nWHERE id = 5;\nSELECT id, nom, stock\nFROM produits;",out:"Seule la Tisane Détox change : les sept autres gardent leur stock.",tone:"good"},{k:"calcul",label:"Calcul",sql:"UPDATE produits\nSET prix = ROUND(prix * 1.1, 2)\nWHERE categorie = 'Bien-être';\nSELECT id, nom, categorie, prix\nFROM produits;",out:"Chaque produit Bien-être augmente à partir de son propre prix."},{k:"case",label:"CASE",sql:"UPDATE produits\nSET prix = CASE\n  WHEN stock > 100 THEN ROUND(prix * 0.9, 2)\n  ELSE prix\nEND;\nSELECT id, nom, stock, prix\nFROM produits;",out:"Un traitement différent selon le stock de chaque ligne.",expectRows:8},{k:"from",label:"UPDATE … FROM",sql:"UPDATE produits\nSET stock = stock - v.total\nFROM (\n    SELECT produit_id, SUM(quantite) AS total\n    FROM commandes\n    GROUP BY produit_id\n) AS v\nWHERE produits.id = v.produit_id;\nSELECT id, nom, stock\nFROM produits;",out:"Chaque stock est diminué des quantités commandées : 120 devient 110.",expectRows:8},{k:"rec_scope",label:"Avant UPDATE",sql:"SELECT id, nom, prix\nFROM produits\nWHERE categorie = 'Bien-être';",out:"Trois produits seront concernés par la mise à jour.",expectRows:3}],
+  learningCheck:{question:"On écrit UPDATE produits SET stock = 0 sans WHERE. Combien de lignes sont modifiées ?",options:["Aucune : la base exige une condition","Les 8 produits","Seulement le premier produit"],answer:1,explanation:"Sans WHERE, aucune ligne n’est écartée : toutes sont modifiées, sans avertissement."}
+}),
+guide({ id:28, titre:"DELETE", résumé:"Supprimer des lignes",
+  sit:{
+    blocks:[
+      "Un client de la boutique, <b>Nathan Dupont</b>, demande la <b>suppression de son compte</b>. L’équipe support doit retirer sa fiche de la base de données.",
+      "La table <code>clients</code> contient au total <b>10 clients</b>, dont <b>deux Nathan</b>. Pour supprimer le bon compte, l’équipe souhaite retirer uniquement :",
+      {need:[["👤","Nathan Dupont","table clients"]],label:"La ligne à supprimer"}
+    ],
+    problem:{
+      p:["Avec <code>UPDATE</code>, SQL sait <b>modifier</b> les informations d’un client, mais sa ligne reste dans la table.","Or, ici, le client ne doit <b>plus figurer</b> dans la table : sa ligne entière doit disparaître."],
+      scene:{h:"🗑️ Comptes clients",cols:".5fr 1fr 1.2fr",
+        lanes:[{c:[["h1","id","t"],["h2","prenom","t"],["h3","nom","t"]]},
+          {k:"R1",c:[["a1","1"],["a2","Sophie"],["a3","Martin"]]},
+          {k:"R2",c:[["b1","4"],["b2","Nathan"],["b3","Petit"]]},
+          {k:"R3",c:[["c1","7"],["c2","Léa"],["c3","Simon"]]},
+          {k:"R4",c:[["d1","9"],["d2","Inès"],["d3","Lefebvre"]]},
+          {k:"R5",c:[["e1","10"],["e2","Nathan"],["e3","Dupont"]]}],
+        caps:["<b>Notre liste</b> · Elle contient tous les clients, dont les deux Nathan.","<b>Demande</b> · Seul <b>Nathan Dupont</b> souhaite que son compte soit supprimé.","<b>Résultat</b> · Sa ligne disparaît entièrement de la table ; les autres clients sont conservés."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5"],dim:["R1","R2","R3","R4"],mark:{R5:"is-miss"},d:2300},{cap:2,undim:["R1","R2","R3","R4"],fold:["R5"],d:3000}]},
+      then:["Il faut donc indiquer à SQL <b>quelle ligne retirer</b> de la table : uniquement celle de ce client.","C’est exactement le rôle de <code>DELETE</code>."]
+    },
+    mission:"Aide l’équipe support à supprimer la ligne de <b>Nathan Dupont</b> dans la table clients, sans toucher aux autres clients, afin de respecter sa demande."
   },
-  {
-    "k": "avec",
-    "label": "Avec WHERE",
-    "sql": "UPDATE produits\nSET stock = 100\nWHERE id = 5;\n\nSELECT id, nom, stock\nFROM produits\nORDER BY id;",
-    "out": "Seule la Tisane Détox change. Les sept autres gardent leur stock.",
-    "tone": "good"
+  concept:{
+    title:"Comment SQL peut-il savoir quelles lignes supprimer ?",
+    blocks:[
+      "Pour chaque client, SQL vérifie une condition :",
+      {ask:"Cette ligne doit-elle disparaître ?"},
+      "En SQL, cette condition s’écrit avec <code>WHERE</code>, après le nom de la table :",
+      {syntax:"DELETE FROM clients\n⟦WHERE id = 10⟧;"},
+      {table:{label:"clients",cols:"minmax(0,.45fr) minmax(0,.85fr) minmax(0,1fr) minmax(0,1.6fr)",head:["id","prenom","nom","La ligne doit-elle disparaître ?"],rows:[["1","Sophie","Martin","❌ non → conservée"],["4","Nathan","Petit","❌ non → conservée"],["9","Inès","Lefebvre","❌ non → conservée"],["10","Nathan","Dupont","✅ oui → supprimée"]],hit:[[3,3]],more:"… et 6 autres clients",test:{cond:"id = 10",val:0}}},
+      {looks:[["oui","la condition est vraie : la ligne est supprimée"],["non","la condition est fausse : la ligne est conservée"]],label:"Supprimée ou conservée"}
+    ]
   },
-  {
-    "k": "calcul",
-    "label": "Calcul",
-    "sql": "UPDATE produits\nSET prix = ROUND(prix * 1.05, 2)\nWHERE categorie = 'Bien-être';\n\nSELECT id, nom, categorie, prix\nFROM produits\nORDER BY id;",
-    "out": "Chaque produit Bien-être augmente à partir de son propre prix."
-  },
-  {
-    "k": "case",
-    "label": "CASE",
-    "sql": "UPDATE produits\nSET prix = CASE\n  WHEN stock > 100 THEN prix * 0.9\n  WHEN stock > 50 THEN prix * 0.95\n  ELSE prix\nEND;\n\nSELECT id, nom, stock, ROUND(prix, 2) AS prix\nFROM produits\nORDER BY id;",
-    "out": "Trois traitements dans une seule instruction, selon le stock de chaque ligne."
-  },
-  {
-    "k": "from",
-    "label": "UPDATE … FROM",
-    "sql": "UPDATE produits\nSET stock = stock - v.total\nFROM (\n    SELECT produit_id,\n           SUM(quantite) AS total\n    FROM commandes\n    GROUP BY produit_id\n) AS v\nWHERE produits.id = v.produit_id;\n\nSELECT id, nom, stock\nFROM produits\nORDER BY id;",
-    "out": "Chaque stock est diminué des quantités commandées : 120 devient 110."
-  },
-  {
-    "k": "rec_scope",
-    "label": "Avant UPDATE",
-    "sql": "SELECT id,nom,prix FROM produits WHERE categorie='Bien-être';",
-    "out": "Trois produits concernés par le futur UPDATE.",
-    "expectRows": 3
-  }
-] ,
-learningCheck:{
-  "question": "Avant UPDATE, quelle requête aide à contrôler le périmètre ?",
-  "options": [
-    "Un SELECT avec le même WHERE",
-    "Un DROP TABLE",
-    "Un SELECT sans aucune condition"
+  steps:[
+    {h:"Supprimer des lignes avec DELETE",blocks:[
+      "Une requête <code>DELETE FROM</code> nomme la <b>table</b> concernée, puis un <code>WHERE</code> désigne les lignes à retirer :",
+      {syntax:"⟦DELETE FROM fidelite⟧\n⟦WHERE points < 100⟧;"},
+      {looks:[["DELETE FROM fidelite","désigne la table dans laquelle retirer des lignes"],["WHERE","choisit les lignes à supprimer : ici, celles de moins de 100 points"]]},
+      {say:"👇 Exécute cette requête pour retirer les lignes de moins de 100 points, puis afficher la table :",run:"DELETE FROM fidelite\nWHERE points < 100;\nSELECT *\nFROM fidelite;"},
+      {arrow:"La ligne de 80 points a disparu : il reste 3 lignes sur 4."},
+      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : la ligne supprimée est de retour à l’essai suivant."]}}
+    ]},
+    {h:"Cibler la bonne ligne",blocks:[
+      "Pour supprimer <b>une seule</b> ligne, il faut une condition qui ne désigne qu’elle. Un prénom ne suffit pas toujours :",
+      {say:"👇 Exécute cette requête pour chercher les clients prénommés Nathan :",run:"SELECT id, prenom, nom\nFROM clients\nWHERE prenom = 'Nathan';"},
+      {arrow:"Deux clients s’appellent Nathan : une suppression d’après le prénom les viserait tous les deux."},
+      "L’<code>id</code>, lui, est <b>unique</b> : c’est la condition la plus sûre. Le bon réflexe est de l’essayer d’abord dans un <code>SELECT</code>, avant de supprimer :",
+      {say:"👇 Exécute cette requête pour vérifier la ligne visée :",run:"SELECT id, prenom, nom\nFROM clients\nWHERE id = 10;"},
+      {arrow:"Une seule ligne : c’est bien Nathan Dupont."},
+      {tip:{t:"Choisir les lignes avec une sous-requête",blocks:[
+        "Le <code>WHERE</code> accepte tout ce qu’un <code>SELECT</code> accepte, sous-requête comprise. Ici, les commandes des clients parisiens disparaissent :",
+        {say:"👇 Teste par toi-même :",run:"DELETE FROM commandes\nWHERE client_id IN (\n    SELECT id\n    FROM clients\n    WHERE ville = 'Paris'\n);\nSELECT COUNT(*) AS commandes_restantes\nFROM commandes;"},
+        {arrow:"Sept commandes sont parties : il en reste 9 sur 16."}
+      ]}}
+    ]},
+    {h:"Quand la suppression pose problème",blocks:[
+      "Une suppression ne se rattrape pas, et la base peut aussi la refuser.",
+      {warn:{t:"Sans WHERE",blocks:[
+        "Si tu oublies le <code>WHERE</code>, la condition manque : toutes les lignes sont supprimées, sans avertissement. La table existe toujours, mais elle est vide.",
+        {say:"👇 Teste par toi-même :",run:"DELETE FROM commandes;\nSELECT COUNT(*) AS commandes_restantes\nFROM commandes;"},
+        {arrow:"Zéro ligne : les seize commandes ont disparu d’un coup."}
+      ]}},
+      {warn:{t:"Une ligne encore utilisée",blocks:[
+        "Sophie a passé trois commandes. Supprimer sa ligne laisserait ces commandes sans client : la clé étrangère de la table <code>commandes</code> l’interdit.",
+        {say:"👇 Teste par toi-même :",run:"DELETE FROM clients\nWHERE id = 1;"},
+        {arrow:"La suppression est refusée. Nathan Dupont, lui, n’a passé aucune commande : sa ligne peut partir."}
+      ]}},
+      {tip:{t:"Effacer une valeur, pas une ligne",blocks:["<code>DELETE</code> retire toujours une ligne entière. Pour oublier une seule information en gardant la ligne, on utilise un <code>UPDATE</code> qui met la colonne à <code>NULL</code> : <code>UPDATE clients SET telephone = NULL WHERE id = 1</code>."]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : indiquer la table, puis viser la ligne de Nathan Dupont avec son identifiant.",
+      {say:"👇 Exécute la requête pour supprimer son compte :",run:"DELETE FROM clients\nWHERE id = 10;\nSELECT id, prenom, nom\nFROM clients;"},
+      {done:{
+        label:"De 10 clients à 9 clients",
+        unit:"free",
+        funnel:[
+          {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
+          {step:"DELETE FROM clients WHERE id = 10",s:"retire la seule ligne qui respecte la condition"},
+          {n:9,t:"⭐ clients restants",s:"Nathan Dupont n’est plus dans la table",dots:"111111111",out:true}
+        ],
+        sms:{ico:"🗑️",h:"Suppression du compte",aria:"Le compte de Nathan Dupont est supprimé à sa demande",msg:"<b>Demande reçue</b><br>Suppression du compte de Nathan Dupont",people:[["N","Nathan Dupont","nathan.dupont@mail.fr"]],st:["Demande reçue","Suppression","✓ Supprimé"],plane:"doc",done:"✓ Compte supprimé"},
+        fill:["DELETE FROM","clients","WHERE","id"],
+        ui:{t:"9 clients restants",s:"La ligne de Nathan Dupont a disparu ; les autres clients n’ont pas changé.",n:["DELETE FROM","WHERE"]},
+        rows:9
+      }}
+    ]}
   ],
-  "answer": 0,
-  "explanation": "Lire les lignes ciblées avant l’écriture permet de vérifier combien de produits seront concernés."
-}
-},
-{ id:28, titre:"DELETE", résumé:"Supprimer des lignes",
-  situation:"Huit commandes ne portent qu’une seule unité. Le service logistique demande de les retirer du registre.<br><br><code>DELETE</code> enlève des <b>lignes entières</b> : la commande disparaît avec sa date, son produit et sa quantité.<br><br>Comme pour <code>UPDATE</code>, c’est le <code>WHERE</code> qui décide de la portée. Sans lui, les seize commandes y passent.",
-  situationTail:"<div class=\"sit-sql\"><p><b><code>DELETE</code></b> retire des lignes.</p><p>La table, ses colonnes et ses règles, elles, restent en place.</p></div>",
-    studio:{pointCards:{
-      eye:"DELETE",title:"Retirer des lignes, pas des valeurs.",
-      lead:"<code>DELETE</code> enlève des lignes entières d’une table. Il ne vide pas une case et ne touche pas à la structure.",
-      chain:[
-        {k:"DELETE FROM",v:"la table"},
-        {k:"WHERE …",v:"quelles lignes"},
-        {k:"Le reste",v:"intact"}
-      ]},
-    uses:{title:"La portée, encore et toujours.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Sans WHERE, la table se vide</p>
-          <div class="tx-flow" role="img" aria-label="Sans WHERE toutes les lignes partent, avec WHERE seulement celles visées">
-            <span class="tx-step tx-key">DELETE FROM commandes</span>
-            <i class="tx-arrow" aria-hidden="true">↓</i>
-            <div class="tx-fork">
-              <div class="tx-branch is-ko"><b>sans WHERE</b><span>les 16 lignes</span></div>
-              <div class="tx-branch is-ok"><b>avec WHERE</b><span>les 8 visées</span></div>
-            </div>
-          </div>
-          <p>Aucune confirmation n’est demandée, et l’instruction ne prévient pas qu’elle va plus loin que prévu.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le réflexe : compter avant de supprimer</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT COUNT(*)
-FROM commandes
-WHERE quantite = 1;</pre></div>
-          <p>Le même <code>WHERE</code>, d’abord en lecture. Huit lignes : c’est bien ce que tu veux retirer.</p>
-          <p class="fn-tip"><b>Après coup</b> <code>SELECT changes();</code> renvoie le nombre de lignes réellement supprimées.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Vider une case n’est pas supprimer une ligne</p>
-          <div class="pt-syntax"><pre class="cw-syntax">UPDATE commandes
-SET date_commande = NULL
-WHERE id = 1;</pre></div>
-          <p><code>DELETE</code> ne sait pas effacer une seule colonne. Pour oublier une information en gardant la ligne, c’est un <code>UPDATE</code> vers <code>NULL</code>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Choisir les lignes par une sous-requête</p>
-          <div class="pt-syntax"><pre class="cw-syntax">DELETE FROM commandes
-WHERE client_id IN (
-    SELECT id FROM clients
-    WHERE ville = 'Paris'
-);</pre></div>
-          <p>Le <code>WHERE</code> d’un <code>DELETE</code> accepte tout ce qu’un <code>SELECT</code> accepte. Sophie, les deux Nathan et Léa habitent Paris : les sept commandes rattachées aux trois clients actifs partent, il en reste neuf.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Quand une clé étrangère s’y oppose</p>
-          <div class="tx-fail">
-            <span class="is-ko">DELETE FROM clients WHERE id = 1;<i>FOREIGN KEY constraint failed</i></span>
-          </div>
-          <p>Supprimer Sophie laisserait trois commandes sans client. La base refuse — à moins que la table ne déclare une autre conduite à tenir.</p>
-          <p>C’est le sujet du cours <b>ON DELETE</b>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Supprimer les lignes, ou la table</p>
-          <p><code>DELETE FROM commandes;</code> laisse une table vide, avec ses cinq colonnes et ses règles, prête à recevoir de nouvelles lignes.</p>
-          <p><code>DROP TABLE commandes;</code> la retire de la base. C’est la distinction du cours <b>DROP</b>.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le compteur ne repart pas à zéro</p>
-          <div class="pt-syntax"><pre class="cw-syntax">DELETE FROM sqlite_sequence
-WHERE name = 'commandes';</pre></div>
-          <p>Vider une table ne remet pas son compteur d’identifiants à un : la prochaine ligne reprend là où la précédente s’était arrêtée.</p>
-          <p>Pour le réinitialiser, il faut vider la ligne correspondante de <code>sqlite_sequence</code>, la table interne où SQLite tient ces compteurs.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Se donner le droit de revenir</p>
-          <p>Une suppression validée ne se rattrape pas. À l’intérieur d’un <code>BEGIN</code>, en revanche, un <code>ROLLBACK</code> ramène les lignes.</p>
-          <p>Pour toute suppression un peu large, c’est le filet à déployer — voir le cours <b>Transactions</b>.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"DELETE FROM t WHERE …",t:"supprime des <b>lignes</b>"},
-      b:{k:"UPDATE … SET x = NULL",t:"vide une <b>valeur</b>, garde la ligne"},
-      note:"Réflexe : le même <code>WHERE</code> en <code>SELECT COUNT(*)</code> d’abord. Le nombre affiché est le nombre de lignes que tu vas perdre."}},
-  anatomie:[
-    {tok:"DELETE FROM commandes",txt:"La table où retirer des lignes."},
-    {tok:"WHERE quantite = 1",txt:"Les lignes concernées. Sans cette ligne, toute la table."}
+  reflex:[
+    {recap:[
+      ["🗑️","<code>DELETE FROM</code> retire des <b>lignes entières</b> d’une table.","La table, elle, reste en place, même vide."],
+      ["🎯","<code>WHERE</code> choisit les lignes à retirer : <b>sans lui, la table se vide</b>. Vise une ligne avec une valeur unique, comme l’<code>id</code> :",null,"DELETE FROM clients WHERE id = 10"],
+      ["🔎","Une suppression ne se rattrape pas : lis d’abord avec un <code>SELECT</code> et le même <code>WHERE</code>."]
+    ],label:"Les trois idées à retenir"}
   ],
-  exemple:"SELECT COUNT(*) AS a_supprimer\nFROM commandes\nWHERE quantite = 1;\n\nDELETE FROM commandes\nWHERE quantite = 1;\n\nSELECT COUNT(*) AS restantes\nFROM commandes;",
-  attendu:"Huit commandes correspondaient au filtre, huit ont été supprimées : il en reste huit sur seize.",
-  retenir:"<code>DELETE FROM table WHERE …</code> retire des <b>lignes entières</b>. Sans <code>WHERE</code>, la table se vide.<br><br>Il ne sait pas effacer une seule colonne : pour cela, <code>UPDATE … SET colonne = NULL</code>.<br><br>Le réflexe : <code>SELECT COUNT(*)</code> avec le même <code>WHERE</code> avant d’écrire, et un <code>BEGIN</code> autour des suppressions larges.",
-  piege:{t:"Croire que DELETE efface une colonne",
-    p:"<code>DELETE</code> ne connaît que la ligne. Il n’existe pas de <code>DELETE</code> qui viderait la seule colonne <code>date_commande</code> en laissant le reste.<br><br>Vouloir oublier une information sans perdre la ligne, c’est le travail d’<code>UPDATE</code>.",
-    exec:true,
-    sql:"DELETE FROM commandes\nWHERE date_commande IS NOT NULL;\n\nSELECT COUNT(*) AS restantes\nFROM commandes;",
-    out:"Zéro : les seize commandes ont une date, donc les seize lignes ont disparu.",
-    fixSql:"UPDATE commandes\nSET date_commande = NULL;\n\nSELECT\n  COUNT(*) AS lignes,\n  COUNT(date_commande) AS avec_date\nFROM commandes;"},
-  petitDefi:[{
-    p:"Tu veux oublier la date de la commande 1 sans perdre la commande. Quelle commande SQL emploies-tu ?",
-    sql:"__________ commandes\nSET date_commande = NULL\nWHERE id = 1;",
-    a:"UPDATE",
-    answers:["UPDATE","update","UPDATE commandes"]
-  }],
+  anatomie:[{tok:"DELETE FROM fidelite",txt:"La table dans laquelle on retire des lignes."},{tok:"WHERE",txt:"Introduit le filtre : seules les lignes concernées disparaissent."},{tok:"points < 100",plain:1,txt:"La condition : les lignes dont les points sont inférieurs à 100."}],
+  exemple:"DELETE FROM fidelite\nWHERE points < 100;",
+  attendu:"<b>1 ligne supprimée</b> : celle du client qui avait 80 points. Les trois autres lignes de la table restent.",
+  retenir:"<code>DELETE FROM table WHERE …</code> retire des <b>lignes entières</b>. Sans <code>WHERE</code>, la table se vide.<br><br>Pour viser une seule ligne, utilise une valeur unique comme l’<code>id</code>. <code>DELETE</code> ne sait pas effacer une seule colonne : pour cela, <code>UPDATE … SET colonne = NULL</code>.<br><br>Avant de supprimer, un <code>SELECT</code> avec le même <code>WHERE</code> montre les lignes qui disparaîtront.",
   consigne:"Le registre doit être allégé des commandes ne portant qu’une seule unité. Supprime les commandes dont la <code>quantite</code> est égale à 1.",
   solution:"DELETE FROM commandes\nWHERE quantite = 1;",
   verif:"SELECT id, client_id, produit_id, quantite FROM commandes ORDER BY id;",
-  indice:"<code>DELETE FROM commandes WHERE quantite = 1;</code> — et pense au <code>SELECT COUNT(*)</code> de contrôle avant.",
-  richLesson:true, earlyDemo:true,
+  indice:"Écris <code>DELETE FROM commandes</code>, puis un <code>WHERE</code> sur la colonne <code>quantite</code>. Pense à compter les lignes concernées avec <code>SELECT COUNT(*)</code> avant d’écrire.",
   write:true,
-  testeVariants:[
-    {k:'sans',label:'Sans WHERE',sql:"DELETE FROM commandes;\n\nSELECT COUNT(*) AS restantes\nFROM commandes;",out:"Z\u00e9ro. Les seize commandes ont disparu d\u2019un coup.",tone:'bad'},
-    {k:'avec',label:'Avec WHERE',sql:"DELETE FROM commandes\nWHERE quantite = 1;\n\nSELECT COUNT(*) AS restantes\nFROM commandes;",out:"Huit restantes : seules les commandes d\u2019une unit\u00e9 sont parties.",tone:'good'},
-    {k:'sousreq',label:'Sous-requête',sql:"DELETE FROM commandes\nWHERE client_id IN (\n    SELECT id FROM clients\n    WHERE ville = 'Paris'\n);\n\nSELECT COUNT(*) AS restantes\nFROM commandes;",out:"Neuf restantes : les sept commandes des clients parisiens sont parties."},
-    {k:'fk',label:'Clé étrangère',sql:"DELETE FROM clients WHERE id = 1;",out:"Refus\u00e9 : Sophie a trois commandes qui la r\u00e9f\u00e9rencent.",tone:'bad'}
-  ] ,
-learningCheck:{
-  "question": "Dans l’exemple DELETE sans WHERE, les données des autres cours disparaissent-elles ?",
-  "options": [
-    "Oui, définitivement",
-    "Seulement les clients",
-    "Non : l’exemple utilise une copie"
+  petitDefi:[{p:"On veut oublier la date de la commande 1, sans supprimer la commande. Quel mot-clé remplace les tirets ?",sql:"__________ commandes\nSET date_commande = NULL\nWHERE id = 1;",a:"UPDATE",answers:["UPDATE","update","UPDATE commandes"]}],
+  testeVariants:[{k:"sans",label:"Sans WHERE",sql:"DELETE FROM commandes;\nSELECT COUNT(*) AS restantes\nFROM commandes;",out:"Zéro : les seize commandes ont disparu d’un coup.",tone:"bad"},{k:"avec",label:"Avec WHERE",sql:"DELETE FROM commandes\nWHERE quantite = 1;\nSELECT COUNT(*) AS restantes\nFROM commandes;",out:"Huit restantes : seules les commandes d’une unité sont parties.",tone:"good"},{k:"sousreq",label:"Sous-requête",sql:"DELETE FROM commandes\nWHERE client_id IN (\n    SELECT id\n    FROM clients\n    WHERE ville = 'Paris'\n);\nSELECT COUNT(*) AS restantes\nFROM commandes;",out:"Neuf restantes : les sept commandes des clients parisiens sont parties."},{k:"prenom",label:"Même prénom",sql:"SELECT id, prenom, nom\nFROM clients\nWHERE prenom = 'Nathan';",out:"Deux clients portent ce prénom : l’id est la seule condition qui n’en vise qu’un.",expectRows:2},{k:"fk",label:"Clé étrangère",sql:"DELETE FROM clients\nWHERE id = 1;",out:"Refusé : Sophie a trois commandes qui la référencent.",tone:"bad"}],
+  learningCheck:{question:"Pourquoi vise-t-on la ligne de Nathan Dupont avec son id plutôt qu’avec son prénom ?",options:["L’id est unique : il ne désigne qu’une seule ligne","Un prénom est interdit dans un WHERE","DELETE ne fonctionne qu’avec un id"],answer:0,explanation:"Un prénom peut se répéter : deux clients s’appellent Nathan. L’identifiant est unique, donc la condition ne désigne qu’une ligne."}
+}),
+guide({ id:69, titre:"INSERT multiple et gestion de conflit", résumé:"Insérer plusieurs lignes et réagir aux doublons",
+  sit:{
+    blocks:[
+      "Le fournisseur envoie à l’équipe catalogue <b>un fichier de produits</b> à importer : un <b>nouveau produit</b>, et le <b>nouveau prix</b> d’un produit déjà en vente.",
+      "La table <code>produits</code> contient au total <b>8 produits</b>. Pour importer le fichier en une seule fois, l’équipe dispose de ces deux lignes :",
+      {need:[["🆕","Fer","à ajouter"],["🔁","Tisane Détox","prix à corriger"]],label:"Les lignes du fichier"}
+    ],
+    problem:{
+      p:["Avec <code>INSERT</code>, SQL sait ajouter <b>une ligne</b> à la fois, et il refuse toute ligne dont l’identifiant existe déjà.","Or, ici, le fichier contient <b>plusieurs lignes</b>, et l’une d’elles concerne un produit <b>déjà présent</b> : il faut corriger son prix, pas créer un doublon."],
+      scene:{h:"📥 Import du fichier",cols:".5fr 1.8fr .9fr",
+        lanes:[{k:"F1",l:"Fichier du fournisseur",c:[["f1","9"],["f2","Fer"],["f3","19.9"]]},
+          {k:"F2",c:[["g1","5"],["g2","Tisane Détox"],["g3","13.5"]]},
+          {k:"H",cls:"is-goal",l:"Table produits",c:[["h1","id","t"],["h2","nom","t"],["h3","prix","t"]]},
+          {k:"R4",c:[["a1","4"],["a2","Vitamine D"],["a3","14.9"]]},
+          {k:"R5",c:[["b1","5"],["b2","Tisane Détox"],["b3","12.5"]]},
+          {k:"R6",c:[["c1","6"],["c2","Protéine Végétale"],["c3","34.9"]]},
+          {k:"N",fold:true,c:[["n1","?","q"],["n2","?","q"],["n3","?","q"]]}],
+        caps:["<b>Le fichier</b> · Deux lignes à importer : un produit nouveau, un produit déjà connu.","<b>Ligne 1</b> · L’identifiant 9 n’existe pas encore : le Fer doit être <b>ajouté</b>.","<b>Ligne 2</b> · L’identifiant 5 existe déjà : le prix de la Tisane Détox doit être <b>corrigé</b>.","<b>Résultat</b> · Une ligne ajoutée, une ligne corrigée : aucun doublon."],
+        steps:[{cap:0,on:["F1","F2"],d:1900},{cap:1,off:["F2"],unfold:["N"],text:{n1:"9",n2:"Fer",n3:"19.9"},stagger:260,d:3000},{cap:2,off:["F1"],on:["F2","R5"],text:{b3:"13.5"},d:2800},{cap:3,off:["F2"],on:["N","R5"],d:2400}]},
+      then:["Il faut donc donner à SQL <b>plusieurs lignes à la fois</b>, et lui dire <b>quoi faire quand l’identifiant existe déjà</b>.","C’est exactement le rôle de <code>VALUES</code> avec plusieurs lignes, et de <code>ON CONFLICT</code>."]
+    },
+    mission:"Aide l’équipe catalogue à importer le fichier du fournisseur en <b>une seule requête</b> : ajouter le <b>Fer</b> et corriger le <b>prix</b> de la <b>Tisane Détox</b>, afin de mettre le catalogue à jour sans créer de doublon."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir quoi faire quand la ligne existe déjà ?",
+    blocks:[
+      "Pour chaque ligne du fichier, SQL vérifie si son identifiant est déjà dans la table :",
+      {ask:"Cet identifiant est-il déjà pris ?"},
+      "Si oui, c’est un <b>conflit</b>. En SQL, <code>ON CONFLICT</code> indique alors quoi faire :",
+      {syntax:"⟦ON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix⟧"},
+      {scene:{h:"🔀 Quand l’identifiant existe déjà",cols:".5fr 1.8fr .9fr",
+        lanes:[{k:"F",l:"Ligne du fichier",c:[["f1","4"],["f2","Vitamine D"],["f3","15.9"]]},
+          {k:"H",cls:"is-goal",l:"Table produits",c:[["h1","id","t"],["h2","nom","t"],["h3","prix","t"]]},
+          {k:"R4",c:[["a1","4"],["a2","Vitamine D"],["a3","14.9"]]},
+          {k:"R5",c:[["b1","5"],["b2","Tisane Détox"],["b3","12.5"]]}],
+        caps:["<b>Conflit</b> · La ligne du fichier a le même identifiant qu’une ligne de la table.","<b>DO NOTHING</b> · SQL ignore la ligne du fichier : la table ne change pas.","<b>DO UPDATE SET prix = excluded.prix</b> · Le prix de la ligne du fichier remplace l’ancien prix."],
+        steps:[{cap:0,on:["F","R4"],d:2200},{cap:1,off:["F","R4"],dim:["F"],d:2300},{cap:2,undim:["F"],on:["F","R4"],fly:[["f3","a3"]],d:3200}]}}
+    ]
+  },
+  steps:[
+    {h:"Insérer plusieurs lignes d’un coup",blocks:[
+      "Après <code>VALUES</code>, on écrit autant de parenthèses que de lignes, séparées par des virgules. La liste des colonnes n’est donnée qu’une fois :",
+      {syntax:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (9, 'Calcium', 'Bien-être', 12.90, 80),\n       ⟦(10, 'Curcuma', 'Bien-être', 14.50, 65)⟧;"},
+      {say:"👇 Exécute cette requête pour ajouter deux produits d’un coup :",run:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (9, 'Calcium', 'Bien-être', 12.90, 80),\n       (10, 'Curcuma', 'Bien-être', 14.50, 65);\nSELECT *\nFROM produits;"},
+      {arrow:"Une seule instruction a ajouté deux lignes : le catalogue compte maintenant 10 produits."},
+      {tip:{t:"Insérer le résultat d’une requête",blocks:[
+        "Les lignes à insérer peuvent aussi venir d’un <code>SELECT</code>, à la place de <code>VALUES</code> : filtrer, calculer ou joindre y est permis. Les colonnes se correspondent <b>par position</b>.",
+        {say:"👇 Teste par toi-même : les produits à moins de 20 € sont recopiés dans une table archive.",run:"CREATE TABLE archive (nom TEXT, prix REAL);\nINSERT INTO archive (nom, prix)\nSELECT nom, prix\nFROM produits\nWHERE prix < 20;\nSELECT *\nFROM archive;"}
+      ]}},
+      {tip:{t:"Une copie pour s’exercer",blocks:["Chaque exécution part d’une <b>copie neuve</b> de la base : tu peux importer des lignes sans rien abîmer. À chaque essai, tu retrouves les 8 produits d’origine."]}}
+    ]},
+    {h:"Quand l’identifiant existe déjà",blocks:[
+      "Les lignes d’un même <code>INSERT</code> forment un tout : si l’une enfreint une règle de la table, la base refuse <b>toute</b> l’instruction.",
+      {warn:{t:"Un identifiant déjà pris",blocks:[
+        "Si le fichier contient une ligne dont l’identifiant existe déjà, comme le 4 de la Vitamine D, la base refuse l’instruction : le Calcium n’est pas ajouté non plus.",
+        {say:"👇 Teste par toi-même :",run:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (9, 'Calcium', 'Bien-être', 12.90, 80),\n       (4, 'Vitamine D', 'Nutrition', 15.90, 150);"}
+      ]}},
+      "Pour réimporter un fichier sans erreur, on précise ce qui doit se passer en cas de conflit. <code>DO NOTHING</code> ignore la ligne en conflit, et ajoute les autres :",
+      {syntax:"INSERT INTO produits (…)\nVALUES (9, …),\n       (4, …)\n⟦ON CONFLICT(id) DO NOTHING⟧;"},
+      {looks:[["ON CONFLICT(id)","surveille l’identifiant : c’est lui qui peut créer un conflit"],["DO NOTHING","ignore la ligne en conflit, sans erreur"]]},
+      {say:"👇 Exécute cette requête : le Calcium est ajouté, la Vitamine D est ignorée.",run:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (9, 'Calcium', 'Bien-être', 12.90, 80),\n       (4, 'Vitamine D', 'Nutrition', 15.90, 150)\nON CONFLICT(id) DO NOTHING;\nSELECT id, nom, prix\nFROM produits;"},
+      {arrow:"Le catalogue compte 9 produits : la Vitamine D garde son ancien prix, 14.9."},
+      {tip:{t:"La forme courte",blocks:["<code>INSERT OR IGNORE INTO …</code> est l’écriture abrégée de <code>DO NOTHING</code> : la ligne qui enfreint une règle est ignorée, sans erreur."]}}
+    ]},
+    {h:"Mettre à jour au lieu d’ignorer",blocks:[
+      "Avec <code>DO UPDATE</code>, la ligne existante est <b>modifiée</b> à la place. Le mot <code>excluded</code> désigne la ligne que l’<code>INSERT</code> n’a pas pu écrire, avec ses valeurs :",
+      {syntax:"ON CONFLICT(id) DO UPDATE\n    SET prix = ⟦excluded.prix⟧;"},
+      {looks:[["DO UPDATE SET …","modifie la ligne existante au lieu d’échouer"],["excluded.prix","est le prix de la ligne du fichier, celle qui a été refusée"]]},
+      {say:"👇 Exécute cette requête : la Vitamine D change de prix, le Calcium est ajouté.",run:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (9, 'Calcium', 'Bien-être', 12.90, 80),\n       (4, 'Vitamine D', 'Nutrition', 15.90, 150)\nON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix;\nSELECT id, nom, prix, stock\nFROM produits;"},
+      {arrow:"La Vitamine D passe à 15.9 ; son stock n’a pas bougé, car seule la colonne <code>prix</code> est mise à jour."},
+      {warn:{t:"Avec OR REPLACE",blocks:[
+        "Si tu écris :",
+        {syntax:"INSERT OR REPLACE INTO clients (id, prenom, ville)"},
+        "<code>OR REPLACE</code> ne modifie pas la ligne existante : il la <b>supprime</b>, puis en insère une neuve. Les colonnes qu’on ne cite pas repartent à <code>NULL</code>.",
+        {say:"👇 Teste par toi-même :",run:"INSERT OR REPLACE INTO clients (id, prenom, ville)\nVALUES (1, 'Sophie', 'Nice');\nSELECT id, prenom, ville, age, email\nFROM clients\nWHERE id = 1;"},
+        {arrow:"La ville est changée, mais l’âge et l’email de Sophie ont disparu. <code>DO UPDATE</code> évite ce piège : il ne touche qu’aux colonnes nommées."}
+      ]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : les deux lignes du fichier dans un seul <code>VALUES</code>, puis <code>ON CONFLICT</code> pour corriger le prix quand le produit existe déjà.",
+      {say:"👇 Exécute la requête pour importer le fichier du fournisseur :",run:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (5, 'Tisane Détox', 'Boisson', 13.50, 60),\n       (9, 'Fer', 'Bien-être', 19.90, 55)\nON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix;\nSELECT id, nom, prix\nFROM produits;"},
+      {done:{
+        label:"Du fichier du fournisseur au catalogue à jour",
+        unit:"free",
+        funnel:[
+          {n:8,t:"produits au départ",s:"toute la <code>table produits</code>",dots:"00000000"},
+          {step:"INSERT … ON CONFLICT(id) DO UPDATE",s:"ajoute les lignes nouvelles et met à jour les lignes existantes"},
+          {n:9,t:"⭐ produits dans le catalogue",s:"le Fer est ajouté, le prix de la Tisane Détox est corrigé",dots:"000010001",out:true}
+        ],
+        sms:{ico:"📥",h:"Import du fichier fournisseur",aria:"Les deux lignes du fichier sont traitées : une est ajoutée, une est mise à jour",msg:"<b>Fichier fournisseur</b><br>2 lignes à traiter",people:[["F","Fer","Nouveau produit"],["T","Tisane Détox","12.5 → 13.5"]],st:["En attente","Import","✓ Traitée"],done:"✓ 2 lignes importées"},
+        fill:["VALUES","ON CONFLICT","DO UPDATE","excluded.prix"],
+        ui:{t:"9 produits, fichier importé",s:"Le Fer est ajouté et la Tisane Détox a son nouveau prix : l’import peut être rejoué sans erreur.",n:["INSERT INTO","VALUES","ON CONFLICT","DO UPDATE"]},
+        rows:9
+      }}
+    ]}
   ],
-  "answer": 2,
-  "explanation": "L’exemple retire toutes les commandes de sa copie de travail. La base utilisée pour les autres leçons reste intacte."
-}
-},
-{ id:69, titre:"INSERT multiple et gestion de conflit", résumé:"Insérer plusieurs lignes et réagir aux doublons",
-  situation:"Ton fournisseur t’envoie une liste de nouveaux produits. Tu écris un <code>INSERT</code> par ligne, l’un après l’autre.<br><br>Le lendemain, il renvoie le même fichier avec deux prix corrigés. Rejouer les <code>INSERT</code> échoue dès la première ligne : les identifiants existent déjà.<br><br>Écrire ligne à ligne, et tout casser à la moindre reprise : <code>INSERT</code> sait faire mieux que ça.",
-  situationTail:"<div class=\"sit-sql\"><p>Trois formes à connaître : insérer plusieurs lignes d’un coup, insérer le résultat d’une requête, et dire quoi faire quand la ligne existe déjà.</p></div>",
-    studio:{pointCards:{
-      eye:"INSERT",title:"Au-delà d’une ligne à la fois.",
-      lead:"La forme <code>INSERT INTO … VALUES (…)</code> écrit une ligne connue d’avance. Trois variantes couvrent les cas où ce n’est pas suffisant.",
-      chain:[
-        {k:"VALUES (…),(…)",v:"plusieurs lignes d’un coup"},
-        {k:"INSERT … SELECT",v:"depuis une requête"},
-        {k:"ON CONFLICT",v:"quand la ligne existe déjà"}
-      ]},
-    uses:{title:"Trois formes, trois besoins.",
-      body:`<div class="pt-lead fn-uses">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Plusieurs lignes, une instruction</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO produits
-    (id, nom, categorie,
-     prix, stock)
-VALUES (20, 'Zinc', 'Bien-être',
-        17.90, 70),
-       (21, 'Fer', 'Bien-être',
-        19.90, 55);</pre></div>
-          <p>Une seule liste de colonnes, puis autant de parenthèses que de lignes, séparées par des virgules.</p>
-          <p class="fn-tip"><b>Une instruction, un sort commun</b> Si une seule ligne enfreint une règle, aucune n’est écrite. C’est plus rapide que dix <code>INSERT</code>, mais c’est aussi tout ou rien.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Insérer le résultat d’une requête</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO archive (nom, prix)
-SELECT nom, prix
-FROM produits
-WHERE prix &lt; 20;</pre></div>
-          <p>Pas de <code>VALUES</code> ici : le <code>SELECT</code> fournit les lignes. Les quatre produits à moins de 20 € sont recopiés dans <code>archive</code>.</p>
-          <p>Les colonnes se correspondent <b>par position</b>, pas par nom : la première colonne du <code>SELECT</code> alimente la première colonne citée.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Le SELECT peut transformer au passage</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO archive (nom, prix)
-SELECT nom, ROUND(prix * 1.1, 2)
-FROM produits
-WHERE categorie = 'Bien-être';</pre></div>
-          <p>Les trois produits Bien-être sont archivés avec un prix majoré de 10 %. Tout ce qu’un <code>SELECT</code> sait faire — filtrer, calculer, joindre — est utilisable ici.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Quand la ligne existe déjà</p>
-          <p>Réinsérer un identifiant déjà pris est refusé, comme toute violation de contrainte :</p>
-          <div class="tx-fail">
-            <span class="is-ko">INSERT … VALUES (3, …)<i>UNIQUE constraint failed</i></span>
-          </div>
-          <p>Ce refus est le bon comportement par défaut. Mais quand tu réimportes un fichier fournisseur, tu sais que des lignes existent déjà — et tu veux dire quoi en faire.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">DO NOTHING — ignorer les doublons</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO produits
-    (id, nom, categorie,
-     prix, stock)
-VALUES (3, 'Magnésium',
-        'Bien-être', 21.90, 200)
-ON CONFLICT(id) DO NOTHING;</pre></div>
-          <p>La ligne 3 existe : elle est laissée telle quelle, sans erreur. Les lignes nouvelles du même <code>INSERT</code>, elles, sont bien ajoutées.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">DO UPDATE — insérer ou mettre à jour</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INSERT INTO produits
-    (id, nom, categorie,
-     prix, stock)
-VALUES (3, 'Magnésium',
-        'Bien-être', 21.90, 200)
-ON CONFLICT(id) DO UPDATE
-    SET prix = excluded.prix;</pre></div>
-          <p>Si la ligne 3 n’existe pas, elle est créée. Si elle existe, seul son <code>prix</code> est mis à jour. Une seule instruction remplace un <code>SELECT</code> suivi d’un <code>INSERT</code> ou d’un <code>UPDATE</code>.</p>
-          <p class="fn-tip"><b>excluded</b> C’est le nom de la ligne qui a tenté d’entrer. <code>excluded.prix</code> vaut 21.90, la valeur refusée — à ne pas confondre avec <code>produits.prix</code>, l’ancienne.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Les formes courtes de SQLite</p>
-          <p><code>INSERT OR IGNORE</code> équivaut à <code>DO NOTHING</code> : la ligne en conflit est passée sous silence.</p>
-          <p><code>INSERT OR REPLACE</code>, en revanche, <b>supprime l’ancienne ligne</b> puis en insère une neuve. Les colonnes que tu n’as pas citées ne sont pas conservées : elles repartent à <code>NULL</code>.</p>
-          <p class="fn-tip"><b>Préférer ON CONFLICT</b> <code>DO UPDATE</code> modifie les colonnes que tu nommes et laisse les autres intactes. C’est presque toujours ce que tu veux.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Laquelle choisir</p>
-          <p>Des lignes connues d’avance : <code>VALUES</code> à plusieurs parenthèses. Des lignes qui viennent d’une table : <code>INSERT … SELECT</code>. Un import qu’on peut rejouer : <code>ON CONFLICT DO UPDATE</code>.</p>
-        </div>
-      </div>`},
-    reflex:{a:{k:"La question",t:"d’où viennent les lignes à insérer ?"},
-      b:{k:"La règle",t:"écrites → VALUES · calculées → SELECT · déjà là → ON CONFLICT"},
-      note:"Réflexe : un import qu’on peut rejouer sans erreur s’écrit avec <code>ON CONFLICT … DO UPDATE</code>."}},
-  anatomie:[
-    {tok:"INSERT INTO produits (…)",txt:"La table et les colonnes renseignées."},
-    {tok:"VALUES (3, …)",txt:"La ligne proposée. L’identifiant 3 est déjà pris."},
-    {tok:"ON CONFLICT(id)",txt:"La contrainte surveillée : celle portée par id."},
-    {tok:"DO UPDATE SET",txt:"L’action de repli : modifier au lieu d’échouer."},
-    {tok:"excluded.prix",txt:"Le prix de la ligne refusée, 21.90."}
+  reflex:[
+    {recap:[
+      ["📦","<code>VALUES (…), (…)</code> insère <b>plusieurs lignes</b> en une instruction. Si l’une est refusée, aucune n’est écrite.",null,"VALUES (9, …), (10, …)"],
+      ["🔁","<code>ON CONFLICT(id)</code> dit quoi faire quand l’identifiant existe déjà : <code>DO NOTHING</code> ignore la ligne, <code>DO UPDATE</code> la met à jour."],
+      ["🪞","Dans <code>DO UPDATE</code>, <code>excluded</code> désigne la ligne refusée :",null,"SET prix = excluded.prix"]
+    ],label:"Les trois idées à retenir"}
   ],
-  exemple:"INSERT INTO produits\n    (id, nom, categorie,\n     prix, stock)\nVALUES (3, 'Magnésium',\n        'Bien-être', 21.90, 200)\nON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix;\n\nSELECT id, nom, prix, stock\nFROM produits\nWHERE id = 3;",
-  attendu:"Le Magnésium passe de 19.90 à 21.90, et garde ses 200 unités en stock. Aucune ligne n’a été ajoutée : celle qui existait a été mise à jour.",
-  retenir:"<code>VALUES (…),(…)</code> insère plusieurs lignes en une instruction — et les refuse toutes si l’une est fautive.<br><br><code>INSERT … SELECT</code> insère le résultat d’une requête, sans <code>VALUES</code>, colonne par colonne dans l’ordre.<br><br><code>ON CONFLICT(colonne)</code> dit quoi faire quand la ligne existe : <code>DO NOTHING</code> l’ignore, <code>DO UPDATE</code> la met à jour. <code>excluded</code> désigne la ligne refusée.",
-  piege:{t:"Employer INSERT OR REPLACE pour corriger une valeur",
-    p:"<code>OR REPLACE</code> ne modifie pas la ligne : il la <b>supprime</b> et en insère une nouvelle. Les colonnes absentes de l’instruction ne sont pas reprises de l’ancienne — elles repartent vides.<br><br>Corriger la ville de Sophie de cette façon efface son âge, son e-mail, son téléphone et sa date d’inscription.",
-    exec:true,
-    sql:"INSERT OR REPLACE INTO clients\n    (id, prenom, ville)\nVALUES (1, 'Sophie', 'Nice');\n\nSELECT id, prenom, ville, age, email\nFROM clients\nWHERE id = 1;",
-    out:"La ville est bien changée — mais age et email valent maintenant NULL.",
-    fixSql:"INSERT INTO clients\n    (id, prenom, ville)\nVALUES (1, 'Sophie', 'Nice')\nON CONFLICT(id) DO UPDATE\n    SET ville = excluded.ville;\n\nSELECT id, prenom, ville, age, email\nFROM clients\nWHERE id = 1;"},
-  petitDefi:[{
-    p:"Dans un <code>ON CONFLICT … DO UPDATE</code>, quel nom désigne la ligne qui a tenté d’être insérée ?",
-    sql:"ON CONFLICT(id) DO UPDATE\n    SET prix = __________.prix;",
-    a:"excluded",
-    answers:["excluded","EXCLUDED","excluded.prix"]
-  }],
+  anatomie:[{tok:"INSERT INTO produits (…)",txt:"La table et les colonnes renseignées."},{tok:"VALUES (4, …)",txt:"La ligne proposée. L’identifiant 4 est déjà pris."},{tok:"ON CONFLICT(id)",txt:"La règle surveillée : l’identifiant doit rester unique."},{tok:"DO UPDATE SET",txt:"L’action de repli : modifier la ligne existante au lieu d’échouer."},{tok:"excluded.prix",plain:1,txt:"Le prix de la ligne refusée, 15.90."}],
+  exemple:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (4, 'Vitamine D', 'Nutrition', 15.90, 150)\nON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix;",
+  attendu:"La Vitamine D passe de 14.9 à 15.9 et garde ses 150 unités en stock. Aucune ligne n’est ajoutée : celle qui existait a été mise à jour.",
+  retenir:"<code>VALUES (…), (…)</code> insère plusieurs lignes en une instruction, et les refuse toutes si l’une est fautive.<br><br><code>INSERT … SELECT</code> insère le résultat d’une requête, colonne par colonne, dans l’ordre.<br><br><code>ON CONFLICT(colonne)</code> dit quoi faire quand la ligne existe : <code>DO NOTHING</code> l’ignore, <code>DO UPDATE</code> la met à jour. <code>excluded</code> désigne la ligne refusée.",
   consigne:"Le fournisseur renvoie le produit d’<code>id</code> 3 au prix de <code>21.90</code>. Écris un seul <code>INSERT</code> qui l’ajoute s’il n’existe pas, et se contente de corriger son <code>prix</code> s’il existe déjà.",
   solution:"INSERT INTO produits\n    (id, nom, categorie,\n     prix, stock)\nVALUES (3, 'Magnésium',\n        'Bien-être', 21.90, 200)\nON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix;",
   verif:"SELECT id, nom, categorie, prix, stock FROM produits WHERE id = 3;",
-  indice:"Après le <code>VALUES</code>, ajoute <code>ON CONFLICT(id) DO UPDATE SET prix = excluded.prix;</code>.",
+  indice:"Après le <code>VALUES</code>, ajoute <code>ON CONFLICT(id) DO UPDATE</code>, puis indique la colonne à corriger avec la valeur de <code>excluded</code>.",
   write:true,
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-  {
-    "k": "multi",
-    "label": "Plusieurs lignes",
-    "sql": "INSERT INTO produits\n    (id, nom, categorie,\n     prix, stock)\nVALUES (20, 'Zinc', 'Bien-être',\n        17.90, 70),\n       (21, 'Fer', 'Bien-être',\n        19.90, 55);\n\nSELECT COUNT(*) AS produits FROM produits;",
-    "out": "Huit produits plus deux : dix."
-  },
-  {
-    "k": "select",
-    "label": "INSERT … SELECT",
-    "sql": "CREATE TABLE archive (nom TEXT, prix REAL);\n\nINSERT INTO archive (nom, prix)\nSELECT nom, prix\nFROM produits\nWHERE prix < 20;\n\nSELECT nom, prix FROM archive ORDER BY prix;",
-    "out": "Les quatre produits à moins de 20 €, recopiés sans être écrits à la main."
-  },
-  {
-    "k": "conflit",
-    "label": "Sans ON CONFLICT",
-    "sql": "INSERT INTO produits\n    (id, nom, categorie,\n     prix, stock)\nVALUES (3, 'Magnésium',\n        'Bien-être', 21.90, 200);",
-    "out": "Refusé : l’identifiant 3 est déjà pris.",
-    "tone": "bad"
-  },
-  {
-    "k": "upsert",
-    "label": "DO UPDATE",
-    "sql": "INSERT INTO produits\n    (id, nom, categorie,\n     prix, stock)\nVALUES (3, 'Magnésium',\n        'Bien-être', 21.90, 200)\nON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix;\n\nSELECT id, nom, prix, stock FROM produits WHERE id = 3;",
-    "out": "Le prix passe à 21.90, le stock reste à 200.",
-    "tone": "good"
-  },
-  {
-    "k": "rec_email",
-    "label": "Autre conflit",
-    "sql": "INSERT INTO clients (id,prenom,email) VALUES (500,'Test','sophie@mail.fr') ON CONFLICT(id) DO NOTHING;",
-    "out": "Refusé : le conflit porte sur email, pas sur id.",
-    "tone": "bad"
-  }
-] ,
-learningCheck:{
-  "question": "ON CONFLICT(id) traite-t-il aussi un doublon sur un email UNIQUE ?",
-  "options": [
-    "Non",
-    "Oui",
-    "Seulement avec DO UPDATE"
-  ],
-  "answer": 0,
-  "explanation": "La cible du conflit compte. Un conflit sur une autre contrainte doit être traité par une stratégie adaptée."
-}
-}
+  petitDefi:[{p:"Dans <code>ON CONFLICT … DO UPDATE</code>, quel mot désigne la ligne que l’<code>INSERT</code> a tenté d’écrire ?",sql:"ON CONFLICT(id) DO UPDATE\n    SET prix = __________.prix;",a:"excluded",answers:["excluded","EXCLUDED","excluded.prix"]}],
+  testeVariants:[{k:"multi",label:"Plusieurs lignes",sql:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (20, 'Zinc', 'Bien-être', 17.90, 70),\n       (21, 'Fer', 'Bien-être', 19.90, 55);\nSELECT COUNT(*) AS produits\nFROM produits;",out:"Huit produits plus deux : dix."},{k:"select",label:"INSERT … SELECT",sql:"CREATE TABLE archive (nom TEXT, prix REAL);\nINSERT INTO archive (nom, prix)\nSELECT nom, prix\nFROM produits\nWHERE prix < 20;\nSELECT nom, prix\nFROM archive\nORDER BY prix;",out:"Les quatre produits à moins de 20 €, recopiés sans être écrits à la main."},{k:"conflit",label:"Sans ON CONFLICT",sql:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (3, 'Magnésium', 'Bien-être', 21.90, 200);",out:"Refusé : l’identifiant 3 est déjà pris.",tone:"bad"},{k:"upsert",label:"DO UPDATE",sql:"INSERT INTO produits (id, nom, categorie, prix, stock)\nVALUES (3, 'Magnésium', 'Bien-être', 21.90, 200)\nON CONFLICT(id) DO UPDATE\n    SET prix = excluded.prix;\nSELECT id, nom, prix, stock\nFROM produits\nWHERE id = 3;",out:"Le prix passe à 21.9, le stock reste à 200.",tone:"good"},{k:"email",label:"Autre conflit",sql:"INSERT INTO clients (id, prenom, email)\nVALUES (500, 'Test', 'sophie@mail.fr')\nON CONFLICT(id) DO NOTHING;",out:"Refusé : le conflit porte sur email, pas sur id.",tone:"bad"}],
+  learningCheck:{question:"ON CONFLICT(id) gère-t-il aussi un doublon sur la colonne email, qui est UNIQUE ?",options:["Non : il ne surveille que id","Oui : il surveille toutes les règles","Seulement avec DO UPDATE"],answer:0,explanation:"La cible du conflit compte : ON CONFLICT(id) ne surveille que l’identifiant. Un doublon sur une autre colonne UNIQUE est refusé comme d’habitude."}
+})
 ]},
 { titre:"Contraintes et intégrité", sous:"Ce que la base refuse ou impose", lessons:[
 { id:67, titre:"Les contraintes en action", résumé:"NOT NULL, UNIQUE, CHECK : ce que la base refuse d’écrire",
@@ -27721,7 +27516,7 @@ function runExemple(btn){
   const sql=(ta&&ta.value.trim())||btn.getAttribute('data-sql')||'';
   if(!host||!sql)return;
   const runSql=sqliteRunnableSql(sql, frame);
-  if((frame&&frame.dataset.noExec==='1')||(current&&current.noExec)){
+  if((frame&&frame.dataset.noExec==='1')||(current&&current.noExec&&!btn.closest('.ij-run-frame'))){
     const activeVariant=testeFrameVariants(frame)?.[Number(frame.dataset.vi||0)];
     const pourquoi=(activeVariant&&activeVariant.exec===false?esc(activeVariant.out||'Cet exemple est présenté sans exécution.'):null)||(current&&current.noExecWhy)||'SQLite ne gère pas <code>GRANT</code> / <code>REVOKE</code>. Cette commande est une notion de SQL serveur.';
     host.innerHTML=`<div class="feedback warn"><div class="fi">i</div><div><b>Non exécutable ici</b><p>${pourquoi}</p></div></div>`;
@@ -29914,7 +29709,7 @@ function runLesson(){
       if(mode==='review'){
         markDone(current.id,true); renderModules(); renderProgress(); renderPlanning();
         reviewQueue.shift();
-        setLessonOut(`<div class="feedback ok"><div class="fi">✓</div><div><b>Bien retenu</b><p>GRANT SELECT suffit pour consulter clients.</p></div></div>`+(reviewQueue.length?`<button class="next-btn" onclick="openReview(${reviewQueue[0]})">Réviser la suivante →</button>`
+        setLessonOut(`<div class="feedback ok"><div class="fi">✓</div><div><b>Bien retenu</b><p>${(current.noExecOk&&current.noExecOk.t)||'GRANT SELECT suffit pour consulter <code>clients</code>.'}</p></div></div>`+(reviewQueue.length?`<button class="next-btn" onclick="openReview(${reviewQueue[0]})">Réviser la suivante →</button>`
           :`<button class="next-btn" onclick="goBack()">Révisions terminées ✓</button>`));
         pulseCta('#lesson-out .next-btn');
         if(navigator.vibrate)navigator.vibrate(12);
@@ -35771,7 +35566,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1597';
+  const SW_CACHE='requete-2026-10-04-ludique-v1598';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
