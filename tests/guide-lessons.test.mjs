@@ -13,6 +13,6 @@ let runs = 0, testedTables = 0;
 for (const l of lessons) { const r = checkGuideLesson(env, l); runs += r.runs; testedTables += r.testedTables; }
 assert.ok(testedTables >= 1, 'au moins un tableau à tester (cours WHERE)');
 /* Moteur des scènes : plusieurs animations par cours, grille de colonnes qui se referme, mise en forme « fiche ». */
-for (const frag of ['function mountProbScene(cfg,slot,memo)', "if(s.cols)root.style.setProperty('--cols',s.cols)", ".pr-slot[data-xscene]", '.pr-scene.has-cols .pr-cells{gap:4px;transition:grid-template-columns', '.pr-scene.is-form .pr-c.pr-th', '.pr-c.is-gone{max-width:0!important', '.ij-sms.is-flat .ij-sms-plane svg', 'cardText(a)===cardText(b)'])
+for (const frag of ['function mountProbScene(cfg,slot,memo)', "if(s.cols)root.style.setProperty('--cols',s.cols)", 'if(s.order){', ".pr-slot[data-xscene]", '.pr-scene.has-cols .pr-cells{gap:4px;transition:grid-template-columns', '.pr-scene.is-form .pr-c.pr-th', '.pr-c.is-gone{max-width:0!important', '.ij-sms.is-flat .ij-sms-plane svg', 'cardText(a)===cardText(b)'])
   assert.ok(html.includes(frag), `moteur : « ${frag} » présent`);
 console.log(`${lessons.length} cours guide, ${runs} requêtes exécutées, ${testedTables} tableau(x) à tester : OK`);

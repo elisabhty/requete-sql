@@ -62,6 +62,7 @@ export function checkGuideLesson(env, l) {
       assert.ok(st.cap >= 0 && st.cap < sc.caps.length, `${l.titre} : légende de l'étape ${i}`);
       for (const f of ['on', 'off', 'dim', 'undim', 'gone', 'back', 'fold', 'unfold', 'show']) for (const k of st[f] || []) assert.ok(keys.has(k), `${l.titre} : « ${k} » inconnu (${f}, étape ${i})`);
       for (const k of Object.keys(st.text || {})) assert.ok(keys.has(k), `${l.titre} : texte sur « ${k} » inconnu`);
+      for (const k of st.order || []) assert.ok(sc.lanes.some(x => x.k === k), `${l.titre} : ligne « ${k} » inconnue (order, étape ${i})`);
       for (const [a, b] of st.fly || []) assert.ok(keys.has(a) && keys.has(b), `${l.titre} : vol « ${a} » → « ${b} » inconnu (étape ${i})`);
       for (const f of ['mark', 'unmark']) for (const k of Object.keys(st[f] || {})) assert.ok(keys.has(k), `${l.titre} : « ${k} » inconnu (${f}, étape ${i})`);
       if (st.cols) assert.equal(tracks(st.cols), tracks(sc.cols), `${l.titre} : la nouvelle grille de l'étape ${i} garde le même nombre de colonnes`);
