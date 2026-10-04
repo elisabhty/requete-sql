@@ -7,8 +7,12 @@ import {guideEnv, checkGuideLesson} from './helpers/guide-checks.mjs';
 const root = path.resolve(import.meta.dirname, '..');
 const env = await guideEnv(root);
 const {html, ctx} = env;
-const lessons = vm.runInContext('MODULES.flatMap(m=>m.lessons)', ctx).filter(l => l.guided);
+const allLessons = vm.runInContext('MODULES.flatMap(m=>m.lessons)', ctx);
+const lessons = allLessons.filter(l => l.guided);
 assert.ok(lessons.length >= 1, 'au moins un cours guide');
+/* Tous les cours suivent le modèle « guide » : situation, problème animé, mission, concept, étapes, carte « Mission accomplie », réflexe. */
+const notGuided = allLessons.filter(l => !l.guided).map(l => l.id);
+assert.equal(notGuided.length, 0, `tous les cours sont au format « guide » (à convertir : ${notGuided.join(', ')})`);
 let runs = 0, testedTables = 0;
 for (const l of lessons) { const r = checkGuideLesson(env, l); runs += r.runs; testedTables += r.testedTables; }
 assert.ok(testedTables >= 1, 'au moins un tableau à tester (cours WHERE)');

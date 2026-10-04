@@ -12,7 +12,7 @@ const dataCtx = vm.createContext({});
 vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), dataCtx);
 const lesson = vm.runInContext('MODULES.flatMap(m=>m.lessons).find(l=>l.id===4)', dataCtx);
 const markup = lesson.studio.problem.extra;
-const src = html.slice(html.indexOf('const RT_TIME='), html.indexOf('/* ---------- GROUP BY + COUNT'));
+const src = html.slice(html.indexOf('const RT_TIME='), html.indexOf('/* ---------- Sommaire interactif du cours'));
 assert.ok(src.includes('function initRowTest()') && markup.includes('class="rt-wrap"'), 'animation et tableau localisés');
 
 /* ---------- Mini-DOM : ce qu’initRowTest utilise, rien de plus ---------- */
