@@ -78,7 +78,7 @@ for (const l of lessons) {
   else assert.equal(outN, nRows, `${l.titre} : la requête de la mission renvoie ${nRows} lignes, le parcours en annonce ${outN}`);
   /* Les personnes citées (liste d'envois et parcours) sont celles que renvoie la requête : « prénom nom », et leur contact. */
   const col = c => resMission.columns.indexOf(c);
-  const whoOf = row => (col('prenom') >= 0 && col('nom') >= 0 ? `${row[col('prenom')]} ${row[col('nom')]}` : String(row[col('prenom') >= 0 ? col('prenom') : 0]));
+  const whoOf = row => (col('prenom') >= 0 && col('nom') >= 0 ? `${row[col('prenom')]} ${row[col('nom')]}` : String(row[col('prenom') >= 0 ? col('prenom') : col('nom') >= 0 ? col('nom') : 0]));
   const contactCol = col('email') >= 0 ? col('email') : col('telephone');
   const peopleHtml = [...lastUse.matchAll(/<span class="ij-sms-who">([^<]*)<small>([^<]*)<\/small>/g)].map(m => [decode(m[1]), decode(m[2])]);
   if (peopleHtml.length) {
