@@ -54,6 +54,13 @@ export function checkGuideLesson(env, l) {
   /* Typographie : pas d'espace ordinaire avant : ? ! ; hors code. */
   const text = body.replace(/<code[^>]*>[\s\S]*?<\/code>|<pre[\s\S]*?<\/pre>|<[^>]+>/g, '|').replace(/data-run-sql="[^"]*"/g, '');
   assert.ok(!/ [:?!;]/.test(text.replace(/&nbsp;/g, ' ')), `${l.titre} : espace insécable avant la ponctuation haute : ${(text.match(/.{12} [:?!;]/) || [''])[0]}`);
+  /* Quiz de choix (bloc « quiz ») : chaque besoin a une bonne réponse parmi les boutons, et ses deux messages. */
+  for (const q of body.match(/<div class="fn-use jc-quiz">[\s\S]*?<div class="jc-done" hidden/g) || []) {
+    const asks = [...q.matchAll(/<div class="ij-ask jc-ask" data-ok="(\d+)" data-yes="([^"]+)" data-no="([^"]+)">[\s\S]*?<div class="ij-ask-opts">([\s\S]*?)<\/div>/g)];
+    assert.ok(asks.length >= 3, `${l.titre} : un quiz a au moins 3 besoins`);
+    for (const a of asks) assert.ok(+a[1] < (a[4].match(/<button/g) || []).length, `${l.titre} : la bonne réponse du quiz existe parmi les boutons`);
+    assert.equal(+/<b>0<\/b> \/ (\d+) bonnes réponses/.exec(q)[1], asks.length, `${l.titre} : le score annonce le bon nombre de besoins`);
+  }
   /* Scènes animées (celle du Problème, puis celles placées dans le cours) : légendes, étapes et cellules cohérentes. */
   const allScenes = [scenes[l.id], ...(xscenes[l.id] || [])].filter(Boolean);
   assert.ok(scenes[l.id], `${l.titre} : une scène animée dans le Problème`);
@@ -84,6 +91,14 @@ export function checkGuideLesson(env, l) {
   assert.ok(fills[l.id] && dones[l.id], `${l.titre} : requête à trous et résumé de la mission enregistrés`);
   const lastUse = l.studio.uses.body.slice(l.studio.uses.body.lastIndexOf('<div class="fn-use">'));
   const full = decode(/data-run-sql="([^"]*)"/.exec(lastUse)[1]);
+  /* L'exercice n'est ni la mission ni une requête déjà exécutée dans le cours ; la mission n'est pas déjà exécutée dans une étape précédente. */
+  const normSql = q => String(q).replace(/\s+/g, ' ').replace(/;\s*$/, '').trim().toLowerCase();
+  const runsOf = h => [...h.matchAll(/data-run-sql="([^"]*)"/g)].map(m => normSql(decode(m[1])));
+  /* L'« exemple du cours à adapter » (aide après un premier échec) ne donne pas la solution. */
+  if (l.solution && l.exemple) assert.notEqual(normSql(l.exemple), normSql(l.solution), `${l.titre} : l'exemple du cours est identique à la solution de l'exercice (il doit seulement aider à l'adapter)`);
+  if (l.solution) assert.ok(!runsOf(body).includes(normSql(l.solution)), `${l.titre} : l'exercice (solution) est identique à une requête exécutée dans le cours : il doit différer de la mission`);
+  const beforeLast = l.situation + l.studio.problem.extra + l.studio.uses.body.slice(0, l.studio.uses.body.lastIndexOf('<div class="fn-use">'));
+  assert.ok(!runsOf(beforeLast).includes(normSql(full)), `${l.titre} : la requête de la mission est déjà exécutée dans une étape précédente (varie colonnes, valeurs ou table)`);
   /* Les morceaux à placer apparaissent, dans l'ordre, dans la requête complète. */
   let pos = 0;
   for (const tok of fills[l.id].t) { const i = full.indexOf(tok, pos); assert.ok(i >= 0, `${l.titre} : « ${tok} » introuvable (dans l'ordre) dans la requête de la mission`); pos = i + tok.length; }

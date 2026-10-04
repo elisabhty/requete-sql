@@ -6782,6 +6782,11 @@ function guideBlock(b){
     const card=`<div class="pk-comp ij-t${test?' rt':''}"><p class="ij-tlab">${guideFr(t.label)}${test?`<code class="rt-cond">${guideEsc(test.cond)}</code>`:''}</p><div class="pk-mini${n>2?' is-'+n:' is-2'}"${t.cols?` style="grid-template-columns:${t.cols}"`:''}>${cells}</div>${t.more?`<p class="ij-tmore">${guideFr(t.more)}</p>`:''}</div>`;
     return test?`<div class="rt-wrap" data-rt-n="${n}" data-rt-val="${[].concat(test.val).join(',')}">${card}<div class="rt-foot"><span class="rt-hint">👆 Touche une ligne pour la tester</span><button type="button" class="rt-replay">↻ Rejouer</button></div></div>`:card;
   }
+  /* Quiz de choix (cours « Quel JOIN choisir ? ») : un besoin par question, les mêmes réponses pour tous ; le score et le bilan viennent de initJoinChooser. */
+  if(b.quiz){
+    const z=b.quiz,n=z.items.length,at=x=>guideFr(x).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return `<div class="fn-use jc-quiz">${(z.intro||[]).map(x=>`<p>${guideFr(x)}</p>`).join('')}<div class="jc-score" aria-live="polite"><span class="jc-score-t"><b>0</b> / ${n} bonnes réponses</span><span class="jc-score-bar"><i></i></span></div>${z.items.map((it,i)=>`<div class="ij-ask jc-ask" data-ok="${it.ok}" data-yes="${at(it.yes)}" data-no="${at(it.no)}"><p class="ij-ask-q"><span class="jc-ask-n">${i+1}</span><span>${guideFr(it.q)}</span></p><div class="ij-ask-opts">${z.opts.map(o=>`<button type="button">${guideFr(o)}</button>`).join('')}</div><p class="ij-ask-fb" hidden></p></div>`).join('')}<div class="jc-done" hidden aria-live="polite"></div></div>`;
+  }
   throw new Error('bloc de cours inconnu : '+JSON.stringify(b).slice(0,80));
 }
 /* Carte « Mission accomplie » : parcours (de combien de lignes à combien), puis une animation d’envoi (SMS). */
@@ -6828,7 +6833,7 @@ function guide(spec){
       uses:{title:'Écrire la requête',body:`<div class="pt-lead fn-uses fk-course jn-course">${steps.map(st=>`<div class="fn-use"><p class="pt-syntax-h">${guideFr(st.h)}</p>${guideBlocks(st.blocks)}</div>`).join('\n')}</div>`},
       reflex:{extra:guideBlocks(reflex)}},
     noTeste:true,noAnat:true,richLesson:true,earlyDemo:true,guided:true};
-  ['anatomie','exemple','attendu','retenir','consigne','solution','indice','learningCheck','testeVariants','petitDefi','ordered','write','verif','noExec','noExecWhy','noExecOk','noExecNote','normExo','explainExo','createExo','serverConcept','apres'].forEach(k=>{if(spec[k]!==undefined)lesson[k]=spec[k];});
+  ['anatomie','exemple','attendu','retenir','consigne','solution','indice','learningCheck','testeVariants','petitDefi','ordered','write','verif','noExec','noExecWhy','noExecOk','noExecNote','normExo','explainExo','createExo','serverConcept','apres','joinRecap'].forEach(k=>{if(spec[k]!==undefined)lesson[k]=spec[k];});
   return lesson;
 }
 /* ============================================================
@@ -9466,119 +9471,116 @@ guide({ id:36, titre:"Les relations entre les tables", résumé:"Découvrir 1-1,
 })
 ]},
 { titre:"Jointures", sous:"Interroger plusieurs tables à la fois", lessons:[
-{ id:18, titre:"INNER JOIN", résumé:"Relier uniquement ce qui correspond",
-  situation:`<p>Chaque mois, l’équipe relation client envoie une enquête de satisfaction aux clients qui ont commandé récemment.</p><p>Ce mois-ci, elle s’intéresse aux commandes passées en <b>juillet 2026</b>.</p><p>Pour préparer l’envoi, elle a besoin de trois informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Prénom du client</b><span>table clients</span></div><div role="listitem"><b>✉️ E-mail du client</b><span>table clients</span></div><div role="listitem"><b>📅 Date de la commande</b><span class="is-b">table commandes</span></div></div><div class="sit-memo is-problem"><p class="sit-memo-lab"><i aria-hidden="true">🤔</i>Problème</p><p>Aucune table ne contient à elle seule toutes ces informations.</p></div><p>Le prénom et l’e-mail se trouvent dans la <code>table clients</code>, tandis que la date de commande se trouve dans la <code>table commandes</code>.</p><p class="ij-arrow">👉 Il faut donc relier les deux tables pour réunir les informations dont l’équipe a besoin.</p><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Aide l’équipe Relation client à retrouver le prénom, l’e-mail et la date de commande des clients ayant commandé en juillet 2026.</p></div>`,
-    studio:{problem:{eye:"",title:"Comment relier une commande à son client&nbsp;?",
-      body:"Prenons une commande en exemple&nbsp;:",
-      extra:`<div class="pk-comp ij-t"><p class="ij-tlab">table commandes</p><div class="pk-mini is-3"><span class="is-h">id</span><span class="is-h">client_id</span><span class="is-h">date_commande</span><span>3</span><span class="is-hit">2</span><span>2026-07-05</span></div></div>
-        <p>La commande indique <code>client_id = 2</code>.</p>
-        <p>Mais qui est le client n°2&nbsp;? Regardons la <code>table clients</code>&nbsp;:</p>
-        <div class="pk-comp ij-t"><p class="ij-tlab">table clients</p><div class="pk-mini is-3 is-email"><span class="is-h">id</span><span class="is-h">prenom</span><span class="is-h">email</span><span class="is-hit">2</span><span>Lucas</span><span>lucas@mail.fr</span></div></div>
-        <p>On retrouve le même numéro client&nbsp;:</p>
-        <div class="ij-match" role="img" aria-label="commandes.client_id vaut 2 et clients.id vaut 2"><code>commandes.client_id = 2</code><i aria-hidden="true">↕</i><code>clients.id = 2</code></div>
-        <p>🔗 Les deux lignes correspondent. SQL peut alors réunir leurs informations&nbsp;:</p>
-        <div class="pk-comp ij-t"><p class="ij-tlab">une ligne du résultat</p><div class="pk-mini is-3 is-email2"><span class="is-h">prenom</span><span class="is-h">email</span><span class="is-h">date_commande</span><span class="is-hit">Lucas</span><span class="is-hit">lucas@mail.fr</span><span class="is-hit">2026-07-05</span></div></div>
-        <p class="ij-arrow">👉 C’est le principe d’une jointure&nbsp;: relier les lignes de plusieurs tables qui correspondent.</p>
-        <p class="ij-arrow">👉 SQL fait ce travail pour <b>toutes</b> les commandes à la fois.</p>`},
-    uses:{title:"Écrire la requête",
-      body:`<div class="pt-lead fn-uses fk-course jn-course">
-        <div class="fn-use">
-          <p class="pt-syntax-h">Partons des commandes</p>
-          <p>On cherche les clients qui ont passé une commande, ainsi que la date de leur commande.</p>
-          <p>On commence donc par la <code>table commandes</code>&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT commandes.date_commande
-FROM commandes</pre></div>
-          <p class="ij-arrow">👉 Pour l’instant, SQL peut retrouver la date de chaque commande.</p>
-          <p>Mais il nous manque le prénom et l’e-mail du client&nbsp;: ces informations se trouvent dans la <code>table clients</code>. On doit donc relier les deux tables.</p>
-          <div class="pt-syntax"><pre class="cw-syntax">INNER JOIN clients</pre></div>
-          <p class="ij-arrow">👉 <code>INNER JOIN clients</code> ajoute la <code>table clients</code> à la requête.</p>
-          <p>Il reste à préciser quelle commande appartient à quel client. C’est le rôle de <code>ON</code>&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">ON commandes.client_id = clients.id</pre></div>
-          <p class="ij-arrow">👉 SQL compare les deux identifiants&nbsp;:</p>
-          <div class="ij-match" role="img" aria-label="commandes.client_id comparé à clients.id"><code>commandes.client_id</code><i aria-hidden="true">↕</i><code>clients.id</code></div>
-          <p>Quand ils sont égaux, la commande et le client sont reliés.</p>
-          <p>On peut maintenant sélectionner toutes les informations dont on a besoin&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">SELECT <span class="fk-syn-hit">clients.prenom</span>,
-       <span class="fk-syn-hit">clients.email</span>,
-       commandes.date_commande
-FROM commandes
-INNER JOIN clients
-    ON commandes.client_id = clients.id;</pre></div>
-          <div class="sit-memo">
-            <p class="sit-memo-lab"><i aria-hidden="true">💡</i>Bon à savoir</p>
-            <p><code>JOIN</code> tout court revient ici à écrire <code>INNER JOIN</code>.</p>
-          </div>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">Filtrer avec WHERE</p>
-          <p>La jointure est prête&nbsp;: chaque commande est maintenant reliée à son client.</p>
-          <p>Mais notre mission concerne uniquement les commandes passées en juillet 2026. On ajoute donc <code>WHERE</code> pour ne garder que cette période&nbsp;:</p>
-          <div class="pt-syntax"><pre class="cw-syntax">WHERE commandes.date_commande
-      BETWEEN '2026-07-01' AND '2026-07-31'</pre></div>
-          <p><code>WHERE</code> intervient <b>après</b> la jointure&nbsp;: il ne sert pas à relier les tables, mais à filtrer les lignes obtenues.</p>
-        </div>
-        <div class="fn-use">
-          <p class="pt-syntax-h">La requête complète</p>
-          <p>Il ne reste plus qu’à réunir toutes les étapes.</p>
-          <p>👇 Exécute la requête pour obtenir la liste d’envoi de l’enquête&nbsp;:</p>
-          <div class="ij-run" data-run-sql="SELECT clients.prenom,&#10;       clients.email,&#10;       commandes.date_commande&#10;FROM commandes&#10;INNER JOIN clients&#10;    ON commandes.client_id&#10;       = clients.id&#10;WHERE commandes.date_commande&#10;      BETWEEN &#x27;2026-07-01&#x27;&#10;          AND &#x27;2026-07-31&#x27;;"></div>
-          <div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div><div class="ij-done-flow" aria-hidden="true"><div class="ij-done-src"><span>table clients</span><i>+</i><span>table commandes</span></div><i>↓</i><span class="is-out">un seul résultat</span></div><p class="ij-done-p">Les informations qui étaient séparées entre la <code>table clients</code> et la <code>table commandes</code> sont maintenant réunies dans un même résultat&nbsp;: la liste d’envoi de l’enquête est prête.</p><div class="ij-sms is-mail" style="--n:8" role="group" aria-label="Enquête de satisfaction envoyée par e-mail aux clients de juillet"><p class="ij-sms-h"><i aria-hidden="true">✉️</i>Enquête par e-mail</p><div class="ij-sms-thread"><p class="ij-sms-typing" aria-hidden="true"><i></i><i></i><i></i></p><p class="ij-sms-bubble"><b class="ij-sms-subj">Objet&nbsp;: Ton avis sur ta commande ✨</b>Merci pour ta commande de juillet&nbsp;! Donne-nous ton avis en 2 minutes 🙏</p></div><ul class="ij-sms-list"><li style="--i:0"><b class="ij-sms-av" aria-hidden="true">S</b><span class="ij-sms-who">Sophie<small>sophie@mail.fr</small></span><em class="ij-sms-st"><i class="is-idle">En attente</i><i class="is-wait">Envoi<u>.</u><u>.</u><u>.</u></i><i class="is-sent">✓ Envoyé</i></em><i class="ij-sms-plane" aria-hidden="true">📨</i></li><li style="--i:1"><b class="ij-sms-av" aria-hidden="true">L</b><span class="ij-sms-who">Lucas<small>lucas@mail.fr</small></span><em class="ij-sms-st"><i class="is-idle">En attente</i><i class="is-wait">Envoi<u>.</u><u>.</u><u>.</u></i><i class="is-sent">✓ Envoyé</i></em><i class="ij-sms-plane" aria-hidden="true">📨</i></li><li style="--i:2"><b class="ij-sms-av" aria-hidden="true">E</b><span class="ij-sms-who">Emma<small>emma@mail.fr</small></span><em class="ij-sms-st"><i class="is-idle">En attente</i><i class="is-wait">Envoi<u>.</u><u>.</u><u>.</u></i><i class="is-sent">✓ Envoyé</i></em><i class="ij-sms-plane" aria-hidden="true">📨</i></li><li style="--i:3"><b class="ij-sms-av" aria-hidden="true">N</b><span class="ij-sms-who">Nathan<small>nathan@mail.fr</small></span><em class="ij-sms-st"><i class="is-idle">En attente</i><i class="is-wait">Envoi<u>.</u><u>.</u><u>.</u></i><i class="is-sent">✓ Envoyé</i></em><i class="ij-sms-plane" aria-hidden="true">📨</i></li><li style="--i:4"><b class="ij-sms-av" aria-hidden="true">C</b><span class="ij-sms-who">Chloé<small>chloe@mail.fr</small></span><em class="ij-sms-st"><i class="is-idle">En attente</i><i class="is-wait">Envoi<u>.</u><u>.</u><u>.</u></i><i class="is-sent">✓ Envoyé</i></em><i class="ij-sms-plane" aria-hidden="true">📨</i></li><li style="--i:5" class="is-skip"><b class="ij-sms-av" aria-hidden="true">H</b><span class="ij-sms-who">Hugo<small>e-mail : NULL</small></span><em class="ij-sms-st"><i class="is-idle">En attente</i><i class="is-wait">Envoi<u>.</u><u>.</u><u>.</u></i><i class="is-sent">— Pas d’e-mail</i></em><i class="ij-sms-plane" aria-hidden="true">📨</i></li><li style="--i:6"><b class="ij-sms-av" aria-hidden="true">L</b><span class="ij-sms-who">Léa<small>lea@mail.fr</small></span><em class="ij-sms-st"><i class="is-idle">En attente</i><i class="is-wait">Envoi<u>.</u><u>.</u><u>.</u></i><i class="is-sent">✓ Envoyé</i></em><i class="ij-sms-plane" aria-hidden="true">📨</i></li><li style="--i:7"><b class="ij-sms-av" aria-hidden="true">G</b><span class="ij-sms-who">Gabriel<small>gabriel@mail.fr</small></span><em class="ij-sms-st"><i class="is-idle">En attente</i><i class="is-wait">Envoi<u>.</u><u>.</u><u>.</u></i><i class="is-sent">✓ Envoyé</i></em><i class="ij-sms-plane" aria-hidden="true">📨</i></li></ul><div class="ij-sms-meter" aria-hidden="true"><i style="--i:0"></i><i style="--i:1"></i><i style="--i:2"></i><i style="--i:3"></i><i style="--i:4"></i><i style="--i:5"></i><i style="--i:6"></i><i style="--i:7"></i></div><p class="ij-sms-done">✓ 7 enquêtes envoyées · Hugo n’a pas d’e-mail</p></div></div>
-        </div>
-      </div>`},
-    why:{eye:"Animation",title:"Suis la jointure, ligne par ligne",
-      extra:`<section class="ijl" data-step="0" aria-label="Animation : suivre un INNER JOIN étape par étape">
-          <div class="ijl-head"><span class="ijl-count">Étape <b>1</b> sur 5</span><div class="ijl-dots" role="group" aria-label="Aller à une étape"><button type="button" data-go="0" aria-label="Aller à l’étape 1" aria-current="step"></button><button type="button" data-go="1" aria-label="Aller à l’étape 2"></button><button type="button" data-go="2" aria-label="Aller à l’étape 3"></button><button type="button" data-go="3" aria-label="Aller à l’étape 4"></button><button type="button" data-go="4" aria-label="Aller à l’étape 5"></button></div></div>
-          <p class="ijl-title">Deux tables séparées</p>
-          <p class="ijl-cap"></p>
-          <div class="ijl-ask" hidden><p class="ijl-ask-q"></p><div class="ijl-ask-opts"></div><p class="ijl-ask-fb" hidden></p></div>
-          <div class="ijl-nav"><button type="button" class="ijl-prev" aria-label="Étape précédente">←</button><button type="button" class="ijl-next">Suivant →</button></div>
-          <p class="ijl-clause"><code></code></p>
-          <div class="ijl-stage">
-            <svg class="ijl-links" aria-hidden="true"></svg>
-            <div class="ijl-col"><p class="ijl-col-h">table commandes</p><div class="ijl-row is-paired" data-k="1"><b>#1</b><span>client_id 1</span></div><div class="ijl-row is-paired" data-k="1"><b>#2</b><span>client_id 1</span></div><div class="ijl-row is-paired" data-k="2"><b>#3</b><span>client_id 2</span></div><div class="ijl-row is-paired" data-k="4"><b>#5</b><span>client_id 4</span></div><div class="ijl-row is-paired" data-k="1"><b>#13</b><span>client_id 1</span></div><div class="ijl-row is-paired" data-k="5"><b>#15</b><span>client_id 5</span></div><div class="ijl-row is-orphan" data-k=""><b>#16</b><span>NULL</span><em>sans paire</em><i class="ijl-sr-only"> (écartée)</i></div><div class="ijl-more">+ 9 autres commandes</div></div>
-            <div class="ijl-col is-r"><p class="ijl-col-h">table clients</p><div class="ijl-row is-paired" data-c="1"><b>1</b><span>Sophie</span></div><div class="ijl-row is-paired" data-c="2"><b>2</b><span>Lucas</span></div><div class="ijl-row is-paired" data-c="4"><b>4</b><span>Nathan</span></div><div class="ijl-row is-paired" data-c="5"><b>5</b><span>Chloé</span></div><div class="ijl-row is-orphan" data-c="9"><b>9</b><span>Inès</span><em>sans paire</em><i class="ijl-sr-only"> (écartée)</i></div><div class="ijl-row is-orphan" data-c="10"><b>10</b><span>Nathan</span><em>sans paire</em><i class="ijl-sr-only"> (écartée)</i></div><div class="ijl-more">+ 4 autres clients</div></div>
-          </div>
-          <div class="ijl-out"><p class="ijl-out-h">Résultat · <b class="ijl-n">6</b> lignes de l’extrait</p><div class="ijl-grid"><span class="is-h">prenom</span><span class="is-h">commande</span><span class="is-h">date</span><span style="--i:0">Sophie</span><span style="--i:0">#1</span><span style="--i:0">2 juil.</span><span style="--i:1">Sophie</span><span style="--i:1">#2</span><span style="--i:1">2 juil.</span><span style="--i:2">Lucas</span><span style="--i:2">#3</span><span style="--i:2">5 juil.</span><span style="--i:3">Nathan</span><span style="--i:3">#5</span><span style="--i:3">11 juil.</span><span style="--i:4">Sophie</span><span style="--i:4">#13</span><span style="--i:4">28 juil.</span><span class="is-aug" style="--i:5">Chloé</span><span class="is-aug" style="--i:5">#15</span><span class="is-aug" style="--i:5">1 août</span><p class="ijl-more is-span">+ 9 autres lignes sur l’ensemble de la base</p></div></div>
-          <p class="ijl-sr-only ijl-live" aria-live="polite" aria-atomic="true"></p>
-        </section>`},
-    reflex:{extra:guideBlocks([
-      {recap:[
-        ["🤝","<code>INNER JOIN</code> réunit deux tables et ne garde que les lignes qui ont une <b>correspondance des deux côtés</b>.","Une correspondance = une ligne dans le résultat."],
-        ["🔗","<code>ON</code> indique comment les lignes des deux tables sont reliées :",null,"ON commandes.client_id = clients.id"],
-        ["🔎","<code>WHERE</code> filtre <b>ensuite</b> les lignes obtenues : il ne sert pas à relier les tables."]
-      ],label:"Les trois idées à retenir"}
-    ])}},
-  joinFn:true,
-  whyFirst:true,
-  noTeste:true,
-  noAnat:true,
-  anatomie:[{tok:"SELECT clients.prenom, clients.email, commandes.date_commande",txt:"Le prénom et l’e-mail viennent de la table clients ; la date vient de la table commandes."},{tok:"FROM commandes",txt:"On part de la table commandes."},{tok:"INNER JOIN clients",txt:"On ne garde que les commandes qui trouvent un client dans la table clients."},{tok:"ON commandes.client_id = clients.id",txt:"Le lien : client_id correspond à l’id de la table clients."},{tok:"WHERE commandes.date_commande BETWEEN '2026-07-01' AND '2026-07-31'",txt:"On ne garde que les commandes de juillet 2026."}],
-  exemple:"SELECT clients.prenom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31';",
-  attendu:"<b>14 lignes</b> : une par commande de juillet 2026, avec le prénom et l’e-mail. Sophie apparaît 3 fois. La commande invitée, en août et sans client, n’apparaît pas.",
+guide({ id:18, titre:"INNER JOIN", résumé:"Relier uniquement ce qui correspond",
+  sit:{
+    blocks:[
+      "Après chaque commande, l’équipe relation client envoie une <b>enquête de satisfaction</b>. Ce mois-ci, elle prépare l’envoi pour toutes les commandes de <b>juillet 2026</b>.",
+      "Les informations utiles sont réparties entre la table <code>clients</code> (10 clients) et la table <code>commandes</code> (16 commandes). Pour préparer l’envoi, l’équipe souhaite récupérer uniquement :",
+      {need:[["👤","Le prénom du client","table clients"],["✉️","Son email","table clients"],["📅","La date de la commande","table commandes"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>SELECT</code>, SQL lit les colonnes d’<b>une seule table</b> à la fois.","Or, ici, aucune table ne contient à elle seule les trois informations : le prénom et l’email sont dans <code>clients</code>, la date dans <code>commandes</code>."],
+      scene:{h:"🔎 Informations réparties",
+        lanes:[{k:"A",l:"clients",c:[["a1","1"],["a2","Sophie"],["a3","sophie@mail.fr"]]},
+          {k:"B",l:"commandes",c:[["b1","client 1"],["b2","02/07"]]},
+          {k:"G",cls:"is-goal",l:"résultat attendu",c:[["g1","?","q"],["g2","?","q"],["g3","?","q"]]}],
+        caps:["<b>Table clients</b> · Elle contient le prénom et l’email du client.","<b>Table commandes</b> · Elle contient la date, mais pas le prénom du client.","<b>Objectif</b> · Réunir ces informations sur une même ligne."],
+        steps:[{cap:0,on:["A"],d:1900},{cap:1,off:["A"],on:["B"],d:1900},{cap:2,off:["B"],fly:[["a2","g1"],["a3","g2"],["b2","g3"]],d:2600}]},
+      then:["Il faut donc <b>relier</b> chaque commande au client qui l’a passée, pour réunir les trois informations sur une même ligne.","C’est exactement le rôle de <code>INNER JOIN</code>."]
+    },
+    mission:"Aide l’équipe relation client à retrouver le <b>prénom</b>, l’<b>email</b> et la <b>date</b> de chaque commande de <b>juillet 2026</b>, afin de préparer l’enquête de satisfaction."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir quelle commande appartient à quel client ?",
+    blocks:[
+      "Chaque commande garde le numéro de son client dans <code>client_id</code>. SQL le compare à l’<code>id</code> de la table <code>clients</code> :",
+      {ask:"Quel client porte le même numéro que cette commande ?"},
+      "En SQL, on décrit cette correspondance avec <code>INNER JOIN</code> et <code>ON</code> :",
+      {syntax:"FROM commandes\n⟦INNER JOIN clients\n    ON commandes.client_id = clients.id⟧"},
+      {scene:{h:"🔗 Des commandes à leurs clients",cols:".6fr 1fr",
+        lanes:[{k:"HO",l:"commandes",c:[["","id","t"],["","client_id","t"]]},
+          {k:"O1",c:[["a1","1"],["a2","1"]]},
+          {k:"O2",c:[["b1","3"],["b2","2"]]},
+          {k:"O3",c:[["c1","16"],["c2","NULL","n"]]},
+          {k:"HC",l:"clients",c:[["","id","t"],["","prenom","t"]]},
+          {k:"C1",c:[["d1","1"],["d2","Sophie"]]},
+          {k:"C2",c:[["e1","2"],["e2","Lucas"]]},
+          {k:"C3",c:[["f1","9"],["f2","Inès"]]},
+          {k:"HG",fold:true,cls:"is-goal",l:"résultat",c:[["","commande","t"],["","prenom","t"]]},
+          {k:"G1",fold:true,cls:"is-goal",c:[["g1","?","q"],["g2","?","q"]]},
+          {k:"G2",fold:true,cls:"is-goal",c:[["g3","?","q"],["g4","?","q"]]}],
+        caps:["<b>Deux tables</b> · Une commande porte le numéro de son client ; un client a son propre id.","<b>ON</b> · SQL cherche, pour chaque commande, le client qui porte le même numéro : commande 1 et Sophie, commande 3 et Lucas.","<b>INNER JOIN</b> · Seules les paires sont gardées : la commande 16 et Inès n’ont pas de paire, elles sont écartées.","<b>Résultat</b> · Chaque paire devient une ligne qui réunit les informations des deux tables."],
+        steps:[{cap:0,on:["O1","O2","O3","C1","C2","C3"],d:2000},{cap:1,off:["O3","C3"],dim:["O3","C3"],d:2600},{cap:2,mark:{O3:"is-miss",C3:"is-miss"},d:2600},{cap:3,off:["O1","O2","C1","C2"],unfold:["HG","G1","G2"],fly:[["a1","g1"],["d2","g2"],["b1","g3"],["e2","g4"]],d:3200}]}}
+    ]
+  },
+  steps:[
+    {h:"Relier une commande à son client",blocks:[
+      "<code>INNER JOIN</code> s’écrit après <code>FROM</code> : il ajoute la deuxième table, et <code>ON</code> précise quelles lignes vont ensemble :",
+      {syntax:"SELECT commandes.id, clients.prenom\nFROM commandes\n⟦INNER JOIN clients\n    ON commandes.client_id = clients.id⟧;"},
+      {looks:[["INNER JOIN clients","ajoute la table clients à la requête"],["ON commandes.client_id = clients.id","relie chaque commande au client qui porte le même numéro"]]},
+      {say:"👇 Exécute cette requête pour voir chaque commande avec le prénom de son client :",run:"SELECT commandes.id, clients.prenom\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id;"},
+      {arrow:"Chaque commande est réunie avec le prénom de son client : la commande 1 est celle de Sophie, la commande 3 celle de Lucas."},
+      {warn:{t:"Un même nom de colonne dans les deux tables",blocks:[
+        "Les tables <code>commandes</code> et <code>clients</code> ont chacune une colonne <code>id</code>. Sans préciser la table, SQL ne sait pas laquelle choisir :",
+        {say:"👇 Teste par toi-même :",run:"SELECT id, prenom\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id;"},
+        {arrow:"SQL refuse la requête : la colonne est ambiguë. Il faut écrire <code>commandes.id</code> ou <code>clients.id</code>."}
+      ]}}
+    ]},
+    {h:"Une ligne par correspondance",blocks:[
+      "<code>INNER JOIN</code> ne garde que les lignes qui ont une correspondance <b>des deux côtés</b>. Comptons les lignes avant la jointure, puis après :",
+      {say:"👇 Exécute cette requête pour compter les commandes :",run:"SELECT COUNT(*) AS commandes\nFROM commandes;"},
+      {say:"👇 Puis celle-ci, pour compter les lignes de la jointure :",run:"SELECT COUNT(*) AS lignes\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id;"},
+      {arrow:"16 commandes, mais 15 lignes : la commande 16 n’a pas de client (<code>client_id</code> vaut <code>NULL</code>), aucune ligne de <code>clients</code> ne lui correspond, elle disparaît."},
+      {tip:{t:"Une ligne par correspondance",blocks:[
+        "Un client qui a passé plusieurs commandes apparaît sur plusieurs lignes : une par commande.",
+        {say:"👇 Exécute cette requête pour retrouver les commandes de Sophie :",run:"SELECT clients.prenom, commandes.id\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE clients.prenom = 'Sophie';"},
+        {arrow:"Trois commandes, donc trois lignes : ce n’est pas un doublon accidentel."}
+      ]}}
+    ]},
+    {h:"Filtrer le résultat de la jointure",blocks:[
+      "La jointure relie les tables ; <code>WHERE</code> filtre ensuite les lignes obtenues. Il se place après <code>ON</code> :",
+      {syntax:"FROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\n⟦WHERE commandes.statut = 'en_preparation'⟧"},
+      {say:"👇 Exécute cette requête pour voir les commandes encore en préparation :",run:"SELECT commandes.id, clients.prenom, commandes.statut\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.statut = 'en_preparation';"},
+      {arrow:"Seules les commandes 12, 13, 14 et 15 restent. La commande 16 est aussi en préparation, mais la jointure l’avait déjà écartée : elle n’a pas de client."},
+      {tip:{t:"JOIN tout court",blocks:["Écrire <code>JOIN</code> seul revient ici à écrire <code>INNER JOIN</code> : c’est la jointure par défaut."]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes des deux tables, relier les tables, puis ne garder que les commandes de juillet 2026.",
+      {say:"👇 Exécute la requête pour obtenir la liste d’envoi de l’enquête :",run:"SELECT clients.prenom,\n       clients.email,\n       commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31';"},
+      {done:{
+        label:"De 16 commandes aux 14 de juillet",
+        funnel:[
+          {n:16,t:"commandes au départ",s:"toute la <code>table commandes</code>",dots:"0000000000000000"},
+          {step:"INNER JOIN clients",s:"relie chaque commande à son client et écarte celle qui n’en a pas"},
+          {n:15,t:"commandes avec leur client",s:"la commande 16, sans client, a disparu",dots:"000000000000000"},
+          {step:"WHERE … BETWEEN",s:"ne garde que les commandes de juillet 2026"},
+          {n:14,t:"⭐ enquêtes à envoyer",s:"une par commande de juillet, avec le prénom et l’email du client",dots:"111111111111110",out:true}
+        ],
+        sms:{mail:true,ico:"✉️",h:"Enquête de satisfaction",aria:"L’enquête de satisfaction est préparée pour chacune des 14 commandes de juillet",msg:"<b>Ton avis sur ta commande</b><br>Merci pour ta commande de juillet ! Donne-nous ton avis en 2 minutes 🙏",people:[["S","Sophie","sophie@mail.fr"],["S","Sophie","sophie@mail.fr"],["L","Lucas","lucas@mail.fr"],["E","Emma","emma@mail.fr"],["N","Nathan","nathan@mail.fr"]],more:9,moreT:"… et 9 autres",moreS:"enquêtes de juillet",st:["En attente","Préparation","✓ Prête"],done:"✓ 14 enquêtes dans la liste d’envoi"},
+        fill:["INNER JOIN","clients","commandes.client_id","clients.id"],
+        ui:{t:"La liste d’envoi est prête",s:"Les informations réparties entre les tables clients et commandes sont réunies dans un même résultat : 14 commandes de juillet 2026.",n:["INNER JOIN","ON","WHERE","BETWEEN"]},
+        rows:14
+      }}
+    ]}
+  ],
+  reflex:[
+    {recap:[
+      ["🤝","<code>INNER JOIN</code> réunit deux tables et ne garde que les lignes qui ont une <b>correspondance des deux côtés</b>.","Une correspondance = une ligne dans le résultat."],
+      ["🔗","<code>ON</code> indique comment les lignes des deux tables sont reliées :",null,"ON commandes.client_id = clients.id"],
+      ["🔎","<code>WHERE</code> filtre <b>ensuite</b> les lignes obtenues : il ne sert pas à relier les tables."]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"SELECT commandes.id, produits.nom",txt:"Le numéro de la commande vient de la table commandes ; le nom du produit vient de la table produits."},{tok:"FROM commandes",txt:"On part de la table commandes."},{tok:"INNER JOIN produits",txt:"On ne garde que les commandes qui trouvent un produit dans la table produits."},{tok:"ON commandes.produit_id = produits.id",txt:"Le lien : produit_id correspond à l’id de la table produits."}],
+  exemple:"SELECT commandes.id, produits.nom FROM commandes INNER JOIN produits ON commandes.produit_id = produits.id;",
+  attendu:"<b>16 lignes</b> : une par commande, avec le nom du produit commandé (la commande 1 porte la Fibre Prébiotique, la 2 le Magnésium…).",
   retenir:"<code>INNER JOIN</code> réunit deux tables et ne garde que les lignes qui ont une correspondance des deux côtés.<br><br><code>ON</code> indique comment les lignes des deux tables sont reliées.<br><br><code>WHERE</code> filtre ensuite les lignes obtenues.<br><br>Une correspondance = une ligne dans le résultat.",
-  consigne:"Affiche le prénom, l’e-mail et la date de commande des clients ayant commandé en juillet 2026.",
-  solution:"SELECT clients.prenom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31';",
-  indice:"Pars de la <code>table commandes</code>, ajoute <code>INNER JOIN clients</code> avec <code>ON commandes.client_id = clients.id</code>, puis filtre juillet avec <code>BETWEEN '2026-07-01' AND '2026-07-31'</code>.",
-  joinRecap:'inner',
-  richLesson:true, earlyDemo:true,
-  testeSwitch:'cols2',
-  testeVariants:[
-    {k:'cli',label:'table clients',sql:"SELECT id, prenom, email\nFROM clients;"},
-    {k:'cmd',label:'table commandes',sql:"SELECT id, client_id, date_commande\nFROM commandes;"},
-    {k:'join',label:'INNER JOIN',sql:"SELECT clients.prenom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id;",out:"15 lignes : chaque commande rattachée à un client. L’invité disparaît."},
-    {k:'juillet',label:'Juillet',sql:"SELECT clients.prenom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31';",out:"14 lignes : prénom, e-mail et date, uniquement pour juillet 2026.",tone:'good'}
-  ],
-learningCheck:{
-  "question": "Sophie a trois commandes en juillet. Combien de lignes la jointure produit-elle pour elle ?",
-  "options": [
-    "Trois",
-    "Une",
-    "Deux"
-  ],
-  "answer": 0,
-  "explanation": "INNER JOIN produit une ligne par correspondance. Trois commandes, trois lignes : les tables, elles, ne changent pas."
-}
-},
+  consigne:"Affiche le numéro (<code>id</code>), le nom du produit (<code>nom</code>) et la <code>quantite</code> des commandes dont la quantité dépasse 2.",
+  solution:"SELECT commandes.id, produits.nom, commandes.quantite FROM commandes INNER JOIN produits ON commandes.produit_id = produits.id WHERE commandes.quantite > 2;",
+  indice:"Relie <code>commandes</code> à <code>produits</code> avec <code>ON commandes.produit_id = produits.id</code>, puis garde les commandes dont la quantité dépasse 2 avec <code>WHERE</code>.",
+  joinRecap:"inner",
+  testeVariants:[{k:"cli",label:"table clients",sql:"SELECT id, prenom, email\nFROM clients;"},{k:"cmd",label:"table commandes",sql:"SELECT id, client_id, date_commande\nFROM commandes;"},{k:"join",label:"INNER JOIN",sql:"SELECT clients.prenom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id;",out:"15 lignes : chaque commande rattachée à un client. La commande sans client disparaît."},{k:"juillet",label:"Juillet",sql:"SELECT clients.prenom, clients.email, commandes.date_commande\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.date_commande\n      BETWEEN '2026-07-01' AND '2026-07-31';",out:"14 lignes : prénom, email et date, uniquement pour juillet 2026.",tone:"good"}],
+  learningCheck:{question:"Sophie a trois commandes en juillet. Combien de lignes la jointure produit-elle pour elle ?",options:["Trois","Une","Deux"],answer:0,explanation:"INNER JOIN produit une ligne par correspondance. Trois commandes, trois lignes : les tables, elles, ne changent pas."}
+}),
 { id:20, titre:"LEFT JOIN", résumé:"Garder même sans correspondance",
   situation:`<p>L’équipe développement produit prépare le lancement d’un nouveau produit.</p><p>Avant sa sortie, elle veut créer un <b>club de testeurs</b> et inviter en priorité les clients qui n’ont encore passé <b>aucune commande</b>.</p><p>Pour préparer les invitations, elle a besoin de deux informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Prénom du client</b><span>table clients</span></div><div role="listitem"><b>🛒 Commandes passées</b><span class="is-b">table commandes</span></div></div><div class="sit-memo is-problem"><p class="sit-memo-lab"><i aria-hidden="true">🤔</i>Problème</p><p>Avec <code>INNER JOIN</code>, seuls les clients qui ont une commande apparaissent.</p></div><p>Or, cette fois, ce sont justement les clients <b>sans commande</b> qui nous intéressent.</p><p>👉 Il nous faut donc une jointure capable de garder tous les clients, même lorsqu’aucune commande ne leur correspond.</p><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Aide l’équipe Développement produit à retrouver les clients qui n’ont encore passé aucune commande, pour les inviter au club de testeurs.</p></div>`,
     studio:{problem:{eye:"",title:"Que se passe-t-il quand un client n’a aucune commande&nbsp;?",
@@ -10024,84 +10026,6 @@ learningCheck:{
   "explanation": "CROSS JOIN associe chaque ville à chaque produit : 3 × 5 = 15 lignes."
 }
 },
-{ id:44, titre:"Quel JOIN choisir ?", résumé:"Choisir la bonne jointure selon les lignes à garder",
-  situation:`<p>Voici six jointures&nbsp;: <code>INNER</code>, <code>LEFT</code>, <code>RIGHT</code>, <code>FULL OUTER</code>, <code>CROSS</code> et <code>SELF</code>.</p><p>Face à un nouveau besoin, une question revient toujours&nbsp;: <b>laquelle choisir&nbsp;?</b></p><p>Lorsqu’on relie la <code>table clients</code> et la <code>table commandes</code>, trois cas peuvent se présenter&nbsp;:</p><ul class="jc-wit" aria-label="Les trois cas possibles"><li><span class="jc-wit-ico" aria-hidden="true">🔗</span><b>Client avec commande</b><span class="jc-in" aria-label="présent dans clients, présent dans commandes"><span class="is-ok">✓ clients</span><span class="is-ok">✓ commandes</span></span></li><li><span class="jc-wit-ico" aria-hidden="true">👤</span><b>Client sans commande</b><span class="jc-in" aria-label="présent dans clients, absent dans commandes"><span class="is-ok">✓ clients</span><span class="is-ko">✕ commandes</span></span></li><li><span class="jc-wit-ico" aria-hidden="true">📦</span><b>Commande sans client</b><span class="jc-in" aria-label="absent dans clients, présent dans commandes"><span class="is-ko">✕ clients</span><span class="is-ok">✓ commandes</span></span></li></ul><p>👉 Selon la jointure choisie, certains de ces cas restent dans le résultat… et d’autres disparaissent.</p><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Aide l’équipe à choisir la bonne jointure pour chacun de ses besoins.</p></div>`,
-    studio:{problem:{eye:"",title:"Une seule question à se poser",
-      body:"Avant d’écrire la requête, réponds à ces deux questions&nbsp;:",
-      extra:`<div class="jc-guide" aria-live="polite">
-        <div class="jc-step" data-q="1"><p class="jc-q"><span aria-hidden="true">1</span>Cherches-tu des lignes qui correspondent&nbsp;?</p>
-          <div class="jc-opts"><button type="button" data-a="match">Oui, entre deux tables différentes</button><button type="button" data-a="self">Oui, entre des lignes de la même table</button><button type="button" data-a="cross">Non, je veux toutes les combinaisons</button></div></div>
-        <div class="jc-step" data-q="2" hidden><p class="jc-q"><span aria-hidden="true">2</span>Quelles lignes doivent rester, même sans correspondance&nbsp;?</p>
-          <div class="jc-opts"><button type="button" data-a="inner">Aucune&nbsp;: seulement les correspondances</button><button type="button" data-a="left">Toutes celles de gauche</button><button type="button" data-a="right">Toutes celles de droite</button><button type="button" data-a="full">Toutes les lignes des deux tables</button></div></div>
-        <div class="jc-res" hidden></div>
-        <button type="button" class="jc-reset" hidden>↺ Recommencer</button>
-      </div>
-        <p class="ij-arrow">👉 La bonne jointure dépend toujours des lignes que tu veux garder, même lorsqu’elles n’ont aucune correspondance.</p>`},
-    uses:{title:"À toi de choisir",
-      body:`<div class="pt-lead fn-uses fk-course jn-course">
-        <div class="fn-use jc-quiz">
-          <p>Voici 6 besoins métier. Pour chacun, choisis la jointure adaptée.</p><p>🎯 Obtiens au moins <b>5 bonnes réponses sur 6</b> pour débloquer l’exercice.</p>
-          <div class="jc-score" aria-live="polite"><span class="jc-score-t"><b>0</b> / 6 bonnes réponses</span><span class="jc-score-bar"><i></i></span></div>
-          <div class="ij-ask jc-ask" data-ok="4" data-yes="<b>✅ CROSS JOIN</b>On ne cherche aucune correspondance&nbsp;: chaque personnage est associé à chaque arène." data-no="<b>❌ C’est CROSS JOIN</b>Un personnage et une arène ne sont liés par aucun identifiant&nbsp;: on veut toutes les combinaisons personnage × arène."><p class="ij-ask-q"><span class="jc-ask-n">1</span><span>🎮 Associer chaque personnage à chaque arène pour créer tous les matchs possibles.</span></p><div class="ij-ask-opts"><button type="button">INNER</button><button type="button">LEFT</button><button type="button">RIGHT</button><button type="button">FULL</button><button type="button">CROSS</button><button type="button">SELF</button></div><p class="ij-ask-fb" hidden></p></div>
-          <div class="ij-ask jc-ask" data-ok="1" data-yes="<b>✅ LEFT JOIN</b>Tous les films sont conservés. Un film sans séance apparaît avec <code>NULL</code> à la place des informations de séance." data-no="<b>❌ C’est LEFT JOIN</b>La table <code>films</code> est à gauche&nbsp;: toutes ses lignes doivent être conservées, même les films sans séance."><p class="ij-ask-q"><span class="jc-ask-n">2</span><span>🎬 Avec <code>FROM films</code>, afficher tous les films du catalogue, même ceux qui n’ont encore aucune séance programmée.</span></p><div class="ij-ask-opts"><button type="button">INNER</button><button type="button">LEFT</button><button type="button">RIGHT</button><button type="button">FULL</button><button type="button">CROSS</button><button type="button">SELF</button></div><p class="ij-ask-fb" hidden></p></div>
-          <div class="ij-ask jc-ask" data-ok="2" data-yes="<b>✅ RIGHT JOIN</b>Les rendez-vous sont à droite&nbsp;: ils sont tous conservés. Un rendez-vous sans médecin apparaît avec <code>NULL</code> à la place des informations du médecin." data-no="<b>❌ C’est RIGHT JOIN</b>Avec <code>FROM medecins</code> à gauche, ce sont tous les rendez-vous, à droite, qu’il faut conserver."><p class="ij-ask-q"><span class="jc-ask-n">3</span><span>🏥 Avec <code>FROM medecins</code>, afficher tous les rendez-vous prévus, même lorsqu’aucun médecin ne leur est encore attribué.</span></p><div class="ij-ask-opts"><button type="button">INNER</button><button type="button">LEFT</button><button type="button">RIGHT</button><button type="button">FULL</button><button type="button">CROSS</button><button type="button">SELF</button></div><p class="ij-ask-fb" hidden></p></div>
-          <div class="ij-ask jc-ask" data-ok="5" data-yes="<b>✅ SELF JOIN</b>Le capitaine est lui aussi un joueur&nbsp;: on relie la table <code>joueurs</code> à elle-même, avec deux alias." data-no="<b>❌ C’est SELF JOIN</b>Le joueur et son capitaine se trouvent dans la même table&nbsp;: on relie <code>joueurs</code> à elle-même."><p class="ij-ask-q"><span class="jc-ask-n">4</span><span>🏆 Pour chaque joueur, retrouver le nom de son capitaine. Les deux sont enregistrés dans la même table <code>joueurs</code>.</span></p><div class="ij-ask-opts"><button type="button">INNER</button><button type="button">LEFT</button><button type="button">RIGHT</button><button type="button">FULL</button><button type="button">CROSS</button><button type="button">SELF</button></div><p class="ij-ask-fb" hidden></p></div>
-          <div class="ij-ask jc-ask" data-ok="0" data-yes="<b>✅ INNER JOIN</b>Seuls les artistes qui ont une correspondance dans la programmation sont conservés." data-no="<b>❌ C’est INNER JOIN</b>Le mot «&nbsp;uniquement&nbsp;» est le signal&nbsp;: les artistes sans scène ne sont pas conservés."><p class="ij-ask-q"><span class="jc-ask-n">5</span><span>🎵 Afficher uniquement les artistes qui ont une scène programmée.</span></p><div class="ij-ask-opts"><button type="button">INNER</button><button type="button">LEFT</button><button type="button">RIGHT</button><button type="button">FULL</button><button type="button">CROSS</button><button type="button">SELF</button></div><p class="ij-ask-fb" hidden></p></div>
-          <div class="ij-ask jc-ask" data-ok="3" data-yes="<b>✅ FULL OUTER JOIN</b>Tous les passagers et tous les bagages sont conservés. Sans correspondance, les informations de l’autre table valent <code>NULL</code>." data-no="<b>❌ C’est FULL OUTER JOIN</b>Il faut conserver toutes les lignes&nbsp;: les passagers sans bagage <strong>et</strong> les bagages sans passager."><p class="ij-ask-q"><span class="jc-ask-n">6</span><span>✈️ Afficher tous les passagers et tous les bagages scannés, même lorsqu’un passager n’a pas de bagage ou qu’un bagage n’est rattaché à aucun passager.</span></p><div class="ij-ask-opts"><button type="button">INNER</button><button type="button">LEFT</button><button type="button">RIGHT</button><button type="button">FULL</button><button type="button">CROSS</button><button type="button">SELF</button></div><p class="ij-ask-fb" hidden></p></div>
-          <div class="jc-done" hidden aria-live="polite"></div>
-        </div>
-      </div>`},
-    why:{eye:"Comparer",title:"Quelles lignes sont conservées&nbsp;?",
-      extra:`<div class="jw" data-j="inner">
-          <p class="jw-lead">Change la jointure et observe quelles lignes sont conservées&nbsp;:</p>
-          <div class="jw-tabs" role="tablist" aria-label="Choisir une jointure"><button type="button" role="tab" data-j="inner" aria-selected="true">INNER</button><button type="button" role="tab" data-j="left" aria-selected="false">LEFT</button><button type="button" role="tab" data-j="right" aria-selected="false">RIGHT</button><button type="button" role="tab" data-j="full" aria-selected="false">FULL</button><button type="button" role="tab" data-j="self" aria-selected="false">SELF</button></div>
-          <div class="jw-head"><span class="jw-venn" aria-hidden="true"></span><p class="jw-sql"><code></code></p></div>
-          <div class="jw-rows" aria-live="polite">
-            <div class="jw-row" data-w="sophie"><span class="jw-who"><i aria-hidden="true">🔗</i>Client avec commande</span><span class="jw-cells"><code>client</code><code>commande</code></span><em></em></div>
-            <div class="jw-row" data-w="ines"><span class="jw-who"><i aria-hidden="true">👤</i>Client sans commande</span><span class="jw-cells"><code>client</code><code class="is-nul">NULL</code></span><em></em></div>
-            <div class="jw-row is-self" data-w="jcap"><span class="jw-who"><i aria-hidden="true">🔗</i>Joueur avec capitaine</span><span class="jw-cells"><code>joueur</code><code>capitaine</code></span><em></em></div>
-            <div class="jw-row is-self" data-w="jnone"><span class="jw-who"><i aria-hidden="true">👤</i>Joueur sans capitaine</span><span class="jw-cells"><code>joueur</code><code class="is-nul">NULL</code></span><em></em></div>
-            <div class="jw-row" data-w="c16"><span class="jw-who"><i aria-hidden="true">📦</i>Commande sans client</span><span class="jw-cells"><code class="is-nul">NULL</code><code>commande</code></span><em></em></div>
-          </div>
-        </div>`},
-    reflex:{extra:guideBlocks([
-      {recap:[
-        ["❓","Avant d’écrire la jointure, demande-toi <b>quelles lignes doivent rester</b>, même sans correspondance."],
-        ["📌","<code>INNER</code> : seulement les correspondances. <code>LEFT</code> : tout à gauche. <code>RIGHT</code> : tout à droite. <code>FULL</code> : tout des deux côtés."],
-        ["🧭","<code>CROSS</code> crée toutes les combinaisons, sans <code>ON</code> ; <code>SELF</code> relie les lignes d’une même table."]
-      ],label:"Les trois idées à retenir"}
-    ])}},
-  joinFn:true,
-  gateJcQuiz:true,
-  whyFirst:true,
-  noTeste:true,
-  noAnat:true,
-  anatomie:[{tok:"SELECT clients.prenom, clients.ville, commandes.date_commande",txt:"Le prénom, la ville et la date de commande."},{tok:"FROM clients",txt:"La table de gauche : tous les clients doivent rester."},{tok:"LEFT JOIN commandes",txt:"On ajoute les commandes quand elles existent."},{tok:"ON clients.id = commandes.client_id",txt:"Sans commande, la date vaut NULL."}],
-  exemple:"SELECT clients.prenom, clients.ville, commandes.date_commande\nFROM clients\nLEFT JOIN commandes\n    ON clients.id = commandes.client_id;",
-  attendu:"<b>17 lignes</b> : les 15 commandes avec leur client, plus les 2 clients sans commande, avec une date vide (<code>NULL</code>).",
-  retenir:"Avant d’écrire le <code>JOIN</code>, demande-toi quelles lignes doivent rester, même sans correspondance.<br><br><code>INNER</code> : seulement les correspondances. <code>LEFT</code> : tout à gauche. <code>RIGHT</code> : tout à droite. <code>FULL</code> : tout des deux côtés.<br><br><code>CROSS</code> : toutes les combinaisons, sans <code>ON</code>.",
-  consigne:"Un audit réclame la liste de tous les clients avec la date de leurs commandes. Les clients qui n’ont jamais commandé doivent figurer au résultat, avec une date vide. Affiche le prénom, la ville et la date.",
-  solution:"SELECT clients.prenom, clients.ville, commandes.date_commande\nFROM clients\nLEFT JOIN commandes\n    ON clients.id = commandes.client_id;",
-  indice:"De quelle table veux-tu conserver toutes les lignes ? Ici, tous les clients, même sans commande : <code>LEFT JOIN</code>.",
-  joinRecap:true,
-  richLesson:true, earlyDemo:true,
-  testeVariants:[
-    {k:'inner',label:'INNER JOIN',sql:"SELECT clients.prenom, commandes.id AS commande_id\nFROM clients\nINNER JOIN commandes\n    ON clients.id = commandes.client_id;"},
-    {k:'left',label:'LEFT JOIN',sql:"SELECT clients.prenom, commandes.id AS commande_id\nFROM clients\nLEFT JOIN commandes\n    ON clients.id = commandes.client_id;",tone:'good'},
-    {k:'right',label:'RIGHT JOIN',sql:"SELECT clients.prenom, commandes.id AS commande_id\nFROM clients\nRIGHT JOIN commandes\n    ON clients.id = commandes.client_id;"},
-    {k:'full',label:'FULL OUTER JOIN',sql:"SELECT clients.prenom, commandes.id AS commande_id\nFROM clients\nFULL OUTER JOIN commandes\n    ON clients.id = commandes.client_id;"}
-  ] ,
-learningCheck:{
-  "question": "Pour lister tous les clients, même ceux qui n’ont rien commandé, quelle jointure choisir ?",
-  "options": [
-    "INNER JOIN",
-    "LEFT JOIN, avec clients à gauche",
-    "CROSS JOIN"
-  ],
-  "answer": 1,
-  "explanation": "Tous les clients doivent apparaître, même sans commande : avec LEFT JOIN, toutes les lignes de la table clients, à gauche, sont conservées."
-}
-},
 { id:19, titre:"Jointure de 3 tables", résumé:"Relier toute l’histoire",
   situation:`<p>Un produit présente un défaut et l’équipe SAV doit contacter les personnes concernées.</p><p>Pour chaque achat, elle a besoin de quatre informations&nbsp;:</p><div class="ij-need" role="list" aria-label="Où se trouve chaque information"><div role="listitem"><b>👤 Prénom du client</b><span>table clients</span></div><div role="listitem"><b>✉️ E-mail du client</b><span>table clients</span></div><div role="listitem"><b>📦 Nom du produit acheté</b><span class="is-c">table produits</span></div><div role="listitem"><b>📅 Date de la commande</b><span class="is-b">table commandes</span></div></div><div class="sit-memo is-problem"><p class="sit-memo-lab"><i aria-hidden="true">🤔</i>Problème</p><p>Ces informations sont réparties dans 3&nbsp;tables différentes.</p></div><div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>Aide l’équipe SAV à préparer des fiches d’information sur les achats, avec pour chacune&nbsp;: le prénom et l’e-mail du client, le produit acheté et la date de la commande.</p></div>`,
     studio:{problem:{eye:"",title:"Pourquoi faut-il relier trois tables&nbsp;?",
@@ -10473,7 +10397,111 @@ learningCheck:{
   "answer": 1,
   "explanation": "AND exige que toutes les conditions soient vraies. Une seule condition fausse suffit à écarter la correspondance."
 }
-}
+},
+guide({ id:44, titre:"Quel JOIN choisir ?", résumé:"Choisir la bonne jointure selon les lignes à garder",
+  sit:{
+    blocks:[
+      "L’équipe audit contrôle le fichier clients avant la clôture du mois. Elle veut <b>la liste de tous les clients</b> avec la date de leurs commandes, y compris ceux qui n’ont <b>jamais commandé</b>.",
+      "Les informations sont réparties entre la table <code>clients</code> (10 clients) et la table <code>commandes</code> (16 commandes). Pour contrôler le fichier, l’équipe souhaite récupérer uniquement :",
+      {need:[["👤","Le prénom du client","table clients"],["📍","Sa ville","table clients"],["📅","La date de sa commande","table commandes"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Une jointure relie deux tables, mais elle n’en fait pas toujours le même usage : trois cas peuvent se présenter, et certains <b>disparaissent</b> du résultat.","Or, l’audit veut aussi voir les clients qui n’ont <b>aucune commande</b> : ce sont eux qu’il faut contrôler."],
+      scene:{h:"🔎 Trois cas possibles",cols:"1fr 1fr",
+        lanes:[{c:[["","client","t"],["","commande","t"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","commande 1"]]},
+          {k:"R2",c:[["b1","Inès"],["b2","aucune","n"]]},
+          {k:"R3",c:[["c1","aucun","n"],["c2","commande 16"]]}],
+        caps:["<b>Trois cas</b> · Un client a une commande, un autre n’en a aucune, et une commande n’a aucun client.","<b>Jointure habituelle</b> · Seule la première ligne réunit un client et une commande : les deux autres n’ont pas de paire, elles sont écartées.","<b>Besoin</b> · L’audit veut aussi voir Inès, qui n’a jamais commandé."],
+        steps:[{cap:0,on:["R1","R2","R3"],d:2200},{cap:1,off:["R2","R3"],dim:["R2","R3"],d:2600},{cap:2,undim:["R2"],on:["R2"],d:2600}]},
+      then:["Il faut donc <b>choisir</b> une jointure qui garde aussi les lignes sans correspondance.","C’est exactement le rôle du <b>type de jointure</b> : <code>INNER</code>, <code>LEFT</code>, <code>RIGHT</code> ou <code>FULL</code>."]
+    },
+    mission:"Aide l’équipe audit à lister <b>tous les clients</b> avec leur <b>ville</b> et la <b>date</b> de leurs commandes, même ceux qui n’ont jamais commandé, afin de contrôler le fichier clients."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir quelles lignes garder ?",
+    blocks:[
+      "Avant d’écrire une jointure, une seule question suffit :",
+      {ask:"Quelles lignes doivent rester, même sans correspondance ?"},
+      "La réponse se lit dans le mot qui précède <code>JOIN</code> :",
+      {syntax:"FROM clients\n⟦LEFT⟧ JOIN commandes\n    ON clients.id = commandes.client_id"},
+      {scene:{h:"🧭 Quelles lignes sont gardées ?",cols:"1fr 1fr",
+        lanes:[{c:[["","clients","t"],["","commandes","t"]]},
+          {k:"R1",l:"des deux côtés",c:[["a1","Sophie"],["a2","commande 1"]]},
+          {k:"R2",l:"à gauche seulement",c:[["b1","Inès"],["b2","aucune","n"]]},
+          {k:"R3",l:"à droite seulement",c:[["c1","aucun","n"],["c2","commande 16"]]}],
+        caps:["<b>INNER JOIN</b> · Seulement les lignes qui ont une correspondance des deux côtés.","<b>LEFT JOIN</b> · Toute la table de gauche : Inès reste, avec une commande vide.","<b>RIGHT JOIN</b> · Toute la table de droite : la commande 16 reste, avec un client vide.","<b>FULL OUTER JOIN</b> · Toutes les lignes des deux tables : rien n’est écarté."],
+        steps:[{cap:0,on:["R1"],dim:["R2","R3"],d:2300},{cap:1,undim:["R2"],on:["R2"],d:2300},{cap:2,off:["R2"],dim:["R2"],undim:["R3"],on:["R3"],d:2300},{cap:3,undim:["R2"],on:["R2"],d:2300}]}},
+      {looks:[["table de gauche","celle qui suit <code>FROM</code>"],["table de droite","celle qui suit <code>JOIN</code>"]],label:"Gauche et droite"}
+    ]
+  },
+  steps:[
+    {h:"Garder ou non les lignes sans correspondance",blocks:[
+      "Avec <code>INNER JOIN</code>, seules les lignes qui ont une correspondance des deux côtés restent : les clients sans commande disparaissent.",
+      {say:"👇 Exécute cette requête pour relier les clients à leurs commandes :",run:"SELECT clients.prenom, commandes.date_commande\nFROM clients\nINNER JOIN commandes\n    ON clients.id = commandes.client_id;"},
+      {arrow:"15 lignes : Inès et Nathan Dupont, qui n’ont jamais commandé, n’apparaissent pas."},
+      "Pour les garder, on change seulement le mot qui précède <code>JOIN</code> : <code>LEFT JOIN</code> conserve toutes les lignes de la table de gauche.",
+      {say:"👇 Exécute la même requête avec <code>LEFT JOIN</code> :",run:"SELECT clients.prenom, commandes.date_commande\nFROM clients\nLEFT JOIN commandes\n    ON clients.id = commandes.client_id;"},
+      {arrow:"17 lignes : les 15 d’avant, plus Inès et Nathan Dupont, avec une date vide (<code>NULL</code>)."}
+    ]},
+    {h:"Garder la table de droite, ou les deux",blocks:[
+      "<code>RIGHT JOIN</code> fait l’inverse : il conserve toutes les lignes de la table de droite. Ici, ce sont les commandes.",
+      {say:"👇 Exécute cette requête pour garder toutes les commandes :",run:"SELECT commandes.numero_commande, clients.prenom\nFROM clients\nRIGHT JOIN commandes\n    ON clients.id = commandes.client_id;"},
+      {arrow:"16 lignes : toutes les commandes restent, y compris la commande 16 qui n’a pas de client (prénom <code>NULL</code>)."},
+      "<code>FULL OUTER JOIN</code> garde les deux côtés à la fois :",
+      {say:"👇 Exécute cette requête pour ne rien écarter :",run:"SELECT clients.prenom, commandes.id AS commande\nFROM clients\nFULL OUTER JOIN commandes\n    ON clients.id = commandes.client_id;"},
+      {arrow:"18 lignes : 15 correspondances, 2 clients sans commande et 1 commande sans client."},
+      {tip:{t:"RIGHT JOIN, le miroir de LEFT JOIN",blocks:["Écrire <code>FROM commandes LEFT JOIN clients</code> donne le même résultat que <code>FROM clients RIGHT JOIN commandes</code> : on peut toujours inverser l’ordre des tables et rester sur <code>LEFT JOIN</code>, souvent plus lisible."]}}
+    ]},
+    {h:"À toi de choisir",blocks:[
+      {quiz:{
+        intro:["Voici six besoins, dans des situations très différentes. Pour chacun, choisis la jointure adaptée.","🎯 Vise au moins <b>5 bonnes réponses sur 6</b>."],
+        opts:["INNER","LEFT","RIGHT","FULL","CROSS","SELF"],
+        items:[
+          {q:"🎮 Associer chaque personnage à chaque arène pour créer tous les matchs possibles.",ok:4,yes:"<b>✅ CROSS JOIN</b>On ne cherche aucune correspondance : chaque personnage est associé à chaque arène.",no:"<b>❌ C’est CROSS JOIN</b>Un personnage et une arène ne sont liés par aucun identifiant : on veut toutes les combinaisons personnage × arène."},
+          {q:"🎬 Avec <code>FROM films</code>, afficher tous les films du catalogue, même ceux qui n’ont encore aucune séance programmée.",ok:1,yes:"<b>✅ LEFT JOIN</b>Tous les films sont conservés. Un film sans séance apparaît avec <code>NULL</code> à la place des informations de séance.",no:"<b>❌ C’est LEFT JOIN</b>La table <code>films</code> est à gauche : toutes ses lignes doivent être conservées, même les films sans séance."},
+          {q:"🏥 Avec <code>FROM medecins</code>, afficher tous les rendez-vous prévus, même lorsqu’aucun médecin ne leur est encore attribué.",ok:2,yes:"<b>✅ RIGHT JOIN</b>Les rendez-vous sont à droite : ils sont tous conservés. Un rendez-vous sans médecin apparaît avec <code>NULL</code> à la place des informations du médecin.",no:"<b>❌ C’est RIGHT JOIN</b>Avec <code>FROM medecins</code> à gauche, ce sont tous les rendez-vous, à droite, qu’il faut conserver."},
+          {q:"🏆 Pour chaque joueur, retrouver le nom de son capitaine. Les deux sont enregistrés dans la même table <code>joueurs</code>.",ok:5,yes:"<b>✅ SELF JOIN</b>Le capitaine est lui aussi un joueur : on relie la table <code>joueurs</code> à elle-même, avec deux alias.",no:"<b>❌ C’est SELF JOIN</b>Le joueur et son capitaine se trouvent dans la même table : on relie <code>joueurs</code> à elle-même."},
+          {q:"🎵 Afficher uniquement les artistes qui ont une scène programmée.",ok:0,yes:"<b>✅ INNER JOIN</b>Seuls les artistes qui ont une correspondance dans la programmation sont conservés.",no:"<b>❌ C’est INNER JOIN</b>Le mot « uniquement » est le signal : les artistes sans scène ne sont pas conservés."},
+          {q:"✈️ Afficher tous les passagers et tous les bagages scannés, même lorsqu’un passager n’a pas de bagage ou qu’un bagage n’est rattaché à aucun passager.",ok:3,yes:"<b>✅ FULL OUTER JOIN</b>Tous les passagers et tous les bagages sont conservés. Sans correspondance, les informations de l’autre table valent <code>NULL</code>.",no:"<b>❌ C’est FULL OUTER JOIN</b>Il faut conserver toutes les lignes : les passagers sans bagage <strong>et</strong> les bagages sans passager."}
+        ]
+      }}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes des deux tables, puis garder tous les clients, même sans commande, avec <code>LEFT JOIN</code>.",
+      {say:"👇 Exécute la requête pour obtenir le fichier à contrôler :",run:"SELECT clients.prenom,\n       clients.ville,\n       commandes.date_commande\nFROM clients\nLEFT JOIN commandes\n    ON clients.id = commandes.client_id;"},
+      {done:{
+        label:"De 10 clients au fichier d’audit complet",
+        funnel:[
+          {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
+          {step:"LEFT JOIN commandes",s:"ajoute leurs commandes sans écarter aucun client"},
+          {n:17,t:"⭐ lignes pour l’audit",s:"15 commandes avec leur client, plus Inès et Nathan Dupont, sans commande",dots:"11111111111111111",out:true}
+        ],
+        sms:{ico:"🧾",h:"Fichier clients à contrôler",aria:"Les 17 lignes du fichier d’audit : tous les clients, avec ou sans commande",msg:"<b>Audit du fichier clients</b><br>Chaque client avec la date de ses commandes",people:[["S","Sophie","Paris · 2026-07-02"],["S","Sophie","Paris · 2026-07-02"],["S","Sophie","Paris · 2026-07-28"],["L","Lucas","Lyon · 2026-07-05"],["L","Lucas","Lyon · 2026-07-20"]],more:12,moreT:"… et 12 autres",moreS:"lignes, dont 2 clients sans commande",st:["À contrôler","Contrôle","✓ Contrôlé"],plane:"doc",done:"✓ 17 lignes contrôlées"},
+        fill:["clients","LEFT JOIN","clients.id","commandes.client_id"],
+        ui:{t:"Tous les clients, avec ou sans commande",s:"17 lignes : les 15 commandes avec leur client, plus les 2 clients qui n’ont jamais commandé, avec une date vide.",n:["LEFT JOIN","ON"]},
+        rows:17
+      }}
+    ]}
+  ],
+  reflex:[
+    {recap:[
+      ["❓","Avant d’écrire la jointure, demande-toi <b>quelles lignes doivent rester</b>, même sans correspondance."],
+      ["📌","<code>INNER</code> : seulement les correspondances. <code>LEFT</code> : tout à gauche. <code>RIGHT</code> : tout à droite. <code>FULL</code> : tout des deux côtés."],
+      ["🧭","<code>CROSS</code> crée toutes les combinaisons, sans <code>ON</code> ; <code>SELF</code> relie les lignes d’une même table."]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"SELECT clients.prenom, commandes.date_commande",txt:"Le prénom du client et la date de sa commande."},{tok:"FROM clients",txt:"La table de gauche : tous les clients doivent rester."},{tok:"LEFT JOIN commandes",txt:"On ajoute les commandes quand elles existent."},{tok:"ON clients.id = commandes.client_id",txt:"Sans commande, la date vaut NULL."}],
+  exemple:"SELECT clients.prenom, commandes.date_commande FROM clients LEFT JOIN commandes ON clients.id = commandes.client_id;",
+  attendu:"<b>17 lignes</b> : les 15 commandes avec leur client, plus les 2 clients sans commande, avec une date vide (<code>NULL</code>).",
+  retenir:"Avant d’écrire le <code>JOIN</code>, demande-toi quelles lignes doivent rester, même sans correspondance.<br><br><code>INNER</code> : seulement les correspondances. <code>LEFT</code> : tout à gauche. <code>RIGHT</code> : tout à droite. <code>FULL</code> : tout des deux côtés.<br><br><code>CROSS</code> : toutes les combinaisons, sans <code>ON</code>.",
+  consigne:"Affiche le numéro de commande (<code>numero_commande</code>) et le prénom du client (<code>prenom</code>) de <b>toutes</b> les commandes, y compris celle qui n’a pas de client.",
+  solution:"SELECT commandes.numero_commande, clients.prenom FROM commandes LEFT JOIN clients ON commandes.client_id = clients.id;",
+  indice:"Quelle table doit garder toutes ses lignes ? Ici, les commandes : place-les à gauche, après <code>FROM</code>, avec <code>LEFT JOIN</code>.",
+  joinRecap:true,
+  testeVariants:[{k:"inner",label:"INNER JOIN",sql:"SELECT clients.prenom, commandes.id AS commande_id\nFROM clients\nINNER JOIN commandes\n    ON clients.id = commandes.client_id;"},{k:"left",label:"LEFT JOIN",sql:"SELECT clients.prenom, commandes.id AS commande_id\nFROM clients\nLEFT JOIN commandes\n    ON clients.id = commandes.client_id;",tone:"good"},{k:"right",label:"RIGHT JOIN",sql:"SELECT clients.prenom, commandes.id AS commande_id\nFROM clients\nRIGHT JOIN commandes\n    ON clients.id = commandes.client_id;"},{k:"full",label:"FULL OUTER JOIN",sql:"SELECT clients.prenom, commandes.id AS commande_id\nFROM clients\nFULL OUTER JOIN commandes\n    ON clients.id = commandes.client_id;"}],
+  learningCheck:{question:"Pour lister tous les clients, même ceux qui n’ont rien commandé, quelle jointure choisir ?",options:["INNER JOIN","LEFT JOIN, avec clients à gauche","CROSS JOIN"],answer:1,explanation:"Tous les clients doivent apparaître, même sans commande : avec LEFT JOIN, toutes les lignes de la table clients, à gauche, sont conservées."}
+})
 ]},
 { titre:"Sous-requêtes et ensembles", sous:"IN, EXISTS, CTE et UNION", lessons:[
 { id:45, titre:"Sous-requête dans WHERE avec IN", résumé:"Quels clients ont déjà commandé du Magnésium ?",
@@ -19469,7 +19497,7 @@ function initJoinChooser(){
       const total=boxes.length,win=good>=total-1;
       done.className='jc-done '+(win?'is-win':'is-retry');
       done.innerHTML=win
-        ?`<span class="jc-end-ico" aria-hidden="true">${good===total?'🏆':'🎉'}</span><p class="jc-end-score"><b>0</b>/${total}</p><p class="jc-end-t">${good===total?'Sans faute, bravo&nbsp;!':'Bravo, mission accomplie&nbsp;!'}</p><p class="jc-end-p">Tu sais choisir la jointure adaptée à chaque besoin.</p><button type="button" class="jc-end-btn is-ghost">↺ Refaire le quiz</button>`
+        ?`<span class="jc-end-ico" aria-hidden="true">${good===total?'🏆':'🎉'}</span><p class="jc-end-score"><b>0</b>/${total}</p><p class="jc-end-t">${good===total?'Sans faute, bravo&nbsp;!':'Bravo&nbsp;!'}</p><p class="jc-end-p">Tu sais choisir la jointure adaptée à chaque besoin.</p><button type="button" class="jc-end-btn is-ghost">↺ Refaire le quiz</button>`
         :`<span class="jc-end-ico" aria-hidden="true">💪</span><p class="jc-end-score"><b>0</b>/${total}</p><p class="jc-end-t">Presque&nbsp;! Encore un petit effort.</p><p class="jc-end-p">Il faut au moins ${total-1} bonnes réponses pour montrer que tu as bien compris les jointures en SQL. Relis les explications, puis réessaie.</p><button type="button" class="jc-end-btn">↺ Recommencer le quiz</button>`;
       done.hidden=false;
       done.querySelector('.jc-end-btn').addEventListener('click',reset);
@@ -19499,7 +19527,6 @@ function initJoinChooser(){
    Le contenu existant (scène animée, schéma en étapes) est déplacé, pas réécrit :
    la carte garde ses classes, donc son affichage après une requête réussie. */
 const MISSION_DONE_UI={
-  18:{t:'La liste d’envoi est prête',s:'Les informations réparties entre les tables clients et commandes sont réunies dans un même résultat&nbsp;: 14 commandes de juillet 2026.',n:['INNER JOIN','ON','WHERE','BETWEEN'],dropP:true},
   20:{t:'2 futurs membres du club de testeurs',s:'Inès et Nathan n’ont jamais commandé&nbsp;: ils sont invités.',n:['LEFT JOIN','ON','WHERE','IS NULL']},
   38:{t:'16 commandes, aucune écartée',s:'La commande #16 est conservée, même si aucun client ne lui correspond.',n:['RIGHT JOIN','ON'],dropP:true},
   39:{t:'18 lignes, rien n’est écarté',s:'15 correspondances, 2 clients sans commande et 1 commande sans client.',n:['FULL OUTER JOIN','ON'],dropP:true},
@@ -19679,10 +19706,6 @@ function mdSql(t){
    (on/off, dim/undim, gone/back, show, mark, text, fly). Options d’une cellule :
    q = point d’interrogation, h = cachée au départ, n = valeur absente (NULL), t = en-tête. */
 const PROB_SCENES={
-  18:{h:'🔎 Informations réparties',
-    lanes:[{k:'A',l:'clients',c:[['a1','1'],['a2','Sophie'],['a3','sophie@mail.fr']]},{k:'B',l:'commandes',c:[['b1','client 1'],['b2','02/07']]},{k:'G',l:'résultat attendu',c:[['g1','?','q'],['g2','?','q'],['g3','?','q']],cls:'is-goal'}],
-    caps:['<b>Table clients</b> · Elle contient le prénom et l’e-mail du client.','<b>Table commandes</b> · Elle contient la date, mais pas le prénom du client.','<b>Objectif</b> · Réunir ces informations sur une même ligne.'],
-    steps:[{cap:0,on:['A'],d:1900},{cap:1,off:['A'],on:['B'],d:1900},{cap:2,off:['B'],fly:[['a2','g1'],['a3','g2'],['b2','g3']],d:2600}]},
   19:{h:'🔎 Trois tables à réunir',
     lanes:[{k:'A',l:'clients',c:[['a1','Sophie'],['a2','sophie@mail.fr']]},{k:'B',l:'produits',c:[['b1','Fibre Prébiotique']]},{k:'C',l:'commandes',c:[['c1','02/07']]},{k:'G',l:'fiche SAV',c:[['g1','?','q',66],['g2','?','q',118],['g3','?','q',142],['g4','?','q',58]],cls:'is-goal'}],
     caps:['<b>Table clients</b> · Elle contient le prénom et l’e-mail du client.','<b>Produits et commandes</b> · Elles donnent le produit et la date de commande.','<b>Objectif</b> · Réunir les quatre informations d’une fiche sur une même ligne.'],
@@ -20486,7 +20509,6 @@ function qfConfetti(anchor){
      cours, sur la requête d’exemple (sql:'exemple').
    Réussir la requête à trous déverrouille l’exercice, comme pour la leçon 49. */
 const MISSION_FILLS={
-  18:{t:['INNER JOIN','clients','commandes.client_id','clients.id']},
   20:{t:['LEFT JOIN','clients.id','commandes.client_id','IS NULL']},
   38:{t:['RIGHT JOIN','commandes','clients.id','commandes.client_id']},
   39:{t:['FULL OUTER JOIN','commandes','clients.id','commandes.client_id']},
@@ -26341,7 +26363,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1605';
+  const SW_CACHE='requete-2026-10-04-ludique-v1606';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
