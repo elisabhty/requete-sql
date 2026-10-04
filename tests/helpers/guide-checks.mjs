@@ -68,7 +68,8 @@ export function checkGuideLesson(env, l) {
     });
     assert.equal(sc.steps.length, sc.caps.length, `${l.titre} : une légende par étape`);
     /* Les cellules de chaque ligne tiennent dans la grille. */
-    if (sc.cols) for (const lane of sc.lanes) assert.ok(lane.c.length <= tracks(sc.cols), `${l.titre} : trop de cellules pour la grille (${lane.k || 'en-tête'})`);
+    /* Une ligne a au plus autant de cellules que de colonnes, sauf si elle a sa propre grille et que ses cellules passent à la ligne (multiple du nombre de colonnes). */
+    if (sc.cols) for (const lane of sc.lanes) assert.ok(lane.c.length <= tracks(lane.cols || sc.cols) || (lane.cols && lane.c.length % tracks(lane.cols) === 0), `${l.titre} : trop de cellules pour la grille (${lane.k || 'en-tête'})`);
   }
   /* Chaque emplacement d'animation du cours a sa scène. */
   const slots = (body.match(/data-xscene="(\d+)"/g) || []).length;
@@ -135,7 +136,7 @@ export function checkGuideLesson(env, l) {
     rows.forEach((r, i) => {
       const where = head.slice(0, last + 1).map((h, k) => cols.includes(h) ? (r[k].text === 'NULL' ? `${h} IS NULL` : `${h}=${JSON.stringify(r[k].text).replace(/^"|"$/g, "'")}`) : null).filter(Boolean).join(' AND ');
       assert.ok(dbt.exec(`SELECT COUNT(*) FROM ${table} WHERE ${where}`)[0].values[0][0] >= 1, `${l.titre} : ${r[0].text} (${r[val].text}) existe dans la table ${table}`);
-      const truth = firstSeen ? !rows.slice(0, i).some(p => p[val].text === r[val].text) : dbt.exec(`SELECT ${vals.reduce((c, v) => c.replace(new RegExp(`\\b${head[v]}\\b`), /^-?\d+(\.\d+)?$/.test(r[v].text) ? r[v].text : /^NULL$/i.test(r[v].text) ? 'NULL' : `'${r[v].text}'`), cond)}`)[0].values[0][0] === 1;
+      const truth = firstSeen ? !rows.slice(0, i).some(p => p[val].text === r[val].text) : dbt.exec(`SELECT ${vals.reduce((c, v) => c.replace(new RegExp(`\\b${head[v]}\\b`, 'g'), /^-?\d+(\.\d+)?$/.test(r[v].text) ? r[v].text : /^NULL$/i.test(r[v].text) ? 'NULL' : `'${r[v].text}'`), cond)}`)[0].values[0][0] === 1;
       assert.equal(/is-hit/.test(r[n - 1].cls), truth, `${l.titre} : le verdict de ${r[0].text} doit être « ${truth ? 'vraie' : 'fausse'} » pour ${cond}`);
     });
     dbt.close(); testedTables++;
