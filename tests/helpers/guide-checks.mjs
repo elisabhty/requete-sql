@@ -35,10 +35,12 @@ export function checkGuideLesson(env, l) {
   let runs = 0, testedTables = 0;
   const body = [l.situation, l.studio.problem.extra, l.studio.uses.body, (l.studio.reflex || {}).extra].join('\n');
   /* Requêtes à exécuter : elles marchent, sauf celles d'un encadré « Attention » (qui montrent un piège). */
-  const re = /<div class="ij-run"( data-warn="1")? data-run-sql="([^"]*)"><\/div>/g;
+  const re = /<div class="ij-run"( data-warn="1")? data-run-sql="([^"]*)"( data-sim="[^"]*")?><\/div>/g;
   let m, n = 0;
   while ((m = re.exec(body))) {
     const sql = decode(m[2]); n++; runs++;
+    /* Commande de SQL serveur (GRANT, REVOKE…) : la réponse est simulée, SQLite ne l'exécute pas. Réservé aux cours « noExec ». */
+    if (m[3]) { assert.ok(l.noExec, `${l.titre} : une réponse simulée (sim) n'a de sens que dans un cours noExec`); continue; }
     const db = openDb(env);
     try { db.exec(sql); assert.ok(!m[1] || true); }
     catch (e) { assert.ok(m[1], `${l.titre} : la requête échoue sans être un piège volontaire : ${sql} → ${e.message}`); }
@@ -87,20 +89,22 @@ export function checkGuideLesson(env, l) {
   for (const tok of fills[l.id].t) { const i = full.indexOf(tok, pos); assert.ok(i >= 0, `${l.titre} : « ${tok} » introuvable (dans l'ordre) dans la requête de la mission`); pos = i + tok.length; }
   /* Le parcours annonce le bon nombre de lignes. */
   const outN = +/is-out"><b>(\d+)<\/b>/.exec(lastUse)[1];
-  const dbm = openDb(env);
-  const resMission = dbm.exec(full)[0]; dbm.close();
-  const nRows = resMission.values.length;
+  /* Mission en SQL serveur (réponse simulée) : rien à exécuter, le parcours ne se mesure pas en lignes. */
+  const simMission = / data-sim="/.test(/<div class="ij-run"[^>]*><\/div>/.exec(lastUse)[0]);
+  let resMission = null, nRows = 0;
+  if (!simMission) { const dbm = openDb(env); resMission = dbm.exec(full)[0]; dbm.close(); nRows = resMission.values.length; }
   /* Parcours en lignes (par défaut) ou en colonnes (data-unit="cols", ex. SELECT). */
   const unitCols = /<ol class="ij-funnel" data-unit="cols"/.test(lastUse);
   /* data-unit="free" : cours d'écriture (INSERT, UPDATE…) ou parcours qui ne se mesure pas en lignes du résultat : aucun contrôle des nombres. */
   const unitFree = /<ol class="ij-funnel" data-unit="free"/.test(lastUse);
+  if (simMission) assert.ok(unitFree, `${l.titre} : la mission d'un cours simulé a un parcours data-unit="free"`);
   if (unitFree) { /* rien à comparer avec le résultat */ }
   else if (unitCols) assert.equal(outN, resMission.columns.length, `${l.titre} : la requête de la mission renvoie ${resMission.columns.length} colonnes, le parcours en annonce ${outN}`);
   else assert.equal(outN, nRows, `${l.titre} : la requête de la mission renvoie ${nRows} lignes, le parcours en annonce ${outN}`);
   /* Les personnes citées (liste d'envois et parcours) sont celles que renvoie la requête : « prénom nom », et leur contact. */
   const col = c => resMission.columns.indexOf(c);
   const whoOf = row => (col('prenom') >= 0 && col('nom') >= 0 ? `${row[col('prenom')]} ${row[col('nom')]}` : String(row[col('prenom') >= 0 ? col('prenom') : col('nom') >= 0 ? col('nom') : 0]));
-  const contactCol = col('email') >= 0 ? col('email') : col('telephone');
+  const contactCol = !resMission ? -1 : col('email') >= 0 ? col('email') : col('telephone');
   const peopleHtml = unitFree ? [] : [...lastUse.matchAll(/<span class="ij-sms-who">([^<]*)<small>([^<]*)<\/small>/g)].map(m => [decode(m[1]), decode(m[2])]);
   if (peopleHtml.length) {
     /* Liste d'envois : toutes les personnes du résultat, ou les premières puis une ligne « … et N autres » (class="is-more"). */
