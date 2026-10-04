@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'fs';
 import path from 'path';
+import vm from 'vm';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
@@ -63,9 +64,13 @@ assert(html.includes('function returnToParent()') && html.includes("if(!parent||
 assert(html.includes('<link rel="stylesheet" href="design-premium.css') && serviceWorker.includes("'./design-premium.css'"), 'système de design chargé en dernier et disponible hors ligne');
 assert(html.includes('<script src="design-premium.js') && serviceWorker.includes("'./design-premium.js'") && html.includes('window.pNavBack?.()'), 'barre de titre compacte et transitions de navigation chargées');
 {
+  /* Requête à trous : les cours « guide » la déclarent eux-mêmes (done.fill), les anciens cours la trouvent dans MISSION_FILLS. */
   const cfg=html.slice(html.indexOf('const MISSION_FILLS={'),html.indexOf('function lessonHasFill('));
-  const ids=(cfg.match(/^\s*(\d+):\{/gm)||[]).map(x=>+x.trim().replace(/:\{$/,''));
-  assert(ids.length===20 && [18,20,38,39,40,19,41,42,45,47,48,55,59,77,73,80,60,74,78,79].every(id=>ids.includes(id)), 'requête à trous de la mission sur les 20 leçons avec mission (en plus de la leçon 49)');
+  const legacy=(cfg.match(/^\s*(\d+):\{/gm)||[]).map(x=>+x.trim().replace(/:\{$/,''));
+  const fctx=vm.createContext({});
+  vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='),html.indexOf('let state=')),fctx);
+  const allL=vm.runInContext('MODULES.flatMap(m=>m.lessons)',fctx),guideFills=vm.runInContext('GUIDE_FILLS',fctx);
+  assert(allL.every(l=>guideFills[l.id]||legacy.includes(l.id)||l.gateFill), 'requête à trous de la mission sur tous les cours avec mission');
   assert(html.includes('applyMissionFills();\n    initRunSqlSlots();') && html.includes('${missionFillBlock(l)}'), 'requête à trous générée avant les emplacements exécutables, ou ajoutée en fin de cours');
   assert(html.includes("return !!(l&&(l.gateJcQuiz||lessonHasFill(l))&&!etapesDe(l.id).exo&&!jcPassed(l.id));"), 'l’exercice reste verrouillé tant que la requête à trous n’est pas réussie');
   assert(html.includes('swapped[g]=p.length===2') , 'chaque égalité a = b accepte les deux sens, même avec plusieurs égalités');
@@ -132,7 +137,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
 assert(html.includes('{ id:73, titre:"UNION et UNION ALL"') && html.includes('18 lignes : 10 + 8') && !html.includes('17 lignes : 9 + 8'), 'UNION ALL visible et cardinalité corrigée');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-10-04-ludique-v1605') && html.includes('requete-2026-10-04-ludique-v1605') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-10-04-ludique-v1606') && html.includes('requete-2026-10-04-ludique-v1606') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
