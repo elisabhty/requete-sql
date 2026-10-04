@@ -10848,7 +10848,7 @@ function guide(spec){
       reflexTitle:'Le réflexe à retenir',reflex:{extra:guideBlocks(reflex)}},
     reflexTitle:'Le réflexe à retenir',
     noTeste:true,noAnat:true,richLesson:true,earlyDemo:true,guided:true};
-  ['anatomie','exemple','attendu','retenir','consigne','solution','indice','learningCheck','testeVariants','ordered','write','verif','noExec','noExecWhy','apres'].forEach(k=>{if(spec[k]!==undefined)lesson[k]=spec[k];});
+  ['anatomie','exemple','attendu','retenir','consigne','solution','indice','learningCheck','testeVariants','petitDefi','ordered','write','verif','noExec','noExecWhy','apres'].forEach(k=>{if(spec[k]!==undefined)lesson[k]=spec[k];});
   return lesson;
 }
 /* ============================================================
@@ -12183,335 +12183,399 @@ guide({ id:10, titre:"BETWEEN", résumé:"Filtrer un intervalle",
   testeVariants:[{k:"base",label:"BETWEEN",sql:"SELECT nom, prix FROM produits WHERE prix BETWEEN 20 AND 40;"},{k:"rec_and",label:"Avec AND",sql:"SELECT nom, prix FROM produits WHERE prix >= 20 AND prix <= 40;"}],
   learningCheck:{question:"prix BETWEEN 15 AND 30 accepte quelles limites ?",options:["15 seulement","Aucune des deux","15 et 30"],answer:2,explanation:"BETWEEN inclut les deux limites : prix >= 15 AND prix <= 30."}
 }),
-{ id:11, titre:"ORDER BY", résumé:"Ordonner le résultat",
-  situation:"Ton équipe marketing prépare une nouvelle campagne et souhaite organiser la liste des clients en commençant par les plus récemment inscrits.<br><br>Avec ce que tu connais déjà, tu peux afficher leur prénom et leur date d’inscription :",
-  situationSql:"SELECT prenom, date_inscription\nFROM clients;",
-  situationTail:"Tu obtiens bien tous les clients, mais ils ne sont pas forcément affichés dans l’ordre souhaité.<br><br>Comment demander à SQL de trier les résultats ? C’est exactement ce que permet la clause <code>ORDER BY</code>.",
-    studio:{problem:{title:"ORDER BY range les lignes du résultat.",
-      body:"<code>ORDER BY</code> trie les lignes du résultat.<br>Sans <code>ORDER BY</code>, SQL affiche les lignes sans garantir leur ordre.<br>Avec :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">ORDER BY date_inscription DESC</pre></div><br><br>SQL prend la colonne <code>date_inscription</code> comme critère de tri et classe les clients du plus récemment inscrit au plus ancien.<br><br><code>DESC</code> signifie que le tri se fait de la date la plus récente à la plus ancienne.<br><br>👉 <code>ORDER BY</code> ne supprime et n’ajoute aucune ligne : il change uniquement leur ordre d’affichage."},
-    uses:{title:"Ordre de tri : ASC et DESC",body:"<table class=\"join-recap sort-cmp\"><thead><tr><th scope=\"col\">Type de donnée</th><th scope=\"col\">ASC</th><th scope=\"col\">DESC</th></tr></thead><tbody>"
-      +"<tr><td class=\"jr-type\">Nombres</td><td class=\"jr-quoi\">1, 2, 3…</td><td class=\"jr-quoi\">10, 9, 8…</td></tr>"
-      +"<tr><td class=\"jr-type\">Textes</td><td class=\"jr-quoi\">A, B, C… (ordre alphabétique)</td><td class=\"jr-quoi\">Z, Y, X…</td></tr>"
-      +"<tr><td class=\"jr-type\">Dates</td><td class=\"jr-quoi\">Du plus ancien au plus récent</td><td class=\"jr-quoi\">Du plus récent au plus ancien</td></tr>"
-      +"</tbody></table><p>👉 <code>ASC</code> est le comportement par défaut : si tu ne précises rien, c’est <code>ASC</code>.</p>"},
-    vs:{bad:{tag:"✕ SANS TRI",sql:"SELECT prenom, date_inscription FROM clients;",out:"10 lignes, mais aucun ordre n’est garanti",
-            code:"SELECT prenom, date_inscription\nFROM clients;"},
-        good:{tag:"✓ DU PLUS RÉCEMMENT INSCRIT AU PLUS ANCIEN",sql:"SELECT prenom, date_inscription FROM clients\nORDER BY date_inscription DESC;",out:"Nathan (2023-08-03), Inès (2023-07-26), Nathan (2023-06-10), Léa (2023-05-12), Gabriel (2023-04-08)…",
-            code:"SELECT prenom, date_inscription\nFROM clients\n<span class=\"vs-line good\">ORDER BY date_inscription DESC</span>;"}},
-    why:{title:"ASC ou DESC : dans quel sens trier ?",
-      body:"<code>ASC</code> signifie <b>ordre croissant</b> : du plus petit au plus grand. Pour un âge, 26 vient avant 52.<br><br><code>DESC</code> signifie <b>ordre décroissant</b> : du plus grand au plus petit. Pour un âge, 52 vient avant 26.<br><br><code>ASC</code> est le choix par défaut : <code>ORDER BY age</code> et <code>ORDER BY age ASC</code> produisent le même tri."},
-    viz:"orderby",
-    reflex:{a:{k:"ASC ↑",t:"Ordre croissant — du plus ancien au plus récent<br><code>2023-01-10 → 2023-04-15 → 2023-08-03</code>"},
-      b:{k:"DESC ↓",t:"Ordre décroissant — du plus récent au plus ancien<br><code>2023-08-03 → 2023-04-15 → 2023-01-10</code>"},
-      note:"💡 À retenir : <code>ASC</code> est le sens utilisé par défaut.<br><br>Donc : <code>ORDER BY date_inscription</code> revient à écrire <code>ORDER BY date_inscription ASC</code>."},
-    or:{title:"Gérer les valeurs NULL dans un tri",body:"Prenons notre table <code>clients</code>, dans laquelle certains clients n’ont pas d’adresse email :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">SELECT prenom, email\nFROM clients\nORDER BY email ASC;</pre></div><br><br>Avec <code>ASC</code>, les clients dont <code>email</code> vaut <code>NULL</code> apparaissent en premier, puis les autres emails sont triés par ordre alphabétique.<br><br>SQLite permet également d’indiquer explicitement où placer les <code>NULL</code> :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">SELECT prenom, email\nFROM clients\nORDER BY email ASC NULLS LAST;</pre></div><br><br>Ici :<br><code>email ASC</code> → trie les emails de A à Z.<br><code>NULLS LAST</code> → place les emails manquants à la fin.<br><br>À l’inverse :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">ORDER BY email ASC NULLS FIRST;</pre></div><br><br>place les valeurs <code>NULL</code> au début.<br><br>👉 À retenir : <code>NULLS FIRST</code> et <code>NULLS LAST</code> permettent de choisir explicitement où afficher les valeurs manquantes, plutôt que de dépendre du comportement par défaut."}},
-  anatFollowTeste:true,
-  anatomieVariants:[
-    {k:'asc',label:'↑ Plus ancien (ASC)',tone:'neutral',lines:[
-      {tok:"ORDER BY date_inscription ASC",txt:"Trie les résultats selon <code>date_inscription</code>, du plus ancien au plus récent."},
-      {tok:"ASC",txt:"Signifie <i>ascending</i> : ordre croissant.<br>Ex. : 2022-09-30 → 2022-11-05 → 2023-01-15 → 2023-02-18…"}
-    ]},
-    {k:'desc',label:'↓ Plus récent (DESC)',tone:'neutral',lines:[
-      {tok:"ORDER BY date_inscription DESC",txt:"Trie les résultats selon <code>date_inscription</code>, du plus récent au plus ancien."},
-      {tok:"DESC",txt:"Signifie <i>descending</i> : ordre décroissant.<br>Ex. : 2023-08-03 → 2023-07-26 → 2023-06-10 → 2023-05-12…"}
-    ]}
-  ],
-  exemple:"SELECT prenom, date_inscription FROM clients ORDER BY date_inscription DESC;",
-  attendu:"<b>10 lignes</b>, du plus récent au plus ancien : Nathan (2023-08-03), Inès (2023-07-26), Nathan (2023-06-10), Léa (2023-05-12), Gabriel (2023-04-08), Lucas (2023-03-22), Chloé (2023-02-18), Sophie (2023-01-15), Emma (2022-11-05), Hugo (2022-09-30).",
-  retenir:"<code>ORDER BY</code> range le résultat, il ne filtre aucune ligne. <code>ASC</code> croissant, <code>DESC</code> décroissant.",
-  piege:{t:"Penser que les lignes sont déjà triées",p:"Sans <code>ORDER BY</code>, SQL ne garantit aucun ordre des lignes, même si elles semblent déjà bien rangées.<br><br>👉 Si l’ordre compte, indique toujours le tri avec <code>ORDER BY</code>."},
-  consigne:"Affiche toutes les colonnes de la table produits en triant les produits du moins cher au plus cher.",
-  solution:"SELECT * FROM produits ORDER BY prix ASC;",
-  indice:"Trie sur la colonne <code>prix</code> dans l’ordre croissant avec <code>ORDER BY prix ASC</code>. <code>ASC</code> est facultatif.",
-  fnCmp:{title:"Résumé visuel",h1:"Mot-clé",h2:"Effet",
-    rows:[
-      {fn:"ORDER BY colonne",d:"Tri ascendant (par défaut)"},
-      {fn:"ORDER BY colonne ASC",d:"Tri ascendant (explicite)"},
-      {fn:"ORDER BY colonne DESC",d:"Tri descendant"},
-      {fn:"ORDER BY 1, 2",d:"Tri par la 1ʳᵉ, puis la 2ᵉ colonne du SELECT — <b>déconseillé</b> : préfère les noms de colonnes, plus lisibles et plus sûrs si le SELECT change."},
-      {fn:"NULLS FIRST / LAST",d:"Contrôle la position des valeurs <code>NULL</code>"}
-    ]},
-  richLesson:true, earlyDemo:true,
-  ordered:true ,
-testeVariants:[
-  {
-    "k": "asc",
-    "label": "↑ Plus ancien (ASC)",
-    "sql": "SELECT * FROM clients\nORDER BY date_inscription ASC;",
-    "out": "10 lignes, de Hugo (2022-09-30) à Nathan (2023-08-03).",
-    "expectRows": 10
-  },
-  {
-    "k": "desc",
-    "label": "↓ Plus récent (DESC)",
-    "sql": "SELECT * FROM clients\nORDER BY date_inscription DESC;",
-    "out": "10 lignes, de Nathan (2023-08-03) à Hugo (2022-09-30).",
-    "expectRows": 10
-  }
-]
-,
-learningCheck:{
-  "question": "Quel âge passe en premier avec ORDER BY age DESC : 28 ou 52 ?",
-  "options": [
-    "Le premier inséré",
-    "52",
-    "28"
-  ],
-  "answer": 1,
-  "explanation": "DESC va du plus grand au plus petit ; ASC fait l’inverse. Sans ORDER BY, aucun ordre n’est garanti."
-}
-},
-{ id:24, titre:"ORDER BY plusieurs colonnes", résumé:"Départager les égalités par un second critère",
-  situation:"Ton équipe e-commerce prépare le catalogue de la boutique.<br><br>Elle veut afficher les produits par catégorie, puis les classer du moins cher au plus cher dans chaque catégorie.<br><br>Tu sais déjà trier les produits par catégorie :",
-  situationSql:"ORDER BY categorie",
-  situationTail:"Les produits d’une même catégorie se retrouvent donc ensemble.<br><br>Mais à l’intérieur d’une catégorie, comment demander à SQL de les classer aussi par prix ?<br><br>Un seul critère de tri ne suffit plus. Tu as besoin d’indiquer à SQL plusieurs critères de tri, dans un ordre de priorité.",
-    studio:{problem:{title:"Chaque colonne ajoute un nouveau critère de tri.",
-      body:"<div class=\"pt-syntax\"><pre class=\"cw-syntax\">ORDER BY categorie ASC, prix ASC;</pre></div><br><br>Les critères s’appliquent de gauche à droite :<br>① <code>categorie ASC</code> → il trie d’abord les catégories de A à Z.<br>② <code>prix ASC</code> → lorsque plusieurs produits ont la même catégorie, il les trie du moins cher au plus cher.<br><br>👉 Le deuxième critère sert donc à départager les lignes qui sont à égalité sur le premier critère."},
-    reflex:{a:{k:"1️⃣ PRIORITÉ",t:"La 1ʳᵉ colonne est triée en premier.<br>La suivante intervient en cas d’égalité."},
-      b:{k:"2️⃣ SENS",t:"<code>ASC</code> ou <code>DESC</code> se choisit pour chaque colonne."}}},
-  anatFollowTeste:true,
-  anatomieVariants:[
-    {k:'twocriteria',label:'Deux critères',tone:'neutral',lines:[
-      {tok:"SELECT nom, categorie, prix",txt:"Les colonnes affichées."},
-      {tok:"FROM produits",txt:"La table lue."},
-      {tok:"ORDER BY categorie",txt:"1ᵉʳ critère : trie par catégorie."},
-      {tok:", prix",txt:"2ᵉ critère : à catégorie égale, trie par prix."}
-    ]},
-    {k:'mixedsort',label:'Sens différents',tone:'neutral',lines:[
-      {tok:"SELECT nom, categorie, prix",txt:"Les colonnes affichées."},
-      {tok:"FROM produits",txt:"La table lue."},
-      {tok:"ORDER BY categorie ASC",txt:"Trie les catégories par ordre croissant."},
-      {tok:"prix DESC",txt:"À catégorie égale, trie les produits du plus cher au moins cher."}
-    ]}
-  ],
-  exemple:"SELECT nom, categorie, prix FROM produits ORDER BY categorie, prix DESC;",
-  attendu:"<b>8 lignes</b> groupées par catégorie ; à l'intérieur de chaque catégorie, du plus cher au moins cher.",
-  retenir:"<code>ORDER BY a, b</code> trie par <code>a</code> puis départage les égalités avec <code>b</code>. Le sens <code>ASC</code>/<code>DESC</code> se précise pour chaque colonne.",
-  piege:{t:"Croire que DESC s'applique à toutes les colonnes",p:"Avec :",
-    sql:"ORDER BY categorie, prix DESC",
-    mid:"<code>DESC</code> s’applique uniquement à <code>prix</code>.<br><br><code>categorie</code> reste en ordre croissant, car <code>ASC</code> est utilisé par défaut.<br><br>Pour mettre les deux en décroissant :",
-    fixSql:"ORDER BY categorie DESC, prix DESC"},
-  consigne:"Affiche le nom, la catégorie et le prix des produits, triés par catégorie (A→Z) puis, à catégorie égale, du moins cher au plus cher.",
-  solution:"SELECT nom, categorie, prix FROM produits ORDER BY categorie, prix;",
-  indice:"Sépare les deux colonnes par une virgule : <code>ORDER BY categorie, prix</code>.",
-  richLesson:true, ordered:true ,
-testeVariants:[
-  {
-    "k": "twocriteria",
-    "label": "Deux critères",
-    "sql": "SELECT nom, categorie, prix\nFROM produits\nORDER BY categorie, prix;",
-    "out": "SQL trie d’abord par categorie. À catégorie égale, il trie par prix.",
-    "expectRows": 8
-  },
-  {
-    "k": "mixedsort",
-    "label": "Sens différents",
-    "sql": "SELECT nom, categorie, prix\nFROM produits\nORDER BY categorie ASC, prix DESC;",
-    "out": "Les catégories sont triées par ordre croissant. Dans chaque catégorie, les produits sont triés du plus cher au moins cher.",
-    "expectRows": 8
-  }
-]
-,
-learningCheck:{
-  "question": "Deux produits ont la même catégorie et le même prix. Comment garantir leur ordre ?",
-  "options": [
-    "Ajouter id comme troisième critère",
-    "Écrire ASC deux fois",
-    "Ajouter DISTINCT"
-  ],
-  "answer": 0,
-  "explanation": "categorie, prix, id départage les ex æquo grâce à l’identifiant unique."
-}
-},
-{ id:12, titre:"LIMIT", résumé:"Limiter le nombre de lignes",
-  situation:"Ton équipe marketing prépare une sélection « produits premium » pour une nouvelle campagne.<br><br>Elle veut mettre en avant les 3 produits les plus chers de la boutique.<br><br>Tu sais déjà les classer du plus cher au moins cher :",
-  situationSql:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC;",
-  situationTail:"Mais il y a un problème : les 8 produits sont toujours affichés, alors que tu n’en veux que 3.<br><br>Comment demander à SQL de ne garder que les 3 premières lignes du résultat ? C’est exactement ce que permet la clause <code>LIMIT</code>.",
-    studio:{problem:{title:"LIMIT limite le nombre de lignes du résultat.",
-      body:"<code>LIMIT 3</code> limite le résultat à 3 lignes au maximum.<br><br>Mais attention : <code>LIMIT</code> ne détermine pas quelles lignes doivent apparaître en premier.<br><br>Pour obtenir les 3 produits les plus chers :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">ORDER BY prix DESC\nLIMIT 3;</pre></div><br><br>① <code>ORDER BY prix DESC</code> → trie les produits du plus cher au moins cher.<br>② <code>LIMIT 3</code> → garde les 3 premiers produits après ce tri."},
-    vs:{bad:{tag:"✕ LIMIT SEUL",sql:"SELECT nom, prix FROM produits\nLIMIT 3;",out:"Limite le nombre de lignes, sans définir leur ordre.",
-            code:"SELECT nom, prix\nFROM produits\n<span class=\"vs-line bad\">LIMIT 3</span>;"},
-        good:{tag:"✓ ORDER BY + LIMIT",sql:"SELECT nom, prix FROM produits\nORDER BY prix DESC\nLIMIT 3;",out:"Trie d’abord les lignes, puis conserve les premières.",
-            code:"SELECT nom, prix\nFROM produits\n<span class=\"vs-line good\">ORDER BY prix DESC\nLIMIT 3</span>;"}},
-    why:{title:"D’abord classer, ensuite limiter."},
-    viz:"limit",
-    reflex:{a:{k:"ORDER BY",t:"détermine <b>l’ordre</b> des lignes"},
-      b:{k:"LIMIT",t:"détermine <b>combien</b> de lignes garder"}}},
-  anatomie:[{tok:"SELECT nom, prix",txt:"Affiche le nom et le prix."},{tok:"FROM produits",txt:"Les données viennent de la table <code>produits</code>."},{tok:"ORDER BY prix DESC",txt:"Classe les produits du plus cher au moins cher."},{tok:"LIMIT 3",txt:"Garde uniquement les 3 premières lignes après le tri."}],
-  anatFollowTeste:true,
-  anatomieVariants:[
-    {k:'avant',label:'LIMIT seul',tone:'bad',lines:[
-      {tok:"SELECT nom, prix",txt:"Affiche le nom et le prix."},
-      {tok:"FROM produits",txt:"Utilise la table <code>produits</code>."},
-      {tok:"LIMIT 3",txt:"Garde au maximum 3 lignes du résultat. Aucun tri n’est demandé."}
-    ]},
-    {k:'avec',label:'ORDER BY + LIMIT',tone:'good',lines:[
-      {tok:"SELECT nom, prix",txt:"Affiche le nom et le prix."},
-      {tok:"FROM produits",txt:"Utilise la table <code>produits</code>."},
-      {tok:"ORDER BY prix DESC",txt:"Classe les produits du plus cher au moins cher."},
-      {tok:"LIMIT 3",txt:"Garde les 3 premiers produits de ce classement."}
-    ]}
-  ],
-  testeVariants:[
-    {k:'avant',label:'LIMIT seul',sql:"SELECT nom, prix\nFROM produits\nLIMIT 3;",out:"3 lignes, mais pas forcément les 3 plus chers : le produit Fibre Prébiotique, le Collagène Marin, le Magnésium.",tone:'bad'},
-    {k:'avec',label:'ORDER BY + LIMIT',sql:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 3;",out:"3 lignes : le Collagène Marin, la Protéine Végétale, le produit Fibre Prébiotique.",tone:'good'}
-  ],
-  exemple:"SELECT nom, prix FROM produits ORDER BY prix DESC LIMIT 3;",
-  attendu:"<b>3 lignes</b> : le Collagène Marin à 39,90 €, la Protéine Végétale à 34,90 € et le produit Fibre Prébiotique à 29,90 €.",
-  retenir:"<code>LIMIT n</code> garde seulement les n premières lignes du résultat. Dans <code>ORDER BY prix DESC LIMIT 3</code>, les produits sont d’abord classés du plus cher au moins cher, puis seuls les 3 premiers sont affichés.",
-  consigne:"Affiche toutes les colonnes des 3 produits les plus chers.",
-  solution:"SELECT * FROM produits ORDER BY prix DESC LIMIT 3;",
-  indice:"Les exemples du cours montrent <code>nom, prix</code>. Ici, la consigne demande <code>SELECT *</code>. Classe d’abord avec <code>ORDER BY prix DESC</code>, puis <code>LIMIT 3</code>.",
-  richLesson:true, earlyDemo:true,
-  ordered:true,
-  petitDefi:[{
-    p:"Complète pour ne garder que les 3 produits les plus chers.",
-    sql:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\n__________ 3;",
-    a:"LIMIT",
-    answers:["LIMIT","limit"]
-  }],
-learningCheck:{
-  "question": "LIMIT 3 seul garantit-il les trois produits les plus chers ?",
-  "options": [
-    "Non : il faut aussi ORDER BY prix DESC",
-    "Oui",
-    "Oui si la table est petite"
-  ],
-  "answer": 0,
-  "explanation": "LIMIT coupe le résultat. ORDER BY prix DESC place d’abord les plus chers : le Collagène Marin, la Protéine Végétale, le produit Fibre Prébiotique."
-}
-},
-{ id:75, titre:"OFFSET et pagination", résumé:"Découper un résultat en pages stables",
-  situation:"Ton site e-commerce possède un catalogue de produits.<br><br>Les informations affichées dans ce catalogue — nom, prix, stock… — sont récupérées dans la table <code>produits</code> de ta base de données.<br><br>Mais si la table contient des centaines ou des milliers de produits, tu ne veux pas tout envoyer et tout afficher sur une seule page.<br><br>Tu décides donc d’afficher 3 produits par page.<br><br>Pour la Page 1, SQL récupère les 3 premiers produits du classement :",
-  situationSql:"SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 3;",
-  situationTail:"<code>ORDER BY prix DESC</code> → classe les produits du plus cher au moins cher.<br><code>LIMIT 3</code> → SQL ne renvoie que les 3 premiers.<br><br>Le site peut alors afficher ces 3 produits sur la première page.<br><br>👉 Mais l’utilisateur passe maintenant à la page 2.<br><br>Si le site exécute à nouveau :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">LIMIT 3;</pre></div><br><br>SQL renverra encore les 3 premiers produits.<br><br>Or, sur la Page 2, tu veux récupérer les 3 produits suivants.<br><br>SQL doit donc :<br>① ignorer les 3 produits déjà récupérés pour la Page 1 ;<br>② récupérer les 3 suivants pour la Page 2.<br><br>C’est le rôle de <code>OFFSET</code> :<br><br><div class=\"pt-syntax\"><pre class=\"cw-syntax\">SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC, id ASC\nLIMIT 3 OFFSET 3;</pre></div>",
-  studio:{pointCards:{eye:"OFFSET",title:"Ignorer des lignes, puis afficher les suivantes.",
-      lead:"Pour créer plusieurs pages de résultats, SQL a besoin de savoir deux choses :",
-      chain:[{k:"LIMIT",v:"combien de lignes afficher"},{k:"OFFSET",v:"combien de lignes ignorer avant d’afficher les résultats"}]},
-    uses:{title:"Passer d’une page à l’autre.",body:`<div class="pt-lead fn-uses">
-      <div class="fn-use"><p class="pt-syntax-h">Visualiser le fonctionnement</p><p>Par exemple :</p><div class="pt-syntax"><pre class="cw-syntax">LIMIT 3 OFFSET 3;</pre></div><p>Cette clause signifie : ignorer les 3 premières lignes, puis afficher les 3 suivantes.</p><ul class="pt-lead-list"><li><code>LIMIT 3</code> → j’affiche au maximum 3 lignes</li><li><code>OFFSET 3</code> → j’ignore les 3 premières lignes</li></ul><p>Pour afficher 3 produits par page, <code>LIMIT</code> reste toujours à 3. En revanche, <code>OFFSET</code> change selon la page : il indique combien de produits déjà affichés il faut ignorer avant de récupérer les suivants.</p><p>👇 Touche une page pour voir SQL passer les lignes déjà vues (<code>OFFSET</code>) et garder les suivantes (<code>LIMIT</code>) :</p><div class="offset-anim is-run" data-page="1"><div class="offset-anim-tabs"><button type="button" class="offset-anim-tab on" onclick="setOffsetAnimPage(this,1)">Page 1</button><button type="button" class="offset-anim-tab" onclick="setOffsetAnimPage(this,2)">Page 2</button><button type="button" class="offset-anim-tab" onclick="setOffsetAnimPage(this,3)">Page 3</button></div><div class="offset-anim-list"><div class="offset-anim-row" data-p="1"><i>1</i><b>Collagène Marin</b><span>39,90 €</span></div><div class="offset-anim-row" data-p="1"><i>2</i><b>Protéine Végétale</b><span>34,90 €</span></div><div class="offset-anim-row" data-p="1"><i>3</i><b>Fibre Prébiotique</b><span>29,90 €</span></div><div class="offset-anim-row" data-p="2"><i>4</i><b>Oméga 3</b><span>24,90 €</span></div><div class="offset-anim-row" data-p="2"><i>5</i><b>Magnésium</b><span>19,90 €</span></div><div class="offset-anim-row" data-p="2"><i>6</i><b>Shaker Inox</b><span>15,00 €</span></div><div class="offset-anim-row" data-p="3"><i>7</i><b>Vitamine D</b><span>14,90 €</span></div><div class="offset-anim-row" data-p="3"><i>8</i><b>Tisane Détox</b><span>12,50 €</span></div></div><p class="offset-anim-caption"><code>LIMIT 3 OFFSET 0</code> — Collagène Marin, Protéine Végétale, le produit Fibre Prébiotique.</p></div></div>
-      <div class="fn-use"><p class="pt-syntax-h">Calculer automatiquement OFFSET</p><p>À chaque changement de page, l’application recalcule la valeur de <code>OFFSET</code>. SQL utilise ensuite cette valeur pour savoir combien de lignes ignorer.</p><div class="pt-syntax"><pre class="cw-syntax">OFFSET = (numéro_page - 1) × taille_page</pre></div><table class="join-recap sort-cmp"><thead><tr><th scope="col">Page</th><th scope="col">Calcul</th><th scope="col">OFFSET</th></tr></thead><tbody>
-        <tr><td class="jr-type">1</td><td class="jr-quoi">(1 - 1) × 3</td><td class="jr-quoi">0</td></tr>
-        <tr><td class="jr-type">2</td><td class="jr-quoi">(2 - 1) × 3</td><td class="jr-quoi">3</td></tr>
-        <tr><td class="jr-type">3</td><td class="jr-quoi">(3 - 1) × 3</td><td class="jr-quoi">6</td></tr>
-        <tr><td class="jr-type">4</td><td class="jr-quoi">(4 - 1) × 3</td><td class="jr-quoi">9</td></tr>
-      </tbody></table></div>
-      <div class="fn-use"><p class="pt-syntax-h">Pourquoi ajouter <code>id ASC</code> dans ORDER BY ?</p><p>Dans la table <code>produits</code>, chaque article a aujourd’hui un prix différent. Mais dès que deux produits partagent exactement le même prix, SQL ne garantit plus leur ordre relatif avec seul <code>ORDER BY prix DESC</code>.</p><p>Imagine par exemple le produit Oméga 3 (id 7, 24,90&nbsp;€) et un second produit au même prix : sans repère supplémentaire, SQL pourrait les inverser d’une exécution à l’autre.</p><p>Pour fixer un ordre clair, on ajoute l’id du produit :</p><div class="pt-syntax"><pre class="cw-syntax">ORDER BY prix DESC, id ASC</pre></div><p>SQL applique alors deux règles :</p><ul class="pt-lead-list"><li>Trier par <code>prix DESC</code> → du prix le plus élevé au plus bas.</li><li>Si deux prix sont identiques → trier par <code>id ASC</code>, du plus petit id au plus grand.</li></ul><p>👉 Pourquoi c’est important pour la pagination ? Chaque produit garde une position fixe dans le classement, même lorsque plusieurs produits ont le même prix.</p></div>
-      <div class="fn-use"><p class="pt-syntax-h">Quand OFFSET devient très grand</p><p><code>OFFSET</code> est pratique, mais plus sa valeur augmente, plus SQL peut avoir beaucoup de lignes à parcourir avant d’arriver aux résultats demandés.</p><p>Imagine une table contenant 1 000 000 de produits :</p><div class="pt-syntax"><pre class="cw-syntax">LIMIT 20 OFFSET 800000;</pre></div><p>La base doit parcourir les 800 000 premières lignes avant de pouvoir récupérer les 20 suivantes.</p><div class="offset-scan is-run"><div class="offset-scan-bar"><div class="offset-scan-skip"><span>800 000 lignes</span><small>OFFSET</small></div><div class="offset-scan-keep"><span>20</span><small>LIMIT</small></div></div></div><p>Sur les premières pages, ce n’est généralement pas un problème. Mais lorsqu’on va très loin dans les résultats, la requête peut devenir plus coûteuse et donc plus lente.</p><p>👉 C’est ce qu’on appelle la <b>pagination profonde</b> : utiliser un <code>OFFSET</code> très élevé pour atteindre une page très éloignée.</p></div>
-      <div class="fn-use"><p class="pt-syntax-h">Que se passe-t-il si les données changent ?</p><p><code>OFFSET</code> se base sur la position actuelle des lignes. Imagine que la page 1 affiche <b>A</b>, <b>B</b>, <b>C</b>. Avant que l’utilisateur ouvre la page 2, un nouveau produit <code>X</code> est ajouté en première position :</p><div class="offset-shift is-run"><div class="offset-shift-col"><p class="offset-shift-label">Page 1 affichée</p><div class="offset-demo is-list"><div class="offset-demo-row"><i>1</i><b>A</b></div><div class="offset-demo-row"><i>2</i><b>B</b></div><div class="offset-demo-row"><i>3</i><b>C</b></div></div></div><div class="offset-shift-arrow"><i>→</i><code>+ X</code></div><div class="offset-shift-col"><p class="offset-shift-label">Nouvel ordre</p><div class="offset-demo is-list"><div class="offset-demo-row is-skip"><i>1</i><b>X</b><small>OFFSET</small></div><div class="offset-demo-row is-skip"><i>2</i><b>A</b><small>OFFSET</small></div><div class="offset-demo-row is-skip"><i>3</i><b>B</b><small>OFFSET</small></div><div class="offset-demo-row is-dup"><i>4</i><b>C</b><small>déjà vu</small></div><div class="offset-demo-row is-keep"><i>5</i><b>D</b><small>LIMIT</small></div><div class="offset-demo-row is-keep"><i>6</i><b>E</b><small>LIMIT</small></div></div></div></div><p>Pour afficher la page 2, SQL exécute toujours :</p><div class="pt-syntax"><pre class="cw-syntax">LIMIT 3 OFFSET 3;</pre></div><p>Il ignore donc les 3 premières lignes du nouveau classement : <s class="offset-struck">X, A, B</s><br>Puis affiche les 3 suivantes : <b>C</b>, <b>D</b>, <b>E</b>.</p><div class="sit-memo is-warn"><p class="sit-memo-lab"><i aria-hidden="true">⚠️</i>Le problème</p><p><code>C</code> apparaît une deuxième fois, alors qu’il était déjà visible sur la page 1.</p></div><p>👉 Pourquoi ?<br><code>OFFSET</code> ne mémorise pas les produits déjà affichés. <code>OFFSET 3</code> signifie simplement : « Dans les résultats actuels, ignore les 3 premières lignes. »</p><p>Si un produit est ajouté ou supprimé entre deux pages, les positions peuvent changer. On peut alors voir deux fois le même produit, ou au contraire en manquer un.</p><p><b>Et si on reprenait là où on s’est arrêté ?</b></p><p>C’est justement l’une des raisons d’utiliser une autre méthode : la pagination par curseur.</p><p>👉 Au lieu d’écrire « ignorer les 3 premières lignes », on écrit plutôt « continuer après le dernier produit reçu ». C’est le principe que tu vas découvrir juste après.</p></div>
-      <div class="fn-use"><p class="pt-syntax-h">La pagination par curseur</p><p>Avec <code>OFFSET</code>, SQL avance en comptant le nombre de lignes à ignorer :</p><div class="pt-syntax"><pre class="cw-syntax">LIMIT 3 OFFSET 3;</pre></div><p>Cela signifie : « Ignore les 3 premières lignes, puis affiche les 3 suivantes. »</p><p>La pagination par curseur fonctionne autrement. Au lieu de compter les lignes à ignorer, on garde un repère indiquant où reprendre.</p><p>Pour comprendre le principe, commençons par un cas simple où les produits sont classés par <code>id</code> croissant. Imagine que la première page affiche :</p><div class="offset-demo is-list">
-        <div class="offset-demo-row"><i>1</i><b>Fibre Prébiotique</b></div>
-        <div class="offset-demo-row"><i>2</i><b>Collagène Marin</b></div>
-        <div class="offset-demo-row is-cursor"><i>3</i><b>Magnésium</b><small>Dernier reçu</small></div>
-      </div><p>Notre repère est donc : <code>id = 3</code>.</p><p>Pour charger les 3 produits suivants :</p><div class="pt-syntax"><pre class="cw-syntax">SELECT id, nom, prix
-FROM produits
-WHERE id &gt; 3
-ORDER BY id ASC
-LIMIT 3;</pre></div><p>Comment lire cette requête ?</p><div class="offset-sql-steps"><p><code>WHERE id &gt; 3</code> → « Reprends après l’id 3. »</p><p>SQL peut alors récupérer : <code>id 4</code> → <code>id 5</code> → <code>id 6</code>.</p><p><code>LIMIT 3</code> → « Arrête-toi après 3 résultats. »</p></div><p><b>La différence essentielle</b></p><p>👉 Touche un onglet pour voir comment SQL avance.</p><div class="offset-diff is-run" data-mode="offset"><div class="offset-anim-tabs" role="tablist" aria-label="Comparer OFFSET et curseur"><button type="button" class="offset-anim-tab on" role="tab" aria-selected="true" onclick="setOffsetDiff(this,'offset')">OFFSET</button><button type="button" class="offset-anim-tab" role="tab" aria-selected="false" onclick="setOffsetDiff(this,'cursor')">Curseur</button></div><div class="offset-diff-sql"><pre class="cw-syntax">LIMIT 3 OFFSET 3;</pre></div><div class="offset-diff-list"><div class="offset-diff-row" data-role="skip" style="--dw:0ms"><i>1</i><b>Fibre Prébiotique</b><small>OFFSET</small></div><div class="offset-diff-row" data-role="skip" style="--dw:140ms"><i>2</i><b>Collagène Marin</b><small>OFFSET</small></div><div class="offset-diff-row" data-role="mark" style="--dw:280ms"><i>3</i><b>Magnésium</b><small class="offset-diff-mark">OFFSET</small></div><div class="offset-diff-row" data-role="keep" style="--dw:420ms"><i>4</i><b>Vitamine D</b><small>LIMIT</small></div><div class="offset-diff-row" data-role="keep" style="--dw:560ms"><i>5</i><b>Tisane Détox</b><small>LIMIT</small></div><div class="offset-diff-row" data-role="keep" style="--dw:700ms"><i>6</i><b>Protéine Végétale</b><small>LIMIT</small></div></div><p class="offset-diff-caption">« Ignore 3 lignes, puis affiche les suivantes. »</p></div><p>C’est pour cela qu’on parle de curseur : on conserve un repère pour savoir où reprendre.</p></div>
-      <div class="fn-use"><p class="pt-syntax-h">Et si on trie avec plusieurs colonnes ?</p><p>Jusqu’ici, nous avons trié les produits uniquement par <code>id</code>. Mais notre catalogue est en réalité trié ainsi :</p><div class="pt-syntax"><pre class="cw-syntax">ORDER BY prix DESC, id ASC;</pre></div><p>SQL classe donc :</p><ul class="pt-lead-list"><li>d’abord par prix, du plus cher au moins cher ;</li><li>si deux produits ont le même prix, par <code>id</code> croissant.</li></ul><p>👉 Le curseur doit donc mémoriser les deux valeurs utilisées pour le tri. Imaginons que le dernier produit de la page soit :</p><div class="offset-demo is-list"><div class="offset-demo-row is-cursor"><i>1</i><b>Fibre Prébiotique</b><small>29,90&nbsp;€ · id 1</small></div></div><p>Notre repère devient donc : <code>prix = 29.90</code> et <code>id = 1</code>.</p><p>Comment trouver ce qui vient après ? Il existe deux possibilités.</p><div class="offset-branches is-run"><div class="offset-branch"><span class="offset-branch-tag">Cas 1</span><code>prix &lt; 29.90</code><p><b>Le produit est moins cher.</b> Comme le catalogue est trié du prix le plus élevé au plus bas, il se trouve forcément après Fibre Prébiotique.</p></div><div class="offset-branch"><span class="offset-branch-tag">Cas 2</span><code>prix = 29.90 AND id &gt; 1</code><p><b>Même prix exactement.</b> Le prix ne permet pas de les départager : SQL utilise donc le deuxième critère du tri, l’<code>id</code>.</p></div></div><p>On réunit les deux possibilités avec <code>OR</code> :</p><div class="pt-syntax"><pre class="cw-syntax">SELECT id, nom, prix
-FROM produits
-WHERE prix &lt; 29.90
-   OR (prix = 29.90 AND id &gt; 1)
-ORDER BY prix DESC, id ASC
-LIMIT 3;</pre></div><p>Autrement dit, la condition retient : « Les produits moins chers que mon dernier produit, OU ceux au même prix mais placés après lui grâce à leur id. » Il récupère alors les 3 prochains produits dans l’ordre du catalogue.</p><p><b>À retenir</b></p><p>Avec un curseur, le repère doit suivre les colonnes utilisées dans <code>ORDER BY</code> :</p><ul class="pt-lead-list"><li><code>ORDER BY id ASC</code> → le curseur peut utiliser <code>id</code>.</li><li><code>ORDER BY prix DESC, id ASC</code> → le curseur doit utiliser <code>prix + id</code>.</li></ul><p>👉 Contrairement à <code>OFFSET</code>, SQL ne reçoit plus un nombre de lignes à ignorer : il sait à partir de quelles valeurs continuer.</p></div>
-      <div class="fn-use"><p class="pt-syntax-h">La syntaxe peut varier selon le système SQL</p><p>Tous les systèmes SQL permettent de limiter les résultats et de créer une pagination, mais ils n’utilisent pas toujours exactement la même syntaxe.</p><div class="table-wrap"><table class="join-recap is-sgbd"><thead><tr><th scope="col">Système</th><th scope="col">Exemple</th></tr></thead><tbody>
-        <tr><td class="jr-type">SQLite <span class="jr-ici">ce cours</span></td><td class="jr-quoi"><code>LIMIT 10 OFFSET 20</code></td></tr>
-        <tr><td class="jr-type">MySQL / MariaDB</td><td class="jr-quoi"><code>LIMIT 10 OFFSET 20</code></td></tr>
-        <tr><td class="jr-type">PostgreSQL</td><td class="jr-quoi"><code>LIMIT 10 OFFSET 20</code></td></tr>
-        <tr><td class="jr-type">SQL Server</td><td class="jr-quoi"><code>OFFSET 20 ROWS<br>FETCH NEXT 10 ROWS ONLY</code></td></tr>
-        <tr><td class="jr-type">Oracle</td><td class="jr-quoi"><code>OFFSET 20 ROWS<br>FETCH NEXT 10 ROWS ONLY</code></td></tr>
-      </tbody></table></div></div>
-    </div>`},
-    reflex:{note:"Avant de paginer tes résultats, pose-toi 3 questions :<br><br>① Dans quel ordre ? → <code>ORDER BY</code> : je fixe un ordre clair et stable.<br>② Combien de résultats par page ? → <code>LIMIT</code> : je définis le nombre maximum de lignes à afficher.<br>③ Combien de résultats dois-je ignorer ? → <code>OFFSET</code> : j’indique combien de lignes passer avant d’afficher les suivantes.",
-      extra:"<div class=\"sit-memo\"><p class=\"sit-memo-lab\"><i aria-hidden=\"true\">💡</i>À retenir</p><p><code>ORDER BY</code> = ordonner → <code>LIMIT</code> = afficher → <code>OFFSET</code> = ignorer</p></div>"}},
-  anatCollapsible:true,
-  anatomieVariants:[
-    {k:"p1",label:"Page 1",lines:[
-      {tok:"ORDER BY prix DESC, id ASC",txt:"Définit un ordre complet et reproductible."},
-      {tok:"LIMIT 3",txt:"Conserve trois lignes pour cette page."},
-      {tok:"OFFSET 0",txt:"Ne saute aucune ligne : c’est la première page."}
-    ]},
-    {k:"p2",label:"Page 2",tone:"good",lines:[
-      {tok:"ORDER BY prix DESC, id ASC",txt:"Définit un ordre complet et reproductible."},
-      {tok:"LIMIT 3",txt:"Conserve trois lignes pour cette page."},
-      {tok:"OFFSET 3",txt:"Ignore les trois lignes de la page précédente."}
-    ]},
-    {k:"unstable",label:"Sans tri",tone:"bad",lines:[
-      {tok:"LIMIT 3 OFFSET 3",txt:"Ignore trois lignes puis en garde trois — mais dans quel ordre ?"},
-      {tok:"Pas de ORDER BY",plain:1,txt:"Sans lui, SQL ne garantit aucun ordre : le contenu de cette « page 2 » peut changer d’une exécution à l’autre."}
-    ]},
-    {k:"rec_page1",label:"Revenir au début",lines:[
-      {tok:"ORDER BY prix DESC, id ASC",txt:"Le même ordre stable qu’à la page 1."},
-      {tok:"LIMIT 3",txt:"Conserve trois lignes."},
-      {tok:"OFFSET 0",txt:"Aucune ligne à sauter : on repart du début."}
-    ]},
-    {k:"rec_page3",label:"Page 3",lines:[
-      {tok:"ORDER BY prix DESC, id ASC",txt:"Toujours le même ordre stable."},
-      {tok:"LIMIT 3",txt:"Demande jusqu’à trois lignes."},
-      {tok:"OFFSET 6",txt:"Ignore les six premières lignes : il n’en reste que deux."}
-    ]}
-  ],
-  exemple:"SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC, id ASC\nLIMIT 3 OFFSET 3;",
-  attendu:"3 lignes : le produit Oméga 3, Magnésium, Shaker Inox.",
-  retenir:"<code>LIMIT</code> fixe la taille d’une page. <code>OFFSET</code> indique combien de lignes triées ignorer.<br><br>Pour la page <i>n</i> : <code>OFFSET = (n - 1) × taille</code>.<br><br>Une pagination doit toujours utiliser un <code>ORDER BY</code> stable, idéalement terminé par une clé unique.<br><br>Un <code>OFFSET</code> très élevé peut devenir coûteux à parcourir. Pour de très grands volumes ou une interface qui avance résultat après résultat, la pagination par curseur (keyset) peut être une meilleure stratégie.",
-  consigne:"Affiche la deuxième page de produits, à raison de 3 produits par page, du plus cher au moins cher. Utilise l’identifiant pour départager les prix égaux.",
-  solution:"SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC, id ASC\nLIMIT 3 OFFSET 3;",
-  indice:"Page 2 de taille 3 : il faut ignorer <code>(2 - 1) × 3</code> lignes.",
-  fnCmp:{title:"OFFSET ou curseur ?",prose:true,h1:"Pagination OFFSET",h2:"Pagination par curseur",
-    rows:[
-      {fn:"SQL saute un nombre précis de lignes",d:"SQL reprend après le dernier résultat affiché"},
-      {fn:"Permet d’aller directement à la page 3, 4, 5…",d:"Idéal pour un bouton « Suivant » ou un scroll infini"},
-      {fn:"Peut devenir plus lent lorsqu’on saute beaucoup de lignes",d:"Plus efficace pour parcourir beaucoup de données"},
-      {fn:"Si les données changent entre deux pages, certains résultats peuvent être répétés ou manqués",d:"Gère généralement mieux les données qui changent"}
+guide({ id:11, titre:"ORDER BY", résumé:"Ordonner le résultat",
+  sit:{
+    blocks:[
+      "L’équipe marketing prépare une nouvelle campagne. Elle veut contacter les clients <b>en commençant par les plus récemment inscrits</b>.",
+      "La table <code>clients</code> contient au total <b>10 clients</b>, mais leur ordre dans la table ne suit pas leur date d’inscription. Pour organiser la campagne, l’équipe souhaite récupérer uniquement :",
+      {need:[["👤","Le prénom du client","table clients"],["📅","Sa date d’inscription","table clients"]],label:"Les informations à récupérer"}
     ],
-    say:"💡 À retenir : <code>OFFSET</code> est pratique pour une pagination classique avec des numéros de pages. Le curseur est surtout utile pour charger progressivement les résultats avec « Suivant » ou un scroll infini."},
-  richLesson:true, earlyDemo:true, ordered:true,
-  petitDefi:[{p:"Avec 5 lignes par page, quel décalage faut-il pour ouvrir la page 4 ?",sql:"LIMIT 5 OFFSET __________;",a:"15",answers:["15"]}],
-  testeVariants:[
-  {
-    "k": "p1",
-    "label": "OFFSET 0",
-    "sql": "SELECT id, nom, prix FROM produits ORDER BY prix DESC, id ASC LIMIT 3 OFFSET 0;",
-    "out": "Collagène Marin, Protéine Végétale, le produit Fibre Prébiotique."
+    problem:{
+      p:["Avec <code>SELECT</code>, SQL affiche les clients <b>dans l’ordre où il les lit</b> : cet ordre ne suit pas leur date d’inscription.","Or, pour organiser la campagne, l’équipe a besoin que les clients soient <b>classés</b>, du plus récent au plus ancien."],
+      scene:{h:"📅 Clients classés",cols:"1fr 1.3fr",
+        lanes:[{c:[["h1","prenom","t"],["h2","date_inscription","t"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","2023-01-15"]]},
+          {k:"R2",c:[["b1","Emma"],["b2","2022-11-05"]]},
+          {k:"R3",c:[["c1","Léa"],["c2","2023-05-12"]]},
+          {k:"R4",c:[["d1","Chloé"],["d2","2023-02-18"]]},
+          {k:"R5",c:[["e1","Nathan"],["e2","2023-08-03"]]}],
+        caps:["<b>Notre liste</b> · Les clients apparaissent dans un ordre qui ne suit pas leur date d’inscription.","<b>Besoin</b> · L’équipe veut les voir du plus récemment inscrit au plus ancien.","<b>Résultat</b> · Ce sont les mêmes clients, rangés du plus récent au plus ancien."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,d:2000},{cap:2,order:["R5","R3","R4","R1","R2"],d:3000}]},
+      then:["Il faut donc indiquer à SQL <b>dans quel ordre classer</b> les lignes : par date d’inscription, de la plus récente à la plus ancienne.","C’est exactement le rôle de <code>ORDER BY</code>."]
+    },
+    mission:"Aide l’équipe marketing à afficher le <b>prénom</b> et la <b>date d’inscription</b> de chaque client, du <b>plus récemment inscrit au plus ancien</b>, afin d’organiser l’ordre de la campagne."
   },
-  {
-    "k": "p2",
-    "label": "OFFSET 3",
-    "sql": "SELECT id, nom, prix FROM produits ORDER BY prix DESC, id ASC LIMIT 3 OFFSET 3;",
-    "out": "Le produit Oméga 3, Magnésium, Shaker Inox.",
-    "tone": "good"
+  concept:{
+    title:"Comment SQL peut-il savoir dans quel ordre classer ?",
+    blocks:[
+      "Pour classer les lignes, SQL doit savoir deux choses :",
+      {ask:"Sur quelle colonne trier, et dans quel sens ?"},
+      "En SQL, on l’écrit avec <code>ORDER BY</code>, suivi de la colonne et du sens du tri :",
+      {syntax:"⟦ORDER BY age DESC⟧"},
+      {scene:{h:"↕️ Deux sens de tri",cols:"1fr .6fr",
+        lanes:[{c:[["h1","prenom","t"],["h2","age","t"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","34"]]},
+          {k:"R2",c:[["b1","Chloé"],["b2","26"]]},
+          {k:"R3",c:[["c1","Léa"],["c2","38"]]},
+          {k:"R4",c:[["d1","Lucas"],["d2","28"]]}],
+        caps:["<b>Table clients</b> · Les lignes sont dans l’ordre de la table.","<b>ORDER BY age ASC</b> · Du plus petit âge au plus grand.","<b>ORDER BY age DESC</b> · Du plus grand âge au plus petit."],
+        steps:[{cap:0,on:["R1","R2","R3","R4"],d:1900},{cap:1,order:["R2","R4","R1","R3"],d:3000},{cap:2,order:["R3","R1","R4","R2"],d:3000}]}},
+      {looks:[["ASC","du plus petit au plus grand (sens par défaut)"],["DESC","du plus grand au plus petit"]],label:"Le sens du tri"}
+    ]
   },
-  {
-    "k": "cursor",
-    "label": "Curseur",
-    "sql": "SELECT id, nom, prix FROM produits WHERE (prix < 29.90) OR (prix = 29.90 AND id > 1) ORDER BY prix DESC, id ASC LIMIT 3;",
-    "out": "Mêmes trois produits que OFFSET 3, sans compter les lignes sautées : on reprend après le repère (prix 29,90 · id 1).",
-    "tone": "good",
-    "expectRows": 3
+  steps:[
+    {h:"Trier par une colonne",blocks:[
+      "<code>ORDER BY</code> se place <b>à la fin</b> de la requête, suivi de la colonne de tri :",
+      {syntax:"SELECT prenom, age\nFROM clients\n⟦ORDER BY age⟧;"},
+      {looks:[["ORDER BY","range le résultat selon une colonne"],["age","est la colonne utilisée pour le tri"]]},
+      {say:"👇 Exécute cette requête pour voir les clients classés par âge :",run:"SELECT prenom, age\nFROM clients\nORDER BY age;"},
+      {arrow:"Les clients sont rangés du plus jeune au plus âgé : le tri est croissant par défaut."},
+      {tip:{t:"Sans ORDER BY",blocks:["Sans <code>ORDER BY</code>, SQL ne garantit aucun ordre, même si les lignes semblent bien rangées. Si l’ordre compte, demande-le toujours."]}}
+    ]},
+    {h:"Choisir le sens du tri",blocks:[
+      "<code>ASC</code> trie du plus petit au plus grand (c’est le sens par défaut). <code>DESC</code> trie du plus grand au plus petit :",
+      {syntax:"ORDER BY age ⟦DESC⟧"},
+      {say:"👇 Exécute cette requête pour voir les clients du plus âgé au plus jeune :",run:"SELECT prenom, age\nFROM clients\nORDER BY age DESC;"},
+      {arrow:"Cette fois, le client le plus âgé arrive en premier."}
+    ]},
+    {h:"Trier du texte",blocks:[
+      "Le tri fonctionne aussi sur du texte : <code>ORDER BY</code> range alors les valeurs dans l’ordre alphabétique.",
+      {say:"👇 Exécute cette requête pour voir les clients classés par ville :",run:"SELECT prenom, ville\nFROM clients\nORDER BY ville;"},
+      {arrow:"Les villes sont rangées de A à Z. Pour deux clients de la même ville, l’ordre n’est pas garanti : un second critère pourra les départager."}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis trier par date d’inscription, de la plus récente à la plus ancienne.",
+      {say:"👇 Exécute la requête pour obtenir l’ordre de la campagne :",run:"SELECT prenom, date_inscription\nFROM clients\nORDER BY date_inscription DESC;"},
+      {done:{
+        label:"Des clients en vrac aux clients classés",
+        funnel:[
+          {n:10,t:"clients au départ",s:"dans l’ordre de la <code>table clients</code>",dots:"0000000000"},
+          {step:"ORDER BY date_inscription DESC",s:"classe du plus récent au plus ancien, sans retirer aucune ligne"},
+          {n:10,t:"⭐ clients classés",s:"Nathan, Inès, Nathan, Léa, Gabriel, Lucas, Chloé, Sophie, Emma et Hugo",dots:"1111111111",out:true}
+        ],
+        sms:{ico:"🎯",h:"Ordre de la campagne",aria:"Les clients sont contactés du plus récemment inscrit au plus ancien",msg:"Bonjour ! 🎉 Merci d’avoir rejoint NutriBoost : voici une offre de bienvenue.",people:[["N","Nathan","2023-08-03"],["I","Inès","2023-07-26"],["N","Nathan","2023-06-10"],["L","Léa","2023-05-12"],["G","Gabriel","2023-04-08"]],more:5,moreT:"… et 5 autres",moreS:"inscrits plus tôt",st:["En file","Contact","✓ Contacté"],done:"✓ 10 clients contactés"},
+        fill:["FROM","ORDER BY","date_inscription","DESC"],
+        ui:{t:"10 clients, du plus récent au plus ancien",s:"Aucune ligne n’a disparu : la campagne peut commencer par les derniers inscrits.",n:["SELECT","FROM","ORDER BY","DESC"]},
+        rows:10
+      }}
+    ]}
+  ],
+  reflex:[
+    {recap:[
+      ["↕️","<code>ORDER BY</code> <b>range</b> le résultat selon une colonne.","Il ne supprime aucune ligne et ne modifie pas la table."],
+      ["📍","Il se place <b>à la fin</b> de la requête :",null,"ORDER BY date_inscription DESC"],
+      ["🔼","<code>ASC</code> : du plus petit au plus grand (par défaut). <code>DESC</code> : du plus grand au plus petit."]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"SELECT prenom, date_inscription",txt:"Les colonnes affichées."},{tok:"FROM clients",txt:"La table clients est utilisée comme source."},{tok:"ORDER BY",txt:"Range le résultat selon une colonne."},{tok:"date_inscription",plain:1,txt:"La colonne utilisée pour le tri."},{tok:"DESC",txt:"Du plus récent au plus ancien."}],
+  exemple:"SELECT prenom, age FROM clients ORDER BY age DESC;",
+  attendu:"<b>10 lignes</b>, du plus âgé au plus jeune : Hugo (52), Emma (45), Inès (41)… jusqu’à Chloé (26).",
+  retenir:"<code>ORDER BY</code> range le résultat, il ne filtre aucune ligne. <code>ASC</code> croissant, <code>DESC</code> décroissant.<br><br>Il se place à la fin de la requête : <code>ORDER BY date_inscription DESC</code>.<br><br>Sans <code>ORDER BY</code>, aucun ordre n’est garanti.",
+  consigne:"Affiche le nom et le stock de chaque produit, du stock le plus élevé au plus faible.",
+  solution:"SELECT nom, stock FROM produits ORDER BY stock DESC;",
+  indice:"Ajoute <code>ORDER BY</code> à la fin de la requête, suivi de la colonne <code>stock</code> et du sens qui va du plus grand au plus petit.",
+  ordered:true,
+  testeVariants:[{k:"base",label:"↑ Plus ancien (ASC)",sql:"SELECT * FROM clients ORDER BY date_inscription ASC;"},{k:"rec_desc",label:"↓ Plus récent (DESC)",sql:"SELECT * FROM clients ORDER BY date_inscription DESC;"}],
+  learningCheck:{question:"Quel âge passe en premier avec ORDER BY age DESC : 28 ou 52 ?",options:["Le premier inséré","52","28"],answer:1,explanation:"DESC va du plus grand au plus petit ; ASC fait l’inverse. Sans ORDER BY, aucun ordre n’est garanti."}
+}),
+guide({ id:24, titre:"ORDER BY plusieurs colonnes", résumé:"Départager les égalités par un second critère",
+  sit:{
+    blocks:[
+      "L’équipe e-commerce prépare <b>le catalogue</b> de la boutique. Elle veut afficher les produits <b>par catégorie</b> puis, dans chaque catégorie, <b>du moins cher au plus cher</b>.",
+      "La table <code>produits</code> contient au total <b>8 produits</b>. Pour construire le catalogue, l’équipe souhaite récupérer uniquement :",
+      {need:[["🏷️","Le nom du produit","table produits"],["🗂️","Sa catégorie","table produits"],["💶","Son prix","table produits"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec un seul critère de tri, SQL regroupe les produits d’une même catégorie, mais <b>à l’intérieur de cette catégorie</b>, leur ordre n’est pas garanti.","Or, l’équipe veut aussi les classer par prix dans chaque catégorie : un seul critère ne suffit plus."],
+      scene:{h:"🛒 Catalogue classé",cols:"1.6fr 1.1fr .7fr",
+        lanes:[{c:[["h1","nom","t"],["h2","categorie","t"],["h3","prix","t"]]},
+          {k:"R1",c:[["a1","Oméga 3"],["a2","Bien-être"],["a3","24.9"]]},
+          {k:"R2",c:[["b1","Vitamine D"],["b2","Nutrition"],["b3","14.9"]]},
+          {k:"R3",c:[["c1","Magnésium"],["c2","Bien-être"],["c3","19.9"]]},
+          {k:"R4",c:[["d1","Shaker Inox"],["d2","Accessoire"],["d3","15"]]},
+          {k:"R5",c:[["e1","Protéine Végétale"],["e2","Nutrition"],["e3","34.9"]]}],
+        caps:["<b>Notre liste</b> · Les produits apparaissent dans l’ordre de la table.","<b>Premier critère</b> · Les produits sont regroupés par catégorie, mais pas encore classés par prix.","<b>Second critère</b> · Dans chaque catégorie, les produits sont aussi rangés du moins cher au plus cher."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,order:["R4","R1","R3","R2","R5"],d:3000},{cap:2,order:["R4","R3","R1","R2","R5"],d:3000}]},
+      then:["Il faut donc indiquer à SQL <b>plusieurs critères de tri</b>, dans l’ordre de priorité : d’abord la catégorie, puis le prix.","C’est toujours le rôle de <code>ORDER BY</code>, avec plusieurs colonnes."]
+    },
+    mission:"Aide l’équipe e-commerce à afficher le <b>nom</b>, la <b>catégorie</b> et le <b>prix</b> de chaque produit, classés <b>par catégorie</b> puis, dans chaque catégorie, <b>du moins cher au plus cher</b>, afin de préparer le catalogue."
   },
-  {
-    "k": "unstable",
-    "label": "Sans ORDER BY",
-    "sql": "SELECT id, nom, prix FROM produits LIMIT 3 OFFSET 3;",
-    "out": "Trois lignes sans tri garanti : l’ordre peut changer.",
-    "tone": "bad"
+  concept:{
+    title:"Comment SQL peut-il départager deux produits de la même catégorie ?",
+    blocks:[
+      "Quand deux lignes ont la même valeur pour le premier critère, SQL regarde le <b>second critère</b> :",
+      {ask:"Même catégorie ? Alors lequel est le moins cher ?"},
+      "En SQL, on liste les critères après <code>ORDER BY</code>, séparés par une virgule :",
+      {syntax:"ORDER BY ⟦categorie, prix⟧"},
+      {scene:{h:"🔀 Le sens de chaque critère",cols:"1.6fr 1.1fr .7fr",
+        lanes:[{c:[["h1","nom","t"],["h2","categorie","t"],["h3","prix","t"]]},
+          {k:"R1",c:[["a1","Oméga 3"],["a2","Bien-être"],["a3","24.9"]]},
+          {k:"R2",c:[["b1","Vitamine D"],["b2","Nutrition"],["b3","14.9"]]},
+          {k:"R3",c:[["c1","Magnésium"],["c2","Bien-être"],["c3","19.9"]]},
+          {k:"R4",c:[["d1","Shaker Inox"],["d2","Accessoire"],["d3","15"]]},
+          {k:"R5",c:[["e1","Protéine Végétale"],["e2","Nutrition"],["e3","34.9"]]}],
+        caps:["<b>Table produits</b> · Les lignes sont dans l’ordre de la table.","<b>ORDER BY categorie, prix</b> · Par catégorie, puis du moins cher au plus cher.","<b>ORDER BY categorie, prix DESC</b> · Toujours par catégorie, mais du plus cher au moins cher."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,order:["R4","R3","R1","R2","R5"],d:3000},{cap:2,order:["R4","R1","R3","R5","R2"],d:3000}]}}
+    ]
   },
-  {
-    "k": "rec_page1",
-    "label": "Retour page 1",
-    "sql": "SELECT id, nom, prix FROM produits ORDER BY prix DESC, id ASC LIMIT 3 OFFSET 0;",
-    "out": "Collagène Marin, Protéine Végétale, le produit Fibre Prébiotique — retour page 1.",
-    "expectRows": 3
+  steps:[
+    {h:"Ajouter un second critère",blocks:[
+      "Pour départager les égalités, ajoute une virgule puis un <b>second critère</b> après <code>ORDER BY</code> :",
+      {syntax:"SELECT prenom, ville, age\nFROM clients\nORDER BY ville⟦, age⟧;"},
+      {looks:[["ville","est le premier critère : les clients sont rangés par ville"],["age","départage les clients d’une même ville"]]},
+      {say:"👇 Exécute cette requête pour voir les clients par ville, puis par âge :",run:"SELECT prenom, ville, age\nFROM clients\nORDER BY ville, age;"},
+      {arrow:"Les villes vont de A à Z ; à Paris, les quatre clients sont rangés du plus jeune au plus âgé."}
+    ]},
+    {h:"Choisir le sens de chaque critère",blocks:[
+      "Le sens du tri se précise <b>pour chaque colonne</b> : <code>DESC</code> ne s’applique qu’à la colonne qui le précède.",
+      {syntax:"ORDER BY ville, age ⟦DESC⟧"},
+      {say:"👇 Exécute cette requête : seul l’âge est classé en ordre décroissant.",run:"SELECT prenom, ville, age\nFROM clients\nORDER BY ville, age DESC;"},
+      {arrow:"Les villes restent de A à Z ; à Paris, les clients vont maintenant du plus âgé au plus jeune."}
+    ]},
+    {h:"Garantir un ordre stable",blocks:[
+      "Si deux lignes sont identiques sur <b>tous</b> les critères, leur ordre reste incertain. Pour le fixer, termine par une colonne unique, comme <code>id</code> :",
+      {syntax:"ORDER BY categorie, prix, ⟦id⟧"},
+      {say:"👇 Exécute cette requête pour un classement toujours identique :",run:"SELECT id, nom, categorie, prix\nFROM produits\nORDER BY categorie, prix, id;"},
+      {arrow:"Chaque produit a un <code>id</code> unique : plus aucune égalité n’est possible."}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis trier par catégorie et par prix.",
+      {say:"👇 Exécute la requête pour obtenir le catalogue :",run:"SELECT nom, categorie, prix\nFROM produits\nORDER BY categorie, prix;"},
+      {done:{
+        label:"Des produits en vrac au catalogue classé",
+        funnel:[
+          {n:8,t:"produits au départ",s:"dans l’ordre de la <code>table produits</code>",dots:"00000000"},
+          {step:"ORDER BY categorie, prix",s:"classe par catégorie, puis du moins cher au plus cher"},
+          {n:8,t:"⭐ produits classés",s:"Shaker Inox, Collagène Marin, Magnésium, Oméga 3, Fibre Prébiotique, Tisane Détox, Vitamine D et Protéine Végétale",dots:"11111111",out:true}
+        ],
+        sms:{ico:"🛒",h:"Catalogue de la boutique",aria:"Les produits sont publiés dans l’ordre du catalogue",msg:"<b>Catalogue</b><br>Par catégorie, puis du moins cher au plus cher",people:[["S","Shaker Inox","Accessoire · 15"],["C","Collagène Marin","Beauté · 39.9"],["M","Magnésium","Bien-être · 19.9"],["O","Oméga 3","Bien-être · 24.9"],["F","Fibre Prébiotique","Bien-être · 29.9"]],more:3,moreT:"… et 3 autres",moreS:"produits du catalogue",st:["À publier","Publication","✓ Publié"],plane:"doc",done:"✓ 8 produits publiés"},
+        fill:["FROM","ORDER BY","categorie","prix"],
+        ui:{t:"Un catalogue bien classé",s:"8 produits rangés par catégorie, puis du moins cher au plus cher.",n:["SELECT","FROM","ORDER BY"]},
+        rows:8
+      }}
+    ]}
+  ],
+  reflex:[
+    {recap:[
+      ["🥇","<code>ORDER BY a, b</code> trie d’abord par <code>a</code>, puis départage les égalités avec <code>b</code> :",null,"ORDER BY categorie, prix"],
+      ["↕️","Le sens se précise <b>pour chaque colonne</b> : <code>DESC</code> ne s’applique qu’à celle qui le précède :",null,"ORDER BY categorie, prix DESC"],
+      ["🔑","Pour un ordre toujours identique, termine par une colonne unique comme <code>id</code>."]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"SELECT nom, categorie, prix",txt:"Les colonnes affichées."},{tok:"FROM produits",txt:"La table produits est utilisée comme source."},{tok:"ORDER BY",txt:"Range le résultat selon un ou plusieurs critères."},{tok:"categorie",plain:1,txt:"Premier critère : les produits sont regroupés par catégorie."},{tok:"prix",plain:1,txt:"Second critère : à catégorie égale, du moins cher au plus cher."}],
+  exemple:"SELECT prenom, ville, age FROM clients ORDER BY ville, age DESC;",
+  attendu:"<b>10 lignes</b> classées par ville de A à Z ; à Paris, du plus âgé (Léa, 38 ans) au plus jeune (Nathan, 30 ans).",
+  retenir:"<code>ORDER BY a, b</code> trie par <code>a</code> puis départage les égalités avec <code>b</code>. Le sens <code>ASC</code> ou <code>DESC</code> se précise pour chaque colonne.<br><br>Pour un ordre toujours identique, termine par une colonne unique comme <code>id</code>.",
+  consigne:"Affiche le nom, la catégorie et le stock des produits, triés par catégorie (A→Z) puis, à catégorie égale, du stock le plus élevé au plus faible.",
+  solution:"SELECT nom, categorie, stock FROM produits ORDER BY categorie, stock DESC;",
+  indice:"Écris deux critères après <code>ORDER BY</code>, séparés par une virgule : <code>categorie</code>, puis <code>stock</code> avec le sens décroissant.",
+  ordered:true,
+  testeVariants:[{k:"base",label:"Deux critères",sql:"SELECT nom, categorie, prix\nFROM produits\nORDER BY categorie, prix;"},{k:"rec_sens",label:"Sens différents",sql:"SELECT nom, categorie, prix\nFROM produits\nORDER BY categorie ASC, prix DESC;"}],
+  learningCheck:{question:"Deux produits ont la même catégorie et le même prix. Comment garantir leur ordre ?",options:["Ajouter id comme troisième critère","Écrire ASC deux fois","Ajouter DISTINCT"],answer:0,explanation:"categorie, prix, id départage les ex æquo grâce à l’identifiant unique."}
+}),
+guide({ id:12, titre:"LIMIT", résumé:"Limiter le nombre de lignes",
+  sit:{
+    blocks:[
+      "L’équipe marketing prépare une sélection « produits premium » pour une nouvelle campagne. Elle veut mettre en avant <b>les 3 produits les plus chers</b> de la boutique.",
+      "La table <code>produits</code> contient au total <b>8 produits</b>. Pour construire la sélection, l’équipe souhaite récupérer uniquement :",
+      {need:[["🏷️","Le nom du produit","table produits"],["💶","Son prix","table produits"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>ORDER BY</code>, SQL sait classer les produits du plus cher au moins cher, mais il affiche encore <b>les 8 produits</b>.","Or, l’équipe n’a besoin que des <b>3 premiers</b> de ce classement."],
+      scene:{h:"🏆 Produits premium",cols:"1.7fr 1fr",
+        lanes:[{c:[["h1","nom","t"],["h2","prix","t"]]},
+          {k:"R1",c:[["a1","Collagène Marin"],["a2","39.9"]]},
+          {k:"R2",c:[["b1","Protéine Végétale"],["b2","34.9"]]},
+          {k:"R3",c:[["c1","Fibre Prébiotique"],["c2","29.9"]]},
+          {k:"R4",c:[["d1","Oméga 3"],["d2","24.9"]]},
+          {k:"R5",c:[["e1","Magnésium"],["e2","19.9"]]}],
+        caps:["<b>Notre classement</b> · Les produits sont rangés du plus cher au moins cher.","<b>Besoin</b> · L’équipe ne veut que les <b>3 premiers</b> produits du classement.","<b>Résultat</b> · Seules les 3 premières lignes doivent être conservées."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R4","R5"],dim:["R4","R5"],d:2300},{cap:2,fold:["R4","R5"],d:2600}]},
+      then:["Il faut donc indiquer à SQL de <b>s’arrêter après 3 lignes</b> : ne garder que les premières lignes du classement.","C’est exactement le rôle de <code>LIMIT</code>."]
+    },
+    mission:"Aide l’équipe marketing à retrouver le <b>nom</b> et le <b>prix</b> des <b>3 produits les plus chers</b>, afin de préparer la sélection premium."
   },
-  {
-    "k": "rec_page3",
-    "label": "OFFSET 6",
-    "sql": "SELECT id, nom, prix FROM produits ORDER BY prix DESC, id ASC LIMIT 3 OFFSET 6;",
-    "out": "Vitamine D, Tisane Détox — seulement 2 produits sur 8.",
-    "expectRows": 2
-  }
-]
-}
+  concept:{
+    title:"Comment SQL peut-il savoir combien de lignes garder ?",
+    blocks:[
+      "Une fois les lignes triées, SQL les compte de haut en bas :",
+      {ask:"Cette ligne fait-elle partie des 3 premières ?"},
+      "En SQL, on donne ce nombre après <code>LIMIT</code>, tout à la fin de la requête :",
+      {syntax:"ORDER BY prix DESC\n⟦LIMIT 3⟧"},
+      {scene:{h:"🔢 SQL compte les lignes",cols:".5fr 1.7fr 1fr",
+        lanes:[{c:[["h0","rang","t"],["h1","nom","t"],["h2","prix","t"]]},
+          {k:"R1",c:[["n1","1","h"],["a1","Collagène Marin"],["a2","39.9"]]},
+          {k:"R2",c:[["n2","2","h"],["b1","Protéine Végétale"],["b2","34.9"]]},
+          {k:"R3",c:[["n3","3","h"],["c1","Fibre Prébiotique"],["c2","29.9"]]},
+          {k:"R4",c:[["n4","4","h"],["d1","Oméga 3"],["d2","24.9"]]},
+          {k:"R5",c:[["n5","5","h"],["e1","Magnésium"],["e2","19.9"]]}],
+        caps:["<b>Après ORDER BY</b> · Les produits sont rangés du plus cher au moins cher.","<b>LIMIT 3</b> · SQL compte les lignes, de haut en bas : 1, 2, 3.","<b>Résultat</b> · Une fois la 3ᵉ ligne atteinte, SQL s’arrête : les autres lignes sont écartées."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R4","R5"],show:["n1","n2","n3"],stagger:500,d:2900},{cap:2,dim:["R4","R5"],fold:["R4","R5"],d:2600}]}}
+    ]
+  },
+  steps:[
+    {h:"Limiter le nombre de lignes",blocks:[
+      "<code>LIMIT</code> se place tout à la fin de la requête, suivi du nombre de lignes à garder :",
+      {syntax:"SELECT prenom, age\nFROM clients\nORDER BY age DESC\n⟦LIMIT 2⟧;"},
+      {looks:[["ORDER BY age DESC","classe les clients du plus âgé au plus jeune"],["LIMIT 2","ne garde que les 2 premières lignes du classement"]]},
+      {say:"👇 Exécute cette requête pour voir les 2 clients les plus âgés :",run:"SELECT prenom, age\nFROM clients\nORDER BY age DESC\nLIMIT 2;"},
+      {arrow:"Seules les 2 premières lignes du classement sont conservées : Hugo et Emma."}
+    ]},
+    {h:"LIMIT sans ORDER BY",blocks:[
+      "<code>LIMIT</code> coupe le résultat après un certain nombre de lignes. Pour que ce soient les bonnes, le résultat doit d’abord être <b>classé</b>.",
+      {warn:{t:"LIMIT seul",blocks:[
+        "Si tu écris :",
+        {syntax:"SELECT nom, prix\nFROM produits\nLIMIT 3;"},
+        "SQL garde les 3 premières lignes dans l’ordre où il lit la table : ce ne sont pas forcément les plus chères.",
+        {say:"👇 Teste par toi-même :",run:"SELECT nom, prix\nFROM produits\nLIMIT 3;"}
+      ]}}
+    ]},
+    {h:"Garder une seule ligne",blocks:[
+      "Avec <code>LIMIT 1</code>, on obtient la <b>première</b> ligne du classement : par exemple le produit le plus cher.",
+      {say:"👇 Exécute cette requête pour voir le produit le plus cher :",run:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 1;"},
+      {arrow:"Le Collagène Marin, à 39,90 €, arrive en tête du classement."}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, classer du plus cher au moins cher, puis ne garder que 3 lignes.",
+      {say:"👇 Exécute la requête pour découvrir les produits premium :",run:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 3;"},
+      {done:{
+        label:"De 8 produits aux 3 plus chers",
+        funnel:[
+          {n:8,t:"produits au départ",s:"toute la <code>table produits</code>",dots:"00000000"},
+          {step:"ORDER BY prix DESC LIMIT 3",s:"classe du plus cher au moins cher, puis ne garde que 3 lignes"},
+          {n:3,t:"⭐ produits premium",s:"Collagène Marin, Protéine Végétale et Fibre Prébiotique",dots:"11000100",out:true}
+        ],
+        sms:{ico:"🏆",h:"Podium premium",aria:"Les trois produits les plus chers montent sur le podium de la campagne",msg:"<b>Produits premium</b><br>Les 3 plus chers de la boutique",people:[["C","Collagène Marin","39.9"],["P","Protéine Végétale","34.9"],["F","Fibre Prébiotique","29.9"]],st:["En attente","Mise en avant","✓ Sur le podium"],plane:"star",done:"✓ 3 produits premium"},
+        fill:["ORDER BY","DESC","LIMIT","3"],
+        ui:{t:"Les 3 produits les plus chers",s:"La sélection premium est prête : un classement, puis seulement les 3 premières lignes.",n:["SELECT","FROM","ORDER BY","DESC","LIMIT"]},
+        rows:3
+      }}
+    ]}
+  ],
+  reflex:[
+    {recap:[
+      ["✂️","<code>LIMIT n</code> garde seulement les <b>n premières lignes</b> du résultat.",null,"LIMIT 3"],
+      ["🥇","Associe-le à <code>ORDER BY</code> : il garde alors les premières lignes <b>du classement</b>.",null,"ORDER BY prix DESC LIMIT 3"],
+      ["📍","Il se place <b>tout à la fin</b> de la requête."]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"SELECT nom, prix",txt:"Affiche le nom et le prix."},{tok:"FROM produits",txt:"Les données viennent de la table <code>produits</code>."},{tok:"ORDER BY prix DESC",txt:"Classe les produits du plus cher au moins cher."},{tok:"LIMIT 3",txt:"Garde uniquement les 3 premières lignes après le tri."}],
+  exemple:"SELECT prenom, age FROM clients ORDER BY age DESC LIMIT 2;",
+  attendu:"<b>2 lignes</b> : Hugo (52 ans) et Emma (45 ans), les deux clients les plus âgés.",
+  retenir:"<code>LIMIT n</code> garde seulement les n premières lignes du résultat. Dans <code>ORDER BY prix DESC LIMIT 3</code>, les produits sont d’abord classés du plus cher au moins cher, puis seuls les 3 premiers sont affichés.",
+  consigne:"Affiche le prénom et l’âge des 3 clients les plus jeunes.",
+  solution:"SELECT prenom, age FROM clients ORDER BY age ASC LIMIT 3;",
+  indice:"Classe d’abord les clients du plus jeune au plus âgé avec <code>ORDER BY</code>, puis garde seulement 3 lignes avec <code>LIMIT</code>.",
+  ordered:true,
+  petitDefi:[{p:"Complète pour ne garder que les 3 produits les plus chers.",sql:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\n__________ 3;",a:"LIMIT",answers:["LIMIT","limit"]}],
+  testeVariants:[{k:"base",label:"LIMIT seul",sql:"SELECT nom, prix\nFROM produits\nLIMIT 3;"},{k:"rec_order",label:"ORDER BY + LIMIT",sql:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 3;"}],
+  learningCheck:{question:"LIMIT 3 seul garantit-il les trois produits les plus chers ?",options:["Non : il faut aussi ORDER BY prix DESC","Oui","Oui si la table est petite"],answer:0,explanation:"LIMIT coupe le résultat. ORDER BY prix DESC place d’abord les plus chers : le Collagène Marin, la Protéine Végétale, la Fibre Prébiotique."}
+}),
+guide({ id:75, titre:"OFFSET et pagination", résumé:"Découper un résultat en pages stables",
+  sit:{
+    blocks:[
+      "Le site de la boutique affiche son catalogue <b>par pages de 3 produits</b>, du plus cher au moins cher. Quand un visiteur clique sur « Page suivante », il doit voir les 3 produits suivants.",
+      "La table <code>produits</code> contient au total <b>8 produits</b>. Pour afficher la <b>page 2</b>, le site souhaite récupérer uniquement :",
+      {need:[["🔢","L’identifiant du produit","table produits"],["🏷️","Son nom","table produits"],["💶","Son prix","table produits"]],label:"Les informations à récupérer"}
+    ],
+    problem:{
+      p:["Avec <code>LIMIT 3</code>, SQL renvoie toujours <b>les 3 premiers produits</b> : c’est parfait pour la page 1.","Mais pour la page 2, le site doit <b>ignorer les 3 produits déjà affichés</b> avant de récupérer les 3 suivants."],
+      scene:{h:"📄 Pages du catalogue",cols:"1.7fr 1fr",
+        lanes:[{c:[["h1","nom","t"],["h2","prix","t"]]},
+          {k:"R1",c:[["a1","Collagène Marin"],["a2","39.9"]]},
+          {k:"R2",c:[["b1","Protéine Végétale"],["b2","34.9"]]},
+          {k:"R3",c:[["c1","Fibre Prébiotique"],["c2","29.9"]]},
+          {k:"R4",c:[["d1","Oméga 3"],["d2","24.9"]]},
+          {k:"R5",c:[["e1","Magnésium"],["e2","19.9"]]},
+          {k:"R6",c:[["f1","Shaker Inox"],["f2","15"]]}],
+        caps:["<b>Le catalogue</b> · Les produits sont classés du plus cher au moins cher.","<b>Page 1</b> · Les 3 premiers produits du classement.","<b>Page 2</b> · Il faut passer ces 3 produits et afficher les 3 suivants.","<b>Résultat</b> · La page 2 ne contient que les produits classés 4ᵉ, 5ᵉ et 6ᵉ."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5","R6"],d:1900},{cap:1,off:["R4","R5","R6"],dim:["R4","R5","R6"],d:2300},{cap:2,off:["R1","R2","R3"],undim:["R4","R5","R6"],dim:["R1","R2","R3"],on:["R4","R5","R6"],d:2600},{cap:3,fold:["R1","R2","R3"],d:2600}]},
+      then:["Il faut donc indiquer à SQL combien de lignes <b>sauter</b> avant de commencer à en garder 3.","C’est exactement le rôle de <code>OFFSET</code>."]
+    },
+    mission:"Aide le site à afficher la <b>page 2</b> du catalogue : l’<b>identifiant</b>, le <b>nom</b> et le <b>prix</b> des produits classés de la 4ᵉ à la 6ᵉ place, du plus cher au moins cher."
+  },
+  concept:{
+    title:"Comment SQL peut-il savoir combien de lignes sauter ?",
+    blocks:[
+      "Pour afficher la page <b>n</b>, SQL doit d’abord passer les pages précédentes :",
+      {ask:"Combien de lignes faut-il ignorer avant cette page ?"},
+      "En SQL, on l’indique avec <code>OFFSET</code>, juste après <code>LIMIT</code> :",
+      {syntax:"LIMIT 3 ⟦OFFSET 3⟧"},
+      {scene:{h:"🪟 Une page à la fois",cols:"1.7fr 1fr",
+        lanes:[{c:[["h1","nom","t"],["h2","prix","t"]]},
+          {k:"R1",c:[["a1","Collagène Marin"],["a2","39.9"]]},
+          {k:"R2",c:[["b1","Protéine Végétale"],["b2","34.9"]]},
+          {k:"R3",c:[["c1","Fibre Prébiotique"],["c2","29.9"]]},
+          {k:"R4",c:[["d1","Oméga 3"],["d2","24.9"]]},
+          {k:"R5",c:[["e1","Magnésium"],["e2","19.9"]]},
+          {k:"R6",c:[["f1","Shaker Inox"],["f2","15"]]},
+          {k:"R7",c:[["g1","Vitamine D"],["g2","14.9"]]},
+          {k:"R8",c:[["i1","Tisane Détox"],["i2","12.5"]]}],
+        caps:["<b>Le classement</b> · Les 8 produits, du plus cher au moins cher.","<b>LIMIT 3 OFFSET 0</b> · Aucune ligne sautée : page 1.","<b>LIMIT 3 OFFSET 3</b> · Les 3 premières lignes sont sautées : page 2.","<b>LIMIT 3 OFFSET 6</b> · Les 6 premières lignes sont sautées : page 3, qui n’a que 2 produits."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5","R6","R7","R8"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5","R6","R7","R8"],undim:["R1","R2","R3","R4","R5","R6","R7","R8"],on:["R1","R2","R3"],dim:["R4","R5","R6","R7","R8"],d:2400},{cap:2,off:["R1","R2","R3"],undim:["R4","R5","R6","R7","R8"],on:["R4","R5","R6"],dim:["R1","R2","R3","R7","R8"],d:2400},{cap:3,off:["R4","R5","R6"],undim:["R7","R8"],on:["R7","R8"],dim:["R1","R2","R3","R4","R5","R6"],d:2600}]}}
+    ]
+  },
+  steps:[
+    {h:"Sauter des lignes avec OFFSET",blocks:[
+      "<code>OFFSET</code> indique combien de lignes <b>ignorer</b> avant de commencer à en garder :",
+      {syntax:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 2 ⟦OFFSET 4⟧;"},
+      {looks:[["LIMIT 2","garde 2 lignes"],["OFFSET 4","après avoir sauté les 4 premières"]]},
+      {say:"👇 Exécute cette requête pour voir les produits classés 5ᵉ et 6ᵉ :",run:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 2 OFFSET 4;"},
+      {arrow:"Les 4 premiers produits sont sautés : il reste Magnésium et Shaker Inox."}
+    ]},
+    {h:"Calculer le décalage d’une page",blocks:[
+      "Pour la page <b>n</b>, avec <b>t</b> lignes par page : <code>OFFSET = (n − 1) × t</code>. Avec 3 lignes par page, la page 3 commence donc après 6 lignes :",
+      {syntax:"LIMIT 3 OFFSET ⟦6⟧"},
+      {say:"👇 Exécute cette requête pour afficher la page 3 :",run:"SELECT nom, prix\nFROM produits\nORDER BY prix DESC\nLIMIT 3 OFFSET 6;"},
+      {arrow:"La dernière page n’a que 2 produits : il n’en restait plus que 2."}
+    ]},
+    {h:"Un classement stable",blocks:[
+      "Pour que les pages s’enchaînent sans oubli ni répétition, le classement doit être <b>toujours le même</b>.",
+      {warn:{t:"Sans ORDER BY",blocks:[
+        "Si tu écris :",
+        {syntax:"SELECT id, nom, prix\nFROM produits\nLIMIT 3 OFFSET 3;"},
+        "SQL saute 3 lignes, mais sans classement, l’ordre dépend de la façon dont il lit la table : une page peut contenir un produit déjà vu ou en manquer un autre.",
+        {say:"👇 Teste par toi-même :",run:"SELECT id, nom, prix\nFROM produits\nLIMIT 3 OFFSET 3;"}
+      ]}},
+      {tip:{t:"Un critère unique",blocks:["Termine le tri par une colonne unique, comme <code>id</code> : <code>ORDER BY prix DESC, id ASC</code>. Deux produits au même prix gardent alors toujours le même ordre."]}},
+      {tip:{t:"Très grands volumes",blocks:["Un <code>OFFSET</code> très élevé est coûteux : SQL doit quand même parcourir toutes les lignes sautées. Pour un catalogue de milliers de produits, on utilise plutôt une pagination « par curseur », qui repart du <b>dernier produit affiché</b>."]}}
+    ]},
+    {h:"La requête complète",blocks:[
+      "Il ne reste plus qu’à construire la requête complète : un classement stable, trois lignes par page, et trois lignes sautées pour atteindre la page 2.",
+      {say:"👇 Exécute la requête pour afficher la page 2 du catalogue :",run:"SELECT id, nom, prix\nFROM produits\nORDER BY prix DESC, id ASC\nLIMIT 3 OFFSET 3;"},
+      {done:{
+        label:"Du catalogue entier à la page 2",
+        funnel:[
+          {n:8,t:"produits au départ",s:"toute la <code>table produits</code>",dots:"00000000"},
+          {step:"LIMIT 3 OFFSET 3",s:"saute les 3 premiers produits, puis en garde 3"},
+          {n:3,t:"⭐ produits de la page 2",s:"Oméga 3, Magnésium et Shaker Inox",dots:"00100011",out:true}
+        ],
+        sms:{ico:"📄",h:"Page 2 du catalogue",aria:"Les trois produits de la page 2 s’affichent sur le site",msg:"<b>Catalogue · page 2</b><br>Produits classés de la 4ᵉ à la 6ᵉ place",people:[["O","Oméga 3","24.9"],["M","Magnésium","19.9"],["S","Shaker Inox","15"]],st:["En attente","Affichage","✓ Affiché"],plane:"doc",done:"✓ Page 2 affichée"},
+        fill:["ORDER BY","LIMIT","OFFSET","3"],
+        ui:{t:"La page 2 du catalogue",s:"Les 3 produits suivants s’affichent, sans répéter ceux de la page 1.",n:["SELECT","FROM","ORDER BY","LIMIT","OFFSET"]},
+        rows:3
+      }}
+    ]}
+  ],
+  reflex:[
+    {recap:[
+      ["⏭️","<code>OFFSET n</code> <b>saute</b> les n premières lignes du classement ; <code>LIMIT</code> garde ensuite les suivantes :",null,"LIMIT 3 OFFSET 3"],
+      ["🧮","Pour la page <code>n</code> : <code>OFFSET = (n − 1) × taille de la page</code>."],
+      ["🔒","Une pagination demande un <b>classement stable</b> : termine <code>ORDER BY</code> par une colonne unique comme <code>id</code>."]
+    ],label:"Les trois idées à retenir"}
+  ],
+  anatomie:[{tok:"ORDER BY prix DESC, id ASC",txt:"Définit un ordre complet et reproductible."},{tok:"LIMIT 3",txt:"Conserve trois lignes pour cette page."},{tok:"OFFSET 3",txt:"Ignore les trois lignes de la page précédente."}],
+  exemple:"SELECT nom, prix FROM produits ORDER BY prix DESC LIMIT 2 OFFSET 4;",
+  attendu:"<b>2 lignes</b> : Magnésium (19,90 €) et Shaker Inox (15 €), classés 5ᵉ et 6ᵉ.",
+  retenir:"<code>LIMIT</code> fixe la taille d’une page. <code>OFFSET</code> indique combien de lignes triées ignorer.<br><br>Pour la page n : <code>OFFSET = (n − 1) × taille</code>.<br><br>Une pagination doit toujours utiliser un <code>ORDER BY</code> stable, idéalement terminé par une clé unique.",
+  consigne:"Affiche la troisième page de produits, à raison de 3 produits par page, du moins cher au plus cher. Utilise l’identifiant pour départager les prix égaux.",
+  solution:"SELECT id, nom, prix\nFROM produits\nORDER BY prix ASC, id ASC\nLIMIT 3 OFFSET 6;",
+  indice:"Classe les produits du moins cher au plus cher, puis saute les 6 premiers produits (2 pages de 3) avant d’en garder 3.",
+  ordered:true,
+  petitDefi:[{p:"Avec 5 lignes par page, quel décalage faut-il pour ouvrir la page 4 ?",sql:"LIMIT 5 OFFSET __________;",a:"15",answers:["15"]}],
+  testeVariants:[{k:"p1",label:"OFFSET 0",sql:"SELECT id, nom, prix FROM produits ORDER BY prix DESC, id ASC LIMIT 3 OFFSET 0;"},{k:"p2",label:"OFFSET 3",sql:"SELECT id, nom, prix FROM produits ORDER BY prix DESC, id ASC LIMIT 3 OFFSET 3;"},{k:"p3",label:"OFFSET 6",sql:"SELECT id, nom, prix FROM produits ORDER BY prix DESC, id ASC LIMIT 3 OFFSET 6;"},{k:"curseur",label:"Curseur",sql:"SELECT id, nom, prix FROM produits WHERE (prix < 29.90) OR (prix = 29.90 AND id > 1) ORDER BY prix DESC, id ASC LIMIT 3;"},{k:"sans",label:"Sans ORDER BY",sql:"SELECT id, nom, prix FROM produits LIMIT 3 OFFSET 3;"}],
+  learningCheck:{question:"Pourquoi faut-il un ORDER BY stable avec LIMIT et OFFSET ?",options:["Pour que les pages s’enchaînent sans oubli ni répétition","Pour aller plus vite","Pour supprimer les doublons"],answer:0,explanation:"Sans classement stable, SQL peut lire les lignes dans un ordre différent d’une page à l’autre."}
+})
 ]},
 { titre:"Fonctions et expressions", sous:"Transformer les valeurs ligne par ligne", lessons:[
 { id:51, titre:"Fonctions de texte", résumé:"Transformer, nettoyer et découper du texte",
@@ -26549,6 +26613,12 @@ function mountProbScene(cfg,slot,memo){
     each(s.fold,k=>q(k).classList.add('is-fold'));
     /* cols : nouvelle grille de colonnes (les colonnes dont la largeur passe à 0fr se referment). */
     if(s.cols)root.style.setProperty('--cols',s.cols);
+    /* order : nouvel ordre des lignes (clés des lignes) ; elles glissent vers leur nouvelle place. */
+    if(s.order){
+      const ls=s.order.map(k=>q(k)).filter(Boolean),top=new Map(ls.map(l=>[l,l.getBoundingClientRect().top]));
+      stage.append(...ls);
+      if(!now)ls.forEach(l=>{const d=top.get(l)-l.getBoundingClientRect().top;if(d&&l.animate)l.animate([{transform:`translateY(${d}px)`},{transform:'none'}],{duration:700,easing:'cubic-bezier(.4,0,.2,1)'});});
+    }
     const st=s.stagger||0;
     each(s.show,(k,i)=>later(()=>q(k).classList.add('is-show'),i*st,now));
     if(s.mark)Object.keys(s.mark).forEach(k=>q(k).classList.add(s.mark[k]));
@@ -36874,7 +36944,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1591';
+  const SW_CACHE='requete-2026-10-04-ludique-v1592';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
