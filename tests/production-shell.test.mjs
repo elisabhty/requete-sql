@@ -78,19 +78,6 @@ assert(html.includes('<script src="design-premium.js') && serviceWorker.includes
   assert(serviceWorker.includes("url.pathname.endsWith('.mp4')") && serviceWorker.includes("'./assets/mascotte-coucou.jpg'"), 'vidéo laissée au navigateur (lecture par morceaux sur iOS), image fixe disponible hors ligne');
   assert(html.includes('.qf.is-won .qf-actions{visibility:hidden') && !html.includes('runWrap.scrollIntoView(') && html.includes('scr.scrollTo({top:anchor()'), 'résultat affiché à la place de l’éditeur, sans saut de mise en page');
 }
-/* Le chaton de la mascotte sur la ligne « Tu es ici » du parcours : image fixe + animation de 5 s jouée une fois. */
-{
-  const css = fs.readFileSync(path.join(ROOT, 'ludique.css'), 'utf8');
-  const kb = f => fs.statSync(path.join(ROOT, 'assets', f)).size / 1024;
-  assert(kb('mascotte-ici-fixe.webp') > 5 && kb('mascotte-ici-fixe.webp') < 80, 'image fixe du chaton présente et légère');
-  assert(kb('mascotte-ici.webp') > 100 && kb('mascotte-ici.webp') < 900, 'animation du chaton présente (moins de 900 Ko)');
-  const ici = html.slice(html.indexOf('function iciCatMount('), html.indexOf('function renderModules('));
-  assert(html.includes("const ICI_ANIM='assets/mascotte-ici.webp',ICI_FIXE='assets/mascotte-ici-fixe.webp'") && html.includes('  iciCatMount(host);\n  lqAfterModules(host);'), 'le chaton est posé sur la ligne « Tu es ici » avant le tracé du chemin');
-  assert(ici.includes('iciCalm()') && ici.includes('IntersectionObserver') && ici.includes('iciPlayed'), 'animation seulement si les animations ne sont pas réduites, jouée une fois, quand la ligne est visible');
-  assert(ici.includes('ICI_MS') && ici.includes('ICI_FIXE'), 'l’image fixe reprend à la fin de l’animation, quel que soit le navigateur');
-  assert(css.includes('.row.has-ici{padding-top:') && css.includes('.ici-cat{position:absolute') && css.includes('pointer-events:none'), 'le chaton ne gêne pas le toucher de la ligne');
-  assert(serviceWorker.includes("'./assets/mascotte-ici-fixe.webp'"), 'image fixe du chaton disponible hors ligne');
-}
 assert(html.includes('id="scr-notes"') && html.includes('function renderNotesScreen('), 'Mes notes possède un écran racine dédié');
 assert(html.includes('class="notes-overview"') && html.includes('data-notes-count') && html.includes('data-notes-pinned') && html.includes('data-notes-sql'), 'Mes notes présente un tableau de bord calculé depuis le carnet réel');
 assert(html.includes("latest?`Dernière modification · ${fmtDate(latest.ts)}`") && html.includes('Prêt pour ta première note'), 'carnet adapte son prochain repère à son contenu');
@@ -150,7 +137,7 @@ assert(html.includes('{ id:78, titre:"LAG et LEAD"') && html.includes('PARTITION
 assert(html.includes('{ id:79, titre:"Fenêtres glissantes"') && html.includes('UNBOUNDED FOLLOWING') && html.includes('NTILE(4)'), 'cadres et fonctions de fenêtre avancées couverts');
 assert(html.includes('{ id:73, titre:"UNION et UNION ALL"') && html.includes('18 lignes : 10 + 8') && !html.includes('17 lignes : 9 + 8'), 'UNION ALL visible et cardinalité corrigée');
 assert(html.includes("if(!compact&&learnScreen.scrollTop>72)") && html.includes("else if(compact&&learnScreen.scrollTop<=0)"), 'titre d’accueil stabilisé par deux seuils de défilement');
-assert(serviceWorker.includes('requete-2026-10-04-ludique-v1608') && html.includes('requete-2026-10-04-ludique-v1608') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
+assert(serviceWorker.includes('requete-2026-10-04-ludique-v1609') && html.includes('requete-2026-10-04-ludique-v1609') && serviceWorker.includes("'./home-journey.css'"), 'cache et nouvelle feuille de style synchronisés');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);

@@ -17111,54 +17111,6 @@ function pathCurrentLessonId(){
   return id;
 }
 const LQ_SEARCH_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>';
-/* Le chaton de la mascotte sur la ligne « Tu es ici » du parcours : il se tient à droite, au-dessus du titre, et montre la leçon du doigt.
-   Image fixe par défaut ; l'animation de 5 s (il tape sur son ordinateur, saute de joie, puis montre la leçon) se joue une fois quand la ligne
-   apparaît à l'écran, et de nouveau quand « Tu es ici » change de leçon. Aucune animation si l'utilisateur a demandé de les réduire. */
-const ICI_ANIM='assets/mascotte-ici.webp',ICI_FIXE='assets/mascotte-ici-fixe.webp',ICI_MS=5400;
-let iciEl=null,iciPlayed=false,iciIO=null,iciWarm=false;
-function iciCalm(){return (typeof prefersReduceMotion==='function'&&prefersReduceMotion())||(typeof motionOff==='function'&&motionOff());}
-function iciImg(src){const i=new Image();i.alt='';i.decoding='async';i.width=234;i.height=319;i.src=src;return i;}
-function iciCatMount(host){
-  const row=host&&host.querySelector?host.querySelector('.home-module .row.current'):null;
-  if(!row)return;
-  const lid=row.dataset.lid;
-  /* Le même élément est repris d'un rendu à l'autre : une animation en cours n'est pas coupée. */
-  if(!iciEl||iciEl.dataset.lid!==lid){
-    iciEl=document.createElement('span');
-    iciEl.className='ici-cat';iciEl.dataset.lid=lid;iciEl.setAttribute('aria-hidden','true');
-    iciEl.append(iciImg(ICI_FIXE));
-    iciPlayed=false;
-  }
-  row.classList.add('has-ici');
-  row.append(iciEl);
-  iciWatch();
-}
-function iciWatch(){
-  if(iciPlayed||!iciEl||iciCalm()||typeof IntersectionObserver==='undefined')return;
-  if(!iciIO)iciIO=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting))iciPlay();},{threshold:.7});
-  iciIO.disconnect();iciIO.observe(iciEl);
-  /* L'animation (500 Ko) est chargée en avance pour démarrer sans attente, sauf en mode économie de données. */
-  if(!iciWarm){iciWarm=true;const c=navigator.connection;if(!(c&&c.saveData))setTimeout(()=>{iciImg(ICI_ANIM);},1200);}
-}
-function iciPlay(){
-  const el=iciEl;
-  if(iciPlayed||!el||iciCalm())return;
-  iciPlayed=true;if(iciIO)iciIO.disconnect();
-  const anim=iciImg(ICI_ANIM);
-  const go=()=>{
-    const cur=el.querySelector('img');
-    if(!cur||iciEl!==el)return;
-    cur.replaceWith(anim);
-    el.classList.remove('is-pop');void el.offsetWidth;el.classList.add('is-pop');
-    /* L'image animée ne tourne qu'une fois (boucle = 1) ; on remet de toute façon l'image fixe à la fin, quel que soit le navigateur. */
-    setTimeout(()=>{
-      if(iciEl!==el||el.querySelector('img')!==anim)return;
-      const fixe=iciImg(ICI_FIXE),swap=()=>{if(iciEl===el&&el.querySelector('img')===anim)anim.replaceWith(fixe);};
-      (fixe.decode?fixe.decode():Promise.resolve()).then(swap,swap);
-    },ICI_MS);
-  };
-  (anim.decode?anim.decode():Promise.resolve()).then(go,go);
-}
 function renderModules(){
   const host=document.getElementById('modules');
   if(!host)return;
@@ -17192,7 +17144,6 @@ function renderModules(){
     if(lqDoneSnapshot)doneNow.forEach(id=>{if(!lqDoneSnapshot.has(id))host.querySelector(`.row[data-lid="${id}"]`)?.classList.add('lq-just-done');});
     lqDoneSnapshot=doneNow;
   }
-  iciCatMount(host);
   lqAfterModules(host);
 }
 function toggleCatalogTools(btn){
@@ -24885,7 +24836,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1608';
+  const SW_CACHE='requete-2026-10-04-ludique-v1609';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
