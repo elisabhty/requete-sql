@@ -47,7 +47,7 @@ const lesson=id=>lessons.find(l=>l.id===id);
 assert.equal(lessons.length,72);
 assert.equal(ctx.exerciseResultsMatch(query('SELECT nom,prix FROM produits'),query(lesson(2).solution),lesson(2)),false,'alias requis');
 assert.equal(ctx.exerciseResultsMatch(query(lesson(1).solution+' SELECT 99;'),query(lesson(1).solution),lesson(1)),false,'résultats multiples');
-assert.equal(ctx.exerciseResultsMatch(query('SELECT prenom,telephone FROM clients ORDER BY prenom DESC'),query(lesson(1).solution),lesson(1)),true,'ordre libre sans demande de tri');
+assert.equal(ctx.exerciseResultsMatch(query('SELECT nom,prix FROM produits ORDER BY prix DESC'),query(lesson(1).solution),lesson(1)),true,'ordre libre sans demande de tri');
 let state={lessons:{64:{etapes:{exo:1,q0:true,q1:'1',q2:0,unexpected:1},draft:'SELECT 1;',testeDraft:'SELECT 2;',testeVi:2}}};
 for(let i=0;i<3;i++)state=JSON.parse(JSON.stringify(ctx.normalizeState(state)));
 assert.deepEqual(state.lessons[64].etapes,{exo:1,q0:1,q1:1});assert.equal(state.lessons[64].draft,'SELECT 1;');assert.equal(state.lessons[64].testeVi,2);
