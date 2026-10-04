@@ -32,6 +32,12 @@ for (const f of files) {
       if (l.write && l.verif) assert.ok(db.exec(l.verif).length, 'la requête de vérification (verif) doit renvoyer un résultat après la solution');
       db.close();
     }
+    /* exoNeeds : motifs que la réponse doit employer ; la solution doit les satisfaire (même normalisation que l'app : sans chaînes ni commentaires, majuscules). */
+    if (l.exoNeeds) {
+      assert.ok(Array.isArray(l.exoNeeds) && l.exoNeeds.every(n => n.re && n.msg), 'exoNeeds : tableau de {re, msg}');
+      const u = String(l.solution).replace(/--[^\r\n]*|\/\*[\s\S]*?\*\/|'(?:''|[^'])*'/g, ' ').replace(/["`\[\]]/g, '').toUpperCase();
+      for (const n of l.exoNeeds) assert.ok(new RegExp(n.re).test(u), `la solution ne satisfait pas exoNeeds : ${n.re}`);
+    }
     const q = l.learningCheck;
     assert.ok(q && q.question && q.options.length === 3 && q.answer >= 0 && q.answer < 3 && q.explanation, 'learningCheck : question, 3 options, answer (0-2), explanation');
     for (const v of l.testeVariants || []) {
