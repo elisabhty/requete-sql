@@ -6226,13 +6226,13 @@ function guide(spec){
   const {id,titre,sit,concept,steps,reflex}=spec;
   GUIDE_CUR=id;GUIDE_XSCENES[id]=[];
   const memoP=sit&&sit.problem;
-  const situation=(sit.blocks?guideBlocks(sit.blocks):'')+(memoP?`<div class="sit-memo is-problem"><p class="sit-memo-lab"><i aria-hidden="true">🤔</i>Problème</p>${(memoP.p||[]).map(x=>`<p>${guideFr(x)}</p>`).join('')}${memoP.scene?'<div class="pr-slot"></div>':''}${[].concat(memoP.then||[]).map((x,i)=>`<p>${i?'':'👉 '}${guideFr(x)}</p>`).join('')}</div>`:'')+(sit.mission?`<div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>${guideFr(sit.mission)}</p></div>`:'');
+  const situation=(sit.blocks?guideBlocks(sit.blocks):'')+(memoP?`<div class="sit-memo is-problem"><p class="sit-memo-lab"><i aria-hidden="true">🤔</i>Problème</p>${(memoP.p||[]).map(x=>`<p>${guideFr(x)}</p>`).join('')}${memoP.scene?'<div class="pr-slot"></div>':''}${[].concat(memoP.then||[]).slice(0,1).map(x=>`<p>👉 ${guideFr(x)}</p>`).join('')}</div>`:'')+(sit.mission?`<div class="sit-memo is-mission"><p class="sit-memo-lab"><i aria-hidden="true">🎯</i>Ta mission</p><p>${guideFr(sit.mission)}</p></div>`:'');
   if(memoP&&memoP.scene)GUIDE_SCENES[id]=guideScene(memoP.scene);
   /* Mission : la requête à trous reprend la requête de la dernière étape ; le résumé de la carte vient de done.ui. */
   steps.forEach(st=>(st.blocks||[]).forEach(b=>{if(b&&b.done){if(b.done.fill)GUIDE_FILLS[id]={t:b.done.fill};if(b.done.ui)GUIDE_DONE[id]=Object.assign({},b.done.ui,{t:guideFr(b.done.ui.t),s:guideFr(b.done.ui.s||'')});}}));
   const lesson={id,titre,résumé:spec.résumé,situation,
-    /* Le texte d’introduction passe dans « extra », en premier : le rendu de certains cours (WHERE, OR) range le corps du problème après le reste. */
-    studio:{problem:{eye:'',title:guideFr(concept.title),body:'',extra:guideBlocks([].concat(concept.body?[concept.body]:[],concept.blocks||[]))},
+    /* Le texte d’introduction passe dans « extra », en premier : le rendu de certains cours (WHERE, OR) range le corps du problème après le reste. then[0] (« Il faut donc… ») clôt la carte Problème ; then[1…] (« C’est exactement le rôle de… ») ouvre la carte du concept, sous son titre. */
+    studio:{problem:{eye:'',title:guideFr(concept.title),body:'',extra:guideBlocks([].concat([].concat(memoP&&memoP.then||[]).slice(1),concept.body?[concept.body]:[],concept.blocks||[]))},
       uses:{title:'Écrire la requête',body:`<div class="pt-lead fn-uses fk-course jn-course">${steps.map(st=>`<div class="fn-use"><p class="pt-syntax-h">${guideFr(st.h)}</p>${guideBlocks(st.blocks)}</div>`).join('\n')}</div>`},
       reflex:{extra:guideBlocks(reflex)}},
     noTeste:true,noAnat:true,richLesson:true,earlyDemo:true,guided:true};
@@ -24620,7 +24620,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1616';
+  const SW_CACHE='requete-2026-10-04-ludique-v1617';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
