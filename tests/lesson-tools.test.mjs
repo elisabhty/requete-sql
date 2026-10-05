@@ -57,3 +57,9 @@ test('cours SELECT, carte « Mission accomplie » : 9 colonnes au départ, SELEC
   /* guideFr met une espace insécable avant « : ». */
   assert.equal(vm.runInContext('GUIDE_DONE[1].s', ctx).replace(/ /g, ' '), 'Chaque client apparaît uniquement avec les informations utiles au transporteur : la liste de livraison est prête.');
 });
+
+test('tableaux de résultat des cours : titres de colonnes et valeurs centrés (seul le numéro de ligne « # » reste à droite)', () => {
+  assert.ok(/\.exframe \.xf-result \.table-wrap thead th:not\(\.rn\)\{text-align:center\}/.test(css), 'titres centrés');
+  assert.ok(/\.exframe \.xf-result \.table-wrap tbody td:not\(\.num\)\{text-align:center\}/.test(css), 'valeurs centrées');
+  assert.ok(!/\.exframe \.xf-result \.table-wrap [^{]*\{text-align:left\}/.test(css), 'plus de colonne alignée à gauche dans un cadre de résultat');
+});
