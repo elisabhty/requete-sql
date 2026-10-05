@@ -6060,6 +6060,7 @@ CREATE TABLE clients (
   id INTEGER PRIMARY KEY,
   prenom TEXT NOT NULL,
   nom TEXT,
+  adresse TEXT,
   ville TEXT,
   age INTEGER CHECK (age >= 0),
   email TEXT UNIQUE,
@@ -6087,16 +6088,16 @@ CREATE TABLE commandes (
     REFERENCES produits(id)
 );
 INSERT INTO clients VALUES
- (1,'Sophie','Martin','Paris',34,'sophie@mail.fr','06 39 98 12 04','2023-01-15'),
- (2,'Lucas','Bernard','Lyon',28,'lucas@mail.fr','06 39 98 21 47','2023-03-22'),
- (3,'Emma','Dubois','Marseille',45,'emma@mail.fr','06 39 98 33 08','2022-11-05'),
- (4,'Nathan','Petit','Paris',31,'nathan@mail.fr','06 39 98 40 15','2023-06-10'),
- (5,'Chloé','Moreau','Bordeaux',26,'chloe@mail.fr','06 39 98 51 62','2023-02-18'),
- (6,'Hugo','Laurent','Lyon',52,NULL,'06 39 98 68 03','2022-09-30'),
- (7,'Léa','Simon','Paris',38,'lea@mail.fr','06 39 98 74 29','2023-05-12'),
- (8,'Gabriel','Michel','Toulouse',29,'gabriel@mail.fr','06 39 98 85 16','2023-04-08'),
- (9,'Inès','Lefebvre','Nantes',41,NULL,'06 39 98 97 50','2023-07-26'),
- (10,'Nathan','Dupont','Paris',30,'nathan.dupont@mail.fr','06 39 98 10 26','2023-08-03');
+ (1,'Sophie','Martin','12 rue des Lilas','Paris',34,'sophie@mail.fr','06 39 98 12 04','2023-01-15'),
+ (2,'Lucas','Bernard','8 avenue Foch','Lyon',28,'lucas@mail.fr','06 39 98 21 47','2023-03-22'),
+ (3,'Emma','Dubois','27 rue Gambetta','Marseille',45,'emma@mail.fr','06 39 98 33 08','2022-11-05'),
+ (4,'Nathan','Petit','5 rue Victor Hugo','Paris',31,'nathan@mail.fr','06 39 98 40 15','2023-06-10'),
+ (5,'Chloé','Moreau','19 rue Pasteur','Bordeaux',26,'chloe@mail.fr','06 39 98 51 62','2023-02-18'),
+ (6,'Hugo','Laurent','3 allée des Pins','Lyon',52,NULL,'06 39 98 68 03','2022-09-30'),
+ (7,'Léa','Simon','41 avenue Jaurès','Paris',38,'lea@mail.fr','06 39 98 74 29','2023-05-12'),
+ (8,'Gabriel','Michel','16 rue de la Paix','Toulouse',29,'gabriel@mail.fr','06 39 98 85 16','2023-04-08'),
+ (9,'Inès','Lefebvre','22 rue des Roses','Nantes',41,NULL,'06 39 98 97 50','2023-07-26'),
+ (10,'Nathan','Dupont','9 place du Marché','Paris',30,'nathan.dupont@mail.fr','06 39 98 10 26','2023-08-03');
 INSERT INTO produits VALUES
  (1,'Fibre Prébiotique','Bien-être',29.90,120),(2,'Collagène Marin','Beauté',39.90,80),
  (3,'Magnésium','Bien-être',19.90,200),(4,'Vitamine D','Nutrition',14.90,150),
@@ -6123,7 +6124,7 @@ INSERT INTO fidelite VALUES
  (4,7,160);
 `;
 const SCHEMA_META=[
- {table:"clients",n:10,cols:[{c:"id",t:"INTEGER",b:"pk"},{c:"prenom",t:"TEXT"},{c:"nom",t:"TEXT"},{c:"ville",t:"TEXT"},{c:"age",t:"INTEGER"},{c:"email",t:"TEXT"},{c:"telephone",t:"TEXT"},{c:"date_inscription",t:"TEXT"}]},
+ {table:"clients",n:10,cols:[{c:"id",t:"INTEGER",b:"pk"},{c:"prenom",t:"TEXT"},{c:"nom",t:"TEXT"},{c:"adresse",t:"TEXT"},{c:"ville",t:"TEXT"},{c:"age",t:"INTEGER"},{c:"email",t:"TEXT"},{c:"telephone",t:"TEXT"},{c:"date_inscription",t:"TEXT"}]},
  {table:"produits",n:8,cols:[{c:"id",t:"INTEGER",b:"pk"},{c:"nom",t:"TEXT"},{c:"categorie",t:"TEXT"},{c:"prix",t:"REAL"},{c:"stock",t:"INTEGER"}]},
  {table:"commandes",n:16,cols:[{c:"id",t:"INTEGER",b:"pk"},{c:"numero_commande",t:"TEXT"},{c:"client_id",t:"INTEGER",b:"fk"},{c:"produit_id",t:"INTEGER",b:"fk"},{c:"quantite",t:"INTEGER"},{c:"date_commande",t:"TEXT"},{c:"statut",t:"TEXT"}]},
  {table:"fidelite",n:4,cols:[{c:"id",t:"INTEGER",b:"pk"},{c:"client_id",t:"INTEGER",b:"fk"},{c:"points",t:"INTEGER"}]}];
@@ -6305,9 +6306,9 @@ guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, co
         funnel:[
           {n:10,t:"clients dans la table",s:"une ligne par client",dots:"0000000000"},
           {step:"SELECT * FROM clients",s:"lit toute la table, sans rien modifier"},
-          {n:10,t:"⭐ lignes affichées",s:"avec leurs 8 colonnes : id, prenom, nom, ville, age, email, telephone et date_inscription",dots:"1111111111",out:true}
+          {n:10,t:"⭐ lignes affichées",s:"avec leurs 9 colonnes : id, prenom, nom, adresse, ville, age, email, telephone et date_inscription",dots:"1111111111",out:true}
         ],
-        sms:{ico:"📖",h:"Lecture de la table clients",aria:"Les lignes de la table clients sont lues une à une",msg:"<b>Table clients</b><br>10 lignes · 8 colonnes",people:[["S","Sophie Martin","sophie@mail.fr"],["L","Lucas Bernard","lucas@mail.fr"],["E","Emma Dubois","emma@mail.fr"],["N","Nathan Petit","nathan@mail.fr"],["C","Chloé Moreau","chloe@mail.fr"]],more:5,moreT:"… et 5 autres",moreS:"clients de la table",st:["À lire","Lecture","✓ Lue"],plane:"doc",done:"✓ 10 lignes lues"},
+        sms:{ico:"📖",h:"Lecture de la table clients",aria:"Les lignes de la table clients sont lues une à une",msg:"<b>Table clients</b><br>10 lignes · 9 colonnes",people:[["S","Sophie Martin","sophie@mail.fr"],["L","Lucas Bernard","lucas@mail.fr"],["E","Emma Dubois","emma@mail.fr"],["N","Nathan Petit","nathan@mail.fr"],["C","Chloé Moreau","chloe@mail.fr"]],more:5,moreT:"… et 5 autres",moreS:"clients de la table",st:["À lire","Lecture","✓ Lue"],plane:"doc",done:"✓ 10 lignes lues"},
         fill:["SELECT","*","FROM","clients"],
         ui:{t:"La table clients est ouverte",s:"Une ligne par client, une colonne par caractéristique.",n:["SELECT","*","FROM"]},
         rows:10
@@ -6329,7 +6330,7 @@ guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, co
   solution:"SELECT * FROM fidelite;",
   indice:"<code>SELECT * FROM fidelite;</code> — l’étoile signifie « toutes les colonnes ».",
   petitDefi:[{p:"Dans le vocabulaire formel du modèle relationnel, comment appelle-t-on une <b>ligne</b> ?",sql:"ligne → __________",a:"tuple",answers:["tuple","un tuple","Tuple","enregistrement"]}],
-  testeVariants:[{k:"cli",label:"clients",sql:"SELECT * FROM clients;",out:"Dix lignes, huit colonnes : un client par ligne."},{k:"prd",label:"produits",sql:"SELECT * FROM produits;",out:"Huit lignes. Un autre sujet, donc une autre table."},{k:"cmd",label:"commandes",sql:"SELECT * FROM commandes;",out:"Seize lignes — et aucun nom : seulement des client_id et des produit_id."}],
+  testeVariants:[{k:"cli",label:"clients",sql:"SELECT * FROM clients;",out:"Dix lignes, neuf colonnes : un client par ligne."},{k:"prd",label:"produits",sql:"SELECT * FROM produits;",out:"Huit lignes. Un autre sujet, donc une autre table."},{k:"cmd",label:"commandes",sql:"SELECT * FROM commandes;",out:"Seize lignes — et aucun nom : seulement des client_id et des produit_id."}],
   learningCheck:{question:"Dans clients, que représente la valeur Paris pour Sophie ?",options:["Une cellule","Une colonne entière","Une table"],answer:0,explanation:"La ligne décrit Sophie ; la colonne ville décrit la caractéristique ; leur intersection contient Paris."}
 })
 ]},
@@ -6339,7 +6340,7 @@ guide({ id:1, titre:"SELECT", résumé:"Choisir les colonnes du résultat",
     blocks:[
       "Des clients viennent de passer commande sur la boutique en ligne. Pour préparer <b>les livraisons</b>, l’équipe logistique doit transmettre au <b>transporteur</b> la liste des clients à livrer.",
       "La table <code>clients</code> contient au total <b>10 clients</b>. Pour la livraison, l’équipe souhaite récupérer uniquement :",
-      {need:[["👤","Le prénom du client","table clients"],["👪","Son nom de famille","table clients"],["📍","Sa ville","table clients"],["📞","Son téléphone","table clients"]],label:"Les informations à récupérer"}
+      {need:[["👤","Le prénom du client","table clients"],["👪","Son nom de famille","table clients"],["🏠","Son adresse","table clients"],["📍","Sa ville","table clients"],["📞","Son téléphone","table clients"]],label:"Les informations à récupérer"}
     ],
     problem:{
       p:["Pour chaque client, la table <code>clients</code> enregistre <b>de nombreuses informations</b> : une colonne par information.","Or, le transporteur n’a pas besoin de toutes ces données : l’<b>âge</b>, l’<b>email</b> ou la <b>date d’inscription</b> ne doivent pas apparaître dans notre liste."],
@@ -6348,16 +6349,17 @@ guide({ id:1, titre:"SELECT", résumé:"Choisir les colonnes du résultat",
           {k:"L1",c:[["","id","t"],["a1","1"]]},
           {k:"L2",c:[["","prenom","t"],["a2","Sophie"]]},
           {k:"L3",c:[["","nom","t"],["a3","Martin"]]},
-          {k:"L4",c:[["","ville","t"],["a4","Paris"]]},
-          {k:"L5",c:[["","age","t"],["a5","34"]]},
-          {k:"L6",c:[["","email","t"],["a6","sophie@mail.fr"]]},
-          {k:"L7",c:[["","telephone","t"],["a7","06 39 98 12 04"]]},
-          {k:"L8",c:[["","date_inscription","t"],["a8","2023-01-15"]]}],
-        caps:["<b>Table clients</b> · Pour chaque client, elle enregistre huit informations.","<b>Besoin</b> · Pour livrer un client, le transporteur n’a besoin que de quelques-unes de ces informations.","<b>Résultat</b> · Seules les colonnes utiles à la livraison doivent être conservées."],
-        steps:[{cap:0,on:["L1","L2","L3","L4","L5","L6","L7","L8"],d:1900},{cap:1,off:["L1","L5","L6","L8"],dim:["L1","L5","L6","L8"],d:2300},{cap:2,fold:["L1","L5","L6","L8"],d:2600}]},
+          {k:"L4",c:[["","adresse","t"],["a4","12 rue des Lilas"]]},
+          {k:"L5",c:[["","ville","t"],["a5","Paris"]]},
+          {k:"L6",c:[["","age","t"],["a6","34"]]},
+          {k:"L7",c:[["","email","t"],["a7","sophie@mail.fr"]]},
+          {k:"L8",c:[["","telephone","t"],["a8","06 39 98 12 04"]]},
+          {k:"L9",c:[["","date_inscription","t"],["a9","2023-01-15"]]}],
+        caps:["<b>Table clients</b> · Pour chaque client, elle enregistre neuf informations.","<b>Besoin</b> · Pour livrer un client, le transporteur n’a besoin que de quelques-unes de ces informations.","<b>Résultat</b> · Seules les colonnes utiles à la livraison doivent être conservées."],
+        steps:[{cap:0,on:["L1","L2","L3","L4","L5","L6","L7","L8","L9"],d:1900},{cap:1,off:["L1","L6","L7","L9"],dim:["L1","L6","L7","L9"],d:2300},{cap:2,fold:["L1","L6","L7","L9"],d:2600}]},
       then:["Il faut donc indiquer à SQL <b>quelles colonnes afficher</b> : uniquement celles qui servent à la livraison.","C’est exactement le rôle de <code>SELECT</code>."]
     },
-    mission:"Aide l’équipe logistique à retrouver le <b>prénom</b>, le <b>nom de famille</b>, la <b>ville</b> et le <b>téléphone</b> de chaque client, afin de préparer la liste de livraison du transporteur."
+    mission:"Aide l’équipe logistique à retrouver le <b>prénom</b>, le <b>nom de famille</b>, l’<b>adresse</b>, la <b>ville</b> et le <b>téléphone</b> de chaque client, afin de préparer la liste de livraison du transporteur."
   },
   concept:{
     title:"Comment SQL peut-il savoir quelles colonnes afficher ?",
@@ -6406,27 +6408,27 @@ guide({ id:1, titre:"SELECT", résumé:"Choisir les colonnes du résultat",
       {syntax:"SELECT ⟦*⟧\nFROM clients;"},
       {looks:[["*","signifie « toutes les colonnes »"]]},
       {say:"👇 Exécute cette requête pour voir toute la table clients :",run:"SELECT *\nFROM clients;"},
-      {arrow:"Le résultat contient les 8 colonnes de la table, pour les 10 clients."},
+      {arrow:"Le résultat contient les 9 colonnes de la table, pour les 10 clients."},
       "L’étoile suit la table : si une colonne est ajoutée plus tard, elle apparaît automatiquement dans le résultat.",
       {say:"👇 Ajoute une colonne <code>pays</code>, puis affiche de nouveau toute la table :",run:"ALTER TABLE clients ADD COLUMN pays TEXT DEFAULT 'France';\nSELECT *\nFROM clients;"},
-      {arrow:"Le résultat compte maintenant 9 colonnes, sans avoir modifié la requête."},
+      {arrow:"Le résultat compte maintenant 10 colonnes, sans avoir modifié la requête."},
       {tip:{t:"Quand l’utiliser ?",blocks:[
         "L’étoile est idéale pour <b>découvrir</b> une table. Pour une application ou un rapport, mieux vaut nommer les colonnes utiles : le résultat ne change pas quand la table évolue."
       ]}}
     ]},
     {h:"La requête complète",blocks:[
       "Il ne reste plus qu’à construire la requête complète : choisir les colonnes utiles, puis indiquer dans quelle table les lire.",
-      {say:"👇 Exécute la requête pour obtenir la liste de livraison :",run:"SELECT prenom, nom, ville, telephone\nFROM clients;"},
+      {say:"👇 Exécute la requête pour obtenir la liste de livraison :",run:"SELECT prenom, nom, adresse, ville, telephone\nFROM clients;"},
       {done:{
-        label:"Des huit colonnes aux quatre colonnes utiles",
+        label:"Des neuf colonnes aux cinq colonnes utiles",
         unit:"cols",
         funnel:[
-          {n:8,t:"colonnes au départ",s:"toute la <code>table clients</code>",dots:"00000000"},
-          {step:"SELECT prenom, nom, ville, telephone",s:"ne garde que les colonnes utiles"},
-          {n:4,t:"⭐ colonnes dans la liste de livraison",s:"<code>prenom</code>, <code>nom</code>, <code>ville</code> et <code>telephone</code>",dots:"01110010",out:true}
+          {n:9,t:"colonnes au départ",s:"toute la <code>table clients</code>",dots:"000000000"},
+          {step:"SELECT prenom, nom, adresse, ville, telephone",s:"ne garde que les colonnes utiles"},
+          {n:5,t:"⭐ colonnes dans la liste de livraison",s:"<code>prenom</code>, <code>nom</code>, <code>adresse</code>, <code>ville</code> et <code>telephone</code>",dots:"011110010",out:true}
         ],
-        sms:{ico:"🚚",h:"Liste de livraison",aria:"La liste des dix clients à livrer est transmise au transporteur",msg:"<b>Livraisons de la journée</b><br>Coordonnées des clients à livrer.",people:[["S","Sophie Martin","06 39 98 12 04"],["L","Lucas Bernard","06 39 98 21 47"],["E","Emma Dubois","06 39 98 33 08"],["N","Nathan Petit","06 39 98 40 15"],["C","Chloé Moreau","06 39 98 51 62"]],more:5,moreT:"… et 5 autres",moreS:"clients à livrer",icons:true,plane:"doc",done:"✓ 10 clients transmis au transporteur"},
-        fill:["ville","telephone","FROM","clients"],
+        sms:{ico:"🚚",h:"Liste de livraison",aria:"La liste des dix clients à livrer est transmise au transporteur",msg:"<b>Livraisons de la journée</b><br>Adresses des clients à livrer.",people:[["S","Sophie Martin","12 rue des Lilas"],["L","Lucas Bernard","8 avenue Foch"],["E","Emma Dubois","27 rue Gambetta"],["N","Nathan Petit","5 rue Victor Hugo"],["C","Chloé Moreau","19 rue Pasteur"]],more:5,moreT:"… et 5 autres",moreS:"clients à livrer",icons:true,plane:"doc",done:"✓ 10 clients transmis au transporteur"},
+        fill:["adresse","telephone","FROM","clients"],
         ui:{t:"10 clients à livrer",s:"Chacun apparaît avec les seules informations utiles au transporteur : la liste de livraison est prête.",n:["SELECT","FROM"]},
         rows:10
       }}
@@ -6436,19 +6438,19 @@ guide({ id:1, titre:"SELECT", résumé:"Choisir les colonnes du résultat",
     {recap:[
       ["📋","<code>SELECT</code> sert à choisir les <b>colonnes</b> à afficher.","Il agit sur le résultat, sans modifier la table."],
       ["📍","<code>FROM</code> indique la <b>table</b> où lire les données :",null,"FROM clients"],
-      ["➕","Sépare les colonnes par une <b>virgule</b>, sauf après la dernière. L’étoile <code>*</code> les affiche <b>toutes</b>.",null,"SELECT prenom, nom, ville, telephone"]
+      ["➕","Sépare les colonnes par une <b>virgule</b>, sauf après la dernière. L’étoile <code>*</code> les affiche <b>toutes</b>.",null,"SELECT prenom, nom, adresse, ville, telephone"]
     ],label:"Les trois idées à retenir"}
   ],
-  anatomie:[{tok:"SELECT",txt:"Introduit les colonnes à afficher."},{tok:"prenom, nom, ville, telephone",plain:1,txt:"Les quatre colonnes retenues, séparées par une virgule."},{tok:"FROM",txt:"Introduit la table à lire."},{tok:"clients",plain:1,txt:"La table clients : les données des 10 personnes."}],
+  anatomie:[{tok:"SELECT",txt:"Introduit les colonnes à afficher."},{tok:"prenom, nom, adresse, ville, telephone",plain:1,txt:"Les cinq colonnes retenues, séparées par une virgule."},{tok:"FROM",txt:"Introduit la table à lire."},{tok:"clients",plain:1,txt:"La table clients : les données des 10 personnes."}],
   exemple:"SELECT prenom, ville FROM clients;",
   attendu:"<b>10 lignes</b> et <b>2 colonnes</b> : <code>prenom</code> et <code>ville</code>. Chaque client apparaît avec seulement ces deux informations.",
-  retenir:"<code>SELECT</code> sert à choisir les colonnes à afficher.<br>Il agit sur le résultat, sans modifier la table.<br><br><code>FROM</code> indique la table à lire : <code>FROM clients</code><br><br>Sépare les colonnes par une virgule, sauf après la dernière : <code>SELECT prenom, nom, ville, telephone</code>.<br><br>L’étoile <code>*</code> affiche toutes les colonnes : idéale pour découvrir une table, mais dans une application, nomme les colonnes utiles.",
+  retenir:"<code>SELECT</code> sert à choisir les colonnes à afficher.<br>Il agit sur le résultat, sans modifier la table.<br><br><code>FROM</code> indique la table à lire : <code>FROM clients</code><br><br>Sépare les colonnes par une virgule, sauf après la dernière : <code>SELECT prenom, nom, adresse, ville, telephone</code>.<br><br>L’étoile <code>*</code> affiche toutes les colonnes : idéale pour découvrir une table, mais dans une application, nomme les colonnes utiles.",
   consigne:"Affiche le nom et le prix de chaque produit, dans cet ordre.",
   solution:"SELECT nom, prix FROM produits;",
   indice:"Après <code>SELECT</code>, écris <code>nom, prix</code> ; après <code>FROM</code>, indique la table <code>produits</code>.",
   petitDefi:[{p:"Complète pour afficher toutes les colonnes de la table commandes.",sql:"SELECT __________\nFROM commandes;",a:"*",answers:["*"]}],
-  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT prenom, ville FROM clients;"},{k:"star",label:"Toutes les colonnes",sql:"SELECT * FROM clients;",out:"Huit colonnes pour les dix clients.",expectRows:10},{k:"rec_explicit",label:"Colonnes explicites",sql:"ALTER TABLE clients ADD COLUMN pays TEXT DEFAULT 'France'; SELECT prenom, ville FROM clients;",out:"Toujours deux colonnes après ajout de pays.",expectRows:10},{k:"rec_star",label:"Étoile après ajout",sql:"ALTER TABLE clients ADD COLUMN pays TEXT DEFAULT 'France'; SELECT * FROM clients;",out:"Neuf colonnes : pays est inclus automatiquement.",expectRows:10}],
-  learningCheck:{question:"SELECT prenom, nom, ville, telephone FROM clients affiche combien de colonnes et de lignes ?",options:["10 colonnes et 4 lignes","4 colonnes et 4 lignes","4 colonnes et 10 lignes"],answer:2,explanation:"SELECT choisit quatre colonnes. Sans filtre, les dix clients restent."}
+  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT prenom, ville FROM clients;"},{k:"star",label:"Toutes les colonnes",sql:"SELECT * FROM clients;",out:"Neuf colonnes pour les dix clients.",expectRows:10},{k:"rec_explicit",label:"Colonnes explicites",sql:"ALTER TABLE clients ADD COLUMN pays TEXT DEFAULT 'France'; SELECT prenom, ville FROM clients;",out:"Toujours deux colonnes après ajout de pays.",expectRows:10},{k:"rec_star",label:"Étoile après ajout",sql:"ALTER TABLE clients ADD COLUMN pays TEXT DEFAULT 'France'; SELECT * FROM clients;",out:"Dix colonnes : pays est inclus automatiquement.",expectRows:10}],
+  learningCheck:{question:"SELECT prenom, nom, adresse, ville, telephone FROM clients affiche combien de colonnes et de lignes ?",options:["10 colonnes et 5 lignes","5 colonnes et 5 lignes","5 colonnes et 10 lignes"],answer:2,explanation:"SELECT choisit cinq colonnes. Sans filtre, les dix clients restent."}
 }),
 guide({ id:2, titre:"Renommer avec AS", résumé:"Donner un nom lisible à une colonne du résultat",
   sit:{
@@ -11429,7 +11431,7 @@ guide({ id:65, titre:"ALTER TABLE", résumé:"Faire évoluer la structure d’un
   sit:{
     blocks:[
       "L’équipe e-commerce ouvre la boutique à <b>l’international</b> : elle veut maintenant enregistrer le <b>pays</b> de chaque client.",
-      "La table <code>clients</code> contient déjà <b>10 clients</b> et <b>8 colonnes</b>, mais aucune n’indique leur pays. Tous les clients actuels vivent en France. Pour accueillir cette nouvelle information, l’équipe souhaite ajouter :",
+      "La table <code>clients</code> contient déjà <b>10 clients</b> et <b>9 colonnes</b>, mais aucune n’indique leur pays. Tous les clients actuels vivent en France. Pour accueillir cette nouvelle information, l’équipe souhaite ajouter :",
       {need:[["🌍","Une colonne pays","table clients"],["📍","Une valeur de départ","France"]],label:"Ce qu’il faut ajouter"}
     ],
     problem:{
@@ -11499,16 +11501,16 @@ guide({ id:65, titre:"ALTER TABLE", résumé:"Faire évoluer la structure d’un
       "Il ne reste plus qu’à construire la requête complète : désigner la table, ajouter la colonne, puis donner la valeur de départ des clients déjà enregistrés.",
       {say:"👇 Exécute la requête pour ajouter la colonne pays :",run:"ALTER TABLE clients\nADD COLUMN pays TEXT DEFAULT 'France';\nSELECT id, prenom, ville, pays\nFROM clients;"},
       {done:{
-        label:"De 8 colonnes à 9 colonnes",
+        label:"De 9 colonnes à 10 colonnes",
         unit:"free",
         funnel:[
-          {n:8,t:"colonnes au départ",s:"toute la <code>table clients</code>",dots:"00000000"},
+          {n:9,t:"colonnes au départ",s:"toute la <code>table clients</code>",dots:"000000000"},
           {step:"ALTER TABLE … ADD COLUMN pays",s:"ajoute une colonne, sans effacer aucun client"},
-          {n:9,t:"⭐ colonnes dans la table",s:"les 8 d’origine et <code>pays</code>",dots:"000000001",out:true}
+          {n:10,t:"⭐ colonnes dans la table",s:"les 9 d’origine et <code>pays</code>",dots:"0000000001",out:true}
         ],
         sms:{ico:"🌍",h:"Fiches clients complétées",aria:"Le pays France est enregistré pour les dix clients",msg:"<b>Nouvelle colonne</b> · pays<br>Valeur de départ : France",people:[["S","Sophie Martin","France"],["L","Lucas Bernard","France"],["E","Emma Dubois","France"],["N","Nathan Petit","France"],["C","Chloé Moreau","France"]],more:5,moreT:"… et 5 autres",moreS:"clients de la table",st:["Sans pays","Mise à jour","✓ France"],plane:"pin",done:"✓ 10 clients avec un pays"},
         fill:["ALTER TABLE","ADD COLUMN","TEXT","'France'"],
-        ui:{t:"9 colonnes, 10 clients conservés",s:"La colonne pays est ajoutée, et aucun client n’a été perdu.",n:["ALTER TABLE","ADD COLUMN","DEFAULT"]},
+        ui:{t:"10 colonnes, 10 clients conservés",s:"La colonne pays est ajoutée, et aucun client n’a été perdu.",n:["ALTER TABLE","ADD COLUMN","DEFAULT"]},
         rows:10
       }}
     ]}
@@ -24618,7 +24620,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1613';
+  const SW_CACHE='requete-2026-10-04-ludique-v1614';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -16,7 +16,7 @@ const db = new SQL.Database(); db.run(vm.runInContext('SCHEMA_SQL', ctx));
 const rows = sql => (db.exec(sql)[0] || { values: [] }).values;
 
 test('clients : id, prenom, nom (famille), ville… — deux colonnes distinctes pour le prénom et le nom', () => {
-  assert.deepEqual(rows('PRAGMA table_info(clients)').map(r => r[1]), ['id', 'prenom', 'nom', 'ville', 'age', 'email', 'telephone', 'date_inscription']);
+  assert.deepEqual(rows('PRAGMA table_info(clients)').map(r => r[1]), ['id', 'prenom', 'nom', 'adresse', 'ville', 'age', 'email', 'telephone', 'date_inscription']);
   const notNull = Object.fromEntries(rows('PRAGMA table_info(clients)').map(r => [r[1], r[3]]));
   assert.equal(notNull.prenom, 1, 'le prénom est obligatoire');
 });
@@ -29,6 +29,16 @@ test('chaque client a un prénom et un nom de famille, différents l’un de l�
     assert.notEqual(prenom, nom, `client ${id} : le nom de famille n’est pas le prénom`);
   }
   assert.equal(new Set(all.map(r => `${r[1]} ${r[2]}`)).size, 10, 'aucun homonyme complet');
+});
+
+test('chaque client a une adresse (numéro et rue) inventée, différente de celle des autres, sans la ville', () => {
+  const all = rows('SELECT id, adresse, ville FROM clients ORDER BY id');
+  assert.equal(all.length, 10);
+  for (const [id, adresse, ville] of all) {
+    assert.match(adresse, /^\d+ (rue|avenue|boulevard|allée|impasse|place) \S/, `client ${id} : numéro, type de voie et nom`);
+    assert.ok(!adresse.includes(ville), `client ${id} : la ville est dans la colonne ville, pas dans l’adresse`);
+  }
+  assert.equal(new Set(all.map(r => r[1])).size, 10, 'deux clients n’ont jamais la même adresse');
 });
 
 test('les deux Nathan de Paris se distinguent par leur nom de famille, et l’e-mail de l’un le reflète', () => {
