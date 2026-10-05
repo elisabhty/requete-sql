@@ -5825,6 +5825,10 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
         <div class="nav-title" id="nav-title"></div>
         <button type="button" class="ls-where" id="ls-where" onclick="toggleLessonWhere()" aria-expanded="false" aria-controls="ls-where-panel" hidden><small id="ls-where-k"></small><span class="ls-where-t"><b id="ls-where-t"></b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></button>
         <i class="ls-where-bar" aria-hidden="true"><i id="ls-where-fill"></i></i>
+        <div class="nav-tools" id="nav-tools" hidden>
+          <button type="button" class="nav-tool" id="nav-schema" onclick="openSchemaSheet()" aria-label="Voir le schéma de la base" title="Voir le schéma"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2.2" stroke="currentColor" stroke-width="1.9"/><path d="M4 10h16M9 10v9" stroke="currentColor" stroke-width="1.9"/></svg></button>
+          <button type="button" class="nav-tool" id="nav-notes" onclick="quickNote()" aria-label="Ouvrir mes notes" title="Mes notes"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L9 18l-4 1z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M14.5 6.5l3 3" stroke="currentColor" stroke-width="1.9"/></svg></button>
+        </div>
       </div>
       <div class="ls-where-panel" id="ls-where-panel" hidden><div class="ls-where-scrim" onclick="closeLessonWhere()"></div><div class="ls-where-sheet" role="dialog" aria-modal="true" aria-label="Sommaire du cours"><div class="ls-where-list" id="ls-where-list"></div></div></div>
       <div class="lesson-wrap" id="lesson-body"></div>
@@ -6423,13 +6427,13 @@ guide({ id:1, titre:"SELECT", résumé:"Choisir les colonnes du résultat",
         label:"Des neuf colonnes aux cinq colonnes utiles",
         unit:"cols",
         funnel:[
-          {n:9,t:"colonnes au départ",s:"toute la <code>table clients</code>",dots:"000000000"},
-          {step:"SELECT prenom, nom, adresse, ville, telephone",s:"ne garde que les colonnes utiles"},
-          {n:5,t:"⭐ colonnes dans la liste de livraison",s:"<code>prenom</code>, <code>nom</code>, <code>adresse</code>, <code>ville</code> et <code>telephone</code>",dots:"011110010",out:true}
+          {n:9,t:"colonnes au départ",s:"Toutes les colonnes de la table <code>clients</code>",dots:"000000000"},
+          {step:"SELECT prenom, nom, adresse, ville, telephone",s:"ne sélectionne que les colonnes utiles"},
+          {n:5,t:"⭐ colonnes à l’arrivée",s:"Celles nécessaires à la livraison : <code>prenom</code>, <code>nom</code>, <code>adresse</code>, <code>ville</code> et <code>telephone</code>",dots:"011110010",out:true}
         ],
         sms:{ico:"🚚",h:"Liste de livraison",aria:"La liste des dix clients à livrer est transmise au transporteur",msg:"<b>Livraisons de la journée</b><br>Adresses des clients à livrer.",people:[["S","Sophie Martin","12 rue des Lilas"],["L","Lucas Bernard","8 avenue Foch"],["E","Emma Dubois","27 rue Gambetta"],["N","Nathan Petit","5 rue Victor Hugo"],["C","Chloé Moreau","19 rue Pasteur"]],more:5,moreT:"… et 5 autres",moreS:"clients à livrer",icons:true,plane:"doc",done:"✓ 10 clients transmis au transporteur"},
         fill:["adresse","telephone","FROM","clients"],
-        ui:{t:"10 clients à livrer",s:"Chacun apparaît avec les seules informations utiles au transporteur : la liste de livraison est prête.",n:["SELECT","FROM"]},
+        ui:{t:"10 clients à livrer",s:"Chaque client apparaît uniquement avec les informations utiles au transporteur : la liste de livraison est prête.",n:["SELECT","FROM"]},
         rows:10
       }}
     ]}
@@ -17128,6 +17132,8 @@ function setDefisLevel(level){
 }
 function showScreen(){
   const scr=document.getElementById('scr-lesson');
+  /* Les boutons Schéma et Notes de l’en-tête ne servent que dans un cours (pas dans un défi ni une révision). */
+  if(mode!=='lesson'){const t=document.getElementById('nav-tools');if(t)t.hidden=true;const nb=scr.querySelector('.navbar');if(nb)nb.classList.remove('has-tools');}
   const cur=document.querySelector('.screen.active');
   document.body.classList.add('in-lesson');
   document.getElementById('fab')?.classList.remove('context-hide');
@@ -18917,6 +18923,10 @@ function renderLessonFlow(){
   }
   const fab=document.getElementById('fab');
   if(fab) fab.classList.toggle('hide', lessonStep===0||lessonStep===3);
+  /* Schéma de la base et notes : deux boutons dans l’en-tête du cours, sur la leçon, l’exercice et le quiz (ils remplacent la bulle « Notes »). */
+  const navTools=document.getElementById('nav-tools'),navBar=document.querySelector('#scr-lesson .navbar'),showTools=lessonStep<=2;
+  if(navTools)navTools.hidden=!showTools;
+  if(navBar)navBar.classList.toggle('has-tools',showTools);
   mountSqlCopyButtons(document.getElementById('lesson-body'));
   const instantReveal=lessonStepDir<0;
   requestAnimationFrame(()=>{
@@ -24649,7 +24659,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1624';
+  const SW_CACHE='requete-2026-10-04-ludique-v1625';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
