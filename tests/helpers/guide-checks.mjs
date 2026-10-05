@@ -119,7 +119,8 @@ export function checkGuideLesson(env, l) {
   /* Les personnes citées (liste d'envois et parcours) sont celles que renvoie la requête : « prénom nom », et leur contact. */
   const col = c => resMission.columns.indexOf(c);
   const whoOf = row => (col('prenom') >= 0 && col('nom') >= 0 ? `${row[col('prenom')]} ${row[col('nom')]}` : String(row[col('prenom') >= 0 ? col('prenom') : col('nom') >= 0 ? col('nom') : 0]));
-  const contactCol = !resMission ? -1 : col('email') >= 0 ? col('email') : col('telephone');
+  /* Le contact affiché sous chaque personne vient d'une colonne du résultat : email, téléphone ou adresse (la même pour tout le monde). */
+  const contactCols = !resMission ? [] : ['email', 'telephone', 'adresse'].map(col).filter(i => i >= 0);
   const peopleHtml = unitFree ? [] : [...lastUse.matchAll(/<span class="ij-sms-who">([^<]*)<small>([^<]*)<\/small>/g)].map(m => [decode(m[1]), decode(m[2])]);
   if (peopleHtml.length) {
     /* Liste d'envois : toutes les personnes du résultat, ou les premières puis une ligne « … et N autres » (class="is-more"). */
@@ -127,7 +128,7 @@ export function checkGuideLesson(env, l) {
     const want = resMission.values.slice(0, peopleHtml.length);
     assert.equal(peopleHtml.length + (more ? +more[1] : 0), nRows, `${l.titre} : la liste d'envois montre ${peopleHtml.length} personnes${more ? ` et annonce ${more[1]} autres` : ''}, la requête en renvoie ${nRows}`);
     assert.deepEqual(peopleHtml.map(p => p[0]), want.map(whoOf), `${l.titre} : les personnes de la liste d'envois sont celles de la requête de la mission`);
-    if (contactCol >= 0) assert.deepEqual(peopleHtml.map(p => p[1]), want.map(r => String(r[contactCol])), `${l.titre} : chaque personne a le contact renvoyé par la requête`);
+    if (contactCols.length) assert.ok(contactCols.some(i => peopleHtml.every((p, k) => p[1] === String(want[k][i]))), `${l.titre} : chaque personne a, sous son nom, son email, son téléphone ou son adresse tel que le renvoie la requête (colonnes ${contactCols.map(i => resMission.columns[i]).join(', ')})`);
     if (!more && !unitCols) {
       const funnelWho = /is-out"><b>\d+<\/b><span>[^<]*<small>([^<]*)<\/small>/.exec(lastUse)[1].replace(/ et /g, ', ').split(', ');
       assert.deepEqual(funnelWho, resMission.values.map(whoOf), `${l.titre} : le parcours cite les mêmes personnes, dans le même ordre`);
