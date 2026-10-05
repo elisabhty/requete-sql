@@ -608,6 +608,12 @@
   .jn-course .cw-syntax .fk-syn-hit{display:inline;margin:0 -4px;padding:1px 4px;border-radius:6px;-webkit-box-decoration-break:clone;box-decoration-break:clone;animation:none}
   .fk-course p.ij-arrow .ij-ln{display:block;margin-top:5px}
   .fk-course p.ij-arrow{margin:6px 0 14px;font-size:14.5px;line-height:1.5;color:var(--ink-2)}
+  /* Commentaire d'une requête : caché jusqu'à l'exécution, puis il apparaît sous le résultat. */
+  .ij-await{display:none!important}
+  .ij-await-in{animation:ijAwaitIn .5s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes ijAwaitIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.ij-await-in{animation:none}}
+  html[data-motion="reduce"] .ij-await-in{animation:none}
   .concept-block p.win-ex{margin:18px 0 6px;font-weight:800;line-height:1.4;color:var(--ink)}
   .concept-block p.win-ex-note{margin:8px 0 16px;padding-left:1.3em;text-indent:-1.3em;font-size:14px;line-height:1.5;color:var(--ink-2)}
   .concept-block p.win-ex-note::before{content:"→ "}
@@ -10373,7 +10379,7 @@ guide({ id:73, titre:"UNION et UNION ALL", résumé:"Empiler deux résultats, av
       {need:[["📍","Les villes des clients","table clients"],["🏷️","Les catégories des produits","table produits"]],label:"Les informations à récupérer"}
     ],
     problem:{
-      p:["Avec <code>SELECT</code>, SQL sait lire les villes d’un côté et les catégories de l’autre : ce sont <b>deux listes séparées</b>, issues de deux tables sans lien entre elles.","Or, l’équipe veut <b>une seule liste</b>. Une jointure ne convient pas : elle chercherait à relier chaque ville à une catégorie."],
+      p:["Avec <code>SELECT</code>, SQL sait lire les villes d’un côté et les catégories de l’autre : ce sont <b>deux listes séparées</b>, issues de deux tables sans lien direct entre elles.","Or, l’équipe veut <b>une seule liste</b>. Une jointure ne convient pas : elle chercherait à relier chaque ville à une catégorie."],
       scene:{h:"🔎 Deux listes sans lien",
         lanes:[{k:"V",l:"Villes des clients",c:[["v1","Paris"],["v2","Lyon"],["v3","Nantes"]]},
           {k:"C",l:"Catégories des produits",c:[["c1","Bien-être"],["c2","Beauté"],["c3","Boisson"]]},
@@ -10461,13 +10467,13 @@ guide({ id:73, titre:"UNION et UNION ALL", résumé:"Empiler deux résultats, av
     {recap:[
       ["📚","<code>UNION</code> empile les lignes de deux <code>SELECT</code> et <b>écarte les doublons</b> ; <code>UNION ALL</code> les garde tous.",null,"SELECT … UNION SELECT …"],
       ["📏","Les deux requêtes doivent avoir le <b>même nombre de colonnes</b>.","Le nom retenu est celui de la première ; l’unique <code>ORDER BY</code> se place à la fin."],
-      ["🧠","Pour s’en souvenir : <b>JOIN élargit, UNION rallonge</b>.","<code>INTERSECT</code> et <code>EXCEPT</code> suivent les mêmes règles."]
+      ["🧠","Pour s’en souvenir : <b>JOIN élargit, UNION rallonge</b>."]
     ],label:"Les trois idées à retenir"}
   ],
   anatomie:[{tok:"SELECT prenom, ville FROM clients WHERE ville = 'Lyon'",plain:1,txt:"La première liste : les clients de Lyon."},{tok:"UNION ALL",txt:"Ajoute la seconde liste à la suite de la première, sans retirer de doublon."},{tok:"SELECT prenom, ville FROM clients WHERE age > 50",plain:1,txt:"La seconde liste, avec les mêmes colonnes : les clients de plus de 50 ans."}],
   exemple:"SELECT prenom, ville\nFROM clients\nWHERE ville = 'Lyon'\nUNION ALL\nSELECT prenom, ville\nFROM clients\nWHERE age > 50;",
   attendu:"<b>3 lignes</b> : Lucas et Hugo, les clients de Lyon, puis Hugo une seconde fois, car il a aussi plus de 50 ans. <code>UNION ALL</code> garde le doublon.",
-  retenir:"<code>UNION</code> empile les lignes de deux <code>SELECT</code> et écarte les doublons ; <code>UNION ALL</code> les garde tous.<br><br>Les deux requêtes doivent avoir le <b>même nombre de colonnes</b>. Le nom retenu est celui de la première, et l’unique <code>ORDER BY</code> se place à la fin.<br><br>Le mémo : <b>JOIN élargit, UNION rallonge</b>. <code>INTERSECT</code> et <code>EXCEPT</code> suivent les mêmes règles.",
+  retenir:"<code>UNION</code> empile les lignes de deux <code>SELECT</code> et écarte les doublons ; <code>UNION ALL</code> les garde tous.<br><br>Les deux requêtes doivent avoir le <b>même nombre de colonnes</b>. Le nom retenu est celui de la première, et l’unique <code>ORDER BY</code> se place à la fin.<br><br>Le mémo : <b>JOIN élargit, UNION rallonge</b>.",
   consigne:"Le site propose des suggestions de recherche. Affiche, dans une seule colonne nommée <code>terme</code>, le nom de chaque produit et chaque catégorie, une seule fois, triés par ordre alphabétique.",
   solution:"SELECT nom AS terme\nFROM produits\nUNION\nSELECT categorie\nFROM produits\nORDER BY terme;",
   indice:"Deux <code>SELECT</code> d’une colonne chacun, sur la table <code>produits</code>, reliés par <code>UNION</code>. Donne l’alias <code>terme</code> dans la première requête, puis un seul <code>ORDER BY</code> à la fin.",
@@ -10527,7 +10533,7 @@ guide({ id:80, titre:"INTERSECT et EXCEPT", résumé:"Comparer deux résultats",
       "<code>EXCEPT</code> garde les lignes de la <b>première</b> requête qui ne figurent pas dans la seconde. La seconde liste peut venir de n’importe quelle requête : ici, on retire les clients de Paris.",
       {syntax:"SELECT … FROM clients JOIN commandes …\n⟦EXCEPT⟧\nSELECT prenom, telephone FROM clients WHERE ville = 'Paris';"},
       {say:"👇 Exécute cette requête pour voir les clients qui ont commandé, sauf ceux de Paris :",run:"SELECT clients.prenom, clients.telephone\nFROM clients\nJOIN commandes\n    ON commandes.client_id = clients.id\nEXCEPT\nSELECT prenom, telephone\nFROM clients\nWHERE ville = 'Paris';"},
-      {arrow:"5 clients restent : Sophie, Nathan et Léa, qui habitent à Paris, ont été retirés de la première liste."},
+      {arrow:"5 clients restent, car Sophie, Nathan et Léa, qui habitent à Paris, ont été retirés de la première liste."},
       {warn:{t:"L’ordre des deux requêtes compte",blocks:[
         "Avec nos deux listes de départ, l’ordre change tout. Si on place les inscrits en premier, SQL cherche les clients inscrits qui n’ont jamais commandé :",
         {say:"👇 Teste par toi-même :",run:"SELECT clients.prenom, clients.telephone\nFROM clients\nJOIN fidelite\n    ON fidelite.client_id = clients.id\nEXCEPT\nSELECT clients.prenom, clients.telephone\nFROM clients\nJOIN commandes\n    ON commandes.client_id = clients.id;"},
@@ -10577,7 +10583,7 @@ guide({ id:77, titre:"WITH RECURSIVE (CTE RECURSIVE)", résumé:"Créer une suit
       {need:[["📅","Le numéro de chaque jour, de 1 à 90","à générer"]],label:"Les informations à récupérer"}
     ],
     problem:{
-      p:["Avec <code>SELECT</code>, SQL sait lire les lignes d’une table, mais pas <b>créer des lignes</b> qui n’existent nulle part.","Or, écrire les 90 jours un par un serait <b>long et source d’erreurs</b>."],
+      p:["Avec <code>SELECT</code>, SQL sait lire les lignes d’une table, mais pas <b>créer une suite de lignes</b> qui n’existent nulle part.","Or, écrire les 90 jours un par un serait <b>long et source d’erreurs</b>."],
       scene:{h:"📅 Tableau de suivi",cols:".6fr 1fr 1fr",
         lanes:[{k:"H",c:[["","jour","t"],["","clics","t"],["","visites","t"]]},
           {k:"R1",c:[["a1","?","q"],["a2","vide","n"],["a3","vide","n"]]},
@@ -13448,9 +13454,9 @@ const QCM={
  55:[{q:"<code>EXISTS</code> teste :",o:["Si une valeur appartient à une liste","Si la sous-requête trouve au moins une ligne","Combien de lignes la sous-requête trouve"],b:1,e:"On ne compare pas une valeur. On demande si une ligne liée existe."},
   {q:"Pourquoi <code>NOT EXISTS</code> trouve les deux clients sans commande, alors que <code>NOT IN</code> sans filtre renvoie 0 ligne ?",o:["Ils ont une commande cachée","La commande #16 met un NULL dans la liste de NOT IN","EXISTS ignore la table clients"],b:1,e:"<code>NOT IN</code> peut ne retourner aucune ligne si la liste contient un <code>NULL</code>. <code>NOT EXISTS</code> ne construit pas cette liste : il cherche une commande liée à chaque client."},
   {q:"Sans <code>WHERE commandes.client_id = clients.id</code>, <code>EXISTS (SELECT 1 FROM commandes)</code> :",o:["Ne garde qu’Inès","Garde les 10 clients, même ceux sans commande","Provoque une erreur"],b:1,e:"La table commandes n’est pas vide. Sans corrélation, le test est le même pour tout le monde."}],
- 59:[{q:"À quoi sert principalement <code>WITH</code> ?",o:["À enregistrer définitivement une nouvelle table","À donner un nom à un résultat intermédiaire","À modifier une colonne"],b:1,e:"La CTE existe le temps de l’instruction. Elle ne s’enregistre pas dans la base."},
+ 59:[{q:"À quoi sert principalement <code>WITH</code> ?",o:["À enregistrer définitivement une nouvelle table","À donner un nom à un résultat intermédiaire","À modifier une colonne"],b:1,e:"Une CTE donne un nom à un résultat intermédiaire, que la suite de la requête peut réutiliser. Elle n’enregistre rien dans la base."},
   {q:"Combien de temps une CTE est-elle disponible ?",o:["Jusqu’à la suppression de la base","Pendant toute la session","Dans l’instruction SQL qui la définit"],b:2,e:"Une nouvelle instruction ne voit plus la CTE. Ce n’est pas une table."},
-  {q:"Une CTE peut-elle utiliser une autre CTE définie avant elle ?",o:["Oui","Non","Seulement avec JOIN"],b:0,e:"Après un seul WITH, les CTE se séparent par des virgules. Une CTE plus tard peut lire une CTE définie plus haut."}],
+  {q:"Une CTE peut-elle utiliser une autre CTE définie avant elle ?",o:["Oui","Non","Seulement avec JOIN"],b:0,e:"Après un seul WITH, les CTE se séparent par des virgules. Une CTE placée plus bas peut lire celles qui sont définies plus haut."}],
  60:[{q:"Avec <code>AVG(prix) OVER (…)</code>, combien de lignes garde-t-on ?",o:["Une par catégorie","Toutes les lignes","Une seule"],b:1,e:"Une fonction de fenêtre garde chaque ligne et ajoute le calcul à côté."},
   {q:"À quoi sert <code>PARTITION BY</code> dans <code>OVER</code> ?",o:["À regrouper les lignes comme GROUP BY","À trier le résultat final","À faire le calcul groupe par groupe"],b:2,e:"Il découpe le calcul, pas le résultat : le nombre de lignes ne change pas."},
   {q:"Peut-on filtrer avec <code>AVG(prix) OVER (…)</code> dans <code>WHERE</code> ?",o:["Non, il faut d’abord la calculer","Oui, directement","Seulement avec PARTITION BY"],b:0,e:"Au moment du WHERE, la fonction de fenêtre n’est pas encore calculée : on la prépare dans un WITH, puis on filtre."}],
@@ -13487,19 +13493,19 @@ const QCM={
    {q:"Comment transformer une relation 1-N en 1-1 ?",o:["En ajoutant UNIQUE sur la clé étrangère","En déplaçant la clé dans l’autre table","En ajoutant une table de jointure"],b:0,e:"Sans <code>UNIQUE</code>, un client pourrait recevoir deux cartes. Avec, la seconde est refusée."},
    {q:"Un client peut suivre plusieurs produits, et un produit être suivi par plusieurs clients. Comment écrire ce lien ?",o:["Une clé étrangère dans clients","Une clé étrangère dans produits","Une troisième table qui porte les deux clés"],b:2,e:"Les deux côtés sont « plusieurs » : aucune colonne ne peut retenir plusieurs valeurs. Il faut une table de jointure."},
    {q:"Dans une table de jointure, à quoi sert <code>PRIMARY KEY (client_id, produit_id)</code> ?",o:["À interdire deux fois le même couple","À rendre chaque colonne unique","À accélérer les jointures"],b:0,e:"Chaque colonne se répète librement ; c’est la paire qui doit être unique."}],
- 73:[{q:"Quelle différence entre <code>UNION</code> et <code>UNION ALL</code> ?",o:["UNION trie, UNION ALL non","UNION écarte les doublons, UNION ALL les garde","UNION ne marche que sur deux tables identiques"],b:1,e:"Dix villes (une par client) et huit catégories donnent 18 lignes avec ALL, mais 11 sans : sept valeurs se répétaient."},
+ 73:[{q:"Quelle différence entre <code>UNION</code> et <code>UNION ALL</code> ?",o:["UNION trie, UNION ALL non","UNION écarte les doublons, UNION ALL les garde","UNION ne marche que sur deux tables identiques"],b:1,e:"Dix villes (une par client) et huit catégories (une par produit) donnent 18 lignes avec ALL, mais 11 sans : sept lignes étaient en double."},
    {q:"Que doivent avoir en commun les deux <code>SELECT</code> d’un <code>UNION</code> ?",o:["Le même nombre de colonnes","Les mêmes noms de colonnes","La même table de départ"],b:0,e:"Le nombre de colonnes doit correspondre ; les noms sont libres, c’est celui de la première requête qui est retenu."},
    {q:"Tu veux plus de <b>lignes</b>, pas plus de colonnes. Quel outil ?",o:["JOIN","UNION","GROUP BY"],b:1,e:"<code>JOIN</code> élargit le résultat en ajoutant des colonnes ; <code>UNION</code> le rallonge en empilant des lignes."}],
  80:[{q:"Quel opérateur garde uniquement les lignes présentes dans les deux résultats ?",o:["UNION","INTERSECT","EXCEPT"],b:1,e:"<code>INTERSECT</code> garde les lignes présentes dans les deux résultats : ici, les clients qui ont commandé et sont déjà inscrits."},
    {q:"Que renvoie <code>A EXCEPT B</code> ?",o:["Les lignes de A absentes de B","Les lignes de B absentes de A","Les lignes communes à A et B"],b:0,e:"<code>EXCEPT</code> part de la première requête et retire ce qui se trouve dans la seconde. L’ordre compte."},
-   {q:"Sophie apparaît trois fois dans la première liste. Combien de fois apparaît-elle avec <code>INTERSECT</code> ?",o:["Trois","Une","Zéro"],b:1,e:"Comme <code>UNION</code>, <code>INTERSECT</code> et <code>EXCEPT</code> écartent les doublons."}],
+   {q:"Sophie apparaît trois fois dans la première liste et une fois dans la seconde. Combien de fois apparaît-elle avec <code>INTERSECT</code> ?",o:["Trois","Une","Zéro"],b:1,e:"Comme <code>UNION</code>, <code>INTERSECT</code> et <code>EXCEPT</code> écartent les doublons."}],
  74:[{q:"Trois produits sont ex æquo au rang 3. Avec <code>DENSE_RANK()</code>, le suivant est :",o:["6","4","3"],b:1,e:"DENSE_RANK ne laisse pas de trou : 3, 3, 3, puis 4. RANK donnerait 6."},
   {q:"Quelle fonction donne un numéro différent à chaque ligne, même aux ex æquo ?",o:["ROW_NUMBER()","RANK()","DENSE_RANK()"],b:0,e:"ROW_NUMBER départage toujours, dans un ordre arbitraire pour les ex æquo."},
   {q:"Que fait <code>PARTITION BY categorie</code> dans un <code>RANK()</code> ?",o:["Il supprime les ex æquo","Il relance le classement dans chaque catégorie","Il trie le résultat final"],b:1,e:"Le classement repart à 1 dans chaque catégorie."}],
  76:[{q:"Que fait <code>GROUP_CONCAT(nom, ', ')</code> dans SQLite ?",o:["Il compte les noms","Il assemble les noms non nuls","Il crée une nouvelle table"],b:1,e:"Chaque groupe produit une seule chaîne, avec le séparateur demandé."},
    {q:"Quel nom rencontre-t-on notamment dans PostgreSQL pour le même besoin ?",o:["TEXT_SUM","STRING_AGG","CONCAT_ROWS"],b:1,e:"Le besoin est similaire, mais la syntaxe varie selon le SGBD."}],
- 77:[{q:"Quelles sont les deux parties d’une CTE récursive ?",o:["Ancre et récursion","SELECT et DELETE","Vue et index"],b:0,e:"L’ancre produit le départ ; la partie récursive produit les générations suivantes."},
-   {q:"Quel élément doit toujours être vérifié avant l’exécution ?",o:["La couleur du résultat","La condition d’arrêt","Le nombre de colonnes de la table source"],b:1,e:"Sans arrêt correct, la CTE peut continuer à produire des lignes."}],
+ 77:[{q:"Quelles sont les deux parties d’une CTE récursive ?",o:["Ancre et récursion","SELECT et WHERE","JOIN et GROUP BY"],b:0,e:"L’ancre crée la première ligne ; la partie récursive crée les suivantes."},
+   {q:"Quel élément faut-il toujours vérifier avant d’exécuter une CTE récursive ?",o:["L’ordre des colonnes","La condition d’arrêt","Le nombre de colonnes de la table source"],b:1,e:"Sans condition d’arrêt correcte, la CTE continue à produire des lignes sans jamais s’arrêter."}],
  78:[{q:"Quelle fonction lit la ligne suivante ?",o:["LAG()","NEXT()","LEAD()"],b:2,e:"LAG regarde avant, LEAD regarde après."},
   {q:"Pourquoi ajouter <code>PARTITION BY client_id</code> ?",o:["Pour ne pas comparer deux clients différents","Pour trier les dates","Pour supprimer les NULL"],b:0,e:"Sans partition, la première commande d’un client serait comparée à la dernière du client précédent."},
   {q:"Que renvoie <code>julianday('2026-07-20') - julianday('2026-07-05')</code> ?",o:["20","15","5"],b:1,e:"julianday transforme une date en nombre de jours : la différence donne 15 jours."}],
@@ -18390,13 +18396,31 @@ function mountProbScene(cfg,slot,memo){
 /* Emplacements de requête exécutable dans le texte d’un cours. */
 function initRunSqlSlots(){
   document.querySelectorAll('#lesson-body .ij-run[data-run-sql]').forEach(el=>{
+    /* Le commentaire sous la requête (flèche « 👉 … », ou paragraphe d’un encadré Attention) reste caché : il explique le résultat, qu’on ne voit qu’en exécutant. */
+    const notes=[];
+    /* Requête à trous (dernière étape de certains cours) : la requête est dans le bloc .qf, le commentaire le suit. */
+    const src=!el.nextElementSibling&&el.closest('.qf')?el.closest('.qf'):el;
+    let nx=src.nextElementSibling;
+    while(nx&&nx.matches('p.ij-arrow')){notes.push(nx);nx=nx.nextElementSibling;}
+    if(!notes.length&&nx&&nx.tagName==='P'&&src.closest('.sit-memo.is-warn'))notes.push(nx);
+    notes.forEach(n=>n.classList.add('ij-await'));
     const wrap=document.createElement('div');
     wrap.className='ij-run-frame';
     wrap.innerHTML=piegeSqlRunBlock(el.dataset.runSql,el.dataset.sim);
     el.replaceWith(wrap);
+    const res=wrap.querySelector('.xf-result');
+    if(notes.length&&res){
+      const mo=new MutationObserver(()=>{
+        if(res.hidden)return;
+        mo.disconnect();
+        const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+        /* Le résultat d’abord, puis le commentaire qui l’explique. */
+        setTimeout(()=>notes.forEach(n=>{n.classList.remove('ij-await');if(!reduce)n.classList.add('ij-await-in');}),reduce?0:700);
+      });
+      mo.observe(res,{attributes:true,attributeFilter:['hidden']});
+    }
     /* La carte « Mission accomplie » de l’étape n’apparaît qu’après une exécution réussie. */
     const done=wrap.closest('.fn-use')&&wrap.closest('.fn-use').querySelector('.ij-done.is-locked');
-    const res=wrap.querySelector('.xf-result');
     if(!done||!res)return;
     let pending=false;
     const reveal=()=>{
@@ -24615,7 +24639,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1620';
+  const SW_CACHE='requete-2026-10-04-ludique-v1621';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
