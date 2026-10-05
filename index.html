@@ -915,6 +915,7 @@
   .pr-caps{display:grid;margin-top:12px}
   .pr-cap{grid-area:1/1;align-self:center;text-align:center;font-size:13px;line-height:1.4;color:var(--ink-2);opacity:0;transform:translateY(4px);transition:opacity .6s,transform .6s}
   .pr-cap.is-on{opacity:1;transform:none}
+  .pr-scene.is-instant *{transition:none!important}
   .pr-cap b{color:var(--ink);font-weight:800}
   @media (prefers-reduced-motion:reduce){.pr-scene *{transition:none!important}}
   .ij-need b{min-width:0;line-height:1.3}
@@ -18322,6 +18323,17 @@ function initProbScenes(){
   const more=GUIDE_XSCENES[current.id]||[];
   document.querySelectorAll('#lesson-body .pr-slot[data-xscene]').forEach(slot=>{const c=more[+slot.dataset.xscene];if(c)mountProbScene(c,slot,null);});
 }
+/* Premier bloc affiché (ni fixe ni collant) qui suit `el` dans la page, en remontant jusqu’à l’écran défilant `stop` ;
+   `skip(rect)` écarte les blocs qui ne conviennent pas. Sert de repère pour garder le texte lu en place quand un bloc situé
+   plus haut change de hauteur : l’écran des cours n’a pas d’ancrage de défilement, on décale le défilement nous-mêmes. */
+function blockAfter(el,stop,skip){
+  for(let n=el;n&&n!==stop;n=n.parentElement)
+    for(let s=n.nextElementSibling;s;s=s.nextElementSibling){
+      const r=s.getBoundingClientRect(),p=getComputedStyle(s).position;
+      if(r.height>0&&p!=='fixed'&&p!=='sticky'&&!(skip&&skip(r)))return s;
+    }
+  return null;
+}
 function mountProbScene(cfg,slot,memo){
   const reduce=motionOff();
   const root=document.createElement('div');
@@ -18338,7 +18350,7 @@ function mountProbScene(cfg,slot,memo){
   let tok=0,timers=[];
   const q=k=>stage.querySelector(`[data-k="${k}"]`);
   const each=(v,f)=>(v||[]).forEach(f);
-  const later=(f,ms,now)=>{if(now||!ms){f();return;}timers.push(setTimeout(f,ms));};
+  const later=(f,ms,now)=>{if(now||!ms){f();return;}timers.push(setTimeout(()=>keepView(f),ms));};
   const reset=()=>{
     timers.forEach(clearTimeout);timers=[];
     root.querySelectorAll('.pr-fly').forEach(n=>n.remove());
@@ -18356,7 +18368,7 @@ function mountProbScene(cfg,slot,memo){
     p.className='pr-c pr-fly is-got';p.textContent=f.textContent;
     p.style.cssText=`left:${r1.left-sr.left}px;top:${r1.top-sr.top}px;width:${r1.width}px;height:${r1.height}px`;
     root.append(p);
-    p.animate([{transform:'translate(0,0)',width:r1.width+'px'},{transform:`translate(${r2.left-r1.left}px,${r2.top-r1.top}px)`,width:r2.width+'px'}],{duration:1300,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'}).onfinish=()=>{land();p.remove();};
+    p.animate([{transform:'translate(0,0)',width:r1.width+'px'},{transform:`translate(${r2.left-r1.left}px,${r2.top-r1.top}px)`,width:r2.width+'px'}],{duration:1300,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'}).onfinish=()=>{keepView(land);p.remove();};
   };
   const apply=(s,now)=>{
     caps.forEach((c,i)=>c.classList.toggle('is-on',i===s.cap));
@@ -18384,12 +18396,35 @@ function mountProbScene(cfg,slot,memo){
     each(s.fly,(pr,i)=>later(()=>fly(pr[0],pr[1],now),i*(st||150),now));
   };
   const finish=()=>{reset();cfg.steps.forEach(s=>apply(s,true));root.classList.add('is-done');};
+  /* Une scène déjà dépassée (son haut est au-dessus de l’écran) qui change de hauteur — lignes qui se replient — ferait
+     monter ou descendre le texte lu plus bas. L’écran des cours n’a pas d’ancrage de défilement : on applique alors l’étape
+     sans transition et on décale le défilement de la différence, pour que le bloc situé juste sous la scène ne bouge pas. */
+  const viewAnchor=(sc,sr)=>{
+    /* Repère : le premier bloc situé sous la scène qui n’est pas déjà passé au-dessus de l’écran, s’il y est encore visible. */
+    const a=blockAfter(root,sc,r=>r.bottom<=sr.top);
+    return a&&a.getBoundingClientRect().top<sr.bottom?a:null;
+  };
+  const keepView=change=>{
+    const sc=root.closest('.screen');
+    if(!sc){change();return;}
+    const sr=sc.getBoundingClientRect();
+    if(root.getBoundingClientRect().top>=sr.top-1){change();return;}   /* la scène est encore à l’écran : on la laisse s’animer */
+    const anchor=viewAnchor(sc,sr);
+    if(!anchor){change();return;}   /* rien d’affiché sous la scène : rien à protéger */
+    const y0=anchor.getBoundingClientRect().top;
+    root.classList.add('is-instant');
+    try{change();}finally{
+      const dh=anchor.getBoundingClientRect().top-y0;
+      if(dh)sc.scrollTop+=dh;
+      requestAnimationFrame(()=>root.classList.remove('is-instant'));
+    }
+  };
   const play=async()=>{
     if(reduce){finish();return;}
     const my=++tok;reset();
     for(const s of cfg.steps){
       if(my!==tok)return;
-      apply(s);
+      keepView(()=>apply(s));
       /* Temps de voir le changement (≈ 1,1 s de transition) puis de lire la légende avant l’état suivant. */
       const cp=caps[s.cap],hold=Math.max((s.d||2000)*1.5,Math.min(1400+(cp?cp.textContent.length:0)*35,7000));
       await new Promise(r=>timers.push(setTimeout(r,hold)));
@@ -18424,8 +18459,14 @@ function initRunSqlSlots(){
         if(res.hidden)return;
         mo.disconnect();
         const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-        /* Le résultat d’abord, puis le commentaire qui l’explique. */
-        setTimeout(()=>notes.forEach(n=>{n.classList.remove('ij-await');if(!reduce)n.classList.add('ij-await-in');}),reduce?0:700);
+        /* Le résultat d’abord, puis le commentaire qui l’explique. Si on a déjà défilé plus bas, le texte lu ne bouge pas. */
+        setTimeout(()=>{
+          const sc=wrap.closest('.screen'),next=sc&&blockAfter(notes[notes.length-1],sc);
+          const keep=!!(sc&&next&&wrap.getBoundingClientRect().bottom<=sc.getBoundingClientRect().top);
+          const y0=keep?next.getBoundingClientRect().top:0;
+          notes.forEach(n=>{n.classList.remove('ij-await');if(!reduce)n.classList.add('ij-await-in');});
+          if(keep){const dy=next.getBoundingClientRect().top-y0;if(dy)sc.scrollTop+=dy;}
+        },reduce?0:700);
       });
       mo.observe(res,{attributes:true,attributeFilter:['hidden']});
     }
@@ -24657,7 +24698,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1627';
+  const SW_CACHE='requete-2026-10-05-ludique-v1628';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
