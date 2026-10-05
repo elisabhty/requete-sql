@@ -614,6 +614,7 @@
   @keyframes ijAwaitIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion:reduce){.ij-await-in{animation:none}}
   html[data-motion="reduce"] .ij-await-in{animation:none}
+  #scr-lesson .xf-result p.xf-copy-note{margin:0;padding:2px 18px 16px;font-size:12.5px;line-height:1.45;color:var(--ink-3);text-align:left}
   .concept-block p.win-ex{margin:18px 0 6px;font-weight:800;line-height:1.4;color:var(--ink)}
   .concept-block p.win-ex-note{margin:8px 0 16px;padding-left:1.3em;text-indent:-1.3em;font-size:14px;line-height:1.5;color:var(--ink-2)}
   .concept-block p.win-ex-note::before{content:"→ "}
@@ -15347,10 +15348,15 @@ let kbarSchemaCacheDb='';
 const KEYS=[['SELECT',1],['FROM',1],['WHERE',1],['*',0],["'",0],[',',0],['=',0],['>',0],['<',0],['>=',0],['%',0],['()',0],
   ['AND',1],['OR',1],['NOT',1],['LIKE',1],['IN',1],['BETWEEN',1],['DISTINCT',1],['GRANT',1],['REVOKE',1],
   ['GROUP BY',1],['HAVING',1],['ORDER BY',1],['JOIN',1],['ON',1],['AS',1],['COUNT(*)',1],['SUM()',1],['AVG()',1],['DESC',1],['LIMIT',1],['IS NULL',1],[';',0]];
+/* Numéro de version du schéma : SQLite l'augmente à chaque CREATE, ALTER ou DROP. */
+function schemaVersion(database){
+  try{const r=database.exec('PRAGMA schema_version');return r[0]?r[0].values[0][0]:0;}catch(e){return 0;}
+}
 function kbarSchemaCatalog(){
-  const id=activeDbId||'cours';
-  if(kbarSchemaCache&&kbarSchemaCacheDb===id) return kbarSchemaCache;
   const database=activeDb()||db;
+  /* Le catalogue (tables et colonnes proposées à la saisie) se refait dès que le schéma change. */
+  const id=(activeDbId||'cours')+':'+(database?schemaVersion(database):'-');
+  if(kbarSchemaCache&&kbarSchemaCacheDb===id) return kbarSchemaCache;
   const tables=database?listTables(database):courseTableNames();
   const items=[];
   for(const t of tables){
@@ -18763,6 +18769,8 @@ function runExemple(btn){
          une image en entier, disparaissent puis réapparaissent (flash blanc). */
       host.classList.remove('on','flash');
       host.innerHTML=renderTable(res,ms);
+      /* Une structure créée, modifiée ou supprimée dans un cours l'est sur une copie jetable : le schéma du cours ne change pas. */
+      if((follow||testeNeedsSandbox(runSql))&&/(^|;)\s*(CREATE|ALTER|DROP)\b/i.test(runSql)&&!/\bEXPLAIN\b/i.test(runSql))host.insertAdjacentHTML('beforeend','<p class="xf-copy-note">🧪 Exécuté sur une copie : la base du cours n’est pas modifiée.</p>');
       host.hidden=false;
       void host.offsetWidth;
       host.classList.add('on','flash');
@@ -20799,7 +20807,9 @@ function introspectTable(database,name,allTables){
   const tables=allTables||(database?listTables(database):[]);
   const meta=SCHEMA_META.find(t=>t.table===name);
   let cols=[];
-  if(meta&&meta.cols&&meta.cols.length && activeDbId==='cours'){
+  /* Le schéma est lu dans la base elle-même : un ALTER TABLE, un CREATE TABLE ou un DROP faits dans la Console
+     apparaissent aussitôt. Les métadonnées figées ne servent que si la base n'est pas encore chargée. */
+  if(!database&&meta&&meta.cols&&meta.cols.length){
     cols=meta.cols.map(c=>({c:c.c,t:c.t,b:c.b}));
   }else{
     try{
@@ -24639,7 +24649,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-04-ludique-v1623';
+  const SW_CACHE='requete-2026-10-04-ludique-v1624';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
