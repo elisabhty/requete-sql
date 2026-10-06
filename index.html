@@ -5749,7 +5749,7 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=15">
+<link rel="stylesheet" href="ludique.css?v=16">
 </head>
 <body>
 <div id="app">
@@ -6188,7 +6188,7 @@ function guideBlock(b){
   const lab=x=>x?` aria-label="${guideEsc(x).replace(/"/g,'&quot;')}"`:'';
   if(b.p!==undefined)return `<p>${guideFr(b.p)}</p>`;
   /* sim : réponse simulée d’un serveur pour une commande que SQLite ne connaît pas (GRANT, REVOKE…) ; le bouton affiche « Simuler ». */
-  if(b.run)return `${b.say?`<p>${guideFr(b.say)}</p>`:''}<div class="ij-run"${b.warn?' data-warn="1"':''}${b.compact?' data-compact="1"':''} data-run-sql="${guideEsc(b.run).replace(/"/g,'&quot;').replace(/\n/g,'&#10;')}"${b.sim!==undefined?` data-sim="${guideEsc(b.sim).replace(/"/g,'&quot;').replace(/\n/g,'&#10;')}"`:''}></div>`;
+  if(b.run)return `${b.say?`<p>${guideFr(b.say)}</p>`:''}<div class="ij-run"${b.warn?' data-warn="1"':''}${b.hit?` data-hit="${guideEsc(b.hit).replace(/"/g,'&quot;').replace(/\n/g,'&#10;')}"`:''} data-run-sql="${guideEsc(b.run).replace(/"/g,'&quot;').replace(/\n/g,'&#10;')}"${b.sim!==undefined?` data-sim="${guideEsc(b.sim).replace(/"/g,'&quot;').replace(/\n/g,'&#10;')}"`:''}></div>`;
   if(b.syntax)return guideSyntax(b.syntax);
   if(b.looks)return `<ul class="win-look is-cmp"${lab(b.label)}>${b.looks.map(([k,v])=>`<li><b>${/</.test(k)?k:`<code>${guideEsc(k)}</code>`}</b><span>${guideFr(v)}</span></li>`).join('')}</ul>`;
   if(b.arrow)return `<p class="ij-arrow">${b.ico||'👉'} ${guideFr(b.arrow)}</p>`;
@@ -6202,7 +6202,7 @@ function guideBlock(b){
   if(b.need)return `<div class="ij-need" role="list"${lab(b.label)}>${b.need.map(([i,t,w,c])=>`<div role="listitem"><b>${i?i+' ':''}${guideFr(t)}</b><span${c?` class="is-${c}"`:''}>${guideFr(w)}</span></div>`).join('')}</div>`;
   if(b.warn||b.tip){
     const m=b.warn||b.tip,warn=!!b.warn;
-    return `<div class="sit-memo${warn?' is-warn':''}"><p class="sit-memo-lab"><i aria-hidden="true">${warn?'⚠️':'💡'}</i>${guideFr(m.t||(warn?'Attention':'Bon à savoir'))}</p>${(m.p||[]).map(x=>`<p>${guideFr(x)}</p>`).join('')}${guideMarkCompact(m.blocks).map(x=>guideBlock(x&&x.run?Object.assign({},x,{warn}):x)).join('')}${m.run?guideBlock({run:m.run,say:m.say,warn}):''}</div>`;
+    return `<div class="sit-memo${warn?' is-warn':''}"><p class="sit-memo-lab"><i aria-hidden="true">${warn?'⚠️':'💡'}</i>${guideFr(m.t||(warn?'Attention':'Bon à savoir'))}</p>${(m.p||[]).map(x=>`<p>${guideFr(x)}</p>`).join('')}${guideMergeRuns(m.blocks).map(x=>guideBlock(x&&x.run?Object.assign({},x,{warn}):x)).join('')}${m.run?guideBlock({run:m.run,say:m.say,warn}):''}</div>`;
   }
   if(b.done)return guideDoneCard(b.done);
   if(b.table){
@@ -6252,19 +6252,21 @@ function guideSms(m){
 function guideDoneCard(d){
   return `<div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div>${guideFunnel(d)}${d.sms?guideSms(d.sms):''}</div>`;
 }
-/* Une requête qui vient d’être montrée dans un cadre surligné (même texte) n’est pas réécrite dans le cadre
-   « Exécuter » qui suit : il ne garde que le bouton et le résultat. Les blocs entre les deux (repères, explications)
-   ne changent pas de place. */
-function guideMarkCompact(a){
+/* Une requête montrée dans un cadre surligné puis, aussitôt après, dans le cadre « Exécuter » (même texte, rien entre les deux)
+   ne s’affiche qu’une fois : dans le cadre « Exécuter », avec son surlignage (data-hit). Quand un repère ou un texte sépare
+   les deux, chaque cadre garde sa requête. */
+function guideMergeRuns(a){
   const norm=x=>String(x).replace(/[⟦⟧]/g,'').replace(/\s+/g,' ').trim();
-  let shown=null;
-  return (a||[]).map(b=>{
-    if(b&&typeof b==='object'&&b.syntax){shown=norm(b.syntax);return b;}
-    if(b&&typeof b==='object'&&b.run&&shown!==null&&norm(b.run)===shown){shown=null;return Object.assign({},b,{compact:true});}
-    return b;
+  const arr=a||[];
+  const same=(s,r)=>!!(s&&typeof s==='object'&&s.syntax&&r&&typeof r==='object'&&r.run&&norm(s.syntax)===norm(r.run));
+  const out=[];
+  arr.forEach((b,i)=>{
+    if(same(b,arr[i+1]))return;
+    out.push(same(arr[i-1],b)?Object.assign({},b,{hit:arr[i-1].syntax}):b);
   });
+  return out;
 }
-function guideBlocks(a){return guideMarkCompact(a).map(guideBlock).join('\n');}
+function guideBlocks(a){return guideMergeRuns(a).map(guideBlock).join('\n');}
 /* Requête de la mission : la dernière exécution avant la carte « Mission accomplie ». L’écran de fin la reprend. */
 function guideMissionSql(steps){
   let sql='';
@@ -14980,6 +14982,16 @@ function highlight(code){
   }
   return out;
 }
+/* Requête colorée dont une partie, entre ⟦ et ⟧, est mise en avant comme dans un cadre de syntaxe. */
+function highlightHit(marked){
+  let out='',open=false;
+  String(marked).split(/(⟦|⟧)/).forEach(p=>{
+    if(p==='⟦'){open=true;out+='<span class="fk-syn-hit">';}
+    else if(p==='⟧'){if(open){out+='</span>';open=false;}}
+    else out+=highlight(p);
+  });
+  return open?out+'</span>':out;
+}
 function highlightMark(sql,mark){
   const html=highlight(sql);
   if(!mark) return html;
@@ -17950,13 +17962,13 @@ function reflexBlock(l){
 function piegeSqlRunBlock(sql,sim,opts){
   if(!sql)return '';
   const simulated=sim!==undefined&&sim!==null;
-  /* compact : la requête est déjà affichée juste au-dessus (cadre surligné) ; on ne la réécrit pas. */
-  const compact=!!(opts&&opts.compact);
-  return `<div class="piege-sql exframe${compact?' is-compact':''}">
-    ${compact?'':`<div class="xf-head"><span class="xf-name">${simulated?'SQL serveur':'SQL'}</span><div class="xf-tools">${sqlCopyBtn()}</div></div>
-    <div class="ex-code">${highlight(sql)}</div>`}
+  /* hit : la même requête, avec la partie à mettre en avant entre ⟦ et ⟧ (celle du cadre surligné qui la précédait). */
+  const hit=opts&&opts.hit;
+  return `<div class="piege-sql exframe">
+    <div class="xf-head"><span class="xf-name">${simulated?'SQL serveur':'SQL'}</span><div class="xf-tools">${sqlCopyBtn()}</div></div>
+    <div class="ex-code">${hit?highlightHit(hit):highlight(sql)}</div>
     <div class="xf-actions">
-      <button type="button" class="xf-run" data-sql="${escAttr(sql)}"${simulated?` data-sim="${escAttr(sim)}"`:''}${compact?` aria-label="${simulated?'Simuler':'Exécuter'} la requête ci-dessus"`:''} onclick="runExemple(this)">${XF_RUN_ICO}${simulated?'Simuler':'Exécuter'}</button>
+      <button type="button" class="xf-run" data-sql="${escAttr(sql)}"${simulated?` data-sim="${escAttr(sim)}"`:''} onclick="runExemple(this)">${XF_RUN_ICO}${simulated?'Simuler':'Exécuter'}</button>
     </div>
     <div class="xf-result" hidden aria-live="polite"></div>
   </div>`;
@@ -18495,7 +18507,7 @@ function initRunSqlSlots(){
     notes.forEach(n=>n.classList.add('ij-await'));
     const wrap=document.createElement('div');
     wrap.className='ij-run-frame';
-    wrap.innerHTML=piegeSqlRunBlock(el.dataset.runSql,el.dataset.sim,{compact:el.dataset.compact==='1'});
+    wrap.innerHTML=piegeSqlRunBlock(el.dataset.runSql,el.dataset.sim,{hit:el.dataset.hit});
     el.replaceWith(wrap);
     const res=wrap.querySelector('.xf-result');
     if(notes.length&&res){
@@ -24812,7 +24824,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-06-ludique-v1641';
+  const SW_CACHE='requete-2026-10-06-ludique-v1642';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
