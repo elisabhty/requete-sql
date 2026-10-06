@@ -48,19 +48,19 @@ test('style : pastilles rondes à droite de l’en-tête avec leur nom dessous, 
   assert.ok(/body\.in-lesson:has\(#scr-lesson\.active \.navbar\.has-tools\) #fab\{display:none!important\}/.test(css));
 });
 
-test('cours SELECT, carte « Mission accomplie » : 9 colonnes au départ, SELECT sélectionne, 5 colonnes à l’arrivée', () => {
+test('cours SELECT, carte « Mission accomplie » : 9 colonnes au départ, SELECT sélectionne, 4 colonnes à l’arrivée', () => {
   const ctx = vm.createContext({});
   vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), ctx);
   const lesson = vm.runInContext('MODULES.flatMap(m=>m.lessons).find(l=>l.id===1)', ctx);
   const body = lesson.studio.uses.body;
   assert.ok(body.includes('Toutes les colonnes de la table <code>clients</code>'));
-  assert.ok(body.includes('SELECT prenom, nom, adresse, ville, telephone'));
+  assert.ok(body.includes('SELECT prenom, nom, ville, telephone') && !body.includes('adresse'));
   assert.ok(body.includes('ne sélectionne que les colonnes utiles'));
   assert.ok(body.includes('colonnes à l’arrivée'));
-  assert.ok(body.includes('Celles nécessaires à la livraison'));
+  assert.ok(body.includes('Celles qui servent à identifier un client'));
   assert.ok(!body.includes('colonnes dans la liste de livraison') && !body.includes('ne garde que les colonnes utiles'));
   /* guideFr met une espace insécable avant « : ». */
-  assert.equal(vm.runInContext('GUIDE_DONE[1].s', ctx).replace(/ /g, ' '), 'Chaque client apparaît uniquement avec les informations utiles au transporteur : la liste de livraison est prête.');
+  assert.equal(vm.runInContext('GUIDE_DONE[1].s', ctx).replace(/ /g, ' '), 'Chaque client apparaît uniquement avec les informations utiles au transporteur : la liste est prête.');
 });
 
 test('tableaux de résultat des cours : titres de colonnes et valeurs centrés (seul le numéro de ligne « # » reste à droite)', () => {
