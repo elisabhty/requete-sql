@@ -2467,6 +2467,13 @@
   .ncard:active{transform:scale(.985)}
   .ncard .ntxt{display:block;-webkit-line-clamp:unset;white-space:normal;max-height:15em;overflow:hidden}
   .ncard .ntxt.is-clip{-webkit-mask-image:linear-gradient(#000 calc(100% - 3.2em),transparent);mask-image:linear-gradient(#000 calc(100% - 3.2em),transparent)}
+  /* Note coupée (texte ou requête) : « Voir tout » la déplie sur place, « Voir moins » la replie. */
+  .ncard .nmore{display:none}
+  .ncard.has-more .nmore{display:inline-flex;align-items:center;justify-content:center;margin-left:auto;min-height:32px;padding:0 12px;border:0;border-radius:10px;background:var(--accent-soft);color:var(--accent-ink);font:700 12.5px var(--ui);white-space:nowrap;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .16s var(--spring-ios)}
+  .ncard.has-more .nmore:active{transform:scale(.94)}
+  .ncard.has-more .nmore+.npin-btn{margin-left:0}
+  .ncard.is-open .ntxt,.ncard.is-open .ntxt.is-clip{max-height:none;-webkit-mask-image:none;mask-image:none}
+  .ncard.is-open .nsql{display:block;-webkit-line-clamp:unset}
   .ncard .ntxt p{margin:0 0 .65em;white-space:normal}
   .ncard .ntxt p:last-child{margin-bottom:0}
   .ncard .ntxt p b{font-weight:800}
@@ -4155,7 +4162,7 @@
   .ent-empty-ico{width:44px;height:44px;margin:0 auto 12px;border-radius:15px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}
   .ent-empty-ico svg{width:21px;height:21px}
   .ent-empty b{display:block;margin-bottom:5px;color:var(--ink);font-size:16px;letter-spacing:-.28px}
-  .ent-empty button{margin-top:15px;padding:11px 16px;border:0;border-radius:13px;background:var(--accent);color:#fff;font-family:var(--ui);font-weight:720;cursor:pointer}
+  .ent-empty button{display:block;margin:15px auto 0;padding:11px 16px;border:0;border-radius:13px;background:var(--accent);color:#fff;font-family:var(--ui);font-weight:720;cursor:pointer}
 
   /* Une question devient un véritable mode focalisé. */
   #scr-entretien.ent-focus-mode>.lgtitle,
@@ -5304,13 +5311,16 @@
 .sq-chip.on,.sq-chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink)}
 .sq-status{margin:8px 2px 0;font:600 12px/1.5 var(--ui);color:var(--ink-2)}
 .sq-status:empty{display:none}
-.sq-reset{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:14px;padding:0 18px;border:0;border-radius:12px;background:var(--accent-soft);color:var(--accent-ink);font:650 13px var(--ui);cursor:pointer;transition:transform .16s var(--spring-ios)}
+/* Bouton d’un écran vide (« Effacer la recherche ») : sur sa propre ligne, sous le texte, jamais collé à la fin d’une phrase. */
+.sq-reset{display:flex;width:fit-content;align-items:center;justify-content:center;min-height:44px;margin:14px auto 0;padding:0 18px;border:0;border-radius:12px;background:var(--accent-soft);color:var(--accent-ink);font:650 13px var(--ui);cursor:pointer;transition:transform .16s var(--spring-ios)}
 .sq-reset:active{transform:scale(.96)}
 .console-query-search{position:relative}
 .console-query-clear{flex:none;min-width:44px;min-height:44px;margin-right:-10px;border:0;background:none;color:var(--ink-3);font-size:16px;cursor:pointer}
 .console-query-clear[hidden]{display:none}
 .notes-hub .sq-chips-row{margin:12px 2px 2px}
-.notes-hub .sq-status{margin-left:6px}
+/* Notes : le nombre de notes trouvées est déjà dans les filtres et les titres de section. La ligne d’état reste pour
+   les lecteurs d’écran, sans prendre de place : elle ne fait plus bouger la rangée de filtres. */
+.notes-hub .sq-status{position:absolute;width:1px;height:1px;margin:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 mark.sq-hit{background:color-mix(in srgb,var(--accent) 17%,transparent);color:inherit;border-radius:4px;padding:0 1px;box-shadow:inset 0 -2px 0 color-mix(in srgb,var(--accent) 45%,transparent)}
 .catalog-search>.sq-suggest{margin:10px 0 2px;padding:0;border:0;background:none;border-radius:0;display:flex;flex-direction:column;align-items:stretch;gap:8px}
 .catalog-search>.sq-suggest[hidden]{display:none}
@@ -22713,9 +22723,9 @@ function clearSearch(surface='sheet'){
   if(inp)inp.value='';
   onSearch(surface);
 }
-function renderNotes(){
-  if(noteView==='list'&&document.getElementById('note-sheet').classList.contains('on')) renderNotesHub();
-  if(document.getElementById('scr-notes').classList.contains('active')) renderNotesScreen();
+function renderNotes(opts){
+  if(noteView==='list'&&document.getElementById('note-sheet').classList.contains('on')) renderNotesHub(opts);
+  if(document.getElementById('scr-notes').classList.contains('active')) renderNotesScreen(opts);
 }
 
 /* ============================================================
@@ -22980,11 +22990,12 @@ function revealEntretien(id){
 }
 function noteCardHtml(n,i){
   const label=String(n.txt||'').replace(/```[a-z]*/g,' ').replace(/\s+/g,' ').trim().slice(0,60);
-  return `<div class="ncard ${n.pin?'pin':''}${n.id===noteFreshId?' is-fresh':''}" data-id="${n.id}" style="--i:${Math.min(i||0,8)}" role="button" tabindex="0" aria-label="Ouvrir la note ${esc(label||'sans titre')}" onclick="openNote('${n.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openNote('${n.id}')}">
+  return `<div class="ncard ${n.pin?'pin':''}${n.id===noteFreshId?' is-fresh':''}" data-id="${n.id}" style="--i:${Math.min(i||0,8)}" role="button" tabindex="0" aria-label="Ouvrir la note ${esc(label||'sans titre')}" onclick="openNote('${n.id}')" onkeydown="if(event.target!==this)return;if(event.key==='Enter'||event.key===' '){event.preventDefault();openNote('${n.id}')}">
         ${n.ctx?`<div class="nctx">${esc(n.ctx)}</div>`:''}
         ${n.txt?`<div class="ntxt">${noteBlocksHtml(n.txt)}</div>`:''}
         ${n.sql?`<div class="nsql">${highlight(n.sql)}</div>`:''}
         <div class="nfoot"><span class="ndate">${fmtDate(n.ts)}</span>
+          <button type="button" class="nmore" aria-expanded="false" onclick="event.stopPropagation();toggleNoteMore(this)">Voir tout</button>
           <button class="npin-btn" type="button" aria-label="${n.pin?'Désépingler':'Épingler'}" aria-pressed="${n.pin?'true':'false'}" onclick="event.stopPropagation();togglePinFromList('${n.id}')">${PIN_SVG}</button>
         </div>
       </div>`;
@@ -23004,7 +23015,7 @@ function notesFilterChips(c){
 function setNotesFilter(k){
   if(!['all','pin','sql'].includes(k))return;
   notesFilter=notesFilter===k&&k!=='all'?'all':k;
-  notesEnter=false;renderNotes();
+  notesEnter=false;renderNotes({keepChips:true});
   if(navigator.vibrate)navigator.vibrate(6);
 }
 function notesSearchKey(e,surface){
@@ -23106,14 +23117,34 @@ function renderNotesSurface(wrap,prefix,opts){
   }else{
     const pinned=list.filter(n=>n.pin);
     const rest=list.filter(n=>!n.pin);
-    html=noteDupsHtml()+notesFilterChips(fCount)+(pinned.length?notesSectionHtml('Épinglées',pinned):'')+(rest.length?notesSectionHtml(pinned.length?'Autres':'Notes',rest):'');
+    html=notesFilterChips(fCount)+noteDupsHtml()+(pinned.length?notesSectionHtml('Épinglées',pinned):'')+(rest.length?notesSectionHtml(pinned.length?'Autres':'Notes',rest):'');
   }
   const listHost=document.getElementById(listId);
   if(listHost){
+    /* Changer de filtre ne fait pas sauter la page : la rangée de filtres reste au même endroit de l’écran. */
+    const scroller=isScreen?document.getElementById('scr-notes'):wrap;
+    const keep=!!(opts&&opts.keepChips&&scroller);
+    const row0=keep?listHost.querySelector('.sq-chips-row'):null;
+    const y0=row0?row0.getBoundingClientRect().top:null;
+    const chipFocus=!!(row0&&row0.contains(document.activeElement));
+    listHost.style.minHeight='';
     listHost.innerHTML=html;
     if(notesEnter){ listHost.querySelectorAll('.notes-list').forEach(l=>l.setAttribute('data-enter','')); notesEnter=false; }
     if(nTok.length)SQ.mark(listHost.querySelectorAll('.nctx,.ntxt,.nsql'),nTok);
-    listHost.querySelectorAll('.ntxt').forEach(el=>el.classList.toggle('is-clip',el.scrollHeight>el.clientHeight+2));
+    listHost.querySelectorAll('.ncard').forEach(card=>{
+      const t=card.querySelector('.ntxt'),q=card.querySelector('.nsql');
+      const clipT=!!(t&&t.scrollHeight>t.clientHeight+2),clipQ=!!(q&&q.scrollHeight>q.clientHeight+2);
+      if(t)t.classList.toggle('is-clip',clipT);
+      card.classList.toggle('has-more',clipT||clipQ);
+    });
+    const row1=y0!=null?listHost.querySelector('.sq-chips-row'):null;
+    if(row1){
+      let dy=row1.getBoundingClientRect().top-y0;
+      if(Math.abs(dy)>.5){scroller.scrollTop+=dy;dy=row1.getBoundingClientRect().top-y0;}
+      /* Liste plus courte : la page ne peut plus défiler jusque-là. On garde de la place sous la liste. */
+      if(dy>.5){listHost.style.minHeight=(listHost.offsetHeight+dy)+'px';scroller.scrollTop+=row1.getBoundingClientRect().top-y0;}
+      if(chipFocus){const on=row1.querySelector('.sq-chip.on')||row1.querySelector('.sq-chip');if(on)try{on.focus({preventScroll:true});}catch(e){}}
+    }
     const st=document.getElementById(`${prefix}-notes-status`);
     if(st)st.textContent=(nTok.length||notesFilter!=='all')&&all.length?(list.length?`${plur(list.length,'note')} trouvée${list.length>1?'s':''}`:'Aucune note trouvée'):'';
     const fresh=listHost.querySelector('.ncard.is-fresh');
@@ -23124,6 +23155,14 @@ function renderNotesSurface(wrap,prefix,opts){
     }
   }
   if(opts&&opts.resetScroll) wrap.scrollTop=0;
+}
+/* « Voir tout » / « Voir moins » d’une note coupée. En repliant une longue note, son début reste à l’écran. */
+function toggleNoteMore(btn){
+  const card=btn&&btn.closest('.ncard');if(!card)return;
+  const open=card.classList.toggle('is-open');
+  btn.setAttribute('aria-expanded',String(open));
+  btn.textContent=open?'Voir moins':'Voir tout';
+  if(!open){const sc=card.closest('.screen')||card.closest('#note-body');if(sc&&card.getBoundingClientRect().top<sc.getBoundingClientRect().top)card.scrollIntoView({block:'start'});}
 }
 function renderNotesHub(opts){
   renderNotesSurface(document.getElementById('note-body'),'sheet',opts);
@@ -24700,7 +24739,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-06-ludique-v1634';
+  const SW_CACHE='requete-2026-10-06-ludique-v1635';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
