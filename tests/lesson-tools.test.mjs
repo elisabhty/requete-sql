@@ -68,3 +68,15 @@ test('tableaux de résultat des cours : titres de colonnes et valeurs centrés (
   assert.ok(/\.exframe \.xf-result \.table-wrap tbody td:not\(\.num\)\{text-align:center\}/.test(css), 'valeurs centrées');
   assert.ok(!/\.exframe \.xf-result \.table-wrap [^{]*\{text-align:left\}/.test(css), 'plus de colonne alignée à gauche dans un cadre de résultat');
 });
+
+test('cours SELECT : l’étoile est un encadré « Bon à savoir » sous forme de question, pas une étape de la requête', () => {
+  /* guide() : une étape marquée aside devient un encadré non numéroté, avec son étiquette à la place de « Étape N ». */
+  assert.ok(html.includes("<div class=\"fn-use${st.aside?' is-aside':''}\"><p class=\"pt-syntax-h\"${st.aside?` data-tag=\"${st.aside}\"`:''}>"), 'guide() : encadré aside');
+  assert.ok(/\.fn-use\.is-aside\{counter-increment:none\}/.test(html), 'non compté dans les étapes');
+  assert.ok(/\.jn-course \.fn-use\.is-aside > \.pt-syntax-h::before\{content:attr\(data-tag\)!important/.test(html), 'étiquette à la place de « Étape N »');
+  const ctx = vm.createContext({});
+  vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), ctx);
+  const body = vm.runInContext('MODULES.flatMap(m=>m.lessons).find(l=>l.id===1)', ctx).studio.uses.body;
+  const heads = [...body.matchAll(/<div class="fn-use( is-aside)?"><p class="pt-syntax-h"(?: data-tag="([^"]*)")?>([^<]*)<\/p>/g)].map(m => (m[2] ? m[2] + ' : ' : '') + m[3].replace(/[\u00a0\u202f]/g, ' ')); /* guideFr met une espace insécable avant « ? » */
+  assert.deepEqual(heads, ['Afficher une ou plusieurs colonnes', 'Bien placer les virgules', 'Bon à savoir : Et pour afficher toutes les colonnes ?', 'La requête complète']);
+});
