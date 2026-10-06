@@ -49,3 +49,33 @@ test('note coupée : « Voir tout » la déplie sur place, sans ouvrir la note',
   assert.ok(/\.ncard\.is-open \.ntxt,\.ncard\.is-open \.ntxt\.is-clip\{max-height:none;-webkit-mask-image:none;mask-image:none\}/.test(html), 'texte déplié en entier, sans fondu');
   assert.ok(/\.ncard\.is-open \.nsql\{display:block;-webkit-line-clamp:unset\}/.test(html), 'requête dépliée en entier');
 });
+
+test('liste « Toutes » : une seule section, dont le nombre est celui du filtre « Toutes »', () => {
+  const surf = fnSrc('renderNotesSurface');
+  assert.ok(/html=notesFilterChips\(fCount\)\+noteDupsHtml\(\)\+notesSectionHtml\('Toutes les notes',list\);/.test(surf));
+  assert.ok(!/notesSectionHtml\('Épinglées',pinned\)/.test(surf), 'plus de section « Épinglées 16 » sous le filtre « Toutes 27 »');
+});
+
+test('éditeur de note : Supprimer supprime vraiment, et peut être annulé', () => {
+  const del = fnSrc('deleteNote');
+  /* Avant, quitter l'éditeur réenregistrait la note qu'on venait de supprimer. */
+  assert.ok(/editingNote=null; noteView='list';\s*backToNotesList\(\);/.test(del), 'l’éditeur est vidé avant le retour à la liste');
+  assert.ok(/toastWithAction\('Note supprimée','Tu peux encore l’annuler\.','Annuler',/.test(del), 'toast avec « Annuler »');
+  assert.ok(/state\.notes\.splice\(Math\.min\(i,state\.notes\.length\),0,gone\)/.test(del), 'Annuler remet la note à sa place');
+  assert.ok(/toastAction\)\{ const f=toastAction; toastAction=null; f\(\); return; \}/.test(fnSrc('toastGo')), 'le bouton du toast lance l’action');
+  assert.ok(/<button type="button" class="tgo" id="toast-go">/.test(html), 'bouton du toast : un vrai bouton');
+});
+
+test('éditeur de note : Enregistrer et Épingler donnent un retour visible', () => {
+  assert.equal((html.match(/\nfunction togglePin\(/g) || []).length, 1, 'une seule fonction togglePin (l’ancienne masquait la nouvelle)');
+  const save = fnSrc('saveNote');
+  assert.ok(/b\.innerHTML=`\$\{CHECK_SVG\}<span>Enregistrée<\/span>`/.test(save), 'le bouton passe à « ✓ Enregistrée »');
+  assert.ok(/toast\(wasNew\?'Note enregistrée':'Modifications enregistrées'/.test(save), 'toast de confirmation');
+  const pin = fnSrc('togglePin');
+  assert.ok(/persistEditingNote\(\)/.test(pin), 'l’épingle compte tout de suite');
+  assert.ok(/toast\(e\.pin\?'Note épinglée':'Note désépinglée'/.test(pin) && /ic\.animate\(/.test(pin), 'toast et épingle qui bascule');
+  assert.ok(/toast\(n\.pin\?'Note épinglée':'Note désépinglée'/.test(fnSrc('togglePinFromList')), 'même retour depuis la liste');
+  const css = fs.readFileSync(path.join(root, 'ludique.css'), 'utf8');
+  assert.ok(/html\.lq \.ne-row \.sec\.pin-on\{background:var\(--accent-soft\)!important;border-color:var\(--accent\)!important/.test(css), '« Épinglée » se voit (le style ludique forçait le bouton en blanc)');
+  assert.ok(/\.ne-row button svg\{width:16px;height:16px;flex:none\}/.test(html), 'l’icône d’épingle n’est plus écrasée sur téléphone');
+});
