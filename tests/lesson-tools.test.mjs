@@ -80,3 +80,25 @@ test('cours SELECT : l’étoile est un encadré « Bon à savoir » sous forme 
   const heads = [...body.matchAll(/<div class="fn-use( is-aside)?"><p class="pt-syntax-h"(?: data-tag="([^"]*)")?>([^<]*)<\/p>/g)].map(m => (m[2] ? m[2] + ' : ' : '') + m[3].replace(/[\u00a0\u202f]/g, ' ')); /* guideFr met une espace insécable avant « ? » */
   assert.deepEqual(heads, ['Afficher une ou plusieurs colonnes', 'Bien placer les virgules', 'Bon à savoir : Et pour afficher toutes les colonnes ?', 'La requête complète']);
 });
+
+test('apartés « Bon à savoir » (titre en question) dans 12 cours ; chaque cours finit par l’étape « La requête complète »', () => {
+  const ctx = vm.createContext({});
+  vm.runInContext(html.slice(html.indexOf('const SCHEMA_SQL ='), html.indexOf('let state=')), ctx);
+  const lessons = JSON.parse(vm.runInContext('JSON.stringify(MODULES.flatMap(m=>m.lessons).map(l=>({id:l.id,body:(l.studio&&l.studio.uses&&l.studio.uses.body)||""})))', ctx));
+  const norm = t => t.replace(/[  ]/g, ' ');
+  const asides = {};
+  for (const l of lessons) {
+    const heads = [...l.body.matchAll(/<div class="fn-use( is-aside)?[^"]*"><p class="pt-syntax-h"(?: data-tag="([^"]*)")?>([^<]*)<\/p>/g)];
+    if (!heads.length) continue;
+    const last = heads[heads.length - 1];
+    assert.ok(!last[1] && norm(last[3]) === 'La requête complète', `cours ${l.id} : la dernière étape reste « La requête complète »`);
+    const a = heads.filter(h => h[1]).map(h => { assert.equal(h[2], 'Bon à savoir'); return norm(h[3]); });
+    if (a.length) asides[l.id] = a;
+  }
+  assert.deepEqual(asides, {
+    1: ['Et pour afficher toutes les colonnes ?'], 13: ['Et avec plusieurs colonnes ?'], 7: ['Et un texte vide, c’est NULL ?'],
+    10: ['Et si on inverse les limites ?'], 23: ['Et si la valeur est un texte vide ?'], 17: ['WHERE ou HAVING ?'],
+    38: ['LEFT JOIN ou RIGHT JOIN ?'], 56: ['Faut-il tout découper ?'], 66: ['Vider une table, est-ce la supprimer ?', 'Et si DROP TABLE échoue ?'],
+    28: ['Que peut-il mal se passer ?'], 63: ['Que ne fait pas un SAVEPOINT ?'], 70: ['Que ne fait pas un trigger ?'],
+  });
+});
