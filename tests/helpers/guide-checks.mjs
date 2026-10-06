@@ -35,7 +35,7 @@ export function checkGuideLesson(env, l) {
   let runs = 0, testedTables = 0;
   const body = [l.situation, l.studio.problem.extra, l.studio.uses.body, (l.studio.reflex || {}).extra].join('\n');
   /* Requêtes à exécuter : elles marchent, sauf celles d'un encadré « Attention » (qui montrent un piège). */
-  const re = /<div class="ij-run"( data-warn="1")? data-run-sql="([^"]*)"( data-sim="[^"]*")?><\/div>/g;
+  const re = /<div class="ij-run"( data-warn="1")?(?: data-compact="1")? data-run-sql="([^"]*)"( data-sim="[^"]*")?><\/div>/g;
   let m, n = 0;
   while ((m = re.exec(body))) {
     const sql = decode(m[2]); n++; runs++;
