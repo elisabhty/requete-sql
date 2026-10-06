@@ -42,5 +42,5 @@ test('écran de fin : « Le réflexe de cette leçon » = la requête de la miss
   const recap = fnSrc('bravoRecapHtml');
   assert.ok(recap.indexOf('l.missionSql') > 0 && recap.indexOf('l.missionSql') < recap.indexOf('l.solution'), 'la mission passe avant la solution de l’exercice');
   for (const l of lessons) assert.ok(l.missionSql && l.missionSql.trim(), `cours ${l.id} : requête de mission`);
-  assert.equal(lessons.find(l => l.id === 1).missionSql, 'SELECT prenom, nom, adresse, ville, telephone\nFROM clients;');
+  assert.equal(lessons.find(l => l.id === 1).missionSql, 'SELECT prenom, nom, ville, telephone\nFROM clients;');
 });
