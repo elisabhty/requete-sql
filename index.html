@@ -2497,6 +2497,9 @@
   .notes-dups button:active{transform:scale(.94)}
   @keyframes savePop{0%{transform:scale(1)}45%{transform:scale(1.06)}100%{transform:scale(1)}}
   .ne-row .prim.is-saved{animation:savePop .38s var(--spring-ios)}
+  .ne-row .prim.is-saved svg{width:18px;height:18px;stroke-dasharray:24;stroke-dashoffset:24;animation:checkDraw .4s .08s ease-out forwards}
+  @keyframes checkDraw{to{stroke-dashoffset:0}}
+  @media (prefers-reduced-motion:reduce){.ne-row .prim.is-saved svg{animation:none;stroke-dashoffset:0}}
   .coda-note svg{transition:transform .3s var(--spring-ios)}
   .coda-note:active svg{transform:rotate(-18deg) translateY(-1px)}
   @media (prefers-reduced-motion:reduce){.notes-list[data-enter] .ncard,.ncard.is-fresh::after,.notes-overview-stats b.bump,.notes-dups,.ne-row .prim.is-saved{animation:none!important}.ncard,.ncard:active{transform:none}}
@@ -2538,7 +2541,10 @@
   .ne-row .sec.pin-on{background:var(--accent-soft);border-color:transparent;color:var(--accent)}
   .ne-row .del{background:var(--danger-soft);color:var(--danger);flex:none;padding:14px 18px}
   .ne-row .del:active{transform:scale(.97)}
-  .ne-row button svg{width:16px;height:16px}
+  .ne-row button svg{width:16px;height:16px;flex:none}
+  /* Téléphone : trois boutons sur une ligne — l’icône d’épingle ne doit pas être écrasée par le texte. */
+  @media (max-width:420px){.ne-row{gap:8px}.ne-row button{padding-left:10px;padding-right:10px;gap:5px}.ne-row .del{padding-left:14px;padding-right:14px}}
+  @media (max-width:350px){.ne-row{flex-wrap:wrap}.ne-row .del{flex:1 1 100%}}
   .ne-lab{font-size:11.5px;font-weight:750;color:var(--ink-2);text-transform:uppercase;letter-spacing:.6px;margin:18px 4px 6px}
   .notes-hub-new{width:100%;margin:0;background:var(--surface);color:var(--accent);border:1px solid var(--card-border);border-radius:18px;padding:15px 18px;font-family:var(--ui);font-size:15px;font-weight:750;cursor:pointer;box-shadow:var(--card-shadow);display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .16s var(--spring-ios),background .16s}
   .notes-hub-new:active{background:var(--surface-2);transform:scale(.98)}
@@ -6050,7 +6056,7 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
       <b id="toast-t">Nouvelle carte</b>
       <small id="toast-s"></small>
     </div>
-    <div class="tgo" id="toast-go">Voir</div>
+    <button type="button" class="tgo" id="toast-go">Voir</button>
   </div>
 
   <!-- Barre de touches SQL -->
@@ -21088,7 +21094,7 @@ const INFO_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strok
 function showShareCopied(ok=true){
   const t=document.getElementById('toast');
   if(!t)return;
-  toastId=null;
+  toastId=null; toastAction=null;
   const mini=document.getElementById('toast-mini');
   mini.style.background='';
   mini.className='tmini ok';
@@ -21111,10 +21117,10 @@ function cardToConsole(id){
   openConsoleProject('cours');
   fillConsoleSql(cardRunnableSql(CARTES[id]));
 }
-let toastId=null,toastTimer=null;
+let toastId=null,toastTimer=null,toastAction=null;
 function showUnlock(id){
   const c=CARTES[id]; if(!c)return;
-  toastId=id; lastUnlockedId=id;
+  toastId=id; lastUnlockedId=id; toastAction=null;
   const t=document.getElementById('toast');
   const mini=document.getElementById('toast-mini');
   mini.className='tmini card';
@@ -21133,7 +21139,17 @@ function showUnlock(id){
 }
 function toastGo(){
   document.getElementById('toast').classList.remove('on');
+  if(toastAction){ const f=toastAction; toastAction=null; f(); return; }
   if(toastId!=null){ switchTab('collection'); openCard(toastId); }
+}
+/* Toast avec une action (« Annuler » après une suppression) : un peu plus long, pour avoir le temps de toucher. */
+function toastWithAction(msg,sub,label,fn){
+  toast(msg,sub);
+  const t=document.getElementById('toast'),go=document.getElementById('toast-go');
+  toastAction=fn;
+  t.classList.add('is-action');
+  if(go){go.classList.remove('hidden');go.textContent=label;}
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.classList.remove('on');toastAction=null;},5200);
 }
 /* ============================================================
    9. PLANNING — vue semaine, dates explicites
@@ -21748,7 +21764,7 @@ function toast(msg,sub,tone){
   const go=document.getElementById('toast-go'); if(go)go.classList.add('hidden');
   document.getElementById('toast-t').textContent=msg;
   document.getElementById('toast-s').textContent=sub||'';
-  toastId=null;toastLift(t);t.classList.add('on');
+  toastId=null;toastAction=null;toastLift(t);t.classList.add('on');
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('on'),sub?2800:2000);
   if(navigator.vibrate)navigator.vibrate(8);
 }
@@ -23118,9 +23134,8 @@ function renderNotesSurface(wrap,prefix,opts){
   }else if(notesFilter!=='all'){
     html=notesFilterChips(fCount)+notesSectionHtml(notesFilter==='pin'?'Épinglées':'Avec une requête',list);
   }else{
-    const pinned=list.filter(n=>n.pin);
-    const rest=list.filter(n=>!n.pin);
-    html=notesFilterChips(fCount)+noteDupsHtml()+(pinned.length?notesSectionHtml('Épinglées',pinned):'')+(rest.length?notesSectionHtml(pinned.length?'Autres':'Notes',rest):'');
+    /* Une seule section, dont le nombre est celui du filtre « Toutes » ; les notes épinglées restent en tête. */
+    html=notesFilterChips(fCount)+noteDupsHtml()+notesSectionHtml('Toutes les notes',list);
   }
   const listHost=document.getElementById(listId);
   if(listHost){
@@ -23259,25 +23274,40 @@ function persistEditingNote(){
   save();
   return true;
 }
+/* Chaque action de l’éditeur se voit : le bouton change (coche, épingle qui bascule), puis un toast confirme.
+   Une suppression peut être annulée pendant quelques secondes. */
 function saveNote(){
+  const e=collectNote();
+  const empty=!!e&&!String(e.txt||'').trim()&&!String(e.sql||'').trim(),wasNew=!!(e&&e.isNew);
   const ok=persistEditingNote();
   const b=document.querySelector('#note-body .ne-row .prim');
-  if(ok&&b&&!b.disabled&&!(typeof motionOff==='function'&&motionOff())){
-    b.disabled=true; b.classList.add('is-saved'); b.textContent='✓ Enregistré';
+  const still=typeof motionOff==='function'&&motionOff();
+  if(ok&&b&&!b.disabled){
+    b.disabled=true; b.classList.add('is-saved'); b.innerHTML=`${CHECK_SVG}<span>Enregistrée</span>`;
     if(navigator.vibrate)navigator.vibrate(8);
-    setTimeout(backToNotesList,380);
-  }else backToNotesList();
+    setTimeout(()=>{backToNotesList();toast(wasNew?'Note enregistrée':'Modifications enregistrées',wasNew?'Retrouve-la dans tes notes.':'Ta note est à jour.');},still?0:650);
+    return;
+  }
+  backToNotesList();
+  if(!ok&&empty)toast(wasNew?'Rien à enregistrer':'Note vide supprimée',wasNew?'La note est vide.':'Elle ne contenait plus rien.','info');
 }
 function togglePin(){
   const e=collectNote(); if(!e)return;
   e.pin=!e.pin;
-  const btn=document.querySelector('.ne-row .sec');
+  const btn=document.querySelector('#note-body .ne-row .sec');
   if(btn){
     btn.classList.toggle('pin-on',e.pin);
     const sp=btn.querySelector('span'); if(sp) sp.textContent=e.pin?'Épinglée':'Épingler';
     btn.setAttribute('aria-pressed',e.pin?'true':'false');
+    const ic=btn.querySelector('svg');
+    if(ic&&ic.animate&&!(typeof motionOff==='function'&&motionOff()))ic.animate(e.pin
+      ?[{transform:'scale(.55) rotate(-30deg)'},{transform:'scale(1.3) rotate(10deg)',offset:.55},{transform:'rotate(-16deg)'}]
+      :[{transform:'rotate(-16deg)'},{transform:'scale(.8) rotate(8deg)',offset:.5},{transform:'none'}],{duration:460,easing:'cubic-bezier(.2,.9,.3,1)'});
   }
-  if(navigator.vibrate)navigator.vibrate(8);
+  /* L’épingle compte tout de suite (sans attendre « Enregistrer ») dès que la note a un contenu. */
+  const has=String(e.txt||'').trim()||String(e.sql||'').trim();
+  const ok=has&&persistEditingNote();
+  toast(e.pin?'Note épinglée':'Note désépinglée',ok?(e.pin?'Elle s’affiche en haut de tes notes.':'Elle reprend sa place dans la liste.'):'Écris ta note, puis enregistre-la.');
 }
 function togglePinFromList(id){
   const n=(state.notes||[]).find(x=>x.id===id); if(!n)return;
@@ -23285,11 +23315,28 @@ function togglePinFromList(id){
   if(root)root.querySelectorAll('.ncard[data-id]').forEach(el=>before.set(el.dataset.id,el.getBoundingClientRect().top));
   n.pin=!n.pin; save(); notesEnter=false; renderNotes();
   notesFlip(before,id);
-  if(navigator.vibrate)navigator.vibrate(8);
+  toast(n.pin?'Note épinglée':'Note désépinglée',n.pin?'Elle s’affiche en haut de tes notes.':'Elle reprend sa place dans la liste.');
 }
 function deleteNote(id){
-  state.notes=(state.notes||[]).filter(x=>x.id!==id);
-  save(); backToNotesList();
+  const all=state.notes||[],i=all.findIndex(x=>x.id===id),gone=i>=0?all[i]:null;
+  const go=()=>{
+    state.notes=all.filter(x=>x.id!==id);
+    save();
+    /* Sans cela, quitter l’éditeur réenregistrait la note : elle réapparaissait aussitôt. */
+    editingNote=null; noteView='list';
+    backToNotesList();
+    if(!gone)return;
+    toastWithAction('Note supprimée','Tu peux encore l’annuler.','Annuler',()=>{
+      state.notes=state.notes||[];
+      if(!state.notes.some(x=>x.id===gone.id))state.notes.splice(Math.min(i,state.notes.length),0,gone);
+      noteFreshId=gone.id; notesEnter=false; save(); renderNotes();
+      toast('Note restaurée');
+    });
+  };
+  /* La note s’efface avant de revenir à la liste. */
+  const nb=document.getElementById('note-body');
+  if(nb&&nb.animate&&!(typeof motionOff==='function'&&motionOff()))nb.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateY(10px) scale(.98)'}],{duration:220,easing:'ease-in'}).onfinish=go;
+  else go();
 }
 function backToNotesList(){
   if(noteView==='edit') persistEditingNote();
