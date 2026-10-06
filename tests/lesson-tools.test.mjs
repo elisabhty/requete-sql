@@ -1,5 +1,5 @@
-/* En-tête d'un cours : deux boutons, « Voir le schéma » et « Notes », visibles sur la leçon, l'exercice et le quiz
-   (pas dans un défi ni sur l'écran de fin), à la place de la bulle « Notes ». Carte « Mission accomplie » du cours
+/* En-tête d'un cours : deux boutons, « Schéma » et « Notes » (pastille + nom dessous), visibles sur la leçon, l'exercice
+   et le quiz (pas dans un défi ni sur l'écran de fin), à la place de la bulle « Notes ». Carte « Mission accomplie » du cours
    SELECT : les 9 colonnes de la table, la requête qui sélectionne les colonnes utiles, les 5 colonnes à l'arrivée. */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -24,6 +24,9 @@ test('en-tête du cours : un bouton « Voir le schéma » et un bouton « Notes 
   assert.equal(buttons.length, 2, 'deux boutons');
   assert.ok(/onclick="openSchemaSheet\(\)"[^>]*aria-label="Voir le schéma de la base"/.test(buttons[0]), 'schéma : feuille Schéma, nom accessible');
   assert.ok(/onclick="quickNote\(\)"[^>]*aria-label="Ouvrir mes notes"/.test(buttons[1]), 'notes : feuille Notes, nom accessible');
+  /* Une icône seule ne dit pas ce qu'elle ouvre : chaque bouton porte son nom sous la pastille (et ce nom fait partie du nom accessible). */
+  assert.ok(/<span class="nav-tool-ico"><svg[\s\S]*?<\/svg><\/span><span class="nav-tool-t">Schéma<\/span><\/button>/.test(buttons[0]), 'légende « Schéma »');
+  assert.ok(/<span class="nav-tool-ico"><svg[\s\S]*?<\/svg><\/span><span class="nav-tool-t">Notes<\/span><\/button>/.test(buttons[1]), 'légende « Notes »');
   assert.ok(html.includes('function openSchemaSheet(') && html.includes('function quickNote('), 'les deux feuilles existent');
 });
 
@@ -35,10 +38,12 @@ test('les boutons s’affichent sur la leçon, l’exercice et le quiz (étapes 
   assert.ok(/mode!=='lesson'/.test(show) && /nav-tools/.test(show) && /remove\('has-tools'\)/.test(show), 'cachés hors d’un cours');
 });
 
-test('style : boutons ronds à droite de l’en-tête, repère de lecture décalé, bulle « Notes » masquée dans un cours', () => {
+test('style : pastilles rondes à droite de l’en-tête avec leur nom dessous, repère de lecture décalé, bulle « Notes » masquée dans un cours', () => {
   assert.ok(/#scr-lesson \.navbar \.nav-tools\{position:absolute;right:12px/.test(css));
-  assert.ok(/#scr-lesson \.nav-tool\{[^}]*width:38px;height:38px/.test(css), 'cible tactile de 38 px (44 px avec la zone invisible)');
-  assert.ok(/\.nav-tool::after\{content:"";position:absolute;inset:-4px\}/.test(css));
+  assert.ok(/#scr-lesson \.nav-tool\{[^}]*min-width:44px;display:flex;flex-direction:column/.test(css), 'un seul bouton par outil (pastille + nom), cible tactile d’au moins 44 px');
+  assert.ok(/#scr-lesson \.nav-tool-ico\{[^}]*width:36px;height:36px[^}]*border-radius:50%/.test(css), 'pastille ronde de 36 px');
+  assert.ok(/#scr-lesson \.nav-tool-t\{font:700 10\.5px\/1\.1 var\(--display\)/.test(css), 'nom sous la pastille');
+  assert.ok(/#scr-lesson \.nav-tool:active \.nav-tool-ico\{transform:translateY\(3px\)/.test(css), 'la pastille s’enfonce au toucher');
   assert.ok(/\.navbar\.has-tools \.ls-where\{right:106px\}/.test(css) && /\.navbar\.has-tools \.nav-title\{margin-right:106px\}/.test(css));
   assert.ok(/body\.in-lesson:has\(#scr-lesson\.active \.navbar\.has-tools\) #fab\{display:none!important\}/.test(css));
 });
