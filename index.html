@@ -6501,22 +6501,24 @@ guide({ id:1, titre:"SELECT", résumé:"Choisir les colonnes à afficher",
 guide({ id:2, titre:"Renommer avec AS", résumé:"Donner un nom lisible à une colonne du résultat",
   sit:{
     blocks:[
-      "L’équipe commerciale prépare <b>un rapport sur les prix</b> du catalogue, destiné à des collègues qui ne connaissent pas la base de données.",
-      "La table <code>produits</code> contient au total <b>8 produits</b>. Pour construire le rapport, l’équipe souhaite récupérer uniquement :",
+      "L’équipe commerciale prépare un <b>dashboard</b> pour suivre les produits de la boutique. Il permettra de consulter rapidement les produits disponibles, leur prix et d’autres indicateurs utiles.",
+      "Les données du dashboard proviennent de la base de données. Mais certaines colonnes portent des noms courts comme <code>nom</code> et <code>prix</code>, peu explicites pour les personnes qui consulteront les données.",
+      "L’équipe souhaite donc afficher des <b>intitulés plus clairs</b>, comme « Nom du produit » et « Prix unitaire », sans modifier les noms enregistrés dans la base.",
+      "La table <code>produits</code> contient au total <b>8 produits</b>. Pour construire le dashboard, l’équipe souhaite récupérer uniquement :",
       {need:[["🏷️","Le nom du produit","table produits"],["💶","Son prix","table produits"]],label:"Les informations à récupérer"}
     ],
     problem:{
-      p:["Avec <code>SELECT</code>, SQL sait quelles <b>colonnes</b> afficher, mais il les présente sous <b>leur nom dans la base de données</b> : <code>nom</code> et <code>prix</code>.","Or, dans notre rapport, ces intitulés manquent de clarté : on ne sait pas de quoi parle <b>nom</b>, ni en quelle monnaie est exprimé <b>prix</b>."],
-      scene:{h:"📊 Rapport des prix",cols:"1.6fr 1fr",
+      p:["Avec <code>SELECT</code>, SQL sait quelles <b>colonnes</b> afficher, mais il les présente sous <b>leur nom dans la base de données</b> : <code>nom</code> et <code>prix</code>.","Or, dans notre dashboard, ces intitulés manquent de clarté : on ne sait pas de quoi parle <b>nom</b>, ni en quelle monnaie est exprimé <b>prix</b>."],
+      scene:{h:"📊 Dashboard des produits",cols:"1.6fr 1fr",
         lanes:[{c:[["h1","nom","t"],["h2","prix","t"]]},
           {k:"R1",c:[["a1","Fibre Prébiotique"],["a2","29.9"]]},
           {k:"R2",c:[["b1","Collagène Marin"],["b2","39.9"]]},
           {k:"R3",c:[["c1","Magnésium"],["c2","19.9"]]}],
-        caps:["<b>Rapport actuel</b> · Les colonnes portent les noms utilisés dans la base de données.","<b>Besoin</b> · Ces intitulés ne sont pas assez clairs pour des lecteurs qui ne connaissent pas la base.","<b>Résultat</b> · Le rapport doit afficher des intitulés plus clairs, avec les mêmes produits et les mêmes prix."],
+        caps:["<b>Dashboard actuel</b> · Les colonnes portent les noms utilisés dans la base de données.","<b>Besoin</b> · Ces intitulés ne sont pas assez clairs pour des lecteurs qui ne connaissent pas la base.","<b>Résultat</b> · Le dashboard doit afficher des intitulés plus clairs, avec les mêmes produits et les mêmes prix."],
         steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R1","R2","R3"],mark:{h1:"is-miss",h2:"is-miss"},d:2300},{cap:2,unmark:{h1:"is-miss",h2:"is-miss"},text:{h1:"produit",h2:"prix_euros"},on:["R1","R2","R3"],d:2600}]},
       then:["Il faut donc indiquer à SQL <b>quel nom afficher</b> pour chaque colonne : <code>produit</code> et <code>prix_euros</code>.","C’est exactement le rôle de <code>AS</code>."]
     },
-    mission:"Aide l’équipe commerciale à retrouver le <b>nom</b> et le <b>prix</b> de chaque produit, sous les intitulés <b>produit</b> et <b>prix_euros</b>, afin de préparer le rapport."
+    mission:"Aide l’équipe commerciale à retrouver le <b>nom</b> et le <b>prix</b> de chaque produit, sous les intitulés <b>produit</b> et <b>prix_euros</b>, afin de préparer le dashboard."
   },
   concept:{
     title:"Comment SQL peut-il savoir quel nom afficher ?",
@@ -6565,16 +6567,16 @@ guide({ id:2, titre:"Renommer avec AS", résumé:"Donner un nom lisible à une c
     ]},
     {h:"La requête complète",blocks:[
       "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, leur donner un alias, puis indiquer dans quelle table les lire.",
-      {say:"👇 Exécute la requête pour obtenir les données du rapport :",run:"SELECT nom AS produit, prix AS prix_euros\nFROM produits;"},
+      {say:"👇 Exécute la requête pour obtenir les données du dashboard :",run:"SELECT nom AS produit, prix AS prix_euros\nFROM produits;"},
       {done:{
-        label:"Des noms de la base aux intitulés du rapport",
+        label:"Des noms de la base aux intitulés du dashboard",
         unit:"cols",
         funnel:[
           {n:2,t:"colonnes avec leur nom d’origine",s:"<code>nom</code> et <code>prix</code>",dots:"00"},
           {step:"AS",s:"donne un nom d’affichage à chaque colonne"},
           {n:2,t:"⭐ colonnes avec des intitulés clairs",s:"<code>produit</code> et <code>prix_euros</code>",dots:"11",out:true}
         ],
-        sms:{ico:"📊",h:"Rapport des prix",aria:"Les produits s’ajoutent au rapport sous leurs nouveaux intitulés",msg:"<b>Rapport des prix</b><br>produit · prix_euros",people:[["F","Fibre Prébiotique","29.9"],["C","Collagène Marin","39.9"],["M","Magnésium","19.9"],["V","Vitamine D","14.9"],["T","Tisane Détox","12.5"]],more:3,moreT:"… et 3 autres",moreS:"produits du catalogue",st:["À ajouter","Ajout","✓ Ajouté"],plane:"doc",done:"✓ 8 produits dans le rapport"},
+        sms:{ico:"📊",h:"Dashboard des produits",aria:"Les produits s’ajoutent au dashboard sous leurs nouveaux intitulés",msg:"<b>Dashboard des produits</b><br>produit · prix_euros",people:[["F","Fibre Prébiotique","29.9"],["C","Collagène Marin","39.9"],["M","Magnésium","19.9"],["V","Vitamine D","14.9"],["T","Tisane Détox","12.5"]],more:3,moreT:"… et 3 autres",moreS:"produits du catalogue",st:["À ajouter","Ajout","✓ Ajouté"],plane:"doc",done:"✓ 8 produits dans le dashboard"},
         fill:["AS","produit","AS","prix_euros"],
         ui:{t:"8 produits, des intitulés clairs",s:"Les données n’ont pas changé.",n:["SELECT","AS","FROM"]},
         rows:8
@@ -24825,7 +24827,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-07-ludique-v1648';
+  const SW_CACHE='requete-2026-10-07-ludique-v1649';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
