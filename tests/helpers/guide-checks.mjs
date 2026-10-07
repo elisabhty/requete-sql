@@ -137,7 +137,7 @@ export function checkGuideLesson(env, l) {
   const lit = (/is-out">[\s\S]*?<\/li>/.exec(lastUse)[0].match(/class="is-null"/g) || []).length;
   if (!unitFree) assert.equal(lit, outN, `${l.titre} : autant de points allumés que de lignes gardées`);
   const sms = /ij-sms(?: is-mail)?(?: is-flat)?(?: is-icons)?" style="--n:(\d+);--sg:[\d.]+s"/.exec(lastUse);
-  if (sms) assert.equal(+sms[1], (lastUse.match(/<li(?: class="is-more")? style="--i:/g) || []).length, `${l.titre} : nombre d'envois`);
+  if (sms) assert.equal(+sms[1], (lastUse.match(/<li(?: class="is-(?:more|skip)")? style="--i:/g) || []).length, `${l.titre} : nombre d'envois`);
   /* Dashboard (guideBoard) : les en-têtes sont les colonnes du résultat (leurs alias), les lignes ses valeurs, dans l'ordre
      (les premières, puis éventuellement « … et N autres » et les dernières) ; data-total = nombre de lignes ; le compteur compte
      les lignes (ou les lignes repérées, ou les colonnes) ; le graphique a une barre par ligne, à la hauteur de la valeur de la

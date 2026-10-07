@@ -1044,6 +1044,7 @@
   .ij-sms.is-play .ij-sms-av{animation:smsAv .5s ease forwards calc(var(--t) + .5s)}
   .ij-sms.is-play .ij-sms-meter{animation:smsIn .35s ease both calc(var(--t0) + 1.8s)}
   .ij-sms.is-play .ij-sms-meter i::after{animation:smsFill .35s ease-out both calc(var(--t0) + 2.6s + var(--i)*var(--sg,.62s))}
+  .ij-sms.is-play .ij-sms-meter i.is-skip::after{animation:none}
   .ij-sms.is-play .ij-sms-done{animation:smsPop .45s cubic-bezier(.2,.8,.3,1.2) both calc(var(--t0) + 2.35s + var(--n,4)*var(--sg,.62s))}
   /* Variante e-mail : la bulle devient un aperçu de message. */
   #scr-lesson .ij-sms.is-mail .ij-sms-bubble{max-width:100%;width:100%;border-radius:14px;background:#fff;color:var(--ink)!important;border:1px solid var(--card-border);box-shadow:0 10px 20px -16px rgba(40,30,90,.45);transform-origin:center bottom}
@@ -6378,17 +6379,19 @@ const GUIDE_ICONS={
   phone:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>',
   doc:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>',
   pin:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+  key:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3 21 2M16 7l3 3M18 5l2 2"/></svg>',
   star:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>'
 };
 /* Animation d’envoi : SMS par défaut ; mail:true pour un e-mail ; st = les trois états d’une ligne (ex. appels) ;
-   plane = icône qui glisse sur la ligne (plane, phone, doc, pin, star) ; icons:true = états en pastilles ✓ (pour de longs libellés) ; more = nombre de personnes non listées (dernière ligne « … et N autres »). */
+   plane = icône qui glisse sur la ligne (plane, phone, doc, pin, key, star) ; icons:true = états en pastilles ✓ (pour de longs libellés) ; more = nombre de personnes non listées (dernière ligne « … et N autres »). */
 function guideSms(m){
   const rows=m.people.length+(m.more?1:0);
   const st=m.st||['En attente','Envoi','✓ Envoyé'];
   const sg=m.sg||(rows>6?0.34:0.62);
   const kind=m.plane||'plane',icon=GUIDE_ICONS[kind]||GUIDE_PLANE;
-  const row=(av,who,tel,i,more)=>`<li${more?' class="is-more"':''} style="--i:${i}"><b class="ij-sms-av" aria-hidden="true">${guideEsc(av)}</b><span class="ij-sms-who${more?' is-more-t':''}">${guideFr(guideEsc(who))}<small>${guideFr(guideEsc(tel))}</small></span><em class="ij-sms-st"><i class="is-idle">${guideFr(st[0])}</i><i class="is-wait">${guideFr(st[1])}<u>.</u><u>.</u><u>.</u></i><i class="is-sent">${guideFr(st[2])}</i></em><i class="ij-sms-plane is-send" aria-hidden="true">${icon}</i></li>`;
-  return `<div class="ij-sms${m.mail?' is-mail':''}${kind!=='plane'?' is-flat':''}${m.icons?' is-icons':''}" style="--n:${rows};--sg:${sg}s" role="group" aria-label="${guideEsc(m.aria||m.h).replace(/"/g,'&quot;')}"><p class="ij-sms-h"><i aria-hidden="true">${m.ico||'💬'}</i>${guideFr(m.h)}</p><div class="ij-sms-thread"><p class="ij-sms-typing" aria-hidden="true"><i></i><i></i><i></i></p><p class="ij-sms-bubble">${guideFr(m.msg)}</p></div><ul class="ij-sms-list">${m.people.map(([av,who,tel],i)=>row(av,who,tel,i)).join('')}${m.more?row('+'+m.more,m.moreT||`… et ${m.more} autres`,m.moreS||'',m.people.length,true):''}</ul><div class="ij-sms-meter" aria-hidden="true">${Array.from({length:rows},(_,i)=>`<i style="--i:${i}"></i>`).join('')}</div><p class="ij-sms-done">${guideFr(m.done)}</p></div>`;
+  /* 4e élément d’une ligne (facultatif) : {st, skip} — ses propres états, et skip pour une ligne écartée (ni envoi ni flash). */
+  const row=(av,who,tel,i,more,o)=>{const ss=(o&&o.st)||st,skip=!!(o&&o.skip);return `<li${more?' class="is-more"':skip?' class="is-skip"':''} style="--i:${i}"><b class="ij-sms-av" aria-hidden="true">${guideEsc(av)}</b><span class="ij-sms-who${more?' is-more-t':''}">${guideFr(guideEsc(who))}<small>${guideFr(guideEsc(tel))}</small></span><em class="ij-sms-st"><i class="is-idle">${guideFr(ss[0])}</i><i class="is-wait">${guideFr(ss[1])}<u>.</u><u>.</u><u>.</u></i><i class="is-sent">${guideFr(ss[2])}</i></em><i class="ij-sms-plane is-send" aria-hidden="true">${icon}</i></li>`;};
+  return `<div class="ij-sms${m.mail?' is-mail':''}${kind!=='plane'?' is-flat':''}${m.icons?' is-icons':''}" style="--n:${rows};--sg:${sg}s" role="group" aria-label="${guideEsc(m.aria||m.h).replace(/"/g,'&quot;')}"><p class="ij-sms-h"><i aria-hidden="true">${m.ico||'💬'}</i>${guideFr(m.h)}</p><div class="ij-sms-thread"><p class="ij-sms-typing" aria-hidden="true"><i></i><i></i><i></i></p><p class="ij-sms-bubble">${guideFr(m.msg)}</p></div><ul class="ij-sms-list">${m.people.map(([av,who,tel,o],i)=>row(av,who,tel,i,false,o)).join('')}${m.more?row('+'+m.more,m.moreT||`… et ${m.more} autres`,m.moreS||'',m.people.length,true):''}</ul><div class="ij-sms-meter" aria-hidden="true">${Array.from({length:rows},(_,i)=>`<i${m.people[i]&&m.people[i][3]&&m.people[i][3].skip?' class="is-skip"':''} style="--i:${i}"></i>`).join('')}</div><p class="ij-sms-done">${guideFr(m.done)}</p></div>`;
 }
 /* Animation « dashboard » (missions qui alimentent un tableau de bord, un rapport, un outil, une table…) : des tuiles, puis un
    tableau dont les en-têtes sont les colonnes du résultat. Avant la lecture, des cases grises (chargement) ; puis les en-têtes
@@ -6664,7 +6667,7 @@ guide({ id:1, titre:"SELECT", résumé:"Choisir les colonnes à afficher",
           {step:"SELECT prenom, nom, ville, telephone",s:"ne sélectionne que les colonnes utiles"},
           {n:4,t:"⭐ colonnes à l’arrivée",s:"Celles qui servent à identifier un client : <code>prenom</code>, <code>nom</code>, <code>ville</code> et <code>telephone</code>",dots:"011010010",out:true}
         ],
-        sms:{ico:"🚚",h:"Liste des clients",aria:"La liste des dix clients est transmise au transporteur",msg:"<b>Fichier du transporteur</b><br>Coordonnées des clients.",people:[["S","Sophie Martin","06 39 98 12 04"],["L","Lucas Bernard","06 39 98 21 47"],["E","Emma Dubois","06 39 98 33 08"],["N","Nathan Petit","06 39 98 40 15"],["C","Chloé Moreau","06 39 98 51 62"]],more:5,moreT:"… et 5 autres",moreS:"clients",icons:true,plane:"doc",done:"✓ 10 clients transmis au transporteur"},
+        sms:{mail:true,ico:"🚚",h:"Email au transporteur",aria:"La liste des dix clients, avec leur prénom, leur nom, leur ville et leur téléphone, est transmise par email au transporteur",msg:"<b>Liste de vos futurs clients</b><br>Bonjour, voici les clients que vous prendrez en charge : prénom, nom, ville et téléphone. 📎 liste_clients.csv",people:[["S","Sophie Martin","06 39 98 12 04"],["L","Lucas Bernard","06 39 98 21 47"],["E","Emma Dubois","06 39 98 33 08"],["N","Nathan Petit","06 39 98 40 15"],["C","Chloé Moreau","06 39 98 51 62"]],more:5,moreT:"… et 5 autres",moreS:"clients de la liste",st:["À ajouter","Ajout","✓ Dans la liste"],icons:true,plane:"doc",done:"✓ Liste de 10 clients transmise au transporteur"},
         fill:["ville","telephone","FROM","clients"],
         ui:{t:"10 clients dans la liste",s:"Chaque client apparaît uniquement avec les informations utiles au transporteur : la liste est prête.",n:["SELECT","FROM"]},
         rows:10
@@ -7041,7 +7044,7 @@ guide({ id:5, titre:"Comparer des valeurs", résumé:"Filtrer avec =, !=, >, <, 
           {step:"WHERE stock <= 60",s:"ne garde que les produits à 60 unités ou moins"},
           {n:3,t:"⭐ produits à recommander",s:"Tisane Détox, Protéine Végétale et Shaker Inox",dots:"00001101",out:true}
         ],
-        sms:{ico:"📦",h:"Commande de réassort",aria:"Les trois produits sont ajoutés à la commande de réassort",msg:"<b>Commande de réassort</b><br>Les produits à 60 unités ou moins",people:[["T","Tisane Détox","60 en stock"],["P","Protéine Végétale","45 en stock"],["S","Shaker Inox","30 en stock"]],st:["À commander","Commande","✓ Commandé"],plane:"doc",done:"✓ 3 produits commandés"},
+        sms:{mail:true,ico:"📦",h:"Commande au fournisseur",aria:"La commande de réassort des trois produits à 60 unités ou moins est envoyée par email au fournisseur",msg:"<b>Objet : commande de réassort</b><br>Bonjour, voici les produits à recommander : ceux dont le stock est de 60 unités ou moins.",people:[["T","Tisane Détox","60 en stock"],["P","Protéine Végétale","45 en stock"],["S","Shaker Inox","30 en stock"]],st:["À commander","Ajout","✓ Ajouté"],plane:"doc",done:"✓ Commande de 3 produits envoyée au fournisseur"},
         fill:["WHERE","stock","<=","60"],
         ui:{t:"3 produits à recommander",s:"Leur stock est de 60 unités ou moins : la commande de réassort est prête.",n:["SELECT","FROM","WHERE","<="]},
         rows:3
@@ -7233,7 +7236,7 @@ guide({ id:22, titre:"NOT", résumé:"Exclure ce qui correspond",
           {step:"WHERE NOT (ville = 'Paris' AND age > 30)",s:"écarte les clients de la première offre"},
           {n:7,t:"⭐ clients à contacter",s:"Lucas Bernard, Emma Dubois, Chloé Moreau, Hugo Laurent, Gabriel Michel, Inès Lefebvre et Nathan Dupont",dots:"0110110111",out:true}
         ],
-        sms:{ico:"🎁",h:"Seconde offre",aria:"La seconde offre est envoyée aux sept clients qui n’avaient pas reçu la première",msg:"Bonjour ! 🎁 Une seconde offre vous est réservée : profitez-en dès maintenant.",people:[["L","Lucas Bernard","Lyon · 28 ans"],["E","Emma Dubois","Marseille · 45 ans"],["C","Chloé Moreau","Bordeaux · 26 ans"],["H","Hugo Laurent","Lyon · 52 ans"],["G","Gabriel Michel","Toulouse · 29 ans"]],more:2,moreT:"… et 2 autres",moreS:"clients de la seconde offre",done:"✓ 7 offres envoyées"},
+        sms:{ico:"🎁",h:"Seconde offre",aria:"La seconde offre est envoyée aux sept clients qui n’avaient pas reçu la première",msg:"Bonjour ! 🎁 Une offre spéciale vous est réservée : profitez-en dès maintenant.",people:[["L","Lucas Bernard","Lyon · 28 ans"],["E","Emma Dubois","Marseille · 45 ans"],["C","Chloé Moreau","Bordeaux · 26 ans"],["H","Hugo Laurent","Lyon · 52 ans"],["G","Gabriel Michel","Toulouse · 29 ans"]],more:2,moreT:"… et 2 autres",moreS:"clients de la seconde offre",done:"✓ 7 offres envoyées"},
         fill:["WHERE","NOT","AND","30"],
         ui:{t:"7 clients pour la seconde offre",s:"Aucun n’a reçu la première offre : la liste de la seconde offre est prête.",n:["SELECT","FROM","WHERE","NOT","AND"]},
         rows:7
@@ -8068,7 +8071,7 @@ guide({ id:53, titre:"Fonctions de dates et heures", résumé:"Obtenir, extraire
           {step:"DATE(date_commande, '+7 days')",s:"ajoute 7 jours à chaque date"},
           {n:16,t:"⭐ messages de suivi à planifier",s:"une date de suivi pour chaque commande",dots:"1111111111111111",out:true}
         ],
-        sms:{ico:"📨",h:"Messages de suivi",aria:"Les messages de suivi sont planifiés, une semaine après chaque commande",msg:"Bonjour ! Votre commande est arrivée il y a une semaine : êtes-vous satisfait de vos produits ?",people:[["C","CMD-2026-1002481","2026-07-09"],["C","CMD-2026-1003912","2026-07-09"],["C","CMD-2026-1015630","2026-07-12"],["C","CMD-2026-1024057","2026-07-15"],["C","CMD-2026-1038264","2026-07-18"]],more:11,moreT:"… et 11 autres",moreS:"commandes à suivre",st:["À planifier","Planification","✓ Planifié"],icons:true,done:"✓ 16 messages planifiés"},
+        sms:{ico:"📨",h:"Messages de suivi",aria:"Les messages de suivi sont planifiés, 7 jours après chaque commande",msg:"Bonjour ! Vous avez passé commande il y a 7 jours : êtes-vous satisfait de votre achat ?",people:[["C","CMD-2026-1002481","2026-07-02 → 2026-07-09"],["C","CMD-2026-1003912","2026-07-02 → 2026-07-09"],["C","CMD-2026-1015630","2026-07-05 → 2026-07-12"],["C","CMD-2026-1024057","2026-07-08 → 2026-07-15"],["C","CMD-2026-1038264","2026-07-11 → 2026-07-18"]],more:11,moreT:"… et 11 autres",moreS:"suivis à planifier",st:["À planifier","Planification","✓ Planifié"],icons:true,done:"✓ 16 messages planifiés"},
         fill:["DATE","date_commande","'+7 days'","suivi"],
         ui:{t:"16 suivis planifiés",s:"Chaque suivi a lieu 7 jours après l’achat : les messages peuvent être envoyés.",n:["SELECT","DATE()","AS","FROM"]},
         rows:16
@@ -8257,7 +8260,7 @@ guide({ id:21, titre:"CASE", résumé:"Afficher une valeur selon une condition",
           {step:"CASE WHEN … ELSE … END",s:"calcule la catégorie de chaque client"},
           {n:10,t:"⭐ clients classés",s:"3 Jeune, 6 Adulte et 1 Senior",dots:"1111111111",out:true}
         ],
-        sms:{ico:"🎯",h:"Messages adaptés",aria:"Chaque client reçoit un message adapté à sa catégorie d’âge",msg:"Bonjour ! 🎯 Un message adapté à votre profil vous attend.",people:[["S","Sophie","34 ans · Adulte"],["L","Lucas","28 ans · Jeune"],["E","Emma","45 ans · Adulte"],["N","Nathan","31 ans · Adulte"],["C","Chloé","26 ans · Jeune"]],more:5,moreT:"… et 5 autres",moreS:"dont Hugo : Senior",done:"✓ 10 messages adaptés"},
+        sms:{ico:"🎯",h:"Campagne adaptée à l’âge",aria:"Chaque client reçoit la version du message qui correspond à sa catégorie d’âge : Jeune, Adulte ou Senior",msg:"Bonjour ! 🎯 Découvrez la sélection choisie pour votre âge.",people:[["S","Sophie","34 ans · sélection Adulte"],["L","Lucas","28 ans · sélection Jeune"],["E","Emma","45 ans · sélection Adulte"],["N","Nathan","31 ans · sélection Adulte"],["C","Chloé","26 ans · sélection Jeune"]],more:5,moreT:"… et 5 autres",moreS:"dont Hugo : sélection Senior",done:"✓ 10 messages adaptés : 3 Jeune, 6 Adulte, 1 Senior"},
         fill:["CASE","WHEN","ELSE","END"],
         ui:{t:"10 clients classés",s:"Chaque client a sa catégorie : le message de la campagne peut être adapté.",n:["SELECT","CASE","WHEN","ELSE","END","AS"]},
         rows:10
@@ -9098,7 +9101,7 @@ guide({ id:18, titre:"INNER JOIN", résumé:"Relier uniquement ce qui correspond
           {step:"WHERE … BETWEEN",s:"ne garde que les commandes de juillet 2026"},
           {n:14,t:"⭐ enquêtes à envoyer",s:"une par commande de juillet, avec le prénom et l’email du client",dots:"111111111111110",out:true}
         ],
-        sms:{mail:true,ico:"✉️",h:"Enquête de satisfaction",aria:"L’enquête de satisfaction est préparée pour chacune des 14 commandes de juillet",msg:"<b>Ton avis sur ta commande</b><br>Merci pour ta commande de juillet ! Donne-nous ton avis en 2 minutes 🙏",people:[["S","Sophie","sophie@mail.fr"],["S","Sophie","sophie@mail.fr"],["L","Lucas","lucas@mail.fr"],["E","Emma","emma@mail.fr"],["N","Nathan","nathan@mail.fr"]],more:9,moreT:"… et 9 autres",moreS:"enquêtes de juillet",st:["En attente","Préparation","✓ Prête"],done:"✓ 14 enquêtes dans la liste d’envoi"},
+        sms:{mail:true,ico:"✉️",h:"Enquête de satisfaction",aria:"L’enquête de satisfaction est préparée pour les 14 commandes de juillet ; Hugo n’a pas d’email",msg:"<b>Ton avis sur ta commande</b><br>Merci pour ta commande de juillet ! Donne-nous ton avis en 2 minutes 🙏",people:[["S","Sophie","sophie@mail.fr"],["S","Sophie","sophie@mail.fr"],["L","Lucas","lucas@mail.fr"],["E","Emma","emma@mail.fr"],["N","Nathan","nathan@mail.fr"]],more:9,moreT:"… et 9 autres",moreS:"dont Hugo, sans email",st:["En attente","Préparation","✓ Prête"],plane:"doc",done:"✓ 14 enquêtes dans la liste d’envoi"},
         fill:["INNER JOIN","clients","commandes.client_id","clients.id"],
         ui:{t:"La liste d’envoi est prête",s:"L’enquête de satisfaction peut partir.",n:["INNER JOIN","ON","WHERE","BETWEEN"]},
         rows:14
@@ -9869,7 +9872,7 @@ guide({ id:42, titre:"SELF JOIN", résumé:"Retrouver les clients qui habitent d
           {step:"AND c1.id < c2.id",s:"écarte les clients associés à eux-mêmes et les paires inversées"},
           {n:7,t:"⭐ paires de clients",s:"6 à Paris et 1 à Lyon",dots:"011101000110000001000000",out:true}
         ],
-        sms:{ico:"🤝",h:"Invitations à deux",aria:"Une invitation est préparée pour chacune des sept paires de clients",msg:"<b>Événement NutriBoost</b><br>Une invitation pour deux clients de la même ville 🎉",people:[["S","Sophie","avec Léa"],["S","Sophie","avec Nathan P."],["S","Sophie","avec Nathan D."],["L","Lucas","avec Hugo"],["N","Nathan","avec Léa"]],more:2,moreT:"… et 2 autres",moreS:"paires de clients",icons:true,plane:"pin",done:"✓ 7 invitations prêtes à envoyer"},
+        sms:{ico:"🤝",h:"Invitations à deux",aria:"La même invitation est envoyée aux deux clients de chacune des sept paires",msg:"<b>Événement NutriBoost</b><br>Une invitation pour deux clients de la même ville 🎉",people:[["S","Sophie","avec Léa · Paris"],["S","Sophie","avec Nathan P. · Paris"],["S","Sophie","avec Nathan D. · Paris"],["L","Lucas","avec Hugo · Lyon"],["N","Nathan","avec Léa · Paris"]],more:2,moreT:"… et 2 autres",moreS:"paires à Paris",icons:true,st:["En attente","Envoi","✓ Envoyée"],done:"✓ 7 paires invitées"},
         fill:["c1","c2","c1.ville","c2.ville","c1.id < c2.id"],
         ui:{t:"7 paires de clients de la même ville",s:"Aucun client n’est associé à lui-même, aucune paire n’apparaît deux fois.",n:["SELF JOIN","AS","ON","c1.id &lt; c2.id"]},
         rows:7
@@ -11231,7 +11234,7 @@ guide({ id:78, titre:"LAG et LEAD", résumé:"Comparer une ligne à la précéde
           {step:"LAG(…) puis AVG(…) par client",s:"calcule le délai de chaque commande, puis la moyenne de chaque client"},
           {n:8,t:"⭐ clients avec leur délai moyen",s:"10 jours par défaut pour les clients qui n’ont commandé qu’une fois",dots:"11111111",out:true}
         ],
-        sms:{ico:"🔔",h:"Rappels personnalisés",aria:"Chaque client recevra un rappel après son propre délai moyen",msg:"Bonjour ! 🛍️ Votre complément habituel touche à sa fin : pensez à le commander à nouveau.",people:[["S","Sophie","tous les 13 jours"],["L","Lucas","tous les 15 jours"],["E","Emma","tous les 22 jours"],["N","Nathan","tous les 14 jours"],["C","Chloé","tous les 20 jours"]],more:3,moreT:"… et 3 autres",moreS:"Hugo, Léa, Gabriel",icons:true,done:"✓ 8 rappels programmés"},
+        sms:{ico:"🔔",h:"Rappels personnalisés",aria:"Un rappel est programmé pour chaque client, après son propre délai moyen depuis sa dernière commande",msg:"Bonjour ! 🛍️ Votre complément habituel touche à sa fin : pensez à le commander à nouveau.",people:[["S","Sophie","13 j après sa dernière commande"],["L","Lucas","15 j après sa dernière commande"],["E","Emma","22 j après sa dernière commande"],["N","Nathan","14 j après sa dernière commande"],["C","Chloé","20 j après sa dernière commande"]],more:3,moreT:"… et 3 autres",moreS:"Hugo, Léa, Gabriel",st:["À programmer","Programmation","✓ Programmé"],icons:true,done:"✓ 8 rappels programmés"},
         fill:["LAG","PARTITION BY","COALESCE","AVG","GROUP BY"],
         ui:{t:"8 clients, un délai moyen chacun",s:"L’équipe sait maintenant après combien de jours programmer le rappel de chaque client.",n:["LAG()","PARTITION BY","WITH","AVG()","GROUP BY","COALESCE()","JOIN"]},
         rows:8
@@ -12769,7 +12772,7 @@ guide({ id:63, titre:"SAVEPOINT", résumé:"Annuler seulement une partie d’une
           {step:"ROLLBACK TO avant_14",s:"annule seulement la dernière expédition"},
           {n:2,t:"⭐ expéditions validées",s:"les commandes 12 et 13 ; la commande 14 reste en préparation",dots:"110",out:true}
         ],
-        sms:{ico:"📦",h:"Expéditions du jour",aria:"Les commandes 12 et 13 partent, la commande 14 reste en préparation",msg:"Deux colis partent, le colis refusé reste en préparation.",people:[["C","Commande 12","Collagène Marin"],["C","Commande 13","Shaker Inox"]],st:["À expédier","Expédition","✓ Expédiée"],plane:"pin",done:"✓ 2 commandes expédiées"},
+        sms:{ico:"📦",h:"Expéditions du jour",aria:"Le lot est validé : les commandes 12 et 13 partent, la commande 14 reste en préparation",msg:"Deux colis partent, le colis refusé reste en préparation.",people:[["12","Commande 12","Collagène Marin"],["13","Commande 13","Shaker Inox"],["14","Commande 14","Oméga 3 · colis refusé",{st:["À expédier","Annulation","↩ En préparation"],skip:true}]],st:["À expédier","Expédition","✓ Expédiée"],plane:"pin",done:"✓ Lot validé : 2 commandes expédiées, la 14 reste en préparation"},
         fill:["SAVEPOINT","avant_14","ROLLBACK TO","COMMIT"],
         ui:{t:"Deux expéditions validées, une annulée",s:"Le lot est validé sans le colis refusé.",n:["BEGIN","SAVEPOINT","ROLLBACK TO","COMMIT"]},
         rows:2
@@ -12976,7 +12979,7 @@ guide({ id:71, titre:"Concurrence et isolation", résumé:"Quand deux écritures
           {step:"BEGIN IMMEDIATE … COMMIT",s:"chaque caisse vérifie le stock et écrit à son tour"},
           {n:2,t:"⭐ ventes comptées",s:"le stock passe de 45 à 43",dots:"11",out:true}
         ],
-        sms:{ico:"🧾",h:"Caisses de la boutique",aria:"Les deux ventes sont comptées dans le stock",msg:"<b>Deux ventes</b>, une à chaque caisse : le stock descend de 45 à 43.",people:[["A","Caisse A","− 1 unité"],["B","Caisse B","− 1 unité"]],st:["En attente","Vente","✓ Comptée"],plane:"doc",done:"✓ 2 ventes comptées"},
+        sms:{ico:"🧾",h:"Caisses de la boutique",aria:"Les deux ventes sont comptées l’une après l’autre : le stock passe de 45 à 44, puis à 43",msg:"<b>Deux ventes</b>, une à chaque caisse, au même instant.",people:[["A","Caisse A","stock 45 → 44"],["B","Caisse B","stock 44 → 43"]],st:["En attente","Vente","✓ Comptée"],plane:"doc",done:"✓ 2 ventes comptées : stock à 43"},
         fill:["BEGIN IMMEDIATE","stock - 1","stock >= 1","COMMIT"],
         ui:{t:"Aucune vente perdue",s:"Chaque caisse est repartie de la valeur courante.",n:["BEGIN IMMEDIATE","UPDATE","COMMIT"]},
         rows:2
@@ -13200,7 +13203,7 @@ guide({ id:57, titre:"Les index et EXPLAIN", résumé:"Accélérer une recherche
           {step:"CREATE INDEX idx_commandes_numero",s:"range les numéros dans un index, à côté de la table"},
           {n:1,t:"⭐ commande lue directement",s:"CMD-2026-1847392, sans lire les 15 autres",dots:"0000000000000100",out:true}
         ],
-        sms:{ico:"🔎",h:"Recherche par numéro",aria:"La commande demandée est retrouvée directement grâce à l’index",msg:"<b>Numéro demandé</b><br>CMD-2026-1847392",people:[["14","CMD-2026-1847392","2026-07-30 · en préparation · 2 unités"]],st:["En attente","Recherche","✓ Retrouvée"],plane:"pin",done:"✓ Commande retrouvée"},
+        sms:{ico:"🔎",h:"Recherche par numéro",aria:"La commande demandée est retrouvée directement grâce à l’index",msg:"<b>Numéro demandé</b><br>CMD-2026-1847392",people:[["14","CMD-2026-1847392","2026-07-30 · en préparation · 2 unités"]],st:["En attente","Via l’index","✓ Retrouvée"],plane:"pin",done:"✓ Retrouvée sans parcourir toute la table"},
         fill:["CREATE INDEX","idx_commandes_numero","commandes","numero_commande"],
         ui:{t:"Une commande retrouvée directement",s:"Le plan annonce SEARCH et non plus SCAN : SQL passe par l’index.",n:["CREATE INDEX","ON","EXPLAIN QUERY PLAN"]},
         rows:1
@@ -13302,7 +13305,7 @@ guide({ id:50, titre:"Sécurité et droits", résumé:"Contrôler les accès ave
           {step:"GRANT SELECT ON clients TO app_user",s:"n’accorde que le droit de lecture"},
           {n:1,t:"⭐ droit accordé",s:"<code>app_user</code> peut lire <code>clients</code>, sans pouvoir la modifier",dots:"1000",out:true}
         ],
-        sms:{ico:"🔐",h:"Accès de l’outil de reporting",aria:"Le droit de lecture sur la table clients est accordé au compte app_user",msg:"<b>Compte app_user</b><br>Table clients",people:[["S","SELECT","lecture seule"]],st:["À accorder","Contrôle","✓ Accordé"],plane:"doc",done:"✓ Lecture accordée, rien de plus"},
+        sms:{mail:true,ico:"🔐",h:"Accès de l’outil de reporting",aria:"app_user reçoit le droit de lire la table clients ; ajouter, modifier et supprimer restent fermés",msg:"<b>Compte app_user</b><br>Table clients · lecture seule",people:[["S","SELECT","lire les clients"],["I","INSERT","ajouter un client",{st:["🔒 Fermé","Inchangé","🔒 Fermé"],skip:true}],["U","UPDATE","modifier un client",{st:["🔒 Fermé","Inchangé","🔒 Fermé"],skip:true}],["D","DELETE","supprimer un client",{st:["🔒 Fermé","Inchangé","🔒 Fermé"],skip:true}]],st:["À accorder","Attribution","✓ Accordé"],plane:"key",done:"✓ app_user peut lire les clients, sans pouvoir les modifier"},
         fill:["GRANT","SELECT","clients","app_user"],
         ui:{t:"Un accès en lecture seule",s:"L’outil de reporting est branché sans risque.",n:["GRANT","SELECT","ON","TO"]},
         rows:1
@@ -25203,7 +25206,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-07-ludique-v1675';
+  const SW_CACHE='requete-2026-10-07-ludique-v1676';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
