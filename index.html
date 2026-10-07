@@ -1455,11 +1455,18 @@
   .qf-run{margin-top:12px}
   @keyframes qfShake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
   /* Question mise en évidence : carte violette avec un « ? », petit « pop » à son arrivée à l’écran (initAskCards) */
-  /* « 👇 Teste par toi-même » (guideSay) : l’invitation à essayer est encadrée, juste au-dessus du cadre Exécuter qu’elle annonce. */
-  #scr-lesson p.gd-try{display:flex;align-items:flex-start;gap:9px;margin:14px 0 0!important;padding:10px 13px!important;border:1.5px solid color-mix(in srgb,var(--accent) 26%,#fff);border-radius:14px;background:var(--accent-soft);font-family:var(--display,var(--ui));font-size:15px!important;font-weight:700;line-height:1.35!important;color:var(--accent-ink)!important}
-  #scr-lesson p.gd-try i{flex:none;font-style:normal}
-  #scr-lesson p.gd-try span{min-width:0}
-  #scr-lesson p.gd-try + .ij-run-frame,#scr-lesson p.gd-try + .ij-run{margin-top:8px}
+  /* Consigne d’un cadre Exécuter (guideSay) : l’en-tête lilas du cadre, collé à lui — une seule carte (consigne, requête,
+     bouton), arrondie en haut comme le cadre. Pastille blanche pour l’emoji ; ✓ vert une fois la requête exécutée. */
+  #scr-lesson p.gd-try{display:flex;align-items:flex-start;gap:10px;margin:16px 0 0!important;padding:12px 14px 12px 12px!important;border:1.5px solid color-mix(in srgb,var(--accent) 20%,#fff);border-bottom:0;border-radius:22px 22px 0 0;background:var(--accent-soft);font-family:var(--ui);font-size:14.5px!important;font-weight:650;line-height:1.4!important;letter-spacing:-.005em;color:color-mix(in srgb,var(--accent-ink) 72%,#000)!important}
+  #scr-lesson p.gd-try > i{flex:none;display:grid;place-items:center;width:26px;height:26px;margin-top:-3px;border-radius:9px;background:#fff;box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 16%,#fff),0 1px 2px rgba(40,30,90,.08);font-style:normal;font-size:14px;line-height:1;transition:background-color .3s ease,box-shadow .3s ease}
+  #scr-lesson p.gd-try > span{min-width:0}
+  #scr-lesson p.gd-try + .ij-run-frame{margin-top:0!important}
+  #scr-lesson p.gd-try + .ij-run-frame > .exframe{border-top-left-radius:0!important;border-top-right-radius:0!important}
+  /* Requête exécutée (classe is-ran, posée par initRunSqlSlots) : la pastille devient ✓ — vert, ou violet dans un encadré
+     « Attention » (is-warn), où l’erreur est voulue. */
+  #scr-lesson p.gd-try.is-ran > i{font-size:0;background:var(--success-fill,var(--success,#15803d));box-shadow:none}
+  #scr-lesson p.gd-try.is-ran.is-warn > i{background:var(--accent)}
+  #scr-lesson p.gd-try.is-ran > i::after{content:"✓";font-size:14px;font-weight:800;color:#fff}
   .concept-block p.gd-ask{display:flex;align-items:center;gap:12px;margin:14px 0 16px;padding:12px 14px;border:2px solid color-mix(in srgb,var(--accent) 24%,#fff);border-radius:18px;background:var(--accent-soft);box-shadow:0 3px 0 var(--lip)}
   .gd-ask i{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:13px;background:var(--accent-grad);color:#fff;font:800 23px/1 var(--display);font-style:normal;box-shadow:0 3px 0 var(--accent-lip)}
   .concept-block p.gd-ask span{min-width:0;font:700 17.5px/1.3 var(--display);letter-spacing:-.01em;color:var(--accent-ink)}
@@ -6253,11 +6260,13 @@ function guideFr(h){
 function guideScene(sc){return Object.assign({},sc,{caps:sc.caps.map(guideFr)});}
 function guideEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function guideSyntax(s){return `<div class="pt-syntax"><pre class="cw-syntax">${guideEsc(s).replace(/⟦/g,'<span class="fk-syn-hit">').replace(/⟧/g,'</span>')}</pre></div>`;}
-/* Texte qui annonce un cadre Exécuter. « 👇 Teste par toi-même » (le plus souvent dans un encadré « Attention ») est une
-   invitation à essayer : elle est encadrée, pour ne pas se perdre dans l’explication. */
+/* Texte qui annonce un cadre Exécuter (« 👇 Exécute cette requête… », « 👇 Teste par toi-même… ») : il devient l’en-tête
+   du cadre, collé à lui (une seule carte : consigne, requête, bouton). L’emoji passe dans une pastille, qui devient ✓ une
+   fois la requête exécutée ; le deux-points final, inutile dans un en-tête, est retiré. */
 function guideSay(t){
-  const m=/^👇\s*(Teste par toi-même[\s\S]*)$/.exec(t);
-  return m?`<p class="gd-try"><i aria-hidden="true">👇</i><span>${guideFr(m[1])}</span></p>`:`<p>${guideFr(t)}</p>`;
+  const m=/^(\p{Extended_Pictographic}\uFE0F?)\s*([\s\S]*)$/u.exec(String(t).trim());
+  const ico=m?m[1]:'👇',txt=(m?m[2]:String(t)).replace(/\s*:\s*$/,'');
+  return `<p class="gd-try"><i aria-hidden="true">${ico}</i><span>${guideFr(txt)}</span></p>`;
 }
 function guideBlock(b){
   if(typeof b==='string')return `<p>${guideFr(b)}</p>`;
@@ -18646,13 +18655,23 @@ function initRunSqlSlots(){
     const src=!el.nextElementSibling&&el.closest('.qf')?el.closest('.qf'):el;
     let nx=src.nextElementSibling;
     while(nx&&nx.matches('p.ij-arrow')){notes.push(nx);nx=nx.nextElementSibling;}
-    if(!notes.length&&nx&&nx.tagName==='P'&&src.closest('.sit-memo.is-warn'))notes.push(nx);
+    /* La consigne d’un cadre Exécuter suivant (p.gd-try) n’est pas un commentaire : elle reste visible. */
+    if(!notes.length&&nx&&nx.tagName==='P'&&!nx.classList.contains('gd-try')&&src.closest('.sit-memo.is-warn'))notes.push(nx);
     notes.forEach(n=>n.classList.add('ij-await'));
     const wrap=document.createElement('div');
     wrap.className='ij-run-frame';
     wrap.innerHTML=piegeSqlRunBlock(el.dataset.runSql,el.dataset.sim,{hit:el.dataset.hit});
     el.replaceWith(wrap);
     const res=wrap.querySelector('.xf-result');
+    /* Consigne du cadre (p.gd-try, juste au-dessus) : sa pastille passe à ✓ quand le résultat s’affiche ; dans un encadré
+       « Attention » (data-warn), la requête montre une erreur voulue : ✓ violet plutôt que vert. */
+    const head=wrap.previousElementSibling&&wrap.previousElementSibling.matches('p.gd-try')?wrap.previousElementSibling:null;
+    if(head&&res){
+      if(el.dataset.warn)head.classList.add('is-warn');
+      const mark=()=>head.classList.toggle('is-ran',!res.hidden);
+      new MutationObserver(mark).observe(res,{attributes:true,attributeFilter:['hidden']});
+      mark();
+    }
     if(notes.length&&res){
       const mo=new MutationObserver(()=>{
         if(res.hidden)return;
@@ -24967,7 +24986,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-07-ludique-v1664';
+  const SW_CACHE='requete-2026-10-07-ludique-v1665';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
