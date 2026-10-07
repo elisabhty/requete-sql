@@ -6562,7 +6562,7 @@ function guideChips(m){
 function guidePage(m){
   const rows=m.rows,n=rows.length,sg=m.sg||(n>6?0.2:0.28),esc=t=>guideFr(guideEsc(t));
   const raw=v=>v==null?'NULL':typeof v==='number'&&!Number.isInteger(v)?String(+v.toFixed(2)):String(v);
-  const eur=v=>(+v).toFixed(Number.isInteger(+v)?0:2).replace('.',',')+'\u00a0€';
+  const dec=m.price!=null&&rows.some(r=>!Number.isInteger(+r[m.price]))?2:0,eur=v=>(+v).toFixed(dec).replace('.',',')+'\u00a0€';
   const fmtPrice=v=>m.fmt==='des'?`Dès\u00a0${Math.trunc(+v)}\u00a0€`:eur(v);
   const medal=r=>({1:'🥇',2:'🥈',3:'🥉'})[r]||`${r}ᵉ`;
   const v=(c,r,cls,txt,tag)=>`<${tag||'span'} class="db-x ${cls}" data-c="${c}" data-v="${guideEsc(raw(r[c])).replace(/"/g,'&quot;')}">${txt}</${tag||'span'}>`;
@@ -6810,7 +6810,7 @@ guide({ id:1, titre:"SELECT", résumé:"Choisir les colonnes à afficher",
           {step:"SELECT prenom, nom, ville, telephone",s:"ne sélectionne que les colonnes utiles"},
           {n:4,t:"⭐ colonnes à l’arrivée",s:"Celles qui servent à identifier un client : <code>prenom</code>, <code>nom</code>, <code>ville</code> et <code>telephone</code>",dots:"011010010",out:true}
         ],
-        sms:{mail:true,ico:"🚚",h:"Email au transporteur",aria:"La liste des dix clients, avec leur prénom, leur nom, leur ville et leur téléphone, est transmise par email au transporteur",msg:"<b>Liste de vos futurs clients</b><br>Bonjour, voici les clients que vous prendrez en charge : prénom, nom, ville et téléphone. 📎 liste_clients.csv",people:[["S","Sophie Martin","06 39 98 12 04"],["L","Lucas Bernard","06 39 98 21 47"],["E","Emma Dubois","06 39 98 33 08"],["N","Nathan Petit","06 39 98 40 15"],["C","Chloé Moreau","06 39 98 51 62"]],more:5,moreT:"… et 5 autres",moreS:"clients de la liste",st:["À ajouter","Ajout","✓ Dans la liste"],icons:true,plane:"doc",done:"✓ Liste de 10 clients transmise au transporteur"},
+        sms:{mail:true,ico:"🚚",h:"Email au transporteur",aria:"La liste des dix clients, avec leur prénom, leur nom, leur ville et leur téléphone, est transmise par email au transporteur",msg:"<b>Clients à livrer</b><br>Bonjour, voici la liste des clients que vous prendrez en charge, avec leur prénom, leur nom, leur ville et leur téléphone. 📎 liste_clients.csv",people:[["S","Sophie Martin","06 39 98 12 04 · Paris"],["L","Lucas Bernard","06 39 98 21 47 · Lyon"],["E","Emma Dubois","06 39 98 33 08 · Marseille"],["N","Nathan Petit","06 39 98 40 15 · Paris"],["C","Chloé Moreau","06 39 98 51 62 · Bordeaux"]],more:5,moreT:"… et 5 autres",moreS:"clients de la liste",st:["À ajouter","Ajout","✓ Dans la liste"],icons:true,plane:"doc",done:"✓ Liste de 10 clients transmise au transporteur"},
         fill:["ville","telephone","FROM","clients"],
         ui:{t:"10 clients dans la liste",s:"Chaque client apparaît uniquement avec les informations utiles au transporteur : la liste est prête.",n:["SELECT","FROM"]},
         rows:10
@@ -6915,7 +6915,7 @@ guide({ id:2, titre:"Renommer avec AS", résumé:"Donner un nom lisible à une c
           rows:[["Fibre Prébiotique","29.9"],["Collagène Marin","39.9"],["Magnésium","19.9"],["Vitamine D","14.9"],["Tisane Détox","12.5"],["Protéine Végétale","34.9"],["Oméga 3","24.9"],["Shaker Inox","15"]],
           done:"✓ Dashboard à jour"},
         fill:["AS","\"Nom du produit\"","AS","\"Prix (€)\""],
-        ui:{t:"8 produits, des intitulés clairs",s:"Les données n’ont pas changé.",n:["SELECT","AS","FROM"]},
+        ui:{t:"8 produits, des intitulés clairs",s:"Seuls les intitulés changent : dans la base, les colonnes s’appellent toujours nom et prix.",n:["SELECT","AS","FROM"]},
         rows:8
       }}
     ]}
@@ -7003,8 +7003,8 @@ guide({ id:13, titre:"DISTINCT", résumé:"Valeurs uniques",
           {step:"DISTINCT ville",s:"ne garde qu’une fois chaque ville"},
           {n:6,t:"⭐ villes différentes",s:"Paris, Lyon, Marseille, Bordeaux, Toulouse et Nantes",dots:"1110100110",out:true}
         ],
-        chips:{ico:"📍",h:"Lieux des rencontres",aria:"La liste des 6 villes où habitent les clients, chacune une seule fois : Paris, Lyon, Marseille, Bordeaux, Toulouse et Nantes",kpi:"Villes",label:"Villes où organiser les rencontres",icon:"📍",
-          rows:[["Paris"], ["Lyon"], ["Marseille"], ["Bordeaux"], ["Toulouse"], ["Nantes"]],done:"✓ 6 villes, chacune une seule fois"},
+        chips:{ico:"📍",h:"Lieux des rencontres",aria:"La liste des 6 villes où habitent les clients, chacune une seule fois : Paris, Lyon, Marseille, Bordeaux, Toulouse et Nantes",kpi:"Villes",label:"Villes où habitent les clients",icon:"📍",
+          rows:[["Paris"], ["Lyon"], ["Marseille"], ["Bordeaux"], ["Toulouse"], ["Nantes"]],done:"✓ Liste des lieux prête"},
         fill:["DISTINCT","ville","FROM","clients"],
         ui:{t:"6 villes pour les rencontres",s:"Chaque ville n’apparaît qu’une fois : l’équipe peut planifier les lieux.",n:["SELECT","DISTINCT","FROM"]},
         rows:6
@@ -7048,7 +7048,7 @@ guide({ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
         steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R2","R3","R5"],dim:["R2","R3","R5"],d:2300},{cap:2,fold:["R2","R3","R5"],d:2600}]},
       then:["Il faut donc indiquer à SQL <b>quelles lignes conserver</b> : uniquement celles où le client est à <b>Paris</b>.","C’est exactement le rôle de <code>WHERE</code>."]
     },
-    mission:"Aide l’équipe Marketing à retrouver le <b>prénom</b>, le <b>nom de famille</b>, l’<b>email</b> et la <b>ville</b> des clients qui habitent à <b>Paris</b>, afin de préparer la liste des personnes à inviter."
+    mission:"Aide l’équipe marketing à retrouver le <b>prénom</b>, le <b>nom de famille</b>, l’<b>email</b> et la <b>ville</b> des clients qui habitent à <b>Paris</b>, afin de préparer la liste des personnes à inviter."
   },
   concept:{
     title:"Comment SQL peut-il savoir quels clients garder ?",
@@ -7099,7 +7099,7 @@ guide({ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
           {step:"WHERE ville = 'Paris'",s:"ne garde que les clients de Paris"},
           {n:4,t:"⭐ clients à inviter",s:"Sophie Martin, Nathan Petit, Léa Simon et Nathan Dupont",dots:"1001001001",out:true}
         ],
-        sms:{mail:true,ico:"✉️",h:"Invitations par email",aria:"Invitation à l’événement envoyée par email aux 4 clients parisiens",msg:"Bonjour ! 🎉 Tu es invité(e) à notre événement éphémère. Les places sont limitées : réponds à cet email pour réserver la tienne.",people:[["S","Sophie Martin","sophie@mail.fr"],["N","Nathan Petit","nathan@mail.fr"],["L","Léa Simon","lea@mail.fr"],["N","Nathan Dupont","nathan.dupont@mail.fr"]],done:"✓ 4 invitations envoyées"},
+        sms:{mail:true,ico:"✉️",h:"Invitations par email",aria:"Invitation à l’événement envoyée par email aux 4 clients parisiens",msg:"Bonjour ! 🎉 Vous êtes invité(e) à notre événement éphémère à Paris. Les places sont limitées : répondez à cet email pour réserver la vôtre.",people:[["S","Sophie Martin","sophie@mail.fr"],["N","Nathan Petit","nathan@mail.fr"],["L","Léa Simon","lea@mail.fr"],["N","Nathan Dupont","nathan.dupont@mail.fr"]],done:"✓ 4 invitations envoyées"},
         fill:["clients","WHERE","ville","'Paris'"],
         ui:{t:"4 clients à inviter",s:"Tous habitent à Paris : la liste des invités est prête.",n:["SELECT","FROM","WHERE"]},
         rows:4
@@ -7188,7 +7188,7 @@ guide({ id:5, titre:"Comparer des valeurs", résumé:"Filtrer avec =, !=, >, <, 
           {step:"WHERE stock <= 60",s:"ne garde que les produits à 60 unités ou moins"},
           {n:3,t:"⭐ produits à recommander",s:"Tisane Détox, Protéine Végétale et Shaker Inox",dots:"00001101",out:true}
         ],
-        sms:{mail:true,ico:"📦",h:"Commande au fournisseur",aria:"La commande de réassort des trois produits à 60 unités ou moins est envoyée par email au fournisseur",msg:"<b>Objet : commande de réassort</b><br>Bonjour, voici les produits à recommander : ceux dont le stock est de 60 unités ou moins.",people:[["T","Tisane Détox","60 en stock"],["P","Protéine Végétale","45 en stock"],["S","Shaker Inox","30 en stock"]],st:["À commander","Ajout","✓ Ajouté"],plane:"doc",done:"✓ Commande de 3 produits envoyée au fournisseur"},
+        sms:{mail:true,ico:"📦",h:"Commande au fournisseur",aria:"La commande de réassort des trois produits à 60 unités ou moins est envoyée par email au fournisseur",msg:"<b>Objet : commande de réassort</b><br>Bonjour, nous souhaitons commander de nouveau les produits suivants. Voici leur stock actuel :",people:[["T","Tisane Détox","60 en stock"],["P","Protéine Végétale","45 en stock"],["S","Shaker Inox","30 en stock"]],st:["À commander","Ajout","✓ Ajouté"],plane:"doc",done:"✓ Commande de 3 produits envoyée au fournisseur"},
         fill:["WHERE","stock","<=","60"],
         ui:{t:"3 produits à recommander",s:"Leur stock est de 60 unités ou moins : la commande de réassort est prête.",n:["SELECT","FROM","WHERE","<="]},
         rows:3
@@ -7292,7 +7292,7 @@ guide({ id:6, titre:"AND et OR", résumé:"Combiner plusieurs conditions",
         ],
         sms:{ico:"🎟️",h:"Invitations à la conférence",aria:"Les quatre clients reçoivent leur invitation à la conférence sur la nutrition",msg:"Bonjour ! 🎉 Les agences de Paris et de Lyon vous invitent à une conférence sur la nutrition. Réservez votre place.",people:[["S","Sophie Martin","Paris · 34 ans"],["N","Nathan Petit","Paris · 31 ans"],["H","Hugo Laurent","Lyon · 52 ans"],["L","Léa Simon","Paris · 38 ans"]],done:"✓ 4 invitations envoyées"},
         fill:["WHERE","OR","AND","30"],
-        ui:{t:"4 clients à inviter",s:"Ils habitent à Paris ou à Lyon et ont plus de 30 ans : la liste des invités est prête.",n:["SELECT","FROM","WHERE","OR","AND"]},
+        ui:{t:"4 invités pour la conférence",s:"Ils habitent à Paris ou à Lyon et ont plus de 30 ans : la liste des invités est prête.",n:["SELECT","FROM","WHERE","OR","AND"]},
         rows:4
       }}
     ]}
@@ -7562,7 +7562,7 @@ guide({ id:8, titre:"LIKE", résumé:"Chercher un motif",
           {step:"WHERE prenom LIKE 'L%'",s:"ne garde que les prénoms qui commencent par L"},
           {n:2,t:"⭐ destinataires possibles",s:"Lucas Bernard et Léa Simon",dots:"0100001000",out:true}
         ],
-        sms:{ico:"📞",h:"Colis à identifier",aria:"La logistique appelle les deux clients dont le prénom commence par L",msg:"Bonjour ! Ici la logistique NutriBoost. Un colis nous est revenu avec une étiquette abîmée : est-il pour vous ?",people:[["L","Lucas Bernard","06 39 98 21 47"],["L","Léa Simon","06 39 98 74 29"]],st:["À appeler","Appel","✓ Appelé"],plane:"phone",done:"✓ 2 clients appelés"},
+        sms:{ico:"📞",h:"Colis à identifier",aria:"La logistique appelle les deux clients dont le prénom commence par L",msg:"Bonjour ! Ici la logistique NutriBoost. Un colis nous est revenu avec une étiquette déchirée : est-il pour vous ?",people:[["L","Lucas Bernard","06 39 98 21 47"],["L","Léa Simon","06 39 98 74 29"]],st:["À appeler","Appel","✓ Appelé"],plane:"phone",done:"✓ 2 clients appelés"},
         fill:["WHERE","prenom","LIKE","'L%'"],
         ui:{t:"2 destinataires possibles",s:"Le destinataire du colis est l’un des deux : l’équipe peut le joindre.",n:["SELECT","FROM","WHERE","LIKE","%"]},
         rows:2
@@ -7649,7 +7649,7 @@ guide({ id:9, titre:"IN", résumé:"Filtrer avec une liste",
           {step:"WHERE ville IN (…)",s:"ne garde que les clients des quatre villes"},
           {n:5,t:"⭐ clients à inviter",s:"Lucas Bernard, Emma Dubois, Chloé Moreau, Hugo Laurent et Gabriel Michel",dots:"0110110100",out:true}
         ],
-        sms:{ico:"🚐",h:"Invitations à la tournée",aria:"Les cinq clients des villes de la tournée reçoivent leur invitation",msg:"Bonjour ! 🚐 Notre tournée de démonstrations passe près de chez vous : venez essayer nos produits.",people:[["L","Lucas Bernard","Lyon"],["E","Emma Dubois","Marseille"],["C","Chloé Moreau","Bordeaux"],["H","Hugo Laurent","Lyon"],["G","Gabriel Michel","Toulouse"]],done:"✓ 5 invitations envoyées"},
+        sms:{ico:"🚐",h:"Invitations à la tournée",aria:"Les cinq clients des villes de la tournée reçoivent leur invitation",msg:"Bonjour ! 🚐 Notre tournée de démonstrations passe dans votre ville : venez essayer nos produits.",people:[["L","Lucas Bernard","Lyon"],["E","Emma Dubois","Marseille"],["C","Chloé Moreau","Bordeaux"],["H","Hugo Laurent","Lyon"],["G","Gabriel Michel","Toulouse"]],done:"✓ 5 invitations envoyées"},
         fill:["WHERE","ville","IN","'Bordeaux'"],
         ui:{t:"5 clients à inviter",s:"Ils habitent dans l’une des quatre villes : la liste des invités est prête.",n:["SELECT","FROM","WHERE","IN"]},
         rows:5
@@ -7739,7 +7739,7 @@ guide({ id:10, titre:"BETWEEN", résumé:"Filtrer un intervalle",
           {step:"WHERE prix BETWEEN 15 AND 30",s:"ne garde que les prix compris entre 15 € et 30 €"},
           {n:4,t:"⭐ produits à mettre en avant",s:"Fibre Prébiotique, Magnésium, Oméga 3 et Shaker Inox",dots:"10100011",out:true}
         ],
-        page:{ico:"🏷️",h:"Sélection « petits prix »",aria:"La sélection « petits prix » met en avant les 4 produits entre 15 € et 30 €",url:"boutique › petits-prix",banner:"Petits prix",sub2:"Nos produits de 15 € à 30 €",layout:"grid",name:0,price:1,badge:"Petit prix",
+        page:{ico:"🏷️",h:"Sélection « petits prix »",aria:"La sélection « petits prix » met en avant les 4 produits entre 15 € et 30 €",url:"boutique › petits-prix",banner:"Petits prix",sub2:"Nos produits de 15 € à 30 €",layout:"grid",name:0,price:1,
           rows:[["Fibre Prébiotique", 29.9], ["Magnésium", 19.9], ["Oméga 3", 24.9], ["Shaker Inox", 15]],done:"✓ 4 produits dans la sélection"},
         fill:["BETWEEN","15","AND","30"],
         ui:{t:"4 produits « petits prix »",s:"Leur prix est compris entre 15 € et 30 € : la sélection de la campagne est prête.",n:["SELECT","FROM","WHERE","BETWEEN","AND"]},
@@ -7843,7 +7843,7 @@ guide({ id:11, titre:"ORDER BY", résumé:"Ordonner le résultat",
           {n:8,t:"⭐ produits classés",s:"Shaker Inox, Collagène Marin, Magnésium, Oméga 3, Fibre Prébiotique, Tisane Détox, Vitamine D et Protéine Végétale",dots:"11111111",out:true}
         ],
         page:{ico:"🛒",h:"Catalogue de la boutique",aria:"Le catalogue classe les 8 produits par catégorie, puis du moins cher au plus cher",url:"boutique › catalogue",banner:"Catalogue",sub2:"Par catégorie, du moins cher au plus cher",layout:"list",name:0,group:1,price:2,
-          rows:[["Shaker Inox", "Accessoire", 15], ["Collagène Marin", "Beauté", 39.9], ["Magnésium", "Bien-être", 19.9], ["Oméga 3", "Bien-être", 24.9], ["Fibre Prébiotique", "Bien-être", 29.9], ["Tisane Détox", "Boisson", 12.5], ["Vitamine D", "Nutrition", 14.9], ["Protéine Végétale", "Nutrition", 34.9]],done:"✓ Catalogue classé, prêt à être publié"},
+          rows:[["Shaker Inox", "Accessoire", 15], ["Collagène Marin", "Beauté", 39.9], ["Magnésium", "Bien-être", 19.9], ["Oméga 3", "Bien-être", 24.9], ["Fibre Prébiotique", "Bien-être", 29.9], ["Tisane Détox", "Boisson", 12.5], ["Vitamine D", "Nutrition", 14.9], ["Protéine Végétale", "Nutrition", 34.9]],done:"✓ 5 catégories de A à Z, 8 produits en tout"},
         fill:["FROM","ORDER BY","categorie","prix"],
         ui:{t:"Un catalogue bien classé",s:"Le catalogue est prêt.",n:["SELECT","FROM","ORDER BY"]},
         rows:8
@@ -7953,8 +7953,8 @@ guide({ id:12, titre:"LIMIT et OFFSET", résumé:"Limiter le résultat et le dé
           {step:"LIMIT 3 OFFSET 3",s:"saute les 3 premiers produits, puis en garde 3"},
           {n:3,t:"⭐ produits de la page 2",s:"Oméga 3, Magnésium et Shaker Inox",dots:"00100011",out:true}
         ],
-        page:{ico:"📄",h:"Page 2 du catalogue",aria:"La page 2 du catalogue affiche les produits classés de la 4ᵉ à la 6ᵉ place, du plus cher au moins cher",url:"boutique › catalogue › page 2",banner:"Catalogue · page 2",sub2:"Du plus cher au moins cher",layout:"list",ref:0,name:1,price:2,pager:{"page": 2, "of": 3},
-          rows:[[7, "Oméga 3", 24.9], [3, "Magnésium", 19.9], [8, "Shaker Inox", 15]],done:"✓ Page 2 affichée, sans répéter la page 1"},
+        page:{ico:"📄",h:"Site de la boutique",aria:"La page 2 du catalogue affiche les produits classés de la 4e à la 6e place, du plus cher au moins cher",url:"boutique › catalogue › page 2",banner:"Catalogue · page 2",sub2:"Du plus cher au moins cher",layout:"list",ref:0,name:1,price:2,pager:{"page": 2, "of": 3},
+          rows:[[7, "Oméga 3", 24.9], [3, "Magnésium", 19.9], [8, "Shaker Inox", 15]],done:"✓ Du 4ᵉ au 6ᵉ produit sur 8"},
         fill:["ORDER BY","LIMIT","OFFSET","3"],
         ui:{t:"La page 2 du catalogue",s:"Les 3 produits suivants s’affichent, sans répéter ceux de la page 1.",n:["SELECT","FROM","ORDER BY","LIMIT","OFFSET"]},
         rows:3
@@ -7984,22 +7984,22 @@ guide({ id:12, titre:"LIMIT et OFFSET", résumé:"Limiter le résultat et le dé
 guide({ id:51, titre:"Fonctions de texte", résumé:"Transformer, nettoyer et découper du texte",
   sit:{
     blocks:[
-      "L’équipe support prépare <b>les comptes de l’espace client</b>. Chaque client doit recevoir un identifiant de connexion <b>en minuscules</b> : son prénom, un tiret, puis sa ville, par exemple <b>sophie-paris</b>.",
-      "La table <code>clients</code> contient au total <b>10 clients</b>, avec leur prénom et leur ville dans deux colonnes séparées. Pour créer les comptes, l’équipe souhaite récupérer uniquement :",
+      "L’équipe support prépare <b>les comptes de l’espace client</b>. Chaque client doit recevoir un identifiant de connexion <b>en minuscules</b> : son prénom, un tiret, puis son nom de famille, par exemple <b>sophie-martin</b>.",
+      "La table <code>clients</code> contient au total <b>10 clients</b>, avec leur prénom et leur nom de famille dans deux colonnes séparées. Pour créer les comptes, l’équipe souhaite récupérer uniquement :",
       {need:[["🔐","L’identifiant du client","à calculer"]],label:"L’information à récupérer"}
     ],
     problem:{
-      p:["Avec <code>SELECT</code>, SQL affiche les textes tels qu’ils sont enregistrés : le prénom et la ville commencent par une <b>majuscule</b> et sont dans <b>deux colonnes</b> différentes.","Or, l’identifiant doit être <b>un seul texte</b>, en <b>minuscules</b>, avec un tiret entre le prénom et la ville."],
+      p:["Avec <code>SELECT</code>, SQL affiche les textes tels qu’ils sont enregistrés : le prénom et le nom commencent par une <b>majuscule</b> et sont dans <b>deux colonnes</b> différentes.","Or, l’identifiant doit être <b>un seul texte</b>, en <b>minuscules</b>, avec un tiret entre le prénom et le nom."],
       scene:{h:"🔐 Identifiants des clients",cols:"1fr 1fr 1.7fr",
-        lanes:[{c:[["h1","prenom","t"],["h2","ville","t"],["h3","identifiant","t"]]},
-          {k:"R1",c:[["a1","Sophie"],["a2","Paris"],["a3","?","q"]]},
-          {k:"R2",c:[["b1","Lucas"],["b2","Lyon"],["b3","?","q"]]},
-          {k:"R3",c:[["c1","Emma"],["c2","Marseille"],["c3","?","q"]]}],
-        caps:["<b>Notre liste</b> · Le prénom et la ville sont enregistrés séparément, avec une majuscule.","<b>Besoin</b> · L’identifiant doit réunir les deux, en minuscules, avec un tiret.","<b>Résultat</b> · Chaque client doit recevoir son identifiant, sans que la table change."],
+        lanes:[{c:[["h1","prenom","t"],["h2","nom","t"],["h3","identifiant","t"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","Martin"],["a3","?","q"]]},
+          {k:"R2",c:[["b1","Lucas"],["b2","Bernard"],["b3","?","q"]]},
+          {k:"R3",c:[["c1","Emma"],["c2","Dubois"],["c3","?","q"]]}],
+        caps:["<b>Notre liste</b> · Le prénom et le nom sont enregistrés séparément, avec une majuscule.","<b>Besoin</b> · L’identifiant doit réunir les deux, en minuscules, avec un tiret.","<b>Résultat</b> · Chaque client doit recevoir son identifiant, sans que la table change."],
         steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,d:2200},{cap:2,off:["R1","R2","R3"],on:["a3","b3","c3"],d:2600}]},
       then:["Il faut donc <b>transformer</b> chaque texte, puis les <b>assembler</b> en un seul.","C’est exactement le rôle des <b>fonctions de texte</b>, comme <code>LOWER</code>, et de l’opérateur <code>||</code>."]
     },
-    mission:"Aide l’équipe support à créer, pour chaque client, un <b>identifiant</b> en minuscules : son <b>prénom</b>, un <b>tiret</b>, puis sa <b>ville</b>, afin de préparer les comptes de l’espace client."
+    mission:"Aide l’équipe support à créer, pour chaque client, un <b>identifiant</b> en minuscules : son <b>prénom</b>, un <b>tiret</b>, puis son <b>nom de famille</b>, afin de préparer les comptes de l’espace client."
   },
   concept:{
     title:"Comment SQL peut-il transformer un texte ?",
@@ -8036,17 +8036,17 @@ guide({ id:51, titre:"Fonctions de texte", résumé:"Transformer, nettoyer et d�
     ]},
     {h:"La requête complète",blocks:[
       "Il ne reste plus qu’à assembler les textes : l’opérateur <code>||</code> les met bout à bout, et on peut y placer des fonctions.",
-      {syntax:"⟦LOWER(prenom)⟧ || '-' || ⟦LOWER(ville)⟧"},
-      {say:"👇 Exécute la requête pour créer les identifiants :",run:"SELECT LOWER(prenom) || '-' || LOWER(ville) AS identifiant\nFROM clients;"},
+      {syntax:"⟦LOWER(prenom)⟧ || '-' || ⟦LOWER(nom)⟧"},
+      {say:"👇 Exécute la requête pour créer les identifiants :",run:"SELECT LOWER(prenom) || '-' || LOWER(nom) AS identifiant\nFROM clients;"},
       {done:{
-        label:"Des prénoms et des villes aux identifiants",
+        label:"Des prénoms et des noms aux identifiants",
         funnel:[
-          {n:10,t:"clients au départ",s:"un prénom et une ville, séparés",dots:"0000000000"},
-          {step:"LOWER(prenom) || '-' || LOWER(ville)",s:"transforme les textes, puis les assemble"},
-          {n:10,t:"⭐ identifiants créés",s:"par exemple sophie-paris, lucas-lyon, emma-marseille",dots:"1111111111",out:true}
+          {n:10,t:"clients au départ",s:"un prénom et un nom, séparés",dots:"0000000000"},
+          {step:"LOWER(prenom) || '-' || LOWER(nom)",s:"transforme les textes, puis les assemble"},
+          {n:10,t:"⭐ identifiants créés",s:"par exemple sophie-martin, lucas-bernard, emma-dubois",dots:"1111111111",out:true}
         ],
-        chips:{ico:"🔐",h:"Comptes de l’espace client",aria:"Un identifiant en minuscules pour chacun des 10 clients : son prénom, un tiret, puis sa ville",kpi:"Identifiants",label:"Identifiants de connexion",icon:"👤",mono:true,
-          rows:[["sophie-paris"], ["lucas-lyon"], ["emma-marseille"], ["nathan-paris"], ["chloé-bordeaux"], ["hugo-lyon"], ["léa-paris"], ["gabriel-toulouse"], ["inès-nantes"], ["nathan-paris"]],done:"✓ 10 identifiants prêts pour les comptes"},
+        chips:{ico:"🔐",h:"Comptes de l’espace client",aria:"Un identifiant en minuscules pour chacun des 10 clients : son prénom, un tiret, puis son nom",kpi:"Identifiants",label:"Identifiants de connexion",icon:"👤",mono:true,
+          rows:[["sophie-martin"], ["lucas-bernard"], ["emma-dubois"], ["nathan-petit"], ["chloé-moreau"], ["hugo-laurent"], ["léa-simon"], ["gabriel-michel"], ["inès-lefebvre"], ["nathan-dupont"]],done:"✓ Tous différents : aucun compte en double"},
         fill:["LOWER","'-'","LOWER","identifiant"],
         ui:{t:"10 identifiants créés",s:"Chaque client a son identifiant en minuscules : les comptes peuvent être créés.",n:["SELECT","LOWER()","||","AS","FROM"]},
         rows:10
@@ -8057,17 +8057,17 @@ guide({ id:51, titre:"Fonctions de texte", résumé:"Transformer, nettoyer et d�
     {recap:[
       ["🔤","Une <b>fonction de texte</b> transforme une valeur dans le résultat, sans modifier la table :",null,"LOWER(prenom)"],
       ["🧰","Une fonction par besoin : <code>UPPER</code> et <code>LOWER</code>, <code>TRIM</code>, <code>LENGTH</code>, <code>SUBSTR</code>, <code>REPLACE</code>."],
-      ["🔗","<code>||</code> assemble des textes, et on peut y placer des fonctions :",null,"LOWER(prenom) || '-' || LOWER(ville)"]
+      ["🔗","<code>||</code> assemble des textes, et on peut y placer des fonctions :",null,"LOWER(prenom) || '-' || LOWER(nom)"]
     ],label:"Les trois idées à retenir"}
   ],
-  anatomie:[{tok:"SELECT",txt:"Commence la lecture des données."},{tok:"LOWER(prenom)",txt:"Le prénom, en minuscules."},{tok:"||",punc:1,txt:"Assemble deux textes."},{tok:"'-'",plain:1,txt:"Un tiret, écrit entre guillemets simples."},{tok:"LOWER(ville)",txt:"La ville, en minuscules."},{tok:"AS identifiant",txt:"Nomme la colonne obtenue."}],
+  anatomie:[{tok:"SELECT",txt:"Commence la lecture des données."},{tok:"LOWER(prenom)",txt:"Le prénom, en minuscules."},{tok:"||",punc:1,txt:"Assemble deux textes."},{tok:"'-'",plain:1,txt:"Un tiret, écrit entre guillemets simples."},{tok:"LOWER(nom)",txt:"Le nom de famille, en minuscules."},{tok:"AS identifiant",txt:"Nomme la colonne obtenue."}],
   exemple:"SELECT nom, LENGTH(nom) AS longueur FROM produits;",
   attendu:"<b>8 lignes</b>, avec le nombre de caractères de chaque nom : par exemple Magnésium → 9.",
-  retenir:"Une fonction de texte transforme une valeur dans le résultat, sans modifier la table : <code>UPPER</code>, <code>LOWER</code>, <code>TRIM</code>, <code>LENGTH</code>, <code>SUBSTR</code>, <code>REPLACE</code>.<br><br><code>||</code> assemble des textes ; on peut y placer des fonctions : <code>LOWER(prenom) || '-' || LOWER(ville)</code>.",
+  retenir:"Une fonction de texte transforme une valeur dans le résultat, sans modifier la table : <code>UPPER</code>, <code>LOWER</code>, <code>TRIM</code>, <code>LENGTH</code>, <code>SUBSTR</code>, <code>REPLACE</code>.<br><br><code>||</code> assemble des textes ; on peut y placer des fonctions : <code>LOWER(prenom) || '-' || LOWER(nom)</code>.",
   consigne:"Affiche le prénom de chaque client et le nombre de caractères de ce prénom. Nomme la colonne calculée longueur.",
   solution:"SELECT prenom, LENGTH(prenom) AS longueur FROM clients;",
   indice:"<code>LENGTH(prenom)</code> compte les caractères du prénom. Donne un alias à la colonne calculée avec <code>AS</code>.",
-  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT nom, LENGTH(nom) AS longueur FROM produits;"},{k:"ident",label:"Identifiant",sql:"SELECT LOWER(prenom) || '-' || LOWER(ville) AS identifiant FROM clients;",expectRows:10}],
+  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT nom, LENGTH(nom) AS longueur FROM produits;"},{k:"ident",label:"Identifiant",sql:"SELECT LOWER(prenom) || '-' || LOWER(nom) AS identifiant FROM clients;",expectRows:10}],
   learningCheck:{question:"UPPER(ville) modifie-t-il la ville enregistrée dans la table ?",options:["Oui, définitivement","Non, seul le résultat est transformé","Seulement avec ORDER BY"],answer:1,explanation:"Une fonction calcule une nouvelle valeur dans le résultat. La table reste intacte."}
 }),
 guide({ id:52, titre:"Fonctions numériques", résumé:"Calculer, arrondir et manipuler des nombres",
@@ -8132,10 +8132,10 @@ guide({ id:52, titre:"Fonctions numériques", résumé:"Calculer, arrondir et ma
           {step:"ROUND(prix * 0.9, 2)",s:"calcule le prix moins 10 %, arrondi au centime"},
           {n:8,t:"⭐ prix promotionnels",s:"par exemple 26,91 € au lieu de 29,90 €",dots:"11111111",out:true}
         ],
-        page:{ico:"🏷️",h:"Étiquettes de la promotion",aria:"Les étiquettes de la promotion affichent le prix de chaque produit moins 10 %, arrondi au centime",chrome:false,banner:"Promotion −10 %",sub2:"Planche d’étiquettes",layout:"grid",name:0,price:1,badge:"−10 %",
-          rows:[["Fibre Prébiotique", 26.91], ["Collagène Marin", 35.91], ["Magnésium", 17.91], ["Vitamine D", 13.41], ["Tisane Détox", 11.25], ["Protéine Végétale", 31.41], ["Oméga 3", 22.41], ["Shaker Inox", 13.5]],done:"✓ 8 étiquettes prêtes"},
+        page:{ico:"🏷️",h:"Étiquettes de la promotion",aria:"Les étiquettes de la promotion affichent le prix de chaque produit moins 10 %, arrondi au centime",chrome:false,banner:"Promotion −10 %",sub2:"Prix arrondis au centime",layout:"grid",name:0,price:1,badge:"−10 %",
+          rows:[["Fibre Prébiotique", 26.91], ["Collagène Marin", 35.91], ["Magnésium", 17.91], ["Vitamine D", 13.41], ["Tisane Détox", 11.25], ["Protéine Végétale", 31.41], ["Oméga 3", 22.41], ["Shaker Inox", 13.5]],done:"✓ Planche prête à imprimer"},
         fill:["ROUND","*","0.9","2"],
-        ui:{t:"8 prix promotionnels",s:"Les étiquettes sont prêtes.",n:["SELECT","ROUND()","*","AS","FROM"]},
+        ui:{t:"8 prix promotionnels",s:"Chaque prix baisse de 10 %, arrondi au centime : les étiquettes peuvent être imprimées.",n:["SELECT","ROUND()","*","AS","FROM"]},
         rows:8
       }}
     ]}
@@ -8220,9 +8220,9 @@ guide({ id:53, titre:"Fonctions de dates et heures", résumé:"Obtenir, extraire
           {step:"DATE(date_commande, '+7 days')",s:"ajoute 7 jours à chaque date"},
           {n:16,t:"⭐ messages de suivi à planifier",s:"une date de suivi pour chaque commande",dots:"1111111111111111",out:true}
         ],
-        sms:{ico:"📨",h:"Messages de suivi",aria:"Les messages de suivi sont planifiés, 7 jours après chaque commande",msg:"Bonjour ! Vous avez passé commande il y a 7 jours : êtes-vous satisfait de votre achat ?",people:[["C","CMD-2026-1002481","2026-07-02 → 2026-07-09"],["C","CMD-2026-1003912","2026-07-02 → 2026-07-09"],["C","CMD-2026-1015630","2026-07-05 → 2026-07-12"],["C","CMD-2026-1024057","2026-07-08 → 2026-07-15"],["C","CMD-2026-1038264","2026-07-11 → 2026-07-18"]],more:11,moreT:"… et 11 autres",moreS:"suivis à planifier",st:["À planifier","Planification","✓ Planifié"],icons:true,done:"✓ 16 messages planifiés"},
+        sms:{ico:"📨",h:"Messages de suivi",aria:"Les messages de suivi sont planifiés, 7 jours après chaque commande",msg:"Bonjour ! Vous avez passé commande il y a 7 jours : êtes-vous satisfait de votre achat ?",people:[["1","CMD-2026-1002481","2026-07-02 → 2026-07-09"],["2","CMD-2026-1003912","2026-07-02 → 2026-07-09"],["3","CMD-2026-1015630","2026-07-05 → 2026-07-12"],["4","CMD-2026-1024057","2026-07-08 → 2026-07-15"],["5","CMD-2026-1038264","2026-07-11 → 2026-07-18"]],more:11,moreT:"… et 11 autres",moreS:"jusqu’au 2026-08-10",st:["À planifier","Planification","✓ Planifié"],icons:true,done:"✓ 16 messages planifiés"},
         fill:["DATE","date_commande","'+7 days'","suivi"],
-        ui:{t:"16 suivis planifiés",s:"Chaque suivi a lieu 7 jours après l’achat : les messages peuvent être envoyés.",n:["SELECT","DATE()","AS","FROM"]},
+        ui:{t:"16 dates de suivi calculées",s:"Chaque date tombe 7 jours après la commande : les messages de suivi peuvent être planifiés.",n:["SELECT","DATE()","AS","FROM"]},
         rows:16
       }}
     ]}
@@ -8314,8 +8314,8 @@ guide({ id:54, titre:"Fonctions de conversion de types", résumé:"Passer d’un
           {step:"CAST(prix AS INTEGER)",s:"convertit chaque prix en nombre entier"},
           {n:8,t:"⭐ prix entiers",s:"par exemple 29 pour 29,90 €",dots:"11111111",out:true}
         ],
-        page:{ico:"🪧",h:"Bannière « Dès … € »",aria:"La bannière de la page d’accueil affiche chaque produit avec son prix sans décimales",url:"boutique › accueil",banner:"Nos produits",sub2:"Des prix tout ronds",layout:"grid",name:0,price:1,fmt:"des",
-          rows:[["Fibre Prébiotique", 29], ["Collagène Marin", 39], ["Magnésium", 19], ["Vitamine D", 14], ["Tisane Détox", 12], ["Protéine Végétale", 34], ["Oméga 3", 24], ["Shaker Inox", 15]],done:"✓ Bannière prête : 8 prix sans décimales"},
+        page:{ico:"🪧",h:"Bannière « Dès … € »",aria:"La bannière de la page d’accueil affiche chaque produit avec son prix sans décimales",url:"boutique › accueil",banner:"Nos produits",sub2:"Prix sans les centimes",layout:"grid",name:0,price:1,fmt:"des",
+          rows:[["Fibre Prébiotique", 29], ["Collagène Marin", 39], ["Magnésium", 19], ["Vitamine D", 14], ["Tisane Détox", 12], ["Protéine Végétale", 34], ["Oméga 3", 24], ["Shaker Inox", 15]],done:"✓ Bannière en ligne sur la page d’accueil"},
         fill:["CAST","prix","AS","INTEGER"],
         ui:{t:"8 prix sans décimales",s:"Chaque prix est converti en entier : la bannière peut s’afficher.",n:["SELECT","CAST()","AS","FROM"]},
         rows:8
@@ -8408,9 +8408,9 @@ guide({ id:21, titre:"CASE", résumé:"Afficher une valeur selon une condition",
         funnel:[
           {n:10,t:"clients au départ",s:"un âge, mais aucune catégorie",dots:"0000000000"},
           {step:"CASE WHEN … ELSE … END",s:"calcule la catégorie de chaque client"},
-          {n:10,t:"⭐ clients classés",s:"3 Jeune, 6 Adulte et 1 Senior",dots:"1111111111",out:true}
+          {n:10,t:"⭐ clients classés",s:"Jeune : 3 · Adulte : 6 · Senior : 1",dots:"1111111111",out:true}
         ],
-        sms:{ico:"🎯",h:"Campagne adaptée à l’âge",aria:"Chaque client reçoit la version du message qui correspond à sa catégorie d’âge : Jeune, Adulte ou Senior",msg:"Bonjour ! 🎯 Découvrez la sélection choisie pour votre âge.",people:[["S","Sophie","34 ans · sélection Adulte"],["L","Lucas","28 ans · sélection Jeune"],["E","Emma","45 ans · sélection Adulte"],["N","Nathan","31 ans · sélection Adulte"],["C","Chloé","26 ans · sélection Jeune"]],more:5,moreT:"… et 5 autres",moreS:"dont Hugo : sélection Senior",done:"✓ 10 messages adaptés : 3 Jeune, 6 Adulte, 1 Senior"},
+        sms:{ico:"🎯",h:"Campagne adaptée à l’âge",aria:"Chaque client reçoit la version du message qui correspond à sa catégorie d’âge : Jeune, Adulte ou Senior",msg:"Bonjour ! 🎯 Découvrez la sélection choisie pour votre âge.",people:[["S","Sophie","34 ans · catégorie Adulte"],["L","Lucas","28 ans · catégorie Jeune"],["E","Emma","45 ans · catégorie Adulte"],["N","Nathan","31 ans · catégorie Adulte"],["C","Chloé","26 ans · catégorie Jeune"]],more:5,moreT:"… et 5 autres",moreS:"dont Hugo : catégorie Senior",done:"✓ 10 messages adaptés · Jeune : 3 · Adulte : 6 · Senior : 1"},
         fill:["CASE","WHEN","ELSE","END"],
         ui:{t:"10 clients classés",s:"Chaque client a sa catégorie : le message de la campagne peut être adapté.",n:["SELECT","CASE","WHEN","ELSE","END","AS"]},
         rows:10
@@ -8499,7 +8499,7 @@ guide({ id:23, titre:"COALESCE", résumé:"Remplacer les valeurs absentes",
           {step:"COALESCE(email, 'Non renseigné')",s:"remplace les emails absents par un texte"},
           {n:10,t:"⭐ contacts affichés",s:"aucune case vide : Hugo et Inès affichent « Non renseigné »",dots:"1111111111",out:true}
         ],
-        board:{ico:"🖥️",h:"Outil interne · Clients",aria:"L’outil interne affiche les 10 clients avec leur contact ; pour Hugo et Inès, il affiche « Non renseigné »",kpi:"Clients affichés",kpi2:{t:"Emails remplacés",v:"hl"},hl:{"col": 1, "val": "Non renseigné"},mark:"Non renseigné",cols:["prenom", "contact"],
+        board:{ico:"🖥️",h:"Outil interne · Clients",aria:"L’outil interne affiche les 10 clients avec leur contact ; pour Hugo et Inès, il affiche « Non renseigné »",kpi:"Clients",kpi2:{t:"Emails remplacés",v:"hl"},hl:{"col": 1, "val": "Non renseigné"},mark:"Non renseigné",cols:["prenom", "contact"],
           rows:[["Sophie", "sophie@mail.fr"], ["Lucas", "lucas@mail.fr"], ["Emma", "emma@mail.fr"], ["Nathan", "nathan@mail.fr"], ["Chloé", "chloe@mail.fr"], ["Hugo", "Non renseigné"], ["Léa", "lea@mail.fr"], ["Gabriel", "gabriel@mail.fr"], ["Inès", "Non renseigné"], ["Nathan", "nathan.dupont@mail.fr"]],done:"✓ Aucune case vide à l’écran"},
         fill:["COALESCE","email","'Non renseigné'","contact"],
         ui:{t:"10 contacts affichés",s:"L’outil interne affiche « Non renseigné » quand l’email manque.",n:["SELECT","COALESCE()","AS","FROM"]},
@@ -8613,9 +8613,9 @@ guide({ id:14, titre:"COUNT", résumé:"Compter les lignes",
           {n:1,t:"⭐ ligne de résultat",s:"10 clients, 8 emails renseignés et 6 villes",dots:"1",out:true}
         ],
         board:{ico:"📋",h:"Bilan de la base clients",aria:"Le bilan de la base clients affiche 10 clients, 8 emails renseignés et 6 villes différentes",kpis:[{"t": "Clients", "col": "nb_clients", "sub": "nb_clients"}, {"t": "Emails renseignés", "col": "nb_emails", "sub": "nb_emails"}, {"t": "Villes différentes", "col": "nb_villes", "sub": "nb_villes"}],cols:["nb_clients", "nb_emails", "nb_villes"],
-          rows:[[10, 8, 6]],done:"✓ Bilan de la base à jour"},
+          rows:[[10, 8, 6]],done:"✓ Calculé par SQL, sans rien compter à la main"},
         fill:["COUNT(*)","email","DISTINCT","ville"],
-        ui:{t:"3 chiffres pour le bilan",s:"Le bilan de la base est prêt.",n:["SELECT","FROM","COUNT()","DISTINCT","AS"]},
+        ui:{t:"3 nombres pour le bilan",s:"Le bilan de la base est prêt.",n:["SELECT","FROM","COUNT()","DISTINCT","AS"]},
         rows:1
       }}
     ]}
@@ -8921,7 +8921,7 @@ guide({ id:76, titre:"GROUP_CONCAT", résumé:"Rassembler les textes d’un grou
           {n:5,t:"⭐ catégories avec leurs produits",s:"Accessoire, Beauté, Bien-être, Boisson et Nutrition",dots:"11111",out:true}
         ],
         page:{ico:"🏷️",h:"Page des catégories",aria:"La page des catégories affiche les 5 catégories, chacune avec la liste de ses produits",url:"boutique › catégories",banner:"Nos catégories",layout:"list",name:0,text:1,
-          rows:[["Accessoire", "Shaker Inox"], ["Beauté", "Collagène Marin"], ["Bien-être", "Fibre Prébiotique, Magnésium, Oméga 3"], ["Boisson", "Tisane Détox"], ["Nutrition", "Vitamine D, Protéine Végétale"]],done:"✓ Page des catégories prête à être publiée"},
+          rows:[["Accessoire", "Shaker Inox"], ["Beauté", "Collagène Marin"], ["Bien-être", "Fibre Prébiotique, Magnésium, Oméga 3"], ["Boisson", "Tisane Détox"], ["Nutrition", "Vitamine D, Protéine Végétale"]],done:"✓ Les 8 produits, chacun sous sa catégorie"},
         fill:["GROUP_CONCAT","', '","GROUP BY","categorie"],
         ui:{t:"5 catégories avec leurs produits",s:"La page peut être publiée.",n:["SELECT","FROM","GROUP BY","GROUP_CONCAT()","AS"]},
         rows:5
@@ -9032,7 +9032,7 @@ guide({ id:34, titre:"Clé primaire", résumé:"Identifier une ligne sans ambigu
           {n:1,t:"⭐ fiche à modifier",s:"Nathan Petit",dots:"0001000000",out:true}
         ],
         board:{fiche:true,ico:"✏️",h:"Fiche du client n° 4",aria:"L’identifiant 4 désigne une seule fiche, celle de Nathan Petit : c’est elle que le service client modifie",kpi:"Fiches trouvées",lead:"🔑 WHERE id = 4",cols:["prenom", "nom", "telephone"],
-          rows:[["Nathan", "Petit", "06 39 98 40 15"]],done:"✓ Une seule fiche : celle de Nathan Petit"},
+          rows:[["Nathan", "Petit", "06 39 98 40 15"]],done:"✓ C’est ce téléphone qui sera modifié"},
         fill:["clients","WHERE","id","4"],
         ui:{t:"La bonne fiche, sans ambiguïté",s:"L’id 4 désigne un seul client : le service client peut modifier le bon numéro de téléphone.",n:["SELECT","FROM","WHERE","PRIMARY KEY"]},
         rows:1
@@ -9143,8 +9143,8 @@ guide({ id:35, titre:"Clé étrangère", résumé:"Relier une ligne à la bonne 
           {step:"WHERE client_id = 4 AND statut = 'en_preparation'",s:"ne garde que les commandes de Nathan encore en préparation"},
           {n:1,t:"⭐ colis à préparer",s:"CMD-2026-1093528",dots:"0000000000010000",out:true}
         ],
-        board:{fiche:true,ico:"🎁",h:"Colis de Nathan",aria:"La commande de Nathan encore en préparation est retrouvée : le cadeau peut y être glissé",kpi:"Colis retrouvés",cols:["numero_commande", "produit_id", "statut"],
-          rows:[["CMD-2026-1093528", 2, "en_preparation"]],done:"✓ Pas encore parti : le cadeau peut y être glissé"},
+        board:{fiche:true,ico:"🎁",h:"Prochain colis de Nathan",aria:"Le prochain colis de Nathan, la commande CMD-2026-1093528, est encore en préparation : le cadeau partira dans ce colis",kpi:"Colis en préparation",cols:["numero_commande", "produit_id", "statut"],
+          rows:[["CMD-2026-1093528", 2, "en_preparation"]],done:"✓ Le cadeau partira dans ce colis"},
         fill:["WHERE","client_id","AND","statut"],
         ui:{t:"Le bon colis est retrouvé",s:"La commande est bien celle de Nathan, et elle n’est pas encore partie : le cadeau peut y être glissé.",n:["SELECT","FROM","WHERE","AND"]},
         rows:1
@@ -9255,7 +9255,7 @@ guide({ id:18, titre:"INNER JOIN", résumé:"Relier uniquement ce qui correspond
           {step:"WHERE … BETWEEN",s:"ne garde que les commandes de juillet 2026"},
           {n:14,t:"⭐ enquêtes à envoyer",s:"une par commande de juillet, avec le prénom et l’email du client",dots:"111111111111110",out:true}
         ],
-        sms:{mail:true,ico:"✉️",h:"Enquête de satisfaction",aria:"L’enquête de satisfaction est préparée pour les 14 commandes de juillet ; Hugo n’a pas d’email",msg:"<b>Ton avis sur ta commande</b><br>Merci pour ta commande de juillet ! Donne-nous ton avis en 2 minutes 🙏",people:[["S","Sophie","sophie@mail.fr"],["S","Sophie","sophie@mail.fr"],["L","Lucas","lucas@mail.fr"],["E","Emma","emma@mail.fr"],["N","Nathan","nathan@mail.fr"]],more:9,moreT:"… et 9 autres",moreS:"dont Hugo, sans email",st:["En attente","Préparation","✓ Prête"],plane:"doc",done:"✓ 14 enquêtes dans la liste d’envoi"},
+        sms:{mail:true,ico:"✉️",h:"Enquête de satisfaction",aria:"L’enquête de satisfaction est préparée pour les 14 commandes de juillet ; Hugo n’a pas d’email",msg:"<b>Votre avis sur votre commande</b><br>Merci pour votre commande de juillet ! Donnez-nous votre avis en 2 minutes 🙏",people:[["S","Sophie","sophie@mail.fr"],["S","Sophie","sophie@mail.fr"],["L","Lucas","lucas@mail.fr"],["E","Emma","emma@mail.fr"],["N","Nathan","nathan@mail.fr"],["C","Chloé","chloe@mail.fr"],["H","Hugo","sans email",{st:["En attente","Préparation","⚠️ Sans email"],skip:true}]],more:7,moreT:"… et 7 autres",moreS:"18-30 juillet",st:["En attente","Préparation","✓ Prête"],plane:"doc",done:"✓ 14 enquêtes, une par commande : 13 prêtes, Hugo sans email"},
         fill:["INNER JOIN","clients","commandes.client_id","clients.id"],
         ui:{t:"La liste d’envoi est prête",s:"L’enquête de satisfaction peut partir.",n:["INNER JOIN","ON","WHERE","BETWEEN"]},
         rows:14
@@ -9360,10 +9360,10 @@ guide({ id:20, titre:"LEFT JOIN", résumé:"Garder même sans correspondance",
           {step:"LEFT JOIN fidelite",s:"ajoute la carte de chaque client, sans en écarter aucun"},
           {n:10,t:"⭐ clients dans le bilan",s:"dont 6 sans carte, avec des points à NULL",dots:"1111111111",out:true}
         ],
-        board:{ico:"🏅",h:"Bilan du programme de fidélité",aria:"Le bilan affiche les 10 clients et leurs points : 4 ont une carte, 6 n’en ont pas (points à NULL)",kpi:"Clients dans le bilan",chart:"points par client",bar:2,cols:["prenom", "nom", "points"],
+        board:{ico:"🏅",h:"Bilan du programme de fidélité",aria:"Le bilan affiche les 10 clients et leurs points : 4 ont une carte, 6 n’en ont pas (points à NULL)",kpi:"Clients au total",chart:"points par client",bar:2,cols:["prenom", "nom", "points"],
           rows:[["Sophie", "Martin", 120], ["Lucas", "Bernard", 80], ["Emma", "Dubois", null], ["Nathan", "Petit", 250], ["Chloé", "Moreau", null], ["Hugo", "Laurent", null], ["Léa", "Simon", 160], ["Gabriel", "Michel", null], ["Inès", "Lefebvre", null], ["Nathan", "Dupont", null]],done:"✓ 4 clients sur 10 ont une carte"},
         fill:["LEFT JOIN","fidelite","clients.id","fidelite.client_id"],
-        ui:{t:"10 clients dans le bilan",s:"Le bilan du programme de fidélité est prêt.",n:["LEFT JOIN","ON"]},
+        ui:{t:"10 clients dans le bilan",s:"L’équipe fidélité peut mesurer l’adhésion à son programme.",n:["LEFT JOIN","ON"]},
         rows:10
       }}
     ]}
@@ -9460,7 +9460,7 @@ guide({ id:38, titre:"RIGHT JOIN", résumé:"Tout garder à droite",
           {n:16,t:"⭐ commandes dans le suivi",s:"dont la #16, sans client : son prénom vaut NULL",dots:"1111111111111111",out:true}
         ],
         board:{ico:"📦",h:"Préparation des colis",aria:"La liste de préparation compte les 16 commandes ; la dernière n’a pas de client, mais elle n’est pas oubliée",kpi:"Colis à préparer",kpi2:{"t": "Sans client", "v": "hl"},hl:{"col": 1, "val": null},show:5,tail:1,moreT:"… et 10 autres commandes",cols:["numero_commande", "prenom"],
-          rows:[["CMD-2026-1002481", "Sophie"], ["CMD-2026-1003912", "Sophie"], ["CMD-2026-1106294", "Sophie"], ["CMD-2026-1015630", "Lucas"], ["CMD-2026-1072346", "Lucas"], ["CMD-2026-1024057", "Emma"], ["CMD-2026-1847392", "Emma"], ["CMD-2026-1038264", "Nathan"], ["CMD-2026-1093528", "Nathan"], ["CMD-2026-1041739", "Chloé"], ["CMD-2026-1128760", "Chloé"], ["CMD-2026-1056182", "Hugo"], ["CMD-2026-1063405", "Léa"], ["CMD-2026-1067918", "Léa"], ["CMD-2026-1085073", "Gabriel"], ["CMD-2026-1134085", null]],done:"✓ 16 colis à préparer, aucune commande oubliée"},
+          rows:[["CMD-2026-1002481", "Sophie"], ["CMD-2026-1003912", "Sophie"], ["CMD-2026-1106294", "Sophie"], ["CMD-2026-1015630", "Lucas"], ["CMD-2026-1072346", "Lucas"], ["CMD-2026-1024057", "Emma"], ["CMD-2026-1847392", "Emma"], ["CMD-2026-1038264", "Nathan"], ["CMD-2026-1093528", "Nathan"], ["CMD-2026-1041739", "Chloé"], ["CMD-2026-1128760", "Chloé"], ["CMD-2026-1056182", "Hugo"], ["CMD-2026-1063405", "Léa"], ["CMD-2026-1067918", "Léa"], ["CMD-2026-1085073", "Gabriel"], ["CMD-2026-1134085", null]],done:"✓ Même la commande sans client est dans la liste"},
         fill:["RIGHT JOIN","commandes","clients.id","commandes.client_id"],
         ui:{t:"16 commandes, aucune écartée",s:"Les colis peuvent être préparés.",n:["RIGHT JOIN","ON"]},
         rows:16
@@ -9560,8 +9560,8 @@ guide({ id:39, titre:"FULL OUTER JOIN", résumé:"Tout garder des deux côtés",
           {step:"FULL OUTER JOIN commandes",s:"réunit les deux tables sans écarter aucune ligne, d’un côté comme de l’autre"},
           {n:18,t:"⭐ lignes pour le contrôle",s:"15 correspondances, 2 clients sans commande et 1 commande sans client",dots:"111111111111111111",out:true}
         ],
-        board:{ico:"🧮",h:"Contrôle du mois",aria:"Le rapprochement clients ↔ commandes compte 18 lignes ; 3 écarts ressortent : 2 clients sans commande et 1 commande sans client",kpi:"Lignes à contrôler",kpi2:{"t": "Écarts", "v": "hl"},hl:{"null": true},show:4,tail:3,moreT:"… et 11 autres lignes rapprochées",cols:["prenom", "numero_commande"],
-          rows:[["Sophie", "CMD-2026-1002481"], ["Sophie", "CMD-2026-1003912"], ["Sophie", "CMD-2026-1106294"], ["Lucas", "CMD-2026-1015630"], ["Lucas", "CMD-2026-1072346"], ["Emma", "CMD-2026-1024057"], ["Emma", "CMD-2026-1847392"], ["Nathan", "CMD-2026-1038264"], ["Nathan", "CMD-2026-1093528"], ["Chloé", "CMD-2026-1041739"], ["Chloé", "CMD-2026-1128760"], ["Hugo", "CMD-2026-1056182"], ["Léa", "CMD-2026-1063405"], ["Léa", "CMD-2026-1067918"], ["Gabriel", "CMD-2026-1085073"], ["Inès", null], ["Nathan", null], [null, "CMD-2026-1134085"]],done:"✓ 3 écarts à vérifier avant la clôture"},
+        board:{ico:"🧮",h:"Contrôle de clôture",aria:"Le contrôle réunit les clients et les commandes en 18 lignes ; 3 sont sans correspondance : 2 clients sans commande et 1 commande sans client",kpi:"Lignes à contrôler",kpi2:{"t": "Sans correspondance", "v": "hl"},hl:{"null": true},show:4,tail:3,moreT:"… et 11 autres correspondances",cols:["prenom", "numero_commande"],
+          rows:[["Sophie", "CMD-2026-1002481"], ["Sophie", "CMD-2026-1003912"], ["Sophie", "CMD-2026-1106294"], ["Lucas", "CMD-2026-1015630"], ["Lucas", "CMD-2026-1072346"], ["Emma", "CMD-2026-1024057"], ["Emma", "CMD-2026-1847392"], ["Nathan", "CMD-2026-1038264"], ["Nathan", "CMD-2026-1093528"], ["Chloé", "CMD-2026-1041739"], ["Chloé", "CMD-2026-1128760"], ["Hugo", "CMD-2026-1056182"], ["Léa", "CMD-2026-1063405"], ["Léa", "CMD-2026-1067918"], ["Gabriel", "CMD-2026-1085073"], ["Inès", null], ["Nathan", null], [null, "CMD-2026-1134085"]],done:"✓ 3 lignes sans correspondance à vérifier"},
         fill:["FULL OUTER JOIN","commandes","clients.id","commandes.client_id"],
         ui:{t:"18 lignes, rien n’est écarté",s:"Le contrôle du mois peut commencer.",n:["FULL OUTER JOIN","ON"]},
         rows:18
@@ -9680,8 +9680,8 @@ guide({ id:40, titre:"CROSS JOIN", résumé:"Créer toutes les combinaisons",
           {step:"DISTINCT",s:"ne garde qu’une fois chaque ville avec chaque produit"},
           {n:48,t:"⭐ offres pour le catalogue",s:"6 villes × 8 produits",out:true}
         ],
-        board:{ico:"🗂️",h:"Catalogue des offres",aria:"Le catalogue des offres réunit les 48 combinaisons ville × produit : 6 villes × 8 produits",kpi:"Offres",show:6,moreT:"… et 42 autres offres",cols:["ville", "produit"],
-          rows:[["Paris", "Fibre Prébiotique"], ["Paris", "Collagène Marin"], ["Paris", "Magnésium"], ["Paris", "Vitamine D"], ["Paris", "Tisane Détox"], ["Paris", "Protéine Végétale"], ["Paris", "Oméga 3"], ["Paris", "Shaker Inox"], ["Lyon", "Fibre Prébiotique"], ["Lyon", "Collagène Marin"], ["Lyon", "Magnésium"], ["Lyon", "Vitamine D"], ["Lyon", "Tisane Détox"], ["Lyon", "Protéine Végétale"], ["Lyon", "Oméga 3"], ["Lyon", "Shaker Inox"], ["Marseille", "Fibre Prébiotique"], ["Marseille", "Collagène Marin"], ["Marseille", "Magnésium"], ["Marseille", "Vitamine D"], ["Marseille", "Tisane Détox"], ["Marseille", "Protéine Végétale"], ["Marseille", "Oméga 3"], ["Marseille", "Shaker Inox"], ["Bordeaux", "Fibre Prébiotique"], ["Bordeaux", "Collagène Marin"], ["Bordeaux", "Magnésium"], ["Bordeaux", "Vitamine D"], ["Bordeaux", "Tisane Détox"], ["Bordeaux", "Protéine Végétale"], ["Bordeaux", "Oméga 3"], ["Bordeaux", "Shaker Inox"], ["Toulouse", "Fibre Prébiotique"], ["Toulouse", "Collagène Marin"], ["Toulouse", "Magnésium"], ["Toulouse", "Vitamine D"], ["Toulouse", "Tisane Détox"], ["Toulouse", "Protéine Végétale"], ["Toulouse", "Oméga 3"], ["Toulouse", "Shaker Inox"], ["Nantes", "Fibre Prébiotique"], ["Nantes", "Collagène Marin"], ["Nantes", "Magnésium"], ["Nantes", "Vitamine D"], ["Nantes", "Tisane Détox"], ["Nantes", "Protéine Végétale"], ["Nantes", "Oméga 3"], ["Nantes", "Shaker Inox"]],done:"✓ Catalogue des offres prêt"},
+        board:{ico:"🗂️",h:"Catalogue des offres",aria:"Le catalogue des offres réunit les 48 combinaisons ville × produit : 6 villes × 8 produits",kpi:"Offres",kpi2:{t:"Villes",v:6},show:8,moreT:"… et 40 autres offres : les mêmes produits dans les 5 autres villes",cols:["ville", "produit"],
+          rows:[["Paris", "Fibre Prébiotique"], ["Paris", "Collagène Marin"], ["Paris", "Magnésium"], ["Paris", "Vitamine D"], ["Paris", "Tisane Détox"], ["Paris", "Protéine Végétale"], ["Paris", "Oméga 3"], ["Paris", "Shaker Inox"], ["Lyon", "Fibre Prébiotique"], ["Lyon", "Collagène Marin"], ["Lyon", "Magnésium"], ["Lyon", "Vitamine D"], ["Lyon", "Tisane Détox"], ["Lyon", "Protéine Végétale"], ["Lyon", "Oméga 3"], ["Lyon", "Shaker Inox"], ["Marseille", "Fibre Prébiotique"], ["Marseille", "Collagène Marin"], ["Marseille", "Magnésium"], ["Marseille", "Vitamine D"], ["Marseille", "Tisane Détox"], ["Marseille", "Protéine Végétale"], ["Marseille", "Oméga 3"], ["Marseille", "Shaker Inox"], ["Bordeaux", "Fibre Prébiotique"], ["Bordeaux", "Collagène Marin"], ["Bordeaux", "Magnésium"], ["Bordeaux", "Vitamine D"], ["Bordeaux", "Tisane Détox"], ["Bordeaux", "Protéine Végétale"], ["Bordeaux", "Oméga 3"], ["Bordeaux", "Shaker Inox"], ["Toulouse", "Fibre Prébiotique"], ["Toulouse", "Collagène Marin"], ["Toulouse", "Magnésium"], ["Toulouse", "Vitamine D"], ["Toulouse", "Tisane Détox"], ["Toulouse", "Protéine Végétale"], ["Toulouse", "Oméga 3"], ["Toulouse", "Shaker Inox"], ["Nantes", "Fibre Prébiotique"], ["Nantes", "Collagène Marin"], ["Nantes", "Magnésium"], ["Nantes", "Vitamine D"], ["Nantes", "Tisane Détox"], ["Nantes", "Protéine Végétale"], ["Nantes", "Oméga 3"], ["Nantes", "Shaker Inox"]],done:"✓ Chaque produit est proposé dans chaque ville"},
         fill:["DISTINCT","clients","CROSS JOIN","produits"],
         ui:{t:"48 offres dans le catalogue",s:"Toutes les combinaisons sont générées.",n:["CROSS JOIN","DISTINCT"]},
         rows:48
@@ -9795,8 +9795,8 @@ guide({ id:19, titre:"Jointure de 3 tables", résumé:"Relier toute l’histoire
           {step:"INNER JOIN produits",s:"ajoute le produit de chaque commande : aucune ne disparaît"},
           {n:15,t:"⭐ fiches SAV",s:"une par achat, avec le prénom, l’email, le produit et la date",dots:"111111111111111",out:true}
         ],
-        board:{ico:"🗂️",h:"Fiches SAV",aria:"Les 15 fiches d’achat réunissent le prénom, l’email, le produit et la date de commande",kpi:"Fiches",wide:true,show:4,moreT:"… et 11 autres fiches",cols:["prenom", "email", "produit", "date_commande"],
-          rows:[["Sophie", "sophie@mail.fr", "Fibre Prébiotique", "2026-07-02"], ["Sophie", "sophie@mail.fr", "Magnésium", "2026-07-02"], ["Lucas", "lucas@mail.fr", "Protéine Végétale", "2026-07-05"], ["Emma", "emma@mail.fr", "Collagène Marin", "2026-07-08"], ["Nathan", "nathan@mail.fr", "Fibre Prébiotique", "2026-07-11"], ["Chloé", "chloe@mail.fr", "Vitamine D", "2026-07-12"], ["Hugo", null, "Oméga 3", "2026-07-15"], ["Léa", "lea@mail.fr", "Fibre Prébiotique", "2026-07-18"], ["Léa", "lea@mail.fr", "Tisane Détox", "2026-07-18"], ["Lucas", "lucas@mail.fr", "Magnésium", "2026-07-20"], ["Gabriel", "gabriel@mail.fr", "Protéine Végétale", "2026-07-22"], ["Nathan", "nathan@mail.fr", "Collagène Marin", "2026-07-25"], ["Sophie", "sophie@mail.fr", "Shaker Inox", "2026-07-28"], ["Emma", "emma@mail.fr", "Oméga 3", "2026-07-30"], ["Chloé", "chloe@mail.fr", "Fibre Prébiotique", "2026-08-01"]],done:"✓ 15 fiches prêtes pour le SAV"},
+        board:{ico:"🗂️",h:"Fiches SAV",aria:"Les 15 fiches d’achat réunissent le prénom, l’email, le produit et la date de commande",kpi:"Fiches",kpi2:{"t": "Sans email", "v": "hl"},hl:{"col": 1, "val": null},wide:true,show:7,moreT:"… et 8 autres fiches",cols:["prenom", "email", "produit", "date_commande"],
+          rows:[["Sophie", "sophie@mail.fr", "Fibre Prébiotique", "2026-07-02"], ["Sophie", "sophie@mail.fr", "Magnésium", "2026-07-02"], ["Lucas", "lucas@mail.fr", "Protéine Végétale", "2026-07-05"], ["Emma", "emma@mail.fr", "Collagène Marin", "2026-07-08"], ["Nathan", "nathan@mail.fr", "Fibre Prébiotique", "2026-07-11"], ["Chloé", "chloe@mail.fr", "Vitamine D", "2026-07-12"], ["Hugo", null, "Oméga 3", "2026-07-15"], ["Léa", "lea@mail.fr", "Fibre Prébiotique", "2026-07-18"], ["Léa", "lea@mail.fr", "Tisane Détox", "2026-07-18"], ["Lucas", "lucas@mail.fr", "Magnésium", "2026-07-20"], ["Gabriel", "gabriel@mail.fr", "Protéine Végétale", "2026-07-22"], ["Nathan", "nathan@mail.fr", "Collagène Marin", "2026-07-25"], ["Sophie", "sophie@mail.fr", "Shaker Inox", "2026-07-28"], ["Emma", "emma@mail.fr", "Oméga 3", "2026-07-30"], ["Chloé", "chloe@mail.fr", "Fibre Prébiotique", "2026-08-01"]],done:"✓ Client, produit et date réunis sur chaque fiche"},
         fill:["commandes.client_id","clients.id","commandes.produit_id","produits.id"],
         ui:{t:"Les fiches SAV sont prêtes",s:"Le SAV peut contacter les clients concernés.",n:["INNER JOIN","ON","AS"]},
         rows:15
@@ -10030,7 +10030,7 @@ guide({ id:42, titre:"SELF JOIN", résumé:"Retrouver les clients qui habitent d
           {step:"AND c1.id < c2.id",s:"écarte les clients associés à eux-mêmes et les paires inversées"},
           {n:7,t:"⭐ paires de clients",s:"6 à Paris et 1 à Lyon",dots:"011101000110000001000000",out:true}
         ],
-        sms:{ico:"🤝",h:"Invitations à deux",aria:"La même invitation est envoyée aux deux clients de chacune des sept paires",msg:"<b>Événement NutriBoost</b><br>Une invitation pour deux clients de la même ville 🎉",people:[["S","Sophie","avec Léa · Paris"],["S","Sophie","avec Nathan P. · Paris"],["S","Sophie","avec Nathan D. · Paris"],["L","Lucas","avec Hugo · Lyon"],["N","Nathan","avec Léa · Paris"]],more:2,moreT:"… et 2 autres",moreS:"paires à Paris",icons:true,st:["En attente","Envoi","✓ Envoyée"],done:"✓ 7 paires invitées"},
+        sms:{ico:"🤝",h:"Invitations à deux",aria:"La même invitation est envoyée aux deux clients de chacune des sept paires",msg:"<b>Événement NutriBoost</b><br>Une invitation pour deux clients de la même ville 🎉",people:[["S","Sophie","avec Léa · Paris"],["S","Sophie","avec Nathan P. · Paris"],["S","Sophie","avec Nathan D. · Paris"],["L","Lucas","avec Hugo · Lyon"],["N","Nathan P.","avec Léa · Paris"]],more:2,moreT:"… et 2 autres",moreS:"paires à Paris",icons:true,st:["En attente","Envoi","✓ Envoyée"],done:"✓ 7 paires invitées"},
         fill:["c1","c2","c1.ville","c2.ville","c1.id < c2.id"],
         ui:{t:"7 paires de clients de la même ville",s:"Aucun client n’est associé à lui-même, aucune paire n’apparaît deux fois.",n:["SELF JOIN","AS","ON","c1.id &lt; c2.id"]},
         rows:7
@@ -10136,8 +10136,8 @@ guide({ id:49, titre:"Plusieurs conditions dans ON", résumé:"Relier seulement 
           {step:"ON … AND produits.stock > 0",s:"relie chaque commande à son produit, s’il est en stock"},
           {n:16,t:"⭐ commandes prêtes à expédier",s:"les 8 produits ont du stock : aucune commande n’est écartée",dots:"1111111111111111",out:true}
         ],
-        board:{ico:"📦",h:"Colis à préparer",aria:"Les 16 commandes sont reliées à leur produit, encore en stock : l’expédition peut être préparée",kpi:"Commandes prêtes",show:6,moreT:"… et 10 autres commandes",cols:["commande_id", "nom", "stock"],
-          rows:[[1, "Fibre Prébiotique", 120], [2, "Magnésium", 200], [3, "Protéine Végétale", 45], [4, "Collagène Marin", 80], [5, "Fibre Prébiotique", 120], [6, "Vitamine D", 150], [7, "Oméga 3", 90], [8, "Fibre Prébiotique", 120], [9, "Tisane Détox", 60], [10, "Magnésium", 200], [11, "Protéine Végétale", 45], [12, "Collagène Marin", 80], [13, "Shaker Inox", 30], [14, "Oméga 3", 90], [15, "Fibre Prébiotique", 120], [16, "Vitamine D", 150]],done:"✓ Stock vérifié pour les 16 commandes"},
+        board:{ico:"📦",h:"Colis à préparer",aria:"Le tableau relie les 16 commandes à leur produit et à son stock : aucun produit n’est en rupture, aucune commande n’est écartée",kpi:"Commandes reliées",show:6,moreT:"… et 10 autres commandes",cols:["commande_id", "nom", "stock"],
+          rows:[[1, "Fibre Prébiotique", 120], [2, "Magnésium", 200], [3, "Protéine Végétale", 45], [4, "Collagène Marin", 80], [5, "Fibre Prébiotique", 120], [6, "Vitamine D", 150], [7, "Oméga 3", 90], [8, "Fibre Prébiotique", 120], [9, "Tisane Détox", 60], [10, "Magnésium", 200], [11, "Protéine Végétale", 45], [12, "Collagène Marin", 80], [13, "Shaker Inox", 30], [14, "Oméga 3", 90], [15, "Fibre Prébiotique", 120], [16, "Vitamine D", 150]],done:"✓ Aucun produit en rupture, aucune commande écartée"},
         fill:["produits","commandes.produit_id","produits.id","produits.stock > 0"],
         ui:{t:"16 commandes prêtes à expédier",s:"Le stock est vérifié pour chacune : l’expédition peut être préparée.",n:["INNER JOIN","ON","AND"]},
         rows:16
@@ -10242,10 +10242,10 @@ guide({ id:44, titre:"Quel JOIN choisir ?", résumé:"Choisir la bonne jointure
           {step:"LEFT JOIN commandes",s:"ajoute leurs commandes sans écarter aucun client"},
           {n:17,t:"⭐ lignes pour l’audit",s:"15 commandes avec leur client, plus Inès et Nathan Dupont, sans commande",dots:"11111111111111111",out:true}
         ],
-        board:{ico:"🧾",h:"Fichier clients à contrôler",aria:"Le fichier d’audit compte 17 lignes : tous les clients, avec ou sans commande ; Inès et Nathan, sans commande, ont une date vide et sont à contrôler",kpi:"Lignes",kpi2:{"t": "Sans commande", "v": "hl"},hl:{"col": 2, "val": null},show:4,tail:2,moreT:"… et 11 autres lignes avec une commande",cols:["prenom", "ville", "date_commande"],
-          rows:[["Sophie", "Paris", "2026-07-02"], ["Sophie", "Paris", "2026-07-02"], ["Sophie", "Paris", "2026-07-28"], ["Lucas", "Lyon", "2026-07-05"], ["Lucas", "Lyon", "2026-07-20"], ["Emma", "Marseille", "2026-07-08"], ["Emma", "Marseille", "2026-07-30"], ["Nathan", "Paris", "2026-07-11"], ["Nathan", "Paris", "2026-07-25"], ["Chloé", "Bordeaux", "2026-07-12"], ["Chloé", "Bordeaux", "2026-08-01"], ["Hugo", "Lyon", "2026-07-15"], ["Léa", "Paris", "2026-07-18"], ["Léa", "Paris", "2026-07-18"], ["Gabriel", "Toulouse", "2026-07-22"], ["Inès", "Nantes", null], ["Nathan", "Paris", null]],done:"✓ 2 clients sans commande à contrôler"},
+        board:{ico:"🧾",h:"Fichier clients à contrôler",aria:"Le fichier d’audit compte 17 lignes : tous les clients, avec ou sans commande ; Inès et Nathan Dupont, sans commande, ont une date vide et sont à contrôler",kpi:"Lignes",kpi2:{"t": "Sans commande", "v": "hl"},hl:{"col": 2, "val": null},show:4,tail:2,moreT:"… et 11 autres lignes avec une commande",cols:["prenom", "ville", "date_commande"],
+          rows:[["Sophie", "Paris", "2026-07-02"], ["Sophie", "Paris", "2026-07-02"], ["Sophie", "Paris", "2026-07-28"], ["Lucas", "Lyon", "2026-07-05"], ["Lucas", "Lyon", "2026-07-20"], ["Emma", "Marseille", "2026-07-08"], ["Emma", "Marseille", "2026-07-30"], ["Nathan", "Paris", "2026-07-11"], ["Nathan", "Paris", "2026-07-25"], ["Chloé", "Bordeaux", "2026-07-12"], ["Chloé", "Bordeaux", "2026-08-01"], ["Hugo", "Lyon", "2026-07-15"], ["Léa", "Paris", "2026-07-18"], ["Léa", "Paris", "2026-07-18"], ["Gabriel", "Toulouse", "2026-07-22"], ["Inès", "Nantes", null], ["Nathan", "Paris", null]],done:"✓ Inès et Nathan Dupont, sans commande, à contrôler"},
         fill:["clients","LEFT JOIN","clients.id","commandes.client_id"],
-        ui:{t:"Tous les clients, avec ou sans commande",s:"Une date vide repère les clients sans commande : l’audit peut les contrôler.",n:["LEFT JOIN","ON"]},
+        ui:{t:"Tous les clients, avec ou sans commande",s:"Une date absente (NULL) signale les clients sans commande : l’audit peut les contrôler.",n:["LEFT JOIN","ON"]},
         rows:17
       }}
     ]}
@@ -10347,7 +10347,7 @@ guide({ id:45, titre:"Sous-requête dans WHERE avec IN", résumé:"Quels clients
           {step:"WHERE id IN (sous-requête)",s:"ne garde que les clients de la liste des acheteurs"},
           {n:2,t:"⭐ clients à contacter",s:"Sophie Martin et Lucas Bernard",dots:"1100000000",out:true}
         ],
-        sms:{mail:true,ico:"✉️",h:"Offre Magnésium par email",aria:"L’offre sur le Magnésium est envoyée aux deux clients qui en ont déjà commandé",msg:"Bonjour ! 🌿 Une offre spéciale vous attend sur le Magnésium, le produit que vous avez déjà commandé.",people:[["S","Sophie Martin","sophie@mail.fr"],["L","Lucas Bernard","lucas@mail.fr"]],done:"✓ 2 offres envoyées"},
+        sms:{mail:true,ico:"✉️",h:"Offre Magnésium par email",aria:"L’offre sur le Magnésium est envoyée aux deux clients qui en ont déjà commandé",msg:"Bonjour ! 🌿 Vous avez déjà commandé notre Magnésium : une offre spéciale vous attend pour en reprendre.",people:[["S","Sophie Martin","sophie@mail.fr"],["L","Lucas Bernard","lucas@mail.fr"]],done:"✓ 2 offres envoyées"},
         fill:["IN","client_id","commandes","produit_id = 3"],
         ui:{t:"2 clients à contacter",s:"Les deux ont déjà commandé du Magnésium : l’offre peut leur être envoyée.",n:["SELECT","WHERE","IN","sous-requête"]},
         rows:2
@@ -10450,7 +10450,7 @@ guide({ id:47, titre:"Sous-requête dans SELECT", résumé:"Calculer une valeur 
           {step:"(SELECT COUNT(*) …)",s:"compte, pour chaque produit, ses propres commandes"},
           {n:8,t:"⭐ produits avec leur nombre de commandes",s:"dont la Fibre Prébiotique, en tête avec 4 commandes",dots:"11111111",out:true}
         ],
-        board:{ico:"📊",h:"Analyse des commandes par produit",aria:"L’analyse affiche le nombre de commandes des 8 produits : la Fibre Prébiotique arrive en tête avec 4 commandes",kpi:"Produits",chart:"nb_commandes par produit",bar:1,cols:["nom", "nb_commandes"],
+        board:{ico:"📊",h:"Analyse des commandes par produit",aria:"L’analyse affiche le nombre de commandes des 8 produits : la Fibre Prébiotique arrive en tête avec 4 commandes",kpi:"Produits",chart:"nb_commandes par produit",bar:1,hl:{"col": 1, "val": 4},cols:["nom", "nb_commandes"],
           rows:[["Fibre Prébiotique", 4], ["Collagène Marin", 2], ["Magnésium", 2], ["Vitamine D", 2], ["Tisane Détox", 1], ["Protéine Végétale", 2], ["Oméga 3", 2], ["Shaker Inox", 1]],done:"✓ En tête : la Fibre Prébiotique, 4 commandes"},
         fill:["COUNT(*)","commandes.produit_id","produits.id","AS nb_commandes"],
         ui:{t:"8 produits avec leur nombre de commandes",s:"L’équipe peut choisir les produits à mettre en avant.",n:["SELECT","sous-requête","COUNT()","WHERE","AS"]},
@@ -10549,7 +10549,7 @@ guide({ id:48, titre:"Sous-requête dans FROM", résumé:"Utiliser une sous-requ
           {step:"AVG(montant)",s:"calcule la moyenne de ces montants"},
           {n:1,t:"⭐ montant moyen d’une commande",s:"environ 46,72 €",dots:"1",out:true}
         ],
-        board:{ico:"📈",h:"Indicateurs de la finance",aria:"L’indicateur de panier moyen de l’équipe finance est mis à jour : 46,72 € par commande",kpis:[{"t": "Panier moyen", "col": "AVG(montant)", "dec": 2, "suffix": " €", "sub": "par commande"}],cols:["AVG(montant)"],
+        board:{ico:"📈",h:"Indicateurs de l’équipe finance",aria:"L’indicateur de panier moyen de l’équipe finance est mis à jour : 46,72 € par commande",kpis:[{"t": "Panier moyen", "col": "AVG(montant)", "dec": 2, "suffix": " €", "sub": "par commande"}],cols:["AVG(montant)"],
           rows:[[46.71875]],done:"✓ Indicateur mis à jour"},
         fill:["AVG","produits.prix","JOIN","AS commandes_montants"],
         ui:{t:"46,72 € par commande, en moyenne",s:"L’indicateur de panier moyen peut être mis à jour.",n:["SELECT","FROM (…)","AVG()","JOIN","AS"]},
@@ -10766,9 +10766,9 @@ guide({ id:59, titre:"WITH (CTE)", résumé:"Créer et réutiliser un résultat 
           {step:"JOIN … WHERE nb_commandes >= 2",s:"retrouve leur prénom et leur email, et ne garde que les clients à 2 commandes ou plus"},
           {n:6,t:"⭐ clients réguliers",s:"Sophie, Lucas, Emma, Nathan, Chloé et Léa",dots:"11111010",out:true}
         ],
-        sms:{mail:true,ico:"✉️",h:"Avant-première par email",aria:"L’invitation à l’avant-première est envoyée par email aux six clients réguliers",msg:"<b>Objet : nos nouveautés en avant-première ✨</b><br>Merci pour ta fidélité ! Découvre nos nouveautés avant tout le monde.",people:[["S","Sophie","sophie@mail.fr"],["L","Lucas","lucas@mail.fr"],["E","Emma","emma@mail.fr"],["N","Nathan","nathan@mail.fr"],["C","Chloé","chloe@mail.fr"],["L","Léa","lea@mail.fr"]],done:"✓ 6 emails envoyés"},
+        sms:{mail:true,ico:"✉️",h:"Avant-première par email",aria:"L’invitation à l’avant-première est envoyée par email aux six clients réguliers",msg:"<b>Objet : invitation à notre avant-première ✨</b><br>Merci pour votre fidélité ! Découvrez nos nouveautés avant tout le monde.",people:[["S","Sophie","sophie@mail.fr"],["L","Lucas","lucas@mail.fr"],["E","Emma","emma@mail.fr"],["N","Nathan","nathan@mail.fr"],["C","Chloé","chloe@mail.fr"],["L","Léa","lea@mail.fr"]],done:"✓ 6 invitations envoyées"},
         fill:["WITH","AS","GROUP BY","totaux"],
-        ui:{t:"6 clients réguliers",s:"Ils sont prêts pour l’avant-première.",n:["WITH","COUNT()","GROUP BY","JOIN","WHERE"]},
+        ui:{t:"6 clients réguliers",s:"Ils ont passé au moins 2 commandes : l’invitation à l’avant-première peut leur être envoyée.",n:["WITH","COUNT()","GROUP BY","JOIN","WHERE"]},
         rows:6
       }}
     ]}
@@ -10876,8 +10876,8 @@ guide({ id:73, titre:"UNION et UNION ALL", résumé:"Empiler deux résultats, av
           {step:"ORDER BY valeur",s:"classe la liste par ordre alphabétique"},
           {n:11,t:"⭐ mots-clés classés",s:"d’Accessoire à Toulouse",dots:"11111111111",out:true}
         ],
-        chips:{ico:"🔎",h:"Mots-clés du référencement",aria:"Les 11 mots-clés du référencement, villes et catégories réunies, sans doublon et de A à Z",kpi:"Mots-clés",label:"De A à Z, sans doublon",icon:"#",
-          rows:[["Accessoire"], ["Beauté"], ["Bien-être"], ["Boisson"], ["Bordeaux"], ["Lyon"], ["Marseille"], ["Nantes"], ["Nutrition"], ["Paris"], ["Toulouse"]],done:"✓ 11 mots-clés pour le référencement"},
+        chips:{ico:"🔎",h:"Mots-clés du référencement",aria:"Les 11 mots-clés du référencement, villes et catégories réunies, sans doublon et de A à Z",kpi:"Mots-clés",label:"Villes des clients et catégories des produits",icon:"#",
+          rows:[["Accessoire"], ["Beauté"], ["Bien-être"], ["Boisson"], ["Bordeaux"], ["Lyon"], ["Marseille"], ["Nantes"], ["Nutrition"], ["Paris"], ["Toulouse"]],done:"✓ 6 villes et 5 catégories réunies en une seule liste"},
         fill:["AS valeur","UNION","categorie","ORDER BY"],
         ui:{t:"11 mots-clés pour le référencement",s:"Triés par ordre alphabétique, sans doublon.",n:["UNION","AS","ORDER BY"]},
         rows:11
@@ -10971,9 +10971,9 @@ guide({ id:80, titre:"INTERSECT et EXCEPT", résumé:"Comparer deux résultats",
           {step:"EXCEPT",s:"retire les 4 clients déjà inscrits au programme"},
           {n:4,t:"⭐ clients à inviter",s:"Chloé, Emma, Gabriel et Hugo",dots:"00101101",out:true}
         ],
-        sms:{ico:"💬",h:"Invitations par SMS",aria:"L’invitation au programme de fidélité est envoyée par SMS aux quatre clients",msg:"Bonjour ! Rejoins notre programme de fidélité ⭐ et cumule des points à chaque commande.",people:[["C","Chloé","06 39 98 51 62"],["E","Emma","06 39 98 33 08"],["G","Gabriel","06 39 98 85 16"],["H","Hugo","06 39 98 68 03"]],done:"✓ 4 invitations envoyées"},
+        sms:{ico:"💬",h:"Invitations par SMS",aria:"L’invitation au programme de fidélité est envoyée par SMS aux quatre clients",msg:"Bonjour ! Rejoignez notre programme de fidélité ⭐ et cumulez des points à chaque commande.",people:[["C","Chloé","06 39 98 51 62"],["E","Emma","06 39 98 33 08"],["G","Gabriel","06 39 98 85 16"],["H","Hugo","06 39 98 68 03"]],done:"✓ 4 invitations envoyées"},
         fill:["commandes","EXCEPT","fidelite","fidelite.client_id"],
-        ui:{t:"4 clients à inviter",s:"Ils ont déjà commandé mais ne sont pas inscrits : la liste à contacter est prête.",n:["JOIN","EXCEPT"]},
+        ui:{t:"4 clients à inviter",s:"Ils ont déjà commandé mais ne sont pas inscrits : la liste des clients à contacter est prête.",n:["JOIN","EXCEPT"]},
         rows:4
       }}
     ]}
@@ -11076,7 +11076,7 @@ guide({ id:77, titre:"WITH RECURSIVE (CTE RECURSIVE)", résumé:"Créer une suit
           {step:"UNION ALL SELECT jour + 1 … WHERE jour < 90",s:"ajoute un jour de plus, tant que le dernier jour créé est inférieur à 90"},
           {n:90,t:"⭐ jours de campagne",s:"du jour 1 au jour 90",out:true}
         ],
-        board:{ico:"📅",h:"Tableau de suivi",aria:"Les 90 jours de la campagne forment les lignes du tableau de suivi, prêtes à être remplies",kpi:"Jours de campagne",show:5,moreT:"… et 85 autres jours, jusqu’au jour 90",cols:["jour"],
+        board:{ico:"📅",h:"Tableau de suivi",aria:"Les 90 jours de la campagne forment les lignes du tableau de suivi, prêtes à être remplies",kpi:"Lignes du tableau",show:5,moreT:"… et 85 autres jours, jusqu’au jour 90",cols:["jour"],
           rows:[[1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12], [13], [14], [15], [16], [17], [18], [19], [20], [21], [22], [23], [24], [25], [26], [27], [28], [29], [30], [31], [32], [33], [34], [35], [36], [37], [38], [39], [40], [41], [42], [43], [44], [45], [46], [47], [48], [49], [50], [51], [52], [53], [54], [55], [56], [57], [58], [59], [60], [61], [62], [63], [64], [65], [66], [67], [68], [69], [70], [71], [72], [73], [74], [75], [76], [77], [78], [79], [80], [81], [82], [83], [84], [85], [86], [87], [88], [89], [90]],done:"✓ Une ligne par jour, prête à être remplie"},
         fill:["RECURSIVE","UNION ALL","jour + 1","jour < 90"],
         ui:{t:"90 jours de campagne",s:"Générés par la requête elle-même.",n:["WITH RECURSIVE","UNION ALL","WHERE"]},
@@ -11180,10 +11180,10 @@ guide({ id:60, titre:"OVER()", résumé:"Calculer sans regrouper les lignes",
           {step:"CASE WHEN … END",s:"situe chaque produit : au-dessus, en dessous, égal ou seul"},
           {n:8,t:"⭐ produits comparés",s:"dont Fibre Prébiotique et Protéine Végétale, au-dessus de la moyenne de leur catégorie",dots:"11111111",out:true}
         ],
-        board:{ico:"📊",h:"Prix comparés à leur catégorie",aria:"Chaque produit est comparé à la moyenne de sa catégorie ; Fibre Prébiotique et Protéine Végétale sont au-dessus",kpi:"Au-dessus de la moyenne",kpiHl:true,hl:{"col": 4, "val": "au-dessus"},wide:true,cols:["nom", "categorie", "prix", "prix_moyen", "position"],
-          rows:[["Shaker Inox", "Accessoire", 15, 15, "seul"], ["Collagène Marin", "Beauté", 39.9, 39.9, "seul"], ["Fibre Prébiotique", "Bien-être", 29.9, 24.9, "au-dessus"], ["Oméga 3", "Bien-être", 24.9, 24.9, "="], ["Magnésium", "Bien-être", 19.9, 24.9, "en dessous"], ["Tisane Détox", "Boisson", 12.5, 12.5, "seul"], ["Protéine Végétale", "Nutrition", 34.9, 24.9, "au-dessus"], ["Vitamine D", "Nutrition", 14.9, 24.9, "en dessous"]],done:"✓ 2 produits à surveiller pour les promotions"},
+        board:{ico:"📊",h:"Analyse des prix par catégorie",aria:"Chaque produit est comparé à la moyenne de sa catégorie ; Fibre Prébiotique et Protéine Végétale sont au-dessus",kpi:"Au-dessus de la moyenne",kpiHl:true,hl:{"col": 4, "val": "au-dessus"},wide:true,cols:["nom", "categorie", "prix", "prix_moyen", "position"],
+          rows:[["Shaker Inox", "Accessoire", 15, 15, "seul"], ["Collagène Marin", "Beauté", 39.9, 39.9, "seul"], ["Fibre Prébiotique", "Bien-être", 29.9, 24.9, "au-dessus"], ["Oméga 3", "Bien-être", 24.9, 24.9, "="], ["Magnésium", "Bien-être", 19.9, 24.9, "en dessous"], ["Tisane Détox", "Boisson", 12.5, 12.5, "seul"], ["Protéine Végétale", "Nutrition", 34.9, 24.9, "au-dessus"], ["Vitamine D", "Nutrition", 14.9, 24.9, "en dessous"]],done:"✓ 2 produits repérés pour les promotions"},
         fill:["AVG(prix)","OVER","PARTITION BY","categorie"],
-        ui:{t:"8 produits comparés à leur catégorie",s:"2 produits sont au-dessus, 2 en dessous, 1 est égal et 3 sont seuls.",n:["WITH","AVG()","OVER()","PARTITION BY","COUNT()","CASE"]},
+        ui:{t:"8 produits comparés à leur catégorie",s:"2 produits sont au-dessus de la moyenne, 2 en dessous, 1 pile à la moyenne et 3 seuls dans leur catégorie.",n:["WITH","AVG()","OVER()","PARTITION BY","COUNT()","CASE"]},
         rows:8
       }}
     ]}
@@ -11282,10 +11282,10 @@ guide({ id:74, titre:"Fonctions de rang", résumé:"Classer les lignes, ex æquo
           {step:"RANK() OVER (ORDER BY SUM(…) DESC)",s:"attribue une place à chaque produit, la même pour les ex æquo"},
           {n:8,t:"⭐ produits classés",s:"dont 5 sur le podium : 3 ex æquo se partagent la 3ᵉ place",dots:"11111111",out:true}
         ],
-        page:{ico:"🏆",h:"Podium des ventes",aria:"Le podium des ventes classe les 8 produits : 1ʳᵉ place Fibre Prébiotique (10 vendus), 2ᵉ Collagène Marin (4), 3ᵉ ex æquo Magnésium, Oméga 3 et Vitamine D (3)",url:"boutique › accueil",banner:"Top des ventes",sub2:"Les ex æquo partagent leur place",layout:"podium",rank:2,name:0,sub:{"col": 1, "tpl": "{v} vendu{s}"},
+        page:{ico:"🏆",h:"Podium des ventes",aria:"Le podium des ventes classe les 8 produits : 1re place Fibre Prébiotique (10 vendus), 2e Collagène Marin (4), 3e ex æquo Magnésium, Oméga 3 et Vitamine D (3), puis 6e ex æquo Protéine Végétale et Tisane Détox (2) et 8e Shaker Inox (1)",url:"boutique › accueil",banner:"Top des ventes",sub2:"Les ex æquo partagent la même place",layout:"podium",rank:2,name:0,sub:{"col": 1, "tpl": "{v} vendu{s}"},
           rows:[["Fibre Prébiotique", 10, 1], ["Collagène Marin", 4, 2], ["Magnésium", 3, 3], ["Oméga 3", 3, 3], ["Vitamine D", 3, 3], ["Protéine Végétale", 2, 6], ["Tisane Détox", 2, 6], ["Shaker Inox", 1, 8]],done:"✓ Podium prêt pour la page d’accueil"},
         fill:["RANK()","OVER","ORDER BY","DESC"],
-        ui:{t:"8 produits classés, 5 sur le podium",s:"Le podium des ventes est prêt.",n:["RANK()","OVER()","ORDER BY","SUM()","JOIN","GROUP BY"]},
+        ui:{t:"8 produits classés, 5 sur le podium",s:"Magnésium, Oméga 3 et Vitamine D se partagent la 3ᵉ place.",n:["RANK()","OVER()","ORDER BY","SUM()","JOIN","GROUP BY"]},
         rows:8
       }}
     ]}
@@ -11395,7 +11395,7 @@ guide({ id:78, titre:"LAG et LEAD", résumé:"Comparer une ligne à la précéde
           {step:"LAG(…) puis AVG(…) par client",s:"calcule le délai de chaque commande, puis la moyenne de chaque client"},
           {n:8,t:"⭐ clients avec leur délai moyen",s:"10 jours par défaut pour les clients qui n’ont commandé qu’une fois",dots:"11111111",out:true}
         ],
-        sms:{ico:"🔔",h:"Rappels personnalisés",aria:"Un rappel est programmé pour chaque client, après son propre délai moyen depuis sa dernière commande",msg:"Bonjour ! 🛍️ Votre complément habituel touche à sa fin : pensez à le commander à nouveau.",people:[["S","Sophie","13 j après sa dernière commande"],["L","Lucas","15 j après sa dernière commande"],["E","Emma","22 j après sa dernière commande"],["N","Nathan","14 j après sa dernière commande"],["C","Chloé","20 j après sa dernière commande"]],more:3,moreT:"… et 3 autres",moreS:"Hugo, Léa, Gabriel",st:["À programmer","Programmation","✓ Programmé"],icons:true,done:"✓ 8 rappels programmés"},
+        sms:{ico:"🔔",h:"Rappels personnalisés",aria:"Un rappel est programmé pour chaque client, après son propre délai moyen depuis sa dernière commande",msg:"Bonjour ! 🛍️ Votre complément habituel touche à sa fin : pensez à le commander à nouveau.",people:[["S","Sophie","délai moyen : 13 j"],["L","Lucas","délai moyen : 15 j"],["E","Emma","délai moyen : 22 j"],["N","Nathan","délai moyen : 14 j"],["C","Chloé","délai moyen : 20 j"]],more:3,moreT:"… et 3 autres",moreS:"Hugo, Léa, Gabriel",st:["À programmer","Programmation","✓ Programmé"],icons:true,done:"✓ 8 rappels programmés · 10 j par défaut pour Hugo et Gabriel"},
         fill:["LAG","PARTITION BY","COALESCE","AVG","GROUP BY"],
         ui:{t:"8 clients, un délai moyen chacun",s:"L’équipe sait maintenant après combien de jours programmer le rappel de chaque client.",n:["LAG()","PARTITION BY","WITH","AVG()","GROUP BY","COALESCE()","JOIN"]},
         rows:8
@@ -11494,8 +11494,8 @@ guide({ id:79, titre:"Fenêtres glissantes", résumé:"Suivre l’évolution des
           {step:"SUM(montant) OVER (… UNBOUNDED PRECEDING AND CURRENT ROW)",s:"ajoute à chaque commande le total des ventes jusqu’à elle"},
           {n:16,t:"⭐ commandes avec leur cumul",s:"aucune ligne n’a disparu : le cumul grossit de commande en commande",dots:"1111111111111111",out:true}
         ],
-        board:{ico:"📈",h:"Suivi du palier de 700 €",aria:"Le chiffre d’affaires cumulé monte commande après commande et franchit 700 € le 1er août, à 732,60 €",kpi:"Commandes suivies",chart:"cumul par commande",bar:2,hl:{"col": 0, "val": "2026-08-01"},show:5,tail:2,moreT:"… et 9 autres commandes",cols:["date_commande", "montant", "cumul"],
-          rows:[["2026-07-02", 59.8, 59.8], ["2026-07-02", 19.9, 79.69999999999999], ["2026-07-05", 34.9, 114.6], ["2026-07-08", 119.69999999999999, 234.29999999999998], ["2026-07-11", 29.9, 264.2], ["2026-07-12", 29.8, 294], ["2026-07-15", 24.9, 318.9], ["2026-07-18", 119.6, 438.5], ["2026-07-18", 25, 463.5], ["2026-07-20", 39.8, 503.29999999999995], ["2026-07-22", 34.9, 538.1999999999999], ["2026-07-25", 39.9, 578.1], ["2026-07-28", 15, 593.1], ["2026-07-30", 49.8, 642.9], ["2026-08-01", 89.69999999999999, 732.5999999999999], ["2026-08-03", 14.9, 747.5]],done:"✓ Palier de 700 € franchi"},
+        board:{ico:"📈",h:"Suivi du palier de 700 €",aria:"Le chiffre d’affaires cumulé monte commande après commande et franchit 700 € le 1er août, à 732,60 €",kpi:"Commandes suivies",chart:"cumul par commande",bar:2,hl:{"col": 0, "val": "2026-08-01"},show:4,tail:3,moreT:"… et 9 autres commandes",cols:["date_commande", "montant", "cumul"],
+          rows:[["2026-07-02", 59.8, 59.8], ["2026-07-02", 19.9, 79.69999999999999], ["2026-07-05", 34.9, 114.6], ["2026-07-08", 119.69999999999999, 234.29999999999998], ["2026-07-11", 29.9, 264.2], ["2026-07-12", 29.8, 294], ["2026-07-15", 24.9, 318.9], ["2026-07-18", 119.6, 438.5], ["2026-07-18", 25, 463.5], ["2026-07-20", 39.8, 503.29999999999995], ["2026-07-22", 34.9, 538.1999999999999], ["2026-07-25", 39.9, 578.1], ["2026-07-28", 15, 593.1], ["2026-07-30", 49.8, 642.9], ["2026-08-01", 89.69999999999999, 732.5999999999999], ["2026-08-03", 14.9, 747.5]],done:"✓ 700 € dépassés à la 15ᵉ commande sur 16"},
         fill:["SUM","ROWS BETWEEN","UNBOUNDED PRECEDING","CURRENT ROW"],
         ui:{t:"Palier franchi le 1ᵉʳ août",s:"Le cumul passe de 642,90 € (30 juillet) à 732,60 € (1ᵉʳ août).",n:["WITH","SUM()","OVER","ORDER BY","ROWS BETWEEN","UNBOUNDED PRECEDING","CURRENT ROW"]},
         rows:16
@@ -11594,7 +11594,7 @@ guide({ id:56, titre:"Normalisation", résumé:"Répartir les données dans des 
         board:{ico:"📊",h:"Tableau de bord des ventes",aria:"Le tableau de bord des ventes reçoit les 15 commandes avec le prénom, la ville, le produit, le prix et la quantité, retrouvés par jointure",kpi:"Commandes",chart:"quantite par commande",bar:4,wide:true,show:8,moreT:"… et 7 autres commandes",cols:["prenom", "ville", "produit", "prix", "quantite"],
           rows:[["Sophie", "Paris", "Fibre Prébiotique", 29.9, 2], ["Sophie", "Paris", "Magnésium", 19.9, 1], ["Lucas", "Lyon", "Protéine Végétale", 34.9, 1], ["Emma", "Marseille", "Collagène Marin", 39.9, 3], ["Nathan", "Paris", "Fibre Prébiotique", 29.9, 1], ["Chloé", "Bordeaux", "Vitamine D", 14.9, 2], ["Hugo", "Lyon", "Oméga 3", 24.9, 1], ["Léa", "Paris", "Fibre Prébiotique", 29.9, 4], ["Léa", "Paris", "Tisane Détox", 12.5, 2], ["Lucas", "Lyon", "Magnésium", 19.9, 2], ["Gabriel", "Toulouse", "Protéine Végétale", 34.9, 1], ["Nathan", "Paris", "Collagène Marin", 39.9, 1], ["Sophie", "Paris", "Shaker Inox", 15, 1], ["Emma", "Marseille", "Oméga 3", 24.9, 2], ["Chloé", "Bordeaux", "Fibre Prébiotique", 29.9, 3]],done:"✓ Tableau de bord alimenté"},
         fill:["JOIN","commandes.client_id","JOIN","commandes.produit_id"],
-        ui:{t:"15 commandes pour le tableau de bord",s:"Rien n’est recopié : les jointures retrouvent les informations de la grande table, à partir de trois tables.",n:["SELECT","FROM","JOIN","ON","ORDER BY"]},
+        ui:{t:"15 commandes pour le tableau de bord",s:"Rien n’est recopié : les jointures retrouvent, dans les trois tables, les informations de la grande table.",n:["SELECT","FROM","JOIN","ON","ORDER BY"]},
         rows:15
       }}
     ]}
@@ -11719,8 +11719,8 @@ guide({ id:72, titre:"Relations 1-1, 1-N et N-N", résumé:"Les trois formes de 
           {step:"CREATE TABLE echantillons, INSERT",s:"crée la table de jointure, puis y range les envois"},
           {n:3,t:"⭐ envois dans la table",s:"un seul par couple client + produit",dots:"111",out:true}
         ],
-        board:{ico:"🎁",h:"Table echantillons",aria:"La table echantillons est créée, puis trois envois y sont enregistrés, un seul par couple client + produit",tiles:false,cols:["client_id", "produit_id", "date_envoi"],
-          rows:[[1, 1, "2026-09-01"], [1, 3, "2026-09-01"], [2, 1, "2026-09-02"]],done:"✓ 3 envois enregistrés, un par couple client + produit"},
+        board:{ico:"🎁",h:"Table echantillons",aria:"La table echantillons est créée et reçoit trois envois : les produits 1 et 3 pour le client 1, le produit 1 pour le client 2, sans doublon possible",tiles:false,cols:["client_id", "produit_id", "date_envoi"],
+          rows:[[1, 1, "2026-09-01"], [1, 3, "2026-09-01"], [2, 1, "2026-09-02"]],done:"✓ 3 envois enregistrés, aucun doublon possible"},
         fill:["REFERENCES","PRIMARY KEY","client_id","produit_id"],
         ui:{t:"Un envoi par client et par produit",s:"Un client reçoit plusieurs échantillons, un produit est offert à plusieurs clients.",n:["CREATE TABLE","REFERENCES","PRIMARY KEY"]},
         rows:3
@@ -11824,7 +11824,7 @@ guide({ id:61, titre:"CREATE TABLE", résumé:"Créer la structure d’une table
           {n:5,t:"⭐ tables dans la base",s:"les 4 d’origine et <code>avis</code>, avec ses 4 colonnes",dots:"00001",out:true}
         ],
         board:{ico:"🗄️",h:"Nouvelle table avis",aria:"La table avis est créée avec ses 4 colonnes : id, produit_id, note et commentaire",kpi:"Colonnes",cols:["name", "type"],
-          rows:[["id", "INTEGER"], ["produit_id", "INTEGER"], ["note", "INTEGER"], ["commentaire", "TEXT"]],done:"✓ Table avis prête pour les premiers avis"},
+          rows:[["id", "INTEGER"], ["produit_id", "INTEGER"], ["note", "INTEGER"], ["commentaire", "TEXT"]],done:"✓ Règles en place : identifiant unique, produit obligatoire, note de 1 à 5"},
         fill:["CREATE TABLE","PRIMARY KEY","NOT NULL","CHECK"],
         ui:{t:"Une table prête pour les avis",s:"La table avis existe, avec ses règles : elle peut recevoir les premiers avis.",n:["CREATE TABLE","PRIMARY KEY","NOT NULL","CHECK"]},
         rows:4
@@ -11935,8 +11935,8 @@ guide({ id:65, titre:"ALTER TABLE", résumé:"Faire évoluer la structure d’un
           {step:"ALTER TABLE … ADD COLUMN pays",s:"ajoute une colonne, sans effacer aucun client"},
           {n:10,t:"⭐ colonnes dans la table",s:"les 9 d’origine et <code>pays</code>",dots:"0000000001",out:true}
         ],
-        board:{ico:"🌍",h:"Table clients",aria:"La colonne pays s’ajoute à la table clients, avec France pour chacun des 10 clients",kpi:"Clients conservés",newCol:3,show:5,moreT:"… et 5 autres clients",cols:["id", "prenom", "ville", "pays"],
-          rows:[[1, "Sophie", "Paris", "France"], [2, "Lucas", "Lyon", "France"], [3, "Emma", "Marseille", "France"], [4, "Nathan", "Paris", "France"], [5, "Chloé", "Bordeaux", "France"], [6, "Hugo", "Lyon", "France"], [7, "Léa", "Paris", "France"], [8, "Gabriel", "Toulouse", "France"], [9, "Inès", "Nantes", "France"], [10, "Nathan", "Paris", "France"]],done:"✓ Colonne pays ajoutée, aucun client perdu"},
+        board:{ico:"🌍",h:"Table clients",aria:"La colonne pays s’ajoute à la table clients, avec France pour chacun des 10 clients",kpi:"Colonnes de la table",count:{t:"Colonnes de la table",from:9,to:10},kpi2:{t:"Clients conservés",v:10},newCol:3,show:5,moreT:"… et 5 autres clients",cols:["id", "prenom", "ville", "pays"],
+          rows:[[1, "Sophie", "Paris", "France"], [2, "Lucas", "Lyon", "France"], [3, "Emma", "Marseille", "France"], [4, "Nathan", "Paris", "France"], [5, "Chloé", "Bordeaux", "France"], [6, "Hugo", "Lyon", "France"], [7, "Léa", "Paris", "France"], [8, "Gabriel", "Toulouse", "France"], [9, "Inès", "Nantes", "France"], [10, "Nathan", "Paris", "France"]],done:"✓ Chaque client a reçu France comme valeur de départ"},
         fill:["ALTER TABLE","ADD COLUMN","TEXT","'France'"],
         ui:{t:"10 colonnes, 10 clients conservés",s:"La colonne pays est ajoutée, et aucun client n’a été perdu.",n:["ALTER TABLE","ADD COLUMN","DEFAULT"]},
         rows:10
@@ -12041,7 +12041,7 @@ guide({ id:66, titre:"DROP", résumé:"Supprimer une structure de la base",
           {n:3,t:"⭐ tables dans la base",s:"<code>clients</code>, <code>produits</code> et <code>commandes</code>",dots:"111",out:true}
         ],
         board:{ico:"🧹",h:"Tables de la base",aria:"La table fidelite disparaît de la base : il reste clients, commandes et produits",kpi:"Tables",count:{"t": "Tables", "from": 4, "to": 3},gone:[{"at": 2, "row": ["fidelite"]}],cols:["name"],
-          rows:[["clients"], ["commandes"], ["produits"]],done:"✓ Table fidelite supprimée"},
+          rows:[["clients"], ["commandes"], ["produits"]],done:"✓ Ménage terminé : la base ne garde que ce qui sert encore"},
         fill:["DROP TABLE","fidelite","FROM","sqlite_master"],
         ui:{t:"3 tables dans la base",s:"La table fidelite a disparu avec ses lignes.",n:["DROP TABLE","SELECT","WHERE"]},
         rows:3
@@ -12153,7 +12153,7 @@ guide({ id:26, titre:"INSERT", résumé:"Ajouter une ligne",
           {n:9,t:"⭐ produits dans le catalogue",s:"les 8 d’origine et le Zinc",dots:"000000001",out:true}
         ],
         board:{wide:true,ico:"🛒",h:"Catalogue de la boutique",aria:"Le Zinc s’ajoute à la table produits : le catalogue passe de 8 à 9 produits, les autres n’ont pas changé",kpi:"Produits",count:{"t": "Produits", "from": 8, "to": 9},ops:{"8": {"op": "add"}},show:3,tail:1,moreT:"… et 5 autres produits",cols:["id", "nom", "categorie", "prix", "stock"],
-          rows:[[1, "Fibre Prébiotique", "Bien-être", 29.9, 120], [2, "Collagène Marin", "Beauté", 39.9, 80], [3, "Magnésium", "Bien-être", 19.9, 200], [4, "Vitamine D", "Nutrition", 14.9, 150], [5, "Tisane Détox", "Boisson", 12.5, 60], [6, "Protéine Végétale", "Nutrition", 34.9, 45], [7, "Oméga 3", "Bien-être", 24.9, 90], [8, "Shaker Inox", "Accessoire", 15, 30], [9, "Zinc", "Bien-être", 17.9, 70]],done:"✓ Le Zinc rejoint le catalogue"},
+          rows:[[1, "Fibre Prébiotique", "Bien-être", 29.9, 120], [2, "Collagène Marin", "Beauté", 39.9, 80], [3, "Magnésium", "Bien-être", 19.9, 200], [4, "Vitamine D", "Nutrition", 14.9, 150], [5, "Tisane Détox", "Boisson", 12.5, 60], [6, "Protéine Végétale", "Nutrition", 34.9, 45], [7, "Oméga 3", "Bien-être", 24.9, 90], [8, "Shaker Inox", "Accessoire", 15, 30], [9, "Zinc", "Bien-être", 17.9, 70]],done:"✓ Zinc enregistré, avec l’identifiant 9 attribué par la base"},
         fill:["INSERT INTO","nom","VALUES","'Zinc'"],
         ui:{t:"9 produits dans le catalogue",s:"Le Zinc rejoint le catalogue : les 8 autres produits n’ont pas changé.",n:["INSERT INTO","VALUES"]},
         rows:9
@@ -12283,8 +12283,8 @@ guide({ id:27, titre:"UPDATE", résumé:"Modifier des lignes",
           {step:"UPDATE … WHERE categorie = 'Bien-être'",s:"recalcule le prix des produits Bien-être, sans toucher aux autres"},
           {n:8,t:"⭐ produits dans le catalogue",s:"dont 3 avec un prix à jour",dots:"10100010",out:true}
         ],
-        board:{ico:"🏷️",h:"Prix du catalogue",aria:"Les trois produits Bien-être coûtent 10 % de plus ; les cinq autres prix ne changent pas",kpi:"Prix à jour",count:{"t": "Prix à jour", "from": 0, "to": 3},ops:{"0": {"op": "upd", "from": {"3": 29.9}}, "2": {"op": "upd", "from": {"3": 19.9}}, "6": {"op": "upd", "from": {"3": 24.9}}},cols:["id", "nom", "categorie", "prix"],
-          rows:[[1, "Fibre Prébiotique", "Bien-être", 32.89], [2, "Collagène Marin", "Beauté", 39.9], [3, "Magnésium", "Bien-être", 21.89], [4, "Vitamine D", "Nutrition", 14.9], [5, "Tisane Détox", "Boisson", 12.5], [6, "Protéine Végétale", "Nutrition", 34.9], [7, "Oméga 3", "Bien-être", 27.39], [8, "Shaker Inox", "Accessoire", 15]],done:"✓ Catalogue à jour : 3 prix augmentés de 10 %"},
+        board:{ico:"🏷️",h:"Prix du catalogue",aria:"Les trois produits Bien-être coûtent 10 % de plus ; les cinq autres prix ne changent pas",kpi:"Prix augmentés",count:{"t": "Prix augmentés", "from": 0, "to": 3},ops:{"0": {"op": "upd", "from": {"3": 29.9}}, "2": {"op": "upd", "from": {"3": 19.9}}, "6": {"op": "upd", "from": {"3": 24.9}}},cols:["id", "nom", "categorie", "prix"],
+          rows:[[1, "Fibre Prébiotique", "Bien-être", 32.89], [2, "Collagène Marin", "Beauté", 39.9], [3, "Magnésium", "Bien-être", 21.89], [4, "Vitamine D", "Nutrition", 14.9], [5, "Tisane Détox", "Boisson", 12.5], [6, "Protéine Végétale", "Nutrition", 34.9], [7, "Oméga 3", "Bien-être", 27.39], [8, "Shaker Inox", "Accessoire", 15]],done:"✓ Hausse du fournisseur répercutée sur les prix de la boutique"},
         fill:["SET","prix * 1.1","WHERE","'Bien-être'"],
         ui:{t:"3 prix à jour",s:"Les produits Bien-être coûtent 10 % de plus ; les cinq autres n’ont pas bougé.",n:["UPDATE","SET","WHERE"]},
         rows:8
@@ -12392,7 +12392,7 @@ guide({ id:28, titre:"DELETE", résumé:"Supprimer des lignes",
           {n:9,t:"⭐ clients restants",s:"Nathan Dupont n’est plus dans la table",dots:"111111111",out:true}
         ],
         board:{ico:"🗑️",h:"Table clients",aria:"La ligne de Nathan Dupont (id 10) est supprimée ; les neuf autres clients, dont Nathan Petit, restent",kpi:"Clients",count:{"t": "Clients", "from": 10, "to": 9},gone:[{"at": 9, "row": [10, "Nathan", "Dupont"]}],show:4,moreT:"… et 5 autres clients",cols:["id", "prenom", "nom"],
-          rows:[[1, "Sophie", "Martin"], [2, "Lucas", "Bernard"], [3, "Emma", "Dubois"], [4, "Nathan", "Petit"], [5, "Chloé", "Moreau"], [6, "Hugo", "Laurent"], [7, "Léa", "Simon"], [8, "Gabriel", "Michel"], [9, "Inès", "Lefebvre"]],done:"✓ Seule la ligne de Nathan Dupont a disparu"},
+          rows:[[1, "Sophie", "Martin"], [2, "Lucas", "Bernard"], [3, "Emma", "Dubois"], [4, "Nathan", "Petit"], [5, "Chloé", "Moreau"], [6, "Hugo", "Laurent"], [7, "Léa", "Simon"], [8, "Gabriel", "Michel"], [9, "Inès", "Lefebvre"]],done:"✓ Compte de Nathan Dupont supprimé, Nathan Petit reste"},
         fill:["DELETE FROM","clients","WHERE","id"],
         ui:{t:"9 clients restants",s:"La ligne demandée a disparu ; les autres clients n’ont pas changé.",n:["DELETE FROM","WHERE"]},
         rows:9
@@ -12509,7 +12509,7 @@ guide({ id:69, titre:"INSERT multiple et gestion de conflit", résumé:"Insérer
           {n:9,t:"⭐ produits dans le catalogue",s:"le Fer est ajouté, le prix de la Tisane Détox est corrigé",dots:"000010001",out:true}
         ],
         board:{ico:"📥",h:"Catalogue après l’import",aria:"L’import ajoute le Fer et corrige le prix de la Tisane Détox, sans créer de doublon",kpi:"Produits",count:{"t": "Produits", "from": 8, "to": 9},ops:{"4": {"op": "upd", "from": {"2": 12.5}}, "8": {"op": "add"}},cols:["id", "nom", "prix"],
-          rows:[[1, "Fibre Prébiotique", 29.9], [2, "Collagène Marin", 39.9], [3, "Magnésium", 19.9], [4, "Vitamine D", 14.9], [5, "Tisane Détox", 13.5], [6, "Protéine Végétale", 34.9], [7, "Oméga 3", 24.9], [8, "Shaker Inox", 15], [9, "Fer", 19.9]],done:"✓ Fichier importé, sans doublon"},
+          rows:[[1, "Fibre Prébiotique", 29.9], [2, "Collagène Marin", 39.9], [3, "Magnésium", 19.9], [4, "Vitamine D", 14.9], [5, "Tisane Détox", 13.5], [6, "Protéine Végétale", 34.9], [7, "Oméga 3", 24.9], [8, "Shaker Inox", 15], [9, "Fer", 19.9]],done:"✓ Fer ajouté, prix de la Tisane Détox corrigé : aucun doublon"},
         fill:["VALUES","ON CONFLICT","DO UPDATE","excluded.prix"],
         ui:{t:"9 produits, fichier importé",s:"Le catalogue est à jour : l’import peut être rejoué sans erreur.",n:["INSERT INTO","VALUES","ON CONFLICT","DO UPDATE"]},
         rows:9
@@ -12743,8 +12743,8 @@ guide({ id:68, titre:"ON DELETE", résumé:"Décider du sort des lignes liées",
           {step:"DELETE FROM clients WHERE id = 9",s:"supprime Inès, et la règle détache ses notes"},
           {n:3,t:"⭐ notes conservées",s:"les deux notes d’Inès n’ont plus de client",dots:"111",out:true}
         ],
-        board:{ico:"⭐",h:"Table satisfaction",aria:"Inès supprime son compte : ses deux notes restent dans la table, détachées d’elle, et la satisfaction moyenne ne change pas",kpi:"Notes conservées",lead:"🗑️ Inès (client 9) supprime son compte",ops:{"0": {"op": "upd", "from": {"1": 9}}, "1": {"op": "upd", "from": {"1": 9}}},cols:["id", "client_id", "note"],
-          rows:[[1, null, 5], [2, null, 4], [3, 4, 5]],done:"✓ Ses 2 notes restent, détachées d’elle"},
+        board:{ico:"⭐",h:"Table satisfaction",aria:"Inès supprime son compte : ses deux notes restent dans la table, détachées d’elle, et la satisfaction moyenne ne change pas",kpi:"Notes dans la table",count:{t:"Notes dans la table",from:3,to:3},lead:"🗑️ Inès (client 9) supprime son compte",ops:{"0": {"op": "upd", "from": {"1": 9}}, "1": {"op": "upd", "from": {"1": 9}}},cols:["id", "client_id", "note"],
+          rows:[[1, null, 5], [2, null, 4], [3, 4, 5]],done:"✓ Les 2 notes d’Inès restent, sans client"},
         fill:["REFERENCES","clients","ON DELETE","SET NULL"],
         ui:{t:"Les notes sont conservées",s:"La satisfaction moyenne reste intacte.",n:["CREATE TABLE","REFERENCES","ON DELETE","SET NULL"]},
         rows:3
@@ -12844,8 +12844,8 @@ guide({ id:62, titre:"Transactions", résumé:"Tout valider ou tout annuler",
           {step:"BEGIN … COMMIT",s:"regroupe les deux opérations et les valide ensemble"},
           {n:2,t:"⭐ opérations validées ensemble",s:"Sophie passe à 70 points et Lucas à 130 : il y en a toujours 200 en tout",dots:"11",out:true}
         ],
-        board:{ico:"🎁",h:"Table fidelite",aria:"Sophie passe de 120 à 70 points et Lucas de 80 à 130 : les deux changements sont validés ensemble, le total ne bouge pas",kpi:"Points au total",count:{"t": "Points au total", "from": 610, "to": 610},ops:{"0": {"op": "upd", "from": {"1": 120}}, "1": {"op": "upd", "from": {"1": 80}}},cols:["client_id", "points"],
-          rows:[[1, 70], [2, 130], [4, 250], [7, 160]],done:"✓ Transfert validé : aucun point n’a disparu"},
+        board:{ico:"🎁",h:"Table fidelite",aria:"Sophie passe de 120 à 70 points et Lucas de 80 à 130 : les deux changements sont validés ensemble, le total ne bouge pas",kpi:"Points sur les 4 comptes",count:{"t": "Points sur les 4 comptes", "from": 610, "to": 610},lead:"➡️ Sophie (client 1) offre 50 points à Lucas (client 2)",ops:{"0": {"op": "upd", "from": {"1": 120}}, "1": {"op": "upd", "from": {"1": 80}}},cols:["client_id", "points"],
+          rows:[[1, 70], [2, 130], [4, 250], [7, 160]],done:"✓ Transfert validé : Sophie passe à 70 points, Lucas à 130"},
         fill:["BEGIN","points - 50","points + 50","COMMIT"],
         ui:{t:"Un transfert, une seule transaction",s:"Aucun point n’a disparu.",n:["BEGIN","UPDATE","COMMIT"]},
         rows:2
@@ -12944,7 +12944,7 @@ guide({ id:63, titre:"SAVEPOINT", résumé:"Annuler seulement une partie d’une
           {step:"ROLLBACK TO avant_14",s:"annule seulement la dernière expédition"},
           {n:2,t:"⭐ expéditions validées",s:"les commandes 12 et 13 ; la commande 14 reste en préparation",dots:"110",out:true}
         ],
-        sms:{ico:"📦",h:"Expéditions du jour",aria:"Le lot est validé : les commandes 12 et 13 partent, la commande 14 reste en préparation",msg:"Deux colis partent, le colis refusé reste en préparation.",people:[["12","Commande 12","Collagène Marin"],["13","Commande 13","Shaker Inox"],["14","Commande 14","Oméga 3 · colis refusé",{st:["À expédier","Annulation","↩ En préparation"],skip:true}]],st:["À expédier","Expédition","✓ Expédiée"],plane:"pin",done:"✓ Lot validé : 2 commandes expédiées, la 14 reste en préparation"},
+        board:{ico:"📦",h:"Expéditions du jour",aria:"Dans la table commandes, les commandes 12 et 13 passent au statut « expédiée » ; la commande 14, refusée par le transporteur, reste en préparation",kpi:"Commandes expédiées",count:{t:"Commandes expédiées",from:0,to:2},lead:"🚚 Le transporteur refuse le colis de la commande 14",hl:{"col": 0, "val": 14},ops:{"0": {"op": "upd", "from": {"1": "en_preparation"}}, "1": {"op": "upd", "from": {"1": "en_preparation"}}},cols:["id", "statut"],rows:[[12, "expédiée"], [13, "expédiée"], [14, "en_preparation"]],done:"✓ Commandes 12 et 13 expédiées, la 14 reste en préparation"},
         fill:["SAVEPOINT","avant_14","ROLLBACK TO","COMMIT"],
         ui:{t:"Deux expéditions validées, une annulée",s:"Le lot est validé sans le colis refusé.",n:["BEGIN","SAVEPOINT","ROLLBACK TO","COMMIT"]},
         rows:2
@@ -13046,7 +13046,7 @@ guide({ id:70, titre:"Les triggers", résumé:"Faire réagir la base toute seule
           {step:"CREATE TRIGGER … AFTER UPDATE",s:"note l’ancien et le nouveau prix à chaque changement"},
           {n:1,t:"⭐ changement tracé",s:"Magnésium : de 19.9 à 22.9",dots:"00100000",out:true}
         ],
-        board:{ico:"🗂️",h:"Historique des prix",aria:"La table historique_prix reçoit toute seule une ligne : produit 3, ancien prix 19.9, nouveau prix 22.9",tiles:false,hit:1,cols:["produit_id", "ancien_prix", "nouveau_prix"],
+        board:{ico:"🗂️",h:"Historique des prix",aria:"L’équipe change le prix du Magnésium (produit 3) : la table historique_prix reçoit toute seule une ligne, ancien prix 19.9, nouveau prix 22.9",tiles:false,hit:1,lead:"✏️ L’équipe change le prix du Magnésium (produit 3)",ops:{"0": {"op": "add"}},cols:["produit_id", "ancien_prix", "nouveau_prix"],
           rows:[[3, 19.9, 22.9]],done:"✓ Ancien prix conservé"},
         fill:["AFTER UPDATE","WHEN","OLD.prix","NEW.prix"],
         ui:{t:"Chaque changement laisse une trace",s:"Rien ne se perd, sans aucune intervention.",n:["CREATE TRIGGER","AFTER UPDATE","WHEN","OLD","NEW"]},
@@ -13151,7 +13151,7 @@ guide({ id:71, titre:"Concurrence et isolation", résumé:"Quand deux écritures
           {step:"BEGIN IMMEDIATE … COMMIT",s:"chaque caisse vérifie le stock et écrit à son tour"},
           {n:2,t:"⭐ ventes comptées",s:"le stock passe de 45 à 43",dots:"11",out:true}
         ],
-        sms:{ico:"🧾",h:"Caisses de la boutique",aria:"Les deux ventes sont comptées l’une après l’autre : le stock passe de 45 à 44, puis à 43",msg:"<b>Deux ventes</b>, une à chaque caisse, au même instant.",people:[["A","Caisse A","stock 45 → 44"],["B","Caisse B","stock 44 → 43"]],st:["En attente","Vente","✓ Comptée"],plane:"doc",done:"✓ 2 ventes comptées : stock à 43"},
+        board:{ico:"🧾",h:"Stock de la boutique",aria:"Les deux ventes sont comptées l’une après l’autre : le stock de Protéine Végétale passe de 45 à 44, puis à 43",kpi:"Ventes comptées",count:{t:"Ventes comptées",from:0,to:2},lead:"Caisse A, puis caisse B : une vente chacune",ops:{"0": {"op": "upd", "from": {"2": 45}}},cols:["id", "nom", "stock"],rows:[[6, "Protéine Végétale", 43]],done:"✓ 2 ventes comptées : stock à 43"},
         fill:["BEGIN IMMEDIATE","stock - 1","stock >= 1","COMMIT"],
         ui:{t:"Aucune vente perdue",s:"Chaque caisse est repartie de la valeur courante.",n:["BEGIN IMMEDIATE","UPDATE","COMMIT"]},
         rows:2
@@ -13249,8 +13249,8 @@ guide({ id:64, titre:"CREATE VIEW", résumé:"Enregistrer une requête sous un n
           {step:"CREATE VIEW produits_stock_faible",s:"enregistre la requête : la vue ne présente que les produits de moins de 50 unités"},
           {n:2,t:"⭐ produits à réapprovisionner",s:"Protéine Végétale et Shaker Inox",dots:"00000101",out:true}
         ],
-        board:{ico:"🔖",h:"Vue produits_stock_faible",aria:"Chaque matin, la vue produits_stock_faible affiche les 2 produits de moins de 50 unités, sans réécrire la requête",kpi:"À réapprovisionner",chart:"stock par produit",bar:2,cols:["id", "nom", "stock"],
-          rows:[[6, "Protéine Végétale", 45], [8, "Shaker Inox", 30]],done:"✓ Vue consultée, sans réécrire la requête"},
+        board:{ico:"🔖",h:"Vue produits_stock_faible",aria:"Chaque matin, la vue produits_stock_faible affiche les 2 produits de moins de 50 unités, sans réécrire la requête",kpi:"Moins de 50 unités",chart:"stock par produit",bar:2,cols:["id", "nom", "stock"],
+          rows:[[6, "Protéine Végétale", 45], [8, "Shaker Inox", 30]],done:"✓ Liste prête pour le réassort du matin"},
         fill:["CREATE VIEW","produits_stock_faible","AS","50"],
         ui:{t:"2 produits à réapprovisionner",s:"La requête est enregistrée : chaque matin, il suffit de consulter la vue.",n:["CREATE VIEW","AS","SELECT","FROM","WHERE"]},
         rows:2
@@ -13375,7 +13375,7 @@ guide({ id:57, titre:"Les index et EXPLAIN", résumé:"Accélérer une recherche
           {step:"CREATE INDEX idx_commandes_numero",s:"range les numéros dans un index, à côté de la table"},
           {n:1,t:"⭐ commande lue directement",s:"CMD-2026-1847392, sans lire les 15 autres",dots:"0000000000000100",out:true}
         ],
-        sms:{ico:"🔎",h:"Recherche par numéro",aria:"La commande demandée est retrouvée directement grâce à l’index",msg:"<b>Numéro demandé</b><br>CMD-2026-1847392",people:[["14","CMD-2026-1847392","2026-07-30 · en préparation · 2 unités"]],st:["En attente","Via l’index","✓ Retrouvée"],plane:"pin",done:"✓ Retrouvée sans parcourir toute la table"},
+        sms:{ico:"🔎",h:"Recherche par numéro",aria:"La commande demandée est retrouvée directement grâce à l’index",msg:"<b>Numéro demandé</b><br>CMD-2026-1847392",people:[["14","CMD-2026-1847392","en_preparation · 2 unités"]],st:["En attente","Via l’index","✓ Retrouvée"],plane:"pin",done:"✓ Réponse prête pour le client : statut et quantité"},
         fill:["CREATE INDEX","idx_commandes_numero","commandes","numero_commande"],
         ui:{t:"Une commande retrouvée directement",s:"Le plan annonce SEARCH et non plus SCAN : SQL passe par l’index.",n:["CREATE INDEX","ON","EXPLAIN QUERY PLAN"]},
         rows:1
@@ -13477,7 +13477,7 @@ guide({ id:50, titre:"Sécurité et droits", résumé:"Contrôler les accès ave
           {step:"GRANT SELECT ON clients TO app_user",s:"n’accorde que le droit de lecture"},
           {n:1,t:"⭐ droit accordé",s:"<code>app_user</code> peut lire <code>clients</code>, sans pouvoir la modifier",dots:"1000",out:true}
         ],
-        sms:{mail:true,ico:"🔐",h:"Accès de l’outil de reporting",aria:"app_user reçoit le droit de lire la table clients ; ajouter, modifier et supprimer restent fermés",msg:"<b>Compte app_user</b><br>Table clients · lecture seule",people:[["S","SELECT","lire les clients"],["I","INSERT","ajouter un client",{st:["🔒 Fermé","Inchangé","🔒 Fermé"],skip:true}],["U","UPDATE","modifier un client",{st:["🔒 Fermé","Inchangé","🔒 Fermé"],skip:true}],["D","DELETE","supprimer un client",{st:["🔒 Fermé","Inchangé","🔒 Fermé"],skip:true}]],st:["À accorder","Attribution","✓ Accordé"],plane:"key",done:"✓ app_user peut lire les clients, sans pouvoir les modifier"},
+        board:{ico:"🔐",h:"Droits d’app_user sur clients",aria:"app_user reçoit le droit de lire la table clients ; ajouter, modifier et supprimer restent refusés",kpi:"Droits accordés",count:{t:"Droits accordés",from:0,to:1},ops:{"0": {"op": "upd", "from": {"2": "⛔ non"}}},cols:["action", "commande", "autorisé ?"],rows:[["lire", "SELECT", "✅ oui"], ["ajouter", "INSERT", "⛔ non"], ["modifier", "UPDATE", "⛔ non"], ["supprimer", "DELETE", "⛔ non"]],done:"✓ Droit de lecture accordé, rien de plus"},
         fill:["GRANT","SELECT","clients","app_user"],
         ui:{t:"Un accès en lecture seule",s:"L’outil de reporting est branché sans risque.",n:["GRANT","SELECT","ON","TO"]},
         rows:1
@@ -13651,7 +13651,7 @@ const CARTES={
     m:"<code>ORDER BY</code> classe les lignes ; <code>LIMIT</code> garde seulement les premières ; <code>OFFSET</code> saute celles déjà vues. Page n : décalage = (n − 1) × taille. Termine le tri par une clé unique pour stabiliser les pages."},
  13:{k:"DISTINCT",t:"Valeurs uniques",s:"SELECT DISTINCT ville FROM clients;",
     m:"<code>DISTINCT</code> retire les doublons du résultat. Avec plusieurs colonnes, il compare leur combinaison."},
- 51:{k:"Fonctions de texte",t:"Transformer, nettoyer, découper",s:"LOWER(prenom) || '-' || LOWER(ville)",
+ 51:{k:"Fonctions de texte",t:"Transformer, nettoyer, découper",s:"LOWER(prenom) || '-' || LOWER(nom)",
     m:"Demande-toi ce que tu veux faire au texte. Forme → <code>UPPER</code> / <code>LOWER</code>. Nettoyer → <code>TRIM</code>, <code>REPLACE</code>. Découper → <code>SUBSTR</code>. Chercher → <code>INSTR</code>. Assembler → <code>||</code>. Ces fonctions changent l’affichage, pas la table."},
   52:{k:"Fonctions numériques",t:"Calculer, arrondir, manipuler",s:"ROUND(AVG(prix))",
     m:"Une fonction numérique calcule une nouvelle valeur dans le résultat, sans modifier la table. Choisis d’abord le calcul : arrondir, valeur absolue, reste, moyenne… Puis vérifie la syntaxe de ton SGBD."},
@@ -25382,7 +25382,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-07-ludique-v1679';
+  const SW_CACHE='requete-2026-10-07-ludique-v1680';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
