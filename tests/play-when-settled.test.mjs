@@ -94,12 +94,20 @@ test('coupée en haut (sous l’en-tête) ou en bas (sous la barre), elle attend
   assert.equal(e.call('playVisible(Object.assign({},ok,{getBoundingClientRect:()=>({top:60,bottom:345,width:300,height:0})}))'), false, 'bloc masqué (hauteur nulle)');
 });
 
-test('une animation plus haute que la zone visible démarre dès qu’elle la remplit presque entièrement', () => {
-  const e = env();
-  e.ctx.tall = e.fakeEl(60, 900);                   /* zone visible : de 60 à 720 px = 660 px, il en faut 594 */
-  e.ctx.half = e.fakeEl(300, 900);                  /* 420 px seulement */
-  assert.equal(e.call('playVisible(tall)'), true);
-  assert.equal(e.call('playVisible(half)'), false);
+test('une animation haute (carte d’envoi) démarre dès que son haut est à l’écran et qu’on en voit 70 %, sans pixel près', () => {
+  const e = env();                                   /* zone visible : de 60 à 720 px = 660 px */
+  e.ctx.tall = e.fakeEl(300, 609);                   /* 609 px : plus de 60 % de la zone, 420 px visibles ≥ 70 % de 609 ? non : 420 < 426 */
+  e.ctx.tall2 = e.fakeEl(250, 609);                  /* 470 px visibles : oui */
+  e.ctx.high = e.fakeEl(20, 609);                    /* le haut passe sous l'en-tête : pas encore */
+  e.ctx.huge = e.fakeEl(100, 1500);                  /* très haute : 620 px visibles ≥ 70 % de la zone (462) */
+  assert.equal(e.call('playVisible(tall)'), false, '420 px visibles sur 609 : pas assez');
+  assert.equal(e.call('playVisible(tall2)'), true, '470 px visibles sur 609 : on voit le début');
+  assert.equal(e.call('playVisible(high)'), false, 'le haut est caché sous l’en-tête');
+  assert.equal(e.call('playVisible(huge)'), true, 'une animation plus haute que l’écran : on voit son début');
+  e.ctx.mid = e.fakeEl(100, 380);                    /* 380 px ≤ 60 % de 660 : entière exigée */
+  e.ctx.mid2 = e.fakeEl(400, 380);
+  assert.equal(e.call('playVisible(mid)'), true);
+  assert.equal(e.call('playVisible(mid2)'), false, 'dépasse la barre du bas');
 });
 
 test('un bloc retiré de la page (on a quitté le cours) n’attend plus', () => {
