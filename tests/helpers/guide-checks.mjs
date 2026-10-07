@@ -195,6 +195,24 @@ export function checkGuideLesson(env, l) {
       }
     }
   }
+  /* Liste de valeurs (guideChips) et page du site (guidePage) : les valeurs affichées sont celles du résultat, dans l'ordre ;
+     sur une page, chaque carte porte (data-c, data-v) toutes les colonnes de sa ligne. */
+  const raw2 = v => v === null ? 'NULL' : typeof v === 'number' && !Number.isInteger(v) ? String(+v.toFixed(2)) : String(v);
+  const chips = /<div class="ij-sms is-board is-chips" style="--n:(\d+);--sg:[\d.]+s" data-total="(\d+)"[\s\S]*?<p class="ij-sms-done">/.exec(lastUse);
+  if (chips) {
+    const vals = [...chips[0].matchAll(/<b class="db-x ch-v">([^<]*)<\/b>/g)].map(m => decode(m[1]));
+    assert.equal(+chips[2], nRows, `${l.titre} : data-total des pastilles = nombre de lignes`);
+    assert.equal(JSON.stringify(vals), JSON.stringify(resMission.values.map(r => raw2(r[0]))), `${l.titre} : une pastille par ligne du résultat, dans l'ordre`);
+    const k = /data-count-to="(\d+)"/.exec(chips[0]);
+    if (k) assert.equal(+k[1], nRows, `${l.titre} : le compteur des pastilles compte les lignes`);
+  }
+  const page = /<div class="ij-sms is-board is-page" style="--n:(\d+);--sg:[\d.]+s" data-total="(\d+)"[\s\S]*?<p class="ij-sms-done">/.exec(lastUse);
+  if (page) {
+    assert.equal(+page[2], nRows, `${l.titre} : data-total de la page = nombre de lignes`);
+    const cards = page[0].split('<div class="pg-card').slice(1).map(cd => { const a = []; for (const m of cd.matchAll(/data-c="(\d+)" data-v="([^"]*)"/g)) a[+m[1]] = decode(m[2]); return a; });
+    assert.equal(cards.length, nRows, `${l.titre} : une carte par ligne du résultat`);
+    cards.forEach((a, i) => assert.equal(JSON.stringify(a), JSON.stringify(resMission.values[i].map(raw2)), `${l.titre} : la carte ${i + 1} montre toutes les colonnes de la ligne ${i + 1} du résultat`));
+  }
   /* Tableaux « à tester » (balayage ligne par ligne) : chaque verdict est celui de la condition, sur de vraies lignes de la table. */
   for (const blk of body.match(/<div class="rt-wrap"[\s\S]*?<span class="rt-hint">/g) || []) {
     const n = +/data-rt-n="(\d+)"/.exec(blk)[1], vals = /data-rt-val="([\d,]+)"/.exec(blk)[1].split(',').map(Number), val = vals[0], last = Math.max(...vals);
