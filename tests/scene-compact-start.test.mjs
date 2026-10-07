@@ -44,3 +44,21 @@ test('toute scène qui fait voler des valeurs vers une ligne repliée l’ouvre 
     });
   }
 });
+
+test('cours 2, scène du concept : le résultat s’ouvre sur des cases vides en pointillés (pas de vide), légende sans code coupé', () => {
+  const sc = env.xscenes[2][0];
+  for (const k of ['G1', 'G2']) assert.ok(sc.lanes.find(l => l.k === k).c.every(c => c[2] === 'q'), `ligne ${k} : cases à remplir visibles (q)`);
+  assert.ok(!/"/.test(sc.caps[1]), 'la légende du vol ne contient pas de nom entre guillemets, qui se couperait en fin de ligne');
+});
+
+test('légendes des scènes : l’ancienne s’efface avant que la nouvelle n’apparaisse (jamais deux textes superposés)', () => {
+  assert.ok(/\.pr-cap\{[^}]*transition:opacity \.25s ease,transform \.25s ease\}/.test(html), 'sortie rapide');
+  assert.ok(/\.pr-cap\.is-on\{opacity:1;transform:none;transition:opacity \.5s ease \.3s,transform \.5s ease \.3s\}/.test(html), 'entrée après un délai');
+});
+
+test('rejouer une scène : elle revient à sa hauteur de départ en douceur (le texte dessous ne saute pas)', () => {
+  const mount = html.slice(html.indexOf('function mountProbScene('), html.indexOf('/* Emplacements de requête exécutable dans le texte d’un cours. */'));
+  assert.ok(/const my=\+\+tok,h0=root\.offsetHeight;\s*reset\(\);/.test(mount), 'hauteur mesurée avant la remise à zéro');
+  assert.ok(/if\(h0>h1\+2&&root\.animate\)root\.animate\(\[\{height:h0\+'px'\},\{height:h1\+'px'\}\],\{duration:600/.test(mount), 'repli animé en 0,6 s');
+});
+
