@@ -29,7 +29,7 @@ assert(html.includes('guide({ id:44, titre:"Quel JOIN choisir\u00a0?"'), 'le cou
 assert(quizBlock && Boolean(init) && init.includes('.jc-quiz'), 'quiz de choix du JOIN (bloc du générateur et interactions) localisé');
 assert(!init.includes('setTimeout(()=>setBranch(branches[0])'), 'aucun JOIN n’est choisi automatiquement');
 assert(!init.includes('setNode(nodes[0])'), 'la table A n’est plus choisie automatiquement');
-assert(serviceWorker.includes('requete-2026-10-08-ludique-v1690'), 'cache de production renouvelé');
+assert(serviceWorker.includes('requete-2026-10-08-ludique-v1691'), 'cache de production renouvelé');
 
 console.log(`\n=== Résultat: ${passed} passés, ${failed} échoués ===\n`);
 process.exit(failed ? 1 : 0);
