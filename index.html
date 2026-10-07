@@ -6503,7 +6503,7 @@ guide({ id:2, titre:"Renommer avec AS", résumé:"Donner un nom lisible à une c
     blocks:[
       "L’équipe commerciale prépare un <b>dashboard</b> pour suivre les produits de la boutique. Il permettra de consulter rapidement les produits disponibles, leur prix et d’autres indicateurs utiles.",
       "Les données du dashboard proviennent de la base de données. Mais certaines colonnes portent des noms comme <code>nom</code> et <code>prix</code>, peu explicites pour les personnes qui consulteront les données.",
-      "L’équipe souhaite donc afficher des <b>intitulés plus clairs</b>, comme « Nom du produit » et « Prix unitaire », sans modifier les noms enregistrés dans la base.",
+      "L’équipe souhaite donc afficher des <b>intitulés plus clairs</b>, comme « Nom du produit » et « Prix (€) », sans modifier les noms enregistrés dans la base.",
       "La table <code>produits</code> contient au total <b>8 produits</b>. Pour construire le dashboard, l’équipe souhaite récupérer uniquement :",
       {need:[["🏷️","Le nom du produit","table produits"],["💶","Son prix","table produits"]],label:"Les informations à récupérer"}
     ],
@@ -6516,32 +6516,32 @@ guide({ id:2, titre:"Renommer avec AS", résumé:"Donner un nom lisible à une c
           {k:"R2",c:[["b1","Collagène Marin"],["b2","39.9"]]},
           {k:"R3",c:[["c1","Magnésium"],["c2","19.9"]]}],
         caps:["<b>Dashboard actuel</b> · Les produits et leurs prix s’affichent.","<b>Besoin</b> · Les intitulés des colonnes ne sont pas assez clairs pour les utilisateurs.","<b>Résultat</b> · Le dashboard doit afficher des intitulés plus clairs, avec les mêmes produits et les mêmes prix."],
-        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R1","R2","R3"],dim:["R1","R2","R3"],mark:{h1:"is-miss",h2:"is-miss",q1:"is-miss",q2:"is-miss"},unfold:["Q"],d:2600},{cap:2,undim:["R1","R2","R3"],fold:["Q"],unmark:{h1:"is-miss",h2:"is-miss"},text:{h1:"Nom du produit",h2:"Prix en euros"},on:["R1","R2","R3"],d:2600}]},
-      then:["Il faut donc indiquer à SQL <b>quel nom afficher</b> pour chaque colonne : <code>produit</code> et <code>prix_euros</code>.","C’est exactement le rôle de <code>AS</code>."]
+        steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,off:["R1","R2","R3"],dim:["R1","R2","R3"],mark:{h1:"is-miss",h2:"is-miss",q1:"is-miss",q2:"is-miss"},unfold:["Q"],d:2600},{cap:2,undim:["R1","R2","R3"],fold:["Q"],unmark:{h1:"is-miss",h2:"is-miss"},text:{h1:"Nom du produit",h2:"Prix (€)"},on:["R1","R2","R3"],d:2600}]},
+      then:["Il faut donc indiquer à SQL <b>quel nom afficher</b> pour chaque colonne : « Nom du produit » et « Prix (€) ».","C’est exactement le rôle de <code>AS</code>."]
     },
-    mission:"Aide l’équipe commerciale à afficher le <b>nom</b> et le <b>prix</b> de chaque produit sous des intitulés plus clairs : <b>produit</b> et <b>prix_euros</b>, afin de préparer les données du dashboard."
+    mission:"Aide l’équipe commerciale à afficher le <b>nom</b> et le <b>prix</b> de chaque produit sous des intitulés plus clairs : <b>Nom du produit</b> et <b>Prix (€)</b>, afin de préparer les données du dashboard."
   },
   concept:{
     title:"Comment SQL peut-il savoir quel nom afficher ?",
     blocks:[
       "Pour chaque colonne affichée, SQL doit savoir quel intitulé utiliser :",
       {ask:"Sous quel nom veut-on la voir ?"},
-      "Ce nom d’affichage s’appelle un <b>alias</b>. En SQL, on l’écrit juste après la colonne, précédé de <code>AS</code> :",
-      {syntax:"⟦prix AS prix_euros⟧"},
+      "Ce nom d’affichage s’appelle un <b>alias</b>. En SQL, on l’écrit juste après la colonne, précédé de <code>AS</code>, entre guillemets doubles s’il contient des espaces :",
+      {syntax:"⟦nom AS \"Nom du produit\"⟧"},
       {scene:{h:"🔄 De la table au résultat",cols:"1.6fr 1fr",
         lanes:[{c:[["h1","nom","t"],["h2","prix","t"]]},
           {k:"R1",c:[["a1","Fibre Prébiotique"],["a2","29.9"]]},
           {k:"R2",c:[["b1","Collagène Marin"],["b2","39.9"]]},
-          {k:"G0",cls:"is-goal",c:[["g1","produit","th"],["g2","prix_euros","th"]]},
+          {k:"G0",cls:"is-goal",c:[["g1","Nom du produit","th"],["g2","Prix (€)","th"]]},
           {k:"G1",c:[["r1","","h"],["r2","","h"]]},
           {k:"G2",c:[["r3","","h"],["r4","","h"]]}],
-        caps:["<b>Table produits</b> · Ses colonnes s’appellent <b>nom</b> et <b>prix</b>.","<b>nom AS produit · prix AS prix_euros</b> · SQL lit chaque colonne et l’affiche sous le nom demandé.","<b>Résultat</b> · Les valeurs sont les mêmes : seul l’en-tête change."],
+        caps:["<b>Table produits</b> · Ses colonnes s’appellent <b>nom</b> et <b>prix</b>.","<b>nom AS \"Nom du produit\" · prix AS \"Prix (€)\"</b> · SQL lit chaque colonne et l’affiche sous le nom demandé.","<b>Résultat</b> · Les valeurs sont les mêmes : seul l’en-tête change."],
         steps:[{cap:0,on:["R1","R2"],d:1900},{cap:1,off:["R1","R2"],show:["g1","g2"],fly:[["a1","r1"],["a2","r2"],["b1","r3"],["b2","r4"]],stagger:220,d:3400},{cap:2,on:["G1","G2"],d:2600}]}}
     ]
   },
   steps:[
     {h:"Renommer une colonne",blocks:[
-      "Pour renommer une colonne dans le résultat, écris <code>AS</code> après la colonne, puis le nouveau nom :",
+      "Pour renommer une colonne dans le résultat, écris <code>AS</code> après la colonne, puis le nouveau nom. Un nom simple, sans espace, s’écrit tel quel :",
       {syntax:"SELECT nom ⟦AS produit⟧\nFROM produits;"},
       {looks:[["AS","introduit le nom à afficher"],["produit","est le nom affiché dans le résultat"]]},
       {say:"👇 Exécute cette requête pour voir la colonne renommée :",run:"SELECT nom AS produit\nFROM produits;"}
@@ -6556,29 +6556,29 @@ guide({ id:2, titre:"Renommer avec AS", résumé:"Donner un nom lisible à une c
       ]}}
     ]},
     {h:"Écrire un alias avec des espaces",blocks:[
-      "Un alias qui contient des espaces s’écrit entre <b>guillemets doubles</b> :",
-      {syntax:"prix AS ⟦\"Prix en euros\"⟧"},
-      {say:"👇 Exécute cette requête pour voir un alias avec des espaces :",run:"SELECT prix AS \"Prix en euros\"\nFROM produits;"},
+      "Un alias qui contient des espaces ou des symboles, comme <code>(€)</code>, s’écrit entre <b>guillemets doubles</b> :",
+      {syntax:"prix AS ⟦\"Prix (€)\"⟧"},
+      {say:"👇 Exécute cette requête pour voir un alias avec des espaces :",run:"SELECT prix AS \"Prix (€)\"\nFROM produits;"},
       {warn:{t:"Sans guillemets",blocks:[
         "Si tu écris :",
-        {syntax:"prix AS Prix en euros"},
+        {syntax:"prix AS Prix (€)"},
         "SQL ne comprend pas ce qui suit <code>Prix</code>, et la requête provoque une erreur.",
-        {say:"👇 Teste par toi-même :",run:"SELECT prix AS Prix en euros\nFROM produits;"}
+        {say:"👇 Teste par toi-même :",run:"SELECT prix AS Prix (€)\nFROM produits;"}
       ]}}
     ]},
     {h:"La requête complète",blocks:[
       "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, leur donner un alias, puis indiquer dans quelle table les lire.",
-      {say:"👇 Exécute la requête pour obtenir les données du dashboard :",run:"SELECT nom AS produit, prix AS prix_euros\nFROM produits;"},
+      {say:"👇 Exécute la requête pour obtenir les données du dashboard :",run:"SELECT nom AS \"Nom du produit\", prix AS \"Prix (€)\"\nFROM produits;"},
       {done:{
         label:"Des noms de la base aux intitulés du dashboard",
         unit:"cols",
         funnel:[
           {n:2,t:"colonnes avec leur nom d’origine",s:"<code>nom</code> et <code>prix</code>",dots:"00"},
           {step:"AS",s:"donne un nom d’affichage à chaque colonne"},
-          {n:2,t:"⭐ colonnes avec des intitulés clairs",s:"<code>produit</code> et <code>prix_euros</code>",dots:"11",out:true}
+          {n:2,t:"⭐ colonnes avec des intitulés clairs",s:"<code>Nom du produit</code> et <code>Prix (€)</code>",dots:"11",out:true}
         ],
-        sms:{ico:"📊",h:"Dashboard des produits",aria:"Les produits s’ajoutent au dashboard sous leurs nouveaux intitulés",msg:"<b>Dashboard des produits</b><br>produit · prix_euros",people:[["F","Fibre Prébiotique","29.9"],["C","Collagène Marin","39.9"],["M","Magnésium","19.9"],["V","Vitamine D","14.9"],["T","Tisane Détox","12.5"]],more:3,moreT:"… et 3 autres",moreS:"produits du catalogue",st:["À ajouter","Ajout","✓ Ajouté"],plane:"doc",done:"✓ 8 produits dans le dashboard"},
-        fill:["AS","produit","AS","prix_euros"],
+        sms:{ico:"📊",h:"Dashboard des produits",aria:"Les produits s’ajoutent au dashboard sous leurs nouveaux intitulés",msg:"<b>Dashboard des produits</b><br>Nom du produit · Prix (€)",people:[["F","Fibre Prébiotique","29.9"],["C","Collagène Marin","39.9"],["M","Magnésium","19.9"],["V","Vitamine D","14.9"],["T","Tisane Détox","12.5"]],more:3,moreT:"… et 3 autres",moreS:"produits du catalogue",st:["À ajouter","Ajout","✓ Ajouté"],plane:"doc",done:"✓ 8 produits dans le dashboard"},
+        fill:["AS","\"Nom du produit\"","AS","\"Prix (€)\""],
         ui:{t:"8 produits, des intitulés clairs",s:"Les données n’ont pas changé.",n:["SELECT","AS","FROM"]},
         rows:8
       }}
@@ -6587,19 +6587,19 @@ guide({ id:2, titre:"Renommer avec AS", résumé:"Donner un nom lisible à une c
   reflex:[
     {recap:[
       ["🏷️","<code>AS</code> donne un <b>nom d’affichage</b> (un alias) à une colonne.","Il agit sur le résultat, sans modifier la table."],
-      ["📍","Il se place <b>juste après la colonne</b> :",null,"prix AS prix_euros"],
-      ["💬","Un alias avec des espaces s’écrit entre <b>guillemets doubles</b> :",null,"\"Prix en euros\""]
+      ["📍","Il se place <b>juste après la colonne</b> :",null,"nom AS \"Nom du produit\""],
+      ["💬","Un alias avec des espaces ou des symboles s’écrit entre <b>guillemets doubles</b> :",null,"\"Prix (€)\""]
     ],label:"Les trois idées à retenir"}
   ],
-  anatomie:[{tok:"SELECT nom AS produit,",txt:"« nom » s’affiche sous l’en-tête « produit »."},{tok:"prix AS prix_euros",txt:"« prix » s’affiche sous l’en-tête « prix_euros ». Les valeurs ne changent pas."},{tok:"FROM produits",txt:"La table lue reste produits."}],
+  anatomie:[{tok:"SELECT nom AS \"Nom du produit\",",txt:"« nom » s’affiche sous l’en-tête « Nom du produit »."},{tok:"prix AS \"Prix (€)\"",txt:"« prix » s’affiche sous l’en-tête « Prix (€) ». Les valeurs ne changent pas."},{tok:"FROM produits",txt:"La table lue reste produits."}],
   exemple:"SELECT categorie AS rayon, stock AS quantite FROM produits;",
   attendu:"<b>8 lignes</b>, avec les en-têtes « rayon » et « quantite » au lieu de « categorie » et « stock ».",
-  retenir:"<code>AS</code> donne un nom d’affichage (un alias) à une colonne.<br>Il agit sur le résultat, sans modifier la table.<br><br>Il se place juste après la colonne : <code>prix AS prix_euros</code><br><br>Un alias avec des espaces s’écrit entre guillemets doubles : <code>\"Prix en euros\"</code>.",
+  retenir:"<code>AS</code> donne un nom d’affichage (un alias) à une colonne.<br>Il agit sur le résultat, sans modifier la table.<br><br>Il se place juste après la colonne : <code>nom AS \"Nom du produit\"</code><br><br>Un alias avec des espaces ou des symboles s’écrit entre guillemets doubles : <code>\"Prix (€)\"</code>.",
   consigne:"Affiche le nom et le stock de chaque produit, en renommant les colonnes « produit » et « en_stock ».",
   solution:"SELECT nom AS produit, stock AS en_stock FROM produits;",
   indice:"Après chaque colonne, ajoute <code>AS</code> suivi du nouveau nom : <code>stock AS en_stock</code>.",
-  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT categorie AS rayon, stock AS quantite FROM produits;"},{k:"rec_space",label:"Alias avec espaces",sql:"SELECT nom AS \"Nom du produit\", prix AS \"Prix en euros\" FROM produits;",out:"Deux noms d’affichage contenant des espaces.",expectRows:8}],
-  learningCheck:{question:"Avec prix AS \"Prix en euros\", quel nom garde la colonne dans la table ?",options:["Les deux noms","prix","Prix en euros"],answer:1,explanation:"L’alias change uniquement l’en-tête du résultat. Les guillemets doubles permettent les espaces."}
+  testeVariants:[{k:"base",label:"Exemple",sql:"SELECT categorie AS rayon, stock AS quantite FROM produits;"},{k:"rec_space",label:"Alias avec espaces",sql:"SELECT nom AS \"Nom du produit\", prix AS \"Prix (€)\" FROM produits;",out:"Deux noms d’affichage contenant des espaces.",expectRows:8}],
+  learningCheck:{question:"Avec prix AS \"Prix (€)\", quel nom garde la colonne dans la table ?",options:["Les deux noms","prix","Prix (€)"],answer:1,explanation:"L’alias change uniquement l’en-tête du résultat. Les guillemets doubles permettent les espaces."}
 }),
 guide({ id:13, titre:"DISTINCT", résumé:"Valeurs uniques",
   sit:{
@@ -13363,8 +13363,8 @@ const QCM={
    {q:"<code>SELECT prenom telephone FROM clients;</code> sans virgule :",o:["Affiche les deux colonnes : l’espace suffit","Échoue : il manque la virgule entre les colonnes","N’affiche qu’une colonne : celle de prenom"],b:2,e:"Sans virgule, SQL ne comprend pas que tu veux afficher deux colonnes : il interprète <code>telephone</code> comme un nouveau nom donné à <code>prenom</code>. Une seule colonne s’affiche, avec les prénoms sous le titre <code>telephone</code>. Après SELECT, les colonnes forment une liste : <code>prenom, telephone</code>."},
    {q:"L’étoile <code>*</code> signifie :",o:["Toutes les lignes","Toutes les colonnes","Toutes les tables"],b:1,e:"Elle remplace la liste des colonnes. Le nombre de lignes ne change pas."},
    {q:"Après l’ajout d’une colonne <code>pays</code> à la table <code>clients</code>, <code>SELECT * FROM clients;</code> :",o:["Affiche aussi pays","N’affiche pas pays","Provoque une erreur"],b:0,e:"L’étoile suit la table : toutes les colonnes apparaissent, y compris celles qu’on ajoute plus tard."}],
- 2:[{q:"<code>SELECT prix AS prix_euros FROM produits;</code> affiche :",o:["Une colonne renommée prix_euros dans le résultat","La colonne prix renommée aussi dans la table","Une erreur, AS est interdit"],b:0,e:"<code>AS</code> ne change que l’en-tête affiché. La table garde le nom <code>prix</code>."},
-   {q:"Pour un alias avec un espace, il faut :",o:["Des guillemets simples","Des guillemets doubles","Un underscore obligatoire"],b:1,e:"<code>prix AS \"Prix €\"</code>. Sans guillemets, l’espace casse la syntaxe. En SQL, les guillemets doubles servent aux noms et les guillemets simples aux valeurs texte."}],
+ 2:[{q:"<code>SELECT prix AS tarif FROM produits;</code> affiche :",o:["Une colonne renommée tarif dans le résultat","La colonne prix renommée aussi dans la table","Une erreur, AS est interdit"],b:0,e:"<code>AS</code> ne change que l’en-tête affiché. La table garde le nom <code>prix</code>."},
+   {q:"Pour un alias avec un espace, il faut :",o:["Des guillemets simples","Des guillemets doubles","Un underscore obligatoire"],b:1,e:"<code>prix AS \"Prix (€)\"</code>. Sans guillemets, l’espace casse la syntaxe. En SQL, les guillemets doubles servent aux noms et les guillemets simples aux valeurs texte."}],
  22:[{q:"<code>WHERE NOT ville = 'Paris'</code> garde :",o:["Seulement les Parisiens","Tous les clients sauf les Parisiens","Aucune ligne"],b:1,e:"<code>NOT</code> inverse la condition : sont gardées les lignes qui ne sont <b>pas</b> à Paris."},
    {q:"<code>NOT (ville='Paris' AND age>30)</code> inverse :",o:["Seulement ville='Paris'","Seulement age>30","Toute la condition entre parenthèses"],b:2,e:"Les parenthèses délimitent ce qui est inversé. Sans elles, <code>NOT</code> ne porterait que sur la première condition."}],
  4:[{q:"<code>WHERE</code> filtre :",o:["Les colonnes affichées","Les lignes retenues","Les tables interrogées"],b:1,e:"<code>SELECT</code> choisit les colonnes. <code>WHERE</code> choisit quelles lignes restent dans le résultat."},
@@ -18392,9 +18392,11 @@ function playVisible(el){
   const hb=nb&&nb.getBoundingClientRect(),fb=nav&&nav.getBoundingClientRect();
   if(hb&&hb.height&&hb.bottom>top&&hb.top<bottom)top=Math.max(top,hb.bottom);
   if(fb&&fb.height&&fb.top>top&&fb.top<bottom)bottom=fb.top;
-  const seen=Math.min(r.bottom,bottom)-Math.max(r.top,top);
-  /* Une animation plus haute que la zone visible doit au moins la remplir presque entièrement. */
-  return seen>=Math.min(r.height*.98,(bottom-top)*.9);
+  const seen=Math.min(r.bottom,bottom)-Math.max(r.top,top),zone=bottom-top;
+  /* Une animation qui tient aisément dans la zone visible doit y être entière. Une plus haute (carte d’envoi) démarre quand
+     son haut est à l’écran et qu’on en voit au moins 70 % : sinon il faudrait s’arrêter à quelques pixels près. */
+  if(r.height<=zone*.6)return seen>=r.height*.98;
+  return r.top>=top-4&&seen>=Math.min(r.height,zone)*.7;
 }
 const playNote=()=>{playLast=performance.now();};
 function playUnbind(){
@@ -24871,7 +24873,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-07-ludique-v1654';
+  const SW_CACHE='requete-2026-10-07-ludique-v1655';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
