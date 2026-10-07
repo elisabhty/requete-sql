@@ -916,8 +916,9 @@
   .pr-c.is-win{border-color:transparent;background:var(--accent-grad,linear-gradient(135deg,#7C5CFF,#6A4DF4));color:#fff}
   .pr-fly{position:absolute;z-index:3;margin:0;pointer-events:none}
   .pr-caps{display:grid;margin-top:12px}
-  .pr-cap{grid-area:1/1;align-self:center;text-align:center;font-size:13px;line-height:1.4;color:var(--ink-2);opacity:0;transform:translateY(4px);transition:opacity .6s,transform .6s}
-  .pr-cap.is-on{opacity:1;transform:none}
+  /* L’ancienne légende s’efface vite (.25 s), la nouvelle n’apparaît qu’après (délai .3 s) : jamais deux textes superposés. */
+  .pr-cap{grid-area:1/1;align-self:center;text-align:center;font-size:13px;line-height:1.4;color:var(--ink-2);opacity:0;transform:translateY(4px);transition:opacity .25s ease,transform .25s ease}
+  .pr-cap.is-on{opacity:1;transform:none;transition:opacity .5s ease .3s,transform .5s ease .3s}
   .pr-scene.is-instant *{transition:none!important}
   .pr-cap b{color:var(--ink);font-weight:800}
   @media (prefers-reduced-motion:reduce){.pr-scene *{transition:none!important}}
@@ -6533,9 +6534,9 @@ guide({ id:2, titre:"Renommer avec AS", résumé:"Donner un nom lisible à une c
           {k:"R1",c:[["a1","Fibre Prébiotique"],["a2","29.9"]]},
           {k:"R2",c:[["b1","Collagène Marin"],["b2","39.9"]]},
           {k:"G0",cls:"is-goal",fold:true,c:[["g1","Nom du produit","th"],["g2","Prix (€)","th"]]},
-          {k:"G1",fold:true,c:[["r1","","h"],["r2","","h"]]},
-          {k:"G2",fold:true,c:[["r3","","h"],["r4","","h"]]}],
-        caps:["<b>Table produits</b> · Ses colonnes s’appellent <b>nom</b> et <b>prix</b>.","<b>nom AS \"Nom du produit\" · prix AS \"Prix (€)\"</b> · SQL lit chaque colonne et l’affiche sous le nom demandé.","<b>Résultat</b> · Les valeurs sont les mêmes : seul l’en-tête change."],
+          {k:"G1",fold:true,c:[["r1","","q"],["r2","","q"]]},
+          {k:"G2",fold:true,c:[["r3","","q"],["r4","","q"]]}],
+        caps:["<b>Table produits</b> · Ses colonnes s’appellent <b>nom</b> et <b>prix</b>.","<b>AS</b> · SQL lit chaque colonne et l’affiche sous le nom demandé.","<b>Résultat</b> · Les valeurs sont les mêmes : seul l’en-tête change."],
         steps:[{cap:0,on:["R1","R2"],d:1900},{cap:1,off:["R1","R2"],unfold:["G0","G1","G2"],show:["g1","g2"],flyDelay:1300,fly:[["a1","r1"],["a2","r2"],["b1","r3"],["b2","r4"]],stagger:220,d:3400},{cap:2,on:["G1","G2"],d:2600}]}}
     ]
   },
@@ -18531,7 +18532,11 @@ function mountProbScene(cfg,slot,memo){
   };
   const play=async()=>{
     if(reduce){finish();return;}
-    const my=++tok;reset();
+    const my=++tok,h0=root.offsetHeight;
+    reset();
+    /* Rejouer : une scène dont le résultat était ouvert revient à sa hauteur de départ en douceur, sans faire sauter le texte situé dessous. */
+    const h1=root.offsetHeight;
+    if(h0>h1+2&&root.animate)root.animate([{height:h0+'px'},{height:h1+'px'}],{duration:600,easing:'cubic-bezier(.4,0,.2,1)'});
     for(const s of cfg.steps){
       if(my!==tok)return;
       keepView(()=>apply(s));
@@ -24874,7 +24879,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-07-ludique-v1657';
+  const SW_CACHE='requete-2026-10-07-ludique-v1658';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
