@@ -138,6 +138,24 @@ export function checkGuideLesson(env, l) {
   if (!unitFree) assert.equal(lit, outN, `${l.titre} : autant de points allumés que de lignes gardées`);
   const sms = /ij-sms(?: is-mail)?(?: is-flat)?(?: is-icons)?" style="--n:(\d+);--sg:[\d.]+s"/.exec(lastUse);
   if (sms) assert.equal(+sms[1], (lastUse.match(/<li(?: class="is-more")? style="--i:/g) || []).length, `${l.titre} : nombre d'envois`);
+  /* Dashboard (guideBoard) : les en-têtes sont les colonnes du résultat (leurs alias), les lignes ses valeurs, dans l'ordre ;
+     l'indicateur compte les lignes, le graphique a une barre par ligne, à la hauteur de la valeur de la colonne qui le titre. */
+  const board = /<div class="ij-sms is-board" style="--n:(\d+);--sg:[\d.]+s"[\s\S]*?<p class="ij-sms-done">/.exec(lastUse);
+  if (board) {
+    assert.ok(resMission, `${l.titre} : un dashboard montre le résultat d'une requête exécutée`);
+    const b = board[0];
+    const trs = [...b.matchAll(/<div class="db-tr(?: is-head)?" role="row"[^>]*>([\s\S]*?)<\/div>/g)].map(m => [...m[1].matchAll(/<span class="db-x" role="(?:columnheader|cell)">([^<]*)<\/span>/g)].map(c => decode(c[1])));
+    assert.equal(JSON.stringify(trs[0]), JSON.stringify(resMission.columns), `${l.titre} : les en-têtes du dashboard sont les colonnes du résultat de la mission`);
+    assert.equal(JSON.stringify(trs.slice(1)), JSON.stringify(resMission.values.map(r => r.map(String))), `${l.titre} : les lignes du dashboard sont celles du résultat de la mission, dans l'ordre`);
+    assert.equal(+board[1], nRows, `${l.titre} : --n du dashboard = nombre de lignes`);
+    assert.equal(+/data-count-to="(\d+)"/.exec(b)[1], nRows, `${l.titre} : l'indicateur du dashboard compte les lignes`);
+    const title = decode(/<small>([^<]*)<\/small><span class="db-chart"/.exec(b)[1]);
+    const k = resMission.columns.findIndex(c => title.startsWith(c));
+    assert.ok(k >= 0, `${l.titre} : le titre du graphique (« ${title} ») commence par le nom d'une colonne du résultat`);
+    const vals = resMission.values.map(r => +r[k]), max = Math.max(...vals);
+    const vs = [...b.matchAll(/<i style="--i:\d+;--v:([\d.]+)"><\/i>/g)].map(m => m[1]);
+    assert.equal(JSON.stringify(vs), JSON.stringify(vals.map(v => (v / max).toFixed(3))), `${l.titre} : une barre par ligne, à la hauteur de sa valeur (${resMission.columns[k]})`);
+  }
   /* Tableaux « à tester » (balayage ligne par ligne) : chaque verdict est celui de la condition, sur de vraies lignes de la table. */
   for (const blk of body.match(/<div class="rt-wrap"[\s\S]*?<span class="rt-hint">/g) || []) {
     const n = +/data-rt-n="(\d+)"/.exec(blk)[1], vals = /data-rt-val="([\d,]+)"/.exec(blk)[1].split(',').map(Number), val = vals[0], last = Math.max(...vals);
