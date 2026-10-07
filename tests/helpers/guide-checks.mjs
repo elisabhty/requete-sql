@@ -157,8 +157,18 @@ export function checkGuideLesson(env, l) {
         assert.equal(+v, +resMission.values[0][k], `${l.titre} : la tuile « ${c} » montre la valeur du résultat`);
       }
     } else {
-      const trs = [...b.matchAll(/<div class="db-tr( is-head| is-hl| is-more)?" role="row"[^>]*>([\s\S]*?)<\/div>/g)].map(m => ({ k: m[1] || '', cells: [...m[2].matchAll(/<span class="db-x[^"]*" role="(?:columnheader|cell)">([^<]*)<\/span>/g)].map(c => decode(c[1]).replace(/\u00a0/g, ' ')) }));
+      /* Lignes : en-tête, lignes du résultat (repérées is-hl, ajoutées is-add), résumé « … et N autres » (is-more) ; les lignes
+         supprimées (is-del) et de contexte (is-lead) ne font pas partie du résultat. */
+      const trs = [...b.matchAll(/<div class="db-tr((?: is-[a-z]+)*)" role="row"[^>]*>([\s\S]*?)<\/div>/g)].map(m => ({ k: / is-head/.test(m[1]) ? ' is-head' : / is-more/.test(m[1]) ? ' is-more' : / is-(?:del|lead)/.test(m[1]) ? 'skip' : '', cells: [...m[2].matchAll(/<span class="db-x[^"]*" role="(?:columnheader|cell)"(?: data-from="[^"]*")?>([^<]*)<\/span>/g)].map(c => decode(c[1]).replace(/\u00a0/g, ' ')) })).filter(t => t.k !== 'skip');
+      /* Fiche (un seul enregistrement, en colonne) : chaque ligne = nom de colonne, valeur. */
+      if (/class="db-table is-fiche"/.test(b)) {
+        const kv = [...b.matchAll(/<span class="db-x is-key" role="rowheader">([^<]*)<\/span><span class="db-x[^"]*" role="cell"(?: data-from="[^"]*")?>([^<]*)<\/span>/g)].map(m => [decode(m[1]), decode(m[2]).replace(/\u00a0/g, ' ')]);
+        assert.equal(JSON.stringify(kv.map(x => x[0])), JSON.stringify(resMission.columns), `${l.titre} : la fiche liste les colonnes du résultat`);
+        assert.equal(JSON.stringify(kv.map(x => x[1])), JSON.stringify(want[0]), `${l.titre} : la fiche montre la ligne du résultat`);
+        trs.length = 0;
+      }
       const head = trs.find(t => t.k === ' is-head');
+      if (head) {
       assert.equal(JSON.stringify(head.cells), JSON.stringify(resMission.columns), `${l.titre} : les en-têtes du dashboard sont les colonnes du résultat de la mission`);
       const body = trs.filter(t => t.k !== ' is-head'), mi = body.findIndex(t => t.k === ' is-more');
       const before = (mi < 0 ? body : body.slice(0, mi)).map(t => t.cells), after = mi < 0 ? [] : body.slice(mi + 1).map(t => t.cells);
@@ -167,6 +177,7 @@ export function checkGuideLesson(env, l) {
       if (after.length) assert.equal(JSON.stringify(after), JSON.stringify(want.slice(nRows - after.length).map(norm)), `${l.titre} : les dernières lignes du dashboard sont les dernières du résultat`);
       if (mi >= 0) assert.ok(body[mi].cells[0].includes(String(nRows - before.length - after.length)), `${l.titre} : « … et N autres » annonce le bon nombre de lignes`);
       else assert.equal(before.length, nRows, `${l.titre} : toutes les lignes du résultat sont affichées`);
+      }
       const hlN = board[4] == null ? 0 : +board[4] < 0 ? want.filter(r => r.includes('NULL')).length : want.filter(r => r[+board[4]] === decode(board[5])).length;
       for (const [, tag, v] of b.matchAll(/data-kpi="([a-z]+)" data-count-to="([^"]*)"/g)) {
         if (tag === 'rows') assert.equal(+v, nRows, `${l.titre} : le compteur du dashboard compte les lignes`);

@@ -41,7 +41,7 @@ test('animation du dashboard : chargement gris avant la lecture, état final = s
   assert.ok(/\.db-x::after\{[^}]*opacity:0;/.test(html), 'sans lecture (mouvement réduit), les cases grises disparaissent');
   assert.ok(html.includes('.db-tr{--t:calc(var(--t0,.15s) + .95s + var(--i,0)*var(--sg,.26s))'), 'une ligne après l’autre');
   assert.ok(html.includes('.ij-sms.is-board.is-play .db-chart i{animation:dbGrow .5s cubic-bezier(.3,.9,.3,1.15) both calc(var(--t0) + .95s + var(--i)*var(--sg,.26s))}'), 'chaque barre pousse avec sa ligne');
-  assert.ok(html.includes('.ij-sms.is-board.is-play .ij-sms-done{animation:smsPop .45s cubic-bezier(.2,.8,.3,1.2) both calc(var(--t0) + .95s + var(--n,8)*var(--sg,.26s) + .45s)}'), 'pied « à jour » après la dernière ligne (il déclenche la fin et le bouton Rejouer)');
+  assert.ok(html.includes('.ij-sms.is-board.is-play .ij-sms-done{animation:smsPop .45s cubic-bezier(.2,.8,.3,1.2) both calc(var(--t0) + .95s + var(--n,8)*var(--sg,.26s) + .45s + var(--extra,0s))}'), 'pied « à jour » après la dernière ligne (il déclenche la fin et le bouton Rejouer)');
 });
 
 test('compteur des missions : data-ease="linear" suit un rythme régulier', () => {
