@@ -1,0 +1,46 @@
+/* Animation du cours « Renommer avec AS » (« De la table au résultat ») : le résultat est replié au début, donc plus d'espace
+   vide sous la table avant que les valeurs n'arrivent. Les vols vers des lignes repliées attendent leur ouverture (flyDelay). */
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import fs from 'node:fs';
+import {guideEnv} from './helpers/guide-checks.mjs';
+
+const root = path.resolve(import.meta.dirname, '..');
+const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const env = await guideEnv(root);
+const OPEN_MS = 1100;   /* durée de la transition d'ouverture d'une ligne (max-height 1.1s) */
+
+test('moteur des scènes : les vols peuvent être retardés (flyDelay) le temps que les lignes repliées s’ouvrent', () => {
+  assert.ok(html.includes('(s.flyDelay||0)+i*(st||150)'), 'flyDelay s’ajoute au décalage de chaque vol');
+  assert.ok(/\.pr-lane\{[^}]*transition:[^}]*max-height 1\.1s/.test(html), 'une ligne s’ouvre en 1,1 s');
+});
+
+test('cours 2, scène du concept : le résultat (en-têtes et lignes) est replié au début, puis s’ouvre avant le vol des valeurs', () => {
+  const sc = env.xscenes[2][0];
+  const lane = k => sc.lanes.find(l => l.k === k);
+  for (const k of ['G0', 'G1', 'G2']) assert.equal(lane(k).fold, true, `ligne ${k} repliée au départ`);
+  assert.ok(!lane('R1').fold && !lane('R2').fold, 'la table de départ reste visible');
+  const st = sc.steps.find(s => s.fly);
+  assert.equal(JSON.stringify(st.unfold), '["G0","G1","G2"]', 'les trois lignes du résultat s’ouvrent à l’étape du vol');
+  assert.ok(st.flyDelay >= OPEN_MS, 'les vols attendent la fin de l’ouverture');
+});
+
+test('toute scène qui fait voler des valeurs vers une ligne repliée l’ouvre d’abord et attend son ouverture', () => {
+  const all = [...Object.entries(env.scenes), ...Object.entries(env.xscenes).flatMap(([id, a]) => (a || []).map(sc => [id, sc]))];
+  for (const [id, sc] of all) {
+    const laneOf = new Map();
+    for (const l of sc.lanes) for (const c of l.c) laneOf.set(c[0], l);
+    const folded = new Set(sc.lanes.filter(l => l.fold).map(l => l.k));
+    sc.steps.forEach((st, i) => {
+      for (const [, to] of st.fly || []) {
+        const l = laneOf.get(to);
+        if (!l || !l.k || !folded.has(l.k)) continue;
+        assert.ok((st.unfold || []).includes(l.k), `cours ${id}, étape ${i} : la ligne ${l.k} doit être ouverte (unfold) à l’étape du vol`);
+        assert.ok((st.flyDelay || 0) >= OPEN_MS, `cours ${id}, étape ${i} : flyDelay ≥ ${OPEN_MS} ms pour viser une ligne qui s’ouvre`);
+      }
+      for (const k of st.unfold || []) folded.delete(k);
+      for (const k of st.fold || []) folded.add(k);
+    });
+  }
+});
