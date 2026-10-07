@@ -5826,7 +5826,7 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=16">
+<link rel="stylesheet" href="ludique.css?v=17">
 </head>
 <body>
 <div id="app">
@@ -13869,6 +13869,7 @@ async function boot(){
     setInterval(tickRappel,30000);
     document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') tickRappel(); });
     initSpotlight();
+    initStudyClock();
   }catch(e){
     console.error('Erreur pendant l’initialisation :',e);
   }
@@ -15461,7 +15462,16 @@ function normalizeState(raw){
   const salleSrc=source.salle&&typeof source.salle==='object'&&!Array.isArray(source.salle)?source.salle:{};
   const salleN=v=>{const n=Math.floor(Number(v));return Number.isFinite(n)&&n>0?Math.min(n,999999):0;};
   const salle={pts:salleN(salleSrc.pts),parties:salleN(salleSrc.parties),best:salleN(salleSrc.best)};
-  return {lessons,defis,notes,plan,onboarded,name,profile,accountMode,entretien,preferences,actDays,actSince,salle};
+  /* Temps d’apprentissage, en secondes : par jour (AAAA-MM-JJ) et par activité (l<id> leçon, d<id> défi, console,
+     entretien, jeu). Voir studyTick. */
+  const study={days:{},items:{}};
+  const studySrc=source.study&&typeof source.study==='object'&&!Array.isArray(source.study)?source.study:{};
+  const secsOf=v=>{const n=Math.floor(Number(v));return Number.isFinite(n)&&n>0?n:0;};
+  if(studySrc.days&&typeof studySrc.days==='object'&&!Array.isArray(studySrc.days))
+    Object.keys(studySrc.days).filter(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)).sort().slice(-400).forEach(k=>{const n=secsOf(studySrc.days[k]);if(n)study.days[k]=Math.min(n,86400);});
+  if(studySrc.items&&typeof studySrc.items==='object'&&!Array.isArray(studySrc.items))
+    Object.keys(studySrc.items).filter(k=>/^[\w-]{1,40}$/.test(k)).slice(0,500).forEach(k=>{const n=secsOf(studySrc.items[k]);if(n)study.items[k]=Math.min(n,1e8);});
+  return {lessons,defis,notes,plan,onboarded,name,profile,accountMode,entretien,preferences,actDays,actSince,salle,study};
 }
 function normalize(result,ordered){
   if(!result||result.length===0)return "∅";
@@ -16704,14 +16714,39 @@ function recommendedSession(){
     summary:`${count} activité${count>1?'s':''} restante${count>1?'s':''} · environ ${count*MIN_PAR_ACTIVITE} min`};
 }
 function moduleProgressData(modules,lessons){
-  return modules.map((module,index)=>{const done=module.lessons.filter(l=>lessons[l.id]?.done).length;return {index,title:module.titre,total:module.lessons.length,done,next:module.lessons.find(l=>!lessons[l.id]?.done)?.id,first:module.lessons[0]?.id};});
+  return modules.map((module,index)=>{const done=module.lessons.filter(l=>lessons[l.id]?.done).length;return {index,title:module.titre,total:module.lessons.length,done,next:module.lessons.find(l=>!lessons[l.id]?.done)?.id,first:module.lessons[0]?.id,secs:moduleStudySecs(module)};});
 }
+/* Temps d’étude (state.study, voir studyTick) : en minutes, puis en heures et minutes (« 25 min », « 2 h 05 »). */
+const CLOCK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+/* Pastille « ⏱ 25 min » (temps passé sur un module), lue « temps d’étude : 25 min ». */
+function studyPill(secs,cls){return `<span class="${cls}"><span class="pgr-sr">Temps d’étude : </span>${CLOCK_SVG}${fmtDuree(secs)}</span>`;}
+function fmtDuree(secs){
+  const m=Math.floor((+secs||0)/60);
+  if(m<1)return secs>0?'<\u00a01\u00a0min':'0\u00a0min';
+  if(m<60)return `${m}\u00a0min`;
+  const h=Math.floor(m/60),r=m%60;
+  return r?`${h}\u00a0h\u00a0${String(r).padStart(2,'0')}`:`${h}\u00a0h`;
+}
+/* La même durée en grand chiffre : unités en petit (em). */
+function fmtDureeHTML(secs){
+  const m=Math.floor((+secs||0)/60);
+  if(m<1)return secs>0?'&lt;1<em>\u00a0min</em>':'0<em>\u00a0min</em>';
+  if(m<60)return `${m}<em>\u00a0min</em>`;
+  const h=Math.floor(m/60),r=m%60;
+  return r?`${h}<em>\u00a0h\u00a0</em>${String(r).padStart(2,'0')}`:`${h}<em>\u00a0h</em>`;
+}
+function studyItems(){return (state.study&&state.study.items)||{};}
+function studyDays(){return (state.study&&state.study.days)||{};}
+function studyTotal(){return Object.values(studyItems()).reduce((a,n)=>a+(+n||0),0);}
+/* Temps passé sur les leçons d’un module (cours et révisions). */
+function moduleStudySecs(module){const it=studyItems();return module.lessons.reduce((a,l)=>a+(+it['l'+l.id]||0),0);}
 /* ---------- Progression : graphiques (avancement global, modules) ---------- */
 let moduleProgressFilter='all';
 const ppOpen={glob:true,mod:false};
 function ppToggle(key,el){ppOpen[key]=!!el.open;}
 const PGR_FILTERS=[['all','Tous'],['started','En cours'],['done','Terminés'],['todo','À découvrir']];
-function moduleStatus(m){return m.done>=m.total?'done':m.done?'started':'todo';}
+/* Un module où l’on a déjà étudié au moins une minute est « en cours », même sans leçon validée. */
+function moduleStatus(m){return m.done>=m.total?'done':(m.done||m.secs>=60)?'started':'todo';}
 function moduleProgressRows(filter){
   const all=moduleProgressData(MODULES,state.lessons);
   const rows=all.filter(m=>filter==='all'||moduleStatus(m)===filter);
@@ -16719,7 +16754,7 @@ function moduleProgressRows(filter){
   const label={done:'Terminé',started:'En cours',todo:'À découvrir'};
   return rows.map(m=>{
     const st=moduleStatus(m),pct=m.total?Math.round(m.done/m.total*100):0,verb=m.next==null?'Revoir':m.done?'Continuer':'Commencer';
-    return `<div class="pgr-mod is-${st}" id="pgr-mod-${m.index}"><b class="pgr-ring" style="--f:${pct}" aria-hidden="true"><span>${st==='done'?PL_OK_SVG:String(m.index+1).padStart(2,'0')}</span></b><div class="pgr-mod-b"><h3>${esc(m.title)}</h3><div class="pgr-mod-meta"><i class="pgr-meter" role="progressbar" aria-label="Progression du module ${escAttr(m.title)}" aria-valuemin="0" aria-valuemax="${m.total}" aria-valuenow="${m.done}"><b style="width:${pct}%"></b></i><em>${m.done}/${m.total}</em></div><p>Module ${String(m.index+1).padStart(2,'0')} · ${label[st]}</p></div><button type="button" aria-label="${verb} ${escAttr(m.title)}" onclick="openLesson(${m.next??m.first})">${verb}</button></div>`;
+    return `<div class="pgr-mod is-${st}" id="pgr-mod-${m.index}"><b class="pgr-ring" style="--f:${pct}" aria-hidden="true"><span>${st==='done'?PL_OK_SVG:String(m.index+1).padStart(2,'0')}</span></b><div class="pgr-mod-b"><h3>${esc(m.title)}</h3><div class="pgr-mod-meta"><i class="pgr-meter" role="progressbar" aria-label="Progression du module ${escAttr(m.title)}" aria-valuemin="0" aria-valuemax="${m.total}" aria-valuenow="${m.done}"><b style="width:${pct}%"></b></i><em>${m.done}/${m.total}</em></div><p>Module ${String(m.index+1).padStart(2,'0')} · ${label[st]}${m.secs>=60?studyPill(m.secs,'pgr-mod-time'):''}</p></div><button type="button" aria-label="${verb} ${escAttr(m.title)}" onclick="openLesson(${m.next??m.first})">${verb}</button></div>`;
   }).join('');
 }
 function moduleExplorerHtml(){
@@ -17095,8 +17130,9 @@ function renderModules(){
     allDone+=done;
     const pct=Math.round(done/tot*100);
     const complete=done===tot;
+    const secs=moduleStudySecs(mod);
     const status=complete?'Toutes les leçons sont validées':done?`${tot-done} leçon${tot-done>1?'s':''} restante${tot-done>1?'s':''}`:(mod.sous||'À découvrir');
-    return `<details class="module home-module ${complete?'validated':''}${moduleIndex===curMod?' is-current':''}" data-module-index="${moduleIndex}" data-mc="${moduleIndex%8}" style="--i:${moduleIndex}"${openModules.has(String(moduleIndex))?' open':''} ontoggle="lqModuleToggle(this)"><summary class="home-module-summary"><span class="home-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1)}</span><span class="home-module-copy"><small class="lq-unit-k">Module ${moduleIndex+1}${moduleIndex===curMod?' · en cours':''}</small><b>${esc(mod.titre)}</b><small>${esc(status)}</small></span><span class="home-module-side">${complete?`<em class="home-module-valid">Validé</em>`:`<span class="home-module-count">${done}/${tot}</span>`}<span class="home-module-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></span><span class="home-module-progress" role="progressbar" aria-label="Progression du module ${esc(mod.titre)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></span></summary><div class="list">${rows}</div></details>`;
+    return `<details class="module home-module ${complete?'validated':''}${moduleIndex===curMod?' is-current':''}" data-module-index="${moduleIndex}" data-mc="${moduleIndex%8}" style="--i:${moduleIndex}"${openModules.has(String(moduleIndex))?' open':''} ontoggle="lqModuleToggle(this)"><summary class="home-module-summary"><span class="home-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1)}</span><span class="home-module-copy"><small class="lq-unit-k">Module ${moduleIndex+1}${moduleIndex===curMod?' · en cours':''}</small><b>${esc(mod.titre)}</b><small>${esc(status)}${secs>=60?studyPill(secs,'home-module-time'):''}</small></span><span class="home-module-side">${complete?`<em class="home-module-valid">Validé</em>`:`<span class="home-module-count">${done}/${tot}</span>`}<span class="home-module-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></span><span class="home-module-progress" role="progressbar" aria-label="Progression du module ${esc(mod.titre)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></span></summary><div class="list">${rows}</div></details>`;
   }).join('');
   const toolsOpen=catalogToolsOpen||!!courseSearch||courseFilter!=='all';
   host.innerHTML=`<div class="home-catalog-head"><div><span>Tous les cours</span><h2>Ton parcours</h2><p>${allDone} leçon${allDone>1?'s':''} validée${allDone>1?'s':''} sur ${TOTAL}</p></div><button type="button" class="lq-search-toggle" onclick="toggleCatalogTools(this)" aria-expanded="${toolsOpen}" aria-controls="catalog-tools">${LQ_SEARCH_SVG}<span>Chercher</span></button></div><div id="catalog-tools" class="catalog-tools"${toolsOpen?'':' hidden'}><div class="catalog-search"><label for="course-search">Trouver une notion</label><div><input id="course-search" type="search" placeholder="SELECT, jointure, dates…" value="${escAttr(courseSearch)}" oninput="filterCourseCatalog(this.value)" onkeydown="courseSearchKeydown(event)" aria-controls="course-search-results" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" inputmode="search"><button id="clear-course-search" type="button" onclick="clearCourseSearch()" aria-label="Effacer la recherche de cours" hidden>Effacer</button></div><p id="course-search-status" role="status" aria-live="polite" aria-atomic="true"></p><div id="course-search-suggest" class="sq-suggest"></div></div>${courseCatalogFiltersHTML()}</div><div id="course-search-results" hidden></div>${modulesHTML}`;
@@ -22069,6 +22105,55 @@ function noteActivityDay(){
     if(first&&typeof lqStreakToast==='function')setTimeout(lqStreakToast,900);
   }catch(e){}
 }
+/* ---------- Temps d’apprentissage ----------
+   Compté seulement quand l’app est à l’écran et qu’on s’en sert (un geste dans les 2 dernières minutes), dans un cours,
+   une révision, un défi, une partie entre amis, la console ou l’entretien — pas dans l’accueil, le planning ni le compte.
+   Un relevé toutes les 5 s ; un relevé très en retard (appareil en veille, onglet suspendu) ne compte pas. */
+const STUDY_TICK=5000,STUDY_IDLE=120000;
+let studyLastInput=Date.now(),studyLastTick=Date.now(),studyFrac=0,studyDirty=0;
+function studyKey(){
+  if(document.visibilityState!=='visible')return null;
+  const scr=document.querySelector('.screen.active');
+  if(!scr)return null;
+  if(scr.id==='scr-lesson'){
+    if(!current)return null;
+    if(mode==='jeu')return 'jeu';
+    if(mode==='defi')return 'd'+current.id;
+    return mode==='lesson'||mode==='review'?'l'+current.id:null;
+  }
+  return scr.id==='scr-console'?'console':scr.id==='scr-entretien'?'entretien':null;
+}
+function studyAdd(key,secs,iso){
+  if(!key||!(secs>0))return;
+  if(!state.study||typeof state.study!=='object')state.study={days:{},items:{}};
+  const s=state.study;
+  if(!s.days)s.days={};
+  if(!s.items)s.items={};
+  s.days[iso]=(s.days[iso]||0)+secs;
+  s.items[key]=(s.items[key]||0)+secs;
+}
+function studyTick(){
+  const now=Date.now(),dt=now-studyLastTick;
+  studyLastTick=now;
+  if(dt<=0||dt>STUDY_TICK*3||now-studyLastInput>STUDY_IDLE)return;
+  const key=studyKey();
+  if(!key)return;
+  studyFrac+=dt/1000;
+  const secs=Math.floor(studyFrac);
+  if(!secs)return;
+  studyFrac-=secs;
+  studyAdd(key,secs,dstr(auj()));
+  studyDirty+=secs;
+  if(studyDirty>=30)studyFlush();
+}
+function studyFlush(){if(studyDirty){studyDirty=0;save();}}
+function initStudyClock(){
+  const note=()=>{studyLastInput=Date.now();};
+  ['pointerdown','keydown','wheel','touchstart','scroll','input'].forEach(t=>document.addEventListener(t,note,{capture:true,passive:true}));
+  document.addEventListener('visibilitychange',()=>{studyLastTick=Date.now();if(document.visibilityState==='hidden')studyFlush();else note();});
+  window.addEventListener('pagehide',studyFlush);
+  setInterval(studyTick,STUDY_TICK);
+}
 function jourActif(iso){
   if(state.actDays&&state.actDays[iso])return true;
   if(state.plan&&(!state.actSince||iso<state.actSince)){const s=sessionDe(iso);return !!(s&&sessionFaite(s));}
@@ -22317,6 +22402,8 @@ function planOverviewHTML(st){
   const pL=st.nL?Math.round(doneLessons/st.nL*100):0,pD=st.nD?Math.round(doneChallenges/st.nD*100):0;
   const trend=week===before?'comme la semaine d’avant':week>before?`${week-before} de plus que la semaine d’avant`:`${before-week} de moins que la semaine d’avant`;
   const arg=next==null?'':isDefiId(next)?`'${next}'`:next;
+  const tAll=studyTotal(),sDays=studyDays(),tToday=sDays[dstr(auj())]||0,tWeek=act.slice(7).reduce((a,x)=>a+(+sDays[x.iso]||0),0);
+  const timeTile=`<div class="pgr-stat is-t"><div class="pgr-t-main"><small>${CLOCK_SVG}Temps d’étude</small><b>${fmtDureeHTML(tAll)}</b></div>${tAll?`<dl class="pgr-t-more"><div><dt>Aujourd’hui</dt><dd>${esc(fmtDuree(tToday))}</dd></div><div><dt>Cette semaine</dt><dd>${esc(fmtDuree(tWeek))}</dd></div></dl>`:'<p>Compté pendant tes cours, défis et exercices, quand tu t’en sers.</p>'}</div>`;
   return `<section class="pgr pgr-overview">
     <div class="pgr-top">
       <span class="pgr-donut" style="--p:${pct}" role="img" aria-label="${pct} % du parcours validé : ${plur(doneLessons,'leçon')} et ${plur(doneChallenges,'défi')} sur ${st.total} activités">${pgrDonut(doneLessons,doneChallenges,st.total)}<i>${pct}<small>%</small></i></span>
@@ -22326,6 +22413,7 @@ function planOverviewHTML(st){
       <div class="pgr-stat is-l"><small>Leçons</small><b>${doneLessons}<em>/${st.nL}</em></b><i class="pgr-meter" aria-hidden="true"><b style="width:${pL}%"></b></i></div>
       <div class="pgr-stat is-d"><small>Défis</small><b>${doneChallenges}<em>/${st.nD}</em></b><i class="pgr-meter" aria-hidden="true"><b style="width:${pD}%"></b></i></div>
       <div class="pgr-stat is-s${streak?' on':''}"><small>Série</small><b>${streak?`<span class="pgr-flame" aria-hidden="true">${FLAME_SVG}</span>`:''}${streak}<em> j</em></b><p>Record ${record} j</p></div>
+      ${timeTile}
     </div>
     <div class="pgr-chart"><div class="pgr-chart-h"><b>14 derniers jours</b><small>${plur(total14,'activité')} · ${plur(active14,'jour')} actif${active14>1?'s':''}</small></div>
       <ol class="pgr-bars" role="img" aria-label="Activités validées par jour sur les 14 derniers jours : ${total14} au total, ${active14} jours actifs">${bars}</ol>
@@ -24986,7 +25074,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-07-ludique-v1665';
+  const SW_CACHE='requete-2026-10-07-ludique-v1666';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
