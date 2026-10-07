@@ -1031,6 +1031,43 @@
   @keyframes smsFlash{0%{background:#fff}35%{background:var(--gs)}100%{background:#fff}}
   @keyframes smsFill{to{transform:scaleX(1)}}
   @media (prefers-reduced-motion:reduce){.ij-sms,.ij-sms *,.ij-sms *::after{animation:none!important}.ij-sms .ij-sms-list li,.ij-sms .ij-sms-bubble,.ij-sms .ij-sms-meter,#scr-lesson .ij-sms-done,.ij-sms-st .is-sent{opacity:1!important}.ij-sms-st .is-idle,.ij-sms-typing,.ij-sms-plane{display:none!important}.ij-sms-meter i::after{transform:none}}
+  /* Mission « dashboard » (guideBoard) : indicateur, graphique et tableau. Avant la lecture, des cases grises qui scintillent
+     (chargement) à la taille des textes ; à la lecture, les en-têtes du tableau apparaissent, puis chaque ligne se remplit
+     avec sa barre du graphique, pendant que l’indicateur compte les lignes. L’état final est le style de base. */
+  .db-tiles{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;margin:0 0 8px}
+  .db-tile{display:flex;flex-direction:column;justify-content:space-between;gap:8px;min-width:0;min-height:68px;box-sizing:border-box;padding:10px 12px;border-radius:14px;background:#fff;border:1px solid var(--card-border)}
+  .db-tile small{font-size:11.5px;font-weight:800;line-height:1.25;color:var(--ink-3)}
+  .db-tile b{--t:calc(var(--t0,.15s) + .95s);align-self:flex-start;font-family:var(--display,var(--ui));font-size:28px;font-weight:800;line-height:1;color:var(--accent-ink);font-variant-numeric:tabular-nums}
+  .db-chart{display:flex;align-items:flex-end;gap:4px;height:30px;border-bottom:2px solid var(--line)}
+  .db-chart i{flex:1;min-width:0;height:calc(var(--v)*100%);border-radius:4px 4px 1px 1px;background:linear-gradient(180deg,var(--accent-2,#8B6CFF),var(--accent));transform-origin:bottom}
+  .db-table{border-radius:14px;background:#fff;border:1px solid var(--card-border);overflow:hidden}
+  .db-tr{--t:calc(var(--t0,.15s) + .95s + var(--i,0)*var(--sg,.26s));display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;min-height:29px;box-sizing:border-box;padding:3px 12px;border-top:1px solid var(--line)}
+  .db-tr.is-head{--t:calc(var(--t0,.15s) + .25s);min-height:36px;border-top:0;background:var(--accent-soft)}
+  .db-x{position:relative;justify-self:start;min-width:0;font-size:13px;font-weight:700;line-height:1.3;color:var(--ink)}
+  .db-tr .db-x:last-child:not(:first-child){justify-self:end}
+  .db-tr:not(.is-head) .db-x:last-child:not(:first-child){font-family:var(--mono);font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .db-tr.is-head .db-x{padding:3px 9px;border-radius:999px;background:#fff;border:1px solid color-mix(in srgb,var(--accent) 24%,transparent);font-size:12px;font-weight:800;color:var(--accent-ink)}
+  /* Petits écrans : un peu moins de marges, pour que « Nom du produit » tienne sur une ligne. */
+  @media (max-width:360px){.ij-sms.is-board{padding-left:10px;padding-right:10px}.db-tr{gap:8px;padding-left:8px;padding-right:8px}.db-tr.is-head .db-x{padding:3px 7px;font-size:11.5px}.db-tile{padding-left:10px;padding-right:10px}}
+  .db-x::after{content:"";position:absolute;inset:2px -3px;border-radius:6px;background:linear-gradient(90deg,#ECE8F8 30%,#F8F6FE 50%,#ECE8F8 70%) 0 0/250% 100%;opacity:0;pointer-events:none}
+  .db-tr.is-head .db-x::after{inset:-1px;border-radius:999px}
+  /* Avant la lecture : chargement. */
+  .ij-sms.is-board:not(.is-play) .db-x{color:transparent}
+  .ij-sms.is-board:not(.is-play) .db-x::after{opacity:1;animation:dbShim 1.3s linear infinite}
+  .ij-sms.is-board:not(.is-play) .db-chart i{transform:scaleY(0)}
+  /* Lecture : en-têtes (avec un halo), puis lignes, barres et compteur ensemble ; enfin le pied « à jour ». */
+  .ij-sms.is-board.is-play .db-x{animation:dbTxt .45s ease both var(--t)}
+  .ij-sms.is-board.is-play .db-x::after{animation:dbSk .35s ease both var(--t),dbShim 1.3s linear infinite}
+  .ij-sms.is-board.is-play .db-tr.is-head .db-x{animation:dbTxt .45s ease both var(--t),dbPing 1s ease calc(var(--t) + .4s)}
+  .ij-sms.is-board.is-play .db-tr:not(.is-head){animation:dbFlash .9s ease var(--t)}
+  .ij-sms.is-board.is-play .db-chart i{animation:dbGrow .5s cubic-bezier(.3,.9,.3,1.15) both calc(var(--t0) + .95s + var(--i)*var(--sg,.26s))}
+  .ij-sms.is-board.is-play .ij-sms-done{animation:smsPop .45s cubic-bezier(.2,.8,.3,1.2) both calc(var(--t0) + .95s + var(--n,8)*var(--sg,.26s) + .45s)}
+  @keyframes dbShim{to{background-position:-150% 0}}
+  @keyframes dbSk{from{opacity:1}to{opacity:0}}
+  @keyframes dbTxt{from{color:transparent;transform:translateY(3px)}}
+  @keyframes dbPing{from{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 45%,transparent)}to{box-shadow:0 0 0 7px transparent}}
+  @keyframes dbFlash{0%,100%{background:transparent}30%{background:var(--accent-soft)}}
+  @keyframes dbGrow{from{transform:scaleY(0)}}
   /* Missions : animations « et après ? » (tableaux, grilles, paires, mots-clés, compteur).
      Même cadre et même déclenchement que l’envoi par SMS (.ij-sms + .is-play). */
   .act-bars{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
@@ -6224,7 +6261,7 @@ function guideBlock(b){
   }
   throw new Error('bloc de cours inconnu : '+JSON.stringify(b).slice(0,80));
 }
-/* Carte « Mission accomplie » : parcours (de combien de lignes à combien), puis une animation d’envoi (SMS). */
+/* Carte « Mission accomplie » : parcours (de combien de lignes à combien), puis une animation d’envoi (SMS) ou un dashboard. */
 const GUIDE_PLANE='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>';
 function guideFunnel(d){
   const dots=f=>`<i class="ij-fn-dots" aria-hidden="true">${[...f].map(c=>`<i${c==='1'?' class="is-null"':''}></i>`).join('')}</i>`;
@@ -6250,8 +6287,19 @@ function guideSms(m){
   const row=(av,who,tel,i,more)=>`<li${more?' class="is-more"':''} style="--i:${i}"><b class="ij-sms-av" aria-hidden="true">${guideEsc(av)}</b><span class="ij-sms-who${more?' is-more-t':''}">${guideFr(guideEsc(who))}<small>${guideFr(guideEsc(tel))}</small></span><em class="ij-sms-st"><i class="is-idle">${guideFr(st[0])}</i><i class="is-wait">${guideFr(st[1])}<u>.</u><u>.</u><u>.</u></i><i class="is-sent">${guideFr(st[2])}</i></em><i class="ij-sms-plane is-send" aria-hidden="true">${icon}</i></li>`;
   return `<div class="ij-sms${m.mail?' is-mail':''}${kind!=='plane'?' is-flat':''}${m.icons?' is-icons':''}" style="--n:${rows};--sg:${sg}s" role="group" aria-label="${guideEsc(m.aria||m.h).replace(/"/g,'&quot;')}"><p class="ij-sms-h"><i aria-hidden="true">${m.ico||'💬'}</i>${guideFr(m.h)}</p><div class="ij-sms-thread"><p class="ij-sms-typing" aria-hidden="true"><i></i><i></i><i></i></p><p class="ij-sms-bubble">${guideFr(m.msg)}</p></div><ul class="ij-sms-list">${m.people.map(([av,who,tel],i)=>row(av,who,tel,i)).join('')}${m.more?row('+'+m.more,m.moreT||`… et ${m.more} autres`,m.moreS||'',m.people.length,true):''}</ul><div class="ij-sms-meter" aria-hidden="true">${Array.from({length:rows},(_,i)=>`<i style="--i:${i}"></i>`).join('')}</div><p class="ij-sms-done">${guideFr(m.done)}</p></div>`;
 }
+/* Animation « dashboard » (mission qui alimente un tableau de bord) : un indicateur (le nombre de lignes), un graphique et
+   un tableau dont les en-têtes sont les noms des colonnes du résultat. Avant la lecture, des cases grises (chargement) ;
+   puis les en-têtes apparaissent et les lignes se remplissent une à une, chacune avec sa barre du graphique.
+   cols = en-têtes, rows = valeurs telles que la requête les renvoie, bar = colonne chiffrée du graphique,
+   chart = titre du graphique, kpi = libellé de l’indicateur. */
+function guideBoard(m){
+  const n=m.rows.length,sg=m.sg||0.26,bar=m.bar||0,max=Math.max(...m.rows.map(r=>+r[bar]));
+  const tr=(cells,i)=>`<div class="db-tr${i<0?' is-head':''}" role="row"${i<0?'':` style="--i:${i}"`}>${cells.map(c=>`<span class="db-x" role="${i<0?'columnheader':'cell'}">${guideFr(guideEsc(c))}</span>`).join('')}</div>`;
+  const bars=m.rows.map((r,i)=>`<i style="--i:${i};--v:${(+r[bar]/max).toFixed(3)}"></i>`).join('');
+  return `<div class="ij-sms is-board" style="--n:${n};--sg:${sg}s" role="group" aria-label="${guideEsc(m.aria||m.h).replace(/"/g,'&quot;')}"><p class="ij-sms-h"><i aria-hidden="true">${m.ico||'📊'}</i>${guideFr(m.h)}</p><div class="db-tiles"><div class="db-tile"><small>${guideFr(m.kpi)}</small><b class="db-x" data-count-to="${n}" data-ease="linear" data-delay="1.1" data-dur="${(n*sg).toFixed(2)}">${n}</b></div><div class="db-tile"><small>${guideFr(m.chart)}</small><span class="db-chart" aria-hidden="true">${bars}</span></div></div><div class="db-table" role="table" aria-label="${guideEsc(m.h).replace(/"/g,'&quot;')}">${tr(m.cols,-1)}${m.rows.map((r,i)=>tr(r,i)).join('')}</div><p class="ij-sms-done">${guideFr(m.done)}</p></div>`;
+}
 function guideDoneCard(d){
-  return `<div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div>${guideFunnel(d)}${d.sms?guideSms(d.sms):''}</div>`;
+  return `<div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div>${guideFunnel(d)}${d.sms?guideSms(d.sms):''}${d.board?guideBoard(d.board):''}</div>`;
 }
 /* Une requête montrée dans un cadre surligné puis, aussitôt après, dans le cadre « Exécuter » (même texte, rien entre les deux)
    ne s’affiche qu’une fois : dans le cadre « Exécuter », avec son surlignage (data-hit). Quand un repère ou un texte sépare
@@ -6574,7 +6622,10 @@ guide({ id:2, titre:"Renommer avec AS", résumé:"Donner un nom lisible à une c
           {step:"AS",s:"donne un nom d’affichage à chaque colonne"},
           {n:2,t:"⭐ colonnes avec des intitulés clairs",s:"<code>Nom du produit</code> et <code>Prix (€)</code>",dots:"11",out:true}
         ],
-        sms:{ico:"📊",h:"Dashboard des produits",aria:"Les produits s’ajoutent au dashboard sous leurs nouveaux intitulés",msg:"<b>Dashboard des produits</b><br>Nom du produit · Prix (€)",people:[["F","Fibre Prébiotique","29.9"],["C","Collagène Marin","39.9"],["M","Magnésium","19.9"],["V","Vitamine D","14.9"],["T","Tisane Détox","12.5"]],more:3,moreT:"… et 3 autres",moreS:"produits du catalogue",st:["À ajouter","Ajout","✓ Ajouté"],plane:"doc",done:"✓ 8 produits dans le dashboard"},
+        board:{ico:"📊",h:"Dashboard des produits",aria:"Le dashboard affiche les 8 produits sous les intitulés « Nom du produit » et « Prix (€) »",kpi:"Produits",chart:"Prix (€) par produit",bar:1,
+          cols:["Nom du produit","Prix (€)"],
+          rows:[["Fibre Prébiotique","29.9"],["Collagène Marin","39.9"],["Magnésium","19.9"],["Vitamine D","14.9"],["Tisane Détox","12.5"],["Protéine Végétale","34.9"],["Oméga 3","24.9"],["Shaker Inox","15"]],
+          done:"✓ Dashboard à jour"},
         fill:["AS","\"Nom du produit\"","AS","\"Prix (€)\""],
         ui:{t:"8 produits, des intitulés clairs",s:"Les données n’ont pas changé.",n:["SELECT","AS","FROM"]},
         rows:8
@@ -19194,7 +19245,9 @@ function actCountUp(root,instant){
     b.textContent=fmt(0);
     const n=root.querySelectorAll('.act-chip').length;
     const delay=(b.dataset.delay!=null?+b.dataset.delay:(0.15+0.85+n*0.06))*1000,dur=b.dataset.dur?+b.dataset.dur*1000:1100;
-    b._cu=setTimeout(()=>{const t0=performance.now();const tick=t=>{const p=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-p,3);b.textContent=fmt(to*e);if(p<1)requestAnimationFrame(tick);};requestAnimationFrame(tick);},delay);
+    /* data-ease="linear" : le chiffre suit un rythme régulier (ex. une ligne du dashboard après l’autre). */
+    const lin=b.dataset.ease==='linear';
+    b._cu=setTimeout(()=>{const t0=performance.now();const tick=t=>{const p=Math.min(1,(t-t0)/dur),e=lin?p:1-Math.pow(1-p,3);b.textContent=fmt(to*e);if(p<1)requestAnimationFrame(tick);};requestAnimationFrame(tick);},delay);
   });
 }
 /* Garde le bloc à sa hauteur d’avant pendant que le résultat se construit,
@@ -24875,7 +24928,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-07-ludique-v1660';
+  const SW_CACHE='requete-2026-10-07-ludique-v1661';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
