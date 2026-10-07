@@ -127,8 +127,11 @@ export function checkGuideLesson(env, l) {
     const more = /<li class="is-more" style="--i:\d+"><b class="ij-sms-av" aria-hidden="true">\+(\d+)<\/b>/.exec(lastUse);
     const want = resMission.values.slice(0, peopleHtml.length);
     assert.equal(peopleHtml.length + (more ? +more[1] : 0), nRows, `${l.titre} : la liste d'envois montre ${peopleHtml.length} personnes${more ? ` et annonce ${more[1]} autres` : ''}, la requête en renvoie ${nRows}`);
-    assert.deepEqual(peopleHtml.map(p => p[0]), want.map(whoOf), `${l.titre} : les personnes de la liste d'envois sont celles de la requête de la mission`);
-    if (contactCols.length) assert.ok(contactCols.some(i => peopleHtml.every((p, k) => p[1] === String(want[k][i]))), `${l.titre} : chaque personne a, sous son nom, son email, son téléphone ou son adresse tel que le renvoie la requête (colonnes ${contactCols.map(i => resMission.columns[i]).join(', ')})`);
+    /* Un nom peut être précisé par l'initiale du nom de famille (« Nathan P. ») quand deux clients ont le même prénom. */
+    assert.ok(peopleHtml.every((p, k) => p[0] === whoOf(want[k]) || p[0].startsWith(whoOf(want[k]) + ' ')), `${l.titre} : les personnes de la liste d'envois sont celles de la requête de la mission`);
+    /* Le contact peut être accompagné d'autres colonnes (« Paris · 06 … », « sophie@mail.fr · 2 juillet ») ; sans email (NULL) : « sans email ». */
+    const hasContact = (p, v) => p[1] === String(v) || p[1].split(' · ').includes(String(v)) || (v === null && /^sans /.test(p[1]));
+    if (contactCols.length) assert.ok(contactCols.some(i => peopleHtml.every((p, k) => hasContact(p, want[k][i]))), `${l.titre} : chaque personne a, sous son nom, son email, son téléphone ou son adresse tel que le renvoie la requête (colonnes ${contactCols.map(i => resMission.columns[i]).join(', ')})`);
     if (!more && !unitCols) {
       const funnelWho = /is-out"><b>\d+<\/b><span>[^<]*<small>([^<]*)<\/small>/.exec(lastUse)[1].replace(/ et /g, ', ').split(', ');
       assert.deepEqual(funnelWho, resMission.values.map(whoOf), `${l.titre} : le parcours cite les mêmes personnes, dans le même ordre`);
@@ -142,9 +145,9 @@ export function checkGuideLesson(env, l) {
      (les premières, puis éventuellement « … et N autres » et les dernières) ; data-total = nombre de lignes ; le compteur compte
      les lignes (ou les lignes repérées, ou les colonnes) ; le graphique a une barre par ligne, à la hauteur de la valeur de la
      colonne qui le titre ; des tuiles seules (is-kpis) montrent les valeurs de la 1re ligne. */
-  const board = /<div class="ij-sms is-board( is-kpis)?" style="--n:(\d+);--sg:[\d.]+s" data-total="(\d+)"(?: data-hl-col="(-?\d+)" data-hl-val="([^"]*)")?[\s\S]*?<p class="ij-sms-done">/.exec(lastUse);
-  if (board) {
-    assert.ok(resMission, `${l.titre} : un dashboard montre le résultat d'une requête exécutée`);
+  const board = /<div class="ij-sms is-board( is-kpis)?" style="--n:(\d+);--sg:[\d.]+s(?:;--extra:[\d.]+s)?" data-total="(\d+)"(?: data-hl-col="(-?\d+)" data-hl-val="([^"]*)")?[\s\S]*?<p class="ij-sms-done">/.exec(lastUse);
+  /* Mission simulée (SQL serveur, ex. GRANT) : le tableau décrit l'effet de la commande, il n'y a pas de résultat à comparer. */
+  if (board && !simMission) {
     const b = board[0], str = v => v === null ? 'NULL' : typeof v === 'number' && !Number.isInteger(v) ? String(+v.toFixed(2)) : String(v);
     const want = resMission.values.map(r => r.map(str));
     assert.equal(+board[3], nRows, `${l.titre} : data-total du dashboard = nombre de lignes du résultat`);
