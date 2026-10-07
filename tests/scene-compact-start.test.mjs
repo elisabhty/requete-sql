@@ -58,7 +58,15 @@ test('légendes des scènes : l’ancienne s’efface avant que la nouvelle n’
 
 test('rejouer une scène : elle revient à sa hauteur de départ en douceur (le texte dessous ne saute pas)', () => {
   const mount = html.slice(html.indexOf('function mountProbScene('), html.indexOf('/* Emplacements de requête exécutable dans le texte d’un cours. */'));
-  assert.ok(/const my=\+\+tok,h0=root\.offsetHeight;\s*reset\(\);/.test(mount), 'hauteur mesurée avant la remise à zéro');
+  assert.ok(/const my=\+\+tok,h0=root\.offsetHeight,again=root\.classList\.contains\('is-done'\);\s*reset\(\);/.test(mount), 'hauteur mesurée avant la remise à zéro');
   assert.ok(/if\(h0>h1\+2&&root\.animate\)root\.animate\(\[\{height:h0\+'px'\},\{height:h1\+'px'\}\],\{duration:600/.test(mount), 'repli animé en 0,6 s');
 });
 
+
+test('rejouer une scène : pas de « flash blanc » — les surlignages de la 1re étape sont posés avant le premier calcul de style', () => {
+  const mount = html.slice(html.indexOf('function mountProbScene('), html.indexOf('/* Emplacements de requête exécutable dans le texte d’un cours. */'));
+  const i = mount.indexOf('reset();', mount.indexOf('const play=async()=>{'));
+  const pre = mount.slice(i, mount.indexOf('const h1=root.offsetHeight;', i));
+  assert.ok(pre.includes("if(again){") && pre.includes("each(s0.on,k=>{const e=q(k);if(e)e.classList.add('is-on');});") && pre.includes('s0.mark'), 'is-on et mark de l’étape 1 posés avant la mesure de hauteur');
+  assert.ok(/\.pr-c\.is-win\{[^}]*background:var\(--accent-grad,[^}]*\) var\(--accent\)/.test(html), 'dégradé posé sur un fond plein (pas de case vide en le quittant)');
+});
