@@ -58,7 +58,8 @@ test('légendes des scènes : l’ancienne s’efface avant que la nouvelle n’
 
 test('rejouer une scène : elle revient à sa hauteur de départ en douceur (le texte dessous ne saute pas)', () => {
   const mount = html.slice(html.indexOf('function mountProbScene('), html.indexOf('/* Emplacements de requête exécutable dans le texte d’un cours. */'));
-  assert.ok(/const my=\+\+tok,h0=root\.offsetHeight,again=root\.classList\.contains\('is-done'\);\s*reset\(\);/.test(mount), 'hauteur mesurée avant la remise à zéro');
+  assert.ok(/const h0=root\.offsetHeight;\s*reset\(\);/.test(mount), 'hauteur mesurée avant la remise à zéro');
+  assert.ok(mount.includes("if(again&&stage.animate){await stage.animate([{opacity:1},{opacity:0}]"), 'au rejeu, la scène s’efface un instant avant de revenir au début');
   assert.ok(/if\(h0>h1\+2&&root\.animate\)root\.animate\(\[\{height:h0\+'px'\},\{height:h1\+'px'\}\],\{duration:600/.test(mount), 'repli animé en 0,6 s');
 });
 

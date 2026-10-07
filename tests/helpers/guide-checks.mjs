@@ -142,10 +142,10 @@ export function checkGuideLesson(env, l) {
      (les premières, puis éventuellement « … et N autres » et les dernières) ; data-total = nombre de lignes ; le compteur compte
      les lignes (ou les lignes repérées, ou les colonnes) ; le graphique a une barre par ligne, à la hauteur de la valeur de la
      colonne qui le titre ; des tuiles seules (is-kpis) montrent les valeurs de la 1re ligne. */
-  const board = /<div class="ij-sms is-board( is-kpis)?" style="--n:(\d+);--sg:[\d.]+s" data-total="(\d+)"(?: data-hl-col="(\d+)" data-hl-val="([^"]*)")?[\s\S]*?<p class="ij-sms-done">/.exec(lastUse);
+  const board = /<div class="ij-sms is-board( is-kpis)?" style="--n:(\d+);--sg:[\d.]+s" data-total="(\d+)"(?: data-hl-col="(-?\d+)" data-hl-val="([^"]*)")?[\s\S]*?<p class="ij-sms-done">/.exec(lastUse);
   if (board) {
     assert.ok(resMission, `${l.titre} : un dashboard montre le résultat d'une requête exécutée`);
-    const b = board[0], str = v => v === null ? 'NULL' : String(v);
+    const b = board[0], str = v => v === null ? 'NULL' : typeof v === 'number' && !Number.isInteger(v) ? String(+v.toFixed(2)) : String(v);
     const want = resMission.values.map(r => r.map(str));
     assert.equal(+board[3], nRows, `${l.titre} : data-total du dashboard = nombre de lignes du résultat`);
     if (board[1]) {
@@ -167,7 +167,7 @@ export function checkGuideLesson(env, l) {
       if (after.length) assert.equal(JSON.stringify(after), JSON.stringify(want.slice(nRows - after.length).map(norm)), `${l.titre} : les dernières lignes du dashboard sont les dernières du résultat`);
       if (mi >= 0) assert.ok(body[mi].cells[0].includes(String(nRows - before.length - after.length)), `${l.titre} : « … et N autres » annonce le bon nombre de lignes`);
       else assert.equal(before.length, nRows, `${l.titre} : toutes les lignes du résultat sont affichées`);
-      const hlN = board[4] != null ? want.filter(r => r[+board[4]] === decode(board[5])).length : 0;
+      const hlN = board[4] == null ? 0 : +board[4] < 0 ? want.filter(r => r.includes('NULL')).length : want.filter(r => r[+board[4]] === decode(board[5])).length;
       for (const [, tag, v] of b.matchAll(/data-kpi="([a-z]+)" data-count-to="([^"]*)"/g)) {
         if (tag === 'rows') assert.equal(+v, nRows, `${l.titre} : le compteur du dashboard compte les lignes`);
         if (tag === 'hl') assert.equal(+v, hlN, `${l.titre} : le compteur compte les lignes repérées`);
