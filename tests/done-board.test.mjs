@@ -15,14 +15,14 @@ const body = lesson.studio.uses.body;
 const card = body.slice(body.lastIndexOf('<div class="ij-done is-locked"'));
 
 test('cours 2 : le Résultat de la mission est un dashboard, plus un message', () => {
-  assert.match(card, /<div class="ij-sms is-board" style="--n:8;--sg:0\.26s"/, 'dashboard de 8 lignes');
+  assert.match(card, /<div class="ij-sms is-board" style="--n:8;--sg:0\.26s" data-total="8"/, 'dashboard de 8 lignes');
   for (const old of ['ij-sms-bubble', 'ij-sms-list', 'ij-sms-plane', 'ij-sms-typing', 'Ajouté']) assert.ok(!card.includes(old), `plus de « ${old} » (animation d'envoi)`);
   assert.match(card, /<p class="ij-sms-h"><i aria-hidden="true">📊<\/i>Dashboard des produits<\/p>/, 'titre « Dashboard des produits »');
-  assert.match(card, /<div class="db-tr is-head" role="row"><span class="db-x" role="columnheader">Nom du produit<\/span><span class="db-x" role="columnheader">Prix \(€\)<\/span><\/div>/, 'en-têtes = les alias de la mission');
+  assert.match(card, /<div class="db-tr is-head" role="row"><span class="db-x" role="columnheader">Nom du produit<\/span><span class="db-x is-num" role="columnheader">Prix \(€\)<\/span><\/div>/, 'en-têtes = les alias de la mission (le prix, chiffré, à droite)');
   assert.equal((card.match(/<div class="db-tr" role="row" style="--i:\d+">/g) || []).length, 8, 'les 8 produits');
-  assert.match(card, /<small>Produits<\/small><b class="db-x" data-count-to="8" data-ease="linear" data-delay="1\.1" data-dur="2\.08">8<\/b>/, 'indicateur : 8 produits, compté au rythme des lignes');
+  assert.match(card, /<small>Produits<\/small><b class="db-x" data-kpi="rows" data-count-to="8" data-ease="linear" data-delay="1\.1" data-dur="2\.08">8<\/b>/, 'indicateur : 8 produits, compté au rythme des lignes');
   assert.match(card, /<small>Prix \(€\) par produit<\/small>/, 'le graphique porte l’alias « Prix (€) »');
-  assert.match(card, /<i style="--i:1;--v:1\.000"><\/i>/, 'Collagène Marin (39.9) : la plus haute barre');
+  assert.match(card, /<i style="--i:1\.00;--v:1\.000"><\/i>/, 'Collagène Marin (39.9) : la plus haute barre');
   assert.match(card, /<p class="ij-sms-done">✓ Dashboard à jour<\/p>/);
 });
 
@@ -36,6 +36,7 @@ test('la vérification des dashboards refuse un tableau qui ne suit pas le résu
 
 test('animation du dashboard : chargement gris avant la lecture, état final = style de base, pied après la dernière ligne', () => {
   assert.ok(html.includes('.ij-sms.is-board:not(.is-play) .db-x{color:transparent}'), 'textes masqués avant la lecture');
+  assert.ok(!/\n  \.db-x\{/.test(html) && html.includes('.is-board .db-x{position:relative;'), 'styles cloisonnés au dashboard (la classe db-x sert aussi au « × » des bases de la console)');
   assert.ok(html.includes('.ij-sms.is-board:not(.is-play) .db-x::after{opacity:1;animation:dbShim'), 'cases grises qui scintillent');
   assert.ok(/\.db-x::after\{[^}]*opacity:0;/.test(html), 'sans lecture (mouvement réduit), les cases grises disparaissent');
   assert.ok(html.includes('.db-tr{--t:calc(var(--t0,.15s) + .95s + var(--i,0)*var(--sg,.26s))'), 'une ligne après l’autre');

@@ -1076,22 +1076,52 @@
   /* Mission « dashboard » (guideBoard) : indicateur, graphique et tableau. Avant la lecture, des cases grises qui scintillent
      (chargement) à la taille des textes ; à la lecture, les en-têtes du tableau apparaissent, puis chaque ligne se remplit
      avec sa barre du graphique, pendant que l’indicateur compte les lignes. L’état final est le style de base. */
-  .db-tiles{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;margin:0 0 8px}
+  .db-tiles{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:8px;margin:0 0 8px}
+  .db-tiles.is-one{grid-template-columns:minmax(0,1fr)}
+  .db-tiles.is-kpis{grid-template-columns:repeat(var(--k,1),minmax(0,1fr));margin:0}
   .db-tile{display:flex;flex-direction:column;justify-content:space-between;gap:8px;min-width:0;min-height:68px;box-sizing:border-box;padding:10px 12px;border-radius:14px;background:#fff;border:1px solid var(--card-border)}
-  .db-tile small{font-size:11.5px;font-weight:800;line-height:1.25;color:var(--ink-3)}
-  .db-tile b{--t:calc(var(--t0,.15s) + .95s);align-self:flex-start;font-family:var(--display,var(--ui));font-size:28px;font-weight:800;line-height:1;color:var(--accent-ink);font-variant-numeric:tabular-nums}
+  .db-tile small{font-size:11.5px;font-weight:800;line-height:1.25;color:var(--ink-3);hyphens:auto;-webkit-hyphens:auto;overflow-wrap:anywhere}
+  .db-tile em{margin-top:-4px;overflow-wrap:anywhere;font-style:normal;font-family:var(--mono);font-size:11px;font-weight:600;line-height:1.3;color:var(--ink-3)}
+  .is-board .db-tile b{--t:calc(var(--t0,.15s) + .95s);align-self:flex-start;font-family:var(--display,var(--ui));font-size:28px;font-weight:800;line-height:1;color:var(--accent-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .is-board .db-tile[style*="--t"] b{--t:inherit}
+  .is-board .db-tile.is-warn b{color:#B45309}
   .db-chart{display:flex;align-items:flex-end;gap:4px;height:30px;border-bottom:2px solid var(--line)}
   .db-chart i{flex:1;min-width:0;height:calc(var(--v)*100%);border-radius:4px 4px 1px 1px;background:linear-gradient(180deg,var(--accent-2,#8B6CFF),var(--accent));transform-origin:bottom}
-  .db-table{border-radius:14px;background:#fff;border:1px solid var(--card-border);overflow:hidden}
-  .db-tr{--t:calc(var(--t0,.15s) + .95s + var(--i,0)*var(--sg,.26s));display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;min-height:29px;box-sizing:border-box;padding:3px 12px;border-top:1px solid var(--line)}
+  /* Une seule grille pour tout le tableau (les lignes la partagent en subgrid) : les colonnes restent alignées d’une ligne à
+     l’autre, en-têtes compris. Si les intitulés ne tiennent pas, le tableau défile dans la carte (jamais la page). */
+  .db-table{border-radius:14px;background:#fff;border:1px solid var(--card-border);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+  .db-rows{display:grid;grid-template-columns:var(--gc,minmax(0,1fr) auto);column-gap:10px;min-width:100%;width:max-content}
+  .db-table:not(.is-wide) .db-rows{width:auto}
+  .db-table.is-wide .db-rows{column-gap:14px}
+  .db-tr{--t:calc(var(--t0,.15s) + .95s + var(--i,0)*var(--sg,.26s));grid-column:1/-1;display:grid;grid-template-columns:subgrid;align-items:center;min-height:29px;box-sizing:border-box;padding:3px 12px;border-top:1px solid var(--line)}
+  @supports not (grid-template-columns:subgrid){.db-tr{grid-template-columns:var(--gc,minmax(0,1fr) auto);column-gap:10px}}
   .db-tr.is-head{--t:calc(var(--t0,.15s) + .25s);min-height:36px;border-top:0;background:var(--accent-soft)}
-  .db-x{position:relative;justify-self:start;min-width:0;font-size:13px;font-weight:700;line-height:1.3;color:var(--ink)}
-  .db-tr .db-x:last-child:not(:first-child){justify-self:end}
-  .db-tr:not(.is-head) .db-x:last-child:not(:first-child){font-family:var(--mono);font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums}
-  .db-tr.is-head .db-x{padding:3px 9px;border-radius:999px;background:#fff;border:1px solid color-mix(in srgb,var(--accent) 24%,transparent);font-size:12px;font-weight:800;color:var(--accent-ink)}
+  .is-board .db-x{position:relative;justify-self:start;min-width:0;font-size:13px;font-weight:700;line-height:1.3;color:var(--ink)}
+  .is-board .db-x.is-num{justify-self:end}
+  .db-tr:not(.is-head) .db-x.is-num{font-family:var(--mono);font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .db-table.is-wide .db-x{font-size:12px;white-space:nowrap}
+  /* Trois colonnes ou plus : intitulés simples (sans pastille) dans la bande lilas, pour que tout tienne en largeur. */
+  .db-table.is-3up .db-tr.is-head .db-x{padding:0;border:0;background:none;font-family:var(--mono);font-size:10.5px;font-weight:700}
+  .db-table.is-3up .db-tr.is-head .db-x::after{inset:0 -3px;border-radius:6px}
+  .db-table.is-3up .db-rows{column-gap:8px}
+  .db-table.is-3up .db-tr{padding-left:8px;padding-right:8px}
+  .db-table.is-3up .db-tr:not(.is-head) .db-x.is-num{font-size:12px}
+  /* Tableau qui déborde (large, ou petit écran) : une ombre sur le bord indique qu’il reste des colonnes à faire défiler. */
+  .db-table{background:linear-gradient(90deg,#fff 30%,rgba(255,255,255,0)) 0 0/28px 100% no-repeat local,linear-gradient(270deg,#fff 30%,rgba(255,255,255,0)) 100% 0/28px 100% no-repeat local,radial-gradient(farthest-side at 0 50%,rgba(40,30,90,.16),rgba(40,30,90,0)) 0 0/12px 100% no-repeat scroll,radial-gradient(farthest-side at 100% 50%,rgba(40,30,90,.16),rgba(40,30,90,0)) 100% 0/12px 100% no-repeat scroll,#fff}
+  /* Intitulés et nombres ne se compriment jamais (pas de chevauchement) : au besoin, le tableau défile. */
+  .db-tr.is-head .db-x,.db-tr .db-x.is-num{min-width:max-content}
+  .db-tr.is-head .db-x{padding:3px 9px;border-radius:999px;background:#fff;border:1px solid color-mix(in srgb,var(--accent) 24%,transparent);font-size:12px;font-weight:800;color:var(--accent-ink);white-space:nowrap}
+  /* Valeur absente (NULL), valeur de remplacement (mark), colonne mise en avant (hit). */
+  .db-tr:not(.is-head) .db-x.is-null{font-family:var(--mono);font-size:12px;font-style:italic;font-weight:600;color:var(--ink-3)}
+  .db-tr:not(.is-head) .db-x.is-mark{font-style:italic;color:#B45309}
+  .db-tr:not(.is-head) .db-x.is-hit{color:var(--accent-ink)}
+  /* Ligne qui résume les suivantes (« … et N autres ») ; lignes repérées (hl) : fond ambre et filet à gauche, après leur remplissage. */
+  .db-tr.is-more{border-top-style:dashed}
+  .db-tr.is-more .db-x{grid-column:1/-1;font-size:12px;font-style:italic;font-weight:600;color:var(--ink-3)}
+  .db-tr.is-hl{background:#FFF7E8;box-shadow:inset 3px 0 0 #F59E0B}
   /* Petits écrans : un peu moins de marges, pour que « Nom du produit » tienne sur une ligne. */
   @media (max-width:360px){.ij-sms.is-board{padding-left:10px;padding-right:10px}.db-tr{gap:8px;padding-left:8px;padding-right:8px}.db-tr.is-head .db-x{padding:3px 7px;font-size:11.5px}.db-tile{padding-left:10px;padding-right:10px}}
-  .db-x::after{content:"";position:absolute;inset:2px -3px;border-radius:6px;background:linear-gradient(90deg,#ECE8F8 30%,#F8F6FE 50%,#ECE8F8 70%) 0 0/250% 100%;opacity:0;pointer-events:none}
+  .is-board .db-x::after{content:"";position:absolute;inset:2px -3px;border-radius:6px;background:linear-gradient(90deg,#ECE8F8 30%,#F8F6FE 50%,#ECE8F8 70%) 0 0/250% 100%;opacity:0;pointer-events:none}
   .db-tr.is-head .db-x::after{inset:-1px;border-radius:999px}
   /* Avant la lecture : chargement. */
   .ij-sms.is-board:not(.is-play) .db-x{color:transparent}
@@ -1102,6 +1132,8 @@
   .ij-sms.is-board.is-play .db-x::after{animation:dbSk .35s ease both var(--t),dbShim 1.3s linear infinite}
   .ij-sms.is-board.is-play .db-tr.is-head .db-x{animation:dbTxt .45s ease both var(--t),dbPing 1s ease calc(var(--t) + .4s)}
   .ij-sms.is-board.is-play .db-tr:not(.is-head){animation:dbFlash .9s ease var(--t)}
+  .ij-sms.is-board:not(.is-play) .db-tr.is-hl{background:transparent;box-shadow:none}
+  .ij-sms.is-board.is-play .db-tr.is-hl{animation:dbHl .5s ease both calc(var(--t) + .45s)}
   .ij-sms.is-board.is-play .db-chart i{animation:dbGrow .5s cubic-bezier(.3,.9,.3,1.15) both calc(var(--t0) + .95s + var(--i)*var(--sg,.26s))}
   .ij-sms.is-board.is-play .ij-sms-done{animation:smsPop .45s cubic-bezier(.2,.8,.3,1.2) both calc(var(--t0) + .95s + var(--n,8)*var(--sg,.26s) + .45s)}
   @keyframes dbShim{to{background-position:-150% 0}}
@@ -1110,6 +1142,7 @@
   @keyframes dbPing{from{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 45%,transparent)}to{box-shadow:0 0 0 7px transparent}}
   @keyframes dbFlash{0%,100%{background:transparent}30%{background:var(--accent-soft)}}
   @keyframes dbGrow{from{transform:scaleY(0)}}
+  @keyframes dbHl{from{background:transparent;box-shadow:inset 0 0 0 #F59E0B}}
   /* Missions : animations « et après ? » (tableaux, grilles, paires, mots-clés, compteur).
      Même cadre et même déclenchement que l’envoi par SMS (.ij-sms + .is-play). */
   .act-bars{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
@@ -6357,16 +6390,54 @@ function guideSms(m){
   const row=(av,who,tel,i,more)=>`<li${more?' class="is-more"':''} style="--i:${i}"><b class="ij-sms-av" aria-hidden="true">${guideEsc(av)}</b><span class="ij-sms-who${more?' is-more-t':''}">${guideFr(guideEsc(who))}<small>${guideFr(guideEsc(tel))}</small></span><em class="ij-sms-st"><i class="is-idle">${guideFr(st[0])}</i><i class="is-wait">${guideFr(st[1])}<u>.</u><u>.</u><u>.</u></i><i class="is-sent">${guideFr(st[2])}</i></em><i class="ij-sms-plane is-send" aria-hidden="true">${icon}</i></li>`;
   return `<div class="ij-sms${m.mail?' is-mail':''}${kind!=='plane'?' is-flat':''}${m.icons?' is-icons':''}" style="--n:${rows};--sg:${sg}s" role="group" aria-label="${guideEsc(m.aria||m.h).replace(/"/g,'&quot;')}"><p class="ij-sms-h"><i aria-hidden="true">${m.ico||'💬'}</i>${guideFr(m.h)}</p><div class="ij-sms-thread"><p class="ij-sms-typing" aria-hidden="true"><i></i><i></i><i></i></p><p class="ij-sms-bubble">${guideFr(m.msg)}</p></div><ul class="ij-sms-list">${m.people.map(([av,who,tel],i)=>row(av,who,tel,i)).join('')}${m.more?row('+'+m.more,m.moreT||`… et ${m.more} autres`,m.moreS||'',m.people.length,true):''}</ul><div class="ij-sms-meter" aria-hidden="true">${Array.from({length:rows},(_,i)=>`<i style="--i:${i}"></i>`).join('')}</div><p class="ij-sms-done">${guideFr(m.done)}</p></div>`;
 }
-/* Animation « dashboard » (mission qui alimente un tableau de bord) : un indicateur (le nombre de lignes), un graphique et
-   un tableau dont les en-têtes sont les noms des colonnes du résultat. Avant la lecture, des cases grises (chargement) ;
-   puis les en-têtes apparaissent et les lignes se remplissent une à une, chacune avec sa barre du graphique.
-   cols = en-têtes, rows = valeurs telles que la requête les renvoie, bar = colonne chiffrée du graphique,
-   chart = titre du graphique, kpi = libellé de l’indicateur. */
+/* Animation « dashboard » (missions qui alimentent un tableau de bord, un rapport, un outil, une table…) : des tuiles, puis un
+   tableau dont les en-têtes sont les colonnes du résultat. Avant la lecture, des cases grises (chargement) ; puis les en-têtes
+   apparaissent et les lignes se remplissent une à une, chacune avec sa barre du graphique, pendant que le compteur avance.
+   cols, rows : colonnes et lignes du résultat, telles que la requête les renvoie (null ou "NULL" pour une valeur absente).
+   Tuiles — kpi : libellé du compteur (il compte les lignes, ou count, ou les lignes repérées si kpiHl) ; chart + bar : titre
+   (commence par le nom de la colonne) et colonne du graphique ; sinon kpi2:{t,v} (second compteur ; v:"hl" = lignes repérées,
+   v:"cols" = nombre de colonnes) ; tiles:false : aucune tuile ; kpis:[{t,col,dec,suffix,sub}] : tuiles seules, sans tableau,
+   valeurs lues dans la 1re ligne.
+   Tableau — num : colonnes chiffrées, à droite (par défaut, celles qui ne contiennent que des nombres) ; grid : colonnes de la
+   grille ; wide : défilement horizontal dans la carte ; show : lignes affichées, les suivantes résumées en « … et N autres »
+   (moreT) ; tail : dernières lignes montrées après ce résumé ; hl:{col,val} : lignes repérées (fond ambre) ; hit : colonne mise
+   en avant ; mark : valeur de remplacement à signaler (ex. « Non renseigné »). */
 function guideBoard(m){
-  const n=m.rows.length,sg=m.sg||0.26,bar=m.bar||0,max=Math.max(...m.rows.map(r=>+r[bar]));
-  const tr=(cells,i)=>`<div class="db-tr${i<0?' is-head':''}" role="row"${i<0?'':` style="--i:${i}"`}>${cells.map(c=>`<span class="db-x" role="${i<0?'columnheader':'cell'}">${guideFr(guideEsc(c))}</span>`).join('')}</div>`;
-  const bars=m.rows.map((r,i)=>`<i style="--i:${i};--v:${(+r[bar]/max).toFixed(3)}"></i>`).join('');
-  return `<div class="ij-sms is-board" style="--n:${n};--sg:${sg}s" role="group" aria-label="${guideEsc(m.aria||m.h).replace(/"/g,'&quot;')}"><p class="ij-sms-h"><i aria-hidden="true">${m.ico||'📊'}</i>${guideFr(m.h)}</p><div class="db-tiles"><div class="db-tile"><small>${guideFr(m.kpi)}</small><b class="db-x" data-count-to="${n}" data-ease="linear" data-delay="1.1" data-dur="${(n*sg).toFixed(2)}">${n}</b></div><div class="db-tile"><small>${guideFr(m.chart)}</small><span class="db-chart" aria-hidden="true">${bars}</span></div></div><div class="db-table" role="table" aria-label="${guideEsc(m.h).replace(/"/g,'&quot;')}">${tr(m.cols,-1)}${m.rows.map((r,i)=>tr(r,i)).join('')}</div><p class="ij-sms-done">${guideFr(m.done)}</p></div>`;
+  const cols=m.cols||[],rows=(m.rows||[]).map(r=>r.map(c=>c==null?'NULL':String(c))),n=rows.length,nc=cols.length;
+  const isNum=v=>v!==''&&v!=='NULL'&&!isNaN(+v),isNumLike=v=>isNum(v)||/^\d{4}-\d{2}-\d{2}/.test(v);
+  /* Colonnes chiffrées (nombres, dates) : à droite, en police code, sans retour à la ligne. */
+  const num=new Set(m.num||cols.map((_,j)=>j).filter(j=>(j>0||nc>1)&&rows.some(r=>isNumLike(r[j]))&&rows.every(r=>isNumLike(r[j])||r[j]==='NULL')));
+  const show=m.show!=null?Math.min(m.show,n):n,tail=Math.min(m.tail||0,n-show),hidden=n-show-tail;
+  const hlRow=r=>!!m.hl&&r[m.hl.col]===String(m.hl.val==null?'NULL':m.hl.val),nHl=rows.filter(hlRow).length;
+  const vis=m.kpis?m.kpis.length:show+tail+(hidden>0?1:0),sg=m.sg||(m.kpis?0.5:vis>8?0.2:0.26);
+  const total=m.count!=null?m.count:m.kpiHl?nHl:n,dur=(Math.max(vis,1)*sg).toFixed(2);
+  const esc=t=>guideFr(guideEsc(t));
+  const counter=(t,v,cls,tag)=>`<div class="db-tile${cls||''}"><small>${esc(t)}</small><b class="db-x" data-kpi="${tag}" data-count-to="${v}" data-ease="linear" data-delay="1.1" data-dur="${dur}">${v}</b></div>`;
+  let tiles='';
+  if(m.kpis){
+    tiles=`<div class="db-tiles is-kpis" style="--k:${Math.min(m.kpis.length,3)}">${m.kpis.map((k,i)=>{const v=+rows[0][cols.indexOf(k.col)];return `<div class="db-tile" style="--t:calc(var(--t0,.15s) + ${(0.95+i*sg).toFixed(2)}s)"><small>${esc(k.t)}</small><b class="db-x" data-col="${guideEsc(k.col)}" data-count-to="${v}"${k.dec?` data-dec="${k.dec}"`:''}${k.suffix?` data-suffix="${k.suffix}"`:''} data-delay="${(1.1+i*sg).toFixed(2)}" data-dur="1.1">${v}</b>${k.sub?`<em>${esc(k.sub)}</em>`:''}</div>`;}).join('')}</div>`;
+  }else if(m.tiles!==false){
+    let second='';
+    if(m.chart){
+      const bar=m.bar||0,val=r=>isNum(r[bar])?+r[bar]:0,max=Math.max(...rows.map(val))||1;
+      second=`<div class="db-tile"><small>${esc(m.chart)}</small><span class="db-chart" aria-hidden="true">${rows.map((r,i)=>`<i style="--i:${n>1?((i*(Math.max(show,1)-1))/(n-1)).toFixed(2):0};--v:${(val(r)/max).toFixed(3)}"></i>`).join('')}</span></div>`;
+    }else if(m.kpi2){
+      const v=m.kpi2.v==='hl'?nHl:m.kpi2.v==='cols'?nc:m.kpi2.v;
+      second=counter(m.kpi2.t,v,m.kpi2.v==='hl'?' is-warn':'',m.kpi2.v==='hl'?'hl':m.kpi2.v==='cols'?'cols':'value');
+    }
+    tiles=`<div class="db-tiles${second?'':' is-one'}">${counter(m.kpi,total,'',m.count!=null?'count':m.kpiHl?'hl':'rows')}${second}</div>`;
+  }
+  let table='';
+  if(!m.kpis){
+    const gc=m.grid||(m.wide?`repeat(${nc},max-content)`:nc===2?'minmax(0,1fr) auto':cols.map((_,j)=>num.has(j)?'auto':j===0?'minmax(min-content,1.3fr)':'minmax(min-content,1fr)').join(' '));
+    const cell=(c,j,head)=>{const cl=['db-x'];if(num.has(j))cl.push('is-num');if(!head){if(c==='NULL')cl.push('is-null');if(m.hit===j)cl.push('is-hit');if(m.mark&&c===m.mark)cl.push('is-mark');}return `<span class="${cl.join(' ')}" role="${head?'columnheader':'cell'}">${esc(c)}</span>`;};
+    const tr=(r,k)=>`<div class="db-tr${hlRow(r)?' is-hl':''}" role="row" style="--i:${k}">${r.map((c,j)=>cell(c,j,false)).join('')}</div>`;
+    const more=hidden>0?`<div class="db-tr is-more" role="row" style="--i:${show}"><span class="db-x" role="cell">${esc(m.moreT||`… et ${hidden} autre${hidden>1?'s':''}`)}</span></div>`:'';
+    const body=rows.slice(0,show).map((r,k)=>tr(r,k)).join('')+more+rows.slice(n-tail).map((r,k)=>tr(r,show+1+k)).join('');
+    table=`<div class="db-table${m.wide?' is-wide':''}${nc>2?' is-3up':''}" role="table" aria-label="${guideEsc(m.h).replace(/"/g,'&quot;')}" style="--gc:${gc}"><div class="db-rows"><div class="db-tr is-head" role="row">${cols.map((c,j)=>cell(c,j,true)).join('')}</div>${body}</div></div>`;
+  }
+  const data=m.hl?` data-hl-col="${m.hl.col}" data-hl-val="${guideEsc(m.hl.val==null?'NULL':m.hl.val)}"`:'';
+  return `<div class="ij-sms is-board${m.kpis?' is-kpis':''}" style="--n:${vis};--sg:${sg}s" data-total="${n}"${data} role="group" aria-label="${guideEsc(m.aria||m.h).replace(/"/g,'&quot;')}"><p class="ij-sms-h"><i aria-hidden="true">${m.ico||'📊'}</i>${guideFr(m.h)}</p>${tiles}${table}<p class="ij-sms-done">${guideFr(m.done)}</p></div>`;
 }
 function guideDoneCard(d){
   return `<div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div>${guideFunnel(d)}${d.sms?guideSms(d.sms):''}${d.board?guideBoard(d.board):''}</div>`;
@@ -6478,7 +6549,8 @@ guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, co
           {step:"SELECT * FROM clients",s:"lit toute la table, sans rien modifier"},
           {n:10,t:"⭐ lignes affichées",s:"avec leurs 9 colonnes : id, prenom, nom, adresse, ville, age, email, telephone et date_inscription",dots:"1111111111",out:true}
         ],
-        sms:{ico:"📖",h:"Lecture de la table clients",aria:"Les lignes de la table clients sont lues une à une",msg:"<b>Table clients</b><br>10 lignes · 9 colonnes",people:[["S","Sophie Martin","sophie@mail.fr"],["L","Lucas Bernard","lucas@mail.fr"],["E","Emma Dubois","emma@mail.fr"],["N","Nathan Petit","nathan@mail.fr"],["C","Chloé Moreau","chloe@mail.fr"]],more:5,moreT:"… et 5 autres",moreS:"clients de la table",st:["À lire","Lecture","✓ Lue"],plane:"doc",done:"✓ 10 lignes lues"},
+        board:{ico:"🗂️",h:"Table clients",aria:"La table clients s’affiche en entier : 10 lignes, une par client, et 9 colonnes, une par caractéristique",kpi:"Lignes",kpi2:{"t": "Colonnes", "v": "cols"},wide:true,cols:["id", "prenom", "nom", "adresse", "ville", "age", "email", "telephone", "date_inscription"],
+          rows:[[1, "Sophie", "Martin", "12 rue des Lilas", "Paris", 34, "sophie@mail.fr", "06 39 98 12 04", "2023-01-15"], [2, "Lucas", "Bernard", "8 avenue Foch", "Lyon", 28, "lucas@mail.fr", "06 39 98 21 47", "2023-03-22"], [3, "Emma", "Dubois", "27 rue Gambetta", "Marseille", 45, "emma@mail.fr", "06 39 98 33 08", "2022-11-05"], [4, "Nathan", "Petit", "5 rue Victor Hugo", "Paris", 31, "nathan@mail.fr", "06 39 98 40 15", "2023-06-10"], [5, "Chloé", "Moreau", "19 rue Pasteur", "Bordeaux", 26, "chloe@mail.fr", "06 39 98 51 62", "2023-02-18"], [6, "Hugo", "Laurent", "3 allée des Pins", "Lyon", 52, null, "06 39 98 68 03", "2022-09-30"], [7, "Léa", "Simon", "41 avenue Jaurès", "Paris", 38, "lea@mail.fr", "06 39 98 74 29", "2023-05-12"], [8, "Gabriel", "Michel", "16 rue de la Paix", "Toulouse", 29, "gabriel@mail.fr", "06 39 98 85 16", "2023-04-08"], [9, "Inès", "Lefebvre", "22 rue des Roses", "Nantes", 41, null, "06 39 98 97 50", "2023-07-26"], [10, "Nathan", "Dupont", "9 place du Marché", "Paris", 30, "nathan.dupont@mail.fr", "06 39 98 10 26", "2023-08-03"]],done:"✓ Toute la table est affichée"},
         fill:["SELECT","*","FROM","clients"],
         ui:{t:"La table clients est ouverte",s:"Une ligne par client, une colonne par caractéristique.",n:["SELECT","*","FROM"]},
         rows:10
@@ -8274,7 +8346,8 @@ guide({ id:23, titre:"COALESCE", résumé:"Remplacer les valeurs absentes",
           {step:"COALESCE(email, 'Non renseigné')",s:"remplace les emails absents par un texte"},
           {n:10,t:"⭐ contacts affichés",s:"aucune case vide : Hugo et Inès affichent « Non renseigné »",dots:"1111111111",out:true}
         ],
-        sms:{ico:"🖥️",h:"Outil interne",aria:"La liste des clients s’affiche dans l’outil interne, sans case vide",msg:"<b>Liste des clients</b><br>Chaque client avec son contact",people:[["S","Sophie","sophie@mail.fr"],["L","Lucas","lucas@mail.fr"],["E","Emma","emma@mail.fr"],["N","Nathan","nathan@mail.fr"],["C","Chloé","chloe@mail.fr"]],more:5,moreT:"… et 5 autres",moreS:"dont Hugo et Inès : Non renseigné",st:["À afficher","Affichage","✓ Affiché"],plane:"doc",done:"✓ 10 contacts affichés"},
+        board:{ico:"🖥️",h:"Outil interne · Clients",aria:"L’outil interne affiche les 10 clients avec leur contact ; pour Hugo et Inès, il affiche « Non renseigné »",kpi:"Clients affichés",kpi2:{t:"Emails remplacés",v:"hl"},hl:{"col": 1, "val": "Non renseigné"},mark:"Non renseigné",cols:["prenom", "contact"],
+          rows:[["Sophie", "sophie@mail.fr"], ["Lucas", "lucas@mail.fr"], ["Emma", "emma@mail.fr"], ["Nathan", "nathan@mail.fr"], ["Chloé", "chloe@mail.fr"], ["Hugo", "Non renseigné"], ["Léa", "lea@mail.fr"], ["Gabriel", "gabriel@mail.fr"], ["Inès", "Non renseigné"], ["Nathan", "nathan.dupont@mail.fr"]],done:"✓ Aucune case vide à l’écran"},
         fill:["COALESCE","email","'Non renseigné'","contact"],
         ui:{t:"10 contacts affichés",s:"L’outil interne affiche « Non renseigné » quand l’email manque.",n:["SELECT","COALESCE()","AS","FROM"]},
         rows:10
@@ -8386,7 +8459,8 @@ guide({ id:14, titre:"COUNT", résumé:"Compter les lignes",
           {step:"COUNT(*), COUNT(email), COUNT(DISTINCT ville)",s:"résume toutes les lignes en trois nombres"},
           {n:1,t:"⭐ ligne de résultat",s:"10 clients, 8 emails renseignés et 6 villes",dots:"1",out:true}
         ],
-        sms:{ico:"📊",h:"Tableau de bord",aria:"Les trois chiffres sont ajoutés au tableau de bord de la base clients",msg:"<b>Bilan de la base clients</b><br>Taille, emails et villes",people:[["C","Clients","10"],["E","Emails renseignés","8"],["V","Villes différentes","6"]],st:["À ajouter","Ajout","✓ Ajouté"],plane:"doc",done:"✓ Bilan complété"},
+        board:{ico:"📋",h:"Bilan de la base clients",aria:"Le bilan de la base clients affiche 10 clients, 8 emails renseignés et 6 villes différentes",kpis:[{"t": "Clients", "col": "nb_clients", "sub": "nb_clients"}, {"t": "Emails renseignés", "col": "nb_emails", "sub": "nb_emails"}, {"t": "Villes différentes", "col": "nb_villes", "sub": "nb_villes"}],cols:["nb_clients", "nb_emails", "nb_villes"],
+          rows:[[10, 8, 6]],done:"✓ Bilan de la base à jour"},
         fill:["COUNT(*)","email","DISTINCT","ville"],
         ui:{t:"3 chiffres pour le bilan",s:"Le bilan de la base est prêt.",n:["SELECT","FROM","COUNT()","DISTINCT","AS"]},
         rows:1
@@ -8496,7 +8570,8 @@ guide({ id:16, titre:"GROUP BY", résumé:"Un calcul par groupe",
           {step:"COUNT(*)",s:"compte les clients de chaque groupe"},
           {n:6,t:"⭐ villes avec leur nombre de clients",s:"Bordeaux, Lyon, Marseille, Nantes, Paris et Toulouse",dots:"111111",out:true}
         ],
-        sms:{ico:"🗺️",h:"Répartition des conseillers",aria:"Les conseillers sont répartis entre les six villes selon leur nombre de clients",msg:"<b>Conseillers par ville</b><br>Selon le nombre de clients",people:[["B","Bordeaux","1 client"],["L","Lyon","2 clients"],["M","Marseille","1 client"],["N","Nantes","1 client"],["P","Paris","4 clients"],["T","Toulouse","1 client"]],st:["À affecter","Affectation","✓ Affecté"],plane:"pin",done:"✓ 6 villes couvertes"},
+        board:{ico:"🗺️",h:"Répartition des conseillers",aria:"Le graphique montre le nombre de clients de chaque ville : Paris en compte le plus (4), elle recevra le plus de conseillers",kpi:"Villes à couvrir",chart:"nb_clients par ville",bar:1,cols:["ville", "nb_clients"],
+          rows:[["Bordeaux", 1], ["Lyon", 2], ["Marseille", 1], ["Nantes", 1], ["Paris", 4], ["Toulouse", 1]],done:"✓ Paris en tête avec 4 clients"},
         fill:["ville","COUNT(*)","GROUP BY","ville"],
         ui:{t:"6 villes, chacune avec son nombre de clients",s:"L’équipe peut répartir ses conseillers.",n:["SELECT","FROM","GROUP BY","COUNT()","AS"]},
         rows:6
@@ -9128,7 +9203,8 @@ guide({ id:20, titre:"LEFT JOIN", résumé:"Garder même sans correspondance",
           {step:"LEFT JOIN fidelite",s:"ajoute la carte de chaque client, sans en écarter aucun"},
           {n:10,t:"⭐ clients dans le bilan",s:"dont 6 sans carte, avec des points à NULL",dots:"1111111111",out:true}
         ],
-        sms:{ico:"🏅",h:"Bilan du programme",aria:"Les points de chaque client, y compris ceux sans carte, sont reportés dans le bilan du programme de fidélité",msg:"<b>Points par client</b><br>Pour mesurer l’adhésion au programme.",people:[["S","Sophie Martin","120 points"],["L","Lucas Bernard","80 points"],["E","Emma Dubois","aucune carte"],["N","Nathan Petit","250 points"],["C","Chloé Moreau","aucune carte"]],more:5,moreT:"… et 5 autres",moreS:"clients",icons:true,plane:"doc",done:"✓ 10 clients dans le bilan"},
+        board:{ico:"🏅",h:"Bilan du programme de fidélité",aria:"Le bilan affiche les 10 clients et leurs points : 4 ont une carte, 6 n’en ont pas (points à NULL)",kpi:"Clients dans le bilan",chart:"points par client",bar:2,cols:["prenom", "nom", "points"],
+          rows:[["Sophie", "Martin", 120], ["Lucas", "Bernard", 80], ["Emma", "Dubois", null], ["Nathan", "Petit", 250], ["Chloé", "Moreau", null], ["Hugo", "Laurent", null], ["Léa", "Simon", 160], ["Gabriel", "Michel", null], ["Inès", "Lefebvre", null], ["Nathan", "Dupont", null]],done:"✓ 4 clients sur 10 ont une carte"},
         fill:["LEFT JOIN","fidelite","clients.id","fidelite.client_id"],
         ui:{t:"10 clients dans le bilan",s:"Le bilan du programme de fidélité est prêt.",n:["LEFT JOIN","ON"]},
         rows:10
@@ -9671,7 +9747,8 @@ guide({ id:41, titre:"JOIN + GROUP BY", résumé:"Compter les commandes par vill
           {step:"GROUP BY clients.ville + COUNT()",s:"rassemble les commandes d’une même ville, puis les compte"},
           {n:5,t:"⭐ villes avec leur nombre de commandes",s:"Bordeaux, Lyon, Marseille, Paris et Toulouse",dots:"11111",out:true}
         ],
-        sms:{ico:"📊",h:"Rapport commercial",aria:"Le nombre de commandes de chaque ville est reporté dans le rapport",msg:"<b>Commandes par ville</b><br>Pour repérer les villes qui commandent le plus",people:[["B","Bordeaux","2 commandes"],["L","Lyon","3 commandes"],["M","Marseille","2 commandes"],["P","Paris","7 commandes"],["T","Toulouse","1 commande"]],st:["À reporter","Calcul","✓ Reporté"],plane:"doc",done:"✓ 5 villes dans le rapport"},
+        board:{ico:"📊",h:"Rapport commercial",aria:"Le rapport affiche le nombre de commandes de chacune des 5 villes : Paris arrive en tête avec 7 commandes",kpi:"Villes",chart:"nombre_commandes par ville",bar:1,cols:["ville", "nombre_commandes"],
+          rows:[["Bordeaux", 2], ["Lyon", 3], ["Marseille", 2], ["Paris", 7], ["Toulouse", 1]],done:"✓ Rapport à jour"},
         fill:["COUNT","INNER JOIN","GROUP BY","clients.ville"],
         ui:{t:"5 villes, chacune avec son total",s:"Paris arrive en tête, devant Lyon.",n:["INNER JOIN","GROUP BY","COUNT()"]},
         rows:5
@@ -10003,7 +10080,8 @@ guide({ id:44, titre:"Quel JOIN choisir ?", résumé:"Choisir la bonne jointure
           {step:"LEFT JOIN commandes",s:"ajoute leurs commandes sans écarter aucun client"},
           {n:17,t:"⭐ lignes pour l’audit",s:"15 commandes avec leur client, plus Inès et Nathan Dupont, sans commande",dots:"11111111111111111",out:true}
         ],
-        sms:{ico:"🧾",h:"Fichier clients à contrôler",aria:"Les 17 lignes du fichier d’audit : tous les clients, avec ou sans commande",msg:"<b>Audit du fichier clients</b><br>Chaque client avec la date de ses commandes",people:[["S","Sophie","Paris · 2026-07-02"],["S","Sophie","Paris · 2026-07-02"],["S","Sophie","Paris · 2026-07-28"],["L","Lucas","Lyon · 2026-07-05"],["L","Lucas","Lyon · 2026-07-20"]],more:12,moreT:"… et 12 autres",moreS:"dont 2 sans commande",icons:true,plane:"doc",done:"✓ 17 lignes contrôlées"},
+        board:{ico:"🧾",h:"Fichier clients à contrôler",aria:"Le fichier d’audit compte 17 lignes : tous les clients, avec ou sans commande ; Inès et Nathan, sans commande, ont une date vide et sont à contrôler",kpi:"Lignes",kpi2:{"t": "Sans commande", "v": "hl"},hl:{"col": 2, "val": null},show:4,tail:2,moreT:"… et 11 autres lignes avec une commande",cols:["prenom", "ville", "date_commande"],
+          rows:[["Sophie", "Paris", "2026-07-02"], ["Sophie", "Paris", "2026-07-02"], ["Sophie", "Paris", "2026-07-28"], ["Lucas", "Lyon", "2026-07-05"], ["Lucas", "Lyon", "2026-07-20"], ["Emma", "Marseille", "2026-07-08"], ["Emma", "Marseille", "2026-07-30"], ["Nathan", "Paris", "2026-07-11"], ["Nathan", "Paris", "2026-07-25"], ["Chloé", "Bordeaux", "2026-07-12"], ["Chloé", "Bordeaux", "2026-08-01"], ["Hugo", "Lyon", "2026-07-15"], ["Léa", "Paris", "2026-07-18"], ["Léa", "Paris", "2026-07-18"], ["Gabriel", "Toulouse", "2026-07-22"], ["Inès", "Nantes", null], ["Nathan", "Paris", null]],done:"✓ 2 clients sans commande à contrôler"},
         fill:["clients","LEFT JOIN","clients.id","commandes.client_id"],
         ui:{t:"Tous les clients, avec ou sans commande",s:"Une date vide repère les clients sans commande : l’audit peut les contrôler.",n:["LEFT JOIN","ON"]},
         rows:17
@@ -10210,7 +10288,8 @@ guide({ id:47, titre:"Sous-requête dans SELECT", résumé:"Calculer une valeur 
           {step:"(SELECT COUNT(*) …)",s:"compte, pour chaque produit, ses propres commandes"},
           {n:8,t:"⭐ produits avec leur nombre de commandes",s:"dont la Fibre Prébiotique, en tête avec 4 commandes",dots:"11111111",out:true}
         ],
-        sms:{ico:"📊",h:"Rapport des produits",aria:"Le nombre de commandes de chaque produit est ajouté au rapport de l’équipe marketing",msg:"<b>Commandes par produit</b><br>Pour repérer les plus demandés.",people:[["F","Fibre Prébiotique","4 commandes"],["C","Collagène Marin","2 commandes"],["M","Magnésium","2 commandes"],["V","Vitamine D","2 commandes"],["T","Tisane Détox","1 commande"]],more:3,moreT:"… et 3 autres",moreS:"produits",icons:true,plane:"doc",done:"✓ 8 produits analysés"},
+        board:{ico:"📊",h:"Analyse des commandes par produit",aria:"L’analyse affiche le nombre de commandes des 8 produits : la Fibre Prébiotique arrive en tête avec 4 commandes",kpi:"Produits",chart:"nb_commandes par produit",bar:1,cols:["nom", "nb_commandes"],
+          rows:[["Fibre Prébiotique", 4], ["Collagène Marin", 2], ["Magnésium", 2], ["Vitamine D", 2], ["Tisane Détox", 1], ["Protéine Végétale", 2], ["Oméga 3", 2], ["Shaker Inox", 1]],done:"✓ En tête : la Fibre Prébiotique, 4 commandes"},
         fill:["COUNT(*)","commandes.produit_id","produits.id","AS nb_commandes"],
         ui:{t:"8 produits avec leur nombre de commandes",s:"L’équipe peut choisir les produits à mettre en avant.",n:["SELECT","sous-requête","COUNT()","WHERE","AS"]},
         rows:8
@@ -10308,7 +10387,8 @@ guide({ id:48, titre:"Sous-requête dans FROM", résumé:"Utiliser une sous-requ
           {step:"AVG(montant)",s:"calcule la moyenne de ces montants"},
           {n:1,t:"⭐ montant moyen d’une commande",s:"environ 46,72 €",dots:"1",out:true}
         ],
-        sms:{ico:"📊",h:"Rapport de la finance",aria:"Le montant moyen d’une commande est calculé puis ajouté au rapport de la finance",msg:"<b>Panier moyen</b><br>Calculé sur les 16 commandes de la boutique.",people:[["T","Montant total","747,50 €"],["M","Montant moyen","46,72 € par commande"]],icons:true,plane:"doc",done:"✓ Panier moyen ajouté au rapport"},
+        board:{ico:"📈",h:"Indicateurs de la finance",aria:"L’indicateur de panier moyen de l’équipe finance est mis à jour : 46,72 € par commande",kpis:[{"t": "Panier moyen", "col": "AVG(montant)", "dec": 2, "suffix": " €", "sub": "par commande"}],cols:["AVG(montant)"],
+          rows:[[46.71875]],done:"✓ Indicateur mis à jour"},
         fill:["AVG","produits.prix","JOIN","AS commandes_montants"],
         ui:{t:"46,72 € par commande, en moyenne",s:"L’indicateur de panier moyen peut être mis à jour.",n:["SELECT","FROM (…)","AVG()","JOIN","AS"]},
         rows:1
@@ -10833,7 +10913,8 @@ guide({ id:77, titre:"WITH RECURSIVE (CTE RECURSIVE)", résumé:"Créer une suit
           {step:"UNION ALL SELECT jour + 1 … WHERE jour < 90",s:"ajoute un jour de plus, tant que le dernier jour créé est inférieur à 90"},
           {n:90,t:"⭐ jours de campagne",s:"du jour 1 au jour 90",out:true}
         ],
-        sms:{ico:"📅",h:"Tableau de suivi",aria:"Les 90 lignes du tableau de suivi de la campagne sont prêtes à être remplies",msg:"<b>Campagne de 90 jours</b><br>Une ligne par jour à renseigner",people:[["1","Jour 1","à renseigner"],["2","Jour 2","à renseigner"],["3","Jour 3","à renseigner"],["4","Jour 4","à renseigner"],["5","Jour 5","à renseigner"]],more:85,moreT:"… et 85 autres jours",moreS:"jusqu’au jour 90",st:["Vide","Création","✓ Prête"],plane:"doc",done:"✓ 90 lignes prêtes à être remplies"},
+        board:{ico:"📅",h:"Tableau de suivi",aria:"Les 90 jours de la campagne forment les lignes du tableau de suivi, prêtes à être remplies",kpi:"Jours de campagne",show:5,moreT:"… et 85 autres jours, jusqu’au jour 90",cols:["jour"],
+          rows:[[1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12], [13], [14], [15], [16], [17], [18], [19], [20], [21], [22], [23], [24], [25], [26], [27], [28], [29], [30], [31], [32], [33], [34], [35], [36], [37], [38], [39], [40], [41], [42], [43], [44], [45], [46], [47], [48], [49], [50], [51], [52], [53], [54], [55], [56], [57], [58], [59], [60], [61], [62], [63], [64], [65], [66], [67], [68], [69], [70], [71], [72], [73], [74], [75], [76], [77], [78], [79], [80], [81], [82], [83], [84], [85], [86], [87], [88], [89], [90]],done:"✓ Une ligne par jour, prête à être remplie"},
         fill:["RECURSIVE","UNION ALL","jour + 1","jour < 90"],
         ui:{t:"90 jours de campagne",s:"Générés par la requête elle-même.",n:["WITH RECURSIVE","UNION ALL","WHERE"]},
         rows:90
@@ -10936,7 +11017,8 @@ guide({ id:60, titre:"OVER()", résumé:"Calculer sans regrouper les lignes",
           {step:"CASE WHEN … END",s:"situe chaque produit : au-dessus, en dessous, égal ou seul"},
           {n:8,t:"⭐ produits comparés",s:"dont Fibre Prébiotique et Protéine Végétale, au-dessus de la moyenne de leur catégorie",dots:"11111111",out:true}
         ],
-        sms:{ico:"🏷️",h:"Promotions à préparer",aria:"Chaque produit est comparé à la moyenne de sa catégorie pour préparer les promotions",msg:"<b>Prix comparés</b><br>Chaque produit face à sa catégorie",people:[["S","Shaker Inox","15 € · seul"],["C","Collagène Marin","39,90 € · seul"],["F","Fibre Prébiotique","29,90 € · au-dessus"],["O","Oméga 3","24,90 € · ="],["M","Magnésium","19,90 € · en dessous"]],more:3,moreT:"… et 3 autres",moreS:"dont 1 au-dessus",icons:true,plane:"star",done:"✓ 8 produits comparés"},
+        board:{ico:"📊",h:"Prix comparés à leur catégorie",aria:"Chaque produit est comparé à la moyenne de sa catégorie ; Fibre Prébiotique et Protéine Végétale sont au-dessus",kpi:"Au-dessus de la moyenne",kpiHl:true,hl:{"col": 4, "val": "au-dessus"},wide:true,cols:["nom", "categorie", "prix", "prix_moyen", "position"],
+          rows:[["Shaker Inox", "Accessoire", 15, 15, "seul"], ["Collagène Marin", "Beauté", 39.9, 39.9, "seul"], ["Fibre Prébiotique", "Bien-être", 29.9, 24.9, "au-dessus"], ["Oméga 3", "Bien-être", 24.9, 24.9, "="], ["Magnésium", "Bien-être", 19.9, 24.9, "en dessous"], ["Tisane Détox", "Boisson", 12.5, 12.5, "seul"], ["Protéine Végétale", "Nutrition", 34.9, 24.9, "au-dessus"], ["Vitamine D", "Nutrition", 14.9, 24.9, "en dessous"]],done:"✓ 2 produits à surveiller pour les promotions"},
         fill:["AVG(prix)","OVER","PARTITION BY","categorie"],
         ui:{t:"8 produits comparés à leur catégorie",s:"2 produits sont au-dessus, 2 en dessous, 1 est égal et 3 sont seuls.",n:["WITH","AVG()","OVER()","PARTITION BY","COUNT()","CASE"]},
         rows:8
@@ -11344,7 +11426,8 @@ guide({ id:56, titre:"Normalisation", résumé:"Répartir les données dans des 
           {step:"JOIN clients, JOIN produits",s:"relie chaque commande à son client et à son produit"},
           {n:15,t:"⭐ commandes pour le tableau de bord",s:"une ligne par commande, sauf la commande 16 qui n’a pas de client",dots:"1111111111111110",out:true}
         ],
-        sms:{ico:"📊",h:"Tableau de bord des ventes",aria:"Les commandes sont chargées dans le tableau de bord, sans aucune grande table",msg:"<b>Commandes à analyser</b><br>prénom · ville · produit · prix · quantité",people:[["S","Sophie","Paris · Fibre Prébiotique"],["S","Sophie","Paris · Magnésium"],["L","Lucas","Lyon · Protéine Végétale"],["E","Emma","Marseille · Collagène Marin"],["N","Nathan","Paris · Fibre Prébiotique"]],more:10,moreT:"… et 10 autres",moreS:"commandes du tableau de bord",st:["À charger","Chargement","✓ Chargée"],plane:"doc",done:"✓ 15 commandes chargées"},
+        board:{ico:"📊",h:"Tableau de bord des ventes",aria:"Le tableau de bord des ventes reçoit les 15 commandes avec le prénom, la ville, le produit, le prix et la quantité, retrouvés par jointure",kpi:"Commandes",chart:"quantite par commande",bar:4,wide:true,show:8,moreT:"… et 7 autres commandes",cols:["prenom", "ville", "produit", "prix", "quantite"],
+          rows:[["Sophie", "Paris", "Fibre Prébiotique", 29.9, 2], ["Sophie", "Paris", "Magnésium", 19.9, 1], ["Lucas", "Lyon", "Protéine Végétale", 34.9, 1], ["Emma", "Marseille", "Collagène Marin", 39.9, 3], ["Nathan", "Paris", "Fibre Prébiotique", 29.9, 1], ["Chloé", "Bordeaux", "Vitamine D", 14.9, 2], ["Hugo", "Lyon", "Oméga 3", 24.9, 1], ["Léa", "Paris", "Fibre Prébiotique", 29.9, 4], ["Léa", "Paris", "Tisane Détox", 12.5, 2], ["Lucas", "Lyon", "Magnésium", 19.9, 2], ["Gabriel", "Toulouse", "Protéine Végétale", 34.9, 1], ["Nathan", "Paris", "Collagène Marin", 39.9, 1], ["Sophie", "Paris", "Shaker Inox", 15, 1], ["Emma", "Marseille", "Oméga 3", 24.9, 2], ["Chloé", "Bordeaux", "Fibre Prébiotique", 29.9, 3]],done:"✓ Tableau de bord alimenté"},
         fill:["JOIN","commandes.client_id","JOIN","commandes.produit_id"],
         ui:{t:"15 commandes pour le tableau de bord",s:"Rien n’est recopié : les jointures retrouvent les informations de la grande table, à partir de trois tables.",n:["SELECT","FROM","JOIN","ON","ORDER BY"]},
         rows:15
@@ -11471,7 +11554,8 @@ guide({ id:72, titre:"Relations 1-1, 1-N et N-N", résumé:"Les trois formes de 
           {step:"CREATE TABLE echantillons, INSERT",s:"crée la table de jointure, puis y range les envois"},
           {n:3,t:"⭐ envois dans la table",s:"un seul par couple client + produit",dots:"111",out:true}
         ],
-        sms:{ico:"🎁",h:"Envoi des échantillons",aria:"Les trois échantillons partent chez les clients",msg:"<b>Échantillons gratuits</b><br>Un envoi par couple client + produit.",people:[["S","Sophie → Fibre Prébiotique","1ᵉʳ septembre"],["S","Sophie → Magnésium","1ᵉʳ septembre"],["L","Lucas → Fibre Prébiotique","2 septembre"]],st:["À envoyer","Expédition","✓ Envoyé"],done:"✓ 3 échantillons envoyés"},
+        board:{ico:"🎁",h:"Table echantillons",aria:"La table echantillons est créée, puis trois envois y sont enregistrés, un seul par couple client + produit",tiles:false,cols:["client_id", "produit_id", "date_envoi"],
+          rows:[[1, 1, "2026-09-01"], [1, 3, "2026-09-01"], [2, 1, "2026-09-02"]],done:"✓ 3 envois enregistrés, un par couple client + produit"},
         fill:["REFERENCES","PRIMARY KEY","client_id","produit_id"],
         ui:{t:"Un envoi par client et par produit",s:"Un client reçoit plusieurs échantillons, un produit est offert à plusieurs clients.",n:["CREATE TABLE","REFERENCES","PRIMARY KEY"]},
         rows:3
@@ -12787,7 +12871,8 @@ guide({ id:70, titre:"Les triggers", résumé:"Faire réagir la base toute seule
           {step:"CREATE TRIGGER … AFTER UPDATE",s:"note l’ancien et le nouveau prix à chaque changement"},
           {n:1,t:"⭐ changement tracé",s:"Magnésium : de 19.9 à 22.9",dots:"00100000",out:true}
         ],
-        sms:{ico:"🗂️",h:"Historique des prix",aria:"Le changement de prix du Magnésium est noté dans l’historique",msg:"Chaque changement de prix est noté automatiquement.",people:[["M","Magnésium","19.9 → 22.9"]],st:["À noter","Écriture","✓ Noté"],plane:"doc",done:"✓ 1 changement noté"},
+        board:{ico:"🗂️",h:"Historique des prix",aria:"La table historique_prix reçoit toute seule une ligne : produit 3, ancien prix 19.9, nouveau prix 22.9",tiles:false,hit:1,cols:["produit_id", "ancien_prix", "nouveau_prix"],
+          rows:[[3, 19.9, 22.9]],done:"✓ Ancien prix conservé"},
         fill:["AFTER UPDATE","WHEN","OLD.prix","NEW.prix"],
         ui:{t:"Chaque changement laisse une trace",s:"Rien ne se perd, sans aucune intervention.",n:["CREATE TRIGGER","AFTER UPDATE","WHEN","OLD","NEW"]},
         rows:1
@@ -12989,7 +13074,8 @@ guide({ id:64, titre:"CREATE VIEW", résumé:"Enregistrer une requête sous un n
           {step:"CREATE VIEW produits_stock_faible",s:"enregistre la requête : la vue ne présente que les produits de moins de 50 unités"},
           {n:2,t:"⭐ produits à réapprovisionner",s:"Protéine Végétale et Shaker Inox",dots:"00000101",out:true}
         ],
-        sms:{ico:"📦",h:"Réassort du matin",aria:"Les deux produits à stock faible partent en commande de réassort",msg:"<b>À réapprovisionner</b><br>Produits de moins de 50 unités",people:[["P","Protéine Végétale","45 unités en stock"],["S","Shaker Inox","30 unités en stock"]],st:["À commander","Commande","✓ Commandé"],plane:"doc",done:"✓ 2 produits commandés"},
+        board:{ico:"🔖",h:"Vue produits_stock_faible",aria:"Chaque matin, la vue produits_stock_faible affiche les 2 produits de moins de 50 unités, sans réécrire la requête",kpi:"À réapprovisionner",chart:"stock par produit",bar:2,cols:["id", "nom", "stock"],
+          rows:[[6, "Protéine Végétale", 45], [8, "Shaker Inox", 30]],done:"✓ Vue consultée, sans réécrire la requête"},
         fill:["CREATE VIEW","produits_stock_faible","AS","50"],
         ui:{t:"2 produits à réapprovisionner",s:"La requête est enregistrée : chaque matin, il suffit de consulter la vue.",n:["CREATE VIEW","AS","SELECT","FROM","WHERE"]},
         rows:2
@@ -25117,7 +25203,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-07-ludique-v1674';
+  const SW_CACHE='requete-2026-10-07-ludique-v1675';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -138,23 +138,51 @@ export function checkGuideLesson(env, l) {
   if (!unitFree) assert.equal(lit, outN, `${l.titre} : autant de points allumés que de lignes gardées`);
   const sms = /ij-sms(?: is-mail)?(?: is-flat)?(?: is-icons)?" style="--n:(\d+);--sg:[\d.]+s"/.exec(lastUse);
   if (sms) assert.equal(+sms[1], (lastUse.match(/<li(?: class="is-more")? style="--i:/g) || []).length, `${l.titre} : nombre d'envois`);
-  /* Dashboard (guideBoard) : les en-têtes sont les colonnes du résultat (leurs alias), les lignes ses valeurs, dans l'ordre ;
-     l'indicateur compte les lignes, le graphique a une barre par ligne, à la hauteur de la valeur de la colonne qui le titre. */
-  const board = /<div class="ij-sms is-board" style="--n:(\d+);--sg:[\d.]+s"[\s\S]*?<p class="ij-sms-done">/.exec(lastUse);
+  /* Dashboard (guideBoard) : les en-têtes sont les colonnes du résultat (leurs alias), les lignes ses valeurs, dans l'ordre
+     (les premières, puis éventuellement « … et N autres » et les dernières) ; data-total = nombre de lignes ; le compteur compte
+     les lignes (ou les lignes repérées, ou les colonnes) ; le graphique a une barre par ligne, à la hauteur de la valeur de la
+     colonne qui le titre ; des tuiles seules (is-kpis) montrent les valeurs de la 1re ligne. */
+  const board = /<div class="ij-sms is-board( is-kpis)?" style="--n:(\d+);--sg:[\d.]+s" data-total="(\d+)"(?: data-hl-col="(\d+)" data-hl-val="([^"]*)")?[\s\S]*?<p class="ij-sms-done">/.exec(lastUse);
   if (board) {
     assert.ok(resMission, `${l.titre} : un dashboard montre le résultat d'une requête exécutée`);
-    const b = board[0];
-    const trs = [...b.matchAll(/<div class="db-tr(?: is-head)?" role="row"[^>]*>([\s\S]*?)<\/div>/g)].map(m => [...m[1].matchAll(/<span class="db-x" role="(?:columnheader|cell)">([^<]*)<\/span>/g)].map(c => decode(c[1])));
-    assert.equal(JSON.stringify(trs[0]), JSON.stringify(resMission.columns), `${l.titre} : les en-têtes du dashboard sont les colonnes du résultat de la mission`);
-    assert.equal(JSON.stringify(trs.slice(1)), JSON.stringify(resMission.values.map(r => r.map(String))), `${l.titre} : les lignes du dashboard sont celles du résultat de la mission, dans l'ordre`);
-    assert.equal(+board[1], nRows, `${l.titre} : --n du dashboard = nombre de lignes`);
-    assert.equal(+/data-count-to="(\d+)"/.exec(b)[1], nRows, `${l.titre} : l'indicateur du dashboard compte les lignes`);
-    const title = decode(/<small>([^<]*)<\/small><span class="db-chart"/.exec(b)[1]);
-    const k = resMission.columns.findIndex(c => title.startsWith(c));
-    assert.ok(k >= 0, `${l.titre} : le titre du graphique (« ${title} ») commence par le nom d'une colonne du résultat`);
-    const vals = resMission.values.map(r => +r[k]), max = Math.max(...vals);
-    const vs = [...b.matchAll(/<i style="--i:\d+;--v:([\d.]+)"><\/i>/g)].map(m => m[1]);
-    assert.equal(JSON.stringify(vs), JSON.stringify(vals.map(v => (v / max).toFixed(3))), `${l.titre} : une barre par ligne, à la hauteur de sa valeur (${resMission.columns[k]})`);
+    const b = board[0], str = v => v === null ? 'NULL' : String(v);
+    const want = resMission.values.map(r => r.map(str));
+    assert.equal(+board[3], nRows, `${l.titre} : data-total du dashboard = nombre de lignes du résultat`);
+    if (board[1]) {
+      const tiles = [...b.matchAll(/data-col="([^"]*)" data-count-to="([^"]*)"/g)];
+      assert.ok(tiles.length >= 1, `${l.titre} : au moins une tuile`);
+      for (const [, c, v] of tiles) {
+        const k = resMission.columns.indexOf(decode(c));
+        assert.ok(k >= 0, `${l.titre} : la tuile « ${c} » est une colonne du résultat`);
+        assert.equal(+v, +resMission.values[0][k], `${l.titre} : la tuile « ${c} » montre la valeur du résultat`);
+      }
+    } else {
+      const trs = [...b.matchAll(/<div class="db-tr( is-head| is-hl| is-more)?" role="row"[^>]*>([\s\S]*?)<\/div>/g)].map(m => ({ k: m[1] || '', cells: [...m[2].matchAll(/<span class="db-x[^"]*" role="(?:columnheader|cell)">([^<]*)<\/span>/g)].map(c => decode(c[1]).replace(/\u00a0/g, ' ')) }));
+      const head = trs.find(t => t.k === ' is-head');
+      assert.equal(JSON.stringify(head.cells), JSON.stringify(resMission.columns), `${l.titre} : les en-têtes du dashboard sont les colonnes du résultat de la mission`);
+      const body = trs.filter(t => t.k !== ' is-head'), mi = body.findIndex(t => t.k === ' is-more');
+      const before = (mi < 0 ? body : body.slice(0, mi)).map(t => t.cells), after = mi < 0 ? [] : body.slice(mi + 1).map(t => t.cells);
+      const norm = r => r.map(c => c.replace(/\u00a0/g, ' '));
+      assert.equal(JSON.stringify(before), JSON.stringify(want.slice(0, before.length).map(norm)), `${l.titre} : les lignes du dashboard sont celles du résultat de la mission, dans l'ordre`);
+      if (after.length) assert.equal(JSON.stringify(after), JSON.stringify(want.slice(nRows - after.length).map(norm)), `${l.titre} : les dernières lignes du dashboard sont les dernières du résultat`);
+      if (mi >= 0) assert.ok(body[mi].cells[0].includes(String(nRows - before.length - after.length)), `${l.titre} : « … et N autres » annonce le bon nombre de lignes`);
+      else assert.equal(before.length, nRows, `${l.titre} : toutes les lignes du résultat sont affichées`);
+      const hlN = board[4] != null ? want.filter(r => r[+board[4]] === decode(board[5])).length : 0;
+      for (const [, tag, v] of b.matchAll(/data-kpi="([a-z]+)" data-count-to="([^"]*)"/g)) {
+        if (tag === 'rows') assert.equal(+v, nRows, `${l.titre} : le compteur du dashboard compte les lignes`);
+        if (tag === 'hl') assert.equal(+v, hlN, `${l.titre} : le compteur compte les lignes repérées`);
+        if (tag === 'cols') assert.equal(+v, resMission.columns.length, `${l.titre} : le compteur compte les colonnes`);
+      }
+      const chart = /<small>([^<]*)<\/small><span class="db-chart"/.exec(b);
+      if (chart) {
+        const title = decode(chart[1]);
+        const k = resMission.columns.findIndex(c => title.startsWith(c));
+        assert.ok(k >= 0, `${l.titre} : le titre du graphique (« ${title} ») commence par le nom d'une colonne du résultat`);
+        const vals = resMission.values.map(r => (r[k] === null || isNaN(+r[k])) ? 0 : +r[k]), max = Math.max(...vals) || 1;
+        const vs = [...b.matchAll(/<i style="--i:[\d.]+;--v:([\d.]+)"><\/i>/g)].map(m => m[1]);
+        assert.equal(JSON.stringify(vs), JSON.stringify(vals.map(v => (v / max).toFixed(3))), `${l.titre} : une barre par ligne, à la hauteur de sa valeur (${resMission.columns[k]})`);
+      }
+    }
   }
   /* Tableaux « à tester » (balayage ligne par ligne) : chaque verdict est celui de la condition, sur de vraies lignes de la table. */
   for (const blk of body.match(/<div class="rt-wrap"[\s\S]*?<span class="rt-hint">/g) || []) {
