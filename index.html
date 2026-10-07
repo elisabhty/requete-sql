@@ -1455,6 +1455,11 @@
   .qf-run{margin-top:12px}
   @keyframes qfShake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
   /* Question mise en évidence : carte violette avec un « ? », petit « pop » à son arrivée à l’écran (initAskCards) */
+  /* « 👇 Teste par toi-même » (guideSay) : l’invitation à essayer est encadrée, juste au-dessus du cadre Exécuter qu’elle annonce. */
+  #scr-lesson p.gd-try{display:flex;align-items:flex-start;gap:9px;margin:14px 0 0!important;padding:10px 13px!important;border:1.5px solid color-mix(in srgb,var(--accent) 26%,#fff);border-radius:14px;background:var(--accent-soft);font-family:var(--display,var(--ui));font-size:15px!important;font-weight:700;line-height:1.35!important;color:var(--accent-ink)!important}
+  #scr-lesson p.gd-try i{flex:none;font-style:normal}
+  #scr-lesson p.gd-try span{min-width:0}
+  #scr-lesson p.gd-try + .ij-run-frame,#scr-lesson p.gd-try + .ij-run{margin-top:8px}
   .concept-block p.gd-ask{display:flex;align-items:center;gap:12px;margin:14px 0 16px;padding:12px 14px;border:2px solid color-mix(in srgb,var(--accent) 24%,#fff);border-radius:18px;background:var(--accent-soft);box-shadow:0 3px 0 var(--lip)}
   .gd-ask i{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:13px;background:var(--accent-grad);color:#fff;font:800 23px/1 var(--display);font-style:normal;box-shadow:0 3px 0 var(--accent-lip)}
   .concept-block p.gd-ask span{min-width:0;font:700 17.5px/1.3 var(--display);letter-spacing:-.01em;color:var(--accent-ink)}
@@ -6248,12 +6253,18 @@ function guideFr(h){
 function guideScene(sc){return Object.assign({},sc,{caps:sc.caps.map(guideFr)});}
 function guideEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function guideSyntax(s){return `<div class="pt-syntax"><pre class="cw-syntax">${guideEsc(s).replace(/⟦/g,'<span class="fk-syn-hit">').replace(/⟧/g,'</span>')}</pre></div>`;}
+/* Texte qui annonce un cadre Exécuter. « 👇 Teste par toi-même » (le plus souvent dans un encadré « Attention ») est une
+   invitation à essayer : elle est encadrée, pour ne pas se perdre dans l’explication. */
+function guideSay(t){
+  const m=/^👇\s*(Teste par toi-même[\s\S]*)$/.exec(t);
+  return m?`<p class="gd-try"><i aria-hidden="true">👇</i><span>${guideFr(m[1])}</span></p>`:`<p>${guideFr(t)}</p>`;
+}
 function guideBlock(b){
   if(typeof b==='string')return `<p>${guideFr(b)}</p>`;
   const lab=x=>x?` aria-label="${guideEsc(x).replace(/"/g,'&quot;')}"`:'';
   if(b.p!==undefined)return `<p>${guideFr(b.p)}</p>`;
   /* sim : réponse simulée d’un serveur pour une commande que SQLite ne connaît pas (GRANT, REVOKE…) ; le bouton affiche « Simuler ». */
-  if(b.run)return `${b.say?`<p>${guideFr(b.say)}</p>`:''}<div class="ij-run"${b.warn?' data-warn="1"':''}${b.hit?` data-hit="${guideEsc(b.hit).replace(/"/g,'&quot;').replace(/\n/g,'&#10;')}"`:''} data-run-sql="${guideEsc(b.run).replace(/"/g,'&quot;').replace(/\n/g,'&#10;')}"${b.sim!==undefined?` data-sim="${guideEsc(b.sim).replace(/"/g,'&quot;').replace(/\n/g,'&#10;')}"`:''}></div>`;
+  if(b.run)return `${b.say?guideSay(b.say):''}<div class="ij-run"${b.warn?' data-warn="1"':''}${b.hit?` data-hit="${guideEsc(b.hit).replace(/"/g,'&quot;').replace(/\n/g,'&#10;')}"`:''} data-run-sql="${guideEsc(b.run).replace(/"/g,'&quot;').replace(/\n/g,'&#10;')}"${b.sim!==undefined?` data-sim="${guideEsc(b.sim).replace(/"/g,'&quot;').replace(/\n/g,'&#10;')}"`:''}></div>`;
   if(b.syntax)return guideSyntax(b.syntax);
   if(b.looks)return `<ul class="win-look is-cmp"${lab(b.label)}>${b.looks.map(([k,v])=>`<li><b>${/</.test(k)?k:`<code>${guideEsc(k)}</code>`}</b><span>${guideFr(v)}</span></li>`).join('')}</ul>`;
   if(b.arrow)return `<p class="ij-arrow">${b.ico||'👉'} ${guideFr(b.arrow)}</p>`;
@@ -24956,7 +24967,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-07-ludique-v1663';
+  const SW_CACHE='requete-2026-10-07-ludique-v1664';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
