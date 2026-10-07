@@ -85,3 +85,17 @@ test('cours 5, étape « Inclure ou exclure la limite » : tableau des opérateu
   assert.ok(html.includes('font-variant-ligatures:none'), 'opérateurs sans ligatures : on voit >= et non ≥');
   assert.ok(html.includes('.pr-scene.is-board .pr-lane.is-wrap .pr-c.pr-q:empty{min-width:52px}'), 'l’emplacement vide a la largeur de la pastille');
 });
+
+test('cours 5, Problème : « Suivi des stocks » en dashboard, stocks bas (60 et 45) en pastille ambrée, puis seuls les produits à recommander', () => {
+  const sc = env.scenes[5];
+  assert.equal(sc.board, true);
+  const lane = k => sc.lanes.find(l => l.k === k);
+  assert.equal(JSON.stringify(lane('H').c.map(c => c[1])), '["nom","stock"]');
+  assert.equal(JSON.stringify(sc.lanes.slice(1).map(l => l.c[1][1])), '["120","80","200","60","45","90"]', 'les produits 1, 2, 3, 5, 6, 7 dans l’ordre de la table');
+  const [, s1, s2] = sc.steps;
+  assert.equal(JSON.stringify(s1.mark), '{"d2":"is-low","e2":"is-low"}', 'la limite (60) est signalée comme un stock plus bas (45)');
+  assert.equal(JSON.stringify(s2.fold), '["R1","R2","R3","R6"]');
+  assert.equal(JSON.stringify(s2.on), '["R4","R5"]');
+  for (const c of sc.caps) assert.ok(!/WHERE|&lt;=|<=|opérateur|condition/.test(c), `légende générale, sans la solution : ${c}`);
+  assert.ok(html.includes('.pr-scene.is-board .pr-lane:not(.is-head):not(.is-ask) .pr-c.is-low:last-child:not(:first-child){'), 'pastille « stock bas »');
+});

@@ -967,6 +967,10 @@
   .pr-scene.is-board .pr-lane:not(.is-head):not(.is-ask) .pr-c.is-in:last-child{border:1.5px solid color-mix(in srgb,var(--success,#0F766E) 30%,transparent);background:var(--success-soft,#E6F4F1);color:var(--success,#0F766E)}
   /* Valeur en double (mark is-miss) dans une ligne : pastille rouge en pointillés autour du texte. */
   .pr-scene.is-board .pr-lane:not(.is-head):not(.is-ask) .pr-c.is-miss{justify-self:start;margin-left:-8px;padding:2px 8px;border:1.5px dashed var(--danger,#C2323A);border-radius:999px;background:var(--danger-soft,#FDEBEC);color:var(--danger,#C2323A)}
+  /* Stock bas (mark is-low) : le nombre dans une pastille ambrée, comme l’alerte d’un tableau de bord (l’ambre des lignes repérées
+     de la carte Mission accomplie). Le filet apparaît sans transition (sinon il partirait de la couleur du texte : un anneau
+     sombre fugace) ; seuls le fond et le texte se colorent. Le chiffre reste aligné sur les autres nombres de la colonne. */
+  .pr-scene.is-board .pr-lane:not(.is-head):not(.is-ask) .pr-c.is-low:last-child:not(:first-child){justify-self:end;align-self:center;min-height:22px;margin-right:-5px;padding:1px 6px;border:1.5px solid color-mix(in srgb,var(--warn,#B45309) 30%,transparent);border-radius:999px;background:var(--warn-soft,#FBF1E4);color:var(--warn,#B45309);transition:background-color .6s ease,color .6s ease,padding 1.1s ease,margin 1.1s ease;animation:prPill .55s cubic-bezier(.3,.9,.3,1.3)}
   .pr-scene.is-board .pr-lane.is-ask .pr-c{position:relative;justify-self:start;min-height:0;padding:3px 9px;border:1.5px solid color-mix(in srgb,var(--danger,#C2323A) 35%,transparent);border-radius:9px;background:#fff;font-size:11.5px;font-weight:800;color:var(--danger,#C2323A);transition:opacity .35s ease .15s,transform .45s cubic-bezier(.3,.9,.3,1.3) .15s}
   .pr-scene.is-board .pr-lane.is-ask .pr-c::before{content:"";position:absolute;top:-5px;left:14px;width:7px;height:7px;border-left:1.5px solid color-mix(in srgb,var(--danger,#C2323A) 35%,transparent);border-top:1.5px solid color-mix(in srgb,var(--danger,#C2323A) 35%,transparent);background:#fff;transform:rotate(45deg)}
   .pr-scene.is-board .pr-lane.is-ask .pr-c:last-child:not(:first-child)::before{left:auto;right:14px}
@@ -7133,14 +7137,18 @@ guide({ id:5, titre:"Comparer des valeurs", résumé:"Filtrer avec =, !=, >, <, 
     ],
     problem:{
       p:["Avec <code>WHERE</code>, SQL sait garder les lignes qui correspondent à <b>une valeur précise</b>, comme <code>ville = 'Paris'</code>.","Or, l’équipe ne connaît pas les stocks à l’avance : elle veut tous les produits <b>à 60 unités ou moins</b>, quel que soit leur stock exact."],
-      scene:{h:"📦 Produits à recommander",cols:"1.7fr 1fr",
-        lanes:[{c:[["h1","nom","t"],["h2","stock","t"]]},
+      scene:{h:"📦 Suivi des stocks",cols:"minmax(0,1fr) auto",board:true,
+        lanes:[{k:"H",cls:"is-head",c:[["h1","nom"],["h2","stock"]]},
           {k:"R1",c:[["a1","Fibre Prébiotique"],["a2","120"]]},
-          {k:"R2",c:[["b1","Tisane Détox"],["b2","60"]]},
+          {k:"R2",c:[["b1","Collagène Marin"],["b2","80"]]},
           {k:"R3",c:[["c1","Magnésium"],["c2","200"]]},
-          {k:"R4",c:[["d1","Protéine Végétale"],["d2","45"]]}],
-        caps:["<b>Notre liste</b> · Elle contient des produits de tous les stocks.","<b>Condition</b> · Un produit nous intéresse seulement si son stock est de <b>60 unités ou moins</b>.","<b>Résultat</b> · Seuls les produits qui respectent la condition doivent être conservés."],
-        steps:[{cap:0,on:["R1","R2","R3","R4"],d:1900},{cap:1,off:["R1","R3"],dim:["R1","R3"],d:2300},{cap:2,fold:["R1","R3"],d:2600}]},
+          {k:"R4",c:[["d1","Tisane Détox"],["d2","60"]]},
+          {k:"R5",c:[["e1","Protéine Végétale"],["e2","45"]]},
+          {k:"R6",c:[["f1","Oméga 3"],["f2","90"]]}],
+        caps:["<b>Notre liste</b> · Elle contient le stock de chaque produit.","<b>À recommander</b> · Ces produits n’ont pas le même stock, mais aucun ne dépasse 60 unités.","<b>Résultat</b> · Pour la commande de réassort, seuls les produits à recommander doivent rester."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5","R6"],d:1900},
+          {cap:1,off:["R1","R2","R3","R4","R5","R6"],dim:["R1","R2","R3","R6"],mark:{d2:"is-low",e2:"is-low"},d:2300},
+          {cap:2,fold:["R1","R2","R3","R6"],on:["R4","R5"],d:2600}]},
       then:["Il faut donc demander à SQL de <b>n’afficher que les produits qui répondent au critère recherché</b>.","Pour comparer des valeurs, SQL utilise des <b>opérateurs de comparaison</b> comme <code>=</code>, <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code> ou <code>&lt;=</code>."]
     },
     mission:"Aide l’équipe logistique à obtenir la liste des produits ayant <b>60 unités ou moins</b> en stock, afin de préparer la commande de réassort."
@@ -25385,7 +25393,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-08-ludique-v1690';
+  const SW_CACHE='requete-2026-10-08-ludique-v1691';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
