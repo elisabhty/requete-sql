@@ -1114,6 +1114,7 @@
   .db-tr.is-head .db-x{padding:3px 9px;border-radius:999px;background:#fff;border:1px solid color-mix(in srgb,var(--accent) 24%,transparent);font-size:12px;font-weight:800;color:var(--accent-ink);white-space:nowrap}
   /* Valeur absente (NULL), valeur de remplacement (mark), colonne mise en avant (hit). */
   .db-tr:not(.is-head) .db-x.is-nw{white-space:nowrap}
+  .db-tr:not(.is-head) .db-x.is-id{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
   .db-tr:not(.is-head) .db-x.is-null{font-family:var(--mono);font-size:12px;font-style:italic;font-weight:600;color:var(--ink-3)}
   .db-tr:not(.is-head) .db-x.is-mark{font-style:italic;color:#B45309}
   .db-tr:not(.is-head) .db-x.is-hit{color:var(--accent-ink)}
@@ -1137,7 +1138,38 @@
   .ij-sms.is-board:not(.is-play) .db-tr.is-hl{background:transparent;box-shadow:none}
   .ij-sms.is-board.is-play .db-tr.is-hl{animation:dbHl .5s ease both calc(var(--t) + .45s)}
   .ij-sms.is-board.is-play .db-chart i{animation:dbGrow .5s cubic-bezier(.3,.9,.3,1.15) both calc(var(--t0) + .95s + var(--i)*var(--sg,.26s))}
-  .ij-sms.is-board.is-play .ij-sms-done{animation:smsPop .45s cubic-bezier(.2,.8,.3,1.2) both calc(var(--t0) + .95s + var(--n,8)*var(--sg,.26s) + .45s)}
+  .ij-sms.is-board.is-play .ij-sms-done{animation:smsPop .45s cubic-bezier(.2,.8,.3,1.2) both calc(var(--t0) + .95s + var(--n,8)*var(--sg,.26s) + .45s + var(--extra,0s))}
+  /* Modifications de la base (guideBoard ops / gone / newCol) : jouées après le remplissage des lignes, à --to. */
+  .ij-sms.is-board{--to:calc(var(--t0,.15s) + .95s + var(--n,8)*var(--sg,.26s) + .35s)}
+  /* Fiche (fiche:true, un seul enregistrement) : le nom de chaque colonne à gauche, sa valeur à droite. */
+  .db-table.is-fiche .db-tr.is-head{display:none}
+  .db-table.is-fiche .db-x.is-key{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent-ink)}
+  .db-table.is-fiche .db-tr{padding-top:5px;padding-bottom:6px}
+  .db-table.is-fiche .db-x:not(.is-key){justify-self:start;margin-top:1px;font-size:14px}
+  .db-tr.is-lead{border-top:0}
+  .db-tr.is-lead .db-x{grid-column:1/-1;font-size:12px;font-style:italic;font-weight:600;color:var(--ink-3)}
+  .db-tr.is-lead + .db-tr{border-top-style:dashed}
+  .db-tr.is-add{background:#ECFDF3;box-shadow:inset 3px 0 0 #16A34A}
+  .ij-sms.is-board:not(.is-play) .db-tr.is-add{max-height:0;min-height:0;padding-top:0;padding-bottom:0;border-top-width:0;opacity:0;overflow:hidden}
+  .ij-sms.is-board.is-play .db-tr.is-add{overflow:hidden;animation:dbAdd .6s ease both var(--to)}
+  .ij-sms.is-board.is-play .db-tr.is-add .db-x{animation:dbTxt .45s ease both calc(var(--to) + .3s)}
+  .ij-sms.is-board.is-play .db-tr.is-add .db-x::after{animation:dbSk .35s ease both calc(var(--to) + .3s)}
+  .is-board .db-tr:not(.is-head) .db-x.is-upd,.is-board .db-tr:not(.is-head) .db-x.is-newcol{color:#15803D}
+  .is-board .db-x.is-upd::before{content:attr(data-from);position:absolute;top:0;right:0;opacity:0;color:var(--ink-3);white-space:nowrap;pointer-events:none}
+  .is-board .db-x.is-upd:not(.is-num)::before{right:auto;left:0}
+  .ij-sms.is-board.is-play .db-x.is-upd{animation:dbTxt .45s ease both var(--to)}
+  .ij-sms.is-board.is-play .db-x.is-upd::before{animation:dbOld .3s ease both var(--t),dbOldOut .4s ease forwards var(--to)}
+  .ij-sms.is-board.is-play .db-x.is-newcol{animation:dbTxt .45s ease both calc(var(--to) + var(--i,0)*.06s)}
+  .ij-sms.is-board.is-play .db-x.is-newcol::after{animation:dbSk .35s ease both calc(var(--to) + var(--i,0)*.06s),dbShim 1.3s linear infinite}
+  .db-tr.is-del{max-height:0;min-height:0;padding-top:0;padding-bottom:0;border-top-width:0;opacity:0;overflow:hidden}
+  .ij-sms.is-board:not(.is-play) .db-tr.is-del{max-height:none;min-height:29px;padding-top:3px;padding-bottom:3px;border-top-width:1px;opacity:1}
+  .ij-sms.is-board.is-play .db-tr.is-del{animation:dbDel 1.1s ease both var(--to)}
+  .ij-sms.is-board.is-play .db-tr.is-del .db-x{animation:dbTxt .45s ease both var(--t),dbStrike .01s linear forwards calc(var(--to) + .15s)}
+  @keyframes dbAdd{from{max-height:0;min-height:0;padding-top:0;padding-bottom:0;border-top-width:0;opacity:0;background:#fff}to{max-height:60px}}
+  @keyframes dbOld{from{opacity:0}to{opacity:1}}
+  @keyframes dbOldOut{from{opacity:1}to{opacity:0;transform:translateY(-6px)}}
+  @keyframes dbDel{0%{max-height:40px;min-height:29px;padding-top:3px;padding-bottom:3px;border-top-width:1px;opacity:1;background:transparent}20%,50%{max-height:40px;min-height:29px;padding-top:3px;padding-bottom:3px;border-top-width:1px;opacity:1;background:#FEF2F2}100%{max-height:0;min-height:0;padding-top:0;padding-bottom:0;border-top-width:0;opacity:0;background:#FEF2F2}}
+  @keyframes dbStrike{to{text-decoration:line-through;color:#B91C1C}}
   @keyframes dbShim{to{background-position:-150% 0}}
   @keyframes dbSk{from{opacity:1}to{opacity:0}}
   @keyframes dbTxt{from{color:transparent;transform:translateY(3px)}}
@@ -6412,14 +6444,32 @@ function guideBoard(m){
   const cols=m.cols||[],rows=(m.rows||[]).map(r=>r.map(val)),n=rows.length,nc=cols.length;
   const isNum=v=>v!==''&&v!=='NULL'&&!isNaN(+v),isNumLike=v=>isNum(v)||/^\d{4}-\d{2}-\d{2}/.test(v);
   /* Colonnes chiffrées (nombres, dates) : à droite, en police code, sans retour à la ligne. */
-  const num=new Set(m.num||cols.map((_,j)=>j).filter(j=>(j>0||nc>1)&&rows.some(r=>isNumLike(r[j]))&&rows.every(r=>isNumLike(r[j])||r[j]==='NULL')));
+  const num=new Set(m.num||cols.map((_,j)=>j).filter(j=>j>0&&rows.some(r=>isNumLike(r[j]))&&rows.every(r=>isNumLike(r[j])||r[j]==='NULL')));
+  /* 1re colonne d’identifiants (nombres) : à gauche, en police code, colonne ajustée. */
+  const idCol=nc>2&&rows.length>0&&rows.every(r=>isNum(r[0]));
   const show=m.show!=null?Math.min(m.show,n):n,tail=Math.min(m.tail||0,n-show),hidden=n-show-tail;
+  /* Modifications de la base, jouées après le remplissage (--to) : ops {i:{op:'add'}} ligne ajoutée (elle se déplie en vert),
+     {i:{op:'upd',from:{j:ancienne valeur}}} cellule mise à jour (l’ancienne valeur s’efface) ; gone:[{at,row}] ligne supprimée
+     (affichée avant la ligne at, puis barrée et repliée) ; newCol : colonne ajoutée ; lead : ligne de contexte au début ;
+     count:{t?,from,to} : le compteur passe de from à to. */
+  const ops=m.ops||{},gone=(m.gone||[]).map(g=>({at:g.at,row:g.row.map(val)})),hasOps=Object.keys(ops).length>0||gone.length>0||m.newCol!=null;
+  const ent=[];
+  if(!m.kpis){
+    if(m.lead)ent.push({t:'lead'});
+    const pushRow=ri=>{gone.filter(g=>g.at===ri).forEach(g=>ent.push({t:'gone',row:g.row}));ent.push({t:'row',ri});};
+    for(let ri=0;ri<show;ri++)pushRow(ri);
+    if(hidden>0)ent.push({t:'more'});
+    for(let ri=n-tail;ri<n;ri++)pushRow(ri);
+    gone.filter(g=>g.at>=n).forEach(g=>ent.push({t:'gone',row:g.row}));
+  }
   /* hl:{col,val} : lignes dont la colonne vaut val ; hl:{null:true} : lignes qui contiennent une valeur absente. */
   const hlRow=r=>!!m.hl&&(m.hl.null?r.includes('NULL'):r[m.hl.col]===val(m.hl.val)),nHl=rows.filter(hlRow).length;
-  const vis=m.kpis?m.kpis.length:show+tail+(hidden>0?1:0),sg=m.sg||(m.kpis?0.5:vis>8?0.2:0.26);
-  const total=m.count!=null?m.count:m.kpiHl?nHl:n,dur=(Math.max(vis,1)*sg).toFixed(2);
+  const vis=m.kpis?m.kpis.length:m.fiche?nc+(m.lead?1:0):ent.length,sg=m.sg||(m.kpis?0.5:vis>8?0.2:0.26);
+  const cnt=m.count&&typeof m.count==='object'?m.count:null,tOps=(0.15+0.95+vis*sg+0.35).toFixed(2);
+  const total=cnt?cnt.to:m.count!=null?m.count:m.kpiHl?nHl:n,dur=(Math.max(vis,1)*sg).toFixed(2);
   const esc=t=>guideFr(guideEsc(t));
-  const counter=(t,v,cls,tag)=>`<div class="db-tile${cls||''}"><small>${esc(t)}</small><b class="db-x" data-kpi="${tag}" data-count-to="${v}" data-ease="linear" data-delay="1.1" data-dur="${dur}">${v}</b></div>`;
+  const counter=(t,v,cls,tag)=>tag==='count'&&cnt?`<div class="db-tile${cls||''}"><small>${esc(t)}</small><b class="db-x" data-kpi="count" data-from="${cnt.from}" data-count-to="${v}" data-delay="${tOps}" data-dur=".6">${cnt.from}</b></div>`
+    :`<div class="db-tile${cls||''}"><small>${esc(t)}</small><b class="db-x" data-kpi="${tag}" data-count-to="${v}" data-ease="linear" data-delay="1.1" data-dur="${dur}">${v}</b></div>`;
   let tiles='';
   if(m.kpis){
     tiles=`<div class="db-tiles is-kpis" style="--k:${Math.min(m.kpis.length,3)}">${m.kpis.map((k,i)=>{const v=+m.rows[0][cols.indexOf(k.col)];return `<div class="db-tile" style="--t:calc(var(--t0,.15s) + ${(0.95+i*sg).toFixed(2)}s)"><small>${esc(k.t)}</small><b class="db-x" data-col="${guideEsc(k.col)}" data-count-to="${v}"${k.dec?` data-dec="${k.dec}"`:''}${k.suffix?` data-suffix="${k.suffix}"`:''} data-delay="${(1.1+i*sg).toFixed(2)}" data-dur="1.1">${v}</b>${k.sub?`<em>${esc(k.sub)}</em>`:''}</div>`;}).join('')}</div>`;
@@ -6432,19 +6482,24 @@ function guideBoard(m){
       const v=m.kpi2.v==='hl'?nHl:m.kpi2.v==='cols'?nc:m.kpi2.v;
       second=counter(m.kpi2.t,v,m.kpi2.v==='hl'?' is-warn':'',m.kpi2.v==='hl'?'hl':m.kpi2.v==='cols'?'cols':'value');
     }
-    tiles=`<div class="db-tiles${second?'':' is-one'}">${counter(m.kpi,total,'',m.count!=null?'count':m.kpiHl?'hl':'rows')}${second}</div>`;
+    tiles=`<div class="db-tiles${second?'':' is-one'}">${counter(cnt&&cnt.t||m.kpi,total,'',m.count!=null?'count':m.kpiHl?'hl':'rows')}${second}</div>`;
   }
   let table='';
   if(!m.kpis){
-    const gc=m.grid||(m.wide?`repeat(${nc},max-content)`:nc===2?'minmax(0,1fr) auto':cols.map((_,j)=>num.has(j)?'auto':j===0?'minmax(min-content,1.3fr)':'minmax(min-content,1fr)').join(' '));
-    const cell=(c,j,head)=>{const cl=['db-x'];if(num.has(j))cl.push('is-num');if(!head){if(c==='NULL')cl.push('is-null');else if(!/\s/.test(c))cl.push('is-nw');if(m.hit===j)cl.push('is-hit');if(m.mark&&c===m.mark)cl.push('is-mark');}return `<span class="${cl.join(' ')}" role="${head?'columnheader':'cell'}">${esc(c)}</span>`;};
-    const tr=(r,k)=>`<div class="db-tr${hlRow(r)?' is-hl':''}" role="row" style="--i:${k}">${r.map((c,j)=>cell(c,j,false)).join('')}</div>`;
-    const more=hidden>0?`<div class="db-tr is-more" role="row" style="--i:${show}"><span class="db-x" role="cell">${esc(m.moreT||`… et ${hidden} autre${hidden>1?'s':''}`)}</span></div>`:'';
-    const body=rows.slice(0,show).map((r,k)=>tr(r,k)).join('')+more+rows.slice(n-tail).map((r,k)=>tr(r,show+1+k)).join('');
-    table=`<div class="db-table${m.wide?' is-wide':''}${nc>2?' is-3up':''}" role="table" aria-label="${guideEsc(m.h).replace(/"/g,'&quot;')}" style="--gc:${gc}"><div class="db-rows"><div class="db-tr is-head" role="row">${cols.map((c,j)=>cell(c,j,true)).join('')}</div>${body}</div></div>`;
+    const gc=m.grid||(m.wide?`repeat(${nc},max-content)`:nc===2?'minmax(0,1fr) auto':cols.map((_,j)=>num.has(j)||(j===0&&idCol)?'auto':j===0?'minmax(min-content,1.3fr)':'minmax(min-content,1fr)').join(' '));
+    const cell=(c,j,head,ri)=>{const cl=['db-x'],o=ri!=null?ops[ri]:null,from=o&&o.op==='upd'&&o.from&&o.from[j]!==undefined?val(o.from[j]):null;if(num.has(j))cl.push('is-num');if(m.newCol===j)cl.push('is-newcol');if(from!=null)cl.push('is-upd');if(j===0&&idCol)cl.push('is-id');if(!head){if(c==='NULL')cl.push('is-null');else if(!/\s/.test(c)||/^[\d +().-]+$/.test(c))cl.push('is-nw');if(m.hit===j)cl.push('is-hit');if(m.mark&&c===m.mark)cl.push('is-mark');}return `<span class="${cl.join(' ')}" role="${head?'columnheader':'cell'}"${from!=null?` data-from="${guideEsc(from)}"`:''}>${esc(c)}</span>`;};
+    const body=ent.map((e,k)=>{
+      if(e.t==='lead')return `<div class="db-tr is-lead" role="row" style="--i:${k}"><span class="db-x" role="cell">${esc(m.lead)}</span></div>`;
+      if(e.t==='more')return `<div class="db-tr is-more" role="row" style="--i:${k}"><span class="db-x" role="cell">${esc(m.moreT||`… et ${hidden} autre${hidden>1?'s':''}`)}</span></div>`;
+      if(e.t==='gone')return `<div class="db-tr is-del" role="row" style="--i:${k}">${e.row.map((c,j)=>cell(c,j,false)).join('')}</div>`;
+      const r=rows[e.ri],o=ops[e.ri];
+      return `<div class="db-tr${hlRow(r)?' is-hl':''}${o&&o.op==='add'?' is-add':''}" role="row" style="--i:${k}">${r.map((c,j)=>cell(c,j,false,e.ri)).join('')}</div>`;
+    }).join('');
+    if(m.fiche)table=`<div class="db-table is-fiche" role="table" aria-label="${guideEsc(m.h).replace(/"/g,'&quot;')}" style="--gc:minmax(0,1fr)"><div class="db-rows">${ent.filter(e=>e.t==='lead').map((e,k)=>`<div class="db-tr is-lead" role="row" style="--i:0"><span class="db-x" role="cell">${esc(m.lead)}</span></div>`).join('')}${cols.map((c,j)=>`<div class="db-tr${hlRow(rows[0])?' is-hl':''}" role="row" style="--i:${j+(m.lead?1:0)}"><span class="db-x is-key" role="rowheader">${esc(c)}</span>${cell(rows[0][j],j,false,0).replace(' is-num','')}</div>`).join('')}</div></div>`;
+    else table=`<div class="db-table${m.wide?' is-wide':''}${nc>2?' is-3up':''}" role="table" aria-label="${guideEsc(m.h).replace(/"/g,'&quot;')}" style="--gc:${gc}"><div class="db-rows"><div class="db-tr is-head" role="row">${cols.map((c,j)=>cell(c,j,true)).join('')}</div>${body}</div></div>`;
   }
   const data=m.hl?(m.hl.null?' data-hl-col="-1" data-hl-val="NULL"':` data-hl-col="${m.hl.col}" data-hl-val="${guideEsc(val(m.hl.val))}"`):'';
-  return `<div class="ij-sms is-board${m.kpis?' is-kpis':''}" style="--n:${vis};--sg:${sg}s" data-total="${n}"${data} role="group" aria-label="${guideEsc(m.aria||m.h).replace(/"/g,'&quot;')}"><p class="ij-sms-h"><i aria-hidden="true">${m.ico||'📊'}</i>${guideFr(m.h)}</p>${tiles}${table}<p class="ij-sms-done">${guideFr(m.done)}</p></div>`;
+  return `<div class="ij-sms is-board${m.kpis?' is-kpis':''}" style="--n:${vis};--sg:${sg}s${hasOps?';--extra:1.3s':''}" data-total="${n}"${data} role="group" aria-label="${guideEsc(m.aria||m.h).replace(/"/g,'&quot;')}"><p class="ij-sms-h"><i aria-hidden="true">${m.ico||'📊'}</i>${guideFr(m.h)}</p>${tiles}${table}<p class="ij-sms-done">${guideFr(m.done)}</p></div>`;
 }
 function guideDoneCard(d){
   return `<div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div>${guideFunnel(d)}${d.sms?guideSms(d.sms):''}${d.board?guideBoard(d.board):''}</div>`;
@@ -8883,7 +8938,8 @@ guide({ id:34, titre:"Clé primaire", résumé:"Identifier une ligne sans ambigu
           {step:"WHERE id = 4",s:"ne garde que le client dont l’id vaut 4"},
           {n:1,t:"⭐ fiche à modifier",s:"Nathan Petit",dots:"0001000000",out:true}
         ],
-        sms:{ico:"✏️",h:"Mise à jour de la fiche",aria:"Le numéro de téléphone est modifié sur la fiche de Nathan Petit",msg:"<b>Fiche client</b><br>Le nouveau numéro est enregistré sur la bonne fiche.",people:[["N","Nathan Petit","06 39 98 40 15"]],st:["À modifier","Modification","✓ Modifiée"],plane:"doc",done:"✓ Fiche de Nathan Petit modifiée"},
+        board:{fiche:true,ico:"✏️",h:"Fiche du client n° 4",aria:"L’identifiant 4 désigne une seule fiche, celle de Nathan Petit : c’est elle que le service client modifie",kpi:"Fiches trouvées",lead:"🔑 WHERE id = 4",cols:["prenom", "nom", "telephone"],
+          rows:[["Nathan", "Petit", "06 39 98 40 15"]],done:"✓ Une seule fiche : celle de Nathan Petit"},
         fill:["clients","WHERE","id","4"],
         ui:{t:"La bonne fiche, sans ambiguïté",s:"L’id 4 désigne un seul client : le service client peut modifier le bon numéro de téléphone.",n:["SELECT","FROM","WHERE","PRIMARY KEY"]},
         rows:1
@@ -8994,7 +9050,8 @@ guide({ id:35, titre:"Clé étrangère", résumé:"Relier une ligne à la bonne 
           {step:"WHERE client_id = 4 AND statut = 'en_preparation'",s:"ne garde que les commandes de Nathan encore en préparation"},
           {n:1,t:"⭐ colis à préparer",s:"CMD-2026-1093528",dots:"0000000000010000",out:true}
         ],
-        sms:{ico:"🎁",h:"Cadeau dans le colis",aria:"Le cadeau est glissé dans le colis de la commande de Nathan",msg:"<b>Cadeau du jeu concours</b><br>À glisser dans le colis avant l’expédition.",people:[["C","CMD-2026-1093528","Collagène Marin"]],st:["À préparer","Emballage","✓ Glissé"],plane:"star",done:"✓ Cadeau glissé dans le colis"},
+        board:{fiche:true,ico:"🎁",h:"Colis de Nathan",aria:"La commande de Nathan encore en préparation est retrouvée : le cadeau peut y être glissé",kpi:"Colis retrouvés",cols:["numero_commande", "produit_id", "statut"],
+          rows:[["CMD-2026-1093528", 2, "en_preparation"]],done:"✓ Pas encore parti : le cadeau peut y être glissé"},
         fill:["WHERE","client_id","AND","statut"],
         ui:{t:"Le bon colis est retrouvé",s:"La commande est bien celle de Nathan, et elle n’est pas encore partie : le cadeau peut y être glissé.",n:["SELECT","FROM","WHERE","AND"]},
         rows:1
@@ -9645,7 +9702,8 @@ guide({ id:19, titre:"Jointure de 3 tables", résumé:"Relier toute l’histoire
           {step:"INNER JOIN produits",s:"ajoute le produit de chaque commande : aucune ne disparaît"},
           {n:15,t:"⭐ fiches SAV",s:"une par achat, avec le prénom, l’email, le produit et la date",dots:"111111111111111",out:true}
         ],
-        sms:{ico:"🗂️",h:"Fiches d’information SAV",aria:"Les quinze fiches d’information du SAV sont préparées",msg:"<b>Fiche d’achat</b><br>Client, email, produit et date de commande",people:[["S","Sophie","sophie@mail.fr"],["S","Sophie","sophie@mail.fr"],["L","Lucas","lucas@mail.fr"],["E","Emma","emma@mail.fr"],["N","Nathan","nathan@mail.fr"]],more:10,moreT:"… et 10 autres",moreS:"fiches d’achat",st:["À préparer","Préparation","✓ Prête"],plane:"doc",done:"✓ 15 fiches prêtes pour le SAV"},
+        board:{ico:"🗂️",h:"Fiches SAV",aria:"Les 15 fiches d’achat réunissent le prénom, l’email, le produit et la date de commande",kpi:"Fiches",wide:true,show:4,moreT:"… et 11 autres fiches",cols:["prenom", "email", "produit", "date_commande"],
+          rows:[["Sophie", "sophie@mail.fr", "Fibre Prébiotique", "2026-07-02"], ["Sophie", "sophie@mail.fr", "Magnésium", "2026-07-02"], ["Lucas", "lucas@mail.fr", "Protéine Végétale", "2026-07-05"], ["Emma", "emma@mail.fr", "Collagène Marin", "2026-07-08"], ["Nathan", "nathan@mail.fr", "Fibre Prébiotique", "2026-07-11"], ["Chloé", "chloe@mail.fr", "Vitamine D", "2026-07-12"], ["Hugo", null, "Oméga 3", "2026-07-15"], ["Léa", "lea@mail.fr", "Fibre Prébiotique", "2026-07-18"], ["Léa", "lea@mail.fr", "Tisane Détox", "2026-07-18"], ["Lucas", "lucas@mail.fr", "Magnésium", "2026-07-20"], ["Gabriel", "gabriel@mail.fr", "Protéine Végétale", "2026-07-22"], ["Nathan", "nathan@mail.fr", "Collagène Marin", "2026-07-25"], ["Sophie", "sophie@mail.fr", "Shaker Inox", "2026-07-28"], ["Emma", "emma@mail.fr", "Oméga 3", "2026-07-30"], ["Chloé", "chloe@mail.fr", "Fibre Prébiotique", "2026-08-01"]],done:"✓ 15 fiches prêtes pour le SAV"},
         fill:["commandes.client_id","clients.id","commandes.produit_id","produits.id"],
         ui:{t:"Les fiches SAV sont prêtes",s:"Le SAV peut contacter les clients concernés.",n:["INNER JOIN","ON","AS"]},
         rows:15
@@ -11670,7 +11728,8 @@ guide({ id:61, titre:"CREATE TABLE", résumé:"Créer la structure d’une table
           {step:"CREATE TABLE avis (…)",s:"construit une nouvelle table, colonne par colonne"},
           {n:5,t:"⭐ tables dans la base",s:"les 4 d’origine et <code>avis</code>, avec ses 4 colonnes",dots:"00001",out:true}
         ],
-        sms:{ico:"💬",h:"Table des avis",aria:"Les quatre colonnes de la table avis sont créées avec leurs règles",msg:"<b>Table avis</b><br>Prête à recevoir les avis clients",people:[["I","id","clé primaire"],["P","produit_id","obligatoire, relié à produits"],["N","note","entre 1 et 5"],["C","commentaire","texte libre"]],st:["À créer","Création","✓ Créée"],plane:"doc",done:"✓ Table avis créée : 4 colonnes"},
+        board:{ico:"🗄️",h:"Nouvelle table avis",aria:"La table avis est créée avec ses 4 colonnes : id, produit_id, note et commentaire",kpi:"Colonnes",cols:["name", "type"],
+          rows:[["id", "INTEGER"], ["produit_id", "INTEGER"], ["note", "INTEGER"], ["commentaire", "TEXT"]],done:"✓ Table avis prête pour les premiers avis"},
         fill:["CREATE TABLE","PRIMARY KEY","NOT NULL","CHECK"],
         ui:{t:"Une table prête pour les avis",s:"La table avis existe, avec ses règles : elle peut recevoir les premiers avis.",n:["CREATE TABLE","PRIMARY KEY","NOT NULL","CHECK"]},
         rows:4
@@ -11781,7 +11840,8 @@ guide({ id:65, titre:"ALTER TABLE", résumé:"Faire évoluer la structure d’un
           {step:"ALTER TABLE … ADD COLUMN pays",s:"ajoute une colonne, sans effacer aucun client"},
           {n:10,t:"⭐ colonnes dans la table",s:"les 9 d’origine et <code>pays</code>",dots:"0000000001",out:true}
         ],
-        sms:{ico:"🌍",h:"Fiches clients complétées",aria:"Le pays France est enregistré pour les dix clients",msg:"<b>Nouvelle colonne</b> · pays<br>Valeur de départ : France",people:[["S","Sophie Martin","France"],["L","Lucas Bernard","France"],["E","Emma Dubois","France"],["N","Nathan Petit","France"],["C","Chloé Moreau","France"]],more:5,moreT:"… et 5 autres",moreS:"clients de la table",st:["Sans pays","Mise à jour","✓ France"],plane:"pin",done:"✓ 10 clients avec un pays"},
+        board:{ico:"🌍",h:"Table clients",aria:"La colonne pays s’ajoute à la table clients, avec France pour chacun des 10 clients",kpi:"Clients conservés",newCol:3,show:5,moreT:"… et 5 autres clients",cols:["id", "prenom", "ville", "pays"],
+          rows:[[1, "Sophie", "Paris", "France"], [2, "Lucas", "Lyon", "France"], [3, "Emma", "Marseille", "France"], [4, "Nathan", "Paris", "France"], [5, "Chloé", "Bordeaux", "France"], [6, "Hugo", "Lyon", "France"], [7, "Léa", "Paris", "France"], [8, "Gabriel", "Toulouse", "France"], [9, "Inès", "Nantes", "France"], [10, "Nathan", "Paris", "France"]],done:"✓ Colonne pays ajoutée, aucun client perdu"},
         fill:["ALTER TABLE","ADD COLUMN","TEXT","'France'"],
         ui:{t:"10 colonnes, 10 clients conservés",s:"La colonne pays est ajoutée, et aucun client n’a été perdu.",n:["ALTER TABLE","ADD COLUMN","DEFAULT"]},
         rows:10
@@ -11885,7 +11945,8 @@ guide({ id:66, titre:"DROP", résumé:"Supprimer une structure de la base",
           {step:"DROP TABLE fidelite",s:"supprime la table, avec ses lignes et ses colonnes"},
           {n:3,t:"⭐ tables dans la base",s:"<code>clients</code>, <code>produits</code> et <code>commandes</code>",dots:"111",out:true}
         ],
-        sms:{ico:"🧹",h:"Nettoyage de la base",aria:"La table fidelite est retirée de la base de données",msg:"<b>Ménage dans la base</b><br>Programme de fidélité arrêté",people:[["F","fidelite","4 lignes · 3 colonnes"]],st:["Inutile","Suppression","✓ Supprimée"],plane:"doc",done:"✓ Table fidelite supprimée"},
+        board:{ico:"🧹",h:"Tables de la base",aria:"La table fidelite disparaît de la base : il reste clients, commandes et produits",kpi:"Tables",count:{"t": "Tables", "from": 4, "to": 3},gone:[{"at": 2, "row": ["fidelite"]}],cols:["name"],
+          rows:[["clients"], ["commandes"], ["produits"]],done:"✓ Table fidelite supprimée"},
         fill:["DROP TABLE","fidelite","FROM","sqlite_master"],
         ui:{t:"3 tables dans la base",s:"La table fidelite a disparu avec ses lignes.",n:["DROP TABLE","SELECT","WHERE"]},
         rows:3
@@ -11996,7 +12057,8 @@ guide({ id:26, titre:"INSERT", résumé:"Ajouter une ligne",
           {step:"INSERT INTO produits … VALUES …",s:"ajoute une ligne, sans toucher aux autres"},
           {n:9,t:"⭐ produits dans le catalogue",s:"les 8 d’origine et le Zinc",dots:"000000001",out:true}
         ],
-        sms:{ico:"🛒",h:"Mise en ligne du produit",aria:"La fiche du Zinc est publiée dans le catalogue de la boutique",msg:"<b>Nouveau produit</b><br>Zinc · Bien-être · 17,90 €",people:[["Z","Zinc","Bien-être · 17,90 €"]],st:["Brouillon","Publication","✓ En ligne"],done:"✓ Le Zinc est en ligne"},
+        board:{wide:true,ico:"🛒",h:"Catalogue de la boutique",aria:"Le Zinc s’ajoute à la table produits : le catalogue passe de 8 à 9 produits, les autres n’ont pas changé",kpi:"Produits",count:{"t": "Produits", "from": 8, "to": 9},ops:{"8": {"op": "add"}},show:3,tail:1,moreT:"… et 5 autres produits",cols:["id", "nom", "categorie", "prix", "stock"],
+          rows:[[1, "Fibre Prébiotique", "Bien-être", 29.9, 120], [2, "Collagène Marin", "Beauté", 39.9, 80], [3, "Magnésium", "Bien-être", 19.9, 200], [4, "Vitamine D", "Nutrition", 14.9, 150], [5, "Tisane Détox", "Boisson", 12.5, 60], [6, "Protéine Végétale", "Nutrition", 34.9, 45], [7, "Oméga 3", "Bien-être", 24.9, 90], [8, "Shaker Inox", "Accessoire", 15, 30], [9, "Zinc", "Bien-être", 17.9, 70]],done:"✓ Le Zinc rejoint le catalogue"},
         fill:["INSERT INTO","nom","VALUES","'Zinc'"],
         ui:{t:"9 produits dans le catalogue",s:"Le Zinc rejoint le catalogue : les 8 autres produits n’ont pas changé.",n:["INSERT INTO","VALUES"]},
         rows:9
@@ -12126,7 +12188,8 @@ guide({ id:27, titre:"UPDATE", résumé:"Modifier des lignes",
           {step:"UPDATE … WHERE categorie = 'Bien-être'",s:"recalcule le prix des produits Bien-être, sans toucher aux autres"},
           {n:8,t:"⭐ produits dans le catalogue",s:"dont 3 avec un prix à jour",dots:"10100010",out:true}
         ],
-        sms:{ico:"🏷️",h:"Mise à jour des étiquettes",aria:"Les trois nouveaux prix s’affichent en boutique",msg:"<b>Nouveaux prix</b><br>Gamme Bien-être : + 10 %",people:[["F","Fibre Prébiotique","29.9 → 32.89"],["M","Magnésium","19.9 → 21.89"],["O","Oméga 3","24.9 → 27.39"]],st:["Ancien prix","Mise à jour","✓ Prix à jour"],plane:"doc",done:"✓ 3 prix mis à jour"},
+        board:{ico:"🏷️",h:"Prix du catalogue",aria:"Les trois produits Bien-être coûtent 10 % de plus ; les cinq autres prix ne changent pas",kpi:"Prix à jour",count:{"t": "Prix à jour", "from": 0, "to": 3},ops:{"0": {"op": "upd", "from": {"3": 29.9}}, "2": {"op": "upd", "from": {"3": 19.9}}, "6": {"op": "upd", "from": {"3": 24.9}}},cols:["id", "nom", "categorie", "prix"],
+          rows:[[1, "Fibre Prébiotique", "Bien-être", 32.89], [2, "Collagène Marin", "Beauté", 39.9], [3, "Magnésium", "Bien-être", 21.89], [4, "Vitamine D", "Nutrition", 14.9], [5, "Tisane Détox", "Boisson", 12.5], [6, "Protéine Végétale", "Nutrition", 34.9], [7, "Oméga 3", "Bien-être", 27.39], [8, "Shaker Inox", "Accessoire", 15]],done:"✓ Catalogue à jour : 3 prix augmentés de 10 %"},
         fill:["SET","prix * 1.1","WHERE","'Bien-être'"],
         ui:{t:"3 prix à jour",s:"Les produits Bien-être coûtent 10 % de plus ; les cinq autres n’ont pas bougé.",n:["UPDATE","SET","WHERE"]},
         rows:8
@@ -12233,7 +12296,8 @@ guide({ id:28, titre:"DELETE", résumé:"Supprimer des lignes",
           {step:"DELETE FROM clients WHERE id = 10",s:"retire la seule ligne qui respecte la condition"},
           {n:9,t:"⭐ clients restants",s:"Nathan Dupont n’est plus dans la table",dots:"111111111",out:true}
         ],
-        sms:{ico:"🗑️",h:"Suppression du compte",aria:"Le compte de Nathan Dupont est supprimé à sa demande",msg:"<b>Demande reçue</b><br>Suppression du compte de Nathan Dupont",people:[["N","Nathan Dupont","nathan.dupont@mail.fr"]],st:["Demande reçue","Suppression","✓ Supprimé"],plane:"doc",done:"✓ Compte supprimé"},
+        board:{ico:"🗑️",h:"Table clients",aria:"La ligne de Nathan Dupont (id 10) est supprimée ; les neuf autres clients, dont Nathan Petit, restent",kpi:"Clients",count:{"t": "Clients", "from": 10, "to": 9},gone:[{"at": 9, "row": [10, "Nathan", "Dupont"]}],show:4,moreT:"… et 5 autres clients",cols:["id", "prenom", "nom"],
+          rows:[[1, "Sophie", "Martin"], [2, "Lucas", "Bernard"], [3, "Emma", "Dubois"], [4, "Nathan", "Petit"], [5, "Chloé", "Moreau"], [6, "Hugo", "Laurent"], [7, "Léa", "Simon"], [8, "Gabriel", "Michel"], [9, "Inès", "Lefebvre"]],done:"✓ Seule la ligne de Nathan Dupont a disparu"},
         fill:["DELETE FROM","clients","WHERE","id"],
         ui:{t:"9 clients restants",s:"La ligne demandée a disparu ; les autres clients n’ont pas changé.",n:["DELETE FROM","WHERE"]},
         rows:9
@@ -12349,7 +12413,8 @@ guide({ id:69, titre:"INSERT multiple et gestion de conflit", résumé:"Insérer
           {step:"INSERT … ON CONFLICT(id) DO UPDATE",s:"ajoute les lignes nouvelles et met à jour les lignes existantes"},
           {n:9,t:"⭐ produits dans le catalogue",s:"le Fer est ajouté, le prix de la Tisane Détox est corrigé",dots:"000010001",out:true}
         ],
-        sms:{ico:"📥",h:"Import du fichier fournisseur",aria:"Les deux lignes du fichier sont traitées : une est ajoutée, une est mise à jour",msg:"<b>Fichier fournisseur</b><br>2 lignes à traiter",people:[["F","Fer","Nouveau produit"],["T","Tisane Détox","12.5 → 13.5"]],st:["En attente","Import","✓ Traitée"],done:"✓ 2 lignes importées"},
+        board:{ico:"📥",h:"Catalogue après l’import",aria:"L’import ajoute le Fer et corrige le prix de la Tisane Détox, sans créer de doublon",kpi:"Produits",count:{"t": "Produits", "from": 8, "to": 9},ops:{"4": {"op": "upd", "from": {"2": 12.5}}, "8": {"op": "add"}},cols:["id", "nom", "prix"],
+          rows:[[1, "Fibre Prébiotique", 29.9], [2, "Collagène Marin", 39.9], [3, "Magnésium", 19.9], [4, "Vitamine D", 14.9], [5, "Tisane Détox", 13.5], [6, "Protéine Végétale", 34.9], [7, "Oméga 3", 24.9], [8, "Shaker Inox", 15], [9, "Fer", 19.9]],done:"✓ Fichier importé, sans doublon"},
         fill:["VALUES","ON CONFLICT","DO UPDATE","excluded.prix"],
         ui:{t:"9 produits, fichier importé",s:"Le catalogue est à jour : l’import peut être rejoué sans erreur.",n:["INSERT INTO","VALUES","ON CONFLICT","DO UPDATE"]},
         rows:9
@@ -12471,7 +12536,8 @@ guide({ id:67, titre:"Les contraintes en action", résumé:"NOT NULL, UNIQUE, CH
           {step:"INSERT INTO clients",s:"contrôle chaque règle, puis écrit la fiche"},
           {n:11,t:"⭐ clients après l’inscription",s:"Zoé est la nouvelle cliente, avec l’identifiant 11",dots:"00000000001",out:true}
         ],
-        sms:{ico:"🛡️",h:"Contrôle des règles",aria:"La base vérifie chaque règle avant d’écrire la fiche de Zoé",msg:"Fiche de <b>Zoé</b> : la base vérifie chaque règle de la table avant d’écrire la ligne.",people:[["P","Prénom","NOT NULL"],["A","Âge","CHECK"],["E","Email","UNIQUE"],["I","Identifiant","PRIMARY KEY"]],st:["À contrôler","Contrôle","✓ Respectée"],plane:"doc",done:"✓ Fiche enregistrée"},
+        board:{ico:"📝",h:"Table clients",aria:"La fiche de Zoé respecte toutes les règles : elle entre dans la table clients avec l’identifiant 11",kpi:"Clients",count:{"t": "Clients", "from": 10, "to": 11},lead:"… 10 clients déjà inscrits",ops:{"0": {"op": "add"}},cols:["id", "prenom", "age", "email"],
+          rows:[[11, "Zoé", 27, "zoe@mail.fr"]],done:"✓ Fiche acceptée : Zoé est enregistrée"},
         fill:["INSERT INTO","clients","VALUES","27"],
         ui:{t:"Une fiche conforme, une ligne de plus",s:"Toutes les règles sont respectées : la base a écrit la fiche.",n:["INSERT INTO","VALUES","NOT NULL","CHECK","UNIQUE"]},
         rows:11
@@ -12582,7 +12648,8 @@ guide({ id:68, titre:"ON DELETE", résumé:"Décider du sort des lignes liées",
           {step:"DELETE FROM clients WHERE id = 9",s:"supprime Inès, et la règle détache ses notes"},
           {n:3,t:"⭐ notes conservées",s:"les deux notes d’Inès n’ont plus de client",dots:"111",out:true}
         ],
-        sms:{ico:"🗑️",h:"Compte supprimé",aria:"Le compte d’Inès est supprimé, ses notes restent sans client",msg:"Le compte d’<b>Inès</b> est supprimé : ses notes restent dans la table, <b>sans client</b>.",people:[["1","Première note","5 sur 5"],["2","Seconde note","4 sur 5"]],st:["Rattachée","Détachement","✓ Détachée"],plane:"doc",done:"✓ 2 notes détachées"},
+        board:{ico:"⭐",h:"Table satisfaction",aria:"Inès supprime son compte : ses deux notes restent dans la table, détachées d’elle, et la satisfaction moyenne ne change pas",kpi:"Notes conservées",lead:"🗑️ Inès (client 9) supprime son compte",ops:{"0": {"op": "upd", "from": {"1": 9}}, "1": {"op": "upd", "from": {"1": 9}}},cols:["id", "client_id", "note"],
+          rows:[[1, null, 5], [2, null, 4], [3, 4, 5]],done:"✓ Ses 2 notes restent, détachées d’elle"},
         fill:["REFERENCES","clients","ON DELETE","SET NULL"],
         ui:{t:"Les notes sont conservées",s:"La satisfaction moyenne reste intacte.",n:["CREATE TABLE","REFERENCES","ON DELETE","SET NULL"]},
         rows:3
@@ -12682,7 +12749,8 @@ guide({ id:62, titre:"Transactions", résumé:"Tout valider ou tout annuler",
           {step:"BEGIN … COMMIT",s:"regroupe les deux opérations et les valide ensemble"},
           {n:2,t:"⭐ opérations validées ensemble",s:"Sophie passe à 70 points et Lucas à 130 : il y en a toujours 200 en tout",dots:"11",out:true}
         ],
-        sms:{ico:"🎁",h:"Transfert de points",aria:"Les 50 points passent du compte de Sophie à celui de Lucas",msg:"Sophie offre <b>50 points</b> à Lucas : les deux comptes sont mis à jour <b>ensemble</b>.",people:[["S","Sophie","− 50 points"],["L","Lucas","+ 50 points"]],st:["En cours","Transfert","✓ Validé"],plane:"star",done:"✓ Transfert validé"},
+        board:{ico:"🎁",h:"Table fidelite",aria:"Sophie passe de 120 à 70 points et Lucas de 80 à 130 : les deux changements sont validés ensemble, le total ne bouge pas",kpi:"Points au total",count:{"t": "Points au total", "from": 610, "to": 610},ops:{"0": {"op": "upd", "from": {"1": 120}}, "1": {"op": "upd", "from": {"1": 80}}},cols:["client_id", "points"],
+          rows:[[1, 70], [2, 130], [4, 250], [7, 160]],done:"✓ Transfert validé : aucun point n’a disparu"},
         fill:["BEGIN","points - 50","points + 50","COMMIT"],
         ui:{t:"Un transfert, une seule transaction",s:"Aucun point n’a disparu.",n:["BEGIN","UPDATE","COMMIT"]},
         rows:2
@@ -19477,16 +19545,16 @@ function motionOff(){
 function actCountUp(root,instant){
   const reduce=instant||motionOff();
   root.querySelectorAll('[data-count-to]').forEach(b=>{
-    const to=+b.dataset.countTo,dec=+(b.dataset.dec||0),suf=b.dataset.suffix||'';
+    const to=+b.dataset.countTo,from=+(b.dataset.from||0),dec=+(b.dataset.dec||0),suf=b.dataset.suffix||'';
     const fmt=v=>v.toFixed(dec).replace('.',',')+suf;
     clearTimeout(b._cu);
     if(reduce){b.textContent=fmt(to);return;}
-    b.textContent=fmt(0);
+    b.textContent=fmt(from);
     const n=root.querySelectorAll('.act-chip').length;
     const delay=(b.dataset.delay!=null?+b.dataset.delay:(0.15+0.85+n*0.06))*1000,dur=b.dataset.dur?+b.dataset.dur*1000:1100;
     /* data-ease="linear" : le chiffre suit un rythme régulier (ex. une ligne du dashboard après l’autre). */
     const lin=b.dataset.ease==='linear';
-    b._cu=setTimeout(()=>{const t0=performance.now();const tick=t=>{const p=Math.min(1,(t-t0)/dur),e=lin?p:1-Math.pow(1-p,3);b.textContent=fmt(to*e);if(p<1)requestAnimationFrame(tick);};requestAnimationFrame(tick);},delay);
+    b._cu=setTimeout(()=>{const t0=performance.now();const tick=t=>{const p=Math.min(1,(t-t0)/dur),e=lin?p:1-Math.pow(1-p,3);b.textContent=fmt(from+(to-from)*e);if(p<1)requestAnimationFrame(tick);};requestAnimationFrame(tick);},delay);
   });
 }
 /* Garde le bloc à sa hauteur d’avant pendant que le résultat se construit,
@@ -25219,7 +25287,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-07-ludique-v1677';
+  const SW_CACHE='requete-2026-10-07-ludique-v1678';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
