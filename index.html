@@ -18374,6 +18374,53 @@ function prStage(sc){
   /* cols sur une ligne : sa propre grille de colonnes (ex. une liste de valeurs au-dessus d’un tableau). */
   return sc.lanes.map(L=>`<div class="pr-lane${L.cls?' '+L.cls:''}${L.fold?' is-fold':''}"${L.k?` data-k="${L.k}"`:''}${L.cols?` style="--cols:${L.cols}"`:''}>${L.l?`<span class="pr-ll">${L.l}</span>`:''}<div class="pr-cells">${L.c.map(prCell).join('')}</div></div>`).join('');
 }
+/* ---------- Démarrage des animations ----------
+   Une animation (scène du Problème ou du cours, carte d’envoi) ne se lance que lorsqu’elle est entièrement visible, hors
+   en-tête et barre du bas, et que l’écran ne bouge plus depuis un court instant : on voit toujours son début, même en
+   faisant défiler vite. Tant qu’elle attend, on vérifie à intervalle régulier : la mise en page peut changer sans défilement. */
+const PLAY_WAIT=new Map(),PLAY_STILL_MS=550,PLAY_POLL_MS=300;
+let playLast=0,playPoll=0,playBound=false;
+function playVisible(el){
+  if(!el.isConnected)return false;
+  const r=el.getBoundingClientRect();
+  if(!r.width||!r.height)return false;
+  let top=0,bottom=window.innerHeight;
+  const scr=el.closest('.screen');
+  if(scr){const q=scr.getBoundingClientRect();top=Math.max(top,q.top);bottom=Math.min(bottom,q.bottom);}
+  /* L’en-tête collant et la barre du bas recouvrent une partie de l’écran. */
+  const nb=document.querySelector('#scr-lesson .navbar'),nav=document.querySelector('#scr-lesson .ls-nav');
+  const hb=nb&&nb.getBoundingClientRect(),fb=nav&&nav.getBoundingClientRect();
+  if(hb&&hb.height&&hb.bottom>top&&hb.top<bottom)top=Math.max(top,hb.bottom);
+  if(fb&&fb.height&&fb.top>top&&fb.top<bottom)bottom=fb.top;
+  const seen=Math.min(r.bottom,bottom)-Math.max(r.top,top);
+  /* Une animation plus haute que la zone visible doit au moins la remplir presque entièrement. */
+  return seen>=Math.min(r.height*.98,(bottom-top)*.9);
+}
+const playNote=()=>{playLast=performance.now();};
+function playUnbind(){
+  clearTimeout(playPoll);playPoll=0;
+  if(!playBound)return;
+  playBound=false;
+  document.removeEventListener('scroll',playNote,true);
+  window.removeEventListener('resize',playNote);
+}
+function playCheck(){
+  playPoll=0;
+  PLAY_WAIT.forEach((start,el)=>{if(!el.isConnected)PLAY_WAIT.delete(el);});
+  if(performance.now()-playLast>=PLAY_STILL_MS){
+    PLAY_WAIT.forEach((start,el)=>{if(playVisible(el)){PLAY_WAIT.delete(el);start();}});
+  }
+  if(PLAY_WAIT.size)playPoll=setTimeout(playCheck,PLAY_POLL_MS);
+  else playUnbind();
+}
+/* Met `start` en attente ; renvoie une fonction qui annule l’attente. */
+function playWhenSettled(el,start){
+  PLAY_WAIT.set(el,start);
+  playNote();
+  if(!playBound){playBound=true;document.addEventListener('scroll',playNote,{capture:true,passive:true});window.addEventListener('resize',playNote);}
+  if(!playPoll)playPoll=setTimeout(playCheck,PLAY_POLL_MS);
+  return ()=>{PLAY_WAIT.delete(el);};
+}
 function initProbScenes(){
   if(!current)return;
   const cfg=PROB_SCENES[current.id]||GUIDE_SCENES[current.id];
@@ -18494,9 +18541,7 @@ function mountProbScene(cfg,slot,memo){
   root._pr={reset,apply,finish,cfg};
   reset();
   root.querySelector('.pr-replay').addEventListener('click',play);
-  if(!('IntersectionObserver' in window)){play();return;}
-  const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){play();io.disconnect();}},{rootMargin:'0px 0px -30% 0px',threshold:0});
-  io.observe(root);
+  playWhenSettled(root,play);
 }
 /* Emplacements de requête exécutable dans le texte d’un cours. */
 function initRunSqlSlots(){
@@ -19201,16 +19246,14 @@ function initQueryFill(){
     }
     const play=()=>{el.classList.remove('is-done','is-static');el.classList.remove('is-play');void el.offsetWidth;el.classList.add('is-play');actCountUp(el);if(rm)finish();};
     const rb=el.querySelector('.act-replay');if(rb)rb.addEventListener('click',play);
-    /* L’animation démarre quand on arrive dessus : dès que le haut du bloc
-       atteint le tiers inférieur de l’écran (aussi au retour sur une leçon réussie).
+    /* L’animation démarre quand le bloc est entièrement visible et que l’écran s’est arrêté un court instant
+       (aussi au retour sur une leçon réussie), voir playWhenSettled.
        La carte « Mission accomplie » est encore masquée à ce moment-là :
-       on réarme l’observation quand elle s’ouvre, sinon l’animation ne part jamais. */
-    let io=null;
+       on réarme l’attente quand elle s’ouvre, sinon l’animation ne part jamais. */
+    let cancel=null;
     const arm=()=>{
-      if(io){io.disconnect();io=null;}
-      if(!('IntersectionObserver' in window)){play();return;}
-      io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();io=null;play();}},{rootMargin:'0px 0px -30% 0px',threshold:0});
-      io.observe(el);
+      if(cancel){cancel();cancel=null;}
+      cancel=playWhenSettled(el,()=>{cancel=null;play();});
     };
     el._actRearm=()=>{if(!el.classList.contains('is-play')&&!el.classList.contains('is-done'))arm();};
     arm();
@@ -24828,7 +24871,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-07-ludique-v1653';
+  const SW_CACHE='requete-2026-10-07-ludique-v1654';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
