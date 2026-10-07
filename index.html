@@ -633,6 +633,8 @@
   /* Encadré parmi les étapes (« Bon à savoir ») : une question à côté de la mission, pas une étape de la requête. Non numéroté. */
   .fn-use.is-aside{counter-increment:none}
   .jn-course .fn-use.is-aside > .pt-syntax-h::before{content:attr(data-tag)!important;border-color:transparent!important;background:var(--accent-soft)!important;color:var(--accent-ink)!important}
+  /* « Bon à savoir » : toujours précédé des yeux 👀 (qui regardent vers la gauche, vers le titre). */
+  .jn-course .fn-use.is-aside > .pt-syntax-h[data-tag="Bon à savoir"]::before{content:"👀\00a0" attr(data-tag)!important}
   .jn-course .fn-use > .pt-syntax-h::before{content:"Étape " counter(fnuse);min-width:0;height:22px;margin-top:1px;padding:0 9px;border-radius:999px;font-family:var(--ui);font-size:11px;letter-spacing:.3px;text-transform:uppercase;white-space:nowrap}
   @media (max-width:480px){
     .jn-course.fn-uses{gap:0}
@@ -6294,7 +6296,7 @@ function guideBlock(b){
   if(b.need)return `<div class="ij-need" role="list"${lab(b.label)}>${b.need.map(([i,t,w,c])=>`<div role="listitem"><b>${i?i+' ':''}${guideFr(t)}</b><span${c?` class="is-${c}"`:''}>${guideFr(w)}</span></div>`).join('')}</div>`;
   if(b.warn||b.tip){
     const m=b.warn||b.tip,warn=!!b.warn;
-    return `<div class="sit-memo${warn?' is-warn':''}"><p class="sit-memo-lab"><i aria-hidden="true">${warn?'⚠️':'💡'}</i>${guideFr(m.t||(warn?'Attention':'Bon à savoir'))}</p>${(m.p||[]).map(x=>`<p>${guideFr(x)}</p>`).join('')}${guideMergeRuns(m.blocks).map(x=>guideBlock(x&&x.run?Object.assign({},x,{warn}):x)).join('')}${m.run?guideBlock({run:m.run,say:m.say,warn}):''}</div>`;
+    return `<div class="sit-memo${warn?' is-warn':''}"><p class="sit-memo-lab"><i aria-hidden="true">${warn?'⚠️':m.t?'💡':'👀'}</i>${guideFr(m.t||(warn?'Attention':'Bon à savoir'))}</p>${(m.p||[]).map(x=>`<p>${guideFr(x)}</p>`).join('')}${guideMergeRuns(m.blocks).map(x=>guideBlock(x&&x.run?Object.assign({},x,{warn}):x)).join('')}${m.run?guideBlock({run:m.run,say:m.say,warn}):''}</div>`;
   }
   if(b.done)return guideDoneCard(b.done);
   if(b.table){
@@ -6746,9 +6748,10 @@ guide({ id:13, titre:"DISTINCT", résumé:"Valeurs uniques",
       {arrow:"Le résultat ne contient plus que 5 lignes : une par catégorie."}
     ]},
     {h:"Et avec plusieurs colonnes ?",aside:"Bon à savoir",blocks:[
-      "<code>DISTINCT</code> compare alors la <b>combinaison</b> des valeurs : une ligne n’est retirée que si elle est identique à une autre sur <b>toutes</b> les colonnes affichées.",
-      {say:"👇 Exécute cette requête pour voir chaque combinaison ville + prénom :",run:"SELECT DISTINCT ville, prenom\nFROM clients;"},
-      {arrow:"Le résultat contient 9 lignes : les deux Nathan de Paris ont la même ville et le même prénom, ils ne forment plus qu’une seule ligne."}
+      "Avec plusieurs colonnes, <code>DISTINCT</code> regarde l’ensemble des valeurs de chaque ligne.",
+      {arrow:"Une ligne est retirée uniquement si <b>toutes</b> les valeurs affichées sont identiques à celles d’une autre ligne."},
+      {say:"👇 Exécute cette requête pour afficher chaque combinaison ville + prénom une seule fois :",run:"SELECT DISTINCT ville, prenom\nFROM clients;"},
+      {table:{label:"clients (extrait)",cols:"minmax(0,.9fr) minmax(0,1fr) minmax(0,1.6fr)",head:["ville","prenom","Résultat"],rows:[["Paris","Sophie","✅ gardée"],["Paris","Nathan","✅ gardée"],["Paris","Nathan","❌ doublon, retirée"]],hit:[[0,2],[1,2]]}}
     ]},
     {h:"La requête complète",blocks:[
       "Il ne reste plus qu’à demander les villes des clients, en retirant les doublons.",
@@ -25082,7 +25085,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-07-ludique-v1672';
+  const SW_CACHE='requete-2026-10-07-ludique-v1673';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
