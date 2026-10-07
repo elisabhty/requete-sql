@@ -66,3 +66,22 @@ test('cours DISTINCT, Problème : une ville par client (vrais clients 1 à 6), d
   assert.equal(JSON.stringify(s2.fold), '["R4","R6"]', 'les lignes en double se replient');
   assert.ok(s2.gone.includes('h2') && ['p1', 'p2', 'p3', 'p5'].every(k => s2.gone.includes(k)), 'la colonne client disparaît : il ne reste que les villes');
 });
+
+test('cours 5, étape « Inclure ou exclure la limite » : tableau des opérateurs animé (limite exclue puis incluse)', async () => {
+  const vm = await import('node:vm');
+  const sc = vm.runInContext('GUIDE_XSCENES[5]', env.ctx).find(s => /opérateurs/.test(s.h));
+  assert.ok(sc && sc.board, 'scène dashboard');
+  const lane = k => sc.lanes.find(l => l.k === k);
+  assert.equal(JSON.stringify(lane('H').c.map(c => c[1])), '["opérateur","limite"]');
+  for (const [k, op] of [['EQ', '='], ['NE', '!='], ['GT', '&gt;'], ['LT', '&lt;'], ['GE', '&gt;='], ['LE', '&lt;=']]) assert.ok(lane(k).c[0][1].startsWith(`<b class="pr-op">${op}</b>`), `opérateur ${op} en tête de ligne`);
+  const [s0, s1, s2] = sc.steps;
+  assert.ok(!s0.on, 'au départ, aucune ligne mise en avant');
+  assert.equal(JSON.stringify(s1.on), '["GT","LT"]');
+  assert.equal(JSON.stringify(s1.text), '{"l3":"exclue","l4":"exclue"}');
+  assert.equal(JSON.stringify(s1.mark), '{"l3":"is-out","l4":"is-out"}');
+  assert.equal(JSON.stringify(s2.on), '["GE","LE"]');
+  assert.equal(JSON.stringify(s2.text), '{"l5":"incluse","l6":"incluse"}');
+  assert.equal(JSON.stringify(s2.mark), '{"l5":"is-in","l6":"is-in"}');
+  assert.ok(html.includes('font-variant-ligatures:none'), 'opérateurs sans ligatures : on voit >= et non ≥');
+  assert.ok(html.includes('.pr-scene.is-board .pr-lane.is-wrap .pr-c.pr-q:empty{min-width:52px}'), 'l’emplacement vide a la largeur de la pastille');
+});

@@ -954,6 +954,17 @@
   .pr-scene.is-board .pr-lane .pr-c.pr-sub,.pr-scene.is-board .pr-lane:not(.is-head):not(.is-ask) .pr-c.pr-sub:last-child:not(:first-child){font-family:var(--ui);font-size:12px;font-weight:600;color:var(--ink-3)}
   .pr-scene.is-board .pr-lane.is-head .pr-c.pr-sub{padding:3px 0;border-color:transparent;background:none;font-family:var(--ui);font-size:11px;font-weight:700;color:var(--ink-3)}
   .pr-scene.is-board .pr-lane .pr-c.is-gone{padding-left:0;padding-right:0}
+  /* Opérateur en tête de case (b.pr-op) : police à chasse fixe, sans ligatures (on voit les caractères à taper : >= et non ≥), largeur fixe pour aligner les textes qui suivent. */
+  .pr-scene .pr-op{display:inline-block;flex:none;min-width:2.2ch;margin-right:6px;font-family:var(--mono);font-weight:800;font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
+  /* Ligne sur deux lignes au besoin (lane is-wrap) : un texte long (« strictement supérieur à ») passe à la ligne au lieu d’élargir la scène. */
+  .pr-scene.is-board .pr-lane.is-wrap .pr-c{white-space:normal;line-height:1.3}
+  .pr-scene.is-board .pr-lane.is-wrap .pr-c.pr-q:empty,.pr-scene.is-board .pr-lane.is-wrap .pr-c.is-out,.pr-scene.is-board .pr-lane.is-wrap .pr-c.is-in{white-space:nowrap}
+  /* L’emplacement vide a déjà la largeur de la pastille qui viendra : le texte de la ligne ne se recompose pas à son arrivée. */
+  .pr-scene.is-board .pr-lane.is-wrap .pr-c.pr-q:empty{min-width:52px}
+  /* Verdict en pastille dans la dernière colonne : limite exclue (rouge, pointillés) ou incluse (vert). */
+  .pr-scene.is-board .pr-lane:not(.is-head):not(.is-ask) .pr-c.is-out:last-child,.pr-scene.is-board .pr-lane:not(.is-head):not(.is-ask) .pr-c.is-in:last-child{align-self:center;justify-self:end;min-height:0;padding:2px 8px;border-radius:999px;font-family:var(--ui);font-size:11.5px;font-weight:800;animation:prPill .55s cubic-bezier(.3,.9,.3,1.3)}
+  .pr-scene.is-board .pr-lane:not(.is-head):not(.is-ask) .pr-c.is-out:last-child{border:1.5px dashed var(--danger,#C2323A);background:var(--danger-soft,#FDEBEC);color:var(--danger,#C2323A)}
+  .pr-scene.is-board .pr-lane:not(.is-head):not(.is-ask) .pr-c.is-in:last-child{border:1.5px solid color-mix(in srgb,var(--success,#0F766E) 30%,transparent);background:var(--success-soft,#E6F4F1);color:var(--success,#0F766E)}
   /* Valeur en double (mark is-miss) dans une ligne : pastille rouge en pointillés autour du texte. */
   .pr-scene.is-board .pr-lane:not(.is-head):not(.is-ask) .pr-c.is-miss{justify-self:start;margin-left:-8px;padding:2px 8px;border:1.5px dashed var(--danger,#C2323A);border-radius:999px;background:var(--danger-soft,#FDEBEC);color:var(--danger,#C2323A)}
   .pr-scene.is-board .pr-lane.is-ask .pr-c{position:relative;justify-self:start;min-height:0;padding:3px 9px;border:1.5px solid color-mix(in srgb,var(--danger,#C2323A) 35%,transparent);border-radius:9px;background:#fff;font-size:11.5px;font-weight:800;color:var(--danger,#C2323A);transition:opacity .35s ease .15s,transform .45s cubic-bezier(.3,.9,.3,1.3) .15s}
@@ -7165,9 +7176,20 @@ guide({ id:5, titre:"Comparer des valeurs", résumé:"Filtrer avec =, !=, >, <, 
       {arrow:"Seuls 2 produits sur 8 coûtent plus de 30 €."}
     ]},
     {h:"Inclure ou exclure la limite",blocks:[
-      "SQL propose six opérateurs de comparaison :",
-      {table:{label:"Les opérateurs",cols:"minmax(0,.6fr) minmax(0,2fr)",head:["opérateur","signifie"],rows:[["=","égal à"],["!=","différent de"],["&gt;","strictement supérieur à"],["&lt;","strictement inférieur à"],["&gt;=","supérieur ou égal à"],["&lt;=","inférieur ou égal à"]]}},
-      "Avec <code>&gt;</code> et <code>&lt;</code>, la valeur limite est <b>exclue</b>. Avec <code>&gt;=</code> et <code>&lt;=</code>, elle est <b>incluse</b>.",
+      "SQL propose plusieurs opérateurs selon la comparaison que l’on souhaite effectuer :",
+      {scene:{h:"⚖️ Les opérateurs",cols:"minmax(0,1fr) auto",board:true,
+        lanes:[{k:"H",cls:"is-head",c:[["h1","opérateur"],["h3","limite"]]},
+          {k:"EQ",cls:"is-wrap",c:[["m1",'<b class="pr-op">=</b>égal à'],["l1","—","s"]]},
+          {k:"NE",cls:"is-wrap",c:[["m2",'<b class="pr-op">!=</b>différent de'],["l2","—","s"]]},
+          {k:"GT",cls:"is-wrap",c:[["m3",'<b class="pr-op">&gt;</b>strictement supérieur à'],["l3","","q"]]},
+          {k:"LT",cls:"is-wrap",c:[["m4",'<b class="pr-op">&lt;</b>strictement inférieur à'],["l4","","q"]]},
+          {k:"GE",cls:"is-wrap",c:[["m5",'<b class="pr-op">&gt;=</b>supérieur ou égal à'],["l5","","q"]]},
+          {k:"LE",cls:"is-wrap",c:[["m6",'<b class="pr-op">&lt;=</b>inférieur ou égal à'],["l6","","q"]]}],
+        caps:["<b>Six opérateurs</b> · Chacun compare une valeur à une limite d’une façon différente.","<b>&gt; et &lt;</b> · La limite est exclue : une valeur égale à la limite n’est pas gardée.","<b>&gt;= et &lt;=</b> · La limite est incluse : une valeur égale à la limite est gardée."],
+        steps:[{cap:0,d:1900},
+          {cap:1,on:["GT","LT"],dim:["EQ","NE","GE","LE"],text:{l3:"exclue",l4:"exclue"},mark:{l3:"is-out",l4:"is-out"},d:2300},
+          {cap:2,off:["GT","LT"],undim:["EQ","NE","GE","LE"],on:["GE","LE"],text:{l5:"incluse",l6:"incluse"},mark:{l5:"is-in",l6:"is-in"},d:2600}]}},
+      "💡 Avec <code>&gt;</code> et <code>&lt;</code>, la valeur limite est <b>exclue</b>. Avec <code>&gt;=</code> et <code>&lt;=</code>, elle est <b>incluse</b>.",
       {say:"👇 Exécute cette requête : le Shaker Inox coûte exactement 15 €.",run:"SELECT nom, prix\nFROM produits\nWHERE prix > 15;"},
       {say:"👇 Exécute-la maintenant avec <code>&gt;=</code> :",run:"SELECT nom, prix\nFROM produits\nWHERE prix >= 15;"},
       {arrow:"Le Shaker Inox n’apparaît qu’avec <code>&gt;=</code>, car son prix est égal à la limite."}
@@ -25383,7 +25405,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-08-ludique-v1688';
+  const SW_CACHE='requete-2026-10-08-ludique-v1689';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
