@@ -99,3 +99,19 @@ test('cours 5, Problème : « Suivi des stocks » en dashboard, stocks bas (60 e
   for (const c of sc.caps) assert.ok(!/WHERE|&lt;=|<=|opérateur|condition/.test(c), `légende générale, sans la solution : ${c}`);
   assert.ok(html.includes('.pr-scene.is-board .pr-lane:not(.is-head):not(.is-ask) .pr-c.is-low:last-child:not(:first-child){'), 'pastille « stock bas »');
 });
+
+test('cours 6 (AND et OR) : Problème « soulignés deux fois », concept « Client par client » en balayage, « Deux lectures » sans parenthèses', async () => {
+  const vm = await import('node:vm');
+  const p = env.scenes[6];
+  assert.equal(p.board, true);
+  assert.equal(JSON.stringify(p.steps[1].mark), '{"a2":"is-low","b2":"is-low","d2":"is-low","e2":"is-low","f2":"is-low"}', 'les villes Paris et Lyon soulignées');
+  assert.equal(JSON.stringify(p.steps[2].mark), '{"a3":"is-low","d3":"is-low","e3":"is-low"}', 'puis les âges de plus de 30 ans');
+  for (const c of p.caps) assert.ok(!/AND|OR|WHERE|parenth/.test(c), `légende générale : ${c}`);
+  const xs = vm.runInContext('GUIDE_XSCENES[6]', env.ctx);
+  const c = xs.find(s => /Client par client/.test(s.h)), d = xs.find(s => /Deux lectures/.test(s.h));
+  assert.equal(c.steps[0].sweep, 220, 'les réponses arrivent client par client');
+  assert.ok(Object.values(c.steps[0].mark).includes('is-fail') && Object.values(c.steps[1].mark).includes('is-pass'));
+  assert.equal(JSON.stringify(d.steps[1].mark), '{"a2":"is-pass","d2":"is-pass","e2":"is-pass","a3":"is-skip","d3":"is-skip","e3":"is-skip"}', 'sans parenthèses, l’âge des Parisiens ne compte plus');
+  assert.ok(html.includes("if(s.mark)Object.keys(s.mark).forEach((k,i)=>later(()=>q(k).classList.add(s.mark[k]),i*(s.sweep||0),now));"), 'moteur : balayage des marques');
+  assert.ok(html.includes('.pr-scene.is-board .pr-lane.is-head .pr-c.is-now{'), 'en-tête de la colonne vérifiée');
+});
