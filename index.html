@@ -7531,16 +7531,20 @@ guide({ id:7, titre:"NULL", résumé:"La valeur absente",
     ],
     problem:{
       p:["Avec <code>WHERE</code>, SQL sait comparer une colonne à une <b>valeur</b> connue : <code>email = 'sophie@mail.fr'</code>.","Or, ici, l’équipe cherche les clients pour lesquels <b>aucun email n’est enregistré</b> : il n’y a <b>aucune valeur</b> à comparer."],
-      scene:{h:"✉️ Emails des clients",cols:"1fr 1.7fr",
-        lanes:[{c:[["h1","prenom","t"],["h2","email","t"]]},
-          {k:"R1",c:[["a1","Sophie"],["a2","sophie@mail.fr"]]},
-          {k:"R2",c:[["b1","Lucas"],["b2","lucas@mail.fr"]]},
-          {k:"R3",c:[["c1","Hugo"],["c2","vide","n"]]},
-          {k:"R4",c:[["d1","Chloé"],["d2","chloe@mail.fr"]]},
-          {k:"R5",c:[["e1","Inès"],["e2","vide","n"]]}],
-        caps:["<b>Notre liste</b> · Certains clients n’ont aucun email enregistré.","<b>Besoin</b> · L’équipe cherche les clients dont l’email est <b>absent</b>.","<b>Résultat</b> · Seuls ces clients doivent être conservés : on pourra les appeler."],
-        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R4"],dim:["R1","R2","R4"],d:2300},{cap:2,fold:["R1","R2","R4"],d:2600}]},
-      then:["Il faut donc indiquer à SQL de repérer les lignes où <b>la valeur est absente</b>.","C’est exactement le rôle de <code>IS NULL</code>."]
+      scene:{h:"📋 Envoi du questionnaire",cols:"minmax(0,1fr) auto",board:true,
+        lanes:[{k:"H",cls:"is-head",c:[["h1","prenom"],["h2","email"]]},
+          {k:"R1",c:[["a1","Lucas"],["a2","lucas@mail.fr"]]},
+          {k:"R2",c:[["b1","Emma"],["b2","emma@mail.fr"]]},
+          {k:"R3",c:[["c1","Chloé"],["c2","chloe@mail.fr"]]},
+          {k:"R4",c:[["d1","Hugo"],["d2","","q"]]},
+          {k:"R5",c:[["e1","Léa"],["e2","lea@mail.fr"]]},
+          {k:"R6",c:[["f1","Inès"],["f2","","q"]]}],
+        caps:["<b>Notre liste</b> · Le questionnaire doit partir par email à chaque client.","<b>Envoi</b> · Pour la plupart des clients, l’adresse est bien enregistrée.","<b>Cases vides</b> · Hugo et Inès n’ont aucune adresse : impossible de leur écrire.","<b>Résultat</b> · Seuls les clients sans adresse doivent rester : l’équipe les appellera."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5","R6"],d:1900},
+          {cap:1,off:["R1","R2","R3","R4","R5","R6"],mark:{h2:"is-now",a2:"is-pass",b2:"is-pass",c2:"is-pass",e2:"is-pass"},sweep:220,d:2400},
+          {cap:2,dim:["R1","R2","R3","R5"],text:{d2:"vide",f2:"vide"},mark:{d2:"is-fail",f2:"is-fail"},d:2400},
+          {cap:3,fold:["R1","R2","R3","R5"],on:["R4","R6"],d:2600}]},
+      then:["Il faut donc indiquer à SQL qu’on cherche <b>une absence de valeur</b>, et non une valeur précise.","C’est exactement le rôle de <code>IS NULL</code>."]
     },
     mission:"Aide l’équipe commerciale à retrouver le <b>prénom</b>, le <b>nom de famille</b> et le <b>téléphone</b> des clients dont l’<b>email est absent</b>, afin de recueillir leur avis par téléphone."
   },
@@ -25493,7 +25497,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-08-ludique-v1715';
+  const SW_CACHE='requete-2026-10-08-ludique-v1716';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

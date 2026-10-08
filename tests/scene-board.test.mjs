@@ -115,3 +115,14 @@ test('cours 6 (AND et OR) : Problème « soulignés deux fois », concept « Cli
   assert.ok(html.includes("if(s.mark)Object.keys(s.mark).forEach((k,i)=>later(()=>q(k).classList.add(s.mark[k]),i*(s.sweep||0),now));"), 'moteur : balayage des marques');
   assert.ok(html.includes('.pr-scene.is-board .pr-lane.is-head .pr-c.is-now{'), 'en-tête de la colonne vérifiée');
 });
+
+test('cours 7 (NULL), Problème : « Envoi du questionnaire » — adresses validées une à une, cases vides signalées, puis seuls les clients sans adresse', () => {
+  const p = env.scenes[7];
+  assert.equal(p.board, true);
+  const lane = k => p.lanes.find(l => l.k === k);
+  assert.equal(JSON.stringify(lane('R4').c[1]), '["d2","","q"]', 'Hugo : case vide au départ');
+  assert.equal(p.steps[1].sweep, 220, 'les adresses sont validées une à une');
+  assert.equal(JSON.stringify(p.steps[2].mark), '{"d2":"is-fail","f2":"is-fail"}', 'les deux cases vides en rouge');
+  assert.equal(JSON.stringify(p.steps[3].on), '["R4","R6"]', 'Hugo et Inès restent');
+  for (const c of p.caps) assert.ok(!/NULL|IS |WHERE/.test(c), `légende générale : ${c}`);
+});
