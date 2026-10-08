@@ -1247,17 +1247,20 @@
   .pg-foot .pg-subs{white-space:nowrap}
   .pg-foot{flex-wrap:wrap;row-gap:3px}
   @media (max-width:340px){.pg-grid.is-tickets .pg-foot{flex-direction:column;align-items:flex-start}}
-  @media (max-width:360px){.pg-grid.is-tickets .pg-card{--cut:52px}.pg-stub{width:52px}.pg-stub small{font-size:8px;letter-spacing:.04em}.is-page .pg-stub .pg-city{font-size:13px}.pg-grid.is-tickets .pg-main{padding:9px 8px 9px 10px}.pg-grid.is-tickets .pg-name{font-size:14px}.pg-stamp{padding:1px 4px;font-size:9.5px;letter-spacing:.04em}}
+  @media (max-width:360px){.pg-qr{width:34px;height:34px}.pg-grid.is-tickets .pg-card{--cut:52px}.pg-stub{width:52px}.pg-stub small{font-size:8px;letter-spacing:.04em}.is-page .pg-stub .pg-city{font-size:13px}.pg-grid.is-tickets .pg-main{padding:9px 8px 9px 10px}.pg-grid.is-tickets .pg-name{font-size:14px}.pg-stamp{padding:1px 4px;font-size:9.5px;letter-spacing:.04em}}
   .pg-who{line-height:1.2}
   .pg-kick{font-size:9.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--accent-ink)}
   .pg-grid.is-tickets .pg-name{font-size:14.5px;line-height:1.2}
   .pg-no{flex:none;align-self:flex-start;margin:10px 10px 0 0;font:700 10.5px/1 var(--mono);font-style:normal;color:var(--ink-3)}
   .pg-stub .pg-no{align-self:center;margin:4px 0 0;font-size:9px;color:#fff;opacity:.8}
-  .pg-stamp{flex:none;padding:1px 6px;border:1.5px solid var(--success,#0F766E);border-radius:6px;font-style:normal;font-size:10px;font-weight:900;letter-spacing:.07em;line-height:1.5;text-transform:uppercase;color:var(--success,#0F766E);transform:rotate(-6deg);opacity:.9;pointer-events:none}
+  .pg-stamp{flex:none;padding:1px 6px;border:1.5px solid var(--success,#0F766E);border-radius:6px;font-style:normal;font-size:10px;font-weight:900;letter-spacing:.07em;line-height:1.5;text-transform:uppercase;color:var(--success,#0F766E);transform:rotate(var(--rot,-6deg));opacity:.9;pointer-events:none}
+  /* QR code du billet, sur le talon : une vignette blanche sous l’agence. */
+  .pg-qr{flex:none;width:38px;height:38px;margin:5px 0 1px;padding:3px;box-sizing:border-box;border-radius:5px;background:#fff}
+  .pg-qr svg{display:block;width:100%;height:100%;fill:var(--ink,#1B1838)}
   .ij-sms.is-page:not(.is-play) .pg-stamp{opacity:0}
   .ij-sms.is-page.is-play .pg-stamp{animation:pgStamp .42s cubic-bezier(.2,.8,.3,1.25) both calc(var(--t) + .5s)}
   .ij-sms.is-page.is-play .pg-card.is-ticket{animation:pgTicket .5s cubic-bezier(.25,.9,.3,1.2) both var(--t)}
-  @keyframes pgStamp{0%{opacity:0;transform:rotate(-6deg) scale(1.9)}70%{opacity:.95;transform:rotate(-6deg) scale(.94)}100%{opacity:.9;transform:rotate(-6deg) scale(1)}}
+  @keyframes pgStamp{0%{opacity:0;transform:rotate(var(--rot,-6deg)) scale(1.9)}70%{opacity:.95;transform:rotate(var(--rot,-6deg)) scale(.94)}100%{opacity:.9;transform:rotate(var(--rot,-6deg)) scale(1)}}
   @keyframes pgTicket{from{opacity:0;transform:translateX(-14px) rotate(-1.5deg)}}
   @keyframes pgIn{from{opacity:0;transform:translateY(-4px)}}
   @keyframes dbShim{to{background-position:-150% 0}}
@@ -6591,6 +6594,22 @@ function guideChips(m){
    Champs d’une carte (index de colonne) : name, price (fmt : "eur" 29,90 €, "des" Dès 29 €), sub:{col,tpl:"{v} produits"},
    text, ref (« Réf. 7 »), rank (médaille), group (titres de groupe). layout : grid (2 colonnes), list, podium ; badge sur
    chaque carte ; pager:{page,of} ; chrome:false = sans barre de navigateur (ex. une planche d’étiquettes). */
+/* QR code d’allure réaliste pour un billet (motif décoratif, non lisible) : grille 21 × 21, trois repères d’angle et lignes
+   de synchronisation comme un vrai QR, le reste tiré d’une graine (le contenu du billet) : chaque billet a le sien, toujours le même. */
+function guideQr(seed){
+  let h=2166136261;for(const ch of String(seed)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)>>>0;}
+  const rnd=()=>{h^=h<<13;h>>>=0;h^=h>>>17;h^=h<<5;h>>>=0;return h/4294967296;};
+  const N=21,dark=(x,y)=>{
+    for(const[ox,oy]of[[0,0],[14,0],[0,14]]){const dx=x-ox,dy=y-oy;
+      if(dx>=-1&&dx<=7&&dy>=-1&&dy<=7){if(dx<0||dy<0||dx>6||dy>6)return false;const r=Math.max(Math.abs(dx-3),Math.abs(dy-3));return r!==2;}}
+    if(y===6)return x%2===0;if(x===6)return y%2===0;
+    return null;};
+  let d='';
+  for(let y=0;y<N;y++){let run=0;
+    for(let x=0;x<=N;x++){let on=false;if(x<N){const f=dark(x,y);on=f===null?rnd()<.5:f;}
+      if(on)run++;else if(run){d+=`M${x-run} ${y}h${run}v1h-${run}z`;run=0;}}}
+  return `<svg viewBox="-1 -1 23 23" shape-rendering="crispEdges" aria-hidden="true"><path d="${d}"/></svg>`;
+}
 function guidePage(m){
   const rows=m.rows,n=rows.length,sg=m.sg||(n>6?0.2:0.28),esc=t=>guideFr(guideEsc(t));
   const raw=v=>v==null?'NULL':typeof v==='number'&&!Number.isInteger(v)?String(+v.toFixed(2)):String(v);
@@ -6607,7 +6626,7 @@ function guidePage(m){
        kicker = mention au-dessus du nom, no = numéro du billet, stamp = tampon posé après l’arrivée du billet. */
     const sub=s=>v(s.col,r,'pg-sub',esc(s.tpl.replace('{v}',raw(r[s.col])).replace('{s}',+r[s.col]>1?'s':'')));
     const no=m.no?`<i class="pg-no">N°\u00a0${String(i+1).padStart(3,'0')}</i>`:'';
-    const stub=m.stub?`<span class="pg-stub${m.stub.alt!=null&&raw(r[m.stub.col])===m.stub.alt?' is-alt':''}">${m.stub.label?`<small>${esc(m.stub.label)}</small>`:''}${v(m.stub.col,r,'pg-city',esc(raw(r[m.stub.col])),'b')}${no}</span>`:'';
+    const stub=m.stub?`<span class="pg-stub${m.stub.alt!=null&&raw(r[m.stub.col])===m.stub.alt?' is-alt':''}">${m.stub.label?`<small>${esc(m.stub.label)}</small>`:''}${v(m.stub.col,r,'pg-city',esc(raw(r[m.stub.col])),'b')}${m.qr?`<span class="pg-qr">${guideQr(r.join('|')+'#'+i)}</span>`:''}${no}</span>`:'';
     html+=`<div class="pg-card${top?' is-top':''}${m.layout==='tickets'?' is-ticket':''}" style="--t:calc(var(--t0,.15s) + .95s + ${i}*var(--sg,.28s))">${m.badge?`<em class="pg-badge">${esc(m.badge)}</em>`:''}`
       +(m.rank!=null?v(m.rank,r,'pg-rank',medal(r[m.rank]),'i'):'')+stub
       +`<span class="pg-main">${m.kicker?`<small class="pg-kick">${esc(m.kicker)}</small>`:''}${Array.isArray(m.name)?`<span class="pg-who">${m.name.map(c=>v(c,r,'pg-name',esc(raw(r[c])),'b')).join(' ')}</span>`:v(m.name,r,'pg-name',esc(raw(r[m.name])),'b')}`
@@ -6616,6 +6635,7 @@ function guidePage(m){
       +(m.text!=null?v(m.text,r,'pg-text',esc(raw(r[m.text])),'small'):'')
       +`</span>`
       +(m.stub?'':no)
+
       +(m.price!=null?v(m.price,r,'pg-price',fmtPrice(r[m.price])):'')
       +(m.group!=null?`<span class="db-x" data-c="${m.group}" data-v="${guideEsc(raw(r[m.group])).replace(/"/g,'&quot;')}" hidden></span>`:'')
       +`</div>`;
@@ -7350,7 +7370,7 @@ guide({ id:6, titre:"AND et OR", résumé:"Combiner plusieurs conditions",
           {step:"WHERE (ville = 'Paris' OR ville = 'Lyon') AND age > 30",s:"ne garde que les clients de Paris ou de Lyon qui ont plus de 30 ans"},
           {n:4,t:"⭐ clients à inviter",s:"Sophie Martin, Nathan Petit, Hugo Laurent et Léa Simon",dots:"1001011000",out:true}
         ],
-        page:{ico:"🎟️",h:"Billets pour la conférence",aria:"Quatre billets d’invitation pour la conférence sur la nutrition : Sophie Martin, Nathan Petit et Léa Simon à l’agence de Paris, Hugo Laurent à l’agence de Lyon",chrome:false,layout:"tickets",stub:{col:2,label:"Agence",alt:"Lyon"},kicker:"Invitation",name:[0,1],sub:[{col:3,tpl:"{v} ans"}],no:true,stamp:"Envoyé",
+        page:{ico:"🎟️",h:"Billets pour la conférence",aria:"Quatre billets d’invitation pour la conférence sur la nutrition : Sophie Martin, Nathan Petit et Léa Simon à l’agence de Paris, Hugo Laurent à l’agence de Lyon",chrome:false,layout:"tickets",stub:{col:2,label:"Agence",alt:"Lyon"},kicker:"Invitation",name:[0,1],sub:[{col:3,tpl:"{v} ans"}],no:true,qr:true,stamp:"Envoyé",
           rows:[["Sophie","Martin","Paris",34],["Nathan","Petit","Paris",31],["Hugo","Laurent","Lyon",52],["Léa","Simon","Paris",38]],done:"✓ 4 billets envoyés : 3 pour Paris, 1 pour Lyon"},
         fill:["WHERE","OR","AND","30"],
         ui:{t:"4 invités pour la conférence",s:"Ils habitent à Paris ou à Lyon et ont plus de 30 ans : la liste des invités est prête.",n:["SELECT","FROM","WHERE","OR","AND"]},
@@ -25434,7 +25454,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-08-ludique-v1702';
+  const SW_CACHE='requete-2026-10-08-ludique-v1703';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

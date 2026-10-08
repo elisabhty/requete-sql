@@ -60,4 +60,8 @@ test('cours 6 (AND et OR) : le Résultat est une planche de billets d’invitati
   assert.ok(c6.includes('<span class="pg-who"><b class="db-x pg-name" data-c="0" data-v="Sophie">Sophie</b> <b class="db-x pg-name" data-c="1" data-v="Martin">Martin</b></span>'), 'prénom et nom sur la même ligne');
   assert.ok(!c6.includes('ij-sms-bubble') && !c6.includes('ij-sms-list'), 'plus de bulle de message');
   assert.ok(html.includes('@keyframes pgStamp{'), 'le tampon s’abat');
+  const qrs = [...c6.matchAll(/<span class="pg-qr"><svg viewBox="-1 -1 23 23" shape-rendering="crispEdges" aria-hidden="true"><path d="([^"]+)"\/><\/svg><\/span>/g)].map(m => m[1]);
+  assert.equal(qrs.length, 4, 'un QR code par billet, sur le talon');
+  assert.equal(new Set(qrs).size, 4, 'chaque billet a son propre QR code');
+  assert.ok(qrs.every(d => d.startsWith('M0 0h7v1h-7z')), 'repère d’angle en haut à gauche, comme un vrai QR code');
 });
