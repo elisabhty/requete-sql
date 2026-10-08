@@ -71,3 +71,11 @@ test('rejouer une scène : pas de « flash blanc » — les surlignages de la 1r
   assert.ok(pre.includes("if(again){") && pre.includes("each(s0.on,k=>{const e=q(k);if(e)e.classList.add('is-on');});") && pre.includes('s0.mark'), 'is-on et mark de l’étape 1 posés avant la mesure de hauteur');
   assert.ok(/\.pr-c\.is-win\{[^}]*background:var\(--accent-grad,[^}]*\) var\(--accent\)/.test(html), 'dégradé posé sur un fond plein (pas de case vide en le quittant)');
 });
+
+test('rejouer une scène : une ligne pâlie au départ le reste (dim posé d’avance, fondu d’entrée après les surlignages)', () => {
+  const mount = html.slice(html.indexOf('function mountProbScene('), html.indexOf('/* Emplacements de requête exécutable dans le texte d’un cours. */'));
+  const i = mount.indexOf('reset();', mount.indexOf('const play=async()=>{'));
+  const pre = mount.slice(i, mount.indexOf('const h1=root.offsetHeight;', i));
+  assert.ok(pre.includes("each(s0.dim,k=>{const e=q(k);if(e)e.classList.add('is-dim');});"), 'dim de l’étape 1 posé d’avance');
+  assert.ok(pre.indexOf('stage.getAnimations()') > pre.indexOf("each(s0.dim,"), 'getAnimations() (calcul des styles) seulement après les surlignages posés d’avance');
+});
