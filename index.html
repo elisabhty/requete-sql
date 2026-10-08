@@ -7441,48 +7441,77 @@ guide({ id:22, titre:"NOT", résumé:"Exclure ce qui correspond",
     ],
     problem:{
       p:["Avec <code>WHERE</code> et <code>AND</code>, SQL sait garder les clients qui <b>correspondent</b> à des conditions : ceux de Paris qui ont plus de 30 ans.","Or, ici, c’est l’<b>inverse</b> : l’équipe veut les clients qui <b>ne correspondent pas</b> à cette sélection."],
-      scene:{h:"🎁 Clients de la seconde offre",cols:"1fr 1.2fr .6fr",
-        lanes:[{c:[["h1","prenom","t"],["h2","ville","t"],["h3","age","t"]]},
+      scene:{h:"🎁 Seconde offre",cols:"minmax(0,1fr) 62px 42px",board:true,
+        lanes:[{k:"H",cls:"is-head",c:[["h1","prenom"],["h2","ville"],["h3","age"]]},
           {k:"R1",c:[["a1","Sophie"],["a2","Paris"],["a3","34"]]},
           {k:"R2",c:[["b1","Lucas"],["b2","Lyon"],["b3","28"]]},
           {k:"R3",c:[["c1","Emma"],["c2","Marseille"],["c3","45"]]},
-          {k:"R4",c:[["d1","Nathan"],["d2","Paris"],["d3","30"]]},
-          {k:"R5",c:[["e1","Léa"],["e2","Paris"],["e3","38"]]}],
-        caps:["<b>Notre liste</b> · Elle contient tous les clients.","<b>Première offre</b> · Elle est partie aux clients de <b>Paris</b> qui ont <b>plus de 30 ans</b>.","<b>Inversion</b> · Ce sont justement eux qu’il ne faut <b>pas</b> recontacter.","<b>Résultat</b> · Seuls les clients qui n’ont pas reçu la première offre doivent être conservés."],
-        steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5"],on:["R1","R5"],d:2300},{cap:2,off:["R1","R5"],mark:{R1:"is-miss",R5:"is-miss"},d:2300},{cap:3,unmark:{R1:"is-miss",R5:"is-miss"},dim:["R1","R5"],fold:["R1","R5"],on:["R2","R3","R4"],d:2600}]},
-      then:["Il faut donc indiquer à SQL de garder <b>l’inverse</b> d’une sélection : les clients qui ne sont <b>pas</b> à la fois parisiens et âgés de plus de 30 ans.","C’est exactement le rôle de <code>NOT</code>."]
+          {k:"R4",c:[["d1","Hugo"],["d2","Lyon"],["d3","52"]]},
+          {k:"R5",c:[["e1","Léa"],["e2","Paris"],["e3","38"]]},
+          {k:"R6",c:[["f1","Nathan"],["f2","Paris"],["f3","30"]]}],
+        caps:["<b>Notre liste</b> · Elle contient des clients de toutes les villes et de tous les âges.","<b>La ville</b> · Les clients soulignés habitent à Paris.","<b>L’âge</b> · Parmi eux, ceux qui ont plus de 30 ans sont soulignés une seconde fois.","<b>Résultat</b> · Pour la seconde offre, seuls ceux qui ne remplissent pas les deux critères à la fois doivent rester."],
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5","R6"],d:1900},
+          {cap:1,off:["R1","R2","R3","R4","R5","R6"],dim:["R2","R3","R4"],mark:{a2:"is-low",e2:"is-low",f2:"is-low"},d:2300},
+          {cap:2,dim:["R6"],mark:{a3:"is-low",e3:"is-low"},d:2300},
+          {cap:3,fold:["R1","R5"],undim:["R2","R3","R4","R6"],on:["R2","R3","R4","R6"],d:2600}]},
+      then:["Il faut donc indiquer à SQL comment <b>inverser</b> cette sélection, à partir de ses <b>deux</b> conditions.","SQL utilise <code>NOT</code> pour inverser une condition."]
     },
-    mission:"Aide l’équipe marketing à retrouver le <b>prénom</b>, le <b>nom de famille</b>, la <b>ville</b> et l’<b>âge</b> des clients qui <b>n’ont pas reçu la première offre</b> (ceux qui ne sont pas des Parisiens de plus de 30 ans), afin de préparer la liste de la seconde offre."
+    mission:"Aide l’équipe marketing à retrouver le <b>prénom</b>, le <b>nom de famille</b>, la <b>ville</b> et l’<b>âge</b> des clients qui <b>n’ont pas reçu la première offre</b> (ceux qui ne sont pas des Parisiens de plus de 30 ans), afin de préparer l’envoi de la seconde offre."
   },
   concept:{
     title:"Comment SQL peut-il savoir qu’il faut inverser une condition ?",
     blocks:[
-      "Pour chaque client, SQL vérifie la condition de la première offre, puis <b>inverse</b> la réponse :",
+      "Pour chaque client, SQL doit ici répondre à une seule question :",
       {ask:"N’est-il pas à la fois parisien et âgé de plus de 30 ans ?"},
-      "En SQL, on place <code>NOT</code> devant la condition, entre parenthèses :",
+      "Décomposons cette logique :",
+      {looks:[["AND","Paris et plus de 30 ans : la cible de la première offre"],["NOT","inverse la réponse : cette cible est écartée"]]},
       {syntax:"⟦NOT (ville = 'Paris' AND age > 30)⟧"},
-      {table:{label:"clients",cols:"minmax(0,.9fr) minmax(0,1fr) minmax(0,.55fr) minmax(0,1.2fr)",head:["prenom","ville","age","Après NOT"],rows:[["Sophie","Paris","34","❌ écartée"],["Lucas","Lyon","28","✅ gardée"],["Nathan","Paris","30","✅ gardée"],["Léa","Paris","38","❌ écartée"]],hit:[[1,3],[2,3]],more:"… et 6 autres clients",test:{cond:"NOT (ville = 'Paris' AND age > 30)",val:[1,2]}}},
-      {looks:[["gardée","la condition d’origine est fausse : NOT la rend vraie"],["écartée","la condition d’origine est vraie : NOT la rend fausse"]],label:"Gardée ou écartée"}
+      {scene:{h:"🔍 Client par client",cols:"minmax(0,1fr) 62px 42px",board:true,
+        lanes:[{k:"H",cls:"is-head",c:[["h1","prenom"],["h2","ville"],["h3","age"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","Paris"],["a3","34"]]},
+          {k:"R2",c:[["b1","Lucas"],["b2","Lyon"],["b3","28"]]},
+          {k:"R3",c:[["c1","Emma"],["c2","Marseille"],["c3","45"]]},
+          {k:"R4",c:[["d1","Léa"],["d2","Paris"],["d3","38"]]},
+          {k:"R5",c:[["e1","Nathan"],["e2","Paris"],["e3","30"]]}],
+        caps:["<b>Paris ?</b> · Tous répondent oui, sauf Lucas et Emma.","<b>Plus de 30 ans ?</b> · Tous répondent oui, sauf Lucas et Nathan.","<b>Les deux conditions ?</b> · Seules Sophie et Léa répondent oui aux deux.","<b>Après NOT</b> · La réponse s’inverse : tous sont gardés, sauf Sophie et Léa."],
+        steps:[{cap:0,mark:{h2:"is-now",a2:"is-pass",b2:"is-fail",c2:"is-fail",d2:"is-pass",e2:"is-pass"},sweep:220,d:2600},
+          {cap:1,mark:{h3:"is-now",a3:"is-pass",b3:"is-fail",c3:"is-pass",d3:"is-pass",e3:"is-fail"},sweep:220,d:2600},
+          {cap:2,on:["R1","R4"],dim:["R2","R3","R5"],d:2600},
+          {cap:3,off:["R1","R4"],undim:["R2","R3","R5"],dim:["R1","R4"],on:["R2","R3","R5"],d:2800}]}},
+      {looks:[["gardée","au moins une des deux conditions n’est pas respectée : NOT rend la réponse vraie"],["écartée","les deux conditions sont respectées : NOT rend la réponse fausse"]],label:"Gardée ou écartée"}
     ]
   },
   steps:[
     {h:"Inverser une condition",blocks:[
-      "Pour garder les lignes qui <b>ne respectent pas</b> une condition, place <code>NOT</code> juste devant :",
+      "Pour garder les lignes qui ne respectent pas une condition, utilise <code>NOT</code>. Une ligne n’est alors gardée que si la condition est <b>fausse</b>.",
       {syntax:"SELECT prenom, age\nFROM clients\nWHERE ⟦NOT⟧ age > 40;"},
-      {looks:[["NOT","inverse la condition qui suit"],["age > 40","est la condition d’origine"]]},
+      {looks:[["NOT","exige que la condition qui le suit soit fausse"],["age > 40","la condition d’origine : avoir plus de 40 ans"]]},
       {say:"👇 Exécute cette requête pour voir les clients qui n’ont pas plus de 40 ans :",run:"SELECT prenom, age\nFROM clients\nWHERE NOT age > 40;"},
       {arrow:"7 clients sont conservés : ceux dont l’âge est de 40 ans ou moins."},
-      {tip:{t:"Et avec !=",blocks:["Pour une simple égalité, <code>ville != 'Paris'</code> donne le même résultat. <code>NOT</code> devient précieux quand la condition est plus riche, par exemple un groupe de conditions."]}}
+      {tip:{t:"Et avec !=",blocks:["Pour une simple égalité, <code>ville != 'Paris'</code> donne le même résultat que <code>NOT ville = 'Paris'</code>. <code>NOT</code> devient précieux quand la condition est plus riche, par exemple un groupe de conditions."]}}
     ]},
     {h:"Inverser un groupe de conditions",blocks:[
-      "<code>NOT</code> ne s’applique qu’à la condition qui le <b>suit</b>. Pour inverser un groupe, mets-le entre <b>parenthèses</b> :",
+      "Quand <code>NOT</code> et <code>AND</code> sont utilisés dans la même condition, <code>NOT</code> est <b>prioritaire</b> : il ne s’applique qu’à la condition qui le suit immédiatement.",
+      "Les <b>parenthèses</b> permettent d’indiquer clairement quelles conditions <code>NOT</code> doit inverser :",
       {syntax:"WHERE NOT ⟦(ville = 'Paris' AND age > 35)⟧"},
-      {say:"👇 Exécute cette requête : seule Léa (Paris, 38 ans) est écartée.",run:"SELECT prenom, ville, age\nFROM clients\nWHERE NOT (ville = 'Paris' AND age > 35);"},
-      {arrow:"9 clients sont conservés."},
+      "SQL comprend : <b>NON (habiter à Paris ET avoir plus de 35 ans)</b>.",
+      {say:"👇 Exécute la requête pour voir quels clients sont gardés.",run:"SELECT prenom, ville, age\nFROM clients\nWHERE NOT (ville = 'Paris' AND age > 35);"},
+      {arrow:"9 clients sont conservés : seule Léa (Paris, 38 ans) est écartée."},
       {warn:{t:"Sans parenthèses",blocks:[
         "Si tu écris :",
         {syntax:"WHERE NOT ville = 'Paris'\n  AND age > 35"},
-        "<code>NOT</code> ne porte que sur <code>ville = 'Paris'</code>. La condition <code>age &gt; 35</code> reste normale : le résultat n’est plus le même.",
+        "Sans parenthèses, <code>NOT</code> est prioritaire sur <code>AND</code>. SQL comprend donc : (<b>NON</b> <code>ville = 'Paris'</code>) <b>ET</b> <code>age &gt; 35</code>.",
+        {scene:{h:"🧩 Deux lectures",cols:"minmax(0,1fr) 62px 42px",board:true,
+          lanes:[{k:"H",cls:"is-head",c:[["h1","prenom"],["h2","ville"],["h3","age"]]},
+            {k:"R1",c:[["a1","Sophie"],["a2","Paris"],["a3","34"]]},
+            {k:"R2",c:[["b1","Lucas"],["b2","Lyon"],["b3","28"]]},
+            {k:"R3",c:[["c1","Emma"],["c2","Marseille"],["c3","45"]]},
+            {k:"R4",c:[["d1","Léa"],["d2","Paris"],["d3","38"]]},
+            {k:"R5",c:[["e1","Nathan"],["e2","Paris"],["e3","30"]]}],
+          caps:["<b>Avec parenthèses</b> · Sophie et Nathan, parisiens, restent : ils n’ont pas plus de 35 ans.","<b>Sans parenthèses</b> · Sophie et Nathan sont écartés, tout comme Lucas, qui a 28 ans."],
+          steps:[{cap:0,mark:{a3:"is-fail",d2:"is-pass",d3:"is-pass",e3:"is-fail"},on:["R1","R2","R3","R5"],dim:["R4"],d:2600},
+            {cap:1,unmark:{d2:"is-pass"},mark:{a2:"is-fail",b2:"is-pass",c2:"is-pass",d2:"is-fail",e2:"is-fail",b3:"is-fail",c3:"is-pass"},off:["R1","R2","R5"],dim:["R1","R2","R5"],d:3000}]}},
+        "Résultat : tous les clients de Paris sont écartés, quel que soit leur âge, ainsi que tous ceux de 35 ans ou moins.",
         {say:"👇 Teste par toi-même :",run:"SELECT prenom, ville, age\nFROM clients\nWHERE NOT ville = 'Paris'\n  AND age > 35;"}
       ]}},
       {tip:{t:"Pourquoi pas l’inverse à la main ?",blocks:["Sans <code>NOT</code>, il faudrait inverser chaque comparaison <b>et</b> remplacer <code>AND</code> par <code>OR</code> : <code>ville != 'Paris' OR age &lt;= 35</code>. Facile de se tromper : avec <code>NOT</code>, on garde la condition d’origine."]}}
@@ -19086,17 +19115,19 @@ function mountProbScene(cfg,slot,memo){
     if(again&&stage.animate){await stage.animate([{opacity:1},{opacity:0}],{duration:160,easing:'ease-in',fill:'forwards'}).finished.catch(()=>{});if(my!==tok)return;}
     const h0=root.offsetHeight;
     reset();
-    if(again&&stage.animate){stage.getAnimations().forEach(a=>a.cancel());stage.animate([{opacity:0},{opacity:1}],{duration:260,easing:'ease-out'});}
-    /* Rejouer : les surlignages de la 1re étape (on, mark, text) sont posés avant le premier calcul de style des cellules
+    /* Rejouer : les surlignages de la 1re étape (on, dim, mark, text) sont posés avant le premier calcul de style des cellules
        recréées, donc sans transition. Ce qui était surligné à la fin et l’est aussi au début le reste, au lieu de repasser
        une demi-seconde au blanc (« flash blanc »). */
     if(again){
       const s0=cfg.steps[0]||{};
       each(s0.on,k=>{const e=q(k);if(e)e.classList.add('is-on');});
+      each(s0.dim,k=>{const e=q(k);if(e)e.classList.add('is-dim');});
       /* Une 1re étape en balayage (sweep) repart de zéro : ses marques reviennent une à une. */
       if(s0.mark&&!s0.sweep)Object.keys(s0.mark).forEach(k=>{const e=q(k);if(e)e.classList.add(s0.mark[k]);});
       if(s0.text&&!s0.stagger)Object.keys(s0.text).forEach(k=>{const e=q(k);if(e){e.textContent=s0.text[k];e.classList.remove('pr-q');e.classList.add('is-got');}});
     }
+    /* Le fondu d’entrée vient après : getAnimations() calcule les styles, et les surlignages posés après repartiraient en transition. */
+    if(again&&stage.animate){stage.getAnimations().forEach(a=>a.cancel());stage.animate([{opacity:0},{opacity:1}],{duration:260,easing:'ease-out'});}
     /* Rejouer : une scène dont le résultat était ouvert revient à sa hauteur de départ en douceur, sans faire sauter le texte situé dessous. */
     const h1=root.offsetHeight;
     if(h0>h1+2&&root.animate)root.animate([{height:h0+'px'},{height:h1+'px'}],{duration:600,easing:'cubic-bezier(.4,0,.2,1)'});
@@ -25497,7 +25528,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-08-ludique-v1718';
+  const SW_CACHE='requete-2026-10-08-ludique-v1719';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

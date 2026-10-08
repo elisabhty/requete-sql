@@ -126,3 +126,26 @@ test('cours 7 (NULL), Problème : « Envoi du questionnaire » — adresses vali
   assert.equal(JSON.stringify(p.steps[3].on), '["R4","R6"]', 'Hugo et Inès restent');
   for (const c of p.caps) assert.ok(!/NULL|IS |WHERE/.test(c), `légende générale : ${c}`);
 });
+
+test('cours 22 (NOT) : Problème « soulignés deux fois » puis les autres, concept « Client par client » (deux conditions puis NOT), « Deux lectures » sans parenthèses', async () => {
+  const vm = await import('node:vm');
+  const p = env.scenes[22];
+  assert.equal(p.board, true);
+  assert.equal(p.cols, 'minmax(0,1fr) 62px 42px');
+  assert.equal(JSON.stringify(p.steps[1].mark), '{"a2":"is-low","e2":"is-low","f2":"is-low"}', 'les clients de Paris soulignés');
+  assert.equal(JSON.stringify(p.steps[2].mark), '{"a3":"is-low","e3":"is-low"}', 'puis ceux de plus de 30 ans');
+  assert.equal(JSON.stringify(p.steps[3].fold), '["R1","R5"]', 'seuls les clients soulignés deux fois quittent la liste');
+  assert.equal(JSON.stringify(p.steps[3].on), '["R2","R3","R4","R6"]', 'tous les autres restent, Nathan (30 ans) compris');
+  for (const c of p.caps) assert.ok(!/NOT|AND|WHERE|parenth|invers|\d+ clients/.test(c), `légende générale : ${c}`);
+  const xs = vm.runInContext('GUIDE_XSCENES[22]', env.ctx);
+  const c = xs.find(s => /Client par client/.test(s.h)), d = xs.find(s => /Deux lectures/.test(s.h));
+  assert.ok(c && d, 'deux scènes dans le cours');
+  assert.equal(c.steps[0].sweep, 220, 'les réponses arrivent client par client');
+  assert.equal(JSON.stringify(c.steps[2].on), '["R1","R4"]', 'les deux conditions : Sophie et Léa');
+  assert.equal(JSON.stringify(c.steps[3].on), '["R2","R3","R5"]', 'NOT inverse la réponse : les trois autres sont gardés');
+  assert.equal(JSON.stringify(c.steps[3].dim), '["R1","R4"]');
+  assert.ok(!/réponses s’inversent|Tout s’inverse/.test(c.caps[3]), 'NOT inverse la réponse du groupe, pas chaque réponse');
+  assert.equal(JSON.stringify(d.steps[0].mark), '{"a3":"is-fail","d2":"is-pass","d3":"is-pass","e3":"is-fail"}', 'avec parenthèses : Sophie (34) et Nathan (30) restent, Léa est écartée');
+  assert.equal(JSON.stringify(d.steps[1].mark), '{"a2":"is-fail","b2":"is-pass","c2":"is-pass","d2":"is-fail","e2":"is-fail","b3":"is-fail","c3":"is-pass"}', 'sans parenthèses, Paris suffit à écarter et Lucas (28 ans) l’est aussi ; seule Emma a deux oui');
+  assert.ok(!html.slice(html.indexOf('guide({ id:22,'), html.indexOf('guide({ id:7,')).includes('test:{cond:'), 'plus de tableau à tester (les mêmes verdicts deux fois sinon)');
+});
