@@ -7132,7 +7132,7 @@ guide({ id:5, titre:"Comparer des valeurs", résumé:"Filtrer avec =, !=, >, <, 
   sit:{
     blocks:[
       "L’équipe logistique prépare <b>le réassort</b> de la boutique. Elle doit recommander tous les produits dont le stock est de <b>60 unités ou moins</b>.",
-      "La table <code>produits</code> contient au total <b>8 produits</b>, avec des stocks très différents. Pour passer la commande au fournisseur, l’équipe souhaite récupérer uniquement :",
+      "La table <code>produits</code> contient au total <b>8 produits</b>, avec des stocks très différents. Pour préparer la commande, l’équipe souhaite récupérer uniquement :",
       {need:[["🏷️","Le nom du produit","table produits"],["📦","Son stock","table produits"]],label:"Les informations à récupérer"}
     ],
     problem:{
@@ -7192,10 +7192,11 @@ guide({ id:5, titre:"Comparer des valeurs", résumé:"Filtrer avec =, !=, >, <, 
       {arrow:"Le Shaker Inox n’apparaît qu’avec <code>&gt;=</code>, car son prix est égal à la limite."}
     ]},
     {h:"Comparer un texte",blocks:[
+      "Le fournisseur habituel ne livre pas les accessoires : pour voir les produits qu’il peut livrer, il faut <b>exclure</b> une catégorie.",
       "Les opérateurs <code>=</code> et <code>!=</code> comparent aussi du texte. Un <b>nombre</b> s’écrit tel quel, un <b>texte</b> entre guillemets simples :",
-      {syntax:"WHERE prix > ⟦25⟧\nWHERE categorie != ⟦'Nutrition'⟧"},
-      {say:"👇 Exécute cette requête pour exclure une catégorie :",run:"SELECT nom, categorie\nFROM produits\nWHERE categorie != 'Nutrition';"},
-      {arrow:"Les 6 produits qui ne sont pas dans la catégorie « Nutrition » sont conservés."}
+      {syntax:"WHERE prix > ⟦25⟧\nWHERE categorie != ⟦'Accessoire'⟧"},
+      {say:"👇 Exécute cette requête pour exclure les accessoires :",run:"SELECT nom, categorie\nFROM produits\nWHERE categorie != 'Accessoire';"},
+      {arrow:"Seul le Shaker Inox, un accessoire, est écarté. La liste de réassort, elle, inclut aussi les accessoires : ils sont commandés ailleurs."}
     ]},
     {h:"La requête complète",blocks:[
       "Il ne reste plus qu’à construire la requête complète : afficher le nom et le stock des produits, puis ne garder que ceux ayant 60 unités ou moins.",
@@ -7208,9 +7209,9 @@ guide({ id:5, titre:"Comparer des valeurs", résumé:"Filtrer avec =, !=, >, <, 
           {step:"WHERE stock <= 60",s:"ne garde que les produits à 60 unités ou moins"},
           {n:3,t:"⭐ produits à recommander",s:"Tisane Détox, Protéine Végétale et Shaker Inox",dots:"00001101",out:true}
         ],
-        sms:{mail:true,ico:"📦",h:"Commande au fournisseur",aria:"La commande de réassort des trois produits à 60 unités ou moins est envoyée par email au fournisseur",msg:"<b>Objet : commande de réassort</b><br>Bonjour, nous souhaitons commander de nouveau les produits suivants. Voici leur stock actuel :",people:[["T","Tisane Détox","60 en stock"],["P","Protéine Végétale","45 en stock"],["S","Shaker Inox","30 en stock"]],st:["À commander","Ajout","✓ Ajouté"],plane:"doc",done:"✓ Commande de 3 produits envoyée au fournisseur"},
+        sms:{mail:true,ico:"📦",h:"Commande au fournisseur",aria:"La commande de réassort de la Tisane Détox et de la Protéine Végétale est envoyée par email au fournisseur ; le Shaker Inox, un accessoire, est commandé ailleurs",msg:"<b>Objet : commande de réassort</b><br>Bonjour, nous souhaitons commander de nouveau les produits suivants. Voici leur stock actuel :",people:[["T","Tisane Détox","60 en stock"],["P","Protéine Végétale","45 en stock"],["S","Shaker Inox","30 en stock",{st:["À commander","Vérification","↪ Ailleurs"],skip:true}]],st:["À commander","Ajout","✓ Ajouté"],plane:"doc",done:"✓ Commande de 2 produits envoyée au fournisseur"},
         fill:["WHERE","stock","<=","60"],
-        ui:{t:"3 produits à recommander",s:"Leur stock est de 60 unités ou moins : la commande de réassort est prête.",n:["SELECT","FROM","WHERE","<="]},
+        ui:{t:"3 produits à recommander",s:"Leur stock est de 60 unités ou moins : la liste de réassort est prête.",n:["SELECT","FROM","WHERE","<="]},
         rows:3
       }}
     ]}
@@ -7219,7 +7220,7 @@ guide({ id:5, titre:"Comparer des valeurs", résumé:"Filtrer avec =, !=, >, <, 
     {recap:[
       ["⚖️","Les <b>opérateurs de comparaison</b> comparent une colonne à une valeur :",null,"= != > < >= <="],
       ["📏","<code>&gt;</code> et <code>&lt;</code> <b>excluent</b> la limite ; <code>&gt;=</code> et <code>&lt;=</code> l’incluent :",null,"stock <= 60"],
-      ["💬","Un nombre s’écrit tel quel, un texte entre <b>guillemets simples</b> :",null,"categorie != 'Nutrition'"]
+      ["💬","Un nombre s’écrit tel quel, un texte entre <b>guillemets simples</b> :",null,"categorie = 'Accessoire'"]
     ],label:"Les trois idées à retenir"}
   ],
   anatomie:[{tok:"SELECT nom, stock",txt:"affiche le nom et le stock"},{tok:"FROM produits",txt:"utilise la table produits"},{tok:"WHERE",txt:"filtre les lignes"},{tok:"stock",plain:1,txt:"la colonne comparée"},{tok:">=",plain:1,txt:"signifie « supérieur ou égal à »"},{tok:"100",plain:1,txt:"le seuil de comparaison"}],
@@ -25393,7 +25394,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-08-ludique-v1694';
+  const SW_CACHE='requete-2026-10-08-ludique-v1695';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
