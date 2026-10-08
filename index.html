@@ -1231,6 +1231,34 @@
   .ij-sms.is-page:not(.is-play) .pg-badge{opacity:0}
   .ij-sms.is-page.is-play .pg-badge{animation:smsPop .35s cubic-bezier(.2,.8,.3,1.25) both calc(var(--t) + .35s)}
   .ij-sms.is-page.is-play .pg-pager i.on{animation:dbPing 1s ease calc(var(--to) + .1s)}
+  /* Précisions sous le nom (pg-subs) : une ou plusieurs, séparées par « · ». */
+  .is-page .pg-subs{font-size:11.5px;font-weight:600;line-height:1.35;color:var(--ink-3)}
+  .is-page .pg-subs .pg-sub{font-size:inherit}
+  /* Billets (layout tickets) : un talon coloré (l’agence), une ligne pointillée de découpe avec deux encoches, la mention de
+     l’événement, le nom, puis un tampon qui s’abat sur chaque billet après son arrivée. */
+  .pg-grid.is-tickets{grid-template-columns:minmax(0,1fr);gap:9px}
+  .pg-grid.is-tickets .pg-card{--cut:62px;flex-direction:row;align-items:stretch;gap:0;padding:0;border:1px solid var(--card-border);border-style:solid;border-radius:12px;background:#fff;-webkit-mask:radial-gradient(circle 7px at var(--cut) 0,#0000 97%,#000) top/100% 51% no-repeat,radial-gradient(circle 7px at var(--cut) 100%,#0000 97%,#000) bottom/100% 51% no-repeat;mask:radial-gradient(circle 7px at var(--cut) 0,#0000 97%,#000) top/100% 51% no-repeat,radial-gradient(circle 7px at var(--cut) 100%,#0000 97%,#000) bottom/100% 51% no-repeat}
+  .pg-stub{flex:none;width:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:10px 3px;background:var(--accent-grad,linear-gradient(135deg,#7C5CFF,#6A4DF4)) var(--accent);color:#fff;text-align:center}
+  .pg-stub.is-alt{background:linear-gradient(135deg,#14B8A6,#0F766E)}
+  .pg-stub small{font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+  .is-page .pg-stub .pg-city{font:800 14px/1.15 var(--display,var(--ui));color:#fff}
+  .pg-grid.is-tickets .pg-main{justify-content:center;gap:2px;padding:10px 10px 10px 12px;border-left:2px dashed #D7D1EE}
+  .pg-foot{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0}
+  .pg-foot .pg-subs{white-space:nowrap}
+  .pg-foot{flex-wrap:wrap;row-gap:3px}
+  @media (max-width:340px){.pg-grid.is-tickets .pg-foot{flex-direction:column;align-items:flex-start}}
+  @media (max-width:360px){.pg-grid.is-tickets .pg-card{--cut:52px}.pg-stub{width:52px}.pg-stub small{font-size:8px;letter-spacing:.04em}.is-page .pg-stub .pg-city{font-size:13px}.pg-grid.is-tickets .pg-main{padding:9px 8px 9px 10px}.pg-grid.is-tickets .pg-name{font-size:14px}.pg-stamp{padding:1px 4px;font-size:9.5px;letter-spacing:.04em}}
+  .pg-who{line-height:1.2}
+  .pg-kick{font-size:9.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--accent-ink)}
+  .pg-grid.is-tickets .pg-name{font-size:14.5px;line-height:1.2}
+  .pg-no{flex:none;align-self:flex-start;margin:10px 10px 0 0;font:700 10.5px/1 var(--mono);font-style:normal;color:var(--ink-3)}
+  .pg-stub .pg-no{align-self:center;margin:4px 0 0;font-size:9px;color:#fff;opacity:.8}
+  .pg-stamp{flex:none;padding:1px 6px;border:1.5px solid var(--success,#0F766E);border-radius:6px;font-style:normal;font-size:10px;font-weight:900;letter-spacing:.07em;line-height:1.5;text-transform:uppercase;color:var(--success,#0F766E);transform:rotate(-6deg);opacity:.9;pointer-events:none}
+  .ij-sms.is-page:not(.is-play) .pg-stamp{opacity:0}
+  .ij-sms.is-page.is-play .pg-stamp{animation:pgStamp .42s cubic-bezier(.2,.8,.3,1.25) both calc(var(--t) + .5s)}
+  .ij-sms.is-page.is-play .pg-card.is-ticket{animation:pgTicket .5s cubic-bezier(.25,.9,.3,1.2) both var(--t)}
+  @keyframes pgStamp{0%{opacity:0;transform:rotate(-6deg) scale(1.9)}70%{opacity:.95;transform:rotate(-6deg) scale(.94)}100%{opacity:.9;transform:rotate(-6deg) scale(1)}}
+  @keyframes pgTicket{from{opacity:0;transform:translateX(-14px) rotate(-1.5deg)}}
   @keyframes pgIn{from{opacity:0;transform:translateY(-4px)}}
   @keyframes dbShim{to{background-position:-150% 0}}
   @keyframes dbSk{from{opacity:1}to{opacity:0}}
@@ -6574,13 +6602,20 @@ function guidePage(m){
   rows.forEach((r,i)=>{
     if(m.group!=null&&raw(r[m.group])!==last){last=raw(r[m.group]);html+=`<p class="pg-group">${esc(last)}</p>`;}
     const top=m.rank!=null&&+r[m.rank]<=3;
-    html+=`<div class="pg-card${top?' is-top':''}" style="--t:calc(var(--t0,.15s) + .95s + ${i}*var(--sg,.28s))">${m.badge?`<em class="pg-badge">${esc(m.badge)}</em>`:''}`
-      +(m.rank!=null?v(m.rank,r,'pg-rank',medal(r[m.rank]),'i'):'')
-      +`<span class="pg-main">${v(m.name,r,'pg-name',esc(raw(r[m.name])),'b')}`
+    /* name : une colonne, ou plusieurs (prénom puis nom) ; sub : une précision ou plusieurs, séparées par « · ».
+       Billet (layout tickets) : stub = talon coloré (une colonne, ex. l’agence ; alt = valeur au talon d’une autre couleur),
+       kicker = mention au-dessus du nom, no = numéro du billet, stamp = tampon posé après l’arrivée du billet. */
+    const sub=s=>v(s.col,r,'pg-sub',esc(s.tpl.replace('{v}',raw(r[s.col])).replace('{s}',+r[s.col]>1?'s':'')));
+    const no=m.no?`<i class="pg-no">N°\u00a0${String(i+1).padStart(3,'0')}</i>`:'';
+    const stub=m.stub?`<span class="pg-stub${m.stub.alt!=null&&raw(r[m.stub.col])===m.stub.alt?' is-alt':''}">${m.stub.label?`<small>${esc(m.stub.label)}</small>`:''}${v(m.stub.col,r,'pg-city',esc(raw(r[m.stub.col])),'b')}${no}</span>`:'';
+    html+=`<div class="pg-card${top?' is-top':''}${m.layout==='tickets'?' is-ticket':''}" style="--t:calc(var(--t0,.15s) + .95s + ${i}*var(--sg,.28s))">${m.badge?`<em class="pg-badge">${esc(m.badge)}</em>`:''}`
+      +(m.rank!=null?v(m.rank,r,'pg-rank',medal(r[m.rank]),'i'):'')+stub
+      +`<span class="pg-main">${m.kicker?`<small class="pg-kick">${esc(m.kicker)}</small>`:''}${Array.isArray(m.name)?`<span class="pg-who">${m.name.map(c=>v(c,r,'pg-name',esc(raw(r[c])),'b')).join(' ')}</span>`:v(m.name,r,'pg-name',esc(raw(r[m.name])),'b')}`
       +(m.ref!=null?v(m.ref,r,'pg-ref',`Réf.\u00a0${esc(raw(r[m.ref]))}`,'small'):'')
-      +(m.sub?v(m.sub.col,r,'pg-sub',esc(m.sub.tpl.replace('{v}',raw(r[m.sub.col])).replace('{s}',+r[m.sub.col]>1?'s':'')),'small'):'')
+      +(m.sub||m.stamp?`<span class="pg-foot">${m.sub?`<small class="pg-subs">${[].concat(m.sub).map(sub).join(' · ')}</small>`:''}${m.stamp?`<em class="pg-stamp">${esc(m.stamp)}</em>`:''}</span>`:'')
       +(m.text!=null?v(m.text,r,'pg-text',esc(raw(r[m.text])),'small'):'')
       +`</span>`
+      +(m.stub?'':no)
       +(m.price!=null?v(m.price,r,'pg-price',fmtPrice(r[m.price])):'')
       +(m.group!=null?`<span class="db-x" data-c="${m.group}" data-v="${guideEsc(raw(r[m.group])).replace(/"/g,'&quot;')}" hidden></span>`:'')
       +`</div>`;
@@ -7315,7 +7350,8 @@ guide({ id:6, titre:"AND et OR", résumé:"Combiner plusieurs conditions",
           {step:"WHERE (ville = 'Paris' OR ville = 'Lyon') AND age > 30",s:"ne garde que les clients de Paris ou de Lyon qui ont plus de 30 ans"},
           {n:4,t:"⭐ clients à inviter",s:"Sophie Martin, Nathan Petit, Hugo Laurent et Léa Simon",dots:"1001011000",out:true}
         ],
-        sms:{ico:"🎟️",h:"Invitations à la conférence",aria:"Les quatre clients reçoivent leur invitation à la conférence sur la nutrition",msg:"Bonjour ! 🎉 Les agences de Paris et de Lyon vous invitent à une conférence sur la nutrition. Réservez votre place.",people:[["S","Sophie Martin","Paris · 34 ans"],["N","Nathan Petit","Paris · 31 ans"],["H","Hugo Laurent","Lyon · 52 ans"],["L","Léa Simon","Paris · 38 ans"]],done:"✓ 4 invitations envoyées"},
+        page:{ico:"🎟️",h:"Billets pour la conférence",aria:"Quatre billets d’invitation pour la conférence sur la nutrition : Sophie Martin, Nathan Petit et Léa Simon à l’agence de Paris, Hugo Laurent à l’agence de Lyon",chrome:false,layout:"tickets",stub:{col:2,label:"Agence",alt:"Lyon"},kicker:"Invitation",name:[0,1],sub:[{col:3,tpl:"{v} ans"}],no:true,stamp:"Envoyé",
+          rows:[["Sophie","Martin","Paris",34],["Nathan","Petit","Paris",31],["Hugo","Laurent","Lyon",52],["Léa","Simon","Paris",38]],done:"✓ 4 billets envoyés : 3 pour Paris, 1 pour Lyon"},
         fill:["WHERE","OR","AND","30"],
         ui:{t:"4 invités pour la conférence",s:"Ils habitent à Paris ou à Lyon et ont plus de 30 ans : la liste des invités est prête.",n:["SELECT","FROM","WHERE","OR","AND"]},
         rows:4
@@ -25398,7 +25434,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-08-ludique-v1701';
+  const SW_CACHE='requete-2026-10-08-ludique-v1702';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

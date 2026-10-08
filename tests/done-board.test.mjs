@@ -49,3 +49,15 @@ test('compteur des missions : data-ease="linear" suit un rythme régulier', () =
   assert.ok(src.includes("const lin=b.dataset.ease==='linear';"));
   assert.ok(src.includes('e=lin?p:1-Math.pow(1-p,3)'));
 });
+
+test('cours 6 (AND et OR) : le Résultat est une planche de billets d’invitation, talon par agence et tampon « Envoyé »', () => {
+  const l6 = vm.runInContext('MODULES.flatMap(m=>m.lessons).find(l=>l.id===6)', ctx);
+  const b6 = l6.studio.uses.body, c6 = b6.slice(b6.lastIndexOf('<div class="ij-done is-locked"'));
+  assert.ok(c6.includes('<div class="pg-grid is-tickets">'), 'mise en page « billets »');
+  assert.equal((c6.match(/<div class="pg-card is-ticket"/g) || []).length, 4, 'un billet par invité');
+  assert.equal((c6.match(/<span class="pg-stub is-alt">/g) || []).length, 1, 'un seul talon Lyon (autre couleur)');
+  assert.equal((c6.match(/<em class="pg-stamp">Envoyé<\/em>/g) || []).length, 4, 'un tampon par billet');
+  assert.ok(c6.includes('<span class="pg-who"><b class="db-x pg-name" data-c="0" data-v="Sophie">Sophie</b> <b class="db-x pg-name" data-c="1" data-v="Martin">Martin</b></span>'), 'prénom et nom sur la même ligne');
+  assert.ok(!c6.includes('ij-sms-bubble') && !c6.includes('ij-sms-list'), 'plus de bulle de message');
+  assert.ok(html.includes('@keyframes pgStamp{'), 'le tampon s’abat');
+});
