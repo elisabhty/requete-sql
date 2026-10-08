@@ -1102,7 +1102,7 @@
   @keyframes smsAv{to{background:var(--gs);color:var(--g);box-shadow:0 0 0 3px color-mix(in srgb,var(--g) 18%,transparent)}}
   @keyframes smsFlash{0%{background:#fff}35%{background:var(--gs)}100%{background:#fff}}
   @keyframes smsFill{to{transform:scaleX(1)}}
-  @media (prefers-reduced-motion:reduce){.ij-sms,.ij-sms *,.ij-sms *::after{animation:none!important}.ij-sms .ij-sms-list li,.ij-sms .ij-sms-bubble,.ij-sms .ij-sms-meter,#scr-lesson .ij-sms-done,.ij-sms-st .is-sent{opacity:1!important}.ij-sms-st .is-idle,.ij-sms-typing,.ij-sms-plane{display:none!important}.ij-sms-meter i::after{transform:none}}
+  @media (prefers-reduced-motion:reduce){.ij-sms,.ij-sms *,.ij-sms *::before,.ij-sms *::after{animation:none!important}.ij-sms .ij-sms-list li,.ij-sms .ij-sms-bubble,.ij-sms .ij-sms-meter,#scr-lesson .ij-sms-done,.ij-sms-st .is-sent{opacity:1!important}.ij-sms-st .is-idle,.ij-sms-typing,.ij-sms-plane{display:none!important}.ij-sms-meter i::after{transform:none}}
   /* Mission « dashboard » (guideBoard) : indicateur, graphique et tableau. Avant la lecture, des cases grises qui scintillent
      (chargement) à la taille des textes ; à la lecture, les en-têtes du tableau apparaissent, puis chaque ligne se remplit
      avec sa barre du graphique, pendant que l’indicateur compte les lignes. L’état final est le style de base. */
@@ -1277,6 +1277,45 @@
   @keyframes pgStamp{0%{opacity:0;transform:rotate(var(--rot,-6deg)) scale(1.9)}70%{opacity:.95;transform:rotate(var(--rot,-6deg)) scale(.94)}100%{opacity:.9;transform:rotate(var(--rot,-6deg)) scale(1)}}
   @keyframes pgTicket{from{opacity:0;transform:translateX(-14px) rotate(-1.5deg)}}
   @keyframes pgIn{from{opacity:0;transform:translateY(-4px)}}
+  /* Socle des objets à thème (guidePage) : pile de cartes (show / tail / keep, « … et N autres »), carte en alerte (warn),
+     pastille ambre (flag, tag), grand tampon final (seal), noms reliés (sep), précision en police code (sub mono).
+     L’état de base est l’état final (mouvement réduit) : les états cachés ne vivent que sous :not(.is-play) ou dans un from
+     joué avec fill both. Pile : chaque carte empilée glisse de 5 px sous la précédente, écart de la grille compris (--pg-gap,
+     9 px par défaut : une grille à pile dont l’écart vertical diffère redéfinit --pg-gap) ; seuls 3 px de chacune dépassent,
+     de plus en plus étroits ; elles passent derrière (isolation de la grille, z-index négatif). Le libellé de la pile passe à la
+     ligne plutôt que d’être coupé (« … et 3 autres billets duo à Paris » ne tient pas sur une ligne à 320 px). */
+  .ij-sms.is-page .pg-grid .pg-card.is-stacked{height:8px;min-height:0;margin:calc(-5px - var(--pg-gap,9px)) calc(10px + var(--k)*6px) 0;padding:0;overflow:hidden;border-radius:0 0 10px 10px;box-shadow:0 1px 0 #E4DFF5;-webkit-mask:none;mask:none;z-index:calc(-1 - var(--k))}
+  .pg-card.is-stacked>*{visibility:hidden}
+  .pg-card.is-deep{display:none}
+  .pg-grid.has-pile{isolation:isolate}
+  .pg-grid.has-pile>*{order:0}
+  .pg-grid.has-pile>.is-stacked{order:1}
+  .pg-grid.has-pile>.pg-more{order:2}
+  .pg-grid.has-pile>.is-tail{order:3}
+  .pg-more{grid-column:1/-1;flex-basis:100%;text-align:center;font-size:11.5px;font-weight:700;font-style:italic;line-height:1.35;color:var(--ink-3);text-wrap:balance}
+  .pg-flag{display:inline-block;width:fit-content;padding:1px 6px;border-radius:999px;background:#FEF3C7;color:#92400E;font-style:normal;font-size:9.5px;font-weight:800;line-height:1.5;white-space:nowrap}
+  .is-page .pg-grid .pg-card.is-warn{border:1.5px dashed #F59E0B!important;background:#FFFBEB}
+  .pg-stamp.is-warn{border-color:#D97706;color:#B45309}
+  .pg-body:has(>.pg-seal){position:relative}
+  .pg-seal{position:absolute;right:12px;bottom:14px;z-index:2;max-width:70%;padding:3px 10px;border:3px double var(--success,#0F766E);border-radius:8px;font:900 17px/1.2 var(--display,var(--ui));letter-spacing:.08em;text-transform:uppercase;color:var(--success,#0F766E);--rot:-8deg;transform:rotate(var(--rot));opacity:.85;pointer-events:none}
+  .pg-sep{font-style:normal;font-weight:800;color:var(--accent-ink);margin:0 2px}
+  .pg-who:has(>.pg-sep){overflow-wrap:anywhere}
+  .is-page .pg-sub.is-mono{font-family:var(--mono);white-space:nowrap}
+  /* Le pied « ✓ … » attend la fin du dernier geste : --extra se règle ici (jamais dans l’attribut style de la carte). */
+  .ij-sms.is-page:has(.pg-seal){--extra:.7s}
+  .ij-sms.is-page:not(.is-play) .pg-more,.ij-sms.is-page:not(.is-play) .pg-flag,.ij-sms.is-page:not(.is-play) .pg-seal{opacity:0}
+  .ij-sms.is-page.is-play .pg-grid .pg-card.is-stacked{animation:pgPile .3s ease both calc(var(--t) + var(--k)*.06s)}
+  .ij-sms.is-page.is-play .pg-more{animation:smsPop .35s cubic-bezier(.2,.8,.3,1.25) both calc(var(--t) + .3s)}
+  .ij-sms.is-page.is-play .pg-flag{animation:smsPop .35s cubic-bezier(.2,.8,.3,1.25) both calc(var(--t) + .35s)}
+  .ij-sms.is-page.is-play .pg-seal{animation:pgStamp .5s cubic-bezier(.2,.8,.3,1.25) both var(--to)}
+  @keyframes pgPile{from{opacity:0;transform:translateY(-6px)}}
+  /* Objets à thème : une famille par repère (CSS de la famille juste en dessous de son repère). */
+  /* @themed:wallet:css */
+  /* @themed:envelope:css */
+  /* @themed:screen:css */
+  /* @themed:doc:css */
+  /* @themed:lanes:css */
+  /* @themed:calendar:css */
   @keyframes dbShim{to{background-position:-150% 0}}
   @keyframes dbSk{from{opacity:1}to{opacity:0}}
   @keyframes dbTxt{from{color:transparent;transform:translateY(3px)}}
@@ -6607,7 +6646,21 @@ function guideChips(m){
 /* Page du site (page) : une fenêtre de navigateur (url), une bannière, puis une carte par ligne du résultat, qui se remplit.
    Champs d’une carte (index de colonne) : name, price (fmt : "eur" 29,90 €, "des" Dès 29 €), sub:{col,tpl:"{v} produits"},
    text, ref (« Réf. 7 »), rank (médaille), group (titres de groupe). layout : grid (2 colonnes), list, podium ; badge sur
-   chaque carte ; pager:{page,of} ; chrome:false = sans barre de navigateur (ex. une planche d’étiquettes). */
+   chaque carte ; pager:{page,of} ; chrome:false = sans barre de navigateur (ex. une planche d’étiquettes).
+   Socle commun à toutes les mises en page (objets à thème) :
+   - étapes : S = rang visuel de la carte (une étape par carte visible, une seule pour toute la pile), --n = nombre
+     d’étapes ; delay : décalage fixe de toutes les cartes (en s) ; sg : rythme (sinon celui de la mise en page) ;
+   - pile : show (premières lignes montrées), tail (dernières), keep:[i] (lignes gardées en vue),
+     more:"… et {n} autres bons" ; les autres lignes s’empilent (is-stacked, --k = rang dans la pile, is-deep dès la 4e),
+     toujours dans le DOM, dans l’ordre du résultat ; l’ordre visuel (montrées, pile, libellé, dernières) vient du CSS ;
+   - affichage (data-v reste la valeur brute) : alias:{"ligne:col":"Nathan P."}, sep:" & " entre les noms, subTxt (ligne fixe
+     sans sub), sub:[{col, tpl:"{v}" par défaut, map:{brut:affiché}, fmt:"short" (2 juil.) | "long" (30 juillet 2026),
+     nul:"sans email", mono:true}] ;
+   - alertes : warn:{col, val (null = NULL), txt, skip} (carte ambre, tampon txt, jamais empilée), flag:{col,val,txt} et
+     tag:{ligne:"txt"} (pastille ambre), seal:"Transmise" (grand tampon final), tone (data-tone sur la grille), look
+     (is-<look> sur la grille) ;
+   - report automatique : les colonnes qu’une carte ne montre pas y sont ajoutées, cachées (data-c, data-v) : chaque carte
+     porte toujours toutes les colonnes de sa ligne (contrôle des pages). */
 /* QR code d’allure réaliste pour un billet (motif décoratif, non lisible) : grille 21 × 21, trois repères d’angle et lignes
    de synchronisation comme un vrai QR, le reste tiré d’une graine (le contenu du billet) : chaque billet a le sien, toujours le même. */
 function guideQr(seed){
@@ -6625,38 +6678,93 @@ function guideQr(seed){
   return `<svg viewBox="-1 -1 23 23" shape-rendering="crispEdges" aria-hidden="true"><path d="${d}"/></svg>`;
 }
 function guidePage(m){
-  const rows=m.rows,n=rows.length,sg=m.sg||(n>6?0.2:0.28),esc=t=>guideFr(guideEsc(t));
+  const rows=m.rows,n=rows.length,esc=t=>guideFr(guideEsc(t)),attr=t=>guideEsc(t).replace(/"/g,'&quot;');
   const raw=v=>v==null?'NULL':typeof v==='number'&&!Number.isInteger(v)?String(+v.toFixed(2)):String(v);
-  const dec=m.price!=null&&rows.some(r=>!Number.isInteger(+r[m.price]))?2:0,eur=v=>(+v).toFixed(dec).replace('.',',')+'\u00a0€';
-  const fmtPrice=v=>m.fmt==='des'?`Dès\u00a0${Math.trunc(+v)}\u00a0€`:eur(v);
+  const dec=m.price!=null&&rows.some(r=>!Number.isInteger(+r[m.price]))?2:0,eur=v=>(+v).toFixed(dec).replace('.',',')+' €';
+  const fmtPrice=v=>m.fmt==='des'?`Dès ${Math.trunc(+v)} €`:eur(v);
   const medal=r=>({1:'🥇',2:'🥈',3:'🥉'})[r]||`${r}ᵉ`;
-  const v=(c,r,cls,txt,tag)=>`<${tag||'span'} class="db-x ${cls}" data-c="${c}" data-v="${guideEsc(raw(r[c])).replace(/"/g,'&quot;')}">${txt}</${tag||'span'}>`;
-  let last=null,html='';
+  /* Date du résultat (AAAA-MM-JJ) en toutes lettres : "short" → 2 juil., "long" → 30 juillet 2026 (le 1er du mois : 1er). */
+  const fmtDate=(s,f)=>{const d=/^(\d{4})-(\d{2})-(\d{2})/.exec(s);if(!d)return s;const j=+d[3],k=+d[2]-1;
+    return `${j===1?'1er':j} ${f==='long'?['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'][k]+' '+d[1]:['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'][k]}`;};
+  /* Chaque valeur montrée est une donnée : data-c (colonne) et data-v (valeur brute, même quand le texte affiché diffère :
+     alias, date, map, nul). used retient les colonnes déjà montrées par la carte en cours ; les autres y sont reportées,
+     cachées, juste avant sa fermeture. */
+  let used=new Set();
+  const v=(c,r,cls,txt,tag)=>{used.add(+c);return `<${tag||'span'} class="db-x ${cls}" data-c="${c}" data-v="${attr(raw(r[c]))}">${txt}</${tag||'span'}>`;};
+  const is=(r,o)=>!!o&&raw(r[o.col])===raw(o.val===undefined?null:o.val);
+  const shown=(c,col)=>{const a=m.alias&&m.alias[`${c.i}:${col}`];return a!=null?a:raw(c.r[col]);};
+  /* Temps de l’étape S (rang visuel, et non plus rang de la ligne) ; delay décale toutes les cartes. */
+  const t95=m.delay?`${+(0.95+(+m.delay)).toFixed(3)}s`:'.95s';
+  const tAt=S=>`calc(var(--t0,.15s) + ${t95} + ${S}*var(--sg,.28s))`;
+  /* Morceaux d’une carte (c = contexte de la ligne), réutilisables par chaque mise en page. */
+  const kickH=()=>m.kicker?`<small class="pg-kick">${esc(m.kicker)}</small>`:'';
+  const nameH=(c,cls)=>{const one=col=>v(col,c.r,cls||'pg-name',esc(shown(c,col)),'b');
+    return Array.isArray(m.name)?`<span class="pg-who">${m.name.map(one).join(m.sep?`<i class="pg-sep">${esc(m.sep)}</i>`:' ')}</span>`:one(m.name);};
+  const subTxt=(c,s)=>{const rv=raw(c.r[s.col]),a=m.alias&&m.alias[`${c.i}:${s.col}`];
+    const d=a!=null?a:rv==='NULL'&&s.nul!=null?s.nul:s.map&&s.map[rv]!=null?s.map[rv]:s.fmt?fmtDate(rv,s.fmt):rv;
+    return (s.tpl||'{v}').replace('{v}',()=>d).replace('{s}',+c.r[s.col]>1?'s':'');};
+  const subH=(c,s,cls)=>v(s.col,c.r,(cls||'pg-sub')+(s.mono?' is-mono':''),esc(subTxt(c,s)));
+  const subsH=c=>m.sub?`<small class="pg-subs">${[].concat(m.sub).map(s=>subH(c,s)).join(' · ')}</small>`:m.subTxt?`<small class="pg-subs">${esc(m.subTxt)}</small>`:'';
+  const stampH=c=>c.warn&&m.warn.txt?`<em class="pg-stamp is-warn">${esc(m.warn.txt)}</em>`:m.stamp?`<em class="pg-stamp">${esc(m.stamp)}</em>`:'';
+  const footH=c=>{const a=subsH(c),b=stampH(c);return a||b?`<span class="pg-foot">${a}${b}</span>`:'';};
+  const flagsH=c=>(is(c.r,m.flag)?`<em class="pg-flag">${esc(m.flag.txt)}</em>`:'')+(m.tag&&m.tag[c.i]!=null?`<em class="pg-flag">${esc(m.tag[c.i])}</em>`:'');
+  const noH=c=>m.no?`<i class="pg-no">N° ${String(c.i+1).padStart(3,'0')}</i>`:'';
+  const qrH=c=>`<span class="pg-qr">${guideQr(c.r.join('|')+'#'+c.i)}</span>`;
+  const stubH=c=>m.stub?`<span class="pg-stub${m.stub.alt!=null&&raw(c.r[m.stub.col])===m.stub.alt?' is-alt':''}">${m.stub.label?`<small>${esc(m.stub.label)}</small>`:''}${v(m.stub.col,c.r,'pg-city',esc(raw(c.r[m.stub.col])),'b')}${m.qr?qrH(c):''}${noH(c)}</span>`:'';
+  /* Carte par défaut (grid, list, podium, tickets). */
+  const item=c=>(m.badge?`<em class="pg-badge">${esc(m.badge)}</em>`:'')
+    +(m.rank!=null?v(m.rank,c.r,'pg-rank',medal(c.r[m.rank]),'i'):'')+stubH(c)
+    +`<span class="pg-main">${kickH()}${nameH(c)}${flagsH(c)}`
+    +(m.ref!=null?v(m.ref,c.r,'pg-ref',`Réf. ${esc(raw(c.r[m.ref]))}`,'small'):'')
+    +footH(c)
+    +(m.text!=null?v(m.text,c.r,'pg-text',esc(raw(c.r[m.text])),'small'):'')
+    +`</span>`+(m.stub?'':noH(c))
+    +(m.price!=null?v(m.price,c.r,'pg-price',fmtPrice(c.r[m.price])):'');
+  /* Objets à thème : chaque famille complète L sous son repère, quand m.layout la désigne. Tout est facultatif.
+     item(c) : contenu de la carte, c = {r, i, S, t, pile, k, tail, warn, skip} ; cls : classe de la carte ("is-coupon", ou
+     fonction de c) ; attr(c) : attributs en plus, avant style ; style(c) : début du style, avant --t (ex. "grid-area:3/4;") ;
+     kind : nom de la grille (is-<kind>, sinon is-<layout>) ; gridCls : classes en plus sur la grille ; grid : attributs en plus
+     sur la grille ; win : classes de la fenêtre (" is-phone", à la place de " is-sheet") ; bar : barre du haut (à la place de
+     celle du navigateur) ; body : classe en plus sur .pg-body ; pre : décor avant la grille ; head : décor dans la grille,
+     avant la 1re carte ; post : décor après la grille (pre, head, post, bar : texte ou fonction) ; sg : rythme par défaut ;
+     step(i, S) : étape de la ligne i (à la place de S), avec n : nombre d’étapes (--n).
+     Contrôle des pages : une carte <div class="pg-card…"> par ligne, dans l’ordre du résultat ; aucune autre classe ne
+     commence par pg-card ; aucun décor ne porte data-c (les valeurs passent par v, nameH, subH…). */
+  const L={cls:m.layout==='tickets'?'is-ticket':''};
+  /* @themed:wallet:js */
+  /* @themed:envelope:js */
+  /* @themed:screen:js */
+  /* @themed:doc:js */
+  /* @themed:lanes:js */
+  /* @themed:calendar:js */
+  /* Pile : une ligne s’empile si elle n’est ni parmi les show premières, ni parmi les tail dernières, ni dans keep, ni en
+     alerte (warn, skip). Une seule ligne à empiler : autant la montrer. Étapes : cartes montrées (ordre du résultat),
+     puis la pile (une étape), puis les dernières. */
+  const keep=new Set([].concat(m.keep||[])),warnAt=i=>is(rows[i],m.warn),skipAt=i=>(warnAt(i)&&!!m.warn.skip)||is(rows[i],m.skip);
+  const show=m.show!=null?Math.max(0,m.show):n,tail=Math.max(0,Math.min(m.tail||0,n-show));
+  let pile=rows.map((_,i)=>i>=show&&i<n-tail&&!keep.has(i)&&!warnAt(i)&&!skipAt(i));
+  if(pile.filter(Boolean).length<2)pile=pile.map(()=>false);
+  const nPile=pile.filter(Boolean).length,isTail=i=>nPile>0&&i>=n-tail,S=[];
+  let s=0;
+  rows.forEach((_,i)=>{if(!pile[i]&&!isTail(i))S[i]=s++;});
+  const sPile=nPile?s++:null;
+  rows.forEach((_,i)=>{if(pile[i])S[i]=sPile;else if(isTail(i))S[i]=s++;});
+  if(L.step)rows.forEach((_,i)=>{S[i]=L.step(i,S[i]);});
+  const nSteps=L.n!=null?L.n:s,sg=m.sg||L.sg||(nSteps>6?0.2:0.28);
+  let k=0,last=null,html='';
   rows.forEach((r,i)=>{
     if(m.group!=null&&raw(r[m.group])!==last){last=raw(r[m.group]);html+=`<p class="pg-group">${esc(last)}</p>`;}
-    const top=m.rank!=null&&+r[m.rank]<=3;
-    /* name : une colonne, ou plusieurs (prénom puis nom) ; sub : une précision ou plusieurs, séparées par « · ».
-       Billet (layout tickets) : stub = talon coloré (une colonne, ex. l’agence ; alt = valeur au talon d’une autre couleur),
-       kicker = mention au-dessus du nom, no = numéro du billet, stamp = tampon posé après l’arrivée du billet. */
-    const sub=s=>v(s.col,r,'pg-sub',esc(s.tpl.replace('{v}',raw(r[s.col])).replace('{s}',+r[s.col]>1?'s':'')));
-    const no=m.no?`<i class="pg-no">N°\u00a0${String(i+1).padStart(3,'0')}</i>`:'';
-    const stub=m.stub?`<span class="pg-stub${m.stub.alt!=null&&raw(r[m.stub.col])===m.stub.alt?' is-alt':''}">${m.stub.label?`<small>${esc(m.stub.label)}</small>`:''}${v(m.stub.col,r,'pg-city',esc(raw(r[m.stub.col])),'b')}${m.qr?`<span class="pg-qr">${guideQr(r.join('|')+'#'+i)}</span>`:''}${no}</span>`:'';
-    html+=`<div class="pg-card${top?' is-top':''}${m.layout==='tickets'?' is-ticket':''}" style="--t:calc(var(--t0,.15s) + .95s + ${i}*var(--sg,.28s))">${m.badge?`<em class="pg-badge">${esc(m.badge)}</em>`:''}`
-      +(m.rank!=null?v(m.rank,r,'pg-rank',medal(r[m.rank]),'i'):'')+stub
-      +`<span class="pg-main">${m.kicker?`<small class="pg-kick">${esc(m.kicker)}</small>`:''}${Array.isArray(m.name)?`<span class="pg-who">${m.name.map(c=>v(c,r,'pg-name',esc(raw(r[c])),'b')).join(' ')}</span>`:v(m.name,r,'pg-name',esc(raw(r[m.name])),'b')}`
-      +(m.ref!=null?v(m.ref,r,'pg-ref',`Réf.\u00a0${esc(raw(r[m.ref]))}`,'small'):'')
-      +(m.sub||m.stamp?`<span class="pg-foot">${m.sub?`<small class="pg-subs">${[].concat(m.sub).map(sub).join(' · ')}</small>`:''}${m.stamp?`<em class="pg-stamp">${esc(m.stamp)}</em>`:''}</span>`:'')
-      +(m.text!=null?v(m.text,r,'pg-text',esc(raw(r[m.text])),'small'):'')
-      +`</span>`
-      +(m.stub?'':no)
-
-      +(m.price!=null?v(m.price,r,'pg-price',fmtPrice(r[m.price])):'')
-      +(m.group!=null?`<span class="db-x" data-c="${m.group}" data-v="${guideEsc(raw(r[m.group])).replace(/"/g,'&quot;')}" hidden></span>`:'')
-      +`</div>`;
+    used=new Set();
+    const c={r,i,S:S[i],t:tAt(S[i]),pile:pile[i],k:pile[i]?k++:null,tail:isTail(i),warn:warnAt(i),skip:skipAt(i)};
+    const top=m.rank!=null&&+r[m.rank]<=3,cls=typeof L.cls==='function'?L.cls(c):L.cls,body=(L.item||item)(c);
+    html+=`<div class="pg-card${top?' is-top':''}${cls?' '+cls:''}${c.warn?' is-warn':''}${c.skip?' is-skip':''}${c.pile?' is-stacked'+(c.k>=3?' is-deep':''):''}${c.tail?' is-tail':''}"${L.attr?L.attr(c):''} style="${L.style?L.style(c):''}--t:${c.t}${c.pile?`;--k:${c.k}`:''}"${c.pile?' aria-hidden="true"':''}>${body}`
+      +r.map((x,j)=>used.has(j)?'':`<span class="db-x" data-c="${j}" data-v="${attr(raw(x))}" hidden></span>`).join('')+`</div>`;
   });
+  const part=x=>typeof x==='function'?x():(x||'');
+  const more=nPile?`<div class="pg-more" style="--t:${tAt(sPile)}">${esc(String(m.more||'… et {n} autres').replace('{n}',nPile))}</div>`:'';
   const pager=m.pager?`<nav class="pg-pager" aria-label="Pages">${['‹',...Array.from({length:m.pager.of},(_,k)=>k+1),'›'].map(x=>`<i${x===m.pager.page?' class="on"':''}>${x}</i>`).join('')}</nav>`:'';
-  const bar=m.chrome===false?'':`<div class="pg-bar" aria-hidden="true"><i></i><i></i><i></i><span class="pg-url">${guideEsc(m.url||'boutique')}</span></div>`;
-  return `<div class="ij-sms is-board is-page" style="--n:${n};--sg:${sg}s" data-total="${n}" role="group" aria-label="${guideEsc(m.aria||m.h).replace(/"/g,'&quot;')}"><p class="ij-sms-h"><i aria-hidden="true">${m.ico||'🛍️'}</i>${guideFr(m.h)}</p><div class="pg-win${m.chrome===false?' is-sheet':''}">${bar}<div class="pg-body">${m.banner?`<div class="pg-banner"><b>${esc(m.banner)}</b>${m.sub2?`<small>${esc(m.sub2)}</small>`:''}</div>`:''}<div class="pg-grid is-${m.layout||'grid'}">${html}</div>${pager}</div></div><p class="ij-sms-done">${guideFr(m.done)}</p></div>`;
+  const bar=L.bar!=null?part(L.bar):m.chrome===false?'':`<div class="pg-bar" aria-hidden="true"><i></i><i></i><i></i><span class="pg-url">${guideEsc(m.url||'boutique')}</span></div>`;
+  return `<div class="ij-sms is-board is-page" style="--n:${nSteps};--sg:${sg}s" data-total="${n}" role="group" aria-label="${attr(m.aria||m.h)}"><p class="ij-sms-h"><i aria-hidden="true">${m.ico||'🛍️'}</i>${guideFr(m.h)}</p><div class="pg-win${L.win!=null?L.win:m.chrome===false?' is-sheet':''}">${bar}<div class="pg-body${L.body||''}">${m.banner?`<div class="pg-banner"><b>${esc(m.banner)}</b>${m.sub2?`<small>${esc(m.sub2)}</small>`:''}</div>`:''}${part(L.pre)}<div class="pg-grid is-${L.kind||m.layout||'grid'}${nPile?' has-pile':''}${m.look?' is-'+m.look:''}${L.gridCls||''}"${m.tone?` data-tone="${attr(m.tone)}"`:''}${L.grid||''}>${part(L.head)}${html}${more}</div>${pager}${part(L.post)}${m.seal?`<em class="pg-seal" aria-hidden="true">${esc(m.seal)}</em>`:''}</div></div><p class="ij-sms-done">${guideFr(m.done)}</p></div>`;
 }
 function guideDoneCard(d){
   return `<div class="ij-done is-locked" role="note" aria-label="Mission accomplie" aria-live="polite"><div class="ij-done-head"><span class="ij-done-ico" aria-hidden="true">🎯</span><p class="ij-done-t">Mission accomplie</p></div>${guideFunnel(d)}${d.sms?guideSms(d.sms):''}${d.board?guideBoard(d.board):''}${d.chips?guideChips(d.chips):''}${d.page?guidePage(d.page):''}</div>`;

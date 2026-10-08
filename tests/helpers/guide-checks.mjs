@@ -215,6 +215,11 @@ export function checkGuideLesson(env, l) {
     const cards = page[0].split('<div class="pg-card').slice(1).map(cd => { const a = []; for (const m of cd.matchAll(/data-c="(\d+)" data-v="([^"]*)"/g)) a[+m[1]] = decode(m[2]); return a; });
     assert.equal(cards.length, nRows, `${l.titre} : une carte par ligne du résultat`);
     cards.forEach((a, i) => assert.equal(JSON.stringify(a), JSON.stringify(resMission.values[i].map(raw2)), `${l.titre} : la carte ${i + 1} montre toutes les colonnes de la ligne ${i + 1} du résultat`));
+    /* Le parcours qui nomme une personne (ou un identifiant) par ligne du résultat (« Sophie Martin, Nathan Petit et Léa
+       Simon ») les cite dans l'ordre du résultat, donc des cartes. Sinon (colonnes, effectifs par catégorie…), rien à comparer. */
+    const small = unitFree || unitCols ? null : /is-out"><b>\d+<\/b><span>[^<]*<small>([^<]*)<\/small>/.exec(lastUse);
+    const names = small ? decode(small[1]).replace(/ et /g, ', ').split(', ') : [];
+    if (names.length === nRows) assert.deepEqual(names, resMission.values.map(whoOf), `${l.titre} : le parcours cite les personnes des cartes, dans l'ordre du résultat`);
   }
   /* Tableaux « à tester » (balayage ligne par ligne) : chaque verdict est celui de la condition, sur de vraies lignes de la table. */
   for (const blk of body.match(/<div class="rt-wrap"[\s\S]*?<span class="rt-hint">/g) || []) {
