@@ -116,31 +116,11 @@ export function checkGuideLesson(env, l) {
   if (unitFree) { /* rien à comparer avec le résultat */ }
   else if (unitCols) assert.equal(outN, resMission.columns.length, `${l.titre} : la requête de la mission renvoie ${resMission.columns.length} colonnes, le parcours en annonce ${outN}`);
   else assert.equal(outN, nRows, `${l.titre} : la requête de la mission renvoie ${nRows} lignes, le parcours en annonce ${outN}`);
-  /* Les personnes citées (liste d'envois et parcours) sont celles que renvoie la requête : « prénom nom », et leur contact. */
+  /* Une personne du résultat, telle que le parcours la cite : « prénom nom » (ou la 1re colonne, ex. un numéro de commande). */
   const col = c => resMission.columns.indexOf(c);
   const whoOf = row => (col('prenom') >= 0 && col('nom') >= 0 ? `${row[col('prenom')]} ${row[col('nom')]}` : String(row[col('prenom') >= 0 ? col('prenom') : col('nom') >= 0 ? col('nom') : 0]));
-  /* Le contact affiché sous chaque personne vient d'une colonne du résultat : email, téléphone ou adresse (la même pour tout le monde). */
-  const contactCols = !resMission ? [] : ['email', 'telephone', 'adresse'].map(col).filter(i => i >= 0);
-  const peopleHtml = unitFree ? [] : [...lastUse.matchAll(/<span class="ij-sms-who">([^<]*)<small>([^<]*)<\/small>/g)].map(m => [decode(m[1]), decode(m[2])]);
-  if (peopleHtml.length) {
-    /* Liste d'envois : toutes les personnes du résultat, ou les premières puis une ligne « … et N autres » (class="is-more"). */
-    const more = /<li class="is-more" style="--i:\d+"><b class="ij-sms-av" aria-hidden="true">\+(\d+)<\/b>/.exec(lastUse);
-    const want = resMission.values.slice(0, peopleHtml.length);
-    assert.equal(peopleHtml.length + (more ? +more[1] : 0), nRows, `${l.titre} : la liste d'envois montre ${peopleHtml.length} personnes${more ? ` et annonce ${more[1]} autres` : ''}, la requête en renvoie ${nRows}`);
-    /* Un nom peut être précisé par l'initiale du nom de famille (« Nathan P. ») quand deux clients ont le même prénom. */
-    assert.ok(peopleHtml.every((p, k) => p[0] === whoOf(want[k]) || p[0].startsWith(whoOf(want[k]) + ' ')), `${l.titre} : les personnes de la liste d'envois sont celles de la requête de la mission`);
-    /* Le contact peut être accompagné d'autres colonnes (« Paris · 06 … », « sophie@mail.fr · 2 juillet ») ; sans email (NULL) : « sans email ». */
-    const hasContact = (p, v) => p[1] === String(v) || p[1].split(' · ').includes(String(v)) || (v === null && /^sans /.test(p[1]));
-    if (contactCols.length) assert.ok(contactCols.some(i => peopleHtml.every((p, k) => hasContact(p, want[k][i]))), `${l.titre} : chaque personne a, sous son nom, son email, son téléphone ou son adresse tel que le renvoie la requête (colonnes ${contactCols.map(i => resMission.columns[i]).join(', ')})`);
-    if (!more && !unitCols) {
-      const funnelWho = /is-out"><b>\d+<\/b><span>[^<]*<small>([^<]*)<\/small>/.exec(lastUse)[1].replace(/ et /g, ', ').split(', ');
-      assert.deepEqual(funnelWho, resMission.values.map(whoOf), `${l.titre} : le parcours cite les mêmes personnes, dans le même ordre`);
-    }
-  }
   const lit = (/is-out">[\s\S]*?<\/li>/.exec(lastUse)[0].match(/class="is-null"/g) || []).length;
   if (!unitFree) assert.equal(lit, outN, `${l.titre} : autant de points allumés que de lignes gardées`);
-  const sms = /ij-sms(?: is-mail)?(?: is-flat)?(?: is-icons)?" style="--n:(\d+);--sg:[\d.]+s"/.exec(lastUse);
-  if (sms) assert.equal(+sms[1], (lastUse.match(/<li(?: class="is-(?:more|skip)")? style="--i:/g) || []).length, `${l.titre} : nombre d'envois`);
   /* Dashboard (guideBoard) : les en-têtes sont les colonnes du résultat (leurs alias), les lignes ses valeurs, dans l'ordre
      (les premières, puis éventuellement « … et N autres » et les dernières) ; data-total = nombre de lignes ; le compteur compte
      les lignes (ou les lignes repérées, ou les colonnes) ; le graphique a une barre par ligne, à la hauteur de la valeur de la
@@ -215,6 +195,11 @@ export function checkGuideLesson(env, l) {
     const cards = page[0].split('<div class="pg-card').slice(1).map(cd => { const a = []; for (const m of cd.matchAll(/data-c="(\d+)" data-v="([^"]*)"/g)) a[+m[1]] = decode(m[2]); return a; });
     assert.equal(cards.length, nRows, `${l.titre} : une carte par ligne du résultat`);
     cards.forEach((a, i) => assert.equal(JSON.stringify(a), JSON.stringify(resMission.values[i].map(raw2)), `${l.titre} : la carte ${i + 1} montre toutes les colonnes de la ligne ${i + 1} du résultat`));
+    /* Le parcours qui nomme une personne (ou un identifiant) par ligne du résultat (« Sophie Martin, Nathan Petit et Léa
+       Simon ») les cite dans l'ordre du résultat, donc des cartes. Sinon (colonnes, effectifs par catégorie…), rien à comparer. */
+    const small = unitFree || unitCols ? null : /is-out"><b>\d+<\/b><span>[^<]*<small>([^<]*)<\/small>/.exec(lastUse);
+    const names = small ? decode(small[1]).replace(/ et /g, ', ').split(', ') : [];
+    if (names.length === nRows) assert.deepEqual(names, resMission.values.map(whoOf), `${l.titre} : le parcours cite les personnes des cartes, dans l'ordre du résultat`);
   }
   /* Tableaux « à tester » (balayage ligne par ligne) : chaque verdict est celui de la condition, sur de vraies lignes de la table. */
   for (const blk of body.match(/<div class="rt-wrap"[\s\S]*?<span class="rt-hint">/g) || []) {

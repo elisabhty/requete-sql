@@ -5,7 +5,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {guideEnv, checkGuideLesson} from './helpers/guide-checks.mjs';
+import {guideEnv, checkGuideLesson, openDb, decode} from './helpers/guide-checks.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const env = await guideEnv(root);
@@ -64,4 +64,107 @@ test('cours 6 (AND et OR) : le Résultat est une planche de billets d’invitati
   assert.equal(qrs.length, 4, 'un QR code par billet, sur le talon');
   assert.equal(new Set(qrs).size, 4, 'chaque billet a son propre QR code');
   assert.ok(qrs.every(d => d.startsWith('M0 0h7v1h-7z')), 'repère d’angle en haut à gauche, comme un vrai QR code');
+});
+
+/* Objets à thème (guidePage) : la structure de chaque mise en page, sur le modèle des billets du cours 6. Le protocole des
+   pages reste celui du contrôle (tests/helpers/guide-checks.mjs) : une carte pg-card par ligne du résultat, dans l'ordre (cartes
+   empilées comprises), chacune avec toutes les colonnes de sa ligne (data-c, data-v). */
+const themed = [1, 4, 5, 22, 7, 8, 9, 53, 21, 18, 42, 45, 55, 59, 80, 78, 57, 35];
+const lessonOf = id => vm.runInContext(`MODULES.flatMap(m=>m.lessons).find(l=>l.id===${id})`, ctx);
+const doneOf = id => { const b = lessonOf(id).studio.uses.body; return b.slice(b.lastIndexOf('<div class="ij-done is-locked"')); };
+const count = (s, re) => (s.match(re) || []).length;
+const withBody = (l, b) => Object.assign({}, l, {studio: Object.assign({}, l.studio, {uses: Object.assign({}, l.studio.uses, {body: b})})});
+/* Résultat réel de la requête de la mission (la dernière du cours). */
+const missionOf = id => {
+  const b = lessonOf(id).studio.uses.body, last = b.slice(b.lastIndexOf('<div class="fn-use">'));
+  const db = openDb(env); try { return db.exec(decode(/data-run-sql="([^"]*)"/.exec(last)[1]))[0]; } finally { db.close(); }
+};
+const vOf = (c, j) => [...c.matchAll(new RegExp(`data-c="${j}" data-v="([^"]*)"`, 'g'))].map(m => decode(m[1]));
+
+test('objets à thème : plus aucun envoi générique (guideSms et sa bulle retirés), le cadre commun reste', () => {
+  assert.ok(!html.includes('function guideSms(') && !html.includes('guideSms('), 'guideSms n’a plus d’appelant : retiré');
+  assert.ok(!/\n\s+sms:\{/.test(html), 'aucune carte « Mission accomplie » ne garde un envoi sms:{…}');
+  for (const old of ['ij-sms-bubble', 'ij-sms-typing', 'ij-sms-list', 'ij-sms-plane', 'ij-sms-meter', 'smsPlane', 'smsBubble']) assert.ok(!html.includes(old), `CSS morte retirée : ${old}`);
+  for (const keep of ['  .ij-sms{', '#scr-lesson .ij-sms-h{', '#scr-lesson .ij-sms-done{', '@keyframes smsPop{']) assert.ok(html.includes(keep), `cadre commun gardé : ${keep}`);
+  assert.ok(html.includes('@media (prefers-reduced-motion:reduce){.ij-sms,.ij-sms *,.ij-sms *::before,.ij-sms *::after{animation:none!important}#scr-lesson .ij-sms-done{opacity:1!important}}'), 'mouvement réduit : ::before compris, pied visible');
+  for (const id of themed) {
+    const c = doneOf(id);
+    assert.match(c, /<div class="ij-sms is-board is-page" style="--n:\d+;--sg:[\d.]+s" data-total="\d+"/, `cours ${id} : la racine de page que lit le contrôle`);
+    assert.ok(!c.includes('ij-sms-bubble') && !c.includes('ij-sms-list'), `cours ${id} : plus de bulle de message`);
+    assert.doesNotThrow(() => checkGuideLesson(env, lessonOf(id)), `cours ${id}`);
+  }
+});
+
+test('cours 22 (coupons) : 7 bons, 3 empilés, une pile « … et 3 autres bons », une pastille « 30 ans pile »', () => {
+  const c = doneOf(22);
+  assert.equal(count(c, /<div class="pg-card is-coupon[ "]/g), 7);
+  assert.equal(count(c, /<div class="pg-card [^"]*\bis-stacked\b/g), 3);
+  assert.equal(count(c, /<div class="pg-more"/g), 1);
+  assert.equal(count(c, /<em class="pg-flag">/g), 1);
+});
+
+test('cours 18 (enveloppes mini) : 14 enveloppes, une par commande ; Hugo, sans email, en alerte avec data-v="NULL"', () => {
+  const c = doneOf(18);
+  assert.equal(count(c, /<div class="pg-card [^"]*\bis-mini\b/g), 14);
+  const warn = c.split('<div class="pg-card').slice(1).filter(x => /^ [^"]*\bis-warn\b/.test(x));
+  assert.equal(warn.length, 1, 'une seule enveloppe en alerte');
+  assert.ok(warn[0].includes('data-c="0" data-v="Hugo"') && warn[0].includes('data-c="1" data-v="NULL"'), 'celle de Hugo, email NULL');
+});
+
+test('cours 21 (couloirs) : 3 têtes (Jeune, Adulte, Senior), les cartes dans l’ordre du résultat', () => {
+  const c = doneOf(21), res = missionOf(21);
+  assert.equal(count(c, /<div class="ln-head/g), 3);
+  assert.deepEqual([...c.matchAll(/<small class="ln-tag">([^<]*)<\/small>/g)].map(m => m[1]), ['Jeune', 'Adulte', 'Senior']);
+  for (let j = 0; j < res.columns.length; j++) assert.deepEqual(vOf(c, j), res.values.map(r => String(r[j])), `colonne ${res.columns[j]} dans l’ordre du résultat (le CSS range, le DOM garde l’ordre)`);
+});
+
+test('cours 53 (calendrier) : 16 cartes, deux posées en second sur un jour déjà pris (--k:1)', () => {
+  const c = doneOf(53);
+  assert.equal(count(c, /<div class="pg-card is-cal"/g), 16);
+  assert.equal(count(c, /<div class="pg-card is-cal"[^>]*;--k:1;/g), 2);
+});
+
+test('cours 57 (recherche) : une seule fiche, la ligne du plan (is-plan)', () => {
+  assert.equal(count(doneOf(57), /<div class="pg-card is-plan"/g), 1);
+});
+
+test('cours 42 (billets duo) : 7 billets dont 3 empilés', () => {
+  const c = doneOf(42);
+  assert.equal(count(c, /<div class="pg-card is-ticket[ "]/g), 7);
+  assert.equal(count(c, /<div class="pg-card [^"]*\bis-stacked\b/g), 3);
+});
+
+test('contrôle des pages : deux valeurs échangées entre deux cartes (ou une valeur changée) sont refusées, sur chaque objet à thème', () => {
+  for (const id of themed) {
+    const l = lessonOf(id), body = l.studio.uses.body, at = body.lastIndexOf('<div class="ij-done is-locked"');
+    const parts = body.slice(at).split('<div class="pg-card');
+    const cards = parts.slice(1);
+    let bad = null, k = 0;
+    /* Première colonne dont deux cartes diffèrent : on échange leurs valeurs. */
+    for (let j = 0; !bad && j < 12; j++) {
+      const v = cards.map(cd => (new RegExp(`data-c="${j}" data-v="([^"]*)"`).exec(cd) || [])[1]);
+      const a = v.findIndex(x => x !== undefined), b = v.findIndex(x => x !== undefined && x !== v[a]);
+      if (a < 0) continue;
+      const tag = x => `data-c="${j}" data-v="${x}"`;
+      const cs = cards.slice();
+      if (b < 0) { if (cards.length > 1) continue; cs[a] = cs[a].split(tag(v[a])).join(tag(v[a] + 'x')); }
+      else { cs[a] = cs[a].split(tag(v[a])).join(tag(v[b])); cs[b] = cs[b].split(tag(v[b])).join(tag(v[a])); }
+      bad = body.slice(0, at) + [parts[0], ...cs].join('<div class="pg-card'); k = a + 1;
+    }
+    assert.ok(bad, `cours ${id} : une valeur à échanger`);
+    assert.throws(() => checkGuideLesson(env, withBody(l, bad)), new RegExp(`la carte ${k} montre toutes les colonnes`), `cours ${id}`);
+  }
+});
+
+test('parcours : les noms cités suivent les cartes, contrôle repris des anciens envois (le désordre est refusé)', () => {
+  for (const id of [4, 5, 7, 8, 9, 22, 45, 55, 59, 80, 35]) {
+    const l = lessonOf(id), body = l.studio.uses.body;
+    const m = /(is-out"><b>\d+<\/b><span>[^<]*<small>)([^<]*)(<\/small>)/.exec(body.slice(body.lastIndexOf('<div class="ij-done is-locked"')));
+    const names = m[2].replace(/ et /g, ', ').split(', ');
+    assert.equal(names.length, +/data-total="(\d+)"/.exec(body.slice(body.lastIndexOf('<div class="ij-done is-locked"')))[1], `cours ${id} : un nom par carte`);
+    const moved = names.length > 1 ? [...names.slice(1), names[0]] : ['Personne'];
+    const txt = moved.length > 1 ? moved.slice(0, -1).join(', ') + ' et ' + moved.at(-1) : moved[0];
+    const bad = body.slice(0, body.lastIndexOf(m[0])) + m[1] + txt + m[3] + body.slice(body.lastIndexOf(m[0]) + m[0].length);
+    assert.throws(() => checkGuideLesson(env, withBody(l, bad)), /le parcours cite les personnes des cartes/, `cours ${id}`);
+  }
 });
