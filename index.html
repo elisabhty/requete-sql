@@ -7132,7 +7132,7 @@ guide({ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
       "En SQL, cette condition s’écrit :",
       {syntax:"⟦ville = 'Paris'⟧"},
       {table:{label:"clients",cols:"minmax(0,.8fr) minmax(0,.9fr) minmax(0,1.15fr) minmax(0,1.55fr)",head:["prenom","nom","ville","La condition est-elle vraie ?"],rows:[["Sophie","Martin","Paris","✅ vraie → gardée"],["Lucas","Bernard","Lyon","❌ fausse → écartée"],["Emma","Dubois","Marseille","❌ fausse → écartée"],["Nathan","Petit","Paris","✅ vraie → gardée"]],hit:[[0,3],[3,3]],more:"… et 6 autres clients",test:{cond:"ville = 'Paris'",val:2}}},
-      {looks:[["vraie","la ligne apparaît dans le résultat"],["fausse","la ligne n’apparaît pas"]],label:"Vrai ou faux"}
+      {looks:[["vraie","la ligne est gardée"],["fausse","la ligne est écartée"]],label:"Vrai ou faux"}
     ]
   },
   steps:[
@@ -7230,7 +7230,7 @@ guide({ id:5, titre:"Comparer des valeurs", résumé:"Filtrer avec =, !=, >, <, 
       "En SQL, cette comparaison s’écrit :",
       {syntax:"⟦stock <= 60⟧"},
       {table:{label:"produits",cols:"minmax(0,1.5fr) minmax(0,.8fr) minmax(0,1.7fr)",head:["nom","stock","La condition est-elle vraie ?"],rows:[["Fibre Prébiotique","120","❌ fausse → écartée"],["Tisane Détox","60","✅ vraie → gardée"],["Magnésium","200","❌ fausse → écartée"],["Protéine Végétale","45","✅ vraie → gardée"]],hit:[[1,2],[3,2]],more:"… et 4 autres produits",test:{cond:"stock <= 60",val:1}}},
-      {looks:[["vraie","la ligne apparaît dans le résultat"],["fausse","la ligne n’apparaît pas"]],label:"Vrai ou faux"}
+      {looks:[["vraie","la ligne est gardée"],["fausse","la ligne est écartée"]],label:"Vrai ou faux"}
     ]
   },
   steps:[
@@ -7462,7 +7462,7 @@ guide({ id:22, titre:"NOT", résumé:"Exclure ce qui correspond",
       "En SQL, on place <code>NOT</code> devant la condition, entre parenthèses :",
       {syntax:"⟦NOT (ville = 'Paris' AND age > 30)⟧"},
       {table:{label:"clients",cols:"minmax(0,.9fr) minmax(0,1fr) minmax(0,.55fr) minmax(0,1.2fr)",head:["prenom","ville","age","Après NOT"],rows:[["Sophie","Paris","34","❌ écartée"],["Lucas","Lyon","28","✅ gardée"],["Nathan","Paris","30","✅ gardée"],["Léa","Paris","38","❌ écartée"]],hit:[[1,3],[2,3]],more:"… et 6 autres clients",test:{cond:"NOT (ville = 'Paris' AND age > 30)",val:[1,2]}}},
-      {looks:[["gardée","la condition d’origine est fausse : NOT la rend vraie, la ligne apparaît"],["écartée","la condition d’origine est vraie : NOT la rend fausse, la ligne n’apparaît pas"]],label:"Gardée ou écartée"}
+      {looks:[["gardée","la condition d’origine est fausse : NOT la rend vraie"],["écartée","la condition d’origine est vraie : NOT la rend fausse"]],label:"Gardée ou écartée"}
     ]
   },
   steps:[
@@ -7557,7 +7557,7 @@ guide({ id:7, titre:"NULL", résumé:"La valeur absente",
       "En SQL, ce test s’écrit :",
       {syntax:"⟦email IS NULL⟧"},
       {table:{label:"clients",cols:"minmax(0,.9fr) minmax(0,1.5fr) minmax(0,1.3fr)",head:["prenom","email","L’email est-il absent ?"],rows:[["Sophie","sophie@mail.fr","❌ non → écartée"],["Hugo","NULL","✅ oui → gardée"],["Lucas","lucas@mail.fr","❌ non → écartée"],["Inès","NULL","✅ oui → gardée"]],hit:[[1,2],[3,2]],more:"… et 6 autres clients",test:{cond:"email IS NULL",val:1}}},
-      {looks:[["oui","l’email est absent : la ligne apparaît"],["non","un email existe : la ligne n’apparaît pas"]],label:"Absent ou présent"}
+      {looks:[["oui","l’email est absent : la ligne est gardée"],["non","un email est renseigné : la ligne est écartée"]],label:"Absent ou présent"}
     ]
   },
   steps:[
@@ -7650,7 +7650,7 @@ guide({ id:8, titre:"LIKE", résumé:"Chercher un motif",
       "En SQL, on écrit le motif après <code>LIKE</code>. Le symbole <code>%</code> remplace <b>n’importe quelle suite de lettres</b> :",
       {syntax:"⟦prenom LIKE 'L%'⟧"},
       {table:{label:"clients",cols:"minmax(0,1fr) minmax(0,1.4fr)",head:["prenom","Le motif correspond-il ?"],rows:[["Sophie","❌ non → écartée"],["Lucas","✅ oui → gardée"],["Emma","❌ non → écartée"],["Léa","✅ oui → gardée"]],hit:[[1,1],[3,1]],more:"… et 6 autres clients",test:{cond:"prenom LIKE 'L%'",val:0}}},
-      {looks:[["oui","le prénom correspond : la ligne apparaît"],["non","le prénom ne correspond pas : la ligne n’apparaît pas"]],label:"Correspond ou non"}
+      {looks:[["oui","le prénom correspond : la ligne est gardée"],["non","le prénom ne correspond pas : la ligne est écartée"]],label:"Correspond ou non"}
     ]
   },
   steps:[
@@ -7739,7 +7739,7 @@ guide({ id:9, titre:"IN", résumé:"Filtrer avec une liste",
       "En SQL, on écrit la liste entre parenthèses, après <code>IN</code> :",
       {syntax:"⟦ville IN ('Paris', 'Lyon')⟧"},
       {table:{label:"clients",cols:"minmax(0,.9fr) minmax(0,1fr) minmax(0,1.8fr)",head:["prenom","ville","Est-elle dans la liste ?"],rows:[["Sophie","Paris","✅ oui → gardée"],["Lucas","Lyon","✅ oui → gardée"],["Emma","Marseille","❌ non → écartée"],["Chloé","Bordeaux","❌ non → écartée"]],hit:[[0,2],[1,2]],more:"… et 6 autres clients",test:{cond:"ville IN ('Paris', 'Lyon')",val:1}}},
-      {looks:[["oui","la ville est dans la liste : la ligne apparaît"],["non","la ville n’est pas dans la liste : la ligne n’apparaît pas"]],label:"Dans la liste ou non"}
+      {looks:[["oui","la ville est dans la liste : la ligne est gardée"],["non","la ville n’est pas dans la liste : la ligne est écartée"]],label:"Dans la liste ou non"}
     ]
   },
   steps:[
@@ -7826,7 +7826,7 @@ guide({ id:10, titre:"BETWEEN", résumé:"Filtrer un intervalle",
       "En SQL, on écrit les deux limites après <code>BETWEEN</code>, reliées par <code>AND</code> :",
       {syntax:"⟦prix BETWEEN 15 AND 30⟧"},
       {table:{label:"produits",cols:"minmax(0,1.5fr) minmax(0,.9fr) minmax(0,1.7fr)",head:["nom","prix","Est-il dans l’intervalle ?"],rows:[["Tisane Détox","12.5","❌ non → écartée"],["Shaker Inox","15","✅ oui → gardée"],["Oméga 3","24.9","✅ oui → gardée"],["Collagène Marin","39.9","❌ non → écartée"]],hit:[[1,2],[2,2]],more:"… et 4 autres produits",test:{cond:"prix BETWEEN 15 AND 30",val:1}}},
-      {looks:[["oui","le prix est dans l’intervalle, limites comprises : la ligne apparaît"],["non","le prix est en dehors : la ligne n’apparaît pas"]],label:"Dans l’intervalle ou non"}
+      {looks:[["oui","le prix est dans l’intervalle, limites comprises : la ligne est gardée"],["non","le prix est en dehors : la ligne est écartée"]],label:"Dans l’intervalle ou non"}
     ]
   },
   steps:[
@@ -8900,7 +8900,7 @@ guide({ id:17, titre:"HAVING", résumé:"Filtrer après regroupement",
       "En SQL, cette condition s’écrit après <code>HAVING</code> :",
       {syntax:"⟦HAVING COUNT(*) >= 2⟧"},
       {table:{label:"groupes",cols:"minmax(0,1.3fr) minmax(0,.9fr) minmax(0,1.6fr)",head:["categorie","nombre","Le groupe est-il gardé ?"],rows:[["Bien-être","3","✅ vrai → gardé"],["Beauté","1","❌ faux → écarté"],["Nutrition","2","✅ vrai → gardé"],["Boisson","1","❌ faux → écarté"]],hit:[[0,2],[2,2]],more:"… et 1 autre groupe",test:{cond:"nombre >= 2",val:1}}},
-      {looks:[["vrai","la condition est vraie pour le groupe : il apparaît"],["faux","elle est fausse : le groupe n’apparaît pas"]],label:"Vrai ou faux"}
+      {looks:[["vrai","la condition est vraie pour le groupe : il est gardé"],["faux","elle est fausse : le groupe est écarté"]],label:"Vrai ou faux"}
     ]
   },
   steps:[
@@ -25497,7 +25497,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-08-ludique-v1717';
+  const SW_CACHE='requete-2026-10-08-ludique-v1718';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
