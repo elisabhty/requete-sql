@@ -34,7 +34,8 @@ test('cours 53 (dates) : un calendrier mural de juillet-août 2026, chaque 📨 
   assert.equal(decode(cards[11][1]).replace(/\u00a0/g, ' '), 'CMD-2026-1093528 : commande du 25 juillet, message de suivi le 1er août');
   assert.equal((c.match(/<b class="cal-x2" aria-hidden="true">×2<\/b>/g) || []).length, 2);
   assert.equal((c.match(/<i class="cal-src" aria-hidden="true">🛒<\/i><i class="cal-env" aria-hidden="true">📨<\/i>/g) || []).length, 16);
-  assert.ok(c.includes('<div class="cal-leg" aria-hidden="true">🛒 commande · 📨 message de suivi</div><em class="pg-seal" aria-hidden="true">Planifié</em>'));
+  assert.ok(c.includes('<div class="cal-leg" aria-hidden="true">🛒 commande · 📨 message de suivi</div></div></div><p class="ij-sms-done">'), 'légende, puis le pied : pas de grand tampon sur les dates');
+  assert.ok(!c.includes('pg-seal'));
   assert.ok(!/<i class="cal-[^>]*data-c=/.test(c), 'les cases et pastilles ne portent aucune donnée');
   const b = l.studio.uses.body;
   assert.equal(b.split('data-c="2" data-v="2026-08-10"').length, 2);
@@ -59,8 +60,8 @@ test('cours 42 (SELF JOIN) : billets duo, Lyon et les deux Nathan en vue, trois 
   assert.deepEqual(tickets, ['001', '002', '003 pile', '004', '005 pile', '006', '007 pile'], 'ordre du résultat ; N° = rang de la ligne');
   assert.equal((c.match(/<span class="pg-stub is-alt">/g) || []).length, 1, 'un seul talon Lyon');
   assert.ok(c.includes('<b class="db-x pg-name" data-c="0" data-v="Nathan">Nathan\u00a0P.</b><i class="pg-sep">\u00a0&amp; </i><b class="db-x pg-name" data-c="1" data-v="Nathan">Nathan\u00a0D.</b>'), 'deux clients différents, même prénom');
-  assert.equal((c.match(/<small class="pg-subs">Entrée pour 2<\/small><em class="pg-stamp">Envoyé<\/em>/g) || []).length, 7);
-  assert.ok(c.includes('>… et 3 autres billets duo à Paris</div></div>'));
+  assert.equal((c.match(/<small class="pg-subs">Pour vous deux<\/small><em class="pg-stamp">Envoyé<\/em>/g) || []).length, 7);
+  assert.ok(c.includes('>… et 3 autres à Paris</div></div>'));
 });
 
 test('cours 35 (clé étrangère) : le colis de Nathan, son étiquette et la pastille « Cadeau glissé »', () => {
@@ -68,7 +69,7 @@ test('cours 35 (clé étrangère) : le colis de Nathan, son étiquette et la pas
   assert.doesNotThrow(() => checkGuideLesson(env, l));
   assert.ok(!c.includes('db-table is-fiche'), 'plus de fiche');
   assert.ok(c.includes('<div class="pg-grid is-parcel"><div class="pg-card is-parcel" style="--t:calc(var(--t0,.15s) + .95s + 0*var(--sg,.28s))"><span class="pc-box" aria-hidden="true"><i class="pc-flap is-l"></i><i class="pc-flap is-r"></i><i class="pc-gift">🎁</i></span>'));
-  assert.ok(c.includes('<small class="pg-kick">Colis de Nathan</small><b class="db-x pg-name pc-no" data-c="0" data-v="CMD-2026-1093528">CMD-2026-1093528</b>'));
+  assert.ok(c.includes('<small class="pg-kick">Destinataire\u00a0: Nathan</small><b class="db-x pg-name pc-no" data-c="0" data-v="CMD-2026-1093528">CMD-2026-1093528</b>'));
   assert.ok(c.includes('<span class="db-x pg-sub" data-c="1" data-v="2">Produit n°\u00a02</span> · <span class="db-x pg-sub" data-c="2" data-v="en_preparation">en préparation</span>'), 'valeur brute, texte lisible');
   assert.ok(c.includes('<em class="pg-stamp pc-sticker"><i aria-hidden="true">🎁</i>Cadeau glissé</em>'));
 });
@@ -77,6 +78,7 @@ test('CSS calendrier et colis : état final de base, états cachés seulement av
   for (const s of [
     '.ij-sms.is-page:not(.is-play) .cal-src,.ij-sms.is-page:not(.is-play) .cal-env,.ij-sms.is-page:not(.is-play) .cal-x2{opacity:0}',
     '.ij-sms.is-page.is-play .cal-env{animation:calWeek .5s cubic-bezier(.3,1.35,.5,1) both calc(var(--t) + .15s)}',
+    '.ij-sms.is-page:has(.pg-win.is-cal){--extra:.5s}',
     '.ij-sms.is-page.is-play .pc-flap.is-l{animation:pcFlapL',
     '@keyframes pcFlapL{0%{transform:rotate(-100deg)',
   ]) assert.ok(html.includes(s), s);

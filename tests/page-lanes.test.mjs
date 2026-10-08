@@ -20,8 +20,8 @@ test('cours 9 (IN) : carnet de route — les 4 étapes dans l’ordre du IN, cha
   const l = lessonOf(9), c = cardOf(l);
   assert.match(c, /<div class="ij-sms is-board is-page" style="--n:9;--sg:0\.45s" data-total="5"/, '4 étapes + 5 invités');
   assert.ok(c.includes('<div class="pg-grid is-lanes is-route">'));
-  const heads = [...c.matchAll(/<div class="ln-head( is-last)?" style="order:(\d+);--t:([^;]+);--w:calc\((\d)\*var\(--sg,\.28s\)\)"><i class="ln-pin" aria-hidden="true">(\d)<\/i><b>([^<]+)<\/b><small>([^<]+)<\/small><\/div>/g)].map(m => [m[6], +m[2], m[3], +m[4], m[7], !!m[1]]);
-  assert.deepEqual(heads, [['Lyon', 0, T(0), 3, 'Étape 1', false], ['Marseille', 2, T(3), 2, 'Étape 2', false], ['Bordeaux', 4, T(5), 2, 'Étape 3', false], ['Toulouse', 6, T(7), 2, 'Étape 4', true]], 'une étape par ville, la camionnette y reste jusqu’à la suivante');
+  const heads = [...c.matchAll(/<div class="ln-head( is-last)?" style="order:(\d+);--t:([^;]+);--w:calc\((\d)\*var\(--sg,\.28s\)\)"><i class="ln-pin" aria-hidden="true">(\d)<\/i><b>([^<]+)<\/b><\/div>/g)].map(m => [m[6], +m[2], m[3], +m[4], +m[5], !!m[1]]);
+  assert.deepEqual(heads, [['Lyon', 0, T(0), 3, 1, false], ['Marseille', 2, T(3), 2, 2, false], ['Bordeaux', 4, T(5), 2, 3, false], ['Toulouse', 6, T(7), 2, 4, true]], 'une étape par ville (son numéro sur l’épingle, sans « Étape N » répété), la camionnette y reste jusqu’à la suivante');
   const cards = [...c.matchAll(/<div class="pg-card is-chip" style="order:(\d+);--t:([^"]+)"><i aria-hidden="true">📩<\/i><span class="pg-who"><b class="db-x pg-name" data-c="0" data-v="([^"]+)">/g)].map(m => [m[3], +m[1], m[2]]);
   assert.deepEqual(cards, [['Lucas', 1, T(1)], ['Emma', 3, T(4)], ['Chloé', 5, T(6)], ['Hugo', 1, T(2)], ['Gabriel', 7, T(8)]], 'ordre du résultat dans le DOM ; Lucas et Hugo (lignes 1 et 4) sous Lyon, chacun après l’arrivée à son étape');
   assert.ok(c.indexOf('class="ln-head') < c.indexOf('<div class="pg-card'), 'les étapes (sans donnée) avant la 1re carte');
