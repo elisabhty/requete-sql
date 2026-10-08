@@ -53,7 +53,8 @@ test('cours 80 : quatre cartes de fidélité vierges (8 cases vides, 0 point), d
   assert.deepEqual([...c.matchAll(/<b class="db-x pg-name" data-c="0" data-v="([^"]*)">/g)].map(m => m[1]), ['Chloé', 'Emma', 'Gabriel', 'Hugo']);
   assert.equal(count(c, /<span class="db-x pg-sub ly-tel" data-c="1" data-v="06 39 98 \d\d \d\d">/g), 4, 'le téléphone de chaque client');
   assert.equal(count(c, /<span class="ly-slots" aria-hidden="true">(?:<i style="--i:\d"><\/i>){8}<\/span>/g), 4, '8 cases de tampons par carte');
-  assert.equal(count(c, /<small class="ly-pts" aria-hidden="true">0 point · à activer<\/small>/g), 4);
+  assert.equal(count(c, /<small class="ly-pts" aria-hidden="true">0\u00a0point pour l’instant<\/small>/g), 4, 'pas encore membres (sans répéter « à activer » du titre)');
+  assert.ok(!/\.ly-pts\{display:none\}/.test(html), 'la ligne des points reste lisible à 320 px (elle passe à la ligne)');
   assert.equal(count(c, /<em class="pg-stamp">Envoyée<\/em>/g), 4);
   assert.ok(!c.includes('ij-sms-bubble'));
 });

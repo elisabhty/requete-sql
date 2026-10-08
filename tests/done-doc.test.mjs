@@ -19,6 +19,7 @@ test('cours 1 (SELECT) : la liste remise au transporteur est une feuille sur por
   assert.ok(c.includes('<div class="ij-sms is-board is-page" style="--n:10;--sg:0.22s" data-total="10" role="group"'), 'racine de page inchangée : le contrôle des pages s’applique');
   assert.ok(c.includes('<div class="pg-win is-clip"><i class="dc-clip" aria-hidden="true"></i><div class="pg-body dc-paper"><div class="dc-head" aria-hidden="true">'), 'planche, pince, feuille, en-tête');
   assert.ok(c.includes('<b class="dc-title">Clients à livrer</b>'));
+  assert.ok(c.includes('<p class="ij-sms-h"><i aria-hidden="true">🚚</i>Feuille de prise en charge</p>'), 'titre tiré de l’histoire (« prendre en charge »), distinct du pied');
   assert.ok(c.includes('<div class="pg-grid is-doc" role="table" aria-label="Clients à livrer"><div class="dc-th" role="row" aria-hidden="true">'), 'intitulés de colonnes avant la 1re ligne');
   assert.equal((c.match(/<div class="pg-card is-line" role="row" style="--t:/g) || []).length, 10, 'une ligne par client');
   assert.ok(c.includes('<span class="pg-main" role="cell"><span class="pg-who"><b class="db-x pg-name" data-c="0" data-v="Nathan">Nathan</b> <b class="db-x pg-name" data-c="1" data-v="Dupont">Dupont</b></span><small class="pg-subs"><span class="db-x pg-sub" data-c="2" data-v="Paris">Paris</span> · <span class="db-x pg-sub is-mono" data-c="3" data-v="06 39 98 10 26">06 39 98 10 26</span></small></span>'), 'nom, puis ville · téléphone');
@@ -44,7 +45,10 @@ test('cours 5 (Comparer des valeurs) : bon de commande avec jauges de stock, le 
 
 test('CSS du document : état final de base, états cachés seulement avant la lecture, pied après le camion', () => {
   for (const s of [
-    '.ij-sms.is-page:has(.dc-truck){--extra:1.3s}',
+    '.ij-sms.is-page:has(.dc-truck){--extra:1.4s}',
+    '@media (max-width:360px){.dc-paper:has(>.pg-seal):has(>.dc-foot) .pg-grid.is-doc{margin-bottom:46px}}',
+    '.ij-sms.is-page.is-play .pg-grid.is-doc .db-x::after{content:none}',
+    '.ij-sms.is-page.is-play .pg-grid.is-doc .db-x{animation:none}',
     '.ij-sms.is-page.is-play .pg-card.is-line>.pg-main{animation:pgLine .35s steps(12,end) both var(--t)}',
     '.ij-sms.is-page.is-play .pg-card.is-line::before{animation:pgTick .28s cubic-bezier(.3,1.5,.5,1) both calc(var(--t) + .3s)}',
     '.ij-sms.is-page.is-play .dc-truck{animation:pgDrive 1s ease-out both calc(var(--to) + .5s)}',

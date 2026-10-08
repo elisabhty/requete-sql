@@ -19,7 +19,7 @@ test('cours 7 : le téléphone appelle Hugo puis Inès, « email absent » sous 
   const c = cardOf(lesson(7));
   assert.ok(c.includes('<div class="ij-sms is-board is-page" style="--n:2;--sg:1.4s" data-total="2"'), 'racine du contrôle des pages, une étape par appel');
   assert.ok(c.includes('<div class="pg-win is-phone"><div class="ph-bar" aria-hidden="true"><b>10:30</b><i class="ph-notch"></i><i class="ph-sig"></i></div>'), 'téléphone, barre d’état 10:30');
-  assert.ok(c.includes('<div class="ph-title" aria-hidden="true"><b>Appels à passer</b><small>Email absent</small></div><div class="pg-grid is-calls">'));
+  assert.ok(c.includes('<div class="ph-title" aria-hidden="true"><b>Appels à passer</b><small>Équipe commerciale</small></div><div class="pg-grid is-calls">'));
   assert.equal(count(c, /<div class="pg-card is-call" style="--t:/g), 2, 'une ligne par client');
   assert.ok(c.includes('<b class="ph-av" aria-hidden="true">HL</b>') && c.includes('<b class="ph-av" aria-hidden="true">IL</b>'), 'initiales');
   assert.ok(c.includes('<small class="db-x pg-sub ph-num" data-c="2" data-v="06 39 98 68 03">06 39 98 68 03</small>'), 'numéro = donnée');
@@ -32,7 +32,7 @@ test('cours 7 : le téléphone appelle Hugo puis Inès, « email absent » sous 
 
 test('cours 8 : l’étiquette déchirée ne laisse lire qu’un L, puis le L de chaque prénom s’allume', () => {
   const c = cardOf(lesson(8));
-  assert.ok(c.includes('<div class="pg-body"><div class="ph-lead" aria-hidden="true"><small>Étiquette du colis</small><b>Destinataire\u00a0: <u>L</u><i class="ph-scrawl"></i></b></div><div class="ph-title" aria-hidden="true"><b>Destinataires possibles</b><small>Colis revenu à l’entrepôt</small></div><div class="pg-grid is-calls">'), 'étiquette puis en-tête, avant la liste, sans donnée');
+  assert.ok(c.includes('<div class="pg-body"><div class="ph-lead" aria-hidden="true"><small>📷 Photo de l’étiquette</small><b>Destinataire\u00a0: <u>L</u><i class="ph-scrawl"></i></b></div><div class="ph-title" aria-hidden="true"><b>Prénoms en L</b><small>Colis revenu à l’entrepôt</small></div><div class="pg-grid is-calls">'), 'étiquette puis en-tête, avant la liste, sans donnée');
   assert.ok(c.includes('<b class="db-x pg-name" data-c="0" data-v="Lucas"><u class="ph-hl">L</u>ucas</b>'), 'L souligné, valeur brute intacte');
   assert.ok(c.includes('<b class="db-x pg-name" data-c="0" data-v="Léa"><u class="ph-hl">L</u>éa</b>'));
   assert.ok(!c.includes('ph-note'), 'pas de note');
@@ -48,21 +48,22 @@ test('cours 78 : écran verrouillé, 5 rappels en vue (dont Hugo et Gabriel « p
   const st = [...c.matchAll(/<div class="pg-card is-notif is-stacked" style="[^"]*;--k:(\d)" aria-hidden="true">[\s\S]*?data-c="0" data-v="([^"]*)"/g)].map(m => [+m[1], m[2]]);
   assert.deepEqual(st, [[0, 'Nathan'], [1, 'Chloé'], [2, 'Léa']], 'Nathan, Chloé et Léa empilés');
   assert.equal(count(c, /<em class="pg-flag">par défaut<\/em>/g), 2, 'Hugo et Gabriel : 10 j par défaut');
-  assert.ok(c.includes('<span class="db-x nt-when" data-c="1" data-v="13">dans 13 j</span>'), 'délai = donnée');
+  assert.ok(c.includes('<span class="db-x nt-when" data-c="1" data-v="13">après 13 j</span>'), 'délai = donnée : jours après la dernière commande, pas à partir d’aujourd’hui');
+  assert.equal(count(c, /<small class="nt-x">Bientôt à court\u00a0\? Pensez à recommander\.<\/small>/g), 8, 'texte du rappel court (deux lignes au plus), jamais coupé');
   assert.ok(c.includes('<span class="db-x nt-when" data-c="1" data-v="0">le jour même</span>'), 'Léa : délai 0');
-  assert.ok(c.includes('<div class="pg-more" style="--t:calc(var(--t0,.15s) + .95s + 5*var(--sg,.28s))">+3 rappels programmés</div>'));
+  assert.ok(c.includes('<div class="pg-more" style="--t:calc(var(--t0,.15s) + .95s + 5*var(--sg,.28s))">+3 autres rappels</div>'));
   assert.doesNotThrow(() => checkGuideLesson(env, lesson(78)));
 });
 
-test('cours 57 : le numéro tapé, la fiche trouvée, la ligne du plan (SEARCH en vert) et le tampon « Retrouvée »', () => {
+test('cours 57 : le numéro tapé, la fiche trouvée, la ligne du plan (SEARCH en vert) et le tampon « Accès direct »', () => {
   const c = cardOf(lesson(57));
   assert.ok(c.includes('<span class="pg-url">outil interne › commandes</span>'));
   assert.ok(c.includes('<div class="sr-box" aria-hidden="true"><i>🔎</i><span class="sr-q" style="--len:16">CMD-2026-1847392</span><em class="sr-chip">⚡ via l’index</em></div>'));
-  assert.ok(c.includes('<div class="sr-hit" aria-hidden="true"><small class="pg-kick">Commande trouvée</small><b>CMD-2026-1847392</b><small>Commandée le 30\u00a0juillet 2026\u00a0· en préparation\u00a0· 2\u00a0unités</small></div>'));
+  assert.ok(c.includes('<div class="sr-hit" aria-hidden="true"><small class="pg-kick">Fiche de la commande</small><b>CMD-2026-1847392</b><small>Commandée le 30\u00a0juillet\u00a02026\u00a0· en préparation\u00a0· 2\u00a0unités</small></div>'));
   assert.equal(count(c, /<div class="pg-card is-plan"/g), 1);
   assert.ok(c.includes('<span class="db-x pg-text sr-plan" data-c="3" data-v="SEARCH commandes USING INDEX idx_commandes_numero (numero_commande=?)"><mark>SEARCH</mark> commandes USING INDEX idx_commandes_numero (numero_commande=?)</span>'));
   assert.ok(c.includes('style="--t:calc(var(--t0,.15s) + 1.45s + 0*var(--sg,.28s))"'), 'la carte attend la frappe (delay .5)');
-  assert.ok(c.includes('<em class="pg-stamp">Retrouvée</em></span><span class="db-x" data-c="0" data-v="3" hidden></span><span class="db-x" data-c="1" data-v="0" hidden></span><span class="db-x" data-c="2" data-v="0" hidden></span></div>'), 'colonnes du plan reportées');
+  assert.ok(c.includes('<em class="pg-stamp">Accès direct</em></span><span class="db-x" data-c="0" data-v="3" hidden></span><span class="db-x" data-c="1" data-v="0" hidden></span><span class="db-x" data-c="2" data-v="0" hidden></span></div>'), 'colonnes du plan reportées');
   assert.doesNotThrow(() => checkGuideLesson(env, lesson(57)));
 });
 
@@ -78,7 +79,8 @@ test('CSS de la famille « screen » : état final de base, états cachés seule
     '.ij-sms.is-page:not(.is-play) .sr-q{width:0}',
     '.ij-sms.is-page.is-play .is-notifs>.pg-card{animation:pgNotif',
     '.ij-sms.is-page:has(.pg-grid.is-notifs){--extra:.4s}',
-    '.ij-sms.is-page:has(.pg-grid.is-search){--extra:.9s}',
+    '.ij-sms.is-page:has(.pg-grid.is-search){--extra:.1s}',
+    '.nt-x{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;',
   ]) assert.ok(html.includes(s), s);
   assert.ok(/\.ph-st \.is-wait\{[^}]*opacity:0/.test(html) && /\.ph-st \.is-done\{color:var\(--ink-3\)\}/.test(html), 'sans lecture : « ✓ Appelé » affiché, « Appel en cours… » caché');
   assert.ok(/\.ph-btn\{[^}]*background:#E7E5EF/.test(html), 'bouton gris une fois l’appel passé');
