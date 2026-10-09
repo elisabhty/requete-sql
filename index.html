@@ -6420,6 +6420,59 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=17">
+<style id="lesson-video-css">
+/* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
+.lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);
+  opacity:0;transform:translateY(28px) scale(.985);transition:opacity .26s ease,transform .38s cubic-bezier(.2,.8,.2,1)}
+.lv.on{opacity:1;transform:none}
+.lv:focus{outline:none}
+.lv-top{flex:none;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 14px}
+.lv-ico{width:44px;height:44px;padding:0;border-radius:50%;border:2px solid var(--line,#E6E1F6);background:#fff;color:var(--ink,#221C46);display:grid;place-items:center;box-shadow:0 3px 0 var(--lip,#DCD5F2);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .12s,box-shadow .12s}
+.lv-ico:active{transform:translateY(3px);box-shadow:0 0 0 var(--lip,#DCD5F2)}
+.lv-ico svg{width:20px;height:20px}
+.lv-ico.is-muted{color:var(--ink-3,#6A6490)}
+.lv-stage{position:relative;flex:1;min-height:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.lv-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#F4F2FC}
+.lv-big{position:absolute;left:50%;top:50%;width:84px;height:84px;margin:-42px 0 0 -42px;padding:0;border:0;border-radius:50%;background:var(--accent,#6A4DF4);color:#fff;display:grid;place-items:center;
+  box-shadow:0 5px 0 var(--accent-lip,#4B30CC),0 18px 40px -16px rgba(40,20,120,.55);opacity:0;pointer-events:none;transform:scale(.82);transition:opacity .2s ease,transform .26s cubic-bezier(.34,1.56,.64,1);cursor:pointer}
+.lv-big svg{width:38px;height:38px;margin-left:5px}
+.lv.is-paused:not(.is-end) .lv-big{opacity:1;pointer-events:auto;transform:none}
+.lv-bottom{flex:none;height:46px;display:flex;align-items:center;padding:0 20px;transition:opacity .2s}
+.lv.is-end .lv-bottom{opacity:0;pointer-events:none}
+.lv-seek{-webkit-appearance:none;appearance:none;width:100%;height:30px;margin:0;background:transparent;cursor:pointer;--p:0%}
+.lv-seek:focus{outline:none}
+.lv-seek::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:linear-gradient(var(--accent,#6A4DF4),var(--accent,#6A4DF4)) 0 0/var(--p) 100% no-repeat,#E2DCF5}
+.lv-seek::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-6px;border-radius:50%;background:#fff;border:3px solid var(--accent,#6A4DF4);box-shadow:0 2px 6px rgba(40,20,120,.25)}
+.lv-seek::-moz-range-track{height:6px;border-radius:6px;background:#E2DCF5}
+.lv-seek::-moz-range-progress{height:6px;border-radius:6px;background:var(--accent,#6A4DF4)}
+.lv-seek::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--accent,#6A4DF4)}
+.lv-seek:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 4px rgba(106,77,244,.28)}
+/* Fin : « À toi de jouer », la consigne, puis l’exercice */
+.lv-end{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(244,242,252,.84);opacity:0;transition:opacity .3s ease;cursor:default}
+.lv-end[hidden]{display:none}
+.lv.end-in .lv-end{opacity:1}
+.lv-end-card{width:min(100%,420px);padding:22px 20px 18px;background:#fff;border:2px solid var(--line,#E6E1F6);border-radius:26px;box-shadow:0 5px 0 var(--lip,#DCD5F2);transform:translateY(26px) scale(.97);transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+.lv.end-in .lv-end-card{transform:none}
+.lv-end-top{display:flex;align-items:center;gap:14px}
+.lv-end-top .mascot-medal{width:70px;height:70px}
+.lv-end h2{margin:0;font:800 30px/1.05 var(--display);letter-spacing:-.02em;color:var(--ink,#221C46)}
+.lv-end-exo{margin:16px 0 18px;padding:14px 16px;border-radius:18px;background:var(--surface-2,#F1EEFC)}
+.lv-end-tag{display:inline-flex;align-items:center;height:26px;padding:0 11px;border:2px solid var(--ink,#221C46);border-radius:999px;font:700 13px/1 var(--display);color:var(--ink,#221C46)}
+.lv-end-exo p{margin:10px 0 0;font-size:17px;line-height:1.35;font-weight:650;color:var(--ink,#221C46)}
+.lv-end .lv-go{display:flex;align-items:center;justify-content:center;width:100%;cursor:pointer}
+.lv-end .lv-again{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;margin-top:12px;font-size:16px;cursor:pointer}
+.lv-end .lv-again svg{width:18px;height:18px}
+/* Dans le cours : la vignette qui rouvre la vidéo */
+.lv-lesson .lv-card{position:relative;display:block;width:100%;max-width:420px;aspect-ratio:1/1;margin:18px auto 6px;padding:0;border:2px solid var(--line,#E6E1F6);border-radius:24px;overflow:hidden;background:#F4F2FC;box-shadow:0 5px 0 var(--lip,#DCD5F2);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .12s,box-shadow .12s}
+.lv-lesson .lv-card:active{transform:translateY(4px);box-shadow:0 1px 0 var(--lip,#DCD5F2)}
+.lv-lesson .lv-card img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 24%}
+.lv-card-play{position:absolute;left:50%;top:50%;width:76px;height:76px;margin:-38px 0 0 -38px;border-radius:50%;background:var(--accent,#6A4DF4);color:#fff;display:grid;place-items:center;box-shadow:0 5px 0 var(--accent-lip,#4B30CC),0 16px 34px -14px rgba(40,20,120,.5)}
+.lv-card-play svg{width:34px;height:34px;margin-left:4px}
+.lv-card-meta{position:absolute;left:12px;bottom:12px;height:36px;padding:0 14px;border-radius:999px;background:#fff;border:2px solid var(--line,#E6E1F6);display:flex;align-items:center;font:700 14px/1 var(--display);color:var(--accent-ink,#5335E0)}
+@media (prefers-reduced-motion:reduce){.lv,.lv-end,.lv-end-card,.lv-big,.lv-bottom{transition:none!important}}
+html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-motion="reduce"] .lv-end-card,html[data-motion="reduce"] .lv-big{transition:none!important}
+</style>
 </head>
 <body>
 <div id="app">
@@ -7342,7 +7395,7 @@ function guide(spec){
       uses:{title:'Écrire la requête',body:`<div class="pt-lead fn-uses fk-course jn-course">${steps.map(st=>`<div class="fn-use${st.aside?' is-aside':''}"><p class="pt-syntax-h"${st.aside?` data-tag="${st.aside}"`:''}>${guideFr(st.h)}</p>${guideBlocks(st.blocks)}</div>`).join('\n')}</div>`},
       reflex:{extra:guideBlocks(reflex)}},
     noTeste:true,noAnat:true,richLesson:true,earlyDemo:true,guided:true};
-  ['anatomie','exemple','attendu','retenir','consigne','solution','indice','learningCheck','testeVariants','petitDefi','ordered','write','verif','noExec','noExecWhy','noExecOk','noExecNote','normExo','createExo','serverConcept','apres','joinRecap','exoNeeds'].forEach(k=>{if(spec[k]!==undefined)lesson[k]=spec[k];});
+  ['anatomie','exemple','attendu','retenir','consigne','solution','indice','learningCheck','testeVariants','petitDefi','ordered','write','verif','noExec','noExecWhy','noExecOk','noExecNote','normExo','createExo','serverConcept','apres','joinRecap','exoNeeds','video'].forEach(k=>{if(spec[k]!==undefined)lesson[k]=spec[k];});
   return lesson;
 }
 /* ============================================================
@@ -7749,6 +7802,8 @@ guide({ id:13, titre:"DISTINCT", résumé:"Valeurs uniques",
   learningCheck:{question:"Deux clients ont la même ville, mais des prénoms différents. DISTINCT ville, prenom les fusionne-t-il ?",options:["Oui","Seulement avec ORDER BY","Non"],answer:2,explanation:"DISTINCT porte sur toute la combinaison des colonnes sélectionnées, pas sur ville seulement."}
 }),
 guide({ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
+  /* Cours en vidéo : remplace le texte du cours (mode immersion), voir openLessonVideo. */
+  video:{src:'assets/videos/where.mp4',poster:'assets/videos/where-poster.jpg',thumb:'assets/videos/where-thumb.jpg',duree:'1 min 33'},
   sit:{
     blocks:[
       "L’équipe marketing organise <b>un événement éphémère dans un local à Paris</b>. Les places étant limitées, elle décide d’inviter <b>uniquement les clients parisiens</b>.",
@@ -17681,7 +17736,7 @@ function switchTab(name){
    on revient en arrière ; sinon l’écran reprend sa place. */
 (function(){
   const EDGE=24;let g=null;
-  const blocked=()=>!!document.querySelector('#onboarding.on,#viz.on,#schema-sheet.on,[id$="-back"].on,.plus-details[open]');
+  const blocked=()=>!!document.querySelector('#onboarding.on,#viz.on,#schema-sheet.on,#lesson-video.on,[id$="-back"].on,.plus-details[open]');
   const target=()=>{
     if(blocked())return null;
     const cur=document.querySelector('.screen.active');if(!cur)return null;
@@ -18460,6 +18515,7 @@ function exitLessonToTab(tab){
   leaveLessonScreen(tab);
 }
 function goBack(){
+  if(typeof lessonVideoOpen==='function'&&lessonVideoOpen()){closeLessonVideo();return;}
   if(mode==='jeu'&&!jeuLeaveOk())return;
   closeSchemaSheet();
   if(typeof closeLessonWhere==='function')closeLessonWhere(true);
@@ -18587,6 +18643,7 @@ let somScrollUntil=0; // fenêtre où les layouts SQL ne doivent pas écraser le
 function lessonBackLabel(){return ({planning:'Planning',defis:'Défis',practice:'Pratiquer',library:'Bibliothèque',jeu:'Défis',compte:'Compte',notes:'Mes notes',collection:'Cartes mémo',console:'Console',entretien:'Entretien'})[activeTab]||'Accueil';}
 function openLesson(id, restoreStep){
   const l=allLessons.find(x=>x.id===id); if(!l)return;
+  closeLessonVideo(true);
   annulerBilanAuto();
   current=l; mode='lesson';
   lqSetLessonColor(id);
@@ -18605,6 +18662,8 @@ function openLesson(id, restoreStep){
   else lessonStep=0;
   renderLessonFlow(); showScreen(); brancherCtaScroll();
   saveNav();
+  /* Cours en vidéo : elle démarre dès l’ouverture du cours (pas lors d’une reprise automatique au lancement de l’app). */
+  if(lessonStep===0&&lessonVideoOn(l)&&!restoringNav)openLessonVideo();
 }
 /* « Quel JOIN choisir ? » : l'exercice se débloque avec au moins 5/6 au quiz « À toi de choisir ». */
 const JC_PASS=new Set();
@@ -18633,6 +18692,196 @@ function jcUnlockExo(){
   const b=document.querySelector('#lesson-body .ls-next[data-jc-gate]');
   if(b){ b.disabled=false; b.removeAttribute('aria-disabled'); b.removeAttribute('data-jc-gate'); b.textContent='Passer à l’exercice'; b.onclick=()=>setLessonStep(1); if(typeof pulseCta==='function')pulseCta('#lesson-body .ls-next'); }
   document.querySelectorAll('.ls-bar[aria-label="Exercice"][disabled]').forEach(x=>{ x.disabled=false; x.onclick=()=>setLessonStep(1); });
+}
+/* ---------- Cours en vidéo (mode immersion) ----------
+   Une leçon qui a une vidéo (champ « video » du cours) la montre en plein écran à la place du texte du cours.
+   À la fin : « À toi de jouer », la consigne et un bouton vers l’exercice. Arriver au bout de la vidéo débloque
+   l’exercice, comme la requête à trous du cours texte. Si la vidéo ne peut pas être lue (hors ligne sur le web,
+   format refusé), le cours texte reprend sa place. */
+const LV_FAILED=new Set(), LV_POS=new Map();
+let LV=null, LV_MUTED=false;
+const LV_ICO={
+  close:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  sound:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.2h3.8l5-4.2v14l-5-4.2H3.5z" fill="currentColor"/><path d="M16 8.6a4.9 4.9 0 0 1 0 6.8M18.7 6a8.6 8.6 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  muted:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.2h3.8l5-4.2v14l-5-4.2H3.5z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  play:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.6v12.8a.8.8 0 0 0 1.2.7l10.3-6.4a.8.8 0 0 0 0-1.4L9.2 4.9a.8.8 0 0 0-1.2.7z" fill="currentColor"/></svg>',
+  replay:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4.2h4.2"/></svg>'
+};
+function lessonVideoOn(l){return !!(l&&l.video&&l.video.src&&!LV_FAILED.has(l.id));}
+function lessonVideoOpen(){return !!LV;}
+function lessonVideoMeta(l){
+  const v=l.video;
+  return (jcPassed(l.id)||etapesDe(l.id).exo?'Revoir la vidéo':'Regarder la vidéo')+(v.duree?` · ${v.duree}`:'');
+}
+function lessonVideoSlide(l){
+  const v=l.video, m=moduleDeLecon(l.id), locked=jcGateLocked(l);
+  return `
+      <div class="ls-nav">
+        ${locked?'<button class="ls-next" type="button" aria-disabled="true" data-jc-gate onclick="openLessonVideo()">Termine la vidéo pour continuer</button>':'<button class="ls-next" type="button" onclick="setLessonStep(1)">Passer à l’exercice</button>'}
+      </div>
+      <div class="ls-main">
+        <div class="lesson-rich lv-lesson">
+          <div class="l-kicker">Cours${m?`<span class="l-kicker-mod"> · ${m.titre}</span>`:''}</div><h1>${l.titre}</h1>${l.résumé?`<p class="l-sub">${l.résumé}</p>`:''}
+          <button type="button" class="lv-card" onclick="openLessonVideo()" aria-label="${lessonVideoMeta(l)} : cours ${l.titre} en plein écran">
+            <img src="${v.thumb||v.poster}" alt="" decoding="async">
+            <span class="lv-card-play" aria-hidden="true">${LV_ICO.play}</span>
+            <span class="lv-card-meta" aria-hidden="true">${lessonVideoMeta(l)}</span>
+          </button>
+        </div>
+      </div>`;
+}
+function openLessonVideo(){
+  const l=current;
+  if(mode!=='lesson'||!lessonVideoOn(l))return;
+  if(LV){lvPlay();return;}
+  const v=l.video;
+  const root=document.createElement('div');
+  root.id='lesson-video';
+  root.className='lv is-paused';
+  root.tabIndex=-1;
+  root.setAttribute('role','dialog');
+  root.setAttribute('aria-modal','true');
+  root.setAttribute('aria-label',`Cours en vidéo : ${l.titre}`);
+  root.innerHTML=`
+    <div class="lv-top">
+      <button type="button" class="lv-ico lv-close" aria-label="Fermer la vidéo">${LV_ICO.close}</button>
+      <button type="button" class="lv-ico lv-mute" aria-label="Couper le son">${LV_ICO.sound}</button>
+    </div>
+    <div class="lv-stage">
+      <video class="lv-video" src="${v.src}" poster="${v.poster}" playsinline webkit-playsinline preload="auto" disablepictureinpicture></video>
+      <button type="button" class="lv-big" aria-label="Lire la vidéo">${LV_ICO.play}</button>
+      <div class="lv-end" hidden>
+        <div class="lv-end-card" role="group" aria-labelledby="lv-end-h">
+          <div class="lv-end-top">${mascotMedalHtml()}<h2 id="lv-end-h">À toi de jouer&nbsp;!</h2></div>
+          ${l.consigne?`<div class="lv-end-exo"><span class="lv-end-tag">Exercice</span><p>${l.consigne}</p></div>`:''}
+          <button type="button" class="lq-btn lv-go">Passer à l’exercice</button>
+          <button type="button" class="lq-btn-2 lv-again">${LV_ICO.replay}<span>Revoir la vidéo</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="lv-bottom"><input class="lv-seek" type="range" min="0" max="1000" step="1" value="0" aria-label="Avancement de la vidéo"></div>`;
+  document.body.appendChild(root);
+  const video=root.querySelector('video'), seek=root.querySelector('.lv-seek');
+  LV={id:l.id,root,video,seek,seeking:false};
+  video.muted=LV_MUTED;
+  lvSyncMute();
+  const resume=LV_POS.get(l.id);
+  if(resume)video.addEventListener('loadedmetadata',()=>{ if(LV&&LV.video===video&&resume<video.duration-1)video.currentTime=resume; },{once:true});
+  video.addEventListener('play',()=>root.classList.remove('is-paused'));
+  video.addEventListener('pause',()=>{ if(!video.ended)root.classList.add('is-paused'); });
+  video.addEventListener('timeupdate',()=>{ if(LV&&LV.video===video&&!LV.seeking)lvSyncSeek(); });
+  video.addEventListener('ended',lvEnded);
+  video.addEventListener('error',lvFail);
+  seek.addEventListener('input',()=>{
+    LV.seeking=true;
+    const d=video.duration;
+    if(d)video.currentTime=seek.value/1000*d;
+    seek.style.setProperty('--p',(seek.value/10).toFixed(1)+'%');
+  });
+  seek.addEventListener('change',()=>{ if(LV)LV.seeking=false; });
+  root.querySelector('.lv-stage').addEventListener('click',e=>{
+    if(e.target.closest('.lv-end,.lv-big'))return;
+    lvToggle();
+  });
+  root.querySelector('.lv-big').addEventListener('click',()=>lvPlay());
+  root.querySelector('.lv-close').addEventListener('click',()=>closeLessonVideo());
+  root.querySelector('.lv-mute').addEventListener('click',()=>{ LV_MUTED=!video.muted; video.muted=LV_MUTED; lvSyncMute(); });
+  root.querySelector('.lv-go').addEventListener('click',lvGoExercise);
+  root.querySelector('.lv-again').addEventListener('click',lvReplay);
+  document.addEventListener('keydown',lvKey);
+  document.addEventListener('visibilitychange',lvHidden);
+  if(prefersReduceMotion())root.classList.add('on');
+  else requestAnimationFrame(()=>requestAnimationFrame(()=>root.classList.add('on')));
+  lvPlay();
+  try{root.focus({preventScroll:true});}catch(e){}
+}
+function lvPlay(){
+  const V=LV&&LV.video;
+  if(!V)return;
+  const p=V.play();
+  if(p&&p.catch)p.catch(err=>{
+    if(!LV||LV.video!==V)return;
+    /* Lecture automatique avec le son refusée (web, sans geste) : on relance sans le son, le bouton permet de le remettre. */
+    if(err&&err.name==='NotAllowedError'&&!V.muted){
+      V.muted=true;lvSyncMute();
+      V.play().catch(()=>{ if(LV&&LV.video===V)LV.root.classList.add('is-paused'); });
+    }else LV.root.classList.add('is-paused');
+  });
+}
+function lvToggle(){
+  if(!LV||LV.root.classList.contains('is-end'))return;
+  const V=LV.video;
+  if(V.paused||V.ended)lvPlay();else V.pause();
+}
+function lvSyncSeek(){
+  const V=LV.video, d=V.duration||0, p=d?Math.min(1,V.currentTime/d):0;
+  LV.seek.value=String(Math.round(p*1000));
+  LV.seek.style.setProperty('--p',(p*100).toFixed(1)+'%');
+}
+function lvSyncMute(){
+  const b=LV&&LV.root.querySelector('.lv-mute');
+  if(!b)return;
+  const m=LV.video.muted;
+  b.innerHTML=m?LV_ICO.muted:LV_ICO.sound;
+  b.setAttribute('aria-label',m?'Remettre le son':'Couper le son');
+  b.classList.toggle('is-muted',m);
+}
+function lvEnded(){
+  if(!LV)return;
+  const {id,root}=LV;
+  LV_POS.delete(id);
+  jcMarkPassed(id);
+  jcUnlockExo();
+  const m=document.querySelector('#lesson-body .lv-card-meta');
+  if(m&&current&&current.id===id)m.textContent=lessonVideoMeta(current);
+  root.classList.add('is-end');
+  root.querySelector('.lv-end').hidden=false;
+  if(prefersReduceMotion())root.classList.add('end-in');
+  else requestAnimationFrame(()=>requestAnimationFrame(()=>root.classList.add('end-in')));
+  try{root.querySelector('.lv-go').focus({preventScroll:true});}catch(e){}
+  if(!mascotReduced())mascotWave(root.querySelector('.lv-end .mascot-medal'));
+  if(navigator.vibrate)navigator.vibrate(12);
+}
+function lvReplay(){
+  if(!LV)return;
+  LV.root.classList.remove('is-end','end-in');
+  LV.root.querySelector('.lv-end').hidden=true;
+  try{LV.video.currentTime=0;}catch(e){}
+  lvPlay();
+}
+function lvGoExercise(){
+  closeLessonVideo(true);
+  setLessonStep(1);
+}
+function lvFail(){
+  if(!LV)return;
+  const id=LV.id;
+  LV_FAILED.add(id);
+  closeLessonVideo(true);
+  if(mode==='lesson'&&current&&current.id===id&&lessonStep===0)renderLessonFlow();
+}
+function lvKey(e){
+  if(!LV)return;
+  if(e.key==='Escape'){e.preventDefault();closeLessonVideo();return;}
+  if((e.key===' '||e.key==='k')&&!(e.target&&e.target.closest&&e.target.closest('button,input'))){e.preventDefault();lvToggle();}
+}
+function lvHidden(){ if(document.hidden&&LV)LV.video.pause(); }
+function closeLessonVideo(instant){
+  if(!LV)return;
+  const {id,root,video}=LV;
+  LV=null;
+  try{ if(!video.ended&&video.currentTime>1)LV_POS.set(id,video.currentTime); }catch(e){}
+  try{video.pause();}catch(e){}
+  document.removeEventListener('keydown',lvKey);
+  document.removeEventListener('visibilitychange',lvHidden);
+  /* Libère la vidéo (mémoire sur iPhone) puis retire le lecteur. */
+  const done=()=>{ try{video.removeAttribute('src');video.load();}catch(e){} root.remove(); };
+  if(instant||prefersReduceMotion())done();
+  else{ root.classList.remove('on'); setTimeout(done,320); }
+  if(!instant){
+    const card=document.querySelector('#lesson-body .lv-card');
+    if(card)try{card.focus({preventScroll:true});}catch(e){}
+  }
 }
 function lessonStepMeta(){
   const e=etapesDe(current.id);
@@ -18716,6 +18965,7 @@ function setLessonStep(n){
   scrollLessonTop();
   if(navigator.vibrate)navigator.vibrate(8);
   saveNav();
+  if(n===0&&lessonVideoOn(current))openLessonVideo();
 }
 function recommencerLecon(){
   if(!current||mode!=='lesson')return;
@@ -18737,6 +18987,7 @@ function recommencerLecon(){
   scrollLessonTop();
   if(navigator.vibrate)navigator.vibrate(12);
   saveNav();
+  if(lessonVideoOn(current))openLessonVideo();
 }
 function bravoStatsHtml(){
   const nL=Object.values(state.lessons||{}).filter(l=>l.done).length;
@@ -20230,6 +20481,10 @@ function renderLessonFlow(){
   if(lessonStep===3){
     slide=renderBravoSlide(l);
     document.getElementById('back-label').textContent=lessonBackLabel();
+  }else if(lessonStep===0&&lessonVideoOn(l)){
+    /* Cours en vidéo : le texte laisse la place à la vidéo, lue en plein écran (openLessonVideo). */
+    document.getElementById('back-label').textContent=lessonBackLabel();
+    slide=lessonVideoSlide(l);
   }else if(lessonStep===0){
     document.getElementById('back-label').textContent=lessonBackLabel();
     const rich=l.richLesson||l.studio;
@@ -20303,7 +20558,7 @@ function renderLessonFlow(){
   }
   if(lessonStep===2) renderValidation();
   if(lessonStep===3) requestAnimationFrame(revealBravoCard);
-  if(lessonStep===0){
+  if(lessonStep===0&&!lessonVideoOn(l)){
     buildSommaire();
     initTesteEditor();
     applyMissionFills();
