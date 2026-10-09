@@ -63,7 +63,9 @@ function frDom(root){
     if (u !== t) n.textContent = u;
   });
 }
-const plain = h => fr(h).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, NB).replace(/&[a-z]+;/g, 'x');
+/* Texte brut d’une légende (lu par VoiceOver, et mesuré pour le temps de lecture) : <code>stock &lt;= 60</code> → « stock <= 60 ». */
+const plain = h => fr(h).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, NB)
+  .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&[a-z]+;/g, 'x');
 
 /* Découpe un élément en caractères (pour l’effet de frappe). */
 function splitChars(root){
@@ -283,7 +285,7 @@ function checkCaptions(captions){
 /* Mise en forme du texte (page ouverte avec ?check) : pour chaque bloc de texte, les lignes telles qu’elles s’affichent.
    Signale une ligne qui ne garde qu’un seul mot (mot orphelin), une légende de plus de 3 lignes et un mot coupé
    en fin de ligne. Comme la police est livrée avec l’animation, l’iPhone affiche exactement les mêmes lignes. */
-const TEXT_BLOCKS = '#cap .c p, .bubble, .rtxt, .lt, .nl, .mnote, .tx, .trap-h, .ot, .need-h, .inv-title, .inv-place, .qlabel, .glbl, .badge span, .tp-h, .sub, .tagpill';
+const TEXT_BLOCKS = '#cap .c p, .bubble, .rtxt, .lt, .nl, .mnote, .tx, .trap-h, .ot, .need-h, .inv-title, .inv-place, .qlabel, .glbl, .badge span, .tp-h, .sub, .tagpill, .ask, .wl, .resl';
 function textLines(el){
   const toks = [], r = document.createRange(), walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
   while (walker.nextNode()) {
