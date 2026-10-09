@@ -7987,7 +7987,7 @@ guide({ id:6, titre:"AND et OR", résumé:"Combiner plusieurs conditions",
         caps:["Tous, sauf Emma, remplissent <b>la condition sur la ville</b> : habiter à Paris ou à Lyon.","Tous, sauf Lucas et Nathan, remplissent <b>la condition sur l’âge</b> : avoir plus de 30 ans.","Seuls Sophie, Hugo et Léa remplissent <b>les deux conditions</b> : habiter à Paris ou à Lyon et avoir plus de 30 ans."],
         steps:[{cap:0,mark:{h2:"is-now",a2:"is-pass",b2:"is-pass",c2:"is-fail",d2:"is-pass",e2:"is-pass",f2:"is-pass"},sweep:220,d:2600},
           {cap:1,mark:{h3:"is-now",a3:"is-pass",b3:"is-fail",c3:"is-pass",d3:"is-pass",e3:"is-pass",f3:"is-fail"},sweep:220,d:2600},
-          {cap:2,on:["R1","R4","R5"],dim:["R2","R3","R6"],d:2600}]}},
+          {cap:2,on:["R1","R4","R5"],fold:["R2","R3","R6"],d:2600}]}},
       {looks:[["vraie","la ville est Paris ou Lyon et l’âge dépasse 30 : la ligne est gardée"],["fausse","la ville n’est ni Paris ni Lyon, ou l’âge ne dépasse pas 30 : la ligne est écartée"]],label:"Vrai ou faux"}
     ]
   },
@@ -8034,7 +8034,7 @@ guide({ id:6, titre:"AND et OR", résumé:"Combiner plusieurs conditions",
             {k:"R5",c:[["e1","Nathan"],["e2","Paris"],["e3","30"]]}],
           caps:["<b>Avec parenthèses</b> · Sophie, Lucas et Nathan sont écartés : ils n’ont pas plus de 35 ans.","<b>Sans parenthèses</b> · Sophie et Nathan reviennent ; Lucas, qui habite à Lyon, reste écarté."],
           steps:[{cap:0,mark:{a3:"is-fail",b3:"is-fail",c3:"is-pass",d3:"is-pass",e3:"is-fail"},on:["R3","R4"],dim:["R1","R2","R5"],d:2600},
-            {cap:1,unmark:{a3:"is-fail",d3:"is-pass",e3:"is-fail"},mark:{a2:"is-pass",d2:"is-pass",e2:"is-pass",a3:"is-skip",d3:"is-skip",e3:"is-skip"},undim:["R1","R5"],on:["R1","R5"],d:3000}]}},
+            {cap:1,unmark:{a3:"is-fail",d3:"is-pass",e3:"is-fail"},mark:{a2:"is-pass",d2:"is-pass",e2:"is-pass",a3:"is-skip",d3:"is-skip",e3:"is-skip"},undim:["R1","R5"],on:["R1","R5"],fold:["R2"],d:3000}]}},
         "Résultat : tous les clients de Paris sont gardés, quel que soit leur âge.",
         {say:"👇 Teste par toi-même :",run:"SELECT prenom, ville, age\nFROM clients\nWHERE ville = 'Paris'\n   OR ville = 'Lyon'\n  AND age > 35;"}
       ]}}
@@ -8117,7 +8117,7 @@ guide({ id:22, titre:"NOT", résumé:"Exclure ce qui correspond",
         steps:[{cap:0,mark:{h2:"is-now",a2:"is-pass",b2:"is-fail",c2:"is-fail",d2:"is-fail",e2:"is-pass",f2:"is-pass"},sweep:220,d:2600},
           {cap:1,mark:{h3:"is-now",a3:"is-pass",b3:"is-fail",c3:"is-pass",d3:"is-pass",e3:"is-pass",f3:"is-fail"},sweep:220,d:2600},
           {cap:2,on:["R1","R5"],dim:["R2","R3","R4","R6"],d:2600},
-          {cap:3,off:["R1","R5"],undim:["R2","R3","R4","R6"],dim:["R1","R5"],on:["R2","R3","R4","R6"],d:2800}]}},
+          {cap:3,off:["R1","R5"],undim:["R2","R3","R4","R6"],fold:["R1","R5"],on:["R2","R3","R4","R6"],d:2800}]}},
       {looks:[["gardée","le client n’habite pas à Paris, ou n’a pas plus de 30 ans : NOT rend la réponse vraie"],["écartée","le client habite à Paris et a plus de 30 ans : NOT rend la réponse fausse"]],label:"Gardée ou écartée"}
     ]
   },
@@ -8150,7 +8150,7 @@ guide({ id:22, titre:"NOT", résumé:"Exclure ce qui correspond",
             {k:"R5",c:[["e1","Nathan"],["e2","Paris"],["e3","30"]]}],
           caps:["<b>Avec parenthèses</b> · Sophie et Nathan, parisiens, restent : ils n’ont pas plus de 35 ans.","<b>Sans parenthèses</b> · Sophie et Nathan sont écartés, tout comme Lucas, qui a 28 ans."],
           steps:[{cap:0,mark:{a3:"is-fail",d2:"is-pass",d3:"is-pass",e3:"is-fail"},on:["R1","R2","R3","R5"],dim:["R4"],d:2600},
-            {cap:1,unmark:{d2:"is-pass"},mark:{a2:"is-fail",b2:"is-pass",c2:"is-pass",d2:"is-fail",e2:"is-fail",b3:"is-fail",c3:"is-pass"},off:["R1","R2","R5"],dim:["R1","R2","R5"],d:3000}]}},
+            {cap:1,unmark:{d2:"is-pass"},mark:{a2:"is-fail",b2:"is-pass",c2:"is-pass",d2:"is-fail",e2:"is-fail",b3:"is-fail",c3:"is-pass"},off:["R1","R2","R5"],dim:["R1","R2","R5"],fold:["R1","R2","R4","R5"],foldDelay:2000,d:3000}]}},
         "Résultat : tous les clients de Paris sont écartés, quel que soit leur âge, ainsi que tous ceux de 35 ans ou moins.",
         {say:"👇 Teste par toi-même :",run:"SELECT prenom, ville, age\nFROM clients\nWHERE NOT ville = 'Paris'\n  AND age > 35;"}
       ]}},
@@ -8700,7 +8700,7 @@ guide({ id:12, titre:"LIMIT et OFFSET", résumé:"Limiter le résultat et le dé
           {k:"R7",c:[["g1","Vitamine D"],["g2","14.9"]]},
           {k:"R8",c:[["i1","Tisane Détox"],["i2","12.5"]]}],
         caps:["<b>Le classement</b> · Les 8 produits, du plus cher au moins cher.","<b>LIMIT 3 OFFSET 0</b> · Aucune ligne sautée : page 1.","<b>LIMIT 3 OFFSET 3</b> · Les 3 premières lignes sont sautées : page 2.","<b>LIMIT 3 OFFSET 6</b> · Les 6 premières lignes sont sautées : page 3, qui n’a que 2 produits."],
-        steps:[{cap:0,on:["R1","R2","R3","R4","R5","R6","R7","R8"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5","R6","R7","R8"],undim:["R1","R2","R3","R4","R5","R6","R7","R8"],on:["R1","R2","R3"],dim:["R4","R5","R6","R7","R8"],d:2400},{cap:2,off:["R1","R2","R3"],undim:["R4","R5","R6","R7","R8"],on:["R4","R5","R6"],dim:["R1","R2","R3","R7","R8"],d:2400},{cap:3,off:["R4","R5","R6"],undim:["R7","R8"],on:["R7","R8"],dim:["R1","R2","R3","R4","R5","R6"],d:2600}]}}
+        steps:[{cap:0,on:["R1","R2","R3","R4","R5","R6","R7","R8"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5","R6","R7","R8"],undim:["R1","R2","R3","R4","R5","R6","R7","R8"],on:["R1","R2","R3"],dim:["R4","R5","R6","R7","R8"],d:2400},{cap:2,off:["R1","R2","R3"],undim:["R4","R5","R6","R7","R8"],on:["R4","R5","R6"],dim:["R1","R2","R3","R7","R8"],d:2400},{cap:3,off:["R4","R5","R6"],undim:["R7","R8"],on:["R7","R8"],dim:["R1","R2","R3","R4","R5","R6"],fold:["R1","R2","R3","R4","R5","R6"],foldDelay:1500,d:2600}]}}
     ]
   },
   steps:[
@@ -9757,7 +9757,7 @@ guide({ id:34, titre:"Clé primaire", résumé:"Identifier une ligne sans ambigu
           {k:"R3",c:[["c1","Nathan"],["c2","Paris"]]},
           {k:"R4",c:[["d1","Nathan"],["d2","Paris"]]}],
         caps:["<b>Notre liste</b> · Deux clients s’appellent Nathan et habitent à Paris : l’email correspond aux deux fiches.","<b>Constat</b> · Impossible de distinguer les deux fiches.","<b>Résultat</b> · Seule la fiche du Nathan qui a écrit doit être retrouvée."],
-        steps:[{cap:0,on:["R3","R4"],d:2000},{cap:1,off:["R3","R4"],mark:{R3:"is-miss",R4:"is-miss"},d:2400},{cap:2,unmark:{R3:"is-miss",R4:"is-miss"},dim:["R1","R2","R4"],on:["R3"],d:2600}]},
+        steps:[{cap:0,on:["R3","R4"],d:2000},{cap:1,off:["R3","R4"],mark:{R3:"is-miss",R4:"is-miss"},d:2400},{cap:2,unmark:{R3:"is-miss",R4:"is-miss"},fold:["R1","R2","R4"],on:["R3"],d:2600}]},
       then:["Il faut donc pouvoir <b>identifier chaque client</b> sans ambiguïté.","C’est exactement le rôle de la <b>clé primaire</b> (<code>PRIMARY KEY</code>)."]
     },
     mission:"Aide le service client à retrouver le <b>prénom</b>, le <b>nom de famille</b> et le <b>téléphone</b> du client <b>numéro 4</b>, le numéro que Nathan a donné en réponse, afin de modifier la bonne fiche."
@@ -9776,7 +9776,7 @@ guide({ id:34, titre:"Clé primaire", résumé:"Identifier une ligne sans ambigu
           {k:"R3",c:[["c1","7"],["c2","Léa"],["c3","Paris"]]},
           {k:"R4",c:[["d1","10"],["d2","Nathan"],["d3","Paris"]]}],
         caps:["<b>Table clients</b> · Quatre clients habitent à Paris, chacun avec son id.","<b>WHERE prenom = 'Nathan'</b> · Le prénom se répète : deux lignes correspondent.","<b>WHERE id = 4</b> · L’id ne se répète jamais : une seule ligne correspond."],
-        steps:[{cap:0,on:["R1","R2","R3","R4"],d:1900},{cap:1,off:["R1","R3"],dim:["R1","R3"],d:2400},{cap:2,off:["R4"],dim:["R4"],d:2600}]}},
+        steps:[{cap:0,on:["R1","R2","R3","R4"],d:1900},{cap:1,off:["R1","R3"],dim:["R1","R3"],d:2400},{cap:2,off:["R4"],dim:["R4"],fold:["R1","R3","R4"],foldDelay:1500,d:2600}]}},
       {looks:[["unique","aucune valeur ne revient deux fois"],["jamais vide","chaque ligne a toujours son id"]],label:"Une clé primaire est…"}
     ]
   },
@@ -10883,7 +10883,7 @@ guide({ id:49, titre:"Plusieurs conditions dans ON", résumé:"Relier seulement 
         steps:[{cap:0,on:["M","V"],d:2400},
           {cap:1,off:["V"],show:["a3"],d:2600},
           {cap:2,off:["M"],on:["b2"],mark:{b1:"is-miss",b3:"is-miss"},show:["b3"],d:2800},
-          {cap:3,off:["b2"],on:["M"],dim:["V"],d:2600}]}}
+          {cap:3,off:["b2"],on:["M"],fold:["V"],d:2600}]}}
     ]
   },
   steps:[
@@ -11513,7 +11513,7 @@ guide({ id:59, titre:"WITH (CTE)", résumé:"Créer et réutiliser un résultat 
           {k:"R4",c:[["d1","7","h"],["d2","2","h"]]},
           {k:"M",l:"La requête principale",cls:"is-goal",fold:true,cols:"1fr",c:[["m1","SELECT … FROM totaux"]]}],
         caps:["<b>WITH totaux AS (…)</b> · SQL prépare d’abord un résultat : le nombre de commandes de chaque client.","<b>totaux</b> · Ce résultat reçoit un nom : la suite de la requête peut maintenant l’utiliser.","<b>SELECT … FROM totaux</b> · La requête principale lit totaux comme une table : ici, elle écarte le client à une seule commande."],
-        steps:[{cap:0,on:["Q"],show:["a1","a2","b1","b2","c1","c2","d1","d2"],stagger:260,d:3400},{cap:1,off:["Q"],text:{q1:"totaux"},on:["R1","R2","R3","R4"],d:2800},{cap:2,off:["R1","R2","R3","R4"],unfold:["M"],on:["M","R1","R2","R4"],dim:["R3"],d:3200}]}}
+        steps:[{cap:0,on:["Q"],show:["a1","a2","b1","b2","c1","c2","d1","d2"],stagger:260,d:3400},{cap:1,off:["Q"],text:{q1:"totaux"},on:["R1","R2","R3","R4"],d:2800},{cap:2,off:["R1","R2","R3","R4"],unfold:["M"],on:["M","R1","R2","R4"],dim:["R3"],fold:["R3"],foldDelay:1800,d:3200}]}}
     ]
   },
   steps:[
@@ -11725,7 +11725,7 @@ guide({ id:80, titre:"INTERSECT et EXCEPT", résumé:"Comparer deux résultats",
         lanes:[{k:"A",l:"Liste 1 · ont commandé",c:[["a1","Léa"],["a2","Nathan"],["a3","Hugo"],["a4","Gabriel"]]},
           {k:"B",l:"Liste 2 · inscrits",c:[["b1","Léa"],["b2","Nathan"]]}],
         caps:["<b>Deux listes</b> · La première réunit les clients qui ont commandé, la seconde les clients inscrits.","<b>INTERSECT</b> · Il garde les lignes présentes dans les deux listes : Léa et Nathan.","<b>EXCEPT</b> · Il garde les lignes de la première liste absentes de la seconde : Hugo et Gabriel."],
-        steps:[{cap:0,on:["A","B"],d:2000},{cap:1,off:["A","B"],on:["a1","a2","b1","b2"],dim:["a3","a4"],d:2800},{cap:2,off:["a1","a2","b1","b2"],dim:["a1","a2","B"],undim:["a3","a4"],on:["a3","a4"],d:2800}]}}
+        steps:[{cap:0,on:["A","B"],d:2000},{cap:1,off:["A","B"],on:["a1","a2","b1","b2"],dim:["a3","a4"],d:2800},{cap:2,off:["a1","a2","b1","b2"],dim:["B"],gone:["a1","a2"],undim:["a3","a4"],on:["a3","a4"],d:2800}]}}
     ]
   },
   steps:[
@@ -13364,7 +13364,7 @@ guide({ id:67, titre:"Les contraintes en action", résumé:"NOT NULL, UNIQUE, CH
           {k:"R",c:[["r1","Tom"],["r2","-3"],["r3","tom@mail.fr"]]},
           {k:"K",cls:"is-goal",l:"Les règles de la table",c:[["k1","NOT NULL","h"],["k2","CHECK","h"],["k3","UNIQUE","h"]]}],
         caps:["<b>La fiche de Tom</b> · Avant de l’écrire, la base la compare aux règles de la table.","<b>NOT NULL</b> · Le prénom est bien renseigné : cette règle est respectée.","<b>CHECK</b> · L’âge vaut −3, alors que la règle exige un âge positif ou nul : elle est enfreinte.","<b>Résultat</b> · Une seule règle enfreinte suffit : toute la ligne est refusée."],
-        steps:[{cap:0,on:["R"],d:1900},{cap:1,off:["R"],on:["r1","k1"],show:["k1"],d:2300},{cap:2,off:["r1","k1"],mark:{r2:"is-miss",k2:"is-miss"},show:["k2"],d:2600},{cap:3,mark:{R:"is-miss"},dim:["R"],d:2600}]}},
+        steps:[{cap:0,on:["R"],d:1900},{cap:1,off:["R"],on:["r1","k1"],show:["k1"],d:2300},{cap:2,off:["r1","k1"],mark:{r2:"is-miss",k2:"is-miss"},show:["k2"],d:2600},{cap:3,mark:{R:"is-miss"},dim:["R"],fold:["R"],foldDelay:1500,d:2600}]}},
       {looks:[["NOT NULL","une valeur absente"],["UNIQUE","une valeur déjà prise"],["CHECK","une valeur qui ne respecte pas la condition"],["FOREIGN KEY","une référence à une ligne qui n’existe pas"]],label:"Ce que chaque règle interdit"}
     ]
   },
@@ -19709,7 +19709,8 @@ function mountProbScene(cfg,slot,memo){
     each(s.on,k=>q(k).classList.add('is-on'));
     each(s.dim,k=>q(k).classList.add('is-dim'));
     each(s.gone,k=>q(k).classList.add('is-gone'));
-    each(s.fold,k=>q(k).classList.add('is-fold'));
+    /* foldDelay : les lignes écartées ne se replient qu’après ce délai, le temps de voir pourquoi elles sortent. */
+    each(s.fold,k=>later(()=>q(k).classList.add('is-fold'),s.foldDelay||0,now));
     /* cols : nouvelle grille de colonnes (les colonnes dont la largeur passe à 0fr se referment). */
     if(s.cols)root.style.setProperty('--cols',s.cols);
     /* order : nouvel ordre des lignes (clés des lignes) ; elles glissent vers leur nouvelle place. */

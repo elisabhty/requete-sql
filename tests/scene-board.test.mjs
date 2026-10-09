@@ -143,7 +143,7 @@ test('cours 22 (NOT) : Problème « soulignés deux fois » puis les autres, con
   assert.equal(c.steps[0].sweep, 220, 'les réponses arrivent client par client');
   assert.equal(JSON.stringify(c.steps[2].on), '["R1","R5"]', 'les deux conditions : Sophie et Léa');
   assert.equal(JSON.stringify(c.steps[3].on), '["R2","R3","R4","R6"]', 'NOT inverse la réponse : les quatre autres sont gardés');
-  assert.equal(JSON.stringify(c.steps[3].dim), '["R1","R5"]');
+  assert.equal(JSON.stringify(c.steps[3].fold), '["R1","R5"]', 'Sophie et Léa quittent la liste');
   assert.ok(!/réponses s’inversent|Tout s’inverse/.test(c.caps[3]), 'NOT inverse la réponse du groupe, pas chaque réponse');
   assert.equal(JSON.stringify(d.steps[0].mark), '{"a3":"is-fail","d2":"is-pass","d3":"is-pass","e3":"is-fail"}', 'avec parenthèses : Sophie (34) et Nathan (30) restent, Léa est écartée');
   assert.equal(JSON.stringify(d.steps[1].mark), '{"a2":"is-fail","b2":"is-pass","c2":"is-pass","d2":"is-fail","e2":"is-fail","b3":"is-fail","c3":"is-pass"}', 'sans parenthèses, Paris suffit à écarter et Lucas (28 ans) l’est aussi ; seule Emma a deux oui');
