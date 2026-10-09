@@ -17,11 +17,11 @@ const cut = (from, to) => {
 
 test('WHERE : le cours a son animation, son image fixe et sa vignette, présentes dans le dépôt', () => {
   const where = cut('guide({ id:4, titre:"WHERE"', 'guide({ id:5,');
-  const m = where.match(/video:\{anim:'([^']+)',poster:'([^']+)',thumb:'([^']+)',duree:'([^']+)',/);
+  const m = where.match(/video:\{anim:'([^']+)',thumb:'([^']+)',duree:'([^']+)',/);
   assert.ok(m, 'champ video du cours WHERE');
   assert.equal(m[1], 'assets/anim/where.html?app&embed');
-  for (const f of m.slice(1, 4)) assert.ok(fs.statSync(path.join(ROOT, f.split('?')[0])).size > 1000, `fichier présent : ${f}`);
-  assert.equal(m[4], '2 min 02');
+  for (const f of m.slice(1, 3)) assert.ok(fs.statSync(path.join(ROOT, f.split('?')[0])).size > 1000, `fichier présent : ${f}`);
+  assert.equal(m[3], '2 min 02');
   assert.ok(/notes:\{t:114\.8,y:1330,card:\[64,356,1016,1017\],to:\[940,255\]\}/.test(where), 'bouton « Ajouter dans notes » à 1 min 55, sous le récapitulatif ; la note part du récapitulatif vers le carnet');
   assert.ok(html.includes("'exoNeeds','video']"), 'guide() garde le champ video sur la leçon');
 });
@@ -85,7 +85,7 @@ test('l’animation part dans l’app iOS et reste légère (plus de MP4 pour WH
   assert.ok(build.includes("for (const dir of ['assets', 'vendor'])"), 'assets/ (donc assets/anim) est copié dans l’app');
   assert.ok(!fs.existsSync(path.join(ROOT, 'assets/videos/where.mp4')), 'l’ancien MP4 de 9 Mo a disparu');
   let total = 0;
-  for (const f of ['where.html', 'gsap.min.js', 'mascotte.webp', 'where-poster.jpg', 'where-thumb.jpg']) total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
+  for (const f of ['where.html', 'gsap.min.js', 'mascotte.webp', 'where-thumb.jpg']) total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
   total += fs.statSync(path.join(ROOT, 'assets/fonts/jetbrains-mono.woff2')).size;
   assert.ok(total < 450 * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
   assert.ok(sw.includes("url.pathname.endsWith('.mp4')"));
@@ -159,6 +159,9 @@ test('page de l’animation : ressources locales, mode intégré, question, chap
   assert.ok(page.includes('chapters: CHAPTERS.map(') && page.includes('captions: CAPTIONS.map(') && page.includes('questions: QUESTIONS.map('));
   assert.ok(page.includes('const sr = $(\'#stage\').getBoundingClientRect(), k = sr.width / 1080 || 1;'), 'mesures justes quand la scène est réduite');
   assert.ok(page.includes('<div class="inv-from">NutriBoost</div>') && page.includes('Avec <span class="ic">WHERE</span>, garde seulement'));
+  assert.ok(page.includes('html.embed,html.embed body{height:100%;overflow:hidden;background:transparent}') && page.includes('html.embed .blob{display:none}'),
+    'dans le lecteur : fond transparent, sans halos coupés au bord de la scène');
+  assert.ok(html.includes('.lv.is-ready .lv-anim{opacity:1}') && !html.includes('lv-poster'), 'l’animation apparaît en fondu une fois prête, sans image fixe dont le fond trancherait');
 });
 
 test('LvAnim se pilote comme une vidéo : lecture, vitesse, question, reprise, fin', async () => {
