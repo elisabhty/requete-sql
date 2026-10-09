@@ -8074,16 +8074,18 @@ guide({ id:6, titre:"AND et OR", résumé:"Combiner plusieurs conditions",
   testeVariants:[{k:"base",label:"Avec parenthèses",sql:"SELECT prenom, ville, age FROM clients WHERE (ville = 'Paris' OR ville = 'Toulouse') AND age < 35;",expectRows:4},{k:"rec_sans",label:"Sans parenthèses",sql:"SELECT prenom, ville, age FROM clients WHERE ville = 'Paris' OR ville = 'Toulouse' AND age < 35;",out:"AND passe avant OR : tous les Parisiens sont gardés, quel que soit leur âge.",expectRows:5},{k:"rec_both",label:"Deux fois vrai",sql:"SELECT id, prenom, ville, age FROM clients WHERE ville = 'Paris' OR age > 30;",out:"Sophie remplit les deux conditions, mais sa ligne n’apparaît qu’une fois.",expectRows:7}],
   learningCheck:{question:"Dans WHERE ville = 'Paris' OR ville = 'Lyon' AND age > 35, quelle partie SQL calcule-t-il en premier ?",options:["ville = 'Paris' OR ville = 'Lyon'","ville = 'Lyon' AND age > 35","Tout, de gauche à droite, sans priorité"],answer:1,explanation:"AND passe avant OR : sans parenthèses, la ligne est gardée si la ville est Paris, ou si elle est Lyon avec un âge supérieur à 35."}
 }),
-guide({ id:22, titre:"NOT", résumé:"Exclure ce qui correspond",
+guide({ id:22, titre:"NOT", résumé:"Exclure selon une condition",
   sit:{
     blocks:[
-      "L’équipe marketing a déjà envoyé <b>une première offre</b> aux clients parisiens de plus de 30 ans. Elle prépare maintenant <b>une seconde offre</b> pour <b>tous les autres clients</b>.",
-      "La table <code>clients</code> contient au total <b>10 clients</b>. Pour envoyer la seconde offre, l’équipe souhaite récupérer uniquement :",
+      "L’équipe marketing a déjà envoyé <b>un code de réduction de 15 %</b> aux clients parisiens de plus de 30 ans.",
+      "Elle prépare maintenant un message proposant <b>la livraison gratuite</b> à <b>tous les autres clients</b>.",
+      "Pour éviter d’envoyer les deux offres aux mêmes personnes, elle souhaite <b>exclure</b> de cette nouvelle sélection les clients concernés par la première.",
+      "La table <code>clients</code> contient au total <b>10 clients</b>. Pour envoyer ce message, l’équipe souhaite récupérer uniquement :",
       {need:[["👤","Le prénom du client","table clients"],["👪","Son nom de famille","table clients"],["📍","Sa ville","table clients"],["🎂","Son âge","table clients"]],label:"Les informations à récupérer"}
     ],
     problem:{
       p:["Avec <code>WHERE</code> et <code>AND</code>, SQL sait garder les clients qui <b>correspondent</b> à des conditions : ceux de Paris qui ont plus de 30 ans.","Or, ici, c’est l’<b>inverse</b> : l’équipe veut les clients qui <b>ne correspondent pas</b> à cette sélection."],
-      scene:{h:"🎁 Seconde offre",cols:"minmax(0,1fr) 62px 42px",board:true,
+      scene:{h:"🚚 Livraison gratuite",cols:"minmax(0,1fr) 62px 42px",board:true,
         lanes:[{k:"H",cls:"is-head",c:[["h1","prenom"],["h2","ville"],["h3","age"]]},
           {k:"R1",c:[["a1","Sophie"],["a2","Paris"],["a3","34"]]},
           {k:"R2",c:[["b1","Lucas"],["b2","Lyon"],["b3","28"]]},
@@ -8091,19 +8093,19 @@ guide({ id:22, titre:"NOT", résumé:"Exclure ce qui correspond",
           {k:"R4",c:[["d1","Hugo"],["d2","Lyon"],["d3","52"]]},
           {k:"R5",c:[["e1","Léa"],["e2","Paris"],["e3","38"]]},
           {k:"R6",c:[["f1","Nathan"],["f2","Paris"],["f3","30"]]}],
-        caps:["<b>Notre liste</b> · Elle contient des clients de toutes les villes et de tous les âges.","<b>La ville</b> · Les clients dont la ville est surlignée habitent à Paris.","<b>L’âge</b> · Parmi eux, ceux dont l’âge est surligné ont plus de 30 ans.","<b>Résultat</b> · Lucas, Emma, Hugo et Nathan restent pour la seconde offre : aucun n’est un Parisien de plus de 30 ans."],
+        caps:["<b>Notre liste</b> · Elle contient des clients de toutes les villes et de tous les âges.","<b>La ville</b> · Les clients dont la ville est surlignée habitent à Paris.","<b>L’âge</b> · Parmi eux, ceux dont l’âge est surligné ont plus de 30 ans.","<b>Résultat</b> · Lucas, Emma, Hugo et Nathan recevront la livraison gratuite : aucun n’est un Parisien de plus de 30 ans."],
         steps:[{cap:0,on:["R1","R2","R3","R4","R5","R6"],d:1900},
           {cap:1,off:["R1","R2","R3","R4","R5","R6"],mark:{a2:"is-low",e2:"is-low",f2:"is-low"},d:2300},
           {cap:2,mark:{a3:"is-low",e3:"is-low"},d:2300},
           {cap:3,fold:["R1","R5"],unmark:{f2:"is-low"},on:["R2","R3","R4","R6"],d:2600}]},
       then:["Il faut donc indiquer à SQL comment <b>inverser</b> cette sélection, à partir de ses <b>deux</b> conditions.","L’opérateur <code>NOT</code> permet d’inverser une condition dans <code>WHERE</code>."]
     },
-    mission:"Aide l’équipe marketing à retrouver le <b>prénom</b>, le <b>nom de famille</b>, la <b>ville</b> et l’<b>âge</b> des clients qui <b>n’ont pas reçu la première offre</b> (ceux qui ne sont pas des Parisiens de plus de 30 ans), afin de préparer l’envoi de la seconde offre."
+    mission:"Aide l’équipe marketing à retrouver le <b>prénom</b>, le <b>nom de famille</b>, la <b>ville</b> et l’<b>âge</b> des clients qui <b>n’ont pas reçu le code de réduction</b> (ceux qui ne sont pas des Parisiens de plus de 30 ans), afin de leur proposer la livraison gratuite."
   },
   concept:{
     title:"Comment inverser une condition ?",
     blocks:[
-      {looks:[["AND","les deux conditions, Paris et plus de 30 ans, doivent être vraies ensemble : c’est la cible de la première offre"],["NOT","inverse la réponse : les clients de cette cible sont écartés"]]},
+      {looks:[["AND","les deux conditions, Paris et plus de 30 ans, doivent être vraies ensemble : c’est la cible du code de réduction"],["NOT","inverse la réponse : les clients de cette cible sont écartés"]]},
       {syntax:"⟦NOT (ville = 'Paris' AND age > 30)⟧"},
       {scene:{h:"🔍 Client par client",cols:"minmax(0,1fr) 62px 42px",board:true,
         lanes:[{k:"H",cls:"is-head",c:[["h1","prenom"],["h2","ville"],["h3","age"]]},
@@ -8159,19 +8161,19 @@ guide({ id:22, titre:"NOT", résumé:"Exclure ce qui correspond",
       {tip:{t:"Pourquoi pas l’inverse à la main ?",blocks:["Sans <code>NOT</code>, il faudrait inverser chaque comparaison <b>et</b> remplacer <code>AND</code> par <code>OR</code> : <code>ville != 'Paris' OR age &lt;= 35</code>. Facile de se tromper : avec <code>NOT</code>, on garde la condition d’origine."]}}
     ]},
     {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis inverser la condition de la première offre.",
-      {say:"👇 Exécute la requête pour découvrir les clients de la seconde offre :",run:"SELECT prenom, nom, ville, age\nFROM clients\nWHERE NOT (ville = 'Paris' AND age > 30);"},
-      {arrow:"Sophie, Nathan Petit et Léa, qui ont reçu la première offre, disparaissent : il reste 7 clients. Nathan Dupont, qui a exactement 30 ans, est conservé."},
+      "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis inverser la condition du code de réduction.",
+      {say:"👇 Exécute la requête pour découvrir les clients qui recevront la livraison gratuite :",run:"SELECT prenom, nom, ville, age\nFROM clients\nWHERE NOT (ville = 'Paris' AND age > 30);"},
+      {arrow:"Sophie, Nathan Petit et Léa, qui ont reçu le code de réduction, disparaissent : il reste 7 clients. Nathan Dupont, qui a exactement 30 ans, est conservé."},
       {done:{
-        label:"De tous les clients à ceux de la seconde offre",
+        label:"De tous les clients à ceux de la livraison gratuite",
         funnel:[
           {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
-          {step:"WHERE NOT (ville = 'Paris' AND age > 30)",s:"écarte les clients de la première offre"},
+          {step:"WHERE NOT (ville = 'Paris' AND age > 30)",s:"écarte les clients qui ont reçu le code de réduction"},
           {n:7,t:"⭐ clients à contacter",s:"Lucas Bernard, Emma Dubois, Chloé Moreau, Hugo Laurent, Gabriel Michel, Inès Lefebvre et Nathan Dupont",dots:"0110110111",out:true}
         ],
-        page:{ico:"🎁",h:"Bons à découper",aria:"Sept bons de la seconde offre, un par client qui n’a pas reçu la première ; le dernier est pour Nathan Dupont, Parisien de 30 ans pile",chrome:false,layout:"coupons",val:{ico:"🎁",txt:"2ᵉ offre"},kicker:"Offre spéciale",name:[0,1],sub:[{col:2},{col:3,tpl:"{v} ans"}],code:{pre:"OFFRE2-",col:0},flag:{col:3,val:30,txt:"30 ans pile"},stamp:"Envoyé",show:3,tail:1,more:"… et {n} autres bons",rows:[["Lucas","Bernard","Lyon",28],["Emma","Dubois","Marseille",45],["Chloé","Moreau","Bordeaux",26],["Hugo","Laurent","Lyon",52],["Gabriel","Michel","Toulouse",29],["Inès","Lefebvre","Nantes",41],["Nathan","Dupont","Paris",30]],done:"✓ 7 offres envoyées"},
+        page:{ico:"🚚",h:"Bons de livraison gratuite",aria:"Sept bons de livraison gratuite, un par client qui n’a pas reçu le code de réduction ; le dernier est pour Nathan Dupont, Parisien de 30 ans pile",chrome:false,layout:"coupons",val:{ico:"🚚",txt:"Livraison"},kicker:"Frais de port offerts",name:[0,1],sub:[{col:2},{col:3,tpl:"{v} ans"}],code:{pre:"LIVRAISON-",col:0},flag:{col:3,val:30,txt:"30 ans pile"},stamp:"Envoyé",show:3,tail:1,more:"… et {n} autres bons",rows:[["Lucas","Bernard","Lyon",28],["Emma","Dubois","Marseille",45],["Chloé","Moreau","Bordeaux",26],["Hugo","Laurent","Lyon",52],["Gabriel","Michel","Toulouse",29],["Inès","Lefebvre","Nantes",41],["Nathan","Dupont","Paris",30]],done:"✓ 7 offres de livraison gratuite envoyées"},
         fill:["WHERE","NOT","AND","30"],
-        ui:{t:"7 clients pour la seconde offre",s:"Aucun n’a reçu la première offre : la liste de la seconde offre est prête.",n:["SELECT","FROM","WHERE","NOT","AND"]},
+        ui:{t:"7 clients pour la livraison gratuite",s:"Aucun n’a reçu le code de réduction : la liste pour la livraison gratuite est prête.",n:["SELECT","FROM","WHERE","NOT","AND"]},
         rows:7
       }}
     ]}
