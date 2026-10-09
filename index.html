@@ -8080,50 +8080,48 @@ guide({ id:6, titre:"AND et OR", résumé:"Combiner plusieurs conditions",
 guide({ id:22, titre:"NOT", résumé:"Exclure selon une condition",
   sit:{
     blocks:[
-      "L’équipe marketing a déjà envoyé <b>un code de réduction de 15 %</b> aux clients parisiens de plus de 30 ans.",
+      "L’équipe marketing a déjà envoyé <b>un code de réduction de 15 %</b> à ses <b>anciens clients</b> : ceux inscrits avant le 1ᵉʳ mars 2023.",
       "Elle prépare maintenant un message proposant <b>la livraison gratuite</b> à <b>tous les autres clients</b>.",
       "Pour éviter d’envoyer les deux offres aux mêmes personnes, elle souhaite <b>exclure</b> de cette nouvelle sélection les clients concernés par la première.",
       "La table <code>clients</code> contient au total <b>10 clients</b>. Pour envoyer ce message, l’équipe souhaite récupérer uniquement :",
-      {need:[["👤","Le prénom du client","table clients"],["👪","Son nom de famille","table clients"],["📍","Sa ville","table clients"],["🎂","Son âge","table clients"]],label:"Les informations à récupérer"}
+      {need:[["👤","Le prénom du client","table clients"],["👪","Son nom de famille","table clients"],["📍","Sa ville","table clients"],["🗓️","Sa date d’inscription","table clients"]],label:"Les informations à récupérer"}
     ],
     problem:{
-      p:["Avec <code>WHERE</code> et <code>AND</code>, SQL sait garder les clients qui <b>correspondent</b> à des conditions : ceux de Paris qui ont plus de 30 ans.","Or, ici, c’est l’<b>inverse</b> : l’équipe veut les clients qui <b>ne correspondent pas</b> à cette sélection."],
-      scene:{h:"🚚 Livraison gratuite",cols:"minmax(0,1fr) 62px 42px",board:true,
-        lanes:[{k:"H",cls:"is-head",c:[["h1","prenom"],["h2","ville"],["h3","age"]]},
-          {k:"R1",c:[["a1","Sophie"],["a2","Paris"],["a3","34"]]},
-          {k:"R2",c:[["b1","Lucas"],["b2","Lyon"],["b3","28"]]},
-          {k:"R3",c:[["c1","Emma"],["c2","Marseille"],["c3","45"]]},
-          {k:"R4",c:[["d1","Hugo"],["d2","Lyon"],["d3","52"]]},
-          {k:"R5",c:[["e1","Léa"],["e2","Paris"],["e3","38"]]},
-          {k:"R6",c:[["f1","Nathan"],["f2","Paris"],["f3","30"]]}],
-        caps:["<b>Notre liste</b> · Elle contient des clients de toutes les villes et de tous les âges.","<b>La ville</b> · Les clients dont la ville est surlignée habitent à Paris.","<b>L’âge</b> · Parmi eux, ceux dont l’âge est surligné ont plus de 30 ans.","<b>Résultat</b> · Lucas, Emma, Hugo et Nathan recevront la livraison gratuite : aucun n’est un Parisien de plus de 30 ans."],
+      p:["Avec <code>WHERE</code>, SQL sait garder les clients qui <b>correspondent</b> à une condition : ceux inscrits avant le 1ᵉʳ mars 2023.","Or, ici, c’est l’<b>inverse</b> : l’équipe veut les clients qui <b>ne correspondent pas</b> à cette condition."],
+      scene:{h:"🚚 Livraison gratuite",cols:"minmax(0,1fr) 128px",board:true,
+        lanes:[{k:"H",cls:"is-head",c:[["h1","prenom"],["h2","date_inscription"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","2023-01-15"]]},
+          {k:"R2",c:[["b1","Lucas"],["b2","2023-03-22"]]},
+          {k:"R3",c:[["c1","Emma"],["c2","2022-11-05"]]},
+          {k:"R4",c:[["d1","Hugo"],["d2","2022-09-30"]]},
+          {k:"R5",c:[["e1","Léa"],["e2","2023-05-12"]]},
+          {k:"R6",c:[["f1","Nathan"],["f2","2023-08-03"]]}],
+        caps:["<b>Notre liste</b> · Elle contient des clients inscrits à des dates différentes.","<b>Les anciens clients</b> · Ceux dont la date est surlignée se sont inscrits avant le 1ᵉʳ mars 2023 : ils ont reçu le code de réduction.","<b>Résultat</b> · Lucas, Léa et Nathan recevront la livraison gratuite : ils se sont inscrits le 1ᵉʳ mars 2023 ou après."],
         steps:[{cap:0,on:["R1","R2","R3","R4","R5","R6"],d:1900},
-          {cap:1,off:["R1","R2","R3","R4","R5","R6"],mark:{a2:"is-low",e2:"is-low",f2:"is-low"},d:2300},
-          {cap:2,mark:{a3:"is-low",e3:"is-low"},d:2300},
-          {cap:3,fold:["R1","R5"],unmark:{f2:"is-low"},on:["R2","R3","R4","R6"],d:2600}]},
-      then:["Il faut donc indiquer à SQL comment <b>inverser</b> cette sélection, à partir de ses <b>deux</b> conditions.","L’opérateur <code>NOT</code> permet d’inverser une condition dans <code>WHERE</code>."]
+          {cap:1,off:["R1","R2","R3","R4","R5","R6"],mark:{a2:"is-low",c2:"is-low",d2:"is-low"},d:2600},
+          {cap:2,fold:["R1","R3","R4"],on:["R2","R5","R6"],d:2600}]},
+      then:["Il faut donc indiquer à SQL comment <b>inverser</b> cette condition.","L’opérateur <code>NOT</code> permet d’inverser une condition dans <code>WHERE</code>."]
     },
-    mission:"Aide l’équipe marketing à retrouver le <b>prénom</b>, le <b>nom de famille</b>, la <b>ville</b> et l’<b>âge</b> des clients qui <b>n’ont pas reçu le code de réduction</b> (ceux qui ne sont pas des Parisiens de plus de 30 ans), afin de leur proposer la livraison gratuite."
+    mission:"Aide l’équipe marketing à retrouver le <b>prénom</b>, le <b>nom de famille</b>, la <b>ville</b> et la <b>date d’inscription</b> des clients qui <b>n’ont pas reçu le code de réduction</b> (ceux inscrits le 1ᵉʳ mars 2023 ou après), afin de leur proposer la livraison gratuite."
   },
   concept:{
     title:"Comment inverser une condition ?",
     blocks:[
-      {looks:[["AND","les deux conditions, Paris et plus de 30 ans, doivent être vraies ensemble : c’est la cible du code de réduction"],["NOT","inverse la réponse : les clients de cette cible sont écartés"]]},
-      {syntax:"⟦NOT (ville = 'Paris' AND age > 30)⟧"},
-      {scene:{h:"🔍 Client par client",cols:"minmax(0,1fr) 62px 42px",board:true,
-        lanes:[{k:"H",cls:"is-head",c:[["h1","prenom"],["h2","ville"],["h3","age"]]},
-          {k:"R1",c:[["a1","Sophie"],["a2","Paris"],["a3","34"]]},
-          {k:"R2",c:[["b1","Lucas"],["b2","Lyon"],["b3","28"]]},
-          {k:"R3",c:[["c1","Emma"],["c2","Marseille"],["c3","45"]]},
-          {k:"R4",c:[["d1","Hugo"],["d2","Lyon"],["d3","52"]]},
-          {k:"R5",c:[["e1","Léa"],["e2","Paris"],["e3","38"]]},
-          {k:"R6",c:[["f1","Nathan"],["f2","Paris"],["f3","30"]]}],
-        caps:["Seuls Sophie, Léa et Nathan remplissent <b>la condition sur la ville</b> : habiter à Paris.","Tous, sauf Lucas et Nathan, remplissent <b>la condition sur l’âge</b> : avoir plus de 30 ans.","Seules Sophie et Léa remplissent <b>les deux conditions</b> : habiter à Paris et avoir plus de 30 ans.","<b>Avec NOT</b>, c’est l’inverse : tous sont gardés, sauf Sophie et Léa."],
-        steps:[{cap:0,mark:{h2:"is-now",a2:"is-pass",b2:"is-fail",c2:"is-fail",d2:"is-fail",e2:"is-pass",f2:"is-pass"},sweep:220,d:2600},
-          {cap:1,mark:{h3:"is-now",a3:"is-pass",b3:"is-fail",c3:"is-pass",d3:"is-pass",e3:"is-pass",f3:"is-fail"},sweep:220,d:2600},
-          {cap:2,on:["R1","R5"],dim:["R2","R3","R4","R6"],d:2600},
-          {cap:3,off:["R1","R5"],undim:["R2","R3","R4","R6"],fold:["R1","R5"],on:["R2","R3","R4","R6"],d:2800}]}},
-      {looks:[["gardée","le client n’habite pas à Paris, ou n’a pas plus de 30 ans : NOT rend la réponse vraie"],["écartée","le client habite à Paris et a plus de 30 ans : NOT rend la réponse fausse"]],label:"Gardée ou écartée"}
+      "Une date s’écrit <code>'AAAA-MM-JJ'</code> : <code>'2023-03-01'</code> est le 1ᵉʳ mars 2023. Elle se compare avec <code>&lt;</code> ou <code>&gt;</code> : une date plus ancienne est plus petite.",
+      {looks:[["<code>date_inscription &lt; '2023-03-01'</code>","la condition du code de réduction : s’être inscrit avant le 1ᵉʳ mars 2023"],["NOT","inverse la réponse : les anciens clients sont écartés"]]},
+      {syntax:"⟦NOT date_inscription < '2023-03-01'⟧"},
+      {scene:{h:"🔍 Client par client",cols:"minmax(0,1fr) 128px",board:true,
+        lanes:[{k:"H",cls:"is-head",c:[["h1","prenom"],["h2","date_inscription"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","2023-01-15"]]},
+          {k:"R2",c:[["b1","Lucas"],["b2","2023-03-22"]]},
+          {k:"R3",c:[["c1","Emma"],["c2","2022-11-05"]]},
+          {k:"R4",c:[["d1","Hugo"],["d2","2022-09-30"]]},
+          {k:"R5",c:[["e1","Léa"],["e2","2023-05-12"]]},
+          {k:"R6",c:[["f1","Nathan"],["f2","2023-08-03"]]}],
+        caps:["Seuls Sophie, Emma et Hugo remplissent <b>la condition</b> : être inscrits avant le 1ᵉʳ mars 2023.","<b>Avec NOT</b>, c’est l’inverse : tous sont gardés, sauf Sophie, Emma et Hugo."],
+        steps:[{cap:0,mark:{h2:"is-now",a2:"is-pass",b2:"is-fail",c2:"is-pass",d2:"is-pass",e2:"is-fail",f2:"is-fail"},sweep:220,d:2800},
+          {cap:1,on:["R2","R5","R6"],fold:["R1","R3","R4"],foldDelay:900,d:2800}]}},
+      {looks:[["gardée","le client s’est inscrit le 1ᵉʳ mars 2023 ou après : NOT rend la réponse vraie"],["écartée","le client s’est inscrit avant le 1ᵉʳ mars 2023 : NOT rend la réponse fausse"]],label:"Gardée ou écartée"}
     ]
   },
   steps:[
@@ -8141,7 +8139,6 @@ guide({ id:22, titre:"NOT", résumé:"Exclure selon une condition",
       {syntax:"WHERE NOT ⟦(ville = 'Paris' AND age > 35)⟧"},
       "Cela signifie : <b>NON (habiter à Paris ET avoir plus de 35 ans)</b>.",
       "Les clients qui remplissent ces deux conditions à la fois sont donc exclus du résultat.",
-      "Ici, le seuil est fixé à 35 ans plutôt qu’à 30 ans pour mieux observer l’effet des parenthèses.",
       {say:"👇 Exécute la requête pour voir quels clients sont conservés.",run:"SELECT prenom, ville, age\nFROM clients\nWHERE NOT (ville = 'Paris' AND age > 35);"},
       {arrow:"9 clients sont conservés : seule Léa (Paris, 38 ans) est écartée."},
       {warn:{t:"Sans parenthèses",blocks:[
@@ -8165,19 +8162,20 @@ guide({ id:22, titre:"NOT", résumé:"Exclure selon une condition",
     ]},
     {h:"La requête complète",blocks:[
       "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer la table, puis inverser la condition du code de réduction.",
-      {say:"👇 Exécute la requête pour découvrir les clients qui recevront la livraison gratuite :",run:"SELECT prenom, nom, ville, age\nFROM clients\nWHERE NOT (ville = 'Paris' AND age > 30);"},
-      {arrow:"Sophie, Nathan Petit et Léa, qui ont reçu le code de réduction, disparaissent : il reste 7 clients. Nathan Dupont, qui a exactement 30 ans, est conservé."},
+      {tip:{t:"Et avec >=",blocks:["Ici, <code>date_inscription &gt;= '2023-03-01'</code> donnerait le même résultat. Avec <code>NOT</code>, on reprend telle quelle la condition du code de réduction : pas de risque de se tromper de signe."]}},
+      {say:"👇 Exécute la requête pour découvrir les clients qui recevront la livraison gratuite :",run:"SELECT prenom, nom, ville, date_inscription\nFROM clients\nWHERE NOT date_inscription < '2023-03-01';"},
+      {arrow:"Sophie, Emma, Chloé et Hugo, inscrits avant le 1ᵉʳ mars 2023, ont reçu le code de réduction : ils disparaissent. Il reste 6 clients."},
       {done:{
         label:"De tous les clients à ceux de la livraison gratuite",
         funnel:[
           {n:10,t:"clients au départ",s:"toute la <code>table clients</code>",dots:"0000000000"},
-          {step:"WHERE NOT (ville = 'Paris' AND age > 30)",s:"écarte les clients qui ont reçu le code de réduction"},
-          {n:7,t:"⭐ clients à contacter",s:"Lucas Bernard, Emma Dubois, Chloé Moreau, Hugo Laurent, Gabriel Michel, Inès Lefebvre et Nathan Dupont",dots:"0110110111",out:true}
+          {step:"WHERE NOT date_inscription < '2023-03-01'",s:"écarte les anciens clients, qui ont reçu le code de réduction"},
+          {n:6,t:"⭐ clients à contacter",s:"Lucas Bernard, Nathan Petit, Léa Simon, Gabriel Michel, Inès Lefebvre et Nathan Dupont",dots:"0101001111",out:true}
         ],
-        page:{ico:"🚚",h:"Bons de livraison gratuite",aria:"Sept bons de livraison gratuite, un par client qui n’a pas reçu le code de réduction ; le dernier est pour Nathan Dupont, Parisien de 30 ans pile",chrome:false,layout:"coupons",val:{ico:"🚚",txt:"Livraison"},kicker:"Frais de port offerts",name:[0,1],sub:[{col:2},{col:3,tpl:"{v} ans"}],code:{pre:"LIVRAISON-",col:0},flag:{col:3,val:30,txt:"30 ans pile"},stamp:"Envoyé",show:3,tail:1,more:"… et {n} autres bons",rows:[["Lucas","Bernard","Lyon",28],["Emma","Dubois","Marseille",45],["Chloé","Moreau","Bordeaux",26],["Hugo","Laurent","Lyon",52],["Gabriel","Michel","Toulouse",29],["Inès","Lefebvre","Nantes",41],["Nathan","Dupont","Paris",30]],done:"✓ 7 offres de livraison gratuite envoyées"},
-        fill:["WHERE","NOT","AND","30"],
-        ui:{t:"7 clients pour la livraison gratuite",s:"Aucun n’a reçu le code de réduction : la liste pour la livraison gratuite est prête.",n:["SELECT","FROM","WHERE","NOT","AND"]},
-        rows:7
+        page:{ico:"🚚",h:"Bons de livraison gratuite",aria:"Six bons de livraison gratuite, un par client inscrit le 1ᵉʳ mars 2023 ou après, qui n’a pas reçu le code de réduction",chrome:false,layout:"coupons",val:{ico:"🚚",txt:"Livraison"},kicker:"Frais de port offerts",name:[0,1],sub:[{col:2},{col:3,tpl:"depuis le {v}"}],code:{pre:"LIVRAISON-",col:0},stamp:"Envoyé",show:3,tail:1,more:"… et {n} autres bons",rows:[["Lucas","Bernard","Lyon","2023-03-22"],["Nathan","Petit","Paris","2023-06-10"],["Léa","Simon","Paris","2023-05-12"],["Gabriel","Michel","Toulouse","2023-04-08"],["Inès","Lefebvre","Nantes","2023-07-26"],["Nathan","Dupont","Paris","2023-08-03"]],done:"✓ 6 offres de livraison gratuite envoyées"},
+        fill:["WHERE","NOT","<","2023-03-01"],
+        ui:{t:"6 clients pour la livraison gratuite",s:"Aucun n’a reçu le code de réduction : la liste pour la livraison gratuite est prête.",n:["SELECT","FROM","WHERE","NOT"]},
+        rows:6
       }}
     ]}
   ],
@@ -14555,7 +14553,7 @@ const QCM={
  2:[{q:"<code>SELECT prix AS tarif FROM produits;</code> affiche :",o:["Une colonne renommée tarif dans le résultat","La colonne prix renommée aussi dans la table","Une erreur, AS est interdit"],b:0,e:"<code>AS</code> ne change que l’en-tête affiché. La table garde le nom <code>prix</code>."},
    {q:"Pour un alias avec un espace, il faut :",o:["Des guillemets simples","Des guillemets doubles","Un underscore obligatoire"],b:1,e:"<code>prix AS \"Prix (€)\"</code>. Sans guillemets, l’espace casse la syntaxe. En SQL, les guillemets doubles servent aux noms et les guillemets simples aux valeurs texte."}],
  22:[{q:"<code>WHERE NOT ville = 'Paris'</code> garde :",o:["Seulement les Parisiens","Tous les clients sauf les Parisiens","Aucune ligne"],b:1,e:"<code>NOT</code> inverse la condition : sont gardées les lignes qui ne sont <b>pas</b> à Paris."},
-   {q:"<code>NOT (ville='Paris' AND age>30)</code> inverse :",o:["Seulement ville='Paris'","Seulement age>30","Toute la condition entre parenthèses"],b:2,e:"Les parenthèses délimitent ce qui est inversé. Sans elles, <code>NOT</code> ne porterait que sur la première condition."}],
+   {q:"<code>NOT (ville='Paris' AND age>35)</code> inverse :",o:["Seulement ville='Paris'","Seulement age>35","Toute la condition entre parenthèses"],b:2,e:"Les parenthèses délimitent ce qui est inversé. Sans elles, <code>NOT</code> ne porterait que sur la première condition."}],
  4:[{q:"<code>WHERE</code> filtre :",o:["Les colonnes affichées","Les lignes retenues","Les tables interrogées"],b:1,e:"<code>SELECT</code> choisit les colonnes. <code>WHERE</code> choisit quelles lignes restent dans le résultat."},
    {q:"Comment comparer une colonne à du texte ?",o:['ville = "Paris"',"ville = 'Paris'","ville = Paris"],b:1,e:"Guillemets simples : <code>ville = 'Paris'</code>. Sans eux, SQL peut croire que Paris est une colonne."}],
  5:[{q:"Avec <code>WHERE stock &lt;= 60</code>, un produit qui a exactement 60 unités en stock est-il gardé ?",o:["Oui, car &lt;= inclut 60","Non, car il faut être sous 60","Non, car 60 doit être entre guillemets"],b:0,e:"<code>&lt;=</code> signifie inférieur ou égal à. Un stock de 60 unités est donc inclus."},

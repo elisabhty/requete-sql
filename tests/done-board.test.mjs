@@ -95,12 +95,12 @@ test('objets à thème : plus aucun envoi générique (guideSms et sa bulle reti
   }
 });
 
-test('cours 22 (coupons) : 7 bons, 3 empilés, une pile « … et 3 autres bons », une pastille « 30 ans pile »', () => {
+test('cours 22 (coupons) : 6 bons, 2 empilés, une pile « … et 2 autres bons », pas de pastille', () => {
   const c = doneOf(22);
-  assert.equal(count(c, /<div class="pg-card is-coupon[ "]/g), 7);
-  assert.equal(count(c, /<div class="pg-card [^"]*\bis-stacked\b/g), 3);
+  assert.equal(count(c, /<div class="pg-card is-coupon[ "]/g), 6);
+  assert.equal(count(c, /<div class="pg-card [^"]*\bis-stacked\b/g), 2);
   assert.equal(count(c, /<div class="pg-more"/g), 1);
-  assert.equal(count(c, /<em class="pg-flag">/g), 1);
+  assert.equal(count(c, /<em class="pg-flag">/g), 0);
 });
 
 test('cours 18 (enveloppes mini) : 14 enveloppes, une par commande ; Hugo, sans email, en alerte avec data-v="NULL"', () => {
