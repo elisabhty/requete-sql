@@ -297,3 +297,65 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
   assert.ok(cut('function recommencerLecon(', 'function bravoStatsHtml(').includes('lvForget(id);'));
   assert.ok(cut('function openLessonVideo(){', 'function lvPlay(){').includes('if(r>=q.t-.02&&r<=q.t+.3)r=Math.max(0,q.t-.08);'), 'lecteur fermé pendant la question : elle se réaffiche à la reprise');
 });
+
+test('SELECT : le cours a son animation et sa vignette, avec le bouton « Ajouter dans notes » sous le récapitulatif', () => {
+  const sel = cut('guide({ id:1, titre:"SELECT"', 'guide({ id:2,');
+  const m = sel.match(/video:\{anim:'([^']+)',thumb:'([^']+)',duree:'([^']+)',/);
+  assert.ok(m, 'champ video du cours SELECT');
+  assert.equal(m[1], 'assets/anim/select.html?app&embed');
+  for (const f of m.slice(1, 3)) assert.ok(fs.statSync(path.join(ROOT, f.split('?')[0])).size > 1000, `fichier présent : ${f}`);
+  assert.equal(m[3], '2 min 11');
+  assert.ok(/notes:\{t:123\.45,y:1405,card:\[64,356,1016,1119\],to:\[940,255\]\}/.test(sel), 'bouton à 2 min 03, sous « Les trois idées à retenir »');
+});
+
+test('SELECT : page de l’animation sur le moteur commun, ressources locales, question avant d’exécuter la requête complète', () => {
+  const page = fs.readFileSync(path.join(ROOT, 'assets/anim/select.html'), 'utf8');
+  for (const rel of ['core.css', 'core.js', 'gsap.min.js', 'mascotte.webp'])
+    assert.ok(page.includes(rel) && fs.existsSync(path.join(ROOT, 'assets/anim', rel)), `ressource : ${rel}`);
+  assert.ok(page.indexOf('src="gsap.min.js"') < page.indexOf('src="core.js"'), 'GSAP chargé avant le moteur');
+  assert.ok(!/https?:\/\//.test(page), 'rien de chargé depuis Internet');
+  assert.ok(page.includes('Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 90.4,'));
+  assert.ok(page.includes("ctx: 'Cette requête affiche 4 colonnes.'") && page.includes("q: 'Combien de lignes le résultat contiendra-t-il ?'")
+    && page.includes("{label: '4 lignes', ok: false}, {label: '10 lignes', ok: true}"), 'question : 4 colonnes, combien de lignes ?');
+  assert.ok(page.includes('Avec <span class="ic">SELECT</span>, choisis seulement les colonnes dont tu as besoin.'), 'bulle de la mascotte');
+  for (const label of ['Situation', 'Le problème', 'Choisir les colonnes', 'Deux pièges', 'Toutes les colonnes', 'Le résultat', 'À retenir'])
+    assert.ok(page.includes(`label:'${label}'`), `chapitre ${label}`);
+  assert.ok(page.includes('near "FROM": syntax error') && page.includes('SELECT</span> prenom ville'), 'les deux pièges : virgule oubliée, virgule de trop');
+  assert.ok(!/SQL (voit|comprend|sait|lit)\b/.test(page), 'SQL n’est jamais personnifié');
+  assert.ok(/la <b>table clients<\/b>/.test(page) && !/dans clients\b/.test(page), 'toujours « table clients »');
+});
+
+test('moteur commun des animations : mode intégré, rendu net, pauses de lecture calculées d’après chaque légende', () => {
+  const core = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
+  const css = fs.readFileSync(path.join(ROOT, 'assets/anim/core.css'), 'utf8');
+  assert.ok(core.includes("const EMBED = QS.has('embed');") && core.includes('gsap.config({force3D: false});'));
+  assert.ok(css.includes('html.embed,html.embed body{height:100%;overflow:hidden;background:transparent}') && css.includes('html.embed .blob{display:none}'));
+  for (const f of ['bricolage-grotesque-regular.woff2', 'bricolage-grotesque-bold.woff2', 'jetbrains-mono.woff2'])
+    assert.ok(css.includes(`../fonts/${f}`) && fs.existsSync(path.join(ROOT, 'assets/fonts', f)), `police : ${f}`);
+  assert.ok(core.includes('chapters: chapters.map(') && core.includes('captions: captions.map(') && core.includes('questions: questions.map('), 'protocole du lecteur (window.__ready)');
+  const ctx = vm.createContext({location: {search: ''}, URLSearchParams, gsap: {config() {}, timeline: () => ({})}, document: {}});
+  vm.runInContext(core, ctx);
+  const txt = 'x'.repeat(85);                                  // 85 caractères : 5 s de lecture
+  assert.ok(Math.abs(vm.runInContext('readTime', ctx)(txt) - 5) < 1e-9);
+  assert.equal(JSON.stringify(ctx.captionHolds([[10, 13, txt]], 100)), '[[12.75,2.5]]', 'lisible 2,5 s : l’image s’arrête 2,5 s juste avant que la légende s’efface');
+  assert.equal(JSON.stringify(ctx.captionHolds([[10, 16, txt]], 100)), '[]', 'assez de temps : pas de pause');
+  assert.equal(JSON.stringify(ctx.captionHolds([[90, 999, txt]], 100)), '[]', 'dernière légende (jusqu’à la fin) : pas de pause');
+  assert.equal(JSON.stringify(ctx.captionHolds([[10, 13, '<b>x</b>'.repeat(85)]], 100)), '[[12.75,2.5]]', 'les balises ne comptent pas');
+  assert.equal(JSON.stringify(ctx.mergeHolds([[20, 1], [5, 2], [20.05, 3]])), '[[5,2],[20,3]]', 'pauses triées, très proches fusionnées');
+  vm.runInContext('HOLDS = [[5, 2], [20, 3]];', ctx);
+  assert.equal(ctx.unwarp(4), 4); assert.equal(ctx.unwarp(10), 12); assert.equal(ctx.unwarp(30), 35);
+  assert.equal(ctx.warp(6), 5, 'pendant la pause : image figée'); assert.equal(ctx.warp(12), 10); assert.equal(ctx.warp(35), 30);
+  assert.equal(ctx.fr('Résultat : <code>a : b</code> ?'), 'Résultat : <code>a : b</code> ?', 'espaces insécables, sauf dans le code');
+});
+
+test('SELECT reste léger et disponible hors ligne ; le moteur commun n’est jamais servi périmé', () => {
+  let total = 0;
+  for (const f of ['select.html', 'core.css', 'core.js', 'gsap.min.js', 'mascotte.webp', 'select-thumb.jpg']) total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
+  total += fs.statSync(path.join(ROOT, 'assets/fonts/jetbrains-mono.woff2')).size;
+  assert.ok(total < 450 * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
+  for (const f of ['./assets/anim/select.html?app&embed', './assets/anim/core.css', './assets/anim/core.js', './assets/anim/select-thumb.jpg'])
+    assert.ok(sw.includes(`'${f}'`), `préchargé : ${f}`);
+  const i = sw.indexOf("if (url.pathname.includes('/assets/anim/') && /\\.(js|css)$/.test(url.pathname) && !url.pathname.endsWith('/gsap.min.js')) {");
+  assert.ok(i > 0 && i < sw.indexOf("if (req.mode === 'navigate') {"), 'moteur des animations : réseau d’abord');
+  assert.ok(sw.slice(i, i + 700).includes("fetch(req, { cache: 'no-cache' })"), 'revalidé auprès du serveur');
+});

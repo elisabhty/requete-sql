@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<title>Requête · SELECT en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+/* ---------- 2 · Le problème ---------- */
+.rec{left:64px;top:236px;width:952px;padding:0 0 12px;overflow:hidden}
+.rec .tt{height:100px;display:flex;align-items:center;gap:16px;padding:0 36px;font-weight:700;font-size:36px;color:var(--ink)}
+.rec .tt .emo{font-size:40px}
+.rr{position:relative;height:94px;display:flex;align-items:center;padding:0 36px;box-shadow:inset 0 2px 0 var(--line-2);overflow:hidden}
+.rr .hl{position:absolute;left:0;top:0;right:0;bottom:0;background:var(--accent-soft);box-shadow:inset 8px 0 0 var(--accent);opacity:0}
+.rr .rk,.rr .rv{position:relative;text-decoration:line-through;text-decoration-color:rgba(194,50,58,0);text-decoration-thickness:4px}
+.rr .rk{flex:none;width:340px;font-family:var(--mono);font-size:32px;font-weight:700;color:var(--ink-3)}
+.rr .rv{font-size:40px;font-weight:600;color:var(--ink);white-space:nowrap}
+.rm{position:absolute;right:30px;top:50%;margin-top:-27px;height:54px;padding:0 22px;border-radius:999px;display:flex;align-items:center;font-size:28px;font-weight:700;white-space:nowrap;opacity:0}
+.rm.ko{background:var(--danger-soft);color:var(--danger)}
+.rm.ok{background:var(--accent);color:#fff}
+
+/* ---------- 3 · Choisir les colonnes ---------- */
+.rg2{display:grid;grid-template-columns:var(--c1) var(--c2);padding:0 26px}
+.ord{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;margin-left:12px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--ui);font-size:24px;font-weight:800;vertical-align:middle;opacity:0}
+
+/* ---------- 4 · Deux pièges ---------- */
+.qdemo{left:64px;top:236px;width:952px;height:200px;text-align:center}
+.qdemo .codepill{height:112px;font-size:58px;padding:0 46px}
+.cm{display:inline-block;color:#FFE08A}
+.qlabel{position:absolute;top:0;left:0;font-size:32px;font-weight:700;color:var(--ink-3);white-space:nowrap}
+.brk{position:absolute;left:0;top:0;width:952px;height:200px;overflow:visible}
+.brk path{fill:none;stroke:#A99CE0;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.out.res{height:auto;padding:0;gap:34px}
+.mt{flex:none;width:300px;border:3px solid var(--line);border-radius:24px;overflow:hidden;background:#fff}
+.mth{isolation:isolate;height:54px;display:flex;align-items:center;padding:0 24px;background:var(--surface-2);font-family:var(--mono);font-size:28px;font-weight:700;color:var(--ink-3)}
+.mtr{height:46px;display:flex;align-items:center;padding:0 24px;box-shadow:inset 0 2px 0 var(--line-2);font-family:var(--mono);font-size:30px;font-weight:600;color:var(--ink)}
+.mtr.more{color:#A8A2C6}
+.city{position:relative;display:inline-block}
+.city .mbox{position:absolute;left:-12px;right:-12px;top:-5px;bottom:-5px;background:#FADADD;border-radius:12px;box-shadow:inset 0 0 0 2px rgba(194,50,58,.16);z-index:-1;opacity:0}
+.mnote{display:flex;flex-direction:column;gap:8px;opacity:0}
+.mnote b{font-size:38px;font-weight:800;color:var(--danger)}
+.mnote span{font-size:32px;line-height:1.3;font-weight:500;color:var(--ink-2)}
+.cbox{position:relative;display:inline-block;isolation:isolate}
+.cbox .mbox{position:absolute;left:-3px;right:-3px;top:2px;bottom:2px;border-radius:10px;background:rgba(239,79,85,.22);box-shadow:inset 0 0 0 3px #EF4F55;z-index:-1;opacity:0}
+
+/* ---------- 5 · Toutes les colonnes ---------- */
+.star{display:inline-block;color:#FFE08A;font-weight:800}
+.allc{left:64px;width:952px;padding:0 0 34px}
+.allc .tt{height:86px;display:flex;align-items:center;gap:16px;padding:0 34px;font-weight:700;font-size:34px;color:var(--ink)}
+.allc .tt .emo{font-size:38px}
+.chips{display:flex;flex-wrap:wrap;gap:16px;padding:4px 34px 0}
+.colchip{height:66px;padding:0 24px;border-radius:18px;background:var(--surface-2);border:3px solid var(--line);display:flex;align-items:center;font-family:var(--mono);font-size:32px;font-weight:700;color:var(--ink-2)}
+.tip{left:64px;width:952px;padding:26px 0 10px}
+.tip-h{display:flex;align-items:center;gap:14px;padding:0 40px 14px;font-size:34px;font-weight:700;color:var(--ink-3)}
+.tip-h .emo{font-size:36px}
+.tip-r{display:flex;align-items:center;gap:24px;height:108px;padding:0 40px;box-shadow:inset 0 2px 0 var(--line-2)}
+.tip-r .emo{flex:none;width:56px;font-size:46px;text-align:center}
+.tip-r .tx{font-size:36px;font-weight:600;color:var(--ink);white-space:nowrap}
+.tip-r .ic{margin-left:auto;font-size:28px}
+
+/* ---------- 6 · Le résultat ---------- */
+.rg4{display:grid;grid-template-columns:186px 200px 226px 314px;padding:0 13px}
+.tr.tr6{height:62px;font-size:30px}
+.tsw{position:relative;flex:1;height:50px}
+.tsw>span{position:absolute;left:0;top:0;height:50px;display:flex;align-items:center;gap:16px;white-space:nowrap}
+#stamp6{right:30px;top:200px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Lire une table</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>S</span><span>E</span><span>L</span><span>E</span><span>C</span><span>T</span></div>
+    <div class="abs sub">Choisir les colonnes</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec <span class="ic">SELECT</span>, choisis seulement les colonnes dont tu as besoin.</div>
+  </section>
+
+  <!-- 1 · Situation -->
+  <section class="scene" id="s1">
+    <div class="abs card invite">
+      <div class="inv-band"><span class="emo">🚚</span><span>Livraisons</span></div>
+      <div class="inv-body">
+        <div class="inv-from">NutriBoost · logistique</div>
+        <div class="inv-title">Nouveau transporteur</div>
+        <div class="inv-place"><span class="emo">📋</span><span>La liste des clients</span></div>
+      </div>
+      <div class="stamp">4 infos seulement</div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">👤</span><span class="nl">Le prénom du client</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">👪</span><span class="nl">Son nom de famille</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">📍</span><span class="nl">Sa ville</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">📞</span><span class="nl">Son téléphone</span><span class="tag">table clients</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème -->
+  <section class="scene" id="s2">
+    <div class="abs card rec" id="rec">
+      <div class="tt"><span class="emo">📇</span><span>Informations d’un client</span><span class="cnt"><span id="cnt9">9 colonnes</span><span id="cnt4c">4 colonnes</span></span></div>
+      <div id="recRows"></div>
+    </div>
+    <div class="abs sqlrow" id="sqlrow2" style="top:790px"><span class="lbl">En SQL</span><span class="arw">→</span><span class="codepill"><span class="kw">SELECT</span></span></div>
+  </section>
+
+  <!-- 3 · Choisir les colonnes -->
+  <section class="scene" id="s3">
+    <div class="abs code" id="s3code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s3l1"><span class="glow" id="s3g1"><span class="kw">SELECT</span> <span class="glow" id="s3c1">prenom</span></span><span id="s3add">, <span class="glow" id="s3c2">nom</span></span><span class="caret"><i></i></span></span><span class="ln" id="s3l2"><span class="glow" id="s3g2"><span class="kw">FROM</span> clients</span>;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s3run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="abs look" id="look3a" style="top:664px"><div class="lk">SELECT prenom</div><div class="lt">→ indique la colonne à afficher</div></div>
+    <div class="abs look" id="look3b" style="top:810px"><div class="lk">FROM clients</div><div class="lt">→ indique la table dans laquelle la lire</div></div>
+    <div class="tbl card" id="tbl3" style="top:664px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt3">10 lignes</span></span></div>
+      <div class="rg2 th"><div>prenom<b class="ord" id="ord1">1</b></div><div>nom<b class="ord" id="ord2">2</b></div></div>
+      <div class="rows" id="rows3"></div>
+    </div>
+  </section>
+
+  <!-- 4 · Deux pièges -->
+  <section class="scene" id="s4">
+    <div class="abs qdemo" id="qdemo">
+      <span class="codepill"><span class="kw">SELECT</span> prenom<span class="cm" id="cm1">,</span> ville</span>
+      <svg class="brk"><path id="brkPath" d=""/></svg>
+      <div class="qlabel" id="qlabel">une virgule entre deux colonnes</div>
+    </div>
+    <div class="abs card trap" id="trapA" style="top:452px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Sans virgule</span></div>
+      <div class="mini"><span class="kw">SELECT</span> prenom ville
+<span class="kw">FROM</span> clients;<span class="go" id="goA"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
+      <div class="out res" id="resA">
+        <div class="mt"><div class="mth"><span class="city" id="thVille">ville<i class="mbox"></i></span></div><div class="mtr">Sophie</div><div class="mtr">Lucas</div><div class="mtr more">…</div></div>
+        <div class="mnote" id="noteA"><b>Une seule colonne</b><span>Les prénoms, sous le titre <span class="ic">ville</span></span></div>
+      </div>
+    </div>
+    <div class="abs card trap" id="trapB" style="top:986px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Une virgule de trop</span></div>
+      <div class="mini"><span class="kw">SELECT</span> prenom, ville<span class="cbox" id="badComma">,<i class="mbox"></i></span>
+<span class="kw">FROM</span> clients;<span class="go" id="goB"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
+      <div class="out err" id="errB"><span class="oi">!</span><div class="ot"><b>Erreur SQL</b><span class="m">near "FROM": syntax error</span></div></div>
+    </div>
+  </section>
+
+  <!-- 5 · Toutes les colonnes -->
+  <section class="scene" id="s5">
+    <div class="abs code" id="s5code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s5l1"><span class="kw">SELECT</span> <span class="star" id="star">*</span><span class="caret"><i></i></span></span><span class="ln" id="s5l2"><span class="kw">FROM</span> clients;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s5run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="abs look" id="look5" style="top:664px"><div class="lk">*</div><div class="lt">→ sélectionne toutes les colonnes</div></div>
+    <div class="abs card allc" id="allc" style="top:664px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt5">9 colonnes · 10 lignes</span></span></div>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="abs card tip" id="tip5" style="top:1062px">
+      <div class="tip-h"><span class="emo">💡</span><span>Quand l’utiliser&nbsp;?</span></div>
+      <div class="tip-r"><span class="emo">🔍</span><span class="tx">Pour <b>découvrir</b> une table</span><span class="ic">SELECT *</span></div>
+      <div class="tip-r"><span class="emo">📱</span><span class="tx">Dans une <b>application</b></span><span class="ic">SELECT prenom, nom…</span></div>
+    </div>
+  </section>
+
+  <!-- 6 · Le résultat -->
+  <section class="scene" id="s6">
+    <div class="abs code" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body" style="font-size:38px"><span class="ln" id="s6l1"><span class="kw">SELECT</span> prenom, nom, ville, telephone<span class="caret"><i></i></span></span><span class="ln" id="s6l2"><span class="kw">FROM</span> clients;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6" style="top:676px">
+      <div class="tt"><span class="tsw"><span id="tt6a"><span class="emo">🔎</span><span>Résultat</span></span><span id="tt6b"><span class="emo">🚚</span><span>Clients à livrer</span></span></span><span class="cnt"><span id="cnt6">4 colonnes · 10 lignes</span></span></div>
+      <div class="rg4 th"><div>prenom</div><div>nom</div><div>ville</div><div>telephone</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="stamp" id="stamp6">Transmise</div>
+    <div class="abs badge" id="badge6" style="top:1068px"><span>✓ Liste transmise au transporteur</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">📋</div><div class="rtxt"><span class="ic">SELECT</span> sert à choisir les <b>colonnes</b> à afficher.<span class="rs">Il agit sur le résultat, sans modifier la table.</span></div></div>
+      <div class="rrow"><div class="rico emo">📍</div><div class="rtxt"><span class="ic">FROM</span> indique la <b>table</b> à lire&nbsp;:<br><span class="ic blk">FROM clients</span></div></div>
+      <div class="rrow"><div class="rico emo">➕</div><div class="rtxt">Sépare les colonnes par une <b>virgule</b>, sans virgule après la dernière&nbsp;:<br><span class="ic blk" style="font-size:.72em">SELECT prenom, nom, ville, telephone</span><span class="rs">Pour toutes les colonnes&nbsp;: <span class="ic">*</span></span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 98;
+
+const CLIENTS = [
+  ['Sophie','Martin','Paris','06 39 98 12 04'],
+  ['Lucas','Bernard','Lyon','06 39 98 21 47'],
+  ['Emma','Dubois','Marseille','06 39 98 33 08'],
+  ['Nathan','Petit','Paris','06 39 98 40 15'],
+  ['Chloé','Moreau','Bordeaux','06 39 98 51 62'],
+  ['Hugo','Laurent','Lyon','06 39 98 68 03'],
+  ['Léa','Simon','Paris','06 39 98 74 29'],
+  ['Gabriel','Michel','Toulouse','06 39 98 85 16'],
+  ['Inès','Lefebvre','Nantes','06 39 98 97 50'],
+  ['Nathan','Dupont','Paris','06 39 98 10 26']
+];
+/* Les 9 colonnes de la table clients, pour Sophie : [colonne, valeur, utile au transporteur ?] */
+const SOPHIE = [['id','1',0],['prenom','Sophie',1],['nom','Martin',1],['adresse','12 rue des Lilas',0],['ville','Paris',1],
+  ['age','34',0],['email','sophie@mail.fr',0],['telephone','06 39 98 12 04',1],['date_inscription','2023-01-15',0]];
+
+const CHAPTERS = [
+  {n:1, label:'Situation',            a:5.0,  b:15.0},
+  {n:2, label:'Le problème',          a:15.0, b:26.8},
+  {n:3, label:'Choisir les colonnes', a:26.8, b:44.9},
+  {n:4, label:'Deux pièges',          a:44.9, b:61.0},
+  {n:5, label:'Toutes les colonnes',  a:61.0, b:73.4},
+  {n:6, label:'Le résultat',          a:73.4, b:85.2},
+  {n:7, label:'À retenir',            a:85.2, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 8.6,   "NutriBoost travaille avec un <b>nouveau transporteur</b>."],
+  [8.7, 11.35, "L’équipe logistique doit lui transmettre la liste des clients, avec <b>4 informations</b> seulement."],
+  [11.45, 14.6, "Ces informations se trouvent dans la <b>table clients</b>, qui contient <b>10 clients</b>."],
+  [15.3, 18.6, "Dans la <b>table clients</b>, chaque client est décrit par <b>9 colonnes</b>."],
+  [18.7, 22.5, "L’identifiant, l’adresse, l’âge, l’email et la date d’inscription <b>ne servent pas</b> au transporteur."],
+  [22.6, 26.4, "Il faut donc préciser <b>quelles colonnes afficher</b> : c’est exactement le rôle de <code>SELECT</code>."],
+  [27.3, 31.5, "Après <code>SELECT</code>, on écrit le nom de la colonne à afficher, puis <code>FROM</code> et le nom de la table."],
+  [31.6, 35.9, "Le résultat contient <b>une seule colonne</b>, mais <b>les 10 clients</b> sont bien là."],
+  [36.0, 40.3, "Pour afficher une autre colonne, ajoute une <b>virgule</b> puis son nom : <code>prenom, nom</code>."],
+  [40.4, 44.4, "Les colonnes s’affichent <b>dans l’ordre où tu les écris</b> : d’abord le prénom, puis le nom."],
+  [45.3, 49.2, "Une <b>virgule</b> sépare chaque colonne de la suivante, sans virgule après la dernière."],
+  [49.3, 54.6, "Sans virgule, <code>ville</code> devient un nouveau titre pour la colonne des prénoms : <b>une seule colonne</b> s’affiche."],
+  [54.7, 60.5, "Avec une virgule de trop, la liste des colonnes reste ouverte devant <code>FROM</code> : la requête provoque une erreur."],
+  [61.3, 65.0, "Pour afficher <b>toutes les colonnes</b>, une étoile <code>*</code> suffit après <code>SELECT</code>."],
+  [65.1, 68.9, "Le résultat contient alors les <b>9 colonnes</b> de la table clients, pour les 10 clients."],
+  [69.0, 72.9, "L’étoile sert surtout à <b>découvrir</b> une table : dans une application, liste seulement les colonnes utiles."],
+  [73.7, 76.3, "La requête complète affiche le prénom, le nom, la ville et le téléphone de chaque client."],
+  [76.4, 80.4, "Résultat : <b>4 colonnes</b> et toujours <b>10 lignes</b>, une par client."],
+  [80.5, 84.7, "La liste est prête : elle peut partir chez le <b>nouveau transporteur</b>."],
+  [85.5, 90.3, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [90.4, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [90.4, 999, "<code>SELECT</code> agit sur le résultat : la <b>table clients</b> garde toutes ses colonnes."]
+];
+
+/* Question posée par le lecteur de l’app, juste avant d’exécuter la requête complète. */
+const QUESTIONS = APP ? [{
+  at: 76.15,
+  kicker: 'À toi de deviner',
+  ctx: 'Cette requête affiche 4 colonnes.',
+  q: 'Combien de lignes le résultat contiendra-t-il ?',
+  options: [{label: '4 lignes', ok: false}, {label: '10 lignes', ok: true}],
+  okTitle: 'Bien vu !',
+  koTitle: 'Pas tout à fait',
+  why: 'SELECT sert à choisir les colonnes, pas les lignes : les 10 clients restent.'
+}] : [];
+
+function dom(){
+  $('#recRows').innerHTML = SOPHIE.map(([k, v, keep]) =>
+    `<div class="rr" data-keep="${keep}"><i class="hl"></i><span class="rk">${k}</span><span class="rv">${v}</span><span class="rm ${keep ? 'ok' : 'ko'}">${keep ? '✓ utile' : '✕ inutile'}</span></div>`).join('');
+  $('#rows3').innerHTML = CLIENTS.map(c => `<div class="rg2 tr"><div>${c[0]}</div><div class="c2">${c[1]}</div></div>`).join('');
+  $('#chips').innerHTML = SOPHIE.map(([k]) => `<span class="colchip">${k}</span>`).join('');
+  $('#rows6').innerHTML = CLIENTS.map(c => `<div class="rg4 tr tr6"><div>${c[0]}</div><div>${c[1]}</div><div>${c[2]}</div><div>${c[3]}</div></div>`).join('');
+}
+
+/* Mesures de mise en page (avant toute transformation) : flèche sous la virgule et son étiquette. */
+function layout(){
+  const qd = $('#qdemo'), cm = rel($('#cm1'), qd), pill = rel($('#qdemo .codepill'), qd);
+  const x = cm.x + cm.w / 2, y0 = pill.y + pill.h + 16;
+  const p = $('#brkPath');
+  p.setAttribute('d', `M${x.toFixed(1)} ${(y0 + 32).toFixed(1)} V${y0.toFixed(1)} M${(x - 10).toFixed(1)} ${(y0 + 11).toFixed(1)} L${x.toFixed(1)} ${y0.toFixed(1)} L${(x + 10).toFixed(1)} ${(y0 + 11).toFixed(1)}`);
+  const lab = $('#qlabel'), lw = rel(lab).w;
+  lab.style.left = Math.max(0, Math.min(952 - lw, x - lw / 2)).toFixed(1) + 'px';
+  lab.style.top = (y0 + 40).toFixed(1) + 'px';
+  return {brkLen: p.getTotalLength()};
+}
+
+function build(){
+  const L = layout();
+  introScene();
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  // La carte du transporteur arrive seule au centre, puis remonte quand la liste des informations entre.
+  gsap.set('#s1 .invite', {autoAlpha: 0, y: 470, rotation: -9});
+  tl.to('#s1 .invite', {autoAlpha: 1, y: 380, rotation: -2.5, duration: 0.9, ease: 'back.out(1.3)'}, 5.15);
+  cue(5.15, 'whoosh', 0.8);
+  gsap.set('#s1 .stamp', {autoAlpha: 0, scale: 1.9, rotation: 24});
+  tl.to('#s1 .stamp', {autoAlpha: 1, scale: 1, rotation: 7, duration: 0.36, ease: 'power4.in'}, 9.3);
+  tl.to('#s1 .invite', {x: 6, duration: 0.05, yoyo: true, repeat: 3, ease: 'none'}, 9.66);
+  cue(9.65, 'stamp');
+  tl.to('#s1 .invite', {y: 0, duration: 0.75, ease: 'power3.inOut'}, 11.4);
+  show('#s1 .need', 11.65, {y: 60});
+  cue(11.65, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.2}, 12.05);
+  needRows.forEach((_, i) => cue(12.05 + i * 0.2, 'pop', 0.7, i));
+  tl.to('#s1 .tag', {scale: 1.08, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.1}, 13.1);
+  hide(['#s1 .invite', '#s1 .need'], 14.6);
+  sceneOff('#s1', 15.1);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 15.0);
+  show('#rec', 15.05, {y: 60}, 0.6);
+  cue(15.05, 'whoosh', 0.7);
+  const rr = $$('#recRows .rr');
+  gsap.set(rr, {autoAlpha: 0, x: -30});
+  tl.to(rr, {autoAlpha: 1, x: 0, duration: 0.4, ease: 'power3.out', stagger: 0.09}, 15.4);
+  rr.forEach((_, i) => cue(15.4 + i * 0.09, 'tick', 0.45, i));
+  gsap.set('#cnt4c', {autoAlpha: 0, y: 24});
+  show('#cnt9', 16.45, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(16.45, 'pop', 0.8, 2);
+  const off = rr.filter(r => r.dataset.keep === '0'), keep = rr.filter(r => r.dataset.keep === '1');
+  off.forEach((r, i) => {
+    const t = 19.0 + i * 0.16;
+    tl.to(r.querySelectorAll('.rk,.rv'), {color: '#B4ADCF', textDecorationColor: 'rgba(194,50,58,.75)', duration: 0.3}, t);
+    const m = r.querySelector('.rm');
+    gsap.set(m, {autoAlpha: 0, scale: 0.5});
+    tl.to(m, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)'}, t);
+    cue(t, 'miss', 0.55, i);
+  });
+  keep.forEach((r, i) => {
+    const t = 20.9 + i * 0.12;
+    tl.to(r.querySelector('.hl'), {opacity: 1, duration: 0.3}, t);
+    const m = r.querySelector('.rm');
+    gsap.set(m, {autoAlpha: 0, scale: 0.5});
+    tl.to(m, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)'}, t);
+  });
+  cue(20.9, 'chord', 0.7);
+  tl.to(off, {height: 0, opacity: 0, duration: 0.55, ease: 'power2.inOut', stagger: 0.07}, 22.75);
+  cue(22.75, 'fold', 0.9);
+  tl.to('#cnt9', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 23.5);
+  tl.to('#cnt4c', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 23.6);
+  cue(23.6, 'pop', 0.9, 4);
+  show('#sqlrow2', 24.2, {y: 0, x: -40});
+  cue(24.2, 'pop', 0.9, 3);
+  hide(['#rec', '#sqlrow2'], 26.35);
+  sceneOff('#s2', 26.9);
+
+  /* ===== 3 · Choisir les colonnes ===== */
+  sceneOn('#s3', 26.8);
+  show('#s3code', 26.85, {y: 60}, 0.6);
+  cue(26.85, 'whoosh', 0.7);
+  te = typeLine($('#s3l1'), 27.4, 20, false, $('#s3add'));
+  te = typeLine($('#s3l2'), te + 0.15, 20);
+  const pulse = (el, t) => tl.to(el, {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, t);
+  show('#look3a', 29.2, {y: 30});
+  cue(29.2, 'pop', 0.8, 1);
+  pulse('#s3g1', 29.3);
+  show('#look3b', 30.05, {y: 30});
+  cue(30.05, 'pop', 0.8, 3);
+  pulse('#s3g2', 30.15);
+  hide(['#look3a', '#look3b'], 31.55, {y: -20}, 0.35);
+  press($('#s3run'), 31.8);
+  gsap.set('#tbl3', {'--c1': '450px', '--c2': '0px'});
+  gsap.set('#tbl3 .th > div:nth-child(2)', {opacity: 0});
+  show('#tbl3', 32.1, {y: 40}, 0.5);
+  const tr3 = $$('#rows3 .tr');
+  gsap.set(tr3, {autoAlpha: 0, y: 16});
+  tl.to(tr3, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out', stagger: 0.065}, 32.3);
+  tr3.forEach((_, i) => cue(32.3 + i * 0.065, 'tick', 0.45, i));
+  show('#cnt3', 33.05, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(33.05, 'pop', 0.8, 2);
+  // On ajoute « , nom » : une deuxième colonne s’ouvre à droite.
+  te = typeMore($('#s3add'), 36.25, 14);
+  press($('#s3run'), te + 0.3);
+  tl.to('#tbl3', {'--c2': '450px', duration: 0.7, ease: 'power3.inOut'}, te + 0.6);
+  cue(te + 0.6, 'whoosh', 0.45);
+  const nom3 = $$('#rows3 .c2');
+  gsap.set(nom3, {opacity: 0});
+  tl.to('#tbl3 .th > div:nth-child(2)', {opacity: 1, duration: 0.3}, te + 0.75);
+  tl.to(nom3, {opacity: 1, duration: 0.3, stagger: 0.05}, te + 0.85);
+  // Ordre d’affichage : 1, puis 2.
+  [['#ord1', '#s3c1'], ['#ord2', '#s3c2']].forEach(([o, w], i) => {
+    const t = 40.65 + i * 0.6;
+    show(o, t, {y: 0, scale: 0.4}, 0.35, 'back.out(2.4)');
+    tl.to(w, {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.22, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t);
+    cue(t, 'pop', 0.9, 1 + i * 2);
+  });
+  hide(['#s3code', '#tbl3'], 44.3);
+  sceneOff('#s3', 44.9);
+
+  /* ===== 4 · Deux pièges ===== */
+  sceneOn('#s4', 44.9);
+  show('#qdemo .codepill', 44.95, {y: 0, scale: 0.9}, 0.55, 'back.out(1.8)');
+  cue(44.95, 'whoosh', 0.6);
+  tl.to('#cm1', {scale: 1.7, y: -6, color: '#FFC94A', duration: 0.2, ease: 'power2.out'}, 45.8)
+    .to('#cm1', {scale: 1, y: 0, color: '#FFE08A', duration: 0.3, ease: 'back.out(2)'}, 46.0);
+  cue(45.8, 'pop', 0.8, 5);
+  gsap.set('#brkPath', {strokeDasharray: L.brkLen, strokeDashoffset: L.brkLen});
+  tl.to('#brkPath', {strokeDashoffset: 0, duration: 0.4, ease: 'power2.inOut'}, 46.3);
+  show('#qlabel', 46.55, {y: 14});
+  show('#trapA', 49.35, {y: 50});
+  cue(49.35, 'whoosh', 0.6);
+  press($('#goA'), 50.25, '#4B30CC', 6);
+  show('#resA', 50.5, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  cue(50.5, 'pop', 0.8, 2);
+  const mtr = $$('#resA .mtr');
+  gsap.set(mtr, {autoAlpha: 0, y: 10});
+  tl.to(mtr, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.08}, 50.7);
+  gsap.set('#thVille .mbox', {autoAlpha: 0, scale: 1.25});
+  tl.to('#thVille .mbox', {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 51.4);
+  tl.to('#thVille', {color: '#C2323A', duration: 0.2}, 51.4);
+  cue(51.4, 'miss', 0.7, 2);
+  show('#noteA', 51.85, {y: 0, x: -24}, 0.45);
+  cue(51.85, 'pop', 0.7, 4);
+  show('#trapB', 54.85, {y: 50});
+  cue(54.85, 'whoosh', 0.6);
+  press($('#goB'), 55.75, '#4B30CC', 6);
+  gsap.set('#badComma .mbox', {autoAlpha: 0, scale: 1.4});
+  tl.to('#badComma .mbox', {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 56.0);
+  tl.to('#badComma', {color: '#FF9DA1', duration: 0.2}, 56.0);
+  show('#errB', 56.0, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  tl.to('#errB', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 56.4);
+  cue(56.0, 'error', 0.9);
+  hide(['#qdemo', '#trapA', '#trapB'], 60.5);
+  sceneOff('#s4', 61.0);
+
+  /* ===== 5 · Toutes les colonnes ===== */
+  sceneOn('#s5', 61.0);
+  show('#s5code', 61.05, {y: 60}, 0.6);
+  cue(61.05, 'whoosh', 0.7);
+  te = typeLine($('#s5l1'), 61.6, 18);
+  te = typeLine($('#s5l2'), te + 0.15, 20);
+  tl.to('#star', {scale: 1.6, color: '#FFC94A', duration: 0.2, ease: 'power2.out'}, 63.1)
+    .to('#star', {scale: 1, color: '#FFE08A', duration: 0.3, ease: 'back.out(2)'}, 63.3);
+  cue(63.1, 'pop', 0.8, 5);
+  show('#look5', 63.35, {y: 30});
+  cue(63.35, 'pop', 0.8, 1);
+  hide('#look5', 65.05, {y: -20}, 0.35);
+  press($('#s5run'), 65.25);
+  show('#allc', 65.55, {y: 40}, 0.5);
+  const chips = $$('#chips .colchip');
+  gsap.set(chips, {autoAlpha: 0, scale: 0.6});
+  tl.to(chips, {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2.2)', stagger: 0.1}, 65.8);
+  chips.forEach((_, i) => cue(65.8 + i * 0.1, 'tick', 0.5, i));
+  show('#cnt5', 66.85, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(66.85, 'pop', 0.8, 2);
+  show('#tip5', 69.1, {y: 50});
+  cue(69.1, 'whoosh', 0.6);
+  const tipRows = $$('#tip5 .tip-r');
+  gsap.set(tipRows, {autoAlpha: 0, x: -30});
+  tipRows.forEach((r, i) => {
+    tl.to(r, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, 69.45 + i * 0.55);
+    cue(69.45 + i * 0.55, 'pop', 0.8, 1 + i * 2);
+  });
+  hide(['#s5code', '#allc', '#tip5'], 72.9);
+  sceneOff('#s5', 73.4);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 73.4);
+  show('#s6code', 73.45, {y: 60}, 0.6);
+  cue(73.45, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 73.95, 30);
+  te = typeLine($('#s6l2'), te + 0.1, 30);
+  // (la question de l’app est posée ici, avant d’exécuter)
+  press($('#s6run'), 76.4);
+  show('#tbl6', 76.7, {y: 40}, 0.5);
+  gsap.set('#tt6b', {autoAlpha: 0});
+  const tr6 = $$('#rows6 .tr');
+  gsap.set(tr6, {autoAlpha: 0, y: 16});
+  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out', stagger: 0.065}, 76.9);
+  tr6.forEach((_, i) => cue(76.9 + i * 0.065, 'tick', 0.45, i));
+  show('#cnt6', 77.7, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(77.7, 'pop', 0.8, 2);
+  // Le résultat devient la liste remise au transporteur.
+  hide('#s6code', 80.45, {y: -80}, 0.35);
+  tl.to('#tbl6', {y: -440, duration: 0.8, ease: 'power3.inOut'}, 80.6);
+  cue(80.6, 'whoosh', 0.5);
+  tl.to(['#tt6a', '#cnt6'], {autoAlpha: 0, y: -22, duration: 0.25, ease: 'power2.in'}, 81.15);
+  show('#tt6b', 81.3, {y: 22}, 0.4);
+  cue(81.3, 'pop', 0.8, 3);
+  gsap.set('#stamp6', {autoAlpha: 0, scale: 1.9, rotation: 24});
+  tl.to('#stamp6', {autoAlpha: 1, scale: 1, rotation: 7, duration: 0.36, ease: 'power4.in'}, 81.8);
+  tl.to('#tbl6', {x: 6, duration: 0.05, yoyo: true, repeat: 3, ease: 'none'}, 82.16);
+  cue(82.15, 'stamp');
+  show('#badge6', 82.6, {y: 0, scale: 0.6}, 0.55, 'back.out(1.9)');
+  cue(82.6, 'success', 0.9);
+  hide('#tbl6', 84.7, {y: -480});
+  hide(['#stamp6', '#badge6'], 84.7);
+  sceneOff('#s6', 85.2);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(85.2, [85.9, 87.7, 89.5]);
+  hold(87.5, 2.9);
+  hold(89.3, 2.9);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(90.45, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 90.4,
+  glyphs: '🚚📋📇👤👪📍📞🔎💡🔍📱➕⚠️✓✕…', dom, build});
+</script>
+</body>
+</html>
