@@ -17,10 +17,11 @@ const cut = (from, to) => {
 
 test('WHERE : le cours a sa vidéo, son image fixe et sa vignette, présentes dans le dépôt', () => {
   const where = cut('guide({ id:4, titre:"WHERE"', 'guide({ id:5,');
-  const m = where.match(/video:\{src:'([^']+)',poster:'([^']+)',thumb:'([^']+)',duree:'([^']+)'\}/);
+  const m = where.match(/video:\{src:'([^']+)',poster:'([^']+)',thumb:'([^']+)',duree:'([^']+)',/);
   assert.ok(m, 'champ video du cours WHERE');
   for (const f of m.slice(1, 4)) assert.ok(fs.statSync(path.join(ROOT, f)).size > 1000, `fichier présent : ${f}`);
-  assert.equal(m[4], '1 min 33');
+  assert.equal(m[4], '1 min 36');
+  assert.ok(/notes:\{t:88\.4,y:1330\}/.test(where), 'bouton « Ajouter dans notes » à 88,4 s, sous le récapitulatif');
   assert.ok(html.includes("'exoNeeds','video']"), 'guide() garde le champ video sur la leçon');
 });
 
@@ -61,13 +62,13 @@ test('vignette du cours : verrou tant que la vidéo n’est pas finie, puis « P
     jcGateLocked: () => !passed, jcPassed: () => passed, etapesDe: () => ({}),
   });
   vm.runInContext(cut('const LV_FAILED=new Set()', 'function openLessonVideo(){') + ';this.slide=lessonVideoSlide;this.on=lessonVideoOn;this.fail=LV_FAILED;', ctx);
-  const l = {id: 4, titre: 'WHERE', résumé: 'Filtrer les lignes', video: {src: 'assets/videos/where.mp4', poster: 'p.jpg', thumb: 't.jpg', duree: '1 min 33'}};
+  const l = {id: 4, titre: 'WHERE', résumé: 'Filtrer les lignes', video: {src: 'assets/videos/where.mp4', poster: 'p.jpg', thumb: 't.jpg', duree: '1 min 36'}};
   let h = ctx.slide(l);
   assert.ok(h.includes('data-jc-gate onclick="openLessonVideo()">Termine la vidéo pour continuer'));
-  assert.ok(h.includes('Regarder la vidéo · 1 min 33') && h.includes('src="t.jpg"'));
+  assert.ok(h.includes('Regarder la vidéo · 1 min 36') && h.includes('src="t.jpg"'));
   passed = true;
   h = ctx.slide(l);
-  assert.ok(h.includes('onclick="setLessonStep(1)">Passer à l’exercice') && h.includes('Revoir la vidéo · 1 min 33'));
+  assert.ok(h.includes('onclick="setLessonStep(1)">Passer à l’exercice') && h.includes('Revoir la vidéo · 1 min 36'));
   assert.equal(ctx.on(l), true);
   ctx.fail.add(4);
   assert.equal(ctx.on(l), false, 'après un échec de lecture, le cours texte revient');
@@ -77,4 +78,31 @@ test('vignette du cours : verrou tant que la vidéo n’est pas finie, puis « P
 test('la vidéo part dans l’app iOS et reste hors du cache du service worker (lecture par morceaux sur Safari)', () => {
   assert.ok(build.includes("for (const dir of ['assets', 'vendor'])") && !/unused = new Set\([^)]*where\.mp4/.test(build));
   assert.ok(sw.includes("url.pathname.endsWith('.mp4')"));
+});
+
+test('« Ajouter dans notes » dans la vidéo : même note que le cours texte, un seul appui, sans doublon ni toast', () => {
+  const player = cut('function openLessonVideo(){', 'function lvPlay(){');
+  assert.ok(player.includes('class="lv-note-btn"') && player.includes('Ajouter dans notes') && player.includes('class="lv-note-arrow"'), 'bouton et flèche dans le lecteur');
+  assert.ok(player.includes("e.target.closest('.lv-end,.lv-big,.lv-note-btn')"), 'toucher le bouton ne met pas la vidéo en pause');
+  const add = cut('function lvNoteAdd(e){', 'function lvNoteBurst(btn){');
+  assert.ok(!/toast\(/.test(add), 'pas de toast : le retour se fait sur le bouton');
+  assert.ok(add.includes('lvNoteExisting(l)') && add.includes("lvNoteMark('already')"), 'pas de doublon');
+  const ctx = vm.createContext({REFLEX_TITLE: 'Le réflexe à retenir', state: {notes: []},
+    lessonReflexText: l => 'WHERE sert à filtrer les lignes selon une condition.\nIl agit sur le résultat.'});
+  vm.runInContext(cut('function lvNoteCtx(l){', 'function lvNotePlace(){'), ctx);
+  const l = {id: 4, titre: 'WHERE'};
+  assert.equal(ctx.lvNoteCtx(l), 'Leçon 4 · WHERE · Le réflexe à retenir', 'même contexte que noteFromRetenir (currentContext + réflexe)');
+  assert.equal(ctx.lvNoteExisting(l), null);
+  ctx.state.notes.push({ctx: 'Leçon 4 · WHERE · Le réflexe à retenir', txt: 'WHERE sert à filtrer les lignes selon une condition.  Il agit sur le résultat.', sql: ''});
+  assert.ok(ctx.lvNoteExisting(l), 'note déjà ajoutée depuis le cours texte ou une vidéo précédente');
+  const fromText = cut('function noteFromRetenir(', 'function lessonRetenirText(');
+  assert.ok(fromText.includes("ctx:currentContext()+' · '+REFLEX_TITLE") && fromText.includes('txt:lessonReflexText(l)'));
+});
+
+test('le bouton suit la vidéo : visible à partir de son moment, caché à la fin et quand on revient avant', () => {
+  const sync = cut('function lvNoteSync(){', 'function lvNoteMark(kind){');
+  assert.ok(sync.includes("!LV.root.classList.contains('is-end')&&!V.ended&&V.currentTime>=N.cfg.t"));
+  const place = cut('function lvNotePlace(){', 'function lvNoteSync(){');
+  assert.ok(place.includes('Math.min(W/vw,H/vh)') && place.includes('N.cfg.y/1920*dh'), 'placé comme la vidéo (object-fit: contain), sur la maquette 1080 × 1920');
+  assert.ok(html.includes('.lv.is-end .lv-note{display:none}'));
 });

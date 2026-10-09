@@ -6470,8 +6470,46 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-card-play{position:absolute;left:50%;top:50%;width:76px;height:76px;margin:-38px 0 0 -38px;border-radius:50%;background:var(--accent,#6A4DF4);color:#fff;display:grid;place-items:center;box-shadow:0 5px 0 var(--accent-lip,#4B30CC),0 16px 34px -14px rgba(40,20,120,.5)}
 .lv-card-play svg{width:34px;height:34px;margin-left:4px}
 .lv-card-meta{position:absolute;left:12px;bottom:12px;height:36px;padding:0 14px;border-radius:999px;background:#fff;border:2px solid var(--line,#E6E1F6);display:flex;align-items:center;font:700 14px/1 var(--display);color:var(--accent-ink,#5335E0)}
-@media (prefers-reduced-motion:reduce){.lv,.lv-end,.lv-end-card,.lv-big,.lv-bottom{transition:none!important}}
-html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-motion="reduce"] .lv-end-card,html[data-motion="reduce"] .lv-big{transition:none!important}
+/* « Ajouter dans notes » : flèche dessinée, bouton qui s’enfonce, coche et petite gerbe */
+.lv-note{position:absolute;left:50%;top:70%;z-index:2;width:0;height:0;transform:scale(var(--s,1));transform-origin:0 0;pointer-events:none}
+.lv-note[hidden]{display:none}
+.lv.is-end .lv-note{display:none}
+.lv-note-in{position:absolute;left:0;top:0;transform:translate(-50%,-50%)}
+.lv-note-btn{position:relative;display:inline-flex;align-items:center;gap:10px;height:54px;padding:0 22px 0 18px;white-space:nowrap;pointer-events:auto;
+  border:2px solid var(--line,#E6E1F6);border-radius:16px;background:#fff;color:var(--accent-ink,#5335E0);box-shadow:0 4px 0 var(--lip,#DCD5F2);
+  font:700 17px/1 var(--display);letter-spacing:0;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  opacity:0;transform:translateY(14px) scale(.72);
+  transition:opacity .22s ease,transform .5s cubic-bezier(.34,1.56,.64,1),background-color .28s ease,color .28s ease,border-color .28s ease,box-shadow .12s ease}
+.lv-note.is-in .lv-note-btn{opacity:1;transform:none}
+.lv-note.is-in .lv-note-btn:active{transform:translateY(4px);box-shadow:0 0 0 var(--lip,#DCD5F2);transition-duration:.22s,.08s,.28s,.28s,.28s,.08s}
+.lv-note-btn::after{content:"";position:absolute;inset:-3px;border-radius:18px;border:3px solid var(--accent,#6A4DF4);opacity:0;pointer-events:none}
+.lv-note.is-idle:not(.is-done) .lv-note-btn::after{animation:lvRing 1.9s cubic-bezier(.2,.7,.3,1) infinite}
+@keyframes lvRing{0%{opacity:.5;transform:scale(1)}70%,100%{opacity:0;transform:scale(1.16,1.38)}}
+.lv-note-ico,.lv-note-ok{position:relative;width:22px;height:22px;flex:none;display:grid;place-items:center;transition:transform .32s cubic-bezier(.34,1.56,.64,1),opacity .2s ease}
+.lv-note-ico svg,.lv-note-ok svg{width:22px;height:22px}
+.lv-note-ok{position:absolute;left:18px;top:50%;margin-top:-11px;opacity:0;transform:scale(.4) rotate(-20deg)}
+.lv-note-ok path{stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset .38s ease .12s}
+.lv-note-l{display:inline-block;transition:opacity .18s ease}
+.lv-note-arrow{position:absolute;right:-34px;bottom:calc(100% - 8px);width:96px;height:76px;overflow:visible;pointer-events:none}
+.lv-note-arrow path{fill:none;stroke:var(--accent,#6A4DF4);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}
+.lv-note.is-in .lv-a-line{transition:stroke-dashoffset .62s cubic-bezier(.5,0,.3,1) .18s;stroke-dashoffset:0}
+.lv-note.is-in .lv-a-head{transition:stroke-dashoffset .22s ease-out .78s;stroke-dashoffset:0}
+.lv-note.is-idle:not(.is-done) .lv-note-arrow{animation:lvNudge 1.9s ease-in-out infinite}
+@keyframes lvNudge{0%,55%,100%{transform:none}25%{transform:translate(-6px,6px) rotate(-3deg)}}
+.lv-note-arrow{transition:opacity .28s ease,transform .32s ease}
+/* Ajouté : le bouton passe au violet, le crayon cède la place à une coche qui se trace, la flèche s’efface */
+.lv-note.is-done .lv-note-btn{background:var(--accent,#6A4DF4);border-color:var(--accent,#6A4DF4);color:#fff;box-shadow:0 4px 0 var(--accent-lip,#4B30CC);cursor:default;animation:lvPop .5s cubic-bezier(.2,.9,.3,1.35)}
+.lv-note.is-done .lv-note-ico{opacity:0;transform:scale(.3) rotate(25deg)}
+.lv-note.is-done .lv-note-ok{opacity:1;transform:none}
+.lv-note.is-done .lv-note-ok path{stroke-dashoffset:0}
+.lv-note.is-done .lv-note-arrow{opacity:0;transform:translate(10px,-12px) scale(.85)}
+@keyframes lvPop{0%{transform:scale(1)}35%{transform:scale(.94)}70%{transform:scale(1.07)}100%{transform:scale(1)}}
+/* Déjà dans les notes : plus calme, sans flèche ni gerbe */
+.lv-note.is-already .lv-note-btn{background:var(--accent-soft,#EEE9FF);border-color:#D3C8FF;color:var(--accent-ink,#5335E0);box-shadow:0 4px 0 #D9CEFF;animation:none}
+.lv-note-burst{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none}
+.lv-note-burst i{position:absolute;left:0;top:0;display:block}
+@media (prefers-reduced-motion:reduce){.lv,.lv-end,.lv-end-card,.lv-big,.lv-bottom,.lv-note-btn,.lv-note-arrow,.lv-note-arrow path,.lv-note-ok,.lv-note-ok path,.lv-note-ico{transition:none!important;animation:none!important}}
+html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-motion="reduce"] .lv-end-card,html[data-motion="reduce"] .lv-big,html[data-motion="reduce"] .lv-note-btn,html[data-motion="reduce"] .lv-note-arrow,html[data-motion="reduce"] .lv-note-arrow path,html[data-motion="reduce"] .lv-note-ok,html[data-motion="reduce"] .lv-note-ok path,html[data-motion="reduce"] .lv-note-ico{transition:none!important;animation:none!important}
 </style>
 </head>
 <body>
@@ -7803,7 +7841,9 @@ guide({ id:13, titre:"DISTINCT", résumé:"Valeurs uniques",
 }),
 guide({ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
   /* Cours en vidéo : remplace le texte du cours (mode immersion), voir openLessonVideo. */
-  video:{src:'assets/videos/where.mp4',poster:'assets/videos/where-poster.jpg',thumb:'assets/videos/where-thumb.jpg',duree:'1 min 33'},
+  video:{src:'assets/videos/where.mp4',poster:'assets/videos/where-poster.jpg',thumb:'assets/videos/where-thumb.jpg',duree:'1 min 36',
+    /* « Ajouter dans notes » : apparaît à 88,4 s, sous « Les trois idées à retenir » (y en pixels de la vidéo 1080 × 1920). */
+    notes:{t:88.4,y:1330}},
   sit:{
     blocks:[
       "L’équipe marketing organise <b>un événement éphémère dans un local à Paris</b>. Les places étant limitées, elle décide d’inviter <b>uniquement les clients parisiens</b>.",
@@ -18705,7 +18745,9 @@ const LV_ICO={
   sound:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.2h3.8l5-4.2v14l-5-4.2H3.5z" fill="currentColor"/><path d="M16 8.6a4.9 4.9 0 0 1 0 6.8M18.7 6a8.6 8.6 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   muted:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.2h3.8l5-4.2v14l-5-4.2H3.5z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   play:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.6v12.8a.8.8 0 0 0 1.2.7l10.3-6.4a.8.8 0 0 0 0-1.4L9.2 4.9a.8.8 0 0 0-1.2.7z" fill="currentColor"/></svg>',
-  replay:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4.2h4.2"/></svg>'
+  replay:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4.2h4.2"/></svg>',
+  pen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M5 12.5l4.6 4.6L19.5 7"/></svg>'
 };
 function lessonVideoOn(l){return !!(l&&l.video&&l.video.src&&!LV_FAILED.has(l.id));}
 function lessonVideoOpen(){return !!LV;}
@@ -18750,6 +18792,12 @@ function openLessonVideo(){
     <div class="lv-stage">
       <video class="lv-video" src="${v.src}" poster="${v.poster}" playsinline webkit-playsinline preload="auto" disablepictureinpicture></video>
       <button type="button" class="lv-big" aria-label="Lire la vidéo">${LV_ICO.play}</button>
+      ${v.notes?`<div class="lv-note" hidden>
+        <div class="lv-note-in">
+          <svg class="lv-note-arrow" viewBox="0 0 120 94" aria-hidden="true"><path class="lv-a-line" pathLength="1" d="M110 6c6 26-6 44-26 44-15 0-16-17-3-17 17 0 14 34-31 51"/><path class="lv-a-head" pathLength="1" d="M60 70l-11 14 19 5"/></svg>
+          <button type="button" class="lv-note-btn"><span class="lv-note-ico">${LV_ICO.pen}</span><span class="lv-note-ok">${LV_ICO.check}</span><span class="lv-note-l">Ajouter dans notes</span></button>
+        </div>
+      </div>`:''}
       <div class="lv-end" hidden>
         <div class="lv-end-card" role="group" aria-labelledby="lv-end-h">
           <div class="lv-end-top">${mascotMedalHtml()}<h2 id="lv-end-h">À toi de jouer&nbsp;!</h2></div>
@@ -18762,14 +18810,26 @@ function openLessonVideo(){
     <div class="lv-bottom"><input class="lv-seek" type="range" min="0" max="1000" step="1" value="0" aria-label="Avancement de la vidéo"></div>`;
   document.body.appendChild(root);
   const video=root.querySelector('video'), seek=root.querySelector('.lv-seek');
-  LV={id:l.id,root,video,seek,seeking:false};
+  LV={id:l.id,root,video,seek,seeking:false,note:null};
+  const noteEl=root.querySelector('.lv-note');
+  if(noteEl){
+    LV.note={el:noteEl,cfg:v.notes,shown:false,done:false,timer:0};
+    noteEl.querySelector('.lv-note-btn').addEventListener('click',lvNoteAdd);
+    if(lvNoteExisting(l))lvNoteMark('already');
+    const place=()=>lvNotePlace();
+    video.addEventListener('loadedmetadata',place);
+    if(window.ResizeObserver){LV.note.ro=new ResizeObserver(place);LV.note.ro.observe(root.querySelector('.lv-stage'));}
+    else addEventListener('resize',place);
+    LV.note.place=place;
+  }
   video.muted=LV_MUTED;
   lvSyncMute();
   const resume=LV_POS.get(l.id);
   if(resume)video.addEventListener('loadedmetadata',()=>{ if(LV&&LV.video===video&&resume<video.duration-1)video.currentTime=resume; },{once:true});
   video.addEventListener('play',()=>root.classList.remove('is-paused'));
   video.addEventListener('pause',()=>{ if(!video.ended)root.classList.add('is-paused'); });
-  video.addEventListener('timeupdate',()=>{ if(LV&&LV.video===video&&!LV.seeking)lvSyncSeek(); });
+  video.addEventListener('timeupdate',()=>{ if(LV&&LV.video===video){ if(!LV.seeking)lvSyncSeek(); lvNoteSync(); } });
+  video.addEventListener('seeked',()=>{ if(LV&&LV.video===video)lvNoteSync(); });
   video.addEventListener('ended',lvEnded);
   video.addEventListener('error',lvFail);
   seek.addEventListener('input',()=>{
@@ -18777,10 +18837,11 @@ function openLessonVideo(){
     const d=video.duration;
     if(d)video.currentTime=seek.value/1000*d;
     seek.style.setProperty('--p',(seek.value/10).toFixed(1)+'%');
+    lvNoteSync();
   });
   seek.addEventListener('change',()=>{ if(LV)LV.seeking=false; });
   root.querySelector('.lv-stage').addEventListener('click',e=>{
-    if(e.target.closest('.lv-end,.lv-big'))return;
+    if(e.target.closest('.lv-end,.lv-big,.lv-note-btn'))return;
     lvToggle();
   });
   root.querySelector('.lv-big').addEventListener('click',()=>lvPlay());
@@ -18842,6 +18903,85 @@ function lvEnded(){
   if(!mascotReduced())mascotWave(root.querySelector('.lv-end .mascot-medal'));
   if(navigator.vibrate)navigator.vibrate(12);
 }
+/* ---------- « Ajouter dans notes » pendant « Les trois idées à retenir » ----------
+   Même note que le bouton du cours texte (contexte « Leçon · titre · Le réflexe à retenir », texte du réflexe),
+   enregistrée d’un seul appui, sans quitter la vidéo. Le retour se fait sur le bouton lui-même. */
+function lvNoteCtx(l){return `Leçon ${l.id} · ${l.titre} · ${REFLEX_TITLE}`;}
+function lvNoteExisting(l){
+  const norm=x=>String(x||'').replace(/\s+/g,' ').trim(), ctx=lvNoteCtx(l), txt=norm(lessonReflexText(l));
+  return (state.notes||[]).find(n=>n.ctx===ctx&&norm(n.txt)===txt&&!norm(n.sql))||null;
+}
+function lvNotePlace(){
+  const N=LV&&LV.note; if(!N)return;
+  const st=LV.root.querySelector('.lv-stage'), V=LV.video;
+  const W=st.clientWidth, H=st.clientHeight, vw=V.videoWidth||1080, vh=V.videoHeight||1920;
+  if(!W||!H)return;
+  /* x et y sont donnés sur la maquette 1080 × 1920 : on les ramène à l’image affichée, quelle que soit la définition du fichier. */
+  const k=Math.min(W/vw,H/vh), dw=vw*k, dh=vh*k, x0=(W-dw)/2, y0=(H-dh)/2;
+  N.el.style.left=(x0+(N.cfg.x!=null?N.cfg.x:540)/1080*dw).toFixed(1)+'px';
+  N.el.style.top=(y0+N.cfg.y/1920*dh).toFixed(1)+'px';
+  N.el.style.setProperty('--s',Math.max(.78,Math.min(1.15,dw/390)).toFixed(3));
+}
+function lvNoteSync(){
+  const N=LV&&LV.note; if(!N)return;
+  const V=LV.video, on=!LV.root.classList.contains('is-end')&&!V.ended&&V.currentTime>=N.cfg.t;
+  if(on===N.shown)return;
+  N.shown=on;
+  clearTimeout(N.timer);
+  if(on){
+    lvNotePlace();
+    N.el.hidden=false;
+    if(prefersReduceMotion()){N.el.classList.add('is-in','is-idle');return;}
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ if(N.shown)N.el.classList.add('is-in'); }));
+    N.timer=setTimeout(()=>{ if(N.shown)N.el.classList.add('is-idle'); },1300);
+  }else{
+    N.el.classList.remove('is-in','is-idle');
+    N.el.hidden=true;
+  }
+}
+function lvNoteMark(kind){
+  const N=LV&&LV.note; if(!N)return;
+  N.done=true;
+  const b=N.el.querySelector('.lv-note-btn');
+  N.el.classList.add('is-done');
+  N.el.classList.toggle('is-already',kind==='already');
+  b.querySelector('.lv-note-l').textContent=kind==='already'?'Déjà dans tes notes':'Ajouté à tes notes';
+  b.setAttribute('aria-disabled','true');
+}
+function lvNoteAdd(e){
+  if(e)e.stopPropagation();
+  const N=LV&&LV.note, l=current;
+  if(!N||N.done||!l||l.id!==LV.id)return;
+  const txt=lessonReflexText(l);
+  if(lvNoteExisting(l)){ lvNoteMark('already'); if(navigator.vibrate)navigator.vibrate(8); return; }
+  const rec={id:'n'+Date.now()+Math.random().toString(36).slice(2,6),txt,sql:'',ctx:lvNoteCtx(l),ts:Date.now(),pin:false};
+  state.notes=state.notes||[];
+  state.notes.unshift(rec);
+  noteFreshId=rec.id;
+  save();
+  lvNoteMark('added');
+  if(navigator.vibrate)navigator.vibrate([10,60,20]);
+  if(!prefersReduceMotion())lvNoteBurst(N.el.querySelector('.lv-note-btn'));
+}
+/* Petite gerbe autour du bouton : des points violets et jaunes qui partent puis s’éteignent. */
+function lvNoteBurst(btn){
+  const host=btn&&btn.parentElement; if(!host||!host.animate)return;
+  const layer=document.createElement('div');
+  layer.className='lv-note-burst'; layer.setAttribute('aria-hidden','true');
+  host.appendChild(layer);
+  const cols=['#6A4DF4','#8B6CFF','#C9BCFF','#FFC94A','#6A4DF4','#B9A8FF'];
+  for(let k=0;k<12;k++){
+    const i=document.createElement('i'),a=(k/12)*Math.PI*2+(k%2?.18:-.12),r=58+(k%3)*16,w=k%3===0?9:6;
+    i.style.cssText=`width:${w}px;height:${w}px;background:${cols[k%cols.length]};border-radius:${k%4===0?'2px':'50%'}`;
+    layer.appendChild(i);
+    i.animate([
+      {transform:'translate(-50%,-50%) scale(.2)',opacity:0},
+      {transform:`translate(calc(-50% + ${Math.cos(a)*r*.55}px),calc(-50% + ${Math.sin(a)*r*.38}px)) scale(1)`,opacity:1,offset:.35},
+      {transform:`translate(calc(-50% + ${Math.cos(a)*r}px),calc(-50% + ${Math.sin(a)*r*.62}px)) scale(.3)`,opacity:0}
+    ],{duration:620+(k%4)*60,easing:'cubic-bezier(.2,.7,.3,1)',fill:'forwards'});
+  }
+  setTimeout(()=>layer.remove(),1000);
+}
 function lvReplay(){
   if(!LV)return;
   LV.root.classList.remove('is-end','end-in');
@@ -18868,8 +19008,9 @@ function lvKey(e){
 function lvHidden(){ if(document.hidden&&LV)LV.video.pause(); }
 function closeLessonVideo(instant){
   if(!LV)return;
-  const {id,root,video}=LV;
+  const {id,root,video,note}=LV;
   LV=null;
+  if(note){ clearTimeout(note.timer); if(note.ro)note.ro.disconnect(); else removeEventListener('resize',note.place); }
   try{ if(!video.ended&&video.currentTime>1)LV_POS.set(id,video.currentTime); }catch(e){}
   try{video.pause();}catch(e){}
   document.removeEventListener('keydown',lvKey);
