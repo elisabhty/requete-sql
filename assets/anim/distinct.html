@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<title>Requête · DISTINCT en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+/* Titre plus long que WHERE ou SELECT : un peu moins grand pour garder des marges */
+#s0 .title{font-size:206px;top:392px;letter-spacing:-5px}
+#s0 .hilite{top:532px;height:56px}
+#s0 .bubble{left:520px;width:520px}
+
+/* ---------- Résultats en tableau ---------- */
+.rgv{display:grid;grid-template-columns:1fr 190px;padding:0 26px}
+.tr.tv{height:62px}
+.city{position:relative;display:inline-block}
+.city .mbox{position:absolute;left:-12px;right:-12px;top:-5px;bottom:-5px;background:#FADADD;border-radius:12px;box-shadow:inset 0 0 0 2px rgba(194,50,58,.16);z-index:-1;opacity:0}
+.dup{justify-self:end;height:46px;padding:0 18px;border-radius:999px;background:var(--danger-soft);border:2px solid #F6C9CD;color:var(--danger);font-family:var(--ui);font-size:26px;font-weight:800;display:flex;align-items:center;opacity:0}
+
+/* ---------- 3 · DISTINCT en action ---------- */
+.ask{left:64px;top:236px;width:952px;height:132px;display:flex;align-items:center;gap:28px;padding:0 34px;background:var(--accent-soft);border:3px solid #D3C8FF;border-radius:40px;box-shadow:0 8px 0 #D9CEFF;font-size:42px;font-weight:700;color:var(--accent-ink)}
+.ask .q{flex:none;width:78px;height:78px;border-radius:22px;background:var(--accent);box-shadow:0 5px 0 var(--accent-lip);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:50px}
+.scan{left:64px;width:580px;padding:0 0 16px;overflow:hidden}
+.scan .tt,.resc .tt{height:76px;display:flex;align-items:center;gap:14px;padding:0 28px;font-weight:700;font-size:32px;color:var(--ink)}
+.scan .tt .emo,.resc .tt .emo{font-size:34px}
+.rgs{display:grid;grid-template-columns:250px 1fr;padding:0 20px}
+.rgs.th>div:last-child{font-family:var(--ui);font-size:26px}
+.tr.ts{height:62px;font-size:34px}
+.scanner{position:absolute;left:10px;right:10px;top:0;height:62px;border:4px solid var(--accent);border-radius:18px;box-shadow:0 0 0 7px rgba(106,77,244,.14);opacity:0;z-index:3}
+.pill{display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 18px;border-radius:999px;font-family:var(--ui);font-size:26px;font-weight:700;white-space:nowrap;opacity:0}
+.pill.t{background:var(--accent);color:#fff}
+.pill.f{background:#ECE9F5;color:var(--ink-3)}
+.resc{left:664px;width:352px;padding:0 0 18px}
+.resc .cnt{width:150px}
+.rlist{display:flex;flex-direction:column;gap:12px;padding:6px 24px 0}
+.rchip{height:58px;padding:0 20px;border-radius:16px;background:var(--accent-soft);border:3px solid #D3C8FF;display:flex;align-items:center;font-family:var(--mono);font-size:32px;font-weight:700;color:var(--accent-ink);opacity:0}
+.stat{left:64px;width:952px;height:180px;display:flex;align-items:center;justify-content:center;gap:34px}
+.big-n{display:flex;flex-direction:column;align-items:center;gap:4px}
+.big-n b{font-family:var(--display);font-weight:800;font-size:88px;line-height:1;letter-spacing:-2px}
+.big-n span{font-size:30px;font-weight:600;color:var(--ink-3)}
+.big-n.from b{color:#B4ADCF}
+.big-n.to b{color:var(--accent)}
+.stat .via{display:flex;flex-direction:column;align-items:center;gap:8px}
+.stat .via .ic{font-size:30px}
+.stat .via .ar{font-size:54px;color:var(--accent);line-height:1}
+
+/* ---------- 4 · Où le placer ---------- */
+.qdemo{left:64px;top:236px;width:952px;height:220px;text-align:center}
+.qdemo .codepill{height:112px;font-size:54px;padding:0 44px}
+.qlabel{position:absolute;top:0;left:0;font-size:32px;font-weight:700;color:var(--ink-3);white-space:nowrap}
+.brk{position:absolute;left:0;top:0;width:952px;height:220px;overflow:visible}
+.brk path{fill:none;stroke:#A99CE0;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.cbox{position:relative;display:inline-block;isolation:isolate}
+.cbox .mbox{position:absolute;left:-6px;right:-6px;top:2px;bottom:2px;border-radius:10px;background:rgba(239,79,85,.22);box-shadow:inset 0 0 0 3px #EF4F55;z-index:-1;opacity:0}
+.okline{display:flex;align-items:center;gap:18px;margin-top:22px;opacity:0}
+.okline .oi{background:var(--accent);color:#fff}
+.okline b{font-size:34px;font-weight:800;color:var(--accent-ink)}
+.okline span{font-size:30px;font-weight:500;color:var(--ink-3)}
+
+/* ---------- 5 · Plusieurs colonnes ---------- */
+.rg2c{display:grid;grid-template-columns:240px 240px 1fr;padding:0 26px}
+.tr.t2{height:60px}
+.mark{justify-self:end;height:44px;padding:0 16px;border-radius:999px;font-family:var(--ui);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap;opacity:0}
+.mark.ok{background:var(--accent-soft);color:var(--accent-ink);border:2px solid #D3C8FF}
+.mark.ko{background:var(--danger-soft);color:var(--danger);border:2px solid #F6C9CD}
+
+/* ---------- 6 · Le résultat ---------- */
+.lieux{left:64px;width:952px;padding:0 0 34px}
+.lieux .tt{height:90px;display:flex;align-items:center;gap:16px;padding:0 34px;font-weight:700;font-size:36px;color:var(--ink)}
+.lieux .tt .emo{font-size:40px}
+.pills{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding:8px 34px 0}
+.vpill{height:92px;border-radius:24px;background:var(--surface-2);border:3px solid var(--line);display:flex;align-items:center;justify-content:center;gap:12px;font-size:36px;font-weight:700;color:var(--ink)}
+.vpill .emo{font-size:34px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Lire une table</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>D</span><span>I</span><span>S</span><span>T</span><span>I</span><span>N</span><span>C</span><span>T</span></div>
+    <div class="abs sub">Valeurs uniques</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec <span class="ic">DISTINCT</span>, garde chaque valeur une seule fois dans le résultat.</div>
+  </section>
+
+  <!-- 1 · Situation -->
+  <section class="scene" id="s1">
+    <div class="abs card invite">
+      <div class="inv-band"><span class="emo">🤝</span><span>Événements</span></div>
+      <div class="inv-body">
+        <div class="inv-from">NutriBoost · équipe commerciale</div>
+        <div class="inv-title">Rencontres clients</div>
+        <div class="inv-place"><span class="emo">📍</span><span>Dans quelles villes ?</span></div>
+      </div>
+      <div class="stamp">Sans doublons</div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">📍</span><span class="nl">Les villes où habitent les clients</span><span class="tag">table clients</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème -->
+  <section class="scene" id="s2">
+    <div class="abs code" id="s2code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s2l1"><span class="kw">SELECT</span> ville<span class="caret"><i></i></span></span><span class="ln" id="s2l2"><span class="kw">FROM</span> clients;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s2run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl2" style="top:664px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt2">10 lignes</span></span></div>
+      <div class="rgv th"><div>ville</div><div></div></div>
+      <div class="rows" id="rows2"></div>
+    </div>
+  </section>
+
+  <!-- 3 · DISTINCT en action -->
+  <section class="scene" id="s3">
+    <div class="abs code" id="s3code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s3l1"><span class="kw">SELECT</span> <span class="kw glow" id="s3kw">DISTINCT</span> ville<span class="caret"><i></i></span></span><span class="ln" id="s3l2"><span class="kw">FROM</span> clients;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s3run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="abs look" id="look3" style="top:664px"><div class="lk">DISTINCT</div><div class="lt">→ retire les valeurs répétées du résultat</div></div>
+    <div class="abs ask" id="ask3"><span class="q">?</span><span>Cette ville est-elle déjà dans le résultat ?</span></div>
+    <div class="abs card scan" id="scan3" style="top:400px">
+      <div class="tt"><span class="emo">📋</span><span>Lignes lues</span></div>
+      <div class="rgs th"><div>ville</div><div>Déjà présente ?</div></div>
+      <div class="rows" id="rows3"><div class="scanner" id="scanner"></div></div>
+    </div>
+    <div class="abs card resc" id="res3" style="top:400px">
+      <div class="tt"><span class="emo">✨</span><span>Résultat</span></div>
+      <div class="rlist" id="rlist"></div>
+    </div>
+    <div class="abs card stat" id="stat3" style="top:1210px">
+      <div class="big-n from"><b>10</b><span>lignes lues</span></div>
+      <div class="via"><span class="ic">DISTINCT</span><span class="ar">→</span></div>
+      <div class="big-n to"><b>6</b><span>villes différentes</span></div>
+    </div>
+  </section>
+
+  <!-- 4 · Où le placer -->
+  <section class="scene" id="s4">
+    <div class="abs qdemo" id="qdemo">
+      <span class="codepill"><span class="kw">SELECT</span>&nbsp;<span class="kw" id="qkw">DISTINCT</span> ville</span>
+      <svg class="brk"><path id="brkPath" d=""/></svg>
+      <div class="qlabel" id="qlabel">juste après SELECT</div>
+    </div>
+    <div class="abs card trap" id="trap4" style="top:520px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Entre deux colonnes</span></div>
+      <div class="mini"><span class="kw">SELECT</span> ville, <span class="cbox" id="bad4"><span class="kw">DISTINCT</span><i class="mbox"></i></span> prenom
+<span class="kw">FROM</span> clients;<span class="go" id="go4"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
+      <div class="out err" id="err4"><span class="oi">!</span><div class="ot"><b>Erreur SQL</b><span class="m">near "DISTINCT": syntax error</span></div></div>
+    </div>
+    <div class="abs card trap" id="fix4" style="top:1000px">
+      <div class="trap-h"><span class="emo">✅</span><span>Juste après SELECT</span></div>
+      <div class="mini"><span class="kw">SELECT</span> <span class="kw">DISTINCT</span> ville, prenom
+<span class="kw">FROM</span> clients;<span class="go" id="goF"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
+      <div class="okline" id="ok4"><span class="oi">✓</span><b>9 lignes</b><span>Requête valide</span></div>
+    </div>
+  </section>
+
+  <!-- 5 · Plusieurs colonnes -->
+  <section class="scene" id="s5">
+    <div class="abs code" id="s5code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s5l1"><span class="kw">SELECT</span> <span class="kw">DISTINCT</span> ville, prenom<span class="caret"><i></i></span></span><span class="ln" id="s5l2"><span class="kw">FROM</span> clients;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s5run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl5" style="top:664px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt5a">10 lignes</span><span id="cnt5b">9 lignes</span></span></div>
+      <div class="rg2c th"><div>ville</div><div>prenom</div><div></div></div>
+      <div class="rows" id="rows5"></div>
+    </div>
+  </section>
+
+  <!-- 6 · Le résultat -->
+  <section class="scene" id="s6">
+    <div class="abs code" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> <span class="kw">DISTINCT</span> ville<span class="caret"><i></i></span></span><span class="ln" id="s6l2"><span class="kw">FROM</span> clients;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="abs card lieux" id="lieux6" style="top:676px">
+      <div class="tt"><span class="emo">📍</span><span>Lieux des rencontres</span><span class="cnt"><span id="cnt6">6 villes</span></span></div>
+      <div class="pills" id="pills6"></div>
+    </div>
+    <div class="abs badge" id="badge6" style="top:1100px"><span>✓ Liste des lieux prête</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🧹</div><div class="rtxt"><span class="ic">DISTINCT</span> retire les <b>doublons</b> du résultat.<span class="rs">Il agit sur le résultat, sans modifier la table.</span></div></div>
+      <div class="rrow"><div class="rico emo">📍</div><div class="rtxt">Il se place <b>juste après</b> <span class="ic">SELECT</span>&nbsp;:<br><span class="ic blk">SELECT DISTINCT ville</span></div></div>
+      <div class="rrow"><div class="rico emo">🧩</div><div class="rtxt">Avec plusieurs colonnes, il compare la <b>combinaison entière</b> des valeurs&nbsp;:<br><span class="ic blk">SELECT DISTINCT ville, prenom</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 94.8;
+
+/* Table clients : [prenom, ville] */
+const CLIENTS = [['Sophie','Paris'],['Lucas','Lyon'],['Emma','Marseille'],['Nathan','Paris'],['Chloé','Bordeaux'],
+  ['Hugo','Lyon'],['Léa','Paris'],['Gabriel','Toulouse'],['Inès','Nantes'],['Nathan','Paris']];
+const VILLES = [...new Set(CLIENTS.map(c => c[1]))];                       // Paris, Lyon, Marseille, Bordeaux, Toulouse, Nantes
+const COUNT = v => CLIENTS.filter(c => c[1] === v).length;
+
+const CHAPTERS = [
+  {n:1, label:'Situation',          a:5.0,  b:15.0},
+  {n:2, label:'Le problème',        a:15.0, b:26.8},
+  {n:3, label:'DISTINCT en action', a:26.8, b:44.9},
+  {n:4, label:'Où le placer',       a:44.9, b:55.5},
+  {n:5, label:'Plusieurs colonnes', a:55.5, b:69.4},
+  {n:6, label:'Le résultat',        a:69.4, b:82.0},
+  {n:7, label:'À retenir',          a:82.0, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 8.6,   "L’équipe commerciale veut organiser des <b>rencontres avec ses clients</b>."],
+  [8.7, 11.35, "Avant de choisir les lieux, elle doit savoir <b>dans quelles villes</b> la boutique a des clients."],
+  [11.45, 14.6, "Ces informations se trouvent dans la <b>table clients</b>, qui contient <b>10 clients</b>."],
+  [15.3, 19.1, "Avec <code>SELECT ville</code>, le résultat affiche la ville de <b>chaque client</b> : une ligne par client."],
+  [19.2, 22.9, "Mais plusieurs clients habitent la même ville : <b>Paris</b> revient 4 fois et <b>Lyon</b> 2 fois."],
+  [23.0, 26.4, "Il faut donc afficher <b>chaque ville une seule fois</b> : c’est exactement le rôle de <code>DISTINCT</code>."],
+  [27.3, 30.5, "Pour retirer les doublons, on ajoute <code>DISTINCT</code> juste après <code>SELECT</code>."],
+  [30.6, 34.4, "Pour chaque ligne, une question : cette ville est-elle <b>déjà dans le résultat</b> ?"],
+  [34.5, 39.6, "La première fois, la ville est <b>gardée</b> ; si elle est déjà présente, elle n’est <b>pas\u00a0répétée</b>."],
+  [39.7, 44.4, "Le résultat contient <b>6 villes</b>, chacune une seule fois."],
+  [45.3, 49.2, "<code>DISTINCT</code> se place <b>juste après</b> <code>SELECT</code>, avant la liste des colonnes."],
+  [49.3, 55.0, "Placé entre deux colonnes, <code>DISTINCT</code> provoque une erreur : la requête n’est pas valide."],
+  [55.9, 59.6, "Avec plusieurs colonnes, <code>DISTINCT</code> compare la <b>combinaison entière</b> de chaque ligne."],
+  [60.0, 64.4, "Paris + Sophie et Paris + Léa sont des combinaisons différentes : les deux lignes restent."],
+  [64.5, 68.9, "Seule la combinaison <b>Paris + Nathan</b>, présente deux fois, n’est affichée qu’une fois : <b>9 lignes</b>."],
+  [69.8, 72.6, "La requête complète affiche les villes des clients, sans doublons."],
+  [72.7, 77.6, "Résultat : <b>6 villes</b>, chacune une seule fois. L’équipe peut choisir les lieux des rencontres."],
+  [77.7, 81.4, "<code>DISTINCT</code> agit sur le résultat : la <b>table clients</b> garde ses 10 clients."],
+  [82.3, 87.1, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [87.2, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [87.2, 999, "<code>DISTINCT</code> retire les doublons du résultat, juste après <code>SELECT</code>."]
+];
+
+/* Question posée par le lecteur de l’app, avant d’exécuter la requête à deux colonnes. */
+const QUESTIONS = APP ? [{
+  at: 59.75,
+  kicker: 'À toi de deviner',
+  ctx: 'Sophie et Léa habitent toutes les deux à Paris.',
+  q: 'Avec DISTINCT ville, prenom, leurs lignes sont-elles fusionnées ?',
+  options: [{label: 'Oui, fusionnées', ok: false}, {label: 'Non, gardées', ok: true}],
+  okTitle: 'Bien vu !',
+  koTitle: 'Pas tout à fait',
+  why: 'DISTINCT compare la combinaison entière : Paris + Sophie et Paris + Léa sont différentes, les deux lignes restent.'
+}] : [];
+
+function dom(){
+  const seen = new Set();
+  $('#rows2').innerHTML = CLIENTS.map(([p, v]) => {
+    const first = !seen.has(v); seen.add(v);
+    const n = COUNT(v), mark = first && n > 1 ? `<span class="dup">${v} ×${n}</span>` : '<span></span>';
+    return `<div class="rgv tr tv" data-v="${v}" data-first="${first ? 1 : 0}"><div><span class="city">${v}<i class="mbox"></i></span></div>${mark}</div>`;
+  }).join('');
+  const seen3 = new Set();
+  $('#rows3').insertAdjacentHTML('afterbegin', CLIENTS.map(([p, v]) => {
+    const first = !seen3.has(v); seen3.add(v);
+    return `<div class="rgs tr ts" data-v="${v}" data-first="${first ? 1 : 0}"><div>${v}</div><div>${first ? '<span class="pill t">✓ gardée</span>' : '<span class="pill f">✕ déjà présente</span>'}</div></div>`;
+  }).join(''));
+  $('#rlist').innerHTML = VILLES.map(v => `<span class="rchip" data-v="${v}">${v}</span>`).join('');
+  const seen5 = new Set();
+  $('#rows5').innerHTML = CLIENTS.map(([p, v], i) => {
+    const k = v + '|' + p, dup = seen5.has(k); seen5.add(k);
+    return `<div class="rg2c tr t2" data-k="${k}" data-dup="${dup ? 1 : 0}"><div>${v}</div><div><span class="city">${p}<i class="mbox"></i></span></div><span class="mark ${dup ? 'ko' : 'ok'}">${dup ? '✕ doublon' : '≠ différente'}</span></div>`;
+  }).join('');
+  $('#pills6').innerHTML = VILLES.map(v => `<div class="vpill"><span class="emo">📍</span><span>${v}</span></div>`).join('');
+}
+
+/* Mesures de mise en page (avant toute transformation) : accolade sous DISTINCT et son étiquette. */
+function layout(){
+  const qd = $('#qdemo'), k = rel($('#qkw'), qd), pill = rel($('#qdemo .codepill'), qd);
+  const x1 = k.x + 4, x2 = k.x + k.w - 4, xm = (x1 + x2) / 2, y0 = pill.y + pill.h + 16;
+  const p = $('#brkPath');
+  p.setAttribute('d', `M${x1.toFixed(1)} ${y0.toFixed(1)} v18 H${x2.toFixed(1)} v-18 M${xm.toFixed(1)} ${(y0 + 18).toFixed(1)} v16`);
+  const lab = $('#qlabel'), lw = rel(lab).w;
+  lab.style.left = Math.max(0, Math.min(952 - lw, xm - lw / 2)).toFixed(1) + 'px';
+  lab.style.top = (y0 + 44).toFixed(1) + 'px';
+  return {brkLen: p.getTotalLength()};
+}
+
+function build(){
+  const L = layout();
+  introScene();
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  gsap.set('#s1 .invite', {autoAlpha: 0, y: 470, rotation: -9});
+  tl.to('#s1 .invite', {autoAlpha: 1, y: 380, rotation: -2.5, duration: 0.9, ease: 'back.out(1.3)'}, 5.15);
+  cue(5.15, 'whoosh', 0.8);
+  gsap.set('#s1 .stamp', {autoAlpha: 0, scale: 1.9, rotation: 24});
+  tl.to('#s1 .stamp', {autoAlpha: 1, scale: 1, rotation: 7, duration: 0.36, ease: 'power4.in'}, 9.3);
+  tl.to('#s1 .invite', {x: 6, duration: 0.05, yoyo: true, repeat: 3, ease: 'none'}, 9.66);
+  cue(9.65, 'stamp');
+  tl.to('#s1 .invite', {y: 0, duration: 0.75, ease: 'power3.inOut'}, 11.4);
+  show('#s1 .need', 11.65, {y: 60});
+  cue(11.65, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 12.05);
+  cue(12.05, 'pop', 0.7, 0);
+  tl.to('#s1 .tag', {scale: 1.08, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 12.9);
+  hide(['#s1 .invite', '#s1 .need'], 14.6);
+  sceneOff('#s1', 15.1);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 15.0);
+  show('#s2code', 15.05, {y: 60}, 0.6);
+  cue(15.05, 'whoosh', 0.7);
+  te = typeLine($('#s2l1'), 15.55, 20);
+  te = typeLine($('#s2l2'), te + 0.15, 20);
+  press($('#s2run'), 17.1);
+  show('#tbl2', 17.35, {y: 40}, 0.5);
+  const tr2 = $$('#rows2 .tr');
+  gsap.set(tr2, {autoAlpha: 0, y: 16});
+  tl.to(tr2, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out', stagger: 0.065}, 17.5);
+  tr2.forEach((_, i) => cue(17.5 + i * 0.065, 'tick', 0.45, i));
+  show('#cnt2', 18.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(18.2, 'pop', 0.8, 2);
+  // Les répétitions de Paris et de Lyon se marquent en rouge ; le compteur s’affiche à la première apparition.
+  const rep = tr2.filter(r => r.dataset.first === '0');
+  rep.forEach((r, i) => {
+    const t = 19.4 + i * 0.18, box = r.querySelector('.mbox'), city = r.querySelector('.city');
+    gsap.set(box, {autoAlpha: 0, scale: 1.25});
+    tl.to(box, {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, t);
+    tl.to(city, {color: '#C2323A', duration: 0.2}, t);
+    cue(t, 'miss', 0.55, i);
+  });
+  const dups = $$('#rows2 .dup');
+  gsap.set(dups, {autoAlpha: 0, scale: 0.5});
+  tl.to(dups, {autoAlpha: 1, scale: 1, duration: 0.38, ease: 'back.out(2.2)', stagger: 0.3}, 20.5);
+  dups.forEach((_, i) => cue(20.5 + i * 0.3, 'pop', 0.85, 3 + i));
+  hide(['#s2code', '#tbl2'], 26.35);
+  sceneOff('#s2', 26.9);
+
+  /* ===== 3 · DISTINCT en action ===== */
+  sceneOn('#s3', 26.8);
+  show('#s3code', 26.85, {y: 60}, 0.6);
+  cue(26.85, 'whoosh', 0.7);
+  te = typeLine($('#s3l1'), 27.4, 22);
+  te = typeLine($('#s3l2'), te + 0.12, 22);
+  show('#look3', 29.0, {y: 30});
+  cue(29.0, 'pop', 0.8, 1);
+  tl.to('#s3kw', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 29.1);
+  // Le code laisse la place à la question et au passage en revue des lignes.
+  hide(['#s3code', '#look3'], 30.55, {y: -40}, 0.4);
+  show('#ask3', 30.85, {y: 30, scale: 0.94});
+  cue(30.85, 'pop', 0.9, 1);
+  show('#scan3', 31.15, {y: 40}, 0.5);
+  show('#res3', 31.35, {y: 40}, 0.5);
+  cue(31.15, 'whoosh', 0.5);
+  const tr3 = $$('#rows3 .tr'), scanner = $('#scanner');
+  gsap.set(tr3, {autoAlpha: 0, y: 12});
+  tl.to(tr3, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.05}, 31.5);
+  const chipsR = $$('#rlist .rchip');
+  gsap.set(chipsR, {autoAlpha: 0, scale: 0.5});
+  const times = [];
+  let st = 34.6;
+  for (let i = 0; i < 10; i++) { times.push(st); st += (i < 2 ? 0.85 : 0.34); }
+  gsap.set(scanner, {y: 0, autoAlpha: 0});
+  tl.to(scanner, {autoAlpha: 1, duration: 0.25}, 34.4);
+  tr3.forEach((r, i) => {
+    const t = times[i], first = r.dataset.first === '1';
+    tl.to(scanner, {y: i * 62, duration: i ? 0.18 : 0.01, ease: 'power2.out'}, t);
+    const pill = r.querySelector('.pill');
+    gsap.set(pill, {autoAlpha: 0, scale: 0.4});
+    tl.to(pill, {autoAlpha: 1, scale: 1, duration: 0.28, ease: 'back.out(2.4)'}, t + 0.15);
+    cue(t, 'tick', 0.5, 4);
+    const chip = chipsR.find(c => c.dataset.v === r.dataset.v);
+    if (first) {
+      tl.to(chip, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)'}, t + 0.2);
+      cue(t + 0.15, 'true', 0.8);
+    } else {
+      tl.to(r.children[0], {color: '#B4ADCF', duration: 0.2}, t + 0.15);
+      tl.to(chip, {scale: 1.1, duration: 0.12, yoyo: true, repeat: 1, ease: 'power1.inOut'}, t + 0.15);
+      cue(t + 0.15, 'false', 0.8);
+    }
+  });
+  tl.to(scanner, {autoAlpha: 0, duration: 0.25}, 39.75);
+  show('#stat3', 40.1, {y: 46}, 0.6);
+  cue(40.1, 'success', 0.55);
+  hide(['#ask3', '#scan3', '#res3', '#stat3'], 44.3);
+  sceneOff('#s3', 44.9);
+
+  /* ===== 4 · Où le placer ===== */
+  sceneOn('#s4', 44.9);
+  show('#qdemo .codepill', 44.95, {y: 0, scale: 0.9}, 0.55, 'back.out(1.8)');
+  cue(44.95, 'whoosh', 0.6);
+  tl.to('#qkw', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 45.7);
+  cue(45.7, 'pop', 0.8, 5);
+  gsap.set('#brkPath', {strokeDasharray: L.brkLen, strokeDashoffset: L.brkLen});
+  tl.to('#brkPath', {strokeDashoffset: 0, duration: 0.55, ease: 'power2.inOut'}, 46.25);
+  show('#qlabel', 46.6, {y: 14});
+  show('#trap4', 49.4, {y: 50});
+  cue(49.4, 'whoosh', 0.6);
+  press($('#go4'), 50.3, '#4B30CC', 6);
+  gsap.set('#bad4 .mbox', {autoAlpha: 0, scale: 1.3});
+  tl.to('#bad4 .mbox', {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 50.55);
+  show('#err4', 50.55, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  tl.to('#err4', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 50.95);
+  cue(50.55, 'error', 0.9);
+  show('#fix4', 51.9, {y: 50});
+  cue(51.9, 'whoosh', 0.6);
+  press($('#goF'), 52.75, '#4B30CC', 6);
+  show('#ok4', 53.0, {y: 0, x: -20}, 0.4, 'back.out(1.8)');
+  cue(53.0, 'chord', 0.6);
+  hide(['#qdemo', '#trap4', '#fix4'], 55.0);
+  sceneOff('#s4', 55.5);
+
+  /* ===== 5 · Plusieurs colonnes ===== */
+  sceneOn('#s5', 55.5);
+  show('#s5code', 55.55, {y: 60}, 0.6);
+  cue(55.55, 'whoosh', 0.7);
+  te = typeLine($('#s5l1'), 56.1, 26);
+  te = typeLine($('#s5l2'), te + 0.12, 26);
+  // (la question de l’app est posée ici, avant d’exécuter)
+  press($('#s5run'), 60.0);
+  show('#tbl5', 60.3, {y: 40}, 0.5);
+  gsap.set('#cnt5b', {autoAlpha: 0, y: 24});
+  const tr5 = $$('#rows5 .tr');
+  gsap.set(tr5, {autoAlpha: 0, y: 16});
+  tl.to(tr5, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out', stagger: 0.06}, 60.5);
+  tr5.forEach((_, i) => cue(60.5 + i * 0.06, 'tick', 0.45, i));
+  show('#cnt5a', 61.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // Paris + Sophie, Paris + Léa : combinaisons différentes, gardées.
+  const diff = tr5.filter(r => r.dataset.k === 'Paris|Sophie' || r.dataset.k === 'Paris|Léa');
+  diff.forEach((r, i) => {
+    const t = 61.7 + i * 0.35, m = r.querySelector('.mark');
+    gsap.set(m, {autoAlpha: 0, scale: 0.5});
+    tl.to(m, {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2.2)'}, t);
+    cue(t, 'true', 0.7);
+  });
+  // Paris + Nathan, deux fois : la deuxième ligne est un doublon, retirée.
+  const nat = tr5.filter(r => r.dataset.k === 'Paris|Nathan'), dupRow = nat[1];
+  nat.forEach((r, i) => {
+    const t = 64.7 + i * 0.25, box = r.querySelector('.mbox');
+    gsap.set(box, {autoAlpha: 0, scale: 1.25});
+    tl.to(box, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)'}, t);
+    cue(t, 'miss', 0.6, i);
+  });
+  const mk = dupRow.querySelector('.mark');
+  gsap.set(mk, {autoAlpha: 0, scale: 0.5});
+  tl.to(mk, {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2.2)'}, 65.3);
+  tl.to(dupRow, {height: 0, opacity: 0, duration: 0.55, ease: 'power2.inOut'}, 66.3);
+  cue(66.3, 'fold', 0.9);
+  tl.to('#cnt5a', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 66.95);
+  tl.to('#cnt5b', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 67.05);
+  cue(67.05, 'pop', 0.9, 4);
+  hide(['#s5code', '#tbl5'], 68.9);
+  sceneOff('#s5', 69.4);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 69.4);
+  show('#s6code', 69.45, {y: 60}, 0.6);
+  cue(69.45, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 69.95, 24);
+  te = typeLine($('#s6l2'), te + 0.12, 24);
+  press($('#s6run'), 71.58);
+  show('#lieux6', 72.5, {y: 40}, 0.5);
+  const vp = $$('#pills6 .vpill');
+  gsap.set(vp, {autoAlpha: 0, scale: 0.6});
+  tl.to(vp, {autoAlpha: 1, scale: 1, duration: 0.36, ease: 'back.out(2.2)', stagger: 0.12}, 72.8);
+  vp.forEach((_, i) => cue(72.8 + i * 0.12, 'pop', 0.7, i));
+  show('#cnt6', 73.7, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  show('#badge6', 74.1, {y: 0, scale: 0.6}, 0.55, 'back.out(1.9)');
+  cue(74.1, 'success', 0.9);
+  hide(['#s6code', '#lieux6', '#badge6'], 81.5);
+  sceneOff('#s6', 82.0);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(82.0, [82.7, 84.5, 86.3]);
+  hold(84.3, 2.9);
+  hold(86.1, 2.9);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(87.25, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 87.2,
+  glyphs: '🤝📍🔎📋✨🧹🧩⚠️✅✓✕≠×', dom, build});
+</script>
+</body>
+</html>
