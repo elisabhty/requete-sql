@@ -20,8 +20,8 @@ test('WHERE : le cours a sa vidéo, son image fixe et sa vignette, présentes da
   const m = where.match(/video:\{src:'([^']+)',poster:'([^']+)',thumb:'([^']+)',duree:'([^']+)',/);
   assert.ok(m, 'champ video du cours WHERE');
   for (const f of m.slice(1, 4)) assert.ok(fs.statSync(path.join(ROOT, f)).size > 1000, `fichier présent : ${f}`);
-  assert.equal(m[4], '2 min 04');
-  assert.ok(/notes:\{t:116\.2,y:1330,card:\[64,356,1016,1017\],to:\[940,255\]\}/.test(where), 'bouton « Ajouter dans notes » à 1 min 56, sous le récapitulatif ; la note part du récapitulatif vers le carnet');
+  assert.equal(m[4], '2 min 02');
+  assert.ok(/notes:\{t:114\.8,y:1330,card:\[64,356,1016,1017\],to:\[940,255\]\}/.test(where), 'bouton « Ajouter dans notes » à 1 min 55, sous le récapitulatif ; la note part du récapitulatif vers le carnet');
   assert.ok(html.includes("'exoNeeds','video']"), 'guide() garde le champ video sur la leçon');
 });
 
@@ -62,13 +62,13 @@ test('vignette du cours : verrou tant que la vidéo n’est pas finie, puis « P
     jcGateLocked: () => !passed, jcPassed: () => passed, etapesDe: () => ({}),
   });
   vm.runInContext(cut('const LV_FAILED=new Set()', 'function openLessonVideo(){') + ';this.slide=lessonVideoSlide;this.on=lessonVideoOn;this.fail=LV_FAILED;', ctx);
-  const l = {id: 4, titre: 'WHERE', résumé: 'Filtrer les lignes', video: {src: 'assets/videos/where.mp4', poster: 'p.jpg', thumb: 't.jpg', duree: '2 min 04'}};
+  const l = {id: 4, titre: 'WHERE', résumé: 'Filtrer les lignes', video: {src: 'assets/videos/where.mp4', poster: 'p.jpg', thumb: 't.jpg', duree: '2 min 02'}};
   let h = ctx.slide(l);
   assert.ok(h.includes('data-jc-gate onclick="openLessonVideo()">Termine la vidéo pour continuer'));
-  assert.ok(h.includes('Regarder la vidéo · 2 min 04') && h.includes('src="t.jpg"'));
+  assert.ok(h.includes('Regarder la vidéo · 2 min 02') && h.includes('src="t.jpg"'));
   passed = true;
   h = ctx.slide(l);
-  assert.ok(h.includes('onclick="setLessonStep(1)">Passer à l’exercice') && h.includes('Revoir la vidéo · 2 min 04'));
+  assert.ok(h.includes('onclick="setLessonStep(1)">Passer à l’exercice') && h.includes('Revoir la vidéo · 2 min 02'));
   assert.equal(ctx.on(l), true);
   ctx.fail.add(4);
   assert.equal(ctx.on(l), false, 'après un échec de lecture, le cours texte revient');
