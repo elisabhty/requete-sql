@@ -360,6 +360,16 @@ const COURSES = [
       '<span class="str glow" id="strB4">\'%ie%\'</span>', '<span class="cpl">\'l%\'</span><span class="tx">ou</span><span class="cpl">\'L%\'</span>',
       '<span class="str">\'<span class="glow" id="us5">_</span>a%\'</span>', "[['_', 0, 0], ['a', 1, 1], ['%', 2, 'end']]",
       'n’importe quelle suite, <b>même vide</b>', '<b>exactement un</b> caractère']},
+  {id: 9, next: 10, titre: 'IN', page: 'in.html', thumb: 'in-thumb.jpg', duree: '2 min 14', notesAt: 92.1,
+    notes: /notes:\{t:126\.75,y:1359,card:\[64,356,1016,1064\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Avec <span class="ic">IN</span>, compare une colonne à toute une liste de valeurs.',
+    chapters: ['Situation', 'Le problème', 'IN en action', 'Écrire la liste', 'Une seule colonne', 'Le résultat', 'À retenir'],
+    traps: ['<span class="ball">2</span><span class="ball">5</span><span class="ball">9</span>',
+      '<span class="ln" id="ql4">   <span class="kw">OR</span> <span class="rep" id="r2">id =<i class="mbox"></i></span> 5', '<span class="x3" id="x3">× 3</span>',
+      '<span class="kw glow" id="inA">IN</span> <span id="opA">(</span>2<span id="restA">, <span id="v5">5</span>, <span id="v9">9</span></span><span id="cpA">)</span>',
+      'Son numéro est-il dans la liste ?', '<div class="tg" id="tgP"><i>( )</i>entre parenthèses</div>',
+      '(<span class="hv str" id="hS1">\'Paris\'<i class="mbox"></i></span>, <span class="hv str" id="hS2">\'Nantes\'<i class="mbox"></i></span>)',
+      '<span class="ln5" id="m5b">  <span class="kw">AND</span> age &gt; 35;', '✓ 3 lots prêts à partir']},
 ];
 
 for (const c of COURSES) {
