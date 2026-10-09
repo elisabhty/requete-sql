@@ -6464,13 +6464,18 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 @keyframes lvDt{0%{opacity:0;transform:scale(.7)}18%{opacity:1;transform:scale(1)}70%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.06)}}
 /* Question : carte posée sur le bas de l’image */
 .lv-q{position:absolute;z-index:6;left:12px;width:calc(100% - 24px);bottom:12px}
-.lv-q-card{overflow:hidden;background:#fff;border:2px solid var(--line,#E6E1F6);border-radius:24px;box-shadow:0 5px 0 var(--lip,#DCD5F2),0 22px 50px -24px rgba(40,20,120,.45);padding:16px 16px 14px;transform:translateY(26px) scale(.97);opacity:0;transition:transform .45s cubic-bezier(.2,.9,.3,1.2),opacity .2s ease}
+.lv-q-card{overflow:hidden;background:#fff;border:2px solid var(--line,#E6E1F6);border-radius:22px;box-shadow:0 5px 0 var(--lip,#DCD5F2),0 22px 50px -24px rgba(40,20,120,.45);padding:14px 14px 13px;transform:translateY(26px) scale(.97);opacity:0;transition:transform .45s cubic-bezier(.2,.9,.3,1.2),opacity .2s ease}
+.lv-q-card:focus,.lv-q-b:focus{outline:none}
+.lv-nw{white-space:nowrap}
+.lv-q-ctx{margin:9px 2px 0;font-size:15px;line-height:1.35;font-weight:600;color:var(--ink-2,#4E4872)}
 .lv-q.on .lv-q-card{transform:none;opacity:1}
-.lv-q-kick{display:inline-flex;align-items:center;height:26px;padding:0 11px;border-radius:999px;background:var(--accent-soft,#EEE9FF);color:var(--accent-ink,#5335E0);font:700 13px/1 var(--display)}
-.lv-q-t{margin:10px 2px 14px;font:700 19px/1.28 var(--display);letter-spacing:-.01em;color:var(--ink,#221C46)}
+.lv-q-kick{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;background:var(--accent-soft,#EEE9FF);color:var(--accent-ink,#5335E0);font:700 12.5px/1 var(--display)}
+.lv-q-t{margin:2px 2px 12px;font:700 19px/1.25 var(--display);letter-spacing:-.01em;color:var(--ink,#221C46);text-wrap:balance}
+.lv-q-kick+.lv-q-t{margin-top:9px}
 .lv-q-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.lv-q-opt{min-height:52px;padding:0 10px;border-radius:16px;border:2px solid var(--line,#E6E1F6);background:#fff;color:var(--ink,#221C46);box-shadow:0 4px 0 var(--lip,#DCD5F2);font:700 16px/1.15 var(--display);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .12s,box-shadow .12s,background-color .2s,border-color .2s,color .2s,opacity .2s}
+.lv-q-opt{min-height:48px;padding:0 10px;border-radius:16px;border:2px solid var(--line,#E6E1F6);background:#fff;color:var(--ink,#221C46);box-shadow:0 4px 0 var(--lip,#DCD5F2);font:700 16px/1.15 var(--display);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .12s,box-shadow .12s,background-color .2s,border-color .2s,color .2s,opacity .2s}
 .lv-q-opt:active{transform:translateY(4px);box-shadow:0 0 0 var(--lip,#DCD5F2)}
+.lv-q .lv-q-opt:focus-visible{border-radius:16px;box-shadow:0 4px 0 var(--lip,#DCD5F2),0 0 0 3px rgba(106,77,244,.35)}
 .lv-q-opt.is-ok,.lv-q-opt.is-right{background:var(--success-soft,#E2F6EA);border-color:#9ED9B4;color:var(--success,#0F7A3A);box-shadow:0 4px 0 #BFE6CC}
 .lv-q-opt.is-ok{animation:lvPop .5s cubic-bezier(.2,.9,.3,1.35)}
 .lv-q-opt.is-ko{background:var(--danger-soft,#FDEBEC);border-color:#F3B7BB;color:var(--danger,#C2323A);box-shadow:0 4px 0 #F6CDD0;animation:lvShake .42s ease}
@@ -6483,7 +6488,7 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-q.is-right-ans .lv-q-res i{background:var(--success-fill,#169447)}
 .lv-q.is-wrong-ans .lv-q-res{color:var(--danger,#C2323A)}
 .lv-q.is-wrong-ans .lv-q-res i{background:var(--danger-fill,#EF4F55)}
-.lv-q-why{margin:10px 2px 14px;font-size:16px;line-height:1.4;font-weight:500;color:var(--ink-2,#4E4872)}
+.lv-q-why{margin:8px 2px 12px;font-size:15.5px;line-height:1.4;font-weight:500;color:var(--ink-2,#4E4872);text-wrap:pretty}
 .lv-q .lv-q-go{display:flex;align-items:center;justify-content:center;width:100%;cursor:pointer}
 @keyframes lvShake{0%,100%{transform:none}20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(2px)}}
 .lv-ctrls{position:relative;display:flex;align-items:center;justify-content:space-between;height:62px}
@@ -19497,18 +19502,20 @@ function lvCapSync(){
 function lvQShow(i,q){
   if(!LV||!q)return;
   if(LV.q)lvQClose(false);
+  /* Pas de coupure de ligne dans un mot à trait d’union (« sera-t-elle »). */
+  const nw=t=>String(t||'').replace(/([^\s<>]+-[^\s<>]+)/g,'<span class="lv-nw">$1</span>');
   const box=document.createElement('div');
   box.className='lv-q';
-  box.setAttribute('role','group'); box.setAttribute('aria-labelledby','lv-q-t');
-  box.innerHTML=`<div class="lv-q-card">
+  box.innerHTML=`<div class="lv-q-card" role="group" aria-labelledby="lv-q-t" tabindex="-1">
     <div class="lv-q-a">
       <span class="lv-q-kick">${q.kicker||'À toi de deviner'}</span>
-      <p class="lv-q-t" id="lv-q-t">${q.q}</p>
+      ${q.ctx?`<p class="lv-q-ctx">${nw(q.ctx)}</p>`:''}
+      <p class="lv-q-t" id="lv-q-t">${nw(q.q)}</p>
       <div class="lv-q-opts">${q.options.map((o,k)=>`<button type="button" class="lv-q-opt" data-k="${k}">${o.label}</button>`).join('')}</div>
     </div>
-    <div class="lv-q-b" hidden>
+    <div class="lv-q-b" hidden tabindex="-1">
       <p class="lv-q-res"><i aria-hidden="true"></i><b></b></p>
-      <p class="lv-q-why">${q.why||''}</p>
+      <p class="lv-q-why">${nw(q.why)}</p>
       <button type="button" class="lq-btn lv-q-go">Continuer</button>
     </div>
   </div>`;
@@ -19521,7 +19528,7 @@ function lvQShow(i,q){
   if(prefersReduceMotion())box.classList.add('on');
   else requestAnimationFrame(()=>requestAnimationFrame(()=>box.classList.add('on')));
   if(navigator.vibrate)navigator.vibrate(8);
-  try{box.querySelector('.lv-q-opt').focus({preventScroll:true});}catch(e){}
+  try{box.querySelector('.lv-q-card').focus({preventScroll:true});}catch(e){}
 }
 function lvQAnswer(k){
   const Q=LV&&LV.q; if(!Q||Q.done)return;
@@ -19545,7 +19552,7 @@ function lvQAnswer(k){
       b.animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'none'}],{duration:300,easing:'ease-out'});
     }
     lvQPlace();
-    try{b.querySelector('.lv-q-go').focus({preventScroll:true});}catch(e){}
+    try{b.focus({preventScroll:true});}catch(e){}
   },prefersReduceMotion()?0:900);
 }
 function lvQClose(answered){
@@ -19560,11 +19567,12 @@ function lvQClose(answered){
 }
 function lvQPlace(){
   const Q=LV&&LV.q; if(!Q)return;
-  const a=lvPt(0,0), b=lvPt(1080,1920); if(!a||!b)return;
-  const R=LV.root.getBoundingClientRect(), m=Math.max(10,14*a.s), w=Math.min(b.x-a.x-2*m,440);
+  const a=lvPt(64,0), b=lvPt(1016,1904); if(!a||!b)return;
+  /* Alignée sur le tableau ; sur un petit écran (scène étroite), elle s’élargit pour garder les réponses sur une ligne. */
+  const R=LV.root.getBoundingClientRect(), col=b.x-a.x, w=Math.min(col>=320?col:Math.max(col,Math.min(R.width-24,360)),440);
   Q.box.style.left=((a.x+b.x)/2-w/2).toFixed(1)+'px';
   Q.box.style.width=w.toFixed(1)+'px';
-  Q.box.style.bottom=Math.max(8,R.height-b.y+m).toFixed(1)+'px';
+  Q.box.style.bottom=Math.max(8,R.height-b.y).toFixed(1)+'px';
 }
 function lvReplay(){
   if(!LV)return;
