@@ -44,7 +44,8 @@ test('la vidéo démarre à l’ouverture du cours, au retour sur « Cours » et
 test('lecteur plein écran : lecture dans la page, fin « À toi de jouer », exercice débloqué, repli sur le texte', () => {
   const player = cut('function openLessonVideo(){', 'function lvPlay(){');
   assert.ok(player.includes('playsinline webkit-playsinline'), 'lecture dans la page sur iPhone');
-  assert.ok(player.includes('À toi de jouer&nbsp;!') && player.includes('${l.consigne}'), 'fin : à toi de jouer + consigne');
+  assert.ok(player.includes('À toi de jouer&nbsp;!'), 'fin : à toi de jouer');
+  assert.ok(!player.includes('${l.consigne}') && !player.includes('lv-end-exo'), 'pas d’aperçu de l’exercice sur l’écran de fin : la consigne se découvre à l’étape Exercice');
   assert.ok(player.includes('Passer à l’exercice') && player.includes('Revoir la vidéo'));
   const ended = cut('function lvEnded(){', 'function lvReplay(){');
   assert.ok(ended.includes('jcMarkPassed(id);') && ended.includes('jcUnlockExo();'), 'la fin de la vidéo débloque l’exercice');
