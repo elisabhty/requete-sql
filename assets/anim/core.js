@@ -33,15 +33,35 @@ const NB = '\u00a0';
 const $ = s => document.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
-/* Typographie française : espace insécable avant : ; ! ? et dans « », hors balises et hors <code>. */
+/* Typographie française : espace insécable avant : ; ! ? et dans « », après un nombre, et après les mots courts
+   (articles, prépositions, conjonctions : « la », « un », « avec »…) pour qu’une ligne ne se termine jamais sur l’un d’eux
+   (« il faut la / virgule »). Hors balises et hors <code>. */
+const SHORT_WORDS = new Set(('à au aux de du des d le la les l un une en et ou ni par sur sous pour dans avec sans chez vers entre ' +
+  'ce cet cette ces son sa ses leur leurs mon ma mes ton ta tes notre votre nos vos chaque il elle on ils elles se ne que qu qui si y').split(' '));
+const shortWord = w => SHORT_WORDS.has(w.toLowerCase().replace(/^[(«“"']+/, ''));
+const glueShort = t => t.replace(/(\S+)( +)(?=\S|$)/g, (m, w) => shortWord(w) ? w + NB : m);
+/* Un court libellé entre guillemets (« Nom du produit ») ne se coupe pas d’une ligne à l’autre. */
+const glueQuotes = t => t.replace(/«([^«»]{1,28})»/g, (m, q) => '«' + q.replace(/ /g, NB) + '»');
+const frText = t => glueQuotes(glueShort(t.replace(/ ([:?!;»])/g, NB + '$1').replace(/« /g, '«' + NB).replace(/(\d) (?=\S)/g, '$1' + NB)));
 function fr(h){
   let code = 0;
   return String(h).split(/(<[^>]+>)/).map(t => {
     if (/^<code[\s>]/.test(t)) { code++; return t; }
     if (/^<\/code>/.test(t)) { code = Math.max(0, code - 1); return t; }
     if (t[0] === '<' || code) return t;
-    return t.replace(/ ([:?!;»])/g, NB + '$1').replace(/« /g, '«' + NB).replace(/(\d) (?=\S)/g, '$1' + NB);
+    return frText(t);
   }).join('');
+}
+/* Même typographie pour les textes écrits directement dans la page (bulle, récapitulatif, cartes…), hors code. */
+const NO_FR = 'code, .ic, .code, .mini, .codepill, .lk, .colchip, .th, .tr, .mt, .chips, .cnt, .emo, #cap';
+function frDom(root){
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(n => {
+    if (!n.parentElement || n.parentElement.closest(NO_FR)) return;
+    const t = n.textContent, u = frText(t);
+    if (u !== t) n.textContent = u;
+  });
 }
 const plain = h => fr(h).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, NB).replace(/&[a-z]+;/g, 'x');
 
@@ -260,6 +280,57 @@ function checkCaptions(captions){
   });
   return out;
 }
+/* Mise en forme du texte (page ouverte avec ?check) : pour chaque bloc de texte, les lignes telles qu’elles s’affichent.
+   Signale une ligne qui ne garde qu’un seul mot (mot orphelin), une légende de plus de 3 lignes et un mot coupé
+   en fin de ligne. Comme la police est livrée avec l’animation, l’iPhone affiche exactement les mêmes lignes. */
+const TEXT_BLOCKS = '#cap .c p, .bubble, .rtxt, .lt, .nl, .mnote, .tx, .trap-h, .ot, .need-h, .inv-title, .inv-place, .qlabel, .glbl, .badge span, .tp-h, .sub, .tagpill';
+function textLines(el){
+  const toks = [], r = document.createRange(), walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  while (walker.nextNode()) {
+    const n = walker.currentNode;
+    if (n.parentElement.closest('.caret, .emo')) continue;
+    const re = /[^\s\u00a0]+/g; let m;
+    while ((m = re.exec(n.textContent))) {
+      r.setStart(n, m.index); r.setEnd(n, m.index + m[0].length);
+      const rects = [...r.getClientRects()].filter(x => x.width > 0);
+      if (!rects.length) continue;
+      toks.push({w: m[0], top: rects[0].top, h: rects[0].height, split: rects.length > 1 && Math.abs(rects[0].top - rects[rects.length - 1].top) > rects[0].height / 2,
+        blk: !!n.parentElement.closest('.blk')});
+    }
+  }
+  const lines = [];
+  toks.forEach(t => {
+    const L = lines.find(l => Math.abs(l.top - t.top) < t.h * 0.6);
+    if (L) L.toks.push(t); else lines.push({top: t.top, toks: [t]});
+  });
+  lines.sort((a, b) => a.top - b.top);
+  return lines;
+}
+function textIssues(){
+  const out = [];
+  /* Mesures sans les transformations en cours (cartes inclinées, scène réduite) : les mots d’une même ligne ont la même hauteur. */
+  const neutral = document.createElement('style');
+  neutral.textContent = '#stage *{transform:none !important;rotate:none !important;scale:none !important;translate:none !important}';
+  document.head.append(neutral);
+  $$(TEXT_BLOCKS).forEach(el => {
+    const lines = textLines(el);
+    if (!lines.length) return;
+    const words = l => l.toks.filter(t => !/^[.,;:!?»)…]+$/.test(t.w));
+    const text = lines.map(l => l.toks.map(t => t.w).join(' '));
+    const isCap = !!el.closest('#cap');
+    lines.forEach((l, i) => {
+      const w = words(l);
+      if (lines.length > 1 && w.length === 1 && !w[0].blk) out.push({kind: 'orphelin', where: isCap ? 'légende' : el.className || el.tagName, line: i + 1, text});
+      const last = l.toks[l.toks.length - 1];
+      if (i < lines.length - 1 && last && shortWord(last.w)) out.push({kind: 'ligne finie par un mot court', where: isCap ? 'légende' : el.className || el.tagName, line: i + 1, text});
+      if (l.toks.some(t => t.split)) out.push({kind: 'mot coupé', where: el.className || el.tagName, line: i + 1, text});
+    });
+    if (isCap && lines.length > 3) out.push({kind: 'plus de 3 lignes', where: 'légende', line: lines.length, text});
+  });
+  neutral.remove();
+  return out;
+}
+
 /* Une pause de lecture fige l’image : rien ne doit être en plein mouvement à cet instant
    (hors mouvements d’ambiance). Liste les animations interrompues, pour la mise au point. */
 function holdClashes(){
@@ -296,8 +367,9 @@ function Course(cfg){
   window.__ready = (async () => {
     buildChrome(chapters, captions);
     if (cfg.dom) cfg.dom();
+    frDom($('#stage'));
     const fams = ['800 50px "Bricolage Grotesque"', '400 40px "Bricolage Grotesque"', '400 40px JBM', '500 40px JBM', '600 40px JBM', '700 40px JBM', '800 40px JBM',
-      '400 40px Inter', '500 40px Inter', '600 40px Inter', '700 40px Inter', '400 40px "Noto Color Emoji"'];
+      '500 40px Inter', '600 40px Inter', '700 40px Inter', '800 40px Inter', '400 40px "Noto Color Emoji"'];
     await Promise.all(fams.map(f => document.fonts.load(f, 'Aàé’' + (cfg.glyphs || ''))));
     await document.fonts.ready;
     chromeTimeline(chapters, captions, duration);
@@ -310,6 +382,7 @@ function Course(cfg){
     if (EMBED) dispatchEvent(new Event('resize'));
     return {duration: out, fps: FPS, cues: CUES.map(c => Object.assign({}, c, {t: unwarp(c.t)})), overflow: checkCaptions(captions),
       notesT: notesAt != null ? unwarp(notesAt) : null, holds: +total.toFixed(3), holdList: HOLDS, clashes: holdClashes(),
+      textIssues: QS.has('check') ? textIssues() : undefined,
       chapters: chapters.map(c => ({t: unwarp(c.a), n: c.n, label: c.label})),
       questions: questions.map(q => ({t: unwarp(q.at), kicker: q.kicker, ctx: fr(q.ctx || ''), q: fr(q.q), options: q.options.map(o => ({label: o.label, ok: o.ok})), okTitle: fr(q.okTitle), koTitle: fr(q.koTitle), why: fr(q.why)})),
       /* Légendes en texte : le lecteur les annonce à VoiceOver au fil de l’animation. */
