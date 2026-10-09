@@ -334,6 +334,15 @@ const COURSES = [
     traps: ['<span class="ln" id="ql4">  <span class="kw hlc" id="and3">AND</span> age &gt; 30;', '<b>Aucune ligne</b><span class="s">Une ville ne peut pas être Paris et Lyon à la fois.</span>',
       '<span class="op2">AND</span>', '<span class="op2">OR</span>', 'AND : calculé en premier', 'entre parenthèses : calculé en premier',
       '<span id="lp">(</span><span id="cP">ville = <span class="str">\'Paris\'</span></span> <span class="kw">OR</span> <span id="cL">ville = <span class="str">\'Lyon\'</span></span><span id="rp">)</span> <span class="kw" id="and5">AND</span> <span id="cA">age &gt; 30</span>']},
+  {id: 22, next: 7, titre: 'NOT', page: 'not.html', thumb: 'not-thumb.jpg', duree: '2 min 16', notesAt: 97.2,
+    notes: /notes:\{t:128\.45,y:1365,card:\[64,356,1016,1070\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Avec <span class="ic">NOT</span>, inverse une condition : garde ce qu’elle écarte.',
+    chapters: ['Situation', 'Le problème', 'NOT en action', 'NOT ou l’inverse', 'Les parenthèses', 'Le résultat', 'À retenir'],
+    traps: ['<span class="kw">WHERE</span> <span class="kw glow" id="not3">NOT </span>', '<span id="dY">2023</span>-<span id="dM">03</span>-<span id="dD">01</span>',
+      '<span class="cp"><span class="kw">NOT</span> ville = <span class="str">\'Paris\'</span></span>', 'ville <span class="hv">!=<i class="mbox"></i></span>&nbsp;<span class="str">\'Paris\'</span>',
+      'date_inscription <span class="hv">&gt;=<i class="mbox"></i></span>&nbsp;<span class="str">\'2023-03-01\'</span>',
+      '<span class="kw" id="not5">NOT</span> <span id="lp">(</span><span id="cP">ville = <span class="str">\'Paris\'</span></span> <span class="kw">AND</span> age &gt; 35<span id="rp">)</span>',
+      'NOT inverse tout le groupe', 'NOT n’inverse que cette condition']},
 ];
 
 for (const c of COURSES) {
@@ -439,7 +448,7 @@ test('texte des animations : police Inter livrée (mêmes retours à la ligne su
 
 test('animations : opérateurs écrits tels qu’on les tape (<= et non ≤), JetBrains Mono sans ligatures comme dans l’app', () => {
   const css = fs.readFileSync(path.join(ROOT, 'assets/anim/core.css'), 'utf8');
-  assert.ok(css.includes('code,.ic,.code,.codepill,.mini,.tr,.th,.lk{font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}'), 'code des animations sans ligatures');
+  assert.ok(css.includes('code,.ic,.code,.codepill,.mini,.tr,.th,.lk,.cp{font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}'), 'code des animations sans ligatures');
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/comparer.html'), 'utf8');
   assert.ok(/\.op \.sym\{[^}]*font-variant-ligatures:none/.test(page), 'symboles du tableau des opérateurs sans ligatures');
   assert.ok(!/[≤≥≠]/.test(page), 'jamais ≤, ≥ ou ≠ : les opérateurs SQL tels qu’on les tape');
