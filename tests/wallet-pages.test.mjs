@@ -15,18 +15,19 @@ const cardOf = id => { const b = lessonOf(id).studio.uses.body; return b.slice(b
 const count = (s, re) => (s.match(re) || []).length;
 const withBody = (l, b) => Object.assign({}, l, {studio: Object.assign({}, l.studio, {uses: Object.assign({}, l.studio.uses, {body: b})})});
 
-test('cours 22 : sept bons de livraison gratuite — 3 montrés, une pile de 3, Nathan Dupont (30 ans pile) en dernier', () => {
+test('cours 22 : six bons de livraison gratuite — 3 montrés, une pile de 2, Nathan Dupont en dernier', () => {
   const c = cardOf(22);
-  assert.match(c, /<div class="ij-sms is-board is-page" style="--n:5;--sg:0\.4s" data-total="7"/, '3 bons + 1 pile + 1 dernier');
+  assert.match(c, /<div class="ij-sms is-board is-page" style="--n:5;--sg:0\.4s" data-total="6"/, '3 bons + 1 pile + 1 dernier');
   assert.ok(c.includes('<div class="pg-grid is-coupons has-pile">'));
-  assert.equal(count(c, /<div class="pg-card is-coupon[ "]/g), 7, 'un bon par client, tous dans le DOM');
-  assert.equal(count(c, /<div class="pg-card is-coupon is-stacked"/g), 3, 'Hugo, Gabriel et Inès empilés');
-  assert.equal(count(c, /<div class="pg-more"[^>]*>… et 3 autres bons<\/div>/g), 1);
-  assert.equal(count(c, /<em class="pg-flag">30 ans pile<\/em>/g), 1, 'la pastille sur le seul client de 30 ans');
+  assert.equal(count(c, /<div class="pg-card is-coupon[ "]/g), 6, 'un bon par client, tous dans le DOM');
+  assert.equal(count(c, /<div class="pg-card is-coupon is-stacked"/g), 2, 'Gabriel et Inès empilés');
+  assert.equal(count(c, /<div class="pg-more"[^>]*>… et 2 autres bons<\/div>/g), 1);
+  assert.equal(count(c, /<em class="pg-flag">/g), 0, 'plus de pastille');
   assert.ok(c.includes('<div class="pg-card is-coupon is-tail"'), 'Nathan Dupont reste en vue, après la pile');
-  assert.deepEqual([...c.matchAll(/<span class="cp-code">([^<]*)<\/span>/g)].map(m => m[1]), ['LUCAS', 'EMMA', 'CHLOE', 'HUGO', 'GABRIEL', 'INES', 'NATHAN'].map(p => 'LIVRAISON-' + p), 'code personnel, sans accents');
-  assert.equal(count(c, /<span class="cp-val" aria-hidden="true"><i>🚚<\/i><b>Livraison<\/b><\/span>/g), 7, 'bloc de l’offre');
-  assert.equal(count(c, /<em class="pg-stamp">Envoyé<\/em>/g), 7);
+  assert.deepEqual([...c.matchAll(/<span class="cp-code">([^<]*)<\/span>/g)].map(m => m[1]), ['LUCAS', 'NATHAN', 'LEA', 'GABRIEL', 'INES', 'NATHAN'].map(p => 'LIVRAISON-' + p), 'code personnel, sans accents');
+  assert.equal(count(c, /<span class="cp-val" aria-hidden="true"><i>🚚<\/i><b>Livraison<\/b><\/span>/g), 6, 'bloc de l’offre');
+  assert.ok(c.includes('>depuis le 2023-03-22<'), 'la date d’inscription sur le bon');
+  assert.equal(count(c, /<em class="pg-stamp">Envoyé<\/em>/g), 6);
   assert.ok(!c.includes('ij-sms-bubble') && !c.includes('ij-sms-list'), 'plus de bulle de message');
 });
 
