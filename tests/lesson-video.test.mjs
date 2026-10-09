@@ -323,6 +323,14 @@ const COURSES = [
     chapters: ['Situation', 'Le problème', 'DISTINCT en action', 'Où le placer', 'Plusieurs colonnes', 'Le résultat', 'À retenir'],
     question: ["ctx: 'Sophie et Léa habitent toutes les deux à Paris.'", "q: 'Avec DISTINCT ville, prenom, leurs lignes sont-elles fusionnées ?'", "{label: 'Oui, fusionnées', ok: false}, {label: 'Non, gardées', ok: true}"],
     traps: ['near "DISTINCT": syntax error', 'Cette ville est-elle déjà dans le résultat ?', 'Paris + Sophie et Paris + Léa sont des combinaisons différentes']},
+  {id: 5, next: 6, titre: 'Comparer des valeurs', page: 'comparer.html', thumb: 'comparer-thumb.jpg', duree: '2 min 22', notesAt: 102.2,
+    notes: /notes:\{t:134\.65,y:1420,card:\[64,356,1016,1130\],to:\[940,255\]\}/, table: 'produits',
+    bubble: 'Avec les opérateurs de comparaison, compare une colonne à une valeur.',
+    chapters: ['Situation', 'Le problème', 'La comparaison', 'Six opérateurs', 'La limite', 'Comparer un texte', 'Le résultat', 'À retenir'],
+    question: ["ctx: 'La Tisane Détox a exactement 60 unités en stock.'", "q: 'Avec stock &lt; 60, sa ligne est-elle gardée ?'", "{label: 'Oui, gardée', ok: false}, {label: 'Non, écartée', ok: true}"],
+    traps: ['<span class="kw">WHERE</span> stock <span class="cbox" id="eqA">=<i class="mbox"></i></span><span class="glow" id="leA">&lt;=</span> 60;',
+      'Son stock est-il inférieur<br>ou égal à 60 ?', '<span class="kw">WHERE</span> stock &lt; 60', '<span class="kw">WHERE</span> stock &lt;= 60',
+      "<span class=\"kw\">WHERE</span> categorie != <span class=\"str glow\" id=\"s6str\">'Accessoire'</span>;", 'Un texte, entre guillemets simples']},
 ];
 
 for (const c of COURSES) {
@@ -377,6 +385,7 @@ test('moteur commun des animations : mode intégré, rendu net, pauses de lectur
   assert.equal(JSON.stringify(ctx.captionHolds([[10, 16, txt]], 100)), '[]', 'assez de temps : pas de pause');
   assert.equal(JSON.stringify(ctx.captionHolds([[90, 999, txt]], 100)), '[]', 'dernière légende (jusqu’à la fin) : pas de pause');
   assert.equal(JSON.stringify(ctx.captionHolds([[10, 13, '<b>x</b>'.repeat(85)]], 100)), '[[12.75,2.5]]', 'les balises ne comptent pas');
+  assert.equal(vm.runInContext('plain', ctx)('Opérateur <code>&lt;=</code>, <code>&gt;</code> ou <code>!=</code>'), 'Opérateur <=, > ou\u00a0!=', 'texte lu par VoiceOver : opérateurs en clair');
   assert.equal(JSON.stringify(ctx.mergeHolds([[20, 1], [5, 2], [20.05, 3]])), '[[5,2],[20,3]]', 'pauses triées, très proches fusionnées');
   vm.runInContext('HOLDS = [[5, 2], [20, 3]];', ctx);
   assert.equal(ctx.unwarp(4), 4); assert.equal(ctx.unwarp(10), 12); assert.equal(ctx.unwarp(30), 35);
@@ -423,4 +432,12 @@ test('texte des animations : police Inter livrée (mêmes retours à la ligne su
   assert.equal(nb(ctx.fr('les intitulés « Nom du produit » et « Prix (€) ».')), 'les⍽intitulés «⍽Nom⍽du⍽produit⍽» et⍽«⍽Prix⍽(€)⍽».', 'un libellé entre guillemets ne se coupe pas');
   assert.ok(core.includes("textIssues: QS.has('check') ? textIssues() : undefined,"), 'contrôle de mise en forme à la fabrication (?check)');
   assert.ok(core.includes('frDom($(\'#stage\'));'), 'même typographie pour les textes écrits dans la page');
+});
+
+test('animations : opérateurs écrits tels qu’on les tape (<= et non ≤), JetBrains Mono sans ligatures comme dans l’app', () => {
+  const css = fs.readFileSync(path.join(ROOT, 'assets/anim/core.css'), 'utf8');
+  assert.ok(css.includes('code,.ic,.code,.codepill,.mini,.tr,.th,.lk{font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}'), 'code des animations sans ligatures');
+  const page = fs.readFileSync(path.join(ROOT, 'assets/anim/comparer.html'), 'utf8');
+  assert.ok(/\.op \.sym\{[^}]*font-variant-ligatures:none/.test(page), 'symboles du tableau des opérateurs sans ligatures');
+  assert.ok(!/[≤≥≠]/.test(page), 'jamais ≤, ≥ ou ≠ : les opérateurs SQL tels qu’on les tape');
 });

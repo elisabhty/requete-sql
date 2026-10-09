@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<title>Requête · Comparer des valeurs en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+/* Titre : trois opérateurs en grand, bien espacés */
+#s0 .title{letter-spacing:0}
+#s0 .title span{margin:0 30px}
+#s0 .bubble{left:514px;width:532px}
+
+/* ---------- Code partagé (chapitres 2 et 3) ---------- */
+#qcode{left:64px;top:236px;width:952px;opacity:0;visibility:hidden}
+.cbox{position:relative;display:inline-block;isolation:isolate}
+.cbox .mbox{position:absolute;left:-7px;right:-7px;top:6px;bottom:6px;border-radius:12px;background:rgba(239,79,85,.24);box-shadow:inset 0 0 0 3px #EF4F55;z-index:-1;opacity:0}
+
+/* ---------- Tableaux ---------- */
+.rgS{display:grid;grid-template-columns:1fr 220px;padding:0 26px}
+.miss{left:64px;width:952px;padding:0 0 16px;background:#FFF8F8;border:3px dashed #EFA9B0;border-radius:48px}
+.miss .tt{height:76px;display:flex;align-items:center;gap:14px;padding:0 34px;font-weight:700;font-size:32px;color:var(--danger)}
+.miss .tt .emo{font-size:34px}
+.miss .tr{color:var(--danger);box-shadow:inset 0 2px 0 #F8DADD}
+
+/* ---------- 3 · La comparaison ---------- */
+.ask{left:64px;top:236px;width:952px;height:132px;display:flex;align-items:center;gap:28px;padding:0 34px;background:var(--accent-soft);border:3px solid #D3C8FF;border-radius:40px;box-shadow:0 8px 0 #D9CEFF;font-size:42px;font-weight:700;color:var(--accent-ink)}
+.ask .q{flex:none;width:78px;height:78px;border-radius:22px;background:var(--accent);box-shadow:0 5px 0 var(--accent-lip);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:50px}
+.scan{left:64px;width:952px;padding:0 0 16px;overflow:hidden}
+.scan .tt{height:76px;display:flex;align-items:center;gap:14px;padding:0 34px;font-weight:700;font-size:32px;color:var(--ink)}
+.scan .tt .emo{font-size:34px}
+.rgC{display:grid;grid-template-columns:372px 112px 1fr;padding:0 20px}
+.tr.tc{height:62px;font-size:32px}
+.cmpc{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.ex{display:inline-block;font-size:30px;font-weight:600;color:var(--ink-3);opacity:0}
+.ex b{color:var(--ink);font-weight:800}
+.pill{display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 18px;border-radius:999px;font-family:var(--ui);font-size:26px;font-weight:700;white-space:nowrap;opacity:0}
+.pill.t{background:var(--accent);color:#fff}
+.pill.f{background:#ECE9F5;color:var(--ink-3)}
+.scanner{position:absolute;left:10px;right:10px;top:0;height:62px;border:4px solid var(--accent);border-radius:18px;box-shadow:0 0 0 7px rgba(106,77,244,.14);opacity:0;z-index:3}
+.stat{left:64px;width:952px;height:180px;display:flex;align-items:center;justify-content:center;gap:34px}
+.big-n{display:flex;flex-direction:column;align-items:center;gap:4px}
+.big-n b{font-family:var(--display);font-weight:800;font-size:88px;line-height:1;letter-spacing:-2px}
+.big-n span{font-size:30px;font-weight:600;color:var(--ink-3)}
+.big-n.from b{color:#B4ADCF}
+.big-n.to b{color:var(--accent)}
+.stat .via{display:flex;flex-direction:column;align-items:center;gap:8px}
+.stat .via .ic{font-size:30px}
+.stat .via .ar{font-size:54px;color:var(--accent);line-height:1}
+
+/* ---------- 4 · Six opérateurs ---------- */
+.ops{left:64px;top:236px;width:952px;padding:0 0 12px;overflow:hidden}
+.ops .tt{height:96px;display:flex;align-items:center;gap:16px;padding:0 34px;font-weight:700;font-size:36px;color:var(--ink)}
+.ops .tt .emo{font-size:40px}
+.ops .tt .limh{margin-left:auto;font-size:28px;font-weight:700;color:var(--ink-3);opacity:0}
+.op{position:relative;height:124px;display:flex;align-items:center;gap:30px;padding:0 34px;box-shadow:inset 0 2px 0 var(--line-2)}
+.op .hl{position:absolute;left:0;top:0;right:0;bottom:0;background:var(--accent-soft);box-shadow:inset 8px 0 0 var(--accent);opacity:0}
+.op .sym{position:relative;flex:none;width:136px;height:84px;border-radius:24px;background:var(--code-bg);box-shadow:0 6px 0 #110E27;color:var(--code-ink);font-family:var(--mono);font-size:46px;font-weight:800;display:flex;align-items:center;justify-content:center;white-space:pre;font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
+.op .mean{position:relative;font-size:40px;font-weight:600;color:var(--ink);white-space:nowrap}
+.op .lim{position:relative;margin-left:auto;height:54px;padding:0 22px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;white-space:nowrap;opacity:0}
+.op .lim.lx{background:var(--danger-soft);color:var(--danger);border:2px solid #F6C9CD}
+.op .lim.li{background:var(--accent);color:#fff}
+
+/* ---------- 5 · La limite ---------- */
+.line{left:64px;top:236px;width:952px;height:420px}
+.line .tt{height:90px;display:flex;align-items:center;gap:16px;padding:0 34px;font-weight:700;font-size:34px;color:var(--ink)}
+.line .tt .emo{font-size:38px}
+.axis{position:absolute;left:0;top:90px;width:952px;height:330px}
+.axis .bar{position:absolute;left:46px;right:46px;top:146px;height:8px;border-radius:4px;background:#E2DCF5}
+.zone{position:absolute;left:24px;top:100px;height:100px;width:0;border-radius:50px;background:rgba(106,77,244,.13);box-shadow:inset 0 0 0 3px rgba(106,77,244,.42)}
+.limit{position:absolute;top:88px;height:124px;width:0;margin-left:-2px;border-left:4px dashed var(--accent)}
+.pt{position:absolute;top:122px;width:56px;height:56px;margin-left:-28px;border-radius:50%;background:#fff;border:4px solid #CFC7EC}
+.pt .ck,.pt .xk{position:absolute;left:0;top:0;width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;opacity:0}
+.pt .ck{color:#fff}
+.pt .xk{color:var(--danger)}
+.val{position:absolute;top:212px;width:120px;margin-left:-60px;text-align:center;font-family:var(--mono);font-size:32px;font-weight:700;color:var(--ink-2)}
+.tname{position:absolute;top:30px;height:54px;padding:0 22px;border-radius:999px;background:var(--surface-2);border:2px solid var(--line);font-size:28px;font-weight:700;color:var(--ink);display:flex;align-items:center;white-space:nowrap}
+.limtag{position:absolute;top:262px;height:44px;padding:0 16px;border-radius:12px;background:var(--accent-soft);color:var(--accent-ink);font-size:24px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.resl{display:flex;align-items:center;gap:18px;margin-top:22px;opacity:0}
+.resl .oi{color:#fff}
+.resl.ko .oi{background:var(--danger-fill)}
+.resl.ok .oi{background:var(--accent)}
+.resl b{font-size:36px;font-weight:800}
+.resl.ko b{color:var(--danger)}
+.resl.ok b{color:var(--accent-ink)}
+.resl span{font-size:32px;font-weight:600;color:var(--ink-2)}
+
+/* ---------- 6 · Comparer un texte ---------- */
+.rgT{display:grid;grid-template-columns:1fr 330px;padding:0 26px}
+.tr.t6{height:62px}
+.catv{position:relative;display:inline-block}
+.catv .mbox{position:absolute;left:-12px;right:-12px;top:-5px;bottom:-5px;background:#FADADD;border-radius:12px;box-shadow:inset 0 0 0 2px rgba(194,50,58,.16);z-index:-1;opacity:0}
+.write{left:64px;width:952px;padding:14px 36px 26px}
+.wrow{padding:24px 0 22px}
+.wrow+.wrow{box-shadow:inset 0 2px 0 var(--line-2)}
+.wl{display:flex;align-items:center;gap:16px;font-size:36px;font-weight:700;color:var(--ink)}
+.wl .emo{font-size:38px}
+.wrow .codepill{margin-top:18px;height:88px;font-size:42px;padding:0 34px}
+.hv{position:relative;display:inline-block;isolation:isolate}
+.hv .mbox{position:absolute;left:-10px;right:-10px;top:8px;bottom:8px;border-radius:12px;background:rgba(255,224,138,.16);box-shadow:inset 0 0 0 3px #FFE08A;z-index:-1;opacity:0}
+
+/* ---------- 7 · Le résultat ---------- */
+.reco{left:64px;width:952px;padding:0 0 18px}
+.reco .tt{height:90px;display:flex;align-items:center;gap:16px;padding:0 34px;font-weight:700;font-size:34px;color:var(--ink)}
+.reco .tt .emo{font-size:38px}
+.rcw{position:relative;padding-bottom:62px}
+.rcr{display:grid;grid-template-columns:340px 1fr 80px;gap:22px;align-items:center;height:88px;padding:0 34px;box-shadow:inset 0 2px 0 var(--line-2)}
+.rcr .nm{font-family:var(--mono);font-size:32px;font-weight:700;color:var(--ink);white-space:nowrap}
+.rcr .v{text-align:right;font-family:var(--mono);font-size:34px;font-weight:800;color:var(--accent-ink)}
+.track{position:relative;height:30px;border-radius:15px;background:var(--surface-2)}
+.fill{position:absolute;left:0;top:0;bottom:0;width:100%;border-radius:15px;background:linear-gradient(90deg,#8B6CFF,#6A4DF4);transform-origin:0 50%}
+.lim8{position:absolute;top:10px;bottom:56px;width:0;margin-left:-2px;border-left:4px dashed #EF4F55;z-index:2}
+.limtag8{position:absolute;bottom:4px;height:44px;padding:0 16px;border-radius:12px;background:var(--danger-soft);color:var(--danger);font-size:24px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Lire une table</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>&lt;</span><span>=</span><span>&gt;</span></div>
+    <div class="abs sub">Comparer des valeurs</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec les opérateurs de comparaison, compare une colonne à une valeur.</div>
+  </section>
+
+  <!-- 1 · Situation -->
+  <section class="scene" id="s1">
+    <div class="abs card invite">
+      <div class="inv-band"><span class="emo">📦</span><span>Réassort</span></div>
+      <div class="inv-body">
+        <div class="inv-from">NutriBoost · équipe logistique</div>
+        <div class="inv-title">Commande de réassort</div>
+        <div class="inv-place"><span class="emo">🔎</span><span>Quels produits recommander ?</span></div>
+      </div>
+      <div class="stamp">60 unités ou moins</div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">🏷️</span><span class="nl">Le nom du produit</span><span class="tag">table produits</span></div>
+      <div class="need-row"><span class="emo">📦</span><span class="nl">Son stock</span><span class="tag">table produits</span></div>
+    </div>
+  </section>
+
+  <!-- Code partagé : le « = » du chapitre 2 devient « <= » au chapitre 3 -->
+  <div class="abs code" id="qcode">
+    <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+    <div class="body"><span class="ln" id="ql1"><span class="kw">SELECT</span> nom, stock<span class="caret"><i></i></span></span><span class="ln" id="ql2"><span class="kw">FROM</span> produits<span class="caret"><i></i></span></span><span class="ln" id="ql3"><span class="kw">WHERE</span> stock <span class="cbox" id="eqA">=<i class="mbox"></i></span><span class="glow" id="leA">&lt;=</span> 60;<span class="caret"><i></i></span></span></div>
+    <div class="run" id="qrun"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+  </div>
+
+  <!-- 2 · Le problème -->
+  <section class="scene" id="s2">
+    <div class="tbl card" id="tbl2" style="top:740px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt2">1 ligne</span></span></div>
+      <div class="rgS th"><div>nom</div><div>stock</div></div>
+      <div class="rows" id="rows2"></div>
+    </div>
+    <div class="abs miss" id="miss2" style="top:1004px">
+      <div class="tt"><span class="emo">⚠️</span><span>Absents du résultat</span></div>
+      <div class="rows" id="rowsM"></div>
+    </div>
+  </section>
+
+  <!-- 3 · La comparaison -->
+  <section class="scene" id="s3">
+    <div class="abs look" id="look3" style="top:740px"><div class="lk">&lt;=</div><div class="lt">→ inférieur ou égal à</div></div>
+    <div class="abs ask" id="ask3"><span class="q">?</span><span>Son stock est-il inférieur<br>ou égal à 60 ?</span></div>
+    <div class="abs card scan" id="scan3" style="top:400px">
+      <div class="tt"><span class="emo">📋</span><span>Produits</span><span class="cnt"><span id="cnt3a">8 lignes</span><span id="cnt3b">3 lignes</span></span></div>
+      <div class="rgC th"><div>nom</div><div>stock</div><div>stock &lt;= 60 ?</div></div>
+      <div class="rows" id="rows3"><div class="scanner" id="scanner3"></div></div>
+    </div>
+    <div class="abs card stat" id="stat3" style="top:780px">
+      <div class="big-n from"><b>8</b><span>produits</span></div>
+      <div class="via"><span class="ic">stock &lt;= 60</span><span class="ar">→</span></div>
+      <div class="big-n to"><b>3</b><span>à recommander</span></div>
+    </div>
+  </section>
+
+  <!-- 4 · Six opérateurs -->
+  <section class="scene" id="s4">
+    <div class="abs card ops" id="ops">
+      <div class="tt"><span class="emo">⚖️</span><span>Les opérateurs de comparaison</span><span class="limh" id="limh">limite</span></div>
+      <div id="opRows"></div>
+    </div>
+  </section>
+
+  <!-- 5 · La limite -->
+  <section class="scene" id="s5">
+    <div class="abs card line" id="line5">
+      <div class="tt"><span class="emo">📦</span><span>Stocks, du plus bas au plus haut</span></div>
+      <div class="axis" id="axis5">
+        <div class="bar"></div>
+        <div class="zone" id="zone5"></div>
+        <div class="limit" id="limit5"></div>
+        <div class="tname" id="tname5">Tisane Détox</div>
+        <div class="limtag" id="limtag5">limite</div>
+      </div>
+    </div>
+    <div class="abs card trap" id="rowA" style="top:690px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Strictement inférieur à 60</span></div>
+      <div class="mini"><span class="kw">WHERE</span> stock &lt; 60<span class="go" id="goA"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
+      <div class="resl ko" id="resA"><span class="oi">✕</span><b>2 produits</b><span>Tisane Détox écartée</span></div>
+    </div>
+    <div class="abs card trap" id="rowB" style="top:1030px">
+      <div class="trap-h"><span class="emo">✅</span><span>Inférieur ou égal à 60</span></div>
+      <div class="mini"><span class="kw">WHERE</span> stock &lt;= 60<span class="go" id="goB"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
+      <div class="resl ok" id="resB"><span class="oi">✓</span><b>3 produits</b><span>Tisane Détox gardée</span></div>
+    </div>
+  </section>
+
+  <!-- 6 · Comparer un texte -->
+  <section class="scene" id="s6">
+    <div class="abs code" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> nom, categorie<span class="caret"><i></i></span></span><span class="ln" id="s6l2"><span class="kw">FROM</span> produits<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="kw">WHERE</span> categorie != <span class="str glow" id="s6str">'Accessoire'</span>;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6" style="top:740px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6a">8 lignes</span><span id="cnt6b">7 lignes</span></span></div>
+      <div class="rgT th"><div>nom</div><div>categorie</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card write" id="write6" style="top:740px">
+      <div class="wrow"><div class="wl"><span class="emo">🔢</span><span>Un nombre, tel quel</span></div><span class="codepill">stock&nbsp;&lt;=&nbsp;<span class="hv">60<i class="mbox"></i></span></span></div>
+      <div class="wrow"><div class="wl"><span class="emo">💬</span><span>Un texte, entre guillemets simples</span></div><span class="codepill">categorie&nbsp;!=&nbsp;<span class="hv str">'Accessoire'<i class="mbox"></i></span></span></div>
+    </div>
+  </section>
+
+  <!-- 7 · Le résultat -->
+  <section class="scene" id="s8">
+    <div class="abs code" id="s8code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s8l1"><span class="kw">SELECT</span> nom, stock<span class="caret"><i></i></span></span><span class="ln" id="s8l2"><span class="kw">FROM</span> produits<span class="caret"><i></i></span></span><span class="ln" id="s8l3"><span class="kw">WHERE</span> stock &lt;= 60;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s8run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="abs card reco" id="reco" style="top:740px">
+      <div class="tt"><span class="emo">📦</span><span>Produits à recommander</span><span class="cnt"><span id="cnt8">3 produits</span></span></div>
+      <div class="rcw" id="rcw"><div id="rows8"></div><div class="lim8" id="lim8"></div><div class="limtag8" id="limtag8">limite : 60</div></div>
+    </div>
+    <div class="abs badge" id="badge8" style="top:1230px"><span>✓ Liste de réassort prête</span></div>
+  </section>
+
+  <!-- 8 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">⚖️</div><div class="rtxt">Les <b>opérateurs de comparaison</b> comparent une colonne à une valeur&nbsp;:<br><span class="ic blk">= != &gt; &lt; &gt;= &lt;=</span></div></div>
+      <div class="rrow"><div class="rico emo">📏</div><div class="rtxt"><span class="ic">&gt;</span> et <span class="ic">&lt;</span> <b>excluent</b> la limite ;<br><span class="ic">&gt;=</span> et <span class="ic">&lt;=</span> l’incluent&nbsp;:<br><span class="ic blk">stock &lt;= 60</span></div></div>
+      <div class="rrow"><div class="rico emo">💬</div><div class="rtxt">Un nombre s’écrit tel quel, un texte entre <b>guillemets simples</b>&nbsp;:<br><span class="ic blk">categorie = 'Accessoire'</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 109.8;
+
+/* Table produits : [nom, categorie, stock] */
+const PRODUITS = [['Fibre Prébiotique','Bien-être',120],['Collagène Marin','Beauté',80],['Magnésium','Bien-être',200],['Vitamine D','Nutrition',150],
+  ['Tisane Détox','Boisson',60],['Protéine Végétale','Nutrition',45],['Oméga 3','Bien-être',90],['Shaker Inox','Accessoire',30]];
+const LIMITE = 60;
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+/* Les six opérateurs : [clé, symbole, sens, limite exclue / incluse] */
+const OPS = [['EQ', '=', 'égal à', ''], ['NE', '!=', 'différent de', ''], ['GT', '>', 'strictement supérieur à', 'lx'],
+  ['LT', '<', 'strictement inférieur à', 'lx'], ['GE', '>=', 'supérieur ou égal à', 'li'], ['LE', '<=', 'inférieur ou égal à', 'li']];
+
+/* Règle des stocks : 8 positions régulières, du plus bas au plus haut. */
+const AX_L = 72, AX_R = 880;
+const SORTED = PRODUITS.slice().sort((a, b) => a[2] - b[2]);
+const axX = i => AX_L + i * (AX_R - AX_L) / (SORTED.length - 1);
+const X60 = axX(SORTED.findIndex(p => p[2] === LIMITE));
+
+/* Barres de stock du résultat : la piste va de 0 à 80 unités. */
+const MAXB = 80;
+
+const CHAPTERS = [
+  {n:1, label:'Situation',          a:5.0,  b:15.0},
+  {n:2, label:'Le problème',        a:15.0, b:26.8},
+  {n:3, label:'La comparaison',     a:26.8, b:45.5},
+  {n:4, label:'Six opérateurs',     a:45.5, b:58.5},
+  {n:5, label:'La limite',          a:58.5, b:72.5},
+  {n:6, label:'Comparer un texte',  a:72.5, b:85.0},
+  {n:7, label:'Le résultat',        a:85.0, b:97.0},
+  {n:8, label:'À retenir',          a:97.0, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 8.6,    "L’équipe logistique prépare le <b>réassort</b> de la boutique."],
+  [8.7, 11.35,  "Elle doit recommander tous les produits dont le stock est de <b>60 unités ou moins</b>."],
+  [11.45, 14.6, "Ces informations se trouvent dans la <b>table produits</b>, qui contient <b>8 produits</b>."],
+  [15.3, 19.1,  "Avec <code>WHERE stock = 60</code>, le résultat ne contient que les produits à <b>exactement 60</b> unités."],
+  [19.2, 22.9,  "Protéine Végétale (45) et Shaker Inox (30) sont oubliés, alors qu’ils sont aussi à recommander."],
+  [23.0, 26.4,  "Il faut garder tous les produits <b>jusqu’à\u00a060\u00a0unités</b> : c’est le rôle des <b>opérateurs de comparaison</b>."],
+  [27.3, 30.5,  "On remplace <code>=</code> par <code>&lt;=</code>, qui signifie <b>inférieur ou égal à</b>."],
+  [30.6, 34.4,  "Pour chaque produit, SQL compare son stock à <b>60</b>."],
+  [34.5, 40.4,  "Si la condition est <b>vraie</b>, la ligne est gardée ; si elle est <b>fausse</b>, elle est\u00a0écartée."],
+  [40.5, 45.0,  "Il reste <b>3 produits</b>, dont la Tisane Détox : 60 est bien <b>inférieur ou égal</b> à 60."],
+  [45.8, 49.6,  "Il existe <b>six opérateurs</b> pour comparer une colonne à une valeur."],
+  [49.7, 54.0,  "Avec <code>&gt;</code> et <code>&lt;</code>, la limite est <b>exclue</b> : une valeur égale à la limite n’est\u00a0pas\u00a0gardée."],
+  [54.1, 58.0,  "Avec <code>&gt;=</code> et <code>&lt;=</code>, la limite est <b>incluse</b> : une valeur égale à la limite est gardée."],
+  [58.8, 62.6,  "Attention au choix de l’opérateur : la Tisane Détox a <b>exactement 60</b> unités."],
+  [62.9, 67.4,  "Avec <code>stock &lt; 60</code>, elle est écartée : 60 n’est pas <b>strictement inférieur</b> à 60."],
+  [67.5, 72.0,  "Avec <code>stock &lt;= 60</code>, elle est gardée : « 60 unités ou moins » <b>inclut 60</b>."],
+  [72.8, 76.15, "Autre exemple : le fournisseur habituel ne livre pas les <b>accessoires</b>, il\u00a0faut\u00a0les\u00a0écarter."],
+  [76.25, 80.6, "Avec <code>!=</code>, on compare aussi du texte : seul le <b>Shaker Inox</b>, un accessoire, est\u00a0écarté."],
+  [80.7, 84.6,  "Un nombre s’écrit tel quel ; un texte s’écrit entre <b>guillemets simples</b>."],
+  [85.3, 88.4,  "La requête complète affiche le nom et le stock des produits à <b>60\u00a0unités\u00a0ou\u00a0moins</b>."],
+  [88.5, 92.6,  "Résultat : <b>3 produits à recommander</b>. La liste de réassort est prête."],
+  [92.7, 96.6,  "<code>WHERE</code> agit sur le résultat : la <b>table produits</b> garde ses 8 produits."],
+  [97.3, 102.1, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [102.2, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [102.2, 999, "Compare une colonne à une valeur avec <code>=</code>, <code>!=</code>, <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code> ou <code>&lt;=</code>."]
+];
+
+/* Question posée par le lecteur de l’app, avant d’exécuter WHERE stock < 60. */
+const QUESTIONS = APP ? [{
+  at: 62.7,
+  kicker: 'À toi de deviner',
+  ctx: 'La Tisane Détox a exactement 60 unités en stock.',
+  q: 'Avec stock &lt; 60, sa ligne est-elle gardée ?',
+  options: [{label: 'Oui, gardée', ok: false}, {label: 'Non, écartée', ok: true}],
+  okTitle: 'Bien vu !',
+  koTitle: 'Pas tout à fait',
+  why: 'Avec &lt;, la limite est exclue : 60 &lt; 60 est faux, la ligne est écartée.'
+}] : [];
+
+function dom(){
+  const row = (cls, cells) => `<div class="${cls}">${cells}</div>`;
+  $('#rows2').innerHTML = PRODUITS.filter(p => p[2] === LIMITE).map(p => row('rgS tr', `<div>${p[0]}</div><div>${p[2]}</div>`)).join('');
+  $('#rowsM').innerHTML = PRODUITS.filter(p => p[2] < LIMITE).map(p => row('rgS tr', `<div>${p[0]}</div><div>${p[2]}</div>`)).join('');
+  $('#rows3').insertAdjacentHTML('afterbegin', PRODUITS.map(p => {
+    const ok = p[2] <= LIMITE;
+    return `<div class="rgC tr tc" data-ok="${ok ? 1 : 0}" data-v="${p[2]}"><i class="hl"></i><div>${p[0]}</div><div>${p[2]}</div>` +
+      `<div class="cmpc"><span class="ex"><b>${p[2]}</b> &lt;= 60</span>${ok ? '<span class="pill t">✓ vraie</span>' : '<span class="pill f">✕ fausse</span>'}</div></div>`;
+  }).join(''));
+  $('#opRows').innerHTML = OPS.map(([k, s, m, l]) => `<div class="op" data-k="${k}"><i class="hl"></i><span class="sym">${esc(s)}</span><span class="mean">${m}</span>` +
+    (l ? `<span class="lim ${l}">${l === 'lx' ? 'exclue' : 'incluse'}</span>` : '') + '</div>').join('');
+  $('#axis5').insertAdjacentHTML('beforeend', SORTED.map((p, i) =>
+    `<div class="pt" data-v="${p[2]}" style="left:${axX(i).toFixed(1)}px"><span class="ck">✓</span><span class="xk">✕</span></div>` +
+    `<div class="val" data-v="${p[2]}" style="left:${axX(i).toFixed(1)}px">${p[2]}</div>`).join(''));
+  $('#limit5').style.left = X60.toFixed(1) + 'px';
+  $('#rows6').innerHTML = PRODUITS.map(p => {
+    const acc = p[1] === 'Accessoire';
+    return `<div class="rgT tr t6" data-acc="${acc ? 1 : 0}"><div>${p[0]}</div><div><span class="catv">${p[1]}<i class="mbox"></i></span></div></div>`;
+  }).join('');
+  $('#rows8').innerHTML = PRODUITS.filter(p => p[2] <= LIMITE).map(p =>
+    `<div class="rcr" data-f="${(p[2] / MAXB).toFixed(4)}"><span class="nm">${p[0]}</span><div class="track"><i class="fill"></i></div><span class="v">${p[2]}</span></div>`).join('');
+}
+
+/* Mesures de mise en page (avant toute transformation) : étiquettes centrées sur la limite, zones de la règle. */
+function layout(){
+  const ax = $('#axis5'), tn = $('#tname5'), lt = $('#limtag5');
+  tn.style.left = (X60 - rel(tn, ax).w / 2).toFixed(1) + 'px';
+  lt.style.left = (X60 - rel(lt, ax).w / 2).toFixed(1) + 'px';
+  const w = $('#rcw'), tr = rel($('#rows8 .track'), w), x8 = tr.x + tr.w * LIMITE / MAXB;
+  $('#lim8').style.left = x8.toFixed(1) + 'px';
+  const tg = $('#limtag8');
+  tg.style.left = (x8 - rel(tg, w).w / 2).toFixed(1) + 'px';
+  return {zoneLt: X60 - 46 - 24, zoneLe: X60 + 50 - 24};
+}
+
+function build(){
+  const L = layout();
+  introScene();
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  gsap.set('#s1 .invite', {autoAlpha: 0, y: 470, rotation: -9});
+  tl.to('#s1 .invite', {autoAlpha: 1, y: 380, rotation: -2.5, duration: 0.9, ease: 'back.out(1.3)'}, 5.15);
+  cue(5.15, 'whoosh', 0.8);
+  gsap.set('#s1 .stamp', {autoAlpha: 0, scale: 1.9, rotation: 24});
+  tl.to('#s1 .stamp', {autoAlpha: 1, scale: 1, rotation: 7, duration: 0.36, ease: 'power4.in'}, 9.3);
+  tl.to('#s1 .invite', {x: 6, duration: 0.05, yoyo: true, repeat: 3, ease: 'none'}, 9.66);
+  cue(9.65, 'stamp');
+  tl.to('#s1 .invite', {y: 0, duration: 0.75, ease: 'power3.inOut'}, 11.4);
+  show('#s1 .need', 11.65, {y: 60});
+  cue(11.65, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.15}, 12.05);
+  needRows.forEach((_, i) => cue(12.05 + i * 0.15, 'pop', 0.7, i));
+  tl.to('#s1 .tag', {scale: 1.08, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 12.9);
+  hide(['#s1 .invite', '#s1 .need'], 14.6);
+  sceneOff('#s1', 15.1);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 15.0);
+  show('#qcode', 15.05, {y: 60}, 0.6);
+  cue(15.05, 'whoosh', 0.7);
+  gsap.set('#leA', {display: 'none', scale: 0.3, autoAlpha: 0});
+  te = typeLine($('#ql1'), 15.55, 24);
+  te = typeLine($('#ql2'), te + 0.12, 24);
+  te = typeLine($('#ql3'), te + 0.12, 24, false, $('#leA'));
+  press($('#qrun'), 18.0);
+  show('#tbl2', 18.2, {y: 40}, 0.5);
+  const tr2 = $$('#rows2 .tr');
+  gsap.set(tr2, {autoAlpha: 0, y: 16});
+  tl.to(tr2, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out'}, 18.35);
+  cue(18.35, 'tick', 0.5);
+  show('#cnt2', 18.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(18.4, 'pop', 0.8, 2);
+  // Les produits à recommander absents du résultat
+  show('#miss2', 19.4, {y: 40}, 0.55);
+  cue(19.4, 'whoosh', 0.5);
+  const trM = $$('#rowsM .tr');
+  gsap.set(trM, {autoAlpha: 0, x: -30});
+  tl.to(trM, {autoAlpha: 1, x: 0, duration: 0.4, ease: 'power3.out', stagger: 0.18}, 19.75);
+  trM.forEach((_, i) => cue(19.75 + i * 0.18, 'miss', 0.6, i));
+  // Le « = » ne garde qu’une valeur précise
+  gsap.set('#eqA .mbox', {autoAlpha: 0, scale: 1.3});
+  tl.to('#eqA .mbox', {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 23.3);
+  tl.to('#eqA', {x: 6, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 23.7);
+  cue(23.3, 'error', 0.6);
+  hide(['#tbl2', '#miss2'], 26.35, {y: 40});
+  sceneOff('#s2', 26.9);
+
+  /* ===== 3 · La comparaison ===== */
+  sceneOn('#s3', 26.8);
+  // Le « = » laisse sa place à « <= »
+  tl.to('#eqA', {scale: 0, autoAlpha: 0, duration: 0.2, ease: 'power2.in'}, 27.45);
+  tl.set('#eqA', {display: 'none'}, 27.66);
+  tl.set('#leA', {display: 'inline-block'}, 27.66);
+  tl.to('#leA', {scale: 1, autoAlpha: 1, duration: 0.42, ease: 'back.out(2.6)'}, 27.68);
+  cue(27.68, 'pop', 0.9, 4);
+  tl.to('#leA', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 28.15);
+  show('#look3', 28.6, {y: 30});
+  cue(28.6, 'pop', 0.8, 1);
+  hide(['#qcode', '#look3'], 30.5, {y: -40}, 0.4);
+  show('#ask3', 30.85, {y: 30, scale: 0.94});
+  cue(30.85, 'pop', 0.9, 1);
+  show('#scan3', 31.15, {y: 40}, 0.5);
+  cue(31.15, 'whoosh', 0.5);
+  const tr3 = $$('#rows3 .tr');
+  gsap.set(tr3, {autoAlpha: 0, y: 12});
+  tl.to(tr3, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.05}, 31.45);
+  show('#cnt3a', 31.7, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  gsap.set('#cnt3b', {autoAlpha: 0, y: 24});
+  // Balayage : le stock de chaque produit comparé à 60 ; un peu plus lent sur la Tisane Détox (60).
+  const scanner = $('#scanner3'), T3 = [32.45, 33.3, 34.15, 34.6, 35.05, 35.9, 36.35, 36.8];
+  gsap.set(scanner, {y: 0, autoAlpha: 0});
+  tl.to(scanner, {autoAlpha: 1, duration: 0.25}, 32.2);
+  tr3.forEach((r, i) => {
+    const t = T3[i], ok = r.dataset.ok === '1';
+    tl.to(scanner, {y: i * 62, duration: i ? 0.18 : 0.01, ease: 'power2.out'}, t);
+    const ex = r.querySelector('.ex'), pill = r.querySelector('.pill');
+    gsap.set(ex, {autoAlpha: 0, x: -14});
+    tl.to(ex, {autoAlpha: 1, x: 0, duration: 0.25, ease: 'power2.out'}, t + 0.04);
+    gsap.set(pill, {autoAlpha: 0, scale: 0.4});
+    tl.to(pill, {autoAlpha: 1, scale: 1, duration: 0.28, ease: 'back.out(2.4)'}, t + 0.2);
+    cue(t, 'tick', 0.5, 4);
+    cue(t + 0.2, ok ? 'true' : 'false', 0.8);
+  });
+  tl.to(scanner, {autoAlpha: 0, duration: 0.25}, 37.3);
+  const kept3 = tr3.filter(r => r.dataset.ok === '1'), out3 = tr3.filter(r => r.dataset.ok !== '1');
+  tl.to(kept3.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.35, stagger: 0.09}, 37.6);
+  cue(37.6, 'chord', 0.7);
+  tl.to(out3, {opacity: 0.32, duration: 0.3, stagger: 0.05}, 38.1);
+  tl.to(out3, {height: 0, opacity: 0, duration: 0.55, ease: 'power2.inOut', stagger: 0.07}, 38.75);
+  cue(38.75, 'fold', 0.9);
+  tl.to('#cnt3a', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 39.75);
+  tl.to('#cnt3b', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 39.85);
+  cue(39.85, 'pop', 0.9, 4);
+  show('#stat3', 40.45, {y: 46}, 0.6);
+  cue(40.45, 'success', 0.55);
+  const tis = tr3.find(r => r.dataset.v === String(LIMITE));
+  tl.to(tis.querySelector('.ex'), {scale: 1.14, duration: 0.16, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 41.7);
+  cue(41.7, 'pop', 0.7, 6);
+  hide(['#ask3', '#scan3', '#stat3'], 45.0);
+  sceneOff('#s3', 45.5);
+
+  /* ===== 4 · Six opérateurs ===== */
+  sceneOn('#s4', 45.5);
+  show('#ops', 45.55, {y: 50}, 0.6);
+  cue(45.55, 'whoosh', 0.7);
+  const ops = $$('#ops .op');
+  gsap.set(ops, {autoAlpha: 0, x: -30});
+  ops.forEach((o, i) => {
+    tl.to(o, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, 45.95 + i * 0.3);
+    cue(45.95 + i * 0.3, 'pop', 0.7, i);
+  });
+  hold(47.95, 1.2);
+  const opBy = k => ops.find(o => o.dataset.k === k);
+  const strict = [opBy('GT'), opBy('LT')], large = [opBy('GE'), opBy('LE')], others = [opBy('EQ'), opBy('NE')];
+  show('#limh', 49.8, {y: 10}, 0.4);
+  tl.to([...others, ...large], {opacity: 0.35, duration: 0.35}, 49.8);
+  tl.to(strict.map(o => o.querySelector('.hl')), {opacity: 1, duration: 0.35}, 49.8);
+  strict.forEach((o, i) => {
+    const lim = o.querySelector('.lim');
+    gsap.set(lim, {autoAlpha: 0, scale: 0.5});
+    tl.to(lim, {autoAlpha: 1, scale: 1, duration: 0.36, ease: 'back.out(2.2)'}, 50.1 + i * 0.2);
+    cue(50.1 + i * 0.2, 'false', 0.7);
+  });
+  tl.to(strict, {opacity: 0.35, duration: 0.35}, 54.2);
+  tl.to(strict.map(o => o.querySelector('.hl')), {opacity: 0, duration: 0.35}, 54.2);
+  tl.to(large, {opacity: 1, duration: 0.35}, 54.2);
+  tl.to(large.map(o => o.querySelector('.hl')), {opacity: 1, duration: 0.35}, 54.2);
+  large.forEach((o, i) => {
+    const lim = o.querySelector('.lim');
+    gsap.set(lim, {autoAlpha: 0, scale: 0.5});
+    tl.to(lim, {autoAlpha: 1, scale: 1, duration: 0.36, ease: 'back.out(2.2)'}, 54.5 + i * 0.2);
+    cue(54.5 + i * 0.2, 'true', 0.7);
+  });
+  hide('#ops', 58.0);
+  sceneOff('#s4', 58.5);
+
+  /* ===== 5 · La limite ===== */
+  sceneOn('#s5', 58.5);
+  show('#line5', 58.55, {y: 50}, 0.6);
+  cue(58.55, 'whoosh', 0.7);
+  const dots = $$('#axis5 .pt'), vals = $$('#axis5 .val');
+  gsap.set(dots, {autoAlpha: 0, scale: 0.3});
+  gsap.set(vals, {autoAlpha: 0, y: 10});
+  gsap.set($$('#axis5 .ck, #axis5 .xk'), {autoAlpha: 0, scale: 0.4});
+  dots.forEach((d, i) => {
+    const t = 58.95 + i * 0.08;
+    tl.to(d, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.2)'}, t);
+    tl.to(vals[i], {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out'}, t + 0.05);
+    cue(t, 'tick', 0.45, i);
+  });
+  show('#tname5', 59.9, {y: 16, scale: 0.8}, 0.45, 'back.out(2)');
+  cue(59.9, 'pop', 0.8, 3);
+  gsap.set('#limit5', {scaleY: 0, transformOrigin: '50% 0%'});
+  tl.to('#limit5', {scaleY: 1, duration: 0.45, ease: 'power2.out'}, 60.4);
+  show('#limtag5', 60.6, {y: 10}, 0.35);
+  show('#rowA', 61.5, {y: 50});
+  cue(61.5, 'whoosh', 0.6);
+  // (la question de l’app est posée ici, avant d’exécuter WHERE stock < 60)
+  press($('#goA'), 63.0, '#4B30CC', 6);
+  gsap.set('#zone5', {width: 0, autoAlpha: 0});
+  tl.to('#zone5', {autoAlpha: 1, width: L.zoneLt, duration: 0.6, ease: 'power2.out'}, 63.2);
+  cue(63.2, 'whoosh', 0.4);
+  const d60 = dots.find(d => d.dataset.v === String(LIMITE)), v60 = vals.find(v => v.dataset.v === String(LIMITE));
+  dots.filter(d => +d.dataset.v < LIMITE).forEach((d, i) => {
+    const t = 63.5 + i * 0.12, v = vals.find(x => x.dataset.v === d.dataset.v);
+    tl.to(d, {backgroundColor: '#6A4DF4', borderColor: '#6A4DF4', duration: 0.25}, t);
+    tl.to(d.querySelector('.ck'), {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)'}, t);
+    tl.to(v, {color: '#5335E0', duration: 0.25}, t);
+    cue(t, 'true', 0.6);
+  });
+  tl.to(d60, {borderColor: '#EF4F55', backgroundColor: '#FDEBEC', duration: 0.25}, 64.0);
+  tl.to(d60.querySelector('.xk'), {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)'}, 64.0);
+  tl.to('#tname5', {color: '#C2323A', borderColor: '#F6C9CD', backgroundColor: '#FDEBEC', duration: 0.25}, 64.0);
+  tl.to(d60, {x: 6, duration: 0.05, yoyo: true, repeat: 3, ease: 'none'}, 64.25);
+  cue(64.0, 'false', 0.85);
+  show('#resA', 64.4, {y: 0, x: -20}, 0.4, 'back.out(1.8)');
+  cue(64.4, 'pop', 0.8, 2);
+  show('#rowB', 67.45, {y: 50});
+  cue(67.45, 'whoosh', 0.6);
+  press($('#goB'), 68.2, '#4B30CC', 6);
+  tl.to('#zone5', {width: L.zoneLe, duration: 0.5, ease: 'power2.out'}, 68.4);
+  tl.to(d60.querySelector('.xk'), {autoAlpha: 0, scale: 0.4, duration: 0.2}, 68.75);
+  tl.to(d60, {backgroundColor: '#6A4DF4', borderColor: '#6A4DF4', duration: 0.25}, 68.8);
+  tl.to(d60.querySelector('.ck'), {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)'}, 68.85);
+  tl.to(v60, {color: '#5335E0', duration: 0.25}, 68.8);
+  tl.to('#tname5', {color: '#5335E0', borderColor: '#D3C8FF', backgroundColor: '#EEE9FF', duration: 0.25}, 68.8);
+  cue(68.8, 'true', 0.85);
+  show('#resB', 69.1, {y: 0, x: -20}, 0.4, 'back.out(1.8)');
+  cue(69.1, 'chord', 0.6);
+  hide(['#line5', '#rowA', '#rowB'], 72.0);
+  sceneOff('#s5', 72.5);
+
+  /* ===== 6 · Comparer un texte ===== */
+  sceneOn('#s6', 72.5);
+  show('#s6code', 72.55, {y: 60}, 0.6);
+  cue(72.55, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 73.05, 26);
+  te = typeLine($('#s6l2'), te + 0.12, 26);
+  te = typeLine($('#s6l3'), te + 0.12, 26);
+  press($('#s6run'), 76.2);
+  show('#tbl6', 76.45, {y: 40}, 0.5);
+  const tr6 = $$('#rows6 .tr');
+  gsap.set(tr6, {autoAlpha: 0, y: 16});
+  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out', stagger: 0.06}, 76.6);
+  tr6.forEach((_, i) => cue(76.6 + i * 0.06, 'tick', 0.45, i));
+  show('#cnt6a', 77.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  gsap.set('#cnt6b', {autoAlpha: 0, y: 24});
+  const acc = tr6.find(r => r.dataset.acc === '1');
+  gsap.set(acc.querySelector('.mbox'), {autoAlpha: 0, scale: 1.25});
+  tl.to(acc.querySelector('.mbox'), {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 78.1);
+  tl.to(acc.querySelector('.catv'), {color: '#C2323A', duration: 0.2}, 78.1);
+  cue(78.1, 'miss', 0.7);
+  tl.to(acc, {height: 0, opacity: 0, duration: 0.55, ease: 'power2.inOut'}, 79.0);
+  cue(79.0, 'fold', 0.9);
+  tl.to('#cnt6a', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 79.6);
+  tl.to('#cnt6b', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 79.7);
+  cue(79.7, 'pop', 0.9, 4);
+  hide('#tbl6', 80.5, {y: 40});
+  show('#write6', 80.85, {y: 50});
+  cue(80.85, 'whoosh', 0.6);
+  const wr = $$('#write6 .wrow');
+  gsap.set(wr, {autoAlpha: 0, x: -30});
+  wr.forEach((w, i) => {
+    tl.to(w, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, 81.2 + i * 0.6);
+    cue(81.2 + i * 0.6, 'pop', 0.8, i * 2);
+    const mb = w.querySelector('.mbox');
+    gsap.set(mb, {autoAlpha: 0, scale: 1.3});
+    tl.to(mb, {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, 81.55 + i * 0.6);
+  });
+  tl.to('#s6str', {backgroundColor: 'rgba(255,224,138,.22)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 82.2);
+  hide(['#s6code', '#write6'], 84.6);
+  sceneOff('#s6', 85.0);
+
+  /* ===== 7 · Le résultat ===== */
+  sceneOn('#s8', 85.0);
+  show('#s8code', 85.05, {y: 60}, 0.6);
+  cue(85.05, 'whoosh', 0.7);
+  te = typeLine($('#s8l1'), 85.55, 24);
+  te = typeLine($('#s8l2'), te + 0.12, 24);
+  te = typeLine($('#s8l3'), te + 0.12, 24);
+  press($('#s8run'), 88.3);
+  show('#reco', 88.6, {y: 40}, 0.5);
+  const rr = $$('#rows8 .rcr');
+  gsap.set(rr, {autoAlpha: 0, y: 14});
+  tl.to(rr, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out', stagger: 0.15}, 88.9);
+  rr.forEach((r, i) => {
+    const f = r.querySelector('.fill');
+    gsap.set(f, {scaleX: 0});
+    tl.to(f, {scaleX: +r.dataset.f, duration: 0.6, ease: 'power3.out'}, 89.15 + i * 0.15);
+    cue(88.9 + i * 0.15, 'tick', 0.5, i);
+  });
+  gsap.set('#lim8', {scaleY: 0, transformOrigin: '50% 0%'});
+  tl.to('#lim8', {scaleY: 1, duration: 0.45, ease: 'power2.out'}, 90.2);
+  show('#limtag8', 90.4, {y: 10}, 0.35);
+  show('#cnt8', 90.55, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(90.55, 'pop', 0.8, 3);
+  show('#badge8', 91.0, {y: 0, scale: 0.6}, 0.55, 'back.out(1.9)');
+  cue(91.0, 'success', 0.9);
+  hide(['#s8code', '#reco', '#badge8'], 96.5);
+  sceneOff('#s8', 97.0);
+
+  /* ===== 8 · À retenir ===== */
+  recapScene(97.0, [97.7, 99.5, 101.3]);
+  hold(99.3, 2.9);
+  hold(101.1, 2.9);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(102.25, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 102.2,
+  glyphs: '📦🔎🏷️⚠️📋⚖️✅🔢💬📏✓✕→', dom, build});
+</script>
+</body>
+</html>
