@@ -43,7 +43,7 @@ function fr(h){
     return t.replace(/ ([:?!;»])/g, NB + '$1').replace(/« /g, '«' + NB).replace(/(\d) (?=\S)/g, '$1' + NB);
   }).join('');
 }
-const plain = h => fr(h).replace(/<[^>]+>/g, '').replace(/&nbsp;/g, NB).replace(/&[a-z]+;/g, 'x');
+const plain = h => fr(h).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, NB).replace(/&[a-z]+;/g, 'x');
 
 /* Découpe un élément en caractères (pour l’effet de frappe). */
 function splitChars(root){
