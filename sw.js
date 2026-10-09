@@ -39,7 +39,6 @@ const PRECACHE = [
   './assets/anim/where.html?app&embed',
   './assets/anim/gsap.min.js',
   './assets/anim/mascotte.webp',
-  './assets/anim/where-poster.jpg',
   './assets/anim/where-thumb.jpg',
   './assets/fonts/jetbrains-mono.woff2',
 ];
