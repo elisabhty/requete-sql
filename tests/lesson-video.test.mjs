@@ -152,13 +152,13 @@ test('micro-interaction de l’ajout : halo, mini-note en arc vers « Mes notes 
   assert.ok(pt.includes('X/1080*dw') && pt.includes('Y/1920*dh'), 'positions prises sur la maquette de la vidéo');
 });
 
-test('page de l’animation : ressources locales, mode intégré, question, chapitres et légendes exportés', () => {
+test('page de l’animation : ressources locales, mode intégré, chapitres et légendes exportés, sans question en pleine vidéo', () => {
   const page = fs.readFileSync(path.join(ROOT, 'assets/anim/where.html'), 'utf8');
   for (const rel of ['gsap.min.js', 'mascotte.webp', '../fonts/jetbrains-mono.woff2', '../fonts/bricolage-grotesque-regular.woff2', '../fonts/bricolage-grotesque-bold.woff2'])
     assert.ok(page.includes(rel) && fs.existsSync(path.join(ROOT, 'assets/anim', rel)), `ressource : ${rel}`);
   assert.ok(!/https?:\/\//.test(page.replace(/https:\/\/gsap\.com/g, '')), 'rien de chargé depuis Internet');
   assert.ok(page.includes("const EMBED = new URLSearchParams(location.search).has('embed');"), 'mode intégré : la scène s’adapte à la fenêtre');
-  assert.ok(page.includes("ctx: 'Lucas habite à Lyon.'") && page.includes("q: 'Sa ligne sera-t-elle gardée ?'") && page.includes("{label: 'Non, écartée', ok: true}"));
+  assert.ok(page.includes('const QUESTIONS = [];') && !page.includes("ctx: 'Lucas habite à Lyon.'"), 'pas de question en pleine vidéo');
   assert.ok(page.includes('chapters: CHAPTERS.map(') && page.includes('captions: CAPTIONS.map(') && page.includes('questions: QUESTIONS.map('));
   assert.ok(page.includes('const sr = $(\'#stage\').getBoundingClientRect(), k = sr.width / 1080 || 1;'), 'mesures justes quand la scène est réduite');
   assert.ok(page.includes('<div class="inv-from">NutriBoost</div>') && page.includes('Avec <span class="ic">WHERE</span>, garde seulement'));
@@ -307,7 +307,6 @@ const COURSES = [
     notes: /notes:\{t:144\.55,y:1360,card:\[64,356,1016,1066\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avec <span class="ic">SELECT</span>, choisis seulement les colonnes dont tu as besoin.',
     chapters: ['Situation', 'Le problème', 'Choisir les colonnes', 'Deux pièges', 'Toutes les colonnes', 'Le résultat', 'À retenir'],
-    question: ["ctx: 'Cette requête affiche 4 colonnes.'", "q: 'Combien de lignes le résultat contiendra-t-il ?'", "{label: '4 lignes', ok: false}, {label: '10 lignes', ok: true}"],
     traps: ['near "FROM": syntax error', 'SELECT</span> prenom<span class="ghost" id="ghostAS"> <b>AS</b></span> ville',
       'Pour <b>découvrir</b> toutes<br>les informations disponibles', 'Pour obtenir les <b>prénoms</b><br>et <b>noms</b> des clients', '<span class="ic">SELECT prenom, nom</span>',
       'indique <b>ces deux colonnes</b>', 'Le résultat sera plus lisible, sans les adresses, les e-mails et les autres informations inutiles ici.', 'la requête équivaut à <code>prenom AS ville</code>', 'il faut la\\u00a0virgule :<br><code>prenom, ville</code>']},
@@ -315,19 +314,16 @@ const COURSES = [
     notes: /notes:\{t:123\.25,y:1365,card:\[64,356,1016,1071\],to:\[940,255\]\}/, table: 'produits',
     bubble: 'Avec <span class="ic">AS</span>, donne à une colonne un nom plus clair dans le résultat.',
     chapters: ['Situation', 'Le problème', 'Renommer une colonne', 'Plusieurs colonnes', 'Le piège des guillemets', 'Le résultat', 'À retenir'],
-    question: ["ctx: 'Le dashboard affiche « Prix (€) ».'", "q: 'Dans la table produits, comment s’appelle cette colonne ?'", "{label: 'prix', ok: true}, {label: 'Prix (€)', ok: false}"],
     traps: ['near "du": syntax error', 'near "(": syntax error', '"Nom du produit"']},
   {id: 13, next: 4, titre: 'DISTINCT', page: 'distinct.html', thumb: 'distinct-thumb.jpg', duree: '2 min 05', notesAt: 87.2,
     notes: /notes:\{t:117\.25,y:1330,card:\[64,356,1016,1017\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avec <span class="ic">DISTINCT</span>, garde chaque valeur une seule fois dans le résultat.',
     chapters: ['Situation', 'Le problème', 'DISTINCT en action', 'Où le placer', 'Plusieurs colonnes', 'Le résultat', 'À retenir'],
-    question: ["ctx: 'Sophie et Léa habitent toutes les deux à Paris.'", "q: 'Avec DISTINCT ville, prenom, leurs lignes sont-elles fusionnées ?'", "{label: 'Oui, fusionnées', ok: false}, {label: 'Non, gardées', ok: true}"],
     traps: ['near "DISTINCT": syntax error', 'Cette ville est-elle déjà dans le résultat ?', 'Paris + Sophie et Paris + Léa sont des combinaisons différentes']},
   {id: 5, next: 6, titre: 'Comparer des valeurs', page: 'comparer.html', thumb: 'comparer-thumb.jpg', duree: '2 min 22', notesAt: 102.2,
     notes: /notes:\{t:134\.65,y:1420,card:\[64,356,1016,1130\],to:\[940,255\]\}/, table: 'produits',
     bubble: 'Avec les opérateurs de comparaison, compare une colonne à une valeur.',
     chapters: ['Situation', 'Le problème', 'La comparaison', 'Six opérateurs', 'La limite', 'Comparer un texte', 'Le résultat', 'À retenir'],
-    question: ["ctx: 'La Tisane Détox a exactement 60 unités en stock.'", "q: 'Avec stock &lt; 60, sa ligne est-elle gardée ?'", "{label: 'Oui, gardée', ok: false}, {label: 'Non, écartée', ok: true}"],
     traps: ['<span class="kw">WHERE</span> stock <span class="cbox" id="eqA">=<i class="mbox"></i></span><span class="glow" id="leA">&lt;=</span> 60;',
       'Son stock est-il inférieur<br>ou égal à 60 ?', '<span class="kw">WHERE</span> stock &lt; 60', '<span class="kw">WHERE</span> stock &lt;= 60',
       "<span class=\"kw\">WHERE</span> categorie != <span class=\"str glow\" id=\"s6str\">'Accessoire'</span>;", 'Un texte, entre guillemets simples']},
@@ -335,7 +331,6 @@ const COURSES = [
     notes: /notes:\{t:125\.35,y:1420,card:\[64,356,1016,1130\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avec <span class="ic">AND</span> et <span class="ic">OR</span>, relie plusieurs conditions dans <span class="ic">WHERE</span>.',
     chapters: ['Situation', 'Le problème', 'Avec AND', 'Avec OR', 'Les parenthèses', 'Le résultat', 'À retenir'],
-    question: ["ctx: 'Nathan Dupont habite à Paris et a 30 ans.'", "q: 'Sans parenthèses, sa ligne est-elle gardée ?'", "{label: 'Oui, gardée', ok: true}, {label: 'Non, écartée', ok: false}"],
     traps: ['<span class="ln" id="ql4">  <span class="kw hlc" id="and3">AND</span> age &gt; 30;', '<b>Aucune ligne</b><span class="s">Une ville ne peut pas être Paris et Lyon à la fois.</span>',
       '<span class="op2">AND</span>', '<span class="op2">OR</span>', 'AND : calculé en premier', 'entre parenthèses : calculé en premier',
       '<span id="lp">(</span><span id="cP">ville = <span class="str">\'Paris\'</span></span> <span class="kw">OR</span> <span id="cL">ville = <span class="str">\'Lyon\'</span></span><span id="rp">)</span> <span class="kw" id="and5">AND</span> <span id="cA">age &gt; 30</span>']},
@@ -353,14 +348,14 @@ for (const c of COURSES) {
     assert.ok(c.notes.test(lesson), 'bouton « Ajouter dans notes » sous « Les trois idées à retenir »');
   });
 
-  test(`${c.titre} : page de l’animation sur le moteur commun, ressources locales, chapitres, question et pièges`, () => {
+  test(`${c.titre} : page de l’animation sur le moteur commun, ressources locales, chapitres et pièges, sans question en pleine vidéo`, () => {
     const page = fs.readFileSync(path.join(ROOT, 'assets/anim', c.page), 'utf8');
     for (const rel of ['core.css', 'core.js', 'gsap.min.js', 'mascotte.webp'])
       assert.ok(page.includes(rel) && fs.existsSync(path.join(ROOT, 'assets/anim', rel)), `ressource : ${rel}`);
     assert.ok(page.indexOf('src="gsap.min.js"') < page.indexOf('src="core.js"'), 'GSAP chargé avant le moteur');
     assert.ok(!/https?:\/\//.test(page), 'rien de chargé depuis Internet');
     assert.ok(page.includes(`Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: ${c.notesAt},`));
-    for (const q of c.question) assert.ok(page.includes(q), `question : ${q}`);
+    assert.ok(page.includes('const QUESTIONS = [];') && !/kicker: '/.test(page), 'pas de question en pleine vidéo : la lecture n’est jamais interrompue');
     assert.ok(page.includes(c.bubble), 'bulle de la mascotte');
     for (const label of c.chapters) assert.ok(page.includes(`label:'${label}'`), `chapitre ${label}`);
     for (const t of c.traps) assert.ok(page.includes(t), `piège : ${t}`);
