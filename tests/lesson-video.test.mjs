@@ -155,7 +155,7 @@ test('page de l’animation : ressources locales, mode intégré, question, chap
     assert.ok(page.includes(rel) && fs.existsSync(path.join(ROOT, 'assets/anim', rel)), `ressource : ${rel}`);
   assert.ok(!/https?:\/\//.test(page.replace(/https:\/\/gsap\.com/g, '')), 'rien de chargé depuis Internet');
   assert.ok(page.includes("const EMBED = new URLSearchParams(location.search).has('embed');"), 'mode intégré : la scène s’adapte à la fenêtre');
-  assert.ok(page.includes("q: 'Lucas habite à Lyon. Sa ligne sera-t-elle gardée ?'") && page.includes("{label: 'Non, écartée', ok: true}"));
+  assert.ok(page.includes("ctx: 'Lucas habite à Lyon.'") && page.includes("q: 'Sa ligne sera-t-elle gardée ?'") && page.includes("{label: 'Non, écartée', ok: true}"));
   assert.ok(page.includes('chapters: CHAPTERS.map(') && page.includes('captions: CAPTIONS.map(') && page.includes('questions: QUESTIONS.map('));
   assert.ok(page.includes('const sr = $(\'#stage\').getBoundingClientRect(), k = sr.width / 1080 || 1;'), 'mesures justes quand la scène est réduite');
   assert.ok(page.includes('<div class="inv-from">NutriBoost</div>') && page.includes('Avec <span class="ic">WHERE</span>, garde seulement'));
@@ -252,4 +252,19 @@ test('son de l’animation : passe même en mode silencieux (comme une vidéo) e
   const ctx = vm.createContext({Blob: class { constructor(parts, o) { this.size = parts[0].byteLength; this.type = o.type; } }, ArrayBuffer, DataView});
   vm.runInContext(sfx + ';this.LvSfx=LvSfx;', ctx);
   assert.equal(JSON.stringify(ctx.LvSfx.stats()), '{"state":"none","played":0}', 'aucun son avant le premier appui');
+});
+
+test('carte de la question : pas de coupure dans « sera-t-elle », aucun bouton présélectionné, alignée sur le tableau', () => {
+  const show = cut('function lvQShow(i,q){', 'function lvQAnswer(k){');
+  assert.ok(show.includes(`const nw=t=>String(t||'').replace(/([^\\s<>]+-[^\\s<>]+)/g,'<span class="lv-nw">$1</span>');`) && html.includes('.lv-nw{white-space:nowrap}'));
+  const ctx = vm.createContext({});
+  vm.runInContext(`this.nw=${show.match(/const nw=(t=>[^;]+);/)[1]};`, ctx);
+  assert.equal(ctx.nw('Sa ligne sera-t-elle gardée ?'), 'Sa ligne <span class="lv-nw">sera-t-elle</span> gardée ?');
+  assert.ok(show.includes("box.querySelector('.lv-q-card').focus({preventScroll:true})") && !show.includes(".lv-q-opt').focus("), 'focus sur la carte, pas sur « Oui, gardée »');
+  assert.ok(cut('function lvQAnswer(k){', 'function lvQClose(answered){').includes('b.focus({preventScroll:true})'));
+  assert.ok(show.includes('${q.ctx?`<p class="lv-q-ctx">${nw(q.ctx)}</p>`:\'\'}'), 'contexte puis question');
+  const place = cut('function lvQPlace(){', 'function lvReplay(){');
+  assert.ok(place.includes('const a=lvPt(64,0), b=lvPt(1016,1904);'), 'même colonne que le tableau et les légendes');
+  assert.ok(place.includes('w=Math.min(col>=320?col:Math.max(col,Math.min(R.width-24,360)),440)'), 'petit écran seulement : carte élargie');
+  assert.ok(html.includes('.lv-q .lv-q-opt:focus-visible{border-radius:16px;'), 'au clavier : anneau qui garde la forme du bouton');
 });
