@@ -21,7 +21,7 @@ test('WHERE : le cours a sa vidéo, son image fixe et sa vignette, présentes da
   assert.ok(m, 'champ video du cours WHERE');
   for (const f of m.slice(1, 4)) assert.ok(fs.statSync(path.join(ROOT, f)).size > 1000, `fichier présent : ${f}`);
   assert.equal(m[4], '2 min 04');
-  assert.ok(/notes:\{t:116\.2,y:1330\}/.test(where), 'bouton « Ajouter dans notes » à 1 min 56, sous le récapitulatif');
+  assert.ok(/notes:\{t:116\.2,y:1330,card:\[64,356,1016,1017\],to:\[940,255\]\}/.test(where), 'bouton « Ajouter dans notes » à 1 min 56, sous le récapitulatif ; la note part du récapitulatif vers le carnet');
   assert.ok(html.includes("'exoNeeds','video']"), 'guide() garde le champ video sur la leçon');
 });
 
@@ -122,4 +122,18 @@ test('commandes de lecture : reculer / avancer de 5 s, pause, vitesse 0,5× à 2
   const skip = cut('function lvSkip(d){', 'function lvSpeedMenu(open){');
   assert.ok(skip.includes('Math.max(0,Math.min(dur-0.15,V.currentTime+d))'), 'jamais avant le début ni au-delà de la fin');
   assert.ok(cut('function lvKey(e){', 'function lvHidden(){').includes("e.key==='ArrowLeft'"), 'flèches du clavier');
+});
+
+test('micro-interaction de l’ajout : halo, mini-note en arc vers « Mes notes », compteur n → n + 1, puis tout s’efface', () => {
+  const add = cut('function lvNoteAdd(e){', '/* Micro-interaction de l’ajout');
+  assert.ok(add.includes('const before=state.notes.length;') && add.includes('lvNoteFly(before,state.notes.length)'), 'compteur avant / après l’ajout');
+  assert.ok(add.indexOf("lvNoteMark('already')") < add.indexOf('lvNoteFly('), 'note déjà présente : pas d’envol');
+  assert.ok(add.includes('if(!prefersReduceMotion()){ lvNoteBurst('), 'mouvement réduit : pas d’animation');
+  const fly = cut('function lvNoteFly(before,after){', 'function lvNoteBurst(btn){');
+  for (const part of ["add('lv-cap')", "add('lv-notes-to'", "add('lv-fly'", "tgt.classList.add('is-hit')", 'fly.remove()', 'cap.remove()', 'tgt.remove()'])
+    assert.ok(fly.includes(part), `étape « ${part} »`);
+  assert.ok(fly.includes('<span class="lv-notes-lab">Mes notes</span>') && fly.includes('<span>${before}</span><span>${after}</span>'));
+  assert.ok(!/toast\(/.test(fly), 'pas de toast');
+  const pt = cut('function lvPt(X,Y){', 'function lvNotePlace(){');
+  assert.ok(pt.includes('X/1080*dw') && pt.includes('Y/1920*dh'), 'positions prises sur la maquette de la vidéo');
 });

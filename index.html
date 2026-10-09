@@ -6531,6 +6531,24 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-note.is-done .lv-note-ok path{stroke-dashoffset:0}
 .lv-note.is-done .lv-note-arrow{opacity:0;transform:translate(10px,-12px) scale(.85)}
 @keyframes lvPop{0%{transform:scale(1)}35%{transform:scale(.94)}70%{transform:scale(1.07)}100%{transform:scale(1)}}
+/* Ajout : halo sur le récapitulatif, mini-note qui s’envole, carnet « Mes notes » qui compte */
+.lv-cap{position:absolute;z-index:5;border-radius:16px;border:3px solid var(--accent,#6A4DF4);background:rgba(139,108,255,.1);box-shadow:0 0 0 7px rgba(106,77,244,.13);pointer-events:none;transform-origin:50% 50%}
+.lv-fly{position:absolute;z-index:7;width:60px;height:48px;padding:13px 9px 0;display:flex;flex-direction:column;gap:5px;border-radius:11px;background:#fff;border:2px solid #CFC3FF;
+  box-shadow:0 8px 18px -8px rgba(60,30,160,.5);overflow:hidden;pointer-events:none;will-change:transform}
+.lv-fly::before{content:"";position:absolute;left:0;right:0;top:0;height:7px;background:var(--accent,#6A4DF4)}
+.lv-fly i{display:block;height:4px;border-radius:3px;background:#DCD5F2}
+.lv-fly i:nth-child(2){width:78%}
+.lv-fly i:nth-child(3){width:56%}
+.lv-notes-to{position:absolute;z-index:6;width:50px;height:50px;border-radius:50%;background:#fff;border:2px solid var(--line,#E6E1F6);color:var(--accent-ink,#5335E0);
+  box-shadow:0 3px 0 var(--lip,#DCD5F2),0 14px 28px -12px rgba(40,20,120,.45);display:grid;place-items:center;transform:translate(-50%,-50%);pointer-events:none}
+.lv-notes-to svg{width:22px;height:22px}
+.lv-notes-n{position:absolute;right:-7px;top:-7px;min-width:24px;height:24px;padding:0 7px;border-radius:999px;background:var(--accent,#6A4DF4);color:#fff;box-shadow:0 0 0 2px #fff;
+  font:800 12.5px/24px var(--display);text-align:center;overflow:hidden}
+.lv-notes-n span{display:block;transition:transform .34s cubic-bezier(.2,.9,.3,1.25)}
+.lv-notes-n span+span{position:absolute;left:0;right:0;top:0;transform:translateY(110%)}
+.lv-notes-to.is-hit .lv-notes-n span:first-child{transform:translateY(-110%)}
+.lv-notes-to.is-hit .lv-notes-n span+span{transform:none}
+.lv-notes-lab{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);white-space:nowrap;padding:3px 8px;border-radius:999px;background:#fff;font:700 11.5px/1.2 var(--display);color:var(--accent-ink,#5335E0);box-shadow:0 2px 0 var(--lip,#DCD5F2)}
 /* Déjà dans les notes : plus calme, sans flèche ni gerbe */
 .lv-note.is-already .lv-note-btn{background:var(--accent-soft,#EEE9FF);border-color:#D3C8FF;color:var(--accent-ink,#5335E0);box-shadow:0 4px 0 #D9CEFF;animation:none}
 .lv-note-burst{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none}
@@ -7870,7 +7888,7 @@ guide({ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
   /* Cours en vidéo : remplace le texte du cours (mode immersion), voir openLessonVideo. */
   video:{src:'assets/videos/where.mp4',poster:'assets/videos/where-poster.jpg',thumb:'assets/videos/where-thumb.jpg',duree:'2 min 04',
     /* « Ajouter dans notes » : apparaît à 1 min 56 (116,2 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:116.2,y:1330}},
+    notes:{t:116.2,y:1330,card:[64,356,1016,1017],to:[940,255]}},
   sit:{
     blocks:[
       "L’équipe marketing organise <b>un événement éphémère dans un local à Paris</b>. Les places étant limitées, elle décide d’inviter <b>uniquement les clients parisiens</b>.",
@@ -19018,6 +19036,13 @@ function lvNoteExisting(l){
   const norm=x=>String(x||'').replace(/\s+/g,' ').trim(), ctx=lvNoteCtx(l), txt=norm(lessonReflexText(l));
   return (state.notes||[]).find(n=>n.ctx===ctx&&norm(n.txt)===txt&&!norm(n.sql))||null;
 }
+/* Point de la maquette 1080 × 1920 → position dans le lecteur (repère du lecteur plein écran). */
+function lvPt(X,Y){
+  if(!LV)return null;
+  const st=LV.root.querySelector('.lv-stage'), V=LV.video, r=st.getBoundingClientRect(), R=LV.root.getBoundingClientRect();
+  const vw=V.videoWidth||1080, vh=V.videoHeight||1920, k=Math.min(r.width/vw,r.height/vh), dw=vw*k, dh=vh*k;
+  return {x:r.left-R.left+(r.width-dw)/2+X/1080*dw, y:r.top-R.top+(r.height-dh)/2+Y/1920*dh, s:dw/390};
+}
 function lvNotePlace(){
   const N=LV&&LV.note; if(!N)return;
   const st=LV.root.querySelector('.lv-stage'), V=LV.video;
@@ -19063,12 +19088,56 @@ function lvNoteAdd(e){
   if(lvNoteExisting(l)){ lvNoteMark('already'); if(navigator.vibrate)navigator.vibrate(8); return; }
   const rec={id:'n'+Date.now()+Math.random().toString(36).slice(2,6),txt,sql:'',ctx:lvNoteCtx(l),ts:Date.now(),pin:false};
   state.notes=state.notes||[];
+  const before=state.notes.length;
   state.notes.unshift(rec);
   noteFreshId=rec.id;
   save();
   lvNoteMark('added');
   if(navigator.vibrate)navigator.vibrate([10,60,20]);
-  if(!prefersReduceMotion())lvNoteBurst(N.el.querySelector('.lv-note-btn'));
+  if(!prefersReduceMotion()){ lvNoteBurst(N.el.querySelector('.lv-note-btn')); lvNoteFly(before,state.notes.length); }
+}
+/* Micro-interaction de l’ajout : le récapitulatif s’entoure de violet, une mini-note s’en détache et file en arc
+   jusqu’au carnet « Mes notes » qui apparaît en haut à droite (là où se trouve le bouton Notes du cours) ;
+   le carnet rebondit et son compteur passe à n + 1, puis il s’efface. */
+function lvNoteFly(before,after){
+  const N=LV&&LV.note; if(!N)return;
+  const root=LV.root, card=N.cfg.card||[64,356,1016,1017], to=N.cfg.to||[940,255];
+  const a=lvPt(card[0],card[1]), b=lvPt(card[2],card[3]), pt=lvPt(to[0],to[1]);
+  if(!a||!b||!pt)return;
+  const add=(cls,html)=>{ const el=document.createElement('div'); el.className=cls; el.setAttribute('aria-hidden','true'); if(html)el.innerHTML=html; root.appendChild(el); return el; };
+  /* 1. Les trois idées sont « attrapées » */
+  const cap=add('lv-cap');
+  Object.assign(cap.style,{left:a.x+'px',top:a.y+'px',width:(b.x-a.x)+'px',height:(b.y-a.y)+'px'});
+  cap.animate([{opacity:0,transform:'scale(1)'},{opacity:1,transform:'scale(1.012)',offset:.3},{opacity:1,transform:'scale(1)',offset:.55},{opacity:0,transform:'scale(.965)'}],{duration:760,easing:'ease-out',fill:'forwards'});
+  /* 2. Le carnet arrive en haut à droite */
+  const tgt=add('lv-notes-to',`${LV_ICO.pen}<b class="lv-notes-n"><span>${before}</span><span>${after}</span></b><span class="lv-notes-lab">Mes notes</span>`);
+  Object.assign(tgt.style,{left:pt.x+'px',top:pt.y+'px'});
+  tgt.animate([{transform:'translate(-50%,-50%) scale(.3)',opacity:0},{transform:'translate(-50%,-50%) scale(1.1)',opacity:1,offset:.65},{transform:'translate(-50%,-50%) scale(1)',opacity:1}],{duration:420,delay:140,easing:'cubic-bezier(.2,.9,.3,1.2)',fill:'both'});
+  /* 3. La mini-note part du récapitulatif et file en arc jusqu’au carnet */
+  const fly=add('lv-fly','<i></i><i></i><i></i>');
+  const c={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+  Object.assign(fly.style,{left:c.x+'px',top:c.y+'px'});
+  const ctrl={x:(c.x+pt.x)/2+60,y:Math.min(c.y,pt.y)-70}, frames=[];
+  for(let i=0;i<=12;i++){
+    const t=i/12, u=1-t, x=u*u*c.x+2*u*t*ctrl.x+t*t*pt.x, y=u*u*c.y+2*u*t*ctrl.y+t*t*pt.y;
+    const sc=t<.18?.35+t/.18*.9:1.25-(t-.18)/.82*.95;
+    frames.push({transform:`translate(${(x-c.x).toFixed(1)}px,${(y-c.y).toFixed(1)}px) translate(-50%,-50%) scale(${sc.toFixed(3)}) rotate(${(-10*t).toFixed(1)}deg)`,opacity:t<.06?t/.06:(t>.94?0:1),offset:t});
+  }
+  const DELAY=260, FLIGHT=860;
+  fly.animate(frames,{duration:FLIGHT,delay:DELAY,easing:'cubic-bezier(.5,0,.3,1)',fill:'both'}).onfinish=()=>fly.remove();
+  /* 4. À l’arrivée : le carnet rebondit et compte une note de plus */
+  setTimeout(()=>{
+    if(!tgt.isConnected)return;
+    tgt.classList.add('is-hit');
+    tgt.animate([{transform:'translate(-50%,-50%) scale(1)'},{transform:'translate(-50%,-50%) scale(1.24)',offset:.35},{transform:'translate(-50%,-50%) scale(.93)',offset:.7},{transform:'translate(-50%,-50%) scale(1)'}],{duration:440,easing:'ease-out'});
+    if(navigator.vibrate)navigator.vibrate(8);
+  },DELAY+FLIGHT*.92);
+  /* 5. Il s’efface */
+  setTimeout(()=>{
+    cap.remove();
+    if(!tgt.isConnected)return;
+    tgt.animate([{opacity:1,transform:'translate(-50%,-50%) scale(1)'},{opacity:0,transform:'translate(-50%,-50%) scale(.8)'}],{duration:320,fill:'forwards'}).onfinish=()=>tgt.remove();
+  },2500);
 }
 /* Petite gerbe autour du bouton : des points violets et jaunes qui partent puis s’éteignent. */
 function lvNoteBurst(btn){
