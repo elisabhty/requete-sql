@@ -300,12 +300,12 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 1, next: 2, titre: 'SELECT', page: 'select.html', thumb: 'select-thumb.jpg', duree: '2 min 11', notesAt: 90.4,
-    notes: /notes:\{t:123\.45,y:1405,card:\[64,356,1016,1119\],to:\[940,255\]\}/, table: 'clients',
+  {id: 1, next: 2, titre: 'SELECT', page: 'select.html', thumb: 'select-thumb.jpg', duree: '2 min 23', notesAt: 96.4,
+    notes: /notes:\{t:135\.15,y:1405,card:\[64,356,1016,1119\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avec <span class="ic">SELECT</span>, choisis seulement les colonnes dont tu as besoin.',
     chapters: ['Situation', 'Le problème', 'Choisir les colonnes', 'Deux pièges', 'Toutes les colonnes', 'Le résultat', 'À retenir'],
     question: ["ctx: 'Cette requête affiche 4 colonnes.'", "q: 'Combien de lignes le résultat contiendra-t-il ?'", "{label: '4 lignes', ok: false}, {label: '10 lignes', ok: true}"],
-    traps: ['near "FROM": syntax error', 'SELECT</span> prenom ville']},
+    traps: ['near "FROM": syntax error', 'SELECT</span> prenom<span class="ghost" id="ghostAS"> <b>AS</b></span> ville', 'la requête équivaut à <code>prenom AS ville</code>', 'il faut la virgule : <code>prenom, ville</code>']},
   {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '2 min 11', notesAt: 92.4,
     notes: /notes:\{t:123,y:1365,card:\[64,356,1016,1071\],to:\[940,255\]\}/, table: 'produits',
     bubble: 'Avec <span class="ic">AS</span>, donne à une colonne un nom plus clair dans le résultat.',
@@ -378,4 +378,14 @@ test('moteur commun des animations : préchargé et jamais servi périmé', () =
   const i = sw.indexOf("if (url.pathname.includes('/assets/anim/') && /\\.(js|css)$/.test(url.pathname) && !url.pathname.endsWith('/gsap.min.js')) {");
   assert.ok(i > 0 && i < sw.indexOf("if (req.mode === 'navigate') {"), 'moteur des animations : réseau d’abord');
   assert.ok(sw.slice(i, i + 700).includes("fetch(req, { cache: 'no-cache' })"), 'revalidé auprès du serveur');
+});
+
+test('SELECT sans virgule : le cours texte et le quiz expliquent l’alias (AS facultatif), comme l’animation', () => {
+  const sel = cut('guide({ id:1, titre:"SELECT"', 'guide({ id:2,');
+  assert.ok(sel.includes('Sans virgule, <code>ville</code> est lu comme un <b>alias</b> : le titre donné à la colonne dans le résultat. Le mot-clé <code>AS</code> étant facultatif, cette requête équivaut à :'));
+  assert.ok(sel.includes('{syntax:"SELECT prenom AS ville\\nFROM clients;"}'), 'la requête équivalente avec AS');
+  assert.ok(sel.includes('il faut la virgule : <code>SELECT prenom, ville</code>'), 'la correction');
+  assert.ok(!/SQL ne comprend pas|Il interprète/.test(sel), 'SQL n’est pas personnifié');
+  const qcm = cut('const QCM={', '\n};');
+  assert.ok(qcm.includes('Sans virgule, <code>telephone</code> est lu comme un <b>alias</b>') && !qcm.includes('il interprète <code>telephone</code>'), 'explication du quiz alignée');
 });
