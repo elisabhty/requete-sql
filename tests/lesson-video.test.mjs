@@ -9,6 +9,9 @@ const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 const build = fs.readFileSync(path.join(ROOT, 'scripts/build-www.mjs'), 'utf8');
 const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
 
+/* Polices des animations : JetBrains Mono (code) et Inter (texte), livrées avec l’app. */
+const ANIM_FONTS = ['jetbrains-mono.woff2', 'inter-medium.woff2', 'inter-semibold.woff2', 'inter-bold.woff2', 'inter-extrabold.woff2'];
+
 const cut = (from, to) => {
   const a = html.indexOf(from), b = html.indexOf(to, a + 1);
   assert.ok(a >= 0 && b > a, `extrait introuvable : ${from}`);
@@ -86,7 +89,7 @@ test('l’animation part dans l’app iOS et reste légère (plus de MP4 pour WH
   assert.ok(!fs.existsSync(path.join(ROOT, 'assets/videos/where.mp4')), 'l’ancien MP4 de 9 Mo a disparu');
   let total = 0;
   for (const f of ['where.html', 'gsap.min.js', 'mascotte.webp', 'where-thumb.jpg']) total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
-  total += fs.statSync(path.join(ROOT, 'assets/fonts/jetbrains-mono.woff2')).size;
+  for (const f of ANIM_FONTS) total += fs.statSync(path.join(ROOT, 'assets/fonts', f)).size;
   assert.ok(total < 450 * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
   assert.ok(sw.includes("url.pathname.endsWith('.mp4')"));
 });
@@ -301,13 +304,13 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
   {id: 1, next: 2, titre: 'SELECT', page: 'select.html', thumb: 'select-thumb.jpg', duree: '2 min 23', notesAt: 96.4,
-    notes: /notes:\{t:135\.15,y:1405,card:\[64,356,1016,1119\],to:\[940,255\]\}/, table: 'clients',
+    notes: /notes:\{t:135\.7,y:1360,card:\[64,356,1016,1066\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avec <span class="ic">SELECT</span>, choisis seulement les colonnes dont tu as besoin.',
     chapters: ['Situation', 'Le problème', 'Choisir les colonnes', 'Deux pièges', 'Toutes les colonnes', 'Le résultat', 'À retenir'],
     question: ["ctx: 'Cette requête affiche 4 colonnes.'", "q: 'Combien de lignes le résultat contiendra-t-il ?'", "{label: '4 lignes', ok: false}, {label: '10 lignes', ok: true}"],
     traps: ['near "FROM": syntax error', 'SELECT</span> prenom<span class="ghost" id="ghostAS"> <b>AS</b></span> ville', 'la requête équivaut à <code>prenom AS ville</code>', 'il faut la\\u00a0virgule :<br><code>prenom, ville</code>']},
   {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '2 min 11', notesAt: 92.4,
-    notes: /notes:\{t:123,y:1365,card:\[64,356,1016,1071\],to:\[940,255\]\}/, table: 'produits',
+    notes: /notes:\{t:123\.25,y:1365,card:\[64,356,1016,1071\],to:\[940,255\]\}/, table: 'produits',
     bubble: 'Avec <span class="ic">AS</span>, donne à une colonne un nom plus clair dans le résultat.',
     chapters: ['Situation', 'Le problème', 'Renommer une colonne', 'Plusieurs colonnes', 'Le piège des guillemets', 'Le résultat', 'À retenir'],
     question: ["ctx: 'Le dashboard affiche « Prix (€) ».'", "q: 'Dans la table produits, comment s’appelle cette colonne ?'", "{label: 'prix', ok: true}, {label: 'Prix (€)', ok: false}"],
@@ -344,7 +347,7 @@ for (const c of COURSES) {
   test(`${c.titre} reste léger et disponible hors ligne`, () => {
     let total = 0;
     for (const f of [c.page, 'core.css', 'core.js', 'gsap.min.js', 'mascotte.webp', c.thumb]) total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
-    total += fs.statSync(path.join(ROOT, 'assets/fonts/jetbrains-mono.woff2')).size;
+    for (const f of ANIM_FONTS) total += fs.statSync(path.join(ROOT, 'assets/fonts', f)).size;
     assert.ok(total < 450 * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
     for (const f of [`./assets/anim/${c.page}?app&embed`, `./assets/anim/${c.thumb}`]) assert.ok(sw.includes(`'${f}'`), `préchargé : ${f}`);
   });
@@ -388,4 +391,28 @@ test('SELECT sans virgule : le cours texte et le quiz expliquent l’alias (AS f
   assert.ok(!/SQL ne comprend pas|Il interprète/.test(sel), 'SQL n’est pas personnifié');
   const qcm = cut('const QCM={', '\n};');
   assert.ok(qcm.includes('Sans virgule, <code>telephone</code> est lu comme un <b>alias</b>') && !qcm.includes('il interprète <code>telephone</code>'), 'explication du quiz alignée');
+});
+
+test('texte des animations : police Inter livrée (mêmes retours à la ligne sur iPhone), sans text-wrap pretty, mots courts collés au mot suivant', () => {
+  const css = fs.readFileSync(path.join(ROOT, 'assets/anim/core.css'), 'utf8');
+  const where = fs.readFileSync(path.join(ROOT, 'assets/anim/where.html'), 'utf8');
+  for (const [w, f] of [['300 550', 'inter-medium'], ['551 650', 'inter-semibold'], ['651 750', 'inter-bold'], ['751 900', 'inter-extrabold']]) {
+    const face = `@font-face{font-family:'Inter';src:url(../fonts/${f}.woff2) format('woff2');font-weight:${w};font-display:block}`;
+    assert.ok(css.includes(face) && where.includes(face), `Inter ${w} dans core.css et where.html`);
+    assert.ok(fs.statSync(path.join(ROOT, 'assets/fonts', f + '.woff2')).size > 5000, `fichier ${f}.woff2`);
+    assert.ok(sw.includes(`'./assets/fonts/${f}.woff2'`), `préchargé hors ligne : ${f}`);
+  }
+  assert.ok(fs.readFileSync(path.join(ROOT, 'assets/fonts/OFL-Inter.txt'), 'utf8').includes('SIL Open Font License'), 'licence OFL jointe');
+  for (const f of ['core.css', 'where.html', 'select.html', 'as.html'])
+    assert.ok(!/text-wrap\s*:\s*pretty/.test(fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8')), `${f} : retours à la ligne classiques (Safari ne rééquilibre plus les lignes)`);
+  const core = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
+  const ctx = vm.createContext({location: {search: ''}, URLSearchParams, gsap: {config() {}, timeline: () => ({})}, document: {}});
+  vm.runInContext(core, ctx);
+  const nb = s => s.replace(/ /g, '⍽');
+  assert.equal(nb(ctx.fr('Pour deux colonnes, il faut la virgule : <code>prenom, ville</code>.')), 'Pour⍽deux colonnes, il⍽faut la⍽virgule⍽: <code>prenom, ville</code>.', 'jamais « la » en fin de ligne ; le code reste intact');
+  assert.equal(nb(ctx.fr('NutriBoost travaille avec un nouveau transporteur.')), 'NutriBoost travaille avec⍽un⍽nouveau transporteur.');
+  assert.equal(nb(ctx.fr('avec <b>4 informations</b>')), 'avec⍽<b>4⍽informations</b>', 'mot court collé à la balise qui suit, nombre collé à son unité');
+  assert.equal(nb(ctx.fr('les intitulés « Nom du produit » et « Prix (€) ».')), 'les⍽intitulés «⍽Nom⍽du⍽produit⍽» et⍽«⍽Prix⍽(€)⍽».', 'un libellé entre guillemets ne se coupe pas');
+  assert.ok(core.includes("textIssues: QS.has('check') ? textIssues() : undefined,"), 'contrôle de mise en forme à la fabrication (?check)');
+  assert.ok(core.includes('frDom($(\'#stage\'));'), 'même typographie pour les textes écrits dans la page');
 });

@@ -47,6 +47,10 @@ const PRECACHE = [
   './assets/anim/select-thumb.jpg',
   './assets/anim/as-thumb.jpg',
   './assets/fonts/jetbrains-mono.woff2',
+  './assets/fonts/inter-medium.woff2',
+  './assets/fonts/inter-semibold.woff2',
+  './assets/fonts/inter-bold.woff2',
+  './assets/fonts/inter-extrabold.woff2',
 ];
 
 self.addEventListener('install', (e) => {

@@ -8,6 +8,12 @@
 @font-face{font-family:'Bricolage Grotesque';src:url(../fonts/bricolage-grotesque-regular.woff2) format('woff2');font-weight:300 550;font-display:block}
 @font-face{font-family:'Bricolage Grotesque';src:url(../fonts/bricolage-grotesque-bold.woff2) format('woff2');font-weight:551 900;font-display:block}
 @font-face{font-family:'JBM';src:url(../fonts/jetbrains-mono.woff2) format('woff2');font-weight:100 800;font-display:block}
+/* Inter, livrée avec les animations : le texte a les mêmes mesures sur tous les appareils (iPhone compris),
+   donc les mêmes retours à la ligne que ceux vérifiés à la fabrication du cours. */
+@font-face{font-family:'Inter';src:url(../fonts/inter-medium.woff2) format('woff2');font-weight:300 550;font-display:block}
+@font-face{font-family:'Inter';src:url(../fonts/inter-semibold.woff2) format('woff2');font-weight:551 650;font-display:block}
+@font-face{font-family:'Inter';src:url(../fonts/inter-bold.woff2) format('woff2');font-weight:651 750;font-display:block}
+@font-face{font-family:'Inter';src:url(../fonts/inter-extrabold.woff2) format('woff2');font-weight:751 900;font-display:block}
 
 :root{
   --bg:#F4F2FC;--surface:#FFFFFF;--surface-2:#F1EEFC;
@@ -50,7 +56,7 @@ html.embed .blob{display:none}
 /* ---------- Légende ---------- */
 #cap{position:absolute;left:64px;width:952px;top:1526px;height:262px;background:#fff;border:3px solid var(--line);border-radius:48px;box-shadow:0 9px 0 var(--lip);opacity:0;visibility:hidden}
 #cap .c{position:absolute;left:0;top:0;right:0;bottom:0;padding:0 52px;display:flex;align-items:center;opacity:0;visibility:hidden}
-#cap .c p{margin:0;font-size:44px;line-height:1.32;font-weight:500;color:var(--ink);text-wrap:pretty;letter-spacing:-.2px}
+#cap .c p{margin:0;font-size:44px;line-height:1.32;font-weight:500;color:var(--ink);letter-spacing:-.2px}
 #cap .c b{font-weight:700;color:var(--ink)}
 code,.ic{font-family:var(--mono);font-size:.86em;font-weight:700;color:var(--accent-ink);background:var(--accent-soft);padding:.04em .32em;border-radius:.3em;white-space:nowrap}
 
@@ -105,7 +111,7 @@ code,.ic{font-family:var(--mono);font-size:.86em;font-weight:700;color:var(--acc
 #s0 .mascot{left:24px;top:850px}
 .bubble{background:#fff;border:3px solid var(--line);border-radius:44px;box-shadow:0 9px 0 var(--lip);padding:34px 40px;font-size:44px;line-height:1.3;font-weight:600;color:var(--ink)}
 .bubble::before{content:"";position:absolute;left:-26px;top:96px;width:44px;height:44px;background:#fff;border-left:3px solid var(--line);border-bottom:3px solid var(--line);transform:rotate(45deg);border-bottom-left-radius:10px}
-#s0 .bubble{left:528px;top:930px;width:490px;font-size:42px;line-height:1.3;padding:34px 40px}
+#s0 .bubble{left:520px;top:930px;width:520px;font-size:42px;line-height:1.3;padding:34px 40px}
 #s0 .bubble::before{top:96px}
 
 /* ---------- Scène 1 ---------- */
@@ -412,15 +418,35 @@ const NB = ' ';
 const $ = s => document.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
-/* Typographie française : espace insécable avant : ; ! ? et dans « », hors balises et hors <code> */
+/* Typographie française : espace insécable avant : ; ! ? et dans « », après un nombre, et après les mots courts
+   (articles, prépositions, conjonctions : « la », « un », « avec »…) pour qu’une ligne ne se termine jamais sur l’un d’eux.
+   Hors balises et hors <code>. (Même règle que le moteur commun, core.js.) */
+const SHORT_WORDS = new Set(('à au aux de du des d le la les l un une en et ou ni par sur sous pour dans avec sans chez vers entre ' +
+  'ce cet cette ces son sa ses leur leurs mon ma mes ton ta tes notre votre nos vos chaque il elle on ils elles se ne que qu qui si y').split(' '));
+const shortWord = w => SHORT_WORDS.has(w.toLowerCase().replace(/^[(«“"']+/, ''));
+const glueShort = t => t.replace(/(\S+)( +)(?=\S|$)/g, (m, w) => shortWord(w) ? w + NB : m);
+/* Un court libellé entre guillemets (« Nom du produit ») ne se coupe pas d’une ligne à l’autre. */
+const glueQuotes = t => t.replace(/«([^«»]{1,28})»/g, (m, q) => '«' + q.replace(/ /g, NB) + '»');
+const frText = t => glueQuotes(glueShort(t.replace(/ ([:?!;»])/g, NB + '$1').replace(/« /g, '«' + NB).replace(/(\d) (?=\S)/g, '$1' + NB)));
 function fr(h){
   let code = 0;
   return String(h).split(/(<[^>]+>)/).map(t => {
     if (/^<code[\s>]/.test(t)) { code++; return t; }
     if (/^<\/code>/.test(t)) { code = Math.max(0, code - 1); return t; }
     if (t[0] === '<' || code) return t;
-    return t.replace(/ ([:?!;»])/g, NB + '$1').replace(/« /g, '«' + NB).replace(/(\d) (?=\S)/g, '$1' + NB);
+    return frText(t);
   }).join('');
+}
+/* Même typographie pour les textes écrits directement dans la page (bulle, récapitulatif, cartes…), hors code. */
+const NO_FR = 'code, .ic, .code, .mini, .codepill, .lk, .th, .tr, .emo, #cap';
+function frDom(root){
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(n => {
+    if (!n.parentElement || n.parentElement.closest(NO_FR)) return;
+    const t = n.textContent, u = frText(t);
+    if (u !== t) n.textContent = u;
+  });
 }
 
 const CLIENTS = [
@@ -458,14 +484,14 @@ const CAPTIONS = [
   [23.0, 26.4, "Il faut donc préciser <b>quelles lignes conserver</b> : c’est exactement le rôle de <code>WHERE</code>."],
   [27.4, 31.1, "Pour chaque client, il faut vérifier une condition : sa ville est-elle <b>Paris</b> ?"],
   [31.2, 35.7, "En SQL, elle s’écrit <code>ville = 'Paris'</code> : SQL compare la ville de chaque ligne à <code>'Paris'</code>."],
-  [35.8, 39.7, "Si la condition est <b>vraie</b>, la ligne est gardée ; si elle est <b>fausse</b>, la ligne est écartée."],
+  [35.8, 39.7, "Si la condition est <b>vraie</b>, la ligne est gardée ; si elle est <b>fausse</b>, la ligne est\u00a0écartée."],
   [39.8, 43.3, "Le résultat ne contient plus que les <b>4 clients parisiens</b>."],
   [44.2, 50.5, "<code>WHERE</code> se place <b>après</b> <code>FROM</code>, suivi de la condition."],
   [50.6, 55.5, "À l’exécution, le résultat ne contient que les lignes où la condition est <b>vraie</b>."],
   [56.4, 59.8, "Une valeur en texte s’écrit entre <b>guillemets simples</b> : <code>'Paris'</code>."],
   [59.9, 64.9, "Sans guillemets, <code>Paris</code> est lu comme le nom d’une <b>colonne</b> : la requête provoque une erreur."],
   [65.0, 70.5, "<code>'paris'</code> ≠ <code>'Paris'</code> : écris la valeur comme elle est enregistrée dans la <b>table clients</b>."],
-  [71.4, 76.5, "La requête complète affiche le prénom, le nom, l’email et la ville des clients parisiens."],
+  [71.4, 76.5, "La requête complète affiche le prénom, le nom, l’email et la ville des clients\u00a0parisiens."],
   [76.6, 82.5, "Résultat : <b>4 clients parisiens</b>, donc 4 invitations prêtes à partir."],
   [83.3, 88.9, "Pour finir, voici les <b>trois idées à retenir</b>."],
   [89.0, 92.5, "<code>WHERE</code> agit sur le résultat : la <b>table clients</b> contient toujours ses 10 clients."]
@@ -943,7 +969,8 @@ function checkCaptions(){
 
 window.__ready = (async () => {
   buildDom();
-  const fams = ['800 50px "Bricolage Grotesque"', '400 40px "Bricolage Grotesque"', '400 40px JBM', '500 40px JBM', '700 40px JBM', '800 40px JBM', '400 40px Inter', '500 40px Inter', '600 40px Inter', '700 40px Inter', '400 40px "Noto Color Emoji"'];
+  frDom(document.getElementById('stage'));
+  const fams = ['800 50px "Bricolage Grotesque"', '400 40px "Bricolage Grotesque"', '400 40px JBM', '500 40px JBM', '700 40px JBM', '800 40px JBM', '500 40px Inter', '600 40px Inter', '700 40px Inter', '800 40px Inter', '400 40px "Noto Color Emoji"'];
   await Promise.all(fams.map(f => document.fonts.load(f, 'Aàé’✉️🎉')));
   await document.fonts.ready;
   build();
