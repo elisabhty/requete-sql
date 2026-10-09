@@ -343,6 +343,13 @@ const COURSES = [
       'date_inscription <span class="hv">&gt;=<i class="mbox"></i></span>&nbsp;<span class="str">\'2023-03-01\'</span>',
       '<span class="kw" id="not5">NOT</span> <span id="lp">(</span><span id="cP">ville = <span class="str">\'Paris\'</span></span> <span class="kw">AND</span> age &gt; 35<span id="rp">)</span>',
       'NOT inverse tout le groupe', 'NOT n’inverse que cette condition']},
+  {id: 7, next: 8, titre: 'NULL', page: 'null.html', thumb: 'null-thumb.jpg', duree: '1 min 59', notesAt: 86.2,
+    notes: /notes:\{t:111\.7,y:1270,card:\[64,356,1016,957\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Avec <span class="ic">IS NULL</span>, retrouve les lignes où il manque une valeur.',
+    chapters: ['Situation', 'Le problème', 'IS NULL en action', 'Le piège du = NULL', 'IS NOT NULL', 'Le résultat', 'À retenir'],
+    traps: ['<span class="ln" id="ql3"><span class="kw">WHERE</span> email <span class="kw glow" id="isn3">IS NULL</span>;', '<span class="tv nul">NULL</span><b>aucune valeur</b>',
+      '<span class="tv">\'\'</span><b>un texte vide</b>', '<span class="tv">0</span><b>le nombre zéro</b>', '<span class="kw">WHERE</span> email = <span class="kw">NULL</span>;',
+      '<b>Aucune ligne</b><span class="s">NULL n’est égal à rien, pas même à NULL.</span>', '<span class="kw glow" id="isnn5">IS NOT NULL</span>', '2 + 8 = <em>10 clients</em>']},
 ];
 
 for (const c of COURSES) {
