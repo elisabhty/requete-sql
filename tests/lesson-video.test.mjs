@@ -350,6 +350,16 @@ const COURSES = [
     traps: ['<span class="ln" id="ql3"><span class="kw">WHERE</span> email <span class="kw glow" id="isn3">IS NULL</span>;', '<span class="tv nul">NULL</span><b>aucune valeur</b>',
       '<span class="tv">\'\'</span><b>un texte vide</b>', '<span class="tv">0</span><b>le nombre zéro</b>', '<span class="kw">WHERE</span> email = <span class="kw">NULL</span>;',
       '<b>Aucune ligne</b><span class="s">NULL n’est égal à rien, pas même à NULL.</span>', '<span class="kw glow" id="isnn5">IS NOT NULL</span>', '2 + 8 = <em>10 clients</em>']},
+  {id: 8, next: 9, titre: 'LIKE', page: 'like.html', thumb: 'like-thumb.jpg', duree: '2 min 22', notesAt: 101.7,
+    notes: /notes:\{t:134\.65,y:1365,card:\[64,356,1016,1070\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Avec <span class="ic">LIKE</span>, cherche un motif plutôt qu’une valeur exacte.',
+    chapters: ['Situation', 'Le problème', 'LIKE en action', 'Où placer le %', 'Un seul caractère', 'Le résultat', 'À retenir'],
+    traps: ['<span class="kw">WHERE</span> prenom <span class="cbox" id="eqA">=<i class="mbox"></i></span><span class="kw glow" id="likeA">LIKE</span>',
+      '<span id="sophie">Sophie</span><span id="lA">L</span>', '<span class="eo">0</span><b>Aucune ligne</b>', "[['L', 0, 0], ['%', 1, 'end']]",
+      'Son prénom commence-t-il par L ?', '<span class="kw">WHERE</span> nom <span class="kw">LIKE</span> <span class="str glow" id="strA4">\'D%\'</span>;',
+      '<span class="str glow" id="strB4">\'%ie%\'</span>', '<span class="cpl">\'l%\'</span><span class="tx">ou</span><span class="cpl">\'L%\'</span>',
+      '<span class="str">\'<span class="glow" id="us5">_</span>a%\'</span>', "[['_', 0, 0], ['a', 1, 1], ['%', 2, 'end']]",
+      'n’importe quelle suite, <b>même vide</b>', '<b>exactement un</b> caractère']},
 ];
 
 for (const c of COURSES) {
