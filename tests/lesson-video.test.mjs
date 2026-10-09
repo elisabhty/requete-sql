@@ -198,6 +198,10 @@ test('LvAnim se pilote comme une vidéo : lecture, vitesse, question, reprise, f
   for (let i = 0; i < 40; i++) step(0.1);
   assert.ok(a.ended && a.paused && a.currentTime === 10 && log.at(-1) === 'ended', 'fin de l’animation');
   assert.equal(log.filter(x => x === 'question:0').length, 1, 'une question répondue n’est pas reposée');
+  a.currentTime = 3; a.play();
+  for (let i = 0; i < 15; i++) step(0.1);
+  assert.equal(a.currentTime, 4, 'revenir avant la question puis la repasser : arrêt à nouveau (le lecteur y montre la réponse gardée)');
+  assert.equal(log.filter(x => x === 'question:0').length, 2);
   a.currentTime = 6.5;
   assert.ok(!a.ended && a.currentTime === 6.5 && log.at(-1) === 'seeked' && rendered.at(-1) === 6.5, 'reprise à une position donnée');
   a.currentTime = 99;
@@ -222,8 +226,11 @@ test('reprise, repères de chapitres, double appui, question et légendes dans l
   assert.ok(player.includes('if(side&&T.side===side&&now-T.t<330){') && player.includes('lvSkip(side*LV_SKIP); lvDtFx(side,T.total);'), 'double appui à gauche / à droite');
   assert.ok(player.includes("T.timer=setTimeout(()=>{ T.timer=0; if(LV&&LV.root===root)lvToggle(); },300);"), 'un seul appui sur le côté : pause après un court délai');
   const ans = cut('function lvQAnswer(k){', 'function lvQClose(answered){');
-  for (const part of ["LV.video.sfx(ok?'true':'false')", 'navigator.vibrate(ok?[10,60,20]:[20,60,20])', "b.classList.add(ok?'is-ok':'is-ko')", "b.classList.add('is-right')", 'lvNoteBurst(btns[k])'])
+  for (const part of ["LV.video.sfx(ok?'true':'false')", 'navigator.vibrate(ok?[10,60,20]:[20,60,20])', 'lvNoteBurst(btns[k])', 'const ok=lvQFill(box,q,k);'])
     assert.ok(ans.includes(part), `réponse : ${part}`);
+  const fill = cut('function lvQFill(box,q,k){', 'function lvQAnswer(k){');
+  for (const part of ["b.classList.add(ok?'is-ok':'is-ko')", "b.classList.add('is-right')", 'Ta réponse&nbsp;:'])
+    assert.ok(fill.includes(part), `résultat : ${part}`);
   assert.ok(cut('function lvQShow(i,q){', 'function lvQAnswer(k){').includes("addEventListener('click',()=>{ lvQClose(true); lvPlay(); })"), '« Continuer » relance l’animation');
   assert.ok(player.includes("video.addEventListener('question',e=>{") && player.includes('if(LV&&LV.q)lvQClose(true);'), 'relancer pendant la question la passe');
   assert.ok(player.includes('<div class="lv-sr" aria-live="polite"></div>') && html.includes('function lvCapSync(){'), 'légendes annoncées à VoiceOver');
@@ -260,11 +267,33 @@ test('carte de la question : pas de coupure dans « sera-t-elle », aucun bouton
   const ctx = vm.createContext({});
   vm.runInContext(`this.nw=${show.match(/const nw=(t=>[^;]+);/)[1]};`, ctx);
   assert.equal(ctx.nw('Sa ligne sera-t-elle gardée ?'), 'Sa ligne <span class="lv-nw">sera-t-elle</span> gardée ?');
-  assert.ok(show.includes("box.querySelector('.lv-q-card').focus({preventScroll:true})") && !show.includes(".lv-q-opt').focus("), 'focus sur la carte, pas sur « Oui, gardée »');
+  assert.ok(show.includes("box.querySelector(kept!=null?'.lv-q-b':'.lv-q-card').focus({preventScroll:true})") && !show.includes(".lv-q-opt').focus("), 'focus sur la carte, pas sur « Oui, gardée »');
   assert.ok(cut('function lvQAnswer(k){', 'function lvQClose(answered){').includes('b.focus({preventScroll:true})'));
   assert.ok(show.includes('${q.ctx?`<p class="lv-q-ctx">${nw(q.ctx)}</p>`:\'\'}'), 'contexte puis question');
   const place = cut('function lvQPlace(){', 'function lvReplay(){');
   assert.ok(place.includes('const a=lvPt(64,0), b=lvPt(1016,1904);'), 'même colonne que le tableau et les légendes');
   assert.ok(place.includes('w=Math.min(col>=320?col:Math.max(col,Math.min(R.width-24,360)),440)'), 'petit écran seulement : carte élargie');
   assert.ok(html.includes('.lv-q .lv-q-opt:focus-visible{border-radius:16px;'), 'au clavier : anneau qui garde la forme du bouton');
+});
+
+test('réponse à la question gardée : enregistrée par leçon, réaffichée telle quelle, oubliée si on recommence la leçon', () => {
+  const store = {};
+  const ctx = vm.createContext({localStorage: {getItem: k => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); }}, JSON, Object, Map});
+  vm.runInContext(cut('const LV_POS_KEY=', '/* 0:42, 2:04 */') + ';this.get=lvAnsGet;this.set=lvAnsSet;this.forget=lvForget;this.pos=LV_POS;', ctx);
+  const q = {q: 'Sa ligne sera-t-elle gardée ?', options: [{label: 'Oui, gardée', ok: false}, {label: 'Non, écartée', ok: true}]};
+  assert.equal(ctx.get(4, 0, q), null);
+  ctx.set(4, 0, q, 0);
+  assert.equal(ctx.get(4, 0, q), 0, 'réponse retrouvée');
+  assert.deepEqual(JSON.parse(store['rq-video-reponses']), {4: {0: {k: 0, q: 'Sa ligne sera-t-elle gardée ?'}}}, 'gardée après fermeture de l’app');
+  assert.equal(ctx.get(4, 0, {...q, q: 'Une autre question ?'}), null, 'question modifiée depuis : réponse ignorée');
+  ctx.pos.set(4, 50);
+  ctx.forget(4);
+  assert.equal(ctx.get(4, 0, q), null, 'recommencer la leçon : question reposée');
+  assert.equal(ctx.pos.has(4), false, 'et la vidéo repart du début');
+  const show = cut('function lvQShow(i,q){', 'function lvQFill(box,q,k){');
+  assert.ok(show.includes('const kept=lvAnsGet(LV.id,i,q);') && show.includes("box.classList.add('is-kept');") && show.includes('lvQFill(box,q,kept);'), 'réponse gardée affichée directement');
+  assert.ok(!/sfx\(|lvNoteBurst/.test(show), 'sans rejouer le son ni la gerbe');
+  assert.ok(cut('function lvQAnswer(k){', 'function lvQClose(answered){').includes('lvAnsSet(LV.id,Q.i,q,k);'), 'nouvelle réponse enregistrée');
+  assert.ok(cut('function recommencerLecon(', 'function bravoStatsHtml(').includes('lvForget(id);'));
+  assert.ok(cut('function openLessonVideo(){', 'function lvPlay(){').includes('if(r>=q.t-.02&&r<=q.t+.3)r=Math.max(0,q.t-.08);'), 'lecteur fermé pendant la question : elle se réaffiche à la reprise');
 });
