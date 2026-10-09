@@ -6434,6 +6434,12 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-ico.is-muted{color:var(--ink-3,#6A6490)}
 .lv-stage{position:relative;flex:1;min-height:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .lv-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#F4F2FC}
+.lv-anim{border:0;display:block;pointer-events:none;background:transparent}
+.lv-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#F4F2FC;transition:opacity .25s ease;pointer-events:none}
+.lv.is-ready .lv-poster{opacity:0}
+.lv.is-loading .lv-big,.lv.is-q .lv-big{opacity:0!important;pointer-events:none!important}
+.lv-stage{touch-action:manipulation}
+.lv-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 .lv-big{position:absolute;left:50%;top:50%;width:84px;height:84px;margin:-42px 0 0 -42px;padding:0;border:0;border-radius:50%;background:var(--accent,#6A4DF4);color:#fff;display:grid;place-items:center;
   box-shadow:0 5px 0 var(--accent-lip,#4B30CC),0 18px 40px -16px rgba(40,20,120,.55);opacity:0;pointer-events:none;transform:scale(.82);transition:opacity .2s ease,transform .26s cubic-bezier(.34,1.56,.64,1);cursor:pointer}
 .lv-big svg{width:38px;height:38px;margin-left:5px}
@@ -6442,7 +6448,45 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-seekrow{display:flex;align-items:center;gap:10px;height:30px;padding:0 4px}
 .lv-time{flex:none;min-width:30px;font:600 12.5px/1 var(--ui);font-variant-numeric:tabular-nums;color:var(--ink-3,#6A6490)}
 .lv-time.lv-dur{text-align:right}
-.lv-seekrow .lv-seek{flex:1;min-width:0}
+.lv-track{position:relative;flex:1;min-width:0;display:flex;align-items:center}
+.lv-track .lv-seek{flex:1;min-width:0}
+.lv-tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(4px);white-space:nowrap;padding:7px 12px;border-radius:12px;background:var(--ink,#221C46);color:#fff;font:700 13px/1 var(--display);box-shadow:0 8px 20px -10px rgba(20,10,60,.5);opacity:0;transition:opacity .15s ease,transform .15s ease;pointer-events:none}
+.lv-tip[hidden]{display:none}
+.lv-tip.on{opacity:1;transform:translateX(-50%)}
+.lv-tip::after{content:"";position:absolute;left:50%;top:100%;margin-left:-6px;border:6px solid transparent;border-top-color:var(--ink,#221C46)}
+/* Double appui : rond du côté touché */
+.lv-dt{position:absolute;z-index:3;top:50%;width:132px;height:132px;margin-top:-66px;border-radius:50%;background:rgba(106,77,244,.17);color:var(--accent-ink,#5335E0);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;pointer-events:none;opacity:0}
+.lv-dt[data-side="-1"]{left:5%}
+.lv-dt[data-side="1"]{right:5%}
+.lv-dt span{display:block;width:30px;height:30px}
+.lv-dt span svg{width:30px;height:30px}
+.lv-dt b{font:800 16px/1 var(--display)}
+.lv-dt.on{animation:lvDt .76s ease-out forwards}
+@keyframes lvDt{0%{opacity:0;transform:scale(.7)}18%{opacity:1;transform:scale(1)}70%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.06)}}
+/* Question : carte posée sur le bas de l’image */
+.lv-q{position:absolute;z-index:6;left:12px;width:calc(100% - 24px);bottom:12px}
+.lv-q-card{overflow:hidden;background:#fff;border:2px solid var(--line,#E6E1F6);border-radius:24px;box-shadow:0 5px 0 var(--lip,#DCD5F2),0 22px 50px -24px rgba(40,20,120,.45);padding:16px 16px 14px;transform:translateY(26px) scale(.97);opacity:0;transition:transform .45s cubic-bezier(.2,.9,.3,1.2),opacity .2s ease}
+.lv-q.on .lv-q-card{transform:none;opacity:1}
+.lv-q-kick{display:inline-flex;align-items:center;height:26px;padding:0 11px;border-radius:999px;background:var(--accent-soft,#EEE9FF);color:var(--accent-ink,#5335E0);font:700 13px/1 var(--display)}
+.lv-q-t{margin:10px 2px 14px;font:700 19px/1.28 var(--display);letter-spacing:-.01em;color:var(--ink,#221C46)}
+.lv-q-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lv-q-opt{min-height:52px;padding:0 10px;border-radius:16px;border:2px solid var(--line,#E6E1F6);background:#fff;color:var(--ink,#221C46);box-shadow:0 4px 0 var(--lip,#DCD5F2);font:700 16px/1.15 var(--display);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .12s,box-shadow .12s,background-color .2s,border-color .2s,color .2s,opacity .2s}
+.lv-q-opt:active{transform:translateY(4px);box-shadow:0 0 0 var(--lip,#DCD5F2)}
+.lv-q-opt.is-ok,.lv-q-opt.is-right{background:var(--success-soft,#E2F6EA);border-color:#9ED9B4;color:var(--success,#0F7A3A);box-shadow:0 4px 0 #BFE6CC}
+.lv-q-opt.is-ok{animation:lvPop .5s cubic-bezier(.2,.9,.3,1.35)}
+.lv-q-opt.is-ko{background:var(--danger-soft,#FDEBEC);border-color:#F3B7BB;color:var(--danger,#C2323A);box-shadow:0 4px 0 #F6CDD0;animation:lvShake .42s ease}
+.lv-q.is-done .lv-q-opt{pointer-events:none}
+.lv-q.is-done .lv-q-opt:not(.is-ok):not(.is-ko):not(.is-right){opacity:.45}
+.lv-q-b[hidden],.lv-q-a[hidden]{display:none}
+.lv-q-res{display:flex;align-items:center;gap:10px;margin:2px 0 0;font:800 21px/1.1 var(--display)}
+.lv-q-res i{width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;color:#fff;font:800 16px/1 var(--display);font-style:normal}
+.lv-q.is-right-ans .lv-q-res{color:var(--success,#0F7A3A)}
+.lv-q.is-right-ans .lv-q-res i{background:var(--success-fill,#169447)}
+.lv-q.is-wrong-ans .lv-q-res{color:var(--danger,#C2323A)}
+.lv-q.is-wrong-ans .lv-q-res i{background:var(--danger-fill,#EF4F55)}
+.lv-q-why{margin:10px 2px 14px;font-size:16px;line-height:1.4;font-weight:500;color:var(--ink-2,#4E4872)}
+.lv-q .lv-q-go{display:flex;align-items:center;justify-content:center;width:100%;cursor:pointer}
+@keyframes lvShake{0%,100%{transform:none}20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(2px)}}
 .lv-ctrls{position:relative;display:flex;align-items:center;justify-content:space-between;height:62px}
 .lv-c{width:50px;height:50px;padding:0;border:0;border-radius:50%;background:none;color:var(--ink,#221C46);display:grid;place-items:center;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background-color .15s,transform .12s,box-shadow .12s}
 .lv-c:active{background:rgba(106,77,244,.1)}
@@ -6469,9 +6513,9 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv.is-end .lv-bottom{opacity:0;pointer-events:none}
 .lv-seek{-webkit-appearance:none;appearance:none;width:100%;height:30px;margin:0;background:transparent;cursor:pointer;--p:0%}
 .lv-seek:focus{outline:none}
-.lv-seek::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:linear-gradient(var(--accent,#6A4DF4),var(--accent,#6A4DF4)) 0 0/var(--p) 100% no-repeat,#E2DCF5}
+.lv-seek::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:var(--gaps,linear-gradient(transparent,transparent)),linear-gradient(var(--accent,#6A4DF4),var(--accent,#6A4DF4)) 0 0/calc(9px + var(--pf,0) * (100% - 18px)) 100% no-repeat,#E2DCF5}
 .lv-seek::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-6px;border-radius:50%;background:#fff;border:3px solid var(--accent,#6A4DF4);box-shadow:0 2px 6px rgba(40,20,120,.25)}
-.lv-seek::-moz-range-track{height:6px;border-radius:6px;background:#E2DCF5}
+.lv-seek::-moz-range-track{height:6px;border-radius:6px;background:var(--gaps,linear-gradient(transparent,transparent)),#E2DCF5}
 .lv-seek::-moz-range-progress{height:6px;border-radius:6px;background:var(--accent,#6A4DF4)}
 .lv-seek::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--accent,#6A4DF4)}
 .lv-seek:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 4px rgba(106,77,244,.28)}
@@ -6550,7 +6594,7 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-note.is-already .lv-note-btn{background:var(--accent-soft,#EEE9FF);border-color:#D3C8FF;color:var(--accent-ink,#5335E0);box-shadow:0 4px 0 #D9CEFF;animation:none}
 .lv-note-burst{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none}
 .lv-note-burst i{position:absolute;left:0;top:0;display:block}
-@media (prefers-reduced-motion:reduce){.lv-speeds{animation:none!important}.lv,.lv-end,.lv-end-card,.lv-big,.lv-bottom,.lv-note-btn,.lv-note-arrow,.lv-note-arrow path,.lv-note-ok,.lv-note-ok path,.lv-note-ico{transition:none!important;animation:none!important}}
+@media (prefers-reduced-motion:reduce){.lv-speeds,.lv-dt,.lv-q-opt,.lv-q-card,.lv-tip{animation:none!important;transition:none!important}.lv,.lv-end,.lv-end-card,.lv-big,.lv-bottom,.lv-note-btn,.lv-note-arrow,.lv-note-arrow path,.lv-note-ok,.lv-note-ok path,.lv-note-ico{transition:none!important;animation:none!important}}
 html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-motion="reduce"] .lv-end-card,html[data-motion="reduce"] .lv-big,html[data-motion="reduce"] .lv-note-btn,html[data-motion="reduce"] .lv-note-arrow,html[data-motion="reduce"] .lv-note-arrow path,html[data-motion="reduce"] .lv-note-ok,html[data-motion="reduce"] .lv-note-ok path,html[data-motion="reduce"] .lv-note-ico{transition:none!important;animation:none!important}
 </style>
 </head>
@@ -7882,8 +7926,9 @@ guide({ id:13, titre:"DISTINCT", résumé:"Valeurs uniques",
   learningCheck:{question:"Deux clients ont la même ville, mais des prénoms différents. DISTINCT ville, prenom les fusionne-t-il ?",options:["Oui","Seulement avec ORDER BY","Non"],answer:2,explanation:"DISTINCT porte sur toute la combinaison des colonnes sélectionnées, pas sur ville seulement."}
 }),
 guide({ id:4, titre:"WHERE", résumé:"Filtrer les lignes",
-  /* Cours en vidéo : remplace le texte du cours (mode immersion), voir openLessonVideo. */
-  video:{src:'assets/videos/where.mp4',poster:'assets/videos/where-poster.jpg',thumb:'assets/videos/where-thumb.jpg',duree:'2 min 02',
+  /* Cours en vidéo : remplace le texte du cours (mode immersion), voir openLessonVideo.
+     L’animation (assets/anim/where.html) est jouée dans l’app, pilotée comme une vidéo : quelques dizaines de Ko au lieu d’un MP4. */
+  video:{anim:'assets/anim/where.html?app&embed',poster:'assets/anim/where-poster.jpg',thumb:'assets/anim/where-thumb.jpg',duree:'2 min 02',
     /* « Ajouter dans notes » : apparaît à 1 min 55 (114,8 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
     notes:{t:114.8,y:1330,card:[64,356,1016,1017],to:[940,255]}},
   sit:{
@@ -18780,7 +18825,11 @@ function jcUnlockExo(){
    À la fin : « À toi de jouer », la consigne et un bouton vers l’exercice. Arriver au bout de la vidéo débloque
    l’exercice, comme la requête à trous du cours texte. Si la vidéo ne peut pas être lue (hors ligne sur le web,
    format refusé), le cours texte reprend sa place. */
-const LV_FAILED=new Set(), LV_POS=new Map();
+const LV_FAILED=new Set();
+/* Position de lecture par leçon, gardée même après fermeture de l’app. */
+const LV_POS_KEY='rq-video-pos';
+const LV_POS=new Map((()=>{ try{ return Object.entries(JSON.parse(localStorage.getItem(LV_POS_KEY)||'{}')).map(([k,v])=>[+k,+v]).filter(([k,v])=>isFinite(k)&&v>0); }catch(e){ return []; } })());
+function lvPosSave(){ try{ localStorage.setItem(LV_POS_KEY,JSON.stringify(Object.fromEntries(LV_POS))); }catch(e){} }
 let LV=null, LV_MUTED=false;
 /* Vitesse de lecture choisie par la personne, gardée d’une vidéo à l’autre. */
 const LV_RATES=[0.5,0.75,1,1.5,2];
@@ -18796,13 +18845,184 @@ const LV_ICO={
   pause:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.2" y="5" width="4.2" height="14" rx="1.4" fill="currentColor"/><rect x="13.6" y="5" width="4.2" height="14" rx="1.4" fill="currentColor"/></svg>',
   back:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8.2 10.6A10 10 0 1 1 6 16.8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M7.4 5.2v5.9h5.9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><text x="16.6" y="20.6" text-anchor="middle">5</text></svg>',
   fwd:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M23.8 10.6A10 10 0 1 0 26 16.8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M24.6 5.2v5.9h-5.9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><text x="15.4" y="20.6" text-anchor="middle">5</text></svg>',
+  rew2:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 6l-6 6 6 6M19 6l-6 6 6 6"/></svg>',
+  ffw2:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6l6 6-6 6M13 6l6 6-6 6"/></svg>',
   check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M5 12.5l4.6 4.6L19.5 7"/></svg>'
 };
-function lessonVideoOn(l){return !!(l&&l.video&&l.video.src&&!LV_FAILED.has(l.id));}
+/* 0:42, 2:04 */
+function lvFmt(s){ s=Math.max(0,Math.floor(+s||0)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+/* 0,5×, 1×, 1,5× */
+function lvRateLabel(r){ return String(r).replace('.',',')+'×'; }
+/* ---------- Sons d’interface de l’animation ----------
+   Synthétisés dans le navigateur (Web Audio), joués au moment où l’animation les atteint : pas de fichier son,
+   et un son reste naturel à toutes les vitesses. Ils suivent le bouton silencieux de l’iPhone, comme les sons d’interface. */
+const LvSfx=(()=>{
+  let ctx=null, master=null, wet=null, muted=false;
+  const cache=new Map(), live=new Set();
+  const PENTA=[0,2,4,7,9,12,14,16,19];
+  const semis=(b,k)=>b*Math.pow(2,k/12);
+  const env=(t,a,tau)=>Math.min(1,t/Math.max(a,1e-4))*Math.exp(-Math.max(t-a,0)/tau);
+  let seed=7;
+  const rnd=()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296*2-1; };
+  function noise(n,lo,hi,SR){
+    const out=new Float32Array(n), fc=Math.sqrt(lo*hi), Q=fc/(hi-lo), w=2*Math.PI*fc/SR, al=Math.sin(w)/(2*Q), a0=1+al;
+    const b0=al/a0, b2=-al/a0, a1=-2*Math.cos(w)/a0, a2=(1-al)/a0;
+    for(let i=0;i<n;i++)out[i]=rnd();
+    for(let pass=0;pass<2;pass++){ let x1=0,x2=0,y1=0,y2=0; for(let i=0;i<n;i++){ const x=out[i], y=b0*x+b2*x2-a1*y1-a2*y2; x2=x1;x1=x;y2=y1;y1=y; out[i]=y; } }
+    let m=1e-9; for(let i=0;i<n;i++)m=Math.max(m,Math.abs(out[i])); for(let i=0;i<n;i++)out[i]/=m;
+    return out;
+  }
+  function marimba(o,off,f,dur,tau,bright,g,SR){
+    const n=Math.min(Math.round(dur*SR),o.length-off);
+    for(let i=0;i<n;i++){ const t=i/SR; o[off+i]+=g*(Math.sin(2*Math.PI*f*t)*env(t,.002,tau)+bright*Math.sin(2*Math.PI*4*f*t)*env(t,.001,tau*.18)+.08*Math.sin(2*Math.PI*10*f*t)*env(t,.0005,tau*.05)); }
+  }
+  function synth(kind,pitch,SR){
+    const N=d=>Math.round(d*SR), T=i=>i/SR;
+    let o, ph=0, ph2=0;
+    switch(kind){
+      case 'pop':{ const f0=semis(587.33,PENTA[pitch%9]); o=new Float32Array(N(.16)); for(let i=0;i<o.length;i++){ const t=T(i); ph+=2*Math.PI*f0*(1+.45*Math.exp(-t/.012))/SR; o[i]=.55*Math.sin(ph)*env(t,.002,.045); } break; }
+      case 'tick':{ const f0=semis(1760,PENTA[pitch%9]*.5); o=new Float32Array(N(.08)); for(let i=0;i<o.length;i++){ const t=T(i); o[i]=.32*(Math.sin(2*Math.PI*f0*t)*env(t,.0008,.014)+.3*Math.sin(2*Math.PI*2.7*f0*t)*env(t,.0005,.006)); } break; }
+      case 'type':{ o=new Float32Array(N(.04)); const nz=noise(o.length,2500,7000,SR), f=semis(2400,pitch); for(let i=0;i<o.length;i++){ const t=T(i); o[i]=.11*(nz[i]*env(t,.0005,.004)+.4*Math.sin(2*Math.PI*f*t)*env(t,.0005,.006)); } break; }
+      case 'click':{ o=new Float32Array(N(.12)); const nz=noise(o.length,1500,6000,SR); for(let i=0;i<o.length;i++){ const t=T(i); o[i]=.5*(.8*Math.sin(2*Math.PI*150*t)*env(t,.001,.03)+.5*Math.sin(2*Math.PI*2100*t)*env(t,.0005,.008)+.25*nz[i]*env(t,.0005,.005)); } break; }
+      case 'whoosh':{ const d=.5; o=new Float32Array(N(d)); const nz=noise(o.length,500,3500,SR); for(let i=0;i<o.length;i++){ const e=Math.sin(Math.PI*Math.min(1,T(i)/d)); o[i]=.16*nz[i]*e*e; } break; }
+      case 'fold':{ const d=.6; o=new Float32Array(N(d)); const nz=noise(o.length,300,2200,SR); for(let i=0;i<o.length;i++){ const t=T(i); ph+=2*Math.PI*520*Math.exp(-t/.25)/SR; o[i]=.14*nz[i]*Math.pow(Math.sin(Math.PI*Math.min(1,t/d)),1.5)+.18*Math.sin(ph)*env(t,.01,.2); } break; }
+      case 'true':{ o=new Float32Array(N(.55)); marimba(o,0,1318.5,.4,.12,.22,.3,SR); marimba(o,N(.065),1975.5,.45,.14,.22,.27,SR); break; }
+      case 'false':{ o=new Float32Array(N(.25)); for(let i=0;i<o.length;i++){ const t=T(i), f=330*(1-.08*t/.25); ph+=2*Math.PI*f/SR; ph2+=4*Math.PI*f/SR; o[i]=.32*(Math.sin(ph)*env(t,.002,.06)+.12*Math.sin(ph2)*env(t,.002,.03)); } break; }
+      case 'miss':{ const f=semis(262,((-pitch)%3+3)%3); o=new Float32Array(N(.25)); for(let i=0;i<o.length;i++){ const t=T(i); o[i]=.3*(Math.sin(2*Math.PI*f*t)*env(t,.002,.07)+.2*Math.sin(6*Math.PI*f*t)*env(t,.002,.02)); } break; }
+      case 'chord':{ o=new Float32Array(N(.7)); [1046.5,1318.5,1568].forEach((f,k)=>marimba(o,N(k*.018),f,.65,.2,.15,.17,SR)); break; }
+      case 'success':{ o=new Float32Array(N(1.1)); [1046.5,1318.5,1568,2093].forEach((f,k)=>marimba(o,N(k*.085),f,.7,.22,.18,.24*(.85+.05*k),SR)); break; }
+      case 'error':{ o=new Float32Array(N(.45)); [220,174.6].forEach((f,k)=>{ const off=N(k*.13), n=N(.2); for(let i=0;i<n&&off+i<o.length;i++){ const t=T(i); o[off+i]+=.38*(Math.sin(2*Math.PI*f*t)+.3*Math.sin(6*Math.PI*f*t)+.12*Math.sin(10*Math.PI*f*t))*env(t,.004,.07); } }); break; }
+      case 'empty':{ o=new Float32Array(N(.35)); for(let i=0;i<o.length;i++){ const t=T(i); ph+=2*Math.PI*(760*Math.exp(-t/.16)+260)/SR; o[i]=.38*Math.sin(ph)*env(t,.003,.09); } break; }
+      case 'stamp':{ o=new Float32Array(N(.3)); const nz=noise(o.length,200,1800,SR); for(let i=0;i<o.length;i++){ const t=T(i); ph+=2*Math.PI*140*(1+.6*Math.exp(-t/.02))/SR; o[i]=.4*(Math.sin(ph)*env(t,.001,.08)+.5*nz[i]*env(t,.0005,.025)); } break; }
+      default: o=new Float32Array(1);
+    }
+    return o;
+  }
+  function buffer(kind,pitch){
+    const k=kind+':'+pitch;
+    if(!cache.has(k)){ const d=synth(kind,pitch|0,ctx.sampleRate), b=ctx.createBuffer(1,d.length,ctx.sampleRate); b.getChannelData(0).set(d); cache.set(k,b); }
+    return cache.get(k);
+  }
+  function init(){
+    if(ctx)return ctx;
+    const AC=typeof window!=='undefined'&&(window.AudioContext||window.webkitAudioContext);
+    if(!AC)return null;
+    try{ ctx=new AC(); }catch(e){ ctx=null; return null; }
+    const comp=ctx.createDynamicsCompressor();
+    comp.threshold.value=-8; comp.knee.value=6; comp.ratio.value=12; comp.attack.value=.002; comp.release.value=.12;
+    master=ctx.createGain(); master.gain.value=muted?0:1; master.connect(comp); comp.connect(ctx.destination);
+    try{
+      const n=Math.round(.45*ctx.sampleRate), ir=noise(n,300,5000,ctx.sampleRate); let sum=0;
+      for(let i=0;i<n;i++){ ir[i]*=Math.exp(-(i/ctx.sampleRate)/.11); sum+=Math.abs(ir[i]); }
+      for(let i=0;i<n;i++)ir[i]*=6/sum;
+      const b=ctx.createBuffer(1,n,ctx.sampleRate); b.getChannelData(0).set(ir);
+      const conv=ctx.createConvolver(); conv.normalize=false; conv.buffer=b;
+      wet=ctx.createGain(); wet.gain.value=.12; wet.connect(conv); conv.connect(comp);
+    }catch(e){ wet=null; }
+    return ctx;
+  }
+  return {
+    resume(){ const c=init(); if(c&&c.state!=='running'){ try{ const p=c.resume(); if(p&&p.catch)p.catch(()=>{}); }catch(e){} } },
+    setMuted(m){ muted=!!m; if(master)master.gain.value=muted?0:1; },
+    play(kind,pitch,gain,pan){
+      if(muted||!ctx||ctx.state!=='running')return;
+      try{
+        const src=ctx.createBufferSource(); src.buffer=buffer(kind,pitch||0);
+        const g=ctx.createGain(); g.gain.value=gain==null?1:gain; src.connect(g);
+        let out=g;
+        if(pan&&ctx.createStereoPanner){ const p=ctx.createStereoPanner(); p.pan.value=pan; g.connect(p); out=p; }
+        out.connect(master); if(wet)out.connect(wet);
+        live.add(src); src.onended=()=>live.delete(src);
+        src.start();
+      }catch(e){}
+    },
+    stop(){ live.forEach(s=>{ try{s.stop();}catch(e){} }); live.clear(); }
+  };
+})();
+/* ---------- Animation jouée comme une vidéo ----------
+   L’animation du cours vit dans une page à part (iframe, même origine) qui expose renderAt(t) et __ready.
+   LvAnim lui donne l’interface d’une balise <video> (play, pause, currentTime, playbackRate, muted, événements),
+   si bien que le lecteur fonctionne à l’identique. Il s’arrête aussi sur les questions de l’animation. */
+class LvAnim{
+  constructor(frame){
+    this.frame=frame; this.win=null; this.info=null; this._l={};
+    this.t=0; this.duration=NaN; this.paused=true; this.ended=false; this.videoWidth=1080; this.videoHeight=1920;
+    this._rate=1; this.defaultPlaybackRate=1; this._muted=false;
+    this.raf=0; this.last=0; this.ci=0; this.lastTU=0; this.wantPlay=false; this.dead=false;
+    this.cues=[]; this.chapters=[]; this.questions=[]; this.captions=[]; this.answered=new Set();
+    const fail=()=>{ if(this.dead||this.info)return; this.dead=true; this._emit('error'); };
+    this.timer=setTimeout(fail,12000);
+    frame.addEventListener('load',async()=>{
+      try{
+        const w=frame.contentWindow, info=w&&w.__ready&&await w.__ready;
+        if(this.dead)return;
+        if(!info||!(info.duration>0)||typeof w.renderAt!=='function')throw new Error('animation');
+        clearTimeout(this.timer);
+        this.win=w; this.info=info; this.duration=info.duration;
+        this.cues=(info.cues||[]).slice().sort((a,b)=>a.t-b.t);
+        this.chapters=info.chapters||[]; this.questions=info.questions||[]; this.captions=info.captions||[];
+        this._render();
+        this._emit('loadedmetadata');
+        if(this.wantPlay)this._start();
+      }catch(e){ fail(); }
+    },{once:true});
+  }
+  addEventListener(type,fn,o){ (this._l[type]||(this._l[type]=[])).push({fn,once:!!(o&&o.once)}); }
+  removeEventListener(type,fn){ const a=this._l[type]; if(a)this._l[type]=a.filter(h=>h.fn!==fn); }
+  _emit(type,detail){ (this._l[type]||[]).slice().forEach(h=>{ if(h.once)this.removeEventListener(type,h.fn); try{ h.fn.call(this,{type,detail,target:this}); }catch(e){ setTimeout(()=>{throw e;}); } }); }
+  get currentTime(){ return this.t; }
+  set currentTime(v){
+    v=Math.max(0,+v||0); if(this.duration>0)v=Math.min(v,this.duration);
+    this.t=v; this.ended=this.duration>0&&v>=this.duration;
+    LvSfx.stop(); this._seekCues(); this._render();
+    this._emit('timeupdate'); this._emit('seeked');
+  }
+  get playbackRate(){ return this._rate; }
+  set playbackRate(r){ this._rate=+r||1; }
+  get muted(){ return this._muted; }
+  set muted(m){ this._muted=!!m; LvSfx.setMuted(this._muted); }
+  play(){
+    LvSfx.resume(); LvSfx.setMuted(this._muted);
+    if(this.dead)return Promise.reject(new Error('animation'));
+    if(this.ended){ this.ended=false; this.t=0; this._seekCues(); }
+    if(!this.info){ this.wantPlay=true; return Promise.resolve(); }
+    this._start(); return Promise.resolve();
+  }
+  pause(){ this.wantPlay=false; if(this.paused)return; this.paused=true; cancelAnimationFrame(this.raf); LvSfx.stop(); this._emit('pause'); }
+  answer(i){ this.answered.add(i); }
+  sfx(kind){ LvSfx.play(kind,0,.9,0); }
+  destroy(){ this.dead=true; this.paused=true; cancelAnimationFrame(this.raf); clearTimeout(this.timer); LvSfx.stop(); this._l={}; try{ this.frame.src='about:blank'; }catch(e){} }
+  _render(){ if(this.win)try{ this.win.renderAt(this.t); }catch(e){} }
+  _seekCues(){ let i=0; while(i<this.cues.length&&this.cues[i].t<=this.t)i++; this.ci=i; }
+  _start(){ this.wantPlay=false; if(!this.paused||this.dead)return; this.paused=false; this.last=performance.now(); this._emit('play'); this._loop(); }
+  _loop(){
+    this.raf=requestAnimationFrame(now=>{
+      if(this.paused||this.dead)return;
+      const dt=Math.min(.25,Math.max(0,(now-this.last)/1000)); this.last=now;
+      let t=this.t+dt*this._rate, q=-1;
+      for(let i=0;i<this.questions.length;i++){ const qt=this.questions[i].t; if(!this.answered.has(i)&&qt>this.t&&qt<=t){ t=qt; q=i; break; } }
+      const end=t>=this.duration; if(end)t=this.duration;
+      while(this.ci<this.cues.length&&this.cues[this.ci].t<=t){ const c=this.cues[this.ci]; if(c.t>this.t)LvSfx.play(c.type,c.pitch||0,c.gain==null?1:c.gain,.36*Math.sin(this.ci*2.399)); this.ci++; }
+      this.t=t; this._render();
+      if(now-this.lastTU>=80||end||q>=0){ this.lastTU=now; this._emit('timeupdate'); }
+      if(q>=0){ this.paused=true; this._emit('pause'); this._emit('question',{i:q,q:this.questions[q]}); return; }
+      if(end){ this.paused=true; this.ended=true; this._emit('pause'); this._emit('ended'); return; }
+      this._loop();
+    });
+  }
+}
+function lessonVideoOn(l){return !!(l&&l.video&&(l.video.anim||l.video.src)&&!LV_FAILED.has(l.id));}
 function lessonVideoOpen(){return !!LV;}
 function lessonVideoMeta(l){
-  const v=l.video;
+  const v=l.video, pos=LV_POS.get(l.id);
+  if(pos>2)return `Reprendre · ${lvFmt(pos)}`;
   return (jcPassed(l.id)||etapesDe(l.id).exo?'Revoir la vidéo':'Regarder la vidéo')+(v.duree?` · ${v.duree}`:'');
+}
+function lvCardSync(id){
+  if(!current||current.id!==id)return;
+  const m=document.querySelector('#lesson-body .lv-card-meta'), c=document.querySelector('#lesson-body .lv-card');
+  if(m)m.textContent=lessonVideoMeta(current);
+  if(c)c.setAttribute('aria-label',`${lessonVideoMeta(current)} : cours ${current.titre} en plein écran`);
 }
 function lessonVideoSlide(l){
   const v=l.video, m=moduleDeLecon(l.id), locked=jcGateLocked(l);
@@ -18828,7 +19048,7 @@ function openLessonVideo(){
   const v=l.video;
   const root=document.createElement('div');
   root.id='lesson-video';
-  root.className='lv is-paused';
+  root.className='lv is-paused'+(v.anim?' is-loading':'');
   root.tabIndex=-1;
   root.setAttribute('role','dialog');
   root.setAttribute('aria-modal','true');
@@ -18836,7 +19056,9 @@ function openLessonVideo(){
   root.innerHTML=`
     <button type="button" class="lv-ico lv-close" aria-label="Fermer la vidéo">${LV_ICO.close}</button>
     <div class="lv-stage">
-      <video class="lv-video" src="${v.src}" poster="${v.poster}" playsinline webkit-playsinline preload="auto" disablepictureinpicture></video>
+      ${v.anim?`<img class="lv-poster" src="${v.poster||v.thumb||''}" alt="" decoding="async"><iframe class="lv-video lv-anim" src="${v.anim}" title="" tabindex="-1" aria-hidden="true"></iframe>`
+        :`<video class="lv-video" src="${v.src}" poster="${v.poster}" playsinline webkit-playsinline preload="auto" disablepictureinpicture></video>`}
+      <div class="lv-sr" aria-live="polite"></div>
       <button type="button" class="lv-big" aria-label="Lire la vidéo">${LV_ICO.play}</button>
       ${v.notes?`<div class="lv-note" hidden>
         <div class="lv-note-in">
@@ -18855,7 +19077,7 @@ function openLessonVideo(){
     <div class="lv-bottom">
       <div class="lv-seekrow">
         <span class="lv-time lv-cur" aria-hidden="true">0:00</span>
-        <input class="lv-seek" type="range" min="0" max="1000" step="1" value="0" aria-label="Avancement de la vidéo">
+        <div class="lv-track"><input class="lv-seek" type="range" min="0" max="1000" step="1" value="0" aria-label="Avancement de la vidéo"><div class="lv-tip" aria-hidden="true" hidden></div></div>
         <span class="lv-time lv-dur" aria-hidden="true">${v.duree?'':'0:00'}</span>
       </div>
       <div class="lv-ctrls">
@@ -18870,44 +19092,73 @@ function openLessonVideo(){
       </div>
     </div>`;
   document.body.appendChild(root);
-  const video=root.querySelector('video'), seek=root.querySelector('.lv-seek');
-  LV={id:l.id,root,video,seek,seeking:false,note:null};
+  const video=v.anim?new LvAnim(root.querySelector('.lv-anim')):root.querySelector('video'), seek=root.querySelector('.lv-seek');
+  LV={id:l.id,root,video,seek,seeking:false,note:null,q:null,cap:null,saved:0,tap:{t:0,side:0,timer:0,total:0,burst:0}};
   const noteEl=root.querySelector('.lv-note');
   if(noteEl){
     LV.note={el:noteEl,cfg:v.notes,shown:false,done:false,timer:0};
     noteEl.querySelector('.lv-note-btn').addEventListener('click',lvNoteAdd);
     if(lvNoteExisting(l))lvNoteMark('already');
-    const place=()=>lvNotePlace();
-    video.addEventListener('loadedmetadata',place);
-    if(window.ResizeObserver){LV.note.ro=new ResizeObserver(place);LV.note.ro.observe(root.querySelector('.lv-stage'));}
-    else addEventListener('resize',place);
-    LV.note.place=place;
   }
+  /* Bouton des notes et question : replacés sur l’image quand la taille de l’écran change. */
+  const place=()=>{ lvNotePlace(); lvQPlace(); };
+  LV.place=place;
+  video.addEventListener('loadedmetadata',place);
+  if(window.ResizeObserver){ LV.ro=new ResizeObserver(place); LV.ro.observe(root.querySelector('.lv-stage')); }
+  else addEventListener('resize',place);
   video.muted=LV_MUTED;
   lvSyncMute();
   video.playbackRate=LV_RATE; video.defaultPlaybackRate=LV_RATE;
   lvSyncRate();
-  video.addEventListener('loadedmetadata',()=>{ if(!LV||LV.video!==video)return; video.playbackRate=LV_RATE; root.querySelector('.lv-dur').textContent=lvFmt(Math.round(video.duration)); lvSyncSeek(); });
+  video.addEventListener('loadedmetadata',()=>{
+    if(!LV||LV.video!==video)return;
+    video.playbackRate=LV_RATE;
+    root.querySelector('.lv-dur').textContent=lvFmt(Math.round(video.duration));
+    root.classList.remove('is-loading'); root.classList.add('is-ready');
+    lvMarks(); lvSyncSeek();
+  });
+  /* Reprise là où on s’était arrêté (même après avoir fermé l’app). */
   const resume=LV_POS.get(l.id);
-  if(resume)video.addEventListener('loadedmetadata',()=>{ if(LV&&LV.video===video&&resume<video.duration-1)video.currentTime=resume; },{once:true});
-  video.addEventListener('play',()=>{ root.classList.remove('is-paused'); if(video.playbackRate!==LV_RATE)video.playbackRate=LV_RATE; lvSyncPP(); });
-  video.addEventListener('pause',()=>{ if(!video.ended)root.classList.add('is-paused'); lvSyncPP(); });
-  video.addEventListener('timeupdate',()=>{ if(LV&&LV.video===video){ if(!LV.seeking)lvSyncSeek(); lvNoteSync(); } });
+  if(resume)video.addEventListener('loadedmetadata',()=>{ if(LV&&LV.video===video&&resume>2&&resume<video.duration-2)video.currentTime=resume; },{once:true});
+  video.addEventListener('play',()=>{ root.classList.remove('is-paused'); if(video.playbackRate!==LV_RATE)video.playbackRate=LV_RATE; if(LV&&LV.q)lvQClose(true); lvSyncPP(); });
+  video.addEventListener('pause',()=>{ if(!video.ended)root.classList.add('is-paused'); lvSyncPP(); lvPosKeep(); });
+  video.addEventListener('timeupdate',()=>{
+    if(!LV||LV.video!==video)return;
+    if(!LV.seeking)lvSyncSeek();
+    lvNoteSync(); lvCapSync();
+    if(!video.paused&&performance.now()-LV.saved>4000)lvPosKeep();
+  });
+  video.addEventListener('question',e=>{ if(LV&&LV.video===video&&e.detail)lvQShow(e.detail.i,e.detail.q); });
   video.addEventListener('seeked',()=>{ if(LV&&LV.video===video)lvNoteSync(); });
   video.addEventListener('ended',lvEnded);
   video.addEventListener('error',lvFail);
   seek.addEventListener('input',()=>{
     LV.seeking=true;
     const d=video.duration;
+    if(LV.q)lvQClose(false);
     if(d)video.currentTime=seek.value/1000*d;
-    seek.style.setProperty('--p',(seek.value/10).toFixed(1)+'%');
+    seek.style.setProperty('--pf',(seek.value/1000).toFixed(4));
     root.querySelector('.lv-cur').textContent=lvFmt(seek.value/1000*(d||0));
+    lvTip(true);
     lvNoteSync();
   });
-  seek.addEventListener('change',()=>{ if(LV)LV.seeking=false; });
+  seek.addEventListener('change',()=>{ if(LV){ LV.seeking=false; lvTip(false); lvPosKeep(); } });
+  /* Un appui met en pause ou relance ; deux appuis rapides à gauche ou à droite reculent ou avancent de 5 s. */
   root.querySelector('.lv-stage').addEventListener('click',e=>{
+    if(!LV||LV.root!==root)return;
     if(e.target.closest('.lv-end,.lv-big,.lv-note-btn'))return;
-    lvToggle();
+    if(root.classList.contains('is-q')||root.classList.contains('is-end'))return;
+    const r=e.currentTarget.getBoundingClientRect(), x=(e.clientX-r.left)/Math.max(1,r.width);
+    const side=x<.36?-1:(x>.64?1:0), now=performance.now(), T=LV.tap;
+    if(side&&T.side===side&&now-T.t<330){
+      clearTimeout(T.timer); T.timer=0; T.t=now;
+      T.total=(now-T.burst<900?T.total:0)+LV_SKIP; T.burst=now;
+      lvSkip(side*LV_SKIP); lvDtFx(side,T.total);
+      return;
+    }
+    T.t=now; T.side=side; clearTimeout(T.timer); T.timer=0;
+    if(!side){ lvToggle(); return; }
+    T.timer=setTimeout(()=>{ T.timer=0; if(LV&&LV.root===root)lvToggle(); },300);
   });
   root.querySelector('.lv-big').addEventListener('click',()=>lvPlay());
   root.querySelector('.lv-pp').addEventListener('click',()=>lvToggle());
@@ -18953,13 +19204,9 @@ function lvToggle(){
 function lvSyncSeek(){
   const V=LV.video, d=V.duration||0, p=d?Math.min(1,V.currentTime/d):0;
   LV.seek.value=String(Math.round(p*1000));
-  LV.seek.style.setProperty('--p',(p*100).toFixed(1)+'%');
+  LV.seek.style.setProperty('--pf',p.toFixed(4));
   const c=LV.root.querySelector('.lv-cur'); if(c)c.textContent=lvFmt(V.currentTime);
 }
-/* 0:42, 2:04 */
-function lvFmt(s){ s=Math.max(0,Math.floor(+s||0)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
-/* 0,5×, 1×, 1,5× */
-function lvRateLabel(r){ return String(r).replace('.',',')+'×'; }
 function lvSyncPP(){
   const b=LV&&LV.root.querySelector('.lv-pp'); if(!b)return;
   const playing=!LV.video.paused&&!LV.video.ended;
@@ -18971,6 +19218,7 @@ function lvSkip(d){
   if(!LV||LV.root.classList.contains('is-end'))return;
   const V=LV.video, dur=V.duration||0;
   if(!dur)return;
+  if(LV.q)lvQClose(false);
   V.currentTime=Math.max(0,Math.min(dur-0.15,V.currentTime+d));
   lvSyncSeek(); lvNoteSync();
   const ic=LV.root.querySelector(d<0?'.lv-back svg':'.lv-fwd svg');
@@ -19011,11 +19259,11 @@ function lvSyncMute(){
 function lvEnded(){
   if(!LV)return;
   const {id,root}=LV;
-  LV_POS.delete(id);
+  LV_POS.delete(id); lvPosSave();
+  if(LV.q)lvQClose(true);
   jcMarkPassed(id);
   jcUnlockExo();
-  const m=document.querySelector('#lesson-body .lv-card-meta');
-  if(m&&current&&current.id===id)m.textContent=lessonVideoMeta(current);
+  lvCardSync(id);
   root.classList.add('is-end');
   root.querySelector('.lv-end').hidden=false;
   if(prefersReduceMotion())root.classList.add('end-in');
@@ -19154,6 +19402,133 @@ function lvNoteBurst(btn){
   }
   setTimeout(()=>layer.remove(),1000);
 }
+/* Garde la position (reprise au prochain lancement, même après fermeture de l’app). */
+function lvPosKeep(){
+  if(!LV)return;
+  const V=LV.video; LV.saved=performance.now();
+  if(V.ended)return;
+  const t=V.currentTime, d=V.duration;
+  if(t>2&&d>0&&t<d-2)LV_POS.set(LV.id,+t.toFixed(1)); else LV_POS.delete(LV.id);
+  lvPosSave();
+}
+/* Repères des chapitres : la barre est coupée au début de chaque chapitre. */
+function lvChapterAt(t){
+  const ch=(LV&&LV.video.chapters)||[]; let c=null;
+  ch.forEach(x=>{ if(t>=x.t-.05)c=x; });
+  return c;
+}
+function lvMarks(){
+  if(!LV)return;
+  const ch=LV.video.chapters||[], d=LV.video.duration;
+  if(!ch.length||!(d>0))return;
+  const stops=ch.filter(c=>c.t>.5&&c.t<d-.5).map(c=>{ const P=`9px + ${(c.t/d).toFixed(4)} * (100% - 18px)`; return `transparent calc(${P} - 1.5px),#F4F2FC calc(${P} - 1.5px),#F4F2FC calc(${P} + 1.5px),transparent calc(${P} + 1.5px)`; });
+  LV.seek.style.setProperty('--gaps',`linear-gradient(90deg,transparent 0,${stops.join(',')},transparent 100%)`);
+}
+/* En glissant sur la barre : le nom du chapitre et le temps, au-dessus du doigt. */
+function lvTip(on){
+  if(!LV)return;
+  const tip=LV.root.querySelector('.lv-tip'); if(!tip)return;
+  clearTimeout(tip._t);
+  if(!on){ tip._t=setTimeout(()=>{ tip.classList.remove('on'); tip._t=setTimeout(()=>{tip.hidden=true;},180); },450); return; }
+  const V=LV.video, d=V.duration||0, f=LV.seek.value/1000, t=f*d, c=lvChapterAt(t);
+  tip.textContent=(c?`${c.n} · ${c.label}`:'Intro')+' · '+lvFmt(t);
+  const W=LV.seek.getBoundingClientRect().width, x=9+f*(W-18), half=tip.offsetWidth/2||60;
+  tip.style.left=Math.max(half,Math.min(W-half,x)).toFixed(1)+'px';
+  tip.hidden=false; tip.classList.add('on');
+}
+/* Double appui : un rond « −5 s / +5 s » du côté touché, qui cumule les appuis. */
+function lvDtFx(side,total){
+  if(!LV)return;
+  const st=LV.root.querySelector('.lv-stage');
+  let fx=st.querySelector(`.lv-dt[data-side="${side}"]`);
+  if(!fx){ fx=document.createElement('div'); fx.className='lv-dt'; fx.dataset.side=String(side); fx.setAttribute('aria-hidden','true'); fx.innerHTML=`<span>${side<0?LV_ICO.rew2:LV_ICO.ffw2}</span><b></b>`; st.appendChild(fx); }
+  fx.querySelector('b').textContent=`${side<0?'−':'+'}${total} s`;
+  fx.classList.remove('on'); void fx.offsetWidth; fx.classList.add('on');
+  clearTimeout(fx._t); fx._t=setTimeout(()=>fx.remove(),760);
+}
+/* Légendes annoncées à VoiceOver (texte de l’animation). */
+function lvCapSync(){
+  const caps=LV&&LV.video.captions; if(!caps||!caps.length)return;
+  const t=LV.video.currentTime, c=caps.find(x=>t>=x.a&&t<x.b)||null;
+  if(c===LV.cap)return;
+  LV.cap=c;
+  const sr=LV.root.querySelector('.lv-sr'); if(sr)sr.textContent=c?c.text:'';
+}
+/* ---------- Question dans l’animation ----------
+   L’animation s’arrête, deux réponses au choix ; la bonne réponse se colore en vert (le vert ne sert qu’à « bonne réponse »),
+   une erreur tremble en rouge. Puis l’explication et « Continuer ». */
+function lvQShow(i,q){
+  if(!LV||!q)return;
+  if(LV.q)lvQClose(false);
+  const box=document.createElement('div');
+  box.className='lv-q';
+  box.setAttribute('role','group'); box.setAttribute('aria-labelledby','lv-q-t');
+  box.innerHTML=`<div class="lv-q-card">
+    <div class="lv-q-a">
+      <span class="lv-q-kick">${q.kicker||'À toi de deviner'}</span>
+      <p class="lv-q-t" id="lv-q-t">${q.q}</p>
+      <div class="lv-q-opts">${q.options.map((o,k)=>`<button type="button" class="lv-q-opt" data-k="${k}">${o.label}</button>`).join('')}</div>
+    </div>
+    <div class="lv-q-b" hidden>
+      <p class="lv-q-res"><i aria-hidden="true"></i><b></b></p>
+      <p class="lv-q-why">${q.why||''}</p>
+      <button type="button" class="lq-btn lv-q-go">Continuer</button>
+    </div>
+  </div>`;
+  LV.root.appendChild(box);
+  LV.root.classList.add('is-q');
+  LV.q={i,q,box,done:false,timer:0};
+  lvQPlace();
+  box.querySelectorAll('.lv-q-opt').forEach(b=>b.addEventListener('click',()=>lvQAnswer(+b.dataset.k)));
+  box.querySelector('.lv-q-go').addEventListener('click',()=>{ lvQClose(true); lvPlay(); });
+  if(prefersReduceMotion())box.classList.add('on');
+  else requestAnimationFrame(()=>requestAnimationFrame(()=>box.classList.add('on')));
+  if(navigator.vibrate)navigator.vibrate(8);
+  try{box.querySelector('.lv-q-opt').focus({preventScroll:true});}catch(e){}
+}
+function lvQAnswer(k){
+  const Q=LV&&LV.q; if(!Q||Q.done)return;
+  Q.done=true;
+  const {box,q}=Q, opt=q.options[k], ok=!!(opt&&opt.ok), btns=[...box.querySelectorAll('.lv-q-opt')];
+  box.classList.add('is-done',ok?'is-right-ans':'is-wrong-ans');
+  btns.forEach((b,j)=>{ b.setAttribute('aria-disabled','true'); if(j===k)b.classList.add(ok?'is-ok':'is-ko'); else if(!ok&&q.options[j].ok)b.classList.add('is-right'); });
+  if(LV.video.sfx)LV.video.sfx(ok?'true':'false');
+  if(navigator.vibrate)navigator.vibrate(ok?[10,60,20]:[20,60,20]);
+  if(ok&&!prefersReduceMotion())lvNoteBurst(btns[k]);
+  const card=box.querySelector('.lv-q-card'), a=box.querySelector('.lv-q-a'), b=box.querySelector('.lv-q-b');
+  b.querySelector('b').textContent=ok?(q.okTitle||'Bien vu !'):(q.koTitle||'Pas tout à fait');
+  b.querySelector('i').textContent=ok?'✓':'✕';
+  Q.timer=setTimeout(()=>{
+    if(!LV||LV.q!==Q)return;
+    const h0=card.offsetHeight;
+    a.hidden=true; b.hidden=false;
+    const h1=card.offsetHeight;
+    if(!prefersReduceMotion()&&card.animate){
+      card.animate([{height:h0+'px'},{height:h1+'px'}],{duration:280,easing:'cubic-bezier(.2,.8,.2,1)'});
+      b.animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'none'}],{duration:300,easing:'ease-out'});
+    }
+    lvQPlace();
+    try{b.querySelector('.lv-q-go').focus({preventScroll:true});}catch(e){}
+  },prefersReduceMotion()?0:900);
+}
+function lvQClose(answered){
+  const Q=LV&&LV.q; if(!Q)return;
+  LV.q=null;
+  clearTimeout(Q.timer);
+  if(answered&&LV.video.answer)LV.video.answer(Q.i);
+  LV.root.classList.remove('is-q');
+  const box=Q.box;
+  if(prefersReduceMotion()||!box.animate){ box.remove(); return; }
+  box.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateY(14px)'}],{duration:200,easing:'ease-in',fill:'forwards'}).onfinish=()=>box.remove();
+}
+function lvQPlace(){
+  const Q=LV&&LV.q; if(!Q)return;
+  const a=lvPt(0,0), b=lvPt(1080,1920); if(!a||!b)return;
+  const R=LV.root.getBoundingClientRect(), m=Math.max(10,14*a.s), w=Math.min(b.x-a.x-2*m,440);
+  Q.box.style.left=((a.x+b.x)/2-w/2).toFixed(1)+'px';
+  Q.box.style.width=w.toFixed(1)+'px';
+  Q.box.style.bottom=Math.max(8,R.height-b.y+m).toFixed(1)+'px';
+}
 function lvReplay(){
   if(!LV)return;
   LV.root.classList.remove('is-end','end-in');
@@ -19181,15 +19556,18 @@ function lvKey(e){
 function lvHidden(){ if(document.hidden&&LV)LV.video.pause(); }
 function closeLessonVideo(instant){
   if(!LV)return;
-  const {id,root,video,note}=LV;
+  lvPosKeep();
+  const {id,root,video,note,ro,place,tap}=LV;
   LV=null;
-  if(note){ clearTimeout(note.timer); if(note.ro)note.ro.disconnect(); else removeEventListener('resize',note.place); }
-  try{ if(!video.ended&&video.currentTime>1)LV_POS.set(id,video.currentTime); }catch(e){}
+  if(note)clearTimeout(note.timer);
+  clearTimeout(tap.timer);
+  if(ro)ro.disconnect(); else removeEventListener('resize',place);
   try{video.pause();}catch(e){}
+  lvCardSync(id);
   document.removeEventListener('keydown',lvKey);
   document.removeEventListener('visibilitychange',lvHidden);
   /* Libère la vidéo (mémoire sur iPhone) puis retire le lecteur. */
-  const done=()=>{ try{video.removeAttribute('src');video.load();}catch(e){} root.remove(); };
+  const done=()=>{ try{ if(video.destroy)video.destroy(); else{ video.removeAttribute('src'); video.load(); } }catch(e){} root.remove(); };
   if(instant||prefersReduceMotion())done();
   else{ root.classList.remove('on'); setTimeout(done,320); }
   if(!instant){

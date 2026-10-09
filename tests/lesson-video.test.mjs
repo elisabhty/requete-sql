@@ -15,11 +15,12 @@ const cut = (from, to) => {
   return html.slice(a, b);
 };
 
-test('WHERE : le cours a sa vidéo, son image fixe et sa vignette, présentes dans le dépôt', () => {
+test('WHERE : le cours a son animation, son image fixe et sa vignette, présentes dans le dépôt', () => {
   const where = cut('guide({ id:4, titre:"WHERE"', 'guide({ id:5,');
-  const m = where.match(/video:\{src:'([^']+)',poster:'([^']+)',thumb:'([^']+)',duree:'([^']+)',/);
+  const m = where.match(/video:\{anim:'([^']+)',poster:'([^']+)',thumb:'([^']+)',duree:'([^']+)',/);
   assert.ok(m, 'champ video du cours WHERE');
-  for (const f of m.slice(1, 4)) assert.ok(fs.statSync(path.join(ROOT, f)).size > 1000, `fichier présent : ${f}`);
+  assert.equal(m[1], 'assets/anim/where.html?app&embed');
+  for (const f of m.slice(1, 4)) assert.ok(fs.statSync(path.join(ROOT, f.split('?')[0])).size > 1000, `fichier présent : ${f}`);
   assert.equal(m[4], '2 min 02');
   assert.ok(/notes:\{t:114\.8,y:1330,card:\[64,356,1016,1017\],to:\[940,255\]\}/.test(where), 'bouton « Ajouter dans notes » à 1 min 55, sous le récapitulatif ; la note part du récapitulatif vers le carnet');
   assert.ok(html.includes("'exoNeeds','video']"), 'guide() garde le champ video sur la leçon');
@@ -62,22 +63,31 @@ test('vignette du cours : verrou tant que la vidéo n’est pas finie, puis « P
     moduleDeLecon: () => ({titre: 'Lire une table'}),
     jcGateLocked: () => !passed, jcPassed: () => passed, etapesDe: () => ({}),
   });
-  vm.runInContext(cut('const LV_FAILED=new Set()', 'function openLessonVideo(){') + ';this.slide=lessonVideoSlide;this.on=lessonVideoOn;this.fail=LV_FAILED;', ctx);
-  const l = {id: 4, titre: 'WHERE', résumé: 'Filtrer les lignes', video: {src: 'assets/videos/where.mp4', poster: 'p.jpg', thumb: 't.jpg', duree: '2 min 02'}};
+  vm.runInContext(cut('const LV_FAILED=new Set()', 'function openLessonVideo(){') + ';this.slide=lessonVideoSlide;this.on=lessonVideoOn;this.fail=LV_FAILED;this.pos=LV_POS;', ctx);
+  const l = {id: 4, titre: 'WHERE', résumé: 'Filtrer les lignes', video: {anim: 'assets/anim/where.html?app&embed', poster: 'p.jpg', thumb: 't.jpg', duree: '2 min 02'}};
   let h = ctx.slide(l);
   assert.ok(h.includes('data-jc-gate onclick="openLessonVideo()">Termine la vidéo pour continuer'));
   assert.ok(h.includes('Regarder la vidéo · 2 min 02') && h.includes('src="t.jpg"'));
   passed = true;
   h = ctx.slide(l);
   assert.ok(h.includes('onclick="setLessonStep(1)">Passer à l’exercice') && h.includes('Revoir la vidéo · 2 min 02'));
+  ctx.pos.set(4, 42.7);
+  assert.ok(ctx.slide(l).includes('Reprendre · 0:42'), 'position gardée : la vignette propose de reprendre');
+  ctx.pos.delete(4);
   assert.equal(ctx.on(l), true);
+  assert.equal(ctx.on({id: 6, video: {src: 'x.mp4'}}), true, 'une vidéo MP4 reste possible');
   ctx.fail.add(4);
   assert.equal(ctx.on(l), false, 'après un échec de lecture, le cours texte revient');
   assert.equal(ctx.on({id: 5, video: null}), false);
 });
 
-test('la vidéo part dans l’app iOS et reste hors du cache du service worker (lecture par morceaux sur Safari)', () => {
-  assert.ok(build.includes("for (const dir of ['assets', 'vendor'])") && !/unused = new Set\([^)]*where\.mp4/.test(build));
+test('l’animation part dans l’app iOS et reste légère (plus de MP4 pour WHERE)', () => {
+  assert.ok(build.includes("for (const dir of ['assets', 'vendor'])"), 'assets/ (donc assets/anim) est copié dans l’app');
+  assert.ok(!fs.existsSync(path.join(ROOT, 'assets/videos/where.mp4')), 'l’ancien MP4 de 9 Mo a disparu');
+  let total = 0;
+  for (const f of ['where.html', 'gsap.min.js', 'mascotte.webp', 'where-poster.jpg', 'where-thumb.jpg']) total += fs.statSync(path.join(ROOT, 'assets/anim', f)).size;
+  total += fs.statSync(path.join(ROOT, 'assets/fonts/jetbrains-mono.woff2')).size;
+  assert.ok(total < 450 * 1024, `animation et ressources : ${Math.round(total / 1024)} Ko`);
   assert.ok(sw.includes("url.pathname.endsWith('.mp4')"));
 });
 
@@ -137,4 +147,91 @@ test('micro-interaction de l’ajout : halo, mini-note en arc vers « Mes notes 
   assert.ok(!/toast\(/.test(fly), 'pas de toast');
   const pt = cut('function lvPt(X,Y){', 'function lvNotePlace(){');
   assert.ok(pt.includes('X/1080*dw') && pt.includes('Y/1920*dh'), 'positions prises sur la maquette de la vidéo');
+});
+
+test('page de l’animation : ressources locales, mode intégré, question, chapitres et légendes exportés', () => {
+  const page = fs.readFileSync(path.join(ROOT, 'assets/anim/where.html'), 'utf8');
+  for (const rel of ['gsap.min.js', 'mascotte.webp', '../fonts/jetbrains-mono.woff2', '../fonts/bricolage-grotesque-regular.woff2', '../fonts/bricolage-grotesque-bold.woff2'])
+    assert.ok(page.includes(rel) && fs.existsSync(path.join(ROOT, 'assets/anim', rel)), `ressource : ${rel}`);
+  assert.ok(!/https?:\/\//.test(page.replace(/https:\/\/gsap\.com/g, '')), 'rien de chargé depuis Internet');
+  assert.ok(page.includes("const EMBED = new URLSearchParams(location.search).has('embed');"), 'mode intégré : la scène s’adapte à la fenêtre');
+  assert.ok(page.includes("q: 'Lucas habite à Lyon. Sa ligne sera-t-elle gardée ?'") && page.includes("{label: 'Non, écartée', ok: true}"));
+  assert.ok(page.includes('chapters: CHAPTERS.map(') && page.includes('captions: CAPTIONS.map(') && page.includes('questions: QUESTIONS.map('));
+  assert.ok(page.includes('const sr = $(\'#stage\').getBoundingClientRect(), k = sr.width / 1080 || 1;'), 'mesures justes quand la scène est réduite');
+  assert.ok(page.includes('<div class="inv-from">NutriBoost</div>') && page.includes('Avec <span class="ic">WHERE</span>, garde seulement'));
+});
+
+test('LvAnim se pilote comme une vidéo : lecture, vitesse, question, reprise, fin', async () => {
+  const frames = [];
+  let now = 0;
+  const ctx = vm.createContext({
+    requestAnimationFrame: cb => { frames.push(cb); return frames.length; },
+    cancelAnimationFrame: () => { frames.length = 0; },
+    performance: {now: () => now},
+    setTimeout, clearTimeout, Promise, Math, Number, Set, Map, Error,
+  });
+  vm.runInContext(cut('const LvSfx=', 'function lessonVideoOn(l)') + ';this.LvAnim=LvAnim;', ctx);
+  const rendered = [];
+  const info = {duration: 10, cues: [{t: 1, type: 'pop', gain: 1, pitch: 0}],
+    chapters: [{t: 0, n: 1, label: 'Situation'}], captions: [{a: 0, b: 5, text: 'Une légende'}],
+    questions: [{t: 4, kicker: 'À toi de deviner', q: 'Question ?', options: [{label: 'Oui', ok: false}, {label: 'Non', ok: true}]}]};
+  const frame = {addEventListener(type, fn) { this.load = fn; }, contentWindow: {__ready: Promise.resolve(info), renderAt: t => rendered.push(t)}, src: ''};
+  const a = new ctx.LvAnim(frame), log = [];
+  for (const ev of ['loadedmetadata', 'play', 'pause', 'ended', 'question', 'seeked']) a.addEventListener(ev, e => log.push(ev + (e.detail ? ':' + e.detail.i : '')));
+  a.play();
+  assert.equal(log.length, 0, 'lecture demandée avant le chargement : elle attend');
+  await frame.load();
+  assert.deepEqual(log, ['loadedmetadata', 'play']);
+  assert.equal(a.duration, 10); assert.equal(a.chapters.length, 1); assert.equal(a.captions[0].text, 'Une légende');
+  const step = dt => { now += dt * 1000; const f = frames.shift(); f && f(now); };
+  for (let i = 0; i < 30; i++) step(0.1);
+  assert.ok(Math.abs(a.currentTime - 3) < 1e-6, `3 s écoulées : ${a.currentTime}`);
+  a.playbackRate = 2;
+  for (let i = 0; i < 10; i++) step(0.1);
+  assert.equal(a.currentTime, 4, 'arrêt pile sur la question');
+  assert.ok(a.paused && log.includes('question:0'), 'la question met l’animation en pause');
+  a.answer(0); a.play();
+  for (let i = 0; i < 40; i++) step(0.1);
+  assert.ok(a.ended && a.paused && a.currentTime === 10 && log.at(-1) === 'ended', 'fin de l’animation');
+  assert.equal(log.filter(x => x === 'question:0').length, 1, 'une question répondue n’est pas reposée');
+  a.currentTime = 6.5;
+  assert.ok(!a.ended && a.currentTime === 6.5 && log.at(-1) === 'seeked' && rendered.at(-1) === 6.5, 'reprise à une position donnée');
+  a.currentTime = 99;
+  assert.equal(a.currentTime, 10, 'jamais au-delà de la fin');
+  a.play();
+  assert.equal(a.currentTime, 0, 'relancer après la fin repart du début');
+  a.destroy();
+  assert.equal(frame.src, 'about:blank');
+});
+
+test('reprise, repères de chapitres, double appui, question et légendes dans le lecteur', () => {
+  const player = cut('function openLessonVideo(){', 'function lvPlay(){');
+  assert.ok(html.includes("const LV_POS_KEY='rq-video-pos';") && html.includes('localStorage.setItem(LV_POS_KEY'), 'position gardée après fermeture de l’app');
+  assert.ok(player.includes("lvPosKeep(); });") && player.includes('resume>2&&resume<video.duration-2'), 'gardée à la pause, reprise au lancement');
+  assert.ok(cut('function closeLessonVideo(instant){', 'function lessonStepMeta(){').includes('lvPosKeep();'));
+  const keep = cut('function lvPosKeep(){', '/* Repères des chapitres');
+  assert.ok(keep.includes('if(t>2&&d>0&&t<d-2)LV_POS.set(LV.id,+t.toFixed(1)); else LV_POS.delete(LV.id);'));
+  assert.ok(cut('function lvEnded(){', 'function lvReplay(){').includes('LV_POS.delete(id); lvPosSave();'), 'vidéo finie : la prochaine fois, elle repart du début');
+  const marks = cut('function lvMarks(){', '/* En glissant sur la barre');
+  assert.ok(marks.includes("LV.seek.style.setProperty('--gaps'") && html.includes('background:var(--gaps,linear-gradient(transparent,transparent))'), 'barre coupée au début de chaque chapitre');
+  assert.ok(cut('function lvTip(on){', '/* Double appui').includes("tip.textContent=(c?`${c.n} · ${c.label}`:'Intro')+' · '+lvFmt(t);"), 'nom du chapitre en glissant');
+  assert.ok(player.includes('if(side&&T.side===side&&now-T.t<330){') && player.includes('lvSkip(side*LV_SKIP); lvDtFx(side,T.total);'), 'double appui à gauche / à droite');
+  assert.ok(player.includes("T.timer=setTimeout(()=>{ T.timer=0; if(LV&&LV.root===root)lvToggle(); },300);"), 'un seul appui sur le côté : pause après un court délai');
+  const ans = cut('function lvQAnswer(k){', 'function lvQClose(answered){');
+  for (const part of ["LV.video.sfx(ok?'true':'false')", 'navigator.vibrate(ok?[10,60,20]:[20,60,20])', "b.classList.add(ok?'is-ok':'is-ko')", "b.classList.add('is-right')", 'lvNoteBurst(btns[k])'])
+    assert.ok(ans.includes(part), `réponse : ${part}`);
+  assert.ok(cut('function lvQShow(i,q){', 'function lvQAnswer(k){').includes("addEventListener('click',()=>{ lvQClose(true); lvPlay(); })"), '« Continuer » relance l’animation');
+  assert.ok(player.includes("video.addEventListener('question',e=>{") && player.includes('if(LV&&LV.q)lvQClose(true);'), 'relancer pendant la question la passe');
+  assert.ok(player.includes('<div class="lv-sr" aria-live="polite"></div>') && html.includes('function lvCapSync(){'), 'légendes annoncées à VoiceOver');
+});
+
+test('service worker : l’animation, chargée dans un cadre, n’écrase jamais la page de l’app et reste disponible hors ligne', () => {
+  const iAnim = sw.indexOf("if (req.mode === 'navigate' && (req.destination === 'iframe' || url.pathname.includes('/assets/anim/')))");
+  const iShell = sw.indexOf("if (req.mode === 'navigate') {");
+  assert.ok(iAnim > 0 && iShell > iAnim, 'les cadres sont traités avant la page de l’app');
+  const block = sw.slice(iAnim, iShell);
+  assert.ok(block.includes('cache.put(req, res.clone())') && !block.includes("cache.put('./index.html'"), 'rangée sous sa propre adresse');
+  assert.ok(sw.includes("await cache.add(new Request('./index.html', { cache: 'reload' }))"), 'la page de l’app est rechargée à l’activation');
+  for (const f of ['./assets/anim/where.html?app&embed', './assets/anim/gsap.min.js', './assets/anim/mascotte.webp', './assets/fonts/jetbrains-mono.woff2'])
+    assert.ok(sw.includes(`'${f}'`), `préchargé : ${f}`);
 });

@@ -1,0 +1,962 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Requête · WHERE en vidéo</title>
+<style>
+@font-face{font-family:'Bricolage Grotesque';src:url(../fonts/bricolage-grotesque-regular.woff2) format('woff2');font-weight:300 550;font-display:block}
+@font-face{font-family:'Bricolage Grotesque';src:url(../fonts/bricolage-grotesque-bold.woff2) format('woff2');font-weight:551 900;font-display:block}
+@font-face{font-family:'JBM';src:url(../fonts/jetbrains-mono.woff2) format('woff2');font-weight:100 800;font-display:block}
+
+:root{
+  --bg:#F4F2FC;--surface:#FFFFFF;--surface-2:#F1EEFC;
+  --ink:#221C46;--ink-2:#4E4872;--ink-3:#6A6490;
+  --line:#E6E1F6;--line-2:#EFECFA;--lip:#DCD5F2;
+  --accent:#6A4DF4;--accent-2:#8B6CFF;--accent-soft:#EEE9FF;--accent-ink:#5335E0;--accent-lip:#4B30CC;
+  --danger:#C2323A;--danger-fill:#EF4F55;--danger-soft:#FDEBEC;
+  --code-bg:#1E1A3B;--code-bg-2:#28234D;--code-ink:#EFEBFF;--t-kw:#C9BCFF;--t-str:#FFE08A;--t-com:#9C96C4;
+  --display:'Bricolage Grotesque','Inter',sans-serif;
+  --ui:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;
+  --mono:'JBM','DejaVu Sans Mono',monospace;
+  --blink:1;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#0d0b1c}
+html.embed,html.embed body{height:100%;overflow:hidden;background:#F4F2FC}
+html.embed #stage{position:absolute;left:0;top:0;transform-origin:0 0}
+#stage{position:relative;width:1080px;height:1920px;overflow:hidden;background:var(--bg);font-family:var(--ui);color:var(--ink);-webkit-font-smoothing:antialiased}
+.emo{font-family:'Noto Color Emoji',sans-serif;font-weight:400;line-height:1}
+.abs{position:absolute}
+.scene{position:absolute;left:0;top:0;width:1080px;height:1920px;visibility:hidden;opacity:0}
+.blob{position:absolute;border-radius:50%;pointer-events:none}
+.b1{width:1300px;height:900px;left:-110px;top:-420px;background:radial-gradient(closest-side,#E7DFFF 0%,rgba(231,223,255,0) 100%)}
+.b2{width:1100px;height:1100px;left:420px;top:1240px;background:radial-gradient(closest-side,#ECE6FF 0%,rgba(236,230,255,0) 100%)}
+
+/* ---------- Habillage permanent ---------- */
+#progress{position:absolute;left:64px;width:952px;top:40px;display:flex;gap:12px;opacity:0}
+#progress .seg{flex:1;height:10px;border-radius:6px;background:#E2DCF5;overflow:hidden}
+#progress .seg i{display:block;width:100%;height:100%;background:var(--accent);transform-origin:0 50%;transform:scaleX(0)}
+#header{position:absolute;left:64px;width:952px;top:82px;height:92px;display:flex;align-items:center;opacity:0}
+.logo{flex:none;width:84px;height:84px;border-radius:24px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 7px 0 var(--accent-lip);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--mono);font-weight:800;font-size:34px;letter-spacing:-1px}
+.brand{margin-left:24px;font-family:var(--display);font-weight:800;font-size:50px;letter-spacing:-1px;color:var(--ink)}
+#chapter{margin-left:auto;position:relative;height:80px;width:560px}
+#chapter .chip{position:absolute;right:0;top:0;height:76px;padding:0 30px;display:flex;align-items:center;gap:12px;border-radius:999px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);font-size:32px;font-weight:600;color:var(--ink-2);white-space:nowrap;opacity:0;visibility:hidden}
+#chapter .chip b{color:var(--accent-ink);font-weight:800}
+
+/* ---------- Légende ---------- */
+#cap{position:absolute;left:64px;width:952px;top:1526px;height:262px;background:#fff;border:3px solid var(--line);border-radius:48px;box-shadow:0 9px 0 var(--lip);opacity:0;visibility:hidden}
+#cap .c{position:absolute;left:0;top:0;right:0;bottom:0;padding:0 52px;display:flex;align-items:center;opacity:0;visibility:hidden}
+#cap .c p{margin:0;font-size:44px;line-height:1.32;font-weight:500;color:var(--ink);text-wrap:pretty;letter-spacing:-.2px}
+#cap .c b{font-weight:700;color:var(--ink)}
+code,.ic{font-family:var(--mono);font-size:.86em;font-weight:700;color:var(--accent-ink);background:var(--accent-soft);padding:.04em .32em;border-radius:.3em;white-space:nowrap}
+
+/* ---------- Cartes et code ---------- */
+.card{background:#fff;border:3px solid var(--line);border-radius:48px;box-shadow:0 9px 0 var(--lip)}
+.code{background:var(--code-bg);border-radius:46px;box-shadow:0 10px 0 #110E27;color:var(--code-ink);overflow:hidden}
+.code .top{height:76px;display:flex;align-items:center;gap:14px;padding:0 38px;border-bottom:2px solid rgba(255,255,255,.06)}
+.code .dot{width:18px;height:18px;border-radius:50%;background:#4A4475;display:block}
+.code .fname{margin-left:14px;font-family:var(--mono);font-size:30px;color:#9C96C4}
+.code .body{position:relative;padding:30px 44px;font-family:var(--mono);font-size:42px;line-height:64px;font-weight:500;white-space:pre}
+.code .ln{position:relative;display:block;height:64px;z-index:1}
+.kw{color:var(--t-kw);font-weight:800}
+.str{color:var(--t-str)}
+.caret{display:inline-block;width:0;height:0;position:relative;visibility:hidden;opacity:0}
+.caret i{position:absolute;left:3px;top:-46px;width:5px;height:54px;background:#B9A8FF;border-radius:3px;opacity:var(--blink)}
+.run{position:relative;margin:0 38px 38px;height:104px;border-radius:30px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 9px 0 #4B30CC;display:flex;align-items:center;justify-content:center;gap:18px;color:#fff;font-weight:700;font-size:40px;overflow:hidden}
+.run svg{width:46px;height:46px;flex:none}
+.ripple{position:absolute;left:50%;top:50%;width:700px;height:700px;margin:-350px 0 0 -350px;border-radius:50%;background:rgba(255,255,255,.38);transform:scale(0);opacity:0}
+.band{position:absolute;left:26px;right:26px;height:64px;border-radius:16px;background:rgba(139,108,255,.26);box-shadow:inset 0 0 0 2px rgba(185,168,255,.6);transform-origin:0 50%;transform:scaleX(0);z-index:0}
+.glow{border-radius:10px;padding:0 4px;margin:0 -4px}
+
+/* ---------- Tableaux ---------- */
+.tbl{position:absolute;left:64px;width:952px;padding:0 0 18px;overflow:hidden}
+.tbl .tt{height:78px;display:flex;align-items:center;padding:0 34px;gap:16px;font-weight:700;font-size:34px;color:var(--ink)}
+.tbl .tt .emo{font-size:38px}
+.cnt{margin-left:auto;position:relative;height:54px;width:240px}
+.cnt span{position:absolute;right:0;top:0;height:54px;padding:0 24px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:30px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.rg{display:grid;grid-template-columns:var(--c1) var(--c2) var(--c3);padding:0 26px}
+.rg4{display:grid;grid-template-columns:166px 178px 404px 158px;padding:0 13px}
+.th{height:58px;align-items:center;background:var(--surface-2);font-family:var(--mono);font-size:28px;font-weight:700;color:var(--ink-3)}
+.th>div{padding:0 12px;white-space:nowrap;overflow:hidden}
+.rows{position:relative}
+.tr{position:relative;height:66px;align-items:center;font-family:var(--mono);font-size:36px;font-weight:600;color:var(--ink);box-shadow:inset 0 2px 0 var(--line-2);overflow:hidden}
+.tr>div{position:relative;z-index:1;padding:0 12px;white-space:nowrap;overflow:hidden}
+.tr4{font-size:27px}
+.tr .hl{position:absolute;left:0;top:0;right:0;bottom:0;background:var(--accent-soft);box-shadow:inset 8px 0 0 var(--accent);opacity:0;z-index:0}
+.city{position:relative;display:inline-block}
+.city .mbox{position:absolute;left:-13px;right:-13px;top:-6px;bottom:-6px;background:#FADADD;border-radius:13px;box-shadow:inset 0 0 0 2px rgba(194,50,58,.16);z-index:-1;opacity:0}
+.pill{display:inline-flex;align-items:center;gap:10px;height:50px;padding:0 22px;border-radius:999px;font-family:var(--ui);font-size:30px;font-weight:700;opacity:0}
+.pill.t{background:var(--accent);color:#fff}
+.pill.f{background:#ECE9F5;color:var(--ink-3)}
+.scanner{position:absolute;left:12px;right:12px;top:0;height:66px;border:4px solid var(--accent);border-radius:18px;box-shadow:0 0 0 7px rgba(106,77,244,.14);opacity:0;z-index:3}
+
+/* ---------- Scène 0 ---------- */
+#s0 .tag0{left:0;width:1080px;top:300px;display:flex;justify-content:center}
+.tagpill{height:62px;padding:0 28px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:30px;font-weight:700;display:flex;align-items:center}
+#s0 .title{left:0;width:1080px;top:372px;text-align:center;font-family:var(--display);font-weight:800;font-size:236px;line-height:1;letter-spacing:-6px;color:var(--ink)}
+#s0 .title span{display:inline-block}
+#s0 .hilite{left:228px;width:624px;top:540px;height:62px;border-radius:20px;background:#DDD3FF;transform-origin:0 50%;transform:scaleX(0)}
+#s0 .sub{left:0;width:1080px;top:650px;text-align:center;font-family:var(--display);font-weight:700;font-size:74px;letter-spacing:-1.5px;color:var(--ink-2)}
+.mascot{width:500px;height:auto}
+#s0 .mascot{left:24px;top:850px}
+.bubble{background:#fff;border:3px solid var(--line);border-radius:44px;box-shadow:0 9px 0 var(--lip);padding:34px 40px;font-size:44px;line-height:1.3;font-weight:600;color:var(--ink)}
+.bubble::before{content:"";position:absolute;left:-26px;top:96px;width:44px;height:44px;background:#fff;border-left:3px solid var(--line);border-bottom:3px solid var(--line);transform:rotate(45deg);border-bottom-left-radius:10px}
+#s0 .bubble{left:528px;top:930px;width:490px;font-size:42px;line-height:1.3;padding:34px 40px}
+#s0 .bubble::before{top:96px}
+
+/* ---------- Scène 1 ---------- */
+.invite{left:160px;top:256px;width:760px;overflow:visible}
+.inv-band{height:104px;border-radius:45px 45px 0 0;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);display:flex;align-items:center;gap:18px;padding:0 44px;color:#fff;font-family:var(--display);font-weight:800;font-size:46px}
+.inv-band .emo{font-size:48px}
+.inv-body{padding:30px 44px}
+.inv-from{font-size:30px;font-weight:600;color:var(--ink-3)}
+.inv-title{margin-top:6px;font-family:var(--display);font-weight:800;font-size:58px;letter-spacing:-1.4px;color:var(--ink);white-space:nowrap}
+.inv-place{margin-top:14px;display:flex;align-items:center;gap:12px;font-size:40px;font-weight:600;color:var(--ink-2)}
+.inv-place .emo{font-size:40px}
+.stamp{position:absolute;right:-34px;top:-30px;padding:12px 24px;border:5px solid var(--accent);border-radius:20px;color:var(--accent-ink);background:#F7F4FF;box-shadow:0 6px 0 #D9CEFF;font-family:var(--display);font-weight:800;font-size:40px;opacity:0;white-space:nowrap}
+.need{left:64px;top:650px;width:952px;padding:30px 0 16px}
+.need-h{padding:0 42px 14px;font-size:34px;font-weight:700;color:var(--ink-3)}
+.need-row{height:118px;display:flex;align-items:center;gap:24px;padding:0 42px;box-shadow:inset 0 2px 0 var(--line-2);opacity:0}
+.need-row .emo{font-size:52px;width:60px;text-align:center}
+.need-row .nl{font-size:42px;font-weight:650;color:var(--ink)}
+.tag{margin-left:auto;font-family:var(--mono);font-size:29px;font-weight:700;color:var(--accent-ink);background:var(--accent-soft);padding:8px 18px;border-radius:14px;white-space:nowrap}
+
+/* ---------- Scène 3 ---------- */
+.ask{left:64px;top:236px;width:952px;height:132px;display:flex;align-items:center;gap:28px;padding:0 34px;background:var(--accent-soft);border:3px solid #D3C8FF;border-radius:40px;box-shadow:0 8px 0 #D9CEFF;font-size:44px;font-weight:700;color:var(--accent-ink)}
+.ask .q{flex:none;width:78px;height:78px;border-radius:22px;background:var(--accent);box-shadow:0 5px 0 var(--accent-lip);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:50px}
+.sqlrow{left:64px;top:398px;width:952px;height:100px;display:flex;align-items:center;justify-content:center;gap:24px}
+.sqlrow .lbl{font-size:36px;font-weight:700;color:var(--ink-3)}
+.sqlrow .arw{font-size:40px;color:var(--ink-3)}
+.codepill{display:inline-flex;align-items:center;height:96px;padding:0 38px;border-radius:28px;background:var(--code-bg);box-shadow:0 8px 0 #110E27;font-family:var(--mono);font-size:46px;font-weight:600;color:var(--code-ink);white-space:pre}
+.stat{left:64px;top:984px;width:952px;height:190px;display:flex;align-items:center;justify-content:center;gap:30px}
+.big-n{display:flex;flex-direction:column;align-items:center;gap:4px}
+.big-n b{font-family:var(--display);font-weight:800;font-size:92px;line-height:1;letter-spacing:-2px}
+.big-n span{font-size:30px;font-weight:600;color:var(--ink-3)}
+.big-n.from b{color:#B4ADCF}
+.big-n.to b{color:var(--accent)}
+.stat .via{display:flex;flex-direction:column;align-items:center;gap:8px}
+.stat .via .ic{font-size:30px}
+.stat .via .ar{font-size:54px;color:var(--accent);line-height:1}
+
+/* ---------- Scène 4 ---------- */
+.look{left:64px;width:952px;height:126px;padding:18px 34px;border-radius:32px;background:var(--surface-2);border:3px solid var(--line)}
+.look .lk{font-family:var(--mono);font-size:34px;font-weight:800;color:var(--accent-ink)}
+.look .lt{margin-top:6px;font-size:36px;font-weight:500;color:var(--ink-2)}
+
+/* ---------- Scène 5 ---------- */
+.qdemo{left:64px;top:236px;width:952px;height:200px;text-align:center}
+.qdemo .codepill{height:112px;font-size:58px;padding:0 46px}
+.qt{display:inline-block;color:#FFE08A}
+.qlabel{position:absolute;top:0;left:0;font-size:32px;font-weight:700;color:var(--ink-3);white-space:nowrap}
+.brk{position:absolute;left:0;top:0;width:952px;height:200px;overflow:visible}
+.brk path{fill:none;stroke:#A99CE0;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.trap{left:64px;width:952px;height:486px;padding:30px 36px}
+.trap-h{display:flex;align-items:center;gap:14px;font-size:38px;font-weight:700;color:var(--accent-ink)}
+.trap-h .emo{font-size:38px}
+.mini{position:relative;margin-top:20px;padding:22px 30px;border-radius:30px;background:var(--code-bg);box-shadow:0 7px 0 #110E27;color:var(--code-ink);font-family:var(--mono);font-size:34px;line-height:50px;font-weight:500;white-space:pre}
+.mini .go{position:absolute;right:22px;top:22px;width:78px;height:78px;border-radius:24px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 6px 0 #4B30CC;display:flex;align-items:center;justify-content:center}
+.mini .go svg{width:40px;height:40px}
+.bad{text-decoration:underline wavy rgba(239,79,85,0);text-decoration-thickness:5px;text-underline-offset:12px}
+.out{margin-top:24px;height:124px;border-radius:28px;display:flex;align-items:center;gap:24px;padding:0 28px;opacity:0}
+.out.err{background:var(--danger-soft);border:3px solid #F6C9CD}
+.out.err .oi{background:var(--danger-fill);color:#fff}
+.out.emp{background:var(--surface-2);border:3px solid var(--line)}
+.out.emp .oi{background:#fff;color:var(--ink-3);border:3px solid var(--line)}
+.oi{flex:none;width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:38px}
+.ot{display:flex;flex-direction:column;gap:2px}
+.ot b{font-size:34px;font-weight:800}
+.out.err .ot b{color:var(--danger)}
+.ot .m{font-family:var(--mono);font-size:30px;font-weight:600;color:#8E2A31}
+.ot .s{font-size:30px;font-weight:500;color:var(--ink-3)}
+.neq{margin-left:auto;font-family:var(--mono);font-size:32px;font-weight:800;color:var(--accent-ink);background:#fff;border:3px solid #D3C8FF;border-radius:18px;padding:10px 18px;white-space:nowrap;opacity:0}
+
+/* ---------- Scène 6 ---------- */
+.env{width:460px;height:268px;padding:0;overflow:hidden;opacity:0}
+.env .eb{height:74px;display:flex;align-items:center;gap:12px;padding:0 28px;background:var(--accent-soft);color:var(--accent-ink);font-weight:800;font-size:30px}
+.env .eb .emo{font-size:32px}
+.env .eb .stamp2{margin-left:auto;font-size:40px}
+.env .en{padding:22px 28px 0;font-family:var(--display);font-weight:800;font-size:46px;letter-spacing:-1px;color:var(--ink);white-space:nowrap}
+.env .ee{padding:4px 28px 0;font-family:var(--mono);font-size:26px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.env .sent{position:absolute;right:22px;bottom:22px;height:46px;padding:0 18px;border-radius:999px;background:var(--accent);color:#fff;font-size:26px;font-weight:700;display:flex;align-items:center;gap:8px;opacity:0}
+.badge{left:0;width:1080px;top:1336px;display:flex;justify-content:center;opacity:0}
+.badge span{height:104px;padding:0 44px;border-radius:999px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 9px 0 #4B30CC;color:#fff;font-size:40px;font-weight:700;display:flex;align-items:center;gap:16px}
+
+/* ---------- Scène 7 ---------- */
+.rtitle{left:64px;top:244px;font-family:var(--display);font-weight:800;font-size:70px;letter-spacing:-1.8px;color:var(--ink)}
+.recap{left:64px;top:356px;width:952px;padding:12px 0}
+.rrow{display:flex;gap:30px;padding:30px 40px;opacity:0}
+.rrow+.rrow{box-shadow:inset 0 2px 0 var(--line-2)}
+.rico{flex:none;width:110px;height:110px;border-radius:30px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:56px}
+.rtxt{font-size:41px;line-height:1.3;font-weight:600;color:var(--ink);padding-top:4px}
+.rtxt .rs{display:block;margin-top:8px;font-size:35px;font-weight:500;color:var(--ink-2)}
+.rtxt .ic{font-size:.84em}
+.rtxt .blk{display:inline-block;margin-top:12px}
+.flow{left:64px;top:1150px;width:952px;height:300px;display:flex;align-items:center;justify-content:space-between}
+.mini-t{width:330px;height:300px;padding:24px 26px;opacity:0}
+.mini-t .mh{font-family:var(--mono);font-size:28px;font-weight:800;color:var(--ink-2)}
+.mini-t .bars{margin-top:16px;display:flex;flex-direction:column;gap:7px}
+.mini-t .bars i{display:block;height:11px;border-radius:6px;background:#DED8F3}
+.mini-t .bars i.p{background:var(--accent)}
+.mini-t .mf{position:absolute;left:26px;bottom:20px;font-size:28px;font-weight:700;color:var(--ink-3)}
+.mini-t .mf b{color:var(--accent-ink)}
+.flow .mid{display:flex;flex-direction:column;align-items:center;gap:12px;opacity:0;font-size:36px}
+.flow .mid .ar{font-size:64px;line-height:1;color:var(--accent)}
+
+/* ---------- Scène 8 ---------- */
+.exo{left:64px;top:236px;width:952px;padding:36px 40px 40px}
+.step{display:inline-flex;align-items:center;height:56px;padding:0 24px;border:3px solid var(--ink);border-radius:999px;font-size:30px;font-weight:700;color:var(--ink)}
+.exo .et{margin-top:22px;font-size:48px;line-height:1.28;font-weight:700;color:var(--ink);letter-spacing:-.4px}
+.exo .ed{margin-top:28px;height:150px;border-radius:30px;background:var(--code-bg);box-shadow:0 7px 0 #110E27;padding:28px 34px;font-family:var(--mono);font-size:40px;color:#7E77AC}
+.exo .ed .caret{visibility:visible;opacity:1}
+#s8 .mascot{left:30px;top:800px;width:470px}
+#s8 .bubble{left:520px;top:900px;width:496px;font-family:var(--display);font-weight:800;font-size:66px;letter-spacing:-1.2px;line-height:1.1;padding:40px 44px}
+#s8 .bubble::before{top:70px}
+.foot{left:0;width:1080px;top:1640px;display:flex;align-items:center;justify-content:center;gap:24px;opacity:0}
+.foot .logo{width:76px;height:76px;font-size:30px;border-radius:22px}
+.foot .ft{font-family:var(--display);font-weight:800;font-size:46px;letter-spacing:-.8px;color:var(--ink)}
+.foot .ft span{color:var(--ink-3);font-weight:600}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Lire une table</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title" id="s0title"><span>W</span><span>H</span><span>E</span><span>R</span><span>E</span></div>
+    <div class="abs sub">Filtrer les lignes</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec <span class="ic">WHERE</span>, garde seulement les lignes qui correspondent à ton critère.</div>
+  </section>
+
+  <!-- 1 · Situation -->
+  <section class="scene" id="s1">
+    <div class="abs card invite">
+      <div class="inv-band"><span class="emo">🎉</span><span>Invitation</span></div>
+      <div class="inv-body">
+        <div class="inv-from">NutriBoost</div>
+        <div class="inv-title">Événement éphémère</div>
+        <div class="inv-place"><span class="emo">📍</span><span>Dans un local à Paris</span></div>
+      </div>
+      <div class="stamp">Places limitées</div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">👤</span><span class="nl">Le prénom du client</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">👪</span><span class="nl">Son nom de famille</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">✉️</span><span class="nl">Son email</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">📍</span><span class="nl">Sa ville</span><span class="tag">table clients</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème -->
+  <section class="scene" id="s2">
+    <div class="abs code" id="s2code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s2l1"><span class="kw">SELECT</span> prenom, ville<span class="caret"><i></i></span></span><span class="ln" id="s2l2"><span class="kw">FROM</span> clients;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s2run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+  </section>
+
+  <!-- Tableau partagé (scènes 2 et 3) -->
+  <div class="tbl card" id="tbl" style="top:664px;opacity:0;visibility:hidden">
+    <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt10">10 lignes</span><span id="cnt4">4 lignes</span></span></div>
+    <div class="rg th"><div>prenom</div><div>ville</div><div class="c3">ville = 'Paris' ?</div></div>
+    <div class="rows" id="rows"><div class="scanner" id="scanner"></div></div>
+  </div>
+
+  <!-- 3 · La condition -->
+  <section class="scene" id="s3">
+    <div class="abs ask" id="ask"><span class="q">?</span><span>Est-ce que sa ville est Paris&nbsp;?</span></div>
+    <div class="abs sqlrow" id="sqlrow"><span class="lbl">En SQL</span><span class="arw">→</span><span class="codepill">ville = <span class="str">'Paris'</span></span></div>
+    <div class="abs card stat" id="stat">
+      <div class="big-n from"><b>10</b><span>lignes au départ</span></div>
+      <div class="via"><span class="ic">WHERE</span><span class="ar">→</span></div>
+      <div class="big-n to"><b>4</b><span>lignes gardées</span></div>
+    </div>
+  </section>
+
+  <!-- 4 · La requête -->
+  <section class="scene" id="s4">
+    <div class="abs code" id="s4code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><div class="band" id="s4band" style="top:158px"></div><span class="ln" id="s4l1"><span class="kw">SELECT</span> prenom, ville</span><span class="ln" id="s4l2"><span class="kw">FROM</span> clients</span><span class="ln" id="s4l3"><span class="kw glow" id="s4kw">WHERE</span> <span class="glow" id="s4cond">ville = <span class="str">'Paris'</span></span>;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s4run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="abs look" id="look1" style="top:728px"><div class="lk">WHERE</div><div class="lt">→ indique qu’on veut filtrer les lignes</div></div>
+    <div class="abs look" id="look2" style="top:874px"><div class="lk">ville = 'Paris'</div><div class="lt">→ définit la condition à respecter</div></div>
+    <div class="tbl card" id="tbl4" style="top:1036px;--c1:450px;--c2:450px;--c3:0px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span>4 lignes</span></span></div>
+      <div class="rg th"><div>prenom</div><div>ville</div><div></div></div>
+      <div class="rows" id="rows4"></div>
+    </div>
+  </section>
+
+  <!-- 5 · Deux pièges -->
+  <section class="scene" id="s5">
+    <div class="abs qdemo" id="qdemo">
+      <span class="codepill">ville = <span class="str"><span class="qt" id="q1">'</span>Paris<span class="qt" id="q2">'</span></span></span>
+      <svg class="brk" id="brk"><path id="brkPath" d=""/></svg>
+      <div class="qlabel" id="qlabel">les guillemets simples</div>
+    </div>
+    <div class="abs card trap" id="trapA" style="top:452px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Sans guillemets</span></div>
+      <div class="mini"><span class="kw">SELECT</span> prenom, ville
+<span class="kw">FROM</span> clients
+<span class="kw">WHERE</span> ville = <span class="bad" id="badParis">Paris</span>;<span class="go" id="goA"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
+      <div class="out err" id="errA"><span class="oi">!</span><div class="ot"><b>Erreur SQL</b><span class="m">no such column: Paris</span></div></div>
+    </div>
+    <div class="abs card trap" id="trapB" style="top:968px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Respecte l’écriture des valeurs</span></div>
+      <div class="mini"><span class="kw">SELECT</span> prenom, ville
+<span class="kw">FROM</span> clients
+<span class="kw">WHERE</span> ville = <span class="str">'paris'</span>;<span class="go" id="goB"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
+      <div class="out emp" id="empB"><span class="oi">0</span><div class="ot"><b>Aucune ligne</b><span class="s">0 ligne dans le résultat</span></div><span class="neq" id="neq">'paris' ≠ 'Paris'</span></div>
+    </div>
+  </section>
+
+  <!-- 6 · Le résultat -->
+  <section class="scene" id="s6">
+    <div class="abs code" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body" style="font-size:38px"><span class="ln" id="s6l1"><span class="kw">SELECT</span> prenom, nom, email, ville<span class="caret"><i></i></span></span><span class="ln" id="s6l2"><span class="kw">FROM</span> clients<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="kw">WHERE</span> ville = <span class="str">'Paris'</span>;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6" style="top:740px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span>4 lignes</span></span></div>
+      <div class="rg4 th"><div>prenom</div><div>nom</div><div>email</div><div>ville</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div id="envs"></div>
+    <div class="abs badge" id="badge"><span>✓ 4 invitations envoyées par email</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle" id="rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap">
+      <div class="rrow"><div class="rico emo">🔎</div><div class="rtxt"><span class="ic">WHERE</span> sert à <b>filtrer les lignes</b> selon une condition.<span class="rs">Il agit sur le résultat, sans modifier la table.</span></div></div>
+      <div class="rrow"><div class="rico emo">📍</div><div class="rtxt">Il se place <b>après</b> <span class="ic">FROM</span>&nbsp;:<br><span class="ic blk">WHERE ville = 'Paris'</span></div></div>
+      <div class="rrow"><div class="rico emo">💬</div><div class="rtxt">Pour une valeur en texte, utilise des <b>guillemets simples</b>&nbsp;:<br><span class="ic blk">'Paris'</span></div></div>
+    </div>
+    <div class="abs flow">
+      <div class="card mini-t" id="mtA" style="position:relative"><div class="mh">table clients</div><div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="mf"><b>10 clients</b> · intacte</div></div>
+      <div class="mid" id="mtMid"><span class="ic">WHERE</span><span class="ar">→</span></div>
+      <div class="card mini-t" id="mtB" style="position:relative"><div class="mh">résultat</div><div class="bars"><i class="p"></i><i class="p"></i><i class="p"></i><i class="p"></i></div><div class="mf"><b>4 lignes</b></div></div>
+    </div>
+  </section>
+
+  <!-- 8 · À toi -->
+  <section class="scene" id="s8">
+    <div class="abs card exo" id="exo">
+      <div class="step">Exercice</div>
+      <div class="et">Affiche toutes les colonnes des clients qui habitent à Paris.</div>
+      <div class="ed"><span class="caret" id="exoCaret"><i style="top:-4px"></i></span></div>
+    </div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">À toi de jouer&nbsp;!</div>
+    <div class="abs foot"><div class="logo">&gt;_</div><div class="ft">Requête <span>· Apprends le SQL</span></div></div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script>
+'use strict';
+const FPS = 30;
+/* ?app : version du cours dans l’app (le bouton « Ajouter dans notes » et l’écran « À toi de jouer » sont ceux de l’app). */
+const APP = new URLSearchParams(location.search).has('app');
+/* ?embed : jouée dans le lecteur de l’app, qui pilote le temps (renderAt) ; la scène remplit la fenêtre sans être rognée. */
+const EMBED = new URLSearchParams(location.search).has('embed');
+if (EMBED) {
+  document.documentElement.classList.add('embed');
+  const fit = () => {
+    const st = document.getElementById('stage'); if (!st) return;
+    const s = Math.min(innerWidth / 1080, innerHeight / 1920);
+    st.style.transform = `translate(${((innerWidth - 1080 * s) / 2).toFixed(2)}px,${((innerHeight - 1920 * s) / 2).toFixed(2)}px) scale(${s.toFixed(5)})`;
+  };
+  addEventListener('resize', fit);
+  addEventListener('DOMContentLoaded', fit);
+}
+const DURATION = APP ? 96 : 99;
+/* Pauses de lecture : à ces instants de la timeline, l’image reste affichée le temps de lire la légende
+   (instant, durée en secondes). Placées quand rien ne bouge, juste avant que la légende ne s’efface. */
+const HOLDS = [[2.25,2.3],[8.3,1.55],[11.1,1.4],[14.35,1.6],[17.25,1.35],[22.6,1.8],[26.1,1.75],[30.3,1.45],[35.35,1.65],[37.75,2.6],[42.9,0.3],[55.2,0.6],[58.5,0.75],[64.25,0.8],[76.2,0.7],[85.4,2.9],[87.2,2.9]];
+const HOLD_TOTAL = HOLDS.reduce((a, h) => a + h[1], 0);
+const OUT_DURATION = +(DURATION + HOLD_TOTAL).toFixed(3);
+/* Temps de la vidéo → temps de la timeline (et l’inverse pour les sons). */
+function warp(T){
+  let shift = 0;
+  for (const [t, d] of HOLDS) { if (T <= t + shift) break; if (T < t + shift + d) return t; shift += d; }
+  return T - shift;
+}
+function unwarp(t){ let s = 0; for (const [h, d] of HOLDS) { if (t > h) s += d; else break; } return +(t + s).toFixed(3); }
+const NB = ' ';
+const $ = s => document.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+/* Typographie française : espace insécable avant : ; ! ? et dans « », hors balises et hors <code> */
+function fr(h){
+  let code = 0;
+  return String(h).split(/(<[^>]+>)/).map(t => {
+    if (/^<code[\s>]/.test(t)) { code++; return t; }
+    if (/^<\/code>/.test(t)) { code = Math.max(0, code - 1); return t; }
+    if (t[0] === '<' || code) return t;
+    return t.replace(/ ([:?!;»])/g, NB + '$1').replace(/« /g, '«' + NB).replace(/(\d) (?=\S)/g, '$1' + NB);
+  }).join('');
+}
+
+const CLIENTS = [
+  ['Sophie','Martin','Paris','sophie@mail.fr'],
+  ['Lucas','Bernard','Lyon','lucas@mail.fr'],
+  ['Emma','Dubois','Marseille','emma@mail.fr'],
+  ['Nathan','Petit','Paris','nathan@mail.fr'],
+  ['Chloé','Moreau','Bordeaux','chloe@mail.fr'],
+  ['Hugo','Laurent','Lyon',null],
+  ['Léa','Simon','Paris','lea@mail.fr'],
+  ['Gabriel','Michel','Toulouse','gabriel@mail.fr'],
+  ['Inès','Lefebvre','Nantes',null],
+  ['Nathan','Dupont','Paris','nathan.dupont@mail.fr']
+];
+const PARIS = CLIENTS.filter(c => c[2] === 'Paris');
+
+/* Chapitres : barre de progression + étiquette */
+const CHAPTERS = [
+  {n:1, label:'Situation',      a:5.0,  b:15.0},
+  {n:2, label:'Le problème',    a:15.0, b:26.8},
+  {n:3, label:'La condition',   a:26.8, b:43.8},
+  {n:4, label:'La requête',     a:43.8, b:56.0},
+  {n:5, label:'Deux pièges',    a:56.0, b:71.0},
+  {n:6, label:'Le résultat',    a:71.0, b:83.0},
+  {n:7, label:'À retenir',      a:83.0, b:93.0}
+];
+
+/* Légendes : [début, fin, texte] */
+const CAPTIONS = [
+  [5.3, 8.55,  "L’équipe marketing organise un <b>événement éphémère</b> dans un local à <b>Paris</b>."],
+  [8.6, 11.35, "Les places étant limitées, elle invite <b>uniquement les clients parisiens</b>."],
+  [11.4, 14.6, "Ces informations se trouvent dans la <b>table clients</b>, qui contient <b>10 clients</b>."],
+  [15.3, 18.1, "Première étape : une requête avec <code>SELECT</code> et <code>FROM</code>, sans filtre."],
+  [18.2, 22.9, "Avec <code>SELECT</code>, on choisit les colonnes, mais le résultat contient encore les clients de <b>toutes les villes</b>."],
+  [23.0, 26.4, "Il faut donc préciser <b>quelles lignes conserver</b> : c’est exactement le rôle de <code>WHERE</code>."],
+  [27.4, 31.1, "Pour chaque client, il faut vérifier une condition : sa ville est-elle <b>Paris</b> ?"],
+  [31.2, 35.7, "En SQL, elle s’écrit <code>ville = 'Paris'</code> : SQL compare la ville de chaque ligne à <code>'Paris'</code>."],
+  [35.8, 39.7, "Si la condition est <b>vraie</b>, la ligne est gardée ; si elle est <b>fausse</b>, la ligne est écartée."],
+  [39.8, 43.3, "Le résultat ne contient plus que les <b>4 clients parisiens</b>."],
+  [44.2, 50.5, "<code>WHERE</code> se place <b>après</b> <code>FROM</code>, suivi de la condition."],
+  [50.6, 55.5, "À l’exécution, le résultat ne contient que les lignes où la condition est <b>vraie</b>."],
+  [56.4, 59.8, "Une valeur en texte s’écrit entre <b>guillemets simples</b> : <code>'Paris'</code>."],
+  [59.9, 64.9, "Sans guillemets, <code>Paris</code> est lu comme le nom d’une <b>colonne</b> : la requête provoque une erreur."],
+  [65.0, 70.5, "<code>'paris'</code> ≠ <code>'Paris'</code> : écris la valeur comme elle est enregistrée dans la <b>table clients</b>."],
+  [71.4, 76.5, "La requête complète affiche le prénom, le nom, l’email et la ville des clients parisiens."],
+  [76.6, 82.5, "Résultat : <b>4 clients parisiens</b>, donc 4 invitations prêtes à partir."],
+  [83.3, 88.9, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  [89.0, 92.5, "<code>WHERE</code> agit sur le résultat : la <b>table clients</b> contient toujours ses 10 clients."]
+];
+/* Questions posées par le lecteur de l’app : instant de la timeline, question, réponses, explications. */
+const QUESTIONS = APP ? [{
+  at: 31.58,
+  kicker: 'À toi de deviner',
+  q: 'Lucas habite à Lyon. Sa ligne sera-t-elle gardée ?',
+  options: [{label: 'Oui, gardée', ok: false}, {label: 'Non, écartée', ok: true}],
+  okTitle: 'Bien vu !',
+  koTitle: 'Pas tout à fait',
+  why: 'Lyon ≠ Paris : la condition est fausse, la ligne est écartée.'
+}] : [];
+if (APP) {
+  CHAPTERS[6].b = 96.0;
+  CAPTIONS[CAPTIONS.length - 2][1] = 88.3;
+  CAPTIONS[CAPTIONS.length - 1] = [88.4, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."];
+}
+
+/* ---------- Construction du DOM dynamique ---------- */
+function buildDom(){
+  const prog = $('#progress');
+  CHAPTERS.forEach(() => { const s = document.createElement('div'); s.className = 'seg'; s.innerHTML = '<i></i>'; prog.append(s); });
+  const chap = $('#chapter');
+  CHAPTERS.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'chip';
+    d.innerHTML = `<b>${c.n}</b><span>/ 7 · ${c.label}</span>`;
+    chap.append(d);
+  });
+  const cap = $('#cap');
+  CAPTIONS.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'c';
+    d.innerHTML = `<p>${fr(c[2])}</p>`;
+    cap.append(d);
+  });
+  // Tableau partagé (10 lignes)
+  const rows = $('#rows');
+  CLIENTS.forEach((c, i) => {
+    const r = document.createElement('div');
+    r.className = 'rg tr';
+    const paris = c[2] === 'Paris';
+    r.dataset.paris = paris ? '1' : '0';
+    r.innerHTML = `<i class="hl"></i><div>${c[0]}</div><div><span class="city">${c[2]}<i class="mbox"></i></span></div><div class="c3">${paris ? '<span class="pill t">✓ vraie</span>' : '<span class="pill f">✕ fausse</span>'}</div>`;
+    rows.insertBefore(r, $('#scanner'));
+  });
+  // Résultat de la scène 4
+  const r4 = $('#rows4');
+  PARIS.forEach(c => {
+    const r = document.createElement('div');
+    r.className = 'rg tr';
+    r.innerHTML = `<div>${c[0]}</div><div>${c[2]}</div><div></div>`;
+    r4.append(r);
+  });
+  // Résultat de la scène 6
+  const r6 = $('#rows6');
+  PARIS.forEach(c => {
+    const r = document.createElement('div');
+    r.className = 'rg4 tr tr4';
+    r.innerHTML = `<div>${c[0]}</div><div>${c[1]}</div><div>${c[3]}</div><div>${c[2]}</div>`;
+    r6.append(r);
+  });
+  // Invitations
+  const envs = $('#envs');
+  PARIS.forEach((c, i) => {
+    const e = document.createElement('div');
+    e.className = 'abs card env';
+    const col = i % 2, row = Math.floor(i / 2);
+    e.style.left = (64 + col * 492) + 'px';
+    e.style.top = (740 + row * 300) + 'px';
+    e.innerHTML = `<div class="eb"><span class="emo">✉️</span><span>Invitation</span><span class="stamp2 emo">🎉</span></div><div class="en">${c[0]} ${c[1]}</div><div class="ee">${c[3]}</div><div class="sent">✓ Envoyée</div>`;
+    envs.append(e);
+  });
+}
+
+/* Découpe un élément en caractères (pour l'effet de frappe) */
+function splitChars(root){
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(n => {
+    if (n.parentElement.closest('.caret')) return;
+    const frag = document.createDocumentFragment();
+    for (const ch of n.textContent) {
+      const s = document.createElement('span');
+      s.className = 'ch';
+      s.textContent = ch;
+      frag.append(s);
+    }
+    n.parentNode.replaceChild(frag, n);
+  });
+  return $$('.ch', root);
+}
+
+/* ---------- Timeline ---------- */
+const tl = gsap.timeline({paused: true});
+const CUES = [];
+function cue(t, type, gain = 1, pitch = 0){ CUES.push({t: +t.toFixed(3), type, gain, pitch}); }
+
+function show(el, t, from = {}, dur = 0.55, ease = 'expo.out'){
+  const f = Object.assign({autoAlpha: 0, y: 40}, from);
+  gsap.set(el, f);
+  const to = {autoAlpha: 1, duration: dur, ease};
+  Object.keys(f).forEach(k => { if (k !== 'autoAlpha' && to[k] === undefined) to[k] = (k === 'scale' || k === 'scaleX' || k === 'scaleY') ? 1 : 0; });
+  tl.to(el, to, t);
+}
+function hide(el, t, to = {}, dur = 0.42, ease = 'power2.in'){
+  tl.to(el, Object.assign({autoAlpha: 0, y: -40, duration: dur, ease}, to), t);
+}
+function sceneOn(sel, t){ tl.set(sel, {autoAlpha: 1}, t); }
+function sceneOff(sel, t){ tl.set(sel, {autoAlpha: 0}, t); }
+
+function press(btn, t, lip = '#4B30CC', depth = 9){
+  tl.to(btn, {y: depth - 2, boxShadow: `0 2px 0 ${lip}`, duration: 0.09, ease: 'power2.out'}, t)
+    .to(btn, {y: 0, boxShadow: `0 ${depth}px 0 ${lip}`, duration: 0.3, ease: 'back.out(2.2)'}, t + 0.13);
+  const r = btn.querySelector('.ripple');
+  if (r) {
+    gsap.set(r, {scale: 0, opacity: 0});
+    tl.to(r, {scale: 0, opacity: 0.55, duration: 0.001}, t)
+      .to(r, {scale: 1, opacity: 0, duration: 0.7, ease: 'power2.out'}, t + 0.01);
+  }
+  cue(t, 'click');
+}
+
+function typeLine(line, t, cps = 24, keepCaret = false){
+  const caret = line.querySelector('.caret');
+  const chars = splitChars(line);
+  gsap.set(chars, {display: 'none'});
+  if (caret) tl.set(caret, {autoAlpha: 1}, t - 0.25);
+  tl.to(chars, {display: 'inline', duration: 0.001, stagger: 1 / cps, ease: 'none'}, t);
+  chars.forEach((c, i) => { if (i % 2 === 0 && c.textContent.trim()) cue(t + i / cps, 'type', 1, (i * 7) % 5); });
+  const end = t + chars.length / cps;
+  if (caret && !keepCaret) tl.set(caret, {autoAlpha: 0}, end + 0.12);
+  return end;
+}
+
+/* Mesures de mise en page (avant toute transformation) */
+function layout(){
+  const out = {};
+  /* Mesures ramenées à la scène 1080 × 1920, même quand elle est réduite (lecteur de l’app). */
+  const sr = $('#stage').getBoundingClientRect(), k = sr.width / 1080 || 1;
+  // Surligneur sous « WHERE » : même largeur que le mot
+  const ls = $$('#s0title span');
+  const a = ls[0].getBoundingClientRect(), b = ls[ls.length - 1].getBoundingClientRect();
+  const hl = $('#s0 .hilite');
+  hl.style.left = ((a.left - sr.left) / k + 10) + 'px';
+  hl.style.width = ((b.right - a.left) / k - 20) + 'px';
+  // Accolade sous les deux guillemets simples
+  const qd = $('#qdemo').getBoundingClientRect();
+  const q1 = $('#q1').getBoundingClientRect(), q2 = $('#q2').getBoundingClientRect();
+  const pill = $('#qdemo .codepill').getBoundingClientRect();
+  const x1 = (q1.left + q1.width / 2 - qd.left) / k, x2 = (q2.left + q2.width / 2 - qd.left) / k;
+  const xm = (x1 + x2) / 2, y0 = (pill.bottom - qd.top) / k + 16;
+  const p = $('#brkPath');
+  p.setAttribute('d', `M${x1} ${y0} v18 H${x2} v-18 M${xm} ${y0 + 18} v16`);
+  out.brkLen = p.getTotalLength();
+  const lab = $('#qlabel');
+  const lw = lab.getBoundingClientRect().width / k;
+  lab.style.left = (xm - lw / 2) + 'px';
+  lab.style.top = (y0 + 44) + 'px';
+  return out;
+}
+
+function build(){
+  const L = layout();
+  /* Habillage (visible dès la première image, qui sert de vignette).
+     Dans l’app, le lecteur a sa propre barre d’avancement et sa croix en haut à gauche :
+     la vidéo garde seulement l’étiquette du chapitre. */
+  gsap.set(['#progress', '#header'], {opacity: 1});
+  if (APP) gsap.set(['#progress', '#header .logo', '#header .brand'], {opacity: 0});
+  const segs = $$('#progress .seg i');
+  CHAPTERS.forEach((c, i) => {
+    tl.to(segs[i], {scaleX: 1, duration: c.b - c.a, ease: 'none'}, c.a);
+  });
+  const chips = $$('#chapter .chip');
+  CHAPTERS.forEach((c, i) => {
+    gsap.set(chips[i], {autoAlpha: 0, y: 30});
+    tl.to(chips[i], {autoAlpha: 1, y: 0, duration: 0.5, ease: 'back.out(1.8)'}, c.a - 0.1);
+    if (!(APP && i === CHAPTERS.length - 1)) tl.to(chips[i], {autoAlpha: 0, y: -26, duration: 0.3, ease: 'power2.in'}, c.b - 0.35);
+  });
+  /* Légendes */
+  const capCard = $('#cap');
+  gsap.set(capCard, {autoAlpha: 0, y: 40});
+  tl.to(capCard, {autoAlpha: 1, y: 0, duration: 0.6, ease: 'expo.out'}, 5.0);
+  if (!APP) tl.to(capCard, {autoAlpha: 0, y: 40, duration: 0.45, ease: 'power2.in'}, 92.6);
+  $$('#cap .c').forEach((el, i) => {
+    const [a, b] = CAPTIONS[i];
+    gsap.set(el, {autoAlpha: 0, y: 26});
+    tl.to(el, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'power3.out'}, a);
+    tl.to(el, {autoAlpha: 0, y: -18, duration: 0.25, ease: 'power2.in'}, b - 0.2);
+  });
+
+  /* ===== 0 · Intro ===== */
+  // Le titre est déjà en place sur la première image (elle sert de vignette), puis les lettres sautillent.
+  gsap.set(['#s0', '#s0 .tag0', '#s0 .title', '#s0 .sub'], {autoAlpha: 1});
+  const letters = $$('#s0title span');
+  tl.to(letters, {y: -34, duration: 0.2, ease: 'power2.out', stagger: 0.07, yoyo: true, repeat: 1}, 0.25);
+  letters.forEach((_, i) => cue(0.25 + i * 0.07, 'pop', 0.7, i));
+  tl.to('#s0 .hilite', {scaleX: 1, duration: 0.7, ease: 'expo.out'}, 0.6);
+  const m0 = '#s0 .mascot';
+  gsap.set(m0, {autoAlpha: 0, y: 620, rotation: -6, transformOrigin: '50% 100%'});
+  tl.to(m0, {autoAlpha: 1, y: 0, rotation: 0, duration: 1.0, ease: 'back.out(1.25)'}, 1.0);
+  cue(1.0, 'whoosh', 0.8);
+  tl.to(m0, {y: -12, duration: 0.9, ease: 'sine.inOut', yoyo: true, repeat: 1}, 2.2);
+  gsap.set('#s0 .bubble', {autoAlpha: 0, scale: 0.5, transformOrigin: '0% 40%'});
+  tl.to('#s0 .bubble', {autoAlpha: 1, scale: 1, duration: 0.55, ease: 'back.out(1.9)'}, 1.65);
+  cue(1.65, 'pop', 1, 3);
+  tl.to(['#s0 .tag0', '#s0 .title', '#s0 .hilite', '#s0 .sub'], {autoAlpha: 0, y: -70, duration: 0.45, ease: 'power2.in', stagger: 0.04}, 4.4);
+  tl.to(m0, {autoAlpha: 0, y: 500, duration: 0.5, ease: 'power2.in'}, 4.45);
+  tl.to('#s0 .bubble', {autoAlpha: 0, scale: 0.8, duration: 0.3, ease: 'power2.in'}, 4.4);
+  sceneOff('#s0', 5.0);
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  // L'invitation arrive seule au centre de l'écran, puis remonte quand la liste des informations entre.
+  gsap.set('#s1 .invite', {autoAlpha: 0, y: 470, rotation: -9});
+  tl.to('#s1 .invite', {autoAlpha: 1, y: 380, rotation: -2.5, duration: 0.9, ease: 'back.out(1.3)'}, 5.15);
+  cue(5.15, 'whoosh', 0.8);
+  gsap.set('#s1 .stamp', {autoAlpha: 0, scale: 1.9, rotation: 24});
+  tl.to('#s1 .stamp', {autoAlpha: 1, scale: 1, rotation: 7, duration: 0.36, ease: 'power4.in'}, 8.75);
+  tl.to('#s1 .invite', {x: 6, duration: 0.05, yoyo: true, repeat: 3, ease: 'none'}, 9.11);
+  cue(9.1, 'stamp');
+  tl.to('#s1 .invite', {y: 0, duration: 0.75, ease: 'power3.inOut'}, 11.2);
+  show('#s1 .need', 11.45, {y: 60});
+  cue(11.45, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.2}, 11.85);
+  needRows.forEach((_, i) => cue(11.85 + i * 0.2, 'pop', 0.7, i));
+  tl.to('#s1 .tag', {scale: 1.08, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.1}, 12.9);
+  hide(['#s1 .invite', '#s1 .need'], 14.55);
+  sceneOff('#s1', 15.1);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 15.0);
+  show('#s2code', 15.05, {y: 60}, 0.6);
+  cue(15.05, 'whoosh', 0.7);
+  let te = typeLine($('#s2l1'), 15.55, 24);
+  te = typeLine($('#s2l2'), te + 0.12, 24);
+  press($('#s2run'), te + 0.35);
+  const tStart = te + 0.65;               // ≈ 17.6
+  show('#tbl', tStart, {y: 40}, 0.5);
+  gsap.set('#tbl', {'--c1': '450px', '--c2': '450px', '--c3': '0px'});
+  gsap.set('#tbl .th .c3', {opacity: 0});
+  const trs = $$('#rows .tr');
+  gsap.set(trs, {autoAlpha: 0, y: 16});
+  tl.to(trs, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out', stagger: 0.065}, tStart + 0.2);
+  trs.forEach((_, i) => cue(tStart + 0.2 + i * 0.065, 'tick', 0.45, i));
+  gsap.set('#cnt4', {autoAlpha: 0, y: 24});
+  gsap.set('#cnt10', {autoAlpha: 0, scale: 0.6});
+  tl.to('#cnt10', {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)'}, tStart + 0.95);
+  cue(tStart + 0.95, 'pop', 0.8, 2);
+  // Villes hors de Paris : signalées
+  const miss = trs.filter(r => r.dataset.paris === '0');
+  miss.forEach((r, i) => {
+    const t = 20.6 + i * 0.14;
+    const box = r.querySelector('.mbox'), city = r.querySelector('.city');
+    gsap.set(box, {autoAlpha: 0, scale: 1.25});
+    tl.to(box, {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)'}, t);
+    tl.to(city, {color: '#C2323A', duration: 0.2}, t);
+    cue(t, 'miss', 0.55, i);
+  });
+  hide('#s2code', 26.35, {y: -60});
+  sceneOff('#s2', 26.9);
+
+  /* ===== 3 · La condition ===== */
+  sceneOn('#s3', 26.8);
+  miss.forEach(r => {
+    tl.to(r.querySelector('.mbox'), {autoAlpha: 0, duration: 0.35}, 26.5);
+    tl.to(r.querySelector('.city'), {color: '#221C46', duration: 0.35}, 26.5);
+  });
+  tl.to('#tbl', {y: -132, duration: 0.75, ease: 'power3.inOut'}, 26.75);
+  show('#ask', 27.15, {y: 30, scale: 0.94});
+  cue(27.15, 'pop', 0.9, 1);
+  show('#sqlrow', 28.7, {y: 0, x: -40});
+  cue(28.7, 'pop', 0.9, 3);
+  tl.to('#tbl', {'--c1': '262px', '--c2': '300px', '--c3': '338px', duration: 0.85, ease: 'power3.inOut'}, 29.4);
+  tl.to('#tbl .th .c3', {opacity: 1, duration: 0.4}, 29.85);
+  cue(29.4, 'whoosh', 0.45);
+  // Balayage ligne par ligne
+  const scanner = $('#scanner');
+  const scanTimes = [];
+  let st = 30.6;
+  for (let i = 0; i < 10; i++) { scanTimes.push(st); st += (i < 2 ? 0.85 : 0.36); }
+  gsap.set(scanner, {y: 0, autoAlpha: 0});
+  tl.to(scanner, {autoAlpha: 1, duration: 0.25}, 30.35);
+  trs.forEach((r, i) => {
+    const t = scanTimes[i];
+    tl.to(scanner, {y: i * 66, duration: i ? 0.2 : 0.01, ease: 'power2.out'}, t);
+    tl.to(r.querySelector('.city'), {scale: 1.12, duration: 0.12, yoyo: true, repeat: 1, ease: 'power1.out'}, t + 0.04);
+    const pill = r.querySelector('.pill');
+    gsap.set(pill, {autoAlpha: 0, scale: 0.4});
+    tl.to(pill, {autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2.4)'}, t + 0.17);
+    cue(t, 'tick', 0.5, 4);
+    cue(t + 0.17, r.dataset.paris === '1' ? 'true' : 'false', 0.85);
+  });
+  tl.to(scanner, {autoAlpha: 0, duration: 0.3}, scanTimes[9] + 0.5);
+  // Lignes gardées / écartées
+  const kept = trs.filter(r => r.dataset.paris === '1');
+  tl.to(kept.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.35, stagger: 0.09}, 36.3);
+  cue(36.3, 'chord', 0.7);
+  tl.to(miss, {opacity: 0.32, duration: 0.35, stagger: 0.05}, 37.0);
+  tl.to(miss, {height: 0, opacity: 0, duration: 0.55, ease: 'power2.inOut', stagger: 0.07}, 38.0);
+  cue(38.0, 'fold', 0.9);
+  tl.to('#cnt10', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 38.85);
+  tl.to('#cnt4', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 38.95);
+  cue(38.95, 'pop', 0.9, 4);
+  show('#stat', 39.15, {y: 46}, 0.6);
+  cue(39.15, 'success', 0.55);
+  hide(['#ask', '#sqlrow', '#stat'], 43.3);
+  hide('#tbl', 43.32);
+  sceneOff('#s3', 43.9);
+
+  /* ===== 4 · La requête ===== */
+  sceneOn('#s4', 43.8);
+  show('#s4code', 43.9, {y: 60}, 0.6);
+  cue(43.9, 'whoosh', 0.7);
+  show(['#s4l1', '#s4l2'], 44.45, {y: 14}, 0.35, 'power2.out');
+  te = typeLine($('#s4l3'), 45.05, 20);
+  gsap.set('#s4band', {scaleX: 0});
+  tl.to('#s4band', {scaleX: 1, duration: 0.55, ease: 'expo.out'}, te + 0.2);
+  cue(te + 0.2, 'pop', 0.8, 5);
+  show('#look1', 47.2, {y: 30});
+  cue(47.2, 'pop', 0.8, 1);
+  tl.to('#s4kw', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 47.3);
+  show('#look2', 48.6, {y: 30});
+  cue(48.6, 'pop', 0.8, 3);
+  tl.to('#s4cond', {backgroundColor: 'rgba(255,224,138,.22)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 48.7);
+  press($('#s4run'), 50.35);
+  show('#tbl4', 50.7, {y: 40}, 0.5);
+  const tr4 = $$('#rows4 .tr');
+  gsap.set(tr4, {autoAlpha: 0, y: 16});
+  tl.to(tr4, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out', stagger: 0.09}, 50.9);
+  tr4.forEach((_, i) => cue(50.9 + i * 0.09, 'tick', 0.45, i));
+  cue(51.35, 'chord', 0.6);
+  hide(['#s4code', '#look1', '#look2', '#tbl4'], 55.5);
+  sceneOff('#s4', 56.0);
+
+  /* ===== 5 · Deux pièges ===== */
+  sceneOn('#s5', 56.0);
+  show('#qdemo .codepill', 56.05, {y: 0, scale: 0.9}, 0.55, 'back.out(1.8)');
+  cue(56.05, 'whoosh', 0.6);
+  ['#q1', '#q2'].forEach((q, i) => {
+    tl.to(q, {scale: 1.6, y: -8, color: '#FFC94A', duration: 0.2, ease: 'power2.out'}, 57.0 + i * 0.25)
+      .to(q, {scale: 1, y: 0, color: '#FFE08A', duration: 0.3, ease: 'back.out(2)'}, 57.2 + i * 0.25);
+    cue(57.0 + i * 0.25, 'pop', 0.8, 5 + i);
+  });
+  gsap.set('#brkPath', {strokeDasharray: L.brkLen, strokeDashoffset: L.brkLen});
+  tl.to('#brkPath', {strokeDashoffset: 0, duration: 0.6, ease: 'power2.inOut'}, 57.55);
+  show('#qlabel', 57.9, {y: 14});
+  show('#trapA', 58.6, {y: 50});
+  cue(58.6, 'whoosh', 0.6);
+  press($('#goA'), 59.45, '#4B30CC', 6);
+  tl.to('#badParis', {textDecorationColor: 'rgba(239,79,85,1)', duration: 0.25}, 59.7);
+  show('#errA', 59.7, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  tl.to('#errA', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 60.1);
+  cue(59.7, 'error', 0.9);
+  show('#trapB', 64.35, {y: 50});
+  cue(64.35, 'whoosh', 0.6);
+  press($('#goB'), 65.25, '#4B30CC', 6);
+  show('#empB', 65.5, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  cue(65.5, 'empty', 0.85);
+  show('#neq', 66.0, {y: 0, scale: 0.6}, 0.45, 'back.out(2.2)');
+  cue(66.0, 'pop', 0.8, 2);
+  hide(['#qdemo', '#trapA', '#trapB'], 70.5);
+  sceneOff('#s5', 71.0);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 71.0);
+  show('#s6code', 71.05, {y: 60}, 0.6);
+  cue(71.05, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 71.6, 28);
+  te = typeLine($('#s6l2'), te + 0.1, 28);
+  te = typeLine($('#s6l3'), te + 0.1, 28);
+  press($('#s6run'), te + 0.3);
+  const t6 = te + 0.6;
+  show('#tbl6', t6, {y: 40}, 0.5);
+  const tr6 = $$('#rows6 .tr');
+  gsap.set(tr6, {autoAlpha: 0, y: 16});
+  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out', stagger: 0.1}, t6 + 0.2);
+  tr6.forEach((_, i) => cue(t6 + 0.2 + i * 0.1, 'tick', 0.45, i));
+  // Les lignes deviennent des invitations
+  const envs = $$('#envs .env');
+  const tEnv = 77.0;
+  tl.to('#tbl6', {autoAlpha: 0, scale: 0.96, duration: 0.4, ease: 'power2.in'}, tEnv - 0.05);
+  envs.forEach((e, i) => {
+    const col = i % 2, row = Math.floor(i / 2);
+    const cx = 64 + col * 492 + 230, cy = 740 + row * 300 + 134;
+    const rx = 540, ry = 740 + 78 + 58 + i * 66 + 33;
+    gsap.set(e, {autoAlpha: 0, x: rx - cx, y: ry - cy, scale: 0.35, rotation: (i % 2 ? 6 : -6)});
+    tl.to(e, {autoAlpha: 1, x: 0, y: 0, scale: 1, rotation: 0, duration: 0.75, ease: 'back.out(1.25)'}, tEnv + i * 0.16);
+    cue(tEnv + i * 0.16, 'whoosh', 0.45);
+    const sent = e.querySelector('.sent');
+    gsap.set(sent, {autoAlpha: 0, scale: 0.5});
+    tl.to(sent, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.2)'}, 78.45 + i * 0.13);
+    cue(78.45 + i * 0.13, 'tick', 0.6, 5 + i);
+  });
+  show('#badge', 79.35, {y: 0, scale: 0.6}, 0.55, 'back.out(1.9)');
+  cue(79.35, 'success', 0.9);
+  hide(['#s6code', '#envs .env', '#badge'], 82.5);
+  sceneOff('#s6', 83.0);
+
+  /* ===== 7 · À retenir ===== */
+  sceneOn('#s7', 83.0);
+  show('#rtitle', 83.05, {y: 34});
+  cue(83.05, 'whoosh', 0.6);
+  show('#s7 .recap', 83.35, {y: 50}, 0.6);
+  const rrows = $$('#s7 .rrow');
+  gsap.set(rrows, {autoAlpha: 0, x: -36});
+  [83.7, 85.6, 87.4].forEach((t, i) => {
+    tl.to(rrows[i], {autoAlpha: 1, x: 0, duration: 0.55, ease: 'power3.out'}, t);
+    cue(t, 'pop', 0.85, i * 2);
+  });
+  if (APP) {
+    // Le bouton « Ajouter dans notes » de l’app apparaît ici (88,4 s), sous le récapitulatif.
+    cue(88.45, 'pop', 0.85, 5);
+    tl.set({}, {}, DURATION);
+    return;
+  }
+  show('#mtA', 89.0, {y: 40});
+  cue(89.0, 'pop', 0.7, 0);
+  show('#mtMid', 89.45, {y: 0, x: -30});
+  cue(89.45, 'whoosh', 0.45);
+  show('#mtB', 89.8, {y: 40});
+  cue(89.8, 'chord', 0.6);
+  hide(['#rtitle', '#s7 .recap', '#s7 .flow'], 92.5);
+  sceneOff('#s7', 93.05);
+
+  /* ===== 8 · À toi de jouer ===== */
+  sceneOn('#s8', 93.0);
+  show('#exo', 93.05, {y: 60}, 0.65);
+  cue(93.05, 'whoosh', 0.7);
+  const m8 = '#s8 .mascot';
+  gsap.set(m8, {autoAlpha: 0, y: 560, rotation: 6, transformOrigin: '50% 100%'});
+  tl.to(m8, {autoAlpha: 1, y: 0, rotation: 0, duration: 1.0, ease: 'back.out(1.25)'}, 93.45);
+  cue(93.45, 'whoosh', 0.8);
+  tl.to(m8, {y: -12, duration: 0.95, ease: 'sine.inOut', yoyo: true, repeat: 3}, 94.5);
+  gsap.set('#s8 .bubble', {autoAlpha: 0, scale: 0.4, transformOrigin: '0% 40%'});
+  tl.to('#s8 .bubble', {autoAlpha: 1, scale: 1, duration: 0.6, ease: 'back.out(2)'}, 94.2);
+  cue(94.2, 'success', 1);
+  show('#s8 .foot', 95.0, {y: 30});
+  tl.set({}, {}, DURATION);
+}
+
+/* Rendu d'une image : position dans la timeline + petits effets dépendant du temps */
+function renderAt(T){
+  const t = T;
+  tl.seek(warp(T), true);
+  const blinkOn = Math.floor(t * 1.9) % 2 === 0;
+  document.getElementById('stage').style.setProperty('--blink', blinkOn ? 1 : 0);
+  const b1 = document.querySelector('.b1'), b2 = document.querySelector('.b2');
+  b1.style.transform = `translate(${Math.sin(t * 0.21) * 60}px, ${Math.cos(t * 0.17) * 40}px)`;
+  b2.style.transform = `translate(${Math.cos(t * 0.15) * 70}px, ${Math.sin(t * 0.19) * 50}px)`;
+}
+
+/* Vérifie que chaque légende tient dans la carte */
+function checkCaptions(){
+  const out = [];
+  $$('#cap .c').forEach((el, i) => {
+    const p = el.querySelector('p');
+    const prev = el.style.visibility;
+    el.style.visibility = 'visible';
+    const lines = Math.round(p.getBoundingClientRect().height / (44 * 1.32));
+    el.style.visibility = prev;
+    if (lines > 3) out.push({i, lines, text: CAPTIONS[i][2]});
+  });
+  return out;
+}
+
+window.__ready = (async () => {
+  buildDom();
+  const fams = ['800 50px "Bricolage Grotesque"', '400 40px "Bricolage Grotesque"', '400 40px JBM', '500 40px JBM', '700 40px JBM', '800 40px JBM', '400 40px Inter', '500 40px Inter', '600 40px Inter', '700 40px Inter', '400 40px "Noto Color Emoji"'];
+  await Promise.all(fams.map(f => document.fonts.load(f, 'Aàé’✉️🎉')));
+  await document.fonts.ready;
+  build();
+  renderAt(0);
+  if (EMBED) { const st = document.getElementById('stage'); st && dispatchEvent(new Event('resize')); }
+  return {duration: OUT_DURATION, fps: FPS, cues: CUES.map(c => Object.assign({}, c, {t: unwarp(c.t)})), overflow: checkCaptions(), notesT: unwarp(88.4), holds: HOLD_TOTAL,
+    chapters: CHAPTERS.map(c => ({t: unwarp(c.a), n: c.n, label: c.label})),
+    questions: QUESTIONS.map(q => ({t: unwarp(q.at), kicker: q.kicker, q: fr(q.q), options: q.options.map(o => ({label: o.label, ok: o.ok})), okTitle: fr(q.okTitle), koTitle: fr(q.koTitle), why: fr(q.why)})),
+    /* Légendes en texte : le lecteur les annonce à VoiceOver au fil de l’animation. */
+    captions: CAPTIONS.map(c => ({a: unwarp(c[0]), b: unwarp(Math.min(c[1], DURATION)), text: fr(c[2]).replace(/<[^>]+>/g, '')}))};
+})();
+window.renderAt = renderAt;
+
+/* Lecture en direct quand la page est ouverte dans un navigateur (?play) */
+if (location.search.includes('play')) {
+  window.__ready.then(() => {
+    const t0 = performance.now();
+    const loop = () => { const t = ((performance.now() - t0) / 1000) % OUT_DURATION; renderAt(t); requestAnimationFrame(loop); };
+    loop();
+  });
+}
+</script>
+</body>
+</html>
