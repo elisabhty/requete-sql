@@ -328,6 +328,12 @@ function textIssues(){
       if (l.toks.some(t => t.split)) out.push({kind: 'mot coupé', where: el.className || el.tagName, line: i + 1, text});
     });
     if (isCap && lines.length > 3) out.push({kind: 'plus de 3 lignes', where: 'légende', line: lines.length, text});
+    /* Une courte expression en gras (« table clients », jusqu’à trois mots) reste sur une seule ligne. */
+    $$('b', el).forEach(b => {
+      const rs = [...b.getClientRects()].filter(x => x.width > 0);
+      if (b.textContent.trim().split(/[\s ]+/).length <= 3 && rs.length > 1 && Math.abs(rs[0].top - rs[rs.length - 1].top) > rs[0].height / 2)
+        out.push({kind: 'gras coupé', where: isCap ? 'légende' : el.className || el.tagName, line: 0, text: [b.textContent, ...text]});
+    });
   });
   neutral.remove();
   return out;
