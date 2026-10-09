@@ -38,12 +38,14 @@ const PRECACHE = [
   /* Cours en animation (lecteur du cours) : disponibles hors ligne. */
   './assets/anim/where.html?app&embed',
   './assets/anim/select.html?app&embed',
+  './assets/anim/as.html?app&embed',
   './assets/anim/core.css',
   './assets/anim/core.js',
   './assets/anim/gsap.min.js',
   './assets/anim/mascotte.webp',
   './assets/anim/where-thumb.jpg',
   './assets/anim/select-thumb.jpg',
+  './assets/anim/as-thumb.jpg',
   './assets/fonts/jetbrains-mono.woff2',
 ];
 
