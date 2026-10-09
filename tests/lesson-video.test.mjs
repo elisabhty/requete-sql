@@ -238,3 +238,17 @@ test('service worker : l’animation, chargée dans un cadre, n’écrase jamais
   for (const f of ['./assets/anim/where.html?app&embed', './assets/anim/gsap.min.js', './assets/anim/mascotte.webp', './assets/fonts/jetbrains-mono.woff2'])
     assert.ok(sw.includes(`'${f}'`), `préchargé : ${f}`);
 });
+
+test('son de l’animation : passe même en mode silencieux (comme une vidéo) et se déverrouille sur iPhone', () => {
+  const sfx = cut('const LvSfx=', 'class LvAnim{');
+  assert.ok(sfx.includes("as.type='playback'") && sfx.includes('as.type=prevSession'), 'Audio Session API : « lecture » pendant le cours, rendue à la fermeture');
+  assert.ok(sfx.includes("silentEl.loop=true") && sfx.includes("URL.createObjectURL(silentWav())") && sfx.includes("setAttribute('x-webkit-airplay','deny')"), 'iPhone plus anciens : balise <audio> silencieuse en boucle');
+  assert.ok(sfx.includes('s.buffer=c.createBuffer(1,1,22050); s.connect(c.destination); s.start(0);'), 'son vide joué pendant l’appui pour déverrouiller');
+  const resume = sfx.slice(sfx.indexOf('resume(){'), sfx.indexOf('idle(){'));
+  assert.ok(resume.indexOf('session(true)') < resume.indexOf('init()'), 'session réglée avant de créer le contexte audio');
+  const anim = cut('class LvAnim{', 'function lessonVideoOn(l)');
+  assert.ok(anim.includes('LvSfx.stop(); LvSfx.idle(); this._emit(\'pause\');') && anim.includes('LvSfx.idle(); LvSfx.release();'), 'pause : balise silencieuse arrêtée ; fermeture : session rendue');
+  const ctx = vm.createContext({Blob: class { constructor(parts, o) { this.size = parts[0].byteLength; this.type = o.type; } }, ArrayBuffer, DataView});
+  vm.runInContext(sfx + ';this.LvSfx=LvSfx;', ctx);
+  assert.equal(JSON.stringify(ctx.LvSfx.stats()), '{"state":"none","played":0}', 'aucun son avant le premier appui');
+});

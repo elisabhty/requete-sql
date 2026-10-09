@@ -18854,9 +18854,36 @@ function lvFmt(s){ s=Math.max(0,Math.floor(+s||0)); return Math.floor(s/60)+':'+
 function lvRateLabel(r){ return String(r).replace('.',',')+'×'; }
 /* ---------- Sons d’interface de l’animation ----------
    Synthétisés dans le navigateur (Web Audio), joués au moment où l’animation les atteint : pas de fichier son,
-   et un son reste naturel à toutes les vitesses. Ils suivent le bouton silencieux de l’iPhone, comme les sons d’interface. */
+   et un son reste naturel à toutes les vitesses. Comme pour une vidéo, ils passent même quand l’iPhone est en mode
+   silencieux (session audio « lecture ») ; le bouton son du lecteur les coupe. */
 const LvSfx=(()=>{
-  let ctx=null, master=null, wet=null, muted=false;
+  let ctx=null, master=null, wet=null, muted=false, unlocked=false, played=0, prevSession=null, silentEl=null;
+  /* Petit fichier WAV silencieux (0,25 s), pour les iPhone sans Audio Session API. */
+  function silentWav(){
+    const n=2000, b=new ArrayBuffer(44+n), v=new DataView(b), w=(o,t)=>{ for(let i=0;i<t.length;i++)v.setUint8(o+i,t.charCodeAt(i)); };
+    w(0,'RIFF'); v.setUint32(4,36+n,true); w(8,'WAVE'); w(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
+    v.setUint32(24,8000,true); v.setUint32(28,8000,true); v.setUint16(32,1,true); v.setUint16(34,8,true); w(36,'data'); v.setUint32(40,n,true);
+    for(let i=0;i<n;i++)v.setUint8(44+i,128);
+    return new Blob([b],{type:'audio/wav'});
+  }
+  /* Session audio en « lecture » pendant le cours : le son passe même avec le bouton silencieux, comme une vidéo.
+     iOS 17 et plus : Audio Session API. Avant : une balise <audio> silencieuse qui tourne en boucle pendant la lecture. */
+  function session(on){
+    try{
+      const as=navigator.audioSession;
+      if(as){
+        if(on){ if(as.type!=='playback'){ prevSession=as.type; as.type='playback'; } }
+        else if(prevSession!=null){ as.type=prevSession; prevSession=null; }
+        return;
+      }
+      const ios=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Mac/.test(navigator.platform||''));
+      if(!ios)return;
+      if(on){
+        if(!silentEl){ silentEl=document.createElement('audio'); silentEl.setAttribute('x-webkit-airplay','deny'); silentEl.setAttribute('playsinline',''); silentEl.preload='auto'; silentEl.loop=true; silentEl.src=URL.createObjectURL(silentWav()); }
+        const p=silentEl.play(); if(p&&p.catch)p.catch(()=>{});
+      }else if(silentEl)silentEl.pause();
+    }catch(e){}
+  }
   const cache=new Map(), live=new Set();
   const PENTA=[0,2,4,7,9,12,14,16,19];
   const semis=(b,k)=>b*Math.pow(2,k/12);
@@ -18921,7 +18948,18 @@ const LvSfx=(()=>{
     return ctx;
   }
   return {
-    resume(){ const c=init(); if(c&&c.state!=='running'){ try{ const p=c.resume(); if(p&&p.catch)p.catch(()=>{}); }catch(e){} } },
+    /* Appelé pendant un appui (lecture) : session « lecture », contexte relancé, puis un son vide joué tout de suite,
+       ce qui déverrouille le son sur iPhone. */
+    resume(){
+      session(true);
+      const c=init(); if(!c)return;
+      if(c.state!=='running'){ try{ const p=c.resume(); if(p&&p.catch)p.catch(()=>{}); }catch(e){} }
+      if(!unlocked){ unlocked=true; try{ const s=c.createBufferSource(); s.buffer=c.createBuffer(1,1,22050); s.connect(c.destination); s.start(0); }catch(e){} }
+    },
+    /* En pause : la balise silencieuse s’arrête (pas de lecteur sur l’écran verrouillé). À la fermeture : session rendue. */
+    idle(){ if(silentEl)try{ silentEl.pause(); }catch(e){} },
+    release(){ session(false); },
+    stats(){ return {state:ctx?ctx.state:'none',played}; },
     setMuted(m){ muted=!!m; if(master)master.gain.value=muted?0:1; },
     play(kind,pitch,gain,pan){
       if(muted||!ctx||ctx.state!=='running')return;
@@ -18932,7 +18970,7 @@ const LvSfx=(()=>{
         if(pan&&ctx.createStereoPanner){ const p=ctx.createStereoPanner(); p.pan.value=pan; g.connect(p); out=p; }
         out.connect(master); if(wet)out.connect(wet);
         live.add(src); src.onended=()=>live.delete(src);
-        src.start();
+        src.start(); played++;
       }catch(e){}
     },
     stop(){ live.forEach(s=>{ try{s.stop();}catch(e){} }); live.clear(); }
@@ -18987,10 +19025,10 @@ class LvAnim{
     if(!this.info){ this.wantPlay=true; return Promise.resolve(); }
     this._start(); return Promise.resolve();
   }
-  pause(){ this.wantPlay=false; if(this.paused)return; this.paused=true; cancelAnimationFrame(this.raf); LvSfx.stop(); this._emit('pause'); }
+  pause(){ this.wantPlay=false; if(this.paused)return; this.paused=true; cancelAnimationFrame(this.raf); LvSfx.stop(); LvSfx.idle(); this._emit('pause'); }
   answer(i){ this.answered.add(i); }
   sfx(kind){ LvSfx.play(kind,0,.9,0); }
-  destroy(){ this.dead=true; this.paused=true; cancelAnimationFrame(this.raf); clearTimeout(this.timer); LvSfx.stop(); this._l={}; try{ this.frame.src='about:blank'; }catch(e){} }
+  destroy(){ this.dead=true; this.paused=true; cancelAnimationFrame(this.raf); clearTimeout(this.timer); LvSfx.stop(); LvSfx.idle(); LvSfx.release(); this._l={}; try{ this.frame.src='about:blank'; }catch(e){} }
   _render(){ if(this.win)try{ this.win.renderAt(this.t); }catch(e){} }
   _seekCues(){ let i=0; while(i<this.cues.length&&this.cues[i].t<=this.t)i++; this.ci=i; }
   _start(){ this.wantPlay=false; if(!this.paused||this.dead)return; this.paused=false; this.last=performance.now(); this._emit('play'); this._loop(); }
@@ -19005,7 +19043,7 @@ class LvAnim{
       this.t=t; this._render();
       if(now-this.lastTU>=80||end||q>=0){ this.lastTU=now; this._emit('timeupdate'); }
       if(q>=0){ this.paused=true; this._emit('pause'); this._emit('question',{i:q,q:this.questions[q]}); return; }
-      if(end){ this.paused=true; this.ended=true; this._emit('pause'); this._emit('ended'); return; }
+      if(end){ this.paused=true; this.ended=true; LvSfx.idle(); this._emit('pause'); this._emit('ended'); return; }
       this._loop();
     });
   }
