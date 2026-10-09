@@ -35,11 +35,15 @@ const PRECACHE = [
   './assets/apple-touch-icon.png',
   './assets/icon-192.png',
   './assets/nutriboost-accueil.png',
-  /* Cours WHERE en animation (lecteur du cours) : disponible hors ligne. */
+  /* Cours en animation (lecteur du cours) : disponibles hors ligne. */
   './assets/anim/where.html?app&embed',
+  './assets/anim/select.html?app&embed',
+  './assets/anim/core.css',
+  './assets/anim/core.js',
   './assets/anim/gsap.min.js',
   './assets/anim/mascotte.webp',
   './assets/anim/where-thumb.jpg',
+  './assets/anim/select-thumb.jpg',
   './assets/fonts/jetbrains-mono.woff2',
 ];
 
@@ -94,6 +98,23 @@ self.addEventListener('fetch', (e) => {
         return res;
       } catch (err) {
         return (await cache.match(req)) || (await cache.match(req, { ignoreSearch: true })) || Response.error();
+      }
+    })());
+    return;
+  }
+
+  /* Moteur commun des animations (core.js, core.css) : réseau d’abord lui aussi, en revalidant
+     auprès du serveur — une page d’animation à jour ne doit jamais tourner avec un moteur resté
+     en cache. Hors ligne, la copie rangée prend le relais. */
+  if (url.pathname.includes('/assets/anim/') && /\.(js|css)$/.test(url.pathname) && !url.pathname.endsWith('/gsap.min.js')) {
+    e.respondWith((async () => {
+      const cache = await caches.open(CACHE);
+      try {
+        const res = await fetch(req, { cache: 'no-cache' });
+        if (res && res.ok) cache.put(req, res.clone());
+        return res;
+      } catch (err) {
+        return (await cache.match(req, { ignoreSearch: true })) || Response.error();
       }
     })());
     return;
