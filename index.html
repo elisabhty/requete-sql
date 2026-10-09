@@ -286,7 +286,10 @@
   .som-item.flash{animation:somFlash .4s ease}
   @keyframes somFlash{0%{background:rgba(91,91,214,.08)}100%{background:transparent}}
   /* Apparition en cascade des items */
-  .sommaire-list .som-item{opacity:0;animation:somItemIn .34s cubic-bezier(.32,.72,.28,1) forwards}
+  /* Les lignes sont visibles par défaut : l’animation ne fait que les amener (backwards). Si le navigateur ne la joue pas
+     ou la fige (Safari, appli mise en arrière-plan…), elles restent lisibles ; .is-shown la retire une fois finie. */
+  .sommaire-list .som-item{animation:somItemIn .34s cubic-bezier(.32,.72,.28,1) backwards}
+  .sommaire-list.is-shown .som-item{animation:none}
   .sommaire-list .som-item:nth-child(1){animation-delay:.02s}
   .sommaire-list .som-item:nth-child(2){animation-delay:.07s}
   .sommaire-list .som-item:nth-child(3){animation-delay:.12s}
@@ -20970,6 +20973,8 @@ function buildSommaire(){
   lessonWhereSetup(marks.map((m,i)=>({id:'som-sec-'+i,t:m.t})),current&&current.titre||'');
   const scr=document.getElementById('scr-lesson');
   const list=wrap.querySelector('.sommaire-list');
+  /* Filet de sécurité : l’entrée en cascade dure moins de 0,7 s ; ensuite les lignes sont affichées quoi qu’il arrive. */
+  if(list)setTimeout(()=>list.classList.add('is-shown'),900);
   if(!list||!scr)return;
   list.addEventListener('click',e=>{
     const b=e.target.closest('.som-item');
