@@ -35,6 +35,13 @@ const PRECACHE = [
   './assets/apple-touch-icon.png',
   './assets/icon-192.png',
   './assets/nutriboost-accueil.png',
+  /* Cours WHERE en animation (lecteur du cours) : disponible hors ligne. */
+  './assets/anim/where.html?app&embed',
+  './assets/anim/gsap.min.js',
+  './assets/anim/mascotte.webp',
+  './assets/anim/where-poster.jpg',
+  './assets/anim/where-thumb.jpg',
+  './assets/fonts/jetbrains-mono.woff2',
 ];
 
 self.addEventListener('install', (e) => {
@@ -52,6 +59,9 @@ self.addEventListener('activate', (e) => {
   e.waitUntil((async () => {
     const noms = await caches.keys();
     await Promise.all(noms.filter((n) => n !== CACHE).map((n) => caches.delete(n)));
+    /* La page de l’app est rechargée : une version précédente du worker pouvait y
+       ranger la page d’une animation de cours (chargée dans un cadre). */
+    try { const cache = await caches.open(CACHE); await cache.add(new Request('./index.html', { cache: 'reload' })); } catch (err) {}
     await self.clients.claim();
   })());
 });
@@ -72,6 +82,23 @@ self.addEventListener('fetch', (e) => {
      une réponse complète servie depuis le cache. On laisse le navigateur
      les charger lui-même ; hors ligne, l’image fixe (poster) s’affiche. */
   if (url.pathname.endsWith('.mp4')) return;
+
+  /* Animations des cours, chargées dans un cadre par le lecteur : réseau d’abord,
+     rangées sous leur propre adresse — surtout pas sous index.html, sinon l’app
+     hors ligne s’ouvrirait sur l’animation. */
+  if (req.mode === 'navigate' && (req.destination === 'iframe' || url.pathname.includes('/assets/anim/'))) {
+    e.respondWith((async () => {
+      const cache = await caches.open(CACHE);
+      try {
+        const res = await fetch(req, { cache: 'reload' });
+        if (res && res.ok) cache.put(req, res.clone());
+        return res;
+      } catch (err) {
+        return (await cache.match(req)) || (await cache.match(req, { ignoreSearch: true })) || Response.error();
+      }
+    })());
+    return;
+  }
 
   if (req.mode === 'navigate') {
     e.respondWith((async () => {
