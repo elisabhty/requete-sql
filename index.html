@@ -6482,7 +6482,11 @@ body.in-lesson:has(#scr-lesson.active .navbar.nav-away) #fab{transform:translate
 .lv-q.is-done .lv-q-opt{pointer-events:none}
 .lv-q.is-done .lv-q-opt:not(.is-ok):not(.is-ko):not(.is-right){opacity:.45}
 .lv-q-b[hidden],.lv-q-a[hidden]{display:none}
+.lv-q-recall{display:none;margin:0 2px 10px;font-size:14px;line-height:1.35;font-weight:600;color:var(--ink-3,#6A6490)}
+.lv-q.is-kept .lv-q-recall{display:block}
 .lv-q-res{display:flex;align-items:center;gap:10px;margin:2px 0 0;font:800 21px/1.1 var(--display)}
+.lv-q-mine{margin:8px 2px 0;font-size:15px;line-height:1.35;font-weight:500;color:var(--ink-2,#4E4872)}
+.lv-q-mine b{font-weight:700;color:var(--ink,#221C46)}
 .lv-q-res i{width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;color:#fff;font:800 16px/1 var(--display);font-style:normal}
 .lv-q.is-right-ans .lv-q-res{color:var(--success,#0F7A3A)}
 .lv-q.is-right-ans .lv-q-res i{background:var(--success-fill,#169447)}
@@ -18835,6 +18839,15 @@ const LV_FAILED=new Set();
 const LV_POS_KEY='rq-video-pos';
 const LV_POS=new Map((()=>{ try{ return Object.entries(JSON.parse(localStorage.getItem(LV_POS_KEY)||'{}')).map(([k,v])=>[+k,+v]).filter(([k,v])=>isFinite(k)&&v>0); }catch(e){ return []; } })());
 function lvPosSave(){ try{ localStorage.setItem(LV_POS_KEY,JSON.stringify(Object.fromEntries(LV_POS))); }catch(e){} }
+/* Réponses aux questions de l’animation, par leçon : { id: { n° question: { k: réponse choisie, q: texte de la question } } }.
+   Gardées même après fermeture de l’app ; le texte sert à ignorer une réponse si la question a changé depuis. */
+const LV_ANS_KEY='rq-video-reponses';
+const LV_ANS=(()=>{ try{ const o=JSON.parse(localStorage.getItem(LV_ANS_KEY)||'{}'); return o&&typeof o==='object'?o:{}; }catch(e){ return {}; } })();
+function lvAnsSave(){ try{ localStorage.setItem(LV_ANS_KEY,JSON.stringify(LV_ANS)); }catch(e){} }
+function lvAnsGet(id,i,q){ const a=LV_ANS[id]&&LV_ANS[id][i]; return a&&q&&a.q===q.q&&q.options&&q.options[a.k]?a.k:null; }
+function lvAnsSet(id,i,q,k){ (LV_ANS[id]||(LV_ANS[id]={}))[i]={k,q:q.q}; lvAnsSave(); }
+/* Recommencer la leçon : la vidéo repart du début et les questions sont reposées. */
+function lvForget(id){ LV_POS.delete(id); lvPosSave(); if(LV_ANS[id]){ delete LV_ANS[id]; lvAnsSave(); } }
 let LV=null, LV_MUTED=false;
 /* Vitesse de lecture choisie par la personne, gardée d’une vidéo à l’autre. */
 const LV_RATES=[0.5,0.75,1,1.5,2];
@@ -19043,7 +19056,7 @@ class LvAnim{
       if(this.paused||this.dead)return;
       const dt=Math.min(.25,Math.max(0,(now-this.last)/1000)); this.last=now;
       let t=this.t+dt*this._rate, q=-1;
-      for(let i=0;i<this.questions.length;i++){ const qt=this.questions[i].t; if(!this.answered.has(i)&&qt>this.t&&qt<=t){ t=qt; q=i; break; } }
+      for(let i=0;i<this.questions.length;i++){ const qt=this.questions[i].t; if(qt>this.t&&qt<=t){ t=qt; q=i; break; } }
       const end=t>=this.duration; if(end)t=this.duration;
       while(this.ci<this.cues.length&&this.cues[this.ci].t<=t){ const c=this.cues[this.ci]; if(c.t>this.t)LvSfx.play(c.type,c.pitch||0,c.gain==null?1:c.gain,.36*Math.sin(this.ci*2.399)); this.ci++; }
       this.t=t; this._render();
@@ -19161,7 +19174,12 @@ function openLessonVideo(){
   });
   /* Reprise là où on s’était arrêté (même après avoir fermé l’app). */
   const resume=LV_POS.get(l.id);
-  if(resume)video.addEventListener('loadedmetadata',()=>{ if(LV&&LV.video===video&&resume>2&&resume<video.duration-2)video.currentTime=resume; },{once:true});
+  if(resume)video.addEventListener('loadedmetadata',()=>{
+    if(!LV||LV.video!==video||!(resume>2&&resume<video.duration-2))return;
+    let r=resume;
+    (video.questions||[]).forEach(q=>{ if(r>=q.t-.02&&r<=q.t+.3)r=Math.max(0,q.t-.08); });
+    video.currentTime=r;
+  },{once:true});
   video.addEventListener('play',()=>{ root.classList.remove('is-paused'); if(video.playbackRate!==LV_RATE)video.playbackRate=LV_RATE; if(LV&&LV.q)lvQClose(true); lvSyncPP(); });
   video.addEventListener('pause',()=>{ if(!video.ended)root.classList.add('is-paused'); lvSyncPP(); lvPosKeep(); });
   video.addEventListener('timeupdate',()=>{
@@ -19514,34 +19532,54 @@ function lvQShow(i,q){
       <div class="lv-q-opts">${q.options.map((o,k)=>`<button type="button" class="lv-q-opt" data-k="${k}">${o.label}</button>`).join('')}</div>
     </div>
     <div class="lv-q-b" hidden tabindex="-1">
+      <p class="lv-q-recall">${q.ctx?nw(q.ctx)+' ':''}${nw(q.q)}</p>
       <p class="lv-q-res"><i aria-hidden="true"></i><b></b></p>
+      <p class="lv-q-mine"></p>
       <p class="lv-q-why">${nw(q.why)}</p>
       <button type="button" class="lq-btn lv-q-go">Continuer</button>
     </div>
   </div>`;
   LV.root.appendChild(box);
   LV.root.classList.add('is-q');
-  LV.q={i,q,box,done:false,timer:0};
+  const kept=lvAnsGet(LV.id,i,q);
+  LV.q={i,q,box,done:kept!=null,timer:0};
+  if(kept!=null){
+    /* Déjà répondu : la réponse gardée s’affiche telle quelle, sans pouvoir la changer ni rejouer le son. */
+    lvQFill(box,q,kept);
+    box.classList.add('is-kept');
+    box.querySelector('.lv-q-a').hidden=true;
+    box.querySelector('.lv-q-b').hidden=false;
+  }
   lvQPlace();
   box.querySelectorAll('.lv-q-opt').forEach(b=>b.addEventListener('click',()=>lvQAnswer(+b.dataset.k)));
   box.querySelector('.lv-q-go').addEventListener('click',()=>{ lvQClose(true); lvPlay(); });
   if(prefersReduceMotion())box.classList.add('on');
   else requestAnimationFrame(()=>requestAnimationFrame(()=>box.classList.add('on')));
   if(navigator.vibrate)navigator.vibrate(8);
-  try{box.querySelector('.lv-q-card').focus({preventScroll:true});}catch(e){}
+  try{box.querySelector(kept!=null?'.lv-q-b':'.lv-q-card').focus({preventScroll:true});}catch(e){}
+}
+/* Résultat d’une réponse (nouvelle ou gardée) : boutons colorés, titre, « Ta réponse » ; l’explication dit la bonne réponse. */
+function lvQFill(box,q,k){
+  const opt=q.options[k], ok=!!(opt&&opt.ok);
+  box.classList.add('is-done',ok?'is-right-ans':'is-wrong-ans');
+  [...box.querySelectorAll('.lv-q-opt')].forEach((b,j)=>{ b.setAttribute('aria-disabled','true'); if(j===k)b.classList.add(ok?'is-ok':'is-ko'); else if(!ok&&q.options[j].ok)b.classList.add('is-right'); });
+  const b=box.querySelector('.lv-q-b');
+  b.querySelector('.lv-q-res b').textContent=ok?(q.okTitle||'Bien vu !'):(q.koTitle||'Pas tout à fait');
+  b.querySelector('.lv-q-res i').textContent=ok?'✓':'✕';
+  const esc2=t=>String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  b.querySelector('.lv-q-mine').innerHTML=`Ta réponse&nbsp;: <b>${esc2(opt&&opt.label)}</b>`;
+  return ok;
 }
 function lvQAnswer(k){
   const Q=LV&&LV.q; if(!Q||Q.done)return;
   Q.done=true;
-  const {box,q}=Q, opt=q.options[k], ok=!!(opt&&opt.ok), btns=[...box.querySelectorAll('.lv-q-opt')];
-  box.classList.add('is-done',ok?'is-right-ans':'is-wrong-ans');
-  btns.forEach((b,j)=>{ b.setAttribute('aria-disabled','true'); if(j===k)b.classList.add(ok?'is-ok':'is-ko'); else if(!ok&&q.options[j].ok)b.classList.add('is-right'); });
+  const {box,q}=Q, btns=[...box.querySelectorAll('.lv-q-opt')];
+  const ok=lvQFill(box,q,k);
+  lvAnsSet(LV.id,Q.i,q,k);
   if(LV.video.sfx)LV.video.sfx(ok?'true':'false');
   if(navigator.vibrate)navigator.vibrate(ok?[10,60,20]:[20,60,20]);
   if(ok&&!prefersReduceMotion())lvNoteBurst(btns[k]);
   const card=box.querySelector('.lv-q-card'), a=box.querySelector('.lv-q-a'), b=box.querySelector('.lv-q-b');
-  b.querySelector('b').textContent=ok?(q.okTitle||'Bien vu !'):(q.koTitle||'Pas tout à fait');
-  b.querySelector('i').textContent=ok?'✓':'✕';
   Q.timer=setTimeout(()=>{
     if(!LV||LV.q!==Q)return;
     const h0=card.offsetHeight;
@@ -19724,6 +19762,7 @@ function recommencerLecon(){
   scrollLessonTop();
   if(navigator.vibrate)navigator.vibrate(12);
   saveNav();
+  lvForget(id);
   if(lessonVideoOn(current))openLessonVideo();
 }
 function bravoStatsHtml(){
