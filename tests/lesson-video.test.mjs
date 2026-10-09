@@ -317,6 +317,12 @@ const COURSES = [
     chapters: ['Situation', 'Le problème', 'Renommer une colonne', 'Plusieurs colonnes', 'Le piège des guillemets', 'Le résultat', 'À retenir'],
     question: ["ctx: 'Le dashboard affiche « Prix (€) ».'", "q: 'Dans la table produits, comment s’appelle cette colonne ?'", "{label: 'prix', ok: true}, {label: 'Prix (€)', ok: false}"],
     traps: ['near "du": syntax error', 'near "(": syntax error', '"Nom du produit"']},
+  {id: 13, next: 4, titre: 'DISTINCT', page: 'distinct.html', thumb: 'distinct-thumb.jpg', duree: '2 min 05', notesAt: 87.2,
+    notes: /notes:\{t:117\.25,y:1330,card:\[64,356,1016,1017\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Avec <span class="ic">DISTINCT</span>, garde chaque valeur une seule fois dans le résultat.',
+    chapters: ['Situation', 'Le problème', 'DISTINCT en action', 'Où le placer', 'Plusieurs colonnes', 'Le résultat', 'À retenir'],
+    question: ["ctx: 'Sophie et Léa habitent toutes les deux à Paris.'", "q: 'Avec DISTINCT ville, prenom, leurs lignes sont-elles fusionnées ?'", "{label: 'Oui, fusionnées', ok: false}, {label: 'Non, gardées', ok: true}"],
+    traps: ['near "DISTINCT": syntax error', 'Cette ville est-elle déjà dans le résultat ?', 'Paris + Sophie et Paris + Léa sont des combinaisons différentes']},
 ];
 
 for (const c of COURSES) {
@@ -405,7 +411,7 @@ test('texte des animations : police Inter livrée (mêmes retours à la ligne su
     assert.ok(sw.includes(`'./assets/fonts/${f}.woff2'`), `préchargé hors ligne : ${f}`);
   }
   assert.ok(fs.readFileSync(path.join(ROOT, 'assets/fonts/OFL-Inter.txt'), 'utf8').includes('SIL Open Font License'), 'licence OFL jointe');
-  for (const f of ['core.css', 'where.html', 'select.html', 'as.html'])
+  for (const f of ['core.css', ...fs.readdirSync(path.join(ROOT, 'assets/anim')).filter(n => n.endsWith('.html'))])
     assert.ok(!/text-wrap\s*:\s*pretty/.test(fs.readFileSync(path.join(ROOT, 'assets/anim', f), 'utf8')), `${f} : retours à la ligne classiques (Safari ne rééquilibre plus les lignes)`);
   const core = fs.readFileSync(path.join(ROOT, 'assets/anim/core.js'), 'utf8');
   const ctx = vm.createContext({location: {search: ''}, URLSearchParams, gsap: {config() {}, timeline: () => ({})}, document: {}});
