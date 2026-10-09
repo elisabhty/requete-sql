@@ -20,8 +20,8 @@ test('WHERE : le cours a sa vidéo, son image fixe et sa vignette, présentes da
   const m = where.match(/video:\{src:'([^']+)',poster:'([^']+)',thumb:'([^']+)',duree:'([^']+)',/);
   assert.ok(m, 'champ video du cours WHERE');
   for (const f of m.slice(1, 4)) assert.ok(fs.statSync(path.join(ROOT, f)).size > 1000, `fichier présent : ${f}`);
-  assert.equal(m[4], '1 min 36');
-  assert.ok(/notes:\{t:88\.4,y:1330\}/.test(where), 'bouton « Ajouter dans notes » à 88,4 s, sous le récapitulatif');
+  assert.equal(m[4], '2 min 04');
+  assert.ok(/notes:\{t:116\.2,y:1330\}/.test(where), 'bouton « Ajouter dans notes » à 1 min 56, sous le récapitulatif');
   assert.ok(html.includes("'exoNeeds','video']"), 'guide() garde le champ video sur la leçon');
 });
 
@@ -62,13 +62,13 @@ test('vignette du cours : verrou tant que la vidéo n’est pas finie, puis « P
     jcGateLocked: () => !passed, jcPassed: () => passed, etapesDe: () => ({}),
   });
   vm.runInContext(cut('const LV_FAILED=new Set()', 'function openLessonVideo(){') + ';this.slide=lessonVideoSlide;this.on=lessonVideoOn;this.fail=LV_FAILED;', ctx);
-  const l = {id: 4, titre: 'WHERE', résumé: 'Filtrer les lignes', video: {src: 'assets/videos/where.mp4', poster: 'p.jpg', thumb: 't.jpg', duree: '1 min 36'}};
+  const l = {id: 4, titre: 'WHERE', résumé: 'Filtrer les lignes', video: {src: 'assets/videos/where.mp4', poster: 'p.jpg', thumb: 't.jpg', duree: '2 min 04'}};
   let h = ctx.slide(l);
   assert.ok(h.includes('data-jc-gate onclick="openLessonVideo()">Termine la vidéo pour continuer'));
-  assert.ok(h.includes('Regarder la vidéo · 1 min 36') && h.includes('src="t.jpg"'));
+  assert.ok(h.includes('Regarder la vidéo · 2 min 04') && h.includes('src="t.jpg"'));
   passed = true;
   h = ctx.slide(l);
-  assert.ok(h.includes('onclick="setLessonStep(1)">Passer à l’exercice') && h.includes('Revoir la vidéo · 1 min 36'));
+  assert.ok(h.includes('onclick="setLessonStep(1)">Passer à l’exercice') && h.includes('Revoir la vidéo · 2 min 04'));
   assert.equal(ctx.on(l), true);
   ctx.fail.add(4);
   assert.equal(ctx.on(l), false, 'après un échec de lecture, le cours texte revient');
@@ -105,4 +105,21 @@ test('le bouton suit la vidéo : visible à partir de son moment, caché à la f
   const place = cut('function lvNotePlace(){', 'function lvNoteSync(){');
   assert.ok(place.includes('Math.min(W/vw,H/vh)') && place.includes('N.cfg.y/1920*dh'), 'placé comme la vidéo (object-fit: contain), sur la maquette 1080 × 1920');
   assert.ok(html.includes('.lv.is-end .lv-note{display:none}'));
+});
+
+test('commandes de lecture : reculer / avancer de 5 s, pause, vitesse 0,5× à 2× gardée d’une vidéo à l’autre, son', () => {
+  const player = cut('function openLessonVideo(){', 'function lvPlay(){');
+  for (const c of ['lv-back', 'lv-pp', 'lv-fwd', 'lv-speed', 'lv-mute', 'lv-cur', 'lv-dur'])
+    assert.ok(player.includes(`class="lv-${c.slice(3)}`) || player.includes(c), `commande ${c}`);
+  assert.ok(player.includes("lvSkip(-LV_SKIP)") && player.includes("lvSkip(LV_SKIP)"));
+  assert.ok(player.includes("if(!menu.hidden&&!e.target.closest('.lv-speed-wrap')){ e.stopPropagation(); e.preventDefault(); lvSpeedMenu(false); }"),
+    'menu ouvert : un appui ailleurs le ferme sans mettre la vidéo en pause');
+  const ctx = vm.createContext({});
+  vm.runInContext(cut('/* 0:42, 2:04 */', 'function lvSyncPP(){'), ctx);
+  assert.equal(ctx.lvFmt(0), '0:00'); assert.equal(ctx.lvFmt(42.7), '0:42'); assert.equal(ctx.lvFmt(123.8), '2:03'); assert.equal(ctx.lvFmt(NaN), '0:00');
+  assert.equal(ctx.lvRateLabel(0.5), '0,5×'); assert.equal(ctx.lvRateLabel(1), '1×'); assert.equal(ctx.lvRateLabel(1.5), '1,5×');
+  assert.ok(html.includes('const LV_RATES=[0.5,0.75,1,1.5,2];') && html.includes("localStorage.getItem('rq-video-vitesse')") && html.includes('const LV_SKIP=5;'));
+  const skip = cut('function lvSkip(d){', 'function lvSpeedMenu(open){');
+  assert.ok(skip.includes('Math.max(0,Math.min(dur-0.15,V.currentTime+d))'), 'jamais avant le début ni au-delà de la fin');
+  assert.ok(cut('function lvKey(e){', 'function lvHidden(){').includes("e.key==='ArrowLeft'"), 'flèches du clavier');
 });
