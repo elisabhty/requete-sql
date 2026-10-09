@@ -54,7 +54,9 @@ test('cours SELECT, carte « Mission accomplie » : 9 colonnes au départ, SELEC
   const lesson = vm.runInContext('MODULES.flatMap(m=>m.lessons).find(l=>l.id===1)', ctx);
   const body = lesson.studio.uses.body;
   assert.ok(body.includes('Toutes les colonnes de la table <code>clients</code>'));
-  assert.ok(body.includes('SELECT prenom, nom, ville, telephone') && !body.includes('adresse'));
+  /* La carte de fin ne parle pas de l’adresse (l’encadré « Quand l’utiliser ? », plus haut, peut en parler). */
+  const funnel = body.slice(body.indexOf('Toutes les colonnes de la table <code>clients</code>'));
+  assert.ok(funnel.includes('SELECT prenom, nom, ville, telephone') && !funnel.includes('adresse'));
   assert.ok(body.includes('ne sélectionne que les colonnes utiles'));
   assert.ok(body.includes('colonnes à l’arrivée'));
   assert.ok(body.includes('Celles qui servent à identifier un client'));

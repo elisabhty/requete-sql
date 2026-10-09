@@ -303,12 +303,14 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
-  {id: 1, next: 2, titre: 'SELECT', page: 'select.html', thumb: 'select-thumb.jpg', duree: '2 min 23', notesAt: 96.4,
-    notes: /notes:\{t:135\.7,y:1360,card:\[64,356,1016,1066\],to:\[940,255\]\}/, table: 'clients',
+  {id: 1, next: 2, titre: 'SELECT', page: 'select.html', thumb: 'select-thumb.jpg', duree: '2 min 32', notesAt: 104,
+    notes: /notes:\{t:144\.55,y:1360,card:\[64,356,1016,1066\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avec <span class="ic">SELECT</span>, choisis seulement les colonnes dont tu as besoin.',
     chapters: ['Situation', 'Le problème', 'Choisir les colonnes', 'Deux pièges', 'Toutes les colonnes', 'Le résultat', 'À retenir'],
     question: ["ctx: 'Cette requête affiche 4 colonnes.'", "q: 'Combien de lignes le résultat contiendra-t-il ?'", "{label: '4 lignes', ok: false}, {label: '10 lignes', ok: true}"],
-    traps: ['near "FROM": syntax error', 'SELECT</span> prenom<span class="ghost" id="ghostAS"> <b>AS</b></span> ville', 'la requête équivaut à <code>prenom AS ville</code>', 'il faut la\\u00a0virgule :<br><code>prenom, ville</code>']},
+    traps: ['near "FROM": syntax error', 'SELECT</span> prenom<span class="ghost" id="ghostAS"> <b>AS</b></span> ville',
+      'Pour <b>découvrir</b> toutes<br>les informations disponibles', 'Pour obtenir les <b>prénoms</b><br>et <b>noms</b> des clients', '<span class="ic">SELECT prenom, nom</span>',
+      'indique <b>ces deux colonnes</b>', 'Le résultat sera plus lisible, sans les adresses, les e-mails et les autres informations inutiles ici.', 'la requête équivaut à <code>prenom AS ville</code>', 'il faut la\\u00a0virgule :<br><code>prenom, ville</code>']},
   {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '2 min 11', notesAt: 92.4,
     notes: /notes:\{t:123\.25,y:1365,card:\[64,356,1016,1071\],to:\[940,255\]\}/, table: 'produits',
     bubble: 'Avec <span class="ic">AS</span>, donne à une colonne un nom plus clair dans le résultat.',
