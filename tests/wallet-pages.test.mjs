@@ -1,4 +1,4 @@
-/* Objets à thème « portefeuille » (guidePage, layouts coupons et loyalty) : bons de réduction des cours 22 (seconde offre),
+/* Objets à thème « portefeuille » (guidePage, layouts coupons et loyalty) : bons de réduction des cours 22 (livraison gratuite),
    45 (Magnésium, vert) et 55 (bienvenue, corail), cartes de fidélité vierges du cours 80. Chaque carte porte toutes les
    colonnes de sa ligne (contrôle des pages) ; le code du bon est un décor (préfixe + prénom sans accents), sans donnée. */
 import path from 'node:path';
@@ -15,7 +15,7 @@ const cardOf = id => { const b = lessonOf(id).studio.uses.body; return b.slice(b
 const count = (s, re) => (s.match(re) || []).length;
 const withBody = (l, b) => Object.assign({}, l, {studio: Object.assign({}, l.studio, {uses: Object.assign({}, l.studio.uses, {body: b})})});
 
-test('cours 22 : sept bons de la seconde offre — 3 montrés, une pile de 3, Nathan Dupont (30 ans pile) en dernier', () => {
+test('cours 22 : sept bons de livraison gratuite — 3 montrés, une pile de 3, Nathan Dupont (30 ans pile) en dernier', () => {
   const c = cardOf(22);
   assert.match(c, /<div class="ij-sms is-board is-page" style="--n:5;--sg:0\.4s" data-total="7"/, '3 bons + 1 pile + 1 dernier');
   assert.ok(c.includes('<div class="pg-grid is-coupons has-pile">'));
@@ -24,8 +24,8 @@ test('cours 22 : sept bons de la seconde offre — 3 montrés, une pile de 3, Na
   assert.equal(count(c, /<div class="pg-more"[^>]*>… et 3 autres bons<\/div>/g), 1);
   assert.equal(count(c, /<em class="pg-flag">30 ans pile<\/em>/g), 1, 'la pastille sur le seul client de 30 ans');
   assert.ok(c.includes('<div class="pg-card is-coupon is-tail"'), 'Nathan Dupont reste en vue, après la pile');
-  assert.deepEqual([...c.matchAll(/<span class="cp-code">([^<]*)<\/span>/g)].map(m => m[1]), ['LUCAS', 'EMMA', 'CHLOE', 'HUGO', 'GABRIEL', 'INES', 'NATHAN'].map(p => 'OFFRE2-' + p), 'code personnel, sans accents');
-  assert.equal(count(c, /<span class="cp-val" aria-hidden="true"><i>🎁<\/i><b>2ᵉ offre<\/b><\/span>/g), 7, 'bloc de l’offre');
+  assert.deepEqual([...c.matchAll(/<span class="cp-code">([^<]*)<\/span>/g)].map(m => m[1]), ['LUCAS', 'EMMA', 'CHLOE', 'HUGO', 'GABRIEL', 'INES', 'NATHAN'].map(p => 'LIVRAISON-' + p), 'code personnel, sans accents');
+  assert.equal(count(c, /<span class="cp-val" aria-hidden="true"><i>🚚<\/i><b>Livraison<\/b><\/span>/g), 7, 'bloc de l’offre');
   assert.equal(count(c, /<em class="pg-stamp">Envoyé<\/em>/g), 7);
   assert.ok(!c.includes('ij-sms-bubble') && !c.includes('ij-sms-list'), 'plus de bulle de message');
 });
