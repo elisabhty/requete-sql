@@ -163,7 +163,7 @@ test('page de l’animation : ressources locales, mode intégré, chapitres et l
   assert.ok(page.includes('const QUESTIONS = [];') && !page.includes("ctx: 'Lucas habite à Lyon.'"), 'pas de question en pleine vidéo');
   assert.ok(page.includes('chapters: CHAPTERS.map(') && page.includes('captions: CAPTIONS.map(') && page.includes('questions: QUESTIONS.map('));
   assert.ok(page.includes('const sr = $(\'#stage\').getBoundingClientRect(), k = sr.width / 1080 || 1;'), 'mesures justes quand la scène est réduite');
-  assert.ok(page.includes('<div class="inv-from">NutriBoost</div>') && page.includes('Avec <span class="ic">WHERE</span>, garde seulement'));
+  assert.ok(page.includes('<div class="inv-from">NutriBoost · équipe marketing</div>') && page.includes('Avec <span class="ic">WHERE</span>, garde seulement'));
   assert.ok(page.includes('gsap.config({force3D: false});'), 'transformations en 2D : pas de calque GPU, texte net à la taille réduite');
   assert.ok(page.includes('html.embed,html.embed body{height:100%;overflow:hidden;background:transparent}') && page.includes('html.embed .blob{display:none}'),
     'dans le lecteur : fond transparent, sans halos coupés au bord de la scène');
