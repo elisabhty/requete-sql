@@ -146,6 +146,18 @@ function hide(el, t, to = {}, dur = 0.42, ease = 'power2.in'){
 }
 function sceneOn(sel, t){ tl.set(sel, {autoAlpha: 1}, t); }
 function sceneOff(sel, t){ tl.set(sel, {autoAlpha: 0}, t); }
+/* Carte posée sous une autre carte, souvent inclinée (la liste « Les informations à récupérer » sous la carte de la situation) :
+   son bord haut se cale à `gap` px sous le point le plus bas de la carte du dessus une fois celle-ci à sa place
+   (inclinaison finale `rot`, en degrés, autour du centre), ombre portée comprise. Les deux cadres ne se touchent jamais,
+   quelle que soit la hauteur du contenu. */
+const STACK_GAP = 40;
+function stackBelow(lower, upper, rot = 0, gap = STACK_GAP){
+  const up = $(upper), lo = $(lower);
+  const w = up.offsetWidth, h = up.offsetHeight, a = Math.abs(rot) * Math.PI / 180;
+  const m = /(-?[\d.]+)px\s+(-?[\d.]+)px\s+(-?[\d.]+)px/.exec(getComputedStyle(up).boxShadow || '');
+  const lip = m && parseFloat(m[3]) < 2 ? Math.max(0, parseFloat(m[2])) : 0;
+  lo.style.top = Math.round(up.offsetTop + h / 2 + (h / 2) * Math.cos(a) + (w / 2) * Math.sin(a) + lip + gap) + 'px';
+}
 
 function press(btn, t, lip = '#4B30CC', depth = 9){
   tl.to(btn, {y: depth - 2, boxShadow: `0 2px 0 ${lip}`, duration: 0.09, ease: 'power2.out'}, t)
@@ -372,6 +384,55 @@ function textIssues(){
   return out;
 }
 
+/* Cadres collés (?check) : deux cadres visibles en même temps — cartes, éditeurs de code, encadrés posés dans une scène,
+   pastilles, légende, puce de chapitre — gardent au moins 20 px d’écart, ombre portée comprise. Les tampons, posés exprès
+   sur une carte, ne comptent pas. La timeline est parcourue par pas de 0,2 s ; un écart trop faible qui ne dure qu’un
+   instant (rebond d’une pastille qui apparaît) est ignoré. */
+const CARD_GAP = 20;
+function layoutIssues(render, total){
+  const stage = $('#stage');
+  const shown = el => { let o = 1; for (let n = el; n && n !== document.body; n = n.parentElement) {
+    const cs = getComputedStyle(n); if (cs.display === 'none' || cs.visibility === 'hidden') return 0; o *= parseFloat(cs.opacity); } return o; };
+  const isBox = el => { const cs = getComputedStyle(el); return el.tagName !== 'IMG' && !el.classList.contains('mascot') &&
+    (cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || cs.backgroundImage !== 'none' || parseFloat(cs.borderTopWidth) > 0 || cs.boxShadow !== 'none'); };
+  const set = new Set();
+  const take = el => { if (!el.classList.contains('stamp') && !el.parentElement.closest('.card, .code')) set.add(el); };
+  $$('.card, .code', stage).forEach(take);
+  $$('section.scene > *', stage).forEach(el => { if (isBox(el)) take(el); });
+  $$('.badge span, .tagpill', stage).forEach(el => { if (!el.closest('.card, .code')) set.add(el); });
+  $$('#cap .c, #chap .chip').forEach(el => set.add(el));
+  const items = [...set].map(el => {
+    const m = /(-?[\d.]+)px\s+(-?[\d.]+)px\s+(-?[\d.]+)px/.exec(getComputedStyle(el).boxShadow || ''), sc = el.closest('section');
+    return {el, lip: m && parseFloat(m[3]) < 2 ? Math.max(0, parseFloat(m[2])) : 0,
+      name: (sc && sc.id ? sc.id + ' ' : '') + (el.id ? '#' + el.id : '') + '.' + [...el.classList].filter(c => c !== 'abs').join('.')};
+  });
+  const found = new Map();
+  let prev = new Set();
+  for (let T = 0; T <= total; T += 0.2) {
+    render(T);
+    const sr = stage.getBoundingClientRect(), now = new Set();
+    const vis = items.filter(it => shown(it.el) >= 0.9).map(it => { const r = it.el.getBoundingClientRect();
+      return Object.assign({x1: r.left - sr.left, y1: r.top - sr.top, x2: r.right - sr.left, y2: r.bottom - sr.top + it.lip}, it); })
+      .filter(b => b.x2 - b.x1 > 4 && b.y2 - b.y1 > 4);
+    for (let i = 0; i < vis.length; i++) for (let j = i + 1; j < vis.length; j++) {
+      const a = vis[i], b = vis[j];
+      if (a.el.contains(b.el) || b.el.contains(a.el)) continue;
+      const gap = Math.max(b.x1 - a.x2, a.x1 - b.x2, b.y1 - a.y2, a.y1 - b.y2);
+      if (gap >= CARD_GAP) continue;
+      const key = a.name + ' ↔ ' + b.name;
+      now.add(key);
+      if (prev.has(key)) {
+        const f = found.get(key) || {kind: 'cadres collés', where: key, gap: Math.round(gap), at: +T.toFixed(1)};
+        f.gap = Math.min(f.gap, Math.round(gap));
+        found.set(key, f);
+      }
+    }
+    prev = now;
+  }
+  render(0);
+  return [...found.values()];
+}
+
 /* Une pause de lecture fige l’image : rien ne doit être en plein mouvement à cet instant
    (hors mouvements d’ambiance). Liste les animations interrompues, pour la mise au point. */
 function holdClashes(){
@@ -424,6 +485,7 @@ function Course(cfg){
     return {duration: out, fps: FPS, cues: CUES.map(c => Object.assign({}, c, {t: unwarp(c.t)})), overflow: checkCaptions(captions),
       notesT: notesAt != null ? unwarp(notesAt) : null, holds: +total.toFixed(3), holdList: HOLDS, clashes: holdClashes(),
       textIssues: QS.has('check') ? textIssues() : undefined,
+      layoutIssues: QS.has('check') ? layoutIssues(renderAt, out) : undefined,
       chapters: chapters.map(c => ({t: unwarp(c.a), n: c.n, label: c.label})),
       questions: questions.map(q => ({t: unwarp(q.at), kicker: q.kicker, ctx: fr(q.ctx || ''), q: fr(q.q), options: q.options.map(o => ({label: o.label, ok: o.ok})), okTitle: fr(q.okTitle), koTitle: fr(q.koTitle), why: fr(q.why)})),
       /* Légendes en texte : le lecteur les annonce à VoiceOver au fil de l’animation. */
