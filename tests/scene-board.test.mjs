@@ -91,7 +91,7 @@ test('cours 5, Problème : « Suivi des stocks » en dashboard, stocks bas (60 e
   assert.equal(sc.board, true);
   const lane = k => sc.lanes.find(l => l.k === k);
   assert.equal(JSON.stringify(lane('H').c.map(c => c[1])), '["nom","stock"]');
-  assert.equal(JSON.stringify(sc.lanes.slice(1).map(l => l.c[1][1])), '["120","80","200","60","45","90"]', 'les produits 1, 2, 3, 5, 6, 7 dans l’ordre de la table');
+  assert.equal(JSON.stringify(sc.lanes.slice(1).map(l => l.c[1][1])), '["120","80","500","60","45","90"]', 'les produits 1, 2, 3, 5, 6, 7 dans l’ordre de la table (Magnésium : 500)');
   const [, s1, s2] = sc.steps;
   assert.equal(JSON.stringify(s1.mark), '{"d2":"is-low","e2":"is-low"}', 'la limite (60) est signalée comme un stock plus bas (45)');
   assert.equal(JSON.stringify(s2.fold), '["R1","R2","R3","R6"]');
