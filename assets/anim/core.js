@@ -315,9 +315,11 @@ function textLines(el){
   lines.forEach(l => l.toks.sort((a, b) => a.left - b.left));
   return lines;
 }
-/* Une ligne (sauf la dernière) qui s’arrête avant 60 % de la largeur, nettement plus courte qu’une ligne voisine, laisse un trou :
-   un groupe de mots collés trop long (mots courts et espaces insécables à la suite) est parti d’un bloc à la ligne suivante. */
-const SHORT_LINE = 0.6, NARROW_BLOCK = 0.7;
+/* Une ligne (sauf la dernière) qui s’arrête avant 70 % de la largeur (78 % dans une légende, lue d’un coup d’œil sous l’image),
+   nettement plus courte qu’une ligne voisine, laisse un trou : un groupe de mots collés trop long (mots courts et espaces
+   insécables à la suite) est parti d’un bloc à la ligne suivante. Une dernière ligne de moins de 36 % de la largeur reste
+   un bout de phrase isolé. Une expression en gras de quatre mots au plus ne se coupe pas. */
+const SHORT_LINE = 0.7, SHORT_LINE_CAP = 0.78, NARROW_BLOCK = 0.7, STUB_LINE = 0.36, BOLD_WORDS = 4;
 function textIssues(){
   const out = [];
   /* Mesures sans les transformations en cours (cartes inclinées, scène réduite) : les mots d’une même ligne ont la même hauteur. */
@@ -345,7 +347,7 @@ function textIssues(){
       lines.forEach((l, i) => {
         if (i === lines.length - 1 || lines[i + 1].toks[0].brk) return;
         const w = width(l), next = width(lines[i + 1]), prev = i && !l.toks[0].brk ? width(lines[i - 1]) : 0;
-        if (w < avail * SHORT_LINE && w < 0.8 * Math.max(prev, next))
+        if (w < avail * (isCap ? SHORT_LINE_CAP : SHORT_LINE) && w < 0.8 * Math.max(prev, next))
           out.push({kind: 'ligne trop courte', where: isCap ? 'légende' : el.className || el.tagName, line: i + 1, text, ratio: +(w / avail).toFixed(2)});
       });
       /* Trois lignes ou plus (entre deux retours voulus) qui restent toutes sous 70 % de la largeur : le bloc paraît serré. */
@@ -354,13 +356,15 @@ function textIssues(){
         if (l && !(i && l.toks[0].brk)) { seg.push(l); return; }
         if (seg.length >= 3 && Math.max(...seg.slice(0, -1).map(width)) < avail * NARROW_BLOCK)
           out.push({kind: 'bloc étroit', where: isCap ? 'légende' : el.className || el.tagName, line: lines.indexOf(seg[0]) + 1, text, ratio: +(Math.max(...seg.slice(0, -1).map(width)) / avail).toFixed(2)});
+        if (seg.length >= 2 && width(seg[seg.length - 1]) < avail * STUB_LINE)
+          out.push({kind: 'dernière ligne trop courte', where: isCap ? 'légende' : el.className || el.tagName, line: lines.indexOf(seg[seg.length - 1]) + 1, text, ratio: +(width(seg[seg.length - 1]) / avail).toFixed(2)});
         seg = l ? [l] : [];
       });
     }
-    /* Une courte expression en gras (« table clients », jusqu’à trois mots) reste sur une seule ligne. */
+    /* Une courte expression en gras (« table clients », « plus de 30 ans », jusqu’à quatre mots) reste sur une seule ligne. */
     $$('b', el).forEach(b => {
       const rs = [...b.getClientRects()].filter(x => x.width > 0);
-      if (b.textContent.trim().split(/[\s ]+/).length <= 3 && rs.length > 1 && Math.abs(rs[0].top - rs[rs.length - 1].top) > rs[0].height / 2)
+      if (b.textContent.trim().split(/[\s ]+/).length <= BOLD_WORDS && rs.length > 1 && Math.abs(rs[0].top - rs[rs.length - 1].top) > rs[0].height / 2)
         out.push({kind: 'gras coupé', where: isCap ? 'légende' : el.className || el.tagName, line: 0, text: [b.textContent, ...text]});
     });
   });

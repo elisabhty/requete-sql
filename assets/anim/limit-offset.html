@@ -204,7 +204,7 @@
     <div class="abs card recap" id="recap">
       <div class="rrow"><div class="rico emo">✂️</div><div class="rtxt"><span class="ic">LIMIT n</span> garde les <b>n&nbsp;premières</b> lignes du classement&nbsp;:<br><span class="ic blk">ORDER BY prix DESC LIMIT 3</span></div></div>
       <div class="rrow"><div class="rico emo">⏭️</div><div class="rtxt"><span class="ic">OFFSET n</span> <b>saute</b> n lignes. Pour la page p&nbsp;: (p&nbsp;−&nbsp;1)&nbsp;×&nbsp;taille.<br><span class="ic blk">LIMIT 3 OFFSET 3</span></div></div>
-      <div class="rrow"><div class="rico emo">🔒</div><div class="rtxt">Un <b>classement&nbsp;stable</b>&nbsp;: termine <span class="ic">ORDER BY</span> par une colonne unique, comme <span class="ic">id</span>.</div></div>
+      <div class="rrow"><div class="rico emo">🔒</div><div class="rtxt">Un <b>classement&nbsp;stable</b>&nbsp;: termine <span class="ic">ORDER BY</span> par une colonne unique&nbsp;:<br><span class="ic blk">ORDER BY prix DESC, id</span></div></div>
     </div>
   </section>
 
@@ -241,31 +241,31 @@ const CHAPTERS = [
 /* Légendes : [début, fin, texte] (temps de la timeline). */
 const CAPTIONS = [
   [5.3, 9.6,    "Dans l’app de la boutique, la liste montre d’abord <b>3 produits</b>, du plus cher au moins cher."],
-  [9.7, 13.9,   "Un appui sur « Voir plus » doit afficher les <b>3 suivants</b>, sans répéter les premiers."],
+  [9.7, 13.9,   "Chaque appui sur « Voir plus » doit afficher les <b>3 suivants</b>, sans doublon."],
   [14.0, 17.2,  "L’app a besoin de l’<b>identifiant</b>, du <b>nom</b> et du <b>prix</b> de chaque produit."],
-  [17.3, 20.7,  "Ces informations se trouvent dans la <b>table produits</b>, qui contient <b>8 produits</b>."],
+  [17.3, 20.7,  "Ces informations se trouvent dans la <b>table produits</b> (<b>8 produits</b>)."],
   [21.3, 25.3,  "On classe d’abord les produits du plus cher au moins cher avec <code>ORDER BY</code>."],
   [25.4, 29.6,  "Le classement est bon, mais la requête renvoie les <b>8 produits</b> d’un coup."],
   [29.7, 34.0,  "L’app n’en veut que <b>3</b> : ceux qui suivent les produits déjà affichés."],
-  [34.8, 38.3,  "On ajoute <code>LIMIT 3</code> tout à la <b>fin</b> de la requête : il ne garde que 3 lignes."],
-  [38.4, 42.6,  "Ce sont les 3 premières lignes <b>du classement</b> : les produits affichés au départ."],
+  [34.8, 38.3,  "<code>LIMIT 3</code> s’ajoute à la <b>fin</b> de la requête : il ne garde que 3 lignes."],
+  [38.4, 42.6,  "Ce sont les 3 premières lignes <b>du classement</b>, affichées au départ."],
   [42.7, 46.4,  "Sans <code>ORDER BY</code>, <code>LIMIT</code> garde 3 lignes dans un ordre <b>non\u00a0garanti</b> : ici, pas les plus chères."],
-  [46.5, 49.6,  "Avec <code>LIMIT</code>, écris donc toujours un <code>ORDER BY</code>."],
+  [46.5, 49.6,  "Avec <code>LIMIT</code>, écris donc toujours un <code>ORDER BY</code> juste avant."],
   [50.3, 54.0,  "Pour les 3 suivants, <code>OFFSET 3</code> <b>saute</b> les 3 premiers, puis <code>LIMIT</code> en garde 3."],
   [54.1, 58.2,  "Résultat : Oméga 3, Magnésium et Shaker Inox, les 3 produits suivants du classement."],
-  [58.3, 62.6,  "Pour chaque page, on saute (page\u00a0−\u00a01)\u00a0×\u00a03 lignes : 0, puis 3, puis 6."],
-  [62.7, 65.6,  "La page 3 n’a que <b>2 produits</b> : la dernière page peut être plus courte."],
+  [58.3, 62.6,  "On saute (page\u00a0−\u00a01)\u00a0×\u00a03 lignes : 0 pour la page 1, puis 3, puis 6."],
+  [62.7, 65.6,  "La page 3 ne compte que <b>2 produits</b> : la dernière page peut être plus courte."],
   [66.3, 70.0,  "Imaginons l’Oméga 3 à <b>29,90 €</b>, comme la Fibre Prébiotique : ils sont à égalité."],
   [70.1, 74.4,  "À égalité, leur ordre n’est pas garanti : il peut s’inverser d’une requête à l’autre."],
   [74.5, 78.0,  "La Fibre Prébiotique s’affiche alors <b>deux\u00a0fois</b>, et l’Oméga 3 <b>jamais</b>."],
   [78.1, 81.6,  "On termine donc <code>ORDER BY</code> par <code>id</code>, une colonne unique : le classement devient <b>stable</b>."],
   [82.3, 85.6,  "La requête complète charge la page suivante, dans un classement stable."],
   [85.7, 89.4,  "Résultat : <b>3 lignes</b>, Oméga 3, Magnésium et Shaker Inox."],
-  [89.5, 93.6,  "Dans l’app, les 3 produits s’ajoutent <b>sous les premiers</b> : la liste s’allonge sans doublon."],
-  [93.7, 98.6,  "<code>LIMIT</code> et <code>OFFSET</code> agissent sur le résultat : la <b>table produits</b> n’est pas modifiée."],
+  [89.5, 93.6,  "Dans l’app, les 3 produits s’ajoutent <b>sous les premiers</b>, sans doublon."],
+  [93.7, 98.6,  "<code>LIMIT</code> et <code>OFFSET</code> découpent le résultat, sans modifier la <b>table\u00a0produits</b>."],
   [99.3, 104.1, "Pour finir, voici les <b>trois idées à retenir</b>."],
   APP ? [104.2, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
-      : [104.2, 999, "<code>LIMIT</code> garde les premières lignes, <code>OFFSET</code> en saute : toujours avec un classement stable."]
+      : [104.2, 999, "<code>LIMIT</code> garde les premières lignes, <code>OFFSET</code> en saute, après un tri stable."]
 ];
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
