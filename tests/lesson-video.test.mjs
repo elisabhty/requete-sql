@@ -363,8 +363,8 @@ const COURSES = [
       '<span class="str glow" id="strB4">\'%ie%\'</span>', '<span class="cpl">\'l%\'</span><span class="tx">ou</span><span class="cpl">\'L%\'</span>',
       '<span class="str">\'<span class="glow" id="us5">_</span>a%\'</span>', "[['_', 0, 0], ['a', 1, 1], ['%', 2, 'end']]",
       'n’importe quelle suite, <b>même vide</b>', '<b>exactement un</b> caractère']},
-  {id: 9, next: 10, titre: 'IN', page: 'in.html', thumb: 'in-thumb.jpg', duree: '2 min 10', notesAt: 92.1,
-    notes: /notes:\{t:122\.2,y:1359,card:\[64,356,1016,1064\],to:\[940,255\]\}/, table: 'clients',
+  {id: 9, next: 10, titre: 'IN', page: 'in.html', thumb: 'in-thumb.jpg', duree: '2 min 07', notesAt: 92.1,
+    notes: /notes:\{t:119\.75,y:1359,card:\[64,356,1016,1064\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avec <span class="ic">IN</span>, compare une colonne à toute une liste de valeurs.',
     chapters: ['Situation', 'Le problème', 'IN en action', 'Écrire la liste', 'Une seule colonne', 'Le résultat', 'À retenir'],
     traps: ['<span class="ball">2</span><span class="ball">5</span><span class="ball">9</span>',
@@ -424,6 +424,7 @@ for (const c of COURSES) {
     assert.ok(page.includes(c.bubble), 'bulle de la mascotte');
     for (const label of c.chapters) assert.ok(page.includes(`label:'${label}'`), `chapitre ${label}`);
     for (const t of c.traps) assert.ok(page.includes(t), `piège : ${t}`);
+    if (!['between.html', 'limit-offset.html'].includes(c.page)) assert.ok(page.includes("stackBelow('#s1 .need', "), 'la liste des informations se cale sous la carte de la situation, sans la toucher');
     assert.ok(!/SQL (voit|comprend|sait|lit)\b/.test(page), 'SQL n’est jamais personnifié');
     assert.ok(page.includes(`la <b>table ${c.table}</b>`) && !new RegExp(`dans ${c.table}\\b`).test(page), `toujours « table ${c.table} »`);
   });
@@ -502,6 +503,8 @@ test('texte des animations : police Inter livrée (mêmes retours à la ligne su
   assert.ok(core.includes("kind: 'ligne trop courte'") && core.includes("kind: 'bloc étroit'"), 'contrôle des trous dans un paragraphe et des blocs serrés');
   assert.ok(core.includes("kind: 'dernière ligne trop courte'") && core.includes('const SHORT_LINE = 0.7, SHORT_LINE_CAP = 0.78, NARROW_BLOCK = 0.7, STUB_LINE = 0.36, BOLD_WORDS = 4;'), 'contrôle des bouts de phrase isolés sur la dernière ligne');
   assert.ok(core.includes('frDom($(\'#stage\'));'), 'même typographie pour les textes écrits dans la page');
+  assert.ok(core.includes('const STACK_GAP = 40;') && core.includes('function stackBelow(lower, upper, rot = 0, gap = STACK_GAP){'), 'une carte posée sous une carte inclinée garde son écart');
+  assert.ok(core.includes('const CARD_GAP = 20;') && core.includes("layoutIssues: QS.has('check') ? layoutIssues(renderAt, out) : undefined,"), 'contrôle des cadres collés à la fabrication (?check)');
 });
 
 test('animations : opérateurs écrits tels qu’on les tape (<= et non ≤), JetBrains Mono sans ligatures comme dans l’app', () => {
