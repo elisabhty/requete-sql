@@ -267,6 +267,50 @@ test('son de l’animation : passe même en mode silencieux (comme une vidéo) e
   assert.equal(JSON.stringify(ctx.LvSfx.stats()), '{"state":"none","played":0}', 'aucun son avant le premier appui');
 });
 
+test('son de l’animation : contexte neuf à chaque cours, remplacé s’il ne tourne plus, réveillé par un appui', () => {
+  const sfx = cut('const LvSfx=', 'class LvAnim{');
+  const made = [];
+  class AC {
+    constructor() { this.state = 'running'; this.sampleRate = 8000; this.destination = {}; made.push(this); }
+    createDynamicsCompressor() { return {threshold: {}, knee: {}, ratio: {}, attack: {}, release: {}, connect() {}}; }
+    createGain() { return {gain: {value: 1}, connect() {}}; }
+    createBuffer(c, n) { return {getChannelData: () => new Float32Array(n)}; }
+    createConvolver() { return {connect() {}}; }
+    createBufferSource() { return {connect() {}, start() {}, stop() {}}; }
+    resume() { this.state = 'running'; return Promise.resolve(); }
+    close() { this.state = 'closed'; return Promise.resolve(); }
+  }
+  const ctx = vm.createContext({window: {AudioContext: AC}, navigator: {userAgent: 'test'}});
+  vm.runInContext(sfx + ';this.LvSfx=LvSfx;', ctx);
+  const S = ctx.LvSfx;
+  S.resume();
+  assert.equal(made.length, 1); assert.equal(S.stats().state, 'running');
+  S.play('pop', 0, 1, 0);
+  assert.equal(S.stats().played, 1, 'son joué');
+  made[0].state = 'interrupted';
+  S.play('pop', 0, 1, 0);
+  assert.equal(S.stats().played, 1, 'contexte interrompu : pas de son, relance tentée');
+  made[0].state = 'interrupted';
+  S.resume();
+  assert.equal(made.length, 2, 'appui : contexte interrompu remplacé par un neuf'); assert.equal(made[0].state, 'closed');
+  S.play('tick', 3, 1, 0);
+  assert.equal(S.stats().played, 2);
+  S.release();
+  assert.equal(made[1].state, 'closed'); assert.equal(S.stats().state, 'none', 'fermeture du cours : contexte fermé');
+  S.resume();
+  assert.equal(made.length, 3, 'cours suivant : contexte neuf, créé après la session « lecture »');
+  made[2].state = 'suspended';
+  S.wake();
+  assert.equal(made.length, 4, 'appui pendant une lecture muette : le son se réveille');
+  S.wake();
+  assert.equal(made.length, 4, 'son déjà actif : rien ne change');
+  const anim = cut('class LvAnim{', 'function lessonVideoOn(l)');
+  assert.ok(anim.includes("if(typeof LV==='undefined'||!LV){ LvSfx.stop(); LvSfx.idle(); LvSfx.release(); }"), 'fondu de fermeture : le son d’un cours ouvert entre-temps reste intact');
+  const open = cut('function openLessonVideo(){', 'function lvPlay(){'), close = cut('function closeLessonVideo(instant){', 'function lessonStepMeta(){');
+  assert.ok(open.includes("document.addEventListener('touchend',lvWake,{capture:true,passive:true});") && open.includes("document.addEventListener('click',lvWake,true);"), 'un appui pendant la lecture réveille le son');
+  assert.ok(close.includes("document.removeEventListener('touchend',lvWake,{capture:true});") && close.includes("document.removeEventListener('click',lvWake,true);"));
+});
+
 test('carte de la question : pas de coupure dans « sera-t-elle », aucun bouton présélectionné, alignée sur le tableau', () => {
   const show = cut('function lvQShow(i,q){', 'function lvQAnswer(k){');
   assert.ok(show.includes(`const nw=t=>String(t||'').replace(/([^\\s<>]+-[^\\s<>]+)/g,'<span class="lv-nw">$1</span>');`) && html.includes('.lv-nw{white-space:nowrap}'));
