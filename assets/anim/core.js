@@ -386,8 +386,9 @@ function textIssues(){
 
 /* Cadres collés (?check) : deux cadres visibles en même temps — cartes, éditeurs de code, encadrés posés dans une scène,
    pastilles, légende, puce de chapitre — gardent au moins 20 px d’écart, ombre portée comprise. Les tampons, posés exprès
-   sur une carte, ne comptent pas. La timeline est parcourue par pas de 0,2 s ; un écart trop faible qui ne dure qu’un
-   instant (rebond d’une pastille qui apparaît) est ignoré. */
+   sur une carte, ne comptent pas. Surlignages coupés : un surlignage visible (cadre autour d’un mot, fond d’un mot-clé…)
+   n’est jamais rogné par un parent qui masque ce qui dépasse (cellule de tableau, ligne de code qui s’ouvre…).
+   La timeline est parcourue par pas de 0,2 s ; un défaut qui ne dure qu’un instant (rebond, ouverture) est ignoré. */
 const CARD_GAP = 20;
 function layoutIssues(render, total){
   const stage = $('#stage');
@@ -406,11 +407,34 @@ function layoutIssues(render, total){
     return {el, lip: m && parseFloat(m[3]) < 2 ? Math.max(0, parseFloat(m[2])) : 0,
       name: (sc && sc.id ? sc.id + ' ' : '') + (el.id ? '#' + el.id : '') + '.' + [...el.classList].filter(c => c !== 'abs').join('.')};
   });
+  const hls = $$('.mbox, .glw, .band, .zone, .grp, .prd, .hlc, .glow, .hl, .mark, .ring', stage).map(el => {
+    const host = el.closest('[id]');
+    return {el, name: (host && host !== el ? '#' + host.id + ' ' : '') + (el.id ? '#' + el.id : '') + '.' + [...el.classList].join('.')};
+  });
   const found = new Map();
   let prev = new Set();
+  const keep = (key, f) => { if (prev.has(key)) { const g = found.get(key) || f; g.gap = Math.min(g.gap, f.gap); found.set(key, g); } };
   for (let T = 0; T <= total; T += 0.2) {
     render(T);
     const sr = stage.getBoundingClientRect(), now = new Set();
+    hls.forEach(h => {
+      if (shown(h.el) < 0.3) return;
+      const cs = getComputedStyle(h.el);
+      if (/^rgba\([^)]*,\s*0\)$/.test(cs.backgroundColor) && cs.boxShadow === 'none') return;
+      const r = h.el.getBoundingClientRect(); if (r.width < 2 || r.height < 2) return;
+      for (let n = h.el.parentElement; n && n !== stage; n = n.parentElement) {
+        const ns = getComputedStyle(n);
+        if (ns.overflowX === 'visible' && ns.overflowY === 'visible') continue;
+        const p = n.getBoundingClientRect(), x1 = p.left + parseFloat(ns.borderLeftWidth), y1 = p.top + parseFloat(ns.borderTopWidth);
+        const cut = Math.max(x1 - r.left, y1 - r.top, r.right - (x1 + n.clientWidth), r.bottom - (y1 + n.clientHeight));
+        if (cut > 1.5 && cut < Math.min(r.width, r.height) * 0.95) {
+          const key = 'surlignage ' + h.name;
+          now.add(key);
+          keep(key, {kind: 'surlignage coupé', where: h.name, gap: -Math.round(cut), at: +T.toFixed(1)});
+          break;
+        }
+      }
+    });
     const vis = items.filter(it => shown(it.el) >= 0.9).map(it => { const r = it.el.getBoundingClientRect();
       return Object.assign({x1: r.left - sr.left, y1: r.top - sr.top, x2: r.right - sr.left, y2: r.bottom - sr.top + it.lip}, it); })
       .filter(b => b.x2 - b.x1 > 4 && b.y2 - b.y1 > 4);
@@ -421,11 +445,7 @@ function layoutIssues(render, total){
       if (gap >= CARD_GAP) continue;
       const key = a.name + ' ↔ ' + b.name;
       now.add(key);
-      if (prev.has(key)) {
-        const f = found.get(key) || {kind: 'cadres collés', where: key, gap: Math.round(gap), at: +T.toFixed(1)};
-        f.gap = Math.min(f.gap, Math.round(gap));
-        found.set(key, f);
-      }
+      keep(key, {kind: 'cadres collés', where: key, gap: Math.round(gap), at: +T.toFixed(1)});
     }
     prev = now;
   }
