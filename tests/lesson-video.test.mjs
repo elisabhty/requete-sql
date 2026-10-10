@@ -387,6 +387,15 @@ const COURSES = [
       '<span class="sus"><span class="emo">🔍</span>50 ou 500 ?</span>', '<span class="tx">30 → 500</span><span class="tx">500 → 30</span>',
       '<span class="tx">A → Z</span><span class="tx">Z → A</span>', '<span class="kw">ORDER BY</span> categorie, prix<span class="sens" id="descC"> <span class="kw glow">DESC</span></span>;',
       '✓ Vérifications prêtes']},
+  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '2 min 23', notesAt: 104.2,
+    notes: /notes:\{t:135\.1,y:1365,card:\[64,356,1016,1070\],to:\[940,255\]\}/, table: 'produits',
+    bubble: 'Avec <span class="ic">LIMIT</span> et <span class="ic">OFFSET</span>, découpe le résultat en pages.',
+    chapters: ['Situation', 'Le problème', 'LIMIT en action', 'Sauter avec OFFSET', 'Un classement stable', 'Le résultat', 'À retenir'],
+    traps: ['<div class="more"><span class="emo">⬇️</span>Voir plus</div>', '<div class="pc sk"><span class="pi">?</span>',
+      '<span class="kw glow" id="limA">LIMIT</span> 3<span id="offA"> <span class="kw glow">OFFSET</span> 3</span>;',
+      '<b>Pas les 3 plus chers</b><span class="s">L’ordre de ces lignes n’est pas garanti.</span>', '<span id="fc1"><b>OFFSET 3</b>· page 2</span>',
+      '— plus aucune ligne —', 'Imaginons l’Oméga 3 à 29,90 €', '<span class="kw">ORDER BY</span> prix <span class="kw">DESC</span><span id="idC">, id</span>;',
+      '✕ Oméga 3 : jamais affiché', '✓ 3 produits de plus']},
 ];
 
 for (const c of COURSES) {
