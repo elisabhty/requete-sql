@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<title>Requête · LIMIT et OFFSET en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:142px;top:438px;letter-spacing:-3px}
+#s0 .title span.sp{margin-right:44px}
+#s0 .hilite{top:520px;height:48px}
+#s0 .sub{top:620px;font-size:62px}
+#s0 .bubble{left:520px;width:520px}
+.nw{white-space:nowrap}
+
+/* Code un peu plus petit : la requête tient sur quatre lignes */
+.code.sm .body{font-size:34px;line-height:54px;padding:28px 36px}
+.code.sm .ln{height:54px}
+.code.sm .caret i{top:-40px;height:46px}
+
+/* ---------- L’app de la boutique (chapitres 1 et 6) ---------- */
+.phone{left:220px;top:236px;width:640px;height:1100px;padding:16px;border-radius:80px;background:#1E1A3B;box-shadow:0 12px 0 #110E27}
+.scr{position:relative;width:100%;height:100%;border-radius:64px;background:#F8F6FF;overflow:hidden}
+.notch{position:absolute;left:50%;top:16px;width:170px;height:42px;margin-left:-85px;border-radius:21px;background:#1E1A3B;z-index:6}
+.sb{position:absolute;left:0;right:0;top:0;height:74px;display:flex;align-items:center;justify-content:space-between;padding:6px 52px 0;font-size:26px;font-weight:700;color:var(--ink);z-index:5}
+.bat{position:relative;display:inline-block;width:48px;height:24px;border:3px solid var(--ink);border-radius:8px}
+.bat i{position:absolute;left:3px;top:3px;bottom:3px;width:28px;border-radius:3px;background:var(--ink)}
+.ah{position:absolute;left:0;right:0;top:74px;height:142px;padding:6px 30px 0;background:#F8F6FF;z-index:4;box-shadow:0 2px 0 var(--line-2)}
+.ah .an{font-family:var(--display);font-size:42px;font-weight:800;color:var(--ink);letter-spacing:-.5px}
+.ah .as{display:inline-flex;align-items:center;gap:8px;margin-top:8px;height:46px;padding:0 18px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink);font-size:23px;font-weight:700;white-space:nowrap}
+.lst{position:absolute;left:0;right:0;top:232px;padding:0 26px}
+.pc{position:relative;height:104px;margin-bottom:14px;border-radius:28px;background:#fff;border:2px solid var(--line);box-shadow:0 5px 0 var(--lip);display:flex;align-items:center;gap:16px;padding:0 22px;overflow:hidden}
+.pc .pi{flex:none;width:64px;height:64px;border-radius:20px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:34px}
+.pc .pn{flex:1;min-width:0;font-size:28px;font-weight:700;color:var(--ink);white-space:nowrap}
+.pc .pn small{display:block;margin-top:4px;font-size:22px;font-weight:600;color:var(--ink-3)}
+.pc .pp{flex:none;font-family:var(--display);font-size:30px;font-weight:800;color:var(--accent-ink);white-space:nowrap}
+/* Les 3 produits suivants, encore inconnus */
+.pc.sk{background:#F1EEFC;border:2px dashed #D8D1F2;box-shadow:none}
+.pc.sk .pi{background:#E6E1F6;color:var(--ink-3);font-family:var(--display);font-weight:800}
+.pc.sk .bars{flex:1}
+.pc.sk .bar{display:block;width:78%;height:20px;border-radius:10px;background:#E2DCF4}
+.pc.sk .bar+.bar{width:46%;height:16px;margin-top:14px}
+.pc.sk .shim{position:absolute;top:0;bottom:0;left:-45%;width:45%;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.75),rgba(255,255,255,0))}
+.pc .glw{position:absolute;left:0;top:0;right:0;bottom:0;border-radius:26px;box-shadow:inset 0 0 0 4px #A893FF;background:#F3EFFF;opacity:0;z-index:0}
+.pc .pi,.pc .pn,.pc .pp{position:relative;z-index:1}
+.more{position:relative;height:92px;margin-top:4px;border-radius:28px;background:linear-gradient(135deg,#7C5CFF,#6A4DF4);box-shadow:0 7px 0 #4B30CC;color:#fff;font-size:32px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:12px;overflow:hidden}
+.more .emo{font-size:30px}
+.tap{position:absolute;width:104px;height:104px;margin:-52px 0 0 -52px;border-radius:50%;background:rgba(106,77,244,.2);border:5px solid rgba(106,77,244,.6);opacity:0;z-index:7;pointer-events:none}
+#s1 .need{top:420px}
+#s1 .need-row .nl{font-size:38px;white-space:nowrap}
+
+/* ---------- Code et résultat partagés (chapitres 2 à 4) ---------- */
+#qcode{left:64px;top:236px;width:952px;opacity:0;visibility:hidden}
+#ql4{height:0;overflow:hidden}
+.rgL{display:grid;grid-template-columns:90px 1fr 130px 250px;padding:0 26px;align-items:center}
+.rgL>div:last-child{display:flex;justify-content:flex-end}
+.tr.tl{height:56px;font-size:30px}
+.pl{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:999px;font-family:var(--ui);font-size:23px;font-weight:700;white-space:nowrap;opacity:0}
+.pl .emo{font-size:21px}
+.pl.on{background:#ECE9F5;color:var(--ink-3)}
+.pl.nx{background:var(--accent);color:#fff}
+.pl.eq{background:#FFF4E5;border:2px solid #F7C97F;color:#9A5B00}
+.pl.dup{background:var(--danger-soft);border:2px solid #F6C9CD;color:var(--danger)}
+.pl.idk{background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:24px}
+.pl.sk2{background:#ECE9F5;color:var(--ink-3)}
+
+/* ---------- 3 · Le piège : LIMIT sans ORDER BY ---------- */
+.mini .l3{display:block}
+.mres{margin-top:20px;border-radius:24px;border:2px solid var(--line);overflow:hidden;opacity:0}
+.rgM{display:grid;grid-template-columns:70px 1fr 120px;padding:0 20px;align-items:center}
+.tr.tm{height:54px;font-size:28px}
+.tr.tm:first-child{box-shadow:none}
+.okline{display:flex;align-items:center;gap:18px;margin-top:22px;opacity:0}
+.okline .oi{background:var(--accent);color:#fff}
+.okline b{font-size:34px;font-weight:800;color:var(--accent-ink)}
+.okline span{font-size:30px;font-weight:500;color:var(--ink-3)}
+
+/* ---------- 4 · Une page à la fois ---------- */
+.rgW{display:grid;grid-template-columns:70px 1fr 130px 300px;padding:0 26px;align-items:center}
+.rgW>div:last-child{display:flex;justify-content:flex-end}
+.tr.tw{height:62px;font-size:32px}
+.tr.tw>div:first-child{color:var(--ink-3)}
+.tr.gh{height:54px;margin:4px 12px 0;border:3px dashed #D8D1F2;border-radius:14px;box-shadow:none;background:#FAF9FE;display:flex;align-items:center;justify-content:center;font-family:var(--ui);font-size:27px;font-weight:600;color:var(--ink-3);opacity:0}
+.frm{position:absolute;left:6px;right:6px;top:0;height:186px;border:5px solid var(--accent);border-radius:18px;box-shadow:0 0 0 8px rgba(106,77,244,.14);z-index:3;opacity:0}
+.fch{position:absolute;right:14px;top:50%;width:300px;height:56px;margin-top:-28px}
+.fch span{position:absolute;right:0;top:0;height:56px;padding:0 20px;border-radius:999px;background:var(--accent);color:#fff;font-size:25px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap;opacity:0}
+.fch b{font-family:var(--mono);font-weight:800;font-size:25px}
+
+/* ---------- 5 · Un classement stable ---------- */
+.pages{left:64px;width:952px;padding:0 0 14px;overflow:hidden}
+.pgh{height:66px;display:flex;align-items:center;gap:12px;padding:0 30px;background:var(--surface-2);font-size:28px;font-weight:700;color:var(--ink-2)}
+.pgh .emo{font-size:28px}
+.rgP{display:grid;grid-template-columns:1fr 130px 260px;padding:0 26px;align-items:center}
+.rgP>div:last-child{position:relative;height:60px}
+.tr.tp{height:60px;font-size:30px}
+.tr.tp .hla{position:absolute;left:0;top:0;right:0;bottom:0;background:#FFF4E5;box-shadow:inset 8px 0 0 #F59E0B;opacity:0;z-index:0}
+.tr.tp .hlr{position:absolute;left:0;top:0;right:0;bottom:0;background:var(--danger-soft);box-shadow:inset 8px 0 0 var(--danger-fill);opacity:0;z-index:0}
+.nf{position:relative;height:60px}
+.nf span{position:absolute;left:12px;top:0;line-height:60px}
+.nf .n2{opacity:0}
+.rgP .pl{position:absolute;right:0;top:10px}
+.never{left:0;width:1080px;display:flex;justify-content:center;opacity:0}
+.never span{height:66px;padding:0 28px;border-radius:999px;background:var(--danger-soft);border:3px solid #F6C9CD;color:var(--danger);font-size:30px;font-weight:700;display:flex;align-items:center;gap:12px;white-space:nowrap}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Lire une table</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>L</span><span>I</span><span>M</span><span>I</span><span class="sp">T</span><span>O</span><span>F</span><span>F</span><span>S</span><span>E</span><span>T</span></div>
+    <div class="abs sub">Découper le résultat en pages</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec <span class="ic">LIMIT</span> et <span class="ic">OFFSET</span>, découpe le résultat en pages.</div>
+  </section>
+
+  <!-- 1 · Situation -->
+  <section class="scene" id="s1">
+    <div class="abs phone" id="ph1"></div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">🔢</span><span class="nl">L’identifiant du produit</span><span class="tag">table produits</span></div>
+      <div class="need-row"><span class="emo">🏷️</span><span class="nl">Son nom</span><span class="tag">table produits</span></div>
+      <div class="need-row"><span class="emo">💶</span><span class="nl">Son prix</span><span class="tag">table produits</span></div>
+    </div>
+  </section>
+
+  <!-- Code et résultat partagés (chapitres 2 à 4) : « LIMIT 3 » s’ajoute à la requête, puis « OFFSET 3 » -->
+  <div class="abs code sm" id="qcode">
+    <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+    <div class="body"><span class="ln" id="ql1"><span class="kw">SELECT</span> id, nom, prix<span class="caret"><i></i></span></span><span class="ln" id="ql2"><span class="kw">FROM</span> produits<span class="caret"><i></i></span></span><span class="ln" id="ql3"><span class="kw">ORDER BY</span> prix <span class="kw">DESC</span><span id="semi3">;</span><span class="caret"><i></i></span></span><span class="ln" id="ql4"><span class="kw glow" id="limA">LIMIT</span> 3<span id="offA"> <span class="kw glow">OFFSET</span> 3</span>;<span class="caret"><i></i></span></span></div>
+    <div class="run" id="qrun"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+  </div>
+  <div class="tbl card" id="tbl2" style="top:770px">
+    <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt2a">8 lignes</span><span id="cnt2b">3 lignes</span></span></div>
+    <div class="rgL th"><div>id</div><div>nom</div><div>prix</div><div></div></div>
+    <div class="rows" id="rows2"></div>
+  </div>
+
+  <!-- 3 · Le piège : LIMIT sans ORDER BY -->
+  <section class="scene" id="s3">
+    <div class="abs card trap" id="trap3" style="top:236px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Sans <span class="ic">ORDER BY</span></span></div>
+      <div class="mini"><span class="l3"><span class="kw">SELECT</span> id, nom, prix</span><span class="l3"><span class="kw">FROM</span> produits</span><span class="l3"><span class="kw">LIMIT</span> 3;</span><span class="go" id="go3"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
+      <div class="mres" id="mres3"></div>
+      <div class="out err" id="err3"><span class="oi">✕</span><div class="ot"><b>Pas les 3 plus chers</b><span class="s">L’ordre de ces lignes n’est pas garanti.</span></div></div>
+    </div>
+    <div class="abs card trap" id="fix3" style="top:960px">
+      <div class="trap-h"><span class="emo">✅</span><span>Avec <span class="ic">ORDER BY prix DESC</span></span></div>
+      <div class="okline" id="ok3"><span class="oi">✓</span><b>Les 3 plus chers</b><span>du classement</span></div>
+    </div>
+  </section>
+
+  <!-- 4 · Une page à la fois -->
+  <section class="scene" id="s4">
+    <div class="tbl card" id="win4" style="top:236px">
+      <div class="tt"><span class="emo">🪟</span><span>Une page à la fois</span><span class="cnt"><span id="cnt4">3 par page</span></span></div>
+      <div class="rgW th"><div>#</div><div>nom</div><div>prix</div><div></div></div>
+      <div class="rows" id="rows4"><div class="frm" id="frm4"><div class="fch"><span id="fc0"><b>OFFSET 0</b>· page 1</span><span id="fc1"><b>OFFSET 3</b>· page 2</span><span id="fc2"><b>OFFSET 6</b>· page 3</span></div></div></div>
+    </div>
+  </section>
+
+  <!-- 5 · Un classement stable -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="tie5" style="top:236px">
+      <div class="trap-h"><span class="emo">🧪</span><span>Imaginons l’Oméga 3 à 29,90 €</span></div>
+      <div class="mini"><span class="kw">ORDER BY</span> prix <span class="kw">DESC</span><span id="idC">, id</span>;<span class="go" id="go5"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
+    </div>
+    <div class="abs card pages" id="pg5" style="top:500px"></div>
+    <div class="abs never" id="nv5" style="top:1046px"><span>✕ Oméga 3 : jamais affiché</span></div>
+  </section>
+
+  <!-- 6 · Le résultat -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> id, nom, prix<span class="caret"><i></i></span></span><span class="ln" id="s6l2"><span class="kw">FROM</span> produits<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="kw">ORDER BY</span> prix <span class="kw">DESC</span>, id<span class="caret"><i></i></span></span><span class="ln" id="s6l4"><span class="kw">LIMIT</span> 3 <span class="kw">OFFSET</span> 3;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6" style="top:770px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">3 lignes</span></span></div>
+      <div class="rgL th"><div>id</div><div>nom</div><div>prix</div><div></div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs phone" id="ph6"></div>
+    <div class="abs badge" id="badge6" style="top:1366px"><span>✓ 3 produits de plus</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">✂️</div><div class="rtxt"><span class="ic">LIMIT n</span> garde les <b>n&nbsp;premières</b> lignes du classement&nbsp;:<br><span class="ic blk">ORDER BY prix DESC LIMIT 3</span></div></div>
+      <div class="rrow"><div class="rico emo">⏭️</div><div class="rtxt"><span class="ic">OFFSET n</span> <b>saute</b> n lignes. Pour la page p&nbsp;: (p&nbsp;−&nbsp;1)&nbsp;×&nbsp;taille.<br><span class="ic blk">LIMIT 3 OFFSET 3</span></div></div>
+      <div class="rrow"><div class="rico emo">🔒</div><div class="rtxt">Un <b>classement&nbsp;stable</b>&nbsp;: termine <span class="ic">ORDER BY</span> par une colonne unique, comme <span class="ic">id</span>.</div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 111.8;
+
+/* Table produits : [id, nom, categorie, prix] */
+const PRODUITS = [[1,'Fibre Prébiotique','Bien-être',29.9],[2,'Collagène Marin','Beauté',39.9],[3,'Magnésium','Bien-être',19.9],
+  [4,'Vitamine D','Nutrition',14.9],[5,'Tisane Détox','Boisson',12.5],[6,'Protéine Végétale','Nutrition',34.9],
+  [7,'Oméga 3','Bien-être',24.9],[8,'Shaker Inox','Accessoire',15]];
+const P = id => PRODUITS.find(p => p[0] === id);
+/* ORDER BY prix DESC, id : Collagène Marin, Protéine Végétale, Fibre Prébiotique, Oméga 3, Magnésium, Shaker Inox, Vitamine D, Tisane Détox */
+const CLASSEMENT = PRODUITS.slice().sort((a, b) => b[3] - a[3] || a[0] - b[0]);
+const ICONE = {1:'🌾', 2:'🌊', 3:'⚡', 4:'☀️', 5:'🍵', 6:'🌱', 7:'🐟', 8:'🥤'};
+const euros = v => v.toFixed(2).replace('.', ',') + ' €';
+
+const CHAPTERS = [
+  {n:1, label:'Situation',             a:5.0,  b:21.0},
+  {n:2, label:'Le problème',           a:21.0, b:34.5},
+  {n:3, label:'LIMIT en action',       a:34.5, b:50.0},
+  {n:4, label:'Sauter avec OFFSET',    a:50.0, b:66.0},
+  {n:5, label:'Un classement stable',  a:66.0, b:82.0},
+  {n:6, label:'Le résultat',           a:82.0, b:99.0},
+  {n:7, label:'À retenir',             a:99.0, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 9.6,    "Dans l’app de la boutique, la liste montre d’abord <b>3 produits</b>, du plus cher au moins cher."],
+  [9.7, 13.9,   "Un appui sur « Voir plus » doit afficher les <b>3 suivants</b>, sans répéter les premiers."],
+  [14.0, 17.2,  "L’app a besoin de l’<b>identifiant</b>, du <b>nom</b> et du <b>prix</b> de chaque produit."],
+  [17.3, 20.7,  "Ces informations se trouvent dans la <b>table produits</b>, qui contient <b>8 produits</b>."],
+  [21.3, 25.3,  "On classe d’abord les produits du plus cher au moins cher avec <code>ORDER BY</code>."],
+  [25.4, 29.6,  "Le classement est bon, mais la requête renvoie les <b>8 produits</b> d’un coup."],
+  [29.7, 34.0,  "L’app n’en veut que <b>3</b> : ceux qui suivent les produits déjà affichés."],
+  [34.8, 38.3,  "On ajoute <code>LIMIT 3</code> tout à la <b>fin</b> de la requête : il ne garde que 3 lignes."],
+  [38.4, 42.6,  "Ce sont les 3 premières lignes <b>du classement</b> : les produits affichés au départ."],
+  [42.7, 46.4,  "Sans <code>ORDER BY</code>, <code>LIMIT</code> garde 3 lignes dans un ordre <b>non\u00a0garanti</b> : ici, pas les plus chères."],
+  [46.5, 49.6,  "Avec <code>LIMIT</code>, écris donc toujours un <code>ORDER BY</code>."],
+  [50.3, 54.0,  "Pour les 3 suivants, <code>OFFSET 3</code> <b>saute</b> les 3 premiers, puis <code>LIMIT</code> en garde 3."],
+  [54.1, 58.2,  "Résultat : Oméga 3, Magnésium et Shaker Inox, les 3 produits suivants du classement."],
+  [58.3, 62.6,  "Pour chaque page, on saute (page\u00a0−\u00a01)\u00a0×\u00a03 lignes : 0, puis 3, puis 6."],
+  [62.7, 65.6,  "La page 3 n’a que <b>2 produits</b> : la dernière page peut être plus courte."],
+  [66.3, 70.0,  "Imaginons l’Oméga 3 à <b>29,90 €</b>, comme la Fibre Prébiotique : ils sont à égalité."],
+  [70.1, 74.4,  "À égalité, leur ordre n’est pas garanti : il peut s’inverser d’une requête à l’autre."],
+  [74.5, 78.0,  "La Fibre Prébiotique s’affiche alors <b>deux\u00a0fois</b>, et l’Oméga 3 <b>jamais</b>."],
+  [78.1, 81.6,  "On termine donc <code>ORDER BY</code> par <code>id</code>, une colonne unique : le classement devient <b>stable</b>."],
+  [82.3, 85.6,  "La requête complète charge les 3 produits suivants, dans un classement stable."],
+  [85.7, 89.4,  "Résultat : <b>3 lignes</b>, Oméga 3, Magnésium et Shaker Inox."],
+  [89.5, 93.6,  "Dans l’app, ils s’ajoutent <b>sous les 3 premiers</b> : la liste s’allonge sans doublon."],
+  [93.7, 98.6,  "<code>LIMIT</code> et <code>OFFSET</code> agissent sur le résultat : la <b>table produits</b> n’est pas modifiée."],
+  [99.3, 104.1, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [104.2, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [104.2, 999, "<code>LIMIT</code> garde les premières lignes, <code>OFFSET</code> en saute : toujours avec un classement stable."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+/* Une fiche produit dans l’app (prix affiché en euros), ou une fiche encore inconnue (« ? »). */
+const fiche = p => `<div class="pc" data-id="${p[0]}"><i class="glw"></i><span class="pi emo">${ICONE[p[0]]}</span><span class="pn">${p[1]}<small>${p[2]}</small></span><span class="pp">${euros(p[3])}</span></div>`;
+const inconnue = () => '<div class="pc sk"><span class="pi">?</span><span class="bars"><i class="bar"></i><i class="bar"></i></span><i class="shim"></i></div>';
+function telephone(id, suite){
+  $(id).innerHTML = `<div class="scr"><div class="notch"></div><div class="sb"><span>9:41</span><span class="bat"><i></i></span></div>` +
+    `<div class="ah"><div class="an">NutriBoost</div><div class="as">Du plus cher au moins cher</div></div>` +
+    `<div class="lst">${CLASSEMENT.slice(0, 3).map(fiche).join('')}${suite}<div class="more"><span class="emo">⬇️</span>Voir plus</div></div><i class="tap"></i></div>`;
+}
+
+function dom(){
+  telephone('#ph1', [0, 1, 2].map(inconnue).join(''));
+  telephone('#ph6', CLASSEMENT.slice(3, 6).map(fiche).join(''));
+  const pill = (cls, emo, t) => `<span class="pl ${cls}">${emo ? `<span class="emo">${emo}</span>` : ''}${t}</span>`;
+  $('#rows2').innerHTML = CLASSEMENT.map((p, i) => `<div class="rgL tr tl" data-i="${i}"><i class="hl"></i><div>${p[0]}</div><div>${p[1]}</div><div>${p[3]}</div>` +
+    `<div>${i < 3 ? pill('on', '📱', 'à l’écran') : i < 6 ? pill('nx', '⬇️', 'à charger') : ''}</div></div>`).join('');
+  $('#rows6').innerHTML = CLASSEMENT.slice(3, 6).map(p => `<div class="rgL tr tl"><div>${p[0]}</div><div>${p[1]}</div><div>${p[3]}</div><div></div></div>`).join('');
+  $('#mres3').innerHTML = PRODUITS.slice(0, 3).map(p => `<div class="rgM tr tm"><div>${p[0]}</div><div>${p[1]}</div><div>${p[3]}</div></div>`).join('');
+  $('#rows4').insertAdjacentHTML('beforeend', CLASSEMENT.map((p, i) => `<div class="rgW tr tw"><div>${i + 1}</div><div>${p[1]}</div><div>${p[3]}</div><div>${pill('sk2', '', 'sautée')}</div></div>`).join('') +
+    '<div class="tr gh" id="gh4">— plus aucune ligne —</div>');
+  // Exemple imaginé : l’Oméga 3 à 29.9, à égalité avec la Fibre Prébiotique (3ᵉ et 4ᵉ du classement).
+  const r = (nom, prix, tags, extra = '') => `<div class="rgP tr tp"${extra}><i class="hla"></i><i class="hlr"></i>${nom}<div>${prix}</div><div>${tags}</div></div>`;
+  const cell = n => `<div>${n}</div>`;
+  $('#pg5').innerHTML = '<div class="pgh"><span class="emo">📱</span>Page 1</div>' +
+    r(cell('Collagène Marin'), '39.9', '') + r(cell('Protéine Végétale'), '34.9', '') +
+    r(cell('Fibre Prébiotique'), '29.9', pill('eq', '', '= à égalité') + pill('idk', '', 'id 1'), ' id="pA"') +
+    '<div class="pgh"><span class="emo">⬇️</span>Page 2 · après « Voir plus »</div>' +
+    r('<div class="nf"><span class="n1">Oméga 3</span><span class="n2">Fibre Prébiotique</span></div>', '29.9',
+      pill('eq', '', '= à égalité') + pill('dup', '', '✕ en double') + pill('idk', '', 'id 7'), ' id="pB"') +
+    r(cell('Magnésium'), '19.9', '') + r(cell('Shaker Inox'), '15', '');
+}
+
+/* Une ligne se retourne : son nom change (Oméga 3 ↔ Fibre Prébiotique). */
+function flip(row, t, toSecond){
+  const nf = row.querySelector('.nf');
+  tl.to(nf, {scaleY: 0, duration: 0.12, ease: 'power2.in'}, t);
+  tl.set(nf.querySelector('.n1'), {opacity: toSecond ? 0 : 1}, t + 0.12);
+  tl.set(nf.querySelector('.n2'), {opacity: toSecond ? 1 : 0}, t + 0.12);
+  tl.to(nf, {scaleY: 1, duration: 0.22, ease: 'back.out(2)'}, t + 0.12);
+  cue(t + 0.12, toSecond ? 'false' : 'true', 0.7);
+}
+
+/* L’app arrive à l’écran ; un appui sur « Voir plus » ; les fiches suivantes s’ouvrent sous les premières (la liste s’allonge). */
+function appIn(id, t){
+  gsap.set(id, {autoAlpha: 0, y: 160});
+  tl.to(id, {autoAlpha: 1, y: 0, duration: 0.8, ease: 'back.out(1.15)'}, t);
+  cue(t, 'whoosh', 0.8);
+}
+function tapMore(id, t){
+  const scr = $(id + ' .scr'), btn = $(id + ' .more'), tap = $(id + ' .tap');
+  const b = rel(btn, scr);
+  tap.style.left = (b.x + b.w / 2) + 'px';
+  tap.style.top = (b.y + b.h / 2) + 'px';
+  gsap.set(tap, {autoAlpha: 0, scale: 1.5});
+  tl.to(tap, {autoAlpha: 1, scale: 1, duration: 0.25, ease: 'power2.out'}, t - 0.3);
+  press(btn, t, '#4B30CC', 7);
+  tl.to(tap, {autoAlpha: 0, scale: 1.6, duration: 0.35, ease: 'power2.out'}, t + 0.15);
+}
+function grow(cards, t){
+  gsap.set(cards, {height: 0, marginBottom: 0, autoAlpha: 0, borderWidth: 0});
+  tl.to(cards, {height: 104, marginBottom: 14, autoAlpha: 1, borderWidth: 2, duration: 0.45, ease: 'power3.out', stagger: 0.15}, t);
+  cards.forEach((_, i) => cue(t + i * 0.15, 'pop', 0.7, i + 2));
+}
+
+function build(){
+  introScene();
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  const c1 = $$('#ph1 .pc:not(.sk)'), sk1 = $$('#ph1 .pc.sk');
+  grow(sk1, 10.75);                               // fiches inconnues : repliées au départ, elles s’ouvrent après l’appui
+  appIn('#ph1', 5.1);
+  gsap.set(c1, {autoAlpha: 0, x: -30});
+  tl.to(c1, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out', stagger: 0.15}, 5.75);
+  c1.forEach((_, i) => cue(5.75 + i * 0.15, 'pop', 0.7, i));
+  show('#ph1 .more', 6.35, {y: 0, scale: 0.8}, 0.4, 'back.out(2)');
+  tl.to('#ph1 .as', {scale: 1.08, duration: 0.2, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 7.4);
+  // « Voir plus » : les 3 suivants, encore inconnus
+  tapMore('#ph1', 10.4);
+  tl.fromTo('#ph1 .shim', {x: 0}, {x: 760, duration: 1.1, ease: 'none', repeat: 5, stagger: 0.12, data: 'amb'}, 11.3);
+  hide('#ph1', 14.0, {y: -60}, 0.42);
+  show('#s1 .need', 14.3, {y: 60});
+  cue(14.3, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.15}, 14.7);
+  needRows.forEach((_, i) => cue(14.7 + i * 0.15, 'pop', 0.7, i));
+  tl.to('#s1 .tag', {scale: 1.08, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 17.7);
+  hide('#s1 .need', 20.6);
+  sceneOff('#s1', 21.1);
+
+  /* ===== 2 · Le problème ===== */
+  show('#qcode', 21.05, {y: 60}, 0.6);
+  cue(21.05, 'whoosh', 0.7);
+  te = typeLine($('#ql1'), 21.55, 30);
+  te = typeLine($('#ql2'), te + 0.1, 30);
+  te = typeLine($('#ql3'), te + 0.1, 30);
+  press($('#qrun'), 23.5);
+  show('#tbl2', 23.75, {y: 40}, 0.5);
+  const tr2 = $$('#rows2 .tr');
+  gsap.set(tr2, {autoAlpha: 0, y: 14});
+  tl.to(tr2, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.05}, 23.9);
+  tr2.forEach((_, i) => cue(23.9 + i * 0.05, 'tick', 0.4, i));
+  show('#cnt2a', 24.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  gsap.set('#cnt2b', {autoAlpha: 0, y: 24});
+  tl.to('#cnt2a', {scale: 1.14, duration: 0.2, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 26.0);
+  cue(26.0, 'pop', 0.7, 1);
+  // Déjà à l’écran / à charger
+  const pills = tr2.map(r => r.querySelector('.pl')).filter(Boolean);
+  gsap.set(pills, {scale: 0.5});
+  pills.forEach((pl, i) => {
+    const t = i < 3 ? 30.0 + i * 0.12 : 31.0 + (i - 3) * 0.12;
+    tl.to(pl, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)'}, t);
+    cue(t, 'pop', 0.6, i);
+  });
+  const nx = tr2.slice(3, 6).map(r => r.querySelector('.hl'));
+  tl.to(nx, {opacity: 1, duration: 0.3, stagger: 0.12}, 31.0);
+
+  /* ===== 3 · LIMIT en action ===== */
+  tl.to(nx, {opacity: 0, duration: 0.3}, 34.6);
+  tl.set('#semi3', {display: 'none'}, 34.8);
+  tl.to('#ql4', {height: 54, duration: 0.3, ease: 'power2.out'}, 34.8);
+  te = typeLine($('#ql4'), 35.15, 20, false, $('#offA'));
+  tl.to('#limA', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, te + 0.15);
+  press($('#qrun'), 38.4);
+  const rest = tr2.slice(3);
+  tl.to(rest, {height: 0, autoAlpha: 0, duration: 0.5, ease: 'power2.inOut', stagger: 0.04}, 38.6);
+  cue(38.6, 'fold', 0.9);
+  tl.to('#cnt2a', {autoAlpha: 0, y: -24, duration: 0.25, ease: 'power2.in'}, 39.35);
+  tl.to('#cnt2b', {autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)'}, 39.45);
+  cue(39.45, 'pop', 0.9, 4);
+  tl.to(pills.slice(0, 3), {scale: 1.12, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.1}, 40.2);
+  // Le piège : LIMIT sans ORDER BY
+  hide(['#qcode', '#tbl2'], 42.7, {y: -40}, 0.4);
+  sceneOn('#s3', 42.9);
+  show('#trap3', 43.0, {y: 50});
+  cue(43.0, 'whoosh', 0.6);
+  press($('#go3'), 43.9, '#4B30CC', 6);
+  show('#mres3', 44.1, {y: 16}, 0.4);
+  show('#err3', 44.7, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  tl.to('#err3', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 45.1);
+  cue(44.7, 'error', 0.85);
+  show('#fix3', 46.8, {y: 50});
+  cue(46.8, 'whoosh', 0.6);
+  show('#ok3', 47.3, {y: 0, x: -20}, 0.4, 'back.out(1.8)');
+  cue(47.3, 'chord', 0.6);
+  hide(['#trap3', '#fix3'], 49.6);
+  sceneOff('#s3', 50.05);
+
+  /* ===== 4 · Sauter avec OFFSET ===== */
+  tl.fromTo('#qcode', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, 50.05);
+  tl.fromTo('#tbl2', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, 50.2);
+  cue(50.05, 'whoosh', 0.6);
+  te = typeMore($('#offA'), 50.85, 20);
+  tl.to('#offA .glow', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, te + 0.15);
+  press($('#qrun'), 54.1);
+  const page1 = tr2.slice(0, 3), page2 = tr2.slice(3, 6);
+  tl.to(page1, {opacity: 0.35, duration: 0.25}, 54.3);
+  tl.to(page1, {height: 0, autoAlpha: 0, duration: 0.5, ease: 'power2.inOut', stagger: 0.04}, 54.65);
+  cue(54.65, 'fold', 0.8);
+  tl.to(page2, {height: 56, autoAlpha: 1, duration: 0.5, ease: 'power3.out', stagger: 0.08}, 55.05);
+  page2.forEach((_, i) => cue(55.05 + i * 0.08, 'pop', 0.7, i + 2));
+  // Une page à la fois : la fenêtre de 3 lignes glisse de 3 en 3
+  hide(['#qcode', '#tbl2'], 58.3, {y: -40}, 0.4);
+  sceneOn('#s4', 58.5);
+  show('#win4', 58.6, {y: 50}, 0.55);
+  cue(58.6, 'whoosh', 0.6);
+  const tw = $$('#rows4 .tw');
+  gsap.set(tw, {autoAlpha: 0, x: -20});
+  tl.to(tw, {autoAlpha: 1, x: 0, duration: 0.3, ease: 'power2.out', stagger: 0.04}, 58.8);
+  show('#cnt4', 59.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  const sk = tw.map(r => r.querySelector('.pl'));
+  gsap.set(sk, {scale: 0.6});
+  const fc = ['#fc0', '#fc1', '#fc2'];
+  gsap.set(fc, {autoAlpha: 0, y: 14});
+  show('#frm4', 59.55, {y: 0, scale: 0.96}, 0.35, 'back.out(1.8)');
+  tl.to('#fc0', {autoAlpha: 1, y: 0, duration: 0.3, ease: 'back.out(2)'}, 59.7);
+  cue(59.55, 'pop', 0.8, 1);
+  [[60.6, 1], [61.6, 2]].forEach(([t, k]) => {
+    tl.to('#frm4', {y: k * 3 * 62, duration: 0.5, ease: 'power3.inOut'}, t);
+    tl.to(fc[k - 1], {autoAlpha: 0, y: -14, duration: 0.2}, t);
+    tl.to(fc[k], {autoAlpha: 1, y: 0, duration: 0.3, ease: 'back.out(2)'}, t + 0.3);
+    const skipped = tw.slice((k - 1) * 3, k * 3);
+    tl.to(skipped, {opacity: 0.4, duration: 0.3}, t + 0.1);
+    tl.to(skipped.map(r => r.querySelector('.pl')), {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.06}, t + 0.15);
+    cue(t, 'whoosh', 0.5);
+    cue(t + 0.3, 'pop', 0.8, 2 + k);
+  });
+  show('#gh4', 61.95, {y: 0}, 0.3, 'power2.out');
+  tl.to('#gh4', {color: '#5335E0', borderColor: '#A893FF', duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 63.0);
+  cue(63.0, 'empty', 0.6);
+  hide('#win4', 65.6, {y: -40});
+  sceneOff('#s4', 66.05);
+
+  /* ===== 5 · Un classement stable ===== */
+  sceneOn('#s5', 66.0);
+  gsap.set('#idC', {display: 'none'});
+  show('#tie5', 66.05, {y: 50});
+  cue(66.05, 'whoosh', 0.6);
+  show('#pg5', 66.35, {y: 40}, 0.5);
+  const tp = $$('#pg5 .tp'), pA = $('#pA'), pB = $('#pB');
+  gsap.set(tp, {autoAlpha: 0, x: -20});
+  tl.to(tp, {autoAlpha: 1, x: 0, duration: 0.3, ease: 'power2.out', stagger: 0.06}, 66.55);
+  // Les deux produits à 29.9, à égalité
+  const tagA = $$('.pl', pA), tagB = $$('.pl', pB);     // A : [égalité, id 1] ; B : [égalité, en double, id 7]
+  gsap.set([...tagA, ...tagB], {scale: 0.5});
+  tl.to([pA, pB].map(r => r.querySelector('.hla')), {opacity: 1, duration: 0.35, stagger: 0.15}, 67.5);
+  tl.to([tagA[0], tagB[0]], {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)', stagger: 0.15}, 67.7);
+  cue(67.7, 'pop', 0.8, 2);
+  // D’une requête à l’autre : la page 2 commence par la Fibre Prébiotique
+  flip(pB, 71.2, true);
+  // En double, et l’Oméga 3 jamais affiché
+  tl.to([pA, pB].map(r => r.querySelector('.hla')), {opacity: 0, duration: 0.3}, 74.6);
+  tl.to([pA, pB].map(r => r.querySelector('.hlr')), {opacity: 1, duration: 0.3, stagger: 0.12}, 74.7);
+  tl.to(tagB[0], {autoAlpha: 0, scale: 0.5, duration: 0.2}, 74.7);
+  tl.to(tagB[1], {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)'}, 74.9);
+  cue(74.9, 'error', 0.7);
+  show('#nv5', 75.6, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(75.6, 'miss', 0.7);
+  // Correction : ORDER BY prix DESC, id
+  gsap.set('#idC', {autoAlpha: 0, scale: 0.3, transformOrigin: '50% 60%'});
+  tl.set('#idC', {display: 'inline-block'}, 78.38);
+  tl.to('#idC', {autoAlpha: 1, scale: 1, duration: 0.42, ease: 'back.out(2.6)'}, 78.4);
+  cue(78.4, 'pop', 0.9, 6);
+  press($('#go5'), 79.0, '#4B30CC', 6);
+  tl.to('#nv5', {autoAlpha: 0, scale: 0.8, duration: 0.25}, 79.2);
+  tl.to([pA, pB].map(r => r.querySelector('.hlr')), {opacity: 0, duration: 0.3}, 79.2);
+  tl.to([tagA[0], tagB[1]], {autoAlpha: 0, scale: 0.5, duration: 0.2}, 79.2);
+  flip(pB, 79.3, false);
+  tl.to([tagA[1], tagB[2]], {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)', stagger: 0.15}, 79.8);
+  cue(79.8, 'chord', 0.6);
+  hide(['#tie5', '#pg5'], 81.6);
+  sceneOff('#s5', 82.05);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 82.0);
+  show('#s6code', 82.05, {y: 60}, 0.6);
+  cue(82.05, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 82.55, 32);
+  te = typeLine($('#s6l2'), te + 0.1, 32);
+  te = typeLine($('#s6l3'), te + 0.1, 32);
+  te = typeLine($('#s6l4'), te + 0.1, 32);
+  press($('#s6run'), 85.7);
+  show('#tbl6', 85.95, {y: 40}, 0.5);
+  const tr6 = $$('#rows6 .tr');
+  gsap.set(tr6, {autoAlpha: 0, y: 14});
+  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.08}, 86.1);
+  tr6.forEach((_, i) => cue(86.1 + i * 0.08, 'tick', 0.45, i));
+  show('#cnt6', 86.5, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  hide(['#s6code', '#tbl6'], 89.5, {y: -40}, 0.4);
+  // Dans l’app : les 3 produits s’ajoutent sous les premiers
+  const c6 = $$('#ph6 .pc'), new6 = c6.slice(3);
+  grow(new6, 91.2);
+  appIn('#ph6', 89.8);
+  tapMore('#ph6', 90.9);
+  tl.to(new6.map(c => c.querySelector('.glw')), {opacity: 1, duration: 0.35, stagger: 0.1}, 92.0);
+  show('#badge6', 92.5, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(92.5, 'success', 0.9);
+  hide(['#ph6', '#badge6'], 98.6);
+  sceneOff('#s6', 99.05);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(99.0, [99.7, 101.5, 103.3]);
+  hold(101.3, 2.9);
+  hold(103.1, 2.9);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(104.25, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 104.2,
+  glyphs: '📱⬇️🔢🏷️💶🔎⚠️✅🪟🧪✂️⏭️🔒🌾🌊⚡☀️🍵🌱🐟🥤✓✕→·€−×—', dom, build});
+</script>
+</body>
+</html>
