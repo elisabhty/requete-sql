@@ -97,6 +97,8 @@ test('l’animation part dans l’app iOS et reste légère (plus de MP4 pour WH
 test('« Ajouter dans notes » dans la vidéo : même note que le cours texte, un seul appui, sans doublon ni toast', () => {
   const player = cut('function openLessonVideo(){', 'function lvPlay(){');
   assert.ok(player.includes('class="lv-note-btn"') && player.includes('Ajouter dans notes') && player.includes('class="lv-note-arrow"'), 'bouton et flèche dans le lecteur');
+  assert.ok(player.includes('class="lv-a-halo"') && html.includes('.lv-note-arrow{position:absolute;z-index:1;') && html.includes('.lv-note-arrow .lv-a-halo{'),
+    'flèche bien visible : trait épais sur un halo, dessinée au-dessus du bouton');
   assert.ok(player.includes("e.target.closest('.lv-end,.lv-big,.lv-note-btn')"), 'toucher le bouton ne met pas la vidéo en pause');
   const add = cut('function lvNoteAdd(e){', 'function lvNoteBurst(btn){');
   assert.ok(!/toast\(/.test(add), 'pas de toast : le retour se fait sur le bouton');
@@ -304,14 +306,14 @@ test('réponse à la question gardée : enregistrée par leçon, réaffichée te
 /* Cours animés sur le moteur commun (assets/anim/core.js) : un cas par cours. */
 const COURSES = [
   {id: 1, next: 2, titre: 'SELECT', page: 'select.html', thumb: 'select-thumb.jpg', duree: '2 min 32', notesAt: 104,
-    notes: /notes:\{t:144\.55,y:1360,card:\[64,356,1016,1066\],to:\[940,255\]\}/, table: 'clients',
+    notes: /notes:\{t:143\.9,y:1360,card:\[64,356,1016,1066\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avec <span class="ic">SELECT</span>, choisis seulement les colonnes dont tu as besoin.',
     chapters: ['Situation', 'Le problème', 'Choisir les colonnes', 'Deux pièges', 'Toutes les colonnes', 'Le résultat', 'À retenir'],
     traps: ['near "FROM": syntax error', 'SELECT</span> prenom<span class="ghost" id="ghostAS"> <b>AS</b></span> ville',
       'Pour <b>découvrir</b> toutes<br>les informations disponibles', 'Pour obtenir les <b>prénoms</b><br>et <b>noms</b> des clients', '<span class="ic">SELECT prenom, nom</span>',
       'indique <b>ces deux colonnes</b>', 'Le résultat sera plus lisible, sans les adresses, les e-mails et les autres informations inutiles ici.', 'la requête équivaut à <code>prenom AS ville</code>', 'il faut la\\u00a0virgule :<br><code>prenom, ville</code>']},
-  {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '2 min 11', notesAt: 92.4,
-    notes: /notes:\{t:123\.25,y:1365,card:\[64,356,1016,1071\],to:\[940,255\]\}/, table: 'produits',
+  {id: 2, next: 13, titre: 'Renommer avec AS', page: 'as.html', thumb: 'as-thumb.jpg', duree: '2 min 10', notesAt: 92.4,
+    notes: /notes:\{t:121\.9,y:1330,card:\[64,356,1016,1017\],to:\[940,255\]\}/, table: 'produits',
     bubble: 'Avec <span class="ic">AS</span>, donne à une colonne un nom plus clair dans le résultat.',
     chapters: ['Situation', 'Le problème', 'Renommer une colonne', 'Plusieurs colonnes', 'Le piège des guillemets', 'Le résultat', 'À retenir'],
     traps: ['near "du": syntax error', 'near "(": syntax error', '"Nom du produit"']},
@@ -321,21 +323,21 @@ const COURSES = [
     chapters: ['Situation', 'Le problème', 'DISTINCT en action', 'Où le placer', 'Plusieurs colonnes', 'Le résultat', 'À retenir'],
     traps: ['near "DISTINCT": syntax error', 'Cette ville est-elle déjà dans le résultat ?', 'Paris + Sophie et Paris + Léa sont des combinaisons différentes']},
   {id: 5, next: 6, titre: 'Comparer des valeurs', page: 'comparer.html', thumb: 'comparer-thumb.jpg', duree: '2 min 22', notesAt: 102.2,
-    notes: /notes:\{t:134\.65,y:1420,card:\[64,356,1016,1130\],to:\[940,255\]\}/, table: 'produits',
+    notes: /notes:\{t:134\.1,y:1420,card:\[64,356,1016,1130\],to:\[940,255\]\}/, table: 'produits',
     bubble: 'Avec les opérateurs de comparaison, compare une colonne à une valeur.',
     chapters: ['Situation', 'Le problème', 'La comparaison', 'Six opérateurs', 'La limite', 'Comparer un texte', 'Le résultat', 'À retenir'],
     traps: ['<span class="kw">WHERE</span> stock <span class="cbox" id="eqA">=<i class="mbox"></i></span><span class="glow" id="leA">&lt;=</span> 60;',
       'Son stock est-il inférieur<br>ou égal à 60 ?', '<span class="kw">WHERE</span> stock &lt; 60', '<span class="kw">WHERE</span> stock &lt;= 60',
       "<span class=\"kw\">WHERE</span> categorie != <span class=\"str glow\" id=\"s6str\">'Accessoire'</span>;", 'Un texte, entre guillemets simples']},
   {id: 6, next: 22, titre: 'AND et OR', page: 'and-or.html', thumb: 'and-or-thumb.jpg', duree: '2 min 13', notesAt: 101.5,
-    notes: /notes:\{t:125\.35,y:1420,card:\[64,356,1016,1130\],to:\[940,255\]\}/, table: 'clients',
+    notes: /notes:\{t:125\.25,y:1420,card:\[64,356,1016,1130\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avec <span class="ic">AND</span> et <span class="ic">OR</span>, relie plusieurs conditions dans <span class="ic">WHERE</span>.',
     chapters: ['Situation', 'Le problème', 'Avec AND', 'Avec OR', 'Les parenthèses', 'Le résultat', 'À retenir'],
     traps: ['<span class="ln" id="ql4">  <span class="kw hlc" id="and3">AND</span> age &gt; 30;', '<b>Aucune ligne</b><span class="s">Une ville ne peut pas être Paris et Lyon à la fois.</span>',
       '<span class="op2">AND</span>', '<span class="op2">OR</span>', 'AND : calculé en premier', 'entre parenthèses : calculé en premier',
       '<span id="lp">(</span><span id="cP">ville = <span class="str">\'Paris\'</span></span> <span class="kw">OR</span> <span id="cL">ville = <span class="str">\'Lyon\'</span></span><span id="rp">)</span> <span class="kw" id="and5">AND</span> <span id="cA">age &gt; 30</span>']},
   {id: 22, next: 7, titre: 'NOT', page: 'not.html', thumb: 'not-thumb.jpg', duree: '2 min 16', notesAt: 97.2,
-    notes: /notes:\{t:128\.45,y:1365,card:\[64,356,1016,1070\],to:\[940,255\]\}/, table: 'clients',
+    notes: /notes:\{t:128\.05,y:1365,card:\[64,356,1016,1070\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avec <span class="ic">NOT</span>, inverse une condition : garde ce qu’elle écarte.',
     chapters: ['Situation', 'Le problème', 'NOT en action', 'NOT ou l’inverse', 'Les parenthèses', 'Le résultat', 'À retenir'],
     traps: ['<span class="kw">WHERE</span> <span class="kw glow" id="not3">NOT </span>', '<span id="dY">2023</span>-<span id="dM">03</span>-<span id="dD">01</span>',
@@ -371,7 +373,7 @@ const COURSES = [
       '(<span class="hv str" id="hS1">\'Paris\'<i class="mbox"></i></span>, <span class="hv str" id="hS2">\'Nantes\'<i class="mbox"></i></span>)',
       '<span class="ln5" id="m5b">  <span class="kw">AND</span> age &gt; 35;', '✓ 3 lots prêts à partir']},
   {id: 10, next: 11, titre: 'BETWEEN', page: 'between.html', thumb: 'between-thumb.jpg', duree: '2 min 24', notesAt: 98.4,
-    notes: /notes:\{t:136\.5,y:1351,card:\[64,356,1016,1056\],to:\[940,255\]\}/, table: 'commandes',
+    notes: /notes:\{t:136\.55,y:1351,card:\[64,356,1016,1056\],to:\[940,255\]\}/, table: 'commandes',
     bubble: 'Avec <span class="ic">BETWEEN</span>, garde les valeurs situées entre deux limites.',
     chapters: ['Situation', 'Le problème', 'BETWEEN en action', 'Limites incluses', 'Limites à l’envers', 'Le résultat', 'À retenir'],
     traps: ['<div class="inv-title">¡Gracias!</div>', '<span class="t1">¡Gracias!</span><span class="t2">Merci !</span>',
@@ -388,8 +390,8 @@ const COURSES = [
       '<span class="tx">A → Z</span><span class="tx">Z → A</span>', '<span class="kw">ORDER BY</span> categorie, prix<span class="sens" id="descC"> <span class="kw glow">DESC</span></span>;',
       '✓ Vérifications prêtes']},
   {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '2 min 23', notesAt: 104.2,
-    notes: /notes:\{t:135\.1,y:1365,card:\[64,356,1016,1070\],to:\[940,255\]\}/, table: 'produits',
-    bubble: 'Avec <span class="ic">LIMIT</span> et <span class="ic">OFFSET</span>, découpe le résultat en pages.',
+    notes: /notes:\{t:135\.2,y:1365,card:\[64,356,1016,1070\],to:\[940,255\]\}/, table: 'produits',
+    bubble: '<span class="ic">LIMIT</span> et <span class="ic">OFFSET</span> découpent le résultat en pages.',
     chapters: ['Situation', 'Le problème', 'LIMIT en action', 'Sauter avec OFFSET', 'Un classement stable', 'Le résultat', 'À retenir'],
     traps: ['<div class="more"><span class="emo">⬇️</span>Voir plus</div>', '<div class="pc sk"><span class="pi">?</span>',
       '<span class="kw glow" id="limA">LIMIT</span> 3<span id="offA"> <span class="kw glow">OFFSET</span> 3</span>;',
@@ -496,6 +498,7 @@ test('texte des animations : police Inter livrée (mêmes retours à la ligne su
   assert.equal(nb(ctx.fr('avec <b>4 informations</b>')), 'avec⍽<b>4⍽informations</b>', 'mot court collé à la balise qui suit, nombre collé à son unité');
   assert.equal(nb(ctx.fr('les intitulés « Nom du produit » et « Prix (€) ».')), 'les⍽intitulés «⍽Nom⍽du⍽produit⍽» et⍽«⍽Prix⍽(€)⍽».', 'un libellé entre guillemets ne se coupe pas');
   assert.ok(core.includes("textIssues: QS.has('check') ? textIssues() : undefined,"), 'contrôle de mise en forme à la fabrication (?check)');
+  assert.ok(core.includes("kind: 'ligne trop courte'") && core.includes("kind: 'bloc étroit'"), 'contrôle des trous dans un paragraphe et des blocs serrés');
   assert.ok(core.includes('frDom($(\'#stage\'));'), 'même typographie pour les textes écrits dans la page');
 });
 

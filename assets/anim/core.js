@@ -283,21 +283,27 @@ function checkCaptions(captions){
   return out;
 }
 /* Mise en forme du texte (page ouverte avec ?check) : pour chaque bloc de texte, les lignes telles qu’elles s’affichent.
-   Signale une ligne qui ne garde qu’un seul mot (mot orphelin), une légende de plus de 3 lignes et un mot coupé
-   en fin de ligne. Comme la police est livrée avec l’animation, l’iPhone affiche exactement les mêmes lignes. */
+   Signale une ligne qui ne garde qu’un seul mot (mot orphelin), une ligne qui s’arrête trop tôt (trou), un bloc
+   resserré sur moins de 70 % de la largeur, une légende de plus de 3 lignes et un mot coupé en fin de ligne. Comme la police est livrée avec l’animation, l’iPhone affiche exactement les mêmes lignes. */
 const TEXT_BLOCKS = '#cap .c p, .bubble, .rtxt, .lt, .nl, .mnote, .tx, .trap-h, .ot, .need-h, .inv-title, .inv-place, .qlabel, .glbl, .badge span, .tp-h, .sub, .tagpill, .ask, .wl, .resl';
 function textLines(el){
-  const toks = [], r = document.createRange(), walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  const toks = [], r = document.createRange(), walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
+  /* Bloc qui porte un texte : passer d’un bloc à un autre (ou franchir un <br>) est un retour à la ligne voulu. */
+  const blockOf = node => { for (let e = node.parentElement; e && e !== el; e = e.parentElement) if (!/^(inline|contents)$/.test(getComputedStyle(e).display)) return e; return el; };
+  let br = false, prev = null;
   while (walker.nextNode()) {
     const n = walker.currentNode;
+    if (n.nodeType === 1) { if (n.tagName === 'BR') br = true; continue; }
     if (n.parentElement.closest('.caret, .emo')) continue;
-    const re = /[^\s\u00a0]+/g; let m;
+    const block = blockOf(n), re = /[^\s\u00a0]+/g; let m;
     while ((m = re.exec(n.textContent))) {
       r.setStart(n, m.index); r.setEnd(n, m.index + m[0].length);
       const rects = [...r.getClientRects()].filter(x => x.width > 0);
       if (!rects.length) continue;
-      toks.push({w: m[0], top: rects[0].top, h: rects[0].height, split: rects.length > 1 && Math.abs(rects[0].top - rects[rects.length - 1].top) > rects[0].height / 2,
-        blk: !!n.parentElement.closest('.blk')});
+      toks.push({w: m[0], top: rects[0].top, h: rects[0].height, left: rects[0].left, right: rects[rects.length - 1].right,
+        split: rects.length > 1 && Math.abs(rects[0].top - rects[rects.length - 1].top) > rects[0].height / 2,
+        blk: !!n.parentElement.closest('.blk'), brk: br || (prev !== null && block !== prev)});
+      br = false; prev = block;
     }
   }
   const lines = [];
@@ -306,8 +312,12 @@ function textLines(el){
     if (L) L.toks.push(t); else lines.push({top: t.top, toks: [t]});
   });
   lines.sort((a, b) => a.top - b.top);
+  lines.forEach(l => l.toks.sort((a, b) => a.left - b.left));
   return lines;
 }
+/* Une ligne (sauf la dernière) qui s’arrête avant 60 % de la largeur, nettement plus courte qu’une ligne voisine, laisse un trou :
+   un groupe de mots collés trop long (mots courts et espaces insécables à la suite) est parti d’un bloc à la ligne suivante. */
+const SHORT_LINE = 0.6, NARROW_BLOCK = 0.7;
 function textIssues(){
   const out = [];
   /* Mesures sans les transformations en cours (cartes inclinées, scène réduite) : les mots d’une même ligne ont la même hauteur. */
@@ -328,6 +338,25 @@ function textIssues(){
       if (l.toks.some(t => t.split)) out.push({kind: 'mot coupé', where: el.className || el.tagName, line: i + 1, text});
     });
     if (isCap && lines.length > 3) out.push({kind: 'plus de 3 lignes', where: 'légende', line: lines.length, text});
+    if (lines.length > 1) {
+      const cs = getComputedStyle(el), k = el.getBoundingClientRect().width / (el.offsetWidth || 1);
+      const avail = (el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)) * k;
+      const width = l => l.toks[l.toks.length - 1].right - l.toks[0].left;
+      lines.forEach((l, i) => {
+        if (i === lines.length - 1 || lines[i + 1].toks[0].brk) return;
+        const w = width(l), next = width(lines[i + 1]), prev = i && !l.toks[0].brk ? width(lines[i - 1]) : 0;
+        if (w < avail * SHORT_LINE && w < 0.8 * Math.max(prev, next))
+          out.push({kind: 'ligne trop courte', where: isCap ? 'légende' : el.className || el.tagName, line: i + 1, text, ratio: +(w / avail).toFixed(2)});
+      });
+      /* Trois lignes ou plus (entre deux retours voulus) qui restent toutes sous 70 % de la largeur : le bloc paraît serré. */
+      let seg = [];
+      [...lines, null].forEach((l, i) => {
+        if (l && !(i && l.toks[0].brk)) { seg.push(l); return; }
+        if (seg.length >= 3 && Math.max(...seg.slice(0, -1).map(width)) < avail * NARROW_BLOCK)
+          out.push({kind: 'bloc étroit', where: isCap ? 'légende' : el.className || el.tagName, line: lines.indexOf(seg[0]) + 1, text, ratio: +(Math.max(...seg.slice(0, -1).map(width)) / avail).toFixed(2)});
+        seg = l ? [l] : [];
+      });
+    }
     /* Une courte expression en gras (« table clients », jusqu’à trois mots) reste sur une seule ligne. */
     $$('b', el).forEach(b => {
       const rs = [...b.getClientRects()].filter(x => x.width > 0);
