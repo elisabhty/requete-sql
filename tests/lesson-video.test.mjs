@@ -436,7 +436,7 @@ const COURSES = [
       '✓ Vérifications prêtes']},
   {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '2 min 20', notesAt: 104.2,
     notes: /notes:\{t:132\.25,y:1372,card:\[64,356,1016,1077\],to:\[940,255\]\}/, table: 'produits',
-    bubble: '<span class="ic">LIMIT</span> et <span class="ic">OFFSET</span> découpent le résultat en pages.',
+    bubble: 'Avec <span class="ic">LIMIT</span> et <span class="ic">OFFSET</span>, tu affiches seulement la partie du résultat qui t’intéresse.',
     chapters: ['Situation', 'Le problème', 'LIMIT en action', 'Sauter avec OFFSET', 'Un classement stable', 'Le résultat', 'À retenir'],
     traps: ['<div class="more"><span class="emo">⬇️</span>Voir plus</div>', '<div class="pc sk"><span class="pi">?</span>',
       '<span class="kw glow" id="limA">LIMIT</span> 3<span id="offA"> <span class="kw glow">OFFSET</span> 3</span>;',
