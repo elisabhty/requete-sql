@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<title>Requête · ORDER BY en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:184px;top:404px;letter-spacing:-4px}
+#s0 .title span.sp{margin-right:52px}
+#s0 .bubble{left:520px;width:520px}
+.nw{white-space:nowrap}
+
+/* ---------- 1 · Situation : le zéro de trop ---------- */
+#z0{display:inline-block;color:var(--danger);border-radius:12px;padding:0 6px;margin:0 -6px}
+
+/* ---------- Code et résultat partagés (chapitres 2 à 4) ---------- */
+#qcode{left:64px;top:236px;width:952px;opacity:0;visibility:hidden}
+#ql3{height:0;overflow:hidden}
+/* « ASC » sous-entendu : affiché en pointillés, le temps de dire que c’est le sens par défaut */
+.gh{color:var(--t-kw);font-weight:800;border:3px dashed rgba(201,188,255,.75);border-radius:12px;padding:0 6px}
+.rgO{display:grid;grid-template-columns:1fr 170px 330px;padding:0 26px;align-items:center}
+.rgO>div:last-child{display:flex;justify-content:flex-end}
+.tr.to{height:60px;font-size:32px;background:#fff}
+.tr.to6{height:58px;font-size:30px;background:#fff}
+/* Le stock suspect (ambre) */
+.hla{position:absolute;left:0;top:0;right:0;bottom:0;background:#FFF4E5;box-shadow:inset 8px 0 0 #F59E0B;opacity:0;z-index:0}
+.sus{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px;border-radius:999px;background:#FFF4E5;border:2px solid #F7C97F;color:#9A5B00;font-family:var(--ui);font-size:25px;font-weight:700;white-space:nowrap;opacity:0}
+.sus .emo{font-size:24px}
+/* Sens du tri dans l’en-tête de la colonne stock */
+.srt{position:relative;display:inline-block;width:26px;height:26px;margin-left:12px;vertical-align:-3px}
+.srt svg{position:absolute;left:0;top:0;width:26px;height:26px;fill:var(--accent);opacity:0}
+.scanner{position:absolute;left:10px;right:10px;top:0;height:60px;border:4px solid var(--accent);border-radius:16px;box-shadow:0 0 0 7px rgba(106,77,244,.14);opacity:0;z-index:3}
+
+/* ---------- 4 · Le sens du tri : nombres, texte, dates ---------- */
+.kinds{left:64px;width:952px;padding:0 0 14px}
+.kinds .tt{height:92px;display:flex;align-items:center;gap:16px;padding:0 36px;font-weight:700;font-size:36px;color:var(--ink)}
+.kinds .tt .emo{font-size:40px}
+.kg{display:grid;grid-template-columns:290px 1fr 1fr;align-items:center;padding:0 36px}
+.kh{height:96px;background:var(--surface-2)}
+.kh .kc{justify-self:start;display:inline-flex;align-items:center;gap:12px}
+.kh .kp{height:60px;padding:0 20px;border-radius:16px;background:var(--code-bg);box-shadow:0 5px 0 #110E27;color:var(--t-kw);font-family:var(--mono);font-size:32px;font-weight:800;display:inline-flex;align-items:center}
+.kh .kn{font-size:27px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.kd{height:150px;box-shadow:inset 0 2px 0 var(--line-2)}
+.kd .kt{display:flex;align-items:center;gap:16px;font-size:40px;font-weight:700;color:var(--ink)}
+.kd .kt .emo{font-size:46px}
+.kd .tx{font-family:var(--mono);font-size:38px;font-weight:700;color:var(--accent-ink);white-space:nowrap}
+
+/* ---------- 5 · Deux critères ---------- */
+.rgC{display:grid;grid-template-columns:1fr 250px 130px;padding:0 26px;align-items:center}
+.rgC>div:last-child{text-align:right}
+.tr.tc5{height:58px;font-size:30px;background:#fff}
+/* Une catégorie à plusieurs produits : le second critère (le prix) les départage */
+.grp{position:absolute;left:8px;right:8px;border-radius:16px;background:rgba(106,77,244,.08);box-shadow:inset 0 0 0 3px rgba(106,77,244,.3),inset 8px 0 0 var(--accent);opacity:0;z-index:2;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Lire une table</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>O</span><span>R</span><span>D</span><span>E</span><span class="sp">R</span><span>B</span><span>Y</span></div>
+    <div class="abs sub">Ordonner le résultat</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec <span class="ic">ORDER BY</span>, range le résultat dans l’ordre voulu.</div>
+  </section>
+
+  <!-- 1 · Situation -->
+  <section class="scene" id="s1">
+    <div class="abs card invite" id="inv1">
+      <div class="inv-band"><span class="emo">🕵️</span><span>Inventaire</span></div>
+      <div class="inv-body">
+        <div class="inv-from">NutriBoost · équipe logistique</div>
+        <div class="inv-title">Stock saisi : 50<span id="z0">0</span></div>
+        <div class="inv-place"><span class="emo">🔍</span><span>Un zéro de trop ?</span></div>
+      </div>
+      <div class="stamp">À vérifier</div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">🏷️</span><span class="nl">Le nom du produit</span><span class="tag">table produits</span></div>
+      <div class="need-row"><span class="emo">📦</span><span class="nl">Son stock</span><span class="tag">table produits</span></div>
+    </div>
+  </section>
+
+  <!-- Code et résultat partagés (chapitres 2 à 4) : « ORDER BY stock » s’ajoute à la requête, puis « DESC » -->
+  <div class="abs code" id="qcode">
+    <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+    <div class="body"><span class="ln" id="ql1"><span class="kw">SELECT</span> nom, stock<span class="caret"><i></i></span></span><span class="ln" id="ql2"><span class="kw">FROM</span> produits<span id="semi2">;</span><span class="caret"><i></i></span></span><span class="ln" id="ql3"><span class="kw glow" id="obA">ORDER BY</span> stock<span class="sens" id="ascG"> <span class="gh">ASC</span></span><span class="sens" id="descA"> <span class="kw glow">DESC</span></span>;<span class="caret" id="car3"><i></i></span></span></div>
+    <div class="run" id="qrun"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+  </div>
+  <div class="tbl card" id="tbl2" style="top:760px">
+    <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt2">8 lignes</span></span></div>
+    <div class="rgO th"><div>nom</div><div>stock<span class="srt"><svg id="up" viewBox="0 0 20 20"><path d="M10 3.5l7.5 12h-15z"/></svg><svg id="dn" viewBox="0 0 20 20"><path d="M10 16.5l-7.5-12h15z"/></svg></span></div><div></div></div>
+    <div class="rows" id="rows2"><div class="scanner" id="scan2"></div></div>
+  </div>
+
+  <!-- 4 · Le sens du tri -->
+  <section class="scene" id="s4">
+    <div class="abs card kinds" id="kinds4" style="top:236px">
+      <div class="tt"><span class="emo">🗂️</span><span>Ce qu’on peut trier</span></div>
+      <div class="kg kh"><span></span><span class="kc"><span class="kp">ASC</span><span class="kn">par défaut</span></span><span class="kc"><span class="kp">DESC</span></span></div>
+      <div class="kg kd"><span class="kt"><span class="emo">🔢</span>Nombres</span><span class="tx">30 → 500</span><span class="tx">500 → 30</span></div>
+      <div class="kg kd"><span class="kt"><span class="emo">🔤</span>Texte</span><span class="tx">A → Z</span><span class="tx">Z → A</span></div>
+      <div class="kg kd"><span class="kt"><span class="emo">📅</span>Dates</span><span class="tx">2024 → 2026</span><span class="tx">2026 → 2024</span></div>
+    </div>
+  </section>
+
+  <!-- 5 · Deux critères -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="cat5" style="top:236px">
+      <div class="trap-h"><span class="emo">📚</span><span>Par catégorie, puis par prix</span></div>
+      <div class="mini"><span class="kw">ORDER BY</span> categorie, prix<span class="sens" id="descC"> <span class="kw glow">DESC</span></span>;<span class="go" id="go5"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
+    </div>
+    <div class="tbl card" id="tbl5" style="top:540px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt5">8 lignes</span></span></div>
+      <div class="rgC th"><div>nom</div><div>categorie</div><div>prix</div></div>
+      <div class="rows" id="rows5"><i class="grp" id="gB"></i><i class="grp" id="gN"></i></div>
+    </div>
+  </section>
+
+  <!-- 6 · Le résultat -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> nom, stock<span class="caret"><i></i></span></span><span class="ln" id="s6l2"><span class="kw">FROM</span> produits<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="kw">ORDER BY</span> stock <span class="kw">DESC</span>;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6" style="top:712px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">8 lignes</span></span></div>
+      <div class="rgO th"><div>nom</div><div>stock<span class="srt"><svg style="opacity:1" viewBox="0 0 20 20"><path d="M10 16.5l-7.5-12h15z"/></svg></span></div><div></div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs badge" id="badge6" style="top:1366px"><span>✓ Vérifications prêtes</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">↕️</div><div class="rtxt"><span class="ic">ORDER BY</span> <b>trie&nbsp;le&nbsp;résultat</b>, sans supprimer de ligne. Il se place <b>à la fin</b> de la requête.</div></div>
+      <div class="rrow"><div class="rico emo">🔼</div><div class="rtxt"><span class="ic">ASC</span>&nbsp;: du plus petit au plus grand (par défaut). <span class="ic">DESC</span>&nbsp;: du plus grand au plus petit.<br><span class="ic blk">ORDER BY stock DESC</span></div></div>
+      <div class="rrow"><div class="rico emo">🥇</div><div class="rtxt"><span class="ic">ORDER BY a, b</span> trie par a, puis <b>départage&nbsp;les&nbsp;égalités</b> avec b&nbsp;:<br><span class="ic blk">ORDER BY categorie, prix</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 103.4;
+
+/* Table produits : [id, nom, categorie, prix, stock] — le Magnésium affiche 500 : un zéro de trop ? */
+const PRODUITS = [[1,'Fibre Prébiotique','Bien-être',29.9,120],[2,'Collagène Marin','Beauté',39.9,80],[3,'Magnésium','Bien-être',19.9,500],
+  [4,'Vitamine D','Nutrition',14.9,150],[5,'Tisane Détox','Boisson',12.5,60],[6,'Protéine Végétale','Nutrition',34.9,45],
+  [7,'Oméga 3','Bien-être',24.9,90],[8,'Shaker Inox','Accessoire',15,30]];
+const P = id => PRODUITS.find(p => p[0] === id);
+const ordre = cmp => PRODUITS.slice().sort(cmp).map(p => p[0]);
+const parCat = (a, b) => a[2] < b[2] ? -1 : a[2] > b[2] ? 1 : 0;
+const ASC = ordre((a, b) => a[4] - b[4]);                              // ORDER BY stock
+const DESC = ordre((a, b) => b[4] - a[4]);                             // ORDER BY stock DESC
+const CAT = ordre((a, b) => parCat(a, b) || a[3] - b[3]);              // ORDER BY categorie, prix
+const CAT_D = ordre((a, b) => parCat(a, b) || b[3] - a[3]);            // ORDER BY categorie, prix DESC
+
+const CHAPTERS = [
+  {n:1, label:'Situation',          a:5.0,  b:19.0},
+  {n:2, label:'Le problème',        a:19.0, b:31.8},
+  {n:3, label:'ORDER BY en action', a:31.8, b:47.2},
+  {n:4, label:'Le sens du tri',     a:47.2, b:61.5},
+  {n:5, label:'Deux critères',      a:61.5, b:76.6},
+  {n:6, label:'Le résultat',        a:76.6, b:90.6},
+  {n:7, label:'À retenir',          a:90.6, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 8.6,    "Pendant l’inventaire, l’équipe remarque des quantités <b>étonnamment\u00a0élevées</b>."],
+  [8.7, 11.6,   "Un stock de 50 aurait-il été saisi <b>500</b> par erreur ?"],
+  [11.7, 14.8,  "Pour enquêter, elle veut d’abord voir les produits aux <b>stocks les plus élevés</b>."],
+  [14.9, 18.6,  "Le nom et le stock se trouvent dans la <b>table produits</b>, qui contient <b>8 produits</b>."],
+  [19.3, 22.6,  "Premier essai : afficher le nom et le stock de chaque produit."],
+  [22.7, 26.6,  "Les stocks arrivent <b>en vrac</b> : il faut parcourir toute la liste pour repérer les plus élevés."],
+  [26.7, 31.4,  "Sans <code>ORDER BY</code>, l’ordre des lignes n’est <b>jamais\u00a0garanti</b> : il peut changer d’une exécution à l’autre."],
+  [32.1, 35.6,  "On ajoute <code>ORDER BY</code> à la <b>fin</b> de la requête, suivi de la colonne à trier."],
+  [35.7, 39.9,  "Les lignes sont triées par stock, <b>du plus petit au plus grand</b> : c’est le sens par défaut, <code>ASC</code>."],
+  [40.0, 43.5,  "Aucune ligne n’est supprimée : <code>ORDER BY</code> change seulement leur <b>ordre</b>."],
+  [43.6, 46.8,  "Mais le stock suspect de <b>500</b> se retrouve tout en bas."],
+  [47.5, 51.0,  "Avec <code>DESC</code>, le tri s’inverse : <b>du plus grand au plus petit</b>."],
+  [51.1, 55.2,  "Le Magnésium arrive <b>en tête</b> avec 500 unités : c’est le premier à vérifier."],
+  [55.4, 60.9,  "Le tri fonctionne aussi sur du texte, <b>de\u00a0A\u00a0à\u00a0Z</b>, et sur des dates, de la plus ancienne à la plus récente."],
+  [61.8, 65.4,  "On peut trier sur <b>plusieurs\u00a0colonnes</b> : ici par catégorie, puis par prix."],
+  [65.5, 70.2,  "À catégorie égale, le <b>second\u00a0critère</b> départage : dans <span class=\"nw\">Bien-être</span>, du moins cher au plus cher."],
+  [70.3, 76.0,  "<code>DESC</code> ne vaut que pour la colonne <b>juste\u00a0avant</b> : les prix s’inversent, les catégories restent de\u00a0A\u00a0à\u00a0Z."],
+  [76.9, 80.0,  "La requête complète affiche le nom et le stock de chaque produit, du plus élevé au plus faible."],
+  [80.1, 84.2,  "Résultat : l’équipe vérifie d’abord le <b>Magnésium</b>, puis les autres stocks, dans l’ordre."],
+  [84.3, 90.0,  "<code>ORDER BY</code> ne trie que le résultat affiché : la <b>table produits</b> n’est pas modifiée."],
+  [90.9, 95.7,  "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [95.8, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [95.8, 999, "<code>ORDER BY</code> trie le résultat : <code>ASC</code> du plus petit au plus grand, <code>DESC</code> l’inverse."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+function dom(){
+  const sus = '<span class="sus"><span class="emo">🔍</span>50 ou 500 ?</span>';
+  const row = (p, cls) => `<div class="rgO tr ${cls}" data-id="${p[0]}"><i class="hl"></i><i class="hla"></i><div>${p[1]}</div><div>${p[4]}</div><div>${p[0] === 3 ? sus : ''}</div></div>`;
+  $('#rows2').insertAdjacentHTML('beforeend', PRODUITS.map(p => row(p, 'to')).join(''));
+  $('#rows6').innerHTML = DESC.map(id => row(P(id), 'to6')).join('');
+  $('#rows5').insertAdjacentHTML('beforeend', PRODUITS.map(p => `<div class="rgC tr tc5" data-id="${p[0]}"><div>${p[1]}</div><div>${p[2]}</div><div>${p[3]}</div></div>`).join(''));
+}
+
+/* Les lignes glissent de leur place actuelle à leur place dans le nouvel ordre (décalage calculé depuis l’ordre de la table).
+   Pendant le trajet, une ligne qui bouge passe au premier plan avec une ombre, comme une carte qu’on déplace. */
+const POS = new Map();
+const LIFT = '0 12px 24px rgba(34,28,70,.18), inset 0 2px 0 #EFECFA', FLAT = '0 0 0 rgba(34,28,70,0), inset 0 2px 0 #EFECFA';
+function reorder(rows, order, t, H, dur = 0.9, stagger = 0.03){
+  rows.forEach((r, iDom) => {
+    const from = POS.has(r) ? POS.get(r) : iDom, iNew = order.indexOf(+r.dataset.id), d = iNew - from, t0 = t + iNew * stagger;
+    if (d) {
+      tl.set(r, {zIndex: 3 + Math.abs(d), boxShadow: LIFT}, t0);
+      tl.to(r, {x: d < 0 ? 18 : -18, duration: dur / 2, ease: 'sine.out', yoyo: true, repeat: 1}, t0);
+      tl.set(r, {zIndex: 1, boxShadow: FLAT}, t0 + dur);
+    }
+    tl.to(r, {y: (iNew - iDom) * H, duration: dur, ease: 'power3.inOut'}, t0);
+    POS.set(r, iNew);
+  });
+  cue(t, 'whoosh', 0.7);
+  cue(t + dur, 'pop', 0.6, 4);
+}
+
+function build(){
+  introScene();
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  gsap.set('#inv1', {autoAlpha: 0, y: 470, rotation: -9});
+  tl.to('#inv1', {autoAlpha: 1, y: 380, rotation: -2.5, duration: 0.9, ease: 'back.out(1.3)'}, 5.15);
+  cue(5.15, 'whoosh', 0.8);
+  gsap.set('#inv1 .stamp', {autoAlpha: 0, scale: 1.9, rotation: 24});
+  tl.to('#inv1 .stamp', {autoAlpha: 1, scale: 1, rotation: 7, duration: 0.36, ease: 'power4.in'}, 6.6);
+  tl.to('#inv1', {x: 6, duration: 0.05, yoyo: true, repeat: 3, ease: 'none'}, 6.96);
+  cue(6.95, 'stamp');
+  // Le dernier zéro : en trop ?
+  tl.to('#z0', {backgroundColor: '#FDEBEC', duration: 0.3}, 9.2);
+  tl.to('#z0', {scale: 1.3, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 9.2);
+  cue(9.2, 'error', 0.6);
+  // Les informations à récupérer
+  tl.to('#inv1', {y: 0, duration: 0.75, ease: 'power3.inOut'}, 11.75);
+  show('#s1 .need', 12.0, {y: 60});
+  cue(12.0, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.15}, 12.4);
+  needRows.forEach((_, i) => cue(12.4 + i * 0.15, 'pop', 0.7, i));
+  tl.to('#s1 .tag', {scale: 1.08, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 15.4);
+  hide(['#inv1', '#s1 .need'], 18.6);
+  sceneOff('#s1', 19.1);
+
+  /* ===== 2 · Le problème ===== */
+  show('#qcode', 19.05, {y: 60}, 0.6);
+  cue(19.05, 'whoosh', 0.7);
+  gsap.set(['#ascG', '#descA'], {display: 'none'});
+  te = typeLine($('#ql1'), 19.55, 26);
+  te = typeLine($('#ql2'), te + 0.12, 26);
+  press($('#qrun'), 21.1);
+  show('#tbl2', 21.35, {y: 40}, 0.5);
+  const tr2 = $$('#rows2 .tr');
+  gsap.set(tr2, {autoAlpha: 0, y: 14});
+  tl.to(tr2, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.05}, 21.5);
+  tr2.forEach((_, i) => cue(21.5 + i * 0.05, 'tick', 0.4, i));
+  show('#cnt2', 21.9, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // Parcourir toute la liste pour repérer les plus gros stocks
+  const scan = $('#scan2');
+  gsap.set(scan, {y: 0, autoAlpha: 0});
+  tl.to(scan, {autoAlpha: 1, duration: 0.25}, 23.0);
+  tr2.forEach((r, i) => {
+    const t = 23.3 + i * 0.3, big = P(+r.dataset.id)[4] >= 120;
+    if (i) tl.to(scan, {y: i * 60, duration: 0.16, ease: 'power2.out'}, t);
+    cue(t, 'tick', 0.45, 4);
+    if (big) { tl.to(r.querySelector('.hl'), {opacity: 1, duration: 0.25}, t + 0.1); cue(t + 0.1, 'true', 0.7, i % 5); }
+  });
+  tl.to(scan, {autoAlpha: 0, duration: 0.25}, 25.75);
+  tl.to(tr2.map(r => r.querySelector('.hl')), {opacity: 0, duration: 0.3}, 26.75);
+
+  /* ===== 3 · ORDER BY en action ===== */
+  tl.set('#semi2', {display: 'none'}, 32.1);
+  tl.to('#ql3', {height: 64, duration: 0.3, ease: 'power2.out'}, 32.1);
+  const ch3 = splitChars($('#ql3')).filter(c => !c.closest('.sens'));
+  te = typeChars(ch3, 32.45, 24, $('#car3'));
+  tl.to('#obA', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, te + 0.15);
+  press($('#qrun'), 35.7);
+  reorder(tr2, ASC, 35.9, 60);
+  gsap.set(['#up', '#dn'], {autoAlpha: 0, scale: 0.4, transformOrigin: '50% 50%'});
+  tl.to('#up', {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)'}, 36.3);
+  // « ASC » est sous-entendu
+  gsap.set('#ascG', {autoAlpha: 0});
+  tl.set('#ascG', {display: 'inline'}, 37.78);
+  tl.to('#ascG', {autoAlpha: 0.75, duration: 0.3}, 37.8);
+  cue(37.8, 'pop', 0.6, 2);
+  // Toujours 8 lignes
+  tl.to('#cnt2', {scale: 1.14, duration: 0.2, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 40.4);
+  cue(40.4, 'pop', 0.7, 1);
+  // Le stock suspect, tout en bas
+  const mg = tr2.find(r => r.dataset.id === '3');
+  tl.to(mg.querySelector('.hla'), {opacity: 1, duration: 0.35}, 43.75);
+  tl.to(mg, {x: 8, duration: 0.06, yoyo: true, repeat: 3, ease: 'none'}, 44.1);
+  cue(43.75, 'miss', 0.7);
+
+  /* ===== 4 · Le sens du tri ===== */
+  tl.to(mg.querySelector('.hla'), {opacity: 0, duration: 0.3}, 47.3);
+  tl.to('#ascG', {autoAlpha: 0, duration: 0.2}, 47.35);
+  tl.set('#ascG', {display: 'none'}, 47.56);
+  gsap.set('#descA', {autoAlpha: 0, scale: 0.3, transformOrigin: '50% 60%'});
+  tl.set('#descA', {display: 'inline-block'}, 47.58);
+  tl.to('#descA', {autoAlpha: 1, scale: 1, duration: 0.42, ease: 'back.out(2.6)'}, 47.6);
+  cue(47.6, 'pop', 0.9, 6);
+  tl.to('#descA .glow', {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 48.1);
+  press($('#qrun'), 51.1);
+  reorder(tr2, DESC, 51.35, 60);
+  tl.to('#up', {autoAlpha: 0, scale: 0.4, duration: 0.2}, 51.6);
+  tl.to('#dn', {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)'}, 51.75);
+  tl.to(mg.querySelector('.hla'), {opacity: 1, duration: 0.35}, 52.7);
+  const sus2 = mg.querySelector('.sus');
+  gsap.set(sus2, {autoAlpha: 0, scale: 0.5});
+  tl.to(sus2, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.2)'}, 52.9);
+  cue(52.9, 'pop', 0.9, 3);
+  hide(['#qcode', '#tbl2'], 55.3, {y: -40}, 0.4);
+  // Des nombres, du texte, des dates
+  sceneOn('#s4', 55.6);
+  show('#kinds4', 55.65, {y: 50});
+  cue(55.65, 'whoosh', 0.6);
+  const kr = $$('#kinds4 .kg');
+  gsap.set(kr, {autoAlpha: 0, x: -30});
+  kr.forEach((k, i) => {
+    const t = 55.95 + i * 0.55;
+    tl.to(k, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, t);
+    cue(t, 'pop', 0.8, i * 2);
+  });
+  hide('#kinds4', 61.0, {y: -40});
+  sceneOff('#s4', 61.5);
+
+  /* ===== 5 · Deux critères ===== */
+  sceneOn('#s5', 61.5);
+  show('#cat5', 61.55, {y: 50});
+  cue(61.55, 'whoosh', 0.6);
+  gsap.set('#descC', {display: 'none'});
+  show('#tbl5', 61.9, {y: 40}, 0.5);
+  const tr5 = $$('#rows5 .tr');
+  gsap.set(tr5, {autoAlpha: 0, y: 12});
+  tl.to(tr5, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.04}, 62.05);
+  show('#cnt5', 62.5, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  press($('#go5'), 65.5, '#4B30CC', 6);
+  reorder(tr5, CAT, 65.7, 58);
+  // À catégorie égale : Bien-être (3 produits) et Nutrition (2)
+  [['#gB', 'Bien-être'], ['#gN', 'Nutrition']].forEach(([s, c]) => {
+    const first = CAT.findIndex(id => P(id)[2] === c), n = PRODUITS.filter(p => p[2] === c).length;
+    $(s).style.top = (first * 58 + 4) + 'px';
+    $(s).style.height = (n * 58 - 8) + 'px';
+  });
+  tl.to(['#gB', '#gN'], {opacity: 1, duration: 0.35, stagger: 0.2}, 67.1);
+  cue(67.1, 'chord', 0.6);
+  // DESC : seulement pour le prix
+  gsap.set('#descC', {autoAlpha: 0, scale: 0.3, transformOrigin: '50% 60%'});
+  tl.set('#descC', {display: 'inline-block'}, 70.43);
+  tl.to('#descC', {autoAlpha: 1, scale: 1, duration: 0.42, ease: 'back.out(2.6)'}, 70.45);
+  cue(70.45, 'pop', 0.9, 6);
+  press($('#go5'), 71.0, '#4B30CC', 6);
+  reorder(tr5, CAT_D, 71.25, 58, 0.8, 0);
+  hide(['#cat5', '#tbl5'], 76.1);
+  sceneOff('#s5', 76.6);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 76.6);
+  show('#s6code', 76.65, {y: 60}, 0.6);
+  cue(76.65, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 77.15, 28);
+  te = typeLine($('#s6l2'), te + 0.12, 28);
+  te = typeLine($('#s6l3'), te + 0.12, 28);
+  press($('#s6run'), 80.1);
+  show('#tbl6', 80.35, {y: 40}, 0.5);
+  const tr6 = $$('#rows6 .tr');
+  gsap.set(tr6, {autoAlpha: 0, y: 14});
+  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.08}, 80.5);
+  tr6.forEach((_, i) => cue(80.5 + i * 0.08, 'tick', 0.45, i));
+  show('#cnt6', 80.9, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  tl.to(tr6[0].querySelector('.hla'), {opacity: 1, duration: 0.35}, 81.7);
+  const sus6 = tr6[0].querySelector('.sus');
+  gsap.set(sus6, {autoAlpha: 0, scale: 0.5});
+  tl.to(sus6, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.2)'}, 81.9);
+  cue(81.9, 'pop', 0.9, 3);
+  show('#badge6', 82.7, {y: 0, scale: 0.6}, 0.55, 'back.out(1.9)');
+  cue(82.7, 'success', 0.9);
+  hide(['#s6code', '#tbl6', '#badge6'], 90.1);
+  sceneOff('#s6', 90.6);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(90.6, [91.3, 93.1, 94.9]);
+  hold(92.9, 2.9);
+  hold(94.7, 2.9);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(95.85, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 95.8,
+  glyphs: '🕵️🔍🏷️📦🔎🗂️🔢🔤📅📚↕️🔼🥇✓→·', dom, build});
+</script>
+</body>
+</html>

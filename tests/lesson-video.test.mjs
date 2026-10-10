@@ -378,6 +378,15 @@ const COURSES = [
       '<span id="geA">&gt;=</span><span class="kw glow" id="btA">BETWEEN</span>', '<span id="dcB"><span class="rep" id="r2">date_commande<i class="mbox"></i></span> &lt;= </span>',
       '<span class="x2" id="x2">× 2</span>', 'Sa date est-elle dans l’intervalle ?', '<span class="op" id="op2">&lt;=</span>20 juillet · inclus',
       '<span class="str bad" id="bd1">\'2026-07-20\'</span>', 'À l’envers, l’intervalle est vide.', '✓ 4 confirmations renvoyées en français']},
+  {id: 11, next: 12, titre: 'ORDER BY', page: 'order-by.html', thumb: 'order-by-thumb.jpg', duree: '2 min 14', notesAt: 95.8,
+    notes: /notes:\{t:126\.4,y:1419,card:\[64,356,1016,1124\],to:\[940,255\]\}/, table: 'produits',
+    bubble: 'Avec <span class="ic">ORDER BY</span>, range le résultat dans l’ordre voulu.',
+    chapters: ['Situation', 'Le problème', 'ORDER BY en action', 'Le sens du tri', 'Deux critères', 'Le résultat', 'À retenir'],
+    traps: ["[3,'Magnésium','Bien-être',19.9,500]", '<div class="inv-title">Stock saisi : 50<span id="z0">0</span></div>',
+      '<span class="kw glow" id="obA">ORDER BY</span> stock<span class="sens" id="ascG"> <span class="gh">ASC</span></span><span class="sens" id="descA"> <span class="kw glow">DESC</span></span>;',
+      '<span class="sus"><span class="emo">🔍</span>50 ou 500 ?</span>', '<span class="tx">30 → 500</span><span class="tx">500 → 30</span>',
+      '<span class="tx">A → Z</span><span class="tx">Z → A</span>', '<span class="kw">ORDER BY</span> categorie, prix<span class="sens" id="descC"> <span class="kw glow">DESC</span></span>;',
+      '✓ Vérifications prêtes']},
 ];
 
 for (const c of COURSES) {
