@@ -364,7 +364,7 @@ const COURSES = [
       '<span class="str">\'<span class="glow" id="us5">_</span>a%\'</span>', "[['_', 0, 0], ['a', 1, 1], ['%', 2, 'end']]",
       'n’importe quelle suite, <b>même vide</b>', '<b>exactement un</b> caractère']},
   {id: 9, next: 10, titre: 'IN', page: 'in.html', thumb: 'in-thumb.jpg', duree: '2 min 07', notesAt: 92.1,
-    notes: /notes:\{t:119\.1,y:1359,card:\[64,356,1016,1064\],to:\[940,255\]\}/, table: 'clients',
+    notes: /notes:\{t:119\.75,y:1359,card:\[64,356,1016,1064\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avec <span class="ic">IN</span>, compare une colonne à toute une liste de valeurs.',
     chapters: ['Situation', 'Le problème', 'IN en action', 'Écrire la liste', 'Une seule colonne', 'Le résultat', 'À retenir'],
     traps: ['<span class="ball">2</span><span class="ball">5</span><span class="ball">9</span>',
