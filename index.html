@@ -19011,6 +19011,7 @@ const LvSfx=(()=>{
     const AC=typeof window!=='undefined'&&(window.AudioContext||window.webkitAudioContext);
     if(!AC)return null;
     try{ ctx=new AC(); }catch(e){ ctx=null; return null; }
+    unlocked=false; cache.clear();
     const comp=ctx.createDynamicsCompressor();
     comp.threshold.value=-8; comp.knee.value=6; comp.ratio.value=12; comp.attack.value=.002; comp.release.value=.12;
     master=ctx.createGain(); master.gain.value=muted?0:1; master.connect(comp); comp.connect(ctx.destination);
@@ -19024,22 +19025,36 @@ const LvSfx=(()=>{
     }catch(e){ wet=null; }
     return ctx;
   }
+  /* Contexte fermé : le prochain appui en crée un neuf. */
+  function drop(){
+    live.forEach(s=>{ try{s.stop();}catch(e){} }); live.clear();
+    if(ctx){ try{ const p=ctx.close(); if(p&&p.catch)p.catch(()=>{}); }catch(e){} }
+    ctx=null; master=null; wet=null;
+  }
   return {
     /* Appelé pendant un appui (lecture) : session « lecture », contexte relancé, puis un son vide joué tout de suite,
-       ce qui déverrouille le son sur iPhone. */
+       ce qui déverrouille le son sur iPhone. Un contexte qui ne tourne plus (interrompu par un appel, la mise en veille,
+       un changement de sortie audio, ou créé sans appui) est remplacé : créé pendant l’appui, après la session
+       « lecture », le nouveau démarre à coup sûr et passe même en mode silencieux. */
     resume(){
       session(true);
+      if(ctx&&ctx.state!=='running')drop();
       const c=init(); if(!c)return;
       if(c.state!=='running'){ try{ const p=c.resume(); if(p&&p.catch)p.catch(()=>{}); }catch(e){} }
       if(!unlocked){ unlocked=true; try{ const s=c.createBufferSource(); s.buffer=c.createBuffer(1,1,22050); s.connect(c.destination); s.start(0); }catch(e){} }
     },
     /* En pause : la balise silencieuse s’arrête (pas de lecteur sur l’écran verrouillé). À la fermeture : session rendue. */
+    /* Appui pendant une lecture restée muette : le son se réveille. */
+    wake(){ if(!ctx||ctx.state!=='running')this.resume(); },
     idle(){ if(silentEl)try{ silentEl.pause(); }catch(e){} },
-    release(){ session(false); },
+    /* Fermeture du cours : session rendue et contexte fermé ; le cours suivant repart d’un contexte neuf,
+       créé après la session « lecture » (sinon, sur iPhone, il pouvait rester muet en mode silencieux). */
+    release(){ session(false); drop(); },
     stats(){ return {state:ctx?ctx.state:'none',played}; },
     setMuted(m){ muted=!!m; if(master)master.gain.value=muted?0:1; },
     play(kind,pitch,gain,pan){
-      if(muted||!ctx||ctx.state!=='running')return;
+      if(muted||!ctx)return;
+      if(ctx.state!=='running'){ try{ const p=ctx.resume(); if(p&&p.catch)p.catch(()=>{}); }catch(e){} return; }
       try{
         const src=ctx.createBufferSource(); src.buffer=buffer(kind,pitch||0);
         const g=ctx.createGain(); g.gain.value=gain==null?1:gain; src.connect(g);
@@ -19105,7 +19120,8 @@ class LvAnim{
   pause(){ this.wantPlay=false; if(this.paused)return; this.paused=true; cancelAnimationFrame(this.raf); LvSfx.stop(); LvSfx.idle(); this._emit('pause'); }
   answer(i){ this.answered.add(i); }
   sfx(kind){ LvSfx.play(kind,0,.9,0); }
-  destroy(){ this.dead=true; this.paused=true; cancelAnimationFrame(this.raf); clearTimeout(this.timer); LvSfx.stop(); LvSfx.idle(); LvSfx.release(); this._l={}; try{ this.frame.src='about:blank'; }catch(e){} }
+  /* Appelé après le fondu de fermeture : si un autre cours s’est ouvert entre-temps, son son reste intact. */
+  destroy(){ this.dead=true; this.paused=true; cancelAnimationFrame(this.raf); clearTimeout(this.timer); if(typeof LV==='undefined'||!LV){ LvSfx.stop(); LvSfx.idle(); LvSfx.release(); } this._l={}; try{ this.frame.src='about:blank'; }catch(e){} }
   _render(){ if(this.win)try{ this.win.renderAt(this.t); }catch(e){} }
   _seekCues(){ let i=0; while(i<this.cues.length&&this.cues[i].t<=this.t)i++; this.ci=i; }
   _start(){ this.wantPlay=false; if(!this.paused||this.dead)return; this.paused=false; this.last=performance.now(); this._emit('play'); this._loop(); }
@@ -19296,6 +19312,8 @@ function openLessonVideo(){
   root.querySelector('.lv-again').addEventListener('click',lvReplay);
   document.addEventListener('keydown',lvKey);
   document.addEventListener('visibilitychange',lvHidden);
+  document.addEventListener('touchend',lvWake,{capture:true,passive:true});
+  document.addEventListener('click',lvWake,true);
   if(prefersReduceMotion())root.classList.add('on');
   else requestAnimationFrame(()=>requestAnimationFrame(()=>root.classList.add('on')));
   lvPlay();
@@ -19695,6 +19713,8 @@ function lvKey(e){
   if((e.key==='ArrowLeft'||e.key==='ArrowRight')&&!(e.target&&e.target.closest&&e.target.closest('input'))){e.preventDefault();lvSkip(e.key==='ArrowLeft'?-LV_SKIP:LV_SKIP);}
 }
 function lvHidden(){ if(document.hidden&&LV)LV.video.pause(); }
+/* Un appui pendant la lecture réveille le son s’il est resté muet (lecture lancée sans appui, son coupé par iOS). */
+function lvWake(){ if(LV&&LV.video instanceof LvAnim&&!LV.video.paused)LvSfx.wake(); }
 function closeLessonVideo(instant){
   if(!LV)return;
   lvPosKeep();
@@ -19707,6 +19727,8 @@ function closeLessonVideo(instant){
   lvCardSync(id);
   document.removeEventListener('keydown',lvKey);
   document.removeEventListener('visibilitychange',lvHidden);
+  document.removeEventListener('touchend',lvWake,{capture:true});
+  document.removeEventListener('click',lvWake,true);
   /* Libère la vidéo (mémoire sur iPhone) puis retire le lecteur. */
   const done=()=>{ try{ if(video.destroy)video.destroy(); else{ video.removeAttribute('src'); video.load(); } }catch(e){} root.remove(); };
   if(instant||prefersReduceMotion())done();
