@@ -49,6 +49,7 @@ test('lecteur plein écran : lecture dans la page, fin « À toi de jouer », ex
   const player = cut('function openLessonVideo(){', 'function lvPlay(){');
   assert.ok(player.includes('playsinline webkit-playsinline'), 'lecture dans la page sur iPhone');
   assert.ok(player.includes('À toi de jouer&nbsp;!'), 'fin : à toi de jouer');
+  assert.ok(html.includes('.lv.is-end .lv-bottom{opacity:0;visibility:hidden;'), 'fin : commandes vraiment masquées (pas de bande sous la barre de Safari sur iPhone)');
   assert.ok(!player.includes('${l.consigne}') && !player.includes('lv-end-exo'), 'pas d’aperçu de l’exercice sur l’écran de fin : la consigne se découvre à l’étape Exercice');
   assert.ok(player.includes('Passer à l’exercice') && player.includes('Revoir la vidéo'));
   const ended = cut('function lvEnded(){', 'function lvReplay(){');
