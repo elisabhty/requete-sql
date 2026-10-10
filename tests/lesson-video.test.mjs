@@ -549,6 +549,8 @@ test('texte des animations : police Inter livrée (mêmes retours à la ligne su
   assert.ok(core.includes('frDom($(\'#stage\'));'), 'même typographie pour les textes écrits dans la page');
   assert.ok(core.includes('const STACK_GAP = 40;') && core.includes('function stackBelow(lower, upper, rot = 0, gap = STACK_GAP){'), 'une carte posée sous une carte inclinée garde son écart');
   assert.ok(core.includes('const CARD_GAP = 20;') && core.includes("layoutIssues: QS.has('check') ? layoutIssues(renderAt, out) : undefined,"), 'contrôle des cadres collés à la fabrication (?check)');
+  assert.ok(core.includes("kind: 'surlignage coupé'"), 'contrôle des surlignages rognés à la fabrication (?check)');
+  assert.ok(fs.readFileSync(new URL('../assets/anim/core.css', import.meta.url), 'utf8').includes('.tr>div{position:relative;z-index:1;padding:7px 12px;'), 'cellule : le cadre d’une valeur surlignée tient dedans');
 });
 
 test('animations : opérateurs écrits tels qu’on les tape (<= et non ≤), JetBrains Mono sans ligatures comme dans l’app', () => {
