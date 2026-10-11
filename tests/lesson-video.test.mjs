@@ -434,15 +434,21 @@ const COURSES = [
       '<span class="sus"><span class="emo">🔍</span>50 ou 500 ?</span>', '<span class="tx">30 → 500</span><span class="tx">500 → 30</span>',
       '<span class="tx">A → Z</span><span class="tx">Z → A</span>', '<span class="kw">ORDER BY</span> categorie, prix<span class="sens" id="descC"> <span class="kw glow">DESC</span></span>;',
       '✓ Vérifications prêtes']},
-  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '2 min 20', notesAt: 104.2,
-    notes: /notes:\{t:132\.25,y:1372,card:\[64,356,1016,1077\],to:\[940,255\]\}/, table: 'produits',
+  {id: 12, next: 51, titre: 'LIMIT et OFFSET', page: 'limit-offset.html', thumb: 'limit-offset-thumb.jpg', duree: '2 min 53', notesAt: 137,
+    notes: /notes:\{t:165\.05,y:1372,card:\[64,356,1016,1077\],to:\[940,255\]\}/, table: 'produits',
     bubble: 'Avec <span class="ic">LIMIT</span> et <span class="ic">OFFSET</span>, tu affiches seulement la partie du résultat qui t’intéresse.',
-    chapters: ['Situation', 'Le problème', 'LIMIT en action', 'Sauter avec OFFSET', 'Un classement stable', 'Le résultat', 'À retenir'],
+    chapters: ['Situation', 'Le problème', 'LIMIT en action', 'Sauter avec OFFSET', 'Un classement stable', 'Le résultat', 'À quoi ça sert', 'À retenir'],
     traps: ['<div class="more"><span class="emo">⬇️</span>Voir plus</div>', '<div class="pc sk"><span class="pi">?</span>',
       '<span class="kw glow" id="limA">LIMIT</span> 3<span id="offA"> <span class="kw glow">OFFSET</span> 3</span>;',
       '<b>Pas les 3 plus chers</b><span class="s">L’ordre de ces lignes n’est pas garanti.</span>', '<span id="fc1"><b>OFFSET 3</b>· page 2</span>',
       '— plus aucune ligne —', 'Imaginons l’Oméga 3 à 29,90 €', '<span class="kw">ORDER BY</span> prix <span class="kw">DESC</span><span id="idC">, id</span>;',
-      '✕ Oméga 3 : jamais affiché', '✓ 3 produits de plus']},
+      '✕ Oméga 3 : jamais affiché', '✓ 3 produits de plus',
+      // À quoi ça sert : afficher des résultats par portions, cinq usages courants
+      '<span class="codepill"><span class="kw">LIMIT</span> + <span class="kw">OFFSET</span></span>', '<b>Pages de résultats</b><span class="rs">Afficher les clients 1 à 10, puis 11 à 20.</span>',
+      '<b>Bouton « Voir plus »</b><span class="rs">Charger les 10 produits suivants.</span>', '<b>Recherche dans une application</b><span class="rs">Afficher les résultats page par page.</span>',
+      '<b>Tableau de bord</b><span class="rs">Parcourir une longue liste de commandes sans tout afficher à la fois.</span>',
+      '<b>API</b><span class="rs">Demander au serveur une portion précise&nbsp;des données.</span>',
+      '"<code>LIMIT</code> + <code>OFFSET</code> sert à afficher des résultats <b>par portions</b>."']},
 ];
 
 for (const c of COURSES) {
@@ -546,6 +552,7 @@ test('texte des animations : police Inter livrée (mêmes retours à la ligne su
   assert.ok(core.includes("textIssues: QS.has('check') ? textIssues() : undefined,"), 'contrôle de mise en forme à la fabrication (?check)');
   assert.ok(core.includes("kind: 'ligne trop courte'") && core.includes("kind: 'bloc étroit'"), 'contrôle des trous dans un paragraphe et des blocs serrés');
   assert.ok(core.includes("kind: 'dernière ligne trop courte'") && core.includes('const SHORT_LINE = 0.7, SHORT_LINE_CAP = 0.78, NARROW_BLOCK = 0.7, STUB_LINE = 0.36, BOLD_WORDS = 4;'), 'contrôle des bouts de phrase isolés sur la dernière ligne');
+  assert.ok(core.includes('const alone = i => (i === 0 || lines[i].toks[0].brk) && (i === lines.length - 1 || lines[i + 1].toks[0].brk);') && core.includes('!w[0].blk && !alone(i)'), 'un titre d’un seul mot (« API ») au-dessus de sa description n’est pas un mot orphelin');
   assert.ok(core.includes('frDom($(\'#stage\'));'), 'même typographie pour les textes écrits dans la page');
   assert.ok(core.includes('const STACK_GAP = 40;') && core.includes('function stackBelow(lower, upper, rot = 0, gap = STACK_GAP){'), 'une carte posée sous une carte inclinée garde son écart');
   assert.ok(core.includes('const CARD_GAP = 20;') && core.includes("layoutIssues: QS.has('check') ? layoutIssues(renderAt, out) : undefined,"), 'contrôle des cadres collés à la fabrication (?check)');

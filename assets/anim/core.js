@@ -344,9 +344,11 @@ function textIssues(){
     const words = l => l.toks.filter(t => !/^[.,;:!?»)…]+$/.test(t.w));
     const text = lines.map(l => l.toks.map(t => t.w).join(' '));
     const isCap = !!el.closest('#cap');
+    /* Ligne qui forme à elle seule un bloc (titre court comme « API », au-dessus de sa description) : pas un mot orphelin. */
+    const alone = i => (i === 0 || lines[i].toks[0].brk) && (i === lines.length - 1 || lines[i + 1].toks[0].brk);
     lines.forEach((l, i) => {
       const w = words(l);
-      if (lines.length > 1 && w.length === 1 && !w[0].blk) out.push({kind: 'orphelin', where: isCap ? 'légende' : el.className || el.tagName, line: i + 1, text});
+      if (lines.length > 1 && w.length === 1 && !w[0].blk && !alone(i)) out.push({kind: 'orphelin', where: isCap ? 'légende' : el.className || el.tagName, line: i + 1, text});
       const last = l.toks[l.toks.length - 1];
       if (i < lines.length - 1 && last && shortWord(last.w)) out.push({kind: 'ligne finie par un mot court', where: isCap ? 'légende' : el.className || el.tagName, line: i + 1, text});
       if (l.toks.some(t => t.split)) out.push({kind: 'mot coupé', where: el.className || el.tagName, line: i + 1, text});
