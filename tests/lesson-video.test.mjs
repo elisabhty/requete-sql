@@ -503,6 +503,18 @@ const COURSES = [
       '<span>Dans le mauvais ordre</span>', '<b>Aucun produit « À commander »</b><span class="s">Sous 50, le stock est aussi sous 100.</span>',
       '<span class="a com">  -- pas de ELSE</span>', '<span class="nul" id="nul5">NULL</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> alerte</span>', '✓ 8 alertes à jour']},
+  {id: 23, next: 14, titre: 'COALESCE', page: 'coalesce.html', thumb: 'coalesce-thumb.jpg', duree: '2 min 20', notesAt: 126.8,
+    notes: /notes:\{t:132\.6,y:1270,card:\[64,356,1016,957\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Avec <span class="ic">COALESCE</span>, remplace un <span class="ic">NULL</span> par une autre valeur.',
+    chapters: ['Situation', 'Le problème', 'COALESCE en action', 'Plusieurs valeurs', 'Le texte vide', 'Le résultat', 'À retenir'],
+    traps: ['<span>Support · Fiches clients</span>', '<span class="sw st"><span class="a ec"></span><span class="b nr">Non renseigné</span></span>',
+      '<span class="nl">Son email ou « Non renseigné »</span><span class="tag calc">à calculer</span>', '<span class="nul">NULL</span><span class="ph2">?</span>',
+      '<span class="kw glow" id="k3">COALESCE</span>(<span class="glow" id="a3a">email</span>, <span class="str glow" id="a3b">\'Non renseigné\'</span>)',
+      '<span class="vb vn" id="v21"><span class="nul">NULL</span><i class="mk no" id="m21">✕</i></span>',
+      '<span class="glow" id="a4b">telephone</span>,', '<span class="b">06 39 98 68 03</span>',
+      '<span>NULL ou texte vide&nbsp;?</span>', '(<span class="str glow" id="q5">\'\'</span>, <span class="str">\'Non renseigné\'</span>)',
+      '<b>La case reste vide</b><span class="s">Un texte vide n’est jamais remplacé.</span>',
+      '<span class="kw">AS</span> email', '✓ Aucune case vide à l’écran', 'La table clients ne change pas']},
 ];
 
 for (const c of COURSES) {
