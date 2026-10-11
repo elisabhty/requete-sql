@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<title>Requête · Fonctions de texte en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .bubble{left:514px;width:532px}
+.nw{white-space:nowrap}
+
+/* Code un peu plus petit : la requête complète tient sur quatre lignes */
+.code.sm .body{font-size:34px;line-height:54px;padding:28px 36px}
+.code.sm .ln{height:54px}
+.code.sm .caret i{top:-40px;height:46px}
+
+/* ---------- Le colis et son étiquette (chapitres 1 et 6) ---------- */
+.parcel{left:140px;width:800px;height:580px;border-radius:40px;background:linear-gradient(165deg,#E8BC84 0%,#D29F62 100%);box-shadow:0 10px 0 #AD7A43}
+.parcel .tape{position:absolute;left:0;right:0;top:236px;height:108px;background:rgba(255,246,228,.38)}
+.label{position:absolute;left:90px;top:50px;width:620px;border-radius:26px;background:#fff;box-shadow:0 7px 0 rgba(122,82,36,.35);overflow:hidden}
+.lb-band{height:84px;display:flex;align-items:center;gap:16px;padding:0 32px;background:var(--code-bg);color:#fff;font-family:var(--display);font-weight:800;font-size:36px;white-space:nowrap}
+.lb-band .emo{font-size:38px}
+.lb-body{padding:24px 32px 28px}
+.lb-k{font-size:24px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--ink-3)}
+.lb-f{position:relative;height:84px;margin:8px 0 18px;border-radius:16px;border:3px dashed #D8D1F2;padding:0 22px;font-family:var(--mono);font-size:40px;font-weight:800;line-height:78px;color:var(--ink);white-space:nowrap}
+.lb-f .ph{position:absolute;left:22px;top:0;color:#B4ACD6;opacity:0}
+.lb-bar{height:64px;margin-top:4px;border-radius:6px;background:repeating-linear-gradient(90deg,#221C46 0 6px,transparent 6px 11px,#221C46 11px 14px,transparent 14px 20px,#221C46 20px 29px,transparent 29px 33px,#221C46 33px 35px,transparent 35px 41px)}
+#par6a .lb-f,#par6b .lb-f{border-style:solid;border-color:var(--line)}
+
+/* ---------- Code et résultat partagés (chapitres 2 et 3) ---------- */
+#qcode{left:64px;top:236px;width:952px;opacity:0;visibility:hidden}
+.rgT{display:grid;grid-template-columns:300px 1fr 300px;padding:0 26px;align-items:center}
+.tr.tc{height:52px;font-size:30px}
+.th .h2{display:none}
+/* Une valeur et sa version transformée, l’une sur l’autre : la case se retourne de l’une à l’autre */
+.sw{display:inline-grid}
+.sw>span{grid-area:1/1}
+.sw .b{opacity:0}
+/* Colonnes mises en avant : à mettre en majuscules (ambre), à réunir (violet) */
+.zone{position:absolute;top:4px;bottom:4px;border-radius:14px;opacity:0;z-index:0;pointer-events:none}
+.zone.am{background:rgba(245,158,11,.1);box-shadow:inset 0 0 0 3px rgba(245,158,11,.5)}
+.zone.ac{background:rgba(106,77,244,.07);box-shadow:inset 0 0 0 3px rgba(106,77,244,.35)}
+.badge.soft span{height:76px;padding:0 30px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);color:var(--ink-2);font-size:31px}
+
+/* ---------- 3 · Une fonction de texte ---------- */
+.fm{left:64px;width:952px;padding:30px 36px 36px}
+.fbox{margin-top:22px;height:118px;border-radius:28px;border:3px solid var(--line);background:var(--surface-2);display:flex;align-items:center;justify-content:space-between;padding:0 34px;opacity:0}
+.fbox .fk{font-size:32px;font-weight:700;color:var(--ink-3)}
+.fbox .fv{font-family:var(--mono);font-size:46px;font-weight:800;color:var(--ink);white-space:nowrap}
+.fbox.fn{background:var(--code-bg);border-color:var(--code-bg);box-shadow:0 7px 0 #110E27}
+.fbox.fn .fk{color:#9C96C4}
+.fbox.fn .fv{color:var(--code-ink)}
+.fbox.out{background:var(--accent-soft);border-color:#C9BCFF}
+.fbox.out .fv{color:var(--accent-ink)}
+.farr{height:52px;margin-top:16px;text-align:center;font-size:44px;font-weight:800;line-height:52px;color:var(--accent);opacity:0}
+
+/* ---------- 4 · Assembler avec || ---------- */
+.parts{position:relative;margin-top:28px;height:100px;display:flex;align-items:center;justify-content:center;gap:16px}
+.pt{height:84px;padding:0 26px;border-radius:22px;background:var(--surface-2);border:3px solid var(--line);font-family:var(--mono);font-size:40px;font-weight:800;color:var(--ink);display:inline-flex;align-items:center;white-space:pre;opacity:0}
+.pt.spc{color:#9A5B00;background:#FFF4E5;border:3px dashed #F7C97F}
+.pj{font-family:var(--mono);font-size:42px;font-weight:800;color:var(--accent);opacity:0}
+.joined{position:absolute;left:0;top:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;opacity:0}
+.joined span{height:96px;padding:0 36px;border-radius:24px;background:var(--accent-soft);border:3px solid #C9BCFF;font-family:var(--mono);font-size:46px;font-weight:800;color:var(--accent-ink);display:flex;align-items:center;white-space:pre}
+
+/* ---------- 5 · Une fonction par besoin ---------- */
+.kinds{left:64px;width:952px;padding:0 0 14px}
+.kinds .tt{height:92px;display:flex;align-items:center;gap:16px;padding:0 36px;font-weight:700;font-size:36px;color:var(--ink)}
+.kinds .tt .emo{font-size:40px}
+.fg{display:grid;grid-template-columns:210px 1fr;align-items:center;padding:0 36px}
+.fl{display:flex;align-items:center;gap:20px}
+.fd{height:132px;box-shadow:inset 0 2px 0 var(--line-2)}
+.fc{justify-self:start;height:62px;padding:0 20px;border-radius:16px;background:var(--code-bg);box-shadow:0 5px 0 #110E27;color:var(--t-kw);font-family:var(--mono);font-size:31px;font-weight:800;display:inline-flex;align-items:center}
+.fd .tx{font-family:var(--mono);font-size:34px;font-weight:700;color:var(--ink-2);white-space:pre}
+.fd .tx.o{color:var(--accent-ink)}
+.fd .ar{font-size:36px;font-weight:800;color:var(--ink-3)}
+
+/* ---------- 6 · Le résultat ---------- */
+.rgD{display:grid;grid-template-columns:1fr 300px;padding:0 26px;align-items:center}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Fonctions et expressions</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>A</span><span>a</span></div>
+    <div class="abs sub">Fonctions de texte</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec les fonctions de texte, transforme le texte du résultat.</div>
+  </section>
+
+  <!-- 1 · Situation : l’étiquette du colis, encore vide -->
+  <section class="scene" id="s1">
+    <div class="abs parcel" id="par1" style="top:236px">
+      <i class="tape"></i>
+      <div class="label">
+        <div class="lb-band"><span class="emo">📦</span><span>NutriBoost · Expédition</span></div>
+        <div class="lb-body">
+          <div class="lb-k">Destinataire</div>
+          <div class="lb-f" id="f1"><span class="ph">NOM Prénom</span></div>
+          <div class="lb-k">Ville</div>
+          <div class="lb-f" id="f2"><span class="ph">VILLE</span></div>
+          <div class="lb-bar"></div>
+        </div>
+      </div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">🪪</span><span class="nl">Le nom du client</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">🙂</span><span class="nl">Son prénom</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">🏙️</span><span class="nl">Sa ville</span><span class="tag">table clients</span></div>
+    </div>
+  </section>
+
+  <!-- Code et résultat partagés (chapitres 2 et 3) : « UPPER( ) » s’ajoute autour du nom et de la ville -->
+  <div class="abs code sm" id="qcode">
+    <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+    <div class="body"><span class="ln" id="ql1"><span class="kw">SELECT</span> <span class="fx" id="fxA"><span class="kw glow">UPPER</span>(</span>nom<span class="fx" id="fxB">)</span>, prenom, <span class="fx" id="fxC"><span class="kw glow">UPPER</span>(</span>ville<span class="fx" id="fxD">)</span><span class="caret"><i></i></span></span><span class="ln" id="ql2"><span class="kw">FROM</span> clients;<span class="caret"><i></i></span></span></div>
+    <div class="run" id="qrun"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+  </div>
+  <div class="tbl card" id="tbl2" style="top:668px">
+    <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt2">10 lignes</span></span></div>
+    <div class="rgT th"><div><span class="h1">nom</span><span class="h2">UPPER(nom)</span></div><div>prenom</div><div><span class="h1">ville</span><span class="h2">UPPER(ville)</span></div></div>
+    <div class="rows" id="rows2"><i class="zone am" id="zN"></i><i class="zone am" id="zV"></i><i class="zone ac" id="zNP"></i></div>
+  </div>
+  <div class="abs badge soft" id="keep3" style="top:1392px"><span>🔒 La table clients ne change pas</span></div>
+
+  <!-- 3 · Une fonction de texte -->
+  <section class="scene" id="s3">
+    <div class="abs card fm" id="fm3" style="top:420px">
+      <div class="trap-h"><span class="emo">⚙️</span><span>Une fonction de texte</span></div>
+      <div class="fbox" id="fb1"><span class="fk">Dans la table</span><span class="fv">Martin</span></div>
+      <div class="farr" id="fa1">↓</div>
+      <div class="fbox fn" id="fb2"><span class="fk">La fonction</span><span class="fv"><span class="kw">UPPER</span>(nom)</span></div>
+      <div class="farr" id="fa2">↓</div>
+      <div class="fbox out" id="fb3"><span class="fk">Dans le résultat</span><span class="fv"><span class="sw"><span class="a">?</span><span class="b">MARTIN</span></span></span></div>
+    </div>
+  </section>
+
+  <!-- 4 · Assembler avec || -->
+  <section class="scene" id="s4">
+    <div class="abs card trap" id="join4" style="top:300px">
+      <div class="trap-h"><span class="emo">🔗</span><span>Assembler des textes</span></div>
+      <div class="mini"><span class="kw">UPPER</span>(nom) <span class="glow" id="or1">||</span> <span class="str glow" id="sp4">' '</span> <span class="glow" id="or2">||</span> prenom<span class="go" id="go4"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
+      <div class="parts" id="parts4">
+        <span class="pt">MARTIN</span><span class="pj">||</span><span class="pt spc">' '</span><span class="pj">||</span><span class="pt">Sophie</span>
+        <div class="joined" id="jn4"><span>MARTIN Sophie</span></div>
+      </div>
+    </div>
+    <div class="abs card trap" id="trap4" style="top:724px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Avec <span class="ic">+</span> à la place de <span class="ic">||</span></span></div>
+      <div class="mini"><span class="kw">UPPER</span>(nom) <span class="glow" id="pl1">+</span> <span class="str">' '</span> <span class="glow" id="pl2">+</span> prenom<span class="go" id="go4b"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
+      <div class="out err" id="err4"><span class="oi">✕</span><div class="ot"><b>Résultat : 0</b><span class="s">Le + additionne des nombres, pas des textes.</span></div></div>
+    </div>
+  </section>
+
+  <!-- 5 · Une fonction par besoin -->
+  <section class="scene" id="s5">
+    <div class="abs card kinds" id="fx5" style="top:236px">
+      <div class="tt"><span class="emo">🧰</span><span>Une fonction par besoin</span></div>
+      <div class="fg fd"><span class="fc">LOWER</span><span class="fl"><span class="tx">PARIS</span><span class="ar">→</span><span class="tx o">paris</span></span></div>
+      <div class="fg fd"><span class="fc">TRIM</span><span class="fl"><span class="tx">'&nbsp;&nbsp;Paris&nbsp;&nbsp;'</span><span class="ar">→</span><span class="tx o">'Paris'</span></span></div>
+      <div class="fg fd"><span class="fc">LENGTH</span><span class="fl"><span class="tx">Sophie</span><span class="ar">→</span><span class="tx o">6</span></span></div>
+      <div class="fg fd"><span class="fc">SUBSTR</span><span class="fl"><span class="tx">Martin</span><span class="ar">→</span><span class="tx o">Mar</span></span></div>
+      <div class="fg fd"><span class="fc">REPLACE</span><span class="fl"><span class="tx">06 39 98 12 04</span><span class="ar">→</span><span class="tx o">0639981204</span></span></div>
+    </div>
+  </section>
+
+  <!-- 6 · Le résultat -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> <span class="kw">UPPER</span>(nom) || <span class="str">' '</span> || prenom<span class="caret"><i></i></span></span><span class="ln" id="s6l2">       <span class="kw">AS</span> destinataire,<span class="caret"><i></i></span></span><span class="ln" id="s6l3">       <span class="kw">UPPER</span>(ville) <span class="kw">AS</span> ville<span class="caret"><i></i></span></span><span class="ln" id="s6l4"><span class="kw">FROM</span> clients;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6" style="top:766px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">10 lignes</span></span></div>
+      <div class="rgD th"><div>destinataire</div><div>ville</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs parcel" id="par6a" style="top:380px"></div>
+    <div class="abs parcel" id="par6b" style="top:380px"></div>
+    <div class="abs badge" id="badge6" style="top:1050px"><span>✓ 10 étiquettes prêtes</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🔤</div><div class="rtxt">Une <b>fonction</b> transforme le texte du résultat, sans modifier la table&nbsp;:<br><span class="ic blk">UPPER(nom)</span></div></div>
+      <div class="rrow"><div class="rico emo">🧰</div><div class="rtxt">Une <b>fonction par besoin</b>&nbsp;: <span class="ic">LOWER</span>, <span class="ic">TRIM</span>, <span class="ic">LENGTH</span>, <span class="ic">SUBSTR</span> ou <span class="ic">REPLACE</span>.</div></div>
+      <div class="rrow"><div class="rico emo">🔗</div><div class="rtxt"><span class="ic">||</span> <b>assemble des textes</b>, et on peut y placer des fonctions&nbsp;:<br><span class="ic blk">UPPER(nom) || ' ' || prenom</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 139.2;
+
+/* Table clients : [id, prenom, nom, ville] */
+const CLIENTS = [[1,'Sophie','Martin','Paris'],[2,'Lucas','Bernard','Lyon'],[3,'Emma','Dubois','Marseille'],[4,'Nathan','Petit','Paris'],
+  [5,'Chloé','Moreau','Bordeaux'],[6,'Hugo','Laurent','Lyon'],[7,'Léa','Simon','Paris'],[8,'Gabriel','Michel','Toulouse'],
+  [9,'Inès','Lefebvre','Nantes'],[10,'Nathan','Dupont','Paris']];
+/* UPPER de SQLite ne change que les lettres sans accent : les noms et les villes de la table n’en ont pas. */
+const MAJ = s => s.toUpperCase();
+
+const CHAPTERS = [
+  {n:1, label:'Situation',             a:5.0,   b:24.8},
+  {n:2, label:'Le problème',           a:24.8,  b:41.4},
+  {n:3, label:'UPPER en action',       a:41.4,  b:62.4},
+  {n:4, label:'Assembler avec ||',     a:62.4,  b:87.5},
+  {n:5, label:'Une fonction par besoin', a:87.5, b:111.6},
+  {n:6, label:'Le résultat',           a:111.6, b:126.4},
+  {n:7, label:'À retenir',             a:126.4, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 9.9,     "Avant chaque envoi, l’entrepôt imprime une <b>étiquette</b> pour le colis."],
+  [10.0, 14.6,   "Le transporteur veut le nom <b>en majuscules</b>, suivi du prénom."],
+  [14.7, 18.9,   "La <b>ville</b> aussi, en majuscules : MARTIN\u00a0Sophie, PARIS."],
+  [19.0, 24.4,   "Le nom, le prénom et la ville se trouvent dans la <b>table clients</b> (<b>10 clients</b>)."],
+  [25.1, 30.0,   "Premier essai : afficher le nom, le prénom et la ville de chaque client."],
+  [30.1, 35.3,   "Le nom et la ville s’affichent comme dans la table : <b>Martin</b>, et non MARTIN."],
+  [35.4, 41.0,   "De plus, le nom et le prénom sont dans <b>deux colonnes</b> séparées."],
+  [41.7, 46.7,   "Une fonction prend une valeur, la <b>transforme</b>, puis renvoie le résultat."],
+  [46.8, 51.0,   "<code>UPPER</code> met un texte en <b>majuscules</b> : Martin devient MARTIN."],
+  [51.1, 56.3,   "Dans la requête, on écrit la fonction, puis la colonne <b>entre parenthèses</b>."],
+  [56.4, 62.0,   "Seul le résultat change : la <b>table clients</b> garde Martin, avec une seule majuscule."],
+  [62.7, 67.1,   "Pour réunir deux textes en un seul, on les relie avec <code>||</code>."],
+  [67.2, 72.5,   "Entre les deux, on ajoute un espace, écrit entre <b>guillemets simples</b>."],
+  [72.6, 76.1,   "Résultat : <b>MARTIN Sophie</b>, dans une seule colonne."],
+  [76.2, 81.1,   "Attention : avec <code>+</code> à la place de <code>||</code>, la requête renvoie <b>0</b>."],
+  [81.2, 87.1,   "En SQL, <code>+</code> additionne des <b>nombres</b> : pour assembler des textes, il faut <code>||</code>."],
+  [87.8, 92.6,   "Il existe une fonction par besoin : <code>LOWER</code> met tout en <b>minuscules</b>."],
+  [92.7, 97.1,   "<code>TRIM</code> retire les <b>espaces</b> au début et à la fin d’un texte."],
+  [97.2, 101.0,  "<code>LENGTH</code> compte les <b>caractères</b> : le prénom Sophie en a 6."],
+  [101.1, 106.1, "<code>SUBSTR(nom, 1, 3)</code> extrait un <b>morceau</b> : 3 caractères, à partir du premier."],
+  [106.2, 111.2, "<code>REPLACE</code> remplace un morceau : ici, chaque espace du numéro par <b>rien</b>."],
+  [111.9, 116.9, "Avec la requête complète, chaque colis obtient son destinataire et sa ville."],
+  [117.0, 120.4, "Résultat : <b>10 lignes</b>, au format du transporteur."],
+  [120.5, 126.0, "Les étiquettes s’impriment, sans modifier la <b>table clients</b>."],
+  [126.7, 131.5, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [131.6, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [131.6, 999, "Une fonction de texte transforme le résultat, et <code>||</code> assemble des textes."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+/* Un colis et son étiquette remplie (chapitre 6). */
+const colis = (dest, ville) => '<i class="tape"></i><div class="label"><div class="lb-band"><span class="emo">📦</span><span>NutriBoost · Expédition</span></div>' +
+  '<div class="lb-body"><div class="lb-k">Destinataire</div><div class="lb-f"><span class="fv">' + dest + '</span></div>' +
+  '<div class="lb-k">Ville</div><div class="lb-f"><span class="fv">' + ville + '</span></div><div class="lb-bar"></div></div></div>';
+
+function dom(){
+  const sw = (a, b) => `<span class="sw"><span class="a">${a}</span><span class="b">${b}</span></span>`;
+  $('#rows2').insertAdjacentHTML('beforeend', CLIENTS.map(c => `<div class="rgT tr tc"><div>${sw(c[2], MAJ(c[2]))}</div><div>${c[1]}</div><div>${sw(c[3], MAJ(c[3]))}</div></div>`).join(''));
+  $('#rows6').innerHTML = CLIENTS.map(c => `<div class="rgD tr tc"><div>${MAJ(c[2])} ${c[1]}</div><div>${MAJ(c[3])}</div></div>`).join('');
+  $('#par6a').innerHTML = colis('MARTIN Sophie', 'PARIS');
+  $('#par6b').innerHTML = colis('BERNARD Lucas', 'LYON');
+}
+
+/* Une case se retourne : la valeur enregistrée laisse place à sa version transformée. */
+function flip(sw, t, sound = true){
+  tl.to(sw, {scaleY: 0, duration: 0.12, ease: 'power2.in'}, t);
+  tl.set(sw.querySelector('.a'), {opacity: 0}, t + 0.12);
+  tl.set(sw.querySelector('.b'), {opacity: 1}, t + 0.12);
+  tl.to(sw, {scaleY: 1, duration: 0.22, ease: 'back.out(2)'}, t + 0.12);
+  if (sound) cue(t + 0.12, 'tick', 0.5, 3);
+}
+/* Un morceau ajouté à la requête apparaît en rebondissant. */
+function popIn(sel, t){
+  gsap.set(sel, {autoAlpha: 0, scale: 0.3, transformOrigin: '50% 60%'});
+  tl.set(sel, {display: 'inline-block'}, t - 0.02);
+  tl.to(sel, {autoAlpha: 1, scale: 1, duration: 0.42, ease: 'back.out(2.6)'}, t);
+}
+const pulse = (sel, t, n = 3) => tl.to(sel, {backgroundColor: 'rgba(201,188,255,.35)', duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+
+function build(){
+  introScene();
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  gsap.set('#par1', {autoAlpha: 0, y: 440, rotation: -9});
+  tl.to('#par1', {autoAlpha: 1, y: 360, rotation: -2, duration: 0.9, ease: 'back.out(1.3)'}, 5.15);
+  cue(5.15, 'whoosh', 0.8);
+  gsap.set('#par1 .label', {autoAlpha: 0, scale: 1.12, rotation: 4});
+  tl.to('#par1 .label', {autoAlpha: 1, scale: 1, rotation: 0, duration: 0.34, ease: 'power4.in'}, 6.4);
+  tl.to('#par1', {x: 6, duration: 0.05, yoyo: true, repeat: 3, ease: 'none'}, 6.74);
+  cue(6.74, 'stamp');
+  // Le format du transporteur : NOM Prénom, puis VILLE
+  [['#f1', 10.4], ['#f2', 15.1]].forEach(([f, t]) => {
+    tl.to(f, {borderColor: '#A893FF', duration: 0.25}, t);
+    gsap.set(f + ' .ph', {y: 14});
+    tl.to(f + ' .ph', {opacity: 1, y: 0, duration: 0.4, ease: 'back.out(2)'}, t + 0.1);
+    tl.to(f, {borderColor: '#D8D1F2', duration: 0.4}, t + 1.6);
+    cue(t + 0.1, 'pop', 0.8, 2);
+  });
+  // Les informations à récupérer
+  tl.to('#par1', {y: 0, duration: 0.75, ease: 'power3.inOut'}, 19.1);
+  stackBelow('#s1 .need', '#par1', -2);   // la liste se cale sous le colis incliné, sans le toucher
+  show('#s1 .need', 19.6, {y: 60});
+  cue(19.6, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.15}, 19.75);
+  needRows.forEach((_, i) => cue(19.75 + i * 0.15, 'pop', 0.7, i));
+  tl.to('#s1 .tag', {scale: 1.08, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 22.4);
+  hide(['#par1', '#s1 .need'], 24.3);
+  sceneOff('#s1', 24.8);
+
+  /* ===== 2 · Le problème ===== */
+  show('#qcode', 24.85, {y: 60}, 0.6);
+  cue(24.85, 'whoosh', 0.7);
+  gsap.set('.fx', {display: 'none'});
+  const ch1 = splitChars($('#ql1')).filter(c => !c.closest('.fx'));
+  te = typeChars(ch1, 25.35, 28, $('#ql1 .caret'));
+  te = typeLine($('#ql2'), te + 0.12, 28);
+  press($('#qrun'), 27.6);
+  show('#tbl2', 27.85, {y: 40}, 0.5);
+  const tr2 = $$('#rows2 .tr');
+  gsap.set(tr2, {autoAlpha: 0, y: 14});
+  tl.to(tr2, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.05}, 28.0);
+  tr2.forEach((_, i) => cue(28.0 + i * 0.05, 'tick', 0.4, i % 5));
+  show('#cnt2', 28.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // Les colonnes à transformer (ambre), puis les deux colonnes à réunir (violet)
+  const th = $$('#tbl2 .th > div'), rowsBox = $('#rows2');
+  const col = (i, j = i) => { const a = rel(th[i], rowsBox), b = rel(th[j], rowsBox); return {left: (a.x + 4) + 'px', width: (b.x + b.w - a.x - 8) + 'px'}; };
+  gsap.set('#zN', col(0)); gsap.set('#zV', col(2)); gsap.set('#zNP', col(0, 1));
+  tl.to(['#zN', '#zV'], {opacity: 1, duration: 0.35, stagger: 0.15}, 30.5);
+  cue(30.5, 'pop', 0.7, 2);
+  tl.to(['#zN', '#zV'], {opacity: 0, duration: 0.3}, 35.5);
+  tl.to('#zNP', {opacity: 1, duration: 0.35}, 35.75);
+  cue(35.75, 'pop', 0.7, 4);
+  tl.to('#zNP', {opacity: 0, duration: 0.3}, 40.7);
+
+  /* ===== 3 · UPPER en action ===== */
+  hide(['#qcode', '#tbl2'], 41.45, {y: -40}, 0.4);
+  sceneOn('#s3', 41.7);
+  show('#fm3', 41.75, {y: 50});
+  cue(41.75, 'whoosh', 0.6);
+  [['#fb1', 42.1], ['#fa1', 43.0], ['#fb2', 43.25], ['#fa2', 44.2], ['#fb3', 44.45]].forEach(([s, t], i) => {
+    show(s, t, {y: 0, x: -30}, 0.45, 'power3.out');
+    if (!s.startsWith('#fa')) cue(t, 'pop', 0.75, i);
+  });
+  // UPPER : Martin devient MARTIN
+  tl.to('#fb2', {scale: 1.04, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 46.9);
+  flip($('#fb3 .sw'), 47.2, false);
+  cue(47.3, 'success', 0.7);
+  hide('#fm3', 50.9, {y: -40});
+  sceneOff('#s3', 51.35);
+  // Dans la requête : UPPER( ) autour du nom, puis de la ville
+  tl.fromTo('#qcode', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, 51.3);
+  tl.fromTo('#tbl2', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, 51.45);
+  cue(51.3, 'whoosh', 0.6);
+  popIn(['#fxA', '#fxB'], 52.1);
+  cue(52.1, 'pop', 0.9, 5);
+  popIn(['#fxC', '#fxD'], 52.8);
+  cue(52.8, 'pop', 0.9, 6);
+  pulse(['#fxA .glow', '#fxC .glow'], 53.4);
+  press($('#qrun'), 54.7);
+  const hs = $$('#tbl2 .th .h1'), hs2 = $$('#tbl2 .th .h2');
+  tl.set(hs, {display: 'none'}, 54.95);
+  tl.set(hs2, {display: 'inline'}, 54.95);
+  tr2.forEach((r, i) => {
+    const s = $$('.sw', r);
+    flip(s[0], 55.0 + i * 0.06, i % 2 === 0);
+    flip(s[1], 55.12 + i * 0.06, false);
+  });
+  // La table, elle, garde ses valeurs
+  show('#keep3', 56.7, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(56.7, 'pop', 0.8, 3);
+  hide(['#qcode', '#tbl2', '#keep3'], 61.9, {y: -40}, 0.4);
+
+  /* ===== 4 · Assembler avec || ===== */
+  sceneOn('#s4', 62.35);
+  show('#join4', 62.4, {y: 50});
+  cue(62.4, 'whoosh', 0.6);
+  pulse(['#or1', '#or2'], 63.3);
+  const parts = $$('#parts4 .pt, #parts4 .pj');
+  gsap.set(parts, {autoAlpha: 0, y: 16});
+  tl.to(parts, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'back.out(2)', stagger: 0.14}, 64.2);
+  parts.forEach((_, i) => { if (i % 2 === 0) cue(64.2 + i * 0.14, 'pop', 0.7, i); });
+  // L’espace entre guillemets simples
+  pulse('#sp4', 67.6);
+  tl.to('#parts4 .spc', {scale: 1.12, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 67.8);
+  // Les morceaux se rejoignent : MARTIN Sophie
+  press($('#go4'), 72.25, '#4B30CC', 6);
+  tl.to(parts, {autoAlpha: 0, scale: 0.85, duration: 0.25, ease: 'power2.in'}, 72.45);
+  gsap.set('#jn4', {scale: 0.7});
+  tl.to('#jn4', {autoAlpha: 1, scale: 1, duration: 0.45, ease: 'back.out(2)'}, 72.65);
+  cue(72.65, 'chord', 0.7);
+  // Le piège : + additionne des nombres
+  show('#trap4', 76.4, {y: 50});
+  cue(76.4, 'whoosh', 0.6);
+  press($('#go4b'), 77.4, '#4B30CC', 6);
+  show('#err4', 77.65, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  tl.to('#err4', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 78.05);
+  cue(77.65, 'error', 0.85);
+  tl.to(['#pl1', '#pl2'], {backgroundColor: 'rgba(239,79,85,.38)', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 81.4);
+  pulse(['#or1', '#or2'], 83.6);
+  hide(['#join4', '#trap4'], 87.0);
+  sceneOff('#s4', 87.5);
+
+  /* ===== 5 · Une fonction par besoin ===== */
+  sceneOn('#s5', 87.5);
+  show('#fx5', 87.55, {y: 50});
+  cue(87.55, 'whoosh', 0.6);
+  const fr5 = $$('#fx5 .fd');
+  gsap.set(fr5, {autoAlpha: 0, x: -30});
+  [88.1, 92.95, 97.45, 101.35, 106.45].forEach((t, i) => {
+    const r = fr5[i], after = r.querySelector('.tx.o'), arrow = r.querySelector('.ar');
+    gsap.set([after, arrow], {autoAlpha: 0, x: -14});
+    tl.to(r, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, t);
+    cue(t, 'pop', 0.8, i * 2);
+    tl.to(arrow, {autoAlpha: 1, x: 0, duration: 0.3, ease: 'power2.out'}, t + 0.55);
+    tl.to(after, {autoAlpha: 1, x: 0, duration: 0.4, ease: 'back.out(2)'}, t + 0.75);
+    cue(t + 0.75, 'true', 0.6, i % 5);
+  });
+  hide('#fx5', 111.1, {y: -40});
+  sceneOff('#s5', 111.6);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 111.6);
+  show('#s6code', 111.65, {y: 60}, 0.6);
+  cue(111.65, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 112.15, 32);
+  te = typeLine($('#s6l2'), te + 0.1, 32);
+  te = typeLine($('#s6l3'), te + 0.1, 32);
+  te = typeLine($('#s6l4'), te + 0.1, 32);
+  press($('#s6run'), 117.0);
+  show('#tbl6', 117.25, {y: 40}, 0.5);
+  const tr6 = $$('#rows6 .tr');
+  gsap.set(tr6, {autoAlpha: 0, y: 14});
+  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.06}, 117.4);
+  tr6.forEach((_, i) => cue(117.4 + i * 0.06, 'tick', 0.45, i % 5));
+  show('#cnt6', 117.9, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  hide(['#s6code', '#tbl6'], 120.4, {y: -40}, 0.4);
+  // Les étiquettes s’impriment : un colis arrive, son étiquette se remplit, puis le suivant
+  gsap.set('#par6a', {autoAlpha: 0, x: 1000});
+  gsap.set('#par6b', {autoAlpha: 0, x: 1000});
+  tl.to('#par6a', {autoAlpha: 1, x: 0, duration: 0.6, ease: 'power3.out'}, 120.8);
+  cue(120.8, 'whoosh', 0.7);
+  const fill = (id, t) => {
+    let e = t;
+    $$(id + ' .fv').forEach(v => { e = typeChars(splitChars(v), e, 30) + 0.12; });
+    return e;
+  };
+  fill('#par6a', 121.45);
+  tl.to('#par6a', {x: -1000, duration: 0.6, ease: 'power3.inOut'}, 123.0);
+  tl.set('#par6a', {autoAlpha: 0}, 123.6);
+  tl.to('#par6b', {autoAlpha: 1, x: 0, duration: 0.6, ease: 'power3.inOut'}, 123.0);
+  cue(123.0, 'whoosh', 0.6);
+  fill('#par6b', 123.65);
+  show('#badge6', 124.9, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(124.9, 'success', 0.9);
+  hide(['#par6b', '#badge6'], 125.9);
+  sceneOff('#s6', 126.4);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(126.4, [127.1, 128.9, 130.7]);
+  hold(128.7, 2.9);
+  hold(130.5, 2.9);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(131.65, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 131.6,
+  glyphs: '📦🪪🙂🏙️🔎🔒⚙️↓🔗⚠️🧰🔤✓✕→·', dom, build});
+</script>
+</body>
+</html>
