@@ -535,6 +535,18 @@ const COURSES = [
       '<span class="x">✕ email ignoré</span>', '<span>Les catégories des 8 produits</span>', '<span class="kw glow" id="d4">DISTINCT</span> categorie)',
       '<span class="sw" id="sw4"><span class="a">?</span><span class="b">5</span></span>', '<span class="kw">WHERE</span> <span class="glow" id="w5">stock &lt; 50</span>;',
       '<span class="glow" id="as6b"><span class="kw">AS</span> categories</span>', '✓ Compteurs à jour']},
+  {id: 16, next: 17, titre: 'GROUP BY', page: 'group-by.html', thumb: 'group-by-thumb.jpg', duree: '2 min 15', notesAt: 121.9,
+    notes: /notes:\{t:127\.7,y:1312,card:\[64,356,1016,1017\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Avec <span class="ic">GROUP BY</span>, calcule un résultat pour chaque groupe.',
+    chapters: ['Situation', 'Le problème', 'GROUP BY en action', 'Un calcul par groupe', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<span>Conseillers · Répartition par ville</span>', '<span class="nl">Son nombre de clients</span><span class="tag calc">à calculer</span>',
+      '<span>Un nombre pour chaque ville&nbsp;?</span>', '<span class="vv" id="v2">10</span>',
+      '<span class="glow" id="gb3"><span class="kw">GROUP BY</span> ville</span>', '<span class="b"><span class="emo">🧺</span>&nbsp;6 groupes, un par ville</span>',
+      '<span class="chip v-lyo"><i class="cd"></i>Lucas · 28 ans</span><span class="chip v-lyo"><i class="cd"></i>Hugo · 52 ans</span>',
+      '<span class="glow" id="ag4"><span class="kw">AVG</span>(age)</span>', 'Lyon&nbsp;: (28 + 52) ÷ 2 = <b>40</b>',
+      '<span class="glow" id="pn5">prenom</span>, ville, <span class="kw">COUNT</span>(*)', '<span class="vv" id="so5">Sophie</span>',
+      '<span class="ok">SQLite&nbsp;: un prénom au choix</span><span class="ko">Autres bases&nbsp;: une erreur</span>', '<span class="cv">✕ ni l’un ni l’autre</span>',
+      '<span class="glow" id="as6"><span class="kw">AS</span> nb_clients</span>', '✓ Paris en tête avec 4 clients']},
 ];
 
 for (const c of COURSES) {

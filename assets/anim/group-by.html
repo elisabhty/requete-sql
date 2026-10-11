@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<title>Requête · GROUP BY en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:184px;top:404px;letter-spacing:-4px}
+#s0 .title span.sp{margin-right:52px}
+#s0 .bubble{left:514px;width:532px}
+#s1 .need-row .nl{font-size:38px;white-space:nowrap}
+.tag.calc{background:#FFF4E5;color:#9A5B00}
+
+/* Code : deux ou trois lignes (chapitres 2, 3 et 6) */
+.code.sm .body{font-size:34px;line-height:54px;padding:28px 36px}
+.code.sm .ln{height:54px}
+.code.sm .caret i{top:-40px;height:46px}
+
+/* Une valeur et sa version calculée, l’une sur l’autre : la case se retourne de l’une à l’autre */
+.sw{display:inline-grid;justify-items:center}
+.sw>span{grid-area:1/1}
+.sw .b{opacity:0}
+
+/* Une couleur par ville (pastille, étiquette, panier) */
+.v-par{--c:#7C5CFF;--cs:#EEE9FF;--ci:#4B30CC}
+.v-lyo{--c:#22A06B;--cs:#E7F7EE;--ci:#1B7A45}
+.v-mar{--c:#2F80ED;--cs:#E6F1FF;--ci:#1F5FAD}
+.v-bor{--c:#D6409F;--cs:#FCE8F3;--ci:#A3266B}
+.v-tou{--c:#F2994A;--cs:#FFF4E5;--ci:#9A5B00}
+.v-nan{--c:#14A3A3;--cs:#E2F6F6;--ci:#0E6E6E}
+
+/* ---------- La carte des conseillers (chapitres 1 et 6) ---------- */
+.mapc{left:64px;width:952px;padding:0 0 22px;overflow:hidden}
+.db-bar{height:76px;display:flex;align-items:center;gap:14px;padding:0 34px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar span{margin-left:12px}
+.mapw{position:relative;height:560px;margin-top:14px}
+.hex{position:absolute;left:156px;top:0;width:640px;height:560px;overflow:visible}
+.hex polygon{fill:#F4F1FF;stroke:#DCD4FA;stroke-width:12;stroke-linejoin:round}
+.legend{position:absolute;right:26px;top:6px;display:flex;align-items:center;gap:10px;height:52px;padding:0 18px;border-radius:999px;background:#fff;border:2px solid var(--line);font-size:24px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.pin{position:absolute;height:48px;margin:-24px 0 0 -16px;display:flex;align-items:center;gap:10px}
+.pin .pd{flex:none;width:32px;height:32px;border-radius:50%;background:var(--c);box-shadow:0 0 0 6px rgba(255,255,255,.95)}
+.pin .pl{font-size:28px;font-weight:700;color:var(--ink);white-space:nowrap}
+.pin .pb{min-width:58px;height:46px;padding:0 12px;border-radius:999px;border:3px dashed #D8D1F2;background:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:30px;font-weight:800;line-height:1;color:var(--accent-ink)}
+.pin .pb .a{color:#B4ACD6}
+.pin .pb .b{color:var(--ci)}
+.pin.lf{flex-direction:row-reverse;margin:-24px -16px 0 0}
+
+/* ---------- 2 · Le problème : un seul total ---------- */
+.rg1{display:grid;grid-template-columns:1fr;padding:0 26px;align-items:center}
+.tr.tb{height:66px;font-size:40px;font-weight:800;color:var(--accent-ink)}
+.cities{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}
+.cty{height:64px;border-radius:20px;background:var(--cs);display:flex;align-items:center;gap:12px;padding:0 16px;font-size:28px;font-weight:700;color:var(--ci);white-space:nowrap}
+.cty i{width:16px;height:16px;border-radius:50%;background:var(--c);flex:none}
+.cty b{margin-left:auto;min-width:46px;height:40px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:26px;font-weight:800;color:#B4ACD6}
+
+/* ---------- 3 · GROUP BY en action : des lignes aux paniers ---------- */
+#grp3{left:64px;width:952px;height:708px}
+.g3t{position:absolute;left:0;top:0;height:48px;display:flex;align-items:center;gap:12px;font-size:32px;font-weight:700;color:var(--accent-ink);white-space:nowrap}
+.g3t .sw{justify-items:start}
+.bk{position:absolute;width:296px;height:312px;border-radius:28px;background:#fff;border:3px solid var(--line);box-shadow:0 7px 0 var(--lip)}
+.bk .bh{height:58px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:28px;font-weight:800;color:var(--ci);border-bottom:2px solid var(--line-2)}
+.bk .bh i{width:16px;height:16px;border-radius:50%;background:var(--c)}
+.bk .bc{position:absolute;right:-16px;top:-18px;width:62px;height:62px;border-radius:50%;background:var(--c);color:#fff;font-family:var(--display);font-size:34px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 5px 0 rgba(0,0,0,.18);opacity:0}
+.chip{position:absolute;height:54px;border-radius:16px;background:#fff;border:2px solid var(--line);box-shadow:0 4px 0 var(--lip);display:flex;align-items:center;gap:12px;padding:0 16px;font-size:28px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;z-index:2}
+.chip .cd{width:14px;height:14px;border-radius:50%;background:var(--c);flex:none}
+.chip .ct{margin-left:auto;height:38px;padding:0 14px;border-radius:999px;background:var(--cs);color:var(--ci);font-size:24px;font-weight:700;display:flex;align-items:center}
+.rgV{display:grid;grid-template-columns:1fr 300px;padding:0 26px;align-items:center}
+.rgV>div:nth-child(2){text-align:right}
+.tr.tv{height:60px;font-size:32px}
+
+/* ---------- 4 · Un calcul par groupe ---------- */
+.lyon{display:flex;align-items:center;gap:14px;margin-top:18px}
+.lyon .chip{position:relative;z-index:0}
+.fr4{display:grid;grid-template-columns:230px 1fr 110px;align-items:center;gap:16px;height:64px;padding:0 6px;border-radius:16px}
+.fr4+.fr4{margin-top:6px}
+.fr4 .fx{justify-self:start;height:46px;padding:0 16px;border-radius:14px;background:var(--code-bg);color:#fff;font-family:var(--mono);font-size:26px;font-weight:600;display:flex;align-items:center;white-space:nowrap}
+.fr4 .fx .kw{color:var(--t-kw)}
+.fr4 .fl{font-size:28px;font-weight:650;color:var(--ink-2);white-space:nowrap}
+.fr4 .fv{justify-self:end;min-width:84px;height:52px;border-radius:16px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:32px;font-weight:800;color:var(--accent-ink)}
+.rgA{display:grid;grid-template-columns:1fr 220px;padding:0 20px;align-items:center}
+.rgA>div:nth-child(2){text-align:right}
+.mres{margin-top:18px;border-radius:24px;border:2px solid var(--line);overflow:hidden}
+.rgA.th{height:50px;font-size:26px}
+.tr.ta{height:54px;font-size:30px}
+.lcalc{display:flex;align-items:center;justify-content:center;gap:12px;height:62px;margin-top:16px;border-radius:20px;background:var(--cs);color:var(--ci);font-size:30px;font-weight:700;white-space:nowrap;opacity:0}
+
+/* ---------- 5 · Le piège : une colonne ni regroupée ni calculée ---------- */
+.ts5{position:relative;height:290px;margin-top:18px}
+.ly5{position:absolute;left:0;right:0;top:0}
+.grow{display:flex;gap:12px}
+.grow .chip{position:relative;flex:1;justify-content:center;padding:0 10px;z-index:0}
+.grow .chip .x{position:absolute;right:8px;top:4px;font-size:22px;font-weight:800;color:var(--danger);opacity:0}
+.arr5{height:46px;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;color:var(--accent);opacity:0}
+.rgT{display:grid;grid-template-columns:1fr 1fr 1fr;padding:0 20px;align-items:center}
+.rgT.th{height:50px;font-size:26px}
+.tr.tt5{height:58px;font-size:32px;font-weight:700}
+.vv{display:inline-block;border-radius:10px;padding:0 8px;margin:0 -8px}
+.verd{display:flex;gap:12px;margin-top:16px;opacity:0}
+.verd span{flex:1;height:56px;border-radius:18px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:26px;font-weight:700;white-space:nowrap}
+.verd .ok{background:#FFF4E5;color:#9A5B00}
+.verd .ko{background:#FDEBEC;color:#C2323A}
+.ck5{display:grid;grid-template-columns:260px 1fr;align-items:center;gap:16px;height:72px;padding:0 18px;border-radius:20px;background:var(--surface-2)}
+.ck5+.ck5{margin-top:12px}
+.ck5 .cc{justify-self:start;height:48px;padding:0 16px;border-radius:14px;background:var(--code-bg);color:#fff;font-family:var(--mono);font-size:28px;font-weight:600;display:flex;align-items:center;white-space:nowrap}
+.ck5 .cc .kw{color:var(--t-kw)}
+.ck5 .cv{font-size:30px;font-weight:700;white-space:nowrap}
+.ck5.good .cv{color:#1B7A45}
+.ck5.bad{background:#FDEBEC}
+.ck5.bad .cv{color:#C2323A}
+
+/* ---------- 6 · Le résultat ---------- */
+.rgR{display:grid;grid-template-columns:1fr 300px;padding:0 26px;align-items:center}
+.rgR>div:nth-child(2){text-align:right}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Agrégats et regroupements</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>G</span><span>R</span><span>O</span><span>U</span><span class="sp">P</span><span>B</span><span>Y</span></div>
+    <div class="abs sub">Un calcul par groupe</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec <span class="ic">GROUP BY</span>, calcule un résultat pour chaque groupe.</div>
+  </section>
+
+  <!-- 1 · Situation : la carte des villes, chacune avec « ? clients » -->
+  <section class="scene" id="s1">
+    <div class="abs card mapc" id="map1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Conseillers · Répartition par ville</span></div>
+      <div class="mapw"><div class="legend" id="leg1"><span class="emo">👥</span>Plus de clients, plus de conseillers</div></div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">📍</span><span class="nl">Chaque ville</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">👥</span><span class="nl">Son nombre de clients</span><span class="tag calc">à calculer</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : COUNT(*) donne un seul total -->
+  <section class="scene" id="s2">
+    <div class="abs code sm" id="s2code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s2l1"><span class="kw">SELECT</span> <span class="kw">COUNT</span>(*)<span class="caret"><i></i></span></span><span class="ln" id="s2l2"><span class="kw">FROM</span> clients;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s2run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl2" style="top:660px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt2">1 ligne</span></span></div>
+      <div class="rg1 th"><div>COUNT(*)</div></div>
+      <div class="rows"><div class="rg1 tr tb"><div><span class="vv" id="v2">10</span></div></div></div>
+    </div>
+    <div class="abs card trap" id="cty2" style="top:940px">
+      <div class="trap-h"><span class="emo">🏙️</span><span>Un nombre pour chaque ville&nbsp;?</span></div>
+      <div class="cities" id="cities2"></div>
+    </div>
+  </section>
+
+  <!-- 3 · GROUP BY en action : les clients se rangent par ville, puis chaque groupe est compté -->
+  <section class="scene" id="s3">
+    <div class="abs code sm" id="s3code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s3l1"><span class="kw">SELECT</span> ville, <span class="kw">COUNT</span>(*)<span class="caret"><i></i></span></span><span class="ln" id="s3l2"><span class="kw">FROM</span> clients<span class="caret"><i></i></span></span><span class="ln" id="s3l3"><span class="glow" id="gb3"><span class="kw">GROUP BY</span> ville</span>;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s3run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="abs" id="grp3" style="top:716px">
+      <div class="g3t"><span class="sw" id="sw3"><span class="a"><span class="emo">👥</span>&nbsp;Table clients · 10 clients</span><span class="b"><span class="emo">🧺</span>&nbsp;6 groupes, un par ville</span></span></div>
+    </div>
+    <div class="tbl card" id="tbl3" style="top:716px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt3">6 lignes</span></span></div>
+      <div class="rgV th"><div>ville</div><div>COUNT(*)</div></div>
+      <div class="rows" id="rows3"></div>
+    </div>
+  </section>
+
+  <!-- 4 · Un calcul par groupe : le groupe de Lyon, puis AVG(age) pour chaque ville -->
+  <section class="scene" id="s4">
+    <div class="abs card trap" id="lyon4" style="top:300px">
+      <div class="trap-h"><span class="emo">🧺</span><span>Le groupe de Lyon</span></div>
+      <div class="lyon"><span class="chip v-lyo"><i class="cd"></i>Lucas · 28 ans</span><span class="chip v-lyo"><i class="cd"></i>Hugo · 52 ans</span></div>
+    </div>
+    <div class="abs card trap" id="fn4">
+      <div class="trap-h"><span class="emo">🧮</span><span>Un calcul pour chaque groupe</span></div>
+      <div id="rows4" style="margin-top:14px"></div>
+    </div>
+    <div class="abs card trap" id="avg4" style="top:300px">
+      <div class="trap-h"><span class="emo">📊</span><span>L’âge moyen de chaque ville</span></div>
+      <div class="mini"><span class="kw">SELECT</span> ville, <span class="glow" id="ag4"><span class="kw">AVG</span>(age)</span>
+<span class="kw">FROM</span> clients
+<span class="kw">GROUP BY</span> ville;</div>
+      <div class="mres"><div class="rgA th"><div>ville</div><div>AVG(age)</div></div><div id="rowsA"></div></div>
+      <div class="lcalc v-lyo" id="calc4">Lyon&nbsp;: (28 + 52) ÷ 2 = <b>40</b></div>
+    </div>
+  </section>
+
+  <!-- 5 · Le piège : prenom n’est ni regroupé ni calculé -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="trap5" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Une colonne ni regroupée ni calculée</span></div>
+      <div class="mini"><span class="kw">SELECT</span> <span class="glow" id="pn5">prenom</span>, ville, <span class="kw">COUNT</span>(*)
+<span class="kw">FROM</span> clients
+<span class="kw">GROUP BY</span> ville;</div>
+      <div class="ts5">
+        <div class="ly5" id="lyA5">
+          <div class="grow" id="grow5"></div>
+          <div class="arr5" id="arr5">↓ une seule ligne pour Paris</div>
+          <div class="mres" id="mres5"><div class="rgT th"><div>prenom</div><div>ville</div><div>COUNT(*)</div></div><div class="rgT tr tt5"><div><span class="vv" id="so5">Sophie</span></div><div>Paris</div><div>4</div></div></div>
+          <div class="verd" id="verd5"><span class="ok">SQLite&nbsp;: un prénom au choix</span><span class="ko">Autres bases&nbsp;: une erreur</span></div>
+        </div>
+        <div class="ly5" id="lyB5">
+          <div class="ck5 good"><span class="cc">ville</span><span class="cv">✓ dans le GROUP BY</span></div>
+          <div class="ck5 good"><span class="cc"><span class="kw">COUNT</span>(*)</span><span class="cv">✓ un calcul sur le groupe</span></div>
+          <div class="ck5 bad"><span class="cc">prenom</span><span class="cv">✕ ni l’un ni l’autre</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · Le résultat : la requête complète, puis la carte -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> ville, <span class="kw">COUNT</span>(*) <span class="glow" id="as6"><span class="kw">AS</span> nb_clients</span><span class="caret"><i></i></span></span><span class="ln" id="s6l2"><span class="kw">FROM</span> clients<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="kw">GROUP BY</span> ville;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6" style="top:716px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">6 lignes</span></span></div>
+      <div class="rgR th"><div>ville</div><div>nb_clients</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card mapc" id="map6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Conseillers · Répartition par ville</span></div>
+      <div class="mapw"><div class="legend"><span class="emo">👥</span>Plus de clients, plus de conseillers</div></div>
+    </div>
+    <div class="abs badge" id="badge6" style="top:1000px"><span>✓ Paris en tête avec 4 clients</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🧺</div><div class="rtxt"><span class="ic">GROUP BY</span> rassemble les lignes qui ont la <b>même valeur</b>&nbsp;:<br><span class="ic blk">GROUP BY ville</span></div></div>
+      <div class="rrow"><div class="rico emo">🧮</div><div class="rtxt">Chaque groupe reçoit un <b>calcul</b>&nbsp;: <span class="ic">COUNT</span>, <span class="ic">SUM</span>, <span class="ic">AVG</span>, <span class="ic">MIN</span> ou <span class="ic">MAX</span>.</div></div>
+      <div class="rrow"><div class="rico emo">🚫</div><div class="rtxt">Le <span class="ic">SELECT</span> n’affiche que la colonne du <span class="ic">GROUP BY</span> ou un <b>calcul</b>&nbsp;:<br><span class="ic blk">SELECT ville, COUNT(*)</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 129.5;
+
+/* Table clients : prénom, ville et âge des 10 clients (dans l’ordre de la table) */
+const CLIENTS = [['Sophie', 'Paris', 34], ['Lucas', 'Lyon', 28], ['Emma', 'Marseille', 45], ['Nathan', 'Paris', 31], ['Chloé', 'Bordeaux', 26],
+  ['Hugo', 'Lyon', 52], ['Léa', 'Paris', 38], ['Gabriel', 'Toulouse', 29], ['Inès', 'Nantes', 41], ['Nathan', 'Paris', 30]];
+/* Les villes, dans l’ordre du résultat (GROUP BY range les groupes par ordre alphabétique) : classe de couleur, position sur la carte (longitude, latitude) */
+const VILLES = [['Bordeaux', 'v-bor', -0.58, 44.84], ['Lyon', 'v-lyo', 4.84, 45.76], ['Marseille', 'v-mar', 5.37, 43.30],
+  ['Nantes', 'v-nan', -1.55, 47.22], ['Paris', 'v-par', 2.35, 48.86], ['Toulouse', 'v-tou', 1.44, 43.60, true]];
+const VC = Object.fromEntries(VILLES.map(v => [v[0], v[1]]));
+const nbClients = v => CLIENTS.filter(c => c[1] === v).length;
+const MOY = v => { const a = CLIENTS.filter(c => c[1] === v).map(c => c[2]); return a.reduce((s, x) => s + x, 0) / a.length; };
+
+const CHAPTERS = [
+  {n:1, label:'Situation',            a:5.0,   b:24.1},
+  {n:2, label:'Le problème',          a:24.1,  b:38.5},
+  {n:3, label:'GROUP BY en action',   a:38.5,  b:57.3},
+  {n:4, label:'Un calcul par groupe', a:57.3,  b:79.4},
+  {n:5, label:'Le piège',             a:79.4,  b:103.0},
+  {n:6, label:'Le résultat',          a:103.0, b:116.7},
+  {n:7, label:'À retenir',            a:116.7, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 10.1,    "L’équipe commerciale veut répartir ses <b>conseillers</b> entre les villes."],
+  [10.2, 14.9,   "Plus une ville compte de clients, plus elle reçoit de conseillers."],
+  [15.0, 19.0,   "Il lui faut donc le <b>nombre de clients</b> de chaque ville."],
+  [19.1, 23.7,   "Tout part de la <b>table clients</b>, qui contient une ligne par client."],
+  [24.4, 28.5,   "Premier essai : <code>COUNT(*)</code> compte les clients de la table."],
+  [28.6, 33.0,   "Résultat : <b>10</b>, un seul total pour toutes les villes à la fois."],
+  [33.1, 38.1,   "Or l’équipe veut <b>un nombre par ville</b> : combien à Paris, combien à Lyon…"],
+  [38.8, 43.1,   "<code>GROUP BY ville</code> rassemble les clients qui ont <b>la même ville</b>."],
+  [43.2, 47.2,   "Les 10 clients forment <b>6 groupes</b>, un pour chaque ville."],
+  [47.3, 52.3,   "Puis <code>COUNT(*)</code> compte les lignes de chaque groupe : 4 à Paris, 2 à Lyon…"],
+  [52.4, 56.9,   "Chaque groupe devient <b>une ligne</b> du résultat : 6 lignes en tout."],
+  [57.6, 61.6,   "<code>COUNT</code> n’est pas le seul calcul possible sur un groupe."],
+  [61.7, 65.7,   "<code>SUM</code> additionne les valeurs, et <code>AVG</code> en fait la moyenne."],
+  [65.8, 70.1,   "<code>MIN</code> et <code>MAX</code> gardent la plus petite et la plus grande valeur."],
+  [70.2, 74.6,   "Avec <code>AVG(age)</code>, chaque ville reçoit l’âge moyen de ses clients."],
+  [74.7, 79.0,   "À Lyon, Lucas a 28 ans et Hugo 52 ans : la moyenne vaut <b>40</b>."],
+  [79.7, 83.9,   "Attention : chaque ligne du résultat représente <b>un groupe</b>."],
+  [84.0, 88.2,   "Ici, <code>prenom</code> n’est ni dans le <code>GROUP BY</code>, ni dans un calcul."],
+  [88.3, 93.0,   "Paris compte 4 clients, mais la ligne n’affiche <b>qu’un seul prénom</b>."],
+  [93.1, 98.3,   "SQLite en choisit un, mais la plupart des autres bases refusent la requête."],
+  [98.4, 102.6,  "Dans le <code>SELECT</code>, garde la colonne du <code>GROUP BY</code> ou un calcul."],
+  [103.3, 107.6, "Avec <code>AS</code>, la requête complète nomme le comptage : <code>nb_clients</code>."],
+  [107.7, 111.0, "Résultat : <b>6 lignes</b>, une par ville."],
+  [111.1, 116.3, "Paris arrive en tête avec <b>4 clients</b> : elle recevra le plus de conseillers."],
+  [117.0, 121.8, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [121.9, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [121.9, 999, "<code>GROUP BY</code> rassemble les lignes : un calcul par groupe."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+/* Les deux couches du chapitre 3 : les 10 clients en liste (2 colonnes), puis rangés dans 6 paniers (3 colonnes). */
+const LIST = i => ({left: (i % 2) * 496, top: 64 + Math.floor(i / 2) * 68, width: 456});
+const BASKET = k => ({left: (k % 3) * 328, top: 64 + Math.floor(k / 3) * 332});
+const SLOT = i => {
+  const v = CLIENTS[i][1], k = VILLES.findIndex(x => x[0] === v), j = CLIENTS.slice(0, i).filter(c => c[1] === v).length, b = BASKET(k);
+  return {left: b.left + 14, top: b.top + 72 + j * 58, width: 268};
+};
+/* Les 5 fonctions d’agrégation, appliquées au groupe de Lyon (Lucas 28 ans, Hugo 52 ans) */
+const FONCTIONS = [['COUNT', '*', 'le nombre de lignes', 2], ['SUM', 'age', 'la somme', 80], ['AVG', 'age', 'la moyenne', 40],
+  ['MIN', 'age', 'la plus petite valeur', 28], ['MAX', 'age', 'la plus grande valeur', 52]];
+const nombre = x => String(+x.toFixed(2));   // tel que le résultat l’affiche : 33.25
+
+function dom(){
+  /* La carte : l’Hexagone, et une épingle par ville (« ? » puis le nombre de clients) */
+  const pins = VILLES.map(([v, c, lon, lat, gauche]) => {
+    const x = 156 + (lon + 5) / 13 * 640, y = (51 - lat) / 9 * 560;
+    const pos = gauche ? `right:${(952 - x).toFixed(0)}px` : `left:${x.toFixed(0)}px`;   // étiquette à gauche : l’épingle reste au même endroit
+    const nom = `<span class="pl">${v}</span>`, badge = `<span class="pb"><span class="sw"><span class="a">?</span><span class="b">${nbClients(v)}</span></span></span>`;
+    return `<div class="pin ${c}${gauche ? ' lf' : ''}" style="${pos};top:${y.toFixed(0)}px"><i class="pd"></i>${gauche ? badge + nom : nom + badge}</div>`;
+  }).join('');
+  const hex = '<svg class="hex" viewBox="0 0 640 560"><polygon points="345,18 600,150 620,470 360,548 175,478 25,200"/></svg>';
+  ['#map1', '#map6'].forEach(id => $(id + ' .mapw').insertAdjacentHTML('afterbegin', hex + pins));
+  $('#cities2').innerHTML = VILLES.map(([v, c]) => `<span class="cty ${c}"><i></i>${v}<b>?</b></span>`).join('');
+  /* Chapitre 3 : paniers, puis clients (au-dessus) */
+  $('#grp3').insertAdjacentHTML('beforeend', VILLES.map(([v, c], k) => { const b = BASKET(k);
+    return `<div class="bk ${c}" style="left:${b.left}px;top:${b.top}px"><div class="bh"><i></i>${v}</div><span class="bc">${nbClients(v)}</span></div>`; }).join('') +
+    CLIENTS.map(([p, v], i) => { const l = LIST(i);
+      return `<div class="chip ${VC[v]}" style="left:${l.left}px;top:${l.top}px;width:${l.width}px"><i class="cd"></i>${p}<span class="ct">${v}</span></div>`; }).join(''));
+  $('#rows3').innerHTML = VILLES.map(([v]) => `<div class="rgV tr tv"><div>${v}</div><div>${nbClients(v)}</div></div>`).join('');
+  $('#rows6').innerHTML = VILLES.map(([v]) => `<div class="rgR tr tv"><div>${v}</div><div>${nbClients(v)}</div></div>`).join('');
+  /* Chapitre 4 : les fonctions sur le groupe de Lyon, puis AVG(age) pour chaque ville */
+  $('#rows4').innerHTML = FONCTIONS.map(([f, a, r, v]) => `<div class="fr4"><span class="fx"><span class="kw">${f}</span>(${a})</span><span class="fl">${r}</span><span class="fv">${v}</span></div>`).join('');
+  $('#rowsA').innerHTML = VILLES.map(([v]) => `<div class="rgA tr ta${v === 'Lyon' ? ' lyo' : ''}"><div>${v}</div><div>${nombre(MOY(v))}</div></div>`).join('');
+  /* Chapitre 5 : le groupe de Paris */
+  $('#grow5').innerHTML = CLIENTS.filter(c => c[1] === 'Paris').map(([p], i) => `<span class="chip v-par"><i class="cd"></i>${p}${i ? '<i class="x">✕</i>' : ''}</span>`).join('');
+}
+
+/* Une case se retourne : la valeur de départ laisse place à la valeur calculée. */
+function flip(sw, t, sound = true){
+  tl.to(sw, {scaleY: 0, duration: 0.12, ease: 'power2.in'}, t);
+  tl.set(sw.querySelector('.a'), {opacity: 0}, t + 0.12);
+  tl.set(sw.querySelector('.b'), {opacity: 1}, t + 0.12);
+  tl.to(sw, {scaleY: 1, duration: 0.22, ease: 'back.out(2)'}, t + 0.12);
+  if (sound) cue(t + 0.12, 'tick', 0.5, 3);
+}
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+/* La carte arrive, puis ses épingles une à une. */
+function mapIn(id, t){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const pins = $$(id + ' .pin');
+  pins.forEach(p => gsap.set(p, {autoAlpha: 0, scale: 0.6, transformOrigin: p.classList.contains('lf') ? 'calc(100% - 16px) 50%' : '16px 50%'}));
+  tl.to(pins, {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)', stagger: 0.12}, t + 0.75);
+  pins.forEach((_, i) => cue(t + 0.75 + i * 0.12, 'pop', 0.6, i % 5));
+  return pins;
+}
+
+function build(){
+  introScene();
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  const pins1 = mapIn('#map1', 5.15);
+  // Plus de clients, plus de conseillers
+  show('#leg1', 10.5, {y: -10, scale: 0.8}, 0.4, 'back.out(2)');
+  cue(10.5, 'pop', 0.7, 2);
+  // Le nombre de clients de chaque ville : pour l’instant, « ? »
+  tl.to($$('#map1 .pb'), {scale: 1.15, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.1}, 15.4);
+  // Les informations à récupérer
+  stackBelow('#s1 .need', '#map1');   // la liste se cale sous la carte, sans la toucher
+  show('#s1 .need', 16.4, {y: 60});
+  cue(16.4, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.25}, 16.6);
+  needRows.forEach((_, i) => cue(16.6 + i * 0.25, 'pop', 0.7, i));
+  bump('#s1 .need-row .tag:not(.calc)', 19.6, 1.1, 3);
+  bump('#s1 .tag.calc', 21.4, 1.1, 3);
+  hide(['#map1', '#s1 .need'], 23.6);
+  sceneOff('#s1', 24.1);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 24.1);
+  show('#s2code', 24.15, {y: 60}, 0.6);
+  cue(24.15, 'whoosh', 0.7);
+  te = typeLine($('#s2l1'), 24.65, 30);
+  te = typeLine($('#s2l2'), te + 0.1, 30);
+  press($('#s2run'), 26.6);
+  show('#tbl2', 26.85, {y: 40}, 0.5);
+  cue(26.85, 'pop', 0.8, 4);
+  show('#cnt2', 27.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // 10 : un seul total
+  pulse('#v2', 29.0, 3, 'rgba(201,188,255,.45)');
+  bump('#tbl2 .tb div', 29.0, 1.12, 1);
+  // Un nombre pour chaque ville ?
+  show('#cty2', 33.4, {y: 50});
+  cue(33.4, 'whoosh', 0.6);
+  const cty = $$('#cities2 .cty');
+  gsap.set(cty, {autoAlpha: 0, scale: 0.7});
+  tl.to(cty, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)', stagger: 0.12}, 33.9);
+  cty.forEach((_, i) => cue(33.9 + i * 0.12, 'tick', 0.5, i % 5));
+  tl.to($$('#cities2 .cty b'), {scale: 1.2, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.08}, 35.6);
+  hide(['#s2code', '#tbl2', '#cty2'], 38.0, {y: -40}, 0.4);
+  sceneOff('#s2', 38.5);
+
+  /* ===== 3 · GROUP BY en action ===== */
+  sceneOn('#s3', 38.5);
+  show('#s3code', 38.55, {y: 60}, 0.6);
+  cue(38.55, 'whoosh', 0.7);
+  te = typeLine($('#s3l1'), 39.05, 30);
+  te = typeLine($('#s3l2'), te + 0.1, 30);
+  te = typeLine($('#s3l3'), te + 0.1, 30);
+  pulse('#gb3', 41.2, 3, 'rgba(201,188,255,.3)');
+  press($('#s3run'), 41.7);
+  // Les 10 clients de la table, avec leur ville
+  show('#grp3', 41.9, {y: 30}, 0.4);
+  const chips = $$('#grp3 .chip'), bks = $$('#grp3 .bk');
+  gsap.set(bks, {autoAlpha: 0});
+  gsap.set(chips, {autoAlpha: 0, y: 14});
+  tl.to(chips, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.05}, 42.05);
+  chips.forEach((_, i) => cue(42.05 + i * 0.05, 'tick', 0.4, i % 5));
+  tl.to($$('#grp3 .chip .ct'), {scale: 1.12, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.04}, 42.7);
+  // 6 groupes, un par ville : chaque client rejoint le panier de sa ville
+  gsap.set(bks, {scale: 0.85});
+  tl.to(bks, {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(1.8)', stagger: 0.08}, 43.4);
+  bks.forEach((_, k) => cue(43.4 + k * 0.08, 'pop', 0.55, k % 5));
+  flip($('#sw3'), 43.7, false);
+  chips.forEach((ch, i) => {
+    const t = 44.1 + i * 0.13;
+    tl.to(ch, {...SLOT(i), duration: 0.7, ease: 'power3.inOut'}, t);
+    tl.to(ch.querySelector('.ct'), {autoAlpha: 0, duration: 0.25}, t);
+    cue(t + 0.55, 'tick', 0.5, i % 5);
+  });
+  // COUNT(*) compte chaque groupe : 4 à Paris, 2 à Lyon…
+  const bcs = $$('#grp3 .bc');
+  gsap.set(bcs, {scale: 0.4});
+  bcs.forEach((b, k) => {
+    tl.to(b, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.4)'}, 47.7 + k * 0.25);
+    cue(47.7 + k * 0.25, 'pop', 0.75, k % 5);
+  });
+  bump(bks[4], 50.1, 1.05, 1);   // Paris
+  bump(bks[1], 50.9, 1.05, 1);   // Lyon
+  // Chaque groupe devient une ligne du résultat
+  hide('#grp3', 52.5, {y: -30}, 0.35);
+  show('#tbl3', 52.85, {y: 30}, 0.5);
+  rowsIn($$('#rows3 .tr'), 53.0);
+  show('#cnt3', 53.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt3', 54.8, 1.15, 3);
+  hide(['#s3code', '#tbl3'], 56.8, {y: -40}, 0.4);
+  sceneOff('#s3', 57.3);
+
+  /* ===== 4 · Un calcul par groupe ===== */
+  sceneOn('#s4', 57.3);
+  show('#lyon4', 57.35, {y: 50});
+  cue(57.35, 'whoosh', 0.6);
+  const lc = $$('#lyon4 .chip');
+  gsap.set(lc, {autoAlpha: 0, scale: 0.7});
+  tl.to(lc, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)', stagger: 0.15}, 57.8);
+  lc.forEach((_, i) => cue(57.8 + i * 0.15, 'pop', 0.6, i));
+  stackBelow('#fn4', '#lyon4');
+  show('#fn4', 58.2, {y: 40});
+  const fr = $$('#rows4 .fr4');
+  gsap.set(fr, {autoAlpha: 0, x: -30});
+  gsap.set($$('#rows4 .fv'), {autoAlpha: 0, scale: 0.4});
+  [[0, 58.8], [1, 62.0], [2, 63.6], [3, 66.1], [4, 67.7]].forEach(([i, t]) => {
+    tl.to(fr[i], {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, t);
+    cue(t, 'pop', 0.7, i);
+    tl.to(fr[i].querySelector('.fv'), {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.4)'}, t + 0.7);
+    cue(t + 0.7, 'tick', 0.55, i + 2);
+  });
+  hide(['#lyon4', '#fn4'], 70.0, {y: -40}, 0.4);
+  // AVG(age) : l’âge moyen de chaque ville
+  show('#avg4', 70.4, {y: 50});
+  cue(70.4, 'whoosh', 0.6);
+  pulse('#ag4', 71.0, 3, 'rgba(201,188,255,.3)');
+  rowsIn($$('#rowsA .tr'), 71.6);
+  // À Lyon : (28 + 52) ÷ 2 = 40
+  tl.to('#rowsA .lyo', {backgroundColor: '#E7F7EE', color: '#1B7A45', duration: 0.3}, 75.0);
+  cue(75.0, 'pop', 0.7, 3);
+  show('#calc4', 75.6, {y: 14}, 0.4);
+  hide('#avg4', 78.9);
+  sceneOff('#s4', 79.4);
+
+  /* ===== 5 · Le piège ===== */
+  sceneOn('#s5', 79.4);
+  show('#trap5', 79.45, {y: 50});
+  cue(79.45, 'whoosh', 0.6);
+  gsap.set(['#lyA5', '#lyB5'], {autoAlpha: 0});
+  // prenom : ni regroupé, ni calculé
+  pulse('#pn5', 84.4, 3, 'rgba(255,170,170,.45)');
+  // Les 4 clients de Paris, une seule ligne, un seul prénom
+  gsap.set('#lyA5', {autoAlpha: 1});
+  const g5 = $$('#grow5 .chip');
+  gsap.set(g5, {autoAlpha: 0, y: 14});
+  tl.to(g5, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out', stagger: 0.12}, 88.6);
+  g5.forEach((_, i) => cue(88.6 + i * 0.12, 'pop', 0.6, i));
+  gsap.set('#mres5', {autoAlpha: 0});
+  show('#arr5', 89.5, {y: -8}, 0.35);
+  show('#mres5', 89.9, {y: 16}, 0.4);
+  cue(89.9, 'pop', 0.7, 3);
+  pulse('#so5', 90.6, 3, 'rgba(255,214,140,.6)');
+  tl.to(g5.slice(1), {opacity: 0.35, duration: 0.3, stagger: 0.1}, 91.4);
+  tl.to($$('#grow5 .x'), {opacity: 1, duration: 0.2, stagger: 0.1}, 91.4);
+  cue(91.4, 'miss', 0.6);
+  // SQLite choisit un prénom ; la plupart des autres bases refusent la requête
+  show('#verd5', 93.4, {y: 14}, 0.4);
+  cue(93.4, 'pop', 0.7, 2);
+  // La bonne règle : la colonne du GROUP BY, ou un calcul
+  hide('#lyA5', 98.5, {y: -20}, 0.3);
+  tl.set('#lyB5', {autoAlpha: 1}, 98.8);
+  const ck = $$('#lyB5 .ck5');
+  gsap.set(ck, {autoAlpha: 0, x: -30});
+  tl.to(ck, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out', stagger: 0.35}, 98.9);
+  ck.forEach((_, i) => cue(98.9 + i * 0.35, i < 2 ? 'true' : 'miss', 0.6, i));
+  hide('#trap5', 102.5);
+  sceneOff('#s5', 103.0);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 103.0);
+  show('#s6code', 103.05, {y: 60}, 0.6);
+  cue(103.05, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 103.55, 34);
+  te = typeLine($('#s6l2'), te + 0.1, 34);
+  te = typeLine($('#s6l3'), te + 0.1, 34);
+  pulse('#as6', 105.8, 3, 'rgba(201,188,255,.3)');
+  press($('#s6run'), 106.6);
+  show('#tbl6', 106.85, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 107.0);
+  show('#cnt6', 107.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 108.2, 1.15, 3);
+  hide(['#s6code', '#tbl6'], 110.7, {y: -40}, 0.4);
+  // Sur la carte : le nombre de clients de chaque ville
+  const pins6 = mapIn('#map6', 111.1);
+  $$('#map6 .pb .sw').forEach((sw, i) => flip(sw, 112.2 + i * 0.3, true));
+  tl.to('#map6 .pb', {borderColor: 'rgba(216,209,242,0)', duration: 0.3, stagger: 0.3}, 112.2);
+  bump(pins6[4], 114.0, 1.18, 3);   // Paris
+  tl.to(pins6[4].querySelector('.pd'), {boxShadow: '0 0 0 6px rgba(255,255,255,.95), 0 0 0 14px rgba(124,92,255,.28)', duration: 0.4}, 114.0);
+  stackBelow('#badge6', '#map6', 0, 50);
+  show('#badge6', 114.5, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(114.5, 'chord', 0.7);
+  hide(['#map6', '#badge6'], 116.2);
+  sceneOff('#s6', 116.7);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(116.7, [117.4, 119.2, 121.0]);
+  hold(119.0, 2.9);
+  hold(120.8, 2.9);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(121.95, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 121.9,
+  glyphs: '👥📍🏙️🔎🧺🧮📊⚠️🚫✓✕→↓÷·?', dom, build});
+</script>
+</body>
+</html>
