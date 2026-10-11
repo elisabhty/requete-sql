@@ -43,14 +43,41 @@ const glueShort = t => t.replace(/(\S+)( +)(?=\S|$)/g, (m, w) => shortWord(w) ? 
 /* Un court libellé entre guillemets (« Nom du produit ») ne se coupe pas d’une ligne à l’autre. */
 const glueQuotes = t => t.replace(/«([^«»]{1,28})»/g, (m, q) => '«' + q.replace(/ /g, NB) + '»');
 const frText = t => glueQuotes(glueShort(t.replace(/ ([:?!;»])/g, NB + '$1').replace(/« /g, '«' + NB).replace(/(\d) (?=\S)/g, '$1' + NB)));
+/* Légendes : une expression ne se coupe pas d’une ligne à l’autre. Certains mots ne terminent jamais une ligne
+   (« du plus / cher », « la même / ville », « les deux / colonnes », « puis / le nouveau nom »),
+   d’autres ne la commencent jamais (« ne livre / pas », « la valeur / suivante »), et un nombre reste collé au mot
+   qui le précède (« donne / 24 », « il reste / 2 produits »). */
+const CAP_GLUE_NEXT = new Set(('très tout tous toute toutes deux trois quatre cinq six autre autres même mêmes plusieurs certains certaines quelques ' +
+  'seul seule seuls seules aucun aucune propre premier première premiers premières dernier dernière nulle tel telle ' +
+  'puis qu’un qu’une d’un d’une l’un l’une').split(' '));
+const CAP_GLUE_PREV = new Set('pas jamais suivant suivante suivants suivantes compris comprise'.split(' '));
+const CAP_PHRASES = ['tableau de bord', 'code de réduction', 'site web', 'par défaut', 'en premier', 'de haut en bas', 'de gauche à droite', 'date de début', 'date de fin'];
+const capText = t => {
+  t = t.replace(/(\S+)( +)(?=\S|$)/g, (m, w) => CAP_GLUE_NEXT.has(w.toLowerCase().replace(/^[(«“"']+/, '')) ? w + NB : m);
+  t = t.replace(/([^\s,;:.!?]) +(?=(\S+))/g, (m, c, w) => CAP_GLUE_PREV.has(w.toLowerCase().replace(/[.,;:!?»)]+$/, '')) ? c + NB : m);
+  t = t.replace(/((?:^|[ \u00a0])(?:le|la|les|du|au|aux|des)[ \u00a0](?:plus|moins)) +/gi, '$1' + NB);   // du plus cher, la plus ancienne
+  t = t.replace(/(\b(?:plus|moins)) +(?=d[e’'])/gi, '$1' + NB);   // plus de 30 ans
+  t = t.replace(/([\p{L}°%)]) +(?=\d)/gu, '$1' + NB);
+  CAP_PHRASES.forEach(p => { t = t.replace(new RegExp(p.replace(/ /g, '[  ]'), 'gi'), m => m.replace(/ /g, NB)); });
+  return t;
+};
 function fr(h){
   let code = 0;
-  return String(h).split(/(<[^>]+>)/).map(t => {
-    if (/^<code[\s>]/.test(t)) { code++; return t; }
-    if (/^<\/code>/.test(t)) { code = Math.max(0, code - 1); return t; }
-    if (t[0] === '<' || code) return t;
-    return frText(t);
-  }).join('');
+  const out = String(h).split(/(<[^>]+>)/).map(t => {
+    if (/^<code[\s>]/.test(t)) { code++; return {t, txt: false}; }
+    if (/^<\/code>/.test(t)) { code = Math.max(0, code - 1); return {t, txt: false}; }
+    if (t[0] === '<') return {t, txt: false, tag: true};
+    if (code) return {t, txt: false};
+    return {t: capText(frText(t)), txt: true};
+  });
+  /* Nombre collé au mot qui le précède, même quand une balise les sépare (« revient <b>3 fois</b> »). */
+  out.forEach((p, i) => {
+    if (!p.txt || !/[\p{L}°%)] +$/u.test(p.t)) return;
+    let j = i + 1;
+    while (j < out.length && out[j].tag && !out[j].t.startsWith('<br')) j++;
+    if (j < out.length && out[j].txt && /^\d/.test(out[j].t)) p.t = p.t.replace(/ +$/, NB);
+  });
+  return out.map(p => p.t).join('');
 }
 /* Même typographie pour les textes écrits directement dans la page (bulle, récapitulatif, cartes…), hors code. */
 const NO_FR = 'code, .ic, .code, .mini, .codepill, .lk, .colchip, .th, .tr, .mt, .chips, .cnt, .emo, #cap';
