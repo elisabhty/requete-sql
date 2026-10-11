@@ -481,6 +481,17 @@ const COURSES = [
       '<span class="pt">2026<span class="dim">-07-02</span></span><span class="pj">+</span><span class="pt">7</span>', '<b>Résultat : 2033</b><span class="s">La date est lue comme le nombre 2026.</span>',
       '<span class="cp bad" id="bad4">✕ <s>2026-07-35</s></span><span class="cp good" id="good4">✓ 2026-08-04</span>',
       '<span class="dc">\'+1 month\'</span>', '<span class="dc fn">MONTH</span><span class="ol">le mois</span>', '✓ 16 messages planifiés']},
+  {id: 54, next: 55, titre: 'Fonctions de conversion de types', page: 'conversion-types.html', thumb: 'conversion-types-thumb.jpg', duree: '2 min 10', notesAt: 115.7,
+    notes: /notes:\{t:122\.3,y:1365,card:\[64,356,1016,1070\],to:\[940,255\]\}/, table: 'commandes',
+    bubble: 'Avec <span class="ic">CAST</span>, change le type d’une valeur.',
+    chapters: ['Situation', 'Le problème', 'CAST en action', 'Extraire, puis convertir', 'Les types', 'Le résultat', 'À retenir'],
+    traps: ['<div class="ap-in" id="in1"><span id="ty1">CMD-2026-1002481</span></div>', '✕ Nombre entier attendu, par exemple <b>1002481</b>',
+      '<span class="kw">typeof</span>(numero_commande) <span class="kw">AS</span> type',
+      '<span class="sw"><span class="a">?</span><span class="b">1002481<span class="tp i">integer</span></span></span>',
+      '<span class="kw">CAST</span>(numero_commande <span class="kw">AS INTEGER</span>)', '<b>Résultat : 0</b><span class="s">Le texte commence par des lettres.</span>',
+      '<span id="pre4">CMD-2026-</span><span class="dig" id="dig4">1002481', '<span class="fk cd"><span class="kw">SUBSTR</span>(numero_commande, 10)</span>',
+      '<span class="tcp">REAL</span><span class="tl">nombre décimal</span><span class="tx">29.9</span>', 'Les décimales sont supprimées, sans arrondir',
+      '✓ Nombre entier : numéro accepté', '✓ 16 commandes importées']},
 ];
 
 for (const c of COURSES) {
