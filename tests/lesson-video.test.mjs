@@ -471,6 +471,16 @@ const COURSES = [
       '<b>Un point de trop</b><span class="s">ROUND arrondit au plus proche : 29,90 donne 30.</span>', '<div class="joined" id="jn4"><span>58 points</span></div>',
       '<span class="oc">%</span><span class="ol">le reste</span><span class="fl"><span class="tx">80 % 6</span><span class="ar">→</span><span class="tx o">2</span></span>',
       '<span>📦 80 unités : 13 cartons de 6, reste 2</span>', '<span class="kp">CEILING</span><span class="kn">toujours vers le haut</span>', '✓ Points affichés sur les 8 fiches']},
+  {id: 53, next: 54, titre: 'Fonctions de dates et heures', page: 'fonctions-dates.html', thumb: 'fonctions-dates-thumb.jpg', duree: '2 min 17', notesAt: 123.2,
+    notes: /notes:\{t:129,y:1365,card:\[64,356,1016,1070\],to:\[940,255\]\}/, table: 'commandes',
+    bubble: 'Avec les fonctions de dates, calcule de nouvelles dates.',
+    chapters: ['Situation', 'Le problème', 'DATE en action', 'Le calendrier', 'Extraire une partie', 'Le résultat', 'À retenir'],
+    traps: ['<div class="abs title"><span>J</span><span>+</span><span>7</span></div>', '<span>⏳ 7 jours plus tard</span>', '<div class="ml-f"><span>Envoi prévu le</span><span class="ml-val">?</span></div>',
+      '<i class="qcol" id="qS">?</i>', '<span class="kw glow" id="dtA">DATE</span>(date_commande, <span class="str">\'+7 days\'</span>) <span class="kw">AS</span> suivi',
+      '<span class="fv"><span class="sw"><span class="a">?</span><span class="b">2026-07-09</span></span></span>',
+      '<span class="pt">2026<span class="dim">-07-02</span></span><span class="pj">+</span><span class="pt">7</span>', '<b>Résultat : 2033</b><span class="s">La date est lue comme le nombre 2026.</span>',
+      '<span class="cp bad" id="bad4">✕ <s>2026-07-35</s></span><span class="cp good" id="good4">✓ 2026-08-04</span>',
+      '<span class="dc">\'+1 month\'</span>', '<span class="dc fn">MONTH</span><span class="ol">le mois</span>', '✓ 16 messages planifiés']},
 ];
 
 for (const c of COURSES) {
