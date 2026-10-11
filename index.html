@@ -9121,6 +9121,11 @@ guide({ id:51, titre:"Fonctions de texte", résumé:"Transformer, nettoyer et d�
   learningCheck:{question:"UPPER(ville) modifie-t-il la ville enregistrée dans la table ?",options:["Oui, définitivement","Non, seul le résultat est transformé","Seulement avec ORDER BY"],answer:1,explanation:"Une fonction calcule une nouvelle valeur dans le résultat. La table reste intacte."}
 }),
 guide({ id:52, titre:"Fonctions numériques", résumé:"Calculer, arrondir et manipuler des nombres",
+  /* Cours en vidéo : l’animation (assets/anim/fonctions-numeriques.html, moteur commun assets/anim/core.js) remplace le texte du cours.
+     La vidéo suit les points de fidélité (FLOOR, opérateurs et %) ; le texte ci-dessous, gardé pour le cas où la vidéo ne se charge pas, suit la promotion de −10 %. */
+  video:{anim:'assets/anim/fonctions-numeriques.html?app&embed',thumb:'assets/anim/fonctions-numeriques-thumb.jpg',duree:'2 min 17',
+    /* « Ajouter dans notes » : apparaît à 2 min 09 (129,5 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:129.5,y:1365,card:[64,356,1016,1070],to:[940,255]}},
   sit:{
     blocks:[
       "L’équipe commerciale prépare <b>une promotion de −10 %</b> sur tout le catalogue. Elle veut afficher, pour chaque produit, son <b>prix promotionnel</b>, arrondi au centime.",
@@ -9192,15 +9197,15 @@ guide({ id:52, titre:"Fonctions numériques", résumé:"Calculer, arrondir et ma
   ],
   reflex:[
     {recap:[
-      ["🧮","Une <b>fonction numérique</b> calcule une nouvelle valeur dans le résultat, sans modifier la table :",null,"ROUND(prix * 0.9, 2)"],
-      ["🎯","<code>ROUND</code> arrondit au plus proche, <code>CEILING</code> vers le haut, <code>FLOOR</code> vers le bas."],
-      ["➗","On peut calculer avec <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code> et <code>%</code> (reste de la division), puis arrondir."]
+      ["🧮","Une <b>fonction numérique</b> calcule une valeur, sans modifier la table :",null,"FLOOR(prix)"],
+      ["🎯","<code>ROUND</code> arrondit <b>au plus proche</b>, <code>CEILING</code> toujours vers le haut, <code>FLOOR</code> toujours vers le bas."],
+      ["➗","On calcule avec <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code> et <code>%</code>, qui donne le <b>reste</b> d’une division :",null,"FLOOR(prix) * 2"]
     ],label:"Les trois idées à retenir"}
   ],
   anatomie:[{tok:"SELECT nom,",txt:"Affiche le nom du produit."},{tok:"ROUND(",txt:"Arrondit le nombre qui suit."},{tok:"prix * 0.9",plain:1,txt:"Le calcul : le prix moins 10 %."},{tok:", 2)",plain:1,txt:"Garde 2 décimales."},{tok:"AS prix_promo",txt:"Nomme la colonne obtenue."}],
   exemple:"SELECT nom, ROUND(prix) AS prix_arrondi FROM produits;",
   attendu:"<b>8 lignes</b>. La Fibre Prébiotique passe de 29,90 à 30, le Collagène Marin de 39,90 à 40, le Magnésium de 19,90 à 20.",
-  retenir:"Une fonction numérique calcule une nouvelle valeur dans le résultat, sans modifier la table. <code>ROUND</code>, <code>CEILING</code> et <code>FLOOR</code> gèrent les arrondis. <code>%</code> donne le reste d’une division.<br><br><code>ROUND(prix * 0.9, 2)</code> calcule puis arrondit à 2 décimales. Le nom exact des fonctions peut changer selon le SGBD.",
+  retenir:"Une fonction numérique calcule une nouvelle valeur dans le résultat, sans modifier la table. <code>ROUND</code>, <code>CEILING</code> et <code>FLOOR</code> gèrent les arrondis. <code>%</code> donne le reste d’une division.<br><br><code>FLOOR(prix) * 2</code> arrondit vers le bas, puis multiplie le résultat. Le nom exact des fonctions peut changer selon le SGBD.",
   consigne:"Affiche le nom et le stock de chaque produit, ainsi que le reste de la division du stock par 6. Nomme cette colonne reste.",
   solution:"SELECT nom, stock, stock % 6 AS reste FROM produits;",
   indice:"L’opérateur <code>%</code> donne le reste d’une division : <code>stock % 6</code>. Donne un alias à la colonne calculée.",
@@ -27294,7 +27299,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-11-ludique-v1723';
+  const SW_CACHE='requete-2026-10-11-ludique-v1724';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
