@@ -14,7 +14,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-10-11-ludique-v1726';
+const CACHE = 'requete-2026-10-11-ludique-v1727';
 
 const PRECACHE = [
   './',
@@ -53,6 +53,7 @@ const PRECACHE = [
   './assets/anim/fonctions-numeriques.html?app&embed',
   './assets/anim/fonctions-dates.html?app&embed',
   './assets/anim/conversion-types.html?app&embed',
+  './assets/anim/case.html?app&embed',
   './assets/anim/core.css',
   './assets/anim/core.js',
   './assets/anim/gsap.min.js',
@@ -74,6 +75,7 @@ const PRECACHE = [
   './assets/anim/fonctions-numeriques-thumb.jpg',
   './assets/anim/fonctions-dates-thumb.jpg',
   './assets/anim/conversion-types-thumb.jpg',
+  './assets/anim/case-thumb.jpg',
   './assets/fonts/jetbrains-mono.woff2',
   './assets/fonts/inter-medium.woff2',
   './assets/fonts/inter-semibold.woff2',

@@ -9406,6 +9406,11 @@ guide({ id:54, titre:"Fonctions de conversion de types", résumé:"Passer d’un
   learningCheck:{question:"Quelle est la différence entre convertir et formater ?",options:["Aucune : les deux changent le type","Convertir change le type, formater change la présentation","Formater change le type, convertir change seulement l’affichage"],answer:1,explanation:"CAST change le type de la valeur. Formater, avec TO_CHAR() ou DATE_FORMAT() par exemple, change surtout sa représentation textuelle."}
 }),
 guide({ id:21, titre:"CASE", résumé:"Afficher une valeur selon une condition",
+  /* Cours en vidéo : l’animation (assets/anim/case.html, moteur commun assets/anim/core.js) remplace le texte du cours.
+     La vidéo suit les alertes de stock du tableau de bord de l’entrepôt ; le texte ci-dessous, gardé pour le cas où la vidéo ne se charge pas, suit les catégories d’âge de la campagne. */
+  video:{anim:'assets/anim/case.html?app&embed',thumb:'assets/anim/case-thumb.jpg',duree:'2 min 34',
+    /* « Ajouter dans notes » : apparaît à 2 min 26 (146,2 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:146.2,y:1306,card:[64,356,1016,1011],to:[940,255]}},
   sit:{
     blocks:[
       "L’équipe marketing prépare une campagne et veut <b>adapter son message à l’âge</b> de chaque client. Elle les classe en trois catégories : <b>Jeune</b> (moins de 30 ans), <b>Adulte</b> (de 30 à 50 ans) et <b>Senior</b> (plus de 50 ans).",
@@ -9485,15 +9490,15 @@ guide({ id:21, titre:"CASE", résumé:"Afficher une valeur selon une condition",
   ],
   reflex:[
     {recap:[
-      ["🔀","<code>CASE</code> choisit une valeur selon des conditions : c’est le « si… sinon si… sinon » du SQL.","Il se termine par <code>END</code>."],
-      ["⬇️","SQL lit les <code>WHEN</code> <b>de haut en bas</b> et s’arrête au premier vrai : l’ordre compte."],
-      ["🛟","Sans <code>ELSE</code>, une ligne qui ne correspond à rien reçoit <code>NULL</code>."]
+      ["🔀","<code>CASE</code> choisit une valeur selon des <b>conditions</b> :",null,"CASE WHEN … THEN … ELSE … END"],
+      ["⬇️","L’ordre compte : les <code>WHEN</code> sont testés <b>de haut en bas</b>, et la première condition vraie l’emporte."],
+      ["🛟","Sans <code>ELSE</code>, une ligne qui ne remplit aucune condition reçoit <code>NULL</code>."]
     ],label:"Les trois idées à retenir"}
   ],
   anatomie:[{tok:"CASE",txt:"Ouvre le test conditionnel."},{tok:"WHEN age < 30 THEN 'Jeune'",plain:1,txt:"Si l’âge est inférieur à 30, la valeur est « Jeune »."},{tok:"WHEN age BETWEEN 30 AND 50 THEN 'Adulte'",plain:1,txt:"Sinon, si l’âge est entre 30 et 50, la valeur est « Adulte »."},{tok:"ELSE 'Senior'",plain:1,txt:"Dans tous les autres cas, la valeur est « Senior »."},{tok:"END AS categorie",txt:"Termine le CASE et nomme la colonne obtenue."}],
   exemple:"SELECT nom, prix, CASE WHEN prix < 20 THEN 'Petit prix' ELSE 'Premium' END AS gamme FROM produits;",
   attendu:"<b>8 lignes</b>. Magnésium, Vitamine D, Tisane Détox et Shaker Inox sont « Petit prix » ; les quatre autres produits sont « Premium ».",
-  retenir:"<code>CASE</code> teste des conditions et renvoie une valeur selon le résultat : c’est le « si / sinon si / sinon » du SQL.<br>SQL lit les <code>WHEN</code> de haut en bas et s’arrête au premier vrai.<br><br><code>ELSE</code> est optionnel : sans lui, une ligne qui ne correspond à rien reçoit <code>NULL</code>. Le <code>CASE</code> se termine par <code>END</code>.",
+  retenir:"<code>CASE</code> teste des conditions et renvoie une valeur selon le résultat : c’est le « si / sinon si / sinon » du SQL.<br>Les <code>WHEN</code> sont testés de haut en bas : la première condition vraie l’emporte.<br><br><code>ELSE</code> est optionnel : sans lui, une ligne qui ne correspond à rien reçoit <code>NULL</code>. Le <code>CASE</code> se termine par <code>END</code>.",
   consigne:"Affiche le nom, le prix et une gamme pour chaque produit : « Petit prix » si le prix est inférieur à 20, « Standard » s’il est inférieur à 30, « Premium » sinon. Nomme la colonne gamme.",
   solution:"SELECT nom, prix,\n  CASE\n    WHEN prix < 20 THEN 'Petit prix'\n    WHEN prix < 30 THEN 'Standard'\n    ELSE 'Premium'\n  END AS gamme\nFROM produits;",
   indice:"Écris les conditions du plus précis au plus large : d’abord <code>prix &lt; 20</code>, puis <code>prix &lt; 30</code>, et <code>ELSE</code> pour le reste.",
@@ -27309,7 +27314,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-11-ludique-v1726';
+  const SW_CACHE='requete-2026-10-11-ludique-v1727';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
