@@ -25,7 +25,9 @@
 .lb-k{font-size:24px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--ink-3)}
 .lb-f{position:relative;height:84px;margin:8px 0 18px;border-radius:16px;border:3px dashed #D8D1F2;padding:0 22px;font-family:var(--mono);font-size:40px;font-weight:800;line-height:78px;color:var(--ink);white-space:nowrap}
 .lb-f .ph{position:absolute;left:22px;top:0;color:#B4ACD6;opacity:0}
-.lb-bar{height:64px;margin-top:4px;border-radius:6px;background:repeating-linear-gradient(90deg,#221C46 0 6px,transparent 6px 11px,#221C46 11px 14px,transparent 14px 20px,#221C46 20px 29px,transparent 29px 33px,#221C46 33px 35px,transparent 35px 41px)}
+/* Code-barres : un vrai EAN-13 dessiné en SVG (net une fois réduit et incliné), barres de garde plus longues et chiffres dessous */
+.lb-bar{height:86px;margin-top:6px}
+.lb-bar svg{display:block;width:100%;height:100%}
 #par6a .lb-f,#par6b .lb-f{border-style:solid;border-color:var(--line)}
 
 /* ---------- Code et résultat partagés (chapitres 2 et 3) ---------- */
@@ -281,12 +283,35 @@ const colis = (dest, ville) => '<i class="tape"></i><div class="label"><div clas
   '<div class="lb-body"><div class="lb-k">Destinataire</div><div class="lb-f"><span class="fv">' + dest + '</span></div>' +
   '<div class="lb-k">Ville</div><div class="lb-f"><span class="fv">' + ville + '</span></div><div class="lb-bar"></div></div></div>';
 
+/* Code-barres EAN-13 de l’étiquette (3 760123 456784) : 95 modules, barres fusionnées, garde de début, de milieu et de fin plus longues. */
+function ean13Svg(code){
+  const L = ['0001101','0011001','0010011','0111101','0100011','0110001','0101111','0111011','0110111','0001011'];
+  const R = L.map(c => [...c].map(b => b === '1' ? '0' : '1').join(''));
+  const G = R.map(c => [...c].reverse().join(''));
+  const PAR = ['LLLLLL','LLGLGG','LLGGLG','LLGGGL','LGLLGG','LGGLLG','LGGGLL','LGLGLG','LGLGGL','LGGLGL'];
+  const d = [...code].map(Number), par = PAR[d[0]];
+  const bits = '101' + d.slice(1, 7).map((x, i) => (par[i] === 'L' ? L : G)[x]).join('') + '01010' + d.slice(7).map(x => R[x]).join('') + '101';
+  const m = 5.5, x0 = 28, H = 58, HG = 66;
+  let bars = '', txt = `<text x="12" y="84">${code[0]}</text>`;
+  for (let i = 0; i < bits.length;) {
+    if (bits[i] !== '1') { i++; continue; }
+    let j = i; while (j < bits.length && bits[j] === '1') j++;
+    const guard = i < 3 || (i >= 45 && i < 50) || i >= 92;
+    bars += `<rect x="${(x0 + i * m).toFixed(1)}" y="0" width="${((j - i) * m).toFixed(1)}" height="${guard ? HG : H}"/>`;
+    i = j;
+  }
+  for (let k = 0; k < 6; k++) txt += `<text x="${(x0 + (6.5 + 7 * k) * m).toFixed(1)}" y="84">${code[1 + k]}</text><text x="${(x0 + (53.5 + 7 * k) * m).toFixed(1)}" y="84">${code[7 + k]}</text>`;
+  return `<svg viewBox="0 0 556 86" aria-hidden="true"><g fill="#221C46">${bars}</g><g fill="#221C46" font-family="JBM, monospace" font-size="22" font-weight="700" text-anchor="middle">${txt}</g></svg>`;
+}
+
 function dom(){
   const sw = (a, b) => `<span class="sw"><span class="a">${a}</span><span class="b">${b}</span></span>`;
   $('#rows2').insertAdjacentHTML('beforeend', CLIENTS.map(c => `<div class="rgT tr tc"><div>${sw(c[2], MAJ(c[2]))}</div><div>${c[1]}</div><div>${sw(c[3], MAJ(c[3]))}</div></div>`).join(''));
   $('#rows6').innerHTML = CLIENTS.map(c => `<div class="rgD tr tc"><div>${MAJ(c[2])} ${c[1]}</div><div>${MAJ(c[3])}</div></div>`).join('');
   $('#par6a').innerHTML = colis('MARTIN Sophie', 'PARIS');
   $('#par6b').innerHTML = colis('BERNARD Lucas', 'LYON');
+  const bar = ean13Svg('3760123456784');
+  $$('.lb-bar').forEach(el => { el.innerHTML = bar; });
 }
 
 /* Une case se retourne : la valeur enregistrée laisse place à sa version transformée. */
