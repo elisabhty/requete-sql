@@ -547,6 +547,18 @@ const COURSES = [
       '<span class="glow" id="pn5">prenom</span>, ville, <span class="kw">COUNT</span>(*)', '<span class="vv" id="so5">Sophie</span>',
       '<span class="ok">SQLite&nbsp;: un prénom au choix</span><span class="ko">Autres bases&nbsp;: une erreur</span>', '<span class="cv">✕ ni l’un ni l’autre</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> nb_clients</span>', '✓ Paris en tête avec 4 clients']},
+  {id: 17, next: 76, titre: 'HAVING', page: 'having.html', thumb: 'having-thumb.jpg', duree: '2 min 19', notesAt: 125.8,
+    notes: /notes:\{t:131\.6,y:1252,card:\[64,356,1016,957\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Avec <span class="ic">HAVING</span>, filtre les groupes formés par <span class="ic">GROUP BY</span>.',
+    chapters: ['Situation', 'Le problème', 'HAVING en action', 'WHERE ou HAVING', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<span>Ateliers bien-être · Choix des villes</span>', '<span class="emo">🎯</span>Un atelier dès 2 clients',
+      '<span class="nl">Son nombre de clients</span><span class="tag calc">à calculer</span>', 'Garder les villes d’au moins 2 clients',
+      '<span class="glow" id="hv3"><span class="kw">HAVING</span> <span class="kw">COUNT</span>(*) &gt;= 2</span>;',
+      '<span class="b"><span class="emo">🎯</span>&nbsp;Le test&nbsp;: <code>COUNT(*) &gt;= 2</code></span>', "n >= SEUIL ? '✓ gardé' : '✕ écarté'",
+      '<span class="glow" id="wa4"><span class="kw">WHERE</span> age &gt;= 30</span>', '<span class="sp4 l" id="sp4a" style="top:127px">trie les lignes</span>',
+      '<span class="emo">🎂</span>&nbsp;7 clients de 30 ans ou plus</span>', '<span class="kw">WHERE</span> <span class="glow" id="cw5"><span class="kw">COUNT</span>(*) &gt;= 2</span>',
+      '<b>Erreur SQL</b><span class="m">misuse of aggregate: COUNT()</span>', '<span class="sk">HAVING</span><span class="sx">trie les groupes</span><span class="sc ok" id="sc5c">COUNT(*) ✓</span>',
+      '<span class="glow" id="as6"><span class="kw">AS</span> nb_clients</span>', '✓ 2 ateliers&nbsp;: Paris et Lyon']},
 ];
 
 for (const c of COURSES) {
