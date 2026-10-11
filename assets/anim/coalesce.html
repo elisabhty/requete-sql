@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<title>Requête · COALESCE en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:184px;top:404px;letter-spacing:-4px}
+#s0 .hilite{top:530px;height:56px}
+#s0 .bubble{left:514px;width:532px}
+#s1 .need-row .nl{font-size:38px;white-space:nowrap}
+.nw{white-space:nowrap}
+
+/* Code : COALESCE seul (chapitre 3), sur trois lignes (chapitre 4), requête complète (chapitre 6) */
+.code.sm .body{font-size:34px;line-height:54px;padding:28px 36px}
+.code.sm .ln{height:54px}
+.code.sm .caret i{top:-40px;height:46px}
+.code.md .body{font-size:34px;line-height:56px;padding:28px 36px}
+.code.md .ln{height:56px}
+.code.md .caret i{top:-41px;height:48px}
+.code.md .band{left:14px;right:14px;top:28px;height:56px}
+.code.xs .body{font-size:30px;line-height:50px;padding:28px 36px}
+.code.xs .ln{height:50px}
+.code.xs .caret i{top:-36px;height:42px}
+
+/* Une valeur et sa version affichée, l’une sur l’autre : la case se retourne de l’une à l’autre */
+.sw{display:inline-grid;justify-items:end}
+.sw>span{grid-area:1/1}
+.sw .b{opacity:0}
+.sw.st{justify-items:start}
+/* NULL : aucune valeur (pointillés gris) ; « Non renseigné » : le texte de remplacement */
+.nul{display:inline-flex;align-items:center;height:40px;padding:0 14px;border-radius:12px;border:3px dashed #B9B2D6;color:#8C86AE;font-family:var(--mono);font-style:italic;font-size:24px;font-weight:700}
+.nr{display:inline-flex;align-items:center;height:48px;padding:0 18px;border-radius:12px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--ui);font-style:italic;font-size:28px;font-weight:700;white-space:nowrap}
+.mk{position:absolute;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:28px;font-weight:800;color:#fff;opacity:0;z-index:2}
+.mk.no{background:var(--danger-fill)}
+.mk.yes{background:#34C27A}
+.mk.skip{background:#B9B2D6}
+.code .mk{right:30px}
+.code .mk.skip{background:#4A4475;color:#C9C3EE}
+
+/* ---------- L’outil du support (chapitres 1 et 6) ---------- */
+.tool{left:64px;width:952px;padding:0 0 24px;overflow:hidden}
+.tb-bar{height:76px;display:flex;align-items:center;gap:14px;padding:0 34px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.tb-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.tb-bar span{margin-left:12px}
+.tg{display:grid;grid-template-columns:230px 1fr;align-items:center;padding:0 34px}
+.th2{height:56px;margin-top:14px;font-size:23px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-3)}
+.trw{height:76px;box-shadow:inset 0 2px 0 var(--line-2);font-size:32px;font-weight:650;color:var(--ink);white-space:nowrap}
+.trw .em{font-weight:600;color:var(--ink-2)}
+.ec{display:inline-block;width:330px;height:50px;border-radius:12px;border:3px dashed rgba(239,79,85,0);background:rgba(253,235,236,0)}
+.tgh{height:50px;margin:8px 34px 0;border:3px dashed #D8D1F2;border-radius:14px;background:#FAF9FE;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:600;color:var(--ink-3)}
+.tag.calc{background:#FFF4E5;color:#9A5B00}
+
+/* ---------- 2 · Le problème ---------- */
+.rgE{display:grid;grid-template-columns:250px 1fr;padding:0 26px;align-items:center}
+.tr.tc{height:52px;font-size:28px}
+.tr .ph2{display:inline-flex;align-items:center;height:40px;margin-left:16px;padding:0 16px;border-radius:12px;border:3px dashed #F7C97F;background:#FFF8EC;color:#9A5B00;font-family:var(--ui);font-size:24px;font-weight:800;vertical-align:middle;opacity:0}
+.tr .bg{position:absolute;left:0;top:0;right:0;bottom:0;background:rgba(239,79,85,.07);box-shadow:inset 6px 0 0 rgba(239,79,85,.55);opacity:0;z-index:0}
+
+/* ---------- 3 · COALESCE en action : de gauche à droite ---------- */
+.evl{left:64px;width:952px;padding:24px 30px 28px}
+.eg{display:grid;grid-template-columns:104px 262px 246px 1fr;gap:0 12px;align-items:center}
+.eh{height:92px;align-items:start}
+.ehc{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding-top:6px}
+.ehc small{font-size:22px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-3)}
+.ehc .ic{font-size:22px}
+.er{height:122px;box-shadow:inset 0 2px 0 var(--line-2)}
+.who{font-size:31px;font-weight:700;color:var(--ink)}
+.vb{position:relative;justify-self:start;height:64px;display:inline-flex;align-items:center;padding:0 16px;border-radius:16px;border:3px solid var(--line);background:#fff;font-family:var(--mono);font-size:25px;font-weight:700;color:var(--ink);white-space:nowrap}
+.vb.vn{padding:0 10px}
+.vb .mk{right:-16px;top:-16px;width:36px;height:36px;font-size:21px}
+.res{justify-self:start;font-family:var(--mono);font-size:24px;font-weight:800;white-space:nowrap}
+.res .ph{display:inline-flex;align-items:center;height:56px;padding:0 24px;border-radius:14px;border:3px dashed #C9C1E8;background:#FAF9FE;color:#9C96C4}
+.res .b{display:inline-flex;align-items:center;height:56px;padding:0 14px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink)}
+
+/* ---------- 4 · Plusieurs valeurs ---------- */
+.code.md .mk.l1{top:33px}
+.code.md .mk.l2{top:89px}
+.code.md .mk.l3{top:145px}
+.ccard{left:64px;width:952px;padding:26px 34px}
+.cc-top{display:flex;align-items:center;gap:24px}
+.cc-ico{flex:none;width:88px;height:88px;border-radius:26px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:46px}
+.cc-name{flex:1;font-size:40px;font-weight:700;color:var(--ink)}
+.cc-al{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.cc-al .k{font-size:22px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-3)}
+.cc-al .ph{display:inline-flex;align-items:center;height:52px;padding:0 24px;border-radius:14px;border:3px dashed #C9C1E8;background:#FAF9FE;color:#9C96C4;font-family:var(--mono);font-size:26px;font-weight:800}
+.cc-al .b{display:inline-flex;align-items:center;height:52px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:26px;font-weight:800;white-space:nowrap}
+.cc-f{display:flex;gap:16px;margin-top:20px}
+.fd{display:flex;align-items:center;gap:14px;height:68px;padding:0 18px;border-radius:18px;background:var(--surface-2);border:3px solid transparent;font-size:26px;font-weight:700;color:var(--ink-3)}
+.fd .v{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--ink)}
+
+/* ---------- 5 · Le texte vide ---------- */
+.cr{display:flex;align-items:center;gap:16px;margin-top:22px;opacity:0}
+.cr .mini{margin-top:0;flex:none;width:580px;font-size:28px;line-height:44px;padding:16px 24px}
+.cr .car{flex:none;font-size:40px;font-weight:800;color:var(--accent);opacity:0}
+.crs{flex:1;height:76px;border-radius:20px;border:3px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;opacity:0}
+.crs .nr{height:44px;font-size:24px}
+.cn{margin:10px 0 0 4px;font-size:25px;font-weight:600;color:var(--ink-3);opacity:0}
+.cn .ic{font-size:23px}
+
+/* ---------- 6 · Le résultat ---------- */
+.rgR{display:grid;grid-template-columns:250px 1fr;padding:0 26px;align-items:center}
+.av{display:inline-block;border-radius:8px;padding:0 6px;margin:0 -6px;color:var(--accent-ink);font-weight:800}
+.lock{left:64px;width:952px;height:132px;display:flex;align-items:center;gap:22px;padding:0 34px}
+.lock .li{flex:none;width:72px;height:72px;border-radius:22px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:38px}
+.lock .lt2{flex:1;font-size:32px;font-weight:700;color:var(--ink)}
+.lock .lt2 small{display:flex;align-items:center;gap:12px;margin-top:4px;font-size:26px;font-weight:600;color:var(--ink-3)}
+.lock .nul{height:36px;font-size:22px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Fonctions et expressions</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>C</span><span>O</span><span>A</span><span>L</span><span>E</span><span>S</span><span>C</span><span>E</span></div>
+    <div class="abs sub">Remplacer les NULL</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec <span class="ic">COALESCE</span>, remplace un <span class="ic">NULL</span> par une autre valeur.</div>
+  </section>
+
+  <!-- 1 · Situation : l’outil du support, deux cases vides -->
+  <section class="scene" id="s1">
+    <div class="abs card tool" id="tool1" style="top:280px">
+      <div class="tb-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Support · Fiches clients</span></div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">👤</span><span class="nl">Le prénom du client</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">✉️</span><span class="nl">Son email ou « Non renseigné »</span><span class="tag calc">à calculer</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : NULL pour Hugo et Inès -->
+  <section class="scene" id="s2">
+    <div class="abs code sm" id="s2code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s2l1"><span class="kw">SELECT</span> prenom, email<span class="caret"><i></i></span></span><span class="ln" id="s2l2"><span class="kw">FROM</span> clients;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s2run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl2" style="top:660px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt2">10 lignes</span></span></div>
+      <div class="rgE th"><div>prenom</div><div>email</div></div>
+      <div class="rows" id="rows2"></div>
+    </div>
+  </section>
+
+  <!-- 3 · COALESCE en action : de gauche à droite, la première valeur qui n’est pas NULL -->
+  <section class="scene" id="s3">
+    <div class="abs code" id="s3code" style="left:64px;top:330px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s3l1"><span class="kw glow" id="k3">COALESCE</span>(<span class="glow" id="a3a">email</span>, <span class="str glow" id="a3b">'Non renseigné'</span>)<span class="caret"><i></i></span></span></div>
+    </div>
+    <div class="abs card evl" id="ev3" style="top:580px">
+      <div class="eg eh"><span></span><span class="ehc"><small>1re valeur</small><span class="ic">email</span></span><span class="ehc"><small>2e valeur</small><span class="ic">'Non renseigné'</span></span><span class="ehc"><small>Affiché</small></span></div>
+      <div class="eg er" id="er1"><span class="who">Sophie</span><span class="vb" id="v11">sophie@mail.fr<i class="mk yes" id="m11">✓</i></span><span class="vb" id="v12">Non renseigné<i class="mk skip" id="m12">–</i></span><span class="res"><span class="sw st" id="o1"><span class="a ph">?</span><span class="b">sophie@mail.fr</span></span></span></div>
+      <div class="eg er" id="er2"><span class="who">Hugo</span><span class="vb vn" id="v21"><span class="nul">NULL</span><i class="mk no" id="m21">✕</i></span><span class="vb" id="v22">Non renseigné<i class="mk yes" id="m22">✓</i></span><span class="res"><span class="sw st" id="o2"><span class="a ph">?</span><span class="b">Non renseigné</span></span></span></div>
+    </div>
+  </section>
+
+  <!-- 4 · Plusieurs valeurs : email, puis téléphone, puis « Non renseigné » -->
+  <section class="scene" id="s4">
+    <div class="abs code md" id="s4code" style="left:64px;top:300px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><i class="band" id="bd4"></i><span class="ln" id="s4l1"><span class="kw">COALESCE</span>(<span class="glow" id="a4a">email</span>,<span class="caret"><i></i></span></span><span class="ln" id="s4l2">         <span class="glow" id="a4b">telephone</span>,<span class="caret"><i></i></span></span><span class="ln" id="s4l3">         <span class="str glow" id="a4c">'Non renseigné'</span>)<span class="caret"><i></i></span></span><i class="mk no l1" id="mk4a">✕</i><i class="mk yes l2" id="mk4b">✓</i><i class="mk skip l3" id="mk4c">–</i></div>
+    </div>
+    <div class="abs card ccard" id="cc4" style="top:660px">
+      <div class="cc-top"><div class="cc-ico emo">👤</div><div class="cc-name">Hugo</div><div class="cc-al"><span class="k">Affiché</span><span class="sw" id="sw4"><span class="a ph">?</span><span class="b">06 39 98 68 03</span></span></div></div>
+      <div class="cc-f"><div class="fd" id="fd4a">email<span class="nul">NULL</span></div><div class="fd" id="fd4b">telephone<span class="v">06 39 98 68 03</span></div></div>
+    </div>
+  </section>
+
+  <!-- 5 · Le texte vide : '' n’est pas NULL -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="cmp5" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>NULL ou texte vide&nbsp;?</span></div>
+      <div class="cr" id="cr1"><span class="mini"><span class="kw">COALESCE</span>(<span class="kw">NULL</span>, <span class="str">'Non renseigné'</span>)</span><span class="car">→</span><span class="crs"><span class="nr">Non renseigné</span></span></div>
+      <div class="cn" id="cn1"><span class="ic">NULL</span> : aucune valeur, elle est remplacée.</div>
+      <div class="cr" id="cr2"><span class="mini"><span class="kw">COALESCE</span>(<span class="str glow" id="q5">''</span>, <span class="str">'Non renseigné'</span>)</span><span class="car">→</span><span class="crs" id="crs2"></span></div>
+      <div class="cn" id="cn2"><span class="ic">''</span> : un texte de zéro caractère, il est gardé.</div>
+      <div class="out err" id="err5"><span class="oi">✕</span><div class="ot"><b>La case reste vide</b><span class="s">Un texte vide n’est jamais remplacé.</span></div></div>
+    </div>
+  </section>
+
+  <!-- 6 · Le résultat -->
+  <section class="scene" id="s6">
+    <div class="abs code xs" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> prenom,<span class="caret"><i></i></span></span><span class="ln" id="s6l2">  <span class="glow" id="c6"><span class="kw">COALESCE</span>(email, <span class="str">'Non renseigné'</span>)</span> <span class="kw">AS</span> email<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="kw">FROM</span> clients;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6" style="top:700px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">10 lignes</span></span></div>
+      <div class="rgR th"><div>prenom</div><div>email</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card tool" id="tool6" style="top:280px">
+      <div class="tb-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Support · Fiches clients</span></div>
+    </div>
+    <div class="abs badge" id="badge6" style="top:950px"><span>✓ Aucune case vide à l’écran</span></div>
+    <div class="abs card lock" id="lock6" style="top:1100px">
+      <div class="li emo">🔒</div>
+      <div class="lt2">La table clients ne change pas<small>L’email de Hugo y vaut toujours <span class="nul" id="nul6">NULL</span></small></div>
+    </div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🥇</div><div class="rtxt"><span class="ic">COALESCE</span> renvoie la <b>première valeur qui n’est pas NULL</b>&nbsp;:<br><span class="ic blk">COALESCE(email, 'Non renseigné')</span></div></div>
+      <div class="rrow"><div class="rico emo">🪞</div><div class="rtxt">Il change l’<b>affichage</b>, pas la table&nbsp;: l’email de Hugo reste bien <span class="ic">NULL</span>.</div></div>
+      <div class="rrow"><div class="rico emo">⚠️</div><div class="rtxt">Un texte vide <span class="ic">''</span> n’est pas <span class="ic">NULL</span>&nbsp;: <span class="ic">COALESCE</span> ne le remplace pas.</div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 134.4;
+
+/* Table clients : prénom et email des 10 clients (Hugo et Inès : aucun email, NULL) */
+const CLIENTS = [['Sophie', 'sophie@mail.fr'], ['Lucas', 'lucas@mail.fr'], ['Emma', 'emma@mail.fr'], ['Nathan', 'nathan@mail.fr'], ['Chloé', 'chloe@mail.fr'],
+  ['Hugo', null], ['Léa', 'lea@mail.fr'], ['Gabriel', 'gabriel@mail.fr'], ['Inès', null], ['Nathan', 'nathan.dupont@mail.fr']];
+const TOOL = [0, 1, 5, 6, 8];   // clients affichés dans l’outil : Sophie, Lucas, Hugo, Léa, Inès
+
+const CHAPTERS = [
+  {n:1, label:'Situation',           a:5.0,   b:26.7},
+  {n:2, label:'Le problème',         a:26.7,  b:42.4},
+  {n:3, label:'COALESCE en action',  a:42.4,  b:68.1},
+  {n:4, label:'Plusieurs valeurs',   a:68.1,  b:89.2},
+  {n:5, label:'Le texte vide',       a:89.2,  b:103.1},
+  {n:6, label:'Le résultat',         a:103.1, b:121.6},
+  {n:7, label:'À retenir',           a:121.6, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 10.9,    "L’équipe support crée un <b>outil interne</b> qui liste les clients et leur adresse email."],
+  [11.0, 16.3,   "Deux clients n’ont <b>aucun email</b> : à l’écran, leur case reste vide."],
+  [16.4, 21.3,   "À la place, l’outil doit afficher un texte clair : « Non renseigné »."],
+  [21.4, 26.3,   "Le prénom et l’email des <b>10 clients</b> se trouvent dans la <b>table clients</b>."],
+  [27.0, 31.5,   "Premier essai : afficher le prénom et l’email de chaque client."],
+  [31.6, 36.6,   "Pour Hugo et Inès, l’email vaut <code>NULL</code> : aucune valeur n’est enregistrée."],
+  [36.7, 42.0,   "Il faut une valeur de <b>remplacement</b>, réservée aux emails absents."],
+  [42.7, 47.9,   "C’est le rôle de <code>COALESCE</code> : renvoyer la <b>première valeur qui n’est pas NULL</b>."],
+  [48.0, 53.0,   "Entre les parenthèses : l’email d’abord, puis le texte de remplacement."],
+  [53.1, 58.6,   "Pour Sophie, l’email existe : il s’affiche, et la valeur suivante est ignorée."],
+  [58.7, 63.0,   "Pour Hugo, l’email est <code>NULL</code> : on passe à la valeur suivante."],
+  [63.1, 67.7,   "« Non renseigné » n’est pas <code>NULL</code> : c’est ce texte qui s’affiche."],
+  [68.4, 73.3,   "<code>COALESCE</code> accepte <b>plusieurs valeurs</b>, toujours examinées de gauche à droite."],
+  [73.4, 78.5,   "Pour Hugo, l’email vaut <code>NULL</code> : la valeur suivante, le téléphone, est examinée."],
+  [78.6, 84.0,   "Le téléphone est renseigné, il s’affiche : « Non renseigné » n’est jamais atteint."],
+  [84.1, 88.8,   "Pour l’outil, qui n’affiche que des emails, deux valeurs suffisent."],
+  [89.5, 93.5,   "Attention : <code>COALESCE</code> ne remplace que les valeurs <code>NULL</code>."],
+  [93.6, 98.3,   "Un texte vide <code>''</code> est une vraie valeur : un texte de zéro caractère."],
+  [98.4, 102.7,  "Il est donc gardé tel quel : à l’écran, la case reste vide."],
+  [103.4, 108.5, "La requête complète affiche le prénom, puis l’email ou « Non renseigné »."],
+  [108.6, 113.1, "Résultat : <b>10 lignes</b>. Hugo et Inès affichent « Non renseigné »."],
+  [113.2, 116.6, "L’outil n’affiche plus aucune case vide."],
+  [116.7, 121.2, "Et la <b>table clients</b> ne change pas : l’email de Hugo reste <code>NULL</code>."],
+  [121.9, 126.7, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [126.8, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [126.8, 999, "Avec <code>COALESCE</code>, une valeur absente laisse place à une valeur de secours."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+function dom(){
+  const rows = TOOL.map(i => { const [p, e] = CLIENTS[i];
+    return `<div class="tg trw"><span>${p}</span><span class="em">${e ? e : '<span class="sw st"><span class="a ec"></span><span class="b nr">Non renseigné</span></span>'}</span></div>`; }).join('');
+  ['#tool1', '#tool6'].forEach(id => $(id).insertAdjacentHTML('beforeend',
+    '<div class="tg th2"><span>Client</span><span>Email</span></div>' + rows + `<div class="tgh">+ ${CLIENTS.length - TOOL.length} autres clients</div>`));
+  $('#rows2').innerHTML = CLIENTS.map(([p, e]) => `<div class="rgE tr tc">${e ? '' : '<i class="bg"></i>'}<div>${p}</div><div>${e ? e : '<span class="nul">NULL</span><span class="ph2">?</span>'}</div></div>`).join('');
+  $('#rows6').innerHTML = CLIENTS.map(([p, e]) => `<div class="rgR tr tc"><div>${p}</div><div>${e ? e : '<span class="av">Non renseigné</span>'}</div></div>`).join('');
+}
+
+/* Une case se retourne : la valeur de départ laisse place à l’autre. */
+function flip(sw, t, sound = true){
+  tl.to(sw, {scaleY: 0, duration: 0.12, ease: 'power2.in'}, t);
+  tl.set(sw.querySelector('.a'), {opacity: 0}, t + 0.12);
+  tl.set(sw.querySelector('.b'), {opacity: 1}, t + 0.12);
+  tl.to(sw, {scaleY: 1, duration: 0.22, ease: 'back.out(2)'}, t + 0.12);
+  if (sound) cue(t + 0.12, 'tick', 0.5, 3);
+}
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+/* Une marque ✓ / ✕ / – */
+function mark(sel, t, sound){
+  show(sel, t, {y: 0, scale: 0.4}, 0.35, 'back.out(2.4)');
+  if (sound) cue(t, sound, 0.7, 2);
+}
+/* La valeur examinée : son cadre s’allume, puis s’éteint */
+const scan = (sel, t) => tl.to(sel, {borderColor: '#8B6CFF', boxShadow: '0 0 0 5px rgba(139,108,255,.18)', duration: 0.25}, t);
+const unscan = (sel, t) => tl.to(sel, {borderColor: '#E6E1F6', boxShadow: '0 0 0 0px rgba(139,108,255,0)', duration: 0.25}, t);
+
+function build(){
+  introScene();
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  gsap.set('#tool1', {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to('#tool1', {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, 5.15);
+  cue(5.15, 'whoosh', 0.8);
+  const t1 = $$('#tool1 .th2, #tool1 .trw, #tool1 .tgh');
+  gsap.set(t1, {autoAlpha: 0, x: -30});
+  tl.to(t1, {autoAlpha: 1, x: 0, duration: 0.4, ease: 'power3.out', stagger: 0.09}, 5.9);
+  t1.forEach((_, i) => cue(5.9 + i * 0.09, 'tick', 0.4, i % 5));
+  // Deux cases vides
+  tl.to('#tool1 .ec', {borderColor: 'rgba(239,79,85,.6)', backgroundColor: 'rgba(253,235,236,1)', duration: 0.35, stagger: 0.25}, 12.4);
+  cue(12.4, 'miss', 0.7);
+  bump('#tool1 .ec', 14.2, 1.05);
+  // « Non renseigné » attendu
+  tl.to('#tool1 .ec', {borderColor: 'rgba(245,158,11,.75)', backgroundColor: 'rgba(255,248,236,1)', duration: 0.35, stagger: 0.15}, 18.4);
+  tl.to('#tool1 .sw .b', {opacity: 0.45, duration: 0.4, stagger: 0.15}, 18.7);
+  cue(18.4, 'pop', 0.6, 3);
+  // Les informations à récupérer
+  stackBelow('#s1 .need', '#tool1');   // la liste se cale sous la fenêtre de l’outil, sans la toucher
+  show('#s1 .need', 21.6, {y: 60});
+  cue(21.6, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.22}, 21.75);
+  needRows.forEach((_, i) => cue(21.75 + i * 0.22, 'pop', 0.7, i));
+  bump('#s1 .tag', 23.6, 1.08);
+  hide(['#tool1', '#s1 .need'], 26.2);
+  sceneOff('#s1', 26.7);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 26.7);
+  show('#s2code', 26.75, {y: 60}, 0.6);
+  cue(26.75, 'whoosh', 0.7);
+  te = typeLine($('#s2l1'), 27.25, 30);
+  te = typeLine($('#s2l2'), te + 0.1, 30);
+  press($('#s2run'), 29.2);
+  show('#tbl2', 29.45, {y: 40}, 0.5);
+  const tr2 = $$('#rows2 .tr');
+  gsap.set(tr2, {autoAlpha: 0, y: 14});
+  tl.to(tr2, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.05}, 29.6);
+  tr2.forEach((_, i) => cue(29.6 + i * 0.05, 'tick', 0.45, i % 5));
+  show('#cnt2', 30.1, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // NULL pour Hugo et Inès
+  tl.to('#rows2 .bg', {opacity: 1, duration: 0.3, stagger: 0.15}, 32.6);
+  bump('#rows2 .nul', 32.8, 1.15, 3);
+  cue(32.8, 'miss', 0.7);
+  // Une valeur de remplacement
+  show('#rows2 .ph2', 38.2, {y: 0, scale: 0.5}, 0.4, 'back.out(2.2)');
+  cue(38.2, 'pop', 0.7, 3);
+  bump('#rows2 .ph2', 40.0, 1.15, 3);
+  hide(['#s2code', '#tbl2'], 41.9, {y: -40}, 0.4);
+  sceneOff('#s2', 42.4);
+
+  /* ===== 3 · COALESCE en action ===== */
+  sceneOn('#s3', 42.4);
+  show('#s3code', 42.45, {y: 60}, 0.6);
+  cue(42.45, 'whoosh', 0.7);
+  te = typeLine($('#s3l1'), 43.0, 24);
+  pulse('#k3', 45.4, 3, 'rgba(201,188,255,.3)');
+  // L’email d’abord, puis le texte de remplacement
+  pulse('#a3a', 49.6, 3, 'rgba(201,188,255,.3)');
+  pulse('#a3b', 51.0, 3, 'rgba(255,224,138,.25)');
+  show('#ev3', 52.2, {y: 40});
+  cue(52.2, 'whoosh', 0.6);
+  const er = $$('#ev3 .eh, #ev3 .er');
+  gsap.set(er, {autoAlpha: 0, x: -30});
+  tl.to(er, {autoAlpha: 1, x: 0, duration: 0.4, ease: 'power3.out', stagger: 0.15}, 52.4);
+  // Sophie : l’email existe
+  scan('#v11', 54.0);
+  mark('#m11', 54.7, 'success');
+  flip($('#o1'), 55.5);
+  unscan('#v11', 56.2);
+  tl.to('#v12', {opacity: 0.35, duration: 0.35}, 56.9);
+  mark('#m12', 57.2, 'miss');
+  // Hugo : l’email est NULL…
+  scan('#v21', 59.3);
+  bump('#v21 .nul', 59.6, 1.12, 1);
+  mark('#m21', 60.2, 'miss');
+  unscan('#v21', 61.4);
+  scan('#v22', 61.6);
+  // … « Non renseigné » s’affiche
+  mark('#m22', 63.7, 'success');
+  flip($('#o2'), 64.7, false);
+  cue(64.8, 'chord', 0.6);
+  unscan('#v22', 65.6);
+  hide(['#s3code', '#ev3'], 67.6, {y: -40}, 0.4);
+  sceneOff('#s3', 68.1);
+
+  /* ===== 4 · Plusieurs valeurs ===== */
+  sceneOn('#s4', 68.1);
+  show('#s4code', 68.15, {y: 60}, 0.6);
+  cue(68.15, 'whoosh', 0.7);
+  te = typeLine($('#s4l1'), 68.7, 30);
+  te = typeLine($('#s4l2'), te + 0.1, 30);
+  te = typeLine($('#s4l3'), te + 0.1, 30);
+  // De gauche à droite : l’email, puis le téléphone, puis « Non renseigné »
+  pulse('#a4a', 71.6, 1, 'rgba(201,188,255,.3)');
+  pulse('#a4b', 72.2, 1, 'rgba(201,188,255,.3)');
+  pulse('#a4c', 72.8, 1, 'rgba(255,224,138,.25)');
+  // Hugo
+  show('#cc4', 73.5, {y: 40});
+  cue(73.5, 'whoosh', 0.6);
+  tl.to('#bd4', {scaleX: 1, duration: 0.45, ease: 'expo.out'}, 74.4);
+  tl.to('#fd4a', {borderColor: '#F6A5AB', backgroundColor: '#FDEBEC', duration: 0.3}, 74.8);
+  mark('#mk4a', 75.4, 'miss');
+  tl.to('#bd4', {y: 56, duration: 0.4, ease: 'power2.inOut'}, 76.5);
+  tl.to('#fd4a', {borderColor: 'rgba(246,165,171,0)', backgroundColor: '#F1EEFC', duration: 0.3}, 76.5);
+  tl.to('#fd4b', {borderColor: '#A7E3C0', backgroundColor: '#E7F7EE', duration: 0.3}, 76.8);
+  // Le téléphone s’affiche ; « Non renseigné » n’est pas atteint
+  mark('#mk4b', 79.0, 'success');
+  flip($('#sw4'), 80.2, false);
+  cue(80.3, 'chord', 0.6);
+  tl.to('#bd4', {opacity: 0, duration: 0.3}, 81.8);
+  tl.to('#s4l3', {opacity: 0.3, duration: 0.4}, 82.2);
+  mark('#mk4c', 82.6, 'miss');
+  // Pour l’outil : deux valeurs suffisent
+  tl.to(['#mk4a', '#mk4b', '#mk4c'], {autoAlpha: 0, duration: 0.25}, 84.2);
+  hide('#cc4', 84.2, {y: 30}, 0.35);
+  tl.to('#s4l3', {opacity: 1, duration: 0.3}, 84.4);
+  tl.to('#s4l2', {opacity: 0, duration: 0.3}, 84.8);
+  tl.set('#s4l2', {overflow: 'hidden'}, 85.1);
+  tl.to('#s4l2', {height: 0, duration: 0.45, ease: 'power2.inOut'}, 85.1);
+  cue(85.1, 'whoosh', 0.5);
+  pulse(['#a4a', '#a4c'], 86.2, 3, 'rgba(201,188,255,.3)');
+  hide('#s4code', 88.7, {y: -40}, 0.4);
+  sceneOff('#s4', 89.2);
+
+  /* ===== 5 · Le texte vide ===== */
+  sceneOn('#s5', 89.2);
+  show('#cmp5', 89.25, {y: 50});
+  cue(89.25, 'whoosh', 0.6);
+  // NULL : remplacé
+  show('#cr1', 89.9, {y: 16}, 0.4);
+  show('#cr1 .car', 90.6, {y: 0, x: -14}, 0.3, 'power2.out');
+  show('#cr1 .crs', 91.0, {y: 0, scale: 0.85}, 0.4, 'back.out(2)');
+  cue(91.0, 'success', 0.6);
+  show('#cn1', 91.6, {y: 8}, 0.35);
+  // '' : un texte de zéro caractère
+  show('#cr2', 93.9, {y: 16}, 0.4);
+  pulse('#q5', 95.0, 3, 'rgba(255,224,138,.3)');
+  show('#cn2', 95.8, {y: 8}, 0.35);
+  // Gardé tel quel : la case reste vide
+  show('#cr2 .car', 98.7, {y: 0, x: -14}, 0.3, 'power2.out');
+  show('#crs2', 99.1, {y: 0, scale: 0.85}, 0.4, 'back.out(2)');
+  tl.to('#crs2', {borderColor: '#F6A5AB', backgroundColor: '#FDEBEC', duration: 0.3}, 99.7);
+  tl.to('#crs2', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 99.75);
+  cue(99.7, 'miss', 0.7);
+  show('#err5', 100.4, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  cue(100.4, 'error', 0.8);
+  hide('#cmp5', 102.6);
+  sceneOff('#s5', 103.1);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 103.1);
+  show('#s6code', 103.15, {y: 60}, 0.6);
+  cue(103.15, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 103.7, 34);
+  te = typeLine($('#s6l2'), te + 0.1, 34);
+  te = typeLine($('#s6l3'), te + 0.1, 34);
+  pulse('#c6', 106.4, 3, 'rgba(201,188,255,.3)');
+  press($('#s6run'), 107.6);
+  show('#tbl6', 107.85, {y: 40}, 0.5);
+  const tr6 = $$('#rows6 .tr');
+  gsap.set(tr6, {autoAlpha: 0, y: 14});
+  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.05}, 108.0);
+  tr6.forEach((_, i) => cue(108.0 + i * 0.05, 'tick', 0.45, i % 5));
+  show('#cnt6', 108.5, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  pulse('#rows6 .av', 110.4, 3, 'rgba(201,188,255,.45)');
+  cue(110.4, 'pop', 0.7, 3);
+  hide(['#s6code', '#tbl6'], 113.0, {y: -40}, 0.4);
+  // Dans l’outil : plus aucune case vide
+  show('#tool6', 113.4, {y: 50});
+  cue(113.4, 'whoosh', 0.7);
+  $$('#tool6 .sw').forEach((sw, i) => flip(sw, 114.0 + i * 0.25, true));
+  stackBelow('#badge6', '#tool6', 0, 50);
+  show('#badge6', 114.8, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(114.8, 'chord', 0.7);
+  // La table, elle, ne change pas
+  stackBelow('#lock6', '#badge6', 0, 49);   // 40 px sous la pastille, ombre comprise
+  show('#lock6', 117.0, {y: 40});
+  cue(117.0, 'whoosh', 0.5);
+  bump('#nul6', 118.6, 1.15, 3);
+  hide(['#tool6', '#badge6', '#lock6'], 121.1);
+  sceneOff('#s6', 121.6);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(121.6, [122.3, 124.1, 125.9]);
+  hold(123.9, 2.9);
+  hold(125.7, 2.9);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(126.85, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 126.8,
+  glyphs: '👤✉️🔎⚠️🔒🥇🪞✓✕–→·…?', dom, build});
+</script>
+</body>
+</html>
