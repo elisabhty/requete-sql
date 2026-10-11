@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<title>Requête · Fonctions de dates en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .bubble{left:514px;width:532px}
+#s0 .sub{font-size:66px}
+#s1 .need-row .nl{font-size:36px;white-space:nowrap}
+.nw{white-space:nowrap}
+
+/* Code un peu plus petit : la ligne de DATE tient d’un seul tenant */
+.code.sm .body{font-size:32px;line-height:52px;padding:28px 36px}
+.code.sm .ln{height:52px}
+.code.sm .caret i{top:-38px;height:44px}
+.badge.soft span{height:76px;padding:0 30px;background:#fff;border:3px solid var(--line);box-shadow:0 6px 0 var(--lip);color:var(--ink-2);font-size:31px}
+/* Une valeur et sa version calculée, l’une sur l’autre : la case se retourne de l’une à l’autre */
+.sw{display:inline-grid}
+.sw>span{grid-area:1/1}
+.sw .b{opacity:0}
+
+/* ---------- 1 · La commande et son message de suivi ---------- */
+.ocard{left:64px;width:952px;padding:28px 34px;display:flex;align-items:center;gap:26px}
+.oc-ico,.ml-ico{flex:none;width:112px;height:112px;border-radius:30px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:58px}
+.oc-txt{flex:1;min-width:0;white-space:nowrap}
+.oc-txt b{display:block;font-family:var(--mono);font-size:34px;font-weight:800;color:var(--ink)}
+.oc-txt small{display:block;margin-top:8px;font-size:31px;font-weight:600;color:var(--ink-3)}
+.oc-ok{flex:none;height:58px;padding:0 22px;border-radius:999px;background:#E7F7EE;border:2px solid #A7E3C0;color:#1B7A45;font-size:27px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.mail{left:64px;width:952px;padding:28px 34px}
+.ml-top{display:flex;align-items:center;gap:26px}
+.ml-h{font-size:40px;font-weight:750;color:var(--ink);white-space:nowrap}
+.ml-h small{display:block;margin-top:6px;font-size:29px;font-weight:600;color:var(--ink-3)}
+.ml-q{margin-top:20px;padding:18px 26px;border-radius:22px;background:var(--surface-2);font-size:34px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.ml-f{margin-top:18px;height:84px;display:flex;align-items:center;gap:14px;font-size:32px;font-weight:700;color:var(--ink-2)}
+.ml-val{margin-left:auto;height:64px;min-width:260px;border-radius:999px;border:3px dashed #C9BCFF;background:#fff;display:flex;align-items:center;justify-content:center;padding:0 26px;font-family:var(--mono);font-size:32px;font-weight:800;color:#B4ACD6;white-space:nowrap}
+
+/* ---------- Code et résultat partagés (chapitres 2 et 3) ---------- */
+#qcode{left:64px;top:236px;width:952px;opacity:0;visibility:hidden}
+#ql2{height:0;overflow:hidden}
+.rgC{display:grid;grid-template-columns:1fr 250px 250px;padding:0 26px;align-items:center}
+.tr.tc{height:52px;font-size:28px}
+.th .h3,.tr .sv{opacity:0}
+.tr .sv{display:inline-block;color:var(--accent-ink);font-weight:800}
+.tr.gh{height:50px;margin:4px 12px 0;border:3px dashed #D8D1F2;border-radius:14px;box-shadow:none;background:#FAF9FE;display:flex;align-items:center;justify-content:center;font-family:var(--ui);font-size:26px;font-weight:600;color:var(--ink-3)}
+.zone{position:absolute;top:4px;bottom:4px;border-radius:14px;opacity:0;z-index:0;pointer-events:none}
+.zone.am{background:rgba(245,158,11,.1);box-shadow:inset 0 0 0 3px rgba(245,158,11,.5)}
+.qcol{position:absolute;top:4px;border-radius:14px;border:3px dashed #A893FF;background:rgba(238,233,255,.55);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:64px;font-weight:800;color:var(--accent);opacity:0;z-index:2;pointer-events:none}
+
+/* ---------- 3 · Une fonction de date ---------- */
+.fm{left:64px;width:952px;padding:30px 36px 36px}
+.fbox{margin-top:22px;height:118px;border-radius:28px;border:3px solid var(--line);background:var(--surface-2);display:flex;align-items:center;justify-content:space-between;padding:0 34px;opacity:0}
+.fbox .fk{font-size:32px;font-weight:700;color:var(--ink-3)}
+.fbox .fv{font-family:var(--mono);font-size:46px;font-weight:800;color:var(--ink);white-space:nowrap}
+.fbox.fn{background:var(--code-bg);border-color:var(--code-bg);box-shadow:0 7px 0 #110E27}
+.fbox.fn .fk{color:#9C96C4}
+.fbox.fn .fv{font-size:32px;color:var(--code-ink)}
+.fbox.out{background:var(--accent-soft);border-color:#C9BCFF}
+.fbox.out .fv{color:var(--accent-ink)}
+.farr{height:52px;margin-top:16px;text-align:center;font-size:44px;font-weight:800;line-height:52px;color:var(--accent);opacity:0}
+/* Le piège : + additionne des nombres */
+.parts{position:relative;margin-top:28px;height:100px;display:flex;align-items:center;justify-content:center;gap:16px}
+.pt{height:84px;padding:0 26px;border-radius:22px;background:var(--surface-2);border:3px solid var(--line);font-family:var(--mono);font-size:40px;font-weight:800;color:var(--ink);display:inline-flex;align-items:center;white-space:pre;opacity:0}
+.pt .dim{color:#C4BEDF}
+.pj{font-family:var(--mono);font-size:42px;font-weight:800;color:var(--danger);opacity:0}
+.joined{position:absolute;left:0;top:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;opacity:0}
+.joined span{height:96px;padding:0 36px;border-radius:24px;background:var(--danger-soft);border:3px solid #F6C9CD;font-family:var(--mono);font-size:46px;font-weight:800;color:var(--danger);display:flex;align-items:center;white-space:pre}
+
+/* ---------- 4 · Le calendrier ---------- */
+.mlab{display:grid;grid-template-columns:1fr 1fr;margin-top:22px;font-size:30px;font-weight:800;color:var(--ink-3);text-align:center}
+.strip{position:relative;margin-top:10px;display:flex;justify-content:center;gap:10px}
+.day{position:relative;width:96px;height:112px;border-radius:24px;border:3px solid var(--line);background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--display);font-size:40px;font-weight:800;color:var(--ink);z-index:1}
+.day.au{background:var(--surface-2)}
+.day.split{margin-left:28px}
+.day small{font-family:'Noto Color Emoji',sans-serif;font-size:26px;line-height:1;margin-top:4px}
+.cur{position:absolute;left:0;top:-8px;width:112px;height:128px;margin-left:-8px;border-radius:30px;border:5px solid var(--accent);box-shadow:0 0 0 8px rgba(106,77,244,.14);opacity:0;z-index:2;pointer-events:none}
+.hop{position:absolute;top:-58px;left:0;width:96px;height:40px;font-family:var(--mono);font-size:30px;font-weight:800;color:var(--accent-ink);z-index:2}
+.hop b{position:absolute;left:0;right:0;top:0;text-align:center;opacity:0}
+.cmp{margin-top:26px;display:flex;justify-content:center;gap:24px}
+.cp{height:74px;padding:0 28px;border-radius:999px;font-family:var(--mono);font-size:36px;font-weight:800;display:flex;align-items:center;gap:14px;white-space:nowrap;opacity:0}
+.cp.bad{background:var(--danger-soft);border:3px solid #F6C9CD;color:var(--danger)}
+.cp.bad s{text-decoration-thickness:4px}
+.cp.good{background:var(--accent-soft);border:3px solid #C9BCFF;color:var(--accent-ink)}
+.kinds{left:64px;width:952px;padding:0 0 14px}
+.kinds .tt{height:92px;display:flex;align-items:center;gap:16px;padding:0 36px;font-weight:700;font-size:36px;color:var(--ink)}
+.kinds .tt .emo{font-size:40px}
+.og{display:grid;grid-template-columns:250px 1fr;align-items:center;padding:0 36px}
+.od{position:relative;height:104px;box-shadow:inset 0 2px 0 var(--line-2)}
+.dc{justify-self:start;height:62px;padding:0 20px;border-radius:16px;background:var(--code-bg);box-shadow:0 5px 0 #110E27;color:var(--t-str);font-family:var(--mono);font-size:30px;font-weight:800;display:inline-flex;align-items:center;white-space:pre}
+.dc.fn{color:var(--t-kw)}
+.fl{display:flex;align-items:center;gap:20px}
+.od .tx{font-family:var(--mono);font-size:34px;font-weight:700;color:var(--ink-2);white-space:pre}
+.od .tx.o{color:var(--accent-ink)}
+.od .ar{font-size:36px;font-weight:800;color:var(--ink-3)}
+
+/* ---------- 5 · Extraire une partie de la date ---------- */
+.ex{grid-template-columns:200px 220px 1fr}
+.ol{font-size:32px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.dhero{height:150px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:76px;font-weight:800;color:var(--ink-3);box-shadow:inset 0 2px 0 var(--line-2)}
+.seg{display:inline-block;padding:4px 10px;margin:0 2px;border-radius:18px;color:var(--ink)}
+
+/* ---------- 6 · Le calendrier des messages ---------- */
+.cal{left:64px;width:952px;padding:22px 30px 26px}
+.cal-h{height:58px;display:flex;align-items:center;gap:14px;font-size:36px;font-weight:700;color:var(--ink)}
+.cal-h .emo{font-size:38px}
+.cal-h .lg{margin-left:auto;font-size:26px;font-weight:600;color:var(--ink-3)}
+.cal-w,.cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-w{margin-top:8px;height:40px;align-items:center;text-align:center;font-size:24px;font-weight:800;color:var(--ink-3)}
+.cal-g{margin-top:6px}
+.cd{position:relative;height:72px;border-radius:16px;background:#fff;border:2px solid var(--line-2);padding:6px 10px;font-size:24px;font-weight:700;color:var(--ink-2)}
+.cd.out{background:transparent;border-color:transparent;color:#CFCAE6}
+.cd.au{background:#F8F6FE}
+.cd .mk{position:absolute;right:8px;bottom:6px;font-size:32px;opacity:0}
+.cd .n2{position:absolute;right:4px;top:4px;min-width:26px;height:26px;padding:0 6px;border-radius:999px;background:var(--accent);color:#fff;font-size:17px;font-weight:800;display:flex;align-items:center;justify-content:center;opacity:0}
+
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Fonctions et expressions</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>J</span><span>+</span><span>7</span></div>
+    <div class="abs sub">Fonctions de dates et heures</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec les fonctions de dates, calcule de nouvelles dates.</div>
+  </section>
+
+  <!-- 1 · Situation : la commande, puis le message de suivi à programmer -->
+  <section class="scene" id="s1">
+    <div class="abs card ocard" id="oc1" style="top:300px">
+      <span class="oc-ico emo">🧾</span>
+      <span class="oc-txt"><b>CMD-2026-1002481</b><small>Commande du 2 juillet 2026</small></span>
+      <span class="oc-ok">✓ Confirmée</span>
+    </div>
+    <div class="abs badge soft" id="wait1" style="top:540px"><span>⏳ 7 jours plus tard</span></div>
+    <div class="abs card mail" id="ml1" style="top:300px">
+      <div class="ml-top"><span class="ml-ico emo">📨</span><span class="ml-h">Message de suivi<small>NutriBoost · service client</small></span></div>
+      <div class="ml-q">« Votre commande vous plaît-elle ? »</div>
+      <div class="ml-f"><span>Envoi prévu le</span><span class="ml-val">?</span></div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">🧾</span><span class="nl">Le numéro de commande</span><span class="tag">table commandes</span></div>
+      <div class="need-row"><span class="emo">📅</span><span class="nl">Sa date</span><span class="tag">table commandes</span></div>
+    </div>
+  </section>
+
+  <!-- Code et résultat partagés (chapitres 2 et 3) : la ligne de DATE s’ajoute à la requête -->
+  <div class="abs code sm" id="qcode">
+    <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+    <div class="body"><span class="ln" id="ql1"><span class="kw">SELECT</span> numero_commande, date_commande<span id="cm1">,</span><span class="caret"><i></i></span></span><span class="ln" id="ql2">       <span class="kw glow" id="dtA">DATE</span>(date_commande, <span class="str">'+7 days'</span>) <span class="kw">AS</span> suivi<span class="caret"><i></i></span></span><span class="ln" id="ql3"><span class="kw">FROM</span> commandes;<span class="caret"><i></i></span></span></div>
+    <div class="run" id="qrun"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+  </div>
+  <div class="tbl card" id="tbl2" style="top:660px">
+    <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt2">16 lignes</span></span></div>
+    <div class="rgC th"><div>numero_commande</div><div>date_commande</div><div><span class="h3">suivi</span></div></div>
+    <div class="rows" id="rows2"><i class="zone am" id="zD"></i><i class="qcol" id="qS">?</i></div>
+  </div>
+
+  <!-- 3 · Une fonction de date, puis le piège du + -->
+  <section class="scene" id="s3">
+    <div class="abs card fm" id="fm3" style="top:420px">
+      <div class="trap-h"><span class="emo">⚙️</span><span>Une fonction de date</span></div>
+      <div class="fbox" id="fb1"><span class="fk">Dans la table</span><span class="fv">2026-07-02</span></div>
+      <div class="farr" id="fa1">↓</div>
+      <div class="fbox fn" id="fb2"><span class="fk">La fonction</span><span class="fv"><span class="kw">DATE</span>(date_commande, <span class="str">'+7 days'</span>)</span></div>
+      <div class="farr" id="fa2">↓</div>
+      <div class="fbox out" id="fb3"><span class="fk">Dans le résultat</span><span class="fv"><span class="sw"><span class="a">?</span><span class="b">2026-07-09</span></span></span></div>
+    </div>
+    <div class="abs card trap" id="trap3" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Avec <span class="ic">+ 7</span> à la place de <span class="ic">DATE</span></span></div>
+      <div class="mini">date_commande <span class="glow" id="pl3">+ 7</span><span class="go" id="go3"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#fff"/></svg></span></div>
+      <div class="parts" id="parts3">
+        <span class="pt">2026<span class="dim">-07-02</span></span><span class="pj">+</span><span class="pt">7</span>
+        <div class="joined" id="jn3"><span>2033</span></div>
+      </div>
+      <div class="out err" id="err3"><span class="oi">✕</span><div class="ot"><b>Résultat : 2033</b><span class="s">La date est lue comme le nombre 2026.</span></div></div>
+    </div>
+  </section>
+
+  <!-- 4 · Le calendrier -->
+  <section class="scene" id="s4">
+    <div class="abs card trap" id="cal4" style="top:236px">
+      <div class="trap-h"><span class="emo">📆</span><span>Le 28 juillet, plus 7 jours</span></div>
+      <div class="mlab"><span>juillet</span><span>août</span></div>
+      <div class="strip" id="strip4"><span class="hop" id="hop4"><b>+1</b><b>+2</b><b>+3</b><b>+4</b><b>+5</b><b>+6</b><b>+7</b></span><i class="cur" id="cur4"></i></div>
+      <div class="cmp"><span class="cp bad" id="bad4">✕ <s>2026-07-35</s></span><span class="cp good" id="good4">✓ 2026-08-04</span></div>
+    </div>
+    <div class="abs card kinds" id="dur4" style="top:692px">
+      <div class="tt"><span class="emo">⏩</span><span>D’autres durées, depuis le 2 juillet</span></div>
+      <div class="og od"><span class="dc">'+7 days'</span><span class="fl"><span class="tx">2026-07-02</span><span class="ar">→</span><span class="tx o">2026-07-09</span></span></div>
+      <div class="og od"><span class="dc">'+1 month'</span><span class="fl"><span class="tx">2026-07-02</span><span class="ar">→</span><span class="tx o">2026-08-02</span></span></div>
+      <div class="og od"><span class="dc">'+1 year'</span><span class="fl"><span class="tx">2026-07-02</span><span class="ar">→</span><span class="tx o">2027-07-02</span></span></div>
+    </div>
+  </section>
+
+  <!-- 5 · Extraire une partie de la date -->
+  <section class="scene" id="s5">
+    <div class="abs card kinds" id="ext5" style="top:330px">
+      <div class="tt"><span class="emo">✂️</span><span>Extraire une partie de la date</span></div>
+      <div class="dhero"><span class="seg" id="sgY">2026</span>-<span class="seg" id="sgM">07</span>-<span class="seg" id="sgD">02</span></div>
+      <div class="og od ex"><span class="dc fn">YEAR</span><span class="ol">l’année</span><span class="fl"><span class="ar">→</span><span class="tx o">2026</span></span></div>
+      <div class="og od ex"><span class="dc fn">MONTH</span><span class="ol">le mois</span><span class="fl"><span class="ar">→</span><span class="tx o">7</span></span></div>
+      <div class="og od ex"><span class="dc fn">DAY</span><span class="ol">le jour</span><span class="fl"><span class="ar">→</span><span class="tx o">2</span></span></div>
+    </div>
+  </section>
+
+  <!-- 6 · Le résultat -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> numero_commande, date_commande,<span class="caret"><i></i></span></span><span class="ln" id="s6l2">       <span class="kw">DATE</span>(date_commande, <span class="str">'+7 days'</span>) <span class="kw">AS</span> suivi<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="kw">FROM</span> commandes;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6" style="top:712px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">16 lignes</span></span></div>
+      <div class="rgC th"><div>numero_commande</div><div>date_commande</div><div>suivi</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card cal" id="cal6" style="top:250px">
+      <div class="cal-h"><span class="emo">📅</span><span>Juillet – août 2026</span><span class="lg">📨 message de suivi</span></div>
+      <div class="cal-w"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+      <div class="cal-g" id="calg6"></div>
+    </div>
+    <div class="abs badge" id="badge6" style="top:1040px"><span>✓ 16 messages planifiés</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">📅</div><div class="rtxt">Une <b>fonction de date</b> calcule une date, sans modifier la table&nbsp;:<br><span class="ic blk">DATE(date_commande, '+7 days')</span></div></div>
+      <div class="rrow"><div class="rico emo">⏩</div><div class="rtxt"><span class="ic">DATE</span> suit le <b>calendrier</b>&nbsp;: la durée peut compter en jours, en mois ou en années.</div></div>
+      <div class="rrow"><div class="rico emo">✂️</div><div class="rtxt"><span class="ic">YEAR</span>, <span class="ic">MONTH</span> et <span class="ic">DAY</span> <b>extraient</b> une partie de la date&nbsp;:<br><span class="ic blk">MONTH(date_commande)</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 130.8;
+
+/* Table commandes : [numero_commande, date_commande] */
+const COMMANDES = [['CMD-2026-1002481','2026-07-02'],['CMD-2026-1003912','2026-07-02'],['CMD-2026-1015630','2026-07-05'],['CMD-2026-1024057','2026-07-08'],
+  ['CMD-2026-1038264','2026-07-11'],['CMD-2026-1041739','2026-07-12'],['CMD-2026-1056182','2026-07-15'],['CMD-2026-1063405','2026-07-18'],
+  ['CMD-2026-1067918','2026-07-18'],['CMD-2026-1072346','2026-07-20'],['CMD-2026-1085073','2026-07-22'],['CMD-2026-1093528','2026-07-25'],
+  ['CMD-2026-1106294','2026-07-28'],['CMD-2026-1847392','2026-07-30'],['CMD-2026-1128760','2026-08-01'],['CMD-2026-1134085','2026-08-03']];
+/* DATE(date, '+7 days') : 7 jours plus tard, en suivant le calendrier. */
+const iso = d => d.toISOString().slice(0, 10);
+const plus7 = s => { const [y, m, d] = s.split('-').map(Number); return iso(new Date(Date.UTC(y, m - 1, d + 7))); };
+const SHOWN = 8;   // lignes affichées dans le tableau (les 8 autres sont résumées)
+
+const CHAPTERS = [
+  {n:1, label:'Situation',          a:5.0,   b:25.0},
+  {n:2, label:'Le problème',        a:25.0,  b:39.4},
+  {n:3, label:'DATE en action',     a:39.4,  b:67.0},
+  {n:4, label:'Le calendrier',      a:67.0,  b:87.4},
+  {n:5, label:'Extraire une partie', a:87.4, b:102.0},
+  {n:6, label:'Le résultat',        a:102.0, b:118.0},
+  {n:7, label:'À retenir',          a:118.0, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 10.0,    "Après chaque commande, NutriBoost envoie un <b>message de suivi</b> au client."],
+  [10.1, 15.0,   "Le message part <b>7 jours après</b> la commande, pour demander si tout\u00a0va\u00a0bien."],
+  [15.1, 19.3,   "Pour la commande du 2 juillet, il doit partir le <b>9 juillet</b>."],
+  [19.4, 24.6,   "Le numéro et la date se trouvent dans la <b>table commandes</b> (<b>16 commandes</b>)."],
+  [25.3, 29.7,   "Premier essai : afficher le numéro et la date de chaque commande."],
+  [29.8, 34.3,   "Les dates s’affichent au format <b class=\"nw\">année-mois-jour</b> : 2026-07-02."],
+  [34.4, 39.1,   "Mais aucune colonne ne donne la date du message : il faut la <b>calculer</b>."],
+  [39.7, 43.8,   "La fonction <code>DATE</code> calcule une date à partir d’une autre."],
+  [43.9, 48.8,   "On écrit la date, puis la durée à ajouter, entre guillemets : <code>'+7 days'</code>."],
+  [48.9, 53.2,   "Le 2 juillet devient le <b>9 juillet</b> : c’est la date du message."],
+  [53.3, 58.0,   "Dans la requête, la colonne <b>suivi</b> donne la date de chaque message."],
+  [58.1, 62.3,   "Attention : <code>date_commande + 7</code> donne <b>2033</b>, et non une date."],
+  [62.4, 66.7,   "Avec <code>+</code>, la date est lue comme le nombre 2026 : 2026 + 7 = 2033."],
+  [67.3, 72.2,   "<code>DATE</code> suit le <b>calendrier</b> : le 28 juillet plus 7 jours donne le 4 août."],
+  [72.3, 76.8,   "Juillet compte 31 jours : après le 31, la date passe au 1ᵉʳ août."],
+  [76.9, 81.6,   "Ajouter 7 au jour donnerait 2026-07-35, une date qui <b>n’existe pas</b>."],
+  [81.7, 87.0,   "La durée peut aussi compter en mois ou en années : <code>'+1 month'</code>, <code>'+1 year'</code>."],
+  [87.7, 92.3,   "Une date s’écrit année-mois-jour : chaque partie peut être <b>extraite</b>."],
+  [92.4, 97.2,   "<code>MONTH(date_commande)</code> donne le mois, 7, et <code>YEAR</code> l’année, 2026."],
+  [97.3, 101.6,  "<code>DAY</code> donne le jour : 2. Chaque fois, le résultat est un <b>nombre</b>."],
+  [102.3, 107.2, "La requête complète affiche chaque commande avec la date de son message."],
+  [107.3, 111.6, "Résultat : <b>16 lignes</b>, avec des messages du 9 juillet au 10 août."],
+  [111.7, 117.5, "Les messages se placent sur le calendrier, sans modifier la <b>table\u00a0commandes</b>."],
+  [118.3, 123.1, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [123.2, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [123.2, 999, "<code>DATE</code> ajoute une durée en suivant le calendrier, et <code>MONTH</code> extrait le mois."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+function dom(){
+  const rows = (withSuivi, cls) => COMMANDES.slice(0, SHOWN).map(([n, d]) =>
+    `<div class="rgC tr tc"><div>${n}</div><div>${d}</div><div>${withSuivi ? `<span class="${cls}">${plus7(d)}</span>` : ''}</div></div>`).join('') +
+    `<div class="tr gh">+ ${COMMANDES.length - SHOWN} autres commandes</div>`;
+  $('#rows2').insertAdjacentHTML('beforeend', rows(true, 'sv'));
+  $('#rows6').innerHTML = rows(true, '');
+  // Chapitre 4 : du 28 juillet au 4 août
+  $('#strip4').insertAdjacentHTML('beforeend', [28, 29, 30, 31, 1, 2, 3, 4].map((d, i) =>
+    `<span class="day${i > 3 ? ' au' : ''}${i === 4 ? ' split' : ''}">${d}<small>${i === 0 ? '🛒' : i === 7 ? '📨' : '&nbsp;'}</small></span>`).join(''));
+  // Chapitre 6 : le calendrier du lundi 29 juin au dimanche 16 août, un 📨 par message de suivi
+  const count = {};
+  COMMANDES.forEach(([, d]) => { const s = plus7(d); count[s] = (count[s] || 0) + 1; });
+  let html = '';
+  for (let k = 0; k < 49; k++) {
+    const day = new Date(Date.UTC(2026, 5, 29 + k)), s = iso(day), m = day.getUTCMonth(), n = count[s] || 0;
+    html += `<div class="cd${m === 5 ? ' out' : m === 7 ? ' au' : ''}" data-d="${s}">${day.getUTCDate()}` +
+      (n ? `<span class="mk emo">📨</span>${n > 1 ? `<span class="n2">${n}</span>` : ''}` : '') + '</div>';
+  }
+  $('#calg6').innerHTML = html;
+}
+
+/* Une case se retourne : la valeur de départ laisse place à la valeur calculée. */
+function flip(sw, t, sound = true){
+  tl.to(sw, {scaleY: 0, duration: 0.12, ease: 'power2.in'}, t);
+  tl.set(sw.querySelector('.a'), {opacity: 0}, t + 0.12);
+  tl.set(sw.querySelector('.b'), {opacity: 1}, t + 0.12);
+  tl.to(sw, {scaleY: 1, duration: 0.22, ease: 'back.out(2)'}, t + 0.12);
+  if (sound) cue(t + 0.12, 'tick', 0.5, 3);
+}
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+
+function build(){
+  introScene();
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  gsap.set('#oc1', {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to('#oc1', {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, 5.15);
+  cue(5.15, 'whoosh', 0.8);
+  gsap.set('#ml1', {autoAlpha: 0, y: 420});
+  tl.to('#ml1', {autoAlpha: 1, y: 370, duration: 0.6, ease: 'expo.out'}, 6.6);
+  cue(6.6, 'pop', 0.8, 3);
+  // 7 jours plus tard
+  show('#wait1', 10.5, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(10.5, 'pop', 0.8, 2);
+  tl.to('#ml1 .ml-val', {borderColor: '#6A4DF4', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 15.5);
+  cue(15.5, 'pop', 0.7, 4);
+  // Les informations à récupérer
+  hide(['#oc1', '#wait1'], 19.45, {y: -80}, 0.4);
+  tl.to('#ml1', {y: 0, duration: 0.75, ease: 'power3.inOut'}, 19.7);
+  stackBelow('#s1 .need', '#ml1');   // la liste se cale sous le message, sans le toucher
+  show('#s1 .need', 20.2, {y: 60});
+  cue(20.2, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.15}, 20.35);
+  needRows.forEach((_, i) => cue(20.35 + i * 0.15, 'pop', 0.7, i));
+  tl.to('#s1 .tag', {scale: 1.08, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 22.6);
+  hide(['#ml1', '#s1 .need'], 24.5);
+  sceneOff('#s1', 25.0);
+
+  /* ===== 2 · Le problème ===== */
+  show('#qcode', 25.05, {y: 60}, 0.6);
+  cue(25.05, 'whoosh', 0.7);
+  gsap.set('#cm1', {display: 'none'});
+  te = typeLine($('#ql1'), 25.55, 30, false, $('#cm1'));
+  te = typeLine($('#ql3'), te + 0.12, 30);
+  press($('#qrun'), 27.75);
+  show('#tbl2', 28.0, {y: 40}, 0.5);
+  const tr2 = $$('#rows2 .tr');
+  gsap.set(tr2, {autoAlpha: 0, y: 14});
+  tl.to(tr2, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.05}, 28.15);
+  tr2.forEach((_, i) => cue(28.15 + i * 0.05, 'tick', 0.4, i % 5));
+  show('#cnt2', 28.55, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // La colonne des dates, au format année-mois-jour
+  const th = $$('#tbl2 .th > div'), rowsBox = $('#rows2'), a = rel(th[1], rowsBox);
+  gsap.set('#zD', {left: (a.x + 4) + 'px', width: (a.w - 8) + 'px', height: (SHOWN * 52 - 8) + 'px', bottom: 'auto'});
+  tl.to('#zD', {opacity: 1, duration: 0.35}, 30.2);
+  cue(30.2, 'pop', 0.7, 2);
+  tl.to('#zD', {opacity: 0, duration: 0.3}, 34.3);
+  const c3 = rel(th[2], rowsBox);
+  gsap.set('#qS', {left: (c3.x + 4) + 'px', width: (c3.w - 8) + 'px', height: (SHOWN * 52 - 8) + 'px'});
+  show('#qS', 34.8, {y: 0, scale: 0.9}, 0.4, 'back.out(2)');
+  cue(34.8, 'pop', 0.7, 4);
+  tl.to('#qS', {opacity: 0, duration: 0.3}, 38.9);
+
+  /* ===== 3 · DATE en action ===== */
+  hide(['#qcode', '#tbl2'], 39.45, {y: -40}, 0.4);
+  sceneOn('#s3', 39.7);
+  show('#fm3', 39.75, {y: 50});
+  cue(39.75, 'whoosh', 0.6);
+  [['#fb1', 40.1], ['#fa1', 41.0], ['#fb2', 41.25], ['#fa2', 42.2], ['#fb3', 42.45]].forEach(([s, t], i) => {
+    show(s, t, {y: 0, x: -30}, 0.45, 'power3.out');
+    if (!s.startsWith('#fa')) cue(t, 'pop', 0.75, i);
+  });
+  pulse('#fb2 .str', 44.6);
+  // Le 2 juillet devient le 9 juillet
+  tl.to('#fb2', {scale: 1.04, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 49.0);
+  flip($('#fb3 .sw'), 49.3, false);
+  cue(49.4, 'success', 0.7);
+  hide('#fm3', 52.75, {y: -40});
+  // Dans la requête : la ligne de DATE
+  tl.fromTo('#qcode', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, 53.15);
+  tl.fromTo('#tbl2', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, 53.3);
+  cue(53.15, 'whoosh', 0.6);
+  gsap.set('#cm1', {autoAlpha: 0, scale: 0.3});
+  tl.set('#cm1', {display: 'inline-block'}, 53.78);
+  tl.to('#cm1', {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.6)'}, 53.8);
+  tl.to('#ql2', {height: 52, duration: 0.3, ease: 'power2.out'}, 53.95);
+  tl.to('#tbl2', {y: 52, duration: 0.3, ease: 'power2.out'}, 53.95);
+  tl.set('#ql2', {overflow: 'visible'}, 54.26);   // ligne ouverte : le surlignage du mot-clé reste entier
+  te = typeLine($('#ql2'), 54.3, 30);
+  pulse('#dtA', te + 0.1);
+  press($('#qrun'), 56.2);
+  tl.to('#tbl2 .th .h3', {opacity: 1, duration: 0.3}, 56.45);
+  const sv = $$('#rows2 .sv');
+  gsap.set(sv, {scale: 0.5});
+  tl.to(sv, {opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2.4)', stagger: 0.08}, 56.55);
+  sv.forEach((_, i) => { if (i % 2 === 0) cue(56.55 + i * 0.08, 'pop', 0.6, i % 5); });
+  hide(['#qcode', '#tbl2'], 58.15, {y: -40}, 0.4);
+  // Le piège : date_commande + 7
+  show('#trap3', 58.45, {y: 50});
+  cue(58.45, 'whoosh', 0.6);
+  pulse('#pl3', 59.1, 3, 'rgba(239,79,85,.38)');
+  press($('#go3'), 60.3, '#4B30CC', 6);
+  show('#err3', 60.55, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  tl.to('#err3', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 60.95);
+  cue(60.55, 'error', 0.85);
+  // 2026-07-02 lue comme le nombre 2026 : 2026 + 7 = 2033
+  const parts = $$('#parts3 .pt, #parts3 .pj');
+  gsap.set(parts, {autoAlpha: 0, y: 16});
+  tl.to(parts, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'back.out(2)', stagger: 0.16}, 62.6);
+  parts.forEach((_, i) => { if (i % 2 === 0) cue(62.6 + i * 0.16, 'pop', 0.7, i); });
+  tl.to('#parts3 .dim', {opacity: 0.25, duration: 0.3}, 63.4);
+  tl.to(parts, {autoAlpha: 0, scale: 0.85, duration: 0.25, ease: 'power2.in'}, 64.6);
+  gsap.set('#jn3', {scale: 0.7});
+  tl.to('#jn3', {autoAlpha: 1, scale: 1, duration: 0.45, ease: 'back.out(2)'}, 64.8);
+  cue(64.8, 'miss', 0.7);
+  hide('#trap3', 66.5);
+  sceneOff('#s3', 67.0);
+
+  /* ===== 4 · Le calendrier ===== */
+  sceneOn('#s4', 67.0);
+  show('#cal4', 67.05, {y: 50});
+  cue(67.05, 'whoosh', 0.6);
+  const days = $$('#strip4 .day'), strip = $('#strip4');
+  gsap.set(days, {autoAlpha: 0, y: 20});
+  tl.to(days, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'back.out(2)', stagger: 0.06}, 67.45);
+  // Le curseur part du 28 juillet et avance de 7 jours, en passant au mois d’août
+  const at = i => rel(days[i], strip).x;
+  gsap.set('#cur4', {x: at(0)});
+  gsap.set('#hop4', {x: at(0)});
+  tl.to('#cur4', {opacity: 1, duration: 0.25}, 68.4);
+  const hops = $$('#hop4 b');
+  for (let k = 1; k <= 7; k++) {
+    const t = 68.6 + k * 0.42;
+    tl.to(['#cur4', '#hop4'], {x: at(k), duration: 0.3, ease: 'power2.inOut'}, t);
+    if (k > 1) tl.set(hops[k - 2], {opacity: 0}, t);
+    tl.set(hops[k - 1], {opacity: 1}, t);
+    cue(t, 'tick', 0.55, k % 5);
+  }
+  tl.to(days[7], {backgroundColor: '#6A4DF4', borderColor: '#6A4DF4', color: '#fff', duration: 0.3}, 71.75);
+  show('#good4', 71.85, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(71.85, 'success', 0.7);
+  // Juillet compte 31 jours
+  tl.to(days[3], {scale: 1.1, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 72.8);
+  tl.to(days[4], {scale: 1.1, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 73.6);
+  cue(72.8, 'pop', 0.7, 3);
+  // 2026-07-35 n’existe pas
+  show('#bad4', 77.3, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  tl.to('#bad4', {x: 10, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 77.7);
+  cue(77.3, 'error', 0.7);
+  // D’autres durées
+  show('#dur4', 81.85, {y: 50});
+  cue(81.85, 'whoosh', 0.6);
+  const od4 = $$('#dur4 .od');
+  gsap.set(od4, {autoAlpha: 0, x: -30});
+  tl.to(od4, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out', stagger: 0.55}, 82.3);
+  od4.forEach((_, i) => cue(82.3 + i * 0.55, 'pop', 0.75, i * 2));
+  hide(['#cal4', '#dur4'], 86.9);
+  sceneOff('#s4', 87.4);
+
+  /* ===== 5 · Extraire une partie de la date ===== */
+  sceneOn('#s5', 87.4);
+  show('#ext5', 87.45, {y: 50});
+  cue(87.45, 'whoosh', 0.6);
+  const ex = $$('#ext5 .od'), seg = ['#sgY', '#sgM', '#sgD'];
+  gsap.set(ex, {autoAlpha: 0, x: -30});
+  const off = {backgroundColor: 'rgba(238,233,255,0)', color: '#221C46', boxShadow: 'inset 0 0 0 3px rgba(201,188,255,0)', duration: 0.3};
+  [[92.6, 1], [94.6, 0], [97.5, 2]].forEach(([t, i], k, all) => {
+    tl.to(ex[i], {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, t);
+    tl.to(seg[i], {backgroundColor: '#EEE9FF', color: '#5335E0', boxShadow: 'inset 0 0 0 3px #C9BCFF', duration: 0.3}, t);
+    if (k) tl.to(seg[all[k - 1][1]], off, t);
+    cue(t, 'pop', 0.8, k * 2);
+  });
+  tl.to(ex[1].querySelector('.dc'), {scale: 1.1, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 93.2);
+  hide('#ext5', 101.5, {y: -40});
+  sceneOff('#s5', 102.0);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 102.0);
+  show('#s6code', 102.05, {y: 60}, 0.6);
+  cue(102.05, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 102.55, 32);
+  te = typeLine($('#s6l2'), te + 0.1, 32);
+  te = typeLine($('#s6l3'), te + 0.1, 32);
+  press($('#s6run'), 107.3);
+  show('#tbl6', 107.55, {y: 40}, 0.5);
+  const tr6 = $$('#rows6 .tr');
+  gsap.set(tr6, {autoAlpha: 0, y: 14});
+  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.06}, 107.7);
+  tr6.forEach((_, i) => cue(107.7 + i * 0.06, 'tick', 0.45, i % 5));
+  show('#cnt6', 108.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  hide(['#s6code', '#tbl6'], 111.65, {y: -40}, 0.4);
+  // Les 16 messages se placent sur le calendrier
+  show('#cal6', 112.0, {y: 50});
+  cue(112.0, 'whoosh', 0.7);
+  const marked = $$('#calg6 .cd').filter(c => c.querySelector('.mk'));
+  marked.forEach((c, i) => {
+    const t = 112.7 + i * 0.15;
+    tl.to(c, {borderColor: '#A893FF', backgroundColor: '#EEE9FF', color: '#5335E0', duration: 0.2}, t);
+    tl.fromTo(c.querySelector('.mk'), {opacity: 0, scale: 0.3}, {opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2.4)', immediateRender: false}, t);
+    const n2 = c.querySelector('.n2');
+    if (n2) tl.fromTo(n2, {opacity: 0, scale: 0.3}, {opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2.4)', immediateRender: false}, t + 0.1);
+    if (i % 2 === 0) cue(t, 'pop', 0.6, i % 5);
+  });
+  show('#badge6', 115.3, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(115.3, 'success', 0.9);
+  hide(['#cal6', '#badge6'], 117.5);
+  sceneOff('#s6', 118.0);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(118.0, [118.7, 120.5, 122.3]);
+  hold(120.3, 2.9);
+  hold(122.1, 2.9);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(123.25, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 123.2,
+  glyphs: '🧾📨⏳📅🔎⚙️↓⚠️📆🛒⏩✂️✓✕→·–ᵉʳ', dom, build});
+</script>
+</body>
+</html>
