@@ -449,6 +449,17 @@ const COURSES = [
       '<b>Tableau de bord</b><span class="rs">Parcourir une longue liste de commandes sans tout afficher à la fois.</span>',
       '<b>API</b><span class="rs">Demander au serveur une portion précise&nbsp;des données.</span>',
       '"<code>LIMIT</code> + <code>OFFSET</code> sert à afficher des résultats <b>par portions</b>."']},
+  {id: 51, next: 52, titre: 'Fonctions de texte', page: 'fonctions-texte.html', thumb: 'fonctions-texte-thumb.jpg', duree: '2 min 25', notesAt: 131.6,
+    notes: /notes:\{t:137\.4,y:1330,card:\[64,356,1016,1017\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Avec les fonctions de texte, transforme le texte du résultat.',
+    chapters: ['Situation', 'Le problème', 'UPPER en action', 'Assembler avec ||', 'Une fonction par besoin', 'Le résultat', 'À retenir'],
+    traps: ['<div class="tagpill">Cours · Fonctions et expressions</div>', '<div class="lb-f" id="f1"><span class="ph">NOM Prénom</span></div>',
+      '<span class="fx" id="fxA"><span class="kw glow">UPPER</span>(</span>nom<span class="fx" id="fxB">)</span>',
+      '<span class="fv"><span class="sw"><span class="a">?</span><span class="b">MARTIN</span></span></span>', '🔒 La table clients ne change pas',
+      '<span class="str glow" id="sp4">\' \'</span>', '<div class="joined" id="jn4"><span>MARTIN Sophie</span></div>',
+      '<b>Résultat : 0</b><span class="s">Le + additionne des nombres, pas des textes.</span>',
+      '<span class="fc">LENGTH</span><span class="fl"><span class="tx">Sophie</span>', '<span class="fc">SUBSTR</span><span class="fl"><span class="tx">Martin</span>',
+      '"<code>SUBSTR(nom, 1, 3)</code> extrait un <b>morceau</b> : 3 caractères, à partir du premier."', '✓ 10 étiquettes prêtes']},
 ];
 
 for (const c of COURSES) {
