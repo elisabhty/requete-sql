@@ -481,7 +481,7 @@ const COURSES = [
       '<span class="pt">2026<span class="dim">-07-02</span></span><span class="pj">+</span><span class="pt">7</span>', '<b>Résultat : 2033</b><span class="s">La date est lue comme le nombre 2026.</span>',
       '<span class="cp bad" id="bad4">✕ <s>2026-07-35</s></span><span class="cp good" id="good4">✓ 2026-08-04</span>',
       '<span class="dc">\'+1 month\'</span>', '<span class="dc fn">MONTH</span><span class="ol">le mois</span>', '✓ 16 messages planifiés']},
-  {id: 54, next: 55, titre: 'Fonctions de conversion de types', page: 'conversion-types.html', thumb: 'conversion-types-thumb.jpg', duree: '2 min 10', notesAt: 115.7,
+  {id: 54, next: 21, titre: 'Fonctions de conversion de types', page: 'conversion-types.html', thumb: 'conversion-types-thumb.jpg', duree: '2 min 10', notesAt: 115.7,
     notes: /notes:\{t:122\.3,y:1365,card:\[64,356,1016,1070\],to:\[940,255\]\}/, table: 'commandes',
     bubble: 'Avec <span class="ic">CAST</span>, change le type d’une valeur.',
     chapters: ['Situation', 'Le problème', 'CAST en action', 'Extraire, puis convertir', 'Les types', 'Le résultat', 'À retenir'],
@@ -492,6 +492,17 @@ const COURSES = [
       '<span id="pre4">CMD-2026-</span><span class="dig" id="dig4">1002481', '<span class="fk cd"><span class="kw">SUBSTR</span>(numero_commande, 10)</span>',
       '<span class="tcp">REAL</span><span class="tl">nombre décimal</span><span class="tx">29.9</span>', 'Les décimales sont supprimées, sans arrondir',
       '✓ Nombre entier : numéro accepté', '✓ 16 commandes importées']},
+  {id: 21, next: 23, titre: 'CASE', page: 'case.html', thumb: 'case-thumb.jpg', duree: '2 min 34', notesAt: 140.4,
+    notes: /notes:\{t:146\.2,y:1306,card:\[64,356,1016,1011\],to:\[940,255\]\}/, table: 'produits',
+    bubble: 'Avec <span class="ic">CASE</span>, affiche une valeur selon une condition.',
+    chapters: ['Situation', 'Le problème', 'CASE en action', 'L’ordre compte', 'Sans ELSE', 'Le résultat', 'À retenir'],
+    traps: ['<span>Entrepôt · Tableau de bord</span>', "const ALERTE = s => s < 50 ? 'r' : s < 100 ? 'o' : 'g';",
+      '<span class="nl">Son alerte</span><span class="tag calc">à calculer</span>', '<span class="kw">WHERE</span> <span class="glow" id="wh2">stock &lt; 50</span>;',
+      '<div class="tr gh" id="gh2">✕ 6 autres produits écartés</div>',
+      '<span class="sw c" id="sw3a"><span class="a">stock</span><span class="b nv">90</span></span> &lt; 50</span>', '<span class="b al o">À surveiller</span>',
+      '<span>Dans le mauvais ordre</span>', '<b>Aucun produit « À commander »</b><span class="s">Sous 50, le stock est aussi sous 100.</span>',
+      '<span class="a com">  -- pas de ELSE</span>', '<span class="nul" id="nul5">NULL</span>',
+      '<span class="glow" id="as6"><span class="kw">AS</span> alerte</span>', '✓ 8 alertes à jour']},
 ];
 
 for (const c of COURSES) {

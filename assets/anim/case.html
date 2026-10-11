@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<title>Requête · CASE en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:224px;letter-spacing:-5px}
+#s0 .bubble{left:514px;width:532px}
+#s1 .need-row .nl{font-size:40px;white-space:nowrap}
+.nw{white-space:nowrap}
+
+/* Code : le CASE tient sur cinq lignes (chapitre 3), la requête complète sur sept (chapitre 6) */
+.code.sm .body{font-size:34px;line-height:54px;padding:28px 36px}
+.code.sm .ln{height:54px}
+.code.sm .caret i{top:-40px;height:46px}
+.code.md .body{font-size:34px;line-height:56px;padding:28px 36px}
+.code.md .ln{height:56px}
+.code.md .caret i{top:-41px;height:48px}
+.code.md .band{left:14px;right:14px;top:84px;height:56px}
+.code.xs .body{font-size:30px;line-height:50px;padding:28px 36px}
+.code.xs .ln{height:50px}
+.code.xs .caret i{top:-36px;height:42px}
+.com{color:var(--t-com)}
+
+/* Une valeur et sa version calculée, l’une sur l’autre : la case se retourne de l’une à l’autre */
+.sw{display:inline-grid;justify-items:end}
+.sw>span{grid-area:1/1}
+.sw .b{opacity:0}
+.sw.c{justify-items:center}
+.sw.st{justify-items:start}
+/* Dans une condition, la colonne laisse place à la valeur du produit (stock → 90) */
+.nv{justify-self:stretch;text-align:center;border-radius:10px;padding:0 8px;background:#8B6CFF;color:#fff;font-weight:800}
+
+/* Les trois alertes du tableau de bord, en pastilles */
+.al{display:inline-flex;align-items:center;gap:10px;height:52px;padding:0 20px;border-radius:999px;border:2px solid;font-family:var(--ui);font-size:26px;font-weight:800;white-space:nowrap}
+.al::before{content:"";flex:none;width:14px;height:14px;border-radius:50%}
+.al.r{background:#FDEBEC;border-color:#F6C9CD;color:#C2323A}
+.al.r::before{background:#EF4F55}
+.al.o{background:#FFF4E5;border-color:#F7C97F;color:#9A5B00}
+.al.o::before{background:#F59E0B}
+.al.g{background:#E7F7EE;border-color:#A7E3C0;color:#1B7A45}
+.al.g::before{background:#34C27A}
+.al.q{background:#FAF9FE;border:2px dashed #C9C1E8;color:#9C96C4;padding:0 28px}
+.al.q::before{display:none}
+
+/* ---------- Le tableau de bord de l’entrepôt (chapitres 1 et 6) ---------- */
+.dash{left:64px;width:952px;padding:0 0 24px;overflow:hidden}
+.db-bar{height:76px;display:flex;align-items:center;gap:14px;padding:0 34px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar span{margin-left:12px}
+.legend{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:26px 34px 4px}
+.lg{display:flex;flex-direction:column;align-items:center;gap:10px;opacity:0}
+.lgt{font-size:26px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+#dash6 .lg{opacity:1}
+.dg{display:grid;grid-template-columns:1fr 140px 290px;align-items:center;padding:0 34px}
+.dg>span:nth-child(2){text-align:right}
+.dg>span:nth-child(3){justify-self:end}
+.dh{height:56px;margin-top:14px;font-size:23px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-3)}
+.dr{height:76px;box-shadow:inset 0 2px 0 var(--line-2);font-size:33px;font-weight:650;color:var(--ink);white-space:nowrap}
+.dr .st{font-family:var(--mono);font-size:33px;font-weight:700;color:var(--ink-2)}
+.dgh{height:50px;margin:8px 34px 0;border:3px dashed #D8D1F2;border-radius:14px;background:#FAF9FE;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:600;color:var(--ink-3)}
+.tag.calc{background:#FFF4E5;color:#9A5B00}
+
+/* ---------- 2 · Le problème : WHERE écarte des lignes ---------- */
+.rgW{display:grid;grid-template-columns:1fr 150px 260px;padding:0 26px;align-items:center}
+.rgW>div:nth-child(2){text-align:right}
+.rgW>div:nth-child(3){text-align:center}
+.th .h3,.tr .c3{opacity:0}
+.tr .c3{color:#B4ACD6;font-weight:800}
+.tr.gh{height:50px;margin:6px 12px 0;border:3px dashed #D8D1F2;border-radius:14px;box-shadow:none;background:#FAF9FE;display:flex;align-items:center;justify-content:center;font-family:var(--ui);font-size:26px;font-weight:600;color:var(--ink-3)}
+.gcol{position:absolute;border:3px dashed #B9A8FF;border-radius:16px;background:rgba(238,233,255,.45);transform-origin:50% 0;opacity:0;z-index:0;pointer-events:none}
+
+/* ---------- 3 · CASE en action ---------- */
+.mk{position:absolute;right:30px;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:28px;font-weight:800;color:#fff;opacity:0;z-index:2}
+.mk.no{background:var(--danger-fill)}
+.mk.yes{background:#34C27A}
+.mk.skip{background:#4A4475;color:#C9C3EE}
+.code.md .mk.l2{top:89px}
+.code.md .mk.l3{top:145px}
+.code.md .mk.l4{top:201px}
+/* Les conditions, testées de haut en bas : une flèche dans le retrait des WHEN */
+.flow{position:absolute;left:44px;top:92px;width:6px;height:146px;border-radius:3px;background:#B9A8FF;transform-origin:50% 0;transform:scaleY(0);opacity:0;z-index:2}
+.flow::after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-11px;border-left:11px solid transparent;border-right:11px solid transparent;border-top:16px solid #B9A8FF}
+.pcard{left:64px;width:952px;height:150px;display:flex;align-items:center;gap:26px;padding:0 34px}
+.pc-ico{flex:none;width:96px;height:96px;border-radius:28px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:52px}
+.pc-txt{flex:1;min-width:0;font-size:40px;font-weight:700;color:var(--ink);white-space:nowrap}
+.pc-txt small{display:block;margin-top:4px;font-size:30px;font-weight:600;color:var(--ink-3)}
+.pc-txt small b{display:inline-block;border-radius:8px;padding:0 4px;margin:0 -4px;color:var(--accent-ink);font-weight:800}
+.pc-al{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.pc-al .k{font-size:23px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-3)}
+
+/* ---------- 4 et 5 · Les pièges : le mauvais ordre, l’oubli du ELSE ---------- */
+.mini.cs{font-size:32px;line-height:48px;padding:20px 30px}
+.mini .l{position:relative;display:block;height:48px;margin:0 -14px;padding:0 14px;border-radius:12px}
+.mini .mk{right:22px;width:44px;height:44px;font-size:26px}
+.mini .mk.l2{top:70px}
+.mini .mk.l3{top:118px}
+.mres{margin-top:20px;border-radius:24px;border:2px solid var(--line);overflow:hidden;opacity:0}
+.rgM{display:grid;grid-template-columns:1fr 110px 260px;padding:0 20px;align-items:center}
+.rgM>div:nth-child(2),.rgM>div:nth-child(3){text-align:right}
+.tr.tm{height:56px;font-size:28px}
+.tr.tm:first-child{box-shadow:none}
+.vv{display:inline-block;border-radius:8px;padding:0 6px;margin:0 -6px;font-weight:800}
+.vv.wr{color:var(--danger)}
+.vv.ok{color:var(--accent-ink)}
+.nul{display:inline-flex;align-items:center;height:40px;padding:0 14px;border-radius:12px;border:3px dashed #B9B2D6;color:#8C86AE;font-family:var(--mono);font-style:italic;font-size:24px;font-weight:700}
+.stk{display:grid;margin-top:24px}
+.stk>.out{grid-area:1/1;margin-top:0}
+.out.ok{background:#E7F7EE;border:3px solid #A7E3C0}
+.out.ok .oi{background:#34C27A;color:#fff}
+.out.ok .ot b{color:#1B7A45}
+
+/* ---------- 6 · Le résultat ---------- */
+.rgR{display:grid;grid-template-columns:1fr 120px 300px;padding:0 26px;align-items:center}
+.rgR>div:nth-child(2){text-align:right}
+.rgR>div:nth-child(3){text-align:right}
+.tr.tc{height:52px;font-size:28px}
+.av{display:inline-block;border-radius:8px;padding:0 6px;margin:0 -6px}
+.av.r{color:#C2323A}
+.av.o{color:#9A5B00}
+.av.g{color:#1B7A45}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Fonctions et expressions</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>C</span><span>A</span><span>S</span><span>E</span></div>
+    <div class="abs sub">Une valeur selon le cas</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec <span class="ic">CASE</span>, affiche une valeur selon une condition.</div>
+  </section>
+
+  <!-- 1 · Situation : le tableau de bord de l’entrepôt, alertes encore vides -->
+  <section class="scene" id="s1">
+    <div class="abs card dash" id="dash1" style="top:268px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Entrepôt · Tableau de bord</span></div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">📦</span><span class="nl">Le nom du produit</span><span class="tag">table produits</span></div>
+      <div class="need-row"><span class="emo">🔢</span><span class="nl">Son stock</span><span class="tag">table produits</span></div>
+      <div class="need-row"><span class="emo">🚦</span><span class="nl">Son alerte</span><span class="tag calc">à calculer</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : WHERE garde 2 produits et écarte les 6 autres -->
+  <section class="scene" id="s2">
+    <div class="abs code sm" id="s2code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s2l1"><span class="kw">SELECT</span> nom, stock<span class="caret"><i></i></span></span><span class="ln" id="s2l2"><span class="kw">FROM</span> produits<span class="caret"><i></i></span></span><span class="ln" id="s2l3"><span class="kw">WHERE</span> <span class="glow" id="wh2">stock &lt; 50</span>;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s2run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl2" style="top:712px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt2">2 lignes</span></span></div>
+      <div class="rgW th" id="th2"><div>nom</div><div>stock</div><div class="h3">alerte</div></div>
+      <div class="rows" id="rows2"><i class="gcol" id="gc2"></i><div class="rgW tr"><div>Protéine Végétale</div><div>45</div><div class="c3">?</div></div><div class="rgW tr"><div>Shaker Inox</div><div>30</div><div class="c3">?</div></div><div class="tr gh" id="gh2">✕ 6 autres produits écartés</div></div>
+    </div>
+  </section>
+
+  <!-- 3 · CASE en action : les conditions, de haut en bas -->
+  <section class="scene" id="s3">
+    <div class="abs code md" id="s3code" style="left:64px;top:360px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><i class="band" id="bd3"></i><i class="flow" id="fl3"></i><span class="ln" id="s3l1"><span class="kw" id="k3case">CASE</span><span class="caret"><i></i></span></span><span class="ln" id="s3l2">  <span class="kw k3w">WHEN</span> <span class="glow k3c"><span class="sw c" id="sw3a"><span class="a">stock</span><span class="b nv">90</span></span> &lt; 50</span> <span class="kw k3t">THEN</span> <span class="str glow k3v">'À commander'</span><span class="caret"><i></i></span></span><span class="ln" id="s3l3">  <span class="kw k3w">WHEN</span> <span class="glow k3c"><span class="sw c" id="sw3b"><span class="a">stock</span><span class="b nv">90</span></span> &lt; 100</span> <span class="kw k3t">THEN</span> <span class="str glow k3v" id="val3">'À surveiller'</span><span class="caret"><i></i></span></span><span class="ln" id="s3l4">  <span class="kw glow" id="k3else">ELSE</span> <span class="str">'OK'</span><span class="caret"><i></i></span></span><span class="ln" id="s3l5"><span class="kw glow" id="k3end">END</span><span class="caret"><i></i></span></span><i class="mk no l2" id="mk3a">✕</i><i class="mk yes l3" id="mk3b">✓</i><i class="mk skip l4" id="mk3c">–</i></div>
+    </div>
+    <div class="abs card pcard" id="pc3" style="top:820px">
+      <div class="pc-ico emo">📦</div>
+      <div class="pc-txt">Oméga 3<small><b id="sv3">90</b> en stock</small></div>
+      <div class="pc-al"><span class="k">Alerte</span><span class="sw" id="sw3c"><span class="a al q">?</span><span class="b al o">À surveiller</span></span></div>
+    </div>
+  </section>
+
+  <!-- 4 · L’ordre compte : stock < 100 testé avant stock < 50 -->
+  <section class="scene" id="s4">
+    <div class="abs card trap" id="trap4" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Dans le mauvais ordre</span></div>
+      <div class="mini cs" id="mini4"><span class="l"><span class="kw">CASE</span></span><span class="l" id="m4l2">  <span class="kw">WHEN</span> <span class="glow" id="c4a"><span class="sw c" id="sw4"><span class="a">stock</span><span class="b nv">30</span></span> &lt; 100</span> <span class="kw">THEN</span> <span class="str">'À surveiller'</span></span><span class="l" id="m4l3">  <span class="kw">WHEN</span> <span class="glow" id="c4b">stock &lt; 50</span> <span class="kw">THEN</span> <span class="str">'À commander'</span></span><span class="l">  <span class="kw">ELSE</span> <span class="str">'OK'</span></span><span class="l"><span class="kw">END</span></span><i class="mk yes l2" id="mk4a">✓</i><i class="mk skip l3" id="mk4b">–</i></div>
+      <div class="mres" id="mres4"><div class="rgM tr tm"><div>Protéine Végétale</div><div>45</div><div><span class="sw" id="sw4p"><span class="a vv">À surveiller</span><span class="b vv ok">À commander</span></span></div></div><div class="rgM tr tm"><div>Shaker Inox</div><div><span class="vv" id="n4">30</span></div><div><span class="sw" id="sw4s"><span class="a vv">À surveiller</span><span class="b vv ok">À commander</span></span></div></div></div>
+      <div class="stk"><div class="out err" id="err4"><span class="oi">✕</span><div class="ot"><b>Aucun produit « À commander »</b><span class="s">Sous 50, le stock est aussi sous 100.</span></div></div><div class="out ok" id="ok4"><span class="oi">✓</span><div class="ot"><b>2 produits à commander</b><span class="s">La condition stricte passe en premier.</span></div></div></div>
+    </div>
+  </section>
+
+  <!-- 5 · Sans ELSE : NULL pour les produits bien approvisionnés -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="trap5" style="top:300px">
+      <div class="trap-h"><span class="emo">🛟</span><span>Sans <span class="ic">ELSE</span></span></div>
+      <div class="mini cs" id="mini5"><span class="l"><span class="kw">CASE</span></span><span class="l">  <span class="kw">WHEN</span> <span class="glow" id="c5a"><span class="sw c" id="sw5a"><span class="a">stock</span><span class="b nv">500</span></span> &lt; 50</span> <span class="kw">THEN</span> <span class="str">'À commander'</span></span><span class="l">  <span class="kw">WHEN</span> <span class="glow" id="c5b"><span class="sw c" id="sw5b"><span class="a">stock</span><span class="b nv">500</span></span> &lt; 100</span> <span class="kw">THEN</span> <span class="str">'À surveiller'</span></span><span class="l"><span class="sw st" id="sw5e"><span class="a com">  -- pas de ELSE</span><span class="b">  <span class="kw">ELSE</span> <span class="str">'OK'</span></span></span></span><span class="l"><span class="kw">END</span></span><i class="mk no l2" id="mk5a">✕</i><i class="mk no l3" id="mk5b">✕</i></div>
+      <div class="mres" id="mres5"><div class="rgM tr tm"><div>Fibre Prébiotique</div><div>120</div><div><span class="sw"><span class="a"><span class="nul">NULL</span></span><span class="b vv ok">OK</span></span></div></div><div class="rgM tr tm" id="r5m"><div>Magnésium</div><div><span class="vv" id="n5">500</span></div><div><span class="sw"><span class="a"><span class="nul" id="nul5">NULL</span></span><span class="b vv ok">OK</span></span></div></div><div class="rgM tr tm"><div>Vitamine D</div><div>150</div><div><span class="sw"><span class="a"><span class="nul">NULL</span></span><span class="b vv ok">OK</span></span></div></div></div>
+      <div class="stk"><div class="out ok" id="ok5"><span class="oi">✓</span><div class="ot"><b>Chaque produit a son alerte</b><span class="s"><span class="ic">ELSE</span> couvre tous les autres cas.</span></div></div></div>
+    </div>
+  </section>
+
+  <!-- 6 · Le résultat -->
+  <section class="scene" id="s6">
+    <div class="abs code xs" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> nom, stock,<span class="caret"><i></i></span></span><span class="ln" id="s6l2">  <span class="kw">CASE</span><span class="caret"><i></i></span></span><span class="ln" id="s6l3">    <span class="kw">WHEN</span> stock &lt; 50 <span class="kw">THEN</span> <span class="str">'À commander'</span><span class="caret"><i></i></span></span><span class="ln" id="s6l4">    <span class="kw">WHEN</span> stock &lt; 100 <span class="kw">THEN</span> <span class="str">'À surveiller'</span><span class="caret"><i></i></span></span><span class="ln" id="s6l5">    <span class="kw">ELSE</span> <span class="str">'OK'</span><span class="caret"><i></i></span></span><span class="ln" id="s6l6">  <span class="kw">END</span> <span class="glow" id="as6"><span class="kw">AS</span> alerte</span><span class="caret"><i></i></span></span><span class="ln" id="s6l7"><span class="kw">FROM</span> produits;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6" style="top:900px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">8 lignes</span></span></div>
+      <div class="rgR th"><div>nom</div><div>stock</div><div>alerte</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card dash" id="dash6" style="top:268px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Entrepôt · Tableau de bord</span></div>
+    </div>
+    <div class="abs badge" id="badge6" style="top:1000px"><span>✓ 8 alertes à jour</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🔀</div><div class="rtxt"><span class="ic">CASE</span> choisit une valeur selon des <b>conditions</b>&nbsp;:<br><span class="ic blk">CASE WHEN … THEN … ELSE … END</span></div></div>
+      <div class="rrow"><div class="rico emo">⬇️</div><div class="rtxt">L’ordre compte&nbsp;: les <span class="ic">WHEN</span> sont testés <b>de haut en bas</b>, et la première condition vraie l’emporte.</div></div>
+      <div class="rrow"><div class="rico emo">🛟</div><div class="rtxt">Sans <span class="ic">ELSE</span>, une ligne qui ne remplit aucune condition reçoit <span class="ic">NULL</span>.</div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 148.0;
+
+/* Table produits : nom et stock des 8 produits ; l’alerte se calcule d’après le stock */
+const PRODUITS = [['Fibre Prébiotique', 120], ['Collagène Marin', 80], ['Magnésium', 500], ['Vitamine D', 150],
+  ['Tisane Détox', 60], ['Protéine Végétale', 45], ['Oméga 3', 90], ['Shaker Inox', 30]];
+const ALERTE = s => s < 50 ? 'r' : s < 100 ? 'o' : 'g';
+const LIB = {r: 'À commander', o: 'À surveiller', g: 'OK'};
+const DASH = [0, 2, 6, 7];   // produits affichés sur le tableau de bord : Fibre Prébiotique, Magnésium, Oméga 3, Shaker Inox
+
+const CHAPTERS = [
+  {n:1, label:'Situation',       a:5.0,   b:26.3},
+  {n:2, label:'Le problème',     a:26.3,  b:47.3},
+  {n:3, label:'CASE en action',  a:47.3,  b:79.8},
+  {n:4, label:'L’ordre compte',  a:79.8,  b:102.4},
+  {n:5, label:'Sans ELSE',       a:102.4, b:119.6},
+  {n:6, label:'Le résultat',     a:119.6, b:135.2},
+  {n:7, label:'À retenir',       a:135.2, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 10.7,    "Le <b>tableau de bord</b> de l’entrepôt doit afficher une alerte pour chaque produit."],
+  [10.8, 16.1,   "Moins de 50 en stock : <b>À commander</b>. Moins de 100 : <b>À surveiller</b>. Sinon : <b>OK</b>."],
+  [16.2, 21.1,   "Le nom et le stock des <b>8 produits</b> se trouvent dans la <b>table produits</b>."],
+  [21.2, 25.9,   "L’alerte, elle, n’est enregistrée nulle part : il faut la <b>calculer</b>."],
+  [26.6, 31.8,   "Premier essai : garder les produits à commander, avec <code>WHERE stock &lt; 50</code>."],
+  [31.9, 36.6,   "Résultat : <b>2 lignes</b> seulement. Les 6 autres produits sont écartés."],
+  [36.7, 41.9,   "Or le tableau de bord doit afficher les <b>8 produits</b>, chacun avec son alerte."],
+  [42.0, 46.9,   "Il ne faut pas retirer de lignes, mais <b>ajouter une colonne</b> : l’alerte."],
+  [47.6, 52.2,   "C’est le rôle de <code>CASE</code> : choisir une valeur selon des <b>conditions</b>."],
+  [52.3, 57.4,   "<code>WHEN</code> donne la condition, <code>THEN</code> la valeur à afficher si elle est vraie."],
+  [57.5, 62.2,   "<code>ELSE</code> donne la valeur de tous les autres cas, et <code>END</code> ferme le <code>CASE</code>."],
+  [62.3, 66.5,   "Prenons l’Oméga 3, avec 90 en stock : <code>90 &lt; 50</code> est faux."],
+  [66.6, 72.7,   "Ensuite, <code>90 &lt; 100</code> est vrai : c’est la <b>première condition vraie</b>. L’alerte vaut « À surveiller »."],
+  [72.8, 79.4,   "Les conditions sont testées une à une, <b>de haut en bas</b> : après la première vraie, la suite est ignorée."],
+  [80.1, 85.1,   "Attention à l’<b>ordre</b> : dans ce <code>CASE</code>, <code>stock &lt; 100</code> est testé en premier."],
+  [85.2, 90.7,   "Le Shaker Inox a 30 en stock : <code>30 &lt; 100</code> est vrai, il reçoit « À surveiller »."],
+  [90.8, 96.7,   "La condition <code>stock &lt; 50</code> n’est jamais atteinte : plus aucun produit n’est « À commander »."],
+  [96.8, 102.0,  "La condition la plus stricte doit venir <b>en premier</b> : d’abord <code>stock &lt; 50</code>."],
+  [102.7, 107.6, "Et sans <code>ELSE</code> ? Un produit qui ne remplit <b>aucune condition</b> reçoit <code>NULL</code>."],
+  [107.7, 113.2, "Le Magnésium a 500 en stock : aucune condition n’est vraie. Résultat : <code>NULL</code>."],
+  [113.3, 119.2, "Avec <code>ELSE 'OK'</code>, tous les autres cas reçoivent une valeur : les 3 produits passent à « OK »."],
+  [119.9, 124.3, "La requête complète ajoute la colonne <b>alerte</b>, nommée avec <code>AS</code>."],
+  [124.4, 129.5, "Résultat : <b>8 lignes</b>, dont 2 produits à commander, 3 à surveiller et 3 OK."],
+  [129.6, 134.8, "Les alertes s’affichent sur le tableau de bord, sans modifier la <b>table produits</b>."],
+  [135.5, 140.3, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [140.4, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [140.4, 999, "Avec <code>CASE</code>, chaque ligne reçoit la valeur de sa première condition vraie."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+function dom(){
+  const legend = `<div class="legend">${['r', 'o', 'g'].map((k, i) =>
+    `<div class="lg"><span class="al ${k}">${LIB[k]}</span><span class="lgt">${['moins de 50', 'moins de 100', 'sinon'][i]}</span></div>`).join('')}</div>`;
+  const rows = DASH.map(i => { const [n, s] = PRODUITS[i], k = ALERTE(s);
+    return `<div class="dg dr"><span>${n}</span><span class="st">${s}</span><span class="sw"><span class="a al q">?</span><span class="b al ${k}">${LIB[k]}</span></span></div>`; }).join('');
+  ['#dash1', '#dash6'].forEach(id => $(id).insertAdjacentHTML('beforeend',
+    legend + '<div class="dg dh"><span>Produit</span><span>Stock</span><span>Alerte</span></div>' + rows + `<div class="dgh">+ ${PRODUITS.length - DASH.length} autres produits</div>`));
+  $('#rows6').innerHTML = PRODUITS.map(([n, s]) => { const k = ALERTE(s);
+    return `<div class="rgR tr tc"><div>${n}</div><div>${s}</div><div><span class="av ${k}">${LIB[k]}</span></div></div>`; }).join('');
+}
+
+/* Une case se retourne : la valeur de départ laisse place à l’autre (back = true : retour à la valeur de départ). */
+function flip(sw, t, sound = true, back = false){
+  tl.to(sw, {scaleY: 0, duration: 0.12, ease: 'power2.in'}, t);
+  tl.set(sw.querySelector('.a'), {opacity: back ? 1 : 0}, t + 0.12);
+  tl.set(sw.querySelector('.b'), {opacity: back ? 0 : 1}, t + 0.12);
+  tl.to(sw, {scaleY: 1, duration: 0.22, ease: 'back.out(2)'}, t + 0.12);
+  if (sound) cue(t + 0.12, 'tick', 0.5, 3);
+}
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+/* Une marque ✓ / ✕ / – au bout d’une ligne de code */
+function mark(sel, t, sound){
+  show(sel, t, {y: 0, scale: 0.4}, 0.35, 'back.out(2.4)');
+  if (sound) cue(t, sound, 0.7, 2);
+}
+
+function build(){
+  introScene();
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  gsap.set('#dash1', {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to('#dash1', {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, 5.15);
+  cue(5.15, 'whoosh', 0.8);
+  const d1 = $$('#dash1 .dh, #dash1 .dr, #dash1 .dgh');
+  gsap.set(d1, {autoAlpha: 0, x: -30});
+  tl.to(d1, {autoAlpha: 1, x: 0, duration: 0.4, ease: 'power3.out', stagger: 0.09}, 5.9);
+  d1.forEach((_, i) => cue(5.9 + i * 0.09, 'tick', 0.4, i % 5));
+  // Les alertes, encore vides
+  bump('#dash1 .al.q', 7.6, 1.14);
+  cue(7.6, 'pop', 0.6, 1);
+  // Les trois règles, au fil de la légende
+  $$('#dash1 .lg').forEach((el, i) => {
+    const t = [11.0, 12.9, 14.6][i];
+    show(el, t, {y: 0, scale: 0.6}, 0.45, 'back.out(2)');
+    cue(t, 'pop', 0.75, i * 2);
+  });
+  // Les informations à récupérer
+  stackBelow('#s1 .need', '#dash1');   // la liste se cale sous le tableau de bord, sans le toucher
+  show('#s1 .need', 16.4, {y: 60});
+  cue(16.4, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.22}, 16.55);
+  needRows.forEach((_, i) => cue(16.55 + i * 0.22, 'pop', 0.7, i));
+  bump($$('#s1 .tag').slice(0, 2), 18.6, 1.08);
+  // L’alerte : à calculer
+  bump('#s1 .tag.calc', 22.6, 1.12, 3);
+  cue(22.6, 'pop', 0.75, 4);
+  bump('#dash1 .al.q', 23.6, 1.14);
+  hide(['#dash1', '#s1 .need'], 25.8);
+  sceneOff('#s1', 26.3);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 26.3);
+  show('#s2code', 26.35, {y: 60}, 0.6);
+  cue(26.35, 'whoosh', 0.7);
+  te = typeLine($('#s2l1'), 26.85, 30);
+  te = typeLine($('#s2l2'), te + 0.1, 30);
+  te = typeLine($('#s2l3'), te + 0.1, 30);
+  pulse('#wh2', 29.2);
+  press($('#s2run'), 30.6);
+  show('#tbl2', 30.85, {y: 40}, 0.5);
+  const tr2 = $$('#rows2 .tr:not(.gh)');
+  gsap.set(tr2, {autoAlpha: 0, y: 14});
+  tl.to(tr2, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.08}, 31.0);
+  tr2.forEach((_, i) => cue(31.0 + i * 0.08, 'tick', 0.45, i));
+  show('#cnt2', 31.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // Les 6 autres produits : écartés
+  show('#gh2', 33.6, {y: 10}, 0.4);
+  cue(33.6, 'miss', 0.6);
+  // Le tableau de bord en attend 8
+  tl.to('#gh2', {borderColor: '#F6C9CD', backgroundColor: '#FDEBEC', color: '#C2323A', duration: 0.3}, 37.6);
+  tl.to('#gh2', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 37.65);
+  cue(37.6, 'error', 0.8);
+  // Il manque une colonne : l’alerte
+  const r2 = rel($('#th2 .h3'), $('#rows2')), rws = $$('#rows2 .tr:not(.gh)');
+  const bottom = rel(rws[rws.length - 1], $('#rows2'));
+  gsap.set('#gc2', {left: (r2.x + 6) + 'px', width: (r2.w - 12) + 'px', top: (r2.y + 4) + 'px', height: (bottom.y + bottom.h - r2.y - 8) + 'px', scaleY: 0});
+  tl.to('#gc2', {opacity: 1, scaleY: 1, duration: 0.45, ease: 'expo.out'}, 42.6);
+  show(['#th2 .h3', '#rows2 .c3'], 42.85, {y: 0, scale: 0.6}, 0.35, 'back.out(2)');
+  cue(42.6, 'pop', 0.8, 3);
+  bump('#rows2 .c3', 44.6, 1.3);
+  hide(['#s2code', '#tbl2'], 46.8, {y: -40}, 0.4);
+  sceneOff('#s2', 47.3);
+
+  /* ===== 3 · CASE en action ===== */
+  sceneOn('#s3', 47.3);
+  show('#s3code', 47.35, {y: 60}, 0.6);
+  cue(47.35, 'whoosh', 0.7);
+  te = typeLine($('#s3l1'), 47.95, 24);
+  pulse('#k3case', 48.6, 3, 'rgba(201,188,255,.3)');
+  // WHEN : la condition ; THEN : la valeur
+  te = typeLine($('#s3l2'), 52.6, 30);
+  te = typeLine($('#s3l3'), te + 0.1, 30);
+  pulse('.k3c', 55.4, 3, 'rgba(201,188,255,.3)');
+  pulse('.k3v', 56.4, 3, 'rgba(255,224,138,.25)');
+  // ELSE, puis END
+  te = typeLine($('#s3l4'), 57.7, 30);
+  pulse('#k3else', 58.2, 3, 'rgba(201,188,255,.3)');
+  te = typeLine($('#s3l5'), 59.9, 24);
+  pulse('#k3end', 60.4, 3, 'rgba(201,188,255,.3)');
+  // L’Oméga 3 : 90 en stock
+  show('#pc3', 62.4, {y: 40});
+  cue(62.4, 'whoosh', 0.6);
+  pulse('#sv3', 63.3, 3, 'rgba(201,188,255,.45)');
+  tl.to('#bd3', {scaleX: 1, duration: 0.45, ease: 'expo.out'}, 64.4);
+  flip($('#sw3a'), 64.7);
+  mark('#mk3a', 65.5, 'miss');
+  // 90 < 100 : la première condition vraie
+  tl.to('#bd3', {y: 56, duration: 0.4, ease: 'power2.inOut'}, 66.8);
+  flip($('#sw3b'), 67.1);
+  mark('#mk3b', 68.3, 'success');
+  pulse('#val3', 70.4, 3, 'rgba(255,224,138,.3)');
+  flip($('#sw3c'), 71.2, false);
+  cue(71.3, 'chord', 0.6);
+  // Une à une, de haut en bas : la suite n’est plus testée
+  tl.to('#bd3', {opacity: 0, duration: 0.3}, 72.9);
+  tl.to('#fl3', {opacity: 1, scaleY: 1, duration: 1.0, ease: 'power2.inOut'}, 74.4);
+  cue(74.4, 'whoosh', 0.45);
+  tl.to('#s3l4', {opacity: 0.3, duration: 0.4}, 77.0);
+  mark('#mk3c', 77.5, 'miss');
+  hide(['#s3code', '#pc3'], 79.3, {y: -40}, 0.4);
+  sceneOff('#s3', 79.8);
+
+  /* ===== 4 · L’ordre compte ===== */
+  sceneOn('#s4', 79.8);
+  show('#trap4', 79.85, {y: 50});
+  cue(79.85, 'whoosh', 0.6);
+  pulse('#c4a', 81.6, 3, 'rgba(201,188,255,.3)');
+  cue(81.6, 'pop', 0.6, 2);
+  // Le Shaker Inox : 30 < 100 est vrai
+  show('#mres4', 85.4, {y: 16}, 0.4);
+  const tm4 = $$('#mres4 .tr');
+  gsap.set(tm4, {autoAlpha: 0, y: 12});
+  tl.to(tm4, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.1}, 85.5);
+  tm4.forEach((_, i) => cue(85.5 + i * 0.1, 'tick', 0.45, i));
+  pulse('#n4', 86.4, 3, 'rgba(201,188,255,.45)');
+  flip($('#sw4'), 87.2);
+  mark('#mk4a', 87.9, 'pop');
+  tl.to('#mres4 .sw .a', {color: '#C2323A', backgroundColor: '#FDEBEC', duration: 0.3, stagger: 0.12}, 89.0);
+  cue(89.0, 'miss', 0.7);
+  // stock < 50 n’est jamais atteinte
+  tl.to('#m4l3', {opacity: 0.35, duration: 0.4}, 91.4);
+  mark('#mk4b', 91.8, 'miss');
+  show('#err4', 92.6, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  tl.to('#err4', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 93.0);
+  cue(92.6, 'error', 0.85);
+  // La condition la plus stricte en premier : les deux lignes échangent leur place (celle qui monte passe devant)
+  flip($('#sw4'), 96.9, false, true);
+  tl.to(['#mk4a', '#mk4b'], {autoAlpha: 0, duration: 0.25}, 96.9);
+  tl.to('#m4l3', {opacity: 1, duration: 0.3}, 97.1);
+  tl.set('#m4l3', {zIndex: 2}, 97.3);
+  tl.to('#m4l3', {backgroundColor: '#3A3366', boxShadow: '0 8px 18px rgba(0,0,0,.45)', scale: 1.02, duration: 0.2}, 97.3);
+  tl.to('#m4l3', {y: -48, duration: 0.6, ease: 'power2.inOut'}, 97.45);
+  tl.to('#m4l2', {y: 48, duration: 0.6, ease: 'power2.inOut'}, 97.45);
+  tl.to('#m4l3', {backgroundColor: 'rgba(58,51,102,0)', boxShadow: '0 0px 0px rgba(0,0,0,0)', scale: 1, duration: 0.25}, 98.1);
+  tl.set('#m4l3', {zIndex: 'auto'}, 98.4);
+  cue(97.45, 'whoosh', 0.6);
+  hide('#err4', 98.4, {y: 0, scale: 0.92}, 0.3);
+  show('#ok4', 98.7, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  flip($('#sw4p'), 98.9, false);
+  flip($('#sw4s'), 99.1, false);
+  cue(98.9, 'success', 0.8);
+  hide('#trap4', 101.9);
+  sceneOff('#s4', 102.4);
+
+  /* ===== 5 · Sans ELSE ===== */
+  sceneOn('#s5', 102.4);
+  show('#trap5', 102.45, {y: 50});
+  cue(102.45, 'whoosh', 0.6);
+  show('#mres5', 104.4, {y: 16}, 0.4);
+  const tm5 = $$('#mres5 .tr');
+  gsap.set(tm5, {autoAlpha: 0, y: 12});
+  tl.to(tm5, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.1}, 104.5);
+  tm5.forEach((_, i) => cue(104.5 + i * 0.1, 'tick', 0.45, i));
+  bump('#mres5 .nul', 105.6, 1.12, 3);
+  cue(105.6, 'miss', 0.6);
+  // Le Magnésium : aucune condition n’est vraie
+  tl.to('#r5m', {backgroundColor: '#F4F1FD', duration: 0.3}, 108.2);
+  pulse('#n5', 108.6, 3, 'rgba(201,188,255,.45)');
+  flip($('#sw5a'), 109.6);
+  mark('#mk5a', 110.1, 'miss');
+  flip($('#sw5b'), 110.6);
+  mark('#mk5b', 111.1, 'miss');
+  bump('#nul5', 111.9, 1.15, 3);
+  // ELSE 'OK' : tous les autres cas
+  tl.to(['#mk5a', '#mk5b'], {autoAlpha: 0, duration: 0.25}, 113.5);
+  flip($('#sw5a'), 113.5, false, true);
+  flip($('#sw5b'), 113.5, false, true);
+  tl.to('#r5m', {backgroundColor: 'rgba(244,241,253,0)', duration: 0.3}, 113.5);
+  flip($('#sw5e'), 114.0);
+  cue(114.1, 'pop', 0.8, 4);
+  $$('#mres5 .tr .sw').forEach((sw, i) => flip(sw, 115.2 + i * 0.22, false));
+  cue(115.3, 'success', 0.8);
+  show('#ok5', 116.3, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  cue(116.3, 'pop', 0.7, 5);
+  hide('#trap5', 119.1);
+  sceneOff('#s5', 119.6);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 119.6);
+  show('#s6code', 119.65, {y: 60}, 0.6);
+  cue(119.65, 'whoosh', 0.7);
+  te = 120.1;
+  for (let i = 1; i <= 7; i++) te = typeLine($('#s6l' + i), i === 1 ? te : te + 0.08, 40);
+  pulse('#as6', 123.8, 3, 'rgba(201,188,255,.3)');
+  press($('#s6run'), 124.5);
+  show('#tbl6', 124.75, {y: 40}, 0.5);
+  const tr6 = $$('#rows6 .tr');
+  gsap.set(tr6, {autoAlpha: 0, y: 14});
+  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.06}, 124.9);
+  tr6.forEach((_, i) => cue(124.9 + i * 0.06, 'tick', 0.45, i % 5));
+  show('#cnt6', 125.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // 2 à commander, 3 à surveiller, 3 OK
+  [['r', 126.0, 'rgba(239,79,85,.16)'], ['o', 127.2, 'rgba(245,158,11,.18)'], ['g', 128.1, 'rgba(52,194,122,.18)']]
+    .forEach(([k, t, c], i) => { pulse('#rows6 .av.' + k, t, 3, c); cue(t, 'pop', 0.65, i * 2); });
+  hide(['#s6code', '#tbl6'], 129.5, {y: -40}, 0.4);
+  // Le tableau de bord, alertes à jour
+  show('#dash6', 129.9, {y: 50});
+  cue(129.9, 'whoosh', 0.7);
+  $$('#dash6 .dr .sw').forEach((sw, i) => flip(sw, 130.6 + i * 0.22, true));
+  stackBelow('#badge6', '#dash6', 0, 50);
+  show('#badge6', 131.9, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(131.9, 'chord', 0.7);
+  hide(['#dash6', '#badge6'], 134.7);
+  sceneOff('#s6', 135.2);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(135.2, [135.9, 137.7, 139.5]);
+  hold(137.5, 2.9);
+  hold(139.3, 2.9);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(140.45, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 140.4,
+  glyphs: '📦🔢🚦🔎⚠️🛟🔀⬇️✓✕–·…', dom, build});
+</script>
+</body>
+</html>
