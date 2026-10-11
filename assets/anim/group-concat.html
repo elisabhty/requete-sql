@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<title>Requête · GROUP_CONCAT en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:116px;top:452px;letter-spacing:-2px}
+#s0 .hilite{top:522px;height:40px}
+#s0 .sub{top:620px;font-size:66px}
+#s0 .bubble{left:514px;width:532px}
+#s1 .need-row .nl{font-size:38px;white-space:nowrap}
+.tag.calc{background:#FFF4E5;color:#9A5B00}
+.nw{white-space:nowrap}
+
+/* Code : trois ou quatre lignes (chapitres 2, 3 et 6) */
+.code.sm .body{font-size:32px;line-height:52px;padding:28px 36px}
+.code.sm .ln{height:52px}
+.code.sm .caret i{top:-38px;height:44px}
+.hw{border-radius:8px;padding:0 4px;margin:0 -4px}
+
+/* Une valeur et sa version suivante, l’une sur l’autre : la case se retourne de l’une à l’autre */
+.sw{display:inline-grid;justify-items:start}
+.sw>span{grid-area:1/1}
+.sw .b{opacity:0}
+
+/* Une couleur par statut */
+.st-prep{--c:#F2994A;--cs:#FFF4E5;--ci:#9A5B00}
+.st-exp{--c:#22A06B;--cs:#E7F7EE;--ci:#1B7A45}
+
+/* ---------- Le tableau de bord de l’entrepôt (chapitres 1 et 6) ---------- */
+.dash{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{height:76px;display:flex;align-items:center;gap:14px;padding:0 34px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar span{margin-left:12px}
+.dr{display:grid;grid-template-columns:96px 1fr auto;column-gap:24px;row-gap:18px;align-items:center;padding:24px 34px}
+.dr+.dr{box-shadow:inset 0 2px 0 var(--line-2)}
+.di{width:96px;height:96px;border-radius:26px;background:var(--cs);display:flex;align-items:center;justify-content:center;font-size:50px}
+.dl{font-size:38px;font-weight:750;color:var(--ink);white-space:nowrap}
+.dl small{display:block;margin-top:6px;font-family:var(--mono);font-size:26px;font-weight:700;color:var(--ci)}
+.dn{height:54px;padding:0 22px;border-radius:999px;background:var(--cs);color:var(--ci);font-size:28px;font-weight:700;display:flex;align-items:center;white-space:nowrap;opacity:0}
+.dv{grid-column:1/-1;height:76px;border-radius:22px;border:3px dashed #C9BCFF;background:#fff;display:flex;align-items:center;justify-content:center;padding:0 26px;font-family:var(--mono);font-size:32px;font-weight:800;color:#B4ACD6;white-space:nowrap}
+.dv .sw{justify-items:center}
+.dv .b{color:var(--accent-ink)}
+
+/* ---------- Tableaux de résultat ---------- */
+.rgN{display:grid;grid-template-columns:1fr 300px;padding:0 26px;align-items:center}
+.rgN>div:nth-child(2){text-align:right}
+.rgL{display:grid;grid-template-columns:290px 1fr;padding:0 26px;align-items:center}
+.tr.tv{height:60px;font-size:32px}
+.tr.tl{height:60px;font-size:29px}
+.vv{display:inline-block;border-radius:10px;padding:0 8px;margin:0 -8px}
+
+/* ---------- 2 · Le problème ---------- */
+.goal{left:64px;width:952px;height:96px;border-radius:32px;background:#E7F7EE;border:3px solid #BFE8D0;display:flex;align-items:center;justify-content:center;gap:14px;font-size:34px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.goal .emo{font-size:36px}
+
+/* ---------- 3 · GROUP_CONCAT en action : les valeurs d’un groupe se rejoignent dans une cellule ---------- */
+#grp3{left:64px;width:952px;height:420px}
+.g3t{position:absolute;left:0;top:0;height:48px;display:flex;align-items:center;gap:12px;font-size:32px;font-weight:700;color:var(--accent-ink);white-space:nowrap}
+.gk{position:absolute;left:0;width:952px;height:160px;border-radius:28px;background:#fff;border:3px solid var(--line);box-shadow:0 7px 0 var(--lip)}
+.gk .bh{position:absolute;left:26px;top:14px;height:44px;display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:27px;font-weight:800;color:var(--ci);white-space:nowrap}
+.gk .bh i{width:16px;height:16px;border-radius:50%;background:var(--c)}
+.gk .bc{position:absolute;right:26px;top:14px;height:44px;padding:0 18px;border-radius:999px;background:var(--cs);color:var(--ci);font-size:24px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.ids{position:absolute;left:26px;right:26px;top:72px;height:64px}
+.idc{position:absolute;top:0;width:60px;height:64px;border-radius:16px;background:var(--cs);color:var(--ci);font-family:var(--mono);font-size:30px;font-weight:800;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.sep{position:absolute;top:0;height:64px;display:flex;align-items:center;font-family:var(--mono);font-size:30px;font-weight:800;color:var(--accent);opacity:0}
+.cell{position:absolute;left:26px;top:72px;height:64px;padding:0 22px;border-radius:16px;background:var(--accent-soft);border:3px solid #C9BCFF;display:flex;align-items:center;font-family:var(--mono);font-size:30px;font-weight:800;color:var(--accent-ink);white-space:pre;opacity:0}
+
+/* ---------- 4 · Le séparateur, puis les valeurs NULL ---------- */
+.sepc{left:64px;width:952px;padding:0 0 12px}
+.sepc .tt{height:92px;display:flex;align-items:center;gap:16px;padding:0 36px;font-weight:700;font-size:36px;color:var(--ink)}
+.sepc .tt .emo{font-size:40px}
+.sr{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:20px 36px;box-shadow:inset 0 2px 0 var(--line-2)}
+.dc{height:58px;padding:0 20px;border-radius:16px;background:var(--code-bg);box-shadow:0 5px 0 #110E27;color:var(--code-ink);font-family:var(--mono);font-size:30px;font-weight:600;display:inline-flex;align-items:center;white-space:pre}
+.so{height:48px;display:flex;align-items:center;gap:16px;font-family:var(--mono);font-size:34px;font-weight:700;color:var(--accent-ink);white-space:pre}
+.so .ar{font-family:var(--ui);font-weight:800;color:var(--ink-3)}
+.snote{height:46px;padding:0 16px;border-radius:999px;background:#FFF4E5;color:#9A5B00;font-family:var(--ui);font-size:24px;font-weight:700;display:flex;align-items:center;white-space:nowrap;opacity:0}
+.vals{display:flex;justify-content:center;gap:10px;margin-top:26px}
+.vc{position:relative;width:164px;height:118px;border-radius:24px;border:3px solid var(--line);background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.vc small{font-size:21px;font-weight:700;color:var(--ink-3);white-space:nowrap}
+.vc b{font-family:var(--mono);font-size:40px;font-weight:800;color:var(--accent-ink)}
+.vc.nul b{font-size:34px;color:#C2323A}
+.vc .ig{position:absolute;left:50%;bottom:-20px;height:38px;margin-left:-56px;width:112px;border-radius:999px;background:#FDEBEC;color:#C2323A;font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center;opacity:0}
+.res4{margin-top:34px;height:96px;border-radius:26px;background:var(--surface-2);border:3px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:40px;font-weight:800;color:var(--accent-ink)}
+.res4 .sw{justify-items:center}
+.res4 .a{color:#B4ACD6}
+
+/* ---------- 5 · Le piège : ORDER BY à la fin, puis dans la fonction ---------- */
+.mres{position:relative;margin-top:24px;height:124px;border-radius:24px;background:var(--surface-2);overflow:hidden}
+.mres::after{content:"";position:absolute;left:0;right:0;top:61px;height:2px;background:var(--line-2)}
+.mr{position:absolute;left:0;right:0;top:0;height:62px;display:grid;grid-template-columns:250px 1fr 40px;align-items:center;padding:0 24px;font-family:var(--mono);font-size:26px;font-weight:700;color:var(--ink);white-space:nowrap;z-index:1}
+.mr .st{color:var(--ci)}
+.mr .lv{justify-self:start}
+.mr .x{color:#C2323A;font-family:var(--ui);font-size:30px;font-weight:800;opacity:0}
+.mini.one{font-size:30px;padding-right:120px}
+.res5{margin-top:24px;height:84px;border-radius:24px;background:var(--surface-2);display:flex;align-items:center;gap:22px;padding:0 24px;font-family:var(--mono);font-size:30px;font-weight:800}
+.res5 .st{color:var(--ci)}
+.res5 .lst{margin-left:auto;height:60px;padding:0 20px;border-radius:16px;background:#fff;border:3px solid #C9BCFF;color:var(--accent-ink);display:flex;align-items:center;white-space:pre}
+
+/* ---------- 7 · À retenir ---------- */
+.rtxt .blk.sm{font-size:.7em}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Agrégats et regroupements</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>G</span><span>R</span><span>O</span><span>U</span><span>P</span><span>_</span><span>C</span><span>O</span><span>N</span><span>C</span><span>A</span><span>T</span></div>
+    <div class="abs sub">Une liste par groupe</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec <span class="ic">GROUP_CONCAT</span>, liste les valeurs de chaque groupe.</div>
+  </section>
+
+  <!-- 1 · Situation : le tableau de bord de l’entrepôt, un « ? » par statut -->
+  <section class="scene" id="s1">
+    <div class="abs card dash" id="db1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Entrepôt · Suivi des commandes</span></div>
+      <div class="dr st-prep"><span class="di emo">📦</span><span class="dl">En préparation<small>statut&nbsp;: en_preparation</small></span><span class="dn">5 commandes</span><span class="dv"><span class="sw"><span class="a">?</span><span class="b">12, 13, 14, 15, 16</span></span></span></div>
+      <div class="dr st-exp"><span class="di emo">🚚</span><span class="dl">Expédiée<small>statut&nbsp;: expédiée</small></span><span class="dn">11 commandes</span><span class="dv"><span class="sw"><span class="a">?</span><span class="b">1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11</span></span></span></div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">🏷️</span><span class="nl">Le statut</span><span class="tag">table commandes</span></div>
+      <div class="need-row"><span class="emo">📋</span><span class="nl">La liste de ses commandes</span><span class="tag calc">à calculer</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : COUNT(*) donne des nombres, pas les commandes -->
+  <section class="scene" id="s2">
+    <div class="abs code sm" id="s2code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s2l1"><span class="kw">SELECT</span> statut, <span class="kw">COUNT</span>(*)<span class="caret"><i></i></span></span><span class="ln" id="s2l2"><span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="s2l3"><span class="kw">GROUP BY</span> statut;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s2run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl2" style="top:716px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt2">2 lignes</span></span></div>
+      <div class="rgN th"><div>statut</div><div>COUNT(*)</div></div>
+      <div class="rows" id="rows2"></div>
+    </div>
+    <div class="abs goal" id="goal2"><span class="emo">🎯</span>Lister les commandes de chaque statut</div>
+  </section>
+
+  <!-- 3 · GROUP_CONCAT en action : les valeurs de chaque groupe se rejoignent dans une cellule -->
+  <section class="scene" id="s3">
+    <div class="abs code sm" id="s3code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s3l1"><span class="kw">SELECT</span> statut,<span class="caret"><i></i></span></span><span class="ln" id="s3l2">       <span class="glow" id="gc3"><span class="kw">GROUP_CONCAT</span>(<span class="hw" id="ci3">id</span>, <span class="str hw" id="cs3">', '</span>)</span><span class="caret"><i></i></span></span><span class="ln" id="s3l3"><span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="s3l4"><span class="kw">GROUP BY</span> statut;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s3run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="abs" id="grp3" style="top:780px">
+      <div class="g3t"><span class="sw" id="sw3"><span class="a"><span class="emo">🧺</span>&nbsp;2 groupes, un par statut</span><span class="b"><span class="emo">🧵</span>&nbsp;Une seule cellule par groupe</span></span></div>
+    </div>
+    <div class="tbl card" id="tbl3" style="top:780px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt3">2 lignes</span></span></div>
+      <div class="rgL th"><div>statut</div><div>GROUP_CONCAT(id, ', ')</div></div>
+      <div class="rows" id="rows3"></div>
+    </div>
+  </section>
+
+  <!-- 4 · Le séparateur, puis les valeurs NULL -->
+  <section class="scene" id="s4">
+    <div class="abs card sepc" id="sep4" style="top:300px">
+      <div class="tt"><span class="emo">✂️</span><span>Le séparateur, après la colonne</span></div>
+      <div class="sr"><span class="dc"><span class="kw">GROUP_CONCAT</span>(id, <span class="str">', '</span>)</span><span class="so"><span class="ar">→</span>12, 13, 14, 15, 16</span></div>
+      <div class="sr"><span class="dc"><span class="kw">GROUP_CONCAT</span>(id)</span><span class="so"><span class="ar">→</span><span class="vv" id="so4">12,13,14,15,16</span><span class="snote" id="sn4">une virgule seule</span></span></div>
+      <div class="sr"><span class="dc"><span class="kw">GROUP_CONCAT</span>(id, <span class="str hw" id="sl4">' / '</span>)</span><span class="so"><span class="ar">→</span>12 / 13 / 14 / 15 / 16</span></div>
+    </div>
+    <div class="abs card trap" id="nul4" style="top:300px">
+      <div class="trap-h"><span class="emo">👤</span><span>Les clients des commandes en préparation</span></div>
+      <div class="mini"><span class="kw">GROUP_CONCAT</span>(client_id, <span class="str">', '</span>)</div>
+      <div class="vals"><span class="vc"><small>commande 12</small><b>4</b></span><span class="vc"><small>commande 13</small><b>1</b></span><span class="vc"><small>commande 14</small><b>3</b></span><span class="vc"><small>commande 15</small><b>5</b></span><span class="vc nul" id="vn4"><small>commande 16</small><b>NULL</b><span class="ig" id="ig4">ignoré</span></span></div>
+      <div class="res4" id="res4"><span class="sw" id="sw4"><span class="a">?</span><span class="b">4, 1, 3, 5</span></span></div>
+    </div>
+  </section>
+
+  <!-- 5 · Le piège : ORDER BY à la fin trie les lignes, pas les cellules -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="trap5" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span><span class="ic">ORDER BY</span> à la fin&nbsp;?</span></div>
+      <div class="mini"><span class="kw">SELECT</span> statut,
+       <span class="kw">GROUP_CONCAT</span>(id, <span class="str">', '</span>)
+<span class="kw">FROM</span> commandes
+<span class="kw">GROUP BY</span> statut
+<span class="glow" id="ob5"><span class="kw">ORDER BY</span> statut <span class="kw">DESC</span></span>;<span class="go" id="go5"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+      <div class="mres"><div class="mr st-prep" id="mr5a"><span class="st">en_preparation</span><span class="lv vv" id="lv5">12, 13, 14, 15, 16</span><span class="x" id="x5">✕</span></div><div class="mr st-exp" id="mr5b" style="top:62px"><span class="st">expédiée</span><span class="lv">1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11</span><span class="x"></span></div></div>
+    </div>
+    <div class="abs card trap" id="fix5">
+      <div class="trap-h"><span class="emo">✓</span><span><span class="ic">ORDER BY</span> dans la fonction</span></div>
+      <div class="mini one"><span class="kw">GROUP_CONCAT</span>(id, <span class="str">', '</span> <span class="glow" id="ob5b"><span class="kw">ORDER BY</span> id <span class="kw">DESC</span></span>)<span class="go" id="go5b"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+      <div class="res5 st-prep"><span class="st">en_preparation</span><span class="lst"><span class="sw" id="sw5"><span class="a">12, 13, 14, 15, 16</span><span class="b">16, 15, 14, 13, 12</span></span></span></div>
+    </div>
+  </section>
+
+  <!-- 6 · Le résultat : la requête complète, puis le tableau de bord rempli -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> statut,<span class="caret"><i></i></span></span><span class="ln" id="s6l2">       <span class="kw">GROUP_CONCAT</span>(id, <span class="str">', '</span>) <span class="glow" id="as6"><span class="kw">AS</span> commandes</span><span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="s6l4"><span class="kw">GROUP BY</span> statut;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6" style="top:780px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">2 lignes</span></span></div>
+      <div class="rgL th"><div>statut</div><div>commandes</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card dash" id="db6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Entrepôt · Suivi des commandes</span></div>
+      <div class="dr st-prep"><span class="di emo">📦</span><span class="dl">En préparation<small>statut&nbsp;: en_preparation</small></span><span class="dn">5 commandes</span><span class="dv"><span class="sw"><span class="a">?</span><span class="b">12, 13, 14, 15, 16</span></span></span></div>
+      <div class="dr st-exp"><span class="di emo">🚚</span><span class="dl">Expédiée<small>statut&nbsp;: expédiée</small></span><span class="dn">11 commandes</span><span class="dv"><span class="sw"><span class="a">?</span><span class="b">1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11</span></span></span></div>
+    </div>
+    <div class="abs badge" id="badge6" style="top:1000px"><span>✓ 16 commandes, chacune sous son statut</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🧵</div><div class="rtxt"><span class="ic">GROUP_CONCAT</span> rassemble les valeurs d’un groupe dans <b>une seule cellule</b>&nbsp;:<br><span class="ic blk">GROUP_CONCAT(id, ', ')</span></div></div>
+      <div class="rrow"><div class="rico emo">✂️</div><div class="rtxt">Le <b>séparateur</b> suit la colonne&nbsp;: sans lui, une virgule seule.<span class="rs">Les valeurs <span class="ic">NULL</span> sont ignorées.</span></div></div>
+      <div class="rrow"><div class="rico emo">↕️</div><div class="rtxt">Pour trier les valeurs, place <span class="ic">ORDER BY</span> <b>dans</b> la fonction&nbsp;:<br><span class="ic blk sm">GROUP_CONCAT(id, ', ' ORDER BY id DESC)</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 137.2;
+
+/* Table commandes : [id, client_id, statut] (dans l’ordre de la table) */
+const COMMANDES = [[1, 1, 'expédiée'], [2, 1, 'expédiée'], [3, 2, 'expédiée'], [4, 3, 'expédiée'], [5, 4, 'expédiée'], [6, 5, 'expédiée'],
+  [7, 6, 'expédiée'], [8, 7, 'expédiée'], [9, 7, 'expédiée'], [10, 2, 'expédiée'], [11, 8, 'expédiée'],
+  [12, 4, 'en_preparation'], [13, 1, 'en_preparation'], [14, 3, 'en_preparation'], [15, 5, 'en_preparation'], [16, null, 'en_preparation']];
+/* Les statuts, dans l’ordre du résultat (GROUP BY range les groupes par ordre alphabétique) : classe de couleur */
+const STATUTS = [['en_preparation', 'st-prep'], ['expédiée', 'st-exp']];
+const idsDe = s => COMMANDES.filter(c => c[2] === s).map(c => c[0]);
+const liste = s => idsDe(s).join(', ');          // GROUP_CONCAT(id, ', ')
+const CHIP = 60, GAP = 18;                        // chapitre 3 : une case par commande, avant la cellule
+
+const CHAPTERS = [
+  {n:1, label:'Situation',              a:5.0,   b:24.3},
+  {n:2, label:'Le problème',            a:24.3,  b:39.1},
+  {n:3, label:'GROUP_CONCAT en action', a:39.1,  b:64.0},
+  {n:4, label:'Séparateur et NULL',     a:64.0,  b:84.2},
+  {n:5, label:'Le piège',               a:84.2,  b:110.3},
+  {n:6, label:'Le résultat',            a:110.3, b:124.4},
+  {n:7, label:'À retenir',              a:124.4, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 10.1,    "L’entrepôt suit ses commandes sur un <b>tableau de bord</b>."],
+  [10.2, 14.7,   "Pour chaque statut, il veut voir les <b>commandes concernées</b>."],
+  [14.8, 19.1,   "Il lui faut donc chaque statut, avec <b>la liste de ses commandes</b>."],
+  [19.2, 23.9,   "Tout part de la <b>table commandes</b>, qui contient une ligne par commande."],
+  [24.6, 29.3,   "Avec <code>GROUP BY statut</code>, <code>COUNT(*)</code> compte les commandes par statut."],
+  [29.4, 34.6,   "Résultat : <b>2 lignes</b>, avec un nombre : <span class=\"nw\">5 en préparation</span>, <span class=\"nw\">11 expédiées</span>."],
+  [34.7, 38.7,   "Or l’entrepôt veut savoir<br><b>lesquelles</b>, pas combien."],
+  [39.4, 44.1,   "<code>GROUP_CONCAT</code> rassemble les valeurs d’un groupe dans <b>une seule cellule</b>."],
+  [44.2, 48.8,   "On lui donne la colonne à rassembler, <code>id</code>, puis le séparateur : <code>', '</code>."],
+  [48.9, 54.1,   "Les 5 commandes en préparation deviennent « 12, 13, 14, 15, 16 »."],
+  [54.2, 58.9,   "Comme <code>COUNT</code>, c’est une fonction d’agrégation : <b>une valeur par groupe</b>."],
+  [59.0, 63.6,   "Résultat : <b>2 lignes</b>, une par statut, avec la liste de ses commandes."],
+  [64.3, 69.1,   "Le séparateur est <b>facultatif</b> : sans lui, SQLite place une virgule seule."],
+  [69.2, 73.8,   "Avec lui, tu choisis le texte placé entre deux valeurs, comme <code>' / '</code>."],
+  [73.9, 79.5,   "On liste maintenant les clients : la commande 16 n’en a pas, son <code>client_id</code> vaut <code>NULL</code>."],
+  [79.6, 83.8,   "Une valeur <code>NULL</code> est <b>ignorée</b> :<br>ni texte, ni séparateur en trop."],
+  [84.5, 89.0,   "Attention : l’<b>ordre</b> des valeurs dans une cellule n’est pas garanti."],
+  [89.1, 94.2,   "Un <code>ORDER BY</code> à la fin trie les <b>lignes</b> : les deux statuts échangent leur place."],
+  [94.3, 99.5,   "Mais l’ordre dans les cellules <span class=\"nw\">reste le même</span> : « 12, 13, 14, 15, 16 »."],
+  [99.6, 104.7,  "Pour trier les valeurs, place <code>ORDER BY</code> <b>dans</b> la fonction, après le séparateur."],
+  [104.8, 109.9, "Avec <code>ORDER BY id DESC</code>, la commande la plus récente passe en premier : la 16."],
+  [110.6, 114.6, "Avec <code>AS</code>, la requête complète<br>nomme la liste : <code>commandes</code>."],
+  [114.7, 118.7, "Résultat : <b>2 lignes</b>, une par statut."],
+  [118.8, 124.0, "Le tableau de bord affiche enfin<br>les <b>16 commandes</b> sous leur statut."],
+  [124.7, 129.5, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [129.6, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [129.6, 999, "<code>GROUP_CONCAT</code> rassemble les valeurs d’un groupe dans une seule cellule."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+function dom(){
+  /* Résultats : un nombre par statut (chapitre 2), puis la liste de ses commandes (chapitres 3 et 6) */
+  $('#rows2').innerHTML = STATUTS.map(([s]) => `<div class="rgN tr tv"><div>${s}</div><div><span class="vv">${idsDe(s).length}</span></div></div>`).join('');
+  const rowsL = STATUTS.map(([s]) => `<div class="rgL tr tl"><div>${s}</div><div>${liste(s)}</div></div>`).join('');
+  $('#rows3').innerHTML = rowsL;
+  $('#rows6').innerHTML = rowsL;
+  /* Chapitre 3 : un cadre par groupe, avec une case par commande, des virgules à placer, et la cellule finale */
+  $('#grp3').insertAdjacentHTML('beforeend', STATUTS.map(([s, cls], k) => {
+    const v = idsDe(s);
+    const cases = v.map((n, i) => `<span class="idc" style="left:${i * (CHIP + GAP)}px">${n}</span>`).join('');
+    const seps = v.slice(1).map((_, i) => `<span class="sep" style="left:${i * (CHIP + GAP) + CHIP + 2}px">,</span>`).join('');
+    const cell = v.map((n, i) => (i ? '<span class="tk">, </span>' : '') + `<span class="tk">${n}</span>`).join('');
+    return `<div class="gk ${cls}" style="top:${64 + k * 188}px"><div class="bh"><i></i>${s}</div><span class="bc">${v.length} commandes</span>` +
+      `<div class="ids">${cases}${seps}</div><div class="cell">${cell}</div></div>`;
+  }).join(''));
+}
+
+/* Une case se retourne : la valeur de départ laisse place à la suivante. */
+function flip(sw, t, sound = true){
+  tl.to(sw, {scaleY: 0, duration: 0.12, ease: 'power2.in'}, t);
+  tl.set(sw.querySelector('.a'), {opacity: 0}, t + 0.12);
+  tl.set(sw.querySelector('.b'), {opacity: 1}, t + 0.12);
+  tl.to(sw, {scaleY: 1, duration: 0.22, ease: 'back.out(2)'}, t + 0.12);
+  if (sound) cue(t + 0.12, 'tick', 0.5, 3);
+}
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+/* Le tableau de bord arrive, puis ses deux statuts. */
+function dashIn(id, t){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const rows = $$(id + ' .dr');
+  gsap.set(rows, {autoAlpha: 0, x: -34});
+  tl.to(rows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.25}, t + 0.65);
+  rows.forEach((_, i) => cue(t + 0.65 + i * 0.25, 'pop', 0.7, i * 2));
+  return rows;
+}
+/* Place de chaque valeur et de chaque virgule dans le texte de la cellule (mesurée avant toute animation). */
+function slots(card){
+  const box = card.querySelector('.ids');
+  return $$('.cell .tk', card).map(tk => { const r = rel(tk, box); return {x: r.x, w: r.w}; });
+}
+/* Un groupe devient une cellule : les virgules se glissent entre les valeurs, puis tout se resserre en un seul texte. */
+function merge(card, pos, t, step = 0.12){
+  const cases = $$('.idc', card), seps = $$('.sep', card);
+  gsap.set(seps, {y: -16});
+  tl.to(seps, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'back.out(2.2)', stagger: step}, t);
+  seps.forEach((_, i) => { if (i % 2 === 0) cue(t + i * step, 'tick', 0.5, i % 5); });
+  const t2 = t + seps.length * step + 0.4;
+  cases.forEach((c, i) => tl.to(c, {left: pos[2 * i].x, width: pos[2 * i].w, backgroundColor: 'rgba(255,255,255,0)', duration: 0.6, ease: 'power3.inOut'}, t2));
+  seps.forEach((s, i) => tl.to(s, {left: pos[2 * i + 1].x, duration: 0.6, ease: 'power3.inOut'}, t2));
+  cue(t2, 'whoosh', 0.45);
+  tl.to(card.querySelector('.cell'), {autoAlpha: 1, duration: 0.3}, t2 + 0.55);
+  tl.to([...cases, ...seps], {autoAlpha: 0, duration: 0.2}, t2 + 0.65);
+  cue(t2 + 0.55, 'pop', 0.8, 3);
+}
+
+function build(){
+  introScene();
+  hold(2.3, 1.2);   // le temps de lire la bulle de la mascotte
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  dashIn('#db1', 5.15);
+  // Quelles commandes pour chaque statut ? Pour l’instant, « ? »
+  tl.to($$('#db1 .dv'), {borderColor: '#6A4DF4', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut', stagger: 0.15}, 10.8);
+  cue(10.8, 'pop', 0.7, 4);
+  // Les informations à récupérer
+  stackBelow('#s1 .need', '#db1');   // la liste se cale sous le tableau de bord, sans le toucher
+  show('#s1 .need', 15.2, {y: 60});
+  cue(15.2, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.25}, 15.4);
+  needRows.forEach((_, i) => cue(15.4 + i * 0.25, 'pop', 0.7, i));
+  bump('#s1 .need-row .tag:not(.calc)', 19.6, 1.1, 3);
+  bump('#s1 .tag.calc', 21.4, 1.1, 3);
+  hide(['#db1', '#s1 .need'], 23.8);
+  sceneOff('#s1', 24.3);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 24.3);
+  show('#s2code', 24.35, {y: 60}, 0.6);
+  cue(24.35, 'whoosh', 0.7);
+  te = typeLine($('#s2l1'), 24.85, 30);
+  te = typeLine($('#s2l2'), te + 0.1, 30);
+  te = typeLine($('#s2l3'), te + 0.1, 30);
+  press($('#s2run'), 27.1);
+  show('#tbl2', 27.35, {y: 40}, 0.5);
+  rowsIn($$('#rows2 .tr'), 27.5);
+  show('#cnt2', 28.1, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt2', 29.7, 1.15, 3);
+  // Un nombre par statut : 5 et 11
+  const vv2 = $$('#rows2 .vv');
+  pulse(vv2, 31.2, 3, 'rgba(255,214,140,.5)');
+  cue(31.2, 'pop', 0.6, 2);
+  // L’entrepôt veut les commandes elles-mêmes, pas leur nombre
+  pulse(vv2, 34.9, 1, 'rgba(255,170,170,.5)');
+  tl.to(vv2, {opacity: 0.4, duration: 0.4}, 35.4);
+  cue(34.9, 'miss', 0.5);
+  stackBelow('#goal2', '#tbl2');
+  show('#goal2', 35.4, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(35.4, 'pop', 0.75, 3);
+  hide(['#s2code', '#tbl2', '#goal2'], 38.6, {y: -40}, 0.4);
+  sceneOff('#s2', 39.1);
+
+  /* ===== 3 · GROUP_CONCAT en action ===== */
+  sceneOn('#s3', 39.1);
+  const gk3 = $$('#grp3 .gk'), pos3 = gk3.map(slots);   // mesures faites avant toute animation
+  show('#s3code', 39.15, {y: 60}, 0.6);
+  cue(39.15, 'whoosh', 0.7);
+  te = typeLine($('#s3l1'), 39.65, 30);
+  te = typeLine($('#s3l2'), te + 0.1, 30);
+  te = typeLine($('#s3l3'), te + 0.1, 30);
+  te = typeLine($('#s3l4'), te + 0.1, 30);
+  pulse('#gc3', te + 0.2, 3, 'rgba(201,188,255,.3)');
+  // La colonne à rassembler, puis le séparateur
+  pulse('#ci3', 44.9, 3, 'rgba(255,214,140,.45)');
+  pulse('#cs3', 46.6, 3, 'rgba(255,214,140,.45)');
+  press($('#s3run'), 48.0);
+  // Les 2 groupes, chacun avec ses commandes
+  show('#grp3', 48.2, {y: 30}, 0.4);
+  gsap.set(gk3, {autoAlpha: 0, y: 20});
+  tl.to(gk3, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'back.out(1.6)', stagger: 0.15}, 48.35);
+  gk3.forEach((_, k) => cue(48.35 + k * 0.15, 'pop', 0.55, k * 2));
+  // Chaque groupe devient une seule cellule
+  flip($('#sw3'), 49.2, false);
+  merge(gk3[0], pos3[0], 49.6);
+  merge(gk3[1], pos3[1], 51.9, 0.07);
+  // Une valeur par groupe
+  bump(gk3[0].querySelector('.cell'), 54.8, 1.06, 1);
+  bump(gk3[1].querySelector('.cell'), 55.4, 1.06, 1);
+  // Chaque cellule devient une ligne du résultat
+  hide('#grp3', 58.95, {y: -30}, 0.35);
+  show('#tbl3', 59.3, {y: 30}, 0.5);
+  rowsIn($$('#rows3 .tr'), 59.45);
+  show('#cnt3', 59.95, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt3', 60.9, 1.15, 3);
+  hide(['#s3code', '#tbl3'], 63.5, {y: -40}, 0.4);
+  sceneOff('#s3', 64.0);
+
+  /* ===== 4 · Séparateur et NULL ===== */
+  sceneOn('#s4', 64.0);
+  show('#sep4', 64.05, {y: 50});
+  cue(64.05, 'whoosh', 0.6);
+  const sr4 = $$('#sep4 .sr');
+  gsap.set(sr4, {autoAlpha: 0, x: -30});
+  [[64.45, 0], [65.1, 1], [69.5, 2]].forEach(([t, i], k) => {
+    tl.to(sr4[i], {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, t);
+    cue(t, 'pop', 0.75, k * 2);
+  });
+  // Sans séparateur : une virgule seule
+  pulse('#so4', 66.3, 3, 'rgba(255,214,140,.5)');
+  show('#sn4', 66.7, {y: 0, scale: 0.7}, 0.35, 'back.out(2)');
+  cue(66.7, 'pop', 0.6, 4);
+  // Un séparateur au choix : ' / '
+  pulse('#sl4', 70.4, 3, 'rgba(201,188,255,.4)');
+  hide('#sep4', 73.6, {y: -40});
+  // Les clients des commandes en préparation : la commande 16 n’en a pas
+  show('#nul4', 74.0, {y: 50});
+  cue(74.0, 'whoosh', 0.6);
+  const vc4 = $$('#nul4 .vc');
+  gsap.set(vc4, {autoAlpha: 0, y: 16});
+  tl.to(vc4, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'back.out(2)', stagger: 0.15}, 74.8);
+  vc4.forEach((_, i) => cue(74.8 + i * 0.15, 'pop', 0.6, i % 5));
+  pulse('#vn4', 77.1, 3, 'rgba(255,170,170,.45)');
+  cue(77.1, 'miss', 0.5);
+  // NULL est ignoré : ni texte, ni séparateur
+  tl.to(['#vn4 small', '#vn4 b'], {opacity: 0.4, duration: 0.4, ease: 'power2.out'}, 79.9);
+  tl.to('#vn4', {borderColor: '#F6C9CD', backgroundColor: '#FFF8F8', duration: 0.4}, 79.9);
+  show('#ig4', 80.1, {y: 0, scale: 0.6}, 0.35, 'back.out(2)');
+  flip($('#sw4'), 80.9);
+  tl.to('#res4', {borderColor: '#C9BCFF', backgroundColor: '#EEE9FF', duration: 0.3}, 81.0);
+  cue(81.0, 'true', 0.6);
+  bump('#res4', 81.9, 1.05, 1);
+  hide('#nul4', 83.7);
+  sceneOff('#s4', 84.2);
+
+  /* ===== 5 · Le piège ===== */
+  sceneOn('#s5', 84.2);
+  show('#trap5', 84.25, {y: 50});
+  cue(84.25, 'whoosh', 0.6);
+  // L’ordre dans une cellule n’est pas garanti
+  pulse($$('#trap5 .mr .lv'), 85.7, 3, 'rgba(255,214,140,.45)');
+  // ORDER BY à la fin : les deux lignes échangent leur place…
+  pulse('#ob5', 89.4, 3, 'rgba(201,188,255,.35)');
+  press($('#go5'), 90.4, '#4B30CC', 6);
+  tl.to('#mr5a', {y: 62, duration: 0.6, ease: 'power3.inOut'}, 90.7);
+  tl.to('#mr5b', {y: -62, duration: 0.6, ease: 'power3.inOut'}, 90.7);
+  cue(90.7, 'whoosh', 0.45);
+  // … mais pas les valeurs de la cellule
+  pulse('#lv5', 94.8, 3, 'rgba(255,170,170,.5)');
+  show('#x5', 95.1, {y: 0, scale: 0.6}, 0.35, 'back.out(2)');
+  cue(95.1, 'false', 0.6);
+  // ORDER BY dans la fonction
+  stackBelow('#fix5', '#trap5');
+  show('#fix5', 99.7, {y: 50});
+  cue(99.7, 'whoosh', 0.6);
+  pulse('#ob5b', 101.1, 3, 'rgba(201,188,255,.35)');
+  press($('#go5b'), 105.1, '#4B30CC', 6);
+  flip($('#sw5'), 105.4);
+  tl.to('#fix5 .lst', {borderColor: '#7FD3A8', duration: 0.3}, 105.5);
+  cue(105.5, 'true', 0.6);
+  bump('#fix5 .lst', 106.6, 1.06, 1);
+  hide(['#trap5', '#fix5'], 109.8);
+  sceneOff('#s5', 110.3);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 110.3);
+  show('#s6code', 110.35, {y: 60}, 0.6);
+  cue(110.35, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 110.85, 32);
+  te = typeLine($('#s6l2'), te + 0.1, 32);
+  pulse('#as6', te + 0.1, 3, 'rgba(201,188,255,.3)');
+  te = typeLine($('#s6l3'), te + 0.1, 32);
+  te = typeLine($('#s6l4'), te + 0.1, 32);
+  press($('#s6run'), 114.4);
+  show('#tbl6', 114.65, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 114.8);
+  show('#cnt6', 115.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 116.1, 1.15, 3);
+  hide(['#s6code', '#tbl6'], 118.4, {y: -40}, 0.4);
+  // Sur le tableau de bord : chaque statut avec ses commandes
+  dashIn('#db6', 118.75);
+  $$('#db6 .dr').forEach((r, i) => {
+    const t = 119.8 + i * 0.5;
+    flip(r.querySelector('.dv .sw'), t);
+    tl.to(r.querySelector('.dv'), {borderStyle: 'solid', borderColor: '#C9BCFF', backgroundColor: '#F8F6FE', duration: 0.3}, t + 0.1);
+    show(r.querySelector('.dn'), t + 0.2, {y: 0, scale: 0.6}, 0.35, 'back.out(2)');
+  });
+  stackBelow('#badge6', '#db6', 0, 50);
+  show('#badge6', 121.3, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(121.3, 'chord', 0.7);
+  hide(['#db6', '#badge6'], 123.9);
+  sceneOff('#s6', 124.4);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(124.4, [125.1, 126.9, 128.7]);
+  hold(126.7, 2.9);
+  hold(128.5, 2.9);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(129.65, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 129.6,
+  glyphs: '📦🚚🏷️📋🔎🎯🧺🧵✂️👤⚠️↕️✓✕→·?', dom, build});
+</script>
+</body>
+</html>

@@ -559,6 +559,17 @@ const COURSES = [
       '<span class="emo">🎂</span>&nbsp;7 clients de 30 ans ou plus</span>', '<span class="kw">WHERE</span> <span class="glow" id="cw5"><span class="kw">COUNT</span>(*) &gt;= 2</span>',
       '<b>Erreur SQL</b><span class="m">misuse of aggregate: COUNT()</span>', '<span class="sk">HAVING</span><span class="sx">trie les groupes</span><span class="sc ok" id="sc5c">COUNT(*) ✓</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> nb_clients</span>', '✓ 2 ateliers&nbsp;: Paris et Lyon']},
+  {id: 76, next: 34, titre: 'GROUP_CONCAT', page: 'group-concat.html', thumb: 'group-concat-thumb.jpg', duree: '2 min 24', notesAt: 129.6,
+    notes: /notes:\{t:136\.6,y:1359,card:\[64,356,1016,1064\],to:\[940,255\]\}/, table: 'commandes',
+    bubble: 'Avec <span class="ic">GROUP_CONCAT</span>, liste les valeurs de chaque groupe.',
+    chapters: ['Situation', 'Le problème', 'GROUP_CONCAT en action', 'Séparateur et NULL', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<span>Entrepôt · Suivi des commandes</span>', '<span class="nl">La liste de ses commandes</span><span class="tag calc">à calculer</span>',
+      '<span class="emo">🎯</span>Lister les commandes de chaque statut', "const liste = s => idsDe(s).join(', ');",
+      '<span class="glow" id="gc3"><span class="kw">GROUP_CONCAT</span>(<span class="hw" id="ci3">id</span>, <span class="str hw" id="cs3">\', \'</span>)</span>',
+      '<span class="b"><span class="emo">🧵</span>&nbsp;Une seule cellule par groupe</span>', '<span class="dc"><span class="kw">GROUP_CONCAT</span>(id)</span>',
+      '<span class="snote" id="sn4">une virgule seule</span>', '<span class="vc nul" id="vn4"><small>commande 16</small><b>NULL</b>', '<span class="b">4, 1, 3, 5</span>',
+      '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> statut <span class="kw">DESC</span></span>', '<span class="b">16, 15, 14, 13, 12</span>',
+      '<span class="glow" id="as6"><span class="kw">AS</span> commandes</span>', '✓ 16 commandes, chacune sous son statut']},
 ];
 
 for (const c of COURSES) {
