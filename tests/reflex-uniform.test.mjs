@@ -1,5 +1,5 @@
 /* « Le réflexe à retenir » est identique dans les 66 cours (modèle du cours Clé primaire) : trois cartes
-   (emoji, phrase, précision facultative, code facultatif sur une ligne), un seul titre, un seul bouton
+   (emoji, phrase, précision facultative — une phrase, ou une liste « mot-clé → rôle » —, code facultatif sur une ligne), un seul titre, un seul bouton
    « Ajouter dans notes ». Les 22 anciens cours ne gardent ni leur résumé libre, ni leurs règles en
    colonnes, ni l'encadré « À retenir » de fin de cours. */
 import fs from 'node:fs';
@@ -40,7 +40,12 @@ test('chaque cours a un réflexe de trois cartes bien formées', () => {
       assert.ok(/\p{Extended_Pictographic}/u.test(emoji), `${l.titre} : un emoji par carte`);
       const t = text(strong);
       assert.ok(t.length >= 20 && t.length <= 150, `${l.titre} : phrase de ${t.length} caractères : ${t}`);
-      if (sub) assert.ok(text(sub).length <= 120, `${l.titre} : précision trop longue : ${text(sub)}`);
+      /* Précision : une phrase courte, ou une liste « mot-clé → rôle » (une ligne par élément, séparées par <br>). */
+      const subLines = sub ? sub.split(/<br\s*\/?>/) : [];
+      if (subLines.length > 1) {
+        assert.ok(subLines.length <= 8, `${l.titre} : liste de ${subLines.length} lignes dans la précision`);
+        for (const ln of subLines) assert.ok(text(ln).length <= 60, `${l.titre} : ligne de liste trop longue : ${text(ln)}`);
+      } else if (sub) assert.ok(text(sub).length <= 120, `${l.titre} : précision trop longue : ${text(sub)}`);
       if (code) assert.ok(decode(code).length <= 46, `${l.titre} : code trop long pour une puce : ${decode(code)}`);
     }
     /* Espace insécable avant : ? ! ; (hors code), comme dans les autres textes des cours. */

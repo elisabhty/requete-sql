@@ -38,6 +38,18 @@ test('noteRecapHtml : une carte devient un paragraphe « phrase / précision / c
   assert.equal(ctx.noteRecapHtml(''), '');
 });
 
+test('noteRecapHtml : une liste « fonction → rôle » (lignes séparées par <br>) garde un rôle par ligne dans la note', () => {
+  const card = '<ol class="fk-syn-map is-recap"><li><b aria-hidden="true">🧰</b><div><strong>Une <b>fonction par besoin</b> :</strong><span><code>LOWER</code> → met en minuscules<br><code>TRIM</code> → retire les espaces</span></div></li></ol>';
+  assert.equal(ctx.noteRecapHtml(card), '<p>Une fonction par besoin :<br>LOWER → met en minuscules<br>TRIM → retire les espaces</p>');
+});
+
+test('le cours Fonctions de texte : la note donne le rôle de chaque fonction, une par ligne', () => {
+  const t = note(lessons.find(x => x.id === 51));
+  for (const line of ['Une fonction par besoin :', 'UPPER → met en majuscules', 'LOWER → met en minuscules', 'TRIM → retire les espaces autour du texte',
+    'LENGTH → compte les caractères', 'SUBSTR → récupère une partie du texte', 'REPLACE → remplace des caractères'])
+    assert.ok(t.split('\n').map(x => x.trim()).includes(line), `ligne « ${line} » dans la note : ${JSON.stringify(t)}`);
+});
+
 test('à défaut de texte dans le réflexe, la note reprend « retenir » (jamais vide)', () => {
   const l = { id: 999, studio: { reflex: {} }, retenir: 'Une phrase à retenir.' };
   assert.equal(note(l), 'Une phrase à retenir.');
