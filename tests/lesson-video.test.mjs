@@ -524,6 +524,16 @@ const COURSES = [
       '<span>NULL ou texte vide&nbsp;?</span>', '(<span class="str glow" id="q5">\'\'</span>, <span class="str">\'Non renseigné\'</span>)',
       '<b>La case reste vide</b><span class="s">Un texte vide n’est jamais remplacé.</span>',
       '<span class="kw">AS</span> email', '✓ Aucune case vide à l’écran', 'La table clients ne change pas']},
+  {id: 14, next: 16, titre: 'COUNT', page: 'count.html', thumb: 'count-thumb.jpg', duree: '2 min 15', notesAt: 121.9,
+    notes: /notes:\{t:127\.7,y:1365,card:\[64,356,1016,1070\],to:\[940,255\]\}/, table: 'produits',
+    bubble: 'Avec <span class="ic">COUNT</span>, compte les lignes au lieu de les afficher.',
+    chapters: ['Situation', 'Le problème', 'COUNT(*) en action', 'Valeurs différentes', 'Compter une partie', 'Le résultat', 'À retenir'],
+    traps: ['<span>Entrepôt · Tableau de bord</span>', '<span class="nl">Les produits à commander</span><span class="tag calc">à calculer</span>',
+      '<div class="tr gh" id="gh2">+ 1 nouveau produit&nbsp;: tout recompter&nbsp;?</div>', '<span>Un compteur qui avance</span>', '<span class="cnum" id="cnum3"></span>',
+      '<span class="glow" id="c3b"><span class="kw">COUNT</span>(email)</span>', '<span class="vv" id="v3a">10</span>', '<span class="vv" id="v3b">8</span>',
+      '<span class="x">✕ email ignoré</span>', '<span>Les catégories des 8 produits</span>', '<span class="kw glow" id="d4">DISTINCT</span> categorie)',
+      '<span class="sw" id="sw4"><span class="a">?</span><span class="b">5</span></span>', '<span class="kw">WHERE</span> <span class="glow" id="w5">stock &lt; 50</span>;',
+      '<span class="glow" id="as6b"><span class="kw">AS</span> categories</span>', '✓ Compteurs à jour']},
 ];
 
 for (const c of COURSES) {
