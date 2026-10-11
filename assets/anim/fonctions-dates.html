@@ -6,7 +6,10 @@
 <title>Requête · Fonctions de dates en vidéo</title>
 <link rel="stylesheet" href="core.css">
 <style>
-#s0 .bubble{left:514px;width:532px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1000px}
 #s0 .sub{font-size:66px}
 #s1 .need-row .nl{font-size:36px;white-space:nowrap}
 .nw{white-space:nowrap}
@@ -32,7 +35,7 @@
 .ml-top{display:flex;align-items:center;gap:26px}
 .ml-h{font-size:40px;font-weight:750;color:var(--ink);white-space:nowrap}
 .ml-h small{display:block;margin-top:6px;font-size:29px;font-weight:600;color:var(--ink-3)}
-.ml-q{margin-top:20px;padding:18px 26px;border-radius:22px;background:var(--surface-2);font-size:34px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.ml-q{margin-top:20px;padding:18px 26px;border-radius:22px;background:var(--surface-2);font-size:34px;font-weight:600;line-height:1.36;color:var(--ink-2)}
 .ml-f{margin-top:18px;height:84px;display:flex;align-items:center;gap:14px;font-size:32px;font-weight:700;color:var(--ink-2)}
 .ml-val{margin-left:auto;height:64px;min-width:260px;border-radius:999px;border:3px dashed #C9BCFF;background:#fff;display:flex;align-items:center;justify-content:center;padding:0 26px;font-family:var(--mono);font-size:32px;font-weight:800;color:#B4ACD6;white-space:nowrap}
 
@@ -137,7 +140,7 @@
     <div class="abs title"><span>J</span><span>+</span><span>7</span></div>
     <div class="abs sub">Fonctions de dates et heures</div>
     <img class="abs mascot" src="mascotte.webp" alt="">
-    <div class="abs bubble">Avec les fonctions de dates, calcule de nouvelles dates.</div>
+    <div class="abs bubble">Les fonctions de dates et heures permettent<br><span class="nw">de manipuler les informations liées au temps.</span></div>
   </section>
 
   <!-- 1 · Situation : la commande, puis le message de suivi à programmer -->
@@ -150,7 +153,7 @@
     <div class="abs badge soft" id="wait1" style="top:540px"><span>⏳ 7 jours plus tard</span></div>
     <div class="abs card mail" id="ml1" style="top:300px">
       <div class="ml-top"><span class="ml-ico emo">📨</span><span class="ml-h">Message de suivi<small>NutriBoost · service client</small></span></div>
-      <div class="ml-q">« Votre commande vous plaît-elle ? »</div>
+      <div class="ml-q">«&nbsp;Tout se passe bien avec votre commande&nbsp;?<br>Nous sommes là si vous avez besoin d’aide.&nbsp;»</div>
       <div class="ml-f"><span>Envoi prévu le</span><span class="ml-val">?</span></div>
     </div>
     <div class="abs card need">
@@ -258,7 +261,7 @@
 <script src="core.js"></script>
 <script>
 'use strict';
-const DURATION = 130.8;
+const DURATION = 136.8;
 
 /* Table commandes : [numero_commande, date_commande] */
 const COMMANDES = [['CMD-2026-1002481','2026-07-02'],['CMD-2026-1003912','2026-07-02'],['CMD-2026-1015630','2026-07-05'],['CMD-2026-1024057','2026-07-08'],
@@ -271,43 +274,44 @@ const plus7 = s => { const [y, m, d] = s.split('-').map(Number); return iso(new 
 const SHOWN = 8;   // lignes affichées dans le tableau (les 8 autres sont résumées)
 
 const CHAPTERS = [
-  {n:1, label:'Situation',          a:5.0,   b:25.0},
-  {n:2, label:'Le problème',        a:25.0,  b:39.4},
-  {n:3, label:'DATE en action',     a:39.4,  b:67.0},
-  {n:4, label:'Le calendrier',      a:67.0,  b:87.4},
-  {n:5, label:'Changer l’affichage', a:87.4, b:102.0},
-  {n:6, label:'Le résultat',        a:102.0, b:118.0},
-  {n:7, label:'À retenir',          a:118.0, b:DURATION}
+  {n:1, label:'Situation',          a:5.0,   b:28.1},
+  {n:2, label:'Le problème',        a:28.1,  b:42.5},
+  {n:3, label:'DATE en action',     a:42.5,  b:73.0},
+  {n:4, label:'Le calendrier',      a:73.0,  b:93.4},
+  {n:5, label:'Changer l’affichage', a:93.4, b:108.0},
+  {n:6, label:'Le résultat',        a:108.0, b:124.0},
+  {n:7, label:'À retenir',          a:124.0, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
 const CAPTIONS = [
   [5.3, 10.0,    "Après chaque commande, NutriBoost envoie un <b>message de suivi</b> au client."],
-  [10.1, 15.0,   "Le message part <b>7 jours après</b> la commande, pour demander si tout\u00a0va\u00a0bien."],
-  [15.1, 19.3,   "Pour la commande du 2 juillet, <span class=\"nw\">il doit partir</span> le <b>9 juillet</b>."],
-  [19.4, 24.6,   "Le numéro et la date se trouvent dans la <b>table commandes</b> (<b>16 commandes</b>)."],
-  [25.3, 29.7,   "Premier essai : afficher le numéro et la date de chaque commande."],
-  [29.8, 34.3,   "Les dates s’affichent au format <b class=\"nw\">année-mois-jour</b> : 2026-07-02."],
-  [34.4, 39.1,   "Mais aucune colonne ne donne <span class=\"nw\">la date du message</span> : il faut la <b>calculer</b>."],
-  [39.7, 43.8,   "La fonction <code>DATE</code> calcule une date à partir d’une autre."],
-  [43.9, 48.8,   "On écrit la date, puis la durée à ajouter, entre guillemets : <code>'+7 days'</code>."],
-  [48.9, 53.2,   "Le 2 juillet devient le <b>9 juillet</b> : <span class=\"nw\">c’est la date</span> du message."],
-  [53.3, 58.0,   "Dans la requête, la colonne <b>suivi</b> donne la date de chaque message."],
-  [58.1, 62.3,   "Attention : <code>date_commande + 7</code> donne <b>2033</b>, et non une date."],
-  [62.4, 66.7,   "Avec <code>+</code>, la date est lue comme le nombre 2026 : 2026 + 7 = 2033."],
-  [67.3, 72.2,   "<code>DATE</code> suit le <b>calendrier</b> : le 28 juillet plus 7 jours donne le 4 août."],
-  [72.3, 76.8,   "Juillet compte 31 jours : après le 31, la date passe au 1ᵉʳ août."],
-  [76.9, 81.6,   "Ajouter 7 au jour donnerait 2026-07-35, une date qui <b>n’existe pas</b>."],
-  [81.7, 87.0,   "La durée peut aussi compter en mois ou en années : <code>'+1 month'</code>, <code>'+1 year'</code>."],
-  [87.7, 91.6,   "<code>STRFTIME()</code> change<br>l’affichage d’une date."],
-  [91.7, 96.9,   "Le format <code>'%d/%m/%Y'</code> affiche la date <span class=\"nw\">2026-07-02</span> en <b>02/07/2026</b>."],
-  [97.0, 101.6,  "<code>'%Y'</code> garde l’année, <code>'%m'</code> le mois : le résultat est un <b>texte</b>."],
-  [102.3, 107.2, "La requête complète affiche chaque commande<br>avec <span class=\"nw\">la date de son message</span>."],
-  [107.3, 111.6, "Résultat : <b>16 lignes</b>, avec des messages du 9 juillet au 10 août."],
-  [111.7, 117.5, "Les messages se placent sur le calendrier, sans modifier la <b>table\u00a0commandes</b>."],
-  [118.3, 123.1, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [123.2, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
-      : [123.2, 999, "<code>DATE</code> ajoute une durée, et <code>STRFTIME()</code> change l’affichage d’une date."]
+  [10.1, 13.7,   "<b>Sept jours après</b> la commande, un message est prévu"],
+  [13.8, 18.1,   "pour prendre des nouvelles du client et lui proposer de l’aide."],
+  [18.2, 22.4,   "Pour la commande du 2 juillet, <span class=\"nw\">il doit partir</span> le <b>9 juillet</b>."],
+  [22.5, 27.7,   "Le numéro et la date se trouvent dans la <b>table commandes</b> (<b>16 commandes</b>)."],
+  [28.4, 32.8,   "Premier essai : afficher le numéro et la date de chaque commande."],
+  [32.9, 37.4,   "Les dates s’affichent au format <b class=\"nw\">année-mois-jour</b> : 2026-07-02."],
+  [37.5, 42.2,   "Mais aucune colonne ne donne <span class=\"nw\">la date du message</span> : il faut la <b>calculer</b>."],
+  [42.8, 46.9,   "La fonction <code>DATE</code> calcule une date à partir d’une autre."],
+  [47.0, 51.9,   "On écrit la date, puis la durée à ajouter, entre guillemets : <code>'+7 days'</code>."],
+  [52.0, 59.2,   "En ajoutant 7 jours à la commande du 2 juillet, on obtient le <b>9 juillet</b> : <span class=\"nw\">la date prévue</span> pour le <span class=\"nw\">message de suivi</span>."],
+  [59.3, 64.0,   "Dans la requête, la colonne <b>suivi</b> donne la date de chaque message."],
+  [64.1, 68.3,   "Attention : <code>date_commande + 7</code> donne <b>2033</b>, et non une date."],
+  [68.4, 72.7,   "Avec <code>+</code>, la date est lue comme le nombre 2026 : 2026 + 7 = 2033."],
+  [73.3, 78.2,   "<code>DATE</code> suit le <b>calendrier</b> : le 28 juillet plus 7 jours donne le 4 août."],
+  [78.3, 82.8,   "Juillet compte 31 jours : après le 31, la date passe au 1ᵉʳ août."],
+  [82.9, 87.6,   "Ajouter 7 au jour donnerait 2026-07-35, une date qui <b>n’existe pas</b>."],
+  [87.7, 93.0,   "La durée peut aussi compter en mois ou en années : <code>'+1 month'</code>, <code>'+1 year'</code>."],
+  [93.7, 97.6,   "<code>STRFTIME()</code> change<br>l’affichage d’une date."],
+  [97.7, 102.9,   "Le format <code>'%d/%m/%Y'</code> affiche la date <span class=\"nw\">2026-07-02</span> en <b>02/07/2026</b>."],
+  [103.0, 107.6,  "<code>'%Y'</code> garde l’année, <code>'%m'</code> le mois : le résultat est un <b>texte</b>."],
+  [108.3, 113.2, "La requête complète affiche chaque commande<br>avec <span class=\"nw\">la date de son message</span>."],
+  [113.3, 117.6, "Résultat : <b>16 lignes</b>, avec des messages du 9 juillet au 10 août."],
+  [117.7, 123.5, "Les messages se placent sur le calendrier, sans modifier la <b>table\u00a0commandes</b>."],
+  [124.3, 129.1, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [129.2, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [129.2, 999, "<code>DATE</code> ajoute une durée, et <code>STRFTIME()</code> change l’affichage d’une date."]
 ];
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
@@ -346,6 +350,8 @@ const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgr
 
 function build(){
   introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 3.2);   // le temps de lire la bulle de la mascotte
   let te;
 
   /* ===== 1 · Situation ===== */
@@ -359,202 +365,204 @@ function build(){
   // 7 jours plus tard
   show('#wait1', 10.5, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
   cue(10.5, 'pop', 0.8, 2);
-  tl.to('#ml1 .ml-val', {borderColor: '#6A4DF4', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 15.5);
-  cue(15.5, 'pop', 0.7, 4);
+  // Prendre des nouvelles du client : le texte du message s’allume
+  pulse('#ml1 .ml-q', 13.9);
+  tl.to('#ml1 .ml-val', {borderColor: '#6A4DF4', duration: 0.25, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 18.6);
+  cue(18.6, 'pop', 0.7, 4);
   // Les informations à récupérer
-  hide(['#oc1', '#wait1'], 19.45, {y: -80}, 0.4);
-  tl.to('#ml1', {y: 0, duration: 0.75, ease: 'power3.inOut'}, 19.7);
+  hide(['#oc1', '#wait1'], 22.55, {y: -80}, 0.4);
+  tl.to('#ml1', {y: 0, duration: 0.75, ease: 'power3.inOut'}, 22.8);
   stackBelow('#s1 .need', '#ml1');   // la liste se cale sous le message, sans le toucher
-  show('#s1 .need', 20.2, {y: 60});
-  cue(20.2, 'whoosh', 0.6);
+  show('#s1 .need', 23.3, {y: 60});
+  cue(23.3, 'whoosh', 0.6);
   const needRows = $$('#s1 .need-row');
   gsap.set(needRows, {autoAlpha: 0, x: -34});
-  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.15}, 20.35);
-  needRows.forEach((_, i) => cue(20.35 + i * 0.15, 'pop', 0.7, i));
-  tl.to('#s1 .tag', {scale: 1.08, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 22.6);
-  hide(['#ml1', '#s1 .need'], 24.5);
-  sceneOff('#s1', 25.0);
+  tl.to(needRows, {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.15}, 23.45);
+  needRows.forEach((_, i) => cue(23.45 + i * 0.15, 'pop', 0.7, i));
+  tl.to('#s1 .tag', {scale: 1.08, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 25.7);
+  hide(['#ml1', '#s1 .need'], 27.6);
+  sceneOff('#s1', 28.1);
 
   /* ===== 2 · Le problème ===== */
-  show('#qcode', 25.05, {y: 60}, 0.6);
-  cue(25.05, 'whoosh', 0.7);
+  show('#qcode', 28.15, {y: 60}, 0.6);
+  cue(28.15, 'whoosh', 0.7);
   gsap.set('#cm1', {display: 'none'});
-  te = typeLine($('#ql1'), 25.55, 30, false, $('#cm1'));
+  te = typeLine($('#ql1'), 28.65, 30, false, $('#cm1'));
   te = typeLine($('#ql3'), te + 0.12, 30);
-  press($('#qrun'), 27.75);
-  show('#tbl2', 28.0, {y: 40}, 0.5);
+  press($('#qrun'), 30.85);
+  show('#tbl2', 31.1, {y: 40}, 0.5);
   const tr2 = $$('#rows2 .tr');
   gsap.set(tr2, {autoAlpha: 0, y: 14});
-  tl.to(tr2, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.05}, 28.15);
-  tr2.forEach((_, i) => cue(28.15 + i * 0.05, 'tick', 0.4, i % 5));
-  show('#cnt2', 28.55, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  tl.to(tr2, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.05}, 31.25);
+  tr2.forEach((_, i) => cue(31.25 + i * 0.05, 'tick', 0.4, i % 5));
+  show('#cnt2', 31.65, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
   // La colonne des dates, au format année-mois-jour
   const th = $$('#tbl2 .th > div'), rowsBox = $('#rows2'), a = rel(th[1], rowsBox);
   gsap.set('#zD', {left: (a.x + 4) + 'px', width: (a.w - 8) + 'px', height: (SHOWN * 52 - 8) + 'px', bottom: 'auto'});
-  tl.to('#zD', {opacity: 1, duration: 0.35}, 30.2);
-  cue(30.2, 'pop', 0.7, 2);
-  tl.to('#zD', {opacity: 0, duration: 0.3}, 34.3);
+  tl.to('#zD', {opacity: 1, duration: 0.35}, 33.3);
+  cue(33.3, 'pop', 0.7, 2);
+  tl.to('#zD', {opacity: 0, duration: 0.3}, 37.4);
   const c3 = rel(th[2], rowsBox);
   gsap.set('#qS', {left: (c3.x + 4) + 'px', width: (c3.w - 8) + 'px', height: (SHOWN * 52 - 8) + 'px'});
-  show('#qS', 34.8, {y: 0, scale: 0.9}, 0.4, 'back.out(2)');
-  cue(34.8, 'pop', 0.7, 4);
-  tl.to('#qS', {opacity: 0, duration: 0.3}, 38.9);
+  show('#qS', 37.9, {y: 0, scale: 0.9}, 0.4, 'back.out(2)');
+  cue(37.9, 'pop', 0.7, 4);
+  tl.to('#qS', {opacity: 0, duration: 0.3}, 42.0);
 
   /* ===== 3 · DATE en action ===== */
-  hide(['#qcode', '#tbl2'], 39.45, {y: -40}, 0.4);
-  sceneOn('#s3', 39.7);
-  show('#fm3', 39.75, {y: 50});
-  cue(39.75, 'whoosh', 0.6);
-  [['#fb1', 40.1], ['#fa1', 41.0], ['#fb2', 41.25], ['#fa2', 42.2], ['#fb3', 42.45]].forEach(([s, t], i) => {
+  hide(['#qcode', '#tbl2'], 42.55, {y: -40}, 0.4);
+  sceneOn('#s3', 42.8);
+  show('#fm3', 42.85, {y: 50});
+  cue(42.85, 'whoosh', 0.6);
+  [['#fb1', 43.2], ['#fa1', 44.1], ['#fb2', 44.35], ['#fa2', 45.3], ['#fb3', 45.55]].forEach(([s, t], i) => {
     show(s, t, {y: 0, x: -30}, 0.45, 'power3.out');
     if (!s.startsWith('#fa')) cue(t, 'pop', 0.75, i);
   });
-  pulse('#fb2 .str', 44.6);
+  pulse('#fb2 .str', 47.7);
   // Le 2 juillet devient le 9 juillet
-  tl.to('#fb2', {scale: 1.04, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 49.0);
-  flip($('#fb3 .sw'), 49.3, false);
-  cue(49.4, 'success', 0.7);
-  hide('#fm3', 52.75, {y: -40});
+  tl.to('#fb2', {scale: 1.04, duration: 0.18, yoyo: true, repeat: 1, ease: 'power1.inOut'}, 52.1);
+  flip($('#fb3 .sw'), 52.4, false);
+  cue(52.5, 'success', 0.7);
+  hide('#fm3', 58.75, {y: -40});
   // Dans la requête : la ligne de DATE
-  tl.fromTo('#qcode', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, 53.15);
-  tl.fromTo('#tbl2', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, 53.3);
-  cue(53.15, 'whoosh', 0.6);
+  tl.fromTo('#qcode', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, 59.15);
+  tl.fromTo('#tbl2', {autoAlpha: 0, y: 40}, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', immediateRender: false}, 59.3);
+  cue(59.15, 'whoosh', 0.6);
   gsap.set('#cm1', {autoAlpha: 0, scale: 0.3});
-  tl.set('#cm1', {display: 'inline-block'}, 53.78);
-  tl.to('#cm1', {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.6)'}, 53.8);
-  tl.to('#ql2', {height: 52, duration: 0.3, ease: 'power2.out'}, 53.95);
-  tl.to('#tbl2', {y: 52, duration: 0.3, ease: 'power2.out'}, 53.95);
-  tl.set('#ql2', {overflow: 'visible'}, 54.26);   // ligne ouverte : le surlignage du mot-clé reste entier
-  te = typeLine($('#ql2'), 54.3, 30);
+  tl.set('#cm1', {display: 'inline-block'}, 59.78);
+  tl.to('#cm1', {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.6)'}, 59.8);
+  tl.to('#ql2', {height: 52, duration: 0.3, ease: 'power2.out'}, 59.95);
+  tl.to('#tbl2', {y: 52, duration: 0.3, ease: 'power2.out'}, 59.95);
+  tl.set('#ql2', {overflow: 'visible'}, 60.26);   // ligne ouverte : le surlignage du mot-clé reste entier
+  te = typeLine($('#ql2'), 60.3, 30);
   pulse('#dtA', te + 0.1);
-  press($('#qrun'), 56.2);
-  tl.to('#tbl2 .th .h3', {opacity: 1, duration: 0.3}, 56.45);
+  press($('#qrun'), 62.2);
+  tl.to('#tbl2 .th .h3', {opacity: 1, duration: 0.3}, 62.45);
   const sv = $$('#rows2 .sv');
   gsap.set(sv, {scale: 0.5});
-  tl.to(sv, {opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2.4)', stagger: 0.08}, 56.55);
-  sv.forEach((_, i) => { if (i % 2 === 0) cue(56.55 + i * 0.08, 'pop', 0.6, i % 5); });
-  hide(['#qcode', '#tbl2'], 58.15, {y: -40}, 0.4);
+  tl.to(sv, {opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2.4)', stagger: 0.08}, 62.55);
+  sv.forEach((_, i) => { if (i % 2 === 0) cue(62.55 + i * 0.08, 'pop', 0.6, i % 5); });
+  hide(['#qcode', '#tbl2'], 64.15, {y: -40}, 0.4);
   // Le piège : date_commande + 7
-  show('#trap3', 58.45, {y: 50});
-  cue(58.45, 'whoosh', 0.6);
-  pulse('#pl3', 59.1, 3, 'rgba(239,79,85,.38)');
-  press($('#go3'), 60.3, '#4B30CC', 6);
-  show('#err3', 60.55, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
-  tl.to('#err3', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 60.95);
-  cue(60.55, 'error', 0.85);
+  show('#trap3', 64.45, {y: 50});
+  cue(64.45, 'whoosh', 0.6);
+  pulse('#pl3', 65.1, 3, 'rgba(239,79,85,.38)');
+  press($('#go3'), 66.3, '#4B30CC', 6);
+  show('#err3', 66.55, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  tl.to('#err3', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 66.95);
+  cue(66.55, 'error', 0.85);
   // 2026-07-02 lue comme le nombre 2026 : 2026 + 7 = 2033
   const parts = $$('#parts3 .pt, #parts3 .pj');
   gsap.set(parts, {autoAlpha: 0, y: 16});
-  tl.to(parts, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'back.out(2)', stagger: 0.16}, 62.6);
-  parts.forEach((_, i) => { if (i % 2 === 0) cue(62.6 + i * 0.16, 'pop', 0.7, i); });
-  tl.to('#parts3 .dim', {opacity: 0.25, duration: 0.3}, 63.4);
-  tl.to(parts, {autoAlpha: 0, scale: 0.85, duration: 0.25, ease: 'power2.in'}, 64.6);
+  tl.to(parts, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'back.out(2)', stagger: 0.16}, 68.6);
+  parts.forEach((_, i) => { if (i % 2 === 0) cue(68.6 + i * 0.16, 'pop', 0.7, i); });
+  tl.to('#parts3 .dim', {opacity: 0.25, duration: 0.3}, 69.4);
+  tl.to(parts, {autoAlpha: 0, scale: 0.85, duration: 0.25, ease: 'power2.in'}, 70.6);
   gsap.set('#jn3', {scale: 0.7});
-  tl.to('#jn3', {autoAlpha: 1, scale: 1, duration: 0.45, ease: 'back.out(2)'}, 64.8);
-  cue(64.8, 'miss', 0.7);
-  hide('#trap3', 66.5);
-  sceneOff('#s3', 67.0);
+  tl.to('#jn3', {autoAlpha: 1, scale: 1, duration: 0.45, ease: 'back.out(2)'}, 70.8);
+  cue(70.8, 'miss', 0.7);
+  hide('#trap3', 72.5);
+  sceneOff('#s3', 73.0);
 
   /* ===== 4 · Le calendrier ===== */
-  sceneOn('#s4', 67.0);
-  show('#cal4', 67.05, {y: 50});
-  cue(67.05, 'whoosh', 0.6);
+  sceneOn('#s4', 73.0);
+  show('#cal4', 73.05, {y: 50});
+  cue(73.05, 'whoosh', 0.6);
   const days = $$('#strip4 .day'), strip = $('#strip4');
   gsap.set(days, {autoAlpha: 0, y: 20});
-  tl.to(days, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'back.out(2)', stagger: 0.06}, 67.45);
+  tl.to(days, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'back.out(2)', stagger: 0.06}, 73.45);
   // Le curseur part du 28 juillet et avance de 7 jours, en passant au mois d’août
   const at = i => rel(days[i], strip).x;
   gsap.set('#cur4', {x: at(0)});
   gsap.set('#hop4', {x: at(0)});
-  tl.to('#cur4', {opacity: 1, duration: 0.25}, 68.4);
+  tl.to('#cur4', {opacity: 1, duration: 0.25}, 74.4);
   const hops = $$('#hop4 b');
   for (let k = 1; k <= 7; k++) {
-    const t = 68.6 + k * 0.42;
+    const t = 74.6 + k * 0.42;
     tl.to(['#cur4', '#hop4'], {x: at(k), duration: 0.3, ease: 'power2.inOut'}, t);
     if (k > 1) tl.set(hops[k - 2], {opacity: 0}, t);
     tl.set(hops[k - 1], {opacity: 1}, t);
     cue(t, 'tick', 0.55, k % 5);
   }
-  tl.to(days[7], {backgroundColor: '#6A4DF4', borderColor: '#6A4DF4', color: '#fff', duration: 0.3}, 71.75);
-  show('#good4', 71.85, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
-  cue(71.85, 'success', 0.7);
+  tl.to(days[7], {backgroundColor: '#6A4DF4', borderColor: '#6A4DF4', color: '#fff', duration: 0.3}, 77.75);
+  show('#good4', 77.85, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(77.85, 'success', 0.7);
   // Juillet compte 31 jours
-  tl.to(days[3], {scale: 1.1, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 72.8);
-  tl.to(days[4], {scale: 1.1, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 73.6);
-  cue(72.8, 'pop', 0.7, 3);
+  tl.to(days[3], {scale: 1.1, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 78.8);
+  tl.to(days[4], {scale: 1.1, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 79.6);
+  cue(78.8, 'pop', 0.7, 3);
   // 2026-07-35 n’existe pas
-  show('#bad4', 77.3, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
-  tl.to('#bad4', {x: 10, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 77.7);
-  cue(77.3, 'error', 0.7);
+  show('#bad4', 83.3, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  tl.to('#bad4', {x: 10, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 83.7);
+  cue(83.3, 'error', 0.7);
   // D’autres durées
-  show('#dur4', 81.85, {y: 50});
-  cue(81.85, 'whoosh', 0.6);
+  show('#dur4', 87.85, {y: 50});
+  cue(87.85, 'whoosh', 0.6);
   const od4 = $$('#dur4 .od');
   gsap.set(od4, {autoAlpha: 0, x: -30});
-  tl.to(od4, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out', stagger: 0.55}, 82.3);
-  od4.forEach((_, i) => cue(82.3 + i * 0.55, 'pop', 0.75, i * 2));
-  hide(['#cal4', '#dur4'], 86.9);
-  sceneOff('#s4', 87.4);
+  tl.to(od4, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out', stagger: 0.55}, 88.3);
+  od4.forEach((_, i) => cue(88.3 + i * 0.55, 'pop', 0.75, i * 2));
+  hide(['#cal4', '#dur4'], 92.9);
+  sceneOff('#s4', 93.4);
 
   /* ===== 5 · Changer l’affichage d’une date ===== */
-  sceneOn('#s5', 87.4);
-  show('#ext5', 87.45, {y: 50});
-  cue(87.45, 'whoosh', 0.6);
+  sceneOn('#s5', 93.4);
+  show('#ext5', 93.45, {y: 50});
+  cue(93.45, 'whoosh', 0.6);
   const ex = $$('#ext5 .od'), seg = {Y: '#sgY', M: '#sgM', D: '#sgD'};
   gsap.set(ex, {autoAlpha: 0, x: -30});
   const on = {backgroundColor: '#EEE9FF', color: '#5335E0', boxShadow: 'inset 0 0 0 3px #C9BCFF', duration: 0.3};
   const off = {backgroundColor: 'rgba(238,233,255,0)', color: '#221C46', boxShadow: 'inset 0 0 0 3px rgba(201,188,255,0)', duration: 0.3};
   // Chaque format : sa ligne apparaît, et les parties de la date qu’il reprend s’allument
-  [[92.2, 0, 'DMY'], [97.3, 1, 'Y'], [98.9, 2, 'M']].forEach(([t, i, parts], k, all) => {
+  [[98.2, 0, 'DMY'], [103.3, 1, 'Y'], [104.9, 2, 'M']].forEach(([t, i, parts], k, all) => {
     tl.to(ex[i], {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, t);
     'DMY'.split('').forEach(p => tl.to(seg[p], parts.includes(p) ? on : off, t));
     cue(t, 'pop', 0.8, k * 2);
   });
-  tl.to(ex[0].querySelector('.tx.o'), {scale: 1.12, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut', transformOrigin: '0% 50%'}, 93.4);
-  hide('#ext5', 101.5, {y: -40});
-  sceneOff('#s5', 102.0);
+  tl.to(ex[0].querySelector('.tx.o'), {scale: 1.12, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut', transformOrigin: '0% 50%'}, 99.4);
+  hide('#ext5', 107.5, {y: -40});
+  sceneOff('#s5', 108.0);
 
   /* ===== 6 · Le résultat ===== */
-  sceneOn('#s6', 102.0);
-  show('#s6code', 102.05, {y: 60}, 0.6);
-  cue(102.05, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 102.55, 32);
+  sceneOn('#s6', 108.0);
+  show('#s6code', 108.05, {y: 60}, 0.6);
+  cue(108.05, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 108.55, 32);
   te = typeLine($('#s6l2'), te + 0.1, 32);
   te = typeLine($('#s6l3'), te + 0.1, 32);
-  press($('#s6run'), 107.3);
-  show('#tbl6', 107.55, {y: 40}, 0.5);
+  press($('#s6run'), 113.3);
+  show('#tbl6', 113.55, {y: 40}, 0.5);
   const tr6 = $$('#rows6 .tr');
   gsap.set(tr6, {autoAlpha: 0, y: 14});
-  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.06}, 107.7);
-  tr6.forEach((_, i) => cue(107.7 + i * 0.06, 'tick', 0.45, i % 5));
-  show('#cnt6', 108.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  hide(['#s6code', '#tbl6'], 111.65, {y: -40}, 0.4);
+  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.06}, 113.7);
+  tr6.forEach((_, i) => cue(113.7 + i * 0.06, 'tick', 0.45, i % 5));
+  show('#cnt6', 114.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  hide(['#s6code', '#tbl6'], 117.65, {y: -40}, 0.4);
   // Les 16 messages se placent sur le calendrier
-  show('#cal6', 112.0, {y: 50});
-  cue(112.0, 'whoosh', 0.7);
+  show('#cal6', 118.0, {y: 50});
+  cue(118.0, 'whoosh', 0.7);
   const marked = $$('#calg6 .cd').filter(c => c.querySelector('.mk'));
   marked.forEach((c, i) => {
-    const t = 112.7 + i * 0.15;
+    const t = 118.7 + i * 0.15;
     tl.to(c, {borderColor: '#A893FF', backgroundColor: '#EEE9FF', color: '#5335E0', duration: 0.2}, t);
     tl.fromTo(c.querySelector('.mk'), {opacity: 0, scale: 0.3}, {opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2.4)', immediateRender: false}, t);
     const n2 = c.querySelector('.n2');
     if (n2) tl.fromTo(n2, {opacity: 0, scale: 0.3}, {opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2.4)', immediateRender: false}, t + 0.1);
     if (i % 2 === 0) cue(t, 'pop', 0.6, i % 5);
   });
-  show('#badge6', 115.3, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(115.3, 'success', 0.9);
-  hide(['#cal6', '#badge6'], 117.5);
-  sceneOff('#s6', 118.0);
+  show('#badge6', 121.3, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(121.3, 'success', 0.9);
+  hide(['#cal6', '#badge6'], 123.5);
+  sceneOff('#s6', 124.0);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(118.0, [118.7, 120.5, 122.3]);
-  hold(120.3, 2.9);
-  hold(122.1, 2.9);
+  recapScene(124.0, [124.7, 126.5, 128.3]);
+  hold(126.3, 2.9);
+  hold(128.1, 2.9);
   // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(123.25, 'pop', 0.85, 5);
+  if (APP) cue(129.25, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 123.2,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 129.2,
   glyphs: '🧾📨⏳📅🔎⚙️↓⚠️📆🛒⏩✂️✓✕→·–ᵉʳ', dom, build});
 </script>
 </body>
