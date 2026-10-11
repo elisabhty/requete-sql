@@ -460,6 +460,17 @@ const COURSES = [
       '<b>Résultat : 0</b><span class="s">Le + additionne des nombres, pas des textes.</span>',
       '<span class="fc">LENGTH</span><span class="fl"><span class="tx">Sophie</span>', '<span class="fc">SUBSTR</span><span class="fl"><span class="tx">Martin</span>',
       '"<code>SUBSTR(nom, 1, 3)</code> extrait un <b>morceau</b> : 3 caractères, à partir du premier."', '✓ 10 étiquettes prêtes']},
+  {id: 52, next: 53, titre: 'Fonctions numériques', page: 'fonctions-numeriques.html', thumb: 'fonctions-numeriques-thumb.jpg', duree: '2 min 17', notesAt: 123.7,
+    notes: /notes:\{t:129\.5,y:1365,card:\[64,356,1016,1070\],to:\[940,255\]\}/, table: 'produits',
+    bubble: 'Avec les fonctions numériques, calcule de nouvelles valeurs.',
+    chapters: ['Situation', 'Le problème', 'FLOOR en action', 'Calculer', 'Trois façons d’arrondir', 'Le résultat', 'À retenir'],
+    traps: ['<div class="ly-pts">120 <small>points</small></div>', '<span>🎯 1 point par euro entier</span>', '<span class="pc-val"><span class="a">+ ? points</span></span>',
+      "const prixHtml = v => { const [e, c] = String(v).split('.'); return e + (c ? `<span class=\"dec\">.${c}</span>` : ''); };",
+      '<span class="fx" id="fxA">, <span class="kw glow">FLOOR</span>(prix) <span class="kw">AS</span> points</span>',
+      '<span class="fv"><span class="sw"><span class="a">?</span><span class="b">29</span></span></span>',
+      '<b>Un point de trop</b><span class="s">ROUND arrondit au plus proche : 29,90 donne 30.</span>', '<div class="joined" id="jn4"><span>58 points</span></div>',
+      '<span class="oc">%</span><span class="ol">le reste</span><span class="fl"><span class="tx">80 % 6</span><span class="ar">→</span><span class="tx o">2</span></span>',
+      '<span>📦 80 unités : 13 cartons de 6, reste 2</span>', '<span class="kp">CEILING</span><span class="kn">toujours vers le haut</span>', '✓ Points affichés sur les 8 fiches']},
 ];
 
 for (const c of COURSES) {
