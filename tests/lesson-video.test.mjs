@@ -570,6 +570,16 @@ const COURSES = [
       '<span class="snote" id="sn4">une virgule seule</span>', '<span class="vc nul" id="vn4"><small>commande 16</small><b>NULL</b>', '<span class="b">4, 1, 3, 5</span>',
       '<span class="glow" id="ob5"><span class="kw">ORDER BY</span> statut <span class="kw">DESC</span></span>', '<span class="b">16, 15, 14, 13, 12</span>',
       '<span class="glow" id="as6"><span class="kw">AS</span> commandes</span>', '✓ 16 commandes, chacune sous son statut']},
+  {id: 34, next: 35, titre: 'Clé primaire', page: 'cle-primaire.html', thumb: 'cle-primaire-thumb.jpg', duree: '2 min 12', notesAt: 116.5,
+    notes: /notes:\{t:123\.9,y:1312,card:\[64,356,1016,1017\],to:\[940,255\]\}/, table: 'prospects',
+    bubble: 'Avec <span class="ic">PRIMARY KEY</span>, donne à chaque ligne un numéro unique.',
+    chapters: ['Situation', 'Le problème', 'PRIMARY KEY en action', 'Unique et jamais vide', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<span>Salon bien-être · Lyon</span><span class="tb" id="tb1">table prospects</span>', '<span class="gift" id="gf1"><span class="emo">🎁</span>veut un échantillon</span>',
+      '<span class="nl">Un numéro par visiteur</span><span class="tag calc">à ajouter</span>', '<span class="kw">WHERE</span> <span class="glow" id="w2">prenom = <span class="str">\'Camille\'</span></span>;',
+      '<span class="mk q" id="mk2"><span class="emo">🎁</span>laquelle&nbsp;?</span>', '  id <span class="kw">INTEGER</span> <span class="glow" id="pk3"><span class="kw">PRIMARY KEY</span></span>,',
+      'const ECHANTILLON = 3;', '<b>Erreur SQL</b><span class="m">UNIQUE constraint failed: prospects.id</span>', '<span class="sw" id="sw4"><span class="a">?</span><span class="b">6</span></span>',
+      '  prenom <span class="kw">TEXT</span> <span class="glow" id="pk5"><span class="kw">PRIMARY KEY</span></span>,', '<b>Erreur SQL</b><span class="m">UNIQUE constraint failed: prospects.prenom</span>',
+      '<span class="kc">id</span><span class="kt">attribué une fois pour toutes</span>', '<span class="kw">WHERE</span> <span class="glow" id="w6">id = 3</span>;', '✓ La bonne Camille, sans hésiter']},
 ];
 
 for (const c of COURSES) {
