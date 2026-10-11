@@ -220,6 +220,7 @@
       <div class="og od ex"><span class="dc">'%d/%m/%Y'</span><span class="ol">à la française</span><span class="fl"><span class="ar">→</span><span class="tx o">02/07/2026</span></span></div>
       <div class="og od ex"><span class="dc">'%Y'</span><span class="ol">l’année</span><span class="fl"><span class="ar">→</span><span class="tx o">2026</span></span></div>
       <div class="og od ex"><span class="dc">'%m'</span><span class="ol">le mois</span><span class="fl"><span class="ar">→</span><span class="tx o">07</span></span></div>
+      <div class="og od ex"><span class="dc">'%d'</span><span class="ol">le jour</span><span class="fl"><span class="ar">→</span><span class="tx o">02</span></span></div>
     </div>
   </section>
 
@@ -261,7 +262,7 @@
 <script src="core.js"></script>
 <script>
 'use strict';
-const DURATION = 136.8;
+const DURATION = 138.5;
 
 /* Table commandes : [numero_commande, date_commande] */
 const COMMANDES = [['CMD-2026-1002481','2026-07-02'],['CMD-2026-1003912','2026-07-02'],['CMD-2026-1015630','2026-07-05'],['CMD-2026-1024057','2026-07-08'],
@@ -278,9 +279,9 @@ const CHAPTERS = [
   {n:2, label:'Le problème',        a:28.1,  b:42.5},
   {n:3, label:'DATE en action',     a:42.5,  b:73.0},
   {n:4, label:'Le calendrier',      a:73.0,  b:93.4},
-  {n:5, label:'Changer l’affichage', a:93.4, b:108.0},
-  {n:6, label:'Le résultat',        a:108.0, b:124.0},
-  {n:7, label:'À retenir',          a:124.0, b:DURATION}
+  {n:5, label:'Changer l’affichage', a:93.4, b:109.7},
+  {n:6, label:'Le résultat',        a:109.7, b:125.7},
+  {n:7, label:'À retenir',          a:125.7, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
@@ -305,13 +306,13 @@ const CAPTIONS = [
   [87.7, 93.0,   "La durée peut aussi compter en mois ou en années : <code>'+1 month'</code>, <code>'+1 year'</code>."],
   [93.7, 97.6,   "<code>STRFTIME()</code> change<br>l’affichage d’une date."],
   [97.7, 102.9,   "Le format <code>'%d/%m/%Y'</code> affiche la date <span class=\"nw\">2026-07-02</span> en <b>02/07/2026</b>."],
-  [103.0, 107.6,  "<code>'%Y'</code> garde l’année, <code>'%m'</code> le mois : le résultat est un <b>texte</b>."],
-  [108.3, 113.2, "La requête complète affiche chaque commande<br>avec <span class=\"nw\">la date de son message</span>."],
-  [113.3, 117.6, "Résultat : <b>16 lignes</b>, avec des messages du 9 juillet au 10 août."],
-  [117.7, 123.5, "Les messages se placent sur le calendrier, sans modifier la <b>table\u00a0commandes</b>."],
-  [124.3, 129.1, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [129.2, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
-      : [129.2, 999, "<code>DATE</code> ajoute une durée, et <code>STRFTIME()</code> change l’affichage d’une date."]
+  [103.0, 109.3,  "Chaque format récupère une partie de la date. Ici, <code>'%d'</code> renvoie <b>02</b>, le numéro du jour dans le mois."],
+  [110.0, 114.9, "La requête complète affiche chaque commande<br>avec <span class=\"nw\">la date de son message</span>."],
+  [115.0, 119.3, "Résultat : <b>16 lignes</b>, avec des messages du 9 juillet au 10 août."],
+  [119.4, 125.2, "Les messages se placent sur le calendrier, sans modifier la <b>table\u00a0commandes</b>."],
+  [126.0, 130.8, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [130.9, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [130.9, 999, "<code>DATE</code> ajoute une durée, et <code>STRFTIME()</code> change l’affichage d’une date."]
 ];
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
@@ -513,56 +514,59 @@ function build(){
   const on = {backgroundColor: '#EEE9FF', color: '#5335E0', boxShadow: 'inset 0 0 0 3px #C9BCFF', duration: 0.3};
   const off = {backgroundColor: 'rgba(238,233,255,0)', color: '#221C46', boxShadow: 'inset 0 0 0 3px rgba(201,188,255,0)', duration: 0.3};
   // Chaque format : sa ligne apparaît, et les parties de la date qu’il reprend s’allument
-  [[98.2, 0, 'DMY'], [103.3, 1, 'Y'], [104.9, 2, 'M']].forEach(([t, i, parts], k, all) => {
+  [[98.2, 0, 'DMY'], [103.3, 1, 'Y'], [104.0, 2, 'M'], [104.7, 3, 'D']].forEach(([t, i, parts], k, all) => {
     tl.to(ex[i], {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, t);
     'DMY'.split('').forEach(p => tl.to(seg[p], parts.includes(p) ? on : off, t));
     cue(t, 'pop', 0.8, k * 2);
   });
   tl.to(ex[0].querySelector('.tx.o'), {scale: 1.12, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut', transformOrigin: '0% 50%'}, 99.4);
-  hide('#ext5', 107.5, {y: -40});
-  sceneOff('#s5', 108.0);
+  // Ici, '%d' renvoie 02 : le résultat de sa ligne ressort
+  tl.to(ex[3].querySelector('.tx.o'), {scale: 1.12, duration: 0.2, yoyo: true, repeat: 3, ease: 'power1.inOut', transformOrigin: '0% 50%'}, 106.2);
+  cue(106.2, 'pop', 0.7, 3);
+  hide('#ext5', 109.2, {y: -40});
+  sceneOff('#s5', 109.7);
 
   /* ===== 6 · Le résultat ===== */
-  sceneOn('#s6', 108.0);
-  show('#s6code', 108.05, {y: 60}, 0.6);
-  cue(108.05, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 108.55, 32);
+  sceneOn('#s6', 109.7);
+  show('#s6code', 109.75, {y: 60}, 0.6);
+  cue(109.75, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 110.25, 32);
   te = typeLine($('#s6l2'), te + 0.1, 32);
   te = typeLine($('#s6l3'), te + 0.1, 32);
-  press($('#s6run'), 113.3);
-  show('#tbl6', 113.55, {y: 40}, 0.5);
+  press($('#s6run'), 115.0);
+  show('#tbl6', 115.25, {y: 40}, 0.5);
   const tr6 = $$('#rows6 .tr');
   gsap.set(tr6, {autoAlpha: 0, y: 14});
-  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.06}, 113.7);
-  tr6.forEach((_, i) => cue(113.7 + i * 0.06, 'tick', 0.45, i % 5));
-  show('#cnt6', 114.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  hide(['#s6code', '#tbl6'], 117.65, {y: -40}, 0.4);
+  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.06}, 115.4);
+  tr6.forEach((_, i) => cue(115.4 + i * 0.06, 'tick', 0.45, i % 5));
+  show('#cnt6', 115.9, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  hide(['#s6code', '#tbl6'], 119.35, {y: -40}, 0.4);
   // Les 16 messages se placent sur le calendrier
-  show('#cal6', 118.0, {y: 50});
-  cue(118.0, 'whoosh', 0.7);
+  show('#cal6', 119.7, {y: 50});
+  cue(119.7, 'whoosh', 0.7);
   const marked = $$('#calg6 .cd').filter(c => c.querySelector('.mk'));
   marked.forEach((c, i) => {
-    const t = 118.7 + i * 0.15;
+    const t = 120.4 + i * 0.15;
     tl.to(c, {borderColor: '#A893FF', backgroundColor: '#EEE9FF', color: '#5335E0', duration: 0.2}, t);
     tl.fromTo(c.querySelector('.mk'), {opacity: 0, scale: 0.3}, {opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2.4)', immediateRender: false}, t);
     const n2 = c.querySelector('.n2');
     if (n2) tl.fromTo(n2, {opacity: 0, scale: 0.3}, {opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2.4)', immediateRender: false}, t + 0.1);
     if (i % 2 === 0) cue(t, 'pop', 0.6, i % 5);
   });
-  show('#badge6', 121.3, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(121.3, 'success', 0.9);
-  hide(['#cal6', '#badge6'], 123.5);
-  sceneOff('#s6', 124.0);
+  show('#badge6', 123.0, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(123.0, 'success', 0.9);
+  hide(['#cal6', '#badge6'], 125.2);
+  sceneOff('#s6', 125.7);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(124.0, [124.7, 126.5, 128.3]);
-  hold(126.3, 2.9);
-  hold(128.1, 2.9);
+  recapScene(125.7, [126.4, 128.2, 130.0]);
+  hold(128.0, 2.9);
+  hold(129.8, 2.9);
   // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(129.25, 'pop', 0.85, 5);
+  if (APP) cue(130.95, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 129.2,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 130.9,
   glyphs: '🧾📨⏳📅🔎⚙️↓⚠️📆🛒⏩✂️✓✕→·–ᵉʳ', dom, build});
 </script>
 </body>
