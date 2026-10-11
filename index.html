@@ -7,6 +7,7 @@
 <meta name="description" content="Apprends le SQL en pratiquant sur une vraie base SQLite. Leçons, défis, révision espacée et console interactive.">
 <meta name="theme-color" content="#F4F2FC">
 <meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -9029,9 +9030,9 @@ guide({ id:12, titre:"LIMIT et OFFSET", résumé:"Limiter le résultat et le dé
 guide({ id:51, titre:"Fonctions de texte", résumé:"Transformer, nettoyer et découper du texte",
   /* Cours en vidéo, comme ceux de « Lire une table » : l’animation (assets/anim/fonctions-texte.html, moteur commun assets/anim/core.js) remplace le texte du cours.
      La vidéo suit les étiquettes des colis (UPPER et ||) ; le texte ci-dessous, gardé pour le cas où la vidéo ne se charge pas, suit les identifiants de l’espace client. */
-  video:{anim:'assets/anim/fonctions-texte.html?app&embed',thumb:'assets/anim/fonctions-texte-thumb.jpg',duree:'2 min 25',
-    /* « Ajouter dans notes » : apparaît à 2 min 17 (137,4 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:137.4,y:1330,card:[64,356,1016,1017],to:[940,255]}},
+  video:{anim:'assets/anim/fonctions-texte.html?app&embed',thumb:'assets/anim/fonctions-texte-thumb.jpg',duree:'2 min 35',
+    /* « Ajouter dans notes » : apparaît à 2 min 27 (147,5 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:147.5,y:1371,card:[64,300,1016,1076],to:[940,255]}},
   sit:{
     blocks:[
       "L’équipe support prépare <b>les comptes de l’espace client</b>. Chaque client doit recevoir un identifiant de connexion <b>en minuscules</b> : son prénom, un tiret, puis son nom de famille, par exemple <b>sophie-martin</b>.",
@@ -9106,7 +9107,7 @@ guide({ id:51, titre:"Fonctions de texte", résumé:"Transformer, nettoyer et d�
   reflex:[
     {recap:[
       ["🔤","Une <b>fonction</b> transforme le texte du résultat, sans modifier la table :",null,"UPPER(nom)"],
-      ["🧰","Une <b>fonction par besoin</b> : <code>LOWER</code>, <code>TRIM</code>, <code>LENGTH</code>, <code>SUBSTR</code> ou <code>REPLACE</code>."],
+      ["🧰","Une <b>fonction par besoin</b> :","<code>UPPER</code> → met en majuscules<br><code>LOWER</code> → met en minuscules<br><code>TRIM</code> → retire les espaces autour du texte<br><code>LENGTH</code> → compte les caractères<br><code>SUBSTR</code> → récupère une partie du texte<br><code>REPLACE</code> → remplace des caractères"],
       ["🔗","<code>||</code> <b>assemble des textes</b>, et on peut y placer des fonctions :",null,"UPPER(nom) || ' ' || prenom"]
     ],label:"Les trois idées à retenir"}
   ],
@@ -20420,10 +20421,11 @@ function stripNoteHtml(s){
 function noteRecapHtml(s){
   return String(s||'').replace(/<ol class="fk-syn-map is-recap"[^>]*>([\s\S]*?)<\/ol>/g,(_,inner)=>{
     const cards=[...inner.matchAll(/<li>([\s\S]*?)<\/li>/g)].map(m=>{
-      const part=re=>{const x=re.exec(m[1]);return x?x[1].replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim():'';};
+      /* Un <br> dans une carte (liste « fonction → rôle ») reste un retour à la ligne dans la note. */
+      const part=re=>{const x=re.exec(m[1]);return x?x[1].replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]+>/g,'').replace(/[^\S\n]+/g,' ').replace(/ ?\n ?/g,'\n').trim():'';};
       return [part(/<strong>([\s\S]*?)<\/strong>/),part(/<\/strong><span>([\s\S]*?)<\/span>/),part(/<code class="fk-rc">([\s\S]*?)<\/code>/)].filter(Boolean);
     }).filter(lines=>lines.length);
-    return cards.map(lines=>`<p>${lines.join('<br>')}</p>`).join('');
+    return cards.map(lines=>`<p>${lines.join('<br>').replace(/\n/g,'<br>')}</p>`).join('');
   });
 }
 /* Texte d’une note à partir d’un fragment HTML de cours : les paragraphes sont séparés
@@ -27319,7 +27321,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-11-ludique-v1728';
+  const SW_CACHE='requete-2026-10-11-ludique-v1729';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
