@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · SELF JOIN en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:150px;top:436px;letter-spacing:-3px}
+#s0 .title span.sp{margin-right:44px}
+#s0 .hilite{top:520px;height:50px}
+#s0 .sub{top:612px;font-size:54px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:36px;white-space:nowrap}
+.nw{white-space:nowrap}
+
+/* Code : trois à sept lignes (chapitres 3 et 6) */
+.code.sm .body{font-size:32px;line-height:50px;padding:26px 36px}
+.code.sm .ln{height:50px}
+.code.sm .caret i{top:-37px;height:42px}
+.code.xs .body{font-size:30px;line-height:46px;padding:24px 36px}
+.code.xs .ln{height:46px}
+.code.xs .caret i{top:-35px;height:40px}
+
+/* Une valeur et sa version suivante, l’une sur l’autre : la case se retourne de l’une à l’autre */
+.sw{display:inline-grid;justify-items:start}
+.sw>span{grid-area:1/1}
+.sw .b{opacity:0}
+.nul{color:var(--ink-3);font-style:italic}
+#op5{justify-items:center}
+/* La table commandes en orange ; ses deux copies : c1 en violet, c2 en bleu */
+.tag.tc,.db-bar .tb.tc{background:#FFF4E5;color:#9A5B00}
+
+/* ---------- 1 · Les colis à préparer ---------- */
+.board{left:64px;width:952px;padding:0 0 10px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.cg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:22px}
+.ck{height:78px;border-radius:16px;background:#fff;border:2px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.ck b{font-family:var(--mono);font-size:25px;font-weight:800;color:var(--ink)}
+.ck small{font-size:20px;font-weight:700;color:var(--ink-3);white-space:nowrap}
+
+/* ---------- 2 · Le problème : la même table, deux fois ---------- */
+.pr2{left:64px;width:952px;padding:24px 34px 28px}
+.pr2-h{font-size:32px;font-weight:700;color:var(--ink);white-space:nowrap}
+.pr2-r{margin-top:18px;height:76px;border-radius:20px;border:3px dashed #C9BCFF;display:flex;align-items:center;justify-content:center;gap:18px}
+.ck2{height:52px;padding:0 20px;border-radius:14px;font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.ck2.c1{background:var(--accent-soft);color:var(--accent-ink)}
+.ck2.c2{background:#E5F0FF;color:#1D5FB8}
+.mini.four{font-size:26px;line-height:42px;padding-right:120px}
+.out.err{opacity:1}
+.goal{left:64px;width:952px;height:96px;border-radius:32px;background:#E7F7EE;border:3px solid #BFE8D0;display:flex;align-items:center;justify-content:center;gap:14px;font-size:33px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.goal .emo{font-size:36px}
+
+/* ---------- 3 · Deux copies de la table commandes ---------- */
+.lk{left:64px;width:952px;height:656px}
+.mt{position:absolute;top:0;width:290px;background:#fff;border:3px solid var(--line);border-radius:34px;box-shadow:0 8px 0 var(--lip);overflow:hidden}
+.mt.c1{left:0}
+.mt.c2{left:662px}
+.mt .tt{height:60px;display:flex;align-items:center;gap:10px;padding:0 20px;font-family:var(--mono);font-size:24px;font-weight:800;white-space:nowrap}
+.mt.c1 .tt{color:var(--accent-ink)}
+.mt.c2 .tt{color:#1D5FB8}
+.mt .hd,.mt .rw{display:grid;grid-template-columns:70px 1fr;align-items:center;padding:0 22px;font-family:var(--mono);white-space:nowrap}
+.mt .hd{height:44px;background:var(--surface-2);font-size:22px;font-weight:700;color:var(--ink-3)}
+.mt .rw{position:relative;height:34px;font-size:24px;font-weight:600;color:var(--ink);box-shadow:inset 0 2px 0 var(--line-2)}
+.mt .rw .bg{position:absolute;left:0;top:0;right:0;bottom:0;opacity:0;z-index:0}
+.mt.c1 .rw .bg{background:var(--accent-soft)}
+.mt.c2 .rw .bg{background:#E5F0FF}
+.mt .rw>span:not(.bg){position:relative;z-index:1}
+.lks{position:absolute;left:290px;top:0;width:372px;height:656px;overflow:visible;pointer-events:none}
+.lks path{fill:none;stroke:#8B6CFF;stroke-width:4;stroke-linecap:round}
+.lks circle{fill:#5B9BF0;stroke:none}
+.pill{left:0;width:1080px;display:flex;justify-content:center;gap:16px}
+.pill>span{height:60px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill>span.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.pill .ic{font-size:.9em;background:#fff}
+
+/* ---------- 4 et 5 · Les lignes de la cliente 1 ---------- */
+.mini.mq{position:absolute;margin:0;left:64px;width:952px;font-size:30px;line-height:46px;padding:22px 34px}
+.mini.mq .caret i{top:-35px;height:40px}
+.xt{height:44px;display:flex;align-items:center;padding:0 34px;font-size:24px;font-weight:600;color:var(--ink-3)}
+.rgS{display:grid;grid-template-columns:200px 200px 1fr;padding:0 26px;align-items:center}
+.tr.t4{height:50px;font-size:28px}
+.tr.t4.self .hl{background:#FDEBEC;box-shadow:inset 8px 0 0 #EF4F55}
+.tr.t4.inv .hl{background:#FFF4E5;box-shadow:inset 8px 0 0 #F2994A}
+.dp{position:absolute;right:24px;top:50%;margin-top:-17px;height:34px;padding:0 14px;border-radius:999px;font-family:var(--ui);font-size:21px;font-weight:700;display:flex;align-items:center;opacity:0;z-index:2}
+.dp.rd{background:#FDEBEC;color:#C2323A}
+.dp.am{background:#FFF4E5;color:#9A5B00}
+
+/* ---------- 6 · Le résultat ---------- */
+.rgR{display:grid;grid-template-columns:260px 260px 1fr;padding:0 26px;align-items:center}
+.tr.t6{height:42px;font-size:26px}
+.gk{display:flex;align-items:center;gap:18px;height:84px;padding:0 30px}
+.gk+.gk{box-shadow:inset 0 2px 0 var(--line-2)}
+.gk .gi{flex:none;width:52px;height:52px;border-radius:50%;background:#FFF4E5;color:#9A5B00;font-family:var(--display);font-size:26px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.gk .gt{font-size:29px;font-weight:700;color:var(--ink);white-space:nowrap}
+.gk .gc{display:flex;gap:8px}
+.gk .gc i{height:40px;padding:0 12px;border-radius:12px;background:var(--surface-2);font-family:var(--mono);font-style:normal;font-size:23px;font-weight:700;color:var(--ink-2);display:flex;align-items:center}
+.gk .gn{margin-left:auto;height:42px;padding:0 16px;border-radius:999px;background:#E7F7EE;color:#1B7A45;font-size:22px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+
+/* ---------- 7 · À retenir : trois idées un peu longues, le récapitulatif se resserre ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:19px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+.rtxt .blk.sm{font-size:.74em}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Jointures</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>S</span><span>E</span><span>L</span><span class="sp">F</span><span>J</span><span>O</span><span>I</span><span>N</span></div>
+    <div class="abs sub">Comparer les lignes d’une même table</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec un <span class="ic">SELF JOIN</span>, une table<br>est reliée à <span class="nw">elle-même</span>.</div>
+  </section>
+
+  <!-- 1 · Situation : les colis à préparer -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="cb1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Colis à préparer</span><span class="tb tc" id="tb1">table commandes</span></div>
+      <div class="cg" id="cg1"></div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">🧾</span><span class="nl">La première commande</span><span class="tag tc">table commandes</span></div>
+      <div class="need-row"><span class="emo">🧾</span><span class="nl">La seconde commande</span><span class="tag tc">table commandes</span></div>
+      <div class="need-row"><span class="emo">👤</span><span class="nl">Leur client commun</span><span class="tag tc">table commandes</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : relier la table à elle-même, sans nom pour chaque copie -->
+  <section class="scene" id="s2">
+    <div class="abs card pr2" id="pr2" style="top:300px">
+      <div class="pr2-h">Deux commandes sur une même ligne&nbsp;?</div>
+      <div class="pr2-r"><span class="ck2 c1" id="k2a">n°&nbsp;1 · client&nbsp;1</span><span class="ck2 c2" id="k2b">n°&nbsp;2 · client&nbsp;1</span></div>
+    </div>
+    <div class="abs card trap" id="ta2">
+      <div class="trap-h"><span class="emo">🧪</span><span>Premier essai&nbsp;: la table, deux fois</span></div>
+      <div class="mini four"><span class="kw">SELECT</span> <span class="glow" id="i2">commandes.id</span>
+<span class="kw">FROM</span> commandes
+<span class="kw">JOIN</span> commandes
+    <span class="kw">ON</span> commandes.client_id = commandes.client_id;<span class="go" id="go2"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+      <div class="out err" id="er2"><div class="oi">✕</div><div class="ot"><b>Erreur SQL</b><span class="m">ambiguous column name: commandes.id</span></div></div>
+    </div>
+    <div class="abs goal" id="goal2"><span class="emo">🎯</span>Un nom différent pour chaque copie</div>
+  </section>
+
+  <!-- 3 · SELF JOIN en action : deux alias, et ON compare les clients -->
+  <section class="scene" id="s3">
+    <div class="abs code sm" id="s3code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s3l1"><span class="kw">FROM</span> commandes <span class="glow" id="a3a"><span class="kw">AS</span> c1</span><span class="caret"><i></i></span></span><span class="ln" id="s3l2"><span class="kw">JOIN</span> commandes <span class="glow" id="a3b"><span class="kw">AS</span> c2</span><span class="caret"><i></i></span></span><span class="ln" id="s3l3">    <span class="glow" id="o3"><span class="kw">ON</span> c1.client_id = c2.client_id</span><span class="caret"><i></i></span></span></div>
+    </div>
+    <div class="abs pill" id="n3a"><span class="vi"><span class="emo">🪞</span>Une table, deux rôles&nbsp;: <span class="ic">c1</span> et <span class="ic">c2</span></span></div>
+    <div class="abs lk" id="lk3" style="top:300px">
+      <div class="mt c1"><div class="tt">commandes AS c1</div><div class="hd"><span>id</span><span>client_id</span></div></div>
+      <div class="mt c2"><div class="tt">commandes AS c2</div><div class="hd"><span>id</span><span>client_id</span></div></div>
+      <svg class="lks" id="lks3" viewBox="0 0 372 656"></svg>
+    </div>
+  </section>
+
+  <!-- 4 · Avec elle-même : chaque commande associée à elle-même, AND c1.id <> c2.id -->
+  <section class="scene" id="s4">
+    <div class="abs mini mq" id="q4" style="top:300px"><span class="kw">JOIN</span> commandes <span class="kw">AS</span> c2
+    <span class="kw">ON</span> c1.client_id = c2.client_id
+    <span id="w4" class="glow"><span class="kw">AND</span> c1.id &lt;&gt; c2.id</span><span class="caret"><i></i></span></div>
+    <div class="tbl card" id="tbl4">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat du SELF JOIN</span><span class="cnt"><span id="c4a">31 lignes</span><span id="c4b">16 lignes</span></span></div>
+      <div class="xt">Extrait&nbsp;: les lignes de la cliente 1</div>
+      <div class="rgS th"><div>c1.id</div><div>c2.id</div><div>client_id</div></div>
+      <div class="rows" id="rows4"></div>
+    </div>
+  </section>
+
+  <!-- 5 · Le piège : avec <>, chaque paire deux fois ; avec <, une seule -->
+  <section class="scene" id="s5">
+    <div class="abs mini mq" id="q5" style="top:300px"><span class="kw">JOIN</span> commandes <span class="kw">AS</span> c2
+    <span class="kw">ON</span> c1.client_id = c2.client_id
+    <span class="glow" id="w5"><span class="kw">AND</span> c1.id <span class="sw" id="op5"><span class="a">&lt;&gt;</span><span class="b">&lt;</span></span> c2.id</span></div>
+    <div class="tbl card" id="tbl5">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat du SELF JOIN</span><span class="cnt"><span id="c5a">16 lignes</span><span id="c5b">8 lignes</span></span></div>
+      <div class="xt">Extrait&nbsp;: les lignes de la cliente 1</div>
+      <div class="rgS th"><div>c1.id</div><div>c2.id</div><div>client_id</div></div>
+      <div class="rows" id="rows5"></div>
+    </div>
+  </section>
+
+  <!-- 6 · Le résultat : la requête complète, puis les colis regroupés -->
+  <section class="scene" id="s6">
+    <div class="abs code xs" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> c1.id <span class="kw">AS</span> commande_1,<span class="caret"><i></i></span></span><span class="ln" id="s6l2">       c2.id <span class="kw">AS</span> commande_2,<span class="caret"><i></i></span></span><span class="ln" id="s6l3">       c1.client_id<span class="caret"><i></i></span></span><span class="ln" id="s6l4"><span class="kw">FROM</span> commandes <span class="glow" id="a6a"><span class="kw">AS</span> c1</span><span class="caret"><i></i></span></span><span class="ln" id="s6l5"><span class="kw">JOIN</span> commandes <span class="glow" id="a6b"><span class="kw">AS</span> c2</span><span class="caret"><i></i></span></span><span class="ln" id="s6l6">    <span class="kw">ON</span> c1.client_id = c2.client_id<span class="caret"><i></i></span></span><span class="ln" id="s6l7">    <span class="glow" id="w6"><span class="kw">AND</span> c1.id &lt; c2.id</span>;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">8 lignes</span></span></div>
+      <div class="rgR th"><div>commande_1</div><div>commande_2</div><div>client_id</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card board" id="rg6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Colis à regrouper · 8 paires</span></div>
+      <div id="gk6"></div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ 6 clients, un envoi chacun</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🪞</div><div class="rtxt">Un <span class="ic">SELF JOIN</span> met en relation<br>des <b class="nw">lignes d’une même table</b>.</div></div>
+      <div class="rrow"><div class="rico emo">🏷️</div><div class="rtxt">Les alias <span class="ic">c1</span> et <span class="ic">c2</span> donnent à la table <b>deux rôles</b> différents&nbsp;:<br><span class="ic blk sm">FROM commandes AS c1 JOIN commandes AS c2</span></div></div>
+      <div class="rrow"><div class="rico emo">☝️</div><div class="rtxt"><span class="nw">Pour garder chaque paire <b>une seule fois</b></span><br>et écarter une ligne associée<br>à <span class="nw">elle-même</span>&nbsp;:<br><span class="ic blk sm">AND c1.id &lt; c2.id</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 156.5;
+
+/* Table commandes [id, client_id] : la commande 16 n’a pas de client. */
+const COMMANDES = [[1, 1], [2, 1], [3, 2], [4, 3], [5, 4], [6, 5], [7, 6], [8, 7], [9, 7], [10, 2], [11, 8], [12, 4], [13, 1], [14, 3], [15, 5], [16, null]];
+const SOPHIE = [1, 2, 13];   // les trois commandes de la cliente 1
+/* Les lignes de la cliente 1, dans l’ordre renvoyé : [c1.id, c2.id] */
+const L4 = [[1, 1], [1, 2], [1, 13], [2, 1], [2, 2], [2, 13], [13, 1], [13, 2], [13, 13]];
+/* Le résultat de la requête complète : [commande_1, commande_2, client_id] */
+const PAIRES = [[1, 2, 1], [1, 13, 1], [2, 13, 1], [3, 10, 2], [4, 14, 3], [5, 12, 4], [6, 15, 5], [8, 9, 7]];
+const COLIS = [[1, [1, 2, 13], 3], [2, [3, 10], 1], [3, [4, 14], 1], [4, [5, 12], 1], [5, [6, 15], 1], [7, [8, 9], 1]];
+
+const CHAPTERS = [
+  {n:1, label:'Situation',             a:5.0,   b:35.9},
+  {n:2, label:'Le problème',           a:35.9,  b:57.1},
+  {n:3, label:'SELF JOIN en action',   a:57.1,  b:84.2},
+  {n:4, label:'Avec elle-même',        a:84.2,  b:105.7},
+  {n:5, label:'Le piège',              a:105.7, b:126.7},
+  {n:6, label:'Le résultat',           a:126.7, b:143.7},
+  {n:7, label:'À retenir',             a:143.7, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 10.3,    "À l’entrepôt, l’équipe logistique veut <b>regrouper les colis</b> d’un même client."],
+  [10.4, 15.8,   "Quand un même client a passé plusieurs commandes, ses colis peuvent partir <b>ensemble</b>."],
+  [15.9, 19.9,   "Toutes les commandes se trouvent dans la <b>table commandes</b>."],
+  [20.0, 24.4,   "Chacune indique le client qui l’a passée, avec <code>client_id</code>."],
+  [24.5, 29.5,   "La cliente 1, Sophie, a par exemple passé <b>3 commandes</b> : les n° 1, 2 et 13."],
+  [29.6, 35.4,   "Il faut donc comparer les commandes <b>entre elles</b> pour former les paires d’un même client."],
+  [36.2, 41.6,   "Pour les comparer, il faut réunir deux commandes sur <b>une même ligne</b>."],
+  [41.7, 46.4,   "Premier essai : écrire <code>JOIN</code> pour relier la table commandes à <span class=\"nw\">elle-même</span>."],
+  [46.5, 52.0,   "Refusée : <code>commandes.id</code> peut désigner l’une ou l’autre des deux copies."],
+  [52.1, 56.6,   "Il faut donner à chaque copie de la table <b>un nom différent</b>."],
+  [57.4, 62.9,   "Un <code>SELF JOIN</code> est un <code>JOIN</code> ordinaire : la même table y est lue <b>deux fois</b>."],
+  [63.0, 68.7,   "Chaque copie reçoit un alias : <code>c1</code> pour la première commande, <code>c2</code> pour la seconde."],
+  [68.8, 72.9,   "<code>ON</code> associe deux commandes qui ont le <b>même client</b>."],
+  [73.0, 78.1,   "Pour la commande 1, de la cliente 1, <code>c2</code> trouve les commandes 1, 2 et 13."],
+  [78.2, 83.7,   "Les commandes 2 et 13 sont associées, elles aussi, aux commandes 1, 2 et 13."],
+  [84.5, 88.7,   "Le résultat compte <b>31 lignes</b>. Voici celles de la cliente 1."],
+  [88.8, 93.9,   "Chaque commande est associée à <b class=\"nw\">elle-même</b> : la 1 avec la 1, la 2 avec la 2…"],
+  [94.0, 99.6,   "Pour les écarter, on ajoute avec <code>AND</code> une condition : des <code>id</code> <b>différents</b>."],
+  [99.7, 105.2,  "Il reste <b>16 lignes</b> : aucune commande n’est plus associée à <span class=\"nw\">elle-même</span>."],
+  [106.0, 110.0, "Attention : avec <code>&lt;&gt;</code>, chaque paire apparaît <b>deux fois</b>."],
+  [110.1, 114.9, "La paire 1 et 2 forme une ligne, et la paire 2 et 1 une autre."],
+  [115.0, 121.1, "En remplaçant <code>&lt;&gt;</code> par <code>&lt;</code>, seul le sens où <code>c1.id</code> est le plus petit est conservé."],
+  [121.2, 126.2, "Il reste <b>une ligne par paire</b> : 3 paires pour la cliente 1."],
+  [127.0, 133.4, "La requête complète associe les commandes d’un même client, chaque paire une seule fois."],
+  [133.5, 138.0, "Résultat : <b>8 paires</b> de commandes, dont 3 pour Sophie, la cliente 1."],
+  [138.1, 143.2, "L’entrepôt peut regrouper les colis de <b>6 clients</b>, en un seul envoi chacun."],
+  [144.0, 148.8, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [148.9, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [148.9, 999, "Un <code>SELF JOIN</code> relie une table à <span class=\"nw\">elle-même</span>, sous deux alias."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+function dom(){
+  const nul = '<span class="nul">NULL</span>';
+  /* Chapitre 1 : les 16 commandes, chacune avec son client */
+  $('#cg1').innerHTML = COMMANDES.map(([id, c]) => `<div class="ck" data-id="${id}"><b>n°&nbsp;${id}</b><small>${c === null ? 'sans client' : 'client&nbsp;' + c}</small></div>`).join('');
+  /* Chapitre 3 : les deux copies de la table commandes */
+  const rows = COMMANDES.map(([id, c]) => `<div class="rw"><span class="bg"></span><span>${id}</span><span>${c === null ? nul : c}</span></div>`).join('');
+  $('#lk3 .mt.c1').insertAdjacentHTML('beforeend', rows);
+  $('#lk3 .mt.c2').insertAdjacentHTML('beforeend', rows);
+  /* Chapitres 4 et 5 : les lignes de la cliente 1 */
+  $('#rows4').innerHTML = L4.map(([a, b]) => `<div class="rgS tr t4${a === b ? ' self' : ''}"><span class="hl"></span><div>${a}</div><div>${b}</div><div>1</div>${a === b ? '<span class="dp rd">elle-même</span>' : ''}</div>`).join('');
+  $('#rows5').innerHTML = L4.filter(([a, b]) => a !== b).map(([a, b]) => `<div class="rgS tr t4${a > b ? ' inv' : ''}"><span class="hl"></span><div>${a}</div><div>${b}</div><div>1</div>${a > b ? `<span class="dp am">${b} et ${a}, à l’envers</span>` : ''}</div>`).join('');
+  /* Chapitre 6 : le résultat, puis les colis regroupés client par client */
+  $('#rows6').innerHTML = PAIRES.map(([a, b, c]) => `<div class="rgR tr t6"><div>${a}</div><div>${b}</div><div>${c}</div></div>`).join('');
+  $('#gk6').innerHTML = COLIS.map(([c, cmd, n]) => `<div class="gk"><span class="gi">${c}</span><span class="gt">Client ${c}</span><span class="gc">${cmd.map(x => `<i>n°&nbsp;${x}</i>`).join('')}</span><span class="gn">${n} paire${n > 1 ? 's' : ''}</span></div>`).join('');
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+/* Une case se retourne : la valeur de départ laisse place à la suivante. */
+function flip(sw, t, sound = true){
+  tl.to(sw, {scaleY: 0, duration: 0.12, ease: 'power2.in'}, t);
+  tl.set(sw.querySelector('.a'), {opacity: 0}, t + 0.12);
+  tl.set(sw.querySelector('.b'), {opacity: 1}, t + 0.12);
+  tl.to(sw, {scaleY: 1, duration: 0.22, ease: 'back.out(2)'}, t + 0.12);
+  if (sound) cue(t + 0.12, 'tick', 0.5, 3);
+}
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => i % 2 || cue(t + i * step, 'tick', 0.45, (i / 2) % 5));
+}
+/* Une carte arrive en tournant légèrement, puis ses éléments un à un. */
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 18});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => i % 2 || cue(t + 0.65 + i * step, 'pop', 0.55, (i / 2) % 5));
+  return items;
+}
+/* Un bloc caché sans laisser de place vide : il s’ouvre (hauteur et marge) au moment où il apparaît.
+   Les cartes posées dessous sont placées avant, pour la taille finale. */
+function fold(el){
+  const cs = getComputedStyle(el), h = el.offsetHeight, m = parseFloat(cs.marginTop), ov = cs.overflow;
+  gsap.set(el, {height: 0, marginTop: 0, autoAlpha: 0, overflow: 'hidden'});
+  return t => {
+    tl.to(el, {height: h, marginTop: m, autoAlpha: 1, duration: 0.45, ease: 'power2.out'}, t);
+    tl.set(el, {overflow: ov}, t + 0.46);
+  };
+}
+/* Une pastille de compte qui change : l’ancienne s’efface, la nouvelle apparaît. */
+function swapCnt(a, b, t){
+  tl.to(a, {autoAlpha: 0, scale: 0.6, duration: 0.15}, t);
+  tl.fromTo(b, {autoAlpha: 0, scale: 0.6}, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)', immediateRender: false}, t + 0.15);
+  cue(t + 0.15, 'pop', 0.6, 2);
+}
+/* Chapitre 3 : les liens d’une commande de c1 vers les commandes de c2 qui ont le même client, mesurés avant toute animation. */
+function liens(){
+  const box = $('#lk3'), a = $$('#lk3 .mt.c1 .rw'), b = $$('#lk3 .mt.c2 .rw');
+  const cy = el => { const r = rel(el, box); return r.y + r.h / 2; };
+  const out = [];
+  SOPHIE.forEach(i => SOPHIE.forEach(j => {
+    const y1 = cy(a[i - 1]).toFixed(1), y2 = cy(b[j - 1]).toFixed(1);
+    out.push({i, j, d: `M2 ${y1} C186 ${y1} 186 ${y2} 360 ${y2}`, y2});
+  }));
+  $('#lks3').innerHTML = out.map(o => `<path d="${o.d}"/>`).join('') + SOPHIE.map(j => `<circle cx="360" cy="${cy(b[j - 1]).toFixed(1)}" r="7"/>`).join('');
+  const paths = $$('#lks3 path');
+  return out.map((o, k) => Object.assign(o, {path: paths[k], len: paths[k].getTotalLength()}));
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+  let te;
+  const L = liens();   // mesures faites avant toute animation
+  const r1 = $$('#lk3 .mt.c1 .rw'), r2 = $$('#lk3 .mt.c2 .rw'), dots = $$('#lks3 circle');
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  const ck = $$('#cg1 .ck');
+  gsap.set($$('#cg1 .ck small'), {autoAlpha: 0});
+  boardIn('#cb1', 5.15, '.ck', 0.04);
+  // Plusieurs commandes, des colis qui partent ensemble
+  bump(ck.filter(k => SOPHIE.includes(+k.dataset.id)), 12.6, 1.08, 1);
+  cue(12.6, 'tick', 0.5, 2);
+  // La table commandes
+  show('#tb1', 16.3, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(16.3, 'pop', 0.7, 3);
+  stackBelow('#s1 .need', '#cb1');   // la liste se cale sous les colis, sans les toucher
+  show('#s1 .need', 16.8, {y: 60});
+  cue(16.8, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows.slice(0, 2), {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.25}, 17.1);
+  [0, 1].forEach(i => cue(17.1 + i * 0.25, 'pop', 0.7, i));
+  // client_id : le client de chaque commande
+  tl.to($$('#cg1 .ck small'), {autoAlpha: 1, duration: 0.3, stagger: 0.04}, 20.6);
+  cue(20.6, 'tick', 0.5, 1);
+  tl.to(needRows[2], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 21.6);
+  cue(21.6, 'pop', 0.7, 2);
+  // La cliente 1 : les commandes 1, 2 et 13
+  ck.filter(k => SOPHIE.includes(+k.dataset.id)).forEach((k, i) => {
+    tl.to(k, {backgroundColor: '#FFF4E5', borderColor: '#F2B866', duration: 0.35}, 25.4 + i * 0.3);
+    cue(25.4 + i * 0.3, 'pop', 0.6, i + 1);
+  });
+  // Comparer les commandes entre elles
+  bump(ck.filter(k => SOPHIE.includes(+k.dataset.id)), 30.6, 1.1, 3);
+  bump($$('#s1 .need .tag'), 32.4, 1.08, 1);
+  hide(['#cb1', '#s1 .need'], 35.4);
+  sceneOff('#s1', 35.9);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 35.9);
+  stackBelow('#ta2', '#pr2', 0, 30);
+  stackBelow('#goal2', '#ta2', 0, 30);   // place prévue pour la carte entière : elle s’ouvre ensuite
+  const open2 = fold($('#er2'));
+  // Deux commandes, côte à côte, sur une même ligne
+  show('#pr2', 35.95, {y: 50});
+  cue(35.95, 'whoosh', 0.6);
+  show('#k2a', 37.6, {y: 0, x: -40, scale: 0.8}, 0.45, 'back.out(1.8)');
+  show('#k2b', 38.2, {y: 0, x: 40, scale: 0.8}, 0.45, 'back.out(1.8)');
+  cue(37.6, 'pop', 0.6, 1);
+  cue(38.2, 'pop', 0.6, 3);
+  // Premier essai : la table, deux fois
+  show('#ta2', 42.0, {y: 50});
+  cue(42.0, 'whoosh', 0.6);
+  // Relier la table à elle-même
+  press($('#go2'), 45.3, '#4B30CC', 6);
+  // Refusée : commandes.id est ambigu
+  open2(45.6);
+  cue(45.6, 'false', 0.6);
+  pulse('#i2', 47.4, 3, 'rgba(255,140,140,.45)');
+  shake('#er2', 48.6);
+  // Un nom différent pour chaque copie
+  show('#goal2', 52.7, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(52.7, 'pop', 0.75, 3);
+  hide(['#pr2', '#ta2', '#goal2'], 56.6, {y: -40}, 0.4);
+  sceneOff('#s2', 57.1);
+
+  /* ===== 3 · SELF JOIN en action ===== */
+  sceneOn('#s3', 57.1);
+  show('#s3code', 57.15, {y: 60}, 0.6);
+  cue(57.15, 'whoosh', 0.7);
+  te = typeLine($('#s3l1'), 57.65, 26);
+  te = typeLine($('#s3l2'), te + 0.1, 26);
+  te = typeLine($('#s3l3'), te + 0.1, 30);
+  // Deux alias : c1 et c2
+  pulse('#a3a', 64.2, 3, 'rgba(201,188,255,.5)');
+  pulse('#a3b', 65.6, 3, 'rgba(160,196,255,.5)');
+  stackBelow('#n3a', '#s3code', 0, 34);
+  show('#n3a', 66.4, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(66.4, 'pop', 0.7, 2);
+  // ON : le même client
+  pulse('#o3', 69.4, 3, 'rgba(201,188,255,.45)');
+  cue(69.4, 'tick', 0.5, 3);
+  hide(['#s3code', '#n3a'], 72.6, {y: -40}, 0.4);
+  // Les deux copies, puis les liens des commandes de la cliente 1
+  show('#lk3', 73.0, {y: 50});
+  cue(73.0, 'whoosh', 0.7);
+  gsap.set([...r1, ...r2], {autoAlpha: 0, y: 10});
+  tl.to(r1, {autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out', stagger: 0.03}, 73.3);
+  tl.to(r2, {autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out', stagger: 0.03}, 73.5);
+  L.forEach(({path, len}) => gsap.set(path, {strokeDasharray: len, strokeDashoffset: len, opacity: 0}));
+  gsap.set(dots, {autoAlpha: 0, scale: 0, transformOrigin: '50% 50%'});
+  const fan = (i, t, step) => {
+    tl.to(r1[i - 1].querySelector('.bg'), {opacity: 1, duration: 0.25}, t);
+    L.filter(p => p.i === i).forEach((p, k) => {
+      const tk = t + 0.25 + k * step;
+      tl.set(p.path, {opacity: 1}, tk);
+      tl.to(p.path, {strokeDashoffset: 0, duration: 0.45, ease: 'power2.inOut'}, tk);
+      tl.to(r2[p.j - 1].querySelector('.bg'), {opacity: 1, duration: 0.25}, tk + 0.35);
+      if (i === SOPHIE[0]) tl.to(dots[k], {autoAlpha: 1, scale: 1, duration: 0.22, ease: 'back.out(2.4)'}, tk + 0.4);
+      cue(tk + 0.4, 'pop', 0.5, k);
+    });
+  };
+  fan(1, 74.6, 0.35);
+  // Les commandes 2 et 13 aussi
+  tl.to(L.filter(p => p.i === 1).map(p => p.path), {opacity: 0.35, duration: 0.3}, 78.6);
+  tl.to(r1[0].querySelector('.bg'), {opacity: 0.4, duration: 0.3}, 78.6);
+  fan(2, 79.0, 0.2);
+  tl.to(L.filter(p => p.i === 2).map(p => p.path), {opacity: 0.35, duration: 0.3}, 80.7);
+  tl.to(r1[1].querySelector('.bg'), {opacity: 0.4, duration: 0.3}, 80.7);
+  fan(13, 81.0, 0.2);
+  tl.to(L.map(p => p.path), {opacity: 1, duration: 0.3}, 82.6);
+  tl.to([r1[0], r1[1]].map(r => r.querySelector('.bg')), {opacity: 1, duration: 0.3}, 82.6);
+  hide('#lk3', 83.7, {y: -40});
+  sceneOff('#s3', 84.2);
+
+  /* ===== 4 · Avec elle-même ===== */
+  sceneOn('#s4', 84.2);
+  show('#q4', 84.25, {y: 40}, 0.5);
+  cue(84.25, 'whoosh', 0.6);
+  stackBelow('#tbl4', '#q4', 0, 30);
+  show('#tbl4', 84.5, {y: 40}, 0.5);
+  const t4 = $$('#rows4 .tr');
+  rowsIn(t4, 84.85, 0.06);
+  gsap.set('#c4b', {autoAlpha: 0});
+  show('#c4a', 85.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#c4a', 86.4, 1.12, 1);
+  // Chaque commande avec elle-même
+  const self4 = t4.filter(r => r.classList.contains('self'));
+  tl.to(self4.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.35}, 89.6);
+  self4.forEach((r, i) => cue(89.6 + i * 0.35, 'false', 0.4));
+  const dp4 = $$('#rows4 .dp');
+  gsap.set(dp4, {scale: 0.6});
+  tl.to(dp4, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.35}, 89.8);
+  // AND c1.id <> c2.id
+  splitChars($('#w4'));
+  te = typeMore($('#w4'), 95.6, 18);
+  pulse('#w4', te + 0.25, 3, 'rgba(201,188,255,.45)');
+  // 16 lignes : plus aucune commande avec elle-même
+  tl.to(self4, {height: 0, autoAlpha: 0, duration: 0.45, ease: 'power2.inOut', stagger: 0.15}, 100.3);
+  cue(100.3, 'whoosh', 0.45);
+  swapCnt('#c4a', '#c4b', 101.4);
+  bump('#c4b', 102.1, 1.15, 3);
+  hide(['#q4', '#tbl4'], 105.2, {y: -40});
+  sceneOff('#s4', 105.7);
+
+  /* ===== 5 · Le piège ===== */
+  sceneOn('#s5', 105.7);
+  show('#q5', 105.75, {y: 40}, 0.5);
+  cue(105.75, 'whoosh', 0.6);
+  stackBelow('#tbl5', '#q5', 0, 30);
+  show('#tbl5', 106.0, {y: 40}, 0.5);
+  const t5 = $$('#rows5 .tr');
+  rowsIn(t5, 106.35, 0.06);
+  gsap.set('#c5b', {autoAlpha: 0});
+  show('#c5a', 107.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // Chaque paire deux fois
+  const inv = t5.filter(r => r.classList.contains('inv'));
+  tl.to(inv.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.3}, 108.2);
+  inv.forEach((r, i) => cue(108.2 + i * 0.3, 'tick', 0.5, i + 1));
+  // 1 et 2, puis 2 et 1
+  const p12 = t5[0], p21 = t5.find(r => r.children[1].textContent === '2' && r.children[2].textContent === '1');
+  bump([p12.children[1], p12.children[2]], 110.7, 1.12, 1);
+  bump([p21.children[1], p21.children[2]], 111.6, 1.12, 1);
+  const dp5 = $$('#rows5 .dp');
+  gsap.set(dp5, {scale: 0.6});
+  tl.to(dp5, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.2}, 112.6);
+  dp5.forEach((_, i) => cue(112.6 + i * 0.2, 'pop', 0.5, i));
+  // <> devient < : seul le sens où c1.id est le plus petit est conservé
+  flip($('#op5'), 116.3);
+  pulse('#w5', 116.7, 3, 'rgba(201,188,255,.45)');
+  // Une seule fois : 3 paires pour la cliente 1
+  tl.to(inv, {height: 0, autoAlpha: 0, duration: 0.45, ease: 'power2.inOut', stagger: 0.15}, 121.7);
+  cue(121.7, 'whoosh', 0.45);
+  swapCnt('#c5a', '#c5b', 122.8);
+  bump('#c5b', 123.5, 1.15, 3);
+  hide(['#q5', '#tbl5'], 126.2, {y: -40});
+  sceneOff('#s5', 126.7);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 126.7);
+  show('#s6code', 126.75, {y: 60}, 0.6);
+  cue(126.75, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 127.25, 44);
+  for (const k of [2, 3, 4, 5, 6, 7]) te = typeLine($('#s6l' + k), te + 0.08, 44);
+  pulse(['#a6a', '#a6b', '#w6'], te + 0.2, 3, 'rgba(201,188,255,.3)');
+  press($('#s6run'), 133.2);
+  stackBelow('#tbl6', '#s6code', 0, 30);
+  show('#tbl6', 133.45, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 133.6, 0.08);
+  show('#cnt6', 134.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 135.1, 1.15, 3);
+  tl.to($$('#rows6 .tr').slice(0, 3), {backgroundColor: '#FFF4E5', duration: 0.3, stagger: 0.12}, 135.9);
+  hide(['#s6code', '#tbl6'], 138.0, {y: -40}, 0.4);
+  // Les colis regroupés, client par client
+  boardIn('#rg6', 138.4, '.gk', 0.22);
+  stackBelow('#badge6', '#rg6', 0, 50);
+  show('#badge6', 141.0, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(141.0, 'chord', 0.7);
+  hide(['#rg6', '#badge6'], 143.2);
+  sceneOff('#s6', 143.7);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(143.7, [144.4, 146.2, 148.0]);
+  hold(146.0, 4.8);
+  hold(147.8, 3.8);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(148.95, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 148.9,
+  glyphs: '📦🧾👤🧪🎯🪞🔎🏷️☝️✓✕?·…⋯', dom, build});
+</script>
+</body>
+</html>

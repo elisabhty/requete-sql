@@ -657,6 +657,15 @@ const COURSES = [
       '<span class="glow" id="j3"><span class="kw">INNER JOIN</span> commandes</span>', '<span class="sw" id="tt3"><span class="a">Après le JOIN</span><span class="b">Après GROUP BY et COUNT()</span></span>',
       '<span class="m">near "INNER": syntax error</span>', '<span class="nt rd" id="nt5b">↑ les 15 commandes d’un coup</span>',
       '<span>Nantes&nbsp;: aucune commande, donc aucune ligne</span>', '✓ Paris en tête, devant Lyon']},
+  {id: 42, next: 49, titre: 'SELF JOIN', page: 'self-join.html', thumb: 'self-join-thumb.jpg', duree: '2 min 47', notesAt: 148.9,
+    notes: /notes:\{t:159\.6,y:1203,card:\[64,292,1016,908\],to:\[940,255\]\}/, table: 'commandes',
+    bubble: 'Avec un <span class="ic">SELF JOIN</span>, une table<br>est reliée à <span class="nw">elle-même</span>.',
+    chapters: ['Situation', 'Le problème', 'SELF JOIN en action', 'Avec elle-même', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<span>Colis à préparer</span><span class="tb tc" id="tb1">table commandes</span>', 'const SOPHIE = [1, 2, 13];',
+      '<span class="m">ambiguous column name: commandes.id</span>', '<span class="glow" id="a3a"><span class="kw">AS</span> c1</span>',
+      '<span class="glow" id="o3"><span class="kw">ON</span> c1.client_id = c2.client_id</span>', '<span class="dp rd">elle-même</span>',
+      '<span class="sw" id="op5"><span class="a">&lt;&gt;</span><span class="b">&lt;</span></span>',
+      '<span class="glow" id="w6"><span class="kw">AND</span> c1.id &lt; c2.id</span>', '✓ 6 clients, un envoi chacun']},
 ];
 
 for (const c of COURSES) {
