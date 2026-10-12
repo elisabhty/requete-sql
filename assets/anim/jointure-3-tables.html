@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · Jointure de 3 tables en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:190px;top:424px;letter-spacing:-4px}
+#s0 .title span.sp{margin-right:46px}
+#s0 .hilite{top:534px;height:56px}
+#s0 .sub{top:640px;font-size:60px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:38px;white-space:nowrap}
+.nw{white-space:nowrap}
+
+/* Code : cinq à huit lignes (chapitres 3 et 6) */
+.code.sm .body{font-size:32px;line-height:50px;padding:26px 36px}
+.code.sm .ln{height:50px}
+.code.sm .caret i{top:-37px;height:42px}
+.code.xs .body{font-size:30px;line-height:46px;padding:24px 36px}
+.code.xs .ln{height:46px}
+.code.xs .caret i{top:-35px;height:40px}
+
+/* Une valeur et sa version suivante, l’une sur l’autre : la case se retourne de l’une à l’autre */
+.sw{display:inline-grid;justify-items:start}
+.sw>span{grid-area:1/1}
+.sw .b{opacity:0}
+.nul{color:var(--ink-3);font-style:italic}
+/* La table clients en violet, la table commandes en orange, la table produits en bleu */
+.tag.tc{background:#FFF4E5;color:#9A5B00}
+.tag.tp{background:#E5F0FF;color:#1D5FB8}
+
+/* ---------- 1 · Le rappel du Magnésium ---------- */
+.board{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar span{margin-left:12px;white-space:nowrap}
+.pr1{display:flex;align-items:center;gap:18px;height:120px;padding:0 34px;box-shadow:inset 0 -2px 0 var(--line-2)}
+.pr1>.emo{font-size:58px}
+.pr1 .ps .emo{font-size:24px}
+.pr1 .pn{font-family:var(--display);font-size:54px;font-weight:800;letter-spacing:-1px;color:var(--ink)}
+.pr1 .ps{margin-left:auto;height:50px;padding:0 20px;border-radius:999px;background:#FDEBEC;color:#C2323A;font-size:25px;font-weight:700;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.cl1{display:flex;align-items:center;gap:14px;height:96px;padding:0 34px;font-size:32px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.cl1 .emo{font-size:36px}
+.qq{margin-left:auto;min-width:76px;height:58px;padding:0 18px;border-radius:16px;border:3px dashed #F2C38A;color:#C08A3E;font-family:var(--display);font-size:32px;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+/* ---------- 2 · La table commandes : des numéros ---------- */
+.rgC{display:grid;grid-template-columns:90px 230px 250px 1fr;padding:0 26px;align-items:center}
+.tr.t2{height:34px;font-size:25px}
+.tr.t2>div{padding:3px 12px}
+.qb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;margin-left:8px;border-radius:50%;background:#F2A13B;color:#fff;font-family:var(--display);font-size:20px;font-weight:800;vertical-align:middle}
+.pill{left:0;width:1080px;display:flex;justify-content:center;gap:16px}
+.pill>span{height:60px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill>span.vi{background:var(--accent-soft);color:var(--accent-ink)}
+.pill>span.bl{background:#E5F0FF;color:#1D5FB8}
+.pill>span.rd{background:#FDEBEC;color:#C2323A}
+.pill .ic{font-size:.9em;background:#fff}
+.goal{left:64px;width:952px;height:96px;border-radius:32px;background:#E7F7EE;border:3px solid #BFE8D0;display:flex;align-items:center;justify-content:center;gap:14px;font-size:33px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.goal .emo{font-size:36px}
+
+/* ---------- 3 · Deux JOIN : la commande 2, son client et son produit ---------- */
+.mt1{position:absolute;left:64px;width:952px;padding:0 0 6px;overflow:hidden}
+.mt1 .tt{height:70px;display:flex;align-items:center;gap:12px;padding:0 26px;font-size:30px;font-weight:700;color:var(--ink);white-space:nowrap}
+.mt1 .tt .emo{font-size:30px}
+.mt1 .hd,.mt1 .rw{display:grid;align-items:center;padding:0 26px;font-family:var(--mono);white-space:nowrap}
+.mt1 .hd{height:50px;background:var(--surface-2);font-size:24px;font-weight:700;color:var(--ink-3)}
+.mt1 .rw{position:relative;height:56px;font-size:28px;font-weight:600;color:var(--ink);box-shadow:inset 0 2px 0 var(--line-2)}
+.mt1 .rw .bg{position:absolute;left:0;top:0;right:0;bottom:0;opacity:0;z-index:0}
+.mt1 .rw>span:not(.bg){position:relative;z-index:1}
+#cm3 .hd,#cm3 .rw{grid-template-columns:110px 220px 240px 1fr}
+#cm3 .rw .bg{background:#FFF4E5}
+#cl3{width:520px}
+#cl3 .hd,#cl3 .rw{grid-template-columns:56px 120px 1fr}
+#cl3 .rw .bg{background:var(--accent-soft)}
+#pr3{left:616px;width:400px}
+#pr3 .hd,#pr3 .rw{grid-template-columns:50px 1fr;padding:0 22px}
+#pr3 .rw .bg{background:#E5F0FF}
+#rs3 .hd,#rs3 .rw{grid-template-columns:150px 290px 270px 1fr}
+#rs3 .tt{color:#1B7A45}
+.k1{justify-self:start;min-width:46px;height:38px;padding:0 10px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:800}
+.k1.c{background:var(--accent-soft);color:var(--accent-ink)}
+.k1.p{background:#E5F0FF;color:#1D5FB8}
+.ar{left:0;top:0;width:1080px;height:1920px;overflow:visible;pointer-events:none}
+.ar path{fill:none;stroke-width:4;stroke-linecap:round}
+.ar .a1{stroke:#8B6CFF}
+.ar .a2{stroke:#5B9BF0}
+.ar circle.a1{fill:#8B6CFF;stroke:none}
+.ar circle.a2{fill:#5B9BF0;stroke:none}
+.al{height:42px;padding:0 16px;border-radius:12px;font-family:var(--mono);font-size:22px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.al.c{background:var(--accent-soft);color:var(--accent-ink)}
+.al.p{background:#E5F0FF;color:#1D5FB8}
+
+/* ---------- 4 · Filtrer : WHERE après le dernier ON ---------- */
+.mini.mq{position:absolute;margin:0;left:64px;width:952px;font-size:30px;line-height:46px;padding:22px 34px}
+.mini.mq .caret i{top:-35px;height:40px}
+.rgW{display:grid;grid-template-columns:200px 320px 1fr;padding:0 26px;align-items:center}
+.tr.t4{height:34px;font-size:25px}
+.tr.t4>div{padding:3px 12px}
+.tr.t4.mg .hl{background:#FFF4E5;box-shadow:inset 8px 0 0 #F2994A}
+
+/* ---------- 5 · Le piège : clients et produits reliés directement ---------- */
+.mini.three{font-size:30px;line-height:46px;padding-right:120px}
+.bad{text-decoration:underline wavy rgba(239,79,85,0);text-decoration-thickness:4px;text-underline-offset:10px}
+.rt5{margin-top:20px;border-radius:24px;background:var(--surface-2);overflow:hidden}
+.rt5 .h,.rt5 .r{display:grid;grid-template-columns:150px 270px 1fr;align-items:center;padding:0 22px;font-family:var(--mono);white-space:nowrap}
+.rt5 .h{height:46px;font-size:22px;font-weight:700;color:var(--ink-3)}
+.rt5 .h .n5{justify-self:end;height:34px;padding:0 14px;border-radius:999px;background:#fff;color:var(--accent-ink);font-family:var(--ui);font-size:21px;font-weight:700;display:flex;align-items:center}
+.rt5 .r{position:relative;height:50px;font-size:25px;font-weight:600;color:var(--ink);background:#fff;box-shadow:inset 0 2px 0 var(--line-2)}
+.rt5 .r>span{position:relative;z-index:1}
+.rt5 .r .hl{position:absolute;left:0;top:0;right:0;bottom:0;background:#FDEBEC;box-shadow:inset 8px 0 0 #EF4F55;opacity:0;z-index:0}
+.pr5{margin-top:18px;display:flex;gap:12px;flex-wrap:wrap}
+.orph{height:56px;padding:0 20px;border-radius:999px;background:#FDEBEC;color:#C2323A;font-size:26px;font-weight:700;display:inline-flex;align-items:center;gap:10px;white-space:nowrap}
+.ex{left:64px;width:952px;padding:28px 36px}
+.ex-h{display:flex;align-items:center;gap:14px;font-size:34px;font-weight:700;color:var(--ink)}
+.ex-h .emo{font-size:34px}
+.eqx{margin-top:20px;display:flex;align-items:center;justify-content:center;gap:16px}
+.eqx .q{height:68px;padding:0 22px;border-radius:20px;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.eqx .q.c{background:var(--accent-soft);color:var(--accent-ink)}
+.eqx .q.p{background:#E5F0FF;color:#1D5FB8}
+.eqx .op{font-family:var(--display);font-size:44px;font-weight:800;color:var(--ink-3)}
+.ex-f{margin-top:18px;text-align:center;font-size:28px;font-weight:700;color:#1B7A45}
+.ex-f .ic{font-size:.9em}
+
+/* ---------- 6 · Le résultat ---------- */
+.rgR{display:grid;grid-template-columns:180px 330px 1fr;padding:0 26px;align-items:center}
+.tr.t6{height:50px;font-size:27px}
+.cr{display:flex;align-items:center;gap:20px;height:92px;padding:0 30px}
+.cr+.cr{box-shadow:inset 0 2px 0 var(--line-2)}
+.cr .ci{flex:none;width:54px;height:54px;border-radius:50%;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--display);font-size:28px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.cr .ct{font-size:31px;font-weight:700;color:var(--ink);white-space:nowrap}
+.cr .cm{font-family:var(--mono);font-size:25px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.cr .cs{margin-left:auto;height:44px;padding:0 16px;border-radius:999px;background:#FFF4E5;color:#9A5B00;font-size:23px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+
+/* ---------- 7 · À retenir : trois idées un peu longues, le récapitulatif se resserre ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:19px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+.rtxt .blk.sm{font-size:.74em}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Jointures</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span class="sp">3</span><span>T</span><span>A</span><span>B</span><span>L</span><span>E</span><span>S</span></div>
+    <div class="abs sub">Relier toute l’histoire</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Pour relier trois tables, enchaîne<br>les jointures&nbsp;: chaque <span class="ic">JOIN</span> ajoute une table.</div>
+  </section>
+
+  <!-- 1 · Situation : le rappel du Magnésium -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="rb1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Rappel qualité</span></div>
+      <div class="pr1"><span class="emo">💊</span><span class="pn">Magnésium</span><span class="ps" id="ps1"><span class="emo">⚠️</span>lot défectueux</span></div>
+      <div class="cl1"><span class="emo">👥</span><span>Clients à prévenir</span><span class="qq" id="qq1">?</span></div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">👤</span><span class="nl">Le prénom du client</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">✉️</span><span class="nl">Son email</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">📅</span><span class="nl">La date de la commande</span><span class="tag tc">table commandes</span></div>
+      <div class="need-row"><span class="emo">📦</span><span class="nl">Le produit acheté</span><span class="tag tp">table produits</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : la table commandes ne contient que des numéros -->
+  <section class="scene" id="s2">
+    <div class="tbl card" id="tbl2" style="top:300px">
+      <div class="tt"><span class="emo">🧾</span><span>Table commandes</span><span class="cnt"><span id="cnt2">16 commandes</span></span></div>
+      <div class="rgC th"><div>id</div><div>client_id<span class="qb" id="qb2c">?</span></div><div>produit_id<span class="qb" id="qb2p">?</span></div><div>date_commande</div></div>
+      <div class="rows" id="rows2"></div>
+    </div>
+    <div class="abs pill" id="p2"><span class="vi" id="p2c"><span class="emo">👤</span><span class="ic">client_id</span>&nbsp;→ clients</span><span class="bl" id="p2p"><span class="emo">📦</span><span class="ic">produit_id</span>&nbsp;→ produits</span></div>
+    <div class="abs goal" id="goal2"><span class="emo">🎯</span>Deux jointures&nbsp;: une pour chaque lien</div>
+  </section>
+
+  <!-- 3 · Deux JOIN en action : commandes fait le pont -->
+  <section class="scene" id="s3">
+    <div class="abs code sm" id="s3code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s3l1"><span class="glow" id="f3"><span class="kw">FROM</span> commandes</span><span class="caret"><i></i></span></span><span class="ln" id="s3l2"><span class="glow" id="j3a"><span class="kw">INNER JOIN</span> clients</span><span class="caret"><i></i></span></span><span class="ln" id="s3l3">    <span class="glow" id="o3a"><span class="kw">ON</span> commandes.client_id = clients.id</span><span class="caret"><i></i></span></span><span class="ln" id="s3l4"><span class="glow" id="j3b"><span class="kw">INNER JOIN</span> produits</span><span class="caret"><i></i></span></span><span class="ln" id="s3l5">    <span class="glow" id="o3b"><span class="kw">ON</span> commandes.produit_id = produits.id</span><span class="caret"><i></i></span></span></div>
+    </div>
+    <div class="card mt1" id="cm3" style="top:300px">
+      <div class="tt"><span class="emo">🧾</span><span>Table commandes</span></div>
+      <div class="hd"><span>id</span><span>client_id</span><span>produit_id</span><span>date_commande</span></div>
+      <div class="rw" id="cr3"><span class="bg"></span><span>2</span><span class="k1 c" id="k3c">1</span><span class="k1 p" id="k3p">3</span><span id="k3d">2026-07-02</span></div>
+    </div>
+    <svg class="abs ar" id="ar3" viewBox="0 0 1080 1920"></svg>
+    <div class="abs al c" id="al3a">client_id = id</div>
+    <div class="abs al p" id="al3b">produit_id = id</div>
+    <div class="card mt1" id="cl3">
+      <div class="tt"><span class="emo">👤</span><span>Table clients</span></div>
+      <div class="hd"><span>id</span><span>prenom</span><span>email</span></div>
+    </div>
+    <div class="card mt1" id="pr3">
+      <div class="tt"><span class="emo">📦</span><span>Table produits</span></div>
+      <div class="hd"><span>id</span><span>nom</span></div>
+    </div>
+    <div class="card mt1" id="rs3">
+      <div class="tt"><span class="emo">✅</span><span>Une ligne du résultat</span></div>
+      <div class="hd"><span>prenom</span><span>email</span><span>produit</span><span>date_commande</span></div>
+      <div class="rw" id="rr3"><span id="v3a">Sophie</span><span id="v3b">sophie@mail.fr</span><span id="v3c">Magnésium</span><span id="v3d">2026-07-02</span></div>
+    </div>
+  </section>
+
+  <!-- 4 · Filtrer : WHERE se place après le dernier ON -->
+  <section class="scene" id="s4">
+    <div class="abs mini mq" id="q4" style="top:300px"><span class="kw">INNER JOIN</span> produits
+    <span class="kw">ON</span> commandes.produit_id = produits.id
+<span id="w4" class="glow"><span class="kw">WHERE</span> <span id="pn4">produits.nom</span> = <span class="str">'Magnésium'</span>;</span><span class="caret"><i></i></span></div>
+    <div class="tbl card" id="tbl4">
+      <div class="tt"><span class="emo">🔗</span><span>Après les deux JOIN</span><span class="cnt"><span id="c4a">15 lignes</span><span id="c4b">2 lignes</span></span></div>
+      <div class="rgW th"><div>prenom</div><div id="h4p">produit</div><div>date_commande</div></div>
+      <div class="rows" id="rows4"></div>
+    </div>
+  </section>
+
+  <!-- 5 · Le piège : le second ON relie directement clients et produits -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="ta5" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Clients et produits reliés directement</span></div>
+      <div class="mini three"><span class="kw">INNER JOIN</span> produits
+    <span class="kw">ON</span> <span class="bad" id="b5">clients.id = produits.id</span>
+<span class="kw">WHERE</span> produits.nom = <span class="str">'Magnésium'</span>;<span class="go" id="go5"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+      <div class="rt5"><div class="h"><span>prenom</span><span>email</span><span>date_commande</span></div><div id="rows5"></div></div>
+      <div class="pr5"><span class="orph" id="op5a"><span class="emo">✕</span>Emma n’a jamais acheté de Magnésium</span><span class="orph" id="op5b"><span class="emo">✕</span>Sophie et Lucas oubliés</span></div>
+    </div>
+    <div class="abs card ex" id="ex5">
+      <div class="ex-h"><span class="emo">🔢</span><span>Deux numéros sans rapport</span></div>
+      <div class="eqx"><span class="q c" id="eq5a"><span class="emo">👤</span>cliente 3&nbsp;: Emma</span><span class="op" id="eq5o">=</span><span class="q p" id="eq5b"><span class="emo">📦</span>produit 3&nbsp;: Magnésium</span></div>
+      <div class="ex-f" id="exf5">Le lien doit passer par <span class="ic">commandes</span></div>
+    </div>
+  </section>
+
+  <!-- 6 · Le résultat : la requête complète, puis les emails de rappel -->
+  <section class="scene" id="s6">
+    <div class="abs code xs" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> clients.prenom, clients.email,<span class="caret"><i></i></span></span><span class="ln" id="s6l2">       commandes.date_commande<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="kw">FROM</span> commandes<span class="caret"><i></i></span></span><span class="ln" id="s6l4"><span class="glow" id="j6a"><span class="kw">INNER JOIN</span> clients</span><span class="caret"><i></i></span></span><span class="ln" id="s6l5">    <span class="kw">ON</span> commandes.client_id = clients.id<span class="caret"><i></i></span></span><span class="ln" id="s6l6"><span class="glow" id="j6b"><span class="kw">INNER JOIN</span> produits</span><span class="caret"><i></i></span></span><span class="ln" id="s6l7">    <span class="kw">ON</span> commandes.produit_id = produits.id<span class="caret"><i></i></span></span><span class="ln" id="s6l8"><span class="glow" id="w6"><span class="kw">WHERE</span> produits.nom = <span class="str">'Magnésium'</span></span>;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">2 lignes</span></span></div>
+      <div class="rgR th"><div>prenom</div><div>email</div><div>date_commande</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card board" id="em6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Emails de rappel · Magnésium</span></div>
+      <div class="cr"><span class="ci">S</span><span class="ct">Sophie</span><span class="cm">sophie@mail.fr</span><span class="cs">commande du 2 juillet</span></div>
+      <div class="cr"><span class="ci">L</span><span class="ct">Lucas</span><span class="cm">lucas@mail.fr</span><span class="cs">commande du 20 juillet</span></div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ 2 clients à prévenir</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🧩</div><div class="rtxt">Une jointure n’est pas limitée<br>à 2 tables&nbsp;: pour en relier 3,<br>on <b>enchaîne les jointures</b>.<span class="rs">Chaque <span class="ic">JOIN</span> ajoute une nouvelle table.</span></div></div>
+      <div class="rrow"><div class="rico emo">⛓️</div><div class="rtxt">Chaque nouvelle table est reliée par son propre <span class="ic">ON</span>&nbsp;:<br><span class="ic blk sm">JOIN table2 ON … JOIN table3 ON …</span></div></div>
+      <div class="rrow"><div class="rico emo">🌉</div><div class="rtxt">Ici, <span class="ic">commandes</span> fait le pont&nbsp;: un lien vers <span class="ic">clients</span>, un lien vers <span class="ic">produits</span>, donc <b>deux <span class="ic">JOIN</span></b>.</div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 171.8;
+
+/* Table clients [id, prénom, email], table produits [id, nom], table commandes [id, client_id, produit_id, date_commande].
+   Le Magnésium est le produit 3 : seules les commandes 2 (Sophie) et 10 (Lucas) le concernent ; la commande 16 n’a pas de client. */
+const CLIENTS = [[1, 'Sophie', 'sophie@mail.fr'], [2, 'Lucas', 'lucas@mail.fr'], [3, 'Emma', 'emma@mail.fr'], [4, 'Nathan', 'nathan@mail.fr'],
+  [5, 'Chloé', 'chloe@mail.fr'], [6, 'Hugo', null], [7, 'Léa', 'lea@mail.fr'], [8, 'Gabriel', 'gabriel@mail.fr'], [9, 'Inès', null],
+  [10, 'Nathan', 'nathan.dupont@mail.fr']];
+const PRODUITS = [[1, 'Fibre Prébiotique'], [2, 'Collagène Marin'], [3, 'Magnésium'], [4, 'Vitamine D'], [5, 'Tisane Détox'],
+  [6, 'Protéine Végétale'], [7, 'Oméga 3'], [8, 'Shaker Inox']];
+const COMMANDES = [[1, 1, 1, '2026-07-02'], [2, 1, 3, '2026-07-02'], [3, 2, 6, '2026-07-05'], [4, 3, 2, '2026-07-08'],
+  [5, 4, 1, '2026-07-11'], [6, 5, 4, '2026-07-12'], [7, 6, 7, '2026-07-15'], [8, 7, 1, '2026-07-18'], [9, 7, 5, '2026-07-18'],
+  [10, 2, 3, '2026-07-20'], [11, 8, 6, '2026-07-22'], [12, 4, 2, '2026-07-25'], [13, 1, 8, '2026-07-28'], [14, 3, 7, '2026-07-30'],
+  [15, 5, 1, '2026-08-01'], [16, null, 4, '2026-08-03']];
+const CLIENT = Object.fromEntries(CLIENTS.map(c => [c[0], c])), PRODUIT = Object.fromEntries(PRODUITS);
+const MAGNESIUM = 3;
+/* Avec ON clients.id = produits.id, la cliente 3 (Emma) « correspond » au produit 3 : ses deux commandes sortent à la place de celles de Sophie et Lucas. */
+const PIEGE = [[3, '2026-07-08'], [3, '2026-07-30']];
+
+const CHAPTERS = [
+  {n:1, label:'Situation',            a:5.0,   b:35.4},
+  {n:2, label:'Le problème',          a:35.4,  b:61.6},
+  {n:3, label:'Deux JOIN en action',  a:61.6,  b:92.7},
+  {n:4, label:'Filtrer',              a:92.7,  b:114.2},
+  {n:5, label:'Le piège',             a:114.2, b:142.2},
+  {n:6, label:'Le résultat',          a:142.2, b:159.0},
+  {n:7, label:'À retenir',            a:159.0, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 10.1,    "Un lot de <b>Magnésium</b> est défectueux : l’équipe qualité doit le rappeler."],
+  [10.2, 14.5,   "Elle veut prévenir par <b>email</b> chaque client qui en a acheté."],
+  [14.6, 18.7,   "Le prénom et l’email se trouvent dans la <b>table clients</b>."],
+  [18.8, 23.7,   "La date de chaque achat est enregistrée dans la table <code>commandes</code>."],
+  [23.8, 28.5,   "Et le nom du produit acheté se trouve dans la table <code>produits</code>."],
+  [28.6, 34.9,   "Il faut donc associer les <b>trois tables</b> pour retrouver les clients qui ont acheté du Magnésium."],
+  [35.7, 41.3,   "La table <code>commandes</code> enregistre chaque achat, mais seulement avec des <b>numéros</b>."],
+  [41.4, 46.4,   "<code>client_id</code> donne le numéro du client, sans son prénom ni son email."],
+  [46.5, 50.7,   "<code>produit_id</code> donne le numéro du produit, sans son nom."],
+  [50.8, 56.0,   "Il faut donc relier <code>commandes</code> à la table clients, <b>et</b> à la table produits."],
+  [56.1, 61.1,   "Une seule jointure ne suffit pas : il en faut <b>deux</b>, une pour chaque lien."],
+  [61.9, 67.1,   "On part de la table <code>commandes</code>, qui fait le <b>pont</b> entre les deux autres."],
+  [67.2, 72.8,   "Un premier <code>INNER JOIN</code> ajoute la table clients, reliée par son propre <code>ON</code>."],
+  [72.9, 78.1,   "Un second <code>INNER JOIN</code> ajoute la table produits, avec un autre <code>ON</code>."],
+  [78.2, 82.8,   "Commande 2 : le premier <code>ON</code> trouve la cliente 1, Sophie."],
+  [82.9, 87.1,   "Le second <code>ON</code> trouve ensuite le produit 3 : le Magnésium."],
+  [87.2, 92.2,   "Le client et le produit de la commande sont réunis sur une <b>même ligne</b>."],
+  [93.0, 98.6,   "Les deux <code>JOIN</code> réunissent <b>15 lignes</b> : une par commande qui a un client."],
+  [98.7, 104.3,  "Pour ne conserver que le Magnésium, <code>WHERE</code> se place après le dernier <code>ON</code>."],
+  [104.4, 109.1, "Il filtre ici sur <code>produits.nom</code>, une colonne de la troisième table."],
+  [109.2, 113.7, "Il reste <b>2 lignes</b> : Sophie, le 2 juillet, et Lucas, le 20 juillet."],
+  [114.5, 119.5, "Attention : ici, le second <code>ON</code> relie directement clients et produits."],
+  [119.6, 124.8, "La requête ne provoque <b>aucune erreur</b>, et le résultat compte bien 2 lignes."],
+  [124.9, 129.7, "Mais ces 2 lignes sont celles d’Emma, qui n’a jamais acheté de Magnésium."],
+  [129.8, 136.0, "<code>clients.id = produits.id</code> compare deux numéros <b>sans rapport</b> : la cliente 3 et le produit 3."],
+  [136.1, 141.7, "Sophie et Lucas ne seraient pas prévenus : le lien doit passer par <code>commandes</code>."],
+  [142.5, 148.9, "La requête complète relie les trois tables et ne conserve que le Magnésium."],
+  [149.0, 153.7, "Résultat : <b>2 lignes</b>, avec le prénom, l’email et la date de commande."],
+  [153.8, 158.5, "L’équipe qualité peut prévenir Sophie et Lucas <b>dès aujourd’hui</b>."],
+  [159.3, 164.1, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [164.2, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [164.2, 999, "Pour relier trois tables, on enchaîne deux <code>JOIN</code>, chacun avec son <code>ON</code>."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+function dom(){
+  const nul = '<span class="nul">NULL</span>';
+  /* Chapitre 2 : la table commandes, uniquement des numéros */
+  $('#rows2').innerHTML = COMMANDES.map(([id, c, p, d]) =>
+    `<div class="rgC tr t2"><div>${id}</div><div class="cc">${c === null ? nul : c}</div><div class="pc">${p}</div><div>${d}</div></div>`).join('');
+  /* Chapitre 3 : les premières lignes des tables clients et produits */
+  $('#cl3').insertAdjacentHTML('beforeend', CLIENTS.slice(0, 3).map(([id, p, e]) =>
+    `<div class="rw"><span class="bg"></span><span>${id}</span><span>${p}</span><span>${e}</span></div>`).join(''));
+  $('#pr3').insertAdjacentHTML('beforeend', PRODUITS.slice(0, 4).map(([id, n]) =>
+    `<div class="rw"><span class="bg"></span><span>${id}</span><span>${n}</span></div>`).join(''));
+  /* Chapitre 4 : les 15 lignes réunies par les deux JOIN (la commande 16, sans client, n’y est pas) */
+  $('#rows4').innerHTML = COMMANDES.filter(([, c]) => c !== null).map(([, c, p, d]) =>
+    `<div class="rgW tr t4${p === MAGNESIUM ? ' mg' : ''}"><span class="hl"></span><div>${CLIENT[c][1]}</div><div>${PRODUIT[p]}</div><div>${d}</div></div>`).join('');
+  /* Chapitre 5 : le résultat du piège, Emma deux fois */
+  $('#rows5').innerHTML = PIEGE.map(([c, d]) => `<div class="r"><span class="hl"></span><span>${CLIENT[c][1]}</span><span>${CLIENT[c][2]}</span><span>${d}</span></div>`).join('');
+  /* Chapitre 6 : le résultat de la requête complète */
+  $('#rows6').innerHTML = COMMANDES.filter(([, c, p]) => c !== null && p === MAGNESIUM).map(([, c, , d]) =>
+    `<div class="rgR tr t6"><div>${CLIENT[c][1]}</div><div>${CLIENT[c][2]}</div><div>${d}</div></div>`).join('');
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+/* Une case se retourne : la valeur de départ laisse place à la suivante. */
+function flip(sw, t, sound = true){
+  tl.to(sw, {scaleY: 0, duration: 0.12, ease: 'power2.in'}, t);
+  tl.set(sw.querySelector('.a'), {opacity: 0}, t + 0.12);
+  tl.set(sw.querySelector('.b'), {opacity: 1}, t + 0.12);
+  tl.to(sw, {scaleY: 1, duration: 0.22, ease: 'back.out(2)'}, t + 0.12);
+  if (sound) cue(t + 0.12, 'tick', 0.5, 3);
+}
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => i % 2 || cue(t + i * step, 'tick', 0.45, (i / 2) % 5));
+}
+/* Une carte arrive en tournant légèrement, puis ses éléments un à un. */
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 18});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => i % 2 || cue(t + 0.65 + i * step, 'pop', 0.55, (i / 2) % 5));
+  return items;
+}
+/* Chapitre 3 : les deux flèches de la commande 2, de client_id vers la table clients et de produit_id vers la table produits,
+   avec leur étiquette au milieu. Mesures faites avant toute animation, une fois les cartes à leur place. */
+function fleches(){
+  const S = $('#stage');
+  const r = el => rel(el, S);
+  const c = r($('#k3c')), p = r($('#k3p')), card = r($('#cm3')), cl = r($('#cl3')), pr = r($('#pr3'));
+  const idc = r($('#cl3 .hd span')), idp = r($('#pr3 .hd span'));
+  const y1 = card.y + card.h + 14, y2 = cl.y - 12;
+  const pts = [[c.x + c.w / 2, idc.x + idc.w / 2 - 4], [p.x + p.w / 2, idp.x + idp.w / 2 - 4]];
+  $('#ar3').innerHTML = pts.map(([x1, x2], i) => {
+    const m = (y1 + y2) / 2;
+    return `<path class="a${i + 1}" d="M${x1.toFixed(1)} ${y1.toFixed(1)} C${x1.toFixed(1)} ${m.toFixed(1)} ${x2.toFixed(1)} ${m.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}"/>` +
+      `<circle class="a${i + 1}" cx="${x2.toFixed(1)}" cy="${y2.toFixed(1)}" r="8"/>`;
+  }).join('');
+  /* Étiquettes : centrées sur le milieu de chaque flèche */
+  ['#al3a', '#al3b'].forEach((sel, i) => {
+    const el = $(sel), [x1, x2] = pts[i];
+    el.style.left = Math.round((x1 + x2) / 2 - el.offsetWidth / 2) + 'px';
+    el.style.top = Math.round((y1 + y2) / 2 - el.offsetHeight / 2) + 'px';
+  });
+  return $$('#ar3 path').map((path, i) => ({path, dot: $$('#ar3 circle')[i], len: path.getTotalLength()}));
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.3);   // le temps de lire la bulle de la mascotte
+  let te;
+  /* Chapitre 3 : les cartes se calent l’une sous l’autre, puis les flèches sont mesurées */
+  stackBelow('#cl3', '#cm3', 0, 150);
+  stackBelow('#pr3', '#cm3', 0, 150);
+  stackBelow('#rs3', '#pr3', 0, 40);
+  const F = fleches();
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  gsap.set('#ps1', {autoAlpha: 0});
+  boardIn('#rb1', 5.15, '.pr1, .cl1', 0.25);
+  // Un lot défectueux
+  show('#ps1', 6.7, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  cue(6.7, 'false', 0.6);
+  shake('#ps1', 7.2);
+  // Prévenir chaque client par email : qui sont-ils ?
+  bump('#qq1', 11.6, 1.15, 3);
+  cue(11.6, 'tick', 0.5, 2);
+  // Prénom et email : table clients
+  stackBelow('#s1 .need', '#rb1');   // la liste se cale sous la carte du rappel, sans la toucher
+  show('#s1 .need', 15.0, {y: 60});
+  cue(15.0, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows.slice(0, 2), {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.25}, 15.3);
+  [0, 1].forEach(i => cue(15.3 + i * 0.25, 'pop', 0.7, i));
+  // La date : table commandes
+  tl.to(needRows[2], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 19.5);
+  cue(19.5, 'pop', 0.7, 2);
+  // Le produit : table produits
+  tl.to(needRows[3], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 24.5);
+  cue(24.5, 'pop', 0.7, 3);
+  // Associer les trois tables
+  const tags = $$('#s1 .need .tag');
+  tags.forEach((g, i) => { bump(g, 29.4 + i * 0.3, 1.1, 1); cue(29.4 + i * 0.3, 'tick', 0.5, i + 1); });
+  pulse('#qq1', 31.6, 3, 'rgba(255,214,140,.45)');
+  hide(['#rb1', '#s1 .need'], 34.9);
+  sceneOff('#s1', 35.4);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 35.4);
+  show('#tbl2', 35.45, {y: 40}, 0.5);
+  cue(35.45, 'whoosh', 0.6);
+  const r2 = $$('#rows2 .tr');
+  rowsIn(r2, 35.8, 0.04);
+  show('#cnt2', 36.7, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // Seulement des numéros
+  const cc = $$('#rows2 .cc'), pc = $$('#rows2 .pc');
+  gsap.set(['#qb2c', '#qb2p'], {autoAlpha: 0, scale: 0.4});
+  // client_id : le numéro du client
+  tl.to(cc, {backgroundColor: '#EEE9FF', color: '#5335E0', duration: 0.25, stagger: 0.03}, 42.0);
+  tl.to('#qb2c', {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.4)'}, 42.6);
+  cue(42.6, 'pop', 0.6, 1);
+  // produit_id : le numéro du produit
+  tl.to(pc, {backgroundColor: '#E5F0FF', color: '#1D5FB8', duration: 0.25, stagger: 0.03}, 47.0);
+  tl.to('#qb2p', {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.4)'}, 47.6);
+  cue(47.6, 'pop', 0.6, 3);
+  // Relier commandes à clients et à produits
+  stackBelow('#p2', '#tbl2', 0, 30);
+  gsap.set(['#p2c', '#p2p'], {autoAlpha: 0, scale: 0.7});
+  tl.to('#p2c', {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)'}, 51.6);
+  cue(51.6, 'pop', 0.7, 2);
+  tl.to('#p2p', {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)'}, 53.6);
+  cue(53.6, 'pop', 0.7, 4);
+  // Deux jointures
+  stackBelow('#goal2', '#p2', 0, 30);
+  show('#goal2', 57.0, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(57.0, 'pop', 0.75, 3);
+  hide(['#tbl2', '#p2', '#goal2'], 61.1, {y: -40}, 0.4);
+  sceneOff('#s2', 61.6);
+
+  /* ===== 3 · Deux JOIN en action ===== */
+  sceneOn('#s3', 61.6);
+  show('#s3code', 61.65, {y: 60}, 0.6);
+  cue(61.65, 'whoosh', 0.7);
+  te = typeLine($('#s3l1'), 62.15, 24);
+  pulse('#f3', 64.6, 3, 'rgba(255,214,140,.35)');
+  // Premier INNER JOIN : la table clients, avec son ON
+  te = typeLine($('#s3l2'), 67.6, 26);
+  te = typeLine($('#s3l3'), te + 0.1, 30);
+  pulse(['#j3a', '#o3a'], te + 0.3, 3, 'rgba(201,188,255,.45)');
+  // Second INNER JOIN : la table produits, avec un autre ON
+  te = typeLine($('#s3l4'), 73.3, 26);
+  te = typeLine($('#s3l5'), te + 0.1, 30);
+  pulse(['#j3b', '#o3b'], te + 0.3, 3, 'rgba(160,196,255,.45)');
+  hide('#s3code', 77.9, {y: -40}, 0.4);
+  // La commande 2 : son client, puis son produit
+  show('#cm3', 78.35, {y: 40}, 0.5);
+  cue(78.35, 'whoosh', 0.6);
+  show(['#cl3', '#pr3'], 78.65, {y: 40}, 0.5);
+  tl.to('#cr3 .bg', {opacity: 1, duration: 0.3}, 79.2);
+  F.forEach(({path, dot, len}) => { gsap.set(path, {strokeDasharray: len, strokeDashoffset: len, opacity: 0}); gsap.set(dot, {autoAlpha: 0, scale: 0, transformOrigin: '50% 50%'}); });
+  gsap.set(['#al3a', '#al3b'], {autoAlpha: 0, scale: 0.7});
+  const arrow = (k, t) => {
+    tl.set(F[k].path, {opacity: 1}, t);
+    tl.to(F[k].path, {strokeDashoffset: 0, duration: 0.6, ease: 'power2.inOut'}, t);
+    tl.to(F[k].dot, {autoAlpha: 1, scale: 1, duration: 0.25, ease: 'back.out(2.4)'}, t + 0.55);
+  };
+  bump('#k3c', 79.8, 1.25, 1);
+  arrow(0, 80.2);
+  tl.to('#al3a', {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)'}, 80.4);
+  cue(80.4, 'pop', 0.6, 1);
+  tl.to($$('#cl3 .rw')[0].querySelector('.bg'), {opacity: 1, duration: 0.3}, 80.9);
+  cue(80.9, 'true', 0.5);
+  // Le produit 3 : le Magnésium
+  bump('#k3p', 83.3, 1.25, 1);
+  arrow(1, 83.7);
+  tl.to('#al3b', {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)'}, 83.9);
+  cue(83.9, 'pop', 0.6, 3);
+  tl.to($$('#pr3 .rw')[2].querySelector('.bg'), {opacity: 1, duration: 0.3}, 84.4);
+  cue(84.4, 'true', 0.5);
+  // Une même ligne : le client et le produit de la commande
+  show('#rs3', 87.6, {y: 40}, 0.5);
+  cue(87.6, 'whoosh', 0.6);
+  const vals = ['#v3a', '#v3b', '#v3c', '#v3d'];
+  gsap.set(vals, {autoAlpha: 0, scale: 0.6});
+  const src = [$$('#cl3 .rw')[0].children[2], $$('#cl3 .rw')[0].children[3], $$('#pr3 .rw')[2].children[2], $('#k3d')];
+  vals.forEach((v, i) => {
+    const t = 88.3 + i * 0.55;
+    bump(src[i], t - 0.25, 1.12, 1);
+    tl.to(v, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.2)'}, t);
+    cue(t, 'pop', 0.6, i);
+  });
+  hide(['#cm3', '#cl3', '#pr3', '#rs3', '#ar3', '#al3a', '#al3b'], 92.2, {y: -40});
+  sceneOff('#s3', 92.7);
+
+  /* ===== 4 · Filtrer ===== */
+  sceneOn('#s4', 92.7);
+  show('#q4', 92.75, {y: 40}, 0.5);
+  cue(92.75, 'whoosh', 0.6);
+  stackBelow('#tbl4', '#q4', 0, 30);
+  show('#tbl4', 93.0, {y: 40}, 0.5);
+  const r4 = $$('#rows4 .tr');
+  rowsIn(r4, 93.35, 0.04);
+  gsap.set('#c4b', {autoAlpha: 0});
+  show('#c4a', 94.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#c4a', 95.5, 1.12, 1);
+  // WHERE, après le dernier ON
+  splitChars($('#w4'));
+  te = typeMore($('#w4'), 100.1, 20);
+  pulse('#w4', te + 0.25, 3, 'rgba(255,214,140,.35)');
+  // Une colonne de la troisième table : produits.nom
+  pulse('#pn4', 105.1, 3, 'rgba(160,196,255,.5)');
+  pulse('#h4p', 105.9, 3, 'rgba(160,196,255,.5)');
+  const mg = r4.filter(r => r.classList.contains('mg')), autres = r4.filter(r => !r.classList.contains('mg'));
+  tl.to(mg.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.3}, 106.9);
+  mg.forEach((_, i) => cue(106.9 + i * 0.3, 'tick', 0.5, i + 2));
+  // Il reste 2 lignes
+  tl.to(autres, {height: 0, autoAlpha: 0, duration: 0.4, ease: 'power2.inOut', stagger: 0.04}, 109.7);
+  cue(109.7, 'whoosh', 0.45);
+  tl.to('#c4a', {autoAlpha: 0, scale: 0.6, duration: 0.15}, 110.9);
+  tl.fromTo('#c4b', {autoAlpha: 0, scale: 0.6}, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)', immediateRender: false}, 111.05);
+  cue(111.05, 'true', 0.6);
+  bump('#c4b', 111.7, 1.15, 3);
+  hide(['#q4', '#tbl4'], 113.7, {y: -40});
+  sceneOff('#s4', 114.2);
+
+  /* ===== 5 · Le piège ===== */
+  sceneOn('#s5', 114.2);
+  stackBelow('#ex5', '#ta5', 0, 30);   // place prévue pour la carte entière : elle grandit ensuite à mesure que son contenu arrive
+  const rt5 = $('#s5 .rt5'), pr5 = $('#s5 .pr5');
+  const hRt = rt5.offsetHeight, hPr1 = $('#op5a').offsetHeight, hPr = pr5.offsetHeight;
+  gsap.set(rt5, {height: 0, marginTop: 0, autoAlpha: 0});
+  gsap.set(pr5, {height: 0, marginTop: 0});
+  show('#ta5', 114.25, {y: 50});
+  cue(114.25, 'whoosh', 0.6);
+  // Le second ON relie directement clients et produits
+  tl.to('#b5', {textDecorationColor: 'rgba(239,79,85,1)', duration: 0.35}, 116.3);
+  cue(116.3, 'false', 0.55);
+  // Aucune erreur, et 2 lignes
+  press($('#go5'), 120.3, '#4B30CC', 6);
+  tl.to(rt5, {height: hRt, marginTop: 20, autoAlpha: 1, duration: 0.45, ease: 'power2.out'}, 120.45);
+  const r5 = $$('#rows5 .r');
+  rowsIn(r5, 120.85, 0.25);
+  // Mais c’est Emma, deux fois
+  tl.to(r5.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.2}, 125.5);
+  cue(125.5, 'false', 0.6);
+  tl.to(pr5, {height: hPr1, marginTop: 18, duration: 0.35, ease: 'power2.out'}, 126.15);
+  show('#op5a', 126.4, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(126.4, 'pop', 0.6, 1);
+  shake('#op5a', 126.9);
+  // Deux numéros sans rapport : la cliente 3 et le produit 3
+  show('#ex5', 130.3, {y: 50});
+  cue(130.3, 'whoosh', 0.6);
+  [['#eq5a', 131.2], ['#eq5o', 131.7], ['#eq5b', 132.2]].forEach(([s, t], i) => {
+    show(s, t, {y: 0, scale: 0.7}, 0.35, 'back.out(2)');
+    cue(t, 'pop', 0.55, i);
+  });
+  // Sophie et Lucas oubliés : le lien passe par commandes
+  tl.to(pr5, {height: hPr, duration: 0.35, ease: 'power2.out'}, 136.45);
+  show('#op5b', 136.7, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(136.7, 'false', 0.55);
+  show('#exf5', 138.5, {y: 14}, 0.45, 'power3.out');
+  cue(138.5, 'true', 0.55);
+  hide(['#ta5', '#ex5'], 141.7, {y: -40});
+  sceneOff('#s5', 142.2);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 142.2);
+  show('#s6code', 142.25, {y: 60}, 0.6);
+  cue(142.25, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 142.75, 56);
+  for (const k of [2, 3, 4, 5, 6, 7, 8]) te = typeLine($('#s6l' + k), te + 0.08, 56);
+  pulse(['#j6a', '#j6b', '#w6'], te + 0.2, 3, 'rgba(201,188,255,.3)');
+  press($('#s6run'), 148.8);
+  stackBelow('#tbl6', '#s6code', 0, 30);
+  show('#tbl6', 149.05, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 149.2, 0.2);
+  show('#cnt6', 149.9, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 150.6, 1.15, 3);
+  hide(['#s6code', '#tbl6'], 153.6, {y: -40}, 0.4);
+  // Les emails de rappel
+  boardIn('#em6', 154.0, '.cr', 0.4);
+  stackBelow('#badge6', '#em6', 0, 50);
+  show('#badge6', 155.9, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(155.9, 'chord', 0.7);
+  hide(['#em6', '#badge6'], 158.5);
+  sceneOff('#s6', 159.0);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(159.0, [159.7, 161.5, 163.3]);
+  hold(161.3, 4.8);
+  hold(163.1, 3.8);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(164.25, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 164.2,
+  glyphs: '💊⚠️👥👤✉️📅📦🧾🎯🔗🔢✅🔎🧩⛓️🌉✓✕?·…⋯=→', dom, build});
+</script>
+</body>
+</html>

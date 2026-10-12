@@ -639,6 +639,15 @@ const COURSES = [
       '<span class="glow" id="cj3"><span class="kw">CROSS JOIN</span></span> produits', '<span class="vi"><span class="emo">✖️</span>Pas de <span class="ic">ON</span>&nbsp;: aucune condition</span>',
       '<span id="d4" class="glow"><span class="kw">DISTINCT</span> </span>', '<span class="glow" id="j5"><span class="kw">INNER JOIN</span> clients</span>;',
       '<span class="orph" id="eq5"><span class="emo">✕</span>16 × 10 = 160, au lieu de 15</span>', '✓ Chaque produit, dans chaque ville']},
+  {id: 19, next: 41, titre: 'Jointure de 3 tables', page: 'jointure-3-tables.html', thumb: 'jointure-3-tables-thumb.jpg', duree: '3 min 03', notesAt: 164.2,
+    notes: /notes:\{t:175\.1,y:1250,card:\[64,292,1016,955\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Pour relier trois tables, enchaîne<br>les jointures&nbsp;: chaque <span class="ic">JOIN</span> ajoute une table.',
+    chapters: ['Situation', 'Le problème', 'Deux JOIN en action', 'Filtrer', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<span class="pn">Magnésium</span><span class="ps" id="ps1"><span class="emo">⚠️</span>lot défectueux</span>', "const PIEGE = [[3, '2026-07-08'], [3, '2026-07-30']];",
+      '<div>client_id<span class="qb" id="qb2c">?</span></div>', '<span class="glow" id="j3a"><span class="kw">INNER JOIN</span> clients</span>',
+      '<span class="glow" id="o3b"><span class="kw">ON</span> commandes.produit_id = produits.id</span>', '<span class="k1 c" id="k3c">1</span><span class="k1 p" id="k3p">3</span>',
+      '<span id="w4" class="glow"><span class="kw">WHERE</span> <span id="pn4">produits.nom</span>', '<span class="bad" id="b5">clients.id = produits.id</span>',
+      '<span class="orph" id="op5b"><span class="emo">✕</span>Sophie et Lucas oubliés</span>', '✓ 2 clients à prévenir']},
 ];
 
 for (const c of COURSES) {
