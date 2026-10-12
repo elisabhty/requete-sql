@@ -14,7 +14,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-10-11-ludique-v1744';
+const CACHE = 'requete-2026-10-11-ludique-v1745';
 
 const PRECACHE = [
   './',
@@ -61,6 +61,7 @@ const PRECACHE = [
   './assets/anim/group-concat.html?app&embed',
   './assets/anim/cle-primaire.html?app&embed',
   './assets/anim/cle-etrangere.html?app&embed',
+  './assets/anim/inner-join.html?app&embed',
   './assets/anim/core.css',
   './assets/anim/core.js',
   './assets/anim/gsap.min.js',
@@ -90,6 +91,7 @@ const PRECACHE = [
   './assets/anim/group-concat-thumb.jpg',
   './assets/anim/cle-primaire-thumb.jpg',
   './assets/anim/cle-etrangere-thumb.jpg',
+  './assets/anim/inner-join-thumb.jpg',
   './assets/fonts/jetbrains-mono.woff2',
   './assets/fonts/inter-medium.woff2',
   './assets/fonts/inter-semibold.woff2',
