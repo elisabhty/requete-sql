@@ -190,7 +190,7 @@
   <section class="scene" id="s3">
     <div class="abs code sm" id="s3code" style="left:64px;top:236px;width:952px">
       <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
-      <div class="body"><span class="ln" id="s3l1"><span class="glow" id="f3"><span class="kw">FROM</span> clients</span><span class="caret"><i></i></span></span><span class="ln" id="s3l2"><span class="glow" id="j3"><span class="kw"><span class="glow" id="lw3">LEFT</span> JOIN</span> fidelite</span><span class="caret"><i></i></span></span><span class="ln" id="s3l3">    <span class="kw">ON</span> clients.id = fidelite.client_id<span class="caret"><i></i></span></span></div>
+      <div class="body"><span class="ln" id="s3l1"><span class="glow" id="f3"><span class="kw">FROM</span> clients</span><span class="caret"><i></i></span></span><span class="ln" id="s3l2"><span class="glow" id="j3"><span class="kw"><span class="glow" id="lw3">LEFT</span> JOIN</span> fidelite</span><span class="caret"><i></i></span></span><span class="ln" id="s3l3">    <span class="glow" id="o3"><span class="kw">ON</span> clients.id = fidelite.client_id</span><span class="caret"><i></i></span></span></div>
     </div>
     <div class="abs pill vi" id="n3a"><span>⬅️ <span class="ic">clients</span>&nbsp;: la table de gauche, gardée en entier</span></div>
     <div class="abs lk" id="lk3" style="top:300px">
@@ -258,9 +258,9 @@
   <section class="scene" id="s7">
     <div class="abs rtitle">Les trois idées à retenir</div>
     <div class="abs card recap" id="recap">
-      <div class="rrow"><div class="rico emo">⬅️</div><div class="rtxt"><span class="ic">LEFT JOIN</span> garde <b>toutes les lignes de la table de gauche</b>, même sans correspondance.<span class="rs">Sans ligne de droite correspondante, les informations manquantes valent <span class="ic">NULL</span>.</span></div></div>
-      <div class="rrow"><div class="rico emo">🔗</div><div class="rtxt"><span class="ic">ON</span> indique comment<br>les deux tables sont reliées&nbsp;:<br><span class="ic blk sm">ON clients.id = fidelite.client_id</span></div></div>
-      <div class="rrow"><div class="rico emo">🔍</div><div class="rtxt"><span class="ic">WHERE … IS NULL</span> retrouve les lignes <b>sans correspondance</b>.<span class="rs">Ici, les clients qui n’ont aucune carte.</span><span class="ic blk sm">WHERE fidelite.id IS NULL</span></div></div>
+      <div class="rrow"><div class="rico emo">⬅️</div><div class="rtxt"><span class="ic">LEFT JOIN</span> conserve <b>toutes les lignes de la table de gauche</b>,<br>même sans correspondance<br>dans la table de droite.<span class="rs">Sans correspondance, les colonnes de droite contiennent <span class="ic">NULL</span>.</span></div></div>
+      <div class="rrow"><div class="rico emo">🔗</div><div class="rtxt"><span class="ic">ON</span> définit la <b>condition</b> qui permet d’associer les lignes des deux tables&nbsp;:<br><span class="ic blk sm">ON clients.id = fidelite.client_id</span></div></div>
+      <div class="rrow"><div class="rico emo">🔎</div><div class="rtxt"><span class="ic">WHERE fidelite.id IS NULL</span> ne conserve que les <b>clients sans carte</b>&nbsp;: aucune ligne de la table fidelite ne leur correspond.</div></div>
     </div>
   </section>
 
@@ -272,7 +272,7 @@
 <script src="core.js"></script>
 <script>
 'use strict';
-const DURATION = 129.0;
+const DURATION = 155.1;
 
 /* Table clients [id, prénom, nom], puis table fidelite [id, client_id, points] : seulement 4 cartes. */
 const CLIENTS = [[1, 'Sophie', 'Martin'], [2, 'Lucas', 'Bernard'], [3, 'Emma', 'Dubois'], [4, 'Nathan', 'Petit'], [5, 'Chloé', 'Moreau'],
@@ -285,44 +285,46 @@ const AVEC = CLIENTS.filter(([id]) => CARTE[id]);                // les 4 client
 const PMAX = Math.max(...CARTES.map(c => c[2]));
 
 const CHAPTERS = [
-  {n:1, label:'Situation',            a:5.0,   b:28.0},
-  {n:2, label:'Le problème',          a:28.0,  b:45.6},
-  {n:3, label:'LEFT JOIN en action',  a:45.6,  b:64.4},
-  {n:4, label:'Clients sans carte',   a:64.4,  b:82.9},
-  {n:5, label:'Le piège',             a:82.9,  b:100.9},
-  {n:6, label:'Le résultat',          a:100.9, b:116.2},
-  {n:7, label:'À retenir',            a:116.2, b:DURATION}
+  {n:1, label:'Situation',            a:5.0,   b:39.4},
+  {n:2, label:'Le problème',          a:39.4,  b:61.1},
+  {n:3, label:'LEFT JOIN en action',  a:61.1,  b:86.3},
+  {n:4, label:'Clients sans carte',   a:86.3,  b:106.8},
+  {n:5, label:'Le piège',             a:106.8, b:127.0},
+  {n:6, label:'Le résultat',          a:127.0, b:142.3},
+  {n:7, label:'À retenir',            a:142.3, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
 const CAPTIONS = [
   [5.3, 9.9,     "L’équipe fidélité prépare le <b>bilan</b> de son programme de points."],
-  [10.0, 15.3,   "Le bilan doit montrer <b>chaque client</b>, avec ses points, même sans carte."],
-  [15.4, 18.9,   "Les clients se trouvent<br>dans la <b>table clients</b>."],
-  [19.0, 23.6,   "Les points sont dans la table <code>fidelite</code>, qui ne compte que <b>4 cartes</b>."],
-  [23.7, 27.6,   "Le bilan réunit donc des informations de <b>deux tables</b>."],
-  [28.3, 33.1,   "Premier essai : <code>INNER JOIN</code> relie chaque client à sa carte de fidélité."],
-  [33.2, 36.0,   "Résultat : <b>4 lignes</b>, une par carte."],
-  [36.1, 40.5,   "Les 6 clients sans carte ont <b>disparu</b> : le bilan serait incomplet."],
-  [40.6, 45.2,   "Il faut une jointure qui garde <b>tous les clients</b>, même sans carte."],
-  [45.9, 50.3,   "<code>LEFT JOIN</code> s’écrit comme <code>INNER JOIN</code> : seul le premier mot change."],
-  [50.4, 54.8,   "La table écrite après <code>FROM</code>, celle de <b>gauche</b>, est gardée en entier."],
-  [54.9, 59.2,   "Grâce à <code>ON</code>, Sophie, Lucas, Nathan et Léa retrouvent leur carte."],
-  [59.3, 64.0,   "Les 6 autres clients sont <b>gardés</b> quand même : 10 clients, 10 lignes."],
-  [64.7, 69.0,   "Emma, Chloé, Hugo, Gabriel, Inès et Nathan n’ont <b>aucune carte</b>."],
-  [69.1, 73.8,   "Ils restent dans le résultat, avec <code>NULL</code> dans les colonnes de fidelite."],
-  [73.9, 78.0,   "Pour ne garder qu’eux, on ajoute <code>WHERE fidelite.id IS NULL</code>."],
-  [78.1, 82.4,   "Il reste <b>6 lignes</b> : les clients qui n’ont encore aucune carte."],
-  [83.2, 87.8,   "Attention à l’<b>ordre des tables</b> : <code>LEFT JOIN</code> garde celle qui suit <code>FROM</code>."],
-  [87.9, 92.3,   "Avec <code>FROM fidelite</code>, ce sont les <b>cartes</b> qui sont gardées en entier."],
-  [92.4, 96.5,   "Résultat : <b>4 lignes</b>, et les 6 clients sans carte ont disparu."],
-  [96.6, 100.5,  "Pour un bilan complet, la table clients doit suivre <code>FROM</code>."],
-  [101.2, 106.3, "La requête complète affiche le prénom, le nom et les points de <b>chaque client</b>."],
-  [106.4, 110.6, "Résultat : <b>10 lignes</b>, dont 6 avec <code>NULL</code> à la place des points."],
-  [110.7, 115.8, "L’équipe fidélité peut enfin mesurer<br>l’<b>adhésion</b> à son programme."],
-  [116.5, 121.3, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [121.4, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
-      : [121.4, 999, "<code>LEFT JOIN</code> garde la table de gauche en entier, même sans correspondance."]
+  [10.0, 15.8,   "Le bilan doit afficher <b>tous les clients</b>,<br>même ceux qui n’ont pas<br>de carte de fidélité."],
+  [15.9, 19.4,   "Les clients se trouvent<br>dans la <b>table clients</b>."],
+  [19.5, 25.7,   "Les points sont enregistrés<br>dans la table <code>fidelite</code>, mais<br>seuls <b>4 clients</b> possèdent une carte."],
+  [25.8, 33.1,   "Il faut donc associer les <b>deux tables</b> pour récupérer les points, sans exclure les clients qui n’ont pas de carte."],
+  [33.2, 39.0,   "Pour préparer ce bilan,<br>il faut réunir les informations<br>des tables <code>clients</code> et <code>fidelite</code>."],
+  [39.7, 44.5,   "Premier essai : <code>INNER JOIN</code> relie chaque client à sa carte de fidélité."],
+  [44.6, 50.6,   "Avec <code>INNER JOIN</code>, seuls les <b>4 clients</b> qui possèdent une carte apparaissent dans le résultat."],
+  [50.7, 56.0,   "Les 6 clients sans carte sont <b>exclus</b> du résultat. Le bilan est donc incomplet."],
+  [56.1, 60.7,   "Il faut une jointure qui garde <b>tous les clients</b>, même sans carte."],
+  [61.4, 66.7,   "Pour conserver aussi<br>les clients sans carte, remplace<br><code>INNER JOIN</code> par <code>LEFT JOIN</code>."],
+  [66.8, 70.0,   "La condition après <code>ON</code> reste identique."],
+  [70.1, 76.7,   "La table clients, placée avant <code>LEFT JOIN</code>, est la table de <b>gauche</b>. Toutes ses lignes sont conservées."],
+  [76.8, 81.1,   "Grâce à <code>ON</code>, Sophie, Lucas, Nathan et Léa retrouvent leur carte."],
+  [81.2, 85.9,   "Les 6 autres clients sont <b>gardés</b> quand même : 10 clients, 10 lignes."],
+  [86.6, 92.9,   "Les 6 clients surlignés n’ont pas<br>de carte de fidélité, mais<br><b>restent présents</b> dans le résultat."],
+  [93.0, 97.7,   "Pour eux, les colonnes de fidelite contiennent <code>NULL</code>."],
+  [97.8, 101.9,  "Pour ne garder qu’eux, on ajoute <code>WHERE fidelite.id IS NULL</code>."],
+  [102.0, 106.3, "Il reste <b>6 lignes</b> : les clients qui n’ont encore aucune carte."],
+  [107.1, 113.4, "L’<b>ordre des tables</b> compte :<br><code>LEFT JOIN</code> conserve toutes les lignes<br>de la table placée à sa gauche."],
+  [113.5, 118.4, "Avec <code>FROM fidelite LEFT JOIN clients</code>, toutes les <b>cartes</b> sont conservées."],
+  [118.5, 122.6, "Les clients sans carte<br>restent <b>absents</b> du résultat."],
+  [122.7, 126.6, "Pour un bilan complet, la table clients doit suivre <code>FROM</code>."],
+  [127.3, 132.4, "La requête complète affiche le prénom, le nom et les points de <b>chaque client</b>."],
+  [132.5, 136.7, "Résultat : <b>10 lignes</b>, dont 6 avec <code>NULL</code> à la place des points."],
+  [136.8, 141.9, "L’équipe fidélité peut enfin mesurer<br>l’<b>adhésion</b> à son programme."],
+  [142.6, 147.4, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [147.5, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [147.5, 999, "<code>LEFT JOIN</code> conserve la table de gauche en entier, même sans correspondance."]
 ];
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
@@ -406,79 +408,93 @@ function build(){
   tl.to($$('#fb1 .cp'), {autoAlpha: 1, duration: 0.3, stagger: 0.05}, 11.6);
   cue(11.6, 'pop', 0.55, 4);
   // Les clients : table clients
-  show('#tb1', 15.7, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
-  cue(15.7, 'pop', 0.7, 3);
+  show('#tb1', 16.2, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(16.2, 'pop', 0.7, 3);
   stackBelow('#s1 .need', '#fb1');   // la liste se cale sous le bilan, sans le toucher
-  show('#s1 .need', 16.3, {y: 60});
-  cue(16.3, 'whoosh', 0.6);
+  show('#s1 .need', 16.8, {y: 60});
+  cue(16.8, 'whoosh', 0.6);
   const needRows = $$('#s1 .need-row');
   gsap.set(needRows, {autoAlpha: 0, x: -34});
-  tl.to(needRows.slice(0, 2), {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.25}, 16.6);
-  [0, 1].forEach(i => cue(16.6 + i * 0.25, 'pop', 0.7, i));
-  // Les points : table fidelite, seulement 4 cartes
-  show('#tb1b', 19.4, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
-  cue(19.4, 'pop', 0.7, 4);
-  tl.to(needRows[2], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 20.0);
-  cue(20.0, 'pop', 0.7, 2);
-  bump('#tb1b', 21.9, 1.1, 3);
-  // Deux tables
-  bump($$('#s1 .need-row .tag:not(.tf)'), 24.2, 1.1, 1);
-  bump('#s1 .need-row .tag.tf', 24.9, 1.1, 1);
-  cue(24.2, 'tick', 0.5, 2);
-  cue(24.9, 'tick', 0.5, 4);
-  hide(['#fb1', '#s1 .need'], 27.5);
-  sceneOff('#s1', 28.0);
+  tl.to(needRows.slice(0, 2), {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.25}, 17.1);
+  [0, 1].forEach(i => cue(17.1 + i * 0.25, 'pop', 0.7, i));
+  // Les points : table fidelite
+  show('#tb1b', 19.9, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(19.9, 'pop', 0.7, 4);
+  tl.to(needRows[2], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 20.5);
+  cue(20.5, 'pop', 0.7, 2);
+  bump('#tb1b', 21.3, 1.1, 3);
+  // Seuls 4 clients possèdent une carte : leur pastille prend la couleur de la table fidelite
+  const cc1 = $$('#fb1 .cc'), avec1 = cc1.filter((_, i) => CARTE[CLIENTS[i][0]]), sans1 = cc1.filter((_, i) => !CARTE[CLIENTS[i][0]]);
+  tl.to(avec1.map(r => r.querySelector('.cp')), {backgroundColor: '#FFF4E5', borderColor: '#F2B866', color: '#9A5B00', duration: 0.35, stagger: 0.15}, 22.7);
+  avec1.forEach((_, i) => cue(22.7 + i * 0.15, 'pop', 0.6, i));
+  // Associer les deux tables, sans exclure les clients qui n’ont pas de carte
+  bump('#tb1', 26.4, 1.1, 1);
+  bump('#tb1b', 27.0, 1.1, 1);
+  cue(26.4, 'tick', 0.5, 2);
+  cue(27.0, 'tick', 0.5, 4);
+  pulse(sans1, 29.7, 3, 'rgba(201,188,255,.4)');
+  cue(29.7, 'tick', 0.45, 1);
+  // Réunir les informations des tables clients et fidelite
+  bump($$('#s1 .need-row .tag:not(.tf)'), 34.6, 1.1, 1);
+  bump('#s1 .need-row .tag.tf', 35.3, 1.1, 1);
+  cue(34.6, 'tick', 0.5, 2);
+  cue(35.3, 'tick', 0.5, 4);
+  hide(['#fb1', '#s1 .need'], 38.9);
+  sceneOff('#s1', 39.4);
 
   /* ===== 2 · Le problème ===== */
-  sceneOn('#s2', 28.0);
-  show('#s2code', 28.05, {y: 60}, 0.6);
-  cue(28.05, 'whoosh', 0.7);
-  te = typeLine($('#s2l1'), 28.55, 30);
+  sceneOn('#s2', 39.4);
+  show('#s2code', 39.45, {y: 60}, 0.6);
+  cue(39.45, 'whoosh', 0.7);
+  te = typeLine($('#s2l1'), 39.95, 30);
   te = typeLine($('#s2l2'), te + 0.1, 30);
   te = typeLine($('#s2l3'), te + 0.1, 30);
   te = typeLine($('#s2l4'), te + 0.1, 30);
-  pulse('#j2', 31.2, 3, 'rgba(201,188,255,.35)');
-  press($('#s2run'), 32.8);
-  show('#tbl2', 33.05, {y: 40}, 0.5);
-  rowsIn($$('#rows2 .tr'), 33.2, 0.1);
-  show('#cnt2', 33.7, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  bump('#cnt2', 34.5, 1.15, 3);
+  pulse('#j2', 42.6, 3, 'rgba(201,188,255,.35)');
+  press($('#s2run'), 44.2);
+  show('#tbl2', 44.45, {y: 40}, 0.5);
+  rowsIn($$('#rows2 .tr'), 44.6, 0.1);
+  show('#cnt2', 45.1, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt2', 45.9, 1.15, 3);
   // Les 6 clients sans carte ont disparu
   stackBelow('#n2a', '#tbl2', 0, 34);
-  show('#n2a', 36.8, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
-  cue(36.8, 'miss', 0.6);
+  show('#n2a', 51.4, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(51.4, 'miss', 0.6);
   // Il faut garder tous les clients
   stackBelow('#goal2', '#n2a', 0, 20);
-  show('#goal2', 41.2, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
-  cue(41.2, 'pop', 0.75, 3);
-  hide(['#s2code', '#tbl2', '#n2a', '#goal2'], 45.1, {y: -40}, 0.4);
-  sceneOff('#s2', 45.6);
+  show('#goal2', 56.7, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(56.7, 'pop', 0.75, 3);
+  hide(['#s2code', '#tbl2', '#n2a', '#goal2'], 60.6, {y: -40}, 0.4);
+  sceneOff('#s2', 61.1);
 
   /* ===== 3 · LEFT JOIN en action ===== */
-  sceneOn('#s3', 45.6);
-  show('#s3code', 45.65, {y: 60}, 0.6);
-  cue(45.65, 'whoosh', 0.7);
-  te = typeLine($('#s3l1'), 46.15, 28);
+  sceneOn('#s3', 61.1);
+  show('#s3code', 61.15, {y: 60}, 0.6);
+  cue(61.15, 'whoosh', 0.7);
+  te = typeLine($('#s3l1'), 61.65, 28);
   te = typeLine($('#s3l2'), te + 0.1, 28);
   te = typeLine($('#s3l3'), te + 0.1, 28);
-  // Seul le premier mot change : LEFT
-  pulse('#lw3', 48.9, 3, 'rgba(201,188,255,.45)');
-  // La table de gauche, celle qui suit FROM, est gardée en entier
-  pulse('#f3', 50.9, 3, 'rgba(255,214,140,.4)');
+  // INNER JOIN devient LEFT JOIN
+  pulse('#lw3', 64.4, 3, 'rgba(201,188,255,.45)');
+  // La condition après ON reste identique
+  pulse('#o3', 67.2, 3, 'rgba(201,188,255,.45)');
+  cue(67.2, 'tick', 0.5, 3);
+  // La table clients, placée avant LEFT JOIN, est la table de gauche : toutes ses lignes sont conservées
+  pulse('#f3', 70.6, 3, 'rgba(255,214,140,.4)');
   stackBelow('#n3a', '#s3code', 0, 34);
-  show('#n3a', 51.7, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
-  cue(51.7, 'pop', 0.7, 2);
-  hide(['#s3code', '#n3a'], 54.6, {y: -40}, 0.4);
+  show('#n3a', 71.4, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(71.4, 'pop', 0.7, 2);
+  hide(['#s3code', '#n3a'], 76.5, {y: -40}, 0.4);
   // Les deux tables, puis les 4 clients qui retrouvent leur carte
-  show('#lk3', 55.0, {y: 50});
-  cue(55.0, 'whoosh', 0.7);
+  show('#lk3', 76.9, {y: 50});
+  cue(76.9, 'whoosh', 0.7);
   gsap.set([...clR, ...fiR], {autoAlpha: 0, y: 10});
-  tl.to(fiR, {autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out', stagger: 0.06}, 55.35);
-  tl.to(clR, {autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out', stagger: 0.05}, 55.6);
-  clR.forEach((_, i) => cue(55.6 + i * 0.05, 'tick', 0.4, i % 5));
+  tl.to(fiR, {autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out', stagger: 0.06}, 77.25);
+  tl.to(clR, {autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out', stagger: 0.05}, 77.5);
+  clR.forEach((_, i) => cue(77.5 + i * 0.05, 'tick', 0.4, i % 5));
   L.forEach(({path, dot, len}) => { gsap.set(path, {strokeDasharray: len, strokeDashoffset: len, opacity: 0}); gsap.set(dot, {autoAlpha: 0, scale: 0, transformOrigin: '50% 50%'}); });
   CARTES.forEach(([, c], k) => {
-    const t = 56.7 + k * 0.5;
+    const t = 78.6 + k * 0.5;
     tl.to(clR[c - 1].querySelector('.bg'), {opacity: 1, duration: 0.3}, t);
     tl.set(L[k].path, {opacity: 1}, t + 0.1);
     tl.to(L[k].path, {strokeDashoffset: 0, duration: 0.45, ease: 'power2.inOut'}, t + 0.1);
@@ -491,113 +507,113 @@ function build(){
   const kp = sans3.map(r => r.querySelector('.kp'));
   gsap.set(kp, {scale: 0.5});
   sans3.forEach((r, i) => {
-    tl.to(r.querySelector('.bg'), {opacity: 1, duration: 0.3}, 60.1 + i * 0.15);
-    tl.to(kp[i], {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.2)'}, 60.1 + i * 0.15);
-    cue(60.1 + i * 0.15, 'pop', 0.55, i % 5);
+    tl.to(r.querySelector('.bg'), {opacity: 1, duration: 0.3}, 82.0 + i * 0.15);
+    tl.to(kp[i], {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.2)'}, 82.0 + i * 0.15);
+    cue(82.0 + i * 0.15, 'pop', 0.55, i % 5);
   });
   stackBelow('#n3b', '#lk3', 0, 30);
-  show('#n3b', 62.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
-  cue(62.0, 'chord', 0.6);
-  hide(['#lk3', '#n3b'], 63.9, {y: -40});
-  sceneOff('#s3', 64.4);
+  show('#n3b', 83.9, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(83.9, 'chord', 0.6);
+  hide(['#lk3', '#n3b'], 85.8, {y: -40});
+  sceneOff('#s3', 86.3);
 
   /* ===== 4 · Clients sans carte ===== */
-  sceneOn('#s4', 64.4);
-  show('#tbl4', 64.45, {y: 40}, 0.5);
-  cue(64.45, 'whoosh', 0.6);
+  sceneOn('#s4', 86.3);
+  show('#tbl4', 86.35, {y: 40}, 0.5);
+  cue(86.35, 'whoosh', 0.6);
   const r4 = $$('#rows4 .tr'), sans4 = r4.filter(r => r.classList.contains('nc'));
-  rowsIn(r4, 64.8, 0.06);
+  rowsIn(r4, 86.7, 0.06);
   gsap.set('#cnt4b', {autoAlpha: 0});
-  show('#cnt4a', 65.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  // Les 6 clients qui n’ont aucune carte
-  tl.to(sans4.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.1}, 66.4);
-  cue(66.4, 'tick', 0.5, 1);
+  show('#cnt4a', 87.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // Les 6 clients surlignés : ils n’ont pas de carte
+  tl.to(sans4.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.1}, 87.8);
+  cue(87.8, 'tick', 0.5, 1);
   // Ils restent, avec NULL dans les colonnes de fidelite
-  sans4.forEach((r, i) => $$('.sw', r).forEach(sw => flip(sw, 69.9 + i * 0.12, false)));
-  cue(70.0, 'tick', 0.55, 3);
-  cue(70.4, 'tick', 0.55, 4);
+  sans4.forEach((r, i) => $$('.sw', r).forEach(sw => flip(sw, 93.8 + i * 0.12, false)));
+  cue(93.9, 'tick', 0.55, 3);
+  cue(94.3, 'tick', 0.55, 4);
   // WHERE fidelite.id IS NULL
   stackBelow('#wh4', '#tbl4');
-  show('#wh4', 74.1, {y: 30}, 0.5);
-  cue(74.1, 'whoosh', 0.6);
-  pulse('#w4', 74.9, 3, 'rgba(201,188,255,.35)');
-  bump(sans4.map(r => r.querySelector('div:nth-of-type(3) .sw')), 76.1, 1.2, 1);
-  cue(76.1, 'pop', 0.6, 2);
+  show('#wh4', 98.0, {y: 30}, 0.5);
+  cue(98.0, 'whoosh', 0.6);
+  pulse('#w4', 98.8, 3, 'rgba(201,188,255,.35)');
+  bump(sans4.map(r => r.querySelector('div:nth-of-type(3) .sw')), 100.0, 1.2, 1);
+  cue(100.0, 'pop', 0.6, 2);
   // Il reste 6 lignes : les clients sans carte
-  tl.to(r4.filter(r => !r.classList.contains('nc')), {opacity: 0.25, duration: 0.4}, 78.5);
-  cue(78.5, 'miss', 0.5);
-  hide('#cnt4a', 79.0, {y: 0, scale: 0.8}, 0.2);
-  show('#cnt4b', 79.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  tl.to(r4.filter(r => !r.classList.contains('nc')), {opacity: 0.25, duration: 0.4}, 102.4);
+  cue(102.4, 'miss', 0.5);
+  hide('#cnt4a', 102.9, {y: 0, scale: 0.8}, 0.2);
+  show('#cnt4b', 103.1, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
   stackBelow('#n4', '#wh4', 0, 30);
-  show('#n4', 79.8, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
-  cue(79.8, 'pop', 0.7, 2);
-  hide(['#tbl4', '#wh4', '#n4'], 82.4, {y: -40});
-  sceneOff('#s4', 82.9);
+  show('#n4', 103.7, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(103.7, 'pop', 0.7, 2);
+  hide(['#tbl4', '#wh4', '#n4'], 106.3, {y: -40});
+  sceneOff('#s4', 106.8);
 
   /* ===== 5 · Le piège ===== */
-  sceneOn('#s5', 82.9);
-  show('#trap5', 82.95, {y: 50});
-  cue(82.95, 'whoosh', 0.6);
+  sceneOn('#s5', 106.8);
+  show('#trap5', 106.85, {y: 50});
+  cue(106.85, 'whoosh', 0.6);
   // LEFT JOIN garde la table qui suit FROM… ici, fidelite
-  pulse('#f5', 85.4, 3, 'rgba(255,214,140,.45)');
+  pulse('#f5', 109.3, 3, 'rgba(255,214,140,.45)');
   // Les cartes sont gardées en entier : 4 lignes
-  press($('#go5'), 88.5, '#4B30CC', 6);
+  press($('#go5'), 114.1, '#4B30CC', 6);
   const ch5 = $$('#r5 .rc');
   gsap.set(ch5, {autoAlpha: 0, y: 12});
-  tl.to(ch5, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'back.out(2)', stagger: 0.15}, 88.8);
-  ch5.forEach((_, i) => cue(88.8 + i * 0.15, 'pop', 0.55, i));
+  tl.to(ch5, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'back.out(2)', stagger: 0.15}, 114.4);
+  ch5.forEach((_, i) => cue(114.4 + i * 0.15, 'pop', 0.55, i));
   // Les 6 clients sans carte ont disparu
-  show('#op5', 93.1, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
-  cue(93.1, 'false', 0.6);
+  show('#op5', 119.2, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(119.2, 'false', 0.6);
   // La table clients doit suivre FROM
   stackBelow('#fix5', '#trap5');
-  show('#fix5', 96.9, {y: 50});
-  cue(96.9, 'whoosh', 0.6);
-  pulse('#f5b', 97.6, 3, 'rgba(201,188,255,.35)');
-  press($('#go5b'), 98.4, '#4B30CC', 6);
-  flip($('#sw5'), 98.7);
-  tl.to('#fix5 .lst', {borderColor: '#7FD3A8', duration: 0.3}, 98.8);
-  cue(98.8, 'true', 0.6);
-  hide(['#trap5', '#fix5'], 100.4);
-  sceneOff('#s5', 100.9);
+  show('#fix5', 123.0, {y: 50});
+  cue(123.0, 'whoosh', 0.6);
+  pulse('#f5b', 123.7, 3, 'rgba(201,188,255,.35)');
+  press($('#go5b'), 124.5, '#4B30CC', 6);
+  flip($('#sw5'), 124.8);
+  tl.to('#fix5 .lst', {borderColor: '#7FD3A8', duration: 0.3}, 124.9);
+  cue(124.9, 'true', 0.6);
+  hide(['#trap5', '#fix5'], 126.5);
+  sceneOff('#s5', 127.0);
 
   /* ===== 6 · Le résultat ===== */
-  sceneOn('#s6', 100.9);
-  show('#s6code', 100.95, {y: 60}, 0.6);
-  cue(100.95, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 101.45, 40);
+  sceneOn('#s6', 127.0);
+  show('#s6code', 127.05, {y: 60}, 0.6);
+  cue(127.05, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 127.55, 40);
   for (const k of [2, 3, 4, 5]) te = typeLine($('#s6l' + k), te + 0.1, 40);
-  pulse(['#j6', '#o6'], 105.1, 3, 'rgba(201,188,255,.3)');
-  press($('#s6run'), 105.9);
-  show('#tbl6', 106.15, {y: 40}, 0.5);
-  rowsIn($$('#rows6 .tr'), 106.3, 0.06);
-  show('#cnt6', 106.9, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  bump('#cnt6', 107.7, 1.15, 3);
+  pulse(['#j6', '#o6'], 131.2, 3, 'rgba(201,188,255,.3)');
+  press($('#s6run'), 132.0);
+  show('#tbl6', 132.25, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 132.4, 0.06);
+  show('#cnt6', 133.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 133.8, 1.15, 3);
   // 6 lignes avec NULL à la place des points
-  pulse($$('#rows6 .nul'), 108.7, 3, 'rgba(255,214,140,.5)');
-  cue(108.7, 'tick', 0.5, 2);
-  hide(['#s6code', '#tbl6'], 110.5, {y: -40}, 0.4);
+  pulse($$('#rows6 .nul'), 134.8, 3, 'rgba(255,214,140,.5)');
+  cue(134.8, 'tick', 0.5, 2);
+  hide(['#s6code', '#tbl6'], 136.6, {y: -40}, 0.4);
   // Le bilan du programme : 4 clients sur 10 ont une carte
-  boardIn('#bl6', 110.9, '.kpi, .br', 0.07);
+  boardIn('#bl6', 137.0, '.kpi, .br', 0.07);
   const bars = $$('#bl6 .bt i');
   gsap.set(bars, {scaleX: 0, transformOrigin: '0 50%'});
-  tl.to(bars, {scaleX: 1, duration: 0.6, ease: 'power2.out', stagger: 0.12}, 112.4);
+  tl.to(bars, {scaleX: 1, duration: 0.6, ease: 'power2.out', stagger: 0.12}, 138.5);
   stackBelow('#badge6', '#bl6', 0, 50);
-  show('#badge6', 113.6, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(113.6, 'chord', 0.7);
-  hide(['#bl6', '#badge6'], 115.7);
-  sceneOff('#s6', 116.2);
+  show('#badge6', 139.7, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(139.7, 'chord', 0.7);
+  hide(['#bl6', '#badge6'], 141.8);
+  sceneOff('#s6', 142.3);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(116.2, [116.9, 118.7, 120.5]);
-  hold(118.5, 4.2);
-  hold(120.3, 3.4);
+  recapScene(142.3, [143.0, 144.8, 146.6]);
+  hold(144.6, 4.8);
+  hold(146.4, 3.8);
   // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(121.45, 'pop', 0.85, 5);
+  if (APP) cue(147.55, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 121.4,
-  glyphs: '👤👪🏅🔎🎯⬅️👥⚠️🔗🔍✓✕?!·…', dom, build});
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 147.5,
+  glyphs: '👤👪🏅🔎🎯⬅️👥⚠️🔗✓✕?!·…', dom, build});
 </script>
 </body>
 </html>
