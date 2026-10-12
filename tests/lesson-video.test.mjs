@@ -621,6 +621,15 @@ const COURSES = [
       '<span class="glow" id="o3"><span class="kw">ON</span> clients.id = commandes.client_id</span>', '<span>🧾 16 commandes, 16 lignes</span>',
       '<span class="glow" id="w4"><span class="kw">WHERE</span> clients.id <span class="kw">IS NULL</span></span>',
       '<span class="kw">RIGHT JOIN</span> <span class="glow" id="c5">clients</span>', 'La commande 16 a disparu', '✓ 16 factures, dont 1 à compléter']},
+  {id: 39, next: 40, titre: 'FULL OUTER JOIN', page: 'full-outer-join.html', thumb: 'full-outer-join-thumb.jpg', duree: '2 min 59', notesAt: '161.0',
+    notes: /notes:\{t:171\.7,y:1377,card:\[64,292,1016,1082\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Avec <span class="ic">FULL OUTER JOIN</span>, toutes les lignes<br>des deux tables sont conservées.',
+    chapters: ['Situation', 'Le problème', 'FULL OUTER JOIN en action', 'Sans correspondance', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<span>Audit de la base</span><span class="tb" id="tb1">table clients</span>', 'const ORDRE = [[1, 1], [1, 2], [1, 13], [2, 3], [2, 10], [3, 4], [3, 14], [4, 5], [4, 12], [5, 6], [5, 15], [6, 7], [7, 8], [7, 9], [8, 11],',
+      '<span class="glow" id="l2"><span class="kw">LEFT JOIN</span></span>', '<span class="glow" id="r2"><span class="kw">RIGHT JOIN</span></span>',
+      '<span class="kw"><span class="glow" id="fo3">FULL OUTER</span> JOIN</span> commandes', '<span class="glow" id="o3"><span class="kw">ON</span> clients.id = commandes.client_id</span>',
+      '<span>↔️ Aucune ligne n’est exclue</span>', '<span>🕳️ NULL du côté qui manque</span>', '<span class="bl">correspondances, une ligne chacune</span>',
+      '✓ Aucune ligne oubliée, 3 à vérifier']},
 ];
 
 for (const c of COURSES) {
