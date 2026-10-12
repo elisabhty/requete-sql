@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · JOIN + GROUP BY en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:110px;top:456px;letter-spacing:-2px}
+#s0 .title span.sp{margin-right:30px}
+#s0 .title span.pl{color:var(--accent)}
+#s0 .hilite{top:522px;height:38px}
+#s0 .sub{top:604px;font-size:54px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:35px;white-space:nowrap}
+.nw{white-space:nowrap}
+
+/* Code : quatre à six lignes (chapitres 3 et 6) */
+.code.sm .body{font-size:32px;line-height:50px;padding:26px 36px}
+.code.sm .ln{height:50px}
+.code.sm .caret i{top:-37px;height:42px}
+.code.xs .body{font-size:30px;line-height:46px;padding:24px 36px}
+.code.xs .ln{height:46px}
+.code.xs .caret i{top:-35px;height:40px}
+
+/* Une valeur et sa version suivante, l’une sur l’autre : la case se retourne de l’une à l’autre */
+.sw{display:inline-grid;justify-items:start}
+.sw>span{grid-area:1/1}
+.sw .b{opacity:0}
+/* La table clients en violet, la table commandes en orange */
+.tag.tc,.db-bar .tb.tc{background:#FFF4E5;color:#9A5B00}
+
+/* ---------- 1 et 6 · Le rapport commercial ---------- */
+.board{left:64px;width:952px;padding:0 0 10px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.db-bar .tb+.tb{margin-left:10px}
+.q1{display:flex;align-items:center;gap:16px;height:96px;padding:0 30px;font-family:var(--display);font-size:38px;font-weight:800;letter-spacing:-.5px;color:var(--ink);white-space:nowrap}
+.q1 .emo{font-size:40px}
+.br{display:grid;grid-template-columns:170px 1fr 74px;align-items:center;gap:18px;height:54px;padding:0 30px}
+.br .bn{font-size:27px;font-weight:700;color:var(--ink);white-space:nowrap}
+.br .bt{position:relative;height:26px;border-radius:13px;background:var(--surface-2);overflow:hidden}
+.br .bt i{position:absolute;left:0;top:0;bottom:0;border-radius:13px;background:#C9BCFF}
+.br.top .bt i{background:linear-gradient(90deg,#8B6CFF,#6A4DF4)}
+.br .bv{justify-self:end;min-width:58px;height:42px;padding:0 12px;border-radius:12px;font-family:var(--display);font-size:27px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.br .bv.q{border:3px dashed #F2C38A;color:#C08A3E}
+.br .bv.v{background:var(--accent-soft);color:var(--accent-ink)}
+.br.top .bv.v{background:var(--accent);color:#fff}
+.ft6{display:flex;align-items:center;gap:12px;height:62px;margin:6px 30px 0;padding:0 18px;border-radius:16px;background:var(--surface-2);font-size:25px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.ft6 .emo{font-size:26px}
+
+/* ---------- 2 · Le problème : GROUP BY seul ---------- */
+.mini.two{font-size:32px;padding-right:120px}
+.rs2{margin-top:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;overflow:hidden}
+.rs2 .k{height:52px;border-radius:14px;background:var(--surface-2);display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-size:25px;font-weight:700;color:var(--ink);white-space:nowrap}
+.rs2 .k b{font-family:var(--display);font-size:28px;font-weight:800;color:var(--accent-ink)}
+.orph{height:56px;padding:0 20px;border-radius:999px;background:#FDEBEC;color:#C2323A;font-size:26px;font-weight:700;display:inline-flex;align-items:center;gap:10px;white-space:nowrap}
+.op2w{margin-top:16px;overflow:visible}
+.out.err{opacity:1}
+.goal{left:64px;width:952px;height:96px;border-radius:32px;background:#E7F7EE;border:3px solid #BFE8D0;display:flex;align-items:center;justify-content:center;gap:14px;font-size:33px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.goal .emo{font-size:36px}
+
+/* ---------- 3 · Le JOIN, puis GROUP BY, puis COUNT() ---------- */
+.gp{left:64px;width:952px;padding:0 0 16px;overflow:hidden}
+.gp .tt{height:78px;display:flex;align-items:center;gap:16px;padding:0 34px;font-size:32px;font-weight:700;color:var(--ink);white-space:nowrap}
+.gp .tt .emo{font-size:36px}
+.ghd{position:relative;height:52px;background:var(--surface-2);font-family:var(--mono);font-size:23px;font-weight:700;color:var(--ink-3)}
+.ghd>div{position:absolute;left:0;right:0;top:0;bottom:0;display:grid;grid-template-columns:210px 260px 1fr;align-items:center;padding:0 26px;white-space:nowrap}
+.ghd .h2 span:last-child{justify-self:end}
+.gbox{position:relative;height:694px}
+.gr{position:absolute;left:0;right:0;height:42px;display:grid;grid-template-columns:210px 260px 1fr;align-items:center;padding:0 26px;font-family:var(--mono);font-size:26px;font-weight:600;color:var(--ink)}
+.gr .bgc{position:absolute;left:14px;right:14px;top:3px;bottom:3px;border-radius:12px;background:#fff;z-index:0}
+.gr>span:not(.bgc){position:relative;z-index:1}
+.gr .gid{justify-self:start;height:32px;padding:0 12px;border-radius:10px;background:#FFF4E5;color:#9A5B00;font-size:22px;font-weight:700;display:inline-flex;align-items:center}
+.gr .gv .a{color:#C08A3E}
+.gr .gn{justify-self:end;height:34px;padding:0 14px;border-radius:999px;background:var(--accent);color:#fff;font-family:var(--ui);font-size:22px;font-weight:700;display:flex;align-items:center;opacity:0}
+
+/* ---------- 4 · Le bon ordre ---------- */
+.mini.four{font-size:28px;line-height:44px;padding-right:120px}
+.bad{text-decoration:underline wavy rgba(239,79,85,0);text-decoration-thickness:4px;text-underline-offset:10px}
+.trap-h.vert{color:#1B7A45}
+
+/* ---------- 5 · Le piège : un GROUP BY oublié ---------- */
+.mini.three5{font-size:28px;line-height:44px;padding-right:120px}
+.rt5{margin-top:20px;border-radius:24px;background:var(--surface-2);overflow:hidden}
+.rt5 .h,.rt5 .r{display:grid;grid-template-columns:340px 1fr auto;align-items:center;padding:0 22px;font-family:var(--mono);white-space:nowrap}
+.rt5 .h{height:46px;font-size:22px;font-weight:700;color:var(--ink-3)}
+.rt5 .h .n5{height:34px;padding:0 14px;border-radius:999px;background:#fff;color:var(--accent-ink);font-family:var(--ui);font-size:21px;font-weight:700;display:flex;align-items:center}
+.rt5 .r{position:relative;height:56px;font-size:28px;font-weight:700;color:var(--ink);background:#fff;box-shadow:inset 0 2px 0 var(--line-2)}
+.rt5 .r>span{position:relative;z-index:1}
+.rt5 .r .hl{position:absolute;left:0;top:0;right:0;bottom:0;background:#FDEBEC;box-shadow:inset 8px 0 0 #EF4F55;opacity:0;z-index:0}
+.nt5{margin-top:14px;display:grid;grid-template-columns:340px 1fr;gap:0;padding:0 8px;overflow:hidden}
+.nt{justify-self:start;height:46px;padding:0 16px;border-radius:999px;font-size:23px;font-weight:700;display:inline-flex;align-items:center;white-space:nowrap}
+.nt.am{background:#FFF4E5;color:#9A5B00}
+.nt.rd{background:#FDEBEC;color:#C2323A}
+
+/* ---------- 6 · Le résultat ---------- */
+.rgR{display:grid;grid-template-columns:300px 1fr;padding:0 26px;align-items:center}
+.tr.t6{height:50px;font-size:27px}
+
+/* ---------- 7 · À retenir : trois idées un peu longues, le récapitulatif se resserre ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:19px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+.rtxt .blk.sm{font-size:.74em}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Jointures</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>J</span><span>O</span><span>I</span><span class="sp">N</span><span class="sp pl">+</span><span>G</span><span>R</span><span>O</span><span>U</span><span class="sp">P</span><span>B</span><span>Y</span></div>
+    <div class="abs sub">Compter les commandes par ville</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Relie d’abord les tables avec <span class="ic">JOIN</span>,<br>puis regroupe avec <span class="ic">GROUP BY</span>.</div>
+  </section>
+
+  <!-- 1 · Situation : quelles villes commandent le plus ? -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="rb1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Rapport commercial</span><span class="tb" id="tb1">table clients</span><span class="tb tc" id="tb1b">table commandes</span></div>
+      <div class="q1"><span class="emo">📊</span><span>Quelles villes commandent le plus&nbsp;?</span></div>
+      <div id="bars1"></div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">📍</span><span class="nl">Chaque ville</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">🛒</span><span class="nl">Son nombre de commandes</span><span class="tag tc">table commandes</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : GROUP BY seul ne suffit pas -->
+  <section class="scene" id="s2">
+    <div class="abs card trap" id="ta2" style="top:300px">
+      <div class="trap-h"><span class="emo">🧪</span><span>Premier essai&nbsp;: la table clients</span></div>
+      <div class="mini two"><span class="kw">SELECT</span> ville, <span class="kw">COUNT</span>(*)
+<span class="kw">FROM</span> clients <span class="glow" id="g2a"><span class="kw">GROUP BY</span> ville</span>;<span class="go" id="go2a"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+      <div class="rs2" id="rs2"></div>
+      <div class="op2w" id="op2w"><span class="orph" id="op2"><span class="emo">✕</span>Ce sont des clients, pas des commandes</span></div>
+    </div>
+    <div class="abs card trap" id="tb2">
+      <div class="trap-h"><span class="emo">🧪</span><span>Deuxième essai&nbsp;: la table commandes</span></div>
+      <div class="mini two"><span class="kw">SELECT</span> ville, <span class="kw">COUNT</span>(*)
+<span class="kw">FROM</span> commandes <span class="glow" id="g2b"><span class="kw">GROUP BY</span> ville</span>;<span class="go" id="go2b"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+      <div class="out err" id="er2"><div class="oi">✕</div><div class="ot"><b>Erreur SQL</b><span class="m">no such column: ville</span></div></div>
+    </div>
+    <div class="abs goal" id="goal2"><span class="emo">🎯</span>Réunir chaque commande et sa ville</div>
+  </section>
+
+  <!-- 3 · JOIN + GROUP BY en action : le JOIN, puis les groupes, puis COUNT() -->
+  <section class="scene" id="s3">
+    <div class="abs code sm" id="s3code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s3l1"><span class="kw">FROM</span> clients<span class="caret"><i></i></span></span><span class="ln" id="s3l2"><span class="glow" id="j3"><span class="kw">INNER JOIN</span> commandes</span><span class="caret"><i></i></span></span><span class="ln" id="s3l3">    <span class="glow" id="o3"><span class="kw">ON</span> clients.id = commandes.client_id</span><span class="caret"><i></i></span></span><span class="ln" id="s3l4"><span class="glow" id="g3"><span class="kw">GROUP BY</span> clients.ville</span><span class="caret"><i></i></span></span></div>
+    </div>
+    <div class="abs card gp" id="gp3" style="top:300px">
+      <div class="tt"><span class="emo">🔗</span><span class="sw" id="tt3"><span class="a">Après le JOIN</span><span class="b">Après GROUP BY et COUNT()</span></span><span class="cnt"><span id="c3a">15 lignes</span><span id="c3b">5 groupes</span><span id="c3c">5 lignes</span></span></div>
+      <div class="ghd"><div class="h1"><span>commandes.id</span><span>clients.ville</span><span></span></div><div class="h2"><span>clients.ville</span><span></span><span>nombre_commandes</span></div></div>
+      <div class="gbox" id="gbox3"></div>
+    </div>
+  </section>
+
+  <!-- 4 · Le bon ordre : la jointure s’écrit avant GROUP BY -->
+  <section class="scene" id="s4">
+    <div class="abs card trap" id="ta4" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>La jointure après <span class="ic">GROUP BY</span></span></div>
+      <div class="mini four"><span class="kw">FROM</span> clients
+<span class="kw">GROUP BY</span> clients.ville
+<span class="bad" id="b4a"><span class="kw">INNER JOIN</span> commandes</span>
+    <span class="bad" id="b4b"><span class="kw">ON</span> clients.id = commandes.client_id</span>;<span class="go" id="go4"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+      <div class="out err" id="er4"><div class="oi">✕</div><div class="ot"><b>Erreur SQL</b><span class="m">near "INNER": syntax error</span></div></div>
+    </div>
+    <div class="abs card trap" id="tb4">
+      <div class="trap-h vert"><span class="emo">✅</span><span>La jointure avant <span class="ic">GROUP BY</span></span></div>
+      <div class="mini four"><span class="kw">FROM</span> clients
+<span class="glow" id="j4"><span class="kw">INNER JOIN</span> commandes</span>
+    <span class="glow" id="o4"><span class="kw">ON</span> clients.id = commandes.client_id</span>
+<span class="glow" id="g4"><span class="kw">GROUP BY</span> clients.ville</span>;</div>
+    </div>
+  </section>
+
+  <!-- 5 · Le piège : sans GROUP BY, une seule ligne -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="ta5" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Un <span class="ic">GROUP BY</span> oublié</span></div>
+      <div class="mini three5"><span class="kw">SELECT</span> clients.ville, <span class="kw">COUNT</span>(commandes.id)
+<span class="kw">FROM</span> clients <span class="kw">INNER JOIN</span> commandes
+    <span class="kw">ON</span> clients.id = commandes.client_id;<span class="go" id="go5"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+      <div class="rt5" id="rt5"><div class="h"><span>ville</span><span>COUNT(commandes.id)</span><span class="n5">1 ligne</span></div><div class="r" id="r5"><span class="hl"></span><span id="v5">Paris</span><span id="n5v">15</span></div></div>
+      <div class="nt5" id="nt5"><span class="nt am" id="nt5a">↑ la ville d’une ligne</span><span class="nt rd" id="nt5b">↑ les 15 commandes d’un coup</span></div>
+    </div>
+  </section>
+
+  <!-- 6 · Le résultat : la requête complète, puis le rapport commercial -->
+  <section class="scene" id="s6">
+    <div class="abs code xs" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> clients.ville,<span class="caret"><i></i></span></span><span class="ln" id="s6l2">       <span class="glow" id="c6"><span class="kw">COUNT</span>(commandes.id)</span> <span class="kw">AS</span> nombre_commandes<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="kw">FROM</span> clients<span class="caret"><i></i></span></span><span class="ln" id="s6l4"><span class="glow" id="j6"><span class="kw">INNER JOIN</span> commandes</span><span class="caret"><i></i></span></span><span class="ln" id="s6l5">    <span class="kw">ON</span> clients.id = commandes.client_id<span class="caret"><i></i></span></span><span class="ln" id="s6l6"><span class="glow" id="g6"><span class="kw">GROUP BY</span> clients.ville</span>;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">5 lignes</span></span></div>
+      <div class="rgR th"><div>ville</div><div>nombre_commandes</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card board" id="rp6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Rapport commercial · commandes par ville</span></div>
+      <div id="bars6" style="padding-top:12px"></div>
+      <div class="ft6" id="ft6"><span class="emo">📍</span><span>Nantes&nbsp;: aucune commande, donc aucune ligne</span></div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ Paris en tête, devant Lyon</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">🔗</div><div class="rtxt"><span class="nw">Quand l’information à regrouper et celle</span><br>à calculer sont dans des tables<br>différentes, on <b>relie d’abord</b><br>les tables avec <span class="ic">JOIN</span>.<span class="rs">Chaque commande est associée<br>à son client, donc à sa ville.</span></div></div>
+      <div class="rrow"><div class="rico emo">🗂️</div><div class="rtxt">Ensuite, <span class="ic">GROUP BY</span> forme<br>un <b>groupe par ville</b>&nbsp;:<br><span class="ic blk sm">GROUP BY clients.ville</span></div></div>
+      <div class="rrow"><div class="rico emo">🔢</div><div class="rtxt">Enfin, <span class="ic">COUNT()</span> <b>compte</b> les commandes de chaque groupe&nbsp;:<br><span class="ic blk sm">COUNT(commandes.id)</span></div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 158.1;
+
+/* Les 15 commandes reliées à un client, dans l’ordre renvoyé par le JOIN : [numéro de commande, ville du client].
+   La commande 16, sans client, n’y est pas ; Inès, à Nantes, n’a rien commandé. */
+const LIGNES = [[1, 'Paris'], [2, 'Paris'], [3, 'Lyon'], [4, 'Marseille'], [5, 'Paris'], [6, 'Bordeaux'], [7, 'Lyon'], [8, 'Paris'],
+  [9, 'Paris'], [10, 'Lyon'], [11, 'Toulouse'], [12, 'Paris'], [13, 'Paris'], [14, 'Marseille'], [15, 'Bordeaux']];
+/* Les groupes, dans l’ordre renvoyé par GROUP BY clients.ville, et leur nombre de commandes */
+const GROUPES = [['Bordeaux', 2], ['Lyon', 3], ['Marseille', 2], ['Paris', 7], ['Toulouse', 1]];
+const VILLES1 = ['Bordeaux', 'Lyon', 'Marseille', 'Nantes', 'Paris', 'Toulouse'];   // les villes des clients (chapitre 1)
+const CLIENTS_PAR_VILLE = [['Bordeaux', 1], ['Lyon', 2], ['Marseille', 1], ['Nantes', 1], ['Paris', 4], ['Toulouse', 1]];
+const COULEUR = {Bordeaux: ['#FDE8DD', '#B4541A'], Lyon: ['#EEE9FF', '#5335E0'], Marseille: ['#E5F0FF', '#1D5FB8'], Paris: ['#FFF4E5', '#9A5B00'], Toulouse: ['#E7F7EE', '#1B7A45']};
+const H3 = 42, GAP3 = 16, H3C = 58;   // hauteur d’une ligne, écart entre deux groupes, hauteur d’une ligne de groupe
+
+const CHAPTERS = [
+  {n:1, label:'Situation',                  a:5.0,   b:35.4},
+  {n:2, label:'Le problème',                a:35.4,  b:61.6},
+  {n:3, label:'JOIN + GROUP BY en action',  a:61.6,  b:85.7},
+  {n:4, label:'Le bon ordre',               a:85.7,  b:102.5},
+  {n:5, label:'Le piège',                   a:102.5, b:123.3},
+  {n:6, label:'Le résultat',                a:123.3, b:145.3},
+  {n:7, label:'À retenir',                  a:145.3, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 9.9,     "L’équipe commerciale se demande <b>quelles villes commandent le plus</b>."],
+  [10.0, 14.8,   "Elle veut savoir combien de commandes ont été passées dans <b>chaque ville</b>."],
+  [14.9, 19.0,   "La ville de chaque client se trouve dans la <b>table clients</b>."],
+  [19.1, 23.3,   "Les commandes sont enregistrées dans la table <code>commandes</code>."],
+  [23.4, 28.5,   "Mais dans la table commandes, il n’y a que le numéro du client, pas sa ville."],
+  [28.6, 34.9,   "Il faut donc associer les <b>deux tables</b> pour compter les commandes de chaque ville."],
+  [35.7, 40.8,   "Premier essai : regrouper la table clients par ville, avec <code>GROUP BY</code>."],
+  [40.9, 46.0,   "Résultat : 4 pour Paris… mais ce sont des <b>clients</b>, pas des commandes."],
+  [46.1, 50.4,   "Deuxième essai : regrouper la table commandes par ville."],
+  [50.5, 55.8,   "Erreur : la table commandes n’a <b>aucune colonne</b> <code>ville</code>."],
+  [55.9, 61.1,   "Aucune ligne ne réunit une commande et sa ville : il faut <b>relier</b> les tables."],
+  [61.9, 67.4,   "D’abord, <code>INNER JOIN</code> relie les tables. Ensuite, <code>GROUP BY</code> regroupe les lignes."],
+  [67.5, 72.7,   "Grâce au <code>JOIN</code>, chaque commande reçoit la ville de son client : 15 lignes."],
+  [72.8, 78.7,   "<code>GROUP BY clients.ville</code> rassemble les commandes de la même ville : un <b>groupe par ville</b>."],
+  [78.8, 85.2,   "Enfin, <code>COUNT()</code> compte les commandes de chaque groupe : chaque groupe devient <b>une seule ligne</b>."],
+  [86.0, 92.1,   "Attention à l’ordre : la jointure fait partie de <code>FROM</code>, elle s’écrit <b>avant</b> <code>GROUP BY</code>."],
+  [92.2, 97.4,   "Placée après <code>GROUP BY</code>, elle provoque une <b>erreur</b> : la requête est refusée."],
+  [97.5, 102.2,  "On relie donc d’abord les tables, puis on regroupe les lignes obtenues."],
+  [102.8, 107.5, "Attention : sans <code>GROUP BY</code>, la requête ne provoque aucune erreur."],
+  [107.6, 112.4, "Mais elle ne renvoie qu’<b>une seule ligne</b> : Paris, avec 15 commandes."],
+  [112.5, 116.9, "Sans groupes, <code>COUNT()</code> compte les <b>15 commandes</b> d’un coup."],
+  [117.0, 122.8, "Paris n’a pas 15 commandes : la ville affichée est simplement celle de l’une des lignes."],
+  [123.6, 130.1, "La requête complète relie les tables, regroupe par ville, puis compte les commandes."],
+  [130.2, 135.2, "Résultat : <b>5 lignes</b>, une par ville, chacune avec son nombre de commandes."],
+  [135.3, 139.9, "Paris arrive en tête avec <b>7 commandes</b>, devant Lyon, qui en compte 3."],
+  [140.0, 144.8, "Nantes n’apparaît pas : sa seule cliente, Inès, n’a encore rien commandé."],
+  [145.6, 150.4, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [150.5, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [150.5, 999, "On relie d’abord les tables avec <code>JOIN</code>, puis on regroupe avec <code>GROUP BY</code>."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+/* Position de chaque ligne : au départ (ordre du JOIN), une fois regroupée (GROUP BY), puis réduite à une ligne par groupe (COUNT). */
+function places(){
+  const out = LIGNES.map((l, i) => ({id: l[0], v: l[1], y0: i * H3}));
+  let s = 0;
+  GROUPES.forEach(([v], g) => out.filter(o => o.v === v).forEach((o, k) => { o.g = g; o.first = k === 0; o.y1 = s++ * H3 + g * GAP3; o.y2 = g * H3C; }));
+  return out;
+}
+
+function dom(){
+  const bar = (v, n, q) => `<div class="br${n === 7 ? ' top' : ''}"><span class="bn">${v}</span><span class="bt"><i style="width:${q ? 0 : Math.round(n / 7 * 100)}%"></i></span><span class="bv ${q ? 'q' : 'v'}">${q ? '?' : n}</span></div>`;
+  /* Chapitre 1 : le rapport, encore vide */
+  $('#bars1').innerHTML = VILLES1.map(v => bar(v, 0, true)).join('');
+  /* Chapitre 2 : les clients de chaque ville */
+  $('#rs2').innerHTML = CLIENTS_PAR_VILLE.map(([v, n]) => `<span class="k">${v}<b>${n}</b></span>`).join('');
+  /* Chapitre 3 : les 15 lignes du JOIN */
+  $('#gbox3').innerHTML = places().map(o => `<div class="gr" style="top:${o.y0}px"><span class="bgc"></span><span class="gid">n°&nbsp;${o.id}</span>` +
+    `<span class="gv"><span class="sw"><span class="a">?</span><span class="b">${o.v}</span></span></span>` +
+    `<span class="gn">${GROUPES[o.g][1]} commande${GROUPES[o.g][1] > 1 ? 's' : ''}</span></div>`).join('');
+  /* Chapitre 6 : le résultat, puis le rapport rempli */
+  $('#rows6').innerHTML = GROUPES.map(([v, n]) => `<div class="rgR tr t6"><div>${v}</div><div>${n}</div></div>`).join('');
+  $('#bars6').innerHTML = GROUPES.map(([v, n]) => bar(v, n, false)).join('');
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+/* Une case se retourne : la valeur de départ laisse place à la suivante. */
+function flip(sw, t, sound = true){
+  tl.to(sw, {scaleY: 0, duration: 0.12, ease: 'power2.in'}, t);
+  tl.set(sw.querySelector('.a'), {opacity: 0}, t + 0.12);
+  tl.set(sw.querySelector('.b'), {opacity: 1}, t + 0.12);
+  tl.to(sw, {scaleY: 1, duration: 0.22, ease: 'back.out(2)'}, t + 0.12);
+  if (sound) cue(t + 0.12, 'tick', 0.5, 3);
+}
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => i % 2 || cue(t + i * step, 'tick', 0.45, (i / 2) % 5));
+}
+/* Une carte arrive en tournant légèrement, puis ses éléments un à un. */
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(sel, $(id));
+  gsap.set(items, {autoAlpha: 0, y: 18});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => i % 2 || cue(t + 0.65 + i * step, 'pop', 0.55, (i / 2) % 5));
+  return items;
+}
+/* Un bloc caché sans laisser de place vide : il s’ouvre (hauteur et marge) au moment où il apparaît.
+   Les cartes posées dessous sont placées avant, pour la taille finale. */
+function fold(el){
+  const cs = getComputedStyle(el), h = el.offsetHeight, m = parseFloat(cs.marginTop), ov = cs.overflow;
+  gsap.set(el, {height: 0, marginTop: 0, autoAlpha: 0, overflow: 'hidden'});
+  return t => {
+    tl.to(el, {height: h, marginTop: m, autoAlpha: 1, duration: 0.45, ease: 'power2.out'}, t);
+    tl.set(el, {overflow: ov}, t + 0.46);   // une fois ouvert, rien n’est plus rogné (une pastille qui tremble, par exemple)
+  };
+}
+/* Une pastille de compte qui change : l’ancienne s’efface, la nouvelle apparaît. */
+function swapCnt(a, b, t){
+  tl.to(a, {autoAlpha: 0, scale: 0.6, duration: 0.15}, t);
+  tl.fromTo(b, {autoAlpha: 0, scale: 0.6}, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)', immediateRender: false}, t + 0.15);
+  cue(t + 0.15, 'pop', 0.6, 2);
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.4, 2.1);   // le temps de lire la bulle de la mascotte (après le saut des 12 lettres du titre)
+  let te;
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  boardIn('#rb1', 5.15, '.q1, .br', 0.12);
+  // Le nombre de commandes de chaque ville : encore inconnu
+  tl.to($$('#bars1 .bv'), {scale: 1.15, duration: 0.18, yoyo: true, repeat: 1, stagger: 0.08}, 11.4);
+  cue(11.4, 'tick', 0.5, 2);
+  // La ville : table clients
+  show('#tb1', 15.3, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(15.3, 'pop', 0.7, 3);
+  stackBelow('#s1 .need', '#rb1');   // la liste se cale sous le rapport, sans le toucher
+  show('#s1 .need', 15.8, {y: 60});
+  cue(15.8, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows[0], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 16.1);
+  cue(16.1, 'pop', 0.7, 0);
+  // Les commandes : table commandes
+  show('#tb1b', 19.5, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(19.5, 'pop', 0.7, 4);
+  tl.to(needRows[1], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 20.0);
+  cue(20.0, 'pop', 0.7, 2);
+  // Une commande ne contient que le numéro de son client
+  pulse('#tb1b', 24.2, 3, 'rgba(255,214,140,.6)');
+  cue(24.2, 'tick', 0.5, 1);
+  // Associer les deux tables
+  bump('#tb1', 29.0, 1.1, 1);
+  bump('#tb1b', 29.5, 1.1, 1);
+  cue(29.0, 'tick', 0.5, 2);
+  cue(29.5, 'tick', 0.5, 4);
+  bump($$('#s1 .need .tag'), 31.4, 1.08, 1);
+  hide(['#rb1', '#s1 .need'], 34.9);
+  sceneOff('#s1', 35.4);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 35.4);
+  stackBelow('#tb2', '#ta2', 0, 30);   // places prévues pour les cartes entières : elles s’ouvrent ensuite
+  stackBelow('#goal2', '#tb2', 0, 30);
+  const open2a = fold($('#rs2')), open2b = fold($('#op2w')), open2c = fold($('#er2'));
+  show('#ta2', 35.45, {y: 50});
+  cue(35.45, 'whoosh', 0.6);
+  pulse('#g2a', 37.4, 3, 'rgba(201,188,255,.4)');
+  press($('#go2a'), 39.4, '#4B30CC', 6);
+  open2a(39.7);
+  const k2 = $$('#rs2 .k');
+  gsap.set(k2, {autoAlpha: 0, scale: 0.8});
+  tl.to(k2, {autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', stagger: 0.08}, 39.95);
+  k2.forEach((_, i) => i % 2 || cue(39.95 + i * 0.08, 'tick', 0.45, i));
+  // 4 pour Paris : ce sont des clients
+  pulse(k2[4], 41.6, 3, 'rgba(255,214,140,.6)');
+  open2b(43.0);
+  gsap.set('#op2', {scale: 0.7});
+  tl.to('#op2', {scale: 1, duration: 0.4, ease: 'back.out(2)'}, 43.05);
+  cue(43.05, 'false', 0.6);
+  shake('#op2', 43.6);
+  // Deuxième essai : la table commandes
+  show('#tb2', 46.4, {y: 50});
+  cue(46.4, 'whoosh', 0.6);
+  pulse('#g2b', 47.6, 3, 'rgba(201,188,255,.4)');
+  press($('#go2b'), 49.6, '#4B30CC', 6);
+  // Refusée : pas de colonne ville
+  open2c(50.8);
+  cue(50.8, 'false', 0.6);
+  shake('#er2', 51.4);
+  // Il faut relier les tables
+  show('#goal2', 56.6, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(56.6, 'pop', 0.75, 3);
+  hide(['#ta2', '#tb2', '#goal2'], 61.1, {y: -40}, 0.4);
+  sceneOff('#s2', 61.6);
+
+  /* ===== 3 · JOIN + GROUP BY en action ===== */
+  sceneOn('#s3', 61.6);
+  show('#s3code', 61.65, {y: 60}, 0.6);
+  cue(61.65, 'whoosh', 0.7);
+  te = typeLine($('#s3l1'), 62.15, 26);
+  te = typeLine($('#s3l2'), te + 0.1, 26);
+  te = typeLine($('#s3l3'), te + 0.1, 30);
+  pulse(['#j3', '#o3'], te + 0.1, 3, 'rgba(201,188,255,.45)');
+  te = typeLine($('#s3l4'), te + 0.15, 26);
+  pulse('#g3', te + 0.3, 3, 'rgba(255,214,140,.4)');
+  hide('#s3code', 67.3, {y: -40}, 0.4);
+  // Les 15 lignes du JOIN : chaque commande reçoit sa ville
+  show('#gp3', 67.6, {y: 40}, 0.5);
+  cue(67.6, 'whoosh', 0.6);
+  const P = places(), gr = $$('#gbox3 .gr');
+  gsap.set(gr, {autoAlpha: 0, y: 12});
+  tl.to(gr, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.04}, 67.95);
+  gsap.set(['#c3b', '#c3c', '#gp3 .ghd .h2'], {autoAlpha: 0});
+  gr.forEach((r, i) => flip(r.querySelector('.gv .sw'), 69.0 + i * 0.12, i % 3 === 0));
+  show('#c3a', 71.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // GROUP BY : les lignes de la même ville se rassemblent, un groupe par ville
+  gr.forEach((r, i) => {
+    tl.to(r, {y: P[i].y1 - P[i].y0, duration: 0.8, ease: 'power2.inOut'}, 73.6 + P[i].g * 0.05);
+    const [bg, fg] = COULEUR[P[i].v];
+    tl.to(r.querySelector('.bgc'), {backgroundColor: bg, duration: 0.35}, 74.6 + P[i].g * 0.12);
+    tl.to(r.querySelector('.gv'), {color: fg, duration: 0.35}, 74.6 + P[i].g * 0.12);
+  });
+  cue(73.6, 'whoosh', 0.5);
+  GROUPES.forEach((_, g) => cue(74.6 + g * 0.12, 'tick', 0.45, g));
+  swapCnt('#c3a', '#c3b', 75.9);
+  // COUNT() : chaque groupe devient une seule ligne, avec son nombre de commandes
+  tl.to('#gp3 .ghd .h1', {autoAlpha: 0, duration: 0.25}, 79.4);
+  tl.to('#gp3 .ghd .h2', {autoAlpha: 1, duration: 0.3}, 79.6);
+  GROUPES.forEach((_, g) => {
+    const t = 80.0 + g * 0.55, rs = gr.filter((r, i) => P[i].g === g);
+    rs.forEach(r => tl.to(r, {y: P[gr.indexOf(r)].y2 - P[gr.indexOf(r)].y0, duration: 0.5, ease: 'power2.inOut'}, t));
+    if (rs.length > 1) tl.to(rs.slice(1), {autoAlpha: 0, duration: 0.25}, t + 0.3);
+    tl.to(rs[0].querySelector('.gid'), {autoAlpha: 0, duration: 0.2}, t);
+    tl.to(rs[0].querySelector('.gv'), {x: -210, duration: 0.45, ease: 'power2.inOut'}, t + 0.05);
+    tl.fromTo(rs[0].querySelector('.gn'), {autoAlpha: 0, scale: 0.6}, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.2)', immediateRender: false}, t + 0.45);
+    cue(t + 0.45, 'pop', 0.6, g);
+  });
+  tl.to('#gbox3', {height: GROUPES.length * H3C, duration: 0.6, ease: 'power2.inOut'}, 82.8);
+  flip($('#tt3'), 83.0, false);
+  swapCnt('#c3b', '#c3c', 83.2);
+  hide('#gp3', 85.2, {y: -40});
+  sceneOff('#s3', 85.7);
+
+  /* ===== 4 · Le bon ordre ===== */
+  sceneOn('#s4', 85.7);
+  stackBelow('#tb4', '#ta4', 0, 30);
+  const open4 = fold($('#er4'));
+  show('#ta4', 85.75, {y: 50});
+  cue(85.75, 'whoosh', 0.6);
+  // La jointure, écrite après GROUP BY
+  tl.to(['#b4a', '#b4b'], {textDecorationColor: 'rgba(239,79,85,1)', duration: 0.35}, 89.4);
+  cue(89.4, 'false', 0.5);
+  // La requête est refusée
+  press($('#go4'), 92.9, '#4B30CC', 6);
+  open4(93.2);
+  cue(93.2, 'false', 0.6);
+  shake('#er4', 93.8);
+  // Le bon ordre : relier, puis regrouper
+  show('#tb4', 97.9, {y: 50});
+  cue(97.9, 'whoosh', 0.6);
+  pulse(['#j4', '#o4'], 98.8, 3, 'rgba(201,188,255,.45)');
+  pulse('#g4', 100.4, 3, 'rgba(255,214,140,.4)');
+  cue(100.4, 'true', 0.55);
+  hide(['#ta4', '#tb4'], 102.1, {y: -40});
+  sceneOff('#s4', 102.5);
+
+  /* ===== 5 · Le piège ===== */
+  sceneOn('#s5', 102.5);
+  const open5a = fold($('#rt5')), open5b = fold($('#nt5'));
+  show('#ta5', 102.55, {y: 50});
+  cue(102.55, 'whoosh', 0.6);
+  // Aucune erreur
+  press($('#go5'), 105.6, '#4B30CC', 6);
+  open5a(105.9);
+  // Une seule ligne : Paris, 15 commandes
+  tl.to('#r5 .hl', {opacity: 1, duration: 0.3}, 108.6);
+  bump('#rt5 .n5', 109.2, 1.15, 3);
+  cue(108.6, 'false', 0.6);
+  // COUNT() compte les 15 commandes d’un coup
+  open5b(112.9);
+  gsap.set(['#nt5a', '#nt5b'], {autoAlpha: 0, y: -10});
+  tl.to('#nt5b', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'back.out(2)'}, 113.1);
+  bump('#n5v', 113.1, 1.2, 1);
+  cue(113.1, 'pop', 0.6, 2);
+  // La ville vient de l’une des lignes
+  tl.to('#nt5a', {autoAlpha: 1, y: 0, duration: 0.35, ease: 'back.out(2)'}, 117.8);
+  bump('#v5', 117.8, 1.15, 1);
+  cue(117.8, 'pop', 0.6, 4);
+  hide('#ta5', 122.8, {y: -40});
+  sceneOff('#s5', 123.3);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 123.3);
+  show('#s6code', 123.35, {y: 60}, 0.6);
+  cue(123.35, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 123.85, 48);
+  for (const k of [2, 3, 4, 5, 6]) te = typeLine($('#s6l' + k), te + 0.08, 48);
+  pulse(['#j6', '#g6', '#c6'], te + 0.2, 3, 'rgba(201,188,255,.3)');
+  press($('#s6run'), 129.7);
+  stackBelow('#tbl6', '#s6code', 0, 30);
+  show('#tbl6', 129.95, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 130.1, 0.12);
+  show('#cnt6', 130.9, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 131.6, 1.15, 3);
+  hide(['#s6code', '#tbl6'], 135.0, {y: -40}, 0.4);
+  // Le rapport commercial : Paris en tête
+  stackBelow('#badge6', '#rp6', 0, 50);
+  const open6 = fold($('#ft6'));
+  boardIn('#rp6', 135.4, '.br', 0.12);
+  const bars = $$('#bars6 .bt i');
+  bars.forEach(b => { const w = b.style.width; gsap.set(b, {width: '0%'}); tl.to(b, {width: w, duration: 0.7, ease: 'power3.out'}, 136.3); });
+  cue(136.3, 'whoosh', 0.5);
+  bump($$('#bars6 .br.top .bv'), 137.3, 1.2, 3);
+  cue(137.3, 'chord', 0.6);
+  show('#badge6', 138.3, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(138.3, 'true', 0.6);
+  // Nantes : aucune commande, donc aucune ligne
+  open6(140.6);
+  cue(140.6, 'pop', 0.6, 1);
+  hide(['#rp6', '#badge6'], 144.8);
+  sceneOff('#s6', 145.3);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(145.3, [146.0, 147.8, 149.6]);
+  hold(147.6, 4.8);
+  hold(149.4, 3.8);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(150.55, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 150.5,
+  glyphs: '📊📍🛒🧪🎯🔗⚠️✅🔎🗂️🔢✓✕?·…⋯↑+=', dom, build});
+</script>
+</body>
+</html>

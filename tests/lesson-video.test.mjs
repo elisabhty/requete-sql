@@ -648,6 +648,15 @@ const COURSES = [
       '<span class="glow" id="o3b"><span class="kw">ON</span> commandes.produit_id = produits.id</span>', '<span class="k1 c" id="k3c">1</span><span class="k1 p" id="k3p">3</span>',
       '<span id="w4" class="glow"><span class="kw">WHERE</span> <span id="pn4">produits.nom</span>', '<span class="bad" id="b5">clients.id = produits.id</span>',
       '<span class="orph" id="op5b"><span class="emo">✕</span>Sophie et Lucas oubliés</span>', '✓ 2 clients à prévenir']},
+  {id: 41, next: 42, titre: 'JOIN + GROUP BY', page: 'join-group-by.html', thumb: 'join-group-by-thumb.jpg', duree: '2 min 49', notesAt: 150.5,
+    notes: /notes:\{t:161\.2,y:1346,card:\[64,292,1016,1051\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Relie d’abord les tables avec <span class="ic">JOIN</span>,<br>puis regroupe avec <span class="ic">GROUP BY</span>.',
+    chapters: ['Situation', 'Le problème', 'JOIN + GROUP BY en action', 'Le bon ordre', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<span>Rapport commercial</span><span class="tb" id="tb1">table clients</span>', "const GROUPES = [['Bordeaux', 2], ['Lyon', 3], ['Marseille', 2], ['Paris', 7], ['Toulouse', 1]];",
+      '<span class="kw">FROM</span> clients <span class="glow" id="g2a"><span class="kw">GROUP BY</span> ville</span>;', '<span class="m">no such column: ville</span>',
+      '<span class="glow" id="j3"><span class="kw">INNER JOIN</span> commandes</span>', '<span class="sw" id="tt3"><span class="a">Après le JOIN</span><span class="b">Après GROUP BY et COUNT()</span></span>',
+      '<span class="m">near "INNER": syntax error</span>', '<span class="nt rd" id="nt5b">↑ les 15 commandes d’un coup</span>',
+      '<span>Nantes&nbsp;: aucune commande, donc aucune ligne</span>', '✓ Paris en tête, devant Lyon']},
 ];
 
 for (const c of COURSES) {
