@@ -267,7 +267,7 @@
 <script src="core.js"></script>
 <script>
 'use strict';
-const DURATION = 129.5;
+const DURATION = 133.2;
 
 /* Table clients : prénom, ville et âge des 10 clients (dans l’ordre de la table) */
 const CLIENTS = [['Sophie', 'Paris', 34], ['Lucas', 'Lyon', 28], ['Emma', 'Marseille', 45], ['Nathan', 'Paris', 31], ['Chloé', 'Bordeaux', 26],
@@ -284,9 +284,9 @@ const CHAPTERS = [
   {n:2, label:'Le problème',          a:24.1,  b:38.5},
   {n:3, label:'GROUP BY en action',   a:38.5,  b:57.3},
   {n:4, label:'Un calcul par groupe', a:57.3,  b:79.4},
-  {n:5, label:'Le piège',             a:79.4,  b:103.0},
-  {n:6, label:'Le résultat',          a:103.0, b:116.7},
-  {n:7, label:'À retenir',            a:116.7, b:DURATION}
+  {n:5, label:'Le piège',             a:79.4,  b:106.7},
+  {n:6, label:'Le résultat',          a:106.7, b:120.4},
+  {n:7, label:'À retenir',            a:120.4, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
@@ -298,9 +298,9 @@ const CAPTIONS = [
   [24.4, 28.5,   "Premier essai : <code>COUNT(*)</code> compte les clients de la table."],
   [28.6, 33.0,   "Résultat : <b>10</b>, un seul total pour toutes les villes à la fois."],
   [33.1, 38.1,   "Or l’équipe veut <b>un nombre par ville</b> : combien à Paris, combien à Lyon…"],
-  [38.8, 43.1,   "<code>GROUP BY ville</code> rassemble les clients qui ont <b>la même ville</b>."],
+  [38.8, 43.1,   "<code>GROUP BY ville</code> regroupe <span class=\"nw\">les clients <b>par ville</b></span>."],
   [43.2, 47.2,   "Les 10 clients forment <b>6 groupes</b>, un pour chaque ville."],
-  [47.3, 52.3,   "Puis <code>COUNT(*)</code> compte les lignes de chaque groupe : 4 à Paris, 2 à Lyon…"],
+  [47.3, 52.3,   "<code>COUNT(*)</code> compte ensuite les clients dans chaque groupe."],
   [52.4, 56.9,   "Chaque groupe devient <b>une ligne</b> du résultat : 6 lignes en tout."],
   [57.6, 61.6,   "<code>COUNT</code> n’est pas le seul calcul possible sur un groupe."],
   [61.7, 65.7,   "<code>SUM</code> additionne les valeurs, et <code>AVG</code> en fait la moyenne."],
@@ -311,13 +311,14 @@ const CAPTIONS = [
   [84.0, 88.2,   "Ici, <code>prenom</code> n’est ni dans le <code>GROUP BY</code>, ni dans un calcul."],
   [88.3, 93.0,   "Paris compte 4 clients, mais la ligne n’affiche <b>qu’un seul prénom</b>."],
   [93.1, 98.3,   "SQLite en choisit un, mais la plupart des autres bases refusent la requête."],
-  [98.4, 102.6,  "Dans le <code>SELECT</code>, garde la colonne du <code>GROUP BY</code> ou un calcul."],
-  [103.3, 107.6, "Avec <code>AS</code>, la requête complète nomme le comptage : <code>nb_clients</code>."],
-  [107.7, 111.0, "Résultat : <b>6 lignes</b>, une par ville."],
-  [111.1, 116.3, "Paris arrive en tête avec <b>4 clients</b> : elle recevra le plus de conseillers."],
-  [117.0, 121.8, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [121.9, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
-      : [121.9, 999, "<code>GROUP BY</code> rassemble les lignes : un calcul par groupe."]
+  [98.4, 102.8,  "Avec <code>GROUP BY</code>, affiche dans le <code>SELECT</code> les colonnes de regroupement"],
+  [102.9, 106.3, "et les calculs sur chaque groupe, comme <code>COUNT(*)</code>."],
+  [107.0, 111.3, "Avec <code>AS</code>, la requête complète nomme le comptage : <code>nb_clients</code>."],
+  [111.4, 114.7, "Résultat : <b>6 lignes</b>, une par ville."],
+  [114.8, 120.0, "Paris arrive en tête avec <b>4 clients</b> : elle recevra le plus de conseillers."],
+  [120.7, 125.5, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [125.6, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [125.6, 999, "<code>GROUP BY</code> rassemble les lignes : un calcul par groupe."]
 ];
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
@@ -539,51 +540,54 @@ function build(){
   // SQLite choisit un prénom ; la plupart des autres bases refusent la requête
   show('#verd5', 93.4, {y: 14}, 0.4);
   cue(93.4, 'pop', 0.7, 2);
-  // La bonne règle : la colonne du GROUP BY, ou un calcul
+  // La règle : les colonnes de regroupement et les calculs sur chaque groupe
   hide('#lyA5', 98.5, {y: -20}, 0.3);
   tl.set('#lyB5', {autoAlpha: 1}, 98.8);
   const ck = $$('#lyB5 .ck5');
   gsap.set(ck, {autoAlpha: 0, x: -30});
-  tl.to(ck, {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out', stagger: 0.35}, 98.9);
-  ck.forEach((_, i) => cue(98.9 + i * 0.35, i < 2 ? 'true' : 'miss', 0.6, i));
-  hide('#trap5', 102.5);
-  sceneOff('#s5', 103.0);
+  // Les colonnes de regroupement, puis les calculs sur chaque groupe ; prenom n’est ni l’un ni l’autre
+  [98.9, 103.2, 104.5].forEach((t, i) => {
+    tl.to(ck[i], {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, t);
+    cue(t, i < 2 ? 'true' : 'miss', 0.6, i);
+  });
+  hide('#trap5', 106.1);
+  sceneOff('#s5', 106.7);
 
   /* ===== 6 · Le résultat ===== */
-  sceneOn('#s6', 103.0);
-  show('#s6code', 103.05, {y: 60}, 0.6);
-  cue(103.05, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 103.55, 34);
+  sceneOn('#s6', 106.7);
+  show('#s6code', 106.75, {y: 60}, 0.6);
+  cue(106.75, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 107.25, 34);
   te = typeLine($('#s6l2'), te + 0.1, 34);
   te = typeLine($('#s6l3'), te + 0.1, 34);
-  pulse('#as6', 105.8, 3, 'rgba(201,188,255,.3)');
-  press($('#s6run'), 106.6);
-  show('#tbl6', 106.85, {y: 40}, 0.5);
-  rowsIn($$('#rows6 .tr'), 107.0);
-  show('#cnt6', 107.6, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  bump('#cnt6', 108.2, 1.15, 3);
-  hide(['#s6code', '#tbl6'], 110.7, {y: -40}, 0.4);
+  pulse('#as6', 109.5, 3, 'rgba(201,188,255,.3)');
+  press($('#s6run'), 110.3);
+  show('#tbl6', 110.55, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 110.7);
+  show('#cnt6', 111.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 111.9, 1.15, 3);
+  hide(['#s6code', '#tbl6'], 114.4, {y: -40}, 0.4);
   // Sur la carte : le nombre de clients de chaque ville
-  const pins6 = mapIn('#map6', 111.1);
-  $$('#map6 .pb .sw').forEach((sw, i) => flip(sw, 112.2 + i * 0.3, true));
-  tl.to('#map6 .pb', {borderColor: 'rgba(216,209,242,0)', duration: 0.3, stagger: 0.3}, 112.2);
-  bump(pins6[4], 114.0, 1.18, 3);   // Paris
-  tl.to(pins6[4].querySelector('.pd'), {boxShadow: '0 0 0 6px rgba(255,255,255,.95), 0 0 0 14px rgba(124,92,255,.28)', duration: 0.4}, 114.0);
+  const pins6 = mapIn('#map6', 114.8);
+  $$('#map6 .pb .sw').forEach((sw, i) => flip(sw, 115.9 + i * 0.3, true));
+  tl.to('#map6 .pb', {borderColor: 'rgba(216,209,242,0)', duration: 0.3, stagger: 0.3}, 115.9);
+  bump(pins6[4], 117.7, 1.18, 3);   // Paris
+  tl.to(pins6[4].querySelector('.pd'), {boxShadow: '0 0 0 6px rgba(255,255,255,.95), 0 0 0 14px rgba(124,92,255,.28)', duration: 0.4}, 117.7);
   stackBelow('#badge6', '#map6', 0, 50);
-  show('#badge6', 114.5, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(114.5, 'chord', 0.7);
-  hide(['#map6', '#badge6'], 116.2);
-  sceneOff('#s6', 116.7);
+  show('#badge6', 118.2, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(118.2, 'chord', 0.7);
+  hide(['#map6', '#badge6'], 119.9);
+  sceneOff('#s6', 120.4);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(116.7, [117.4, 119.2, 121.0]);
-  hold(119.0, 2.9);
-  hold(120.8, 2.9);
+  recapScene(120.4, [121.1, 122.9, 124.7]);
+  hold(122.7, 2.9);
+  hold(124.5, 2.9);
   // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(121.95, 'pop', 0.85, 5);
+  if (APP) cue(125.65, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 121.9,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 125.6,
   glyphs: '👥📍🏙️🔎🧺🧮📊⚠️🚫✓✕→↓÷·?', dom, build});
 </script>
 </body>
