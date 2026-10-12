@@ -101,6 +101,10 @@
 .chip .ag{height:38px;padding:0 14px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);font-size:24px;font-weight:700;display:flex;align-items:center}
 .gc.g4{width:466px;height:266px}
 
+/* ---------- 7 · À retenir : deux cartes ont une précision, le récapitulatif remonte (comme dans le cours CAST) ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:300px}
+
 /* ---------- 5 · Le piège : COUNT(*) dans un WHERE ---------- */
 .st5{display:grid;grid-template-columns:56px 200px 1fr auto;align-items:center;gap:16px;height:72px;padding:0 16px;border-radius:20px;background:var(--surface-2);opacity:0}
 .trap-h+.st5{margin-top:18px}
@@ -237,9 +241,9 @@
   <section class="scene" id="s7">
     <div class="abs rtitle">Les trois idées à retenir</div>
     <div class="abs card recap" id="recap">
-      <div class="rrow"><div class="rico emo">🧮</div><div class="rtxt"><span class="ic">HAVING</span> filtre les <b>groupes</b> après le regroupement&nbsp;:<br><span class="ic blk">HAVING COUNT(*) &gt;= 2</span></div></div>
-      <div class="rrow"><div class="rico emo">🔀</div><div class="rtxt"><span class="ic">WHERE</span> filtre les <b>lignes</b> avant le regroupement.</div></div>
-      <div class="rrow"><div class="rico emo">🚫</div><div class="rtxt"><span class="ic">COUNT(*)</span> ne va pas dans un <span class="ic">WHERE</span>&nbsp;: le groupe n’existe pas encore.</div></div>
+      <div class="rrow"><div class="rico emo">🧮</div><div class="rtxt"><span class="ic">HAVING</span> conserve les <b>groupes</b> qui respectent une condition.<span class="rs">Exemple&nbsp;: <span class="ic">HAVING COUNT(*) &gt;= 2</span> garde les groupes d’au moins 2 lignes.</span></div></div>
+      <div class="rrow"><div class="rico emo">🔀</div><div class="rtxt"><span class="ic">WHERE</span> sélectionne les <b>lignes</b> avant de former les groupes.</div></div>
+      <div class="rrow"><div class="rico emo">🚫</div><div class="rtxt">Pour filtrer sur <span class="ic">COUNT(*)</span>, <span class="nw">utilise <span class="ic">HAVING</span>.</span><span class="rs">Au moment du <span class="ic">WHERE</span>, le comptage par groupe n’a pas encore été effectué.</span></div></div>
     </div>
   </section>
 
@@ -251,7 +255,7 @@
 <script src="core.js"></script>
 <script>
 'use strict';
-const DURATION = 133.4;
+const DURATION = 138.7;
 
 /* Table clients : prénom, ville et âge des 10 clients (dans l’ordre de la table) */
 const CLIENTS = [['Sophie', 'Paris', 34], ['Lucas', 'Lyon', 28], ['Emma', 'Marseille', 45], ['Nathan', 'Paris', 31], ['Chloé', 'Bordeaux', 26],
@@ -272,11 +276,11 @@ const VILLES4 = VILLES.filter(([v]) => nbClients(v, MAJ) > 0);                  
 const CHAPTERS = [
   {n:1, label:'Situation',        a:5.0,   b:24.1},
   {n:2, label:'Le problème',      a:24.1,  b:38.4},
-  {n:3, label:'HAVING en action', a:38.4,  b:61.8},
-  {n:4, label:'WHERE ou HAVING',  a:61.8,  b:89.1},
-  {n:5, label:'Le piège',         a:89.1,  b:107.0},
-  {n:6, label:'Le résultat',      a:107.0, b:120.6},
-  {n:7, label:'À retenir',        a:120.6, b:DURATION}
+  {n:3, label:'HAVING en action', a:38.4,  b:67.1},
+  {n:4, label:'WHERE ou HAVING',  a:67.1,  b:94.4},
+  {n:5, label:'Le piège',         a:94.4,  b:112.3},
+  {n:6, label:'Le résultat',      a:112.3, b:125.9},
+  {n:7, label:'À retenir',        a:125.9, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
@@ -288,27 +292,28 @@ const CAPTIONS = [
   [24.4, 29.1,   "Avec <code>GROUP BY ville</code>, <code>COUNT(*)</code> compte les clients de chaque ville."],
   [29.2, 33.6,   "Résultat : <b>6 lignes</b>, une par ville, même celles d’un seul client."],
   [33.7, 38.0,   "Or l’équipe ne veut garder que les villes d’<b>au moins 2 clients</b>."],
-  [38.7, 43.3,   "<code>HAVING</code> s’écrit après <code>GROUP BY</code> : il filtre les <b>groupes</b>, pas les lignes."],
-  [43.4, 47.7,   "Chaque groupe passe le test <code>COUNT(*) &gt;= 2</code> : vrai ou faux ?"],
-  [47.8, 52.5,   "Paris (4) et Lyon (2) réussissent le test : leurs groupes sont <b>gardés</b>."],
-  [52.6, 57.2,   "Les 4 autres villes n’ont qu’un client : leurs groupes sont <b>écartés</b>."],
-  [57.3, 61.4,   "Résultat : <b>2 lignes</b>, une pour Lyon et une pour Paris."],
-  [62.1, 66.4,   "Et si l’atelier était réservé aux clients de <b>30 ans ou plus</b> ?"],
-  [66.5, 71.0,   "Cette condition porte sur chaque client : elle va dans le <code>WHERE</code>."],
-  [71.1, 75.6,   "<code>WHERE</code> trie les lignes <b>avant</b> les groupes : 3 clients sont écartés."],
-  [75.7, 80.2,   "Parmi eux, Lucas, 28 ans : à Lyon, il ne reste plus qu’<b>un client</b>."],
-  [80.3, 84.5,   "<code>HAVING</code> écarte alors le groupe de Lyon : il ne reste que Paris."],
-  [84.6, 88.9,   "<code>WHERE</code> trie d’abord les lignes, puis <code>HAVING</code> trie les groupes."],
-  [89.4, 93.7,   "Pourquoi ne pas écrire <code>COUNT(*) &gt;= 2</code> dans le <code>WHERE</code> ?"],
-  [93.8, 97.1,   "La requête est refusée : <b>Erreur SQL</b>."],
-  [97.2, 101.7,  "<code>WHERE</code> agit <b>avant</b> le regroupement : aucun groupe n’existe encore."],
-  [101.8, 106.7, "Le nombre de clients d’un groupe se teste donc après, dans le <code>HAVING</code>."],
-  [107.3, 111.6, "Avec <code>AS</code>, la requête complète nomme le comptage : <code>nb_clients</code>."],
-  [111.7, 115.0, "Résultat : <b>2 lignes</b>, Lyon et Paris."],
-  [115.1, 120.2, "L’équipe peut prévoir <b>deux ateliers</b> : un à Paris, un à Lyon."],
-  [120.9, 125.7, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [125.8, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
-      : [125.8, 999, "<code>HAVING</code> filtre les groupes, après le regroupement."]
+  [38.7, 44.1,   "<code>HAVING</code> se place après <code>GROUP BY</code><br>et conserve les <b>groupes</b><br>qui respectent la condition."],
+  [44.2, 48.6,   "Ici, seules les villes comptant <b>au moins 2 clients</b> sont retenues."],
+  [48.7, 53.0,   "Chaque groupe passe le test <code>COUNT(*) &gt;= 2</code> : vrai ou faux ?"],
+  [53.1, 57.8,   "Paris (4) et Lyon (2) réussissent le test : leurs groupes sont <b>gardés</b>."],
+  [57.9, 62.5,   "Les 4 autres villes n’ont qu’un client : leurs groupes sont <b>écartés</b>."],
+  [62.6, 66.7,   "Résultat : <b>2 lignes</b>, une pour Lyon et une pour Paris."],
+  [67.4, 71.7,   "Et si l’atelier était réservé aux clients de <b>30 ans ou plus</b> ?"],
+  [71.8, 76.3,   "Cette condition porte sur chaque client : elle va dans le <code>WHERE</code>."],
+  [76.4, 80.9,   "<code>WHERE</code> trie les lignes <b>avant</b> les groupes : 3 clients sont écartés."],
+  [81.0, 85.5,   "Parmi eux, Lucas, 28 ans : à Lyon, il ne reste plus qu’<b>un client</b>."],
+  [85.6, 89.8,   "<code>HAVING</code> écarte alors le groupe de Lyon : il ne reste que Paris."],
+  [89.9, 94.2,   "<code>WHERE</code> trie d’abord les lignes, puis <code>HAVING</code> trie les groupes."],
+  [94.7, 99.0,   "Pourquoi ne pas écrire <code>COUNT(*) &gt;= 2</code> dans le <code>WHERE</code> ?"],
+  [99.1, 102.4,   "La requête est refusée : <b>Erreur SQL</b>."],
+  [102.5, 107.0,  "<code>WHERE</code> agit <b>avant</b> le regroupement : aucun groupe n’existe encore."],
+  [107.1, 112.0, "Le nombre de clients d’un groupe se teste donc après, dans le <code>HAVING</code>."],
+  [112.6, 116.9, "Avec <code>AS</code>, la requête complète nomme le comptage : <code>nb_clients</code>."],
+  [117.0, 120.3, "Résultat : <b>2 lignes</b>, Lyon et Paris."],
+  [120.4, 125.5, "L’équipe peut prévoir <b>deux ateliers</b> : un à Paris, un à Lyon."],
+  [126.2, 131.0, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [131.1, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [131.1, 999, "<code>HAVING</code> filtre les groupes, après le regroupement."]
 ];
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
@@ -473,66 +478,71 @@ function build(){
   te = typeLine($('#s3l3'), te + 0.1, 30);
   te = typeLine($('#s3l4'), te + 0.1, 30);
   pulse('#hv3', te + 0.2, 3, 'rgba(201,188,255,.3)');
-  press($('#s3run'), 42.4);
+  press($('#s3run'), 44.5);
   // Les 6 groupes, chacun avec son nombre de clients
-  show('#grp3', 42.6, {y: 30}, 0.4);
+  show('#grp3', 44.7, {y: 30}, 0.4);
   const gc3 = $$('#grp3 .gc');
   gsap.set(gc3, {autoAlpha: 0, scale: 0.85});
-  tl.to(gc3, {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(1.8)', stagger: 0.08}, 42.75);
-  gc3.forEach((_, k) => cue(42.75 + k * 0.08, 'pop', 0.55, k % 5));
+  tl.to(gc3, {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(1.8)', stagger: 0.08}, 44.85);
+  gc3.forEach((_, k) => cue(44.85 + k * 0.08, 'pop', 0.55, k % 5));
+  // Le nombre de clients de chaque ville : c’est lui que la condition regarde
+  pulse('#hv3', 45.6, 3, 'rgba(201,188,255,.3)');
+  const bc3 = $$('#grp3 .bc');
+  tl.to(bc3, {scale: 1.22, duration: 0.2, yoyo: true, repeat: 1, ease: 'power1.inOut', stagger: 0.14}, 46.3);
+  bc3.forEach((_, k) => cue(46.3 + k * 0.14, 'tick', 0.5, k % 5));
   // Le test COUNT(*) >= 2, groupe par groupe
-  flip($('#sw3'), 43.8, false);
+  flip($('#sw3'), 49.1, false);
   const gt3 = $$('#grp3 .gt');
   gsap.set(gt3, {autoAlpha: 0, y: 10});
-  tl.to(gt3, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out', stagger: 0.15}, 44.3);
-  gt3.forEach((_, k) => cue(44.3 + k * 0.15, 'tick', 0.5, k % 5));
+  tl.to(gt3, {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out', stagger: 0.15}, 49.6);
+  gt3.forEach((_, k) => cue(49.6 + k * 0.15, 'tick', 0.5, k % 5));
   // Paris et Lyon : gardés
-  verdict(gc3[4], 48.3);
-  verdict(gc3[1], 49.0);
-  bump(gc3[4], 50.0, 1.05, 1);
-  bump(gc3[1], 50.6, 1.05, 1);
+  verdict(gc3[4], 53.6);
+  verdict(gc3[1], 54.3);
+  bump(gc3[4], 55.3, 1.05, 1);
+  bump(gc3[1], 55.9, 1.05, 1);
   // Les 4 autres : écartés
-  [0, 2, 3, 5].forEach((k, i) => verdict(gc3[k], 53.0 + i * 0.3, 54.8 + i * 0.1));
+  [0, 2, 3, 5].forEach((k, i) => verdict(gc3[k], 58.3 + i * 0.3, 60.1 + i * 0.1));
   // Les deux groupes gardés deviennent les lignes du résultat
-  hide('#grp3', 57.4, {y: -30}, 0.35);
-  show('#tbl3', 57.75, {y: 30}, 0.5);
-  rowsIn($$('#rows3 .tr'), 57.9);
-  show('#cnt3', 58.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  bump('#cnt3', 59.4, 1.15, 3);
-  hide(['#s3code', '#tbl3'], 61.3, {y: -40}, 0.4);
-  sceneOff('#s3', 61.8);
+  hide('#grp3', 62.7, {y: -30}, 0.35);
+  show('#tbl3', 63.05, {y: 30}, 0.5);
+  rowsIn($$('#rows3 .tr'), 63.2);
+  show('#cnt3', 63.7, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt3', 64.7, 1.15, 3);
+  hide(['#s3code', '#tbl3'], 66.6, {y: -40}, 0.4);
+  sceneOff('#s3', 67.1);
 
   /* ===== 4 · WHERE ou HAVING ===== */
-  sceneOn('#s4', 61.8);
-  show('#wh4', 61.85, {y: 50});
-  cue(61.85, 'whoosh', 0.6);
+  sceneOn('#s4', 67.1);
+  show('#wh4', 67.15, {y: 50});
+  cue(67.15, 'whoosh', 0.6);
   // La condition porte sur chaque client : WHERE
-  pulse('#wa4', 67.0, 3, 'rgba(255,214,140,.45)');
-  show('#flow4', 67.3, {y: 30}, 0.4);
+  pulse('#wa4', 72.3, 3, 'rgba(255,214,140,.45)');
+  show('#flow4', 72.6, {y: 30}, 0.4);
   const gc4 = $$('#flow4 .gc'), ch4 = $$('#flow4 .chip');
   gsap.set(gc4, {autoAlpha: 0});
   gsap.set(ch4, {autoAlpha: 0, y: 14});
-  tl.to(ch4, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.06}, 67.5);
-  ch4.forEach((_, i) => cue(67.5 + i * 0.06, 'tick', 0.4, i % 5));
+  tl.to(ch4, {autoAlpha: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.06}, 72.8);
+  ch4.forEach((_, i) => cue(72.8 + i * 0.06, 'tick', 0.4, i % 5));
   // WHERE age >= 30 : chaque âge est vérifié, les 3 clients de moins de 30 ans sont écartés
-  flipTo($('#ms4'), 71.4, 1);
+  flipTo($('#ms4'), 76.7, 1);
   const ags = $$('#flow4 .chip .ag');
   ags.forEach((a, i) => {
     const jeune = a.parentElement.classList.contains('jeune');
-    tl.to(a, {backgroundColor: jeune ? '#FDEBEC' : '#E7F7EE', color: jeune ? '#C2323A' : '#1B7A45', duration: 0.25}, 71.8 + i * 0.08);
+    tl.to(a, {backgroundColor: jeune ? '#FDEBEC' : '#E7F7EE', color: jeune ? '#C2323A' : '#1B7A45', duration: 0.25}, 77.1 + i * 0.08);
   });
-  cue(71.8, 'tick', 0.5, 2);
+  cue(77.1, 'tick', 0.5, 2);
   const jeunes = ch4.filter(c => c.classList.contains('jeune')), restent = ch4.filter(c => !c.classList.contains('jeune'));
-  tl.to(jeunes, {autoAlpha: 0, x: 40, scale: 0.9, duration: 0.45, ease: 'power2.in', stagger: 0.12}, 73.4);
-  cue(73.4, 'miss', 0.6);
+  tl.to(jeunes, {autoAlpha: 0, x: 40, scale: 0.9, duration: 0.45, ease: 'power2.in', stagger: 0.12}, 78.7);
+  cue(78.7, 'miss', 0.6);
   // GROUP BY : les 7 clients restants forment 4 groupes
-  flipTo($('#ms4'), 75.8, 2);
+  flipTo($('#ms4'), 81.1, 2);
   gsap.set(gc4, {scale: 0.85});
-  tl.to(gc4, {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(1.8)', stagger: 0.08}, 75.9);
-  gc4.forEach((_, k) => cue(75.9 + k * 0.08, 'pop', 0.55, k % 5));
+  tl.to(gc4, {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(1.8)', stagger: 0.08}, 81.2);
+  gc4.forEach((_, k) => cue(81.2 + k * 0.08, 'pop', 0.55, k % 5));
   gsap.set($$('#flow4 .gt'), {autoAlpha: 0, y: 10});
   restent.forEach((ch, i) => {
-    const t = 76.3 + i * 0.13;
+    const t = 81.6 + i * 0.13;
     tl.to(ch, {...SLOT4(i), duration: 0.7, ease: 'power3.inOut'}, t);
     tl.to([ch.querySelector('.cy'), ch.querySelector('.ag')], {autoAlpha: 0, duration: 0.25}, t);
     cue(t + 0.55, 'tick', 0.5, i % 5);
@@ -540,97 +550,97 @@ function build(){
   const bc4 = $$('#flow4 .bc');
   gsap.set(bc4, {autoAlpha: 0, scale: 0.4});
   bc4.forEach((b, k) => {
-    tl.to(b, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.4)'}, 77.8 + k * 0.2);
-    cue(77.8 + k * 0.2, 'pop', 0.7, k % 5);
+    tl.to(b, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.4)'}, 83.1 + k * 0.2);
+    cue(83.1 + k * 0.2, 'pop', 0.7, k % 5);
   });
   // Lyon n’a plus qu’un client
-  bump(gc4[0], 78.8, 1.05, 1);
-  pulse(gc4[0].querySelector('.bc'), 78.8, 3, '#7FD3A8');
+  bump(gc4[0], 84.1, 1.05, 1);
+  pulse(gc4[0].querySelector('.bc'), 84.1, 3, '#7FD3A8');
   // HAVING COUNT(*) >= 2 : seul le groupe de Paris est gardé
-  pulse('#hv4', 80.6, 3, 'rgba(201,188,255,.35)');
-  flipTo($('#ms4'), 80.8, 3);
-  tl.to($$('#flow4 .gt'), {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out', stagger: 0.12}, 81.1);
-  verdict(gc4[0], 81.8, 83.2, false);   // les prénoms ne sont pas dans le cadre : il s’efface sans rétrécir
-  verdict(gc4[1], 82.1, 83.3, false);
-  verdict(gc4[2], 82.4, 83.4, false);
-  verdict(gc4[3], 82.8);
-  tl.to(restent.filter(c => !c.classList.contains('v-par')), {opacity: 0.35, duration: 0.4}, 83.2);
+  pulse('#hv4', 85.9, 3, 'rgba(201,188,255,.35)');
+  flipTo($('#ms4'), 86.1, 3);
+  tl.to($$('#flow4 .gt'), {autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out', stagger: 0.12}, 86.4);
+  verdict(gc4[0], 87.1, 88.5, false);   // les prénoms ne sont pas dans le cadre : il s’efface sans rétrécir
+  verdict(gc4[1], 87.4, 88.6, false);
+  verdict(gc4[2], 87.7, 88.7, false);
+  verdict(gc4[3], 88.1);
+  tl.to(restent.filter(c => !c.classList.contains('v-par')), {opacity: 0.35, duration: 0.4}, 88.5);
   // D’abord les lignes, puis les groupes
-  show('#sp4a', 84.9, {y: 0, x: 20}, 0.4);
-  cue(84.9, 'pop', 0.6, 1);
-  show('#sp4b', 85.6, {y: 0, x: 20}, 0.4);
-  cue(85.6, 'pop', 0.6, 3);
-  hide(['#wh4', '#flow4'], 88.6);
-  sceneOff('#s4', 89.1);
+  show('#sp4a', 90.2, {y: 0, x: 20}, 0.4);
+  cue(90.2, 'pop', 0.6, 1);
+  show('#sp4b', 90.9, {y: 0, x: 20}, 0.4);
+  cue(90.9, 'pop', 0.6, 3);
+  hide(['#wh4', '#flow4'], 93.9);
+  sceneOff('#s4', 94.4);
 
   /* ===== 5 · Le piège ===== */
-  sceneOn('#s5', 89.1);
-  show('#trap5', 89.15, {y: 50});
-  cue(89.15, 'whoosh', 0.6);
-  pulse('#cw5', 90.5, 3, 'rgba(255,170,170,.45)');
+  sceneOn('#s5', 94.4);
+  show('#trap5', 94.45, {y: 50});
+  cue(94.45, 'whoosh', 0.6);
+  pulse('#cw5', 95.8, 3, 'rgba(255,170,170,.45)');
   // Erreur SQL
-  press($('#go5'), 94.0, '#4B30CC', 6);
-  show('#err5', 94.3, {y: 16}, 0.4);
-  cue(94.3, 'error', 0.8);
+  press($('#go5'), 99.3, '#4B30CC', 6);
+  show('#err5', 99.6, {y: 16}, 0.4);
+  cue(99.6, 'error', 0.8);
   // L’ordre des étapes : WHERE avant les groupes, HAVING après
   stackBelow('#ord5', '#trap5');
-  show('#ord5', 97.5, {y: 50});
-  cue(97.5, 'whoosh', 0.6);
+  show('#ord5', 102.8, {y: 50});
+  cue(102.8, 'whoosh', 0.6);
   const st = $$('#ord5 .st5');
   gsap.set(st, {autoAlpha: 0, x: -30});
-  tl.to(st[0], {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, 97.9);
-  tl.to(st[1], {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, 98.3);
-  cue(97.9, 'pop', 0.6, 1); cue(98.3, 'pop', 0.6, 2);
-  show('#sc5a', 99.2, {y: 0, scale: 0.6}, 0.35, 'back.out(2)');
-  cue(99.2, 'false', 0.6);
-  tl.to(st[2], {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, 102.2);
-  cue(102.2, 'pop', 0.6, 3);
-  show('#sc5c', 103.0, {y: 0, scale: 0.6}, 0.35, 'back.out(2)');
-  cue(103.0, 'true', 0.6);
-  hide(['#trap5', '#ord5'], 106.0);
-  sceneOff('#s5', 107.0);
+  tl.to(st[0], {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, 103.2);
+  tl.to(st[1], {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, 103.6);
+  cue(103.2, 'pop', 0.6, 1); cue(103.6, 'pop', 0.6, 2);
+  show('#sc5a', 104.5, {y: 0, scale: 0.6}, 0.35, 'back.out(2)');
+  cue(104.5, 'false', 0.6);
+  tl.to(st[2], {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, 107.5);
+  cue(107.5, 'pop', 0.6, 3);
+  show('#sc5c', 108.3, {y: 0, scale: 0.6}, 0.35, 'back.out(2)');
+  cue(108.3, 'true', 0.6);
+  hide(['#trap5', '#ord5'], 111.3);
+  sceneOff('#s5', 112.3);
 
   /* ===== 6 · Le résultat ===== */
-  sceneOn('#s6', 107.0);
-  show('#s6code', 107.05, {y: 60}, 0.6);
-  cue(107.05, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 107.55, 34);
+  sceneOn('#s6', 112.3);
+  show('#s6code', 112.35, {y: 60}, 0.6);
+  cue(112.35, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 112.85, 34);
   te = typeLine($('#s6l2'), te + 0.1, 34);
   te = typeLine($('#s6l3'), te + 0.1, 34);
   te = typeLine($('#s6l4'), te + 0.1, 34);
   pulse('#as6', te + 0.15, 3, 'rgba(201,188,255,.3)');
-  press($('#s6run'), 111.1);
-  show('#tbl6', 111.35, {y: 40}, 0.5);
-  rowsIn($$('#rows6 .tr'), 111.5);
-  show('#cnt6', 112.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  bump('#cnt6', 112.8, 1.15, 3);
-  hide(['#s6code', '#tbl6'], 114.6, {y: -40}, 0.4);
+  press($('#s6run'), 116.4);
+  show('#tbl6', 116.65, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr'), 116.8);
+  show('#cnt6', 117.3, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 118.1, 1.15, 3);
+  hide(['#s6code', '#tbl6'], 119.9, {y: -40}, 0.4);
   // Sur la carte : un atelier à Paris et à Lyon
-  const pins6 = mapIn('#map6', 115.0, 120.1);
+  const pins6 = mapIn('#map6', 120.3, 125.4);
   const garde = p => GARDEES.includes(p.querySelector('.pl').textContent);
-  tl.to(pins6.filter(p => !garde(p)), {opacity: 0.3, duration: 0.4}, 116.3);
-  tl.to(pins6.filter(p => !garde(p)).map(p => p.querySelector('.pb')), {autoAlpha: 0, duration: 0.3}, 116.3);
+  tl.to(pins6.filter(p => !garde(p)), {opacity: 0.3, duration: 0.4}, 121.6);
+  tl.to(pins6.filter(p => !garde(p)).map(p => p.querySelector('.pb')), {autoAlpha: 0, duration: 0.3}, 121.6);
   pins6.filter(garde).forEach((p, i) => {
-    flip(p.querySelector('.pb .sw'), 116.6 + i * 0.4, true);
-    tl.to(p.querySelector('.pb'), {borderColor: 'rgba(216,209,242,0)', duration: 0.3}, 116.6 + i * 0.4);
-    bump(p, 117.6 + i * 0.2, 1.18, 3);
-    tl.to(p.querySelector('.pd'), {boxShadow: '0 0 0 5px rgba(255,255,255,.9), 0 0 0 16px rgba(34,160,107,.24)', duration: 0.4}, 117.6 + i * 0.2);
+    flip(p.querySelector('.pb .sw'), 121.9 + i * 0.4, true);
+    tl.to(p.querySelector('.pb'), {borderColor: 'rgba(216,209,242,0)', duration: 0.3}, 121.9 + i * 0.4);
+    bump(p, 122.9 + i * 0.2, 1.18, 3);
+    tl.to(p.querySelector('.pd'), {boxShadow: '0 0 0 5px rgba(255,255,255,.9), 0 0 0 16px rgba(34,160,107,.24)', duration: 0.4}, 122.9 + i * 0.2);
   });
   stackBelow('#badge6', '#map6', 0, 50);
-  show('#badge6', 118.2, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(118.2, 'chord', 0.7);
-  hide(['#map6', '#badge6'], 120.1);
-  sceneOff('#s6', 120.6);
+  show('#badge6', 123.5, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(123.5, 'chord', 0.7);
+  hide(['#map6', '#badge6'], 125.4);
+  sceneOff('#s6', 125.9);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(120.6, [121.3, 123.1, 124.9]);
-  hold(122.9, 2.9);
-  hold(124.7, 2.9);
+  recapScene(125.9, [126.6, 128.4, 130.2]);
+  hold(128.2, 4.2);
+  hold(130.0, 2.9);
   // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(125.85, 'pop', 0.85, 5);
+  if (APP) cue(131.15, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 125.8,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 131.1,
   glyphs: '🎯📍👥🔎🧺🎂⚠️🔢🧮🔀🚫🧘🪷🌿🍃🍵🕯️✓✕·?!', dom, build});
 </script>
 </body>
