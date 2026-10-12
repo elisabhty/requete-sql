@@ -272,7 +272,7 @@
 <script src="core.js"></script>
 <script>
 'use strict';
-const DURATION = 168.6;
+const DURATION = 183.2;
 
 /* Table clients [id, prénom, nom], puis table commandes [id, numero_commande, client_id] : la commande n°16 n’a pas de client. */
 const CLIENTS = [[1, 'Sophie', 'Martin'], [2, 'Lucas', 'Bernard'], [3, 'Emma', 'Dubois'], [4, 'Nathan', 'Petit'], [5, 'Chloé', 'Moreau'],
@@ -290,12 +290,12 @@ const ORDRE = [[1, 1], [1, 2], [1, 13], [2, 3], [2, 10], [3, 4], [3, 14], [4, 5]
 
 const CHAPTERS = [
   {n:1, label:'Situation',                  a:5.0,   b:38.4},
-  {n:2, label:'Le problème',                a:38.4,  b:66.0},
-  {n:3, label:'FULL OUTER JOIN en action',  a:66.0,  b:98.0},
-  {n:4, label:'Sans correspondance',        a:98.0,  b:115.0},
-  {n:5, label:'Le piège',                   a:115.0, b:137.0},
-  {n:6, label:'Le résultat',                a:137.0, b:155.8},
-  {n:7, label:'À retenir',                  a:155.8, b:DURATION}
+  {n:2, label:'Le problème',                a:38.4,  b:71.5},
+  {n:3, label:'FULL OUTER JOIN en action',  a:71.5,  b:105.7},
+  {n:4, label:'Sans correspondance',        a:105.7,  b:125.9},
+  {n:5, label:'Le piège',                   a:125.9, b:150.0},
+  {n:6, label:'Le résultat',                a:150.0, b:170.4},
+  {n:7, label:'À retenir',                  a:170.4, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
@@ -310,26 +310,31 @@ const CAPTIONS = [
   [43.7, 49.0,   "<b>17 lignes</b> : la commande n°16, sans client, n’apparaît pas."],
   [49.1, 53.9,   "Deuxième essai : <code>RIGHT JOIN</code>, qui conserve toutes les commandes."],
   [54.0, 59.7,   "Résultat : <b>16 lignes</b>, mais Inès Lefebvre<br>et Nathan Dupont disparaissent."],
-  [59.8, 65.6,   "Chaque jointure laisse de côté<br>une partie des lignes : il faut<br>conserver les <b>deux côtés</b>."],
-  [66.3, 71.6,   "Pour conserver les deux côtés,<br>la jointure devient <code>FULL OUTER JOIN</code>."],
-  [71.7, 74.9,   "La condition après <code>ON</code> reste identique."],
-  [75.0, 81.0,   "Les lignes de la table de gauche et celles de la table de droite sont <b>toutes conservées</b>."],
-  [81.1, 86.0,   "Grâce à <code>ON</code>, 15 commandes<br>retrouvent leur client."],
-  [86.1, 92.2,   "Inès Lefebvre et Nathan Dupont<br>n’ont aucune commande,<br>mais ils sont <b>conservés</b>."],
-  [92.3, 97.5,   "La commande n°16 n’a aucun client, mais elle est <b>conservée</b> aussi."],
-  [98.3, 103.6,  "Le résultat compte <b>18 lignes</b>. Les 3 dernières n’ont pas de correspondance."],
-  [103.7, 109.2, "Pour Inès Lefebvre et Nathan Dupont,<br>le numéro de commande vaut <code>NULL</code>."],
-  [109.3, 114.6, "Pour la commande n°16, le prénom et le nom valent <code>NULL</code>."],
-  [115.3, 120.6, "Attention : <code>FULL OUTER JOIN</code> n’empile pas les deux tables."],
-  [120.7, 124.4, "10 clients et 16 commandes<br>ne donnent pas <b>26 lignes</b>."],
-  [124.5, 129.9, "Chaque correspondance réunit un client<br>et une commande sur <b>une seule ligne</b>."],
-  [130.0, 136.5, "15 correspondances, plus 2 clients sans commande et 1 commande sans client : <b>18 lignes</b>."],
-  [137.3, 143.7, "La requête complète affiche le prénom, le nom et le numéro de commande, sans exclure aucune ligne."],
-  [143.8, 149.3, "Résultat : <b>18 lignes</b>, dont 3 avec <code>NULL</code> du côté qui manque."],
-  [149.4, 155.3, "L’équipe data peut vérifier ces <b>3 lignes</b><br>avant la mise en ligne du site."],
-  [156.1, 160.9, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [161.0, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
-      : [161.0, 999, "<code>FULL OUTER JOIN</code> conserve les deux tables en entier."]
+  [59.8, 62.8,   "<code>LEFT JOIN</code> exclut<br>la commande sans client."],
+  [62.9, 66.1,   "<code>RIGHT JOIN</code> exclut<br>les clients sans commande."],
+  [66.2, 71.1,   "Il faut donc une jointure qui conserve <b>toutes les lignes</b> des deux tables."],
+  [71.8, 75.7,   "Pour conserver tous les clients et toutes les commandes,"],
+  [75.8, 79.3,   "même sans correspondance, utilise <code>FULL OUTER JOIN</code>."],
+  [79.4, 82.6,   "La condition après <code>ON</code> reste identique."],
+  [82.7, 88.7,   "Les lignes de la table de gauche et celles de la table de droite sont <b>toutes conservées</b>."],
+  [88.8, 93.7,   "Grâce à <code>ON</code>, 15 commandes<br>retrouvent leur client."],
+  [93.8, 99.9,   "Inès Lefebvre et Nathan Dupont<br>n’ont aucune commande,<br>mais ils sont <b>conservés</b>."],
+  [100.0, 105.2,   "La commande n°16 n’a aucun client, mais elle est <b>conservée</b> aussi."],
+  [106.0, 111.3,  "Le résultat compte <b>18 lignes</b>. Les 3 dernières n’ont pas de correspondance."],
+  [111.4, 116.9, "Pour Inès Lefebvre et Nathan Dupont,<br>le numéro de commande vaut <code>NULL</code>."],
+  [117.0, 120.1, "La commande n°16<br>n’a aucun client associé."],
+  [120.2, 125.5, "Elle apparaît dans le résultat,<br>avec <code>NULL</code> dans les colonnes<br>du prénom et du nom."],
+  [126.2, 132.5, "<code>FULL OUTER JOIN</code> associe les lignes qui correspondent et conserve aussi celles sans correspondance."],
+  [132.6, 137.4, "Le nombre de lignes du résultat n’est donc <b>pas la somme</b> des deux tables."],
+  [137.5, 142.9, "Chaque correspondance réunit un client<br>et une commande sur <b>une seule ligne</b>."],
+  [143.0, 149.5, "15 correspondances, plus 2 clients sans commande et 1 commande sans client : <b>18 lignes</b>."],
+  [150.3, 156.7, "La requête complète affiche le prénom, le nom et le numéro de commande, sans exclure aucune ligne."],
+  [156.8, 160.3, "Le résultat contient <b>18 lignes</b>, dont 3 avec <code>NULL</code> :"],
+  [160.4, 163.9, "2 clients sans commande et 1 commande sans client."],
+  [164.0, 169.9, "L’équipe data peut vérifier ces <b>3 lignes</b><br>avant la mise en ligne du site."],
+  [170.7, 175.5, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [175.6, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [175.6, 999, "<code>FULL OUTER JOIN</code> conserve les deux tables en entier."]
 ];
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
@@ -466,40 +471,45 @@ function build(){
   show('#op2b', 54.9, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
   cue(54.9, 'false', 0.6);
   shake('#op2b', 55.4);
-  // Il faut conserver les deux côtés
+  // LEFT JOIN exclut la commande sans client, RIGHT JOIN les clients sans commande
+  bump('#op2a', 60.3, 1.08, 1);
+  cue(60.3, 'tick', 0.5, 1);
+  bump('#op2b', 63.4, 1.08, 1);
+  cue(63.4, 'tick', 0.5, 3);
+  // Une jointure qui conserve toutes les lignes des deux tables
   stackBelow('#goal2', '#tb2', 0, 30);
-  show('#goal2', 60.6, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
-  cue(60.6, 'pop', 0.75, 3);
-  hide(['#ta2', '#tb2', '#goal2'], 65.5, {y: -40}, 0.4);
-  sceneOff('#s2', 66.0);
+  show('#goal2', 66.7, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(66.7, 'pop', 0.75, 3);
+  hide(['#ta2', '#tb2', '#goal2'], 71.1, {y: -40}, 0.4);
+  sceneOff('#s2', 71.5);
 
   /* ===== 3 · FULL OUTER JOIN en action ===== */
-  sceneOn('#s3', 66.0);
-  show('#s3code', 66.05, {y: 60}, 0.6);
-  cue(66.05, 'whoosh', 0.7);
-  te = typeLine($('#s3l1'), 66.55, 28);
+  sceneOn('#s3', 71.5);
+  show('#s3code', 71.55, {y: 60}, 0.6);
+  cue(71.55, 'whoosh', 0.7);
+  te = typeLine($('#s3l1'), 72.05, 28);
   te = typeLine($('#s3l2'), te + 0.1, 28);
   te = typeLine($('#s3l3'), te + 0.1, 28);
   // La jointure devient FULL OUTER JOIN
-  pulse('#fo3', 69.9, 3, 'rgba(201,188,255,.45)');
+  pulse('#fo3', 76.7, 3, 'rgba(201,188,255,.45)');
   // La condition après ON reste identique
-  pulse('#o3', 72.3, 3, 'rgba(201,188,255,.45)');
-  cue(72.3, 'tick', 0.5, 3);
+  pulse('#o3', 80.0, 3, 'rgba(201,188,255,.45)');
+  cue(80.0, 'tick', 0.5, 3);
   // Les deux tables sont conservées en entier
   stackBelow('#n3a', '#s3code', 0, 34);
-  show('#n3a', 76.2, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
-  cue(76.2, 'pop', 0.7, 2);
-  hide(['#s3code', '#n3a'], 80.6, {y: -40}, 0.4);
+  show('#n3a', 83.9, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(83.9, 'pop', 0.7, 2);
+  hide(['#s3code', '#n3a'], 88.3, {y: -40}, 0.4);
   // Les deux tables, puis 15 commandes reliées à leur client
-  show('#lk3', 81.2, {y: 50});
-  cue(81.2, 'whoosh', 0.7);
+  show('#lk3', 88.9, {y: 50});
+  cue(88.9, 'whoosh', 0.7);
   gsap.set([...clR, ...cmR], {autoAlpha: 0, y: 10});
-  tl.to(clR, {autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out', stagger: 0.04}, 81.55);
-  tl.to(cmR, {autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out', stagger: 0.04}, 81.8);
-  cmR.forEach((_, i) => i % 2 || cue(81.8 + i * 0.04, 'tick', 0.4, (i / 2) % 5));
+  tl.to(clR, {autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out', stagger: 0.04}, 89.25);
+  tl.to(cmR, {autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out', stagger: 0.04}, 89.5);
+  cmR.forEach((_, i) => i % 2 || cue(89.5 + i * 0.04, 'tick', 0.4, (i / 2) % 5));
   L.forEach(({path, dot, len}) => { gsap.set(path, {strokeDasharray: len, strokeDashoffset: len, opacity: 0}); gsap.set(dot, {autoAlpha: 0, scale: 0, transformOrigin: '50% 50%'}); });
   L.forEach(({path, dot, id, c}, k) => {
-    const t = 83.0 + k * 0.14;
+    const t = 90.7 + k * 0.14;
     tl.set(path, {opacity: 1}, t);
     tl.to(path, {strokeDashoffset: 0, duration: 0.4, ease: 'power2.inOut'}, t);
     tl.to(dot, {autoAlpha: 1, scale: 1, duration: 0.22, ease: 'back.out(2.4)'}, t + 0.36);
@@ -514,94 +524,103 @@ function build(){
     tl.to(r.querySelector('.bg'), {opacity: 1, duration: 0.3}, t);
     tl.to(ok, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.2)'}, t + 0.3);
   };
-  SANS.forEach((id, i) => conserve(clR[id - 1], 87.0 + i * 0.4));
-  cue(87.3, 'true', 0.55);
+  SANS.forEach((id, i) => conserve(clR[id - 1], 94.7 + i * 0.4));
+  cue(95.0, 'true', 0.55);
   // La commande n°16 : aucun client, mais conservée aussi
-  conserve(cmR[15], 93.0);
-  cue(93.3, 'true', 0.6);
+  conserve(cmR[15], 100.7);
+  cue(101.0, 'true', 0.6);
   stackBelow('#n3b', '#lk3', 0, 30);
-  show('#n3b', 94.6, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
-  cue(94.6, 'chord', 0.6);
-  hide(['#lk3', '#n3b'], 97.5, {y: -40});
-  sceneOff('#s3', 98.0);
+  show('#n3b', 102.3, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(102.3, 'chord', 0.6);
+  hide(['#lk3', '#n3b'], 105.2, {y: -40});
+  sceneOff('#s3', 105.7);
 
   /* ===== 4 · Sans correspondance ===== */
-  sceneOn('#s4', 98.0);
-  show('#tbl4', 98.05, {y: 40}, 0.5);
-  cue(98.05, 'whoosh', 0.6);
+  sceneOn('#s4', 105.7);
+  show('#tbl4', 105.75, {y: 40}, 0.5);
+  cue(105.75, 'whoosh', 0.6);
   const r4 = $$('#rows4 .tr'), seuls4 = r4.slice(15);
-  rowsIn(r4, 98.4, 0.04);
-  show('#cnt4', 99.2, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  rowsIn(r4, 106.1, 0.04);
+  show('#cnt4', 106.9, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
   // Les 3 dernières lignes n’ont pas de correspondance
-  tl.to(seuls4.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.15}, 100.8);
-  cue(100.8, 'tick', 0.5, 1);
+  tl.to(seuls4.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.15}, 108.5);
+  cue(108.5, 'tick', 0.5, 1);
   // Inès Lefebvre et Nathan Dupont : NULL côté commandes
-  seuls4.slice(0, 2).forEach((r, i) => flip(r.querySelector('.sw'), 104.6 + i * 0.2, i === 0));
-  // La commande n°16 : NULL côté clients
-  $$('.sw', seuls4[2]).forEach((sw, i) => flip(sw, 110.2 + i * 0.15, i === 0));
+  seuls4.slice(0, 2).forEach((r, i) => flip(r.querySelector('.sw'), 112.3 + i * 0.2, i === 0));
+  // La commande n°16 : aucun client associé
+  pulse(seuls4[2].querySelectorAll(':scope > div')[2], 117.6, 3, 'rgba(255,214,140,.6)');
+  cue(117.6, 'tick', 0.5, 2);
+  // Elle apparaît dans le résultat, avec NULL dans le prénom et le nom
+  $$('.sw', seuls4[2]).forEach((sw, i) => flip(sw, 120.9 + i * 0.15, i === 0));
   stackBelow('#n4', '#tbl4', 0, 30);
-  show('#n4', 111.6, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
-  cue(111.6, 'pop', 0.7, 2);
-  hide(['#tbl4', '#n4'], 114.5, {y: -40});
-  sceneOff('#s4', 115.0);
+  show('#n4', 122.1, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(122.1, 'pop', 0.7, 2);
+  hide(['#tbl4', '#n4'], 125.5, {y: -40});
+  sceneOff('#s4', 125.9);
 
   /* ===== 5 · Le piège ===== */
-  sceneOn('#s5', 115.0);
-  show('#trap5', 115.05, {y: 50});
-  cue(115.05, 'whoosh', 0.6);
+  sceneOn('#s5', 125.9);
+  show('#trap5', 125.95, {y: 50});
+  cue(125.95, 'whoosh', 0.6);
   // 10 + 16 = 26 ?
-  [['#q5a', 116.0], ['#p5a', 116.3], ['#q5b', 116.6], ['#p5b', 116.9], ['#q5c', 117.2]].forEach(([s, t], i) => {
+  [['#q5a', 126.9], ['#p5a', 127.2], ['#q5b', 127.5], ['#p5b', 127.8], ['#q5c', 128.1]].forEach(([s, t], i) => {
     show(s, t, {y: 0, scale: 0.7}, 0.35, 'back.out(2)');
     cue(t, 'pop', 0.55, i);
   });
-  // Pas 26 : chaque correspondance tient sur une seule ligne
-  flip($('#sw5'), 121.6, false);
-  tl.to('#q5c', {backgroundColor: '#FDEBEC', color: '#C2323A', duration: 0.25}, 121.7);
-  cue(121.7, 'false', 0.55);
+  // Pas la somme des deux tables : le « 26 ? » est barré
+  flip($('#sw5'), 133.5, false);
+  tl.to('#q5c', {backgroundColor: '#FDEBEC', color: '#C2323A', duration: 0.25}, 133.6);
+  cue(133.6, 'false', 0.55);
   const bk = $$('#bd5 .bk');
   gsap.set(bk, {autoAlpha: 0, x: -30});
-  [125.2, 130.9, 131.9, 133.7].forEach((t, i) => {
+  [138.2, 143.9, 144.9, 146.7].forEach((t, i) => {
     tl.to(bk[i], {autoAlpha: 1, x: 0, duration: 0.45, ease: 'power3.out'}, t);
     cue(t, i === 3 ? 'true' : 'pop', 0.6, i);
   });
-  bump(bk[3].querySelector('.bn'), 134.5, 1.15, 3);
-  hide('#trap5', 136.5);
-  sceneOff('#s5', 137.0);
+  bump(bk[3].querySelector('.bn'), 147.5, 1.15, 3);
+  hide('#trap5', 149.5);
+  sceneOff('#s5', 150.0);
 
   /* ===== 6 · Le résultat ===== */
-  sceneOn('#s6', 137.0);
-  show('#s6code', 137.05, {y: 60}, 0.6);
-  cue(137.05, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 137.55, 40);
+  sceneOn('#s6', 150.0);
+  show('#s6code', 150.05, {y: 60}, 0.6);
+  cue(150.05, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 150.55, 40);
   for (const k of [2, 3, 4, 5]) te = typeLine($('#s6l' + k), te + 0.1, 40);
-  pulse(['#j6', '#o6'], 141.5, 3, 'rgba(201,188,255,.3)');
-  press($('#s6run'), 142.5);
+  pulse(['#j6', '#o6'], 154.5, 3, 'rgba(201,188,255,.3)');
+  press($('#s6run'), 155.5);
   stackBelow('#tbl6', '#s6code', 0, 30);
-  show('#tbl6', 142.75, {y: 40}, 0.5);
-  rowsIn($$('#rows6 .tr, #rows6 .more'), 142.9, 0.1);
-  show('#cnt6', 144.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  bump('#cnt6', 144.8, 1.15, 3);
-  // 3 lignes avec NULL du côté qui manque
-  pulse($$('#rows6 .nul'), 146.3, 3, 'rgba(255,214,140,.5)');
-  cue(146.3, 'tick', 0.5, 2);
-  hide(['#s6code', '#tbl6'], 149.1, {y: -40}, 0.4);
+  show('#tbl6', 155.75, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr, #rows6 .more'), 155.9, 0.1);
+  show('#cnt6', 157.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 157.8, 1.15, 3);
+  // 18 lignes, dont 3 avec NULL
+  pulse($$('#rows6 .nul'), 158.4, 3, 'rgba(255,214,140,.5)');
+  cue(158.4, 'tick', 0.5, 2);
+  // 2 clients sans commande, puis 1 commande sans client
+  const r6 = $$('#rows6 .tr').slice(-3);
+  pulse(r6.slice(0, 2).map(r => r.querySelector('.nul')), 160.9, 3, 'rgba(201,188,255,.55)');
+  cue(160.9, 'tick', 0.5, 1);
+  pulse($$('.nul', r6[2]), 162.1, 3, 'rgba(201,188,255,.55)');
+  cue(162.1, 'tick', 0.5, 3);
+  hide(['#s6code', '#tbl6'], 163.9, {y: -40}, 0.4);
   // Le rapport d’audit : 15 correspondances, 3 lignes à vérifier
-  boardIn('#rp6', 149.5, '.cr', 0.35);
+  boardIn('#rp6', 164.1, '.cr', 0.35);
   stackBelow('#badge6', '#rp6', 0, 50);
-  show('#badge6', 152.6, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(152.6, 'chord', 0.7);
-  hide(['#rp6', '#badge6'], 155.3);
-  sceneOff('#s6', 155.8);
+  show('#badge6', 167.2, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(167.2, 'chord', 0.7);
+  hide(['#rp6', '#badge6'], 169.9);
+  sceneOff('#s6', 170.4);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(155.8, [156.5, 158.3, 160.1]);
-  hold(158.1, 4.8);
-  hold(159.9, 3.8);
+  recapScene(170.4, [171.1, 172.9, 174.7]);
+  hold(172.7, 4.8);
+  hold(174.5, 3.8);
   // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(161.05, 'pop', 0.85, 5);
+  if (APP) cue(175.65, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 161.0,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 175.6,
   glyphs: '👤👪🧾🔎🎯↔️⚠️🧪🔗🕳️✓✕?!·…⋯+=°', dom, build});
 </script>
 </body>
