@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
+<title>Requête · RIGHT JOIN en vidéo</title>
+<link rel="stylesheet" href="core.css">
+<style>
+#s0 .title{font-size:132px;top:442px;letter-spacing:-3px}
+#s0 .title span.sp{margin-right:40px}
+#s0 .hilite{top:518px;height:46px}
+#s0 .sub{top:604px;font-size:56px}
+/* Bulle longue : au-dessus de la mascotte, sur toute la largeur, pour que la phrase tienne en lignes pleines */
+#s0 .bubble{left:64px;width:952px;top:790px;font-size:40px;text-align:center;padding:30px 40px}
+#s0 .bubble::before{left:50%;top:auto;bottom:-25px;margin-left:-22px;transform:rotate(-45deg)}
+#s0 .mascot{left:290px;top:1050px}
+#s1 .need-row .nl{font-size:38px;white-space:nowrap}
+.nw{white-space:nowrap}
+
+/* Code : trois à cinq lignes (chapitres 2, 3 et 6) */
+.code.sm .body{font-size:32px;line-height:50px;padding:26px 36px}
+.code.sm .ln{height:50px}
+.code.sm .caret i{top:-37px;height:42px}
+
+/* Une valeur et sa version suivante, l’une sur l’autre : la case se retourne de l’une à l’autre */
+.sw{display:inline-grid;justify-items:start}
+.sw>span{grid-area:1/1}
+.sw .b{opacity:0}
+.nul{color:var(--ink-3);font-style:italic}
+/* La table commandes en orange, la table clients en violet */
+.tag.tc,.db-bar .tb.tc{background:#FFF4E5;color:#9A5B00}
+
+/* ---------- 1 et 6 · Les factures de l’été ---------- */
+.board{left:64px;width:952px;padding:0 0 8px;overflow:hidden}
+.db-bar{position:relative;height:76px;display:flex;align-items:center;gap:14px;padding:0 30px;background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--line-2);font-size:28px;font-weight:700;color:var(--ink-3)}
+.db-bar .dot{width:18px;height:18px;border-radius:50%;background:#D8D1F2;display:block}
+.db-bar span{margin-left:12px;white-space:nowrap}
+.db-bar .tb{margin-left:auto;height:48px;padding:0 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono);font-size:25px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.db-bar .tb+.tb{margin-left:10px}
+.fg{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:22px 22px 18px}
+.fac{position:relative;height:104px;border-radius:20px;background:#fff;border:3px solid var(--line);box-shadow:0 5px 0 var(--lip);padding:12px 12px 0;overflow:hidden}
+.fac .fh{display:flex;align-items:center;gap:7px;font-size:22px;font-weight:800;color:var(--ink);white-space:nowrap}
+.fac .fh .emo{font-size:24px}
+.fac .fp{margin-top:10px;width:162px;height:38px;border-radius:999px;border:3px dashed #C9BCFF;color:#9C93C9;font-size:21px;font-weight:700;display:flex;align-items:center;justify-content:center;white-space:nowrap}
+.fac .fp .sw{justify-items:center}
+.fg.f2{grid-template-columns:1fr 1fr;gap:12px 16px}
+.f6{height:80px;display:flex;align-items:center;gap:14px;padding:0 18px}
+.f6 .emo{font-size:34px}
+.f6 .fn{font-family:var(--mono);font-size:21px;font-weight:700;color:var(--ink-3);white-space:nowrap}
+.f6 .fw{margin-top:2px;font-size:27px;font-weight:800;color:var(--ink);white-space:nowrap}
+.f6.nc{border-color:#F7C97F;background:#FFF8EC}
+.f6.nc .fw{color:#9A5B00}
+
+/* ---------- 2 · Le problème : INNER JOIN écarte la commande sans client ---------- */
+.rgB{display:grid;grid-template-columns:110px 220px 1fr;padding:0 26px;align-items:center}
+.tr.t2{height:44px;font-size:27px}
+.more{height:40px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 0 var(--line-2);font-size:23px;font-weight:600;color:var(--ink-3)}
+.tr.miss{color:#C2323A;box-shadow:none}
+.tr.miss::before{content:"";position:absolute;left:14px;right:14px;top:4px;bottom:4px;border:3px dashed #F2A7AD;border-radius:12px;background:#FFF5F6}
+.tr.miss .gx{grid-column:span 2;font-family:var(--ui);font-size:25px;font-weight:700}
+.pill{left:0;width:1080px;display:flex;justify-content:center}
+.pill>span{height:60px;padding:0 24px;border-radius:999px;font-size:29px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill.rd>span{background:#FDEBEC;color:#C2323A}
+.pill.vi>span{background:var(--accent-soft);color:var(--accent-ink)}
+.pill.am>span{background:#FFF4E5;color:#9A5B00}
+.pill .ic{font-size:.9em;background:#fff}
+.goal{left:64px;width:952px;height:96px;border-radius:32px;background:#E7F7EE;border:3px solid #BFE8D0;display:flex;align-items:center;justify-content:center;gap:14px;font-size:33px;font-weight:700;color:#1B7A45;white-space:nowrap}
+.goal .emo{font-size:36px}
+
+/* ---------- 3 · Les deux tables reliées par ON ---------- */
+.lk{left:64px;width:952px;height:692px}
+.mt{position:absolute;top:0;background:#fff;border:3px solid var(--line);border-radius:34px;box-shadow:0 8px 0 var(--lip);overflow:hidden}
+.mt.cl{left:0;width:356px}
+.mt.cm{left:608px;width:344px}
+.mt .tt{height:64px;display:flex;align-items:center;gap:12px;padding:0 22px;font-size:26px;font-weight:700;color:var(--ink);white-space:nowrap}
+.mt .tt .emo{font-size:28px}
+.mt .hd,.mt .rw{display:grid;align-items:center;padding:0 20px;font-family:var(--mono);white-space:nowrap}
+.mt .hd{height:46px;background:var(--surface-2);font-size:22px;font-weight:700;color:var(--ink-3)}
+.mt .rw{position:relative;height:36px;font-size:24px;font-weight:600;color:var(--ink);box-shadow:inset 0 2px 0 var(--line-2)}
+.mt.cl .hd,.mt.cl .rw{grid-template-columns:50px 112px 1fr}
+.mt.cm .hd,.mt.cm .rw{grid-template-columns:60px 1fr}
+.mt .rw .bg{position:absolute;left:0;top:0;right:0;bottom:0;background:var(--accent-soft);opacity:0;z-index:0}
+.mt .rw.nc .bg{background:#E7F7EE}
+.mt .rw.sc .bg{background:#ECE9F4}
+.mt .rw>span:not(.bg):not(.kp){position:relative;z-index:1}
+.mt .rw .strike{position:absolute;left:16px;right:16px;top:50%;height:3px;margin-top:-1.5px;border-radius:2px;background:#9C96C4;transform:scaleX(0);transform-origin:0 50%;z-index:2}
+.fkv{justify-self:start;min-width:40px;height:28px;padding:0 9px;border-radius:9px;background:var(--accent-soft);color:var(--accent-ink);font-size:22px;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
+.fkv.nl{background:#F1EEF9;color:var(--ink-3);font-style:italic;font-weight:700}
+.kp{position:absolute;right:12px;top:50%;margin-top:-14px;height:28px;padding:0 10px;border-radius:999px;background:#fff;color:#1B7A45;font-family:var(--ui);font-size:18px;font-weight:700;display:flex;align-items:center;white-space:nowrap;opacity:0;z-index:2}
+.lks{position:absolute;left:356px;top:0;width:252px;height:692px;overflow:visible;pointer-events:none}
+.lks path{fill:none;stroke:#8B6CFF;stroke-width:4;stroke-linecap:round}
+.lks circle{fill:#8B6CFF;stroke:none}
+
+/* ---------- 4 · La commande sans client : NULL, puis WHERE … IS NULL ---------- */
+.rgL{display:grid;grid-template-columns:160px 230px 1fr;padding:0 26px;align-items:center}
+.rgL.grp{height:44px;font-size:22px;font-weight:700;letter-spacing:.3px}
+.rgL.grp .gc{align-self:end;padding-bottom:6px;margin-right:24px;border-bottom:3px solid}
+.rgL.grp .gc.cl{grid-column:span 2}
+.gc.cm{color:#9A5B00;border-color:#F7C97F}
+.gc.cl{color:var(--accent-ink);border-color:#C9BCFF}
+.tr.t4{height:40px;font-size:26px}
+.tr.t4.nc .hl,.tr.t5.nc .hl{background:#FFF4E5;box-shadow:inset 8px 0 0 #F2994A}
+.ph{display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:30px;padding:0 10px;border-radius:10px;border:3px dashed #F2C38A;color:#C08A3E;font-weight:800}
+
+/* ---------- 5 · Le piège : les tables inversées ---------- */
+.rt5{margin-top:20px;border-radius:26px;background:var(--surface-2);overflow:hidden}
+.rt5 .rh{height:56px;display:flex;align-items:center;gap:12px;padding:0 24px;font-size:27px;font-weight:700;color:var(--ink)}
+.rt5 .rh .emo{font-size:28px}
+.rt5 .rh .n5{margin-left:auto;height:42px;padding:0 18px;border-radius:999px;background:#fff;color:var(--accent-ink);font-size:24px;font-weight:700;display:flex;align-items:center;white-space:nowrap}
+.rgT{display:grid;grid-template-columns:130px 200px 1fr;padding:0 24px;align-items:center}
+.rt5 .th{height:46px;font-size:23px;background:#E9E4FA}
+.rt5 .more{background:#fff}
+.tr.t5{height:44px;font-size:26px;background:#fff}
+.rt5 .nul{display:inline-block}
+.orph{margin-top:16px;height:56px;padding:0 20px;border-radius:999px;background:#FDEBEC;color:#C2323A;font-size:27px;font-weight:700;display:inline-flex;align-items:center;gap:10px;white-space:nowrap}
+.mini.one{font-size:32px;padding-right:120px}
+.res5{margin-top:24px;height:84px;border-radius:24px;background:var(--surface-2);display:flex;align-items:center;gap:22px;padding:0 24px;font-size:28px;font-weight:700;color:var(--ink-2)}
+.res5 .lst{margin-left:auto;height:60px;padding:0 20px;border-radius:16px;background:#fff;border:3px solid #C9BCFF;color:var(--accent-ink);font-family:var(--mono);font-weight:800;display:flex;align-items:center;white-space:nowrap}
+.res5 .lst .a{color:#B4ACD6}
+
+/* ---------- 6 · Le résultat ---------- */
+.rgR{display:grid;grid-template-columns:330px 200px 1fr;padding:0 26px;align-items:center}
+.tr.t6{height:46px;font-size:26px}
+
+/* ---------- 7 · À retenir : trois idées un peu longues, le récapitulatif se resserre pour laisser la place au bouton des notes ---------- */
+#s7 .rtitle{top:196px}
+#s7 .recap{top:292px}
+#s7 .rrow{gap:24px;padding:19px 34px}
+#s7 .rico{width:92px;height:92px;border-radius:26px;font-size:48px}
+#s7 .rtxt{font-size:39px}
+#s7 .rtxt .rs{margin-top:6px;font-size:33px}
+.rtxt .blk.sm{font-size:.74em}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <!-- Habillage -->
+  <div id="progress"></div>
+  <div id="header">
+    <div class="logo">&gt;_</div>
+    <div class="brand">Requête</div>
+    <div id="chapter"></div>
+  </div>
+
+  <!-- 0 · Intro -->
+  <section class="scene" id="s0">
+    <div class="abs tag0"><div class="tagpill">Cours · Jointures</div></div>
+    <div class="abs hilite"></div>
+    <div class="abs title"><span>R</span><span>I</span><span>G</span><span>H</span><span class="sp">T</span><span>J</span><span>O</span><span>I</span><span>N</span></div>
+    <div class="abs sub">Tout garder à droite</div>
+    <img class="abs mascot" src="mascotte.webp" alt="">
+    <div class="abs bubble">Avec <span class="ic">RIGHT JOIN</span>, toutes les lignes<br>de la table de droite sont conservées.</div>
+  </section>
+
+  <!-- 1 · Situation : les factures de l’été -->
+  <section class="scene" id="s1">
+    <div class="abs card board" id="fb1" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Factures de l’été</span><span class="tb tc" id="tb1">table commandes</span><span class="tb" id="tb1b">table clients</span></div>
+      <div class="fg" id="fg1"></div>
+    </div>
+    <div class="abs card need">
+      <div class="need-h">Les informations à récupérer</div>
+      <div class="need-row"><span class="emo">🧾</span><span class="nl">Le numéro de commande</span><span class="tag tc">table commandes</span></div>
+      <div class="need-row"><span class="emo">👤</span><span class="nl">Le prénom du client</span><span class="tag">table clients</span></div>
+      <div class="need-row"><span class="emo">👪</span><span class="nl">Son nom de famille</span><span class="tag">table clients</span></div>
+    </div>
+  </section>
+
+  <!-- 2 · Le problème : INNER JOIN écarte la commande sans client -->
+  <section class="scene" id="s2">
+    <div class="abs code sm" id="s2code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s2l1"><span class="kw">SELECT</span> commandes.id, clients.prenom,<span class="caret"><i></i></span></span><span class="ln" id="s2l2">       clients.nom<span class="caret"><i></i></span></span><span class="ln" id="s2l3"><span class="kw">FROM</span> clients<span class="caret"><i></i></span></span><span class="ln" id="s2l4"><span class="glow" id="j2"><span class="kw">INNER JOIN</span> commandes</span><span class="caret"><i></i></span></span><span class="ln" id="s2l5">    <span class="kw">ON</span> clients.id = commandes.client_id;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s2run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl2">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt2">15 lignes</span></span></div>
+      <div class="rgB th"><div>id</div><div>prenom</div><div>nom</div></div>
+      <div class="rows" id="rows2"></div>
+    </div>
+    <div class="abs pill rd" id="n2a"><span>✕ La commande 16 n’est pas facturée</span></div>
+    <div class="abs goal" id="goal2"><span class="emo">🎯</span>Conserver toutes les commandes, même sans client</div>
+  </section>
+
+  <!-- 3 · RIGHT JOIN en action : la table de droite est conservée en entier -->
+  <section class="scene" id="s3">
+    <div class="abs code sm" id="s3code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s3l1"><span class="kw">FROM</span> clients<span class="caret"><i></i></span></span><span class="ln" id="s3l2"><span class="kw"><span class="glow" id="rw3">RIGHT</span> JOIN</span> <span class="glow" id="t3">commandes</span><span class="caret"><i></i></span></span><span class="ln" id="s3l3">    <span class="glow" id="o3"><span class="kw">ON</span> clients.id = commandes.client_id</span><span class="caret"><i></i></span></span></div>
+    </div>
+    <div class="abs pill vi" id="n3a"><span><span>➡️ <span class="ic">commandes</span>&nbsp;: la table de droite, conservée en entier</span></span></div>
+    <div class="abs lk" id="lk3" style="top:300px">
+      <div class="mt cl"><div class="tt"><span class="emo">👤</span><span>Table clients</span></div><div class="hd"><span>id</span><span>prenom</span><span>nom</span></div></div>
+      <div class="mt cm"><div class="tt"><span class="emo">🧾</span><span>Table commandes</span></div><div class="hd"><span>id</span><span>client_id</span></div></div>
+      <svg class="lks" id="lks3" viewBox="0 0 252 692"></svg>
+    </div>
+    <div class="abs pill vi" id="n3b"><span>🧾 16 commandes, 16 lignes</span></div>
+  </section>
+
+  <!-- 4 · La commande sans client : NULL, puis WHERE … IS NULL -->
+  <section class="scene" id="s4">
+    <div class="tbl card" id="tbl4" style="top:300px">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat du RIGHT JOIN</span><span class="cnt"><span id="cnt4a">16 lignes</span><span id="cnt4b">1 ligne</span></span></div>
+      <div class="rgL grp"><div class="gc cm">commandes</div><div class="gc cl">clients</div></div>
+      <div class="rgL th"><div>id</div><div>prenom</div><div>nom</div></div>
+      <div class="rows" id="rows4"></div>
+    </div>
+    <div class="abs code sm" id="wh4" style="left:64px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln"><span class="glow" id="w4"><span class="kw">WHERE</span> clients.id <span class="kw">IS NULL</span></span></span></div>
+    </div>
+    <div class="abs pill am" id="n4"><span>🧾 1 commande sans client</span></div>
+  </section>
+
+  <!-- 5 · Le piège : les tables inversées -->
+  <section class="scene" id="s5">
+    <div class="abs card trap" id="trap5" style="top:300px">
+      <div class="trap-h"><span class="emo">⚠️</span><span>Et si on inverse les tables&nbsp;?</span></div>
+      <div class="mini"><span class="kw">SELECT</span> commandes.id, clients.prenom,
+       clients.nom
+<span class="glow" id="f5"><span class="kw">FROM</span> commandes</span>
+<span class="kw">RIGHT JOIN</span> <span class="glow" id="c5">clients</span>
+    <span class="kw">ON</span> …;<span class="go" id="go5"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+      <div class="rt5" id="rt5">
+        <div class="rh"><span class="emo">🔎</span><span>Résultat</span><span class="n5">17 lignes</span></div>
+        <div class="rgT th"><div>id</div><div>prenom</div><div>nom</div></div>
+        <div class="more">⋯ 15 lignes avec une commande ⋯</div>
+        <div class="rgT tr t5 nc"><span class="hl"></span><div><span class="nul">NULL</span></div><div>Inès</div><div>Lefebvre</div></div>
+        <div class="rgT tr t5 nc"><span class="hl"></span><div><span class="nul">NULL</span></div><div>Nathan</div><div>Dupont</div></div>
+      </div>
+      <div class="orph" id="op5"><span class="emo">✕</span>La commande 16 a disparu</div>
+    </div>
+    <div class="abs card trap" id="fix5">
+      <div class="trap-h"><span class="emo">✓</span><span>La table commandes après <span class="ic">RIGHT JOIN</span></span></div>
+      <div class="mini one"><span class="kw">FROM</span> clients <span class="glow" id="f5b"><span class="kw">RIGHT JOIN</span> commandes</span> …<span class="go" id="go5b"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg></span></div>
+      <div class="res5"><span>Résultat</span><span class="lst"><span class="sw" id="sw5"><span class="a">?</span><span class="b">16 lignes ✓</span></span></span></div>
+    </div>
+  </section>
+
+  <!-- 6 · Le résultat : la requête complète, puis les 16 factures -->
+  <section class="scene" id="s6">
+    <div class="abs code sm" id="s6code" style="left:64px;top:236px;width:952px">
+      <div class="top"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="fname">requete.sql</span></div>
+      <div class="body"><span class="ln" id="s6l1"><span class="kw">SELECT</span> commandes.numero_commande,<span class="caret"><i></i></span></span><span class="ln" id="s6l2">       clients.prenom, clients.nom<span class="caret"><i></i></span></span><span class="ln" id="s6l3"><span class="kw">FROM</span> clients<span class="caret"><i></i></span></span><span class="ln" id="s6l4"><span class="glow" id="j6"><span class="kw">RIGHT JOIN</span> commandes</span><span class="caret"><i></i></span></span><span class="ln" id="s6l5">    <span class="glow" id="o6"><span class="kw">ON</span> clients.id = commandes.client_id</span>;<span class="caret"><i></i></span></span></div>
+      <div class="run" id="s6run"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M10.4 8.2v7.6l6.4-3.8z" fill="#fff"/></svg><span>Exécuter</span><i class="ripple"></i></div>
+    </div>
+    <div class="tbl card" id="tbl6">
+      <div class="tt"><span class="emo">🔎</span><span>Résultat</span><span class="cnt"><span id="cnt6">16 lignes</span></span></div>
+      <div class="rgR th"><div>numero_commande</div><div>prenom</div><div>nom</div></div>
+      <div class="rows" id="rows6"></div>
+    </div>
+    <div class="abs card board" id="fb6" style="top:300px">
+      <div class="db-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Factures de l’été</span></div>
+      <div class="fg f2" id="fg6"></div>
+    </div>
+    <div class="abs badge" id="badge6"><span>✓ 16 factures, dont 1 à compléter</span></div>
+  </section>
+
+  <!-- 7 · À retenir -->
+  <section class="scene" id="s7">
+    <div class="abs rtitle">Les trois idées à retenir</div>
+    <div class="abs card recap" id="recap">
+      <div class="rrow"><div class="rico emo">➡️</div><div class="rtxt"><span class="ic">RIGHT JOIN</span> conserve <b>toutes les lignes de la table de droite</b>,<br>même sans correspondance<br>dans la table de gauche.<span class="rs">Sans correspondance, les colonnes de gauche contiennent <span class="ic">NULL</span>.</span></div></div>
+      <div class="rrow"><div class="rico emo">🔗</div><div class="rtxt"><span class="ic">ON</span> définit la <b>condition</b> qui permet d’associer les lignes des deux tables&nbsp;:<br><span class="ic blk sm">ON clients.id = commandes.client_id</span></div></div>
+      <div class="rrow"><div class="rico emo">🔎</div><div class="rtxt"><span class="ic">WHERE clients.id IS NULL</span> ne conserve que les <b>commandes sans client</b>&nbsp;: aucune ligne de la table clients ne leur correspond.</div></div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <div id="cap"></div>
+</div>
+
+<script src="gsap.min.js"></script>
+<script src="core.js"></script>
+<script>
+'use strict';
+const DURATION = 172.9;
+
+/* Table clients [id, prénom, nom], puis table commandes [id, numero_commande, client_id] : la commande 16 n’a pas de client. */
+const CLIENTS = [[1, 'Sophie', 'Martin'], [2, 'Lucas', 'Bernard'], [3, 'Emma', 'Dubois'], [4, 'Nathan', 'Petit'], [5, 'Chloé', 'Moreau'],
+  [6, 'Hugo', 'Laurent'], [7, 'Léa', 'Simon'], [8, 'Gabriel', 'Michel'], [9, 'Inès', 'Lefebvre'], [10, 'Nathan', 'Dupont']];
+const COMMANDES = [[1, 'CMD-2026-1002481', 1], [2, 'CMD-2026-1003912', 1], [3, 'CMD-2026-1015630', 2], [4, 'CMD-2026-1024057', 3],
+  [5, 'CMD-2026-1038264', 4], [6, 'CMD-2026-1041739', 5], [7, 'CMD-2026-1056182', 6], [8, 'CMD-2026-1063405', 7],
+  [9, 'CMD-2026-1067918', 7], [10, 'CMD-2026-1072346', 2], [11, 'CMD-2026-1085073', 8], [12, 'CMD-2026-1093528', 4],
+  [13, 'CMD-2026-1106294', 1], [14, 'CMD-2026-1847392', 3], [15, 'CMD-2026-1128760', 5], [16, 'CMD-2026-1134085', null]];
+const CLIENT = Object.fromEntries(CLIENTS.map(c => [c[0], c]));
+/* Ordre des lignes renvoyé par SQLite pour clients RIGHT JOIN commandes : client par client, puis la commande sans client. */
+const ORDRE = [1, 2, 13, 3, 10, 4, 14, 5, 12, 6, 15, 7, 8, 9, 11, 16];
+const SANS = [9, 10];   // Inès Lefebvre et Nathan Dupont n’ont passé aucune commande
+
+const CHAPTERS = [
+  {n:1, label:'Situation',             a:5.0,   b:38.0},
+  {n:2, label:'Le problème',           a:38.0,  b:60.4},
+  {n:3, label:'RIGHT JOIN en action',  a:60.4,  b:97.0},
+  {n:4, label:'Commande sans client',  a:97.0,  b:116.8},
+  {n:5, label:'Le piège',              a:116.8, b:141.5},
+  {n:6, label:'Le résultat',           a:141.5, b:160.1},
+  {n:7, label:'À retenir',             a:160.1, b:DURATION}
+];
+
+/* Légendes : [début, fin, texte] (temps de la timeline). */
+const CAPTIONS = [
+  [5.3, 9.9,     "La comptabilité prépare les <b>factures</b> des commandes de l’été."],
+  [10.0, 16.4,   "Chaque commande de juillet et d’août doit recevoir sa facture, avec le prénom et le nom du client."],
+  [16.5, 20.4,   "Les commandes se trouvent dans la <b>table commandes</b>."],
+  [20.5, 25.4,   "Le prénom et le nom du client sont dans la table <code>clients</code>."],
+  [25.5, 30.4,   "Mais la commande 16 n’est rattachée à <b>aucun client</b>."],
+  [30.5, 37.4,   "Il faut donc associer les <b>deux tables</b> pour récupérer le prénom et le nom, sans exclure la commande 16."],
+  [38.3, 43.6,   "Premier essai : relier chaque commande à son client avec <code>INNER JOIN</code>."],
+  [43.7, 49.3,   "Résultat : <b>15 lignes</b>.<br>Seules les commandes rattachées<br>à un client apparaissent."],
+  [49.4, 55.2,   "La commande 16, sans client,<br>est <b>exclue</b> du résultat.<br>La facturation est donc incomplète."],
+  [55.3, 59.9,   "Il faut une jointure qui conserve <b>toutes les commandes</b>."],
+  [60.7, 66.2,   "Pour conserver aussi<br>la commande sans client, remplace<br><code>INNER JOIN</code> par <code>RIGHT JOIN</code>."],
+  [66.3, 69.5,   "La condition après <code>ON</code> reste identique."],
+  [69.6, 76.3,   "La table commandes, placée après <code>RIGHT JOIN</code>, est la table de <b>droite</b>. Toutes ses lignes sont conservées."],
+  [76.4, 81.3,   "Grâce à <code>ON</code>, 15 commandes<br>retrouvent leur client."],
+  [81.4, 87.5,   "La commande 16 n’a pas de client, mais elle est <b>conservée</b> quand même : 16 commandes, 16 lignes."],
+  [87.6, 91.9,   "Inès Lefebvre et Nathan Dupont n’ont passé <b>aucune commande</b>."],
+  [92.0, 96.5,   "Comme la table clients est à gauche, ils ne sont <b>pas conservés</b>."],
+  [97.3, 103.0,  "La commande 16, surlignée, n’a pas de client, mais reste présente dans le résultat."],
+  [103.1, 107.2, "Pour elle, les colonnes de clients contiennent <code>NULL</code>."],
+  [107.3, 111.7, "Pour ne conserver qu’elle, on ajoute <code>WHERE clients.id IS NULL</code>."],
+  [111.8, 116.3, "Il reste <b>1 ligne</b> : la commande<br>qui n’a aucun client."],
+  [117.1, 123.4, "L’<b>ordre des tables</b> compte :<br><code>RIGHT JOIN</code> conserve toutes les lignes<br>de la table placée à sa droite."],
+  [123.5, 128.4, "Avec <code>FROM commandes RIGHT JOIN clients</code>, tous les <b>clients</b> sont conservés."],
+  [128.5, 134.7, "Inès Lefebvre et Nathan Dupont apparaissent, sans commande. La commande 16, elle, disparaît."],
+  [134.8, 141.0, "Pour facturer toutes les commandes, la table commandes doit être placée après <code>RIGHT JOIN</code>."],
+  [141.8, 147.9, "La requête complète affiche le numéro de chaque commande, avec le prénom et le nom du client."],
+  [148.0, 153.5, "Résultat : <b>16 lignes</b>, dont une avec <code>NULL</code> à la place du prénom et du nom."],
+  [153.6, 159.7, "La comptabilité peut établir les <b>16 factures</b>, et compléter celle de la commande 16."],
+  [160.4, 165.2, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [165.3, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [165.3, 999, "<code>RIGHT JOIN</code> conserve la table de droite en entier, même sans correspondance."]
+];
+
+/* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
+const QUESTIONS = [];
+
+function dom(){
+  /* Chapitre 1 : les 16 factures à établir, le client encore inconnu */
+  $('#fg1').innerHTML = COMMANDES.map(([id]) =>
+    `<div class="fac"><div class="fh"><span class="emo">🧾</span>Commande ${id}</div><span class="fp">${id === 16
+      ? '<span class="sw"><span class="a">?&nbsp;client</span><span class="b">aucun client</span></span>' : '?&nbsp;client'}</span></div>`).join('');
+  /* Chapitre 2 : INNER JOIN, 15 lignes (les 3 premières, puis les 2 dernières), et la commande 16 absente */
+  const r2 = id => { const c = CLIENT[COMMANDES[id - 1][2]]; return `<div class="rgB tr t2"><div>${id}</div><div>${c[1]}</div><div>${c[2]}</div></div>`; };
+  $('#rows2').innerHTML = [1, 2, 3].map(r2).join('') + '<div class="more">⋯ 10 autres lignes ⋯</div>' + [14, 15].map(r2).join('') +
+    '<div class="rgB tr t2 miss" id="m2"><div>16</div><div class="gx">absente du résultat</div></div>';
+  /* Chapitre 3 : la table clients et la table commandes, côte à côte */
+  $('#lk3 .mt.cl').insertAdjacentHTML('beforeend', CLIENTS.map(([id, p, n]) =>
+    `<div class="rw${SANS.includes(id) ? ' sc' : ''}"><span class="bg"></span><span>${id}</span><span>${p}</span><span>${n}</span>${SANS.includes(id) ? '<i class="strike"></i>' : ''}</div>`).join(''));
+  $('#lk3 .mt.cm').insertAdjacentHTML('beforeend', COMMANDES.map(([id, , c]) =>
+    `<div class="rw${c === null ? ' nc' : ''}"><span class="bg"></span><span>${id}</span><span>${c === null ? '<span class="fkv nl">NULL</span>' : `<span class="fkv">${c}</span>`}</span>${c === null ? '<span class="kp">✓ conservée</span>' : ''}</div>`).join(''));
+  /* Chapitre 4 : le résultat du RIGHT JOIN, dans l’ordre renvoyé ; pour la commande 16, « ? » puis NULL */
+  const vide = '<span class="sw"><span class="a ph">?</span><span class="b nul">NULL</span></span>';
+  $('#rows4').innerHTML = ORDRE.map(id => { const c = COMMANDES[id - 1][2];
+    return `<div class="rgL tr t4${c === null ? ' nc' : ''}"><span class="hl"></span><div>${id}</div><div>${c === null ? vide : CLIENT[c][1]}</div><div>${c === null ? vide : CLIENT[c][2]}</div></div>`; }).join('');
+  /* Chapitre 6 : le résultat (les 3 premières lignes, puis la commande 16), puis les 16 factures */
+  const r6 = id => { const [, num, c] = COMMANDES[id - 1], nul = '<span class="nul">NULL</span>';
+    return `<div class="rgR tr t6"><div>${num}</div><div>${c === null ? nul : CLIENT[c][1]}</div><div>${c === null ? nul : CLIENT[c][2]}</div></div>`; };
+  $('#rows6').innerHTML = [1, 2, 13].map(r6).join('') + '<div class="more">⋯ 12 autres lignes ⋯</div>' + r6(16);
+  $('#fg6').innerHTML = COMMANDES.map(([, num, c]) =>
+    `<div class="fac f6${c === null ? ' nc' : ''}"><span class="emo">🧾</span><div><div class="fn">${num}</div><div class="fw">${c === null ? 'Destinataire&nbsp;?' : CLIENT[c][1] + ' ' + CLIENT[c][2]}</div></div></div>`).join('');
+}
+
+const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const bump = (sel, t, s = 1.12, n = 1) => tl.to(sel, {scale: s, duration: 0.18, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
+const shake = (sel, t) => tl.to(sel, {x: 8, duration: 0.06, yoyo: true, repeat: 5, ease: 'none'}, t);
+/* Une case se retourne : la valeur de départ laisse place à la suivante. */
+function flip(sw, t, sound = true){
+  tl.to(sw, {scaleY: 0, duration: 0.12, ease: 'power2.in'}, t);
+  tl.set(sw.querySelector('.a'), {opacity: 0}, t + 0.12);
+  tl.set(sw.querySelector('.b'), {opacity: 1}, t + 0.12);
+  tl.to(sw, {scaleY: 1, duration: 0.22, ease: 'back.out(2)'}, t + 0.12);
+  if (sound) cue(t + 0.12, 'tick', 0.5, 3);
+}
+/* Les lignes d’un tableau apparaissent l’une après l’autre. */
+function rowsIn(rows, t, step = 0.08){
+  gsap.set(rows, {autoAlpha: 0, y: 14});
+  tl.to(rows, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: step}, t);
+  rows.forEach((_, i) => cue(t + i * step, 'tick', 0.45, i % 5));
+}
+/* Une carte arrive en tournant légèrement, puis ses éléments un à un. */
+function boardIn(id, t, sel, step = 0.18){
+  gsap.set(id, {autoAlpha: 0, y: 120, rotation: -6});
+  tl.to(id, {autoAlpha: 1, y: 0, rotation: 0, duration: 0.8, ease: 'back.out(1.3)'}, t);
+  cue(t, 'whoosh', 0.8);
+  const items = $$(`${id} ${sel}`);
+  gsap.set(items, {autoAlpha: 0, y: 24});
+  tl.to(items, {autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: step}, t + 0.65);
+  items.forEach((_, i) => i % 2 || cue(t + 0.65 + i * step, 'pop', 0.55, (i / 2) % 5));
+  return items;
+}
+/* Le lien d’une commande à son client : une courbe entre les deux tables, mesurée avant toute animation. */
+function liens(){
+  const box = $('#lk3'), cl = $$('#lk3 .mt.cl .rw'), cm = $$('#lk3 .mt.cm .rw');
+  const cy = el => { const r = rel(el, box); return r.y + r.h / 2; };
+  const avec = COMMANDES.filter(c => c[2] !== null);
+  $('#lks3').innerHTML = avec.map(([id, , c]) => {
+    const y1 = cy(cl[c - 1]), y2 = cy(cm[id - 1]);
+    return `<path d="M2 ${y1.toFixed(1)} C126 ${y1.toFixed(1)} 126 ${y2.toFixed(1)} 240 ${y2.toFixed(1)}"/><circle cx="240" cy="${y2.toFixed(1)}" r="7"/>`;
+  }).join('');
+  return $$('#lks3 path').map((path, i) => ({path, dot: $$('#lks3 circle')[i], len: path.getTotalLength(), id: avec[i][0], c: avec[i][2]}));
+}
+
+function build(){
+  introScene();
+  gsap.set('#s0 .bubble', {transformOrigin: '50% 100%'});   // la bulle s’ouvre depuis sa pointe, au-dessus de la mascotte
+  hold(2.3, 2.1);   // le temps de lire la bulle de la mascotte
+  let te;
+  const L = liens();   // mesures faites avant toute animation
+  const clR = $$('#lk3 .mt.cl .rw'), cmR = $$('#lk3 .mt.cm .rw');
+
+  /* ===== 1 · Situation ===== */
+  sceneOn('#s1', 5.0);
+  const fac1 = $$('#fg1 .fac'), fp1 = $$('#fg1 .fp'), f16 = fac1[15];
+  gsap.set(fp1, {autoAlpha: 0});
+  boardIn('#fb1', 5.15, '.fac', 0.04);
+  // Chaque facture : le prénom et le nom du client, pour l’instant inconnus
+  tl.to(fp1, {autoAlpha: 1, duration: 0.3, stagger: 0.04}, 11.6);
+  cue(11.6, 'pop', 0.55, 4);
+  // Les commandes : table commandes
+  show('#tb1', 17.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(17.0, 'pop', 0.7, 3);
+  stackBelow('#s1 .need', '#fb1');   // la liste se cale sous les factures, sans les toucher
+  show('#s1 .need', 17.5, {y: 60});
+  cue(17.5, 'whoosh', 0.6);
+  const needRows = $$('#s1 .need-row');
+  gsap.set(needRows, {autoAlpha: 0, x: -34});
+  tl.to(needRows[0], {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out'}, 17.8);
+  cue(17.8, 'pop', 0.7, 0);
+  // Le prénom et le nom : table clients
+  show('#tb1b', 21.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(21.0, 'pop', 0.7, 4);
+  tl.to(needRows.slice(1), {autoAlpha: 1, x: 0, duration: 0.5, ease: 'power3.out', stagger: 0.25}, 21.5);
+  [1, 2].forEach((k, i) => cue(21.5 + i * 0.25, 'pop', 0.7, k));
+  // La commande 16 n’est rattachée à aucun client
+  tl.to(f16, {borderColor: '#F2A7AD', duration: 0.3}, 26.6);
+  tl.to(fp1[15], {borderColor: '#F2A7AD', color: '#C2323A', duration: 0.3}, 26.9);
+  flip(fp1[15].querySelector('.sw'), 27.0, false);
+  cue(27.1, 'miss', 0.55);
+  shake(f16, 27.6);
+  // Associer les deux tables, sans exclure la commande 16
+  bump('#tb1', 31.6, 1.1, 1);
+  bump('#tb1b', 32.2, 1.1, 1);
+  cue(31.6, 'tick', 0.5, 2);
+  cue(32.2, 'tick', 0.5, 4);
+  bump(f16, 34.6, 1.06, 3);
+  cue(34.6, 'tick', 0.45, 1);
+  hide(['#fb1', '#s1 .need'], 37.5);
+  sceneOff('#s1', 38.0);
+
+  /* ===== 2 · Le problème ===== */
+  sceneOn('#s2', 38.0);
+  show('#s2code', 38.05, {y: 60}, 0.6);
+  cue(38.05, 'whoosh', 0.7);
+  te = typeLine($('#s2l1'), 38.55, 34);
+  for (const k of [2, 3, 4, 5]) te = typeLine($('#s2l' + k), te + 0.1, 34);
+  pulse('#j2', 42.8, 3, 'rgba(201,188,255,.35)');
+  press($('#s2run'), 43.4);
+  stackBelow('#tbl2', '#s2code', 0, 30);
+  show('#tbl2', 43.65, {y: 40}, 0.5);
+  rowsIn($$('#rows2 .tr:not(.miss), #rows2 .more'), 43.8, 0.08);
+  show('#cnt2', 44.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt2', 45.2, 1.15, 3);
+  // La commande 16, sans client, est exclue du résultat
+  show('#m2', 50.1, {y: 0, scale: 0.9}, 0.4, 'back.out(2)');
+  cue(50.1, 'false', 0.6);
+  shake('#m2', 50.6);
+  stackBelow('#n2a', '#tbl2', 0, 26);
+  show('#n2a', 51.5, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(51.5, 'miss', 0.6);
+  // Il faut conserver toutes les commandes
+  stackBelow('#goal2', '#n2a', 0, 20);
+  show('#goal2', 55.9, {y: 0, scale: 0.7}, 0.5, 'back.out(1.9)');
+  cue(55.9, 'pop', 0.75, 3);
+  hide(['#s2code', '#tbl2', '#n2a', '#goal2'], 59.9, {y: -40}, 0.4);
+  sceneOff('#s2', 60.4);
+
+  /* ===== 3 · RIGHT JOIN en action ===== */
+  sceneOn('#s3', 60.4);
+  show('#s3code', 60.45, {y: 60}, 0.6);
+  cue(60.45, 'whoosh', 0.7);
+  te = typeLine($('#s3l1'), 60.95, 28);
+  te = typeLine($('#s3l2'), te + 0.1, 28);
+  te = typeLine($('#s3l3'), te + 0.1, 28);
+  // INNER JOIN devient RIGHT JOIN
+  pulse('#rw3', 64.2, 3, 'rgba(201,188,255,.45)');
+  // La condition après ON reste identique
+  pulse('#o3', 66.9, 3, 'rgba(201,188,255,.45)');
+  cue(66.9, 'tick', 0.5, 3);
+  // La table commandes, placée après RIGHT JOIN, est la table de droite : toutes ses lignes sont conservées
+  pulse('#t3', 70.3, 3, 'rgba(255,214,140,.45)');
+  stackBelow('#n3a', '#s3code', 0, 34);
+  show('#n3a', 71.2, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(71.2, 'pop', 0.7, 2);
+  hide(['#s3code', '#n3a'], 76.0, {y: -40}, 0.4);
+  // Les deux tables, puis 15 commandes reliées à leur client
+  show('#lk3', 76.4, {y: 50});
+  cue(76.4, 'whoosh', 0.7);
+  gsap.set([...clR, ...cmR], {autoAlpha: 0, y: 10});
+  tl.to(clR, {autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out', stagger: 0.04}, 76.75);
+  tl.to(cmR, {autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out', stagger: 0.04}, 77.0);
+  cmR.forEach((_, i) => i % 2 || cue(77.0 + i * 0.04, 'tick', 0.4, (i / 2) % 5));
+  L.forEach(({path, dot, len}) => { gsap.set(path, {strokeDasharray: len, strokeDashoffset: len, opacity: 0}); gsap.set(dot, {autoAlpha: 0, scale: 0, transformOrigin: '50% 50%'}); });
+  L.forEach(({path, dot, id, c}, k) => {
+    const t = 78.2 + k * 0.14;
+    tl.set(path, {opacity: 1}, t);
+    tl.to(path, {strokeDashoffset: 0, duration: 0.4, ease: 'power2.inOut'}, t);
+    tl.to(dot, {autoAlpha: 1, scale: 1, duration: 0.22, ease: 'back.out(2.4)'}, t + 0.36);
+    tl.to(clR[c - 1].querySelector('.bg'), {opacity: 1, duration: 0.25}, t);
+    tl.to(cmR[id - 1].querySelector('.bg'), {opacity: 1, duration: 0.25}, t + 0.38);
+    if (k % 2 === 0) cue(t + 0.36, 'pop', 0.5, (k / 2) % 5);
+  });
+  // La commande 16 : pas de client, mais conservée
+  const k16 = cmR[15].querySelector('.kp');
+  gsap.set(k16, {scale: 0.5});
+  tl.to(cmR[15].querySelector('.bg'), {opacity: 1, duration: 0.3}, 82.1);
+  tl.to(k16, {autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2.2)'}, 82.5);
+  cue(82.5, 'true', 0.6);
+  stackBelow('#n3b', '#lk3', 0, 30);
+  show('#n3b', 84.6, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(84.6, 'chord', 0.6);
+  // Inès Lefebvre et Nathan Dupont : aucune commande…
+  SANS.forEach((id, i) => tl.to(clR[id - 1].querySelector('.bg'), {opacity: 1, duration: 0.3}, 88.6 + i * 0.3));
+  cue(88.6, 'tick', 0.5, 1);
+  // … et, la table clients étant à gauche, pas conservés
+  SANS.forEach((id, i) => {
+    const r = clR[id - 1];
+    tl.to(r.querySelector('.strike'), {scaleX: 1, duration: 0.4, ease: 'power2.out'}, 92.7 + i * 0.3);
+    tl.to(r.querySelectorAll(':scope > span:not(.bg)'), {opacity: 0.4, duration: 0.4}, 93.3 + i * 0.3);
+  });
+  cue(92.7, 'false', 0.5);
+  hide(['#lk3', '#n3b'], 96.5, {y: -40});
+  sceneOff('#s3', 97.0);
+
+  /* ===== 4 · La commande sans client ===== */
+  sceneOn('#s4', 97.0);
+  show('#tbl4', 97.05, {y: 40}, 0.5);
+  cue(97.05, 'whoosh', 0.6);
+  const r4 = $$('#rows4 .tr'), n16 = r4[15];
+  rowsIn(r4, 97.4, 0.05);
+  gsap.set('#cnt4b', {autoAlpha: 0});
+  show('#cnt4a', 98.1, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  // La commande 16, surlignée : pas de client, mais présente dans le résultat
+  tl.to(n16.querySelector('.hl'), {opacity: 1, duration: 0.3}, 99.2);
+  cue(99.2, 'tick', 0.5, 1);
+  // Pour elle, les colonnes de clients contiennent NULL
+  $$('.sw', n16).forEach((sw, i) => flip(sw, 103.8 + i * 0.15, i === 0));
+  // WHERE clients.id IS NULL
+  stackBelow('#wh4', '#tbl4');
+  show('#wh4', 107.5, {y: 30}, 0.5);
+  cue(107.5, 'whoosh', 0.6);
+  pulse('#w4', 108.3, 3, 'rgba(201,188,255,.35)');
+  bump($$('.sw', n16), 109.6, 1.2, 1);
+  cue(109.6, 'pop', 0.6, 2);
+  // Il reste 1 ligne : la commande sans client
+  tl.to(r4.slice(0, 15), {opacity: 0.25, duration: 0.4}, 112.3);
+  cue(112.3, 'miss', 0.5);
+  hide('#cnt4a', 112.8, {y: 0, scale: 0.8}, 0.2);
+  show('#cnt4b', 113.0, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  stackBelow('#n4', '#wh4', 0, 30);
+  show('#n4', 113.6, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(113.6, 'pop', 0.7, 2);
+  hide(['#tbl4', '#wh4', '#n4'], 116.3, {y: -40});
+  sceneOff('#s4', 116.8);
+
+  /* ===== 5 · Le piège ===== */
+  sceneOn('#s5', 116.8);
+  show('#trap5', 116.85, {y: 50});
+  cue(116.85, 'whoosh', 0.6);
+  // RIGHT JOIN conserve la table placée à sa droite… ici, clients
+  pulse('#c5', 119.6, 3, 'rgba(255,214,140,.45)');
+  // Tous les clients sont conservés
+  press($('#go5'), 124.1, '#4B30CC', 6);
+  show('#rt5', 124.4, {y: 20}, 0.45);
+  cue(124.4, 'whoosh', 0.5);
+  const r5 = $$('#rt5 .tr');
+  tl.to(r5.map(r => r.querySelector('.hl')), {opacity: 1, duration: 0.3, stagger: 0.2}, 125.6);
+  cue(125.6, 'pop', 0.55, 1);
+  cue(125.8, 'pop', 0.55, 3);
+  // Inès Lefebvre et Nathan Dupont apparaissent, sans commande ; la commande 16 disparaît
+  bump($$('#rt5 .nul'), 129.2, 1.2, 1);
+  show('#op5', 131.0, {y: 0, scale: 0.7}, 0.4, 'back.out(2)');
+  cue(131.0, 'false', 0.6);
+  // La table commandes doit être placée après RIGHT JOIN
+  stackBelow('#fix5', '#trap5');
+  show('#fix5', 135.1, {y: 50});
+  cue(135.1, 'whoosh', 0.6);
+  pulse('#f5b', 135.8, 3, 'rgba(201,188,255,.35)');
+  press($('#go5b'), 136.9, '#4B30CC', 6);
+  flip($('#sw5'), 137.2);
+  tl.to('#fix5 .lst', {borderColor: '#7FD3A8', duration: 0.3}, 137.3);
+  cue(137.3, 'true', 0.6);
+  hide(['#trap5', '#fix5'], 141.0);
+  sceneOff('#s5', 141.5);
+
+  /* ===== 6 · Le résultat ===== */
+  sceneOn('#s6', 141.5);
+  show('#s6code', 141.55, {y: 60}, 0.6);
+  cue(141.55, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 142.05, 40);
+  for (const k of [2, 3, 4, 5]) te = typeLine($('#s6l' + k), te + 0.1, 40);
+  pulse(['#j6', '#o6'], 146.2, 3, 'rgba(201,188,255,.3)');
+  press($('#s6run'), 147.1);
+  stackBelow('#tbl6', '#s6code', 0, 30);
+  show('#tbl6', 147.35, {y: 40}, 0.5);
+  rowsIn($$('#rows6 .tr, #rows6 .more'), 147.5, 0.1);
+  show('#cnt6', 148.1, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  bump('#cnt6', 148.9, 1.15, 3);
+  // Une ligne avec NULL à la place du prénom et du nom
+  pulse($$('#rows6 .nul'), 150.1, 3, 'rgba(255,214,140,.5)');
+  cue(150.1, 'tick', 0.5, 2);
+  hide(['#s6code', '#tbl6'], 153.3, {y: -40}, 0.4);
+  // Les 16 factures, dont celle de la commande 16 à compléter
+  const fac6 = boardIn('#fb6', 153.7, '.fac', 0.05);
+  bump(fac6[15], 156.6, 1.06, 3);
+  cue(156.6, 'tick', 0.5, 2);
+  stackBelow('#badge6', '#fb6', 0, 50);
+  show('#badge6', 157.3, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(157.3, 'chord', 0.7);
+  hide(['#fb6', '#badge6'], 159.6);
+  sceneOff('#s6', 160.1);
+
+  /* ===== 7 · À retenir ===== */
+  recapScene(160.1, [160.8, 162.6, 164.4]);
+  hold(162.4, 4.8);
+  hold(164.2, 3.8);
+  // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
+  if (APP) cue(165.35, 'pop', 0.85, 5);
+}
+
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 165.3,
+  glyphs: '🧾👤👪🔎🎯➡️⚠️🔗✓✕?!·…⋯', dom, build});
+</script>
+</body>
+</html>
