@@ -592,6 +592,17 @@ const COURSES = [
       '<span class="kw">VALUES</span> (<span class="glow" id="v5">42</span>, 5);', '<b>Erreur SQL</b><span class="m">FOREIGN KEY constraint failed</span>',
       '<span class="emo">❓</span>avis orphelin&nbsp;: aucun produit 42', '<span class="kw">WHERE</span> <span class="glow" id="w6">produit_id = 3</span>;',
       '<div class="rv-h">Avis des clients · 2</div>', '✓ Chaque avis sous le bon produit']},
+  {id: 18, next: 20, titre: 'INNER JOIN', page: 'inner-join.html', thumb: 'inner-join-thumb.jpg', duree: '2 min 10', notesAt: 115.4,
+    notes: /notes:\{t:122\.3,y:1274,card:\[64,300,1016,979\],to:\[940,255\]\}/, table: 'commandes',
+    bubble: 'Avec <span class="ic">INNER JOIN</span>, relie uniquement ce qui correspond.',
+    chapters: ['Situation', 'Le problème', 'INNER JOIN en action', 'Sans correspondance', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<span>Entrepôt · Étiquettes d’expédition</span><span class="tb" id="tb1">table commandes</span>', 'const PREP = [[12, 4], [13, 1], [14, 3], [15, 5], [16, null]];',
+      '<span class="kw">WHERE</span> statut = <span class="str">\'en_preparation\'</span>;', '<span class="glow" id="j3"><span class="kw">INNER JOIN</span> clients</span>',
+      '<span class="kw">ON</span> <span class="glow" id="o3a">commandes.client_id</span> = <span class="glow" id="o3b">clients.id</span>',
+      '<div class="rgJ grp"><div class="gc cm">commandes</div><div class="gc cl">clients</div></div>',
+      '<span class="qm" id="qm4"><span class="sw"><span class="a">?</span><span class="b">✕</span></span></span>',
+      '<b>Erreur SQL</b><span class="m">ambiguous column name: id</span>', '<span class="glow" id="id5"><span id="pre5">commandes.</span>id</span>, nom',
+      '<span>🤝 4 correspondances, 4 lignes</span>', '✓ 4 étiquettes imprimées']},
 ];
 
 for (const c of COURSES) {
