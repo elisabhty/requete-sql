@@ -236,7 +236,7 @@
 <script src="core.js"></script>
 <script>
 'use strict';
-const DURATION = 134.4;
+const DURATION = 141.3;
 
 /* Table clients : prénom et email des 10 clients (Hugo et Inès : aucun email, NULL) */
 const CLIENTS = [['Sophie', 'sophie@mail.fr'], ['Lucas', 'lucas@mail.fr'], ['Emma', 'emma@mail.fr'], ['Nathan', 'nathan@mail.fr'], ['Chloé', 'chloe@mail.fr'],
@@ -247,10 +247,10 @@ const CHAPTERS = [
   {n:1, label:'Situation',           a:5.0,   b:26.7},
   {n:2, label:'Le problème',         a:26.7,  b:42.4},
   {n:3, label:'COALESCE en action',  a:42.4,  b:68.1},
-  {n:4, label:'Plusieurs valeurs',   a:68.1,  b:89.2},
-  {n:5, label:'Le texte vide',       a:89.2,  b:103.1},
-  {n:6, label:'Le résultat',         a:103.1, b:121.6},
-  {n:7, label:'À retenir',           a:121.6, b:DURATION}
+  {n:4, label:'Plusieurs valeurs',   a:68.1,  b:96.1},
+  {n:5, label:'Le texte vide',       a:96.1,  b:110.0},
+  {n:6, label:'Le résultat',         a:110.0, b:128.5},
+  {n:7, label:'À retenir',           a:128.5, b:DURATION}
 ];
 
 /* Légendes : [début, fin, texte] (temps de la timeline). */
@@ -262,25 +262,28 @@ const CAPTIONS = [
   [27.0, 31.5,   "Premier essai : afficher le prénom et l’email de chaque client."],
   [31.6, 36.6,   "Pour Hugo et Inès, l’email vaut <code>NULL</code> : aucune valeur n’est enregistrée."],
   [36.7, 42.0,   "Il faut une valeur de <b>remplacement</b>, réservée aux emails absents."],
-  [42.7, 47.9,   "C’est le rôle de <code>COALESCE</code> : renvoyer la <b>première valeur qui n’est pas NULL</b>."],
+  [42.7, 47.9,   "C’est le rôle de <code>COALESCE()</code> : renvoyer la <b>première valeur qui n’est pas NULL</b>."],
   [48.0, 53.0,   "Entre les parenthèses : l’email d’abord, puis le texte de remplacement."],
   [53.1, 58.6,   "Pour Sophie, l’email existe : il s’affiche, et la valeur suivante est ignorée."],
-  [58.7, 63.0,   "Pour Hugo, l’email est <code>NULL</code> : on passe à la valeur suivante."],
-  [63.1, 67.7,   "« Non renseigné » n’est pas <code>NULL</code> : <span class=\"nw\">c’est ce texte</span> qui s’affiche."],
-  [68.4, 73.3,   "<code>COALESCE</code> accepte <b>plusieurs valeurs</b>, toujours examinées de gauche à droite."],
-  [73.4, 78.5,   "Pour Hugo, l’email est <code>NULL</code> : on passe au téléphone, la valeur suivante."],
-  [78.6, 84.0,   "Le téléphone est renseigné, il s’affiche : « Non renseigné » n’est jamais atteint."],
-  [84.1, 88.8,   "Pour l’outil, qui n’affiche que des emails, deux valeurs suffisent."],
-  [89.5, 93.5,   "Attention : <code>COALESCE</code> ne remplace que les valeurs <code>NULL</code>."],
-  [93.6, 98.3,   "Un texte vide <code>''</code> est une vraie valeur : un texte de zéro caractère."],
-  [98.4, 102.7,  "Il est donc gardé tel quel : à l’écran, la case reste vide."],
-  [103.4, 108.5, "La requête complète affiche le prénom, puis l’email ou « Non renseigné »."],
-  [108.6, 113.1, "Résultat : <b>10 lignes</b>. Hugo et Inès affichent « Non renseigné »."],
-  [113.2, 116.6, "L’outil n’affiche plus aucune case vide."],
-  [116.7, 121.2, "Et la <b>table clients</b> ne change pas : l’email de Hugo reste <code>NULL</code>."],
-  [121.9, 126.7, "Pour finir, voici les <b>trois idées à retenir</b>."],
-  APP ? [126.8, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
-      : [126.8, 999, "Avec <code>COALESCE</code>, une valeur absente laisse place à une valeur de secours."]
+  [58.7, 63.0,   "L’e-mail de Hugo est <code>NULL</code>."],
+  [63.1, 67.7,   "<code>COALESCE()</code> renvoie donc<br>la deuxième valeur : « Non renseigné »."],
+  [68.4, 71.5,   "<code>COALESCE()</code> peut recevoir <b>plusieurs valeurs</b> :"],
+  [71.6, 74.3,   "il les parcourt dans l’ordre indiqué"],
+  [74.4, 77.4,   "et renvoie la première<br>qui n’est pas <code>NULL</code>."],
+  [77.5, 82.6,   "Pour Hugo, l’email est <code>NULL</code> : on passe au téléphone, la valeur suivante."],
+  [82.7, 87.5,   "Le téléphone de Hugo n’est pas <code>NULL</code> : <code>COALESCE()</code> renvoie donc son numéro"],
+  [87.6, 90.9,   "et ignore la valeur suivante, « Non renseigné »."],
+  [91.0, 95.7,   "Pour l’outil, qui n’affiche que des emails, deux valeurs suffisent."],
+  [96.4, 100.4,  "Attention : <code>COALESCE()</code> ne remplace que les valeurs <code>NULL</code>."],
+  [100.5, 105.2, "Un texte vide <code>''</code> ne contient aucun caractère,<br>mais ce n’est pas <code>NULL</code>."],
+  [105.3, 109.6, "<code>COALESCE()</code> le conserve donc."],
+  [110.3, 115.4, "La requête complète affiche le prénom, puis l’email ou « Non renseigné »."],
+  [115.5, 120.0, "Résultat : <b>10 lignes</b>. Hugo et Inès affichent « Non renseigné »."],
+  [120.1, 123.5, "L’outil n’affiche plus aucune case vide."],
+  [123.6, 128.1, "Et la <b>table clients</b> ne change pas : l’email de Hugo reste <code>NULL</code>."],
+  [128.8, 133.6, "Pour finir, voici les <b>trois idées à retenir</b>."],
+  APP ? [133.7, 999, "Garde ces trois idées sous la main : <b>ajoute-les à tes notes</b>."]
+      : [133.7, 999, "Avec <code>COALESCE()</code>, une valeur absente laisse place à une valeur de secours."]
 ];
 
 /* Pas de question en pleine vidéo : la lecture n’est jamais interrompue (les questions sont dans le quiz, après l’exercice). */
@@ -413,105 +416,105 @@ function build(){
   te = typeLine($('#s4l1'), 68.7, 30);
   te = typeLine($('#s4l2'), te + 0.1, 30);
   te = typeLine($('#s4l3'), te + 0.1, 30);
-  // De gauche à droite : l’email, puis le téléphone, puis « Non renseigné »
-  pulse('#a4a', 71.6, 1, 'rgba(201,188,255,.3)');
-  pulse('#a4b', 72.2, 1, 'rgba(201,188,255,.3)');
-  pulse('#a4c', 72.8, 1, 'rgba(255,224,138,.25)');
+  // Dans l’ordre indiqué : l’email, puis le téléphone, puis « Non renseigné »
+  pulse('#a4a', 72.1, 1, 'rgba(201,188,255,.3)');
+  pulse('#a4b', 72.8, 1, 'rgba(201,188,255,.3)');
+  pulse('#a4c', 73.5, 1, 'rgba(255,224,138,.25)');
   // Hugo
-  show('#cc4', 73.5, {y: 40});
-  cue(73.5, 'whoosh', 0.6);
-  tl.to('#bd4', {scaleX: 1, duration: 0.45, ease: 'expo.out'}, 74.4);
-  tl.to('#fd4a', {borderColor: '#F6A5AB', backgroundColor: '#FDEBEC', duration: 0.3}, 74.8);
-  mark('#mk4a', 75.4, 'miss');
-  tl.to('#bd4', {y: 56, duration: 0.4, ease: 'power2.inOut'}, 76.5);
-  tl.to('#fd4a', {borderColor: 'rgba(246,165,171,0)', backgroundColor: '#F1EEFC', duration: 0.3}, 76.5);
-  tl.to('#fd4b', {borderColor: '#A7E3C0', backgroundColor: '#E7F7EE', duration: 0.3}, 76.8);
-  // Le téléphone s’affiche ; « Non renseigné » n’est pas atteint
-  mark('#mk4b', 79.0, 'success');
-  flip($('#sw4'), 80.2, false);
-  cue(80.3, 'chord', 0.6);
-  tl.to('#bd4', {opacity: 0, duration: 0.3}, 81.8);
-  tl.to('#s4l3', {opacity: 0.3, duration: 0.4}, 82.2);
-  mark('#mk4c', 82.6, 'miss');
+  show('#cc4', 77.6, {y: 40});
+  cue(77.6, 'whoosh', 0.6);
+  tl.to('#bd4', {scaleX: 1, duration: 0.45, ease: 'expo.out'}, 78.5);
+  tl.to('#fd4a', {borderColor: '#F6A5AB', backgroundColor: '#FDEBEC', duration: 0.3}, 78.9);
+  mark('#mk4a', 79.5, 'miss');
+  tl.to('#bd4', {y: 56, duration: 0.4, ease: 'power2.inOut'}, 80.6);
+  tl.to('#fd4a', {borderColor: 'rgba(246,165,171,0)', backgroundColor: '#F1EEFC', duration: 0.3}, 80.6);
+  tl.to('#fd4b', {borderColor: '#A7E3C0', backgroundColor: '#E7F7EE', duration: 0.3}, 80.9);
+  // Le téléphone s’affiche ; la valeur suivante, « Non renseigné », est ignorée
+  mark('#mk4b', 83.1, 'success');
+  flip($('#sw4'), 84.3, false);
+  cue(84.4, 'chord', 0.6);
+  tl.to('#bd4', {opacity: 0, duration: 0.3}, 88.1);
+  tl.to('#s4l3', {opacity: 0.3, duration: 0.4}, 88.5);
+  mark('#mk4c', 88.9, 'miss');
   // Pour l’outil : deux valeurs suffisent
-  tl.to(['#mk4a', '#mk4b', '#mk4c'], {autoAlpha: 0, duration: 0.25}, 84.2);
-  hide('#cc4', 84.2, {y: 30}, 0.35);
-  tl.to('#s4l3', {opacity: 1, duration: 0.3}, 84.4);
-  tl.to('#s4l2', {opacity: 0, duration: 0.3}, 84.8);
-  tl.set('#s4l2', {overflow: 'hidden'}, 85.1);
-  tl.to('#s4l2', {height: 0, duration: 0.45, ease: 'power2.inOut'}, 85.1);
-  cue(85.1, 'whoosh', 0.5);
-  pulse(['#a4a', '#a4c'], 86.2, 3, 'rgba(201,188,255,.3)');
-  hide('#s4code', 88.7, {y: -40}, 0.4);
-  sceneOff('#s4', 89.2);
+  tl.to(['#mk4a', '#mk4b', '#mk4c'], {autoAlpha: 0, duration: 0.25}, 91.1);
+  hide('#cc4', 91.1, {y: 30}, 0.35);
+  tl.to('#s4l3', {opacity: 1, duration: 0.3}, 91.3);
+  tl.to('#s4l2', {opacity: 0, duration: 0.3}, 91.7);
+  tl.set('#s4l2', {overflow: 'hidden'}, 92.0);
+  tl.to('#s4l2', {height: 0, duration: 0.45, ease: 'power2.inOut'}, 92.0);
+  cue(92.0, 'whoosh', 0.5);
+  pulse(['#a4a', '#a4c'], 93.1, 3, 'rgba(201,188,255,.3)');
+  hide('#s4code', 95.6, {y: -40}, 0.4);
+  sceneOff('#s4', 96.1);
 
   /* ===== 5 · Le texte vide ===== */
-  sceneOn('#s5', 89.2);
-  show('#cmp5', 89.25, {y: 50});
-  cue(89.25, 'whoosh', 0.6);
+  sceneOn('#s5', 96.1);
+  show('#cmp5', 96.15, {y: 50});
+  cue(96.15, 'whoosh', 0.6);
   // NULL : remplacé
-  show('#cr1', 89.9, {y: 16}, 0.4);
-  show('#cr1 .car', 90.6, {y: 0, x: -14}, 0.3, 'power2.out');
-  show('#cr1 .crs', 91.0, {y: 0, scale: 0.85}, 0.4, 'back.out(2)');
-  cue(91.0, 'success', 0.6);
-  show('#cn1', 91.6, {y: 8}, 0.35);
+  show('#cr1', 96.8, {y: 16}, 0.4);
+  show('#cr1 .car', 97.5, {y: 0, x: -14}, 0.3, 'power2.out');
+  show('#cr1 .crs', 97.9, {y: 0, scale: 0.85}, 0.4, 'back.out(2)');
+  cue(97.9, 'success', 0.6);
+  show('#cn1', 98.5, {y: 8}, 0.35);
   // '' : un texte de zéro caractère
-  show('#cr2', 93.9, {y: 16}, 0.4);
-  pulse('#q5', 95.0, 3, 'rgba(255,224,138,.3)');
-  show('#cn2', 95.8, {y: 8}, 0.35);
-  // Gardé tel quel : la case reste vide
-  show('#cr2 .car', 98.7, {y: 0, x: -14}, 0.3, 'power2.out');
-  show('#crs2', 99.1, {y: 0, scale: 0.85}, 0.4, 'back.out(2)');
-  tl.to('#crs2', {borderColor: '#F6A5AB', backgroundColor: '#FDEBEC', duration: 0.3}, 99.7);
-  tl.to('#crs2', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 99.75);
-  cue(99.7, 'miss', 0.7);
-  show('#err5', 100.4, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
-  cue(100.4, 'error', 0.8);
-  hide('#cmp5', 102.6);
-  sceneOff('#s5', 103.1);
+  show('#cr2', 100.8, {y: 16}, 0.4);
+  pulse('#q5', 101.9, 3, 'rgba(255,224,138,.3)');
+  show('#cn2', 102.7, {y: 8}, 0.35);
+  // COALESCE() le conserve : la case reste vide
+  show('#cr2 .car', 105.6, {y: 0, x: -14}, 0.3, 'power2.out');
+  show('#crs2', 106.0, {y: 0, scale: 0.85}, 0.4, 'back.out(2)');
+  tl.to('#crs2', {borderColor: '#F6A5AB', backgroundColor: '#FDEBEC', duration: 0.3}, 106.6);
+  tl.to('#crs2', {x: 12, duration: 0.05, yoyo: true, repeat: 5, ease: 'none'}, 106.65);
+  cue(106.6, 'miss', 0.7);
+  show('#err5', 107.3, {y: 0, scale: 0.92}, 0.4, 'back.out(1.8)');
+  cue(107.3, 'error', 0.8);
+  hide('#cmp5', 109.5);
+  sceneOff('#s5', 110.0);
 
   /* ===== 6 · Le résultat ===== */
-  sceneOn('#s6', 103.1);
-  show('#s6code', 103.15, {y: 60}, 0.6);
-  cue(103.15, 'whoosh', 0.7);
-  te = typeLine($('#s6l1'), 103.7, 34);
+  sceneOn('#s6', 110.0);
+  show('#s6code', 110.05, {y: 60}, 0.6);
+  cue(110.05, 'whoosh', 0.7);
+  te = typeLine($('#s6l1'), 110.6, 34);
   te = typeLine($('#s6l2'), te + 0.1, 34);
   te = typeLine($('#s6l3'), te + 0.1, 34);
-  pulse('#c6', 106.4, 3, 'rgba(201,188,255,.3)');
-  press($('#s6run'), 107.6);
-  show('#tbl6', 107.85, {y: 40}, 0.5);
+  pulse('#c6', 113.3, 3, 'rgba(201,188,255,.3)');
+  press($('#s6run'), 114.5);
+  show('#tbl6', 114.75, {y: 40}, 0.5);
   const tr6 = $$('#rows6 .tr');
   gsap.set(tr6, {autoAlpha: 0, y: 14});
-  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.05}, 108.0);
-  tr6.forEach((_, i) => cue(108.0 + i * 0.05, 'tick', 0.45, i % 5));
-  show('#cnt6', 108.5, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
-  pulse('#rows6 .av', 110.4, 3, 'rgba(201,188,255,.45)');
-  cue(110.4, 'pop', 0.7, 3);
-  hide(['#s6code', '#tbl6'], 113.0, {y: -40}, 0.4);
+  tl.to(tr6, {autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out', stagger: 0.05}, 114.9);
+  tr6.forEach((_, i) => cue(114.9 + i * 0.05, 'tick', 0.45, i % 5));
+  show('#cnt6', 115.4, {y: 0, scale: 0.6}, 0.4, 'back.out(2)');
+  pulse('#rows6 .av', 117.3, 3, 'rgba(201,188,255,.45)');
+  cue(117.3, 'pop', 0.7, 3);
+  hide(['#s6code', '#tbl6'], 119.9, {y: -40}, 0.4);
   // Dans l’outil : plus aucune case vide
-  show('#tool6', 113.4, {y: 50});
-  cue(113.4, 'whoosh', 0.7);
-  $$('#tool6 .sw').forEach((sw, i) => flip(sw, 114.0 + i * 0.25, true));
+  show('#tool6', 120.3, {y: 50});
+  cue(120.3, 'whoosh', 0.7);
+  $$('#tool6 .sw').forEach((sw, i) => flip(sw, 120.9 + i * 0.25, true));
   stackBelow('#badge6', '#tool6', 0, 50);
-  show('#badge6', 114.8, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
-  cue(114.8, 'chord', 0.7);
+  show('#badge6', 121.7, {y: 0, scale: 0.6}, 0.5, 'back.out(1.9)');
+  cue(121.7, 'chord', 0.7);
   // La table, elle, ne change pas
   stackBelow('#lock6', '#badge6', 0, 49);   // 40 px sous la pastille, ombre comprise
-  show('#lock6', 117.0, {y: 40});
-  cue(117.0, 'whoosh', 0.5);
-  bump('#nul6', 118.6, 1.15, 3);
-  hide(['#tool6', '#badge6', '#lock6'], 121.1);
-  sceneOff('#s6', 121.6);
+  show('#lock6', 123.9, {y: 40});
+  cue(123.9, 'whoosh', 0.5);
+  bump('#nul6', 125.5, 1.15, 3);
+  hide(['#tool6', '#badge6', '#lock6'], 128.0);
+  sceneOff('#s6', 128.5);
 
   /* ===== 7 · À retenir ===== */
-  recapScene(121.6, [122.3, 124.1, 125.9]);
-  hold(123.9, 2.9);
-  hold(125.7, 2.9);
+  recapScene(128.5, [129.2, 131.0, 132.8]);
+  hold(130.8, 2.9);
+  hold(132.6, 2.9);
   // Le bouton « Ajouter dans notes » de l’app apparaît ici, sous le récapitulatif.
-  if (APP) cue(126.85, 'pop', 0.85, 5);
+  if (APP) cue(133.75, 'pop', 0.85, 5);
 }
 
-Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 126.8,
+Course({duration: DURATION, chapters: CHAPTERS, captions: CAPTIONS, questions: QUESTIONS, notesAt: 133.7,
   glyphs: '👤✉️🔎⚠️🔒🥇🪞✓✕–→·…?', dom, build});
 </script>
 </body>
