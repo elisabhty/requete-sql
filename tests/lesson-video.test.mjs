@@ -666,6 +666,17 @@ const COURSES = [
       '<span class="glow" id="o3"><span class="kw">ON</span> c1.client_id = c2.client_id</span>', '<span class="dp rd">elle-même</span>',
       '<span class="sw" id="op5"><span class="a">&lt;&gt;</span><span class="b">&lt;</span></span>',
       '<span class="glow" id="w6"><span class="kw">AND</span> c1.id &lt; c2.id</span>', '✓ 6 clients, un envoi chacun']},
+  {id: 49, next: 44, titre: 'Plusieurs conditions dans ON', page: 'plusieurs-conditions-on.html', thumb: 'plusieurs-conditions-on-thumb.jpg', duree: '2 min 45', notesAt: 149.5,
+    notes: /notes:\{t:160\.2,y:1340,card:\[64,292,1016,1045\],to:\[940,255\]\}/, table: 'commandes',
+    bubble: 'Avec <span class="ic">AND</span>, une jointure peut vérifier<br>plusieurs conditions à la fois.',
+    chapters: ['Situation', 'Le problème', 'AND en action', 'Une troisième condition', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<span>Coursier express</span><span class="tb tc" id="tb1">table commandes</span>', "const PARIS = LIGNES.filter(l => l[3] === 'Paris');",
+      '<span class="glow" id="o2"><span class="kw">ON</span> commandes.client_id = clients.id</span>;',
+      '<span class="glow" id="a3"><span class="kw">AND</span> clients.ville = <span class="str">\'Paris\'</span></span>',
+      '<span class="ck-out no"><span class="sw"><span class="a">?</span><span class="b">✕ Pas reliées</span></span></span>',
+      '<span class="glow" id="w4"><span class="kw">AND</span> commandes.statut = <span class="str">\'en_preparation\'</span></span>',
+      '<span class="glow" id="or5"><span class="kw">OR</span> clients.ville = <span class="str">\'Paris\'</span></span>', '<span class="n5">72 lignes</span>',
+      '✓ 2 commandes pour le coursier']},
 ];
 
 for (const c of COURSES) {
