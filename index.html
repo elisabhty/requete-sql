@@ -10556,6 +10556,11 @@ guide({ id:20, titre:"LEFT JOIN", résumé:"Garder même sans correspondance",
   learningCheck:{question:"Avec clients LEFT JOIN fidelite, que devient un client qui n’a aucune carte ?",options:["Il disparaît du résultat","Il reste, avec NULL côté carte","Il reste, avec 0 point"],answer:1,explanation:"La table clients, à gauche, est conservée en entier : sans carte correspondante, les colonnes de fidelite valent NULL."}
 }),
 guide({ id:38, titre:"RIGHT JOIN", résumé:"Tout garder à droite",
+  /* Cours en vidéo : l’animation (assets/anim/right-join.html, moteur commun assets/anim/core.js) remplace le texte du cours.
+     La vidéo suit les factures de l’été ; le texte ci-dessous (les colis à préparer) reste pour le cas où la vidéo ne se charge pas. */
+  video:{anim:'assets/anim/right-join.html?app&embed',thumb:'assets/anim/right-join-thumb.jpg',duree:'3 min 04',
+    /* « Ajouter dans notes » : apparaît à 2 min 56 (176,0 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:176.0,y:1394,card:[64,292,1016,1099],to:[940,255]}},
   sit:{
     blocks:[
       "L’équipe logistique prépare les commandes avant leur expédition. Pour <b>chaque commande</b>, elle veut retrouver le client qui l’a passée.",
@@ -10637,9 +10642,9 @@ guide({ id:38, titre:"RIGHT JOIN", résumé:"Tout garder à droite",
   ],
   reflex:[
     {recap:[
-      ["➡️","<code>RIGHT JOIN</code> garde <b>toutes les lignes de la table de droite</b>, même sans correspondance.","Tu veux tout garder à gauche ? <code>LEFT JOIN</code>. À droite ? <code>RIGHT JOIN</code>."],
-      ["🕳️","Sans correspondance, les informations venant de la table de gauche valent <code>NULL</code>.","Ici, la commande #16 reste dans le résultat, avec un prénom <code>NULL</code>."],
-      ["🔗","<code>ON</code> indique comment les lignes des deux tables sont reliées :",null,"ON clients.id = commandes.client_id"]
+      ["➡️","<code>RIGHT JOIN</code> conserve <b>toutes les lignes de la table de droite</b>, même sans correspondance dans la table de gauche.","Sans correspondance, les colonnes de gauche contiennent <code>NULL</code>."],
+      ["🔗","<code>ON</code> définit la <b>condition</b> qui permet d’associer les lignes des deux tables :",null,"ON clients.id = commandes.client_id"],
+      ["🔎","<code>WHERE clients.id IS NULL</code> ne conserve que les <b>commandes sans client</b> : aucune ligne de la table clients ne leur correspond."]
     ],label:"Les trois idées à retenir"}
   ],
   anatomie:[{tok:"SELECT produits.nom, commandes.quantite",txt:"Le nom du produit et la quantité de sa commande."},{tok:"FROM commandes",txt:"La table de gauche : on ajoute ses informations quand une correspondance existe."},{tok:"RIGHT JOIN produits",txt:"La table de droite : tous ses produits sont gardés."},{tok:"ON commandes.produit_id = produits.id",txt:"Le lien : le produit_id de la commande et l’id du produit. Sans commande, la quantité vaudrait NULL."}],
@@ -27904,7 +27909,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1755';
+  const SW_CACHE='requete-2026-10-12-ludique-v1756';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

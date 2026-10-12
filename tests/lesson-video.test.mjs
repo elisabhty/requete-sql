@@ -612,6 +612,15 @@ const COURSES = [
       '<span class="glow" id="lw3">LEFT</span>', '<span class="glow" id="o3"><span class="kw">ON</span> clients.id = fidelite.client_id</span>', '<span>👥 10 clients, 10 lignes</span>',
       '<span class="glow" id="w4"><span class="kw">WHERE</span> fidelite.id <span class="kw">IS NULL</span></span>',
       '<span class="glow" id="f5"><span class="kw">FROM</span> fidelite</span>', 'Les 6 clients sans carte ont disparu', '✓ 4 clients sur 10 ont une carte']},
+  {id: 38, next: 39, titre: 'RIGHT JOIN', page: 'right-join.html', thumb: 'right-join-thumb.jpg', duree: '3 min 04', notesAt: 165.3,
+    notes: /notes:\{t:176\.0,y:1394,card:\[64,292,1016,1099\],to:\[940,255\]\}/, table: 'commandes',
+    bubble: 'Avec <span class="ic">RIGHT JOIN</span>, toutes les lignes<br>de la table de droite sont conservées.',
+    chapters: ['Situation', 'Le problème', 'RIGHT JOIN en action', 'Commande sans client', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<span>Factures de l’été</span><span class="tb tc" id="tb1">table commandes</span>', "const ORDRE = [1, 2, 13, 3, 10, 4, 14, 5, 12, 6, 15, 7, 8, 9, 11, 16];",
+      '<span class="glow" id="j2"><span class="kw">INNER JOIN</span> commandes</span>', '<span class="kw"><span class="glow" id="rw3">RIGHT</span> JOIN</span> <span class="glow" id="t3">commandes</span>',
+      '<span class="glow" id="o3"><span class="kw">ON</span> clients.id = commandes.client_id</span>', '<span>🧾 16 commandes, 16 lignes</span>',
+      '<span class="glow" id="w4"><span class="kw">WHERE</span> clients.id <span class="kw">IS NULL</span></span>',
+      '<span class="kw">RIGHT JOIN</span> <span class="glow" id="c5">clients</span>', 'La commande 16 a disparu', '✓ 16 factures, dont 1 à compléter']},
 ];
 
 for (const c of COURSES) {
