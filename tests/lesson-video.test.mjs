@@ -603,6 +603,15 @@ const COURSES = [
       '<span class="qm" id="qm4"><span class="sw"><span class="a">?</span><span class="b">✕</span></span></span>',
       '<b>Erreur SQL</b><span class="m">ambiguous column name: id</span>', '<span class="glow" id="id5"><span id="pre5">commandes.</span>id</span>, nom',
       '<span>🤝 4 correspondances, 4 lignes</span>', '✓ 4 étiquettes imprimées']},
+  {id: 20, next: 38, titre: 'LEFT JOIN', page: 'left-join.html', thumb: 'left-join-thumb.jpg', duree: '2 min 18', notesAt: 121.4,
+    notes: /notes:\{t:130\.2,y:1370,card:\[64,300,1016,1075\],to:\[940,255\]\}/, table: 'clients',
+    bubble: 'Avec <span class="ic">LEFT JOIN</span>, garde aussi les lignes sans correspondance.',
+    chapters: ['Situation', 'Le problème', 'LEFT JOIN en action', 'Clients sans carte', 'Le piège', 'Le résultat', 'À retenir'],
+    traps: ['<span>Bilan fidélité</span><span class="tb" id="tb1">table clients</span>', 'const CARTES = [[1, 1, 120], [2, 2, 80], [3, 4, 250], [4, 7, 160]];',
+      '<span class="glow" id="j2"><span class="kw">INNER JOIN</span> fidelite</span>', '<span class="glow" id="f3"><span class="kw">FROM</span> clients</span>',
+      '<span class="glow" id="lw3">LEFT</span>', '<span>👥 10 clients, 10 lignes</span>',
+      '<span class="glow" id="w4"><span class="kw">WHERE</span> fidelite.id <span class="kw">IS NULL</span></span>',
+      '<span class="glow" id="f5"><span class="kw">FROM</span> fidelite</span>', 'Les 6 clients sans carte ont disparu', '✓ 4 clients sur 10 ont une carte']},
 ];
 
 for (const c of COURSES) {
