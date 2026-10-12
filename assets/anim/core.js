@@ -46,7 +46,7 @@ const frText = t => glueQuotes(glueShort(t.replace(/ ([:?!;»])/g, NB + '$1').re
 /* Légendes : une expression ne se coupe pas d’une ligne à l’autre. Certains mots ne terminent jamais une ligne
    (« du plus / cher », « la même / ville », « les deux / colonnes », « puis / le nouveau nom »),
    d’autres ne la commencent jamais (« ne livre / pas », « la valeur / suivante »), et un nombre reste collé au mot
-   qui le précède (« donne / 24 », « il reste / 2 produits »). */
+   qui le précède (« donne / 24 », « il reste / 2 produits », « la commande / n°16 »). */
 const CAP_GLUE_NEXT = new Set(('très tout tous toute toutes deux trois quatre cinq six autre autres même mêmes plusieurs certains certaines quelques ' +
   'seul seule seuls seules aucun aucune propre premier première premiers premières dernier dernière nulle tel telle ' +
   'puis qu’un qu’une d’un d’une l’un l’une').split(' '));
@@ -58,6 +58,7 @@ const capText = t => {
   t = t.replace(/((?:^|[ \u00a0])(?:le|la|les|du|au|aux|des)[ \u00a0](?:plus|moins)) +/gi, '$1' + NB);   // du plus cher, la plus ancienne
   t = t.replace(/(\b(?:plus|moins)) +(?=d[e’'])/gi, '$1' + NB);   // plus de 30 ans
   t = t.replace(/([\p{L}°%)]) +(?=\d)/gu, '$1' + NB);
+  t = t.replace(/(\p{L}) +(?=n°\d)/gu, '$1' + NB);   // la commande n°16 : le numéro reste avec son nom
   CAP_PHRASES.forEach(p => { t = t.replace(new RegExp(p.replace(/ /g, '[  ]'), 'gi'), m => m.replace(/ /g, NB)); });
   return t;
 };

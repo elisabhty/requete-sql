@@ -254,7 +254,7 @@
 'use strict';
 const DURATION = 127.9;
 
-/* Commandes en préparation [id, client_id] (la 16 n’a pas de client), puis les 6 premiers clients [id, prénom, nom]. */
+/* Commandes en préparation [id, client_id] (la n°16 n’a pas de client), puis les 6 premiers clients [id, prénom, nom]. */
 const PREP = [[12, 4], [13, 1], [14, 3], [15, 5], [16, null]];
 const CLIENTS = [[1, 'Sophie', 'Martin'], [2, 'Lucas', 'Bernard'], [3, 'Emma', 'Dubois'], [4, 'Nathan', 'Petit'], [5, 'Chloé', 'Moreau'], [6, 'Hugo', 'Laurent']];
 const ADRESSE = {4: ['5 rue Victor Hugo', 'Paris'], 1: ['12 rue des Lilas', 'Paris'], 3: ['27 rue Gambetta', 'Marseille'], 5: ['19 rue Pasteur', 'Bordeaux']};
@@ -285,9 +285,9 @@ const CAPTIONS = [
   [38.8, 43.5,   "<code>client_id</code> renvoie à l’<code>id</code> d’un client : il faut <b>relier les deux tables</b>."],
   [44.2, 48.7,   "<code>INNER JOIN</code> ajoute la table clients à la requête, juste après <code>FROM</code>."],
   [48.8, 52.9,   "<code>ON</code> relie chaque commande au client qui porte <b>le même numéro</b>."],
-  [53.0, 58.3,   "La commande 12 porte le <code>client_id</code> 4 : elle est reliée au client 4, <b>Nathan Petit</b>."],
+  [53.0, 58.3,   "Pour la commande n°12, <code>client_id</code> vaut 4 : elle est reliée à <b>Nathan Petit</b>."],
   [58.4, 65.0,   "Lorsque deux lignes correspondent, leurs informations sont réunies sur <b>une même ligne</b> dans le résultat."],
-  [65.7, 70.2,   "La commande 16, elle, n’a pas de client : son <code>client_id</code> vaut <code>NULL</code>."],
+  [65.7, 70.2,   "La commande n°16, elle, n’a pas de client : son <code>client_id</code> vaut <code>NULL</code>."],
   [70.3, 74.7,   "Aucun client ne lui correspond : <code>INNER JOIN</code> l’<b>écarte</b> du résultat."],
   [74.8, 79.7,   "Lucas et Hugo, sans commande en préparation, sont écartés eux aussi."],
   [79.8, 84.4,   "Ne restent que les lignes qui ont une <b>correspondance des deux côtés</b>."],
@@ -308,7 +308,7 @@ const QUESTIONS = [];
 function dom(){
   /* Chapitre 1 : les commandes à étiqueter */
   $('#lb1').insertAdjacentHTML('beforeend', PREP.map(([id]) =>
-    `<div class="lr"><span class="emo">📦</span><span class="lc">Commande ${id}</span><span class="pq">prénom, nom et adresse&nbsp;?</span></div>`).join(''));
+    `<div class="lr"><span class="emo">📦</span><span class="lc">Commande n°${id}</span><span class="pq">prénom, nom et adresse&nbsp;?</span></div>`).join(''));
   /* Chapitre 2 : la table commandes seule */
   $('#rows2').insertAdjacentHTML('beforeend', PREP.map(([id, c]) =>
     `<div class="rgB tr tb2"><div>${id}</div><div>${c === null ? '<span class="nul">NULL</span>' : c}</div></div>`).join(''));
@@ -323,7 +323,7 @@ function dom(){
   $('#rows6').innerHTML = PAIRES.map(([id, c]) =>
     `<div class="rgR tr tr6"><div>${id}</div><div>${PRENOM[c]}</div><div>${NOM[c]}</div><div>${ADRESSE[c][0]}</div><div>${ADRESSE[c][1]}</div></div>`).join('');
   $('#labs6').innerHTML = PAIRES.map(([id, c]) =>
-    `<div class="lab"><div class="lh"><span class="emo">📦</span>Commande ${id}</div><div class="lnm">${PRENOM[c]} ${NOM[c].toUpperCase()}</div><div class="lad">${ADRESSE[c][0]}</div><div class="lv">${ADRESSE[c][1].toUpperCase()}</div><div class="bc"></div></div>`).join('');
+    `<div class="lab"><div class="lh"><span class="emo">📦</span>Commande n°${id}</div><div class="lnm">${PRENOM[c]} ${NOM[c].toUpperCase()}</div><div class="lad">${ADRESSE[c][0]}</div><div class="lv">${ADRESSE[c][1].toUpperCase()}</div><div class="bc"></div></div>`).join('');
 }
 
 const pulse = (sel, t, n = 3, c = 'rgba(201,188,255,.35)') => tl.to(sel, {backgroundColor: c, duration: 0.25, yoyo: true, repeat: n, ease: 'power1.inOut'}, t);
@@ -449,7 +449,7 @@ function build(){
   pulse('#o3a', 50.8, 3, 'rgba(255,214,140,.4)');
   pulse('#o3b', 51.5, 3, 'rgba(201,188,255,.4)');
   hide('#s3code', 52.5, {y: -40}, 0.4);
-  // Les deux tables, puis la commande 12 reliée au client 4
+  // Les deux tables, puis la commande n°12 reliée au client 4
   show('#lk3', 53.0, {y: 50});
   cue(53.0, 'whoosh', 0.7);
   gsap.set([...cmR, ...clR, '#lk3 .gh'], {autoAlpha: 0, y: 10});
@@ -482,7 +482,7 @@ function build(){
   sceneOff('#s3', 65.4);
 
   /* ===== 4 · Sans correspondance ===== */
-  // La commande 16 : client_id vaut NULL
+  // La commande n°16 : client_id vaut NULL
   tl.to(cmR[4].querySelector('.bg'), {opacity: 1, duration: 0.3}, 66.2);
   cue(66.2, 'tick', 0.5, 1);
   bump(cmR[4].querySelector('.fkv'), 67.2, 1.2, 1);
@@ -490,7 +490,7 @@ function build(){
   tl.to('#qm4', {autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2.2)'}, 68.0);
   cue(68.0, 'miss', 0.55);
   tl.to('#qm4', {rotation: 12, duration: 0.12, yoyo: true, repeat: 5, ease: 'power1.inOut'}, 68.7);
-  // Aucun client : la commande 16 est écartée
+  // Aucun client : la commande n°16 est écartée
   flip($('#qm4 .sw'), 70.8, false);
   tl.set('#qm4', {borderStyle: 'solid'}, 70.9);
   tl.to('#qm4', {backgroundColor: '#FDEBEC', duration: 0.2}, 70.9);

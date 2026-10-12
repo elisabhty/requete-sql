@@ -75,8 +75,8 @@ FROM (
 print(json.dumps({'amounts': amounts, 'sum': sum(row[1] for row in amounts), 'average': average}, ensure_ascii=False))
 `);
   assert(result.amounts?.length === 16, 'la sous-requête produit exactement 16 montants');
-  assert(Math.abs(result.amounts?.[0]?.[1] - 59.8) < 1e-9, 'la commande #1 produit 59,80');
-  assert(Math.abs(result.amounts?.[11]?.[1] - 39.9) < 1e-9, 'la commande #12 produit 39,90');
+  assert(Math.abs(result.amounts?.[0]?.[1] - 59.8) < 1e-9, 'la commande n°1 produit 59,80');
+  assert(Math.abs(result.amounts?.[11]?.[1] - 39.9) < 1e-9, 'la commande n°12 produit 39,90');
   assert(Math.abs(result.sum - 747.5) < 1e-9, 'les 16 montants totalisent 747,50');
   assert(Math.abs(result.average - 46.71875) < 1e-9, 'AVG retourne exactement 46,71875');
 }

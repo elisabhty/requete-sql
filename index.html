@@ -7624,7 +7624,7 @@ guide({ id:0, titre:"Les bases de données relationnelles", résumé:"Tables, co
       "Pour relier deux tables sans recopier d’informations, on utilise des <b>clés</b> :",
       {scene:{h:"🔗 Des tables reliées",cols:".8fr 1fr 1.2fr",
         lanes:[{k:"P",l:"Table clients · clé primaire id",c:[["p1","id 1"],["p2","Sophie"],["p3","Paris"]]},
-          {k:"F",l:"Table commandes · clé étrangère client_id",c:[["f1","commande 1"],["f2","client_id 1"],["f3","→ Sophie","h"]]}],
+          {k:"F",l:"Table commandes · clé étrangère client_id",c:[["f1","commande n°1"],["f2","client_id 1"],["f3","→ Sophie","h"]]}],
         caps:["<b>Clé primaire</b> · <b>clients.id</b> identifie chaque client de façon unique : le 1, c’est Sophie.","<b>Clé étrangère</b> · <b>commandes.client_id</b> contient le numéro du client qui a passé la commande.","<b>Le lien</b> · Le numéro 1 renvoie à la ligne 1 de clients : cette commande est celle de Sophie."],
         steps:[{cap:0,on:["P"],d:2100},{cap:1,off:["P"],on:["F"],d:2300},{cap:2,on:["P"],show:["f3"],d:2800}]}},
       {looks:[["Clé primaire (PK)","identifie une ligne dans sa propre table"],["Clé étrangère (FK)","renvoie vers la clé primaire d’une autre table"]],label:"Les deux clés"}
@@ -9277,9 +9277,9 @@ guide({ id:53, titre:"Fonctions de dates et heures", résumé:"Obtenir, extraire
       p:["Avec <code>SELECT</code>, SQL affiche les dates telles qu’elles sont enregistrées, par exemple <code>2026-07-02</code>.","Or, l’équipe veut <b>calculer</b> une nouvelle date : celle de la commande, <b>plus 7 jours</b>."],
       scene:{h:"⏰ Dates de suivi",cols:".8fr 1.1fr 1.1fr",
         lanes:[{c:[["h1","numéro","t"],["h2","date","t"],["h3","suivi","t"]]},
-          {k:"R1",c:[["a1","n° 1"],["a2","2026-07-02"],["a3","?","q"]]},
-          {k:"R2",c:[["b1","n° 3"],["b2","2026-07-05"],["b3","?","q"]]},
-          {k:"R3",c:[["c1","n° 4"],["c2","2026-07-08"],["c3","?","q"]]}],
+          {k:"R1",c:[["a1","n°1"],["a2","2026-07-02"],["a3","?","q"]]},
+          {k:"R2",c:[["b1","n°3"],["b2","2026-07-05"],["b3","?","q"]]},
+          {k:"R3",c:[["c1","n°4"],["c2","2026-07-08"],["c3","?","q"]]}],
         caps:["<b>Nos commandes</b> · Chacune a une date, mais pas de date de suivi.","<b>Besoin</b> · Le suivi doit avoir lieu 7 jours après la date de la commande.","<b>Résultat</b> · Chaque commande doit recevoir sa date de suivi, sans que la table change."],
         steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,d:2300},{cap:2,off:["R1","R2","R3"],on:["a3","b3","c3"],d:2600}]},
       then:["Il faut donc <b>calculer une date à partir d’une autre</b> : ajouter 7 jours.","C’est exactement le rôle des <b>fonctions de dates</b>, comme <code>DATE</code>."]
@@ -10251,7 +10251,7 @@ guide({ id:35, titre:"Clé étrangère", résumé:"Relier une ligne à la bonne 
           {k:"HC",l:"clients",c:[["","🔑 id","t"],["","prenom","t"]]},
           {k:"C1",c:[["d1","4"],["d2","Nathan"]]},
           {k:"C2",c:[["e1","7"],["e2","Léa"]]}],
-        caps:["<b>commandes.client_id</b> · Chaque commande porte le numéro de son client.","<b>REFERENCES clients(id)</b> · SQL cherche ce numéro dans la colonne id de la table clients.","<b>Résultat</b> · Les commandes 5 et 12 renvoient à la même ligne : Nathan."],
+        caps:["<b>commandes.client_id</b> · Chaque commande porte le numéro de son client.","<b>REFERENCES clients(id)</b> · SQL cherche ce numéro dans la colonne id de la table clients.","<b>Résultat</b> · Les commandes n°5 et n°12 renvoient à la même ligne : Nathan."],
         steps:[{cap:0,on:["a3","b3","c3"],d:1900},{cap:1,off:["b3"],dim:["O2"],fly:[["a3","d1"],["c3","d1"]],stagger:500,d:3200},{cap:2,on:["C1"],d:2400}]}},
       {looks:[["clients.id","la clé primaire : elle identifie un client"],["commandes.client_id","la clé étrangère : elle renvoie à un client"]],label:"Identifier ou renvoyer"}
     ]
@@ -10276,16 +10276,16 @@ guide({ id:35, titre:"Clé étrangère", résumé:"Relier une ligne à la bonne 
         {arrow:"Le colis 1 est rattaché à un client qui n’existe pas : il est orphelin."}
       ]}},
       {tip:{t:"Une clé étrangère peut rester vide",blocks:[
-        "Si la colonne l’autorise, une clé étrangère peut valoir <code>NULL</code> : la commande 16 n’est liée à aucun client, et la base l’accepte.",
+        "Si la colonne l’autorise, une clé étrangère peut valoir <code>NULL</code> : la commande n°16 n’est liée à aucun client, et la base l’accepte.",
         {say:"👇 Exécute cette requête pour la retrouver :",run:"SELECT id, client_id, statut\nFROM commandes\nWHERE client_id IS NULL;"}
       ]}}
     ]},
     {h:"Plusieurs clés étrangères",blocks:[
       "Une table peut avoir plusieurs clés étrangères.",
       {scene:{h:"🔀 Une commande, deux liens",cols:"1fr 1.2fr",
-        lanes:[{k:"A",l:"commande 12 → clients",c:[["a1","client_id 4"],["a2","?","q"]]},
-          {k:"B",l:"commande 12 → produits",c:[["b1","produit_id 2"],["b2","?","q"]]}],
-        caps:["<b>La commande 12</b> · Elle porte deux clés étrangères : <code>client_id</code> et <code>produit_id</code>.","<b>client_id</b> · Le numéro 4 renvoie à une ligne de la table clients.","<b>produit_id</b> · Le numéro 2 renvoie à une ligne de la table produits."],
+        lanes:[{k:"A",l:"commande n°12 → clients",c:[["a1","client_id 4"],["a2","?","q"]]},
+          {k:"B",l:"commande n°12 → produits",c:[["b1","produit_id 2"],["b2","?","q"]]}],
+        caps:["<b>La commande n°12</b> · Elle porte deux clés étrangères : <code>client_id</code> et <code>produit_id</code>.","<b>client_id</b> · Le numéro 4 renvoie à une ligne de la table clients.","<b>produit_id</b> · Le numéro 2 renvoie à une ligne de la table produits."],
         steps:[{cap:0,on:["a1","b1"],d:2000},{cap:1,off:["b1"],text:{a2:"Nathan"},d:2400},{cap:2,off:["a1"],on:["b1"],text:{b2:"Collagène Marin"},d:2600}]}},
       "SQLite garde ces déclarations dans le schéma de la table : on peut les lister.",
       {say:"👇 Exécute cette requête pour voir les clés étrangères de <code>commandes</code> :",run:"SELECT \"from\" AS colonne, \"table\" AS renvoie_vers, \"to\" AS cle_cible\nFROM pragma_foreign_key_list('commandes')\nORDER BY \"from\";"},
@@ -10318,12 +10318,12 @@ guide({ id:35, titre:"Clé étrangère", résumé:"Relier une ligne à la bonne 
   ],
   anatomie:[{tok:"SELECT id, produit_id, statut",txt:"Les colonnes affichées : la commande, son produit et son statut."},{tok:"FROM commandes",txt:"Les lignes lues sont les commandes."},{tok:"WHERE",txt:"Introduit le filtre appliqué aux lignes."},{tok:"client_id",plain:1,txt:"La clé étrangère : elle contient l’id du client."},{tok:"=",plain:1,txt:"Compare ce numéro à celui du client cherché."},{tok:"4",plain:1,txt:"L’id de Nathan dans la table clients."}],
   exemple:"SELECT id, produit_id, statut FROM commandes WHERE client_id = 4;",
-  attendu:"<b>2 lignes</b> : la commande 5 (<code>expédiée</code>) et la commande 12 (<code>en_preparation</code>), les deux commandes dont <code>client_id</code> vaut 4.",
+  attendu:"<b>2 lignes</b> : la commande n°5 (<code>expédiée</code>) et la commande n°12 (<code>en_preparation</code>), les deux commandes dont <code>client_id</code> vaut 4.",
   retenir:"Une <b>clé étrangère</b> est une colonne qui renvoie à la clé primaire d’une autre table : <code>commandes.client_id</code> renvoie à <code>clients.id</code>.<br><br>Sa valeur peut se répéter : plusieurs commandes peuvent appartenir au même client.<br><br>La base vérifie le lien : un client qui n’existe pas est refusé, sauf si la colonne reste vide (<code>NULL</code>).",
   consigne:"Léa, la cliente numéro 7, veut suivre ses commandes. Affiche l’<code>id</code>, le <code>produit_id</code> et la <code>quantite</code> de chacune d’elles.",
   solution:"SELECT id, produit_id, quantite FROM commandes WHERE client_id = 7;",
   indice:"Filtre sur la clé étrangère : <code>client_id</code> doit valoir 7.",
-  testeVariants:[{k:"cmd4",label:"Commandes du client 4",sql:"SELECT id, client_id, produit_id, statut\nFROM commandes\nWHERE client_id = 4;",out:"2 lignes : les commandes de Nathan",expectRows:2},{k:"cmd10",label:"Client sans commande",sql:"SELECT id, client_id\nFROM commandes\nWHERE client_id = 10;",out:"0 ligne : la référence est valide, mais ce client n’a pas commandé",expectRows:0},{k:"invite",label:"Commande sans client",sql:"SELECT id, client_id, produit_id\nFROM commandes\nWHERE client_id IS NULL;",out:"1 ligne : la commande 16, sans client enregistré",expectRows:1},{k:"colis",label:"Avec le prénom du client",sql:"SELECT clients.id, clients.prenom, commandes.id, commandes.produit_id, commandes.statut\nFROM commandes\nJOIN clients\n    ON commandes.client_id = clients.id\nWHERE clients.id = 4\n  AND commandes.statut = 'en_preparation';",out:"1 ligne : la commande 12, avec le prénom de Nathan (la jointure est vue plus loin)",tone:"good",expectRows:1}],
+  testeVariants:[{k:"cmd4",label:"Commandes du client 4",sql:"SELECT id, client_id, produit_id, statut\nFROM commandes\nWHERE client_id = 4;",out:"2 lignes : les commandes de Nathan",expectRows:2},{k:"cmd10",label:"Client sans commande",sql:"SELECT id, client_id\nFROM commandes\nWHERE client_id = 10;",out:"0 ligne : la référence est valide, mais ce client n’a pas commandé",expectRows:0},{k:"invite",label:"Commande sans client",sql:"SELECT id, client_id, produit_id\nFROM commandes\nWHERE client_id IS NULL;",out:"1 ligne : la commande n°16, sans client enregistré",expectRows:1},{k:"colis",label:"Avec le prénom du client",sql:"SELECT clients.id, clients.prenom, commandes.id, commandes.produit_id, commandes.statut\nFROM commandes\nJOIN clients\n    ON commandes.client_id = clients.id\nWHERE clients.id = 4\n  AND commandes.statut = 'en_preparation';",out:"1 ligne : la commande n°12, avec le prénom de Nathan (la jointure est vue plus loin)",tone:"good",expectRows:1}],
   learningCheck:{question:"Quelle colonne permet de savoir à quel client appartient chaque commande ?",options:["commandes.id","commandes.client_id","clients.prenom"],answer:1,explanation:"La clé étrangère client_id renvoie à clients.id : elle désigne le client qui a passé la commande."}
 })
 ]},
@@ -10371,7 +10371,7 @@ guide({ id:18, titre:"INNER JOIN", résumé:"Associer les lignes correspondantes
           {k:"HG",fold:true,cls:"is-goal",l:"résultat",c:[["","commande","t"],["","prenom","t"]]},
           {k:"G1",fold:true,cls:"is-goal",c:[["g1","?","q"],["g2","?","q"]]},
           {k:"G2",fold:true,cls:"is-goal",c:[["g3","?","q"],["g4","?","q"]]}],
-        caps:["<b>Deux tables</b> · Les commandes et les clients.","<b>ON</b> · SQL cherche, pour chaque commande, le client qui porte le même numéro : commande 1 et Sophie, commande 3 et Lucas.","<b>INNER JOIN</b> · Seules les paires sont gardées : la commande 16 et Inès n’ont pas de paire, elles sont écartées.","<b>Résultat</b> · Chaque paire devient une ligne qui réunit les informations des deux tables."],
+        caps:["<b>Deux tables</b> · Les commandes et les clients.","<b>ON</b> · SQL cherche, pour chaque commande, le client qui porte le même numéro : commande n°1 et Sophie, commande n°3 et Lucas.","<b>INNER JOIN</b> · Seules les paires sont gardées : la commande n°16 et Inès n’ont pas de paire, elles sont écartées.","<b>Résultat</b> · Chaque paire devient une ligne qui réunit les informations des deux tables."],
         steps:[{cap:0,on:["O1","O2","O3","C1","C2","C3"],d:2000},{cap:1,off:["O3","C3"],dim:["O3","C3"],d:2600},{cap:2,mark:{O3:"is-miss",C3:"is-miss"},d:2600},{cap:3,off:["O1","O2","C1","C2"],unfold:["HG","G1","G2"],flyDelay:1300,fly:[["a1","g1"],["d2","g2"],["b1","g3"],["e2","g4"]],d:3200}]}}
     ]
   },
@@ -10381,7 +10381,7 @@ guide({ id:18, titre:"INNER JOIN", résumé:"Associer les lignes correspondantes
       {syntax:"SELECT commandes.id, clients.prenom\nFROM commandes\n⟦INNER JOIN clients\n    ON commandes.client_id = clients.id⟧;"},
       {looks:[["INNER JOIN clients","ajoute la table clients à la requête"],["ON commandes.client_id = clients.id","relie chaque commande au client qui porte le même numéro"]]},
       {say:"👇 Exécute cette requête pour voir chaque commande avec le prénom de son client :",run:"SELECT commandes.id, clients.prenom\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id;"},
-      {arrow:"La commande 1 est celle de Sophie, la commande 3 celle de Lucas."},
+      {arrow:"La commande n°1 est celle de Sophie, la commande n°3 celle de Lucas."},
       {warn:{t:"Un même nom de colonne dans les deux tables",blocks:[
         "Les tables <code>commandes</code> et <code>clients</code> ont chacune une colonne <code>id</code>. Sans préciser la table, SQL ne sait pas laquelle choisir :",
         {say:"👇 Teste par toi-même :",run:"SELECT id, prenom\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id;"},
@@ -10392,7 +10392,7 @@ guide({ id:18, titre:"INNER JOIN", résumé:"Associer les lignes correspondantes
       "<code>INNER JOIN</code> ne garde que les lignes qui ont une correspondance <b>des deux côtés</b>. Comptons les lignes avant la jointure, puis après :",
       {say:"👇 Exécute cette requête pour compter les commandes :",run:"SELECT COUNT(*) AS commandes\nFROM commandes;"},
       {say:"👇 Puis celle-ci, pour compter les lignes de la jointure :",run:"SELECT COUNT(*) AS lignes\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id;"},
-      {arrow:"16 commandes, mais 15 lignes : la commande 16 n’a pas de client (<code>client_id</code> vaut <code>NULL</code>), aucune ligne de <code>clients</code> ne lui correspond, elle disparaît."},
+      {arrow:"16 commandes, mais 15 lignes : la commande n°16 n’a pas de client (<code>client_id</code> vaut <code>NULL</code>), aucune ligne de <code>clients</code> ne lui correspond, elle disparaît."},
       {tip:{t:"Un client, plusieurs lignes",blocks:[
         "Un client qui a passé plusieurs commandes apparaît sur plusieurs lignes : une par commande.",
         {say:"👇 Exécute cette requête pour retrouver les commandes de Sophie :",run:"SELECT clients.prenom, commandes.id\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE clients.prenom = 'Sophie';"},
@@ -10403,7 +10403,7 @@ guide({ id:18, titre:"INNER JOIN", résumé:"Associer les lignes correspondantes
       "La jointure relie les tables ; <code>WHERE</code> filtre ensuite les lignes obtenues. Il se place après <code>ON</code> :",
       {syntax:"FROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\n⟦WHERE commandes.statut = 'en_preparation'⟧"},
       {say:"👇 Exécute cette requête pour voir les commandes encore en préparation :",run:"SELECT commandes.id, clients.prenom, commandes.statut\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nWHERE commandes.statut = 'en_preparation';"},
-      {arrow:"Seules les commandes 12, 13, 14 et 15 restent. La commande 16 est aussi en préparation, mais la jointure l’avait déjà écartée."},
+      {arrow:"Seules les commandes n°12, n°13, n°14 et n°15 restent. La commande n°16 est aussi en préparation, mais la jointure l’avait déjà écartée."},
       {tip:{t:"JOIN tout court",blocks:["Écrire <code>JOIN</code> seul revient ici à écrire <code>INNER JOIN</code> : c’est la jointure par défaut."]}}
     ]},
     {h:"La requête complète",blocks:[
@@ -10414,7 +10414,7 @@ guide({ id:18, titre:"INNER JOIN", résumé:"Associer les lignes correspondantes
         funnel:[
           {n:16,t:"commandes au départ",s:"toute la <code>table commandes</code>",dots:"0000000000000000"},
           {step:"INNER JOIN clients",s:"relie chaque commande à son client et écarte celle qui n’en a pas"},
-          {n:15,t:"commandes avec leur client",s:"la commande 16, sans client, a disparu",dots:"000000000000000"},
+          {n:15,t:"commandes avec leur client",s:"la commande n°16, sans client, a disparu",dots:"000000000000000"},
           {step:"WHERE … BETWEEN",s:"ne garde que les commandes de juillet 2026"},
           {n:14,t:"⭐ enquêtes à envoyer",s:"une par commande de juillet, avec le prénom et l’email du client",dots:"111111111111110",out:true}
         ],
@@ -10434,7 +10434,7 @@ guide({ id:18, titre:"INNER JOIN", résumé:"Associer les lignes correspondantes
   ],
   anatomie:[{tok:"SELECT commandes.id, produits.nom",txt:"Le numéro de la commande vient de la table commandes ; le nom du produit vient de la table produits."},{tok:"FROM commandes",txt:"On part de la table commandes."},{tok:"INNER JOIN produits",txt:"On ne garde que les commandes qui trouvent un produit dans la table produits."},{tok:"ON commandes.produit_id = produits.id",txt:"Le lien : produit_id correspond à l’id de la table produits."}],
   exemple:"SELECT commandes.id, produits.nom FROM commandes INNER JOIN produits ON commandes.produit_id = produits.id;",
-  attendu:"<b>16 lignes</b> : une par commande, avec le nom du produit commandé (la commande 1 porte la Fibre Prébiotique, la 2 le Magnésium…).",
+  attendu:"<b>16 lignes</b> : une par commande, avec le nom du produit commandé (la commande n°1 porte la Fibre Prébiotique, la n°2 le Magnésium…).",
   retenir:"<code>INNER JOIN</code> réunit deux tables et ne garde que les lignes qui ont une correspondance des deux côtés.<br><br><code>ON</code> indique comment les lignes des deux tables sont reliées.<br><br><code>WHERE</code> filtre ensuite les lignes obtenues.<br><br>Une correspondance = une ligne dans le résultat.",
   consigne:"Affiche le numéro (<code>id</code>), le nom du produit (<code>nom</code>) et la <code>quantite</code> des commandes dont la quantité dépasse 2.",
   solution:"SELECT commandes.id, produits.nom, commandes.quantite FROM commandes INNER JOIN produits ON commandes.produit_id = produits.id WHERE commandes.quantite > 2;",
@@ -10675,9 +10675,9 @@ guide({ id:39, titre:"FULL OUTER JOIN", résumé:"Tout garder des deux côtés",
       p:["Avec <code>LEFT JOIN</code>, SQL garde tous les clients ; avec <code>RIGHT JOIN</code>, toutes les commandes. Chacune de ces jointures laisse donc de côté l’un des deux cas.","Or, ce contrôle doit tout garder à la fois : les clients qui n’ont <b>aucune commande</b> et les commandes qui n’ont <b>aucun client</b>."],
       scene:{h:"🔎 Clients et commandes",cols:"1fr 1fr",
         lanes:[{c:[["","client","t"],["","commande","t"]]},
-          {k:"L1",c:[["a1","Sophie"],["a2","commande #1"]]},
+          {k:"L1",c:[["a1","Sophie"],["a2","commande n°1"]]},
           {k:"L2",c:[["b1","Inès"],["b2","aucune","n"]]},
-          {k:"L3",c:[["c1","aucun client","n"],["c2","commande #16"]]}],
+          {k:"L3",c:[["c1","aucun client","n"],["c2","commande n°16"]]}],
         caps:["<b>Correspondance</b> · Un client et sa commande sont rattachés l’un à l’autre.","<b>Sans commande</b> · Un client peut n’avoir passé aucune commande.","<b>Sans client</b> · Une commande peut n’être rattachée à aucun client.","<b>Besoin</b> · Le contrôle doit garder ces trois lignes : aucune ne doit disparaître."],
         steps:[{cap:0,on:["L1"],d:1900},{cap:1,off:["L1"],on:["L2"],d:1900},{cap:2,off:["L2"],on:["L3"],d:2200},{cap:3,off:["L3"],on:["L1","L2","L3"],d:2600}]},
       then:["Il faut donc garder <b>toutes les lignes des deux tables</b>, qu’elles aient ou non une correspondance.","C’est exactement le rôle de <code>FULL OUTER JOIN</code>."]
@@ -10702,7 +10702,7 @@ guide({ id:39, titre:"FULL OUTER JOIN", résumé:"Tout garder des deux côtés",
           {k:"G1",fold:true,cls:"is-goal",c:[["g1","?","q"],["g2","?","q"]]},
           {k:"G2",fold:true,cls:"is-goal",c:[["g3","?","q"],["g4","NULL","n"]]},
           {k:"G3",fold:true,cls:"is-goal",c:[["g5","NULL","n"],["g6","?","q"]]}],
-        caps:["<b>Deux tables</b> · Les clients (table de gauche) et les commandes (table de droite) sont reliés par le numéro du client.","<b>ON</b> · Seule la commande #1 retrouve son client, Sophie : Inès et la commande #16 n’ont aucune correspondance.","<b>FULL OUTER JOIN</b> · Les deux lignes sans correspondance sont gardées, chacune de son côté.","<b>Résultat</b> · Trois lignes : Sophie avec sa commande, Inès sans commande, la commande #16 sans client."],
+        caps:["<b>Deux tables</b> · Les clients (table de gauche) et les commandes (table de droite) sont reliés par le numéro du client.","<b>ON</b> · Seule la commande n°1 retrouve son client, Sophie : Inès et la commande n°16 n’ont aucune correspondance.","<b>FULL OUTER JOIN</b> · Les deux lignes sans correspondance sont gardées, chacune de son côté.","<b>Résultat</b> · Trois lignes : Sophie avec sa commande, Inès sans commande, la commande n°16 sans client."],
         steps:[{cap:0,on:["C1","C2","O1","O2"],d:2000},{cap:1,off:["C2","O2"],dim:["C2","O2"],mark:{C2:"is-miss",O2:"is-miss"},d:2800},{cap:2,undim:["C2","O2"],unmark:{C2:"is-miss",O2:"is-miss"},on:["C2","O2"],d:2600},{cap:3,off:["C1","C2","O1","O2"],unfold:["HG","G1","G2","G3"],flyDelay:1300,fly:[["a2","g1"],["c1","g2"],["b2","g3"],["d1","g6"]],stagger:300,d:3600}]}}
     ]
   },
@@ -10726,7 +10726,7 @@ guide({ id:39, titre:"FULL OUTER JOIN", résumé:"Tout garder des deux côtés",
       {say:"👇 Exécute cette requête pour retrouver les clients sans commande :",run:"SELECT clients.prenom, clients.nom, commandes.id AS commande_id\nFROM clients\nFULL OUTER JOIN commandes\n    ON clients.id = commandes.client_id\nWHERE commandes.id IS NULL;"},
       {arrow:"Inès Lefebvre et Nathan Dupont : les deux clients qui n’ont jamais commandé."},
       {say:"👇 Puis celle-ci pour retrouver les commandes sans client :",run:"SELECT clients.prenom, clients.nom, commandes.id AS commande_id\nFROM clients\nFULL OUTER JOIN commandes\n    ON clients.id = commandes.client_id\nWHERE clients.id IS NULL;"},
-      {arrow:"Une seule ligne : la commande #16, sans prénom ni nom."}
+      {arrow:"Une seule ligne : la commande n°16, sans prénom ni nom."}
     ]},
     {h:"La requête complète",blocks:[
       "Il ne reste plus qu’à construire la requête complète : choisir les colonnes, indiquer les deux tables, puis tout garder avec <code>FULL OUTER JOIN</code>.",
@@ -10763,7 +10763,7 @@ guide({ id:39, titre:"FULL OUTER JOIN", résumé:"Tout garder des deux côtés",
   exoNeeds:[{re:"\\bFULL\\s+(?:OUTER\\s+)?JOIN\\b",msg:"Garde les lignes des deux tables avec un FULL OUTER JOIN."},{re:"\\bIS\\s+NULL\\b",msg:"Repère les lignes sans correspondance avec IS NULL."}],
   joinRecap:"full",
   testeVariants:[{k:"cli",label:"clients",sql:"SELECT id, prenom\nFROM clients;"},{k:"cmd",label:"commandes",sql:"SELECT id, client_id, produit_id\nFROM commandes;"},{k:"inner",label:"INNER JOIN",sql:"SELECT clients.prenom, commandes.id AS commande_id\nFROM clients\nINNER JOIN commandes\n    ON clients.id = commandes.client_id;",out:"15 lignes : seulement les correspondances.",expectRows:15},{k:"fulljoin",label:"FULL OUTER JOIN",sql:"SELECT clients.prenom, commandes.id AS commande_id\nFROM clients\nFULL OUTER JOIN commandes\n    ON clients.id = commandes.client_id;",out:"18 lignes : 15 correspondances, 2 clients sans commande et 1 commande sans client.",tone:"good",expectRows:18}],
-  learningCheck:{question:"Avec FULL OUTER JOIN, que deviennent Inès (aucune commande) et la commande #16 (aucun client) ?",options:["Les deux restent, avec NULL du côté manquant","Seule Inès reste","Les deux sont écartées"],answer:0,explanation:"FULL OUTER JOIN garde toutes les lignes des deux tables. Inès reste avec NULL côté commandes, la commande #16 reste avec NULL côté clients."}
+  learningCheck:{question:"Avec FULL OUTER JOIN, que deviennent Inès (aucune commande) et la commande n°16 (aucun client) ?",options:["Les deux restent, avec NULL du côté manquant","Seule Inès reste","Les deux sont écartées"],answer:0,explanation:"FULL OUTER JOIN garde toutes les lignes des deux tables. Inès reste avec NULL côté commandes, la commande n°16 reste avec NULL côté clients."}
 }),
 guide({ id:40, titre:"CROSS JOIN", résumé:"Créer toutes les combinaisons",
   /* Cours en vidéo : l’animation (assets/anim/cross-join.html, moteur commun assets/anim/core.js) remplace le texte du cours.
@@ -10951,7 +10951,7 @@ guide({ id:19, titre:"Jointure de 3 tables", résumé:"Relier toute l’histoire
       "Un deuxième <code>INNER JOIN</code> se place à la suite du premier. Son <code>ON</code> relie, lui aussi, <code>commandes</code> à la nouvelle table, ici avec <code>produit_id</code> :",
       {syntax:"SELECT commandes.id, clients.prenom, produits.nom AS produit\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\n⟦INNER JOIN produits\n    ON commandes.produit_id = produits.id⟧;"},
       {say:"👇 Exécute cette requête pour voir chaque commande avec son client et son produit :",run:"SELECT commandes.id, clients.prenom, produits.nom AS produit\nFROM commandes\nINNER JOIN clients\n    ON commandes.client_id = clients.id\nINNER JOIN produits\n    ON commandes.produit_id = produits.id;"},
-      {arrow:"Les trois tables sont réunies : la commande 1 est celle de Sophie, pour la Fibre Prébiotique."},
+      {arrow:"Les trois tables sont réunies : la commande n°1 est celle de Sophie, pour la Fibre Prébiotique."},
       {warn:{t:"Relier deux tables qui n’ont aucun lien",blocks:[
         "Si tu relies <code>produits</code> directement à <code>clients</code> :",
         {syntax:"INNER JOIN produits\n    ON clients.id = produits.id"},
@@ -10979,7 +10979,7 @@ guide({ id:19, titre:"Jointure de 3 tables", résumé:"Relier toute l’histoire
         funnel:[
           {n:16,t:"commandes au départ",s:"toute la <code>table commandes</code>",dots:"0000000000000000"},
           {step:"INNER JOIN clients",s:"relie chaque commande à son client et écarte celle qui n’en a pas"},
-          {n:15,t:"commandes avec leur client",s:"la commande 16, sans client, a disparu",dots:"000000000000000"},
+          {n:15,t:"commandes avec leur client",s:"la commande n°16, sans client, a disparu",dots:"000000000000000"},
           {step:"INNER JOIN produits",s:"ajoute le produit de chaque commande : aucune ne disparaît"},
           {n:15,t:"⭐ fiches SAV",s:"une par achat, avec le prénom, l’email, le produit et la date",dots:"111111111111111",out:true}
         ],
@@ -11025,7 +11025,7 @@ guide({ id:41, titre:"JOIN + GROUP BY", résumé:"Compter les commandes par vill
     problem:{
       p:["Avec <code>GROUP BY</code> et <code>COUNT</code>, SQL sait compter les lignes de chaque groupe, par exemple les clients de chaque ville.","Or, ici, il faut compter des <b>commandes</b> par <b>ville</b> : la ville est dans la table <code>clients</code>, les commandes dans la table <code>commandes</code>. Aucune ligne ne réunit les deux."],
       scene:{h:"🔎 Commandes et villes",
-        lanes:[{k:"A",l:"commandes",c:[["a1","commande #1"],["a2","commande #2"]]},
+        lanes:[{k:"A",l:"commandes",c:[["a1","commande n°1"],["a2","commande n°2"]]},
           {k:"B",l:"clients",c:[["b1","Paris"],["b2","Lyon"],["b3","Toulouse"]]},
           {k:"G",cls:"is-goal",l:"résultat attendu",c:[["g1","ville","q"],["g2","nombre de commandes","q"]]}],
         caps:["<b>Table commandes</b> · Elle contient les commandes, mais pas leur ville.","<b>Table clients</b> · La ville du client figure dans cette table.","<b>Objectif</b> · Obtenir le nombre de commandes de chaque ville."],
@@ -11065,7 +11065,7 @@ guide({ id:41, titre:"JOIN + GROUP BY", résumé:"Compter les commandes par vill
       "<code>GROUP BY</code> regroupe les lignes que produit la requête : il faut donc commencer par réunir la ville et la commande sur une même ligne, avec une <b>jointure</b> :",
       {syntax:"SELECT clients.ville, commandes.id\nFROM clients\n⟦INNER JOIN commandes\n    ON clients.id = commandes.client_id⟧;"},
       {say:"👇 Exécute cette requête pour associer chaque commande à la ville de son client :",run:"SELECT clients.ville, commandes.id\nFROM clients\nINNER JOIN commandes\n    ON clients.id = commandes.client_id;"},
-      {arrow:"15 lignes : une par commande. La commande 16, sans client, n’apparaît pas ; Nantes non plus, car Inès n’a rien commandé."}
+      {arrow:"15 lignes : une par commande. La commande n°16, sans client, n’apparaît pas ; Nantes non plus, car Inès n’a rien commandé."}
     ]},
     {h:"Regrouper les commandes par ville",blocks:[
       "Une fois la jointure écrite, <code>GROUP BY</code> rassemble les lignes qui ont la même ville : il reste une ligne par ville. <code>GROUP_CONCAT</code> permet de voir les commandes que contient chaque groupe :",
@@ -11097,7 +11097,7 @@ guide({ id:41, titre:"JOIN + GROUP BY", résumé:"Compter les commandes par vill
         funnel:[
           {n:16,t:"commandes au départ",s:"toute la <code>table commandes</code>",dots:"0000000000000000"},
           {step:"INNER JOIN commandes",s:"relie chaque commande à la ville de son client"},
-          {n:15,t:"commandes reliées à une ville",s:"la commande 16, sans client, a disparu",dots:"000000000000000"},
+          {n:15,t:"commandes reliées à une ville",s:"la commande n°16, sans client, a disparu",dots:"000000000000000"},
           {step:"GROUP BY clients.ville + COUNT()",s:"rassemble les commandes d’une même ville, puis les compte"},
           {n:5,t:"⭐ villes avec leur nombre de commandes",s:"Bordeaux, Lyon, Marseille, Paris et Toulouse",dots:"11111",out:true}
         ],
@@ -11130,9 +11130,9 @@ guide({ id:41, titre:"JOIN + GROUP BY", résumé:"Compter les commandes par vill
 guide({ id:42, titre:"SELF JOIN", résumé:"Retrouver les clients qui habitent dans la même ville",
   /* Cours en vidéo : l’animation (assets/anim/self-join.html, moteur commun assets/anim/core.js) remplace le texte du cours.
      La vidéo suit les colis à regrouper ; le texte ci-dessous reste pour le cas où la vidéo ne se charge pas. */
-  video:{anim:'assets/anim/self-join.html?app&embed',thumb:'assets/anim/self-join-thumb.jpg',duree:'2 min 47',
-    /* « Ajouter dans notes » : apparaît à 2 min 40 (159,6 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
-    notes:{t:159.6,y:1203,card:[64,292,1016,908],to:[940,255]}},
+  video:{anim:'assets/anim/self-join.html?app&embed',thumb:'assets/anim/self-join-thumb.jpg',duree:'2 min 48',
+    /* « Ajouter dans notes » : apparaît à 2 min 40 (160,1 s), sous « Les trois idées à retenir » (y sur la maquette 1080 × 1920). */
+    notes:{t:160.1,y:1203,card:[64,292,1016,908],to:[940,255]}},
   sit:{
     blocks:[
       "L’équipe marketing prépare <b>des événements dans plusieurs villes</b>. Elle veut repérer les clients qui <b>habitent dans la même ville</b>, pour leur envoyer les mêmes invitations.",
@@ -11245,7 +11245,7 @@ guide({ id:42, titre:"SELF JOIN", résumé:"Retrouver les clients qui habitent d
   ],
   anatomie:[{tok:"SELECT c1.id AS commande_1, c2.id AS commande_2, c1.date_commande",txt:"Les deux commandes de la paire et leur date commune."},{tok:"FROM commandes AS c1",txt:"La table commandes, dans le rôle de la première commande."},{tok:"JOIN commandes AS c2",txt:"La même table, dans le rôle de la seconde."},{tok:"ON c1.date_commande = c2.date_commande",txt:"Garder les commandes passées le même jour."},{tok:"AND c1.id < c2.id",txt:"Garder chaque paire une seule fois, sans commande associée à elle-même."}],
   exemple:"SELECT c1.id AS commande_1, c2.id AS commande_2, c1.date_commande FROM commandes AS c1 JOIN commandes AS c2 ON c1.date_commande = c2.date_commande AND c1.id < c2.id;",
-  attendu:"<b>2 lignes</b> : les commandes 1 et 2 (passées le 2 juillet), puis les commandes 8 et 9 (passées le 18 juillet).",
+  attendu:"<b>2 lignes</b> : les commandes n°1 et n°2 (passées le 2 juillet), puis les commandes n°8 et n°9 (passées le 18 juillet).",
   retenir:"Un <code>SELF JOIN</code> permet de mettre en relation des lignes d’une même table.<br><br>Les alias <code>c1</code> et <code>c2</code> permettent d’utiliser la table dans deux rôles différents : <code>FROM clients AS c1 JOIN clients AS c2</code>.<br><br><code>c1.id &lt; c2.id</code> garde chaque paire une seule fois et écarte un client associé à lui-même.",
   consigne:"L’équipe e-commerce veut proposer des <b>lots de deux produits</b> de la même catégorie. Affiche chaque paire de produits d’une même catégorie, une seule fois : le nom des deux produits (<code>produit_1</code> et <code>produit_2</code>) et leur <code>categorie</code>.",
   solution:"SELECT p1.nom AS produit_1, p2.nom AS produit_2, p1.categorie FROM produits AS p1 JOIN produits AS p2 ON p1.categorie = p2.categorie AND p1.id < p2.id;",
@@ -11265,7 +11265,7 @@ guide({ id:49, titre:"Plusieurs conditions dans ON", résumé:"Relier seulement 
     problem:{
       p:["Avec <code>INNER JOIN</code>, SQL relie une commande à son produit grâce à <b>une condition</b>.","Or, ici, cette condition ne suffit pas : pour être reliée, la commande doit aussi avoir un produit <b>encore en stock</b>."],
       scene:{h:"🔎 Commande et produit",
-        lanes:[{k:"A",l:"commandes",c:[["a1","commande #1"],["a2","commande #2"]]},
+        lanes:[{k:"A",l:"commandes",c:[["a1","commande n°1"],["a2","commande n°2"]]},
           {k:"B",l:"produits",c:[["b1","Fibre Prébiotique · stock 120"],["b2","Magnésium · stock 500"]]},
           {k:"G",cls:"is-goal",l:"résultat attendu",c:[["g1","commande","q"],["g2","produit","q"],["g3","stock","q"]]}],
         caps:["<b>Table commandes</b> · Elle contient les commandes, mais ni le nom ni le stock du produit.","<b>Table produits</b> · Le nom et le stock du produit figurent dans cette table.","<b>Objectif</b> · Relier la commande à son produit, seulement s’il est encore en stock."],
@@ -11283,9 +11283,9 @@ guide({ id:49, titre:"Plusieurs conditions dans ON", résumé:"Relier seulement 
       {syntax:"INNER JOIN produits\n    ON commandes.produit_id = produits.id\n    ⟦AND produits.stock > 0⟧"},
       {scene:{h:"✅ Deux conditions à vérifier",cols:"1.3fr 1fr .8fr",
         lanes:[{c:[["","bon produit ?","t"],["","en stock ?","t"],["","reliée ?","t"]]},
-          {k:"M",l:"commande 2 et Magnésium",c:[["a1","3 = 3"],["a2","500 > 0"],["a3","✅ oui","h"]]},
-          {k:"V",l:"commande 2 et Vitamine D",c:[["b1","3 = 4"],["b2","150 > 0"],["b3","❌ non","h"]]}],
-        caps:["<b>Deux conditions</b> · Pour la commande 2, qui porte le produit 3, SQL teste chaque produit.","<b>Magnésium</b> · Le numéro correspond (3 et 3) et il reste 500 unités : les deux conditions sont vraies, la commande est reliée.","<b>Vitamine D</b> · Le stock est suffisant, mais le numéro ne correspond pas (3 et 4) : une seule condition fausse suffit à écarter la ligne.","<b>Résultat</b> · La commande 2 n’est reliée qu’au Magnésium, le seul produit qui remplit les deux conditions."],
+          {k:"M",l:"commande n°2 et Magnésium",c:[["a1","3 = 3"],["a2","500 > 0"],["a3","✅ oui","h"]]},
+          {k:"V",l:"commande n°2 et Vitamine D",c:[["b1","3 = 4"],["b2","150 > 0"],["b3","❌ non","h"]]}],
+        caps:["<b>Deux conditions</b> · Pour la commande n°2, qui porte le produit 3, SQL teste chaque produit.","<b>Magnésium</b> · Le numéro correspond (3 et 3) et il reste 500 unités : les deux conditions sont vraies, la commande est reliée.","<b>Vitamine D</b> · Le stock est suffisant, mais le numéro ne correspond pas (3 et 4) : une seule condition fausse suffit à écarter la ligne.","<b>Résultat</b> · La commande n°2 n’est reliée qu’au Magnésium, le seul produit qui remplit les deux conditions."],
         steps:[{cap:0,on:["M","V"],d:2400},
           {cap:1,off:["V"],show:["a3"],d:2600},
           {cap:2,off:["M"],on:["b2"],mark:{b1:"is-miss",b3:"is-miss"},show:["b3"],d:2800},
@@ -11318,7 +11318,7 @@ guide({ id:49, titre:"Plusieurs conditions dans ON", résumé:"Relier seulement 
       "<code>ON</code> n’est pas limité à deux conditions : on peut en enchaîner autant que nécessaire avec <code>AND</code>, portant sur l’une ou l’autre des deux tables.",
       {syntax:"ON commandes.produit_id = produits.id\n    AND produits.stock > 0\n    ⟦AND commandes.statut = 'en_preparation'⟧"},
       {say:"👇 Exécute cette requête pour ne relier que les commandes encore à expédier :",run:"SELECT commandes.id, produits.nom, commandes.statut\nFROM commandes\nINNER JOIN produits\n    ON commandes.produit_id = produits.id\n    AND produits.stock > 0\n    AND commandes.statut = 'en_preparation';"},
-      {arrow:"5 lignes : les commandes 12 à 16, les seules qui ne sont pas encore parties."},
+      {arrow:"5 lignes : les commandes n°12 à n°16, les seules qui ne sont pas encore parties."},
       {warn:{t:"OR à la place de AND",blocks:[
         "Avec <code>OR</code>, une seule condition vraie suffit. Comme tous les produits ont du stock, chaque commande serait reliée à <b>tous</b> les produits :",
         {say:"👇 Teste par toi-même :",run:"SELECT COUNT(*) AS lignes\nFROM commandes\nINNER JOIN produits\n    ON commandes.produit_id = produits.id\n    OR produits.stock > 0;"},
@@ -11373,9 +11373,9 @@ guide({ id:44, titre:"Quel JOIN choisir ?", résumé:"Choisir la bonne jointure
       p:["Une jointure relie deux tables, mais elle n’en fait pas toujours le même usage : trois cas peuvent se présenter, et certains <b>disparaissent</b> du résultat.","Or, l’audit veut aussi voir les clients qui n’ont <b>aucune commande</b> : ce sont eux qu’il faut contrôler."],
       scene:{h:"🔎 Trois cas possibles",cols:"1fr 1fr",
         lanes:[{c:[["","client","t"],["","commande","t"]]},
-          {k:"R1",c:[["a1","Sophie"],["a2","commande 1"]]},
+          {k:"R1",c:[["a1","Sophie"],["a2","commande n°1"]]},
           {k:"R2",c:[["b1","Inès"],["b2","aucune","n"]]},
-          {k:"R3",c:[["c1","aucun","n"],["c2","commande 16"]]}],
+          {k:"R3",c:[["c1","aucun","n"],["c2","commande n°16"]]}],
         caps:["<b>Trois cas</b> · Un client a une commande, un autre n’en a aucune, et une commande n’a aucun client.","<b>Besoin</b> · Ce client, qui n’a jamais commandé, doit rester dans la liste.","<b>Résultat</b> · Tous les clients doivent figurer dans la liste, avec ou sans commande."],
         steps:[{cap:0,on:["R1","R2","R3"],d:2200},{cap:1,off:["R1","R3"],dim:["R1","R3"],d:2600},{cap:2,undim:["R1"],on:["R1"],fold:["R3"],d:2600}]},
       then:["Il faut donc <b>choisir</b> une jointure qui garde aussi les lignes sans correspondance.","C’est exactement le rôle du <b>type de jointure</b> : <code>INNER</code>, <code>LEFT</code>, <code>RIGHT</code> ou <code>FULL</code>."]
@@ -11391,10 +11391,10 @@ guide({ id:44, titre:"Quel JOIN choisir ?", résumé:"Choisir la bonne jointure
       {syntax:"FROM clients\n⟦LEFT⟧ JOIN commandes\n    ON clients.id = commandes.client_id"},
       {scene:{h:"🧭 Quelles lignes sont gardées ?",cols:"1fr 1fr",
         lanes:[{c:[["","clients","t"],["","commandes","t"]]},
-          {k:"R1",l:"des deux côtés",c:[["a1","Sophie"],["a2","commande 1"]]},
+          {k:"R1",l:"des deux côtés",c:[["a1","Sophie"],["a2","commande n°1"]]},
           {k:"R2",l:"à gauche seulement",c:[["b1","Inès"],["b2","aucune","n"]]},
-          {k:"R3",l:"à droite seulement",c:[["c1","aucun","n"],["c2","commande 16"]]}],
-        caps:["<b>INNER JOIN</b> · Seulement les lignes qui ont une correspondance des deux côtés.","<b>LEFT JOIN</b> · Toute la table de gauche : Inès reste, avec une commande vide.","<b>RIGHT JOIN</b> · Toute la table de droite : la commande 16 reste, avec un client vide.","<b>FULL OUTER JOIN</b> · Toutes les lignes des deux tables : rien n’est écarté."],
+          {k:"R3",l:"à droite seulement",c:[["c1","aucun","n"],["c2","commande n°16"]]}],
+        caps:["<b>INNER JOIN</b> · Seulement les lignes qui ont une correspondance des deux côtés.","<b>LEFT JOIN</b> · Toute la table de gauche : Inès reste, avec une commande vide.","<b>RIGHT JOIN</b> · Toute la table de droite : la commande n°16 reste, avec un client vide.","<b>FULL OUTER JOIN</b> · Toutes les lignes des deux tables : rien n’est écarté."],
         steps:[{cap:0,on:["R1"],dim:["R2","R3"],d:2300},{cap:1,undim:["R2"],on:["R2"],d:2300},{cap:2,off:["R2"],dim:["R2"],undim:["R3"],on:["R3"],d:2300},{cap:3,undim:["R2"],on:["R2"],d:2300}]}},
       {looks:[["table de gauche","celle qui suit <code>FROM</code>"],["table de droite","celle qui suit <code>JOIN</code>"]],label:"Gauche et droite"}
     ]
@@ -11411,7 +11411,7 @@ guide({ id:44, titre:"Quel JOIN choisir ?", résumé:"Choisir la bonne jointure
     {h:"Garder la table de droite, ou les deux",blocks:[
       "<code>RIGHT JOIN</code> fait l’inverse : il conserve toutes les lignes de la table de droite. Ici, ce sont les commandes.",
       {say:"👇 Exécute cette requête pour garder toutes les commandes :",run:"SELECT commandes.numero_commande, clients.prenom\nFROM clients\nRIGHT JOIN commandes\n    ON clients.id = commandes.client_id;"},
-      {arrow:"16 lignes : toutes les commandes restent, y compris la commande 16 qui n’a pas de client (prénom <code>NULL</code>)."},
+      {arrow:"16 lignes : toutes les commandes restent, y compris la commande n°16 qui n’a pas de client (prénom <code>NULL</code>)."},
       "<code>FULL OUTER JOIN</code> garde les deux côtés à la fois :",
       {say:"👇 Exécute cette requête pour ne rien écarter :",run:"SELECT clients.prenom, commandes.id AS commande\nFROM clients\nFULL OUTER JOIN commandes\n    ON clients.id = commandes.client_id;"},
       {arrow:"18 lignes : 15 correspondances, 2 clients sans commande et 1 commande sans client."},
@@ -11705,9 +11705,9 @@ guide({ id:48, titre:"Sous-requête dans FROM", résumé:"Utiliser une sous-requ
       {syntax:"SELECT AVG(montant)\nFROM ⟦(SELECT …) AS commandes_montants⟧;"},
       {scene:{h:"🧮 Un résultat qui devient une table",cols:"1.1fr 1.2fr .8fr",
         lanes:[{k:"H",c:[["h1","commande","t"],["h2","calcul","t"],["h3","montant","t"]]},
-          {k:"R1",c:[["a1","commande 1"],["a2","29.9 × 2"],["a3","?","q"]]},
-          {k:"R2",c:[["b1","commande 2"],["b2","19.9 × 1"],["b3","?","q"]]},
-          {k:"R3",c:[["c1","commande 3"],["c2","34.9 × 1"],["c3","?","q"]]},
+          {k:"R1",c:[["a1","commande n°1"],["a2","29.9 × 2"],["a3","?","q"]]},
+          {k:"R2",c:[["b1","commande n°2"],["b2","19.9 × 1"],["b3","?","q"]]},
+          {k:"R3",c:[["c1","commande n°3"],["c2","34.9 × 1"],["c3","?","q"]]},
           {k:"M",c:[["m1","…","n"],["m2","…","n"],["m3","…","n"]]},
           {k:"G",cls:"is-goal",fold:true,cols:"1fr 1fr",c:[["g1","AVG(montant)"],["g2","?","q"]]}],
         caps:["<b>Sous-requête</b> · SQL l’exécute en premier : pour chaque commande, il calcule le prix multiplié par la quantité.","<b>Table dérivée</b> · Ces montants forment une table temporaire, <code>commandes_montants</code>, que la requête principale peut lire.","<b>Requête principale</b> · Elle lit cette table comme n’importe quelle autre et lui applique <code>AVG(montant)</code>.","<b>Résultat</b> · Une seule valeur : la moyenne des 16 montants, environ 46,72 €."],
@@ -12654,7 +12654,7 @@ guide({ id:79, titre:"Fenêtres glissantes", résumé:"Suivre l’évolution des
           {k:"R3",c:[["i3","3"],["m3","34.9"],["c3","?","q"]]},
           {k:"R4",c:[["i4","4"],["m4","119.7"],["c4","?","q"]]},
           {k:"R5",c:[["i5","5"],["m5","29.9"],["c5","?","q"]]}],
-        caps:["<b>Les commandes</b> · Cinq commandes, rangées de la plus ancienne à la plus récente.","<b>Commande 1</b> · Le cadre commence à la première ligne (UNBOUNDED PRECEDING) et s’arrête à la ligne actuelle (CURRENT ROW) : il ne contient qu’elle.","<b>Commande 3</b> · Le cadre s’agrandit : il contient les lignes 1 à 3, soit 59.8 + 19.9 + 34.9 = 114.6.","<b>Résultat</b> · Chaque commande a son propre cadre, qui part toujours de la première ligne : le total grossit à chaque ligne."],
+        caps:["<b>Les commandes</b> · Cinq commandes, rangées de la plus ancienne à la plus récente.","<b>Commande n°1</b> · Le cadre commence à la première ligne (UNBOUNDED PRECEDING) et s’arrête à la ligne actuelle (CURRENT ROW) : il ne contient qu’elle.","<b>Commande n°3</b> · Le cadre s’agrandit : il contient les lignes 1 à 3, soit 59.8 + 19.9 + 34.9 = 114.6.","<b>Résultat</b> · Chaque commande a son propre cadre, qui part toujours de la première ligne : le total grossit à chaque ligne."],
         steps:[{cap:0,on:["R1","R2","R3","R4","R5"],d:1900},{cap:1,off:["R1","R2","R3","R4","R5"],on:["m1"],text:{c1:"59.8"},d:2600},{cap:2,on:["m2","m3"],text:{c3:"114.6"},d:2800},{cap:3,off:["m1","m2","m3"],text:{c2:"79.7",c4:"234.3",c5:"264.2"},stagger:450,d:3000}]}}
     ]
   },
@@ -12788,7 +12788,7 @@ guide({ id:56, titre:"Normalisation", résumé:"Répartir les données dans des 
         funnel:[
           {n:16,t:"commandes au départ",s:"enregistrées dans la <code>table commandes</code>",dots:"0000000000000000"},
           {step:"JOIN clients, JOIN produits",s:"relie chaque commande à son client et à son produit"},
-          {n:15,t:"⭐ commandes pour le tableau de bord",s:"une ligne par commande, sauf la commande 16 qui n’a pas de client",dots:"1111111111111110",out:true}
+          {n:15,t:"⭐ commandes pour le tableau de bord",s:"une ligne par commande, sauf la commande n°16 qui n’a pas de client",dots:"1111111111111110",out:true}
         ],
         board:{ico:"📊",h:"Tableau de bord des ventes",aria:"Le tableau de bord des ventes reçoit les 15 commandes avec le prénom, la ville, le produit, le prix et la quantité, retrouvés par jointure",kpi:"Commandes",chart:"quantite par commande",bar:4,wide:true,show:8,moreT:"… et 7 autres commandes",cols:["prenom", "ville", "produit", "prix", "quantite"],
           rows:[["Sophie", "Paris", "Fibre Prébiotique", 29.9, 2], ["Sophie", "Paris", "Magnésium", 19.9, 1], ["Lucas", "Lyon", "Protéine Végétale", 34.9, 1], ["Emma", "Marseille", "Collagène Marin", 39.9, 3], ["Nathan", "Paris", "Fibre Prébiotique", 29.9, 1], ["Chloé", "Bordeaux", "Vitamine D", 14.9, 2], ["Hugo", "Lyon", "Oméga 3", 24.9, 1], ["Léa", "Paris", "Fibre Prébiotique", 29.9, 4], ["Léa", "Paris", "Tisane Détox", 12.5, 2], ["Lucas", "Lyon", "Magnésium", 19.9, 2], ["Gabriel", "Toulouse", "Protéine Végétale", 34.9, 1], ["Nathan", "Paris", "Collagène Marin", 39.9, 1], ["Sophie", "Paris", "Shaker Inox", 15, 1], ["Emma", "Marseille", "Oméga 3", 24.9, 2], ["Chloé", "Bordeaux", "Fibre Prébiotique", 29.9, 3]],done:"✓ Tableau de bord alimenté"},
@@ -13614,7 +13614,7 @@ guide({ id:28, titre:"DELETE", résumé:"Supprimer des lignes",
   verif:"SELECT id, client_id, produit_id, quantite FROM commandes ORDER BY id;",
   indice:"Écris <code>DELETE FROM commandes</code>, puis un <code>WHERE</code> sur la colonne <code>quantite</code>. Pense à compter les lignes concernées avec <code>SELECT COUNT(*)</code> avant d’écrire.",
   write:true,
-  petitDefi:[{p:"On veut oublier la date de la commande 1, sans supprimer la commande. Quel mot-clé remplace les tirets ?",sql:"__________ commandes\nSET date_commande = NULL\nWHERE id = 1;",a:"UPDATE",answers:["UPDATE","update","UPDATE commandes"]}],
+  petitDefi:[{p:"On veut oublier la date de la commande n°1, sans supprimer la commande. Quel mot-clé remplace les tirets ?",sql:"__________ commandes\nSET date_commande = NULL\nWHERE id = 1;",a:"UPDATE",answers:["UPDATE","update","UPDATE commandes"]}],
   testeVariants:[{k:"sans",label:"Sans WHERE",sql:"DELETE FROM commandes;\nSELECT COUNT(*) AS restantes\nFROM commandes;",out:"Zéro : les seize commandes ont disparu d’un coup.",tone:"bad"},{k:"avec",label:"Avec WHERE",sql:"DELETE FROM commandes\nWHERE quantite = 1;\nSELECT COUNT(*) AS restantes\nFROM commandes;",out:"Huit restantes : seules les commandes d’une unité sont parties.",tone:"good"},{k:"sousreq",label:"Sous-requête",sql:"DELETE FROM commandes\nWHERE client_id IN (\n    SELECT id\n    FROM clients\n    WHERE ville = 'Paris'\n);\nSELECT COUNT(*) AS restantes\nFROM commandes;",out:"Neuf restantes : les sept commandes des clients parisiens sont parties."},{k:"prenom",label:"Même prénom",sql:"SELECT id, prenom, nom\nFROM clients\nWHERE prenom = 'Nathan';",out:"Deux clients portent ce prénom : l’id est la seule condition qui n’en vise qu’un.",expectRows:2},{k:"fk",label:"Clé étrangère",sql:"DELETE FROM clients\nWHERE id = 1;",out:"Refusé : Sophie a trois commandes qui la référencent.",tone:"bad"}],
   learningCheck:{question:"Pourquoi vise-t-on la ligne de Nathan Dupont avec son id plutôt qu’avec son prénom ?",options:["L’id est unique : il ne désigne qu’une seule ligne","Un prénom est interdit dans un WHERE","DELETE ne fonctionne qu’avec un id"],answer:0,explanation:"Un prénom peut se répéter : deux clients s’appellent Nathan. L’identifiant est unique, donc la condition ne désigne qu’une ligne."}
 }),
@@ -13816,7 +13816,7 @@ guide({ id:67, titre:"Les contraintes en action", résumé:"NOT NULL, UNIQUE, CH
       {tip:{t:"Et NULL ?",blocks:[
         "<code>NULL</code> n’est pas une valeur : <code>UNIQUE</code> et <code>FOREIGN KEY</code> n’ont rien à comparer. Deux clients peuvent donc rester sans email, et une commande peut exister sans client.",
         {say:"👇 Exécute cette requête pour voir la commande sans client :",run:"SELECT numero_commande, client_id\nFROM commandes\nWHERE client_id IS NULL;"},
-        {arrow:"La commande 16 existe sans client : son <code>client_id</code> vaut <code>NULL</code>."}
+        {arrow:"La commande n°16 existe sans client : son <code>client_id</code> vaut <code>NULL</code>."}
       ]}}
     ]},
     {h:"La requête complète",blocks:[
@@ -14076,7 +14076,7 @@ guide({ id:63, titre:"SAVEPOINT", résumé:"Annuler seulement une partie d’une
     blocks:[
       "L’équipe logistique marque <b>les commandes du jour comme expédiées</b>, en une seule transaction. Au dernier moment, le transporteur refuse l’un des colis.",
       "La table <code>commandes</code> contient au total <b>16 commandes</b>, dont plusieurs sont encore en préparation. Pour préparer l’expédition, l’équipe souhaite faire passer à « expédiée » :",
-      {need:[["📦","La commande 12","table commandes"],["📦","La commande 13","table commandes"],["📦","La commande 14","table commandes"]],label:"Les commandes à expédier"}
+      {need:[["📦","La commande n°12","table commandes"],["📦","La commande n°13","table commandes"],["📦","La commande n°14","table commandes"]],label:"Les commandes à expédier"}
     ],
     problem:{
       p:["Avec <code>ROLLBACK</code>, SQL sait annuler une transaction, mais il l’annule <b>en entier</b> : les trois expéditions seraient annulées avec la dernière.","Or, l’équipe veut garder les deux premières expéditions et annuler <b>seulement la dernière</b>."],
@@ -14085,7 +14085,7 @@ guide({ id:63, titre:"SAVEPOINT", résumé:"Annuler seulement une partie d’une
           {k:"R1",c:[["a1","12"],["a2","en_preparation"]]},
           {k:"R2",c:[["b1","13"],["b2","en_preparation"]]},
           {k:"R3",c:[["c1","14"],["c2","en_preparation"]]}],
-        caps:["<b>Notre lot</b> · Trois commandes du jour sont encore en préparation.","<b>Expédition</b> · Les trois commandes passent à « expédiée » dans la même transaction.","<b>Incident</b> · Le transporteur refuse le colis de la commande 14.","<b>Résultat</b> · Seule la commande 14 doit revenir en préparation : les deux autres restent expédiées."],
+        caps:["<b>Notre lot</b> · Trois commandes du jour sont encore en préparation.","<b>Expédition</b> · Les trois commandes passent à « expédiée » dans la même transaction.","<b>Incident</b> · Le transporteur refuse le colis de la commande n°14.","<b>Résultat</b> · Seule la commande n°14 doit revenir en préparation : les deux autres restent expédiées."],
         steps:[{cap:0,on:["R1","R2","R3"],d:1900},{cap:1,text:{a2:"expédiée",b2:"expédiée",c2:"expédiée"},stagger:300,d:2800},{cap:2,off:["R1","R2","R3"],mark:{R3:"is-miss"},d:2300},{cap:3,unmark:{R3:"is-miss"},text:{c2:"en_preparation"},on:["R1","R2"],d:2600}]},
       then:["Il faut donc pouvoir revenir <b>jusqu’à un point précis</b> de la transaction, et non jusqu’à son début.","C’est exactement le rôle de <code>SAVEPOINT</code>."]
     },
@@ -14099,10 +14099,10 @@ guide({ id:63, titre:"SAVEPOINT", résumé:"Annuler seulement une partie d’une
       "En SQL, on pose ce repère avec <code>SAVEPOINT</code>, suivi d’un nom, puis on y revient avec <code>ROLLBACK TO</code> :",
       {syntax:"SAVEPOINT ⟦avant_13⟧;\n  …\nROLLBACK TO ⟦avant_13⟧;"},
       {scene:{h:"📍 Un point de retour",cols:"1fr",
-        lanes:[{k:"P1",c:[["a","Commande 12 → expédiée"]]},
+        lanes:[{k:"P1",c:[["a","Commande n°12 → expédiée"]]},
           {k:"SP",fold:true,c:[["b","🚩 SAVEPOINT avant_13"]]},
-          {k:"P2",fold:true,c:[["c","Commande 13 → expédiée"]]}],
-        caps:["<b>BEGIN</b> · La transaction s’ouvre : la commande 12 passe à « expédiée », sans être validée.","<b>SAVEPOINT</b> · Un point de retour est posé : il marque l’état à cet instant.","<b>Seconde opération</b> · La commande 13 passe à son tour à « expédiée », après le point de retour.","<b>ROLLBACK TO</b> · On revient au point de retour : l’expédition de la commande 13 est annulée, celle de la commande 12 est conservée."],
+          {k:"P2",fold:true,c:[["c","Commande n°13 → expédiée"]]}],
+        caps:["<b>BEGIN</b> · La transaction s’ouvre : la commande n°12 passe à « expédiée », sans être validée.","<b>SAVEPOINT</b> · Un point de retour est posé : il marque l’état à cet instant.","<b>Seconde opération</b> · La commande n°13 passe à son tour à « expédiée », après le point de retour.","<b>ROLLBACK TO</b> · On revient au point de retour : l’expédition de la commande n°13 est annulée, celle de la commande n°12 est conservée."],
         steps:[{cap:0,on:["P1"],d:2200},{cap:1,unfold:["SP"],on:["SP"],d:2300},{cap:2,off:["SP"],unfold:["P2"],on:["P2"],d:2300},{cap:3,off:["P2"],mark:{P2:"is-miss"},dim:["P2"],d:2800}]}}
     ]
   },
@@ -14111,39 +14111,39 @@ guide({ id:63, titre:"SAVEPOINT", résumé:"Annuler seulement une partie d’une
       "Un <code>SAVEPOINT</code> marque un point de retour dans la transaction : ce qui précède reste en attente, et ce qui suit peut être annulé seul.",
       {looks:[["SAVEPOINT avant_16","pose le point de retour"],["ROLLBACK TO avant_16","annule tout ce qui a été fait depuis ce point"]]},
       {say:"👇 Exécute cette requête pour expédier deux commandes, puis annuler la seconde :",run:"BEGIN;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 15;\nSAVEPOINT avant_16;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 16;\nROLLBACK TO avant_16;\nCOMMIT;\nSELECT id, statut\nFROM commandes\nWHERE id IN (15, 16);"},
-      {arrow:"La commande 15 est expédiée. La commande 16, dont l’expédition a été annulée, est toujours en préparation."}
+      {arrow:"La commande n°15 est expédiée. La commande n°16, dont l’expédition a été annulée, est toujours en préparation."}
     ]},
     {h:"La transaction continue",blocks:[
       "Après un <code>ROLLBACK TO</code>, la transaction reste ouverte : tu peux écrire autre chose, puis valider l’ensemble avec <code>COMMIT</code>.",
-      {say:"👇 Exécute cette requête pour marquer comme bloquée la commande 16 :",run:"BEGIN;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 15;\nSAVEPOINT avant_16;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 16;\nROLLBACK TO avant_16;\nUPDATE commandes\nSET statut = 'bloquée'\nWHERE id = 16;\nCOMMIT;\nSELECT id, statut\nFROM commandes\nWHERE id IN (15, 16);"},
-      {arrow:"La commande 15 est expédiée et la 16 est bloquée."}
+      {say:"👇 Exécute cette requête pour marquer comme bloquée la commande n°16 :",run:"BEGIN;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 15;\nSAVEPOINT avant_16;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 16;\nROLLBACK TO avant_16;\nUPDATE commandes\nSET statut = 'bloquée'\nWHERE id = 16;\nCOMMIT;\nSELECT id, statut\nFROM commandes\nWHERE id IN (15, 16);"},
+      {arrow:"La commande n°15 est expédiée et la n°16 est bloquée."}
     ]},
     {h:"Que ne fait pas un SAVEPOINT ?",aside:"Bon à savoir",blocks:[
       "Un <code>SAVEPOINT</code> n’est qu’un repère : il ne valide rien, et le supprimer n’annule rien.",
       {warn:{t:"Un ROLLBACK sans TO",blocks:[
         "Si tu écris :",
         {syntax:"BEGIN;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 15;\nSAVEPOINT etape_1;\nROLLBACK;"},
-        "<code>ROLLBACK</code> sans <code>TO</code> annule toute la transaction, même ce qui précède le <code>SAVEPOINT</code> : l’expédition de la commande 15 disparaît, bien qu’elle soit avant le point.",
+        "<code>ROLLBACK</code> sans <code>TO</code> annule toute la transaction, même ce qui précède le <code>SAVEPOINT</code> : l’expédition de la commande n°15 disparaît, bien qu’elle soit avant le point.",
         {say:"👇 Teste par toi-même :",run:"BEGIN;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 15;\nSAVEPOINT etape_1;\nROLLBACK;\nSELECT id, statut\nFROM commandes\nWHERE id = 15;"}
       ]}},
       {tip:{t:"RELEASE n’annule rien",blocks:[
         "<code>RELEASE</code> supprime le point de retour, parce qu’on n’en a plus besoin : les modifications faites depuis ce point sont conservées.",
         {say:"👇 Exécute cette requête pour libérer le point :",run:"BEGIN;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 15;\nSAVEPOINT avant_16;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 16;\nRELEASE avant_16;\nCOMMIT;\nSELECT id, statut\nFROM commandes\nWHERE id IN (15, 16);"},
-        {arrow:"Les deux expéditions sont conservées : les commandes 15 et 16 sont expédiées."}
+        {arrow:"Les deux expéditions sont conservées : les commandes n°15 et n°16 sont expédiées."}
       ]}}
     ]},
     {h:"La requête complète",blocks:[
-      "Il ne reste plus qu’à construire la requête complète : expédier les commandes 12 et 13, poser le point de retour, expédier la commande 14, y revenir, puis valider.",
+      "Il ne reste plus qu’à construire la requête complète : expédier les commandes n°12 et n°13, poser le point de retour, expédier la commande n°14, y revenir, puis valider.",
       {say:"👇 Exécute la requête pour valider le lot sans le colis refusé :",run:"BEGIN;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id IN (12, 13);\nSAVEPOINT avant_14;\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 14;\nROLLBACK TO avant_14;\nCOMMIT;\nSELECT id, statut\nFROM commandes\nWHERE id IN (12, 13, 14);"},
       {done:{
         label:"De trois expéditions à deux expéditions validées",
         unit:"free",
         funnel:[
-          {n:3,t:"commandes expédiées dans la transaction",s:"les commandes 12, 13 et 14",dots:"111"},
+          {n:3,t:"commandes expédiées dans la transaction",s:"les commandes n°12, n°13 et n°14",dots:"111"},
           {step:"ROLLBACK TO avant_14",s:"annule seulement la dernière expédition"},
-          {n:2,t:"⭐ expéditions validées",s:"les commandes 12 et 13 ; la commande 14 reste en préparation",dots:"110",out:true}
+          {n:2,t:"⭐ expéditions validées",s:"les commandes n°12 et n°13 ; la commande n°14 reste en préparation",dots:"110",out:true}
         ],
-        board:{ico:"📦",h:"Expéditions du jour",aria:"Dans la table commandes, les commandes 12 et 13 passent au statut « expédiée » ; la commande 14, refusée par le transporteur, reste en préparation",kpi:"Commandes expédiées",count:{t:"Commandes expédiées",from:0,to:2},lead:"🚚 Le transporteur refuse le colis de la commande 14",hl:{"col": 0, "val": 14},ops:{"0": {"op": "upd", "from": {"1": "en_preparation"}}, "1": {"op": "upd", "from": {"1": "en_preparation"}}},cols:["id", "statut"],rows:[[12, "expédiée"], [13, "expédiée"], [14, "en_preparation"]],done:"✓ Commandes 12 et 13 expédiées, la 14 reste en préparation"},
+        board:{ico:"📦",h:"Expéditions du jour",aria:"Dans la table commandes, les commandes n°12 et n°13 passent au statut « expédiée » ; la commande n°14, refusée par le transporteur, reste en préparation",kpi:"Commandes expédiées",count:{t:"Commandes expédiées",from:0,to:2},lead:"🚚 Le transporteur refuse le colis de la commande n°14",hl:{"col": 0, "val": 14},ops:{"0": {"op": "upd", "from": {"1": "en_preparation"}}, "1": {"op": "upd", "from": {"1": "en_preparation"}}},cols:["id", "statut"],rows:[[12, "expédiée"], [13, "expédiée"], [14, "en_preparation"]],done:"✓ Commandes n°12 et n°13 expédiées, la n°14 reste en préparation"},
         fill:["SAVEPOINT","avant_14","ROLLBACK TO","COMMIT"],
         ui:{t:"Deux expéditions validées, une annulée",s:"Le lot est validé sans le colis refusé.",n:["BEGIN","SAVEPOINT","ROLLBACK TO","COMMIT"]},
         rows:2
@@ -14159,7 +14159,7 @@ guide({ id:63, titre:"SAVEPOINT", résumé:"Annuler seulement une partie d’une
   ],
   anatomie:[{tok:"BEGIN",txt:"Commence la transaction."},{tok:"SAVEPOINT avant_16",txt:"Crée un point de retour, sans rien valider."},{tok:"ROLLBACK TO avant_16",txt:"Annule ce qui a été fait depuis ce point. La transaction continue."},{tok:"COMMIT",txt:"Valide finalement les modifications conservées."}],
   exemple:"BEGIN;\n\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 15;\n\nSAVEPOINT avant_16;\n\nUPDATE commandes\nSET statut = 'expédiée'\nWHERE id = 16;\n\nROLLBACK TO avant_16;\n\nCOMMIT;\n\nSELECT id, statut\nFROM commandes\nWHERE id IN (15, 16);",
-  attendu:"<b>2 lignes</b> : la commande 15 est « expédiée », la commande 16 est toujours « en_preparation ». Le <code>ROLLBACK TO</code> n’a annulé que la seconde expédition.",
+  attendu:"<b>2 lignes</b> : la commande n°15 est « expédiée », la commande n°16 est toujours « en_preparation ». Le <code>ROLLBACK TO</code> n’a annulé que la seconde expédition.",
   retenir:"Un <code>SAVEPOINT</code> crée un point de retour <b>à l’intérieur</b> d’une transaction.<br><br><code>ROLLBACK</code> annule toute la transaction et la termine. <code>ROLLBACK TO</code> revient au point choisi, et la transaction continue.<br><br>Seul <code>COMMIT</code> valide ce qui a été conservé : un <code>SAVEPOINT</code> ne valide rien.",
   consigne:"Une livraison de fournisseur est enregistrée en une seule transaction : ajoute 10 unités au stock du produit 1, pose un point de retour nommé <code>avant_modification</code>, ajoute 50 unités au stock du produit 2, puis annule uniquement cette seconde modification avant de valider la transaction.",
   solution:"BEGIN;\n\nUPDATE produits\nSET stock = stock + 10\nWHERE id = 1;\n\nSAVEPOINT avant_modification;\n\nUPDATE produits\nSET stock = stock + 50\nWHERE id = 2;\n\nROLLBACK TO avant_modification;\n\nCOMMIT;",
@@ -14882,7 +14882,7 @@ const CARTES={
  38:{k:"RIGHT JOIN",t:"Garder toute la droite",s:"FROM clients\nRIGHT JOIN commandes ON clients.id = commandes.client_id",
     m:"Conserve <b>toutes</b> les lignes de la table de droite. Sans match à gauche → <code>NULL</code>. L’ordre après <code>FROM</code> compte : toutes les lignes de droite sont conservées."},
  39:{k:"FULL OUTER",t:"Garder les deux côtés",s:"FROM clients\nFULL OUTER JOIN commandes ON clients.id = commandes.client_id",
-    m:"Conserve <b>toutes</b> les lignes des deux tables. Sans match → <code>NULL</code> du côté manquant. Inès et la commande 16 restent."},
+    m:"Conserve <b>toutes</b> les lignes des deux tables. Sans match → <code>NULL</code> du côté manquant. Inès et la commande n°16 restent."},
  44:{k:"Quel JOIN ?",t:"Quelles lignes garder ?",s:"INNER · LEFT · FULL · CROSS",
     m:"Demande-toi quelles lignes doivent rester, même sans correspondance. Seulement les matchs → <code>INNER JOIN</code>. Toute la gauche → <code>LEFT JOIN</code>. Les deux → <code>FULL OUTER JOIN</code>. Toutes les combinaisons → <code>CROSS JOIN</code>. Toute la droite → <code>RIGHT JOIN</code>, le miroir du <code>LEFT JOIN</code>."},
  21:{k:"CASE",t:"Afficher une valeur selon une condition",
@@ -15014,7 +15014,7 @@ const QCM={
    {q:"On enregistre une commande n°20 avec <code>client_id = 50</code>. Aucun client n’a <code>id = 50</code>. Que se passe-t-il&nbsp;?",o:["Le client 50 est créé automatiquement","La référence est acceptée quand même","Le SGBD refuse la référence si la contrainte de clé étrangère est appliquée"],b:2,e:"La clé étrangère ne peut pas faire référence à une valeur inexistante dans la table référencée."}],
  18:[{q:"À quoi sert la clause <code>ON</code> ?",o:["À trier le résultat","À dire quelles lignes de deux tables correspondent","À filtrer les lignes"],b:1,e:"ON indique quelles lignes des deux tables vont ensemble. Ici : commandes.client_id = clients.id."},
    {q:"Dans l’enquête de juillet, à quoi sert <code>WHERE</code> ?",o:["À relier commandes et clients","À garder uniquement les commandes de juillet","À créer la clé étrangère"],b:1,e:"ON crée la correspondance. WHERE filtre le résultat : ici, les commandes de juillet 2026."},
-   {q:"Pourquoi la commande 16 disparaît-elle avec <code>INNER JOIN</code> ?",o:["Parce qu’elle est trop récente","Parce qu’aucune ligne de clients ne lui correspond","Parce que INNER JOIN ignore les emails vides"],b:1,e:"INNER JOIN ne garde que les lignes qui trouvent une correspondance des deux côtés. Sans client_id, aucune paire ne se forme."},
+   {q:"Pourquoi la commande n°16 disparaît-elle avec <code>INNER JOIN</code> ?",o:["Parce qu’elle est trop récente","Parce qu’aucune ligne de clients ne lui correspond","Parce que INNER JOIN ignore les emails vides"],b:1,e:"INNER JOIN ne garde que les lignes qui trouvent une correspondance des deux côtés. Sans client_id, aucune paire ne se forme."},
    {q:"Inès n’a passé aucune commande. Apparaît-elle dans le résultat de la jointure ?",o:["Oui, avec une date vide","Non, aucune commande ne lui correspond","Oui, une seule fois"],b:1,e:"INNER JOIN ne garde que les lignes qui correspondent des deux côtés. Sans commande, Inès ne forme aucune paire : elle est écartée."}],
  19:[{q:"Pour relier clients, commandes et produits, il faut :",o:["Un JOIN avec deux conditions ON","Deux JOIN, chacun avec son ON","Relier clients.id = produits.id"],b:1,e:"Chaque lien (client↔commande, commande↔produit) a son propre JOIN."},
    {q:"Pourquoi la table <code>commandes</code> est au centre ?",o:["Elle contient le client_id et le produit_id","Elle contient le prénom du client et le nom du produit","C’est la première table dans l’ordre alphabétique"],b:0,e:"C’est la table pont entre clients et produits."}],
@@ -15052,7 +15052,7 @@ const QCM={
  45:[{q:"Avec <code>IN</code>, la sous-requête sert à :",o:["Calculer une moyenne","Fabriquer une liste de valeurs","Renommer une table"],b:1,e:"<code>IN</code> teste si une valeur appartient à cette liste."},
   {q:"Pourquoi écrire <code>IN</code> plutôt que <code>=</code> ici ?",o:["C’est plus rapide","Parce que la sous-requête peut renvoyer plusieurs client_id","Parce que = est interdit avec une sous-requête"],b:1,e:"<code>=</code> attend une seule valeur. Plusieurs clients ont commandé la « Fibre Prébiotique »."},
   {q:"La sous-requête utilisée avec <code>IN</code> doit renvoyer :",o:["Une seule colonne","Toutes les colonnes de commandes","Deux colonnes, id et nom"],b:0,e:"On compare <code>clients.id</code> à une liste d’identifiants, pas à des lignes entières."}],
- 46:[{q:"Pourquoi <code>NOT IN (SELECT client_id FROM commandes)</code> renvoie 0 ligne ?",o:["Tous les clients ont commandé","La commande #16 met un NULL dans la liste","NOT IN est interdit avec une sous-requête"],b:1,e:"Un NULL dans la liste empêche SQL de conclure qu’un id est absent de toute la liste."},
+ 46:[{q:"Pourquoi <code>NOT IN (SELECT client_id FROM commandes)</code> renvoie 0 ligne ?",o:["Tous les clients ont commandé","La commande n°16 met un NULL dans la liste","NOT IN est interdit avec une sous-requête"],b:1,e:"Un NULL dans la liste empêche SQL de conclure qu’un id est absent de toute la liste."},
   {q:"Comment sécuriser ce <code>NOT IN</code> ?",o:["Ajouter LIMIT 1","Retirer les NULL : WHERE client_id IS NOT NULL","Remplacer NOT IN par ="],b:1,e:"Sans le NULL de la commande invitée, Inès ressort bien."},
   {q:"Après correction, le résultat est :",o:["Aucun client","Inès et Nathan","Tous les clients sauf Sophie"],b:1,e:"Inès et Nathan sont les deux clients sans commande."}],
  47:[{q:"Une sous-requête dans <code>SELECT</code> sert à :",o:["Filtrer les lignes","Calculer une valeur pour chaque ligne","Fabriquer une liste de valeurs pour IN"],b:1,e:"Ici, elle compte les commandes du produit courant."},
@@ -15090,7 +15090,7 @@ const QCM={
   {q:"Quelle contrainte identifie chaque ligne de manière unique ?",o:["<code>DEFAULT</code>","<code>NOT NULL</code>","<code>PRIMARY KEY</code>"],b:2,e:"<code>NOT NULL</code> rend la valeur obligatoire, <code>DEFAULT</code> en fournit une par défaut : ni l’une ni l’autre n’identifie la ligne."},
   {q:"À quoi sert une <code>FOREIGN KEY</code> ?",o:["À relier une valeur à une autre table","À trier une colonne","À supprimer les doublons"],b:0,e:"Elle empêche qu’une commande désigne un client qui n’existe pas."}],
  55:[{q:"<code>EXISTS</code> teste :",o:["Si une valeur appartient à une liste","Si la sous-requête trouve au moins une ligne","Combien de lignes la sous-requête trouve"],b:1,e:"On ne compare pas une valeur. On demande si une ligne liée existe."},
-  {q:"Pourquoi <code>NOT EXISTS</code> trouve les deux clients sans commande, alors que <code>NOT IN</code> sans filtre renvoie 0 ligne ?",o:["Ils ont une commande cachée","La commande #16 met un NULL dans la liste de NOT IN","EXISTS ignore la table clients"],b:1,e:"<code>NOT IN</code> peut ne retourner aucune ligne si la liste contient un <code>NULL</code>. <code>NOT EXISTS</code> ne construit pas cette liste : il cherche une commande liée à chaque client."},
+  {q:"Pourquoi <code>NOT EXISTS</code> trouve les deux clients sans commande, alors que <code>NOT IN</code> sans filtre renvoie 0 ligne ?",o:["Ils ont une commande cachée","La commande n°16 met un NULL dans la liste de NOT IN","EXISTS ignore la table clients"],b:1,e:"<code>NOT IN</code> peut ne retourner aucune ligne si la liste contient un <code>NULL</code>. <code>NOT EXISTS</code> ne construit pas cette liste : il cherche une commande liée à chaque client."},
   {q:"Sans <code>WHERE commandes.client_id = clients.id</code>, <code>EXISTS (SELECT 1 FROM commandes)</code> :",o:["Ne garde qu’Inès","Garde les 10 clients, même ceux sans commande","Provoque une erreur"],b:1,e:"La table commandes n’est pas vide. Sans corrélation, le test est le même pour tout le monde."}],
  59:[{q:"À quoi sert principalement <code>WITH</code> ?",o:["À enregistrer définitivement une nouvelle table","À donner un nom à un résultat intermédiaire","À modifier une colonne"],b:1,e:"Une CTE donne un nom à un résultat intermédiaire, que la suite de la requête peut réutiliser. Elle n’enregistre rien dans la base."},
   {q:"Combien de temps une CTE est-elle disponible ?",o:["Jusqu’à la suppression de la base","Pendant toute la session","Dans l’instruction SQL qui la définit"],b:2,e:"Une nouvelle instruction ne voit plus la CTE. Ce n’est pas une table."},
@@ -15114,7 +15114,7 @@ const QCM={
    {q:"<code>TRUNCATE TABLE commandes;</code> dans cette application :",o:["Vide la table plus vite que DELETE","Renvoie une erreur de syntaxe : SQLite ne la connaît pas","Supprime la table comme DROP"],b:1,e:"PostgreSQL et MySQL la proposent, pas SQLite. Pour vider une table ici, on écrit <code>DELETE FROM commandes;</code>."}],
  67:[{q:"Un <code>INSERT</code> de deux lignes dont la seconde viole une contrainte :",o:["Écrit la première et refuse la seconde","N’écrit aucune des deux","Écrit les deux en signalant un avertissement"],b:1,e:"L’instruction est indivisible : tout passe, ou rien ne passe. La ligne valide n’est pas conservée."},
    {q:"Ajouter un client avec l’<code>id</code> 1, déjà celui de Sophie, renvoie :",o:["PRIMARY KEY constraint failed","UNIQUE constraint failed: clients.id","DUPLICATE KEY error"],b:1,e:"SQLite parle d’<code>UNIQUE</code> : une clé primaire est avant tout une valeur qui ne peut pas se répéter."},
-   {q:"Une commande avec <code>client_id = NULL</code> est-elle acceptée ?",o:["Oui : NULL ne désigne aucun client, il n’y a rien à vérifier","Non : la clé étrangère l’interdit","Oui, mais seulement si la table est vide"],b:0,e:"C’est le cas de la commande 16 de cette base. Pour rendre le client obligatoire, il faudrait ajouter <code>NOT NULL</code> à côté de la clé étrangère."}],
+   {q:"Une commande avec <code>client_id = NULL</code> est-elle acceptée ?",o:["Oui : NULL ne désigne aucun client, il n’y a rien à vérifier","Non : la clé étrangère l’interdit","Oui, mais seulement si la table est vide"],b:0,e:"C’est le cas de la commande n°16 de cette base. Pour rendre le client obligatoire, il faudrait ajouter <code>NOT NULL</code> à côté de la clé étrangère."}],
  68:[{q:"Où se déclare <code>ON DELETE CASCADE</code> ?",o:["Dans le DELETE, au moment de supprimer","Dans le CREATE TABLE, à côté de la clé étrangère","Dans un PRAGMA, au début de la session"],b:1,e:"C’est une propriété de la table, posée une fois pour toutes. Au moment du <code>DELETE</code>, il n’y a rien à préciser."},
    {q:"Une commande garde-t-elle un sens sans son client ? Quelle action choisir ?",o:["CASCADE : la commande disparaît avec lui","SET NULL : la commande reste, détachée","RESTRICT : la suppression est impossible pour toujours"],b:1,e:"Le chiffre d’affaires est préservé, le lien vers la personne est coupé. <code>CASCADE</code> conviendrait à une ligne de panier, qui n’a aucun sens seule."},
    {q:"Sans aucune action déclarée, supprimer un client encore référencé :",o:["Supprime aussi ses commandes","Est refusé : FOREIGN KEY constraint failed","Met leurs client_id à NULL"],b:1,e:"C’est le comportement le plus prudent, et c’est pour cela qu’il est celui par défaut."}],
@@ -27934,7 +27934,7 @@ boot();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-10-12-ludique-v1764';
+  const SW_CACHE='requete-2026-10-12-ludique-v1765';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
