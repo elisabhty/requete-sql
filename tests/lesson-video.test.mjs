@@ -552,7 +552,7 @@ const COURSES = [
     notes: /notes:\{t:131\.6,y:1252,card:\[64,356,1016,957\],to:\[940,255\]\}/, table: 'clients',
     bubble: 'Avec <span class="ic">HAVING</span>, filtre les groupes formés par <span class="ic">GROUP BY</span>.',
     chapters: ['Situation', 'Le problème', 'HAVING en action', 'WHERE ou HAVING', 'Le piège', 'Le résultat', 'À retenir'],
-    traps: ['<span>Ateliers bien-être · Choix des villes</span>', '<span class="emo">🎯</span>Un atelier dès 2 clients',
+    traps: ['<span class="emo">🪷</span><span>Ateliers bien-être · Choix des villes</span>', '<span class="emo">🧘</span>Un atelier dès 2 clients', '<span class="pd emo">🧘</span>',
       '<span class="nl">Son nombre de clients</span><span class="tag calc">à calculer</span>', 'Garder les villes d’au moins 2 clients',
       '<span class="glow" id="hv3"><span class="kw">HAVING</span> <span class="kw">COUNT</span>(*) &gt;= 2</span>;',
       '<span class="b"><span class="emo">🎯</span>&nbsp;Le test&nbsp;: <code>COUNT(*) &gt;= 2</code></span>', "n >= SEUIL ? '✓ gardé' : '✕ écarté'",
